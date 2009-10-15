@@ -5,7 +5,9 @@
 
 * nausicaa
 
-  XXX
+  Fix the precompilation problems with Ikarus.
+
+  Fix the precompilation problems with Larceny.
 
 * records
 
@@ -35,11 +37,6 @@
    Scan RFC 2822 and implement (email date) accordingly.
 
 * foreign
-
-  Move the  array peeker/pokers in  the implementation compat  files and
-  optimise them.
-
-  Review the documentation.
 
   Add callbacks.
 

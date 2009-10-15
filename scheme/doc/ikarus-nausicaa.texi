@@ -2979,8 +2979,9 @@ with @func{let-values}:
 @forunix{} @func{process} makes use of the @cfunc{fork} and
 @cfunc{execvp} system functions.@*
 
-@glibcref{Creating a Process}@* @glibcref{Executing a File}@*
-@glibcref{Standard Environment}
+@glibcref{Creating a Process, Creating a Process}@* @glibcref{Executing
+a File, Executing a File}@* @glibcref{Standard Environment, Standard
+Environment Variables}
 @end quotation
 @end defun
 
@@ -2990,8 +2991,6 @@ Like @func{process} but the returned ports have their underlying file
 descriptors configured to non--blocking mode (@ref{ikaruslib io
 non-block}).
 @end defun
-
-
 
 @c page
 @node ikaruslib io socket
@@ -3038,14 +3037,12 @@ hexadecimal string for IPv6, or a network address.
 @forunix{} These functions use of the @cfunc{socket}, @cfunc{connect}
 and @cfunc{getaddrinfo} system functions.
 
-@glibcref{Creating a Socket}@*
-@glibcref{Connecting}@*
+@glibcref{Creating a Socket, Creating a Socket}@*
+@glibcref{Connecting, Making a Connection}@*
 See the @cfunc{getaddrinfo} manual page.@*
 See the @file{/etc/services} configuration file.
 @end quotation
 @end defun
-
-
 
 @c page
 @node ikaruslib io socket server
@@ -3070,10 +3067,10 @@ The socket is configured with the @code{AF_INET}, @code{INADDR_ANY},
 @code{SO_REUSEADDR} values and options (Ikarus version 0.0.3+, checkout
 1468).
 
-@glibcref{Creating a Socket}@*
-@glibcref{Socket Option Functions}@*
-@glibcref{Setting Address}@*
-@glibcref{Listening}@*
+@glibcref{Creating a Socket, Creating a Socket}@*
+@glibcref{Socket Option Functions, Socket Option Functions}@*
+@glibcref{Setting Address, Setting the Address of a Socket}@*
+@glibcref{Listening, Listening for Connections}
 @end quotation
 @end defun
 
@@ -3107,7 +3104,7 @@ non--blocking?}
 @quotation
 @forunix{} These functions make use of the @cfunc{accept} system call.
 
-@glibcref{Accepting Connections}
+@glibcref{Accepting Connections, Accepting Connections}
 @end quotation
 @end defun
 
@@ -3119,7 +3116,7 @@ Close a server socket causing it to stop listening.
 @forunix{} this function makes use of the @cfunc{shutdown} system
 function.
 
-@glibcref{Closing a Socket}
+@glibcref{Closing a Socket, Closing a Socket}
 See also the @cfunc{shutdown} manual page.
 @end quotation
 @end defun
@@ -3162,8 +3159,8 @@ fcntl(fd, F_SETFL, O_NONBLOCK);
 @end example
 
 @noindent
-@glibcref{Control Operations}@*
-@glibcref{Open-time Flags}
+@glibcref{Control Operations, Control Operations}@*
+@glibcref{Open-time Flags, Open-time Flags}
 
 
 
@@ -3217,7 +3214,7 @@ Example:
 (printf "here we are in the parent\n")
 @end example
 
-@glibcref{Creating a Process}
+@glibcref{Creating a Process, Creating a Process}
 @end defun
 
 
@@ -3232,7 +3229,7 @@ Example:
 (system "ls -l")
 @end example
 
-@glibcref{Running a Command}
+@glibcref{Running a Command, Running a Command}
 @end defun
 
 
@@ -3283,7 +3280,7 @@ If @var{block?} is @true{} (the default), then the process is suspended
 waiting for an eligible child; if @var{block?} is @false{} the process
 is not suspended and the return value is @false{}.
 
-@glibcref{Process Completion}
+@glibcref{Process Completion, Process Completion}
 @end defun
 
 
@@ -3421,8 +3418,8 @@ SIGURG          SIGVTALRM       SIGXCPU
 SIGXFSZ
 @end example
 
-@glibcref{Signaling Another Process}@*
-@glibcref{Standard Signals}
+@glibcref{Signaling Another Process, Signaling Another Process}@*
+@glibcref{Standard Signals, Standard Signals}
 @end defun
 
 
@@ -3449,7 +3446,7 @@ function.
 
 If an error occurs, an exception is raised.
 
-@glibcref{Working Directory}
+@glibcref{Working Directory, Working Directory}
 @end defun
 
 
@@ -3465,8 +3462,8 @@ directory selected by the string @var{pathname}.  Make use of the
 
 If an error occurs, an exception is raised.
 
-@glibcref{Opening a Directory}@*
-@glibcref{Reading/Closing Directory}
+@glibcref{Opening a Directory, Opening a Directory}@*
+@glibcref{Reading/Closing Directory, Reading/Closing Directory}
 @end defun
 
 
@@ -3481,7 +3478,7 @@ Coordinated Universal Time).
 
 If an error occurs, an exception is raised.
 
-@glibcref{Reading Attributes}
+@glibcref{Reading Attributes, Reading Attributes}
 @end defun
 
 
@@ -3489,13 +3486,11 @@ If an error occurs, an exception is raised.
 
 @subsubheading Inspecting file types
 
-
-@noindent
 For the following functions: if @var{follow} is @true{}, the default,
 make use of the @cfunc{stat} system function; if @var{follow} is
 @false{}, make use of the @cfunc{lstat} system function.
 
-@glibcref{Reading Attributes}
+@glibcref{Reading Attributes, Reading Attributes}
 
 
 @defun file-exists? @var{pathname} [@var{follow}]
@@ -3536,7 +3531,7 @@ referencing the @var{to} string pathname.  Make use of the
 @cfunc{symlink} system function.  If an error occurs, an exception is
 raised.
 
-@glibcref{Symbolic Links}
+@glibcref{Symbolic Links, Symbolic Links}
 @end defun
 
 
@@ -3546,9 +3541,9 @@ Make use of the @cfunc{mkdir} system function.  If an error occurs, an
 exception is raised.
 
 @var{mode} must be an exact integere selecting the access permissions
-for the directory; it defaults to @code{#o755}.
+for the directory; it defaults to @samp{#o755}.
 
-@glibcref{Creating Directories}
+@glibcref{Creating Directories, Creating Directories}
 @end defun
 
 @c ------------------------------------------------------------
@@ -3561,7 +3556,7 @@ Remove from the system the file selected by the @var{pathname} string.
 Make use of the @cfunc{unlink} system function.  If an error occurs, an
 exception is raised.
 
-@glibcref{Deleting Files}
+@glibcref{Deleting Files, Deleting Files}
 @end defun
 
 
@@ -3570,7 +3565,7 @@ Remove from the system the directory selected by the @var{pathname}
 string.  Make use of the @cfunc{rmdir} system function.  If an error
 occurs, an exception is raised.
 
-@glibcref{Deleting Files}
+@glibcref{Deleting Files, Deleting Files}
 @end defun
 
 
@@ -3586,7 +3581,7 @@ If an error occurs, an exception is raised.
 
 @var{mode} must be an exact integer selecting the permissions.
 
-@glibcref{Setting Permissions}
+@glibcref{Setting Permissions, Setting Permissions}
 @end defun
 
 
@@ -3608,7 +3603,7 @@ Example:
 
 @example
 (getenv "PATH")
-=> "/usr/local/bin:/usr/bin:/bin"
+@result{} "/usr/local/bin:/usr/bin:/bin"
 @end example
 @end defun
 
@@ -3637,7 +3632,7 @@ Return a string describing the @code{errno} code @var{error-code}.
 Makes use of the system function @cfunc{strerror}.  If @var{error-code}
 is not a valid @code{errno} value: return a string telling it.
 
-@glibcref{Error Messages}
+@glibcref{Error Messages, Error Messages}
 @end defun
 
 
@@ -3646,7 +3641,7 @@ Suspend the process for the selected time; it makes use of the system
 @cfunc{nanosleep} function.  @var{seconds} and @var{nanoseconds} must be
 positive exact integers.  If an error occurs an exception is raised.
 
-@glibcref{Sleeping}
+@glibcref{Sleeping, Sleeping}
 @end defun
 
 @c page
@@ -3654,7 +3649,6 @@ positive exact integers.  If an error occurs an exception is raised.
 @section The @library{ikarus foreign} library
 
 
-@noindent
 This chapter describes the facilities through which Ikarus interfaces
 with the host operating system and other external libraries.  The
 facilities of the @library{ikarus foreign} library give the Scheme

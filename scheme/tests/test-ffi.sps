@@ -142,42 +142,40 @@
 
   (check
       (let ((dirname '/scrappy/dappy/doo))
-	(guard (exc (else
-		     ;;(debug-print-condition "condition" exc)
-		     (list (errno-condition? exc)
-			   (condition-who exc)
-			   (errno-symbolic-value exc))))
+	(guard (E (else
+		   ;;(debug-print-condition "condition" E)
+		   (list (errno-condition? E)
+			 (condition-who E)
+			 (errno-symbolic-value E))))
 	  (chdir dirname)))
     => '(#t chdir ENOENT))
 
   (check
-      (guard (exc (else
-		   (list (errno-condition? exc)
-			 (condition-who exc)
-			 (errno-symbolic-value exc)
-			 )))
+      (guard (E (else
+		 (list (errno-condition? E)
+		       (condition-who E)
+		       (errno-symbolic-value E)
+		       )))
 	(primitive-pread 0 (integer->pointer 1234) 10 -10))
     => '(#t primitive-pread EINVAL))
 
   (check
       (let ((pathname '/etc/passwd))
-	(guard (exc (else
-		     (list (errno-condition? exc)
-			   (condition-who exc)
-			   (errno-symbolic-value exc)
-			   )))
-	  (execv pathname '())))
+  	(guard (E (else
+		   (list (errno-condition? E)
+			 (condition-who E)
+			 (errno-symbolic-value E)
+			 )))
+  	  (execv pathname '())))
     => '(#t primitive-execv EACCES))
 
   (check
       (let ((pathname '/etc/passwd))
-	(guard (exc (else
-		     (list (errno-condition? exc)
-			   (condition-who exc)
-			   (errno-symbolic-value exc)
-			   )))
-	  (opendir pathname)))
-    => '(#t primitive-opendir ENOTDIR))
+  	(guard (E ((errno-condition? E)
+		   (list (condition-who E)
+			 (errno-symbolic-value E))))
+  	  (opendir pathname)))
+    => '(primitive-opendir ENOTDIR))
 
   #t)
 

@@ -37,7 +37,9 @@
   (import (rnrs)
     (primitives make-parameter
 		foreign-file foreign-procedure
-		get-errno set-errno!))
+		get-errno set-errno!)
+    (only (foreign memory pointers)
+	  pointer-null))
 
 
 ;;;; dynamic loading
@@ -73,6 +75,9 @@
     ((pointer void* char* FILE*)
      '(maybe void*))
     ((callback)
+     ;;This ugly thing "(maybe void*)" represents a pointer which can be
+     ;;NULL.  When not NULL, it is  a record of type void*-rt; when NULL
+     ;;it is #f.
      '(maybe void*))
     (else
      (assertion-violation 'primitive-make-c-function
@@ -89,13 +94,20 @@
     (get-errno))))
 
 (define (primitive-make-c-function ret-type funcname arg-types)
-  (foreign-procedure (if (string? funcname)
-			 funcname
-		       (symbol->string funcname))
-		     (if (equal? '(void) arg-types)
-			 '()
-		       (map nausicaa-type->larceny-type arg-types))
-		     (nausicaa-type->larceny-type ret-type)))
+  (let ((callout-closure (foreign-procedure (if (string? funcname)
+						funcname
+					      (symbol->string funcname))
+					    (if (equal? '(void) arg-types)
+						'()
+					      (map nausicaa-type->larceny-type arg-types))
+					    (nausicaa-type->larceny-type ret-type))))
+    ;;When the  return value is a  pointer: if the pointer  is NULL, the
+    ;;return value  is #f.   So we have  to convert it  to POINTER-NULL.
+    ;;Ugly but what can I do?
+    (if (memq ret-type '(pointer void* char* FILE*))
+	(lambda args
+	  (or (apply callout-closure args) pointer-null))
+      callout-closure)))
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
   (let ((f (primitive-make-c-function ret-type funcname arg-types)))
