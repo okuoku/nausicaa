@@ -26,8 +26,6 @@
 ;;;
 
 
-;;;; setup
-
 (library (foreign errno)
   (export
 
@@ -91,7 +89,7 @@
     EUNATCH		EUSERS		EWOULDBLOCK
     EXDEV		EXFULL)
   (import (rnrs)
-    (foreign cstring)
+    (foreign cstrings)
     (foreign ffi))
 
 
@@ -423,7 +421,9 @@
 (define raise-errno-error
   (case-lambda
    ((who errno)
-    (raise-errno-error who errno #f))
+    (raise (condition (make-who-condition who)
+		      (make-message-condition (strerror errno))
+		      (make-errno-condition* errno))))
    ((who errno irritants)
     (raise (condition (make-who-condition who)
 		      (make-message-condition (strerror errno))
