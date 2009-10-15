@@ -229,6 +229,10 @@ Revised^6 Report on the algorithmic language Scheme
 @code{[\TAG\]}
 @end macro
 
+@macro autoconfref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,autoconf}
+@end macro
+
 @c ------------------------------------------------------------
 @c RNRS document macros.
 @c ------------------------------------------------------------
@@ -1459,7 +1463,7 @@ Foreign functions interface
 
 * memory::                      Low level memory handling.
 * ffi::                         Foreign functions interface.
-* cstring::                     C language strings handling.
+* cstrings::                    C language strings handling.
 * errno::                       C language system errors.
 
 Low level memory handling
@@ -1511,12 +1515,27 @@ Functions interface
 * ffi call out::                Calling foreign functions.
 * ffi call in::                 Calling Scheme functions.
 
+Inspecting foreign header files
+
+* ffi headers setup::           Setting up the C language environment.
+* ffi headers includes::        Including header files.
+* ffi headers valueof::         Determining the value of expressions.
+* ffi headers sizeof::          Determining the size of data types.
+* ffi headers typeof::          Determining the basic type of data types.
+* ffi headers alignof::         Determining the alignment of data types.
+* ffi headers strideof::        Determining the array stride of data types.
+* ffi headers offsetof::        Determining the offset of fields in data
+                                structures.
+* ffi headers access::          Determining the accessors of data types.
+* ffi headers inspect::         Full inspection of data types.
+* ffi headers common::          Common groups of tests.
+
 C language strings handling
 
-* cstring inspection::          Inspecting cstrings.
-* cstring operations::          Acting upon cstrings.
-* cstring conversion::          Converting to and from cstrings.
-* cstring argv::                Converting arrays of cstrings.
+* cstrings inspection::         Inspecting cstrings.
+* cstrings operations::         Acting upon cstrings.
+* cstrings conversion::         Converting to and from cstrings.
+* cstrings argv::               Converting arrays of cstrings.
 
 C language system errors
 
@@ -36562,7 +36581,7 @@ methods}) and to provide an interface for identifier macros
 
 @c page
 @node records builtin chart
-@subsection A chart for predefined classes
+@subsection A chart for predefined builtin @acronym{RTD}s
 
 
 @example
@@ -50664,14 +50683,20 @@ Numbers and all ``the other'' values are just put there.
 
 Nausicaa implements a foreign functions interface towards C language
 libraries built upon the interfaces provided by the underlying Scheme
-implementations.  There is a compound library @library{foreign}, which
-exports everything; other libraries export only a subset of the
-interface.
+implementations.  The @api{} is exported by the following libraries:
+
+@example
+(foreign memory)
+(foreign ffi)
+(foreign ffi sizeof)
+(foreign cstrings)
+(foreign errno)
+@end example
 
 @menu
 * memory::                      Low level memory handling.
 * ffi::                         Foreign functions interface.
-* cstring::                     C language strings handling.
+* cstrings::                    C language strings handling.
 * errno::                       C language system errors.
 @end menu
 
@@ -52749,22 +52774,10 @@ Like @func{malloc/guarded} but makes use of @func{calloc}.
 @section Foreign functions interface
 
 
-This chapter describes a wrapper of the foreign functions interface from
-the underlying Scheme implementation.  To load the library:
-
-@example
-(import (scheme)
-  (uriel ffi))
-@end example
-
-@noindent
-only functions needed to build an interface to a foreign C language
-shared object are made available by this library; other functions (to do
-actual operations) are in the @library{glibc ---} and @library{posix
----} libraries.
-
-The @library{uriel foreign} library also exports bindings from
-@library{uriel ffi}.
+The @library{foreign ffi} library exports an @api{} that allows to
+interface to foreign shared libraries coded in the C language; it is a
+common interface to the foreign functions interfaces of the underlying
+Scheme implementations.
 
 @menu
 * ffi example::                 Basic interface to Zlib.
@@ -52773,7 +52786,6 @@ The @library{uriel foreign} library also exports bindings from
 * ffi sizeof::                  Sizes and limits.
 * ffi headers::                 Inspecting foreign header files.
 @end menu
-
 
 @c page
 @node ffi example
@@ -52878,16 +52890,18 @@ expressions support).
 @subsection Dynamic loading of libraries
 
 
+A foreign shared library loadable with the @cfunc{dlopen} @posix{}
+interface is called @dfn{shared object}; a shared object can be opened,
+but not closed.  @library{foreign ffi} makes use of a Scheme object to
+represent a shared object; it allows access to all the functions
+exported by the library.
+
+
 @deffn Parameter shared-object
-Holds a value referencing the ``current'' shared object: the shared
+Holds a value referencing the ``current'' shared object: The shared
 object in which @func{primitive-make-c-function} will look for symbols.
 Shared objects references are produced with @func{open-shared-object}.
-
-The initial value selects the current process; with this value we can
-access symbols exported by the current program and the libraries that
-have been already loaded (this may be platform specific, check out the
-documentation of your operative system).  For example: the symbols from
-the standard C library, like @cfunc{fwrite}, can be accessed this way.
+The initial value is @samp{self-shared-object}.
 @end deffn
 
 
@@ -52901,31 +52915,35 @@ or pathname to be opened.  Examples:
 
 @example
 (define mpfr-lib
-  (let ((l (open-shared-object 'libmpfr.so)))
-    (shared-object l)
-    l))
+  (begin0-let ((l (open-shared-object 'libmpfr.so)))
+    (shared-object l)))
 
 (define mpfi-lib
-  (let ((l (open-shared-object '/usr/local/lib/libmpfi.so)))
-    (shared-object l)
-    l))
+  (begin0-let ((l (open-shared-object
+                    '/usr/local/lib/libmpfi.so)))
+    (shared-object l)))
 @end example
 
 In the case of a name (wihtout directory part) the search path for
 shared objects is implemenation dependent.
 
 @quotation
-@emph{Unix:} We can find documentation about the search path of shared
-objects in the manual page of @cfunc{dlopen}.
+@strong{For Unix} We can find documentation about the search path of
+shared objects in the manual page of @cfunc{dlopen}.
 @end quotation
 @end defun
 
 
-@defvar self-shared-object
-Bound to the value that identifies the current process.  It is the
-initial value of @code{shared-object}
-@end defvar
+@defvr Constant self-shared-object
+Bound to the shared object value that identifies the current process; it
+is the initial value of @samp{shared-object}.  With this value we can
+access symbols exported by the current program and the libraries that
+have been already loaded (this may be platform specific, check out the
+documentation of your operative system).
 
+For example, the symbols from the standard C library, like @cfunc{read}
+and @cfunc{write}, can be accessed this way.
+@end defvr
 
 @c page
 @node ffi call
@@ -52945,8 +52963,8 @@ initial value of @code{shared-object}
 
 The following symbols are accepted as C language type identifiers, but
 not all Scheme implementations support them all: we will have to find
-out by trial and error.  We should be safe using: @code{int},
-@code{pointer} and @code{double}, which are enough for a lot of foreign
+out by trial and error.  We should be safe using: @samp{int},
+@samp{pointer} and @samp{double}, which are enough for a lot of foreign
 libraries.
 
 @quotation
@@ -52959,11 +52977,11 @@ types.
 support all these types.
 @end quotation
 
-Remember that C strings (zero terminated arrays of @code{char}) must be
+Remember that C strings (zero terminated arrays of @samp{char}) must be
 created from Scheme strings with @func{string->cstring}, and handed to
 the foreign functions as pointers.
 
-@table @code
+@table @samp
 @item char
 @itemx schar
 @itemx signed-char
@@ -53173,23 +53191,16 @@ interface:
 @subsection Sizes and limits
 
 
-A set of bindings is provided to allow interface libraries to be aware
-of C language type sizes and limits.  To load the library:
-
-@example
-(import (rnrs)
-  (foreign ffi sizeof))
-@end example
-
-The @library{foreign} library also exports bindings from
-@library{foreign ffi sizeof}.
+The @library{foreign ffi sizeof} library exports a set of bindings to
+allow interface libraries to be aware of C language type sizes and
+limits.
 
 
 @defvr Constant pointer-integer
 Set to a symbol representing one of the unsigned integer types for
 callout arguments and return values.  It is meant to be the integer type
 that is equal in size to a pointer, so it can be used in place of the
-@code{pointer} type for Scheme implementation that do not have it (for
+@samp{pointer} type for Scheme implementations that do not have it (for
 example: Larceny checkout 5877).
 @end defvr
 
@@ -53216,7 +53227,8 @@ The number of bytes in the specified type.
 @defvrx Constant alignof-double
 @defvrx Constant alignof-long-double
 @defvrx Constant alignof-pointer
-The number of bytes of the alignment for the specified type.
+The number of bytes of the alignment in data structures for the
+specified type.
 @end defvr
 
 
@@ -53278,7 +53290,7 @@ function @func{native-endianness}.
 @defvrx Constant on-32-bits-systems
 @defvrx Constant on-64-bits-system
 @defvrx Constant on-64-bits-systems
-Bound to @true{} if the platform has words of 32 or 64 bits
+Bound to true if the platform has words of @math{32} or @math{64} bits
 respectively.
 @end defvr
 
@@ -53287,28 +53299,850 @@ respectively.
 @subsection Inspecting foreign header files
 
 
+C language header files inspection is performed with @gnu{} Autoconf.
+@value{PACKAGE} is distributed with a library of Autoconf macros in the
+file @file{nausicaa.autoconf}; to use it we must use @gnu{} Autoconf to
+configure a project and include @file{nausicaa.autoconf} in the
+@file{aclocal.m4} file.
+
+The Autoconf macros described here are meant to be used in the
+@file{configure.ac} file; they define Autoconf @dfn{output variables}
+which should be used to process a Scheme library for substitution of
+@samp{@@...@@} symbols.
+
+@menu
+* ffi headers setup::           Setting up the C language environment.
+* ffi headers includes::        Including header files.
+* ffi headers valueof::         Determining the value of expressions.
+* ffi headers sizeof::          Determining the size of data types.
+* ffi headers typeof::          Determining the basic type of data types.
+* ffi headers alignof::         Determining the alignment of data types.
+* ffi headers strideof::        Determining the array stride of data types.
+* ffi headers offsetof::        Determining the offset of fields in data
+                                structures.
+* ffi headers access::          Determining the accessors of data types.
+* ffi headers inspect::         Full inspection of data types.
+* ffi headers common::          Common groups of tests.
+@end menu
 
 @c page
-@node cstring
+@node ffi headers setup
+@subsubsection Setting up the C language environment
+
+
+@deffn {Autoconf Macro} NAUSICAA_SYSTEM_SETUP
+Setup what is needed to inspect the system.  Useful (but probably not
+mandatory) when we need to use the C compiler to inspect system
+facilities; not needed in the other cases.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_C_LANGUAGE
+Setup the C language environment.  Mandatory when we need to use the C
+compiler to inspect system and libraries facilities.
+@end deffn
+
+@c page
+@node ffi headers includes
+@subsubsection Including header files
+
+
+@deffn {Autoconf Macro} NAUSICAA_INCLUDES_DEFAULT (@var{headers})
+Expand to the specification of C language headers inclusion.  Its value
+is:
+
+@example
+AC_INCLUDES_DEFAULT
+#ifdef HAVE_ERRNO_H
+#  include <errno.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#  include <fcntl.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
+#ifdef HAVE_LIMITS_H
+#  include <limits.h>
+#endif
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
+@end example
+
+@noindent
+and additionally the optional @var{headers} are included.
+@samp{AC_INCLUDES_DEFAULT} is defined by Autoconf.  @autoconfref{Default
+Includes,Default Includes}
+
+For example, it can be used as third argument for @samp{AC_COMPUTE_INT},
+without arguments:
+
+@example
+AC_COMPUTE_INT([THE_IMAX],[INT_MAX],
+  [NAUSICAA_INCLUDES_DEFAULT])
+@end example
+
+@noindent
+or with arguments:
+
+@example
+AC_COMPUTE_INT([SIZEOF_MPFR],[sizeof(mpfr_t)],
+  NAUSICAA_INCLUDES_DEFAULT([#include <gmp.h>
+#include <mpfr.h>])
+@end example
+@end deffn
+
+@c page
+@node ffi headers valueof
+@subsubsection Determining the value of expressions
+
+
+It is often needed to know the value of a C language expression.  The
+following acquires the value of @samp{INT_MAX} (defined in
+@file{limits.h}) and assigns it to the output variable
+@samp{VALUEOF_INT_MAX}:
+
+@example
+NAUSICAA_VALUEOF_TEST([INT_MAX],[INT_MAX])
+@end example
+
+@noindent
+while the following acquires the offset of the field @samp{l_start} in
+the structure @samp{struct flock} (defined in @file{fcntl.h}):
+
+@example
+NAUSICAA_VALUEOF_TEST([OFFSETOF_STRUCT_FLOCK_L_START],
+   [offsetof(struct flock,l_start)])
+@end example
+
+@noindent
+the @samp{offsetof} operator is a C preprocessor macro, which can be
+defined as:
+
+@example
+#define offsetof(TYPE,FIELD)            \
+                                        \
+  ((void *) &(((TYPE) *) 0)->(FIELD))
+@end example
+
+@noindent
+when missing in the C library's headers.
+
+
+@deffn {Autoconf Macro} NAUSICAA_VALUEOF_TEST (@var{suffix}, @var{expr}, @var{default}, @var{headers})
+A wrapper for the Autoconf macro @samp{AC_COMPUTE_INT} that acquires the
+value of a C language expression, which must be an integer.
+
+The output variable @samp{VALUEOF_<@var{suffix}>} is set to the result.
+If the test fails: The value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+@c page
+@node ffi headers sizeof
+@subsubsection Determining the size of data types
+
+
+It is often needed to know the size of a C language data type.  The
+following determines the size in bytes of @samp{unsigned int} and
+assigns it to the output variable @samp{SIZEOF_UINT}:
+
+@example
+NAUSICAA_SIZEOF_TEST([UINT],[unsigned int])
+@end example
+
+@noindent
+the following determines the size of the field @samp{l_start} in the
+structure @samp{struct flock} (defined in @file{fcntl.h}) and stores it
+in the output variable @samp{SIZEOF_STRUCT_FLOCK_L_START}:
+
+@example
+NAUSICAA_SIZEOF_FIELD_TEST([OFFSETOF_STRUCT_FLOCK_L_START],
+   [struct flock],
+   [l_start])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_SIZEOF_TEST (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
+A wrapper for the Autoconf macro @samp{AC_COMPUTE_INT} that acquires the
+size of a C language type.
+
+The output variable @samp{SIZEOF_<@var{suffix}>} will be set to the
+result.  If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_SIZEOF_FIELD_TEST (@var{suffix}, @var{struct}, @var{field}, @var{default}, @var{headers})
+A wrapper for the Autoconf macro @samp{AC_COMPUTE_INT} that acquires the
+size of the field of a C language structure type.
+
+The output variable @samp{SIZEOF_<@var{suffix}>} will be set to the
+result.  If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+@var{struct} must be the type of the structure, usable in a variable
+declaration.  @var{field} must be the name of the field.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+@c page
+@node ffi headers typeof
+@subsubsection Determining the basic type of data types
+
+
+It is often needed to know the basic type of a derived or custom C
+language data type.  The following determines the type of @samp{ssize_t}
+(knowing that it is an signed integer) and assigns it to the output
+variable @samp{TYPEOF_SSIZE_T}:
+
+@example
+NAUSICAA_SIZEOF_TEST([SIZE_T],[ssize_t])
+NAUSICAA_INTTYPE_TEST([SIZE_T],[ssize_t])
+@end example
+
+@noindent
+the following determines the type of @samp{size_t} (knowing that it is
+an unsigned integer) and assigns it to the output variable
+@samp{TYPEOF_SIZE_T}:
+
+@example
+NAUSICAA_SIZEOF_TEST([SIZE_T],[size_t])
+NAUSICAA_UINTTYPE_TEST([SIZE_T],[size_t])
+@end example
+
+@noindent
+and the following does the same as the above:
+
+@example
+NAUSICAA_SIZEOF_TEST([SIZE_T],[size_t])
+NAUSICAA_BASE_TYPE_TEST([SIZE_T],[size_t],[unsigned-int])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_BASE_TYPE_TEST (@var{suffix}, @var{typedef}, @var{type-guess})
+Determine the equivalent basic type of the C language type
+@var{typedef}.  This is a wrapper for the macros described below, to
+which the @var{suffix} and @var{typedef} arguments are handed unchanged.
+
+@var{type-guess} selects which macro to use:
+
+@table @samp
+@item signed-int
+Selects @samp{NAUSICAA_INTTYPE_TEST}.
+
+@item unsigned-int
+Selects @samp{NAUSICAA_UINTTYPE_TEST}.
+
+@item float
+Selects @samp{NAUSICAA_FLOATTYPE_TEST}.
+@end table
+
+@samp{pointer} is a special value of @var{type-guess} that selects no
+macro but sets the output variable @samp{TYPEOF_<@var{suffix}>} to
+@samp{pointer}.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_INTTYPE_TEST (@var{suffix}, @var{typedef})
+Determine the equivalent basic integer type of the C language type
+@var{typedef} among the set:
+
+@example
+char
+short int
+int
+long
+long long
+@end example
+
+The output variable @samp{TYPEOF_<@var{suffix}>} is set to a result
+among:
+
+@example
+signed-char
+signed-int
+signed-short
+signed-long
+signed-long-long
+@end example
+
+If the test fails: The output variable is set to @false{}.
+
+The search is performed by comparing the value of the variable
+@samp{SIZEOF_<@var{suffix}>} with the values of the variables:
+
+@example
+SIZEOF_CHAR
+SIZEOF_INT
+SIZEOF_SHORT_INT
+SIZEOF_LONG
+SIZEOF_LLONG
+@end example
+
+@noindent
+defined by the macro @samp{NAUSICAA_SIZEOF}.
+@samp{SIZEOF_<@var{suffix}>} must have been set in precedence using the
+macro @samp{NAUSICAA_SIZEOF_TEST} or an equivalent macro.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_UINTTYPE_TEST (@var{suffix}, @var{typedef})
+Determine the equivalent basic unsigned integer type of the C language
+type @var{typedef} among the set:
+
+@example
+unsigned char
+unsigned short int
+unsigned int
+unsigned long
+unsigned long long
+@end example
+
+The output variable @samp{TYPEOF_<@var{suffix}>} is set to a result
+among:
+
+@example
+unsigned-char
+unsigned-int
+unsigned-short
+unsigned-long
+unsigned-long-long
+@end example
+
+If the test fails: The output variable is set to @false{}.
+
+The search is performed by comparing the value of the variable
+@samp{SIZEOF_<@var{suffix}>} with the values of the variables:
+
+@example
+SIZEOF_CHAR
+SIZEOF_UINT
+SIZEOF_SHORT_UINT
+SIZEOF_ULONG
+SIZEOF_ULLONG
+@end example
+
+@noindent
+defined by the macro @samp{NAUSICAA_SIZEOF}.
+@samp{SIZEOF_<@var{suffix}>} must have been set in precedence using the
+macro @samp{NAUSICAA_SIZEOF_TEST} or an equivalent macro.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_FLOATTYPE_TEST (@var{suffix}, @var{typedef})
+Determine the equivalent basic floating point type of the C language
+type @var{typedef} among the set:
+
+@example
+float
+double
+long double
+@end example
+
+The output variable @samp{TYPEOF_<@var{suffix}>} is set to a result
+among:
+
+@example
+float
+double
+long-double
+@end example
+
+If the test fails: The output variable is set to @false{}.
+
+The search is performed by comparing the value of the variable
+@samp{SIZEOF_<@var{suffix}>} with the values of the variables:
+
+@example
+SIZEOF_FLOAT
+SIZEOF_DOUBLE
+SIZEOF_LONG_DOUBLE
+@end example
+
+@noindent
+defined by the macro @samp{NAUSICAA_SIZEOF}.
+@samp{SIZEOF_<@var{suffix}>} must have been set in precedence using the
+macro @samp{NAUSICAA_SIZEOF_TEST} or an equivalent macro.
+@end deffn
+
+@c page
+@node ffi headers alignof
+@subsubsection Determining the alignment of data types
+
+
+It is sometimes needed to know the alignment of a C language data type
+in data structures.  The following determines the alignment in bytes of
+@samp{unsigned int} and assigns it to the output variable
+@samp{ALIGNOF_UINT}:
+
+@example
+NAUSICAA_ALIGNOF_TEST([UINT],[unsigned int])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_ALIGNOF_TEST (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
+Acquire the alignment of a C language type.
+
+The output variable @samp{ALIGNOF_<@var{suffix}>} will be set to the
+result.  If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+@c page
+@node ffi headers strideof
+@subsubsection Determining the array stride of data types
+
+
+When accessing a block of memory as an array of values of a given data
+type, we must know the stride of the elements: The number of bytes
+between the first byte of an element and the first byte of its forward
+adjacent.  The following determines the stride in bytes of
+@samp{unsigned int} and assigns it to the output variable
+@samp{STRIDEOF_UINT}:
+
+@example
+NAUSICAA_STRIDEOF_TEST([UINT],[unsigned int])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_STRIDEOF_TEST (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
+Acquire the stride of a C language type.
+
+The output variable @samp{STRIDEOF_<@var{suffix}>} will be set to the
+result.  If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+@c page
+@node ffi headers offsetof
+@subsubsection Determining the offset of fields in data structures
+
+
+It is often needed to know the offset of a field in a C language data
+structure.  From a pointer to the first byte of a data structure and the
+offset of one of its fields, we can compute the pointer to the first
+byte of the fields by adding the two.
+
+The following determines the offset of the field @samp{l_start} in the
+structure @samp{struct flock} (defined in @file{fcntl.h}) and stores it
+in the output variable @samp{OFFSETOF_STRUCT_FLOCK_L_START}:
+
+@example
+NAUSICAA_OFFSETOF_FIELD_TEST([OFFSETOF_STRUCT_FLOCK_L_START],
+   [struct flock],
+   [l_start])
+@end example
+
+@noindent
+the following does the same for the @samp{l_whence} field and stores it
+in the output variable @samp{OFFSETOF_STRUCT_FLOCK_L_WHENCE}:
+
+@example
+NAUSICAA_OFFSETOF_FIELD_TEST([OFFSETOF_STRUCT_FLOCK_L_WHENCE],
+   [struct flock],
+   [l_whence])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_OFFSETOF_FIELD_TEST (@var{suffix}, @var{struct}, @var{field}, @var{headers})
+A wrapper for the Autoconf macro @samp{AC_COMPUTE_INT} that acquires the
+offset of a field in a C data structure.
+
+@var{struct} is the type of the structure, @var{field} is the name of
+the field.
+
+The output variable @samp{OFFSETOF_<@var{SUFFIX}>} is set to the result.
+If the test fails the value of the output variable will be @false{}.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+@c page
+@node ffi headers access
+@subsubsection Determining the accessors of data types
+
+
+@deffn {Autoconf Macro} NAUSICAA_ACCESSORS_TEST (@var{suffix}, @var{typedef})
+Expands to:
+
+@example
+NAUSICAA_GETTER_TEST(@var{suffix},@var{typedef})
+NAUSICAA_SETTER_TEST(@var{suffix},@var{typedef})
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_GETTER_TEST (@var{suffix}, @var{typedef})
+Determines the getter to be used for the C language type @var{typedef}.
+
+The output variable @samp{GETTEROF_<@var{suffix}>} is set to the name of
+the getter, which will be one among:
+
+@example
+pointer-ref-c-signed-char
+pointer-ref-c-unsigned-char
+pointer-ref-c-signed-int
+pointer-ref-c-unsigned-int
+pointer-ref-c-signed-short
+pointer-ref-c-unsigned-short
+pointer-ref-c-signed-long
+pointer-ref-c-unsigned-long
+pointer-ref-c-signed-long-long
+pointer-ref-c-unsigned-long-long
+pointer-ref-c-float
+pointer-ref-c-double
+pointer-ref-c-long-double
+pointer-ref-c-pointer
+@end example
+
+@noindent
+if the test fails: The output variable will be set to @false{}.
+
+The search is performed by comparing the value of the variable
+@samp{TYPEOF_<@var{suffix}>} with the values:
+
+@example
+signed-char             unsigned-char
+signed-short            unsigned-short
+signed-int              unsigned-int
+signed-long             unsigned-long
+signed-long-long        unsigned-long-long
+float                   double
+long-double             pointer
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_SETTER_TEST (@var{suffix}, @var{typedef})
+Determines the setter to be used for the C language type @var{typedef}.
+
+The output variable @samp{SETTEROF_<@var{suffix}>} is set to the name of
+the setter, which will be one among:
+
+@example
+pointer-set-c-signed-char!
+pointer-set-c-unigned-char!
+pointer-set-c-signed-int!
+pointer-set-c-unsigned-int!
+pointer-set-c-signed-short!
+pointer-set-c-unsigned-short!
+pointer-set-c-signed-long!
+pointer-set-c-unsigned-long!
+pointer-set-c-signed-long-long!
+pointer-set-c-unsigned-long-long!
+pointer-set-c-float!
+pointer-set-c-double!
+pointer-set-c-long-double!
+pointer-set-c-pointer!
+@end example
+
+@noindent
+if the test fails: The output variable will be set to @false{}.
+
+The search is performed by comparing the value of the variable
+@samp{TYPEOF_<@var{suffix}>} with the values:
+
+@example
+signed-char             unsigned-char
+signed-short            unsigned-short
+signed-int              unsigned-int
+signed-long             unsigned-long
+signed-long-long        unsigned-long-long
+float                   double
+long-double             pointer
+@end example
+@end deffn
+
+@c page
+@node ffi headers inspect
+@subsubsection Full inspection of data types
+
+
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_TYPE (@var{suffix}, @var{typedef}, @var{type-guess}, @var{default}, @var{headers})
+Perform a full inspection for a C language type definition.  This macro
+is a wrapper for other more basic macros, and it expands to:
+
+@example
+NAUSICAA_SIZEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_ALIGNOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_STRIDEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_BASE_TYPE_TEST(@var{suffix},@var{typedef},@var{type-guess})
+NAUSICAA_ACCESSORS_TEST(@var{suffix},@var{typedef})
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_STRUCT_TYPE (@var{suffix}, @var{typedef}, @var{default}, @var{headers})
+Perform a full inspection for a C language structure type definition.
+This macro is a wrapper for other more basic macros, and it expands to:
+
+@example
+NAUSICAA_SIZEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_ALIGNOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+NAUSICAA_STRIDEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_FIELD_TYPE (@var{suffix}, @var{struct-typedef}, @var{field-name}, @var{type-guess}, @var{default}, @var{headers})
+Perform a full inspection for a C language field structure type
+definition.  This macro is a wrapper for other more basic macros, and it
+expands to:
+
+@example
+NAUSICAA_OFFSETOF_FIELD_TEST(@var{suffix},@var{struct-typedef},
+                             @var{field-name},@var{headers})
+NAUSICAA_SIZEOF_FIELD_TEST(@var{suffix},@var{struct-typedef},
+                           @var{field-name},@var{default},@var{headers})
+NAUSICAA_BASE_TYPE_TEST(@var{suffix},
+                        @var{struct-typedef}.@var{field-name},
+                        @var{type-guess})
+NAUSICAA_ACCESSORS_TEST(@var{suffix},
+                        @var{struct-typedef}.@var{field-name})
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_INSPECT_FIELD_TYPE_POINTER (@var{suffix}, @var{struct-typedef}, @var{field-name}, @var{headers})
+Perform an inspection for a C language field structure type definition,
+but only to acquire the offset.  This macro is required when we need to
+access a structure field through a pointer to it; an example is the
+@samp{d_name} field of @samp{struct dirent} from @file{dirent.h}.
+
+Only the offset of the field (output variable
+@samp{OFFSETOF_<@var{SUFFIX}>}) is defined.
+@end deffn
+
+@c page
+@node ffi headers common
+@subsubsection Common groups of tests
+
+
+@deffn {Autoconf Macro} NAUSICAA_SIZEOF
+Perform tests to determine the size (the number of bytes) of the common
+C language types.  The following output variables are defined:
+
+@multitable {SIZEOF_SHORT_UINT} {unsigned long long}
+@headitem Variable @tab Size of C type
+@item SIZEOF_SHORT_INT
+@tab short int
+@item SIZEOF_SHORT_UINT
+@tab unsigned short int
+@item SIZEOF_INT
+@tab int
+@item SIZEOF_UINT
+@tab unsigned int
+@item SIZEOF_LONG
+@tab long
+@item SIZEOF_ULONG
+@tab unsigned long
+@item SIZEOF_LLONG
+@tab long long
+@item SIZEOF_ULLONG
+@tab unsigned long long
+@item SIZEOF_FLOAT
+@tab float
+@item SIZEOF_DOUBLE
+@tab double
+@item SIZEOF_POINTER
+@tab void *
+@end multitable
+
+@multitable {ALIGNOF_SHORT_UINT} {unsigned long long}
+@headitem Variable @tab Alignment of C type
+@item ALIGNOF_SHORT_INT
+@tab short int
+@item ALIGNOF_SHORT_UINT
+@tab unsigned short int
+@item ALIGNOF_INT
+@tab int
+@item ALIGNOF_UINT
+@tab unsigned int
+@item ALIGNOF_LONG
+@tab long
+@item ALIGNOF_ULONG
+@tab unsigned long
+@item ALIGNOF_LLONG
+@tab long long
+@item ALIGNOF_ULLONG
+@tab unsigned long long
+@item ALIGNOF_FLOAT
+@tab float
+@item ALIGNOF_DOUBLE
+@tab double
+@item ALIGNOF_POINTER
+@tab void *
+@end multitable
+
+@multitable {STRIDEOF_SHORT_UINT} {unsigned long long 12}
+@headitem Variable @tab Array stride of C type
+@item STRIDEOF_SHORT_INT
+@tab short int
+@item STRIDEOF_SHORT_UINT
+@tab unsigned short int
+@item STRIDEOF_INT
+@tab int
+@item STRIDEOF_UINT
+@tab unsigned int
+@item STRIDEOF_LONG
+@tab long
+@item STRIDEOF_ULONG
+@tab unsigned long
+@item STRIDEOF_LLONG
+@tab long long
+@item STRIDEOF_ULLONG
+@tab unsigned long long
+@item STRIDEOF_FLOAT
+@tab float
+@item STRIDEOF_DOUBLE
+@tab double
+@item STRIDEOF_POINTER
+@tab void *
+@end multitable
+
+Additionally @samp{TYPEOF_POINTER_INTEGER} is set to the type
+specification of the integer whose size equals the size of a pointer.
+It is one among @samp{unsigned-int} and @samp{unsigned-long}
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_C_TYPES_LIMITS
+Perform tests to determine the value of limits for the common C language
+types.  The following output variables are defined:
+
+@multitable {VALUEOF_ULLONG_MAX} {Original C expression}
+@headitem Variable @tab Original C expression
+@item VALUEOF_CHAR_MAX
+@tab CHAR_MAX
+@item VALUEOF_CHAR_MIN
+@tab CHAR_MIN
+@item VALUEOF_SCHAR_MAX
+@tab SCHAR_MAX
+@item VALUEOF_SCHAR_MIN
+@tab SCHAR_MIN
+@item VALUEOF_UCHAR_MAX
+@tab UCHAR_MAX
+@item VALUEOF_SHRT_MAX
+@tab SHRT_MAX
+@item VALUEOF_SHRT_MIN
+@tab SHRT_MIN
+@item VALUEOF_USHRT_MAX
+@tab USHRT_MAX
+@item VALUEOF_INT_MAX
+@tab INT_MAX
+@item VALUEOF_INT_MIN
+@tab INT_MIN
+@item VALUEOF_UINT_MAX
+@tab UINT_MAX
+@item VALUEOF_LONG_MAX
+@tab LONG_MAX
+@item VALUEOF_LONG_MIN
+@tab LONG_MIN
+@item VALUEOF_ULONG_MAX
+@tab ULONG_MAX
+@item VALUEOF_LLONG_MAX
+@tab LLONG_MAX
+@item VALUEOF_LLONG_MIN
+@tab LLONG_MIN
+@item VALUEOF_ULLONG_MAX
+@tab ULLONG_MAX
+@item VALUEOF_WCHAR_MAX
+@tab WCHAR_MAX
+@item VALUEOF_SSIZE_MAX
+@tab SSIZE_MAX
+@end multitable
+
+Additionally the output variable @samp{WORDS_BIGENDIAN} is set to
+@true{} if the underlying platform is big endian, to @false{} otherwise.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_C_ERRNO
+Perform tests to determine the value of all the known @samp{errno}
+predefined values.  The following list of @samp{errno} symbols is used
+to define output variables with prefix @samp{VALUEOF_}.
+
+@example
+EPERM           ENOENT          ESRCH           EINTR
+EIO             ENXIO           E2BIG           ENOEXEC
+EBADF           ECHILD          EAGAIN          ENOMEM
+EACCES          EFAULT          ENOTBLK         EBUSY
+EEXIST          EXDEV           ENODEV          ENOTDIR
+EISDIR          EINVAL          ENFILE          EMFILE
+ENOTTY          ETXTBSY         EFBIG           ENOSPC
+ESPIPE          EROFS           EMLINK          EPIPE
+EDOM            ERANGE          EDEADLK         ENAMETOOLONG
+ENOLCK          ENOSYS          ENOTEMPTY       ELOOP
+EWOULDBLOCK     ENOMSG          EIDRM           ECHRNG
+EL2NSYNC        EL3HLT          EL3RST          ELNRNG
+EUNATCH         ENOCSI          EL2HLT          EBADE
+EBADR           EXFULL          ENOANO          EBADRQC
+EBADSLT         EDEADLOCK       EBFONT          ENOSTR
+ENODATA         ETIME           ENOSR           ENONET
+ENOPKG          EREMOTE         ENOLINK         EADV
+ESRMNT          ECOMM           EPROTO          EMULTIHOP
+EDOTDOT         EBADMSG         EOVERFLOW       ENOTUNIQ
+EBADFD          EREMCHG         ELIBACC         ELIBBAD
+ELIBSCN         ELIBMAX         ELIBEXEC        EILSEQ
+ERESTART        ESTRPIPE        EUSERS          ENOTSOCK
+EDESTADDRREQ    EMSGSIZE        EPROTOTYPE      ENOPROTOOPT
+EPROTONOSUPPORT ESOCKTNOSUPPORT EOPNOTSUPP      EPFNOSUPPORT
+EAFNOSUPPORT    EADDRINUSE      EADDRNOTAVAIL   ENETDOWN
+ENETUNREACH     ENETRESET       ECONNABORTED    ECONNRESET
+ENOBUFS         EISCONN         ENOTCONN        ESHUTDOWN
+ETOOMANYREFS    ETIMEDOUT       ECONNREFUSED    EHOSTDOWN
+EHOSTUNREACH    EALREADY        EINPROGRESS     ESTALE
+EUCLEAN         ENOTNAM         ENAVAIL         EISNAM
+EREMOTEIO       EDQUOT          ENOMEDIUM       EMEDIUMTYPE
+ECANCELED       ENOKEY          EKEYEXPIRED     EKEYREVOKED
+EKEYREJECTED    EOWNERDEAD      ENOTRECOVERABLE
+@end example
+@end deffn
+
+@c page
+@node cstrings
 @section C language strings handling
 
 
-A @emph{C string} is a block of memory holding a string of characters
+A @dfn{C string} is a block of memory holding a string of characters
 terminated by a zero byte.  The functions described in this chapter are
-exported by the @library{uriel cstring} library.  The @library{uriel
-foreign} library also exports bindings from @library{uriel cstring}.
-
+exported by the @library{foreign cstrings} library.
 
 @menu
-* cstring inspection::          Inspecting cstrings.
-* cstring operations::          Acting upon cstrings.
-* cstring conversion::          Converting to and from cstrings.
-* cstring argv::                Converting arrays of cstrings.
+* cstrings inspection::         Inspecting cstrings.
+* cstrings operations::         Acting upon cstrings.
+* cstrings conversion::         Converting to and from cstrings.
+* cstrings argv::               Converting arrays of cstrings.
 @end menu
 
-
 @c page
-@node cstring inspection
+@node cstrings inspection
 @subsection Inspecting strings
 
 
@@ -53318,18 +54152,17 @@ Return the number of characters in the C string referenced by
 @end defun
 
 
-@defun strcmp @var{pointer1} @var{pointer2}
-@defunx strncmp @var{pointer1} @var{pointer2} @var{number-of-bytes}
-An interface to the @cfunc{strcmp} system function.  Compare
-@var{number-of-bytes} starting at @var{pointer1} and @var{pointer2} and
-return an integer having the same sign as the difference between the
-first different bytes from the blocks.  If the blocks are equal, the
-return value is zero.
+@defun strcmp @vari{pointer} @varii{pointer}
+@defunx strncmp @vari{pointer} @varii{pointer} @var{number-of-bytes}
+An interface to the @cfunc{strcmp} and @cfunc{strncmp} system functions.
+Compare @var{number-of-bytes} starting at @vari{pointer} and
+@varii{pointer} and return an integer having the same sign as the
+difference between the first different bytes from the blocks.  If the
+blocks are equal, the return value is zero.
 @end defun
 
-
 @c page
-@node cstring operations
+@node cstrings operations
 @subsection Acting upon cstrings
 
 
@@ -53350,9 +54183,8 @@ string is allocated using the supplied @var{malloc} function, or
 @func{malloc} if no function is given.
 @end defun
 
-
 @c page
-@node cstring conversion
+@node cstrings conversion
 @subsection Converting to and from cstrings
 
 
@@ -53362,10 +54194,11 @@ string is allocated using the supplied @var{malloc} function, or
 Build a new C string representing the Scheme @var{string-or-symbol} and
 return a pointer value referencing it.
 
-@func{string->cstring} allocates memory using supplied @var{malloc}
-function, or @func{malloc} otherwise.  The conversion is performed using
-@func{string->utf8}.  To use a compensated allocation: we can use
-@func{malloc/c} or @func{malloc-block/c} as @var{malloc} argument.
+@func{string->cstring} allocates memory using the supplied @var{malloc}
+function, or @func{malloc} if @var{malloc} is not given.  The conversion
+is performed using @func{string->utf8}.  To use a compensated
+allocation: we can use @func{malloc/c} or @func{malloc-block/c} as
+@var{malloc} argument.
 
 @func{string->cstring/c} allocates memory using @func{malloc-block/c}.
 @end defun
@@ -53380,9 +54213,8 @@ For @func{cstring->string/len} only @var{number-of-bytes} bytes are
 taken from the C string.
 @end defun
 
-
 @c page
-@node cstring argv
+@node cstrings argv
 @subsection Converting arrays of cstrings
 
 
@@ -53425,24 +54257,19 @@ Convert the null--terminated array of strings referenced by the
 @var{argv} pointer to a list of Scheme strings.
 @end defun
 
-
-
 @c page
 @node errno
 @section C language system errors
 
 
 The bindings described in this chapter are exported by the
-@library{uriel errno} library.  The @library{uriel foreign} library also
-exports bindings from @library{uriel errno}.
-
+@library{foreign errno} library.
 
 @menu
 * errno values::                Error codes.
 * errno conversion::            Conversion of error codes.
 * errno condition::             Raising exceptions.
 @end menu
-
 
 @c page
 @node errno values
@@ -53633,7 +54460,6 @@ EUNATCH             EUSERS              EWOULDBLOCK
 EXDEV               EXFULL
 @end example
 
-
 @c page
 @node errno conversion
 @subsection Conversion of error codes
@@ -53647,25 +54473,22 @@ message coresponding to @var{errno-numeric-value}.
 
 @defun symbol->errno @var{symbol}
 @defunx symbol->errno/or-error @var{symbol}
-Attempt the conversion from an @code{errno} symbolic value to the
-corresponding numeric value.  Return an integer or @false{} if the
-symbol is not defined on the underlying platform.
-
-The @code{or-error} variant raises an assertion violation if
-@var{symbol} is not an @code{errno} symbolic value.
+Attempt the conversion from an @samp{errno} symbolic value to the
+corresponding numeric value.  @func{symbol->errno} returns an integer or
+@false{} if the symbol is not defined on the underlying platform.  The
+@samp{or-error} variant raises an assertion violation if @var{symbol} is
+not an @samp{errno} symbolic value.
 @end defun
 
 
 @defun errno->symbol @var{number}
 @defunx errno->symbol/or-error @var{number}
-Attempt the conversion from an @code{errno} numeric value to the
-corresponding symbolic value.  Return a symbol or @false{} if
-@var{number} is not an @code{errno} numeric value.
-
-The @code{or-error} variant raises an assertion violation if
-@var{number} is not an @code{errno} numerc value.
+Attempt the conversion from an @samp{errno} numeric value to the
+corresponding symbolic value.  @func{errno->symbol} returns a symbol or
+@false{} if @var{number} is not an @samp{errno} numeric value.  The
+@samp{or-error} variant raises an assertion violation if @var{number} is
+not an @samp{errno} numeric value.
 @end defun
-
 
 @c page
 @node errno condition
@@ -53674,31 +54497,33 @@ The @code{or-error} variant raises an assertion violation if
 
 @deftp Condition {&errno}
 Type of condition objects that represent an error in a foreign function
-signaled with the @code{errno} variable.
+signaled with the @samp{errno} variable.  It is derived from
+@samp{&error}.
 @end deftp
 
 
 @deffn {Condition Constructor} make-errno-condition @var{errno-numeric-value} @var{errno-symbolic-value}
 @deffnx {Condition Predicate} errno-condition? @var{object}
-@deffnx {Field Getter} errno-numeric-value @var{object}
-@deffnx {Field Getter} errno-symbolic-value @var{object}
+@deffnx {Field Accessor} errno-numeric-value @var{object}
+@deffnx {Field Accessor} errno-symbolic-value @var{object}
 Functions to handle foreign system error condition objects.
 
 Fake example:
 
 @example
 (let ((errno ---))
-  (raise (condition (make-who-condition 'read)
-                    (make-message-condition (strerror errno))
-                    (make-errno-condition
-                      errno
-                      (errno->symbol/or-error errno-numeric-value)))))
+  (raise
+    (condition
+      (make-who-condition 'read)
+      (make-message-condition (strerror errno))
+      (make-errno-condition errno
+        (errno->symbol/or-error errno)))))
 @end example
 @end deffn
 
 
 @defun make-errno-condition* @var{errno-numeric-value}
-Wrapper for @func{make-errno-condition} that builds an @code{&errno}
+Wrapper for @func{make-errno-condition} that builds an @samp{&errno}
 condition from the numeric value only.
 @end defun
 
@@ -53706,8 +54531,9 @@ condition from the numeric value only.
 @defun raise-errno-error @var{who} @var{errno-numeric-value}
 @defunx raise-errno-error @var{who} @var{errno-numeric-value} @var{irritants}
 Raise a non--continuable exception representing a foreign function
-system error signaled through the @code{errno} variable.  If
-@var{irritants} is not given, it defaults to @false{}.
+system error signaled through the @samp{errno} variable.  If
+@var{irritants} is not given, the condition object has no
+@samp{&irritants} component.
 
 The following form:
 
