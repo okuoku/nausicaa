@@ -28,14 +28,17 @@
   (export
     shared-object primitive-open-shared-object self-shared-object
     primitive-make-c-function primitive-make-c-function/with-errno
+    primitive-make-c-callback primitive-free-c-callback
     errno)
   (import (rnrs)
     (only (system)
 	  make-parameter)
     (rename (only (mosh ffi)
 		  open-shared-library make-c-function
+		  make-c-callback free-c-callback
 		  shared-errno)
-	    (shared-errno errno)))
+	    (shared-errno errno)
+	    (free-c-callback primitive-free-c-callback)))
 
 
 ;;;; dynamic loading
@@ -97,6 +100,11 @@
 			  (apply f args)))
 	     (errval	(errno)))
 	(values retval errval)))))
+
+(define (primitive-make-c-callback ret-type scheme-function arg-types)
+  (make-c-callback (nausicaa-type->mosh-type ret-type)
+		   (map nausicaa-type->mosh-type arg-types)
+		   scheme-function))
 
 
 ;;;; done

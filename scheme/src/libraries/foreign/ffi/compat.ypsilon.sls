@@ -2,6 +2,12 @@
 ;;;Copyright (c) 2004-2008 Yoshikatsu Fujita. All rights reserved.
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;
+;;;Abstract
+;;;--------
+;;;
+;;;	For informations  on Ypsilon's FFI,  read the code  in Ypsilon's
+;;;	source tree, file "sitelib/ypsilon/ffi.scm".
+;;;
 ;;;Redistribution and  use in source  and binary forms, with  or without
 ;;;modification,  are permitted provided  that the  following conditions
 ;;;are met:
@@ -35,13 +41,15 @@
   (export
     shared-object primitive-open-shared-object self-shared-object
     primitive-make-c-function primitive-make-c-function/with-errno
+    primitive-make-c-callback primitive-free-c-callback
     errno)
   (import (rnrs)
     (only (core)
 	  make-parameter)
     (rename (only (ypsilon ffi)
 		  load-shared-object lookup-shared-object
-		  shared-object-errno make-cdecl-callout)
+		  make-cdecl-callout make-cdecl-callback
+		  shared-object-errno)
 	    (shared-object-errno errno))
     (foreign ffi sizeof)
     (only (foreign memory pointers)
@@ -72,13 +80,11 @@
     (assertion-violation 'assert-int
       "expected exact integer as function argument" value)))
 
-;;Floating point values of type "float" are unsupported by Ypsilon.
-;;
-;; (define (assert-float value)
-;;   (if (flonum? value)
-;;       (flonum->float value)
-;;     (assertion-violation 'assert-float
-;;       "expected flonum as function argument" value)))
+(define (assert-float value)
+  (if (flonum? value)
+      value
+    (assertion-violation 'assert-float
+      "expected flonum as function argument" value)))
 
 (define (assert-double value)
   (if (flonum? value)
@@ -104,33 +110,72 @@
     (assertion-violation 'assert-pointer
       "expected pointer as function argument" p)))
 
-(define (assert-closure value)
-  (if (procedure? value)
+(define (assert-callback value)
+  ;;The  return  value  of  MAKE-CDECL-CALLBACK is  an  exact,  unsigned
+  ;;integer  representing  the   address  of  the  (trampoline)  foreign
+  ;;function.
+  (if (integer? value)
       value
-    (assertion-violation 'assert-closure
+    (assertion-violation 'assert-callback
       "expected procedure as function argument" value)))
 
 
-;;;; values normalisation: Foreign -> Ypsilon
+;;;; types normalisation
 ;;
-;;This mapping  function normalises the C type  identifiers supported by
-;;Nausicaa  to  the  identifiers  supported  by  Ypsilon.   Notice  that
-;;currently there is no support for "char".
+;;In Ypsilon revision 503, it appears that an argument to a function can
+;;be one among:
 ;;
-;;Care  must  be  taken  in  selecting  types,  because:
+;;  bool		char		size_t
+;;  short		int		long		long-long
+;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
+;;  float		double
+;;  void*
+;;  int8_t		int16_t		int32_t		int64_t
+;;  uint8_t		uint16_t	uint32_t	uint64_t
 ;;
-;;* Selecting "void*"  as Ypsilon type will cause  Ypsilon to allocate a
-;;  bytevector and use it as value.
+;;the return type of a callout function can be one among:
 ;;
-;;* Selecting "char*"  as Ypsilon type will cause  Ypsilon to allocate a
-;;  string and use it as value.
+;;  void
+;;  bool		char		size_t
+;;  short		int		long		long-long
+;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
+;;  float		double
+;;  void*		char*
+;;  int8_t		int16_t		int32_t		int64_t
+;;  uint8_t		uint16_t	uint32_t	uint64_t
 ;;
+;;the return type of a callback function can be one among:
+;;
+;;  void
+;;  bool		char		size_t
+;;  short		int		long		long-long
+;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
+;;  float		double
+;;  void*
+;;  int8_t		int16_t		int32_t		int64_t
+;;  uint8_t		uint16_t	uint32_t	uint64_t
+;;
+
 (define (nausicaa-type->ypsilon-type type)
+  ;;This mapping function normalises the C type identifiers supported by
+  ;;Nausicaa  to  the identifiers  supported  by  Ypsilon.  Notice  that
+  ;;currently there is no support for "char".
+  ;;
+  ;;Care  must  be  taken  in  selecting  types,  because:
+  ;;
+  ;;* Selecting "void*" as Ypsilon type will cause Ypsilon to allocate a
+  ;;  bytevector and use it as value.
+  ;;
+  ;;* Selecting "char*" as Ypsilon type will cause Ypsilon to allocate a
+  ;;  string and use it as value.
+  ;;
   (case type
     ((void)
      'void)
     ((char schar signed-char uchar unsigned-char)
-     'int)
+     'char)
+    ((uint unsigned unsigned-int)
+     'unsigned-int)
     ((int signed-int ssize_t)
      'int)
     ((uint unsigned unsigned-int)
@@ -159,20 +204,24 @@
     (lambda (x) x)))
 
 (define (select-argument-type-mapper arg-type)
-  (case (nausicaa-type->ypsilon-type arg-type)
+  (case arg-type
     ((void)
      (lambda (x) x))
-    ((int unsigned-int size_t long unsigned-long)
+    ((char schar signed-char uchar unsigned-char)
+     (lambda (x) x))
+    ((int signed-int ssize_t
+	  uint unsigned unsigned-int size_t
+	  long signed-long
+	  ulong unsigned-long)
      assert-int)
-;;Floating point values of type "float" are unsupported by Ypsilon.
-;;     ((float)
-;;      assert-float)
-    ((double float)
+    ((double)
      assert-double)
-    ((callback)
-     assert-closure)
-    ((void*)
+    ((float)
+     assert-float)
+    ((pointer void* char* FILE*)
      assert-pointer)
+    ((callback)
+     assert-callback)
     (else
      (assertion-violation 'select-type-mapper
        "unknown C language type identifier used for function argument" arg-type))))
@@ -181,13 +230,13 @@
 ;;;; interface functions, no errno
 
 (define (primitive-make-c-function ret-type funcname arg-types)
-  (let* ((ret-type		(nausicaa-type->ypsilon-type ret-type))
-	 (arg-types		(if (equal? '(void) arg-types)
+  (let* ((ypsilon-ret-type	(nausicaa-type->ypsilon-type ret-type))
+	 (ypsilon-arg-types	(if (equal? '(void) arg-types)
 				    '()
 				  (map nausicaa-type->ypsilon-type arg-types)))
 	 (address		(lookup-shared-object (shared-object) funcname))
-	 (closure		(make-cdecl-callout ret-type arg-types address))
-	 (retval-mapper		(select-retval-type-mapper ret-type))
+	 (closure		(make-cdecl-callout ypsilon-ret-type ypsilon-arg-types address))
+	 (retval-mapper		(select-retval-type-mapper ypsilon-ret-type))
 	 (argument-mappers	(map select-argument-type-mapper arg-types)))
     (case (length argument-mappers)
       ((0)	(lambda ()
@@ -229,13 +278,13 @@
 ;;;; interface functions, with errno
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
-  (let* ((ret-type		(nausicaa-type->ypsilon-type ret-type))
-	 (arg-types		(if (equal? '(void) arg-types)
+  (let* ((ypsilon-ret-type	(nausicaa-type->ypsilon-type ret-type))
+	 (ypsilon-arg-types	(if (equal? '(void) arg-types)
 				    '()
 				  (map nausicaa-type->ypsilon-type arg-types)))
 	 (address		(lookup-shared-object (shared-object) funcname))
-	 (closure		(make-cdecl-callout ret-type arg-types address))
-	 (retval-mapper		(select-retval-type-mapper ret-type))
+	 (closure		(make-cdecl-callout ypsilon-ret-type ypsilon-arg-types address))
+	 (retval-mapper		(select-retval-type-mapper ypsilon-ret-type))
 	 (argument-mappers	(map select-argument-type-mapper arg-types)))
     (case (length argument-mappers)
       ;;We have to use LET* here  to enforce the order of evaluation: we
@@ -301,6 +350,15 @@
 		      (string-append "wrong number of arguments, expected "
 				     (number->string (length argument-mappers)))
 		      args)))))))
+
+
+(define (primitive-make-c-callback ret-type scheme-function arg-types)
+  (make-cdecl-callback (nausicaa-type->ypsilon-type ret-type)
+		       (map nausicaa-type->ypsilon-type arg-types)
+		       scheme-function))
+
+(define (primitive-free-c-callback cb)
+  #f)
 
 
 ;;;; done

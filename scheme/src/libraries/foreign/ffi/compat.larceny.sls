@@ -33,13 +33,16 @@
   (export
     shared-object primitive-open-shared-object self-shared-object
     primitive-make-c-function primitive-make-c-function/with-errno
+    primitive-make-c-callback primitive-free-c-callback
     errno)
   (import (rnrs)
     (primitives make-parameter
 		foreign-file foreign-procedure
 		get-errno set-errno!)
     (only (foreign memory pointers)
-	  pointer-null))
+	  pointer-null)
+    (only (unimplemented)
+	  raise-unimplemented-error))
 
 
 ;;;; dynamic loading
@@ -54,7 +57,7 @@
 
 
 
-;;;; values normalisation: Foreign -> Larceny
+;;;; values normalisation
 
 (define (nausicaa-type->larceny-type type)
   (case type
@@ -120,6 +123,17 @@
 			  (apply f args)))
 	     (errval	(errno)))
 	(values retval errval)))))
+
+
+(define (primitive-make-c-callback ret-type scheme-function arg-types)
+  (raise-unimplemented-error 'primitive-make-c-callback
+			     "callbacks are not implemented for Larceny"))
+  ;; (ffi/make-callback 'i386 scheme-function
+  ;; 		     (map nausicaa-type->larceny-type arg-types)
+  ;; 		     (nausicaa-type->larceny-type ret-type))
+
+(define (primitive-free-c-callback cb)
+  #f)
 
 
 ;;;; done

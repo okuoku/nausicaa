@@ -28,7 +28,7 @@
   (export
     shared-object primitive-open-shared-object self-shared-object
     primitive-make-c-function primitive-make-c-function/with-errno
-    primitive-make-c-callback
+    primitive-make-c-callback primitive-free-c-callback
     errno)
   (import (rnrs)
     (only (ikarus)
@@ -40,7 +40,7 @@
 	    (errno ikarus:errno)))
 
 
-;;;; values normalisation: Foreign -> Ikarus
+;;;; types normalisation
 
 (define (nausicaa-type->ikarus-type type)
   (case type
@@ -136,7 +136,7 @@
 
 ;;;; callbacks
 
-(define (primitive-make-c-callback scheme-function ret-type arg-types)
+(define (primitive-make-c-callback ret-type scheme-function arg-types)
   ((%make-c-callback-maker (cons ret-type arg-types)) scheme-function))
 
 (define %make-c-callback-maker
@@ -162,6 +162,9 @@
 						      arg-types))))
 	      (hashtable-set! callback-maker-table signature callback-maker)
 	      callback-maker))))))
+
+(define (primitive-free-c-callback cb)
+  #f)
 
 
 ;;;; done

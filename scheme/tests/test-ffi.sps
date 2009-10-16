@@ -35,6 +35,9 @@
 (check-set-mode! 'report-failed)
 (display "*** testing ffi\n")
 
+(define ffitest-lib
+  (open-shared-object 'libnausicaa-ffitest1.0.so))
+
 
 ;;;; foreign functions
 
@@ -140,6 +143,9 @@
 (parameterize ((check-test-name	'conditions)
 	       (debugging	#f))
 
+;;;If the raised exception has the expected "errno" value, it means that
+;;;the foreign function call was performed correctly.
+
   (check
       (let ((dirname '/scrappy/dappy/doo))
 	(guard (E (else
@@ -178,6 +184,31 @@
     => '(primitive-opendir ENOTDIR))
 
   #t)
+
+
+(cond-expand
+ ((not larceny)
+  (parametrise ((check-test-name	'callback))
+
+    (define dummy
+      (shared-object ffitest-lib))
+
+    (define-c-function call-callback-1
+      (int nausicaa_ffitest_call_callback_1 (callback int int int)))
+
+    (let* ((fn	(lambda (a c b)
+		  (+ a b c)))
+	   (cb	(make-c-callback int fn (int int int))))
+
+      (check
+	  (call-callback-1 cb 1 2 3)
+	=> (+ 1 2 3))
+
+      (primitive-free-c-callback cb)
+      #f)
+
+    #t))
+ (else #f))
 
 
 ;;;WARNING:  these do not  work because  what is  returned by  ERRNO for

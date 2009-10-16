@@ -35,7 +35,8 @@
     primitive-make-c-function		primitive-make-c-function/with-errno
     make-c-function			make-c-function/with-errno
     define-c-function			define-c-function/with-errno
-;;    primitive-make-c-callback		make-c-callback
+    primitive-make-c-callback		primitive-free-c-callback
+    make-c-callback
     errno
 
     ;;foreign struct accessors
@@ -49,6 +50,7 @@
     (only (foreign ffi compat)
 	  shared-object primitive-open-shared-object self-shared-object
 	  primitive-make-c-function primitive-make-c-function/with-errno
+	  primitive-make-c-callback primitive-free-c-callback
 	  errno))
 
 
@@ -102,6 +104,24 @@
     ((_ ?name (?ret-type ?funcname (?arg-type0 ?arg-type ...)))
      (define ?name
        (make-c-function/with-errno ?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
+
+
+(define-syntax make-c-callback
+  (lambda (stx)
+    (define (%quote-if-predefined-type arg-stx)
+      (if (memq (syntax->datum arg-stx)
+		'(void
+		  char schar signed-char uchar unsigned-char
+		  int signed-int ssize_t uint unsigned unsigned-int size_t
+		  long signed-long ulong unsigned-long float double
+		  pointer void* char* FILE* callback))
+	  (list (syntax quote) arg-stx)
+	arg-stx))
+    (syntax-case stx ()
+      ((_ ?ret-type ?scheme-function (?arg-type0 ?arg-type ...))
+       (with-syntax ((ret	(%quote-if-predefined-type #'?ret-type))
+		     ((arg ...)	(map %quote-if-predefined-type #'(?arg-type0 ?arg-type ...))))
+	 #'(primitive-make-c-callback ret ?scheme-function (list arg ...)))))))
 
 
 ;;;; foreign structures accessors
