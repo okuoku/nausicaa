@@ -26,6 +26,7 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
+
 (library (times-and-dates compat)
   (export
     host:time-resolution
@@ -33,19 +34,20 @@
     host:time-nanosecond
     host:time-second
     host:time-gmt-offset)
-  (import (r5rs)
-    (rnrs)
-    (larceny load)
+  (import (rnrs)
     (primitives r5rs:require current-utc-time timezone-offset))
 
-  (define-record-type time (fields secs usecs))
+  (define dummy (r5rs:require 'time))
+
+  (define-record-type time
+    (fields secs usecs))
 
   ;; Larceny uses gettimeofday() which gives microseconds,
   ;; so our resolution is 1000 nanoseconds
   (define host:time-resolution 1000)
 
   (define (host:current-time)
-    (let-values ([(secs usecs) (current-utc-time)])
+    (let-values (((secs usecs) (current-utc-time)))
       (make-time secs usecs)))
 
   (define (host:time-nanosecond t)
@@ -55,8 +57,6 @@
     (time-secs t))
 
   (define (host:time-gmt-offset t)
-    (timezone-offset (time-secs t)))
-
-  (r5rs:require 'time))
+    (timezone-offset (time-secs t))))
 
 ;;; end of file
