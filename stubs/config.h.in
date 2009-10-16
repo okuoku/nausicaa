@@ -179,6 +179,18 @@
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
+/* library interface major version */
+#undef ffitest_INTERFACE_MAJOR_VERSION
+
+/* library interface minor version */
+#undef ffitest_INTERFACE_MINOR_VERSION
+
+/* library interface version */
+#undef ffitest_INTERFACE_VERSION
+
+/* the library identifier */
+#undef ffitest_LIBRARY_ID
+
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus

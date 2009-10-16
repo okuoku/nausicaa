@@ -1,8 +1,9 @@
 # @configure_input@
 #
 
-nausicaa_ENABLE_POSIX	= @nausicaa_ENABLE_POSIX@
-nausicaa_ENABLE_RANDOM	= @nausicaa_ENABLE_RANDOM@
+nausicaa_ENABLE_POSIX		= @nausicaa_ENABLE_POSIX@
+nausicaa_ENABLE_RANDOM		= @nausicaa_ENABLE_RANDOM@
+nausicaa_ENABLE_FFITEST		= @nausicaa_ENABLE_FFITEST@
 
 ## --------------------------------------------------------------------
 
@@ -14,6 +15,19 @@ posix_BUILDDIR	= $(builddir)/posix-objects.d
 posix_PREREQUISITES = $(wildcard $(posix_SRCDIR)/*.h)
 
 $(eval $(call ds-c-library,posix))
+
+endif
+
+## --------------------------------------------------------------------
+
+ifeq (yes,$(strip $(nausicaa_ENABLE_FFITEST)))
+
+ffitest_SRCDIR		= $(srcdir)/src/ffitest
+ffitest_BUILDDIR	= $(builddir)/ffitest-objects.d
+
+ffitest_PREREQUISITES = $(wildcard $(ffitest_SRCDIR)/*.h)
+
+$(eval $(call ds-c-library,ffitest))
 
 endif
 
