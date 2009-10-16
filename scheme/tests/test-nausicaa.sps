@@ -116,22 +116,115 @@
   => #t)
 
 ;;; --------------------------------------------------------------------
+;;
+;;It goes like this: all the  real numbers (according to REAL?) are also
+;;rational  numbers  (according  to  RATIONAL?) with  the  exception  of
+;;infinities  and NaNs.   Exactness does  NOT matter  for  the RATIONAL?
+;;predicate.
+;;
 
-(check
-    (rational? 1.2)
-  => #f)
+(check (rational? 1)		=> #t)
+(check (rational? #i1)		=> #t)
+(check (rational? #e1)		=> #t)
+(check (rational? 1.2)		=> #t)
+(check (rational? #e1.2)	=> #t)
+(check (rational? #i1.2)	=> #t)
+(check (rational? 12/10)	=> #t)
+(check (rational? #e12/10)	=> #t)
+(check (rational? #i12/10)	=> #t)
+(check (rational? +nan.0)	=> #f)
+(check (rational? -nan.0)	=> #f)
+(check (rational? +inf.0)	=> #f)
+(check (rational? -inf.0)	=> #f)
 
-(check
-    (rational? 12/10)
-  => #t)
+;;; --------------------------------------------------------------------
+;;
+;;It goes like  this: all the rational numbers  (according to RATIONAL?)
+;;are also integer numbers (according to INTEGER?) if the denominator is
+;;"=" to  1.  Notice that exactness  does NOT matter  for the comparison
+;;function  "=",   so  exactness  does  not  matter   for  the  INTEGER?
+;;predicate, too.
+;;
 
-(check
-    (rational-valued? 1.2)
-  => #t)
+(check (integer? 1)		=> #t)
+(check (integer? #i1)		=> #t)
+(check (integer? #e1)		=> #t)
+(check (integer? 1.0)		=> #t)
+(check (integer? #i1.0)		=> #t)
+(check (integer? #e1.0)		=> #t)
+(check (integer? 1.2)		=> #f)
+(check (integer? #e1.2)		=> #f)
+(check (integer? #i1.2)		=> #f)
+(check (integer? 12/10)		=> #f)
+(check (integer? #e12/10)	=> #f)
+(check (integer? #i12/10)	=> #f)
+(check (integer? +nan.0)	=> #f)
+(check (integer? -nan.0)	=> #f)
+(check (integer? +inf.0)	=> #f)
+(check (integer? -inf.0)	=> #f)
 
-(check
-    (rational-valued? 12/10)
-  => #t)
+;;; --------------------------------------------------------------------
+;;
+;;The -VALUED? predicates are like  the normal predicate, but the return
+;;#t also on complex numbers  whose imaginary part is zero (according to
+;;ZERO?).  Notice that ZERO? does not care about exactness.
+;;
+
+(check (rational-valued? 1)		=> #t)
+(check (rational-valued? #i1)		=> #t)
+(check (rational-valued? #e1)		=> #t)
+(check (rational-valued? 1.0)		=> #t)
+(check (rational-valued? #i1.0)		=> #t)
+(check (rational-valued? #e1.0)		=> #t)
+(check (rational-valued? 1.2)		=> #t)
+(check (rational-valued? #e1.2)		=> #t)
+(check (rational-valued? #i1.2)		=> #t)
+(check (rational-valued? 12/10)		=> #t)
+(check (rational-valued? #e12/10)	=> #t)
+(check (rational-valued? #i12/10)	=> #t)
+(check (rational-valued? +nan.0)	=> #f)
+(check (rational-valued? -nan.0)	=> #f)
+(check (rational-valued? +inf.0)	=> #f)
+(check (rational-valued? -inf.0)	=> #f)
+
+(check (rational-valued? 1+2i)		=> #f)
+(check (rational-valued? 1+2.2i)	=> #f)
+(check (rational-valued? 1.1+2i)	=> #f)
+(check (rational-valued? 1.1+2.2i)	=> #f)
+(check (rational-valued? 1+0i)		=> #t)
+(check (rational-valued? 1+0.0i)	=> #t)
+(check (rational-valued? 1.1+0i)	=> #t)
+(check (rational-valued? 1.1+0.0i)	=> #t)
+(check (rational-valued? (+ +nan.0 0+0.0i))	=> #f)
+(check (rational-valued? (+ +nan.0 0+0i))	=> #f)
+
+(check (real-valued? 1)			=> #t)
+(check (real-valued? #i1)		=> #t)
+(check (real-valued? #e1)		=> #t)
+(check (real-valued? 1.0)		=> #t)
+(check (real-valued? #i1.0)		=> #t)
+(check (real-valued? #e1.0)		=> #t)
+(check (real-valued? 1.2)		=> #t)
+(check (real-valued? #e1.2)		=> #t)
+(check (real-valued? #i1.2)		=> #t)
+(check (real-valued? 12/10)		=> #t)
+(check (real-valued? #e12/10)		=> #t)
+(check (real-valued? #i12/10)		=> #t)
+(check (real-valued? +nan.0)		=> #t)
+(check (real-valued? -nan.0)		=> #t)
+(check (real-valued? +inf.0)		=> #t)
+(check (real-valued? -inf.0)		=> #t)
+
+(check (real-valued? 1+2i)		=> #f)
+(check (real-valued? 1+2.2i)		=> #f)
+(check (real-valued? 1.1+2i)		=> #f)
+(check (real-valued? 1.1+2.2i)		=> #f)
+(check (real-valued? 1+0i)		=> #t)
+(check (real-valued? 1+0.0i)		=> #t)
+(check (real-valued? 1.1+0i)		=> #t)
+(check (real-valued? 1.1+0.0i)		=> #t)
+(check (real-valued? (+ +nan.0 0+0.0i))	=> #t)
+(check (real-valued? (+ +nan.0 0+0i))	=> #t)
 
 ;;; --------------------------------------------------------------------
 
