@@ -39,11 +39,13 @@
     errno
 
     ;;foreign struct accessors
-    define-c-struct-accessors
-    define-c-struct-getter		define-c-struct-setter
-    define-c-struct-field-pointer-getter)
+    define-c-struct-accessor-and-mutator
+    define-c-struct-accessor		define-c-struct-mutator
+    define-c-struct-field-pointer-accessor)
 
   (import (rnrs)
+    (only (foreign memory pointers)
+	  pointer-add)
     (only (foreign ffi compat)
 	  shared-object primitive-open-shared-object self-shared-object
 	  primitive-make-c-function primitive-make-c-function/with-errno
@@ -104,56 +106,56 @@
 
 ;;;; foreign structures accessors
 
-(define-syntax define-c-struct-accessors
+(define-syntax define-c-struct-accessor-and-mutator
   (syntax-rules ()
-    ((_ ?setter-name ?getter-name ?field-offset ?foreign-type-setter ?foreign-type-getter)
+    ((_ ?mutator-name ?accessor-name ?field-offset ?foreign-type-mutator ?foreign-type-accessor)
      (begin
-       (define-c-struct-getter ?getter-name ?field-offset ?foreign-type-getter)
-       (define-c-struct-setter ?setter-name ?field-offset ?foreign-type-setter)))))
+       (define-c-struct-accessor ?accessor-name ?field-offset ?foreign-type-accessor)
+       (define-c-struct-mutator  ?mutator-name ?field-offset ?foreign-type-mutator)))))
 
-(define-syntax define-c-struct-getter
+(define-syntax define-c-struct-accessor
   (lambda (use-stx)
     (syntax-case use-stx ()
-      ((_ ?getter-name ?field-offset ?foreign-type-getter)
+      ((_ ?accessor-name ?field-offset ?foreign-type-accessor)
        (if (syntax->datum (syntax ?field-offset))
-	   #'(define-syntax ?getter-name
+	   #'(define-syntax ?accessor-name
 	       (syntax-rules ()
 		 ((_ struct-pointer)
-		  (?foreign-type-getter struct-pointer ?field-offset))))
-	 #'(define-syntax ?getter-name
+		  (?foreign-type-accessor struct-pointer ?field-offset))))
+	 #'(define-syntax ?accessor-name
 	     (syntax-rules ()
 	       ((_ struct-pointer)
-		(raise-unimplemented-error (quote ?getter-name))))))))))
+		(raise-unimplemented-error (quote ?accessor-name))))))))))
 
-(define-syntax define-c-struct-setter
+(define-syntax define-c-struct-mutator
   (lambda (use-stx)
     (syntax-case use-stx ()
-      ((_ ?setter-name ?field-offset ?foreign-type-setter)
+      ((_ ?mutator-name ?field-offset ?foreign-type-mutator)
        (if (syntax->datum (syntax ?field-offset))
-	   #'(define-syntax ?setter-name
+	   #'(define-syntax ?mutator-name
 	       (syntax-rules ()
 		 ((_ struct-pointer value)
-		  (?foreign-type-setter struct-pointer
+		  (?foreign-type-mutator struct-pointer
 					?field-offset
 					value))))
-	 #'(define-syntax ?setter-name
+	 #'(define-syntax ?mutator-name
 	     (syntax-rules ()
 	       ((_ struct-pointer value)
-		(raise-unimplemented-error (quote ?setter-name))))))))))
+		(raise-unimplemented-error (quote ?mutator-name))))))))))
 
-(define-syntax define-c-struct-field-pointer-getter
+(define-syntax define-c-struct-field-pointer-accessor
   (lambda (use-stx)
     (syntax-case use-stx ()
-      ((_ ?getter-name ?field-offset)
+      ((_ ?accessor-name ?field-offset)
        (if (syntax->datum (syntax ?field-offset))
-	   #'(define-syntax ?getter-name
+	   #'(define-syntax ?accessor-name
 	       (syntax-rules ()
 		 ((_ struct-pointer)
 		  (pointer-add struct-pointer ?field-offset))))
-	 #'(define-syntax ?setter-name
+	 #'(define-syntax ?accessor-name
 	     (syntax-rules ()
 	       ((_ struct-pointer)
-		(raise-unimplemented-error (quote ?setter-name))))))))))
+		(raise-unimplemented-error (quote ?accessor-name))))))))))
 
 
 ;;;; done

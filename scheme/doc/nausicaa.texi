@@ -1508,9 +1508,10 @@ Direct access to memory blocks
 Foreign functions interface
 
 * ffi example::                 Basic interface to Zlib.
+* ffi sizeof::                  Sizes and limits.
 * ffi load::                    Dynamic loading of libraries.
 * ffi call::                    Interface functions.
-* ffi sizeof::                  Sizes and limits.
+* ffi struct::                  Accessing data structures.
 * ffi headers::                 Inspecting foreign header files.
 
 Functions interface
@@ -1878,7 +1879,7 @@ important types of the Scheme language.  More types are described in
 later chapters.
 
 @quotation
-@emph{Note:} As Scheme is latently typed, the use of the term
+@strong{NOTE} As Scheme is latently typed, the use of the term
 @emph{type} in this report differs from the use of the term in the
 context of other languages, particularly those with manifest typing.
 @end quotation
@@ -2506,8 +2507,8 @@ For example, 5 is an integer.  Therefore 5 is also a rational, a real,
 and a complex.  The same is true of the number objects that model 5.
 
 Number objects are organized as a corresponding tower of subtypes
-defined by the predicates @code{number?}, @code{complex?}, @code{real?},
-@code{rational?}, and @code{ integer?}.  @ref{baselib math ops type
+defined by the predicates @func{number?}, @func{complex?}, @func{real?},
+@func{rational?}, and @func{integer?}.  @ref{baselib math ops type
 pred, Numerical types predicates}.  Integer number objects are also
 called @dfn{integer objects}.
 
@@ -3121,7 +3122,7 @@ rather than as the character @code{#\s} followed by the identifier
 @code{pace}.
 
 @quotation
-@emph{Note:} The @code{#\newline} notation is retained for backward
+@strong{NOTE} The @code{#\newline} notation is retained for backward
 compatibility.  Its use is deprecated; @code{#\linefeed} should be used
 instead.
 @end quotation
@@ -4656,7 +4657,7 @@ returning twice to the continuation of the last body expression is
 unspecified.
 
 @quotation
-@emph{Note:} The names @func{library}, @func{export}, @func{import},
+@strong{NOTE} The names @func{library}, @func{export}, @func{import},
 @func{for}, @func{run}, @func{expand}, @func{meta}, @func{import},
 @func{export}, @func{only}, @func{except}, @func{prefix}, @func{rename},
 @func{and}, @func{or}, @func{not}, @func{>=}, and @func{<=} appearing in
@@ -5134,7 +5135,7 @@ does not accept as many arguments as there are @meta{operand}s, an
 exception with condition type @code{&assertion} is raised.
 
 @quotation
-@emph{Note:} In contrast to other dialects of Lisp, the order of
+@strong{NOTE} In contrast to other dialects of Lisp, the order of
 evaluation is unspecified, and the operator expression and the operand
 expressions are always evaluated with the same evaluation rules.
 
@@ -5146,7 +5147,7 @@ call.
 @end quotation
 
 @quotation
-@emph{Note:} In many dialects of Lisp, the form @code{()} is a
+@strong{NOTE} In many dialects of Lisp, the form @code{()} is a
 legitimate expression.  In Scheme, expressions written as list/pair
 forms must have at least one subexpression, so @code{()} is not a
 syntactically valid expression.
@@ -6042,7 +6043,7 @@ is used to include constants.
 Constants are immutable.
 
 @quotation
-@emph{Note:} Different constants that are the value of a @func{quote}
+@strong{NOTE} Different constants that are the value of a @func{quote}
 expression may share the same locations.
 @end quotation
 @end deffn
@@ -6174,7 +6175,7 @@ It is a syntax violation if @meta{variable} refers to an immutable
 binding.
 
 @quotation
-@emph{Note:} The identifier @func{set!} is exported with level @emph{1}
+@strong{NOTE} The identifier @func{set!} is exported with level @emph{1}
 as well.
 @end quotation
 @end deffn
@@ -6483,7 +6484,7 @@ in which the first binding is visible and initialized, and so on.
 @end example
 
 @quotation
-@emph{Note:} While the variables bound by a @func{let} expression must
+@strong{NOTE} While the variables bound by a @func{let} expression must
 be distinct, the variables bound by a @func{let*} expression need not be
 distinct.
 @end quotation
@@ -6666,7 +6667,7 @@ initialized, and so on.
 @end example
 
 @quotation
-@emph{Note:} While all of the variables bound by a @func{let-values}
+@strong{NOTE} While all of the variables bound by a @func{let-values}
 expression must be distinct, the variables bound by different
 @meta{formals} of a @func{let*-values} expression need not be distinct.
 @end quotation
@@ -6839,7 +6840,7 @@ arguments.
 @end itemize
 
 @quotation
-@emph{Note:} The @func{eqv?} procedure returning @true{} when @vari{obj}
+@strong{NOTE} The @func{eqv?} procedure returning @true{} when @vari{obj}
 and @varii{obj} are number objects does not imply that @code{=} would
 also return @true{} when called with @vari{obj} and @varii{obj} as
 arguments.
@@ -7004,7 +7005,7 @@ and uses @func{eqv?} to compare other nodes.
 @end example
 
 @quotation
-@emph{Note:} The @func{equal?} procedure must always terminate, even if
+@strong{NOTE} The @func{equal?} procedure must always terminate, even if
 its arguments contain cycles.
 @end quotation
 @end deffn
@@ -7340,6 +7341,21 @@ is true if and only if @code{(= (denominator @var{q}) 1)} is true.  If
 @var{q} is not a rational number object, then @code{(integer? @var{q})}
 is @false{}.
 
+Notice that the comparison function @func{=} does not care about the
+exactness of its arguments:
+
+@example
+(= 1 1.1)       @result{} #t
+(= 1 #i1.1)     @result{} #t
+@end example
+
+@noindent
+so, with the given definition, the only real numbers (according to
+@func{real?})  that are not also rational numbers (according to
+@func{rational?}) are infinities and NaNs.  For the same reason, numbers
+are integers (according to @func{integer?}) without respect for
+exactness.
+
 @example
 (complex? 3+4i)                        @result{} #t
 (complex? 3)                           @result{} #t
@@ -7366,7 +7382,7 @@ is @false{}.
 @end example
 
 @quotation
-@emph{Note:} Except for @func{number?}, the behavior of these type
+@strong{NOTE} Except for @func{number?}, the behavior of these type
 predicates on inexact number objects is unreliable, because any
 inaccuracy may affect the result.
 @end quotation
@@ -7411,7 +7427,7 @@ they return @false{}.
 @end example
 
 @quotation
-@emph{Note:} These procedures test whether a given number object can be
+@strong{NOTE} These procedures test whether a given number object can be
 coerced to the specified type without loss of numerical accuracy.
 Specifically, the behavior of these predicates differs from the behavior
 of @func{real?}, @func{rational?}, and @func{integer?} on complex number
@@ -7419,7 +7435,7 @@ objects whose imaginary part is inexact zero.
 @end quotation
 
 @quotation
-@emph{Note:} The behavior of these type predicates on inexact number
+@strong{NOTE} The behavior of these type predicates on inexact number
 objects is unreliable, because any inaccuracy may affect the result.
 @end quotation
 @end deffn
@@ -7460,7 +7476,7 @@ inexact equivalent, an exception with condition type
 @code{&implementation-violation} may be raised.
 
 @quotation
-@emph{Note:} For a real number object whose magnitude is finite but so
+@strong{NOTE} For a real number object whose magnitude is finite but so
 large that it has no reasonable finite approximation as an inexact
 number, a reasonably close inexact equivalent may be @code{+inf.0} or
 @code{-inf.0}.  Similarly, the inexact representation of a complex
@@ -7526,12 +7542,12 @@ For any real number object @var{x}:
 These predicates must be transitive.
 
 @quotation
-@emph{Note:} The traditional implementations of these predicates in
+@strong{NOTE} The traditional implementations of these predicates in
 Lisp--like languages are not transitive.
 @end quotation
 
 @quotation
-@emph{Note:} While it is possible to compare inexact number objects
+@strong{NOTE} While it is possible to compare inexact number objects
 using these predicates, the results may be unreliable because a small
 inaccuracy may affect the result; this is especially true of @code{=}
 and @func{zero?}  (below).
@@ -7594,7 +7610,7 @@ Tests whether it is a NaN.
 @end example
 
 @quotation
-@emph{Note:} As with the predicates above, the results may be unreliable
+@strong{NOTE} As with the predicates above, the results may be unreliable
 because a small inaccuracy may affect the result.
 @end quotation
 @end deffn
@@ -7622,7 +7638,7 @@ For any real number object @var{x} that is not a NaN:
 @end example
 
 @quotation
-@emph{Note:} If any argument is inexact, then the result is also inexact
+@strong{NOTE} If any argument is inexact, then the result is also inexact
 (unless the procedure can prove that the inaccuracy is not large enough
 to affect the result, which is possible only in unusual
 implementations).  If @func{min} or @func{max} is used to compare number
@@ -8150,7 +8166,7 @@ complex number object, @var{precision} must be an exact positive integer
 object, and @var{radix} must be @math{10}.
 
 @quotation
-@emph{Note:} The error case can occur only when @var{z} is not a complex
+@strong{NOTE} The error case can occur only when @var{z} is not a complex
 number object or is a complex number object with a non--rational real or
 imaginary part.
 @end quotation
@@ -8199,7 +8215,7 @@ denominator, then @func{string->number} returns @false{}.
 @end example
 
 @quotation
-@emph{Note:} The @func{string->number} procedure always returns a number
+@strong{NOTE} The @func{string->number} procedure always returns a number
 object or @false{}; it never raises an exception.
 @end quotation
 @end deffn
@@ -8214,7 +8230,7 @@ representations @true{} and @false{}.  However, of all objects, only
 @false{} counts as false in conditional expressions.
 
 @quotation
-@emph{Note:} Programmers accustomed to other dialects of Lisp should be
+@strong{NOTE} Programmers accustomed to other dialects of Lisp should be
 aware that Scheme distinguishes both @false{} and the empty list from
 each other and from the symbol @code{nil}.
 @end quotation
@@ -8286,7 +8302,7 @@ The empty list is a special object of its own type.  It is not a pair.
 It has no elements and its length is zero.
 
 @quotation
-@emph{Note:} The above definitions imply that all lists have finite
+@strong{NOTE} The above definitions imply that all lists have finite
 length and are terminated by the empty list.
 @end quotation
 
@@ -8554,7 +8570,7 @@ applying it as described.  An implementation may check whether
 @var{proc} is an appropriate argument before applying it.
 
 @quotation
-@emph{Note:} Implementations of @code{for-each} may or may not
+@strong{NOTE} Implementations of @code{for-each} may or may not
 tail--call @var{proc} on the last elements.
 @end quotation
 @end deffn
@@ -8740,7 +8756,7 @@ procedure returns character @var{k} of @var{string} using zero--origin
 indexing.
 
 @quotation
-@emph{Note:} Implementors should make @func{string-ref} run in constant
+@strong{NOTE} Implementors should make @func{string-ref} run in constant
 time.
 @end quotation
 @end deffn
@@ -9059,7 +9075,7 @@ raised.  The message provided in the condition object is
 implementation--dependent.
 
 @quotation
-@emph{Note:} Implementations should exploit the fact that @func{assert}
+@strong{NOTE} Implementations should exploit the fact that @func{assert}
 is syntax to provide as much information as possible about the location
 of the assertion failure.
 @end quotation
@@ -9161,7 +9177,7 @@ no need for a procedure with the power of @func{call/cc}.
 @end example
 
 @quotation
-@emph{Note:} Calling an escape procedure reenters the dynamic extent of
+@strong{NOTE} Calling an escape procedure reenters the dynamic extent of
 the call to @func{call/cc}, and thus restores its dynamic environment.
 @end quotation
 @end deffn
@@ -9315,7 +9331,7 @@ actually called.
 @end example
 
 @quotation
-@emph{Note:} Entering a dynamic extent restores its dynamic environment.
+@strong{NOTE} Entering a dynamic extent restores its dynamic environment.
 @end quotation
 @end deffn
 
@@ -10078,7 +10094,7 @@ tail call.
 @end example
 
 @quotation
-@emph{Note:} Implementations may recognize that some non--tail calls,
+@strong{NOTE} Implementations may recognize that some non--tail calls,
 such as the call to @func{h} above, can be evaluated as though they were
 tail calls.  In the example above, the @func{let} expression could be
 compiled as a tail call to @func{h}.  (The possibility of @func{h}
@@ -10182,12 +10198,12 @@ For Turkic characters @code{#\x130} and @code{#\x131},
 @end example
 
 @quotation
-@emph{Note:} @func{char-titlecase} does not always return a title--case
+@strong{NOTE} @func{char-titlecase} does not always return a title--case
 character.
 @end quotation
 
 @quotation
-@emph{Note:} These procedures are consistent with Unicode's
+@strong{NOTE} These procedures are consistent with Unicode's
 locale--independent mappings from scalar values to scalar values for
 upcase, downcase, titlecase, and case--folding operations.  These
 mappings can be extracted from @file{UnicodeData.txt} and
@@ -10303,7 +10319,7 @@ all other cased characters.
 @end example
 
 @quotation
-@emph{Note:} The case mappings needed for implementing these procedures
+@strong{NOTE} The case mappings needed for implementing these procedures
 can be extracted from @file{UnicodeData.txt}, @file{SpecialCasing.txt},
 @file{WordBreakProperty.txt} (the ``MidLetter'' property partly defines
 case--ignorable characters), and @file{CaseFolding.txt} from the Unicode
@@ -10314,7 +10330,7 @@ appropriate for some locales.
 @end quotation
 
 @quotation
-@emph{Note:} Word breaking, as needed for the correct casing of the
+@strong{NOTE} Word breaking, as needed for the correct casing of the
 upper case greek sigma and for @func{string-titlecase}, is specified in
 Unicode Standard Annex #29.
 @end quotation
@@ -10429,7 +10445,7 @@ object, and endianness describes how the bytes of such an integer are
 laid out in a bytevector.
 
 @quotation
-@emph{Note:} Little-- and big--endianness are only the most common kinds
+@strong{NOTE} Little-- and big--endianness are only the most common kinds
 of endianness.  Some architectures distinguish between the endianness at
 different levels of a binary representation.
 @end quotation
@@ -10453,12 +10469,12 @@ argument must be one of these symbols.  It is a syntax violation for
 supported by the implementation.
 
 @quotation
-@emph{Note:} Implementors should use widely accepted designations for
+@strong{NOTE} Implementors should use widely accepted designations for
 endianness symbols other than @code{big} and @code{little}.
 @end quotation
 
 @quotation
-@emph{Note:} Only the name of @meta{endianness symbol} is significant.
+@strong{NOTE} Only the name of @meta{endianness symbol} is significant.
 @end quotation
 @end deffn
 
@@ -11007,7 +11023,7 @@ the encoding.  If @var{endianness-mandatory} is a true value,
 @utf{}-16 BOM in the encoding is decoded as a regular character.
 
 @quotation
-@emph{Note:} A @utf{}-16 BOM is either a sequence of bytes @code{#xFE},
+@strong{NOTE} A @utf{}-16 BOM is either a sequence of bytes @code{#xFE},
 @code{#xFF} specifying @code{big} and @utf{}-16BE, or @code{#xFF},
 @code{#xFE} specifying @code{little} and @utf{}-16LE.
 @end quotation
@@ -11035,7 +11051,7 @@ the encoding.  If @var{endianness-mandatory} is a true value,
 @utf{}-32 BOM in the encoding is decoded as a regular character.
 
 @quotation
-@emph{Note:} A @utf{}-32 BOM is either a sequence of bytes @code{#x00},
+@strong{NOTE} A @utf{}-32 BOM is either a sequence of bytes @code{#x00},
 @code{#x00}, @code{#xFE}, @code{#xFF} specifying @code{big} and
 @utf{}-32BE, or @code{#xFF}, @code{#xFE}, @code{#x00}, @code{#x00},
 specifying @code{little} and @utf{}-32LE.
@@ -12309,7 +12325,7 @@ Evaluates to the record--type descriptor (see below) associated with the
 type specified by @meta{record name}.
 
 @quotation
-@emph{Note:} The @func{record-type-descriptor} procedure works on both
+@strong{NOTE} The @func{record-type-descriptor} procedure works on both
 opaque and non--opaque record types.
 @end quotation
 @end deffn
@@ -12467,7 +12483,7 @@ without creating a new record type, the same record--type descriptor (in
 the sense of @func{eqv?}) as the first call.
 
 @quotation
-@emph{Note:} Users are encouraged to use symbol names constructed using
+@strong{NOTE} Users are encouraged to use symbol names constructed using
 the @acronym{UUID} namespace (for example, using the record--type name
 as a prefix) for the uid argument.
 @end quotation
@@ -13164,7 +13180,7 @@ the returned list is modified, the effect on @var{condition} is
 unspecified.
 
 @quotation
-@emph{Note:} Because @func{condition} decomposes its arguments into
+@strong{NOTE} Because @func{condition} decomposes its arguments into
 simple conditions, @func{simple-conditions} always returns a
 ``flattened'' list of simple conditions.
 @end quotation
@@ -13962,7 +13978,7 @@ Symbols other than those listed above may be used as @meta{file-options
 symbol}s; they have implementation--specific meaning, if any.
 
 @quotation
-@emph{Note:} Only the name of @meta{file-options symbol} is significant.
+@strong{NOTE} Only the name of @meta{file-options symbol} is significant.
 @end quotation
 @end deffn
 
@@ -14012,7 +14028,7 @@ same side effect on the shared source as a read operation.
 corresponding symbol, and specifies the associated buffer mode.
 
 @quotation
-@emph{Note:} Only the name of @meta{buffer-mode symbol} is significant.
+@strong{NOTE} Only the name of @meta{buffer-mode symbol} is significant.
 @end quotation
 @end deffn
 
@@ -14097,7 +14113,7 @@ the specified eol-style symbol, and all other characters that
 participate in possible line endings are encoded as is.
 
 @quotation
-@emph{Note:} Only the name of @meta{eol-style symbol} is significant.
+@strong{NOTE} Only the name of @meta{eol-style symbol} is significant.
 @end quotation
 @end deffn
 
@@ -14162,7 +14178,7 @@ argument to @func{make-transcoder}.  If it is not acceptable as a
 raised.
 
 @quotation
-@emph{Note:} Only the name of @meta{error-handling-style symbol} is
+@strong{NOTE} Only the name of @meta{error-handling-style symbol} is
 significant.
 @end quotation
 
@@ -14252,7 +14268,7 @@ Return the end--of--file object.
 @end deffn
 
 @quotation
-@emph{Note:} The end--of--file object is not a datum value, and thus has
+@strong{NOTE} The end--of--file object is not a datum value, and thus has
 no external representation.
 @end quotation
 
@@ -14335,7 +14351,7 @@ If the port does not support the operation, @func{port-position} raises
 an exception with condition type @code{&assertion}.
 
 @quotation
-@emph{Note:} For a textual port, the port position may or may not be an
+@strong{NOTE} For a textual port, the port position may or may not be an
 integer object.  If it is an integer object, the integer object does not
 necessarily correspond to a byte or character position.
 @end quotation
@@ -14721,7 +14737,7 @@ The @func{lookahead-char} procedure is like @func{get-char}, but it does
 not update @var{textual-input-port} to point past the character.
 
 @quotation
-@emph{Note:} With some of the standard transcoders described in this
+@strong{NOTE} With some of the standard transcoders described in this
 document, up to four bytes of lookahead are needed.  Non--standard
 transcoders may need even more lookahead.
 @end quotation
@@ -14801,7 +14817,7 @@ If an end of file is encountered before any characters are read, the
 end--of--file object is returned.
 
 @quotation
-@emph{Note:} The end--of--line style, if not @code{none}, will cause all
+@strong{NOTE} The end--of--line style, if not @code{none}, will cause all
 line endings to be read as linefeed characters.
 @end quotation
 @end deffn
@@ -15120,14 +15136,14 @@ possible, an implementation should produce a representation for which
 equal (in the sense of @func{equal?}) to @var{datum}.
 
 @quotation
-@emph{Note:} Not all datums may allow producing an external
+@strong{NOTE} Not all datums may allow producing an external
 representation for which @func{get-datum} will produce an object that is
 equal to the original.  Specifically, NaNs contained in @var{datum} may
 make this impossible.
 @end quotation
 
 @quotation
-@emph{Note:} The @func{put-datum} procedure merely writes the external
+@strong{NOTE} The @func{put-datum} procedure merely writes the external
 representation, but no trailing delimiter.  If @func{put-datum} is used
 to write several subsequent external representations to an output port,
 care should be taken to delimit them properly so they can be read back
@@ -15870,7 +15886,7 @@ The value returned is a flonum that is numerically closest to the
 argument.
 
 @quotation
-@emph{Note:} If flonums are represented in binary floating point, then
+@strong{NOTE} If flonums are represented in binary floating point, then
 implementations should break ties by preferring the floating--point
 representation whose least significant bit is zero.
 @end quotation
@@ -15949,7 +15965,7 @@ tests whether it is a NaN.
 @end example
 
 @quotation
-@emph{Note:} @code{(flnegative? -0.0)} must return @false{}, else it
+@strong{NOTE} @code{(flnegative? -0.0)} must return @false{}, else it
 would lose the correspondence with @code{(fl< -0.0 0.0)}, which is
 @false{} according to @ieee{} 754.
 @end quotation
@@ -16212,7 +16228,7 @@ the infinity or NaN.  @ref{baselib math infinities}.
 Return a flonum that is numerically closest to @var{fx}.
 
 @quotation
-@emph{Note:} The result of this procedure may not be numerically equal
+@strong{NOTE} The result of this procedure may not be numerically equal
 to @var{fx}, because the fixnum precision may be greater than the flonum
 precision.
 @end quotation
@@ -17721,7 +17737,7 @@ than one subform are valid only in splicing (list or vector) contexts.
 forms in the output of the @func{quasisyntax} expander.
 
 @quotation
-@emph{Note:} Uses of @func{unsyntax} and @func{unsyntax-splicing} with
+@strong{NOTE} Uses of @func{unsyntax} and @func{unsyntax-splicing} with
 zero or more than one subform enable certain idioms, such as
 @samp{#,@@#,@@}, which has the effect of a doubly indirect splicing when
 used within a doubly nested and doubly evaluated @func{quasisyntax}
@@ -17956,7 +17972,7 @@ the restrictions on @var{hash-function} and @var{equiv} to the extent
 performed by applying them as described.
 
 @quotation
-@emph{Note:} Hashtables are allowed to cache the results of calling the
+@strong{NOTE} Hashtables are allowed to cache the results of calling the
 hash function and equivalence function, so programs cannot rely on the
 hash function being called for every lookup or update.  Furthermore any
 hashtable operation may call the hash function more than once.
@@ -18115,7 +18131,7 @@ current contents.  This hash function is suitable for use with
 @func{equal?} as an equivalence function.
 
 @quotation
-@emph{Note:} Like @func{equal?}, the @func{equal-hash} procedure must
+@strong{NOTE} Like @func{equal?}, the @func{equal-hash} procedure must
 always terminate, even if its arguments contain cycles.
 @end quotation
 @end deffn
@@ -18378,7 +18394,7 @@ Example:
 @end example
 
 @quotation
-@emph{Note:} In @code{(@hyper{type-name} @hyper{symbol})} and
+@strong{NOTE} In @code{(@hyper{type-name} @hyper{symbol})} and
 @code{(@hyper{constructor-syntax} @hyper{symbol} ...)} forms, only the
 names of the @hyper{symbol}s are significant.
 @end quotation
@@ -18557,7 +18573,7 @@ exception with condition type @code{&assertion} to be raised.
 @end example
 
 @quotation
-@emph{Note:} Implementors should make @func{string-set!} run in constant
+@strong{NOTE} Implementors should make @func{string-set!} run in constant
 time.
 @end quotation
 @end deffn
@@ -18650,7 +18666,7 @@ provided all number object involved in that computation are exact.
 @end example
 
 @quotation
-@emph{Note:} These procedures could be defined in terms of @func{div}
+@strong{NOTE} These procedures could be defined in terms of @func{div}
 and @func{mod} (@ref{baselib math ops arithmetic}) as follows (without
 checking of the argument types):
 
@@ -21140,7 +21156,7 @@ programmers, it can be used in a number of ways:
 @end example
 
 @quotation
-@emph{Note:} Interested functional programmers may enjoy noting that
+@strong{NOTE} Interested functional programmers may enjoy noting that
 @func{fold-right} and @func{unfold} are in some sense inverses.  That
 is, given operations @var{knull?}, @var{kar}, @var{kdr}, @var{kons}, and
 @var{knil} satisfying:
@@ -21231,7 +21247,7 @@ programmers, it can be used in a number of ways:
 @end example
 
 @quotation
-@emph{Note:} Interested functional programmers may enjoy noting that
+@strong{NOTE} Interested functional programmers may enjoy noting that
 @func{fold} and @func{unfold-right} are in some sense inverses.  That
 is, given operations @var{knull?}, @var{kar}, @var{kdr}, @var{kons}, and
 @var{knil} satisfying:
@@ -21837,7 +21853,7 @@ element satisfying the predicate; @func{drop-while} searches until it
 finds an element that doesn't satisfy the predicate.
 
 @quotation
-@emph{Note:} The @func{find} function defined by @rnrs{6} has an
+@strong{NOTE} The @func{find} function defined by @rnrs{6} has an
 ambiguity in its lookup semantics: if @func{find} returns @false{}, we
 cannot tell (in general) if it found a @false{} element that satisfied
 @var{pred}, or if it did not find any element at all.
@@ -30122,7 +30138,7 @@ of three arguments is constructed.  The order in which the values are
 compared is unspecified, but each value is compared at least once.
 
 @quotation
-@emph{Note:}
+@strong{NOTE}
 
 @example
 (<=/<? real-compare 0 x 1)
@@ -30170,7 +30186,7 @@ are transitive, it is sufficient to test:
 for @math{1 < i < n}.
 
 @quotation
-@emph{Note:} The reason every @var{xi} participates in at least one
+@strong{NOTE} The reason every @var{xi} participates in at least one
 comparison is type--checking: After testing if the values form a chain,
 these value may be assumed to be of the type comparable by compare---
 and this holds irrespectively of the number of values, or whether they
@@ -30243,7 +30259,7 @@ is called before the order predicate because the equivalence may be
 coarser than the total ordering, and it may also be cheaper.
 
 @quotation
-@emph{Note:} @func{char-compare} could be defined in terms of
+@strong{NOTE} @func{char-compare} could be defined in terms of
 @func{char<=?} as:
 
 @example
@@ -30290,7 +30306,7 @@ in which the values @var{xi} are compared is unspecified, but each value
 is compared at least once (even if there is just one value).
 
 @quotation
-@emph{Note:} The @math{0}--th largest element is the minimum, the
+@strong{NOTE} The @math{0}--th largest element is the minimum, the
 @math{(n-1)}-th largest element is the maximum.  The median is the
 @math{((n - 1)/2)}-th largest element if @math{n} is odd, and the
 average of the @math{(n/2 - 1)}-th and @math{n/2}-th largest elements if
@@ -35858,7 +35874,7 @@ functions.  Every function is invoked with no arguments.
 
 
 @quotation
-@emph{Note:} This library implements no event loop.  The only way to
+@strong{NOTE} This library implements no event loop.  The only way to
 invoke a cleanup thunk only once is to register it, invoke
 @func{cleanup}, then remove it.  This is usually not what we want to do
 to handle such a simple case: we should use a proper event loop,
@@ -42421,7 +42437,7 @@ try to compile a smaller regular expression.
 @end table
 
 @quotation
-@emph{Note:} The @code{fast} and @code{small} options may not actually
+@strong{NOTE} The @code{fast} and @code{small} options may not actually
 make the compiled expression any faster or smaller at the moment.
 @end quotation
 @end defun
@@ -52785,9 +52801,10 @@ Scheme implementations.
 
 @menu
 * ffi example::                 Basic interface to Zlib.
+* ffi sizeof::                  Sizes and limits.
 * ffi load::                    Dynamic loading of libraries.
 * ffi call::                    Interface functions.
-* ffi sizeof::                  Sizes and limits.
+* ffi struct::                  Accessing data structures.
 * ffi headers::                 Inspecting foreign header files.
 @end menu
 
@@ -52888,6 +52905,113 @@ expressions support).
     (int inflateEnd (z_streamp))))
 @end example
 
+@c page
+@node ffi sizeof
+@subsection Sizes and limits
+
+
+The @library{foreign ffi sizeof} library exports a set of bindings to
+allow interface libraries to be aware of C language type sizes and
+limits.
+
+
+@defvr Constant pointer-integer
+Set to a symbol representing one of the unsigned integer types for
+callout arguments and return values.  It is meant to be the integer type
+that is equal in size to a pointer, so it can be used in place of the
+@samp{pointer} type for Scheme implementations that do not have it (for
+example: Larceny checkout 5877).
+@end defvr
+
+
+@defvr Constant sizeof-char
+@defvrx Constant sizeof-short
+@defvrx Constant sizeof-int
+@defvrx Constant sizeof-long
+@defvrx Constant sizeof-long-long
+@defvrx Constant sizeof-float
+@defvrx Constant sizeof-double
+@defvrx Constant sizeof-long-double
+@defvrx Constant sizeof-pointer
+The number of bytes in the specified type.
+@end defvr
+
+
+@defvr Constant alignof-char
+@defvrx Constant alignof-short
+@defvrx Constant alignof-int
+@defvrx Constant alignof-long
+@defvrx Constant alignof-long-long
+@defvrx Constant alignof-float
+@defvrx Constant alignof-double
+@defvrx Constant alignof-long-double
+@defvrx Constant alignof-pointer
+The number of bytes of the alignment in data structures for the
+specified type.
+@end defvr
+
+
+@defvr Constant strideof-char
+@defvrx Constant strideof-short
+@defvrx Constant strideof-int
+@defvrx Constant strideof-long
+@defvrx Constant strideof-long-long
+@defvrx Constant strideof-float
+@defvrx Constant strideof-double
+@defvrx Constant strideof-long-double
+@defvrx Constant strideof-pointer
+The number of bytes of the array stride for the specified type.
+@end defvr
+
+
+@deffn Syntax sizeof-char-array @var{number-of-elements}
+@deffnx Syntax sizeof-short-array @var{number-of-elements}
+@deffnx Syntax sizeof-int-array @var{number-of-elements}
+@deffnx Syntax sizeof-long-array @var{number-of-elements}
+@deffnx Syntax sizeof-long-long-array @var{number-of-elements}
+@deffnx Syntax sizeof-float-array @var{number-of-elements}
+@deffnx Syntax sizeof-double-array @var{number-of-elements}
+@deffnx Syntax sizeof-long-double-array @var{number-of-elements}
+@deffnx Syntax sizeof-pointer-array @var{number-of-elements}
+Compute the number of bytes to allocate to hold an array of the
+specified type.
+@end deffn
+
+
+@defvr Constant valueof-char-max
+@defvrx Constant valueof-char-min
+@defvrx Constant valueof-schar-max
+@defvrx Constant valueof-schar-min
+@defvrx Constant valueof-uchar-max
+@defvrx Constant valueof-shrt-max
+@defvrx Constant valueof-shrt-min
+@defvrx Constant valueof-ushrt-max
+@defvrx Constant valueof-int-max
+@defvrx Constant valueof-int-min
+@defvrx Constant valueof-uint-max
+@defvrx Constant valueof-long-max
+@defvrx Constant valueof-long-min
+@defvrx Constant valueof-wchar-max
+@defvrx Constant valueof-ssize-max
+The value of the specified constant.  For example: the value of
+@code{valueof-int-max} is the C language constant @code{INT_MAX}.
+@end defvr
+
+
+@defvr Constant words-bigendian
+Bound to @true{} if the platform is big endian, @false{} otherwise.
+Notice that this information is also available with the @rnrs{6}
+function @func{native-endianness}.
+@end defvr
+
+
+@defvr Constant on-32-bits-system
+@defvrx Constant on-32-bits-systems
+@defvrx Constant on-64-bits-system
+@defvrx Constant on-64-bits-systems
+Bound to true if the platform has words of @math{32} or @math{64} bits
+respectively.
+@end defvr
 
 @c page
 @node ffi load
@@ -53188,112 +53312,215 @@ interface:
 
 
 @c page
-@node ffi sizeof
-@subsection Sizes and limits
+@node ffi struct
+@subsection Accessing data structures
 
 
-The @library{foreign ffi sizeof} library exports a set of bindings to
-allow interface libraries to be aware of C language type sizes and
-limits.
+The following macros allow us to access and mutate fields in a C
+language data structure for which we know a pointer to.  To use them,
+for each field we want to access, we need to know:
+
+@itemize
+@item
+The offset of the first byte of the field in the structure's memory
+block.
+
+@item
+The C language data type of the field.  Knowing the data type is
+equivalent to knowing the required peeker and poker.  @ref{memory
+access, Direct access to memory blocks}
+@end itemize
+
+The following macros allow us to define field--specific accessors and
+mutators.
 
 
-@defvr Constant pointer-integer
-Set to a symbol representing one of the unsigned integer types for
-callout arguments and return values.  It is meant to be the integer type
-that is equal in size to a pointer, so it can be used in place of the
-@samp{pointer} type for Scheme implementations that do not have it (for
-example: Larceny checkout 5877).
-@end defvr
+@deffn Syntax define-c-struct-accessor @ameta{accessor-name} @ameta{field-offset} @ameta{foreign-type-accessor}
+Define a macro named @meta{accessor-name} accepting as single argument a
+pointer to a foreign data structure; it wraps the peeker
+@meta{foreign-type-accessor} to access the field at @meta{field-offset}
+in the structure.
 
+@meta{accessor-name} must be a Scheme symbol.
+@meta{foreign-type-accessor} must be a peeker among the ones defined in
+@ref{memory peekers, Peeking values}.  @meta{field-offset} must be an
+exact non--negative integer, representing the offset of the field's
+first byte in the data structure.
 
-@defvr Constant sizeof-char
-@defvrx Constant sizeof-short
-@defvrx Constant sizeof-int
-@defvrx Constant sizeof-long
-@defvrx Constant sizeof-long-long
-@defvrx Constant sizeof-float
-@defvrx Constant sizeof-double
-@defvrx Constant sizeof-long-double
-@defvrx Constant sizeof-pointer
-The number of bytes in the specified type.
-@end defvr
-
-
-@defvr Constant alignof-char
-@defvrx Constant alignof-short
-@defvrx Constant alignof-int
-@defvrx Constant alignof-long
-@defvrx Constant alignof-long-long
-@defvrx Constant alignof-float
-@defvrx Constant alignof-double
-@defvrx Constant alignof-long-double
-@defvrx Constant alignof-pointer
-The number of bytes of the alignment in data structures for the
-specified type.
-@end defvr
-
-
-@defvr Constant strideof-char
-@defvrx Constant strideof-short
-@defvrx Constant strideof-int
-@defvrx Constant strideof-long
-@defvrx Constant strideof-long-long
-@defvrx Constant strideof-float
-@defvrx Constant strideof-double
-@defvrx Constant strideof-long-double
-@defvrx Constant strideof-pointer
-The number of bytes of the array stride for the specified type.
-@end defvr
-
-
-@deffn Syntax sizeof-char-array @var{number-of-elements}
-@deffnx Syntax sizeof-short-array @var{number-of-elements}
-@deffnx Syntax sizeof-int-array @var{number-of-elements}
-@deffnx Syntax sizeof-long-array @var{number-of-elements}
-@deffnx Syntax sizeof-long-long-array @var{number-of-elements}
-@deffnx Syntax sizeof-float-array @var{number-of-elements}
-@deffnx Syntax sizeof-double-array @var{number-of-elements}
-@deffnx Syntax sizeof-long-double-array @var{number-of-elements}
-@deffnx Syntax sizeof-pointer-array @var{number-of-elements}
-Compute the number of bytes to allocate to hold an array of the
-specified type.
+As a special case, if @meta{field-offset} is @false{}: The defined macro
+expands into an invocation of @func{raise-unimplemented-error}, which
+signals that the accessor for the field is not implemented; in this case
+@meta{foreign-type-accessor} is ignored.  This is useful in cases where
+it is not possible to determine the offset of a field.  @ref{naulib
+unimplemented, Unimplemented error condition}
 @end deffn
 
 
-@defvr Constant valueof-char-max
-@defvrx Constant valueof-char-min
-@defvrx Constant valueof-schar-max
-@defvrx Constant valueof-schar-min
-@defvrx Constant valueof-uchar-max
-@defvrx Constant valueof-shrt-max
-@defvrx Constant valueof-shrt-min
-@defvrx Constant valueof-ushrt-max
-@defvrx Constant valueof-int-max
-@defvrx Constant valueof-int-min
-@defvrx Constant valueof-uint-max
-@defvrx Constant valueof-long-max
-@defvrx Constant valueof-long-min
-@defvrx Constant valueof-wchar-max
-@defvrx Constant valueof-ssize-max
-The value of the specified constant.  For example: the value of
-@code{valueof-int-max} is the C language constant @code{INT_MAX}.
-@end defvr
+@deffn Syntax define-c-struct-mutator @ameta{mutator-name} @ameta{field-offset} @ameta{foreign-type-mutator}
+Define a macro named @meta{mutator-name} accepting as single argument a
+pointer to a foreign data structure; it wraps the poker
+@meta{foreign-type-mutator} to mutate the field at @meta{field-offset}
+in the structure.
+
+@meta{mutator-name} must be a Scheme symbol.
+@meta{foreign-type-mutator} must be a poker among the ones defined in
+@ref{memory pokers, Poking values}.  @meta{field-offset} must be an
+exact non--negative integer, representing the offset of the field's
+first byte in the data structure.
+
+As a special case, if @meta{field-offset} is @false{}: The defined macro
+expands into an invocation of @func{raise-unimplemented-error}, which
+signals that the mutator for the field is not implemented; in this case
+@meta{foreign-type-mutator} is ignored.  This is useful in cases where
+it is not possible to determine the offset of a field.  @ref{naulib
+unimplemented, Unimplemented error condition}
+@end deffn
 
 
-@defvr Constant words-bigendian
-Bound to @true{} if the platform is big endian, @false{} otherwise.
-Notice that this information is also available with the @rnrs{6}
-function @func{native-endianness}.
-@end defvr
+@deffn Syntax define-c-struct-accessor-and-mutator @ameta{accessor-name} @ameta{mutator-name} @ameta{field-offset} @ameta{foreign-type-accessor} @ameta{foreign-type-mutator}
+Expand to the use of both the above macros; the following use:
+
+@example
+(define-c-struct-accessor-and-mutator
+  @cmeta{accessor-name} @cmeta{mutator-name}
+  @cmeta{field-offset}
+  @cmeta{foreign-type-accessor} @cmeta{foreign-type-mutator})
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(define-c-struct-accessor @cmeta{accessor-name}
+                          @cmeta{field-offset}
+                          @cmeta{foreign-type-accessor})
+
+(define-c-struct-mutator  @cmeta{mutator-name}
+                          @cmeta{field-offset}
+                          @cmeta{foreign-type-mutator})
+@end example
+@end deffn
+
+As an example, let's consider the @samp{z_stream} structure from ZLib;
+to use it we need to access at least the following fields (and more):
+
+@example
+next_in         avail_in        total_in
+next_out        avail_out       total_out
+@end example
+
+@noindent
+@samp{next_in} and @samp{next_out} are pointers, while the others are
+unsigned integers; using appropriate inspection tools (@pxref{ffi
+headers, Inspecting foreign header files}) we can determine the
+associations in the following table.
+
+@multitable {next_int} {Offset} {pointer-ref-c-unsigned-int} {pointer-set-c-unsigned-int!}
+@headitem Field @tab Offset @tab Accessor @tab Mutator
+@item next_in   @tab  0 @tab pointer-ref-c-pointer @tab pointer-set-c-pointer!
+@item next_out  @tab 12 @tab pointer-ref-c-pointer @tab pointer-set-c-pointer!
+@item avail_in  @tab  4 @tab pointer-ref-c-unsigned-int @tab pointer-set-c-unsigned-int!
+@item avail_out @tab 16 @tab pointer-ref-c-unsigned-int @tab pointer-set-c-unsigned-int!
+@item total_in  @tab  8 @tab pointer-ref-c-unsigned-int @tab pointer-set-c-unsigned-int!
+@item total_out @tab 20 @tab pointer-ref-c-unsigned-int @tab pointer-set-c-unsigned-int!
+@end multitable
+
+So an interface to ZLib should define:
+
+@example
+(define-c-struct-accessor-and-mutator
+  zstream-next_in-set!          zstream-next_in-ref
+  0
+  pointer-set-c-pointer!        pointer-ref-c-pointer)
+
+(define-c-struct-accessor-and-mutator
+  zstream-avail_in-set!         zstream-avail_in-ref
+  4
+  pointer-set-c-unsigned-int!   pointer-ref-c-unsigned-int)
+
+(define-c-struct-accessor-and-mutator
+  zstream-total_in-set!         zstream-total_in-ref
+  8
+  pointer-set-c-unsigned-int!   pointer-ref-c-unsigned-int)
+
+(define-c-struct-accessor-and-mutator
+  zstream-next_out-set!         zstream-next_out-ref
+  12
+  pointer-set-c-pointer!        pointer-ref-c-pointer)
+
+(define-c-struct-accessor-and-mutator
+  zstream-avail_out-set!        zstream-avail_out-ref
+  16
+  pointer-set-c-unsigned-int!   pointer-ref-c-unsigned-int)
+
+(define-c-struct-accessor-and-mutator
+  zstream-total_out-set!        zstream-total_out-ref
+  20
+  pointer-set-c-unsigned-int!   pointer-ref-c-unsigned-int)
+@end example
+
+Occasionally, a C language data structure embeds an array of values;
+this is the case of @samp{struct dirent} defined by @posix{}, which may
+be declared like this (from the @gnu{} C library):
+
+@example
+struct dirent
+@{
+  __ino_t               d_ino;
+  __off_t               d_off;
+  unsigned short int    d_reclen;
+  unsigned char         d_type;
+  char                  d_name[256];
+@};
+@end example
+
+@noindent
+the field @samp{d_name} cannot be accessed like the other fields; what
+we need to do is to take the offset of the first byte of @samp{d_name}
+and add it to the structure's pointer: The result is a pointer to the
+first byte in the embedded array.  This is what the following macro
+does.
 
 
-@defvr Constant on-32-bits-system
-@defvrx Constant on-32-bits-systems
-@defvrx Constant on-64-bits-system
-@defvrx Constant on-64-bits-systems
-Bound to true if the platform has words of @math{32} or @math{64} bits
-respectively.
-@end defvr
+@deffn Syntax define-c-struct-field-pointer-accessor @ameta{accessor-name} @ameta{field-offset}
+Define a macro named @meta{accessor-name} which accepts as single
+argument a pointer to a data structure, its expansion is the sum between
+the structure's pointer and @meta{field-offset}: A pointer which can be
+used to access the field's contents.
+
+@meta{accessor-name} must be a Scheme symbol.  @meta{field-offset} must
+be an exact non--negative integer, representing the offset of the
+field's first byte in the data structure.
+
+As a special case, if @meta{field-offset} is @false{}: The defined macro
+expands into an invocation of @func{raise-unimplemented-error}, which
+signals that the mutator for the field is not implemented.  This is
+useful in cases where it is not possible to determine the offset of a
+field.  @ref{naulib unimplemented, Unimplemented error condition}
+@end deffn
+
+
+In the case of the @samp{d_name} field of the @samp{struct dirent} we
+could define:
+
+@example
+(define-c-struct-field-pointer-accessor
+  struct-dirent-d_name-ref 11)
+@end example
+
+@noindent
+and then use code like the following:
+
+@example
+(define dir             ;pointer to a directory stream
+  (opendir "/home/marco"))
+
+(define entry           ;pointer to a 'struct dirent'
+  (readdir dir))
+
+(define directory-name  ;pointer to a C string
+  (struct-dirent-d_name-ref entry))
+@end example
 
 @c page
 @node ffi headers
@@ -53935,6 +54162,8 @@ Perform an inspection for a C language field structure type definition,
 but only to acquire the offset.  This macro is required when we need to
 access a structure field through a pointer to it; an example is the
 @samp{d_name} field of @samp{struct dirent} from @file{dirent.h}.
+@ref{ffi struct, Accessing data structures} for a discussion of this
+case.
 
 Only the offset of the field (output variable
 @samp{OFFSETOF_<@var{SUFFIX}>}) is defined.
