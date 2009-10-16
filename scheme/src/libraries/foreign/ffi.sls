@@ -45,7 +45,7 @@
     define-c-struct-field-pointer-accessor)
 
   (import (rnrs)
-    (only (foreign memory pointers)
+    (only (foreign ffi pointers)
 	  pointer-add)
     (only (foreign ffi compat)
 	  shared-object primitive-open-shared-object self-shared-object

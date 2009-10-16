@@ -39,7 +39,7 @@
     (records)
     (begin0)
     (foreign memory conditions)
-    (foreign memory pointers)
+    (foreign ffi pointers)
     (for (foreign memory mempool types) expand run)
     (for (foreign memory mempool extensions) expand run))
 

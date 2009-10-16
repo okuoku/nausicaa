@@ -35,7 +35,7 @@
     malloc-memblock/compensated	(rename (malloc-memblock/compensated malloc-memblock/c)))
   (import (rnrs)
     (compensations)
-    (foreign memory pointers)
+    (foreign ffi pointers)
     (foreign memory alloc)
     (foreign memory caches))
 

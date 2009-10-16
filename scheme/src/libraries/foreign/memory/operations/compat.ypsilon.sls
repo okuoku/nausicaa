@@ -28,7 +28,8 @@
   (export memset memmove memcpy memcmp)
   (import (core)
     (ypsilon ffi)
-    (foreign memory pointers))
+    (only (foreign ffi pointers)
+	  pointer->integer integer->pointer))
 
   (define self (load-shared-object ""))
 

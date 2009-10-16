@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (foreign memory peekers-and-pokers compat)
+(library (foreign ffi peekers-and-pokers compat)
   (export
     ;;peekers
     pointer-ref-c-int8			pointer-ref-c-uint8

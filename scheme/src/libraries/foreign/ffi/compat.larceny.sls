@@ -39,7 +39,7 @@
     (primitives make-parameter
 		foreign-file foreign-procedure
 		get-errno set-errno!)
-    (only (foreign memory pointers)
+    (only (foreign ffi pointers)
 	  pointer-null)
     (only (unimplemented)
 	  raise-unimplemented-error))

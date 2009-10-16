@@ -1,13 +1,14 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: compatibility pointer data type
+;;;Contents: raw memory pointer data type
 ;;;Date: Tue Oct 13, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,16 +25,24 @@
 ;;;
 
 
-(library (foreign memory pointers compat)
+(library (foreign ffi pointers)
   (export
     pointer?
-    integer->pointer			pointer->integer
-    pointer-null			pointer-null?
-    pointer-diff			pointer-add
-    pointer=?				pointer<>?
-    pointer<?				pointer>?
-    pointer<=?				pointer>=?)
+    pointer-null		pointer-null?
+    integer->pointer		pointer->integer
+    pointer-diff		pointer-add
+    pointer=?			pointer<>?
+    pointer<?			pointer>?
+    pointer<=?			pointer>=?)
   (import (rnrs)
-    (mosh ffi)))
+    (foreign ffi pointers compat))
+
+
+
+
+
+;;;; done
+
+)
 
 ;;; end of file

@@ -52,7 +52,7 @@
 		  shared-object-errno)
 	    (shared-object-errno errno))
     (foreign ffi sizeof)
-    (only (foreign memory pointers)
+    (only (foreign ffi pointers)
 	  pointer? integer->pointer pointer->integer))
 
 

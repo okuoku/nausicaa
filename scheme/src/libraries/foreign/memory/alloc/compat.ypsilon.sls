@@ -32,7 +32,7 @@
     platform-calloc			platform-realloc)
   (import (core)
     (ypsilon ffi)
-    (foreign memory pointers))
+    (foreign ffi pointers))
 
 
 ;;;; low level allocation functions

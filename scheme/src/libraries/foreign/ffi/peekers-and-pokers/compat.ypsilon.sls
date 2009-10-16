@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (foreign memory peekers-and-pokers compat)
+(library (foreign ffi peekers-and-pokers compat)
   (export
     ;;peekers
     pointer-ref-c-int8			pointer-ref-c-uint8
@@ -61,7 +61,7 @@
 	  make-bytevector-mapping
 	  bytevector-c-void*-ref
 	  bytevector-c-void*-set!)
-    (only (foreign memory pointers)
+    (only (foreign ffi pointers)
 	  integer->pointer pointer->integer)
     (only (foreign ffi sizeof)
 	  sizeof-float

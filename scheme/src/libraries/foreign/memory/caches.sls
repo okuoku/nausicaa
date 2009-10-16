@@ -33,7 +33,7 @@
     memblocks-cache)
   (import (rnrs)
     (records)
-    (foreign memory pointers)
+    (foreign ffi pointers)
     (foreign memory alloc)
     (foreign memory operations)
     (for (foreign memory memblocks) expand))

@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (foreign memory peekers-and-pokers compat)
+(library (foreign ffi peekers-and-pokers compat)
   (export
     ;;peekers
     pointer-ref-c-int8			pointer-ref-c-uint8
@@ -63,7 +63,7 @@
 		%poke8 %poke8u %poke16 %poke16u %poke32 %poke32u %poke-pointer
 		void*-double-set! void*-double-ref void*-float-set! void*-float-ref
 		void*? void*-rt record-constructor void*->address)
-    (only (foreign memory pointers)
+    (only (foreign ffi pointers)
 	  pointer->integer integer->pointer)
     (only (foreign ffi sizeof)
 	  sizeof-float

@@ -24,19 +24,35 @@
 ;;;
 
 
-(library (foreign memory pointers compat)
+#!r6rs
+(library (foreign ffi pointers compat)
   (export
     pointer?
-    integer->pointer	pointer->integer
-    pointer-null	pointer-null?
-    pointer-diff	pointer-add
-    pointer=?		pointer<>?
-    pointer<?		pointer>?
-    pointer<=?		pointer>=?)
-  (import (rnrs)
-    (except (ikarus foreign) memcpy))
+    integer->pointer			pointer->integer
+    pointer-null			pointer-null?
+    pointer-diff			pointer-add
+    pointer=?				pointer<>?
+    pointer<?				pointer>?
+    pointer<=?				pointer>=?)
+  (import (core)
+    (ypsilon ffi))
 
 
+(define-record-type pointer
+  (fields (immutable value)))
+
+(define (integer->pointer value)
+  (if (integer? value)
+      (make-pointer value)
+    (assertion-violation 'integer->pointer
+      "expected integer value" value)))
+
+(define (pointer->integer pointer)
+  (unless (pointer? pointer)
+    (assertion-violation 'pointer->integer
+      "expected pointer value" pointer))
+  (pointer-value pointer))
+
 (define pointer-null
   (integer->pointer 0))
 

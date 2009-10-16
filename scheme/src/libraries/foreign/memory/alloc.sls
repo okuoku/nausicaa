@@ -39,7 +39,7 @@
   (import (rnrs)
     (parameters)
     (foreign memory conditions)
-    (foreign memory pointers)
+    (foreign ffi pointers)
     (foreign memory alloc compat))
 
 

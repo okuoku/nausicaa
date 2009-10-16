@@ -29,7 +29,7 @@
   (export <mempool*>)
   (import (rnrs)
     (records)
-    (foreign memory pointers)
+    (foreign ffi pointers)
     (for (foreign memory mempool types) expand run))
 
   (define (%mempool-free-size pool)

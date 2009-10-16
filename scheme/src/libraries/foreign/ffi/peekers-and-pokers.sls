@@ -24,7 +24,7 @@
 ;;;
 
 
-(library (foreign memory peekers-and-pokers)
+(library (foreign ffi peekers-and-pokers)
   (export
     ;;peekers
     pointer-ref-c-int8			pointer-ref-c-uint8
@@ -174,9 +174,9 @@
 	    (array-set-c-uint32!		poke-array-uint32!)
 	    (array-set-c-uint64!		poke-array-uint64!)))
   (import (rnrs)
-    (foreign memory pointers)
-    (foreign memory peekers-and-pokers compat)
-    (foreign ffi sizeof))
+    (foreign ffi pointers)
+    (foreign ffi sizeof)
+    (foreign ffi peekers-and-pokers compat))
 
 
 ;;;; array peekers

@@ -31,10 +31,10 @@
     pointer-acquire		pointer-release
     pointer-dismiss)
   (import (rnrs)
-    (foreign memory pointers)
+    (foreign ffi pointers)
     (only (foreign memory alloc)
 	  malloc primitive-free)
-    (only (foreign memory peekers-and-pokers)
+    (only (foreign ffi peekers-and-pokers)
 	  pointer-set-c-unsigned-long!
 	  pointer-ref-c-unsigned-long)
     (only (foreign ffi sizeof)

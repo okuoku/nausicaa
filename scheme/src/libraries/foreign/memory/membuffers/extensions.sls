@@ -29,7 +29,7 @@
   (export <buffer*>)
   (import (rnrs)
     (records)
-    (only (foreign memory pointers)
+    (only (foreign ffi pointers)
 	  pointer=? pointer-diff)
     (for (foreign memory membuffers types) expand run)
     (for (foreign memory memblocks) expand run))

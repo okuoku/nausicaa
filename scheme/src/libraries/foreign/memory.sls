@@ -53,7 +53,7 @@
     ;; bindings from (foreign memory operations)
     memset		memmove		memcpy		memcmp
 
-    ;; bindings from (foreign memory pointers)
+    ;; bindings from (foreign ffi pointers)
     pointer?
     pointer-null		pointer-null?
     integer->pointer		pointer->integer
@@ -81,7 +81,7 @@
     malloc-memblock/compensated	malloc-memblock/c
 
 ;;; --------------------------------------------------------------------
-;;; bindings from (foreign memory peekers-and-pokers)
+;;; bindings from (foreign ffi peekers-and-pokers)
 
     ;;peekers
     pointer-ref-c-int8			pointer-ref-c-uint8
@@ -194,7 +194,7 @@
     (foreign memory conditions)
     (foreign memory memblocks)
     (foreign memory operations)
-    (foreign memory peekers-and-pokers)
-    (foreign memory pointers)))
+    (foreign ffi peekers-and-pokers)
+    (foreign ffi pointers)))
 
 ;;; end of file

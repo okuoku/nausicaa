@@ -32,8 +32,8 @@
     platform-calloc	platform-realloc)
   (import (rnrs)
     (primitives foreign-procedure)
-    (foreign memory pointers)
-    (only (foreign memory pointers compat) retval->pointer))
+    (foreign ffi pointers)
+    (only (foreign ffi pointers compat) retval->pointer))
 
 
 ;;;; low level allocation functions
