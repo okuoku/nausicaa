@@ -28,7 +28,8 @@
   (foreign ffi)
   (foreign memory)
   (foreign cstrings)
-  (zlib)
+  (foreign zlib)
+  (compensations)
   (checks)
   (format))
 
@@ -63,8 +64,7 @@ total_out:\t~s\n"
 (parametrise ((check-test-name 'auxiliary-functions))
 
   (check
-      (let ()
-	(cstring->string (zlibVersion)))
+      (cstring->string (zlibVersion))
     => "1.2.3")
 
   #t)
@@ -113,7 +113,7 @@ total_out:\t~s\n"
 	  (let ((decompressed-len
 		 (pointer-diff (zstream-next_out-ref zstream) output)))
 	    (and (= original-len decompressed-len)
-		 (equal? (cstring->string/len output decompressed-len)
+		 (equal? (cstring->string output decompressed-len)
 			 original-string)))))
     => #t)
 
@@ -174,7 +174,7 @@ total_out:\t~s\n"
 	  (let ((decompressed-len
 		 (pointer-diff (zstream-next_out-ref zstream) output)))
 	    (and (= original-len decompressed-len)
-		 (equal? (cstring->string/len output decompressed-len)
+		 (equal? (cstring->string output decompressed-len)
 			 original-string)))))
     => #t)
 

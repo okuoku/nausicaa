@@ -32,7 +32,7 @@ dnl Setup.
 dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-zlib],[0.1d0],[marcomaggi@gna.org])
-DS_BEGIN([./src/libraries/zlib.sls])
+DS_BEGIN([./src/libraries/foreign/zlib.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
 DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
@@ -129,7 +129,7 @@ dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../src/libraries/zlib/sizeof.sls:src/libraries/zlib/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/foreign/zlib/sizeof.sls:src/libraries/foreign/zlib/sizeof.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END

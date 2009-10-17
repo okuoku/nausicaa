@@ -24,7 +24,7 @@
 ;;;
 
 
-(library (zlib)
+(library (foreign zlib)
   (export
 
     ;; basic functions
@@ -123,7 +123,7 @@
     (foreign memory)
     (foreign cstrings)
     (foreign errno)
-    (zlib sizeof))
+    (foreign zlib sizeof))
 
 (define zlib
   (let ((o (open-shared-object 'libz.so)))
@@ -138,7 +138,6 @@
 (define gzFile		'pointer)
 
 (define ZLIB_VERSION	(string->cstring "1.2.3"))
-
 
 (define-c-function zlibVersion
   (char* zlibVersion (void)))
