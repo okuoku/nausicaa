@@ -176,14 +176,9 @@ tracker at Nausicaa's GitHub site.
 C. Resources
 ------------
 
-The original SRFI documents are available at:
+The latest revision of Nausicaa can be downloaded from:
 
-		 <http://srfi.schemers.org>
-
-the  development  version  of  the  SRFIs  for  R6RS  Scheme
-implementations can be found at:
-
-       <http://code.launchpad.net/scheme-libraries/>
+    <http://github.com/marcomaggi/nausicaa/tree/master>
 
 
 ### end of file
