@@ -165,7 +165,9 @@
 	  shared-object primitive-open-shared-object self-shared-object
 	  primitive-make-c-function primitive-make-c-function/with-errno
 	  primitive-make-c-callback primitive-free-c-callback
-	  errno))
+	  errno)
+    (only (unimplemented)
+	  raise-unimplemented-error))
 
 
 (define (open-shared-object library-name)
