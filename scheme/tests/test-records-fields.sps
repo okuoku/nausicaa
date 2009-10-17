@@ -752,7 +752,7 @@
 					4 5 6
 					7 8 9)))
 		   (with-record-fields* ((ciao <gamma> o))
-		     123))
+		     o.ciao))
 		(environment '(rnrs) '(records)
 			     '(for (records-lib) expand run))))
       => '((message . "unknown field name in record type hierarchy of \"<gamma>\"")
@@ -1034,7 +1034,7 @@
 				4 5 6
 				7 8 9)))
 		   (with-fields* ((ciao <gamma-rtd> o))
-		     123))
+		     o.ciao))
 		(environment '(rnrs) '(records)
 			     '(for (records-lib) expand run))))
       => '((message . "unknown field name in record type hierarchy of \"<gamma>\"")

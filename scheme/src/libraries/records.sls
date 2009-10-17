@@ -323,9 +323,9 @@
 			  ((_ ?kontext)
 			   (with-syntax (((DEFINES ((... ...) (... ...)))
 					  (make-define-forms (quote ?-what) (quote ?-which)
-							     (syntax ?kontext)
+							     #'?kontext
 							     (record-type-descriptor ?record-name))))
-			     (syntax (begin DEFINES ((... ...) (... ...))))))))))
+			     #'(begin DEFINES ((... ...) (... ...)))))))))
 	    (dummy ?context-identifier))))))))
 
 (%define-record-thing define-record-accessors			accessor all)
@@ -358,8 +358,8 @@
 							 '(?field-name (... ...))))
 				((FORMS ((... ...) (... ...)))
 				 (datum->syntax #'?kontext '(?form0 ?form (... ...)))))
-			     (syntax (let (BINDINGS ((... ...) (... ...)))
-				       FORMS ((... ...) (... ...))))))))))
+			     #'(let (BINDINGS ((... ...) (... ...)))
+				 FORMS ((... ...) (... ...)))))))))
 	    (dummy ?record-name))))))))
 
 (%define-with-record with-record-accessors accessor)
@@ -395,35 +395,65 @@
 
 
 (define-syntax with-record-fields*
-  (syntax-rules ()
-    ((_ () ?form0 ?form ...)
-     (begin ?form0 ?form ...))
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ () ?form0 ?form ...)
+       #'(begin ?form0 ?form ...))
 
-    ((_ (((?field-name ...) ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
-     (let-syntax
-	 ((dummy (lambda (stx)
-		   (syntax-case stx ()
-		     ((_ ?kontext)
-		      (let ((RTD (record-type-descriptor ?record-name)))
-			(with-syntax
-			    ((ID (datum->syntax #'?kontext '?record-id))
-			     ((VAR (... ...))
-			      (datum->syntax #'?kontext
-					     (%record-field-identifiers '?record-id '(?field-name ...))))
-			     ((ACCESSOR (... ...)) `(,(record-field-accessor RTD '?field-name)    ...))
-			     ((MUTATOR (... ...))  `(,(record-field-mutator  RTD '?field-name #f) ...))
-			     ((FORMS (... ...))    (datum->syntax #'?kontext '(?form0 ?form ...)))
-			     ((BINDS (... ...))    (datum->syntax #'?kontext '(?bindings ...))))
-			  #'(let-syntax
-				((VAR (identifier-syntax (_          ('ACCESSOR ID))
-							 ((set! _ e) ('MUTATOR  ID e))))
-				 (... ...))
-			      (with-record-fields* (BINDS (... ...)) FORMS (... ...))))))))))
-       (dummy ?record-name)))
+      ((_ ((() ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
+       #'(with-record-fields* (?bindings ...) ?form0 ?form ...))
 
-    ((_ ((?field-name ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
-     (with-record-fields* (((?field-name) ?record-name ?record-id))
-       (with-record-fields* (?bindings ...) ?form0 ?form ...)))))
+      ((_ (((?field-name) ?record-name ?record-id)) ?form0 ?form ...)
+       (let ((vars (%record-field-identifiers (syntax->datum #'?record-id)
+					      (list (syntax->datum #'?field-name)))))
+	 (with-syntax (((VAR) (datum->syntax #'?field-name vars)))
+	   #'(let-syntax
+		 ((VAR (identifier-syntax
+			(_
+			 ((record-field-accessor* ?record-name ?field-name) ?record-id))
+			((set! _ e)
+			 ((record-field-mutator*  ?record-name ?field-name) ?record-id e)))))
+		  ?form0 ?form ...))))
+
+      ((_ (((?field-name0 ?field-name ...) ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
+       #'(with-record-fields* (((?field-name0) ?record-name ?record-id))
+	   (with-record-fields* (((?field-name ...) ?record-name ?record-id))
+	     (with-record-fields* (?bindings ...) ?form0 ?form ...))))
+
+      ((_ ((?field-name ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
+       #'(with-record-fields* (((?field-name) ?record-name ?record-id))
+	   (with-record-fields* (?bindings ...) ?form0 ?form ...))))))
+
+;; (define-syntax with-record-fields*
+;;   (syntax-rules ()
+;;     ((_ () ?form0 ?form ...)
+;;      (begin ?form0 ?form ...))
+
+;;     ((_ (((?field-name ...) ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
+;;      (let-syntax
+;; 	 ((dummy (lambda (stx)
+;; 		   (syntax-case stx ()
+;; 		     ((_ ?kontext)
+;; 		      (let ((RTD (record-type-descriptor ?record-name)))
+;; 			(with-syntax
+;; 			    ((ID (datum->syntax #'?kontext '?record-id))
+;; 			     ((VAR (... ...))
+;; 			      (datum->syntax #'?kontext
+;; 					     (%record-field-identifiers '?record-id '(?field-name ...))))
+;; 			     ((ACCESSOR (... ...)) `(,(record-field-accessor RTD '?field-name)    ...))
+;; 			     ((MUTATOR (... ...))  `(,(record-field-mutator  RTD '?field-name #f) ...))
+;; 			     ((FORMS (... ...))    (datum->syntax #'?kontext '(?form0 ?form ...)))
+;; 			     ((BINDS (... ...))    (datum->syntax #'?kontext '(?bindings ...))))
+;; 			  #'(let-syntax
+;; 				((VAR (identifier-syntax (_          ('ACCESSOR ID))
+;; 							 ((set! _ e) ('MUTATOR  ID e))))
+;; 				 (... ...))
+;; 			      (with-record-fields* (BINDS (... ...)) FORMS (... ...))))))))))
+;;        (dummy ?record-name)))
+
+;;     ((_ ((?field-name ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
+;;      (with-record-fields* (((?field-name) ?record-name ?record-id))
+;;        (with-record-fields* (?bindings ...) ?form0 ?form ...)))))
 
 
 (define-syntax with-fields
@@ -454,42 +484,72 @@
 
 
 (define-syntax with-fields*
-  (syntax-rules ()
-    ((_ () ?form0 ?form ...)
-     (begin ?form0 ?form ...))
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ () ?form0 ?form ...)
+       #'(begin ?form0 ?form ...))
 
-    ((_ (((?field-name ...) ?extension-record ?record-id))
-	?form0 ?form ...)
-     (let-syntax
-	 ((dummy (lambda (stx)
-		   (syntax-case stx ()
-		     ((_ ?kontext)
-		      (with-syntax
-			  (((RECORD-ID)
-			    (datum->syntax #'?kontext '(?record-id)))
-			   ((VAR (... ...))
-			    (datum->syntax #'?kontext
-					   (%record-field-identifiers '?record-id '(?field-name ...))))
-			   ((ACCESSOR (... ...))
-			    `(,(virtual-field-accessor ?extension-record '?field-name) ...))
-			   ((MUTATOR (... ...))
-			    `(,(virtual-field-mutator  ?extension-record '?field-name #f) ...))
-			   ((FORMS (... ...))
-			    (datum->syntax #'?kontext '(?form0 ?form ...))))
-			#'(let-syntax
-			      ((VAR (identifier-syntax (_          ('ACCESSOR RECORD-ID))
-						       ((set! _ e) ('MUTATOR  RECORD-ID e))))
-			       (... ...))
-			    FORMS (... ...))))))))
-       (dummy ?extension-record)))
+      ((_ ((() ?extension-record ?expr) ?bindings ...) ?form0 ?form ...)
+       #'(with-fields* (?bindings ...) ?form0 ?form ...))
 
-    ((_ (((?field-name ...) ?extension-record ?record-id) ?bindings ...) ?form0 ?form ...)
-     (with-fields* (((?field-name ...) ?extension-record ?record-id))
-       (with-fields* (?bindings ...) ?form0 ?form ...)))
+      ((_ (((?field-name) ?extension-record ?record-id)) ?form0 ?form ...)
+       (let ((var (%record-field-identifiers (syntax->datum #'?record-id)
+					     (list (syntax->datum #'?field-name)))))
+	 (with-syntax (((VAR) (datum->syntax #'?field-name var)))
+	   #'(let-syntax
+		 ((VAR (identifier-syntax
+			(_
+			 ((virtual-field-accessor* ?extension-record ?field-name) ?record-id))
+			((set! _ e)
+			 ((virtual-field-mutator*  ?extension-record ?field-name) ?record-id e)))))
+		  ?form0 ?form ...))))
 
-    ((_ ((?field-name ?extension-record ?record-id) ?bindings ...) ?form0 ?form ...)
-     (with-fields* (((?field-name) ?extension-record ?record-id))
-       (with-fields* (?bindings ...) ?form0 ?form ...)))))
+      ((_ (((?field-name0 ?field-name ...) ?extension-record ?record-id) ?bindings ...) ?form0 ?form ...)
+       #'(with-fields* (((?field-name0) ?extension-record ?record-id))
+	   (with-fields* (((?field-name ...) ?extension-record ?record-id))
+	     (with-fields* (?bindings ...) ?form0 ?form ...))))
+
+      ((_ ((?field-name ?extension-record ?record-id) ?bindings ...) ?form0 ?form ...)
+       #'(with-fields* (((?field-name) ?extension-record ?record-id))
+	   (with-fields* (?bindings ...) ?form0 ?form ...))))))
+
+;; (define-syntax with-fields*
+;;   (syntax-rules ()
+;;     ((_ () ?form0 ?form ...)
+;;      (begin ?form0 ?form ...))
+
+;;     ((_ (((?field-name ...) ?extension-record ?record-id))
+;; 	?form0 ?form ...)
+;;      (let-syntax
+;; 	 ((dummy (lambda (stx)
+;; 		   (syntax-case stx ()
+;; 		     ((_ ?kontext)
+;; 		      (with-syntax
+;; 			  (((RECORD-ID)
+;; 			    (datum->syntax #'?kontext '(?record-id)))
+;; 			   ((VAR (... ...))
+;; 			    (datum->syntax #'?kontext
+;; 					   (%record-field-identifiers '?record-id '(?field-name ...))))
+;; 			   ((ACCESSOR (... ...))
+;; 			    `(,(virtual-field-accessor ?extension-record '?field-name) ...))
+;; 			   ((MUTATOR (... ...))
+;; 			    `(,(virtual-field-mutator  ?extension-record '?field-name #f) ...))
+;; 			   ((FORMS (... ...))
+;; 			    (datum->syntax #'?kontext '(?form0 ?form ...))))
+;; 			#'(let-syntax
+;; 			      ((VAR (identifier-syntax (_          ('ACCESSOR RECORD-ID))
+;; 						       ((set! _ e) ('MUTATOR  RECORD-ID e))))
+;; 			       (... ...))
+;; 			    FORMS (... ...))))))))
+;;        (dummy ?extension-record)))
+
+;;     ((_ (((?field-name ...) ?extension-record ?record-id) ?bindings ...) ?form0 ?form ...)
+;;      (with-fields* (((?field-name ...) ?extension-record ?record-id))
+;;        (with-fields* (?bindings ...) ?form0 ?form ...)))
+
+;;     ((_ ((?field-name ?extension-record ?record-id) ?bindings ...) ?form0 ?form ...)
+;;      (with-fields* (((?field-name) ?extension-record ?record-id))
+;;        (with-fields* (?bindings ...) ?form0 ?form ...)))))
 
 
 ;;;; next method implementation
