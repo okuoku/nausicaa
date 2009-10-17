@@ -62,7 +62,9 @@
   (only (object-properties))
   (only (cleanup-handlers))
 
-  ;;Commented out because WITH-FIELDS cannot be serialised.
+  ;;Commented  out because the  expansion of  RECORD-FIELD-ACCESSOR* and
+  ;;RECORD-FIELD-MUTATOR*  from (records)  cannot be  serialised.
+  ;;
   ;;(only (queues))
   ;;(only (stacks))
 
@@ -105,14 +107,15 @@
   (only (email addresses parser))
   (only (email addresses))
 
-  ;;Commented out because WITH-FIELDS cannot be serialised.
+  ;;Commented  out because the  expansion of  RECORD-FIELD-ACCESSOR* and
+  ;;RECORD-FIELD-MUTATOR*  from (records)  cannot be  serialised.
+  ;;
   ;; (only (foreign memory))
   ;; (only (foreign memory mempool))
   ;; (only (foreign memory refcount))
   ;; (only (foreign memory membuffers))
   ;; (only (foreign memory guarded-malloc))
-
-  ;;Commented out because WITH-FIELDS cannot be serialised.
+  ;;
   ;; (only (foreign ffi))
   ;; (only (foreign cstrings))
   ;; (only (foreign errno))
