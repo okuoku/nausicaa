@@ -1,8 +1,8 @@
               |-----handy-ruler-----------------------------------------------|
 @PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
 @PACKAGE_NAME@:
-@PACKAGE_NAME@: Base libraries for the Nausicaa R6RS distribution.
-@PACKAGE_NAME@:
+@PACKAGE_NAME@: Collection of libraries for R6RS Scheme implementations.
+@PACKAGE_NAME@: Supports Ikarus, Larceny, Mosh and Ypsilon.
 @PACKAGE_NAME@:
 @PACKAGE_NAME@:
 @PACKAGE_NAME@:
