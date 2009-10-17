@@ -2,13 +2,12 @@ dnl
 dnl Part of: Nausicaa/Zlib
 dnl Contents: configuration template
 dnl Date: Sun Dec  7, 2008
-dnl Time-stamp: <2008-12-16 10:25:02 marco>
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+dnl Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it  under the terms of the  GNU General Public
@@ -32,11 +31,13 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-zlib],[0.1d0])
+AC_INIT([nausicaa-zlib],[0.1d0],[marcomaggi@gna.org])
+DS_BEGIN([./src/libraries/zlib.sls])
+AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
-NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_R6RS],[(r6rs)])
-NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
-NAUSICAA_SYSTEM_SETUP
+DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
+DS_EXCLUDE_SECTION([AUTOCONF])
+DS_EXCLUDE_SECTION([PKGCONFIG])
 NAUSICAA_C_LANGUAGE
 AC_CHECK_HEADERS([zlib.h],,[AC_MSG_FAILURE([cannot find libz library],[2])])
 AC_CHECK_LIB([z],[deflate],,[AC_MSG_FAILURE([cannot find libz library],[2])])
@@ -128,8 +129,10 @@ dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../libraries/zlib/sizeof.sls:libraries/zlib/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/zlib/sizeof.sls:src/libraries/zlib/sizeof.sls.in])
+DS_CONFIG_FILE_SLACKWARE_BIN_DESC
+DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END
-
+DS_END
 
 ### end of file

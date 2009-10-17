@@ -2,13 +2,12 @@
 ;;;Part of: Nausicaa/Zlib
 ;;;Contents: tests for zlib
 ;;;Date: Mon Dec  8, 2008
-;;;Time-stamp: <2008-12-31 10:36:15 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,16 +23,14 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(import (r6rs)
-  (uriel lang)
-  (uriel foreign)
-  (uriel test)
+(import (nausicaa)
+  (foreign ffi)
+  (foreign memory)
+  (foreign cstrings)
   (zlib)
-  (srfi random))
+  (checks)
+  (format))
 
 (check-set-mode! 'report-failed)
 
@@ -63,122 +60,125 @@ total_out:\t~s\n"
 
 
 
-;;;; auxiliary functions
+(parametrise ((check-test-name 'auxiliary-functions))
 
-(check
-    (let ()
-      (cstring->string (zlibVersion)))
-  => "1.2.3")
+  (check
+      (let ()
+	(cstring->string (zlibVersion)))
+    => "1.2.3")
 
-
-
-;;;; basic functions
-
-(check
-    (with-compensations
-      (let* ((complen		(* 2 original-len))
-	     (compressed	(malloc-block/c complen))
-	     (outlen		(* 2 original-len))
-	     (output		(malloc-block/c outlen))
-	     (zstream		(malloc-block/c sizeof-zstream)))
-
-	(zstream-next_in-set!  zstream original-ptr)
-	(zstream-avail_in-set! zstream original-len)
-
-	(zstream-next_out-set!  zstream compressed)
-	(zstream-avail_out-set! zstream complen)
-
-	(zstream-zalloc-set! zstream (integer->pointer 0))
-	(zstream-zfree-set!  zstream (integer->pointer 0))
-	(zstream-opaque-set! zstream (integer->pointer 0))
-;;	(dump-zstream zstream)
-
-	(deflateInit zstream Z_BEST_COMPRESSION)
-	(deflate zstream Z_FINISH)
-	(deflateEnd zstream)
-;;	(dump-zstream zstream)
-
-	(let ((compressed-len
-	       (pointer-diff (zstream-next_out-ref zstream) compressed)))
-	  (zstream-next_in-set! zstream compressed)
-	  (zstream-avail_in-set! zstream compressed-len))
-
-	(zstream-next_out-set! zstream output)
-	(zstream-avail_out-set! zstream outlen)
-;;	(dump-zstream zstream)
-
-	(inflateInit zstream)
-	(inflate zstream Z_FINISH)
-	(inflateEnd zstream)
-;;	(dump-zstream zstream)
-
-	(let ((decompressed-len
-	       (pointer-diff (zstream-next_out-ref zstream) output)))
-	  (and (= original-len decompressed-len)
-	       (equal? (cstring->string/len output decompressed-len)
-		       original-string)))))
-  => #t)
-
+  #t)
 
 
-;;;; advanced functions
+(parametrise ((check-test-name 'basic-functions))
 
-(check
-    (with-compensations
-      (let* ((complen		(* 2 original-len))
-	     (compressed	(malloc-block/c complen))
-	     (outlen		(* 2 original-len))
-	     (output		(malloc-block/c outlen))
-	     (zstream		(malloc-block/c sizeof-zstream))
-	     (dictionary	(string->cstring/c dictionary))
-	     (dictionary-len	(strlen dictionary)))
+  (check
+      (with-compensations
+	(let* ((complen		(* 2 original-len))
+	       (compressed	(malloc-block/c complen))
+	       (outlen		(* 2 original-len))
+	       (output		(malloc-block/c outlen))
+	       (zstream		(malloc-block/c sizeof-zstream)))
 
-	(zstream-next_in-set!  zstream original-ptr)
-	(zstream-avail_in-set! zstream original-len)
+	  (zstream-next_in-set!  zstream original-ptr)
+	  (zstream-avail_in-set! zstream original-len)
 
-	(zstream-next_out-set!  zstream compressed)
-	(zstream-avail_out-set! zstream complen)
+	  (zstream-next_out-set!  zstream compressed)
+	  (zstream-avail_out-set! zstream complen)
 
-	(zstream-zalloc-set! zstream (integer->pointer 0))
-	(zstream-zfree-set!  zstream (integer->pointer 0))
-	(zstream-opaque-set! zstream (integer->pointer 0))
+	  (zstream-zalloc-set! zstream (integer->pointer 0))
+	  (zstream-zfree-set!  zstream (integer->pointer 0))
+	  (zstream-opaque-set! zstream (integer->pointer 0))
+	  ;;	(dump-zstream zstream)
+
+	  (deflateInit zstream Z_BEST_COMPRESSION)
+	  (deflate zstream Z_FINISH)
+	  (deflateEnd zstream)
+	  ;;	(dump-zstream zstream)
+
+	  (let ((compressed-len
+		 (pointer-diff (zstream-next_out-ref zstream) compressed)))
+	    (zstream-next_in-set! zstream compressed)
+	    (zstream-avail_in-set! zstream compressed-len))
+
+	  (zstream-next_out-set! zstream output)
+	  (zstream-avail_out-set! zstream outlen)
+	  ;;	(dump-zstream zstream)
+
+	  (inflateInit zstream)
+	  (inflate zstream Z_FINISH)
+	  (inflateEnd zstream)
+	  ;;	(dump-zstream zstream)
+
+	  (let ((decompressed-len
+		 (pointer-diff (zstream-next_out-ref zstream) output)))
+	    (and (= original-len decompressed-len)
+		 (equal? (cstring->string/len output decompressed-len)
+			 original-string)))))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name 'advanced-functions))
+
+  (check
+      (with-compensations
+	(let* ((complen		(* 2 original-len))
+	       (compressed	(malloc-block/c complen))
+	       (outlen		(* 2 original-len))
+	       (output		(malloc-block/c outlen))
+	       (zstream		(malloc-block/c sizeof-zstream))
+	       (dictionary	(string->cstring/c dictionary))
+	       (dictionary-len	(strlen dictionary)))
+
+	  (zstream-next_in-set!  zstream original-ptr)
+	  (zstream-avail_in-set! zstream original-len)
+
+	  (zstream-next_out-set!  zstream compressed)
+	  (zstream-avail_out-set! zstream complen)
+
+	  (zstream-zalloc-set! zstream (integer->pointer 0))
+	  (zstream-zfree-set!  zstream (integer->pointer 0))
+	  (zstream-opaque-set! zstream (integer->pointer 0))
 ;;;	(dump-zstream zstream)
 
-	(deflateInit2 zstream Z_BEST_COMPRESSION
-	  Z_DEFLATED		;; method
-	  10			;; windowBits
-	  3			;; memLevel
-	  Z_DEFAULT_STRATEGY	;; strategy
-	  )
-	(deflateSetDictionary zstream dictionary dictionary-len)
+	  (deflateInit2 zstream Z_BEST_COMPRESSION
+	    Z_DEFLATED	     ;; method
+	    10		     ;; windowBits
+	    3		     ;; memLevel
+	    Z_DEFAULT_STRATEGY ;; strategy
+	    )
+	  (deflateSetDictionary zstream dictionary dictionary-len)
 
-	(deflate zstream Z_FINISH)
-	(deflateEnd zstream)
+	  (deflate zstream Z_FINISH)
+	  (deflateEnd zstream)
 ;;;	(dump-zstream zstream)
 
-	(let ((compressed-len
-	       (pointer-diff (zstream-next_out-ref zstream) compressed)))
-	  (zstream-next_in-set! zstream compressed)
-	  (zstream-avail_in-set! zstream compressed-len))
+	  (let ((compressed-len
+		 (pointer-diff (zstream-next_out-ref zstream) compressed)))
+	    (zstream-next_in-set! zstream compressed)
+	    (zstream-avail_in-set! zstream compressed-len))
 
-	(zstream-next_out-set! zstream output)
-	(zstream-avail_out-set! zstream outlen)
-;;	(dump-zstream zstream)
+	  (zstream-next_out-set! zstream output)
+	  (zstream-avail_out-set! zstream outlen)
+	  ;;	(dump-zstream zstream)
 
-	(inflateInit2 zstream 10)
-	(inflate zstream Z_FINISH)
-	(inflateSetDictionary zstream dictionary dictionary-len)
-	(inflate zstream Z_FINISH)
-	(inflateEnd zstream)
-;;	(dump-zstream zstream)
+	  (inflateInit2 zstream 10)
+	  (inflate zstream Z_FINISH)
+	  (inflateSetDictionary zstream dictionary dictionary-len)
+	  (inflate zstream Z_FINISH)
+	  (inflateEnd zstream)
+	  ;;	(dump-zstream zstream)
 
-	(let ((decompressed-len
-	       (pointer-diff (zstream-next_out-ref zstream) output)))
-	  (and (= original-len decompressed-len)
-	       (equal? (cstring->string/len output decompressed-len)
-		       original-string)))))
-  => #t)
+	  (let ((decompressed-len
+		 (pointer-diff (zstream-next_out-ref zstream) output)))
+	    (and (= original-len decompressed-len)
+		 (equal? (cstring->string/len output decompressed-len)
+			 original-string)))))
+    => #t)
 
+  #t)
 
 
 ;;;; done

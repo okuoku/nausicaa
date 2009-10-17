@@ -1,8 +1,8 @@
               |-----handy-ruler-----------------------------------------------|
 @PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
 @PACKAGE_NAME@:
-@PACKAGE_NAME@: Zlib interface for R6RS Scheme implementations.  Supports
-@PACKAGE_NAME@: Ikarus, Larceny, Mosh and Ypsilon.
+@PACKAGE_NAME@: Documentation for Nausicaa/Zlib, an interface to Zlib for
+@PACKAGE_NAME@: R6RS Scheme implementations.
 @PACKAGE_NAME@:
 @PACKAGE_NAME@:
 @PACKAGE_NAME@:
