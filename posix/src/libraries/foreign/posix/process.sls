@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (posix process)
+(library (foreign posix process)
   (export
 
     ;; identification
@@ -46,9 +46,13 @@
     waitpid/any-my-group
     waitpid/group)
   (import (nausicaa)
-    (foreign)
-    (posix sizeof)
-    (posix process platform))
+    (foreign ffi)
+    (foreign memory)
+    (foreign errno)
+    (foreign cstrings)
+    (foreign posix sizeof)
+    (foreign posix process platform)
+    (compensations))
 
   (define dummy
     (shared-object self-shared-object))

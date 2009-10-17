@@ -17,8 +17,8 @@ Topics
 ---------------
 
 This is a Scheme library exposing the POSIX interface to the
-Scheme  language level.   It is  built on  top of  the Uriel
-libraries.
+Scheme  language   level.   It  is  built  on   top  of  the
+Nausicaa/Scheme project.
 
 
 2. License
@@ -46,11 +46,11 @@ License   along   with    this   program.    If   not,   see
 4. Install
 ----------
 
-Be  sure  to  have  installed the  Nausicaa/SRFI  and  Uriel
-libraries first.
+Be sure to have installed the Nausicaa/Scheme libraries.
 
   Basically we should do:
 
+   $ cd <nausicaa-top>
    $ cd posix
    $ mkdir "=build"
    $ cd "=build"
@@ -82,8 +82,17 @@ The stuff was written by Marco Maggi.
 B. Bug reports
 --------------
 
-Bug    reports    are     appreciated,    send    them    to
-<mrc.mgg@gmail.com>.
+Bug reports  are appreciated, register them  using the issue
+tracker at Nausicaa's GitHub site.
+
+
+C. Resources
+------------
+
+The latest revision of Nausicaa can be downloaded from:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
 
 
 ### end of file

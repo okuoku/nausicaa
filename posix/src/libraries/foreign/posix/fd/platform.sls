@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (posix fd platform)
+(library (foreign posix fd platform)
   (export
     platform-open	platform-close
     platform-read	platform-write
@@ -39,7 +39,7 @@
     )
   (import (rnrs)
     (foreign ffi)
-    (posix sizeof))
+    (foreign posix sizeof))
 
 
 ;;;; code

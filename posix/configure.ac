@@ -32,7 +32,7 @@ dnl Setup.
 dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-posix],[0.1d0])
-DS_BEGIN([./src/libraries/posix/fd.sls])
+DS_BEGIN([./src/libraries/foreign/posix/fd.sls])
 AC_CANONICAL_TARGET
 AC_USE_SYSTEM_EXTENSIONS
 AC_SUBST([NAUSICAA_OS],[$target_os])
@@ -41,7 +41,7 @@ DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
 DS_EXCLUDE_SECTION([AUTOCONF])
 DS_EXCLUDE_SECTION([PKGCONFIG])
 
-NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
 NAUSICAA_C_LANGUAGE
 NAUSICAA_SIZEOF
 NAUSICAA_C_TYPES_LIMITS
@@ -243,7 +243,7 @@ dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../src/libraries/posix/sizeof.sls:../src/libraries/posix/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/foreign/posix/sizeof.sls:../src/libraries/foreign/posix/sizeof.sls.in])
 
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC

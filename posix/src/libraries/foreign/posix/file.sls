@@ -23,10 +23,9 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
 #!r6rs
-(library (posix file)
+(library (foreign posix file)
   (export
 
     ;; working directory
@@ -93,10 +92,16 @@
     )
   (import (except (nausicaa)
 		  remove truncate)
-    (foreign)
-    (except (posix fd) read write)
-    (posix sizeof)
-    (posix file platform))
+    (foreign ffi)
+    (foreign ffi pointers)
+    (foreign memory)
+    (foreign errno)
+    (foreign cstrings)
+    (except (foreign posix fd)
+	    read write)
+    (foreign posix sizeof)
+    (foreign posix file platform)
+    (compensations))
 
   (define dummy
     (shared-object self-shared-object))
@@ -334,7 +339,7 @@
 	      (platform-readlink c-pathname buffer size)
 	    (when (= -1 size)
 	      (raise-errno-error 'primitive-readlink errno pathname))
-	    (cstring->string/len buffer result)))))))
+	    (cstring->string buffer result)))))))
 
 (define (primitive-realpath pathname)
   (with-compensations

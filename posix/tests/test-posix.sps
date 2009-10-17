@@ -26,9 +26,10 @@
 
 
 (import (nausicaa)
-  (foreign)
+  (foreign ffi)
+  (foreign memory)
   (checks)
-  (posix environment))
+  (foreign posix environment))
 
 (check-set-mode! 'report-failed)
 
@@ -48,8 +49,7 @@
 	(getenv 'CIAO))
     => "pasta")
 
-  )
-
+  #t)
 
 
 ;;;; done

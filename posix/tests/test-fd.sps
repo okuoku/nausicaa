@@ -27,11 +27,16 @@
 (import (rename (nausicaa)
 		(read rnrs:read)
 		(write rnrs:write))
-  (strings)
-  (foreign)
   (checks)
-  (posix fd)
-  (posix sizeof))
+  (strings)
+  (foreign ffi)
+  (foreign memory)
+  (foreign cstrings)
+  (foreign errno)
+  (foreign posix fd)
+  (foreign posix sizeof)
+  (deferred-exceptions)
+  (compensations))
 
 (check-set-mode! 'report-failed)
 
@@ -45,7 +50,6 @@ Exile sul le sol au milieu des huees,
 Ses ailes de geant l'empechent de marcher.")
 
 
-
 (parameterize ((check-test-name	'basic)
 	       (debugging	#t))
 
@@ -69,7 +73,7 @@ Ses ailes de geant l'empechent de marcher.")
 		(lseek fd 0 SEEK_SET)
 		(read fd bufptr2 buflen2)
 		(close fd)
-		(cstring->string/len bufptr2 buflen2)))
+		(cstring->string bufptr2 buflen2)))
 	  => the-string)
 
 	(check
@@ -84,7 +88,7 @@ Ses ailes de geant l'empechent de marcher.")
 		(fsync fd)
 		(pread fd bufptr2 buflen2 0)
 		(close fd)
-		(cstring->string/len bufptr2 buflen2)))
+		(cstring->string bufptr2 buflen2)))
 	  => the-string)
 
 	(check
@@ -104,7 +108,7 @@ Ses ailes de geant l'empechent de marcher.")
 		(sync)
 		(lseek fd len SEEK_SET)
 		(read fd bufptr2 buflen2)
-		(cstring->string/len bufptr2 (- buflen2 len))))
+		(cstring->string bufptr2 (- buflen2 len))))
 	  => "Qui hante la tempete e se rit de l'archer;
 Exile sul le sol au milieu des huees,
 Ses ailes de geant l'empechent de marcher.")
@@ -112,7 +116,6 @@ Ses ailes de geant l'empechent de marcher.")
 	))))
 
 
-
 (parameterize ((check-test-name	'dup)
 	       (debugging	#t))
 
@@ -137,7 +140,7 @@ Ses ailes de geant l'empechent de marcher.")
 		  (lseek fd2 0 SEEK_SET)
 		  (read fd2 bufptr2 buflen2)
 		  (close fd2))
-		(cstring->string/len bufptr2 buflen2)))
+		(cstring->string bufptr2 buflen2)))
 	  => the-string)
 
 	(check
@@ -155,13 +158,12 @@ Ses ailes de geant l'empechent de marcher.")
 		  (lseek fd2 0 SEEK_SET)
 		  (read fd2 bufptr2 buflen2)
 		  (close fd2))
-		(cstring->string/len bufptr2 buflen2)))
+		(cstring->string bufptr2 buflen2)))
 	  => the-string)
 
 	))))
 
 
-
 (parameterize ((check-test-name	'lock)
 	       (debugging	#t))
 
@@ -194,13 +196,12 @@ Ses ailes de geant l'empechent de marcher.")
 ;;; 			   (struct-flock-l_start-ref lock)))(newline)
 		  (fcntl fd F_UNLCK (pointer->integer lock))
 		  (close fd))
-		(cstring->string/len bufptr2 buflen2)))
+		(cstring->string bufptr2 buflen2)))
 	  => the-string)
 
 	))))
 
 
-
 (parameterize ((check-test-name	'pipe)
 	       (debugging	#t))
 
@@ -221,7 +222,7 @@ Ses ailes de geant l'empechent de marcher.")
 		  (write ou s (strlen s)))
 		(let* ((p	(malloc 10))
 		       (len	(read in p 10)))
-		  (cstring->string/len p len))))
+		  (cstring->string p len))))
 	  => "ciao\n")
 
 	;; binary port
@@ -290,7 +291,6 @@ Ses ailes de geant l'empechent de marcher.")
 	))))
 
 
-
 (parameterize ((check-test-name	'fifo)
 	       (debugging	#t))
 

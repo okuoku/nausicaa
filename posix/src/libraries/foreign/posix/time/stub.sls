@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (posix time stub)
+(library (foreign posix time stub)
   (export
     clock primitive-clock primitive-clock-function platform-clock
     times primitive-times primitive-times-function platform-times
@@ -35,8 +35,13 @@
     struct-tms-tms_cutime-ref struct-tms-tms_cstime-ref
     )
   (import (nausicaa)
-    (foreign)
-    (posix sizeof))
+    (foreign ffi)
+    (foreign ffi sizeof)
+    (foreign memory)
+    (foreign cstrings)
+    (foreign errno)
+    (foreign posix sizeof)
+    (compensations))
 
   (define stub-lib
     (let ((o (open-shared-object 'libnausicaa-posix1.so)))

@@ -23,18 +23,22 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
 (import (except (nausicaa)
 		read write remove)
-  (foreign)
+  (foreign ffi)
+  (foreign memory)
+  (foreign errno)
+  (foreign cstrings)
   (strings)
   (checks)
-  (posix process)
-  (posix fd)
-  (posix file)
-  (posix file stat)
-  (posix sizeof))
+  (foreign posix process)
+  (foreign posix fd)
+  (foreign posix file)
+  (foreign posix file stat)
+  (foreign posix sizeof)
+  (compensations)
+  (deferred-exceptions))
 
 (check-set-mode! 'report-failed)
 

@@ -25,13 +25,11 @@
 
 
 #!r6rs
-(library (posix time)
-  (export
-    dummy ;;temporary
-    )
+(library (foreign posix time)
+  (export)
   (import (rnrs)
     (foreign ffi)
-    (posix sizeof))
+    (foreign posix sizeof))
 
   (define dummy
     (shared-object self-shared-object))

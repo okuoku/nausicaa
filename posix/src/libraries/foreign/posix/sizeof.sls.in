@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (posix sizeof)
+(library (foreign posix sizeof)
   (export
 
     define-primitive-parameter
@@ -188,7 +188,6 @@
 (define pointer-set-c-uid_t!		@SETTEROF_UID_T@)
 (define pointer-ref-c-uid_t		@GETTEROF_UID_T@)
 
-
 
 ;;;; struct type definitions
 
@@ -303,35 +302,35 @@
 
 ;;;; struct accessors
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-flock-l_type-set!
   struct-flock-l_type-ref
   @OFFSETOF_STRUCT_FLOCK_L_TYPE@
   @SETTEROF_STRUCT_FLOCK_L_TYPE@
   @GETTEROF_STRUCT_FLOCK_L_TYPE@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-flock-l_whence-set!
   struct-flock-l_whence-ref
   @OFFSETOF_STRUCT_FLOCK_L_WHENCE@
   @SETTEROF_STRUCT_FLOCK_L_WHENCE@
   @GETTEROF_STRUCT_FLOCK_L_WHENCE@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-flock-l_start-set!
   struct-flock-l_start-ref
   @OFFSETOF_STRUCT_FLOCK_L_START@
   @SETTEROF_STRUCT_FLOCK_L_START@
   @GETTEROF_STRUCT_FLOCK_L_START@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-flock-l_len-set!
   struct-flock-l_len-ref
   @OFFSETOF_STRUCT_FLOCK_L_LEN@
   @SETTEROF_STRUCT_FLOCK_L_LEN@
   @GETTEROF_STRUCT_FLOCK_L_LEN@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-flock-l_pid-set!
   struct-flock-l_pid-ref
   @OFFSETOF_STRUCT_FLOCK_L_PID@
@@ -340,14 +339,14 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-timeval-tv_sec-set!
   struct-timeval-tv_sec-ref
   @OFFSETOF_STRUCT_TIMEVAL_TV_SEC@
   @SETTEROF_STRUCT_TIMEVAL_TV_SEC@
   @GETTEROF_STRUCT_TIMEVAL_TV_SEC@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-timeval-tv_usec-set!
   struct-timeval-tv_usec-ref
   @OFFSETOF_STRUCT_TIMEVAL_TV_USEC@
@@ -356,14 +355,14 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-timespec-tv_sec-set!
   struct-timespec-tv_sec-ref
   @OFFSETOF_STRUCT_TIMESPEC_TV_SEC@
   @SETTEROF_STRUCT_TIMESPEC_TV_SEC@
   @GETTEROF_STRUCT_TIMESPEC_TV_SEC@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-timespec-tv_nsec-set!
   struct-timespec-tv_nsec-ref
   @OFFSETOF_STRUCT_TIMESPEC_TV_NSEC@
@@ -372,111 +371,111 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-c-struct-field-pointer-getter
+(define-c-struct-field-pointer-accessor
   struct-dirent-d_name-ref
   @OFFSETOF_STRUCT_DIRENT_D_NAME@)
 
 ;;; --------------------------------------------------------------------
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_mode-set!
   struct-stat-st_mode-ref
   @OFFSETOF_STRUCT_STAT_ST_MODE@
   @SETTEROF_STRUCT_STAT_ST_MODE@
   @GETTEROF_STRUCT_STAT_ST_MODE@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_ino-set!
   struct-stat-st_ino-ref
   @OFFSETOF_STRUCT_STAT_ST_INO@
   @SETTEROF_STRUCT_STAT_ST_INO@
   @GETTEROF_STRUCT_STAT_ST_INO@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_dev-set!
   struct-stat-st_dev-ref
   @OFFSETOF_STRUCT_STAT_ST_DEV@
   @SETTEROF_STRUCT_STAT_ST_DEV@
   @GETTEROF_STRUCT_STAT_ST_DEV@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_nlink-set!
   struct-stat-st_nlink-ref
   @OFFSETOF_STRUCT_STAT_ST_NLINK@
   @SETTEROF_STRUCT_STAT_ST_NLINK@
   @GETTEROF_STRUCT_STAT_ST_NLINK@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_uid-set!
   struct-stat-st_uid-ref
   @OFFSETOF_STRUCT_STAT_ST_UID@
   @SETTEROF_STRUCT_STAT_ST_UID@
   @GETTEROF_STRUCT_STAT_ST_UID@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_gid-set!
   struct-stat-st_gid-ref
   @OFFSETOF_STRUCT_STAT_ST_GID@
   @SETTEROF_STRUCT_STAT_ST_GID@
   @GETTEROF_STRUCT_STAT_ST_GID@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_size-set!
   struct-stat-st_size-ref
   @OFFSETOF_STRUCT_STAT_ST_SIZE@
   @SETTEROF_STRUCT_STAT_ST_SIZE@
   @GETTEROF_STRUCT_STAT_ST_SIZE@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_atime-set!
   struct-stat-st_atime-ref
   @OFFSETOF_STRUCT_STAT_ST_ATIME@
   @SETTEROF_STRUCT_STAT_ST_ATIME@
   @GETTEROF_STRUCT_STAT_ST_ATIME@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_atime_usec-set!
   struct-stat-st_atime_usec-ref
   @OFFSETOF_STRUCT_STAT_ST_ATIME_USEC@
   @SETTEROF_STRUCT_STAT_ST_ATIME_USEC@
   @GETTEROF_STRUCT_STAT_ST_ATIME_USEC@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_mtime-set!
   struct-stat-st_mtime-ref
   @OFFSETOF_STRUCT_STAT_ST_MTIME@
   @SETTEROF_STRUCT_STAT_ST_MTIME@
   @GETTEROF_STRUCT_STAT_ST_MTIME@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_mtime_usec-set!
   struct-stat-st_mtime_usec-ref
   @OFFSETOF_STRUCT_STAT_ST_MTIME_USEC@
   @SETTEROF_STRUCT_STAT_ST_MTIME_USEC@
   @GETTEROF_STRUCT_STAT_ST_MTIME_USEC@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_ctime-set!
   struct-stat-st_ctime-ref
   @OFFSETOF_STRUCT_STAT_ST_CTIME@
   @SETTEROF_STRUCT_STAT_ST_CTIME@
   @GETTEROF_STRUCT_STAT_ST_CTIME@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_ctime_usec-set!
   struct-stat-st_ctime_usec-ref
   @OFFSETOF_STRUCT_STAT_ST_CTIME_USEC@
   @SETTEROF_STRUCT_STAT_ST_CTIME_USEC@
   @GETTEROF_STRUCT_STAT_ST_CTIME_USEC@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_blocks-set!
   struct-stat-st_blocks-ref
   @OFFSETOF_STRUCT_STAT_ST_BLOCKS@
   @SETTEROF_STRUCT_STAT_ST_BLOCKS@
   @GETTEROF_STRUCT_STAT_ST_BLOCKS@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-stat-st_blksize-set!
   struct-stat-st_blksize-ref
   @OFFSETOF_STRUCT_STAT_ST_BLKSIZE@
@@ -485,24 +484,23 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-utimbuf-actime-set!
   struct-utimbuf-actime-ref
   @OFFSETOF_STRUCT_UTIMBUF_ACTIME@
   @SETTEROF_STRUCT_UTIMBUF_ACTIME@
   @GETTEROF_STRUCT_UTIMBUF_ACTIME@)
 
-(define-c-struct-accessors
+(define-c-struct-accessor-and-mutator
   struct-utimbuf-modtime-set!
   struct-utimbuf-modtime-ref
   @OFFSETOF_STRUCT_UTIMBUF_MODTIME@
   @SETTEROF_STRUCT_UTIMBUF_MODTIME@
   @GETTEROF_STRUCT_UTIMBUF_MODTIME@)
 
-
 
 ;;;; done
 
-  )
+)
 
 ;;; end of file

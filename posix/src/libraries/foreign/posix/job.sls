@@ -2,7 +2,6 @@
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to job control functions
 ;;;Date: Fri Dec 19, 2008
-;;;Time-stamp: <2009-07-26 09:23:22 marco>
 ;;;
 ;;;Abstract
 ;;;
@@ -26,7 +25,7 @@
 
 
 #!r6rs
-(library (posix job)
+(library (foreign posix job)
   (export
     ctermid	primitive-ctermid	primitive-ctermid-function
     setsid	primitive-setsid	primitive-setsid-function
@@ -37,9 +36,13 @@
     tcsetpgrp	primitive-tcsetpgrp	primitive-tcsetpgrp-function
     tcgetsid	primitive-tcgetsid	primitive-tcgetsid-function)
   (import (nausicaa)
-    (foreign)
-    (posix sizeof)
-    (posix job platform))
+    (foreign ffi)
+    (foreign memory)
+    (foreign errno)
+    (foreign cstrings)
+    (foreign posix sizeof)
+    (foreign posix job platform)
+    (compensations))
 
   (define dummy
     (shared-object self-shared-object))

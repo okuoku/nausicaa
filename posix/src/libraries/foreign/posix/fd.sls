@@ -23,10 +23,9 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
 #!r6rs
-(library (posix fd)
+(library (foreign posix fd)
   (export
     open	primitive-open		primitive-open-function
     close	primitive-close		primitive-close-function
@@ -59,9 +58,15 @@
   (import (except (nausicaa)
 		  read write)
     (rnrs mutable-strings)
-    (foreign)
-    (posix sizeof)
-    (posix fd platform))
+    (foreign ffi)
+    (foreign ffi peekers-and-pokers)	;to be removed
+    (foreign ffi sizeof)
+    (foreign memory)
+    (foreign errno)
+    (foreign cstrings)
+    (foreign posix sizeof)
+    (foreign posix fd platform)
+    (compensations))
 
   (define dummy
     (shared-object self-shared-object))

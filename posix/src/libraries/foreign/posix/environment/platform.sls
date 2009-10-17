@@ -25,30 +25,19 @@
 
 
 #!r6rs
-(library (posix environment platform)
-  (export
-    platform-getenv
-    platform-setenv)
+(library (foreign posix environment platform)
+  (export platform-getenv platform-setenv)
   (import (rnrs)
     (foreign ffi)
-    (posix sizeof))
+    (foreign posix sizeof))
 
   (define dummy
     (shared-object self-shared-object))
 
-
-;;;; code
+  (define-c-function platform-setenv
+    (int setenv (char* char* int)))
 
-(define-c-function platform-setenv
-  (int setenv (char* char* int)))
-
-(define-c-function platform-getenv
-  (char* getenv (char*)))
-
-
-
-;;;; done
-
-)
+  (define-c-function platform-getenv
+    (char* getenv (char*))))
 
 ;;; end of file

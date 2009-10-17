@@ -31,7 +31,7 @@
 
 
 #!r6rs
-(library (posix file stat)
+(library (foreign posix file stat)
   (export
     platform-stat
     platform-lstat
@@ -84,9 +84,13 @@
     struct-stat-blksize
     )
   (import (nausicaa)
-    (foreign)
-    (except (posix sizeof)
-	    sizeof-struct-stat))
+    (foreign ffi)
+    (foreign memory)
+    (foreign cstrings)
+    (foreign errno)
+    (except (foreign posix sizeof)
+	    sizeof-struct-stat)
+    (compensations))
 
   (define stub-lib
     (let ((o (open-shared-object 'libnausicaa-posix1.so)))

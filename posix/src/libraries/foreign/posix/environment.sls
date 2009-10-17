@@ -25,13 +25,15 @@
 
 
 #!r6rs
-(library (posix environment)
-  (export
-    getenv setenv)
+(library (foreign posix environment)
+  (export getenv setenv)
   (import (nausicaa)
-    (foreign)
-    (posix sizeof)
-    (posix environment platform))
+    (foreign ffi)
+    (foreign ffi pointers)	;to be removed
+    (foreign posix sizeof)
+    (foreign posix environment platform)
+    (foreign cstrings)
+    (compensations))
 
 
 ;;;; setting and getting

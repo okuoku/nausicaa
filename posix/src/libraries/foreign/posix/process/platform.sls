@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (posix process platform)
+(library (foreign posix process platform)
   (export
     platform-getpid
     platform-getppid
@@ -37,7 +37,7 @@
     platform-waitpid)
   (import (rnrs)
     (foreign ffi)
-    (posix sizeof))
+    (foreign posix sizeof))
 
 
 ;;;; code

@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (posix job platform)
+(library (foreign posix job platform)
   (export
     platform-ctermid
     platform-setsid
@@ -37,7 +37,7 @@
     platform-tcgetsid)
   (import (rnrs)
     (foreign ffi)
-    (posix sizeof))
+    (foreign posix sizeof))
 
 
 ;;;; code

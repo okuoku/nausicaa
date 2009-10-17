@@ -26,50 +26,50 @@
 (import (rnrs)
   (larceny compiler))
 
-(compile-library "posix/sizeof.sls"
-		 "posix/sizeof.larceny.slfasl")
+(compile-library "foreign/posix/sizeof.sls"
+		 "foreign/posix/sizeof.larceny.slfasl")
 
-(compile-library "posix/time/stub.sls"
-		 "posix/time/stub.larceny.slfasl")
+(compile-library "foreign/posix/time/stub.sls"
+		 "foreign/posix/time/stub.larceny.slfasl")
 
-(compile-library "posix/time.sls"
-		 "posix/time.larceny.slfasl")
+(compile-library "foreign/posix/time.sls"
+		 "foreign/posix/time.larceny.slfasl")
 
-(compile-library "posix/process/stub.sls"
-		 "posix/process/stub.larceny.slfasl")
+(compile-library "foreign/posix/process/stub.sls"
+		 "foreign/posix/process/stub.larceny.slfasl")
 
-(compile-library "posix/process/platform.sls"
-		 "posix/process/platform.larceny.slfasl")
+(compile-library "foreign/posix/process/platform.sls"
+		 "foreign/posix/process/platform.larceny.slfasl")
 
-(compile-library "posix/process.sls"
-		 "posix/process.larceny.slfasl")
+(compile-library "foreign/posix/process.sls"
+		 "foreign/posix/process.larceny.slfasl")
 
-(compile-library "posix/job/platform.sls"
-		 "posix/job/platform.larceny.slfasl")
+(compile-library "foreign/posix/job/platform.sls"
+		 "foreign/posix/job/platform.larceny.slfasl")
 
-(compile-library "posix/job.sls"
-		 "posix/job.larceny.slfasl")
+(compile-library "foreign/posix/job.sls"
+		 "foreign/posix/job.larceny.slfasl")
 
-(compile-library "posix/fd/platform.sls"
-		 "posix/fd/platform.larceny.slfasl")
+(compile-library "foreign/posix/fd/platform.sls"
+		 "foreign/posix/fd/platform.larceny.slfasl")
 
-(compile-library "posix/fd.sls"
-		 "posix/fd.larceny.slfasl")
+(compile-library "foreign/posix/fd.sls"
+		 "foreign/posix/fd.larceny.slfasl")
 
-(compile-library "posix/file/platform.sls"
-		 "posix/file/platform.larceny.slfasl")
+(compile-library "foreign/posix/file/platform.sls"
+		 "foreign/posix/file/platform.larceny.slfasl")
 
-(compile-library "posix/file/stat.sls"
-		 "posix/file/stat.larceny.slfasl")
+(compile-library "foreign/posix/file/stat.sls"
+		 "foreign/posix/file/stat.larceny.slfasl")
 
-(compile-library "posix/file.sls"
-		 "posix/file.larceny.slfasl")
+(compile-library "foreign/posix/file.sls"
+		 "foreign/posix/file.larceny.slfasl")
 
 
-(compile-library "posix/environment/platform.sls"
-		 "posix/environment/platform.larceny.slfasl")
+(compile-library "foreign/posix/environment/platform.sls"
+		 "foreign/posix/environment/platform.larceny.slfasl")
 
-(compile-library "posix/environment.sls"
-		 "posix/environment.larceny.slfasl")
+(compile-library "foreign/posix/environment.sls"
+		 "foreign/posix/environment.larceny.slfasl")
 
 ;;; end of file

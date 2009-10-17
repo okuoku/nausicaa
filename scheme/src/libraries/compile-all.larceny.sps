@@ -328,14 +328,14 @@
 (compile-library "foreign/ffi/compat.larceny.sls"
  		 "foreign/ffi/compat.larceny.slfasl")
 
-(compile-library "foreign/ffi.sls"
- 		 "foreign/ffi.slfasl")
-
 (compile-library "foreign/ffi/peekers-and-pokers/compat.larceny.sls"
  		 "foreign/ffi/peekers-and-pokers/compat.larceny.slfasl")
 
 (compile-library "foreign/ffi/peekers-and-pokers.sls"
  		 "foreign/ffi/peekers-and-pokers.slfasl")
+
+(compile-library "foreign/ffi.sls"
+ 		 "foreign/ffi.slfasl")
 
 ;;; --------------------------------------------------------------------
 

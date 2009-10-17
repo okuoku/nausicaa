@@ -25,14 +25,12 @@
 
 
 #!r6rs
-(library (posix users)
-  (export
-    dummy ; temporary
-    )
+(library (foreign posix users)
+  (export)
   (import (rnrs)
     (foreign ffi)
-    (posix sizeof)
-    (posix users platform))
+    (foreign posix sizeof)
+    (foreign posix users platform))
 
   (define dummy
     (shared-object self-shared-object))

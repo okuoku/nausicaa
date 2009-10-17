@@ -24,24 +24,18 @@
 #
 
 #page
-## ------------------------------------------------------------
-## Configuration variables.
-## ------------------------------------------------------------
-
-
-#page
 ## --------------------------------------------------------------------
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,posix))
-$(eval $(call nau-libraries,posix_environment,posix/environment))
-$(eval $(call nau-libraries,posix_fd,posix/fd))
-$(eval $(call nau-libraries,posix_file,posix/file))
-$(eval $(call nau-libraries,posix_job,posix/job))
-$(eval $(call nau-libraries,posix_process,posix/process))
-$(eval $(call nau-libraries,posix_time,posix/time))
-$(eval $(call nau-libraries,posix_users,posix/users))
+$(eval $(call nau-libraries,posix,foreign))
+$(eval $(call nau-libraries,posix_environment,foreign/posix/environment))
+$(eval $(call nau-libraries,posix_fd,foreign/posix/fd))
+$(eval $(call nau-libraries,posix_file,foreign/posix/file))
+$(eval $(call nau-libraries,posix_job,foreign/posix/job))
+$(eval $(call nau-libraries,posix_process,foreign/posix/process))
+$(eval $(call nau-libraries,posix_time,foreign/posix/time))
+$(eval $(call nau-libraries,posix_users,foreign/posix/users))
 
 
 ### end of file

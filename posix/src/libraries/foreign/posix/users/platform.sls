@@ -25,12 +25,12 @@
 
 
 #!r6rs
-(library (posix users platform)
+(library (foreign posix users platform)
   (export
     )
   (import (rnrs)
     (foreign ffi)
-    (posix sizeof))
+    (foreign posix sizeof))
 
 
 ;;;; code

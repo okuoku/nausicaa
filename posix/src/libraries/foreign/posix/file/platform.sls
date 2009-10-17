@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (posix file platform)
+(library (foreign posix file platform)
   (export
      platform-getcwd
     platform-chdir
@@ -64,7 +64,7 @@
     platform-mkstemp)
   (import (rnrs)
     (foreign ffi)
-    (posix sizeof))
+    (foreign posix sizeof))
 
   (define dummy
     (shared-object self-shared-object))

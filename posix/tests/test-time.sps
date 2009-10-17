@@ -27,11 +27,10 @@
 
 (import (nausicaa)
   (checks)
-  (posix time)
-  (posix time stub))
+  (foreign posix time)
+  (foreign posix time stub))
 
 (check-set-mode! 'report-failed)
-
 
 
 (parameterize ((check-test-name 'clock))
@@ -50,8 +49,7 @@
 	      (flonum? (struct-tms-tms_cstime-ref tms))))
     => '(#t #t #t #t #t))
 
-  )
-
+  #t)
 
 
 ;;;; done

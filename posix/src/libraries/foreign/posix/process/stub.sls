@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (posix process stub)
+(library (foreign posix process stub)
   (export
     WIFEXITED?
     WEXITSTATUS?

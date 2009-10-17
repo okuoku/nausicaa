@@ -24,13 +24,13 @@
 ;;;
 
 (import
-  (only (posix environment))
-  (only (posix time))
-  (only (posix file))
-  (only (posix file stat))
-  (only (posix fd))
-  (only (posix job))
-  (only (posix process))
-  (only (posix process stub)))
+  (only (foreign posix environment))
+  (only (foreign posix time))
+  (only (foreign posix file))
+  (only (foreign posix file stat))
+  (only (foreign posix fd))
+  (only (foreign posix job))
+  (only (foreign posix process))
+  (only (foreign posix process stub)))
 
 ;;; end of file

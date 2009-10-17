@@ -23,13 +23,15 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
 (import (nausicaa)
-  (foreign)
+  (foreign ffi)
+  (foreign memory)
+  (foreign errno)
+  (foreign cstrings)
   (checks)
-  (posix process)
-  (posix process stub))
+  (foreign posix process)
+  (foreign posix process stub))
 
 (check-set-mode! 'report-failed)
 
@@ -48,10 +50,9 @@
       (< (getppid) (getpid))
     => #t)
 
-  )
+  #t)
 
 
-
 (parameterize ((check-test-name 'fork))
 
   (check
@@ -72,10 +73,9 @@
 	    (fork))))
     => '(#t EINVAL))
 
-  )
+  #t)
 
 
-
 (parameterize ((check-test-name 'exec))
 
   (check
@@ -146,11 +146,9 @@
 	    (execvp 'ls '(ls)))))
     => '(#t EINVAL))
 
-  )
-
+  #t)
 
 
-
 (parameterize ((check-test-name 'wait))
 
   (check
@@ -174,7 +172,7 @@
 
 
 
-  )
+  #t)
 
 
 ;;;; done

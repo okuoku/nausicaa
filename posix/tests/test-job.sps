@@ -27,27 +27,24 @@
 
 (import (nausicaa)
   (checks)
-  (foreign)
-  (posix job)
-  (posix process))
+  (foreign ffi)
+  (foreign memory)
+  (foreign posix job)
+  (foreign posix process))
 
 (check-set-mode! 'report-failed)
 
 
-
-(debugging #t)
-
-
-(parameterize ((check-test-name 'terminal-id))
+(parameterize ((check-test-name	'terminal-id)
+	       (debugging	#t))
 
   (check
       (ctermid)
     => "/dev/tty")
 
-  )
+  #t)
 
 
-
 (parameterize ((check-test-name 'group))
 
   (check
@@ -70,11 +67,9 @@
       (integer? (setpgid 0 0))
     => #t)
 
-  )
+  #t)
 
 
-
-
 (parameterize ((check-test-name 'access))
 
   (check
@@ -94,7 +89,7 @@
       (integer? (tcgetsid 1))
     => #t)
 
-  )
+  #t)
 
 
 ;;;; done
