@@ -51892,6 +51892,19 @@ interface to foreign shared libraries coded in the C language; it is a
 common interface to the foreign functions interfaces of the underlying
 Scheme implementations.
 
+The @library{foreign ffi sizeof} library exports a number of bindings to
+constant values like the size of C language data types.  The
+@library{foreign ffi pointers} library exports an interface to memory
+pointer values.  The @library{foreign ffi peekers-and-pokers} library
+exports an interface to raw memory access.
+
+@library{foreign ffi} re--exports bindings from the following libraries:
+
+@example
+(foreign ffi pointers)
+(foreign ffi peekers-and-pokers)
+@end example
+
 @menu
 * ffi sizeof::                  Sizes and limits.
 * ffi pointers::                Pointer objects.
@@ -52023,7 +52036,7 @@ Scheme implementation.  The only pointer constructor is
 @func{integer->pointer}.
 
 The following bindings are exported by @library{foreign ffi pointers}
-and re--exported by @library{foreign memory}.
+and re--exported by @library{foreign ffi} and @library{foreign memory}.
 
 
 @defun pointer? @var{x}
@@ -52104,7 +52117,7 @@ With the single exception of @func{pointer<>?}: All the functions return
 A rich set of procedures is implemented to access directly memory blocks
 referenced by pointer values.  The bindings described in this section
 are exported by @library{foreign ffi peekers-and-pokers} and
-re--exported by @library{foreign memory}.
+re--exported by @library{foreign ffi} and @library{foreign memory}.
 
 @menu
 * ffi access intro::            Introduction.
