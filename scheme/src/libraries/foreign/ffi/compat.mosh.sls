@@ -55,29 +55,100 @@
 
 ;;;; values normalisation: Foreign -> Mosh
 ;;
-;;According to "lib/mosh/ffi.ss" (Fri Jul 3, 2009):
+;;According to "lib/mosh/ffi.ss" (revision 2140):
 ;;
-;;* The accepted return values are: void*, char*, int, double, void.
+;;* The accepted return values for callouts are:
 ;;
-;;* The accepted arguments are:     void*, char*, int, double.
+;;  void
+;;  void*	char*
+;;  int
+;;  double
+;;
+;;* The accepted arguments for callouts are:
+;;
+;;  int
+;;  double
+;;  void*	char*
+;;
+;;* The accepted return values for callbacks are:
+;;
+;;  void
+;;  bool		char		size_t
+;;  short		int		long		long-long
+;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
+;;  int8_t		int16_t		int32_t		int64_t
+;;  uint8_t		uint16_t	uint32_t	uint64_t
+;;  float		double
+;;  void*
+;;
+;;* The accepted arguments for callbacks are:
+;;
+;;  void
+;;  bool		char		size_t
+;;  short		int		long		long-long
+;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
+;;  int8_t		int16_t		int32_t		int64_t
+;;  uint8_t		uint16_t	uint32_t	uint64_t
+;;  float		double
+;;  void*
 ;;
 
 (define (nausicaa-type->mosh-type type)
   (case type
     ((void)
      'void)
-    ((int
-      signed-int ssize_t uint unsigned unsigned-int size_t
-      long signed-long ulong unsigned-long)
+    ((char schar signed-char uchar unsigned-char)
      'int)
-    ((double float)
+    ((int signed-int ssize_t)
+     'int)
+    ((long signed-long)
+     'int)
+    ((uint unsigned unsigned-int)
+     'int)
+    ((size_t)
+     'int)
+    ((long signed-long)
+     'int)
+    ((ulong unsigned-long)
+     'int)
+    ((float)
+     'double)
+    ((double)
      'double)
     ((pointer void* char* FILE*)
      'void*)
     ((callback)
      'void*)
     (else
-     (assertion-violation 'make-c-function
+     (assertion-violation 'make-c-callback
+       "unknown C language type identifier" type))))
+
+(define (nausicaa-type->mosh-type/callback type)
+  (case type
+    ((void)
+     'void)
+    ((char schar signed-char uchar unsigned-char)
+     'char)
+    ((int signed-int ssize_t)
+     'int)
+    ((uint unsigned unsigned-int)
+     'unsigned-int)
+    ((size_t)
+     'size_t)
+    ((long signed-long)
+     'long)
+    ((ulong unsigned-long)
+     'unsigned-long)
+    ((float)
+     'float)
+    ((double)
+     'double)
+    ((pointer void* char* FILE*)
+     'void*)
+    ((callback)
+     'void*)
+    (else
+     (assertion-violation 'make-c-callback
        "unknown C language type identifier" type))))
 
 
@@ -102,8 +173,8 @@
 	(values retval errval)))))
 
 (define (primitive-make-c-callback ret-type scheme-function arg-types)
-  (make-c-callback (nausicaa-type->mosh-type ret-type)
-		   (map nausicaa-type->mosh-type arg-types)
+  (make-c-callback (nausicaa-type->mosh-type/callback ret-type)
+		   (map nausicaa-type->mosh-type/callback arg-types)
 		   scheme-function))
 
 
