@@ -282,13 +282,16 @@
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
   (let* ((ypsilon-ret-type	(nausicaa-type->ypsilon-type ret-type))
-	 (ypsilon-arg-types	(if (equal? '(void) arg-types)
+	 (no-arguments?		(equal? '(void) arg-types))
+	 (ypsilon-arg-types	(if no-arguments?
 				    '()
 				  (map nausicaa-type->ypsilon-type arg-types)))
 	 (address		(lookup-shared-object (shared-object) funcname))
 	 (closure		(make-cdecl-callout ypsilon-ret-type ypsilon-arg-types address))
 	 (retval-mapper		(select-retval-type-mapper ypsilon-ret-type))
-	 (argument-mappers	(map select-argument-type-mapper arg-types)))
+	 (argument-mappers	(if no-arguments?
+				    '()
+				  (map select-argument-type-mapper arg-types))))
     (case (length argument-mappers)
       ;;We have to use LET* here  to enforce the order of evaluation: we
       ;;want  to gather  the "errno"  value AFTER  the  foreign function
