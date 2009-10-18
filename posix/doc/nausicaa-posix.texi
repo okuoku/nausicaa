@@ -753,10 +753,9 @@ Release a block of memory allocated with @func{malloc}, @func{calloc} or
 @section Marshaling arguments and return values
 
 
-The @library{foreign posix marshaling} library provides an @api{}
-implementing marshaling between C language arguments and return values
-and Scheme objects.  It is built upon the following Nausicaa/Scheme
-libraries:
+The @library{foreign posix marshaling} library provides an @api{} for
+marshaling between C language arguments and return values and Scheme
+objects.  It is built upon the following Nausicaa/Scheme libraries:
 
 @example
 (parameters)
@@ -767,9 +766,9 @@ libraries:
 
 @noindent
 but it is designed in such a way that we can replace it with our own
-library at package installation time.  Notice that it is not mandatory
-for this library to make use of @library{foreign posix memory}.
-@ref{posix memory, Memory management}
+library at package installation time.  Notice that it is @strong{not}
+mandatory for this library to make use of @library{foreign posix
+memory}.  @ref{posix memory, Memory management}
 
 
 @deffn Syntax with-marshaling @ameta{body}

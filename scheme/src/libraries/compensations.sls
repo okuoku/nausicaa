@@ -30,19 +30,9 @@
     with-compensations with-compensations/on-error
     compensate run-compensations push-compensation)
   (import (rnrs)
-    (deferred-exceptions)
-    (parameters))
-
-(define-syntax begin0
-  ;;This  syntax  comes from  the  R6RS  original  document, Appendix  A
-  ;;``Formal semantics''.
-  (syntax-rules ()
-    ((_ ?expr0 ?expr ...)
-     (call-with-values
-	 (lambda () ?expr0)
-       (lambda args
-	 ?expr ...
-	 (apply values args))))))
+    (begin0)
+    (parameters)
+    (deferred-exceptions))
 
 
 (define compensations
@@ -60,7 +50,7 @@
 (define-syntax with-compensations/on-error
   (syntax-rules ()
     ((_ ?form0 ?form ...)
-     (parameterize ((compensations '()))
+     (parametrise ((compensations '()))
        (with-exception-handler
 	   (lambda (exc)
 	     (run-compensations)
@@ -71,7 +61,7 @@
 (define-syntax with-compensations
   (syntax-rules ()
     ((_ ?form0 ?form ...)
-     (parameterize ((compensations '()))
+     (parametrise ((compensations '()))
        (dynamic-wind
 	   (lambda () #f)
 	   (lambda () ?form0 ?form ...)

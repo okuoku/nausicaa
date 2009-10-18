@@ -59,8 +59,8 @@
 (define-syntax with-deferred-exceptions-handler
   (syntax-rules ()
     ((_ ?handler ?thunk)
-     (parameterize ((deferred-exceptions '())
-		    (deferred-exceptions-handler ?handler))
+     (parametrise ((deferred-exceptions '())
+		   (deferred-exceptions-handler ?handler))
        (dynamic-wind
 	   (lambda () #f)
 	   ?thunk
