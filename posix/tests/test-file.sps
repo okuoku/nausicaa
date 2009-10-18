@@ -41,6 +41,7 @@
   (deferred-exceptions))
 
 (check-set-mode! 'report-failed)
+(display "*** testing POSIX file\n")
 
 
 

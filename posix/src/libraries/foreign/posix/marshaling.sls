@@ -1,13 +1,14 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: tests for the POSIX time and date functions
-;;;Date: Mon Dec 22, 2008
+;;;Contents: marshaling between C language values and Scheme values
+;;;Date: Sun Oct 18, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,38 +24,21 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-(import (nausicaa)
-  (checks)
-  (foreign posix time)
-  (foreign posix time stub))
+(library (foreign posix marshaling)
+  (export
+    with-marshaling
+    (rename (string->cstring/c	string->cstring))
+    cstring->string)
+  (import (rnrs)
+    (compensations)
+    (foreign cstrings))
 
-(check-set-mode! 'report-failed)
-(display "*** testing POSIX time\n")
+  (define-syntax with-marshaling
+    (syntax-rules ()
+      ((_ ?arg ...)
+       (with-compensations ?arg ...))))
 
-
-(parameterize ((check-test-name 'clock))
-
-  (check
-      (flonum? (clock))
-    => #t)
-
-  (check
-      (receive (result tms)
-	  (times)
-	(list (flonum? result)
-	      (flonum? (struct-tms-tms_utime-ref tms))
-	      (flonum? (struct-tms-tms_stime-ref tms))
-	      (flonum? (struct-tms-tms_cutime-ref tms))
-	      (flonum? (struct-tms-tms_cstime-ref tms))))
-    => '(#t #t #t #t #t))
-
-  #t)
-
-
-;;;; done
-
-(check-report)
+  )
 
 ;;; end of file

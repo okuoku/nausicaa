@@ -11,7 +11,6 @@
 
 @include version.texiinc
 
-
 @c ------------------------------------------------------------
 @c License macros.
 @c ------------------------------------------------------------
@@ -28,10 +27,62 @@
 @acronym{FDL}
 @end macro
 
-@macro bsd{}
-@acronym{BSD}
+@c ------------------------------------------------------------
+@c Special notes.
+@c ------------------------------------------------------------
+
+@macro forunix{}
+@strong{Unix:}
 @end macro
 
+@macro fixme{TEXT}
+@strong{FIXME: \TEXT\}
+@end macro
+
+@c ------------------------------------------------------------
+@c Scheme related macros.
+@c ------------------------------------------------------------
+
+@macro rnrs{VERSION}
+@acronym{R\VERSION\RS}
+@end macro
+
+@macro rsix{}
+Revised^6 Report on the algorithmic language Scheme
+@end macro
+
+@macro repl{}
+@acronym{REPL}
+@end macro
+
+@macro srfi{}
+@acronym{SRFI}
+@end macro
+
+@c Separating the @srfi{} macro from the number with a '--' rather than
+@c a '-'  makes the expansion look  ugly in menu entries  under the Info
+@c reader.  IMHO  this should not happen,  but it does; so  we live with
+@c this, because the main purpose of this document is to provide an Info
+@c version.
+@macro ansrfi{NUM}
+@srfi{}-\NUM\
+@end macro
+
+@macro clos{}
+@acronym{CLOS}
+@end macro
+
+@macro library{SPEC}
+@code{(\SPEC\)}
+@end macro
+
+@macro ffi{}
+@acronym{FFI}
+@end macro
+
+@macro class{NAME}
+@code{<\NAME\>}
+@end macro
 
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
@@ -45,12 +96,21 @@
 @acronym{API}
 @end macro
 
+@c Remember that @url is already used by Texinfo.
+@macro aurl{}
+@acronym{URL}
+@end macro
+
 @macro ascii{}
 @acronym{ASCII}
 @end macro
 
 @macro cpu{}
 @acronym{CPU}
+@end macro
+
+@macro csv{}
+@acronym{CSV}
 @end macro
 
 @macro ieee{}
@@ -61,25 +121,28 @@
 @acronym{ISO}
 @end macro
 
-@macro ram{}
-@acronym{RAM}
-@end macro
-
 @macro posix{}
 @acronym{POSIX}
 @end macro
 
-@c Remember that @url is already used by Texinfo.
-@macro urla{}
-@acronym{URL}
+@macro rfc{}
+@acronym{RFC}
 @end macro
 
 @macro utf{}
 @acronym{UTF}
 @end macro
 
+@macro utc{}
+@acronym{UTC}
+@end macro
+
+@macro tai{}
+@acronym{TAI}
+@end macro
+
 @c ------------------------------------------------------------
-@c Software related macros.
+@c Software acronyms.
 @c ------------------------------------------------------------
 
 @macro gmp{}
@@ -90,13 +153,21 @@
 @acronym{GCC}
 @end macro
 
-@macro glibc{}
-@gnu{} C Library
-@end macro
-
 @c ------------------------------------------------------------
 @c Network related acronyms.
 @c ------------------------------------------------------------
+
+@macro http{}
+@acronym{HTTP}
+@end macro
+
+@macro ftp{}
+@acronym{FTP}
+@end macro
+
+@macro ip{}
+@acronym{IP}
+@end macro
 
 @macro tcp{}
 @acronym{TCP}
@@ -106,151 +177,19 @@
 @acronym{UDP}
 @end macro
 
-@macro icmp{}
-@acronym{ICMP}
-@end macro
-
-@c ------------------------------------------------------------
-
-@macro http{}
-@acronym{HTTP}
-@end macro
-
-@macro https{}
-@acronym{HTTP}
-@end macro
-
-@macro ftp{}
-@acronym{FTP}
-@end macro
-
 @macro smtp{}
 @acronym{SMTP}
-@end macro
-
-@macro snmp{}
-@acronym{SNMP}
-@end macro
-
-@c ------------------------------------------------------------
-@c Arguments macros.
-@c ------------------------------------------------------------
-
-@macro vari{ARG}
-@var{\ARG\1}
-@end macro
-
-@macro varii{ARG}
-@var{\ARG\2}
-@end macro
-
-@macro variii{ARG}
-@var{\ARG\3}
-@end macro
-
-@macro variv{ARG}
-@var{\ARG\4}
-@end macro
-
-@macro varn{ARG}
-@var{\ARG\n}
-@end macro
-
-@macro vark{ARG}
-@var{\ARG\k}
-@end macro
-
-@macro varj{ARG}
-@var{\ARG\j}
-@end macro
-
-@c ------------------------------------------------------------
-
-@macro meta{ARG}
-<\ARG\>
-@end macro
-
-@macro metai{ARG}
-@meta{\ARG\1}
-@end macro
-
-@macro metaii{ARG}
-@meta{\ARG\2}
-@end macro
-
-@macro metaiii{ARG}
-@meta{\ARG\3}
-@end macro
-
-@macro metaiv{ARG}
-@meta{\ARG\4}
-@end macro
-
-@macro metan{ARG}
-@meta{\ARG\n}
-@end macro
-
-@macro metak{ARG}
-@meta{\ARG\k}
-@end macro
-
-@macro metaj{ARG}
-@meta{\ARG\j}
-@end macro
-
-@c ------------------------------------------------------------
-@c C language macros.
-@c ------------------------------------------------------------
-
-@macro cfunc{NAME}
-@code{\NAME\()}
-@end macro
-
-@macro cnull{}
-@code{NULL}
 @end macro
 
 @c ------------------------------------------------------------
 @c Scheme language macros.
 @c ------------------------------------------------------------
 
-@macro clos{}
-@acronym{CLOS}
-@end macro
-
-@macro library{NAME}
-@code{(\NAME\)}
-@end macro
-
-@macro repl{}
-@acronym{REPL}
-@end macro
-
-@macro rnrs{VERSION}
-@acronym{R\VERSION\RS}
-@end macro
-
-@macro srfi{}
-@acronym{SRFI}
-@end macro
-
-@ignore
-Separating the @srfi{}  macro from the number with a  '--' rather than a
-'-' makes the expansion look ugly in menu entries under the Info reader.
-IMHO this should not happen, but  it does; so we live with this, because
-the main purpose of this document is to provide an Info version.
-@end ignore
-@macro ansrfi{NUM}
-@srfi{}-\NUM\
-@end macro
-
-@c ------------------------------------------------------------
-
 @macro func{NAME}
-@code{@sc{\NAME\}}
+@code{\NAME\}
 @end macro
 
-@macro nil{}
+@macro snull{}
 @code{()}
 @end macro
 
@@ -266,9 +205,147 @@ the main purpose of this document is to provide an Info version.
 @code{#:\NAME\}
 @end macro
 
-@macro class{NAME}
-@code{<\NAME\>}
+@c ------------------------------------------------------------
+@c C language macros.
+@c ------------------------------------------------------------
+
+@macro cfunc{NAME}
+@code{\NAME\()}
 @end macro
+
+@macro cnull{}
+@code{NULL}
+@end macro
+
+@c ------------------------------------------------------------
+@c RNRS document macros.
+@c ------------------------------------------------------------
+
+@macro rsixlibrary{THING}
+@code{(rnrs \THING\ (6))}
+@end macro
+
+@macro arbno{THING}
+\THING\*
+@end macro
+
+@macro atleastone{THING}
+\THING\+
+@end macro
+
+@c ------------------------------------------------------------
+@c To be used in normal text.
+
+@macro meta{THING}
+<\THING\>
+@end macro
+
+@macro metai{THING}
+<\THING\1>
+@end macro
+
+@macro metaii{THING}
+<\THING\2>
+@end macro
+
+@macro metaiii{THING}
+<\THING\3>
+@end macro
+
+@c ------------------------------------------------------------
+@c To be used inside @example environment and @samp directives.
+
+@macro cmeta{THING}
+<\THING\>
+@end macro
+
+@macro cmetai{THING}
+<\THING\1>
+@end macro
+
+@macro cmetaii{THING}
+<\THING\2>
+@end macro
+
+@macro cmetaiii{THING}
+<\THING\3>
+@end macro
+
+@c ------------------------------------------------------------
+@c To be used inside argument lists.
+
+@macro ameta{THING}
+<\THING\>
+@end macro
+
+@macro ametai{THING}
+<\THING\1>
+@end macro
+
+@macro ametaii{THING}
+<\THING\2>
+@end macro
+
+@macro ametaiii{THING}
+<\THING\3>
+@end macro
+
+@c ------------------------------------------------------------
+
+@macro hyper{THING}
+<\THING\>
+@end macro
+
+@macro hyperi{THING}
+<\THING\1>
+@end macro
+
+@macro hyperii{THING}
+<\THING\2>
+@end macro
+
+@macro hyperiii{THING}
+<\THING\3>
+@end macro
+
+@macro hypern{THING}
+<\THING\n>
+@end macro
+
+@c ------------------------------------------------------------
+
+@macro varo{THING}
+@var{\THING\0}
+@end macro
+
+@macro vari{THING}
+@var{\THING\1}
+@end macro
+
+@macro varii{THING}
+@var{\THING\2}
+@end macro
+
+@macro variii{THING}
+@var{\THING\3}
+@end macro
+
+@macro variv{THING}
+@var{\THING\4}
+@end macro
+
+@macro varn{THING}
+@var{\THING\n}
+@end macro
+
+@macro vark{THING}
+@var{\THING\k}
+@end macro
+
+@macro varj{THING}
+@var{\THING\j}
+@end macro
+
 
 @c ------------------------------------------------------------
 @c Macros for references to external documents.
@@ -295,9 +372,12 @@ the main purpose of this document is to provide an Info version.
 @end macro
 
 @macro bibref{TAG}
-@code{[\TAG\]}
+@samp{[\TAG\]}
 @end macro
 
+@macro autoconfref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,autoconf}
+@end macro
 
 @c page
 @c ------------------------------------------------------------
@@ -334,7 +414,7 @@ the main purpose of this document is to provide an Info version.
 
 @copying
 @noindent
-This document describes version @version{} of @value{PACKAGE}, a set of
+This document describes version @version{} of Nausicaa/POSIX, a set of
 Scheme libraries exposing the @posix{} interface to the Scheme language
 level.  It is built on top of the Nausicaa/Scheme libraries.
 
@@ -401,8 +481,7 @@ entitled ``@gnu{} Free Documentation License''.
 @insertcopying
 
 @menu
-* overview::                    Overview of the package.
-* environment::                 Environment variables.
+* posix::                       @posix{} interface.
 * time::                        Date and time.
 * file::                        File system.
 * fd::                          File descriptors.
@@ -426,9 +505,12 @@ Indexes
 @detailmenu
  --- The Detailed Node Listing ---
 
-Overview of the package
+@posix{} interface
 
-* overview iface::              Introduction to the interface.
+* posix intro::                 Introduction.
+* posix memory::                Memory management.
+* posix marshaling::            Marshaling arguments and return values.
+* posix environment::           Environment variables.
 
 File system
 
@@ -501,55 +583,70 @@ Job control
 * job group::                   Process group functions.
 * job access::                  Terminal access.
 
+Users and groups
+
+* users
+
 @end detailmenu
 @end menu
 
 @end ifnottex
 
-@c ------------------------------------------------------------
-
 @c page
-@node overview
-@chapter Overview of the package
+@node posix
+@chapter @posix{} interface
 
-
-This document describes an interface to the @posix{} system functions
-offered by the underlying platform.  It is heavily dependent from the
-libraries of the Nausicaa/Scheme project; additionally, some libraries
-depend upon libraries from the Nausicaa/Stubs package.  Both these
-packages should be available from the same source of @value{PACKAGE}.
-
-For all the functions only a brief description is given: We have to use
-the foreign function's own documentation to have all the details.
 
 @menu
-* overview iface::              Introduction to the interface.
+* posix intro::                 Introduction.
+* posix memory::                Memory management.
+* posix marshaling::            Marshaling arguments and return values.
+* posix environment::           Environment variables.
 @end menu
 
 @c page
-@node overview iface
-@section Introduction to the interface
+@node posix intro
+@section Introduction
 
+
+This chapter describes an interface to the @posix{} system functions
+offered by the underlying platform.  It is heavily dependent on the
+libraries of the Nausicaa/Scheme project; additionally, some libraries
+depend upon the C language library @samp{libnausicaa-posix} from the
+Nausicaa/Stubs package.  Both these packages should be available from
+the same source of Nausicaa/POSIX.
 
 Unless otherwise specified, for each set of features there are 2
-libraries: @library{foreign posix ---} and @library{foreign posix ---
-platform}; the first is the high level one and the second exports the
-low level @samp{platform-} bindings.
+libraries:
 
-Unless otherwise specified, the interface adheres the following pattern
-for function @func{x}:
+@table @library
+@item foreign posix ---
+The high level interface, user friendly and slow.
+
+@item foreign posix --- primitive
+The middle level interface; does marshaling of arguments and return
+values.  It exports the @samp{primitive-} bindings.
+
+@item foreign posix --- platform
+The low level interface: Fast but raw @api{}.  It exports the
+@samp{platform-} bindings.
+@end table
+
+For all the functions only a brief description is given: We have to use
+the foreign function's documentation to have all the details.  Unless
+otherwise specified, the interface adheres to the following pattern for
+function @func{x}:
 
 @deffn Function x @var{arg} ...
+@deffnx Parameter x-function
 @deffnx Function primitive-x @var{arg} ...
-@deffnx Parameter primitive-x-function
 @deffnx Function platform-x @var{c-arg} ...
 This is an interface for the @cfunc{x} foreign function.
 
 @func{x} and @func{primitive-x} do something with the arguments, which
 are regular Scheme values.  If successful they return values
 representing the result; in case of error they raise an @samp{&errno}
-condition.  The @samp{&errno} condition is defined by the
-Nausicaa/Scheme libraries.
+condition.
 
 @func{x} does the job by applying to the arguments the current value of
 the @func{primitive-x-function} parameter, which must be a function.
@@ -561,7 +658,7 @@ return value from the foreign function call and the value of
 @samp{errno} right after the call.
 
 Notice that the value of @samp{errno} is meaningful only if the return
-value from the foreign function call indicates an error.  @samp{errno}
+value from the foreign function call indicates an error; @samp{errno}
 may be non--zero even if the function call was successful.
 
 For the meaning of the C level arguments we have to read the foreign
@@ -599,19 +696,121 @@ Example of usage of failing primitive fork function:
 (define (fake-fork)
   (raise-errno-error 'fork EINVAL))
 
-(parameterize ((primitive-fork-function fake-fork))
-   ---
-   (fork)
-   ---)
+(parametrise ((primitive-fork-function fake-fork))
+  ---
+  (fork)
+  ---)
 @end example
 
 @c page
-@node environment
-@chapter Environment variables
+@node posix memory
+@section Memory management
 
 
-The following bindings are exported by @library{posix environment} and
-@library{posix environment platform}.
+The @library{foreign posix memory} library provides an @api{} to
+allocate and release memory for the Nausicaa/POSIX libraries.  It is
+built upon the following Nausicaa/Scheme libraries:
+
+@example
+(foreign ffi memory)
+@end example
+
+@noindent
+but it is designed in such a way that we can replace it with our own
+library at package installation time.
+
+All the following functions must raise an exception if the operation
+fails.
+
+
+@defun malloc @var{number-of-bytes}
+Allocate a block of memory @var{number-of-bytes} wide and return a
+pointer to it.
+@end defun
+
+
+@defun calloc @var{count} @var{element-size}
+Allocate a block of wide enough to hold @var{count} elements each of
+@var{element-size}, return a pointer to it.  All the bytes in the block
+are reset to zero.
+@end defun
+
+
+@defun realloc @var{pointer} @var{new-number-of-bytes}
+Reallocate the memory block referenced by @var{pointer} to be
+@var{new-number-of-bytes} wide and return a pointer to it.
+@end defun
+
+
+@defun free @var{pointer}
+Release a block of memory allocated with @func{malloc}, @func{calloc} or
+@func{realloc}.
+@end defun
+
+
+@c page
+@node posix marshaling
+@section Marshaling arguments and return values
+
+
+The @library{foreign posix marshaling} library provides an @api{}
+implementing marshaling between C language arguments and return values
+and Scheme objects.  It is built upon the following Nausicaa/Scheme
+libraries:
+
+@example
+(parameters)
+(compensations)
+(deferred-exceptions)
+(foreign ffi cstrings)
+@end example
+
+@noindent
+but it is designed in such a way that we can replace it with our own
+library at package installation time.  Notice that it is not mandatory
+for this library to make use of @library{foreign posix memory}.
+@ref{posix memory, Memory management}
+
+
+@deffn Syntax with-marshaling @ameta{body}
+Enclose a section of code in which marshaling will be performed.  All
+the functions exported by @library{foreign posix marshaling} must be
+invoked in a @meta{body}.
+
+This macro takes care of tracking the resources allocated to marshal
+values and to release them upon exiting the @meta{body}, whether via a
+normal exit or an exception invocation.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading C language strings
+
+
+@defun string->cstring @var{str}
+Convert a Scheme string to an @ascii{}--coded, zero--terminated, C
+language string.  Return the pointer to the string.
+@end defun
+
+
+@defun cstring->string @var{cstr}
+Convert an @ascii{}--coded, zero--terminated, C language string to a
+Scheme string object.  Return the Scheme object.
+@end defun
+
+@c page
+@node posix environment
+@section Environment variables
+
+
+The following bindings are exported by the libraries:
+
+@example
+(foreign posix environment)
+(foreign posix environment primitive)
+(foreign posix environment platform)
+@end example
+
 
 @glibcref{Environment Access,Environment Access}
 
@@ -619,19 +818,21 @@ The following bindings are exported by @library{posix environment} and
 
 
 @deffn Function getenv @var{varname}
+@deffnx Parameter getenv-function @var{varname}
 @deffnx Function primitive-getenv @var{varname}
-@deffnx Parameter primitive-getenv-function @var{varname}
 @deffnx Function platform-getenv @var{varname}
 Return the current value of the environment variable @var{varname}, as a
 Scheme string.  @var{varname} must be a Scheme string or symbol.  If the
-variable is not set: the return value if @false{}.  If the variable is
-set to the empty string: the return value is the empty string.
+variable is not set, the return value if @false{}; if the variable is
+set to the empty string, the return value is the empty string.
 @end deffn
 
 
-@deffn Function setenv @var{varname} @var{value} @var{replace}
+@deffn Function setenv @var{varname} @var{value}
+@deffnx Function setenv @var{varname} @var{value} @var{replace}
+@deffnx Parameter setenv-function
+@deffnx Function primitive-setenv @var{varname} @var{value}
 @deffnx Function primitive-setenv @var{varname} @var{value} @var{replace}
-@deffnx Parameter primitive-setenv-function
 @deffnx Function platform-setenv @var{varname} @var{value} @var{replace}
 Set a new value for the environment variable @var{varname}.
 @var{varname} and @var{value} must be Scheme strings or symbols.  If the

@@ -28,8 +28,6 @@
 (library (foreign posix sizeof)
   (export
 
-    define-primitive-parameter
-
     ;; types
     blkcnt_t		pointer-set-c-blkcnt_t!	pointer-ref-c-blkcnt_t
     clock_t		pointer-set-c-clock_t!	pointer-ref-c-clock_t
@@ -120,26 +118,7 @@
     struct-utimbuf-modtime-set!		struct-utimbuf-modtime-ref
     )
   (import (rnrs)
-    (foreign ffi)
-    (foreign memory)
-    (parameters))
-
-
-;;;; helpers
-
-(define-syntax define-primitive-parameter
-  (syntax-rules ()
-    ((_ ?parameter-name ?primitive-name)
-     (define ?parameter-name
-       (make-parameter ?primitive-name
-	 (lambda (func)
-	   (unless (procedure? func)
-	     (assertion-violation (quote ?parameter-name)
-	       (string-append "expected procedure as value for "
-			      ?parameter-name
-			      " parameter")
-	       func))
-	   func))))))
+    (foreign ffi))
 
 
 ;;;; basic type definitions

@@ -39,6 +39,7 @@
   (compensations))
 
 (check-set-mode! 'report-failed)
+(display "*** testing POSIX fd\n")
 
 (define TMPDIR (get-environment-variable "TMPDIR"))
 

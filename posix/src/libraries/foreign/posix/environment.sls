@@ -24,45 +24,26 @@
 ;;;
 
 
-#!r6rs
 (library (foreign posix environment)
   (export getenv setenv)
-  (import (nausicaa)
-    (foreign ffi)
-    (foreign ffi pointers)	;to be removed
-    (foreign posix sizeof)
-    (foreign posix environment platform)
-    (foreign cstrings)
-    (compensations))
+  (import (rnrs)
+    (only (foreign posix helpers)
+	  define-primitive-parameter)
+    (foreign posix environment primitives))
 
-
-;;;; setting and getting
+  (define-primitive-parameter setenv-function primitive-setenv)
 
-(define (primitive-setenv varname newvalue replace)
-  (with-compensations
-    (letrec
-	((name  (string->cstring/c varname))
-	 (value (string->cstring/c newvalue)))
-      (platform-setenv name value (if replace 1 0)))))
+  (define-primitive-parameter getenv-function primitive-getenv)
 
-(define (primitive-getenv varname)
-  (with-compensations
-    (let ((p (platform-getenv (string->cstring/c varname))))
-      (if (pointer-null? p)
-	  #f
-	(cstring->string p)))))
+  (define setenv
+    (case-lambda
+     ((varname newvalue)
+      (setenv varname newvalue #t))
+     ((varname newvalue replace)
+      ((setenv-function) varname newvalue replace))))
 
-(define-primitive-parameter
-  primitive-setenv-function primitive-setenv)
-
-(define-primitive-parameter
-  primitive-getenv-function primitive-getenv)
-
-(define (setenv varname newvalue replace)
-  ((primitive-setenv-function) varname newvalue replace))
-
-(define (getenv varname)
-  ((primitive-getenv-function) varname))
+  (define (getenv varname)
+    ((getenv-function) varname))
 
 ;;;To use  "unsetenv()" the  memory block must  be persistent  (read the
 ;;;documentation of the  GNU C library).  This is not  a good thing with
@@ -76,9 +57,6 @@
   ;;   (with-compensations
   ;;     (unsetenv-stub (string->cstring/c varname))))
 
-
-;;;; done
-
-)
+  )
 
 ;;; end of file

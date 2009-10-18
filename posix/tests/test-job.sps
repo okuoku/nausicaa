@@ -33,6 +33,7 @@
   (foreign posix process))
 
 (check-set-mode! 'report-failed)
+(display "*** testing POSIX job\n")
 
 
 (parameterize ((check-test-name	'terminal-id)

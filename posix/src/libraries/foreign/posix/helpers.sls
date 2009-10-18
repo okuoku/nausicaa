@@ -1,13 +1,14 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: tests for the POSIX time and date functions
-;;;Date: Mon Dec 22, 2008
+;;;Contents: miscellaneous helpers
+;;;Date: Sun Oct 18, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,38 +24,27 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-(import (nausicaa)
-  (checks)
-  (foreign posix time)
-  (foreign posix time stub))
+(library (foreign posix helpers)
+  (export
+    define-primitive-parameter)
+  (import (rnrs)
+    (only (parameters)
+	  make-parameter))
 
-(check-set-mode! 'report-failed)
-(display "*** testing POSIX time\n")
-
-
-(parameterize ((check-test-name 'clock))
-
-  (check
-      (flonum? (clock))
-    => #t)
-
-  (check
-      (receive (result tms)
-	  (times)
-	(list (flonum? result)
-	      (flonum? (struct-tms-tms_utime-ref tms))
-	      (flonum? (struct-tms-tms_stime-ref tms))
-	      (flonum? (struct-tms-tms_cutime-ref tms))
-	      (flonum? (struct-tms-tms_cstime-ref tms))))
-    => '(#t #t #t #t #t))
-
-  #t)
-
-
-;;;; done
-
-(check-report)
+  (define-syntax define-primitive-parameter
+    (syntax-rules ()
+      ((_ ?parameter-name ?primitive-name)
+       (define ?parameter-name
+	 (make-parameter ?primitive-name
+	   (lambda (func)
+	     (unless (procedure? func)
+	       (assertion-violation (quote ?parameter-name)
+		 (string-append "expected procedure as value for "
+				?parameter-name
+				" parameter")
+		 func))
+	     func))))))
+  )
 
 ;;; end of file

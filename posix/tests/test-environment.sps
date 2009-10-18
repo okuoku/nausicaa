@@ -1,7 +1,7 @@
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: tests for the POSIX time and date functions
-;;;Date: Mon Dec 22, 2008
+;;;Contents: tests for the environment variables functions
+;;;Date: Sun Nov 30, 2008
 ;;;
 ;;;Abstract
 ;;;
@@ -23,32 +23,36 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
 (import (nausicaa)
   (checks)
-  (foreign posix time)
-  (foreign posix time stub))
+  (foreign posix environment))
 
 (check-set-mode! 'report-failed)
-(display "*** testing POSIX time\n")
+(display "*** testing POSIX generic\n")
 
 
-(parameterize ((check-test-name 'clock))
+(parametrise ((check-test-name 'env))
 
   (check
-      (flonum? (clock))
-    => #t)
+      (let ()
+	(setenv 'CIAO 'fusilli #t)
+	(getenv 'CIAO))
+    => "fusilli")
 
   (check
-      (receive (result tms)
-	  (times)
-	(list (flonum? result)
-	      (flonum? (struct-tms-tms_utime-ref tms))
-	      (flonum? (struct-tms-tms_stime-ref tms))
-	      (flonum? (struct-tms-tms_cutime-ref tms))
-	      (flonum? (struct-tms-tms_cstime-ref tms))))
-    => '(#t #t #t #t #t))
+      (let ()
+	(setenv 'CIAO 'fusilli #t)
+	(setenv 'CIAO 'spaghetti #f)
+	(getenv 'CIAO))
+    => "fusilli")
+
+  (check
+      (let ()
+	(setenv 'SALUT 'fusilli #t)
+	(setenv 'SALUT 'fusilli #f)
+	(getenv 'SALUT))
+    => "fusilli")
 
   #t)
 

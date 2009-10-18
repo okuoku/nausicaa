@@ -34,6 +34,7 @@
   (foreign posix process stub))
 
 (check-set-mode! 'report-failed)
+(display "*** testing POSIX process\n")
 
 
 (parameterize ((check-test-name 'pid))
