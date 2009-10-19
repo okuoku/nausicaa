@@ -2,13 +2,12 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to MPC
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-26 22:15:54 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,11 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(library (mp mpc)
+(library (foreign math mp mpc)
   (export
     mpc_abs
     mpc_add
@@ -115,17 +111,16 @@
 
     MPC_RND_RE MPC_RND_IM MPC_INEX_POS MPC_INEX_NEG MPC_INEX
     MPC_INEX_RE MPC_INEX_IM)
-  (import (r6rs)
-    (uriel ffi)
-    (uriel ffi sizeof)
-    (mp sizeof)
-    (mp mpfr))
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof)
+    (foreign math mp sizeof)
+    (foreign math mp mpfr))
 
   (define mpc-lib
     (let ((o (open-shared-object 'libmpc.so)))
       (shared-object o)
       o))
-
 
 
 ;;;; constants

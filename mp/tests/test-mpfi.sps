@@ -2,13 +2,12 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPFI numbers
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-26 22:17:48 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,19 +23,17 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(import (r6rs)
-  (uriel lang)
-  (uriel foreign)
-  (uriel test)
-  (mp mpfr)
-  (mp mpfi)
-  (mp sizeof))
+(import (nausicaa)
+  (compensations)
+  (checks)
+  (foreign memory)
+  (foreign cstrings)
+  (foreign math mp mpfi)
+  (foreign math mp sizeof))
 
 (check-set-mode! 'report-failed)
+(display "*** testing mpfi\n")
 
 
 

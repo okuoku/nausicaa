@@ -2,13 +2,12 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPFR numbers
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-26 22:17:58 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,42 +23,21 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(import (r6rs)
-  (uriel lang)
-  (uriel foreign)
-  (uriel test)
-  (mp mpfr)
-  (mp sizeof))
+(import (nausicaa)
+  (compensations)
+  (checks)
+  (format)
+  (foreign memory)
+  (foreign cstrings)
+  (foreign math mp mpfr)
+  (foreign math mp sizeof))
 
 (check-set-mode! 'report-failed)
-
+(display "*** testing mpfr\n")
 
 
 ;;;; helpers
-
-(define (compensated-mpfr)
-  (letrec ((p (compensate
-		  (malloc sizeof-mpfr_t)
-		(with
-		 (mpfr_clear p)
-		 (primitive-free p)))))
-    (mpfr_init p)
-    p))
-
-(define mpfr-factory
-  (make-caching-object-factory mpfr_init mpfr_clear
-			       sizeof-mpfr_t 10))
-
-(define (mpfr)
-  (letrec ((p (compensate
-		  (mpfr-factory)
-		(with
-		 (mpfr-factory p)))))
-    p))
 
 (define (mpfr->string o)
   (with-compensations
@@ -78,79 +56,88 @@
 	 (f (substring s x (strlen str))))
       (format "~a.~a" i f))))
 
+
+(parametrise ((check-test-name 'explicit-allocation))
+
+  (check
+      (let ((a (malloc sizeof-mpfr_t))
+	    (b (malloc sizeof-mpfr_t))
+	    (c (malloc sizeof-mpfr_t)))
+	(mpfr_init a)
+	(mpfr_init b)
+	(mpfr_init c)
+
+	(mpfr_set_d a 10.4 GMP_RNDN)
+	(mpfr_set_si b 5 GMP_RNDN)
+	(mpfr_add c a b GMP_RNDN)
+
+	(mpfr_clear a)
+	(mpfr_clear b)
+	(primitive-free a)
+	(primitive-free b)
+	(begin0
+	    (substring (mpfr->string c) 0 5)
+	  (primitive-free c)))
+    => "15.40")
+
+  #t)
 
 
-;;;; basic tests, explicit allocation
+(parametrise ((check-test-name 'compensated-allocation))
 
-(check
-    (let ((result
-	   (let ((a (malloc sizeof-mpfr_t))
-		 (b (malloc sizeof-mpfr_t))
-		 (c (malloc sizeof-mpfr_t)))
-	     (mpfr_init a)
-	     (mpfr_init b)
-	     (mpfr_init c)
+  (define (mpfr/c)
+    (letrec ((p (compensate
+		    (malloc sizeof-mpfr_t)
+		  (with
+		   (mpfr_clear p)
+		   (primitive-free p)))))
+      (mpfr_init p)
+      p))
 
-	     (mpfr_set_d a 10.4 GMP_RNDN)
-	     (mpfr_set_si b 5 GMP_RNDN)
-	     (mpfr_add c a b GMP_RNDN)
+  (check
+      (with-compensations
+	(let ((c (mpfr/c)))
+	  (with-compensations
+	    (let ((a (mpfr/c))
+		  (b (mpfr/c)))
+	      (mpfr_set_d a 10.4 GMP_RNDN)
+	      (mpfr_set_si b 5 GMP_RNDN)
+	      (mpfr_add c a b GMP_RNDN)))
+	  (substring (mpfr->string c) 0 5)))
+    => "15.40")
 
-	     (mpfr_clear a)
-	     (mpfr_clear b)
-	     (primitive-free a)
-	     (primitive-free b)
-	     c)
-	   ))
-      (begin0
-	  (substring (mpfr->string result) 0 5)
-	(primitive-free result)))
-  => "15.40")
-
+  #t)
 
 
-;;;; basic tests, compensated allocation
+(parametrise ((check-test-name 'factory-allocation))
 
-(check
-    (let ((result
-	   (let ((c (malloc sizeof-mpfr_t)))
-	     (mpfr_init c)
-	     (with-compensations
-	       (let ((a (compensated-mpfr))
-		     (b (compensated-mpfr)))
-		 (mpfr_set_d a 10.4 GMP_RNDN)
-		 (mpfr_set_si b 5 GMP_RNDN)
-		 (mpfr_add c a b GMP_RNDN)
-		 c)))
-	   ))
-      (begin0
-	  (substring (mpfr->string result) 0 5)
-	(primitive-free result)))
-  => "15.40")
+  (define mpfr-factory
+    (make-caching-object-factory mpfr_init mpfr_clear sizeof-mpfr_t 10))
 
+  (define (mpfr)
+    (letrec ((p (compensate
+		    (mpfr-factory)
+		  (with
+		   (mpfr-factory p)))))
+      p))
 
-
-;;;; basic tests, factory usage
+  (check
+      (with-compensations
+	(let ((c (mpfr)))
+	  (with-compensations
+	    (let ((a (mpfr))
+		  (b (mpfr)))
+	      (mpfr_set_d a 10.4 GMP_RNDN)
+	      (mpfr_set_si b 5 GMP_RNDN)
+	      (mpfr_add c a b GMP_RNDN)))
+	  (substring (mpfr->string c) 0 5)))
+    => "15.40")
 
-(check
-    (with-compensations
-      (let ((result
-	     (let ((c (mpfr)))
-	       (with-compensations
-		 (let ((a (mpfr))
-		       (b (mpfr)))
-		   (mpfr_set_d a 10.4 GMP_RNDN)
-		   (mpfr_set_si b 5 GMP_RNDN)
-		   (mpfr_add c a b GMP_RNDN)
-		   c)))
-	     ))
-	(substring (mpfr->string result) 0 5)))
-  => "15.40")
-
+  (mpfr-factory 'purge)
+  #t)
 
 
 ;;;; done
-
-(mpfr-factory 'purge)
 
 (check-report)
 

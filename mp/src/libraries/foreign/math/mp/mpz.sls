@@ -2,13 +2,12 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to GMP, MPZ functions
 ;;;Date: Fri Nov 28, 2008
-;;;Time-stamp: <2008-12-26 22:15:33 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,9 +25,7 @@
 
 
 
-;;;; setup
-
-(library (mp mpz)
+(library (foreign math mp mpz)
   (export
 ;;;This is not always defined.
 ;;;    mpz_abs
@@ -182,11 +179,10 @@
     (rename (mpz_jacobi mpz_legendre))
     (rename (mpz_fdiv_r_ui mpz_mod_ui))
     (rename (mpz_xor mpz_eor)))
-  (import (r6rs)
-    (uriel ffi)
-    (uriel ffi sizeof)
-    (mp sizeof))
-
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof)
+    (foreign math mp sizeof))
 
 
 ;;;; loading

@@ -1,6 +1,6 @@
 
-	    Nausicaa/MP library for R6RS Scheme
-	    ===================================
+			Nausicaa/MP
+			===========
 
 
 Topics
@@ -45,7 +45,7 @@ it had tested this project with MPC version 0.5.1.
 2. License
 ----------
 
-Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 
 This  program  is free  software:  you  can redistribute  it
 and/or modify it  under the terms of the  GNU General Public
@@ -77,14 +77,19 @@ options for the "configure" script.
 -----------------------
 
 To  install  this  package  we  need to  install  first  the
-Nausicaa/SRFI  and   Nausicaa/Uriel  packages.   Follow  the
-instructions in their README files.
+Nausicaa/Scheme  package;  follow  the instructions  in  its
+README files.
 
 
 4.2 Install GMP
 ---------------
 
-It should be the usual:
+Unpack the tar achive:
+
+  $ tar --extract --bzip2 --file=gmp-4.3.1.tar.bz2
+  $ cd gmp-4.3.1
+
+then it should be the usual:
 
   $ ./configure
   $ make
@@ -95,7 +100,12 @@ It should be the usual:
 4.3 Install MPFR
 ----------------
 
-It should be the usual:
+Unpack the tar achive:
+
+  $ tar --extract --bzip2 --file=mpfr-2.4.1.tar.bz2
+  $ cd mpfr-2.4.1
+
+then it should be the usual:
 
   $ ./configure
   $ make
@@ -106,8 +116,13 @@ It should be the usual:
 4.4 Install MPFI
 ----------------
 
-The MPFI  library comes  with no rules  to install  a shared
-library, but we need it.  So this is what I do:
+Unpack the tar achive:
+
+  $ tar --extract --gzip --file=mpfi-1.3.4-RC3.tar.gz
+  $ cd mpfi-1.3.4-RC3
+
+the package comes with no rules to install a shared library,
+but we need it.  So this is what I do:
 
   $ ./configure
   $ make all CFLAGS='-O3 -march=i686 -mtune=i686 -fPIC'
@@ -121,7 +136,12 @@ you may have to customise something.
 4.5 Install MPC
 ---------------
 
-It should be the usual:
+Unpack the tar achive:
+
+  $ tar --extract --gzip --file=mpc-0.7.tar.gz
+  $ cd mpc-0.7
+
+then it should be the usual:
 
   $ ./configure
   $ make
@@ -134,6 +154,7 @@ It should be the usual:
 
 Basically we should do:
 
+   $ cd <nausicaa top>
    $ cd mp
    $ mkdir "=build"
    $ cd "=build"
@@ -145,9 +166,9 @@ Basically we should do:
 it is  possible to disable the  usage of a  library with the
 following configuration options:
 
---disable-mpfr	disables MPFR
---disable-mpfi	disables MPFI
---disable-mpc	disables MPC
+  --disable-mpfr	disables MPFR
+  --disable-mpfi	disables MPFI
+  --disable-mpc		disables MPC
 
 it is  not possible  to disable GMP.   MPFR is  required for
 both MPFI and MPC.
@@ -194,12 +215,16 @@ Zimmermann.
 B. Bug reports
 --------------
 
-Bug    reports    are     appreciated,    send    them    to
-<mrc.mgg@gmail.com>.
+Bug reports  are appreciated, register them  using the issue
+tracker at Nausicaa's GitHub site.
 
 
 C. Resources
 ------------
+
+The latest revision of Nausicaa can be downloaded from:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
 
 The GMP library can be found at:
 

@@ -1,5 +1,5 @@
 #
-# Part of: Nausicaa/POSIX
+# Part of: Nausicaa/MP
 # Contents: project specific makefile
 # Date: Sun Jul 26, 2009
 #
@@ -28,14 +28,7 @@
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,posix,foreign))
-$(eval $(call nau-libraries,posix_environment,foreign/posix/environment))
-$(eval $(call nau-libraries,posix_fd,foreign/posix/fd))
-$(eval $(call nau-libraries,posix_file,foreign/posix/file))
-$(eval $(call nau-libraries,posix_job,foreign/posix/job))
-$(eval $(call nau-libraries,posix_process,foreign/posix/process))
-$(eval $(call nau-libraries,posix_time,foreign/posix/time))
-$(eval $(call nau-libraries,posix_users,foreign/posix/users))
+$(eval $(call nau-libraries,mp,foreign/math/mp))
 
 
 ### end of file

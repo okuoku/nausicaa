@@ -2,13 +2,12 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to the MPFR library
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-26 22:16:12 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,11 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(library (mp mpfr)
+(library (foreign math mp mpfr)
   (export
     mpfr_abs
     mpfr_acos
@@ -275,16 +271,15 @@
 ;;; mpfr_get_ld_2exp
 ;;; mpfr_set_ld
     )
-  (import (r6rs)
-    (uriel ffi)
-    (uriel ffi sizeof)
-    (mp sizeof))
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof)
+    (foreign math mp sizeof))
 
   (define mpfr-lib
     (let ((o (open-shared-object 'libmpfr.so)))
       (shared-object o)
       o))
-
 
 
 ;;;; functions

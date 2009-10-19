@@ -1,0 +1,12 @@
+              |-----handy-ruler-----------------------------------------------|
+@PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: Bindings for R6RS Scheme implementations for C libraries
+@PACKAGE_NAME@: implementing multiple precision numbers: GMP, MPFR, MPFI, MPC.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: Supports Ikarus, Larceny, Mosh and Ypsilon.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:

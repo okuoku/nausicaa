@@ -2,13 +2,12 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: interface to MPFI numbers
 ;;;Date: Wed Dec 10, 2008
-;;;Time-stamp: <2008-12-26 22:16:02 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,9 +25,7 @@
 
 
 
-;;;; setup
-
-(library (mp mpfi)
+(library (foreign math mp mpfi)
   (export
     mpfi_round_prec
     mpfi_init
@@ -187,10 +184,10 @@
     mpfi_reset_error
     mpfi_set_error
     mpfi_is_error)
-  (import (r6rs)
-    (uriel ffi)
-    (uriel ffi sizeof)
-    (mp sizeof))
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof)
+    (foreign math mp sizeof))
 
   (define mpfi-lib
     (let ((o (open-shared-object 'libmpfi.so)))

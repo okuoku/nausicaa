@@ -2,13 +2,12 @@ dnl
 dnl Part of: Nausicaa/IrRegex
 dnl Contents: configuration template file
 dnl Date: Sun Dec  7, 2008
-dnl Time-stamp: <2008-12-16 10:02:59 marco>
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+dnl Copyright (c) 2008, 2009  Marco Maggi <marcomaggi@gna.org>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it  under the terms of the  GNU General Public
@@ -32,14 +31,15 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-mp],[0.1d0])
+AC_INIT([nausicaa-mp],[0.1d0],[marcomaggi@gna.org])
+DS_BEGIN([./src/libraries/foreign/math/mp/sizeof.sls.in])
+AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
-NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_R6RS],[(r6rs)])
-NAUSICAA_SCHEME_CHECK_LIBRARY([URIEL_FFI],[(uriel ffi)])
-NAUSICAA_SYSTEM_SETUP
+DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
+DS_EXCLUDE_SECTION([AUTOCONF])
+DS_EXCLUDE_SECTION([PKGCONFIG])
 NAUSICAA_C_LANGUAGE
 NAUSICAA_SIZEOF
-
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -151,14 +151,12 @@ NAU_GMP_OFFSETOF_FIELD_TEST([MPQ_STRUCT_DEN],[__mpq_struct],[_mp_den])
 NAU_GMP_VALUEOF_TEST([GMP_RAND_ALG_DEFAULT],[GMP_RAND_ALG_DEFAULT])
 NAU_GMP_VALUEOF_TEST([GMP_RAND_ALG_LC],[GMP_RAND_ALG_LC])
 
-dnl --------------------------------------------------------------------
-
 dnl page
 dnl --------------------------------------------------------------------
 dnl Checking MPFR.
 dnl --------------------------------------------------------------------
 
-NAUSICAA_ENABLE_OPTION([nau_ENABLE_MPFR],[mpfr],[yes],
+NAU_DS_ENABLE_OPTION([nau_ENABLE_MPFR],[mpfr],[yes],
         [whether the MPFR interface will be used],
         [disable MPFR interface])
 
@@ -198,13 +196,12 @@ NAU_MPFR_VALUEOF_TEST([MPFR_EMIN_DEFAULT],[MPFR_EMIN_DEFAULT])
 
 NAUSICAA_ENABLE_TESTS
 
-
 dnl page
 dnl --------------------------------------------------------------------
 dnl Checking MPFI.
 dnl --------------------------------------------------------------------
 
-NAUSICAA_ENABLE_OPTION([nau_ENABLE_MPFI],[mpfi],[yes],
+NAU_DS_ENABLE_OPTION([nau_ENABLE_MPFI],[mpfi],[yes],
         [whether the MPFI interface will be used],
         [disable MPFI interface])
 
@@ -238,14 +235,16 @@ dnl --------------------------------------------------------------------
 dnl Checking MPC.
 dnl --------------------------------------------------------------------
 
-NAUSICAA_ENABLE_OPTION([nau_ENABLE_MPC],[mpc],[yes],
+NAU_DS_ENABLE_OPTION([nau_ENABLE_MPC],[mpc],[yes],
         [whether the MPC interface will be used],
         [disable MPC interface])
 
 if test "${nau_ENABLE_MPC}" = yes ; then
   if test "${nau_ENABLE_MPFR}" = yes ; then
 
-AC_CHECK_LIB([mpc],[mpc_init],,[AC_MSG_FAILURE([missing or unusable MPC library],[2])])
+# In version 0.7 of MPC the function "mpc_init()" does not exist.
+#
+AC_CHECK_LIB([mpc],[mpc_clear],,[AC_MSG_FAILURE([missing or unusable MPC library],[2])])
 AC_CHECK_HEADERS([mpc.h],,[AC_MSG_FAILURE([missing mpc.h header],[2])])
 
   else
@@ -268,8 +267,10 @@ dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../libraries/mp/sizeof.sls:libraries/mp/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/foreign/math/mp/sizeof.sls:src/libraries/foreign/math/mp/sizeof.sls.in])
+DS_CONFIG_FILE_SLACKWARE_BIN_DESC
+DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END
-
+DS_END
 
 ### end of file

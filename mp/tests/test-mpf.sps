@@ -2,13 +2,12 @@
 ;;;Part of: Nausicaa/MP
 ;;;Contents: tests for the MPF numbers
 ;;;Date: Thu Nov 27, 2008
-;;;Time-stamp: <2008-12-27 07:40:06 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,43 +23,21 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(import (r6rs)
-  (uriel lang)
-  (uriel memory)
-  (uriel cstring)
-  (uriel test)
-  (mp mpf)
-  (mp sizeof))
+(import (nausicaa)
+  (compensations)
+  (checks)
+  (format)
+  (foreign memory)
+  (foreign cstrings)
+  (foreign math mp mpf)
+  (foreign math mp sizeof))
 
 (check-set-mode! 'report-failed)
-
+(display "*** testing mpf\n")
 
 
 ;;;; helpers
-
-(define (compensated-mpf)
-  (letrec ((p (compensate
-		  (malloc sizeof-mpf_t)
-		(with
-		 (mpf_clear p)
-		 (primitive-free p)))))
-    (mpf_init p)
-    p))
-
-(define mpf-factory
-  (make-caching-object-factory mpf_init mpf_clear
-			       sizeof-mpf_t 10))
-
-(define (mpf)
-  (letrec ((p (compensate
-		  (mpf-factory)
-		(with
-		 (mpf-factory p)))))
-    p))
 
 (define (mpf->string o)
   (with-compensations
@@ -79,80 +56,88 @@
 	 (f (substring s x (strlen str))))
       (format "~a.~a" i f))))
 
+
+(parametrise ((check-test-name 'explicit-allocation))
+
+  (check
+      (let ((a (malloc sizeof-mpf_t))
+	    (b (malloc sizeof-mpf_t))
+	    (c (malloc sizeof-mpf_t)))
+	(mpf_init a)
+	(mpf_init b)
+	(mpf_init c)
+
+	(mpf_set_d a 10.4)
+	(mpf_set_si b 5)
+	(mpf_add c a b)
+
+	(mpf_clear a)
+	(mpf_clear b)
+	(primitive-free a)
+	(primitive-free b)
+	(begin0
+	    (substring (mpf->string c) 0 5)
+	  (primitive-free c)))
+    => "15.40")
+
+  #t)
 
 
-;;;; basic tests, explicit allocation
+(parametrise ((check-test-name 'compensated-allocation))
 
-(check
-    (let ((result
-	   (let ((a (malloc sizeof-mpf_t))
-		 (b (malloc sizeof-mpf_t))
-		 (c (malloc sizeof-mpf_t)))
-	     (mpf_init a)
-	     (mpf_init b)
-	     (mpf_init c)
+  (define (mpf/c)
+    (letrec ((p (compensate
+		    (malloc sizeof-mpf_t)
+		  (with
+		   (mpf_clear p)
+		   (primitive-free p)))))
+      (mpf_init p)
+      p))
 
-	     (mpf_set_d a 10.4)
-	     (mpf_set_si b 5)
-	     (mpf_add c a b)
+  (check
+      (with-compensations
+	(let ((c (mpf/c)))
+	  (with-compensations
+	    (let ((a (mpf/c))
+		  (b (mpf/c)))
+	      (mpf_set_d a 10.4)
+	      (mpf_set_si b 5)
+	      (mpf_add c a b)))
+	  (substring (mpf->string c) 0 5)))
+    => "15.40")
 
-	     (mpf_clear a)
-	     (mpf_clear b)
-	     (primitive-free a)
-	     (primitive-free b)
-	     c)
-	   ))
-      (begin0
-	  (substring (mpf->string result) 0 5)
-	(primitive-free result)))
-  => "15.40")
-
+  #t)
 
 
-;;;; basic tests, compensated allocation
+(parametrise ((check-test-name 'factory-allocation))
 
-(check
-    (let ((result
-	   (let ((c (malloc sizeof-mpf_t)))
-	     (mpf_init c)
-	     (with-compensations
-	       (let ((a (compensated-mpf))
-		     (b (compensated-mpf)))
-		 (mpf_set_d a 10.4)
-		 (mpf_set_si b 5)
-		 (mpf_add c a b)
-		 c)))
-	   ))
-      (begin0
-	  (substring (mpf->string result) 0 5)
-	(primitive-free result)))
-  => "15.40")
+  (define mpf-factory
+    (make-caching-object-factory mpf_init mpf_clear sizeof-mpf_t 10))
 
+  (define (mpf)
+    (letrec ((p (compensate
+		    (mpf-factory)
+		  (with
+		   (mpf-factory p)))))
+      p))
 
-
-;;;; basic tests, factory usage
+  (check
+      (with-compensations
+	(let ((c (mpf)))
+	  (with-compensations
+	    (let ((a (mpf))
+		  (b (mpf)))
+	      (mpf_set_d a 10.4)
+	      (mpf_set_si b 5)
+	      (mpf_add c a b)))
+	  (substring (mpf->string c) 0 5)))
+    => "15.40")
 
-(check
-    (with-compensations
-      (let ((result
-	     (let ((c (mpf)))
-	       (with-compensations
-		 (let ((a (mpf))
-		       (b (mpf)))
-		   (mpf_set_d a 10.4)
-		   (mpf_set_si b 5)
-
-		   (mpf_add c a b)
-		   c)))
-	     ))
-	(substring (mpf->string result) 0 5)))
-  => "15.40")
-
+  (mpf-factory 'purge)
+  #t)
 
 
 ;;;; done
-
-(mpf-factory 'purge)
 
 (check-report)
 
