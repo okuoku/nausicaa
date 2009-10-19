@@ -190,7 +190,7 @@
       ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
        (with-syntax ((ret	(%quote-if-predefined-type #'?ret-type))
 		     ((arg ...)	(map %quote-if-predefined-type #'(?arg-type0 ?arg-type ...))))
-	 #'(primitive-make-c-function ret '?funcname (list arg ...)))))))
+	 #'(primitive-make-c-function (shared-object) ret '?funcname (list arg ...)))))))
 
 (define-syntax make-c-function/with-errno
   (lambda (stx)
@@ -207,7 +207,7 @@
       ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
        (with-syntax ((ret	(%quote-if-predefined-type #'?ret-type))
 		     ((arg ...)	(map %quote-if-predefined-type #'(?arg-type0 ?arg-type ...))))
-	 #'(primitive-make-c-function/with-errno ret '?funcname (list arg ...)))))))
+	 #'(primitive-make-c-function/with-errno (shared-object) ret '?funcname (list arg ...)))))))
 
 (define-syntax define-c-function
   (syntax-rules ()

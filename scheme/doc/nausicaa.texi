@@ -52956,9 +52956,9 @@ exported by the library.
 
 @deffn Parameter shared-object
 Holds a value referencing the ``current'' shared object: The shared
-object in which @func{primitive-make-c-function} will look for symbols.
-Shared objects references are produced with @func{open-shared-object}.
-The initial value is @samp{self-shared-object}.
+object in which @func{make-c-function} will look for symbols.  Shared
+objects references are produced with @func{open-shared-object}.  The
+initial value is @samp{self-shared-object}.
 @end deffn
 
 
@@ -53091,11 +53091,11 @@ No value.
 @subsubsection Calling foreign functions
 
 
-@defun primitive-make-c-function @var{ret-type} @var{export-name} @var{arg-types}
-@defunx primitive-make-c-function/with-errno @var{ret-type} @var{export-name} @var{arg-types}
+@defun primitive-make-c-function @var{lib-spec} @var{ret-type} @var{export-name} @var{arg-types}
+@defunx primitive-make-c-function/with-errno @var{lib-spec} @var{ret-type} @var{export-name} @var{arg-types}
 Build and return a new Scheme interface function for a C language
-foreign function in the current shared object.  The current shared
-object is referenced by the value of the @samp{shared-object} parameter.
+foreign function in the shared object selected by @var{lib-spec}, which
+must be a return value of @func{open-shared-object}.
 
 The @samp{/with-errno} variant returns two values: the return value from
 the foreign function and the value of the @samp{errno} variable just
@@ -53164,13 +53164,19 @@ As an example, the main deflate functions from Zlib can be defined with:
 @deffnx Syntax define-c-function @var{pub-name} (@var{ret-type} @var{export-name} (@var{arg-type0} @var{arg-type} ...))
 @deffnx Syntax define-c-function/with-errno @var{pub-name} (@var{ret-type} @var{export-name} (@var{arg-type0} @var{arg-type} ...))
 These are wrappers for @func{primitive-make-c-function} that allow us to
-avoid quoting of arguments.  @func{define-c-function} is itself a
-wrapper for @func{make-c-function}.  The @samp{/with-errno} variants are
-wrappers for @func{primitive-c-function/with-errno}.
+avoid quoting of arguments; the library specification is the current
+value of the @func{shared-object} parameter.  @func{define-c-function}
+is itself a wrapper for @func{make-c-function}.  The @samp{/with-errno}
+variants are wrappers for @func{primitive-c-function/with-errno}.
 
 As an example, the main deflate functions from Zlib can be defined with:
 
 @example
+(define zlib
+  (let ((o (open-shared-object 'libz.so)))
+    (shared-object o)
+    o))
+
 (define zstream 'pointer)
 
 (define deflateInit
@@ -53207,11 +53213,12 @@ reference bindings (in the example @samp{zstream} evaluates to
 @samp{pointer}).
 @end deffn
 
-
 Miscellaneous examples from the C standard library and the @posix{}
 interface:
 
 @example
+(shared-object self-shared-object)
+
 (define-c-function fopen
   (pointer fopen (pointer pointer)))
 
@@ -53230,8 +53237,6 @@ interface:
 (define-c-function read
   (ssize_t read (int pointer size_t)))
 @end example
-
-
 
 @c page
 @node ffi call in

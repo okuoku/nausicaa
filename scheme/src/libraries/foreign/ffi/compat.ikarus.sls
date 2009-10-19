@@ -81,8 +81,8 @@
   (let ((l (dlopen library-name)))
     (or l (error 'primitive-open-shared-object (dlerror) library-name))))
 
-(define (primitive-make-c-function ret-type funcname arg-types)
-  (let ((f (dlsym (shared-object) (symbol->string funcname))))
+(define (primitive-make-c-function lib-spec ret-type funcname arg-types)
+  (let ((f (dlsym lib-spec (symbol->string funcname))))
     (if f
 	((%make-c-callout-maker (cons ret-type arg-types)) f)
       (error 'primitive-make-c-function (dlerror) funcname))))
@@ -112,7 +112,7 @@
 	      callout-maker))))))
 
 (define __errno_location
-  (primitive-make-c-function 'pointer '__errno_location '(void)))
+  (primitive-make-c-function self-shared-object 'pointer '__errno_location '(void)))
 
 (define-syntax errno
   (syntax-rules ()
@@ -121,8 +121,8 @@
     ((_)
      (ikarus:errno))))
 
-(define (primitive-make-c-function/with-errno ret-type funcname arg-types)
-  (let ((callout-closure (primitive-make-c-function ret-type funcname arg-types)))
+(define (primitive-make-c-function/with-errno lib-spec ret-type funcname arg-types)
+  (let ((callout-closure (primitive-make-c-function lib-spec ret-type funcname arg-types)))
     (lambda args
       ;;We have to use LET* here  to enforce the order of evaluation: We
       ;;want  to gather  the "errno"  value AFTER  the  foreign function

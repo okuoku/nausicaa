@@ -158,16 +158,16 @@
 
 ;;;; interface functions
 
-(define (primitive-make-c-function ret-type funcname arg-types)
-  (make-c-function (shared-object)
+(define (primitive-make-c-function lib-spec ret-type funcname arg-types)
+  (make-c-function lib-spec
 		   (nausicaa-type->mosh-type ret-type)
 		   funcname
 		   (if (equal? '(void) arg-types)
 		       '()
 		     (map nausicaa-type->mosh-type arg-types))))
 
-(define (primitive-make-c-function/with-errno ret-type funcname arg-types)
-  (let ((f (primitive-make-c-function ret-type funcname arg-types)))
+(define (primitive-make-c-function/with-errno lib-spec ret-type funcname arg-types)
+  (let ((f (primitive-make-c-function lib-spec ret-type funcname arg-types)))
     (lambda args
       ;;We have to use LET* here  to enforce the order of evaluation: we
       ;;want  to gather  the "errno"  value AFTER  the  foreign function

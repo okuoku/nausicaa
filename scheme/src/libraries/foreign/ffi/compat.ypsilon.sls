@@ -229,13 +229,13 @@
 
 ;;;; interface functions, no errno
 
-(define (primitive-make-c-function ret-type funcname arg-types)
+(define (primitive-make-c-function lib-spec ret-type funcname arg-types)
   (let* ((ypsilon-ret-type	(nausicaa-type->ypsilon-type ret-type))
 	 (no-arguments?		(equal? '(void) arg-types))
 	 (ypsilon-arg-types	(if no-arguments?
 				    '()
 				  (map nausicaa-type->ypsilon-type arg-types)))
-	 (address		(lookup-shared-object (shared-object) funcname))
+	 (address		(lookup-shared-object lib-spec funcname))
 	 (closure		(make-cdecl-callout ypsilon-ret-type ypsilon-arg-types address))
 	 (retval-mapper		(select-retval-type-mapper ypsilon-ret-type))
 	 (argument-mappers	(if no-arguments?
@@ -280,13 +280,13 @@
 
 ;;;; interface functions, with errno
 
-(define (primitive-make-c-function/with-errno ret-type funcname arg-types)
+(define (primitive-make-c-function/with-errno lib-spec ret-type funcname arg-types)
   (let* ((ypsilon-ret-type	(nausicaa-type->ypsilon-type ret-type))
 	 (no-arguments?		(equal? '(void) arg-types))
 	 (ypsilon-arg-types	(if no-arguments?
 				    '()
 				  (map nausicaa-type->ypsilon-type arg-types)))
-	 (address		(lookup-shared-object (shared-object) funcname))
+	 (address		(lookup-shared-object lib-spec funcname))
 	 (closure		(make-cdecl-callout ypsilon-ret-type ypsilon-arg-types address))
 	 (retval-mapper		(select-retval-type-mapper ypsilon-ret-type))
 	 (argument-mappers	(if no-arguments?
