@@ -33,7 +33,13 @@
 ## --------------------------------------------------------------------
 
 nausicaa_ENABLE_SLS		= @nausicaa_ENABLE_SLS@
+
 nausicaa_ENABLE_FASL		= @nausicaa_ENABLE_FASL@
+nausicaa_ENABLE_FASL_IKARUS	= @nausicaa_ENABLE_FASL_IKARUS@
+nausicaa_ENABLE_FASL_LARCENY	= @nausicaa_ENABLE_FASL_LARCENY@
+nausicaa_ENABLE_FASL_MOSH	= @nausicaa_ENABLE_FASL_MOSH@
+nausicaa_ENABLE_FASL_YPSILON	= @nausicaa_ENABLE_FASL_YPSILON@
+
 nausicaa_ENABLE_IKARUS		= @nausicaa_ENABLE_IKARUS@
 nausicaa_ENABLE_LARCENY		= @nausicaa_ENABLE_LARCENY@
 nausicaa_ENABLE_MOSH		= @nausicaa_ENABLE_MOSH@
@@ -106,11 +112,15 @@ endef
 
 ifeq ($(nausicaa_ENABLE_FASL),yes)
 
-nau_IMPLEMENTATIONS	= \
-	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	ifasl)	\
-	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	lfasl)	\
-	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	mfasl)  \
-	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	yfasl)
+nau_FASL_IMPLEMENTATIONS	= \
+	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	\
+		$(call ds-if-yes,$(nausicaa_ENABLE_FASL_IKARUS),	ifasl))	\
+	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	\
+		$(call ds-if-yes,$(nausicaa_ENABLE_FASL_LARCENY),	lfasl))	\
+	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	\
+		$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),		mfasl))  \
+	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	\
+		$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),		yfasl))
 
 $(eval $(call ds-srcdir,fasl,$(srcdir)/src/libraries))
 $(eval $(call ds-builddir,fasl,$(builddir)/fasl.d))
@@ -122,9 +132,9 @@ $(fasl_TARGETS): $(fasl_BUILDDIR)/%: $(fasl_SRCDIR)/%
 	@test -d $(dir $(@)) || $(MKDIR) $(dir $(@))
 	@$(CP) $(<) $(@)
 
-fasl: $(nau_IMPLEMENTATIONS)
+fasl: $(nau_FASL_IMPLEMENTATIONS)
 
-fasl-clean: $(foreach i,$(nau_IMPLEMENTATIONS),$(i)-clean)
+fasl-clean: $(foreach i,$(nau_FASL_IMPLEMENTATIONS),$(i)-clean)
 	$(RM) $(fasl_BUILDDIR)
 
 bin:		fasl
@@ -303,20 +313,22 @@ nau_itest_installed_RUN	= $(nau_itest_installed_ENV) $(nau_TIME_TESTS) $(nau_ite
 .PHONY: itest itests icheck itest-installed
 
 itest itests icheck:
-ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_RUN) $(f);)
-endif
+#endif
 
 itest-installed:
 	@echo Running tests with installed Ikarus libraries
 	@echo $(nau_itest_installed_ENV)
-ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_installed_RUN) $(f);)
-endif
+#endif
 
+ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 test tests check: itest
+endif
 
 ## ---------------------------------------------------------------------
 ## Larceny
@@ -332,20 +344,22 @@ nau_ltest_installed_RUN	= $(nau_ltest_installed_ENV) $(nau_TIME_TESTS) $(nau_lte
 .PHONY: ltest ltests lcheck ltest-installed
 
 ltest ltests lcheck:
-ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_RUN) $(f);)
-endif
+#endif
 
 ltest-installed:
 	@echo Running tests with installed Larceny libraries
 	@echo $(nau_ltest_installed_ENV)
-ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_installed_RUN) $(f);)
-endif
+#endif
 
+ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 test tests check: ltest
+endif
 
 ## ------------------------------------------------------------
 ## Mosh
@@ -365,20 +379,22 @@ nau_mtest_installed_RUN	= $(nau_mtest_installed_ENV) $(nau_TIME_TESTS) $(nau_mte
 .PHONY: mtest mtests mcheck mtest-installed
 
 mtest mtests mcheck:
-ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Mosh,$(f)) $(nau_mtest_RUN) $(f);)
-endif
+#endif
 
 mtest-installed:
 	@echo Running tests with installed Mosh libraries
 	@echo $(nau_mtest_installed_ENV)
-ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Mosh,$(f)) $(nau_mtest_installed_RUN) $(f);)
-endif
+#endif
 
+ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 test tests check: mtest
+endif
 
 ## ---------------------------------------------------------------------
 ## Ypsilon
@@ -394,20 +410,22 @@ nau_ytest_installed_RUN	= $(nau_ytest_installed_ENV) $(nau_TIME_TESTS) $(nau_yte
 .PHONY: ytest ytests ycheck ytest-installed
 
 ytest ytests ycheck:
-ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Ypsilon,$(f)) $(nau_ytest_RUN) $(f);)
-endif
+#endif
 
 ytest-installed:
 	@echo Running tests with installed Ypsilon libraries
 	@echo $(nau_ytest_installed_ENV)
-ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Ypsilon,$(f)) $(nau_ytest_installed_RUN) $(f);)
-endif
+#endif
 
+ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
 test tests check: ytest
+endif
 
 #page
 ## ---------------------------------------------------------------------
@@ -463,12 +481,14 @@ nau_iproof_RUN		= $(nau_iproof_ENV) $(nau_iproof_PROGRAM)
 .PHONY: iproof iproofs
 
 iproof iproofs:
-ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 	@$(foreach f,$(nau_proof_FILES),\
 		$(call nau_proof_SEPARATOR,Ikarus,$(f)) $(nau_iproof_RUN) $(f);)
-endif
+#endif
 
+ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 proof proofs: iproof
+endif
 
 ## ---------------------------------------------------------------------
 ## Larceny
@@ -481,12 +501,14 @@ nau_lproof_RUN		= $(nau_lproof_ENV) $(nau_lproof_PROGRAM)
 .PHONY: lproof lproofs
 
 lproof lproofs:
-ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 	@$(foreach f,$(nau_proof_FILES),\
 		$(call nau_proof_SEPARATOR,Larceny,$(f)) $(nau_lproof_RUN) $(f);)
-endif
+#endif
 
+ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 proof proofs: lproof
+endif
 
 ## ------------------------------------------------------------
 ## Mosh
@@ -504,12 +526,14 @@ nau_mproof_RUN		= $(nau_mproof_ENV) $(nau_mproof_PROGRAM)
 .PHONY: mproof mproofs
 
 mproof mproofs:
-ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 	@$(foreach f,$(nau_proof_FILES),\
 		$(call nau_proof_SEPARATOR,Mosh,$(f)) $(nau_mproof_RUN) $(f);)
-endif
+#endif
 
+ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 proof proofs: mproof
+endif
 
 ## ---------------------------------------------------------------------
 ## Ypsilon
@@ -522,12 +546,14 @@ nau_yproof_RUN		= $(nau_yproof_ENV) $(nau_yproof_PROGRAM)
 .PHONY: yproof yproofs
 
 yproof yproofs:
-ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
 	@$(foreach f,$(nau_proof_FILES),\
 		$(call nau_proof_SEPARATOR,Ypsilon,$(f)) $(nau_yproof_RUN) $(f);)
-endif
+#endif
 
+ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
 proof proofs: yproof
+endif
 
 ### end of file
 # Local Variables:

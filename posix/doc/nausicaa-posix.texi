@@ -599,6 +599,7 @@ Users and groups
 
 @menu
 * posix intro::                 Introduction.
+* posix api::                   Interface organisation.
 * posix memory::                Memory management.
 * posix marshaling::            Marshaling arguments and return values.
 * posix environment::           Environment variables.
@@ -610,27 +611,40 @@ Users and groups
 
 
 This chapter describes an interface to the @posix{} system functions
-offered by the underlying platform.  It is heavily dependent on the
-libraries of the Nausicaa/Scheme project; additionally, some libraries
-depend upon the C language library @samp{libnausicaa-posix} from the
-Nausicaa/Stubs package.  Both these packages should be available from
-the same source of Nausicaa/POSIX.
+offered by the underlying platform.  Additionally an interface to the
+@gnu{} C Library and some Linux--specific functions is provided.
 
-Unless otherwise specified, for each set of features there are 2
+This subsystem is heavily dependent on the libraries of the
+Nausicaa/Scheme project; additionally, some libraries depend upon the C
+language library @samp{libnausicaa-posix} from the Nausicaa/Stubs
+package.
+
+Unless otherwise specified, for each set of features there are three
 libraries:
 
 @table @library
 @item foreign posix ---
+@itemx foreign glibc ---
+@itemx foreign linux ---
 The high level interface, user friendly and slow.
 
 @item foreign posix --- primitive
+@itemx foreign glibc --- primitive
+@itemx foreign linux --- primitive
 The middle level interface; does marshaling of arguments and return
 values.  It exports the @samp{primitive-} bindings.
 
 @item foreign posix --- platform
+@itemx foreign glibc --- platform
+@itemx foreign linux --- platform
 The low level interface: Fast but raw @api{}.  It exports the
 @samp{platform-} bindings.
 @end table
+
+@c page
+@node posix api
+@section Interface organisation
+
 
 For all the functions only a brief description is given: We have to use
 the foreign function's documentation to have all the details.  Unless
@@ -877,7 +891,7 @@ project for details.
 
 @deffn Function getcwd
 @deffnx Function primitive-getcwd
-@deffnx Parameter primitive-getcwd-function
+@deffnx Parameter getcwd-function
 @deffnx Function platform-getcwd
 Return a string representing the current working directory.
 @end deffn
@@ -890,7 +904,7 @@ An alias for @func{getcwd}.
 
 @deffn Function chdir @var{pathname}
 @deffnx Function primitive-chdir @var{pathname}
-@deffnx Parameter primitive-chdir-function
+@deffnx Parameter chdir-function
 @deffnx Function platform-chdir @var{pathname}
 Change the current directory to the selected @var{pathname}, which must
 be a Scheme string or symbol.  If an error occurs changing directory
@@ -900,7 +914,7 @@ be a Scheme string or symbol.  If an error occurs changing directory
 
 @deffn Function fchdir @var{fd}
 @deffnx Function primitive-fchdir @var{fd}
-@deffnx Parameter primitive-fchdir-function
+@deffnx Parameter fchdir-function
 @deffnx Function platform-fchdir @var{fd}
 Change the current directory to the one associated to the file
 descriptor @var{fd}.
@@ -957,7 +971,7 @@ stream}
 
 @deffn Function opendir @var{pathname}
 @deffnx Function primitive-opendir @var{pathname}
-@deffnx Parameter primitive-opendir-function
+@deffnx Parameter opendir-function
 @deffnx Function platform-opendir @var{pathname}
 Open and return a stream associated to the directory selected by the
 string or symbol @var{pathname}.
@@ -966,7 +980,7 @@ string or symbol @var{pathname}.
 
 @deffn Function fdopendir @var{fd}
 @deffnx Function primitive-fdopendir @var{fd}
-@deffnx Parameter primitive-fdopendir-function
+@deffnx Parameter fdopendir-function
 @deffnx Function platform-fdopendir @var{fd}
 Open and return a stream associated to the directory selected by the
 file descriptor @var{fd}.
@@ -985,7 +999,7 @@ compensation stack.  @naulibref{compensations, Compensation stacks}
 
 @deffn Function closedir @var{stream}
 @deffnx Function primitive-closedir @var{stream}
-@deffnx Parameter primitive-closedir-function
+@deffnx Parameter closedir-function
 @deffnx Function platform-closedir @var{stream}
 Close the directory @var{stream} previously opened with @func{opendir}
 or @func{fdopendir}.
@@ -1004,7 +1018,7 @@ documentation).
 
 @deffn Function dirfd @var{stream}
 @deffnx Function primitive-dirfd @var{stream}
-@deffnx Parameter primitive-dirfd-function
+@deffnx Parameter dirfd-function
 @deffnx Function platform-dirfd @var{stream}
 Return the file descriptor associated to the directory @var{stream}
 previously opened with @func{opendir} or @func{fdopendir}.
@@ -1039,7 +1053,7 @@ Usage examples:
 
 @deffn Function readdir @var{stream}
 @deffnx Function primitive-readdir @var{stream}
-@deffnx Parameter primitive-readdir-function
+@deffnx Parameter readdir-function
 @deffnx Function platform-readdir @var{stream}
 Return a pointer to a statically allocated @code{struct dirent}
 describing the next entry from the directory @var{stream}, previously
@@ -1112,7 +1126,7 @@ For the following bindings: the @code{platform-} functions return a
 
 @deffn Function rewinddir @var{stream}
 @deffnx Function primitive-rewinddir @var{stream}
-@deffnx Parameter primitive-rewinddir-function
+@deffnx Parameter rewinddir-function
 @deffnx Function platform-rewinddir @var{stream}
 Rewind the directory @var{stream} previously opened with @func{opendir}
 or @func{fdopendir}.
@@ -1121,7 +1135,7 @@ or @func{fdopendir}.
 
 @deffn Function telldir @var{stream}
 @deffnx Function primitive-telldir @var{stream}
-@deffnx Parameter primitive-telldir-function
+@deffnx Parameter telldir-function
 @deffnx Function platform-telldir @var{stream}
 Return an exact integer representing the current position in the
 directory @var{stream} previously opened with @func{opendir} or
@@ -1134,7 +1148,7 @@ follow a predictable sequence.
 
 @deffn Function seekdir @var{stream} @var{position}
 @deffnx Function primitive-seekdir @var{stream} @var{position}
-@deffnx Parameter primitive-seekdir-function
+@deffnx Parameter seekdir-function
 @deffnx Function platform-seekdir @var{stream} @var{position}
 Seek to @var{position} the directory @var{stream} previously opened with
 @func{opendir} or @func{fdopendir}.  @var{position} must be a value
@@ -1153,7 +1167,7 @@ previously returned by @func{telldir}.
 
 @deffn Function link @var{oldname} @var{newname}
 @deffnx Function primitive-link @var{oldname} @var{newname}
-@deffnx Parameter primitive-link-function
+@deffnx Parameter link-function
 @deffnx Function platform-link @var{oldname} @var{newname}
 Link to the new name specified by the string or symbol @var{newname} the
 file selected by the string or symbol @var{oldname}.
@@ -1162,7 +1176,7 @@ file selected by the string or symbol @var{oldname}.
 
 @deffn Function symlink @var{oldname} @var{newname}
 @deffnx Function primitive-symlink @var{oldname} @var{newname}
-@deffnx Parameter primitive-symlink-function
+@deffnx Parameter symlink-function
 @deffnx Function platform-symlink @var{oldname} @var{newname}
 Link to the new name specified by the string or symbol @var{newname} the
 file selected by the string or symbol @var{oldname}.
@@ -1171,7 +1185,7 @@ file selected by the string or symbol @var{oldname}.
 
 @deffn Function realpath @var{pathname}
 @deffnx Function primitive-realpath @var{pathname}
-@deffnx Parameter primitive-realpath-function
+@deffnx Parameter realpath-function
 @deffnx Function platform-realpath @var{pathname}
 Return a string representing the real pathname of the symbolic link
 selected by the string or symbol @var{pathname}.
@@ -1188,7 +1202,7 @@ selected by the string or symbol @var{pathname}.
 
 @deffn Function unlink @var{pathname}
 @deffnx Function primitive-unlink @var{pathname}
-@deffnx Parameter primitive-unlink-function
+@deffnx Parameter unlink-function
 @deffnx Function platform-unlink @var{pathname}
 Remove the file selected by the string or symbol @var{pathname}.
 @end deffn
@@ -1196,7 +1210,7 @@ Remove the file selected by the string or symbol @var{pathname}.
 
 @deffn Function remove @var{pathname}
 @deffnx Function primitive-remove @var{pathname}
-@deffnx Parameter primitive-remove-function
+@deffnx Parameter remove-function
 @deffnx Function platform-remove @var{pathname}
 Remove the file selected by the string or symbol @var{pathname}.
 @end deffn
@@ -1204,7 +1218,7 @@ Remove the file selected by the string or symbol @var{pathname}.
 
 @deffn Function rmdir @var{pathname}
 @deffnx Function primitive-rmdir @var{pathname}
-@deffnx Parameter primitive-rmdir-function
+@deffnx Parameter rmdir-function
 @deffnx Function platform-rmdir @var{pathname}
 Remove the directory selected by the string or symbol @var{pathname}.
 The directory has to be empty.
@@ -1221,7 +1235,7 @@ The directory has to be empty.
 
 @deffn Function rename @var{oldname} @var{newname}
 @deffnx Function primitive-rename @var{oldname} @var{newname}
-@deffnx Parameter primitive-rename-function
+@deffnx Parameter rename-function
 @deffnx Function platform-rename @var{oldname} @var{newname}
 Rename the file selected by the string or symbol @var{oldname} to the
 pathname selected by the string or symbol @var{newname}.
@@ -1238,7 +1252,7 @@ pathname selected by the string or symbol @var{newname}.
 
 @deffn Function mkdir @var{pathname}
 @deffnx Function primitive-mkdir @var{pathname}
-@deffnx Parameter primitive-mkdir-function
+@deffnx Parameter mkdir-function
 @deffnx Function platform-mkdir @var{pathname}
 Create a new directory with pathname selected by the string or symbol
 @var{pathname}.
@@ -1355,7 +1369,7 @@ that are not available in the foreign structure are set to @false{}.
 
 @deffn Function stat @var{pathname}
 @deffnx Function primitive-stat @var{pathname}
-@deffnx Parameter primitive-stat-function
+@deffnx Parameter stat-function
 @deffnx Function platform-stat @var{pathname} @var{pointer}
 Return a @code{struct-stat} record filled with attributes of the file or
 directory selected by the string or symbol @var{pathname}.
@@ -1364,7 +1378,7 @@ directory selected by the string or symbol @var{pathname}.
 
 @deffn Function fstat @var{fd}
 @deffnx Function primitive-fstat @var{fd}
-@deffnx Parameter primitive-fstat-function
+@deffnx Parameter fstat-function
 @deffnx Function platform-fstat @var{fd} @var{pointer}
 Return a @code{struct-stat} record filled with attributes of the file or
 directory selected by the file descriptor @var{fd}.
@@ -1373,7 +1387,7 @@ directory selected by the file descriptor @var{fd}.
 
 @deffn Function lstat @var{pathname}
 @deffnx Function primitive-lstat @var{pathname}
-@deffnx Parameter primitive-lstat-function
+@deffnx Parameter lstat-function
 @deffnx Function platform-lstat @var{pathname} @var{pointer}
 Return a @code{struct-stat} record filled with attributes of the
 symbolic link selected by the string or symbol @var{pathname}.
@@ -1538,7 +1552,7 @@ call to @func{chmod} or @func{fchmod}.
 
 @deffn Function chown @var{pathname} @var{owner-id} @var{group-id}
 @deffnx Function primitive-chown @var{pathname} @var{owner-id} @var{group-id}
-@deffnx Parameter primitive-chown-function
+@deffnx Parameter chown-function
 @deffnx Function platform-chown @var{pathname} @var{owner-id} @var{group-id}
 Change the file owner and group to the given numeric identifiers.
 @var{pathname} must be a string or symbol representing a pathname.
@@ -1547,7 +1561,7 @@ Change the file owner and group to the given numeric identifiers.
 
 @deffn Function fchown @var{fd} @var{owner-id} @var{group-id}
 @deffnx Function primitive-fchown @var{fd} @var{owner-id} @var{group-id}
-@deffnx Parameter primitive-fchown-function
+@deffnx Parameter fchown-function
 @deffnx Function platform-fchown fchown @var{fd} @var{owner-id} @var{group-id}
 Change the file owner and group to the given numeric identifiers.
 @var{fd} must be a file descriptor.
@@ -1569,7 +1583,7 @@ perms}.
 
 @deffn Function umask @var{mask}
 @deffnx Function primitive-umask @var{mask}
-@deffnx Parameter primitive-umask-function
+@deffnx Parameter umask-function
 @deffnx Function platform-umask @var{mask}
 Set the umask to @var{mask} and return the old @var{mask}.  To query the
 current mask without changing it:
@@ -1592,7 +1606,7 @@ Return the current umask.
 
 @deffn Function chmod @var{pathname} @var{mask}
 @deffnx Function primitive-chmod @var{pathname} @var{mask}
-@deffnx Parameter primitive-chmod-function
+@deffnx Parameter chmod-function
 @deffnx Function platform-chmod @var{pathname} @var{mask}
 Change the file access permissions bits to the given numeric mask.
 @var{pathname} must be a string or symbol representing a pathname.
@@ -1601,7 +1615,7 @@ Change the file access permissions bits to the given numeric mask.
 
 @deffn Function fchmod @var{fd} @var{mask}
 @deffnx Function primitive-fchmod @var{fd} @var{mask}
-@deffnx Parameter primitive-fchmod-function
+@deffnx Parameter fchmod-function
 @deffnx Function platform-fchmod @var{fd} @var{mask}
 Change the file access permissions bits to the given numeric mask.
 @var{fd} must be a file descriptor.
@@ -1618,7 +1632,7 @@ Change the file access permissions bits to the given numeric mask.
 
 @deffn Function access @var{pathname} @var{mask}
 @deffnx Function primitive-access @var{pathname} @var{mask}
-@deffnx Parameter primitive-access-function
+@deffnx Parameter access-function
 @deffnx Function platform-access @var{pathname} @var{mask}
 Return @true{} if the process has permission to access the file selected
 by the string or symbol @var{pathname} as specified by @var{mask}.
@@ -1645,7 +1659,7 @@ Constants representing requests for access permission testing with
 
 @deffn Function file-size @var{obj}
 @deffnx Function primitive-file-size @var{obj}
-@deffnx Parameter primitive-file-size-function
+@deffnx Parameter file-size-function
 Return the file of the selected file.  @var{obj} can be a file
 descriptor or a pathname in the form of a symbol or string.
 
@@ -1656,7 +1670,7 @@ seek,Setting the file position}.
 
 @deffn Function ftruncate @var{obj} @var{length}
 @deffnx Function primitive-ftruncate @var{obj} @var{length}
-@deffnx Parameter primitive-ftruncate-function
+@deffnx Parameter ftruncate-function
 @deffnx Function platform-ftruncate @var{obj} @var{length}
 Set to @var{length} the size of the selected file.  @var{obj} can be a
 file descriptor or a pathname in the form of a symbol or string.
@@ -1673,7 +1687,7 @@ file descriptor or a pathname in the form of a symbol or string.
 
 @deffn Function tmpnam
 @deffnx Function primitive-tmpnam
-@deffnx Parameter primitive-tmpnam-function
+@deffnx Parameter tmpnam-function
 @deffnx Function platform-tmpnam
 Return a file pathname that, at the time of the call, does not exist on
 the system.
@@ -1682,7 +1696,7 @@ the system.
 
 @deffn Function mktemp @var{template}
 @deffnx Function primitive-mktemp @var{template}
-@deffnx Parameter primitive-mktemp-function
+@deffnx Parameter mktemp-function
 @deffnx Function platform-mktemp @var{template}
 Return a file pathname that, at the time of the call, does not exist on
 the system.  The pathname is built modifying the string or symbol
@@ -1693,7 +1707,7 @@ characters.
 
 @deffn Function mkstemp @var{template}
 @deffnx Function primitive-mkstemp @var{template}
-@deffnx Parameter primitive-mkstemp-function
+@deffnx Parameter mkstemp-function
 @deffnx Function platform-mkstemp @var{template}
 Return 2 values: a file descriptor and a file pathname.  The pathname is
 built modifying the string or symbol @var{template}, which must include
@@ -1793,7 +1807,7 @@ library.
 
 @deffn Function clock
 @deffnx Function primitive-clock
-@deffnx Parameter primitive-clock-function
+@deffnx Parameter clock-function
 @deffnx Function platform-clock
 Return the calling process' current @cpu{} time, converted to a native
 @code{double} number.
@@ -1802,7 +1816,7 @@ Return the calling process' current @cpu{} time, converted to a native
 
 @deffn Function times
 @deffnx Function primitive-times
-@deffnx Parameter primitive-times-function
+@deffnx Parameter times-function
 @deffnx Function platform-times @var{pointer}
 Store the processor time informations into a record of type
 @code{struct-tms} and return 2 values: the calling process @cpu{} time
@@ -2121,7 +2135,7 @@ Flags for file descriptor locking.
 
 @deffn Function open @var{pathname} @var{open-mode} @var{permissions}
 @deffnx Function primitive-open @var{pathname} @var{open-mode} @var{permissions}
-@deffnx Parameter primitive-open-function
+@deffnx Parameter open-function
 @deffnx Function platform-open @var{pathname} @var{open-mode} @var{permissions}
 Open with @var{open-mode} the file selected by @var{pathname} and return
 a file descriptor.  If the file is created, it is created with
@@ -2195,7 +2209,7 @@ with symbolic permissions bits (more portable):
 
 @deffn Function close @var{fd}
 @deffnx Function primitive-close @var{fd}
-@deffnx Parameter primitive-close-function
+@deffnx Parameter close-function
 @deffnx Function platform-close @var{fd}
 Close the file descriptor @var{fd}.
 @end deffn
@@ -2234,7 +2248,7 @@ and the following prefixes with @code{posix:} all the bindings from
 
 @deffn Function read @var{fd} @var{pointer} @var{buffer-size}
 @deffnx Function primitive-read @var{fd} @var{pointer} @var{buffer-size}
-@deffnx Parameter primitive-read-function
+@deffnx Parameter read-function
 @deffnx Function platform-read @var{fd} @var{pointer} @var{buffer-size}
 Read at most @var{buffer-size} bytes from @var{fd}, starting at the
 current file position, and store them in the buffer referenced by
@@ -2245,7 +2259,7 @@ bytes actually read.
 
 @deffn Function pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
 @deffnx Function primitive-pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
-@deffnx Parameter primitive-pread-function
+@deffnx Parameter pread-function
 @deffnx Function platform-pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
 Read at most @var{buffer-size} bytes from @var{fd}, starting at
 @var{offset} from the beginning of the file, and store them in the
@@ -2259,7 +2273,7 @@ untouched.  Return the number of bytes actually read.
 
 @deffn Function write @var{fd} @var{pointer} @var{buffer-size}
 @deffnx Function primitive-write @var{fd} @var{pointer} @var{buffer-size}
-@deffnx Parameter primitive-write-function
+@deffnx Parameter write-function
 @deffnx Function platform-write @var{fd} @var{pointer} @var{buffer-size}
 Write to @var{fd}, starting at the current file position, at most
 @var{buffer-size} bytes from the buffer referenced by @var{pointer}.
@@ -2270,7 +2284,7 @@ written.
 
 @deffn Function pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
 @deffnx Function primitive-pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
-@deffnx Parameter primitive-pwrite-function
+@deffnx Parameter pwrite-function
 @deffnx Function platform-pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
 Write to @var{fd}, starting at @var{offset} from the beginning of the
 file, at most @var{buffer-size} bytes from the buffer referenced by
@@ -2334,7 +2348,7 @@ size with:
 
 @deffn Function sync
 @deffnx Function primitive-sync
-@deffnx Parameter primitive-sync-function
+@deffnx Parameter sync-function
 @deffnx Function platform-sync
 Synchronise data for all the file descriptors with the underlying
 devices.  Does not return until the operation is terminated.
@@ -2343,7 +2357,7 @@ devices.  Does not return until the operation is terminated.
 
 @deffn Function fsync @var{fd}
 @deffnx Function primitive-fsync @var{fd}
-@deffnx Parameter primitive-fsync-function
+@deffnx Parameter fsync-function
 @deffnx Function platform-fsync @var{fd}
 Synchronise data for @var{fd} with the underlying device.
 @end deffn
@@ -2351,7 +2365,7 @@ Synchronise data for @var{fd} with the underlying device.
 
 @deffn Function fdatasync @var{fd}
 @deffnx Function primitive-fdatasync @var{fd}
-@deffnx Parameter primitive-fdatasync-function
+@deffnx Parameter fdatasync-function
 @deffnx Function platform-fdatasync @var{fd}
 Flushes the output buffer of @var{fd} to the underlying device.  This
 function does not synchronise the file meta data (like the access time).
@@ -2366,7 +2380,7 @@ function does not synchronise the file meta data (like the access time).
 
 @deffn Function fcntl @var{fd} @var{operation} @var{arg}
 @deffnx Function primitive-fcntl @var{fd} @var{operation} @var{arg}
-@deffnx Parameter primitive-fcntl-function
+@deffnx Parameter fcntl-function
 @deffnx Function platform-fcntl @var{fd} @var{operation} @var{arg}
 Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
 and @var{arg} must be exact integers.  @ref{fd constants control} for
@@ -2389,7 +2403,7 @@ pointer value to an integer.  Example:
 
 @deffn Function ioctl @var{fd} @var{operation} @var{arg}
 @deffnx Function primitive-ioctl @var{fd} @var{operation} @var{arg}
-@deffnx Parameter primitive-ioctl-function
+@deffnx Parameter ioctl-function
 @deffnx Function platform-ioctl @var{fd} @var{operation} @var{arg}
 Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
 and @var{arg} must be exact integers.  @ref{fd constants control} for
@@ -2412,7 +2426,7 @@ error occurred.
 
 @deffn Function dup @var{fd}
 @deffnx Function primitive-dup @var{fd}
-@deffnx Parameter primitive-dup-function
+@deffnx Parameter dup-function
 @deffnx Function platform-dup @var{fd}
 Duplicate @var{fd}, return the new file descriptor.
 @end deffn
@@ -2420,7 +2434,7 @@ Duplicate @var{fd}, return the new file descriptor.
 
 @deffn Function dup2 @var{old-fd} @var{new-fd}
 @deffnx Function primitive-dup2 @var{old-fd} @var{new-fd}
-@deffnx Parameter primitive-dup2-function
+@deffnx Parameter dup2-function
 @deffnx Function platform-dup2 @var{old-fd} @var{new-fd}
 Copy @var{old-fd} to @var{new-fd}.
 @end deffn
@@ -2481,7 +2495,7 @@ Peekers and pokers for the fields of a @code{struct flock}.
 
 @deffn Function pipe
 @deffnx Function primitive-pipe
-@deffnx Parameter primitive-pipe-function
+@deffnx Parameter pipe-function
 @deffnx Function platform-pipe @var{pointer}
 Open a pipe: a pair of file descriptors linked together.  Return 2
 values: the reading and writing file descriptors (again: the reading fd
@@ -2493,7 +2507,7 @@ is the first).
 
 @deffn Function mkfifo @var{pathname} @var{mode}
 @deffnx Function primitive-mkfifo mkfifo @var{pathname} @var{mode}
-@deffnx Parameter primitive-mkfifo-function
+@deffnx Parameter mkfifo-function
 @deffnx Function platform-mkfifo @var{pathname} @var{mode}
 Create a named pipe pseudofile: a special file that can be used for
 interprocess communication.  @glibcref{FIFO Special Files,FIFO Special
@@ -2795,7 +2809,7 @@ impossible to know what the Scheme implementation does.
 
 @deffn Function fork
 @deffnx Function primitive-fork
-@deffnx Parameter primitive-fork-function
+@deffnx Parameter fork-function
 @deffnx Function platform-fork
 Create a new process by forking the current one.  If successful
 @func{fork} returns zero in the child process and the child process' id
@@ -2813,7 +2827,7 @@ in the parent process.
 
 @deffn Function execv @var{pathname} @var{args}
 @deffnx Function primitive-execv @var{pathname} @var{args}
-@deffnx Parameter primitive-execv-function
+@deffnx Parameter execv-function
 @deffnx Function platform-execv @var{c-pathname} @var{argv}
 Execute the file selected by the string or symbol @var{pathname} using
 the list of strings or symbols @var{args} as command line arguments.  By
@@ -2849,7 +2863,7 @@ error handling path:
 
 @deffn Function execve @var{pathname} @var{args} @var{envs}
 @deffnx Function primitive-execve @var{pathname} @var{args} @var{envs}
-@deffnx Parameter primitive-execve-function
+@deffnx Parameter execve-function
 @deffnx Function platform-execve @var{c-pathname} @var{argv} @var{envv}
 Execute the file selected by the string or symbol @var{pathname} using
 the list of strings or symbols @var{args} as command line arguments.  By
@@ -2892,7 +2906,7 @@ error handling path:
 
 @deffn Function execvp @var{pathname} @var{args}
 @deffnx Function primitive-execvp @var{pathname} @var{args}
-@deffnx Parameter primitive-execvp-function
+@deffnx Parameter execvp-function
 @deffnx Function platform-execvp @var{c-pathname} @var{argv}
 These functions are like the @func{execv} ones, except that
 @var{pathname} can be the name of a file that is searched in the current
@@ -2902,7 +2916,7 @@ These functions are like the @func{execv} ones, except that
 
 @deffn Function system @var{command}
 @deffnx Function primitive-system @var{command}
-@deffnx Parameter primitive-system-function
+@deffnx Parameter system-function
 @deffnx Function platform-system @var{command}
 Run @var{command} using the system shell.
 @end deffn
@@ -2925,7 +2939,7 @@ For the following functions: the @var{options} argument can be zero or a
 
 
 @deffn Function primitive-waitpid @var{pid} @var{options}
-@deffnx Parameter primitive-waitpid-function
+@deffnx Parameter waitpid-function
 @deffnx Function platform-waitpid @var{pid} @var{pointer} @var{options}
 Wait for a single process or a set of processes in a group.  For the
 full documentation we have to refer to the documentation of the foreign
@@ -3043,7 +3057,7 @@ job} and @library{posix job platform}.
 
 @deffn Function ctermid
 @deffnx Function primitive-ctermid
-@deffnx Parameter primitive-ctermid-function
+@deffnx Parameter ctermid-function
 @deffnx Function platform-ctermid @var{pointer}
 Return a string representing the pathname of the controlling terminal
 for this process.
@@ -3065,7 +3079,7 @@ sizeof}.
 
 @deffn Function setsid
 @deffnx Function primitive-setsid
-@deffnx Parameter primitive-setsid-function
+@deffnx Parameter setsid-function
 @deffnx Function platform-setsid
 Create a new session and return an integer representing the new process
 group id.
@@ -3074,7 +3088,7 @@ group id.
 
 @deffn Function getsid @var{pid}
 @deffnx Function primitive-getsid @var{pid}
-@deffnx Parameter primitive-getsid-function
+@deffnx Parameter getsid-function
 @deffnx Function platform-getsid @var{pid}
 Return the group id of the session leader of the process with @var{pid}.
 @end deffn
@@ -3082,7 +3096,7 @@ Return the group id of the session leader of the process with @var{pid}.
 
 @deffn Function getpgrp
 @deffnx Function primitive-getpgrp
-@deffnx Parameter primitive-getpgrp-function
+@deffnx Parameter getpgrp-function
 @deffnx Function platform-getpgrp
 Return the process group id of the group to which the current process
 belongs.
@@ -3091,7 +3105,7 @@ belongs.
 
 @deffn Function setpgid @var{pid} @var{pgid}
 @deffnx Function primitive-setpgid @var{pid} @var{pgid}
-@deffnx Parameter primitive-setpgid-function
+@deffnx Parameter setpgid-function
 @deffnx Function platform-setpgid @var{pid} @var{pgid}
 Put the process @var{pid} in the group @var{pgid}.
 @end deffn
@@ -3108,7 +3122,7 @@ Access}
 
 @deffn Function tcgetpgrp @var{fd}
 @deffnx Function primitive-tcgetpgrp @var{fd}
-@deffnx Parameter primitive-tcgetpgrp-function
+@deffnx Parameter tcgetpgrp-function
 @deffnx Function platform-tcgetpgrp @var{fd}
 Return the process group id of the foreground process group associated
 with the terminal open on descriptor @var{fd}.
@@ -3117,7 +3131,7 @@ with the terminal open on descriptor @var{fd}.
 
 @deffn Function tcsetpgrp @var{fd} @var{pgid}
 @deffnx Function primitive-tcsetpgrp @var{fd} @var{pgid}
-@deffnx Parameter primitive-tcsetpgrp-function
+@deffnx Parameter tcsetpgrp-function
 @deffnx Function platform-tcsetpgrp @var{fd} @var{pgid}
 Set a terminal's foreground process group id.
 @end deffn
@@ -3125,7 +3139,7 @@ Set a terminal's foreground process group id.
 
 @deffn Function tcgetsid @var{fd}
 @deffnx Function primitive-tcgetsid @var{fd}
-@deffnx Parameter primitive-tcgetsid-function
+@deffnx Parameter tcgetsid-function
 @deffnx Function platform-tcgetsid @var{fd}
 Return the process group id of the session for which the open on
 descriptor @var{fd} is the controlling terminal.
