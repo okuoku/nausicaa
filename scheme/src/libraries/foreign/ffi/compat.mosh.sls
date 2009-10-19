@@ -70,6 +70,8 @@
 ;;  double
 ;;  void*	char*
 ;;
+;;  an empty list represents no arguments.
+;;
 ;;* The accepted return values for callbacks are:
 ;;
 ;;  void
@@ -91,6 +93,8 @@
 ;;  uint8_t		uint16_t	uint32_t	uint64_t
 ;;  float		double
 ;;  void*
+;;
+;;  an empty list represents no arguments.
 ;;
 
 (define (nausicaa-type->mosh-type type)
@@ -158,7 +162,9 @@
   (make-c-function (shared-object)
 		   (nausicaa-type->mosh-type ret-type)
 		   funcname
-		   (map nausicaa-type->mosh-type arg-types)))
+		   (if (equal? '(void) arg-types)
+		       '()
+		     (map nausicaa-type->mosh-type arg-types))))
 
 (define (primitive-make-c-function/with-errno ret-type funcname arg-types)
   (let ((f (primitive-make-c-function ret-type funcname arg-types)))
@@ -174,7 +180,9 @@
 
 (define (primitive-make-c-callback ret-type scheme-function arg-types)
   (make-c-callback (nausicaa-type->mosh-type/callback ret-type)
-		   (map nausicaa-type->mosh-type/callback arg-types)
+		   (if (equal? '(void) arg-types)
+		       '()
+		     (map nausicaa-type->mosh-type/callback arg-types))
 		   scheme-function))
 
 
