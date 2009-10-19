@@ -27,8 +27,10 @@
 (import (nausicaa)
   (compensations)
   (checks)
+  (format)
   (foreign memory)
   (foreign cstrings)
+  (foreign math mp mpfr)
   (foreign math mp mpfi)
   (foreign math mp sizeof))
 
@@ -38,26 +40,6 @@
 
 
 ;;;; helpers
-
-(define (compensated-mpfi)
-  (letrec ((p (compensate
-		  (malloc sizeof-mpfi_t)
-		(with
-		 (mpfi_clear p)
-		 (primitive-free p)))))
-    (mpfi_init p)
-    p))
-
-(define mpfi-factory
-  (make-caching-object-factory mpfi_init mpfi_clear
-			       sizeof-mpfi_t 10))
-
-(define (mpfi)
-  (letrec ((p (compensate
-		  (mpfi-factory)
-		(with
-		 (mpfi-factory p)))))
-    p))
 
 (define (mpfr->string o)
   (with-compensations
@@ -91,79 +73,87 @@
 
 
 
-;;;; basic tests, explicit allocation
+(parametrise ((check-test-name 'explicit-allocation))
 
-(check
-    (let ((result
-	   (let ((a (malloc sizeof-mpfi_t))
-		 (b (malloc sizeof-mpfi_t))
-		 (c (malloc sizeof-mpfi_t)))
-	     (mpfi_init a)
-	     (mpfi_init b)
-	     (mpfi_init c)
+  (check
+      (let ((a (malloc sizeof-mpfi_t))
+	    (b (malloc sizeof-mpfi_t))
+	    (c (malloc sizeof-mpfi_t)))
+	(mpfi_init a)
+	(mpfi_init b)
+	(mpfi_init c)
 
-	     (mpfi_set_d a 10.4)
-	     (mpfi_set_si b 5)
-	     (mpfi_add c a b)
+	(mpfi_set_d a 10.4)
+	(mpfi_set_si b 5)
+	(mpfi_add c a b)
 
-	     (mpfi_clear a)
-	     (mpfi_clear b)
-	     (primitive-free a)
-	     (primitive-free b)
-	     c)
-	   ))
-;;;      (display (mpfi->string-interval result))(newline)
-      (begin0
-	  (substring (mpfi->string result) 0 5)
-	(primitive-free result)))
-  => "15.40")
+	(mpfi_clear a)
+	(mpfi_clear b)
+	(primitive-free a)
+	(primitive-free b)
+	(begin0
+	    (substring (mpfi->string c) 0 5)
+	  (primitive-free c)))
+    => "15.40")
 
+  #t)
 
 
-;;;; basic tests, compensated allocation
+(parametrise ((check-test-name 'compensated-allocation))
 
-(check
-    (let ((result
-	   (let ((c (malloc sizeof-mpfi_t)))
-	     (mpfi_init c)
-	     (with-compensations
-	       (let ((a (compensated-mpfi))
-		     (b (compensated-mpfi)))
-		 (mpfi_set_d a 10.4)
-		 (mpfi_set_si b 5)
-		 (mpfi_add c a b)
-		 c)))
-	   ))
-      (begin0
-	  (substring (mpfi->string result) 0 5)
-	(primitive-free result)))
-  => "15.40")
+  (define (mpfi/c)
+    (letrec ((p (compensate
+		    (malloc sizeof-mpfi_t)
+		  (with
+		   (mpfi_clear p)
+		   (primitive-free p)))))
+      (mpfi_init p)
+      p))
 
+  (check
+      (with-compensations
+	(let ((c (mpfi/c)))
+	  (with-compensations
+	    (let ((a (mpfi/c))
+		  (b (mpfi/c)))
+	      (mpfi_set_d a 10.4)
+	      (mpfi_set_si b 5)
+	      (mpfi_add c a b)))
+	  (substring (mpfi->string c) 0 5)))
+    => "15.40")
+
+  #t)
 
 
-;;;; basic tests, factory usage
+(parametrise ((check-test-name 'factory-allocation))
 
-(check
-    (with-compensations
-      (let ((result
-	     (let ((c (mpfi)))
-	       (with-compensations
-		 (let ((a (mpfi))
-		       (b (mpfi)))
-		   (mpfi_set_d a 10.4)
-		   (mpfi_set_si b 5)
-		   (mpfi_add c a b)
-		   c)))
-	     ))
-	(substring (mpfi->string result) 0 5)))
-  => "15.40")
+  (define mpfi-factory
+    (make-caching-object-factory mpfi_init mpfi_clear sizeof-mpfi_t 10))
 
+  (define (mpfi)
+    (letrec ((p (compensate
+		    (mpfi-factory)
+		  (with
+		   (mpfi-factory p)))))
+      p))
 
+  (check
+      (with-compensations
+	(let ((c (mpfi)))
+	  (with-compensations
+	    (let ((a (mpfi))
+		  (b (mpfi)))
+	      (mpfi_set_d a 10.4)
+	      (mpfi_set_si b 5)
+	      (mpfi_add c a b)))
+	  (substring (mpfi->string c) 0 5)))
+    => "15.40")
+
+  (mpfi-factory 'purge)
+  #t)
 
 
 ;;;; done
-
-(mpfi-factory 'purge)
 
 (check-report)
 

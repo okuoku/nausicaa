@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,12 +24,12 @@
 ;;;
 
 (import
-  (only (mp mpz))
-  (only (mp mpq))
-  (only (mp mpf))
-  (only (mp random))
-  (only (mp mpfr))
-  (only (mp mpfi))
-  (only (mp mpc)))
+  (only (foreign math mp mpz))
+  (only (foreign math mp mpq))
+  (only (foreign math mp mpf))
+  (only (foreign math mp random))
+  (only (foreign math mp mpfr))
+  (only (foreign math mp mpfi))
+  (only (foreign math mp mpc)))
 
 ;;; end of file

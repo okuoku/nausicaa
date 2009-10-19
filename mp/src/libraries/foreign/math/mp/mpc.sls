@@ -44,7 +44,7 @@
     mpc_exp
     mpc_fr_div
     mpc_fr_sub
-    mpc_get_default_prec
+;;;    mpc_get_default_prec
     mpc_get_prec
     mpc_get_prec2
     mpc_get_version
@@ -64,17 +64,17 @@
     mpc_norm
     mpc_out_str
     mpc_proj
-    mpc_random
-    mpc_random2
+;;;    mpc_random
+;;;    mpc_random2
     mpc_real
     mpc_set
     mpc_set_d_d
-    mpc_set_default_prec
+;;;    mpc_set_default_prec
     mpc_set_fr
     mpc_set_fr_fr
     mpc_set_prec
     mpc_set_si_si
-    mpc_set_ui_fr
+;;;    mpc_set_ui_fr
     mpc_set_ui_ui
     mpc_sin
     mpc_sinh
@@ -87,7 +87,7 @@
     mpc_tanh
     mpc_ui_div
     mpc_ui_ui_sub
-    mpc_urandom
+;;;    mpc_urandom
 
     MPC_RNDNN
     MPC_RNDNZ
@@ -239,8 +239,12 @@
   (int mpc_set_fr (mpc_ptr mpfr_srcptr mpc_rnd_t)))
 (define-c-function mpc_set_fr_fr
   (int mpc_set_fr_fr (mpc_ptr mpfr_srcptr mpfr_srcptr mpc_rnd_t)))
-(define-c-function mpc_set_ui_fr
-  (int mpc_set_ui_fr (mpc_ptr unsigned-long mpfr_srcptr mpc_rnd_t)))
+
+;;This is not exported in MPC 0.7.
+;;
+;; (define-c-function mpc_set_ui_fr
+;;   (int mpc_set_ui_fr (mpc_ptr unsigned-long mpfr_srcptr mpc_rnd_t)))
+
 (define-c-function mpc_set_ui_ui
   (int mpc_set_ui_ui (mpc_ptr unsigned-long unsigned-long mpc_rnd_t)))
 (define-c-function mpc_set_si_si
@@ -275,14 +279,25 @@
   (void mpc_tanh (mpc_ptr mpc_srcptr mpc_rnd_t)))
 (define-c-function mpc_clear
   (void mpc_clear (mpc_ptr)))
-(define-c-function mpc_init
-  (void mpc_init (mpc_ptr)))
-(define-c-function mpc_random
-  (void mpc_random (mpc_ptr)))
-(define-c-function mpc_random2
-  (void mpc_random2 (mpc_ptr mp_size_t mp_exp_t)))
-(define-c-function mpc_urandom
-  (int mpc_urandom (mpc_ptr gmp_randstate_t)))
+
+;; The foreign  function "mpc_init()" is not  present in MPC  0.7, so we
+;; define an alias.
+;;
+;; (define-c-function mpc_init
+;;   (void mpc_init (mpc_ptr)))
+;;
+(define (mpc_init p)
+  (mpc_init2 p 256))
+
+;;These are not present in MPC 0.7.
+;;
+;; (define-c-function mpc_random
+;;   (void mpc_random (mpc_ptr)))
+;; (define-c-function mpc_random2
+;;   (void mpc_random2 (mpc_ptr mp_size_t mp_exp_t)))
+;; (define-c-function mpc_urandom
+;;   (int mpc_urandom (mpc_ptr gmp_randstate_t)))
+
 (define-c-function mpc_init2
   (void mpc_init2 (mpc_ptr mp_prec_t)))
 (define-c-function mpc_init3
@@ -293,10 +308,14 @@
   (void mpc_get_prec2 (mp_prec_t* mp_prec_t* mpc_t)))
 (define-c-function mpc_set_prec
   (void mpc_set_prec (mpc_ptr mp_prec_t)))
-(define-c-function mpc_set_default_prec
-  (void mpc_set_default_prec (mp_prec_t)))
-(define-c-function mpc_get_default_prec
-  (mp_prec_t mpc_get_default_prec (void)))
+
+;;These are not present in MPC 0.7.
+;;
+;; (define-c-function mpc_set_default_prec
+;;   (void mpc_set_default_prec (mp_prec_t)))
+;; (define-c-function mpc_get_default_prec
+;;   (mp_prec_t mpc_get_default_prec (void)))
+
 (define-c-function mpc_get_version
   (char* mpc_get_version (void)))
 (define-c-function mpc_inp_str

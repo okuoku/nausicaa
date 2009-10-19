@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,13 +26,13 @@
 (import (rnrs)
   (larceny compiler))
 
-(compile-library "mp/sizeof.sls"	"mp/sizeof.larceny.slfasl")
-(compile-library "mp/mpz.sls"		"mp/mpz.larceny.slfasl")
-(compile-library "mp/mpq.sls"		"mp/mpq.larceny.slfasl")
-(compile-library "mp/mpf.sls"		"mp/mpf.larceny.slfasl")
-(compile-library "mp/random.sls"	"mp/random.larceny.slfasl")
-(compile-library "mp/mpfr.sls"		"mp/mpfr.larceny.slfasl")
-(compile-library "mp/mpfi.sls"		"mp/mpfi.larceny.slfasl")
-(compile-library "mp/mpc.sls"		"mp/mpc.larceny.slfasl")
+(compile-library "foreign/math/mp/sizeof.sls"	"foreign/math/mp/sizeof.larceny.slfasl")
+(compile-library "foreign/math/mp/mpz.sls"	"foreign/math/mp/mpz.larceny.slfasl")
+(compile-library "foreign/math/mp/mpq.sls"	"foreign/math/mp/mpq.larceny.slfasl")
+(compile-library "foreign/math/mp/mpf.sls"	"foreign/math/mp/mpf.larceny.slfasl")
+(compile-library "foreign/math/mp/random.sls"	"foreign/math/mp/random.larceny.slfasl")
+(compile-library "foreign/math/mp/mpfr.sls"	"foreign/math/mp/mpfr.larceny.slfasl")
+(compile-library "foreign/math/mp/mpfi.sls"	"foreign/math/mp/mpfi.larceny.slfasl")
+(compile-library "foreign/math/mp/mpc.sls"	"foreign/math/mp/mpc.larceny.slfasl")
 
 ;;; end of file
