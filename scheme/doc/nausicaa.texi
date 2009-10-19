@@ -7380,6 +7380,21 @@ exactness.
 (integer? -inf.0)                      @result{} #f
 @end example
 
+Notice that @samp{3.0+0i} is an integer number according to
+@func{integer?}, because the imaginary part is exact zero.
+@samp{3.0+0.0i} is a complex number because the imaginary part is
+inexact zero, and it is equal to @samp{#i3.0+0i}; @samp{3.0+0.0i} is not
+integer according to @func{integer?}, but it is @func{integer-valued?}.
+
+@example
+(integer? 3.0+0i)                       @result{} #t
+(integer? 3.0+0.0i)                     @result{} #f
+(integer? #i3.0+0i)                     @result{} #f
+
+(integer-valued? 3.0+0.0i)              @result{} #t
+(integer-valued? #i3.0+0i)              @result{} #t
+@end example
+
 @quotation
 @strong{NOTE} Except for @func{number?}, the behavior of these type
 predicates on inexact number objects is unreliable, because any
