@@ -55,8 +55,7 @@
 		x)))
 	 (i (substring s 0 x))
 	 (f (substring s x (strlen str))))
-      (format "~a.~a" i f))))
-
+      (string-append i "." f))))
 
 (define (mpc->string o)
   (let ((im (mpfr->string (struct-mpc-im-ref o))))
@@ -88,6 +87,35 @@
 	(begin0
 	    (mpc->string c)
 	  (primitive-free c)))
+    => "15.40+4.799i")
+
+  #t)
+
+
+(parametrise ((check-test-name	'dynamic-wind))
+
+  (define-syntax with-mpc
+    (syntax-rules ()
+      ((_ () ?form0 ?form ...)
+       (begin ?form0 ?form ...))
+      ((_ (?id0 ?id ...) ?form0 ?form ...)
+       (let ((?id0 #f))
+	 (dynamic-wind
+	     (lambda ()
+	       (set! ?id0 (malloc sizeof-mpc_t))
+	       (mpc_init ?id0))
+	     (lambda ()
+	       (with-mpc (?id ...) ?form0 ?form ...))
+	     (lambda ()
+	       (mpc_clear ?id0)
+	       (primitive-free ?id0)))))))
+
+  (check
+      (with-mpc (a b c)
+	(mpc_set_d_d   a 10.4 -3.2 MPC_RNDNN)
+	(mpc_set_si_si b  5    8   MPC_RNDNN)
+	(mpc_add c a b MPC_RNDNN)
+        (mpc->string c))
     => "15.40+4.799i")
 
   #t)

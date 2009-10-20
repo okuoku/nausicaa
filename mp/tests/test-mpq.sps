@@ -39,10 +39,14 @@
 ;;;; helpers
 
 (define (mpq->string o)
-  (let ((str (mpq_get_str pointer-null 10 o)))
-    (begin0
-	(cstring->string str)
-      (primitive-free str))))
+  (let ((str #f))
+    (dynamic-wind
+	(lambda ()
+	  (set! str (mpq_get_str pointer-null 10 o)))
+	(lambda ()
+	  (cstring->string str))
+	(lambda ()
+	  (primitive-free str)))))
 
 
 (parametrise ((check-test-name 'explicit-allocation))

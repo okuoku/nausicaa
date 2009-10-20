@@ -39,10 +39,14 @@
 ;;;; helpers
 
 (define (mpz->string o)
-  (let ((str (mpz_get_str pointer-null 10 o)))
-    (begin0
-	(cstring->string str)
-      (primitive-free str))))
+  (let ((str #f))
+    (dynamic-wind
+	(lambda ()
+	  (set! str (mpz_get_str pointer-null 10 o)))
+	(lambda ()
+	  (cstring->string str))
+	(lambda ()
+	  (primitive-free str)))))
 
 
 (parametrise ((check-test-name 'explicit-allocation))
@@ -65,7 +69,37 @@
 	(primitive-free b)
 	(begin0
 	    (substring (mpz->string c) 0 2)
+	  (mpz_clear c)
 	  (primitive-free c)))
+    => "15")
+
+  #t)
+
+
+(parametrise ((check-test-name	'dynamic-wind))
+
+  (define-syntax with-mpz
+    (syntax-rules ()
+      ((_ () ?form0 ?form ...)
+       (begin ?form0 ?form ...))
+      ((_ (?id0 ?id ...) ?form0 ?form ...)
+       (let ((?id0 #f))
+	 (dynamic-wind
+	     (lambda ()
+	       (set! ?id0 (malloc sizeof-mpz_t))
+	       (mpz_init ?id0))
+	     (lambda ()
+	       (with-mpz (?id ...) ?form0 ?form ...))
+	     (lambda ()
+	       (mpz_clear ?id0)
+	       (primitive-free ?id0)))))))
+
+  (check
+      (with-mpz (a b c)
+	(mpz_set_si a 10)
+	(mpz_set_si b 5)
+	(mpz_add c a b)
+        (substring (mpz->string c) 0 2))
     => "15")
 
   #t)

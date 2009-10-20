@@ -517,7 +517,62 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Multiple precision integers
+
+* gmp mpz::                     Multiple precision integers.
+* gmp mpq::                     Multiple precision rationals.
+* gmp mpf::                     Multiple precision floats.
+* gmp random::                  Generating random integers.
+
+Multiple precision integers
+
+* gmp mpz basic::               Basic example.
+* gmp mpz dynwind::             Using dynamic wind.
+* gmp mpz compensations::       Compensating memory allocation.
+* gmp mpz factory::             Object factory.
+* gmp mpz string::              Conversion to string.
+
+Multiple precision rationals
+
+* gmp mpq basic::               Basic example.
+* gmp mpq dynwind::             Using dynamic wind.
+* gmp mpq compensations::       Compensating memory allocation.
+* gmp mpq factory::             Object factory.
+* gmp mpq string::              Conversion to string.
+
+Multiple precision floats
+
+* gmp mpf basic::               Basic example.
+* gmp mpf dynwind::             Using dynamic wind.
+* gmp mpf compensations::       Compensating memory allocation.
+* gmp mpf factory::             Object factory.
+* gmp mpf string::              Conversion to string.
+
+Multiple precision reliable floats
+
+* mpfr compensations::          Compensating memory allocation.
+* mpfr factory::                Object factory.
+* mpfr string::                 Conversion to string.
+
+Multiple precision interval numbers
+
+* mpfi compensations::          Compensating memory allocation.
+* mpfi factory::                Object factory.
+* mpfi string::                 Conversion to string.
+
+Multiple precision complex numbers
+
+* mpc compensations::          Compensating memory allocation.
+* mpc factory::                Object factory.
+* mpc string::                 Conversion to string.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 @c page
@@ -526,7 +581,7 @@ Indexes
 
 
 @value{PACKAGE} implements a binding to various multiple precision
-numbers libraries for the @rnrs{6} Scheme implementations supported by
+numbers C language libraries for the Scheme implementations supported by
 Nausicaa.  The bindings make use of the foreign functions interface from
 the Nausicaa/Scheme package.  The installed libraries are:
 
@@ -541,16 +596,13 @@ the Nausicaa/Scheme package.  The installed libraries are:
 (foreign math mp random)
 @end example
 
-The bindings attempt to be one--to--one mappings between foreign and
-Scheme functions.  So the original documentation of the foreign
+The bindings attempt to be one--to--one maps between foreign functions
+and Scheme functions, so the original documentation of the foreign
 libraries applies to the bindings, too.
 
 This document gives only a brief description of some functions, and
 focuses on providing some usage example to get a feeling about how to
 manage resources allocation in a Scheme program.
-
-See the relevant chapters for instructions on loading @value{PACKAGE}
-libraries.
 
 @c page
 @node constants
@@ -578,7 +630,7 @@ sizeof} library.
 @defvrx Constant sizeof-mpfr_t
 @defvrx Constant sizeof-mpq_t
 @defvrx Constant sizeof-mpz_t
-These variables hold the number of bytes required to hold in memory the
+These variables hold the number of bytes required to store in memory the
 named foreign data type.
 
 For example @samp{sizeof-mpc_rnd_t} is the number of bytes required to
@@ -596,7 +648,7 @@ sizeof-mpc_t
 @end example
 
 @noindent
-which are the sizes of the data structures that represent multiple
+which are the sizes of the data structures representing multiple
 precision numbers.
 @end defvr
 
@@ -643,9 +695,9 @@ MPC_RNDND       MPC_RNDZD       MPC_RNDUD       MPC_RNDDD
 
 
 The following syntaxes allow us to access fields of the multiple
-precision numbers data structures, they are exported by @library{foreign
-math mp sizeof} library.  Notice that for normal usage we are
-@strong{not} meant to use these accessors.
+precision numbers data structures; they are exported by @library{foreign
+math mp sizeof} library.  Notice that for normal usage of the libraries,
+we are @strong{not} meant to use these accessors.
 
 
 @deffn Syntax struct-mpq-num-ref @var{struct-pointer}
@@ -705,6 +757,7 @@ numbers and basic floating point numbers.
 * gmp mpz::                     Multiple precision integers.
 * gmp mpq::                     Multiple precision rationals.
 * gmp mpf::                     Multiple precision floats.
+* gmp random::                  Generating random integers.
 @end menu
 
 @c page
@@ -713,11 +766,26 @@ numbers and basic floating point numbers.
 
 
 The integer numbers @api{} is exported by the @library{foreign math mp
-mpz} library.  To use @samp{mpz_t} numbers we basically have to do:
+mpz} library.  We discuss multiple ways to handle memory allocation.
+
+@menu
+* gmp mpz basic::               Basic example.
+* gmp mpz dynwind::             Using dynamic wind.
+* gmp mpz compensations::       Compensating memory allocation.
+* gmp mpz factory::             Object factory.
+* gmp mpz string::              Conversion to string.
+@end menu
+
+@c page
+@node gmp mpz basic
+@subsection Basic example
+
+
+To use @samp{mpz_t} numbers we basically have to do:
 
 @example
 (import (rnrs)
-  (foreign ffi memory)
+  (foreign memory)
   (foreign math mp mpz)
   (foreign math mp sizeof))
 
@@ -736,34 +804,84 @@ mpz} library.  To use @samp{mpz_t} numbers we basically have to do:
   (mpz_clear b)
   (primitive-free a)
   (primitive-free b)
-  c)
+
+  (do-something-with c)
+
+  (mpz_clear c)
+  (primitive-free c))
 @end example
 
-More advanced memory handling and usage examples are in the following
-sections.
+@c page
+@node gmp mpz dynwind
+@subsection Using dynamic wind
 
-@menu
-* gmp mpz compensation::        Compensating memory allocation.
-* gmp mpz factory::             Object factory.
-* gmp mpz string::              Conversion to string.
-@end menu
+
+Scheme provides the @func{dynamic-wind} syntax to allow evaluation of
+@dfn{in guard} and @dfn{out guard} thunks for each evaluation of a third
+``body'' thunk.  We can leverage this mechanism to handle safe
+allocation and release of @samp{mpz_t} numbers as follows:
+
+@example
+(let ((A #f))
+  (dynamic-wind
+      (lambda ()
+        (set! A (malloc sizeof-mpz_t))
+        (mpz_init A))
+      (lambda ()
+        (do-something-with A))
+      (lambda ()
+        (mpz_clear A)
+        (primitive-free A)))))))
+@end example
+
+@noindent
+of course we can wrap this mechanism into a macro:
+
+@example
+(define-syntax with-mpz
+  (syntax-rules ()
+    ((_ () ?form0 ?form ...)
+     (begin ?form0 ?form ...))
+    ((_ (?id0 ?id ...) ?form0 ?form ...)
+     (let ((?id0 #f))
+       (dynamic-wind
+           (lambda ()
+             (set! ?id0 (malloc sizeof-mpz_t))
+             (mpz_init ?id0))
+           (lambda ()
+             (with-mpz (?id ...) ?form0 ?form ...))
+           (lambda ()
+             (mpz_clear ?id0)
+             (primitive-free ?id0)))))))
+@end example
+
+@noindent
+with which we can do:
+
+@example
+(with-mpz (a b c)
+  (mpz_set_si a 10)
+  (mpz_set_si b 5)
+  (mpz_add c a b)
+  (do-something-with c))
+@end example
 
 @c page
-@node gmp mpz compensation
+@node gmp mpz compensations
 @subsection Compensating memory allocation
 
 
-The @library{compensation} library from Nausicaa/Scheme exports the
+The @library{compensations} library from Nausicaa/Scheme exports the
 compensation stacks @api{} as a mean to automatically release
 synchronous resources, even in case of raised exceptions.
 @nauref{compensations, Compensation stacks}
 
-So let's start a program with:
+Let's start a program with:
 
 @example
 (import (rnrs)
   (compensations)
-  (foreign ffi memory)
+  (foreign memory)
   (foreign math mp mpz)
   (foreign math mp sizeof))
 @end example
@@ -775,11 +893,12 @@ following function:
 @example
 (define (mpz/c)
   (letrec ((p (compensate
-                   (malloc sizeof-mpz_t)
-                   (mpz_init p)
+                  ;; "p" is not yet bound here
+                  (malloc sizeof-mpz_t)
                 (with
                  (mpz_clear p)
                  (primitive-free p)))))
+    (mpz_init p)
     p))
 @end example
 
@@ -790,16 +909,18 @@ initialisation for the two operands:
 @example
 (with-compensations
   (let ((c (mpz/c)))
-
     (with-compensations
       (let ((a (mpz/c))
             (b (mpz/c)))
         (mpz_set_si a 10)
         (mpz_set_si b 5)
         (mpz_add c a b)))
-
     (do-something-with c)))
 @end example
+
+The advantage of compensations, over the @func{dynamic-wind} solution,
+is that we can nest at will allocation of numbers, without keeping track
+of them in an enclosing form.
 
 @c page
 @node gmp mpz factory
@@ -814,17 +935,18 @@ exceptions.  @nauref{memory cache, Caching memory blocks}
 We can use this library along with the @library{compensations} library
 also from Nausicaa/Scheme.  @nauref{compensations, Compensation stacks}
 
-So let's start a program with:
+Let's start a program with:
 
 @example
 (import (rnrs)
   (compensations)
-  (foreign ffi memory)
+  (foreign memory)
   (foreign math mp mpz)
   (foreign math mp sizeof))
 @end example
 
-We can define an object factory for @samp{mpz_t} numbers with:
+@noindent
+we can define an object factory for @samp{mpz_t} numbers with:
 
 @example
 (define mpz-factory
@@ -861,6 +983,9 @@ now to add two numbers we can do:
     (do-something-with c)))
 @end example
 
+The advantage of factories, over plain compensations, is that a factory
+caches allocated memory blocks.
+
 @c page
 @node gmp mpz string
 @subsection Conversion to string
@@ -872,41 +997,31 @@ start the program with:
 
 @example
 (import (rnrs)
-  (foreign ffi)
-  (foreign ffi memory)
-  (foreign ffi cstrings)
-  (foreign math mp mpz)
-  (foreign math mp sizeof))
+  (foreign memory)
+  (foreign cstrings)
+  (foreign math mp mpz))
 @end example
 
-The following function does a basic conversion from an @samp{mpz_t} to a
+@noindent
+the following function does a basic conversion from an @samp{mpz_t} to a
 string:
 
 @example
 (define (mpz->string o)
-  (let ((str (mpz_get_str pointer-null 10 o)))
-    (begin0
-        (cstring->string str)
-      (primitive-free str))))
+  (let ((str #f))
+    (dynamic-wind
+        (lambda ()
+          (set! str (mpz_get_str pointer-null 10 o)))
+        (lambda ()
+          (cstring->string str))
+        (lambda ()
+          (primitive-free str)))))
 @end example
 
 @noindent
 where using @samp{pointer-null} as first argument to @func{mpz_get_str}
 will make it allocate memory using the @gmp{} allocation functions
-(which defaults to the standard C language functions).
-
-The same with compensations:
-
-@example
-(define (mpz->string o)
-  (with-compensations
-    (letrec
-        ((str (compensate
-                  (mpz_get_str pointer-null 10 o)
-                (with
-                 (primitive-free str)))))
-      (cstring->string str))))
-@end example
+(which default to the standard C language functions).
 
 @c page
 @node gmp mpq
@@ -914,11 +1029,26 @@ The same with compensations:
 
 
 The rational numbers @api{} is exported by the @library{foreign math mp
-mpq} library.  To use @samp{mpq_t} numbers we basically have to do:
+mpq} library.  We discuss multiple ways to handle memory allocation.
+
+@menu
+* gmp mpq basic::               Basic example.
+* gmp mpq dynwind::             Using dynamic wind.
+* gmp mpq compensations::       Compensating memory allocation.
+* gmp mpq factory::             Object factory.
+* gmp mpq string::              Conversion to string.
+@end menu
+
+@c page
+@node gmp mpq basic
+@subsection Basic example
+
+
+To use @samp{mpq_t} numbers we basically have to do:
 
 @example
 (import (rnrs)
-  (foreign ffi memory)
+  (foreign memory)
   (foreign math mp mpq)
   (foreign math mp sizeof))
 
@@ -938,24 +1068,75 @@ mpq} library.  To use @samp{mpq_t} numbers we basically have to do:
   (mpq_clear b)
   (primitive-free a)
   (primitive-free b)
-  c)
+
+  (do-something-with c)
+
+  (mpq_clear c)
+  (primitive-free c))
 @end example
 
 @noindent
 where the first argument to @func{mpq_set_si} is the numerator, the
-second the denominator.
-
-More advanced memory handling and usage examples are in the following
-sections.
-
-@menu
-* gmp mpq compensation::        Compensating memory allocation.
-* gmp mpq factory::             Object factory.
-* gmp mpq string::              Conversion to string.
-@end menu
+second is the denominator.
 
 @c page
-@node gmp mpq compensation
+@node gmp mpq dynwind
+@subsection Using dynamic wind
+
+
+Scheme provides the @func{dynamic-wind} syntax to allow evaluation of
+@dfn{in guard} and @dfn{out guard} thunks for each evaluation of a third
+``body'' thunk.  We can leverage this mechanism to handle safe
+allocation and release of @samp{mpq_t} numbers as follows:
+
+@example
+(let ((A #f))
+  (dynamic-wind
+      (lambda ()
+        (set! A (malloc sizeof-mpq_t))
+        (mpq_init A))
+      (lambda ()
+        (do-something-with A))
+      (lambda ()
+        (mpq_clear A)
+        (primitive-free A)))))))
+@end example
+
+@noindent
+of course we can wrap this mechanism into a macro:
+
+@example
+(define-syntax with-mpq
+  (syntax-rules ()
+    ((_ () ?form0 ?form ...)
+     (begin ?form0 ?form ...))
+    ((_ (?id0 ?id ...) ?form0 ?form ...)
+     (let ((?id0 #f))
+       (dynamic-wind
+           (lambda ()
+             (set! ?id0 (malloc sizeof-mpq_t))
+             (mpq_init ?id0))
+           (lambda ()
+             (with-mpq (?id ...) ?form0 ?form ...))
+           (lambda ()
+             (mpq_clear ?id0)
+             (primitive-free ?id0)))))))
+@end example
+
+@noindent
+with which we can do:
+
+@example
+(with-mpq (a b c)
+  (mpq_set_si a 6 10)
+  (mpq_canonicalize a)
+  (mpq_set_si b 6 5)
+  (mpq_add c a b)
+  (do-something-with c))
+@end example
+
+@c page
+@node gmp mpq compensations
 @subsection Compensating memory allocation
 
 
@@ -964,7 +1145,7 @@ compensation stacks @api{} as a mean to automatically release
 synchronous resources, even in case of raised exceptions.
 @nauref{compensations, Compensation stacks}
 
-So let's start a program with:
+Let's start a program with:
 
 @example
 (import (rnrs)
@@ -981,11 +1162,12 @@ following function:
 @example
 (define (mpq/c)
   (letrec ((p (compensate
+                   ;; "p" is not yet bound here
                    (malloc sizeof-mpq_t)
-                   (mpq_init p)
                 (with
                  (mpq_clear p)
                  (primitive-free p)))))
+    (mpq_init p)
     p))
 @end example
 
@@ -1008,6 +1190,10 @@ initialisation for the two operands:
     (do-something-with c)))
 @end example
 
+The advantage of compensations, over the @func{dynamic-wind} solution,
+is that we can nest at will allocation of numbers, without keeping track
+of them in an enclosing form.
+
 @c page
 @node gmp mpq factory
 @subsection Object factory
@@ -1021,17 +1207,18 @@ exceptions.  @nauref{memory cache, Caching memory blocks}
 We can use this library along with the @library{compensations} library
 also from Nausicaa/Scheme.  @nauref{compensations, Compensation stacks}
 
-So let's start a program with:
+Let's start a program with:
 
 @example
 (import (rnrs)
-  (foreign ffi memory)
   (compensations)
-  (mp mpq)
-  (mp sizeof))
+  (foreign memory)
+  (foreign math mp mpq)
+  (foreign math mp sizeof))
 @end example
 
-We can define an object factory for @code{mpq_t} numbers with:
+@noindent
+we can define an object factory for @samp{mpq_t} numbers with:
 
 @example
 (define mpq-factory
@@ -1063,10 +1250,11 @@ now to add two numbers we can do:
      (mpq_canonicalize a)
      (mpq_set_si b 6 5)
      (mpq_add c a b)
-
      (do-something-with c)))
 @end example
 
+The advantage of factories, over plain compensations, is that a factory
+caches allocated memory blocks.
 
 @c page
 @node gmp mpq string
@@ -1074,60 +1262,66 @@ now to add two numbers we can do:
 
 
 After having computed a result, we will probably desire to see it.  The
-easiest way is to convert the @code{mpq_t} number to a string.  Let's
+easiest way is to convert the @samp{mpq_t} number to a string.  Let's
 start the program with:
 
 @example
 (import (rnrs)
-  (uriel lang)
-  (uriel ffi)
-  (mp mpq)
-  (mp sizeof))
+  (foreign memory)
+  (foreign cstrings)
+  (foreign math mp mpq))
 @end example
 
-The following function does a basic conversion from an @code{mpq_t} to a
+@noindent
+the following function does a basic conversion from an @samp{mpq_t} to a
 string:
 
 @example
 (define (mpq->string o)
-  (let ((str (mpq_get_str pointer-null 10 o)))
-    (begin0
-        (cstring->string str)
-      (primitive-free str))))
+  (let ((str #f))
+    (dynamic-wind
+        (lambda ()
+          (set! str (mpq_get_str pointer-null 10 o)))
+        (lambda ()
+          (cstring->string str))
+        (lambda ()
+          (primitive-free str)))))
 @end example
 
 @noindent
-where using @code{pointer-null} as first argument to @func{mpq_get_str}
+where using @samp{pointer-null} as first argument to @func{mpq_get_str}
 will make it allocate memory using the @gmp{} allocation functions
-(which defaults to the standard C language functions).
-
-The same with compensations:
-
-@example
-(define (mpq->string o)
-  (with-compensations
-    (letrec
-        ((str (compensate
-                  (mpq_get_str pointer-null 10 o)
-                (with
-                 (primitive-free str)))))
-      (cstring->string str))))
-@end example
-
+(which default to the standard C language functions).
 
 @c page
 @node gmp mpf
 @section Multiple precision floats
 
 
-The floating point numbers @api{} is exported by the @library{mp mpf}
-library.  To use @code{mpf_t} numbers we basically have to do:
+The floating point numbers @api{} is exported by the @library{foreign
+math mp mpf} library.  We discuss multiple ways to handle memory
+allocation.
+
+@menu
+* gmp mpf basic::               Basic example.
+* gmp mpf dynwind::             Using dynamic wind.
+* gmp mpf compensations::       Compensating memory allocation.
+* gmp mpf factory::             Object factory.
+* gmp mpf string::              Conversion to string.
+@end menu
+
+@c page
+@node gmp mpf basic
+@subsection Basic example
+
+
+To use @samp{mpf_t} numbers we basically have to do:
 
 @example
 (import (rnrs)
-  (uriel ffi)
-  (mp mpf)
-  (mp sizeof))
+  (foreign memory)
+  (foreign math mp mpf)
+  (foreign math mp sizeof))
 
 (let ((a (malloc sizeof-mpf_t))
       (b (malloc sizeof-mpf_t))
@@ -1144,48 +1338,100 @@ library.  To use @code{mpf_t} numbers we basically have to do:
   (mpf_clear b)
   (primitive-free a)
   (primitive-free b)
-  c)
+
+  (do-something-with c)
+
+  (mpf_clear c)
+  (primitive-free c))
 @end example
 
-More advanced memory handling and usage examples are in the following
-sections.
+@c page
+@node gmp mpf dynwind
+@subsection Using dynamic wind
 
-@menu
-* gmp mpf compensation::        Compensating memory allocation.
-* gmp mpf factory::             Object factory.
-* gmp mpf string::              Conversion to string.
-@end menu
 
+Scheme provides the @func{dynamic-wind} syntax to allow evaluation of
+@dfn{in guard} and @dfn{out guard} thunks for each evaluation of a third
+``body'' thunk.  We can leverage this mechanism to handle safe
+allocation and release of @samp{mpf_t} numbers as follows:
+
+@example
+(let ((A #f))
+  (dynamic-wind
+      (lambda ()
+        (set! A (malloc sizeof-mpf_t))
+        (mpf_init A))
+      (lambda ()
+        (do-something-with A))
+      (lambda ()
+        (mpf_clear A)
+        (primitive-free A)))))))
+@end example
+
+@noindent
+of course we can wrap this mechanism into a macro:
+
+@example
+(define-syntax with-mpf
+  (syntax-rules ()
+    ((_ () ?form0 ?form ...)
+     (begin ?form0 ?form ...))
+    ((_ (?id0 ?id ...) ?form0 ?form ...)
+     (let ((?id0 #f))
+       (dynamic-wind
+           (lambda ()
+             (set! ?id0 (malloc sizeof-mpf_t))
+             (mpf_init ?id0))
+           (lambda ()
+             (with-mpf (?id ...) ?form0 ?form ...))
+           (lambda ()
+             (mpf_clear ?id0)
+             (primitive-free ?id0)))))))
+@end example
+
+@noindent
+with which we can do:
+
+@example
+(with-mpf (a b c)
+  (mpf_set_si a 10)
+  (mpf_set_si b 5)
+  (mpf_add c a b)
+  (do-something-with c))
+@end example
 
 @c page
-@node gmp mpf compensation
+@node gmp mpf compensations
 @subsection Compensating memory allocation
 
 
-The @library{uriel lang} library exports the compensation stacks @api{}
-as a mean to automatically release synchronous resources, even in case
-of raised exceptions.  @nauref{compensations, Compensation stacks}
+The @library{compensations} library from Nausicaa/Scheme exports the
+compensation stacks @api{} as a mean to automatically release
+synchronous resources, even in case of raised exceptions.
+@nauref{compensations, Compensation stacks}
 
-So let's start a program with:
+Let's start a program with:
 
 @example
 (import (rnrs)
-  (uriel lang)
-  (uriel ffi)
-  (mp mpf)
-  (mp sizeof))
+  (compensations)
+  (foreign memory)
+  (foreign math mp mpf)
+  (foreign math mp sizeof))
 @end example
 
-To allocate a @code{mpf_t} number with a compensation we can use the
+@noindent
+to allocate a @samp{mpf_t} number with a compensation we can use the
 following function:
 
 @example
-(define (compensated-mpf)
+(define (mpf/c)
   (letrec ((p (compensate
-                   (malloc sizeof-mpf_t)
+                  ;; "p" is not yet bound here
+                  (malloc sizeof-mpf_t)
                 (with
                  (mpf_clear p)
-                 (priitive-free p)))))
+                 (primitive-free p)))))
     (mpf_init p)
     p))
 @end example
@@ -1195,39 +1441,46 @@ now to add two numbers we can use a compensated allocation and
 initialisation for the two operands:
 
 @example
-(let ((c (malloc sizeof-mpf_t)))
-  (mpf_init c)
-  (with-compensations
-    (let ((a (compensated-mpf))
-          (b (compensated-mpf)))
-      (mpf_set_si a 10)
-      (mpf_set_si b 5)
-      (mpf_add c a b)
-      c)))
+(with-compensations
+  (let ((c (mpf/c)))
+    (with-compensations
+      (let ((a (mpf/c))
+            (b (mpf/c)))
+        (mpf_set_si a 10)
+        (mpf_set_si b 5)
+        (mpf_add c a b)))
+    (do-something-with c)))
 @end example
 
+The advantage of compensations, over the @func{dynamic-wind} solution,
+is that we can nest at will allocation of numbers, without keeping track
+of them in an enclosing form.
 
 @c page
 @node gmp mpf factory
 @subsection Object factory
 
 
-The @library{uriel lang} library exports the object factory @api{} as a
-mean to automatically allocate, initialise, finalise and release
-synchronous resources, even in case of raised exceptions.
-@nauref{memory cache, Caching memory blocks}
+The @library{foreign memory} library from Nausicaa/Scheme exports the
+object factory @api{} as a mean to automatically allocate, initialise,
+finalise and release synchronous resources, even in case of raised
+exceptions.  @nauref{memory cache, Caching memory blocks}
 
-So let's start a program with:
+We can use this library along with the @library{compensations} library
+also from Nausicaa/Scheme.  @nauref{compensations, Compensation stacks}
+
+Let's start a program with:
 
 @example
 (import (rnrs)
-  (uriel lang)
-  (uriel ffi)
-  (mp mpf)
-  (mp sizeof))
+  (compensations)
+  (foreign memory)
+  (foreign math mp mpf)
+  (foreign math mp sizeof))
 @end example
 
-We can define an object factory for @code{mpf_t} numbers with:
+@noindent
+we can define an object factory for @samp{mpf_t} numbers with:
 
 @example
 (define mpf-factory
@@ -1252,16 +1505,20 @@ now to add two numbers we can do:
 
 @example
 (with-compensations
-   (let ((c (mpf))
-         (a (mpf))
-         (b (mpf)))
-     (mpf_set_si a 10)
-     (mpf_set_si b 5)
-     (mpf_add c a b)
+  (let ((c (mpf)))
 
-     (do-something-with c)))
+    (with-compensations
+      (let ((a (mpf))
+            (b (mpf)))
+        (mpf_set_si a 10)
+        (mpf_set_si b 5)
+        (mpf_add c a b)))
+
+    (do-something-with c)))
 @end example
 
+The advantage of factories, over plain compensations, is that a factory
+caches allocated memory blocks.
 
 @c page
 @node gmp mpf string
@@ -1269,45 +1526,81 @@ now to add two numbers we can do:
 
 
 After having computed a result, we will probably desire to see it.  The
-easiest way is to convert the @code{mpf_t} number to a string.  Let's
+easiest way is to convert the @samp{mpf_t} number to a string.  Let's
 start the program with:
 
 @example
 (import (rnrs)
-  (uriel lang)
-  (uriel ffi)
-  (srfi format)
-  (mp mpf)
-  (mp sizeof))
+  (compensations)
+  (foreign memory)
+  (foreign cstrings)
+  (foreign math mp mpf))
 @end example
 
-The following function does a basic conversion from an @code{mpf_t} to a
+@noindent
+the following function does a basic conversion from an @samp{mpf_t} to a
 string:
 
 @example
 (define (mpf->string o)
   (with-compensations
     (letrec*
-        ((l (malloc-small/c))
-         (str (compensate
-                  (mpf_get_str pointer-null l 10 0 o)
-                (with
-                 (primitive-free str))))
-         (s (cstring->string str))
-         (x (let ((x (pointer-ref-c-signed-long l 0)))
-              (if (char=? #\- (string-ref s 0))
-                  (+ 1 x)
-                x)))
-         (i (substring s 0 x))
-         (f (substring s x (strlen str))))
-      (format "~a.~a" i f))))
+        ((l     (malloc-small/c))
+         (str   (compensate
+                    (mpf_get_str pointer-null l 10 0 o)
+                  (with
+                   (primitive-free str))))
+         (s     (cstring->string str))
+         (x     (let ((x (pointer-ref-c-signed-long l 0)))
+                  (if (char=? #\- (string-ref s 0))
+                      (+ 1 x)
+                    x)))
+         (i     (substring s 0 x))
+         (f     (substring s x (strlen str))))
+      (string-append i "." f))))
 @end example
 
 @noindent
-where using @code{pointer-null} as first argument to @func{mpf_get_str}
+where using @samp{pointer-null} as first argument to @func{mpf_get_str}
 will make it allocate memory using the @gmp{} allocation functions
-(which defaults to the standard C language functions).
+(which default to the standard C language functions).
 
+@c page
+@node gmp random
+@section Generating random integers
+
+
+@gmp{} exports an @api{} to generate random unsigned integers of type
+@samp{unsigned long}; the @library{foreign math mp random} library
+exports an @api{} for this feature.
+
+As a usage example, let's start a program with:
+
+@example
+(import (rnrs)
+  (begin0)
+  (compensations)
+  (foreign memory)
+  (foreign math mp random)
+  (foreign math mp sizeof))
+@end example
+
+@noindent
+then, using compensations to handle the randomness state:
+
+@example
+(with-compensations
+  (letrec
+      ((state (compensate
+                  (malloc sizeof-gmp_randstate_t)
+                (with
+                 (gmp_randclear state)
+                 (primitive-free state)))))
+    (gmp_randinit_default state)
+    (gmp_randseed_ui state 123)
+    (gmp_urandomb_ui state 10)
+    (gmp_urandomm_ui state 10)))
+@end example
 
 @c page
 @node mpfr
@@ -1315,72 +1608,139 @@ will make it allocate memory using the @gmp{} allocation functions
 
 
 The reliable floating point numbers @api{} is exported by the
-@library{mp mpfr} library.  To use @code{mpfr_t} numbers we basically
-have to do:
-
-@example
-(import (rnrs)
-  (uriel ffi)
-  (mp mpfr)
-  (mp sizeof))
-
-  (let ((a (malloc sizeof-mpfr_t))
-        (b (malloc sizeof-mpfr_t))
-        (c (malloc sizeof-mpfr_t)))
-    (mpfr_init a)
-    (mpfr_init b)
-    (mpfr_init c)
-
-    (mpfr_set_d  a 10.4 GMP_RNDN)
-    (mpfr_set_si b  5   GMP_RNDN)
-    (mpfr_add c  a  b   GMP_RNDN)
-
-    (mpfr_clear a)
-    (mpfr_clear b)
-    (primitive-free a)
-    (primitive-free b)
-    c)
-@end example
-
-More advanced memory handling and usage examples are in the following
-sections.
+@library{foreign math mp mpfr} library.  We discuss multiple ways to
+handle memory allocation.
 
 @menu
-* mpfr compensation::           Compensating memory allocation.
+* mpfr basic::                  Basic example.
+* mpfr dynwind::                Using dynamic wind.
+* mpfr compensations::          Compensating memory allocation.
 * mpfr factory::                Object factory.
 * mpfr string::                 Conversion to string.
 @end menu
 
-
 @c page
-@node mpfr compensation
-@section Compensating memory allocation
+@node mpfr basic
+@section Basic example
 
 
-The @library{uriel lang} library exports the compensation stacks @api{}
-as a mean to automatically release synchronous resources, even in case
-of raised exceptions.  @nauref{compensations, Compensation stacks}
-
-So let's start a program with:
+To use @samp{mpfr_t} numbers we basically have to do:
 
 @example
 (import (rnrs)
-  (uriel lang)
-  (uriel ffi)
-  (mp mpfr)
-  (mp sizeof))
+  (foreign memory)
+  (foreign math mp mpfr)
+  (foreign math mp sizeof))
+
+(let ((a (malloc sizeof-mpfr_t))
+      (b (malloc sizeof-mpfr_t))
+      (c (malloc sizeof-mpfr_t)))
+  (mpfr_init a)
+  (mpfr_init b)
+  (mpfr_init c)
+
+  (mpfr_set_d  a 10.4 GMP_RNDN)
+  (mpfr_set_si b  5   GMP_RNDN)
+  (mpfr_add c  a  b   GMP_RNDN)
+
+  (mpfr_clear a)
+  (mpfr_clear b)
+  (primitive-free a)
+  (primitive-free b)
+
+  (do-something-with c)
+
+  (mpfr_clear c)
+  (primitive-free c))
 @end example
 
-To allocate a @code{mpfr_t} number with a compensation we can use the
+@c page
+@node mpfr dynwind
+@section Using dynamic wind
+
+
+Scheme provides the @func{dynamic-wind} syntax to allow evaluation of
+@dfn{in guard} and @dfn{out guard} thunks for each evaluation of a third
+``body'' thunk.  We can leverage this mechanism to handle safe
+allocation and release of @samp{mpfr_t} numbers as follows:
+
+@example
+(let ((A #f))
+  (dynamic-wind
+      (lambda ()
+        (set! A (malloc sizeof-mpfr_t))
+        (mpfr_init A))
+      (lambda ()
+        (do-something-with A))
+      (lambda ()
+        (mpfr_clear A)
+        (primitive-free A)))))))
+@end example
+
+@noindent
+of course we can wrap this mechanism into a macro:
+
+@example
+(define-syntax with-mpfr
+  (syntax-rules ()
+    ((_ () ?form0 ?form ...)
+     (begin ?form0 ?form ...))
+    ((_ (?id0 ?id ...) ?form0 ?form ...)
+     (let ((?id0 #f))
+       (dynamic-wind
+           (lambda ()
+             (set! ?id0 (malloc sizeof-mpfr_t))
+             (mpfr_init ?id0))
+           (lambda ()
+             (with-mpfr (?id ...) ?form0 ?form ...))
+           (lambda ()
+             (mpfr_clear ?id0)
+             (primitive-free ?id0)))))))
+@end example
+
+@noindent
+with which we can do:
+
+@example
+(with-mpfr (a b c)
+  (mpfr_set_d  a 10.4 GMP_RNDN)
+  (mpfr_set_si b  5   GMP_RNDN)
+  (mpfr_add c  a  b   GMP_RNDN)
+  (do-something-with c))
+@end example
+
+@c page
+@node mpfr compensations
+@section Compensating memory allocation
+
+
+The @library{compensations} library from Nausicaa/Scheme exports the
+compensation stacks @api{} as a mean to automatically release
+synchronous resources, even in case of raised exceptions.
+@nauref{compensations, Compensation stacks}
+
+Let's start a program with:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign memory)
+  (foreign math mp mpfr)
+  (foreign math mp sizeof))
+@end example
+
+@noindent
+to allocate a @samp{mpfr_t} number with a compensation we can use the
 following function:
 
 @example
-(define (compensated-mpfr)
+(define (mpfr/c)
   (letrec ((p (compensate
-                   (malloc sizeof-mpfr_t)
+                  ;; "p" is not yet bound here
+                  (malloc sizeof-mpfr_t)
                 (with
                  (mpfr_clear p)
-                 (priitive-free p)))))
+                 (primitive-free p)))))
     (mpfr_init p)
     p))
 @end example
@@ -1390,39 +1750,46 @@ now to add two numbers we can use a compensated allocation and
 initialisation for the two operands:
 
 @example
-(let ((c (malloc sizeof-mpfr_t)))
-  (mpfr_init c)
-  (with-compensations
-    (let ((a (compensated-mpfr))
-          (b (compensated-mpfr)))
-      (mpfr_set_si a 10)
-      (mpfr_set_si b 5)
-      (mpfr_add c a b)
-      c)))
+(with-compensations
+  (let ((c (mpfr/c)))
+    (with-compensations
+      (let ((a (mpfr/c))
+            (b (mpfr/c)))
+        (mpfr_set_d  a 10.4 GMP_RNDN)
+        (mpfr_set_si b  5   GMP_RNDN)
+        (mpfr_add c  a  b   GMP_RNDN)))
+    (do-something-with c)))
 @end example
 
+The advantage of compensations, over the @func{dynamic-wind} solution,
+is that we can nest at will allocation of numbers, without keeping track
+of them in an enclosing form.
 
 @c page
 @node mpfr factory
 @section Object factory
 
 
-The @library{uriel lang} library exports the object factory @api{} as a
-mean to automatically allocate, initialise, finalise and release
-synchronous resources, even in case of raised exceptions.
-@nauref{memory cache, Caching memory blocks}
+The @library{foreign memory} library from Nausicaa/Scheme exports the
+object factory @api{} as a mean to automatically allocate, initialise,
+finalise and release synchronous resources, even in case of raised
+exceptions.  @nauref{memory cache, Caching memory blocks}
 
-So let's start a program with:
+We can use this library along with the @library{compensations} library
+also from Nausicaa/Scheme.  @nauref{compensations, Compensation stacks}
+
+Let's start a program with:
 
 @example
 (import (rnrs)
-  (uriel lang)
-  (uriel ffi)
-  (mp mpfr)
-  (mp sizeof))
+  (compensations)
+  (foreign memory)
+  (foreign math mp mpfr)
+  (foreign math mp sizeof))
 @end example
 
-We can define an object factory for @code{mpfr_t} numbers with:
+@noindent
+we can define an object factory for @samp{mpfr_t} numbers with:
 
 @example
 (define mpfr-factory
@@ -1447,16 +1814,20 @@ now to add two numbers we can do:
 
 @example
 (with-compensations
-   (let ((c (mpfr))
-         (a (mpfr))
-         (b (mpfr)))
-     (mpfr_set_si a 10)
-     (mpfr_set_si b 5)
-     (mpfr_add c a b)
+  (let ((c (mpfr)))
 
-     (do-something-with c)))
+    (with-compensations
+      (let ((a (mpfr))
+            (b (mpfr)))
+        (mpfr_set_d  a 10.4 GMP_RNDN)
+        (mpfr_set_si b  5   GMP_RNDN)
+        (mpfr_add c  a  b   GMP_RNDN)))
+
+    (do-something-with c)))
 @end example
 
+The advantage of factories, over plain compensations, is that a factory
+caches allocated memory blocks.
 
 @c page
 @node mpfr string
@@ -1464,19 +1835,18 @@ now to add two numbers we can do:
 
 
 After having computed a result, we will probably desire to see it.  The
-easiest way is to convert the @code{mpfr_t} number to a string.  Let's
+easiest way is to convert the @samp{mpfr_t} number to a string.  Let's
 start the program with:
 
 @example
 (import (rnrs)
-  (uriel lang)
-  (uriel ffi)
-  (srfi format)
-  (mp mpfr)
-  (mp sizeof))
+  (foreign memory)
+  (foreign cstrings)
+  (foreign math mp mpfr))
 @end example
 
-The following function does a basic conversion from an @code{mpfr_t} to a
+@noindent
+the following function does a basic conversion from an @samp{mpfr_t} to a
 string:
 
 @example
@@ -1495,15 +1865,13 @@ string:
                 x)))
          (i (substring s 0 x))
          (f (substring s x (strlen str))))
-      (format "~a.~a" i f))))
+      (string-append i "." f))))
 @end example
 
 @noindent
-where using @code{pointer-null} as first argument to @func{mpfr_get_str}
+where using @samp{pointer-null} as first argument to @func{mpfr_get_str}
 will make it allocate memory using the @gmp{} allocation functions
-(which defaults to the standard C language functions).
-
-
+(which default to the standard C language functions).
 
 @c page
 @node mpfi
@@ -1511,72 +1879,139 @@ will make it allocate memory using the @gmp{} allocation functions
 
 
 The interval floating point numbers @api{} is exported by the
-@library{mp mpfi} library.  To use @code{mpfi_t} numbers we basically
-have to do:
-
-@example
-(import (rnrs)
-  (uriel ffi)
-  (mp mpfi)
-  (mp sizeof))
-
-  (let ((a (malloc sizeof-mpfi_t))
-        (b (malloc sizeof-mpfi_t))
-        (c (malloc sizeof-mpfi_t)))
-    (mpfi_init a)
-    (mpfi_init b)
-    (mpfi_init c)
-
-    (mpfi_set_d  a 10.4)
-    (mpfi_set_si b  5)
-    (mpfi_add c  a  b)
-
-    (mpfi_clear a)
-    (mpfi_clear b)
-    (primitive-free a)
-    (primitive-free b)
-    c)
-@end example
-
-More advanced memory handling and usage examples are in the following
-sections.
+@library{foreign math mp mpfi} library.  We discuss multiple ways to
+handle memory allocation.
 
 @menu
-* mpfi compensation::           Compensating memory allocation.
+* mpfi basic::                  Basic example.
+* mpfi dynwind::                Using dynamic wind.
+* mpfi compensations::          Compensating memory allocation.
 * mpfi factory::                Object factory.
 * mpfi string::                 Conversion to string.
 @end menu
 
-
 @c page
-@node mpfi compensation
-@section Compensating memory allocation
+@node mpfi basic
+@section Basic example
 
 
-The @library{uriel lang} library exports the compensation stacks @api{}
-as a mean to automatically release synchronous resources, even in case
-of raised exceptions.  @nauref{compensations, Compensation stacks}
-
-So let's start a program with:
+To use @samp{mpfi_t} numbers we basically have to do:
 
 @example
 (import (rnrs)
-  (uriel lang)
-  (uriel ffi)
-  (mp mpfi)
-  (mp sizeof))
+  (foreign memory)
+  (foreign mp mpfi)
+  (foreign mp sizeof))
+
+(let ((a (malloc sizeof-mpfi_t))
+      (b (malloc sizeof-mpfi_t))
+      (c (malloc sizeof-mpfi_t)))
+  (mpfi_init a)
+  (mpfi_init b)
+  (mpfi_init c)
+
+  (mpfi_set_d  a 10.4)
+  (mpfi_set_si b  5)
+  (mpfi_add c  a  b)
+
+  (mpfi_clear a)
+  (mpfi_clear b)
+  (primitive-free a)
+  (primitive-free b)
+
+  (do-something-with c)
+
+  (mpfi_clear c)
+  (primitive-free c))
 @end example
 
-To allocate a @code{mpfi_t} number with a compensation we can use the
+@c page
+@node mpfi dynwind
+@section Using dynamic wind
+
+
+Scheme provides the @func{dynamic-wind} syntax to allow evaluation of
+@dfn{in guard} and @dfn{out guard} thunks for each evaluation of a third
+``body'' thunk.  We can leverage this mechanism to handle safe
+allocation and release of @samp{mpfi_t} numbers as follows:
+
+@example
+(let ((A #f))
+  (dynamic-wind
+      (lambda ()
+        (set! A (malloc sizeof-mpfi_t))
+        (mpfi_init A))
+      (lambda ()
+        (do-something-with A))
+      (lambda ()
+        (mpfi_clear A)
+        (primitive-free A)))))))
+@end example
+
+@noindent
+of course we can wrap this mechanism into a macro:
+
+@example
+(define-syntax with-mpfi
+  (syntax-rules ()
+    ((_ () ?form0 ?form ...)
+     (begin ?form0 ?form ...))
+    ((_ (?id0 ?id ...) ?form0 ?form ...)
+     (let ((?id0 #f))
+       (dynamic-wind
+           (lambda ()
+             (set! ?id0 (malloc sizeof-mpfi_t))
+             (mpfi_init ?id0))
+           (lambda ()
+             (with-mpfi (?id ...) ?form0 ?form ...))
+           (lambda ()
+             (mpfi_clear ?id0)
+             (primitive-free ?id0)))))))
+@end example
+
+@noindent
+with which we can do:
+
+@example
+(with-mpfi (a b c)
+  (mpfi_set_d  a 10.4)
+  (mpfi_set_si b  5)
+  (mpfi_add c  a  b)
+  (do-something-with c))
+@end example
+
+@c page
+@node mpfi compensations
+@section Compensating memory allocation
+
+
+The @library{compensations} library from Nausicaa/Scheme exports the
+compensation stacks @api{} as a mean to automatically release
+synchronous resources, even in case of raised exceptions.
+@nauref{compensations, Compensation stacks}
+
+Let's start a program with:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign memory)
+  (foreign math mp mpfi)
+  (foreign math mp sizeof))
+@end example
+
+@noindent
+to allocate a @samp{mpfi_t} number with a compensation we can use the
 following function:
 
 @example
-(define (compensated-mpfi)
+(define (mpfi/c)
   (letrec ((p (compensate
-                   (malloc sizeof-mpfi_t)
+                  ;; "p" is not yet bound here
+                  (malloc sizeof-mpfi_t)
                 (with
                  (mpfi_clear p)
-                 (priitive-free p)))))
+                 (primitive-free p)))))
     (mpfi_init p)
     p))
 @end example
@@ -1586,39 +2021,46 @@ now to add two numbers we can use a compensated allocation and
 initialisation for the two operands:
 
 @example
-(let ((c (malloc sizeof-mpfi_t)))
-  (mpfi_init c)
-  (with-compensations
-    (let ((a (compensated-mpfi))
-          (b (compensated-mpfi)))
-      (mpfi_set_si a 10)
-      (mpfi_set_si b 5)
-      (mpfi_add c a b)
-      c)))
+(with-compensations
+  (let ((c (mpfi/c)))
+    (with-compensations
+      (let ((a (mpfi/c))
+            (b (mpfi/c)))
+        (mpfi_set_d  a 10.4)
+        (mpfi_set_si b  5)
+        (mpfi_add c  a  b)))
+    (do-something-with c)))
 @end example
 
+The advantage of compensations, over the @func{dynamic-wind} solution,
+is that we can nest at will allocation of numbers, without keeping track
+of them in an enclosing form.
 
 @c page
 @node mpfi factory
 @section Object factory
 
 
-The @library{uriel lang} library exports the object factory @api{} as a
-mean to automatically allocate, initialise, finalise and release
-synchronous resources, even in case of raised exceptions.
-@nauref{memory cache, Caching memory blocks}
+The @library{foreign memory} library from Nausicaa/Scheme exports the
+object factory @api{} as a mean to automatically allocate, initialise,
+finalise and release synchronous resources, even in case of raised
+exceptions.  @nauref{memory cache, Caching memory blocks}
 
-So let's start a program with:
+We can use this library along with the @library{compensations} library
+also from Nausicaa/Scheme.  @nauref{compensations, Compensation stacks}
+
+Let's start a program with:
 
 @example
 (import (rnrs)
-  (uriel lang)
-  (uriel ffi)
-  (mp mpfi)
-  (mp sizeof))
+  (compensations)
+  (foreign memory)
+  (foreign math mp mpfi)
+  (foreign math mp sizeof))
 @end example
 
-We can define an object factory for @code{mpfi_t} numbers with:
+@noindent
+we can define an object factory for @samp{mpfi_t} numbers with:
 
 @example
 (define mpfi-factory
@@ -1643,16 +2085,20 @@ now to add two numbers we can do:
 
 @example
 (with-compensations
-   (let ((c (mpfi))
-         (a (mpfi))
-         (b (mpfi)))
-     (mpfi_set_si a 10)
-     (mpfi_set_si b 5)
-     (mpfi_add c a b)
+  (let ((c (mpfi)))
 
-     (do-something-with c)))
+    (with-compensations
+      (let ((a (mpfi))
+            (b (mpfi)))
+        (mpfi_set_d  a 10.4)
+        (mpfi_set_si b  5)
+        (mpfi_add c  a  b)))
+
+    (do-something-with c)))
 @end example
 
+The advantage of factories, over plain compensations, is that a factory
+caches allocated memory blocks.
 
 @c page
 @node mpfi string
@@ -1660,116 +2106,218 @@ now to add two numbers we can do:
 
 
 After having computed a result, we will probably desire to see it.  The
-easiest way is to convert the @code{mpfi_t} number to a string.  Let's
+easiest way is to convert the @samp{mpfi_t} number to a string.  Let's
 start the program with:
 
 @example
 (import (rnrs)
-  (uriel ffi)
-  (mp mpfi)
-  (mp sizeof))
-@end example
-
-We have to notice that @mpfi{} does not export a function to convert an
-@code{mpfi_t} number to a string, but we can access directly the left
-and right limits of the interval as @code{mpfr_t} numbers.  So let's say
-that we have defined a @func{mpfr->string} function (@ref{mpfr string}
-for an example).
-
-The following functions do a basic conversion from an @code{mpfi_t} to a
-string:
-
-@example
-(define (mpfi->string-interval o)
-  (format "[~a, ~a]"
-    (mpfr->string (struct-mpfi-left-ref o))
-    (mpfr->string (struct-mpfi-right-ref o))))
-
-(define (mpfi->string o)
-  (let ((fr (malloc sizeof-mpfr_t)))
-    (mpfr_init fr)
-    (mpfi_get_fr fr o)
-    (begin0
-        (mpfr->string o)
-      (mpfr_clear fr))))
+  (format)
+  (foreign memory)
+  (foreign cstrings)
+  (foreign math mp mpfi))
 @end example
 
 @noindent
-where the second one just prints the number representing the middle of
-the interval.
+the following function does a basic conversion from an @samp{mpfi_t} to a
+string:
 
+@example
+(define mpfr->string
+  (case-lambda
+   ((o)
+    (mpfr->string o 5))
+   ((o digits)
+    (with-compensations
+      (letrec*
+          ((l (malloc-small/c))
+           (str (compensate
+                    (mpfr_get_str pointer-null l 10 0 o GMP_RNDN)
+                  (with
+                   (primitive-free str))))
+           (s (cstring->string str))
+           (x (let ((x (pointer-ref-c-signed-long l 0)))
+                (if (char=? #\- (string-ref s 0))
+                    (+ 1 x)
+                  x)))
+           (i (substring s 0 x))
+           (f (substring s x (strlen str))))
+        (substring (string-append i "." f) 0 digits))))))
+
+(define mpfi->string-interval
+  (case-lambda
+   ((o)
+    (mpfi->string-interval o 5))
+   ((o digits)
+    (format "[~a, ~a]"
+      (mpfr->string (struct-mpfi-left-ref  o) digits)
+      (mpfr->string (struct-mpfi-right-ref o) digits)))))
+
+(define (mpfi->string o)
+  (with-compensations
+    (letrec ((fr (compensate
+                     (malloc sizeof-mpfr_t)
+                   (with
+                    (mpfr_clear fr)
+                    (primitive-free fr)))))
+      (mpfr_init fr)
+      (mpfi_get_fr fr o)
+      (mpfr->string o))))
+@end example
+
+@noindent
+where using @samp{pointer-null} as first argument to @func{mpfr_get_str}
+will make it allocate memory using the @gmp{} allocation functions
+(which default to the standard C language functions).
 
 @c page
 @node mpc
 @chapter Multiple precision complex numbers
 
 
-The complex floating point numbers @api{} is exported by the @library{mp
-mpc} library.  To use @code{mpc_t} numbers we basically have to do:
+The complex floating point numbers @api{} is exported by the
+@library{foreign math mp mpc} library.  We discuss multiple ways to
+handle memory allocation.
+
+@defun mpc_init @var{pointer}
+@mpc{} version 0.7 does not export a @cfunc{mpc_init} function, so
+@library{foreign math mp mpc} defines one like this:
 
 @example
-(import (rnrs)
-  (uriel ffi)
-  (mp mpc)
-  (mp sizeof))
-
-  (let ((a (malloc sizeof-mpc_t))
-        (b (malloc sizeof-mpc_t))
-        (c (malloc sizeof-mpc_t)))
-    (mpc_init a)
-    (mpc_init b)
-    (mpc_init c)
-
-    (mpc_set_d_d   a 10.4 8.9 MPC_RNDNN)
-    (mpc_set_si_si b  5   1.2 MPC_RNDNN)
-    (mpc_add c a b MPC_RNDNN)
-
-    (mpc_clear a)
-    (mpc_clear b)
-    (primitive-free a)
-    (primitive-free b)
-    c)
+(define (mpc_init p)
+  (mpc_init2 p 256))
 @end example
-
-More advanced memory handling and usage examples are in the following
-sections.
+@end defun
 
 @menu
-* mpc compensation::           Compensating memory allocation.
+* mpc basic::                  Basic example.
+* mpc dynwind::                Using dynamic wind.
+* mpc compensations::          Compensating memory allocation.
 * mpc factory::                Object factory.
 * mpc string::                 Conversion to string.
 @end menu
 
-
 @c page
-@node mpc compensation
-@section Compensating memory allocation
+@node mpc basic
+@section Basic example
 
 
-The @library{uriel lang} library exports the compensation stacks @api{}
-as a mean to automatically release synchronous resources, even in case
-of raised exceptions.  @nauref{compensations, Compensation stacks}
-
-So let's start a program with:
+To use @samp{mpc_t} numbers we basically have to do:
 
 @example
 (import (rnrs)
-  (uriel lang)
-  (uriel ffi)
-  (mp mpc)
-  (mp sizeof))
+  (foreign memory)
+  (foreign math mp mpc)
+  (foreign math mp sizeof))
+
+(let ((a (malloc sizeof-mpc_t))
+      (b (malloc sizeof-mpc_t))
+      (c (malloc sizeof-mpc_t)))
+  (mpc_init a)
+  (mpc_init b)
+  (mpc_init c)
+
+  (mpc_set_d_d   a 10.4 8.9 MPC_RNDNN)
+  (mpc_set_si_si b  5   1.2 MPC_RNDNN)
+  (mpc_add c a b MPC_RNDNN)
+
+  (mpc_clear a)
+  (mpc_clear b)
+  (primitive-free a)
+  (primitive-free b)
+
+  (do-something-with c)
+
+  (mpc_clear c)
+  (primitive-free c))
 @end example
 
-To allocate a @code{mpc_t} number with a compensation we can use the
+@c page
+@node mpc dynwind
+@section Using dynamic wind
+
+
+Scheme provides the @func{dynamic-wind} syntax to allow evaluation of
+@dfn{in guard} and @dfn{out guard} thunks for each evaluation of a third
+``body'' thunk.  We can leverage this mechanism to handle safe
+allocation and release of @samp{mpc_t} numbers as follows:
+
+@example
+(let ((A #f))
+  (dynamic-wind
+      (lambda ()
+        (set! A (malloc sizeof-mpc_t))
+        (mpc_init A))
+      (lambda ()
+        (do-something-with A))
+      (lambda ()
+        (mpc_clear A)
+        (primitive-free A)))))))
+@end example
+
+@noindent
+of course we can wrap this mechanism into a macro:
+
+@example
+(define-syntax with-mpc
+  (syntax-rules ()
+    ((_ () ?form0 ?form ...)
+     (begin ?form0 ?form ...))
+    ((_ (?id0 ?id ...) ?form0 ?form ...)
+     (let ((?id0 #f))
+       (dynamic-wind
+           (lambda ()
+             (set! ?id0 (malloc sizeof-mpc_t))
+             (mpc_init ?id0))
+           (lambda ()
+             (with-mpc (?id ...) ?form0 ?form ...))
+           (lambda ()
+             (mpc_clear ?id0)
+             (primitive-free ?id0)))))))
+@end example
+
+@noindent
+with which we can do:
+
+@example
+(with-mpc (a b c)
+  (mpc_set_d_d   a 10.4 8.9 MPC_RNDNN)
+  (mpc_set_si_si b  5   1.2 MPC_RNDNN)
+  (mpc_add c a b MPC_RNDNN)
+  (do-something-with c))
+@end example
+
+@c page
+@node mpc compensations
+@section Compensating memory allocation
+
+
+The @library{compensations} library from Nausicaa/Scheme exports the
+compensation stacks @api{} as a mean to automatically release
+synchronous resources, even in case of raised exceptions.
+@nauref{compensations, Compensation stacks}
+
+Let's start a program with:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign memory)
+  (foreign math mp mpc)
+  (foreign math mp sizeof))
+@end example
+
+@noindent
+to allocate a @samp{mpc_t} number with a compensation we can use the
 following function:
 
 @example
-(define (compensated-mpc)
+(define (mpc/c)
   (letrec ((p (compensate
-                   (malloc sizeof-mpc_t)
+                  ;; "p" is not yet bound here
+                  (malloc sizeof-mpc_t)
                 (with
                  (mpc_clear p)
-                 (priitive-free p)))))
+                 (primitive-free p)))))
     (mpc_init p)
     p))
 @end example
@@ -1779,39 +2327,46 @@ now to add two numbers we can use a compensated allocation and
 initialisation for the two operands:
 
 @example
-(let ((c (malloc sizeof-mpc_t)))
-  (mpc_init c)
-  (with-compensations
-    (let ((a (compensated-mpc))
-          (b (compensated-mpc)))
-      (mpc_set_d_d   a 10.4 8.9 MPC_RNDNN)
-      (mpc_set_si_si b  5   1.2 MPC_RNDNN)
-      (mpc_add c a b MPC_RNDNN)
-      c)))
+(with-compensations
+  (let ((c (mpc/c)))
+    (with-compensations
+      (let ((a (mpc/c))
+            (b (mpc/c)))
+        (mpc_set_d_d   a 10.4 8.9 MPC_RNDNN)
+        (mpc_set_si_si b  5   1.2 MPC_RNDNN)
+        (mpc_add c a b MPC_RNDNN)
+    (do-something-with c)))))
 @end example
 
+The advantage of compensations, over the @func{dynamic-wind} solution,
+is that we can nest at will allocation of numbers, without keeping track
+of them in an enclosing form.
 
 @c page
 @node mpc factory
 @section Object factory
 
 
-The @library{uriel lang} library exports the object factory @api{} as a
-mean to automatically allocate, initialise, finalise and release
-synchronous resources, even in case of raised exceptions.
-@nauref{memory cache, Caching memory blocks}
+The @library{foreign memory} library from Nausicaa/Scheme exports the
+object factory @api{} as a mean to automatically allocate, initialise,
+finalise and release synchronous resources, even in case of raised
+exceptions.  @nauref{memory cache, Caching memory blocks}
 
-So let's start a program with:
+We can use this library along with the @library{compensations} library
+also from Nausicaa/Scheme.  @nauref{compensations, Compensation stacks}
+
+Let's start a program with:
 
 @example
 (import (rnrs)
-  (uriel lang)
-  (uriel ffi)
-  (mp mpc)
-  (mp sizeof))
+  (compensations)
+  (foreign memory)
+  (foreign math mp mpc)
+  (foreign math mp sizeof))
 @end example
 
-We can define an object factory for @code{mpc_t} numbers with:
+@noindent
+we can define an object factory for @samp{mpc_t} numbers with:
 
 @example
 (define mpc-factory
@@ -1836,15 +2391,20 @@ now to add two numbers we can do:
 
 @example
 (with-compensations
-   (let ((c (mpc))
-         (a (mpc))
-         (b (mpc)))
-     (mpc_set_d_d   a 10.4 8.9 MPC_RNDNN)
-     (mpc_set_si_si b  5   1.2 MPC_RNDNN)
-     (mpc_add c a b MPC_RNDNN)
-     (do-something-with c)))
+  (let ((c (mpc)))
+
+    (with-compensations
+      (let ((a (mpc))
+            (b (mpc)))
+        (mpc_set_d_d   a 10.4 8.9 MPC_RNDNN)
+        (mpc_set_si_si b  5   1.2 MPC_RNDNN)
+        (mpc_add c a b MPC_RNDNN)
+
+    (do-something-with c)))
 @end example
 
+The advantage of factories, over plain compensations, is that a factory
+caches allocated memory blocks.
 
 @c page
 @node mpc string
@@ -1852,37 +2412,52 @@ now to add two numbers we can do:
 
 
 After having computed a result, we will probably desire to see it.  The
-easiest way is to convert the @code{mpc_t} number to a string.  Let's
+easiest way is to convert the @samp{mpc_t} number to a string.  Let's
 start the program with:
 
 @example
 (import (rnrs)
-  (uriel ffi)
-  (mp mpfr)
-  (mp mpc)
-  (mp sizeof))
+  (format)
+  (foreign memory)
+  (foreign cstrings)
+  (foreign math mp mpc))
 @end example
 
-We have to notice that @mpc{} does not export a function to convert an
-@code{mpc_t} number to a string, but we can access directly the real and
-imaginary parts of the complex as @code{mpfr_t} numbers.  So let's say
-that we have defined a @func{mpfr->string} function (@ref{mpfr string}
-for an example).
-
-The following function does a basic conversion from an @code{mpc_t} to a
+@noindent
+the following function does a basic conversion from an @samp{mpc_t} to a
 string:
 
 @example
-(define (mpc->string o)
-   (let ((im (mpfr->string (struct-mpc-im-ref o))))
-     (format "~a~a~ai"
-       (mpfr->string (struct-mpc-re-ref o))
-       (if (char=? #\- (string-ref im 0))
+(define (mpfr->string o)
+  (with-compensations
+    (letrec*
+        ((l (malloc-small/c))
+         (str (compensate
+                  (mpfr_get_str pointer-null l 10 0 o MPC_RNDNN)
+                (with
+                 (primitive-free str))))
+         (s (cstring->string str))
+         (x (let ((x (pointer-ref-c-signed-long l 0)))
+              (if (char=? #\- (string-ref s 0))
+                  (+ 1 x)
+                x)))
+         (i (substring s 0 x))
+         (f (substring s x (strlen str))))
+      (string-append i "." f))))
+
+(define (mpc->string o digits)
+  (let ((im (mpfr->string (struct-mpc-im-ref o))))
+    (format "~a~a~ai"
+      (substring (mpfr->string (struct-mpc-re-ref o)) 0 digits)
+      (if (char=? #\- (string-ref im 0))
           ""
-        #\+)
-       im)))
+        #\+))))
 @end example
 
+@noindent
+where using @samp{pointer-null} as first argument to @func{mpc_get_str}
+will make it allocate memory using the @gmp{} allocation functions
+(which default to the standard C language functions).
 
 @c page
 

@@ -37,40 +37,49 @@
 (check-set-mode! 'report-failed)
 (display "*** testing mpfi\n")
 
-
 
 ;;;; helpers
 
-(define (mpfr->string o)
-  (with-compensations
-    (letrec*
-	((l (malloc-small/c))
-	 (str (compensate
-		  (mpfr_get_str pointer-null l 10 0 o GMP_RNDN)
-		(with
-		 (primitive-free str))))
-	 (s (cstring->string str))
-	 (x (let ((x (pointer-ref-c-signed-long l 0)))
-	      (if (char=? #\- (string-ref s 0))
-		  (+ 1 x)
-		x)))
-	 (i (substring s 0 x))
-	 (f (substring s x (strlen str))))
-      (format "~a.~a" i f))))
+(define mpfr->string
+  (case-lambda
+   ((o)
+    (mpfr->string o 5))
+   ((o digits)
+    (with-compensations
+      (letrec*
+	  ((l (malloc-small/c))
+	   (str (compensate
+		    (mpfr_get_str pointer-null l 10 0 o GMP_RNDN)
+		  (with
+		   (primitive-free str))))
+	   (s (cstring->string str))
+	   (x (let ((x (pointer-ref-c-signed-long l 0)))
+		(if (char=? #\- (string-ref s 0))
+		    (+ 1 x)
+		  x)))
+	   (i (substring s 0 x))
+	   (f (substring s x (strlen str))))
+	(substring (string-append i "." f) 0 digits))))))
 
-(define (mpfi->string-interval o)
-  (format "[~a, ~a]"
-    (mpfr->string (struct-mpfi-left-ref o))
-    (mpfr->string (struct-mpfi-right-ref o))))
+(define mpfi->string-interval
+  (case-lambda
+   ((o)
+    (mpfi->string-interval o 5))
+   ((o digits)
+    (format "[~a, ~a]"
+      (mpfr->string (struct-mpfi-left-ref  o) digits)
+      (mpfr->string (struct-mpfi-right-ref o) digits)))))
 
 (define (mpfi->string o)
-  (let ((fr (malloc sizeof-mpfr_t)))
-    (mpfr_init fr)
-    (mpfi_get_fr fr o)
-    (begin0
-	(mpfr->string o)
-      (mpfr_clear fr))))
-
+  (with-compensations
+    (letrec ((fr (compensate
+		     (malloc sizeof-mpfr_t)
+		   (with
+		    (mpfr_clear fr)
+		    (primitive-free fr)))))
+      (mpfr_init fr)
+      (mpfi_get_fr fr o)
+      (mpfr->string o))))
 
 
 (parametrise ((check-test-name 'explicit-allocation))
@@ -95,6 +104,43 @@
 	    (substring (mpfi->string c) 0 5)
 	  (primitive-free c)))
     => "15.40")
+
+  #t)
+
+
+(parametrise ((check-test-name	'dynamic-wind))
+
+  (define-syntax with-mpfi
+    (syntax-rules ()
+      ((_ () ?form0 ?form ...)
+       (begin ?form0 ?form ...))
+      ((_ (?id0 ?id ...) ?form0 ?form ...)
+       (let ((?id0 #f))
+	 (dynamic-wind
+	     (lambda ()
+	       (set! ?id0 (malloc sizeof-mpfi_t))
+	       (mpfi_init ?id0))
+	     (lambda ()
+	       (with-mpfi (?id ...) ?form0 ?form ...))
+	     (lambda ()
+	       (mpfi_clear ?id0)
+	       (primitive-free ?id0)))))))
+
+  (check
+      (with-mpfi (a b c)
+	(mpfi_set_d a 10.4)
+	(mpfi_set_si b 5)
+	(mpfi_add c a b)
+        (substring (mpfi->string c) 0 5))
+    => "15.40")
+
+  (check
+      (with-mpfi (a b c)
+	(mpfi_set_d a 10.4)
+	(mpfi_set_si b 5)
+	(mpfi_add c a b)
+	(mpfi->string-interval c))
+    => "[15.40, 15.40]")
 
   #t)
 

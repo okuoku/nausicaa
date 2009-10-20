@@ -27,7 +27,6 @@
 (import (nausicaa)
   (compensations)
   (checks)
-  (format)
   (foreign memory)
   (foreign cstrings)
   (foreign math mp mpfr)
@@ -54,7 +53,7 @@
 		x)))
 	 (i (substring s 0 x))
 	 (f (substring s x (strlen str))))
-      (format "~a.~a" i f))))
+      (string-append i "." f))))
 
 
 (parametrise ((check-test-name 'explicit-allocation))
@@ -79,6 +78,35 @@
 	    (substring (mpfr->string c) 0 5)
 	  (primitive-free c)))
     => "15.40")
+
+  #t)
+
+
+(parametrise ((check-test-name	'dynamic-wind))
+
+  (define-syntax with-mpfr
+    (syntax-rules ()
+      ((_ () ?form0 ?form ...)
+       (begin ?form0 ?form ...))
+      ((_ (?id0 ?id ...) ?form0 ?form ...)
+       (let ((?id0 #f))
+	 (dynamic-wind
+	     (lambda ()
+	       (set! ?id0 (malloc sizeof-mpfr_t))
+	       (mpfr_init ?id0))
+	     (lambda ()
+	       (with-mpfr (?id ...) ?form0 ?form ...))
+	     (lambda ()
+	       (mpfr_clear ?id0)
+	       (primitive-free ?id0)))))))
+
+  (check
+      (with-mpfr (a b c)
+	(mpfr_set_d  a 10.4 GMP_RNDN)
+	(mpfr_set_si b  5   GMP_RNDN)
+	(mpfr_add c  a  b   GMP_RNDN)
+        (substring (mpfr->string c) 0 2))
+    => "15")
 
   #t)
 

@@ -27,7 +27,6 @@
 (import (nausicaa)
   (compensations)
   (checks)
-  (format)
   (foreign memory)
   (foreign cstrings)
   (foreign math mp mpf)
@@ -42,19 +41,19 @@
 (define (mpf->string o)
   (with-compensations
     (letrec*
-	((l (malloc-small/c))
-	 (str (compensate
-		  (mpf_get_str pointer-null l 10 0 o)
-		(with
-		 (primitive-free str))))
-	 (s (cstring->string str))
-	 (x (let ((x (pointer-ref-c-signed-long l 0)))
-	      (if (char=? #\- (string-ref s 0))
-		  (+ 1 x)
-		x)))
-	 (i (substring s 0 x))
-	 (f (substring s x (strlen str))))
-      (format "~a.~a" i f))))
+	((l	(malloc-small/c))
+	 (str	(compensate
+		    (mpf_get_str pointer-null l 10 0 o)
+		  (with
+		   (primitive-free str))))
+	 (s	(cstring->string str))
+	 (x	(let ((x (pointer-ref-c-signed-long l 0)))
+		  (if (char=? #\- (string-ref s 0))
+		      (+ 1 x)
+		    x)))
+	 (i	(substring s 0 x))
+	 (f	(substring s x (strlen str))))
+      (string-append i "." f))))
 
 
 (parametrise ((check-test-name 'explicit-allocation))
@@ -132,6 +131,18 @@
 	      (mpf_add c a b)))
 	  (substring (mpf->string c) 0 5)))
     => "15.40")
+
+  (check
+      (with-compensations
+	(let ((c (mpf)))
+	  (with-compensations
+	    (let ((a (mpf))
+		  (b (mpf)))
+	      (mpf_set_d a 10.4)
+	      (mpf_set_si b -50)
+	      (mpf_add c a b)))
+	  (substring (mpf->string c) 0 8)))
+    => "-39.5999")
 
   (mpf-factory 'purge)
   #t)
