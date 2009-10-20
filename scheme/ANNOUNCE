@@ -1,0 +1,72 @@
+To: comp.lang.scheme
+Subject: [announce] Nausicaa/Scheme 2009-10-20 tag 0.1a0
+
+		      Nausicaa/Scheme
+		      ===============
+
+
+Nausicaa is a distribution  of Scheme language libraries for
+R6RS  Scheme  implementations.   Currently  it  attempts  to
+support Ikarus, Larceny, Mosh and Ypsilon.
+
+  Nausicaa/Scheme   is  the   core   package;  it   provides
+foundation  libraries and  implements the  infrastructure of
+the foreign functions interface.  It comes in two flavors:
+
+* The  full  distribution,  with documentation  and  foreign
+  functions    interface    included.    Its    installation
+  infrastructure  requires a  GNU+Linux system  (for details
+  see the "README.build" file).
+
+* The pure Scheme distribution, includes only the sources of
+  the libraries, ready to  be unpacked in their installation
+  destination.
+
+  The  latest  release  of  the Nausicaa/Scheme  package  is
+available at:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+the documentation is available on line:
+
+     <http://marcomaggi.github.com/docs/nausicaa.html>
+
+
+Notes for 2009-10-20 tag 0.1a0
+------------------------------
+
+* This  is  the  first  public  and proper  release  of  the
+  Nausicaa/Scheme package.  It  is an alpha quality release,
+  meaning  that  bugs exists  and  the  feature  set is  not
+  complete, but the libraries are usable.
+
+* The  documentation  is  (to  the  best  of  my  knowledge)
+  synchronised, with the exceptions of the (schelog) library
+  (whose port is still to do) and the (format) library.
+
+* The   (format)  library  needs   to  be   reorganised  and
+  redocumented.
+
+* The  (times-and-dates) library needs  to be  rewritten and
+  redocumented.
+
+* The  foreign functions  interface currently  supports only
+  GNU+Linux   systems;   its   API   is   almost   complete.
+  Unfortunately, support  for callback functions  is missing
+  for Larceny Scheme.
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:

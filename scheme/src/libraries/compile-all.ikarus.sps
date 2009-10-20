@@ -56,6 +56,7 @@
 
   (only (records))
   (only (scmobj))
+  (only (scmobj utils))
 
   (only (deferred-exceptions))
   (only (compensations))
