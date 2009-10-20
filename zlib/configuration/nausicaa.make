@@ -56,6 +56,8 @@ YPSILON		= @YPSILON@
 ## Installation of library source files.
 ## ---------------------------------------------------------------------
 
+.PHONY: sls-install
+
 # $(1) - the identifier
 # $(2) - the subdirectory
 define nau-sls-libraries
@@ -68,6 +70,8 @@ nau_sls_$(1)_INSTLST	= $$(nau_sls_$(1)_SOURCES)
 nau_sls_$(1)_INSTDIR	= $$(pkglibdir)/$(2)
 
 $$(eval $$(call ds-module,nau_sls_$(1),bin))
+
+sls-install:	nau_sls_$(1)-install
 
 endif # nausicaa_ENABLE_SLS == yes
 endef
@@ -104,6 +108,26 @@ define nau-libraries
 $$(eval $$(call nau-sls-libraries,$(1),$(2)))
 $$(eval $$(call nau-fasl-libraries,$(1),$(2)))
 endef
+
+## --------------------------------------------------------------------
+
+libdist_TMPDIR	= $(TMPDIR)/$(PKG_ID)
+libdist_DESTDIR	= $(builddir)/libdist.d
+libdist_ARCHIVE	= $(ds_archive_NAME)-$(ds_archive_VERSION)-pure-scheme.tar.$(ds_COMPRESSOR_EXT)
+libdist_ARCHIVE_PATHNAME= $(libdist_DESTDIR)/$(libdist_ARCHIVE)
+
+.PHONY: libdist
+
+libdist:
+	test -d $(libdist_DESTDIR) || $(MKDIR) $(libdist_DESTDIR)
+	$(RM_SILENT) $(libdist_TMPDIR)
+	$(MAKE) sls-install DESTDIR=$(libdist_TMPDIR)
+	yes | $(FIND) $(libdist_TMPDIR)/$(pkglibdir) \
+		-type f -and -not -name \*.sls -and -exec rm \{\} \;
+	$(TAR) --directory=$(libdist_TMPDIR)/$(pkglibdir) \
+		--create $(ds_COMPRESSOR_TAR) --verbose \
+		--file=$(libdist_ARCHIVE_PATHNAME) .
+	$(RM_SILENT) $(libdist_TMPDIR)
 
 #page
 ## --------------------------------------------------------------------
