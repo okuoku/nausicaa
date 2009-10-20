@@ -20,26 +20,26 @@ Topics
 Nausicaa/MP  is a  set of  Scheme libraries  implementing an
 interface  to the  GMP,  MPFR, MPFI  and  MPC libraries  for
 multiple precision integers  and floating-point numbers.  It
-is based on the "(uriel ffi)" library.
+is based on Nausicaa/Scheme package.
 
   GMP stands for  GNU Multiple Precision arithmetic library.
 The  last  time  the  maintainer  bothered  to  update  this
 paragraph,  it  had tested  this  project  with GMP  version
-4.2.4.
+4.3.1.
 
   MPFR stands for Multiple Precision Floating-Point Reliable
 library.  The  last time  the maintainer bothered  to update
 this paragraph, it had tested this project with MPFR version
-2.3.1.
+2.4.1.
 
   MPFI stands for Multiple Precision Floating-Point Interval
 library.  The  last time  the maintainer bothered  to update
 this paragraph, it had tested this project with MPFI version
-1.3.4RC3.
+1.4.
 
   MPC  stands for Multiple  Precision Complex  library.  The
 last time the maintainer  bothered to update this paragraph,
-it had tested this project with MPC version 0.5.1.
+it had tested this project with MPC version 0.7.
 
 
 2. License
@@ -118,19 +118,15 @@ then it should be the usual:
 
 Unpack the tar achive:
 
-  $ tar --extract --gzip --file=mpfi-1.3.4-RC3.tar.gz
-  $ cd mpfi-1.3.4-RC3
+  $ tar --extract --gzip --file=mpfi-1.4.tar.gz
+  $ cd mpfi-1.4
 
-the package comes with no rules to install a shared library,
-but we need it.  So this is what I do:
+then it should be the usual:
 
   $ ./configure
-  $ make all CFLAGS='-O3 -march=i686 -mtune=i686 -fPIC'
-  $ gcc -shared -o src/libmpfi.so src/*.o -lmpfr -lgmp
+  $ make
+  $ make check
   $ make install
-  $ install -m 0644 src/libmpfi.so /usr/local/lib
-
-you may have to customise something.
 
 
 4.5 Install MPC
@@ -224,6 +220,7 @@ C. Resources
 
 The latest revision of Nausicaa can be downloaded from:
 
+     <http://github.com/marcomaggi/nausicaa/downloads>
     <http://github.com/marcomaggi/nausicaa/tree/master>
 
 The GMP library can be found at:
