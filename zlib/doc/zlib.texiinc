@@ -61,8 +61,7 @@ This notice may not be removed or altered from any source distribution.
 @appendixsec Introduction
 
 
-@noindent
-The zlib compression library provides in--memory compression and
+The Zlib compression library provides in--memory compression and
 decompression functions, including integrity checks of the uncompressed
 data.  This version of the library supports only one compression method
 (deflation) but other algorithms will be added later and will have the
@@ -89,7 +88,7 @@ This library can optionally read and write gzip streams in memory as
 well.
 
 The zlib format was designed to be compact and fast for use in memory
-and on communications channels.  The gzip format was designed for
+and on communication channels.  The gzip format was designed for
 single--file compression on file systems, has a larger header than zlib
 to maintain directory information, and uses a different, slower check
 method than zlib.
@@ -97,7 +96,6 @@ method than zlib.
 The library does not install any signal handler.  The decoder checks the
 consistency of the compressed data, so the library should never crash
 even in case of corrupted input.
-
 
 @c page
 @node zlib types
@@ -378,6 +376,7 @@ uint8_t         output[SIZE];
 z_stream        stream;
 int             e;
 
+/* copy in data to be compressed */
 memcpy(input, SIZE, input_bytes);
 
 stream.next_in   = input;
@@ -404,37 +403,38 @@ if (Z_OK != e) ... /* handle the error */
 
 @deftypefun int deflateInit (z_streamp @var{strm}, int @var{level})
 Initializes the internal stream state for compression.  This function
-does not perform any compression: this will be done by @cfunc{deflate}.
+does not perform any compression: That will be done by @cfunc{deflate}.
 
-The fields @code{zalloc}, @code{zfree} and @code{opaque} must be
-initialized before by the caller.  If @code{zalloc} and @code{zfree}
-are set to @code{Z_NULL}, the function updates them to use default
+The fields @samp{zalloc}, @samp{zfree} and @samp{opaque} must be
+initialized before by the caller.  If @samp{zalloc} and @samp{zfree}
+are set to @samp{Z_NULL}, the function updates them to use default
 allocation functions.
 
-The compression @var{level} must be @code{Z_DEFAULT_COMPRESSION}, or
+The compression @var{level} must be @samp{Z_DEFAULT_COMPRESSION}, or
 between 0 and 9: 1 gives best speed, 9 gives best compression, 0 gives
 no compression at all (the input data is simply copied a block at a
-time).  @code{Z_DEFAULT_COMPRESSION} requests a default compromise
+time).  @samp{Z_DEFAULT_COMPRESSION} requests a default compromise
 between speed and compression (currently equivalent to level 6).
 
 The return value is:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_MEM_ERROR
-if there was not enough memory;
+If there was not enough memory.
 
 @item Z_STREAM_ERROR
-if @var{level} is not a valid compression level;
+If @var{level} is not a valid compression level.
 
 @item Z_VERSION_ERROR
-if the Zlib library version (@cfunc{zlibVersion}) is incompatible with
-the version assumed by the caller (@code{ZLIB_VERSION}).
+If the Zlib library version (return value of @cfunc{zlibVersion}) is
+incompatible with the version assumed by the caller (value of
+@samp{ZLIB_VERSION}).
 @end table
 
-The field @code{msg} is set to @code{NULL} if there is no error message.
+The field @samp{msg} is set to @cnull{} if there is no error message.
 @end deftypefun
 
 
@@ -445,110 +445,110 @@ introduce some output latency (reading input without producing any
 output) except when forced to flush.
 
 The detailed semantics are as follows, with reference to the fields of
-the @code{z_stream} structure. The function performs one or both of the
+the @samp{z_stream} structure. The function performs one or both of the
 following actions.
 
 @itemize
 @item
-Compress more input starting at @code{next_in} and update @code{next_in}
-and @code{avail_in} accordingly.  If not all input can be processed
-(because there is not enough room in the output buffer), @code{next_in}
-and @code{avail_in} are updated and processing will resume at this
+Compress more input starting at @samp{next_in} and update @samp{next_in}
+and @samp{avail_in} accordingly.  If not all input can be processed
+(because there is not enough room in the output buffer), @samp{next_in}
+and @samp{avail_in} are updated and processing will resume at this
 point; we are meant to call this function again after having provided a
 new output buffer.
 
 @item
-Provide more output starting at @code{next_out} and update
-@code{next_out} and @code{avail_out} accordingly.  This action is forced
+Provide more output starting at @samp{next_out} and update
+@samp{next_out} and @samp{avail_out} accordingly.  This action is forced
 if the parameter @var{flush} is non zero.  Forcing flush frequently
 degrades the compression ratio, so this parameter should be set only
 when necessary (in interactive applications).  Some output may be
 provided even if flush is not set.
 @end itemize
 
-Before the call to @cfunc{deflate}: the application should ensure that
+Before the call to @cfunc{deflate}: The application should ensure that
 at least one of the actions is possible, by providing more input and/or
-consuming more output, and updating @code{avail_in} or @code{avail_out}
-accordingly; @code{avail_out} should never be zero before the call.
+consuming more output, and updating @samp{avail_in} or @samp{avail_out}
+accordingly; @samp{avail_out} should never be zero before the call.
 
 The application can consume the compressed output when it wants, for
-example when the output buffer is full (@code{avail_out == 0}), or after
-each call.  If the return value is @code{Z_OK} and with zero
-@code{avail_out}, it must be called again after making room in the
+example when the output buffer is full (@samp{avail_out == 0}), or after
+each call.  If the return value is @samp{Z_OK} and with zero
+@samp{avail_out}, it must be called again after making room in the
 output buffer because there might be more output pending.
 
 To compress a stream of bytes that is available in chunks we should
-normally set @var{flush} to @code{Z_NO_FLUSH} to process incoming data,
-and to @code{Z_FINISH} at the end to finish.  If the parameter
+normally set @var{flush} to @samp{Z_NO_FLUSH} to process incoming data,
+and to @samp{Z_FINISH} at the end to finish.  If the parameter
 @var{flush} is set to:
 
-@table @code
+@table @samp
 @item Z_SYNC_FLUSH
 All pending output is flushed to the output buffer and the output is
 aligned on a byte boundary, so that the decompressor can get all input
-data available so far (in particular @code{avail_in} is zero after the
+data available so far (in particular @samp{avail_in} is zero after the
 call if enough output space has been provided before the call).
 Flushing may degrade compression for some compression algorithms and so
 it should be used only when necessary.
 
 @item Z_FULL_FLUSH
-All output is flushed as with @code{Z_SYNC_FLUSH}, and the compression
+All output is flushed as with @samp{Z_SYNC_FLUSH}, and the compression
 state is reset so that decompression can restart from this point if
 previous compressed data has been damaged or if random access is
-desired.  Using @code{Z_FULL_FLUSH} too often can seriously degrade the
+desired.  Using @samp{Z_FULL_FLUSH} too often can seriously degrade the
 compression.
 
 @item Z_FINISH
 Pending input is processed, pending output is flushed and the return
-value is @code{Z_STREAM_END} if there was enough output space; if the
-return value is @code{Z_OK}, this function must be called again with
-@code{Z_FINISH} and more output space (updated @code{avail_out}) but no
-more input data, until it returns with @code{Z_STREAM_END} or an error.
+value is @samp{Z_STREAM_END} if there was enough output space; if the
+return value is @samp{Z_OK}, this function must be called again with
+@samp{Z_FINISH} and more output space (updated @samp{avail_out}) but no
+more input data, until it returns with @samp{Z_STREAM_END} or an error.
 @end table
 
-If the function returns with @code{avail_out == 0}, it must be called
+If the function returns with @samp{avail_out == 0}, it must be called
 again with the same value of the @var{flush} parameter and more output
-space (updated @code{avail_out}), until the flush is complete (the
-function returns with non-zero @code{avail_out}).  In the case of a
-@code{Z_FULL_FLUSH} or @code{Z_SYNC_FLUSH}, make sure that
-@code{avail_out} is greater than six to avoid repeated flush markers due
-to @code{avail_out == 0} on return.
+space (updated @samp{avail_out}), until the flush is complete (the
+function returns with non-zero @samp{avail_out}).  In the case of a
+@samp{Z_FULL_FLUSH} or @samp{Z_SYNC_FLUSH}, make sure that
+@samp{avail_out} is greater than six to avoid repeated flush markers due
+to @samp{avail_out == 0} on return.
 
-After the function has returned @code{Z_STREAM_END}, the only possible
+After the function has returned @samp{Z_STREAM_END}, the only possible
 operations on the stream are @cfunc{deflateReset} or @cfunc{deflateEnd}.
 
-@code{Z_FINISH} can be used immediately after @cfunc{deflateInit} if all
+@samp{Z_FINISH} can be used immediately after @cfunc{deflateInit} if all
 the compression is to be done in a single step.  In this case:
-@code{avail_out} must be at least the value returned by
+@samp{avail_out} must be at least the value returned by
 @cfunc{deflateBound}.  If this function does not return
-@code{Z_STREAM_END}, then it must be called again as described above.
+@samp{Z_STREAM_END}, then it must be called again as described above.
 
-This function sets @code{@var{strm}->adler} to the @emph{Adler32}
-checksum of all input read so far (that is, @code{total_in} bytes).
+This function sets @samp{@var{strm}->adler} to the @emph{Adler32}
+checksum of all input read so far (that is, @samp{total_in} bytes).
 
-This function may update @code{data_type} if it can make a good guess
-about the input data type (@code{Z_TEXT} or @code{Z_BINARY}). In doubt,
+This function may update @samp{data_type} if it can make a good guess
+about the input data type (@samp{Z_TEXT} or @samp{Z_BINARY}). In doubt,
 the data is considered binary.  This field is only for information
 purposes and does not affect the compression algorithm in any manner.
 
 This function returns:
 
-@table @code
+@table @samp
 @item Z_OK
-if some progress has been made (more input processed or more output
-produced);
+If some progress has been made (more input processed or more output
+produced).
 
 @item Z_STREAM_END
-if all input has been consumed and all output has been produced (only
-when @var{flush} is set to @code{Z_FINISH});
+If all input has been consumed and all output has been produced (only
+when @var{flush} is set to @samp{Z_FINISH}).
 
 @item Z_STREAM_ERROR
-if the stream state was inconsistent (for example if @code{next_in} or
-@code{next_out} was @code{NULL});
+If the stream state was inconsistent (for example if @samp{next_in} or
+@samp{next_out} was @cnull{}).
 
 @item Z_BUF_ERROR
-if no progress is possible (for example @code{avail_in} or
-@code{avail_out} was zero).  Note that this error is not fatal, and this
+If no progress is possible (for example @samp{avail_in} or
+@samp{avail_out} was zero).  Note that this error is not fatal, and this
 function can be called again with more input and more output space to
 continue compressing.
 @end table
@@ -562,7 +562,7 @@ pending output.
 
 The return value is:
 
-@table @code
+@table @samp
 @item Z_OK
 if success;
 
@@ -574,10 +574,9 @@ if the stream was freed prematurely (some input or output was
 discarded).
 @end table
 
-In the error case: @code{msg} may be set to a static string (which must
+In the error case: @samp{msg} may be set to a static string (which must
 not be deallocated).
 @end deftypefun
-
 
 @c page
 @node zlib basic inflate
@@ -593,6 +592,7 @@ uint8_t         output[10 * SIZE];
 z_stream        stream;
 int             e;
 
+/* copy in data to be decompressed */
 memcpy(input, SIZE, input_bytes);
 
 stream.next_in   = input;
@@ -622,36 +622,36 @@ Initializes the internal stream state for decompression.  This function
 does not perform any decompression apart from reading the Zlib header if
 present: decompression will be done by @cfunc{inflate}.
 
-The fields @code{next_in}, @code{avail_in}, @code{zalloc}, @code{zfree}
-and @code{opaque} must be initialized before by the call and may be
-modified by this function.  @code{next_out} and @code{avail_out} are
+The fields @samp{next_in}, @samp{avail_in}, @samp{zalloc}, @samp{zfree}
+and @samp{opaque} must be initialized before by the call and may be
+modified by this function.  @samp{next_out} and @samp{avail_out} are
 left untouched, and they can be left uninitialized until the first call
 to @cfunc{inflate}.
 
-If @code{next_in} is not @code{NULL} and @code{avail_in} is large enough
+If @samp{next_in} is not @cnull{} and @samp{avail_in} is large enough
 (the exact value depends on the compression method), this function
 determines the compression method from the Zlib header and allocates all
 data structures accordingly; otherwise the allocation will be deferred
 to the first call of @cfunc{inflate}.
 
-If @code{zalloc} and @code{zfree} are set to @code{NULL}, this function
+If @samp{zalloc} and @samp{zfree} are set to @cnull{}, this function
 updates them to use default allocation functions.
 
 This function returns:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_MEM_ERROR
-if there was not enough memory to initialize the stream structure;
+If there was not enough memory to initialize the stream structure.
 
 @item Z_VERSION_ERROR
-if the Zlib library version is incompatible with the version assumed by
+If the Zlib library version is incompatible with the version assumed by
 the caller.
 @end table
 
-The @code{msg} field is set to @code{NULL} if there is no error message.
+The @samp{msg} field is set to @cnull{} if there is no error message.
 @end deftypefun
 
 
@@ -666,51 +666,51 @@ both of the following actions:
 
 @itemize
 @item
-Decompress more input starting at @code{next_in} and update
-@code{next_in} and @code{avail_in} accordingly.  If not all input can be
+Decompress more input starting at @samp{next_in} and update
+@samp{next_in} and @samp{avail_in} accordingly.  If not all input can be
 processed (because there is not enough room in the output buffer),
-@code{next_in} is updated and processing will resume at this point for
+@samp{next_in} is updated and processing will resume at this point for
 the next call of @cfunc{inflate}.
 
 @item
-Provide more output starting at @code{next_out} and update
-@code{next_out} and @code{avail_out} accordingly.  @cfunc{inflate}
+Provide more output starting at @samp{next_out} and update
+@samp{next_out} and @samp{avail_out} accordingly.  @cfunc{inflate}
 provides as much output as possible, until there is no more input data
 or no more space in the output buffer (see below about the flush
 parameter).
 @end itemize
 
-Before the call of @code{inflate}, the application should ensure that at
+Before the call of @samp{inflate}, the application should ensure that at
 least one of the actions is possible, by providing more input and/or
-consuming more output, and updating the @code{next_*} and @code{avail_*}
+consuming more output, and updating the @samp{next_*} and @samp{avail_*}
 values accordingly.
 
 The application can consume the uncompressed output when it wants, for
-example when the output buffer is full (@code{0 == avail_out}), or after
-each call to this function.  If the return value is @code{Z_OK} and
-@code{0 == avail_out}: this function must be called again after making
+example when the output buffer is full (@samp{0 == avail_out}), or after
+each call to this function.  If the return value is @samp{Z_OK} and
+@samp{0 == avail_out}: this function must be called again after making
 room in the output buffer because there might be more output pending.
 
 When decompressing incoming chunks of data, this function should
-normally be called with @var{flush} set to @code{Z_NO_FLUSH} until it
-returns @code{Z_STREAM_END} or an error.
+normally be called with @var{flush} set to @samp{Z_NO_FLUSH} until it
+returns @samp{Z_STREAM_END} or an error.
 
 However, if the decompression is to be performed in a single step (a
 single call of @cfunc{inflate}), @var{flush} should be set to
-@code{Z_FINISH}.  In this case all pending input is processed and all
-pending output is flushed; @code{avail_out} must be large enough to hold
+@samp{Z_FINISH}.  In this case all pending input is processed and all
+pending output is flushed; @samp{avail_out} must be large enough to hold
 all the uncompressed data.  (The size of the uncompressed data may have
 been saved by the compressor for this purpose.)  The use of
-@code{Z_FINISH} is never required, but can be used to inform Zlib that a
+@samp{Z_FINISH} is never required, but can be used to inform Zlib that a
 faster approach may be used for the single call.
 
-When the return value is @code{Z_STREAM_END}: the next operation on this
+When the return value is @samp{Z_STREAM_END}: the next operation on this
 stream must be @cfunc{inflateEnd} to deallocate the decompression state.
 
 The other values of the @var{flush} parameter have the following
 meaning:
 
-@table @code
+@table @samp
 @item Z_SYNC_FLUSH
 Requests to flush as much output as possible to the output buffer.
 
@@ -727,18 +727,18 @@ first block, and will return when it gets to the end of that block, or
 when it runs out of data.
 @end itemize
 
-@code{Z_BLOCK} assists in appending to or combining deflate streams.
+@samp{Z_BLOCK} assists in appending to or combining deflate streams.
 Also to assist in this, on return this function will set
-@code{data_type} to the number of unused bits in the last byte taken
-from @code{next_in}, plus 64 if this function is currently decoding the
+@samp{data_type} to the number of unused bits in the last byte taken
+from @samp{next_in}, plus 64 if this function is currently decoding the
 last block in the deflate stream, plus 128 if @cfunc{inflate} returned
 immediately after decoding an end--of--block code or decoding the
 complete header up to just before the first byte of the deflate stream.
 The end--of--block will not be indicated until all of the uncompressed
-data from that block has been written to @code{next_out}.
+data from that block has been written to @samp{next_out}.
 
 The number of unused bits may in general be greater than seven, except
-when bit 7 of @code{data_type} is set, in which case the number of
+when bit 7 of @samp{data_type} is set, in which case the number of
 unused bits will be less than eight.
 @end table
 
@@ -746,18 +746,18 @@ In this implementation, Zlib always flushes as much data as possible to
 the output buffer, and always uses the faster approach on the first
 call.  So the only effect of the flush parameter in this implementation
 is on the return value of @cfunc{inflate}, as noted below, or when it
-returns early because @code{Z_BLOCK} is used.
+returns early because @samp{Z_BLOCK} is used.
 
 If a preset dictionary is needed after this call (see
-@cfunc{inflateSetDictionary}), @code{adler} is set to the Adler32
+@cfunc{inflateSetDictionary}), @samp{adler} is set to the Adler32
 checksum of the dictionary chosen by the compressor and returns
-@code{Z_NEED_DICT}; otherwise it sets @code{adler} to the Adler32
-checksum of all output produced so far (that is, @code{total_out} bytes)
-and returns @code{Z_OK}, @code{Z_STREAM_END} or an error code.
+@samp{Z_NEED_DICT}; otherwise it sets @samp{adler} to the Adler32
+checksum of all output produced so far (that is, @samp{total_out} bytes)
+and returns @samp{Z_OK}, @samp{Z_STREAM_END} or an error code.
 
 At the end of the stream, @cfunc{inflate} checks that its computed
 Adler32 checksum is equal to that saved by the compressor and returns
-@code{Z_STREAM_END} only if the checksum is correct.
+@samp{Z_STREAM_END} only if the checksum is correct.
 
 @cfunc{inflate} will decompress and check either Zlib--wrapped or
 Gzip--wrapped deflate data.  The header type is detected automatically.
@@ -768,37 +768,37 @@ processing of the gzip header and trailer.
 
 This function returns:
 
-@table @code
+@table @samp
 @item Z_OK
-if some progress has been made (more input processed or more output
-produced);
+If some progress has been made (more input processed or more output
+produced).
 
 @item Z_STREAM_END
-if the end of the compressed data has been reached and all uncompressed
-output has been produced;
+If the end of the compressed data has been reached and all uncompressed
+output has been produced.
 
 @item Z_NEED_DICT
-if a preset dictionary is needed at this point;
+If a preset dictionary is needed at this point.
 
 @item Z_DATA_ERROR
-if the input data was corrupted (input stream not conforming to the zlib
-format or incorrect check value);
+If the input data was corrupted (input stream not conforming to the zlib
+format or incorrect check value).
 
 @item Z_STREAM_ERROR
-if the stream structure was inconsistent (for example if @code{next_in}
-or @code{next_out} was @code{NULL});
+If the stream structure was inconsistent (for example if @samp{next_in}
+or @samp{next_out} was @cnull{}).
 
 @item Z_MEM_ERROR
-if there was not enough memory;
+If there was not enough memory.
 
 @item Z_BUF_ERROR
-if no progress is possible or if there was not enough room in the output
-buffer when @code{Z_FINISH} is used.
+If no progress is possible or if there was not enough room in the output
+buffer when @samp{Z_FINISH} is used.
 @end table
 
-Note that @code{Z_BUF_ERROR} is not fatal, and @cfunc{inflate} can be
+Note that @samp{Z_BUF_ERROR} is not fatal, and @cfunc{inflate} can be
 called again with more input and more output space to continue
-decompressing.  If @code{Z_DATA_ERROR} is returned, the application may
+decompressing.  If @samp{Z_DATA_ERROR} is returned, the application may
 then call @cfunc{inflateSync} to look for a good compression block if a
 partial recovery of the data is desired.
 @end deftypefun
@@ -807,28 +807,24 @@ partial recovery of the data is desired.
 @deftypefun int inflateEnd (z_streamp @var{stream})
 Discard any unprocessed input and do not flush any pending output.  All
 dynamically allocated data structures in @var{stream} are freed.  Return
-@code{Z_OK} if success, @code{Z_STREAM_ERROR} if the stream state was
-inconsistent.  In the error case: @code{msg} may be set to a static
+@samp{Z_OK} if success, @samp{Z_STREAM_ERROR} if the stream state was
+inconsistent.  In the error case: @samp{msg} may be set to a static
 string (which must not be deallocated).
 @end deftypefun
-
 
 @c page
 @node zlib advanced
 @appendixsec Advanced functions
 
 
-@noindent
-The functions described in this chapter are needed only in some special
+The functions described in this section are needed only in some special
 applications.
-
 
 @menu
 * zlib advanced deflate::       Advanced compression functions.
 * zlib advanced inflate::       Advanced decompression functions.
 * zlib advanced inflate back::  Other advanced compression functions.
 @end menu
-
 
 @c page
 @node zlib advanced deflate
@@ -837,14 +833,14 @@ applications.
 
 @deftypefun int deflateInit2 (z_streamp @var{strm}, int @var{level}, int @var{method}, int @var{windowBits}, int @var{memLevel}, int @var{strategy})
 This is another version of @cfunc{deflateInit} with more compression
-options.  This function does not perform any compression: compression is
+options.  This function does not perform any compression: Compression is
 done by @cfunc{deflate}.
 
-The fields @code{next_in}, @code{zalloc}, @code{zfree} and @code{opaque}
+The fields @samp{next_in}, @samp{zalloc}, @samp{zfree} and @samp{opaque}
 must be initialized before by the caller.
 
 The @var{method} parameter is the compression method; it must be
-@code{Z_DEFLATED} in this version of the library.
+@samp{Z_DEFLATED} in this version of the library.
 
 The @var{windowBits} parameter is the base two logarithm of the window
 size (the size of the history buffer).  It should be in the range 8..15
@@ -853,7 +849,7 @@ in better compression at the expense of memory usage.  The default value
 is 15 if @cfunc{deflateInit} is used instead.
 
 @var{windowBits} can also be -8..-15 for raw deflate.  In this case,
-@code{-@var{windowBits}} determines the window size.  @cfunc{deflate}
+@samp{-@var{windowBits}} determines the window size.  @cfunc{deflate}
 will then generate raw deflate data with no Zlib header or trailer, and
 will not compute an Adler32 check value.
 
@@ -865,8 +861,8 @@ will have no file name, no extra data, no comment, no modification time
 255 (unknown).
 
 The @var{memLevel} parameter specifies how much memory should be
-allocated for the internal compression state.  @code{1 == memLevel} uses
-minimum memory but is slow and reduces compression ratio; @code{9 ==
+allocated for the internal compression state.  @samp{1 == memLevel} uses
+minimum memory but is slow and reduces compression ratio; @samp{9 ==
 memLevel} uses maximum memory for optimal speed.  The default value is
 8.  See @file{zconf.h} for total memory usage as a function of
 @var{windowBits} and @var{memLevel}.
@@ -874,44 +870,44 @@ memLevel} uses maximum memory for optimal speed.  The default value is
 The strategy parameter is used to tune the compression algorithm.  Use
 the value:
 
-@table @code
+@table @samp
 @item Z_DEFAULT_STRATEGY
-for normal data;
+For normal data.
 
 @item Z_FILTERED
-for data produced by a filter (or predictor);
+For data produced by a filter (or predictor).
 
 @item Z_HUFFMAN_ONLY
-to force Huffman encoding only (no string match);
+To force Huffman encoding only (no string match).
 
 @item Z_RLE
-to limit match distances to one (run--length encoding).
+To limit match distances to one (run--length encoding).
 @end table
 
 Filtered data consists mostly of small values with a somewhat random
 distribution.  In this case, the compression algorithm is tuned to
-compress them better.  The effect of @code{Z_FILTERED} is to force more
+compress them better.  The effect of @samp{Z_FILTERED} is to force more
 Huffman coding and less string matching; it is somewhat intermediate
-between @code{Z_DEFAULT} and @code{Z_HUFFMAN_ONLY}.  @code{Z_RLE} is
-designed to be almost as fast as @code{Z_HUFFMAN_ONLY}, but give better
+between @samp{Z_DEFAULT} and @samp{Z_HUFFMAN_ONLY}.  @samp{Z_RLE} is
+designed to be almost as fast as @samp{Z_HUFFMAN_ONLY}, but give better
 compression for @acronym{PNG} image data.  The strategy parameter only
 affects the compression ratio but not the correctness of the compressed
 output even if it is not set appropriately.
 
 Return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_MEM_ERROR
-if there was not enough memory;
+If there was not enough memory.
 
 @item Z_STREAM_ERROR
-if a parameter is invalid (such as an invalid method).
+If a parameter is invalid (such as an invalid method).
 @end table
 
-The @code{msg} field of the stream structure is set to null if there is
+The @samp{msg} field of the stream structure is set to null if there is
 no error message.
 @end deftypefun
 
@@ -939,22 +935,22 @@ the window size in @cfunc{deflate} or @cfunc{deflate2}.  Thus the
 strings most likely to be useful should be put at the end of the
 dictionary, not at the front.
 
-Upon return of this function, @code{adler} is set to the Adler32 value
+Upon return of this function, @samp{adler} is set to the Adler32 value
 of the dictionary; the decompressor may later use this value to
 determine which dictionary has been used by the compressor.  (The
 Adler32 value applies to the whole dictionary even if only a subset of
 the dictionary is actually used by the compressor.)  If a raw deflate
-was requested, then the Adler32 value is not computed and @code{adler}
+was requested, then the Adler32 value is not computed and @samp{adler}
 is not set.
 
 The return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_STREAM_ERROR
-if a parameter is invalid (such as @code{NULL} dictionary) or the stream
+If a parameter is invalid (such as @cnull{} dictionary) or the stream
 state is inconsistent (for example if @cfunc{deflate} has already been
 called for this stream or if the compression method is bsort).
 @end table
@@ -973,19 +969,19 @@ be quite large, so this strategy is slow and can consume lots of memory.
 
 Return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_MEM_ERROR
-if there was not enough memory;
+If there was not enough memory.
 
 @item Z_STREAM_ERROR
-if the source stream state was inconsistent (such as @code{zalloc} being
-@code{NULL}).
+If the source stream state was inconsistent (such as @samp{zalloc} being
+@cnull{}).
 @end table
 
-The @code{msg} field of the stream structure is left unchanged in both
+The @samp{msg} field of the stream structure is left unchanged in both
 source and destination.
 @end deftypefun
 
@@ -999,13 +995,13 @@ level and any other attributes that may have been set by
 
 The return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_STREAM_ERROR
-if the source stream state was inconsistent (such as @code{zalloc} or
-state being @code{NULL}).
+If the source stream state was inconsistent (such as @samp{zalloc} or
+state being @cnull{}).
 @end table
 @end deftypefun
 
@@ -1021,21 +1017,21 @@ the new level will take effect only at the next call of @cfunc{deflate}.
 
 Before the call of @cfunc{deflateParams}, the stream state must be set
 as for a call of @cfunc{deflate}, since the currently available input
-may have to be compressed and flushed.  In particular, @code{avail_out}
+may have to be compressed and flushed.  In particular, @samp{avail_out}
 must be non--zero.
 
 Return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_STREAM_ERROR
-if the source stream @code{state} was inconsistent or if a parameter was
-invalid;
+If the source stream @samp{state} was inconsistent or if a parameter was
+invalid.
 
 @item Z_BUF_ERROR
-if @code{avail_out} was zero.
+If @samp{avail_out} was zero.
 @end table
 @end deftypefun
 
@@ -1054,12 +1050,12 @@ Read the @file{deflate.c} source code for the meaning of the
 This function can be called after @cfunc{deflateInit} or
 @cfunc{deflateInit2}, and returns:
 
-@table @code
+@table @samp
 @item Z_OK
-on success;
+On success.
 
 @item Z_STREAM_ERROR
-for an invalid deflate stream.
+For an invalid deflate stream.
 @end table
 @end deftypefun
 
@@ -1085,12 +1081,12 @@ inserted in the output.
 
 The return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_STREAM_ERROR
-if the source stream state was inconsistent.
+If the source stream state was inconsistent.
 @end table
 @end deftypefun
 
@@ -1101,39 +1097,38 @@ Provide Gzip header informations for when a Gzip stream is requested by
 @cfunc{deflateInit2} or @cfunc{deflateReset} and before the first call
 of @cfunc{deflate}.
 
-The @code{text}, @code{time}, @code{os}, @code{extra}, @code{name}, and
-@code{comment} fields in the provided @code{gz_header} structure are
-written to the Gzip header (@code{xflag} is ignored, the @code{extra}
+The @samp{text}, @samp{time}, @samp{os}, @samp{extra}, @samp{name}, and
+@samp{comment} fields in the provided @samp{gz_header} structure are
+written to the Gzip header (@samp{xflags} is ignored, the @samp{extra}
 flags are set according to the compression level).
 
-The caller must assure that, if not @code{NULL}, @code{name} and
-@code{comment} are terminated with a zero byte, and that if @code{extra}
-is not @code{NULL}, that @code{extra_len} bytes are available there.
+The caller must assure that, if not @cnull{}, @samp{name} and
+@samp{comment} are terminated with a zero byte, and that if @samp{extra}
+is not @cnull{}, that @samp{extra_len} bytes are available there.
 
-If @code{hcrc} is true, a Gzip header crc is included.
+If @samp{hcrc} is true, a Gzip header crc is included.
 
 Note that the current versions of the command--line version of
 @command{gzip} (up through version 1.3.x) does not support header crc's,
 and will report that it is a ``multi--part gzip file'' and give up.
 
-If this function is not used, the default Gzip header has @code{text}
-false, the @code{time} set to zero, and @code{os} set to 255, with no
-@code{extra}, @code{name}, or @code{comment} fields.
+If this function is not used, the default Gzip header has @samp{text}
+false, the @samp{time} set to zero, and @samp{os} set to 255, with no
+@samp{extra}, @samp{name}, or @samp{comment} fields.
 
 The Gzip header is returned to the default state by
 @cfunc{deflateReset}.
 
 The return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_STREAM_ERROR
-if the source stream state was inconsistent.
+If the source stream state was inconsistent.
 @end table
 @end deftypefun
-
 
 @c page
 @node zlib advanced inflate
@@ -1143,11 +1138,11 @@ if the source stream state was inconsistent.
 @deftypefun int inflateInit2 (z_streamp @var{strm}, int @var{windowBits})
 This is another version of @cfunc{inflateInit} with an extra parameter.
 This function does not perform any decompression apart from reading the
-Zlib header if present (so @code{next_in} and @code{avail_in} may be
-modified, but @code{next_out} and @code{avail_out} are unchanged).
+Zlib header if present (so @samp{next_in} and @samp{avail_in} may be
+modified, but @samp{next_out} and @samp{avail_out} are unchanged).
 
-The fields @code{next_in}, @code{avail_in}, @code{zalloc}, @code{zfree}
-and @code{opaque} must be initialized before by the caller.
+The fields @samp{next_in}, @samp{avail_in}, @samp{zalloc}, @samp{zfree}
+and @samp{opaque} must be initialized before by the caller.
 
 The @var{windowBits} parameter is the base two logarithm of the maximum
 window size (the size of the history buffer).  It should be in the range
@@ -1157,11 +1152,11 @@ than or equal to the @var{windowBits} value provided to
 @cfunc{deflateInit2} while compressing, or it must be equal to 15 if
 @cfunc{deflateInit2} was not used.  If a compressed stream with a larger
 window size is given as input, @cfunc{inflate} will return with the
-error code @code{Z_DATA_ERROR} instead of trying to allocate a larger
+error code @samp{Z_DATA_ERROR} instead of trying to allocate a larger
 window.
 
 @var{windowBits} can also be -8..-15 for raw inflate.  In this case,
-@code{-@var{windowBits}} determines the window size.  @cfunc{inflate}
+@samp{-@var{windowBits}} determines the window size.  @cfunc{inflate}
 will then process raw deflate data, not looking for a Zlib or Gzip
 header, not generating a check value, and not looking for any check
 values for comparison at the end of the stream.  This is for use with
@@ -1177,22 +1172,22 @@ applies to the magnitude of @var{windowBits}.
 @var{windowBits} can also be greater than 15 for optional Gzip decoding.
 Add 32 to @var{windowBits} to enable Zlib and Gzip decoding with
 automatic header detection, or add 16 to decode only the Gzip format
-(the Zlib format will return a @code{Z_DATA_ERROR}).
+(the Zlib format will return a @samp{Z_DATA_ERROR}).
 
 Return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_MEM_ERROR
-if there was not enough memory;
+If there was not enough memory.
 
 @item Z_STREAM_ERROR
-if a parameter is invalid (such as a negative @var{memLevel}).
+If a parameter is invalid (such as a negative @var{memLevel}).
 @end table
 
-The @code{msg} field of the stream structure is set to @code{NULL} if
+The @samp{msg} field of the stream structure is set to @cnull{} if
 there is no error message.
 @end deftypefun
 
@@ -1200,7 +1195,7 @@ there is no error message.
 @deftypefun int inflateSetDictionary (z_streamp @var{strm}, const Bytef * @var{dictionary}, uInt @var{dictLength})
 Initializes the decompression dictionary from the given uncompressed
 byte sequence.  This function must be called immediately after a call of
-@cfunc{inflate} if this call returned @code{Z_NEED_DICT}.  The
+@cfunc{inflate} if this call returned @samp{Z_NEED_DICT}.  The
 dictionary chosen by the compressor can be determined from the Adler32
 value returned by this call of @cfunc{inflate}.  The compressor and
 decompressor must use exactly the same dictionary (see
@@ -1208,16 +1203,16 @@ decompressor must use exactly the same dictionary (see
 
 Return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_STREAM_ERROR
-if a parameter is invalid (such as @code{NULL} dictionary) or the stream
-@code{state} is inconsistent;
+If a parameter is invalid (such as @cnull{} dictionary) or the stream
+@samp{state} is inconsistent.
 
 @item Z_DATA_ERROR
-if the given dictionary doesn't match the expected one (incorrect
+If the given dictionary doesn't match the expected one (incorrect
 Adler32 value).
 @end table
 @end deftypefun
@@ -1225,27 +1220,27 @@ Adler32 value).
 
 @deftypefun int inflateSync (z_streamp @var{strm})
 Skips invalid compressed data until a full flush point (see above the
-description of @cfunc{deflate} with @code{Z_FULL_FLUSH}) can be found,
+description of @cfunc{deflate} with @samp{Z_FULL_FLUSH}) can be found,
 or until all available input is skipped.  No output is provided.
 
 @cfunc{inflateSync} returns:
 
-@table @code
+@table @samp
 @item Z_OK
-if a full flush point has been found;
+If a full flush point has been found.
 
 @item Z_BUF_ERROR
-if no more input was provided;
+If no more input was provided.
 
 @item Z_DATA_ERROR
-if no flush point has been found;
+If no flush point has been found.
 
 @item Z_STREAM_ERROR
-if the stream structure was inconsistent.
+If the stream structure was inconsistent.
 @end table
 
 In the success case, the application may save the current current value
-of @code{total_in} which indicates where valid compressed data was
+of @samp{total_in} which indicates where valid compressed data was
 found.  In the error case, the application may repeatedly call
 @cfunc{inflateSync}, providing more input each time, until success or
 end of the input data.
@@ -1262,19 +1257,19 @@ stream.
 
 The return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_MEM_ERROR
-if there was not enough memory;
+If there was not enough memory.
 
 @item Z_STREAM_ERROR
-if the source stream state was inconsistent (such as @code{zalloc} being
-@code{NULL}).
+If the source stream state was inconsistent (such as @samp{zalloc} being
+@cnull{}).
 @end table
 
-The @code{msg} field of the stream structure is left unchanged in both
+The @samp{msg} field of the stream structure is left unchanged in both
 source and destination.
 @end deftypefun
 
@@ -1282,18 +1277,18 @@ source and destination.
 @deftypefun int inflateReset (z_streamp @var{strm})
 This function is equivalent to @cfunc{inflateEnd} followed by
 @cfunc{inflateInit}, but does not free and reallocate all the internal
-decompression @code{state}.  The stream will keep attributes that may
+decompression @samp{state}.  The stream will keep attributes that may
 have been set by @cfunc{inflateInit2}.
 
 The return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_STREAM_ERROR
-if the source stream @code{state} was inconsistent (such as
-@code{zalloc} or @code{state} being @code{NULL}).
+If the source stream @samp{state} was inconsistent (such as
+@samp{zalloc} or @samp{state} being @cnull{}).
 @end table
 @end deftypefun
 
@@ -1302,7 +1297,7 @@ if the source stream @code{state} was inconsistent (such as
 Insert bits in the inflate input stream.  The intent is that this
 function is used to start inflating at a bit position in the middle of a
 byte.  The provided bits will be used before any bytes are used from
-@code{next_in}.
+@samp{next_in}.
 
 This function should only be used with raw inflate, and should be used
 before the first @cfunc{inflate} call after @cfunc{inflateInit2} or
@@ -1314,55 +1309,55 @@ input.
 
 The return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_STREAM_ERROR
-if the source stream state was inconsistent.
+If the source stream state was inconsistent.
 @end table
 @end deftypefun
 
 
 @deftypefun int inflateGetHeader (z_streamp @var{strm}, gz_headerp @var{head})
 Request that Gzip header informations be stored in the provided
-@code{gz_header} structure.  This function may be called after
+@samp{gz_header} structure.  This function may be called after
 @cfunc{inflateInit2} or @cfunc{inflateReset}, and before the first call
 of @cfunc{inflate}.
 
-As @cfunc{inflate} processes the Gzip stream, @code{@var{head}->done} is
+As @cfunc{inflate} processes the Gzip stream, @samp{@var{head}->done} is
 zero until the header is completed, at which time
-@code{@var{head}->done} is set to 1.
+@samp{@var{head}->done} is set to 1.
 
-If a Zlib stream is being decoded, then @code{@var{head}->done} is set
+If a Zlib stream is being decoded, then @samp{@var{head}->done} is set
 to -1 to indicate that there will be no Gzip header information
-forthcoming.  Note that @code{Z_BLOCK} can be used to force
+forthcoming.  Note that @samp{Z_BLOCK} can be used to force
 @cfunc{inflate} to return immediately after header processing is
 complete and before any actual data is decompressed.
 
-The @code{text}, @code{time}, @code{xflags}, and @code{os} fields are
-filled in with the Gzip header contents.  @code{hcrc} is set to true if
+The @samp{text}, @samp{time}, @samp{xflags}, and @samp{os} fields are
+filled in with the Gzip header contents.  @samp{hcrc} is set to true if
 there is a header @acronym{CRC}.  (The header @acronym{CRC} was valid if
 done is set to one.)
 
-If @code{extra} is not @code{NULL}, then @code{extra_max} contains the
-maximum number of bytes to write to @code{extra}.
+If @samp{extra} is not @cnull{}, then @samp{extra_max} contains the
+maximum number of bytes to write to @samp{extra}.
 
-Once @code{done} is true, @code{extra_len} contains the actual extra
-field length, and @code{extra} contains the extra field, or that field
-truncated if @code{extra_max} is less than @code{extra_len}.
+Once @samp{done} is true, @samp{extra_len} contains the actual extra
+field length, and @samp{extra} contains the extra field, or that field
+truncated if @samp{extra_max} is less than @samp{extra_len}.
 
-If @code{name} is not @code{NULL}, then up to @code{name_max} characters
+If @samp{name} is not @cnull{}, then up to @samp{name_max} characters
 are written there, terminated with a zero unless the length is greater
-than @code{name_max}.
+than @samp{name_max}.
 
-If @code{comment} is not @code{NULL}, then up to @code{comm_max}
+If @samp{comment} is not @cnull{}, then up to @samp{comm_max}
 characters are written there, terminated with a zero unless the length
-is greater than @code{comm_max}.
+is greater than @samp{comm_max}.
 
-When any of @code{extra}, @code{name}, or @code{comment} are not
-@code{NULL} and the respective field is not present in the header, then
-that field is set to @code{NULL} to signal its absence.  This allows the
+When any of @samp{extra}, @samp{name}, or @samp{comment} are not
+@cnull{} and the respective field is not present in the header, then
+that field is set to @cnull{} to signal its absence.  This allows the
 use of this function with the returned structure to duplicate the
 header.  However if those fields are set to allocated memory, then the
 application will need to save those pointers elsewhere so that they can
@@ -1377,15 +1372,14 @@ stream.
 
 The return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_STREAM_ERROR
-if the source stream state was inconsistent.
+If the source stream state was inconsistent.
 @end table
 @end deftypefun
-
 
 @c page
 @node zlib advanced inflate back
@@ -1396,9 +1390,9 @@ if the source stream state was inconsistent.
 Initialize the internal stream state for decompression using
 @cfunc{inflateBack} calls.
 
-The fields @code{zalloc}, @code{zfree} and @code{opaque} in @var{strm}
-must be initialized before the call.  If @code{zalloc} and @code{zfree}
-are @code{Z_NULL}, then the default library--derived memory allocation
+The fields @samp{zalloc}, @samp{zfree} and @samp{opaque} in @var{strm}
+must be initialized before the call.  If @samp{zalloc} and @samp{zfree}
+are @samp{Z_NULL}, then the default library--derived memory allocation
 routines are used.
 
 @var{windowBits} is the base two logarithm of the window size, in the
@@ -1412,18 +1406,18 @@ See @cfunc{inflateBack} for the usage of these routines.
 
 @cfunc{inflateBackInit} will return:
 
-@table @code
+@table @samp
 @item Z_OK
-on success;
+On success.
 
 @item Z_STREAM_ERROR
-if any of the paramaters are invalid;
+If any of the paramaters are invalid.
 
 @item Z_MEM_ERROR
-if the internal state could not be allocated;
+If the internal state could not be allocated.
 
 @item Z_VERSION_ERROR
-if the version of the library does not match the version of the header
+If the version of the library does not match the version of the header
 file.
 @end table
 @end deftypefun
@@ -1475,17 +1469,17 @@ This function uses two subroutines supplied by the caller that are then
 invoked for input and output.  The routines are called until a complete
 deflate stream is read and all of the uncompressed data is written, or
 until an error is encountered.  The routintes' parameters and return
-types are defined above in the @code{in_func} and @code{out_func}
+types are defined above in the @samp{in_func} and @samp{out_func}
 typedefs.
 
-This function will call @code{@var{in}(in_desc, &buf)} which should
+This function will call @samp{@var{in}(in_desc, &buf)} which should
 return the number of bytes of provided input, and a pointer to that
 input in @var{buf}.  If there is no input available, @var{in} must
-return zero (@code{buf} is ignored in that case) and this function will
+return zero (@samp{buf} is ignored in that case) and this function will
 return a buffer error.
 
-This function will call @code{@var{out}(out_desc, buf, len)} to write
-the uncompressed data @code{buf[0..len-1]}.  @var{out} should return
+This function will call @samp{@var{out}(out_desc, buf, len)} to write
+the uncompressed data @samp{buf[0..len-1]}.  @var{out} should return
 zero on success, or non--zero on failure.  If @var{out} returns
 non--zero, this function will return with an error.
 
@@ -1496,13 +1490,13 @@ be at most the window size.  Any non--zero amount of input may be
 provided by @var{in}.
 
 For convenience, input can be provided to this function on the first
-call by setting @code{next_in} and @code{avail_in}.  If that input is
+call by setting @samp{next_in} and @samp{avail_in}.  If that input is
 exhausted, then @var{in} will be called.  Therefore @var{next_in} must
-be initialized before calling this function: if @code{next_in} is
-@code{NULL}, then @var{in} will be called immediately for input; if
-@code{next_in} is not @code{NULL}, then @code{avail_in} must also be
-initialized, and then if @code{avail_in} is not zero, input will
-initially be taken from @code{next_in[0 .. avail_in - 1]}.
+be initialized before calling this function: if @samp{next_in} is
+@cnull{}, then @var{in} will be called immediately for input; if
+@samp{next_in} is not @cnull{}, then @samp{avail_in} must also be
+initialized, and then if @samp{avail_in} is not zero, input will
+initially be taken from @samp{next_in[0 .. avail_in - 1]}.
 
 The @var{in_desc} and @var{out_desc} parameters are passed as the first
 argument to @var{in} and @var{out} respectively when they are called.
@@ -1510,49 +1504,47 @@ These descriptors can be optionally used to pass any information that
 the caller--supplied @var{in} and @var{out} functions need to do their
 job.
 
-On return, @code{next_in} and @code{avail_in} will be set to pass back
+On return, @samp{next_in} and @samp{avail_in} will be set to pass back
 any unused input that was provided by the last @var{in} call.
 
-Note that this function cannot return @code{Z_OK}.  The return values
+Note that this function cannot return @samp{Z_OK}.  The return values
 are:
 
-@table @code
+@table @samp
 @item Z_STREAM_END
-on success;
+On success.
 
 @item Z_BUF_ERROR
-if @var{in} or @var{out} returned an error,
+If @var{in} or @var{out} returned an error.
 
 @item Z_DATA_ERROR
-if there was a format error in the deflate stream (in which case
-@code{msg} is set to indicate the nature of the error);
+If there was a format error in the deflate stream (in which case
+@samp{msg} is set to indicate the nature of the error).
 
 @item Z_STREAM_ERROR
-if the stream was not properly initialized.
+If the stream was not properly initialized.
 @end table
 
-In the case of @code{Z_BUF_ERROR}, an input or output error can be
-distinguished using @code{next_in} which will be @code{NULL} only if
-@var{in} returned an error.  If @code{next_in} is not @code{NULL}, then
-the @code{Z_BUF_ERROR} was due to @var{out} returning non--zero
-(@var{in} will always be called before @var{out}, so @code{next_in} is
-assured to be defined if @var{out} returns non--zero).
+In the case of @samp{Z_BUF_ERROR}, an input or output error can be
+distinguished using @samp{next_in} which will be @cnull{} only if
+@var{in} returned an error.  If @samp{next_in} is not @cnull{}, then the
+@samp{Z_BUF_ERROR} was due to @var{out} returning non--zero (@var{in}
+will always be called before @var{out}, so @samp{next_in} is assured to
+be defined if @var{out} returns non--zero).
 @end deftypefun
 
 
 @deftypefun int inflateBackEnd (z_stream * @var{strm})
 All memory allocated by @cfunc{inflateBackInit} is freed.  Return
-@code{Z_OK} on success, or @code{Z_STREAM_ERROR} if the stream state was
+@samp{Z_OK} on success, or @samp{Z_STREAM_ERROR} if the stream state was
 inconsistent.
 @end deftypefun
-
 
 @c page
 @node zlib utility
 @appendixsec Utility functions
 
 
-@noindent
 The following utility functions are implemented on top of the basic
 stream--oriented functions.  To simplify the interface, some default
 options are assumed (compression level and memory usage, standard memory
@@ -1571,7 +1563,7 @@ wide.
 
 Upon entry: @var{dstLenVar} must reference a variable holding be the
 total size of the destination buffer, which (to avoid
-@code{Z_BUF_ERROR}) should be at least the value returned by
+@samp{Z_BUF_ERROR}) should be at least the value returned by
 @cfunc{compressBound}). @var{dstPtr} must be the pointer to the
 destination buffer, at least @var{dstLen} bytes wide.
 
@@ -1580,18 +1572,18 @@ hold the actual size of the compressed buffer.
 
 The return value is:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_MEM_ERROR
-if there was not enough memory;
+If there was not enough memory.
 
 @item Z_BUF_ERROR
-if there was not enough room in the output buffer;
+If there was not enough room in the output buffer.
 
 @item ...
-other error codes may be returned to signal invalid data.
+Other error codes may be returned to signal invalid data.
 @end table
 @end deftypefun
 
@@ -1599,7 +1591,7 @@ other error codes may be returned to signal invalid data.
 @deftypefun int compress2 (Bytef * @var{dstPtr}, uLongf * @var{dstLenVar}, const Bytef * @var{srcPtr}, uLong @var{srcLen}, int @var{level})
 Like @cfunc{compress} but allows the user to select a compression level.
 @var{level} has the same meaning as in @cfunc{deflateInit}.  The return
-values are the same as in @cfunc{compress}; @code{Z_STREAM_ERROR} is
+values are the same as in @cfunc{compress}; @samp{Z_STREAM_ERROR} is
 returned if @var{level} has an invalid value.
 @end deftypefun
 
@@ -1625,34 +1617,33 @@ Upon entry: @var{dstLenVar} must reference a variable holding the total
 size of the destination buffer.  @var{dstPtr} must be the pointer to the
 destination buffer, at least @var{dstLen} bytes wide.
 
-Upon exit: the variable referenced by @var{dstLenVar} is modified to
+Upon exit: The variable referenced by @var{dstLenVar} is modified to
 hold the actual size of the compressed buffer.
 
 The return values are:
 
-@table @code
+@table @samp
 @item Z_OK
-if success;
+If success.
 
 @item Z_MEM_ERROR
-if there was not enough memory;
+If there was not enough memory.
 
 @item Z_BUF_ERROR
-if there was not enough room in the output buffer;
+If there was not enough room in the output buffer.
 
 @item Z_DATA_ERROR
-if the input data was corrupted or incomplete;
+If the input data was corrupted or incomplete.
 
 @item ...
-other codes may be returned to signal invalid data.
+Other codes may be returned to signal invalid data.
 @end table
 
-To avoid the @code{Z_BUF_ERROR}: the size of the uncompressed data must
+To avoid the @samp{Z_BUF_ERROR}: The size of the uncompressed data must
 have been saved previously by the compressor and transmitted to the
 decompressor by some mechanism outside the scope of this compression
 library.  That size then can be used to allocate the output buffer.
 @end deftypefun
-
 
 @c page
 @node zlib file
@@ -1668,7 +1659,6 @@ library.  That size then can be used to allocate the output buffer.
 * zlib file errors::            Examining errors in file operartions.
 @end menu
 
-
 @c page
 @node zlib file open
 @appendixsubsec Opening and closing a compressed file
@@ -1677,19 +1667,19 @@ library.  That size then can be used to allocate the output buffer.
 @deftypefun gzFile gzopen (const char * @var{path}, const char * @var{mode})
 Open a Gzip file for reading or writing.
 
-The @var{mode} parameter is as in the standard @cfunc{fopen} (@code{rb}
-or @code{wb}) but can also include a compression level (@code{wb9}) or a
+The @var{mode} parameter is as in the standard @cfunc{fopen} (@samp{rb}
+or @samp{wb}) but can also include a compression level (@samp{wb9}) or a
 strategy:
 
-@table @code
+@table @samp
 @item f
-for filtered data as in @code{wb6f};
+For filtered data as in @samp{wb6f}.
 
 @item h
-for Huffman only compression as in @code{wb1h};
+For Huffman only compression as in @samp{wb1h}.
 
 @item R
-for run--length encoding as in @code{wb1R}.
+For run--length encoding as in @samp{wb1R}.
 @end table
 
 @ref{zlib basic deflate}, for details on the strategy parameter.
@@ -1697,15 +1687,15 @@ for run--length encoding as in @code{wb1R}.
 The function can be used to read a file which is not in Gzip format; in
 this case the file will be read directly without decompression.
 
-The return value is @code{NULL} if the file could not be opened or if
+The return value is @cnull{} if the file could not be opened or if
 there was insufficient memory to allocate the (de)compression state;
-@code{errno} can be checked to distinguish the two cases: if
-@code{errno} is zero, the Zlib error is @code{Z_MEM_ERROR}.
+@samp{errno} can be checked to distinguish the two cases: if
+@samp{errno} is zero, the Zlib error is @samp{Z_MEM_ERROR}.
 @end deftypefun
 
 
 @deftypefun gzFile gzdopen (int @var{fd}, const char * @var{mode})
-Associate a @code{gzFile} with the file descriptor @var{fd}.
+Associate a @samp{gzFile} with the file descriptor @var{fd}.
 
 File descriptors are obtained from calls like @cfunc{open}, @cfunc{dup},
 @cfunc{creat}, @cfunc{pipe} or @cfunc{fileno} if the file has been
@@ -1713,7 +1703,7 @@ previously opened with @cfunc{fopen}.
 
 The @var{mode} parameter is as in @cfunc{gzopen}.
 
-The next call of @cfunc{gzclose} on the returned @code{gzFile} will also
+The next call of @cfunc{gzclose} on the returned @samp{gzFile} will also
 close the file descriptor @var{fd}, just like:
 
 @example
@@ -1728,7 +1718,7 @@ we use:
 gzdopen(dup(fd), mode);
 @end example
 
-@cfunc{gzdopen} returns @code{NULL} if there was insufficient memory
+@cfunc{gzdopen} returns @cnull{} if there was insufficient memory
 to allocate the (de)compression state.
 @end deftypefun
 
@@ -1741,11 +1731,9 @@ error number (@ref{zlib file errors} for details).
 
 
 @deftypefun int gzdirect (gzFile @var{file})
-Returns 1 if @var{file} is being read directly without decompression,
+Return 1 if @var{file} is being read directly without decompression,
 otherwise zero.
 @end deftypefun
-
-
 
 @c page
 @node zlib file write
@@ -1754,20 +1742,21 @@ otherwise zero.
 
 @deftypefun int gzwrite (gzFile @var{file}, void * @var{buf}, unsigned @var{len})
 Write the given number of uncompressed bytes into the compressed file.
-The return value is the number of uncompressed bytes actually written (0
-in case of error).
+The return value is the number of uncompressed bytes actually written
+(@samp{0} in case of error).
 @end deftypefun
 
 
 @deftypefun int gzprintf (gzFile @var{file}, const char * @var{format}, ...)
 Convert, format, and write the args to the compressed file under control
 of the @var{format} string, as in @cfunc{fprintf}.  The return value is
-the number of uncompressed bytes actually written (0 in case of error).
+the number of uncompressed bytes actually written (@samp{0} in case of
+error).
 
 The number of uncompressed bytes written is limited to 4095.  The caller
 should assure that this limit is not exceeded.  If it is exceeded, then
-@cfunc{gzprintf} will return return an error (0) with nothing written.
-In this case, there may also be a buffer overflow with unpredictable
+@cfunc{gzprintf} will return return an error with nothing written.  In
+this case, there may also be a buffer overflow with unpredictable
 consequences, which is possible only if Zlib was compiled with the
 insecure functions @cfunc{sprintf} or @cfunc{vsprintf} because the
 secure @cfunc{snprintf} or @cfunc{vsnprintf} functions were not
@@ -1778,13 +1767,13 @@ available.
 @deftypefun int gzputs (gzFile @var{file}, const char * @var{s})
 Write the given zero terminated string to the compressed file, excluding
 the terminating zero character.  The return value is the number of
-characters written, or -1 in case of error.
+characters written, or @samp{-1} in case of error.
 @end deftypefun
 
 
 @deftypefun int gzputc (gzFile @var{file}, int @var{c})
-Write @var{c}, converted to an @code{unsigned char}, into the compressed
-file.  The return value is the value that was written, or @code{-1} in
+Write @var{c}, converted to an @samp{unsigned char}, into the compressed
+file.  The return value is the value that was written, or @samp{-1} in
 case of error.
 @end deftypefun
 
@@ -1793,13 +1782,12 @@ case of error.
 Flush all pending output into the compressed file.  The parameter
 @var{flush} is as in the @cfunc{deflate} function.  The return value is
 the Zlib error number (@ref{zlib file errors} for details).  The return
-value is @code{Z_OK} if the flush parameter is @code{Z_FINISH} and all
+value is @samp{Z_OK} if the flush parameter is @samp{Z_FINISH} and all
 output could be flushed.
 
 This function should be called only when strictly necessary because it
 can degrade compression.
 @end deftypefun
-
 
 @c page
 @node zlib file read
@@ -1812,40 +1800,39 @@ If the input file was not in gzip format, this function copies the given
 number of bytes into the buffer.
 
 The return value is the number of uncompressed bytes actually read:
-@code{0} for end of file, @code{-1} for error.
+@samp{0} for end of file, @samp{-1} for error.
 @end deftypefun
 
 
 @deftypefun {char *} gzgets (gzFile @var{file}, char * @var{buf}, int @var{len})
-Read bytes from the compressed file until @var{len}-1 characters are
-read, or a newline character is read and transferred to buf, or an
+Read bytes from the compressed file until @math{@var{len}-1} characters
+are read, or a newline character is read and transferred to buf, or an
 end--of--file condition is encountered.  The string is then terminated
-with a null character.  The return value is @var{buf}, or @code{Z_NULL}
+with a null character.  The return value is @var{buf}, or @samp{Z_NULL}
 in case of error.
 @end deftypefun
 
 
 @deftypefun int gzgetc (gzFile @var{file})
 Read one byte from the compressed file.  The return value is this byte
-or @code{-1} in case of end--of--file or error.
+or @samp{-1} in case of end--of--file or error.
 @end deftypefun
 
 
 @deftypefun int gzungetc (int @var{c}, gzFile @var{file})
 Push one character back onto the stream to be read again later.  Only
 one character of push--back is allowed.  @cfunc{gzungetc} returns the
-character pushed, or -1 on failure.  @cfunc{gzungetc} will fail if a
-character has been pushed but not read yet, or if @var{c} is -1.  The
-pushed character will be discarded if the stream is repositioned with
-@cfunc{gzseek} or @cfunc{gzrewind}.
+character pushed, or @samp{-1} on failure.  @cfunc{gzungetc} will fail
+if a character has been pushed but not read yet, or if @var{c} is
+@samp{-1}.  The pushed character will be discarded if the stream is
+repositioned with @cfunc{gzseek} or @cfunc{gzrewind}.
 @end deftypefun
 
 
 @deftypefun int gzeof (gzFile @var{file})
-Return @code{1} when end--of--file has previously been detected reading
+Return @samp{1} when end--of--file has previously been detected reading
 the given input stream, otherwise zero.
 @end deftypefun
-
 
 @c page
 @node zlib file seek
@@ -1856,7 +1843,7 @@ the given input stream, otherwise zero.
 Set the starting position for the next read or write operation on the
 given compressed file.  The @var{offset} represents a number of bytes in
 the uncompressed data stream.  The @var{whence} parameter is defined as
-in @cfunc{lseek}; the value @code{SEEK_END} is not supported.
+in @cfunc{lseek}; the value @samp{SEEK_END} is not supported.
 
 If the file is opened for reading, this function is emulated but can be
 extremely slow.  If the file is opened for writing, only forward seeks
@@ -1864,7 +1851,7 @@ are supported; the function then compresses a sequence of zeroes up to
 the new starting position.
 
 The return value is the resulting offset location as measured in bytes
-from the beginning of the uncompressed stream, or @code{-1} in case of
+from the beginning of the uncompressed stream, or @samp{-1} in case of
 error: in particular if the file is opened for writing and the new
 starting position would be before the current position.
 @end deftypefun
@@ -1892,7 +1879,6 @@ gzseek(file, 0L, SEEK_CUR);
 @end example
 @end deftypefun
 
-
 @c page
 @node zlib file config
 @appendixsubsec Configuring a file descriptor
@@ -1900,11 +1886,10 @@ gzseek(file, 0L, SEEK_CUR);
 
 @deftypefun int gzsetparams (gzFile @var{file}, int @var{level}, int @var{strategy})
 Dynamically update the compression level or strategy.  For the meaning
-of these parameters @ref{zlib advanced deflate,deflateInit2}.  Return
-@code{Z_OK} if success, or @code{Z_STREAM_ERROR} if the file was not
+of these parameters @ref{zlib advanced deflate, deflateInit2}.  Return
+@samp{Z_OK} if success, or @samp{Z_STREAM_ERROR} if the file was not
 opened for writing.
 @end deftypefun
-
 
 @c page
 @node zlib file errors
@@ -1915,9 +1900,9 @@ opened for writing.
 Return the error message for the last error which occurred on the given
 compressed file.  The variable referenced by @var{errnum} is set to the
 Zlib error number.  If an error occurred in the file system and not in
-the compression library, @var{*errnum} is set to @code{Z_ERRNO} and the
-application may consult the standard variable @code{errno} to get the
-exact error code.
+the compression library, @samp{*@var{errnum}} is set to @samp{Z_ERRNO}
+and the application may consult the standard variable @samp{errno} to
+get the exact error code.
 
 Example:
 
@@ -1945,17 +1930,15 @@ if (Z_ERRNO == errorCode)
 @deftypefun void gzclearerr (gzFile file)
 Clear the error and end--of--file flags for file.  This is analogous to
 the @cfunc{clearerr} function in @file{stdio.h}.  This is useful for
-continuing to read a @command{gzip} file that is being written
+continuing to read a @samp{gzip} file that is being written
 concurrently.
 @end deftypefun
-
 
 @c page
 @node zlib checksum
 @appendixsec Checksum functions
 
 
-@noindent
 These functions are not related to compression but are exported anyway
 because they might be useful in applications using the compression
 library.
@@ -1963,7 +1946,7 @@ library.
 
 @deftypefun uLong adler32 (uLong @var{adler}, const Bytef * @var{buf}, uInt @var{len})
 Update a running Adler--32 checksum with the bytes
-@code{@var{buf}[0..@var{len}-1]} and return the updated checksum.  If
+@math{@var{buf}[0..@var{len}-1]} and return the updated checksum.  If
 @var{buf} is @code{NULL}, this function returns the required initial
 value for the checksum.
 
@@ -1993,8 +1976,8 @@ Adler--32 checksums were calculated for each, @var{adler1} and
 
 
 @deftypefun uLong crc32 (uLong @var{crc}, const Bytef * @var{buf}, uInt @var{len})
-Update a running crc with the bytes @code{@var{buf}[0..len-1]} and
-return the updated crc. If buf is @code{NULL}, this function returns the
+Update a running crc with the bytes @math{@var{buf}[0..len-1]} and
+return the updated crc. If buf is @cnull{}, this function returns the
 required initial value for the crc.  Pre-- and post--conditioning (one's
 complement) is performed within this function so it shouldn't be done by
 the application.
@@ -2022,20 +2005,18 @@ of bytes, @var{seq1} and @var{seq2} with lengths @var{len1} and
 @var{crc2}, and @var{len2}.
 @end deftypefun
 
-
-
 @c page
 @node zlib misc
 @appendixsec Miscellaneous functions
 
 
 @cfunc{deflateInit} and @cfunc{inflateInit} are macros to allow
-checking the Zlib version and the compiler's view of @code{z_stream}.
+checking the Zlib version and the compiler's view of @samp{z_stream}.
 
 
 @deftypefun {const char *} zlibVersion (void)
 The application can compare the return value of this function and
-@code{ZLIB_VERSION} for consistency.  If the first character differs,
+@samp{ZLIB_VERSION} for consistency.  If the first character differs,
 the library code actually used is not compatible with the @file{zlib.h}
 header file used by the application.  This check is automatically made
 by @cfunc{deflateInit} and @cfunc{inflateInit}.
@@ -2061,35 +2042,35 @@ No description.
 @deftypefun uLong zlibCompileFlags (void)
 Return flags indicating compile--time options.
 
-Type sizes: each field is two bits wide, @code{00} means the size is 16
-bits, @code{01} means the size is 32 bits, @code{10} means 64, @code{11}
+Type sizes: each field is two bits wide, @samp{00} means the size is 16
+bits, @samp{01} means the size is 32 bits, @samp{10} means 64, @samp{11}
 means other. Position of bits follows:
 
-@table @code
+@table @samp
 @item 1.0
-Size of @code{uInt} (bit one and bit zero).
+Size of @samp{uInt} (bit one and bit zero).
 
 @item 3.2
-Size of @code{uLong}.
+Size of @samp{uLong}.
 
 @item 5.4
-Size of @code{voidpf} (pointer).
+Size of @samp{voidpf} (pointer).
 
 @item 7.6
-Size of @code{z_off_t}.
+Size of @samp{z_off_t}.
 @end table
 
 Compiler, assembler, and debug options:
 
-@table @code
+@table @samp
 @item 8
-@code{DEBUG}
+@samp{DEBUG}
 
 @item 9
-@code{ASMV} or @code{ASMINF}, use ASM code;
+@samp{ASMV} or @samp{ASMINF}, use ASM code;
 
 @item 10
-@code{ZLIB_WINAPI}, exported functions use the @acronym{WINAPI} calling
+@samp{ZLIB_WINAPI}, exported functions use the @acronym{WINAPI} calling
 convention;
 
 @item 11
@@ -2098,12 +2079,12 @@ convention;
 
 One--time table building (smaller code, but not thread--safe if true):
 
-@table @code
+@table @samp
 @item 12
-@code{BUILDFIXED}, build static block decoding tables when needed;
+@samp{BUILDFIXED}, build static block decoding tables when needed;
 
 @item 13
-@code{DYNAMIC_CRC_TABLE}, build @acronym{CRC} calculation tables when
+@samp{DYNAMIC_CRC_TABLE}, build @acronym{CRC} calculation tables when
 needed;
 
 @item 14,15
@@ -2112,13 +2093,13 @@ needed;
 
 Library content (indicates missing functionality):
 
-@table @code
+@table @samp
 @item 16
-@code{NO_GZCOMPRESS}, @code{gz*} functions cannot compress (to avoid
+@samp{NO_GZCOMPRESS}, @samp{gz*} functions cannot compress (to avoid
 linking deflate code when not needed);
 
 @item 17
-@code{NO_GZIP}, deflate can't write @command{gzip} streams, and inflate can't
+@samp{NO_GZIP}, deflate can't write @command{gzip} streams, and inflate can't
 detect and decode @command{gzip} streams (to avoid linking crc code);
 
 @item 18-19
@@ -2127,12 +2108,12 @@ detect and decode @command{gzip} streams (to avoid linking crc code);
 
 Operation variations (changes in library functionality):
 
-@table @code
+@table @samp
 @item 20
-@code{PKZIP_BUG_WORKAROUND}, slightly more permissive inflate;
+@samp{PKZIP_BUG_WORKAROUND}, slightly more permissive inflate;
 
 @item 21
-@code{FASTEST}, deflate algorithm with only one, lowest compression
+@samp{FASTEST}, deflate algorithm with only one, lowest compression
 level;
 
 @item 22,23
@@ -2142,7 +2123,7 @@ level;
 The @cfunc{sprintf} variant used by @cfunc{gzprintf} (zero is
 best):
 
-@table @code
+@table @samp
 @item 24
 0 = vs*, 1 = s* -- 1 means limited to 20 arguments after the format;
 
@@ -2153,21 +2134,16 @@ best):
 0 = returns value, 1 = void -- 1 means inferred string length returned;
 @end table
 
-Remainder: @code{27-31}: 0 (reserved).
+Remainder: @samp{27-31}: 0 (reserved).
 @end deftypefun
-
-
-
-
 
 @c page
 @node zlib references
 @appendixsec Bibliography and references
 
 
-@noindent
-The data format used by the Zlib library is described by
-@acronym{RFC} (Request for Comments) 1950 to 1952 in the files:
+The data format used by the Zlib library is described by @acronym{RFC}
+(Request for Comments) 1950 to 1952 in the files:
 
 @table @url
 @item ftp://ds.internic.net/rfc/rfc1950.txt

@@ -409,19 +409,25 @@ This document describes version @version{} of @value{PACKAGE}, a library
 for @rnrs{6} Scheme that exposes the Zlib programming interface.
 
 The package is distributed under the terms of the @gnu{} General Public
-License (@gpl{}).
+License (@gpl{}); the project home page of Nausicaa is at:
+
+@center @url{http://marcomaggi.github.com/nausicaa.html}
+
+@noindent
+development of Nausicaa takes place at:
+
+@center @url{http://github.com/marcomaggi/nausicaa/tree/master}
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the @gnu{} Free Documentation License, Version 1.2 or
-any later version published by the Free Software Foundation; with
-Invariant Sections being ``@gnu{} Free Documentation License'' and
-``@gnu{} General Public License'', no Front--Cover Texts, and no
-Back--Cover Texts.  A copy of the license is included in the section
-entitled ``@gnu{} Free Documentation License''.
+under the terms of the @gnu{} Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front--Cover Texts, and no Back-Cover Texts.  A
+copy of the license is included in the section entitled ``@gnu{} Free
+Documentation License''.
 @end quotation
 @end copying
 
@@ -465,6 +471,8 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* constants::                   Constant values.
+* struct::                      Data structure accessors and mutators.
 
 Appendices
 
@@ -487,8 +495,167 @@ Indexes
 @chapter Overview of the package
 
 
-This ...
+@value{PACKAGE} is a part of the Nausicaa distribution of libraries for
+@rnrs{6} Scheme implementations.  It exposes the @api{} of the popular
+Zlib compression library at the Scheme level.  The installed libraries
+are:
 
+@example
+(foreign zlib)
+(foreign zlib sizeof)
+@end example
+
+@noindent
+the exported @api{} is a map between foreign C language functions and
+Scheme functions, so the original documentation of ZLib can be used as
+reference.  @ref{zlib, Zlib compression library}
+
+The @library{foreign zlib} library exports bindings for the functions,
+while @library{foreign zlib sizeof} exports bindings for the constants
+(like @samp{Z_STREAM_END} etc.) and the data structure accessors and
+mutators.
+
+The Scheme documentation focuses on providing usage example to
+familiarise with the mapping and with methods to handle resources.
+
+@c page
+@node constants
+@chapter Constant values
+
+
+The following bindings are exported by @library{foreign zlib sizeof}.
+@ref{zlib constants, Constants}
+
+
+@defvr Constant sizeof-zstream
+@defvrx Constant sizeof-gzheader
+Size of the @samp{z_stream} and @samp{gz_header} data structures.
+@end defvr
+
+
+@defvr Constant Z_NO_COMPRESSION
+@defvrx Constant Z_BEST_SPEED
+@defvrx Constant Z_BEST_COMPRESSION
+@defvrx Constant Z_DEFAULT_COMPRESSION
+Select the compression level.
+@end defvr
+
+
+@defvr Constant Z_FILTERED
+@defvrx Constant Z_HUFFMAN_ONLY
+@defvrx Constant Z_RLE
+@defvrx Constant Z_FIXED
+@defvrx Constant Z_DEFAULT_STRATEGY
+Select the compression algorithm.
+@end defvr
+
+@defvr Constant Z_NO_FLUSH
+@defvrx Constant Z_PARTIAL_FLUSH
+@defvrx Constant Z_SYNC_FLUSH
+@defvrx Constant Z_FULL_FLUSH
+@defvrx Constant Z_FINISH
+@defvrx Constant Z_BLOCK
+Constants used to configure the operations of the library.
+@end defvr
+
+
+@defvr Constant Z_OK
+@defvrx Constant Z_STREAM_END
+@defvrx Constant Z_NEED_DICT
+@defvrx Constant Z_ERRNO
+@defvrx Constant Z_STREAM_ERROR
+@defvrx Constant Z_DATA_ERROR
+@defvrx Constant Z_MEM_ERROR
+@defvrx Constant Z_BUF_ERROR
+@defvrx Constant Z_VERSION_ERROR
+Return values from the foreign functions.
+@end defvr
+
+
+@defvr Constant Z_BINARY
+@defvrx Constant Z_TEXT
+@defvrx Constant Z_ASCII
+@defvrx Constant Z_UNKNOWN
+Data type values.
+@end defvr
+
+
+@defvr Constant Z_DEFLATED
+Algorithm selection for @func{deflate}.
+@end defvr
+
+
+@defvr Constant Z_NULL
+Bound to zero.
+@end defvr
+
+@c page
+@node struct
+@chapter Data structure accessors and mutators
+
+
+The following bindings are exported by @library{foreign zlib sizeof}.
+@ref{zlib types, Data types}
+
+
+@deffn Syntax zstream-next_in-set! @var{pointer} @var{value}
+@deffnx Syntax zstream-next_in-ref @var{pointer}
+@deffnx Syntax zstream-avail_in-set! @var{pointer} @var{value}
+@deffnx Syntax zstream-avail_in-ref @var{pointer}
+@deffnx Syntax zstream-total_in-set! @var{pointer} @var{value}
+@deffnx Syntax zstream-total_in-ref @var{pointer}
+@deffnx Syntax zstream-next_out-set! @var{pointer} @var{value}
+@deffnx Syntax zstream-next_out-ref @var{pointer}
+@deffnx Syntax zstream-avail_out-set! @var{pointer} @var{value}
+@deffnx Syntax zstream-avail_out-ref @var{pointer}
+@deffnx Syntax zstream-total_out-set! @var{pointer} @var{value}
+@deffnx Syntax zstream-total_out-ref @var{pointer}
+@deffnx Syntax zstream-msg-set! @var{pointer} @var{value}
+@deffnx Syntax zstream-msg-ref @var{pointer}
+@deffnx Syntax zstream-data_type-set! @var{pointer} @var{value}
+@deffnx Syntax zstream-data_type-ref @var{pointer}
+@deffnx Syntax zstream-adler-set! @var{pointer} @var{value}
+@deffnx Syntax zstream-adler-ref @var{pointer}
+@deffnx Syntax zstream-zalloc-set! @var{pointer} @var{value}
+@deffnx Syntax zstream-zalloc-ref @var{pointer}
+@deffnx Syntax zstream-zfree-set! @var{pointer} @var{value}
+@deffnx Syntax zstream-zfree-ref @var{pointer}
+@deffnx Syntax zstream-opaque-set! @var{pointer} @var{value}
+@deffnx Syntax zstream-opaque-ref @var{pointer}
+Accessors and mutators for structures of type @samp{z_stream}.
+@var{pointer} must be a pointer to such a data strcture.
+@end deffn
+
+
+@deffn Syntax gzheader-text-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-text-ref @var{pointer}
+@deffnx Syntax gzheader-time-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-time-ref @var{pointer}
+@deffnx Syntax gzheader-xflags-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-xflags-ref @var{pointer}
+@deffnx Syntax gzheader-os-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-os-ref @var{pointer}
+@deffnx Syntax gzheader-extra-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-extra-ref @var{pointer}
+@deffnx Syntax gzheader-extra_len-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-extra_len-ref @var{pointer}
+@deffnx Syntax gzheader-extra_max-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-extra_max-ref @var{pointer}
+@deffnx Syntax gzheader-name-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-name-ref @var{pointer}
+@deffnx Syntax gzheader-name_max-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-name_max-ref @var{pointer}
+@deffnx Syntax gzheader-comment-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-comment-ref @var{pointer}
+@deffnx Syntax gzheader-comm_max-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-comm_max-ref @var{pointer}
+@deffnx Syntax gzheader-hcrc-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-hcrc-ref @var{pointer}
+@deffnx Syntax gzheader-done-set! @var{pointer} @var{value}
+@deffnx Syntax gzheader-done-ref @var{pointer}
+Accessors and mutators for structures of type @samp{gz_header}.
+@var{pointer} must be a pointer to such a data strcture.
+@end deffn
 
 @c page
 

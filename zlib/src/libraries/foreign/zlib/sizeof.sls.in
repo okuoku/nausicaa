@@ -68,137 +68,240 @@
     zstream-opaque-set!		zstream-opaque-ref)
   (import (rnrs)
     (foreign ffi)
-    (foreign ffi sizeof)
-    (foreign ffi peekers-and-pokers))
+    (foreign ffi sizeof))
 
-  ;; constants
-  (define sizeof-zstream		@SIZEOF_ZSTREAM@)
+
+;;;; constants
 
-  (define uInt				(quote @TYPEOF_ZLIB_UINT@))
-  (define uLong				(quote @TYPEOF_ZLIB_ULONG@))
-  (define z_off_t			(quote @TYPEOF_Z_OFF_T@))
+(define sizeof-zstream		@SIZEOF_ZSTREAM@)
+(define sizeof-gzheader		@SIZEOF_GZHEADER@)
 
-  (define ZLIB_VERNUM			@VALUEOF_ZLIB_VERNUM@)
+(define uInt			(quote @TYPEOF_ZLIB_UINT@))
+(define uLong			(quote @TYPEOF_ZLIB_ULONG@))
+(define z_off_t			(quote @TYPEOF_Z_OFF_T@))
 
-  (define Z_NO_FLUSH			@VALUEOF_Z_NO_FLUSH@)
-  (define Z_PARTIAL_FLUSH		@VALUEOF_Z_PARTIAL_FLUSH@)
-  (define Z_SYNC_FLUSH			@VALUEOF_Z_SYNC_FLUSH@)
-  (define Z_FULL_FLUSH			@VALUEOF_Z_FULL_FLUSH@)
-  (define Z_FINISH			@VALUEOF_Z_FINISH@)
-  (define Z_BLOCK			@VALUEOF_Z_BLOCK@)
+(define ZLIB_VERNUM		@VALUEOF_ZLIB_VERNUM@)
 
-  (define Z_OK				@VALUEOF_Z_OK@)
-  (define Z_STREAM_END			@VALUEOF_Z_STREAM_END@)
-  (define Z_NEED_DICT			@VALUEOF_Z_NEED_DICT@)
-  (define Z_ERRNO			@VALUEOF_Z_ERRNO@)
-  (define Z_STREAM_ERROR		@VALUEOF_Z_STREAM_ERROR@)
-  (define Z_DATA_ERROR			@VALUEOF_Z_DATA_ERROR@)
-  (define Z_MEM_ERROR			@VALUEOF_Z_MEM_ERROR@)
-  (define Z_BUF_ERROR			@VALUEOF_Z_BUF_ERROR@)
-  (define Z_VERSION_ERROR		@VALUEOF_Z_VERSION_ERROR@)
+(define Z_NO_FLUSH		@VALUEOF_Z_NO_FLUSH@)
+(define Z_PARTIAL_FLUSH		@VALUEOF_Z_PARTIAL_FLUSH@)
+(define Z_SYNC_FLUSH		@VALUEOF_Z_SYNC_FLUSH@)
+(define Z_FULL_FLUSH		@VALUEOF_Z_FULL_FLUSH@)
+(define Z_FINISH		@VALUEOF_Z_FINISH@)
+(define Z_BLOCK			@VALUEOF_Z_BLOCK@)
 
-  (define Z_NO_COMPRESSION		@VALUEOF_Z_NO_COMPRESSION@)
-  (define Z_BEST_SPEED			@VALUEOF_Z_BEST_SPEED@)
-  (define Z_BEST_COMPRESSION		@VALUEOF_Z_BEST_COMPRESSION@)
-  (define Z_DEFAULT_COMPRESSION		@VALUEOF_Z_DEFAULT_COMPRESSION@)
+(define Z_OK			@VALUEOF_Z_OK@)
+(define Z_STREAM_END		@VALUEOF_Z_STREAM_END@)
+(define Z_NEED_DICT		@VALUEOF_Z_NEED_DICT@)
+(define Z_ERRNO			@VALUEOF_Z_ERRNO@)
+(define Z_STREAM_ERROR		@VALUEOF_Z_STREAM_ERROR@)
+(define Z_DATA_ERROR		@VALUEOF_Z_DATA_ERROR@)
+(define Z_MEM_ERROR		@VALUEOF_Z_MEM_ERROR@)
+(define Z_BUF_ERROR		@VALUEOF_Z_BUF_ERROR@)
+(define Z_VERSION_ERROR		@VALUEOF_Z_VERSION_ERROR@)
 
-  (define Z_FILTERED			@VALUEOF_Z_FILTERED@)
-  (define Z_HUFFMAN_ONLY		@VALUEOF_Z_HUFFMAN_ONLY@)
-  (define Z_RLE				@VALUEOF_Z_RLE@)
-  (define Z_FIXED			@VALUEOF_Z_FIXED@)
-  (define Z_DEFAULT_STRATEGY		@VALUEOF_Z_DEFAULT_STRATEGY@)
+(define Z_NO_COMPRESSION	@VALUEOF_Z_NO_COMPRESSION@)
+(define Z_BEST_SPEED		@VALUEOF_Z_BEST_SPEED@)
+(define Z_BEST_COMPRESSION	@VALUEOF_Z_BEST_COMPRESSION@)
+(define Z_DEFAULT_COMPRESSION	@VALUEOF_Z_DEFAULT_COMPRESSION@)
 
-  (define Z_BINARY			@VALUEOF_Z_BINARY@)
-  (define Z_TEXT			@VALUEOF_Z_TEXT@)
-  (define Z_ASCII			@VALUEOF_Z_ASCII@)
-  (define Z_UNKNOWN			@VALUEOF_Z_UNKNOWN@)
+(define Z_FILTERED		@VALUEOF_Z_FILTERED@)
+(define Z_HUFFMAN_ONLY		@VALUEOF_Z_HUFFMAN_ONLY@)
+(define Z_RLE			@VALUEOF_Z_RLE@)
+(define Z_FIXED			@VALUEOF_Z_FIXED@)
+(define Z_DEFAULT_STRATEGY	@VALUEOF_Z_DEFAULT_STRATEGY@)
 
-  (define Z_DEFLATED			@VALUEOF_Z_DEFLATED@)
+(define Z_BINARY		@VALUEOF_Z_BINARY@)
+(define Z_TEXT			@VALUEOF_Z_TEXT@)
+(define Z_ASCII			@VALUEOF_Z_ASCII@)
+(define Z_UNKNOWN		@VALUEOF_Z_UNKNOWN@)
 
-  (define Z_NULL			@VALUEOF_Z_NULL@)
+(define Z_DEFLATED		@VALUEOF_Z_DEFLATED@)
 
-  (define-c-struct-accessor-and-mutator
-    zstream-next_in-set!
-    zstream-next_in-ref
-    @OFFSETOF_ZSTREAM_NEXT_IN@
-    @SETTEROF_ZSTREAM_NEXT_IN@
-    @GETTEROF_ZSTREAM_NEXT_IN@)
+(define Z_NULL			@VALUEOF_Z_NULL@)
 
-  (define-c-struct-accessor-and-mutator
-    zstream-avail_in-set!
-    zstream-avail_in-ref
-    @OFFSETOF_ZSTREAM_AVAIL_IN@
-    @SETTEROF_ZSTREAM_AVAIL_IN@
-    @GETTEROF_ZSTREAM_AVAIL_IN@)
+
+;;;; data structure accessors and mutators
 
-  (define-c-struct-accessor-and-mutator
-    zstream-total_in-set!
-    zstream-total_in-ref
-    @OFFSETOF_ZSTREAM_TOTAL_IN@
-    @SETTEROF_ZSTREAM_TOTAL_IN@
-    @GETTEROF_ZSTREAM_TOTAL_IN@)
+(define-c-struct-accessor-and-mutator
+  zstream-next_in-set!
+  zstream-next_in-ref
+  @OFFSETOF_ZSTREAM_NEXT_IN@
+  @SETTEROF_ZSTREAM_NEXT_IN@
+  @GETTEROF_ZSTREAM_NEXT_IN@)
 
-  (define-c-struct-accessor-and-mutator
-    zstream-next_out-set!
-    zstream-next_out-ref
-    @OFFSETOF_ZSTREAM_NEXT_OUT@
-    @SETTEROF_ZSTREAM_NEXT_OUT@
-    @GETTEROF_ZSTREAM_NEXT_OUT@)
+(define-c-struct-accessor-and-mutator
+  zstream-avail_in-set!
+  zstream-avail_in-ref
+  @OFFSETOF_ZSTREAM_AVAIL_IN@
+  @SETTEROF_ZSTREAM_AVAIL_IN@
+  @GETTEROF_ZSTREAM_AVAIL_IN@)
 
-  (define-c-struct-accessor-and-mutator
-    zstream-avail_out-set!
-    zstream-avail_out-ref
-    @OFFSETOF_ZSTREAM_AVAIL_OUT@
-    @SETTEROF_ZSTREAM_AVAIL_OUT@
-    @GETTEROF_ZSTREAM_AVAIL_OUT@)
+(define-c-struct-accessor-and-mutator
+  zstream-total_in-set!
+  zstream-total_in-ref
+  @OFFSETOF_ZSTREAM_TOTAL_IN@
+  @SETTEROF_ZSTREAM_TOTAL_IN@
+  @GETTEROF_ZSTREAM_TOTAL_IN@)
 
-  (define-c-struct-accessor-and-mutator
-    zstream-total_out-set!
-    zstream-total_out-ref
-    @OFFSETOF_ZSTREAM_TOTAL_OUT@
-    @SETTEROF_ZSTREAM_TOTAL_OUT@
-    @GETTEROF_ZSTREAM_TOTAL_OUT@)
+(define-c-struct-accessor-and-mutator
+  zstream-next_out-set!
+  zstream-next_out-ref
+  @OFFSETOF_ZSTREAM_NEXT_OUT@
+  @SETTEROF_ZSTREAM_NEXT_OUT@
+  @GETTEROF_ZSTREAM_NEXT_OUT@)
 
-  (define-c-struct-accessor-and-mutator
-    zstream-msg-set!
-    zstream-msg-ref
-    @OFFSETOF_ZSTREAM_MSG@
-    @SETTEROF_ZSTREAM_MSG@
-    @GETTEROF_ZSTREAM_MSG@)
+(define-c-struct-accessor-and-mutator
+  zstream-avail_out-set!
+  zstream-avail_out-ref
+  @OFFSETOF_ZSTREAM_AVAIL_OUT@
+  @SETTEROF_ZSTREAM_AVAIL_OUT@
+  @GETTEROF_ZSTREAM_AVAIL_OUT@)
 
-  (define-c-struct-accessor-and-mutator
-    zstream-data_type-set!
-    zstream-data_type-ref
-    @OFFSETOF_ZSTREAM_DATA_TYPE@
-    @SETTEROF_ZSTREAM_DATA_TYPE@
-    @GETTEROF_ZSTREAM_DATA_TYPE@)
+(define-c-struct-accessor-and-mutator
+  zstream-total_out-set!
+  zstream-total_out-ref
+  @OFFSETOF_ZSTREAM_TOTAL_OUT@
+  @SETTEROF_ZSTREAM_TOTAL_OUT@
+  @GETTEROF_ZSTREAM_TOTAL_OUT@)
 
-  (define-c-struct-accessor-and-mutator
-    zstream-adler-set!
-    zstream-adler-ref
-    @OFFSETOF_ZSTREAM_ADLER@
-    @SETTEROF_ZSTREAM_ADLER@
-    @GETTEROF_ZSTREAM_ADLER@)
+(define-c-struct-accessor-and-mutator
+  zstream-msg-set!
+  zstream-msg-ref
+  @OFFSETOF_ZSTREAM_MSG@
+  @SETTEROF_ZSTREAM_MSG@
+  @GETTEROF_ZSTREAM_MSG@)
 
-  (define-c-struct-accessor-and-mutator
-    zstream-zalloc-set!
-    zstream-zalloc-ref
-    @OFFSETOF_ZSTREAM_ZALLOC@
-    @SETTEROF_ZSTREAM_ZALLOC@
-    @GETTEROF_ZSTREAM_ZALLOC@)
+(define-c-struct-accessor-and-mutator
+  zstream-data_type-set!
+  zstream-data_type-ref
+  @OFFSETOF_ZSTREAM_DATA_TYPE@
+  @SETTEROF_ZSTREAM_DATA_TYPE@
+  @GETTEROF_ZSTREAM_DATA_TYPE@)
 
-  (define-c-struct-accessor-and-mutator
-    zstream-zfree-set!
-    zstream-zfree-ref
-    @OFFSETOF_ZSTREAM_ZFREE@
-    @SETTEROF_ZSTREAM_ZFREE@
-    @GETTEROF_ZSTREAM_ZFREE@)
+(define-c-struct-accessor-and-mutator
+  zstream-adler-set!
+  zstream-adler-ref
+  @OFFSETOF_ZSTREAM_ADLER@
+  @SETTEROF_ZSTREAM_ADLER@
+  @GETTEROF_ZSTREAM_ADLER@)
 
-  (define-c-struct-accessor-and-mutator
-    zstream-opaque-set!
-    zstream-opaque-ref
-    @OFFSETOF_ZSTREAM_OPAQUE@
-    @SETTEROF_ZSTREAM_OPAQUE@
-    @GETTEROF_ZSTREAM_OPAQUE@))
+(define-c-struct-accessor-and-mutator
+  zstream-zalloc-set!
+  zstream-zalloc-ref
+  @OFFSETOF_ZSTREAM_ZALLOC@
+  @SETTEROF_ZSTREAM_ZALLOC@
+  @GETTEROF_ZSTREAM_ZALLOC@)
+
+(define-c-struct-accessor-and-mutator
+  zstream-zfree-set!
+  zstream-zfree-ref
+  @OFFSETOF_ZSTREAM_ZFREE@
+  @SETTEROF_ZSTREAM_ZFREE@
+  @GETTEROF_ZSTREAM_ZFREE@)
+
+(define-c-struct-accessor-and-mutator
+  zstream-opaque-set!
+  zstream-opaque-ref
+  @OFFSETOF_ZSTREAM_OPAQUE@
+  @SETTEROF_ZSTREAM_OPAQUE@
+  @GETTEROF_ZSTREAM_OPAQUE@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  gzheader-text-set!
+  gzheader-text-ref
+  @OFFSETOF_GZHEADER_TEXT@
+  @SETTEROF_GZHEADER_TEXT@
+  @GETTEROF_GZHEADER_TEXT@)
+
+(define-c-struct-accessor-and-mutator
+  gzheader-time-set!
+  gzheader-time-ref
+  @OFFSETOF_GZHEADER_TIME@
+  @SETTEROF_GZHEADER_TIME@
+  @GETTEROF_GZHEADER_TIME@)
+
+(define-c-struct-accessor-and-mutator
+  gzheader-xflags-set!
+  gzheader-xflags-ref
+  @OFFSETOF_GZHEADER_XFLAGS@
+  @SETTEROF_GZHEADER_XFLAGS@
+  @GETTEROF_GZHEADER_XFLAGS@)
+
+(define-c-struct-accessor-and-mutator
+  gzheader-os-set!
+  gzheader-os-ref
+  @OFFSETOF_GZHEADER_OS@
+  @SETTEROF_GZHEADER_OS@
+  @GETTEROF_GZHEADER_OS@)
+
+(define-c-struct-accessor-and-mutator
+  gzheader-extra-set!
+  gzheader-extra-ref
+  @OFFSETOF_GZHEADER_EXTRA@
+  @SETTEROF_GZHEADER_EXTRA@
+  @GETTEROF_GZHEADER_EXTRA@)
+
+(define-c-struct-accessor-and-mutator
+  gzheader-extra_len-set!
+  gzheader-extra_len-ref
+  @OFFSETOF_GZHEADER_EXTRA_LEN@
+  @SETTEROF_GZHEADER_EXTRA_LEN@
+  @GETTEROF_GZHEADER_EXTRA_LEN@)
+
+(define-c-struct-accessor-and-mutator
+  gzheader-extra_max-set!
+  gzheader-extra_max-ref
+  @OFFSETOF_GZHEADER_EXTRA_MAX@
+  @SETTEROF_GZHEADER_EXTRA_MAX@
+  @GETTEROF_GZHEADER_EXTRA_MAX@)
+
+(define-c-struct-accessor-and-mutator
+  gzheader-name-set!
+  gzheader-name-ref
+  @OFFSETOF_GZHEADER_NAME@
+  @SETTEROF_GZHEADER_NAME@
+  @GETTEROF_GZHEADER_NAME@)
+
+(define-c-struct-accessor-and-mutator
+  gzheader-name_max-set!
+  gzheader-name_max-ref
+  @OFFSETOF_GZHEADER_NAME_MAX@
+  @SETTEROF_GZHEADER_NAME_MAX@
+  @GETTEROF_GZHEADER_NAME_MAX@)
+
+(define-c-struct-accessor-and-mutator
+  gzheader-comment-set!
+  gzheader-comment-ref
+  @OFFSETOF_GZHEADER_COMMENT@
+  @SETTEROF_GZHEADER_COMMENT@
+  @GETTEROF_GZHEADER_COMMENT@)
+
+(define-c-struct-accessor-and-mutator
+  gzheader-comm_max-set!
+  gzheader-comm_max-ref
+  @OFFSETOF_GZHEADER_COMM_MAX@
+  @SETTEROF_GZHEADER_COMM_MAX@
+  @GETTEROF_GZHEADER_COMM_MAX@)
+
+(define-c-struct-accessor-and-mutator
+  gzheader-hcrc-set!
+  gzheader-hcrc-ref
+  @OFFSETOF_GZHEADER_HCRC@
+  @SETTEROF_GZHEADER_HCRC@
+  @GETTEROF_GZHEADER_HCRC@)
+
+(define-c-struct-accessor-and-mutator
+  gzheader-done-set!
+  gzheader-done-ref
+  @OFFSETOF_GZHEADER_DONE@
+  @SETTEROF_GZHEADER_DONE@
+  @GETTEROF_GZHEADER_DONE@)
+
+
+;;;; done
+
+)
 
 ;;; end of file

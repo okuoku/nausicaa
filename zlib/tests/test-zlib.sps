@@ -35,6 +35,9 @@
 
 (check-set-mode! 'report-failed)
 
+
+;;;; helpers
+
 (define original-string (call-with-input-file "Makefile"
 			  (lambda (port)
 			    (get-string-all port))))
@@ -58,7 +61,6 @@ total_out:\t~s\n"
 	  (zstream-total_out-ref zstream)))
 
 (define dictionary "ENABLEDISABLEstripinstallallcleannausicaapackageuninstallslack")
-
 
 
 (parametrise ((check-test-name 'auxiliary-functions))
@@ -86,9 +88,9 @@ total_out:\t~s\n"
 	  (zstream-next_out-set!  zstream compressed)
 	  (zstream-avail_out-set! zstream complen)
 
-	  (zstream-zalloc-set! zstream (integer->pointer 0))
-	  (zstream-zfree-set!  zstream (integer->pointer 0))
-	  (zstream-opaque-set! zstream (integer->pointer 0))
+	  (zstream-zalloc-set! zstream pointer-null)
+	  (zstream-zfree-set!  zstream pointer-null)
+	  (zstream-opaque-set! zstream pointer-null)
 	  ;;	(dump-zstream zstream)
 
 	  (deflateInit zstream Z_BEST_COMPRESSION)
@@ -96,8 +98,7 @@ total_out:\t~s\n"
 	  (deflateEnd zstream)
 	  ;;	(dump-zstream zstream)
 
-	  (let ((compressed-len
-		 (pointer-diff (zstream-next_out-ref zstream) compressed)))
+	  (let ((compressed-len (pointer-diff (zstream-next_out-ref zstream) compressed)))
 	    (zstream-next_in-set! zstream compressed)
 	    (zstream-avail_in-set! zstream compressed-len))
 
@@ -110,8 +111,7 @@ total_out:\t~s\n"
 	  (inflateEnd zstream)
 	  ;;	(dump-zstream zstream)
 
-	  (let ((decompressed-len
-		 (pointer-diff (zstream-next_out-ref zstream) output)))
+	  (let ((decompressed-len (pointer-diff (zstream-next_out-ref zstream) output)))
 	    (and (= original-len decompressed-len)
 		 (equal? (cstring->string output decompressed-len)
 			 original-string)))))
@@ -138,9 +138,9 @@ total_out:\t~s\n"
 	  (zstream-next_out-set!  zstream compressed)
 	  (zstream-avail_out-set! zstream complen)
 
-	  (zstream-zalloc-set! zstream (integer->pointer 0))
-	  (zstream-zfree-set!  zstream (integer->pointer 0))
-	  (zstream-opaque-set! zstream (integer->pointer 0))
+	  (zstream-zalloc-set! zstream pointer-null)
+	  (zstream-zfree-set!  zstream pointer-null)
+	  (zstream-opaque-set! zstream pointer-null)
 ;;;	(dump-zstream zstream)
 
 	  (deflateInit2 zstream Z_BEST_COMPRESSION
