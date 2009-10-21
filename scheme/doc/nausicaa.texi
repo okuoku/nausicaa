@@ -50727,6 +50727,8 @@ implementations.  The @api{} is exported by the following libraries:
 (foreign errno)
 @end example
 
+At present it supports only @gnu{}+Linux systems.
+
 @menu
 * memory::                      Low level memory handling.
 * ffi::                         Foreign functions interface.
