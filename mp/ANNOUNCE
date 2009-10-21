@@ -14,8 +14,14 @@ MPFR	Multiple Precision Floating-Point Reliable library.
 MPFI	Multiple Precision Floating-Point Interval library.
 MPC	Multiple Precision Complex library.
 
-  Nausicaa/MP  is built  upon  Nausicaa/Scheme.  The  latest
-release of the Nausicaa/MP package is available at:
+  Nausicaa/MP is  built upon Nausicaa/Scheme,  making use of
+its  foreign functions interface;  so it  currently supports
+only  GNU+Linux  systems.   The installation  infrastructure
+requires   a   GNU+Linux  system   (for   details  see   the
+"README.build" file).
+
+  The latest release of the Nausicaa/MP package is available
+at:
 
      <http://github.com/marcomaggi/nausicaa/downloads>
 
