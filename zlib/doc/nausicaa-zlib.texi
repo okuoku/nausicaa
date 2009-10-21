@@ -473,6 +473,11 @@ Documentation License''.
 * overview::                    Overview of the package.
 * constants::                   Constant values.
 * struct::                      Data structure accessors and mutators.
+* error::                       Error messages.
+* utility::                     Utility functions.
+* basic::                       Basic functions.
+* advanced::                    Advanced functions.
+* file::                        File functions.
 
 Appendices
 
@@ -656,6 +661,423 @@ Accessors and mutators for structures of type @samp{z_stream}.
 Accessors and mutators for structures of type @samp{gz_header}.
 @var{pointer} must be a pointer to such a data strcture.
 @end deffn
+
+@c page
+@node error
+@chapter Error messages
+
+
+@defun zError* @var{error-code}
+@defunx zError @var{error-code}
+These functions accept as argument one of the error code constants
+defined by Zlib (@samp{Z_OK}, @samp{Z_BUF_ERROR}, @dots{}) and return a
+string describing the error.
+
+@func{zError} returns a Scheme string.  @func{primitive-zError} returns
+a pointer value referencing a statically allocated, @ascii{} coded, zero
+terminated C string.
+@end defun
+
+@c page
+@node utility
+@chapter Utility functions
+
+
+The utility functions @func{compress}, @func{compress2} and
+@func{uncompress} are the simplest and less configurable interface to
+the compression features of Zlib; they can compress and uncompress a
+block of data in memory.  @ref{zlib utility, Utility functions}
+
+Let's start a program with:
+
+@example
+(import (rnrs)
+  (foreign zlib)
+  (only (compensations)
+        with-compensations)
+  (only (foreign ffi peekers-and-pokers)
+        pointer-ref-c-unsigned-long
+        pointer-set-c-unsigned-long!)
+  (only (foreign ffi sizeof)
+        sizeof-long)
+  (only (foreign memory)
+        malloc-block/c)
+  (only (foreign cstrings)
+        string->cstring/c))
+@end example
+
+@noindent
+we will make use of the @library{compensations} library, from
+Nausicaa/Scheme, to handle memory allocation.  Let's say we want to
+compress a Scheme string:
+
+@example
+(define original "Is this the real life?
+                  Is this just fantasy?
+                  Caught in a landslide,
+                  No escape from reality.
+                  ...")
+@end example
+
+@noindent
+first we convert it to a C string, the we can use @func{compress}:
+
+@example
+(with-compensations
+  (let* ((input.len     (string-length original))
+         (input.ptr     (string->cstring/c original))
+         (output.len    (compressBound input.len))
+         (output.ptr    (malloc-block/c input.len))
+         (output.len*   (malloc-block/c sizeof-long)))
+
+    (pointer-set-c-unsigned-long! output.len* 0 output.len)
+    (assert (= Z_OK (compress output.ptr output.len*
+                              input.ptr  input.len)))
+    (set! output.len (pointer-ref-c-unsigned-long output.len* 0))
+
+    ;; the compressed data is in the block bound to "output.ptr"
+    ;; the number of bytes is in bound to "output.len"
+    ))
+@end example
+
+@noindent
+in this simplified example we have assumed that compressing succeeds, so
+that the return value of @func{compress} is @samp{Z_OK}.
+
+We can abstract the handling of the output size argument in the
+following macro:
+
+@example
+(define-syntax with-pointer-to-length/c
+  (syntax-rules ()
+    ((_ (?ptr ?var) ?form0 ?form ...)
+     (let ((?ptr (malloc-block/c sizeof-long)))
+       (pointer-set-c-unsigned-long! ?ptr 0 ?var)
+       (begin ?form0 ?form ...)
+       (set! ?var (pointer-ref-c-unsigned-long ?ptr 0))))))
+@end example
+
+@noindent
+with which the code becomes:
+
+@example
+(with-compensations
+  (let* ((input.len     (string-length original))
+         (input.ptr     (string->cstring/c original))
+         (output.len    (compressBound input.len))
+         (output.ptr    (malloc-block/c input.len)))
+
+    (with-pointer-to-length/c (output.len* output.len)
+      (assert (= Z_OK (compress output.ptr output.len*
+                                input.ptr  input.len))))
+    ---))
+@end example
+
+To decompress a block of memory, we use a similar chunk of code; let's
+assume that we have previously saved the size of the original data, so
+that we can allocate an output buffer of correct size:
+
+@example
+(with-compensations
+  (let* ((input.len     ---)
+         (input.ptr     ---)
+         (output.len    saved-original-data-size)
+         (output.ptr    (malloc-block/c input.len)))
+
+    (with-pointer-to-length/c (output.len* output.len)
+      (assert (= Z_OK (uncompress output.ptr output.len*
+                                  input.ptr  input.len))))
+
+    ;; the decompressed data is in the block bound to "output.ptr"
+    ;; the number of bytes is in bound to "output.len"
+    ))
+@end example
+
+@noindent
+again we have assumed that compressing succeeds, so that the return
+value of @func{uncompress} is @samp{Z_OK}.
+
+@c page
+@node basic
+@chapter Basic functions
+
+
+The basic functions allow us to compress and decompress data one block
+at a time.  @ref{zlib basic, Basic functions}
+
+Let's start a program with:
+
+@example
+(import (rnrs)
+  (foreign zlib)
+  (only (compensations)
+        with-compensations)
+  (only (foreign memory)
+        malloc-block/c))
+@end example
+
+@noindent
+we will use the @library{compensations} library from Nausicaa/Scheme to
+handle memory allocation.  To compress a block of data we do:
+
+@example
+(with-compensations
+  (let* ((input.len   ---)
+         (input.ptr   ---)
+         (output.len  (compressBound input.len))
+         (output.ptr  (malloc-block/c output.len))
+         (zstream     (malloc-block/c sizeof-zstream)))
+
+    (zstream-next_in-set!   zstream input.ptr)
+    (zstream-avail_in-set!  zstream input.len)
+
+    (zstream-next_out-set!  zstream output.ptr)
+    (zstream-avail_out-set! zstream output.len)
+
+    (zstream-zalloc-set! zstream pointer-null)
+    (zstream-zfree-set!  zstream pointer-null)
+    (zstream-opaque-set! zstream pointer-null)
+
+    (deflateInit zstream Z_BEST_COMPRESSION)
+    (deflate zstream Z_FINISH)
+    (deflateEnd zstream)
+
+    (let ((compressed.len (zstream-total_out-ref zstream)))
+      ;; The compressed data is bound to "output.ptr".
+      ;; The size of the compressed data is bound to
+      ;; "compressed.len".
+      ---)))
+@end example
+
+@noindent
+we assumed that @func{deflate} can do its job in one call, which means
+the output buffer is big enough to hold the compressed data; in the
+general case we have to check its return value and manage the input and
+output buffers accordingly.
+
+To decompress data, let's assume we have saved the size of the original
+block:
+
+@example
+(with-compensations
+  (let* ((input.len   compressed.len)
+         (input.ptr   compressed.ptr)
+         (output.len  saved-original-data-size)
+         (output.ptr  (malloc-block/c output.len))
+         (zstream     (malloc-block/c sizeof-zstream)))
+
+    (zstream-next_in-set!   zstream input.ptr)
+    (zstream-avail_in-set!  zstream input.len)
+
+    (zstream-next_out-set!  zstream output.ptr)
+    (zstream-avail_out-set! zstream output.len)
+
+    (zstream-zalloc-set! zstream pointer-null)
+    (zstream-zfree-set!  zstream pointer-null)
+    (zstream-opaque-set! zstream pointer-null)
+
+    (inflateInit zstream)
+    (inflate zstream Z_FINISH)
+    (inflateEnd zstream)
+
+    (let ((decompressed.len (zstream-total_out-ref zstream)))
+      ;; The compressed data is bound to "output.ptr".
+      ;; The size of the compressed data is bound to
+      ;; "decompressed.len".
+      ---)))
+@end example
+
+@noindent
+we assumed that @func{inflate} can do its job in one call, which means
+the output buffer is big enough to hold the compressed data; in the
+general case we have to check its return value and manage the input and
+output buffers accordingly.
+
+@c page
+@node advanced
+@chapter Advanced functions
+
+
+The advanced functions allow us to compress and decompress data one
+block at a time, using customised compression options.  @ref{zlib
+advanced, Advanced functions}
+
+Let's start a program with:
+
+@example
+(import (rnrs)
+  (foreign zlib)
+  (only (compensations)
+        with-compensations)
+  (only (foreign memory)
+        malloc-block/c))
+@end example
+
+@noindent
+we will use the @library{compensations} library from Nausicaa/Scheme to
+handle memory allocation.  To compress a block of data we do:
+
+@example
+(define dictionary.len ---)
+(define dictionary.ptr ---)
+
+(with-compensations
+  (let* ((input.len     original.len)
+         (input.ptr     original.ptr)
+         (output.len    (compressBound input.len))
+         (output.ptr    (malloc-block/c output.len))
+         (zstream       (malloc-block/c sizeof-zstream)))
+
+    (zstream-next_in-set!   zstream input.ptr)
+    (zstream-avail_in-set!  zstream input.len)
+
+    (zstream-next_out-set!  zstream output.ptr)
+    (zstream-avail_out-set! zstream output.len)
+
+    (zstream-zalloc-set! zstream pointer-null)
+    (zstream-zfree-set!  zstream pointer-null)
+    (zstream-opaque-set! zstream pointer-null)
+
+    (deflateInit2 zstream Z_BEST_COMPRESSION
+      Z_DEFLATED          ; method
+      10                  ; windowBits
+      3                   ; memLevel
+      Z_DEFAULT_STRATEGY) ; strategy
+
+    (deflateSetDictionary zstream dictionary.ptr dictionary.len)
+    (deflate zstream Z_FINISH)
+    (deflateEnd zstream)
+
+    (let ((compressed.len (zstream-total_out-ref zstream)))
+      ;; The compressed data is bound to "output.ptr".
+      ;; The size of the compressed data is bound to
+      ;; "compressed.len".
+      ---)))
+@end example
+
+@noindent
+we assumed that @func{deflate} can do its job in one call, which means
+the output buffer is big enough to hold the compressed data; in the
+general case we have to check its return value and manage the input and
+output buffers accordingly.
+
+To decompress data, let's assume we have saved the size of the original
+block and the dictionary:
+
+@example
+(define dictionary.len ---)
+(define dictionary.ptr ---)
+
+(with-compensations
+  (let* ((input.len     compressed.len)
+         (input.ptr     compressed.ptr)
+         (output.len    saved-original-data-size)
+         (output.ptr    (malloc-block/c output.len))
+         (zstream       (malloc-block/c sizeof-zstream)))
+
+    (zstream-next_in-set!   zstream input.ptr)
+    (zstream-avail_in-set!  zstream input.len)
+
+    (zstream-next_out-set!  zstream output.ptr)
+    (zstream-avail_out-set! zstream output.len)
+
+    (inflateInit2 zstream 10)
+    (assert (= Z_NEED_DICT (inflate zstream Z_FINISH)))
+    (inflateSetDictionary zstream dictionary.ptr dictionary.len)
+    (inflate zstream Z_FINISH)
+    (inflateEnd zstream)
+
+    (let ((decompressed.len (zstream-total_out-ref zstream)))
+      ;; The compressed data is bound to "output.ptr".
+      ;; The size of the compressed data is bound to
+      ;; "decompressed.len".
+      ---)))
+@end example
+
+@noindent
+we assumed that @func{inflate} can do its job in one call, which means
+the output buffer is big enough to hold the compressed data; in the
+general case we have to check its return value and manage the input and
+output buffers accordingly.
+
+@c page
+@node file
+@chapter File functions
+
+
+The file functions allow us to read and write files compressed with the
+Gzip format.  The @api{} provided by @library{foreign zlib} has two
+parts: the low level one is a simple map between foreign functions and
+Scheme function; the high level one implements marshaling of arguments.
+@ref{zlib file, File functions}
+
+For the low level @api{} see the original documentation of Zlib, but
+notice that:
+
+@itemize
+@item
+@func{gzopen} returns two values: the first is the return value of the
+foreign function, the second is the value of @samp{errno} right after
+the foreign call.
+
+@item
+@func{gzopen} does not open the file immediately, it just registers data
+needed to do it in the file handler structure.  It will be the first
+read/write operation to open the file and signal an error.
+@end itemize
+
+
+@defun gzopen* @var{pathname} @var{mode}
+Open a file in Gzip format.  Return two values: the first is a pointer
+to the file handler; the second is the value of @samp{errno} right after
+the foreign call.
+
+@var{pathname} must be a Scheme string representing the pathname of the
+file.  @var{mode} must be a Scheme string representing the open mode as
+described in the original documentation of @cfunc{gzopen}
+
+To open a file we should do:
+
+@example
+(let-values (((handler errno)) (gzopen* "blue.gz" "wb9"))
+  (let-values (((code message) (gzerror* handler)))
+    (cond ((= code Z_ERRNO)
+           (write (strerror errno))
+           (newline))
+          ((= code Z_OK)
+           #t)
+          (else
+           (write message)
+           (newline))))
+  ---)
+@end example
+@end defun
+
+
+@defun gzdopen* @var{fd} @var{mode}
+Wrap a platform file descriptor with a Zlib stream for reading or
+writing compressed data.  Return two values: the first is a pointer to
+the file handler; the second is the value of @samp{errno} right after
+the foreign call.
+
+@var{fd} must be an unsigned integer representing the file descriptor.
+@var{mode} must be a Scheme string representing the open mode as
+described in the original documentation of @cfunc{gzopen}
+@end defun
+
+
+@defun gzputs* @var{handler} @var{string}
+Write a string in a compressed file.  @var{handler} must be the pointer
+to a file handler structure.  @var{string} must be the Scheme string to
+write.  Return the same return value of the foreign @cfunc{gzputs} call.
+@end defun
+
+
+@defun gzerror* @var{handler}
+Return two values: the first is a Zlib error code representing the last
+error for the file @var{handler}, the second is a Scheme string
+describind the error.
+@end defun
 
 @c page
 

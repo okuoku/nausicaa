@@ -48,12 +48,12 @@
     uncompress
 
     ;; file input/output
-    gzopen		primitive-gzopen
-    gzdopen		primitive-gzdopen
+    gzopen		gzopen*
+    gzdopen		gzdopen*
     gzclose
 
     gzwrite		gzputc
-    gzputs		primitive-gzputs
+    gzputs		gzputs*
     gzflush
 
     gzsetparams		gzdirect
@@ -64,7 +64,7 @@
     gzseek		gzrewind
     gztell		gzeof
 
-    primitive-gzerror	gzerror
+    gzerror		gzerror*
     gzclearerr
 
     ;; checksum functions
@@ -72,8 +72,8 @@
     crc32		crc32_combine
 
     ;; auxiliary functions
-    zlibVersion		zError		zlibCompileFlags
-    primitive-zError
+    zlibVersion		zlibCompileFlags
+    zError		zError*
 
     ;;stream structure accessors
     zstream-next_in-set!	zstream-next_in-ref
@@ -142,14 +142,14 @@
 (define-c-function zlibVersion
   (char* zlibVersion (void)))
 
-(define-c-function primitive-zError
+(define-c-function zError
   (char* zError (int)))
 
 (define-c-function zlibCompileFlags
   (uLong zlibCompileFlags (void)))
 
-(define (zError errcode)
-  (cstring->string (primitive-zError)))
+(define (zError* errcode)
+  (cstring->string (zError errcode)))
 
 
 ;;;; basic functions
@@ -259,15 +259,15 @@
   (uLong compressBound (uLong)))
 
 (define-c-function uncompress
-  (int uncompress (pointer uLong pointer uLong)))
+  (int uncompress (pointer pointer pointer uLong)))
 
 
 ;;;; file functions
 
-(define-c-function/with-errno primitive-gzopen
+(define-c-function/with-errno gzopen
   (gzFile gzopen (char* char*)))
 
-(define-c-function primitive-gzdopen
+(define-c-function gzdopen
   (gzFile gzopen (int char*)))
 
 (define-c-function gzsetparams
@@ -279,7 +279,7 @@
 (define-c-function gzwrite
   (int gzwrite (gzFile pointer unsigned-int)))
 
-(define-c-function primitive-gzputs
+(define-c-function gzputs
   (int gzputs (gzFile char*)))
 
 (define-c-function gzgets
@@ -315,38 +315,32 @@
 (define-c-function gzclose
   (int gzclose (gzFile)))
 
-(define-c-function/with-errno primitive-gzerror
+(define-c-function gzerror
   (char* gzerror (gzFile pointer)))
 
 (define-c-function gzclearerr
   (void gzclearerr (gzFile)))
 
-(define (gzopen pathname mode)
+
+(define (gzopen* pathname mode)
   (with-compensations
-    (let ((pathname	(string->cstring/c pathname))
-	  (mode		(string->cstring/c mode)))
-      (primitive-gzopen pathname mode))))
+    (gzopen (string->cstring/c pathname)
+	    (string->cstring/c mode))))
 
-(define (gzdopen fd mode)
+(define (gzdopen* fd mode)
   (with-compensations
-    (let ((mode		(string->cstring/c mode)))
-      (primitive-gzdopen fd mode))))
+    (gzdopen fd (string->cstring/c mode))))
 
-(define (gzputs file string)
+(define (gzputs* file string)
   (with-compensations
-    (let ((string	(string->cstring/c string)))
-      (primitive-gzputs file string))))
+    (gzputs file (string->cstring/c string))))
 
-(define (gzerror file)
+(define (gzerror* file)
   (with-compensations
-    (let* ((*errcode	(malloc-small/c)))
-      (receive (cstr errno)
-	  (primitive-gzerror file *errcode)
-	(let ((errcode (pointer-ref-c-signed-int *errcode 0)))
-	  (if (= Z_ERRNO errcode)
-	      (values errno (strerror errno))
-	    (values errcode (cstring->string cstr))))))))
-
+    (let* ((*errcode	(malloc-small/c))
+	   (cstr	(gzerror file *errcode)))
+      (values (pointer-ref-c-signed-int *errcode 0)
+	      (cstring->string cstr)))))
 
 
 ;;;; checksum functions
