@@ -1,0 +1,39 @@
+To: cozlib.lang.scheme
+Subject: [announce] Nausicaa/Zlib --- tag 0.1b0
+
+		       Nausicaa/Zlib
+		       =============
+
+Nausicaa/Zlib  is a  binding  between Zlib  and R6RS  Scheme
+implementations.   It is  built  upon Nausicaa/Scheme.   The
+latest release of the Nausicaa/ZLIB package is available at:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+the documentation is available on line:
+
+    <http://marcomaggi.github.com/docs/nausicaa-zlib.html>
+
+
+Notes for --- tag 0.1b0
+-----------------------
+
+* It has been tested with Zlib 1.2.3.
+
+* Original Zlib documentation is included.
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:
