@@ -403,7 +403,16 @@ This document describes version @version{} of @value{PACKAGE}, ...
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}) and can be downloaded from:
 
-@center @url{http://github.com}
+@center @url{http://github.com/marcomaggi/nausicaa/downloads}
+
+The project home page of Nausicaa is at:
+
+@center @url{http://marcomaggi.github.com/nausicaa.html}
+
+@noindent
+development of Nausicaa takes place at:
+
+@center @url{http://github.com/marcomaggi/nausicaa/tree/master}
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
