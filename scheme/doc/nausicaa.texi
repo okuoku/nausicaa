@@ -54411,12 +54411,11 @@ allocation: we can use @func{malloc/c} or @func{malloc-block/c} as
 
 
 @defun cstring->string @var{cstring}
-@defunx cstring->string/len @var{cstring} @var{number-of-bytes}
+@defunx cstring->string @var{cstring} @var{number-of-bytes}
 Build a new Scheme string representing the @var{cstring}.  The
-conversion is performed using a @code{s8} bytevector.
-
-For @func{cstring->string/len} only @var{number-of-bytes} bytes are
-taken from the C string.
+conversion is performed using a @samp{s8} bytevector.  If
+@var{number-of-bytes} is given, only that number of bytes are taken from
+the C string.
 @end defun
 
 @c page
