@@ -495,7 +495,8 @@
 ;;;; constants
 
 ;; define value
-(define CAIRO_HAS_PNG_FUNCTIONS			@VALUEOF_CAIRO_HAS_PNG_FUNCTIONS@)
+(define CAIRO_HAS_PNG_FUNCTIONS
+  (not (zero? @VALUEOF_CAIRO_HAS_PNG_FUNCTIONS@)))
 
 ;; enum cairo_status_t
 (define CAIRO_STATUS_SUCCESS			@VALUEOF_CAIRO_STATUS_SUCCESS@)

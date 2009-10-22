@@ -408,6 +408,10 @@ License (@gpl{}) and can be downloaded from:
 
 @center @url{http://github.com/marcomaggi/nausicaa/downloads}
 
+The Cairo home page is at:
+
+@center @url{http://cairographics.org/}
+
 The project home page of Nausicaa is at:
 
 @center @url{http://marcomaggi.github.com/nausicaa.html}
@@ -492,12 +496,49 @@ Indexes
 @chapter Overview of the package
 
 
-This package implements a binding between the Cairo 2D graphics library
-and the @rnrs{6} Scheme implementations supported by Nausicaa.  It is
-built upon the Nausicaa/Scheme package, making use of its foreign
-functions interface; as such, it currently supports only @gnu{}+Linux
-systems.
+@value{PACKAGE} is a binding between the Cairo 2D graphics library and
+the @rnrs{6} Scheme implementations supported by Nausicaa.  It is built
+upon the Nausicaa/Scheme package, making use of its foreign functions
+interface; as such, it currently supports only @gnu{}+Linux systems.
 
+The installed libraries are:
+
+@example
+(foreign cairo)
+(foreign cairo sizeof)
+@end example
+
+@noindent
+the first exports the functions, the second the constants and the data
+structures accessor and mutators.  The functions are available in two
+sets of bindings:
+
+@itemize
+One with the same name of the Cairo functions; for example
+@cfunc{cairo_get_operator} is available as @func{cairo_get_operator}.
+
+@item
+The other with the same name of the Cairo functions, but underscores
+converted to dashes; for example @cfunc{cairo_get_operator} is available
+as @func{cairo-get-operator}.
+@end itemize
+
+@value{PACKAGE} implements a map between Cairo foreign functions and
+Scheme foreign function, so the original Cairo documentation can be used
+as guide for this package, too.  A brief Cairo tutorial is available
+here:
+
+@center @url{http://cairographics.org/tutorial/}
+
+@noindent
+another long tutorial is available here:
+
+@center @url{http://zetcode.com/tutorials/cairographicstutorial/}
+
+@noindent
+the home page of Cairo has additional documentation:
+
+@center @url{http://cairographics.org/}
 
 
 @c page
