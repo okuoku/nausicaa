@@ -461,6 +461,7 @@ entitled ``@gnu{} Free Documentation License''.
 @end ignore
 
 @c page
+@ifnottex
 @node Top
 @top @value{TITLE}
 

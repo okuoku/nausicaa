@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/Scheme
+;;;Part of: Nausicaa/Template
 ;;;Contents: compile script for Mosh
 ;;;Date: Mon Jan 19, 2009
 ;;;
@@ -24,26 +24,7 @@
 ;;;
 
 (import
-    (only (nausicaa))
-  (only (lists))
-  (only (one-dimension-cc))
-  (only (one-dimension-co))
-  (only (char-sets))
-  (only (char-sets blocks))
-  (only (char-sets categories))
-  (only (strings))
-  (only (vectors))
-  (only (checks))
-  (only (loops))
-  (only (format))
-
-  (only (object-properties))
-  (only (cleanup-handlers))
-  (only (queues))
-  (only (combinators))
-
-  (only (foreign))
-;;;  (only (guarded-malloc))
+    (only (foreign template))
   )
 
 ;;; end of file

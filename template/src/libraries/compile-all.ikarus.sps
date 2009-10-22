@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/SRFI
+;;;Part of: Nausicaa/Template
 ;;;Contents: compile script
 ;;;Date: Thu Dec 25, 2008
 ;;;
@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,7 +24,7 @@
 ;;;
 
 (import
-  (only (template))
+  (only (foreign template))
   )
 
 ;;; end of file
