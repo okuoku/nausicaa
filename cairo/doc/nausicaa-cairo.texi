@@ -408,10 +408,6 @@ License (@gpl{}) and can be downloaded from:
 
 @center @url{http://github.com/marcomaggi/nausicaa/downloads}
 
-The Cairo home page is at:
-
-@center @url{http://cairographics.org/}
-
 The project home page of Nausicaa is at:
 
 @center @url{http://marcomaggi.github.com/nausicaa.html}
@@ -475,6 +471,9 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* types::                       Basic data types.
+* constants::                   Constant values.
+* structs::                     Data structure accessors and mutators.
 
 Appendices
 
@@ -510,10 +509,11 @@ The installed libraries are:
 
 @noindent
 the first exports the functions, the second the constants and the data
-structures accessor and mutators.  The functions are available in two
+structures accessors and mutators.  The functions are available in two
 sets of bindings:
 
 @itemize
+@item
 One with the same name of the Cairo functions; for example
 @cfunc{cairo_get_operator} is available as @func{cairo_get_operator}.
 
@@ -523,23 +523,573 @@ converted to dashes; for example @cfunc{cairo_get_operator} is available
 as @func{cairo-get-operator}.
 @end itemize
 
-@value{PACKAGE} implements a map between Cairo foreign functions and
-Scheme foreign function, so the original Cairo documentation can be used
-as guide for this package, too.  A brief Cairo tutorial is available
-here:
+@value{PACKAGE} implements a map between Cairo's foreign functions and
+Scheme functions, so the original Cairo documentation can be used as
+guide for this package, too.  A brief Cairo tutorial is available here
+(last verified Thu Oct 22, 2009):
 
 @center @url{http://cairographics.org/tutorial/}
 
 @noindent
-another long tutorial is available here:
+another long tutorial is available here (last verified Thu Oct 22,
+2009):
 
 @center @url{http://zetcode.com/tutorials/cairographicstutorial/}
 
 @noindent
-the home page of Cairo has additional documentation:
+the home page of Cairo has additional documentation (last verified Thu
+Oct 22, 2009):
 
 @center @url{http://cairographics.org/}
 
+
+@c page
+@node types
+@chapter Basic data types
+
+
+The following bindings are exported by @library{foreign cairo sizeof}.
+
+@itemize
+@item
+The ones prefixed with @samp{sizeof-} are the number of bytes required
+to hold the type.
+
+@item
+The ones prefixed with @samp{strideof-} are the number of bytes used as
+stride in arrays of the type.
+
+@item
+The ones prefixed with @samp{alignof-} are the number of bytes used in
+aligning the type in data structures.
+
+@item
+The non--prefixed ones are bound to Scheme symbols representing the type
+specifier for the @library{foreign ffi} interface.
+@end itemize
+
+
+@deffn Constant cairo_bool_t
+@deffnx Constant sizeof-cairo_bool_t
+@deffnx Constant strideof-cairo_bool_t
+@deffnx Constant alignof-cairo_bool_t
+Describe the type @samp{cairo_bool_t}.
+@end deffn
+
+
+@deffn Constant cairo_status_t
+@deffnx Constant sizeof-cairo_status_t
+@deffnx Constant strideof-cairo_status_t
+@deffnx Constant alignof-cairo_status_t
+Describe the type @samp{cairo_status_t}.
+@end deffn
+
+
+@deffn Constant cairo_content_t
+@deffnx Constant sizeof-cairo_content_t
+@deffnx Constant strideof-cairo_content_t
+@deffnx Constant alignof-cairo_content_t
+Describe the type @samp{cairo_content_t}.
+@end deffn
+
+
+@deffn Constant sizeof-cairo_matrix_t
+@deffnx Constant strideof-cairo_matrix_t
+@deffnx Constant alignof-cairo_matrix_t
+Describe the type @samp{cairo_matrix_t}.
+@end deffn
+
+
+@deffn Constant sizeof-cairo_user_data_key_t
+@deffnx Constant strideof-cairo_user_data_key_t
+@deffnx Constant alignof-cairo_user_data_key_t
+Describe the type @samp{cairo_user_data_key_t}.
+@end deffn
+
+
+@deffn Constant cairo_operator_t
+@deffnx Constant sizeof-cairo_operator_t
+@deffnx Constant strideof-cairo_operator_t
+@deffnx Constant alignof-cairo_operator_t
+Describe the type @samp{cairo_operator_t}.
+@end deffn
+
+
+@deffn Constant cairo_fill_rule_t
+@deffnx Constant sizeof-cairo_fill_rule_t
+@deffnx Constant strideof-cairo_fill_rule_t
+@deffnx Constant alignof-cairo_fill_rule_t
+Describe the type @samp{cairo_fill_rule_t}.
+@end deffn
+
+
+@deffn Constant sizeof-cairo_rectangle_t
+@deffnx Constant strideof-cairo_rectangle_t
+@deffnx Constant alignof-cairo_rectangle_t
+Describe the data structure type @samp{cairo_rectangle_t}.
+@end deffn
+
+
+@deffn Constant sizeof-cairo_rectangle_list_t
+@deffnx Constant strideof-cairo_rectangle_list_t
+@deffnx Constant alignof-cairo_rectangle_list_t
+Describe the data structure type @samp{cairo_rectangle_list_t}.
+@end deffn
+
+
+@deffn Constant sizeof-cairo_glyph_t
+@deffnx Constant strideof-cairo_glyph_t
+@deffnx Constant alignof-cairo_glyph_t
+Describe the data structure type @samp{cairo_glyph_t}.
+@end deffn
+
+
+@deffn Constant sizeof-cairo_text_cluster_t
+@deffnx Constant strideof-cairo_text_cluster_t
+@deffnx Constant alignof-cairo_text_cluster_t
+Describe the data structure type @samp{cairo_text_cluster_t}.
+@end deffn
+
+
+@deffn Constant sizeof-cairo_text_extents_t
+@deffnx Constant strideof-cairo_text_extents_t
+@deffnx Constant alignof-cairo_text_extents_t
+Describe the data structure type @samp{cairo_text_extents_t}.
+@end deffn
+
+
+@deffn Constant sizeof-cairo_font_extents_t
+@deffnx Constant strideof-cairo_font_extents_t
+@deffnx Constant alignof-cairo_font_extents_t
+Describe the data structure type @samp{cairo_font_extents_t}.
+@end deffn
+
+
+@deffn Constant cairo_subpixel_order_t
+@deffnx Constant sizeof-cairo_subpixel_order_t
+@deffnx Constant strideof-cairo_subpixel_order_t
+@deffnx Constant alignof-cairo_subpixel_order_t
+Describe the type @samp{cairo_subpixel_order_t}.
+@end deffn
+
+
+@deffn Constant cairo_hint_style_t
+@deffnx Constant sizeof-cairo_hint_style_t
+@deffnx Constant strideof-cairo_hint_style_t
+@deffnx Constant alignof-cairo_hint_style_t
+Describe the type @samp{cairo_hint_style_t}.
+@end deffn
+
+
+@deffn Constant cairo_hint_metrics_t
+@deffnx Constant sizeof-cairo_hint_metrics_t
+@deffnx Constant strideof-cairo_hint_metrics_t
+@deffnx Constant alignof-cairo_hint_metrics_t
+Describe the type @samp{cairo_hint_metrics_t}.
+@end deffn
+
+
+@deffn Constant cairo_font_type_t
+@deffnx Constant sizeof-cairo_font_type_t
+@deffnx Constant strideof-cairo_font_type_t
+@deffnx Constant alignof-cairo_font_type_t
+Describe the type @samp{cairo_font_type_t}.
+@end deffn
+
+@deffn Constant sizeof-cairo_path_t
+@deffnx Constant strideof-cairo_path_t
+@deffnx Constant alignof-cairo_path_t
+Describe the type @samp{cairo_path_t}.
+@end deffn
+
+
+@deffn Constant cairo_surface_type_t
+@deffnx Constant sizeof-cairo_surface_type_t
+@deffnx Constant strideof-cairo_surface_type_t
+@deffnx Constant alignof-cairo_surface_type_t
+Describe the type @samp{cairo_surface_type_t}.
+@end deffn
+
+
+@deffn Constant cairo_format_t
+@deffnx Constant sizeof-cairo_format_t
+@deffnx Constant strideof-cairo_format_t
+@deffnx Constant alignof-cairo_format_t
+Describe the type @samp{cairo_format_t}.
+@end deffn
+
+
+@deffn Constant cairo_pattern_type_t
+@deffnx Constant sizeof-cairo_pattern_type_t
+@deffnx Constant strideof-cairo_pattern_type_t
+@deffnx Constant alignof-cairo_pattern_type_t
+Describe the type @samp{cairo_pattern_type_t}.
+@end deffn
+
+
+@deffn Constant cairo_extend_t
+@deffnx Constant sizeof-cairo_extend_t
+@deffnx Constant strideof-cairo_extend_t
+@deffnx Constant alignof-cairo_extend_t
+Describe the type @samp{cairo_extend_t}.
+@end deffn
+
+
+@deffn Constant cairo_filter_t
+@deffnx Constant sizeof-cairo_filter_t
+@deffnx Constant strideof-cairo_filter_t
+@deffnx Constant alignof-cairo_filter_t
+Describe the type @samp{cairo_filter_t}.
+@end deffn
+
+
+@deffn Constant cairo_antialias_t
+@deffnx Constant sizeof-cairo_antialias_t
+@deffnx Constant strideof-cairo_antialias_t
+@deffnx Constant alignof-cairo_antialias_t
+Describe the type @samp{cairo_antialias_t}.
+@end deffn
+
+
+@deffn Constant cairo_line_cap_t
+@deffnx Constant sizeof-cairo_line_cap_t
+@deffnx Constant strideof-cairo_line_cap_t
+@deffnx Constant alignof-cairo_line_cap_t
+Describe the type @samp{cairo_line_cap_t}.
+@end deffn
+
+
+@deffn Constant cairo_line_join_t
+@deffnx Constant sizeof-cairo_line_join_t
+@deffnx Constant strideof-cairo_line_join_t
+@deffnx Constant alignof-cairo_line_join_t
+Describe the type @samp{cairo_line_join_t}.
+@end deffn
+
+
+@deffn Constant cairo_font_slant_t
+@deffnx Constant sizeof-cairo_font_slant_t
+@deffnx Constant strideof-cairo_font_slant_t
+@deffnx Constant alignof-cairo_font_slant_t
+Describe the type @samp{cairo_font_slant_t}.
+@end deffn
+
+
+@deffn Constant cairo_font_weight_t
+@deffnx Constant sizeof-cairo_font_weight_t
+@deffnx Constant strideof-cairo_font_weight_t
+@deffnx Constant alignof-cairo_font_weight_t
+Describe the type @samp{cairo_font_weight_t}.
+@end deffn
+
+
+@deffn Constant cairo_text_cluster_flags_t
+@deffnx Constant sizeof-cairo_text_cluster_flags_t
+@deffnx Constant strideof-cairo_text_cluster_flags_t
+@deffnx Constant alignof-cairo_text_cluster_flags_t
+Describe the type @samp{cairo_text_cluster_flags_t}.
+@end deffn
+
+@c page
+@node constants
+@chapter Constant values
+
+
+The following bindings are exported by @library{foreign cairo sizeof}.
+
+
+@deffn Constant CAIRO_STATUS_SUCCESS
+@deffnx Constant CAIRO_STATUS_NO_MEMORY
+@deffnx Constant CAIRO_STATUS_INVALID_RESTORE
+@deffnx Constant CAIRO_STATUS_INVALID_POP_GROUP
+@deffnx Constant CAIRO_STATUS_NO_CURRENT_POINT
+@deffnx Constant CAIRO_STATUS_INVALID_MATRIX
+@deffnx Constant CAIRO_STATUS_INVALID_STATUS
+@deffnx Constant CAIRO_STATUS_NULL_POINTER
+@deffnx Constant CAIRO_STATUS_INVALID_STRING
+@deffnx Constant CAIRO_STATUS_INVALID_PATH_DATA
+@deffnx Constant CAIRO_STATUS_READ_ERROR
+@deffnx Constant CAIRO_STATUS_WRITE_ERROR
+@deffnx Constant CAIRO_STATUS_SURFACE_FINISHED
+@deffnx Constant CAIRO_STATUS_SURFACE_TYPE_MISMATCH
+@deffnx Constant CAIRO_STATUS_PATTERN_TYPE_MISMATCH
+@deffnx Constant CAIRO_STATUS_INVALID_CONTENT
+@deffnx Constant CAIRO_STATUS_INVALID_FORMAT
+@deffnx Constant CAIRO_STATUS_INVALID_VISUAL
+@deffnx Constant CAIRO_STATUS_FILE_NOT_FOUND
+@deffnx Constant CAIRO_STATUS_INVALID_DASH
+@deffnx Constant CAIRO_STATUS_INVALID_DSC_COMMENT
+@deffnx Constant CAIRO_STATUS_INVALID_INDEX
+@deffnx Constant CAIRO_STATUS_CLIP_NOT_REPRESENTABLE
+@deffnx Constant CAIRO_STATUS_TEMP_FILE_ERROR
+@deffnx Constant CAIRO_STATUS_INVALID_STRIDE
+@deffnx Constant CAIRO_STATUS_FONT_TYPE_MISMATCH
+@deffnx Constant CAIRO_STATUS_USER_FONT_IMMUTABLE
+@deffnx Constant CAIRO_STATUS_USER_FONT_ERROR
+@deffnx Constant CAIRO_STATUS_NEGATIVE_COUNT
+@deffnx Constant CAIRO_STATUS_INVALID_CLUSTERS
+@deffnx Constant CAIRO_STATUS_INVALID_SLANT
+@deffnx Constant CAIRO_STATUS_INVALID_WEIGHT
+Values of the enumeration @samp{cairo_status_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_CONTENT_COLOR
+@deffnx Constant CAIRO_CONTENT_ALPHA
+@deffnx Constant CAIRO_CONTENT_COLOR_ALPHA
+Values of the enumeration @samp{cairo_content_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_OPERATOR_CLEAR
+@deffnx Constant CAIRO_OPERATOR_SOURCE
+@deffnx Constant CAIRO_OPERATOR_OVER
+@deffnx Constant CAIRO_OPERATOR_IN
+@deffnx Constant CAIRO_OPERATOR_OUT
+@deffnx Constant CAIRO_OPERATOR_ATOP
+@deffnx Constant CAIRO_OPERATOR_DEST
+@deffnx Constant CAIRO_OPERATOR_DEST_OVER
+@deffnx Constant CAIRO_OPERATOR_DEST_IN
+@deffnx Constant CAIRO_OPERATOR_DEST_OUT
+@deffnx Constant CAIRO_OPERATOR_DEST_ATOP
+@deffnx Constant CAIRO_OPERATOR_XOR
+@deffnx Constant CAIRO_OPERATOR_ADD
+@deffnx Constant CAIRO_OPERATOR_SATURATE
+Values of the enumeration @samp{cairo_operator_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_ANTIALIAS_DEFAULT
+@deffnx Constant CAIRO_ANTIALIAS_NONE
+@deffnx Constant CAIRO_ANTIALIAS_GRAY
+@deffnx Constant CAIRO_ANTIALIAS_SUBPIXEL
+Values of the enumeration @samp{cairo_antialias_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_LINE_CAP_BUTT
+@deffnx Constant CAIRO_LINE_CAP_ROUND
+@deffnx Constant CAIRO_LINE_CAP_SQUARE
+Values of the enumeration @samp{cairo_line_cap_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_LINE_JOIN_MITER
+@deffnx Constant CAIRO_LINE_JOIN_ROUND
+@deffnx Constant CAIRO_LINE_JOIN_BEVEL
+Values of the enumeration @samp{cairo_line_join_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_TEXT_CLUSTER_FLAG_BACKWARD
+Values of the enumeration @samp{cairo_text_cluster_flags_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_FONT_SLANT_NORMAL
+@deffnx Constant CAIRO_FONT_SLANT_ITALIC
+@deffnx Constant CAIRO_FONT_SLANT_OBLIQUE
+Values of the enumeration @samp{cairo_font_slant_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_FONT_WEIGHT_NORMAL
+@deffnx Constant CAIRO_FONT_WEIGHT_BOLD
+Values of the enumeration @samp{cairo_font_weight_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_SUBPIXEL_ORDER_DEFAULT
+@deffnx Constant CAIRO_SUBPIXEL_ORDER_RGB
+@deffnx Constant CAIRO_SUBPIXEL_ORDER_BGR
+@deffnx Constant CAIRO_SUBPIXEL_ORDER_VRGB
+@deffnx Constant CAIRO_SUBPIXEL_ORDER_VBGR
+Values of the enumeration @samp{cairo_subpixel_order_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_HINT_STYLE_DEFAULT
+@deffnx Constant CAIRO_HINT_STYLE_NONE
+@deffnx Constant CAIRO_HINT_STYLE_SLIGHT
+@deffnx Constant CAIRO_HINT_STYLE_MEDIUM
+@deffnx Constant CAIRO_HINT_STYLE_FULL
+Values of the enumeration @samp{cairo_hint_style_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_HINT_METRICS_DEFAULT
+@deffnx Constant CAIRO_HINT_METRICS_OFF
+@deffnx Constant CAIRO_HINT_METRICS_ON
+Values of the enumeration @samp{cairo_hint_metrics_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_FONT_TYPE_TOY
+@deffnx Constant CAIRO_FONT_TYPE_FT
+@deffnx Constant CAIRO_FONT_TYPE_WIN32
+@deffnx Constant CAIRO_FONT_TYPE_QUARTZ
+@deffnx Constant CAIRO_FONT_TYPE_USER
+Values of the enumeration @samp{cairo_font_type_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_PATH_MOVE_TO
+@deffnx Constant CAIRO_PATH_LINE_TO
+@deffnx Constant CAIRO_PATH_CURVE_TO
+@deffnx Constant CAIRO_PATH_CLOSE_PATH
+Values of the enumeration @samp{cairo_path_data_type_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_FORMAT_ARGB32
+@deffnx Constant CAIRO_FORMAT_RGB24
+@deffnx Constant CAIRO_FORMAT_A8
+@deffnx Constant CAIRO_FORMAT_A1
+Values of the enumeration @samp{cairo_format_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_PATTERN_TYPE_SOLID
+@deffnx Constant CAIRO_PATTERN_TYPE_SURFACE
+@deffnx Constant CAIRO_PATTERN_TYPE_LINEAR
+@deffnx Constant CAIRO_PATTERN_TYPE_RADIAL
+Values of the enumeration @samp{cairo_pattern_type_t}.
+@end deffn
+
+
+@deffn Constant CAIRO_HAS_PNG_FUNCTIONS
+Bound to @true{} if the library inspected at installation time by the
+@value{PACKAGE} infrastructure supports reading and writing images in
+@acronym{PNG} format.
+@end deffn
+
+@c page
+@node structs
+@chapter Data structure accessors and mutators
+
+
+The following bindings are exported by @library{foreign cairo sizeof}.
+
+
+@deffn Syntax cairo_matrix_t-xx-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_matrix_t-xx-ref @var{pointer}
+@deffnx Syntax cairo_matrix_t-xy-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_matrix_t-xy-ref @var{pointer}
+@deffnx Syntax cairo_matrix_t-yx-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_matrix_t-yx-ref @var{pointer}
+@deffnx Syntax cairo_matrix_t-yy-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_matrix_t-yy-ref @var{pointer}
+@deffnx Syntax cairo_matrix_t-x0-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_matrix_t-x0-ref @var{pointer}
+@deffnx Syntax cairo_matrix_t-y0-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_matrix_t-y0-ref @var{pointer}
+Accessors and mutators for the data structure type
+@samp{cairo_matrix_t}.
+@end deffn
+
+
+@deffn Syntax cairo_rectangle_t-x-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_rectangle_t-x-ref @var{pointer}
+@deffnx Syntax cairo_rectangle_t-y-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_rectangle_t-y-ref @var{pointer}
+@deffnx Syntax cairo_rectangle_t-width-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_rectangle_t-width-ref @var{pointer}
+@deffnx Syntax cairo_rectangle_t-height-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_rectangle_t-height-ref @var{pointer}
+Accessors and mutators for the data structure type
+@samp{cairo_rectangle_t}.
+@end deffn
+
+
+@deffn Syntax cairo_rectangle_list_t-status-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_rectangle_list_t-status-ref @var{pointer}
+@deffnx Syntax cairo_rectangle_list_t-rectangles-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_rectangle_list_t-rectangles-ref @var{pointer}
+@deffnx Syntax cairo_rectangle_list_t-num_rectangles-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_rectangle_list_t-num_rectangles-ref @var{pointer}
+Accessors and mutators for the data structure type
+@samp{cairo_rectangle_list_t}.
+@end deffn
+
+
+@deffn Syntax cairo_glyph_t-index-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_glyph_t-index-ref @var{pointer}
+@deffnx Syntax cairo_glyph_t-x-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_glyph_t-x-ref @var{pointer}
+@deffnx Syntax cairo_glyph_t-y-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_glyph_t-y-ref @var{pointer}
+Accessors and mutators for the data structure type
+@samp{cairo_glyph_t}.
+@end deffn
+
+
+@deffn Syntax cairo_text_cluster_t-num_bytes-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_text_cluster_t-num_bytes-ref @var{pointer}
+@deffnx Syntax cairo_text_cluster_t-num_glyphs-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_text_cluster_t-num_glyphs-ref @var{pointer}
+Accessors and mutators for the data structure type
+@samp{cairo_text_cluster_t}.
+@end deffn
+
+
+@deffn Syntax cairo_text_extents_t-x_bearing-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_text_extents_t-x_bearing-ref @var{pointer}
+@deffnx Syntax cairo_text_extents_t-y_bearing-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_text_extents_t-y_bearing-ref @var{pointer}
+@deffnx Syntax cairo_text_extents_t-width-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_text_extents_t-width-ref @var{pointer}
+@deffnx Syntax cairo_text_extents_t-height-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_text_extents_t-height-ref @var{pointer}
+@deffnx Syntax cairo_text_extents_t-x_advance-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_text_extents_t-x_advance-ref @var{pointer}
+@deffnx Syntax cairo_text_extents_t-y_advance-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_text_extents_t-y_advance-ref @var{pointer}
+Accessors and mutators for the data structure type
+@samp{cairo_text_extents_t}.
+@end deffn
+
+
+@deffn Syntax cairo_font_extents_t-ascent-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_font_extents_t-ascent-ref @var{pointer}
+@deffnx Syntax cairo_font_extents_t-descent-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_font_extents_t-descent-ref @var{pointer}
+@deffnx Syntax cairo_font_extents_t-height-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_font_extents_t-height-ref @var{pointer}
+@deffnx Syntax cairo_font_extents_t-max_x_advance-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_font_extents_t-max_x_advance-ref @var{pointer}
+@deffnx Syntax cairo_font_extents_t-max_y_advance-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_font_extents_t-max_y_advance-ref @var{pointer}
+Accessors and mutators for the data structure type
+@samp{cairo_font_extents_t}.
+@end deffn
+
+
+@deffn Syntax cairo_path_data_t-header.type-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_path_data_t-header.type-ref @var{pointer}
+@deffnx Syntax cairo_path_data_t-header.length-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_path_data_t-header.length-ref @var{pointer}
+Accessors and mutators for the union type @samp{cairo_path_data_t}, data
+structure field @samp{header}.
+@end deffn
+
+
+@deffn Syntax cairo_path_data_t-point.x-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_path_data_t-point.x-ref @var{pointer}
+@deffnx Syntax cairo_path_data_t-point.y-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_path_data_t-point.y-ref @var{pointer}
+Accessors and mutators for the union type @samp{cairo_path_data_t}, data
+structure field @samp{point}.
+@end deffn
+
+
+@deffn Syntax cairo_path_t-status-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_path_t-status-ref @var{pointer}
+@deffnx Syntax cairo_path_t-data-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_path_t-data-ref @var{pointer}
+@deffnx Syntax cairo_path_t-num_data-set! @var{pointer} @var{value}
+@deffnx Syntax cairo_path_t-num_data-ref @var{pointer}
+Accessors and mutators for the data structure type @samp{cairo_path_t}.
+@end deffn
 
 @c page
 

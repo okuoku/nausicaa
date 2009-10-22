@@ -335,10 +335,10 @@
     cairo_path_data_t-header.length-set!	cairo_path_data_t-header.length-ref
     cairo_path_data_t-point.x-set!		cairo_path_data_t-point.x-ref
     cairo_path_data_t-point.y-set!		cairo_path_data_t-point.y-ref
+
     cairo_path_t-status-set!			cairo_path_t-status-ref
     cairo_path_t-data-set!			cairo_path_t-data-ref
-    cairo_path_t-num_data-set!			cairo_path_t-num_data-ref
-    )
+    cairo_path_t-num_data-set!			cairo_path_t-num_data-ref)
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof))
