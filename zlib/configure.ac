@@ -40,7 +40,7 @@ DS_EXCLUDE_SECTION([AUTOCONF])
 DS_EXCLUDE_SECTION([PKGCONFIG])
 NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
 NAUSICAA_C_LANGUAGE
-AC_CHECK_HEADERS([zlib.h],,[AC_MSG_FAILURE([cannot find libz library],[2])])
+AC_CHECK_HEADERS([zlib.h],,[AC_MSG_FAILURE([cannot find libz header],[2])])
 AC_CHECK_LIB([z],[deflate],,[AC_MSG_FAILURE([cannot find libz library],[2])])
 NAUSICAA_SIZEOF
 
