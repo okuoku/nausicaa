@@ -687,9 +687,7 @@
     (declare-method alpha ((o <number>))		'<number>)
 
     (check (class-definition-name (class-of 12))		=> '<fixnum>)
-    (check (class-definition-name (class-of 1.2))		=> (cond-expand
-								    (mosh '<rational-valued>)
-								    (else '<rational>)))
+    (check (class-definition-name (class-of 1.2))		=> '<rational>)
     (check (class-definition-name (class-of (expt 12 12)))	=> '<integer>)
     (check (class-definition-name (class-of 1.2+3.4i))		=> '<complex>)
 

@@ -81,16 +81,15 @@
       "expected exact integer as function argument" value)))
 
 (define (assert-float value)
-  (if (flonum? value)
-      value
-    (assertion-violation 'assert-float
-      "expected flonum as function argument" value)))
+  (cond ((flonum? value)
+	 value)
+	((real? value)
+	 (inexact value))
+	(else
+	 (assertion-violation 'assert-float
+	   "expected real as function argument" value))))
 
-(define (assert-double value)
-  (if (flonum? value)
-      value
-    (assertion-violation 'assert-double
-      "expected flonum as function argument" value)))
+(define assert-double assert-float)
 
 (define (assert-string value)
   (if (string? value)
