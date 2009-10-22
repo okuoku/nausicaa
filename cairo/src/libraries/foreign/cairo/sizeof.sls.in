@@ -1,0 +1,934 @@
+;;;
+;;;Part of: Nausicaa/Cairo
+;;;Contents: size of libraries' C language types
+;;;Date: Thu Oct 22, 2009
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+(library (foreign cairo sizeof)
+  (export
+
+    ;; type inspection
+    cairo_bool_t
+    sizeof-cairo_bool_t
+    strideof-cairo_bool_t
+    alignof-cairo_bool_t
+
+    cairo_status_t
+    sizeof-cairo_status_t
+    strideof-cairo_status_t
+    alignof-cairo_status_t
+
+    cairo_content_t
+    sizeof-cairo_content_t
+    strideof-cairo_content_t
+    alignof-cairo_content_t
+
+    sizeof-cairo_matrix_t
+    strideof-cairo_matrix_t
+    alignof-cairo_matrix_t
+
+    sizeof-cairo_user_data_key_t
+    strideof-cairo_user_data_key_t
+    alignof-cairo_user_data_key_t
+
+    cairo_operator_t
+    sizeof-cairo_operator_t
+    strideof-cairo_operator_t
+    alignof-cairo_operator_t
+
+    cairo_fill_rule_t
+    sizeof-cairo_fill_rule_t
+    strideof-cairo_fill_rule_t
+    alignof-cairo_fill_rule_t
+
+    sizeof-cairo_rectangle_t
+    strideof-cairo_rectangle_t
+    alignof-cairo_rectangle_t
+
+    sizeof-cairo_rectangle_list_t
+    strideof-cairo_rectangle_list_t
+    alignof-cairo_rectangle_list_t
+
+    sizeof-cairo_glyph_t
+    strideof-cairo_glyph_t
+    alignof-cairo_glyph_t
+
+    sizeof-cairo_text_cluster_t
+    strideof-cairo_text_cluster_t
+    alignof-cairo_text_cluster_t
+
+    sizeof-cairo_text_extents_t
+    strideof-cairo_text_extents_t
+    alignof-cairo_text_extents_t
+
+    sizeof-cairo_font_extents_t
+    strideof-cairo_font_extents_t
+    alignof-cairo_font_extents_t
+
+    cairo_subpixel_order_t
+    sizeof-cairo_subpixel_order_t
+    strideof-cairo_subpixel_order_t
+    alignof-cairo_subpixel_order_t
+
+    cairo_hint_style_t
+    sizeof-cairo_hint_style_t
+    strideof-cairo_hint_style_t
+    alignof-cairo_hint_style_t
+
+    cairo_hint_metrics_t
+    sizeof-cairo_hint_metrics_t
+    strideof-cairo_hint_metrics_t
+    alignof-cairo_hint_metrics_t
+
+    cairo_font_type_t
+    sizeof-cairo_font_type_t
+    strideof-cairo_font_type_t
+    alignof-cairo_font_type_t
+
+    sizeof-cairo_path_t
+    strideof-cairo_path_t
+    alignof-cairo_path_t
+
+    cairo_surface_type_t
+    sizeof-cairo_surface_type_t
+    strideof-cairo_surface_type_t
+    alignof-cairo_surface_type_t
+
+    cairo_format_t
+    sizeof-cairo_format_t
+    strideof-cairo_format_t
+    alignof-cairo_format_t
+
+    cairo_pattern_type_t
+    sizeof-cairo_pattern_type_t
+    strideof-cairo_pattern_type_t
+    alignof-cairo_pattern_type_t
+
+    cairo_extend_t
+    sizeof-cairo_extend_t
+    strideof-cairo_extend_t
+    alignof-cairo_extend_t
+
+    cairo_filter_t
+    sizeof-cairo_filter_t
+    strideof-cairo_filter_t
+    alignof-cairo_filter_t
+
+    cairo_antialias_t
+    sizeof-cairo_antialias_t
+    strideof-cairo_antialias_t
+    alignof-cairo_antialias_t
+
+    cairo_line_cap_t
+    sizeof-cairo_line_cap_t
+    strideof-cairo_line_cap_t
+    alignof-cairo_line_cap_t
+
+    cairo_line_join_t
+    sizeof-cairo_line_join_t
+    strideof-cairo_line_join_t
+    alignof-cairo_line_join_t
+
+    cairo_font_slant_t
+    sizeof-cairo_font_slant_t
+    strideof-cairo_font_slant_t
+    alignof-cairo_font_slant_t
+
+    cairo_font_weight_t
+    sizeof-cairo_font_weight_t
+    strideof-cairo_font_weight_t
+    alignof-cairo_font_weight_t
+
+    cairo_text_cluster_flags_t
+    sizeof-cairo_text_cluster_flags_t
+    strideof-cairo_text_cluster_flags_t
+    alignof-cairo_text_cluster_flags_t
+
+    ;; enum cairo_status_t
+    CAIRO_STATUS_SUCCESS
+    CAIRO_STATUS_NO_MEMORY
+    CAIRO_STATUS_INVALID_RESTORE
+    CAIRO_STATUS_INVALID_POP_GROUP
+    CAIRO_STATUS_NO_CURRENT_POINT
+    CAIRO_STATUS_INVALID_MATRIX
+    CAIRO_STATUS_INVALID_STATUS
+    CAIRO_STATUS_NULL_POINTER
+    CAIRO_STATUS_INVALID_STRING
+    CAIRO_STATUS_INVALID_PATH_DATA
+    CAIRO_STATUS_READ_ERROR
+    CAIRO_STATUS_WRITE_ERROR
+    CAIRO_STATUS_SURFACE_FINISHED
+    CAIRO_STATUS_SURFACE_TYPE_MISMATCH
+    CAIRO_STATUS_PATTERN_TYPE_MISMATCH
+    CAIRO_STATUS_INVALID_CONTENT
+    CAIRO_STATUS_INVALID_FORMAT
+    CAIRO_STATUS_INVALID_VISUAL
+    CAIRO_STATUS_FILE_NOT_FOUND
+    CAIRO_STATUS_INVALID_DASH
+    CAIRO_STATUS_INVALID_DSC_COMMENT
+    CAIRO_STATUS_INVALID_INDEX
+    CAIRO_STATUS_CLIP_NOT_REPRESENTABLE
+    CAIRO_STATUS_TEMP_FILE_ERROR
+    CAIRO_STATUS_INVALID_STRIDE
+    CAIRO_STATUS_FONT_TYPE_MISMATCH
+    CAIRO_STATUS_USER_FONT_IMMUTABLE
+    CAIRO_STATUS_USER_FONT_ERROR
+    CAIRO_STATUS_NEGATIVE_COUNT
+    CAIRO_STATUS_INVALID_CLUSTERS
+    CAIRO_STATUS_INVALID_SLANT
+    CAIRO_STATUS_INVALID_WEIGHT
+
+    ;; enum cairo_content_t
+    CAIRO_CONTENT_COLOR
+    CAIRO_CONTENT_ALPHA
+    CAIRO_CONTENT_COLOR_ALPHA
+
+    ;; enum cairo_operator_
+    CAIRO_OPERATOR_CLEAR
+    CAIRO_OPERATOR_SOURCE
+    CAIRO_OPERATOR_OVER
+    CAIRO_OPERATOR_IN
+    CAIRO_OPERATOR_OUT
+    CAIRO_OPERATOR_ATOP
+    CAIRO_OPERATOR_DEST
+    CAIRO_OPERATOR_DEST_OVER
+    CAIRO_OPERATOR_DEST_IN
+    CAIRO_OPERATOR_DEST_OUT
+    CAIRO_OPERATOR_DEST_ATOP
+    CAIRO_OPERATOR_XOR
+    CAIRO_OPERATOR_ADD
+    CAIRO_OPERATOR_SATURATE
+
+    ;; enum cairo_antialias_t
+    CAIRO_ANTIALIAS_DEFAULT
+    CAIRO_ANTIALIAS_NONE
+    CAIRO_ANTIALIAS_GRAY
+    CAIRO_ANTIALIAS_SUBPIXEL
+
+    ;; enum cairo_line_cap_t
+    CAIRO_LINE_CAP_BUTT
+    CAIRO_LINE_CAP_ROUND
+    CAIRO_LINE_CAP_SQUARE
+
+    ;; enum cairo_line_join_t
+    CAIRO_LINE_JOIN_MITER
+    CAIRO_LINE_JOIN_ROUND
+    CAIRO_LINE_JOIN_BEVEL
+
+    ;; enum cairo_text_cluster_flags_t
+    CAIRO_TEXT_CLUSTER_FLAG_BACKWARD
+
+    ;; enum cairo_font_slant_t
+    CAIRO_FONT_SLANT_NORMAL
+    CAIRO_FONT_SLANT_ITALIC
+    CAIRO_FONT_SLANT_OBLIQUE
+
+    ;; enum cairo_font_weight_t
+    CAIRO_FONT_WEIGHT_NORMAL
+    CAIRO_FONT_WEIGHT_BOLD
+
+    ;; enum cairo_subpixel_order_t
+    CAIRO_SUBPIXEL_ORDER_DEFAULT
+    CAIRO_SUBPIXEL_ORDER_RGB
+    CAIRO_SUBPIXEL_ORDER_BGR
+    CAIRO_SUBPIXEL_ORDER_VRGB
+    CAIRO_SUBPIXEL_ORDER_VBGR
+
+    ;; enum cairo_hint_style_t
+    CAIRO_HINT_STYLE_DEFAULT
+    CAIRO_HINT_STYLE_NONE
+    CAIRO_HINT_STYLE_SLIGHT
+    CAIRO_HINT_STYLE_MEDIUM
+    CAIRO_HINT_STYLE_FULL
+
+    ;; enum cairo_hint_metrics_t
+    CAIRO_HINT_METRICS_DEFAULT
+    CAIRO_HINT_METRICS_OFF
+    CAIRO_HINT_METRICS_ON
+
+    ;; enum cairo_font_type_t
+    CAIRO_FONT_TYPE_TOY
+    CAIRO_FONT_TYPE_FT
+    CAIRO_FONT_TYPE_WIN32
+    CAIRO_FONT_TYPE_QUARTZ
+    CAIRO_FONT_TYPE_USER
+
+    ;; enum cairo_path_data_type_t
+    CAIRO_PATH_MOVE_TO
+    CAIRO_PATH_LINE_TO
+    CAIRO_PATH_CURVE_TO
+    CAIRO_PATH_CLOSE_PATH
+
+    ;; enum cairo_format_t
+    CAIRO_FORMAT_ARGB32
+    CAIRO_FORMAT_RGB24
+    CAIRO_FORMAT_A8
+    CAIRO_FORMAT_A1
+
+    ;; enum cairo_pattern_type_t
+    CAIRO_PATTERN_TYPE_SOLID
+    CAIRO_PATTERN_TYPE_SURFACE
+    CAIRO_PATTERN_TYPE_LINEAR
+    CAIRO_PATTERN_TYPE_RADIAL
+
+    ;; defines
+    CAIRO_HAS_PNG_FUNCTIONS
+
+    ;; accessors and mutators
+    cairo_matrix_t-xx-set!			cairo_matrix_t-xx-ref
+    cairo_matrix_t-xy-set!			cairo_matrix_t-xy-ref
+    cairo_matrix_t-yx-set!			cairo_matrix_t-yx-ref
+    cairo_matrix_t-yy-set!			cairo_matrix_t-yy-ref
+    cairo_matrix_t-x0-set!			cairo_matrix_t-x0-ref
+    cairo_matrix_t-y0-set!			cairo_matrix_t-y0-ref
+
+    cairo_rectangle_t-x-set!			cairo_rectangle_t-x-ref
+    cairo_rectangle_t-y-set!			cairo_rectangle_t-y-ref
+    cairo_rectangle_t-width-set!		cairo_rectangle_t-width-ref
+    cairo_rectangle_t-height-set!		cairo_rectangle_t-height-ref
+
+    cairo_rectangle_list_t-status-set!		cairo_rectangle_list_t-status-ref
+    cairo_rectangle_list_t-rectangles-set!	cairo_rectangle_list_t-rectangles-ref
+    cairo_rectangle_list_t-num_rectangles-set!	cairo_rectangle_list_t-num_rectangles-ref
+
+    cairo_glyph_t-index-set!			cairo_glyph_t-index-ref
+    cairo_glyph_t-x-set!			cairo_glyph_t-x-ref
+    cairo_glyph_t-y-set!			cairo_glyph_t-y-ref
+
+    cairo_text_cluster_t-num_bytes-set!		cairo_text_cluster_t-num_bytes-ref
+    cairo_text_cluster_t-num_glyphs-set!	cairo_text_cluster_t-num_glyphs-ref
+
+    cairo_text_extents_t-x_bearing-set!		cairo_text_extents_t-x_bearing-ref
+    cairo_text_extents_t-y_bearing-set!		cairo_text_extents_t-y_bearing-ref
+    cairo_text_extents_t-width-set!		cairo_text_extents_t-width-ref
+    cairo_text_extents_t-height-set!		cairo_text_extents_t-height-ref
+    cairo_text_extents_t-x_advance-set!		cairo_text_extents_t-x_advance-ref
+    cairo_text_extents_t-y_advance-set!		cairo_text_extents_t-y_advance-ref
+
+    cairo_font_extents_t-ascent-set!		cairo_font_extents_t-ascent-ref
+    cairo_font_extents_t-descent-set!		cairo_font_extents_t-descent-ref
+    cairo_font_extents_t-height-set!		cairo_font_extents_t-height-ref
+    cairo_font_extents_t-max_x_advance-set!	cairo_font_extents_t-max_x_advance-ref
+    cairo_font_extents_t-max_y_advance-set!	cairo_font_extents_t-max_y_advance-ref
+
+    cairo_path_data_t-header.type-set!		cairo_path_data_t-header.type-ref
+    cairo_path_data_t-header.length-set!	cairo_path_data_t-header.length-ref
+    cairo_path_data_t-point.x-set!		cairo_path_data_t-point.x-ref
+    cairo_path_data_t-point.y-set!		cairo_path_data_t-point.y-ref
+    cairo_path_t-status-set!			cairo_path_t-status-ref
+    cairo_path_t-data-set!			cairo_path_t-data-ref
+    cairo_path_t-num_data-set!			cairo_path_t-num_data-ref
+    )
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof))
+
+
+;;;; type aliases and data structures
+
+(define cairo_bool_t			(quote @TYPEOF_CAIRO_BOOL@))
+(define sizeof-cairo_bool_t		@SIZEOF_CAIRO_BOOL@)
+(define strideof-cairo_bool_t		@STRIDEOF_CAIRO_BOOL@)
+(define alignof-cairo_bool_t		@ALIGNOF_CAIRO_BOOL@)
+
+(define cairo_status_t			(quote @TYPEOF_CAIRO_STATUS@))
+(define sizeof-cairo_status_t		@SIZEOF_CAIRO_STATUS@)
+(define strideof-cairo_status_t		@STRIDEOF_CAIRO_STATUS@)
+(define alignof-cairo_status_t		@ALIGNOF_CAIRO_STATUS@)
+
+(define cairo_content_t			(quote @TYPEOF_CAIRO_CONTENT@))
+(define sizeof-cairo_content_t		@SIZEOF_CAIRO_CONTENT@)
+(define strideof-cairo_content_t	@STRIDEOF_CAIRO_CONTENT@)
+(define alignof-cairo_content_t		@ALIGNOF_CAIRO_CONTENT@)
+
+(define sizeof-cairo_matrix_t		@SIZEOF_CAIRO_MATRIX@)
+(define strideof-cairo_matrix_t		@STRIDEOF_CAIRO_MATRIX@)
+(define alignof-cairo_matrix_t		@ALIGNOF_CAIRO_MATRIX@)
+
+(define sizeof-cairo_user_data_key_t	@SIZEOF_CAIRO_USER_DATA_KEY@)
+(define strideof-cairo_user_data_key_t	@STRIDEOF_CAIRO_USER_DATA_KEY@)
+(define alignof-cairo_user_data_key_t	@ALIGNOF_CAIRO_USER_DATA_KEY@)
+
+(define cairo_operator_t		(quote @TYPEOF_CAIRO_OPERATOR@))
+(define sizeof-cairo_operator_t		@SIZEOF_CAIRO_OPERATOR@)
+(define strideof-cairo_operator_t	@STRIDEOF_CAIRO_OPERATOR@)
+(define alignof-cairo_operator_t	@ALIGNOF_CAIRO_OPERATOR@)
+
+(define cairo_fill_rule_t		(quote @TYPEOF_CAIRO_FILL_RULE@))
+(define sizeof-cairo_fill_rule_t	@SIZEOF_CAIRO_FILL_RULE@)
+(define strideof-cairo_fill_rule_t	@STRIDEOF_CAIRO_FILL_RULE@)
+(define alignof-cairo_fill_rule_t	@ALIGNOF_CAIRO_FILL_RULE@)
+
+(define sizeof-cairo_rectangle_t	@SIZEOF_CAIRO_RECTANGLE@)
+(define strideof-cairo_rectangle_t	@STRIDEOF_CAIRO_RECTANGLE@)
+(define alignof-cairo_rectangle_t	@ALIGNOF_CAIRO_RECTANGLE@)
+
+(define sizeof-cairo_rectangle_list_t	@SIZEOF_CAIRO_RECTANGLE_LIST@)
+(define strideof-cairo_rectangle_list_t	@STRIDEOF_CAIRO_RECTANGLE_LIST@)
+(define alignof-cairo_rectangle_list_t	@ALIGNOF_CAIRO_RECTANGLE_LIST@)
+
+(define sizeof-cairo_glyph_t		@SIZEOF_CAIRO_GLYPH@)
+(define strideof-cairo_glyph_t		@STRIDEOF_CAIRO_GLYPH@)
+(define alignof-cairo_glyph_t		@ALIGNOF_CAIRO_GLYPH@)
+
+(define sizeof-cairo_text_cluster_t	@SIZEOF_CAIRO_TEXT_CLUSTER@)
+(define strideof-cairo_text_cluster_t	@STRIDEOF_CAIRO_TEXT_CLUSTER@)
+(define alignof-cairo_text_cluster_t	@ALIGNOF_CAIRO_TEXT_CLUSTER@)
+
+(define sizeof-cairo_text_extents_t	@SIZEOF_CAIRO_TEXT_EXTENTS@)
+(define strideof-cairo_text_extents_t	@STRIDEOF_CAIRO_TEXT_EXTENTS@)
+(define alignof-cairo_text_extents_t	@ALIGNOF_CAIRO_TEXT_EXTENTS@)
+
+(define sizeof-cairo_font_extents_t	@SIZEOF_CAIRO_FONT_EXTENTS@)
+(define strideof-cairo_font_extents_t	@STRIDEOF_CAIRO_FONT_EXTENTS@)
+(define alignof-cairo_font_extents_t	@ALIGNOF_CAIRO_FONT_EXTENTS@)
+
+(define cairo_font_slant_t		(quote @TYPEOF_CAIRO_FONT_SLANT@))
+(define sizeof-cairo_font_slant_t	@SIZEOF_CAIRO_FONT_SLANT@)
+(define strideof-cairo_font_slant_t	@STRIDEOF_CAIRO_FONT_SLANT@)
+(define alignof-cairo_font_slant_t	@ALIGNOF_CAIRO_FONT_SLANT@)
+
+(define cairo_font_weight_t		(quote @TYPEOF_CAIRO_FONT_WEIGHT@))
+(define sizeof-cairo_font_weight_t	@SIZEOF_CAIRO_FONT_WEIGHT@)
+(define strideof-cairo_font_weight_t	@STRIDEOF_CAIRO_FONT_WEIGHT@)
+(define alignof-cairo_font_weight_t	@ALIGNOF_CAIRO_FONT_WEIGHT@)
+
+(define cairo_subpixel_order_t		(quote @TYPEOF_CAIRO_SUBPIXEL_ORDER@))
+(define sizeof-cairo_subpixel_order_t	@SIZEOF_CAIRO_SUBPIXEL_ORDER@)
+(define strideof-cairo_subpixel_order_t	@STRIDEOF_CAIRO_SUBPIXEL_ORDER@)
+(define alignof-cairo_subpixel_order_t	@ALIGNOF_CAIRO_SUBPIXEL_ORDER@)
+
+(define cairo_hint_style_t		(quote @TYPEOF_CAIRO_HINT_STYLE@))
+(define sizeof-cairo_hint_style_t	@SIZEOF_CAIRO_HINT_STYLE@)
+(define strideof-cairo_hint_style_t	@STRIDEOF_CAIRO_HINT_STYLE@)
+(define alignof-cairo_hint_style_t	@ALIGNOF_CAIRO_HINT_STYLE@)
+
+(define cairo_hint_metrics_t		(quote @TYPEOF_CAIRO_HINT_METRICS@))
+(define sizeof-cairo_hint_metrics_t	@SIZEOF_CAIRO_HINT_METRICS@)
+(define strideof-cairo_hint_metrics_t	@STRIDEOF_CAIRO_HINT_METRICS@)
+(define alignof-cairo_hint_metrics_t	@ALIGNOF_CAIRO_HINT_METRICS@)
+
+(define cairo_font_type_t		(quote @TYPEOF_CAIRO_FONT_TYPE@))
+(define sizeof-cairo_font_type_t	@SIZEOF_CAIRO_FONT_TYPE@)
+(define strideof-cairo_font_type_t	@STRIDEOF_CAIRO_FONT_TYPE@)
+(define alignof-cairo_font_type_t	@ALIGNOF_CAIRO_FONT_TYPE@)
+
+(define cairo_path_data_type_t		(quote @TYPEOF_CAIRO_PATH_DATA_TYPE@))
+(define sizeof-cairo_path_data_type_t	@SIZEOF_CAIRO_PATH_DATA_TYPE@)
+(define strideof-cairo_path_data_type_t	@STRIDEOF_CAIRO_PATH_DATA_TYPE@)
+(define alignof-cairo_path_data_type_t	@ALIGNOF_CAIRO_PATH_DATA_TYPE@)
+
+(define sizeof-cairo_path_data_t	@SIZEOF_CAIRO_PATH_DATA@)
+(define strideof-cairo_path_data_t	@STRIDEOF_CAIRO_PATH_DATA@)
+(define alignof-cairo_path_data_t	@ALIGNOF_CAIRO_PATH_DATA@)
+
+(define sizeof-cairo_path_t		@SIZEOF_CAIRO_PATH@)
+(define strideof-cairo_path_t		@STRIDEOF_CAIRO_PATH@)
+(define alignof-cairo_path_t		@ALIGNOF_CAIRO_PATH@)
+
+(define cairo_surface_type_t		(quote @TYPEOF_CAIRO_SURFACE_TYPE@))
+(define sizeof-cairo_surface_type_t	@SIZEOF_CAIRO_SURFACE_TYPE@)
+(define strideof-cairo_surface_type_t	@STRIDEOF_CAIRO_SURFACE_TYPE@)
+(define alignof-cairo_surface_type_t	@ALIGNOF_CAIRO_SURFACE_TYPE@)
+
+(define cairo_format_t			(quote @TYPEOF_CAIRO_FORMAT@))
+(define sizeof-cairo_format_t		@SIZEOF_CAIRO_FORMAT@)
+(define strideof-cairo_format_t		@STRIDEOF_CAIRO_FORMAT@)
+(define alignof-cairo_format_t		@ALIGNOF_CAIRO_FORMAT@)
+
+(define cairo_pattern_type_t		(quote @TYPEOF_CAIRO_PATTERN_TYPE@))
+(define sizeof-cairo_pattern_type_t	@SIZEOF_CAIRO_PATTERN_TYPE@)
+(define strideof-cairo_pattern_type_t	@STRIDEOF_CAIRO_PATTERN_TYPE@)
+(define alignof-cairo_pattern_type_t	@ALIGNOF_CAIRO_PATTERN_TYPE@)
+
+(define cairo_extend_t			(quote @TYPEOF_CAIRO_EXTEND@))
+(define sizeof-cairo_extend_t		@SIZEOF_CAIRO_EXTEND@)
+(define strideof-cairo_extend_t		@STRIDEOF_CAIRO_EXTEND@)
+(define alignof-cairo_extend_t		@ALIGNOF_CAIRO_EXTEND@)
+
+(define cairo_filter_t			(quote @TYPEOF_CAIRO_FILTER@))
+(define sizeof-cairo_filter_t		@SIZEOF_CAIRO_FILTER@)
+(define strideof-cairo_filter_t		@STRIDEOF_CAIRO_FILTER@)
+(define alignof-cairo_filter_t		@ALIGNOF_CAIRO_FILTER@)
+
+(define cairo_antialias_t		(quote @TYPEOF_CAIRO_ANTIALIAS@))
+(define sizeof-cairo_antialias_t	@SIZEOF_CAIRO_ANTIALIAS@)
+(define strideof-cairo_antialias_t	@STRIDEOF_CAIRO_ANTIALIAS@)
+(define alignof-cairo_antialias_t	@ALIGNOF_CAIRO_ANTIALIAS@)
+
+(define cairo_line_cap_t		(quote @TYPEOF_CAIRO_LINE_CAP@))
+(define sizeof-cairo_line_cap_t		@SIZEOF_CAIRO_LINE_CAP@)
+(define strideof-cairo_line_cap_t	@STRIDEOF_CAIRO_LINE_CAP@)
+(define alignof-cairo_line_cap_t	@ALIGNOF_CAIRO_LINE_CAP@)
+
+(define cairo_line_join_t		(quote @TYPEOF_CAIRO_LINE_JOIN@))
+(define sizeof-cairo_line_join_t	@SIZEOF_CAIRO_LINE_JOIN@)
+(define strideof-cairo_line_join_t	@STRIDEOF_CAIRO_LINE_JOIN@)
+(define alignof-cairo_line_join_t	@ALIGNOF_CAIRO_LINE_JOIN@)
+
+(define cairo_text_cluster_flags_t		(quote @TYPEOF_CAIRO_TEXT_CLUSTER_FLAGS@))
+(define sizeof-cairo_text_cluster_flags_t	@SIZEOF_CAIRO_TEXT_CLUSTER_FLAGS@)
+(define strideof-cairo_text_cluster_flags_t	@STRIDEOF_CAIRO_TEXT_CLUSTER_FLAGS@)
+(define alignof-cairo_text_cluster_flags_t	@ALIGNOF_CAIRO_TEXT_CLUSTER_FLAGS@)
+
+
+;;;; constants
+
+;; define value
+(define CAIRO_HAS_PNG_FUNCTIONS			@VALUEOF_CAIRO_HAS_PNG_FUNCTIONS@)
+
+;; enum cairo_status_t
+(define CAIRO_STATUS_SUCCESS			@VALUEOF_CAIRO_STATUS_SUCCESS@)
+(define CAIRO_STATUS_NO_MEMORY			@VALUEOF_CAIRO_STATUS_NO_MEMORY@)
+(define CAIRO_STATUS_INVALID_RESTORE		@VALUEOF_CAIRO_STATUS_INVALID_RESTORE@)
+(define CAIRO_STATUS_INVALID_POP_GROUP		@VALUEOF_CAIRO_STATUS_INVALID_POP_GROUP@)
+(define CAIRO_STATUS_NO_CURRENT_POINT		@VALUEOF_CAIRO_STATUS_NO_CURRENT_POINT@)
+(define CAIRO_STATUS_INVALID_MATRIX		@VALUEOF_CAIRO_STATUS_INVALID_MATRIX@)
+(define CAIRO_STATUS_INVALID_STATUS		@VALUEOF_CAIRO_STATUS_INVALID_STATUS@)
+(define CAIRO_STATUS_NULL_POINTER		@VALUEOF_CAIRO_STATUS_NULL_POINTER@)
+(define CAIRO_STATUS_INVALID_STRING		@VALUEOF_CAIRO_STATUS_INVALID_STRING@)
+(define CAIRO_STATUS_INVALID_PATH_DATA		@VALUEOF_CAIRO_STATUS_INVALID_PATH_DATA@)
+(define CAIRO_STATUS_READ_ERROR			@VALUEOF_CAIRO_STATUS_READ_ERROR@)
+(define CAIRO_STATUS_WRITE_ERROR		@VALUEOF_CAIRO_STATUS_WRITE_ERROR@)
+(define CAIRO_STATUS_SURFACE_FINISHED		@VALUEOF_CAIRO_STATUS_SURFACE_FINISHED@)
+(define CAIRO_STATUS_SURFACE_TYPE_MISMATCH	@VALUEOF_CAIRO_STATUS_SURFACE_TYPE_MISMATCH@)
+(define CAIRO_STATUS_PATTERN_TYPE_MISMATCH	@VALUEOF_CAIRO_STATUS_PATTERN_TYPE_MISMATCH@)
+(define CAIRO_STATUS_INVALID_CONTENT		@VALUEOF_CAIRO_STATUS_INVALID_CONTENT@)
+(define CAIRO_STATUS_INVALID_FORMAT		@VALUEOF_CAIRO_STATUS_INVALID_FORMAT@)
+(define CAIRO_STATUS_INVALID_VISUAL		@VALUEOF_CAIRO_STATUS_INVALID_VISUAL@)
+(define CAIRO_STATUS_FILE_NOT_FOUND		@VALUEOF_CAIRO_STATUS_FILE_NOT_FOUND@)
+(define CAIRO_STATUS_INVALID_DASH		@VALUEOF_CAIRO_STATUS_INVALID_DASH@)
+(define CAIRO_STATUS_INVALID_DSC_COMMENT	@VALUEOF_CAIRO_STATUS_INVALID_DSC_COMMENT@)
+(define CAIRO_STATUS_INVALID_INDEX		@VALUEOF_CAIRO_STATUS_INVALID_INDEX@)
+(define CAIRO_STATUS_CLIP_NOT_REPRESENTABLE	@VALUEOF_CAIRO_STATUS_CLIP_NOT_REPRESENTABLE@)
+(define CAIRO_STATUS_TEMP_FILE_ERROR		@VALUEOF_CAIRO_STATUS_TEMP_FILE_ERROR@)
+(define CAIRO_STATUS_INVALID_STRIDE		@VALUEOF_CAIRO_STATUS_INVALID_STRIDE@)
+(define CAIRO_STATUS_FONT_TYPE_MISMATCH		@VALUEOF_CAIRO_STATUS_FONT_TYPE_MISMATCH@)
+(define CAIRO_STATUS_USER_FONT_IMMUTABLE	@VALUEOF_CAIRO_STATUS_USER_FONT_IMMUTABLE@)
+(define CAIRO_STATUS_USER_FONT_ERROR		@VALUEOF_CAIRO_STATUS_USER_FONT_ERROR@)
+(define CAIRO_STATUS_NEGATIVE_COUNT		@VALUEOF_CAIRO_STATUS_NEGATIVE_COUNT@)
+(define CAIRO_STATUS_INVALID_CLUSTERS		@VALUEOF_CAIRO_STATUS_INVALID_CLUSTERS@)
+(define CAIRO_STATUS_INVALID_SLANT		@VALUEOF_CAIRO_STATUS_INVALID_SLANT@)
+(define CAIRO_STATUS_INVALID_WEIGHT		@VALUEOF_CAIRO_STATUS_INVALID_WEIGHT@)
+
+;; enum cairo_content_t
+(define CAIRO_CONTENT_COLOR			@VALUEOF_CAIRO_CONTENT_COLOR@)
+(define CAIRO_CONTENT_ALPHA			@VALUEOF_CAIRO_CONTENT_ALPHA@)
+(define CAIRO_CONTENT_COLOR_ALPHA		@VALUEOF_CAIRO_CONTENT_COLOR_ALPHA@)
+
+;; enum cairo_operator_t
+(define CAIRO_OPERATOR_CLEAR			@VALUEOF_CAIRO_OPERATOR_CLEAR@)
+(define CAIRO_OPERATOR_SOURCE			@VALUEOF_CAIRO_OPERATOR_SOURCE@)
+(define CAIRO_OPERATOR_OVER			@VALUEOF_CAIRO_OPERATOR_OVER@)
+(define CAIRO_OPERATOR_IN			@VALUEOF_CAIRO_OPERATOR_IN@)
+(define CAIRO_OPERATOR_OUT			@VALUEOF_CAIRO_OPERATOR_OUT@)
+(define CAIRO_OPERATOR_ATOP			@VALUEOF_CAIRO_OPERATOR_ATOP@)
+(define CAIRO_OPERATOR_DEST			@VALUEOF_CAIRO_OPERATOR_DEST@)
+(define CAIRO_OPERATOR_DEST_OVER		@VALUEOF_CAIRO_OPERATOR_DEST_OVER@)
+(define CAIRO_OPERATOR_DEST_IN			@VALUEOF_CAIRO_OPERATOR_DEST_IN@)
+(define CAIRO_OPERATOR_DEST_OUT			@VALUEOF_CAIRO_OPERATOR_DEST_OUT@)
+(define CAIRO_OPERATOR_DEST_ATOP		@VALUEOF_CAIRO_OPERATOR_DEST_ATOP@)
+(define CAIRO_OPERATOR_XOR			@VALUEOF_CAIRO_OPERATOR_XOR@)
+(define CAIRO_OPERATOR_ADD			@VALUEOF_CAIRO_OPERATOR_ADD@)
+(define CAIRO_OPERATOR_SATURATE			@VALUEOF_CAIRO_OPERATOR_SATURATE@)
+
+;; enum cairo_antialias_t
+(define CAIRO_ANTIALIAS_DEFAULT			@VALUEOF_CAIRO_ANTIALIAS_DEFAULT@)
+(define CAIRO_ANTIALIAS_NONE			@VALUEOF_CAIRO_ANTIALIAS_NONE@)
+(define CAIRO_ANTIALIAS_GRAY			@VALUEOF_CAIRO_ANTIALIAS_GRAY@)
+(define CAIRO_ANTIALIAS_SUBPIXEL		@VALUEOF_CAIRO_ANTIALIAS_SUBPIXEL@)
+
+;; enum cairo_line_cap_t
+(define CAIRO_LINE_CAP_BUTT			@VALUEOF_CAIRO_LINE_CAP_BUTT@)
+(define CAIRO_LINE_CAP_ROUND			@VALUEOF_CAIRO_LINE_CAP_ROUND@)
+(define CAIRO_LINE_CAP_SQUARE			@VALUEOF_CAIRO_LINE_CAP_SQUARE@)
+
+;; enum cairo_line_join_t
+(define CAIRO_LINE_JOIN_MITER			@VALUEOF_CAIRO_LINE_JOIN_MITER@)
+(define CAIRO_LINE_JOIN_ROUND			@VALUEOF_CAIRO_LINE_JOIN_ROUND@)
+(define CAIRO_LINE_JOIN_BEVEL			@VALUEOF_CAIRO_LINE_JOIN_BEVEL@)
+
+;; enum cairo_text_cluster_flags_t
+(define CAIRO_TEXT_CLUSTER_FLAG_BACKWARD	@VALUEOF_CAIRO_TEXT_CLUSTER_FLAG_BACKWARD@)
+
+;; enum cairo_font_slant_t
+(define CAIRO_FONT_SLANT_NORMAL			@VALUEOF_CAIRO_FONT_SLANT_NORMAL@)
+(define CAIRO_FONT_SLANT_ITALIC			@VALUEOF_CAIRO_FONT_SLANT_ITALIC@)
+(define CAIRO_FONT_SLANT_OBLIQUE		@VALUEOF_CAIRO_FONT_SLANT_OBLIQUE@)
+
+;; enum cairo_font_weight_t
+(define CAIRO_FONT_WEIGHT_NORMAL		@VALUEOF_CAIRO_FONT_WEIGHT_NORMAL@)
+(define CAIRO_FONT_WEIGHT_BOLD			@VALUEOF_CAIRO_FONT_WEIGHT_BOLD@)
+
+;; enum cairo_subpixel_order_t
+(define CAIRO_SUBPIXEL_ORDER_DEFAULT		@VALUEOF_CAIRO_SUBPIXEL_ORDER_DEFAULT@)
+(define CAIRO_SUBPIXEL_ORDER_RGB		@VALUEOF_CAIRO_SUBPIXEL_ORDER_RGB@)
+(define CAIRO_SUBPIXEL_ORDER_BGR		@VALUEOF_CAIRO_SUBPIXEL_ORDER_BGR@)
+(define CAIRO_SUBPIXEL_ORDER_VRGB		@VALUEOF_CAIRO_SUBPIXEL_ORDER_VRGB@)
+(define CAIRO_SUBPIXEL_ORDER_VBGR		@VALUEOF_CAIRO_SUBPIXEL_ORDER_VBGR@)
+
+;; enum cairo_hint_style_t
+(define CAIRO_HINT_STYLE_DEFAULT		@VALUEOF_CAIRO_HINT_STYLE_DEFAULT@)
+(define CAIRO_HINT_STYLE_NONE			@VALUEOF_CAIRO_HINT_STYLE_NONE@)
+(define CAIRO_HINT_STYLE_SLIGHT			@VALUEOF_CAIRO_HINT_STYLE_SLIGHT@)
+(define CAIRO_HINT_STYLE_MEDIUM			@VALUEOF_CAIRO_HINT_STYLE_MEDIUM@)
+(define CAIRO_HINT_STYLE_FULL			@VALUEOF_CAIRO_HINT_STYLE_FULL@)
+
+;; enum cairo_hint_metrics_t
+(define CAIRO_HINT_METRICS_DEFAULT		@VALUEOF_CAIRO_HINT_METRICS_DEFAULT@)
+(define CAIRO_HINT_METRICS_OFF			@VALUEOF_CAIRO_HINT_METRICS_OFF@)
+(define CAIRO_HINT_METRICS_ON			@VALUEOF_CAIRO_HINT_METRICS_ON@)
+
+;; enum cairo_font_type_t
+(define CAIRO_FONT_TYPE_TOY			@VALUEOF_CAIRO_FONT_TYPE_TOY@)
+(define CAIRO_FONT_TYPE_FT			@VALUEOF_CAIRO_FONT_TYPE_FT@)
+(define CAIRO_FONT_TYPE_WIN32			@VALUEOF_CAIRO_FONT_TYPE_WIN32@)
+(define CAIRO_FONT_TYPE_QUARTZ			@VALUEOF_CAIRO_FONT_TYPE_QUARTZ@)
+(define CAIRO_FONT_TYPE_USER			@VALUEOF_CAIRO_FONT_TYPE_USER@)
+
+;; enum cairo_path_data_type_t
+(define CAIRO_PATH_MOVE_TO			@VALUEOF_CAIRO_PATH_MOVE_TO@)
+(define CAIRO_PATH_LINE_TO			@VALUEOF_CAIRO_PATH_LINE_TO@)
+(define CAIRO_PATH_CURVE_TO			@VALUEOF_CAIRO_PATH_CURVE_TO@)
+(define CAIRO_PATH_CLOSE_PATH			@VALUEOF_CAIRO_PATH_CLOSE_PATH@)
+
+;; enum cairo_surface_type_t
+(define CAIRO_SURFACE_TYPE_IMAGE		@VALUEOF_CAIRO_SURFACE_TYPE_IMAGE@)
+(define CAIRO_SURFACE_TYPE_PDF			@VALUEOF_CAIRO_SURFACE_TYPE_PDF@)
+(define CAIRO_SURFACE_TYPE_PS			@VALUEOF_CAIRO_SURFACE_TYPE_PS@)
+(define CAIRO_SURFACE_TYPE_XLIB			@VALUEOF_CAIRO_SURFACE_TYPE_XLIB@)
+(define CAIRO_SURFACE_TYPE_XCB			@VALUEOF_CAIRO_SURFACE_TYPE_XCB@)
+(define CAIRO_SURFACE_TYPE_GLITZ		@VALUEOF_CAIRO_SURFACE_TYPE_GLITZ@)
+(define CAIRO_SURFACE_TYPE_QUARTZ		@VALUEOF_CAIRO_SURFACE_TYPE_QUARTZ@)
+(define CAIRO_SURFACE_TYPE_WIN32		@VALUEOF_CAIRO_SURFACE_TYPE_WIN32@)
+(define CAIRO_SURFACE_TYPE_BEOS			@VALUEOF_CAIRO_SURFACE_TYPE_BEOS@)
+(define CAIRO_SURFACE_TYPE_DIRECTFB		@VALUEOF_CAIRO_SURFACE_TYPE_DIRECTFB@)
+(define CAIRO_SURFACE_TYPE_SVG			@VALUEOF_CAIRO_SURFACE_TYPE_SVG@)
+(define CAIRO_SURFACE_TYPE_OS2			@VALUEOF_CAIRO_SURFACE_TYPE_OS2@)
+(define CAIRO_SURFACE_TYPE_WIN32_PRINTING	@VALUEOF_CAIRO_SURFACE_TYPE_WIN32_PRINTING@)
+(define CAIRO_SURFACE_TYPE_QUARTZ_IMAGE		@VALUEOF_CAIRO_SURFACE_TYPE_QUARTZ_IMAGE@)
+
+;; enum cairo_format_t
+(define CAIRO_FORMAT_ARGB32			@VALUEOF_CAIRO_FORMAT_ARGB32@)
+(define CAIRO_FORMAT_RGB24			@VALUEOF_CAIRO_FORMAT_RGB24@)
+(define CAIRO_FORMAT_A8				@VALUEOF_CAIRO_FORMAT_A8@)
+(define CAIRO_FORMAT_A1				@VALUEOF_CAIRO_FORMAT_A1@)
+
+;; enum cairo_pattern_type_t
+(define CAIRO_PATTERN_TYPE_SOLID		@VALUEOF_CAIRO_PATTERN_TYPE_SOLID@)
+(define CAIRO_PATTERN_TYPE_SURFACE		@VALUEOF_CAIRO_PATTERN_TYPE_SURFACE@)
+(define CAIRO_PATTERN_TYPE_LINEAR		@VALUEOF_CAIRO_PATTERN_TYPE_LINEAR@)
+(define CAIRO_PATTERN_TYPE_RADIAL		@VALUEOF_CAIRO_PATTERN_TYPE_RADIAL@)
+
+;; enum cairo_extend_t
+(define CAIRO_EXTEND_NONE			@VALUEOF_CAIRO_EXTEND_NONE@)
+(define CAIRO_EXTEND_REPEAT			@VALUEOF_CAIRO_EXTEND_REPEAT@)
+(define CAIRO_EXTEND_REFLECT			@VALUEOF_CAIRO_EXTEND_REFLECT@)
+(define CAIRO_EXTEND_PAD			@VALUEOF_CAIRO_EXTEND_PAD@)
+
+;; enum cairo_filter_t
+(define CAIRO_FILTER_FAST			@VALUEOF_CAIRO_FILTER_FAST@)
+(define CAIRO_FILTER_GOOD			@VALUEOF_CAIRO_FILTER_GOOD@)
+(define CAIRO_FILTER_BEST			@VALUEOF_CAIRO_FILTER_BEST@)
+(define CAIRO_FILTER_NEAREST			@VALUEOF_CAIRO_FILTER_NEAREST@)
+(define CAIRO_FILTER_BILINEAR			@VALUEOF_CAIRO_FILTER_BILINEAR@)
+(define CAIRO_FILTER_GAUSSIAN			@VALUEOF_CAIRO_FILTER_GAUSSIAN@)
+
+
+
+;;;; data structure accessors and mutators
+
+(define-c-struct-accessor-and-mutator
+  cairo_matrix_t-xx-set!
+  cairo_matrix_t-xx-ref
+  @OFFSETOF_CAIRO_MATRIX_XX@
+  @SETTEROF_CAIRO_MATRIX_XX@
+  @GETTEROF_CAIRO_MATRIX_XX@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_matrix_t-xy-set!
+  cairo_matrix_t-xy-ref
+  @OFFSETOF_CAIRO_MATRIX_XY@
+  @SETTEROF_CAIRO_MATRIX_XY@
+  @GETTEROF_CAIRO_MATRIX_XY@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_matrix_t-yx-set!
+  cairo_matrix_t-yx-ref
+  @OFFSETOF_CAIRO_MATRIX_YX@
+  @SETTEROF_CAIRO_MATRIX_YX@
+  @GETTEROF_CAIRO_MATRIX_YX@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_matrix_t-yy-set!
+  cairo_matrix_t-yy-ref
+  @OFFSETOF_CAIRO_MATRIX_YY@
+  @SETTEROF_CAIRO_MATRIX_YY@
+  @GETTEROF_CAIRO_MATRIX_YY@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_matrix_t-x0-set!
+  cairo_matrix_t-x0-ref
+  @OFFSETOF_CAIRO_MATRIX_X0@
+  @SETTEROF_CAIRO_MATRIX_X0@
+  @GETTEROF_CAIRO_MATRIX_X0@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_matrix_t-y0-set!
+  cairo_matrix_t-y0-ref
+  @OFFSETOF_CAIRO_MATRIX_Y0@
+  @SETTEROF_CAIRO_MATRIX_Y0@
+  @GETTEROF_CAIRO_MATRIX_Y0@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  cairo_rectangle_t-x-set!
+  cairo_rectangle_t-x-ref
+  @OFFSETOF_CAIRO_RECTANGLE_X@
+  @SETTEROF_CAIRO_RECTANGLE_X@
+  @GETTEROF_CAIRO_RECTANGLE_X@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_rectangle_t-y-set!
+  cairo_rectangle_t-y-ref
+  @OFFSETOF_CAIRO_RECTANGLE_Y@
+  @SETTEROF_CAIRO_RECTANGLE_Y@
+  @GETTEROF_CAIRO_RECTANGLE_Y@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_rectangle_t-width-set!
+  cairo_rectangle_t-width-ref
+  @OFFSETOF_CAIRO_RECTANGLE_WIDTH@
+  @SETTEROF_CAIRO_RECTANGLE_WIDTH@
+  @GETTEROF_CAIRO_RECTANGLE_WIDTH@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_rectangle_t-height-set!
+  cairo_rectangle_t-height-ref
+  @OFFSETOF_CAIRO_RECTANGLE_HEIGHT@
+  @SETTEROF_CAIRO_RECTANGLE_HEIGHT@
+  @GETTEROF_CAIRO_RECTANGLE_HEIGHT@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  cairo_rectangle_list_t-status-set!
+  cairo_rectangle_list_t-status-ref
+  @OFFSETOF_CAIRO_RECTANGLE_LIST_STATUS@
+  @SETTEROF_CAIRO_RECTANGLE_LIST_STATUS@
+  @GETTEROF_CAIRO_RECTANGLE_LIST_STATUS@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_rectangle_list_t-rectangles-set!
+  cairo_rectangle_list_t-rectangles-ref
+  @OFFSETOF_CAIRO_RECTANGLE_LIST_RECTANGLES@
+  @SETTEROF_CAIRO_RECTANGLE_LIST_RECTANGLES@
+  @GETTEROF_CAIRO_RECTANGLE_LIST_RECTANGLES@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_rectangle_list_t-num_rectangles-set!
+  cairo_rectangle_list_t-num_rectangles-ref
+  @OFFSETOF_CAIRO_RECTANGLE_LIST_NUM_RECTANGLES@
+  @SETTEROF_CAIRO_RECTANGLE_LIST_NUM_RECTANGLES@
+  @GETTEROF_CAIRO_RECTANGLE_LIST_NUM_RECTANGLES@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  cairo_glyph_t-index-set!
+  cairo_glyph_t-index-ref
+  @OFFSETOF_CAIRO_GLYPH_INDEX@
+  @SETTEROF_CAIRO_GLYPH_INDEX@
+  @GETTEROF_CAIRO_GLYPH_INDEX@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_glyph_t-x-set!
+  cairo_glyph_t-x-ref
+  @OFFSETOF_CAIRO_GLYPH_X@
+  @SETTEROF_CAIRO_GLYPH_X@
+  @GETTEROF_CAIRO_GLYPH_X@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_glyph_t-y-set!
+  cairo_glyph_t-y-ref
+  @OFFSETOF_CAIRO_GLYPH_Y@
+  @SETTEROF_CAIRO_GLYPH_Y@
+  @GETTEROF_CAIRO_GLYPH_Y@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  cairo_text_cluster_t-num_bytes-set!
+  cairo_text_cluster_t-num_bytes-ref
+  @OFFSETOF_CAIRO_TEXT_CLUSTER_NUM_BYTES@
+  @SETTEROF_CAIRO_TEXT_CLUSTER_NUM_BYTES@
+  @GETTEROF_CAIRO_TEXT_CLUSTER_NUM_BYTES@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_text_cluster_t-num_glyphs-set!
+  cairo_text_cluster_t-num_glyphs-ref
+  @OFFSETOF_CAIRO_TEXT_CLUSTER_NUM_GLYPHS@
+  @SETTEROF_CAIRO_TEXT_CLUSTER_NUM_GLYPHS@
+  @GETTEROF_CAIRO_TEXT_CLUSTER_NUM_GLYPHS@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  cairo_text_extents_t-x_bearing-set!
+  cairo_text_extents_t-x_bearing-ref
+  @OFFSETOF_CAIRO_TEXT_EXTENTS_X_BEARING@
+  @SETTEROF_CAIRO_TEXT_EXTENTS_X_BEARING@
+  @GETTEROF_CAIRO_TEXT_EXTENTS_X_BEARING@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_text_extents_t-y_bearing-set!
+  cairo_text_extents_t-y_bearing-ref
+  @OFFSETOF_CAIRO_TEXT_EXTENTS_Y_BEARING@
+  @SETTEROF_CAIRO_TEXT_EXTENTS_Y_BEARING@
+  @GETTEROF_CAIRO_TEXT_EXTENTS_Y_BEARING@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_text_extents_t-width-set!
+  cairo_text_extents_t-width-ref
+  @OFFSETOF_CAIRO_TEXT_EXTENTS_WIDTH@
+  @SETTEROF_CAIRO_TEXT_EXTENTS_WIDTH@
+  @GETTEROF_CAIRO_TEXT_EXTENTS_WIDTH@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_text_extents_t-height-set!
+  cairo_text_extents_t-height-ref
+  @OFFSETOF_CAIRO_TEXT_EXTENTS_HEIGHT@
+  @SETTEROF_CAIRO_TEXT_EXTENTS_HEIGHT@
+  @GETTEROF_CAIRO_TEXT_EXTENTS_HEIGHT@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_text_extents_t-x_advance-set!
+  cairo_text_extents_t-x_advance-ref
+  @OFFSETOF_CAIRO_TEXT_EXTENTS_X_ADVANCE@
+  @SETTEROF_CAIRO_TEXT_EXTENTS_X_ADVANCE@
+  @GETTEROF_CAIRO_TEXT_EXTENTS_X_ADVANCE@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_text_extents_t-y_advance-set!
+  cairo_text_extents_t-y_advance-ref
+  @OFFSETOF_CAIRO_TEXT_EXTENTS_Y_ADVANCE@
+  @SETTEROF_CAIRO_TEXT_EXTENTS_Y_ADVANCE@
+  @GETTEROF_CAIRO_TEXT_EXTENTS_Y_ADVANCE@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  cairo_font_extents_t-ascent-set!
+  cairo_font_extents_t-ascent-ref
+  @OFFSETOF_CAIRO_FONT_EXTENTS_ASCENT@
+  @SETTEROF_CAIRO_FONT_EXTENTS_ASCENT@
+  @GETTEROF_CAIRO_FONT_EXTENTS_ASCENT@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_font_extents_t-descent-set!
+  cairo_font_extents_t-descent-ref
+  @OFFSETOF_CAIRO_FONT_EXTENTS_DESCENT@
+  @SETTEROF_CAIRO_FONT_EXTENTS_DESCENT@
+  @GETTEROF_CAIRO_FONT_EXTENTS_DESCENT@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_font_extents_t-height-set!
+  cairo_font_extents_t-height-ref
+  @OFFSETOF_CAIRO_FONT_EXTENTS_HEIGHT@
+  @SETTEROF_CAIRO_FONT_EXTENTS_HEIGHT@
+  @GETTEROF_CAIRO_FONT_EXTENTS_HEIGHT@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_font_extents_t-max_x_advance-set!
+  cairo_font_extents_t-max_x_advance-ref
+  @OFFSETOF_CAIRO_FONT_EXTENTS_MAX_X_ADVANCE@
+  @SETTEROF_CAIRO_FONT_EXTENTS_MAX_X_ADVANCE@
+  @GETTEROF_CAIRO_FONT_EXTENTS_MAX_X_ADVANCE@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_font_extents_t-max_y_advance-set!
+  cairo_font_extents_t-max_y_advance-ref
+  @OFFSETOF_CAIRO_FONT_EXTENTS_MAX_Y_ADVANCE@
+  @SETTEROF_CAIRO_FONT_EXTENTS_MAX_Y_ADVANCE@
+  @GETTEROF_CAIRO_FONT_EXTENTS_MAX_Y_ADVANCE@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  cairo_path_data_t-header.type-set!
+  cairo_path_data_t-header.type-ref
+  @OFFSETOF_CAIRO_PATH_DATA_HEADER_TYPE@
+  @SETTEROF_CAIRO_PATH_DATA_HEADER_TYPE@
+  @GETTEROF_CAIRO_PATH_DATA_HEADER_TYPE@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_path_data_t-header.length-set!
+  cairo_path_data_t-header.length-ref
+  @OFFSETOF_CAIRO_PATH_DATA_HEADER_LENGTH@
+  @SETTEROF_CAIRO_PATH_DATA_HEADER_LENGTH@
+  @GETTEROF_CAIRO_PATH_DATA_HEADER_LENGTH@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_path_data_t-point.x-set!
+  cairo_path_data_t-point.x-ref
+  @OFFSETOF_CAIRO_PATH_DATA_POINT_X@
+  @SETTEROF_CAIRO_PATH_DATA_POINT_X@
+  @GETTEROF_CAIRO_PATH_DATA_POINT_X@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_path_data_t-point.y-set!
+  cairo_path_data_t-point.y-ref
+  @OFFSETOF_CAIRO_PATH_DATA_POINT_Y@
+  @SETTEROF_CAIRO_PATH_DATA_POINT_Y@
+  @GETTEROF_CAIRO_PATH_DATA_POINT_Y@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  cairo_path_t-status-set!
+  cairo_path_t-status-ref
+  @OFFSETOF_CAIRO_PATH_STATUS@
+  @SETTEROF_CAIRO_PATH_STATUS@
+  @GETTEROF_CAIRO_PATH_STATUS@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_path_t-data-set!
+  cairo_path_t-data-ref
+  @OFFSETOF_CAIRO_PATH_DATA@
+  @SETTEROF_CAIRO_PATH_DATA@
+  @GETTEROF_CAIRO_PATH_DATA@)
+
+(define-c-struct-accessor-and-mutator
+  cairo_path_t-num_data-set!
+  cairo_path_t-num_data-ref
+  @OFFSETOF_CAIRO_PATH_NUM_DATA@
+  @SETTEROF_CAIRO_PATH_NUM_DATA@
+  @GETTEROF_CAIRO_PATH_NUM_DATA@)
+
+
+;;;; done
+
+)
+
+;;; end of file

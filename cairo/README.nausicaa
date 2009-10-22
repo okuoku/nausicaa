@@ -1,0 +1,258 @@
+
+                          Nausicaa
+                          ========
+
+             Your library will be assimilated,
+                 syntax errors are futile.
+
+
+
+Topics
+------
+
+  1. Introduction
+  2. License
+  3. Installation
+  A. Credits
+  B. Bug reports
+  C. Resources
+
+
+1. Introduction
+---------------
+
+This is a distribution of Scheme language libraries for R6RS
+Scheme  implementations.  Currently  it attempts  to support
+Larceny, Ikarus, Mosh and  Ypsilon; when referring to all of
+these we can use the LIMY abbreviation.
+
+
+1.1 About 'Nausicaa'
+--------------------
+
+If  you  are  wondering   why  this  distribution  is  named
+Nausicaa, you  may enjoy reading the manga  "Nausicaa of the
+Valley of the  Wind" by Master Hayao Miyazaki,  or watch its
+movie.
+
+  You may also  find interesting what the crazy  guys of the
+OpenSky project are trying to do:
+
+       <http://www.petworks.co.jp/~hachiya/opensky/>
+
+
+2. License
+----------
+
+Each project in this distribution has its own license notice
+and copyright  assignment.  You must look  in the individual
+directories for  the COPYING  file, and occasionally  at the
+top of each  file, where there is a  specific license notice
+and copyright assignment.
+
+  Only Software Libre libraries are included.  Used licenses
+are the  GNU General Public License, the  GNU Lesser General
+Public License, the BSD  licenses, the BSD like license, the
+GNU Free Documentation License.
+
+
+3. Installation
+---------------
+
+Nausicaa's  installation  infrastructure  supports only  GNU
+systems.   This   means  Unix-like  systems   in  which  the
+following common tools and packages are installed: GNU Bash,
+GNU Make, GNU coreutils, GNU Find, GNU tar, Gzip, Bzip2.
+
+  There are 2 sources of informations about the installation
+of  a Nausicaa  project: the  individual,  project specific,
+README files; the  Nausicaa overall documentation in Texinfo
+format, which is available in the "doc" subdirectory.
+
+  To use the Nausicaa libraries you must install the package
+of the Nausicaa/Scheme project.
+
+  For your own safety,  take this advice: never, ever, drive
+building  and  installation  of  packages  from  the  source
+directory  of a  project; always  create a  subdirectory and
+move into it:
+
+   $ cd <source-directory-of-project>
+   $ mkdir "=build"
+   $ cd "=build"
+
+then, usually, you should do:
+
+   $ ../configure
+   $ make
+   $ make test
+   $ make install
+
+  If you have downloaded  the distribution directly from the
+GitHub repository: there should  be no "configure" script in
+the top directories of each project.  You can create them by
+running "autoconf" in the  top directory of each project, so
+the installation process becomes:
+
+   $ cd <source-directory-of-project>
+   $ autoconf
+   $ mkdir "=build"
+   $ cd "=build"
+   $ ../configure
+   $ make
+   $ make test
+   $ make install
+
+GNU  Autoconf  can be  downloaded  from  the  GNU site  (see
+resources).
+
+  Notice that:
+
+* Both the  library source files (.sls)  and the precompiled
+  files  (for  example .ikarus-fasl)  are  installed in  the
+  directory selected  by the "pkglibdir"  Makefile variable;
+  by default  this variable is  set to "$(libdir)/nausicaa",
+  which  means that without  touching the  configuration the
+  files will end up in:
+
+     /usr/local/lib/nausicaa
+
+  be sure to update accordingly the libraries search path of
+  the Scheme implementation you are using.
+
+* Currently,  among  the  supported Scheme  implementations,
+  only  Larceny   and  Ikarus  Scheme   can  optionally  use
+  precompiled  Scheme  files;  enabling precompilation  when
+  using other Scheme implementations will not work.
+
+* By default  the libraries  are NOT precompiled;  to enable
+  precompilation you must pass the "--enable-fasl" option to
+  the "configure" scripts.
+
+* The Larceny compiler is slow (really); when using Larceny,
+  enabling precompilation is strongly recommended.
+
+* When  precompiling a  library for  Ikarus Scheme  with the
+  command:
+
+    $ ikarus --compile-dependencies
+
+  Ikarus  traverses  the graph  of  libraries attempting  to
+  precompile all  the uncompiled ones; this  means that also
+  libraries that are installed  along with Ikarus have to be
+  precompiled;  at present  (Wed  Dec 31,  2008) the  Ikarus
+  distribution does not  precompile libraries, you will have
+  to do it by hand.
+
+* By default only documentation  in Info format is built and
+  installed,  documentation  in HTML  format  is pruned;  to
+  change  this pass  the '--enable-doc-html'  option  to the
+  "configure" scripts.
+
+  There is  basic support  for Linux packages  creation, for
+example for  Slackware; read the  Nausicaa documentation for
+details.
+
+
+A. Credits
+----------
+
+Scheme is  a statically scoped  and properly tail--recursive
+dialect  of the  Lisp programming  language invented  by Guy
+Lewis Steele Jr. and Gerald Jay Sussman.  It was designed to
+have  an exceptionally  clear and  simple semantics  and few
+different ways to form expressions.
+
+  The "Revised^6 Report  on the Algorithmic Language Scheme"
+gives  a defining  description of  the  programming language
+Scheme.  The report is the work of many people in the course
+of many  years.  Revision 6  was edited by  Michael Sperber,
+R. Kent Dybvig, Matthew Flatt and Anton Van Straaten.
+
+  Several  libraries depend  upon the  port to  R6RS  of the
+Scheme  Requests For  Implementation  (SRFI).  The  original
+SRFI code  is the work  of many authors, reference  of which
+you can  find the at the  top of the source  code files; the
+port to R6RS is the work of Derick Eddington.
+
+  Ikarus is  an almost R6RS compliant  implementation of the
+Scheme  programming   language.   It  is   the  creation  of
+Abdulaziz Ghuloum.
+
+  Larceny is  an also  R6RS compliant implementation  of the
+Scheme programming language.  It  is the creation of William
+D.    Clinger,  Lars  T   Hansen  and   Lightship  Software,
+Incorporated, with contributions by other people.
+
+  Mosh  is an  R6RS compliant  implementation of  the Scheme
+programming  language.  It  is the  creation of  Taro Minowa
+(higepon), kokosabu, herumi and .mjt.
+
+  Ypsilon is an R6RS  compliant implementation of the Scheme
+programming  language.   It is  the  creation of  Yoshikatsu
+Fujita at LittleWing Company.
+
+  The Nausicaa  distribution and installation infrastructure
+is the  creation of Marco  Maggi (<marcomaggi@gna.org>).  If
+this work exists, it is because of the GNU Software tools he
+uses all the time.
+
+  For other  credits notes  look in the  individual, project
+specific, REAME files.
+
+
+B. Bug reports
+--------------
+
+Bug reports are appreciated.   Register them using the issue
+tracker a the GitHub site.
+
+
+C. Resources
+------------
+
+The R6RS documents are available at:
+
+                   <http://www.r6rs.org>
+
+the SRFI documents are available at:
+
+                <http://srfi.schemers.org/>
+
+Larceny Scheme can be downloaded from:
+
+	<http://www.ccs.neu.edu/home/will/Larceny/>
+	  <https://trac.ccs.neu.edu/trac/larceny/>
+
+Ypsilon Scheme can be downloaded from:
+
+	    <http://code.google.com/p/ypsilon/>
+
+the LittleWing Company site is at:
+
+ <http://www.littlewingpinball.com/contents/en/index.html>
+
+Ikarus Scheme can be downloaded from:
+
+       <http://www.cs.indiana.edu/~aghuloum/ikarus/>
+               <http://launchpad.net/ikarus>
+
+Mosh Scheme can be downloaded from:
+
+	  <http://code.google.com/p/mosh-scheme/>
+
+the GNU Software tools can be downloaded from:
+
+		    <http://www.gnu.org>
+
+the latest revision of Nausicaa can be downloaded from:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:

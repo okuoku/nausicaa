@@ -1,0 +1,12 @@
+              |-----handy-ruler-----------------------------------------------|
+@PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: Bindind between the Cairo 2D graphics library and R6RS
+@PACKAGE_NAME@: Scheme implementations.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: Depends upon the Nausicaa/Scheme package.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:

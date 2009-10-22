@@ -1,0 +1,351 @@
+dnl
+dnl Part of: Nausicaa/Cairo
+dnl Contents: configuration template
+dnl Date: Thu Oct 22, 2009
+dnl
+dnl Abstract
+dnl
+dnl
+dnl
+dnl Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+dnl
+dnl This  program  is free  software:  you  can redistribute  it
+dnl and/or modify it  under the terms of the  GNU General Public
+dnl License as published by the Free Software Foundation, either
+dnl version  3 of  the License,  or (at  your option)  any later
+dnl version.
+dnl
+dnl This  program is  distributed in  the hope  that it  will be
+dnl useful, but  WITHOUT ANY WARRANTY; without  even the implied
+dnl warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
+dnl PURPOSE.   See  the  GNU  General Public  License  for  more
+dnl details.
+dnl
+dnl You should  have received a  copy of the GNU  General Public
+dnl License   along   with    this   program.    If   not,   see
+dnl <http://www.gnu.org/licenses/>.
+dnl
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Setup.
+dnl --------------------------------------------------------------------
+
+AC_INIT([nausicaa-cairo],[0.1d0],[marcomaggi@gna.org])
+DS_BEGIN([./src/libraries/foreign/cairo.sls])
+AC_CANONICAL_TARGET
+NAUSICAA_BEGIN
+DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
+DS_EXCLUDE_SECTION([AUTOCONF])
+DS_EXCLUDE_SECTION([PKGCONFIG])
+dnl NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
+NAUSICAA_C_LANGUAGE
+AC_CHECK_HEADERS([cairo/cairo.h],,[AC_MSG_FAILURE([cannot find Cairo headers],[2])])
+AC_CHECK_LIB([cairo],[cairo_create],,[AC_MSG_FAILURE([cannot find Cairo library],[2])])
+NAUSICAA_SIZEOF
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Helper functions.
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAU_CAIRO_INSPECT_TYPE],
+  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <cairo/cairo.h>])])
+
+AC_DEFUN([NAU_CAIRO_INSPECT_STRUCT_TYPE],
+  [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[#f],[#include <cairo/cairo.h>])])
+
+AC_DEFUN([NAU_CAIRO_INSPECT_FIELD_TYPE],
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[#include <cairo/cairo.h>])])
+
+AC_DEFUN([NAU_CAIRO_ENUM_VALUE],
+  [NAU_CAIRO_VALUEOF_TEST([$1],[$1])])
+
+AC_DEFUN([NAU_CAIRO_DEFINE_VALUE],
+  [NAU_CAIRO_VALUEOF_TEST([$1],[$1])])
+
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAU_CAIRO_SIZEOF_TEST],
+  [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <cairo/cairo.h>])])
+
+AC_DEFUN([NAU_CAIRO_VALUEOF_TEST],
+  [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[#include <cairo/cairo.h>])])
+
+AC_DEFUN([NAU_CAIRO_OFFSETOF_FIELD_TEST],
+  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <cairo/cairo.h>])])
+
+AC_DEFUN([NAU_CAIRO_STRUCT_FIELD],
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],,[#include <cairo/cairo.h>])])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Types inspection.
+dnl --------------------------------------------------------------------
+
+NAU_CAIRO_INSPECT_TYPE([CAIRO_BOOL],[cairo_bool_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_STATUS],[cairo_status_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_CONTENT],[cairo_content_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_OPERATOR],[cairo_operator_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_ANTIALIAS],[cairo_antialias_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_FILL_RULE],[cairo_fill_rule_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_LINE_CAP],[cairo_line_cap_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_LINE_JOIN],[cairo_line_join_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_TEXT_CLUSTER_FLAGS],[cairo_text_cluster_flags_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_FONT_SLANT],[cairo_font_slant_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_FONT_WEIGHT],[cairo_font_weight_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_SUBPIXEL_ORDER],[cairo_subpixel_order_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_HINT_STYLE],[cairo_hint_style_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_HINT_METRICS],[cairo_hint_metrics_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_FONT_TYPE],[cairo_font_type_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_PATH_DATA_TYPE],[cairo_path_data_type_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_SURFACE_TYPE],[cairo_surface_type_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_FORMAT],[cairo_format_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_PATTERN_TYPE],[cairo_pattern_type_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_EXTEND],[cairo_extend_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_FILTER],[cairo_filter_t],[unsigned-int])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Data structures inspection.
+dnl --------------------------------------------------------------------
+
+NAU_CAIRO_INSPECT_STRUCT_TYPE([CAIRO_MATRIX],[cairo_matrix_t])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_MATRIX_XX],[cairo_matrix_t],[xx],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_MATRIX_XY],[cairo_matrix_t],[xy],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_MATRIX_YX],[cairo_matrix_t],[yx],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_MATRIX_YY],[cairo_matrix_t],[yy],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_MATRIX_X0],[cairo_matrix_t],[x0],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_MATRIX_Y0],[cairo_matrix_t],[y0],[float])
+
+NAU_CAIRO_INSPECT_STRUCT_TYPE([CAIRO_USER_DATA_KEY],[cairo_user_data_key_t])
+dnl no fields are used in "cairo_user_data_key_t" structures
+
+NAU_CAIRO_INSPECT_STRUCT_TYPE([CAIRO_RECTANGLE],[cairo_rectangle_t])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_RECTANGLE_X],[cairo_rectangle_t],[x],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_RECTANGLE_Y],[cairo_rectangle_t],[y],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_RECTANGLE_WIDTH],[cairo_rectangle_t],[width],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_RECTANGLE_HEIGHT],[cairo_rectangle_t],[height],[float])
+
+NAU_CAIRO_INSPECT_STRUCT_TYPE([CAIRO_RECTANGLE_LIST],[cairo_rectangle_list_t])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_RECTANGLE_LIST_STATUS],[cairo_rectangle_list_t],[status],[unsigned-int])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_RECTANGLE_LIST_RECTANGLES],[cairo_rectangle_list_t],[rectangles],[pointer])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_RECTANGLE_LIST_NUM_RECTANGLES],
+  [cairo_rectangle_list_t],[num_rectangles],[signed-int])
+
+NAU_CAIRO_INSPECT_STRUCT_TYPE([CAIRO_GLYPH],[cairo_glyph_t])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_GLYPH_INDEX],[cairo_glyph_t],[index],[unsigned-int])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_GLYPH_X],[cairo_glyph_t],[x],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_GLYPH_Y],[cairo_glyph_t],[y],[float])
+
+NAU_CAIRO_INSPECT_STRUCT_TYPE([CAIRO_TEXT_CLUSTER],[cairo_text_cluster_t])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_TEXT_CLUSTER_NUM_BYTES],[cairo_text_cluster_t],[num_bytes],[signed-int])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_TEXT_CLUSTER_NUM_GLYPHS],[cairo_text_cluster_t],[num_glyphs],[signed-int])
+
+NAU_CAIRO_INSPECT_STRUCT_TYPE([CAIRO_TEXT_EXTENTS],[cairo_text_extents_t])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_TEXT_EXTENTS_X_BEARING],[cairo_text_extents_t],[x_bearing],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_TEXT_EXTENTS_Y_BEARING],[cairo_text_extents_t],[y_bearing],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_TEXT_EXTENTS_WIDTH],[cairo_text_extents_t],[width],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_TEXT_EXTENTS_HEIGHT],[cairo_text_extents_t],[height],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_TEXT_EXTENTS_X_ADVANCE],[cairo_text_extents_t],[x_advance],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_TEXT_EXTENTS_Y_ADVANCE],[cairo_text_extents_t],[y_advance],[float])
+
+NAU_CAIRO_INSPECT_STRUCT_TYPE([CAIRO_FONT_EXTENTS],[cairo_font_extents_t])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_FONT_EXTENTS_ASCENT],[cairo_font_extents_t],[ascent],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_FONT_EXTENTS_DESCENT],[cairo_font_extents_t],[descent],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_FONT_EXTENTS_HEIGHT],[cairo_font_extents_t],[height],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_FONT_EXTENTS_MAX_X_ADVANCE],[cairo_font_extents_t],[max_x_advance],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_FONT_EXTENTS_MAX_Y_ADVANCE],[cairo_font_extents_t],[max_y_advance],[float])
+
+NAU_CAIRO_INSPECT_STRUCT_TYPE([CAIRO_PATH_DATA],[cairo_path_data_t])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_PATH_DATA_HEADER_TYPE],[cairo_path_data_t],[header.type],[unsigned-int])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_PATH_DATA_HEADER_LENGTH],[cairo_path_data_t],[header.length],[signed-int])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_PATH_DATA_POINT_X],[cairo_path_data_t],[point.x],[float])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_PATH_DATA_POINT_Y],[cairo_path_data_t],[point.y],[float])
+
+NAU_CAIRO_INSPECT_STRUCT_TYPE([CAIRO_PATH],[cairo_path_t])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_PATH_STATUS],[cairo_path_t],[status],[unsigned-int])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_PATH_DATA],[cairo_path_t],[data],[pointer])
+NAU_CAIRO_STRUCT_FIELD([CAIRO_PATH_NUM_DATA],[cairo_path_t],[num_data],[signed-int])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Constants.
+dnl --------------------------------------------------------------------
+
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_PNG_FUNCTIONS])
+
+dnl enum cairo_status_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_SUCCESS])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_NO_MEMORY])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_RESTORE])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_POP_GROUP])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_NO_CURRENT_POINT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_MATRIX])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_STATUS])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_NULL_POINTER])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_STRING])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_PATH_DATA])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_READ_ERROR])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_WRITE_ERROR])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_SURFACE_FINISHED])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_SURFACE_TYPE_MISMATCH])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_PATTERN_TYPE_MISMATCH])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_CONTENT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_FORMAT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_VISUAL])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_FILE_NOT_FOUND])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_DASH])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_DSC_COMMENT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_INDEX])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_CLIP_NOT_REPRESENTABLE])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_TEMP_FILE_ERROR])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_STRIDE])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_FONT_TYPE_MISMATCH])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_USER_FONT_IMMUTABLE])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_USER_FONT_ERROR])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_NEGATIVE_COUNT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_CLUSTERS])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_SLANT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_INVALID_WEIGHT])
+
+dnl enum cairo_content_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_CONTENT_COLOR])
+NAU_CAIRO_ENUM_VALUE([CAIRO_CONTENT_ALPHA])
+NAU_CAIRO_ENUM_VALUE([CAIRO_CONTENT_COLOR_ALPHA])
+
+dnl enum cairo_operator_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_CLEAR])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_SOURCE])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_OVER])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_IN])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_OUT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_ATOP])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_DEST])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_DEST_OVER])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_DEST_IN])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_DEST_OUT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_DEST_ATOP])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_XOR])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_ADD])
+NAU_CAIRO_ENUM_VALUE([CAIRO_OPERATOR_SATURATE])
+
+dnl enum cairo_antialias_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_ANTIALIAS_DEFAULT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_ANTIALIAS_NONE])
+NAU_CAIRO_ENUM_VALUE([CAIRO_ANTIALIAS_GRAY])
+NAU_CAIRO_ENUM_VALUE([CAIRO_ANTIALIAS_SUBPIXEL])
+
+dnl enum cairo_fill_rule_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_FILL_RULE_WINDING])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FILL_RULE_EVEN_ODD])
+
+dnl enum cairo_line_cap_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_LINE_CAP_BUTT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_LINE_CAP_ROUND])
+NAU_CAIRO_ENUM_VALUE([CAIRO_LINE_CAP_SQUARE])
+
+dnl enum cairo_line_join_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_LINE_JOIN_MITER])
+NAU_CAIRO_ENUM_VALUE([CAIRO_LINE_JOIN_ROUND])
+NAU_CAIRO_ENUM_VALUE([CAIRO_LINE_JOIN_BEVEL])
+
+dnl enum cairo_text_cluster_flags_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_TEXT_CLUSTER_FLAG_BACKWARD])
+
+dnl enum cairo_font_slant_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_FONT_SLANT_NORMAL])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FONT_SLANT_ITALIC])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FONT_SLANT_OBLIQUE])
+
+dnl enum cairo_font_weight_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_FONT_WEIGHT_NORMAL])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FONT_WEIGHT_BOLD])
+
+dnl enum cairo_subpixel_order_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_SUBPIXEL_ORDER_DEFAULT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SUBPIXEL_ORDER_RGB])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SUBPIXEL_ORDER_BGR])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SUBPIXEL_ORDER_VRGB])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SUBPIXEL_ORDER_VBGR])
+
+dnl enum cairo_hint_style_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_HINT_STYLE_DEFAULT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_HINT_STYLE_NONE])
+NAU_CAIRO_ENUM_VALUE([CAIRO_HINT_STYLE_SLIGHT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_HINT_STYLE_MEDIUM])
+NAU_CAIRO_ENUM_VALUE([CAIRO_HINT_STYLE_FULL])
+
+dnl enum cairo_hint_metrics_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_HINT_METRICS_DEFAULT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_HINT_METRICS_OFF])
+NAU_CAIRO_ENUM_VALUE([CAIRO_HINT_METRICS_ON])
+
+dnl enum cairo_font_type_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_FONT_TYPE_TOY])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FONT_TYPE_FT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FONT_TYPE_WIN32])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FONT_TYPE_QUARTZ])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FONT_TYPE_USER])
+
+dnl enum cairo_path_data_type_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_PATH_MOVE_TO])
+NAU_CAIRO_ENUM_VALUE([CAIRO_PATH_LINE_TO])
+NAU_CAIRO_ENUM_VALUE([CAIRO_PATH_CURVE_TO])
+NAU_CAIRO_ENUM_VALUE([CAIRO_PATH_CLOSE_PATH])
+
+dnl enum cairo_surface_type_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_IMAGE])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_PDF])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_PS])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_XLIB])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_XCB])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_GLITZ])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_QUARTZ])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_WIN32])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_BEOS])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_DIRECTFB])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_SVG])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_OS2])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_WIN32_PRINTING])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SURFACE_TYPE_QUARTZ_IMAGE])
+
+dnl enum cairo_format_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_FORMAT_ARGB32])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FORMAT_RGB24])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FORMAT_A8])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FORMAT_A1])
+
+dnl enum cairo_pattern_type_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_PATTERN_TYPE_SOLID])
+NAU_CAIRO_ENUM_VALUE([CAIRO_PATTERN_TYPE_SURFACE])
+NAU_CAIRO_ENUM_VALUE([CAIRO_PATTERN_TYPE_LINEAR])
+NAU_CAIRO_ENUM_VALUE([CAIRO_PATTERN_TYPE_RADIAL])
+
+dnl enum cairo_extend_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_EXTEND_NONE])
+NAU_CAIRO_ENUM_VALUE([CAIRO_EXTEND_REPEAT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_EXTEND_REFLECT])
+NAU_CAIRO_ENUM_VALUE([CAIRO_EXTEND_PAD])
+
+dnl enum cairo_extend_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_FILTER_FAST])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FILTER_GOOD])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FILTER_BEST])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FILTER_NEAREST])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FILTER_BILINEAR])
+NAU_CAIRO_ENUM_VALUE([CAIRO_FILTER_GAUSSIAN])
+
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Done.
+dnl --------------------------------------------------------------------
+
+AC_CONFIG_FILES([../src/libraries/foreign/cairo/sizeof.sls:src/libraries/foreign/cairo/sizeof.sls.in])
+DS_CONFIG_FILE_SLACKWARE_BIN_DESC
+DS_CONFIG_FILE_SLACKWARE_DOC_DESC
+NAUSICAA_END
+DS_END
+
+### end of file
