@@ -65,17 +65,16 @@
 			       (when (pointer-null? p)
 				 (raise-out-of-memory 'XML_ParserCreate #f)))
 			   (with
-			    ;(XML_ParserFree parser)
-			    #t))))
+			    (XML_ParserFree parser)))))
 
 	  (define (start-callback data element attributes)
 	    (let ((element    (cstring->string element))
 		  (attributes (argv->strings attributes)))
-	      (debug "start ~s ~s" element attributes)))
+	      (debug "start ~s ~s () - ~s" element attributes data)))
 
 	  (define (end-callback data element)
 	    (let ((element	(cstring->string element)))
-	      (debug "end ~s" element)))
+	      (debug "end ~s - ~s" element data)))
 
 	  (let ((start	(make-c-callback void start-callback (pointer pointer pointer)))
 		(end	(make-c-callback void end-callback   (pointer pointer))))
@@ -86,7 +85,7 @@
 		   (result	(begin
 				  (write (list start end XML_Parse bufptr parser))(newline)
 				  (XML_Parse parser bufptr buflen finished))))
-(write 'here)(newline)
+	      (debug "here")
 	      (when (= result XML_STATUS_ERROR)
 		(error 'XML_Parse
 		  (cstring->string (XML_ErrorString (XML_GetErrorCode parser))))))

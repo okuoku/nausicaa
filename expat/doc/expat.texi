@@ -881,21 +881,21 @@ platforms.
 @section Compiling and linking against expat
 
 
-Unless you installed Expat in a location not expected by your compiler
-and linker, all you have to do to use Expat in your programs is to
-include the Expat header:
+Unless Expat is installed in a location not expected by the compiler and
+linker, all we have to do to use Expat programs is to include the Expat
+header:
 
 @example
 #include <expat.h>
 @end example
 
 @noindent
-in your files that make calls to it and to tell the linker that it needs
-to link against the Expat library.  On Unix systems, this would usually
-be done with the @code{-lexpat} argument.  Otherwise, you'll need to
-tell the compiler where to look for the Expat header and the linker
-where to find the Expat library.  You may also need to take steps to
-tell the operating system where to find this library at run time.
+in the source files that make calls to it and to tell the linker that it
+needs to link against the Expat library.  On Unix systems, this would
+usually be done with the @option{-lexpat} argument.  Otherwise, we'll
+need to tell the compiler where to look for the Expat header, and to the
+linker where to find the Expat library.  We may also need to take steps
+to tell the operating system where to find this library at run time.
 
 On a Unix--based system, here's what a @file{Makefile} might look like
 when Expat is installed in a standard location:
@@ -908,7 +908,7 @@ xmlapp: xmlapp.o
         $(CC) $(LDFLAGS) -o xmlapp xmlapp.o $(LIBS)
 @end example
 
-If you installed Expat in, say, @file{/home/me/mystuff}, then the
+If we installed Expat in, say, @file{/home/me/mystuff}, then the
 @file{Makefile} would look like this:
 
 @example
@@ -920,12 +920,11 @@ xmlapp: xmlapp.o
         $(CC) $(LDFLAGS) -o xmlapp xmlapp.o $(LIBS)
 @end example
 
-You'd also have to set the environment variable @env{LD_LIBRARY_PATH} to
+We'd also have to set the environment variable @env{LD_LIBRARY_PATH} to
 @file{/home/me/mystuff/lib} (or to
 @code{$@{LD_LIBRARY_PATH@}:/home/me/mystuff/lib} if
 @env{LD_LIBRARY_PATH} already has some directories in it) in order to
-run your application.
-
+run the program.
 
 @c page
 @node using basics
@@ -938,19 +937,20 @@ three functions in the Expat @api{} for creating a parser object.
 However, only two of these (@cfunc{XML_ParserCreate} and
 @cfunc{XML_ParserCreateNS}) can be used for constructing a parser for a
 top--level document.  The object returned by these functions is an
-opaque pointer (i.e. @file{expat.h} declares it as @code{void *}) to
-data with further internal structure.  In order to free the memory
-associated with this object you must call @cfunc{XML_ParserFree}.  Note
-that if you have provided any user data that gets stored in the parser,
-then your application is responsible for freeing it prior to calling
-@cfunc{XML_ParserFree}.
+opaque pointer to data with further internal structure (@file{expat.h}
+declares it as @code{void *}).  In order to free the memory associated
+with this object we must call @cfunc{XML_ParserFree}.
+
+Note that if we have provided any user data that gets stored in the
+parser, then our application is responsible for freeing it prior to
+calling @cfunc{XML_ParserFree}.
 
 The objects returned by the parser creation functions are good for
-parsing only one @pxml{} document or external parsed entity.  If your
+parsing only one @pxml{} document or external parsed entity.  If the
 application needs to parse many @pxml{} documents, then it needs to
 create a parser object for each one.  The best way to deal with this is
-to create a higher level object that contains all the default
-initialization you want for your parser objects.
+to create a higher level object containing all the default
+initialization we want for the parser objects.
 
 Walking through a document hierarchy with a stream oriented parser will
 require a good stack mechanism in order to keep track of current
@@ -959,19 +959,19 @@ does this text belong to?'' requires a stack, since the parser may have
 descended into other elements that are children of the current one and
 has encountered this text on the way out.
 
-The things you're likely to want to keep on a stack are the currently
-opened element and it's attributes.  You push this information onto the
-stack in the start handler and you pop it off in the end handler.
+The things we're likely to want to keep on a stack are the currently
+opened element and it's attributes.  We push this information onto the
+stack in the start handler and we pop it off in the end handler.
 
 For some tasks, it is sufficient to just keep information on what the
-depth of the stack is (or would be if you had one).  The outline program
-shown above presents one example.  Another such task would be skipping
-over a complete element.  When you see the start tag for the element you
-want to skip, you set a skip flag and record the depth at which the
-element started.  When the end tag handler encounters the same depth,
-the skipped element has ended and the flag may be cleared.  If you
-follow the convention that the root element starts at 1, then you can
-use the same variable for skip flag and skip depth.
+depth of the stack is (or would be if we had one).  The outline program
+shown in the overview presents one example.  Another such task would be
+skipping over a complete element.  When we see the start tag for the
+element we want to skip, we set a skip flag and record the depth at
+which the element started.  When the end tag handler encounters the same
+depth, the skipped element has ended and the flag may be cleared.  If we
+follow the convention that the root element starts at 1, then we can use
+the same variable for skip flag and skip depth.
 
 @example
 void
@@ -1022,21 +1022,20 @@ to manipulate it @emph{before} the main body.  If we'd decided to
 increment it first thing in the start handler, then we'd have had to
 decrement it last thing in the end handler.
 
-
 @c page
 @node using comm
 @section Communicating between handlers
 
 
 In order to be able to pass information between different handlers
-without using globals, you'll need to define a data structure to hold
-the shared variables.  You can then tell Expat (with the
+without using globals, we'll need to define a data structure to hold the
+shared variables.  We can then tell Expat (with the
 @cfunc{XML_SetUserData} function) to pass a pointer to this structure to
 the handlers.  This is the first argument received by most handlers.
 
 In the reference section, an argument to a callback function is named
-@var{userData} and have type @code{void *} if the user data is passed;
-it will have the type @code{XML_Parser} if the parser itself is passed.
+@var{userData} and have type @samp{void *} if the user data is passed;
+it will have the type @samp{XML_Parser} if the parser itself is passed.
 When the parser is passed, the user data may be retrieved using
 @cfunc{XML_GetUserData}.
 
@@ -1054,7 +1053,6 @@ until a different callback is made.  A buffer referenced by the user
 data structure proves both an effective and convenient place to
 accumulate character data.
 
-
 @c page
 @node using version
 @section @pxml{} version
@@ -1068,9 +1066,9 @@ If an application needs to check the version number (to support
 alternate processing), it should use the @cfunc{XML_SetXmlDeclHandler}
 function to set a handler that uses the information in the @pxml{}
 declaration to determine what to do.  This example shows how to check
-that only a version number of @code{1.0} is accepted:
+that only a version number of @samp{1.0} is accepted:
 
-@example
+@smallexample
 static int wrong_version;
 static XML_Parser parser;
 
@@ -1084,7 +1082,7 @@ xmldecl_handler(void            *userData,
 
   int i;
 
-  for (i = 0; i < (sizeof(Version_1_0) / sizeof(Version_1_0[0])); ++i)
+  for (i=0; i<(sizeof(Version_1_0) / sizeof(Version_1_0[0])); ++i)
     @{
       if (version[i] != Version_1_0[i])
         @{
@@ -1097,8 +1095,7 @@ xmldecl_handler(void            *userData,
     @}
   ...
 @}
-@end example
-
+@end smallexample
 
 @c page
 @node using namespace
@@ -1109,10 +1106,9 @@ When the parser is created using the @cfunc{XML_ParserCreateNS},
 function, Expat performs namespace processing.  Under namespace
 processing, Expat consumes @code{xmlns} and @code{xmlns:...} attributes,
 which declare namespaces for the scope of the element in which they
-occur.  This means that your start handler will not see these
-attributes.  Your application can still be informed of these
-declarations by setting namespace declaration handlers with
-@cfunc{XML_SetNamespaceDeclHandler}.
+occur.  This means that the start handler will not see these attributes.
+The application can still be informed of these declarations by setting
+namespace declaration handlers with @cfunc{XML_SetNamespaceDeclHandler}.
 
 Element type and attribute names that belong to a given namespace are
 passed to the appropriate handler in expanded form.  By default this
@@ -1129,8 +1125,8 @@ non--zero @var{do_nst} parameter, then the expanded form for names with
 an explicit prefix is a concatenation of: @uri{}, separator, local name,
 separator, prefix.
 
-You can set handlers for the start of a namespace declaration and for
-the end of a scope of a declaration with the
+We can set handlers for the start of a namespace declaration and for the
+end of a scope of a declaration with the
 @cfunc{XML_SetNamespaceDeclHandler} function.  The
 @var{StartNamespaceDeclHandler} is called prior to the start tag handler
 and the @var{EndNamespaceDeclHandler} is called after the corresponding
@@ -1146,7 +1142,6 @@ These handlers are called for each declaration.  So if, for instance, a
 start tag had three namespace declarations, then the
 @var{StartNamespaceDeclHandler} would be called three times before the
 start tag handler is called, once for each declaration.
-
 
 @c page
 @node using encodings
@@ -1170,7 +1165,7 @@ like an @pxml{} declaration with just an encoding declaration:
 <?xml encoding="Big5"?>
 @end example
 
-With Expat, you may also specify an encoding at the time of creating a
+With Expat, we may also specify an encoding at the time of creating a
 parser.  This is useful when the encoding information may come from a
 source outside the document itself (like a higher level protocol).
 
@@ -1186,11 +1181,11 @@ US-ASCII
 Anything else discovered in an encoding declaration or in the protocol
 encoding specified in the parser constructor, triggers a call to the
 @var{UnknownEncodingHandler}.  This handler gets passed the encoding
-name and a pointer to an @code{XML_Encoding} data structure.  Your
+name and a pointer to an @code{XML_Encoding} data structure.  Our
 handler must fill in this structure and return @code{XML_STATUS_OK} if
 it knows how to deal with the encoding.  Otherwise the handler should
 return @code{XML_STATUS_ERROR}.  The handler also gets passed a pointer
-to an optional application data structure that you may indicate when you
+to an optional application data structure that we may indicate when we
 set the handler.
 
 Expat places restrictions on character encodings that it can support by
@@ -1229,9 +1224,8 @@ function should return the Unicode scalar value for the sequence or
 One pitfall that novice Expat users are likely to fall into is that
 although Expat may accept input in various encodings, the strings that
 it passes to the handlers are always encoded in @utf{}-8 or @utf{}-16
-(depending on how Expat was compiled).  Your application is responsible
+(depending on how Expat was compiled).  Our application is responsible
 for any translation of these strings into other encodings.
-
 
 @c page
 @node using entity
@@ -1239,27 +1233,26 @@ for any translation of these strings into other encodings.
 
 
 Expat does not read or parse external entities directly.  Note that any
-external @dtd{} is a special case of an external entity.  If you've set
+external @dtd{} is a special case of an external entity.  If we've set
 no @var{ExternalEntityRefHandler}, then external entity references are
-silently ignored.  Otherwise, it calls your handler with the information
+silently ignored.  Otherwise, it calls our handler with the information
 needed to read and parse the external entity.
 
-Your handler isn't actually responsible for parsing the entity, but it
-is responsible for creating a subsidiary parser with
+Our handler isn't actually responsible for parsing the entity, but it is
+responsible for creating a subsidiary parser with
 @cfunc{XML_ExternalEntityParserCreate} that will do the job.  This
 returns an instance of @code{XML_Parser} that has handlers and other
-data structures initialized from the parent parser.  You may then use
+data structures initialized from the parent parser.  We may then use
 @cfunc{XML_Parse} or @cfunc{XML_ParseBuffer} calls against this parser.
-Since external entities my refer to other external entities, your
-handler should be prepared to be called recursively.
-
+Since external entities my refer to other external entities, our handler
+should be prepared to be called recursively.
 
 @c page
 @node using dtd
 @section Parsing @dtd{}s
 
 
-In order to parse parameter entities, before starting the parse, you
+In order to parse parameter entities, before starting the parse, we
 must call @cfunc{XML_SetParamEntityParsing} with one of the following
 arguments:
 
@@ -1275,18 +1268,17 @@ set to ``yes'' in the @pxml{} declaration.
 Always parse parameter entities and the external subset.
 @end table
 
-In order to read an external @dtd{}, you also have to set an external
+In order to read an external @dtd{}, we also have to set an external
 entity reference handler as described above.
-
 
 @c page
 @node using stop
 @section Temporarily stopping parsing
 
 
-Expat 1.95.8 introduces a new feature: its now possible to stop parsing
-temporarily from within a handler function, even if more data has
-already been passed into the parser.  Applications for this include:
+Expat 1.95.8 introduces a new feature: It is now possible to stop
+parsing temporarily from within a handler function, even if more data
+has already been passed into the parser.  Applications for this include:
 
 @itemize
 @item
@@ -1301,7 +1293,7 @@ Adjusting processor load as task priorities shift within an application.
 
 @item
 Stopping parsing completely (simply free or reset the parser instead of
-resuming in the outer parsing loop).  This can be useful if a
+resuming in the outer parsing loop).  This can be useful if an
 application--domain error is found in the @pxml{} being parsed or if the
 result of the parse is determined not to be useful after all.
 @end itemize
@@ -1343,7 +1335,7 @@ certainly have more interesting control structures.
 This C function could be used for the @cfunc{parse_xml} function
 mentioned in the pseudo-code above:
 
-@example
+@smallexample
 #define BUFF_SIZE 10240
 
 /* Parse a document from the open file descriptor 'fd' until
@@ -1385,7 +1377,7 @@ parse_xml (XML_Parser p, int fd)
         return 0;
     @}
 @}
-@end example
+@end smallexample
 
 The corresponding @cfunc{continue_parsing} function is somewhat simpler,
 since it only need deal with the return code from
@@ -1427,7 +1419,6 @@ To stop parsing from a handler function, use the @cfunc{XML_StopParser}
 function.  This function takes two arguments; the parser being stopped
 and a flag indicating whether the parse can be resumed in the future.
 
-
 @c page
 @node api
 @chapter Expat reference
@@ -1444,7 +1435,6 @@ and a flag indicating whether the parse can be resumed in the future.
 * api memory::                  Parser associated memory.
 * api misc::                    Miscellaneous functions.
 @end menu
-
 
 @c page
 @node api create
@@ -1473,7 +1463,7 @@ Namespace expanded element names and attribute names are returned as a
 concatenation of the namespace @uri{}, @var{sep}, and the local part of
 the name.
 
-This means that you should pick a character for @var{sep} that can't be
+This means that we should pick a character for @var{sep} that can't be
 part of a legal @uri{}.  There is a special case when @var{sep} is the
 null character @code{\0}: the namespace @uri{} and the local part will
 be concatenated without any separator---this is intended to support
@@ -1505,14 +1495,14 @@ Construct a new @code{XML_Parser} object for parsing an external general
 entity.  @var{context} is the context argument passed in a call to a
 @var{ExternalEntityRefHandler}.  Other state information such as
 handlers, user data, namespace processing is inherited from the parser
-passed as the first argument.  So you shouldn't need to call any of the
-behavior changing functions on this parser (unless you want it to act
+passed as the first argument.  So we shouldn't need to call any of the
+behavior changing functions on this parser (unless we want it to act
 differently than the parent parser).
 @end deftypefun
 
 
 @deftypefun void XML_ParserFree (XML_Parser @var{p})
-Free memory used by the parser.  Your application is responsible for
+Free memory used by the parser.  Our application is responsible for
 freeing any memory associated with user data.
 @end deftypefun
 
@@ -1526,7 +1516,7 @@ state is re--initialized except for the values of @var{ns} and
 @var{ns_triplets}.  This function may not be used on a parser created
 using @cfunc{XML_ExternalEntityParserCreate}; it will return
 @code{XML_FALSE} in that case.  Returns @code{XML_TRUE} on success.
-Your application is responsible for dealing with any memory associated
+Our application is responsible for dealing with any memory associated
 with user data.
 @end deftypefun
 
@@ -1770,7 +1760,7 @@ suspended, and whether the final buffer is being processed.
 
 Although handlers are typically set prior to parsing and left alone, an
 application may choose to set or change the handler for a parsing event
-while the parse is in progress.  For instance, your application may
+while the parse is in progress.  For instance, our application may
 choose to ignore all text not descended from a @code{para} element.  One
 way it could do this is to set the character handler when a @code{para}
 start tag is seen, and unset it for the corresponding end tag.
@@ -1779,11 +1769,11 @@ A handler may be unset by providing a @cnull{} pointer to the appropriate
 handler setter.  None of the handler setting functions have a return
 value.
 
-Your handlers will be receiving strings in arrays of type
+Our handlers will be receiving strings in arrays of type
 @code{XML_Char}.  This type is conditionally defined in @file{expat.h}
 as either @code{char}, @code{wchar_t} or @code{unsigned short}.  The
 former implies @utf{}-8 encoding, the latter two imply @utf{}-16
-encoding.  Note that you'll receive them in this form independent of the
+encoding.  Note that we'll receive them in this form independent of the
 original encoding of the document.
 
 
@@ -2513,7 +2503,7 @@ then the parser will throw an @code{XML_ERROR_NOT_STANDALONE} error.
 @section Parse position and error reporting functions
 
 
-These are the functions you'll want to call when the parse functions
+These are the functions we'll want to call when the parse functions
 return @code{XML_STATUS_ERROR} (a parse error has occurred), although
 the position reporting functions are useful outside of errors.  The
 position reported is the byte position (in the original document or
