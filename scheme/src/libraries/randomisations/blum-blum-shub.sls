@@ -45,11 +45,11 @@
 
 
 #!r6rs
-(library (random blum-blum-shub)
+(library (randomisations blum-blum-shub)
   (export make-random-source/blum-blum-shub)
   (import (rnrs)
-    (random)
-    (random low))
+    (randomisations)
+    (randomisations low))
 
 
 (define (make-random-source/blum-blum-shub)

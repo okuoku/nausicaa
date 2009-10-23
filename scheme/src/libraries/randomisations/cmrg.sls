@@ -63,11 +63,11 @@
 
 
 #!r6rs
-(library (random cmrg)
+(library (randomisations cmrg)
   (export make-random-source/cmrg)
   (import (rnrs)
-    (random)
-    (random low))
+    (randomisations)
+    (randomisations low))
 
 
 (define (make-random-source/cmrg)

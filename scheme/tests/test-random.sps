@@ -26,22 +26,22 @@
 
 (import (nausicaa)
   (checks)
-  (random)
+  (randomisations)
   (lists)
   (strings)
   (char-sets)
   (vectors)
 
-  (random distributions)
-  (random lists)
-  (random vectors)
-  (random strings)
+  (randomisations distributions)
+  (randomisations lists)
+  (randomisations vectors)
+  (randomisations strings)
 
-  (random marsaglia)
-  (random mersenne)
-  (random blum-blum-shub)
-  (random borosh)
-  (random cmrg)
+  (randomisations marsaglia)
+  (randomisations mersenne)
+  (randomisations blum-blum-shub)
+  (randomisations borosh)
+  (randomisations cmrg)
   )
 
 (check-set-mode! 'report-failed)
@@ -529,89 +529,89 @@
 
 ;;; --------------------------------------------------------------------
 
-;;   (let ()
-;;     (define (test-random-integers-with-sum requested-sum number-of-numbers
-;; 					   range-min-inclusive range-max-exclusive)
-;;       (let ((obj (random-integers-with-sum requested-sum number-of-numbers
-;; 					   range-min-inclusive range-max-exclusive
-;; 					   default-random-source)))
-;; ;;;	(write obj)(newline)
-;; 	(check-for-true (vector? obj))
-;; 	(check-for-true (= number-of-numbers (vector-length obj)))
-;; 	(check-for-true (vector-every integer? obj))
-;; 	(do ((i 0 (+ 1 i)))
-;; 	    ((= i number-of-numbers))
-;; 	  (check-for-true (let ((n (vector-ref obj i)))
-;; 			    (and (<= range-min-inclusive n)
-;; 				 (< n range-max-exclusive)))))
-;; 	(check (vector-fold (lambda (idx prev x) (+ prev x)) 0 obj) => requested-sum)))
+  (let ()
+    (define (test-random-integers-with-sum requested-sum number-of-numbers
+					   range-min-inclusive range-max-exclusive)
+      (let ((obj (random-integers-with-sum requested-sum number-of-numbers
+					   range-min-inclusive range-max-exclusive
+					   default-random-source)))
+;;;	(write obj)(newline)
+	(check-for-true (vector? obj))
+	(check-for-true (= number-of-numbers (vector-length obj)))
+	(check-for-true (vector-every integer? obj))
+	(do ((i 0 (+ 1 i)))
+	    ((= i number-of-numbers))
+	  (check-for-true (let ((n (vector-ref obj i)))
+			    (and (<= range-min-inclusive n)
+				 (< n range-max-exclusive)))))
+	(check (vector-fold-left (lambda (x prev) (+ prev x)) 0 obj) => requested-sum)))
 
-;;     (test-random-integers-with-sum 25 8 0 10)
-;;     (test-random-integers-with-sum 25 8 0 5)
-;;     (test-random-integers-with-sum 50 8 0 20)
-;;     (test-random-integers-with-sum 50 8 3 10)
-;;     (test-random-integers-with-sum 50 8 -10 2)
-;;     )
+    (test-random-integers-with-sum 25 8 0 10)
+    (test-random-integers-with-sum 25 8 0 5)
+    (test-random-integers-with-sum 50 8 0 20)
+    (test-random-integers-with-sum 50 8 3 10)
+    (test-random-integers-with-sum 50 8 -10 2)
+    )
 
-;;   (let ()
-;;     (define (test-random-reals-with-sum requested-sum number-of-numbers
-;; 					range-min-exclusive range-max-exclusive)
-;;       (let-values (((obj sum) (random-reals-with-sum requested-sum number-of-numbers
-;; 						     range-min-exclusive range-max-exclusive
-;; 						     default-random-source)))
-;; ;;;	(write obj)(newline)
-;; 	(check-for-true (vector? obj))
-;; 	(check-for-true (= number-of-numbers (vector-length obj)))
-;; 	(check-for-true (vector-every real? obj))
-;; 	(do ((i 0 (+ 1 i)))
-;; 	    ((= i number-of-numbers))
-;; 	  (check-for-true (let ((n (vector-ref obj i)))
-;; 			    (and (< range-min-exclusive n)
-;; 				 (< n range-max-exclusive)))))
-;; 	(check
-;; 	    (vector-fold (lambda (idx prev x) (+ prev x)) 0 obj)
-;; 	  (=> (lambda (a b)
-;; 		(> 1e-6 (abs (- a b)))))
-;; 	  requested-sum)))
+  (let ()
+    (define (test-random-reals-with-sum requested-sum number-of-numbers
+					range-min-exclusive range-max-exclusive)
+      (let-values (((obj sum) (random-reals-with-sum requested-sum number-of-numbers
+						     range-min-exclusive range-max-exclusive
+						     default-random-source)))
+;;;	(write obj)(newline)
+	(check-for-true (vector? obj))
+	(check-for-true (= number-of-numbers (vector-length obj)))
+	(check-for-true (vector-every real? obj))
+	(do ((i 0 (+ 1 i)))
+	    ((= i number-of-numbers))
+	  (check-for-true (let ((n (vector-ref obj i)))
+			    (and (< range-min-exclusive n)
+				 (< n range-max-exclusive)))))
+	(check
+	    (vector-fold-left (lambda (x prev) (+ prev x)) 0 obj)
+	  (=> (lambda (a b)
+		(> 1e-6 (abs (- a b)))))
+	  requested-sum)))
 
-;;     (test-random-reals-with-sum 25 8 0 10)
-;;     (test-random-reals-with-sum 25 8 0 5)
-;;     (test-random-reals-with-sum 50 8 0 20)
-;;     (test-random-reals-with-sum 50 8 3 10)
-;;     )
+    (test-random-reals-with-sum 25 8 0 10)
+    (test-random-reals-with-sum 25 8 0 5)
+    (test-random-reals-with-sum 50 8 0 20)
+    (test-random-reals-with-sum 50 8 3 10)
+    )
 
-;;   (let ()
-;;     (define (test-random-reals-with-sum requested-sum number-of-numbers
-;; 					range-min-exclusive range-max-exclusive)
-;;       (let-values (((obj sum) (random-reals-with-sum requested-sum number-of-numbers
-;; 						     range-min-exclusive range-max-exclusive
-;; 						     default-random-source)))
-;; ;;;	(write (list obj sum))(newline)
-;; 	(write (list 'sum requested-sum sum (- requested-sum sum)))(newline)
-;; 	(let-values (((obj sum) (random-reals-with-sum-refine obj sum
-;; 							      requested-sum 1e-20 10)))
+  (let ()
+    (define (test-random-reals-with-sum requested-sum number-of-numbers
+					range-min-exclusive range-max-exclusive)
+      (let-values (((obj sum) (random-reals-with-sum requested-sum number-of-numbers
+						     range-min-exclusive range-max-exclusive
+						     default-random-source)))
+;;;	(write (list obj sum))(newline)
+	(write (list 'sum requested-sum sum (- requested-sum sum)))(newline)
+	(let-values (((obj sum) (random-reals-with-sum-refine obj sum
+							      requested-sum 1e-20 10)))
 
-;; 	(write (list 'sum requested-sum sum (- requested-sum sum)))(newline)
-;; ;;;	(write (list obj sum))(newline)
-;; 	  (check-for-true (vector? obj))
-;; 	  (check-for-true (= number-of-numbers (vector-length obj)))
-;; 	  (check-for-true (vector-every real? obj))
-;; 	  (do ((i 0 (+ 1 i)))
-;; 	      ((= i number-of-numbers))
-;; 	    (check-for-true (let ((n (vector-ref obj i)))
-;; 			      (let ((r (and (< range-min-exclusive n)
-;; 					    (< n range-max-exclusive))))
-;; 				(if r r (begin
-;; 					  (write (list 'out-of-bounds n))
-;; 					  (newline)))))))
-;; 	  (check
-;; 	      (vector-fold (lambda (idx prev x) (+ prev x)) 0 obj)
-;; 	    (=> (lambda (a b)
-;; 		  (> 1e-6 (abs (- a b)))))
-;; 	    requested-sum))))
+	(write (list 'sum requested-sum sum (- requested-sum sum)))(newline)
+;;;	(write (list obj sum))(newline)
+	  (check-for-true (vector? obj))
+	  (check-for-true (= number-of-numbers (vector-length obj)))
+	  (check-for-true (vector-every real? obj))
+	  (do ((i 0 (+ 1 i)))
+	      ((= i number-of-numbers))
+	    (check-for-true (let ((n (vector-ref obj i)))
+			      (let ((r (and (< range-min-exclusive n)
+					    (< n range-max-exclusive))))
+				(if r r (begin
+					  (write (list 'out-of-bounds n))
+					  (newline)))))))
+	  (check
+	      (vector-fold-left (lambda (x prev) (+ prev x)) 0 obj)
+	    (=> (lambda (a b)
+		  (> 1e-6 (abs (- a b)))))
+	    requested-sum))))
 
-;;     (test-random-reals-with-sum 0.0 100 -50 +50)
-;;     )
+    (test-random-reals-with-sum 0.0 100 -50 +50)
+    )
 
   )
 
@@ -662,15 +662,17 @@
 
 (parameterise ((check-test-name 'marsaglia-cong))
 
-;;   (let* ((source	(make-random-source/marsaglia/cong))
-;; 	 (make-integer	(random-source-integers-maker source))
-;; 	 (uint32	(lambda () (make-integer const:2^32))))
-;;     (check
-;; 	(do ((i 1 (+ 1 i))
-;; 	     (k (uint32) (uint32)))
-;; 	    ((= i 1000000)
-;; 	     k))
-;;       => 1529210297))
+;;; This is commented out because it takes a lot of time
+;;;
+;;; (let* ((source	(make-random-source/marsaglia/cong))
+;;; 	 (make-integer	(random-source-integers-maker source))
+;;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;;   (check
+;;; 	(do ((i 1 (+ 1 i))
+;;; 	     (k (uint32) (uint32)))
+;;; 	    ((= i 1000000)
+;;; 	     k))
+;;;     => 1529210297))
 
   (let* ((source	(make-random-source/marsaglia/cong))
 	 (make-integer	(random-source-integers-maker source)))
@@ -749,15 +751,17 @@
 
 (parameterise ((check-test-name 'marsaglia-fib))
 
-;;   (let* ((source	(make-random-source/marsaglia/fib))
-;; 	 (make-integer	(random-source-integers-maker source))
-;; 	 (uint32	(lambda () (make-integer const:2^32))))
-;;     (check
-;; 	(do ((i 1 (+ 1 i))
-;; 	     (k (uint32) (uint32)))
-;; 	    ((= i 1000000)
-;; 	     k))
-;;       => 3519793928))
+;;; This is commented out because it takes a lot of time
+;;;
+;;; (let* ((source	(make-random-source/marsaglia/fib))
+;;; 	 (make-integer	(random-source-integers-maker source))
+;;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;;   (check
+;;; 	(do ((i 1 (+ 1 i))
+;;; 	     (k (uint32) (uint32)))
+;;; 	    ((= i 1000000)
+;;; 	     k))
+;;;     => 3519793928))
 
   (let* ((source	(make-random-source/marsaglia/fib))
 	 (make-integer	(random-source-integers-maker source)))
@@ -836,15 +840,17 @@
 
 (parameterise ((check-test-name 'marsaglia-kiss))
 
-;;   (let* ((source	(make-random-source/marsaglia/kiss))
-;; 	 (make-integer	(random-source-integers-maker source))
-;; 	 (uint32	(lambda () (make-integer const:2^32))))
-;;     (check
-;; 	(do ((i 1 (+ 1 i))
-;; 	     (k (uint32) (uint32)))
-;; 	    ((= i 1000000)
-;; 	     k))
-;;       => 1372460312))
+;;; This is commented out because it takes a lot of time
+;;;
+;;;   (let* ((source	(make-random-source/marsaglia/kiss))
+;;; 	 (make-integer	(random-source-integers-maker source))
+;;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;;     (check
+;;; 	(do ((i 1 (+ 1 i))
+;;; 	     (k (uint32) (uint32)))
+;;; 	    ((= i 1000000)
+;;; 	     k))
+;;;       => 1372460312))
 
   (let* ((source	(make-random-source/marsaglia/kiss))
 	 (make-integer	(random-source-integers-maker source)))
@@ -923,15 +929,17 @@
 
 (parameterise ((check-test-name 'marsaglia-lfib4))
 
-;;   (let* ((source	(make-random-source/marsaglia/lfib4))
-;; 	 (make-integer	(random-source-integers-maker source))
-;; 	 (uint32	(lambda () (make-integer const:2^32))))
-;;     (check
-;; 	(do ((i 1 (+ 1 i))
-;; 	     (k (uint32) (uint32)))
-;; 	    ((= i 1000000)
-;; 	     k))
-;;       => 1064612766))
+;;; This is commented out because it takes a lot of time
+;;;
+;;;   (let* ((source	(make-random-source/marsaglia/lfib4))
+;;; 	 (make-integer	(random-source-integers-maker source))
+;;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;;     (check
+;;; 	(do ((i 1 (+ 1 i))
+;;; 	     (k (uint32) (uint32)))
+;;; 	    ((= i 1000000)
+;;; 	     k))
+;;;       => 1064612766))
 
   (let* ((source	(make-random-source/marsaglia/lfib4))
 	 (make-integer	(random-source-integers-maker source)))
@@ -1010,15 +1018,17 @@
 
 (parameterise ((check-test-name 'marsaglia-mwc))
 
-;;   (let* ((source	(make-random-source/marsaglia/mwc))
-;; 	 (make-integer	(random-source-integers-maker source))
-;; 	 (uint32	(lambda () (make-integer const:2^32))))
-;;     (check
-;; 	(do ((i 1 (+ 1 i))
-;; 	     (k (uint32) (uint32)))
-;; 	    ((= i 1000000)
-;; 	     k))
-;;       => 904977562))
+;;; This is commented out because it takes a lot of time
+;;;
+;;;   (let* ((source	(make-random-source/marsaglia/mwc))
+;;; 	 (make-integer	(random-source-integers-maker source))
+;;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;;     (check
+;;; 	(do ((i 1 (+ 1 i))
+;;; 	     (k (uint32) (uint32)))
+;;; 	    ((= i 1000000)
+;;; 	     k))
+;;;       => 904977562))
 
   (let* ((source	(make-random-source/marsaglia/mwc))
 	 (make-integer	(random-source-integers-maker source)))
@@ -1097,15 +1107,17 @@
 
 (parameterise ((check-test-name 'marsaglia-shr3))
 
-;;   (let* ((source	(make-random-source/marsaglia/shr3))
-;; 	 (make-integer	(random-source-integers-maker source))
-;; 	 (uint32	(lambda () (make-integer const:2^32))))
-;;     (check
-;; 	(do ((i 1 (+ 1 i))
-;; 	     (k (uint32) (uint32)))
-;; 	    ((= i 1000000)
-;; 	     k))
-;;       => 2642725982))
+;;; This is commented out because it takes a lot of time
+;;;
+;;;   (let* ((source	(make-random-source/marsaglia/shr3))
+;;; 	 (make-integer	(random-source-integers-maker source))
+;;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;;     (check
+;;; 	(do ((i 1 (+ 1 i))
+;;; 	     (k (uint32) (uint32)))
+;;; 	    ((= i 1000000)
+;;; 	     k))
+;;;       => 2642725982))
 
   (let* ((source	(make-random-source/marsaglia/shr3))
 	 (make-integer	(random-source-integers-maker source)))
@@ -1184,15 +1196,17 @@
 
 (parameterise ((check-test-name 'marsaglia-swb))
 
-;;   (let* ((source	(make-random-source/marsaglia/swb))
-;; 	 (make-integer	(random-source-integers-maker source))
-;; 	 (uint32	(lambda () (make-integer const:2^32))))
-;;     (check
-;; 	(do ((i 1 (+ 1 i))
-;; 	     (k (uint32) (uint32)))
-;; 	    ((= i 1000000)
-;; 	     k))
-;;       => 627749721))
+;;; This is commented out because it takes a lot of time
+;;;
+;;;   (let* ((source	(make-random-source/marsaglia/swb))
+;;; 	 (make-integer	(random-source-integers-maker source))
+;;; 	 (uint32	(lambda () (make-integer const:2^32))))
+;;;     (check
+;;; 	(do ((i 1 (+ 1 i))
+;;; 	     (k (uint32) (uint32)))
+;;; 	    ((= i 1000000)
+;;; 	     k))
+;;;       => 627749721))
 
   (let* ((source	(make-random-source/marsaglia/swb))
 	 (make-integer	(random-source-integers-maker source)))

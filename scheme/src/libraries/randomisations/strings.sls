@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (random strings)
+(library (randomisations strings)
   (export
     random-string-unfold-chars
     %random-string-shuffle		random-string-shuffle
@@ -34,7 +34,7 @@
     %random-string-sample		random-string-sample
     %random-string-sample-population	random-string-sample-population)
   (import (rnrs)
-    (random)
+    (randomisations)
     (strings low)
     (rename (only (strings) %string-unpack)
 	    (%string-unpack unpack))

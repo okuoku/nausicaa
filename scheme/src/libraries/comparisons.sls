@@ -47,7 +47,7 @@
     refine-compare select-compare string-compare string-compare-ci
     symbol-compare vector-compare vector-compare-as-list)
   (import (rnrs)
-    (random)) ; for random-integer
+    (randomisations)) ; for random-integer
 
 
 ;;;; helpers

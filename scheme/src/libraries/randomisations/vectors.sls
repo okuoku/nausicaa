@@ -25,7 +25,7 @@
 
 
 #!r6rs
-(library (random vectors)
+(library (randomisations vectors)
   (export
     %random-vector-shuffle		random-vector-shuffle
     %random-vector-shuffle!		random-vector-shuffle!
@@ -37,7 +37,7 @@
     random-reals-with-sum		random-reals-with-sum-refine
     random-vector-unfold-numbers)
   (import (rnrs)
-    (random)
+    (randomisations)
     (vectors low)
     (rename (only (vectors) %vector-unpack)
 	    (%vector-unpack unpack)))

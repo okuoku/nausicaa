@@ -116,20 +116,20 @@
 (compile-library "checks.sls"
 		 "checks.slfasl")
 
-(compile-library "random/low.sls"
-		 "random/low.slfasl")
+(compile-library "randomisations/low.sls"
+		 "randomisations/low.slfasl")
 
-(compile-library "random.sls"
-		 "random.slfasl")
+(compile-library "randomisations.sls"
+		 "randomisations.slfasl")
 
-(compile-library "random/vectors.sls"
-		 "random/vectors.slfasl")
+(compile-library "randomisations/vectors.sls"
+		 "randomisations/vectors.slfasl")
 
-(compile-library "random/strings.sls"
-		 "random/strings.slfasl")
+(compile-library "randomisations/strings.sls"
+		 "randomisations/strings.slfasl")
 
-(compile-library "random/distributions.sls"
-		 "random/distributions.slfasl")
+(compile-library "randomisations/distributions.sls"
+		 "randomisations/distributions.slfasl")
 
 (compile-library "comparisons.sls"
 		 "comparisons.slfasl")

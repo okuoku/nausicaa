@@ -35,7 +35,7 @@
 
 
 #!r6rs
-(library (random)
+(library (randomisations)
   (export
 
     ;; random source interface
@@ -65,7 +65,7 @@
     random-permutations-maker)
   (import (rnrs)
     (parameters)
-    (random low))
+    (randomisations low))
 
 
 ;;;; randomness source

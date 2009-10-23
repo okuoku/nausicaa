@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: low level functions for (random) and auxiliary libraries
+;;;Contents: low level functions for (randomisations) and auxiliary libraries
 ;;;Date: Sat Jul  4, 2009
 ;;;
 ;;;Abstract
@@ -39,7 +39,7 @@
 
 
 #!r6rs
-(library (random low)
+(library (randomisations low)
   (export
 
     const:2^32 const:2^32-1
