@@ -13,7 +13,18 @@
 2.0.1
 @end macro
 
-@c page
+@c ------------------------------------------------------------
+@c Expat macros.
+@c ------------------------------------------------------------
+
+@macro dtd{}
+@acronym{DTD}
+@end macro
+
+@macro uri{}
+@acronym{URI}
+@end macro
+
 @c ------------------------------------------------------------
 @c License macros.
 @c ------------------------------------------------------------
@@ -30,27 +41,66 @@
 @acronym{FDL}
 @end macro
 
-@macro bsd{}
-@acronym{BSD}
+@c ------------------------------------------------------------
+@c Special notes.
+@c ------------------------------------------------------------
+
+@macro forunix{}
+@strong{Unix:}
 @end macro
 
+@macro fixme{TEXT}
+@strong{FIXME: \TEXT\}
+@end macro
 
-@c page
+@c ------------------------------------------------------------
+@c Scheme related macros.
+@c ------------------------------------------------------------
+
+@macro rnrs{VERSION}
+@acronym{R\VERSION\RS}
+@end macro
+
+@macro rsix{}
+Revised^6 Report on the algorithmic language Scheme
+@end macro
+
+@macro repl{}
+@acronym{REPL}
+@end macro
+
+@macro srfi{}
+@acronym{SRFI}
+@end macro
+
+@c Separating the @srfi{} macro from the number with a '--' rather than
+@c a '-'  makes the expansion look  ugly in menu entries  under the Info
+@c reader.  IMHO  this should not happen,  but it does; so  we live with
+@c this, because the main purpose of this document is to provide an Info
+@c version.
+@macro ansrfi{NUM}
+@srfi{}-\NUM\
+@end macro
+
+@macro clos{}
+@acronym{CLOS}
+@end macro
+
+@macro library{SPEC}
+@code{(\SPEC\)}
+@end macro
+
+@macro ffi{}
+@acronym{FFI}
+@end macro
+
+@macro class{NAME}
+@code{<\NAME\>}
+@end macro
+
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
 @c ------------------------------------------------------------
-
-@macro pxml{}
-@acronym{XML}
-@end macro
-
-@macro uri{}
-@acronym{URI}
-@end macro
-
-@macro dtd{}
-@acronym{DTD}
-@end macro
 
 @macro ansi{}
 @acronym{ANSI}
@@ -58,6 +108,11 @@
 
 @macro api{}
 @acronym{API}
+@end macro
+
+@c Remember that @url is already used by Texinfo.
+@macro aurl{}
+@acronym{URL}
 @end macro
 
 @macro ascii{}
@@ -68,6 +123,10 @@
 @acronym{CPU}
 @end macro
 
+@macro csv{}
+@acronym{CSV}
+@end macro
+
 @macro ieee{}
 @acronym{IEEE}
 @end macro
@@ -76,27 +135,32 @@
 @acronym{ISO}
 @end macro
 
-@macro ram{}
-@acronym{RAM}
-@end macro
-
 @macro posix{}
 @acronym{POSIX}
 @end macro
 
-@c Remember that @url is already used by Texinfo.
-@macro urla{}
-@acronym{URL}
+@macro rfc{}
+@acronym{RFC}
 @end macro
 
 @macro utf{}
 @acronym{UTF}
 @end macro
 
+@macro utc{}
+@acronym{UTC}
+@end macro
 
-@c page
+@macro tai{}
+@acronym{TAI}
+@end macro
+
+@macro pxml{}
+@acronym{XML}
+@end macro
+
 @c ------------------------------------------------------------
-@c Software related macros.
+@c Software acronyms.
 @c ------------------------------------------------------------
 
 @macro gmp{}
@@ -107,15 +171,21 @@
 @acronym{GCC}
 @end macro
 
-@macro glibc{}
-@gnu{} C Library
-@end macro
-
-
-@c page
 @c ------------------------------------------------------------
 @c Network related acronyms.
 @c ------------------------------------------------------------
+
+@macro http{}
+@acronym{HTTP}
+@end macro
+
+@macro ftp{}
+@acronym{FTP}
+@end macro
+
+@macro ip{}
+@acronym{IP}
+@end macro
 
 @macro tcp{}
 @acronym{TCP}
@@ -125,102 +195,34 @@
 @acronym{UDP}
 @end macro
 
-@macro icmp{}
-@acronym{ICMP}
-@end macro
-
-@c ------------------------------------------------------------
-
-@macro http{}
-@acronym{HTTP}
-@end macro
-
-@macro https{}
-@acronym{HTTP}
-@end macro
-
-@macro ftp{}
-@acronym{FTP}
-@end macro
-
 @macro smtp{}
 @acronym{SMTP}
 @end macro
 
-@macro snmp{}
-@acronym{SNMP}
-@end macro
-
-
-@c page
 @c ------------------------------------------------------------
-@c Arguments macros.
+@c Scheme language macros.
 @c ------------------------------------------------------------
 
-@macro vari{ARG}
-@var{\ARG\1}
+@macro func{NAME}
+@code{\NAME\}
 @end macro
 
-@macro varii{ARG}
-@var{\ARG\2}
+@macro snull{}
+@code{()}
 @end macro
 
-@macro variii{ARG}
-@var{\ARG\3}
+@macro true{}
+@code{#t}
 @end macro
 
-@macro variv{ARG}
-@var{\ARG\4}
+@macro false{}
+@code{#f}
 @end macro
 
-@macro varn{ARG}
-@var{\ARG\n}
+@macro keyword{NAME}
+@code{#:\NAME\}
 @end macro
 
-@macro vark{ARG}
-@var{\ARG\k}
-@end macro
-
-@macro varj{ARG}
-@var{\ARG\j}
-@end macro
-
-@c ------------------------------------------------------------
-
-@macro meta{ARG}
-<\ARG\>
-@end macro
-
-@macro metai{ARG}
-@meta{\ARG\1}
-@end macro
-
-@macro metaii{ARG}
-@meta{\ARG\2}
-@end macro
-
-@macro metaiii{ARG}
-@meta{\ARG\3}
-@end macro
-
-@macro metaiv{ARG}
-@meta{\ARG\4}
-@end macro
-
-@macro metan{ARG}
-@meta{\ARG\n}
-@end macro
-
-@macro metak{ARG}
-@meta{\ARG\k}
-@end macro
-
-@macro metaj{ARG}
-@meta{\ARG\j}
-@end macro
-
-
-@c page
 @c ------------------------------------------------------------
 @c C language macros.
 @c ------------------------------------------------------------
@@ -233,8 +235,6 @@
 @code{NULL}
 @end macro
 
-
-@c page
 @c ------------------------------------------------------------
 @c Macros for references to external documents.
 @c ------------------------------------------------------------
@@ -243,22 +243,146 @@
 @ref{\NODE\,\TITLE\,\TITLE\,libc}
 @end macro
 
-@macro rsixref{NODE, TITLE}
-@ref{\NODE\,\TITLE\,\TITLE\,r6rs}
-@end macro
-
-@macro rfiveref{NODE, TITLE}
-@ref{\NODE\,\TITLE\,\TITLE\,r5rs}
-@end macro
-
-@macro ikarusref{NODE, TITLE}
-@ref{\NODE\,\TITLE\,\TITLE\,ikarus}
-@end macro
+@c @macro rsixref{NODE, TITLE}
+@c @ref{\NODE\,\TITLE\,\TITLE\,r6rs}
+@c @end macro
 
 @macro bibref{TAG}
 @code{[\TAG\]}
 @end macro
 
+@macro autoconfref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,autoconf}
+@end macro
+
+@c ------------------------------------------------------------
+@c RNRS document macros.
+@c ------------------------------------------------------------
+
+@macro rsixlibrary{THING}
+@code{(rnrs \THING\ (6))}
+@end macro
+
+@macro arbno{THING}
+\THING\*
+@end macro
+
+@macro atleastone{THING}
+\THING\+
+@end macro
+
+@c ------------------------------------------------------------
+@c To be used in normal text.
+
+@macro meta{THING}
+<\THING\>
+@end macro
+
+@macro metai{THING}
+<\THING\1>
+@end macro
+
+@macro metaii{THING}
+<\THING\2>
+@end macro
+
+@macro metaiii{THING}
+<\THING\3>
+@end macro
+
+@c ------------------------------------------------------------
+@c To be used inside @example environment and @samp directives.
+
+@macro cmeta{THING}
+<\THING\>
+@end macro
+
+@macro cmetai{THING}
+<\THING\1>
+@end macro
+
+@macro cmetaii{THING}
+<\THING\2>
+@end macro
+
+@macro cmetaiii{THING}
+<\THING\3>
+@end macro
+
+@c ------------------------------------------------------------
+@c To be used inside argument lists.
+
+@macro ameta{THING}
+<\THING\>
+@end macro
+
+@macro ametai{THING}
+<\THING\1>
+@end macro
+
+@macro ametaii{THING}
+<\THING\2>
+@end macro
+
+@macro ametaiii{THING}
+<\THING\3>
+@end macro
+
+@c ------------------------------------------------------------
+
+@macro hyper{THING}
+<\THING\>
+@end macro
+
+@macro hyperi{THING}
+<\THING\1>
+@end macro
+
+@macro hyperii{THING}
+<\THING\2>
+@end macro
+
+@macro hyperiii{THING}
+<\THING\3>
+@end macro
+
+@macro hypern{THING}
+<\THING\n>
+@end macro
+
+@c ------------------------------------------------------------
+
+@macro varo{THING}
+@var{\THING\0}
+@end macro
+
+@macro vari{THING}
+@var{\THING\1}
+@end macro
+
+@macro varii{THING}
+@var{\THING\2}
+@end macro
+
+@macro variii{THING}
+@var{\THING\3}
+@end macro
+
+@macro variv{THING}
+@var{\THING\4}
+@end macro
+
+@macro varn{THING}
+@var{\THING\n}
+@end macro
+
+@macro vark{THING}
+@var{\THING\k}
+@end macro
+
+@macro varj{THING}
+@var{\THING\j}
+@end macro
 
 @c page
 @c ------------------------------------------------------------
@@ -283,15 +407,23 @@
 @c ------------------------------------------------------------
 
 @copying
-This document describes version @version{} of @value{PACKAGE}.
-@value{PACKAGE} is a library, written in C, for parsing @pxml{}
-documents.  It's the underlying @pxml{} parser for the open source
-Mozilla project, Perl's @code{XML::Parser}, Python's
-@code{xml.parsers.expat}, and other open--source @pxml{} parsers.
+This document describes version @version{} of @value{PACKAGE}, a C
+language library for parsing @pxml{} documents.  It is the underlying
+@pxml{} parser for the open source Mozilla project, Perl's
+@samp{XML::Parser}, Python's @samp{xml.parsers.expat}, and other
+open--source @pxml{} parsers.
 
 @quotation
+The bulk of this document was originally commissioned as an article by
+@samp{XML.com}.  They graciously allowed Clark Cooper to retain
+copyright and to distribute it with Expat.  This version has been
+substantially extended to include documentation on features which have
+been added since the original article was published, and additional
+information on using the original interface.
+
 This is a Texinfo reformatting of the original documentation from Expat
-version @version{}.
+version @version{}.  The maintainer of this specific version is Marco
+Maggi @email{mrc.mgg@@gmail.com}.
 @end quotation
 
 @noindent
@@ -337,7 +469,6 @@ See the appendix ``Package License'' for the licence notice.
 @syncodeindex fn cp
 @end ignore
 
-
 @c page
 @ifnottex
 @node Top
@@ -347,14 +478,12 @@ See the appendix ``Package License'' for the licence notice.
 
 @menu
 * overview::                    Overview of the package.
-* intro::                       The Expat @pxml{} parser.
-* install::                     Building and installing Expat.
 * using::                       Using Expat.
 * api::                         Expat reference.
 
 Appendices
 
-* package license::             Package license.
+* document license::            Document license.
 * references::                  Bibliography and references.
 
 Indexes
@@ -369,7 +498,8 @@ Indexes
 
 Overview
 
-* overview copying::            Copying this document.
+* overview intro::              The Expat @pxml{} parser.
+* overview install::            Building and installing Expat.
 
 Using Expat
 
@@ -406,9 +536,10 @@ Expat reference
 @chapter Overview
 
 
-Expat is a library, written in C, for parsing @pxml{} documents.  It's
-the underlying @pxml{} parser for the open source Mozilla project,
-Perl's @code{XML::Parser}, Python's @code{xml.parsers.expat}, and other
+This document describes version @version{} of @value{PACKAGE}, a C
+language library for parsing @pxml{} documents.  It is the underlying
+@pxml{} parser for the open source Mozilla project, Perl's
+@samp{XML::Parser}, Python's @samp{xml.parsers.expat}, and other
 open--source @pxml{} parsers.
 
 This library is the creation of James Clark, who's also given us
@@ -418,46 +549,31 @@ This library is the creation of James Clark, who's also given us
 @acronym{XSL} engine).  James was also the technical lead on the @pxml{}
 Working Group at @acronym{W3C} that produced the @pxml{} specification.
 
-This is free software, licensed under the MIT/X Consortium license.  You
-may download it from the Expat home page.
+This is free software, licensed under the MIT/X Consortium license; we
+can download it from the Expat home page.
 
-The bulk of this document was originally commissioned as an article by
-@code{XML.com}.  They graciously allowed Clark Cooper to retain
-copyright and to distribute it with Expat.  This version has been
-substantially extended to include documentation on features which have
-been added since the original article was published, and additional
-information on using the original interface.
-
+@center @url{http://expat.sourceforge.net/}
 
 @menu
-* overview copying::            Copying this document.
+* overview intro::              The Expat @pxml{} parser.
+* overview install::            Building and installing Expat.
 @end menu
 
-
 @c page
-@node overview copying
-@section Copying this document
+@node overview intro
+@section The Expat @pxml{} parser
 
 
-@insertcopying
-
-
-@c page
-@node intro
-@chapter The Expat @pxml{} parser
-
-
-Expat is a stream--oriented parser.  You register callback (or handler)
-functions with the parser and then start feeding it the document.  As
-the parser recognizes parts of the document, it will call the
-appropriate handler for that part (if you've registered one).  The
-document is fed to the parser in pieces, so you can start parsing before
-you have all the document.  This also allows you to parse really huge
-documents that won't fit into memory.
+Expat is a stream--oriented parser: We register callback or handler
+functions and then start feeding the parser with the document; as the
+parser recognizes parts of the document, it calls the appropriate
+handler.  The document is processed in pieces, so we can start parsing
+before loading the whole document; this also allows us to parse really
+huge documents that will not fit in memory.
 
 Expat can be intimidating due to the many kinds of handlers and options
-you can set.  But you only need to learn four functions in order to do
-90% of what you'll want to do with it:
+we can set.  But we only need to learn four functions in order to do
+90% of what we'll want to do with it:
 
 @table @cfunc
 @item XML_ParserCreate
@@ -470,19 +586,15 @@ Set handlers for start and end tags.
 Set handler for text.
 
 @item XML_Parse
-Pass a buffer full of document to the parser
+Feed a buffer holding the document to the parser.
 @end table
 
-These functions and others are described in the reference part of this
-document.  The reference section also describes in detail the parameters
-passed to the different types of handlers.
+Let's look at a very simple example program that only uses three of the
+above functions since it does not need a character handler.  The program
+prints an element outline, indenting child elements to distinguish them
+from the parent elements.
 
-Let's look at a very simple example program that only uses 3 of the
-above functions (it doesn't need to set a character handler).  The
-program @file{outline.c} prints an element outline, indenting child
-elements to distinguish them from the parent element that contains them.
-
-@example
+@smallexample
 /***********************************************************
  * outline.c
  *
@@ -532,30 +644,28 @@ char Buff[BUFFSIZE];
 int Depth;
 
 static void XMLCALL
-start(void *data, const char *el, const char **attr)
+start (void *data, const char *element, const char **attribute)
 @{
-  int i;
-
-  for (i = 0; i < Depth; i++)
+  for (int i = 0; i < Depth; i++)
     printf("  ");
 
-  printf("%s", el);
+  printf("%s", element);
 
-  for (i = 0; attr[i]; i += 2)
-    printf(" %s='%s'", attr[i], attr[i + 1]);
+  for (int i = 0; attribute[i]; i += 2)
+    printf(" %s='%s'", attribute[i], attribute[i + 1]);
 
   printf("\n");
   Depth++;
 @}
 
 static void XMLCALL
-end(void *data, const char *el)
+end (void *data, const char *el)
 @{
   Depth--;
 @}
 
 int
-main(int argc, char *argv[])
+main (int argc, char *argv[])
 @{
   XML_Parser p = XML_ParserCreate(NULL);
   if (! p)
@@ -594,60 +704,40 @@ main(int argc, char *argv[])
   XML_ParserFree(p);
   return 0;
 @}
-@end example
+@end smallexample
 
-The start handler does all the work.  It prints two indenting spaces for
-every level of ancestor elements, then it prints the element and
-attribute information.  Finally it increments the global Depth variable.
+After creating the parser, the program just has the job of shoveling the
+document to the parser so that it can do its work.
 
-@example
-int Depth;
+@itemize
+@item
+The @cfunc{start} handler does all the work: It prints two indenting
+spaces for every level of ancestor elements, then it prints the element
+and attribute information; finally it increments the global @samp{Depth}
+variable.
 
-void XMLCALL
-start(void *data, const char *el, const char **attr)
-@{
-  int i;
+@item
+The @cfunc{end} handler simply does the bookkeeping work of decrementing
+@samp{Depth}.
+@end itemize
 
-  for (i = 0; i < Depth; i++)
-    printf("  ");
-
-  printf("%s", el);
-
-  for (i = 0; attr[i]; i += 2)
-    printf(" %s='%s'", attr[i], attr[i + 1]);
-
-  printf("\n");
-  Depth++;
-@}
-@end example
-
-The end tag simply does the bookkeeping work of decrementing Depth.
-
-@example
-void XMLCALL
-end(void *data, const char *el)
-@{
-  Depth--;
-@}
-@end example
-
-Note the @code{XMLCALL} annotation used for the callbacks.  This is used
+Note the @samp{XMLCALL} annotation used for the callbacks.  This is used
 to ensure that the Expat and the callbacks are using the same calling
 convention in case the compiler options used for Expat itself and the
 client code are different.  Expat tries not to care what the default
 calling convention is, though it may require that it be compiled with a
-default convention of @code{cdecl} on some platforms.  For code which
+default convention of @samp{cdecl} on some platforms.  For code which
 uses Expat, however, the calling convention is specified by the
-@code{XMLCALL} annotation on most platforms; callbacks should be defined
+@samp{XMLCALL} annotation on most platforms; callbacks should be defined
 using this annotation.
 
-The @code{XMLCALL} annotation was added in Expat 1.95.7, but existing
+The @samp{XMLCALL} annotation was added in Expat 1.95.7, but existing
 working Expat applications don't need to add it (since they are already
-using the @code{cdecl} calling convention, or they wouldn't be working).
-The annotation is only needed if the default calling convention may be
-something other than @code{cdecl}.  To use the annotation safely with
-older versions of Expat, you can conditionally define it after including
-Expat's header file:
+using the @samp{cdecl} calling convention, or they would not be
+working).  The annotation is only needed if the default calling
+convention may be something other than @samp{cdecl}.  To use the
+annotation safely with older versions of Expat, we can conditionally
+define it after including Expat's header file:
 
 @example
 #include <expat.h>
@@ -664,39 +754,35 @@ Expat's header file:
 #endif
 @end example
 
-After creating the parser, the main program just has the job of
-shoveling the document to the parser so that it can do its work.
-
-
 @c page
-@node install
-@chapter Building and installing Expat
+@node overview install
+@section Building and installing Expat
 
 
-The Expat distribution comes as a compressed (with @gnu{} Gzip) tar
-file.  You may download the latest version from Source Forge.  After
-unpacking this, cd into the directory.  Then follow either the Win32
-directions or Unix directions below.
+The Expat distribution comes as a compressed tar file; we may download
+the latest version from Source Forge.  After unpacking it, change the
+current directory to the top of the source tree, then follow either the
+Win32 directions or Unix directions below.
 
 @subsubheading Building under Win32
 
-If you're using the @gnu{} compiler under Cygwin, follow the Unix
-directions in the next section.  Otherwise if you have Microsoft's
+If we're using the @gnu{} compiler under Cygwin, follow the Unix
+directions in the next section.  Otherwise if we have Microsoft's
 Developer Studio installed, then from Windows Explorer double--click on
-@file{expat.dsp} in the lib directory and build and install in the usual
-manner.
+@file{expat.dsp} in the @file{lib} directory and build and install in
+the usual manner.
 
-Alternatively, you may download the Win32 binary package that contains
+Alternatively, we may download the Win32 binary package that contains
 the @file{expat.h} include file and a pre--built @acronym{DLL}.
 
 @subsubheading Building under Unix (or @gnu{})
 
-First you'll need to run the configure shell script in order to
-configure the Makefiles and headers for your system.
+First we'll need to run the @command{configure} shell script in order to
+configure the Makefiles and headers for our system.
 
-If you're happy with all the defaults that configure picks for you, and
-you have permission on your system to install into @file{/usr/local},
-you can install Expat with this sequence of commands:
+If we're happy with all the defaults that configure picks for us, and
+we have permission on our system to install into @file{/usr/local},
+we can install Expat with this sequence of commands:
 
 @example
 $ ./configure
@@ -704,14 +790,14 @@ $ make
 $ make install
 @end example
 
-There are some options that you can provide to this script, but the only
-one we'll mention here is the @option{--prefix} option.  You can find
+There are some options that we can provide to this script, but the only
+one we'll mention here is the @option{--prefix} option.  We can find
 out all the options available by running configure with just the
 @option{--help} option.
 
 By default, the @command{configure} script sets things up so that the
 library gets installed in @file{/usr/local/lib} and the associated
-header file in @file{/usr/local/include}.  But if you were to give the
+header file in @file{/usr/local/include}.  But if we were to give the
 option @code{--prefix=/home/me/mystuff}, then the library and header
 would get installed in @file{/home/me/mystuff/lib} and
 @file{/home/me/mystuff/include} respectively.
@@ -2842,8 +2928,8 @@ any other purpose.
 
 
 @c page
-@node package license
-@appendix Package license
+@node document license
+@appendix Document license
 
 
 Copyright @copyright{} 1998, 1999, 2000 Thai Open Source Software Center
@@ -2871,7 +2957,6 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 
 @c page
 @node references

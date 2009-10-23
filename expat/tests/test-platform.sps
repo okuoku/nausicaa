@@ -23,18 +23,20 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(import (r6rs)
-  (uriel lang)
-  (uriel foreign)
-  (uriel test)
-  (expat platform)
-  (expat sizeof))
+(import (nausicaa)
+  (only (foreign ffi)
+	make-c-callback)
+  (foreign expat platform)
+  (foreign expat sizeof)
+  (checks)
+  (debugging)
+  (compensations)
+  (foreign memory)
+  (foreign cstrings))
 
 (check-set-mode! 'report-failed)
+(display "*** testing platform\n")
 
 
 ;;;; XML strings
@@ -43,47 +45,55 @@
 <stuff>
  <thing>
   <alpha>one</alpha>
-  <beta>two<beta>
+  <beta>two</beta>
  </thing>
  <thing>
   <alpha>123</alpha>
-  <beta>456<beta>
+  <beta>456</beta>
  </thing>
 </stuff>")
 
 
 
-;;;; code
+(parametrise ((check-test-name 'simple)
+	      (debugging	#t))
 
-(check
-    (with-compensations
-      (letrec ((parser
-		(compensate
-		    (let ((p (XML_ParserCreate pointer-null)))
-		      (if (pointer-null? p)
-			  (raise-out-of-memory 'XML_ParserCreate)
-			p))
-		  (with
-		   (XML_ParserFree parser)))))
+  (check
+      (with-compensations
+	(letrec ((parser (compensate
+			     (begin0-let ((p (XML_ParserCreate pointer-null)))
+			       (when (pointer-null? p)
+				 (raise-out-of-memory 'XML_ParserCreate #f)))
+			   (with
+			    ;(XML_ParserFree parser)
+			    #t))))
 
-	(let ((start	(make-c-callback
-			 'void '(pointer pointer pointer)
-			 (lambda (data elements attributes)
-			   #f)))
-	      (end	(make-c-callback
-			 'void '(pointer pointer)
-			 (lambda (data element)
-			   #f))))
-	  (XML_SetElementHandler parser start end)
-	  (let* ((buflen	(string-length xml-1))
-		 (bufptr	(string->cstring/c xml))
-		 (finished	1)
-		 (result	(XML_Parse parser bufptr buflen finished)))
-	    (when (= XML_STATUS_ERROR)
-	      (error 'XML_Parse
-		(cstring->string (XML_ErrorString (XML_GetErrorCode parser))))))
-	  #f)))
-  => #f)
+	  (define (start-callback data element attributes)
+	    (let ((element    (cstring->string element))
+		  (attributes (argv->strings attributes)))
+	      (debug "start ~s ~s" element attributes)))
+
+	  (define (end-callback data element)
+	    (let ((element	(cstring->string element)))
+	      (debug "end ~s" element)))
+
+	  (let ((start	(make-c-callback void start-callback (pointer pointer pointer)))
+		(end	(make-c-callback void end-callback   (pointer pointer))))
+	    (XML_SetElementHandler parser start end)
+	    (let* ((buflen	(string-length xml-1))
+		   (bufptr	(string->cstring/c xml-1))
+		   (finished	1)
+		   (result	(begin
+				  (write (list start end XML_Parse bufptr parser))(newline)
+				  (XML_Parse parser bufptr buflen finished))))
+(write 'here)(newline)
+	      (when (= result XML_STATUS_ERROR)
+		(error 'XML_Parse
+		  (cstring->string (XML_ErrorString (XML_GetErrorCode parser))))))
+	    #f)))
+    => #f)
+
+  #t)
 
 
 ;;;; done

@@ -17,11 +17,18 @@ Topics
 1. Introduction
 ---------------
 
-This is an  interface to the Expat library  for R6RS Scheme.
-Expat is a library, written in C, for parsing XML documents.
-It's the  underlying XML parser for the  open source Mozilla
-project, Perl's XML::Parser, Python's xml.parsers.expat, and
-other open-source XML parsers.
+This is  a binding  between the Expat  library and  the R6RS
+Scheme implementations.   It is built  upon Nausicaa/Scheme.
+Expat is  a C  library for parsing  XML documents;  it's the
+underlying XML  parser for the open  source Mozilla project,
+Perl's  XML::Parser, Python's  xml.parsers.expat,  and other
+open-source XML parsers.
+
+  Unfortunately,  Expat   makes  heavy  usage   of  callback
+functions  and  currently  the  Nausicaa  foreign  functions
+interface  does  not support  callbacks  when running  under
+Larceny Scheme; so the only supported Scheme implementations
+are Ikarus, Mosh and Ypsilon.
 
   The  last   time  the  author  bothered   to  update  this
 paragraph, he had tested Expat version 2.0.1.
@@ -52,11 +59,11 @@ License   along   with    this   program.    If   not,   see
 4. Install
 ----------
 
-Be sure  to have installed  the Nausicaa/R6RS, Nausicaa/SRFI
-and Nausicaa/Uriel libraries first.
+Be sure to have installed the Nausicaa/Scheme package first.
+Read the "README.build" file for details on the installation
+infrastructure.  Basically we should do:
 
-  Basically we should do:
-
+   $ cd <nausicaa top>
    $ cd expat
    $ mkdir "=build"
    $ cd "=build"
@@ -95,8 +102,8 @@ the XML specification.
 B. Bug reports
 --------------
 
-Bug    reports    are     appreciated,    send    them    to
-<mrc.mgg@gmail.com>.
+Bug reports  are appreciated, register them  using the issue
+tracker at Nausicaa's GitHub site.
 
 
 C. Resources
@@ -106,6 +113,17 @@ Expat can be found here:
 
 	      <http://expat.sourceforge.net/>
 
+  The latest version of this package can be downloaded from:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
 
 
 ### end of file

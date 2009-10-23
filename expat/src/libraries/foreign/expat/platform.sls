@@ -23,11 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(library (expat platform)
+(library (foreign expat platform)
   (export
     XML_SetElementDeclHandler
     XML_SetAttlistDeclHandler
@@ -93,19 +90,16 @@
     XML_ErrorString
     XML_ExpatVersion
     XML_GetFeatureList)
-  (import (r6rs)
-    (uriel foreign)
-    (expat sizeof))
+  (import (rnrs)
+    (foreign ffi)
+    (foreign expat sizeof))
 
   (define expat-lib
     (let ((o (open-shared-object 'libexpat.so)))
       (shared-object o)
       o))
 
-
 
-;;;; code
-
 (define-c-function XML_SetElementDeclHandler
   (void XML_SetElementDeclHandler (XML_Parser callback)))
 

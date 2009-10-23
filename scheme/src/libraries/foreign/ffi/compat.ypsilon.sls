@@ -202,6 +202,11 @@
       integer->pointer
     (lambda (x) x)))
 
+(define (select-retval-type-mapper/callback ret-type)
+  (if (eq? ret-type 'void*)
+      pointer->integer
+    (lambda (x) x)))
+
 (define (select-argument-type-mapper arg-type)
   (case arg-type
     ((void)
@@ -222,7 +227,30 @@
     ((callback)
      assert-callback)
     (else
-     (assertion-violation 'select-type-mapper
+     (assertion-violation #f
+       "unknown C language type identifier used for function argument" arg-type))))
+
+(define (select-argument-type-mapper/callback arg-type)
+  (case arg-type
+    ((void)
+     (lambda (x) x))
+    ((char schar signed-char uchar unsigned-char)
+     (lambda (x) x))
+    ((int signed-int ssize_t
+	  uint unsigned unsigned-int size_t
+	  long signed-long
+	  ulong unsigned-long)
+     (lambda (x) x))
+    ((double)
+     (lambda (x) x))
+    ((float)
+     (lambda (x) x))
+    ((pointer void* char* FILE*)
+     integer->pointer)
+    ((callback)
+     integer->pointer)
+    (else
+     (assertion-violation #f
        "unknown C language type identifier used for function argument" arg-type))))
 
 
@@ -357,10 +385,50 @@
 		      args)))))))
 
 
+;;;; callback functions
+
 (define (primitive-make-c-callback ret-type scheme-function arg-types)
-  (make-cdecl-callback (nausicaa-type->ypsilon-type ret-type)
-		       (map nausicaa-type->ypsilon-type arg-types)
-		       scheme-function))
+  (let* ((ypsilon-ret-type	(nausicaa-type->ypsilon-type ret-type))
+	 (no-arguments?		(equal? '(void) arg-types))
+	 (ypsilon-arg-types	(if no-arguments?
+				    '()
+				  (map nausicaa-type->ypsilon-type arg-types)))
+	 (retval-mapper		(select-retval-type-mapper/callback ypsilon-ret-type))
+	 (argument-mappers	(if no-arguments?
+				    '()
+				  (map select-argument-type-mapper/callback arg-types)))
+	 (function-wrapper
+	  (case (length argument-mappers)
+	    ((0)	(lambda ()
+			  (retval-mapper (scheme-function))))
+	    ((1)	(let ((mapper (car argument-mappers)))
+			  (lambda (arg)
+			    (retval-mapper (scheme-function (mapper arg))))))
+	    ((2)	(let ((mapper1 (car argument-mappers))
+			      (mapper2 (cadr argument-mappers)))
+			  (lambda (arg1 arg2)
+			    (retval-mapper (scheme-function (mapper1 arg1)
+							    (mapper2 arg2))))))
+	    ((3)	(let ((mapper1 (car argument-mappers))
+			      (mapper2 (cadr argument-mappers))
+			      (mapper3 (caddr argument-mappers)))
+			  (lambda (arg1 arg2 arg3)
+			    (retval-mapper (scheme-function (mapper1 arg1)
+							    (mapper2 arg2)
+							    (mapper3 arg3))))))
+	    ((4)	(let ((mapper1 (car argument-mappers))
+			      (mapper2 (cadr argument-mappers))
+			      (mapper3 (caddr argument-mappers))
+			      (mapper4 (cadddr argument-mappers)))
+			  (lambda (arg1 arg2 arg3 arg4)
+			    (retval-mapper (scheme-function (mapper1 arg1)
+							    (mapper2 arg2)
+							    (mapper3 arg3)
+							    (mapper4 arg4))))))
+	    (else	(lambda args
+			  (retval-mapper (apply scheme-function (map (lambda (m a) (m a))
+								  argument-mappers args))))))))
+    (make-cdecl-callback ypsilon-ret-type ypsilon-arg-types function-wrapper)))
 
 (define (primitive-free-c-callback cb)
   #f)

@@ -23,18 +23,14 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(library (expat)
+(library (foreign expat)
   (export
     )
-  (import (r6rs)
-    (uriel lang)
-    (uriel foreign)
-    (expat sizeof)
-    (expat platform))
+  (import (rnrs)
+    (foreign ffi)
+    (foreign expat platform)
+    (foreign expat sizeof))
 
 
 ;;;;

@@ -1,7 +1,7 @@
 ;;;
 ;;;Part of: Nausicaa/Expat
-;;;Contents: compile script
-;;;Date: Sat Jan  3, 2009
+;;;Contents: compile script for Mosh
+;;;Date: Fri Oct 23, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -24,7 +24,7 @@
 ;;;
 
 (import
-  (only (expat))
+  (only (foreign expat))
   )
 
 ;;; end of file

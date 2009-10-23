@@ -1,12 +1,11 @@
 ;;;
 ;;;Part of: Nausicaa/Expat
-;;;Contents: compile script
+;;;Contents: compile script for Ikarus
 ;;;Date: Sat Jan  3, 2009
 ;;;
 ;;;Abstract
 ;;;
-;;;	Order  does matter!!!  Libraries  that are  imported into  other
-;;;	libraries must be compiled first.
+;;;
 ;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
@@ -24,17 +23,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import (rnrs)
-  (larceny compiler))
-
-(compile-library "expat/sizeof.sls"
-		 "expat/sizeof.larceny.slfasl")
-
-(compile-library "expat/platform.sls"
-		 "expat/platform.larceny.slfasl")
-
-(compile-library "expat.sls"
-		 "expat.larceny.slfasl")
-
+(import
+  (only (foreign expat))
+  )
 
 ;;; end of file
