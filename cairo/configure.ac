@@ -40,8 +40,24 @@ DS_EXCLUDE_SECTION([AUTOCONF])
 DS_EXCLUDE_SECTION([PKGCONFIG])
 dnl NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
 NAUSICAA_C_LANGUAGE
-AC_CHECK_HEADERS([cairo/cairo.h],,[AC_MSG_FAILURE([cannot find Cairo headers],[2])])
+
+AC_CHECK_HEADERS([cairo/cairo.h],,
+  [AC_MSG_FAILURE([cannot find Cairo's cairo.h header],[2])])
+AC_CHECK_HEADERS([cairo/cairo-pdf.h],,
+  [AC_MSG_WARN([cannot find Cairo's cairo-pdf.h header])])
+AC_CHECK_HEADERS([cairo/cairo-svg.h],,
+  [AC_MSG_WARN([cannot find Cairo's cairo-svg.h header])])
+AC_CHECK_HEADERS([cairo/cairo-ps.h],,
+  [AC_MSG_WARN([cannot find Cairo's cairo-ps.h header])])
+AC_CHECK_HEADERS([cairo/cairo-xlib.h],,
+  [AC_MSG_WARN([cannot find Cairo's cairo-xlib.h header])])
+AC_CHECK_HEADERS([cairo/cairo-xlib-render.h],,
+  [AC_MSG_WARN([cannot find Cairo's cairo-xlib-render.h header])])
+AC_CHECK_HEADERS([cairo/cairo-ft.h],,
+  [AC_MSG_WARN([cannot find Cairo' cairo-ft.h header])])
+
 AC_CHECK_LIB([cairo],[cairo_create],,[AC_MSG_FAILURE([cannot find Cairo library],[2])])
+
 NAUSICAA_SIZEOF
 
 dnl page
@@ -49,34 +65,56 @@ dnl --------------------------------------------------------------------
 dnl Helper functions.
 dnl --------------------------------------------------------------------
 
+m4_define([NAU_CAIRO_INCLUDES],[
+#include <cairo/cairo.h>
+#if HAVE_CAIRO_CAIRO_H
+#  include <cairo/cairo-pdf.h>
+#endif
+#if HAVE_CAIRO_CAIRO_SVG_H
+#  include <cairo/cairo-svg.h>
+#endif
+#if HAVE_CAIRO_CAIRO_PS_H
+#  include <cairo/cairo-ps.h>
+#endif
+#if HAVE_CAIRO_CAIRO_XLIB_H
+#  include <cairo/cairo-xlib.h>
+#endif
+#if HAVE_CAIRO_CAIRO_XLIB_RENDER_H
+#  include <cairo/cairo-xlib-render.h>
+#endif
+#if HAVE_CAIRO_CAIRO_FT_H
+#  include <cairo/cairo-ft.h>
+#endif
+])
+
 AC_DEFUN([NAU_CAIRO_INSPECT_TYPE],
-  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <cairo/cairo.h>])])
+  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[NAU_CAIRO_INCLUDES])])
 
 AC_DEFUN([NAU_CAIRO_INSPECT_STRUCT_TYPE],
-  [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[#f],[#include <cairo/cairo.h>])])
+  [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[#f],[NAU_CAIRO_INCLUDES])])
 
 AC_DEFUN([NAU_CAIRO_INSPECT_FIELD_TYPE],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[#include <cairo/cairo.h>])])
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[NAU_CAIRO_INCLUDES])])
 
 AC_DEFUN([NAU_CAIRO_ENUM_VALUE],
   [NAU_CAIRO_VALUEOF_TEST([$1],[$1])])
 
 AC_DEFUN([NAU_CAIRO_DEFINE_VALUE],
-  [NAU_CAIRO_VALUEOF_TEST([$1],[$1])])
+  [NAUSICAA_VALUEOF_TEST([$1],[$1],[0],[NAU_CAIRO_INCLUDES])])
 
 dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAU_CAIRO_SIZEOF_TEST],
-  [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <cairo/cairo.h>])])
+  [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_CAIRO_INCLUDES])])
 
 AC_DEFUN([NAU_CAIRO_VALUEOF_TEST],
-  [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[#include <cairo/cairo.h>])])
+  [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_CAIRO_INCLUDES])])
 
 AC_DEFUN([NAU_CAIRO_OFFSETOF_FIELD_TEST],
-  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <cairo/cairo.h>])])
+  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[NAU_CAIRO_INCLUDES])])
 
 AC_DEFUN([NAU_CAIRO_STRUCT_FIELD],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],,[#include <cairo/cairo.h>])])
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],,[NAU_CAIRO_INCLUDES])])
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -104,6 +142,7 @@ NAU_CAIRO_INSPECT_TYPE([CAIRO_FORMAT],[cairo_format_t],[unsigned-int])
 NAU_CAIRO_INSPECT_TYPE([CAIRO_PATTERN_TYPE],[cairo_pattern_type_t],[unsigned-int])
 NAU_CAIRO_INSPECT_TYPE([CAIRO_EXTEND],[cairo_extend_t],[unsigned-int])
 NAU_CAIRO_INSPECT_TYPE([CAIRO_FILTER],[cairo_filter_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_SVG_VERSION],[cairo_svg_version_t],[unsigned-int])
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -173,7 +212,19 @@ dnl --------------------------------------------------------------------
 dnl Constants.
 dnl --------------------------------------------------------------------
 
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_FT_FONT])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_IMAGE_SURFACE])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_PDF_SURFACE])
 NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_PNG_FUNCTIONS])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_PS_SURFACE])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_QUARTZ_FONT])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_QUARTZ_SURFACE])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_SVG_SURFACE])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_USER_FONT])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_WIN32_FONT])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_WIN32_SURFACE])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_XLIB_SURFACE])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_XLIB_XRENDER_SURFACE])
 
 dnl enum cairo_status_t
 NAU_CAIRO_ENUM_VALUE([CAIRO_STATUS_SUCCESS])
@@ -336,6 +387,9 @@ NAU_CAIRO_ENUM_VALUE([CAIRO_FILTER_NEAREST])
 NAU_CAIRO_ENUM_VALUE([CAIRO_FILTER_BILINEAR])
 NAU_CAIRO_ENUM_VALUE([CAIRO_FILTER_GAUSSIAN])
 
+dnl enum cairo_svg_version_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_SVG_VERSION_1_1])
+NAU_CAIRO_ENUM_VALUE([CAIRO_SVG_VERSION_1_2])
 
 dnl page
 dnl --------------------------------------------------------------------

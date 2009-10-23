@@ -168,6 +168,89 @@
   #t)
 
 
+(parametrise ((check-test-name	'draw-text))
+
+;;; This code comes from the tutorial:
+;;;
+;;; <http://zetcode.com/tutorials/cairographicstutorial/cairobackends/>
+;;;
+
+  (check	;output to PNG file
+      (with-compensations
+	(letrec* ((surface	(compensate
+				    (cairo_image_surface_create CAIRO_FORMAT_ARGB32 390 60)
+				  (with
+				   (cairo_surface_destroy surface))))
+		  (cr		(compensate
+				    (cairo_create surface)
+				  (with
+				   (cairo_destroy cr)))))
+
+	  (cairo_set_source_rgb cr 0. 0. 0.)
+	  (cairo_select_font_face cr (string->cstring/c "Sans")
+				  CAIRO_FONT_SLANT_NORMAL CAIRO_FONT_WEIGHT_NORMAL)
+	  (cairo_set_font_size cr 40.0)
+
+	  (cairo_move_to cr 10.0 50.0)
+	  (cairo_show_text cr (string->cstring/c "Disziplin ist Macht."))
+
+	  (cairo_surface_write_to_png surface (string->cstring/c "draw-png-test-image.png"))
+	  #t))
+    => #t)
+
+  (check	;output to PDF file
+      (with-compensations
+	(letrec* ((surface	(compensate
+				    (cairo_pdf_surface_create
+				     (string->cstring/c "draw-pdf-test-image.pdf")
+				     390. 60.)
+				  (with
+				   (cairo_surface_destroy surface))))
+		  (cr		(compensate
+				    (cairo_create surface)
+				  (with
+				   (cairo_destroy cr)))))
+
+	  (cairo_set_source_rgb cr 0. 0. 0.)
+	  (cairo_select_font_face cr (string->cstring/c "Sans")
+				  CAIRO_FONT_SLANT_NORMAL CAIRO_FONT_WEIGHT_NORMAL)
+	  (cairo_set_font_size cr 40.0)
+
+	  (cairo_move_to cr 10.0 50.0)
+	  (cairo_show_text cr (string->cstring/c "Disziplin ist Macht."))
+
+	  (cairo_show_page cr)
+	  #t))
+    => #t)
+
+  (check	;output to SVG file
+      (with-compensations
+	(letrec* ((surface	(compensate
+				    (cairo_svg_surface_create
+				     (string->cstring/c "draw-svg-test-image.svg")
+				     390. 60.)
+				  (with
+				   (cairo_surface_destroy surface))))
+		  (cr		(compensate
+				    (cairo_create surface)
+				  (with
+				   (cairo_destroy cr)))))
+
+	  (cairo_set_source_rgb cr 0. 0. 0.)
+	  (cairo_select_font_face cr (string->cstring/c "Sans")
+				  CAIRO_FONT_SLANT_NORMAL CAIRO_FONT_WEIGHT_NORMAL)
+	  (cairo_set_font_size cr 40.0)
+
+	  (cairo_move_to cr 10.0 50.0)
+	  (cairo_show_text cr (string->cstring/c "Disziplin ist Macht."))
+
+	  (cairo_show_page cr)
+	  #t))
+    => #t)
+
+  #t)
+
+
 ;;;; done
 
 (check-report)

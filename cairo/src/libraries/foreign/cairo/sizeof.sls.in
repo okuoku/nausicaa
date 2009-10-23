@@ -164,6 +164,11 @@
     strideof-cairo_text_cluster_flags_t
     alignof-cairo_text_cluster_flags_t
 
+    cairo_svg_version_t
+    sizeof-cairo_svg_version_t
+    strideof-cairo_svg_version_t
+    alignof-cairo_svg_version_t
+
     ;; enum cairo_status_t
     CAIRO_STATUS_SUCCESS
     CAIRO_STATUS_NO_MEMORY
@@ -291,8 +296,24 @@
     CAIRO_PATTERN_TYPE_LINEAR
     CAIRO_PATTERN_TYPE_RADIAL
 
+    ;; enum cairo_svg_version_t
+    CAIRO_SVG_VERSION_1_1
+    CAIRO_SVG_VERSION_1_2
+
     ;; defines
+    CAIRO_HAS_FT_FONT
+    CAIRO_HAS_IMAGE_SURFACE
+    CAIRO_HAS_PDF_SURFACE
     CAIRO_HAS_PNG_FUNCTIONS
+    CAIRO_HAS_PS_SURFACE
+    CAIRO_HAS_QUARTZ_FONT
+    CAIRO_HAS_QUARTZ_SURFACE
+    CAIRO_HAS_SVG_SURFACE
+    CAIRO_HAS_USER_FONT
+    CAIRO_HAS_WIN32_FONT
+    CAIRO_HAS_WIN32_SURFACE
+    CAIRO_HAS_XLIB_SURFACE
+    CAIRO_HAS_XLIB_XRENDER_SURFACE
 
     ;; accessors and mutators
     cairo_matrix_t-xx-set!			cairo_matrix_t-xx-ref
@@ -491,12 +512,35 @@
 (define strideof-cairo_text_cluster_flags_t	@STRIDEOF_CAIRO_TEXT_CLUSTER_FLAGS@)
 (define alignof-cairo_text_cluster_flags_t	@ALIGNOF_CAIRO_TEXT_CLUSTER_FLAGS@)
 
+;;;The enum "cairo_svg_version_t" is defined  only is the SVG feature is
+;;;enabled.   We  define  default  values  here to  prevent  loading  of
+;;;libraries in  case the output  variable "TYPEOF_CAIRO_SVG_VERSION" is
+;;;substituted with #f, which is an invalid type.
+;;;
+(define cairo_svg_version_t		(if (zero? @VALUEOF_CAIRO_HAS_SVG_SURFACE@)
+					    'unsigned-int	;fake value
+					  (quote @TYPEOF_CAIRO_SVG_VERSION@)))
+(define sizeof-cairo_svg_version_t	@SIZEOF_CAIRO_SVG_VERSION@)
+(define strideof-cairo_svg_version_t	@STRIDEOF_CAIRO_SVG_VERSION@)
+(define alignof-cairo_svg_version_t	@ALIGNOF_CAIRO_SVG_VERSION@)
+
 
 ;;;; constants
 
 ;; define value
-(define CAIRO_HAS_PNG_FUNCTIONS
-  (not (zero? @VALUEOF_CAIRO_HAS_PNG_FUNCTIONS@)))
+(define CAIRO_HAS_FT_FONT			(not (zero? @VALUEOF_CAIRO_HAS_FT_FONT@)))
+(define CAIRO_HAS_IMAGE_SURFACE			(not (zero? @VALUEOF_CAIRO_HAS_IMAGE_SURFACE@)))
+(define CAIRO_HAS_PDF_SURFACE			(not (zero? @VALUEOF_CAIRO_HAS_PDF_SURFACE@)))
+(define CAIRO_HAS_PNG_FUNCTIONS			(not (zero? @VALUEOF_CAIRO_HAS_PNG_FUNCTIONS@)))
+(define CAIRO_HAS_PS_SURFACE			(not (zero? @VALUEOF_CAIRO_HAS_PS_SURFACE@)))
+(define CAIRO_HAS_QUARTZ_FONT			(not (zero? @VALUEOF_CAIRO_HAS_QUARTZ_FONT@)))
+(define CAIRO_HAS_QUARTZ_SURFACE		(not (zero? @VALUEOF_CAIRO_HAS_QUARTZ_SURFACE@)))
+(define CAIRO_HAS_SVG_SURFACE			(not (zero? @VALUEOF_CAIRO_HAS_SVG_SURFACE@)))
+(define CAIRO_HAS_USER_FONT			(not (zero? @VALUEOF_CAIRO_HAS_USER_FONT@)))
+(define CAIRO_HAS_WIN32_FONT			(not (zero? @VALUEOF_CAIRO_HAS_WIN32_FONT@)))
+(define CAIRO_HAS_WIN32_SURFACE			(not (zero? @VALUEOF_CAIRO_HAS_WIN32_SURFACE@)))
+(define CAIRO_HAS_XLIB_SURFACE			(not (zero? @VALUEOF_CAIRO_HAS_XLIB_SURFACE@)))
+(define CAIRO_HAS_XLIB_XRENDER_SURFACE		(not (zero? @VALUEOF_CAIRO_HAS_XLIB_XRENDER_SURFACE@)))
 
 ;; enum cairo_status_t
 (define CAIRO_STATUS_SUCCESS			@VALUEOF_CAIRO_STATUS_SUCCESS@)
@@ -655,6 +699,9 @@
 (define CAIRO_FILTER_BILINEAR			@VALUEOF_CAIRO_FILTER_BILINEAR@)
 (define CAIRO_FILTER_GAUSSIAN			@VALUEOF_CAIRO_FILTER_GAUSSIAN@)
 
+;; enum cairo_svg_version_t
+(define CAIRO_SVG_VERSION_1_1			@VALUEOF_CAIRO_SVG_VERSION_1_1@)
+(define CAIRO_SVG_VERSION_1_2			@VALUEOF_CAIRO_SVG_VERSION_1_2@)
 
 
 ;;;; data structure accessors and mutators

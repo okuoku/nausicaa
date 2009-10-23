@@ -312,6 +312,18 @@
     ;; functions to be used while debugging (not intended for use in production code)
     cairo_debug_reset_static_data
 
+    ;; PDF surface
+    cairo_pdf_surface_create
+    cairo_pdf_surface_create_for_stream
+    cairo_pdf_surface_set_size
+
+    ;; SVG functions
+    cairo_svg_surface_create
+    cairo_svg_surface_create_for_stream
+    cairo_svg_surface_restrict_to_version
+    cairo_svg_get_versions
+    cairo_svg_version_to_string
+
     (rename
      ;; version functions
      (cairo_version				cairo-version)
@@ -595,17 +607,41 @@
      (cairo_matrix_transform_point		cairo-matrix-transform-point)
 
      ;; functions to be used while debugging (not intended for use in production code)
-     (cairo_debug_reset_static_data		cairo-debug-reset-static-data)))
+     (cairo_debug_reset_static_data		cairo-debug-reset-static-data)
+
+     ;; PDF surface
+     (cairo_pdf_surface_create			cairo-pdf-surface-create)
+     (cairo_pdf_surface_create_for_stream	cairo-pdf-surface-create-for-stream)
+     (cairo_pdf_surface_set_size		cairo-pdf-surface-set-size)
+
+     ;; SVG functions
+     (cairo_svg_surface_create			cairo-svg-surface-create)
+     (cairo_svg_surface_create_for_stream	cairo-svg-surface-create-for-stream)
+     (cairo_svg_surface_restrict_to_version	cairo-svg-surface-restrict-to-version)
+     (cairo_svg_get_versions			cairo-svg-get-versions)
+     (cairo_svg_version_to_string		cairo-svg-version-to-string)
+     ))
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof)
     (foreign cairo sizeof)
     (unimplemented))
 
+
 (define cairo-shared-object
   (let ((o (open-shared-object 'libcairo.so)))
     (shared-object o)
     o))
+
+(define-syntax define-c-function/feature
+  (syntax-rules ()
+    ((_ ?name ?feature (?ret-type ?foreign-name ?arg-types))
+     (define ?name
+       (if ?feature
+	   (make-c-function ?ret-type ?foreign-name ?arg-types)
+	 (lambda args
+	   (raise-unimplemented-error (quote ?foreign-name)
+				      "this feature is not available in the Cairo library")))))))
 
 
 ;;;; type aliases
@@ -627,6 +663,7 @@
 (define cairo_scaled_font_t*		'pointer)
 (define cairo_surface_t*		'pointer)
 (define cairo_surface_t**		'pointer)
+(define cairo_svg_version_t**		'pointer)
 (define cairo_t*			'pointer)
 (define cairo_text_cluster_flags_t*	'pointer)
 (define cairo_text_cluster_t*		'pointer)
@@ -1263,7 +1300,7 @@
 (define cairo_surface_write_to_png
   (if CAIRO_HAS_PNG_FUNCTIONS
       (make-c-function cairo_status_t cairo_surface_write_to_png (cairo_surface_t* char*))
-    (lambda ()
+    (lambda args
       (raise-unimplemented-error 'cairo_surface_write_to_png
 				 "PNG image format is not supported"))))
 
@@ -1271,7 +1308,7 @@
   (if CAIRO_HAS_PNG_FUNCTIONS
       (make-c-function cairo_status_t cairo_surface_write_to_png_stream
 		       (cairo_surface_t* cairo_write_func_t void*))
-    (lambda ()
+    (lambda args
       (raise-unimplemented-error 'cairo_surface_write_to_png_stream
 				 "PNG image format is not supported"))))
 
@@ -1346,7 +1383,7 @@
 (define cairo_image_surface_create_from_png
   (if CAIRO_HAS_PNG_FUNCTIONS
       (make-c-function cairo_surface_t* cairo_image_surface_create_from_png (char*))
-    (lambda ()
+    (lambda args
       (raise-unimplemented-error 'cairo_image_surface_create_from_png
 				 "PNG image format is not supported"))))
 
@@ -1354,7 +1391,7 @@
   (if CAIRO_HAS_PNG_FUNCTIONS
       (make-c-function cairo_surface_t* cairo_image_surface_create_from_png_stream
 		       (cairo_read_func_t void*))
-    (lambda ()
+    (lambda args
       (raise-unimplemented-error 'cairo_image_surface_create_from_png_stream
 				 "PNG image format is not supported"))))
 
@@ -1486,6 +1523,49 @@
 
 (define-c-function cairo_debug_reset_static_data
   (void cairo_debug_reset_static_data (void)))
+
+
+;;;; PDF surface
+
+(define cairo_pdf_surface_create
+  (if CAIRO_HAS_PDF_SURFACE
+      (make-c-function cairo_surface_t* cairo_pdf_surface_create (char* double double))
+    (lambda args
+      (raise-unimplemented-error 'cairo_pdf_surface_create
+				 "this feature is not available in the Cairo library"))))
+
+(define cairo_pdf_surface_create_for_stream
+  (if CAIRO_HAS_PDF_SURFACE
+      (make-c-function cairo_surface_t* cairo_pdf_surface_create_for_stream
+		       (cairo_write_func_t void* double double))
+    (lambda args
+      (raise-unimplemented-error 'cairo_pdf_surface_create_for_stream
+				 "this feature is not available in the Cairo library"))))
+
+(define cairo_pdf_surface_set_size
+  (if CAIRO_HAS_PDF_SURFACE
+      (make-c-function void cairo_pdf_surface_set_size (cairo_surface_t* double double))
+    (lambda args
+      (raise-unimplemented-error 'cairo_pdf_surface_set_size
+				 "this feature is not available in the Cairo library"))))
+
+
+;;;; SVG surface
+
+(define-c-function/feature cairo_svg_surface_create CAIRO_HAS_SVG_SURFACE
+  (cairo_surface_t* cairo_svg_surface_create (char* double double)))
+
+(define-c-function/feature cairo_svg_surface_create_for_stream CAIRO_HAS_SVG_SURFACE
+  (cairo_surface_t* cairo_svg_surface_create_for_stream (cairo_write_func_t void* double double)))
+
+(define-c-function/feature cairo_svg_surface_restrict_to_version CAIRO_HAS_SVG_SURFACE
+  (void cairo_svg_surface_restrict_to_version (cairo_surface_t* cairo_svg_version_t)))
+
+(define-c-function/feature cairo_svg_get_versions CAIRO_HAS_SVG_SURFACE
+  (void cairo_svg_get_versions (cairo_svg_version_t** int)))
+
+(define-c-function/feature cairo_svg_version_to_string CAIRO_HAS_SVG_SURFACE
+  (char* cairo_svg_version_to_string (cairo_svg_version_t)))
 
 
 ;;;; done
