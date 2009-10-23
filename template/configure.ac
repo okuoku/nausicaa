@@ -49,22 +49,34 @@ dnl --------------------------------------------------------------------
 dnl Helper functions.
 dnl --------------------------------------------------------------------
 
-AC_DEFUN([NAU_DISABLED_SUBST],[
-$1=#f
-AC_SUBST([$1])
-])
+AC_DEFUN([NAU_TEMPLATE_INSPECT_TYPE],
+  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <template/template.h>])])
+
+AC_DEFUN([NAU_TEMPLATE_INSPECT_STRUCT_TYPE],
+  [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[#f],[#include <template/template.h>])])
+
+AC_DEFUN([NAU_TEMPLATE_INSPECT_FIELD_TYPE],
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[#include <template/template.h>])])
+
+AC_DEFUN([NAU_TEMPLATE_ENUM_VALUE],
+  [NAU_TEMPLATE_VALUEOF_TEST([$1],[$1])])
+
+AC_DEFUN([NAU_TEMPLATE_DEFINE_VALUE],
+  [NAU_TEMPLATE_VALUEOF_TEST([$1],[$1])])
+
+dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAU_TEMPLATE_SIZEOF_TEST],
-   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <template/template.h>])])
+  [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <template/template.h>])])
 
 AC_DEFUN([NAU_TEMPLATE_VALUEOF_TEST],
-   [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[#include <template/template.h>])])
-
-AC_DEFUN([NAU_TEMPLATE_INSPECT_TYPE],
-   [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <template/template.h>])])
+  [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[#include <template/template.h>])])
 
 AC_DEFUN([NAU_TEMPLATE_OFFSETOF_FIELD_TEST],
-   [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <template/template.h>])])
+  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <template/template.h>])])
+
+AC_DEFUN([NAU_TEMPLATE_STRUCT_FIELD],
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],,[#include <template/template.h>])])
 
 dnl page
 dnl --------------------------------------------------------------------
