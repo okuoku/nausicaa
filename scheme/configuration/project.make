@@ -86,7 +86,7 @@ binfmt_scripts_SOURCES	= $(addprefix $(binfmt_scripts_SRCDIR)/,		\
 	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	mosh-scheme-script))
 binfmt_scripts_TARGETS	= $(call ds-replace-dir,$(binfmt_scripts_BUILDDIR),$(binfmt_scripts_SOURCES))
 binfmt_scripts_INSTLST	= $(binfmt_scripts_TARGETS)
-binfmt_scripts_INSTDIR	= $(bindir)
+binfmt_scripts_INSTDIR	= $(pkglibexecdir)
 
 $(eval $(call ds-default-clean-variables,binfmt_scripts))
 $(eval $(call ds-module,binfmt_scripts,bin,BIN))
@@ -121,7 +121,7 @@ $(eval $(call ds-module,binfmt_config,bin,BIN))
 
 $(binfmt_config_TARGETS): $(binfmt_config_SOURCES)
 	$(SED) \
-	-e 's%BINDIR%$(bindir)%g'				\
+	-e 's%BINDIR%$(binfmt_scripts_INSTDIR)%g'		\
 	-e 's%OPT_ENABLE_IKARUS%$(nausicaa_ENABLE_IKARUS)%g'	\
 	-e 's%OPT_ENABLE_LARCENY%$(nausicaa_ENABLE_LARCENY)%g'	\
 	-e 's%OPT_ENABLE_MOSH%$(nausicaa_ENABLE_MOSH)%g'	\
