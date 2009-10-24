@@ -62,8 +62,8 @@
 (compile-library "nausicaa.larceny.sls"
 		 "nausicaa.larceny.slfasl")
 
-(compile-library "format.sls"
-		 "format.slfasl")
+(compile-library "formations.sls"
+		 "formations.slfasl")
 
 (compile-library "lists/low.sls"
 		 "lists/low.slfasl")

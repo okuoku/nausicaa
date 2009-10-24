@@ -33,9 +33,8 @@
 ;;;SOFTWARE.
 
 
-
 #!r6rs
-(library (format)
+(library (formations)
   (export
     format format-output-column)
   (import (nausicaa)

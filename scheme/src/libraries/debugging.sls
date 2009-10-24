@@ -29,7 +29,7 @@
   (export
     debug debugging debug-print-condition)
   (import (nausicaa)
-    (format))
+    (formations))
 
 
 (define debugging

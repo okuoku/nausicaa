@@ -54,7 +54,7 @@
 		  (write	nausicaa:write)
 		  (newline	nausicaa:newline)
 		  (pretty-print	nausicaa:pretty-print))
-    (format)
+    (formations)
     (debugging)
     (loops))
 

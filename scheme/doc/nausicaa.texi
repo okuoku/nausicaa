@@ -1113,7 +1113,6 @@ Time data types and procedures
 
 Formatting strings
 
-* format overview::             Overview of the package.
 * format output::               Formatted Output.
 * format escape values::        Escape sequences for generic values.
 * format escape char::          Escape sequences for characters.
@@ -18980,7 +18979,7 @@ The @func{cut} and @func{cute} syntaxes.
 The @library{loops} library.
 
 @item format
-The @library{format} library.
+The @library{formations} library.
 
 @item lists
 The @library{lists} library.
@@ -34102,8 +34101,19 @@ to extend this list.
 @chapter Formatting strings
 
 
+The @library{formations} library is a distribution of the @func{format}
+function written by Dirk Lutzebaeck (@email{lutzeb@@cs.tu-berlin.de}),
+originally by Ken Dickey and Aubrey Jaffer, included in the Guile
+distribution and later adapted to @rnrs{6} Scheme by Marco Maggi.
+
+This document is derived from the documentation of Guile, the @gnu{}
+Ubiquitous Interface Language for Extensions.
+
+The @func{format} function is a powerful way to print numbers, strings
+and other objects together with literal text under the control of a
+format string.
+
 @menu
-* format overview::             Overview of the package.
 * format output::               Formatted Output.
 * format escape values::        Escape sequences for generic values.
 * format escape char::          Escape sequences for characters.
@@ -34111,24 +34121,6 @@ to extend this list.
 * format escape flonums::       Escape sequences for flonums.
 * format escape complex::       Escape sequences for complex numbers.
 @end menu
-
-@c page
-@node format overview
-@section Overview of the package
-
-
-This package is a distribution of the @func{format} function written by
-Dirk Lutzebaeck (@email{lutzeb@@cs.tu-berlin.de}), originally by Ken
-Dickey and Aubrey Jaffer, included in the Guile distribution and later
-adapted to @rnrs{6} Scheme by Marco Maggi.
-
-This document is derived from the documentation of Guile, the @gnu{}
-Ubiquitous Interface Language for Extensions.
-
-The @func{format} function is a powerful way to print numbers, strings
-and other objects together with literal text under the control of a
-format string.  The function is exported by the @library{format-lib}
-library.
 
 @c page
 @node format output

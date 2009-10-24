@@ -22,15 +22,12 @@
 ;;;
 
 
-;;;; setup
-
 (import (nausicaa)
   (checks)
-  (format))
+  (formations))
 
 (check-set-mode! 'report-failed)
 (display "*** testing format library\n")
-
 
 
 

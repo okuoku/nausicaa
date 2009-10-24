@@ -27,7 +27,7 @@
 (import (nausicaa)
   (checks)
   (foreign memory)
-  (format)
+  (formations)
   (debugging))
 
 (check-set-mode! 'report-failed)

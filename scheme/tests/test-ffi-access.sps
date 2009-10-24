@@ -29,7 +29,7 @@
   (foreign memory)
   (foreign memory compensated)
   (foreign ffi sizeof)
-  (format)
+  (formations)
   (compensations))
 
 (check-set-mode! 'report-failed)

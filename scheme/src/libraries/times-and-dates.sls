@@ -113,7 +113,7 @@
     date->string string->date)
   (import (rnrs)
     (rnrs mutable-strings)
-    (format)
+    (formations)
     (language-extensions)
     (times-and-dates compat))
 
