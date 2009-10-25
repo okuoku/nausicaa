@@ -169,6 +169,30 @@
     strideof-cairo_svg_version_t
     alignof-cairo_svg_version_t
 
+    cairo_ps_level_t
+    sizeof-cairo_ps_level_t
+    strideof-cairo_ps_level_t
+    alignof-cairo_ps_level_t
+
+    CAIRO_VERSION_MAJOR
+    CAIRO_VERSION_MINOR
+    CAIRO_VERSION_MICRO
+
+    ;; defines
+    CAIRO_HAS_FT_FONT
+    CAIRO_HAS_IMAGE_SURFACE
+    CAIRO_HAS_PDF_SURFACE
+    CAIRO_HAS_PNG_FUNCTIONS
+    CAIRO_HAS_PS_SURFACE
+    CAIRO_HAS_QUARTZ_FONT
+    CAIRO_HAS_QUARTZ_SURFACE
+    CAIRO_HAS_SVG_SURFACE
+    CAIRO_HAS_USER_FONT
+    CAIRO_HAS_WIN32_FONT
+    CAIRO_HAS_WIN32_SURFACE
+    CAIRO_HAS_XLIB_SURFACE
+    CAIRO_HAS_XLIB_XRENDER_SURFACE
+
     ;; enum cairo_status_t
     CAIRO_STATUS_SUCCESS
     CAIRO_STATUS_NO_MEMORY
@@ -300,20 +324,9 @@
     CAIRO_SVG_VERSION_1_1
     CAIRO_SVG_VERSION_1_2
 
-    ;; defines
-    CAIRO_HAS_FT_FONT
-    CAIRO_HAS_IMAGE_SURFACE
-    CAIRO_HAS_PDF_SURFACE
-    CAIRO_HAS_PNG_FUNCTIONS
-    CAIRO_HAS_PS_SURFACE
-    CAIRO_HAS_QUARTZ_FONT
-    CAIRO_HAS_QUARTZ_SURFACE
-    CAIRO_HAS_SVG_SURFACE
-    CAIRO_HAS_USER_FONT
-    CAIRO_HAS_WIN32_FONT
-    CAIRO_HAS_WIN32_SURFACE
-    CAIRO_HAS_XLIB_SURFACE
-    CAIRO_HAS_XLIB_XRENDER_SURFACE
+    ;; enum cairo_ps_level_t
+    CAIRO_PS_LEVEL_2
+    CAIRO_PS_LEVEL_3
 
     ;; accessors and mutators
     cairo_matrix_t-xx-set!			cairo_matrix_t-xx-ref
@@ -512,7 +525,7 @@
 (define strideof-cairo_text_cluster_flags_t	@STRIDEOF_CAIRO_TEXT_CLUSTER_FLAGS@)
 (define alignof-cairo_text_cluster_flags_t	@ALIGNOF_CAIRO_TEXT_CLUSTER_FLAGS@)
 
-;;;The enum "cairo_svg_version_t" is defined  only is the SVG feature is
+;;;The enum "cairo_svg_version_t" is defined  only if the SVG feature is
 ;;;enabled.   We  define  default  values  here to  prevent  loading  of
 ;;;libraries in  case the output  variable "TYPEOF_CAIRO_SVG_VERSION" is
 ;;;substituted with #f, which is an invalid type.
@@ -524,8 +537,24 @@
 (define strideof-cairo_svg_version_t	@STRIDEOF_CAIRO_SVG_VERSION@)
 (define alignof-cairo_svg_version_t	@ALIGNOF_CAIRO_SVG_VERSION@)
 
+;;;The enum  "cairo_ps_level_t" is  defined only if  the SVG  feature is
+;;;enabled.   We  define  default  values  here to  prevent  loading  of
+;;;libraries  in  case the  output  variable "TYPEOF_CAIRO_PS_LEVEL"  is
+;;;substituted with #f, which is an invalid type.
+;;;
+(define cairo_ps_level_t		(if (zero? @VALUEOF_CAIRO_HAS_SVG_SURFACE@)
+					    'unsigned-int	;fake value
+					  (quote @TYPEOF_CAIRO_PS_LEVEL@)))
+(define sizeof-cairo_ps_level_t	@SIZEOF_CAIRO_PS_LEVEL@)
+(define strideof-cairo_ps_level_t	@STRIDEOF_CAIRO_PS_LEVEL@)
+(define alignof-cairo_ps_level_t	@ALIGNOF_CAIRO_PS_LEVEL@)
+
 
 ;;;; constants
+
+(define CAIRO_VERSION_MAJOR			@VALUEOF_CAIRO_VERSION_MAJOR@)
+(define CAIRO_VERSION_MINOR			@VALUEOF_CAIRO_VERSION_MINOR@)
+(define CAIRO_VERSION_MICRO			@VALUEOF_CAIRO_VERSION_MICRO@)
 
 ;; define value
 (define CAIRO_HAS_FT_FONT			(not (zero? @VALUEOF_CAIRO_HAS_FT_FONT@)))
@@ -702,6 +731,11 @@
 ;; enum cairo_svg_version_t
 (define CAIRO_SVG_VERSION_1_1			@VALUEOF_CAIRO_SVG_VERSION_1_1@)
 (define CAIRO_SVG_VERSION_1_2			@VALUEOF_CAIRO_SVG_VERSION_1_2@)
+
+;; enum cairo_ps_level_t
+(define CAIRO_PS_LEVEL_2			@VALUEOF_CAIRO_PS_LEVEL_2@)
+(define CAIRO_PS_LEVEL_3			@VALUEOF_CAIRO_PS_LEVEL_3@)
+
 
 
 ;;;; data structure accessors and mutators

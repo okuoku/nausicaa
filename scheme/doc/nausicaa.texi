@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
 @setfilename scheme.info
-@settitle Scheme language for Nausicaa
+@settitle Nausicaa for Scheme language
 @c %**end of header
 
 @c page
@@ -367,7 +367,7 @@ Revised^6 Report on the algorithmic language Scheme
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      Nausicaa/Scheme
+@set TITLE                      Nausicaa for Scheme language
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.

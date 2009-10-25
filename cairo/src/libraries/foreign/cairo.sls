@@ -324,6 +324,43 @@
     cairo_svg_get_versions
     cairo_svg_version_to_string
 
+    ;; PS surface
+    cairo_ps_surface_create
+    cairo_ps_surface_create_for_stream
+    cairo_ps_surface_restrict_to_level
+    cairo_ps_get_levels
+    cairo_ps_level_to_string
+    cairo_ps_surface_set_eps
+    cairo_ps_surface_get_eps
+    cairo_ps_surface_set_size
+    cairo_ps_surface_dsc_comment
+    cairo_ps_surface_dsc_begin_setup
+    cairo_ps_surface_dsc_begin_page_setup
+
+    ;; xlib xrender surface
+    cairo_xlib_surface_create_with_xrender_format
+    cairo_xlib_surface_get_xrender_format
+
+    ;; Fontconfig interface
+    cairo_ft_font_face_create_for_pattern
+    cairo_ft_font_options_substitute
+    cairo_ft_font_face_create_for_ft_face
+    cairo_ft_scaled_font_lock_face
+    cairo_ft_scaled_font_unlock_face
+
+    ;; Xlib surface
+    cairo_xlib_surface_create
+    cairo_xlib_surface_create_for_bitmap
+    cairo_xlib_surface_set_size
+    cairo_xlib_surface_set_drawable
+    cairo_xlib_surface_get_display
+    cairo_xlib_surface_get_drawable
+    cairo_xlib_surface_get_screen
+    cairo_xlib_surface_get_visual
+    cairo_xlib_surface_get_depth
+    cairo_xlib_surface_get_width
+    cairo_xlib_surface_get_height
+
     (rename
      ;; version functions
      (cairo_version				cairo-version)
@@ -620,6 +657,44 @@
      (cairo_svg_surface_restrict_to_version	cairo-svg-surface-restrict-to-version)
      (cairo_svg_get_versions			cairo-svg-get-versions)
      (cairo_svg_version_to_string		cairo-svg-version-to-string)
+
+     ;; PS surface
+     (cairo_ps_surface_create			cairo-ps-surface-create)
+     (cairo_ps_surface_create_for_stream	cairo-ps-surface-create-for-stream)
+     (cairo_ps_surface_restrict_to_level	cairo-ps-surface-restrict-to-level)
+     (cairo_ps_get_levels			cairo-ps-get-levels)
+     (cairo_ps_level_to_string			cairo-ps-level-to-string)
+     (cairo_ps_surface_set_eps			cairo-ps-surface-set-eps)
+     (cairo_ps_surface_get_eps			cairo-ps-surface-get-eps)
+     (cairo_ps_surface_set_size			cairo-ps-surface-set-size)
+     (cairo_ps_surface_dsc_comment		cairo-ps-surface-dsc-comment)
+     (cairo_ps_surface_dsc_begin_setup		cairo-ps-surface-dsc-begin-setup)
+     (cairo_ps_surface_dsc_begin_page_setup	cairo-ps-surface-dsc-begin-page-setup)
+
+     ;; xlib xrender surface
+     (cairo_xlib_surface_create_with_xrender_format	cairo-xlib-surface-create-with-xrender-format)
+     (cairo_xlib_surface_get_xrender_format		cairo-xlib-surface-get-xrender-format)
+
+     ;; Fontconfig interface
+     (cairo_ft_font_face_create_for_pattern	cairo-ft-font-face-create-for-pattern)
+     (cairo_ft_font_options_substitute		cairo-ft-font-options-substitute)
+     (cairo_ft_font_face_create_for_ft_face	cairo-ft-font-face-create-for-ft-face)
+     (cairo_ft_scaled_font_lock_face		cairo-ft-scaled-font-lock-face)
+     (cairo_ft_scaled_font_unlock_face		cairo-ft-scaled-font-unlock-face)
+
+     ;; Xlib surface
+     (cairo_xlib_surface_create			cairo-xlib-surface-create)
+     (cairo_xlib_surface_create_for_bitmap	cairo-xlib-surface-create-for-bitmap)
+     (cairo_xlib_surface_set_size		cairo-xlib-surface-set-size)
+     (cairo_xlib_surface_set_drawable		cairo-xlib-surface-set-drawable)
+     (cairo_xlib_surface_get_display		cairo-xlib-surface-get-display)
+     (cairo_xlib_surface_get_drawable		cairo-xlib-surface-get-drawable)
+     (cairo_xlib_surface_get_screen		cairo-xlib-surface-get-screen)
+     (cairo_xlib_surface_get_visual		cairo-xlib-surface-get-visual)
+     (cairo_xlib_surface_get_depth		cairo-xlib-surface-get-depth)
+     (cairo_xlib_surface_get_width		cairo-xlib-surface-get-width)
+     (cairo_xlib_surface_get_height		cairo-xlib-surface-get-height)
+
      ))
   (import (rnrs)
     (foreign ffi)
@@ -658,6 +733,7 @@
 (define cairo_matrix_t*			'pointer)
 (define cairo_path_t*			'callback)
 (define cairo_pattern_t*		'pointer)
+(define cairo_ps_level_t**		'pointer)
 (define cairo_read_func_t		'callback)
 (define cairo_rectangle_list_t*		'pointer)
 (define cairo_scaled_font_t*		'pointer)
@@ -671,6 +747,22 @@
 (define cairo_text_extents_t*		'pointer)
 (define cairo_user_data_key_t*		'pointer)
 (define cairo_write_func_t		'callback)
+
+;;;These are from xlib.
+(define Display				'pointer)
+(define Display*			'pointer)
+(define Drawable			'pointer)
+(define Drawable*			'pointer)
+(define FT_Face				'pointer)
+(define Pixmap				'pointer)
+(define Screen				'pointer)
+(define Screen*				'pointer)
+(define Visual				'pointer)
+(define Visual*				'pointer)
+(define XRenderPictFormat*		'pointer)
+
+;;; This is from Fontconfig.
+(define FcPattern*			'pointer)
 
 
 ;;;; version functions
@@ -1297,20 +1389,11 @@
 (define-c-function cairo_surface_get_content
   (cairo_content_t cairo_surface_get_content (cairo_surface_t*)))
 
-(define cairo_surface_write_to_png
-  (if CAIRO_HAS_PNG_FUNCTIONS
-      (make-c-function cairo_status_t cairo_surface_write_to_png (cairo_surface_t* char*))
-    (lambda args
-      (raise-unimplemented-error 'cairo_surface_write_to_png
-				 "PNG image format is not supported"))))
+(define-c-function/feature cairo_surface_write_to_png CAIRO_HAS_PNG_FUNCTIONS
+  (cairo_status_t cairo_surface_write_to_png (cairo_surface_t* char*)))
 
-(define cairo_surface_write_to_png_stream
-  (if CAIRO_HAS_PNG_FUNCTIONS
-      (make-c-function cairo_status_t cairo_surface_write_to_png_stream
-		       (cairo_surface_t* cairo_write_func_t void*))
-    (lambda args
-      (raise-unimplemented-error 'cairo_surface_write_to_png_stream
-				 "PNG image format is not supported"))))
+(define-c-function/feature cairo_surface_write_to_png_stream CAIRO_HAS_PNG_FUNCTIONS
+  (cairo_status_t cairo_surface_write_to_png_stream (cairo_surface_t* cairo_write_func_t void*)))
 
 (define-c-function cairo_surface_get_user_data
   (void* cairo_surface_get_user_data (cairo_surface_t* cairo_user_data_key_t*)))
@@ -1380,20 +1463,11 @@
 (define-c-function cairo_image_surface_get_stride
   (int cairo_image_surface_get_stride (cairo_surface_t*)))
 
-(define cairo_image_surface_create_from_png
-  (if CAIRO_HAS_PNG_FUNCTIONS
-      (make-c-function cairo_surface_t* cairo_image_surface_create_from_png (char*))
-    (lambda args
-      (raise-unimplemented-error 'cairo_image_surface_create_from_png
-				 "PNG image format is not supported"))))
+(define-c-function/feature cairo_image_surface_create_from_png CAIRO_HAS_PNG_FUNCTIONS
+  (cairo_surface_t* cairo_image_surface_create_from_png (char*)))
 
-(define cairo_image_surface_create_from_png_stream
-  (if CAIRO_HAS_PNG_FUNCTIONS
-      (make-c-function cairo_surface_t* cairo_image_surface_create_from_png_stream
-		       (cairo_read_func_t void*))
-    (lambda args
-      (raise-unimplemented-error 'cairo_image_surface_create_from_png_stream
-				 "PNG image format is not supported"))))
+(define-c-function/feature cairo_image_surface_create_from_png_stream CAIRO_HAS_PNG_FUNCTIONS
+  (cairo_surface_t* cairo_image_surface_create_from_png_stream (cairo_read_func_t void*)))
 
 
 ;;;; pattern creation functions
@@ -1527,27 +1601,14 @@
 
 ;;;; PDF surface
 
-(define cairo_pdf_surface_create
-  (if CAIRO_HAS_PDF_SURFACE
-      (make-c-function cairo_surface_t* cairo_pdf_surface_create (char* double double))
-    (lambda args
-      (raise-unimplemented-error 'cairo_pdf_surface_create
-				 "this feature is not available in the Cairo library"))))
+(define-c-function/feature cairo_pdf_surface_create CAIRO_HAS_PDF_SURFACE
+  (cairo_surface_t* cairo_pdf_surface_create (char* double double)))
 
-(define cairo_pdf_surface_create_for_stream
-  (if CAIRO_HAS_PDF_SURFACE
-      (make-c-function cairo_surface_t* cairo_pdf_surface_create_for_stream
-		       (cairo_write_func_t void* double double))
-    (lambda args
-      (raise-unimplemented-error 'cairo_pdf_surface_create_for_stream
-				 "this feature is not available in the Cairo library"))))
+(define-c-function/feature cairo_pdf_surface_create_for_stream CAIRO_HAS_PDF_SURFACE
+  (cairo_surface_t* cairo_pdf_surface_create_for_stream (cairo_write_func_t void* double double)))
 
-(define cairo_pdf_surface_set_size
-  (if CAIRO_HAS_PDF_SURFACE
-      (make-c-function void cairo_pdf_surface_set_size (cairo_surface_t* double double))
-    (lambda args
-      (raise-unimplemented-error 'cairo_pdf_surface_set_size
-				 "this feature is not available in the Cairo library"))))
+(define-c-function/feature cairo_pdf_surface_set_size CAIRO_HAS_PDF_SURFACE
+  (void cairo_pdf_surface_set_size (cairo_surface_t* double double)))
 
 
 ;;;; SVG surface
@@ -1566,6 +1627,106 @@
 
 (define-c-function/feature cairo_svg_version_to_string CAIRO_HAS_SVG_SURFACE
   (char* cairo_svg_version_to_string (cairo_svg_version_t)))
+
+
+;;;; PS surface
+
+(define-c-function/feature cairo_ps_surface_create CAIRO_HAS_PS_SURFACE
+  (cairo_surface_t* cairo_ps_surface_create (char* double double)))
+
+(define-c-function/feature cairo_ps_surface_create_for_stream CAIRO_HAS_PS_SURFACE
+  (cairo_surface_t* cairo_ps_surface_create_for_stream (cairo_write_func_t void* double double)))
+
+(define-c-function/feature cairo_ps_surface_restrict_to_level CAIRO_HAS_PS_SURFACE
+  (void cairo_ps_surface_restrict_to_level (cairo_surface_t* cairo_ps_level_t)))
+
+(define-c-function/feature cairo_ps_get_levels CAIRO_HAS_PS_SURFACE
+  (void cairo_ps_get_levels (cairo_ps_level_t** int)))
+
+(define-c-function/feature cairo_ps_level_to_string CAIRO_HAS_PS_SURFACE
+  (char* cairo_ps_level_to_string (cairo_ps_level_t)))
+
+(define-c-function/feature cairo_ps_surface_set_eps CAIRO_HAS_PS_SURFACE
+  (void cairo_ps_surface_set_eps (cairo_surface_t* cairo_bool_t)))
+
+(define-c-function/feature cairo_ps_surface_get_eps CAIRO_HAS_PS_SURFACE
+  (cairo_bool_t cairo_ps_surface_get_eps (cairo_surface_t*)))
+
+(define-c-function/feature cairo_ps_surface_set_size CAIRO_HAS_PS_SURFACE
+  (void cairo_ps_surface_set_size (cairo_surface_t* double double)))
+
+(define-c-function/feature cairo_ps_surface_dsc_comment CAIRO_HAS_PS_SURFACE
+  (void cairo_ps_surface_dsc_comment (cairo_surface_t* char*)))
+
+(define-c-function/feature cairo_ps_surface_dsc_begin_setup CAIRO_HAS_PS_SURFACE
+  (void cairo_ps_surface_dsc_begin_setup (cairo_surface_t*)))
+
+(define-c-function/feature cairo_ps_surface_dsc_begin_page_setup CAIRO_HAS_PS_SURFACE
+  (void cairo_ps_surface_dsc_begin_page_setup (cairo_surface_t*)))
+
+
+;;;; xlib xrender surface
+
+(define-c-function/feature cairo_xlib_surface_create_with_xrender_format CAIRO_HAS_XLIB_XRENDER_SURFACE
+  (cairo_surface_t* cairo_xlib_surface_create_with_xrender_format
+		    (Display Drawable Screen XRenderPictFormat* int int)))
+
+(define-c-function/feature cairo_xlib_surface_get_xrender_format CAIRO_HAS_XLIB_XRENDER_SURFACE
+  (XRenderPictFormat* cairo_xlib_surface_get_xrender_format (cairo_surface_t*)))
+
+
+;;;; FT font
+
+(define-c-function/feature cairo_ft_font_face_create_for_pattern CAIRO_HAS_FT_FONT
+  (cairo_font_face_t* cairo_ft_font_face_create_for_pattern (FcPattern*)))
+
+(define-c-function/feature cairo_ft_font_options_substitute CAIRO_HAS_FT_FONT
+  (void cairo_ft_font_options_substitute (cairo_font_options_t* FcPattern*)))
+
+(define-c-function/feature cairo_ft_font_face_create_for_ft_face CAIRO_HAS_FT_FONT
+  (cairo_font_face_t* cairo_ft_font_face_create_for_ft_face (FT_Face int)))
+
+(define-c-function/feature cairo_ft_scaled_font_lock_face CAIRO_HAS_FT_FONT
+  (FT_Face cairo_ft_scaled_font_lock_face (cairo_scaled_font_t*)))
+
+(define-c-function/feature cairo_ft_scaled_font_unlock_face CAIRO_HAS_FT_FONT
+  (void cairo_ft_scaled_font_unlock_face (cairo_scaled_font_t*)))
+
+
+;;;; Xlib surface
+
+(define-c-function/feature cairo_xlib_surface_create CAIRO_HAS_XLIB_SURFACE
+  (cairo_surface_t* cairo_xlib_surface_create (Display* Drawable Visual int int)))
+
+(define-c-function/feature cairo_xlib_surface_create_for_bitmap CAIRO_HAS_XLIB_SURFACE
+  (cairo_surface_t* cairo_xlib_surface_create_for_bitmap (Display* Pixmap Screen* int int)))
+
+(define-c-function/feature cairo_xlib_surface_set_size CAIRO_HAS_XLIB_SURFACE
+  (void cairo_xlib_surface_set_size (cairo_surface_t* int int)))
+
+(define-c-function/feature cairo_xlib_surface_set_drawable CAIRO_HAS_XLIB_SURFACE
+  (void cairo_xlib_surface_set_drawable (cairo_surface_t* Drawable int int)))
+
+(define-c-function/feature cairo_xlib_surface_get_display CAIRO_HAS_XLIB_SURFACE
+  (Display* cairo_xlib_surface_get_display (cairo_surface_t*)))
+
+(define-c-function/feature cairo_xlib_surface_get_drawable CAIRO_HAS_XLIB_SURFACE
+  (Drawable cairo_xlib_surface_get_drawable (cairo_surface_t*)))
+
+(define-c-function/feature cairo_xlib_surface_get_screen CAIRO_HAS_XLIB_SURFACE
+  (Screen* cairo_xlib_surface_get_screen (cairo_surface_t*)))
+
+(define-c-function/feature cairo_xlib_surface_get_visual CAIRO_HAS_XLIB_SURFACE
+  (Visual* cairo_xlib_surface_get_visual (cairo_surface_t*)))
+
+(define-c-function/feature cairo_xlib_surface_get_depth CAIRO_HAS_XLIB_SURFACE
+  (int cairo_xlib_surface_get_depth (cairo_surface_t*)))
+
+(define-c-function/feature cairo_xlib_surface_get_width CAIRO_HAS_XLIB_SURFACE
+  (int cairo_xlib_surface_get_width (cairo_surface_t*)))
+
+(define-c-function/feature cairo_xlib_surface_get_height CAIRO_HAS_XLIB_SURFACE
+  (int cairo_xlib_surface_get_height (cairo_surface_t*)))
 
 
 ;;;; done

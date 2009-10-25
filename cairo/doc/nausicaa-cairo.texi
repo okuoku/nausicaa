@@ -803,12 +803,27 @@ Describe the type @samp{cairo_text_cluster_flags_t}.
 Describe the type @samp{cairo_svg_version_t}.
 @end deffn
 
+
+@deffn Constant cairo_ps_level_t
+@deffnx Constant sizeof-cairo_ps_level_t
+@deffnx Constant strideof-cairo_ps_level_t
+@deffnx Constant alignof-cairo_ps_level_t
+Describe the type @samp{cairo_ps_level_t}.
+@end deffn
+
 @c page
 @node constants
 @chapter Constant values
 
 
 The following bindings are exported by @library{foreign cairo sizeof}.
+
+
+@deffn Constant CAIRO_VERSION_MAJOR
+@deffnx Constant CAIRO_VERSION_MINOR
+@deffnx Constant CAIRO_VERSION_MICRO
+Bound to integers representing version numbers.
+@end deffn
 
 
 @deffn Constant CAIRO_STATUS_SUCCESS
@@ -1146,6 +1161,7 @@ by Jan Bodnar.
 
 @menu
 * examples text::               Writing text.
+* examples line::               Drawing lines.
 @end menu
 
 @c page
@@ -1157,7 +1173,6 @@ The following example draws a @math{390 x 60} image with text in it and
 saves it to a file in @acronym{PNG} format.  Notice that the functions
 required to save a @acronym{PNG} file are available only if
 @samp{CAIRO_HAS_PNG_FUNCTIONS} is bound to @true{}.
-
 
 @example
 (import (rnrs)
@@ -1230,6 +1245,66 @@ available only if @samp{CAIRO_HAS_PDF_SURFACE} is bound to @true{}.
       (string->cstring/c "Disziplin ist Macht."))
     (cairo_show_page cr)))
 @end example
+
+@c page
+@node examples line
+@section Drawing lines
+
+
+The following example draws a @math{300 x 300} image with a red square
+in it and saves it to a file in @acronym{PNG} format.  Notice that the
+functions required to save a @acronym{PNG} file are available only if
+@samp{CAIRO_HAS_PNG_FUNCTIONS} is bound to @true{}.
+
+@example
+(with-compensations
+  (letrec* ((surface (compensate
+                         (cairo_image_surface_create
+                           CAIRO_FORMAT_ARGB32 300 300)
+                       (with
+                        (cairo_surface_destroy surface))))
+            (cr      (compensate
+                         (cairo_create surface)
+                       (with
+                        (cairo_destroy cr)))))
+
+    (cairo_set_source_rgb cr 100. 0. 0.)
+    (cairo_set_line_width cr 1.)
+
+    (cairo-move-to cr 10. 10.)
+    (cairo-line-to cr 290. 10.)
+    (cairo-line-to cr 290. 290.)
+    (cairo-line-to cr 10. 290.)
+    (cairo-line-to cr 10. 10.)
+    (cairo-stroke cr)
+
+    (cairo_surface_write_to_png surface
+      (string->cstring/c "test-line.png"))))
+@end example
+
+To fill the square we just change:
+
+@example
+(cairo-stroke cr)
+@end example
+
+@noindent
+to:
+
+@example
+(cairo-fill cr)
+@end example
+
+To draw a circle we do:
+
+@example
+(define pi  (acos -1))
+(define pi2 (* 2 pi))
+
+(cairo-arc cr 150. 150. 90. 0. pi2)
+(cairo-stroke cr)
+@end example
+
 
 @c page
 

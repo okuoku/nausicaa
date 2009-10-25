@@ -51,8 +51,8 @@ AC_CHECK_HEADERS([cairo/cairo-ps.h],,
   [AC_MSG_WARN([cannot find Cairo's cairo-ps.h header])])
 AC_CHECK_HEADERS([cairo/cairo-xlib.h],,
   [AC_MSG_WARN([cannot find Cairo's cairo-xlib.h header])])
-AC_CHECK_HEADERS([cairo/cairo-xlib-render.h],,
-  [AC_MSG_WARN([cannot find Cairo's cairo-xlib-render.h header])])
+AC_CHECK_HEADERS([cairo/cairo-xlib-xrender.h],,
+  [AC_MSG_WARN([cannot find Cairo's cairo-xlib-xrender.h header])])
 AC_CHECK_HEADERS([cairo/cairo-ft.h],,
   [AC_MSG_WARN([cannot find Cairo' cairo-ft.h header])])
 
@@ -79,8 +79,8 @@ m4_define([NAU_CAIRO_INCLUDES],[
 #if HAVE_CAIRO_CAIRO_XLIB_H
 #  include <cairo/cairo-xlib.h>
 #endif
-#if HAVE_CAIRO_CAIRO_XLIB_RENDER_H
-#  include <cairo/cairo-xlib-render.h>
+#if HAVE_CAIRO_CAIRO_XLIB_XRENDER_H
+#  include <cairo/cairo-xlib-xrender.h>
 #endif
 #if HAVE_CAIRO_CAIRO_FT_H
 #  include <cairo/cairo-ft.h>
@@ -143,6 +143,7 @@ NAU_CAIRO_INSPECT_TYPE([CAIRO_PATTERN_TYPE],[cairo_pattern_type_t],[unsigned-int
 NAU_CAIRO_INSPECT_TYPE([CAIRO_EXTEND],[cairo_extend_t],[unsigned-int])
 NAU_CAIRO_INSPECT_TYPE([CAIRO_FILTER],[cairo_filter_t],[unsigned-int])
 NAU_CAIRO_INSPECT_TYPE([CAIRO_SVG_VERSION],[cairo_svg_version_t],[unsigned-int])
+NAU_CAIRO_INSPECT_TYPE([CAIRO_PS_LEVEL],[cairo_ps_level_t],[unsigned-int])
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -211,6 +212,10 @@ dnl page
 dnl --------------------------------------------------------------------
 dnl Constants.
 dnl --------------------------------------------------------------------
+
+NAU_CAIRO_DEFINE_VALUE([CAIRO_VERSION_MAJOR])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_VERSION_MINOR])
+NAU_CAIRO_DEFINE_VALUE([CAIRO_VERSION_MICRO])
 
 NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_FT_FONT])
 NAU_CAIRO_DEFINE_VALUE([CAIRO_HAS_IMAGE_SURFACE])
@@ -390,6 +395,10 @@ NAU_CAIRO_ENUM_VALUE([CAIRO_FILTER_GAUSSIAN])
 dnl enum cairo_svg_version_t
 NAU_CAIRO_ENUM_VALUE([CAIRO_SVG_VERSION_1_1])
 NAU_CAIRO_ENUM_VALUE([CAIRO_SVG_VERSION_1_2])
+
+dnl enum cairo_ps_level_t
+NAU_CAIRO_ENUM_VALUE([CAIRO_PS_LEVEL_2])
+NAU_CAIRO_ENUM_VALUE([CAIRO_PS_LEVEL_3])
 
 dnl page
 dnl --------------------------------------------------------------------
