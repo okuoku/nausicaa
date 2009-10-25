@@ -32,7 +32,7 @@
   (foreign zlib)
   (compensations)
   (checks)
-  (format))
+  (formations))
 
 (check-set-mode! 'report-failed)
 
