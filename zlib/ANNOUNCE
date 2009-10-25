@@ -5,9 +5,9 @@ Subject: [announce] Nausicaa/Zlib 2009-10-25 tag 0.1b0
 		       =============
 
 Nausicaa/Zlib  is a  binding  between Zlib  and R6RS  Scheme
-implementations.  Nausicaa/MP is built upon Nausicaa/Scheme,
-making  use  of  its  foreign  functions  interface;  so  it
-currently supports only GNU+Linux systems.  The installation
+implementations.  It  is built upon  Nausicaa/Scheme, making
+use  of its  foreign  functions interface;  so it  currently
+supports   only   GNU+Linux   systems.    The   installation
 infrastructure requires a  GNU+Linux system (for details see
 the "README.build" file).
 
