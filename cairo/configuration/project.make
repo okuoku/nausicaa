@@ -28,8 +28,8 @@
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,core,foreign))
-$(eval $(call nau-libraries,cairo,foreign/cairo))
+$(eval $(call nau-libraries,core,foreign/graphics))
+$(eval $(call nau-libraries,cairo,foreign/graphics/cairo))
 
 
 ### end of file

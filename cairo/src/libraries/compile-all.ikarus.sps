@@ -24,7 +24,7 @@
 ;;;
 
 (import
-  (only (foreign cairo))
+  (only (foreign graphics cairo))
   )
 
 ;;; end of file

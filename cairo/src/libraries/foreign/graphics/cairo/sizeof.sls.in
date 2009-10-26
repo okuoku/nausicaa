@@ -24,7 +24,7 @@
 ;;;
 
 
-(library (foreign cairo sizeof)
+(library (foreign graphics cairo sizeof)
   (export
 
     ;; type inspection

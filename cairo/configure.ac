@@ -32,7 +32,7 @@ dnl Setup.
 dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-cairo],[0.1d0],[marcomaggi@gna.org])
-DS_BEGIN([./src/libraries/foreign/cairo.sls])
+DS_BEGIN([./src/libraries/foreign/graphics/cairo.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
 DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
@@ -405,7 +405,7 @@ dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../src/libraries/foreign/cairo/sizeof.sls:src/libraries/foreign/cairo/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/foreign/graphics/cairo/sizeof.sls:src/libraries/foreign/graphics/cairo/sizeof.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END

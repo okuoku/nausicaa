@@ -52721,7 +52721,7 @@ stored at @var{index} in the array referenced by @var{pointer}.
 @end defun
 
 
-@defun peek-array-float @var{pointer} @var{index}
+@defun array-ref-c-double @var{pointer} @var{index}
 @defunx peek-array-double @var{pointer} @var{index}
 Return a flonum Scheme object representing the eight--byte @samp{double}
 (represented as @ieee{} 754 double precision floating point number)
@@ -54390,28 +54390,62 @@ string is allocated using the supplied @var{malloc} function, or
 @subsection Converting to and from cstrings
 
 
-@defun string->cstring @var{string-or-symbol}
-@defunx string->cstring @var{string-or-symbol} @var{malloc}
-@defunx string->cstring/c @var{string-or-symbol}
-Build a new C string representing the Scheme @var{string-or-symbol} and
-return a pointer value referencing it.
+@defun string->cstring @var{string/symbol}
+@defunx string->cstring @var{string/symbol} @var{malloc}
+@defunx string->cstring/c @var{string/symbol}
+Build and return new C string representing the Scheme
+@var{string/symbol} and return a pointer value referencing it.  The
+returned string is encoded in @acronym{UTF8} format and terminated by a
+zero byte.
 
 @func{string->cstring} allocates memory using the supplied @var{malloc}
-function, or @func{malloc} if @var{malloc} is not given.  The conversion
-is performed using @func{string->utf8}.  To use a compensated
-allocation: we can use @func{malloc/c} or @func{malloc-block/c} as
-@var{malloc} argument.
+function, or @func{malloc} if @var{malloc} is not given.  To use a
+compensated allocation: We can use @func{malloc/c} or
+@func{malloc-block/c} as @var{malloc} argument.
+
+The conversion is performed as follows:
+
+@enumerate
+@item
+If @var{string/symbol} is a Scheme symbol, its string name is acquired
+and becomes the input string.
+
+@item
+The function @func{string->utf8} is used to convert the Scheme string
+into a bytevector holding the string representation in @acronym{UTF8}
+format.
+
+@item
+Raw memory is allocated and, byte by byte, the bytevector is duplicated
+into the memory block; a zero terminating byte is appended.
+@end enumerate
 
 @func{string->cstring/c} allocates memory using @func{malloc-block/c}.
 @end defun
 
 
-@defun cstring->string @var{cstring}
-@defunx cstring->string @var{cstring} @var{number-of-bytes}
-Build a new Scheme string representing the @var{cstring}.  The
-conversion is performed using a @samp{s8} bytevector.  If
-@var{number-of-bytes} is given, only that number of bytes are taken from
-the C string.
+@defun cstring->string @var{cstr}
+@defunx cstring->string @var{cstr} @var{number-of-bytes}
+Build and return a new Scheme string representing @var{cstr}, which must
+be a pointer to a memory block holding a zero terminated, @acronym{UTF8}
+encoded, C language string.
+
+The conversion is performed as follows:
+
+@enumerate
+@item
+If @var{number-of-bytes} is given, that number of bytes are taken from
+the memory block; else the length of the input string is determined
+using @func{strlen}.
+
+@item
+A bytevector is allocated and, byte by byte, the string is copied into
+it.
+
+@item
+The function @func{utf8->string} is used to convert the bytevector into
+a Scheme string.
+@end enumerate
 @end defun
 
 @c page

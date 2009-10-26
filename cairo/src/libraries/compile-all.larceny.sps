@@ -27,10 +27,16 @@
 (import (rnrs)
   (larceny compiler))
 
-(compile-library "foreign/cairo/sizeof.sls"
-		 "foreign/cairo/sizeof.larceny.slfasl")
+(compile-library "foreign/graphics/cairo/sizeof.sls"
+		 "foreign/graphics/cairo/sizeof.larceny.slfasl")
 
-(compile-library "foreign/cairo.sls"
-		 "foreign/cairo.larceny.slfasl")
+(compile-library "foreign/graphics/cairo/platform.sls"
+		 "foreign/graphics/cairo/platform.larceny.slfasl")
+
+(compile-library "foreign/graphics/cairo/primitives.sls"
+		 "foreign/graphics/cairo/primitives.larceny.slfasl")
+
+(compile-library "foreign/graphics/cairo.sls"
+		 "foreign/graphics/cairo.larceny.slfasl")
 
 ;;; end of file

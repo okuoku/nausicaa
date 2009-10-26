@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
 @setfilename nausicaa-cairo.info
-@settitle Nausicaa/Cairo
+@settitle Cairo graphics library for Nausicaa
 @c %**end of header
 
 @c page
@@ -372,7 +372,7 @@ Revised^6 Report on the algorithmic language Scheme
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      Cairo bindings for Nausicaa
+@set TITLE                      Cairo graphics library for Nausicaa
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
@@ -426,12 +426,11 @@ Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_E
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the @gnu{} Free Documentation License, Version 1.2 or
-any later version published by the Free Software Foundation; with
-Invariant Sections being ``@gnu{} Free Documentation License'' and
-``@gnu{} General Public License'', no Front--Cover Texts, and no
-Back--Cover Texts.  A copy of the license is included in the section
-entitled ``@gnu{} Free Documentation License''.
+under the terms of the @gnu{} Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front--Cover Texts, and no Back--Cover Texts.  A
+copy of the license is included in the section entitled ``@gnu{} Free
+Documentation License''.
 @end quotation
 @end copying
 
@@ -478,6 +477,7 @@ entitled ``@gnu{} Free Documentation License''.
 * types::                       Basic data types.
 * constants::                   Constant values.
 * structs::                     Data structure accessors and mutators.
+* marshaling::                  Marshaling values.
 * examples::                    Usage examples.
 
 Appendices
@@ -505,33 +505,43 @@ the @rnrs{6} Scheme implementations supported by Nausicaa.  It is built
 upon the Nausicaa/Scheme package, making use of its foreign functions
 interface; as such, it currently supports only @gnu{}+Linux systems.
 
+@quotation
+@strong{NOTE} At present the Cairo functions requiring callbacks are not
+supported by Larceny Scheme.  Any attempt to create a callback will
+result in an @samp{&unimplemented} exception.
+@end quotation
+
 The installed libraries are:
 
-@example
-(foreign cairo)
-(foreign cairo sizeof)
-@end example
+@table @library
+@item foreign graphics cairo sizeof
+Exports bindings for constant values and data structure accessors and
+mutators.
 
-@noindent
-the first exports the functions, the second the constants and the data
-structures accessors and mutators.  The functions are available in two
-sets of bindings:
+@item foreign graphics cairo platform
+Implements a one--to--one map between Cairo's foreign functions and
+Scheme functions.  All the Cairo functions are available as Scheme
+functions with the same name; for example @cfunc{cairo_create} is
+exported as @func{cairo_create}.
 
-@itemize
-@item
-One with the same name of the Cairo functions; for example
-@cfunc{cairo_get_operator} is available as @func{cairo_get_operator}.
+@item foreign graphics cairo primitives
+Implements a middle level interface with marshaling of function
+arguments and return values.  All the Cairo functions are available as
+Scheme functions with the same name but underscores turned into dashes;
+for example @cfunc{cairo_create} is exported as @func{cairo-create}.
 
-@item
-The other with the same name of the Cairo functions, but underscores
-converted to dashes; for example @cfunc{cairo_get_operator} is available
-as @func{cairo-get-operator}.
-@end itemize
+@item foreign graphics cairo
+Exports the high level @api{}.  Re--exports everything from
+@library{foreign graphics cairo primitive} and @library{foreign graphics
+cairo sizeof}.  Additionally, when possible, it exports an interface for
+constructors and destructors using the @library{compensations} library.
+@nauref{compensations, Compensation stacks}
+@end table
 
-@value{PACKAGE} implements a map between Cairo's foreign functions and
-Scheme functions, so the original Cairo documentation can be used as
-guide for this package, too.  A brief Cairo tutorial is available here
-(last verified Thu Oct 22, 2009):
+
+The original Cairo documentation can be used as guide for the
+@library{foreign graphics cairo platform} library.  A brief Cairo
+tutorial is available here (last verified Thu Oct 22, 2009):
 
 @center @url{http://cairographics.org/tutorial/}
 
@@ -1141,6 +1151,142 @@ structure field @samp{point}.
 @deffnx Syntax cairo_path_t-num_data-ref @var{pointer}
 Accessors and mutators for the data structure type @samp{cairo_path_t}.
 @end deffn
+
+@c page
+@node marshaling
+@chapter Marshaling values
+
+
+The @library{foreign graphics cairo primitives} library implements
+marshaling of function arguments and return values.
+
+@menu
+* marshaling cstrings::         Marshaling C strings.
+* marshaling misc::             Miscellaneous functions.
+@end menu
+
+@c page
+@node marshaling cstrings
+@section Marshaling C strings
+
+
+When the type is a pointer to a C string, the string is interpreted as
+zero--terminated and @acronym{UTF8}--encoded; it is converted from/to a
+Scheme string using @func{string->cstring/c} and @func{cstring->string}
+from the @library{foreign cstrings} library.  @nauref{cstrings, C
+language strings handling}
+
+For function arguments: Memory is allocated on the spot and released
+after the foreign function has returned.  For return values: It is
+assumed that the string is owned by the Cairo library, so it is
+converted but the memory block itself is left alone.
+
+As a special case, the marshaling function
+@func{cairo-scaled-font-text-to-glyphs} collapses the two arguments of
+@cfunc{cairo_scaled_font_text_to_glyphs} representing the pointer to the
+string and the string length, into a single Scheme string argument.  So
+the C language call:
+
+@example
+cairo_scaled_font_text_to_glyphs(scaled_font, x, y,
+                                 utf8, utf8_len,
+                                 glyphs, num_glyphs,
+                                 clusters, num_clusters,
+                                 cluster_flags);
+@end example
+
+@noindent
+becomes the Scheme call:
+
+@example
+(cairo-scaled-font-text-to-glyphs scaled_font x y
+                                  text
+                                  glyphs num_glyphs
+                                  clusters num_clusters
+                                  cluster_flags)
+@end example
+
+@c page
+@node marshaling misc
+@section Miscellaneous functions
+
+
+@defun cairo-get-current-point @var{cr}
+Given a pointer to a Cairo context, return two values representing the
+coordinates of the current point in the current path: the first is the
+@math{X} coordinate, the second is the @math{Y} coordinate.
+@end defun
+
+
+@defun cairo-get-dash @var{cr}
+Given a pointer to a Cairo context, return two values representing the
+current line dash configuration: the first is a vector of rational
+numbers (according to @func{rational?}) representing the dashes, the
+second is a number representing the offset.
+@end defun
+
+
+@defun cairo-surface-get-device-offset @var{surface}
+Given a pointer to a surface, return two values representing the
+previous device offset set by @func{cairo-surface-set-device-offset}:
+the first is the offset in the @math{X} direction in device units, the
+second is the offset in the @math{Y} direction in device units.
+@end defun
+
+
+@defun cairo-surface-get-fallback-resolution @var{surface}
+Given a pointer to a surface, return two values representing the
+previous fallback resolution set by
+@func{cairo-surface-set-fallback-resolution}: the first is the number of
+horizontal pixels per inch, the second is the number of vertical pixels
+per inch.
+@end defun
+
+
+@defun cairo-pattern-get-rgba @var{pattern}
+Given a pointer to a pattern structure, return four values describing
+the color of a solid color pattern in the order: red, green, blue, alpha
+component.  Raise an assertion violation exception if the pattern is not
+a solid color.
+@end defun
+
+
+@defun cairo-pattern-get-color-stop-rgba @var{pattern} @var{index}
+Given a pointer to a pattern structure and a color stop index, return
+five values describing the color stop in this order: offset, red, green,
+blue, alpha component.  Raise an assertion violation exception if
+@var{index} is invalid or the pattern is not a gradient pattern.
+@end defun
+
+
+@defun cairo-pattern-get-color-stop-count @var{pattern}
+Given a pointer to a pattern structure return the number of color stops
+in it.  Raise an assertion violation exception if the pattern is not a
+gradient pattern.
+@end defun
+
+
+@defun cairo-pattern-get-linear-points @var{pattern}
+Given a pointer to a pattern structure, return four values representing
+the gradient endpoints for a linear gradient in this order: the first
+and second are the @math{X} and @math{Y} coordinates of the start point,
+the third and fourth are the @math{X} and @math{Y} coordinates of the
+end point.  Raise an assertion violation exception if the pattern is not
+a gradient pattern.
+@end defun
+
+
+@defun cairo-pattern-get-radial-circles @var{pattern}
+Given a pointer to a pattern structure, return four values representing
+the gradient endpoint circles for a radial gradient, each specified as a
+center coordinate and a radius in this order: the first and second are
+the @math{X} and @math{Y} coordinates of the center of the first circle;
+the third is the radius of the first circle; the fourth and fifth are
+the @math{X} and @math{Y} coordinates of the center of the second
+circle; the sixth is the radius of the second circle.  Raise an
+assertion violation exception if the pattern is not a gradient pattern.
+@end defun
+
 
 @c page
 @node examples

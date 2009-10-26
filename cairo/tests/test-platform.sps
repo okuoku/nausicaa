@@ -27,8 +27,8 @@
 
 (import (nausicaa)
   (foreign ffi sizeof)
-  (foreign cairo)
-  (foreign cairo sizeof)
+  (foreign graphics cairo platform)
+  (foreign graphics cairo sizeof)
   (foreign cstrings)
   (foreign memory)
   (compensations)
@@ -169,7 +169,7 @@
   #t)
 
 
-(parametrise ((check-test-name	'draw-text))
+(parametrise ((check-test-name	'text))
 
 ;;; This code comes from the tutorial:
 ;;;
@@ -252,7 +252,7 @@
   #t)
 
 
-(parametrise ((check-test-name	'draw-line))
+(parametrise ((check-test-name	'line))
 
 ;;; This code comes from the tutorial:
 ;;;
@@ -273,12 +273,12 @@
 	  (cairo_set_source_rgb cr 100. 0. 0.)
 	  (cairo_set_line_width cr 1.)
 
-	  (cairo-move-to cr 10. 10.)
-	  (cairo-line-to cr 290. 10.)
-	  (cairo-line-to cr 290. 290.)
-	  (cairo-line-to cr 10. 290.)
-	  (cairo-line-to cr 10. 10.)
-	  (cairo-stroke cr)
+	  (cairo_move_to cr 10. 10.)
+	  (cairo_line_to cr 290. 10.)
+	  (cairo_line_to cr 290. 290.)
+	  (cairo_line_to cr 10. 290.)
+	  (cairo_line_to cr 10. 10.)
+	  (cairo_stroke cr)
 
 	  (cairo_surface_write_to_png surface (string->cstring/c "test-line.png"))
 	  #t))
@@ -298,12 +298,12 @@
 	  (cairo_set_source_rgb cr 100. 0. 0.)
 	  (cairo_set_line_width cr 1.)
 
-	  (cairo-move-to cr 10. 10.)
-	  (cairo-line-to cr 290. 10.)
-	  (cairo-line-to cr 290. 290.)
-	  (cairo-line-to cr 10. 290.)
-	  (cairo-line-to cr 10. 10.)
-	  (cairo-fill cr)
+	  (cairo_move_to cr 10. 10.)
+	  (cairo_line_to cr 290. 10.)
+	  (cairo_line_to cr 290. 290.)
+	  (cairo_line_to cr 10. 290.)
+	  (cairo_line_to cr 10. 10.)
+	  (cairo_fill cr)
 
 	  (cairo_surface_write_to_png surface (string->cstring/c "test-fill.png"))
 	  #t))
@@ -326,8 +326,8 @@
 	  (cairo_set_source_rgb cr 100. 0. 0.)
 	  (cairo_set_line_width cr 10.)
 
-	  (cairo-arc cr 150. 150. 90. 0. pi2)
-	  (cairo-stroke cr)
+	  (cairo_arc cr 150. 150. 90. 0. pi2)
+	  (cairo_stroke cr)
 
 	  (cairo_surface_write_to_png surface (string->cstring/c "test-circle.png"))
 	  #t))
@@ -359,12 +359,12 @@
   ;; 	    (write (cstring->string (cairo_status_to_string (cairo_status cr))))
   ;; 	    (newline))
 
-  ;; 	  (cairo-move-to cr 10. 10.)
-  ;; 	  (cairo-line-to cr 290. 10.)
-  ;; 	  (cairo-line-to cr 290. 290.)
-  ;; 	  (cairo-line-to cr 10. 290.)
-  ;; 	  (cairo-line-to cr 10. 10.)
-  ;; 	  (cairo-stroke cr)
+  ;; 	  (cairo_move_to cr 10. 10.)
+  ;; 	  (cairo_line_to cr 290. 10.)
+  ;; 	  (cairo_line_to cr 290. 290.)
+  ;; 	  (cairo_line_to cr 10. 290.)
+  ;; 	  (cairo_line_to cr 10. 10.)
+  ;; 	  (cairo_stroke cr)
 
   ;; 	  (cairo_surface_write_to_png surface (string->cstring/c "test-dash.png"))
   ;; 	  #t))
@@ -384,20 +384,20 @@
 	  (cairo_set_source_rgb cr 100. 0. 0.)
 	  (cairo_set_line_width cr 20.)
 
-	  (cairo-move-to cr 50.  50.)
-	  (cairo-line-to cr 250. 50.)
-	  (cairo-set-line-cap cr CAIRO_LINE_CAP_ROUND)
-	  (cairo-stroke cr)
+	  (cairo_move_to cr 50.  50.)
+	  (cairo_line_to cr 250. 50.)
+	  (cairo_set_line_cap cr CAIRO_LINE_CAP_ROUND)
+	  (cairo_stroke cr)
 
-	  (cairo-move-to cr 50.  100.)
-	  (cairo-line-to cr 250. 100.)
-	  (cairo-set-line-cap cr CAIRO_LINE_CAP_BUTT)
-	  (cairo-stroke cr)
+	  (cairo_move_to cr 50.  100.)
+	  (cairo_line_to cr 250. 100.)
+	  (cairo_set_line_cap cr CAIRO_LINE_CAP_BUTT)
+	  (cairo_stroke cr)
 
-	  (cairo-move-to cr 50.  150.)
-	  (cairo-line-to cr 250. 150.)
-	  (cairo-set-line-cap cr CAIRO_LINE_CAP_SQUARE)
-	  (cairo-stroke cr)
+	  (cairo_move_to cr 50.  150.)
+	  (cairo_line_to cr 250. 150.)
+	  (cairo_set_line_cap cr CAIRO_LINE_CAP_SQUARE)
+	  (cairo_stroke cr)
 
 	  (cairo_surface_write_to_png surface (string->cstring/c "test-caps.png"))
 	  #t))
@@ -417,27 +417,26 @@
 	  (cairo_set_source_rgb cr 100. 100. 0.)
 	  (cairo_set_line_width cr 15.)
 
-	  (cairo-set-line-join cr CAIRO_LINE_JOIN_MITER)
-	  (cairo-rectangle cr 10. 10. 100. 100.)
-	  (cairo-stroke cr)
+	  (cairo_set_line_join cr CAIRO_LINE_JOIN_MITER)
+	  (cairo_rectangle cr 10. 10. 100. 100.)
+	  (cairo_stroke cr)
 
-	  (cairo-set-line-join cr CAIRO_LINE_JOIN_BEVEL)
-	  (cairo-rectangle cr 30. 30. 130. 130.)
-	  (cairo-stroke cr)
+	  (cairo_set_line_join cr CAIRO_LINE_JOIN_BEVEL)
+	  (cairo_rectangle cr 30. 30. 130. 130.)
+	  (cairo_stroke cr)
 
-	  (cairo-set-line-join cr CAIRO_LINE_JOIN_ROUND)
-	  (cairo-rectangle cr 60. 60. 160. 160.)
-	  (cairo-stroke cr)
+	  (cairo_set_line_join cr CAIRO_LINE_JOIN_ROUND)
+	  (cairo_rectangle cr 60. 60. 160. 160.)
+	  (cairo_stroke cr)
 
 	  (cairo_surface_write_to_png surface (string->cstring/c "test-line-joins.png"))
 	  #t))
     => #t)
 
-
   #t)
 
 
-(parametrise ((check-test-name	'draw-shapes))
+(parametrise ((check-test-name	'shapes))
 
 ;;; This code comes from the tutorial:
 ;;;
@@ -559,7 +558,7 @@
   #t)
 
 
-(parametrise ((check-test-name	'draw-fills))
+(parametrise ((check-test-name	'fills))
 
 ;;; This code comes from the tutorial:
 ;;;
@@ -641,6 +640,115 @@
 	    (cairo_fill cr))
 
 	  (cairo_surface_write_to_png surface (string->cstring/c "test-gradients.png"))
+	  #t))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'transparency))
+
+;;; This code comes from the tutorial:
+;;;
+;;; <http://zetcode.com/tutorials/cairographicstutorial/transparency/>
+;;;
+
+  (check	;output to PNG file, draw filled shapes
+      (with-compensations
+	(letrec* ((surface	(compensate
+				    (cairo_image_surface_create CAIRO_FORMAT_ARGB32 800 300)
+				  (with
+				   (cairo_surface_destroy surface))))
+		  (cr		(compensate
+				    (cairo_create surface)
+				  (with
+				   (cairo_destroy cr)))))
+
+	  (do ((i 1 (+ 1 i)))
+	      ((< 10 i))
+	    (cairo_set_source_rgba cr 0. 0. 1. (* i 0.1))
+	    (cairo_rectangle cr (* 50. i) 20. 40. 40.)
+	    (cairo_fill cr))
+
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-transparency.png"))
+	  #t))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'compositing))
+
+;;; This code comes from the tutorial:
+;;;
+;;; <http://zetcode.com/tutorials/cairographicstutorial/compositing/>
+;;;
+
+  (check	;output to PNG file, draw filled shapes
+      (with-compensations
+	(letrec* ((surface	(compensate
+				    (cairo_image_surface_create CAIRO_FORMAT_ARGB32 500 300)
+				  (with
+				   (cairo_surface_destroy surface))))
+		  (cr		(compensate
+				    (cairo_create surface)
+				  (with
+				   (cairo_destroy cr)))))
+
+	  (define (draw cr x width height operator)
+	    (letrec* ((first	(compensate
+				    (cairo_surface_create_similar (cairo_get_target cr)
+								  CAIRO_CONTENT_COLOR_ALPHA
+								  width height)
+				  (with
+				   (cairo_surface_destroy first))))
+		      (second	(compensate
+				    (cairo_surface_create_similar (cairo_get_target cr)
+								  CAIRO_CONTENT_COLOR_ALPHA
+								  width height)
+				  (with
+				   (cairo_surface_destroy second))))
+		      (first_cr	(compensate
+				    (cairo_create first)
+				  (with
+				   (cairo_destroy first_cr))))
+		      (second_cr	(compensate
+					    (cairo_create second)
+					  (with
+					   (cairo_destroy second_cr)))))
+
+	      (cairo_set_source_rgb first_cr 0. 0. 0.4)
+	      (cairo_rectangle first_cr x 20. 50. 50.)
+	      (cairo_fill first_cr)
+
+	      (cairo_set_source_rgb second_cr 0.5 0.5 0.)
+	      (cairo_rectangle second_cr (+ x 10.) 40. 50. 50.)
+	      (cairo_fill second_cr)
+
+	      (cairo_set_operator first_cr operator)
+	      (cairo_set_source_surface first_cr second 0. 0.)
+	      (cairo_paint first_cr)
+
+	      (cairo_set_source_surface cr first 0. 0.)
+	      (cairo_paint cr)))
+
+	  (define oper (vector CAIRO_OPERATOR_DEST_OVER
+			       CAIRO_OPERATOR_DEST_IN
+			       CAIRO_OPERATOR_OUT
+			       CAIRO_OPERATOR_ADD
+			       CAIRO_OPERATOR_ATOP
+			       CAIRO_OPERATOR_DEST_ATOP))
+
+	  (do ((i  0 (+  1 i))
+	       (x 20. (+ 80. x))
+	       (y 20.))
+	      ((<= 6 i))
+	    (draw cr x
+		  (cairo_image_surface_get_width surface)
+		  (cairo_image_surface_get_height surface)
+		  (vector-ref oper i)))
+
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-compositing.png"))
 	  #t))
     => #t)
 
