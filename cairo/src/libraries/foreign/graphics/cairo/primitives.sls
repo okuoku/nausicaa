@@ -46,6 +46,7 @@
     cairo-ps-level-to-string
     cairo-ps-surface-dsc-comment
     cairo-get-current-point
+    cairo-set-dash
     cairo-get-dash
     cairo-surface-get-device-offset
     cairo-surface-get-fallback-resolution
@@ -89,7 +90,6 @@
      (cairo_set_line_cap			cairo-set-line-cap)
 
      (cairo_set_line_join			cairo-set-line-join)
-     (cairo_set_dash				cairo-set-dash)
      (cairo_set_miter_limit			cairo-set-miter-limit)
 
      (cairo_translate				cairo-translate)
@@ -473,6 +473,19 @@
       (cairo_get_current_point cr *X *Y)
       (values (pointer-ref-c-double *X 0)
 	      (pointer-ref-c-double *Y 0)))))
+
+(define cairo-set-dash
+  (case-lambda
+   ((cr dashes)
+    (cairo-set-dash cr dashes 0.))
+   ((cr dashes offset)
+    (with-compensations
+      (let* ((len	(vector-length dashes))
+	     (*doubles	(malloc-block/c (sizeof-double-array len))))
+	(do ((i 0 (+ 1 i)))
+	    ((= i len))
+	  (array-set-c-double! *doubles i (vector-ref dashes i)))
+	(cairo_set_dash cr *doubles len offset))))))
 
 (define (cairo-get-dash cr)
   (with-compensations

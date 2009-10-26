@@ -1219,6 +1219,16 @@ coordinates of the current point in the current path: the first is the
 @end defun
 
 
+@defun cairo-set-dash @var{cr} @var{dashes}
+@defunx cairo-set-dash @var{cr} @var{dashes} @var{offset}
+Given a pointer to a Cairo context, configure the dash pattern for
+drawing lines.  @var{dashes} must be a Scheme vector of positive inexact
+rational numbers (according to @func{rational?}), whose sum must be
+different from zero.  @var{offset} must be an inexact rational number;
+when not given, it defaults to zero.
+@end defun
+
+
 @defun cairo-get-dash @var{cr}
 Given a pointer to a Cairo context, return two values representing the
 current line dash configuration: the first is a vector of rational

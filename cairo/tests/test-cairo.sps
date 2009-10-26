@@ -262,36 +262,26 @@
 	  #t))
     => #t)
 
+  (check 	;output to PNG file, draw a square with dash pattern
+      (with-compensations
+  	(let* ((surface	(cairo-image-surface-create/c CAIRO_FORMAT_ARGB32 300 300))
+  	       (cr	(cairo-create/c surface)))
 
-  ;; (check 	;output to PNG file, draw a square with dash pattern
-  ;;     (with-compensations
-  ;; 	(let* ((surface	(cairo-image-surface-create/c CAIRO_FORMAT_ARGB32 300 300))
-  ;; 	       (cr	(cairo-create/c surface)))
+  	  (cairo-set-source-rgba cr 100. 0. 0. 1.)
+  	  (cairo-set-line-width cr 10.)
 
-  ;; 	  (cairo-set-source-rgba cr 100. 0. 0. 1.)
-  ;; 	  (cairo-set-line-width cr 10.)
+	  (cairo-set-dash cr '#(10. 20. 30. 40. 50.))
 
-  ;; 	  (let* ((len		5)
-  ;; 		 (pattern	(malloc (sizeof-double-array len))))
-  ;; 	    (pointer-set-c-double! pattern 0 10.)
-  ;; 	    (pointer-set-c-double! pattern 1 20.)
-  ;; 	    (pointer-set-c-double! pattern 2 30.)
-  ;; 	    (pointer-set-c-double! pattern 3 30.)
-  ;; 	    (pointer-set-c-double! pattern 4 30.)
-  ;; 	    (cairo-set-dash cr pattern 2 0.4)
-  ;; 	    (write (cstring->string (cairo-status-to-string (cairo-status cr))))
-  ;; 	    (newline))
+  	  (cairo-move-to cr 10. 10.)
+  	  (cairo-line-to cr 290. 10.)
+  	  (cairo-line-to cr 290. 290.)
+  	  (cairo-line-to cr 10. 290.)
+  	  (cairo-line-to cr 10. 10.)
+  	  (cairo-stroke cr)
 
-  ;; 	  (cairo-move-to cr 10. 10.)
-  ;; 	  (cairo-line-to cr 290. 10.)
-  ;; 	  (cairo-line-to cr 290. 290.)
-  ;; 	  (cairo-line-to cr 10. 290.)
-  ;; 	  (cairo-line-to cr 10. 10.)
-  ;; 	  (cairo-stroke cr)
-
-  ;; 	  (cairo-surface-write-to-png surface "test-high-dash.png")
-  ;; 	  #t))
-  ;;   => #t)
+  	  (cairo-surface-write-to-png surface "test-high-dash.png")
+  	  #t))
+    => #t)
 
   (check	;output to PNG file, draw line caps
       (with-compensations
