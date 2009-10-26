@@ -27,7 +27,8 @@
 
 (import (nausicaa)
   (checks)
-  (compensations))
+  (compensations)
+  (rnrs eval))
 
 (check-set-mode! 'report-failed)
 (display "*** testing compensations\n")
@@ -198,172 +199,191 @@
   => '(misc-error (4)))
 
 
-;;;; error in allocation forms
+(parametrise ((check-test-name	'allocation-form-error))
 
-(check
-    (with-result
-     (catch-exception
-      (with-compensations/on-error
-	  (compensate (add-result 1) (with (add-result -1)))
-	  (compensate
-	      (add-result 2)
-	      (raise 'alloc-error)
-	      (add-result 3)
-	    (with
-	     (add-result -2)))
-	  (compensate (add-result 4) (with (add-result -4)))
-	(add-result 5)
-	0)))
-  => '(alloc-error (1 2 -1)))
+  (check
+      (with-result
+       (catch-exception
+	(with-compensations/on-error
+	    (compensate (add-result 1) (with (add-result -1)))
+	    (compensate
+		(add-result 2)
+		(raise 'alloc-error)
+		(add-result 3)
+	      (with
+	       (add-result -2)))
+	    (compensate (add-result 4) (with (add-result -4)))
+	  (add-result 5)
+	  0)))
+    => '(alloc-error (1 2 -1)))
 
-(check
-    (with-result
-     (catch-exception
-      (with-compensations
-	  (compensate (add-result 1) (with (add-result -1)))
-	  (compensate
-	      (add-result 2)
-	      (raise 'alloc-error)
-	      (add-result 3)
-	    (with
-	     (add-result -2)))
-	  (compensate (add-result 4) (with (add-result -4)))
-	(add-result 5)
-	0)))
-  => '(alloc-error (1 2 -1)))
+  (check
+      (with-result
+       (catch-exception
+	(with-compensations
+	    (compensate (add-result 1) (with (add-result -1)))
+	    (compensate
+		(add-result 2)
+		(raise 'alloc-error)
+		(add-result 3)
+	      (with
+	       (add-result -2)))
+	    (compensate (add-result 4) (with (add-result -4)))
+	  (add-result 5)
+	  0)))
+    => '(alloc-error (1 2 -1)))
 
-
-
-;;;; error in release forms
-
-(check
-    (with-result
-     (catch-exception
-      (with-compensations/on-error
-	  (compensate (add-result 1) (with (add-result -1)))
-	  (compensate
-	      (add-result 2)
-	    (with
-	     (add-result -2)
-	     (raise 'release-error)
-	     (add-result -3)))
-	  (compensate (add-result 4) (with (add-result -4)))
-	(add-result 5)
-	0)))
-  => '(0 (1 2 4 5)))
-
-(check
-    (with-result
-     (catch-exception
-      (with-compensations/on-error
-	  (compensate (add-result 1) (with (add-result -1)))
-	  (compensate
-	      (add-result 2)
-	    (with
-	     (add-result -2)
-	     (raise 'release-error)
-	     (add-result -3)))
-	  (compensate (add-result 4) (with (add-result -4)))
-	(add-result 5)
-	(raise 'body-error)
-	(add-result 6)
-	0)))
-  => '(body-error (1 2 4 5 -4 -2 -1)))
-
-
-
-(check
-    (with-result
-     (catch-exception
-      (with-compensations
-	  (compensate (add-result 1) (with (add-result -1)))
-	  (compensate
-	      (add-result 2)
-	    (with
-	     (add-result -2)
-	     (raise 'release-error)
-	     (add-result -3)))
-	  (compensate (add-result 4) (with (add-result -4)))
-	(add-result 5)
-	0)))
-  => '(0 (1 2 4 5 -4 -2 -1)))
-
-(check
-    (with-result
-     (catch-exception
-      (with-compensations
-	  (compensate (add-result 1) (with (add-result -1)))
-	  (compensate
-	      (add-result 2)
-	    (with
-	     (add-result -2)
-	     (raise 'release-error)
-	     (add-result -3)))
-	  (compensate (add-result 4) (with (add-result -4)))
-	(add-result 5)
-	(raise 'body-error)
-	(add-result 6)
-	0)))
-  => '(body-error (1 2 4 5 -4 -2 -1)))
+  #t)
 
 
-;;;; resources
+(parametrise ((check-test-name	 'release-form-error))
 
-(check
-    (with-result
-     (with-compensations
-       (letrec
-	   ((item (compensate
-		      123
-		    (with
-		     (add-result item)))))
-	 (add-result 1)
-	 0)))
-  => '(0 (1 123)))
+  (check
+      (with-result
+       (catch-exception
+	(with-compensations/on-error
+	    (compensate (add-result 1) (with (add-result -1)))
+	    (compensate
+		(add-result 2)
+	      (with
+	       (add-result -2)
+	       (raise 'release-error)
+	       (add-result -3)))
+	    (compensate (add-result 4) (with (add-result -4)))
+	  (add-result 5)
+	  0)))
+    => '(0 (1 2 4 5)))
 
-(check
-    (with-result
-     (with-compensations
-       (letrec*
-	   ((item1 (compensate
-		       123
-		     (with
-		      (add-result item2))))
-	    (item2 (compensate
-		       456
-		     (with
-		      (add-result item1)))))
-	 (add-result 1)
-	 0)))
-  => '(0 (1 123 456)))
+  (check
+      (with-result
+       (catch-exception
+	(with-compensations/on-error
+	    (compensate (add-result 1) (with (add-result -1)))
+	    (compensate
+		(add-result 2)
+	      (with
+	       (add-result -2)
+	       (raise 'release-error)
+	       (add-result -3)))
+	    (compensate (add-result 4) (with (add-result -4)))
+	  (add-result 5)
+	  (raise 'body-error)
+	  (add-result 6)
+	  0)))
+    => '(body-error (1 2 4 5 -4 -2 -1)))
 
-(check
-    (with-result
-     (with-compensations/on-error
-       (letrec
-	   ((item (compensate
-		      123
-		    (with
-		     (add-result item)))))
-	 (add-result 1)
-	 0)))
-  => '(0 (1)))
 
-(check
-    (with-result
-     (with-compensations/on-error
-       (letrec
-	   ((item1 (compensate
-		       123
-		     (with
-		      (add-result item2))))
-	    (item2 (compensate
-		       456
-		     (with
-		      (add-result item1)))))
-	 (add-result 1)
-	 0)))
-  => '(0 (1)))
+
+  (check
+      (with-result
+       (catch-exception
+	(with-compensations
+	    (compensate (add-result 1) (with (add-result -1)))
+	    (compensate
+		(add-result 2)
+	      (with
+	       (add-result -2)
+	       (raise 'release-error)
+	       (add-result -3)))
+	    (compensate (add-result 4) (with (add-result -4)))
+	  (add-result 5)
+	  0)))
+    => '(0 (1 2 4 5 -4 -2 -1)))
+
+  (check
+      (with-result
+       (catch-exception
+	(with-compensations
+	    (compensate (add-result 1) (with (add-result -1)))
+	    (compensate
+		(add-result 2)
+	      (with
+	       (add-result -2)
+	       (raise 'release-error)
+	       (add-result -3)))
+	    (compensate (add-result 4) (with (add-result -4)))
+	  (add-result 5)
+	  (raise 'body-error)
+	  (add-result 6)
+	  0)))
+    => '(body-error (1 2 4 5 -4 -2 -1)))
+
+  #t)
+
+
+(parametrise ((check-test-name	'resources))
+
+  (check
+      (with-result
+       (with-compensations
+	 (letrec
+	     ((item (compensate
+			123
+		      (with
+		       (add-result item)))))
+	   (add-result 1)
+	   0)))
+    => '(0 (1 123)))
+
+  (check
+      (with-result
+       (with-compensations
+	 (letrec*
+	     ((item1 (compensate
+			 123
+		       (with
+			(add-result item2))))
+	      (item2 (compensate
+			 456
+		       (with
+			(add-result item1)))))
+	   (add-result 1)
+	   0)))
+    => '(0 (1 123 456)))
+
+  (check
+      (with-result
+       (with-compensations/on-error
+	 (letrec
+	     ((item (compensate
+			123
+		      (with
+		       (add-result item)))))
+	   (add-result 1)
+	   0)))
+    => '(0 (1)))
+
+  (check
+      (with-result
+       (with-compensations/on-error
+	 (letrec
+	     ((item1 (compensate
+			 123
+		       (with
+			(add-result item2))))
+	      (item2 (compensate
+			 456
+		       (with
+			(add-result item1)))))
+	   (add-result 1)
+	   0)))
+    => '(0 (1)))
+
+  #t)
+
+
+(parametrise ((check-test-name	'syntax-errors))
+
+  (check	;missing WITH
+      (guard (E ((syntax-violation? E)
+		 #t))
+	(eval '(with-compensations
+		 (letrec ((a (compensate 123)))
+		   #t))
+	      (environment '(rnrs) '(compensations))))
+    => #t)
+
+  #t)
 
 
 ;;;; done

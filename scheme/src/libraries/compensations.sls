@@ -75,6 +75,13 @@
 			    (compensations)))))))
 
 (define-syntax compensate
+  ;;Splitting  COMPENSATE in  this macro  and %COMPENSATE  allows  us to
+  ;;catch missing WITH subform errors.
+  (syntax-rules (begin with)
+    ((_ ?alloc ?form ...)
+     (%compensate (begin ?alloc) ?form ...))))
+
+(define-syntax %compensate
   (syntax-rules (begin with)
     ((_ (begin ?alloc0 ?alloc ...) (with ?release0 ?release ...))
      (begin0
@@ -82,10 +89,7 @@
        (push-compensation ?release0 ?release ...)))
 
     ((_ (begin ?alloc0 ?alloc ...) ?allocn ?form ...)
-     (compensate (begin ?alloc0 ?alloc ... ?allocn) ?form ...))
-
-    ((_ ?alloc ?form ...)
-     (compensate (begin ?alloc) ?form ...))))
+     (%compensate (begin ?alloc0 ?alloc ... ?allocn) ?form ...))))
 
 
 ;;;; done
