@@ -1,0 +1,44 @@
+To: comp.lang.scheme
+Subject: [announce] Nausicaa/Cairo --- tag 0.1b0
+
+		       Nausicaa/Cairo
+		       =============
+
+Nausicaa/Cairo  is  a  binding  between  Cairo  2D  graphics
+library and  R6RS Scheme implementations.  It  is built upon
+Nausicaa/Scheme,  making   use  of  its   foreign  functions
+interface; so it  currently supports only GNU+Linux systems.
+The installation infrastructure  requires a GNU+Linux system
+(for details see the "README.build" file).
+
+  The  latest  release  of  the  Nausicaa/Cairo  package  is
+available at:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+the documentation is available on line:
+
+    <http://marcomaggi.github.com/docs/nausicaa-cairo.html>
+
+
+Notes for --- tag 0.1b0
+------------------------------
+
+* It has been tested with Cairo 1.8.8.
+
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:
