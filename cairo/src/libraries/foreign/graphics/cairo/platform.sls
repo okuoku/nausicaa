@@ -1101,7 +1101,6 @@
 
 ;;;; image-surface functions
 
-
 (define-c-function cairo_image_surface_create
   (cairo_surface_t* cairo_image_surface_create (cairo_format_t int int)))
 

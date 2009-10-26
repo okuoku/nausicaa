@@ -433,7 +433,7 @@
 
 (define (cairo-pdf-surface-create file-pathname width height)
   (with-compensations
-    (cairo_pdf_surface_create (string->cstring/c file-pathname width height))))
+    (cairo_pdf_surface_create (string->cstring/c file-pathname) width height)))
 
 (define (cairo-svg-surface-create file-pathname width height)
   (with-compensations
@@ -453,17 +453,17 @@
   (with-compensations
     (cairo_ps_surface_dsc_comment surface (string->cstring/c text))))
 
-(define-syntax with-doubles
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ (?var ...) ?form0 ?form ...)
-       (let ((num (length (syntax->datum #'(?var ...)))))
-	 (with-syntax (((?idx ...)	(iota num)))
-	   #`(with-compensations
-	       (let* ((*doubles		(malloc-block/c (sizeof-double-array #,num)))
-		      (?var		(pointer-add *doubles (* ?idx sizeof-double)))
-		      ...)
-		 ?form0 ?form ...))))))))
+;; (define-syntax with-doubles
+;;   (lambda (stx)
+;;     (syntax-case stx ()
+;;       ((_ (?var ...) ?form0 ?form ...)
+;;        (let ((num (length (syntax->datum #'(?var ...)))))
+;; 	 (with-syntax (((?idx ...)	(iota num)))
+;; 	   #`(with-compensations
+;; 	       (let* ((*doubles		(malloc-block/c (sizeof-double-array #,num)))
+;; 		      (?var		(pointer-add *doubles (* ?idx sizeof-double)))
+;; 		      ...)
+;; 		 ?form0 ?form ...))))))))
 
 (define (cairo-get-current-point cr)
   (with-compensations

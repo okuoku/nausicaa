@@ -35,7 +35,7 @@
   (checks))
 
 (check-set-mode! 'report-failed)
-(display "*** testing basic\n")
+(display "*** testing platform API\n")
 
 
 (parametrise ((check-test-name	'version))
@@ -195,7 +195,7 @@
 	  (cairo_move_to cr 10.0 50.0)
 	  (cairo_show_text cr (string->cstring/c "Disziplin ist Macht."))
 
-	  (cairo_surface_write_to_png surface (string->cstring/c "test-text.png"))
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-text.png"))
 	  #t))
     => #t)
 
@@ -203,7 +203,7 @@
       (with-compensations
 	(letrec* ((surface	(compensate
 				    (cairo_pdf_surface_create
-				     (string->cstring/c "test-text.pdf")
+				     (string->cstring/c "test-platform-text.pdf")
 				     390. 60.)
 				  (with
 				   (cairo_surface_destroy surface))))
@@ -228,7 +228,7 @@
       (with-compensations
 	(letrec* ((surface	(compensate
 				    (cairo_svg_surface_create
-				     (string->cstring/c "test-text.svg")
+				     (string->cstring/c "test-platform-text.svg")
 				     390. 60.)
 				  (with
 				   (cairo_surface_destroy surface))))
@@ -280,7 +280,7 @@
 	  (cairo_line_to cr 10. 10.)
 	  (cairo_stroke cr)
 
-	  (cairo_surface_write_to_png surface (string->cstring/c "test-line.png"))
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-line.png"))
 	  #t))
     => #t)
 
@@ -305,7 +305,7 @@
 	  (cairo_line_to cr 10. 10.)
 	  (cairo_fill cr)
 
-	  (cairo_surface_write_to_png surface (string->cstring/c "test-fill.png"))
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-fill.png"))
 	  #t))
     => #t)
 
@@ -329,7 +329,7 @@
 	  (cairo_arc cr 150. 150. 90. 0. pi2)
 	  (cairo_stroke cr)
 
-	  (cairo_surface_write_to_png surface (string->cstring/c "test-circle.png"))
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-circle.png"))
 	  #t))
     => #t)
 
@@ -366,7 +366,7 @@
   ;; 	  (cairo_line_to cr 10. 10.)
   ;; 	  (cairo_stroke cr)
 
-  ;; 	  (cairo_surface_write_to_png surface (string->cstring/c "test-dash.png"))
+  ;; 	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-dash.png"))
   ;; 	  #t))
   ;;   => #t)
 
@@ -399,7 +399,7 @@
 	  (cairo_set_line_cap cr CAIRO_LINE_CAP_SQUARE)
 	  (cairo_stroke cr)
 
-	  (cairo_surface_write_to_png surface (string->cstring/c "test-caps.png"))
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-caps.png"))
 	  #t))
     => #t)
 
@@ -429,7 +429,7 @@
 	  (cairo_rectangle cr 60. 60. 160. 160.)
 	  (cairo_stroke cr)
 
-	  (cairo_surface_write_to_png surface (string->cstring/c "test-line-joins.png"))
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-line-joins.png"))
 	  #t))
     => #t)
 
@@ -486,7 +486,7 @@
 	  (cairo_set_source_rgb cr 1. 1. 1.)
 	  (cairo_fill cr)
 
-	  (cairo_surface_write_to_png surface (string->cstring/c "test-shapes.png"))
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-shapes.png"))
 	  #t))
     => #t)
 
@@ -551,7 +551,7 @@
 	  (cairo_stroke_preserve cr)
 	  (cairo_set_source_rgb cr 1. 1. 1.)
 
-	  (cairo_surface_write_to_png surface (string->cstring/c "test-other-shapes.png"))
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-other-shapes.png"))
 	  #t))
     => #t)
 
@@ -592,7 +592,7 @@
 	  (cairo_rectangle cr 150. 140. 100. 100.)
 	  (cairo_fill cr)
 
-	  (cairo_surface_write_to_png surface (string->cstring/c "test-fills.png"))
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-fills.png"))
 	  #t))
     => #t)
 
@@ -639,7 +639,7 @@
 	    (cairo_set_source cr pat3)
 	    (cairo_fill cr))
 
-	  (cairo_surface_write_to_png surface (string->cstring/c "test-gradients.png"))
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-gradients.png"))
 	  #t))
     => #t)
 
@@ -670,7 +670,7 @@
 	    (cairo_rectangle cr (* 50. i) 20. 40. 40.)
 	    (cairo_fill cr))
 
-	  (cairo_surface_write_to_png surface (string->cstring/c "test-transparency.png"))
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-transparency.png"))
 	  #t))
     => #t)
 
@@ -748,7 +748,7 @@
 		  (cairo_image_surface_get_height surface)
 		  (vector-ref oper i)))
 
-	  (cairo_surface_write_to_png surface (string->cstring/c "test-compositing.png"))
+	  (cairo_surface_write_to_png surface (string->cstring/c "test-platform-compositing.png"))
 	  #t))
     => #t)
 

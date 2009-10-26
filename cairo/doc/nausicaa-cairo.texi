@@ -478,6 +478,7 @@ Documentation License''.
 * constants::                   Constant values.
 * structs::                     Data structure accessors and mutators.
 * marshaling::                  Marshaling values.
+* compensations::               Compensated constructors.
 * examples::                    Usage examples.
 
 Appendices
@@ -1287,6 +1288,238 @@ circle; the sixth is the radius of the second circle.  Raise an
 assertion violation exception if the pattern is not a gradient pattern.
 @end defun
 
+@c page
+@node compensations
+@chapter Compensated constructors
+
+
+The following bindings are exported by the @library{foreign graphics
+cairo} library.  The functions allocate and return a new object and
+automatically register the appropriate destructor in the current
+compensation stack, or save a state registering the restore operation.
+@nauref{compensations, Compensation stacks}
+
+
+@defun cairo-create/c @var{arg} ...
+Apply @func{cairo-create} to the arguments and register a compensation
+applying @func{cairo-destroy} to the returned object.
+@end defun
+
+
+@defun cairo-reference/c @var{arg} ...
+Apply @func{cairo-reference} to the arguments and register a
+compensation applying @func{cairo-destroy} to the returned object.
+@end defun
+
+
+@defun cairo-save/c @var{rc}
+Apply @func{cairo-save} to @var{rc} and register a compensation applying
+@func{cairo-restore} to @var{rc}.
+@end defun
+
+
+@defun cairo-push-group/c @var{cr}
+@defunx cairo-push-group-to-source/c @var{cr}
+Apply @func{cairo-push-group} to @var{cr} and register a compensation
+applying @func{cairo-pop-group} or @func{cairo-pop-group-to-source} to
+@var{cr}.
+@end defun
+
+
+@defun cairo-push-group/content/c @var{cr} @var{content}
+@defunx cairo-push-group-to-source/content/c @var{cr} @var{content}
+Apply @func{cairo-push-group-with-content} to @var{cr} and @var{content}
+and register a compensation applying @func{cairo-pop-group} or
+@func{cairo-pop-group-to-source} to @var{cr}.
+@end defun
+
+
+@defun cairo-font-options-create/c @var{arg} ...
+Apply @func{cairo-font-options-create} to the arguments and register a
+compensation applying @func{cairo-font-options-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-font-options-copy/c @var{arg} ...
+Apply @func{cairo-font-options-copy} to the arguments and register a
+compensation applying @func{cairo-font-options-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-scaled-font-reference/c @var{arg} ...
+Apply @func{cairo-scaled-font-reference} to the arguments and register a
+compensation applying @func{cairo-scaled-font-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-toy-font-face-create/c @var{arg} ...
+Apply @func{cairo-toy-font-face-create} to the arguments and register a
+compensation applying @func{cairo-scaled-font-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-user-font-face-create/c @var{arg} ...
+Apply @func{cairo-user-font-face-create} to the arguments and register a
+compensation applying @func{cairo-scaled-font-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-surface-create-similar/c @var{arg} ...
+Apply @func{cairo-surface-create-similar} to the arguments and register
+a compensation applying @func{cairo-surface-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-surface-reference/c @var{arg} ...
+Apply @func{cairo-surface-reference} to the arguments and register a
+compensation applying @func{cairo-surface-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-image-surface-create/c @var{arg} ...
+Apply @func{cairo-image-surface-create} to the arguments and register a
+compensation applying @func{cairo-surface-destroy} to the returned
+object.
+@end defun
+
+@defun cairo-image-surface-create-from-png/c @var{arg} ...
+Apply @func{cairo-image-surface-create-from-png} to the arguments and
+register a compensation applying @func{cairo-surface-destroy} to the
+returned object.
+@end defun
+
+
+@defun cairo-image-surface-create-from-png-stream/c @var{arg} ...
+Apply @func{cairo-image-surface-create-from-png-stream} to the arguments
+and register a compensation applying @func{cairo-surface-destroy} to the
+returned object.
+@end defun
+
+
+@defun cairo-pattern-create-rgb/c @var{arg} ...
+Apply @func{cairo-surface-create-similar} to the arguments and register
+a compensation applying @func{cairo-surface-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-pattern-create-rgba/c @var{arg} ...
+Apply @func{cairo-pattern-create-rgba} to the arguments and register a
+compensation applying @func{cairo-pattern-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-pattern-create-for-surface/c @var{arg} ...
+Apply @func{cairo-pattern-create-for-surface} to the arguments and
+register a compensation applying @func{cairo-pattern-destroy} to the
+returned object.
+@end defun
+
+
+@defun cairo-pattern-create-linear/c @var{arg} ...
+Apply @func{cairo-pattern-create-linear} to the arguments and register a
+compensation applying @func{cairo-pattern-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-pattern-create-radial/c @var{arg} ...
+Apply @func{cairo-pattern-create-radial} to the arguments and register a
+compensation applying @func{cairo-pattern-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-pattern-reference/c @var{arg} ...
+Apply @func{cairo-pattern-reference} to the arguments and register a
+compensation applying @func{cairo-pattern-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-pdf-surface-create/c @var{arg} ...
+Apply @func{cairo-pdf-surface-create} to the arguments and register a
+compensation applying @func{cairo-surface-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-pdf-surface-create-for-stream/c @var{arg} ...
+Apply @func{cairo-pdf-surface-create-for-stream} to the arguments and
+register a compensation applying @func{cairo-surface-destroy} to the
+returned object.
+@end defun
+
+
+@defun cairo-svg-surface-create/c @var{arg} ...
+Apply @func{cairo-svg-surface-create} to the arguments and register a
+compensation applying @func{cairo-surface-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-svg-surface-create-for-stream/c @var{arg} ...
+Apply @func{cairo-svg-surface-create-for-stream} to the arguments and
+register a compensation applying @func{cairo-surface-destroy} to the
+returned object.
+@end defun
+
+
+@defun cairo-ps-surface-create/c @var{arg} ...
+Apply @func{cairo-ps-surface-create} to the arguments and register a
+compensation applying @func{cairo-surface-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-ps-surface-create-for-stream/c @var{arg} ...
+Apply @func{cairo-ps-surface-create-for-stream} to the arguments and
+register a compensation applying @func{cairo-surface-destroy} to the
+returned object.
+@end defun
+
+
+@defun cairo-xlib-surface-create-with-xrender-format/c @var{arg} ...
+Apply @func{cairo-xlib-surface-create-with-xrender-format} to the
+arguments and register a compensation applying
+@func{cairo-surface-destroy} to the returned object.
+@end defun
+
+
+@defun cairo-ft-font-face-create-for-pattern/c @var{arg} ...
+Apply @func{cairo-ft-font-face-create-for-pattern} to the arguments and
+register a compensation applying @func{cairo-scaled-font-destroy} to the
+returned object.
+@end defun
+
+
+@defun cairo-ft-font-face-create-for-ft-face/c @var{arg} ...
+Apply @func{cairo-ft-font-face-create-for-ft-face} to the arguments and
+register a compensation applying @func{cairo-scaled-font-destroy} to the
+returned object.
+@end defun
+
+
+@defun cairo-xlib-surface-create/c @var{arg} ...
+Apply @func{cairo-xlib-surface-create} to the arguments and register a
+compensation applying @func{cairo-surface-destroy} to the returned
+object.
+@end defun
+
+
+@defun cairo-xlib-surface-create-for-bitmap/c @var{arg} ...
+Apply @func{cairo-xlib-surface-create-for-bitmap} to the arguments and
+register a compensation applying @func{cairo-surface-destroy} to the
+returned object.
+@end defun
 
 @c page
 @node examples
