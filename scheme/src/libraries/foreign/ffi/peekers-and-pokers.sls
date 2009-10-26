@@ -199,7 +199,7 @@
   (define-array-peeker array-ref-c-uint64	pointer-ref-c-uint64	8)
 
   (define-array-peeker array-ref-c-float	pointer-ref-c-float	strideof-float)
-  (define-array-peeker array-ref-c-double	pointer-ref-c-double	strideof-float)
+  (define-array-peeker array-ref-c-double	pointer-ref-c-double	strideof-double)
   (define-array-peeker array-ref-c-void*	pointer-ref-c-void*	strideof-pointer))
 
 (let-syntax ((define-signed-array-peeker (syntax-rules ()
@@ -249,7 +249,7 @@
   (define-array-poker array-set-c-uint64!	pointer-set-c-uint64!	8)
 
   (define-array-poker array-set-c-float!	pointer-set-c-float!	strideof-float)
-  (define-array-poker array-set-c-double!	pointer-set-c-double!	strideof-float)
+  (define-array-poker array-set-c-double!	pointer-set-c-double!	strideof-double)
   (define-array-poker array-set-c-void*!	pointer-set-c-void*!	strideof-pointer))
 
 (let-syntax ((define-signed-array-poker (syntax-rules ()
