@@ -1,0 +1,12 @@
+              |-----handy-ruler-----------------------------------------------|
+@PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: Nausicaa/UUID is a distribution of libraries for R6RS Scheme
+@PACKAGE_NAME@: impmentations;  it provides  a  binding to  OSSP UUID.   The
+@PACKAGE_NAME@: package  is built  upon Nausicaa/Scheme,  making use  of its
+@PACKAGE_NAME@: foreign functions interface.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:   OSSP  UUID   is  an  ISO-C:1999   application  programming
+@PACKAGE_NAME@: interface  (API) and  corresponding  command line  interface
+@PACKAGE_NAME@: (CLI) for the generation  of DCE 1.1, ISO/IEC 11578:1996 and
+@PACKAGE_NAME@: RFC 4122 compliant Universally Unique Identifier (UUID).
