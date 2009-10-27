@@ -35,6 +35,7 @@
 
     ;; UUID generation
     uuid_load
+    uuid_make
 
     ;; UUID comparison
     uuid_isnil
@@ -79,8 +80,14 @@
 
 ;; Variadic functions are not supported by the FFI.
 ;;
-;; (define-c-function uuid_make
-;;   (uuid_rc_t uuid_make (uuid_t* unsigned-int ...)))
+(define uuid_make
+  (let ((arg-2	(make-c-function uuid_rc_t uuid_make (uuid_t* unsigned-int)))
+	(arg-4	(make-c-function uuid_rc_t uuid_make (uuid_t* unsigned-int uuid_t* char*))))
+    (case-lambda
+     ((*id mode)
+      (arg-2 *id mode))
+     ((*id mode uuid name)
+      (arg-4 *id mode uuid name)))))
 
 ;;; UUID comparison
 
