@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Template
-;;;Contents: compile script
+;;;Contents: compile script for Larceny Scheme
 ;;;Date: Thu Dec 25, 2008
 ;;;
 ;;;Abstract
@@ -30,8 +30,16 @@
 (compile-library "foreign/template/sizeof.sls"
 		 "foreign/template/sizeof.larceny.slfasl")
 
+(compile-library "foreign/template/shared-object.sls"
+		 "foreign/template/shared-object.larceny.slfasl")
+
+(compile-library "foreign/template/platform.sls"
+		 "foreign/template/platform.larceny.slfasl")
+
+(compile-library "foreign/template/primitives.sls"
+		 "foreign/template/primitives.larceny.slfasl")
+
 (compile-library "foreign/template.sls"
 		 "foreign/template.larceny.slfasl")
-
 
 ;;; end of file

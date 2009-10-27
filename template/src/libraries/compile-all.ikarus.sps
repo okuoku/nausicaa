@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Template
-;;;Contents: compile script
+;;;Contents: compile script for Ikarus Scheme
 ;;;Date: Thu Dec 25, 2008
 ;;;
 ;;;Abstract

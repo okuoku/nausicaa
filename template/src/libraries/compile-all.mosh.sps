@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Template
-;;;Contents: compile script for Mosh
+;;;Contents: compile script for Mosh Scheme
 ;;;Date: Mon Jan 19, 2009
 ;;;
 ;;;Abstract
