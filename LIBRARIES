@@ -27,19 +27,11 @@
 
 * Iconv
 
-* OSSP/UUID
-
 * Libev
 
 * Unac?
 
 * DPE
-
-* JSON/C
-
-* Implement CSV.
-
-* Infix notation.
 
 * Neon
 
@@ -202,11 +194,17 @@ Discarded libraries
   non-expert and do not know what to do with them.
 
 
+* GD graphics library
+
+  Why not: stick with GraphicsMagick and Cairo.
+
+
 * G2 graphics library
 
   What is it: a graphics library built on top of GD.
 
-  Why not: stick with GraphicsMagick.
+  Why not: stick with GraphicsMagick and Cairo.
+
 
 * MPFS
 
