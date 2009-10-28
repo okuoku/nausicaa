@@ -237,6 +237,10 @@ Revised^6 Report on the algorithmic language Scheme
 @ref{\NODE\,\TITLE\,\TITLE\,autoconf}
 @end macro
 
+@macro nauref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nausicaa}
+@end macro
+
 @c ------------------------------------------------------------
 @c RNRS document macros.
 @c ------------------------------------------------------------
