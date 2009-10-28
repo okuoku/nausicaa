@@ -39,6 +39,7 @@
     ;; UUID comparison
     uuid-isnil?
     uuid-compare
+    uuid-equal?
 
     ;; UUID import/export
     uuid-import			uuid-import/c
@@ -46,8 +47,48 @@
 
     ;; library utilities
     uuid-error
-    uuid-version)
+    uuid-version
+
+    ;; type inspection
+    uuid_rc_t
+    sizeof-uuid_rc_t
+    strideof-uuid_rc_t
+    alignof-uuid_rc_t
+
+    uuid_fmt_t
+    sizeof-uuid_fmt_t
+    strideof-uuid_fmt_t
+    alignof-uuid_fmt_t
+
+    UUID_VERSION
+
+    ;; encoding octet stream lengths
+    UUID_LEN_BIN
+    UUID_LEN_STR
+    UUID_LEN_SIV
+
+    ;; enum uuid_rc_t
+    UUID_RC_OK
+    UUID_RC_ARG
+    UUID_RC_MEM
+    UUID_RC_SYS
+    UUID_RC_INT
+    UUID_RC_IMP
+
+    ;; UUID make modes
+    UUID_MAKE_V1
+    UUID_MAKE_V3
+    UUID_MAKE_V4
+    UUID_MAKE_V5
+    UUID_MAKE_MC
+
+    ;; enum uuid_fmt_t
+    UUID_FMT_BIN
+    UUID_FMT_STR
+    UUID_FMT_SIV
+    UUID_FMT_TXT)
   (import (rnrs)
+    (compensations)
     (foreign uuid primitives)
     (foreign uuid sizeof))
 
@@ -67,7 +108,6 @@
 (define-compensated uuid-load/c		uuid-load)
 (define-compensated uuid-make/c		uuid-make)
 (define-compensated uuid-import/c	uuid-import)
-
 
 
 ;;;; done

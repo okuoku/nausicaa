@@ -39,6 +39,7 @@
     ;; UUID comparison
     uuid-isnil?
     uuid-compare
+    uuid-equal?
 
     ;; UUID import/export
     uuid-import
@@ -52,7 +53,8 @@
     (foreign memory)
     (only (foreign cstrings)
 	  string->cstring/c	cstring->string)
-    (foreign ffi sizeof)
+    (only (foreign ffi sizeof)
+	  sizeof-pointer sizeof-int)
     (foreign uuid platform)
     (foreign uuid sizeof))
 
@@ -127,6 +129,9 @@
 		   (uuid_compare uuid-1 uuid-2 *result)
 		   (pointer-ref-c-signed-int *result 0)))))
 
+(define (uuid-equal? uuid-1 uuid-2)
+  (= 0 (uuid-compare uuid-1 uuid-2)))
+
 
 ;;;; UUID import/export
 
@@ -144,16 +149,16 @@
   (let ((fmt-1 (list UUID_FMT_STR UUID_FMT_TXT UUID_FMT_SIV)))
     (lambda (uuid format)
       (with-compensations
-	(let ((*ptr (malloc-block/c sizeof-pointer))
-	      (*len (malloc-block/c sizeof-int)))
+	(let* ((*ptr (malloc-block/c (+ sizeof-pointer sizeof-int)))
+	       (*len (pointer-add *ptr sizeof-pointer)))
 	  (pointer-set-c-pointer! *ptr 0 pointer-null)
-	  (letrec ((ptr (compensate
-			    (%check uuid-export
-				    (uuid_export uuid format *ptr *len)
-				    (pointer-ref-c-pointer *ptr 0))
-			  (with
-			   (primitive-free ptr))))
-		   (len (pointer-ref-c-signed-int *len 0)))
+	  (letrec* ((ptr (compensate
+			     (%check uuid-export
+				     (uuid_export uuid format *ptr *len)
+				     (pointer-ref-c-pointer *ptr 0))
+			   (with
+			    (primitive-free ptr))))
+		    (len (pointer-ref-c-signed-int *len 0)))
 	    (cond
 	     ((memv format fmt-1)
 	      (cstring->string ptr (- len 1)))

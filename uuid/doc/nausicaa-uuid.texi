@@ -499,6 +499,10 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* constants::                   Constant values and data types
+                                inspection.
+* primitives::                  Primitive functions.
+* compensations::               Compensated constructors.
 
 Appendices
 
@@ -562,6 +566,299 @@ bindings for constructors and destructors making use of the
 @library{compensations} library.  @nauref{compensations, Compensation
 stacks}
 @end table
+
+@c page
+@node constants
+@chapter Constant values and data types inspection
+
+
+The following bindings are exported by @library{foreign uuid sizeof} and
+re--exported by @library{foreign uuid}.
+
+
+@deffn Constant uuid_rc_t
+@deffnx Constant sizeof-uuid_rc_t
+@deffnx Constant strideof-uuid_rc_t
+@deffnx Constant alignof-uuid_rc_t
+Type inspection for the @code{uuid_rc_t} C language data type.
+@code{uuid_rc_t} is bound to a Scheme symbol among the ones defined by
+@library{foreign ffi}.
+@end deffn
+
+
+@deffn Constant uuid_fmt_t
+@deffnx Constant sizeof-uuid_fmt_t
+@deffnx Constant strideof-uuid_fmt_t
+@deffnx Constant alignof-uuid_fmt_t
+Type inspection for the @code{uuid_fmt_t} C language data type.
+@code{uuid_fmt_t} is bound to a Scheme symbol among the ones defined by
+@library{foreign ffi}.
+@end deffn
+
+
+@deffn Constant UUID_LEN_BIN
+@deffnx Constant UUID_LEN_STR
+@deffnx Constant UUID_LEN_SIV
+Encoding octet stream lengths.
+@end deffn
+
+
+@deffn Constant UUID_FMT_BIN
+@deffnx Constant UUID_FMT_STR
+@deffnx Constant UUID_FMT_SIV
+@deffnx Constant UUID_FMT_TXT
+Import/export format selectors
+@end deffn
+
+
+@deffn Constant UUID_RC_OK
+@deffnx Constant UUID_RC_ARG
+@deffnx Constant UUID_RC_MEM
+@deffnx Constant UUID_RC_SYS
+@deffnx Constant UUID_RC_INT
+@deffnx Constant UUID_RC_IMP
+Return codes of @ossp{} @uuid{} functions.
+@end deffn
+
+
+@deffn Constant UUID_MAKE_V1
+@deffnx Constant UUID_MAKE_V3
+@deffnx Constant UUID_MAKE_V4
+@deffnx Constant UUID_MAKE_V5
+@deffnx Constant UUID_MAKE_MC
+@uuid{} make modes.
+@end deffn
+
+@c page
+@node primitives
+@chapter Primitive functions
+
+
+The following bindings are exported by @library{foreign uuid primitives}
+and re--exported by @library{foreign uuid}.  The functions are wrappers
+for the @ossp{} @uuid{} functions implementing marshaling of arguments
+and return values.
+
+@c ------------------------------------------------------------
+
+@subsubheading @uuid{} objects
+
+@defun uuid-create
+Build a new @uuid{} object and return a pointer to it.  @uuid{} objects
+must be released with @func{uuid-destroy}.  If an error occurs an
+assertion violation exception is raised.
+@end defun
+
+
+@defun uuid-clone @var{original}
+Build a new @uuid{} object cloning the one referenced by @var{original},
+which must be a pointer; return a pointer to the clone.  @uuid{} objects
+must be released with @func{uuid-destroy}.  If an error occurs an
+assertion violation exception is raised.
+@end defun
+
+
+@defun uuid-load @var{spec}
+Build a new @uuid{} object loading into it the predefined value selected
+by @var{spec}; return a pointer to the object.  @uuid{} objects must be
+released with @func{uuid-destroy}.  If an error occurs an assertion
+violation exception is raised.
+
+@var{spec} must be a Scheme symbol among: @code{nil}, @code{ns:DNS},
+@code{ns:URL}, @code{ns:OID}, @code{ns:X500}.
+@end defun
+
+
+@defun uuid-make @var{mode}
+@defunx uuid-make @var{mode} @var{src} @var{name}
+Build and return a new @uuid{} object generated according to the
+selected @var{mode}; return a pointer to the object.  @uuid{} objects
+must be released with @func{uuid-destroy}.  If an error occurs an
+assertion violation exception is raised.
+
+@var{mode} must be one among: @code{UUID_MAKE_V1}, @code{UUID_MAKE_V3},
+@code{UUID_MAKE_V4}, @code{UUID_MAKE_V5}; optionally, a mode can be
+OR--ed with @code{UUID_MAKE_MC} (using @func{bitwise-ior}).
+
+@var{src} and @var{name} can be used only when selecting
+@code{UUID_MAKE_V3} or @code{UUID_MAKE_V5}; @var{src} must be the
+pointer to an arbitrary @uuid{} object, @var{name} must be an arbitrary
+Scheme string.
+@end defun
+
+
+@defun uuid-destroy @var{pointer}
+Release all the resources associated to the @uuid{} object referenced by
+@var{pointer}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Comparison
+
+
+@defun uuid-equal? @vari{id} @varii{id}
+Return @true{} if the objects referenced by the two pointer arguments
+are equal.  If an error occurs an assertion violation exception is
+raised.
+@end defun
+
+
+@defun uuid-compare @vari{id} @varii{id}
+Compare the objects referenced by the two pointer arguments and return a
+ternary result.  If an error occurs an assertion violation exception is
+raised.
+@end defun
+
+
+@defun uuid-isnil? @var{id}
+Return @true{} if the @uuid{} object referenced by the pointer argument
+is the nil @uuid{}.  If an error occurs an assertion violation exception
+is raised.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Importing and exporting
+
+
+@defun uuid-import @var{format} @var{ptr} @var{len}
+Build a new @uuid{} object initialised from data referenced by @var{ptr}
+in a block of memory of @var{len} bytes; the format of the data is
+specified by @var{format}.  Return a pointer to the new @uuid{} object.
+If an error occurs an assertion violation exception is raised.
+
+@var{format} must be one among: @code{UUID_FMT_BIN},
+@code{UUID_FMT_STR}, @code{UUID_FMT_SIV} and @code{UUID_FMT_TXT}.
+@end defun
+
+
+@defun uuid-export @var{id} @var{format}
+Build and return an external representation for the @uuid{} object
+referenced by the pointer @var{id}.  If an error occurs an assertion
+violation exception is raised.
+
+If @var{format} is one among: @code{UUID_FMT_STR}, @code{UUID_FMT_SIV}
+and @code{UUID_FMT_TXT}, the return value is a Scheme string.  If
+@var{format} is @code{UUID_FMT_BIN}, the return value is a Scheme
+bytevector.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Helpers
+
+
+@defun uuid-error @var{rc}
+Return a Scheme string describing the return code @var{rc}.
+@end defun
+
+@c page
+@node compensations
+@chapter Compensated constructors
+
+
+The following bindings are exported by @library{foreign uuid}; the
+functions are wrappers for the primitives exported by @library{foreign
+uuid primitives}, making use of compensations to manage the @uuid{}
+objects allocation.  @nauref{compensations, Compensation stacks}
+
+
+@defun uuid-create/c
+Call @func{uuid-create} and return its return value; register a
+compensation applying @func{uuid-destroy} to the @uuid{} object.
+@end defun
+
+
+@defun uuid-clone/c @var{arg} ...
+Apply @func{uuid-clone} to the arguments and return its return value;
+register a compensation applying @func{uuid-destroy} to the @uuid{}
+object.
+@end defun
+
+
+@defun uuid-load/c @var{arg} ...
+Apply @func{uuid-load} to the arguments and return its return value;
+register a compensation applying @func{uuid-destroy} to the @uuid{}
+object.
+@end defun
+
+
+@defun uuid-make/c @var{arg} ...
+Apply @func{uuid-make} to the arguments and return its return value;
+register a compensation applying @func{uuid-destroy} to the @uuid{}
+object.
+@end defun
+
+
+@defun uuid-import/c @var{arg} ...
+Apply @func{uuid-import} to the arguments and return its return value;
+register a compensation applying @func{uuid-destroy} to the @uuid{}
+object.
+@end defun
+
+
+Usage examples follow:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign uuid)
+  (foreign cstrings))
+
+;; import and export
+(with-compensations
+  (let* ((str   "4e8e1494-c318-11de-83fe-001e68fdaf8a")
+         (cstr  (string->cstring/c str))
+         (clen  (strlen cstr))
+         (uuid  (uuid-import/c UUID_FMT_STR cstr clen)))
+    (uuid-export uuid UUID_FMT_STR)))
+@result{} "4e8e1494-c318-11de-83fe-001e68fdaf8a"
+
+(with-compensations
+  (let* ((str   "4e8e1494-c318-11de-83fe-001e68fdaf8a")
+         (cstr  (string->cstring/c str))
+         (clen  (strlen cstr))
+         (uuid  (uuid-import/c UUID_FMT_STR cstr clen)))
+    (uuid-export uuid UUID_FMT_BIN)))
+@result{} #vu8(78 142 20 148 195 24 17 222
+        131 254 0 30 104 253 175 138)
+
+(with-compensations
+  (let* ((str   "4e8e1494-c318-11de-83fe-001e68fdaf8a")
+         (cstr  (string->cstring/c str))
+         (clen  (strlen cstr))
+         (uuid  (uuid-import/c UUID_FMT_STR cstr clen)))
+    (uuid-export uuid UUID_FMT_SIV)))
+@result{} "104417507259474184274030196212824387466"
+
+(with-compensations
+  (let* ((str   "4e8e1494-c318-11de-83fe-001e68fdaf8a")
+         (cstr  (string->cstring/c str))
+         (clen  (strlen cstr))
+         (uuid  (uuid-import/c UUID_FMT_STR cstr clen)))
+    (uuid-export uuid UUID_FMT_TXT)))
+@result{} "encode: STR:     4e8e1494-c318-11de-83fe-001e68fdaf8a
+        SIV:     104417507259474184274030196212824387466
+decode: variant: DCE 1.1, ISO/IEC 11578:1996
+        version: 1 (time and node based)
+        content: time:  2009-10-27 16:46:43.225922.0 UTC
+                 clock: 1022 (usually random)
+                 node:  00:1e:68:fd:af:8a (global unicast)
+"
+;; load and export
+(with-compensations
+  (let ((uuid (uuid-load/c 'ns:DNS)))
+    (uuid-export uuid UUID_FMT_STR)))
+@result{} "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+
+;; generate
+(with-compensations
+  (let* ((uuid-1 (uuid-create/c))
+         (uuid-2 (uuid-make/c UUID_MAKE_V3
+                              uuid-1 "ciao mamma")))
+    (uuid-export uuid-2 UUID_FMT_STR)))
+@end example
 
 @c page
 

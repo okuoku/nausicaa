@@ -1,0 +1,57 @@
+To: comp.lang.scheme
+Subject: [announce] Nausicaa/Uuid --- tag 0.1b0
+
+		       Nausicaa/UUID
+		       =============
+
+Nausicaa/UUID is a distribution of libraries for R6RS Scheme
+impmentations;  it provides  a  binding to  OSSP UUID.   The
+package  is built  upon Nausicaa/Scheme,  making use  of its
+foreign functions  interface; so it  currently supports only
+GNU+Linux systems.  The installation infrastructure requires
+a  GNU+Linux  system  (for  details see  the  "README.build"
+file).
+
+  OSSP  UUID   is  an  ISO-C:1999   application  programming
+interface  (API) and  corresponding  command line  interface
+(CLI) for the generation  of DCE 1.1, ISO/IEC 11578:1996 and
+IETF  RFC  4122   compliant  Universally  Unique  Identifier
+(UUID).
+
+  The  latest  release   of  the  Nausicaa/UUID  package  is
+available at:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+the documentation is available on line:
+
+    <http://marcomaggi.github.com/docs/nausicaa-uuid.html>
+
+  OSSP UUID can be found here:
+
+	    <http://www.ossp.org/pkg/lib/uuid/>
+	     <ftp://ftp.ossp.org/pkg/lib/uuid/>
+
+
+Notes for --- tag 0.1b0
+------------------------------
+
+* It has been tested with OSSP UUID 1.6.2.
+
+* Original OSSP UUID documentation is included.
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:

@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/UUID
-;;;Contents: tests for primitives API
+;;;Contents: tests for high level API
 ;;;Date: Wed Oct 28, 2009
 ;;;
 ;;;Abstract
@@ -26,11 +26,9 @@
 
 
 (import (nausicaa)
-  (foreign uuid primitives)
-  (foreign uuid sizeof)
+  (foreign uuid)
   (foreign memory)
   (foreign cstrings)
-  (foreign ffi sizeof)
   (compensations)
   (checks))
 
@@ -51,14 +49,8 @@
 
   (check
       (with-compensations
-	(letrec* ((one	(compensate
-			    (uuid-create)
-			  (with
-			   (uuid-destroy one))))
-		  (two	(compensate
-			    (uuid-clone one)
-			  (with
-			   (uuid-destroy two)))))
+	(let* ((one (uuid-create/c))
+	       (two (uuid-clone/c one)))
 	  (list (uuid-isnil? one)
 		(uuid-isnil? two)
 		(= 0 (uuid-compare one two)))))
@@ -73,36 +65,27 @@
       (with-compensations
 	(let* ((str	"4e8e1494-c318-11de-83fe-001e68fdaf8a")
 	       (cstr	(string->cstring/c str))
-	       (clen	(strlen cstr)))
-	  (letrec ((uuid (compensate
-			     (uuid-import UUID_FMT_STR cstr clen)
-			   (with
-			    (uuid-destroy uuid)))))
-	    (uuid-export uuid UUID_FMT_STR))))
+	       (clen	(strlen cstr))
+	       (uuid	(uuid-import/c UUID_FMT_STR cstr clen)))
+	  (uuid-export uuid UUID_FMT_STR)))
     => "4e8e1494-c318-11de-83fe-001e68fdaf8a")
 
-  (check 'this	;export to BIN
+  (check	;export to BIN
       (with-compensations
 	(let* ((str	"4e8e1494-c318-11de-83fe-001e68fdaf8a")
 	       (cstr	(string->cstring/c str))
-	       (clen	(strlen cstr)))
-	  (letrec ((uuid (compensate
-			     (uuid-import UUID_FMT_STR cstr clen)
-			   (with
-			    (uuid-destroy uuid)))))
-	    (uuid-export uuid UUID_FMT_BIN))))
+	       (clen	(strlen cstr))
+	       (uuid	(uuid-import/c UUID_FMT_STR cstr clen)))
+	  (uuid-export uuid UUID_FMT_BIN)))
     => '#vu8(78 142 20 148 195 24 17 222 131 254 0 30 104 253 175 138))
 
   (check	;export to SIV
       (with-compensations
 	(let* ((str	"4e8e1494-c318-11de-83fe-001e68fdaf8a")
 	       (cstr	(string->cstring/c str))
-	       (clen	(strlen cstr)))
-	  (letrec ((uuid (compensate
-			     (uuid-import UUID_FMT_STR cstr clen)
-			   (with
-			    (uuid-destroy uuid)))))
-	    (uuid-export uuid UUID_FMT_SIV))))
+	       (clen	(strlen cstr))
+	       (uuid	(uuid-import/c UUID_FMT_STR cstr clen)))
+	  (uuid-export uuid UUID_FMT_SIV)))
     => "104417507259474184274030196212824387466")
 ;;;     01234567890123456789012345678901234567890
 ;;;     0         1         2         3         4
@@ -111,12 +94,9 @@
       (with-compensations
 	(let* ((str	"4e8e1494-c318-11de-83fe-001e68fdaf8a")
 	       (cstr	(string->cstring/c str))
-	       (clen	(strlen cstr)))
-	  (letrec ((uuid (compensate
-			     (uuid-import UUID_FMT_STR cstr clen)
-			   (with
-			    (uuid-destroy uuid)))))
-	    (uuid-export uuid UUID_FMT_TXT))))
+	       (clen	(strlen cstr))
+	       (uuid	(uuid-import/c UUID_FMT_STR cstr clen)))
+	  (uuid-export uuid UUID_FMT_TXT)))
     => "encode: STR:     4e8e1494-c318-11de-83fe-001e68fdaf8a
         SIV:     104417507259474184274030196212824387466
 decode: variant: DCE 1.1, ISO/IEC 11578:1996
@@ -133,46 +113,31 @@ decode: variant: DCE 1.1, ISO/IEC 11578:1996
 
   (check	;load nil
       (with-compensations
-	(letrec ((uuid (compensate
-			   (uuid-load 'nil)
-			 (with
-			  (uuid-destroy uuid)))))
+	(let ((uuid (uuid-load/c 'nil)))
 	  (uuid-export uuid UUID_FMT_STR)))
     => "00000000-0000-0000-0000-000000000000")
 
   (check	;load ns:DNS
       (with-compensations
-	(letrec ((uuid (compensate
-			   (uuid-load 'ns:DNS)
-			 (with
-			  (uuid-destroy uuid)))))
+	(let ((uuid (uuid-load/c 'ns:DNS)))
 	  (uuid-export uuid UUID_FMT_STR)))
     => "6ba7b810-9dad-11d1-80b4-00c04fd430c8")
 
   (check	;load ns:URL
       (with-compensations
-	(letrec ((uuid (compensate
-			   (uuid-load 'ns:URL)
-			 (with
-			  (uuid-destroy uuid)))))
+	(let ((uuid (uuid-load/c 'ns:URL)))
 	  (uuid-export uuid UUID_FMT_STR)))
     => "6ba7b811-9dad-11d1-80b4-00c04fd430c8")
 
   (check	;load ns:OID
       (with-compensations
-	(letrec ((uuid (compensate
-			   (uuid-load 'ns:OID)
-			 (with
-			  (uuid-destroy uuid)))))
+	(let ((uuid (uuid-load/c 'ns:OID)))
 	  (uuid-export uuid UUID_FMT_STR)))
     => "6ba7b812-9dad-11d1-80b4-00c04fd430c8")
 
   (check	;load ns:X500
       (with-compensations
-	(letrec ((uuid (compensate
-			   (uuid-load 'ns:X500)
-			 (with
-			  (uuid-destroy uuid)))))
+	(let ((uuid (uuid-load/c 'ns:X500)))
 	  (uuid-export uuid UUID_FMT_STR)))
     => "6ba7b814-9dad-11d1-80b4-00c04fd430c8")
 
@@ -183,45 +148,27 @@ decode: variant: DCE 1.1, ISO/IEC 11578:1996
 
   (check
       (with-compensations
-	(letrec ((uuid (compensate
-			   (uuid-make UUID_MAKE_V1)
-			 (with
-			  (uuid-destroy uuid)))))
+	(let ((uuid (uuid-make/c UUID_MAKE_V1)))
 	  (string? (uuid-export uuid UUID_FMT_STR))))
     => #t)
 
   (check
       (with-compensations
-	(letrec ((uuid (compensate
-			   (uuid-make UUID_MAKE_V4)
-			 (with
-			  (uuid-destroy uuid)))))
+	(let ((uuid (uuid-make/c UUID_MAKE_V4)))
 	  (string? (uuid-export uuid UUID_FMT_STR))))
     => #t)
 
   (check
       (with-compensations
-	(letrec* ((uuid-1 (compensate
-			      (uuid-create)
-			    (with
-			     (uuid-destroy uuid-1))))
-		  (uuid-2 (compensate
-			      (uuid-make UUID_MAKE_V3 uuid-1 "ciao mamma")
-			    (with
-			     (uuid-destroy uuid-2)))))
+	(let* ((uuid-1 (uuid-create/c))
+	       (uuid-2 (uuid-make/c UUID_MAKE_V3 uuid-1 "ciao mamma")))
 	  (string? (uuid-export uuid-2 UUID_FMT_STR))))
     => #t)
 
   (check
       (with-compensations
-	(letrec* ((uuid-1 (compensate
-			      (uuid-create)
-			    (with
-			     (uuid-destroy uuid-1))))
-		  (uuid-2 (compensate
-			      (uuid-make UUID_MAKE_V5 uuid-1 "ciao mamma")
-			    (with
-			     (uuid-destroy uuid-2)))))
+	(let* ((uuid-1 (uuid-create/c))
+	       (uuid-2 (uuid-make/c UUID_MAKE_V5 uuid-1 "ciao mamma")))
 	  (string? (uuid-export uuid-2 UUID_FMT_STR))))
     => #t)
 

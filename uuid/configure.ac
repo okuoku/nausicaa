@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-uuid],[0.1d0],[marcomaggi@gna.org])
+AC_INIT([nausicaa-uuid],[0.1b0],[marcomaggi@gna.org])
 DS_BEGIN([./src/libraries/foreign/uuid.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
