@@ -26,13 +26,47 @@
 
 
 (library (foreign uuid)
-  (export)
+  (export
+    ;; UUID object handling
+    uuid-create			uuid-create/c
+    uuid-destroy
+    uuid-clone			uuid-clone/c
+
+    ;; UUID generation
+    uuid-load			uuid-load/c
+    uuid-make			uuid-make/c
+
+    ;; UUID comparison
+    uuid-isnil?
+    uuid-compare
+
+    ;; UUID import/export
+    uuid-import			uuid-import/c
+    uuid-export
+
+    ;; library utilities
+    uuid-error
+    uuid-version)
   (import (rnrs)
     (foreign uuid primitives)
     (foreign uuid sizeof))
 
 
-;;;; code
+(define-syntax define-compensated
+  (syntax-rules ()
+    ((_ ?name ?func)
+     (define (?name . args)
+       (letrec ((uuid (compensate
+			  (apply ?func args)
+			(with
+			 (uuid-destroy)))))
+	 uuid)))))
+
+(define-compensated uuid-create/c	uuid-create)
+(define-compensated uuid-clone/c	uuid-clone)
+(define-compensated uuid-load/c		uuid-load)
+(define-compensated uuid-make/c		uuid-make)
+(define-compensated uuid-import/c	uuid-import)
 
 
 

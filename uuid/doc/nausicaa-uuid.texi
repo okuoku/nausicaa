@@ -129,6 +129,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{IEEE}
 @end macro
 
+@macro ietf{}
+@acronym{IETF}
+@end macro
+
 @macro iso{}
 @acronym{ISO}
 @end macro
@@ -247,6 +251,10 @@ Revised^6 Report on the algorithmic language Scheme
 
 @macro autoconfref{NODE, TITLE}
 @ref{\NODE\,\TITLE\,\TITLE\,autoconf}
+@end macro
+
+@macro nauref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nausicaa}
 @end macro
 
 @c ------------------------------------------------------------
@@ -514,8 +522,46 @@ Indexes
 @chapter Overview of the package
 
 
-This ...
+@value{PACKAGE} is a distribution of libraries for @rnrs{6} Scheme
+implementations; it provides a binding to @ossp{} @uuid{}.  The package is
+built upon Nausicaa/Scheme, making use of its foreign functions
+interface.
 
+@ossp{} @uuid{} is an @acronym{ISO}-C:1999 application programming
+interface and corresponding command line interface for the generation of
+@acronym{DCE} 1.1, @acronym{ISO}/@acronym{IEC} 11578:1996 and @ietf{}
+@rfc{} 4122 compliant Universally Unique Identifier (@uuid{}).
+
+The installed libraries are:
+
+@table @library
+@item foreign uuid shared-object
+Exports the single binding @code{ossp-uuid-shared-object}, referencing
+the @ossp{} @uuid{} shared library.
+
+@item foreign uuid sizeof
+Exports bindings for constant values (like @code{UUID_MAKE_V1}) and data
+types inspection.
+
+@item foreign uuid platform
+Exports a binding for each function in the @ossp{} @uuid{}.  It
+implements a one--to--one map between foreign functions and Scheme
+functions; the Scheme functions have the same name of the foreign ones,
+so @cfunc{uuid_create} is available as @func{uuid_create}.
+
+@item foreign uuid primitives
+Exports a binding for each foreign function, implementing marshaling or
+arguments and return values; the Scheme functions have the same name of
+the foreign ones, but with underscores turned into dashed; so
+@cfunc{uuid_create} is available as @func{uuid-create}.
+
+@item foreign uuid
+Exports the high level @api{}: all the bindings from @library{foreign
+uuid sizeof} and @library{foreign uuid primitives}; additionally
+bindings for constructors and destructors making use of the
+@library{compensations} library.  @nauref{compensations, Compensation
+stacks}
+@end table
 
 @c page
 

@@ -143,8 +143,7 @@
 		  (assert (= UUID_RC_OK (uuid_export uuid UUID_FMT_SIV *ptr *len)))
 		(with
 		 (primitive-free (pointer-ref-c-pointer *ptr 0))))
-(write (pointer-ref-c-signed-int *len 0))(newline)
-	      (cstring->string (pointer-ref-c-pointer    *ptr 0)
+	      (cstring->string (pointer-ref-c-pointer *ptr 0)
 			       (- (pointer-ref-c-signed-int *len 0) 1))))))
     => "104417507259474184274030196212824387466")
 ;;;     01234567890123456789012345678901234567890
@@ -167,7 +166,7 @@
 	      (pointer-set-c-pointer! *ptr 0 pointer-null)
 	      (assert (= UUID_RC_OK (uuid_export uuid UUID_FMT_TXT *ptr *len)))
 	      (cstring->string (pointer-ref-c-pointer    *ptr 0)
-			       (pointer-ref-c-signed-int *len 0))))))
+			       (- (pointer-ref-c-signed-int *len 0) 1))))))
     => "encode: STR:     4e8e1494-c318-11de-83fe-001e68fdaf8a
         SIV:     104417507259474184274030196212824387466
 decode: variant: DCE 1.1, ISO/IEC 11578:1996
@@ -291,7 +290,7 @@ decode: variant: DCE 1.1, ISO/IEC 11578:1996
 			     (pointer-ref-c-pointer *uuid 0)
 			   (with
 			    (uuid_destroy uuid)))))
-	    (assert (= UUID_RC_OK (uuid_make uuid UUID_MAKE_V1)))
+  	    (assert (= UUID_RC_OK (uuid_make uuid UUID_MAKE_V1)))
 	    (pointer-set-c-pointer! *str 0 pointer-null)
 	    (assert (= UUID_RC_OK (uuid_export uuid UUID_FMT_STR *str pointer-null)))
 	    (letrec ((cstr (compensate

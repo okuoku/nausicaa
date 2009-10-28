@@ -25,7 +25,8 @@ foreign functions interface.
   OSSP  UUID   is  an  ISO-C:1999   application  programming
 interface  (API) and  corresponding  command line  interface
 (CLI) for the generation  of DCE 1.1, ISO/IEC 11578:1996 and
-RFC 4122 compliant Universally Unique Identifier (UUID).
+IETF  RFC  4122   compliant  Universally  Unique  Identifier
+(UUID).
 
   *NOTE* The  last time the  author bothered to  update this
 paragraph he had tested UUID version 1.6.2.

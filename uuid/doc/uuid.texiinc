@@ -18,9 +18,9 @@
 @c @acronym{ISO}
 @c @end macro
 
-@macro ietf{}
-@acronym{IETF}
-@end macro
+@c @macro ietf{}
+@c @acronym{IETF}
+@c @end macro
 
 @macro iec{}
 @acronym{IEC}
