@@ -23,8 +23,12 @@ SQL  database  engine.  It  is  built upon  Nausicaa/Scheme,
 making  use  of  its  foreign  functions  interface;  so  it
 currently supports only GNU+Linux systems.
 
+  Unfortunately,  SQLite makes use  of callbacks,  which are
+not  supported by  Nausicaa for  Larceny Scheme;  so Larceny
+support is incomplete.
+
   *NOTE* The  last time the  author bothered to  update this
-paragraph, it had tested SQLite version 3.6.3.
+paragraph, it had tested SQLite Amalgamation version 3.6.19.
 
 
 2. License
