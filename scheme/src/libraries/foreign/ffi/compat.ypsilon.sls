@@ -185,6 +185,10 @@
      'long)
     ((ulong unsigned-long)
      'unsigned-long)
+    ((long-long signed-long-long)
+     'long-long)
+    ((ulong-long unsigned-long-long)
+     'unsigned-long-long)
     ((double)
      'double)
     ((float)
@@ -215,8 +219,8 @@
      (lambda (x) x))
     ((int signed-int ssize_t
 	  uint unsigned unsigned-int size_t
-	  long signed-long
-	  ulong unsigned-long)
+	  long signed-long long-long signed-long-long
+	  ulong unsigned-long ulong-long unsigned-long-long)
      assert-int)
     ((double)
      assert-double)

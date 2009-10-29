@@ -53189,19 +53189,13 @@ and @cfunc{write}, can be accessed this way.
 
 
 The following symbols are accepted as C language type identifiers, but
-not all Scheme implementations support them all: we will have to find
-out by trial and error.  We should be safe using: @samp{int},
-@samp{pointer} and @samp{double}, which are enough for a lot of foreign
-libraries.
+not all Scheme implementations support them all: We will have to find
+out by trial and error.
 
 @quotation
-@emph{Ikarus:} The Ikarus Scheme implementation supports all these
-types.
-@end quotation
-
-@quotation
-@emph{Ypsilon:} The Ypsilon Scheme implementation @strong{does not}
-support all these types.
+@strong{NOTE} Detailed reference of which data types are supported by
+which Scheme implementation will be included in a future release of this
+document.
 @end quotation
 
 Remember that C strings (zero terminated arrays of @samp{char}) must be
@@ -53308,8 +53302,21 @@ deflateEnd
 @end example
 @end quotation
 
-Variadic functions (like @cfunc{fprintf}) are @strong{not} supported
-(sorry).
+Variadic functions (like @cfunc{fprintf}) are @strong{not} supported,
+but we can interface with the by fixing the arguments; for example:
+
+@example
+(define uuid_make
+  (let ((arg-2  (primitive-make-c-function 'int 'uuid_make
+                  '(void* unsigned-int)))
+        (arg-4  (primitive-make-c-function 'int 'uuid_make
+                  '(void* unsigned-int void* char*))))
+    (case-lambda
+     ((*id mode)
+      (arg-2 *id mode))
+     ((*id mode uuid name)
+      (arg-4 *id mode uuid name)))))
+@end example
 
 As an example, the main deflate functions from Zlib can be defined with:
 
