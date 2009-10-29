@@ -135,6 +135,20 @@
     array-set-c-signed-long-long!	array-set-c-unsigned-long-long!
     array-set-c-void*!			array-set-c-pointer!
 
+    ;; array pointer getters
+    array-ptr-c-int8			array-ptr-c-uint8
+    array-ptr-c-int16			array-ptr-c-uint16
+    array-ptr-c-int32			array-ptr-c-uint32
+    array-ptr-c-int64			array-ptr-c-uint64
+    array-ptr-c-float			array-ptr-c-double
+    array-ptr-c-signed-char		array-ptr-c-unsigned-char
+    array-ptr-c-signed-short		array-ptr-c-unsigned-short
+    array-ptr-c-signed-int		array-ptr-c-unsigned-int
+    array-ptr-c-signed-long		array-ptr-c-unsigned-long
+    array-ptr-c-signed-long-long	array-ptr-c-unsigned-long-long
+    array-ptr-c-void*			array-ptr-c-pointer
+
+    ;; aliases
     peek-signed-char			peek-unsigned-char
     peek-signed-short			peek-unsigned-short
     peek-signed-int			peek-unsigned-int

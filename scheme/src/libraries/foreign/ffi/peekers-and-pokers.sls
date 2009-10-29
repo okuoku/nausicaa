@@ -78,6 +78,20 @@
     array-set-c-signed-long-long!	array-set-c-unsigned-long-long!
     array-set-c-void*!			(rename (array-set-c-void*! array-set-c-pointer!))
 
+    ;; array pointer getters
+    array-ptr-c-int8			array-ptr-c-uint8
+    array-ptr-c-int16			array-ptr-c-uint16
+    array-ptr-c-int32			array-ptr-c-uint32
+    array-ptr-c-int64			array-ptr-c-uint64
+    array-ptr-c-float			array-ptr-c-double
+    array-ptr-c-signed-char		array-ptr-c-unsigned-char
+    array-ptr-c-signed-short		array-ptr-c-unsigned-short
+    array-ptr-c-signed-int		array-ptr-c-unsigned-int
+    array-ptr-c-signed-long		array-ptr-c-unsigned-long
+    array-ptr-c-signed-long-long	array-ptr-c-unsigned-long-long
+    array-ptr-c-void*			(rename (array-ptr-c-void* array-ptr-c-pointer))
+
+    ;; aliases
     (rename (pointer-ref-c-signed-char		peek-signed-char)
 	    (pointer-ref-c-signed-short		peek-signed-short)
 	    (pointer-ref-c-signed-int		peek-signed-int)
@@ -277,6 +291,54 @@
   (define-unsigned-array-poker array-set-c-unsigned-int!	sizeof-int)
   (define-unsigned-array-poker array-set-c-unsigned-long!	sizeof-long)
   (define-unsigned-array-poker array-set-c-unsigned-long-long!	sizeof-long-long))
+
+
+;;;; array pointer getters
+
+(let-syntax ((define-array-pointer-getter
+	       (syntax-rules ()
+		 ((_ ?name ?strideof-data)
+		  (define (?name pointer index)
+		    (pointer-add pointer (* index ?strideof-data)))))))
+  (define-array-pointer-getter array-ptr-c-int8		1)
+  (define-array-pointer-getter array-ptr-c-int16	2)
+  (define-array-pointer-getter array-ptr-c-int32	4)
+  (define-array-pointer-getter array-ptr-c-int64	8)
+
+  (define-array-pointer-getter array-ptr-c-uint8	1)
+  (define-array-pointer-getter array-ptr-c-uint16	2)
+  (define-array-pointer-getter array-ptr-c-uint32	4)
+  (define-array-pointer-getter array-ptr-c-uint64	8)
+
+  (define-array-pointer-getter array-ptr-c-float	strideof-float)
+  (define-array-pointer-getter array-ptr-c-double	strideof-double)
+  (define-array-pointer-getter array-ptr-c-void*	strideof-pointer))
+
+(let-syntax ((define-signed-array-pointer-getter (syntax-rules ()
+						   ((_ ?name ?sizeof-data)
+						    (define ?name (case ?sizeof-data
+								    ((1) array-ptr-c-int8)
+								    ((2) array-ptr-c-int16)
+								    ((4) array-ptr-c-int32)
+								    ((8) array-ptr-c-int64)))))))
+  (define-signed-array-pointer-getter array-ptr-c-signed-char		sizeof-char)
+  (define-signed-array-pointer-getter array-ptr-c-signed-short		sizeof-short)
+  (define-signed-array-pointer-getter array-ptr-c-signed-int		sizeof-int)
+  (define-signed-array-pointer-getter array-ptr-c-signed-long		sizeof-long)
+  (define-signed-array-pointer-getter array-ptr-c-signed-long-long	sizeof-long-long))
+
+(let-syntax ((define-unsigned-array-pointer-getter (syntax-rules ()
+						     ((_ ?name ?sizeof-data)
+						      (define ?name (case ?sizeof-data
+								      ((1) array-ptr-c-uint8)
+								      ((2) array-ptr-c-uint16)
+								      ((4) array-ptr-c-uint32)
+								      ((8) array-ptr-c-uint64)))))))
+  (define-unsigned-array-pointer-getter array-ptr-c-unsigned-char	sizeof-char)
+  (define-unsigned-array-pointer-getter array-ptr-c-unsigned-short	sizeof-short)
+  (define-unsigned-array-pointer-getter array-ptr-c-unsigned-int	sizeof-int)
+  (define-unsigned-array-pointer-getter array-ptr-c-unsigned-long	sizeof-long)
+  (define-unsigned-array-pointer-getter array-ptr-c-unsigned-long-long	sizeof-long-long))
 
 
 ;;;; done

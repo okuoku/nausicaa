@@ -51945,7 +51945,11 @@ example: Larceny checkout 5877).
 @end defvr
 
 
-@defvr Constant sizeof-char
+@defvr Constant sizeof-int8
+@defvrx Constant sizeof-int16
+@defvrx Constant sizeof-int32
+@defvrx Constant sizeof-int64
+@defvrx Constant sizeof-char
 @defvrx Constant sizeof-short
 @defvrx Constant sizeof-int
 @defvrx Constant sizeof-long
@@ -51958,7 +51962,11 @@ The number of bytes in the specified type.
 @end defvr
 
 
-@defvr Constant alignof-char
+@defvr Constant alignof-int8
+@defvrx Constant alignof-int16
+@defvrx Constant alignof-int32
+@defvrx Constant alignof-int64
+@defvrx Constant alignof-char
 @defvrx Constant alignof-short
 @defvrx Constant alignof-int
 @defvrx Constant alignof-long
@@ -51972,7 +51980,11 @@ specified type.
 @end defvr
 
 
-@defvr Constant strideof-char
+@defvr Constant strideof-int8
+@defvrx Constant strideof-int16
+@defvrx Constant strideof-int32
+@defvrx Constant strideof-int64
+@defvrx Constant strideof-char
 @defvrx Constant strideof-short
 @defvrx Constant strideof-int
 @defvrx Constant strideof-long
@@ -51985,7 +51997,11 @@ The number of bytes of the array stride for the specified type.
 @end defvr
 
 
-@deffn Syntax sizeof-char-array @var{number-of-elements}
+@deffn Syntax sizeof-int8-array @var{number-of-elements}
+@deffnx Syntax sizeof-int16-array @var{number-of-elements}
+@deffnx Syntax sizeof-int32-array @var{number-of-elements}
+@deffnx Syntax sizeof-int64-array @var{number-of-elements}
+@deffnx Syntax sizeof-char-array @var{number-of-elements}
 @deffnx Syntax sizeof-short-array @var{number-of-elements}
 @deffnx Syntax sizeof-int-array @var{number-of-elements}
 @deffnx Syntax sizeof-long-array @var{number-of-elements}
@@ -52136,6 +52152,7 @@ re--exported by @library{foreign ffi} and @library{foreign memory}.
 * ffi pokers::                  Poking values.
 * ffi array peekers::           Peeking values into arrays.
 * ffi array pokers::            Poking values into arrays.
+* ffi array pointers::          Computing pointers into arrays.
 @end menu
 
 @c page
@@ -52710,7 +52727,7 @@ underlying platform.
 @end defun
 
 
-@subsubheading Peeking C language floating pointe numbers
+@subsubheading Peeking C language floating pointer numbers
 
 
 @defun array-ref-c-float @var{pointer} @var{index}
@@ -52903,7 +52920,7 @@ underlying platform.
 @end defun
 
 
-@subsubheading Poking C language floating pointe numbers
+@subsubheading Poking C language floating pointer numbers
 
 
 @defun array-set-c-float! @var{pointer} @var{index} @var{value}
@@ -52936,6 +52953,163 @@ referenced by @var{pointer}.  The size of the target depends on the
 architecture: it is @math{4} bytes on @math{32}-bit systems and @math{8}
 bytes on @math{64}-bit systems.  @var{pointer-value} must be a
 @samp{pointer}.
+@end defun
+
+@c page
+@node ffi array pointers
+@subsubsection Computing pointers into arrays
+
+
+The following functions compute a pointer value referencing an element
+of an array of basic C language data types.  The index is used to
+compute the position of the first byte taking into account the element
+stride of the data type.
+
+
+@subsubheading Getting fixed--size exact integers pointers
+
+
+@defun array-ptr-c-int8 @var{pointer} @var{index}
+Return a pointer to the value at @var{index} in the signed bytes array
+referenced by @var{pointer}.
+@end defun
+
+
+@defun array-ptr-c-uint8 @var{pointer} @var{index}
+Return a pointer to the value at @var{index} in the unsigned bytes array
+referenced by @var{pointer}.
+@end defun
+
+
+@defun array-ptr-c-int16 @var{pointer} @var{index}
+Return a pointer to the the signed exact integer represented by the two
+bytes at @var{index} in the array referenced by @var{pointer}.
+@end defun
+
+
+@defun array-ptr-c-uint16 @var{pointer} @var{index}
+Return a pointer to the unsigned exact integer represented by the two
+bytes at @var{index} in the array referenced by @var{pointer}.
+@end defun
+
+
+@defun array-ptr-c-int32 @var{pointer} @var{index}
+Return a pointer to the signed exact integer represented by the four
+bytes at @var{index} in the array referenced by @var{pointer}.
+@end defun
+
+
+@defun array-ptr-c-uint32 @var{pointer} @var{index}
+Return a pointer to the unsigned exact integer represented by the four
+bytes at @var{index} in the array referenced by @var{pointer}.
+@end defun
+
+
+@defun array-ptr-c-int64 @var{pointer} @var{index}
+Return a pointer to the signed exact integer represented by the eight
+bytes at @var{index} in the array referenced by @var{pointer}.
+@end defun
+
+
+@defun array-ptr-c-uint64 @var{pointer} @var{index}
+Return a pointer to the unsigned exact integer represented by the eight
+bytes at @var{index} in the array referenced by @var{pointer}.
+@end defun
+
+
+@subsubheading Peeking C language exact integers
+
+
+@defun array-ptr-c-signed-char @var{pointer} @var{index}
+Aliases for the @samp{int8} fixed--size array pointer getter.
+@end defun
+
+
+@defun array-ptr-c-unsigned-char @var{pointer} @var{index}
+Aliases for the @samp{uint8} fixed--size array pointer getter.
+@end defun
+
+
+@defun array-ptr-c-signed-short @var{pointer} @var{index}
+Aliases for the fixed--size array pointer getter whose target matches
+the size and range of the @samp{short int} C language type of the
+underlying platform.
+@end defun
+
+
+@defun array-ptr-c-unsigned-short @var{pointer} @var{index}
+Aliases for the fixed--size array pointer getter whose target matches
+the size and range of the @samp{unsigned short int} C language type of
+the underlying platform.
+@end defun
+
+
+@defun array-ptr-c-signed-int @var{pointer} @var{index}
+Aliases for the fixed--size array pointer getter whose target matches
+the size and range of the @samp{int} C language type of the underlying
+platform.
+@end defun
+
+
+@defun array-ptr-c-unsigned-int @var{pointer} @var{index}
+Aliases for the fixed--size array pointer getter whose target matches
+the size and range of the @samp{unsigned int} C language type of the
+underlying platform.
+@end defun
+
+
+@defun array-ptr-c-signed-long @var{pointer} @var{index}
+Aliases for the fixed--size array pointer getter whose target matches
+the size and range of the @samp{long} C language type of the underlying
+platform.
+@end defun
+
+
+@defun array-ptr-c-unsigned-long @var{pointer} @var{index}
+Aliases for the fixed--size array pointer getter whose target matches
+the size and range of the @samp{unsigned long} C language type of the
+underlying platform.
+@end defun
+
+
+@defun array-ptr-c-signed-long-long @var{pointer} @var{index}
+Aliases for the fixed--size array pointer getter whose target matches
+the size and range of the @samp{long long} C language type of the
+underlying platform.
+@end defun
+
+
+@defun array-ptr-c-unsigned-long-long @var{pointer} @var{index}
+Aliases for the fixed--size array pointer getter whose target matches
+the size and range of the @samp{unsigned long long} C language type of
+the underlying platform.
+@end defun
+
+
+@subsubheading Peeking C language floating pointer numbers
+
+
+@defun array-ptr-c-float @var{pointer} @var{index}
+Return a pointer to the four--byte @samp{float} (represented as @ieee{}
+754 single precision floating point number) stored at @var{index} in the
+array referenced by @var{pointer}.
+@end defun
+
+
+@defun array-ptr-c-double @var{pointer} @var{index}
+Return a pointer to the eight--byte @samp{double} (represented as
+@ieee{} 754 double precision floating point number) stored at
+@var{index} in the array referenced by @var{pointer}.
+@end defun
+
+
+@subsubheading Peeking pointers
+
+
+@defun array-ptr-c-pointer @var{pointer} @var{index}
+@defunx array-ptr-c-void* @var{pointer} @var{index}
+Return a pointer to the pointer stored at @var{index} in the array
+referenced by @var{pointer}.
 @end defun
 
 @c page
@@ -53522,6 +53696,7 @@ which should be used to process a Scheme library for substitution of
                                 structures.
 * ffi headers access::          Determining the accessors of data types.
 * ffi headers inspect::         Full inspection of data types.
+* ffi headers string::          Determining string values.
 * ffi headers common::          Common groups of tests.
 @end menu
 
@@ -54142,6 +54317,35 @@ Only the offset of the field (output variable
 @end deffn
 
 @c page
+@node ffi headers string
+@subsubsection Determining string values
+
+
+It is often needed to know the string vlaue of a language expression.
+The following determines the string value of the @code{SQLITE_VERSION}
+preprocessor symbol (defined in @file{sqlite3.h}) and stores it in the
+output variable @samp{STRINGOF_SQLITE_version}:
+
+@example
+NAUSICAA_STRING_TEST([SQLITE_VERSION],[SQLITE_VERSION],
+  [#f],[#include <sqlite3.h>])
+@end example
+
+
+@deffn {Autoconf Macro} NAUSICAA_STRING_TEST (@var{suffix}, @var{expression}, @var{default}, @var{headers})
+A wrapper for the Autoconf macro @samp{AC_LANG_PROGRAM} that acquires
+the string value of a C language expression.
+
+The output variable @samp{OFFSETOF_<@var{SUFFIX}>} is set to the result.
+If the test fails the value of the output variable will be
+@var{default}, or @false{} if @var{default} is not given.
+
+The optional @var{headers} must be a chunk of code including header
+files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
+included in the test program.
+@end deffn
+
+@c page
 @node ffi headers common
 @subsubsection Common groups of tests
 
@@ -54152,6 +54356,16 @@ C language types.  The following output variables are defined:
 
 @multitable {SIZEOF_SHORT_UINT} {unsigned long long}
 @headitem Variable @tab Size of C type
+@item SIZEOF_INT8
+@tab int8_t
+@item SIZEOF_INT16
+@tab int16_t
+@item SIZEOF_INT32
+@tab int32_t
+@item SIZEOF_INT64
+@tab int64_t
+@item SIZEOF_CHAR
+@tab char
 @item SIZEOF_SHORT_INT
 @tab short int
 @item SIZEOF_SHORT_UINT
@@ -54178,6 +54392,16 @@ C language types.  The following output variables are defined:
 
 @multitable {ALIGNOF_SHORT_UINT} {unsigned long long}
 @headitem Variable @tab Alignment of C type
+@item ALIGNOF_INT8
+@tab int8_t
+@item ALIGNOF_INT16
+@tab int16_t
+@item ALIGNOF_INT32
+@tab int32_t
+@item ALIGNOF_INT64
+@tab int64_t
+@item ALIGNOF_CHAR
+@tab char
 @item ALIGNOF_SHORT_INT
 @tab short int
 @item ALIGNOF_SHORT_UINT
@@ -54204,6 +54428,16 @@ C language types.  The following output variables are defined:
 
 @multitable {STRIDEOF_SHORT_UINT} {unsigned long long 12}
 @headitem Variable @tab Array stride of C type
+@item STRIDEOF_INT8
+@tab int8_t
+@item STRIDEOF_INT16
+@tab int16_t
+@item STRIDEOF_INT32
+@tab int32_t
+@item STRIDEOF_INT64
+@tab int64_t
+@item STRIDEOF_CHAR
+@tab char
 @item STRIDEOF_SHORT_INT
 @tab short int
 @item STRIDEOF_SHORT_UINT
