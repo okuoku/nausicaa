@@ -1,0 +1,12 @@
+              |-----handy-ruler-----------------------------------------------|
+@PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: Nausicaa/SQLite  is a  distribution of  librarires  for R6RS
+@PACKAGE_NAME@: Scheme implementations; it provides  a binding to the SQLite
+@PACKAGE_NAME@: SQL  database  engine.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: It requires Nausicaa/Scheme.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:

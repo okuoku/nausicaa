@@ -1,0 +1,123 @@
+
+		      Nausicaa/SQLite
+		      ===============
+
+
+Topics
+------
+
+  1. Introduction
+  2. License
+  4. Install
+  A. Credits
+  B. Bug reports
+  C. Resources
+
+
+1. Introduction
+---------------
+
+Nausicaa/SQLite  is a  distribution of  librarires  for R6RS
+Scheme implementations; it provides  a binding to the SQLite
+SQL  database  engine.  It  is  built upon  Nausicaa/Scheme,
+making  use  of  its  foreign  functions  interface;  so  it
+currently supports only GNU+Linux systems.
+
+  *NOTE* The  last time the  author bothered to  update this
+paragraph, it had tested SQLite version 3.6.3.
+
+
+2. License
+----------
+
+Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+
+This  program  is free  software:  you  can redistribute  it
+and/or modify it  under the terms of the  GNU General Public
+License as published by the Free Software Foundation, either
+version  3 of  the License,  or (at  your option)  any later
+version.
+
+This  program is  distributed in  the hope  that it  will be
+useful, but  WITHOUT ANY WARRANTY; without  even the implied
+warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
+PURPOSE.   See  the  GNU  General Public  License  for  more
+details.
+
+You should  have received a  copy of the GNU  General Public
+License   along   with    this   program.    If   not,   see
+<http://www.gnu.org/licenses/>.
+
+
+4. Install
+----------
+
+Be sure to have installed the Nausicaa/Scheme package first.
+Read the "README.build" file for details on the installation
+infrastructure.  Basically we should do:
+
+   $ cd <nausicaa top>
+   $ cd SQLite
+   $ mkdir "=build"
+   $ cd "=build"
+   $ ../configure
+   $ make
+   $ make test
+   $ make install
+
+  To test what a rule will do use the "-n" option; example:
+
+    $ make install -n
+
+  The "Makefile" supports the "DESTDIR" environment variable
+to install the files under a temporary location; example:
+
+    $ make install DESTDIR=/tmp/marco/nausicaa-SQLite
+
+  The   "Makefile"  supports  the   packages  infrastructure
+described  in the  Nausicaa documentation.   Refer to  it to
+build binary distribution archives.
+
+
+A. Credits
+----------
+
+The stuff was written by Marco Maggi.
+
+  I am sure that someone wrote SQLite at some point in time,
+but I cannot find a copyright notice.
+
+
+B. Bug reports
+--------------
+
+Bug reports  are appreciated, register them  using the issue
+tracker at Nausicaa's GitHub site.
+
+
+C. Resources
+------------
+
+The latest version of this package can be downloaded from:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+SQLite can be downloaded from:
+
+		  <http://www.sqlite.org/>
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:

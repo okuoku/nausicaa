@@ -1,0 +1,67 @@
+;;;
+;;;Part of: Nausicaa/SQLite
+;;;Contents: data types inspection for SQLite
+;;;Date: Thu Oct 29, 2009
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+(library (foreign sqlite sizeof)
+  (export
+
+    ;; type inspection
+    ;; sqlite_rc_t
+    ;; sizeof-sqlite_rc_t
+    ;; strideof-sqlite_rc_t
+    ;; alignof-sqlite_rc_t
+
+    SQLITE_VERSION_NUMBER
+
+    )
+  (import (rnrs)
+    (foreign ffi sizeof)
+    (foreign ffi))
+
+
+
+;;;; data types inspection
+
+;; (define sqlite_rc_t			(quote @TYPEOF_SQLITE_RC@))
+;; (define sizeof-sqlite_rc_t		@SIZEOF_SQLITE_RC@)
+;; (define strideof-sqlite_rc_t		@STRIDEOF_SQLITE_RC@)
+;; (define alignof-sqlite_rc_t		@ALIGNOF_SQLITE_RC@)
+
+
+
+;;;; constants
+
+(define SQLITE_VERSION			"@STRINGOF_SQLITE_VERSION@")
+
+(define SQLITE_VERSION_NUMBER		@VALUEOF_SQLITE_VERSION_NUMBER@)
+
+
+
+
+;;;; done
+
+)
+
+;;; end of file
