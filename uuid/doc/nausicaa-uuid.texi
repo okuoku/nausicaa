@@ -556,7 +556,7 @@ so @cfunc{uuid_create} is available as @func{uuid_create}.
 @item foreign uuid primitives
 Exports a binding for each foreign function, implementing marshaling or
 arguments and return values; the Scheme functions have the same name of
-the foreign ones, but with underscores turned into dashed; so
+the foreign ones, but with underscores turned into dashes; so
 @cfunc{uuid_create} is available as @func{uuid-create}.
 
 @item foreign uuid

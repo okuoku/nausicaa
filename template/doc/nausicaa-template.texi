@@ -129,6 +129,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{RFC}
 @end macro
 
+@macro sql{}
+@acronym{SQL}
+@end macro
+
 @macro utf{}
 @acronym{UTF}
 @end macro
