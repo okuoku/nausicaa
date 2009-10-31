@@ -28,16 +28,18 @@
   (export
 
     ;;shared object access
-    open-shared-object
-    shared-object			self-shared-object
+    shared-object				open-shared-object
+    (rename (primitive:self-shared-object	self-shared-object)
+	    (primitive:lookup-shared-object	lookup-shared-object)
+	    (primitive:lookup-shared-object*	lookup-shared-object*))
 
     ;;interface functions
-    primitive-make-c-function		primitive-make-c-function/with-errno
-    make-c-function			make-c-function/with-errno
-    define-c-function			define-c-function/with-errno
-    primitive-make-c-callback		primitive-free-c-callback
+    define-c-function				define-c-function/with-errno
+    make-c-function				make-c-function/with-errno
+    define-pointer-c-function			define-pointer-c-function/with-errno
+    pointer->c-function				pointer->c-function/with-errno
     make-c-callback
-    errno
+    (rename (primitive:free-c-callback		free-c-callback))
 
     ;;foreign struct accessors
     define-c-struct-accessor-and-mutator
@@ -173,61 +175,45 @@
     poke-array-int32!			poke-array-uint32!
     poke-array-int64!			poke-array-uint64!)
   (import (rnrs)
+    (parameters)
     (foreign ffi pointers)
     (foreign ffi peekers-and-pokers)
-    (only (foreign ffi compat)
-	  shared-object primitive-open-shared-object self-shared-object
-	  primitive-make-c-function primitive-make-c-function/with-errno
-	  primitive-make-c-callback primitive-free-c-callback
-	  errno)
+    (prefix (foreign ffi primitives) primitive:)
+    (for (foreign ffi clang-data-types) expand)
     (only (unimplemented)
 	  raise-unimplemented-error))
 
 
 (define (open-shared-object library-name)
-  (primitive-open-shared-object (if (symbol? library-name)
+  (primitive:open-shared-object (if (symbol? library-name)
 				    (symbol->string library-name)
 				  library-name)))
 
+(define shared-object
+  (make-parameter primitive:self-shared-object))
+
+
 (define-syntax make-c-function
   (lambda (stx)
-    (define (%quote-if-predefined-type arg-stx)
-      (if (memq (syntax->datum arg-stx)
-		'(void
-		  char schar signed-char uchar unsigned-char
-		  int signed-int ssize_t uint unsigned unsigned-int size_t
-		  long signed-long ulong unsigned-long float double
-		  pointer void* char* FILE* callback))
-	  (list (syntax quote) arg-stx)
-	arg-stx))
     (syntax-case stx ()
       ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
-       (with-syntax ((ret	(%quote-if-predefined-type #'?ret-type))
-		     ((arg ...)	(map %quote-if-predefined-type #'(?arg-type0 ?arg-type ...))))
-	 #'(primitive-make-c-function (shared-object) ret '?funcname (list arg ...)))))))
-
-(define-syntax make-c-function/with-errno
-  (lambda (stx)
-    (define (%quote-if-predefined-type arg-stx)
-      (if (memq (syntax->datum arg-stx)
-		'(void
-		  char schar signed-char uchar unsigned-char
-		  int signed-int ssize_t uint unsigned unsigned-int size_t
-		  long signed-long ulong unsigned-long float double
-		  pointer void* char* FILE* callback))
-	  (list (syntax quote) arg-stx)
-	arg-stx))
-    (syntax-case stx ()
-      ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
-       (with-syntax ((ret	(%quote-if-predefined-type #'?ret-type))
-		     ((arg ...)	(map %quote-if-predefined-type #'(?arg-type0 ?arg-type ...))))
-	 #'(primitive-make-c-function/with-errno (shared-object) ret '?funcname (list arg ...)))))))
+       (with-syntax ((ret	(%normalise-and-maybe-quote-type #'?ret-type))
+		     ((arg ...)	(map %normalise-and-maybe-quote-type #'(?arg-type0 ?arg-type ...))))
+	 #'(primitive:make-c-function (shared-object) ret '?funcname (list arg ...)))))))
 
 (define-syntax define-c-function
   (syntax-rules ()
     ((_ ?name (?ret-type ?funcname (?arg-type0 ?arg-type ...)))
      (define ?name
        (make-c-function ?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
+
+(define-syntax make-c-function/with-errno
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
+       (with-syntax ((ret	(%normalise-and-maybe-quote-type #'?ret-type))
+		     ((arg ...)	(map %normalise-and-maybe-quote-type #'(?arg-type0 ?arg-type ...))))
+	 #'(primitive:make-c-function/with-errno (shared-object) ret '?funcname (list arg ...)))))))
 
 (define-syntax define-c-function/with-errno
   (syntax-rules ()
@@ -236,22 +222,42 @@
        (make-c-function/with-errno ?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
 
 
+(define-syntax pointer->c-function
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?ret-type ?pointer (?arg-type0 ?arg-type ...))
+       (with-syntax ((ret	(%normalise-and-maybe-quote-type #'?ret-type))
+		     ((arg ...)	(map %normalise-and-maybe-quote-type #'(?arg-type0 ?arg-type ...))))
+	 #'(primitive:pointer->c-function ret ?pointer (list arg ...)))))))
+
+(define-syntax define-pointer-c-function
+  (syntax-rules ()
+    ((_ ?name (?ret-type ?pointer (?arg-type0 ?arg-type ...)))
+     (define ?name
+       (pointer->c-function ?ret-type ?pointer (?arg-type0 ?arg-type ...))))))
+
+(define-syntax pointer->c-function/with-errno
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?ret-type ?pointer (?arg-type0 ?arg-type ...))
+       (with-syntax ((ret	(%normalise-and-maybe-quote-type #'?ret-type))
+		     ((arg ...)	(map %normalise-and-maybe-quote-type #'(?arg-type0 ?arg-type ...))))
+	 #'(primitive:pointer->c-function/with-errno ret ?pointer (list arg ...)))))))
+
+(define-syntax define-pointer-c-function/with-errno
+  (syntax-rules ()
+    ((_ ?name (?ret-type ?pointer (?arg-type0 ?arg-type ...)))
+     (define ?name
+       (pointer->c-function/with-errno ?ret-type ?pointer (?arg-type0 ?arg-type ...))))))
+
+
 (define-syntax make-c-callback
   (lambda (stx)
-    (define (%quote-if-predefined-type arg-stx)
-      (if (memq (syntax->datum arg-stx)
-		'(void
-		  char schar signed-char uchar unsigned-char
-		  int signed-int ssize_t uint unsigned unsigned-int size_t
-		  long signed-long ulong unsigned-long float double
-		  pointer void* char* FILE* callback))
-	  (list (syntax quote) arg-stx)
-	arg-stx))
     (syntax-case stx ()
       ((_ ?ret-type ?scheme-function (?arg-type0 ?arg-type ...))
-       (with-syntax ((ret	(%quote-if-predefined-type #'?ret-type))
-		     ((arg ...)	(map %quote-if-predefined-type #'(?arg-type0 ?arg-type ...))))
-	 #'(primitive-make-c-callback ret ?scheme-function (list arg ...)))))))
+       (with-syntax ((ret	(%normalise-and-maybe-quote-type #'?ret-type))
+		     ((arg ...)	(map %normalise-and-maybe-quote-type #'(?arg-type0 ?arg-type ...))))
+	 #'(primitive:make-c-callback ret ?scheme-function (list arg ...)))))))
 
 
 ;;;; foreign structures accessors

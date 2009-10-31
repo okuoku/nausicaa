@@ -118,6 +118,11 @@ substring of the name; example:
 
    $ make test file=char-set name=create
 
+  As  a special  case, the  file  "test-ffi-core.sps", which
+tests  some  features  of the  foreign-functions  interface,
+requires the "ffitest"  module of the Nausicaa/Stubs package
+to be installed.
+
   A  set   of  tests  to  assess   compatibility  of  Scheme
 implementations with the R6RS  standard is included.  To run
 them:

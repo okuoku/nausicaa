@@ -319,8 +319,11 @@
 (compile-library "foreign/ffi/sizeof.sls"
 		 "foreign/ffi/sizeof.slfasl")
 
-(compile-library "foreign/ffi/pointers/compat.larceny.sls"
- 		 "foreign/ffi/pointers/compat.larceny.slfasl")
+(compile-library "foreign/ffi/clang-data-types.sls"
+ 		 "foreign/ffi/clang-data-types.slfasl")
+
+(compile-library "foreign/ffi/pointers/platform.larceny.sls"
+ 		 "foreign/ffi/pointers/platform.larceny.slfasl")
 
 (compile-library "foreign/ffi/pointers.sls"
  		 "foreign/ffi/pointers.slfasl")

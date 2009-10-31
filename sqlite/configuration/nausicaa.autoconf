@@ -887,14 +887,41 @@ AC_DEFUN([NAUSICAA_SIZEOF],
    NAUSICAA_ALIGNOF_TEST([POINTER],[void *])
    NAUSICAA_STRIDEOF_TEST([POINTER],[void *])
 
+   NAUSICAA_SIZEOF_TEST([SIZE_T],[size_t])
+   NAUSICAA_SIZEOF_TEST([SSIZE_T],[ssize_t])
+
    if test "${SIZEOF_POINTER}" = "${SIZEOF_UINT}" ; then
      TYPEOF_POINTER_INTEGER=unsigned-int
    elif test "${SIZEOF_POINTER}" = "${SIZEOF_ULONG}" ; then
      TYPEOF_POINTER_INTEGER=unsigned-long
+   elif test "${SIZEOF_POINTER}" = "${SIZEOF_ULLONG}" ; then
+     TYPEOF_POINTER_INTEGER=unsigned-long-long
    else
      AC_MSG_WARN([cannot determine the integer equivalent of a pointer])
    fi
    AC_SUBST([TYPEOF_POINTER_INTEGER])
+
+   if test "${SIZEOF_SIZE_T}" = "${SIZEOF_UINT}" ; then
+     TYPEOF_SIZE_T_INTEGER=unsigned-int
+   elif test "${SIZEOF_SIZE_T}" = "${SIZEOF_ULONG}" ; then
+     TYPEOF_SIZE_T_INTEGER=unsigned-long
+   elif test "${SIZEOF_SIZE_T}" = "${SIZEOF_ULLONG}" ; then
+     TYPEOF_POINTER_INTEGER=unsigned-long-long
+   else
+     AC_MSG_WARN([cannot determine the integer equivalent of a size_t])
+   fi
+   AC_SUBST([TYPEOF_SIZE_T_INTEGER])
+
+   if test "${SIZEOF_SSIZE_T}" = "${SIZEOF_INT}" ; then
+     TYPEOF_SSIZE_T_INTEGER=signed-int
+   elif test "${SIZEOF_SSIZE_T}" = "${SIZEOF_LONG}" ; then
+     TYPEOF_SSIZE_T_INTEGER=signed-long
+   elif test "${SIZEOF_SSIZE_T}" = "${SIZEOF_LLONG}" ; then
+     TYPEOF_POINTER_INTEGER=signed-long-long
+   else
+     AC_MSG_WARN([cannot determine the integer equivalent of a ssize_t])
+   fi
+   AC_SUBST([TYPEOF_SSIZE_T_INTEGER])
 
    AC_CACHE_SAVE])
 

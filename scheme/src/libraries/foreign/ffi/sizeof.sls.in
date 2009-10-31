@@ -35,6 +35,8 @@
     sizeof-pointer
 
     pointer-integer
+    signed-short-integer	unsigned-short-integer
+    size_t-integer		ssize_t-integer
 
     alignof-int8		alignof-int16
     alignof-int32		alignof-int64
@@ -89,6 +91,10 @@
 (define sizeof-pointer			@SIZEOF_POINTER@)
 
 (define pointer-integer			(quote @TYPEOF_POINTER_INTEGER@))
+(define size_t-integer			(quote @TYPEOF_SIZE_T_INTEGER@))
+(define ssize_t-integer			(quote @TYPEOF_SSIZE_T_INTEGER@))
+(define signed-short-integer		(quote @TYPEOF_SIGNED_SHORT_INTEGER@))
+(define unsigned-short-integer		(quote @TYPEOF_UNSIGNED_SHORT_INTEGER@))
 
 (define alignof-int8			@ALIGNOF_INT8@)
 (define alignof-int16			@ALIGNOF_INT16@)
