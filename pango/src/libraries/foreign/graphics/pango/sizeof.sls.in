@@ -1,0 +1,77 @@
+;;;
+;;;Part of: Nausicaa/Pango
+;;;Contents: size of libraries' C language types
+;;;Date: Sat Oct 31, 2009
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+(library (foreign graphics pango sizeof)
+  (export
+
+    ;; type inspection
+    ;; pango_bool_t
+    ;; sizeof-pango_bool_t
+    ;; strideof-pango_bool_t
+    ;; alignof-pango_bool_t
+
+    ;; struct type inspection
+    ;; sizeof-pango_glyph_t
+    ;; strideof-pango_glyph_t
+    ;; alignof-pango_glyph_t
+
+    ;;
+;;    PANGO_STATUS_SUCCESS
+
+    ;; accessors and mutators
+)
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof))
+
+
+;;;; type aliases and data structures
+
+;; (define pango_bool_t			(quote @TYPEOF_PANGO_BOOL@))
+;; (define sizeof-pango_bool_t		@SIZEOF_PANGO_BOOL@)
+;; (define strideof-pango_bool_t		@STRIDEOF_PANGO_BOOL@)
+;; (define alignof-pango_bool_t		@ALIGNOF_PANGO_BOOL@)
+
+
+;;;; constants
+
+
+;;;; data structure accessors and mutators
+
+;; (define-c-struct-accessor-and-mutator
+;;   pango_matrix_t-xx-set!
+;;   pango_matrix_t-xx-ref
+;;   @OFFSETOF_PANGO_MATRIX_XX@
+;;   @SETTEROF_PANGO_MATRIX_XX@
+;;   @GETTEROF_PANGO_MATRIX_XX@)
+
+
+
+;;;; done
+
+)
+
+;;; end of file
