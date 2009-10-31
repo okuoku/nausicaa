@@ -37,6 +37,7 @@
     pointer->c-function		pointer->c-function/with-errno
     make-c-callback		free-c-callback
     internal-type->implementation-type
+    (rename (internal-type->implementation-type internal-type->implementation-type/callout))
     implementation-data-types)
   (import (rnrs)
     (prefix (primitives ffi/dlopen ffi/dlsym
@@ -136,7 +137,7 @@
     ;;When the  return value is a  pointer: if the pointer  is NULL, the
     ;;return value  is #f.   So we have  to convert it  to POINTER-NULL.
     ;;Ugly but what can I do?
-    (if (memq ret-type '(pointer void* char* FILE*))
+    (if (equal? ret-type '(maybe void*))
 	(lambda args
 	  (or (apply callout-closure args) pointer-null))
       callout-closure)))

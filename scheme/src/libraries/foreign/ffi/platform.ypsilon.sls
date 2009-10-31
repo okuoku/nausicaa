@@ -45,6 +45,7 @@
     pointer->c-function		pointer->c-function/with-errno
     make-c-callback		free-c-callback
     internal-type->implementation-type
+    (rename (internal-type->implementation-type internal-type->implementation-type/callout))
     implementation-data-types)
   (import (rnrs)
     (prefix (only (ypsilon ffi)
@@ -52,7 +53,6 @@
 		  make-cdecl-callout make-cdecl-callback
 		  shared-object-errno)
 	    ypsilon:)
-;;    (foreign ffi sizeof)
     (only (foreign ffi pointers)
 	  pointer? integer->pointer pointer->integer))
 

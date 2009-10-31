@@ -322,8 +322,8 @@
 (compile-library "foreign/ffi/clang-data-types.sls"
  		 "foreign/ffi/clang-data-types.slfasl")
 
-(compile-library "foreign/ffi/pointers/platform.larceny.sls"
- 		 "foreign/ffi/pointers/platform.larceny.slfasl")
+(compile-library "foreign/ffi/platform.larceny.sls"
+ 		 "foreign/ffi/platform.larceny.slfasl")
 
 (compile-library "foreign/ffi/pointers.sls"
  		 "foreign/ffi/pointers.slfasl")

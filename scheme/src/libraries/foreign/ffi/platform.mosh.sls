@@ -32,9 +32,11 @@
     pointer->c-function		pointer->c-function/with-errno
     make-c-callback
     (rename (mosh:free-c-callback	free-c-callback))
+    internal-type->implementation-type/callout
     internal-type->implementation-type
     implementation-data-types)
   (import (rnrs)
+    (unimplemented)
     (prefix (only (mosh ffi)
 		  open-shared-library make-c-function
 		  make-c-callback free-c-callback
@@ -59,13 +61,18 @@
   (mosh:open-shared-library ""))
 
 (define (lookup-shared-object lib-spec foreign-symbol)
+  (raise-unimplemented-error 'lookup-shared-library)
   ;;This already returns #f when the symbol is not found.
-  (mosh:lookup-shared-library lib-spec foreign-symbol))
+  ;;(mosh:lookup-shared-library lib-spec foreign-symbol)
+  )
 
 (define (lookup-shared-object* lib-spec foreign-symbol)
-  (let ((ptr (mosh:lookup-shared-library lib-spec foreign-symbol)))
-    (or ptr (error #f "could not find foreign symbol in foreign library"
-		   lib-spec foreign-symbol))))
+  (raise-unimplemented-error 'lookup-shared-library)
+  ;; (let ((ptr (mosh:lookup-shared-library lib-spec foreign-symbol)))
+  ;;   (or ptr (error #f "could not find foreign symbol in foreign library"
+  ;; 		   lib-spec foreign-symbol)))
+  )
+
 
 
 ;;;; values normalisation
@@ -120,6 +127,35 @@
 		      long-long unsigned-long-long
 		      float double pointer void bool)))
 
+(define (internal-type->implementation-type/callout type)
+  (case type
+    ((int8_t)				'int)
+    ((int16_t)				'int)
+    ((int32_t)				'int)
+    ((int64_t)				'int)
+    ((uint8_t)				'int)
+    ((uint16_t)				'int)
+    ((uint32_t)				'int)
+    ((uint64_t)				'int)
+    ((signed-char)			'int)
+    ((unsigned-char)			'int)
+    ((signed-short)			'int)
+    ((unsigned-short)			'int)
+    ((signed-int)			'int)
+    ((unsigned-int)			'int)
+    ((signed-long)			'int)
+    ((unsigned-long)			'int)
+    ((signed-long-long)			'int)
+    ((unsigned-long-long)		'int)
+    ((float)				'double)
+    ((double)				'double)
+    ((pointer)				'void*)
+    ((callback)				'void*)
+    ((void)				'void)
+    (else
+     (assertion-violation #f
+       "C language type identifier unknown by Mosh" type))))
+
 (define (internal-type->implementation-type type)
   (case type
     ((int8_t)				'int8_t)
@@ -148,12 +184,12 @@
     (else
      (assertion-violation #f
        "C language type identifier unknown by Mosh" type))))
-
 
 ;;;; interface functions
 
 (define (make-c-function lib-spec ret-type funcname arg-types)
-  (mosh:make-c-function lib-spec ret-type funcname (%normalise-arg-types arg-types)))
+  (mosh:make-c-function lib-spec ret-type (string->symbol funcname)
+			(%normalise-arg-types arg-types)))
 
 (define (make-c-function/with-errno lib-spec ret-type funcname arg-types)
   (let ((closure (make-c-function lib-spec ret-type funcname arg-types)))

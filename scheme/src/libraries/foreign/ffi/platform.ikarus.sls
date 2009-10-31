@@ -32,6 +32,7 @@
     pointer->c-function		pointer->c-function/with-errno
     make-c-callback		free-c-callback
     internal-type->implementation-type
+    (rename (internal-type->implementation-type internal-type->implementation-type/callout))
     implementation-data-types)
   (import (rnrs)
     (prefix (only (ikarus foreign)
