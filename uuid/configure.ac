@@ -51,14 +51,20 @@ dnl --------------------------------------------------------------------
 dnl Helper functions.
 dnl --------------------------------------------------------------------
 
+m4_define([NAU_UUID_INCLUDES],[
+#include <uuid.h>
+])
+
+dnl --------------------------------------------------------------------
+
 AC_DEFUN([NAU_UUID_INSPECT_TYPE],
-  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <uuid.h>])])
+  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[NAU_UUID_INCLUDES])])
 
 AC_DEFUN([NAU_UUID_INSPECT_STRUCT_TYPE],
-  [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[#f],[#include <uuid.h>])])
+  [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[#f],[NAU_UUID_INCLUDES])])
 
 AC_DEFUN([NAU_UUID_INSPECT_FIELD_TYPE],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[#include <uuid.h>])])
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[NAU_UUID_INCLUDES])])
 
 AC_DEFUN([NAU_UUID_ENUM_VALUE],
   [NAU_UUID_VALUEOF_TEST([$1],[$1])])
@@ -69,16 +75,16 @@ AC_DEFUN([NAU_UUID_DEFINE_VALUE],
 dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAU_UUID_SIZEOF_TEST],
-  [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <uuid.h>])])
+  [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_UUID_INCLUDES])])
 
 AC_DEFUN([NAU_UUID_VALUEOF_TEST],
-  [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[#include <uuid.h>])])
+  [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_UUID_INCLUDES])])
 
 AC_DEFUN([NAU_UUID_OFFSETOF_FIELD_TEST],
-  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <uuid.h>])])
+  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[NAU_UUID_INCLUDES])])
 
 AC_DEFUN([NAU_UUID_STRUCT_FIELD],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],,[#include <uuid.h>])])
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],,[NAU_UUID_INCLUDES])])
 
 dnl page
 dnl --------------------------------------------------------------------
