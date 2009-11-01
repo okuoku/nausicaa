@@ -66,7 +66,7 @@
 
 
 (cond-expand
- ((or larceny mosh) #f)
+ (larceny #f)
  (else
   (parametrise ((check-test-name	'lookup))
 
@@ -246,7 +246,7 @@
 (cond-expand
  (larceny #f)
  (else
-  (parametrise ((check-test-name	'callouts))
+  (parametrise ((check-test-name	'callouts-basic))
 
     (define dummy
       (shared-object ffitest-lib))
@@ -447,9 +447,9 @@
 
 
 (cond-expand
- ((or larceny mosh) #f)
+ (larceny #f)
  (else
-  (parametrise ((check-test-name	'callout-pointers))
+  (parametrise ((check-test-name	'callouts-pointers))
 
     (define dummy
       (shared-object ffitest-lib))
@@ -549,9 +549,9 @@
 
 
 (cond-expand
- ((or larceny mosh) #f)
+ (larceny #f)
  (else
-  (parametrise ((check-test-name	'callout-pointers-with-errno))
+  (parametrise ((check-test-name	'callouts-pointers-with-errno))
 
     (define dummy
       (shared-object ffitest-lib))

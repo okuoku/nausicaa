@@ -40,8 +40,9 @@
     (unimplemented)
     (foreign ffi conditions)
     (prefix (only (mosh ffi)
-		  open-shared-library make-c-function
-		  make-c-callback free-c-callback
+		  open-shared-library	lookup-shared-library
+		  make-c-function	pointer->c-function
+		  make-c-callback	free-c-callback
 		  shared-errno)
 	    mosh:))
 
@@ -79,10 +80,10 @@
 ;;; --------------------------------------------------------------------
 
 (define (lookup-shared-object lib-spec foreign-symbol)
-  (raise-unimplemented-error 'lookup-shared-library)
   ;;This already returns #f when the symbol is not found.
-  ;;(mosh:lookup-shared-library lib-spec foreign-symbol)
-  )
+  (mosh:lookup-shared-library lib-spec (if (string? foreign-symbol)
+					   (string->symbol foreign-symbol)
+					 foreign-symbol)))
 
 (define (lookup-shared-object* lib-spec foreign-symbol)
   (let* ((foreign-symbol	(%normalise-foreign-symbol foreign-symbol))
@@ -222,9 +223,7 @@
 	(values retval errval)))))
 
 (define (pointer->c-function ret-type address arg-types)
-  (raise-unimplemented-error 'pointer->c-function)
-;;;  (mosh:pointer->c-function ret-type (%normalise-arg-types arg-types) address))
-  )
+  (mosh:pointer->c-function address ret-type 'unknown (%normalise-arg-types arg-types)))
 
 (define (pointer->c-function/with-errno ret-type address arg-types)
   (let ((closure (pointer->c-function ret-type address arg-types)))

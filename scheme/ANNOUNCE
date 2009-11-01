@@ -43,6 +43,8 @@ the documentation is available on line:
 Notes for 2009-11-01 tag 0.1a2
 ------------------------------
 
+* Updated to work with Mosh revision 2171.
+
 * Fixed   miscellaneous   bugs   in  the   foreign-functions
   interface.
 
