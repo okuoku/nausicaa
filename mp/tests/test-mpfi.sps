@@ -27,7 +27,7 @@
 (import (nausicaa)
   (compensations)
   (checks)
-  (format)
+  (formations)
   (foreign memory)
   (foreign cstrings)
   (foreign math mp mpfr)

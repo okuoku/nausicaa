@@ -1,7 +1,7 @@
 ;;;
 ;;;Part of: Nausicaa/MP
-;;;Contents: compile script for Ikarus Scheme
-;;;Date: Fri Dec 26, 2008
+;;;Contents: compile script for Mosh Scheme
+;;;Date: Sun Nov  1, 2009
 ;;;
 ;;;Abstract
 ;;;

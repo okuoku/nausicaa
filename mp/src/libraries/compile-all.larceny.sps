@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/MP
-;;;Contents: compile script
+;;;Contents: compile script for Larceny Scheme
 ;;;Date: Fri Dec 26, 2008
 ;;;
 ;;;Abstract

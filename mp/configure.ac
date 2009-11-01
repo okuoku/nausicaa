@@ -1,5 +1,5 @@
 dnl
-dnl Part of: Nausicaa/IrRegex
+dnl Part of: Nausicaa/MP
 dnl Contents: configuration template file
 dnl Date: Sun Dec  7, 2008
 dnl
@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-mp],[0.1b0],[marcomaggi@gna.org])
+AC_INIT([nausicaa-mp],[0.1b1],[marcomaggi@gna.org])
 DS_BEGIN([./src/libraries/foreign/math/mp/sizeof.sls.in])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
@@ -47,82 +47,79 @@ dnl --------------------------------------------------------------------
 dnl Helper functions.
 dnl --------------------------------------------------------------------
 
-AC_DEFUN([NAU_DISABLED_SUBST],[
-$1=#f
-AC_SUBST([$1])
+m4_define([NAU_GMP_INCLUDES],[
+#include <gmp.h>
+])
+
+m4_define([NAU_MPFR_INCLUDES],[
+#include <gmp.h>
+#include <mpfr.h>
+])
+
+m4_define([NAU_MPFI_INCLUDES],[
+#include <gmp.h>
+#include <mpfr.h>
+#include <mpfi.h>
+])
+
+m4_define([NAU_MPC_INCLUDES],[
+#include <gmp.h>
+#include <mpfr.h>
+#include <mpc.h>
 ])
 
 dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAU_GMP_SIZEOF_TEST],
-   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <gmp.h>])])
+   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_GMP_INCLUDES])])
 
 AC_DEFUN([NAU_GMP_VALUEOF_TEST],
-   [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[#include <gmp.h>])])
+   [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_GMP_INCLUDES])])
 
 AC_DEFUN([NAU_GMP_INSPECT_TYPE],
-   [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <gmp.h>])])
+   [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[NAU_GMP_INCLUDES])])
 
 AC_DEFUN([NAU_GMP_OFFSETOF_FIELD_TEST],
-   [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <gmp.h>])])
+   [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[NAU_GMP_INCLUDES])])
 
 dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAU_MPFR_SIZEOF_TEST],
-   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <gmp.h>
-#include <mpfr.h>])])
+   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_MPFR_INCLUDES])])
 
 AC_DEFUN([NAU_MPFR_VALUEOF_TEST],
-   [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[#include <gmp.h>
-#include <mpfr.h>])])
+   [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_MPFR_INCLUDES])])
 
 AC_DEFUN([NAU_MPFR_INSPECT_TYPE],
-   [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <gmp.h>
-#include <mpfr.h>])])
+   [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[NAU_MPFR_INCLUDES])])
 
 AC_DEFUN([NAU_MPFR_INSPECT_FIELD_TYPE],
-   [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[#include <gmp.h>
-#include <mpfr.h>])])
+   [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[NAU_MPFR_INCLUDES])])
 
 dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAU_MPFI_SIZEOF_TEST],
-   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <gmp.h>
-#include <mpfr.h>
-#include <mpfi.h>])])
+   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_MPFI_INCLUDES])])
 
 AC_DEFUN([NAU_MPFI_VALUEOF_TEST],
-   [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[#include <gmp.h>
-#include <mpfr.h>
-#include <mpfi.h>])])
+   [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_MPFI_INCLUDES])])
 
 AC_DEFUN([NAU_MPFI_OFFSETOF_FIELD_TEST],
-   [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <gmp.h>
-#include <mpfr.h>
-#include <mpfi.h>])])
+   [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[NAU_MPFI_INCLUDES])])
 
 dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAU_MPC_SIZEOF_TEST],
-   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <gmp.h>
-#include <mpfr.h>
-#include <mpc.h>])])
+   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_MPC_INCLUDES])])
 
 AC_DEFUN([NAU_MPC_VALUEOF_TEST],
-   [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[#include <gmp.h>
-#include <mpfr.h>
-#include <mpc.h>])])
+   [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_MPC_INCLUDES])])
 
 AC_DEFUN([NAU_MPC_INSPECT_TYPE],
-   [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <gmp.h>
-#include <mpfr.h>
-#include <mpc.h>])])
+   [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[NAU_MPC_INCLUDES])])
 
 AC_DEFUN([NAU_MPC_OFFSETOF_FIELD_TEST],
-   [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <gmp.h>
-#include <mpfr.h>
-#include <mpc.h>])])
-
+   [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[NAU_MPC_INCLUDES])])
 
 dnl page
 dnl --------------------------------------------------------------------
