@@ -2,7 +2,7 @@ To: comp.lang.scheme
 Subject: [announce] Nausicaa/Cairo 2009-11-01 tag 0.1b0
 
 		       Nausicaa/Cairo
-		       =============
+		       ==============
 
 Nausicaa/Cairo  is  a  binding  between  Cairo  2D  graphics
 library and  R6RS Scheme implementations.  It  is built upon

@@ -7,7 +7,7 @@ dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+dnl Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it  under the terms of the  GNU General Public
@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-cairo],[0.1d1],[marcomaggi@gna.org])
+AC_INIT([nausicaa-cairo],[0.1b0],[marcomaggi@gna.org])
 DS_BEGIN([./src/libraries/foreign/graphics/cairo.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
