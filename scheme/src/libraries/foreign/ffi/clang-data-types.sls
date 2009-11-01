@@ -68,11 +68,10 @@
        "C language data type unknown to Nausicaa" type))))
 
 (define (%normalise-and-maybe-quote-type type-stx)
-  (let ((type (external-type->internal-type (syntax->datum type-stx))))
-    (with-syntax ((TYPE (datum->syntax type-stx type)))
-      (if (enum-set-member? type nausicaa-internal-types)
-	  (syntax (quote TYPE))
-	(syntax TYPE)))))
+  (let ((type (syntax->datum type-stx)))
+    (if (enum-set-member? type nausicaa-external-types)
+	(quasisyntax (quote (unsyntax (datum->syntax type-stx (external-type->internal-type type)))))
+      type-stx)))
 
 
 (define nausicaa-external-types
