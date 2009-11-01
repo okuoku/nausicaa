@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Scheme 2009-10-20 tag 0.1a0
+Subject: [announce] Nausicaa/Scheme 2009-11-01 tag 0.1a2
 
 		      Nausicaa/Scheme
 		      ===============
@@ -11,7 +11,7 @@ support Ikarus, Larceny, Mosh and Ypsilon.
 
   Nausicaa/Scheme   is  the   core   package;  it   provides
 foundation  libraries and  implements the  infrastructure of
-the foreign functions interface.  It comes in two flavors:
+the foreign-functions interface.  It comes in two flavors:
 
 * The  full  distribution,  with documentation  and  foreign
   functions    interface    included.    Its    installation
@@ -39,6 +39,17 @@ the documentation is available on line:
 
      <http://marcomaggi.github.com/docs/nausicaa.html>
 
+
+Notes for 2009-11-01 tag 0.1a2
+------------------------------
+
+* Fixed   miscellaneous   bugs   in  the   foreign-functions
+  interface.
+
+* Larceny    Scheme    officially    unsupported   by    the
+  foreign-functions interface.
+
+* Library (format) renamed to (formations).
 
 Notes for 2009-10-20 tag 0.1a0
 ------------------------------

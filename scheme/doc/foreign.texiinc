@@ -16,6 +16,13 @@ implementations.  The @api{} is exported by the following libraries:
 
 At present it supports only @gnu{}+Linux systems.
 
+@quotation
+@strong{For Larceny} Unfortunately, interfacing with the @ffi{} of
+Larceny Scheme has miscellaneous problems.  For this reason, the
+@library{foreign ---} hierarchy of libraries officially does not support
+Larceny.
+@end quotation
+
 @menu
 * ffi::                         Foreign--functions interface.
 * memory::                      Low level memory handling.
@@ -1938,14 +1945,6 @@ callout closure.
 
 The following bindings are exported by the @library{foreign ffi}
 library.
-
-@quotation
-@strong{For Larceny} Unfortunately, Larceny Scheme up to revision 6404
-implements callbacks with a model incompatible with the @api{} described
-here.  For this reason, calling @func{make-c-callback} under Larceny
-raises an exception with condition object of type @samp{&unimplemented}.
-@end quotation
-
 
 @deffn Syntax make-c-callback @ameta{ret-type} @ameta{scheme-proc} (@ameta{arg-type0} @ameta{arg-type} ...)
 Build and return a callback object to be used as arguments to a callout
