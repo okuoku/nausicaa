@@ -35,14 +35,6 @@
     pointer<?			pointer>?
     pointer<=?			pointer>=?)
   (import (rnrs)
-    (foreign ffi pointers compat))
-
-
-
-
-
-;;;; done
-
-)
+    (foreign ffi pointers compat)))
 
 ;;; end of file

@@ -319,23 +319,26 @@
 (compile-library "foreign/ffi/sizeof.sls"
 		 "foreign/ffi/sizeof.slfasl")
 
-(compile-library "foreign/ffi/clang-data-types.sls"
- 		 "foreign/ffi/clang-data-types.slfasl")
-
-(compile-library "foreign/ffi/platform.larceny.sls"
- 		 "foreign/ffi/platform.larceny.slfasl")
+(compile-library "foreign/ffi/pointers/compat.larceny.sls"
+ 		 "foreign/ffi/pointers/compat.larceny.slfasl")
 
 (compile-library "foreign/ffi/pointers.sls"
  		 "foreign/ffi/pointers.slfasl")
-
-(compile-library "foreign/ffi/compat.larceny.sls"
- 		 "foreign/ffi/compat.larceny.slfasl")
 
 (compile-library "foreign/ffi/peekers-and-pokers/compat.larceny.sls"
  		 "foreign/ffi/peekers-and-pokers/compat.larceny.slfasl")
 
 (compile-library "foreign/ffi/peekers-and-pokers.sls"
  		 "foreign/ffi/peekers-and-pokers.slfasl")
+
+(compile-library "foreign/ffi/clang-data-types.sls"
+ 		 "foreign/ffi/clang-data-types.slfasl")
+
+(compile-library "foreign/ffi/platform.larceny.sls"
+ 		 "foreign/ffi/platform.larceny.slfasl")
+
+(compile-library "foreign/ffi/primitives.sls"
+ 		 "foreign/ffi/primitives.slfasl")
 
 (compile-library "foreign/ffi.sls"
  		 "foreign/ffi.slfasl")
@@ -394,8 +397,11 @@
 
 ;;; --------------------------------------------------------------------
 
-(compile-library "foreign/memory/membuffers/types.sls"
- 		 "foreign/memory/membuffers/types.slfasl")
+;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
+;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
+;;
+;; (compile-library "foreign/memory/membuffers/types.sls"
+;;  		 "foreign/memory/membuffers/types.slfasl")
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
@@ -411,8 +417,11 @@
 
 ;;; --------------------------------------------------------------------
 
-(compile-library "foreign/memory/mempool/types.sls"
- 		 "foreign/memory/mempool/types.slfasl")
+;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
+;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
+;;
+;; (compile-library "foreign/memory/mempool/types.sls"
+;;  		 "foreign/memory/mempool/types.slfasl")
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.

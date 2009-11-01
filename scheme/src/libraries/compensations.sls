@@ -78,8 +78,8 @@
   ;;Splitting  COMPENSATE in  this macro  and %COMPENSATE  allows  us to
   ;;catch missing WITH subform errors.
   (syntax-rules (begin with)
-    ((_ ?alloc ?form ...)
-     (%compensate (begin ?alloc) ?form ...))))
+    ((_ ?alloc ?form0 ?form ...)
+     (%compensate (begin ?alloc) ?form0 ?form ...))))
 
 (define-syntax %compensate
   (syntax-rules (begin with)
