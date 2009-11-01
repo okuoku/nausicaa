@@ -506,12 +506,6 @@ the @rnrs{6} Scheme implementations supported by Nausicaa.  It is built
 upon the Nausicaa/Scheme package, making use of its foreign functions
 interface; as such, it currently supports only @gnu{}+Linux systems.
 
-@quotation
-@strong{NOTE} At present the Cairo functions requiring callbacks are not
-supported by Larceny Scheme.  Any attempt to create a callback will
-result in an @samp{&unimplemented} exception.
-@end quotation
-
 The installed libraries are:
 
 @table @library
