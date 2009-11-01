@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Cairo --- tag 0.1b0
+Subject: [announce] Nausicaa/Cairo 2009-11-01 tag 0.1b0
 
 		       Nausicaa/Cairo
 		       =============
@@ -28,8 +28,12 @@ the documentation is available on line:
 
     <http://marcomaggi.github.com/docs/nausicaa-cairo.html>
 
+Cairo is available at:
 
-Notes for --- tag 0.1b0
+		<http://cairographics.org/>
+
+
+Notes for 2009-11-01 tag 0.1b0
 ------------------------------
 
 * It has been tested with Cairo 1.8.8.
