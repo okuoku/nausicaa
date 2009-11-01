@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-zlib],[0.1b0],[marcomaggi@gna.org])
+AC_INIT([nausicaa-zlib],[0.1b1],[marcomaggi@gna.org])
 DS_BEGIN([./src/libraries/foreign/zlib.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
@@ -49,10 +49,16 @@ dnl --------------------------------------------------------------------
 dnl Zlib header inspection.
 dnl --------------------------------------------------------------------
 
-NAUSICAA_SIZEOF_TEST([ZSTREAM],[z_stream],,[#include <zlib.h>])
+m4_define([NAU_ZLIB_INCLUDES],[
+#include <zlib.h>
+])
+
+dnl --------------------------------------------------------------------
+
+NAUSICAA_SIZEOF_TEST([ZSTREAM],[z_stream],,[NAU_ZLIB_INCLUDES])
 
 AC_DEFUN([NAU_ZLIB_STREAM_FIELD],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[z_stream],[$2],[$3],,[#include <zlib.h>])])
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[z_stream],[$2],[$3],,[NAU_ZLIB_INCLUDES])])
 
 NAU_ZLIB_STREAM_FIELD([ZSTREAM_NEXT_IN],[next_in],[pointer])
 NAU_ZLIB_STREAM_FIELD([ZSTREAM_AVAIL_IN],[avail_in],[unsigned-int])
@@ -72,10 +78,10 @@ NAU_ZLIB_STREAM_FIELD([ZSTREAM_OPAQUE],[opaque],[pointer])
 
 dnl --------------------------------------------------------------------
 
-NAUSICAA_SIZEOF_TEST([GZHEADER],[gz_header],,[#include <zlib.h>])
+NAUSICAA_SIZEOF_TEST([GZHEADER],[gz_header],,[NAU_ZLIB_INCLUDES])
 
 AC_DEFUN([NAU_ZLIB_HEADER_FIELD],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[gz_header],[$2],[$3],,[#include <zlib.h>])])
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[gz_header],[$2],[$3],,[NAU_ZLIB_INCLUDES])])
 
 NAU_ZLIB_HEADER_FIELD([GZHEADER_TEXT],[text],[signed-int])
 NAU_ZLIB_HEADER_FIELD([GZHEADER_TIME],[time],[unsigned-int])
@@ -93,9 +99,9 @@ NAU_ZLIB_HEADER_FIELD([GZHEADER_DONE],[done],[signed-int])
 
 dnl --------------------------------------------------------------------
 
-NAUSICAA_INSPECT_TYPE([ZLIB_UINT],[uInt],[unsigned-int],,[#include <zlib.h>])
-NAUSICAA_INSPECT_TYPE([ZLIB_ULONG],[uLong],[unsigned-int],,[#include <zlib.h>])
-NAUSICAA_INSPECT_TYPE([Z_OFF_T],[z_off_t],[unsigned-int],,[#include <zlib.h>])
+NAUSICAA_INSPECT_TYPE([ZLIB_UINT],[uInt],[unsigned-int],,[NAU_ZLIB_INCLUDES])
+NAUSICAA_INSPECT_TYPE([ZLIB_ULONG],[uLong],[unsigned-int],,[NAU_ZLIB_INCLUDES])
+NAUSICAA_INSPECT_TYPE([Z_OFF_T],[z_off_t],[unsigned-int],,[NAU_ZLIB_INCLUDES])
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -103,7 +109,7 @@ dnl Constants inspection.
 dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAU_ZLIB_VALUEOF],
-   [NAUSICAA_VALUEOF_TEST([$1],[$1],,[#include <zlib.h>])])
+   [NAUSICAA_VALUEOF_TEST([$1],[$1],,[NAU_ZLIB_INCLUDES])])
 
 
 NAU_ZLIB_VALUEOF([ZLIB_VERNUM])

@@ -123,12 +123,11 @@
     (foreign memory)
     (foreign cstrings)
     (foreign errno)
+    (foreign zlib shared-object)
     (foreign zlib sizeof))
 
-(define zlib
-  (let ((o (open-shared-object 'libz.so)))
-    (shared-object o)
-    o))
+  (define dummy
+    (shared-object zlib-shared-object))
 
 
 ;;;; type definitions and miscellaneous functions

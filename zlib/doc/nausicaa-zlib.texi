@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
 @setfilename nausicaa-zlib.info
-@settitle Nausicaa/Zlib
+@settitle Zlib for Nausicaa
 @c %**end of header
 
 @c page
@@ -375,7 +375,7 @@ Revised^6 Report on the algorithmic language Scheme
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      Nausicaa/Zlib
+@set TITLE                      Zlib for Nausicaa
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
@@ -508,6 +508,7 @@ are:
 @example
 (foreign zlib)
 (foreign zlib sizeof)
+(foreign zlib shared-object)
 @end example
 
 @noindent

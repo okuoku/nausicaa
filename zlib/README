@@ -21,7 +21,7 @@ This is a Scheme library  that implements a binding to Zlib,
 the popular compression library.
 
   The last time the author  bothered to update this file, he
-had tested Zlib 1.2.3.
+had tested Zlib version 1.2.3.
 
 
 2. License
