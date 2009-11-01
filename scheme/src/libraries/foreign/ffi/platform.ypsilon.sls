@@ -39,7 +39,8 @@
 
 (library (foreign ffi platform)
   (export
-    open-shared-object		self-shared-object
+    self-shared-object
+    open-shared-object		open-shared-object*
     lookup-shared-object	lookup-shared-object*
     make-c-function		make-c-function/with-errno
     pointer->c-function		pointer->c-function/with-errno
@@ -48,6 +49,7 @@
     (rename (internal-type->implementation-type internal-type->implementation-type/callout))
     implementation-data-types)
   (import (rnrs)
+    (foreign ffi conditions)
     (prefix (only (ypsilon ffi)
 		  load-shared-object lookup-shared-object
 		  make-cdecl-callout make-cdecl-callback
@@ -58,6 +60,11 @@
 
 
 ;;;; helpers
+
+(define (%normalise-foreign-symbol foreign-symbol)
+  (if (symbol? foreign-symbol)
+      (symbol->string foreign-symbol)
+    foreign-symbol))
 
 (define (identity x)
   x)
@@ -80,11 +87,22 @@
 
 ;;;; dynamic loading
 
-;;In case of error this raises an exception automatically.
-(define open-shared-object ypsilon:load-shared-object)
+(define (open-shared-object library-name)
+  (guard (E (else #f))
+    ;;In case of error this raises an exception
+    (ypsilon:load-shared-object (%normalise-foreign-symbol library-name))))
+
+(define (open-shared-object* library-name)
+  (let* ((library-name	(%normalise-foreign-symbol library-name))
+	 (lib-ref	(open-shared-object library-name)))
+    (or lib-ref
+	(raise-unknown-shared-object library-name 'open-shared-object*
+				     "unable to open shared object"))))
 
 (define self-shared-object
-  (ypsilon:load-shared-object ""))
+  (open-shared-object* ""))
+
+;;; --------------------------------------------------------------------
 
 (define (lookup-shared-object lib-spec foreign-symbol)
   ;;This already returns #f when the symbol is not found.
@@ -92,10 +110,12 @@
     (and address (integer->pointer address))))
 
 (define (lookup-shared-object* lib-spec foreign-symbol)
-  (let ((address (ypsilon:lookup-shared-object lib-spec foreign-symbol)))
-    (integer->pointer (or address
-			  (error #f "could not find foreign symbol in foreign library"
-				 lib-spec foreign-symbol)))))
+  (let* ((foreign-symbol	(%normalise-foreign-symbol foreign-symbol))
+	 (ptr			(lookup-shared-object lib-spec foreign-symbol)))
+    (or ptr
+	(raise-unknown-foreign-symbol lib-spec foreign-symbol
+				      'lookup-shared-object*
+				      "could not find foreign symbol in foreign library"))))
 
 
 ;;;; types normalisation

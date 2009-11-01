@@ -27,22 +27,24 @@
 
 (library (foreign ffi primitives)
   (export
-    open-shared-object		self-shared-object
+    self-shared-object
+    open-shared-object		open-shared-object*
     lookup-shared-object	lookup-shared-object*
     make-c-function		make-c-function/with-errno
     pointer->c-function		pointer->c-function/with-errno
     make-c-callback		free-c-callback)
   (import (rnrs)
     (foreign ffi sizeof)
+    (foreign ffi conditions)
     (foreign ffi clang-data-types)
     (prefix (only (foreign ffi platform)
-		  open-shared-object
 		  make-c-function	make-c-function/with-errno
 		  pointer->c-function	pointer->c-function/with-errno
 		  make-c-callback)
 	    platform:)
     (only (foreign ffi platform)
 	  self-shared-object
+	  open-shared-object		open-shared-object*
 	  lookup-shared-object		lookup-shared-object*
 	  free-c-callback
 	  internal-type->implementation-type
@@ -58,9 +60,6 @@
     foreign-symbol))
 
 
-(define (open-shared-object libname)
-  (platform:open-shared-object (%normalise-foreign-symbol libname)))
-
 (define (make-c-function lib-spec ret-type funcname arg-types)
   (platform:make-c-function lib-spec
 			    (internal-type->implementation-type/callout ret-type)

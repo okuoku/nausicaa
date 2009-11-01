@@ -31,7 +31,8 @@
 
 (library (foreign ffi platform)
   (export
-    open-shared-object		self-shared-object
+    self-shared-object
+    open-shared-object		open-shared-object*
     lookup-shared-object	lookup-shared-object*
     make-c-function		make-c-function/with-errno
     pointer->c-function		pointer->c-function/with-errno
@@ -40,6 +41,7 @@
     (rename (internal-type->implementation-type internal-type->implementation-type/callout))
     implementation-data-types)
   (import (rnrs)
+    (foreign ffi conditions)
     (prefix (primitives ffi/dlopen ffi/dlsym
 			foreign-file foreign-procedure
 			get-errno set-errno!)
@@ -73,11 +75,22 @@
 ;;;; dynamic loading
 
 ;;In case of error this raises an exception automatically.
-(define (open-shared-object libname)
-  (larceny:foreign-file libname)
-  (larceny:ffi/dlopen libname))
+(define (open-shared-object library-name)
+  (let ((library-name (%normalise-foreign-symbol library-name)))
+    (larceny:foreign-file library-name)
+    (larceny:ffi/dlopen library-name)))
 
-(define self-shared-object (larceny:ffi/dlopen ""))
+(define (open-shared-object* library-name)
+  (let* ((library-name	(%normalise-foreign-symbol library-name))
+	 (lib-ref	(open-shared-object library-name)))
+    (or lib-ref
+	(raise-unknown-shared-object library-name 'open-shared-object*
+				     "unable to open shared object"))))
+
+(define self-shared-object
+  (larceny:ffi/dlopen ""))
+
+;;; --------------------------------------------------------------------
 
 (define (lookup-shared-object lib-spec foreign-symbol)
   ;;This already returns #f when the symbol is not found.
@@ -85,11 +98,12 @@
     (and address (integer->pointer address))))
 
 (define (lookup-shared-object* lib-spec foreign-symbol)
-  (let ((address (larceny:ffi/dlsym lib-spec (%normalise-foreign-symbol foreign-symbol))))
-    (if address
-	(integer->pointer address)
-      (error #f "could not find foreign symbol in foreign library"
-	     lib-spec foreign-symbol))))
+  (let* ((foreign-symbol	(%normalise-foreign-symbol foreign-symbol))
+	 (ptr			(lookup-shared-object lib-spec foreign-symbol)))
+    (or ptr
+	(raise-unknown-foreign-symbol lib-spec foreign-symbol
+				      'lookup-shared-object*
+				      "could not find foreign symbol in foreign library"))))
 
 
 ;;;; values normalisation

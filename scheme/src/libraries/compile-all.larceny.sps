@@ -319,6 +319,9 @@
 (compile-library "foreign/ffi/sizeof.sls"
 		 "foreign/ffi/sizeof.slfasl")
 
+(compile-library "foreign/ffi/conditions.sls"
+		 "foreign/ffi/conditions.slfasl")
+
 (compile-library "foreign/ffi/pointers/compat.larceny.sls"
  		 "foreign/ffi/pointers/compat.larceny.slfasl")
 

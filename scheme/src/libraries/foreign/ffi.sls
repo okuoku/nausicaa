@@ -28,8 +28,10 @@
   (export
 
     ;;shared object access
-    shared-object				open-shared-object
-    (rename (primitive:self-shared-object	self-shared-object)
+    shared-object
+    (rename (primitive:open-shared-object	open-shared-object)
+	    (primitive:open-shared-object*	open-shared-object*)
+	    (primitive:self-shared-object	self-shared-object)
 	    (primitive:lookup-shared-object	lookup-shared-object)
 	    (primitive:lookup-shared-object*	lookup-shared-object*))
 
@@ -54,6 +56,28 @@
     pointer=?			pointer<>?
     pointer<?			pointer>?
     pointer<=?			pointer>=?
+
+    ;; bindings from (foreign ffi conditions)
+    &shared-object
+    make-shared-object-condition
+    shared-object-condition?
+    condition-shared-object
+
+    &foreign-symbol
+    make-foreign-symbol-condition
+    foreign-symbol-condition?
+    condition-foreign-symbol
+
+    &unknown-shared-object
+    make-unknown-shared-object-condition
+    unknown-shared-object-condition?
+
+    &unknown-foreign-symbol
+    make-unknown-foreign-symbol-condition
+    unknown-foreign-symbol-condition?
+
+    raise-unknown-shared-object
+    raise-unknown-foreign-symbol
 
 ;;; bindings from (foreign ffi peekers-and-pokers)
 
@@ -176,6 +200,7 @@
     poke-array-int64!			poke-array-uint64!)
   (import (rnrs)
     (parameters)
+    (foreign ffi conditions)
     (foreign ffi pointers)
     (foreign ffi peekers-and-pokers)
     (prefix (foreign ffi primitives) primitive:)
@@ -184,11 +209,6 @@
 	  raise-unimplemented-error))
 
 
-(define (open-shared-object library-name)
-  (primitive:open-shared-object (if (symbol? library-name)
-				    (symbol->string library-name)
-				  library-name)))
-
 (define shared-object
   (make-parameter primitive:self-shared-object))
 

@@ -26,7 +26,8 @@
 
 (library (foreign ffi platform)
   (export
-    open-shared-object		self-shared-object
+    self-shared-object
+    open-shared-object		open-shared-object*
     lookup-shared-object	lookup-shared-object*
     make-c-function		make-c-function/with-errno
     pointer->c-function		pointer->c-function/with-errno
@@ -37,6 +38,7 @@
     implementation-data-types)
   (import (rnrs)
     (unimplemented)
+    (foreign ffi conditions)
     (prefix (only (mosh ffi)
 		  open-shared-library make-c-function
 		  make-c-callback free-c-callback
@@ -51,14 +53,30 @@
       '()
     arg-types))
 
+(define (%normalise-foreign-symbol foreign-symbol)
+  (if (symbol? foreign-symbol)
+      (symbol->string foreign-symbol)
+    foreign-symbol))
+
 
 ;;;; dynamic loading
 
-;;In case of error this raises an exception automatically.
-(define open-shared-object mosh:open-shared-library)
+(define (open-shared-object library-name)
+  (guard (E (else #f))
+    ;;In case of error this raises an exception.
+    (mosh:open-shared-library (%normalise-foreign-symbol library-name))))
+
+(define (open-shared-object* library-name)
+  (let* ((library-name	(%normalise-foreign-symbol library-name))
+	 (lib-ref	(open-shared-object library-name)))
+    (or lib-ref
+	(raise-unknown-shared-object library-name 'open-shared-object*
+				     "unable to open shared object"))))
 
 (define self-shared-object
-  (mosh:open-shared-library ""))
+  (open-shared-object* ""))
+
+;;; --------------------------------------------------------------------
 
 (define (lookup-shared-object lib-spec foreign-symbol)
   (raise-unimplemented-error 'lookup-shared-library)
@@ -67,12 +85,12 @@
   )
 
 (define (lookup-shared-object* lib-spec foreign-symbol)
-  (raise-unimplemented-error 'lookup-shared-library)
-  ;; (let ((ptr (mosh:lookup-shared-library lib-spec foreign-symbol)))
-  ;;   (or ptr (error #f "could not find foreign symbol in foreign library"
-  ;; 		   lib-spec foreign-symbol)))
-  )
-
+  (let* ((foreign-symbol	(%normalise-foreign-symbol foreign-symbol))
+	 (ptr			(lookup-shared-object lib-spec foreign-symbol)))
+    (or ptr
+	(raise-unknown-foreign-symbol lib-spec foreign-symbol
+				      'lookup-shared-object*
+				      "could not find foreign symbol in foreign library"))))
 
 
 ;;;; values normalisation

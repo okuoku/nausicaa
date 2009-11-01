@@ -39,10 +39,36 @@
   (open-shared-object 'libnausicaa-ffitest1.0.so))
 
 
+(parametrise ((check-test-name	'open-shared))
+
+  (check
+      (and (open-shared-object 'libc.so.6) #t)
+    => #t)
+
+  (check
+      (and (open-shared-object* 'libc.so.6) #t)
+    => #t)
+
+  (check
+      (open-shared-object 'ciao)
+    => #f)
+
+  (check
+      (guard (E (else (list (unknown-shared-object-condition? E)
+			    (condition-shared-object E)
+			    (condition-message E)
+			    (condition-who E))))
+	(open-shared-object* 'ciao))
+    => '(#t "ciao" "unable to open shared object" open-shared-object*))
+
+  #t)
+
+
+
 (cond-expand
  ((or larceny mosh) #f)
  (else
-  (parametrise ((check-test-name	'lookout))
+  (parametrise ((check-test-name	'lookup))
 
     (check
 	(pointer? (lookup-shared-object self-shared-object 'printf))
@@ -57,9 +83,14 @@
       => #t)
 
     (check
-	(guard (E (else (condition-irritants E)))
+	(guard (E (else (list (unknown-foreign-symbol-condition? E)
+			      (condition-shared-object E)
+			      (condition-foreign-symbol E)
+			      (condition-message E)
+			      (condition-who E))))
 	  (lookup-shared-object* self-shared-object 'ciao))
-      => `(,self-shared-object ciao))
+      => `(#t ,self-shared-object "ciao"
+	      "could not find foreign symbol in foreign library" lookup-shared-object*))
 
     #t)
   #t))

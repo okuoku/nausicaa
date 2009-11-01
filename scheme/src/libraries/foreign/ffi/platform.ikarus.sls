@@ -26,7 +26,8 @@
 
 (library (foreign ffi platform)
   (export
-    open-shared-object		self-shared-object
+    self-shared-object
+    open-shared-object		open-shared-object*
     lookup-shared-object	lookup-shared-object*
     make-c-function		make-c-function/with-errno
     pointer->c-function		pointer->c-function/with-errno
@@ -35,6 +36,7 @@
     (rename (internal-type->implementation-type internal-type->implementation-type/callout))
     implementation-data-types)
   (import (rnrs)
+    (foreign ffi conditions)
     (prefix (only (ikarus foreign)
 		  dlopen dlsym dlerror
 		  make-c-callout make-c-callback
@@ -63,22 +65,32 @@
 
 ;;;; dynamic loading
 
-(define self-shared-object (ikarus:dlopen))
-
 (define (open-shared-object library-name)
-  ;;Wrapper for DLOPEN that raises an exception if failure.
-  ;;
-  (let ((l (ikarus:dlopen library-name)))
-    (or l (error #f (ikarus:dlerror) library-name))))
+  (ikarus:dlopen (%normalise-foreign-symbol library-name)))
+
+(define (open-shared-object* library-name)
+  (let* ((library-name	(%normalise-foreign-symbol library-name))
+	 (lib-ref	(open-shared-object library-name)))
+    (or lib-ref
+	(raise-unknown-shared-object library-name 'open-shared-object*
+				     "unable to open shared object"))))
+
+(define self-shared-object
+  (open-shared-object* ""))
+
+;;; --------------------------------------------------------------------
 
 (define (lookup-shared-object lib-spec foreign-symbol)
   ;;This already returns #f when the symbol is not found.
   (ikarus:dlsym lib-spec (%normalise-foreign-symbol foreign-symbol)))
 
 (define (lookup-shared-object* lib-spec foreign-symbol)
-  (let ((ptr (ikarus:dlsym lib-spec (%normalise-foreign-symbol foreign-symbol))))
-    (or ptr (error #f "could not find foreign symbol in foreign library"
-		   lib-spec foreign-symbol))))
+  (let* ((foreign-symbol	(%normalise-foreign-symbol foreign-symbol))
+	 (ptr			(lookup-shared-object lib-spec foreign-symbol)))
+    (or ptr
+	(raise-unknown-foreign-symbol lib-spec foreign-symbol
+				      'lookup-shared-object*
+				      "could not find foreign symbol in foreign library"))))
 
 
 ;;;; types normalisation
@@ -135,16 +147,10 @@
 ;;;; callout functions
 
 (define (make-c-function lib-spec ret-type funcname arg-types)
-  (let ((address (ikarus:dlsym lib-spec funcname)))
-    (if address
-	(pointer->c-function ret-type address arg-types)
-      (error #f (ikarus:dlerror) funcname))))
+  (pointer->c-function ret-type (lookup-shared-object* lib-spec funcname) arg-types))
 
 (define (make-c-function/with-errno lib-spec ret-type funcname arg-types)
-  (let ((address (ikarus:dlsym lib-spec funcname)))
-    (if address
-	(pointer->c-function/with-errno ret-type address arg-types)
-      (error #f (ikarus:dlerror) funcname))))
+  (pointer->c-function/with-errno ret-type (lookup-shared-object* lib-spec funcname) arg-types))
 
 (define (pointer->c-function ret-type address arg-types)
   ;;Given a  signature of types,  create a callout  closure constructor;
