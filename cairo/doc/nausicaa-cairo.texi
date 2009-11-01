@@ -1560,26 +1560,19 @@ required to save a @acronym{PNG} file are available only if
 @example
 (import (rnrs)
   (foreign cairo)
-  (foreign cairo sizeof)
   (foreign cstrings)
   (compensations))
 
 (with-compensations
-  (letrec* ((surface (compensate
-                         (cairo_image_surface_create
-                            CAIRO_FORMAT_ARGB32 390 60)
-                       (with
-                        (cairo_surface_destroy surface))))
-            (cr      (compensate
-                         (cairo_create surface)
-                       (with
-                        (cairo_destroy cr)))))
+  (letrec* ((surface (cairo-image-surface-create/c
+                       CAIRO_FORMAT_ARGB32 390 60))
+            (cr      (cairo-create/c surface)))
 
     ;; draw in black ink
-    (cairo_set_source_rgb cr 0. 0. 0.)
+    (cairo-set-source-rgb cr 0. 0. 0.)
 
     ;; select the font
-    (cairo_select_font_face cr (string->cstring/c "Sans")
+    (cairo-select-font-face cr "Sans"
                             CAIRO_FONT_SLANT_NORMAL
                             CAIRO_FONT_WEIGHT_NORMAL)
     (cairo_set_font_size cr 40.0)
@@ -1588,12 +1581,10 @@ required to save a @acronym{PNG} file are available only if
     (cairo_move_to cr 10.0 50.0)
 
     ;; draw text
-    (cairo_show_text cr
-      (string->cstring/c "Disziplin ist Macht."))
+    (cairo_show_text cr "Disziplin ist Macht.")
 
     ;; draw the image on the output
-    (cairo_surface_write_to_png surface
-      (string->cstring/c "image.png"))))
+    (cairo-surface-write-to-png surface "image.png")))
 @end example
 
 The following example does the same but outputs a @acronym{PDF} file.
@@ -1603,30 +1594,21 @@ available only if @samp{CAIRO_HAS_PDF_SURFACE} is bound to @true{}.
 @example
 (import (rnrs)
   (foreign cairo)
-  (foreign cairo sizeof)
   (foreign cstrings)
   (compensations))
 
 (with-compensations
-  (letrec* ((surface (compensate
-                         (cairo_pdf_surface_create
-                            (string->cstring/c "image.pdf")
-                            390. 60.)
-                       (with
-                        (cairo_surface_destroy surface))))
-            (cr      (compensate
-                         (cairo_create surface)
-                       (with
-                        (cairo_destroy cr)))))
-    (cairo_set_source_rgb cr 0. 0. 0.)
-    (cairo_select_font_face cr (string->cstring/c "Sans")
+  (letrec* ((surface (cairo-pdf-surface-create/c "image.pdf"
+                       390. 60.))
+            (cr      (cairo-create/c surface)))
+    (cairo-set-source-rgb cr 0. 0. 0.)
+    (cairo-select-font-face cr "Sans"
                             CAIRO_FONT_SLANT_NORMAL
                             CAIRO_FONT_WEIGHT_NORMAL)
-    (cairo_set_font_size cr 40.0)
-    (cairo_move_to cr 10.0 50.0)
-    (cairo_show_text cr
-      (string->cstring/c "Disziplin ist Macht."))
-    (cairo_show_page cr)))
+    (cairo-set-font-size cr 40.0)
+    (cairo-move-to cr 10.0 50.0)
+    (cairo-show-text cr "Disziplin ist Macht.")
+    (cairo-show-page cr)))
 @end example
 
 @c page
@@ -1640,19 +1622,17 @@ functions required to save a @acronym{PNG} file are available only if
 @samp{CAIRO_HAS_PNG_FUNCTIONS} is bound to @true{}.
 
 @example
-(with-compensations
-  (letrec* ((surface (compensate
-                         (cairo_image_surface_create
-                           CAIRO_FORMAT_ARGB32 300 300)
-                       (with
-                        (cairo_surface_destroy surface))))
-            (cr      (compensate
-                         (cairo_create surface)
-                       (with
-                        (cairo_destroy cr)))))
+(import (rnrs)
+  (foreign cairo)
+  (compensations))
 
-    (cairo_set_source_rgb cr 100. 0. 0.)
-    (cairo_set_line_width cr 1.)
+(with-compensations
+  (letrec* ((surface (cairo-image-surface-create/c
+                       CAIRO_FORMAT_ARGB32 300 300))
+            (cr      (cairo-create/c surface)))
+
+    (cairo-set-source-rgb cr 100. 0. 0.)
+    (cairo-set-line-width cr 1.)
 
     (cairo-move-to cr 10. 10.)
     (cairo-line-to cr 290. 10.)
@@ -1661,8 +1641,7 @@ functions required to save a @acronym{PNG} file are available only if
     (cairo-line-to cr 10. 10.)
     (cairo-stroke cr)
 
-    (cairo_surface_write_to_png surface
-      (string->cstring/c "test-line.png"))))
+    (cairo-surface-write-to-png surface "test-line.png")))
 @end example
 
 To fill the square we just change:
@@ -1687,7 +1666,6 @@ To draw a circle we do:
 (cairo-arc cr 150. 150. 90. 0. pi2)
 (cairo-stroke cr)
 @end example
-
 
 @c page
 
