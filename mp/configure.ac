@@ -54,6 +54,7 @@ m4_define([NAU_GMP_INCLUDES],[
 m4_define([NAU_MPFR_INCLUDES],[
 #include <gmp.h>
 #include <mpfr.h>
+#include <stdint.h>
 ])
 
 m4_define([NAU_MPFI_INCLUDES],[
