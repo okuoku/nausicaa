@@ -38,29 +38,29 @@ NAUSICAA_BEGIN
 DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
 DS_EXCLUDE_SECTION([AUTOCONF])
 DS_EXCLUDE_SECTION([PKGCONFIG])
-dnl NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
 NAUSICAA_C_LANGUAGE
 
 NAU_DS_WITH_OPTION([GLIB_INCLUDEDIR],[glib-includedir],
-  [/usr/local/include/glib-2.0],[Glib include directory],
+  [/usr/include/glib-2.0],[Glib include directory],
   [select include directory for Glib headers])
 
 NAU_DS_WITH_OPTION([GLIB_LIBINCLUDEDIR],[glib-libincludedir],
-  [/usr/local/lib/glib-2.0/include],[Glib lib include directory],
+  [/usr/lib/glib-2.0/include],[Glib lib include directory],
   [select lib include directory for Glib headers])
 
 GLIB_CPPFLAGS="-I$GLIB_INCLUDEDIR -I$GLIB_LIBINCLUDEDIR"
 CPPFLAGS="$GLIB_CPPFLAGS $CPPFLAGS"
 
 NAU_DS_WITH_OPTION([PANGO_INCLUDEDIR],[pango-includedir],
-  [/usr/local/include/pango-1.0],[Pango include directory],
+  [/usr/include/pango-1.0],[Pango include directory],
   [select include directory for Pango headers])
 
 PANGO_CPPFLAGS="-I$PANGO_INCLUDEDIR"
 CPPFLAGS="$PANGO_CPPFLAGS $CPPFLAGS"
 
 NAU_DS_WITH_OPTION([PANGO_LIBDIR],[pango-libdir],
-  [/usr/local/lib],[Pango library directory],
+  [/usr/lib],[Pango library directory],
   [select library directory for Pango shared object])
 
 PANGO_LDFLAGS=-L$PANGO_LIBDIR
