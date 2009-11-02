@@ -25,12 +25,12 @@
 ;;;
 
 
-(library (foreign sqlite)
+(library (foreign databases sqlite)
   (export )
   (import (rnrs)
     (compensations)
-    (foreign sqlite primitives)
-    (foreign sqlite sizeof))
+    (foreign databases sqlite primitives)
+    (foreign databases sqlite sizeof))
 
 
 ;;;; code

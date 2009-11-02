@@ -518,30 +518,30 @@ functions interface; so it currently supports only @gnu{}+Linux systems.
 The installed libraries are:
 
 @table @library
-@item foreign sqlite shared-object
+@item foreign databases sqlite shared-object
 Exports the single binding @code{sqlite-shared-object}, referencing the
 SQLite shared library.
 
-@item foreign sqlite sizeof
+@item foreign databases sqlite sizeof
 Exports bindings for constant values and data types inspection.
 
-@item foreign sqlite platform
+@item foreign databases sqlite platform
 Exports a binding for each function in SQLite.  It implements a
 one--to--one map between foreign functions and Scheme functions; the
 Scheme functions have the same name of the foreign ones, so
 @cfunc{sqlite3_close} is available as @func{sqlite3_close}.
 
-@item foreign sqlite primitives
-Exports a binding for each foreign function, implementing marshaling or
+@item foreign databases sqlite primitives
+Exports a binding for each foreign function, implementing marshaling of
 arguments and return values; the Scheme functions have the same name of
 the foreign ones, but with underscores turned into dashes and the
 @code{3} stripped; so @cfunc{sqlite3_close} is available as
 @func{sqlite-close}.
 
-@item foreign sqlite
-Exports the high level @api{}: all the bindings from @library{foreign
-sqlite sizeof} and @library{foreign sqlite primitives}; additionally
-bindings for constructors and destructors making use of the
+@item foreign databases sqlite
+Exports the high--level @api{}: All the bindings from @library{foreign
+sqlite sizeof} and @library{foreign databases sqlite primitives}.
+Additionally bindings for constructors and destructors making use of the
 @library{compensations} library.  @nauref{compensations, Compensation
 stacks}
 @end table

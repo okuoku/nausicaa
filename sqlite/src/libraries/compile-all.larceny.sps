@@ -1,7 +1,7 @@
 ;;;
-;;;Part of: Nausicaa/Template
+;;;Part of: Nausicaa/SQLite
 ;;;Contents: compile script for Larceny Scheme
-;;;Date: Thu Dec 25, 2008
+;;;Date: Mon Nov  2, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -27,19 +27,19 @@
 (import (rnrs)
   (larceny compiler))
 
-(compile-library "foreign/template/sizeof.sls"
-		 "foreign/template/sizeof.larceny.slfasl")
+(compile-library "foreign/databases/sqlite/sizeof.sls"
+		 "foreign/databases/sqlite/sizeof.larceny.slfasl")
 
-(compile-library "foreign/template/shared-object.sls"
-		 "foreign/template/shared-object.larceny.slfasl")
+(compile-library "foreign/databases/sqlite/shared-object.sls"
+		 "foreign/databases/sqlite/shared-object.larceny.slfasl")
 
-(compile-library "foreign/template/platform.sls"
-		 "foreign/template/platform.larceny.slfasl")
+(compile-library "foreign/databases/sqlite/platform.sls"
+		 "foreign/databases/sqlite/platform.larceny.slfasl")
 
-(compile-library "foreign/template/primitives.sls"
-		 "foreign/template/primitives.larceny.slfasl")
+(compile-library "foreign/databases/sqlite/primitives.sls"
+		 "foreign/databases/sqlite/primitives.larceny.slfasl")
 
-(compile-library "foreign/template.sls"
-		 "foreign/template.larceny.slfasl")
+(compile-library "foreign/databases/sqlite.sls"
+		 "foreign/databases/sqlite.larceny.slfasl")
 
 ;;; end of file

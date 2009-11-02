@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
-;;;Part of: Nausicaa/SQLITE
-;;;Contents: shared object loading for SQLite bindings
+;;;Part of: Nausicaa/SQLite
+;;;Contents: values marshaling interface
 ;;;Date: Thu Oct 29, 2009
 ;;;
 ;;;Abstract
@@ -25,12 +25,20 @@
 ;;;
 
 
-(library (foreign sqlite shared-object)
-  (export sqlite-shared-object)
+(library (foreign databases sqlite primitives)
+  (export )
   (import (rnrs)
-    (foreign ffi))
+    (compensations)
+    (foreign databases sqlite platform)
+    (foreign databases sqlite sizeof))
 
-  (define sqlite-shared-object
-    (open-shared-object 'libsqlite3.so)))
+
+;;;; code
+
+
+
+;;;; done
+
+)
 
 ;;; end of file

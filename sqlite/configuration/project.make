@@ -28,8 +28,8 @@
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,foreign))
-$(eval $(call nau-libraries,sqlite,foreign/sqlite))
+$(eval $(call nau-libraries,databases,foreign/databases))
+$(eval $(call nau-libraries,sqlite,foreign/databases/sqlite))
 
 
 ### end of file

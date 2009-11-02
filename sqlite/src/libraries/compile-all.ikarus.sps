@@ -1,7 +1,7 @@
 ;;;
-;;;Part of: Nausicaa/Template
+;;;Part of: Nausicaa/SQLite
 ;;;Contents: compile script for Ikarus Scheme
-;;;Date: Thu Dec 25, 2008
+;;;Date: Mon Nov  2, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -24,7 +24,7 @@
 ;;;
 
 (import
-  (only (foreign template))
+  (only (foreign databases sqlite))
   )
 
 ;;; end of file

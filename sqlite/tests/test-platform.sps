@@ -29,8 +29,8 @@
   (compensations)
   (foreign memory)
   (foreign cstrings)
-  (foreign sqlite platform)
-  (foreign sqlite sizeof)
+  (foreign databases sqlite platform)
+  (foreign databases sqlite sizeof)
   (checks))
 
 (check-set-mode! 'report-failed)

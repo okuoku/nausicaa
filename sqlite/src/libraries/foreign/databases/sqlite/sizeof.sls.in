@@ -24,7 +24,7 @@
 ;;;
 
 
-(library (foreign sqlite sizeof)
+(library (foreign databases sqlite sizeof)
   (export
 
     ;; data types inspection
@@ -352,11 +352,166 @@
     sqlite3-mem-methods-xShutdown-set!		sqlite3-mem-methods-xShutdown-ref
     sqlite3-mem-methods-pAppData-set!		sqlite3-mem-methods-pAppData-ref
 
-    )
+;;; --------------------------------------------------------------------
+;;; API routines accessors
+
+  sqlite3-api-routines-aggregate_context-ref
+  sqlite3-api-routines-aggregate_count-ref
+  sqlite3-api-routines-bind_blob-ref
+  sqlite3-api-routines-bind_double-ref
+  sqlite3-api-routines-bind_int-ref
+  sqlite3-api-routines-bind_int64-ref
+  sqlite3-api-routines-bind_null-ref
+  sqlite3-api-routines-bind_parameter_count-ref
+  sqlite3-api-routines-bind_parameter_index-ref
+  sqlite3-api-routines-bind_parameter_name-ref
+  sqlite3-api-routines-bind_text-ref
+  sqlite3-api-routines-bind_text16-ref
+  sqlite3-api-routines-bind_value-ref
+  sqlite3-api-routines-busy_handler-ref
+  sqlite3-api-routines-busy_timeout-ref
+  sqlite3-api-routines-close-ref
+  sqlite3-api-routines-collation_needed-ref
+  sqlite3-api-routines-collation_needed16-ref
+  sqlite3-api-routines-column_blob-ref
+  sqlite3-api-routines-column_bytes-ref
+  sqlite3-api-routines-column_bytes16-ref
+  sqlite3-api-routines-column_count-ref
+  sqlite3-api-routines-column_database_name-ref
+  sqlite3-api-routines-column_database_name16-ref
+  sqlite3-api-routines-column_decltype-ref
+  sqlite3-api-routines-column_decltype16-ref
+  sqlite3-api-routines-column_double-ref
+  sqlite3-api-routines-column_int-ref
+  sqlite3-api-routines-column_int64-ref
+  sqlite3-api-routines-column_name-ref
+  sqlite3-api-routines-column_name16-ref
+  sqlite3-api-routines-column_origin_name-ref
+  sqlite3-api-routines-column_origin_name16-ref
+  sqlite3-api-routines-column_table_name-ref
+  sqlite3-api-routines-column_table_name16-ref
+  sqlite3-api-routines-column_text-ref
+  sqlite3-api-routines-column_text16-ref
+  sqlite3-api-routines-column_type-ref
+  sqlite3-api-routines-column_value-ref
+  sqlite3-api-routines-commit_hook-ref
+  sqlite3-api-routines-complete-ref
+  sqlite3-api-routines-complete16-ref
+  sqlite3-api-routines-create_collation-ref
+  sqlite3-api-routines-create_collation16-ref
+  sqlite3-api-routines-create_function-ref
+  sqlite3-api-routines-create_function16-ref
+  sqlite3-api-routines-create_module-ref
+  sqlite3-api-routines-data_count-ref
+  sqlite3-api-routines-db_handle-ref
+  sqlite3-api-routines-declare_vtab-ref
+  sqlite3-api-routines-enable_shared_cache-ref
+  sqlite3-api-routines-errcode-ref
+  sqlite3-api-routines-errmsg-ref
+  sqlite3-api-routines-errmsg16-ref
+  sqlite3-api-routines-exec-ref
+  sqlite3-api-routines-expired-ref
+  sqlite3-api-routines-finalize-ref
+  sqlite3-api-routines-free-ref
+  sqlite3-api-routines-free_table-ref
+  sqlite3-api-routines-get_autocommit-ref
+  sqlite3-api-routines-get_auxdata-ref
+  sqlite3-api-routines-get_table-ref
+  sqlite3-api-routines-global_recover-ref
+  sqlite3-api-routines-interruptx-ref
+  sqlite3-api-routines-last_insert_rowid-ref
+  sqlite3-api-routines-libversion-ref
+  sqlite3-api-routines-libversion_number-ref
+  sqlite3-api-routines-malloc-ref
+  sqlite3-api-routines-mprintf-ref
+  sqlite3-api-routines-open-ref
+  sqlite3-api-routines-open16-ref
+  sqlite3-api-routines-prepare-ref
+  sqlite3-api-routines-prepare16-ref
+  sqlite3-api-routines-profile-ref
+  sqlite3-api-routines-progress_handler-ref
+  sqlite3-api-routines-realloc-ref
+  sqlite3-api-routines-reset-ref
+  sqlite3-api-routines-result_blob-ref
+  sqlite3-api-routines-result_double-ref
+  sqlite3-api-routines-result_error-ref
+  sqlite3-api-routines-result_error16-ref
+  sqlite3-api-routines-result_int-ref
+  sqlite3-api-routines-result_int64-ref
+  sqlite3-api-routines-result_null-ref
+  sqlite3-api-routines-result_text-ref
+  sqlite3-api-routines-result_text16-ref
+  sqlite3-api-routines-result_text16be-ref
+  sqlite3-api-routines-result_text16le-ref
+  sqlite3-api-routines-result_value-ref
+  sqlite3-api-routines-rollback_hook-ref
+  sqlite3-api-routines-set_authorizer-ref
+  sqlite3-api-routines-set_auxdata-ref
+  sqlite3-api-routines-snprintf-ref
+  sqlite3-api-routines-step-ref
+  sqlite3-api-routines-table_column_metadata-ref
+  sqlite3-api-routines-thread_cleanup-ref
+  sqlite3-api-routines-total_changes-ref
+  sqlite3-api-routines-trace-ref
+  sqlite3-api-routines-transfer_bindings-ref
+  sqlite3-api-routines-update_hook-ref
+  sqlite3-api-routines-user_data-ref
+  sqlite3-api-routines-value_blob-ref
+  sqlite3-api-routines-value_bytes-ref
+  sqlite3-api-routines-value_bytes16-ref
+  sqlite3-api-routines-value_double-ref
+  sqlite3-api-routines-value_int-ref
+  sqlite3-api-routines-value_int64-ref
+  sqlite3-api-routines-value_numeric_type-ref
+  sqlite3-api-routines-value_text-ref
+  sqlite3-api-routines-value_text16-ref
+  sqlite3-api-routines-value_text16be-ref
+  sqlite3-api-routines-value_text16le-ref
+  sqlite3-api-routines-value_type-ref
+  sqlite3-api-routines-vmprintf-ref
+  sqlite3-api-routines-overload_function-ref
+  sqlite3-api-routines-prepare_v2-ref
+  sqlite3-api-routines-prepare16_v2-ref
+  sqlite3-api-routines-clear_bindings-ref
+  sqlite3-api-routines-create_module_v2-ref
+  sqlite3-api-routines-bind_zeroblob-ref
+  sqlite3-api-routines-blob_bytes-ref
+  sqlite3-api-routines-blob_close-ref
+  sqlite3-api-routines-blob_open-ref
+  sqlite3-api-routines-blob_read-ref
+  sqlite3-api-routines-blob_write-ref
+  sqlite3-api-routines-create_collation_v2-ref
+  sqlite3-api-routines-file_control-ref
+  sqlite3-api-routines-memory_highwater-ref
+  sqlite3-api-routines-memory_used-ref
+  sqlite3-api-routines-mutex_alloc-ref
+  sqlite3-api-routines-mutex_enter-ref
+  sqlite3-api-routines-mutex_free-ref
+  sqlite3-api-routines-mutex_leave-ref
+  sqlite3-api-routines-mutex_try-ref
+  sqlite3-api-routines-open_v2-ref
+  sqlite3-api-routines-release_memory-ref
+  sqlite3-api-routines-result_error_nomem-ref
+  sqlite3-api-routines-result_error_toobig-ref
+  sqlite3-api-routines-sleep-ref
+  sqlite3-api-routines-soft_heap_limit-ref
+  sqlite3-api-routines-vfs_find-ref
+  sqlite3-api-routines-vfs_register-ref
+  sqlite3-api-routines-vfs_unregister-ref
+  sqlite3-api-routines-xthreadsafe-ref
+  sqlite3-api-routines-result_zeroblob-ref
+  sqlite3-api-routines-result_error_code-ref
+  sqlite3-api-routines-test_control-ref
+  sqlite3-api-routines-randomness-ref
+  sqlite3-api-routines-context_db_handle-ref
+  sqlite3-api-routines-extended_result_codes-ref
+  sqlite3-api-routines-limit-ref
+  sqlite3-api-routines-next_stmt-ref
+  sqlite3-api-routines-sql-ref
+  sqlite3-api-routines-status-ref)
   (import (rnrs)
     (foreign ffi sizeof)
     (foreign ffi))
-
 
 
 ;;;; data types inspection
@@ -1075,6 +1230,786 @@
   @OFFSETOF_SQLITE_PCACHE_METHODS_XDESTROY@
   @SETTEROF_SQLITE_PCACHE_METHODS_XDESTROY@
   @GETTEROF_SQLITE_PCACHE_METHODS_XDESTROY@)
+
+
+;;;; SQLite API routines
+
+(define-c-struct-accessor
+  sqlite3-api-routines-aggregate_context-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_AGGREGATE_CONTEXT@
+  @GETTEROF_SQLITE_API_ROUTINES_AGGREGATE_CONTEXT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-aggregate_count-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_AGGREGATE_COUNT@
+  @GETTEROF_SQLITE_API_ROUTINES_AGGREGATE_COUNT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-bind_blob-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BIND_BLOB@
+  @GETTEROF_SQLITE_API_ROUTINES_BIND_BLOB@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-bind_double-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BIND_DOUBLE@
+  @GETTEROF_SQLITE_API_ROUTINES_BIND_DOUBLE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-bind_int-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BIND_INT@
+  @GETTEROF_SQLITE_API_ROUTINES_BIND_INT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-bind_int64-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BIND_INT64@
+  @GETTEROF_SQLITE_API_ROUTINES_BIND_INT64@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-bind_null-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BIND_NULL@
+  @GETTEROF_SQLITE_API_ROUTINES_BIND_NULL@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-bind_parameter_count-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BIND_PARAMETER_COUNT@
+  @GETTEROF_SQLITE_API_ROUTINES_BIND_PARAMETER_COUNT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-bind_parameter_index-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BIND_PARAMETER_INDEX@
+  @GETTEROF_SQLITE_API_ROUTINES_BIND_PARAMETER_INDEX@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-bind_parameter_name-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BIND_PARAMETER_NAME@
+  @GETTEROF_SQLITE_API_ROUTINES_BIND_PARAMETER_NAME@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-bind_text-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BIND_TEXT@
+  @GETTEROF_SQLITE_API_ROUTINES_BIND_TEXT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-bind_text16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BIND_TEXT16@
+  @GETTEROF_SQLITE_API_ROUTINES_BIND_TEXT16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-bind_value-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BIND_VALUE@
+  @GETTEROF_SQLITE_API_ROUTINES_BIND_VALUE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-busy_handler-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BUSY_HANDLER@
+  @GETTEROF_SQLITE_API_ROUTINES_BUSY_HANDLER@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-busy_timeout-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BUSY_TIMEOUT@
+  @GETTEROF_SQLITE_API_ROUTINES_BUSY_TIMEOUT@)
+
+(define-c-struct-accessor-and-mutator
+  sqlite3-api-routines-changes-set!
+  sqlite3-api-routines-changes-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_CHANGES@
+  @SETTEROF_SQLITE_API_ROUTINES_CHANGES@
+  @GETTEROF_SQLITE_API_ROUTINES_CHANGES@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-close-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_CLOSE@
+  @GETTEROF_SQLITE_API_ROUTINES_CLOSE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-collation_needed-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLLATION_NEEDED@
+  @GETTEROF_SQLITE_API_ROUTINES_COLLATION_NEEDED@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-collation_needed16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLLATION_NEEDED16@
+  @GETTEROF_SQLITE_API_ROUTINES_COLLATION_NEEDED16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_blob-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_BLOB@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_BLOB@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_bytes-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_BYTES@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_BYTES@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_bytes16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_BYTES16@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_BYTES16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_count-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_COUNT@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_COUNT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_database_name-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_DATABASE_NAME@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_DATABASE_NAME@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_database_name16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_DATABASE_NAME16@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_DATABASE_NAME16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_decltype-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_DECLTYPE@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_DECLTYPE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_decltype16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_DECLTYPE16@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_DECLTYPE16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_double-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_DOUBLE@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_DOUBLE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_int-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_INT@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_INT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_int64-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_INT64@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_INT64@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_name-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_NAME@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_NAME@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_name16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_NAME16@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_NAME16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_origin_name-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_ORIGIN_NAME@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_ORIGIN_NAME@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_origin_name16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_ORIGIN_NAME16@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_ORIGIN_NAME16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_table_name-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_TABLE_NAME@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_TABLE_NAME@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_table_name16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_TABLE_NAME16@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_TABLE_NAME16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_text-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_TEXT@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_TEXT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_text16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_TEXT16@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_TEXT16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_type-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_TYPE@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_TYPE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-column_value-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COLUMN_VALUE@
+  @GETTEROF_SQLITE_API_ROUTINES_COLUMN_VALUE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-commit_hook-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COMMIT_HOOK@
+  @GETTEROF_SQLITE_API_ROUTINES_COMMIT_HOOK@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-complete-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COMPLETE@
+  @GETTEROF_SQLITE_API_ROUTINES_COMPLETE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-complete16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_COMPLETE16@
+  @GETTEROF_SQLITE_API_ROUTINES_COMPLETE16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-create_collation-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_CREATE_COLLATION@
+  @GETTEROF_SQLITE_API_ROUTINES_CREATE_COLLATION@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-create_collation16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_CREATE_COLLATION16@
+  @GETTEROF_SQLITE_API_ROUTINES_CREATE_COLLATION16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-create_function-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_CREATE_FUNCTION@
+  @GETTEROF_SQLITE_API_ROUTINES_CREATE_FUNCTION@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-create_function16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_CREATE_FUNCTION16@
+  @GETTEROF_SQLITE_API_ROUTINES_CREATE_FUNCTION16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-create_module-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_CREATE_MODULE@
+  @GETTEROF_SQLITE_API_ROUTINES_CREATE_MODULE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-data_count-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_DATA_COUNT@
+  @GETTEROF_SQLITE_API_ROUTINES_DATA_COUNT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-db_handle-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_DB_HANDLE@
+  @GETTEROF_SQLITE_API_ROUTINES_DB_HANDLE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-declare_vtab-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_DECLARE_VTAB@
+  @GETTEROF_SQLITE_API_ROUTINES_DECLARE_VTAB@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-enable_shared_cache-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_ENABLE_SHARED_CACHE@
+  @GETTEROF_SQLITE_API_ROUTINES_ENABLE_SHARED_CACHE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-errcode-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_ERRCODE@
+  @GETTEROF_SQLITE_API_ROUTINES_ERRCODE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-errmsg-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_ERRMSG@
+  @GETTEROF_SQLITE_API_ROUTINES_ERRMSG@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-errmsg16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_ERRMSG16@
+  @GETTEROF_SQLITE_API_ROUTINES_ERRMSG16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-exec-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_EXEC@
+  @GETTEROF_SQLITE_API_ROUTINES_EXEC@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-expired-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_EXPIRED@
+  @GETTEROF_SQLITE_API_ROUTINES_EXPIRED@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-finalize-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_FINALIZE@
+  @GETTEROF_SQLITE_API_ROUTINES_FINALIZE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-free-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_FREE@
+  @GETTEROF_SQLITE_API_ROUTINES_FREE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-free_table-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_FREE_TABLE@
+  @GETTEROF_SQLITE_API_ROUTINES_FREE_TABLE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-get_autocommit-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_GET_AUTOCOMMIT@
+  @GETTEROF_SQLITE_API_ROUTINES_GET_AUTOCOMMIT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-get_auxdata-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_GET_AUXDATA@
+  @GETTEROF_SQLITE_API_ROUTINES_GET_AUXDATA@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-get_table-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_GET_TABLE@
+  @GETTEROF_SQLITE_API_ROUTINES_GET_TABLE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-global_recover-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_GLOBAL_RECOVER@
+  @GETTEROF_SQLITE_API_ROUTINES_GLOBAL_RECOVER@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-interruptx-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_INTERRUPTX@
+  @GETTEROF_SQLITE_API_ROUTINES_INTERRUPTX@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-last_insert_rowid-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_LAST_INSERT_ROWID@
+  @GETTEROF_SQLITE_API_ROUTINES_LAST_INSERT_ROWID@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-libversion-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_LIBVERSION@
+  @GETTEROF_SQLITE_API_ROUTINES_LIBVERSION@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-libversion_number-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_LIBVERSION_NUMBER@
+  @GETTEROF_SQLITE_API_ROUTINES_LIBVERSION_NUMBER@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-malloc-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_MALLOC@
+  @GETTEROF_SQLITE_API_ROUTINES_MALLOC@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-mprintf-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_MPRINTF@
+  @GETTEROF_SQLITE_API_ROUTINES_MPRINTF@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-open-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_OPEN@
+  @GETTEROF_SQLITE_API_ROUTINES_OPEN@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-open16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_OPEN16@
+  @GETTEROF_SQLITE_API_ROUTINES_OPEN16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-prepare-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_PREPARE@
+  @GETTEROF_SQLITE_API_ROUTINES_PREPARE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-prepare16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_PREPARE16@
+  @GETTEROF_SQLITE_API_ROUTINES_PREPARE16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-profile-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_PROFILE@
+  @GETTEROF_SQLITE_API_ROUTINES_PROFILE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-progress_handler-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_PROGRESS_HANDLER@
+  @GETTEROF_SQLITE_API_ROUTINES_PROGRESS_HANDLER@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-realloc-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_REALLOC@
+  @GETTEROF_SQLITE_API_ROUTINES_REALLOC@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-reset-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESET@
+  @GETTEROF_SQLITE_API_ROUTINES_RESET@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_blob-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_BLOB@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_BLOB@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_double-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_DOUBLE@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_DOUBLE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_error-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_ERROR@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_ERROR@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_error16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_ERROR16@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_ERROR16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_int-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_INT@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_INT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_int64-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_INT64@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_INT64@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_null-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_NULL@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_NULL@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_text-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_TEXT@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_TEXT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_text16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_TEXT16@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_TEXT16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_text16be-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_TEXT16BE@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_TEXT16BE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_text16le-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_TEXT16LE@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_TEXT16LE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_value-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_VALUE@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_VALUE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-rollback_hook-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_ROLLBACK_HOOK@
+  @GETTEROF_SQLITE_API_ROUTINES_ROLLBACK_HOOK@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-set_authorizer-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_SET_AUTHORIZER@
+  @GETTEROF_SQLITE_API_ROUTINES_SET_AUTHORIZER@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-set_auxdata-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_SET_AUXDATA@
+  @GETTEROF_SQLITE_API_ROUTINES_SET_AUXDATA@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-snprintf-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_SNPRINTF@
+  @GETTEROF_SQLITE_API_ROUTINES_SNPRINTF@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-step-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_STEP@
+  @GETTEROF_SQLITE_API_ROUTINES_STEP@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-table_column_metadata-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_TABLE_COLUMN_METADATA@
+  @GETTEROF_SQLITE_API_ROUTINES_TABLE_COLUMN_METADATA@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-thread_cleanup-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_THREAD_CLEANUP@
+  @GETTEROF_SQLITE_API_ROUTINES_THREAD_CLEANUP@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-total_changes-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_TOTAL_CHANGES@
+  @GETTEROF_SQLITE_API_ROUTINES_TOTAL_CHANGES@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-trace-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_TRACE@
+  @GETTEROF_SQLITE_API_ROUTINES_TRACE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-transfer_bindings-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_TRANSFER_BINDINGS@
+  @GETTEROF_SQLITE_API_ROUTINES_TRANSFER_BINDINGS@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-update_hook-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_UPDATE_HOOK@
+  @GETTEROF_SQLITE_API_ROUTINES_UPDATE_HOOK@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-user_data-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_USER_DATA@
+  @GETTEROF_SQLITE_API_ROUTINES_USER_DATA@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-value_blob-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VALUE_BLOB@
+  @GETTEROF_SQLITE_API_ROUTINES_VALUE_BLOB@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-value_bytes-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VALUE_BYTES@
+  @GETTEROF_SQLITE_API_ROUTINES_VALUE_BYTES@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-value_bytes16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VALUE_BYTES16@
+  @GETTEROF_SQLITE_API_ROUTINES_VALUE_BYTES16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-value_double-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VALUE_DOUBLE@
+  @GETTEROF_SQLITE_API_ROUTINES_VALUE_DOUBLE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-value_int-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VALUE_INT@
+  @GETTEROF_SQLITE_API_ROUTINES_VALUE_INT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-value_int64-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VALUE_INT64@
+  @GETTEROF_SQLITE_API_ROUTINES_VALUE_INT64@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-value_numeric_type-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VALUE_NUMERIC_TYPE@
+  @GETTEROF_SQLITE_API_ROUTINES_VALUE_NUMERIC_TYPE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-value_text-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VALUE_TEXT@
+  @GETTEROF_SQLITE_API_ROUTINES_VALUE_TEXT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-value_text16-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VALUE_TEXT16@
+  @GETTEROF_SQLITE_API_ROUTINES_VALUE_TEXT16@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-value_text16be-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VALUE_TEXT16BE@
+  @GETTEROF_SQLITE_API_ROUTINES_VALUE_TEXT16BE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-value_text16le-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VALUE_TEXT16LE@
+  @GETTEROF_SQLITE_API_ROUTINES_VALUE_TEXT16LE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-value_type-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VALUE_TYPE@
+  @GETTEROF_SQLITE_API_ROUTINES_VALUE_TYPE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-vmprintf-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VMPRINTF@
+  @GETTEROF_SQLITE_API_ROUTINES_VMPRINTF@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-overload_function-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_OVERLOAD_FUNCTION@
+  @GETTEROF_SQLITE_API_ROUTINES_OVERLOAD_FUNCTION@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-prepare_v2-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_PREPARE_V2@
+  @GETTEROF_SQLITE_API_ROUTINES_PREPARE_V2@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-prepare16_v2-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_PREPARE16_V2@
+  @GETTEROF_SQLITE_API_ROUTINES_PREPARE16_V2@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-clear_bindings-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_CLEAR_BINDINGS@
+  @GETTEROF_SQLITE_API_ROUTINES_CLEAR_BINDINGS@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-create_module_v2-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_CREATE_MODULE_V2@
+  @GETTEROF_SQLITE_API_ROUTINES_CREATE_MODULE_V2@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-bind_zeroblob-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BIND_ZEROBLOB@
+  @GETTEROF_SQLITE_API_ROUTINES_BIND_ZEROBLOB@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-blob_bytes-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BLOB_BYTES@
+  @GETTEROF_SQLITE_API_ROUTINES_BLOB_BYTES@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-blob_close-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BLOB_CLOSE@
+  @GETTEROF_SQLITE_API_ROUTINES_BLOB_CLOSE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-blob_open-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BLOB_OPEN@
+  @GETTEROF_SQLITE_API_ROUTINES_BLOB_OPEN@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-blob_read-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BLOB_READ@
+  @GETTEROF_SQLITE_API_ROUTINES_BLOB_READ@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-blob_write-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_BLOB_WRITE@
+  @GETTEROF_SQLITE_API_ROUTINES_BLOB_WRITE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-create_collation_v2-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_CREATE_COLLATION_V2@
+  @GETTEROF_SQLITE_API_ROUTINES_CREATE_COLLATION_V2@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-file_control-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_FILE_CONTROL@
+  @GETTEROF_SQLITE_API_ROUTINES_FILE_CONTROL@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-memory_highwater-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_MEMORY_HIGHWATER@
+  @GETTEROF_SQLITE_API_ROUTINES_MEMORY_HIGHWATER@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-memory_used-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_MEMORY_USED@
+  @GETTEROF_SQLITE_API_ROUTINES_MEMORY_USED@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-mutex_alloc-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_MUTEX_ALLOC@
+  @GETTEROF_SQLITE_API_ROUTINES_MUTEX_ALLOC@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-mutex_enter-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_MUTEX_ENTER@
+  @GETTEROF_SQLITE_API_ROUTINES_MUTEX_ENTER@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-mutex_free-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_MUTEX_FREE@
+  @GETTEROF_SQLITE_API_ROUTINES_MUTEX_FREE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-mutex_leave-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_MUTEX_LEAVE@
+  @GETTEROF_SQLITE_API_ROUTINES_MUTEX_LEAVE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-mutex_try-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_MUTEX_TRY@
+  @GETTEROF_SQLITE_API_ROUTINES_MUTEX_TRY@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-open_v2-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_OPEN_V2@
+  @GETTEROF_SQLITE_API_ROUTINES_OPEN_V2@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-release_memory-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RELEASE_MEMORY@
+  @GETTEROF_SQLITE_API_ROUTINES_RELEASE_MEMORY@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_error_nomem-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_ERROR_NOMEM@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_ERROR_NOMEM@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_error_toobig-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_ERROR_TOOBIG@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_ERROR_TOOBIG@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-sleep-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_SLEEP@
+  @GETTEROF_SQLITE_API_ROUTINES_SLEEP@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-soft_heap_limit-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_SOFT_HEAP_LIMIT@
+  @GETTEROF_SQLITE_API_ROUTINES_SOFT_HEAP_LIMIT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-vfs_find-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VFS_FIND@
+  @GETTEROF_SQLITE_API_ROUTINES_VFS_FIND@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-vfs_register-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VFS_REGISTER@
+  @GETTEROF_SQLITE_API_ROUTINES_VFS_REGISTER@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-vfs_unregister-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_VFS_UNREGISTER@
+  @GETTEROF_SQLITE_API_ROUTINES_VFS_UNREGISTER@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-xthreadsafe-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_XTHREADSAFE@
+  @GETTEROF_SQLITE_API_ROUTINES_XTHREADSAFE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_zeroblob-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_ZEROBLOB@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_ZEROBLOB@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-result_error_code-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RESULT_ERROR_CODE@
+  @GETTEROF_SQLITE_API_ROUTINES_RESULT_ERROR_CODE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-test_control-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_TEST_CONTROL@
+  @GETTEROF_SQLITE_API_ROUTINES_TEST_CONTROL@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-randomness-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_RANDOMNESS@
+  @GETTEROF_SQLITE_API_ROUTINES_RANDOMNESS@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-context_db_handle-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_CONTEXT_DB_HANDLE@
+  @GETTEROF_SQLITE_API_ROUTINES_CONTEXT_DB_HANDLE@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-extended_result_codes-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_EXTENDED_RESULT_CODES@
+  @GETTEROF_SQLITE_API_ROUTINES_EXTENDED_RESULT_CODES@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-limit-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_LIMIT@
+  @GETTEROF_SQLITE_API_ROUTINES_LIMIT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-next_stmt-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_NEXT_STMT@
+  @GETTEROF_SQLITE_API_ROUTINES_NEXT_STMT@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-sql-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_SQL@
+  @GETTEROF_SQLITE_API_ROUTINES_SQL@)
+
+(define-c-struct-accessor
+  sqlite3-api-routines-status-ref
+  @OFFSETOF_SQLITE_API_ROUTINES_STATUS@
+  @GETTEROF_SQLITE_API_ROUTINES_STATUS@)
 
 
 ;;;; done

@@ -25,7 +25,7 @@
 ;;;
 
 
-(library (foreign sqlite platform)
+(library (foreign databases sqlite platform)
   (export
 
 ;;;*FIXME* Some of the functions are commented out because:
@@ -255,11 +255,12 @@
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof)
-    (foreign sqlite sizeof)
-    (foreign sqlite shared-object))
+    (foreign databases sqlite sizeof)
+    (foreign databases sqlite shared-object))
 
-  (define dummy
-    (shared-object sqlite-shared-object))
+
+(define dummy
+  (shared-object sqlite-shared-object))
 
 
 ;;;; data type aliases
