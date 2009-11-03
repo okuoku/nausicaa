@@ -28,13 +28,8 @@
 (library (foreign databases sqlite platform)
   (export
 
-;;;*FIXME* Some of the functions are commented out because:
-;;;
-;;;(1) They are variadic functions.
-;;;
-;;;(2)  They are present  in SQLite  Amalgamation's header  file version
-;;;    3.6.19,  but then  do not  appear to  be exported  in  the shared
-;;;    library (at least with my default build).
+;;;Some of  the functions are  commented out because: they  are variadic
+;;;functions.
 
     ;; version functions
     sqlite3_libversion
@@ -84,7 +79,7 @@
     sqlite3_reset
     sqlite3_db_handle
     sqlite3_next_stmt
-;;;    sqlite3_table_column_metadata
+    sqlite3_table_column_metadata
 
     sqlite3_bind_parameter_count
     sqlite3_bind_parameter_name
@@ -94,12 +89,12 @@
     sqlite3_column_name
     sqlite3_column_name16
 
-;;;    sqlite3_column_database_name
-;;;    sqlite3_column_database_name16
-;;;    sqlite3_column_table_name
-;;;    sqlite3_column_table_name16
-;;;    sqlite3_column_origin_name
-;;;    sqlite3_column_origin_name16
+    sqlite3_column_database_name
+    sqlite3_column_database_name16
+    sqlite3_column_table_name
+    sqlite3_column_table_name16
+    sqlite3_column_origin_name
+    sqlite3_column_origin_name16
 
     sqlite3_column_decltype
     sqlite3_column_decltype16
@@ -213,8 +208,8 @@
     sqlite3_mutex_enter
     sqlite3_mutex_try
     sqlite3_mutex_leave
-;;;    sqlite3_mutex_held
-;;;    sqlite3_mutex_notheld
+    sqlite3_mutex_held
+    sqlite3_mutex_notheld
     sqlite3_db_mutex
 
     ;; online backup
@@ -230,8 +225,6 @@
     sqlite3_trace
     sqlite3_profile
     sqlite3_limit
-;;;    sqlite3_key
-;;;    sqlite3_rekey
     sqlite3_sleep
     sqlite3_update_hook
     sqlite3_enable_shared_cache
@@ -241,7 +234,7 @@
     sqlite3_status
     sqlite3_db_status
     sqlite3_stmt_status
-;;;    sqlite3_unlock_notify
+    sqlite3_unlock_notify
     sqlite3_strnicmp
 
     sqlite3_errcode
@@ -253,6 +246,7 @@
     sqlite3_vfs_register
     sqlite3_vfs_unregister)
   (import (rnrs)
+    (unimplemented)
     (foreign ffi)
     (foreign ffi sizeof)
     (foreign databases sqlite sizeof)
@@ -261,6 +255,16 @@
 
 (define dummy
   (shared-object sqlite-shared-object))
+
+(define-syntax define-c-function/feature
+  (syntax-rules ()
+    ((_ ?name ?feature (?ret-type ?foreign-name ?arg-types))
+     (define ?name
+       (if ?feature
+	   (make-c-function ?ret-type ?foreign-name ?arg-types)
+	 (lambda args
+	   (raise-unimplemented-error (quote ?foreign-name)
+				      "this feature is not available in the SQLite library")))))))
 
 
 ;;;; data type aliases
@@ -415,8 +419,8 @@
 (define-c-function sqlite3_next_stmt
   (sqlite3_stmt* sqlite3_next_stmt (sqlite3* sqlite3_stmt*)))
 
-;; (define-c-function sqlite3_table_column_metadata
-;;   (int sqlite3_table_column_metadata (sqlite3* char* char* char* char** char** int* int* int*)))
+(define-c-function/feature sqlite3_table_column_metadata SQLITE_ENABLE_COLUMN_METADATA
+  (int sqlite3_table_column_metadata (sqlite3* char* char* char* char** char** int* int* int*)))
 
 ;;; --------------------------------------------------------------------
 
@@ -443,23 +447,23 @@
 
 ;;; --------------------------------------------------------------------
 
-;; (define-c-function sqlite3_column_database_name
-;;   (char* sqlite3_column_database_name (sqlite3_stmt* int)))
+(define-c-function/feature sqlite3_column_database_name SQLITE_ENABLE_COLUMN_METADATA
+  (char* sqlite3_column_database_name (sqlite3_stmt* int)))
 
-;; (define-c-function sqlite3_column_database_name16
-;;   (void* sqlite3_column_database_name16 (sqlite3_stmt* int)))
+(define-c-function/feature sqlite3_column_database_name16 SQLITE_ENABLE_COLUMN_METADATA
+  (void* sqlite3_column_database_name16 (sqlite3_stmt* int)))
 
-;; (define-c-function sqlite3_column_table_name
-;;   (char* sqlite3_column_table_name (sqlite3_stmt* int)))
+(define-c-function/feature sqlite3_column_table_name SQLITE_ENABLE_COLUMN_METADATA
+  (char* sqlite3_column_table_name (sqlite3_stmt* int)))
 
-;; (define-c-function sqlite3_column_table_name16
-;;   (void* sqlite3_column_table_name16 (sqlite3_stmt* int)))
+(define-c-function/feature sqlite3_column_table_name16 SQLITE_ENABLE_COLUMN_METADATA
+  (void* sqlite3_column_table_name16 (sqlite3_stmt* int)))
 
-;; (define-c-function sqlite3_column_origin_name
-;;   (char* sqlite3_column_origin_name (sqlite3_stmt* int)))
+(define-c-function/feature sqlite3_column_origin_name SQLITE_ENABLE_COLUMN_METADATA
+  (char* sqlite3_column_origin_name (sqlite3_stmt* int)))
 
-;; (define-c-function sqlite3_column_origin_name16
-;;   (void* sqlite3_column_origin_name16 (sqlite3_stmt* int)))
+(define-c-function/feature sqlite3_column_origin_name16 SQLITE_ENABLE_COLUMN_METADATA
+  (void* sqlite3_column_origin_name16 (sqlite3_stmt* int)))
 
 ;;; --------------------------------------------------------------------
 
@@ -771,11 +775,11 @@
 (define-c-function sqlite3_mutex_leave
   (void sqlite3_mutex_leave (sqlite3_mutex*)))
 
-;; (define-c-function sqlite3_mutex_held
-;;   (int sqlite3_mutex_held (sqlite3_mutex*)))
+(define-c-function/feature sqlite3_mutex_held SQLITE_DEBUG
+  (int sqlite3_mutex_held (sqlite3_mutex*)))
 
-;; (define-c-function sqlite3_mutex_notheld
-;;   (int sqlite3_mutex_notheld (sqlite3_mutex*)))
+(define-c-function/feature sqlite3_mutex_notheld SQLITE_DEBUG
+  (int sqlite3_mutex_notheld (sqlite3_mutex*)))
 
 ;;; --------------------------------------------------------------------
 
@@ -819,12 +823,6 @@
 (define-c-function sqlite3_limit
   (int sqlite3_limit (sqlite3* int int)))
 
-;; (define-c-function sqlite3_key
-;;   (int sqlite3_key (sqlite3* void* int)))
-
-;; (define-c-function sqlite3_rekey
-;;   (int sqlite3_rekey (sqlite3* void* int)))
-
 (define-c-function sqlite3_sleep
   (int sqlite3_sleep (int)))
 
@@ -840,7 +838,7 @@
 (define-c-function sqlite3_file_control
   (int sqlite3_file_control (sqlite3* char* int void*)))
 
-;;;This is a variadic function.
+;;;This is a variadic function and not for public use.
 ;;
 ;; (define-c-function sqlite3_test_control
 ;;   (int sqlite3_test_control (int ...)))
@@ -854,8 +852,8 @@
 (define-c-function sqlite3_stmt_status
   (int sqlite3_stmt_status (sqlite3_stmt* int int)))
 
-;; (define-c-function sqlite3_unlock_notify
-;;   (int sqlite3_unlock_notify (sqlite3* callback void*)))
+(define-c-function/feature sqlite3_unlock_notify SQLITE_ENABLE_UNLOCK_NOTIFY
+  (int sqlite3_unlock_notify (sqlite3* callback void*)))
 
 (define-c-function sqlite3_strnicmp
   (int sqlite3_strnicmp (char* char* int)))
