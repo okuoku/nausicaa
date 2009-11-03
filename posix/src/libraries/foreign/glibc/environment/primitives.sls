@@ -26,32 +26,46 @@
 
 
 (library (foreign glibc environment primitives)
-  (export unsetenv clearenv)
+  (export
+    unsetenv putenv putenv*
+    (rename (platform:clearenv		clearenv)))
   (import (rnrs)
     (receive)
+    (only (compensations)
+	  with-compensations)
+    (only (foreign cstrings)
+	  string->cstring/c
+	  string->cstring)
+    (only (strings)
+	  string-index)
+    (only (foreign ffi peekers-and-pokers)
+	  pointer-set-c-signed-char!)
     (only (foreign errno)
 	  raise-errno-error)
     (prefix (foreign glibc environment platform)
 	    platform:)
-    (only (foreign posix marshaling)
-	  with-marshaling
-	  marshal-string->cstring))
-
-  (define (clearenv)
-    (with-marshaling
-      (receive (result errno)
-	  (platform:clearenv)
-	(if (= 0 result)
-	    result
-	  (raise-errno-error 'clearenv result)))))
+    (only (foreign posix memory)
+	  malloc))
 
   (define (unsetenv name)
-    (with-marshaling
-      (receive (result errno)
-	  (platform:unsetenv (marshal-string->cstring name))
-	(if (= 0 result)
-	    result
-	  (raise-errno-error 'unsetenv result)))))
+    (with-compensations
+      (platform:unsetenv (string->cstring/c name))))
+
+  (define (%normalise s)
+    (if (symbol? s)
+	(symbol->string s)
+      s))
+
+  (define (putenv assignment)
+    (let ((s (%normalise assignment)))
+      (if (string-index s #\=)
+	  (platform:putenv (string->cstring s malloc))
+	(assertion-violation 'putenv
+	  "missing equal sign in process' environment variable assignment"
+	  assignment))))
+
+  (define (putenv* name value)
+    (putenv (string-append (%normalise name) "=" (%normalise value))))
 
   )
 

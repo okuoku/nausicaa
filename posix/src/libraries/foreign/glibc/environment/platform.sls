@@ -26,21 +26,22 @@
 
 
 (library (foreign glibc environment platform)
-  (export unsetenv clearenv)
+  (export unsetenv clearenv putenv)
   (import (rnrs)
     (only (foreign ffi)
 	  shared-object		self-shared-object
-	  define-c-function/with-errno))
+	  define-c-function))
 
   (define dummy
     (shared-object self-shared-object))
 
-  (define-c-function/with-errno clearenv
+  (define-c-function clearenv
     (int clearenv (void)))
 
-  (define-c-function/with-errno unsetenv
+  (define-c-function unsetenv
     (int unsetenv (char*)))
 
-  )
+  (define-c-function putenv
+    (int putenv (char*))))
 
 ;;; end of file

@@ -25,26 +25,13 @@
 
 
 (library (foreign glibc environment)
-  (export
-    unsetenv clearenv)
+  (export unsetenv clearenv putenv putenv*)
   (import (rnrs)
-    (prefix (foreign glibc environment primitives)
-	    primitive:)
+    (foreign glibc environment primitives)
     (only (foreign posix helpers)
 	  define-primitive-parameter)
     (only (foreign ffi)
 	  shared-object		self-shared-object
-	  define-c-function))
-
-  (define-primitive-parameter unsetenv-function primitive:unsetenv)
-  (define-primitive-parameter clearenv-function primitive:clearenv)
-
-  (define (unsetenv name)
-    ((unsetenv-function) name))
-
-  (define (clearenv)
-    ((clearenv-function)))
-
-  )
+	  define-c-function)))
 
 ;;; end of file

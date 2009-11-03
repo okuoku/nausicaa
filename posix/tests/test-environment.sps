@@ -101,6 +101,32 @@
 	(getenv 'CIAO))
     => #f)
 
+  #t)
+
+
+(parametrise ((check-test-name 'clear))
+
+  (check
+      (begin
+	(clearenv)
+	(putenv* 'CIAO "ciao")
+	(getenv 'CIAO))
+    => "ciao")
+
+  (check
+      (begin
+	(clearenv)
+	(putenv "CIAO=ciao")
+	(getenv 'CIAO))
+    => "ciao")
+
+  (check
+      (guard (E ((assertion-violation? E)
+		 #t)
+		(else (condition-message E)))
+	(putenv 'CIAO "ciao"))
+    => #t)
+
 
   #t)
 

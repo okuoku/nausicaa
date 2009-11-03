@@ -28,37 +28,33 @@
 (library (foreign posix environment primitives)
   (export setenv getenv environ)
   (import (rnrs)
+    (only (compensations)
+	  with-compensations)
     (prefix (foreign posix environment platform)
 	    platform:)
     (only (foreign ffi pointers)
 	  pointer-null?)
     (foreign cstrings)
-    (foreign ffi)
-    (only (foreign posix marshaling)
-	  with-marshaling
-	  marshal-cstring->string
-	  marshal-string->cstring
-	  marshal-argv->strings))
+    (foreign ffi))
 
   (define setenv
     (case-lambda
      ((varname newvalue)
       (setenv varname newvalue #t))
      ((varname newvalue replace)
-      (with-marshaling
-	(platform:setenv (marshal-string->cstring varname)
-			 (marshal-string->cstring newvalue)
+      (with-compensations
+	(platform:setenv (string->cstring varname)
+			 (string->cstring newvalue)
 			 (if replace 1 0))))))
 
   (define (getenv varname)
-    (with-marshaling
-      (let ((p (platform:getenv (marshal-string->cstring varname))))
+    (with-compensations
+      (let ((p (platform:getenv (string->cstring varname))))
 	(if (pointer-null? p)
 	    #f
-	  (marshal-cstring->string p)))))
+	  (cstring->string p)))))
 
   (define (environ)
-    (with-marshaling
-      (marshal-argv->strings (platform:environ)))))
+    (argv->strings (platform:environ))))
 
 ;;; end of file

@@ -600,8 +600,6 @@ Users and groups
 @menu
 * posix intro::                 Introduction.
 * posix api::                   Interface organisation.
-* posix memory::                Memory management.
-* posix marshaling::            Marshaling arguments and return values.
 * posix environment::           Environment variables.
 @end menu
 
@@ -637,14 +635,14 @@ import these libraries by prefixing the identifiers; for example:
 @itemx foreign linux --- primitives
 The middle--level interface; does marshaling of arguments and return
 values.  In this documentation, all the bindings from these libraries
-are prefixed with @samp{primitive-}, but they are exported
+are prefixed with @samp{primitive:}, but they are exported
 @strong{without} this prefix.
 
 @item foreign posix --- platform
 @itemx foreign glibc --- platform
 @itemx foreign linux --- platform
 The low--level interface: Faster but raw.  In this documentation, all
-the bindings from these libraries are prefixed with @samp{platform-},
+the bindings from these libraries are prefixed with @samp{platform:},
 but they are exported @strong{without} this prefix.
 @end table
 
@@ -660,20 +658,20 @@ function @func{x}:
 
 @deffn Function x @var{arg} ...
 @deffnx Parameter x-function
-@deffnx Function primitive-x @var{arg} ...
-@deffnx Function platform-x @var{c-arg} ...
+@deffnx Function primitive:x @var{arg} ...
+@deffnx Function platform:x @var{c-arg} ...
 This is an interface for the @cfunc{x} foreign function.
 
-@func{x} and @func{primitive-x} do something with the arguments, which
+@func{x} and @func{primitive:x} do something with the arguments, which
 are regular Scheme values.  If successful they return values
 representing the result; in case of error they raise an @samp{&errno}
 condition.
 
 @func{x} does the job by applying to the arguments the current value of
 the @func{x-function} parameter, which must be a function.  The
-parameter is initialised to @func{primitive-x}.
+parameter is initialised to @func{primitive:x}.
 
-@func{platform-x} is the direct wrapper for the foreign function.  It
+@func{platform:x} is the direct wrapper for the foreign function.  It
 accepts C language level arguments (like C strings), and returns 2
 values: the return value from the foreign function call and the value of
 @samp{errno} right after the call.
@@ -692,20 +690,20 @@ This interface gives us 3 choices:
 
 @enumerate
 @item
-To call directly the foreign function using the @func{platform-x}
+To call directly the foreign function using the @func{platform:x}
 wrapper; in this case we are responsible to convert the Scheme arguments
 to the appropriate C language level values (beware to non--garbage
 collected values!).
 
 @item
-To call the Scheme adapter @func{primitive-x}; this gives us: automatic
+To call the Scheme adapter @func{primitive:x}; this gives us: automatic
 conversion of arguments, exceptions in case of errors, automatic
 retrying in case the foreign function call is interrupted by an
 @samp{EINTR} signal.
 
 @item
 To call the high--level, parameterised, @func{x} interface; this gives
-us everything @func{primitive-x} does and additionally allows us to
+us everything @func{primitive:x} does and additionally allows us to
 replace the primitive function with a version that returns controlled
 values, or raises an error, and/or logs the operation.  This feature can
 be used to test Scheme code execution paths that handle exceptions.
@@ -718,113 +716,11 @@ Example of usage of failing primitive fork function:
 (define (fake-fork)
   (raise-errno-error 'fork EINVAL))
 
-(parametrise ((primitive-fork-function fake-fork))
+(parametrise ((primitive:fork-function fake-fork))
   ---
   (fork)
   ---)
 @end example
-
-@c page
-@node posix memory
-@section Memory management
-
-
-The @library{foreign posix memory} library provides an @api{} to
-allocate and release memory for the Nausicaa/POSIX libraries.  It is
-built upon the following Nausicaa/Scheme libraries:
-
-@example
-(foreign ffi memory)
-@end example
-
-@noindent
-but it is designed in such a way that we can replace it with our own
-library at package installation time.
-
-All the following functions must raise an exception if the operation
-fails.
-
-
-@defun malloc @var{number-of-bytes}
-Allocate a block of memory @var{number-of-bytes} wide and return a
-pointer to it.
-@end defun
-
-
-@defun calloc @var{count} @var{element-size}
-Allocate a block of wide enough to hold @var{count} elements each of
-@var{element-size}, return a pointer to it.  All the bytes in the block
-are reset to zero.
-@end defun
-
-
-@defun realloc @var{pointer} @var{new-number-of-bytes}
-Reallocate the memory block referenced by @var{pointer} to be
-@var{new-number-of-bytes} wide and return a pointer to it.
-@end defun
-
-
-@defun free @var{pointer}
-Release a block of memory allocated with @func{malloc}, @func{calloc} or
-@func{realloc}.
-@end defun
-
-
-@c page
-@node posix marshaling
-@section Marshaling arguments and return values
-
-
-The @library{foreign posix marshaling} library provides an @api{} for
-marshaling between C language arguments and return values and Scheme
-objects.  It is built upon the following Nausicaa/Scheme libraries:
-
-@example
-(parameters)
-(compensations)
-(deferred-exceptions)
-(foreign ffi cstrings)
-@end example
-
-@noindent
-but it is designed in such a way that we can replace it with our own
-library at package installation time.  Notice that it is @strong{not}
-mandatory for this library to make use of @library{foreign posix
-memory}.  @ref{posix memory, Memory management}
-
-
-@deffn Syntax with-marshaling @ameta{body}
-Enclose a section of code in which marshaling will be performed.  All
-the functions exported by @library{foreign posix marshaling} must be
-invoked in a @meta{body}.
-
-This macro takes care of tracking the resources allocated to marshal
-values and to release them upon exiting the @meta{body}, whether via a
-normal exit or an exception invocation.
-@end deffn
-
-@c ------------------------------------------------------------
-
-@subsubheading C language strings
-
-
-@defun marshal-string->cstring @var{str}
-Convert a Scheme string to an @acronym{UTF8}--coded, zero--terminated, C
-language string.  Return the pointer to the string.
-@end defun
-
-
-@defun marshal-cstring->string @var{cstr}
-Convert an @acronym{UTF8}--coded, zero--terminated, C language string to
-a Scheme string object.  Return the Scheme object.
-@end defun
-
-
-@defun marshal-argv->strings @var{argv}
-Convert the null--terminated array of strings referenced by the
-@var{argv} pointer to a list of Scheme strings.  @nauref{cstrings argv,
-Converting arrays of strings}
-@end defun
 
 @c page
 @node posix environment
@@ -847,8 +743,8 @@ environment, Accessing environment variables}
 
 @deffn Function getenv @var{varname}
 @deffnx Parameter getenv-function
-@deffnx Function primitive-getenv @var{varname}
-@deffnx Function platform-getenv @var{varname-cstr}
+@deffnx Function primitive:getenv @var{varname}
+@deffnx Function platform:getenv @var{varname-cstr}
 Return the current value of the environment variable @var{varname}, as a
 Scheme string.  @var{varname} must be a Scheme string or symbol.  If the
 variable is not set, the return value if @false{}; if the variable is
@@ -859,9 +755,9 @@ set to the empty string, the return value is the empty string.
 @deffn Function setenv @var{varname} @var{value}
 @deffnx Function setenv @var{varname} @var{value} @var{replace}
 @deffnx Parameter setenv-function
-@deffnx Function primitive-setenv @var{varname} @var{value}
-@deffnx Function primitive-setenv @var{varname} @var{value} @var{replace}
-@deffnx Function platform-setenv @var{varname} @var{value} @var{replace}
+@deffnx Function primitive:setenv @var{varname} @var{value}
+@deffnx Function primitive:setenv @var{varname} @var{value} @var{replace}
+@deffnx Function platform:setenv @var{varname} @var{value} @var{replace}
 Set a new value for the environment variable @var{varname}.
 @var{varname} and @var{value} must be Scheme strings or symbols.  If the
 environment already contains @var{varname}, then @var{replace} controls
@@ -871,14 +767,14 @@ the action: if true the value is replaced, if @false{} it is left alone.
 
 @deffn Function environ
 @deffnx Parameter environ-function
-@deffnx Function primitive-environ
-@deffnx Function platform-environ
+@deffnx Function primitive:environ
+@deffnx Function platform:environ
 Direct access to the process' environment variables.  @func{environ} and
-@func{primitive-environ} return a list of strings, each of the form
+@func{primitive:environ} return a list of strings, each of the form
 @samp{NAME=VALUE} where @samp{NAME} is the name of an environment
 variable and @samp{VALUE} its value.
 
-@func{platform-environ} returns a pointer to an array of pointers, each
+@func{platform:environ} returns a pointer to an array of pointers, each
 referencing a C string with the format @samp{NAME=VALUE}.  The pointer
 is suitable to be used as argument to @func{marshal-argv->strings}
 (@pxref{posix marshaling}) and @func{arg->strings} (@nauref{cstrings
@@ -899,21 +795,55 @@ symbols representing the environment variables' values.
 Convert between a list of strings in ``environ'' format and a hashtable.
 @end defun
 
+@c ------------------------------------------------------------
 
-@defun clearenv
+@subsubheading @gnu{} C library functions
+
+The following bindings are exported by the libraries:
+
+@example
+(foreign glibc environment)
+(foreign glibc environment primitives)
+(foreign glibc environment platform)
+@end example
+
+
+@deffn Function clearenv
+@deffnx Function primitive:clearenv
+@deffnx Function platform:clearenv
 Remove all the entries from the process' environment.
-
-This binding is exported by the @library{glibc environment} library.
-@end defun
+@end deffn
 
 
 @deffn Function unsetenv @var{varname}
-@deffnx Parameter unsetenv-function
-@deffn Function primitive-unsetenv @var{varname}
-@deffn Function platform-unsetenv @var{varname-cstr}
+@deffnx Function primitive:unsetenv @var{varname}
+@deffnx Function platform:unsetenv @var{varname-cstr}
 Remove the entry for @var{varname} from the environment.  @var{varname}
 must be a Scheme string or symbol.
 @end deffn
+
+
+@deffn Function putenv @var{assignment}
+@deffnx Function primitive:putenv @var{assignment}
+@deffnx Function platform:putenv @var{assignment-cstr}
+Put the variable assignment described by the Scheme string or symbol
+@var{assignment} in the environment.  @var{assignment} must have the
+format @samp{NAME=VALUE}.
+
+Every time this function is used, an amount of memory equal to the
+length of the string is leaked, as it is used as member of the
+@code{environ} array.
+@end deffn
+
+
+@defun putenv* @var{name} @var{value}
+@defunx primitive:putenv* @var{name} @var{value}
+Append the Scheme strings or symbols @var{name} and @var{value} to form
+a single strings with @samp{=} in the middle; then put the resulting
+variable assignment in the environment.
+
+See the note about memory handling for @func{putenv}.
+@end defun
 
 @c page
 @node file
