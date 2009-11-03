@@ -1,8 +1,8 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: marshaling between C language values and Scheme values
-;;;Date: Sun Oct 18, 2009
+;;;Contents: marshaling wrappers for environment variables
+;;;Date: Tue Nov  3, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -25,25 +25,33 @@
 ;;;
 
 
-(library (foreign posix marshaling)
-  (export
-    with-marshaling
-    (rename (string->cstring/c	marshal-string->cstring)
-	    (cstring->string	marshal-cstring->string)
-	    (argv->strings	marshal-argv->strings)
-	    ))
+(library (foreign glibc environment primitives)
+  (export unsetenv clearenv)
   (import (rnrs)
-    (only (compensations)
-	  with-compensations)
-    (only (foreign cstrings)
-	  string->cstring/c
-	  cstring->string
-	  argv->strings))
+    (receive)
+    (only (foreign errno)
+	  raise-errno-error)
+    (prefix (foreign glibc environment platform)
+	    platform:)
+    (only (foreign posix marshaling)
+	  with-marshaling
+	  marshal-string->cstring))
 
-  (define-syntax with-marshaling
-    (syntax-rules ()
-      ((_ ?arg ...)
-       (with-compensations ?arg ...))))
+  (define (clearenv)
+    (with-marshaling
+      (receive (result errno)
+	  (platform:clearenv)
+	(if (= 0 result)
+	    result
+	  (raise-errno-error 'clearenv result)))))
+
+  (define (unsetenv name)
+    (with-marshaling
+      (receive (result errno)
+	  (platform:unsetenv (marshal-string->cstring name))
+	(if (= 0 result)
+	    result
+	  (raise-errno-error 'unsetenv result)))))
 
   )
 

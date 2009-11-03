@@ -1,14 +1,13 @@
-;;; -*- coding: utf-8-unix -*-
 ;;;
-;;;Part of: Nausicaa/POSIX
-;;;Contents: marshaling between C language values and Scheme values
-;;;Date: Sun Oct 18, 2009
+;;;Part of: Nausicaa/Glibc
+;;;Contents: environment functions
+;;;Date: Sun Nov 30, 2008
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,25 +24,26 @@
 ;;;
 
 
-(library (foreign posix marshaling)
+(library (foreign glibc environment)
   (export
-    with-marshaling
-    (rename (string->cstring/c	marshal-string->cstring)
-	    (cstring->string	marshal-cstring->string)
-	    (argv->strings	marshal-argv->strings)
-	    ))
+    unsetenv clearenv)
   (import (rnrs)
-    (only (compensations)
-	  with-compensations)
-    (only (foreign cstrings)
-	  string->cstring/c
-	  cstring->string
-	  argv->strings))
+    (prefix (foreign glibc environment primitives)
+	    primitive:)
+    (only (foreign posix helpers)
+	  define-primitive-parameter)
+    (only (foreign ffi)
+	  shared-object		self-shared-object
+	  define-c-function))
 
-  (define-syntax with-marshaling
-    (syntax-rules ()
-      ((_ ?arg ...)
-       (with-compensations ?arg ...))))
+  (define-primitive-parameter unsetenv-function primitive:unsetenv)
+  (define-primitive-parameter clearenv-function primitive:clearenv)
+
+  (define (unsetenv name)
+    ((unsetenv-function) name))
+
+  (define (clearenv)
+    ((clearenv-function)))
 
   )
 

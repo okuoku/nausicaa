@@ -1,8 +1,7 @@
-;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: marshaling between C language values and Scheme values
-;;;Date: Sun Oct 18, 2009
+;;;Contents: compile script for Mosh Scheme
+;;;Date: Tue Nov  3, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -24,27 +23,14 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
-(library (foreign posix marshaling)
-  (export
-    with-marshaling
-    (rename (string->cstring/c	marshal-string->cstring)
-	    (cstring->string	marshal-cstring->string)
-	    (argv->strings	marshal-argv->strings)
-	    ))
-  (import (rnrs)
-    (only (compensations)
-	  with-compensations)
-    (only (foreign cstrings)
-	  string->cstring/c
-	  cstring->string
-	  argv->strings))
-
-  (define-syntax with-marshaling
-    (syntax-rules ()
-      ((_ ?arg ...)
-       (with-compensations ?arg ...))))
-
-  )
+(import
+  (only (foreign posix environment))
+  (only (foreign posix time))
+  (only (foreign posix file))
+  (only (foreign posix file stat))
+  (only (foreign posix fd))
+  (only (foreign posix job))
+  (only (foreign posix process))
+  (only (foreign posix process stub)))
 
 ;;; end of file

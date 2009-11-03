@@ -37,6 +37,8 @@ $(eval $(call nau-libraries,posix_process,foreign/posix/process))
 $(eval $(call nau-libraries,posix_time,foreign/posix/time))
 $(eval $(call nau-libraries,posix_users,foreign/posix/users))
 
+$(eval $(call nau-libraries,glibc,foreign/glibc))
+
 
 ### end of file
 # Local Variables:

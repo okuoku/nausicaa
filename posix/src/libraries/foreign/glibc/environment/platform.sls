@@ -1,14 +1,14 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
-;;;Part of: Nausicaa/Glibc
-;;;Contents: environment functions
-;;;Date: Sun Nov 30, 2008
-;;;Time-stamp: <2008-12-16 10:00:28 marco>
+;;;Part of: Nausicaa/POSIX
+;;;Contents: direct wrappers for environment variables
+;;;Date: Tue Nov  3, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,14 +24,23 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(library (glibc environment)
-  (export
-    clearenv)
-  (import (r6rs)
-    (uriel ffi))
+
+(library (foreign glibc environment platform)
+  (export unsetenv clearenv)
+  (import (rnrs)
+    (only (foreign ffi)
+	  shared-object		self-shared-object
+	  define-c-function/with-errno))
 
-  ;;Look for other functions in the "(posix)" library!!!
-  (define-c-function clearenv
-    (int clearenv (void))))
+  (define dummy
+    (shared-object self-shared-object))
+
+  (define-c-function/with-errno clearenv
+    (int clearenv (void)))
+
+  (define-c-function/with-errno unsetenv
+    (int unsetenv (char*)))
+
+  )
 
 ;;; end of file

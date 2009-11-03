@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: compile script
+;;;Contents: compile script for Ikarus Scheme
 ;;;Date: Wed Dec 31, 2008
 ;;;
 ;;;Abstract

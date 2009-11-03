@@ -25,38 +25,66 @@
 
 
 (library (foreign posix environment)
-  (export getenv setenv)
+  (export
+    getenv setenv environ
+    environ-table environ->table table->environ)
   (import (rnrs)
+    (begin0)
+    (only (strings)
+	  string-index)
     (only (foreign posix helpers)
 	  define-primitive-parameter)
-    (foreign posix environment primitives))
+    (prefix (foreign posix environment primitives)
+	    primitive:))
 
-  (define-primitive-parameter setenv-function primitive-setenv)
+
+(define-primitive-parameter setenv-function primitive:setenv)
+(define-primitive-parameter getenv-function primitive:getenv)
+(define-primitive-parameter environ-function primitive:environ)
 
-  (define-primitive-parameter getenv-function primitive-getenv)
+(define setenv
+  (case-lambda
+   ((varname newvalue)
+    (setenv varname newvalue #t))
+   ((varname newvalue replace)
+    ((setenv-function) varname newvalue replace))))
 
-  (define setenv
-    (case-lambda
-     ((varname newvalue)
-      (setenv varname newvalue #t))
-     ((varname newvalue replace)
-      ((setenv-function) varname newvalue replace))))
+(define (getenv varname)
+  ((getenv-function) varname))
 
-  (define (getenv varname)
-    ((getenv-function) varname))
+(define (environ)
+  ((environ-function)))
 
-;;;To use  "unsetenv()" the  memory block must  be persistent  (read the
-;;;documentation of the  GNU C library).  This is not  a good thing with
-;;;garbage collection.
-  ;;
-  ;; (define-c-function unsetenv-stub
-  ;;
-  ;;   (int unsetenv (char*)))
-  ;;
-  ;; (define (unsetenv varname)
-  ;;   (with-compensations
-  ;;     (unsetenv-stub (string->cstring/c varname))))
+(define (environ-table)
+  (environ->table (environ)))
 
-  )
+(define (environ->table environ)
+  (begin0-let ((table (make-eq-hashtable)))
+    (for-each (lambda (str)
+		(let ((idx (string-index str #\=)))
+		  (hashtable-set! table
+				  (string->symbol (substring str 0 idx))
+				  (substring str (+ 1 idx) (string-length str)))))
+      environ)))
+
+(define (table->environ table)
+  (let-values (((names values) (hashtable-entries table)))
+    (let ((len (vector-length names))
+	  (environ '()))
+      (do ((i 0 (+ 1 i)))
+	  ((= i len)
+	   environ)
+	(set! environ (cons (string-append (let ((n (vector-ref names i)))
+					     (if (string? n)
+						 n
+					       (symbol->string n)))
+					   "="
+					   (vector-ref values i))
+			    environ))))))
+
+
+;;;; done
+
+)
 
 ;;; end of file

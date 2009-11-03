@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: interface to platform functions for access to environment variables
+;;;Contents: direct wrappers for environment variables functions
 ;;;Date: Thu Jan  1, 2009
 ;;;
 ;;;Abstract
@@ -24,20 +24,26 @@
 ;;;
 
 
-#!r6rs
 (library (foreign posix environment platform)
-  (export platform-getenv platform-setenv)
+  (export getenv setenv environ)
   (import (rnrs)
-    (foreign ffi)
-    (foreign posix sizeof))
+    (only (foreign ffi)
+	  shared-object		lookup-shared-object*
+	  self-shared-object
+	  define-c-function)
+    (only (foreign ffi peekers-and-pokers)
+	  pointer-ref-c-pointer))
 
   (define dummy
     (shared-object self-shared-object))
 
-  (define-c-function platform-setenv
+  (define-c-function setenv
     (int setenv (char* char* int)))
 
-  (define-c-function platform-getenv
-    (char* getenv (char*))))
+  (define-c-function getenv
+    (char* getenv (char*)))
+
+  (define (environ)
+    (pointer-ref-c-pointer (lookup-shared-object* self-shared-object "__environ") 0)))
 
 ;;; end of file

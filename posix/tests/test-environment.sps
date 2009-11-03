@@ -26,13 +26,24 @@
 
 (import (nausicaa)
   (checks)
-  (foreign posix environment))
+  (foreign posix environment)
+  (foreign glibc environment))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX generic\n")
 
 
-(parametrise ((check-test-name 'env))
+(parametrise ((check-test-name 'setget))
+
+  (check
+      (getenv 'CIAO-CIAO-CIAO-MARE)
+    => #f)
+
+  (check
+      (let ()
+	(setenv 'CIAO "" #t)
+	(getenv 'CIAO))
+    => "")
 
   (check
       (let ()
@@ -53,6 +64,43 @@
 	(setenv 'SALUT 'fusilli #f)
 	(getenv 'SALUT))
     => "fusilli")
+
+  #t)
+
+
+(parametrise ((check-test-name 'environ))
+
+;;;  (pretty-print (environ))
+;;;  (pretty-print (hashtable-keys (environ-table)))(newline)
+
+  (check
+      (let ((table (environ-table)))
+	(hashtable-contains? table 'PATH))
+    => #t)
+
+  (check
+      (hashtable-contains? (environ->table (table->environ (environ->table (environ)))) 'PATH)
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name 'clear))
+
+  (check
+      (begin
+	(setenv 'CIAO "ciao" #t)
+	(unsetenv 'CIAO)
+	(getenv 'CIAO))
+    => #f)
+
+  (check
+      (begin
+	(setenv 'CIAO "ciao" #t)
+	(clearenv)
+	(getenv 'CIAO))
+    => #f)
+
 
   #t)
 

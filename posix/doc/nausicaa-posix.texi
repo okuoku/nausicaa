@@ -367,7 +367,7 @@ Revised^6 Report on the algorithmic language Scheme
 @ref{\NODE\,\TITLE\,\TITLE\,ikarus}
 @end macro
 
-@macro naulibref{NODE, TITLE}
+@macro nauref{NODE, TITLE}
 @ref{\NODE\,\TITLE\,\TITLE\,nausicaa}
 @end macro
 
@@ -614,10 +614,8 @@ This chapter describes an interface to the @posix{} system functions
 offered by the underlying platform.  Additionally an interface to the
 @gnu{} C Library and some Linux--specific functions is provided.
 
-This subsystem is heavily dependent on the libraries of the
-Nausicaa/Scheme project; additionally, some libraries depend upon the C
-language library @samp{libnausicaa-posix} from the Nausicaa/Stubs
-package.
+Some libraries depend upon the C language library
+@samp{libnausicaa-posix} from the Nausicaa/Stubs package.
 
 Unless otherwise specified, for each set of features there are three
 libraries:
@@ -626,19 +624,28 @@ libraries:
 @item foreign posix ---
 @itemx foreign glibc ---
 @itemx foreign linux ---
-The high level interface, user friendly and slow.
+The high--level interface: slower but user friendly.  We should really
+import these libraries by prefixing the identifiers; for example:
 
-@item foreign posix --- primitive
-@itemx foreign glibc --- primitive
-@itemx foreign linux --- primitive
-The middle level interface; does marshaling of arguments and return
-values.  It exports the @samp{primitive-} bindings.
+@example
+(import (rnrs)
+  (prefix (foreign posix fd) posix:))
+@end example
+
+@item foreign posix --- primitives
+@itemx foreign glibc --- primitives
+@itemx foreign linux --- primitives
+The middle--level interface; does marshaling of arguments and return
+values.  In this documentation, all the bindings from these libraries
+are prefixed with @samp{primitive-}, but they are exported
+@strong{without} this prefix.
 
 @item foreign posix --- platform
 @itemx foreign glibc --- platform
 @itemx foreign linux --- platform
-The low level interface: Fast but raw @api{}.  It exports the
-@samp{platform-} bindings.
+The low--level interface: Faster but raw.  In this documentation, all
+the bindings from these libraries are prefixed with @samp{platform-},
+but they are exported @strong{without} this prefix.
 @end table
 
 @c page
@@ -663,17 +670,18 @@ representing the result; in case of error they raise an @samp{&errno}
 condition.
 
 @func{x} does the job by applying to the arguments the current value of
-the @func{primitive-x-function} parameter, which must be a function.
-The parameter is initialised to @func{primitive-x}.
+the @func{x-function} parameter, which must be a function.  The
+parameter is initialised to @func{primitive-x}.
 
-@func{platform-x} is the wrapper for the foreign function.  It accepts C
-language level arguments (like C strings), and returns 2 values: the
-return value from the foreign function call and the value of
+@func{platform-x} is the direct wrapper for the foreign function.  It
+accepts C language level arguments (like C strings), and returns 2
+values: the return value from the foreign function call and the value of
 @samp{errno} right after the call.
 
-Notice that the value of @samp{errno} is meaningful only if the return
-value from the foreign function call indicates an error; @samp{errno}
-may be non--zero even if the function call was successful.
+Notice that, for almost all the functions, the value of @samp{errno} is
+meaningful only if the return value from the foreign function call
+indicates an error; @samp{errno} may be non--zero even if the function
+call was successful.
 
 For the meaning of the C level arguments we have to read the foreign
 function's original documentation.
@@ -696,11 +704,11 @@ retrying in case the foreign function call is interrupted by an
 @samp{EINTR} signal.
 
 @item
-To call the high level, parameterised, @func{x} interface; this gives us
-everything @func{primitive-x} does and additionally allows us to replace
-the primitive function with a version that returns controlled values, or
-raises an error, and/or logs the operation.  This feature can be used to
-test Scheme code execution paths that handle exceptions.
+To call the high--level, parameterised, @func{x} interface; this gives
+us everything @func{primitive-x} does and additionally allows us to
+replace the primitive function with a version that returns controlled
+values, or raises an error, and/or logs the operation.  This feature can
+be used to test Scheme code execution paths that handle exceptions.
 @end enumerate
 
 
@@ -800,15 +808,22 @@ normal exit or an exception invocation.
 @subsubheading C language strings
 
 
-@defun string->cstring @var{str}
-Convert a Scheme string to an @ascii{}--coded, zero--terminated, C
+@defun marshal-string->cstring @var{str}
+Convert a Scheme string to an @acronym{UTF8}--coded, zero--terminated, C
 language string.  Return the pointer to the string.
 @end defun
 
 
-@defun cstring->string @var{cstr}
-Convert an @ascii{}--coded, zero--terminated, C language string to a
-Scheme string object.  Return the Scheme object.
+@defun marshal-cstring->string @var{cstr}
+Convert an @acronym{UTF8}--coded, zero--terminated, C language string to
+a Scheme string object.  Return the Scheme object.
+@end defun
+
+
+@defun marshal-argv->strings @var{argv}
+Convert the null--terminated array of strings referenced by the
+@var{argv} pointer to a list of Scheme strings.  @nauref{cstrings argv,
+Converting arrays of strings}
 @end defun
 
 @c page
@@ -816,24 +831,24 @@ Scheme string object.  Return the Scheme object.
 @section Environment variables
 
 
-The following bindings are exported by the libraries:
+Unless otherwise specified, the following bindings are exported by the
+libraries:
 
 @example
 (foreign posix environment)
-(foreign posix environment primitive)
+(foreign posix environment primitives)
 (foreign posix environment platform)
 @end example
 
-
-@glibcref{Environment Access,Environment Access}
-
-@naulibref{naulib environment, Accessing environment variables}
+@noindent
+@glibcref{Environment Access,Environment Access} @nauref{naulib
+environment, Accessing environment variables}
 
 
 @deffn Function getenv @var{varname}
-@deffnx Parameter getenv-function @var{varname}
+@deffnx Parameter getenv-function
 @deffnx Function primitive-getenv @var{varname}
-@deffnx Function platform-getenv @var{varname}
+@deffnx Function platform-getenv @var{varname-cstr}
 Return the current value of the environment variable @var{varname}, as a
 Scheme string.  @var{varname} must be a Scheme string or symbol.  If the
 variable is not set, the return value if @false{}; if the variable is
@@ -854,10 +869,51 @@ the action: if true the value is replaced, if @false{} it is left alone.
 @end deffn
 
 
-@c @deffn unsetenv @var{varname}
-@c Remove the entry for @var{varname} from the environment.  @var{varname}
-@c must be a string or symbol.
-@c @end deffn
+@deffn Function environ
+@deffnx Parameter environ-function
+@deffnx Function primitive-environ
+@deffnx Function platform-environ
+Direct access to the process' environment variables.  @func{environ} and
+@func{primitive-environ} return a list of strings, each of the form
+@samp{NAME=VALUE} where @samp{NAME} is the name of an environment
+variable and @samp{VALUE} its value.
+
+@func{platform-environ} returns a pointer to an array of pointers, each
+referencing a C string with the format @samp{NAME=VALUE}.  The pointer
+is suitable to be used as argument to @func{marshal-argv->strings}
+(@pxref{posix marshaling}) and @func{arg->strings} (@nauref{cstrings
+argv, Converting arrays of strings}).
+@end deffn
+
+
+@defun environ-table
+Internally invoke @func{environ} and convert the list of strings into a
+hashtable; return the hashtable.  The keys are Scheme symbols
+representing the defined environment variables, the values are Scheme
+symbols representing the environment variables' values.
+@end defun
+
+
+@defun environ->table @var{environ}
+@defunx table->environ @var{table}
+Convert between a list of strings in ``environ'' format and a hashtable.
+@end defun
+
+
+@defun clearenv
+Remove all the entries from the process' environment.
+
+This binding is exported by the @library{glibc environment} library.
+@end defun
+
+
+@deffn Function unsetenv @var{varname}
+@deffnx Parameter unsetenv-function
+@deffn Function primitive-unsetenv @var{varname}
+@deffn Function platform-unsetenv @var{varname-cstr}
+Remove the entry for @var{varname} from the environment.  @var{varname}
+must be a Scheme string or symbol.
+@end deffn
 
 @c page
 @node file
@@ -993,7 +1049,7 @@ file descriptor @var{fd}.
 @defunx fdopendir/c @var{fd}
 Like @func{opendir} and @func{fdopendir}, but push the appropriate call
 to @func{closedir} on the dynamic environment of the current
-compensation stack.  @naulibref{compensations, Compensation stacks}
+compensation stack.  @nauref{compensations, Compensation stacks}
 @end defun
 
 
