@@ -545,6 +545,7 @@ Changing file attributes
 
 Inspecting file attributes
 
+* stat constants::              Constant values.
 * stat record::                 Acquiring the file attributes.
 * stat api::                    Interface functions.
 * stat type::                   Type inspection.
@@ -557,7 +558,7 @@ Date and time
 
 File descriptors
 
-* fd constants::                Variables holding constant values.
+* fd constants::                Bindings for constant values.
 * fd open close::               Opening and closing.
 * fd read write::               Reading and writing.
 * fd seek::                     Setting the file position.
@@ -568,7 +569,7 @@ File descriptors
 * fd pipe::                     Pipes and FIFOs.
 * fd custom::                   Custom Scheme ports.
 
-Variables holding constant values
+Bindings for constant values
 
 * fd constants status::         File status flags.
 * fd constants perms::          Permissions.
@@ -578,6 +579,7 @@ Variables holding constant values
 
 Processes
 
+* process record::              Record types.
 * process id::                  Process identification.
 * process fork::                Creating a process.
 * process exec::                Executing a file.
@@ -591,7 +593,7 @@ Job control
 
 Users and groups
 
-* users
+* users persona::               Process' persona.
 
 @end detailmenu
 @end menu
@@ -3244,13 +3246,25 @@ Return the process group id of the session for which the file descriptor
 @chapter Users and groups
 
 
-The bindings described in this chapter are exported by the
-@library{posix users} library.
+Unless otherwise specified, the bindings described in this chapter are
+exported by the following libraries:
 
+@example
+(foreign posix users)
+(foreign posix users primitives)
+(foreign posix users platform)
+@end example
 
 @menu
-* users
+* users persona::               Process' persona.
 @end menu
+
+@c page
+@node users persona
+@section Process' persona
+
+
+@glibcref{Reading Persona, Reading the Persona of a Process}
 
 @c page
 

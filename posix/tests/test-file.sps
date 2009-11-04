@@ -25,19 +25,19 @@
 
 
 (import (nausicaa)
+  (strings)
+  (checks)
+  (deferred-exceptions)
+  (compensations)
   (foreign ffi)
   (foreign memory)
   (foreign errno)
   (foreign cstrings)
-  (strings)
-  (checks)
-  (foreign posix process)
-  (foreign posix fd)
-  (foreign posix file)
-  (foreign posix file stat)
-  (foreign posix sizeof)
-  (compensations)
-  (deferred-exceptions))
+  (prefix (foreign posix process) posix:)
+  (prefix (foreign posix fd) posix:)
+  (prefix (foreign posix file) posix:)
+  (prefix (foreign posix file stat) posix:)
+  (foreign posix sizeof))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX file\n")
@@ -82,28 +82,27 @@ Ses ailes de geant l'empechent de marcher.")
 	the-file))
 
 (define (make-test-hierarchy)
-  (system (string-append "mkdir --mode=0700 " the-root))
-  (system (string-append "mkdir --mode=0700 " the-subdir-1))
-  (system (string-append "mkdir --mode=0700 " the-subdir-2))
-  (system (string-append "mkdir --mode=0700 " the-subdir-3))
-  (system (string-append "umask 0027; echo -n \"" the-string "\" >" the-file))
-  (system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-10))
-  (system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-11))
-  (system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-2)))
+  (posix:system (string-append "mkdir --mode=0700 " the-root))
+  (posix:system (string-append "mkdir --mode=0700 " the-subdir-1))
+  (posix:system (string-append "mkdir --mode=0700 " the-subdir-2))
+  (posix:system (string-append "mkdir --mode=0700 " the-subdir-3))
+  (posix:system (string-append "umask 0027; echo -n \"" the-string "\" >" the-file))
+  (posix:system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-10))
+  (posix:system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-11))
+  (posix:system (string-append "umask 0077; echo -n \"" the-string "\" >" the-file-2)))
 
 (define (clean-test-hierarchy)
-  (system (string-append "rm -fr " the-root)))
+  (posix:system (string-append "rm -fr " the-root)))
 
 
 (parameterize ((check-test-name	'working-directory)
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in working directory" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "working directory condition" E)))
 
 	(check
 	    (let ((dirname '/))

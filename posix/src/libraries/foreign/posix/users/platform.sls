@@ -24,13 +24,16 @@
 ;;;
 
 
-#!r6rs
 (library (foreign posix users platform)
   (export
     )
   (import (rnrs)
     (foreign ffi)
     (foreign posix sizeof))
+
+  (define dummy
+    (shared-object self-shared-object))
+
 
 
 ;;;; code

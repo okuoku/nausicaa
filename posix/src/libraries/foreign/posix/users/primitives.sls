@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: interface to the users and groups functions
-;;;Date: Tue Jan  6, 2009
+;;;Contents: marshaling interface for users functions
+;;;Date: Wed Nov  4, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -24,10 +25,12 @@
 ;;;
 
 
-(library (foreign posix users)
-  (export)
+(library (foreign posix users primitives)
+  (export )
   (import (rnrs)
-    (prefix (foreign posix users primitives) primitive:)
+    (receive)
+    (compensations)
+    (prefix (foreign posix users platform) platform:))
 
 
 ;;;; code
