@@ -5,27 +5,24 @@
 
    Abstract
 
-	Stub  functions for  the  POSIX API.   This file  is
-	meant to be compiled in  a C shared library and used
-	by the Nausicaa/POSIX Scheme library.
+	Stub  functions for the  POSIX API.   This file  is meant  to be
+	compiled in  a C shared  library and used by  the Nausicaa/POSIX
+	Scheme library.
 
    Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 
-   This program  is free  software: you can  redistribute it
-   and/or  modify it  under  the terms  of  the GNU  General
-   Public  License   as  published  by   the  Free  Software
-   Foundation, either version 3  of the License, or (at your
-   option) any later version.
+   This program is free software:  you can redistribute it and/or modify
+   it under the terms of the  GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or (at
+   your option) any later version.
 
-   This program is  distributed in the hope that  it will be
-   useful,  but  WITHOUT  ANY  WARRANTY;  without  even  the
-   implied  warranty  of MERCHANTABILITY  or  FITNESS FOR  A
-   PARTICULAR PURPOSE.   See the GNU  General Public License
-   for more details.
+   This program is  distributed in the hope that it  will be useful, but
+   WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+   MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+   General Public License for more details.
 
-   You should have received a copy of the GNU General Public
-   License   along   with  this   program.    If  not,   see
-   <http://www.gnu.org/licenses/>.
+   You should  have received  a copy of  the GNU General  Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
@@ -42,6 +39,11 @@
 #include <time.h>
 #include <sys/times.h>
 #include <sys/stat.h>
+
+
+/** --------------------------------------------------------------------
+ ** Prototypes.
+ ** ----------------------------------------------------------------- */
 
 extern int nausicaa_posix_wifexited	(int status);
 extern int nausicaa_posix_wexitstatus	(int status);
@@ -70,7 +72,6 @@ extern int nausicaa_posix_stat_is_sock	(mode_t m);
 extern int nausicaa_posix_stat_typeismq	(struct stat * s);
 extern int nausicaa_posix_stat_typeissem(struct stat * s);
 extern int nausicaa_posix_stat_typeisshm(struct stat * s);
-
 
 
 /** ------------------------------------------------------------
