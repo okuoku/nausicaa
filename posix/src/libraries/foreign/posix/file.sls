@@ -29,243 +29,131 @@
   (export
 
     ;; working directory
-    getcwd		primitive-getcwd	primitive-getcwd-function
-    chdir		primitive-chdir		primitive-chdir-function
-    fchdir		primitive-fchdir	primitive-fchdir-function
+    getcwd		getcwd-function
+    chdir		chdir-function
+    fchdir		fchdir-function
     (rename (getcwd pwd))
 
     ;; directory access
-    opendir		primitive-opendir	primitive-opendir-function
-    fdopendir		primitive-fdopendir	primitive-fdopendir-function
-    dirfd		primitive-dirfd		primitive-dirfd-function
-    closedir		primitive-closedir	primitive-closedir-function
-    readdir		primitive-readdir	primitive-readdir-function
-    rewinddir		primitive-rewinddir	primitive-rewinddir-function
-    telldir		primitive-telldir	primitive-telldir-function
-    seekdir		primitive-seekdir	primitive-seekdir-function
+    opendir		opendir-function
+    fdopendir		fdopendir-function
+    dirfd		dirfd-function
+
+    closedir		closedir-function
+    readdir		readdir-function
+    rewinddir		rewinddir-function
+
+    telldir		telldir-function
+    seekdir		seekdir-function
+    scandir		scandir-function
 
     opendir/compensated		(rename (opendir/compensated opendir/c))
     fdopendir/compensated	(rename (fdopendir/compensated fdopendir/c))
     directory-list	directory-list/fd
 
     ;; links
-    link		primitive-link		primitive-link-function
-    symlink		primitive-symlink	primitive-symlink-function
-    readlink		primitive-readlink	primitive-readlink-function
-    realpath		primitive-realpath	primitive-realpath-function
+    link		link-function
+    symlink		symlink-function
+    readlink		readlink-function
+    realpath		realpath-function
 
     ;; removing
-    unlink		primitive-unlink	primitive-unlink-function
-    rmdir		primitive-rmdir		primitive-rmdir-function
-    remove		primitive-remove	primitive-remove-function
+    unlink		unlink-function
+    rmdir		rmdir-function
+    remove		remove-function
 
     ;; renaming
-    rename		primitive-rename	primitive-rename-function
+    rename		rename-function
 
     ;; mkdir
-    mkdir		primitive-mkdir		primitive-mkdir-function
+    mkdir		mkdir-function
 
     ;; temporary files
-    tmpnam		primitive-tmpnam	primitive-tmpnam-function
-    mktemp		primitive-mktemp	primitive-mktemp-function
-    mkstemp		primitive-mkstemp	primitive-mkstemp-function
+    tmpnam		tmpnam-function
+    mktemp		mktemp-function
+    mkstemp		mkstemp-function
 
     ;; changing owner
-    chown		primitive-chown		primitive-chown-function
-    fchown		primitive-fchown	primitive-fchown-function
+    chown		chown-function
+    fchown		fchown-function
 
     ;; changing permissions
-    umask		primitive-umask		primitive-umask-function
-    chmod		primitive-chmod		primitive-chmod-function
-    fchmod		primitive-fchmod	primitive-fchmod-function
-    getumask
+    umask		umask-function
+    chmod		chmod-function
+    fchmod		fchmod-function
+    (rename (primitive:getumask	getumask))
 
     ;; access test
-    access		primitive-access	primitive-access-function
+    access		access-function
 
     ;; file times
-    utime		primitive-utime		primitive-utime-function
+    utime		utime-function
+    utimes		utimes-function
+    lutimes		lutimes-function
 
     ;; file size
-    file-size		primitive-file-size	primitive-file-size-function
-    ftruncate		primitive-ftruncate	primitive-ftruncate-function
-    )
+    file-size		file-size-function
+    ftruncate		ftruncate-function)
   (import (except (nausicaa)
 		  remove truncate)
-    (foreign ffi)
-    (foreign ffi pointers)
-    (foreign memory)
-    (foreign errno)
+    (compensations)
     (foreign cstrings)
+    (foreign posix primitives)
     (except (foreign posix fd)
 	    read write)
-    (foreign posix sizeof)
-    (foreign posix file platform)
-    (compensations))
-
-  (define dummy
-    (shared-object self-shared-object))
-
+    (foreign posix sizeof))
 
 
 ;;;; working directory
 
-(define (primitive-getcwd)
-  (let loop ((buflen 1024))
-    (with-compensations
-      (let ((buffer (malloc-block/c buflen)))
-	(receive (cstr errno)
-	    (platform-getcwd buffer buflen)
-	  (if (and (= 0 (pointer->integer cstr))
-		   (or (= EINVAL errno)
-		       (= ERANGE errno)))
-	      (loop (* 2 buflen))
-	    (begin
-	      (when (pointer-null? cstr)
-		(raise-errno-error 'primitive-getcwd errno))
-	      (cstring->string buffer))))))))
-
-(define (primitive-chdir directory-pathname)
-  (with-compensations
-    (receive (result errno)
-	(platform-chdir (string->cstring/c directory-pathname))
-      (unless (= 0 result)
-	(raise-errno-error 'primitive-chdir errno
-			   directory-pathname))
-      result)))
-
-(define (primitive-fchdir fd)
-  (receive (result errno)
-      (platform-fchdir fd)
-    (unless (= 0 result)
-      (raise-errno-error 'primitive-fchdir errno fd))
-    result))
-
-;;; --------------------------------------------------------------------
-
-(define-primitive-parameter
-  primitive-getcwd-function primitive-getcwd)
-
-(define-primitive-parameter
-  primitive-chdir-function primitive-chdir)
-
-(define-primitive-parameter
-  primitive-fchdir-function primitive-fchdir)
-
-;;; --------------------------------------------------------------------
+(define-primitive-parameter getcwd-function primitive:getcwd)
+(define-primitive-parameter chdir-function  primitive:chdir)
+(define-primitive-parameter fchdir-function primitive:fchdir)
 
 (define (getcwd)
-  ((primitive-getcwd-function)))
+  ((getcwd-function)))
 
 (define (chdir pathname)
-  ((primitive-chdir-function) pathname))
+  ((chdir-function) pathname))
 
 (define (fchdir fd)
-  ((primitive-fchdir-function) fd))
-
+  ((fchdir-function) fd))
 
 
 ;;;; directory access
 
-(define (primitive-opendir pathname)
-  (with-compensations
-    (receive (result errno)
-	(platform-opendir (string->cstring/c pathname))
-      (when (pointer-null? result)
-	(raise-errno-error 'primitive-opendir errno pathname))
-      result)))
-
-(define (primitive-fdopendir fd)
-  (receive (result errno)
-      (platform-fdopendir fd)
-    (when (pointer-null? result)
-      (raise-errno-error 'primitive-fdopendir errno fd))
-    result))
-
-(define (primitive-dirfd stream)
-  (receive (result errno)
-      (platform-dirfd stream)
-    (when (= -1 result)
-      (raise-errno-error 'primitive-dirfd errno stream))
-    result))
-
-(define (primitive-closedir stream)
-  (receive (result errno)
-      (platform-closedir stream)
-    (when (= -1 result)
-      (raise-errno-error 'primitive-closedir errno stream))
-    result))
-
-(define (primitive-readdir stream)
-  (receive (result errno)
-      (platform-readdir stream)
-    ;;Here  we assume  that errno  is  set to  zero by  PLATFORM-READDIR
-    ;;before the call to the foreign function.
-    (when (and (pointer-null? result)
-	       (not (= 0 errno)))
-      (raise-errno-error 'primitive-readdir errno stream))
-    result))
-
-(define (primitive-rewinddir stream)
-  (platform-rewinddir stream))
-
-(define (primitive-telldir stream)
-  (platform-telldir stream))
-
-(define (primitive-seekdir stream position)
-  (platform-seekdir stream position))
-
-;;; --------------------------------------------------------------------
-
-(define-primitive-parameter
-  primitive-opendir-function primitive-opendir)
-
-(define-primitive-parameter
-  primitive-fdopendir-function primitive-fdopendir)
-
-(define-primitive-parameter
-  primitive-dirfd-function primitive-dirfd)
-
-(define-primitive-parameter
-  primitive-closedir-function primitive-closedir)
-
-(define-primitive-parameter
-  primitive-readdir-function primitive-readdir)
-
-(define-primitive-parameter
-  primitive-rewinddir-function primitive-rewinddir)
-
-(define-primitive-parameter
-  primitive-telldir-function primitive-telldir)
-
-(define-primitive-parameter
-  primitive-seekdir-function primitive-seekdir)
-
-;;; --------------------------------------------------------------------
+(define-primitive-parameter opendir-function		primitive:opendir)
+(define-primitive-parameter fdopendir-function		primitive:fdopendir)
+(define-primitive-parameter dirfd-function		primitive:dirfd)
+(define-primitive-parameter closedir-function		primitive:closedir)
+(define-primitive-parameter readdir-function		primitive:readdir)
+(define-primitive-parameter rewinddir-function		primitive:rewinddir)
+(define-primitive-parameter telldir-function		primitive:telldir)
+(define-primitive-parameter seekdir-function		primitive:seekdir)
 
 (define (opendir pathname)
-  ((primitive-opendir-function) pathname))
+  ((opendir-function) pathname))
 
 (define (fdopendir fd)
-  ((primitive-fdopendir-function) fd))
+  ((fdopendir-function) fd))
 
 (define (dirfd stream)
-  ((primitive-dirfd-function) stream))
+  ((dirfd-function) stream))
 
 (define (closedir stream)
-  ((primitive-closedir-function) stream))
+  ((closedir-function) stream))
 
 (define (readdir stream)
-  ((primitive-readdir-function) stream))
+  ((readdir-function) stream))
 
 (define (rewinddir stream)
-  ((primitive-rewinddir-function) stream))
+  ((rewinddir-function) stream))
 
 (define (telldir stream)
-  ((primitive-telldir-function) stream))
+  ((telldir-function) stream))
 
 (define (seekdir stream position)
-  ((primitive-seekdir-function) stream position))
+  ((seekdir-function) stream position))
 
 ;;; --------------------------------------------------------------------
 
@@ -305,435 +193,133 @@
 	      (cons (cstring->string (struct-dirent-d_name-ref entry))
 		    layout))))))
 
-
 
 ;;;; links
 
-(define (real-primitive-link func funcname oldname newname)
-  (with-compensations
-    (receive (result errno)
-	(func (string->cstring/c oldname)
-	      (string->cstring/c newname))
-      (when (= -1 result)
-	(raise-errno-error funcname errno
-			   (list oldname newname)))
-      result)))
-
-(define (primitive-link oldname newname)
-  (real-primitive-link platform-link 'primitive-link
-		       oldname newname))
-
-(define (primitive-symlink oldname newname)
-  (real-primitive-link platform-symlink 'primitive-symlink
-		       oldname newname))
-
-(define (primitive-readlink pathname)
-  (with-compensations
-    (let ((c-pathname	(string->cstring/c pathname)))
-      (receive (size errno)
-	  (platform-readlink c-pathname pointer-null 0)
-	(when (= -1 size)
-	  (raise-errno-error 'primitive-readlink errno pathname))
-	(let ((buffer	(malloc-block/c size)))
-	  (receive (result errno)
-	      (platform-readlink c-pathname buffer size)
-	    (when (= -1 size)
-	      (raise-errno-error 'primitive-readlink errno pathname))
-	    (cstring->string buffer result)))))))
-
-(define (primitive-realpath pathname)
-  (with-compensations
-    (receive (buffer errno)
-	(platform-realpath (string->cstring/c pathname)
-			   pointer-null)
-      (when (pointer-null? buffer)
-	(raise-errno-error 'primitive-realpath errno pathname))
-      (begin0
-	  (cstring->string buffer)
-	(primitive-free buffer)))))
-
-;;; --------------------------------------------------------------------
-
-(define-primitive-parameter
-  primitive-link-function primitive-link)
-
-(define-primitive-parameter
-  primitive-symlink-function primitive-symlink)
-
-(define-primitive-parameter
-  primitive-readlink-function primitive-readlink)
-
-(define-primitive-parameter
-  primitive-realpath-function primitive-realpath)
-
-;;; --------------------------------------------------------------------
+(define-primitive-parameter link-function		primitive:link)
+(define-primitive-parameter symlink-function		primitive:symlink)
+(define-primitive-parameter readlink-function		primitive:readlink)
+(define-primitive-parameter realpath-function		primitive:realpath)
 
 (define (link oldname newname)
-  ((primitive-link-function) oldname newname))
+  ((link-function) oldname newname))
 
 (define (symlink oldname newname)
-  ((primitive-symlink-function) oldname newname))
+  ((symlink-function) oldname newname))
 
 (define (readlink pathname)
-  ((primitive-readlink-function) pathname))
+  ((readlink-function) pathname))
 
 (define (realpath pathname)
-  ((primitive-realpath-function) pathname))
-
+  ((realpath-function) pathname))
 
 
 ;;;; changing owner
 
-(define (primitive-chown pathname owner-id group-id)
-  (with-compensations
-    (receive (result errno)
-	(platform-chown (string->cstring/c pathname)
-			owner-id group-id)
-      (when (= -1 result)
-	(raise-errno-error 'primitive-chown errno
-			   (list pathname owner-id group-id)))
-      result)))
-
-(define (primitive-fchown fd owner-id group-id)
-  (with-compensations
-    (receive (result errno)
-	(platform-fchown fd owner-id group-id)
-      (when (= -1 result)
-	(raise-errno-error 'primitive-fchown errno
-			   (list fd owner-id group-id)))
-      result)))
-
-;;; --------------------------------------------------------------------
-
-(define-primitive-parameter
-  primitive-chown-function primitive-chown)
-
-(define-primitive-parameter
-  primitive-fchown-function primitive-fchown)
-
-;;; --------------------------------------------------------------------
+(define-primitive-parameter chown-function		primitive:chown)
+(define-primitive-parameter fchown-function		primitive:fchown)
 
 (define (chown pathname owner-id group-id)
-  ((primitive-chown-function) pathname owner-id group-id))
+  ((chown-function) pathname owner-id group-id))
 
 (define (fchown fd owner-id group-id)
-  ((primitive-fchown-function) fd owner-id group-id))
-
+  ((fchown-function) fd owner-id group-id))
 
 
 ;;;; changing permissions
 
-(define (primitive-umask mask)
-  (with-compensations
-    (receive (result errno)
-	(platform-umask mask)
-      (when (= -1 result)
-	(raise-errno-error 'primitive-umask errno mask))
-      result)))
-
-(define (getumask)
-  (let ((m (umask 0)))
-    (umask m)
-    m))
-
-(define (primitive-chmod pathname mode)
-  (with-compensations
-    (receive (result errno)
-	(platform-chmod (string->cstring/c pathname) mode)
-      (when (= -1 result)
-	(raise-errno-error 'primitive-chmod errno (list pathname mode)))
-      result)))
-
-(define (primitive-fchmod fd mode)
-  (with-compensations
-    (receive (result errno)
-	(platform-fchmod fd mode)
-      (when (= -1 result)
-	(raise-errno-error 'primitive-fchmod errno (list fd mode)))
-      result)))
-
-;;; --------------------------------------------------------------------
-
-(define-primitive-parameter
-  primitive-umask-function primitive-umask)
-
-(define-primitive-parameter
-  primitive-chmod-function primitive-chmod)
-
-(define-primitive-parameter
-  primitive-fchmod-function primitive-fchmod)
-
-;;; --------------------------------------------------------------------
+(define-primitive-parameter umask-function		primitive:umask)
+(define-primitive-parameter chmod-function		primitive:chmod)
+(define-primitive-parameter fchmod-function		primitive:fchmod)
 
 (define (umask mask)
-  ((primitive-umask-function) mask))
+  ((umask-function) mask))
 
 (define (chmod pathname mode)
-  ((primitive-chmod-function) pathname mode))
+  ((chmod-function) pathname mode))
 
 (define (fchmod fd mode)
-  ((primitive-fchmod-function) fd mode))
-
+  ((fchmod-function) fd mode))
 
 
 ;;;; testing access
 
-(define (primitive-access pathname mask)
-  (with-compensations
-    (receive (result errno)
-	(platform-access (string->cstring/c pathname) mask)
-      (when (and (= -1 result)
-		 (not (= 0 errno))
-		 (not (= EACCES errno))
-		 (not (= ENOENT errno)))
-	(raise-errno-error 'primitive-access errno
-			   (list pathname mask)))
-      (= 0 result))))
-
-(define-primitive-parameter
-  primitive-access-function primitive-access)
+(define-primitive-parameter access-function		primitive:access)
 
 (define (access fd mask)
-  ((primitive-access-function) fd mask))
-
+  ((access-function) fd mask))
 
 
 ;;;; file times
 
-(define primitive-utime
-  (case-lambda
-   ((pathname access-time modification-time)
-    (with-compensations
-      (let ((*struct-utimbuf (malloc-block/c sizeof-struct-utimbuf)))
-	(struct-utimbuf-actime-set!  *struct-utimbuf access-time)
-	(struct-utimbuf-modtime-set! *struct-utimbuf modification-time)
-	(receive (result errno)
-	    (platform-utime (string->cstring/c pathname)
-			    *struct-utimbuf)
-	  (when (= -1 result)
-	    (raise-errno-error 'primitive-utime errno
-			       (list pathname access-time modification-time)))
-	  result))))
-   ((pathname)
-    (receive (result errno)
-	(platform-utime (string->cstring/c pathname) pointer-null)
-      (when (= -1 result)
-	(raise-errno-error 'primitive-utime errno pathname))
-      result))))
-
-;;; --------------------------------------------------------------------
-
-(define-primitive-parameter
-  primitive-utime-function primitive-utime)
-
-;;; --------------------------------------------------------------------
+(define-primitive-parameter utime-function		primitive:utime)
 
 (define utime
   (case-lambda
    ((pathname access-time modification-time)
-    ((primitive-utime-function) pathname access-time modification-time))
+    ((utime-function) pathname access-time modification-time))
    ((pathname)
-    ((primitive-utime-function) pathname))))
-
+    ((utime-function) pathname))))
 
 
 ;;;; file size
 
-(define (primitive-file-size obj)
-  (cond ((or (string? obj) (symbol? obj))
-	 (with-compensations
-	   (letrec ((fd (compensate
-			    (open obj O_RDONLY 0)
-			  (with
-			   (close fd)))))
-	     (primitive-file-size fd))))
-	((and (integer? obj) (<= 0 obj))
-	 (with-compensations
-	   (letrec ((pos (compensate
-			     (lseek obj 0 SEEK_CUR)
-			   (with
-			    (lseek obj pos SEEK_SET)))))
-	     (lseek obj 0 SEEK_END))))
-	(else
-	 (error 'primitive-file-size
-	   "expected file descriptor or file pathname" obj))))
-
-(define (primitive-ftruncate obj length)
-  (cond ((and (integer? obj) (<= 0 obj))
-	 (receive (result errno)
-	     (platform-ftruncate obj length)
-	   (when (= -1 result)
-	     (raise-errno-error 'primitive-ftruncate errno
-				(list obj length)))
-	   result))
-	((or (string? obj) (symbol? obj))
-	 (with-compensations
-	   (letrec ((fd (compensate
-			    (open obj O_WRONLY 0)
-			  (with
-			   (close fd)))))
-	     (primitive-ftruncate fd length))))
-	(else
-	 (error 'primitive-ftruncate
-	   "expected file descriptor or file pathname" obj))))
-
-;;; --------------------------------------------------------------------
-
-(define-primitive-parameter
-  primitive-file-size-function primitive-file-size)
-
-(define-primitive-parameter
-  primitive-ftruncate-function primitive-ftruncate)
-
-;;; --------------------------------------------------------------------
+(define-primitive-parameter file-size-function		primitive:file-size)
+(define-primitive-parameter ftruncate-function		primitive:ftruncate)
 
 (define (file-size obj)
-  ((primitive-file-size-function) obj))
+  ((file-size-function) obj))
 
 (define (ftruncate obj length)
-  ((primitive-ftruncate-function) obj length))
-
+  ((ftruncate-function) obj length))
 
 
 ;;;; removing
 
-(define (primitive-unlink pathname)
-  (with-compensations
-    (receive (result errno)
-	(platform-unlink (string->cstring/c pathname))
-      (when (= -1 result)
-	(raise-errno-error 'primitive-unlink errno pathname))
-      result)))
-
-(define (primitive-remove pathname)
-  (with-compensations
-    (receive (result errno)
-	(platform-remove (string->cstring/c pathname))
-      (when (= -1 result)
-	(raise-errno-error 'primitive-remove errno pathname))
-      result)))
-
-(define (primitive-rmdir pathname)
-  (with-compensations
-    (receive (result errno)
-	(platform-rmdir (string->cstring/c pathname))
-      (when (= -1 result)
-	(raise-errno-error 'primitive-rmdir errno pathname))
-      result)))
-
-;;; --------------------------------------------------------------------
-
-(define-primitive-parameter
-  primitive-unlink-function primitive-unlink)
-
-(define-primitive-parameter
-  primitive-remove-function primitive-remove)
-
-(define-primitive-parameter
-  primitive-rmdir-function primitive-rmdir)
-
-;;; --------------------------------------------------------------------
+(define-primitive-parameter unlink-function		primitive:unlink)
+(define-primitive-parameter remove-function		primitive:remove)
+(define-primitive-parameter rmdir-function		primitive:rmdir)
 
 (define (unlink pathname)
-  ((primitive-unlink-function) pathname))
+  ((unlink-function) pathname))
 
 (define (remove pathname)
-  ((primitive-remove-function) pathname))
+  ((remove-function) pathname))
 
 (define (rmdir pathname)
-  ((primitive-rmdir-function) pathname))
-
+  ((rmdir-function) pathname))
 
 
 ;;;; renaming
 
-(define (primitive-rename oldname newname)
-  (with-compensations
-    (receive (result errno)
-	(platform-rename (string->cstring/c oldname)
-			 (string->cstring/c newname))
-      (when (= -1 result)
-	(raise-errno-error 'primitive-rename errno
-			   (list oldname newname)))
-      result)))
-
-(define-primitive-parameter
-  primitive-rename-function primitive-rename)
+(define-primitive-parameter rename-function		primitive:rename)
 
 (define (rename oldname newname)
-  ((primitive-rename-function) oldname newname))
-
+  ((rename-function) oldname newname))
 
 
 ;;;; making directories
 
-(define (primitive-mkdir pathname mode)
-  (with-compensations
-    (receive (result errno)
-	(platform-mkdir (string->cstring/c pathname) mode)
-      (when (= -1 result)
-	(raise-errno-error 'primitive-mkdir errno
-			   (list pathname mode)))
-      result)))
-
-(define-primitive-parameter
-  primitive-mkdir-function primitive-mkdir)
+(define-primitive-parameter mkdir-function		primitive:mkdir)
 
 (define (mkdir pathname mode)
-  ((primitive-mkdir-function) pathname mode))
-
+  ((mkdir-function) pathname mode))
 
 
 ;;;; temporary files
 
-(define (primitive-tmpnam)
-  (with-compensations
-    (let ((p	(malloc-block/c (+ 1 L_tmpnam))))
-      (platform-tmpnam p)
-      (cstring->string p))))
-
-(define (primitive-mktemp template)
-  (with-compensations
-    (let ((p	(string->cstring/c template)))
-      (receive (result errno)
-	  (platform-mktemp p)
-	(when (pointer-null? result)
-	  (raise-errno-error 'primitive-mktemp errno template))
-	(cstring->string p)))))
-
-(define (primitive-mkstemp template)
-  (with-compensations
-    (let ((p	(string->cstring/c template)))
-      (receive (result errno)
-	  (platform-mkstemp p)
-	(when (= -1 result)
-	  (raise-errno-error 'primitive-mktemp errno template))
-	(values result
-		(cstring->string p))))))
-
-;;; --------------------------------------------------------------------
-
-(define-primitive-parameter
-  primitive-tmpnam-function primitive-tmpnam)
-
-(define-primitive-parameter
-  primitive-mktemp-function primitive-mktemp)
-
-(define-primitive-parameter
-  primitive-mkstemp-function primitive-mkstemp)
-
-;;; --------------------------------------------------------------------
+(define-primitive-parameter tmpnam-function		primitive:tmpnam)
+(define-primitive-parameter mktemp-function		primitive:mktemp)
+(define-primitive-parameter mkstemp-function		primitive:mkstemp)
 
 (define (tmpnam)
-  ((primitive-tmpnam-function)))
+  ((tmpnam-function)))
 
 (define (mktemp template)
-  ((primitive-mktemp-function) template))
+  ((mktemp-function) template))
 
 (define (mkstemp template)
-  ((primitive-mkstemp-function) template))
-
-
+  ((mkstemp-function) template))
 
 
 ;;;; done

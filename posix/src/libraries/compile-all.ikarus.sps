@@ -27,7 +27,7 @@
   (only (foreign posix environment))
   (only (foreign posix time))
   (only (foreign posix file))
-  (only (foreign posix file stat))
+  (only (foreign posix stat))
   (only (foreign posix fd))
   (only (foreign posix job))
   (only (foreign posix process))

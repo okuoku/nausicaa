@@ -24,16 +24,14 @@
 ;;;
 
 
-(import (rename (nausicaa)
-		(read rnrs:read)
-		(write rnrs:write))
+(import (nausicaa)
   (checks)
   (strings)
   (foreign ffi)
   (foreign memory)
   (foreign cstrings)
   (foreign errno)
-  (foreign posix fd)
+  (prefix (foreign posix fd) posix:)
   (foreign posix sizeof)
   (deferred-exceptions)
   (compensations))
@@ -55,207 +53,224 @@ Ses ailes de geant l'empechent de marcher.")
 	       (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in basic" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "sync condition" E)))
 
-	(check
+	(check		;open, close, write, read, lseek, fdatasync
 	    (with-compensations
-	      (let* ((pathname the-pathname)
-		     (fd		(open pathname (bitwise-ior O_CREAT O_RDWR) #o600))
-		     (bufptr		(string->cstring/c the-string))
-		     (buflen		(strlen bufptr))
-		     (buflen2		buflen)
-		     (bufptr2		(malloc-block/c buflen2)))
-		(write fd bufptr buflen)
-		(fdatasync fd)
-		(lseek fd 0 SEEK_SET)
-		(read fd bufptr2 buflen2)
-		(close fd)
-		(cstring->string bufptr2 buflen2)))
+	      (let ((pathname the-pathname))
+		(letrec ((fd (compensate
+				 (posix:open pathname
+					     (bitwise-ior O_CREAT O_RDWR)
+					     (bitwise-ior S_IRUSR S_IWUSR))
+			       (with
+				(posix:close fd)))))
+		  (let* ((bufptr	(string->cstring/c the-string))
+			 (buflen	(strlen bufptr))
+			 (buflen2	buflen)
+			 (bufptr2	(malloc-block/c buflen2)))
+		    (posix:write fd bufptr buflen)
+		    (posix:fdatasync fd)
+		    (posix:lseek fd 0 SEEK_SET)
+		    (posix:read fd bufptr2 buflen2)
+		    (cstring->string bufptr2 buflen2)))))
 	  => the-string)
 
-	(check
+	(check		;open, close, pwrite, pread, lseek, fsync
 	    (with-compensations
-	      (let* ((pathname the-pathname)
-		     (fd		(open pathname (bitwise-ior O_CREAT O_RDWR) #o600))
-		     (bufptr		(string->cstring/c the-string))
-		     (buflen		(strlen bufptr))
-		     (buflen2		buflen)
-		     (bufptr2		(malloc-block/c buflen2)))
-		(pwrite fd bufptr buflen 0)
-		(fsync fd)
-		(pread fd bufptr2 buflen2 0)
-		(close fd)
-		(cstring->string bufptr2 buflen2)))
+	      (let ((pathname the-pathname))
+		(letrec ((fd (compensate
+				 (posix:open pathname
+					     (bitwise-ior O_CREAT O_RDWR)
+					     (bitwise-ior S_IRUSR S_IWUSR))
+			       (with
+				(posix:close fd)))))
+		  (let* ((bufptr	(string->cstring/c the-string))
+			 (buflen	(strlen bufptr))
+			 (buflen2	buflen)
+			 (bufptr2	(malloc-block/c buflen2)))
+		    (posix:pwrite fd bufptr buflen 0)
+		    (posix:fsync fd)
+		    (posix:pread fd bufptr2 buflen2 0)
+		    (cstring->string bufptr2 buflen2)))))
 	  => the-string)
 
-	(check
+	(check			;open, close, write, read, lseek, sync
 	    (with-compensations
-	      (let* ((pathname the-pathname)
-		     (fd		(letrec
-					    ((fd (compensate
-						     (open pathname (bitwise-ior O_CREAT O_RDWR) #o600)
-						   (with (close fd)))))
-					  fd))
-		     (bufptr		(string->cstring/c the-string))
-		     (buflen		(strlen bufptr))
-		     (buflen2		buflen)
-		     (bufptr2		(malloc-block/c buflen2))
-		     (len		(string-length "Le Poete est semblable au prince des nuees\n")))
-		(write fd bufptr buflen)
-		(sync)
-		(lseek fd len SEEK_SET)
-		(read fd bufptr2 buflen2)
-		(cstring->string bufptr2 (- buflen2 len))))
+	      (let ((pathname the-pathname))
+		(letrec ((fd (compensate
+				 (posix:open pathname
+					     (bitwise-ior O_CREAT O_RDWR)
+					     (bitwise-ior S_IRUSR S_IWUSR))
+			       (with
+				(posix:close fd)))))
+		  (let* ((bufptr	(string->cstring/c the-string))
+			 (buflen	(strlen bufptr))
+			 (buflen2	buflen)
+			 (bufptr2	(malloc-block/c buflen2))
+			 (len		(string-length "Le Poete est semblable au prince des nuees\n")))
+		    (posix:write fd bufptr buflen)
+		    (posix:sync)
+		    (posix:lseek fd len SEEK_SET)
+		    (posix:read fd bufptr2 buflen2)
+		    (cstring->string bufptr2 (- buflen2 len))))))
 	  => "Qui hante la tempete e se rit de l'archer;
 Exile sul le sol au milieu des huees,
 Ses ailes de geant l'empechent de marcher.")
 
-	))))
+	#f))))
 
 
-(parameterize ((check-test-name	'dup)
-	       (debugging	#t))
+(parametrise ((check-test-name	'dup)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in dup" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "sync condition" E)))
 
 	(check
 	    (with-compensations
-	      (let* ((pathname the-pathname)
-		     (fd	(open pathname (bitwise-ior O_CREAT O_RDWR) #o600))
-		     (bufptr	(string->cstring/c the-string))
-		     (buflen	(strlen bufptr))
-		     (buflen2	buflen)
-		     (bufptr2	(malloc-block/c buflen2)))
-		(write fd bufptr buflen)
-		(let ((fd2	(dup fd)))
-		  (close fd)
-		  (lseek fd2 0 SEEK_SET)
-		  (read fd2 bufptr2 buflen2)
-		  (close fd2))
-		(cstring->string bufptr2 buflen2)))
+	      (let ((pathname the-pathname))
+		(letrec ((fd (compensate
+				 (posix:open pathname
+					     (bitwise-ior O_CREAT O_RDWR)
+					     (bitwise-ior S_IRUSR S_IWUSR))
+			       (with
+				(posix:close fd)))))
+		  (let* ((bufptr	(string->cstring/c the-string))
+			 (buflen	(strlen bufptr))
+			 (buflen2	buflen)
+			 (bufptr2	(malloc-block/c buflen2)))
+		    (posix:write fd bufptr buflen)
+		    (letrec ((fd2 (compensate
+				      (posix:dup fd)
+				    (with
+				     (posix:close fd2)))))
+		      (posix:lseek fd2 0 SEEK_SET)
+		      (posix:read fd2 bufptr2 buflen2))
+		    (cstring->string bufptr2 buflen2)))))
 	  => the-string)
 
 	(check
 	    (with-compensations
-	      (let* ((pathname the-pathname)
-		     (fd	(open pathname (bitwise-ior O_CREAT O_RDWR) #o600))
-		     (bufptr	(string->cstring/c the-string))
-		     (buflen	(strlen bufptr))
-		     (buflen2	buflen)
-		     (bufptr2	(malloc-block/c buflen2)))
-		(write fd bufptr buflen)
-		(let ((fd2	123))
-		  (dup2 fd fd2)
-		  (close fd)
-		  (lseek fd2 0 SEEK_SET)
-		  (read fd2 bufptr2 buflen2)
-		  (close fd2))
-		(cstring->string bufptr2 buflen2)))
+	      (let ((pathname the-pathname))
+		(letrec ((fd (compensate
+				 (posix:open pathname
+					     (bitwise-ior O_CREAT O_RDWR)
+					     (bitwise-ior S_IRUSR S_IWUSR))
+			       (with
+				(posix:close fd)))))
+		  (let* ((bufptr	(string->cstring/c the-string))
+			 (buflen	(strlen bufptr))
+			 (buflen2	buflen)
+			 (bufptr2	(malloc-block/c buflen2)))
+		    (posix:write fd bufptr buflen)
+		    (letrec ((fd2 (compensate
+				      (posix:dup2 fd 123)
+				    (with
+				     (posix:close fd2)))))
+		      (posix:lseek fd2 0 SEEK_SET)
+		      (posix:read fd2 bufptr2 buflen2))
+		    (cstring->string bufptr2 buflen2)))))
 	  => the-string)
 
-	))))
+	#f))))
 
 
-(parameterize ((check-test-name	'lock)
-	       (debugging	#t))
+(parametrise ((check-test-name	'lock)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in lock" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "lock condition" E)))
 
 	(check
 	    (with-compensations
-	      (let* ((pathname the-pathname)
-		     (fd	(open pathname (bitwise-ior O_CREAT O_RDWR) #o600))
-		     (bufptr	(string->cstring/c the-string))
-		     (buflen	(strlen bufptr))
-		     (buflen2	buflen)
-		     (bufptr2	(malloc-block/c buflen2)))
-		(write fd bufptr buflen)
-		(lseek fd 0 SEEK_SET)
-		(let ((lock	(malloc-block/c sizeof-struct-flock)))
-		  (struct-flock-l_type-set! lock F_WRLCK)
-		  (struct-flock-l_whence-set! lock SEEK_SET)
-		  (struct-flock-l_start-set! lock 0)
-		  (struct-flock-l_len-set! lock 10)
-		  (fcntl fd F_SETLK (pointer->integer lock))
-		  (read fd bufptr2 buflen2)
-		  (fcntl fd F_GETLK (pointer->integer lock))
-;;; 	    (display (list (struct-flock-l_type-ref lock)
-;;; 			   (struct-flock-l_start-ref lock)))(newline)
-		  (fcntl fd F_UNLCK (pointer->integer lock))
-		  (close fd))
-		(cstring->string bufptr2 buflen2)))
+	      (let ((pathname the-pathname))
+		(letrec ((fd (compensate
+				 (posix:open pathname
+					     (bitwise-ior O_CREAT O_RDWR)
+					     (bitwise-ior S_IRUSR S_IWUSR))
+			       (with
+				(posix:close fd)))))
+		  (let* ((bufptr	(string->cstring/c the-string))
+			 (buflen	(strlen bufptr))
+			 (buflen2	buflen)
+			 (bufptr2	(malloc-block/c buflen2)))
+		    (posix:write fd bufptr buflen)
+		    (posix:lseek fd 0 SEEK_SET)
+		    (let ((lock	(malloc-block/c sizeof-struct-flock)))
+		      (struct-flock-l_type-set!   lock F_WRLCK)
+		      (struct-flock-l_whence-set! lock SEEK_SET)
+		      (struct-flock-l_start-set!  lock 0)
+		      (struct-flock-l_len-set!    lock 10)
+		      (compensate
+			  (posix:fcntl fd F_SETLK (pointer->integer lock))
+			(with
+			 (posix:fcntl fd F_UNLCK (pointer->integer lock))))
+		      (posix:read fd bufptr2 buflen2)
+		      (posix:fcntl fd F_GETLK (pointer->integer lock))
+;;;(display (list (struct-flock-l_type-ref lock)
+;;;		  (struct-flock-l_start-ref lock)))
+;;;(newline)
+		      (cstring->string bufptr2 buflen2))))))
 	  => the-string)
 
-	))))
+	#t))))
 
 
-(parameterize ((check-test-name	'pipe)
-	       (debugging	#t))
+(parametrise ((check-test-name	'pipe)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in pipe" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "pipe condition" E)))
 
-	;; raw fd
-	(check
+	(check			;raw fd
 	    (with-compensations
-	      (let-values (((in ou) (pipe)))
-		(push-compensation (close in))
-		(push-compensation (close ou))
-		(let ((s	(string->cstring/c "ciao\n")))
-		  (write ou s (strlen s)))
+	      (let-values (((in ou) (posix:pipe)))
+		(push-compensation (posix:close in))
+		(push-compensation (posix:close ou))
+		(let ((s (string->cstring/c "ciao\n")))
+		  (posix:write ou s (strlen s)))
 		(let* ((p	(malloc 10))
-		       (len	(read in p 10)))
+		       (len	(posix:read in p 10)))
 		  (cstring->string p len))))
 	  => "ciao\n")
 
-	;; binary port
-	(check
+	(check			;binary port
 	    (with-compensations
-	      (let-values (((in ou)	(pipe)))
+	      (let-values (((in ou) (posix:pipe)))
 		(letrec ((inp	(compensate
-				    (fd->binary-input-port  in)
+				    (posix:fd->binary-input-port  in)
 				  (with
 				   (close-port inp))))
 			 (oup	(compensate
-				    (fd->binary-output-port ou)
+				    (posix:fd->binary-output-port ou)
 				  (with
 				   (close-port oup)))))
-		  (put-bytevector oup
-				  (string->bytevector "ciao\n"
-						      (native-transcoder)))
+		  (put-bytevector oup (string->bytevector "ciao\n" (native-transcoder)))
 		  (flush-output-port oup)
-		  (bytevector->string (get-bytevector-n inp 5)
-				      (native-transcoder)))))
+		  (bytevector->string (get-bytevector-n inp 5) (native-transcoder)))))
 	  => "ciao\n")
 
-	;; textual port
-	(check
+	(check			;textual port
 	    (with-compensations
-	      (let-values (((in ou)	(pipe)))
+	      (let-values (((in ou) (posix:pipe)))
 		(letrec ((inp	(compensate
-				    (fd->textual-input-port  in)
+				    (posix:fd->textual-input-port in)
 				  (with
 				   (close-port inp))))
 			 (oup	(compensate
-				    (fd->textual-output-port ou)
+				    (posix:fd->textual-output-port ou)
 				  (with
 				   (close-port oup)))))
 		  (put-string oup "ciao\n")
@@ -263,95 +278,86 @@ Ses ailes de geant l'empechent de marcher.")
 		  (get-string-n inp 5))))
 	  => "ciao\n")
 
-	;; pipe binary ports
-	(check
+	(check			;pipe binary ports
 	    (with-compensations
-	      (let-values (((inp oup)	(pipe-binary-ports)))
+	      (let-values (((inp oup) (posix:pipe-binary-ports)))
 		(push-compensation (close-port inp))
 		(push-compensation (close-port oup))
-		(put-bytevector oup
-				(string->bytevector "ciao\n"
-						    (native-transcoder)))
+		(put-bytevector oup (string->bytevector "ciao\n" (native-transcoder)))
 		(flush-output-port oup)
-		(bytevector->string (get-bytevector-n inp 5)
-				    (native-transcoder))))
+		(bytevector->string (get-bytevector-n inp 5) (native-transcoder))))
 	  => "ciao\n")
 
-	;; textual port
-	(check
+	(check			;textual port
 	    (with-compensations
-	      (let-values (((inp oup)	(pipe-textual-ports)))
+	      (let-values (((inp oup) (posix:pipe-textual-ports)))
 		(push-compensation (close-port oup))
 		(push-compensation (close-port inp))
-
 		(put-string oup "ciao\n")
 		(flush-output-port oup)
 		(get-string-n inp 5)))
 	  => "ciao\n")
 
-	))))
+	#f))))
 
 
-(parameterize ((check-test-name	'fifo)
-	       (debugging	#t))
+(parametrise ((check-test-name	'fifo)
+	      (debugging	#t))
+
+  (define pathname
+    (begin0-let ((p (string-join (list (get-environment-variable "TMPDIR") "fifo") "/")))
+      (when (file-exists? p)
+	(delete-file p))))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in fifo" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "fifo condition" E)))
 
-	(let ((pathname
-	       (let ((p (string-join (list (get-environment-variable "TMPDIR") "fifo") "/")))
-		 (when (file-exists? p)
-		   (delete-file p))
-		 p)))
-
-	;; binary port
-	(check
+	(check		;binary port
 	    (with-compensations
 		(compensate
-		    (mkfifo pathname #o600)
+		    (posix:mkfifo pathname (bitwise-ior S_IRUSR S_IWUSR))
 		  (with
 		   (delete-file pathname)))
-;;	      (debug "created fifo, now opening~%")
-	      (let* ((in (open pathname (bitwise-ior O_NONBLOCK O_RDONLY) 0))
-		     (ou (open pathname O_WRONLY 0)))
-;; 		(debug "opened writing port~%")
-;; 		(debug "making scheme port~%")
+;;;(debug  "created  fifo,   now  opening~%")
+	      ;;These file  descriptors will be closed  when closing the
+	      ;;Scheme ports below.
+	      (let* ((in (posix:open pathname (bitwise-ior O_NONBLOCK O_RDONLY) 0))
+		     (ou (posix:open pathname O_WRONLY 0)))
+;;;(debug "opened writing port~%")
+;;;(debug "making scheme port~%")
 		(letrec ((inp	(compensate
-				    (fd->binary-input-port  in)
+				    (posix:fd->binary-input-port  in)
 				  (with
 				   (close-port inp))))
 			 (oup	(compensate
-				    (fd->binary-output-port ou)
+				    (posix:fd->binary-output-port ou)
 				  (with
 				   (close-port oup)))))
-;;		  (debug "writing and reading~%")
-		  (put-bytevector oup
-				  (string->bytevector "ciao\n"
-						      (native-transcoder)))
+;;;(debug "writing and reading~%")
+		  (put-bytevector oup (string->bytevector "ciao\n" (native-transcoder)))
 		  (flush-output-port oup)
-		  (bytevector->string (get-bytevector-n inp 5)
-				      (native-transcoder)))))
+		  (bytevector->string (get-bytevector-n inp 5) (native-transcoder)))))
 	  => "ciao\n")
 
-	;; textual port
-	(check
+	(check			;textual port
 	    (with-compensations
 		(compensate
-		    (mkfifo pathname #o600)
+		    (posix:mkfifo pathname #o600)
 		  (with
 		   (delete-file pathname)))
-	      (let* ((in (open pathname (bitwise-ior O_NONBLOCK O_RDONLY) 0))
-		     (ou (open pathname O_WRONLY 0)))
+	      ;;These file  descriptors will be closed  when closing the
+	      ;;Scheme ports below.
+	      (let* ((in (posix:open pathname (bitwise-ior O_NONBLOCK O_RDONLY) 0))
+		     (ou (posix:open pathname O_WRONLY 0)))
 		(letrec ((inp	(compensate
-				    (fd->textual-input-port  in)
+				    (posix:fd->textual-input-port  in)
 				  (with
 				   (close-port inp))))
 			 (oup	(compensate
-				    (fd->textual-output-port ou)
+				    (posix:fd->textual-output-port ou)
 				  (with
 				   (close-port oup)))))
 		  (put-string oup "ciao\n")
@@ -359,7 +365,7 @@ Ses ailes de geant l'empechent de marcher.")
 		  (get-string-n inp 5))))
 	  => "ciao\n")
 
-	)))))
+	#f))))
 
 
 ;;;; done

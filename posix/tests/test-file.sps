@@ -24,8 +24,7 @@
 ;;;
 
 
-(import (except (nausicaa)
-		read write remove)
+(import (nausicaa)
   (foreign ffi)
   (foreign memory)
   (foreign errno)
@@ -42,7 +41,6 @@
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX file\n")
-
 
 
 ;;;; test hierarchy
@@ -97,7 +95,6 @@ Ses ailes de geant l'empechent de marcher.")
   (system (string-append "rm -fr " the-root)))
 
 
-
 (parameterize ((check-test-name	'working-directory)
 	       (debugging	#t))
 
@@ -139,10 +136,9 @@ Ses ailes de geant l'empechent de marcher.")
 	      (pwd))
 	  => "/bin")
 
-	))))
+	#f))))
 
 
-
 (parameterize ((check-test-name	'directory-access)
 	       (debugging	#t))
 
@@ -259,10 +255,9 @@ Ses ailes de geant l'empechent de marcher.")
 				      layout))))
 	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
-	  )))))
+	  #f)))))
 
 
-
 (parameterize ((check-test-name	'links)
 	       (debugging	#t))
 
@@ -311,11 +306,10 @@ Ses ailes de geant l'empechent de marcher.")
 		  (realpath the-other))
 	      => the-file)
 
-	    ))))))
+	    #f))))))
 
 
 
-
 (parameterize ((check-test-name	'remove)
 	       (debugging	#t))
 
@@ -367,10 +361,9 @@ Ses ailes de geant l'empechent de marcher.")
 	    => #f)
 
 
-	  )))))
+	  #f)))))
 
 
-
 (parameterize ((check-test-name	'rename)
 	       (debugging	#t))
 
@@ -405,10 +398,9 @@ Ses ailes de geant l'empechent de marcher.")
 	      => '(#f #t))
 
 
-	    ))))))
+	    #f))))))
 
 
-
 (parameterize ((check-test-name	'mkdir)
 	       (debugging	#t))
 
@@ -435,10 +427,9 @@ Ses ailes de geant l'empechent de marcher.")
 		    (file-exists? the-other-dir)))
 	      => '(#f #t))
 
-	    ))))))
+	    #f))))))
 
 
-
 (parameterize ((check-test-name	'tmpfile)
 	       (debugging	#t))
 
@@ -484,11 +475,9 @@ Ses ailes de geant l'empechent de marcher.")
 			(delete-file pathname))))
 	    => '(#t #t))
 
-	  )))))
-
+	  #f)))))
 
 
-
 (parameterize ((check-test-name	'stat)
 	       (debugging	#t))
 
@@ -668,10 +657,9 @@ Ses ailes de geant l'empechent de marcher.")
 		      #t #t #t
 		      #f #f #f))
 
-	    ))))))
+	    #f))))))
 
 
-
 (parameterize ((check-test-name	'chown)
 	       (debugging	#t))
 
@@ -707,10 +695,9 @@ Ses ailes de geant l'empechent de marcher.")
 		    (fchown fd uid gid))))
 	    => 0)
 
-	  )))))
+	  #f)))))
 
 
-
 (parameterize ((check-test-name	'chmod)
 	       (debugging	#t))
 
@@ -751,10 +738,9 @@ Ses ailes de geant l'empechent de marcher.")
 		  (file-permissions fd)))
 	    => #o123)
 
-	  )))))
+	  #f)))))
 
 
-
 (parameterize ((check-test-name	'access)
 	       (debugging	#t))
 
@@ -830,8 +816,6 @@ Ses ailes de geant l'empechent de marcher.")
 	  )))))
 
 
-;;;; file times
-
 (parameterize ((check-test-name	'times)
 	       (debugging	#t))
 
@@ -873,12 +857,9 @@ Ses ailes de geant l'empechent de marcher.")
 	      (utime the-file)
 	    => 0)
 
-	  )))))
-
+	  #f)))))
 
 
-;;;; file size
-
 (parameterize ((check-test-name	'size)
 	       (debugging	#t))
 
@@ -907,7 +888,7 @@ Ses ailes de geant l'empechent de marcher.")
 		(file-size the-file))
 	    => 5)
 
-	  )))))
+	  #f)))))
 
 
 ;;;; done

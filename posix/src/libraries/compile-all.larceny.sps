@@ -59,12 +59,17 @@
 (compile-library "foreign/posix/file/platform.sls"
 		 "foreign/posix/file/platform.larceny.slfasl")
 
-(compile-library "foreign/posix/file/stat.sls"
-		 "foreign/posix/file/stat.larceny.slfasl")
-
 (compile-library "foreign/posix/file.sls"
 		 "foreign/posix/file.larceny.slfasl")
 
+(compile-library "foreign/posix/stat/platform.sls"
+		 "foreign/posix/stat/platform.larceny.slfasl")
+
+(compile-library "foreign/posix/stat/stat.sls"
+		 "foreign/posix/stat/stat.larceny.slfasl")
+
+(compile-library "foreign/posix/stat.sls"
+		 "foreign/posix/stat.larceny.slfasl")
 
 (compile-library "foreign/posix/environment/platform.sls"
 		 "foreign/posix/environment/platform.larceny.slfasl")

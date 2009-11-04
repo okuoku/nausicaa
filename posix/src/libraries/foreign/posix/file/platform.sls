@@ -1,3 +1,4 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to platform functions that handle files
@@ -24,44 +25,47 @@
 ;;;
 
 
-#!r6rs
 (library (foreign posix file platform)
   (export
-     platform-getcwd
-    platform-chdir
-    platform-fchdir
-    platform-opendir
-    platform-fdopendir
-    platform-dirfd
-    platform-readdir
-    platform-closedir
-    platform-rewinddir
-    platform-telldir
-    platform-seekdir
-    platform-scandir
-    platform-link
-    platform-symlink
-    platform-readlink
-    platform-realpath
-    platform-unlink
-    platform-rmdir
-    platform-remove
-    platform-rename
-    platform-mkdir
-    platform-chown
-    platform-fchown
-    platform-umask
-    platform-chmod
-    platform-fchmod
-    platform-access
-    platform-utime
-    platform-utimes
-    platform-lutimes
-    platform-futimes
-    platform-ftruncate
-    platform-tmpnam
-    platform-mktemp
-    platform-mkstemp)
+    ;; working directory
+    getcwd		chdir		fchdir
+
+    ;; directory access
+    opendir		fdopendir	dirfd
+    closedir		readdir		rewinddir
+    telldir		seekdir		scandir
+
+    ;; links
+    link		symlink		readlink
+    realpath
+
+    ;; removing
+    unlink		rmdir		remove
+
+    ;; renaming
+    rename
+
+    ;; mkdir
+    mkdir
+
+    ;; temporary files
+    tmpnam		mktemp		mkstemp
+
+    ;; changing owner
+    chown		fchown
+
+    ;; changing permissions
+    umask		chmod		fchmod
+
+    ;; access test
+    access
+
+    ;; file times
+    utime		utimes		lutimes
+    futimes
+
+    ;; file size
+    ftruncate)
   (import (rnrs)
     (foreign ffi)
     (foreign posix sizeof))
@@ -70,112 +74,149 @@
     (shared-object self-shared-object))
 
 
-;;;; code
+(define dummy
+  (shared-object self-shared-object))
 
-(define-c-function/with-errno platform-getcwd
+;;; --------------------------------------------------------------------
+;;; working directory
+
+(define-c-function/with-errno getcwd
   (char* getcwd (char* size_t)))
 
-(define-c-function/with-errno platform-chdir
+(define-c-function/with-errno chdir
   (int chdir (char*)))
 
-(define-c-function/with-errno platform-fchdir
+(define-c-function/with-errno fchdir
   (int fchdir (int)))
 
-(define-c-function/with-errno platform-opendir
+;;; --------------------------------------------------------------------
+;;; directory access
+
+(define-c-function/with-errno opendir
   (pointer opendir (char*)))
 
-(define-c-function/with-errno platform-fdopendir
+(define-c-function/with-errno fdopendir
   (pointer fdopendir (int)))
 
-(define-c-function/with-errno platform-dirfd
+(define-c-function/with-errno dirfd
   (int dirfd (pointer)))
 
-(define-c-function/with-errno platform-readdir
+(define-c-function/with-errno readdir
   (pointer readdir (pointer)))
 
-(define-c-function/with-errno platform-closedir
+(define-c-function/with-errno closedir
   (int closedir (pointer)))
 
-(define-c-function platform-rewinddir
+(define-c-function rewinddir
   (void rewinddir (pointer)))
 
-(define-c-function platform-telldir
+(define-c-function telldir
   (long telldir (pointer)))
 
-(define-c-function platform-seekdir
+(define-c-function seekdir
   (void seekdir (pointer long)))
 
-(define-c-function/with-errno platform-scandir
+(define-c-function/with-errno scandir
   (int scandir (char* pointer callback callback)))
 
-(define-c-function/with-errno platform-link
+;;; --------------------------------------------------------------------
+;;; links
+
+(define-c-function/with-errno link
   (int link (char* char*)))
 
-(define-c-function/with-errno platform-symlink
+(define-c-function/with-errno symlink
   (int symlink (char* char*)))
 
-(define-c-function/with-errno platform-readlink
+(define-c-function/with-errno readlink
   (int readlink (char* char* size_t)))
 
-(define-c-function/with-errno platform-realpath
+(define-c-function/with-errno realpath
   (char* realpath (char* char*)))
 
-(define-c-function/with-errno platform-unlink
+;;; --------------------------------------------------------------------
+;;; removing
+
+(define-c-function/with-errno unlink
   (int unlink (char*)))
 
-(define-c-function/with-errno platform-rmdir
+(define-c-function/with-errno rmdir
   (int rmdir (char*)))
 
-(define-c-function/with-errno platform-remove
+(define-c-function/with-errno remove
   (int remove (char*)))
 
-(define-c-function/with-errno platform-rename
+;;; --------------------------------------------------------------------
+;;; renaming
+
+(define-c-function/with-errno rename
   (int rename (char* char*)))
 
-(define-c-function/with-errno platform-mkdir
-  (int mkdir (char* mode_t)))
+;;; --------------------------------------------------------------------
+;;; temporary files
 
-(define-c-function/with-errno platform-chown
-  (int chown (char* uid_t gid_t)))
-
-(define-c-function/with-errno platform-fchown
-  (int fchown (int int int)))
-
-(define-c-function/with-errno platform-umask
-  (mode_t umask (mode_t)))
-
-(define-c-function/with-errno platform-chmod
-  (int chmod (char* mode_t)))
-
-(define-c-function/with-errno platform-fchmod
-  (int fchmod (int int)))
-
-(define-c-function/with-errno platform-access
-  (int access (char* int)))
-
-(define-c-function/with-errno platform-utime
-  (int utime (char* pointer)))
-
-(define-c-function/with-errno platform-utimes
-  (int utimes (char* pointer)))
-
-(define-c-function/with-errno platform-lutimes
-  (int lutimes (char* pointer)))
-
-(define-c-function/with-errno platform-futimes
-  (int futimes (int pointer)))
-
-(define-c-function/with-errno platform-ftruncate
-  (int ftruncate (int off_t)))
-
-(define-c-function platform-tmpnam
+(define-c-function tmpnam
   (char* tmpnam (char*)))
 
-(define-c-function/with-errno platform-mktemp
+(define-c-function/with-errno mktemp
   (char* mktemp (char*)))
 
-(define-c-function/with-errno platform-mkstemp
+(define-c-function/with-errno mkstemp
   (int mkstemp (char*)))
+
+;;; --------------------------------------------------------------------
+;;; mkdir
+
+(define-c-function/with-errno mkdir
+  (int mkdir (char* mode_t)))
+
+;;; --------------------------------------------------------------------
+;;; changing owner
+
+(define-c-function/with-errno chown
+  (int chown (char* uid_t gid_t)))
+
+(define-c-function/with-errno fchown
+  (int fchown (int int int)))
+
+;;; --------------------------------------------------------------------
+;;; changing permissions
+
+(define-c-function/with-errno umask
+  (mode_t umask (mode_t)))
+
+(define-c-function/with-errno chmod
+  (int chmod (char* mode_t)))
+
+(define-c-function/with-errno fchmod
+  (int fchmod (int int)))
+
+;;; --------------------------------------------------------------------
+;;; access test
+
+(define-c-function/with-errno access
+  (int access (char* int)))
+
+;;; --------------------------------------------------------------------
+;;; file times
+
+(define-c-function/with-errno utime
+  (int utime (char* pointer)))
+
+(define-c-function/with-errno utimes
+  (int utimes (char* pointer)))
+
+(define-c-function/with-errno lutimes
+  (int lutimes (char* pointer)))
+
+(define-c-function/with-errno futimes
+  (int futimes (int pointer)))
+
+;;; --------------------------------------------------------------------
+;;; tile size
+
+(define-c-function/with-errno ftruncate
+  (int ftruncate (int off_t)))
 
 
 ;;;; done

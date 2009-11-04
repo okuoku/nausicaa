@@ -1,13 +1,14 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: interface to POSIX date and time functions
-;;;Date: Mon Dec 22, 2008
+;;;Contents: direct interface for time functions
+;;;Date: Wed Nov  4, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,25 +25,29 @@
 ;;;
 
 
-(library (foreign posix time)
-  (export
-
-    ;; clock ticks and processor time
-    clock)
+(library (foreign posix time platform)
+  (export a)
   (import (rnrs)
-    (prefix (foreign posix time primitives) primitive:))
+    (foreign ffi)
+    (foreign posix sizeof))
 
 
-(define-primitive-parameter clock-function		primitive:clock)
-(define-primitive-parameter times-function		primitive:times)
+(define dummy
+  (shared-object self-shared-object))
 
-(define (clock)
-  ((clock-function)))
+(define stub-lib
+  (let ((o (open-shared-object 'libnausicaa-posix1.so)))
+    (shared-object o)
+    o))
 
-(define (times)
-  ((primitive-times-function)))
+
+;;;; CPU ticks and process ticks
 
+(define-c-function/with-errno platform-clock
+  (double nausicaa_posix_clock (void)))
 
+(define-c-function/with-errno platform-times
+  (double nausicaa_posix_times (pointer)))
 
 
 ;;;; done

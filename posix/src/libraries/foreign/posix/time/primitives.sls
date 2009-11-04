@@ -1,13 +1,14 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: interface to POSIX date and time functions
-;;;Date: Mon Dec 22, 2008
+;;;Contents: marshaling interface to time functions
+;;;Date: Wed Nov  4, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,25 +25,33 @@
 ;;;
 
 
-(library (foreign posix time)
+(library (foreign posix primitives)
   (export
 
-    ;; clock ticks and processor time
-    clock)
+    clock times)
   (import (rnrs)
-    (prefix (foreign posix time primitives) primitive:))
+    (prefix (foreign posix platform) platform:))
 
 
-(define-primitive-parameter clock-function		primitive:clock)
-(define-primitive-parameter times-function		primitive:times)
-
 (define (clock)
-  ((clock-function)))
+  (receive (result errno)
+      (platform:clock)
+    (if (= -1 result)
+	(raise-errno-error 'clock errno)
+      result)))
 
 (define (times)
-  ((primitive-times-function)))
-
-
+  (with-compensations
+    (let ((p (malloc-block/c (sizeof-double-array 4))))
+      (receive (result errno)
+	  (platform-times p)
+	(if (= -1 result)
+	    (raise-errno-error 'times errno)
+	  (values result
+		  (make-struct-tms (array-ref-c-double p 0)
+				   (array-ref-c-double p 1)
+				   (array-ref-c-double p 2)
+				   (array-ref-c-double p 3))))))))
 
 
 ;;;; done

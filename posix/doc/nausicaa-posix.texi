@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
 @setfilename nausicaa-posix.info
-@settitle Nausicaa/POSIX
+@settitle POSIX for Nausicaa
 @c %**end of header
 
 @c page
@@ -384,7 +384,7 @@ Revised^6 Report on the algorithmic language Scheme
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      @posix{} features for @rnrs{6} Scheme
+@set TITLE                      @posix{} for Nausicaa
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
@@ -414,11 +414,21 @@ Revised^6 Report on the algorithmic language Scheme
 
 @copying
 @noindent
-This document describes version @version{} of Nausicaa/POSIX, a set of
-Scheme libraries exposing the @posix{} interface to the Scheme language
-level.  It is built on top of the Nausicaa/Scheme libraries.
+This document describes version @version{} of @value{PACKAGE}, a
+distribution of libraries for @rnrs{6} Scheme exposing the @posix{}
+interface to the Scheme language level; some @gnu{} C Library extensions
+are also exposed.  It is built on top of the Nausicaa/Scheme libraries,
+making use of its foreign-functions interface; some libraries depend
+upon the C language library @samp{libnausicaa-posix} from the
+Nausicaa/Stubs package.
 
-The project home page of Nausicaa is at:
+The package is distributed under the terms of the @gnu{} General Public
+License (@gpl{}) and can be downloaded from:
+
+@center @url{http://github.com/marcomaggi/nausicaa/downloads}
+
+@noindent
+the project home page of Nausicaa is at:
 
 @center @url{http://marcomaggi.github.com/nausicaa.html}
 
@@ -432,7 +442,7 @@ Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_E
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the @gnu{} Free Documentation License, Version 1.2 or
+under the terms of the @gnu{} Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with
 Invariant Sections being ``@gnu{} Free Documentation License'' and
 ``@gnu{} General Public License'', no Front--Cover Texts, and no
@@ -481,9 +491,12 @@ entitled ``@gnu{} Free Documentation License''.
 @insertcopying
 
 @menu
-* posix::                       @posix{} interface.
-* time::                        Date and time.
+* overview::                    Overview.
+* api::                         Interface organisation.
+* environment::                 Environment variables.
 * file::                        File system.
+* stat::                        Inspecting file attributes.
+* time::                        Date and time.
 * fd::                          File descriptors.
 * process::                     Processes.
 * job::                         Job control.
@@ -505,13 +518,6 @@ Indexes
 @detailmenu
  --- The Detailed Node Listing ---
 
-@posix{} interface
-
-* posix intro::                 Introduction.
-* posix memory::                Memory management.
-* posix marshaling::            Marshaling arguments and return values.
-* posix environment::           Environment variables.
-
 File system
 
 * file working directory::      The working directory.
@@ -520,7 +526,7 @@ File system
 * file remove::                 Removing files and directories.
 * file rename::                 Renaming files and directories.
 * file mkdir::                  Creating directories.
-* file attr::                   File attributes.
+* file attr::                   Changing file attributes.
 * file temp::                   Temporary files.
 
 Accessing directory entries
@@ -530,19 +536,19 @@ Accessing directory entries
 * file directory access read::  Reading a directory stream.
 * file directory access seek::  Random access to a directory stream.
 
-File attributes
+Changing file attributes
 
-* file attr stat::              File attributes.
 * file attr owner::             Changing owner and group.
 * file attr mode::              Changing file permissions.
 * file attr access::            Testing access.
 * file attr size::              Size of files.
 
-File attributes
+Inspecting file attributes
 
-* file attr stat record::       Acquiring the file attributes.
-* file attr stat type::         Type inspection.
-* file attr stat perms::        Access permissions inspection.
+* stat record::                 Acquiring the file attributes.
+* stat api::                    Interface functions.
+* stat type::                   Type inspection.
+* stat perms::                  Access permissions inspection.
 
 Date and time
 
@@ -593,26 +599,15 @@ Users and groups
 @end ifnottex
 
 @c page
-@node posix
-@chapter @posix{} interface
+@node overview
+@chapter Overview
 
 
-@menu
-* posix intro::                 Introduction.
-* posix api::                   Interface organisation.
-* posix environment::           Environment variables.
-@end menu
-
-@c page
-@node posix intro
-@section Introduction
-
-
-This chapter describes an interface to the @posix{} system functions
-offered by the underlying platform.  Additionally an interface to the
-@gnu{} C Library and some Linux--specific functions is provided.
-
-Some libraries depend upon the C language library
+@value{PACKAGE} is a distribution of libraries for @rnrs{6} Scheme
+exposing the @posix{} interface to the Scheme language level; some
+@gnu{} C Library extensions are also exposed.  It is built on top of the
+Nausicaa/Scheme libraries, making use of its foreign-functions
+interface; some libraries depend upon the C language library
 @samp{libnausicaa-posix} from the Nausicaa/Stubs package.
 
 Unless otherwise specified, for each set of features there are three
@@ -622,7 +617,7 @@ libraries:
 @item foreign posix ---
 @itemx foreign glibc ---
 @itemx foreign linux ---
-The high--level interface: slower but user friendly.  We should really
+The high--level interface: Slower but user friendly.  We should really
 import these libraries by prefixing the identifiers; for example:
 
 @example
@@ -646,15 +641,19 @@ the bindings from these libraries are prefixed with @samp{platform:},
 but they are exported @strong{without} this prefix.
 @end table
 
+Additionally, the @library{foreign posix sizeof} library exports
+bindings for constant values (like @samp{O_CREAT}) and data structure
+accessors and mutators.
+
 @c page
-@node posix api
-@section Interface organisation
+@node api
+@chapter Interface organisation
 
 
 For all the functions only a brief description is given: We have to use
-the foreign function's documentation to have all the details.  Unless
-otherwise specified, the interface adheres to the following pattern for
-function @func{x}:
+the foreign function's own documentation to have all the details.
+Unless otherwise specified, the interface adheres to the following
+pattern for function @func{x}:
 
 @deffn Function x @var{arg} ...
 @deffnx Parameter x-function
@@ -663,9 +662,9 @@ function @func{x}:
 This is an interface for the @cfunc{x} foreign function.
 
 @func{x} and @func{primitive:x} do something with the arguments, which
-are regular Scheme values.  If successful they return values
-representing the result; in case of error they raise an @samp{&errno}
-condition.
+are regular Scheme values.  They take the same arguments and return the
+same return values.  If successful they return values representing the
+result; in case of error they raise an @samp{&errno} condition.
 
 @func{x} does the job by applying to the arguments the current value of
 the @func{x-function} parameter, which must be a function.  The
@@ -723,8 +722,8 @@ Example of usage of failing primitive fork function:
 @end example
 
 @c page
-@node posix environment
-@section Environment variables
+@node environment
+@chapter Environment variables
 
 
 Unless otherwise specified, the following bindings are exported by the
@@ -737,8 +736,8 @@ libraries:
 @end example
 
 @noindent
-@glibcref{Environment Access,Environment Access} @nauref{naulib
-environment, Accessing environment variables}
+@glibcref{Environment Access,Environment Access}.  @nauref{naulib
+environment, Accessing environment variables}.
 
 
 @deffn Function getenv @var{varname}
@@ -776,9 +775,8 @@ variable and @samp{VALUE} its value.
 
 @func{platform:environ} returns a pointer to an array of pointers, each
 referencing a C string with the format @samp{NAME=VALUE}.  The pointer
-is suitable to be used as argument to @func{marshal-argv->strings}
-(@pxref{posix marshaling}) and @func{arg->strings} (@nauref{cstrings
-argv, Converting arrays of strings}).
+is suitable to be used as argument to @func{arg->strings}
+(@nauref{cstrings argv, Converting arrays of strings}).
 @end deffn
 
 
@@ -829,10 +827,6 @@ must be a Scheme string or symbol.
 Put the variable assignment described by the Scheme string or symbol
 @var{assignment} in the environment.  @var{assignment} must have the
 format @samp{NAME=VALUE}.
-
-Every time this function is used, an amount of memory equal to the
-length of the string is leaked, as it is used as member of the
-@code{environ} array.
 @end deffn
 
 
@@ -841,8 +835,6 @@ length of the string is leaked, as it is used as member of the
 Append the Scheme strings or symbols @var{name} and @var{value} to form
 a single strings with @samp{=} in the middle; then put the resulting
 variable assignment in the environment.
-
-See the note about memory handling for @func{putenv}.
 @end defun
 
 @c page
@@ -850,11 +842,19 @@ See the note about memory handling for @func{putenv}.
 @chapter File system
 
 
-The bindings described in this chapter are exported by @library{foreign
-posix file} and @library{foreign posix file platform}.  Additionally if
-we have installed the Stubs library for @posix{}, we can import the
-@library{foreign posix file stub} library; see the Nausicaa/Stubs
-project for details.
+Unless otherwise specified, the bindings described in this chapter are
+exported by the following libraries:
+
+@example
+(foreign posix file)
+(foreign posix file primitives)
+(foreign posix file platform)
+@end example
+
+@noindent
+additionally if we have installed the Nausicaa/Stubs library for
+@posix{}, we can import the @library{foreign posix file stub} library;
+see the Nausicaa/Stubs project for details.
 
 @menu
 * file working directory::      The working directory.
@@ -863,7 +863,7 @@ project for details.
 * file remove::                 Removing files and directories.
 * file rename::                 Renaming files and directories.
 * file mkdir::                  Creating directories.
-* file attr::                   File attributes.
+* file attr::                   Changing file attributes.
 * file temp::                   Temporary files.
 @end menu
 
@@ -872,13 +872,14 @@ project for details.
 @section The working directory
 
 
-@glibcref{Working Directory,Working Directory}
+The following functions manage the process' current directory.
+@glibcref{Working Directory,Working Directory}.
 
 
 @deffn Function getcwd
-@deffnx Function primitive-getcwd
 @deffnx Parameter getcwd-function
-@deffnx Function platform-getcwd
+@deffnx Function primitive:getcwd
+@deffnx Function platform:getcwd
 Return a string representing the current working directory.
 @end deffn
 
@@ -889,31 +890,30 @@ An alias for @func{getcwd}.
 
 
 @deffn Function chdir @var{pathname}
-@deffnx Function primitive-chdir @var{pathname}
 @deffnx Parameter chdir-function
-@deffnx Function platform-chdir @var{pathname}
+@deffnx Function primitive:chdir @var{pathname}
+@deffnx Function platform:chdir @var{pathname}
 Change the current directory to the selected @var{pathname}, which must
-be a Scheme string or symbol.  If an error occurs changing directory
-(because of access permissions): an exception is raised.
+be a Scheme string or symbol.  If an error occurs changing directory,
+because of access permissions: An exception is raised.
 @end deffn
 
 
 @deffn Function fchdir @var{fd}
-@deffnx Function primitive-fchdir @var{fd}
 @deffnx Parameter fchdir-function
-@deffnx Function platform-fchdir @var{fd}
+@deffnx Function primitive:fchdir @var{fd}
+@deffnx Function platform:fchdir @var{fd}
 Change the current directory to the one associated to the file
 descriptor @var{fd}.
 @end deffn
-
 
 @c page
 @node file directory access
 @section Accessing directory entries
 
 
-@glibcref{Accessing Directories,Accessing Directories}
-
+The functions described in this section handle accessing directories.
+@glibcref{Accessing Directories,Accessing Directories}.
 
 @menu
 * file directory access types:: Type definitions.
@@ -922,94 +922,38 @@ descriptor @var{fd}.
 * file directory access seek::  Random access to a directory stream.
 @end menu
 
-
 @c page
 @node file directory access types
 @subsection Type definitions
 
 
-The following bindings are exported from @library{posix sizeof}.
+The following bindings are exported from @library{foreign posix sizeof}.
+@glibcref{Directory Entries,Format of a directory entry}.
 
-@glibcref{Directory Entries,Format of a directory entry}
 
-
-@defvar sizeof-struct-dirent
-@defvarx alignof-struct-dirent
-@defvarx strideof-struct-dirent
+@defvr Constant sizeof-struct-dirent
+@defvrx Constant alignof-struct-dirent
+@defvrx Constant strideof-struct-dirent
 Size, alignment and array stride of @code{struct dirent} types.
-@end defvar
+@end defvr
 
 
 @deffn Syntax struct-dirent-d_name-ref @var{pointer}
 Getter for the @code{d_name} field of a @code{struct dirent} type.
+Evaluates to a pointer to the first byte of the @code{char d_name[]}
+array.
 @end deffn
-
 
 @c page
 @node file directory access open
 @subsection Accessing a directory stream
 
 
-@glibcref{Opening a Directory,Opening a directory stream}
+The following functions manage opening and closing of special
+@dfn{stream} objects used to access directory contents.
+@glibcref{Opening a Directory,Opening a directory stream}.
 @glibcref{Reading/Closing Directory,Reading and closing a directory
-stream}
-
-
-@deffn Function opendir @var{pathname}
-@deffnx Function primitive-opendir @var{pathname}
-@deffnx Parameter opendir-function
-@deffnx Function platform-opendir @var{pathname}
-Open and return a stream associated to the directory selected by the
-string or symbol @var{pathname}.
-@end deffn
-
-
-@deffn Function fdopendir @var{fd}
-@deffnx Function primitive-fdopendir @var{fd}
-@deffnx Parameter fdopendir-function
-@deffnx Function platform-fdopendir @var{fd}
-Open and return a stream associated to the directory selected by the
-file descriptor @var{fd}.
-@end deffn
-
-
-@defun opendir/compensated @var{pathname}
-@defunx fdopendir/compensated @var{fd}
-@defunx opendir/c @var{pathname}
-@defunx fdopendir/c @var{fd}
-Like @func{opendir} and @func{fdopendir}, but push the appropriate call
-to @func{closedir} on the dynamic environment of the current
-compensation stack.  @nauref{compensations, Compensation stacks}
-@end defun
-
-
-@deffn Function closedir @var{stream}
-@deffnx Function primitive-closedir @var{stream}
-@deffnx Parameter closedir-function
-@deffnx Function platform-closedir @var{stream}
-Close the directory @var{stream} previously opened with @func{opendir}
-or @func{fdopendir}.
-
-@quotation
-@emph{Note:} Applying this function to a stream that was opened with
-@func{fdopendir}, closes the underlying file descriptor, too.  This is
-weird but I have tested it with @file{libc-2.5.so}, so believe me.
-
-This means that we have to avoid closing the file descriptor with
-@func{close} (as it is very obscurely written in the @gnu{} C Library
-documentation).
-@end quotation
-@end deffn
-
-
-@deffn Function dirfd @var{stream}
-@deffnx Function primitive-dirfd @var{stream}
-@deffnx Parameter dirfd-function
-@deffnx Function platform-dirfd @var{stream}
-Return the file descriptor associated to the directory @var{stream}
-previously opened with @func{opendir} or @func{fdopendir}.
-@end deffn
-
+stream}.
 
 Usage examples:
 
@@ -1024,54 +968,89 @@ Usage examples:
       (closedir stream))))
 
 (with-compensations
-  (let ((stream (opendir "/home/marco/share/sounds")))
+  (let ((stream (opendir/c "/home/marco/share/sounds")))
     ---))
 @end example
 
+
+@deffn Function opendir @var{pathname}
+@deffnx Parameter opendir-function
+@deffnx Function primitive:opendir @var{pathname}
+@deffnx Function platform:opendir @var{pathname}
+Open and return a stream associated to the directory selected by the
+Scheme string or symbol @var{pathname}.
+@end deffn
+
+
+@deffn Function fdopendir @var{fd}
+@deffnx Parameter fdopendir-function
+@deffnx Function primitive:fdopendir @var{fd}
+@deffnx Function platform:fdopendir @var{fd}
+Open and return a stream associated to the directory selected by the
+file descriptor @var{fd}.
+@end deffn
+
+
+@deffn Function closedir @var{stream}
+@deffnx Parameter closedir-function
+@deffnx Function primitive:closedir @var{stream}
+@deffnx Function platform:closedir @var{stream}
+Close the directory @var{stream} previously opened with @func{opendir}
+or @func{fdopendir}.
+
+@quotation
+@strong{NOTE} Applying this function to a stream that was opened with
+@func{fdopendir}, closes the underlying file descriptor, too.  This is
+weird but I have tested it with @file{libc-2.5.so}, so believe me.
+
+This means that we have to avoid closing the file descriptor with
+@func{close} (as it is very obscurely written in the @gnu{} C Library
+documentation).
+@end quotation
+@end deffn
+
+
+@defun opendir/compensated @var{pathname}
+@defunx fdopendir/compensated @var{fd}
+@defunx opendir/c @var{pathname}
+@defunx fdopendir/c @var{fd}
+Like @func{opendir} and @func{fdopendir}, but push the appropriate call
+to @func{closedir} on the dynamic environment of the current
+compensation stack.  @nauref{compensations, Compensation stacks}
+@end defun
+
+
+@deffn Function dirfd @var{stream}
+@deffnx Parameter dirfd-function
+@deffnx Function primitive:dirfd @var{stream}
+@deffnx Function platform:dirfd @var{stream}
+Return the file descriptor associated to the directory @var{stream}
+previously opened with @func{opendir} or @func{fdopendir}.
+@end deffn
 
 @c page
 @node file directory access read
 @subsection Reading a directory stream
 
 
-@glibcref{Reading/Closing Directory,Reading and closing a directory stream}
+The following functions manage reading special @dfn{stream} objects used
+to access directory contents.  @glibcref{Reading/Closing
+Directory,Reading and closing a directory stream}.
 
-
-@deffn Function readdir @var{stream}
-@deffnx Function primitive-readdir @var{stream}
-@deffnx Parameter readdir-function
-@deffnx Function platform-readdir @var{stream}
-Return a pointer to a statically allocated @code{struct dirent}
-describing the next entry from the directory @var{stream}, previously
-opened with @func{opendir} or @func{fdopendir}.
-
-Notice that the returned strings are the names of the entries relative
-to the uplevel directory.  No slash and no directory part are in there.
-@end deffn
-
-
-@defun directory-list @var{pathname}
-@defunx directory-list/fd @var{fd}
-High level functions that open the directory selected by the string or
-symbol @var{pathname} or file descriptor @var{fd}, read all the entries
-and return a list of string holding the entry names.
-@end defun
-
-
-As a usage example for the low level function, let's see how
+As a usage example for the low level functions, let's see how
 @func{directory-list} is implemented:
 
 @example
 (define (directory-list pathname)
   (with-compensations
-    (let ((dir    (opendir/compensated pathname))
+    (let ((dir    (opendir/c pathname))
           (layout '()))
       (do ((entry (readdir dir) (readdir dir)))
           ((pointer-null? entry)
            layout)
         (set! layout
               (cons (cstring->string
-                     (struct-dirent-d_name-ref entry))
+                       (struct-dirent-d_name-ref entry))
                     layout))))))
 @end example
 
@@ -1101,28 +1080,53 @@ to read a directory using the file descriptor and the @gnu{} flag
 @end example
 
 
+@deffn Function readdir @var{stream}
+@deffnx Parameter readdir-function
+@deffnx Function primitive:readdir @var{stream}
+@deffnx Function platform:readdir @var{stream}
+Return a pointer to a statically allocated @code{struct dirent}
+describing the next entry from the directory @var{stream}, previously
+opened with @func{opendir} or @func{fdopendir}.
+
+Notice that the returned strings are the names of the entries relative
+to the uplevel directory.  No slash and no parent directory part are in
+there.
+@end deffn
+
+
+@defun directory-list @var{pathname}
+@defunx directory-list/fd @var{fd}
+High level functions that open the directory selected by the Scheme
+string or symbol @var{pathname} or file descriptor @var{fd}, read all
+the entries and return a list of Scheme strings holding the entry names.
+@end defun
+
 @c page
 @node file directory access seek
 @subsection Random access to a directory stream
 
 
-For the following bindings: the @code{platform-} functions return a
+The following function handle seeking the current position in the
+special @dfn{stream} objects used to access directory contents.
+@glibcref{Random Access Directory, Random Access in a Directory Stream}.
+
+For the following bindings: The @code{platform:} functions return a
 @strong{single} value, they do not use @code{errno} to signal errors.
 
 
 @deffn Function rewinddir @var{stream}
-@deffnx Function primitive-rewinddir @var{stream}
 @deffnx Parameter rewinddir-function
-@deffnx Function platform-rewinddir @var{stream}
+@deffnx Function primitive:rewinddir @var{stream}
+@deffnx Function platform:rewinddir @var{stream}
 Rewind the directory @var{stream} previously opened with @func{opendir}
 or @func{fdopendir}.
 @end deffn
 
 
 @deffn Function telldir @var{stream}
-@deffnx Function primitive-telldir @var{stream}
 @deffnx Parameter telldir-function
-@deffnx Function platform-telldir @var{stream}
+@deffnx Function primitive:telldir @var{stream}
+@deffnx Function platform:telldir @var{stream}
 Return an exact integer representing the current position in the
 directory @var{stream} previously opened with @func{opendir} or
 @func{fdopendir}.
@@ -1133,164 +1137,393 @@ follow a predictable sequence.
 
 
 @deffn Function seekdir @var{stream} @var{position}
-@deffnx Function primitive-seekdir @var{stream} @var{position}
 @deffnx Parameter seekdir-function
-@deffnx Function platform-seekdir @var{stream} @var{position}
+@deffnx Function primitive:seekdir @var{stream} @var{position}
+@deffnx Function platform:seekdir @var{stream} @var{position}
 Seek to @var{position} the directory @var{stream} previously opened with
 @func{opendir} or @func{fdopendir}.  @var{position} must be a value
 previously returned by @func{telldir}.
 @end deffn
-
 
 @c page
 @node file links
 @section Hard and symbolic links
 
 
-@glibcref{Hard Links,Hard Links}
-@glibcref{Symbolic Links,Symbolic Links}
+The following functions manage hard and symbolic links to files.
+@glibcref{Hard Links,Hard Links}.  @glibcref{Symbolic Links,Symbolic
+Links}.
 
 
-@deffn Function link @var{oldname} @var{newname}
-@deffnx Function primitive-link @var{oldname} @var{newname}
+@deffn Function link @var{old-pathname} @var{new-pathname}
 @deffnx Parameter link-function
-@deffnx Function platform-link @var{oldname} @var{newname}
-Link to the new name specified by the string or symbol @var{newname} the
-file selected by the string or symbol @var{oldname}.
+@deffnx Function primitive:link @var{old-pathname} @var{new-pathname}
+@deffnx Function platform:link @var{old-pathname} @var{new-pathname}
+Link to the new name specified by the Scheme string or symbol
+@var{new-pathname}, the file selected by the Scheme string or symbol
+@var{old-pathname}.
 @end deffn
 
 
-@deffn Function symlink @var{oldname} @var{newname}
-@deffnx Function primitive-symlink @var{oldname} @var{newname}
+@deffn Function symlink @var{old-pathname} @var{new-pathname}
 @deffnx Parameter symlink-function
-@deffnx Function platform-symlink @var{oldname} @var{newname}
-Link to the new name specified by the string or symbol @var{newname} the
-file selected by the string or symbol @var{oldname}.
+@deffnx Function primitive:symlink @var{old-pathname} @var{new-pathname}
+@deffnx Function platform:symlink @var{old-pathname} @var{new-pathname}
+Link to the new name specified by the Scheme string or symbol
+@var{new-pathname}, the file selected by the Scheme string or symbol
+@var{old-pathname}.
 @end deffn
 
 
 @deffn Function realpath @var{pathname}
-@deffnx Function primitive-realpath @var{pathname}
 @deffnx Parameter realpath-function
-@deffnx Function platform-realpath @var{pathname}
+@deffnx Function primitive:realpath @var{pathname}
+@deffnx Function platform:realpath @var{pathname}
 Return a string representing the real pathname of the symbolic link
-selected by the string or symbol @var{pathname}.
+selected by the Scheme string or symbol @var{pathname}.
 @end deffn
-
 
 @c page
 @node file remove
 @section Removing files and directories
 
 
-@glibcref{Deleting Files,Deleting Files}
+The following functions manage removal of files and directories from a
+file system.  @glibcref{Deleting Files,Deleting Files}.
 
 
 @deffn Function unlink @var{pathname}
-@deffnx Function primitive-unlink @var{pathname}
 @deffnx Parameter unlink-function
-@deffnx Function platform-unlink @var{pathname}
-Remove the file selected by the string or symbol @var{pathname}.
+@deffnx Function primitive:unlink @var{pathname}
+@deffnx Function platform:unlink @var{pathname}
+Remove the file selected by the Scheme string or symbol @var{pathname}.
 @end deffn
 
 
 @deffn Function remove @var{pathname}
-@deffnx Function primitive-remove @var{pathname}
 @deffnx Parameter remove-function
-@deffnx Function platform-remove @var{pathname}
-Remove the file selected by the string or symbol @var{pathname}.
+@deffnx Function primitive:remove @var{pathname}
+@deffnx Function platform:remove @var{pathname}
+Remove the file selected by the Scheme string or symbol @var{pathname}.
 @end deffn
 
 
 @deffn Function rmdir @var{pathname}
-@deffnx Function primitive-rmdir @var{pathname}
 @deffnx Parameter rmdir-function
-@deffnx Function platform-rmdir @var{pathname}
-Remove the directory selected by the string or symbol @var{pathname}.
-The directory has to be empty.
+@deffnx Function primitive:rmdir @var{pathname}
+@deffnx Function platform:rmdir @var{pathname}
+Remove the directory selected by the Scheme string or symbol
+@var{pathname}.  The directory has to be empty.
 @end deffn
-
 
 @c page
 @node file rename
 @section Renaming files and directories
 
 
-@glibcref{Renaming Files,Renaming Files}
+The following functions manage renaming of files and directories from a
+file system.  @glibcref{Renaming Files,Renaming Files}.
 
 
-@deffn Function rename @var{oldname} @var{newname}
-@deffnx Function primitive-rename @var{oldname} @var{newname}
+@deffn Function rename @var{old-pathname} @var{new-pathname}
 @deffnx Parameter rename-function
-@deffnx Function platform-rename @var{oldname} @var{newname}
-Rename the file selected by the string or symbol @var{oldname} to the
-pathname selected by the string or symbol @var{newname}.
+@deffnx Function primitive:rename @var{old-pathname} @var{new-pathname}
+@deffnx Function platform:rename @var{old-pathname} @var{new-pathname}
+Rename the file selected by the string or symbol @var{old-pathname} to
+the pathname selected by the string or symbol @var{new-pathname}.
 @end deffn
-
 
 @c page
 @node file mkdir
 @section Creating directories
 
 
-@glibcref{Creating Directories,Creating Directories}
+The following functions manage creating new directories.
+@glibcref{Creating Directories, Creating Directories}.
 
 
 @deffn Function mkdir @var{pathname}
-@deffnx Function primitive-mkdir @var{pathname}
 @deffnx Parameter mkdir-function
-@deffnx Function platform-mkdir @var{pathname}
-Create a new directory with pathname selected by the string or symbol
-@var{pathname}.
+@deffnx Function primitive:mkdir @var{pathname}
+@deffnx Function platform:mkdir @var{pathname}
+Create a new directory with pathname selected by the Scheme string or
+symbol @var{pathname}.
 @end deffn
-
 
 @c page
 @node file attr
-@section File attributes
+@section Changing file attributes
 
 
-@glibcref{File Attributes,File Attributes}
-
+The functions described in this section manage file and directory
+attributes.  @glibcref{File Attributes, File Attributes}.
 
 @menu
-* file attr stat::              File attributes.
 * file attr owner::             Changing owner and group.
 * file attr mode::              Changing file permissions.
 * file attr access::            Testing access.
 * file attr size::              Size of files.
 @end menu
 
+@c page
+@node file attr owner
+@subsection File owner and group
+
+
+The following functions manage file ownership attributes.
+@glibcref{File Owner, File Owner}.
+
+
+@deffn Function chown @var{pathname} @var{owner-id} @var{group-id}
+@deffnx Parameter chown-function
+@deffnx Function primitive:chown @var{pathname} @var{owner-id} @var{group-id}
+@deffnx Function platform:chown @var{pathname-cstr} @var{owner-id} @var{group-id}
+Change the file owner and group to the given numeric identifiers.
+@var{pathname} must be a Scheme string or symbol representing a
+pathname.
+@end deffn
+
+
+@deffn Function fchown @var{fd} @var{owner-id} @var{group-id}
+@deffnx Parameter fchown-function
+@deffnx Function primitive:fchown @var{fd} @var{owner-id} @var{group-id}
+@deffnx Function platform:fchown fchown @var{fd} @var{owner-id} @var{group-id}
+Change the file owner and group to the given numeric identifiers.
+@var{fd} must be a file descriptor.
+@end deffn
 
 @c page
-@node file attr stat
-@subsection File attributes
+@node file attr mode
+@subsection Changing file permissions
 
 
-For some reason the stat functions are not loadable, as all the other
-symbols, from the C language standard library.  So the bindings
-described in this section are exported by the @library{posix file stat}
-library which is usable only if the Stubs library for @posix{} features
-is installed on the system.  See the Nausicaa/Stubs project for details.
+The following functions manage file access permissions.
+@glibcref{Setting Permissions, Assigning File Permissions}.
 
+The @var{mask} argument must be an exact integer representing access
+permissions bits.  @ref{fd constants perms} for details about composing
+the the mask value as a bitwise combination of predefined constants.
+
+
+@deffn Function umask @var{mask}
+@deffnx Parameter umask-function
+@deffnx Function primitive:umask @var{mask}
+@deffnx Function platform:umask @var{mask}
+Set the umask to @var{mask} and return the old mask value.  To query the
+current mask without changing it:
+
+@example
+(let ((m (umask 0)))
+  (umask m)
+  m)
+@end example
+
+@noindent
+or use @func{getumask}, which has exactly this implementation.
+@end deffn
+
+
+@defun getumask
+@defunx primitive:getumask
+Return the current umask.
+@end defun
+
+
+@deffn Function chmod @var{pathname} @var{mask}
+@deffnx Parameter chmod-function
+@deffnx Function primitive:chmod @var{pathname} @var{mask}
+@deffnx Function platform:chmod @var{pathname-cstr} @var{mask}
+Change the file access permissions bits to the given numeric mask.
+@var{pathname} must be a Scheme string or symbol representing a
+pathname.
+@end deffn
+
+
+@deffn Function fchmod @var{fd} @var{mask}
+@deffnx Parameter fchmod-function
+@deffnx Function primitive:fchmod @var{fd} @var{mask}
+@deffnx Function platform:fchmod @var{fd} @var{mask}
+Change the file access permissions bits to the given numeric mask.
+@var{fd} must be a file descriptor.
+@end deffn
+
+@c page
+@node file attr access
+@subsection Testing access
+
+
+The following functions manage testing if the process has access
+permissions for a file or directory.  @glibcref{Testing File Access,
+Testing permission to access a file}.
+
+Example:
+
+@example
+(access "file.ext" (bitwise-ior R_OK W_OK))
+@end example
+
+
+@deffn Function access @var{pathname} @var{mask}
+@deffnx Parameter access-function
+@deffnx Function primitive:access @var{pathname} @var{mask}
+@deffnx Function platform:access @var{pathname-cstr} @var{mask}
+Return @true{} if the process has permission to access the file selected
+by the Scheme string or symbol @var{pathname} as specified by
+@var{mask}; return @false{} otherwise.
+
+@var{mask} can be the bitwise combination of: @code{F_OK}, @code{R_OK},
+@code{W_OK}, @code{X_OK}.
+@end deffn
+
+
+@defvr Constant F_OK
+@defvrx Constant R_OK
+@defvrx Constant W_OK
+@defvrx Constant X_OK
+Constants representing requests for access permission testing with
+@func{access}.  These bindings are exported by @library{foreign posix
+sizeof}.
+@end defvr
+
+@c page
+@node file attr size
+@subsection Size of files
+
+
+@deffn Function file-size @var{fd/pathname}
+@deffnx Parameter file-size-function
+@deffnx Function primitive:file-size @var{fd/pathname}
+Return the size of the selected file.  @var{fd/pathname} can be a file
+descriptor or a pathname in the form of a Scheme string or symbol.
+
+This function is implemented using @func{lseek} as described in @ref{fd
+seek, Setting the file position}.
+@end deffn
+
+
+@deffn Function ftruncate @var{fd/pathname} @var{length}
+@deffnx Parameter ftruncate-function
+@deffnx Function primitive:ftruncate @var{fd/pathname} @var{length}
+@deffnx Function platform:ftruncate @var{fd/pathname-cstr} @var{length}
+Set to @var{length} the size of the selected file.  @var{fd/pathname}
+can be a file descriptor or a pathname in the form of a Scheme string or
+symbol.
+@end deffn
+
+@c page
+@node file temp
+@section Temporary files
+
+
+The following functions manage the creation of temporary files and
+directories.  @glibcref{Temporary Files, Temporary Files}.
+
+Usage example:
+
+@example
+(let-values (((fd pathname) (mkstemp "/tmp/XXXXXX")))
+  ---
+  (close fd)
+  (delete-file pathname))
+@end example
+
+
+@deffn Function tmpnam
+@deffnx Parameter tmpnam-function
+@deffnx Function primitive:tmpnam
+@deffnx Function platform:tmpnam
+Return a file pathname that, at the time of the call, does not exist on
+the system.
+@end deffn
+
+
+@deffn Function mktemp @var{template}
+@deffnx Parameter mktemp-function
+@deffnx Function primitive:mktemp @var{template}
+@deffnx Function platform:mktemp @var{template-cstr}
+Return a file pathname that, at the time of the call, does not exist on
+the system.  The pathname is built from the Scheme string or symbol
+@var{template}, which must include the @code{XXXXXX} sequence of
+characters (six times @code{X}).  @var{template} is @strong{not}
+mutated.
+@end deffn
+
+
+@deffn Function mkstemp @var{template}
+@deffnx Parameter mkstemp-function
+@deffnx Function primitive:mkstemp @var{template}
+@deffnx Function platform:mkstemp @var{template-cstr}
+Return two values: a file descriptor and a file pathname.  The pathname
+is built from the Scheme string or symbol @var{template}, which must
+include the @code{XXXXXX} sequence of characters (six times @code{X}).
+@var{template} is @strong{not} mutated.
+@end deffn
+
+@c page
+@node stat
+@chapter Inspecting file attributes
+
+
+Unless otherwise specified, the bindings described in this section are
+exported by the following libraries:
+
+@example
+(foreign posix stat)
+(foreign posix stat primitives)
+(foreign posix stat platform)
+(foreign posix stat record-types)
+@end example
+
+@noindent
+full support for the C language @cfunc{stat} function requires loading
+the @file{libnausicaa-posix.so} library.
 
 @menu
-* file attr stat record::       Acquiring the file attributes.
-* file attr stat type::         Type inspection.
-* file attr stat perms::        Access permissions inspection.
+* stat constants::              Constant values.
+* stat record::                 Acquiring the file attributes.
+* stat api::                    Interface functions.
+* stat type::                   Type inspection.
+* stat perms::                  Access permissions inspection.
 @end menu
 
+@c page
+@node stat constants
+@section Constant values.
+
+
+@defvr Constant sizeof-struct-stat
+The size of the @code{struct stat} data structure in bytes.  This
+binding is exported by @library{foreign posix stat platform}.
+
+@quotation
+@strong{FIXME} This binding should really be exported by
+@library{foreign posix stat platform}, but for some reason it looks like
+the size of @code{struct stat} is not determined correctly by the
+Autoconf macros in the @file{configure.ac} file.  Dunno why.  This error
+causes segmentation faults in the code.
+
+As a temporary fix, the size of the structure is determined by a C
+language function exported by @file{libnausicaa-posix.so}.
+
+On an i686-pc-linux-gnu, the size reported by the Autoconf macro is
+@math{88}, while the value returned by the foreign function is
+@math{96}.
+@end quotation
+@end defvr
 
 @c page
-@node file attr stat record
-@subsubsection Acquiring the file attributes
+@node stat record
+@section Acquiring the file attributes
 
 
-@glibcref{Attribute Meanings,The meaning of the File Attributes}
-@glibcref{Reading Attributes,Reading Attributes}
+The following bindings are exported by the @library{foreign posix stat
+record-types} library.  The informations about a file or directory can
+be stored in a Scheme record.  @glibcref{Attribute Meanings, The meaning
+of the File Attributes}.
 
 
-@deftp {Record Type} struct-stat
+@deftp {Record Type Name} <struct-stat>
+@deftpx {Record Type Descriptor} <struct-stat-rtd>
 Type of record used to hold fields from a @code{struct stat}.  List of
 fields follows:
 
@@ -1306,87 +1539,151 @@ blocks          blksize
 @end example
 
 @noindent
-all the fields are immutable, we have to refer to the original
+all the fields are immutable; we have to refer to the original
 documentation of @code{struct stat} for their meaning.
 
-Some field are not available on every platform in the foreign
-@code{struct stat}, in this case the associated field in the
-@code{struct-stat} record should be set to @false{}.  For example
+Some fields are not available on every platform in the foreign
+@code{struct stat} data structure; in this case the associated field in
+the @class{struct-stat} record should be set to @false{}.  For example
 @code{atime_usec}, @code{mtime_usec}, @code{ctime_usec} are not
 available on some common platforms.
 @end deftp
 
 
-@defun make-struct-stat @var{mode} @var{ino} @var{dev} @var{nlink} @var{uid} @var{gid} @var{size} @var{atime} @var{atime_usec} @var{mtime} @var{mtime_usec} @var{ctime} @var{ctime_usec} @var{blocks} @var{blksize}
-Build and return a new @code{struct-stat} record.
+@defun make-<struct-stat> @var{mode} @var{ino} @var{dev} @var{nlink} @var{uid} @var{gid} @var{size} @var{atime} @var{atime_usec} @var{mtime} @var{mtime_usec} @var{ctime} @var{ctime_usec} @var{blocks} @var{blksize}
+Build and return a new @class{struct-stat} record.
 @end defun
 
 
-@defun struct-stat? @var{obj}
-Return @true{} if @var{obj} is a @code{struct-stat} record.
+@defun <struct-stat>? @var{obj}
+Return @true{} if @var{obj} is a @class{struct-stat} record.
 @end defun
 
 
-@defun struct-stat-mode @var{struct-stat}
-@defunx struct-stat-ino @var{struct-stat}
-@defunx struct-stat-dev @var{struct-stat}
-@defunx struct-stat-nlink @var{struct-stat}
-@defunx struct-stat-uid @var{struct-stat}
-@defunx struct-stat-gid @var{struct-stat}
-@defunx struct-stat-size @var{struct-stat}
-@defunx struct-stat-atime @var{struct-stat}
-@defunx struct-stat-atime_usec @var{struct-stat}
-@defunx struct-stat-mtime @var{struct-stat}
-@defunx struct-stat-mtime_usec @var{struct-stat}
-@defunx struct-stat-ctime @var{struct-stat}
-@defunx struct-stat-ctime_usec @var{struct-stat}
-@defunx struct-stat-blocks @var{struct-stat}
-@defunx struct-stat-blksize @var{struct-stat}
-Getters for the fields of a @code{struct-stat} record.
+@defun <struct-stat>-mode @var{struct-stat}
+@defunx <struct-stat>-ino @var{struct-stat}
+@defunx <struct-stat>-dev @var{struct-stat}
+@defunx <struct-stat>-nlink @var{struct-stat}
+@defunx <struct-stat>-uid @var{struct-stat}
+@defunx <struct-stat>-gid @var{struct-stat}
+@defunx <struct-stat>-size @var{struct-stat}
+@defunx <struct-stat>-atime @var{struct-stat}
+@defunx <struct-stat>-atime_usec @var{struct-stat}
+@defunx <struct-stat>-mtime @var{struct-stat}
+@defunx <struct-stat>-mtime_usec @var{struct-stat}
+@defunx <struct-stat>-ctime @var{struct-stat}
+@defunx <struct-stat>-ctime_usec @var{struct-stat}
+@defunx <struct-stat>-blocks @var{struct-stat}
+@defunx <struct-stat>-blksize @var{struct-stat}
+Accessors for the fields of a @class{struct-stat} record.
 @end defun
 
 
 @defun struct-stat->record @var{pointer}
 Given a pointer to a block of memory holding a foreign @code{struct
-stat}, build and return a @code{struct-stat} record.  All the fields
+stat}, build and return a @class{struct-stat} record.  All the fields
 that are not available in the foreign structure are set to @false{}.
 @end defun
 
+@c page
+@node stat api
+@section Interface functions
+
+
+The following bindings manage file attributes inspection.
+@glibcref{Reading Attributes, Reading Attributes}.
+
 
 @deffn Function stat @var{pathname}
-@deffnx Function primitive-stat @var{pathname}
 @deffnx Parameter stat-function
-@deffnx Function platform-stat @var{pathname} @var{pointer}
-Return a @code{struct-stat} record filled with attributes of the file or
-directory selected by the string or symbol @var{pathname}.
+@deffnx Function primitive:stat @var{pathname}
+@deffnx Function platform:stat @var{pathname-cstr} @var{pointer}
+Return a @class{struct-stat} record filled with attributes of the file or
+directory selected by the Scheme string or symbol @var{pathname}.
 @end deffn
 
 
 @deffn Function fstat @var{fd}
-@deffnx Function primitive-fstat @var{fd}
 @deffnx Parameter fstat-function
-@deffnx Function platform-fstat @var{fd} @var{pointer}
-Return a @code{struct-stat} record filled with attributes of the file or
+@deffnx Function primitive:fstat @var{fd}
+@deffnx Function platform:fstat @var{fd} @var{pointer}
+Return a @class{struct-stat} record filled with attributes of the file or
 directory selected by the file descriptor @var{fd}.
 @end deffn
 
 
 @deffn Function lstat @var{pathname}
-@deffnx Function primitive-lstat @var{pathname}
 @deffnx Parameter lstat-function
-@deffnx Function platform-lstat @var{pathname} @var{pointer}
-Return a @code{struct-stat} record filled with attributes of the
-symbolic link selected by the string or symbol @var{pathname}.
+@deffnx Function primitive:lstat @var{pathname}
+@deffnx Function platform:lstat @var{pathname-cstr} @var{pointer}
+Return a @class{struct-stat} record filled with attributes of the
+symbolic link selected by the Scheme string or symbol @var{pathname}.
 @end deffn
 
-
 @c page
-@node file attr stat type
-@subsubsection Type inspection
+@node stat type
+@section Type inspection
 
 
-The integer in the @code{mode} field of a @code{struct-stat} record can
-be inspected with the following functions.
+The integer in the @code{mode} field of a @class{struct-stat} record can
+be inspected with the following functions.  Unless otherwise specified,
+the following bindings are exported by the @library{foreign posix stat}
+library.
+
+
+@defun file-is-directory? @var{fd/pathname}
+@defunx file-is-character-special? @var{fd/pathname}
+@defunx file-is-block-special? @var{fd/pathname}
+@defunx file-is-regular? @var{fd/pathname}
+@defunx file-is-fifo? @var{fd/pathname}
+@defunx file-is-socket? @var{fd/pathname}
+Return @true{} if @var{fd/pathname} is associated to a file of the named
+type, @false{} otherwise.  @var{fd/pathname} can be a file descriptor or
+a Scheme string or symbol representing a pathname.  The @code{mode}
+field of @code{struct stat} is acquired with a call to @func{fstat} or
+@func{stat}.
+
+@quotation
+@strong{NOTE} There is no way to distinguish between an integer
+representing a file descriptor and an integer representing the
+@code{mode} field, so the argument to these functions @strong{cannot} be
+a mode field.
+@end quotation
+@end defun
+
+
+@defun file-is-symbolic-link? @var{pathname}
+Return @true{} if @var{pathname} is associated to a symbolic link,
+@false{} otherwise.  @var{pathname} must be a Scheme string or symbol
+representing a pathname.  The @code{mode} field of @code{struct stat} is
+acquired with a call to @func{lstat}.
+@end defun
+
+
+@defun file-is-message-queue? @var{fd/pathname}
+@defunx file-is-semaphore? @var{fd/pathname}
+@defunx file-is-shared-memory? @var{fd/pathname}
+Return @true{} if @var{fd/pathname} is associated to a file of the named
+type, @false{} otherwise.  @var{fd/pathname} can be a file descriptor or
+a Scheme string or symbol representing a pathname.
+
+Unfortunately, these predicates require access to the full @code{struct
+stat}, so, at present, they are implemented with the low--level
+@func{platform:stat} and @func{platform:fstat}.  This prevents using
+parameterised functions like @func{stat} and @func{fstat}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Low--level predicates
+
+The following bindings are exported by the libraries:
+
+@example
+(foreign posix stat)
+(foreign posix stat primitives)
+(foreign posix stat platform)
+@end example
 
 
 @defun S_ISDIR @var{mode}
@@ -1401,64 +1698,27 @@ Return non--zero if the file or directory associated with the integer
 @end defun
 
 
-@defun S_TYPEISMQ @var{struct-stat-pointer}
-@defunx S_TYPEISSEM @var{struct-stat-pointer}
-@defunx S_TYPEISSHM @var{struct-stat-pointer}
+@defun S_TYPEISMQ @var{pointer}
+@defunx S_TYPEISSEM @var{pointer}
+@defunx S_TYPEISSHM @var{pointer}
 Return non--zero if the file or directory associated with the
-@code{strut stat} referenced by the pointer is of the named type,
+@code{struct stat} referenced by @var{pointer} is of the named type,
 otherwise return zero.
 @end defun
 
-
-@defun file-is-directory? @var{obj}
-@defunx file-is-character-special? @var{obj}
-@defunx file-is-block-special? @var{obj}
-@defunx file-is-regular? @var{obj}
-@defunx file-is-fifo? @var{obj}
-@defunx file-is-socket? @var{obj}
-Return @true{} if @var{obj} is associated to a file of the named type,
-@false{} otherwise.  @var{obj} can be a file descriptor or a string or
-symbol representing a pathname.  The @code{mode} field is acquired with
-a call to @func{fstat} or @func{stat}.
-
-There is no way to distinguish between an integer representing a file
-descriptor and an integer representing the @code{mode} field, so
-@var{obj} @strong{cannot} be a mode field.
-@end defun
-
-
-@defun file-is-symbolic-link? @var{pathname}
-Return @true{} if @var{pathname} is associated to a symbolic link,
-@false{} otherwise.  @var{pathname} must be a string or symbol
-representing a pathname.  The @code{mode} field is acquired with a call
-to @func{lstat}.
-@end defun
-
-
-@defun file-is-message-queue? @var{obj}
-@defunx file-is-semaphore? @var{obj}
-@defunx file-is-shared-memory? @var{obj}
-Return @true{} if @var{obj} is associated to a file of the named type,
-@false{} otherwise.  @var{obj} can be a file descriptor or a string or
-symbol representing a pathname.  These predicates require access to the
-full @code{struct stat}, so they are implemented with the low level
-@func{platform-stat} and @func{platform-fstat}.
-@end defun
-
-
 @c page
-@node file attr stat perms
-@subsubsection Access permissions inspection
+@node stat perms
+@section Access permissions inspection
 
 
 Access permissions can be inspected with a bitwise combination between
-the @code{mode} field and the permissions constants, @ref{fd constants
-perms}.  For example, the following evaluates to @false{} if
-@file{/bin/ls} is readable by its owner:
+the @code{mode} field of @code{struct stat} and the permissions
+constants, @ref{fd constants perms}.  For example, the following
+evaluates to @false{} if @file{/bin/ls} is readable by its owner:
 
 @example
 (= 0 (bitwise-and S_IRUSR
-                  (struct-stat-mode (stat "/bin/ls"))))
+                  (<struct-stat>-mode (stat "/bin/ls"))))
 @end example
 
 @noindent
@@ -1467,28 +1727,29 @@ both by its owner and group:
 
 @example
 (= 0 (bitwise-and (bitwise-ior S_IRUSR S_IRGRP)
-                  (struct-stat-mode (stat "/bin/ls"))))
+                  (<struct-stat>-mode (stat "/bin/ls"))))
 @end example
 
+The following bindings are exported by the @library{foreign posix stat}
+library.
 
-@defun file-user-readable? @var{obj}
-@defunx file-user-writable? @var{obj}
-@defunx file-user-executable? @var{obj}
-@defunx file-group-readable? @var{obj}
-@defunx file-group-writable? @var{obj}
-@defunx file-group-executable? @var{obj}
-@defunx file-other-readable? @var{obj}
-@defunx file-other-writable? @var{obj}
-@defunx file-other-executable? @var{obj}
-@defunx file-setuid? @var{obj}
-@defunx file-setgid? @var{obj}
-@defunx file-sticky? @var{obj}
-Return @true{} if the named permissions bit is set, @false{} otherwise.
 
-@var{obj} can a file descriptor or a string or symbol representing a
-pathname.  For a file descriptor: the @code{mode} field is acquired with
-a call to @func{fstat}.  For a pathname: the @code{mode} field is
-acquired with a call to @func{stat}.
+@defun file-user-readable? @var{fd/pathname}
+@defunx file-user-writable? @var{fd/pathname}
+@defunx file-user-executable? @var{fd/pathname}
+@defunx file-group-readable? @var{fd/pathname}
+@defunx file-group-writable? @var{fd/pathname}
+@defunx file-group-executable? @var{fd/pathname}
+@defunx file-other-readable? @var{fd/pathname}
+@defunx file-other-writable? @var{fd/pathname}
+@defunx file-other-executable? @var{fd/pathname}
+@defunx file-setuid? @var{fd/pathname}
+@defunx file-setgid? @var{fd/pathname}
+@defunx file-sticky? @var{fd/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@var{fd/pathname} can a file descriptor or a Scheme string or symbol
+representing a pathname.  The @code{mode} field of @code{struct stat} is
+acquired with a call to @func{fstat} or @func{stat}.
 @end defun
 
 
@@ -1504,211 +1765,30 @@ acquired with a call to @func{stat}.
 @defunx lfile-setuid? @var{pathname}
 @defunx lfile-setgid? @var{pathname}
 @defunx lfile-sticky? @var{pathname}
-Return @true{} if the named permissions bit is set, @false{} otherwise.
-@var{pathname} must be a string or symbol representing a pathname and
-the the @code{mode} field is acquired with @func{lstat}.
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@var{pathname} must be a Scheme string or symbol representing a
+pathname.  The the @code{mode} field of @code{struct stat} is acquired
+with @func{lstat}.
 @end defun
 
 
-@defun file-permissions @var{obj}
-@defunx lfile-permissions @var{obj}
+@defun file-permissions @var{fd/pathname}
+@defunx lfile-permissions @var{pathname}
 Return an exact integer representing the access permissions bits from
-the @code{mode} field of a @code{struct-stat} record.
+the @code{mode} field of a @code{struct stat}.
 
-For @func{file-permissions}: @var{obj} can be a file descriptor or a
-pathname in the form of a string or symbol; the mode is acquired with a
-call to @func{fstat} or @func{stat}.
+For @func{file-permissions}: @var{fd/pathname} can be a file descriptor
+or a pathname in the form of a Scheme string or symbol; the mode is
+acquired with a call to @func{fstat} or @func{stat}.
 
-For @func{file-permissions}: @var{obj} must be a pathname in the form of
-a string or symbol; the mode is acquired with a call to @func{lstat}.
+For @func{lfile-permissions}: @var{pathname} must be a pathname in the
+form of a Scheme string or symbol; the mode is acquired with a call to
+@func{lstat}.
 
-The returned values can be examined and manipulated using the @code{S_*}
-constants (@ref{fd constants perms}), and also used as argument for a
+The returned value can be examined and manipulated using the @code{S_*}
+constants (@pxref{fd constants perms}) and also used as argument for a
 call to @func{chmod} or @func{fchmod}.
 @end defun
-
-
-@c page
-@node file attr owner
-@subsection File owner and group
-
-
-@glibcref{File Owner,File Owner}
-
-
-@deffn Function chown @var{pathname} @var{owner-id} @var{group-id}
-@deffnx Function primitive-chown @var{pathname} @var{owner-id} @var{group-id}
-@deffnx Parameter chown-function
-@deffnx Function platform-chown @var{pathname} @var{owner-id} @var{group-id}
-Change the file owner and group to the given numeric identifiers.
-@var{pathname} must be a string or symbol representing a pathname.
-@end deffn
-
-
-@deffn Function fchown @var{fd} @var{owner-id} @var{group-id}
-@deffnx Function primitive-fchown @var{fd} @var{owner-id} @var{group-id}
-@deffnx Parameter fchown-function
-@deffnx Function platform-fchown fchown @var{fd} @var{owner-id} @var{group-id}
-Change the file owner and group to the given numeric identifiers.
-@var{fd} must be a file descriptor.
-@end deffn
-
-
-@c page
-@node file attr mode
-@subsection Changing file permissions
-
-
-The @var{mask} argument for the following function must be an exact
-integer representing access permissions bits.  The value can be composed
-as bitwise combination of the constants described at @ref{fd constants
-perms}.
-
-@glibcref{Setting Permissions,Assigning File Permissions}
-
-
-@deffn Function umask @var{mask}
-@deffnx Function primitive-umask @var{mask}
-@deffnx Parameter umask-function
-@deffnx Function platform-umask @var{mask}
-Set the umask to @var{mask} and return the old @var{mask}.  To query the
-current mask without changing it:
-
-@example
-(let ((m (umask 0)))
-  (umask m)
-  m)
-@end example
-
-@noindent
-or use @func{getumask}, which has exactly this implementation.
-@end deffn
-
-
-@defun getumask
-Return the current umask.
-@end defun
-
-
-@deffn Function chmod @var{pathname} @var{mask}
-@deffnx Function primitive-chmod @var{pathname} @var{mask}
-@deffnx Parameter chmod-function
-@deffnx Function platform-chmod @var{pathname} @var{mask}
-Change the file access permissions bits to the given numeric mask.
-@var{pathname} must be a string or symbol representing a pathname.
-@end deffn
-
-
-@deffn Function fchmod @var{fd} @var{mask}
-@deffnx Function primitive-fchmod @var{fd} @var{mask}
-@deffnx Parameter fchmod-function
-@deffnx Function platform-fchmod @var{fd} @var{mask}
-Change the file access permissions bits to the given numeric mask.
-@var{fd} must be a file descriptor.
-@end deffn
-
-
-@c page
-@node file attr access
-@subsection Testing access
-
-
-@glibcref{Testing File Access,Testing permission to access a file}
-
-
-@deffn Function access @var{pathname} @var{mask}
-@deffnx Function primitive-access @var{pathname} @var{mask}
-@deffnx Parameter access-function
-@deffnx Function platform-access @var{pathname} @var{mask}
-Return @true{} if the process has permission to access the file selected
-by the string or symbol @var{pathname} as specified by @var{mask}.
-Return @false{} otherwise.
-
-@var{mask} can be the bitwise combination of: @code{F_OK}, @code{R_OK},
-@code{W_OK}, @code{X_OK}.
-@end deffn
-
-
-@defvar F_OK
-@defvarx R_OK
-@defvarx W_OK
-@defvarx X_OK
-Constants representing requests for access permission testing with
-@func{access}.  These bindings are exported by @library{posix sizeof}.
-@end defvar
-
-
-@c page
-@node file attr size
-@subsection Size of files
-
-
-@deffn Function file-size @var{obj}
-@deffnx Function primitive-file-size @var{obj}
-@deffnx Parameter file-size-function
-Return the file of the selected file.  @var{obj} can be a file
-descriptor or a pathname in the form of a symbol or string.
-
-This function is implemented using @func{lseek} as described in @ref{fd
-seek,Setting the file position}.
-@end deffn
-
-
-@deffn Function ftruncate @var{obj} @var{length}
-@deffnx Function primitive-ftruncate @var{obj} @var{length}
-@deffnx Parameter ftruncate-function
-@deffnx Function platform-ftruncate @var{obj} @var{length}
-Set to @var{length} the size of the selected file.  @var{obj} can be a
-file descriptor or a pathname in the form of a symbol or string.
-@end deffn
-
-
-@c page
-@node file temp
-@section Temporary files
-
-
-@glibcref{Temporary Files,Temporary Files}
-
-
-@deffn Function tmpnam
-@deffnx Function primitive-tmpnam
-@deffnx Parameter tmpnam-function
-@deffnx Function platform-tmpnam
-Return a file pathname that, at the time of the call, does not exist on
-the system.
-@end deffn
-
-
-@deffn Function mktemp @var{template}
-@deffnx Function primitive-mktemp @var{template}
-@deffnx Parameter mktemp-function
-@deffnx Function platform-mktemp @var{template}
-Return a file pathname that, at the time of the call, does not exist on
-the system.  The pathname is built modifying the string or symbol
-@var{template}, which must include the @code{XXXXXX} sequence of
-characters.
-@end deffn
-
-
-@deffn Function mkstemp @var{template}
-@deffnx Function primitive-mkstemp @var{template}
-@deffnx Parameter mkstemp-function
-@deffnx Function platform-mkstemp @var{template}
-Return 2 values: a file descriptor and a file pathname.  The pathname is
-built modifying the string or symbol @var{template}, which must include
-the @code{XXXXXX} sequence of characters.
-
-Usage example:
-
-@example
-(let-values (((fd pathname) (mkstemp "/tmp/XXXXXX")))
-  ---
-  (close fd)
-  (delete-file pathname))
-@end example
-@end deffn
-
 
 @c page
 @node time
@@ -1716,14 +1796,22 @@ Usage example:
 
 
 Unless otherwise specified, the bindings documented in this chapter are
-exported by the @library{posix time} library.
+exported by the following libraries:
 
+@example
+(foreign posix time)
+(foreign posix time primitives)
+(foreign posix time platform)
+@end example
+
+@noindent
+full support for the time functions requires loading the
+@file{libnausicaa-posix.so} library.
 
 @menu
 * time structs::                Data structures.
 * time clock::                  Processor time.
 @end menu
-
 
 @c page
 @node time structs
@@ -1731,17 +1819,17 @@ exported by the @library{posix time} library.
 
 
 The bindings documented in this section are exported by the
-@library{posix sizeof} library.
+@library{foreign posix sizeof} library.
 
 
-@defvar sizeof-struct-timeval
-@defvarx alignof-struct-timeval
-@defvarx strideof-struct-timeval
+@defvr Constant sizeof-struct-timeval
+@defvrx Constant alignof-struct-timeval
+@defvrx Constant strideof-struct-timeval
 These are: the number of bytes required to hold a @code{struct timeval};
 the alignment of this structure when embedded into another structure;
 the number of bytes between two elements in an array of these
 structures.
-@end defvar
+@end defvr
 
 
 @deffn Syntax struct-timeval-tv_sec-set! @var{pointer} @var{value}
@@ -1752,14 +1840,14 @@ Peekers and pokers for the fields of a @code{struct timeval}.
 @end deffn
 
 
-@defvar sizeof-struct-timespec
-@defvarx alignof-struct-timespec
-@defvarx strideof-struct-timespec
+@defvr Constant sizeof-struct-timespec
+@defvrx Constant alignof-struct-timespec
+@defvrx Constant strideof-struct-timespec
 These are: the number of bytes required to hold a @code{struct timespec};
 the alignment of this structure when embedded into another structure;
 the number of bytes between two elements in an array of these
 structures.
-@end defvar
+@end defvr
 
 
 @deffn Syntax struct-timespec-tv_sec-set! @var{pointer} @var{value}
@@ -1769,46 +1857,40 @@ structures.
 Peekers and pokers for the fields of a @code{struct timespec}.
 @end deffn
 
-
 @c page
 @node time clock
 @section Processor time
 
 
-If we have installed the Nausicaa/Stubs library for @posix{} functions:
-we can import the @library{posix time stub} library, which exports the
-following bindings.
-
-@glibcref{CPU Time,CPU Time Inquiry}
-
-@glibcref{Processor Time,Processor Time Inquiry}
+@glibcref{CPU Time, CPU Time Inquiry}.  @glibcref{Processor Time,
+Processor Time Inquiry}.
 
 
-@defvar CLOCKS_PER_SEC
+@defvr Constant CLOCKS_PER_SEC
 The number of clock ticks per second measured by the @func{clock}
-function.  This binding is exported by the @library{posix sizeof}
-library.
-@end defvar
+function.  This binding is exported by the @library{foreign posix
+sizeof} library.
+@end defvr
 
 
 @deffn Function clock
-@deffnx Function primitive-clock
 @deffnx Parameter clock-function
-@deffnx Function platform-clock
+@deffnx Function primitive:clock
+@deffnx Function platform:clock
 Return the calling process' current @cpu{} time, converted to a native
 @code{double} number.
 @end deffn
 
 
 @deffn Function times
-@deffnx Function primitive-times
 @deffnx Parameter times-function
-@deffnx Function platform-times @var{pointer}
+@deffnx Function primitive:times
+@deffnx Function platform:times @var{pointer}
 Store the processor time informations into a record of type
 @code{struct-tms} and return 2 values: the calling process @cpu{} time
 converted to a @code{double} number, the @code{struct-tms} record.
 
-@func{platform-times} is an interface to to a foreign function that
+@func{platform:times} is an interface to to a foreign function that
 wraps the platform @cfunc{times} function.  It accepts as argument a
 pointer to an array of 4 @code{double} elements which are filled with
 the fields of a @code{struct tms} with the following mapping:
@@ -1821,7 +1903,7 @@ the fields of a @code{struct tms} with the following mapping:
 @item 3 @tab tms_sctime
 @end multitable
 
-Like all the platform functions, @func{platform-times} returns 2 values:
+Like all the platform functions, @func{platform:times} returns 2 values:
 the return value of the foreing function normalised to a floating point
 value, the value of @code{errno} right after the function call.
 @end deffn
@@ -1846,18 +1928,25 @@ Getters for the fields of @code{struct-tms} records.  All the returned
 values are floating point numbers.
 @end defun
 
-
 @c page
 @node fd
 @chapter File descriptors
 
 
+Unless otherwise specified, the bindings described in this chapter are
+exported by the following libraries:
+
+@example
+(foreign posix fd)
+(foreign posix fd primitives)
+(foreign posix fd platform)
+@end example
+
 File descriptor arguments and return values are handled at the Scheme
-level as exact integers.  The main libraries are @library{posix fd} and
-@library{posix fd platform}.
+level as exact integers.
 
 @menu
-* fd constants::                Variables holding constant values.
+* fd constants::                Bindings for constant values.
 * fd open close::               Opening and closing.
 * fd read write::               Reading and writing.
 * fd seek::                     Setting the file position.
@@ -1869,10 +1958,9 @@ level as exact integers.  The main libraries are @library{posix fd} and
 * fd custom::                   Custom Scheme ports.
 @end menu
 
-
 @c page
 @node fd constants
-@section Variables holding constant values
+@section Bindings for constant values
 
 
 @menu
@@ -1883,264 +1971,266 @@ level as exact integers.  The main libraries are @library{posix fd} and
 * fd constants lock::           Locking.
 @end menu
 
-
 @c page
 @node fd constants status
 @subsection File status flags
 
 
-All the bindings described here are exported by the library
-@library{posix sizeof}.
-
-Read the original documentation @glibcref{File Status Flags, File Status
-Flags} If a value is not defined on the underlying platform: the
-corresponding variable is set to @false{}.
+All the following bindings are exported by the @library{foreign posix
+sizeof} library.  If a value is not defined on the underlying platform:
+The corresponding binding is to @false{}.  @glibcref{File Status Flags,
+File Status Flags}.
 
 
-@defvar O_RDONLY
-@defvarx O_WRONLY
-@defvarx O_RDWR
+@defvr Constant O_RDONLY
+@defvrx Constant O_WRONLY
+@defvrx Constant O_RDWR
 File access modes to be used with @func{open}.
-@end defvar
+@end defvr
 
 
-@defvar O_EXEC
-@defvarx O_READ
-@defvarx O_WRITE
+@defvr Constant O_EXEC
+@defvrx Constant O_READ
+@defvrx Constant O_WRITE
 These are @gnu{} only values.  @code{O_EXEC} is used with @func{open} to
 open a file for execution.  @code{O_READ} and @code{O_WRITE} are like
 @code{O_RDONLY} and @code{O_WRONLY}.
-@end defvar
+@end defvr
 
 
-@defvar O_ACCMODE
+@defvr Constant O_ACCMODE
 To be used with @func{fcntl} to query the open access mode of file
 descriptors.
-@end defvar
+@end defvr
 
 
-@defvar O_CREAT
-@defvarx O_EXCL
-@defvarx O_APPEND
-@defvarx O_NONBLOCK
-@defvarx O_NOCTTY
+@defvr Constant O_CREAT
+@defvrx Constant O_EXCL
+@defvrx Constant O_APPEND
+@defvrx Constant O_NONBLOCK
+@defvrx Constant O_NOCTTY
 Open--time flags to be used with @func{open}.
-@end defvar
+@end defvr
 
 
-@defvar O_NDELAY
+@defvr Constant O_NDELAY
 @acronym{BSD} only alias for @code{O_NONBLOCK}.
-@end defvar
+@end defvr
 
 
-@defvar O_IGNORE_CTTY
-@defvarx O_NOLINK
-@defvarx O_NOTRANS
+@defvr Constant O_IGNORE_CTTY
+@defvrx Constant O_NOLINK
+@defvrx Constant O_NOTRANS
 @gnu{} only file name translation flags to be used with @func{open}.
-@end defvar
+@end defvr
 
 
-@defvar O_TRUNC
+@defvr Constant O_TRUNC
 Open--time action flags to be used with @func{open}.
-@end defvar
+@end defvr
 
 
-@defvar O_SHLOCK
-@defvarx O_EXLOCK
+@defvr Constant O_SHLOCK
+@defvrx Constant O_EXLOCK
 @acronym{BSD} only flags to be used with @func{open}.
-@end defvar
+@end defvr
 
 
-@defvar O_ASYNC
-@defvarx O_FSYNC
-@defvarx O_SYNC
+@defvr Constant O_ASYNC
+@defvrx Constant O_FSYNC
+@defvrx Constant O_SYNC
 @acronym{BSD} only flags to be used with @func{open}.
-@end defvar
+@end defvr
 
 
-@defvar O_NOATIME
+@defvr Constant O_NOATIME
 @gnu{} only flag to be used with @func{open}.
-@end defvar
-
+@end defvr
 
 @c page
 @node fd constants perms
 @subsection Permissions
 
 
-All the bindings described here are exported by the library
-@library{posix sizeof}.
+All the following bindings are exported by the @library{foreign posix
+sizeof} library.  @glibcref{Permission Bits, The mode bits for access
+permission}.
 
-@glibcref{Permission Bits,The mode bits for access permission}
 
-
-@defvar S_IRUSR
-@defvarx S_IWUSR
-@defvarx S_IXUSR
+@defvr Constant S_IRUSR
+@defvrx Constant S_IWUSR
+@defvrx Constant S_IXUSR
 Permissions bits for file owner access.
-@end defvar
+@end defvr
 
-@defvar S_IRGRP
-@defvarx S_IWGRP
-@defvarx S_IXGRP
+@defvr Constant S_IRGRP
+@defvrx Constant S_IWGRP
+@defvrx Constant S_IXGRP
 Permissions bits for group access.
-@end defvar
+@end defvr
 
-@defvar S_IROTH
-@defvarx S_IWOTH
-@defvarx S_IXOTH
+@defvr Constant S_IROTH
+@defvrx Constant S_IWOTH
+@defvrx Constant S_IXOTH
 Permissions bits for other users access.
-@end defvar
+@end defvr
 
-@defvar S_IRWXU
-Theis is the bitwise combination of permissions bits for user access.
-It could be defined as:
+@defvr Constant S_IRWXU
+This is the bitwise combination of permissions bits for user access; it
+could be defined as:
 
 @example
 (define S_IRWXU
   (bitwise-ior S_IRUSR S_IWUSR S_IXUSR))
 @end example
-@end defvar
+@end defvr
 
 
-@defvar S_IRWXG
-Theis is the bitwise combination of permissions bits for group access.
+@defvr Constant S_IRWXG
+This is the bitwise combination of permissions bits for group access.
 It could be defined as:
 
 @example
 (define S_IRWXG
   (bitwise-ior S_IRGRP S_IWGRP S_IXGRP))
 @end example
-@end defvar
+@end defvr
 
 
-@defvar S_IRWXO
-Theis is the bitwise combination of permissions bits for other users
+@defvr Constant S_IRWXO
+This is the bitwise combination of permissions bits for other users
 access.  It could be defined as:
 
 @example
 (define S_IRWXO
   (bitwise-ior S_IROTH S_IWOTH S_IXOTH))
 @end example
-@end defvar
+@end defvr
 
 
-@defvar S_ISUID
-@defvarx S_ISGID
-@defvarx S_ISVTX
+@defvr Constant S_ISUID
+@defvrx Constant S_ISGID
+@defvrx Constant S_ISVTX
 These are the setuid, setgid and ``sticky bit'' values.
-@end defvar
-
+@end defvr
 
 @c page
 @node fd constants control
 @subsection File control flags
 
 
-All the bindings described here are exported by the library
-@library{posix sizeof}.  The following variables hold constants to be
-used as @var{operation} argument in calls to @func{fcntl}.
+All the following bindings are exported by the @library{foreign posix
+sizeof} library; the values are meant to be used as @var{operation}
+argument in call to @func{fcntl}.
 
 
-@defvar F_GETFL
-@defvarx F_SETFL
-Set/get the status of a file.
-@end defvar
+@defvr Constant F_GETFL
+@defvrx Constant F_SETFL
+Set/get the status of a file.  @glibcref{Getting File Status Flags,
+Getting and Setting File Status Flags}.
+@end defvr
 
 
-@defvar F_DUPFD
-Duplicate the file descriptor.
-@end defvar
+@defvr Constant F_DUPFD
+Duplicate the file descriptor.  @glibcref{Duplicating Descriptors,
+Duplicating Descriptors}.
+@end defvr
 
 
-@defvar F_GETFD
-@defvarx F_SETFD
-Set/get the status of a file descriptor.
-@end defvar
+@defvr Constant F_GETFD
+@defvrx Constant F_SETFD
+Set/get the status of a file descriptor.  @glibcref{Descriptor Flags,
+File Descriptor Flags}.
+@end defvr
 
 
-@defvar F_SETLK
-@defvarx F_GETLK
-@defvarx F_SETLKW
-Set/get a file lock.  @code{F_SETLKW} sets a file lock, but waits for
-completion.
-@end defvar
-
-
-@defvar F_GETOWN
-@defvarx F_SETOWN
-Set/get process to receive @code{SIGIO} signals.
-@end defvar
-
-
-@defvar FD_CLOEXEC
+@defvr Constant FD_CLOEXEC
 State that the file descriptor has to be closed if an @cfunc{exec} is
-performed.
-@end defvar
+performed.  @glibcref{Descriptor Flags, File Descriptor Flags}.
+@end defvr
 
+
+@defvr Constant F_SETLK
+@defvrx Constant F_GETLK
+@defvrx Constant F_SETLKW
+Set/get a file lock.  @code{F_SETLKW} sets a file lock, but waits for
+completion.  @glibcref{File Locks, File Locks}.
+@end defvr
+
+
+@defvr Constant F_GETOWN
+@defvrx Constant F_SETOWN
+Set/get process to receive @code{SIGIO} signals.  @glibcref{Interrupt
+Output, Interrupt--Driven Output}.
+@end defvr
 
 @c page
 @node fd constants seek
 @subsection File positions
 
 
-All the bindings described here are exported by the library
-@library{posix sizeof}.
+All the following bindings are exported by the @library{foreign posix
+sizeof} library.  @glibcref{File Position Primitive, Setting the File
+Position of a Descriptor}.
 
 
-@defvar SEEK_SET
-@defvarx SEEK_CUR
-@defvarx SEEK_END
+@defvr Constant SEEK_SET
+@defvrx Constant SEEK_CUR
+@defvrx Constant SEEK_END
 File positions for the @var{whence} argument to @func{lseek}.
-@end defvar
-
+@end defvr
 
 @c page
 @node fd constants lock
 @subsection Locking
 
 
-All the bindings described here are exported by the library
-@library{posix sizeof}.
+All the following bindings are exported by the @library{foreign posix
+sizeof} library.  @glibcref{File Locks, File Locks}.
 
 
-@defvar F_RDLCK
-@defvarx F_WRLCK
-@defvarx F_UNLCK
+@defvr Constant F_RDLCK
+@defvrx Constant F_WRLCK
+@defvrx Constant F_UNLCK
 Flags for file descriptor locking.
-@end defvar
-
+@end defvr
 
 @c page
 @node fd open close
 @section Opening and closing
 
 
-@glibcref{Opening and Closing Files,Opening and Closing Files}
+The following functions manage opening and closing file descriptors.
+@glibcref{Opening and Closing Files, Opening and Closing Files}.
 
+Example:
 
-@deffn Function open @var{pathname} @var{open-mode} @var{permissions}
-@deffnx Function primitive-open @var{pathname} @var{open-mode} @var{permissions}
-@deffnx Parameter open-function
-@deffnx Function platform-open @var{pathname} @var{open-mode} @var{permissions}
-Open with @var{open-mode} the file selected by @var{pathname} and return
-a file descriptor.  If the file is created, it is created with
-access @var{permissions}.
+@example
+(letrec
+    ((fd (compensate
+             (open "/tmp/marco/name.ext"
+                   (bitwise-ior O_CREAT O_EXCL O_WRONLY)
+                   #o640)
+           (with
+            (close fd)))))
+  ---)
+@end example
 
-@var{pathname} must be a Scheme string or symbol.
+@noindent
+with symbolic permissions bits (more portable):
 
-@var{open-mode} must be an exact integer, and it can be built with
-@func{bitwise-ior} from the following constants: one among
-@code{O_RDWR}, @code{O_RDONLY} and @code{O_WRONLY} and optionally
-@code{O_TRUNC}, @code{O_EXCL}, @code{O_NONBLOCK}.
+@example
+(letrec
+    ((fd (compensate
+             (open "/tmp/marco/name.ext"
+                   (bitwise-ior O_CREAT O_EXCL O_WRONLY)
+                   (bitwise-ior S_IRUSR S_IWUSR S_IRGRP)))
+           (with
+            (close fd))))
+  ---)
+@end example
 
-@var{permissions} must be an exact integer and it is best given as an
-octal number or a bitwise combination of constants, @ref{fd constants
-perms}.  It can be zero if we are not interested in creating a new file.
-Here are octal number examples of the most common values, where:
-@code{r} stands for readable, @code{w} for writable, @code{x} for
-executable:
-
+@float Table
 @multitable {#o755} {user perms} {group perms} {other perms}
 @headitem mode @tab user perms @tab group perms @tab other perms
 @item @code{#o640}
@@ -2160,9 +2250,12 @@ executable:
 @tab @code{r-x}
 @tab @code{r-x}
 @end multitable
+@caption{Octal number examples of the most common values, where:
+@code{r} stands for readable, @code{w} for writable, @code{x} for
+executable.}
+@end float
 
-Here is the table for the octal digits:
-
+@float Table
 @multitable {digit} {mode} {digit} {mode}
 @headitem digit @tab mode @tab digit @tab mode
 @item 0 @tab @code{---} @tab 4 @tab @code{r--}
@@ -2170,72 +2263,77 @@ Here is the table for the octal digits:
 @item 2 @tab @code{-w-} @tab 6 @tab @code{rw-}
 @item 3 @tab @code{-wx} @tab 7 @tab @code{rwx}
 @end multitable
+@caption{The octal digits.}
+@end float
 
-Example:
 
-@example
-(let ((fd (open "/tmp/marco/name.ext"
-                (bitwise-ior O_CREAT O_EXCL O_WRONLY)
-                #o640)))
-  ---)
-@end example
+@deffn Function open @var{pathname} @var{open-mode} @var{permissions}
+@deffnx Parameter open-function
+@deffnx Function primitive:open @var{pathname} @var{open-mode} @var{permissions}
+@deffnx Function platform:open @var{pathname} @var{open-mode} @var{permissions}
+Open with @var{open-mode} the file selected by @var{pathname} and return
+a file descriptor.  If the file is created, it is created with
+access @var{permissions}.
 
-@noindent
-with symbolic permissions bits (more portable):
+@var{pathname} must be a Scheme string or symbol representing a file
+pathname.
 
-@example
-(let ((fd (open "/tmp/marco/name.ext"
-                (bitwise-ior O_CREAT O_EXCL O_WRONLY)
-                (bitwise-ior S_IRUSR S_IWUSR
-                             S_IRGRP))))
-  ---)
-@end example
+@var{open-mode} must be an exact integer, and it can be built with
+@func{bitwise-ior} from the following constants: one among
+@code{O_RDWR}, @code{O_RDONLY} and @code{O_WRONLY} and optionally
+@code{O_TRUNC}, @code{O_EXCL}, @code{O_NONBLOCK}.
+
+@var{permissions} must be an exact integer and it is better given as an
+octal number or a bitwise combination of constants (@pxref{fd constants
+perms}).  It can be zero if we are not interested in creating a new
+file.
 @end deffn
 
 
 @deffn Function close @var{fd}
-@deffnx Function primitive-close @var{fd}
 @deffnx Parameter close-function
-@deffnx Function platform-close @var{fd}
+@deffnx Function primitive:close @var{fd}
+@deffnx Function platform:close @var{fd}
 Close the file descriptor @var{fd}.
 @end deffn
-
 
 @c page
 @node fd read write
 @section Reading and writing
 
 
+The following functions manage reading and writing with file
+descriptors.  @glibcref{I/O Primitives,Input and Output Primitives}
+
 The bindings @func{read} and @func{write} defined below have the same
 names of the @func{read} and @func{write} defined by @rnrs{6}.  So when
-importing @library{posix fd} we have to make use of some augmented
-import specification.  For example the following avoids importing the
-@rnrs{6} procedures:
+importing the @library{foreign posix fd ---} libraries, we have to make
+use of some augmented import specification.  For example the following
+avoids importing the @rnrs{6} procedures:
 
 @example
-(import (except (r6rs) read write)
-  (posix fd))
+(import (except (rnrs) read write)
+  (foreign posix fd))
 @end example
 
 @noindent
-and the following prefixes with @code{posix:} all the bindings from
-@library{posix fd}:
+and the following prefixes with @samp{posix:} all the bindings from
+@library{foreign posix fd}:
 
 @example
-(import (r6rs)
-  (prefix (posix fd) posix:))
+(import (rnrs)
+  (prefix (foreign posix fd) posix:))
 @end example
 
-@glibcref{I/O Primitives,Input and Output Primitives}
-
+@c ------------------------------------------------------------
 
 @subsubheading Reading
 
 
 @deffn Function read @var{fd} @var{pointer} @var{buffer-size}
-@deffnx Function primitive-read @var{fd} @var{pointer} @var{buffer-size}
 @deffnx Parameter read-function
-@deffnx Function platform-read @var{fd} @var{pointer} @var{buffer-size}
+@deffnx Function primitive:read @var{fd} @var{pointer} @var{buffer-size}
+@deffnx Function platform:read @var{fd} @var{pointer} @var{buffer-size}
 Read at most @var{buffer-size} bytes from @var{fd}, starting at the
 current file position, and store them in the buffer referenced by
 @var{pointer}.  The file position is advanced.  Return the number of
@@ -2244,23 +2342,24 @@ bytes actually read.
 
 
 @deffn Function pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
-@deffnx Function primitive-pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
 @deffnx Parameter pread-function
-@deffnx Function platform-pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+@deffnx Function primitive:pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+@deffnx Function platform:pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
 Read at most @var{buffer-size} bytes from @var{fd}, starting at
 @var{offset} from the beginning of the file, and store them in the
 buffer referenced by @var{pointer}.  The file position is left
 untouched.  Return the number of bytes actually read.
 @end deffn
 
+@c ------------------------------------------------------------
 
 @subsubheading Writing
 
 
 @deffn Function write @var{fd} @var{pointer} @var{buffer-size}
-@deffnx Function primitive-write @var{fd} @var{pointer} @var{buffer-size}
 @deffnx Parameter write-function
-@deffnx Function platform-write @var{fd} @var{pointer} @var{buffer-size}
+@deffnx Function primitive:write @var{fd} @var{pointer} @var{buffer-size}
+@deffnx Function platform:write @var{fd} @var{pointer} @var{buffer-size}
 Write to @var{fd}, starting at the current file position, at most
 @var{buffer-size} bytes from the buffer referenced by @var{pointer}.
 The file position is advanced.  Return the number of bytes actually
@@ -2269,35 +2368,37 @@ written.
 
 
 @deffn Function pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
-@deffnx Function primitive-pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
 @deffnx Parameter pwrite-function
-@deffnx Function platform-pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+@deffnx Function primitive:pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+@deffnx Function platform:pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
 Write to @var{fd}, starting at @var{offset} from the beginning of the
 file, at most @var{buffer-size} bytes from the buffer referenced by
 @var{pointer}.  The file position is left untouched.  Return the number
 of bytes actually written.
 @end deffn
 
-
 @c page
 @node fd seek
 @section Setting the file position
 
 
-@glibcref{File Position Primitive,Setting the File Position of a Descriptor}
+The following functions manage adjusting the current position with file
+descriptors.  @glibcref{File Position Primitive, Setting the File
+Position of a Descriptor}.
 
 
 @deffn Function lseek @var{fd} @var{offset} @var{whence}
-@deffnx Function primitive-lseek @var{fd} @var{offset} @var{whence}
-@deffnx Paramter primitive-lseek-function
-@deffnx Function platform-lseek @var{fd} @var{offset} @var{whence}
+@deffnx Paramter primitive:lseek-function
+@deffnx Function primitive:lseek @var{fd} @var{offset} @var{whence}
+@deffnx Function platform:lseek @var{fd} @var{offset} @var{whence}
 Move the file position of @var{fd} at @var{offset} from the position
-selected with @var{whence}, which must the value of a variable among
-@code{SEEK_SET}, @code{SEEK_CUR}, @code{SEEK_END}.  Return the number of
-bytes from the beginning of the file to the selected file position.
+selected with @var{whence}, which must be a value among @code{SEEK_SET},
+@code{SEEK_CUR}, @code{SEEK_END} (@pxref{fd constants seek}).  Return
+the number of bytes from the beginning of the file to the selected file
+position.
 
 @quotation
-@emph{Note:} It seems that @cfunc{lseek} cannot be interrupted by
+@strong{NOTE} It seems that @cfunc{lseek} cannot be interrupted by
 @code{EINTR}.
 @end quotation
 @end deffn
@@ -2323,108 +2424,113 @@ size with:
        (lseek fd 0 SEEK_END))))
 @end example
 
-
 @c page
 @node fd sync
 @section Synchronisation
 
 
-@glibcref{Synchronizing I/O,Synchronizing I/O}
+The following functions manage synchronisation between the state of a
+file descriptor and the underlying device.  @glibcref{Synchronizing I/O,
+Synchronizing I/O}.
 
 
 @deffn Function sync
-@deffnx Function primitive-sync
 @deffnx Parameter sync-function
-@deffnx Function platform-sync
+@deffnx Function primitive:sync
+@deffnx Function platform:sync
 Synchronise data for all the file descriptors with the underlying
 devices.  Does not return until the operation is terminated.
 @end deffn
 
 
 @deffn Function fsync @var{fd}
-@deffnx Function primitive-fsync @var{fd}
 @deffnx Parameter fsync-function
-@deffnx Function platform-fsync @var{fd}
+@deffnx Function primitive:fsync @var{fd}
+@deffnx Function platform:fsync @var{fd}
 Synchronise data for @var{fd} with the underlying device.
 @end deffn
 
 
 @deffn Function fdatasync @var{fd}
-@deffnx Function primitive-fdatasync @var{fd}
 @deffnx Parameter fdatasync-function
-@deffnx Function platform-fdatasync @var{fd}
+@deffnx Function primitive:fdatasync @var{fd}
+@deffnx Function platform:fdatasync @var{fd}
 Flushes the output buffer of @var{fd} to the underlying device.  This
 function does not synchronise the file meta data (like the access time).
 @end deffn
-
-
 
 @c page
 @node fd control
 @section Control operations
 
 
+The following functions manage miscellaneous control operation on a file
+descriptor.  @glibcref{Control Operations, Control Operations on Files}.
+@glibcref{IOCTLs, I/O Control Operations}.
+
+
 @deffn Function fcntl @var{fd} @var{operation} @var{arg}
-@deffnx Function primitive-fcntl @var{fd} @var{operation} @var{arg}
 @deffnx Parameter fcntl-function
-@deffnx Function platform-fcntl @var{fd} @var{operation} @var{arg}
+@deffnx Function primitive:fcntl @var{fd} @var{operation} @var{arg}
+@deffnx Function platform:fcntl @var{fd} @var{operation} @var{arg}
 Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
 and @var{arg} must be exact integers.  @ref{fd constants control} for
 the list of the supported operations.
 
-@func{primitive-fcntl} assumes that if the return value is @code{-1} an
-error occurred.
+@func{primitive:fcntl} assumes that: If the return value of
+@func{platform:fcntl} is @code{-1}, an error occurred.
 
-Notice that if @var{arg} has to be a pointer (like when requesting a
+@quotation
+@strong{NOTE} If @var{arg} has to be a pointer (like when requesting a
 lock on the file), we have to use @func{pointer->integer} to convert the
-pointer value to an integer.  Example:
+pointer value to an integer; example:
 
 @example
 (fcntl fd F_SETLK (pointer->integer lock-struct))
 @end example
 
-@glibcref{Control Operations,Control Operations on Files}
+@noindent
+this is a temporary requirement; it will be fixed in a future version of
+the package by providing an alternative @func{fnctl} interface.
+@end quotation
 @end deffn
 
 
 @deffn Function ioctl @var{fd} @var{operation} @var{arg}
-@deffnx Function primitive-ioctl @var{fd} @var{operation} @var{arg}
 @deffnx Parameter ioctl-function
-@deffnx Function platform-ioctl @var{fd} @var{operation} @var{arg}
+@deffnx Function primitive:ioctl @var{fd} @var{operation} @var{arg}
+@deffnx Function platform:ioctl @var{fd} @var{operation} @var{arg}
 Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
 and @var{arg} must be exact integers.  @ref{fd constants control} for
 the list of the supported operations.
 
-@func{primitive-ioctl} assumes that if the return value is @code{-1} an
-error occurred.
-
-@glibcref{IOCTLs, I/O Control Operations}
+@func{primitive:ioctl} assumes that: If the return value of
+@func{platform:ioctl} is @code{-1}, an error occurred.
 @end deffn
-
 
 @c page
 @node fd dup
 @section Duplicating file descriptors
 
 
-@glibcref{Duplicating Descriptors,Duplicating Descriptors}
+The following functions manage duplication of file descriptors.
+@glibcref{Duplicating Descriptors,Duplicating Descriptors}.
 
 
 @deffn Function dup @var{fd}
-@deffnx Function primitive-dup @var{fd}
 @deffnx Parameter dup-function
-@deffnx Function platform-dup @var{fd}
+@deffnx Function primitive:dup @var{fd}
+@deffnx Function platform:dup @var{fd}
 Duplicate @var{fd}, return the new file descriptor.
 @end deffn
 
 
 @deffn Function dup2 @var{old-fd} @var{new-fd}
-@deffnx Function primitive-dup2 @var{old-fd} @var{new-fd}
 @deffnx Parameter dup2-function
-@deffnx Function platform-dup2 @var{old-fd} @var{new-fd}
+@deffnx Function primitive:dup2 @var{old-fd} @var{new-fd}
+@deffnx Function platform:dup2 @var{old-fd} @var{new-fd}
 Copy @var{old-fd} to @var{new-fd}.
 @end deffn
-
 
 @c page
 @node fd lock
@@ -2434,19 +2540,21 @@ Copy @var{old-fd} to @var{new-fd}.
 Locking is performed by @func{fcntl} with the @code{F_GETLK},
 @code{F_SETLK} and @code{F_SETLKW} operations.  When locking, the third
 argument to @func{fcntl} must be a pointer to a structure of type
-@code{struct flock}.
+@code{struct flock}.  @glibcref{File Locks,File Locks}.
 
-@glibcref{File Locks,File Locks}
+The following bindings are exported by the @library{foreign posix
+sizeof} library.
 
 
-@defvar sizeof-struct-flock
-@defvarx alignof-struct-flock
-@defvarx strideof-struct-flock
+@defvr Constant sizeof-struct-flock
+@defvrx Constant alignof-struct-flock
+@defvrx Constant strideof-struct-flock
 These are: the number of bytes required to hold a structure of type
 @code{struct flock}; the alignment of the structure when embedded in
 another structure; the number of bytes between two elements in an array
 of structures.
-@end defvar
+@end defvr
+
 
 
 @deffn Syntax struct-flock-l_type-set! @var{pointer} @var{value}
@@ -2464,49 +2572,26 @@ Peekers and pokers for the fields of a @code{struct flock}.
 
 
 @example
-(define p (malloc sizeof-struct-flock))
-
-(fcntl fd F_SETLK p)
-
---- ;; do something
-
-(fcntl fd F_UNLCK p)
+(with-compensations
+  (let* ((fd ---)
+         (p  (malloc-block/c sizeof-struct-flock))
+         (i  (pointer->integer p)))
+    (fcntl fd F_SETLK i)
+    ---
+    (fcntl fd F_UNLCK i)))
 @end example
-
 
 @c page
 @node fd pipe
 @section Pipes and FIFOs
 
 
-@deffn Function pipe
-@deffnx Function primitive-pipe
-@deffnx Parameter pipe-function
-@deffnx Function platform-pipe @var{pointer}
-Open a pipe: a pair of file descriptors linked together.  Return 2
-values: the reading and writing file descriptors (again: the reading fd
-is the first).
+The following functions manage creation of pipes and @acronym{FIFO}s.
+@glibcref{Creating a Pipe, Creating a Pipe}.  @glibcref{FIFO Special
+Files, FIFO Special Files}.
 
-@glibcref{Creating a Pipe,Creating a Pipe}
-@end deffn
-
-
-@deffn Function mkfifo @var{pathname} @var{mode}
-@deffnx Function primitive-mkfifo mkfifo @var{pathname} @var{mode}
-@deffnx Parameter mkfifo-function
-@deffnx Function platform-mkfifo @var{pathname} @var{mode}
-Create a named pipe pseudofile: a special file that can be used for
-interprocess communication.  @glibcref{FIFO Special Files,FIFO Special
-Files}
-
-The Scheme string or symbol @var{pathname} selects the file pathname.
-@var{mode} is a numeric access permissions mode like the one used by
-@func{open}.
-@end deffn
-
-
-The following is a meaningless example of @acronym{FIFO} usage; we have
-to remember that the bindings forms in a @func{let} have no guaranteed
+This is a meaningless example of @acronym{FIFO} usage; we have to
+remember that the binding forms in a @func{let} have no guaranteed
 evaluation order, so if we need to open the two ports in a specified
 order we have to use @func{let*}:
 
@@ -2516,7 +2601,9 @@ order we have to use @func{let*}:
         (mkfifo pathname #o600)
       (with
        (delete-file pathname)))
-  (let* ((in (open pathname (bitwise-ior O_NONBLOCK O_RDONLY) 0))
+  (let* ((in (open pathname
+                   (bitwise-ior O_NONBLOCK O_RDONLY)
+                   0))
          (ou (open pathname O_WRONLY 0)))
     (letrec ((inp (compensate
                       (fd->textual-input-port  in)
@@ -2532,17 +2619,41 @@ order we have to use @func{let*}:
 @end example
 
 
+@deffn Function pipe
+@deffnx Parameter pipe-function
+@deffnx Function primitive:pipe
+@deffnx Function platform:pipe @var{pointer}
+Open a pipe: A pair of file descriptors linked together.  Return two
+values: the first is the reading file descriptor, the second is the
+writing file descriptor.
+@end deffn
+
+
+@deffn Function mkfifo @var{pathname} @var{mode}
+@deffnx Parameter mkfifo-function
+@deffnx Function primitive:mkfifo mkfifo @var{pathname} @var{mode}
+@deffnx Function platform:mkfifo @var{pathname-cstr} @var{mode}
+Create a named pipe pseudofile: A special file that can be used for
+interprocess communication.  The Scheme string or symbol @var{pathname}
+selects the file pathname.  @var{mode} is a numeric access permissions
+mode like the one used by @func{open}.
+@end deffn
+
 @c page
 @node fd custom
 @section Custom Scheme ports
 
 
-@defun fd->binary-input-port @func{fd}
-@defunx fd->binary-output-port @func{fd}
-@defunx fd->binary-input/output-port @func{fd}
-@defunx fd->textual-input-port @func{fd}
-@defunx fd->textual-output-port @func{fd}
-@defunx fd->textual-input/output-port @func{fd}
+The following bindings are exported by the @library{foreign posix fd}
+library.
+
+
+@defun fd->binary-input-port @var{fd}
+@defunx fd->binary-output-port @var{fd}
+@defunx fd->binary-input/output-port @var{fd}
+@defunx fd->textual-input-port @var{fd}
+@defunx fd->textual-output-port @var{fd}
+@defunx fd->textual-input/output-port @var{fd}
 Wrap the given file descriptor with a Scheme port; return the port.
 Closing the Scheme port closes the file descriptor too.
 @end defun
@@ -2553,9 +2664,10 @@ Closing the Scheme port closes the file descriptor too.
 Invoke @func{pipe} then wrap the file descriptors with Scheme ports.
 Return 2 values: the reading port and the writing port.
 
-Position handling (seeking) is not implemented for pipe ports.
+Position handling (seeking) is @strong{not} implemented for pipe ports.
 @end defun
 
+@c ------------------------------------------------------------
 
 @subsubheading Everyone should mind his own buffers
 
@@ -2604,7 +2716,7 @@ and a custom write function can be implemented like this:
 @example
 (define (custom-binary-write fd bv start count)
   (with-compensations
-    (let* ((p   (malloc-block/c count)))
+    (let ((p (malloc-block/c count)))
       (do ((i 0 (+ 1 i)))
           ((= i count)
            (write fd p count))
@@ -2612,7 +2724,7 @@ and a custom write function can be implemented like this:
 
 (define (custom-textual-write fd str start count)
   (with-compensations
-    (let* ((p   (malloc-block/c count)))
+    (let ((p (malloc-block/c count)))
       (do ((i 0 (+ 1 i)))
           ((= i count)
            (write fd p count))
@@ -2769,13 +2881,13 @@ process} and @library{posix process platform}.
 
 
 @defun getpid
-@defunx platform-getpid
+@defunx platform:getpid
 Return the process id of the current process.
 @end defun
 
 
 @defun getppid
-@defunx platform-getppid
+@defunx platform:getppid
 Return the process id of the parent process.
 @end defun
 
@@ -2794,9 +2906,9 @@ impossible to know what the Scheme implementation does.
 
 
 @deffn Function fork
-@deffnx Function primitive-fork
+@deffnx Function primitive:fork
 @deffnx Parameter fork-function
-@deffnx Function platform-fork
+@deffnx Function platform:fork
 Create a new process by forking the current one.  If successful
 @func{fork} returns zero in the child process and the child process' id
 in the parent process.
@@ -2812,9 +2924,9 @@ in the parent process.
 
 
 @deffn Function execv @var{pathname} @var{args}
-@deffnx Function primitive-execv @var{pathname} @var{args}
+@deffnx Function primitive:execv @var{pathname} @var{args}
 @deffnx Parameter execv-function
-@deffnx Function platform-execv @var{c-pathname} @var{argv}
+@deffnx Function platform:execv @var{c-pathname} @var{argv}
 Execute the file selected by the string or symbol @var{pathname} using
 the list of strings or symbols @var{args} as command line arguments.  By
 convention the first value of @var{args} must be the name (with no
@@ -2835,7 +2947,7 @@ the first char @code{-} is reserved for numeric datums).  To test an
 error handling path:
 
 @example
-(parameterize ((primitive-execv-function
+(parameterize ((primitive:execv-function
                 (lambda args
                   (raise-errno-error 'execv EINVAL))))
    (guard (exc ---)
@@ -2848,9 +2960,9 @@ error handling path:
 @c ------------------------------------------------------------
 
 @deffn Function execve @var{pathname} @var{args} @var{envs}
-@deffnx Function primitive-execve @var{pathname} @var{args} @var{envs}
+@deffnx Function primitive:execve @var{pathname} @var{args} @var{envs}
 @deffnx Parameter execve-function
-@deffnx Function platform-execve @var{c-pathname} @var{argv} @var{envv}
+@deffnx Function platform:execve @var{c-pathname} @var{argv} @var{envv}
 Execute the file selected by the string or symbol @var{pathname} using
 the list of strings or symbols @var{args} as command line arguments.  By
 convention the first value of @var{args} must be the name (with no
@@ -2878,7 +2990,7 @@ the first char @code{-} is reserved for numeric datums).  To test an
 error handling path:
 
 @example
-(parameterize ((primitive-execve-function
+(parameterize ((primitive:execve-function
                (lambda args
                  (raise-errno-error 'execve EINVAL))))
   (guard (exc ---)
@@ -2891,9 +3003,9 @@ error handling path:
 @c ------------------------------------------------------------
 
 @deffn Function execvp @var{pathname} @var{args}
-@deffnx Function primitive-execvp @var{pathname} @var{args}
+@deffnx Function primitive:execvp @var{pathname} @var{args}
 @deffnx Parameter execvp-function
-@deffnx Function platform-execvp @var{c-pathname} @var{argv}
+@deffnx Function platform:execvp @var{c-pathname} @var{argv}
 These functions are like the @func{execv} ones, except that
 @var{pathname} can be the name of a file that is searched in the current
 @env{PATH} search path.
@@ -2901,9 +3013,9 @@ These functions are like the @func{execv} ones, except that
 
 
 @deffn Function system @var{command}
-@deffnx Function primitive-system @var{command}
+@deffnx Function primitive:system @var{command}
 @deffnx Parameter system-function
-@deffnx Function platform-system @var{command}
+@deffnx Function platform:system @var{command}
 Run @var{command} using the system shell.
 @end deffn
 
@@ -2924,9 +3036,9 @@ For the following functions: the @var{options} argument can be zero or a
 @glibcref{Process Completion,Process Completion}
 
 
-@deffn Function primitive-waitpid @var{pid} @var{options}
+@deffn Function primitive:waitpid @var{pid} @var{options}
 @deffnx Parameter waitpid-function
-@deffnx Function platform-waitpid @var{pid} @var{pointer} @var{options}
+@deffnx Function platform:waitpid @var{pid} @var{pointer} @var{options}
 Wait for a single process or a set of processes in a group.  For the
 full documentation we have to refer to the documentation of the foreign
 function @cfunc{waitpid}.
@@ -2934,25 +3046,25 @@ function @cfunc{waitpid}.
 
 
 @defun waitpid @var{pid} @var{options}
-A wrapper for @func{primitive-watipid} that tracks a specific child
+A wrapper for @func{primitive:watipid} that tracks a specific child
 process.
 @end defun
 
 
 @defun waitpid/any @var{options}
-A wrapper for @func{primitive-watipid} that tracks all the child
+A wrapper for @func{primitive:watipid} that tracks all the child
 processes.
 @end defun
 
 
 @defun waitpid/any-my-group @var{options}
-A wrapper for @func{primitive-watipid} that tracks all the child
+A wrapper for @func{primitive:watipid} that tracks all the child
 processes in the same group of the caller.
 @end defun
 
 
 @defun waitpid/group @var{gpid} @var{options}
-A wrapper for @func{primitive-watipid} that tracks all the child
+A wrapper for @func{primitive:watipid} that tracks all the child
 processes in the group with id @var{gpid}.
 @end defun
 
@@ -3004,13 +3116,13 @@ record.  @glibcref{Process Completion Status, Process Completion Status}
 @end defun
 
 
-@defun platform-WIFEXITED @var{status}
-@defunx platform-WEXITSTATUS @var{status}
-@defunx platform-WIFSIGNALED @var{status}
-@defunx platform-WTERMSIG @var{status}
-@defunx platform-WCOREDUMP @var{status}
-@defunx platform-WIFSTOPPED @var{status}
-@defunx platform-WSTOPSIG @var{status}
+@defun platform:WIFEXITED @var{status}
+@defunx platform:WEXITSTATUS @var{status}
+@defunx platform:WIFSIGNALED @var{status}
+@defunx platform:WTERMSIG @var{status}
+@defunx platform:WCOREDUMP @var{status}
+@defunx platform:WIFSTOPPED @var{status}
+@defunx platform:WSTOPSIG @var{status}
 These are wrappers for the macros that extract a value from the
 @var{status} integer returned by the waitpid functions.  They can be
 used to query the status without building a record.
@@ -3042,9 +3154,9 @@ job} and @library{posix job platform}.
 
 
 @deffn Function ctermid
-@deffnx Function primitive-ctermid
+@deffnx Function primitive:ctermid
 @deffnx Parameter ctermid-function
-@deffnx Function platform-ctermid @var{pointer}
+@deffnx Function platform:ctermid @var{pointer}
 Return a string representing the pathname of the controlling terminal
 for this process.
 
@@ -3064,35 +3176,35 @@ sizeof}.
 
 
 @deffn Function setsid
-@deffnx Function primitive-setsid
+@deffnx Function primitive:setsid
 @deffnx Parameter setsid-function
-@deffnx Function platform-setsid
+@deffnx Function platform:setsid
 Create a new session and return an integer representing the new process
 group id.
 @end deffn
 
 
 @deffn Function getsid @var{pid}
-@deffnx Function primitive-getsid @var{pid}
+@deffnx Function primitive:getsid @var{pid}
 @deffnx Parameter getsid-function
-@deffnx Function platform-getsid @var{pid}
+@deffnx Function platform:getsid @var{pid}
 Return the group id of the session leader of the process with @var{pid}.
 @end deffn
 
 
 @deffn Function getpgrp
-@deffnx Function primitive-getpgrp
+@deffnx Function primitive:getpgrp
 @deffnx Parameter getpgrp-function
-@deffnx Function platform-getpgrp
+@deffnx Function platform:getpgrp
 Return the process group id of the group to which the current process
 belongs.
 @end deffn
 
 
 @deffn Function setpgid @var{pid} @var{pgid}
-@deffnx Function primitive-setpgid @var{pid} @var{pgid}
+@deffnx Function primitive:setpgid @var{pid} @var{pgid}
 @deffnx Parameter setpgid-function
-@deffnx Function platform-setpgid @var{pid} @var{pgid}
+@deffnx Function platform:setpgid @var{pid} @var{pgid}
 Put the process @var{pid} in the group @var{pgid}.
 @end deffn
 
@@ -3107,26 +3219,26 @@ Access}
 
 
 @deffn Function tcgetpgrp @var{fd}
-@deffnx Function primitive-tcgetpgrp @var{fd}
+@deffnx Function primitive:tcgetpgrp @var{fd}
 @deffnx Parameter tcgetpgrp-function
-@deffnx Function platform-tcgetpgrp @var{fd}
+@deffnx Function platform:tcgetpgrp @var{fd}
 Return the process group id of the foreground process group associated
 with the terminal open on descriptor @var{fd}.
 @end deffn
 
 
 @deffn Function tcsetpgrp @var{fd} @var{pgid}
-@deffnx Function primitive-tcsetpgrp @var{fd} @var{pgid}
+@deffnx Function primitive:tcsetpgrp @var{fd} @var{pgid}
 @deffnx Parameter tcsetpgrp-function
-@deffnx Function platform-tcsetpgrp @var{fd} @var{pgid}
+@deffnx Function platform:tcsetpgrp @var{fd} @var{pgid}
 Set a terminal's foreground process group id.
 @end deffn
 
 
 @deffn Function tcgetsid @var{fd}
-@deffnx Function primitive-tcgetsid @var{fd}
+@deffnx Function primitive:tcgetsid @var{fd}
 @deffnx Parameter tcgetsid-function
-@deffnx Function platform-tcgetsid @var{fd}
+@deffnx Function platform:tcgetsid @var{fd}
 Return the process group id of the session for which the open on
 descriptor @var{fd} is the controlling terminal.
 @end deffn

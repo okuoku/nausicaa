@@ -27,7 +27,8 @@
 
 (library (foreign posix helpers)
   (export
-    define-primitive-parameter)
+    define-primitive-parameter
+    define-parameterised)
   (import (rnrs)
     (only (parameters)
 	  make-parameter))
@@ -45,6 +46,20 @@
 				" parameter")
 		 func))
 	     func))))))
+
+  (define-syntax define-parameterised
+    (lambda (stx)
+      (syntax-case stx ()
+	((_ ?name ?arg ...)
+	 (let* ((name		(symbol->string (syntax->datum #'?name)))
+		(parm-name	(string->symbol (string-append name "-function")))
+		(prim-name	(string->symbol (string-append "primitive:" name))))
+	   (with-syntax ((PARM-NAME (datum->syntax #'?name parm-name))
+			 (PRIM-NAME (datum->syntax #'?name prim-name)))
+	     #'(begin
+		 (define-primitive-parameter PARM-NAME PRIM-NAME)
+		 (define (?name ?arg ...)
+		   ((PARM-NAME) ?arg ...)))))))))
   )
 
 ;;; end of file

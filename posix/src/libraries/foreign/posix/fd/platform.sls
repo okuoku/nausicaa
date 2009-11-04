@@ -24,88 +24,86 @@
 ;;;
 
 
-#!r6rs
 (library (foreign posix fd platform)
   (export
-    platform-open	platform-close
-    platform-read	platform-write
-    platform-pread	platform-pwrite
-    platform-lseek
-    platform-sync	platform-fsync
-    platform-fdatasync
-    platform-fcntl	platform-ioctl
-    platform-dup	platform-dup2
-    platform-pipe	platform-mkfifo
-    )
-  (import (rnrs)
+    open	close
+    read	write
+    pread	pwrite
+    lseek
+    sync	fsync
+    fdatasync
+    fcntl	ioctl
+    dup	dup2
+    pipe	mkfifo)
+  (import (except (rnrs) read write)
     (foreign ffi)
     (foreign posix sizeof))
+
+  (define dummy
+    (shared-object self-shared-object))
 
 
 ;;;; code
 
-(define-c-function/with-errno platform-open
+(define-c-function/with-errno open
   (int open (char* int mode_t)))
 
-(define-c-function/with-errno platform-close
+(define-c-function/with-errno close
   (int close (int)))
 
 ;;; --------------------------------------------------------------------
 
-(define-c-function/with-errno platform-read
+(define-c-function/with-errno read
   (ssize_t read (int void* size_t)))
 
-(define-c-function/with-errno platform-pread
+(define-c-function/with-errno pread
   (ssize_t pread (int void* size_t off_t)))
 
-(define-c-function/with-errno platform-write
+(define-c-function/with-errno write
   (ssize_t write (int void* size_t)))
 
-(define-c-function/with-errno platform-pwrite
+(define-c-function/with-errno pwrite
   (ssize_t pwrite (int void* size_t off_t)))
 
 ;;; --------------------------------------------------------------------
 
-(define-c-function/with-errno platform-lseek
+(define-c-function/with-errno lseek
   (off_t lseek (int off_t int)))
 
 ;;; --------------------------------------------------------------------
 
-(define-c-function/with-errno platform-sync
+(define-c-function/with-errno sync
   (int sync (void)))
 
-(define-c-function/with-errno platform-fsync
+(define-c-function/with-errno fsync
   (int fsync (int)))
 
-(define-c-function/with-errno platform-fdatasync
+(define-c-function/with-errno fdatasync
   (int fdatasync (int)))
 
 ;;; --------------------------------------------------------------------
 
-(define-c-function/with-errno platform-fcntl
+(define-c-function/with-errno fcntl
   (int fcntl (int int int)))
 
-(define-c-function/with-errno platform-ioctl
+(define-c-function/with-errno ioctl
   (int ioctl (int int int)))
 
 ;;; --------------------------------------------------------------------
 
-(define-c-function/with-errno platform-dup
+(define-c-function/with-errno dup
   (int dup (int)))
 
-(define-c-function/with-errno platform-dup2
+(define-c-function/with-errno dup2
   (int dup2 (int int)))
 
 ;;; --------------------------------------------------------------------
 
-(define-c-function/with-errno platform-pipe
+(define-c-function/with-errno pipe
   (int pipe (pointer)))
 
-(define-c-function/with-errno platform-mkfifo
+(define-c-function/with-errno mkfifo
   (int mkfifo (char* mode_t)))
-
-
-
 
 
 ;;;; done

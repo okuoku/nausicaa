@@ -43,61 +43,6 @@
     (foreign posix sizeof)
     (compensations))
 
-  (define stub-lib
-    (let ((o (open-shared-object 'libnausicaa-posix1.so)))
-      (shared-object o)
-      o))
-
-
-;;;; CPU ticks
-
-(define-c-function/with-errno platform-clock
-  (double nausicaa_posix_clock (void)))
-
-(define (primitive-clock)
-  (receive (result errno)
-      (platform-clock)
-    (if (= -1 result)
-	(raise-errno-error 'primitive-clock errno)
-      result)))
-
-(define-primitive-parameter
-  primitive-clock-function primitive-clock)
-
-(define (clock)
-  ((primitive-clock-function)))
-
-
-
-;;;; process ticks
-
-(define-c-function/with-errno platform-times
-  (double nausicaa_posix_times (pointer)))
-
-(define-record-type struct-tms
-  (fields (immutable tms_utime struct-tms-tms_utime-ref)
-	  (immutable tms_stime struct-tms-tms_stime-ref)
-	  (immutable tms_cutime struct-tms-tms_cutime-ref)
-	  (immutable tms_cstime struct-tms-tms_cstime-ref)))
-
-(define (primitive-times)
-  (with-compensations
-    (let ((p (malloc-block/c (sizeof-double-array 4))))
-      (receive (result errno)
-	  (platform-times p)
-	(if (= -1 result)
-	    (raise-errno-error 'primitive-clock errno)
-	  (values result
-		  (make-struct-tms (array-ref-c-double p 0)
-				   (array-ref-c-double p 1)
-				   (array-ref-c-double p 2)
-				   (array-ref-c-double p 3))))))))
-
-(define-primitive-parameter
-  primitive-times-function primitive-times)
-
-(define (times)
-  ((primitive-times-function)))
 
 
 
