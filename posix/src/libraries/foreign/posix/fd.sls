@@ -70,40 +70,40 @@
 
 ;; opening and closing
 
-(define-parameterised open pathname open-mode permissions)
-(define-parameterised close fd)
+(define-parametrised open pathname open-mode permissions)
+(define-parametrised close fd)
 
 ;; reading and writing
 
-(define-parameterised read fd pointer number-of-bytes)
-(define-parameterised write fd pointer number-of-bytes)
-(define-parameterised pread fd pointer number-of-bytes offset)
-(define-parameterised pwrite fd pointer number-of-bytes offset)
+(define-parametrised read fd pointer number-of-bytes)
+(define-parametrised write fd pointer number-of-bytes)
+(define-parametrised pread fd pointer number-of-bytes offset)
+(define-parametrised pwrite fd pointer number-of-bytes offset)
 
 ;; seeking
 
-(define-parameterised lseek fd offset whence)
+(define-parametrised lseek fd offset whence)
 
 ;; synchronisation
 
-(define-parameterised sync)
-(define-parameterised fsync fd)
-(define-parameterised fdatasync fd)
+(define-parametrised sync)
+(define-parametrised fsync fd)
+(define-parametrised fdatasync fd)
 
 ;; control operations
 
-(define-parameterised fcntl fd operation arg)
-(define-parameterised ioctl fd operation arg)
+(define-parametrised fcntl fd operation arg)
+(define-parametrised ioctl fd operation arg)
 
 ;; duplicating
 
-(define-parameterised dup fd)
-(define-parameterised dup2 old new)
+(define-parametrised dup fd)
+(define-parametrised dup2 old new)
 
 ;; making pipes
 
-(define-parameterised pipe)
-(define-parameterised mkfifo pathname mode)
+(define-parametrised pipe)
+(define-parametrised mkfifo pathname mode)
 
 
 ;;;; custom binary ports

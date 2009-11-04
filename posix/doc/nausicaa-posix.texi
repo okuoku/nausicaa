@@ -2856,82 +2856,140 @@ Then the following implementations are possible:
 @chapter Processes
 
 
-The bindings described in this chapter are exported by @library{posix
-process} and @library{posix process platform}.
+Unless otherwise specified, the bindings described in this chapter are
+exported by the following libraries:
 
+@example
+(foreign posix process)
+(foreign posix process primitives)
+(foreign posix process platform)
+@end example
 
 @menu
+* process record::              Record types.
 * process id::                  Process identification.
 * process fork::                Creating a process.
 * process exec::                Executing a file.
 * process wait::                Process completion.
 @end menu
 
+@c page
+@node process record
+@section Record types
+
+
+The following bindings are exported by the @library{foreign posix
+process record-types} library.  @glibcref{Process Completion Status,
+Process Completion Status}.
+
+
+@deftp {Record Type Name} <process-term-status>
+@deftpx {Record Type Descriptor} <process-term-status-rtd>
+Record type describing the details of a process termination.  It has the
+following fields:
+
+@example
+WIFEXITED               WEXITSTATUS
+WIFSIGNALED             WTERMSIG
+WCOREDUMP               WIFSTOPPED
+WSTOPSIG
+@end example
+@end deftp
+
+
+@defun make-<process-term-status> @var{WIFEXITED} @var{WEXITSTATUS} @var{WIFSIGNALED} @var{WTERMSIG} @var{WCOREDUMP} @var{WIFSTOPPED} @var{WSTOPSIG}
+Build and return a new record of type @class{process-term-status}.
+@end defun
+
+
+@defun process-term-status->record @var{status}
+Given the exact integer @var{status} representing a process' termination
+status, build and return a record of type @class{process-term-status}.
+@end defun
+
+
+@defun WIFEXITED? @var{status-record}
+@defunx WEXITSTATUS? @var{status-record}
+@defunx WIFSIGNALED? @var{status-record}
+@defunx WTERMSIG? @var{status-record}
+@defunx WCOREDUMP? @var{status-record}
+@defunx WIFSTOPPED? @var{status-record}
+@defunx WSTOPSIG? @var{status-record}
+Field accessors for records of type @class{process-term-status}.  The
+values are all booleans.
+@end defun
 
 @c page
 @node process id
 @section Process identification
 
 
-@glibcref{Process Identification,Process Identification}
+The following functions inspect the process identifier.
+@glibcref{Process Identification, Process Identification}
 
-@quotation
-@emph{Note:} It seems that the following functions cannot fail.
-@end quotation
-
-
-@defun getpid
-@defunx platform:getpid
-Return the process id of the current process.
-@end defun
+@c @quotation
+@c @strong{NOTE} It seems that the following functions cannot fail.
+@c @end quotation
 
 
-@defun getppid
-@defunx platform:getppid
-Return the process id of the parent process.
-@end defun
+@deffn Function getpid
+@deffnx Parameter getpid-function
+@deffnx Function primitive:getpid
+@deffnx Function platform:getpid
+Return the process id of the current process.  This function cannot
+fail, so @func{platform:getpid} returns a single value.
+@end deffn
 
+
+@deffn Function getppid
+@deffnx Parameter getppid-function
+@deffnx Functionx primitive:getppid
+@deffnx Functionx platform:getppid
+Return the process id of the parent process.  This function cannot fail,
+so @func{platform:getppid} returns a single value.
+@end deffn
 
 @c page
 @node process fork
 @section Creating a process
 
 
-@glibcref{Creating a Process,Creating a Process}
+The following functions manage process forking.  @glibcref{Creating a
+Process, Creating a Process}.
 
 @quotation
-@emph{Note:} Access to @cfunc{vfork} is not implemented because it is
-impossible to know what the Scheme implementation does.
+@strong{NOTE} Access to @cfunc{vfork} is not implemented because it is
+impossible to know what the underlying Scheme implementation does.
 @end quotation
 
 
 @deffn Function fork
-@deffnx Function primitive:fork
 @deffnx Parameter fork-function
+@deffnx Function primitive:fork
 @deffnx Function platform:fork
 Create a new process by forking the current one.  If successful
 @func{fork} returns zero in the child process and the child process' id
 in the parent process.
 @end deffn
 
-
 @c page
 @node process exec
 @section Executing a file
 
 
-@glibcref{Executing a File,Executing a File}
+The following functions manage process forking.  @glibcref{Executing a
+File, Executing a File}.
 
 
 @deffn Function execv @var{pathname} @var{args}
-@deffnx Function primitive:execv @var{pathname} @var{args}
 @deffnx Parameter execv-function
-@deffnx Function platform:execv @var{c-pathname} @var{argv}
-Execute the file selected by the string or symbol @var{pathname} using
-the list of strings or symbols @var{args} as command line arguments.  By
-convention the first value of @var{args} must be the name (with no
-directory pathname) of the executed process.  If successful a new
-process is executed and these functions do not return.
+@deffnx Function primitive:execv @var{pathname} @var{args}
+@deffnx Function platform:execv @var{pathname-cstr} @var{argv}
+Execute the file selected by the Scheme string or symbol @var{pathname}
+using the list of Scheme strings or symbols @var{args} as command line
+arguments.  By convention the first value of @var{args} must be the name
+(with no directory pathname) of the executed process.  If successful a
+new process is executed and these functions do not return.
 
 Usage example:
 
@@ -2941,35 +2999,23 @@ Usage example:
 @end example
 
 @noindent
-notice that command line options like @code{-l} have to be strings, not
-symbols, to prevent the Scheme implementation to raise an error (because
-the first char @code{-} is reserved for numeric datums).  To test an
-error handling path:
-
-@example
-(parameterize ((primitive:execv-function
-                (lambda args
-                  (raise-errno-error 'execv EINVAL))))
-   (guard (exc ---)
-     ---
-     (execv '/bin/ls '(ls))
-     ---))
-@end example
+notice that command line options like @code{-l} have to be strings (not
+symbols) to prevent a syntax error (because the first char @samp{-} is
+reserved for numeric datums).
 @end deffn
 
-@c ------------------------------------------------------------
 
 @deffn Function execve @var{pathname} @var{args} @var{envs}
-@deffnx Function primitive:execve @var{pathname} @var{args} @var{envs}
 @deffnx Parameter execve-function
-@deffnx Function platform:execve @var{c-pathname} @var{argv} @var{envv}
-Execute the file selected by the string or symbol @var{pathname} using
-the list of strings or symbols @var{args} as command line arguments.  By
-convention the first value of @var{args} must be the name (with no
-directory path) of the executed process.
+@deffnx Function primitive:execve @var{pathname} @var{args} @var{envs}
+@deffnx Function platform:execve @var{pathname-cstr} @var{argv} @var{envv}
+Execute the file selected by the Scheme string or symbol @var{pathname}
+using the list of Scheme strings or symbols @var{args} as command line
+arguments.  By convention the first value of @var{args} must be the name
+(with no directory part) of the executed process.
 
-@var{envs} must be a list of strings or symbols used to set the process
-execution environment.
+@var{envs} must be a list of Scheme strings or symbols used to set the
+process execution environment.
 
 If successful a new process is executed and these functions do not
 return.
@@ -2984,28 +3030,16 @@ Usage example:
 @end example
 
 @noindent
-notice that command line options like @code{-l} have to be strings, not
-symbols, to prevent the Scheme implementation to raise an error (because
-the first char @code{-} is reserved for numeric datums).  To test an
-error handling path:
-
-@example
-(parameterize ((primitive:execve-function
-               (lambda args
-                 (raise-errno-error 'execve EINVAL))))
-  (guard (exc ---)
-    (execve '/usr/bin/du
-            '(du /bin/ls)
-            '("BLOCK_SIZE=human-readable"))))
-@end example
+notice that command line options like @code{-l} have to be strings (not
+symbols) to prevent a syntax error (because the first char @samp{-} is
+reserved for numeric datums).
 @end deffn
 
-@c ------------------------------------------------------------
 
 @deffn Function execvp @var{pathname} @var{args}
-@deffnx Function primitive:execvp @var{pathname} @var{args}
 @deffnx Parameter execvp-function
-@deffnx Function platform:execvp @var{c-pathname} @var{argv}
+@deffnx Function primitive:execvp @var{pathname} @var{args}
+@deffnx Function platform:execvp @var{pathname-str} @var{argv}
 These functions are like the @func{execv} ones, except that
 @var{pathname} can be the name of a file that is searched in the current
 @env{PATH} search path.
@@ -3013,12 +3047,11 @@ These functions are like the @func{execv} ones, except that
 
 
 @deffn Function system @var{command}
-@deffnx Function primitive:system @var{command}
 @deffnx Parameter system-function
-@deffnx Function platform:system @var{command}
+@deffnx Function primitive:system @var{command}
+@deffnx Function platform:system @var{command-cstr}
 Run @var{command} using the system shell.
 @end deffn
-
 
 @c page
 @node process wait
@@ -3029,15 +3062,20 @@ Run @var{command} using the system shell.
 @cindex @code{WUNTRACED}
 @cindex @code{WCONTINUED}
 
-For the following functions: the @var{options} argument can be zero or a
-@func{bitwise-ior} of @code{WNOHANG}, @code{WUNTRACED} and
-@code{WCONTINUED} which are exported by @library{posix sizeof}.
+The following functions manage waiting for spawned processes.
+@glibcref{Process Completion, Process Completion}.
 
-@glibcref{Process Completion,Process Completion}
+The @var{options} argument can be zero or a @func{bitwise-ior} of
+@code{WNOHANG}, @code{WUNTRACED} and @code{WCONTINUED} which are
+exported by @library{foreign posix sizeof}.
+
+The following @code{waitpid} functions return a process termination
+status in the form of an exact integer.  Such integer can be analysed
+with the functions described in @ref{process record, Record types}.
 
 
-@deffn Function primitive:waitpid @var{pid} @var{options}
-@deffnx Parameter waitpid-function
+@deffn Parameter waitpid-function
+@deffnx Function primitive:waitpid @var{pid} @var{options}
 @deffnx Function platform:waitpid @var{pid} @var{pointer} @var{options}
 Wait for a single process or a set of processes in a group.  For the
 full documentation we have to refer to the documentation of the foreign
@@ -3046,73 +3084,26 @@ function @cfunc{waitpid}.
 
 
 @defun waitpid @var{pid} @var{options}
-A wrapper for @func{primitive:watipid} that tracks a specific child
-process.
+A wrapper for the function in the @func{watipid-function} parameter that
+tracks a specific child process.
 @end defun
 
 
 @defun waitpid/any @var{options}
-A wrapper for @func{primitive:watipid} that tracks all the child
-processes.
+A wrapper for the function in the @func{watipid-function} parameter that
+tracks all the child processes.
 @end defun
 
 
 @defun waitpid/any-my-group @var{options}
-A wrapper for @func{primitive:watipid} that tracks all the child
-processes in the same group of the caller.
+A wrapper for the function in the @func{watipid-function} parameter that
+tracks all the child processes in the same group of the caller.
 @end defun
 
 
 @defun waitpid/group @var{gpid} @var{options}
-A wrapper for @func{primitive:watipid} that tracks all the child
-processes in the group with id @var{gpid}.
-@end defun
-
-
-@subsubheading Inspecting the termination status
-
-
-Using the @acronym{FFI} of Scheme implementations there is no way to
-analyse the status value returned by the waitpid functions, but if we
-have installed the @posix{} Nausicaa/Stubs foreign library, we can
-import the @library{posix process stub} library to use the following
-bindings.
-
-
-@deftp {Record Type} process-term-status-record
-Holds a field for each property in the process termination status value.
-@end deftp
-
-
-@defun make-process-term-status @var{status}
-Build and return a @code{process-term-status-record} initialised with
-the bits in @var{status}, which must be the status return value of a
-waitpid function.
-@end defun
-
-
-@defun make-process-term-status-record @var{WIFEXITED} @var{WEXITSTATUS} @var{WIFSIGNALED} @var{WTERMSIG} @var{WCOREDUMP} @var{WIFSTOPPED} @var{WSTOPSIG}
-Build and return a @code{process-term-status-record} directly
-initialised with boolean values.  This can be used to construct a fake
-status record for testing purposes.
-@end defun
-
-
-@defun process-term-status? @var{obj}
-Return @true{} if @var{obj} is a @code{process-term-status-record}
-record.
-@end defun
-
-
-@defun WIFEXITED? @var{status-record}
-@defunx WEXITSTATUS? @var{status-record}
-@defunx WIFSIGNALED? @var{status-record}
-@defunx WTERMSIG? @var{status-record}
-@defunx WCOREDUMP? @var{status-record}
-@defunx WIFSTOPPED? @var{status-record}
-@defunx WSTOPSIG? @var{status-record}
-Return @true{} or @false{} if the property is set or unset in the status
-record.  @glibcref{Process Completion Status, Process Completion Status}
+A wrapper for the function in the @func{watipid-function} parameter that
+tracks all the child processes in the group with id @var{gpid}.
 @end defun
 
 
@@ -3127,7 +3118,6 @@ These are wrappers for the macros that extract a value from the
 @var{status} integer returned by the waitpid functions.  They can be
 used to query the status without building a record.
 @end defun
-
 
 @c page
 @node job

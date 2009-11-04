@@ -24,164 +24,69 @@
 ;;;
 
 
-#!r6rs
 (library (foreign posix process)
   (export
 
     ;; identification
-    getpid	getppid
+    getpid		getppid
 
     ;; forking
-    fork	primitive-fork		primitive-fork-function
+    fork		fork-function
 
     ;; executing
-    execv	primitive-execv		primitive-execv-function
-    execve	primitive-execve	primitive-execve-function
-    execvp	primitive-execvp	primitive-execvp-function
-    system	primitive-system	primitive-system-function
+    execv		execv-function
+    execve		execve-function
+    execvp		execvp-function
+    system		system-function
 
     ;; waiting
-    waitpid	primitive-waitpid	primitive-waitpid-function
-    waitpid/any
-    waitpid/any-my-group
+    waitpid		waitpid-function
+    waitpid/any		waitpid/any-my-group
     waitpid/group)
-  (import (nausicaa)
-    (foreign ffi)
-    (foreign memory)
-    (foreign errno)
-    (foreign cstrings)
-    (foreign posix sizeof)
-    (foreign posix process platform)
-    (compensations))
-
-  (define dummy
-    (shared-object self-shared-object))
+  (import (rnrs)
+    (receive)
+    (compensations)
+    (foreign posix helpers)
+    (prefix (foreign posix process primitives) primitive:))
 
 
-;;;; process id
+;; process id
 
-(define (getpid)
-  (platform-getpid))
+(define-parametrised getpid)
+(define-parametrised getppid)
 
-(define (getppid)
-  (platform-getppid))
+;; forking
 
-
-;;;; forking
+(define-parametrised fork)
 
-(define (primitive-fork)
-  (receive (result errno)
-      (platform-fork)
-    (when (= -1 result)
-      (raise-errno-error 'primitive-fork errno))
-    result))
+;; executing
 
-(define-primitive-parameter
-  primitive-fork-function primitive-fork)
+(define-parametrised execv pathname args)
+(define-parametrised execve pathname args envs)
+(define-parametrised execvp pathname args)
+(define-parametrised system command)
 
-(define (fork)
-  ((primitive-fork-function)))
+;; waiting
 
-
-;;;; executing
-
-(define (primitive-execv pathname args)
-  (with-compensations
-    (receive (result errno)
-	(platform-execv (string->cstring/c pathname)
-			(strings->argv args malloc-block/c))
-      (when (= -1 result)
-	(raise-errno-error 'primitive-execv errno
-			   (list pathname args))))))
-
-(define (primitive-execve pathname args envs)
-  (with-compensations
-    (receive (result errno)
-	(platform-execve (string->cstring/c pathname)
-			 (strings->argv args malloc-block/c)
-			 (strings->argv envs malloc-block/c))
-      (when (= -1 result)
-	(raise-errno-error 'primitive-execve errno
-			   (list pathname args envs))))))
-
-(define (primitive-execvp pathname args)
-  (with-compensations
-    (receive (result errno)
-	(platform-execvp (string->cstring/c pathname)
-			 (strings->argv args malloc-block/c))
-      (when (= -1 result)
-	(raise-errno-error 'primitive-execvp errno
-			   (list pathname args))))))
-
-(define (primitive-system command)
-  (with-compensations
-    (receive (result errno)
-	(platform-system (string->cstring/c command))
-      (when (= -1 result)
-	(raise-errno-error 'primitive-system errno command))
-      result)))
-
-(define-primitive-parameter
-  primitive-execv-function primitive-execv)
-
-(define-primitive-parameter
-  primitive-execve-function primitive-execve)
-
-(define-primitive-parameter
-  primitive-execvp-function primitive-execvp)
-
-(define-primitive-parameter
-  primitive-system-function primitive-system)
-
-(define (execv pathname args)
-  ((primitive-execv-function) pathname args))
-
-(define (execve pathname args envs)
-  ((primitive-execve-function) pathname args envs))
-
-(define (execvp pathname args)
-  ((primitive-execvp-function) pathname args))
-
-(define (system command)
-  ((primitive-system-function) command))
-
-
-
-;;;; waiting
-
-(define (primitive-waitpid pid options)
-  (with-compensations
-    (let ((status* (malloc-small/c)))
-      (let loop ()
-	(receive (result errno)
-	    (platform-waitpid pid status* options)
-	  (when (= -1 result)
-	    (when (= EINTR errno)
-	      (loop))
-	    (raise-errno-error 'waitpid errno pid))
-	  (values result (pointer-ref-c-signed-int status* 0)))))))
-
-(define-primitive-parameter
-  primitive-waitpid-function primitive-waitpid)
+(define-primitive-parameter waitpid-function		primitive:waitpid)
 
 (define (waitpid pid options)
   (unless (< 0 pid)
     (assertion-violation 'waitpid
       "expected strictly positive process id" pid))
-  ((primitive-waitpid-function) pid options))
+  ((waitpid-function) pid options))
 
 (define (waitpid/any options)
-  ((primitive-waitpid-function) -1 options))
+  ((waitpid-function) -1 options))
 
 (define (waitpid/any-my-group options)
-  ((primitive-waitpid-function) 0 options))
+  ((waitpid-function) 0 options))
 
 (define (waitpid/group gpid options)
   (unless (< 0 gpid)
     (assertion-violation 'waitpid/group
       "expected strictly positive process group id" gpid))
-  ((primitive-waitpid-function) (- gpid) options))
-
+  ((waitpid-function) (- gpid) options))
 
 
 ;;;; done

@@ -30,34 +30,35 @@
   (foreign errno)
   (foreign cstrings)
   (checks)
-  (foreign posix process)
-  (foreign posix process stub))
+  (prefix (foreign posix process) posix:)
+  (foreign posix process stub)
+  (prefix (foreign posix process record-types) posix:))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX process\n")
 
 
-(parameterize ((check-test-name 'pid))
+(parametrise ((check-test-name 'pid))
 
   (check
-      (integer? (getpid))
+      (integer? (posix:getpid))
     => #t)
 
   (check
-      (integer? (getppid))
+      (integer? (posix:getppid))
     => #t)
 
   (check
-      (< (getppid) (getpid))
+      (< (posix:getppid) (posix:getpid))
     => #t)
 
   #t)
 
 
-(parameterize ((check-test-name 'fork))
+(parametrise ((check-test-name 'fork))
 
   (check
-      (let ((pid (fork)))
+      (let ((pid (posix:fork)))
 	(if (= 0 pid)
 	    (exit)
 	  #t))
@@ -67,11 +68,10 @@
       (let ()
 	(define (fake-fork)
 	  (raise-errno-error 'fork EINVAL))
-	(parameterize ((primitive-fork-function fake-fork))
-	  (guard (exc (else
-		       (list (errno-condition? exc)
-			     (errno-symbolic-value exc))))
-	    (fork))))
+	(parametrise ((posix:fork-function fake-fork))
+	  (guard (E (else (list (errno-condition? E)
+				(errno-symbolic-value E))))
+	    (posix:fork))))
     => '(#t EINVAL))
 
   #t)
@@ -81,70 +81,63 @@
 
   (check
       (begin
-	(when (= 0 (fork))
-	  (execv '/bin/ls '(ls "-l" /bin/ls))
+	(when (= 0 (posix:fork))
+	  (posix:execv '/bin/ls '(ls "-l" /bin/ls))
 	  (exit))
 	#t)
     => #t)
 
   (check
       (begin
-	(when (= 0 (fork))
-	  (execv '/usr/bin/du '(du /bin/ls))
+	(when (= 0 (posix:fork))
+	  (posix:execv '/usr/bin/du '(du /bin/ls))
 	  (exit))
 	#t)
     => #t)
 
   (check
-      (parameterize ((primitive-execv-function
-		      (lambda args
-			(raise-errno-error 'execv EINVAL args))))
-	(guard (exc (else
-		     (list (errno-condition? exc)
-			   (condition-who exc)
-			   (errno-symbolic-value exc))))
-	  (execv '/bin/ls '(ls))))
+      (parameterize ((posix:execv-function (lambda args
+					     (raise-errno-error 'execv EINVAL args))))
+	(guard (E (else (list (errno-condition? E)
+			      (condition-who E)
+			      (errno-symbolic-value E))))
+	  (posix:execv '/bin/ls '(ls))))
     => '(#t execv EINVAL))
 
 ;;; --------------------------------------------------------------------
 
   (check
       (begin
-	(when (= 0 (fork))
-	  (execve '/usr/bin/du '(du /bin/ls) '("BLOCK_SIZE=human-readable"))
+	(when (= 0 (posix:fork))
+	  (posix:execve '/usr/bin/du '(du /bin/ls) '("BLOCK_SIZE=human-readable"))
 	  (exit))
 	#t)
     => #t)
 
   (check
-      (parameterize ((primitive-execve-function
-		      (lambda args
-			(raise-errno-error 'execve EINVAL args))))
-	(guard (exc (else
-		     (list (errno-condition? exc)
-			   (errno-symbolic-value exc))))
-	  (execve '/usr/bin/du '(du /bin/ls) '("BLOCK_SIZE=human-readable"))))
+      (parametrise ((posix:execve-function (lambda args
+					     (raise-errno-error 'execve EINVAL args))))
+	(guard (E (else (list (errno-condition? E)
+			      (errno-symbolic-value E))))
+	  (posix:execve '/usr/bin/du '(du /bin/ls) '("BLOCK_SIZE=human-readable"))))
     => '(#t EINVAL))
 
 ;;; --------------------------------------------------------------------
 
   (check
       (begin
-	(when (= 0 (fork))
-	  (execvp 'ls '(ls "-l" /bin/ls))
+	(when (= 0 (posix:fork))
+	  (posix:execvp 'ls '(ls "-l" /bin/ls))
 	  (exit))
 	#t)
     => #t)
 
   (check
-      (let ()
-	(define (fake-execvp . args)
-	  (raise-errno-error 'execve EINVAL args))
-	(parameterize ((primitive-execvp-function fake-execvp))
-	  (guard (exc (else
-		       (list (errno-condition? exc)
-			     (errno-symbolic-value exc))))
-	    (execvp 'ls '(ls)))))
+      (parametrise ((posix:execvp-function (lambda args
+					     (raise-errno-error 'execve EINVAL args))))
+	(guard (E (else (list (errno-condition? E)
+			      (errno-symbolic-value E))))
+	  (posix:execvp 'ls '(ls))))
     => '(#t EINVAL))
 
   #t)
@@ -153,25 +146,23 @@
 (parameterize ((check-test-name 'wait))
 
   (check
-      (let ((pid (fork)))
+      (let ((pid (posix:fork)))
 	(if (= 0 pid)
-	    (execv '/bin/ls '(ls "-l" /bin/ls))
+	    (posix:execv '/bin/ls '(ls "-l" /bin/ls))
 	  (receive (result status)
-	      (waitpid pid 0)
+	      (posix:waitpid pid 0)
 	    (= pid result))))
     => #t)
 
   (check
-      (let ((pid (fork)))
+      (let ((pid (posix:fork)))
 	(if (= 0 pid)
-	    (execv '/bin/ls '(ls "-l" /bin/ls))
+	    (posix:execv '/bin/ls '(ls "-l" /bin/ls))
 	  (receive (result status)
-	      (waitpid pid 0)
-	    (let ((r (make-process-term-status status)))
-	      (WIFEXITED? r)))))
+	      (posix:waitpid pid 0)
+	    (let ((r (posix:process-term-status->record status)))
+	      (posix:WIFEXITED? r)))))
     => #t)
-
-
 
   #t)
 

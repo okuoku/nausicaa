@@ -28,7 +28,7 @@
 (library (foreign posix helpers)
   (export
     define-primitive-parameter
-    define-parameterised)
+    define-parametrised)
   (import (rnrs)
     (only (parameters)
 	  make-parameter))
@@ -47,7 +47,7 @@
 		 func))
 	     func))))))
 
-  (define-syntax define-parameterised
+  (define-syntax define-parametrised
     (lambda (stx)
       (syntax-case stx ()
 	((_ ?name ?arg ...)

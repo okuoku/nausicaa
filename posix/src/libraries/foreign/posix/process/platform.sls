@@ -24,48 +24,73 @@
 ;;;
 
 
-#!r6rs
 (library (foreign posix process platform)
   (export
-    platform-getpid
-    platform-getppid
-    platform-fork
-    platform-execv
-    platform-execve
-    platform-execvp
-    platform-system
-    platform-waitpid)
+    getpid		getppid
+    fork		execv
+    execve		execvp
+    system		waitpid
+
+    WIFEXITED		WEXITSTATUS
+    WIFSIGNALED		WTERMSIG
+    WCOREDUMP		WIFSTOPPED
+    WSTOPSIG)
   (import (rnrs)
     (foreign ffi)
     (foreign posix sizeof))
 
 
-;;;; code
+(define dummy
+  (shared-object self-shared-object))
 
-(define-c-function platform-getpid
+(define-c-function getpid
   (pid_t getpid (void)))
 
-(define-c-function platform-getppid
+(define-c-function getppid
   (pid_t getppid (void)))
 
-(define-c-function/with-errno platform-fork
+(define-c-function/with-errno fork
   (pid_t fork (void)))
 
-(define-c-function/with-errno platform-execv
+(define-c-function/with-errno execv
   (int execv (char* pointer)))
 
-(define-c-function/with-errno platform-execve
+(define-c-function/with-errno execve
   (int execve (char* pointer pointer)))
 
-(define-c-function/with-errno platform-execvp
+(define-c-function/with-errno execvp
   (int execvp (char* pointer)))
 
-(define-c-function/with-errno platform-system
+(define-c-function/with-errno system
   (int system (char*)))
 
-(define-c-function/with-errno platform-waitpid
+(define-c-function/with-errno waitpid
   (pid_t waitpid (pid_t pointer int)))
 
+
+(define dummy2
+  (shared-object (open-shared-object* 'libnausicaa-posix1.so)))
+
+(define-c-function WIFEXITED
+  (int nausicaa_posix_wifexited	(int)))
+
+(define-c-function WEXITSTATUS
+  (int nausicaa_posix_wexitstatus (int)))
+
+(define-c-function WIFSIGNALED
+  (int nausicaa_posix_wifsignaled (int)))
+
+(define-c-function WTERMSIG
+  (int nausicaa_posix_wtermsig (int)))
+
+(define-c-function WCOREDUMP
+  (int nausicaa_posix_wcoredump	(int)))
+
+(define-c-function WIFSTOPPED
+  (int nausicaa_posix_wifstopped (int)))
+
+(define-c-function WSTOPSIG
+  (int nausicaa_posix_wstopsig (int)))
 
 
 ;;;; done
