@@ -24,49 +24,42 @@
 ;;;
 
 
-#!r6rs
 (library (foreign posix job platform)
   (export
-    platform-ctermid
-    platform-setsid
-    platform-getsid
-    platform-getpgrp
-    platform-setpgid
-    platform-tcgetpgrp
-    platform-tcsetpgrp
-    platform-tcgetsid)
+    ctermid		setsid		getsid
+    getpgrp		setpgid
+    tcgetpgrp		tcsetpgrp	tcgetsid)
   (import (rnrs)
     (foreign ffi)
     (foreign posix sizeof))
 
-
-;;;; code
+(define dummy
+  (shared-object self-shared-object))
 
-(define-c-function/with-errno platform-ctermid
+
+(define-c-function/with-errno ctermid
   (char* ctermid (char*)))
 
-(define-c-function/with-errno platform-setsid
+(define-c-function/with-errno setsid
   (pid_t setsid (void)))
 
-(define-c-function/with-errno platform-getsid
+(define-c-function/with-errno getsid
   (pid_t getsid (pid_t)))
 
-(define-c-function/with-errno platform-getpgrp
+(define-c-function/with-errno getpgrp
   (pid_t getpgrp (void)))
 
-(define-c-function/with-errno platform-setpgid
+(define-c-function/with-errno setpgid
   (int setpgid (pid_t pid_t)))
 
-(define-c-function/with-errno platform-tcgetpgrp
+(define-c-function/with-errno tcgetpgrp
   (pid_t tcgetpgrp (int)))
 
-(define-c-function/with-errno platform-tcsetpgrp
+(define-c-function/with-errno tcsetpgrp
   (pid_t tcsetpgrp (int pid_t)))
 
-(define-c-function/with-errno platform-tcgetsid
+(define-c-function/with-errno tcgetsid
   (pid_t tcgetsid (int)))
-
-
 
 
 ;;;; done

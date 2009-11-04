@@ -3124,9 +3124,14 @@ used to query the status without building a record.
 @chapter Job control
 
 
-The bindings described in this chapter are exported by @library{posix
-job} and @library{posix job platform}.
+Unless otherwise specified, the bindings described in this chapter are
+exported by the following libraries:
 
+@example
+(foreign posix job)
+(foreign posix job primitives)
+(foreign posix job platform)
+@end example
 
 @menu
 * job terminal::                Terminal identification.
@@ -3134,40 +3139,41 @@ job} and @library{posix job platform}.
 * job access::                  Terminal access.
 @end menu
 
-
 @c page
 @node job terminal
 @section Terminal identification
 
 
-@glibcref{Identifying the Terminal,Identifying the Controlling Terminal}
+The following functions manage identification of the terminal of the
+process.  @glibcref{Identifying the Terminal, Identifying the
+Controlling Terminal}.
 
 
 @deffn Function ctermid
-@deffnx Function primitive:ctermid
 @deffnx Parameter ctermid-function
+@deffnx Function primitive:ctermid
 @deffnx Function platform:ctermid @var{pointer}
 Return a string representing the pathname of the controlling terminal
 for this process.
 
-@var{pointer} can be null or a pointer to a buffer of @code{L_ctermid}
-bytes in which the foreign function will store the terminal file
-pathname as a C string.  @code{L_ctermid} is exported by @library{posix
-sizeof}.
+@var{pointer} can be @func{pointer-null} or a pointer to a buffer of
+@code{L_ctermid} bytes in which the foreign function will store the
+terminal file pathname as a C string.  @code{L_ctermid} is exported by
+@library{foreign posix sizeof}.
 @end deffn
-
 
 @c page
 @node job group
 @section Process group functions
 
 
-@glibcref{Process Group Functions,Process Group Functions}
+The following functions manage process groups and sessions.
+@glibcref{Process Group Functions, Process Group Functions}.
 
 
 @deffn Function setsid
-@deffnx Function primitive:setsid
 @deffnx Parameter setsid-function
+@deffnx Function primitive:setsid
 @deffnx Function platform:setsid
 Create a new session and return an integer representing the new process
 group id.
@@ -3175,16 +3181,16 @@ group id.
 
 
 @deffn Function getsid @var{pid}
-@deffnx Function primitive:getsid @var{pid}
 @deffnx Parameter getsid-function
+@deffnx Function primitive:getsid @var{pid}
 @deffnx Function platform:getsid @var{pid}
 Return the group id of the session leader of the process with @var{pid}.
 @end deffn
 
 
 @deffn Function getpgrp
-@deffnx Function primitive:getpgrp
 @deffnx Parameter getpgrp-function
+@deffnx Function primitive:getpgrp
 @deffnx Function platform:getpgrp
 Return the process group id of the group to which the current process
 belongs.
@@ -3192,25 +3198,25 @@ belongs.
 
 
 @deffn Function setpgid @var{pid} @var{pgid}
-@deffnx Function primitive:setpgid @var{pid} @var{pgid}
 @deffnx Parameter setpgid-function
+@deffnx Function primitive:setpgid @var{pid} @var{pgid}
 @deffnx Function platform:setpgid @var{pid} @var{pgid}
 Put the process @var{pid} in the group @var{pgid}.
 @end deffn
-
 
 @c page
 @node job access
 @section Terminal access
 
 
-@glibcref{Terminal Access Functions,Functions for Controlling Terminal
-Access}
+The following functions manage process access to the controlling
+terminal.  @glibcref{Terminal Access Functions, Functions for
+Controlling Terminal Access}.
 
 
 @deffn Function tcgetpgrp @var{fd}
-@deffnx Function primitive:tcgetpgrp @var{fd}
 @deffnx Parameter tcgetpgrp-function
+@deffnx Function primitive:tcgetpgrp @var{fd}
 @deffnx Function platform:tcgetpgrp @var{fd}
 Return the process group id of the foreground process group associated
 with the terminal open on descriptor @var{fd}.
@@ -3218,21 +3224,20 @@ with the terminal open on descriptor @var{fd}.
 
 
 @deffn Function tcsetpgrp @var{fd} @var{pgid}
-@deffnx Function primitive:tcsetpgrp @var{fd} @var{pgid}
 @deffnx Parameter tcsetpgrp-function
+@deffnx Function primitive:tcsetpgrp @var{fd} @var{pgid}
 @deffnx Function platform:tcsetpgrp @var{fd} @var{pgid}
 Set a terminal's foreground process group id.
 @end deffn
 
 
 @deffn Function tcgetsid @var{fd}
-@deffnx Function primitive:tcgetsid @var{fd}
 @deffnx Parameter tcgetsid-function
+@deffnx Function primitive:tcgetsid @var{fd}
 @deffnx Function platform:tcgetsid @var{fd}
-Return the process group id of the session for which the open on
-descriptor @var{fd} is the controlling terminal.
+Return the process group id of the session for which the file descriptor
+@var{fd} is the controlling terminal.
 @end deffn
-
 
 @c page
 @node users

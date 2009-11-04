@@ -23,71 +23,68 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
 (import (nausicaa)
   (checks)
-  (foreign ffi)
-  (foreign memory)
-  (foreign posix job)
-  (foreign posix process))
+  (prefix (foreign posix job) posix:)
+  (prefix (foreign posix process) posix:))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX job\n")
 
 
-(parameterize ((check-test-name	'terminal-id)
-	       (debugging	#t))
+(parametrise ((check-test-name	'terminal-id)
+	      (debugging	#t))
 
   (check
-      (ctermid)
+      (posix:ctermid)
     => "/dev/tty")
 
   #t)
 
 
-(parameterize ((check-test-name 'group))
+(parametrise ((check-test-name 'group))
 
   (check
-      (let ((pid (fork)))
+      (let ((pid (posix:fork)))
 	(when (= 0 pid)
-	  (setsid)
+	  (posix:setsid)
 	  (exit))
 	#t)
     => #t)
 
   (check
-      (integer? (getsid (getpid)))
+      (integer? (posix:getsid (posix:getpid)))
     => #t)
 
   (check
-      (integer? (getpgrp))
+      (integer? (posix:getpgrp))
     => #t)
 
   (check
-      (integer? (setpgid 0 0))
+      (integer? (posix:setpgid 0 0))
     => #t)
 
   #t)
 
 
-(parameterize ((check-test-name 'access))
+(parametrise ((check-test-name 'access))
 
   (check
-      (integer? (tcgetpgrp 1))
+      (integer? (posix:tcgetpgrp 1))
     => #t)
 
 ;;; Is there a way to test this without losing control of the terminal?
 ;;   (check
-;;       (let ((pid (fork)))
+;;       (let ((pid (posix:fork)))
 ;; 	(when (= 0 pid)
-;; 	  (tcsetpgrp 1 (getpgrp))
+;; 	  (posix:tcsetpgrp 1 (posix:getpgrp))
 ;; 	  (exit))
 ;; 	#t)
 ;;     => #t)
 
   (check
-      (integer? (tcgetsid 1))
+      (integer? (posix:tcgetsid 1))
     => #t)
 
   #t)

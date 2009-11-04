@@ -24,151 +24,38 @@
 ;;;
 
 
-#!r6rs
 (library (foreign posix job)
   (export
-    ctermid	primitive-ctermid	primitive-ctermid-function
-    setsid	primitive-setsid	primitive-setsid-function
-    getsid	primitive-getsid	primitive-getsid-function
-    getpgrp	primitive-getpgrp	primitive-getpgrp-function
-    setpgid	primitive-setpgid	primitive-setpgid-function
-    tcgetpgrp	primitive-tcgetpgrp	primitive-tcgetpgrp-function
-    tcsetpgrp	primitive-tcsetpgrp	primitive-tcsetpgrp-function
-    tcgetsid	primitive-tcgetsid	primitive-tcgetsid-function)
-  (import (nausicaa)
-    (foreign ffi)
-    (foreign memory)
-    (foreign errno)
-    (foreign cstrings)
-    (foreign posix sizeof)
-    (foreign posix job platform)
-    (compensations))
+    ctermid	ctermid-function
+    setsid	setsid-function
+    getsid	getsid-function
+    getpgrp	getpgrp-function
+    setpgid	setpgid-function
+    tcgetpgrp	tcgetpgrp-function
+    tcsetpgrp	tcsetpgrp-function
+    tcgetsid	tcgetsid-function)
+  (import (rnrs)
+    (compensations)
+    (foreign posix helpers)
+    (prefix (foreign posix job primitives) primitive:))
 
-  (define dummy
-    (shared-object self-shared-object))
+;;; terminal identification
 
+  (define-parametrised ctermid)
 
-
-;;;; terminal identification
+;;; process group
 
-(define (primitive-ctermid)
-  (with-compensations
-    (let ((p (malloc-block/c L_ctermid)))
-      (receive (result errno)
-	  (platform-ctermid p)
-	(if (pointer-null? result)
-	    (raise-errno-error 'primitive-ctermid errno)
-	  (cstring->string p))))))
+  (define-parametrised setsid)
+  (define-parametrised getsid pid)
+  (define-parametrised getpgrp)
+  (define-parametrised setpgid pid pgid)
 
-(define-primitive-parameter
-  primitive-ctermid-function primitive-ctermid)
+;;; terminal access
 
-(define (ctermid)
-  ((primitive-ctermid-function)))
+  (define-parametrised tcgetpgrp fd)
+  (define-parametrised tcsetpgrp fd pgid)
+  (define-parametrised tcgetsid fd)
 
-
-
-;;;; process group
-
-(define (primitive-setsid)
-  (receive (result errno)
-      (platform-setsid)
-    (if (= -1 errno)
-	(raise-errno-error 'setsid errno)
-      result)))
-
-(define (primitive-getsid pid)
-  (receive (result errno)
-      (platform-getsid pid)
-    (if (= -1 errno)
-	(raise-errno-error 'getsid errno pid)
-      result)))
-
-(define (primitive-getpgrp)
-  (receive (result errno)
-      (platform-getpgrp)
-    (if (= -1 errno)
-	(raise-errno-error 'getpgrp errno)
-      result)))
-
-(define (primitive-setpgid pid pgid)
-  (receive (result errno)
-      (platform-setpgid pid pgid)
-    (if (= -1 errno)
-	(raise-errno-error 'setpgid errno (list pid pgid))
-      result)))
-
-(define-primitive-parameter
-  primitive-setsid-function primitive-setsid)
-
-(define-primitive-parameter
-  primitive-getsid-function primitive-getsid)
-
-(define-primitive-parameter
-  primitive-getpgrp-function primitive-getpgrp)
-
-(define-primitive-parameter
-  primitive-setpgid-function primitive-setpgid)
-
-(define (setsid)
-  ((primitive-setsid-function)))
-
-(define (getsid pid)
-  ((primitive-getsid-function) pid))
-
-(define (getpgrp)
-  ((primitive-getpgrp-function)))
-
-(define (setpgid pid pgid)
-  ((primitive-setpgid-function) pid pgid))
-
-
-
-;;;; terminal access
-
-(define (primitive-tcgetpgrp fd)
-  (receive (result errno)
-      (platform-tcgetpgrp fd)
-    (if (= -1 errno)
-	(raise-errno-error 'tcgetpgrp errno fd)
-      result)))
-
-(define (primitive-tcsetpgrp fd pgid)
-  (receive (result errno)
-      (platform-tcsetpgrp fd pgid)
-    (if (= -1 errno)
-	(raise-errno-error 'tcsetpgrp errno (list fd pgid))
-      result)))
-
-(define (primitive-tcgetsid fd)
-  (receive (result errno)
-      (platform-tcgetsid fd)
-    (if (= -1 errno)
-	(raise-errno-error 'tcgetsid errno fd)
-      result)))
-
-(define-primitive-parameter
-  primitive-tcgetpgrp-function primitive-tcgetpgrp)
-
-(define-primitive-parameter
-  primitive-tcsetpgrp-function primitive-tcsetpgrp)
-
-(define-primitive-parameter
-  primitive-tcgetsid-function primitive-tcgetsid)
-
-(define (tcgetpgrp fd)
-  ((primitive-tcgetpgrp-function) fd))
-
-(define (tcsetpgrp fd pgid)
-  ((primitive-tcsetpgrp-function) fd pgid))
-
-(define (tcgetsid fd)
-  ((primitive-tcgetsid-function) fd))
-
-
-
-;;;; done
-
-)
+  )
 
 ;;; end of file
