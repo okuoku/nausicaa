@@ -57,13 +57,23 @@
 
     file-permissions		lfile-permissions)
   (import (rnrs)
-    (parameters)
+    (receive)
+    (compensations)
+    (only (foreign memory)
+	  malloc-block/c)
+    (only (foreign cstrings)
+	  string->cstring/c)
+    (only (foreign errno)
+	  raise-errno-error)
+    (except (foreign posix sizeof)
+	    sizeof-struct-stat)
+    (foreign posix helpers)
     (foreign posix stat record-types)
     (prefix (only (foreign posix stat primitives)
 		  stat lstat fstat)
 	    primitive:)
     (prefix (only (foreign posix stat platform)
-		  stat fstat)
+		  stat fstat sizeof-struct-stat)
 	    platform:)
     (only (foreign posix stat primitives)
 	  S_ISDIR		S_ISCHR		S_ISBLK
@@ -74,18 +84,9 @@
 
 ;;;; stat functions
 
-(define-primitive-parameter stat-function		primitive:stat)
-(define-primitive-parameter fstat-function		primitive:fstat)
-(define-primitive-parameter lstat-function		primitive:lstat)
-
-(define (stat pathname)
-  ((stat-function) pathname))
-
-(define (lstat pathname)
-  ((lstat-function) pathname))
-
-(define (fstat fd)
-  ((fstat-function) fd))
+(define-parametrised stat pathname)
+(define-parametrised lstat pathname)
+(define-parametrised fstat fd)
 
 
 (define (%type-inspection funcname pred obj)
@@ -143,7 +144,7 @@
 (define (%pointer-type-inspection funcname getter obj)
   (cond ((and (integer? obj) (< -1 obj)) ;file descriptor
 	 (with-compensations
-	   (let ((*struct-stat (malloc-block/c sizeof-struct-stat)))
+	   (let ((*struct-stat (malloc-block/c platform:sizeof-struct-stat)))
 	     (receive (result errno)
 		 (platform:fstat obj *struct-stat)
 	       (when (= -1 result)
@@ -152,7 +153,7 @@
 
 	((or (string? obj) (symbol? obj)) ;pathname
 	 (with-compensations
-	   (let ((*struct-stat (malloc-block/c sizeof-struct-stat)))
+	   (let ((*struct-stat (malloc-block/c platform:sizeof-struct-stat)))
 	     (receive (result errno)
 		 (platform:stat (string->cstring/c obj) *struct-stat)
 	       (when (= -1 result)
@@ -176,7 +177,7 @@
 
 (define (%mode-inspection the-stat funcname mask obj)
   (define (set? record)
-    (not (= 0 (bitwise-and mask (struct-stat-mode record)))))
+    (not (= 0 (bitwise-and mask (<struct-stat>-mode record)))))
   (cond ((and (eq? the-stat stat) (integer? obj) (< -1 obj)) ;file descriptor
 	 (set? (fstat obj)))
 
@@ -266,7 +267,7 @@
 (define (file-permissions obj)
 
   (define (get-mode record)
-    (let ((mode (struct-stat-mode record)))
+    (let ((mode (<struct-stat>-mode record)))
       (bitwise-and
        (bitwise-ior S_ISUID S_ISGID S_IRWXU S_IRWXG S_IRWXO)
        mode)))
@@ -282,7 +283,7 @@
 
 (define (lfile-permissions obj)
   (bitwise-and (bitwise-ior S_ISUID S_ISGID S_IRWXU S_IRWXG S_IRWXO)
-	       (struct-stat-mode (lstat obj))))
+	       (<struct-stat>-mode (lstat obj))))
 
 
 ;;;; done

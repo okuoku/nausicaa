@@ -78,7 +78,7 @@
 			  ((_ ?getter)
 			   (guard (exc (else #f))
 			     (?getter *struct-stat))))))
-    (make-struct-stat
+    (make-<struct-stat>
      (get struct-stat-st_mode-ref)
      (get struct-stat-st_ino-ref)
      (get struct-stat-st_dev-ref)

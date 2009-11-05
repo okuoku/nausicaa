@@ -34,6 +34,7 @@
     opendir		fdopendir	dirfd
     closedir		readdir		rewinddir
     telldir		seekdir		scandir
+    alphasort		versionsort
 
     ;; links
     link		symlink		readlink
@@ -60,18 +61,15 @@
     ;; access test
     access
 
-    ;; file times
-    utime		utimes		lutimes
-    futimes
+    ;; file times, notice that UTIMES, LUTIMES and FUTIMES are glibc stuff
+    utime
 
     ;; file size
     ftruncate)
-  (import (rnrs)
+  (import (except (rnrs)
+		  remove truncate)
     (foreign ffi)
     (foreign posix sizeof))
-
-  (define dummy
-    (shared-object self-shared-object))
 
 
 (define dummy
@@ -118,6 +116,12 @@
 
 (define-c-function/with-errno scandir
   (int scandir (char* pointer callback callback)))
+
+(define-c-function alphasort
+  (int alphasort (void* void*)))
+
+(define-c-function versionsort
+  (int versionsort (void* void*)))
 
 ;;; --------------------------------------------------------------------
 ;;; links
@@ -205,12 +209,6 @@
 
 (define-c-function/with-errno utimes
   (int utimes (char* pointer)))
-
-(define-c-function/with-errno lutimes
-  (int lutimes (char* pointer)))
-
-(define-c-function/with-errno futimes
-  (int futimes (int pointer)))
 
 ;;; --------------------------------------------------------------------
 ;;; tile size

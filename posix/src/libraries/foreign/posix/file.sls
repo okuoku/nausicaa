@@ -24,7 +24,6 @@
 ;;;
 
 
-#!r6rs
 (library (foreign posix file)
   (export
 
@@ -88,75 +87,100 @@
 
     ;; file times
     utime		utime-function
-    utimes		utimes-function
-    lutimes		lutimes-function
 
     ;; file size
     file-size		file-size-function
     ftruncate		ftruncate-function)
-  (import (except (nausicaa)
+  (import (except (rnrs)
 		  remove truncate)
     (compensations)
+    (only (foreign ffi pointers)
+	  pointer-null?)
     (foreign cstrings)
-    (foreign posix primitives)
-    (except (foreign posix fd)
-	    read write)
+    (foreign posix helpers)
+    (prefix (foreign posix file primitives) primitive:)
+    (only (foreign posix fd)
+	  open close lseek)
     (foreign posix sizeof))
 
 
-;;;; working directory
+;; working directory
 
-(define-primitive-parameter getcwd-function primitive:getcwd)
-(define-primitive-parameter chdir-function  primitive:chdir)
-(define-primitive-parameter fchdir-function primitive:fchdir)
+(define-parametrised getcwd)
+(define-parametrised chdir pathname)
+(define-parametrised fchdir fd)
 
-(define (getcwd)
-  ((getcwd-function)))
+;; directory access
 
-(define (chdir pathname)
-  ((chdir-function) pathname))
+(define-parametrised opendir pathname)
+(define-parametrised fdopendir fd)
+(define-parametrised dirfd stream)
+(define-parametrised closedir stream)
+(define-parametrised readdir stream)
+(define-parametrised rewinddir stream)
+(define-parametrised telldir stream)
+(define-parametrised seekdir stream position)
+(define-parametrised scandir dir-pathname selector-callback cmp-callback)
 
-(define (fchdir fd)
-  ((fchdir-function) fd))
+;; links
+
+(define-parametrised link oldname newname)
+(define-parametrised symlink oldname newname)
+(define-parametrised readlink pathname)
+(define-parametrised realpath pathname)
+
+;; changing owner
+
+(define-parametrised chown pathname owner-id group-id)
+(define-parametrised fchown fd owner-id group-id)
+
+;; changing permissions
+
+(define-parametrised umask mask)
+(define-parametrised chmod pathname mode)
+(define-parametrised fchmod fd mode)
+
+;; testing access
+
+(define-parametrised access fd mask)
+
+;; file times
+
+(define-primitive-parameter utime-function		primitive:utime)
+
+(define utime
+  (case-lambda
+   ((pathname access-time modification-time)
+    ((utime-function) pathname access-time modification-time))
+   ((pathname)
+    ((utime-function) pathname))))
+
+;; file size
+
+(define-parametrised file-size obj)
+(define-parametrised ftruncate obj length)
+
+;; removing
+
+(define-parametrised unlink pathname)
+(define-parametrised remove pathname)
+(define-parametrised rmdir pathname)
+
+;; renaming
+
+(define-parametrised rename oldname newname)
+
+;; making directories
+
+(define-parametrised mkdir pathname mode)
+
+;; temporary files
+
+(define-parametrised tmpnam)
+(define-parametrised mktemp template)
+(define-parametrised mkstemp template)
 
 
-;;;; directory access
-
-(define-primitive-parameter opendir-function		primitive:opendir)
-(define-primitive-parameter fdopendir-function		primitive:fdopendir)
-(define-primitive-parameter dirfd-function		primitive:dirfd)
-(define-primitive-parameter closedir-function		primitive:closedir)
-(define-primitive-parameter readdir-function		primitive:readdir)
-(define-primitive-parameter rewinddir-function		primitive:rewinddir)
-(define-primitive-parameter telldir-function		primitive:telldir)
-(define-primitive-parameter seekdir-function		primitive:seekdir)
-
-(define (opendir pathname)
-  ((opendir-function) pathname))
-
-(define (fdopendir fd)
-  ((fdopendir-function) fd))
-
-(define (dirfd stream)
-  ((dirfd-function) stream))
-
-(define (closedir stream)
-  ((closedir-function) stream))
-
-(define (readdir stream)
-  ((readdir-function) stream))
-
-(define (rewinddir stream)
-  ((rewinddir-function) stream))
-
-(define (telldir stream)
-  ((telldir-function) stream))
-
-(define (seekdir stream position)
-  ((seekdir-function) stream position))
-
-;;; --------------------------------------------------------------------
-
 (define (opendir/compensated pathname)
   (letrec ((stream (compensate
 		       (opendir pathname)
@@ -192,134 +216,6 @@
 	(set! layout
 	      (cons (cstring->string (struct-dirent-d_name-ref entry))
 		    layout))))))
-
-
-;;;; links
-
-(define-primitive-parameter link-function		primitive:link)
-(define-primitive-parameter symlink-function		primitive:symlink)
-(define-primitive-parameter readlink-function		primitive:readlink)
-(define-primitive-parameter realpath-function		primitive:realpath)
-
-(define (link oldname newname)
-  ((link-function) oldname newname))
-
-(define (symlink oldname newname)
-  ((symlink-function) oldname newname))
-
-(define (readlink pathname)
-  ((readlink-function) pathname))
-
-(define (realpath pathname)
-  ((realpath-function) pathname))
-
-
-;;;; changing owner
-
-(define-primitive-parameter chown-function		primitive:chown)
-(define-primitive-parameter fchown-function		primitive:fchown)
-
-(define (chown pathname owner-id group-id)
-  ((chown-function) pathname owner-id group-id))
-
-(define (fchown fd owner-id group-id)
-  ((fchown-function) fd owner-id group-id))
-
-
-;;;; changing permissions
-
-(define-primitive-parameter umask-function		primitive:umask)
-(define-primitive-parameter chmod-function		primitive:chmod)
-(define-primitive-parameter fchmod-function		primitive:fchmod)
-
-(define (umask mask)
-  ((umask-function) mask))
-
-(define (chmod pathname mode)
-  ((chmod-function) pathname mode))
-
-(define (fchmod fd mode)
-  ((fchmod-function) fd mode))
-
-
-;;;; testing access
-
-(define-primitive-parameter access-function		primitive:access)
-
-(define (access fd mask)
-  ((access-function) fd mask))
-
-
-;;;; file times
-
-(define-primitive-parameter utime-function		primitive:utime)
-
-(define utime
-  (case-lambda
-   ((pathname access-time modification-time)
-    ((utime-function) pathname access-time modification-time))
-   ((pathname)
-    ((utime-function) pathname))))
-
-
-;;;; file size
-
-(define-primitive-parameter file-size-function		primitive:file-size)
-(define-primitive-parameter ftruncate-function		primitive:ftruncate)
-
-(define (file-size obj)
-  ((file-size-function) obj))
-
-(define (ftruncate obj length)
-  ((ftruncate-function) obj length))
-
-
-;;;; removing
-
-(define-primitive-parameter unlink-function		primitive:unlink)
-(define-primitive-parameter remove-function		primitive:remove)
-(define-primitive-parameter rmdir-function		primitive:rmdir)
-
-(define (unlink pathname)
-  ((unlink-function) pathname))
-
-(define (remove pathname)
-  ((remove-function) pathname))
-
-(define (rmdir pathname)
-  ((rmdir-function) pathname))
-
-
-;;;; renaming
-
-(define-primitive-parameter rename-function		primitive:rename)
-
-(define (rename oldname newname)
-  ((rename-function) oldname newname))
-
-
-;;;; making directories
-
-(define-primitive-parameter mkdir-function		primitive:mkdir)
-
-(define (mkdir pathname mode)
-  ((mkdir-function) pathname mode))
-
-
-;;;; temporary files
-
-(define-primitive-parameter tmpnam-function		primitive:tmpnam)
-(define-primitive-parameter mktemp-function		primitive:mktemp)
-(define-primitive-parameter mkstemp-function		primitive:mkstemp)
-
-(define (tmpnam)
-  ((tmpnam-function)))
-
-(define (mktemp template)
-  ((mktemp-function) template))
-
-(define (mkstemp template)
-  ((mkstemp-function) template))
 
 
 ;;;; done

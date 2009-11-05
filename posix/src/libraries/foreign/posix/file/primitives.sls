@@ -34,6 +34,8 @@
     opendir		fdopendir	dirfd
     closedir		readdir		rewinddir
     telldir		seekdir		scandir
+    (rename (platform:alphasort alphasort)
+	    (platform:versionsort versionsort))
 
     ;; links
     link		symlink		readlink
@@ -56,21 +58,38 @@
 
     ;; changing permissions
     chmod		fchmod
-    (rename (platform:umask	umask))
+    getumask		(rename (platform:umask	umask))
 
     ;; access test
     access
 
-    ;; file times
-    utime		utimes		lutimes
+    ;; file times, note that UTIMES, LUTIMES and FUTIMES are glibc stuff
+    utime
 
     ;; file size
     file-size		ftruncate)
   (import (except (rnrs)
-		  remove truncate)
+		  remove)
+    (receive)
+    (begin0)
     (compensations)
-    (foreign cstrings)
-    (prefix (foreigh posix file platform) platform:))
+    (only (foreign ffi)
+	  make-c-callback)
+    (foreign ffi sizeof)
+    (only (foreign ffi peekers-and-pokers)
+	  pointer-ref-c-pointer
+	  pointer-ref-c-uint8)
+    (only (foreign ffi pointers)
+	  pointer-null? pointer-null pointer->integer)
+    (only (foreign memory)
+	  malloc-block/c
+	  primitive-free)
+    (only (foreign cstrings)
+	  cstring->string string->cstring/c)
+    (foreign errno)
+    (foreign posix sizeof)
+    (prefix (foreign posix fd) posix:)
+    (prefix (foreign posix file platform) platform:))
 
 
 ;;;; working directory
@@ -157,6 +176,30 @@
 (define (seekdir stream position)
   (platform:seekdir stream position))
 
+(define (scandir dir selector-callback cmp-callback)
+  (with-compensations
+    (let ((*namelist (malloc-block/c sizeof-pointer)))
+      (receive (result errno)
+	  (platform:scandir (string->cstring/c dir)
+			    *namelist
+			    (make-c-callback char* selector-callback (void*))
+			    (make-c-callback int cmp-callback (void* void*)))
+	(when (= -1 result)
+	  (raise-errno-error 'scandir errno (list dir)))
+	(let ((namelist	(pointer-ref-c-pointer *namelist 0))
+	      (ell	'()))
+	  (let-syntax
+	      ((%array-ref-struct-dirent (syntax-rules ()
+					   ((_ ?index)
+					    (pointer-ref-c-uint8 namelist
+								 (* ?index sizeof-struct-dirent))))))
+	    (do ((i 0 (+ 1 i)))
+		((= i result)
+		 (reverse ell))
+	      (set! ell (cons (cstring->string
+			       (struct-dirent-d_name-ref (%array-ref-struct-dirent i)))
+			      ell)))))))))
+
 
 ;;;; links
 
@@ -199,7 +242,7 @@
 	(raise-errno-error 'realpath errno pathname))
       (begin0
 	  (cstring->string buffer)
-	(free buffer)))))
+	(primitive-free buffer)))))
 
 
 ;;;; changing owner
@@ -278,12 +321,11 @@
 	(struct-utimbuf-actime-set!  *struct-utimbuf access-time)
 	(struct-utimbuf-modtime-set! *struct-utimbuf modification-time)
 	(receive (result errno)
-	    (platform:utime (string->cstring/c pathname)
-			    *struct-utimbuf)
+	    (platform:utime (string->cstring/c pathname) *struct-utimbuf)
 	  (when (= -1 result)
 	    (raise-errno-error 'utime errno (list pathname access-time modification-time)))
 	  result))))
-   ((pathname)
+   ((pathname)	;set the times to the current time
     (receive (result errno)
 	(platform:utime (string->cstring/c pathname) pointer-null)
       (when (= -1 result)
@@ -297,17 +339,17 @@
   (cond ((or (string? obj) (symbol? obj))
 	 (with-compensations
 	   (letrec ((fd (compensate
-			    (open obj O_RDONLY 0)
+			    (posix:open obj O_RDONLY 0)
 			  (with
-			   (close fd)))))
+			   (posix:close fd)))))
 	     (file-size fd))))
 	((and (integer? obj) (<= 0 obj))
 	 (with-compensations
 	   (letrec ((pos (compensate
-			     (lseek obj 0 SEEK_CUR)
+			     (posix:lseek obj 0 SEEK_CUR)
 			   (with
-			    (lseek obj pos SEEK_SET)))))
-	     (lseek obj 0 SEEK_END))))
+			    (posix:lseek obj pos SEEK_SET)))))
+	     (posix:lseek obj 0 SEEK_END))))
 	(else
 	 (error 'file-size
 	   "expected file descriptor or file pathname" obj))))
@@ -317,16 +359,15 @@
 	 (receive (result errno)
 	     (platform:ftruncate obj length)
 	   (when (= -1 result)
-	     (raise-errno-error 'ftruncate errno
-				(list obj length)))
+	     (raise-errno-error 'ftruncate errno (list obj length)))
 	   result))
 	((or (string? obj) (symbol? obj))
 	 (with-compensations
 	   (letrec ((fd (compensate
-			    (open obj O_WRONLY 0)
+			    (posix:open obj O_WRONLY 0)
 			  (with
-			   (close fd)))))
-	     (ftruncate fd length))))
+			   (posix:close fd)))))
+	     (platform:ftruncate fd length))))
 	(else
 	 (error 'ftruncate
 	   "expected file descriptor or file pathname" obj))))

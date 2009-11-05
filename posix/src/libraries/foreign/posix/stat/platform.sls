@@ -53,14 +53,13 @@
     sizeof-struct-stat)
   (import (rnrs)
     (foreign ffi)
+    (foreign ffi sizeof)
     (except (foreign posix sizeof)
 	    sizeof-struct-stat))
 
 
-(define stub-lib
-  (let ((o (open-shared-object 'libnausicaa-posix1.so)))
-    (shared-object o)
-    o))
+(define dummy
+  (shared-object (open-shared-object* 'libnausicaa-posix1.so)))
 
 ;;;FIXME For some reason it looks  like the size of "struct stat" is not
 ;;;determined correctly by the  Autoconf macros.  Dunno why.  This error
@@ -70,21 +69,21 @@
 ;;;
 ;;;Note that on  my i686-pc-linux-gnu the size reported  by the Autoconf
 ;;;macro is 88, while the value returned by the foreign function is 96.
-(define-c-function platform-sizeof-stat
+(define-c-function %sizeof-stat
   (int nausicaa_posix_sizeof_stat (void)))
 
 (define sizeof-struct-stat
-  (platform-sizeof-stat))
+  (%sizeof-stat))
 
 ;;; --------------------------------------------------------------------
 
-(define-c-function/with-errno platform-stat
+(define-c-function/with-errno stat
   (int nausicaa_posix_stat (char* pointer)))
 
-(define-c-function/with-errno platform-fstat
+(define-c-function/with-errno fstat
   (int nausicaa_posix_fstat (int pointer)))
 
-(define-c-function/with-errno platform-lstat
+(define-c-function/with-errno lstat
   (int nausicaa_posix_lstat (char* pointer)))
 
 ;;; --------------------------------------------------------------------
@@ -119,7 +118,7 @@
   (int nausicaa_posix_stat_typeissem(pointer)))
 
 (define-c-function S_TYPEISSHM
-  (int nausicaa_posix_stat_typeisshm(pointer)))
+  (int nausicaa_posix_stat_typeisshm (pointer)))
 
 
 ;;;; done

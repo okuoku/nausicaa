@@ -36,7 +36,8 @@
   (prefix (foreign posix process) posix:)
   (prefix (foreign posix fd) posix:)
   (prefix (foreign posix file) posix:)
-  (prefix (foreign posix file stat) posix:)
+  (prefix (foreign posix stat) posix:)
+  (prefix (foreign posix stat record-types) posix:)
   (foreign posix sizeof))
 
 (check-set-mode! 'report-failed)
@@ -95,8 +96,8 @@ Ses ailes de geant l'empechent de marcher.")
   (posix:system (string-append "rm -fr " the-root)))
 
 
-(parameterize ((check-test-name	'working-directory)
-	       (debugging	#t))
+(parametrise ((check-test-name	'working-directory)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
       (lambda (E)
@@ -106,47 +107,45 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(check
 	    (let ((dirname '/))
-	      (chdir dirname))
+	      (posix:chdir dirname))
 	  => 0)
 
 	(check
 	    (let ((dirname '/usr/local/bin))
-	      (chdir dirname))
+	      (posix:chdir dirname))
 	  => 0)
 
 	(check
 	    (let ((dirname '/scrappy/dappy/doo))
-	      (guard (exc (else
-			   (list (errno-condition? exc)
-				 (condition-who exc)
-				 (errno-symbolic-value exc))))
-		(chdir dirname)))
-	  => '(#t primitive-chdir ENOENT))
+	      (guard (E (else (list (errno-condition? E)
+				    (condition-who E)
+				    (errno-symbolic-value E))))
+		(posix:chdir dirname)))
+	  => '(#t chdir ENOENT))
 
 	(check
 	    (let ((dirname '/usr/local/bin))
-	      (chdir dirname)
-	      (getcwd))
+	      (posix:chdir dirname)
+	      (posix:getcwd))
 	  => "/usr/local/bin")
 
 	(check
 	    (let ((dirname '/bin))
-	      (chdir dirname)
-	      (pwd))
+	      (posix:chdir dirname)
+	      (posix:pwd))
 	  => "/bin")
 
 	#f))))
 
 
-(parameterize ((check-test-name	'directory-access)
-	       (debugging	#t))
+(parametrise ((check-test-name	'directory-access)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in directory access" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "directory access condition" E)))
 	(with-compensations
 	  (clean-test-hierarchy)
 	    (compensate
@@ -156,9 +155,9 @@ Ses ailes de geant l'empechent de marcher.")
 
 	  (check
 	      (with-compensations
-		(let ((dir	(opendir/c the-root))
+		(let ((dir	(posix:opendir/c the-root))
 		      (layout	'()))
-		  (do ((entry (readdir dir) (readdir dir)))
+		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
 		      ((pointer-null? entry))
 		    (set! layout
 			  (cons (cstring->string (struct-dirent-d_name-ref entry))
@@ -168,9 +167,9 @@ Ses ailes de geant l'empechent de marcher.")
 
 	  (check
 	      (with-compensations
-		(let ((dir	(opendir/c the-subdir-1))
+		(let ((dir	(posix:opendir/c the-subdir-1))
 		      (layout	'()))
-		  (do ((entry (readdir dir) (readdir dir)))
+		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
 		      ((pointer-null? entry))
 		    (set! layout
 			  (cons (cstring->string (struct-dirent-d_name-ref entry))
@@ -180,9 +179,9 @@ Ses ailes de geant l'empechent de marcher.")
 
 	  (check
 	      (with-compensations
-		(let ((dir	(opendir/c the-subdir-3))
+		(let ((dir	(posix:opendir/c the-subdir-3))
 		      (layout	'()))
-		  (do ((entry (readdir dir) (readdir dir)))
+		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
 		      ((pointer-null? entry))
 		    (set! layout
 			  (cons (cstring->string (struct-dirent-d_name-ref entry))
@@ -191,22 +190,22 @@ Ses ailes de geant l'empechent de marcher.")
 	    => '("." ".."))
 
 	  (check
-	      (list-sort string<? (directory-list the-root))
+	      (list-sort string<? (posix:directory-list the-root))
 	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
 	  (check
-	      (list-sort string<? (directory-list the-subdir-1))
+	      (list-sort string<? (posix:directory-list the-subdir-1))
 	    => '("." ".." "name-10.ext" "name-11.ext"))
 
 	  (check
-	      (list-sort string<? (directory-list the-subdir-3))
+	      (list-sort string<? (posix:directory-list the-subdir-3))
 	    => '("." ".."))
 
 	  ;;We DO  NOT close fd  here, it is  closed by CLOSEDIR  in the
 	  ;;compensation (weird but I have tested it, believe me!).
 	  (check
-	      (letrec ((fd (open the-root O_RDONLY 0)))
-		(list-sort string<? (directory-list/fd fd)))
+	      (letrec ((fd (posix:open the-root O_RDONLY 0)))
+		(list-sort string<? (posix:directory-list/fd fd)))
 	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
 	  ;;We DO  NOT close fd  here, it is  closed by CLOSEDIR  in the
@@ -214,22 +213,22 @@ Ses ailes de geant l'empechent de marcher.")
 	  (when (number? O_NOATIME)
 	    (check
 		(with-compensations
-		  (letrec ((fd (open the-root O_RDONLY 0)))
-		    (list-sort string<? (directory-list/fd fd))))
+		  (letrec ((fd (posix:open the-root O_RDONLY 0)))
+		    (list-sort string<? (posix:directory-list/fd fd))))
 	      => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext")))
 
 	  (check
 	      (with-compensations
-		(let ((dir	(opendir/c the-root))
+		(let ((dir	(posix:opendir/c the-root))
 		      (layout2	'())
 		      (layout1	'()))
-		  (do ((entry (readdir dir) (readdir dir)))
+		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
 		      ((pointer-null? entry))
 		    (set! layout1
 			  (cons (cstring->string (struct-dirent-d_name-ref entry))
 				layout1)))
-		  (rewinddir dir)
-		  (do ((entry (readdir dir) (readdir dir)))
+		  (posix:rewinddir dir)
+		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
 		      ((pointer-null? entry))
 		    (set! layout2
 			  (cons (cstring->string (struct-dirent-d_name-ref entry))
@@ -241,13 +240,13 @@ Ses ailes de geant l'empechent de marcher.")
 
 	  (check
 	      (with-compensations
-		(let ((dir	(opendir/c the-root))
+		(let ((dir	(posix:opendir/c the-root))
 		      (layout	'()))
-		  (do ((entry (readdir dir) (readdir dir)))
+		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
 		      ((pointer-null? entry))
 		    (set! layout
 			  (cons (cons (cstring->string (struct-dirent-d_name-ref entry))
-				      (telldir entry))
+				      (posix:telldir entry))
 				layout)))
 		  (map car (list-sort (lambda (a b)
 					(string<? (car a) (car b)))
@@ -257,15 +256,14 @@ Ses ailes de geant l'empechent de marcher.")
 	  #f)))))
 
 
-(parameterize ((check-test-name	'links)
-	       (debugging	#t))
+(parametrise ((check-test-name	'links)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in links" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "links condition" E)))
 	(with-compensations
 	  (clean-test-hierarchy)
 	    (compensate
@@ -277,7 +275,7 @@ Ses ailes de geant l'empechent de marcher.")
 	    (check
 		(with-compensations
 		    (compensate
-			(link the-file the-other)
+			(posix:link the-file the-other)
 		      (with
 		       (delete-file the-other)))
 		  (with-input-from-file the-other
@@ -288,7 +286,7 @@ Ses ailes de geant l'empechent de marcher.")
 	    (check
 		(with-compensations
 		    (compensate
-			(symlink the-file the-other)
+			(posix:symlink the-file the-other)
 		      (with
 		       (delete-file the-other)))
 		  (with-input-from-file the-other
@@ -299,25 +297,23 @@ Ses ailes de geant l'empechent de marcher.")
 	    (check
 		(with-compensations
 		    (compensate
-			(symlink the-file the-other)
+			(posix:symlink the-file the-other)
 		      (with
 		       (delete-file the-other)))
-		  (realpath the-other))
+		  (posix:realpath the-other))
 	      => the-file)
 
 	    #f))))))
 
-
 
-(parameterize ((check-test-name	'remove)
-	       (debugging	#t))
+(parametrise ((check-test-name	'remove)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in remove" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "remove condition" E)))
 	(with-compensations
 	  (clean-test-hierarchy)
 	    (compensate
@@ -327,51 +323,48 @@ Ses ailes de geant l'empechent de marcher.")
 
 	  (check
 	      (begin
-		(unlink the-file)
+		(posix:unlink the-file)
 		(file-exists? the-file))
 	    => #f)
 
 	  (check
 	      (begin
-		(remove the-file-2)
+		(posix:remove the-file-2)
 		(file-exists? the-file-2))
 	    => #f)
 
 	  (check
 	      (begin
-		(rmdir the-subdir-3)
+		(posix:rmdir the-subdir-3)
 		(file-exists? the-subdir-3))
 	    => #f)
 
 	  (check
-	      (guard (exc (else
-			   (list (condition-who exc)
-				 (errno-condition? exc)
-				 (errno-symbolic-value exc))))
-		(rmdir the-subdir-1))
-	    => '(primitive-rmdir #t ENOTEMPTY))
+	      (guard (E (else (list (condition-who E)
+				    (errno-condition? E)
+				    (errno-symbolic-value E))))
+		(posix:rmdir the-subdir-1))
+	    => '(rmdir #t ENOTEMPTY))
 
 	  (check
 	      (begin
-		(unlink the-file-10)
-		(unlink the-file-11)
-		(rmdir the-subdir-1)
+		(posix:unlink the-file-10)
+		(posix:unlink the-file-11)
+		(posix:rmdir the-subdir-1)
 		(file-exists? the-subdir-1))
 	    => #f)
-
 
 	  #f)))))
 
 
-(parameterize ((check-test-name	'rename)
-	       (debugging	#t))
+(parametrise ((check-test-name	'rename)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in rename" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "rename condition" E)))
 	(with-compensations
 	  (clean-test-hierarchy)
 	    (compensate
@@ -384,31 +377,29 @@ Ses ailes de geant l'empechent de marcher.")
 
 	    (check
 		(begin
-		  (rename the-file the-other-file)
+		  (posix:rename the-file the-other-file)
 		  (list (file-exists? the-file)
 			(file-exists? the-other-file)))
 	      => '(#f #t))
 
 	    (check
 		(begin
-		  (rename the-subdir-1 the-other-dir)
+		  (posix:rename the-subdir-1 the-other-dir)
 		  (list (file-exists? the-subdir-1)
 			(file-exists? the-other-dir)))
 	      => '(#f #t))
 
-
 	    #f))))))
 
 
-(parameterize ((check-test-name	'mkdir)
-	       (debugging	#t))
+(parametrise ((check-test-name	'mkdir)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in mkdir" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "mkdir condition" E)))
 	(with-compensations
 	  (clean-test-hierarchy)
 	    (compensate
@@ -422,22 +413,21 @@ Ses ailes de geant l'empechent de marcher.")
 		(list
 		  (file-exists? the-other-dir)
 		  (begin
-		    (mkdir the-other-dir #o700)
+		    (posix:mkdir the-other-dir #o700)
 		    (file-exists? the-other-dir)))
 	      => '(#f #t))
 
 	    #f))))))
 
 
-(parameterize ((check-test-name	'tmpfile)
-	       (debugging	#t))
+(parametrise ((check-test-name	'tmpfile)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in tmpfile" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "tmpfile condition" E)))
 	(with-compensations
 	  (clean-test-hierarchy)
 	    (compensate
@@ -446,28 +436,23 @@ Ses ailes de geant l'empechent de marcher.")
 	       (clean-test-hierarchy)))
 
 	  (check
-	      (let ((pathname (tmpnam)))
-;;;		(debug "tmpnam: ~s" pathname)
+	      (let ((pathname (posix:tmpnam)))
+;;;(debug "tmpnam: ~s" pathname)
 		(list (string? pathname)
 		      (file-exists? pathname)))
 	    => '(#t #f))
 
 	  (check
-	      (let ((pathname (mktemp (string-join
-				       (list TMPDIR "XXXXXX")
-				       "/"))))
-;;;		(debug "mktemp: ~s" pathname)
+	      (let ((pathname (posix:mktemp (string-join (list TMPDIR "XXXXXX") "/"))))
+;;;(debug "mktemp: ~s" pathname)
 		(list (string? pathname)
 		      (file-exists? pathname)))
 	    => '(#t #f))
 
 	  (check
-	      (let-values (((fd pathname)
-			    (mkstemp (string-join
-				      (list TMPDIR "XXXXXX")
-				      "/"))))
-;;;		(debug "mkstemp: ~s" pathname)
-		(close fd)
+	      (let-values (((fd pathname) (posix:mkstemp (string-join (list TMPDIR "XXXXXX") "/"))))
+;;;(debug "mkstemp: ~s" pathname)
+		(posix:close fd)
 		(list (string? pathname)
 		      (begin0
 			  (file-exists? pathname)
@@ -477,15 +462,14 @@ Ses ailes de geant l'empechent de marcher.")
 	  #f)))))
 
 
-(parameterize ((check-test-name	'stat)
-	       (debugging	#t))
+(parametrise ((check-test-name	'stat)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in stat" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "stat condition" E)))
 	(with-compensations
 	  (clean-test-hierarchy)
 	    (compensate
@@ -493,164 +477,159 @@ Ses ailes de geant l'empechent de marcher.")
 	      (with
 	       (clean-test-hierarchy)))
 
-	  (letrec ((the-other
-		    (string-join (list the-root "other.ext") "/"))
-		   (fd
-		    (compensate
-			(open the-file O_RDONLY 0)
-		      (with
-		       (close fd)))))
-
+	  (letrec ((the-other	(string-join (list the-root "other.ext") "/"))
+		   (fd		(compensate
+				    (posix:open the-file O_RDONLY 0)
+				  (with
+				   (posix:close fd)))))
 	    (compensate
-		(symlink the-file the-other)
+		(posix:symlink the-file the-other)
 	      (with
 	       (delete-file the-other)))
 
 	    (check
-		(struct-stat? (stat the-file))
+		(posix:<struct-stat>? (posix:stat the-file))
 	      => #t)
 
 	    (check
-		(struct-stat? (fstat fd))
+		(posix:<struct-stat>? (posix:fstat fd))
 	      => #t)
 
 	    (check
 		(with-compensations
-		  (struct-stat? (lstat the-other)))
+		  (posix:<struct-stat>? (posix:lstat the-other)))
 	      => #t)
 
 ;;; --------------------------------------------------------------------
 
 	    (check
-		(list (file-is-directory? the-subdir-1)
-		      (file-is-directory? the-file)
-		      (file-is-directory? the-other)
-		      (file-is-directory? fd))
+		(list (posix:file-is-directory? the-subdir-1)
+		      (posix:file-is-directory? the-file)
+		      (posix:file-is-directory? the-other)
+		      (posix:file-is-directory? fd))
 	      => '(#t #f #f #f))
 
 	    (check
-		(list (file-is-character-special? the-subdir-1)
-		      (file-is-character-special? the-file)
-		      (file-is-character-special? the-other)
-		      (file-is-character-special? fd))
+		(list (posix:file-is-character-special? the-subdir-1)
+		      (posix:file-is-character-special? the-file)
+		      (posix:file-is-character-special? the-other)
+		      (posix:file-is-character-special? fd))
 	      => '(#f #f #f #f))
 
 	    (check
-		(list (file-is-block-special? the-subdir-1)
-		      (file-is-block-special? the-file)
-		      (file-is-block-special? the-other)
-		      (file-is-block-special? fd))
+		(list (posix:file-is-block-special? the-subdir-1)
+		      (posix:file-is-block-special? the-file)
+		      (posix:file-is-block-special? the-other)
+		      (posix:file-is-block-special? fd))
 	      => '(#f #f #f #f))
 
 	    (check
-		(list (file-is-regular? the-subdir-1)
-		      (file-is-regular? the-file)
-		      (file-is-regular? the-other)
-		      (file-is-regular? fd))
+		(list (posix:file-is-regular? the-subdir-1)
+		      (posix:file-is-regular? the-file)
+		      (posix:file-is-regular? the-other)
+		      (posix:file-is-regular? fd))
 	      => '(#f #t #t #t))
 
 	    (check
-		(list (file-is-fifo? the-subdir-1)
-		      (file-is-fifo? the-file)
-		      (file-is-fifo? the-other)
-		      (file-is-fifo? fd))
+		(list (posix:file-is-fifo? the-subdir-1)
+		      (posix:file-is-fifo? the-file)
+		      (posix:file-is-fifo? the-other)
+		      (posix:file-is-fifo? fd))
 	      => '(#f #f #f #f))
 
 	    (check
-		(list (file-is-symbolic-link? the-subdir-1)
-		      (file-is-symbolic-link? the-file)
-		      (file-is-symbolic-link? the-other))
+		(list (posix:file-is-symbolic-link? the-subdir-1)
+		      (posix:file-is-symbolic-link? the-file)
+		      (posix:file-is-symbolic-link? the-other))
 	      => '(#f #f #t))
 
 	    (check
-		(list (file-is-socket? the-subdir-1)
-		      (file-is-socket? the-file)
-		      (file-is-socket? the-other)
-		      (file-is-socket? fd))
+		(list (posix:file-is-socket? the-subdir-1)
+		      (posix:file-is-socket? the-file)
+		      (posix:file-is-socket? the-other)
+		      (posix:file-is-socket? fd))
 	      => '(#f #f #f #f))
 
 	    (check
-		(list (file-is-semaphore? the-subdir-1)
-		      (file-is-semaphore? the-file)
-		      (file-is-semaphore? the-other)
-		      (file-is-semaphore? fd))
+		(list (posix:file-is-semaphore? the-subdir-1)
+		      (posix:file-is-semaphore? the-file)
+		      (posix:file-is-semaphore? the-other)
+		      (posix:file-is-semaphore? fd))
 	      => '(#f #f #f #f))
 
 	    (check
-		(list (file-is-shared-memory? the-subdir-1)
-		      (file-is-shared-memory? the-file)
-		      (file-is-shared-memory? the-other)
-		      (file-is-shared-memory? fd))
+		(list (posix:file-is-shared-memory? the-subdir-1)
+		      (posix:file-is-shared-memory? the-file)
+		      (posix:file-is-shared-memory? the-other)
+		      (posix:file-is-shared-memory? fd))
 	      => '(#f #f #f #f))
 
 	    (check
-		(list (file-is-message-queue? the-subdir-1)
-		      (file-is-message-queue? the-file)
-		      (file-is-message-queue? the-other)
-		      (file-is-message-queue? fd))
+		(list (posix:file-is-message-queue? the-subdir-1)
+		      (posix:file-is-message-queue? the-file)
+		      (posix:file-is-message-queue? the-other)
+		      (posix:file-is-message-queue? fd))
 	      => '(#f #f #f #f))
 
 ;;; --------------------------------------------------------------------
 
 	    (check
-		(= 0 (bitwise-ior S_IRUSR
-				  (struct-stat-mode (stat the-file))))
+		(= 0 (bitwise-ior S_IRUSR (posix:<struct-stat>-mode (posix:stat the-file))))
 	      => #f)
 
 	    (check
-		(= 0 (bitwise-ior S_IROTH
-				  (struct-stat-mode (stat the-file))))
+		(= 0 (bitwise-ior S_IROTH (posix:<struct-stat>-mode (posix:stat the-file))))
 	      => #f)
 
 	    (check
-		(list (file-user-readable? the-file)
-		      (file-user-writable? the-file)
-		      (file-user-executable? the-file)
-		      (file-group-readable? the-file)
-		      (file-group-writable? the-file)
-		      (file-group-executable? the-file)
-		      (file-other-readable? the-file)
-		      (file-other-writable? the-file)
-		      (file-other-executable? the-file)
-		      (file-setuid? the-file)
-		      (file-setgid? the-file)
-		      (file-sticky? the-file))
+		(list (posix:file-user-readable? the-file)
+		      (posix:file-user-writable? the-file)
+		      (posix:file-user-executable? the-file)
+		      (posix:file-group-readable? the-file)
+		      (posix:file-group-writable? the-file)
+		      (posix:file-group-executable? the-file)
+		      (posix:file-other-readable? the-file)
+		      (posix:file-other-writable? the-file)
+		      (posix:file-other-executable? the-file)
+		      (posix:file-setuid? the-file)
+		      (posix:file-setgid? the-file)
+		      (posix:file-sticky? the-file))
 	      => '(#t #t #f
 		      #t #f #f
 		      #f #f #f
 		      #f #f #f))
 
 	    (check
-		(list (file-user-readable? fd)
-		      (file-user-writable? fd)
-		      (file-user-executable? fd)
-		      (file-group-readable? fd)
-		      (file-group-writable? fd)
-		      (file-group-executable? fd)
-		      (file-other-readable? fd)
-		      (file-other-writable? fd)
-		      (file-other-executable? fd)
-		      (file-setuid? fd)
-		      (file-setgid? fd)
-		      (file-sticky? fd))
+		(list (posix:file-user-readable? fd)
+		      (posix:file-user-writable? fd)
+		      (posix:file-user-executable? fd)
+		      (posix:file-group-readable? fd)
+		      (posix:file-group-writable? fd)
+		      (posix:file-group-executable? fd)
+		      (posix:file-other-readable? fd)
+		      (posix:file-other-writable? fd)
+		      (posix:file-other-executable? fd)
+		      (posix:file-setuid? fd)
+		      (posix:file-setgid? fd)
+		      (posix:file-sticky? fd))
 	      => '(#t #t #f
 		      #t #f #f
 		      #f #f #f
 		      #f #f #f))
 
 	    (check
-		(list (lfile-user-readable? the-other)
-		      (lfile-user-writable? the-other)
-		      (lfile-user-executable? the-other)
-		      (lfile-group-readable? the-other)
-		      (lfile-group-writable? the-other)
-		      (lfile-group-executable? the-other)
-		      (lfile-other-readable? the-other)
-		      (lfile-other-writable? the-other)
-		      (lfile-other-executable? the-other)
-		      (lfile-setuid? the-other)
-		      (lfile-setgid? the-other)
-		      (lfile-sticky? the-other))
+		(list (posix:lfile-user-readable? the-other)
+		      (posix:lfile-user-writable? the-other)
+		      (posix:lfile-user-executable? the-other)
+		      (posix:lfile-group-readable? the-other)
+		      (posix:lfile-group-writable? the-other)
+		      (posix:lfile-group-executable? the-other)
+		      (posix:lfile-other-readable? the-other)
+		      (posix:lfile-other-writable? the-other)
+		      (posix:lfile-other-executable? the-other)
+		      (posix:lfile-setuid? the-other)
+		      (posix:lfile-setgid? the-other)
+		      (posix:lfile-sticky? the-other))
 	      => '(#t #t #t
 		      #t #t #t
 		      #t #t #t
@@ -659,15 +638,14 @@ Ses ailes de geant l'empechent de marcher.")
 	    #f))))))
 
 
-(parameterize ((check-test-name	'chown)
-	       (debugging	#t))
+(parametrise ((check-test-name	'chown)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in chown" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "chown condition" E)))
 	(with-compensations
 	  (clean-test-hierarchy)
 	    (compensate
@@ -676,36 +654,35 @@ Ses ailes de geant l'empechent de marcher.")
 	       (clean-test-hierarchy)))
 
 	  (check
-	      (let* ((record	(stat the-file))
-		     (uid	(struct-stat-uid record))
-		     (gid	(struct-stat-gid record)))
-		(chown the-file uid gid))
+	      (let* ((record	(posix:stat the-file))
+		     (uid	(posix:<struct-stat>-uid record))
+		     (gid	(posix:<struct-stat>-gid record)))
+		(posix:chown the-file uid gid))
 	    => 0)
 
 	  (check
 	      (with-compensations
 		(letrec ((fd (compensate
-				 (open the-file O_RDONLY 0)
+				 (posix:open the-file O_RDONLY 0)
 			       (with
-				(close fd)))))
-		  (let* ((record	(fstat fd))
-			 (uid		(struct-stat-uid record))
-			 (gid		(struct-stat-gid record)))
-		    (fchown fd uid gid))))
+				(posix:close fd)))))
+		  (let* ((record	(posix:fstat fd))
+			 (uid		(posix:<struct-stat>-uid record))
+			 (gid		(posix:<struct-stat>-gid record)))
+		    (posix:fchown fd uid gid))))
 	    => 0)
 
 	  #f)))))
 
 
-(parameterize ((check-test-name	'chmod)
-	       (debugging	#t))
+(parametrise ((check-test-name	'chmod)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in chmod" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "chmod condition" E)))
 	(with-compensations
 	  (clean-test-hierarchy)
 	    (compensate
@@ -713,42 +690,45 @@ Ses ailes de geant l'empechent de marcher.")
 	      (with
 	       (clean-test-hierarchy)))
 
-	  (umask #o0027)
+	  (posix:umask #o0027)
 
 	  (check
-	      (getumask)
+	      (posix:getumask)
 	    => #o0027)
 
 	  (check
 	      (let ()
-		(umask 0)
-		(chmod the-file #o555)
-		(file-permissions the-file))
-	    => #o555)
+		(posix:umask 0)
+		(posix:chmod the-file (bitwise-ior S_IRUSR S_IXUSR
+						   S_IRGRP S_IXGRP
+						   S_IROTH S_IXOTH))
+		(posix:file-permissions the-file))
+	    => (bitwise-ior S_IRUSR S_IXUSR
+			    S_IRGRP S_IXGRP
+			    S_IROTH S_IXOTH))
 
 	  (check
 	      (with-compensations
 		(letrec ((fd (compensate
-				 (open the-file O_RDONLY 0)
+				 (posix:open the-file O_RDONLY 0)
 			       (with
-				(close fd)))))
-		  (umask 0)
-		  (fchmod fd #o123)
-		  (file-permissions fd)))
+				(posix:close fd)))))
+		  (posix:umask 0)
+		  (posix:fchmod fd #o123)
+		  (posix:file-permissions fd)))
 	    => #o123)
 
 	  #f)))))
 
 
-(parameterize ((check-test-name	'access)
-	       (debugging	#t))
+(parametrise ((check-test-name	'access)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in access" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "access condition" E)))
 	(with-compensations
 	  (clean-test-hierarchy)
 	    (compensate
@@ -758,81 +738,83 @@ Ses ailes de geant l'empechent de marcher.")
 
 	  (check
 	      (begin
-		(chmod the-file S_IRWXU)
-		(access the-file F_OK))
+		(posix:chmod the-file S_IRWXU)
+		(posix:access the-file F_OK))
 	    => #t)
 
 	  (check
 	      (let ((the-other (string-join (list the-root "other.ext") "/")))
-		(access the-other F_OK))
+		(posix:access the-other F_OK))
 	    => #f)
 
 	  (check
 	      (begin
-		(chmod the-file S_IRUSR)
-		(access the-file R_OK))
+		(posix:chmod the-file S_IRUSR)
+		(posix:access the-file R_OK))
 	    => #t)
 
 	  (check
 	      (begin
-		(chmod the-file 0)
-		(access the-file R_OK))
+		(posix:chmod the-file 0)
+		(posix:access the-file R_OK))
 	    => #f)
 
 	  (check
 	      (begin
-		(chmod the-file S_IWUSR)
-		(access the-file W_OK))
+		(posix:chmod the-file S_IWUSR)
+		(posix:access the-file W_OK))
 	    => #t)
 
 	  (check
 	      (begin
-		(chmod the-file 0)
-		(access the-file W_OK))
+		(posix:chmod the-file 0)
+		(posix:access the-file W_OK))
 	    => #f)
 
-	  (check
-	      (with-compensations
-		  (compensate
-		      (umask 0)
-		    (with
-		     (umask #o027)))
-		(chmod the-file S_IXUSR)
-;;;(debug "~o" (file-permissions the-file))
-		(access the-file X_OK))
-	    => #t)
+	  ;;I am not testing this on my system because "/tmp" is mounted
+	  ;;with the NOEXEC attribute.
+	  ;;
+	  ;; (check
+	  ;;     (with-compensations
+	  ;; 	  (compensate
+	  ;; 	      (posix:umask 0)
+	  ;; 	    (with
+	  ;; 	     (posix:umask (bitwise-ior S_IWGRP S_IRWXG))))
+	  ;; 	(posix:chmod the-file S_IXUSR)
+	  ;; 	(posix:access the-file X_OK))
+	  ;;   => #t)
 
 	  (check
-	      (access the-subdir-1 X_OK)
+	      (posix:access the-subdir-1 X_OK)
 	    => #t)
 
 	  (check
 	      (begin
-		(chmod the-file 0)
-		(access the-file X_OK))
+		(posix:chmod the-file 0)
+		(posix:access the-file X_OK))
 	    => #f)
 
-	  )))))
+	  #f)))))
 
 
-(parameterize ((check-test-name	'times)
-	       (debugging	#t))
+(parametrise ((check-test-name	'times)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in times" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "times condition" E)))
 
 	(define (get-times pathname)
-	  (let ((record (stat the-file)))
-	    #;(debug "atime ~s\nctime ~s\nmtime ~s"
-		   (struct-stat-atime record)
-		   (struct-stat-ctime record)
-		   (struct-stat-mtime record))
-	    (list (struct-stat-atime record)
-		  (struct-stat-mtime record))))
+	  (let ((record (posix:stat the-file)))
+(debug "record ~s" record)
+(debug "atime ~s\nctime ~s\nmtime ~s"
+		   (posix:<struct-stat>-atime record)
+		   (posix:<struct-stat>-ctime record)
+		   (posix:<struct-stat>-mtime record))
+	    (list (posix:<struct-stat>-atime record)
+		  (posix:<struct-stat>-mtime record))))
 
 	(with-compensations
 	  (clean-test-hierarchy)
@@ -842,32 +824,42 @@ Ses ailes de geant l'empechent de marcher.")
 	       (clean-test-hierarchy)))
 
 	  ;;;The SUS says  that an implementation may choose  not to set
-	  ;;;the access time of the file, even though it is requested by
-	  ;;;the "utime()" call.
+	  ;;;the  access time  of the  file in  the "struct  stat", even
+	  ;;;though it is requested by the "utime()" call.
 	  (check
 	      (begin
-		(chmod the-file #o700)
-		(get-times the-file)
-		(utime the-file 123 456)
-		(cadr (get-times the-file)))
-	    => '(456))
+		(posix:chmod the-file S_IRWXU)
+(posix:system (string-append "stat --printf='access=%X, modification=%Y, change=%Z\n' " the-file))
+;;;		(debug "debug: times ~s" (get-times the-file))
+		(posix:utime the-file
+			     #e1e9 ;access time
+			     #e2e9);modification time
+(posix:system (string-append "stat --printf='access=%X, modification=%Y, change=%Z\n' " the-file))
+;;;		(debug "debug: times ~s" (get-times the-file))
+		(get-times the-file))
+	    => '(#e1e0 #e2e9))
 
 	  (check
-	      (utime the-file)
+	      (begin
+		(posix:chmod the-file S_IRWXU)
+;;;		(debug "debug: times ~s" (get-times the-file))
+		(begin0
+		    (posix:utime the-file)
+;;;		  (debug "debug: times ~s" (get-times the-file))
+		  ))
 	    => 0)
 
 	  #f)))))
 
 
-(parameterize ((check-test-name	'size)
-	       (debugging	#t))
+(parametrise ((check-test-name	'size)
+	      (debugging	#t))
 
   (with-deferred-exceptions-handler
-      (lambda (exc)
-	(debug-print-condition "deferred condition" exc))
+      (lambda (E)
+	(debug-print-condition "deferred condition in size" E))
     (lambda ()
-      (guard (exc (else
-		   (debug-print-condition "sync condition" exc)))
+      (guard (E (else (debug-print-condition "size condition" E)))
 
 	(with-compensations
 	  (clean-test-hierarchy)
@@ -877,14 +869,13 @@ Ses ailes de geant l'empechent de marcher.")
 	       (clean-test-hierarchy)))
 
 	  (check
-	      (begin
-		(file-size the-file))
+	      (posix:file-size the-file)
 	    => (string-length the-string))
 
 	  (check
 	      (begin
-		(ftruncate the-file 5)
-		(file-size the-file))
+		(posix:ftruncate the-file 5)
+		(posix:file-size the-file))
 	    => 5)
 
 	  #f)))))
