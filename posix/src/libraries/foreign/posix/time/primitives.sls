@@ -25,12 +25,20 @@
 ;;;
 
 
-(library (foreign posix primitives)
+(library (foreign posix time primitives)
   (export
-
     clock times)
   (import (rnrs)
-    (prefix (foreign posix platform) platform:))
+    (receive)
+    (compensations)
+    (only (foreign errno)
+	  raise-errno-error)
+    (only (foreign ffi sizeof)
+	  sizeof-double-array)
+    (only (foreign ffi peekers-and-pokers)
+	  array-ref-c-double)
+    (foreign posix time record-types)
+    (prefix (foreign posix time platform) platform:))
 
 
 (define (clock)
@@ -44,14 +52,14 @@
   (with-compensations
     (let ((p (malloc-block/c (sizeof-double-array 4))))
       (receive (result errno)
-	  (platform-times p)
+	  (platform:times p)
 	(if (= -1 result)
 	    (raise-errno-error 'times errno)
 	  (values result
-		  (make-struct-tms (array-ref-c-double p 0)
-				   (array-ref-c-double p 1)
-				   (array-ref-c-double p 2)
-				   (array-ref-c-double p 3))))))))
+		  (make-<struct-tms> (array-ref-c-double p 0)
+				     (array-ref-c-double p 1)
+				     (array-ref-c-double p 2)
+				     (array-ref-c-double p 3))))))))
 
 
 ;;;; done

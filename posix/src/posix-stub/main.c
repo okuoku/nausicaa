@@ -59,7 +59,24 @@ extern double nausicaa_posix_times	(double * tms);
 extern int nausicaa_posix_stat		(const char * pathname, struct stat * buf);
 extern int nausicaa_posix_fstat		(int filedes, struct stat * buf);
 extern int nausicaa_posix_lstat		(const char * pathname, struct stat * buf);
+
 extern int nausicaa_posix_sizeof_stat	(void);
+
+extern mode_t	nausicaa_posix_stat_st_mode_ref (struct stat * buf);
+extern ino_t	nausicaa_posix_stat_st_ino_ref (struct stat * buf);
+extern dev_t	nausicaa_posix_stat_st_dev_ref (struct stat * buf);
+extern nlink_t	nausicaa_posix_stat_st_nlink_ref (struct stat * buf);
+extern uid_t	nausicaa_posix_stat_st_uid_ref (struct stat * buf);
+extern gid_t	nausicaa_posix_stat_st_gid_ref (struct stat * buf);
+extern off_t	nausicaa_posix_stat_st_size_ref (struct stat * buf);
+extern time_t	nausicaa_posix_stat_st_atime_ref (struct stat * buf);
+extern unsigned long int nausicaa_posix_stat_st_atime_usec_ref (struct stat * buf);
+extern time_t	nausicaa_posix_stat_st_mtime_ref (struct stat * buf);
+extern unsigned long int nausicaa_posix_stat_st_mtime_usec_ref (struct stat * buf);
+extern time_t	nausicaa_posix_stat_st_ctime_ref (struct stat * buf);
+extern unsigned long int nausicaa_posix_stat_st_ctime_usec_ref (struct stat * buf);
+extern blkcnt_t	nausicaa_posix_stat_st_blocks_ref (struct stat * buf);
+extern unsigned	nausicaa_posix_stat_st_blksize_ref (struct stat * buf);
 
 extern int nausicaa_posix_stat_is_dir	(mode_t m);
 extern int nausicaa_posix_stat_is_chr	(mode_t m);
@@ -163,10 +180,103 @@ nausicaa_posix_lstat (const char * pathname, struct stat * buf)
 {
   return lstat(pathname, buf);
 }
+
+/* ------------------------------------------------------------------ */
+
 int
 nausicaa_posix_sizeof_stat (void)
 {
   return sizeof(struct stat);
+}
+
+/* ------------------------------------------------------------------ */
+
+mode_t
+nausicaa_posix_stat_st_mode_ref (struct stat * buf)
+{
+  return buf->st_mode;
+}
+ino_t
+nausicaa_posix_stat_st_ino_ref (struct stat * buf)
+{
+  return buf->st_ino;
+}
+dev_t
+nausicaa_posix_stat_st_dev_ref (struct stat * buf)
+{
+  return buf->st_dev;
+}
+nlink_t
+nausicaa_posix_stat_st_nlink_ref (struct stat * buf)
+{
+  return buf->st_nlink;
+}
+uid_t
+nausicaa_posix_stat_st_uid_ref (struct stat * buf)
+{
+  return buf->st_uid;
+}
+gid_t
+nausicaa_posix_stat_st_gid_ref (struct stat * buf)
+{
+  return buf->st_gid;
+}
+off_t
+nausicaa_posix_stat_st_size_ref (struct stat * buf)
+{
+  return buf->st_size;
+}
+time_t
+nausicaa_posix_stat_st_atime_ref (struct stat * buf)
+{
+  return buf->st_atime;
+}
+unsigned long int
+nausicaa_posix_stat_st_atime_usec_ref (struct stat * buf)
+{
+#ifdef HAVE_ST_ATIME_USEC_MEMBER
+  return buf->st_atime_usec;
+#else
+  return 0;
+#endif
+}
+time_t
+nausicaa_posix_stat_st_mtime_ref (struct stat * buf)
+{
+  return buf->st_mtime;
+}
+unsigned long int
+nausicaa_posix_stat_st_mtime_usec_ref (struct stat * buf)
+{
+#ifdef HAVE_ST_MTIME_USEC_MEMBER
+  return buf->st_mtime_usec;
+#else
+  return 0;
+#endif
+}
+time_t
+nausicaa_posix_stat_st_ctime_ref (struct stat * buf)
+{
+  return buf->st_ctime;
+}
+unsigned long int
+nausicaa_posix_stat_st_ctime_usec_ref (struct stat * buf)
+{
+#ifdef HAVE_ST_CTIME_USEC_MEMBER
+  return buf->st_ctime_usec;
+#else
+  return 0;
+#endif
+}
+blkcnt_t
+nausicaa_posix_stat_st_blocks_ref (struct stat * buf)
+{
+  return buf->st_blocks;
+}
+unsigned int
+nausicaa_posix_stat_st_blksize_ref (struct stat * buf)
+{
+  return buf->st_blksize;
 }
 
 /* ------------------------------------------------------------ */

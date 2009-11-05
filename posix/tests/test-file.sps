@@ -808,11 +808,6 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(define (get-times pathname)
 	  (let ((record (posix:stat the-file)))
-(debug "record ~s" record)
-(debug "atime ~s\nctime ~s\nmtime ~s"
-		   (posix:<struct-stat>-atime record)
-		   (posix:<struct-stat>-ctime record)
-		   (posix:<struct-stat>-mtime record))
 	    (list (posix:<struct-stat>-atime record)
 		  (posix:<struct-stat>-mtime record))))
 
@@ -829,15 +824,15 @@ Ses ailes de geant l'empechent de marcher.")
 	  (check
 	      (begin
 		(posix:chmod the-file S_IRWXU)
-(posix:system (string-append "stat --printf='access=%X, modification=%Y, change=%Z\n' " the-file))
+;;;(posix:system (string-append "stat --printf='access=%X, modification=%Y, change=%Z\n' " the-file))
 ;;;		(debug "debug: times ~s" (get-times the-file))
 		(posix:utime the-file
 			     #e1e9 ;access time
 			     #e2e9);modification time
-(posix:system (string-append "stat --printf='access=%X, modification=%Y, change=%Z\n' " the-file))
+;;;(posix:system (string-append "stat --printf='access=%X, modification=%Y, change=%Z\n' " the-file))
 ;;;		(debug "debug: times ~s" (get-times the-file))
 		(get-times the-file))
-	    => '(#e1e0 #e2e9))
+	    => '(#e1e9 #e2e9))
 
 	  (check
 	      (begin
@@ -868,6 +863,7 @@ Ses ailes de geant l'empechent de marcher.")
 	      (with
 	       (clean-test-hierarchy)))
 
+;;;(posix:system (string-append "ls -l " the-file))
 	  (check
 	      (posix:file-size the-file)
 	    => (string-length the-string))

@@ -1511,7 +1511,7 @@ full support for the C language @cfunc{stat} function requires loading
 the @file{libnausicaa-posix.so} library.
 
 @menu
-* stat constants::              Constant values.
+* stat constants::              Constant values and structure accessors.
 * stat record::                 Acquiring the file attributes.
 * stat api::                    Interface functions.
 * stat type::                   Type inspection.
@@ -1520,28 +1520,41 @@ the @file{libnausicaa-posix.so} library.
 
 @c page
 @node stat constants
-@section Constant values.
+@section Constant values and structures accessors
+
+
+The following bindings are exported by the @library{foreign posix stat
+platform} library; this is because @code{struct stat} is somewhat
+``special'', so we relay on the @file{libnausicaa-posix.so} stub library
+to deal with it.
 
 
 @defvr Constant sizeof-struct-stat
 The size of the @code{struct stat} data structure in bytes.  This
 binding is exported by @library{foreign posix stat platform}.
-
-@quotation
-@strong{FIXME} This binding should really be exported by
-@library{foreign posix stat platform}, but for some reason it looks like
-the size of @code{struct stat} is not determined correctly by the
-Autoconf macros in the @file{configure.ac} file.  Dunno why.  This error
-causes segmentation faults in the code.
-
-As a temporary fix, the size of the structure is determined by a C
-language function exported by @file{libnausicaa-posix.so}.
-
-On an i686-pc-linux-gnu, the size reported by the Autoconf macro is
-@math{88}, while the value returned by the foreign function is
-@math{96}.
-@end quotation
 @end defvr
+
+
+@defun struct-stat-st_mode-ref @var{stat-pointer}
+@defunx struct-stat-st_ino-ref @var{stat-pointer}
+@defunx struct-stat-st_dev-ref @var{stat-pointer}
+@defunx struct-stat-st_nlink-ref @var{stat-pointer}
+@defunx struct-stat-st_uid-ref @var{stat-pointer}
+@defunx struct-stat-st_gid-ref @var{stat-pointer}
+@defunx struct-stat-st_size-ref @var{stat-pointer}
+@defunx struct-stat-st_atime-ref @var{stat-pointer}
+@defunx struct-stat-st_atime_usec-ref @var{stat-pointer}
+@defunx struct-stat-st_mtime-ref @var{stat-pointer}
+@defunx struct-stat-st_mtime_usec-ref @var{stat-pointer}
+@defunx struct-stat-st_ctime-ref @var{stat-pointer}
+@defunx struct-stat-st_ctime_usec-ref @var{stat-pointer}
+@defunx struct-stat-st_blocks-ref @var{stat-pointer}
+@defunx struct-stat-st_blksize-ref @var{stat-pointer}
+Accessors for the named field of a @code{struct stat}.  Notice that some
+field may be undefined on some platform (examples: @code{st_atime_usec},
+@code{st_mtime_usec}, @code{st_ctime_usec}), in this case the return
+value is zero.
+@end defun
 
 @c page
 @node stat record
@@ -1624,7 +1637,7 @@ the file in the @code{struct stat}, even though it is requested by the
 @defun struct-stat->record @var{pointer}
 Given a pointer to a block of memory holding a foreign @code{struct
 stat}, build and return a @class{struct-stat} record.  All the fields
-that are not available in the foreign structure are set to @false{}.
+that are not available in the foreign structure are set to zero.
 @end defun
 
 @c page

@@ -355,19 +355,19 @@
 	   "expected file descriptor or file pathname" obj))))
 
 (define (ftruncate obj length)
-  (cond ((and (integer? obj) (<= 0 obj))
-	 (receive (result errno)
-	     (platform:ftruncate obj length)
-	   (when (= -1 result)
-	     (raise-errno-error 'ftruncate errno (list obj length)))
-	   result))
-	((or (string? obj) (symbol? obj))
+  (cond ((or (string? obj) (symbol? obj))
 	 (with-compensations
 	   (letrec ((fd (compensate
 			    (posix:open obj O_WRONLY 0)
 			  (with
 			   (posix:close fd)))))
 	     (platform:ftruncate fd length))))
+	((and (integer? obj) (<= 0 obj))
+	 (receive (result errno)
+	     (platform:ftruncate obj length)
+	   (when (= -1 result)
+	     (raise-errno-error 'ftruncate errno (list obj length)))
+	   result))
 	(else
 	 (error 'ftruncate
 	   "expected file descriptor or file pathname" obj))))

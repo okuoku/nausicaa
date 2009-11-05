@@ -33,8 +33,8 @@ dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-posix],[0.1d0])
 DS_BEGIN([./src/libraries/foreign/posix/fd.sls])
-AC_CANONICAL_TARGET
-AC_USE_SYSTEM_EXTENSIONS
+dnl AC_CANONICAL_TARGET
+dnl AC_USE_SYSTEM_EXTENSIONS
 AC_SUBST([NAUSICAA_OS],[$target_os])
 NAUSICAA_BEGIN
 DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
@@ -43,7 +43,7 @@ DS_EXCLUDE_SECTION([PKGCONFIG])
 
 NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
 
-NAUSICAA_C_LANGUAGE
+dnl NAUSICAA_C_LANGUAGE
 DS_C99_LANGUAGE_COMMON_SETUP
 NAUSICAA_SIZEOF
 NAUSICAA_C_TYPES_LIMITS
@@ -151,28 +151,35 @@ NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_DIRENT],[struct dirent])
 NAU_POSIX_INSPECT_FIELD_TYPE_POINTER([STRUCT_DIRENT_D_NAME],[struct dirent],[d_name])
 
 dnl --------------------------------------------------------------------
+dnl The stat structure is "special", so the following tests do not work.
+dnl We  relay  on  the  stub  library  to  access  it.   Note  that  the
+dnl following fields are not present on all the platforms:
+dnl
+dnl     time_usec st_dev st_mtime_usec st_atime_usec st_ctime_usec
+dnl
 
-AC_DEFUN([NAU_POSIX_STRUCT_STAT_FIELD],
-  [NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_$1],[struct stat],[$2],[$3])])
+AC_CHECK_MEMBERS([struct stat.st_atime_usec, struct stat.st_mtime_usec, struct stat.st_ctime_usec,])
 
-dnl Note that the "time_usec" and "st_dev" fields are not detected on my
-dnl platform.
-NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_STAT],[struct stat])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_MODE],[st_mode],[unsigned-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_INO],[st_ino],[unsigned-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_DEV],[st_dev],[unsigned-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_NLINK],[st_nlink],[unsigned-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_UID],[st_uid],[signed-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_GID],[st_gid],[signed-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_SIZE],[st_size],[unsigned-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_ATIME],[st_atime],[signed-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_ATIME_USEC],[st_atime_usec],[unsigned-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_MTIME],[st_mtime],[signed-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_MTIME_USEC],[st_mtime_usec],[unsigned-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_CTIME],[st_ctime],[signed-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_CTIME_USEC],[st_ctime_usec],[unsigned-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_BLOCKS],[st_blocks],[unsigned-int])
-NAU_POSIX_STRUCT_STAT_FIELD([ST_BLKSIZE],[st_blksize],[unsigned-int])
+dnl NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_STAT],[struct stat])
+
+dnl AC_DEFUN([NAU_POSIX_STRUCT_STAT_FIELD],
+dnl   [NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_STAT_$1],[struct stat],[$2],[$3])])
+
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_MODE],[st_mode],[unsigned-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_INO],[st_ino],[unsigned-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_DEV],[st_dev],[unsigned-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_NLINK],[st_nlink],[unsigned-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_UID],[st_uid],[signed-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_GID],[st_gid],[signed-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_SIZE],[st_size],[unsigned-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_ATIME],[st_atime],[signed-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_ATIME_USEC],[st_atime_usec],[unsigned-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_MTIME],[st_mtime],[signed-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_MTIME_USEC],[st_mtime_usec],[unsigned-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_CTIME],[st_ctime],[signed-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_CTIME_USEC],[st_ctime_usec],[unsigned-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_BLOCKS],[st_blocks],[unsigned-int])
+dnl NAU_POSIX_STRUCT_STAT_FIELD([ST_BLKSIZE],[st_blksize],[unsigned-int])
 
 dnl --------------------------------------------------------------------
 

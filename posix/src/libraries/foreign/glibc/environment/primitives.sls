@@ -44,7 +44,7 @@
 	  raise-errno-error)
     (prefix (foreign glibc environment platform)
 	    platform:)
-    (only (foreign posix memory)
+    (only (foreign memory)
 	  malloc))
 
   (define (unsetenv name)

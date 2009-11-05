@@ -24,7 +24,6 @@
 ;;;
 
 
-#!r6rs
 (library (foreign posix sizeof)
   (export
 
@@ -44,10 +43,13 @@
     ;; structures
     sizeof-struct-dirent alignof-struct-dirent strideof-struct-dirent
     sizeof-struct-flock alignof-struct-flock strideof-struct-flock
-    sizeof-struct-stat alignof-struct-stat strideof-struct-stat
     sizeof-struct-timespec alignof-struct-timespec strideof-struct-timespec
     sizeof-struct-timeval alignof-struct-timeval strideof-struct-timeval
     sizeof-struct-utimbuf alignof-struct-utimbuf strideof-struct-utimbuf
+;;;The  stat structure is  "special"; we  relay on  the stub  library to
+;;;access it.
+;;;
+;;;    sizeof-struct-stat alignof-struct-stat strideof-struct-stat
 
     ;; constants
     O_ACCMODE		O_CREAT		O_EXCL
@@ -98,27 +100,31 @@
 
     struct-dirent-d_name-ref
 
-    struct-stat-st_mode-set!		struct-stat-st_mode-ref
-    struct-stat-st_ino-set!		struct-stat-st_ino-ref
-    struct-stat-st_dev-set!		struct-stat-st_dev-ref
-    struct-stat-st_nlink-set!		struct-stat-st_nlink-ref
-    struct-stat-st_uid-set!		struct-stat-st_uid-ref
-    struct-stat-st_gid-set!		struct-stat-st_gid-ref
-    struct-stat-st_size-set!		struct-stat-st_size-ref
-    struct-stat-st_atime-set!		struct-stat-st_atime-ref
-    struct-stat-st_atime_usec-set!	struct-stat-st_atime_usec-ref
-    struct-stat-st_mtime-set!		struct-stat-st_mtime-ref
-    struct-stat-st_mtime_usec-set!	struct-stat-st_mtime_usec-ref
-    struct-stat-st_ctime-set!		struct-stat-st_ctime-ref
-    struct-stat-st_ctime_usec-set!	struct-stat-st_ctime_usec-ref
-    struct-stat-st_blocks-set!		struct-stat-st_blocks-ref
-    struct-stat-st_blksize-set!		struct-stat-st_blksize-ref
+;;;The  stat structure is  "special"; we  relay on  the stub  library to
+;;;access it.
+;;;
+;;;  struct-stat-st_mode-set!		struct-stat-st_mode-ref
+;;;  struct-stat-st_ino-set!		struct-stat-st_ino-ref
+;;;  struct-stat-st_dev-set!		struct-stat-st_dev-ref
+;;;  struct-stat-st_nlink-set!		struct-stat-st_nlink-ref
+;;;  struct-stat-st_uid-set!		struct-stat-st_uid-ref
+;;;  struct-stat-st_gid-set!		struct-stat-st_gid-ref
+;;;  struct-stat-st_size-set!		struct-stat-st_size-ref
+;;;  struct-stat-st_atime-set!		struct-stat-st_atime-ref
+;;;  struct-stat-st_atime_usec-set!	struct-stat-st_atime_usec-ref
+;;;  struct-stat-st_mtime-set!		struct-stat-st_mtime-ref
+;;;  struct-stat-st_mtime_usec-set!	struct-stat-st_mtime_usec-ref
+;;;  struct-stat-st_ctime-set!		struct-stat-st_ctime-ref
+;;;  struct-stat-st_ctime_usec-set!	struct-stat-st_ctime_usec-ref
+;;;  struct-stat-st_blocks-set!		struct-stat-st_blocks-ref
+;;;  struct-stat-st_blksize-set!	struct-stat-st_blksize-ref
 
     struct-utimbuf-actime-set!		struct-utimbuf-actime-ref
     struct-utimbuf-modtime-set!		struct-utimbuf-modtime-ref
     )
   (import (rnrs)
-    (foreign ffi))
+    (foreign ffi)
+    (foreign ffi sizeof))
 
 
 ;;;; basic type definitions
@@ -151,9 +157,16 @@
 (define pointer-set-c-nlink_t!		@SETTEROF_NLINK_T@)
 (define pointer-ref-c-nlink_t		@GETTEROF_NLINK_T@)
 
-(define off_t				(quote @TYPEOF_OFF_T@))
-(define pointer-set-c-off_t!		@SETTEROF_OFF_T@)
-(define pointer-ref-c-off_t		@GETTEROF_OFF_T@)
+
+(define off_t				(if on-32-bits-system
+					    (quote unsigned-int)
+					  (quote @TYPEOF_OFF_T@)))
+(define pointer-set-c-off_t!		(if on-32-bits-system
+					    pointer-set-c-unsigned-int!
+					  @SETTEROF_OFF_T@))
+(define pointer-ref-c-off_t		(if on-32-bits-system
+					    pointer-ref-c-unsigned-int
+					  @GETTEROF_OFF_T@))
 
 (define pid_t				(quote @TYPEOF_PID_T@))
 (define pointer-set-c-pid_t!		@SETTEROF_PID_T@)
@@ -355,111 +368,113 @@
   @OFFSETOF_STRUCT_DIRENT_D_NAME@)
 
 ;;; --------------------------------------------------------------------
+;;;The  stat structure is  "special"; we  relay on  the stub  library to
+;;;access it.
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_mode-set!
-  struct-stat-st_mode-ref
-  @OFFSETOF_STRUCT_STAT_ST_MODE@
-  @SETTEROF_STRUCT_STAT_ST_MODE@
-  @GETTEROF_STRUCT_STAT_ST_MODE@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_mode-set!
+;;   struct-stat-st_mode-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_MODE@
+;;   @SETTEROF_STRUCT_STAT_ST_MODE@
+;;   @GETTEROF_STRUCT_STAT_ST_MODE@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_ino-set!
-  struct-stat-st_ino-ref
-  @OFFSETOF_STRUCT_STAT_ST_INO@
-  @SETTEROF_STRUCT_STAT_ST_INO@
-  @GETTEROF_STRUCT_STAT_ST_INO@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_ino-set!
+;;   struct-stat-st_ino-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_INO@
+;;   @SETTEROF_STRUCT_STAT_ST_INO@
+;;   @GETTEROF_STRUCT_STAT_ST_INO@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_dev-set!
-  struct-stat-st_dev-ref
-  @OFFSETOF_STRUCT_STAT_ST_DEV@
-  @SETTEROF_STRUCT_STAT_ST_DEV@
-  @GETTEROF_STRUCT_STAT_ST_DEV@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_dev-set!
+;;   struct-stat-st_dev-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_DEV@
+;;   @SETTEROF_STRUCT_STAT_ST_DEV@
+;;   @GETTEROF_STRUCT_STAT_ST_DEV@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_nlink-set!
-  struct-stat-st_nlink-ref
-  @OFFSETOF_STRUCT_STAT_ST_NLINK@
-  @SETTEROF_STRUCT_STAT_ST_NLINK@
-  @GETTEROF_STRUCT_STAT_ST_NLINK@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_nlink-set!
+;;   struct-stat-st_nlink-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_NLINK@
+;;   @SETTEROF_STRUCT_STAT_ST_NLINK@
+;;   @GETTEROF_STRUCT_STAT_ST_NLINK@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_uid-set!
-  struct-stat-st_uid-ref
-  @OFFSETOF_STRUCT_STAT_ST_UID@
-  @SETTEROF_STRUCT_STAT_ST_UID@
-  @GETTEROF_STRUCT_STAT_ST_UID@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_uid-set!
+;;   struct-stat-st_uid-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_UID@
+;;   @SETTEROF_STRUCT_STAT_ST_UID@
+;;   @GETTEROF_STRUCT_STAT_ST_UID@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_gid-set!
-  struct-stat-st_gid-ref
-  @OFFSETOF_STRUCT_STAT_ST_GID@
-  @SETTEROF_STRUCT_STAT_ST_GID@
-  @GETTEROF_STRUCT_STAT_ST_GID@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_gid-set!
+;;   struct-stat-st_gid-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_GID@
+;;   @SETTEROF_STRUCT_STAT_ST_GID@
+;;   @GETTEROF_STRUCT_STAT_ST_GID@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_size-set!
-  struct-stat-st_size-ref
-  @OFFSETOF_STRUCT_STAT_ST_SIZE@
-  @SETTEROF_STRUCT_STAT_ST_SIZE@
-  @GETTEROF_STRUCT_STAT_ST_SIZE@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_size-set!
+;;   struct-stat-st_size-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_SIZE@
+;;   @SETTEROF_STRUCT_STAT_ST_SIZE@
+;;   @GETTEROF_STRUCT_STAT_ST_SIZE@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_atime-set!
-  struct-stat-st_atime-ref
-  @OFFSETOF_STRUCT_STAT_ST_ATIME@
-  @SETTEROF_STRUCT_STAT_ST_ATIME@
-  @GETTEROF_STRUCT_STAT_ST_ATIME@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_atime-set!
+;;   struct-stat-st_atime-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_ATIME@
+;;   @SETTEROF_STRUCT_STAT_ST_ATIME@
+;;   @GETTEROF_STRUCT_STAT_ST_ATIME@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_atime_usec-set!
-  struct-stat-st_atime_usec-ref
-  @OFFSETOF_STRUCT_STAT_ST_ATIME_USEC@
-  @SETTEROF_STRUCT_STAT_ST_ATIME_USEC@
-  @GETTEROF_STRUCT_STAT_ST_ATIME_USEC@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_atime_usec-set!
+;;   struct-stat-st_atime_usec-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_ATIME_USEC@
+;;   @SETTEROF_STRUCT_STAT_ST_ATIME_USEC@
+;;   @GETTEROF_STRUCT_STAT_ST_ATIME_USEC@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_mtime-set!
-  struct-stat-st_mtime-ref
-  @OFFSETOF_STRUCT_STAT_ST_MTIME@
-  @SETTEROF_STRUCT_STAT_ST_MTIME@
-  @GETTEROF_STRUCT_STAT_ST_MTIME@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_mtime-set!
+;;   struct-stat-st_mtime-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_MTIME@
+;;   @SETTEROF_STRUCT_STAT_ST_MTIME@
+;;   @GETTEROF_STRUCT_STAT_ST_MTIME@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_mtime_usec-set!
-  struct-stat-st_mtime_usec-ref
-  @OFFSETOF_STRUCT_STAT_ST_MTIME_USEC@
-  @SETTEROF_STRUCT_STAT_ST_MTIME_USEC@
-  @GETTEROF_STRUCT_STAT_ST_MTIME_USEC@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_mtime_usec-set!
+;;   struct-stat-st_mtime_usec-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_MTIME_USEC@
+;;   @SETTEROF_STRUCT_STAT_ST_MTIME_USEC@
+;;   @GETTEROF_STRUCT_STAT_ST_MTIME_USEC@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_ctime-set!
-  struct-stat-st_ctime-ref
-  @OFFSETOF_STRUCT_STAT_ST_CTIME@
-  @SETTEROF_STRUCT_STAT_ST_CTIME@
-  @GETTEROF_STRUCT_STAT_ST_CTIME@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_ctime-set!
+;;   struct-stat-st_ctime-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_CTIME@
+;;   @SETTEROF_STRUCT_STAT_ST_CTIME@
+;;   @GETTEROF_STRUCT_STAT_ST_CTIME@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_ctime_usec-set!
-  struct-stat-st_ctime_usec-ref
-  @OFFSETOF_STRUCT_STAT_ST_CTIME_USEC@
-  @SETTEROF_STRUCT_STAT_ST_CTIME_USEC@
-  @GETTEROF_STRUCT_STAT_ST_CTIME_USEC@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_ctime_usec-set!
+;;   struct-stat-st_ctime_usec-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_CTIME_USEC@
+;;   @SETTEROF_STRUCT_STAT_ST_CTIME_USEC@
+;;   @GETTEROF_STRUCT_STAT_ST_CTIME_USEC@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_blocks-set!
-  struct-stat-st_blocks-ref
-  @OFFSETOF_STRUCT_STAT_ST_BLOCKS@
-  @SETTEROF_STRUCT_STAT_ST_BLOCKS@
-  @GETTEROF_STRUCT_STAT_ST_BLOCKS@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_blocks-set!
+;;   struct-stat-st_blocks-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_BLOCKS@
+;;   @SETTEROF_STRUCT_STAT_ST_BLOCKS@
+;;   @GETTEROF_STRUCT_STAT_ST_BLOCKS@)
 
-(define-c-struct-accessor-and-mutator
-  struct-stat-st_blksize-set!
-  struct-stat-st_blksize-ref
-  @OFFSETOF_STRUCT_STAT_ST_BLKSIZE@
-  @SETTEROF_STRUCT_STAT_ST_BLKSIZE@
-  @GETTEROF_STRUCT_STAT_ST_BLKSIZE@)
+;; (define-c-struct-accessor-and-mutator
+;;   struct-stat-st_blksize-set!
+;;   struct-stat-st_blksize-ref
+;;   @OFFSETOF_STRUCT_STAT_ST_BLKSIZE@
+;;   @SETTEROF_STRUCT_STAT_ST_BLKSIZE@
+;;   @GETTEROF_STRUCT_STAT_ST_BLKSIZE@)
 
 ;;; --------------------------------------------------------------------
 

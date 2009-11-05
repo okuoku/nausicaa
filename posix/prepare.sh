@@ -11,6 +11,7 @@ set -x
         configure -ot configuration/nausicaa.autoconf
         then
         autoconf
+        autoheader
     fi)
 
 ../configure \

@@ -1,0 +1,12 @@
+* system inspection
+
+  Fix the determination  of size for "off_t".  Is  it really "ullong" on
+  32 bits?
+
+* fd libraries
+
+  Fix dlsym on lseek.  The  version retrieved looking for "lseek" should
+  return an "off_t".  By artificially setting "off_t" as "unsigned-int",
+  everything works on a 32bit  platform.  Why the return value cannot be
+  the discovered "off_t"?.
+

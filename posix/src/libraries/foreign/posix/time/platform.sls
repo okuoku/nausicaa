@@ -26,7 +26,7 @@
 
 
 (library (foreign posix time platform)
-  (export a)
+  (export clock times)
   (import (rnrs)
     (foreign ffi)
     (foreign posix sizeof))
@@ -35,18 +35,18 @@
 (define dummy
   (shared-object self-shared-object))
 
-(define stub-lib
-  (let ((o (open-shared-object 'libnausicaa-posix1.so)))
-    (shared-object o)
-    o))
+;; (define stub-lib
+;;   (let ((o (open-shared-object 'libnausicaa-posix1.so)))
+;;     (shared-object o)
+;;     o))
 
 
 ;;;; CPU ticks and process ticks
 
-(define-c-function/with-errno platform-clock
+(define-c-function/with-errno clock
   (double nausicaa_posix_clock (void)))
 
-(define-c-function/with-errno platform-times
+(define-c-function/with-errno times
   (double nausicaa_posix_times (pointer)))
 
 

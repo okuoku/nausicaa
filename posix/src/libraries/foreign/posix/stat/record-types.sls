@@ -48,7 +48,9 @@
     <struct-stat>-blocks
     <struct-stat>-blksize)
   (import (rnrs)
-    (foreign posix sizeof))
+    (foreign posix stat platform)
+    ;;;(foreign posix sizeof)
+    )
 
 
 (define-record-type <struct-stat>

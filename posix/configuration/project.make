@@ -25,6 +25,21 @@
 
 #page
 ## --------------------------------------------------------------------
+## Stub library.
+## --------------------------------------------------------------------
+
+posix_SRCDIR	= $(srcdir)/src/posix-stub
+posix_BUILDDIR	= $(builddir)/posix-objects.d
+
+posix_PREREQUISITES = $(wildcard $(posix_SRCDIR)/*.h)
+
+$(eval $(call ds-c-library,posix))
+
+# This is needed to test.
+nau_test_LDPATH=$(posix_shlib_BUILDDIR)
+
+#page
+## --------------------------------------------------------------------
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 

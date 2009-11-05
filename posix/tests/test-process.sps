@@ -31,7 +31,6 @@
   (foreign cstrings)
   (checks)
   (prefix (foreign posix process) posix:)
-  (foreign posix process stub)
   (prefix (foreign posix process record-types) posix:))
 
 (check-set-mode! 'report-failed)
