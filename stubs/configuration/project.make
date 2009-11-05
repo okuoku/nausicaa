@@ -1,22 +1,8 @@
 # @configure_input@
 #
 
-nausicaa_ENABLE_POSIX		= @nausicaa_ENABLE_POSIX@
 nausicaa_ENABLE_RANDOM		= @nausicaa_ENABLE_RANDOM@
 nausicaa_ENABLE_FFITEST		= @nausicaa_ENABLE_FFITEST@
-
-## --------------------------------------------------------------------
-
-ifeq (yes,$(strip $(nausicaa_ENABLE_POSIX)))
-
-posix_SRCDIR	= $(srcdir)/src/posix
-posix_BUILDDIR	= $(builddir)/posix-objects.d
-
-posix_PREREQUISITES = $(wildcard $(posix_SRCDIR)/*.h)
-
-$(eval $(call ds-c-library,posix))
-
-endif
 
 ## --------------------------------------------------------------------
 
