@@ -200,18 +200,6 @@
 /* Define to rpl_malloc if the replacement function should be used. */
 #undef malloc
 
-/* library interface major version */
-#undef posix_INTERFACE_MAJOR_VERSION
-
-/* library interface minor version */
-#undef posix_INTERFACE_MINOR_VERSION
-
-/* library interface version */
-#undef posix_INTERFACE_VERSION
-
-/* the library identifier */
-#undef posix_LIBRARY_ID
-
 /* Define to the equivalent of the C99 'restrict' keyword, or to
    nothing if this is not supported.  Do not define if restrict is
    supported directly.  */

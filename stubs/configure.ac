@@ -32,11 +32,7 @@ dnl Setup.
 dnl ------------------------------------------------------------
 
 AC_INIT([nausicaa-stubs],[0.1d0],[marcomaggi@gna.org])
-DS_BEGIN([./src/posix/main.c])
-
-DS_ENABLE_OPTION([nausicaa_ENABLE_POSIX],[posix],[yes],
-  [whether the POSIX stub library will be built and installed],
-  [disable building the POSIX stub library])
+DS_BEGIN([./src/ffitest/main.c])
 
 DS_ENABLE_OPTION([nausicaa_ENABLE_FFITEST],[ffi-test],[yes],
   [whether the FFI test stub library will be built and installed],
@@ -48,7 +44,6 @@ DS_EXCLUDE_SECTION([DEV_RULES])
 DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
 DS_EXCLUDE_SECTION([AUTOCONF])
 DS_EXCLUDE_SECTION([PKGCONFIG])
-DS_C_LANGUAGE_LIBRARY([posix],1,0,[nausicaa-posix])
 DS_C_LANGUAGE_LIBRARY([ffitest],1,0,[nausicaa-ffitest])
 
 #DS_CONFIG_FILE_PKGCONFIG
