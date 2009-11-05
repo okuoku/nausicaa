@@ -33,7 +33,13 @@
 ## --------------------------------------------------------------------
 
 nausicaa_ENABLE_SLS		= @nausicaa_ENABLE_SLS@
+
 nausicaa_ENABLE_FASL		= @nausicaa_ENABLE_FASL@
+nausicaa_ENABLE_FASL_IKARUS	= @nausicaa_ENABLE_FASL_IKARUS@
+nausicaa_ENABLE_FASL_LARCENY	= @nausicaa_ENABLE_FASL_LARCENY@
+nausicaa_ENABLE_FASL_MOSH	= @nausicaa_ENABLE_FASL_MOSH@
+nausicaa_ENABLE_FASL_YPSILON	= @nausicaa_ENABLE_FASL_YPSILON@
+
 nausicaa_ENABLE_IKARUS		= @nausicaa_ENABLE_IKARUS@
 nausicaa_ENABLE_LARCENY		= @nausicaa_ENABLE_LARCENY@
 nausicaa_ENABLE_MOSH		= @nausicaa_ENABLE_MOSH@
@@ -50,6 +56,8 @@ YPSILON		= @YPSILON@
 ## Installation of library source files.
 ## ---------------------------------------------------------------------
 
+.PHONY: sls-install
+
 # $(1) - the identifier
 # $(2) - the subdirectory
 define nau-sls-libraries
@@ -62,6 +70,8 @@ nau_sls_$(1)_INSTLST	= $$(nau_sls_$(1)_SOURCES)
 nau_sls_$(1)_INSTDIR	= $$(pkglibdir)/$(2)
 
 $$(eval $$(call ds-module,nau_sls_$(1),bin))
+
+sls-install:	nau_sls_$(1)-install
 
 endif # nausicaa_ENABLE_SLS == yes
 endef
@@ -99,6 +109,26 @@ $$(eval $$(call nau-sls-libraries,$(1),$(2)))
 $$(eval $$(call nau-fasl-libraries,$(1),$(2)))
 endef
 
+## --------------------------------------------------------------------
+
+libdist_TMPDIR	= $(TMPDIR)/$(PKG_ID)
+libdist_DESTDIR	= $(builddir)/libdist.d
+libdist_ARCHIVE	= $(ds_archive_NAME)-$(ds_archive_VERSION)-pure-scheme.tar.$(ds_COMPRESSOR_EXT)
+libdist_ARCHIVE_PATHNAME= $(libdist_DESTDIR)/$(libdist_ARCHIVE)
+
+.PHONY: libdist
+
+libdist:
+	test -d $(libdist_DESTDIR) || $(MKDIR) $(libdist_DESTDIR)
+	$(RM_SILENT) $(libdist_TMPDIR)
+	$(MAKE) sls-install DESTDIR=$(libdist_TMPDIR)
+	yes | $(FIND) $(libdist_TMPDIR)/$(pkglibdir) \
+		-type f -and -not -name \*.sls -and -exec rm \{\} \;
+	$(TAR) --directory=$(libdist_TMPDIR)/$(pkglibdir) \
+		--create $(ds_COMPRESSOR_TAR) --verbose \
+		--file=$(libdist_ARCHIVE_PATHNAME) .
+	$(RM_SILENT) $(libdist_TMPDIR)
+
 #page
 ## --------------------------------------------------------------------
 ## General compiled files rules.
@@ -106,11 +136,15 @@ endef
 
 ifeq ($(nausicaa_ENABLE_FASL),yes)
 
-nau_IMPLEMENTATIONS	= \
-	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	ifasl)	\
-	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	lfasl)	\
-	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	mfasl)  \
-	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	yfasl)
+nau_FASL_IMPLEMENTATIONS	= \
+	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	\
+		$(call ds-if-yes,$(nausicaa_ENABLE_FASL_IKARUS),	ifasl))	\
+	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	\
+		$(call ds-if-yes,$(nausicaa_ENABLE_FASL_LARCENY),	lfasl))	\
+	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	\
+		$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),		mfasl))  \
+	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	\
+		$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),		yfasl))
 
 $(eval $(call ds-srcdir,fasl,$(srcdir)/src/libraries))
 $(eval $(call ds-builddir,fasl,$(builddir)/fasl.d))
@@ -122,9 +156,9 @@ $(fasl_TARGETS): $(fasl_BUILDDIR)/%: $(fasl_SRCDIR)/%
 	@test -d $(dir $(@)) || $(MKDIR) $(dir $(@))
 	@$(CP) $(<) $(@)
 
-fasl: $(nau_IMPLEMENTATIONS)
+fasl: $(nau_FASL_IMPLEMENTATIONS)
 
-fasl-clean: $(foreach i,$(nau_IMPLEMENTATIONS),$(i)-clean)
+fasl-clean: $(foreach i,$(nau_FASL_IMPLEMENTATIONS),$(i)-clean)
 	$(RM) $(fasl_BUILDDIR)
 
 bin:		fasl
@@ -270,6 +304,8 @@ else
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
 endif
 
+nau_test_ENV		= LD_LIBRARY_PATH=$(nau_test_LDPATH):$(LD_LIBRARY_PATH)
+
 # The variable  "name" is available to  the user on the  command line of
 # "make": It selects specific tests.
 ifneq ($(strip $(name)),)
@@ -282,7 +318,7 @@ endif
 ifdef LIBPATH
 nau_test_custom_LIBPATH	= $(LIBPATH):
 endif
-nau_test_PATH		= $(nau_test_custom_LIBPATH)$(fasl_BUILDDIR):$(srcdir)/tests
+nau_test_PATH		= $(nau_test_custom_LIBPATH)$(fasl_BUILDDIR):$(nau_test_SRCDIR)
 
 .PHONY: tests test check
 
@@ -293,19 +329,32 @@ tests test check:
 
 nau_itest_ENV		= IKARUS_LIBRARY_PATH=$(nau_test_PATH):$(IKARUS_LIBRARY_PATH)
 nau_itest_ENV		+= $(nau_test_ENV)
-nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
-#nau_itest_PROGRAM	= $(IKARUS) --debug --r6rs-script
+#nau_itest_PROGRAM	= $(IKARUS) --r6rs-script
+nau_itest_PROGRAM	= $(IKARUS) --debug --r6rs-script
 nau_itest_RUN		= $(nau_itest_ENV) $(nau_TIME_TESTS) $(nau_itest_PROGRAM)
 
-.PHONY: itest itests icheck
+nau_itest_installed_ENV	= IKARUS_LIBRARY_PATH=$(nau_test_SRCDIR):$(IKARUS_LIBRARY_PATH)
+nau_itest_installed_RUN	= $(nau_itest_installed_ENV) $(nau_TIME_TESTS) $(nau_itest_PROGRAM)
+
+.PHONY: itest itests icheck itest-installed
 
 itest itests icheck:
-ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_RUN) $(f);)
-endif
+#endif
 
+itest-installed:
+	@echo Running tests with installed Ikarus libraries
+	@echo $(nau_itest_installed_ENV)
+#ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Ikarus,$(f)) $(nau_itest_installed_RUN) $(f);)
+#endif
+
+ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
 test tests check: itest
+endif
 
 ## ---------------------------------------------------------------------
 ## Larceny
@@ -315,15 +364,28 @@ nau_ltest_ENV		+= $(nau_test_ENV)
 nau_ltest_PROGRAM	= $(LARCENY) -r6rs -program
 nau_ltest_RUN		= $(nau_ltest_ENV) $(nau_TIME_TESTS) $(nau_ltest_PROGRAM)
 
-.PHONY: ltest ltests lcheck
+nau_ltest_installed_ENV	= LARCENY_LIBPATH=$(nau_test_SRCDIR):$(LARCENY_LIBPATH)
+nau_ltest_installed_RUN	= $(nau_ltest_installed_ENV) $(nau_TIME_TESTS) $(nau_ltest_PROGRAM)
+
+.PHONY: ltest ltests lcheck ltest-installed
 
 ltest ltests lcheck:
-ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_RUN) $(f);)
-endif
+#endif
 
+ltest-installed:
+	@echo Running tests with installed Larceny libraries
+	@echo $(nau_ltest_installed_ENV)
+#ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Larceny,$(f)) $(nau_ltest_installed_RUN) $(f);)
+#endif
+
+ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
 test tests check: ltest
+endif
 
 ## ------------------------------------------------------------
 ## Mosh
@@ -337,15 +399,28 @@ nau_mtest_ENV		+= $(nau_test_ENV)
 nau_mtest_PROGRAM	= $(MOSH)
 nau_mtest_RUN		= $(nau_mtest_ENV) $(nau_TIME_TESTS) $(nau_mtest_PROGRAM)
 
-.PHONY: mtest mtests mcheck
+nau_mtest_installed_ENV	= MOSH_LOADPATH=$(nau_test_SRCDIR):$(MOSH_LOADPATH)
+nau_mtest_installed_RUN	= $(nau_mtest_installed_ENV) $(nau_TIME_TESTS) $(nau_mtest_PROGRAM)
+
+.PHONY: mtest mtests mcheck mtest-installed
 
 mtest mtests mcheck:
-ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Mosh,$(f)) $(nau_mtest_RUN) $(f);)
-endif
+#endif
 
+mtest-installed:
+	@echo Running tests with installed Mosh libraries
+	@echo $(nau_mtest_installed_ENV)
+#ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Mosh,$(f)) $(nau_mtest_installed_RUN) $(f);)
+#endif
+
+ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 test tests check: mtest
+endif
 
 ## ---------------------------------------------------------------------
 ## Ypsilon
@@ -355,15 +430,156 @@ nau_ytest_ENV		+= $(nau_test_ENV)
 nau_ytest_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
 nau_ytest_RUN		= $(nau_ytest_ENV) $(nau_TIME_TESTS) $(nau_ytest_PROGRAM)
 
-.PHONY: ytest ytests ycheck
+nau_ytest_installed_ENV	= YPSILON_SITELIB=$(nau_test_SRCDIR):$(YPSILON_SITELIB)
+nau_ytest_installed_RUN	= $(nau_ytest_installed_ENV) $(nau_TIME_TESTS) $(nau_ytest_PROGRAM)
+
+.PHONY: ytest ytests ycheck ytest-installed
 
 ytest ytests ycheck:
-ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+#ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
 	@$(foreach f,$(nau_test_FILES),\
 		$(call nau_test_SEPARATOR,Ypsilon,$(f)) $(nau_ytest_RUN) $(f);)
+#endif
+
+ytest-installed:
+	@echo Running tests with installed Ypsilon libraries
+	@echo $(nau_ytest_installed_ENV)
+#ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Ypsilon,$(f)) $(nau_ytest_installed_RUN) $(f);)
+#endif
+
+ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+test tests check: ytest
 endif
 
-test tests check: ytest
+#page
+## ---------------------------------------------------------------------
+## Proofing.
+## ---------------------------------------------------------------------
+
+# Proofs is the place to try stuff.  Proofs work exactly like tests, but
+# the source directory is "$(srcdir)/proofs".
+
+# Enable timing of proof files  execution.  We cannot include this in the
+# separator  because  it needs  to  be  placed  between the  environment
+# variables and the actual command line.
+
+nau_proof_SEPARATOR	= echo;echo "===> proof file $(2) with $(1)";echo;
+
+## --------------------------------------------------------------------
+
+# The variable  "file" is available to  the user on the  command line of
+# "make": It selects specific files.
+nau_proof_SRCDIR		= $(srcdir)/proofs
+ifneq (,$(strip $(file)))
+nau_proof_FILES		= $(wildcard $(nau_proof_SRCDIR)/proof-*$(file)*.sps)
+else
+nau_proof_FILES		= $(wildcard $(nau_proof_SRCDIR)/proof-*.sps)
+endif
+
+# The variable  "name" is available to  the user on the  command line of
+# "make": It selects specific proofs.
+ifneq ($(strip $(name)),)
+nau_proof_ENV		+= CHECK_TEST_NAME=$(name)
+endif
+
+# Here we include the build directory but not the source directory.  The
+# variable "LIBPATH"  is available  to the user  on the command  line of
+# "make": It prepends more directories to the search path.
+ifdef LIBPATH
+nau_proof_custom_LIBPATH	= $(LIBPATH):
+endif
+nau_proof_PATH		= $(nau_proof_custom_LIBPATH)$(fasl_BUILDDIR):$(srcdir)/proofs
+
+.PHONY: proofs proof
+
+proofs proof:
+
+## ---------------------------------------------------------------------
+## Ikarus
+
+nau_iproof_ENV		= IKARUS_LIBRARY_PATH=$(nau_proof_PATH):$(IKARUS_LIBRARY_PATH)
+nau_iproof_ENV		+= $(nau_proof_ENV)
+nau_iproof_PROGRAM	= $(IKARUS) --r6rs-script
+nau_iproof_RUN		= $(nau_iproof_ENV) $(nau_iproof_PROGRAM)
+
+.PHONY: iproof iproofs
+
+iproof iproofs:
+#ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+	@$(foreach f,$(nau_proof_FILES),\
+		$(call nau_proof_SEPARATOR,Ikarus,$(f)) $(nau_iproof_RUN) $(f);)
+#endif
+
+ifeq ($(strip $(nausicaa_ENABLE_IKARUS)),yes)
+proof proofs: iproof
+endif
+
+## ---------------------------------------------------------------------
+## Larceny
+
+nau_lproof_ENV		= LARCENY_LIBPATH=$(nau_proof_PATH):$(LARCENY_LIBPATH)
+nau_lproof_ENV		+= $(nau_proof_ENV)
+nau_lproof_PROGRAM	= $(LARCENY) -r6rs -program
+nau_lproof_RUN		= $(nau_lproof_ENV) $(nau_lproof_PROGRAM)
+
+.PHONY: lproof lproofs
+
+lproof lproofs:
+#ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+	@$(foreach f,$(nau_proof_FILES),\
+		$(call nau_proof_SEPARATOR,Larceny,$(f)) $(nau_lproof_RUN) $(f);)
+#endif
+
+ifeq ($(strip $(nausicaa_ENABLE_LARCENY)),yes)
+proof proofs: lproof
+endif
+
+## ------------------------------------------------------------
+## Mosh
+
+# ifeq (,$(strip $(MOSH_LOADPATH)))
+# nau_mproof_ENV		= MOSH_LOADPATH=$(nau_proof_PATH)
+# else
+# nau_mproof_ENV		= MOSH_LOADPATH=$(nau_proof_PATH):$(MOSH_LOADPATH)
+# endif
+nau_mproof_ENV		= MOSH_LOADPATH=$(nau_proof_PATH):$(MOSH_LOADPATH)
+nau_mproof_ENV		+= $(nau_proof_ENV)
+nau_mproof_PROGRAM	= $(MOSH)
+nau_mproof_RUN		= $(nau_mproof_ENV) $(nau_mproof_PROGRAM)
+
+.PHONY: mproof mproofs
+
+mproof mproofs:
+#ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+	@$(foreach f,$(nau_proof_FILES),\
+		$(call nau_proof_SEPARATOR,Mosh,$(f)) $(nau_mproof_RUN) $(f);)
+#endif
+
+ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
+proof proofs: mproof
+endif
+
+## ---------------------------------------------------------------------
+## Ypsilon
+
+nau_yproof_ENV		= YPSILON_SITELIB=$(nau_proof_PATH):$(YPSILON_SITELIB)
+nau_yproof_ENV		+= $(nau_proof_ENV)
+nau_yproof_PROGRAM	= $(YPSILON) --r6rs --warning --compatible
+nau_yproof_RUN		= $(nau_yproof_ENV) $(nau_yproof_PROGRAM)
+
+.PHONY: yproof yproofs
+
+yproof yproofs:
+#ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+	@$(foreach f,$(nau_proof_FILES),\
+		$(call nau_proof_SEPARATOR,Ypsilon,$(f)) $(nau_yproof_RUN) $(f);)
+#endif
+
+ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
+proof proofs: yproof
+endif
 
 ### end of file
 # Local Variables:
