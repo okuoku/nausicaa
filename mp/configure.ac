@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-mp],[0.1b1],[marcomaggi@gna.org])
+AC_INIT([nausicaa-mp],[0.1b2],[marcomaggi@gna.org])
 DS_BEGIN([./src/libraries/foreign/math/mp/sizeof.sls.in])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN

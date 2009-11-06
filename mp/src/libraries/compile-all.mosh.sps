@@ -30,6 +30,8 @@
   (only (foreign math mp random))
   (only (foreign math mp mpfr))
   (only (foreign math mp mpfi))
-  (only (foreign math mp mpc)))
+  (only (foreign math mp mpc))
+;;  (only (foreign math mp mpfrcx))
+  )
 
 ;;; end of file

@@ -34,5 +34,6 @@
 (compile-library "foreign/math/mp/mpfr.sls"	"foreign/math/mp/mpfr.larceny.slfasl")
 (compile-library "foreign/math/mp/mpfi.sls"	"foreign/math/mp/mpfi.larceny.slfasl")
 (compile-library "foreign/math/mp/mpc.sls"	"foreign/math/mp/mpc.larceny.slfasl")
+;;(compile-library "foreign/math/mp/mpfrcx.sls"	"foreign/math/mp/mpfrcx.larceny.slfasl")
 
 ;;; end of file
