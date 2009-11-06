@@ -3,14 +3,47 @@
   Fix the determination  of size for "off_t".  Is  it really "ullong" on
   32 bits?
 
+* stub
+
+  Add select stuff to the stub library.
+
+* glibc
+
+  Add the string functions.
+
+  Node "Name Service Switch" (with example stubs library?).
+
 * fd libraries
+
+  Fix failing tests in the file interface.
 
   Fix dlsym on lseek.  The  version retrieved looking for "lseek" should
   return an "off_t".  By artificially setting "off_t" as "unsigned-int",
   everything works on a 32bit  platform.  Why the return value cannot be
   the discovered "off_t"?.
 
+  Add the scatter/gather fd interface.
+
+  Add the mmap interface.
+
+  Finish the time interface.
+
+  Node "Users and Groups".
+
+  Node "System Management".
+
+  Node "System Configuration".
+
+  Node "Signal Handling".
+
 * streams
 
+  Test and document the streams-pipe library.
+
   More tests.
+
+* linux
+
+  Add a library  with an interface to the  "waitid()" function described
+  in the waitpid manual page (linux specific).
 

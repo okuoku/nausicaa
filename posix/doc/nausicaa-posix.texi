@@ -1472,7 +1472,7 @@ include the @code{XXXXXX} sequence of characters (six times @code{X}).
 @deffn Function utime @var{pathname}
 @deffnx Function utime @var{pathname} @var{access-time} @var{modification-time}
 @deffnx Parameter utime-function
-@deffnx Function primitive:utime @var{pathname} @var{access-time} @var{modification-time}
+@deffnx Function primitive:utime @var{pathname}
 @deffnx Function primitive:utime @var{pathname} @var{access-time} @var{modification-time}
 @deffnx Function platform:utime @var{pathname-cstr} @var{utimbuf-pointer}
 Set the access and modification times for the file selected by
