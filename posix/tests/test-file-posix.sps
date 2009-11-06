@@ -153,17 +153,17 @@ Ses ailes de geant l'empechent de marcher.")
 		(make-test-hierarchy)
 	      (with
 	       (clean-test-hierarchy)))
-(posix:system (string-append "ls -l " the-root))
+;;;(posix:system (string-append "ls -l " the-root))
 	  (check 'this
 	      (with-compensations
 		(let ((dir	(posix:opendir/c the-root))
 		      (layout	'()))
 		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
 		      ((pointer-null? entry))
-(write (list (struct-dirent-d_name-ptr-ref entry)
-	     (struct-dirent-d_name-ref entry)
-	     (cstring->string (struct-dirent-d_name-ref entry))
-	     ))(newline)
+;; (write (list (struct-dirent-d_name-ptr-ref entry)
+;; 	     (struct-dirent-d_name-ref entry)
+;; 	     (cstring->string (struct-dirent-d_name-ref entry))
+;; 	     ))(newline)
 		    (set! layout
 			  (cons (cstring->string
 				 (struct-dirent-d_name-ref entry))

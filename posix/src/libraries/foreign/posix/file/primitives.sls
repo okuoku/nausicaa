@@ -315,22 +315,24 @@
 
 (define utime
   (case-lambda
+
    ((pathname access-time modification-time)
     (with-compensations
-      (let ((*struct-utimbuf (malloc-block/c sizeof-struct-utimbuf)))
-	(struct-utimbuf-actime-set!  *struct-utimbuf access-time)
-	(struct-utimbuf-modtime-set! *struct-utimbuf modification-time)
+      (let ((struct-utimbuf* (malloc-block/c sizeof-struct-utimbuf)))
+	(struct-utimbuf-actime-set!  struct-utimbuf* access-time)
+	(struct-utimbuf-modtime-set! struct-utimbuf* modification-time)
 	(receive (result errno)
-	    (platform:utime (string->cstring/c pathname) *struct-utimbuf)
-	  (when (= -1 result)
-	    (raise-errno-error 'utime errno (list pathname access-time modification-time)))
-	  result))))
+	    (platform:utime (string->cstring/c pathname) struct-utimbuf*)
+	  (if (= -1 result)
+	      (raise-errno-error 'utime errno (list pathname access-time modification-time))
+	    result)))))
+
    ((pathname)	;set the times to the current time
     (receive (result errno)
 	(platform:utime (string->cstring/c pathname) pointer-null)
-      (when (= -1 result)
-	(raise-errno-error 'utime errno pathname))
-      result))))
+      (if (= -1 result)
+	  (raise-errno-error 'utime errno pathname)
+	result)))))
 
 
 ;;;; file size

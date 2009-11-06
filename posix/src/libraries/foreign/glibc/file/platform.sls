@@ -26,28 +26,27 @@
 
 (library (foreign glibc file platform)
   (export
-    utimes lutimes futimes
+    utimes		lutimes		futimes
     canonicalize_file_name
     remove
     truncate
-    mkdtemp
-    alphasort
-    versionsort
-    ftw
-    nftw
+    alphasort		versionsort
+    ftw			nftw
     mknod
-    tmpfile
-    mkdtemp
-    getumask)
-  (import (r6rs)
-    (uriel lang)
-    (uriel foreign)
-    (glibc sizeof))
-
-  (define dummy
-    (shared-object self-shared-object))
+    tempnam		tmpnam		tmpnam_r
+    tmpfile		mkdtemp)
+  (import (except (rnrs)
+		  remove truncate)
+    (foreign ffi)
+    (foreign ffi sizeof)
+    (foreign posix sizeof))
 
 
+(define dummy
+  (shared-object self-shared-object))
+
+;;; --------------------------------------------------------------------
+
 (define-c-function/with-errno utimes
   (int utimes (char* pointer)))
 
@@ -62,14 +61,17 @@
 (define-c-function/with-errno canonicalize_file_name
   (char* canonicalize_file_name (char*)))
 
+;;; --------------------------------------------------------------------
+
 (define-c-function/with-errno remove
   (int remove (char*)))
+
+;;; --------------------------------------------------------------------
 
 (define-c-function/with-errno truncate
   (int truncate (char* off_t)))
 
-(define-c-function/with-errno mkdtemp
-  (char* mkdtemp (char*)))
+;;; --------------------------------------------------------------------
 
 (define-c-function alphasort
   (int alphasort (pointer pointer)))
@@ -85,17 +87,29 @@
 (define-c-function/with-errno nftw
   (int nftw (char* callback int int)))
 
-(define-c-function/with-errno mknod
-  (int mknod (char* int int)))
+;;; --------------------------------------------------------------------
 
 (define-c-function/with-errno tmpfile
   (FILE* tmpfile (void)))
 
+(define-c-function/with-errno tempnam
+  (char* tempnam (char*)))
+
+(define-c-function/with-errno tmpnam
+  (char* tmpnam (char*)))
+
+(define-c-function/with-errno tmpnam_r
+  (char* tmpnam_r (char*)))
+
 (define-c-function/with-errno mkdtemp
   (char* mkdtemp (char*)))
 
-(define-c-function/with-errno getumask
-  (int getumask (void)))
+
+(define dummy2
+  (shared-object (open-shared-object* 'libnausicaa-posix1.so)))
+
+(define-c-function/with-errno mknod
+  (int nausicaa_posix_mknod (char* int int)))
 
 
 ;;;; done

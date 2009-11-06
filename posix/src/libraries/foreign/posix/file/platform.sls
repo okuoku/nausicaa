@@ -209,9 +209,6 @@
 (define-c-function/with-errno utime
   (int utime (char* pointer)))
 
-(define-c-function/with-errno utimes
-  (int utimes (char* pointer)))
-
 ;;; --------------------------------------------------------------------
 ;;; tile size
 

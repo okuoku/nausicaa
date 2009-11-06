@@ -26,34 +26,59 @@
 
 (library (foreign glibc file)
   (export
+    tmpfile		tmpfile-function
     tempnam		tempnam-function
+    tmpnam		tmpnam-function
+    tmpnam_r		tmpnam_r-function
     mkdtemp		mkdtemp-function
 
     utimes		utimes-function
     lutimes		lutimes-function
     futimes		futimes-function)
-  (import (rnrs)
-    (foreign glibc file primitives))
+  (import (except (rnrs)
+		  remove truncate)
+    (foreign posix helpers)
+    (prefix (foreign glibc file primitives) primitive:))
 
 
 ;;;; temporary files
 
+(define-parametrised tmpfile)
 (define-parametrised tempnam directory prefix)
+(define-parametrised tmpnam)
+(define-parametrised tmpnam_r)
 (define-parametrised mkdtemp template)
 
+
 ;;;; file times
 
-(define-parametrised utimes pathname
-  access-time-sec access-time-usec
-  modification-time-sec modification-time-usec)
+(define-primitive-parameter utimes-function	primitive:utimes)
+(define-primitive-parameter lutimes-function	primitive:lutimes)
+(define-primitive-parameter futimes-function	primitive:futimes)
 
-(define-parametrised lutimes pathname
-  access-time-sec access-time-usec
-  modification-time-sec modification-time-usec)
+(define utimes
+  (case-lambda
+   ((pathname access-time-sec access-time-usec modification-time-sec modification-time-usec)
+    ((utimes-function) pathname
+     access-time-sec access-time-usec
+     modification-time-sec modification-time-usec))
+   ((pathname)
+    ((utimes-function) pathname))))
 
-(define-parametrised futimes fd
-  access-time-sec access-time-usec
-  modification-time-sec modification-time-usec)
+(define lutimes
+  (case-lambda
+   ((pathname access-time-sec access-time-usec modification-time-sec modification-time-usec)
+    ((lutimes-function) pathname access-time-sec access-time-usec
+     modification-time-sec modification-time-usec))
+   ((pathname)
+    ((lutimes-function) pathname))))
+
+(define futimes
+  (case-lambda
+   ((fd access-time-sec access-time-usec modification-time-sec modification-time-usec)
+    ((futimes-function) fd access-time-sec access-time-usec modification-time-sec modification-time-usec))
+   ((fd)
+    ((futimes-function) fd))))
 
 
 ;;;; done

@@ -100,6 +100,8 @@ extern int nausicaa_posix_stat_typeismq	(struct stat * s);
 extern int nausicaa_posix_stat_typeissem(struct stat * s);
 extern int nausicaa_posix_stat_typeisshm(struct stat * s);
 
+extern int nausicaa_posix_mknod (char*, int, int);
+
 
 /** ------------------------------------------------------------
  ** Process termination status returned by waitpid functions.
@@ -366,6 +368,17 @@ int
 nausicaa_posix_stat_typeisshm (struct stat * s)
 {
   return S_TYPEISSEM(s);
+}
+
+
+/** --------------------------------------------------------------------
+ ** Miscellaneous.
+ ** ----------------------------------------------------------------- */
+
+int
+nausicaa_posix_mknod (char* filename, int mode, int dev)
+{
+  return mknod(filename, mode, dev);
 }
 
 
