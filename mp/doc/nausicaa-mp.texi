@@ -374,6 +374,18 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{MPC}
 @end macro
 
+@macro mpfrcx{}
+@acronym{MPFRCX}
+@end macro
+
+@macro mpfrx{}
+@acronym{MPFRX}
+@end macro
+
+@macro mpcx{}
+@acronym{MPCX}
+@end macro
+
 @macro gcc{}
 @acronym{GCC}
 @end macro
@@ -433,6 +445,9 @@ Multiple Precision Floating--Point Interval library.
 
 @item @mpc{}
 Multiple Precision Complex library.
+
+@item @mpfrcx{}
+Multiple Precision Real and Complex Polynomial library.
 @end table
 
 The package is distributed under the terms of the @gnu{} General Public
@@ -504,6 +519,7 @@ Documentation License''.
 * mpfr::                        Multiple precision reliable floats.
 * mpfi::                        Multiple precision interval numbers.
 * mpc::                         Multiple precision complex numbers.
+* mpfrcx::                      Multiple precision polynomials.
 
 Appendices
 
@@ -593,6 +609,7 @@ the Nausicaa/Scheme package.  The installed libraries are:
 (foreign math mp mpfr)
 (foreign math mp mpfi)
 (foreign math mp mpc)
+(foreign math mp mpfcx)
 (foreign math mp random)
 @end example
 
@@ -609,8 +626,8 @@ manage resources allocation in a Scheme program.
 @chapter Constant values
 
 
-The following bindings are exported by the @library{foreign math mp
-sizeof} library.
+Unless otherwise specified, the following bindings are exported by the
+@library{foreign math mp sizeof} library.
 
 
 @defvr Constant sizeof-gmp_randalg_t
@@ -630,11 +647,12 @@ sizeof} library.
 @defvrx Constant sizeof-mpfr_t
 @defvrx Constant sizeof-mpq_t
 @defvrx Constant sizeof-mpz_t
+@defvrx Constant sizeof-mpfrx_t
+@defvrx Constant sizeof-mpcx_t
 These variables hold the number of bytes required to store in memory the
-named foreign data type.
-
-For example @samp{sizeof-mpc_rnd_t} is the number of bytes required to
-hold the @samp{mpc_rnd_t} type definition of the @mpc{} library.
+named foreign data type.  For example @samp{sizeof-mpc_rnd_t} is the
+number of bytes required to hold the @samp{mpc_rnd_t} type definition of
+the @mpc{} library.
 
 Of special importance are:
 
@@ -645,11 +663,72 @@ sizeof-mpf_t
 sizeof-mpfr_t
 sizeof-mpfi_t
 sizeof-mpc_t
+sizeof-mpfrx_t
+sizeof-mpcx_t
 @end example
 
 @noindent
 which are the sizes of the data structures representing multiple
-precision numbers.
+precision numbers and polynomials.
+@end defvr
+
+
+@defun sizeof-mpz_t-array @var{number-of-elements}
+@defunx sizeof-mpq_t-array @var{number-of-elements}
+@defunx sizeof-mpf_t-array @var{number-of-elements}
+@defunx sizeof-mpfr_t-array @var{number-of-elements}
+@defunx sizeof-mpfi_t-array @var{number-of-elements}
+@defunx sizeof-mpc_t-array @var{number-of-elements}
+@defunx sizeof-mpfrx_t-array @var{number-of-elements}
+@defunx sizeof-mpcx_t-array @var{number-of-elements}
+Return the size of the block of memory required to hold an array of the
+named type and given number of elements.
+@end defun
+
+
+@defvr Constant alignof-gmp_randalg_t
+@defvrx Constant alignof-gmp_randstate_t
+@defvrx Constant alignof-mp_exp_t
+@defvrx Constant alignof-mp_limb_t
+@defvrx Constant alignof-mp_prec_t
+@defvrx Constant alignof-mp_rnd_t
+@defvrx Constant alignof-mp_size_t
+@defvrx Constant alignof-mpc_t
+@defvrx Constant alignof-mpc_rnd_t
+@defvrx Constant alignof-mpf_t
+@defvrx Constant alignof-mpfi_t
+@defvrx Constant alignof-mpfr_prec_t
+@defvrx Constant alignof-mpfr_rnd_t
+@defvrx Constant alignof-mpfr_sign_t
+@defvrx Constant alignof-mpfr_t
+@defvrx Constant alignof-mpq_t
+@defvrx Constant alignof-mpz_t
+@defvrx Constant alignof-mpfrx_t
+@defvrx Constant alignof-mpcx_t
+Alignments of data types in data structures.
+@end defvr
+
+
+@defvr Constant strideof-gmp_randalg_t
+@defvrx Constant strideof-gmp_randstate_t
+@defvrx Constant strideof-mp_exp_t
+@defvrx Constant strideof-mp_limb_t
+@defvrx Constant strideof-mp_prec_t
+@defvrx Constant strideof-mp_rnd_t
+@defvrx Constant strideof-mp_size_t
+@defvrx Constant strideof-mpc_t
+@defvrx Constant strideof-mpc_rnd_t
+@defvrx Constant strideof-mpf_t
+@defvrx Constant strideof-mpfi_t
+@defvrx Constant strideof-mpfr_prec_t
+@defvrx Constant strideof-mpfr_rnd_t
+@defvrx Constant strideof-mpfr_sign_t
+@defvrx Constant strideof-mpfr_t
+@defvrx Constant strideof-mpq_t
+@defvrx Constant strideof-mpz_t
+@defvrx Constant strideof-mpfrx_t
+@defvrx Constant strideof-mpcx_t
+Array stride of data types.
 @end defvr
 
 
@@ -668,26 +747,35 @@ precision numbers.
 @defvrx Constant MPFR_PREC_MAX
 @defvrx Constant MPFR_PREC_MIN
 @defvrx Constant MPFR_VERSION
+@defvrx Constant MPC_VERSION
 These variables hold various constants required by the foreign
 libraries.  Of special importance are the rounding modes for @mpfr{}:
 
 @example
-GMP_RNDN
-GMP_RNDD
-GMP_RNDU
-GMP_RNDZ
-@end example
-
-@noindent
-and the rounding modes for @mpc{}:
-
-@example
-MPC_RNDNN       MPC_RNDZN       MPC_RNDUN       MPC_RNDDN
-MPC_RNDNZ       MPC_RNDZZ       MPC_RNDUZ       MPC_RNDDZ
-MPC_RNDNU       MPC_RNDZU       MPC_RNDUU       MPC_RNDDU
-MPC_RNDND       MPC_RNDZD       MPC_RNDUD       MPC_RNDDD
+GMP_RNDN GMP_RNDD GMP_RNDU GMP_RNDZ
 @end example
 @end defvr
+
+
+@deftp Constant MPC_RNDNN
+@deftpx Constant MPC_RNDNZ
+@deftpx Constant MPC_RNDNU
+@deftpx Constant MPC_RNDND
+@deftpx Constant MPC_RNDZN
+@deftpx Constant MPC_RNDZZ
+@deftpx Constant MPC_RNDZU
+@deftpx Constant MPC_RNDZD
+@deftpx Constant MPC_RNDUN
+@deftpx Constant MPC_RNDUZ
+@deftpx Constant MPC_RNDUU
+@deftpx Constant MPC_RNDUD
+@deftpx Constant MPC_RNDDN
+@deftpx Constant MPC_RNDDZ
+@deftpx Constant MPC_RNDDU
+@deftpx Constant MPC_RNDDD
+Rounding modes for @mpc{}.  These bindings are exported by the
+@library{foreign math mp mpc} library.
+@end deftp
 
 @c page
 @node accessors
@@ -744,6 +832,43 @@ Return a pointer referencing the @samp{re} or @samp{im} fields in a
 @samp{mpc_t} structure.  These fields are structures of type
 @samp{mpfr_t}.
 @end deffn
+
+
+@deffn Syntax struct-mpcx_t-size-set! @var{pointer} @var{value}
+@deffnx Syntax struct-mpcx_t-size-ref @var{pointer}
+@deffnx Syntax struct-mpcx_t-deg-set! @var{pointer} @var{value}
+@deffnx Syntax struct-mpcx_t-deg-ref @var{pointer}
+@deffnx Syntax struct-mpcx_t-prec-set! @var{pointer} @var{value}
+@deffnx Syntax struct-mpcx_t-prec-ref @var{pointer}
+@deffnx Syntax struct-mpcx_t-coeff-set! @var{pointer} @var{value}
+@deffnx Syntax struct-mpcx_t-coeff-ref @var{pointer}
+Accessors and mutators for the fields of a @code{mpcx_t} type.
+@end deffn
+
+
+@deffn Syntax struct-mpfrx_t-size-set! @var{pointer} @var{value}
+@deffnx Syntax struct-mpfrx_t-size-ref @var{pointer}
+@deffnx Syntax struct-mpfrx_t-deg-set! @var{pointer} @var{value}
+@deffnx Syntax struct-mpfrx_t-deg-ref @var{pointer}
+@deffnx Syntax struct-mpfrx_t-prec-set! @var{pointer} @var{value}
+@deffnx Syntax struct-mpfrx_t-prec-ref @var{pointer}
+@deffnx Syntax struct-mpfrx_t-coeff-set! @var{pointer} @var{value}
+@deffnx Syntax struct-mpfrx_t-coeff-ref @var{pointer}
+Accessors and mutators for the fields of a @code{mpfrx_t} type.
+@end deffn
+
+
+@defun array-ref-c-mpz_t @var{pointer} @var{index}
+@defunx array-ref-c-mpq_t @var{pointer} @var{index}
+@defunx array-ref-c-mpf_t @var{pointer} @var{index}
+@defunx array-ref-c-mpfr_t @var{pointer} @var{index}
+@defunx array-ref-c-mpc_t @var{pointer} @var{index}
+@defunx array-ref-c-mpfi_t @var{pointer} @var{index}
+@defunx array-ref-c-mpfrx_t @var{pointer} @var{index}
+@defunx array-ref-c-mpcx_t @var{pointer} @var{index}
+Return pointer to the element at @var{index} in the array referenced by
+@var{pointer}.
+@end defun
 
 @c page
 @node gmp
@@ -2111,7 +2236,7 @@ start the program with:
 
 @example
 (import (rnrs)
-  (format)
+  (formations)
   (foreign memory)
   (foreign cstrings)
   (foreign math mp mpfi))
@@ -2179,7 +2304,7 @@ The complex floating point numbers @api{} is exported by the
 handle memory allocation.
 
 @defun mpc_init @var{pointer}
-@mpc{} version 0.7 does not export a @cfunc{mpc_init} function, so
+@mpc{} version 0.7+ does not export a @cfunc{mpc_init} function, so
 @library{foreign math mp mpc} defines one like this:
 
 @example
@@ -2417,7 +2542,7 @@ start the program with:
 
 @example
 (import (rnrs)
-  (format)
+  (formations)
   (foreign memory)
   (foreign cstrings)
   (foreign math mp mpc))
@@ -2458,6 +2583,15 @@ string:
 where using @samp{pointer-null} as first argument to @func{mpc_get_str}
 will make it allocate memory using the @gmp{} allocation functions
 (which default to the standard C language functions).
+
+@c page
+@node mpfrcx
+@chapter Multiple precision polynomials
+
+
+The polynomials @api{} is exported by the @library{foreign math mp
+mpfrcx} library.  We discuss multiple ways to handle memory allocation.
+
 
 @c page
 

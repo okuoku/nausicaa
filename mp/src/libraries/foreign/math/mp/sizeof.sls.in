@@ -61,6 +61,12 @@
     mpq_srcptr
     mpz_ptr
     mpz_srcptr
+    mpfrx_t
+    mpfrx_ptr
+    mpfrx_srcptr
+    mpcx_t
+    mpcx_ptr
+    mpcx_srcptr
 
     ;; size of types
     sizeof-gmp_randalg_t
@@ -77,6 +83,66 @@
     sizeof-mpfr_t
     sizeof-mpq_t
     sizeof-mpz_t
+    sizeof-mpfrx_t
+    sizeof-mpcx_t
+
+    alignof-gmp_randalg_t
+    alignof-gmp_randstate_t
+    alignof-mp_exp_t
+    alignof-mp_limb_t
+    alignof-mp_prec_t
+    alignof-mp_rnd_t
+    alignof-mp_size_t
+    alignof-mpc_t
+    alignof-mpc_rnd_t
+    alignof-mpf_t
+    alignof-mpfi_t
+    alignof-mpfr_prec_t
+    alignof-mpfr_rnd_t
+    alignof-mpfr_sign_t
+    alignof-mpfr_t
+    alignof-mpq_t
+    alignof-mpz_t
+    alignof-mpfrx_t
+    alignof-mpcx_t
+
+    strideof-gmp_randalg_t
+    strideof-gmp_randstate_t
+    strideof-mp_exp_t
+    strideof-mp_limb_t
+    strideof-mp_prec_t
+    strideof-mp_rnd_t
+    strideof-mp_size_t
+    strideof-mpc_t
+    strideof-mpc_rnd_t
+    strideof-mpf_t
+    strideof-mpfi_t
+    strideof-mpfr_prec_t
+    strideof-mpfr_rnd_t
+    strideof-mpfr_sign_t
+    strideof-mpfr_t
+    strideof-mpq_t
+    strideof-mpz_t
+    strideof-mpfrx_t
+    strideof-mpcx_t
+
+    sizeof-mpz_t-array
+    sizeof-mpq_t-array
+    sizeof-mpf_t-array
+    sizeof-mpfr_t-array
+    sizeof-mpfi_t-array
+    sizeof-mpc_t-array
+    sizeof-mpfrx_t-array
+    sizeof-mpcx_t-array
+
+    array-ref-c-mpz_t
+    array-ref-c-mpq_t
+    array-ref-c-mpf_t
+    array-ref-c-mpfr_t
+    array-ref-c-mpc_t
+    array-ref-c-mpfi_t
+    array-ref-c-mpfrx_t
+    array-ref-c-mpcx_t
 
     ;; Constants.
     GMP_RAND_ALG_DEFAULT
@@ -95,15 +161,29 @@
     MPFR_PREC_MIN
     MPFR_VERSION
     MPC_VERSION
+    MPFRCX_VERSION
 
     ;; accessors
     struct-mpfr-prec-set!		struct-mpfr-prec-ref
     struct-mpfr-sign-set!		struct-mpfr-sign-ref
     struct-mpfr-exp-set!		struct-mpfr-exp-ref
     struct-mpfr-d-set!			struct-mpfr-d-ref
+
     struct-mpq-num-ref			struct-mpq-den-ref
+
     struct-mpfi-left-ref		struct-mpfi-right-ref
-    struct-mpc-re-ref			struct-mpc-im-ref)
+
+    struct-mpc-re-ref			struct-mpc-im-ref
+
+    struct-mpfrx_t-size-set!		struct-mpfrx_t-size-ref
+    struct-mpfrx_t-deg-set!		struct-mpfrx_t-deg-ref
+    struct-mpfrx_t-prec-set!		struct-mpfrx_t-prec-ref
+    struct-mpfrx_t-coeff-set!		struct-mpfrx_t-coeff-ref
+
+    struct-mpcx_t-size-set!		struct-mpcx_t-size-ref
+    struct-mpcx_t-deg-set!		struct-mpcx_t-deg-ref
+    struct-mpcx_t-prec-set!		struct-mpcx_t-prec-ref
+    struct-mpcx_t-coeff-set!		struct-mpcx_t-coeff-ref)
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof))
@@ -146,27 +226,127 @@
 (define mpz_t			'pointer)
 (define mpz_ptr			'pointer)
 (define mpz_srcptr		'pointer)
+(define mpfrx_t			'pointer)
+(define mpfrx_ptr		'pointer)
+(define mpfrx_srcptr		'pointer)
+(define mpcx_t			'pointer)
+(define mpcx_ptr		'pointer)
+(define mpcx_srcptr		'pointer)
 
 
 ;;;; size of types
 
-(define sizeof-gmp_randalg_t	@SIZEOF_GMP_RANDALG_T@)
-(define sizeof-gmp_randstate_t	@SIZEOF_GMP_RANDSTATE_T@)
-(define sizeof-mp_exp_t		@SIZEOF_MP_EXP_T@)
-(define sizeof-mp_limb_t	@SIZEOF_MP_LIMB_T@)
-(define sizeof-mp_prec_t	@SIZEOF_MP_PREC_T@)
-(define sizeof-mp_rnd_t		@SIZEOF_MP_RND_T@)
-(define sizeof-mp_size_t	@SIZEOF_MP_SIZE_T@)
-(define sizeof-mpc_t		@SIZEOF_MPC_T@)
-(define sizeof-mpc_rnd_t	@SIZEOF_MPC_RND_T@)
-(define sizeof-mpf_t		@SIZEOF_MPF_T@)
-(define sizeof-mpfi_t		@SIZEOF_MPFI_T@)
-(define sizeof-mpfr_prec_t	@SIZEOF_MPFR_PREC_T@)
-(define sizeof-mpfr_rnd_t	@SIZEOF_MPFR_RND_T@)
-(define sizeof-mpfr_sign_t	@SIZEOF_MPFR_SIGN_T@)
-(define sizeof-mpfr_t		@SIZEOF_MPFR_T@)
-(define sizeof-mpq_t		@SIZEOF_MPQ_T@)
-(define sizeof-mpz_t		@SIZEOF_MPZ_T@)
+(define sizeof-gmp_randalg_t		@SIZEOF_GMP_RANDALG_T@)
+(define sizeof-gmp_randstate_t		@SIZEOF_GMP_RANDSTATE_T@)
+(define sizeof-mp_exp_t			@SIZEOF_MP_EXP_T@)
+(define sizeof-mp_limb_t		@SIZEOF_MP_LIMB_T@)
+(define sizeof-mp_prec_t		@SIZEOF_MP_PREC_T@)
+(define sizeof-mp_rnd_t			@SIZEOF_MP_RND_T@)
+(define sizeof-mp_size_t		@SIZEOF_MP_SIZE_T@)
+(define sizeof-mpc_t			@SIZEOF_MPC_T@)
+(define sizeof-mpc_rnd_t		@SIZEOF_MPC_RND_T@)
+(define sizeof-mpf_t			@SIZEOF_MPF_T@)
+(define sizeof-mpfi_t			@SIZEOF_MPFI_T@)
+(define sizeof-mpfr_prec_t		@SIZEOF_MPFR_PREC_T@)
+(define sizeof-mpfr_rnd_t		@SIZEOF_MPFR_RND_T@)
+(define sizeof-mpfr_sign_t		@SIZEOF_MPFR_SIGN_T@)
+(define sizeof-mpfr_t			@SIZEOF_MPFR_T@)
+(define sizeof-mpq_t			@SIZEOF_MPQ_T@)
+(define sizeof-mpz_t			@SIZEOF_MPZ_T@)
+(define sizeof-mpfrx_t			@SIZEOF_MPFRX_T@)
+(define sizeof-mpcx_t			@SIZEOF_MPCX_T@)
+
+(define alignof-gmp_randalg_t		@ALIGNOF_GMP_RANDALG_T@)
+(define alignof-gmp_randstate_t		@ALIGNOF_GMP_RANDSTATE_T@)
+(define alignof-mp_exp_t		@ALIGNOF_MP_EXP_T@)
+(define alignof-mp_limb_t		@ALIGNOF_MP_LIMB_T@)
+(define alignof-mp_prec_t		@ALIGNOF_MP_PREC_T@)
+(define alignof-mp_rnd_t		@ALIGNOF_MP_RND_T@)
+(define alignof-mp_size_t		@ALIGNOF_MP_SIZE_T@)
+(define alignof-mpc_t			@ALIGNOF_MPC_T@)
+(define alignof-mpc_rnd_t		@ALIGNOF_MPC_RND_T@)
+(define alignof-mpf_t			@ALIGNOF_MPF_T@)
+(define alignof-mpfi_t			@ALIGNOF_MPFI_T@)
+(define alignof-mpfr_prec_t		@ALIGNOF_MPFR_PREC_T@)
+(define alignof-mpfr_rnd_t		@ALIGNOF_MPFR_RND_T@)
+(define alignof-mpfr_sign_t		@ALIGNOF_MPFR_SIGN_T@)
+(define alignof-mpfr_t			@ALIGNOF_MPFR_T@)
+(define alignof-mpq_t			@ALIGNOF_MPQ_T@)
+(define alignof-mpz_t			@ALIGNOF_MPZ_T@)
+(define alignof-mpfrx_t			@ALIGNOF_MPFRX_T@)
+(define alignof-mpcx_t			@ALIGNOF_MPCX_T@)
+
+(define strideof-gmp_randalg_t		@STRIDEOF_GMP_RANDALG_T@)
+(define strideof-gmp_randstate_t	@STRIDEOF_GMP_RANDSTATE_T@)
+(define strideof-mp_exp_t		@STRIDEOF_MP_EXP_T@)
+(define strideof-mp_limb_t		@STRIDEOF_MP_LIMB_T@)
+(define strideof-mp_prec_t		@STRIDEOF_MP_PREC_T@)
+(define strideof-mp_rnd_t		@STRIDEOF_MP_RND_T@)
+(define strideof-mp_size_t		@STRIDEOF_MP_SIZE_T@)
+(define strideof-mpc_t			@STRIDEOF_MPC_T@)
+(define strideof-mpc_rnd_t		@STRIDEOF_MPC_RND_T@)
+(define strideof-mpf_t			@STRIDEOF_MPF_T@)
+(define strideof-mpfi_t			@STRIDEOF_MPFI_T@)
+(define strideof-mpfr_prec_t		@STRIDEOF_MPFR_PREC_T@)
+(define strideof-mpfr_rnd_t		@STRIDEOF_MPFR_RND_T@)
+(define strideof-mpfr_sign_t		@STRIDEOF_MPFR_SIGN_T@)
+(define strideof-mpfr_t			@STRIDEOF_MPFR_T@)
+(define strideof-mpq_t			@STRIDEOF_MPQ_T@)
+(define strideof-mpz_t			@STRIDEOF_MPZ_T@)
+(define strideof-mpfrx_t		@STRIDEOF_MPFRX_T@)
+(define strideof-mpcx_t			@STRIDEOF_MPCX_T@)
+
+;;; --------------------------------------------------------------------
+
+(define (sizeof-mpz_t-array n)
+  (* n sizeof-mpz_t))
+
+(define (sizeof-mpq_t-array n)
+  (* n sizeof-mpq_t))
+
+(define (sizeof-mpf_t-array n)
+  (* n sizeof-mpf_t))
+
+(define (sizeof-mpfr_t-array n)
+  (* n sizeof-mpfr_t))
+
+(define (sizeof-mpfi_t-array n)
+  (* n sizeof-mpfi_t))
+
+(define (sizeof-mpc_t-array n)
+  (* n sizeof-mpc_t))
+
+(define (sizeof-mpfrx_t-array n)
+  (* n sizeof-mpfrx_t))
+
+(define (sizeof-mpcx_t-array n)
+  (* n sizeof-mpcx_t))
+
+;;; --------------------------------------------------------------------
+
+(define (array-ref-c-mpz_t pointer index)
+  (pointer-add pointer (* index strideof-mpz_t)))
+
+(define (array-ref-c-mpq_t pointer index)
+  (pointer-add pointer (* index strideof-mpq_t)))
+
+(define (array-ref-c-mpf_t pointer index)
+  (pointer-add pointer (* index strideof-mpf_t)))
+
+(define (array-ref-c-mpfr_t pointer index)
+  (pointer-add pointer (* index strideof-mpfr_t)))
+
+(define (array-ref-c-mpc_t pointer index)
+  (pointer-add pointer (* index strideof-mpc_t)))
+
+(define (array-ref-c-mpfi_t pointer index)
+  (pointer-add pointer (* index strideof-mpfi_t)))
+
+(define (array-ref-c-mpfrx_t pointer index)
+  (pointer-add pointer (* index strideof-mpfrx_t)))
+
+(define (array-ref-c-mpcx_t pointer index)
+  (pointer-add pointer (* index strideof-mpcx_t)))
 
 
 ;;;; constants
@@ -188,8 +368,8 @@
 (define MPFR_PREC_MAX				@VALUEOF_MPFR_PREC_MAX@)
 (define MPFR_PREC_MIN				@VALUEOF_MPFR_PREC_MIN@)
 (define MPFR_VERSION				@VALUEOF_MPFR_VERSION@)
-
 (define MPC_VERSION				@VALUEOF_MPC_VERSION@)
+(define MPFRCX_VERSION				@VALUEOF_MPFRCX_VERSION@)
 
 
 ;;;; structure accessors
@@ -222,6 +402,8 @@
   @SETTEROF_MPFR_STRUCT_D@
   @GETTEROF_MPFR_STRUCT_D@)
 
+;;; --------------------------------------------------------------------
+
 (define-syntax struct-mpq-num-ref
   (syntax-rules ()
     ((_ ?struct-pointer)
@@ -231,6 +413,8 @@
   (syntax-rules ()
     ((_ ?struct-pointer)
      (pointer-add ?struct-pointer @OFFSETOF_MPQ_STRUCT_DEN@))))
+
+;;; --------------------------------------------------------------------
 
 (define-syntax struct-mpfi-left-ref
   (syntax-rules ()
@@ -242,6 +426,8 @@
     ((_ ?struct-pointer)
      (pointer-add ?struct-pointer @OFFSETOF_MPFI_STRUCT_RIGHT@))))
 
+;;; --------------------------------------------------------------------
+
 (define-syntax struct-mpc-re-ref
   (syntax-rules ()
     ((_ ?struct-pointer)
@@ -251,6 +437,66 @@
   (syntax-rules ()
     ((_ ?struct-pointer)
      (pointer-add ?struct-pointer @OFFSETOF_MPC_STRUCT_IM@))))
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  struct-mpfrx_t-size-set!
+  struct-mpfrx_t-size-ref
+  @OFFSETOF_STRUCT_MPFRX_T_SIZE@
+  @SETTEROF_STRUCT_MPFRX_T_SIZE@
+  @GETTEROF_STRUCT_MPFRX_T_SIZE@)
+
+(define-c-struct-accessor-and-mutator
+  struct-mpfrx_t-deg-set!
+  struct-mpfrx_t-deg-ref
+  @OFFSETOF_STRUCT_MPFRX_T_DEG@
+  @SETTEROF_STRUCT_MPFRX_T_DEG@
+  @GETTEROF_STRUCT_MPFRX_T_DEG@)
+
+(define-c-struct-accessor-and-mutator
+  struct-mpfrx_t-prec-set!
+  struct-mpfrx_t-prec-ref
+  @OFFSETOF_STRUCT_MPFRX_T_PREC@
+  @SETTEROF_STRUCT_MPFRX_T_PREC@
+  @GETTEROF_STRUCT_MPFRX_T_PREC@)
+
+(define-c-struct-accessor-and-mutator
+  struct-mpfrx_t-coeff-set!
+  struct-mpfrx_t-coeff-ref
+  @OFFSETOF_STRUCT_MPFRX_T_COEFF@
+  @SETTEROF_STRUCT_MPFRX_T_COEFF@
+  @GETTEROF_STRUCT_MPFRX_T_COEFF@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  struct-mpcx_t-size-set!
+  struct-mpcx_t-size-ref
+  @OFFSETOF_STRUCT_MPCX_T_SIZE@
+  @SETTEROF_STRUCT_MPCX_T_SIZE@
+  @GETTEROF_STRUCT_MPCX_T_SIZE@)
+
+(define-c-struct-accessor-and-mutator
+  struct-mpcx_t-deg-set!
+  struct-mpcx_t-deg-ref
+  @OFFSETOF_STRUCT_MPCX_T_DEG@
+  @SETTEROF_STRUCT_MPCX_T_DEG@
+  @GETTEROF_STRUCT_MPCX_T_DEG@)
+
+(define-c-struct-accessor-and-mutator
+  struct-mpcx_t-prec-set!
+  struct-mpcx_t-prec-ref
+  @OFFSETOF_STRUCT_MPCX_T_PREC@
+  @SETTEROF_STRUCT_MPCX_T_PREC@
+  @GETTEROF_STRUCT_MPCX_T_PREC@)
+
+(define-c-struct-accessor-and-mutator
+  struct-mpcx_t-coeff-set!
+  struct-mpcx_t-coeff-ref
+  @OFFSETOF_STRUCT_MPCX_T_COEFF@
+  @SETTEROF_STRUCT_MPCX_T_COEFF@
+  @GETTEROF_STRUCT_MPCX_T_COEFF@)
 
 
 ;;;; done

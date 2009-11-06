@@ -18,9 +18,9 @@ Topics
 ---------------
 
 Nausicaa/MP  is a  set of  Scheme libraries  implementing an
-interface  to the  GMP,  MPFR, MPFI  and  MPC libraries  for
-multiple precision integers  and floating-point numbers.  It
-is based on Nausicaa/Scheme package.
+interface to  the GMP, MPFR, MPFI, MPC  and MPFRCX libraries
+for multiple precision  integers and floating-point numbers.
+It is based on Nausicaa/Scheme package.
 
   GMP stands for  GNU Multiple Precision arithmetic library.
 The  last  time  the  maintainer  bothered  to  update  this
@@ -40,6 +40,11 @@ this paragraph, it had tested this project with MPFI version
   MPC  stands for Multiple  Precision Complex  library.  The
 last time the maintainer  bothered to update this paragraph,
 it had tested this project with MPC version 0.8.
+
+  MPFRCX  stands  for Multiple  Precision  Real and  Complex
+Polynomial library.   The last time  the maintainer bothered
+to update  this paragraph, it  had tested this  project with
+MPFRCX version 0.2.
 
 
 2. License
@@ -240,6 +245,10 @@ the MPFI library can be found at:
 the MPC library can be found at:
 
 	    <http://www.multiprecision.org/mpc/>
+
+the MPFCX library can be found at:
+
+	   <http://www.multiprecision.org/mpfcx/>
 
 
 ### end of file

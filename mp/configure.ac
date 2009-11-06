@@ -69,10 +69,23 @@ m4_define([NAU_MPC_INCLUDES],[
 #include <mpc.h>
 ])
 
+m4_define([NAU_MPFRCX_INCLUDES],[
+#include <gmp.h>
+#include <mpfr.h>
+#include <mpc.h>
+#include <mpfrcx.h>
+])
+
 dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAU_GMP_SIZEOF_TEST],
    [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_GMP_INCLUDES])])
+
+AC_DEFUN([NAU_GMP_ALIGNOF_TEST],
+   [NAUSICAA_ALIGNOF_TEST([$1],[$2],[#f],[NAU_GMP_INCLUDES])])
+
+AC_DEFUN([NAU_GMP_STRIDEOF_TEST],
+   [NAUSICAA_STRIDEOF_TEST([$1],[$2],[#f],[NAU_GMP_INCLUDES])])
 
 AC_DEFUN([NAU_GMP_VALUEOF_TEST],
    [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_GMP_INCLUDES])])
@@ -88,6 +101,12 @@ dnl --------------------------------------------------------------------
 AC_DEFUN([NAU_MPFR_SIZEOF_TEST],
    [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_MPFR_INCLUDES])])
 
+AC_DEFUN([NAU_MPFR_ALIGNOF_TEST],
+   [NAUSICAA_ALIGNOF_TEST([$1],[$2],[#f],[NAU_MPFR_INCLUDES])])
+
+AC_DEFUN([NAU_MPFR_STRIDEOF_TEST],
+   [NAUSICAA_STRIDEOF_TEST([$1],[$2],[#f],[NAU_MPFR_INCLUDES])])
+
 AC_DEFUN([NAU_MPFR_VALUEOF_TEST],
    [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_MPFR_INCLUDES])])
 
@@ -102,6 +121,12 @@ dnl --------------------------------------------------------------------
 AC_DEFUN([NAU_MPFI_SIZEOF_TEST],
    [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_MPFI_INCLUDES])])
 
+AC_DEFUN([NAU_MPFI_ALIGNOF_TEST],
+   [NAUSICAA_ALIGNOF_TEST([$1],[$2],[#f],[NAU_MPFI_INCLUDES])])
+
+AC_DEFUN([NAU_MPFI_STRIDEOF_TEST],
+   [NAUSICAA_STRIDEOF_TEST([$1],[$2],[#f],[NAU_MPFI_INCLUDES])])
+
 AC_DEFUN([NAU_MPFI_VALUEOF_TEST],
    [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_MPFI_INCLUDES])])
 
@@ -113,6 +138,12 @@ dnl --------------------------------------------------------------------
 AC_DEFUN([NAU_MPC_SIZEOF_TEST],
    [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_MPC_INCLUDES])])
 
+AC_DEFUN([NAU_MPC_ALIGNOF_TEST],
+   [NAUSICAA_ALIGNOF_TEST([$1],[$2],[#f],[NAU_MPC_INCLUDES])])
+
+AC_DEFUN([NAU_MPC_STRIDEOF_TEST],
+   [NAUSICAA_STRIDEOF_TEST([$1],[$2],[#f],[NAU_MPC_INCLUDES])])
+
 AC_DEFUN([NAU_MPC_VALUEOF_TEST],
    [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_MPC_INCLUDES])])
 
@@ -121,6 +152,26 @@ AC_DEFUN([NAU_MPC_INSPECT_TYPE],
 
 AC_DEFUN([NAU_MPC_OFFSETOF_FIELD_TEST],
    [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[NAU_MPC_INCLUDES])])
+
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAU_MPFRCX_SIZEOF_TEST],
+   [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_MPFRCX_INCLUDES])])
+
+AC_DEFUN([NAU_MPFRCX_VALUEOF_TEST],
+   [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_MPFRCX_INCLUDES])])
+
+AC_DEFUN([NAU_MPFRCX_ALIGNOF_TEST],
+   [NAUSICAA_ALIGNOF_TEST([$1],[$2],[#f],[NAU_MPFRCX_INCLUDES])])
+
+AC_DEFUN([NAU_MPFRCX_STRIDEOF_TEST],
+   [NAUSICAA_STRIDEOF_TEST([$1],[$2],[#f],[NAU_MPFRCX_INCLUDES])])
+
+AC_DEFUN([NAU_MPFRCX_INSPECT_TYPE],
+   [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[NAU_MPFRCX_INCLUDES])])
+
+AC_DEFUN([NAU_MPFRCX_INSPECT_FIELD_TYPE],
+   [NAUSICAA_INSPECT_FIELD_TYPE([STRUCT_$1],[$2],[$3],[$4],[#f],[NAU_MPFRCX_INCLUDES])])
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -143,6 +194,16 @@ NAU_GMP_SIZEOF_TEST([GMP_RANDSTATE_T],[gmp_randstate_t])
 NAU_GMP_SIZEOF_TEST([MPF_T],[mpf_t])
 NAU_GMP_SIZEOF_TEST([MPQ_T],[mpq_t])
 NAU_GMP_SIZEOF_TEST([MPZ_T],[mpz_t])
+
+NAU_GMP_ALIGNOF_TEST([GMP_RANDSTATE_T],[gmp_randstate_t])
+NAU_GMP_ALIGNOF_TEST([MPF_T],[mpf_t])
+NAU_GMP_ALIGNOF_TEST([MPQ_T],[mpq_t])
+NAU_GMP_ALIGNOF_TEST([MPZ_T],[mpz_t])
+
+NAU_GMP_STRIDEOF_TEST([GMP_RANDSTATE_T],[gmp_randstate_t])
+NAU_GMP_STRIDEOF_TEST([MPF_T],[mpf_t])
+NAU_GMP_STRIDEOF_TEST([MPQ_T],[mpq_t])
+NAU_GMP_STRIDEOF_TEST([MPZ_T],[mpz_t])
 
 NAU_GMP_OFFSETOF_FIELD_TEST([MPQ_STRUCT_NUM],[__mpq_struct],[_mp_num])
 NAU_GMP_OFFSETOF_FIELD_TEST([MPQ_STRUCT_DEN],[__mpq_struct],[_mp_den])
@@ -169,6 +230,9 @@ NAUSICAA_DISABLE_TESTS
 fi
 
 NAU_MPFR_SIZEOF_TEST([MPFR_T],[mpfr_t])
+NAU_MPFR_ALIGNOF_TEST([MPFR_T],[mpfr_t])
+NAU_MPFR_STRIDEOF_TEST([MPFR_T],[mpfr_t])
+
 NAU_MPFR_INSPECT_TYPE([MP_RND_T],[mp_rnd_t],[signed-int])
 NAU_MPFR_INSPECT_TYPE([MP_PREC_T],[mp_prec_t],[unsigned-int])
 NAU_MPFR_INSPECT_TYPE([MPFR_PREC_T],[mpfr_prec_t],[unsigned-int])
@@ -211,13 +275,15 @@ AC_CHECK_HEADERS([mpfi.h],,[AC_MSG_FAILURE([missing mpfr.h header],[2])])
 AC_CHECK_LIB([mpfi],[mpfi_init],,[AC_MSG_FAILURE([missing or unusable MPFI library],[2])])
 
   else
-    AC_MSG_FAILURE([to enable MPFI support MPFR support must be enabled, too],[2])
+    AC_MSG_FAILURE([to enable MPFI, MPFR support must be enabled, too],[2])
   fi
 else
 NAUSICAA_DISABLE_TESTS
 fi
 
 NAU_MPFI_SIZEOF_TEST([MPFI_T],[mpfi_t])
+NAU_MPFI_ALIGNOF_TEST([MPFI_T],[mpfi_t])
+NAU_MPFI_STRIDEOF_TEST([MPFI_T],[mpfi_t])
 
 NAU_MPFI_OFFSETOF_FIELD_TEST([MPFI_STRUCT_LEFT],[__mpfi_struct],[left])
 NAU_MPFI_OFFSETOF_FIELD_TEST([MPFI_STRUCT_RIGHT],[__mpfi_struct],[right])
@@ -247,19 +313,70 @@ AC_CHECK_LIB([mpc],[mpc_clear],,[AC_MSG_FAILURE([missing or unusable MPC library
 AC_CHECK_HEADERS([mpc.h],,[AC_MSG_FAILURE([missing mpc.h header],[2])])
 
   else
-    AC_MSG_FAILURE([to enable MPC support MPFR support must be enabled, too],[2])
+    AC_MSG_FAILURE([to enable MPC, MPFR support must be enabled, too],[2])
   fi
 else
 NAUSICAA_DISABLE_TESTS
 fi
 
 NAU_MPC_SIZEOF_TEST([MPC_T],[mpc_t])
+NAU_MPC_ALIGNOF_TEST([MPC_T],[mpc_t])
+NAU_MPC_STRIDEOF_TEST([MPC_T],[mpc_t])
+
 NAU_MPC_OFFSETOF_FIELD_TEST([MPC_STRUCT_RE],[__mpc_struct],[re])
 NAU_MPC_OFFSETOF_FIELD_TEST([MPC_STRUCT_IM],[__mpc_struct],[im])
 
 NAU_MPC_VALUEOF_TEST([MPC_VERSION],[MPC_VERSION])
 
 NAU_MPC_INSPECT_TYPE([MPC_RND_T],[mpc_rnd_t],[signed-int])
+
+NAUSICAA_ENABLE_TESTS
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Checking MPFRCX.
+dnl --------------------------------------------------------------------
+
+NAU_DS_ENABLE_OPTION([nau_ENABLE_MPFRCX],[mpfrcx],[no],
+  [whether the MPFRCX interface will be used],
+  [disable MPFRCX interface])
+
+if test "${nau_ENABLE_MPFRCX}" = yes ; then
+  if test "${nau_ENABLE_MPFR}" = yes ; then
+    if test "${nau_ENABLE_MPC}" = yes ; then
+
+AC_CHECK_LIB([mpfrcx],[mpfrx_mul],,[AC_MSG_FAILURE([missing or unusable MPFRCX library],[2])])
+AC_CHECK_HEADERS([mpfrcx.h],,[AC_MSG_FAILURE([missing mpfrcx.h header],[2])])
+
+    else
+      AC_MSG_FAILURE([to enable MPFRCX, MPC support must be enabled, too],[2])
+    fi
+  else
+    AC_MSG_FAILURE([to enable MPFRCX, MPFR support must be enabled, too],[2])
+  fi
+else
+NAUSICAA_DISABLE_TESTS
+fi
+
+NAU_MPFRCX_VALUEOF_TEST([MPFRCX_VERSION],[MPFRCX_VERSION])
+
+NAU_MPFRCX_SIZEOF_TEST([MPFRX_T],[mpfrx_t])
+NAU_MPFRCX_ALIGNOF_TEST([MPFRX_T],[mpfrx_t])
+NAU_MPFRCX_STRIDEOF_TEST([MPCX_T],[mpcx_t])
+
+NAU_MPFRCX_SIZEOF_TEST([MPCX_T],[mpcx_t])
+NAU_MPFRCX_ALIGNOF_TEST([MPCX_T],[mpcx_t])
+NAU_MPFRCX_STRIDEOF_TEST([MPFRX_T],[mpfrx_t])
+
+NAU_MPFRCX_INSPECT_FIELD_TYPE([MPFRX_T_SIZE],[__mpfrx_struct],[size],[signed-int])
+NAU_MPFRCX_INSPECT_FIELD_TYPE([MPFRX_T_DEG],[__mpfrx_struct],[deg],[signed-int])
+NAU_MPFRCX_INSPECT_FIELD_TYPE([MPFRX_T_PREC],[__mpfrx_struct],[prec],[unsigned-int])
+NAU_MPFRCX_INSPECT_FIELD_TYPE([MPFRX_T_COEFF],[__mpfrx_struct],[coeff],[pointer])
+
+NAU_MPFRCX_INSPECT_FIELD_TYPE([MPCX_T_SIZE],[__mpcx_struct],[size],[signed-int])
+NAU_MPFRCX_INSPECT_FIELD_TYPE([MPCX_T_DEG],[__mpcx_struct],[deg],[signed-int])
+NAU_MPFRCX_INSPECT_FIELD_TYPE([MPCX_T_PREC],[__mpcx_struct],[prec],[unsigned-int])
+NAU_MPFRCX_INSPECT_FIELD_TYPE([MPCX_T_COEFF],[__mpcx_struct],[coeff],[pointer])
 
 NAUSICAA_ENABLE_TESTS
 
