@@ -10,8 +10,8 @@ Weekly library program
 2009-10-25	Nausicaa/Zlib		*** DONE
 2009-11-01	Nausicaa/Cairo		*** DONE
 2009-11-08	Nausicaa/UUID
-2009-11-15
-2009-11-22
+2009-11-15	Nausicaa/SQLite
+2009-11-22	Nausicaa/Pango
 2009-11-29
 
 
@@ -19,9 +19,10 @@ Weekly library program
 ---
 
 * Finish the POSIX interface.
-* Merge Glibc into POSIX interface.
-* Merge Linux into POSIX interface.
 * Finish the OSSP/sa interface?  Drop it?
+* Write a JSON reader/writer for Nausicaa/Scheme.
+* Write an URI parser for Nausicaa/Scheme.
+* Embed I18N for messages in Nauscaa/Scheme (Shinn's msgcat).
 * Ideally 0.1 should include  enough interfaces to heterogeneous foreign
   libraries  to be  a good  base of  reasoning about  what is  needed to
   provide a multi-implementation FFI.  This means writing interfaces to:
