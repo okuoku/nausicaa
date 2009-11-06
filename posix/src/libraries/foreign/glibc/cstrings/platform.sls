@@ -1,14 +1,13 @@
 ;;;
-;;;Part of: Nausicaa/Glibc
+;;;Part of: Nausicaa/POSIX
 ;;;Contents: library of cstring functions
 ;;;Date: Thu Dec 18, 2008
-;;;Time-stamp: <2008-12-18 07:45:01 marco>
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This  program  is free  software:  you  can redistribute  it
 ;;;and/or modify it  under the terms of the  GNU General Public
@@ -27,27 +26,17 @@
 ;;;<http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(library (glibc cstring)
+(library (foreign glibc cstrings platform)
   (export
-
     memchr		memrchr
     strchr		strrchr
-    strstr		memmem
-
-    )
-  (import (r6rs)
-    (uriel ffi)
-    (uriel memory)
-    (uriel cstring))
-
+    strstr		memmem)
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof))
 
 
-;;;; code
-
 (define-c-function memchr
   (char* memchr (char* int size_t)))
 
@@ -65,7 +54,6 @@
 
 (define-c-function memmem
   (void* memmem (void* size_t void* size_t)))
-
 
 
 ;;;; done

@@ -55,18 +55,45 @@ AC_CHECK_FUNC([stat])
 AC_CHECK_FUNC([lstat])
 AC_CHECK_FUNC([fstat])
 
+AC_CHECK_HEADERS([dirent.h])
+AC_CHECK_HEADERS([fcntl.h])
+AC_CHECK_HEADERS([sys/stat.h])
+AC_CHECK_HEADERS([sys/time.h])
+AC_CHECK_HEADERS([sys/times.h])
+AC_CHECK_HEADERS([sys/timex.h])
+AC_CHECK_HEADERS([time.h])
+AC_CHECK_HEADERS([utime.h])
+
 dnl page
 dnl --------------------------------------------------------------------
 dnl Helpers.
 dnl --------------------------------------------------------------------
 
 m4_define([NAU_POSIX_INCLUDES],[
-#include <fcntl.h>
-#include <time.h>
-#include <sys/times.h>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <utime.h>
+#ifdef HAVE_DIRENT_H
+#  include <dirent.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#  include <fcntl.h>
+#endif
+#ifdef HAVE_TIME_H
+#  include <time.h>
+#endif
+#ifdef HAVE_UTIME_H
+#  include <utime.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#  include <sys/stat.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#  include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_TIMES_H
+#  include <sys/times.h>
+#endif
+#ifdef HAVE_SYS_TIMEX_H
+#  include <sys/timex.h>
+#endif
 ])
 
 dnl --------------------------------------------------------------------
@@ -158,7 +185,9 @@ dnl
 dnl     time_usec st_dev st_mtime_usec st_atime_usec st_ctime_usec
 dnl
 
-AC_CHECK_MEMBERS([struct stat.st_atime_usec, struct stat.st_mtime_usec, struct stat.st_ctime_usec,])
+AC_CHECK_MEMBERS([struct stat.st_atime_usec])
+AC_CHECK_MEMBERS([struct stat.st_mtime_usec])
+AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 
 dnl NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_STAT],[struct stat])
 
@@ -189,6 +218,48 @@ AC_DEFUN([NAU_POSIX_STRUCT_UTIMBUF_FIELD],
 NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_UTIMBUF],[struct utimbuf])
 NAU_POSIX_STRUCT_UTIMBUF_FIELD([ACTIME],[actime],[signed-int])
 NAU_POSIX_STRUCT_UTIMBUF_FIELD([MODTIME],[modtime],[signed-int])
+
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAU_POSIX_STRUCT_TIMEZONE_FIELD],
+  [NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMEZONE_$1],[struct timezone],[$2],[$3])])
+
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_TIMEZONE],[struct timezone])
+NAU_POSIX_STRUCT_TIMEZONE_FIELD([TZ_MINUTESWEST],[tz_minuteswest],[signed-int])
+NAU_POSIX_STRUCT_TIMEZONE_FIELD([TZ_DSTTIME],[tz_dsttime],[signed-int])
+
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAU_POSIX_STRUCT_TM_FIELD],
+  [NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TM_$1],[struct tm],[$2],[$3])])
+
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_TM],[struct tm])
+NAU_POSIX_STRUCT_TM_FIELD([TM_SEC],[tm_sec],[signed-int])
+NAU_POSIX_STRUCT_TM_FIELD([TM_MIN],[tm_min],[signed-int])
+NAU_POSIX_STRUCT_TM_FIELD([TM_HOUR],[tm_hour],[signed-int])
+NAU_POSIX_STRUCT_TM_FIELD([TM_MDAY],[tm_mday],[signed-int])
+NAU_POSIX_STRUCT_TM_FIELD([TM_MON],[tm_mon],[signed-int])
+NAU_POSIX_STRUCT_TM_FIELD([TM_YEAR],[tm_year],[signed-int])
+NAU_POSIX_STRUCT_TM_FIELD([TM_WDAY],[tm_wday],[signed-int])
+NAU_POSIX_STRUCT_TM_FIELD([TM_YDAY],[tm_yday],[signed-int])
+NAU_POSIX_STRUCT_TM_FIELD([TM_ISDST],[tm_isdst],[signed-int])
+NAU_POSIX_STRUCT_TM_FIELD([TM_GMTOFF],[tm_gmtoff],[signed-int])
+NAU_POSIX_STRUCT_TM_FIELD([TM_ZONE],[tm_zone],[pointer])
+
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAU_POSIX_STRUCT_NTPTIMEVAL_FIELD],
+  [NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_NTPTIMEVAL_$1],[struct ntptimeval],[$2],[$3])])
+
+AC_DEFUN([NAU_POSIX_STRUCT_NTPTIMEVAL_POINTER_FIELD],
+  [NAU_POSIX_INSPECT_FIELD_TYPE_POINTER([STRUCT_NTPTIMEVAL_$1],[struct ntptimeval],[$2])])
+
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_NTPTIMEVAL],[struct ntptimeval])
+NAU_POSIX_STRUCT_NTPTIMEVAL_POINTER_FIELD([TIME],[time])
+NAU_POSIX_STRUCT_NTPTIMEVAL_FIELD([MAXERROR],[maxerror],[signed-int])
+NAU_POSIX_STRUCT_NTPTIMEVAL_FIELD([ESTERROR],[esterror],[signed-int])
+
+dnl --------------------------------------------------------------------
 
 AC_CACHE_SAVE
 
@@ -283,6 +354,9 @@ NAU_POSIX_DEFINE_VALUE([S_IRWXO])
 NAU_POSIX_DEFINE_VALUE([S_ISUID])
 NAU_POSIX_DEFINE_VALUE([S_ISGID])
 NAU_POSIX_DEFINE_VALUE([S_ISVTX])
+
+dnl Misc
+NAU_POSIX_DEFINE_VALUE([EOF])
 
 AC_CACHE_SAVE
 

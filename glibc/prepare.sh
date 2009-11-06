@@ -1,1 +1,0 @@
-../infrastructure/prepare.sh

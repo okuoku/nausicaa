@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: tests for the file system functions
+;;;Contents: tests for the POSIX file system functions
 ;;;Date: Fri Jan  2, 2009
 ;;;
 ;;;Abstract
@@ -36,6 +36,7 @@
   (prefix (foreign posix process) posix:)
   (prefix (foreign posix fd) posix:)
   (prefix (foreign posix file) posix:)
+  (only (foreign posix file platform) struct-dirent-d_name-ptr-ref)
   (prefix (foreign posix stat) posix:)
   (prefix (foreign posix stat record-types) posix:)
   (foreign posix sizeof))
@@ -152,15 +153,20 @@ Ses ailes de geant l'empechent de marcher.")
 		(make-test-hierarchy)
 	      (with
 	       (clean-test-hierarchy)))
-
-	  (check
+(posix:system (string-append "ls -l " the-root))
+	  (check 'this
 	      (with-compensations
 		(let ((dir	(posix:opendir/c the-root))
 		      (layout	'()))
 		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
 		      ((pointer-null? entry))
+(write (list (struct-dirent-d_name-ptr-ref entry)
+	     (struct-dirent-d_name-ref entry)
+	     (cstring->string (struct-dirent-d_name-ref entry))
+	     ))(newline)
 		    (set! layout
-			  (cons (cstring->string (struct-dirent-d_name-ref entry))
+			  (cons (cstring->string
+				 (struct-dirent-d_name-ref entry))
 				layout)))
 		  (list-sort string<? layout)))
 	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
@@ -460,182 +466,6 @@ Ses ailes de geant l'empechent de marcher.")
 	    => '(#t #t))
 
 	  #f)))))
-
-
-(parametrise ((check-test-name	'stat)
-	      (debugging	#t))
-
-  (with-deferred-exceptions-handler
-      (lambda (E)
-	(debug-print-condition "deferred condition in stat" E))
-    (lambda ()
-      (guard (E (else (debug-print-condition "stat condition" E)))
-	(with-compensations
-	  (clean-test-hierarchy)
-	    (compensate
-		(make-test-hierarchy)
-	      (with
-	       (clean-test-hierarchy)))
-
-	  (letrec ((the-other	(string-join (list the-root "other.ext") "/"))
-		   (fd		(compensate
-				    (posix:open the-file O_RDONLY 0)
-				  (with
-				   (posix:close fd)))))
-	    (compensate
-		(posix:symlink the-file the-other)
-	      (with
-	       (delete-file the-other)))
-
-	    (check
-		(posix:<struct-stat>? (posix:stat the-file))
-	      => #t)
-
-	    (check
-		(posix:<struct-stat>? (posix:fstat fd))
-	      => #t)
-
-	    (check
-		(with-compensations
-		  (posix:<struct-stat>? (posix:lstat the-other)))
-	      => #t)
-
-;;; --------------------------------------------------------------------
-
-	    (check
-		(list (posix:file-is-directory? the-subdir-1)
-		      (posix:file-is-directory? the-file)
-		      (posix:file-is-directory? the-other)
-		      (posix:file-is-directory? fd))
-	      => '(#t #f #f #f))
-
-	    (check
-		(list (posix:file-is-character-special? the-subdir-1)
-		      (posix:file-is-character-special? the-file)
-		      (posix:file-is-character-special? the-other)
-		      (posix:file-is-character-special? fd))
-	      => '(#f #f #f #f))
-
-	    (check
-		(list (posix:file-is-block-special? the-subdir-1)
-		      (posix:file-is-block-special? the-file)
-		      (posix:file-is-block-special? the-other)
-		      (posix:file-is-block-special? fd))
-	      => '(#f #f #f #f))
-
-	    (check
-		(list (posix:file-is-regular? the-subdir-1)
-		      (posix:file-is-regular? the-file)
-		      (posix:file-is-regular? the-other)
-		      (posix:file-is-regular? fd))
-	      => '(#f #t #t #t))
-
-	    (check
-		(list (posix:file-is-fifo? the-subdir-1)
-		      (posix:file-is-fifo? the-file)
-		      (posix:file-is-fifo? the-other)
-		      (posix:file-is-fifo? fd))
-	      => '(#f #f #f #f))
-
-	    (check
-		(list (posix:file-is-symbolic-link? the-subdir-1)
-		      (posix:file-is-symbolic-link? the-file)
-		      (posix:file-is-symbolic-link? the-other))
-	      => '(#f #f #t))
-
-	    (check
-		(list (posix:file-is-socket? the-subdir-1)
-		      (posix:file-is-socket? the-file)
-		      (posix:file-is-socket? the-other)
-		      (posix:file-is-socket? fd))
-	      => '(#f #f #f #f))
-
-	    (check
-		(list (posix:file-is-semaphore? the-subdir-1)
-		      (posix:file-is-semaphore? the-file)
-		      (posix:file-is-semaphore? the-other)
-		      (posix:file-is-semaphore? fd))
-	      => '(#f #f #f #f))
-
-	    (check
-		(list (posix:file-is-shared-memory? the-subdir-1)
-		      (posix:file-is-shared-memory? the-file)
-		      (posix:file-is-shared-memory? the-other)
-		      (posix:file-is-shared-memory? fd))
-	      => '(#f #f #f #f))
-
-	    (check
-		(list (posix:file-is-message-queue? the-subdir-1)
-		      (posix:file-is-message-queue? the-file)
-		      (posix:file-is-message-queue? the-other)
-		      (posix:file-is-message-queue? fd))
-	      => '(#f #f #f #f))
-
-;;; --------------------------------------------------------------------
-
-	    (check
-		(= 0 (bitwise-ior S_IRUSR (posix:<struct-stat>-mode (posix:stat the-file))))
-	      => #f)
-
-	    (check
-		(= 0 (bitwise-ior S_IROTH (posix:<struct-stat>-mode (posix:stat the-file))))
-	      => #f)
-
-	    (check
-		(list (posix:file-user-readable? the-file)
-		      (posix:file-user-writable? the-file)
-		      (posix:file-user-executable? the-file)
-		      (posix:file-group-readable? the-file)
-		      (posix:file-group-writable? the-file)
-		      (posix:file-group-executable? the-file)
-		      (posix:file-other-readable? the-file)
-		      (posix:file-other-writable? the-file)
-		      (posix:file-other-executable? the-file)
-		      (posix:file-setuid? the-file)
-		      (posix:file-setgid? the-file)
-		      (posix:file-sticky? the-file))
-	      => '(#t #t #f
-		      #t #f #f
-		      #f #f #f
-		      #f #f #f))
-
-	    (check
-		(list (posix:file-user-readable? fd)
-		      (posix:file-user-writable? fd)
-		      (posix:file-user-executable? fd)
-		      (posix:file-group-readable? fd)
-		      (posix:file-group-writable? fd)
-		      (posix:file-group-executable? fd)
-		      (posix:file-other-readable? fd)
-		      (posix:file-other-writable? fd)
-		      (posix:file-other-executable? fd)
-		      (posix:file-setuid? fd)
-		      (posix:file-setgid? fd)
-		      (posix:file-sticky? fd))
-	      => '(#t #t #f
-		      #t #f #f
-		      #f #f #f
-		      #f #f #f))
-
-	    (check
-		(list (posix:lfile-user-readable? the-other)
-		      (posix:lfile-user-writable? the-other)
-		      (posix:lfile-user-executable? the-other)
-		      (posix:lfile-group-readable? the-other)
-		      (posix:lfile-group-writable? the-other)
-		      (posix:lfile-group-executable? the-other)
-		      (posix:lfile-other-readable? the-other)
-		      (posix:lfile-other-writable? the-other)
-		      (posix:lfile-other-executable? the-other)
-		      (posix:lfile-setuid? the-other)
-		      (posix:lfile-setgid? the-other)
-		      (posix:lfile-sticky? the-other))
-	      => '(#t #t #t
-		      #t #t #t
-		      #t #t #t
-		      #f #f #f))
-
-	    #f))))))
 
 
 (parametrise ((check-test-name	'chown)

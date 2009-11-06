@@ -39,6 +39,14 @@
 #include <time.h>
 #include <sys/times.h>
 #include <sys/stat.h>
+#include <dirent.h>
+
+#ifdef __GNUC__
+#  define POSIX_UNUSED		__attribute__((unused))
+#else
+#  define POSIX_UNUSED		/* empty */
+#  define __attribute__(...)	/* empty */
+#endif
 
 
 /** --------------------------------------------------------------------
@@ -55,6 +63,8 @@ extern int nausicaa_posix_wstopsig	(int status);
 
 extern double nausicaa_posix_clock	(void);
 extern double nausicaa_posix_times	(double * tms);
+
+extern char * nausicaa_posix_dirent_d_name_ptr_ref (struct dirent * buf);
 
 extern int nausicaa_posix_stat		(const char * pathname, struct stat * buf);
 extern int nausicaa_posix_fstat		(int filedes, struct stat * buf);
@@ -156,6 +166,17 @@ nausicaa_posix_times (double * tms)
 }
 
 
+/** --------------------------------------------------------------------
+ ** Dirent.
+ ** ----------------------------------------------------------------- */
+
+char *
+nausicaa_posix_dirent_d_name_ptr_ref (struct dirent * buf)
+{
+  return &(buf->d_name[0]);
+}
+
+
 /** ------------------------------------------------------------
  ** Stat functions.
  ** ----------------------------------------------------------*/
@@ -231,43 +252,55 @@ nausicaa_posix_stat_st_atime_ref (struct stat * buf)
 {
   return buf->st_atime;
 }
+#ifdef HAVE_ST_ATIME_USEC_MEMBER
 unsigned long int
 nausicaa_posix_stat_st_atime_usec_ref (struct stat * buf)
 {
-#ifdef HAVE_ST_ATIME_USEC_MEMBER
   return buf->st_atime_usec;
-#else
-  return 0;
-#endif
 }
+#else
+unsigned long int
+nausicaa_posix_stat_st_atime_usec_ref (struct stat * buf POSIX_UNUSED)
+{
+  return 0;
+}
+#endif
 time_t
 nausicaa_posix_stat_st_mtime_ref (struct stat * buf)
 {
   return buf->st_mtime;
 }
+#ifdef HAVE_ST_MTIME_USEC_MEMBER
+unsigned long int
+nausicaa_posix_stat_st_mtime_usec_ref (struct stat * buf POSIX_UNUSED)
+{
+  return buf->st_mtime_usec;
+}
+#else
 unsigned long int
 nausicaa_posix_stat_st_mtime_usec_ref (struct stat * buf)
 {
-#ifdef HAVE_ST_MTIME_USEC_MEMBER
-  return buf->st_mtime_usec;
-#else
   return 0;
-#endif
 }
+#endif
 time_t
 nausicaa_posix_stat_st_ctime_ref (struct stat * buf)
 {
   return buf->st_ctime;
 }
+#ifdef HAVE_ST_CTIME_USEC_MEMBER
 unsigned long int
 nausicaa_posix_stat_st_ctime_usec_ref (struct stat * buf)
 {
-#ifdef HAVE_ST_CTIME_USEC_MEMBER
   return buf->st_ctime_usec;
-#else
-  return 0;
-#endif
 }
+#else
+unsigned long int
+nausicaa_posix_stat_st_ctime_usec_ref (struct stat * buf POSIX_UNUSED)
+{
+  return 0;
+}
+#endif
 blkcnt_t
 nausicaa_posix_stat_st_blocks_ref (struct stat * buf)
 {

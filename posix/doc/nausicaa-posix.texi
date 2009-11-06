@@ -501,6 +501,8 @@ entitled ``@gnu{} Free Documentation License''.
 * process::                     Processes.
 * job::                         Job control.
 * users::                       Users and groups.
+* strings::                     More C string functions.
+* streams::                     Stream functions.
 
 Appendices
 
@@ -1484,8 +1486,7 @@ Specification.
 
 @center @url{http://www.unix.org/single_unix_specification/}
 } states that an implementation may choose not to set the access time of
-the file in the @code{struct stat}, even though it is requested by the
-@cfunc{utime} call.
+the file, even though it is requested by the @cfunc{utime} call.
 @end quotation
 @end deffn
 
@@ -1621,16 +1622,6 @@ Return @true{} if @var{obj} is a @class{struct-stat} record.
 @defunx <struct-stat>-blocks @var{struct-stat}
 @defunx <struct-stat>-blksize @var{struct-stat}
 Accessors for the fields of a @class{struct-stat} record.
-
-@quotation
-@strong{NOTE} The @acronym{SUS}@footnote{Single @acronym{UNIX}
-Specification.
-
-@center @url{http://www.unix.org/single_unix_specification/}
-} states that an implementation may choose not to set the access time of
-the file in the @code{struct stat}, even though it is requested by the
-@cfunc{utime} call.
-@end quotation
 @end defun
 
 
@@ -1857,6 +1848,9 @@ exported by the following libraries:
 (foreign posix time)
 (foreign posix time primitives)
 (foreign posix time platform)
+(foreign glibc time)
+(foreign glibc time primitives)
+(foreign glibc time platform)
 @end example
 
 @noindent
@@ -1866,6 +1860,9 @@ full support for the time functions requires loading the
 @menu
 * time structs::                Data structures.
 * time clock::                  Processor time.
+* time calendar::               Simple calendar time.
+* time hires::                  High resolution calendar.
+* time broken::                 Broken--down time.
 @end menu
 
 @c page
@@ -1917,6 +1914,15 @@ Peekers and pokers for the fields of a @code{struct timespec}.
 @section Processor time
 
 
+The following bindings are exported by the following libraries:
+
+@example
+(foreign posix time)
+(foreign posix time primitives)
+(foreign posix time platform)
+@end example
+
+@noindent
 @glibcref{CPU Time, CPU Time Inquiry}.  @glibcref{Processor Time,
 Processor Time Inquiry}.
 
@@ -1982,6 +1988,217 @@ Build and return a new @code{struct-tms} record.
 Getters for the fields of @code{struct-tms} records.  All the returned
 values are floating point numbers.
 @end defun
+
+@c page
+@node time calendar
+@section Simple calendar time
+
+
+The following bindings are exported by the following libraries:
+
+@example
+(foreign posix time)
+(foreign posix time primitives)
+(foreign posix time platform)
+@end example
+
+
+@deffn Function time
+@deffnx Parameter time-function
+@deffnx Function primitive:time
+@deffnx Function platform:time @var{pointer}
+Return the current calendar time as an integer value.  It is the
+``epoch'', the number of seconds elapsed since 00:00:00 on January 1,
+1970, Coordinated Universal Time.
+@end deffn
+
+
+@deffn Function stime @var{calendar-time}
+@deffnx Parameter stime-function
+@deffnx Function primitive:stime @var{calendar-time}
+@deffnx Function platform:stime @var{pointer}
+Set the system clock using a calendar time specification.  Superuser
+privileges are needed to successfully call this function.
+@end deffn
+
+@c page
+@node time hires
+@section High resolution calendar
+
+
+The following bindings are exported by the following libraries:
+
+@example
+(foreign glibc time)
+(foreign glibc time primitives)
+(foreign glibc time platform)
+@end example
+
+@noindent
+while the bindings required to use a @code{struct timeval} are exported
+by the @library{posix sizeof} library.
+
+
+@defvar sizeof-struct-timezone
+@defvarx alignof-struct-timezone
+@defvarx strideof-struct-timezone
+Size, alignment and array stride for the @code{struct timezone} type.
+These bindings are exported by @library{glibc sizeof}.
+@end defvar
+
+
+@deffn Syntax struct-timezone-tz_minuteswest-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timezone-tz_minuteswest-ref @var{pointer}
+@deffnx Syntax struct-timezone-tz_dsttime-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timezone-tz_dsttime-ref @var{pointer}
+Peekers and pokers for the fields of a @code{struct timezone}.  These
+bindings are exported by @library{glibc sizeof}.
+@end deffn
+
+
+@deffn Function gettimeofday @var{timeval} @var{timezone}
+@deffnx Parameter gettimeofday-function
+@deffnx Function primitive:gettimeofday @var{timeval} @var{timezone}
+@deffnx Function platform:gettimeofday @var{timeval} @var{timezone}
+Fill the @code{struct timeval} and @code{struct timezone} referenced by
+the @var{timeval} and @var{timezone} pointers with the current calendar
+time.
+@end deffn
+
+
+@deffn Function settimeofday @var{timeval} @var{timezone}
+@deffnx Function settimeofday @var{timeval} @var{timezone}
+@deffnx Parameter primitive:settimeofday-function
+@deffnx Function platform:settimeofday @var{timeval} @var{timezone}
+Set the system clock to the calendar time specified by the @code{struct
+timeval} and @code{struct timezone} referenced by the @var{timeval} and
+@var{timezone} pointers.
+
+Super user privileges are needed to successfully call this function.
+@end deffn
+
+
+@deffn Function adjtime @var{timeval-delta} @var{timeval-old-delta}
+@deffnx Parameter adjtime-function
+@deffnx Function primitive:adjtime @var{timeval-delta} @var{timeval-old-delta}
+@deffnx Function platform:adjtime @var{timeval-delta} @var{timeval-old-delta}
+Speed up or slow down the system clock in order to make a gradual
+adjustment.
+
+Super user privileges are needed to successfully call this function.
+@end deffn
+
+@c page
+@node time broken
+@section Broken--down time
+
+
+The following bindings are exported by the following libraries:
+
+@example
+(foreign glibc time)
+(foreign glibc time primitives)
+(foreign glibc time platform)
+@end example
+
+@noindent
+The broken--down time @api{} described here is not in the
+@library{foreign posix ---} hierarchy of libraries because the
+@code{time_t} value is in general not fully specified (according to the
+@gnu{} C Library documentation), but it is in the @gnu{} C Library.
+
+
+@defvar sizeof-struct-tm
+@defvarx alignof-struct-tm
+@defvarx strideof-struct-tm
+Size, alignment and array stride for the @code{struct tm} type.
+
+These bindings are exported by the @library{glibc sizeof} library.
+@end defvar
+
+
+@deffn Syntax struct-tm-tm_sec-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_sec-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_min-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_min-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_hour-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_hour-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_mday-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_mday-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_mon-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_mon-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_year-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_year-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_wday-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_wday-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_yday-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_yday-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_isdst-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_isdst-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_gmtoff-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_gmtoff-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_zone-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_zone-ref @var{pointer}
+Peekers and pokers for the @code{struct tm} type.
+
+These bindings are exported by the @library{glibc sizeof} library.
+@end deffn
+
+
+@deffn Function localtime @var{time} @var{tm}
+@deffnx Parameter localtime-function
+@deffnx Function primitive:localtime @var{time} @var{tm}
+@deffnx Function platform:localtime @var{time} @var{tm}
+Despite the name, this is a wrapper for the @cfunc{localtime_r}
+function.  Fill the @code{struct tm} referenced by the @var{tm} pointer
+with broken down values from the calendar @var{time} (which can be the
+return value of @func{time}).
+
+For example, to get the current year:
+
+@example
+(define (gimme-year)
+  (with-compensations
+    (let ((*tm (malloc-block/c sizeof-struct-tm)))
+      (localtime (time) *tm)
+      (+ 1900 (struct-tm-tm_year-ref *tm)))))
+@end example
+@end deffn
+
+
+@deffn Function gmtime @var{time} @var{tm}
+@deffnx Parameter gmtime-function
+@deffnx Function primitive:gmtime @var{time} @var{tm}
+@deffnx Function platform:gmtime @var{time} @var{tm}
+Like @func{localtime} but converts the given time as Coordinated
+Universal Time (@acronym{UTC}).
+@end deffn
+
+
+@deffn Function timelocal @var{tm}
+@deffnx Parameter timelocal-function
+@deffnx Function primitive:timelocal @var{tm}
+@deffnx Function platform:timelocal @var{tm}
+Return a calendar time value from the @code{struct tm} referenced by the
+@code{tm} pointer.  It is the inverse of @func{localtime}.
+@end deffn
+
+
+@deffn Function mktime @var{tm}
+@deffnx Parameter mktime-function
+@deffnx Function primitive:mktime @var{tm}
+@deffnx Function platform:mktime @var{tm}
+Aliases for @func{timelocal}.
+@end deffn
+
+
+@deffn Function timegm @var{tm}
+@deffnx Parameter timegm-function
+@deffnx Function primitive:timegm @var{tm}
+@deffnx Function platform:timegm @var{tm}
+Return a calendar time value from the @code{struct tm} referenced by the
+@code{tm} pointer.  It is the inverse of @func{gmtime}.
+@end deffn
 
 @c page
 @node fd
@@ -3318,6 +3535,601 @@ exported by the following libraries:
 
 
 @glibcref{Reading Persona, Reading the Persona of a Process}
+
+@c page
+@node strings
+@chapter More C string functions
+
+
+Unless otherwise specified, the functions described in this chapter are
+exported by the following libraries:
+
+@example
+(foreign glibc cstrings platform)
+@end example
+
+@noindent
+the purpose of this interface is to alloc some string processing without
+conversion from C strings to Scheme strings.
+
+@menu
+* strings search::              Searching.
+@end menu
+
+@c page
+@node strings search
+@section Searching
+
+
+@defun memchr @var{pointer} @var{byte} @var{size}
+Finds the first occurrence of @var{byte} in the initial @var{size} bytes
+starting at @var{pointer}.  Return a pointer to the located byte or a
+null pointer if @var{uchar} was not found.
+@end defun
+
+
+@c page
+@node streams
+@chapter Stream functions
+
+
+Unless otherwise specified, the bindings described in this chapter  are
+exported by the following libraries:
+
+@example
+(foreign glibc streams)
+(foreign glibc streams primitives)
+(foreign glibc streams platform)
+@end example
+
+@menu
+* streams constants::           Constants.
+* streams errors::              Detecting errors on streams.
+* streams open close::          Opening and closing.
+* streams writing::             Writing to streams.
+* streams reading::             Reading from streams.
+* streams unreading::           Unreading to streams.
+* streams seeking::             Stream positioning.
+* streams fd::                  Streams and file descriptors.
+* streams unlocked::            Unlocked stream operations.
+* streams extended::            Extended stream operations.
+* streams lines::               Reading lines.
+@end menu
+
+@c page
+@node streams constants
+@section Constants
+
+
+The following bindings are exported by the @library{foreign posix
+sizeof} library.  Notice that the seek constants @code{SEEK_SET},
+@code{SEEK_CUR} and @code{SEEK_END}) are also exported by the same
+library.  @ref{fd constants seek, File positions}
+
+
+@defvr Constant EOF
+The value of @code{EOF}.  @glibcref{EOF and Errors,EOF}
+@end defvr
+
+@c page
+@node streams errors
+@section Detecting errors on streams
+
+
+The following functions manage error detection on streams operations.
+@glibcref{EOF and Errors, End--Of--File and Errors}.
+
+
+@deffn Function ferror @var{stream}
+@deffnx Parameter ferror-function
+@deffnx Function primitive:-ferror @var{stream}
+@deffnx Function platform:ferror @var{stream}
+Return @true{} if the error indicator of @var{stream} is set, @false{}
+otherwise.  @func{platform:ferror} returns a single value: The return
+value of the foreign function call.
+@end deffn
+
+
+@defun clearerr @var{stream}
+@defunx primitive:clearerr @var{stream}
+@defunx platform:clearerr @var{stream}
+Clear the error and end--of--file indicators for @var{stream}.
+@end defun
+
+@c page
+@node streams open close
+@section Opening and closing
+
+
+The following functions manage opening and closing of streams.
+@glibcref{Opening Streams, Opening Streams}.  @glibcref{Closing Streams,
+Closing Streams}.
+
+
+@deffn Function fopen @var{pathname} @var{mode}
+@deffnx Parameter fopen-function
+@deffnx Function primitive:fopen @var{pathname} @var{mode}
+@deffnx Function platform:fopen @var{pathname-cstr} @var{mode}
+Open a file selected by @var{pathname} with the given mode and return a
+pointer to the stream.  @var{pathname} and @var{mode} must be Scheme
+strings or symbols.
+@end deffn
+
+
+@deffn Function fclose @var{stream}
+@deffnx Parameter fclose-function
+@deffnx Function primitive:fclose @var{stream}
+@deffnx Function platform:fclose @var{stream}
+Close the previously opened @var{stream}.
+@end deffn
+
+
+@deffn Function fcloseall
+@deffnx Parameter fcloseall-function
+@deffnx Function primitive:fcloseall
+@deffnx Function platform:fcloseall
+Close all the open streams of the process.
+@end deffn
+
+@c page
+@node streams writing
+@section Writing to streams
+
+
+The following functions manage writing data to streams.  @glibcref{Block
+Input/Output, Block Input/Output}.  @glibcref{Flushing Buffers, Flushing
+Buffers}.
+
+
+@deffn Function fwrite @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Parameter fwrite-function
+@deffnx Function primitive:fwrite @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform:fwrite @var{pointer} @var{size} @var{count} @var{stream}
+Write up to @var{count} elements of @var{size} bytes from the block of
+memory referenced by @var{pointer} to @var{stream}.  If successful
+return @var{count}.
+@end deffn
+
+
+@deffn Function fputc @var{char} @var{stream}
+@deffnx Parameter fputc-function
+@deffnx Function primitive:fputc @var{char} @var{stream}
+@deffnx Function platform:fputc @var{char} @var{stream}
+Write a character to @var{stream}.  @var{char} must be a Scheme
+character with scalar value in the range @code{[0, 255]}; the scalar
+value is computed with @func{char->integer}.  If successful return the
+scalar representing @var{char}.
+@end deffn
+
+
+@deffn Function fputs @var{string} @var{stream}
+@deffnx Parameter fputs-function
+@deffnx Function primitive:fputs @var{string} @var{stream}
+@deffnx Function platform:fputs @var{cstring} @var{stream}
+Write a string to @var{stream}.  @var{string} must be a Scheme string or
+symbol.  If successful return the scalar representing @var{char}.
+@end deffn
+
+
+@deffn Function fflush @var{stream}
+@deffnx Parameter fflush-function
+@deffnx Function primitive:fflush @var{stream}
+@deffnx Function platform:fflush @var{stream}
+Flush the contents of the buffer to the underlying device.
+@end deffn
+
+@c page
+@node streams reading
+@section Reading from streams
+
+
+The following functions manage reading data from streams.
+@glibcref{Block Input/Output, Block Input/Output}.
+
+
+@deffn Function fread @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Parameter fread-function
+@deffnx Function primitive:fread @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform:fread @var{pointer} @var{size} @var{count} @var{stream}
+Read up to @var{count} elements of @var{size} bytes from @var{stream}
+and store them in the block of memory referenced by @var{pointer}.
+Return the number of objects actually read (which may be less than
+@var{count}).
+@end deffn
+
+
+@deffn Function fgetc @var{stream}
+@deffnx Parameter fgetc-function
+@deffnx Function primitive:fgetc @var{stream}
+@deffnx Function platform:fgetc @var{stream}
+Read a single character from @var{stream}.  Return a Scheme character.
+@end deffn
+
+
+@deffn Function fgets @var{pointer} @var{count} @var{stream}
+@deffnx Parameter fgets-function
+@deffnx Function primitive:fgets @var{pointer} @var{count} @var{stream}
+@deffnx Function platform-fgets @var{pointer} @var{count} @var{stream}
+Read a line from @var{stream} and store it in the buffer of @var{count}
+bytes referenced by @var{pointer}.  Return @var{pointer}.
+@end deffn
+
+@c page
+@node streams unreading
+@section Unreading to streams
+
+
+The following functions manage ``unreading'' data from streams.
+@glibcref{How Unread, Using @code{ungetc} To Do Unreading}.
+
+
+@deffn Function ungetc @var{char} @var{stream}
+@deffnx Parameter ungetc-function
+@deffnx Function primitive:ungetc @var{char} @var{stream}
+@deffnx Function platform:ungetc @var{c-char} @var{stream}
+Unread a character to @var{stream}.  @var{char} must be a Scheme
+character with scalar value in the range @code{[0, 255]}; the scalar
+value is computed with @func{char->integer}.
+@end deffn
+
+@c page
+@node streams seeking
+@section Stream positioning
+
+
+The following functions manage seeking the current position in streams.
+@glibcref{File Positioning, File Positioning}.
+
+Notice that the seek constants @code{SEEK_SET}, @code{SEEK_CUR} and
+@code{SEEK_END} are exported by the @library{foreign posix sizeof}
+library.  @ref{fd constants seek, File positions}
+
+
+@deffn Function feof @var{stream}
+@deffnx Parameter feof-function
+@deffnx Function primitive:feof @var{stream}
+@deffnx Function platform:feof @var{stream}
+Return @true{} if the end--of--file indicator of @var{stream} is set,
+otherwise @false{}.
+@end deffn
+
+
+@deffn Function fseek @var{stream} @var{offset} @var{whence}
+@deffnx Parameter fseek-function
+@deffnx Function primitive:fseek @var{stream} @var{offset} @var{whence}
+@deffnx Function platform:fseek @var{stream} @var{offset} @var{whence}
+Change the file position of @var{stream} to @var{offset} from
+@var{whence}.
+@end deffn
+
+
+@deffn Function ftell @var{stream}
+@deffnx Parameter ftell-function
+@deffnx Function primitive:ftell @var{stream}
+@deffnx Function platform:ftell @var{stream}
+@func{ftell} returns the current file position of @var{stream}.
+@end deffn
+
+
+@deffn Function rewind @var{stream}
+@deffnx Parameter rewind-function
+@deffnx Function primitive:rewind @var{stream}
+@deffnx Function platform:rewind @var{stream}
+Change the file position of @var{stream} to the beginning of the file.
+@end deffn
+
+@c page
+@node streams fd
+@section Streams and file descriptors
+
+
+The following functions manage conversion of streams to and from raw
+file descriptors.  @glibcref{Descriptors and Streams, Descriptors and
+Streams}.
+
+
+@deffn Function fdopen @var{fd} @var{open-mode}
+@deffnx Parameter fdopen-function
+@deffnx Function primitive:fdopen @var{fd} @var{open-mode}
+@deffnx Function platform:fdopen @var{fd} @var{open-mode}
+Build and return a new stream wrapping file descriptor @var{fd}.
+@var{open-mode} must be a Scheme string or symbol representing the open
+mode of @var{fd}; it can have the same values accepted by @func{fopen}.
+@end deffn
+
+
+@deffn Function fileno @var{stream}
+@deffnx Parameter fileno-function
+@deffnx Function primitive:fileno @var{stream}
+@deffnx Function platform:fileno @var{stream}
+Return the file descriptor wrapped by @var{stream}, an exact integer.
+@end deffn
+
+@c page
+@node streams unlocked
+@section Unlocked stream operations
+
+
+The following functions manage operation on streams without locking for
+exclusive access; they are like the corresponding non--@code{_unlocked}
+variants, but they do not implicitly lock the stream.
+
+@c ------------------------------------------------------------
+
+@subsubheading Errors
+
+
+@deffn Function ferror_unlocked @var{stream}
+@deffnx Parameter ferror_unlocked-function
+@deffnx Function primitive:ferror_unlocked @var{stream}
+@deffnx Function platform:ferror_unlocked @var{stream}
+Like @func{ferror}.
+@end deffn
+
+
+@defun clearerr_unlocked @var{stream}
+@defunx primitive:clearerr_unlocked @var{stream}
+@defunx platform:clearerr_unlocked @var{stream}
+Like @func{clearerr}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Writing
+
+
+@deffn Function fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Parameter fwrite_unlocked-function
+@deffnx Function primitive:fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform:fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+Like @func{fwrite}.
+@end deffn
+
+
+@deffn Function fputc_unlocked @var{char} @var{stream}
+@deffnx Parameter fputc_unlocked-function
+@deffnx Function primitive:fputc_unlocked @var{c-char} @var{stream}
+@deffnx Function platform:fputc_unlocked @var{c-char} @var{stream}
+Like @func{fputc}.
+@end deffn
+
+
+@deffn Function fputs_unlocked @var{string} @var{stream}
+@deffnx Parameter fputs_unlocked-function
+@deffnx Function primitive:fputs_unlocked @var{cstring} @var{stream}
+@deffnx Function platform:fputs_unlocked @var{cstring} @var{stream}
+Like @func{fputs}.
+@end deffn
+
+
+@deffn Function fflush_unlocked @var{stream}
+@deffnx Parameter fflush_unlocked-function
+@deffnx Function primitive:fflush_unlocked @var{stream}
+@deffnx Function platform:fflush_unlocked @var{stream}
+Like @func{fflush}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Reading
+
+
+@deffn Function fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Parameter fread_unlocked-function
+@deffnx Function primitive:fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform:fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+Like @func{fread}.
+@end deffn
+
+
+@deffn Function fgetc_unlocked @var{stream}
+@deffnx Parameter fgetc_unlocked-function
+@deffnx Function primitive:fgetc_unlocked @var{stream}
+@deffnx Function platform:fgetc_unlocked @var{stream}
+Like @func{fgetc}.
+@end deffn
+
+
+@deffn Function fgets_unlocked @var{pointer} @var{count} @var{stream}
+@deffnx Parameter fgets_unlocked-function
+@deffnx Function primitive:fgets_unlocked @var{pointer} @var{count} @var{stream}
+@deffnx Function platform:fgets_unlocked @var{pointer} @var{count} @var{stream}
+Like @func{fgets}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Seeking
+
+
+@deffn Function feof_unlocked @var{stream}
+@deffnx Parameter feof_unlocked-function
+@deffnx Function primitive:feof_unlocked @var{stream}
+@deffnx Function platform:feof_unlocked @var{stream}
+Like @func{feof}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Streams an file descriptors
+
+
+@deffn Function fileno_unlocked @var{stream}
+@deffnx Parameter fileno_unlocked-function
+@deffnx Function primitive:fileno_unlocked @var{stream}
+@deffnx Function platform:fileno_unlocked @var{stream}
+Like @func{fileno}.
+@end deffn
+
+@c page
+@node streams extended
+@section Extended stream operations
+
+
+The following functions implement extended operations on streams.
+
+@c ------------------------------------------------------------
+
+@subsubheading Inspection
+
+
+@deffn Function freadable @var{stream}
+@deffnx Parameter freadable-function
+@deffnx Function primitive:freadable @var{stream}
+@deffnx Function platform:freadable @var{stream}
+Return @true{} if @var{stream} was opened for reading, otherwise return
+@false{}.
+@end deffn
+
+
+@deffn Function fwritable @var{stream}
+@deffnx Parameter fwritable-function
+@deffnx Function primitive:fwritable @var{stream}
+@deffnx Function platform:fwritable @var{stream}
+Return @true{} if @var{stream} was opened for writing, otherwise return
+@false{}.
+@end deffn
+
+
+@deffn Function freading @var{stream}
+@deffnx Parameter freading-function
+@deffnx Function primitive:freading @var{stream}
+@deffnx Function platform:freading @var{stream}
+Return @true{} if @var{stream} was last read from, otherwise return
+@false{}.
+@end deffn
+
+
+@deffn Function fwriting @var{stream}
+@deffnx Parameter fwriting-function
+@deffnx Function primitive:fwriting @var{stream}
+@deffnx Function platform:fwriting @var{stream}
+Return @true{} if @var{stream} was last written to, otherwise return
+@false{}.
+@end deffn
+
+
+@deffn Function fwide @var{stream} @var{mode}
+@deffnx Parameter fwide-function
+@deffnx Function primitive:fwide @var{stream} @var{mode}
+@deffnx Function platform:fwide @var{stream} @var{mode}
+Set or query the orientation of @var{stream}.  @var{mode} must be an
+exact integer.
+
+@itemize
+@item
+If @var{mode} is zero and the return value is positive: @var{stream} is
+oriented for wide characters.
+
+@item
+If @var{mode} is zero and the return value is negative: @var{stream} is
+oriented for narrow characters.
+
+@item
+If @var{mode} is positive: @var{stream} is configured for wide
+characters.
+
+@item
+If @var{mode} is negative: @var{stream} is configured for narrow
+characters.
+@end itemize
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Miscellaneous
+
+
+@deffn Function fpurge @var{stream}
+@deffnx Parameter fpurge-function
+@deffnx Function primitive:fpurge @var{stream}
+@deffnx Function platform:fpurge @var{stream}
+Discard the contents of the buffer.
+@end deffn
+
+@c page
+@node streams lines
+@section Reading lines
+
+
+The following functions manage reading lines from streams.
+@glibcref{Line Input, Line--Oriented Input}.
+
+
+@deffn Function getline @var{stream}
+@deffnx Parameter getline-function
+@deffnx Function primitive:getline @var{stream}
+@deffnx Function platform:getline @var{pointer-pointer} @var{pointer-count} @var{stream}
+Read characters from @var{stream} until a newline is found, then returns
+a string holding those characters and a terminating newline.
+
+If end--of--file is encountered before the newline, but some characters
+where read: The acquired characters are stored in a string
+@strong{without} terminating newline, and the string is returned.
+
+If end--of--file is encountered before the newline, and no characters
+where read: An empty string is returned.
+
+If an error occurs while reading: An exception is raised.
+@end deffn
+
+
+@deffn Function getdelim @var{stream} @var{delimiter}
+@deffnx Parameter getdelim-function
+@deffnx Function primitive:getdelim @var{stream} @var{delimiter}
+@deffnx Function platform:getdelim @var{pointer-pointer} @var{pointer-count} @var{delimiter} @var{stream}
+Like @func{getline} but reads characters until @var{delimiter} is found.
+@var{delimiter} must be a Scheme character with an integer
+representation in the range @code{[0, 255]}.
+@end deffn
+
+
+As a usage example, the following code reads one line at a time from a
+file and accumulates them in the @code{lines} variables:
+
+@smallexample
+(import (rnrs)
+  (receive)
+  (compensations)
+  (foreign memory)
+  (foreign cstrings)
+  (foreign errno)
+  (foreign ffi peekers-and-pokers)
+  (foreign glibc streams)
+  (prefix (foreign glibc streams platform) platform:))
+
+(let* ((pathname the-pathname))
+  (with-compensations
+    (letrec* ((S           (compensate
+                               (fopen pathname "w+")
+                             (with
+                              (fclose S))))
+              (*pointer    (malloc-small/c))
+              (*count      (malloc-small/c))
+              (getp        (lambda ()
+                             (pointer-ref-c-pointer *pointer 0)))
+              (free        (lambda ()
+                             (let ((p (getp)))
+                               (unless (pointer-null? p)
+                                 (primitive-free p)))))
+              (lines       '()))
+      (let loop ()
+        (receive (result errno)
+            (platform:getline *pointer *count S)
+          (cond ((ferror S)
+                 (free)
+                 (raise-errno-error 'reading-line errno S))
+;;; here EOF was found, return the result
+                ((= -1 result)
+                 (free)
+                 (reverse lines))
+;;; accumulate the result
+                (else
+                 (set! lines
+                       (cons (cstring->string (getp) result)
+                             lines))
+                 (loop))))))))
+@end smallexample
 
 @c page
 

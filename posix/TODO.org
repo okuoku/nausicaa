@@ -10,3 +10,7 @@
   everything works on a 32bit  platform.  Why the return value cannot be
   the discovered "off_t"?.
 
+* streams
+
+  More tests.
+

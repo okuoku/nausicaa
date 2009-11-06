@@ -28,24 +28,104 @@
   (export
 
     ;; types
-    blkcnt_t		pointer-set-c-blkcnt_t!	pointer-ref-c-blkcnt_t
-    clock_t		pointer-set-c-clock_t!	pointer-ref-c-clock_t
-    dev_t		pointer-set-c-dev_t!	pointer-ref-c-dev_t
-    gid_t		pointer-set-c-gid_t!	pointer-ref-c-gid_t
-    ino_t		pointer-set-c-ino_t!	pointer-ref-c-ino_t
-    mode_t		pointer-set-c-mode_t!	pointer-ref-c-mode_t
-    nlink_t		pointer-set-c-nlink_t!	pointer-ref-c-nlink_t
-    off_t		pointer-set-c-off_t!	pointer-ref-c-off_t
-    pid_t		pointer-set-c-pid_t!	pointer-ref-c-pid_t
-    time_t		pointer-set-c-time_t!	pointer-ref-c-time_t
-    uid_t		pointer-set-c-uid_t!	pointer-ref-c-uid_t
+    blkcnt_t
+    sizeof-blkcnt_t
+    alignof-blkcnt_t
+    strideof-blkcnt_t
+    pointer-set-c-blkcnt_t!
+    pointer-ref-c-blkcnt_t
+
+    clock_t
+    sizeof-clock_t
+    alignof-clock_t
+    strideof-clock_t
+    pointer-set-c-clock_t!
+    pointer-ref-c-clock_t
+
+    dev_t
+    sizeof-dev_t
+    alignof-dev_t
+    strideof-dev_t
+    pointer-set-c-dev_t!
+    pointer-ref-c-dev_t
+
+    gid_t
+    sizeof-gid_t
+    alignof-gid_t
+    strideof-gid_t
+    pointer-set-c-gid_t!
+    pointer-ref-c-gid_t
+
+    ino_t
+    sizeof-ino_t
+    alignof-ino_t
+    strideof-ino_t
+    pointer-set-c-ino_t!
+    pointer-ref-c-ino_t
+
+    mode_t
+    sizeof-mode_t
+    alignof-mode_t
+    strideof-mode_t
+    pointer-set-c-mode_t!
+    pointer-ref-c-mode_t
+
+    nlink_t
+    sizeof-nlink_t
+    alignof-nlink_t
+    strideof-nlink_t
+    pointer-set-c-nlink_t!
+    pointer-ref-c-nlink_t
+
+    off_t
+    sizeof-off_t
+    alignof-off_t
+    strideof-off_t
+    pointer-set-c-off_t!
+    pointer-ref-c-off_t
+
+    pid_t
+    sizeof-pid_t
+    alignof-pid_t
+    strideof-pid_t
+    pointer-set-c-pid_t!
+    pointer-ref-c-pid_t
+
+    time_t
+    sizeof-time_t
+    alignof-time_t
+    strideof-time_t
+    pointer-set-c-time_t!
+    pointer-ref-c-time_t
+
+    uid_t
+    sizeof-uid_t
+    alignof-uid_t
+    strideof-uid_t
+    pointer-set-c-uid_t!
+    pointer-ref-c-uid_t
 
     ;; structures
-    sizeof-struct-dirent alignof-struct-dirent strideof-struct-dirent
-    sizeof-struct-flock alignof-struct-flock strideof-struct-flock
-    sizeof-struct-timespec alignof-struct-timespec strideof-struct-timespec
-    sizeof-struct-timeval alignof-struct-timeval strideof-struct-timeval
-    sizeof-struct-utimbuf alignof-struct-utimbuf strideof-struct-utimbuf
+    sizeof-struct-dirent
+    alignof-struct-dirent
+    strideof-struct-dirent
+
+    sizeof-struct-flock
+    alignof-struct-flock
+    strideof-struct-flock
+
+    sizeof-struct-timespec
+    alignof-struct-timespec
+    strideof-struct-timespec
+
+    sizeof-struct-timeval
+    alignof-struct-timeval
+    strideof-struct-timeval
+
+    sizeof-struct-utimbuf
+    alignof-struct-utimbuf
+    strideof-struct-utimbuf
+
 ;;;The  stat structure is  "special"; we  relay on  the stub  library to
 ;;;access it.
 ;;;
@@ -85,6 +165,21 @@
     S_IRWXU		S_IRWXG		S_IRWXO
     S_ISUID		S_ISGID		S_ISVTX
 
+    EOF
+
+    ;; struct inspection
+    sizeof-struct-timezone
+    alignof-struct-timezone
+    strideof-struct-timezone
+
+    sizeof-struct-tm
+    alignof-struct-tm
+    strideof-struct-tm
+
+    sizeof-struct-ntptimeval
+    alignof-struct-ntptimeval
+    strideof-struct-ntptimeval
+
     ;;struct accessors
     struct-flock-l_type-set!		struct-flock-l_type-ref
     struct-flock-l_whence-set!		struct-flock-l_whence-ref
@@ -99,6 +194,28 @@
     struct-timespec-tv_nsec-set!	struct-timespec-tv_nsec-ref
 
     struct-dirent-d_name-ref
+
+    struct-timezone-tz_minuteswest-set!	struct-timezone-tz_minuteswest-ref
+    struct-timezone-tz_dsttime-set!	struct-timezone-tz_dsttime-ref
+
+    struct-tm-tm_sec-set!		struct-tm-tm_sec-ref
+    struct-tm-tm_min-set!		struct-tm-tm_min-ref
+    struct-tm-tm_hour-set!		struct-tm-tm_hour-ref
+    struct-tm-tm_mday-set!		struct-tm-tm_mday-ref
+    struct-tm-tm_mon-set!		struct-tm-tm_mon-ref
+    struct-tm-tm_year-set!		struct-tm-tm_year-ref
+    struct-tm-tm_wday-set!		struct-tm-tm_wday-ref
+    struct-tm-tm_yday-set!		struct-tm-tm_yday-ref
+    struct-tm-tm_isdst-set!		struct-tm-tm_isdst-ref
+    struct-tm-tm_gmtoff-set!		struct-tm-tm_gmtoff-ref
+    struct-tm-tm_zone-set!		struct-tm-tm_zone-ref
+
+					struct-ntptimeval-time-ref
+    struct-ntptimeval-maxerror-set!	struct-ntptimeval-maxerror-ref
+    struct-ntptimeval-esterror-set!	struct-ntptimeval-esterror-ref
+
+    struct-utimbuf-actime-set!		struct-utimbuf-actime-ref
+    struct-utimbuf-modtime-set!		struct-utimbuf-modtime-ref
 
 ;;;The  stat structure is  "special"; we  relay on  the stub  library to
 ;;;access it.
@@ -118,9 +235,6 @@
 ;;;  struct-stat-st_ctime_usec-set!	struct-stat-st_ctime_usec-ref
 ;;;  struct-stat-st_blocks-set!		struct-stat-st_blocks-ref
 ;;;  struct-stat-st_blksize-set!	struct-stat-st_blksize-ref
-
-    struct-utimbuf-actime-set!		struct-utimbuf-actime-ref
-    struct-utimbuf-modtime-set!		struct-utimbuf-modtime-ref
     )
   (import (rnrs)
     (foreign ffi)
@@ -130,37 +244,66 @@
 ;;;; basic type definitions
 
 (define blkcnt_t			(quote @TYPEOF_BLKCNT_T@))
+(define sizeof-blkcnt_t			(quote @SIZEOF_BLKCNT_T@))
+(define alignof-blkcnt_t		(quote @ALIGNOF_BLKCNT_T@))
+(define strideof-blkcnt_t		(quote @STRIDEOF_BLKCNT_T@))
 (define pointer-set-c-blkcnt_t!		@SETTEROF_BLKCNT_T@)
 (define pointer-ref-c-blkcnt_t		@GETTEROF_BLKCNT_T@)
 
 (define clock_t				(quote @TYPEOF_CLOCK_T@))
+(define sizeof-clock_t			(quote @SIZEOF_CLOCK_T@))
+(define alignof-clock_t			(quote @ALIGNOF_CLOCK_T@))
+(define strideof-clock_t		(quote @STRIDEOF_CLOCK_T@))
 (define pointer-set-c-clock_t!		@SETTEROF_CLOCK_T@)
 (define pointer-ref-c-clock_t		@GETTEROF_CLOCK_T@)
 
 (define dev_t				(quote @TYPEOF_DEV_T@))
+(define sizeof-dev_t			(quote @SIZEOF_DEV_T@))
+(define alignof-dev_t			(quote @ALIGNOF_DEV_T@))
+(define strideof-dev_t			(quote @STRIDEOF_DEV_T@))
 (define pointer-set-c-dev_t!		@SETTEROF_DEV_T@)
 (define pointer-ref-c-dev_t		@GETTEROF_DEV_T@)
 
 (define gid_t				(quote @TYPEOF_GID_T@))
+(define sizeof-gid_t			(quote @SIZEOF_GID_T@))
+(define alignof-gid_t			(quote @ALIGNOF_GID_T@))
+(define strideof-gid_t			(quote @STRIDEOF_GID_T@))
 (define pointer-set-c-gid_t!		@SETTEROF_GID_T@)
 (define pointer-ref-c-gid_t		@GETTEROF_GID_T@)
 
 (define ino_t				(quote @TYPEOF_INO_T@))
+(define sizeof-ino_t			(quote @SIZEOF_INO_T@))
+(define alignof-ino_t			(quote @ALIGNOF_INO_T@))
+(define strideof-ino_t			(quote @STRIDEOF_INO_T@))
 (define pointer-set-c-ino_t!		@SETTEROF_INO_T@)
 (define pointer-ref-c-ino_t		@GETTEROF_INO_T@)
 
 (define mode_t				(quote @TYPEOF_MODE_T@))
+(define sizeof-mode_t			(quote @SIZEOF_MODE_T@))
+(define alignof-mode_t			(quote @ALIGNOF_MODE_T@))
+(define strideof-mode_t			(quote @STRIDEOF_MODE_T@))
 (define pointer-set-c-mode_t!		@SETTEROF_MODE_T@)
 (define pointer-ref-c-mode_t		@GETTEROF_MODE_T@)
 
 (define nlink_t				(quote @TYPEOF_NLINK_T@))
+(define sizeof-nlink_t			(quote @SIZEOF_NLINK_T@))
+(define alignof-nlink_t			(quote @ALIGNOF_NLINK_T@))
+(define strideof-nlink_t		(quote @STRIDEOF_NLINK_T@))
 (define pointer-set-c-nlink_t!		@SETTEROF_NLINK_T@)
 (define pointer-ref-c-nlink_t		@GETTEROF_NLINK_T@)
-
 
 (define off_t				(if on-32-bits-system
 					    (quote unsigned-int)
 					  (quote @TYPEOF_OFF_T@)))
+(define sizeof-off_t			(if on-32-bits-system
+					    4
+					  @SIZEOF_OFF_T@))
+(define alignof-off_t			(if on-32-bits-system
+					    4
+					  @ALIGNOF_OFF_T@))
+(define strideof-off_t			(if on-32-bits-system
+					    4
+					  @STRIDEOF_OFF_T@))
 (define pointer-set-c-off_t!		(if on-32-bits-system
 					    pointer-set-c-unsigned-int!
 					  @SETTEROF_OFF_T@))
@@ -169,14 +312,23 @@
 					  @GETTEROF_OFF_T@))
 
 (define pid_t				(quote @TYPEOF_PID_T@))
+(define sizeof-pid_t			(quote @SIZEOF_PID_T@))
+(define alignof-pid_t			(quote @ALIGNOF_PID_T@))
+(define strideof-pid_t			(quote @STRIDEOF_PID_T@))
 (define pointer-set-c-pid_t!		@SETTEROF_PID_T@)
 (define pointer-ref-c-pid_t		@GETTEROF_PID_T@)
 
 (define time_t				(quote @TYPEOF_TIME_T@))
+(define sizeof-time_t			(quote @SIZEOF_TIME_T@))
+(define alignof-time_t			(quote @ALIGNOF_TIME_T@))
+(define strideof-time_t			(quote @STRIDEOF_TIME_T@))
 (define pointer-set-c-time_t!		@SETTEROF_TIME_T@)
 (define pointer-ref-c-time_t		@GETTEROF_TIME_T@)
 
 (define uid_t				(quote @TYPEOF_UID_T@))
+(define sizeof-uid_t			(quote @SIZEOF_UID_T@))
+(define alignof-uid_t			(quote @ALIGNOF_UID_T@))
+(define strideof-uid_t			(quote @STRIDEOF_UID_T@))
 (define pointer-set-c-uid_t!		@SETTEROF_UID_T@)
 (define pointer-ref-c-uid_t		@GETTEROF_UID_T@)
 
@@ -199,14 +351,28 @@
 (define alignof-struct-dirent		@ALIGNOF_STRUCT_DIRENT@)
 (define strideof-struct-dirent		@STRIDEOF_STRUCT_DIRENT@)
 
-(define sizeof-struct-stat		@SIZEOF_STRUCT_STAT@)
-(define alignof-struct-stat		@ALIGNOF_STRUCT_STAT@)
-(define strideof-struct-stat		@STRIDEOF_STRUCT_STAT@)
-
 (define sizeof-struct-utimbuf		@SIZEOF_STRUCT_UTIMBUF@)
 (define alignof-struct-utimbuf		@ALIGNOF_STRUCT_UTIMBUF@)
 (define strideof-struct-utimbuf		@STRIDEOF_STRUCT_UTIMBUF@)
 
+(define sizeof-struct-timezone		@SIZEOF_STRUCT_TIMEZONE@)
+(define alignof-struct-timezone		@ALIGNOF_STRUCT_TIMEZONE@)
+(define strideof-struct-timezone	@STRIDEOF_STRUCT_TIMEZONE@)
+
+(define sizeof-struct-tm		@SIZEOF_STRUCT_TM@)
+(define alignof-struct-tm		@ALIGNOF_STRUCT_TM@)
+(define strideof-struct-tm		@STRIDEOF_STRUCT_TM@)
+
+(define sizeof-struct-ntptimeval	@SIZEOF_STRUCT_NTPTIMEVAL@)
+(define alignof-struct-ntptimeval	@ALIGNOF_STRUCT_NTPTIMEVAL@)
+(define strideof-struct-ntptimeval	@STRIDEOF_STRUCT_NTPTIMEVAL@)
+
+;;;The  stat structure is  "special"; we  relay on  the stub  library to
+;;;access it.
+;;;
+;;; (define sizeof-struct-stat		@SIZEOF_STRUCT_STAT@)
+;;; (define alignof-struct-stat		@ALIGNOF_STRUCT_STAT@)
+;;; (define strideof-struct-stat	@STRIDEOF_STRUCT_STAT@)
 
 
 ;;;; constants
@@ -290,6 +456,7 @@
 (define S_ISGID			@VALUEOF_S_ISGID@)
 (define S_ISVTX			@VALUEOF_S_ISVTX@)
 
+(define EOF			@VALUEOF_EOF@)
 
 
 ;;;; struct accessors
@@ -366,6 +533,137 @@
 (define-c-struct-field-pointer-accessor
   struct-dirent-d_name-ref
   @OFFSETOF_STRUCT_DIRENT_D_NAME@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  struct-utimbuf-actime-set!
+  struct-utimbuf-actime-ref
+  @OFFSETOF_STRUCT_UTIMBUF_ACTIME@
+  @SETTEROF_STRUCT_UTIMBUF_ACTIME@
+  @GETTEROF_STRUCT_UTIMBUF_ACTIME@)
+
+(define-c-struct-accessor-and-mutator
+  struct-utimbuf-modtime-set!
+  struct-utimbuf-modtime-ref
+  @OFFSETOF_STRUCT_UTIMBUF_MODTIME@
+  @SETTEROF_STRUCT_UTIMBUF_MODTIME@
+  @GETTEROF_STRUCT_UTIMBUF_MODTIME@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  struct-timezone-tz_minuteswest-set!
+  struct-timezone-tz_minuteswest-ref
+  @OFFSETOF_STRUCT_TIMEZONE_TZ_MINUTESWEST@
+  @SETTEROF_STRUCT_TIMEZONE_TZ_MINUTESWEST@
+  @GETTEROF_STRUCT_TIMEZONE_TZ_MINUTESWEST@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timezone-tz_dsttime-set!
+  struct-timezone-tz_dsttime-ref
+  @OFFSETOF_STRUCT_TIMEZONE_TZ_DSTTIME@
+  @SETTEROF_STRUCT_TIMEZONE_TZ_DSTTIME@
+  @GETTEROF_STRUCT_TIMEZONE_TZ_DSTTIME@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  struct-tm-tm_sec-set!
+  struct-tm-tm_sec-ref
+  @OFFSETOF_STRUCT_TM_TM_SEC@
+  @SETTEROF_STRUCT_TM_TM_SEC@
+  @GETTEROF_STRUCT_TM_TM_SEC@)
+
+(define-c-struct-accessor-and-mutator
+  struct-tm-tm_min-set!
+  struct-tm-tm_min-ref
+  @OFFSETOF_STRUCT_TM_TM_MIN@
+  @SETTEROF_STRUCT_TM_TM_MIN@
+  @GETTEROF_STRUCT_TM_TM_MIN@)
+
+(define-c-struct-accessor-and-mutator
+  struct-tm-tm_hour-set!
+  struct-tm-tm_hour-ref
+  @OFFSETOF_STRUCT_TM_TM_HOUR@
+  @SETTEROF_STRUCT_TM_TM_HOUR@
+  @GETTEROF_STRUCT_TM_TM_HOUR@)
+
+(define-c-struct-accessor-and-mutator
+  struct-tm-tm_mday-set!
+  struct-tm-tm_mday-ref
+  @OFFSETOF_STRUCT_TM_TM_MDAY@
+  @SETTEROF_STRUCT_TM_TM_MDAY@
+  @GETTEROF_STRUCT_TM_TM_MDAY@)
+
+(define-c-struct-accessor-and-mutator
+  struct-tm-tm_mon-set!
+  struct-tm-tm_mon-ref
+  @OFFSETOF_STRUCT_TM_TM_MON@
+  @SETTEROF_STRUCT_TM_TM_MON@
+  @GETTEROF_STRUCT_TM_TM_MON@)
+
+(define-c-struct-accessor-and-mutator
+  struct-tm-tm_year-set!
+  struct-tm-tm_year-ref
+  @OFFSETOF_STRUCT_TM_TM_YEAR@
+  @SETTEROF_STRUCT_TM_TM_YEAR@
+  @GETTEROF_STRUCT_TM_TM_YEAR@)
+
+(define-c-struct-accessor-and-mutator
+  struct-tm-tm_wday-set!
+  struct-tm-tm_wday-ref
+  @OFFSETOF_STRUCT_TM_TM_WDAY@
+  @SETTEROF_STRUCT_TM_TM_WDAY@
+  @GETTEROF_STRUCT_TM_TM_WDAY@)
+
+(define-c-struct-accessor-and-mutator
+  struct-tm-tm_yday-set!
+  struct-tm-tm_yday-ref
+  @OFFSETOF_STRUCT_TM_TM_YDAY@
+  @SETTEROF_STRUCT_TM_TM_YDAY@
+  @GETTEROF_STRUCT_TM_TM_YDAY@)
+
+(define-c-struct-accessor-and-mutator
+  struct-tm-tm_isdst-set!
+  struct-tm-tm_isdst-ref
+  @OFFSETOF_STRUCT_TM_TM_ISDST@
+  @SETTEROF_STRUCT_TM_TM_ISDST@
+  @GETTEROF_STRUCT_TM_TM_ISDST@)
+
+(define-c-struct-accessor-and-mutator
+  struct-tm-tm_gmtoff-set!
+  struct-tm-tm_gmtoff-ref
+  @OFFSETOF_STRUCT_TM_TM_GMTOFF@
+  @SETTEROF_STRUCT_TM_TM_GMTOFF@
+  @GETTEROF_STRUCT_TM_TM_GMTOFF@)
+
+(define-c-struct-accessor-and-mutator
+  struct-tm-tm_zone-set!
+  struct-tm-tm_zone-ref
+  @OFFSETOF_STRUCT_TM_TM_ZONE@
+  @SETTEROF_STRUCT_TM_TM_ZONE@
+  @GETTEROF_STRUCT_TM_TM_ZONE@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-field-pointer-accessor
+  struct-ntptimeval-time-ref
+  @OFFSETOF_STRUCT_NTPTIMEVAL_TIME@)
+
+(define-c-struct-accessor-and-mutator
+  struct-ntptimeval-maxerror-set!
+  struct-ntptimeval-maxerror-ref
+  @OFFSETOF_STRUCT_NTPTIMEVAL_MAXERROR@
+  @SETTEROF_STRUCT_NTPTIMEVAL_MAXERROR@
+  @GETTEROF_STRUCT_NTPTIMEVAL_MAXERROR@)
+
+(define-c-struct-accessor-and-mutator
+  struct-ntptimeval-esterror-set!
+  struct-ntptimeval-esterror-ref
+  @OFFSETOF_STRUCT_NTPTIMEVAL_ESTERROR@
+  @SETTEROF_STRUCT_NTPTIMEVAL_ESTERROR@
+  @GETTEROF_STRUCT_NTPTIMEVAL_ESTERROR@)
 
 ;;; --------------------------------------------------------------------
 ;;;The  stat structure is  "special"; we  relay on  the stub  library to
@@ -475,22 +773,6 @@
 ;;   @OFFSETOF_STRUCT_STAT_ST_BLKSIZE@
 ;;   @SETTEROF_STRUCT_STAT_ST_BLKSIZE@
 ;;   @GETTEROF_STRUCT_STAT_ST_BLKSIZE@)
-
-;;; --------------------------------------------------------------------
-
-(define-c-struct-accessor-and-mutator
-  struct-utimbuf-actime-set!
-  struct-utimbuf-actime-ref
-  @OFFSETOF_STRUCT_UTIMBUF_ACTIME@
-  @SETTEROF_STRUCT_UTIMBUF_ACTIME@
-  @GETTEROF_STRUCT_UTIMBUF_ACTIME@)
-
-(define-c-struct-accessor-and-mutator
-  struct-utimbuf-modtime-set!
-  struct-utimbuf-modtime-ref
-  @OFFSETOF_STRUCT_UTIMBUF_MODTIME@
-  @SETTEROF_STRUCT_UTIMBUF_MODTIME@
-  @GETTEROF_STRUCT_UTIMBUF_MODTIME@)
 
 
 ;;;; done

@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/Glibc
+;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to platform functions that handle files
 ;;;Date: Thu Jan  1, 2009
 ;;;
@@ -24,68 +24,78 @@
 ;;;
 
 
-;;;; setup
-
-(library (glibc file platform)
+(library (foreign glibc file platform)
   (export
-    platform-canonicalize_file_name
-    platform-remove
-    platform-truncate
-    platform-mkdtemp
-    platform-alphasort
-    platform-versionsort
-    platform-ftw
-    platform-nftw
-    platform-mknod
-    platform-tmpfile
-    platform-mkdtemp
-    platform-getumask)
+    utimes lutimes futimes
+    canonicalize_file_name
+    remove
+    truncate
+    mkdtemp
+    alphasort
+    versionsort
+    ftw
+    nftw
+    mknod
+    tmpfile
+    mkdtemp
+    getumask)
   (import (r6rs)
     (uriel lang)
     (uriel foreign)
     (glibc sizeof))
 
-  (define d (shared-object self-shared-object))
+  (define dummy
+    (shared-object self-shared-object))
 
 
-;;;; code
+(define-c-function/with-errno utimes
+  (int utimes (char* pointer)))
 
-(define-c-function/with-errno platform-canonicalize_file_name
+(define-c-function/with-errno lutimes
+  (int lutimes (char* pointer)))
+
+(define-c-function/with-errno futimes
+  (int futimes (int pointer)))
+
+;;; --------------------------------------------------------------------
+
+(define-c-function/with-errno canonicalize_file_name
   (char* canonicalize_file_name (char*)))
 
-(define-c-function/with-errno platform-remove
+(define-c-function/with-errno remove
   (int remove (char*)))
 
-(define-c-function/with-errno platform-truncate
+(define-c-function/with-errno truncate
   (int truncate (char* off_t)))
 
-(define-c-function/with-errno platform-mkdtemp
+(define-c-function/with-errno mkdtemp
   (char* mkdtemp (char*)))
 
-(define-c-function platform-alphasort
+(define-c-function alphasort
   (int alphasort (pointer pointer)))
 
-(define-c-function platform-versionsort
+(define-c-function versionsort
   (int versionsort (pointer pointer)))
 
-(define-c-function/with-errno platform-ftw
+;;; --------------------------------------------------------------------
+
+(define-c-function/with-errno ftw
   (int ftw (char* callback int)))
 
-(define-c-function/with-errno platform-nftw
+(define-c-function/with-errno nftw
   (int nftw (char* callback int int)))
 
-(define-c-function/with-errno platform-mknod
+(define-c-function/with-errno mknod
   (int mknod (char* int int)))
 
-(define-c-function/with-errno platform-tmpfile
+(define-c-function/with-errno tmpfile
   (FILE* tmpfile (void)))
 
-(define-c-function/with-errno platform-mkdtemp
+(define-c-function/with-errno mkdtemp
   (char* mkdtemp (char*)))
 
-(define-c-function/with-errno platform-getumask
+(define-c-function/with-errno getumask
   (int getumask (void)))
-
 
 
 ;;;; done

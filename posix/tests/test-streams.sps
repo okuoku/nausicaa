@@ -1,5 +1,5 @@
 ;;;
-;;;Part of: Nausicaa/Glibc
+;;;Part of: Nausicaa/POSIX
 ;;;Contents: test for streams
 ;;;Date: Thu Dec  4, 2008
 ;;;
@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,25 +23,26 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 
-;;;; setup
-
-(import (r6rs)
-  (uriel lang)
-  (uriel foreign)
-  (uriel test)
-  (only (string-lib) string-join)
-  (only (posix sizeof)
-	SEEK_SET SEEK_CUR SEEK_END)
-  (glibc streams)
-  (glibc streams-extended)
-  (glibc streams-unlocked))
+(import (nausicaa)
+  (checks)
+  (strings)
+  (receive)
+  (compensations)
+  (foreign ffi)
+  (foreign memory)
+  (foreign cstrings)
+  (foreign errno)
+  (foreign posix sizeof)
+  (foreign glibc streams)
+  (prefix (foreign glibc streams platform) platform:))
 
 (check-set-mode! 'report-failed)
 
 (define TMPDIR (get-environment-variable "TMPDIR"))
+(display "*** testing Glibc streams\n")
 
+
 (define the-pathname (string-join (list TMPDIR "name.ext") "/"))
 
 (define the-string "Le Poete est semblable au prince des nuees
@@ -58,27 +59,24 @@ Ses ailes de geant l'empechent de marcher.
 
 
 
-;;;; basic stream operations
-
-(parameterize ((testname 'basic))
+(parametrise ((check-test-name	'basic))
 
   (check
       (let ((pathname the-pathname))
 	(with-compensations
-	  (let* ((S (fopen pathname "w+"))
-		 (p (string->cstring/c the-string))
-		 (len (strlen p)))
+	  (let* ((S	(fopen pathname "w+"))
+		 (p	(string->cstring/c the-string))
+		 (len	(strlen p)))
 	    (fwrite p 1 len S)
 	    (fread p len 1 S)
 	    (fclose S)
 	    (cstring->string p))))
     => the-string)
-  )
+
+  #t)
 
 
-;;;; getting lines
-
-(parameterize ((testname 'getline))
+(parametrise ((check-test-name	'getline))
 
   (check
       (let ((pathname the-pathname))
@@ -122,20 +120,24 @@ Ses ailes de geant l'empechent de marcher.
 			(with (fclose S))))
 		   (*pointer	(malloc-small/c))
 		   (*count	(malloc-small/c))
-		   (getp	(lambda ()
-				  (pointer-ref-c-pointer *pointer 0)))
-		   (free	(lambda ()
-				  (let ((p (getp)))
-				    (unless (pointer-null? p)
-				      (primitive-free p)))))
 		   (lines	'()))
+
+	    (define-syntax getp
+	      (syntax-rules ()
+		((_)
+		 (pointer-ref-c-pointer *pointer 0))))
+
+	    (define (free)
+	      (let ((p (getp)))
+		(unless (pointer-null? p)
+		  (primitive-free p))))
 
 	    (fwrite (string->cstring/c the-string) 1
 		    (string-length the-string) S)
 	    (fseek S 0 SEEK_SET)
 	    (let loop ()
 	      (receive (result errno)
-		  (platform-getline *pointer *count S)
+		  (platform:getline *pointer *count S)
 		(cond ((ferror S)
 		       (free)
 		       (raise-errno-error 'reading-line errno S))
@@ -144,7 +146,7 @@ Ses ailes de geant l'empechent de marcher.
 		       (reverse lines))
 		      (else
 		       (set! lines
-			     (cons (cstring->string/len (getp) result)
+			     (cons (cstring->string (getp) result)
 				   lines))
 		       (loop))))))))
     => '("Le Poete est semblable au prince des nuees\n"
@@ -160,9 +162,12 @@ Ses ailes de geant l'empechent de marcher.
 			(with (fclose S))))
 		   (*pointer	(malloc-small/c))
 		   (*count	(malloc-small/c))
-		   (getp	(lambda ()
-				  (pointer-ref-c-pointer *pointer 0)))
 		   (lines	'()))
+
+	    (define-syntax getp
+	      (syntax-rules ()
+		((_)
+		 (pointer-ref-c-pointer *pointer 0))))
 
 	    (fwrite (string->cstring/c the-string-newline) 1
 		    (string-length the-string-newline)
@@ -170,7 +175,7 @@ Ses ailes de geant l'empechent de marcher.
 	    (fseek S 0 SEEK_SET)
 	    (let loop ()
 	      (receive (result errno)
-		  (platform-getline *pointer *count S)
+		  (platform:getline *pointer *count S)
 		(cond ((ferror S)
 		       (primitive-free (getp))
 		       (raise-errno-error 'reading-line errno S))
@@ -179,7 +184,7 @@ Ses ailes de geant l'empechent de marcher.
 		       (reverse lines))
 		      (else
 		       (set! lines
-			     (cons (cstring->string/len (getp) result)
+			     (cons (cstring->string (getp) result)
 				   lines))
 		       (loop))))))))
     => '("Le Poete est semblable au prince des nuees\n"
@@ -187,12 +192,10 @@ Ses ailes de geant l'empechent de marcher.
 	 "Exile sul le sol au milieu des huees,\n"
 	 "Ses ailes de geant l'empechent de marcher.\n"))
 
-  )
+  #t)
 
 
-;;;; getting delimited sequences
-
-(parameterize ((testname 'getdelim))
+(parametrise ((check-test-name	'getdelim))
 
   (check
       (let ((pathname the-pathname))
@@ -245,7 +248,7 @@ Ses ailes de geant l'empechent de marcher.
 	    (fseek S 0 SEEK_SET)
 	    (let loop ()
 	      (receive (result errno)
-		  (platform-getdelim *pointer *count (char->integer #\newline) S)
+		  (platform:getdelim *pointer *count (char->integer #\newline) S)
 		(cond ((ferror S)
 		       (primitive-free (getp))
 		       (raise-errno-error 'reading-line errno S))
@@ -254,7 +257,7 @@ Ses ailes de geant l'empechent de marcher.
 		       (reverse lines))
 		      (else
 		       (set! lines
-			     (cons (cstring->string/len (getp) result)
+			     (cons (cstring->string (getp) result)
 				   lines))
 		       (loop))))))))
     => '("Le Poete est semblable au prince des nuees\n"
@@ -280,7 +283,7 @@ Ses ailes de geant l'empechent de marcher.
 	    (fseek S 0 SEEK_SET)
 	    (let loop ()
 	      (receive (result errno)
-		  (platform-getdelim *pointer *count (char->integer #\newline) S)
+		  (platform:getdelim *pointer *count (char->integer #\newline) S)
 		(cond ((ferror S)
 		       (primitive-free (getp))
 		       (raise-errno-error 'reading-line errno S))
@@ -289,7 +292,7 @@ Ses ailes de geant l'empechent de marcher.
 		       (reverse lines))
 		      (else
 		       (set! lines
-			     (cons (cstring->string/len (getp) result)
+			     (cons (cstring->string (getp) result)
 				   lines))
 		       (loop))))))))
     => '("Le Poete est semblable au prince des nuees\n"
@@ -297,8 +300,7 @@ Ses ailes de geant l'empechent de marcher.
 	 "Exile sul le sol au milieu des huees,\n"
 	 "Ses ailes de geant l'empechent de marcher.\n"))
 
-  )
-
+  #t)
 
 
 ;;;; done

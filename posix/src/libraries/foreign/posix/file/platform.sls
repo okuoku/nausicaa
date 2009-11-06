@@ -65,7 +65,9 @@
     utime
 
     ;; file size
-    ftruncate)
+    ftruncate
+
+    struct-dirent-d_name-ptr-ref)
   (import (except (rnrs)
 		  remove truncate)
     (foreign ffi)
@@ -215,6 +217,13 @@
 
 (define-c-function/with-errno ftruncate
   (int ftruncate (int off_t)))
+
+
+(define dummy2
+  (shared-object (open-shared-object* 'libnausicaa-posix1.so)))
+
+(define-c-function struct-dirent-d_name-ptr-ref
+  (char* nausicaa_posix_dirent_d_name_ptr_ref (void*)))
 
 
 ;;;; done
