@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/MP 2009-11-01 tag 0.1b1
+Subject: [announce] Nausicaa/MP 2009-11-06 tag 0.1b2
 
 			Nausicaa/MP
 			===========
@@ -36,6 +36,12 @@ development takes place at:
 the documentation is available on line:
 
     <http://marcomaggi.github.com/docs/nausicaa-mp.html>
+
+
+Notes for 2009-11-06 tag 0.1b2
+------------------------------
+
+* Updated to MPC version 0.8.
 
 
 Notes for 2009-11-01 tag 0.1b1
