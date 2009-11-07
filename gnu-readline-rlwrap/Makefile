@@ -44,7 +44,7 @@ ikarus_MODULES	= ikarus ikarus_ffi	$(srfi_MODULES)
 ypsilon_MODULES	= ypsilon		$(srfi_MODULES)
 larceny_MODULES	= larceny		$(srfi_MODULES)
 mosh_MODULES	=			$(srfi_MODULES)
-
+petite_MODULES	=			$(srfi_MODULES)
 
 #page
 ## ------------------------------------------------------------
@@ -70,6 +70,7 @@ IKARUS_SED_FLAGS	= -e "s|@pkgdatadir@|$(pkgdatadir)|g"
 YPSILON_SED_FLAGS	= -e "s|@pkgdatadir@|$(pkgdatadir)|g"
 LARCENY_SED_FLAGS	= -e "s|@pkgdatadir@|$(pkgdatadir)|g"
 MOSH_SED_FLAGS		= -e "s|@pkgdatadir@|$(pkgdatadir)|g"
+PETITE_SED_FLAGS	= -e "s|@pkgdatadir@|$(pkgdatadir)|g"
 
 ## ------------------------------------------------------------
 
@@ -91,8 +92,6 @@ MKDIR		= mkdir --parents --verbose
 
 SORT		= sort --unique
 
-## ------------------------------------------------------------
-
 #page
 ## ------------------------------------------------------------
 ## Rules.
@@ -106,27 +105,34 @@ larceny_COMPLETIONS	= completions/r6rs_identifiers \
   $(foreach m,$(larceny_MODULES),completions/$(m)_completions)
 mosh_COMPLETIONS	= completions/r6rs_identifiers \
   $(foreach m,$(mosh_MODULES),completions/$(m)_completions)
+petite_COMPLETIONS	= completions/r6rs_identifiers \
+  $(foreach m,$(petite_MODULES),completions/$(m)_completions)
 
 SCRIPTS		= $(builddir)/ike $(builddir)/ype \
-		  $(builddir)/lay $(builddir)/moe
+		  $(builddir)/lae $(builddir)/moe \
+		  $(builddir)/pee
 ikarus_COMPFILE	= $(builddir)/.ikarus_completions
 ypsilon_COMPFILE= $(builddir)/.ypsilon_completions
 larceny_COMPFILE= $(builddir)/.larceny_completions
 mosh_COMPFILE	= $(builddir)/.mosh_completions
+petite_COMPFILE	= $(builddir)/.petite_completions
 COMPFILES	= $(ikarus_COMPFILE) $(ypsilon_COMPFILE) \
-		  $(larceny_COMPFILE) $(mosh_COMPFILE)
+		  $(larceny_COMPFILE) $(mosh_COMPFILE)	 \
+		  $(petite_COMPFILE)
 
 .PHONY: all clean install install-bin install-dat
 
 all: builddir
 	$(SED) $(IKARUS_SED_FLAGS)  < scripts/ike.in > $(builddir)/ike
 	$(SED) $(YPSILON_SED_FLAGS) < scripts/ype.in > $(builddir)/ype
-	$(SED) $(LARCENY_SED_FLAGS) < scripts/lay.in > $(builddir)/lay
+	$(SED) $(LARCENY_SED_FLAGS) < scripts/lae.in > $(builddir)/lae
 	$(SED) $(MOSH_SED_FLAGS)    < scripts/moe.in > $(builddir)/moe
+	$(SED) $(PETITE_SED_FLAGS)  < scripts/pee.in > $(builddir)/pee
 	cat $(ikarus_COMPLETIONS)  | $(SORT) >$(ikarus_COMPFILE)
 	cat $(ypsilon_COMPLETIONS) | $(SORT) >$(ypsilon_COMPFILE)
 	cat $(larceny_COMPLETIONS) | $(SORT) >$(larceny_COMPFILE)
 	cat $(mosh_COMPLETIONS)    | $(SORT) >$(mosh_COMPFILE)
+	cat $(petite_COMPLETIONS)  | $(SORT) >$(petite_COMPFILE)
 
 clean:
 	-$(RM) $(builddir)

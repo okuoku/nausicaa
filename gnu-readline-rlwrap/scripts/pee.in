@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+# Petite Chezk Scheme GNU Readline wrapper using Rlwrap.
+
+## ------------------------------------------------------------
+## Configuration variables.
+
+petite_PROGRAM=$(type -p petite)
+rlwrap_PROGRAM=$(type -p rlwrap)
+
+COMPLETIONS_FILE=@pkgdatadir@/.petite_completions
+COMPLETIONS_OPTION=--file=${COMPLETIONS_FILE}
+
+## ------------------------------------------------------------
+## Data variables.
+
+# Do NOT include '\!' and '?' in this string.
+BREAK_CHARS="\"#'(),;\`\\|[]{}"
+
+## ------------------------------------------------------------
+## Check programs and data files existence.
+
+function error () {
+    local MESSAGE=${1:?"missing message argument to function '${FUNCNAME}'"}
+    printf 'ype error: %s\n' "${MESSAGE}" >&2
+    exit 2
+}
+function warning () {
+    local MESSAGE=${1:?"missing message argument to function '${FUNCNAME}'"}
+    printf 'ype warning: %s\n' "${MESSAGE}" >&2
+}
+
+test -x "${rlwrap_PROGRAM}" || error "cannot find program 'rlwrap'"
+test -x "${petite_PROGRAM}" || error "cannot find program 'petite'"
+
+if ! test -f "${COMPLETIONS_FILE}" ; then
+    warning "cannot find completions file '${COMPLETIONS_FILE}'"
+    COMPLETIONS_OPTION=
+fi
+
+## ------------------------------------------------------------
+## Run.
+
+exec "${rlwrap_PROGRAM}"                                        \
+    --ansi-colour-aware                                         \
+    --break-chars=${BREAK_CHARS}                                \
+    --complete-filenames                                        \
+    --history-no-dupes=2                                        \
+    --multi-line                                                \
+    --prompt-colour='1;31'                                      \
+    --quote-characters='"'                                      \
+    --remember                                                  \
+    ${COMPLETIONS_OPTION}                                       \
+    "${petite_PROGRAM}" --eedisable --libexts .petite.sls:.sls "$@"
+
+### end of file
