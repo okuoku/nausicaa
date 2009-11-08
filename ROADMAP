@@ -19,7 +19,6 @@ Weekly library program
 ---
 
 * Finish the POSIX interface.
-* Finish the OSSP/sa interface?  Drop it?
 * Write a JSON reader/writer for Nausicaa/Scheme.
 * Write an URI parser for Nausicaa/Scheme.
 * Embed I18N for messages in Nauscaa/Scheme (Shinn's msgcat).
