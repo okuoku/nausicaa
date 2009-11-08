@@ -26,12 +26,15 @@
 
 (library (foreign glibc file)
   (export
+    ;; temporary files
+    mktemp		mktemp-function
+    mkstemp		mkstemp-function
+    mkdtemp		mkdtemp-function
     tmpfile		tmpfile-function
     tempnam		tempnam-function
     tmpnam		tmpnam-function
-    tmpnam_r		tmpnam_r-function
-    mkdtemp		mkdtemp-function
 
+    ;; times
     utimes		utimes-function
     lutimes		lutimes-function
     futimes		futimes-function)
@@ -43,11 +46,12 @@
 
 ;;;; temporary files
 
+(define-parametrised mktemp template)
+(define-parametrised mkstemp template)
+(define-parametrised mkdtemp template)
 (define-parametrised tmpfile)
 (define-parametrised tempnam directory prefix)
 (define-parametrised tmpnam)
-(define-parametrised tmpnam_r)
-(define-parametrised mkdtemp template)
 
 
 ;;;; file times

@@ -27,8 +27,11 @@
 
 (library (foreign glibc file primitives)
   (export
-    tempnam		tmpnam		tmpnam_r
-    mkdtemp		tmpfile
+
+    ;; temporary files
+    mktemp		mkstemp		mkdtemp
+    tempnam		tmpnam		tmpfile
+
     utimes		lutimes		futimes)
   (import (except (rnrs)
 		  remove truncate)
@@ -40,8 +43,10 @@
 	  pointer-null
 	  pointer-null?)
     (only (foreign memory)
-	  malloc-block/c)
+	  malloc-block/c
+	  primitive-free)
     (only (foreign cstrings)
+	  strlen
 	  string->cstring/c
 	  cstring->string)
     (only (foreign errno)
@@ -50,34 +55,62 @@
     (prefix (foreign glibc file platform) platform:))
 
 
-(define (tmpfile)
-  (receive (result errno)
-      (platform:tmpfile)
-    (when (pointer-null? result)
-      (raise-errno-error 'mkdtemp errno))
-    result))
-
-(define (tempnam directory prefix)
+(define (mktemp template)
   (with-compensations
-    (cstring->string (platform:tempnam (string->cstring/c directory)
-				       (string->cstring/c prefix)))))
+    (let ((p	(string->cstring/c template)))
+      (receive (result errno)
+	  (platform:mktemp p)
+	(if (or (pointer-null? result) (= 0 (strlen p)))
+	    (raise-errno-error 'mktemp errno template)
+	  (cstring->string p))))))
 
-(define (tmpnam)
+(define (mkstemp template)
   (with-compensations
-    (cstring->string (platform:tmpnam (malloc-block/c (+ 1 L_tmpnam))))))
-
-(define (tmpnam_r)
-  (with-compensations
-    (cstring->string (platform:tmpnam_r (malloc-block/c (+ 1 L_tmpnam))))))
+    (let ((p	(string->cstring/c template)))
+      (receive (result errno)
+	  (platform:mkstemp p)
+	(if (= -1 result)
+	    (raise-errno-error 'mktemp errno template)
+	  (values result (cstring->string p)))))))
 
 (define (mkdtemp template)
   (with-compensations
     (let ((p	(string->cstring/c template)))
       (receive (result errno)
 	  (platform:mkdtemp p)
-	(when (pointer-null? result)
-	  (raise-errno-error 'mkdtemp errno template))
-	(cstring->string p)))))
+	(if (pointer-null? result)
+	    (raise-errno-error 'mkdtemp errno template)
+	  (cstring->string p))))))
+
+(define (tmpfile)
+  (receive (result errno)
+      (platform:tmpfile)
+    (when (pointer-null? result)
+      (raise-errno-error 'tmpfile errno))
+    result))
+
+(define (tempnam directory prefix)
+  (with-compensations
+    (receive (result errno)
+	(platform:tempnam (if (not directory)
+			      pointer-null
+			    (string->cstring/c directory))
+			  (if (not prefix)
+			      pointer-null
+			    (string->cstring/c prefix)))
+      (if (pointer-null? result)
+	  (raise-errno-error 'tempnam errno (list directory prefix))
+	(begin0
+	    (cstring->string result)
+	  (primitive-free result))))))
+
+(define (tmpnam)
+  (with-compensations
+    (receive (result errno)
+	(platform:tmpnam (malloc-block/c (+ 1 L_tmpnam)))
+      (if (pointer-null? result)
+	  (raise-errno-error 'tmpnam errno)
+	(cstring->string result)))))
 
 
 (define %real-utimes

@@ -26,15 +26,20 @@
 
 (library (foreign glibc file platform)
   (export
+
+    ;; times
     utimes		lutimes		futimes
+
     canonicalize_file_name
     remove
     truncate
     alphasort		versionsort
     ftw			nftw
     mknod
-    tempnam		tmpnam		tmpnam_r
-    tmpfile		mkdtemp)
+
+    ;; temporary files
+    mktemp		mkstemp		mkdtemp
+    tempnam		tmpnam		tmpfile)
   (import (except (rnrs)
 		  remove truncate)
     (foreign ffi)
@@ -89,20 +94,23 @@
 
 ;;; --------------------------------------------------------------------
 
+(define-c-function/with-errno mktemp
+  (char* mktemp (char*)))
+
+(define-c-function/with-errno mkstemp
+  (int mkstemp (char*)))
+
+(define-c-function/with-errno mkdtemp
+  (char* mkdtemp (char*)))
+
 (define-c-function/with-errno tmpfile
   (FILE* tmpfile (void)))
 
 (define-c-function/with-errno tempnam
-  (char* tempnam (char*)))
+  (char* tempnam (char* char*)))
 
 (define-c-function/with-errno tmpnam
   (char* tmpnam (char*)))
-
-(define-c-function/with-errno tmpnam_r
-  (char* tmpnam_r (char*)))
-
-(define-c-function/with-errno mkdtemp
-  (char* mkdtemp (char*)))
 
 
 (define dummy2

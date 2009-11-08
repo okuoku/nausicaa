@@ -36,6 +36,7 @@
   (foreign cstrings)
 
   (prefix (foreign glibc file) glibc:)
+  (prefix (foreign glibc streams) posix:)
 
   (foreign posix sizeof)
   (prefix (foreign posix process) posix:)
@@ -107,86 +108,143 @@ Ses ailes de geant l'empechent de marcher.")
       (lambda (E)
 	(debug-print-condition "deferred condition in times" E))
     (lambda ()
-      (guard (E (else (debug-print-condition "times condition" E)))
+      (define (get-times pathname)
+	(let ((record (posix:stat the-file)))
+	  (list (posix:<struct-stat>-atime record)
+		(posix:<struct-stat>-mtime record))))
 
-	(define (get-times pathname)
-	  (let ((record (posix:stat the-file)))
-	    (list (posix:<struct-stat>-atime record)
-		  (posix:<struct-stat>-mtime record))))
-
-	(with-compensations
-	  (clean-test-hierarchy)
-	    (compensate
-		(make-test-hierarchy)
-	      (with
-	       (clean-test-hierarchy)))
+      (with-compensations
+	(clean-test-hierarchy)
+	  (compensate
+	      (make-test-hierarchy)
+	    (with
+	     (clean-test-hierarchy)))
 
 ;;; --------------------------------------------------------------------
 
-	  (check
-	      (begin
-		(posix:chmod the-file S_IRWXU)
-		(glibc:utimes the-file
-			      #e1e3 ;access time
-			      #e1e4
-			      #e2e3 ;modification time
-			      #e2e4)
-		(get-times the-file))
-	    => '(#e1e3 #e2e3))
+	(check
+	    (begin
+	      (posix:chmod the-file S_IRWXU)
+	      (glibc:utimes the-file
+			    #e1e3 ;access time
+			    #e1e4
+			    #e2e3 ;modification time
+			    #e2e4)
+	      (get-times the-file))
+	  => '(#e1e3 #e2e3))
 
-	  (check
-	      (begin
-		(posix:chmod the-file S_IRWXU)
-		(glibc:utimes the-file))
-	    => 0)
+	(check
+	    (begin
+	      (posix:chmod the-file S_IRWXU)
+	      (glibc:utimes the-file))
+	  => 0)
 
 ;;; --------------------------------------------------------------------
 
-	  (check
-	      (begin
-		(posix:chmod the-file S_IRWXU)
-		(glibc:lutimes the-file
+	(check
+	    (begin
+	      (posix:chmod the-file S_IRWXU)
+	      (glibc:lutimes the-file
+			     #e1e3 ;access time
+			     #e1e4
+			     #e2e3 ;modification time
+			     #e2e4)
+	      (get-times the-file))
+	  => '(#e1e3 #e2e3))
+
+	(check
+	    (begin
+	      (posix:chmod the-file S_IRWXU)
+	      (glibc:lutimes the-file))
+	  => 0)
+
+;;; --------------------------------------------------------------------
+
+	(check
+	    (with-compensations
+	      (posix:chmod the-file S_IRWXU)
+	      (letrec ((fd (compensate
+			       (posix:open the-file O_WRONLY 0)
+			     (with
+			      (posix:close fd)))))
+		(glibc:futimes fd
 			       #e1e3 ;access time
 			       #e1e4
 			       #e2e3 ;modification time
 			       #e2e4)
-		(get-times the-file))
-	    => '(#e1e3 #e2e3))
+		(get-times the-file)))
+	  => '(#e1e3 #e2e3))
 
-	  (check
-	      (begin
-		(posix:chmod the-file S_IRWXU)
-		(glibc:lutimes the-file))
-	    => 0)
+	(check
+	    (with-compensations
+	      (posix:chmod the-file S_IRWXU)
+	      (letrec ((fd (compensate
+			       (posix:open the-file O_WRONLY 0)
+			     (with
+			      (posix:close fd)))))
+		(glibc:futimes fd)))
+	  => 0)
+
+	#f))))
+
+
+(parametrise ((check-test-name	'tempfile)
+	      (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in tmpfile" E))
+    (lambda ()
+      (with-compensations
+	(clean-test-hierarchy)
+	  (compensate
+	      (make-test-hierarchy)
+	    (with
+	     (clean-test-hierarchy)))
+
+	(check
+	    (let ((pathname (glibc:mktemp (string-join (list TMPDIR "XXXXXX") "/"))))
+	      (list (string? pathname)
+		    (file-exists? pathname)))
+	  => '(#t #f))
+
+	(check
+	    (let-values (((fd pathname) (glibc:mkstemp (string-join (list TMPDIR "XXXXXX") "/"))))
+	      (posix:close fd)
+	      (list (string? pathname)
+		    (begin0
+			(file-exists? pathname)
+		      (delete-file pathname))))
+	  => '(#t #t))
+
+	(check
+	    (let ((pathname (glibc:mkdtemp (string-join (list TMPDIR "XXXXXX") "/"))))
+	      (list (string? pathname)
+		    (file-exists? pathname)
+		    (posix:file-is-regular? pathname)
+		    (posix:file-is-directory? pathname)))
+	  => '(#t #t #f #t))
 
 ;;; --------------------------------------------------------------------
 
-	  (check
-	      (with-compensations
-	  	(posix:chmod the-file S_IRWXU)
-	  	(letrec ((fd (compensate
-	  			 (posix:open the-file O_WRONLY 0)
-	  		       (with
-	  			(posix:close fd)))))
-	  	  (glibc:futimes fd
-	  			 #e1e3 ;access time
-	  			 #e1e4
-	  			 #e2e3 ;modification time
-	  			 #e2e4)
-	  	  (get-times the-file)))
-	    => '(#e1e3 #e2e3))
+	(check
+	    (let ((FILE* (glibc:tmpfile)))
+	      (posix:fclose FILE*))
+	  => 0)
 
-	  (check
-	      (with-compensations
-	  	(posix:chmod the-file S_IRWXU)
-	  	(letrec ((fd (compensate
-	  			 (posix:open the-file O_WRONLY 0)
-	  		       (with
-	  			(posix:close fd)))))
-	  	  (glibc:futimes fd)))
-	    => 0)
+	(check
+	    (let ((pathname (glibc:tempnam #f #f)))
+	      (list (string? pathname)
+		    (file-exists? pathname)))
+	  => '(#t #f))
 
-	  #f)))))
+	(check
+	    (let ((pathname (glibc:tmpnam)))
+	      (list (string? pathname)
+		    (file-exists? pathname)))
+	  => '(#t #f))
+
+	#f))))
 
 
 ;;;; done

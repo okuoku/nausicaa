@@ -50,9 +50,6 @@
     ;; mkdir
     mkdir
 
-    ;; temporary files
-    tmpnam		mktemp		mkstemp
-
     ;; changing owner
     chown		fchown
 
@@ -423,33 +420,6 @@
       (when (= -1 result)
 	(raise-errno-error 'primitive-mkdir errno (list pathname mode)))
       result)))
-
-
-;;;; temporary files
-
-(define (tmpnam)
-  (with-compensations
-    (let ((p	(malloc-block/c (+ 1 L_tmpnam))))
-      (platform:tmpnam p)
-      (cstring->string p))))
-
-(define (mktemp template)
-  (with-compensations
-    (let ((p	(string->cstring/c template)))
-      (receive (result errno)
-	  (platform:mktemp p)
-	(when (pointer-null? result)
-	  (raise-errno-error 'mktemp errno template))
-	(cstring->string p)))))
-
-(define (mkstemp template)
-  (with-compensations
-    (let ((p	(string->cstring/c template)))
-      (receive (result errno)
-	  (platform:mkstemp p)
-	(when (= -1 result)
-	  (raise-errno-error 'mktemp errno template))
-	(values result (cstring->string p))))))
 
 
 ;;;; done

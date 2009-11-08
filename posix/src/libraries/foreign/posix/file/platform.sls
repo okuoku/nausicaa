@@ -49,9 +49,6 @@
     ;; mkdir
     mkdir
 
-    ;; temporary files
-    tmpnam		mktemp		mkstemp
-
     ;; changing owner
     chown		fchown
 
@@ -157,18 +154,6 @@
 
 (define-c-function/with-errno rename
   (int rename (char* char*)))
-
-;;; --------------------------------------------------------------------
-;;; temporary files
-
-(define-c-function tmpnam
-  (char* tmpnam (char*)))
-
-(define-c-function/with-errno mktemp
-  (char* mktemp (char*)))
-
-(define-c-function/with-errno mkstemp
-  (int mkstemp (char*)))
 
 ;;; --------------------------------------------------------------------
 ;;; mkdir

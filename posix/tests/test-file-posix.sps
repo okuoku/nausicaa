@@ -426,48 +426,6 @@ Ses ailes de geant l'empechent de marcher.")
 	    #f))))))
 
 
-(parametrise ((check-test-name	'tmpfile)
-	      (debugging	#t))
-
-  (with-deferred-exceptions-handler
-      (lambda (E)
-	(debug-print-condition "deferred condition in tmpfile" E))
-    (lambda ()
-      (guard (E (else (debug-print-condition "tmpfile condition" E)))
-	(with-compensations
-	  (clean-test-hierarchy)
-	    (compensate
-		(make-test-hierarchy)
-	      (with
-	       (clean-test-hierarchy)))
-
-	  (check
-	      (let ((pathname (posix:tmpnam)))
-;;;(debug "tmpnam: ~s" pathname)
-		(list (string? pathname)
-		      (file-exists? pathname)))
-	    => '(#t #f))
-
-	  (check
-	      (let ((pathname (posix:mktemp (string-join (list TMPDIR "XXXXXX") "/"))))
-;;;(debug "mktemp: ~s" pathname)
-		(list (string? pathname)
-		      (file-exists? pathname)))
-	    => '(#t #f))
-
-	  (check
-	      (let-values (((fd pathname) (posix:mkstemp (string-join (list TMPDIR "XXXXXX") "/"))))
-;;;(debug "mkstemp: ~s" pathname)
-		(posix:close fd)
-		(list (string? pathname)
-		      (begin0
-			  (file-exists? pathname)
-			(delete-file pathname))))
-	    => '(#t #t))
-
-	  #f)))))
-
-
 (parametrise ((check-test-name	'chown)
 	      (debugging	#t))
 

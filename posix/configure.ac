@@ -265,7 +265,7 @@ AC_CACHE_SAVE
 
 dnl page
 dnl --------------------------------------------------------------------
-dnl Inspection: file descriptors related constants.
+dnl Constants.
 dnl --------------------------------------------------------------------
 
 NAU_POSIX_DEFINE_VALUE([SEEK_SET])
@@ -357,6 +357,7 @@ NAU_POSIX_DEFINE_VALUE([S_ISVTX])
 
 dnl Misc
 NAU_POSIX_DEFINE_VALUE([EOF])
+NAU_POSIX_DEFINE_VALUE([MAXSYMLINKS])
 
 AC_CACHE_SAVE
 

@@ -67,11 +67,6 @@
     ;; mkdir
     mkdir		mkdir-function
 
-    ;; temporary files
-    tmpnam		tmpnam-function
-    mktemp		mktemp-function
-    mkstemp		mkstemp-function
-
     ;; changing owner
     chown		chown-function
     fchown		fchown-function
@@ -173,12 +168,6 @@
 ;; making directories
 
 (define-parametrised mkdir pathname mode)
-
-;; temporary files
-
-(define-parametrised tmpnam)
-(define-parametrised mktemp template)
-(define-parametrised mkstemp template)
 
 
 (define (opendir/compensated pathname)
