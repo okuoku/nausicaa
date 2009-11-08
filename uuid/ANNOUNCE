@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Uuid --- tag 0.1b0
+Subject: [announce] Nausicaa/Uuid 2009-11-08 tag 0.1b0
 
 		       Nausicaa/UUID
 		       =============
@@ -41,7 +41,7 @@ the documentation is available on line:
 	     <ftp://ftp.ossp.org/pkg/lib/uuid/>
 
 
-Notes for --- tag 0.1b0
+Notes for 2009-11-08 tag 0.1b0
 ------------------------------
 
 * It has been tested with OSSP UUID 1.6.2.

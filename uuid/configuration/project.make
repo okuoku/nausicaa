@@ -28,7 +28,7 @@
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,foreign))
+$(eval $(call nau-libraries,foreign,foreign))
 $(eval $(call nau-libraries,uuid,foreign/uuid))
 
 
