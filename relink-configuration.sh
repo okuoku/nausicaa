@@ -1,8 +1,14 @@
+#!/bin/bash
 ## relink-configuration.sh --
+##
 ##
 
 top_srcdir=$PWD
 scheme_dir=${top_srcdir}/scheme/configuration
+
+# Do NOT change this script to use "print-projects.sh" !!!
+# Here we are searching for "configuration" directories,
+# not project top directories.
 
 find -maxdepth 2 \
     \( -name configuration -and -not -wholename '*scheme*' \) \

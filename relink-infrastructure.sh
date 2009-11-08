@@ -1,8 +1,14 @@
+#!/bin/bash
 ## relink-infrastructure.sh --
+##
 ##
 
 top_srcdir=$PWD
 scheme_dir=${top_srcdir}/scheme/infrastructure
+
+# Do NOT change this script to use "print-projects.sh" !!!
+# Here we  are searching  for "infrastructure" directories,
+# not project top directories.
 
 find -maxdepth 2 \
     \( -name infrastructure -and -not -wholename '*scheme*' \) \

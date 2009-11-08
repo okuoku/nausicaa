@@ -9,7 +9,7 @@
 #	distribution.   It is NOT  meant to  be used  by ordinary
 #	users of the packages.
 #
-# Copyright (c) 2008 Marco Maggi <marcomaggi@gna.org>
+# Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 #
 # This program  is free software: you can  redistribute it and/or
 # modify it under the terms  of the GNU General Public License as
@@ -31,25 +31,9 @@
 ## Global variables.
 ## ------------------------------------------------------------
 
-PKG_ID			= nausicaa-$(shell cat tag)
+PKG_ID		= nausicaa-$(shell cat tag)
+PROJECTS	= $(shell bash print-projects.sh)
 
-PROJECTS	= \
-			r6rs		\
-			srfi		\
-			uriel		\
-			irregex		\
-			scmobj		\
-			sos		\
-			posix		\
-			glibc		\
-			zlib		\
-			mp
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Programs.
 ## ------------------------------------------------------------
 
 CP		= cp --force --verbose --preserve=mode --
@@ -61,12 +45,6 @@ RM_SILENT	= rm --force --recursive --
 RMDIR		= rmdir --parents --ignore-fail-on-non-empty --
 TAR		= tar
 
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Directories.
 ## ------------------------------------------------------------
 
 ifeq ($(strip $(TMPDIR)),)
@@ -76,9 +54,6 @@ endif
 srcdir		= .
 builddir	= "=build"
 
-
-## ------------------------------------------------------------
-
 #page
 ## ------------------------------------------------------------
 ## Main rules.
@@ -87,78 +62,11 @@ builddir	= "=build"
 .PHONY: all tag builddir
 
 all:
-
 tag:
 	echo $(lastword $(shell $(GIT) tag)) >tag
-	printf '@macro version{}\n%s\n@end macro' $(shell cat tag) \
-		>doc/version.texiinc
 
 builddir:
 	-@test -d $(builddir) || $(MKDIR) $(builddir)
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Global tests.
-## ------------------------------------------------------------
-
-.PHONY: test
-
-test:
-	$(foreach p,$(PROJECTS),\
-	cd $(p);					\
-	test -d $(builddir) || $(MKDIR) $(builddir);	\
-	cd $(builddir);					\
-	sh ../prepare.sh;				\
-	make all test;					\
-	cd ../..;)
-
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Global documentation.
-## ------------------------------------------------------------
-
-.PHONY: doc configure
-
-doc:
-	$(foreach p,$(PROJECTS),\
-	cd $(p);					\
-	test -d $(builddir) || $(MKDIR) $(builddir);	\
-	cd $(builddir);					\
-	make doc nausicaa_ENABLE_DOC_HTML=yes;		\
-	cp -v doc-texinfo.d/*.{info,html} ../doc;	\
-	cd ../..;)
-
-configure:
-	$(foreach p,$(PROJECTS),\
-	cd $(p);					\
-	test -d $(builddir) || $(MKDIR) $(builddir);	\
-	cd $(builddir);					\
-	sh ../prepare.sh;				\
-	cd ../..;)
-
-## ------------------------------------------------------------
-
-#page
-## ------------------------------------------------------------
-## Scripts.
-## ------------------------------------------------------------
-
-.PHONY: for-each
-
-for-each:
-	@$(foreach p,$(PROJECTS),\
-	pushd . &>/dev/null;				\
-	cd $(p);					\
-	echo Makefile: processing directory $$PWD;	\
-	$(SCRIPT);					\
-	popd &>/dev/null;)
-
-## ------------------------------------------------------------
 
 #page
 ## ------------------------------------------------------------
@@ -197,10 +105,6 @@ dist: builddir tag
 	$(TAR) --directory=$(TMPDIR) --verbose \
 		--create --bzip2 --file=$(dist_DESTDIR)/$(dist_ARCHIVE) $(PKG_ID)
 	$(RM_SILENT) $(dist_TMPDIR)
-
-
-## ------------------------------------------------------------
-
 
 
 ### end of file
