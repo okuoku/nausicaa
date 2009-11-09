@@ -36,15 +36,15 @@
     dup	dup2
     pipe	mkfifo)
   (import (except (rnrs) read write)
+    (parameters)
+    (foreign posix shared-object)
     (foreign ffi)
     (foreign posix sizeof))
 
   (define dummy
-    (shared-object self-shared-object))
+    (shared-object standard-c-library))
 
 
-;;;; code
-
 (define-c-function/with-errno open
   (int open (char* int mode_t)))
 
@@ -56,19 +56,22 @@
 (define-c-function/with-errno read
   (ssize_t read (int void* size_t)))
 
-(define-c-function/with-errno pread
-  (ssize_t pread (int void* size_t off_t)))
+(define pread
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno ssize_t nausicaa_posix_pread (int void* size_t off_t))))
 
 (define-c-function/with-errno write
   (ssize_t write (int void* size_t)))
 
-(define-c-function/with-errno pwrite
-  (ssize_t pwrite (int void* size_t off_t)))
+(define pwrite
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno ssize_t nausicaa_posix_pwrite (int void* size_t off_t))))
 
 ;;; --------------------------------------------------------------------
 
-(define-c-function/with-errno lseek
-  (off_t lseek (int off_t int)))
+(define lseek
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno off_t nausicaa_posix_lseek (int off_t int))))
 
 ;;; --------------------------------------------------------------------
 

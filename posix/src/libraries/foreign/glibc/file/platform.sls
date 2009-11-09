@@ -28,13 +28,10 @@
   (export
 
     ;; times
-    utimes		lutimes		futimes
+    lutimes		futimes
 
-    canonicalize_file_name
-    remove
-    truncate
+    ;; links
     alphasort		versionsort
-    ftw			nftw
     mknod
 
     ;; temporary files
@@ -42,18 +39,17 @@
     tempnam		tmpnam		tmpfile)
   (import (except (rnrs)
 		  remove truncate)
+    (parameters)
     (foreign ffi)
     (foreign ffi sizeof)
+    (foreign posix shared-object)
     (foreign posix sizeof))
 
 
 (define dummy
-  (shared-object self-shared-object))
+  (shared-object standard-c-library))
 
 ;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno utimes
-  (int utimes (char* pointer)))
 
 (define-c-function/with-errno lutimes
   (int lutimes (char* pointer)))
@@ -61,15 +57,6 @@
 (define-c-function/with-errno futimes
   (int futimes (int pointer)))
 
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno canonicalize_file_name
-  (char* canonicalize_file_name (char*)))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno remove
-  (int remove (char*)))
 
 ;;; --------------------------------------------------------------------
 
@@ -77,6 +64,7 @@
   (int truncate (char* off_t)))
 
 ;;; --------------------------------------------------------------------
+;;; special directory sort functions
 
 (define-c-function alphasort
   (int alphasort (pointer pointer)))
@@ -85,14 +73,7 @@
   (int versionsort (pointer pointer)))
 
 ;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno ftw
-  (int ftw (char* callback int)))
-
-(define-c-function/with-errno nftw
-  (int nftw (char* callback int int)))
-
-;;; --------------------------------------------------------------------
+;;; temporary files
 
 (define-c-function/with-errno mktemp
   (char* mktemp (char*)))
@@ -112,12 +93,11 @@
 (define-c-function/with-errno tmpnam
   (char* tmpnam (char*)))
 
-
-(define dummy2
-  (shared-object (open-shared-object* 'libnausicaa-posix1.so)))
+;;; --------------------------------------------------------------------
 
-(define-c-function/with-errno mknod
-  (int nausicaa_posix_mknod (char* int int)))
+(define mknod
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno int nausicaa_posix_mknod (char* int int))))
 
 
 ;;;; done

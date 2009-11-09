@@ -28,64 +28,67 @@
   (export
 
     ;; working directory
-    getcwd		getcwd-function
-    chdir		chdir-function
-    fchdir		fchdir-function
+    getcwd			getcwd-function
+    chdir			chdir-function
+    fchdir			fchdir-function
     (rename (getcwd pwd))
 
     ;; directory access
-    opendir		opendir-function
-    fdopendir		fdopendir-function
-    dirfd		dirfd-function
+    opendir			opendir-function
+    fdopendir			fdopendir-function
+    dirfd			dirfd-function
 
-    closedir		closedir-function
-    readdir		readdir-function
-    rewinddir		rewinddir-function
+    closedir			closedir-function
+    readdir			readdir-function
+    readdir_r			readdir_r-function
+    rewinddir			rewinddir-function
 
-    telldir		telldir-function
-    seekdir		seekdir-function
-    scandir		scandir-function
+    telldir			telldir-function
+    seekdir			seekdir-function
+    scandir			scandir-function
 
     opendir/compensated		(rename (opendir/compensated opendir/c))
     fdopendir/compensated	(rename (fdopendir/compensated fdopendir/c))
-    directory-list	directory-list/fd
+    directory-list		directory-list/fd
 
     ;; links
-    link		link-function
-    symlink		symlink-function
-    readlink		readlink-function
-    realpath		realpath-function
+    link			link-function
+    symlink			symlink-function
+    readlink			readlink-function
+    realpath			realpath-function
 
     ;; removing
-    unlink		unlink-function
-    rmdir		rmdir-function
-    remove		remove-function
+    unlink			unlink-function
+    rmdir			rmdir-function
+    remove			remove-function
 
     ;; renaming
-    rename		rename-function
+    rename			rename-function
 
     ;; mkdir
-    mkdir		mkdir-function
+    mkdir			mkdir-function
 
     ;; changing owner
-    chown		chown-function
-    fchown		fchown-function
+    chown			chown-function
+    fchown			fchown-function
 
     ;; changing permissions
-    umask		umask-function
-    chmod		chmod-function
-    fchmod		fchmod-function
+    umask			umask-function
+    chmod			chmod-function
+    fchmod			fchmod-function
     (rename (primitive:getumask	getumask))
 
     ;; access test
-    access		access-function
+    access			access-function
 
     ;; file times
-    utime		utime-function
+    utime			utime-function
+    utimes			utimes-function
 
     ;; file size
-    file-size		file-size-function
-    ftruncate		ftruncate-function)
+    file-size			file-size-function
+    ftruncate			ftruncate-function
+    truncate			truncate-function)
   (import (except (rnrs)
 		  remove truncate)
     (compensations)
@@ -112,6 +115,7 @@
 (define-parametrised dirfd stream)
 (define-parametrised closedir stream)
 (define-parametrised readdir stream)
+(define-parametrised readdir_r stream)
 (define-parametrised rewinddir stream)
 (define-parametrised telldir stream)
 (define-parametrised seekdir stream position)
@@ -142,6 +146,7 @@
 ;; file times
 
 (define-primitive-parameter utime-function		primitive:utime)
+(define-primitive-parameter utimes-function	primitive:utimes)
 
 (define utime
   (case-lambda
@@ -150,10 +155,20 @@
    ((pathname)
     ((utime-function) pathname))))
 
+(define utimes
+  (case-lambda
+   ((pathname access-time-sec access-time-usec modification-time-sec modification-time-usec)
+    ((utimes-function) pathname
+     access-time-sec access-time-usec
+     modification-time-sec modification-time-usec))
+   ((pathname)
+    ((utimes-function) pathname))))
+
 ;; file size
 
 (define-parametrised file-size obj)
 (define-parametrised ftruncate obj length)
+(define-parametrised truncate pathname length)
 
 ;; removing
 

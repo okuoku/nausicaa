@@ -128,7 +128,7 @@
   (receive (result errno)
       (with-compensations
 	(let ((cstring (string->cstring/c string)))
-	  (platform:fwrite cstring stream)))
+	  (platform:fputs cstring stream)))
     (when (= EOF result)
       (raise-errno-error 'fputs errno (list string stream)))
     result))
@@ -137,7 +137,7 @@
   (receive (result errno)
       (platform:fflush stream)
     (when (= EOF result)
-      (raise-errno-error 'fputc errno stream))
+      (raise-errno-error 'fflush errno stream))
     result))
 
 ;;; --------------------------------------------------------------------
@@ -173,7 +173,7 @@
   (receive (result errno)
       (platform:fflush_unlocked stream)
     (when (= EOF result)
-      (raise-errno-error 'fputc_unlocked errno stream))
+      (raise-errno-error 'fflush_unlocked errno stream))
     result))
 
 

@@ -32,9 +32,9 @@
 
     ;; directory access
     opendir		fdopendir	dirfd
-    closedir		readdir		rewinddir
-    telldir		seekdir		scandir
-    alphasort		versionsort
+    closedir		readdir		readdir_r
+    rewinddir		telldir		seekdir
+    scandir		ftw		nftw
 
     ;; links
     link		symlink		readlink
@@ -58,21 +58,24 @@
     ;; access test
     access
 
-    ;; file times, notice that UTIMES, LUTIMES and FUTIMES are glibc stuff
-    utime
+    ;; file times, notice that LUTIMES and FUTIMES are glibc stuff
+    utime		utimes
 
     ;; file size
-    ftruncate
+    ftruncate		truncate
 
     struct-dirent-d_name-ptr-ref)
   (import (except (rnrs)
 		  remove truncate)
+    (only (parameters)
+	  parametrise)
     (foreign ffi)
+    (foreign posix shared-object)
     (foreign posix sizeof))
 
 
 (define dummy
-  (shared-object self-shared-object))
+  (shared-object standard-c-library))
 
 ;;; --------------------------------------------------------------------
 ;;; working directory
@@ -98,8 +101,13 @@
 (define-c-function/with-errno dirfd
   (int dirfd (pointer)))
 
-(define-c-function/with-errno readdir
-  (pointer readdir (pointer)))
+(define readdir
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno pointer nausicaa_posix_readdir (pointer))))
+
+(define readdir_r
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno int nausicaa_posix_readdir_r (pointer pointer pointer))))
 
 (define-c-function/with-errno closedir
   (int closedir (pointer)))
@@ -116,11 +124,11 @@
 (define-c-function/with-errno scandir
   (int scandir (char* pointer callback callback)))
 
-(define-c-function alphasort
-  (int alphasort (void* void*)))
+(define-c-function/with-errno ftw
+  (int ftw (char* callback int)))
 
-(define-c-function versionsort
-  (int versionsort (void* void*)))
+(define-c-function/with-errno nftw
+  (int nftw (char* callback int int)))
 
 ;;; --------------------------------------------------------------------
 ;;; links
@@ -194,18 +202,24 @@
 (define-c-function/with-errno utime
   (int utime (char* pointer)))
 
+(define-c-function/with-errno utimes
+  (int utimes (char* pointer)))
+
 ;;; --------------------------------------------------------------------
 ;;; tile size
 
 (define-c-function/with-errno ftruncate
   (int ftruncate (int off_t)))
 
-
-(define dummy2
-  (shared-object (open-shared-object* 'libnausicaa-posix1.so)))
+(define-c-function/with-errno truncate
+  (int truncate (char* off_t)))
 
-(define-c-function struct-dirent-d_name-ptr-ref
-  (char* nausicaa_posix_dirent_d_name_ptr_ref (void*)))
+;;; --------------------------------------------------------------------
+;;; struct dirent accessors
+
+(define struct-dirent-d_name-ptr-ref
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function char* nausicaa_posix_dirent_d_name_ptr_ref (void*))))
 
 
 ;;;; done

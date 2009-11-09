@@ -28,17 +28,13 @@
 (library (foreign posix time platform)
   (export clock times)
   (import (rnrs)
+    (foreign posix shared-object)
     (foreign ffi)
     (foreign posix sizeof))
 
 
 (define dummy
-  (shared-object self-shared-object))
-
-;; (define stub-lib
-;;   (let ((o (open-shared-object 'libnausicaa-posix1.so)))
-;;     (shared-object o)
-;;     o))
+  (shared-object standard-c-library))
 
 
 ;;;; CPU ticks and process ticks

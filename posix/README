@@ -16,9 +16,14 @@ Topics
 1. Introduction
 ---------------
 
-This is a Scheme library exposing the POSIX interface to the
-Scheme  language   level.   It  is  built  on   top  of  the
-Nausicaa/Scheme project.
+Nausicaa/POSIX  is  a  distribution  of libraries  for  R6RS
+Scheme exposing  the POSIX interface to  the Scheme language
+level; some  GNU C  Library extensions and  Linux extensions
+are also  exposed.  The  libraries are built  on top  of the
+Nausicaa/Scheme    libraries,    making    use   of    their
+foreign-functions interface; some  libraries depend upon the
+C language  library "libnausicaa-posix", which  is built and
+installed by this package.
 
 
 2. License
@@ -46,7 +51,11 @@ License   along   with    this   program.    If   not,   see
 4. Install
 ----------
 
-Be sure to have installed the Nausicaa/Scheme libraries.
+Be sure to have  installed the Nausicaa/Scheme libraries and
+to  read   the  "README.build"  file  for   details  on  the
+installation   infrastructure  requirements.    The  package
+builds and  installs the Scheme  libraries and a  C language
+shared library.
 
   Basically we should do:
 
@@ -89,10 +98,17 @@ tracker at Nausicaa's GitHub site.
 C. Resources
 ------------
 
-The latest revision of Nausicaa can be downloaded from:
+The latest version of this package can be downloaded from:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
 
     <http://github.com/marcomaggi/nausicaa/tree/master>
-
 
 
 ### end of file

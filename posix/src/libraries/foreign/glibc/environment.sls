@@ -27,11 +27,6 @@
 (library (foreign glibc environment)
   (export unsetenv clearenv putenv putenv*)
   (import (rnrs)
-    (foreign glibc environment primitives)
-    (only (foreign posix helpers)
-	  define-primitive-parameter)
-    (only (foreign ffi)
-	  shared-object		self-shared-object
-	  define-c-function)))
+    (foreign glibc environment primitives)))
 
 ;;; end of file

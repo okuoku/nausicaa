@@ -146,120 +146,138 @@ Ses ailes de geant l'empechent de marcher.")
       (lambda (E)
 	(debug-print-condition "deferred condition in directory access" E))
     (lambda ()
-      (guard (E (else (debug-print-condition "directory access condition" E)))
-	(with-compensations
-	  (clean-test-hierarchy)
-	    (compensate
-		(make-test-hierarchy)
-	      (with
-	       (clean-test-hierarchy)))
+      (with-compensations
+	(clean-test-hierarchy)
+	  (compensate
+	      (make-test-hierarchy)
+	    (with
+	     (clean-test-hierarchy)))
+
 ;;;(posix:system (string-append "ls -l " the-root))
-	  (check 'this
-	      (with-compensations
-		(let ((dir	(posix:opendir/c the-root))
-		      (layout	'()))
-		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
-		      ((pointer-null? entry))
-;; (write (list (struct-dirent-d_name-ptr-ref entry)
-;; 	     (struct-dirent-d_name-ref entry)
-;; 	     (cstring->string (struct-dirent-d_name-ref entry))
-;; 	     ))(newline)
-		    (set! layout
-			  (cons (cstring->string
-				 (struct-dirent-d_name-ref entry))
-				layout)))
-		  (list-sort string<? layout)))
-	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
+	(check
+	    (with-compensations
+	      (let ((dir	(posix:opendir/c the-root))
+		    (layout	'()))
+		(do ((entry (posix:readdir dir) (posix:readdir dir)))
+		    ((pointer-null? entry))
+		  (set! layout
+			(cons (cstring->string (struct-dirent-d_name-ref entry))
+			      layout)))
+		(list-sort string<? layout)))
+	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+
+	(check
+	    (with-compensations
+	      (let ((dir	(posix:opendir/c the-subdir-1))
+		    (layout	'()))
+		(do ((entry (posix:readdir dir) (posix:readdir dir)))
+		    ((pointer-null? entry))
+		  (set! layout
+			(cons (cstring->string (struct-dirent-d_name-ref entry))
+			      layout)))
+		(list-sort string<? layout)))
+	  => '("." ".." "name-10.ext" "name-11.ext"))
+
+	(check
+	    (with-compensations
+	      (let ((dir	(posix:opendir/c the-subdir-3))
+		    (layout	'()))
+		(do ((entry (posix:readdir dir) (posix:readdir dir)))
+		    ((pointer-null? entry))
+		  (set! layout
+			(cons (cstring->string (struct-dirent-d_name-ref entry))
+			      layout)))
+		(list-sort string<? layout)))
+	  => '("." ".."))
+
+;;; --------------------------------------------------------------------
+
+	(check	;readdir_r
+	    (with-compensations
+	      (let ((dir	(posix:opendir/c the-root))
+		    (layout	'()))
+		(do ((entry (posix:readdir_r dir) (posix:readdir_r dir)))
+		    ((pointer-null? entry))
+		  (set! layout
+			(cons (cstring->string (struct-dirent-d_name-ref entry))
+			      layout)))
+		(list-sort string<? layout)))
+	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+
+;;; --------------------------------------------------------------------
+
+	(check
+	    (list-sort string<? (posix:directory-list the-root))
+	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+
+	(check
+	    (list-sort string<? (posix:directory-list the-subdir-1))
+	  => '("." ".." "name-10.ext" "name-11.ext"))
+
+	(check
+	    (list-sort string<? (posix:directory-list the-subdir-3))
+	  => '("." ".."))
+
+;;; --------------------------------------------------------------------
+
+	;;We DO  NOT close fd  here, it is  closed by CLOSEDIR  in the
+	;;compensation (weird but I have tested it, believe me!).
+	(check
+	    (letrec ((fd (posix:open the-root O_RDONLY 0)))
+	      (list-sort string<? (posix:directory-list/fd fd)))
+	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+
+	;;We DO  NOT close fd  here, it is  closed by CLOSEDIR  in the
+	;;compensation (weird but I have tested it, believe me!).
+	(when (number? O_NOATIME)
 	  (check
 	      (with-compensations
-		(let ((dir	(posix:opendir/c the-subdir-1))
-		      (layout	'()))
-		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
-		      ((pointer-null? entry))
-		    (set! layout
-			  (cons (cstring->string (struct-dirent-d_name-ref entry))
-				layout)))
-		  (list-sort string<? layout)))
-	    => '("." ".." "name-10.ext" "name-11.ext"))
+		(letrec ((fd (posix:open the-root O_RDONLY 0)))
+		  (list-sort string<? (posix:directory-list/fd fd))))
+	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext")))
 
-	  (check
-	      (with-compensations
-		(let ((dir	(posix:opendir/c the-subdir-3))
-		      (layout	'()))
-		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
-		      ((pointer-null? entry))
-		    (set! layout
-			  (cons (cstring->string (struct-dirent-d_name-ref entry))
-				layout)))
-		  (list-sort string<? layout)))
-	    => '("." ".."))
+;;; --------------------------------------------------------------------
 
-	  (check
-	      (list-sort string<? (posix:directory-list the-root))
-	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+	(check	;telldir
+	    (with-compensations
+	      (let ((dir	(posix:opendir/c the-root))
+		    (layout2	'())
+		    (layout1	'()))
+		(do ((entry (posix:readdir dir) (posix:readdir dir)))
+		    ((pointer-null? entry))
+		  (set! layout1
+			(cons (cstring->string (struct-dirent-d_name-ref entry))
+			      layout1)))
+		(posix:rewinddir dir)
+		(do ((entry (posix:readdir dir) (posix:readdir dir)))
+		    ((pointer-null? entry))
+		  (set! layout2
+			(cons (cstring->string (struct-dirent-d_name-ref entry))
+			      layout2)))
+		(append (list-sort string<? layout1)
+			(list-sort string<? layout2))))
+	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"
+	       "." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
-	  (check
-	      (list-sort string<? (posix:directory-list the-subdir-1))
-	    => '("." ".." "name-10.ext" "name-11.ext"))
+;;; --------------------------------------------------------------------
 
-	  (check
-	      (list-sort string<? (posix:directory-list the-subdir-3))
-	    => '("." ".."))
+	(check	;rewinddir
+	    (with-compensations
+	      (let ((dir	(posix:opendir/c the-root))
+		    (layout	'()))
+		(do ((entry (posix:readdir dir) (posix:readdir dir)))
+		    ((pointer-null? entry))
+		  (set! layout
+			(cons (cons (cstring->string (struct-dirent-d_name-ref entry))
+				    (posix:telldir entry))
+			      layout)))
+		(map car (list-sort (lambda (a b)
+				      (string<? (car a) (car b)))
+				    layout))))
+	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
-	  ;;We DO  NOT close fd  here, it is  closed by CLOSEDIR  in the
-	  ;;compensation (weird but I have tested it, believe me!).
-	  (check
-	      (letrec ((fd (posix:open the-root O_RDONLY 0)))
-		(list-sort string<? (posix:directory-list/fd fd)))
-	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
-
-	  ;;We DO  NOT close fd  here, it is  closed by CLOSEDIR  in the
-	  ;;compensation (weird but I have tested it, believe me!).
-	  (when (number? O_NOATIME)
-	    (check
-		(with-compensations
-		  (letrec ((fd (posix:open the-root O_RDONLY 0)))
-		    (list-sort string<? (posix:directory-list/fd fd))))
-	      => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext")))
-
-	  (check
-	      (with-compensations
-		(let ((dir	(posix:opendir/c the-root))
-		      (layout2	'())
-		      (layout1	'()))
-		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
-		      ((pointer-null? entry))
-		    (set! layout1
-			  (cons (cstring->string (struct-dirent-d_name-ref entry))
-				layout1)))
-		  (posix:rewinddir dir)
-		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
-		      ((pointer-null? entry))
-		    (set! layout2
-			  (cons (cstring->string (struct-dirent-d_name-ref entry))
-				layout2)))
-		  (append (list-sort string<? layout1)
-			  (list-sort string<? layout2))))
-	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"
-		 "." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
-
-	  (check
-	      (with-compensations
-		(let ((dir	(posix:opendir/c the-root))
-		      (layout	'()))
-		  (do ((entry (posix:readdir dir) (posix:readdir dir)))
-		      ((pointer-null? entry))
-		    (set! layout
-			  (cons (cons (cstring->string (struct-dirent-d_name-ref entry))
-				      (posix:telldir entry))
-				layout)))
-		  (map car (list-sort (lambda (a b)
-					(string<? (car a) (car b)))
-				      layout))))
-	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
-
-	  #f)))))
+	#f))))
 
 
 (parametrise ((check-test-name	'links)
@@ -269,47 +287,55 @@ Ses ailes de geant l'empechent de marcher.")
       (lambda (E)
 	(debug-print-condition "deferred condition in links" E))
     (lambda ()
-      (guard (E (else (debug-print-condition "links condition" E)))
-	(with-compensations
-	  (clean-test-hierarchy)
-	    (compensate
-		(make-test-hierarchy)
-	      (with
-	       (clean-test-hierarchy)))
-	  (let ((the-other (string-join (list the-root "other.ext") "/")))
+      (with-compensations
+	(clean-test-hierarchy)
+	  (compensate
+	      (make-test-hierarchy)
+	    (with
+	     (clean-test-hierarchy)))
+	(let ((the-other (string-join (list the-root "other.ext") "/")))
 
-	    (check
-		(with-compensations
-		    (compensate
-			(posix:link the-file the-other)
-		      (with
-		       (delete-file the-other)))
-		  (with-input-from-file the-other
-		    (lambda ()
-		      (get-string-all (current-input-port)))))
-	      => the-string)
+	  (check		;link
+	      (with-compensations
+		  (compensate
+		      (posix:link the-file the-other)
+		    (with
+		     (delete-file the-other)))
+		(with-input-from-file the-other
+		  (lambda ()
+		    (get-string-all (current-input-port)))))
+	    => the-string)
 
-	    (check
-		(with-compensations
-		    (compensate
-			(posix:symlink the-file the-other)
-		      (with
-		       (delete-file the-other)))
-		  (with-input-from-file the-other
-		    (lambda ()
-		      (get-string-all (current-input-port)))))
-	      => the-string)
+	  (check	;symlink
+	      (with-compensations
+		  (compensate
+		      (posix:symlink the-file the-other)
+		    (with
+		     (delete-file the-other)))
+		(with-input-from-file the-other
+		  (lambda ()
+		    (get-string-all (current-input-port)))))
+	    => the-string)
 
-	    (check
-		(with-compensations
-		    (compensate
-			(posix:symlink the-file the-other)
-		      (with
-		       (delete-file the-other)))
-		  (posix:realpath the-other))
-	      => the-file)
+	  (check	;realpath
+	      (with-compensations
+		  (compensate
+		      (posix:symlink the-file the-other)
+		    (with
+		     (delete-file the-other)))
+		(posix:realpath the-other))
+	    => the-file)
 
-	    #f))))))
+	  (check	;readlink
+	      (with-compensations
+		  (compensate
+		      (posix:symlink the-file the-other)
+		    (with
+		     (delete-file the-other)))
+		(posix:readlink the-other))
+	    => the-file)
+
+	  #f)))))
 
 
 (parametrise ((check-test-name	'remove)
@@ -632,6 +658,25 @@ Ses ailes de geant l'empechent de marcher.")
 		  ))
 	    => 0)
 
+;;; --------------------------------------------------------------------
+
+	(check
+	    (begin
+	      (posix:chmod the-file S_IRWXU)
+	      (posix:utimes the-file
+			    #e1e3 ;access time
+			    #e1e4
+			    #e2e3 ;modification time
+			    #e2e4)
+	      (get-times the-file))
+	  => '(#e1e3 #e2e3))
+
+	(check
+	    (begin
+	      (posix:chmod the-file S_IRWXU)
+	      (posix:utimes the-file))
+	  => 0)
+
 	  #f)))))
 
 
@@ -642,27 +687,31 @@ Ses ailes de geant l'empechent de marcher.")
       (lambda (E)
 	(debug-print-condition "deferred condition in size" E))
     (lambda ()
-      (guard (E (else (debug-print-condition "size condition" E)))
-
-	(with-compensations
-	  (clean-test-hierarchy)
-	    (compensate
-		(make-test-hierarchy)
-	      (with
-	       (clean-test-hierarchy)))
+      (with-compensations
+	(clean-test-hierarchy)
+	  (compensate
+	      (make-test-hierarchy)
+	    (with
+	     (clean-test-hierarchy)))
 
 ;;;(posix:system (string-append "ls -l " the-file))
-	  (check
-	      (posix:file-size the-file)
-	    => (string-length the-string))
+	(check
+	    (posix:file-size the-file)
+	  => (string-length the-string))
 
-	  (check
-	      (begin
-		(posix:ftruncate the-file 5)
-		(posix:file-size the-file))
-	    => 5)
+	(check
+	    (begin
+	      (posix:ftruncate the-file 10)
+	      (posix:file-size the-file))
+	  => 10)
 
-	  #f)))))
+	(check
+	    (begin
+	      (posix:truncate the-file 5)
+	      (posix:file-size the-file))
+	  => 5)
+
+	#f))))
 
 
 ;;;; done

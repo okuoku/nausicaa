@@ -32,10 +32,9 @@
 
     ;; directory access
     opendir		fdopendir	dirfd
-    closedir		readdir		rewinddir
-    telldir		seekdir		scandir
-    (rename (platform:alphasort alphasort)
-	    (platform:versionsort versionsort))
+    closedir		readdir		readdir_r
+    rewinddir		telldir		seekdir
+    scandir
 
     ;; links
     link		symlink		readlink
@@ -60,13 +59,13 @@
     ;; access test
     access
 
-    ;; file times, note that UTIMES, LUTIMES and FUTIMES are glibc stuff
-    utime
+    ;; file times, note that LUTIMES and FUTIMES are glibc stuff
+    utime		utimes
 
     ;; file size
-    file-size		ftruncate)
+    file-size		ftruncate	truncate)
   (import (except (rnrs)
-		  remove)
+		  remove truncate)
     (receive)
     (begin0)
     (compensations)
@@ -77,9 +76,14 @@
 	  pointer-ref-c-pointer
 	  pointer-ref-c-uint8)
     (only (foreign ffi pointers)
-	  pointer-null? pointer-null pointer->integer)
+	  pointer-null?
+	  pointer-null
+	  pointer->integer
+	  pointer-add)
     (only (foreign memory)
 	  malloc-block/c
+	  memcpy
+	  malloc
 	  primitive-free)
     (only (foreign cstrings)
 	  cstring->string string->cstring/c)
@@ -157,12 +161,25 @@
 (define (readdir stream)
   (receive (result errno)
       (platform:readdir stream)
-    ;;Here  we assume  that errno  is  set to  zero by  PLATFORM:READDIR
-    ;;before the call to the foreign function.
-    (when (and (pointer-null? result)
-	       (not (= 0 errno)))
-      (raise-errno-error 'readdir errno stream))
-    result))
+    (if (and (pointer-null? result)
+	     (not (= 0 errno)))
+	(raise-errno-error 'readdir errno stream)
+      result)))
+
+(define (readdir_r stream)
+  (let ((result (malloc-block/c sizeof-struct-dirent)))
+    (with-compensations
+      (let ((entry	(malloc-block/c sizeof-struct-dirent))
+	    (*result	(malloc-block/c sizeof-pointer)))
+	(receive (retval errno)
+	    (platform:readdir_r stream entry *result)
+	  (cond ((not (= 0 retval))
+		 (raise-errno-error 'readdir errno stream))
+		((pointer-null? (pointer-ref-c-pointer *result 0))
+		 pointer-null)
+		(else
+		 (memcpy result entry sizeof-struct-dirent)
+		 result)))))))
 
 (define (rewinddir stream)
   (platform:rewinddir stream))
@@ -218,28 +235,32 @@
 
 (define (readlink pathname)
   (with-compensations
-    (let ((c-pathname	(string->cstring/c pathname)))
-      (receive (size errno)
-	  (platform:readlink c-pathname pointer-null 0)
-	(when (= -1 size)
-	  (raise-errno-error 'readlink errno pathname))
-	(let ((buffer	(malloc-block/c size)))
-	  (receive (result errno)
-	      (platform:readlink c-pathname buffer size)
-	    (when (= -1 size)
-	      (raise-errno-error 'readlink errno pathname))
-	    (cstring->string buffer result)))))))
+
+    (define (%readlink c-pathname buffer provided-size)
+      (receive (required-size errno)
+	  (platform:readlink c-pathname buffer provided-size)
+	(cond ((= -1 required-size)
+	       (raise-errno-error 'readlink errno pathname))
+	      ((<= provided-size required-size)
+		;READLINK  returns  the  number  of  bytes  copied  into
+		;BUFFER, read carefully the documentation!!!
+	       (let ((provided-size (* 2 required-size)))
+		 (%readlink c-pathname (malloc-block/c provided-size) provided-size)))
+	      (else
+	       (cstring->string buffer required-size)))))
+
+    (let ((provided-size 4))
+      (%readlink (string->cstring/c pathname) (malloc-block/c provided-size) provided-size))))
 
 (define (realpath pathname)
   (with-compensations
     (receive (buffer errno)
-	(platform:realpath (string->cstring/c pathname)
-			   pointer-null)
-      (when (pointer-null? buffer)
-	(raise-errno-error 'realpath errno pathname))
-      (begin0
-	  (cstring->string buffer)
-	(primitive-free buffer)))))
+	(platform:realpath (string->cstring/c pathname) pointer-null)
+      (if (pointer-null? buffer)
+	  (raise-errno-error 'realpath errno pathname)
+	(begin0
+	    (cstring->string buffer)
+	  (primitive-free buffer))))))
 
 
 ;;;; changing owner
@@ -331,6 +352,47 @@
 	  (raise-errno-error 'utime errno pathname)
 	result)))))
 
+(define utimes
+  (case-lambda
+   ((pathname access-time-sec access-time-usec modification-time-sec modification-time-usec)
+    (%real-utimes (lambda (*arry)
+		    (platform:utimes (string->cstring/c pathname) *arry))
+		  'utimes pathname
+		  access-time-sec access-time-usec
+		  modification-time-sec modification-time-usec))
+   ((pathname)
+    (%real-utimes (lambda (*arry)
+		    (platform:utimes (string->cstring/c pathname) *arry))
+		  'utimes pathname))))
+
+(define %real-utimes
+  (case-lambda
+   ((func funcname obj
+	  access-time-sec	    access-time-usec
+	  modification-time-sec modification-time-usec)
+    (with-compensations
+      (let* ((*arry	(malloc-block/c (* 2 strideof-struct-timeval)))
+	     (*atime	*arry)
+	     (*mtime	(pointer-add *arry strideof-struct-timeval)))
+	(struct-timeval-tv_sec-set!  *atime access-time-sec)
+	(struct-timeval-tv_usec-set! *atime access-time-usec)
+	(struct-timeval-tv_sec-set!  *mtime modification-time-sec)
+	(struct-timeval-tv_usec-set! *mtime modification-time-usec)
+	(receive (result errno)
+	    (func *arry)
+	  (when (= -1 result)
+	    (raise-errno-error funcname errno
+			       (list obj
+				     access-time-sec access-time-usec
+				     modification-time-sec modification-time-usec)))
+	  result))))
+   ((func funcname obj)
+    (receive (result errno)
+	(func pointer-null)
+      (if (= -1 result)
+	  (raise-errno-error funcname errno obj)
+	result)))))
+
 
 ;;;; file size
 
@@ -370,6 +432,14 @@
 	(else
 	 (error 'ftruncate
 	   "expected file descriptor or file pathname" obj))))
+
+(define (truncate pathname length)
+  (with-compensations
+    (receive (result errno)
+	(platform:truncate (string->cstring/c pathname) length)
+      (if (= -1 result)
+	  (raise-errno-error 'truncate errno (list pathname length))
+	result))))
 
 
 ;;;; removing

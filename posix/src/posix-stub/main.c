@@ -9,6 +9,24 @@
 	compiled in  a C shared  library and used by  the Nausicaa/POSIX
 	Scheme library.
 
+	  The existence of this  libraries is justified by the following
+	facts:
+
+	(1) Some functions  are different on 32 bit  platforms and on 64
+	    bits platforms.   For example, under the GNU  C Library they
+	    come in  two flavors "func()"  and "func64()"; this  goes as
+	    far  as  defining  different  data structures  for  the  two
+	    platforms.
+
+	      There is  no (easy) way  to acquire through  "dlsym()" the
+	    correct version and to  determine the correct data structure
+	    accessors and mutators, while it  is very easy to export the
+	    correct ones through this library.
+
+	(2) Some  interesting  feature  is  implemented  through  the  C
+	    preprocessor macros  only.  In this case it  is mandatory to
+	    export a wrapper function from this library.
+
    Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
 
    This program is free software:  you can redistribute it and/or modify
@@ -35,11 +53,38 @@
 #endif
 
 #include <stdio.h>
-#include <sys/wait.h>
-#include <time.h>
-#include <sys/times.h>
-#include <sys/stat.h>
-#include <dirent.h>
+#include <stdlib.h>
+
+#ifdef HAVE_DIRENT_H
+#  include <dirent.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#  include <fcntl.h>
+#endif
+#ifdef HAVE_TIME_H
+#  include <time.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
+#ifdef HAVE_UTIME_H
+#  include <utime.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#  include <sys/stat.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#  include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_TIMES_H
+#  include <sys/times.h>
+#endif
+#ifdef HAVE_SYS_TIMEX_H
+#  include <sys/timex.h>
+#endif
+#ifdef HAVE_SYS_WAIT_H
+#  include <sys/wait.h>
+#endif
 
 #ifdef __GNUC__
 #  define POSIX_UNUSED		__attribute__((unused))
@@ -50,7 +95,7 @@
 
 
 /** --------------------------------------------------------------------
- ** Prototypes.
+ ** Waitpid related prototypes.
  ** ----------------------------------------------------------------- */
 
 extern int nausicaa_posix_wifexited	(int status);
@@ -61,14 +106,15 @@ extern int nausicaa_posix_wcoredump	(int status);
 extern int nausicaa_posix_wifstopped	(int status);
 extern int nausicaa_posix_wstopsig	(int status);
 
-extern double nausicaa_posix_clock	(void);
-extern double nausicaa_posix_times	(double * tms);
-
-extern char * nausicaa_posix_dirent_d_name_ptr_ref (struct dirent * buf);
+
+/** --------------------------------------------------------------------
+ ** Stat related prototypes.
+ ** ----------------------------------------------------------------- */
 
 extern int nausicaa_posix_stat		(const char * pathname, struct stat * buf);
 extern int nausicaa_posix_fstat		(int filedes, struct stat * buf);
 extern int nausicaa_posix_lstat		(const char * pathname, struct stat * buf);
+extern int nausicaa_posix_mknod		(char*, int, int);
 
 extern int nausicaa_posix_sizeof_stat	(void);
 
@@ -100,7 +146,30 @@ extern int nausicaa_posix_stat_typeismq	(struct stat * s);
 extern int nausicaa_posix_stat_typeissem(struct stat * s);
 extern int nausicaa_posix_stat_typeisshm(struct stat * s);
 
-extern int nausicaa_posix_mknod (char*, int, int);
+
+/** --------------------------------------------------------------------
+ ** Prototypes for 32/64 bits function wrappers.
+ ** ----------------------------------------------------------------- */
+
+extern int nausicaa_posix_pread  (int filedes, void * buffer, size_t size, off_t offset);
+extern int nausicaa_posix_pwrite (int filedes, const void * buffer, size_t size, off_t offset);
+
+extern int nausicaa_posix_lseek (int filedes, off_t offset, int whence);
+
+extern struct dirent * nausicaa_posix_readdir	(DIR * dir);
+extern int             nausicaa_posix_readdir_r (DIR * dir, struct dirent * entry,
+						 struct dirent ** result);
+
+
+/** --------------------------------------------------------------------
+ ** Miscellaneous prototypes.
+ ** ----------------------------------------------------------------- */
+
+extern double nausicaa_posix_clock	(void);
+extern double nausicaa_posix_times	(double * tms);
+
+extern char * nausicaa_posix_dirent_d_name_ptr_ref (struct dirent * buf);
+
 
 
 /** ------------------------------------------------------------
@@ -168,19 +237,8 @@ nausicaa_posix_times (double * tms)
 }
 
 
-/** --------------------------------------------------------------------
- ** Dirent.
- ** ----------------------------------------------------------------- */
-
-char *
-nausicaa_posix_dirent_d_name_ptr_ref (struct dirent * buf)
-{
-  return &(buf->d_name[0]);
-}
-
-
 /** ------------------------------------------------------------
- ** Stat functions.
+ ** Stat functions and related.
  ** ----------------------------------------------------------*/
 
 /* It is  a misfortune that  stubs functions are  needed but
@@ -202,6 +260,11 @@ int
 nausicaa_posix_lstat (const char * pathname, struct stat * buf)
 {
   return lstat(pathname, buf);
+}
+int
+nausicaa_posix_mknod (char* filename, int mode, int dev)
+{
+  return mknod(filename, mode, dev);
 }
 
 /* ------------------------------------------------------------------ */
@@ -274,13 +337,13 @@ nausicaa_posix_stat_st_mtime_ref (struct stat * buf)
 }
 #ifdef HAVE_ST_MTIME_USEC_MEMBER
 unsigned long int
-nausicaa_posix_stat_st_mtime_usec_ref (struct stat * buf POSIX_UNUSED)
+nausicaa_posix_stat_st_mtime_usec_ref (struct stat * buf)
 {
   return buf->st_mtime_usec;
 }
 #else
 unsigned long int
-nausicaa_posix_stat_st_mtime_usec_ref (struct stat * buf)
+nausicaa_posix_stat_st_mtime_usec_ref (struct stat * buf POSIX_UNUSED)
 {
   return 0;
 }
@@ -376,10 +439,46 @@ nausicaa_posix_stat_typeisshm (struct stat * s)
  ** ----------------------------------------------------------------- */
 
 int
-nausicaa_posix_mknod (char* filename, int mode, int dev)
+nausicaa_posix_pread (int filedes, void * buffer, size_t size, off_t offset)
 {
-  return mknod(filename, mode, dev);
+  return pread (filedes, buffer, size, offset);
+}
+int
+nausicaa_posix_pwrite (int filedes, const void * buffer, size_t size, off_t offset)
+{
+  return pwrite (filedes, buffer, size, offset);
 }
 
+int
+nausicaa_posix_lseek (int filedes, off_t offset, int whence)
+{
+  return lseek(filedes, offset, whence);
+}
+struct dirent *
+nausicaa_posix_readdir (DIR * dir)
+{
+  return readdir(dir);
+}
+int
+nausicaa_posix_readdir_r (DIR * dir, struct dirent * entry, struct dirent ** result)
+{
+  return readdir_r(dir, entry, result);
+}
+
+
+/** --------------------------------------------------------------------
+ ** Dirent structure accessors.
+ ** ----------------------------------------------------------------- */
+
+char *
+nausicaa_posix_dirent_d_name_ptr_ref (struct dirent * buf)
+{
+  return &(buf->d_name[0]);
+}
+
+
+/** --------------------------------------------------------------------
+ ** Miscellaneous.
+ ** ----------------------------------------------------------------- */
 
 /* end of file */

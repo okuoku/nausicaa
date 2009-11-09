@@ -10,19 +10,6 @@
 ;;;	makes use of the  stubs functions in "libnausicaa-posix.so" from
 ;;;	the Nausicaa/Stubs project.
 ;;;
-;;;	  On systems  using the GNU C  Library it appears  that the stat
-;;;	functions are exported with names like:
-;;;
-;;;		statfs		__statfs
-;;;		fstatfs		__fstatfs
-;;;		statfs64	__statfs64
-;;;		fstatfs64	__fstatfs64
-;;;				__statfs_symlinks
-;;;
-;;;	but I  dunno if they are  portable.  For this reason  we use the
-;;;	stub library.  While  we are at it, we  exploit the stub library
-;;;	to get further informations and functionalities.
-;;;
 ;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -69,13 +56,14 @@
     struct-stat-st_blocks-ref
     struct-stat-st_blksize-ref)
   (import (rnrs)
+    (foreign posix shared-object)
     (foreign ffi)
     (foreign ffi sizeof)
     (foreign posix sizeof))
 
 
 (define dummy
-  (shared-object (open-shared-object* 'libnausicaa-posix1.so)))
+  (shared-object libnausicaa-posix))
 
 ;;;FIXME For some reason it looks  like the size of "struct stat" is not
 ;;;determined correctly by the  Autoconf macros.  Dunno why.  This error

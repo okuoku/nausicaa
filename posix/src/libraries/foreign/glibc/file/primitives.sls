@@ -32,7 +32,8 @@
     mktemp		mkstemp		mkdtemp
     tempnam		tmpnam		tmpfile
 
-    utimes		lutimes		futimes)
+    ;; times
+    lutimes		futimes)
   (import (except (rnrs)
 		  remove truncate)
     (receive)
@@ -55,6 +56,8 @@
     (prefix (foreign glibc file platform) platform:))
 
 
+;;;; temporary files
+
 (define (mktemp template)
   (with-compensations
     (let ((p	(string->cstring/c template)))
@@ -113,6 +116,8 @@
 	(cstring->string result)))))
 
 
+;;;; file times
+
 (define %real-utimes
   (case-lambda
    ((func funcname obj
@@ -140,19 +145,6 @@
       (if (= -1 result)
 	  (raise-errno-error funcname errno obj)
 	result)))))
-
-(define utimes
-  (case-lambda
-   ((pathname access-time-sec access-time-usec modification-time-sec modification-time-usec)
-    (%real-utimes (lambda (*arry)
-		    (platform:utimes (string->cstring/c pathname) *arry))
-		  'utimes pathname
-		  access-time-sec access-time-usec
-		  modification-time-sec modification-time-usec))
-   ((pathname)
-    (%real-utimes (lambda (*arry)
-		    (platform:utimes (string->cstring/c pathname) *arry))
-		  'utimes pathname))))
 
 (define lutimes
   (case-lambda

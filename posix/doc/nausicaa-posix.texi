@@ -492,7 +492,6 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview.
-* api::                         Interface organisation.
 * environment::                 Environment variables.
 * file::                        File system.
 * stat::                        Inspecting file attributes.
@@ -520,6 +519,11 @@ Indexes
 @detailmenu
  --- The Detailed Node Listing ---
 
+Overview
+
+* overview libraries::          Libraries organisation.
+* overview interface::          Interface organisation.
+
 File system
 
 * file working directory::      The working directory.
@@ -530,6 +534,7 @@ File system
 * file mkdir::                  Creating directories.
 * file attr::                   Changing file attributes.
 * file temp::                   Temporary files.
+* file times::                  Setting file times.
 
 Accessing directory entries
 
@@ -547,7 +552,7 @@ Changing file attributes
 
 Inspecting file attributes
 
-* stat constants::              Constant values.
+* stat constants::              Constant values and structure accessors.
 * stat record::                 Acquiring the file attributes.
 * stat api::                    Interface functions.
 * stat type::                   Type inspection.
@@ -557,6 +562,9 @@ Date and time
 
 * time structs::                Data structures.
 * time clock::                  Processor time.
+* time calendar::               Simple calendar time.
+* time hires::                  High resolution calendar.
+* time broken::                 Broken--down time.
 
 File descriptors
 
@@ -597,6 +605,24 @@ Users and groups
 
 * users persona::               Process' persona.
 
+More C string functions
+
+* strings search::              Searching.
+
+Stream functions
+
+* streams constants::           Constants.
+* streams errors::              Detecting errors on streams.
+* streams open close::          Opening and closing.
+* streams writing::             Writing to streams.
+* streams reading::             Reading from streams.
+* streams unreading::           Unreading to streams.
+* streams seeking::             Stream positioning.
+* streams fd::                  Streams and file descriptors.
+* streams unlocked::            Unlocked stream operations.
+* streams extended::            Extended stream operations.
+* streams lines::               Reading lines.
+
 @end detailmenu
 @end menu
 
@@ -609,13 +635,30 @@ Users and groups
 
 @value{PACKAGE} is a distribution of libraries for @rnrs{6} Scheme
 exposing the @posix{} interface to the Scheme language level; some
-@gnu{} C Library extensions are also exposed.  It is built on top of the
-Nausicaa/Scheme libraries, making use of its foreign-functions
-interface; some libraries depend upon the C language library
-@samp{libnausicaa-posix} from the Nausicaa/Stubs package.
+@gnu{} C Library extensions and Linux extensions are also exposed.  The
+libraries are built on top of the Nausicaa/Scheme libraries, making use
+of their foreign-functions interface; some libraries depend upon the C
+language library @samp{libnausicaa-posix}, which is built and installed
+by this package.
 
-Unless otherwise specified, for each set of features there are three
-libraries:
+@menu
+* overview libraries::          Libraries organisation.
+* overview interface::          Interface organisation.
+@end menu
+
+@c page
+@node overview libraries
+@section Libraries organisation
+
+
+The distribution attempts to split functions compliant to the @posix{}
+standard from functions available only through extensions; the standard
+C library functions are classified as extensions.  This splitting is
+meant to make it easier to port the distribution on non--@gnu{} systems;
+it is an ongoing process (the manual pages on GNU+Linux systems should
+contain notes about @posix{} standard compliance).
+
+Unless otherwise specified, libraries are split in three sets:
 
 @table @library
 @item foreign posix ---
@@ -626,7 +669,8 @@ import these libraries by prefixing the identifiers; for example:
 
 @example
 (import (rnrs)
-  (prefix (foreign posix fd) posix:))
+  (prefix (foreign posix fd)   posix:)
+  (prefix (foreign glibc file) glibc:))
 @end example
 
 @item foreign posix --- primitives
@@ -645,13 +689,54 @@ the bindings from these libraries are prefixed with @samp{platform:},
 but they are exported @strong{without} this prefix.
 @end table
 
-Additionally, the @library{foreign posix sizeof} library exports
-bindings for constant values (like @samp{O_CREAT}) and data structure
-accessors and mutators.
+Additionally, the following libraries are installed:
+
+@table @library
+@item foreign posix sizeof
+Exports bindings for constant values (like @samp{O_CREAT}) and data
+structure accessors and mutators.
+@end table
+
+Let's take as reference the @code{file} set of features; when the
+documentation states that a set of bindings is exported by the @posix{}
+@code{file} libraries, it means that the bindings are exported by the
+following libraries:
+
+@example
+(foreign posix file)
+(foreign posix file primitives)
+(foreign posix file platform)
+@end example
+
+@noindent
+when the documentation states that a set of bindings is exported by the
+Glibc @code{file} libraries, it means that the bindings are exported by
+the following libraries:
+
+@example
+(foreign glibc file)
+(foreign glibc file primitives)
+(foreign glibc file platform)
+@end example
+
+@noindent
+when the documentation states that a set of bindings is exported by the
+Linux @code{file} libraries, it means that the bindings are exported by
+the following libraries:
+
+@example
+(foreign linux file)
+(foreign linux file primitives)
+(foreign linux file platform)
+@end example
+
+When the documentation states that a set of bindings is exported by the
+@code{sizeof} libraries, it means that the bindings are exported by the
+@library{foreign posix sizeof} library.
 
 @c page
-@node api
-@chapter Interface organisation
+@node overview interface
+@section Interface organisation
 
 
 For all the functions only a brief description is given: We have to use
@@ -669,10 +754,11 @@ This is an interface for the @cfunc{x} foreign function.
 are regular Scheme values.  They take the same arguments and return the
 same return values.  If successful they return values representing the
 result; in case of error they raise an @samp{&errno} condition.
+@nauref{errno, C language system errors}.
 
 @func{x} does the job by applying to the arguments the current value of
-the @func{x-function} parameter, which must be a function.  The
-parameter is initialised to @func{primitive:x}.
+the @func{x-function} parameter, which must be a function; the parameter
+is initialised to @func{primitive:x}.
 
 @func{platform:x} is the direct wrapper for the foreign function.  It
 accepts C language level arguments (like C strings), and returns 2
@@ -719,7 +805,7 @@ Example of usage of failing primitive fork function:
 (define (fake-fork)
   (raise-errno-error 'fork EINVAL))
 
-(parametrise ((primitive:fork-function fake-fork))
+(parametrise ((fork-function fake-fork))
   ---
   (fork)
   ---)
@@ -731,17 +817,9 @@ Example of usage of failing primitive fork function:
 
 
 Unless otherwise specified, the following bindings are exported by the
-libraries:
-
-@example
-(foreign posix environment)
-(foreign posix environment primitives)
-(foreign posix environment platform)
-@end example
-
-@noindent
-@glibcref{Environment Access,Environment Access}.  @nauref{naulib
-environment, Accessing environment variables}.
+@posix{} @code{environment} libraries.  @glibcref{Environment
+Access,Environment Access}.  @nauref{naulib environment, Accessing
+environment variables}.
 
 
 @deffn Function getenv @var{varname}
@@ -801,13 +879,8 @@ Convert between a list of strings in ``environ'' format and a hashtable.
 
 @subsubheading @gnu{} C library functions
 
-The following bindings are exported by the libraries:
-
-@example
-(foreign glibc environment)
-(foreign glibc environment primitives)
-(foreign glibc environment platform)
-@end example
+The following bindings are exported by the Glibc @code{environment}
+libraries.
 
 
 @deffn Function clearenv
@@ -847,18 +920,7 @@ variable assignment in the environment.
 
 
 Unless otherwise specified, the bindings described in this chapter are
-exported by the following libraries:
-
-@example
-(foreign posix file)
-(foreign posix file primitives)
-(foreign posix file platform)
-@end example
-
-@noindent
-additionally if we have installed the Nausicaa/Stubs library for
-@posix{}, we can import the @library{foreign posix file stub} library;
-see the Nausicaa/Stubs project for details.
+exported by the @posix{} @code{file} libraries.
 
 @menu
 * file working directory::      The working directory.
@@ -869,7 +931,7 @@ see the Nausicaa/Stubs project for details.
 * file mkdir::                  Creating directories.
 * file attr::                   Changing file attributes.
 * file temp::                   Temporary files.
-* file time::                   Setting file times.
+* file times::                  Setting file times.
 @end menu
 
 @c page
@@ -932,7 +994,7 @@ The functions described in this section handle accessing directories.
 @subsection Type definitions
 
 
-The following bindings are exported from @library{foreign posix sizeof}.
+The following bindings are exported from the @code{sizeof} library.
 @glibcref{Directory Entries,Format of a directory entry}.
 
 
@@ -943,8 +1005,21 @@ Size, alignment and array stride of @code{struct dirent} types.
 @end defvr
 
 
+@deffn Syntax struct-dirent-d_ino-set! @var{pointer} @var{value}
+@deffnx Syntax struct-dirent-d_ino-ref @var{pointer}
+@deffnx Syntax struct-dirent-d_off-set! @var{pointer} @var{value}
+@deffnx Syntax struct-dirent-d_off-ref @var{pointer}
+@deffnx Syntax struct-dirent-d_reclen-set! @var{pointer} @var{value}
+@deffnx Syntax struct-dirent-d_reclen-ref @var{pointer}
+@deffnx Syntax struct-dirent-d_type-set! @var{pointer} @var{value}
+@deffnx Syntax struct-dirent-d_type-ref @var{pointer}
+Accessors and mutators for the fields of the @code{struct dirent} type.
+See below for the accessor of the @code{d_name} field.
+@end deffn
+
+
 @deffn Syntax struct-dirent-d_name-ref @var{pointer}
-Getter for the @code{d_name} field of a @code{struct dirent} type.
+Accessor for the @code{d_name} field of a @code{struct dirent} type.
 Evaluates to a pointer to the first byte of the @code{char d_name[]}
 array.
 @end deffn
@@ -1155,6 +1230,9 @@ previously returned by @func{telldir}.
 @section Hard and symbolic links
 
 
+@cindex @cfunc{canonicalize_file_name}
+
+
 The following functions manage hard and symbolic links to files.
 @glibcref{Hard Links,Hard Links}.  @glibcref{Symbolic Links,Symbolic
 Links}.
@@ -1163,7 +1241,7 @@ Links}.
 @deffn Function link @var{old-pathname} @var{new-pathname}
 @deffnx Parameter link-function
 @deffnx Function primitive:link @var{old-pathname} @var{new-pathname}
-@deffnx Function platform:link @var{old-pathname} @var{new-pathname}
+@deffnx Function platform:link @var{old-pathname-cstr} @var{new-pathname-cstr}
 Link to the new name specified by the Scheme string or symbol
 @var{new-pathname}, the file selected by the Scheme string or symbol
 @var{old-pathname}.
@@ -1173,19 +1251,36 @@ Link to the new name specified by the Scheme string or symbol
 @deffn Function symlink @var{old-pathname} @var{new-pathname}
 @deffnx Parameter symlink-function
 @deffnx Function primitive:symlink @var{old-pathname} @var{new-pathname}
-@deffnx Function platform:symlink @var{old-pathname} @var{new-pathname}
-Link to the new name specified by the Scheme string or symbol
-@var{new-pathname}, the file selected by the Scheme string or symbol
-@var{old-pathname}.
+@deffnx Function platform:symlink @var{old-pathname-cstr} @var{new-pathname-cstr}
+Symbolically link to the new name specified by the Scheme string or
+symbol @var{new-pathname}, the file selected by the Scheme string or
+symbol @var{old-pathname}.
+@end deffn
+
+
+@deffn Function readlink @var{pathname}
+@deffnx Parameter readlink-function
+@deffnx Function primitive:readlink @var{pathname}
+@deffnx Function platform:readlink @var{pathname-cstr}
+Return a string representing the value of the symbolic link
+@var{pathname}, which must be a Scheme string or symbol.
 @end deffn
 
 
 @deffn Function realpath @var{pathname}
 @deffnx Parameter realpath-function
 @deffnx Function primitive:realpath @var{pathname}
-@deffnx Function platform:realpath @var{pathname}
-Return a string representing the real pathname of the symbolic link
-selected by the Scheme string or symbol @var{pathname}.
+@deffnx Function platform:realpath @var{pathname-cstr} @var{buffer-ptr}
+Return a string representing the absolute name of the file represented
+by @var{pathname}, which must be a Scheme string or symbol.  The
+returned name contains neither @samp{.} or @samp{..} components, nor
+sequences of path separators (slashes).
+
+@quotation
+@strong{NOTE} The @gnu{} C Library exports the function
+@cfunc{canonicalize_file_name} which does the same work of
+@func{realpath}; for this reason it is not exposed at the Scheme level.
+@end quotation
 @end deffn
 
 @c page
@@ -1209,7 +1304,8 @@ Remove the file selected by the Scheme string or symbol @var{pathname}.
 @deffnx Parameter remove-function
 @deffnx Function primitive:remove @var{pathname}
 @deffnx Function platform:remove @var{pathname}
-Remove the file selected by the Scheme string or symbol @var{pathname}.
+Remove the file or directory selected by the Scheme string or symbol
+@var{pathname}.
 @end deffn
 
 
@@ -1406,6 +1502,16 @@ seek, Setting the file position}.
 @end deffn
 
 
+@deffn Function truncate @var{fd/pathname} @var{length}
+@deffnx Parameter truncate-function
+@deffnx Function primitive:truncate @var{fd/pathname} @var{length}
+@deffnx Function platform:truncate @var{fd/pathname-cstr} @var{length}
+Set to @var{length} the size of the selected file.  @var{fd/pathname}
+can be a file descriptor or a pathname in the form of a Scheme string or
+symbol.
+@end deffn
+
+
 @deffn Function ftruncate @var{fd/pathname} @var{length}
 @deffnx Parameter ftruncate-function
 @deffnx Function primitive:ftruncate @var{fd/pathname} @var{length}
@@ -1508,7 +1614,7 @@ does not exist on the system.  The implementation of
 
 
 @c page
-@node file time
+@node file times
 @section Setting file times
 
 
@@ -1533,19 +1639,6 @@ the file, even though it is requested by the @cfunc{utime} call.
 @end quotation
 @end deffn
 
-@c ------------------------------------------------------------
-
-@subsubheading @gnu{} C Library functions
-
-The following bindings are expored by:
-
-@example
-(foreign glibc file)
-(foreign glibc file primitives)
-(foreign glibc file platform)
-@end example
-
-
 @deffn Function utimes @var{pathname}
 @deffnx Function utimes @var{pathname} @var{atime} @var{atime-usec} @var{mtime} @var{mtime-usec}
 @deffnx Parameter utimes-function
@@ -1559,6 +1652,11 @@ times to the current time.
 @end deffn
 
 
+@c ------------------------------------------------------------
+
+@subsubheading @gnu{} C Library functions
+
+The following bindings are exported by the Glibc @code{file} library.
 @deffn Function lutimes @var{pathname}
 @deffnx Function lutimes @var{pathname} @var{atime} @var{atime-usec} @var{mtime} @var{mtime-usec}
 @deffnx Parameter lutimes-function

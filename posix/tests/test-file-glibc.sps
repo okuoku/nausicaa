@@ -125,25 +125,6 @@ Ses ailes de geant l'empechent de marcher.")
 	(check
 	    (begin
 	      (posix:chmod the-file S_IRWXU)
-	      (glibc:utimes the-file
-			    #e1e3 ;access time
-			    #e1e4
-			    #e2e3 ;modification time
-			    #e2e4)
-	      (get-times the-file))
-	  => '(#e1e3 #e2e3))
-
-	(check
-	    (begin
-	      (posix:chmod the-file S_IRWXU)
-	      (glibc:utimes the-file))
-	  => 0)
-
-;;; --------------------------------------------------------------------
-
-	(check
-	    (begin
-	      (posix:chmod the-file S_IRWXU)
 	      (glibc:lutimes the-file
 			     #e1e3 ;access time
 			     #e1e4
@@ -245,6 +226,25 @@ Ses ailes de geant l'empechent de marcher.")
 	  => '(#t #f))
 
 	#f))))
+
+
+(parametrise ((check-test-name	'links)
+	      (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in links" E))
+    (lambda ()
+      (with-compensations
+	(clean-test-hierarchy)
+	  (compensate
+	      (make-test-hierarchy)
+	    (with
+	     (clean-test-hierarchy)))
+	(let ((the-other (string-join (list the-root "other.ext") "/")))
+
+
+	  #f)))))
 
 
 ;;;; done

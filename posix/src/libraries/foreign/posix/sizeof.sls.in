@@ -166,6 +166,7 @@
     S_ISUID		S_ISGID		S_ISVTX
 
     EOF			MAXSYMLINKS
+    PATH_MAX		NAME_MAX	MAXPATHLEN
 
     ;; struct inspection
     sizeof-struct-timezone
@@ -193,6 +194,10 @@
     struct-timespec-tv_sec-set!		struct-timespec-tv_sec-ref
     struct-timespec-tv_nsec-set!	struct-timespec-tv_nsec-ref
 
+    struct-dirent-d_ino-set!		struct-dirent-d_ino-ref
+    struct-dirent-d_off-set!		struct-dirent-d_off-ref
+    struct-dirent-d_reclen-set!		struct-dirent-d_reclen-ref
+    struct-dirent-d_type-set!		struct-dirent-d_type-ref
     struct-dirent-d_name-ref
 
     struct-timezone-tz_minuteswest-set!	struct-timezone-tz_minuteswest-ref
@@ -292,24 +297,12 @@
 (define pointer-set-c-nlink_t!		@SETTEROF_NLINK_T@)
 (define pointer-ref-c-nlink_t		@GETTEROF_NLINK_T@)
 
-(define off_t				(if on-32-bits-system
-					    (quote unsigned-int)
-					  (quote @TYPEOF_OFF_T@)))
-(define sizeof-off_t			(if on-32-bits-system
-					    4
-					  @SIZEOF_OFF_T@))
-(define alignof-off_t			(if on-32-bits-system
-					    4
-					  @ALIGNOF_OFF_T@))
-(define strideof-off_t			(if on-32-bits-system
-					    4
-					  @STRIDEOF_OFF_T@))
-(define pointer-set-c-off_t!		(if on-32-bits-system
-					    pointer-set-c-unsigned-int!
-					  @SETTEROF_OFF_T@))
-(define pointer-ref-c-off_t		(if on-32-bits-system
-					    pointer-ref-c-unsigned-int
-					  @GETTEROF_OFF_T@))
+(define off_t				(quote @TYPEOF_OFF_T@))
+(define sizeof-off_t			@SIZEOF_OFF_T@)
+(define alignof-off_t			@ALIGNOF_OFF_T@)
+(define strideof-off_t			@STRIDEOF_OFF_T@)
+(define pointer-set-c-off_t!		@SETTEROF_OFF_T@)
+(define pointer-ref-c-off_t		@GETTEROF_OFF_T@)
 
 (define pid_t				(quote @TYPEOF_PID_T@))
 (define sizeof-pid_t			(quote @SIZEOF_PID_T@))
@@ -457,7 +450,10 @@
 (define S_ISVTX			@VALUEOF_S_ISVTX@)
 
 (define EOF			@VALUEOF_EOF@)
-(define MAXSYMLINKS		@MAXSYMLINKS@)
+(define MAXSYMLINKS		@VALUEOF_MAXSYMLINKS@)
+(define PATH_MAX		@VALUEOF_PATH_MAX@)
+(define NAME_MAX		@VALUEOF_NAME_MAX@)
+(define MAXPATHLEN		@VALUEOF_MAXPATHLEN@)
 
 
 ;;;; struct accessors
@@ -530,6 +526,34 @@
   @GETTEROF_STRUCT_TIMESPEC_TV_NSEC@)
 
 ;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  struct-dirent-d_ino-set!
+  struct-dirent-d_ino-ref
+  @OFFSETOF_STRUCT_DIRENT_D_INO@
+  @SETTEROF_STRUCT_DIRENT_D_INO@
+  @GETTEROF_STRUCT_DIRENT_D_INO@)
+
+(define-c-struct-accessor-and-mutator
+  struct-dirent-d_off-set!
+  struct-dirent-d_off-ref
+  @OFFSETOF_STRUCT_DIRENT_D_OFF@
+  @SETTEROF_STRUCT_DIRENT_D_OFF@
+  @GETTEROF_STRUCT_DIRENT_D_OFF@)
+
+(define-c-struct-accessor-and-mutator
+  struct-dirent-d_reclen-set!
+  struct-dirent-d_reclen-ref
+  @OFFSETOF_STRUCT_DIRENT_D_RECLEN@
+  @SETTEROF_STRUCT_DIRENT_D_RECLEN@
+  @GETTEROF_STRUCT_DIRENT_D_RECLEN@)
+
+(define-c-struct-accessor-and-mutator
+  struct-dirent-d_type-set!
+  struct-dirent-d_type-ref
+  @OFFSETOF_STRUCT_DIRENT_D_TYPE@
+  @SETTEROF_STRUCT_DIRENT_D_TYPE@
+  @GETTEROF_STRUCT_DIRENT_D_TYPE@)
 
 (define-c-struct-field-pointer-accessor
   struct-dirent-d_name-ref

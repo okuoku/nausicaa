@@ -48,12 +48,13 @@
 
     getline		getdelim)
   (import (rnrs)
+    (foreign posix shared-object)
     (foreign ffi)
     (foreign ffi sizeof)
     (foreign posix sizeof))
 
   (define dummy
-    (shared-object self-shared-object))
+    (shared-object standard-c-library))
 
 
 (define-c-function ferror

@@ -36,12 +36,14 @@
     WCOREDUMP		WIFSTOPPED
     WSTOPSIG)
   (import (rnrs)
+    (parameters)
+    (foreign posix shared-object)
     (foreign ffi)
     (foreign posix sizeof))
 
 
 (define dummy
-  (shared-object self-shared-object))
+  (shared-object standard-c-library))
 
 (define-c-function getpid
   (pid_t getpid (void)))
@@ -69,7 +71,7 @@
 
 
 (define dummy2
-  (shared-object (open-shared-object* 'libnausicaa-posix1.so)))
+  (shared-object libnausicaa-posix))
 
 (define-c-function WIFEXITED
   (int nausicaa_posix_wifexited	(int)))

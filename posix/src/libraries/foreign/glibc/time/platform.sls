@@ -42,11 +42,12 @@
     ;; high accuracy time
     ntp_gettime)
   (import (rnrs)
+    (foreign posix shared-object)
     (foreign ffi)
     (foreign ffi sizeof))
 
   (define dummy
-    (shared-object self-shared-object))
+    (shared-object standard-c-library))
 
 
 (define-c-function/with-errno time

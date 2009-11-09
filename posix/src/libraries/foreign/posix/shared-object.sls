@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: direct wrappers for environment variables functions
-;;;Date: Thu Jan  1, 2009
+;;;Contents: load shared libraries
+;;;Date: Mon Nov  9, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -24,27 +25,15 @@
 ;;;
 
 
-(library (foreign posix environment platform)
-  (export getenv setenv environ)
+(library (foreign posix shared-object)
+  (export standard-c-library libnausicaa-posix)
   (import (rnrs)
-    (foreign posix shared-object)
-    (only (foreign ffi)
-	  shared-object
-	  lookup-shared-object*
-	  define-c-function)
-    (only (foreign ffi peekers-and-pokers)
-	  pointer-ref-c-pointer))
+    (foreign ffi))
 
-  (define dummy
-    (shared-object standard-c-library))
+  (define standard-c-library
+    self-shared-object)
 
-  (define-c-function setenv
-    (int setenv (char* char* int)))
-
-  (define-c-function getenv
-    (char* getenv (char*)))
-
-  (define (environ)
-    (pointer-ref-c-pointer (lookup-shared-object* standard-c-library "__environ") 0)))
+  (define libnausicaa-posix
+    (open-shared-object* 'libnausicaa-posix1.so)))
 
 ;;; end of file

@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-posix],[0.1d0])
+AC_INIT([nausicaa-posix],[0.1d0],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/posix/fd.sls])
 dnl AC_CANONICAL_TARGET
 dnl AC_USE_SYSTEM_EXTENSIONS
@@ -61,7 +61,9 @@ AC_CHECK_HEADERS([sys/stat.h])
 AC_CHECK_HEADERS([sys/time.h])
 AC_CHECK_HEADERS([sys/times.h])
 AC_CHECK_HEADERS([sys/timex.h])
+AC_CHECK_HEADERS([sys/wait.h])
 AC_CHECK_HEADERS([time.h])
+AC_CHECK_HEADERS([unistd.h])
 AC_CHECK_HEADERS([utime.h])
 
 dnl page
@@ -93,6 +95,9 @@ m4_define([NAU_POSIX_INCLUDES],[
 #endif
 #ifdef HAVE_SYS_TIMEX_H
 #  include <sys/timex.h>
+#endif
+#ifdef HAVE_SYS_WAIT_H
+#  include <sys/wait.h>
 #endif
 ])
 
@@ -174,7 +179,14 @@ NAU_POSIX_STRUCT_TIMESPEC_FIELD([TV_NSEC],[tv_nsec],[signed-int])
 
 dnl --------------------------------------------------------------------
 
+AC_DEFUN([NAU_POSIX_STRUCT_DIRENT_FIELD],
+  [NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_DIRENT_$1],[struct dirent],[$2],[$3])])
+
 NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_DIRENT],[struct dirent])
+NAU_POSIX_STRUCT_DIRENT_FIELD([D_INO],[d_ino],[signed-int])
+NAU_POSIX_STRUCT_DIRENT_FIELD([D_OFF],[d_off],[signed-int])
+NAU_POSIX_STRUCT_DIRENT_FIELD([D_RECLEN],[d_reclen],[unsigned-int])
+NAU_POSIX_STRUCT_DIRENT_FIELD([D_TYPE],[d_type],[unsigned-int])
 NAU_POSIX_INSPECT_FIELD_TYPE_POINTER([STRUCT_DIRENT_D_NAME],[struct dirent],[d_name])
 
 dnl --------------------------------------------------------------------
@@ -358,6 +370,9 @@ NAU_POSIX_DEFINE_VALUE([S_ISVTX])
 dnl Misc
 NAU_POSIX_DEFINE_VALUE([EOF])
 NAU_POSIX_DEFINE_VALUE([MAXSYMLINKS])
+NAU_POSIX_DEFINE_VALUE([NAME_MAX])
+NAU_POSIX_DEFINE_VALUE([PATH_MAX])
+NAU_POSIX_DEFINE_VALUE([MAXPATHLEN])
 
 AC_CACHE_SAVE
 

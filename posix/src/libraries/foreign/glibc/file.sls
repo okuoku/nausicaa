@@ -27,17 +27,16 @@
 (library (foreign glibc file)
   (export
     ;; temporary files
-    mktemp		mktemp-function
-    mkstemp		mkstemp-function
-    mkdtemp		mkdtemp-function
-    tmpfile		tmpfile-function
-    tempnam		tempnam-function
-    tmpnam		tmpnam-function
+    mktemp			mktemp-function
+    mkstemp			mkstemp-function
+    mkdtemp			mkdtemp-function
+    tmpfile			tmpfile-function
+    tempnam			tempnam-function
+    tmpnam			tmpnam-function
 
     ;; times
-    utimes		utimes-function
-    lutimes		lutimes-function
-    futimes		futimes-function)
+    lutimes			lutimes-function
+    futimes			futimes-function)
   (import (except (rnrs)
 		  remove truncate)
     (foreign posix helpers)
@@ -53,21 +52,12 @@
 (define-parametrised tempnam directory prefix)
 (define-parametrised tmpnam)
 
+
 
 ;;;; file times
 
-(define-primitive-parameter utimes-function	primitive:utimes)
 (define-primitive-parameter lutimes-function	primitive:lutimes)
 (define-primitive-parameter futimes-function	primitive:futimes)
-
-(define utimes
-  (case-lambda
-   ((pathname access-time-sec access-time-usec modification-time-sec modification-time-usec)
-    ((utimes-function) pathname
-     access-time-sec access-time-usec
-     modification-time-sec modification-time-usec))
-   ((pathname)
-    ((utimes-function) pathname))))
 
 (define lutimes
   (case-lambda

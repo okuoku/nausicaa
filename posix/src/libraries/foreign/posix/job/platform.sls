@@ -30,11 +30,12 @@
     getpgrp		setpgid
     tcgetpgrp		tcsetpgrp	tcgetsid)
   (import (rnrs)
+    (foreign posix shared-object)
     (foreign ffi)
     (foreign posix sizeof))
 
 (define dummy
-  (shared-object self-shared-object))
+  (shared-object standard-c-library))
 
 
 (define-c-function/with-errno ctermid

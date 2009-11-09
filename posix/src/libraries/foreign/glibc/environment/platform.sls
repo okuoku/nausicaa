@@ -28,12 +28,13 @@
 (library (foreign glibc environment platform)
   (export unsetenv clearenv putenv)
   (import (rnrs)
+    (foreign posix shared-object)
     (only (foreign ffi)
-	  shared-object		self-shared-object
+	  shared-object
 	  define-c-function))
 
   (define dummy
-    (shared-object self-shared-object))
+    (shared-object standard-c-library))
 
   (define-c-function clearenv
     (int clearenv (void)))
