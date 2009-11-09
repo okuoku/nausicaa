@@ -719,11 +719,11 @@ DS_TEXI2PDF_FLAGS	= $$(DS_TEXI_FLAGS) --dvipdf --tidy \
 				--build-dir=$$(ds_texi_BUILDDIR)
 
 ds_texi_PREREQ		= $$(ds_texi_BUILDDIR)/version.texiinc \
-				  $$(wildcard $$(ds_texi_SRCDIR)/*.texiinc) \
 				  $$(ds_texi_AUX_PREREQ)
 ds_texi_CLEANFILES	= $$(ds_texi_BUILDDIR)/version.texiinc
 
 .PHONY: ds-texinfo-builddir
+.SECONDARY: $$(ds_texi_BUILDDIR)/%.info
 
 ds-texinfo-builddir:
 	test -d $$(ds_texi_BUILDDIR) || $$(MKDIR) $$(ds_texi_BUILDDIR)
@@ -771,9 +771,6 @@ ds_texi_INFO_INSTDIR	= \
 ds_texi_INFO_MOSTLYCLEANFILES	= $$(ds_texi_INFO_TARGETS)
 ds_texi_INFO_CLEANFILES		= $$(ds_texi_INFO_MOSTLYCLEANFILES) \
 				  $$(ds_texi_CLEANFILES)
-
-.SECONDARY: $(ds_texi_INFO_TARGETS:.info.gz=.info)
-.PRECIOUS:  $(ds_texi_INFO_TARGETS:.info.gz=.info)
 
 $$(eval $$(call ds-module,ds_texi_INFO,doc,DATA))
 
