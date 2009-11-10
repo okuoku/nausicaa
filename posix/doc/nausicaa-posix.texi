@@ -525,6 +525,7 @@ Overview
 
 File system
 
+* file inspect::                System inspection.
 * file working directory::      The working directory.
 * file directory access::       Accessing directory entries.
 * file links::                  Hard and symbolic links.
@@ -541,6 +542,8 @@ Accessing directory entries
 * file directory access open::  Accessing a directory stream.
 * file directory access read::  Reading a directory stream.
 * file directory access seek::  Random access to a directory stream.
+* file directory access scan::  Scanning a directory.
+* file directory access tree::  Scanning a hierarchy of directories.
 
 Changing file attributes
 
@@ -634,11 +637,12 @@ More C string functions
 
 @value{PACKAGE} is a distribution of libraries for @rnrs{6} Scheme
 exposing the @posix{} interface to the Scheme language level; some
-@gnu{} C Library extensions and Linux extensions are also exposed.  The
-libraries are built on top of the Nausicaa/Scheme libraries, making use
-of their foreign-functions interface; some libraries depend upon the C
-language library @samp{libnausicaa-posix}, which is built and installed
-by this package.
+@gnu{} C Library extensions and Linux extensions are also exposed.
+
+The libraries are built on top of the Nausicaa/Scheme libraries, making
+use of their foreign-functions interface; some libraries depend upon the
+C language library @samp{libnausicaa-posix}, which is built and
+installed by this package.
 
 @menu
 * overview libraries::          Libraries organisation.
@@ -1497,7 +1501,7 @@ they are implemented as follows:
      (lambda (pathname-cstr struct-stat flag)
        (guard (E (else -1))
          (scheme-function (cstring->string pathname-cstr)
-                          (if (bitwise-and flag FTW_NS)
+                          (if (= 0 (bitwise-and flag FTW_NS))
                               #f
                             (struct-stat->record struct-stat))
                           flag)))
@@ -1508,7 +1512,7 @@ they are implemented as follows:
      (lambda (pathname-cstr struct-stat flag struct-ftw)
        (guard (E (else -1))
          (scheme-function (cstring->string pathname-cstr)
-                          (if (bitwise-and flag FTW_NS)
+                          (if (= 0 (bitwise-and flag FTW_NS))
                               #f
                             (struct-stat->record struct-stat))
                           flag
@@ -2027,18 +2031,7 @@ descriptor.
 
 
 Unless otherwise specified, the bindings described in this section are
-exported by the following libraries:
-
-@example
-(foreign posix stat)
-(foreign posix stat primitives)
-(foreign posix stat platform)
-(foreign posix stat record-types)
-@end example
-
-@noindent
-full support for the C language @cfunc{stat} function requires loading
-the @file{libnausicaa-posix.so} library.
+exported by the @posix{} @code{stat} libraries.
 
 @menu
 * stat constants::              Constant values and structure accessors.
@@ -3873,23 +3866,12 @@ file and accumulates them in the @code{lines} variables:
 
 
 Unless otherwise specified, the bindings documented in this chapter are
-exported by the following libraries:
-
-@example
-(foreign posix time)
-(foreign posix time primitives)
-(foreign posix time platform)
-(foreign glibc time)
-(foreign glibc time primitives)
-(foreign glibc time platform)
-@end example
-
-@noindent
-full support for the time functions requires loading the
-@file{libnausicaa-posix.so} library.
+exported by the @posix{} @code{time} libraries.
 
 @menu
 * time structs::                Data structures.
+* time records::                Record types.
+* time constants::              Constant values.
 * time clock::                  Processor time.
 * time calendar::               Simple calendar time.
 * time hires::                  High resolution calendar.
@@ -3902,7 +3884,7 @@ full support for the time functions requires loading the
 
 
 The bindings documented in this section are exported by the
-@library{foreign posix sizeof} library.
+@code{sizeof} library.
 
 
 @defvr Constant sizeof-struct-timeval
@@ -3916,10 +3898,10 @@ structures.
 
 
 @deffn Syntax struct-timeval-tv_sec-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timeval-tv_sec-ref @var{pointer} @var{value}
+@deffnx Syntax struct-timeval-tv_sec-ref @var{pointer}
 @deffnx Syntax struct-timeval-tv_usec-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timeval-tv_usec-ref @var{pointer} @var{value}
-Peekers and pokers for the fields of a @code{struct timeval}.
+@deffnx Syntax struct-timeval-tv_usec-ref @var{pointer}
+Accessors and mutators for the fields of a @code{struct timeval}.
 @end deffn
 
 
@@ -3934,35 +3916,95 @@ structures.
 
 
 @deffn Syntax struct-timespec-tv_sec-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timespec-tv_sec-ref @var{pointer} @var{value}
+@deffnx Syntax struct-timespec-tv_sec-ref @var{pointer}
 @deffnx Syntax struct-timespec-tv_nsec-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timespec-tv_nsec-ref @var{pointer} @var{value}
-Peekers and pokers for the fields of a @code{struct timespec}.
+@deffnx Syntax struct-timespec-tv_nsec-ref @var{pointer}
+Accessors and mutators for the fields of a @code{struct timespec}.
 @end deffn
+
+
+@defvr Constant sizeof-struct-tms
+@defvrx Constant alignof-struct-tms
+@defvrx Constant strideof-struct-tms
+These are: the number of bytes required to hold a @code{struct tms}; the
+alignment of this structure when embedded into another structure; the
+number of bytes between two elements in an array of these structures.
+@end defvr
+
+@c page
+@node time records
+@section Record types
+
+
+Unless otherwise specified, the following bindings are exported by the
+@library{foreign posix time record-types} library.
+
+
+@deftp {Record Type} <struct-tms>
+A Scheme record used to hold normalised results of @func{times}
+invocations.
+
+@table @code
+@item utime
+@itemx stime
+@itemx cutime
+@itemx cstime
+One field for each field of the @code{struct tms} type.  All the values
+are inexact real numbers.
+@end table
+@end deftp
+
+
+@defun make-<struct-tms> @var{utime} @var{stime} @var{cutime} @var{cstime}
+Build and return a new @class{struct-tms} record.
+@end defun
+
+
+@defun struct-tms->record @var{pointer}
+Given a pointer to a @code{struct tms} memory block, build and return a
+record of type @class{struct-tms} initialised with the values from the
+structure.
+@end defun
+
+
+@defun <struct-tms>-utime @var{tms}
+@defunx <struct-tms>-stime @var{tms}
+@defunx <struct-tms>-cutime @var{tms}
+@defunx <struct-tms>-cstime @var{tms}
+Accessors for the fields of @class{struct-tms} records.  All the returned
+values are floating point numbers.
+@end defun
+
+
+
+@defun struct-tms-tms_utime-ref @var{pointer}
+@defunx struct-tms-tms_stime-ref @var{pointer}
+@defunx struct-tms-tms_cutime-ref @var{pointer}
+@defunx struct-tms-tms_cstime-ref @var{pointer}
+Accessors for the fields of a @code{struct tms} type.  These bindings
+are exported by the @library{foreign posix time platform} library.
+@end defun
+
+@c page
+@node time constants
+@section Constant values
+
+
+The following bindings are exported by the @code{sizeof} library.
+
+
+@defvr Constant CLOCKS_PER_SEC
+The number of clock ticks per second measured by the @func{clock}
+function.
+@end defvr
 
 @c page
 @node time clock
 @section Processor time
 
 
-The following bindings are exported by the following libraries:
-
-@example
-(foreign posix time)
-(foreign posix time primitives)
-(foreign posix time platform)
-@end example
-
-@noindent
-@glibcref{CPU Time, CPU Time Inquiry}.  @glibcref{Processor Time,
-Processor Time Inquiry}.
-
-
-@defvr Constant CLOCKS_PER_SEC
-The number of clock ticks per second measured by the @func{clock}
-function.  This binding is exported by the @library{foreign posix
-sizeof} library.
-@end defvr
+The following functions handle processor time.  @glibcref{CPU Time, CPU
+Time Inquiry}.  @glibcref{Processor Time, Processor Time Inquiry}.
 
 
 @deffn Function clock
@@ -3970,7 +4012,10 @@ sizeof} library.
 @deffnx Function primitive:clock
 @deffnx Function platform:clock
 Return the calling process' current @cpu{} time, converted to a native
-@code{double} number.
+@code{double} number and then to an inexact number as implemented by the
+underlying Scheme.
+
+These bindings are exported by the @posix{} @code{time} libraries.
 @end deffn
 
 
@@ -3978,60 +4023,19 @@ Return the calling process' current @cpu{} time, converted to a native
 @deffnx Parameter times-function
 @deffnx Function primitive:times
 @deffnx Function platform:times @var{pointer}
-Store the processor time informations into a record of type
-@code{struct-tms} and return 2 values: the calling process @cpu{} time
-converted to a @code{double} number, the @code{struct-tms} record.
+Return two values: the return value from the @cfunc{times} call and a
+record of type @class{struct-tms}.
 
-@func{platform:times} is an interface to to a foreign function that
-wraps the platform @cfunc{times} function.  It accepts as argument a
-pointer to an array of 4 @code{double} elements which are filled with
-the fields of a @code{struct tms} with the following mapping:
-
-@multitable {array element} {struct field}
-@headitem array element @tab struct field
-@item 0 @tab tms_utime
-@item 1 @tab tms_ctime
-@item 2 @tab tms_sutime
-@item 3 @tab tms_sctime
-@end multitable
-
-Like all the platform functions, @func{platform:times} returns 2 values:
-the return value of the foreing function normalised to a floating point
-value, the value of @code{errno} right after the function call.
+These bindings are exported by the @posix{} @code{time} libraries.
 @end deffn
-
-
-@deffn {Record Type} struct-tms
-A Scheme record used to hold normalised results of @func{times}
-invocations.  It has a field for each field of @code{struct tms}.
-@end deffn
-
-
-@defun make-struct-tms @var{utime} @var{stime} @var{cutime} @var{cstime}
-Build and return a new @code{struct-tms} record.
-@end defun
-
-
-@defun struct-tms-tms_utime-ref @var{tms-record}
-@defunx struct-tms-tms_stime-ref @var{tms-record}
-@defunx struct-tms-tms_cutime-ref @var{tms-record}
-@defunx struct-tms-tms_cstime-ref @var{tms-record}
-Getters for the fields of @code{struct-tms} records.  All the returned
-values are floating point numbers.
-@end defun
 
 @c page
 @node time calendar
 @section Simple calendar time
 
 
-The following bindings are exported by the following libraries:
-
-@example
-(foreign posix time)
-(foreign posix time primitives)
-(foreign posix time platform)
-@end example
+The following functions deal with simple calendar time.
+@glibcref{Simple Calendar Time, Simple Calendar Time}.
 
 
 @deffn Function time
@@ -4039,8 +4043,10 @@ The following bindings are exported by the following libraries:
 @deffnx Function primitive:time
 @deffnx Function platform:time @var{pointer}
 Return the current calendar time as an integer value.  It is the
-``epoch'', the number of seconds elapsed since 00:00:00 on January 1,
+@dfn{epoch}: The number of seconds elapsed since 00:00:00 on January 1,
 1970, Coordinated Universal Time.
+
+These bindings are exported by the @posix{} @code{time} libraries.
 @end deffn
 
 
@@ -4050,6 +4056,8 @@ Return the current calendar time as an integer value.  It is the
 @deffnx Function platform:stime @var{pointer}
 Set the system clock using a calendar time specification.  Superuser
 privileges are needed to successfully call this function.
+
+These bindings are exported by the Glibc @code{time} libraries.
 @end deffn
 
 @c page

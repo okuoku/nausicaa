@@ -35,6 +35,7 @@
     <struct-tms>-utime		<struct-tms>-stime
     <struct-tms>-cutime		<struct-tms>-cstime)
   (import (rnrs)
+    (foreign posix time platform)
     (foreign posix sizeof))
 
 

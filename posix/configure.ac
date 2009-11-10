@@ -183,6 +183,10 @@ NAU_POSIX_STRUCT_TIMESPEC_FIELD([TV_NSEC],[tv_nsec],[signed-int])
 
 dnl --------------------------------------------------------------------
 
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_TMS],[struct tms])
+
+dnl --------------------------------------------------------------------
+
 AC_DEFUN([NAU_POSIX_STRUCT_DIRENT_FIELD],
   [NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_DIRENT_$1],[struct dirent],[$2],[$3])])
 

@@ -28,7 +28,7 @@
 (library (foreign glibc time primitives)
   (export
     ;; simple calendar time
-    time		stime
+    stime
 
     ;; high resolution calendar time
     gettimeofday	settimeofday
@@ -44,19 +44,18 @@
   (import (rnrs)
     (receive)
     (compensations)
+    (only (foreign ffi pointers)
+	  pointer-null
+	  pointer=?)
+    (only (foreign memory)
+	  malloc-small/c)
     (only (foreign errno)
 	  raise-errno-error)
+    (foreign posix sizeof)
     (prefix (foreign glibc time platform) platform:))
 
 
 ;;;; simple calendar time
-
-(define (time)
-  (receive (result errno)
-      (platform:time pointer-null)
-    (if (= -1 result)
-	(raise-errno-error 'time errno)
-      result)))
 
 (define (stime)
   (receive (result errno)
@@ -96,7 +95,7 @@
   (receive (result errno)
       (with-compensations
 	(let ((*time (malloc-small/c)))
-	  (poke-time_t! *time 0 time)
+	  (pointer-set-c-time_t! *time 0 (exact time))
 	  (platform:localtime *time *tm)))
     (if (pointer=? *tm result)
 	*tm
@@ -106,7 +105,7 @@
   (receive (result errno)
       (with-compensations
 	(let ((*time (malloc-small/c)))
-	  (poke-time_t! *time 0 time)
+	  (pointer-set-c-time_t! *time 0 (exact time))
 	  (platform:gmtime *time *tm)))
     (if (pointer=? *tm result)
 	*tm
@@ -130,10 +129,8 @@
 ;;;; high accuracy time
 
 (define (ntp_gettime *ntptimeval)
-  (format #t "p ~s~%" *ntptimeval)
   (receive (result errno)
       (platform:ntp_gettime *ntptimeval)
-    (format #t "res  ~s~%" result)
     (if (= 0 result)
 	result
       (raise-errno-error 'ntp_gettime errno))))

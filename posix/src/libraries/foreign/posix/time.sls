@@ -1,3 +1,4 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: interface to POSIX date and time functions
@@ -28,21 +29,26 @@
   (export
 
     ;; clock ticks and processor time
-    clock)
+    clock		clock-function
+    times		times-function
+
+    ;; calendar time
+    time		time-function
+
+    )
   (import (rnrs)
+    (foreign posix helpers)
     (prefix (foreign posix time primitives) primitive:))
 
 
-(define-primitive-parameter clock-function		primitive:clock)
-(define-primitive-parameter times-function		primitive:times)
+;;;; clock ticks and CPU time
 
-(define (clock)
-  ((clock-function)))
+(define-parametrised clock)
+(define-parametrised times)
 
-(define (times)
-  ((primitive-times-function)))
+;;;; calendar time
 
-
+(define-parametrised time)
 
 
 ;;;; done

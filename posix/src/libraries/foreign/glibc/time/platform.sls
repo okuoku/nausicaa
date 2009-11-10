@@ -28,7 +28,7 @@
 (library (foreign glibc time platform)
   (export
     ;; simple calendar time
-    time		stime
+    stime
 
     ;; high resolution calendar time
     gettimeofday	settimeofday
@@ -43,20 +43,18 @@
     ntp_gettime)
   (import (rnrs)
     (foreign posix shared-object)
+    (foreign posix sizeof)
     (foreign ffi)
     (foreign ffi sizeof))
 
-  (define dummy
-    (shared-object standard-c-library))
-
 
-(define-c-function/with-errno time
-  (time_t time (pointer)))
+(define dummy
+  (shared-object standard-c-library))
+
+;;; --------------------------------------------------------------------
 
 (define-c-function/with-errno stime
   (time_t stime (pointer)))
-
-;;; --------------------------------------------------------------------
 
 (define-c-function/with-errno gettimeofday
   (int gettimeofday (pointer pointer)))

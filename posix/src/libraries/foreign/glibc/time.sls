@@ -28,7 +28,6 @@
   (export
 
     ;; simple calendar time
-    time		time-function
     stime		stime-function
 
     ;; high resolution calendar time
@@ -49,7 +48,6 @@
     (prefix (foreign glibc time primitives) primitive:))
 
 
-(define-parametrised time)
 (define-parametrised stime)
 
 ;;; --------------------------------------------------------------------

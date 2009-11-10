@@ -27,30 +27,52 @@
 
 (import (nausicaa)
   (checks)
-  (foreign posix time)
-  (foreign posix time stub))
+  (deferred-exceptions)
+  (compensations)
+  (prefix (foreign posix time) posix:)
+  (foreign posix time record-types))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX time\n")
 
 
-(parameterize ((check-test-name 'clock))
+(parametrise ((check-test-name 'clock))
 
-  (check
-      (flonum? (clock))
-    => #t)
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in clock" E))
+    (lambda ()
 
-  (check
-      (receive (result tms)
-	  (times)
-	(list (flonum? result)
-	      (flonum? (struct-tms-tms_utime-ref tms))
-	      (flonum? (struct-tms-tms_stime-ref tms))
-	      (flonum? (struct-tms-tms_cutime-ref tms))
-	      (flonum? (struct-tms-tms_cstime-ref tms))))
-    => '(#t #t #t #t #t))
 
-  #t)
+      (check
+	  (flonum? (posix:clock))
+	=> #t)
+
+      (check
+	  (receive (result tms)
+	      (posix:times)
+	    (list (flonum? result)
+		  (flonum? (<struct-tms>-utime tms))
+		  (flonum? (<struct-tms>-stime tms))
+		  (flonum? (<struct-tms>-cutime tms))
+		  (flonum? (<struct-tms>-cstime tms))))
+	=> '(#t #t #t #t #t))
+
+      #t)))
+
+
+(parametrise ((check-test-name 'simple-calendar))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in simple calendar" E))
+    (lambda ()
+
+      (check
+	  (flonum? (posix:time))
+	=> #t)
+
+      #t)))
 
 
 ;;;; done

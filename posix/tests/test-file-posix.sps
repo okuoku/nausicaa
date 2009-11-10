@@ -322,7 +322,7 @@ Ses ailes de geant l'empechent de marcher.")
 			 (posix:ftw the-root
 				    (posix:make-ftw-callback
 				     (lambda (pathname stat flag)
-;;;				       (write stat)(newline)
+;;;				       (write (list pathname stat))(newline)
 				       (set-cons! result pathname)))
 				    5)))
 	  => (map (lambda (item)

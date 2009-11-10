@@ -221,6 +221,10 @@
     alignof-struct-tm
     strideof-struct-tm
 
+    sizeof-struct-tms
+    alignof-struct-tms
+    strideof-struct-tms
+
     sizeof-struct-ntptimeval
     alignof-struct-ntptimeval
     strideof-struct-ntptimeval
@@ -397,6 +401,10 @@
 (define sizeof-struct-timezone		@SIZEOF_STRUCT_TIMEZONE@)
 (define alignof-struct-timezone		@ALIGNOF_STRUCT_TIMEZONE@)
 (define strideof-struct-timezone	@STRIDEOF_STRUCT_TIMEZONE@)
+
+(define sizeof-struct-tms		@SIZEOF_STRUCT_TMS@)
+(define alignof-struct-tms		@ALIGNOF_STRUCT_TMS@)
+(define strideof-struct-tms		@STRIDEOF_STRUCT_TMS@)
 
 (define sizeof-struct-tm		@SIZEOF_STRUCT_TM@)
 (define alignof-struct-tm		@ALIGNOF_STRUCT_TM@)

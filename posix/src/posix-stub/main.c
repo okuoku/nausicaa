@@ -181,11 +181,22 @@ extern int nausicaa_posix_nftw (const char * filename, __nftw_func_t func, int d
 
 
 /** --------------------------------------------------------------------
- ** Miscellaneous prototypes.
+ ** Time related function prototypes.
  ** ----------------------------------------------------------------- */
 
 extern double nausicaa_posix_clock	(void);
 extern double nausicaa_posix_times	(double * tms);
+extern double nausicaa_posix_time	(time_t * result);
+
+extern double nausicaa_posix_tms_utime_ref (struct tms * T);
+extern double nausicaa_posix_tms_stime_ref (struct tms * T);
+extern double nausicaa_posix_tms_cutime_ref (struct tms * T);
+extern double nausicaa_posix_tms_cstime_ref (struct tms * T);
+
+
+/** --------------------------------------------------------------------
+ ** Miscellaneous prototypes.
+ ** ----------------------------------------------------------------- */
 
 extern char * nausicaa_posix_dirent_d_name_ptr_ref (struct dirent * buf);
 
@@ -253,6 +264,35 @@ nausicaa_posix_times (double * tms)
   tms[2] = t.tms_cutime;
   tms[3] = t.tms_cstime;
   return (double)result;
+}
+
+double
+nausicaa_posix_time (time_t * result)
+{
+  return time(result);
+}
+
+/* ------------------------------------------------------------------ */
+
+double
+nausicaa_posix_tms_utime_ref (struct tms * T)
+{
+  return (double)(T->tms_utime);
+}
+double
+nausicaa_posix_tms_stime_ref (struct tms * T)
+{
+  return (double)(T->tms_stime);
+}
+double
+nausicaa_posix_tms_cutime_ref (struct tms * T)
+{
+  return (double)(T->tms_cutime);
+}
+double
+nausicaa_posix_tms_cstime_ref (struct tms * T)
+{
+  return (double)(T->tms_cstime);
 }
 
 

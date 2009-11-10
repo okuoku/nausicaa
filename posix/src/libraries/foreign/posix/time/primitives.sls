@@ -27,20 +27,34 @@
 
 (library (foreign posix time primitives)
   (export
-    clock times)
+
+    ;; clock ticks and CPU times
+    clock		times
+
+    ;; calendar time
+    time
+
+    )
   (import (rnrs)
     (receive)
     (compensations)
-    (only (foreign errno)
-	  raise-errno-error)
     (only (foreign ffi sizeof)
 	  sizeof-double-array)
     (only (foreign ffi peekers-and-pokers)
 	  array-ref-c-double)
+    (only (foreign ffi pointers)
+	  pointer-null)
+    (only (foreign memory)
+	  malloc-block/c)
+    (only (foreign errno)
+	  raise-errno-error)
     (foreign posix time record-types)
-    (prefix (foreign posix time platform) platform:))
+    (prefix (foreign posix time platform) platform:)
+    (foreign posix sizeof))
 
 
+;;;; clock ticks and CPU time
+
 (define (clock)
   (receive (result errno)
       (platform:clock)
@@ -50,16 +64,19 @@
 
 (define (times)
   (with-compensations
-    (let ((p (malloc-block/c (sizeof-double-array 4))))
-      (receive (result errno)
-	  (platform:times p)
-	(if (= -1 result)
-	    (raise-errno-error 'times errno)
-	  (values result
-		  (make-<struct-tms> (array-ref-c-double p 0)
-				     (array-ref-c-double p 1)
-				     (array-ref-c-double p 2)
-				     (array-ref-c-double p 3))))))))
+    (let* ((struct-tms*	(malloc-block/c sizeof-struct-tms))
+	   (result	(platform:times struct-tms*)))
+      (values result (struct-tms->record struct-tms*)))))
+
+
+;;;; calendar time
+
+(define (time)
+  (receive (result errno)
+      (platform:time pointer-null)
+    (if (= -1 result)
+	(raise-errno-error 'time errno)
+      result)))
 
 
 ;;;; done

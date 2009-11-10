@@ -261,7 +261,7 @@
 		   (lambda (pathname-cstr struct-stat flag)
 		     (guard (E (else -1))
 		       (scheme-function (cstring->string pathname-cstr)
-					(if (bitwise-and flag FTW_NS)
+					(if (= 0 (bitwise-and flag FTW_NS))
 					    #f
 					  (struct-stat->record struct-stat))
 					flag)))
@@ -272,7 +272,7 @@
 		   (lambda (pathname-cstr struct-stat flag struct-ftw)
 		     (guard (E (else -1))
 		       (scheme-function (cstring->string pathname-cstr)
-					(if (bitwise-and flag FTW_NS)
+					(if (= 0 (bitwise-and flag FTW_NS))
 					    #f
 					  (struct-stat->record struct-stat))
 					flag
