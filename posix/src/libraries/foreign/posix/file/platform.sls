@@ -37,7 +37,7 @@
     opendir		fdopendir	dirfd
     closedir		readdir		readdir_r
     rewinddir		telldir		seekdir
-    ftw		nftw
+    ftw			nftw
 
     ;; links
     link		symlink		readlink
@@ -140,11 +140,13 @@
 (define-c-function seekdir
   (void seekdir (pointer long)))
 
-(define-c-function/with-errno ftw
-  (int ftw (char* callback int)))
+(define ftw
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno int nausicaa_posix_ftw (char* callback int))))
 
-(define-c-function/with-errno nftw
-  (int nftw (char* callback int int)))
+(define nftw
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno int nausicaa_posix_nftw (char* callback int int))))
 
 ;;; --------------------------------------------------------------------
 ;;; links

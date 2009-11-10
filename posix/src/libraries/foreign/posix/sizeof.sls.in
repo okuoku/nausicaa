@@ -192,6 +192,24 @@
     _PC_REC_MAX_XFER_SIZE	_PC_REC_MIN_XFER_SIZE
     _PC_XFER_ALIGN
 
+    ;; constants related to "ftw()" and "nftw()"
+    FTW_F
+    FTW_D
+    FTW_NS
+    FTW_DNR
+    FTW_SL
+    FTW_DP
+    FTW_SLN
+    FTW_PHYS
+    FTW_MOUNT
+    FTW_CHDIR
+    FTW_DEPTH
+    FTW_ACTIONRETVAL
+    FTW_CONTINUE
+    FTW_STOP
+    FTW_SKIP_SUBTREE
+    FTW_SKIP_SIBLINGS
+
 ;;; --------------------------------------------------------------------
 
     ;; struct inspection
@@ -247,6 +265,8 @@
 
     struct-utimbuf-actime-set!		struct-utimbuf-actime-ref
     struct-utimbuf-modtime-set!		struct-utimbuf-modtime-ref
+
+    struct-ftw-base-ref			struct-ftw-level-ref
 
 ;;;The  stat structure is  "special"; we  relay on  the stub  library to
 ;;;access it.
@@ -514,6 +534,24 @@
 (define _PC_REC_MIN_XFER_SIZE		@VALUEOF__PC_REC_MIN_XFER_SIZE@)
 (define _PC_XFER_ALIGN			@VALUEOF__PC_XFER_ALIGN@)
 
+;; constants related to "ftw()" and "nftw()"
+(define FTW_F				@VALUEOF_FTW_F@)
+(define FTW_D				@VALUEOF_FTW_D@)
+(define FTW_NS				@VALUEOF_FTW_NS@)
+(define FTW_DNR				@VALUEOF_FTW_DNR@)
+(define FTW_SL				@VALUEOF_FTW_SL@)
+(define FTW_DP				@VALUEOF_FTW_DP@)
+(define FTW_SLN				@VALUEOF_FTW_SLN@)
+(define FTW_PHYS			@VALUEOF_FTW_PHYS@)
+(define FTW_MOUNT			@VALUEOF_FTW_MOUNT@)
+(define FTW_CHDIR			@VALUEOF_FTW_CHDIR@)
+(define FTW_DEPTH			@VALUEOF_FTW_DEPTH@)
+(define FTW_ACTIONRETVAL		@VALUEOF_FTW_ACTIONRETVAL@)
+(define FTW_CONTINUE			@VALUEOF_FTW_CONTINUE@)
+(define FTW_STOP			@VALUEOF_FTW_STOP@)
+(define FTW_SKIP_SUBTREE		@VALUEOF_FTW_SKIP_SUBTREE@)
+(define FTW_SKIP_SIBLINGS		@VALUEOF_FTW_SKIP_SIBLINGS@)
+
 
 
 ;;;; struct accessors
@@ -751,6 +789,18 @@
   @OFFSETOF_STRUCT_NTPTIMEVAL_ESTERROR@
   @SETTEROF_STRUCT_NTPTIMEVAL_ESTERROR@
   @GETTEROF_STRUCT_NTPTIMEVAL_ESTERROR@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor
+  struct-ftw-base-ref
+  @OFFSETOF_STRUCT_FTW_BASE@
+  @GETTEROF_STRUCT_FTW_BASE@)
+
+(define-c-struct-accessor
+  struct-ftw-level-ref
+  @OFFSETOF_STRUCT_FTW_LEVEL@
+  @GETTEROF_STRUCT_FTW_LEVEL@)
 
 ;;; --------------------------------------------------------------------
 ;;;The  stat structure is  "special"; we  relay on  the stub  library to

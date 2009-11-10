@@ -61,6 +61,9 @@
 #ifdef HAVE_FCNTL_H
 #  include <fcntl.h>
 #endif
+#ifdef HAVE_FTW_H
+#  include <ftw.h>
+#endif
 #ifdef HAVE_TIME_H
 #  include <time.h>
 #endif
@@ -172,6 +175,9 @@ extern int nausicaa_posix_scandir (const char * dir, struct dirent *** namelist,
 
 extern int nausicaa_posix_alphasort (const void * a, const void * b);
 extern int nausicaa_posix_versionsort (const void * a, const void * b);
+
+extern int nausicaa_posix_ftw (const char * filename, __ftw_func_t func, int descriptors);
+extern int nausicaa_posix_nftw (const char * filename, __nftw_func_t func, int descriptors, int flag);
 
 
 /** --------------------------------------------------------------------
@@ -518,6 +524,16 @@ int
 nausicaa_posix_versionsort (const void * a, const void * b)
 {
   return versionsort (a, b);
+}
+int
+nausicaa_posix_ftw (const char * filename, __ftw_func_t func, int descriptors)
+{
+  return ftw (filename, func, descriptors);
+}
+int
+nausicaa_posix_nftw (const char * filename, __nftw_func_t func, int descriptors, int flag)
+{
+  return nftw (filename, func, descriptors, flag);
 }
 
 

@@ -229,15 +229,15 @@ Ses ailes de geant l'empechent de marcher.")
 ;;; --------------------------------------------------------------------
 
 	(check
-	    (list-sort string<? (posix:directory-list the-root))
+	    (list-sort string<? (posix:directory-entries the-root))
 	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
 	(check
-	    (list-sort string<? (posix:directory-list the-subdir-1))
+	    (list-sort string<? (posix:directory-entries the-subdir-1))
 	  => '("." ".." "name-10.ext" "name-11.ext"))
 
 	(check
-	    (list-sort string<? (posix:directory-list the-subdir-3))
+	    (list-sort string<? (posix:directory-entries the-subdir-3))
 	  => '("." ".."))
 
 ;;; --------------------------------------------------------------------
@@ -246,7 +246,7 @@ Ses ailes de geant l'empechent de marcher.")
 	;;compensation (weird but I have tested it, believe me!).
 	(check
 	    (letrec ((fd (posix:open the-root O_RDONLY 0)))
-	      (list-sort string<? (posix:directory-list/fd fd)))
+	      (list-sort string<? (posix:directory-entries/fd fd)))
 	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
 	;;We DO  NOT close fd  here, it is  closed by CLOSEDIR  in the
@@ -255,7 +255,7 @@ Ses ailes de geant l'empechent de marcher.")
 	  (check
 	      (with-compensations
 		(letrec ((fd (posix:open the-root O_RDONLY 0)))
-		  (list-sort string<? (posix:directory-list/fd fd))))
+		  (list-sort string<? (posix:directory-entries/fd fd))))
 	    => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext")))
 
 ;;; --------------------------------------------------------------------
@@ -291,6 +291,71 @@ Ses ailes de geant l'empechent de marcher.")
 				      (string<? (car a) (car b)))
 				    layout))))
 	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+
+	#f))))
+
+
+(parametrise ((check-test-name	'tree-walk)
+	      (debugging	#t))
+
+  (define-syntax set-cons!
+    (syntax-rules ()
+      ((_ ?name ?form)
+       (set! ?name (cons ?form ?name)))))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in tree walking" E))
+    (lambda ()
+      (with-compensations
+	(clean-test-hierarchy)
+	  (compensate
+	      (make-test-hierarchy)
+	    (with
+	     (clean-test-hierarchy)))
+
+;;;(posix:system (string-append "ls -l " the-root))
+
+	(check
+	    (list-sort string<?
+		       (begin0-let ((result '()))
+			 (posix:ftw the-root
+				    (posix:make-ftw-callback
+				     (lambda (pathname stat flag)
+;;;				       (write stat)(newline)
+				       (set-cons! result pathname)))
+				    5)))
+	  => (map (lambda (item)
+		    (string-append TMPDIR item))
+	       '("/root-dir"
+		 "/root-dir/dir-1"
+		 "/root-dir/dir-1/name-10.ext"
+		 "/root-dir/dir-1/name-11.ext"
+		 "/root-dir/dir-2"
+		 "/root-dir/dir-2/name-2.ext"
+		 "/root-dir/dir-3"
+		 "/root-dir/name.ext")))
+
+	(check
+	    (list-sort string<?
+		       (begin0-let ((result '()))
+			 (posix:nftw the-root
+				     (posix:make-nftw-callback
+				      (lambda (pathname stat flag base level)
+;;;				        (write stat)(newline)
+;;;					(write (list base level))(newline)
+					(set-cons! result pathname)))
+				     5 0)))
+	  => (map (lambda (item)
+		    (string-append TMPDIR item))
+	       '("/root-dir"
+		 "/root-dir/dir-1"
+		 "/root-dir/dir-1/name-10.ext"
+		 "/root-dir/dir-1/name-11.ext"
+		 "/root-dir/dir-2"
+		 "/root-dir/dir-2/name-2.ext"
+		 "/root-dir/dir-3"
+		 "/root-dir/name.ext")))
 
 	#f))))
 

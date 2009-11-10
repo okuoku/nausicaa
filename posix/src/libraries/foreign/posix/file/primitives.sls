@@ -39,6 +39,8 @@
     closedir		readdir		readdir_r
     rewinddir		telldir		seekdir
     dirent-name->string
+    ftw			nftw
+    make-ftw-callback	make-nftw-callback
 
     ;; links
     link		symlink		readlink
@@ -96,6 +98,8 @@
 	  cstring->string string->cstring/c)
     (foreign errno)
     (foreign posix sizeof)
+    (only (foreign posix stat record-types)
+	  struct-stat->record)
     (prefix (foreign posix fd) posix:)
     (prefix (foreign posix file platform) platform:))
 
@@ -232,6 +236,49 @@
 
 (define (dirent-name->string struct-dirent-pointer)
   (cstring->string (struct-dirent-d_name-ref struct-dirent-pointer)))
+
+
+;;;; tree walk functions
+
+(define (ftw pathname inspector-callback descriptors)
+  (with-compensations
+    (receive (result errno)
+	(platform:ftw (string->cstring/c pathname) inspector-callback descriptors)
+      (if (= -1 result)
+	  (raise-errno-error 'ftw errno (list pathname inspector-callback descriptors))
+	result))))
+
+(define (nftw pathname inspector-callback descriptors flags)
+  (with-compensations
+    (receive (result errno)
+	(platform:nftw (string->cstring/c pathname) inspector-callback descriptors flags)
+      (if (= -1 result)
+	  (raise-errno-error 'ftw errno (list pathname inspector-callback descriptors flags))
+	result))))
+
+(define (make-ftw-callback scheme-function)
+  (make-c-callback int
+		   (lambda (pathname-cstr struct-stat flag)
+		     (guard (E (else -1))
+		       (scheme-function (cstring->string pathname-cstr)
+					(if (bitwise-and flag FTW_NS)
+					    #f
+					  (struct-stat->record struct-stat))
+					flag)))
+		   (char* void* int)))
+
+(define (make-nftw-callback scheme-function)
+  (make-c-callback int
+		   (lambda (pathname-cstr struct-stat flag struct-ftw)
+		     (guard (E (else -1))
+		       (scheme-function (cstring->string pathname-cstr)
+					(if (bitwise-and flag FTW_NS)
+					    #f
+					  (struct-stat->record struct-stat))
+					flag
+					(struct-ftw-base-ref  struct-ftw)
+					(struct-ftw-level-ref struct-ftw))))
+		   (char* void* int void*)))
 
 
 ;;;; links

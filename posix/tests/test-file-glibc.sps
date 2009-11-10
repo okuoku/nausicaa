@@ -144,6 +144,21 @@ Ses ailes de geant l'empechent de marcher.")
 			   glibc:platform:alphasort)
 	  => '("dir-1" "dir-2" "dir-3" "name.ext"))
 
+	(check
+	    (glibc:scandir the-root
+			   (glibc:make-scandir-selector-callback
+			    (lambda (struct-dirent)
+			      #t))
+			   (glibc:make-scandir-compare-callback
+			    (lambda (a b)
+			      (let ((a (posix:dirent-name->string a))
+				    (b (posix:dirent-name->string b)))
+				(cond ((string<? a b) 1)
+				      ((string>? a b) -1)
+				      (else 0))))))
+	  => (reverse '("." ".." "dir-1" "dir-2" "dir-3" "name.ext")))
+
+
 	#f))))
 
 

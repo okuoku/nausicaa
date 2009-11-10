@@ -19,11 +19,13 @@ Topics
 Nausicaa/POSIX  is  a  distribution  of libraries  for  R6RS
 Scheme exposing  the POSIX interface to  the Scheme language
 level; some  GNU C  Library extensions and  Linux extensions
-are also  exposed.  The  libraries are built  on top  of the
-Nausicaa/Scheme    libraries,    making    use   of    their
-foreign-functions interface; some  libraries depend upon the
-C language  library "libnausicaa-posix", which  is built and
-installed by this package.
+are also exposed.
+
+  The  libraries are  built  on top  of the  Nausicaa/Scheme
+libraries, making use  of their foreign-functions interface;
+some   libraries  depend   upon  the   C   language  library
+"libnausicaa-posix",  which is built  and installed  by this
+package.
 
 
 2. License

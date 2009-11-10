@@ -53,7 +53,12 @@
     (rename (primitive:dirent-name->string	dirent-name->string))
     opendir/compensated		(rename (opendir/compensated opendir/c))
     fdopendir/compensated	(rename (fdopendir/compensated fdopendir/c))
-    directory-list		directory-list/fd
+    directory-entries		directory-entries/fd
+
+    ftw				ftw-function
+    nftw			nftw-function
+    (rename (primitive:make-ftw-callback	make-ftw-callback)
+	    (primitive:make-nftw-callback	make-nftw-callback))
 
     ;; links
     link			link-function
@@ -132,6 +137,9 @@
 (define-parametrised rewinddir stream)
 (define-parametrised telldir stream)
 (define-parametrised seekdir stream position)
+
+(define-parametrised ftw pathname selector-callback descriptors)
+(define-parametrised nftw pathname selector-callback descriptors flag)
 
 ;; links
 
@@ -218,7 +226,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (%directory-list dir)
+(define (%directory-entries dir)
   (let loop ((entry  (readdir_r dir))
 	     (layout '()))
     (if (pointer-null? entry)
@@ -226,13 +234,13 @@
       (loop (readdir_r dir)
 	    (cons (primitive:dirent-name->string entry) layout)))))
 
-(define (directory-list pathname)
+(define (directory-entries pathname)
   (with-compensations
-    (%directory-list (opendir/compensated pathname))))
+    (%directory-entries (opendir/compensated pathname))))
 
-(define (directory-list/fd fd)
+(define (directory-entries/fd fd)
   (with-compensations
-    (%directory-list (fdopendir/compensated fd))))
+    (%directory-entries (fdopendir/compensated fd))))
 
 
 ;;;; done

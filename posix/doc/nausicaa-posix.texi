@@ -1038,6 +1038,7 @@ The functions described in this section handle accessing directories.
 * file directory access read::  Reading a directory stream.
 * file directory access seek::  Random access to a directory stream.
 * file directory access scan::  Scanning a directory.
+* file directory access tree::  Scanning a hierarchy of directories.
 @end menu
 
 @c page
@@ -1198,10 +1199,10 @@ used to access directory contents.  @glibcref{Reading/Closing
 Directory,Reading and closing a directory stream}.
 
 As a usage example for the low level functions, let's see how
-@func{directory-list} is implemented:
+@func{directory-entries} is implemented:
 
 @example
-(define (%directory-list dir)
+(define (%directory-entries dir)
   (let loop ((entry  (readdir_r dir))
              (layout '()))
     (if (pointer-null? entry)
@@ -1209,16 +1210,16 @@ As a usage example for the low level functions, let's see how
       (loop (readdir_r dir)
             (cons (dirent-name->string entry) layout)))))
 
-(define (directory-list pathname)
+(define (directory-entries pathname)
   (with-compensations
-    (%directory-list (opendir/compensated pathname))))
+    (%directory-entries (opendir/compensated pathname))))
 @end example
 
 @noindent
 to read a directory and sort the entries:
 
 @example
-(list-sort string<? (directory-list "/home/marco"))
+(list-sort string<? (directory-entries "/home/marco"))
 @end example
 
 @noindent
@@ -1236,7 +1237,7 @@ to read a directory using the file descriptor and the @gnu{} flag
                          0)
                  (with
                   (close fd)))))
-    (directory-list/fd fd)))
+    (directory-entries/fd fd)))
 @end example
 
 
@@ -1262,8 +1263,8 @@ Like @func{readdir}, but operates in a reentrant manner.
 @end deffn
 
 
-@defun directory-list @var{pathname}
-@defunx directory-list/fd @var{fd}
+@defun directory-entries @var{pathname}
+@defunx directory-entries/fd @var{fd}
 High--level functions that open the directory selected by the Scheme
 string or symbol @var{pathname} or file descriptor @var{fd}, read all
 the entries and return a list of Scheme strings holding the entry names.
@@ -1332,10 +1333,11 @@ entries.  @glibcref{Scanning Directory Content, Scanning the Content of
 a Directory}.  All the following bindings are exported by the Glibc
 @code{file} libraries.
 
-Usage example:
+Usage example: Sort the entries in increasing lexicographic order,
+excluding the dots:
 
 @smallexample
-(scandir the-root
+(scandir "/some/path/name"
          (make-scandir-selector-callback
             (lambda (struct-dirent)
               (let ((name (dirent-name->string struct-dirent)))
@@ -1343,6 +1345,23 @@ Usage example:
                          (string=? ".." name))))))
          platform:alphasort)
 @end smallexample
+
+@noindent
+and if we want to sort the entries in decreasing lexicographic order:
+
+@example
+(scandir "/some/path/name"
+         (make-scandir-selector-callback
+          (lambda (struct-dirent)
+            #t))
+         (make-scandir-compare-callback
+          (lambda (a b)
+            (let ((a (dirent-name->string a))
+                  (b (dirent-name->string b)))
+              (cond ((string<? a b) +1)
+                    ((string>? a b) -1)
+                    (else            0))))))
+@end example
 
 
 @deffn Function scandir @var{pathname} @var{selector} @var{compare}
@@ -1393,6 +1412,156 @@ implemented as follows:
 Raw pointers to comparison functions exported by the @gnu{} C Library;
 they are meant to be used as @var{compare} arguments for the
 @func{scandir} function.
+
+@func{alphasort} will sort the strings in increasing lexicographic
+order.
+@end defvr
+
+@c page
+@node file directory access tree
+@subsection Scanning a hierarchy of directories
+
+
+The following functions manage to scan a hierarchy of directories.
+@glibcref{Working with Directory Trees, Working with Directory Trees}.
+
+Usage example to just list the tree entries:
+
+@example
+(define-syntax set-cons!
+  (syntax-rules ()
+    ((_ ?name ?form)
+     (set! ?name (cons ?form ?name)))))
+
+(begin0-let ((result '()))
+  (ftw "/some/path/name"
+       (make-ftw-callback (lambda (pathname stat flag)
+                            (set-cons! result pathname)))
+       5))
+@end example
+
+
+@deffn Function ftw @var{pathname} @var{inspector} @var{descriptors}
+@deffnx Parameter ftw-function
+@deffnx Function primitive:ftw @var{pathname} @var{inspector} @var{descriptors}
+@deffnx Function primitive:ftw @var{pathname-cstr} @var{inspector} @var{descriptors}
+Invoke the C language function referenced by the raw pointer
+@var{inspector} for each entry in the directory hierarchy whose root is
+@var{pathname}, which must be a Scheme string or symbol.
+
+The callback function referenced by @var{inspector} can be a C language
+coded one or a callback built with @func{make-c-callback}; @nauref{ffi
+call back, Calling Scheme functions}.  The callback takes three
+arguments: a pointer to the current pathname as a C string, a pointer to
+a @code{struct stat} for the current pathname, an exact integer holding
+flag values.
+
+@var{descriptors} is the number of file descriptors the system is
+allowed to use while walking the directory tree.
+@end deffn
+
+
+@deffn Function nftw @var{pathname} @var{inspector} @var{descriptors} @var{flags}
+@deffnx Parameter nftw-function
+@deffnx Function primitive:nftw @var{pathname} @var{inspector} @var{descriptors} @var{flags}
+@deffnx Function primitive:nftw @var{pathname-cstr} @var{inspector} @var{descriptors} @var{flags}
+Invoke the C language function referenced by the raw pointer
+@var{inspector} for each entry in the directory hierarchy whose root is
+@var{pathname}, which must be a Scheme string or symbol.
+
+The callback function referenced by @var{inspector} can be a C language
+coded one or a callback built with @func{make-c-callback}.  @nauref{ffi
+call back, Calling Scheme functions}.  The callback takes four
+arguments: a pointer to the current pathname as a C string, a pointer to
+a @code{struct stat} for the current pathname, a pointer to a
+@code{struct FTW} for the current pathname, an exact integer holding
+flag values.
+
+@var{descriptors} is the number of file descriptors the system is
+allowed to use while walking the directory tree.  @var{flags} is an
+inclusive OR-ed combination of flag values used to configure the
+iteration; to select no flags, we can use zero.
+@end deffn
+
+
+@defun make-ftw-callback @var{scheme-function}
+@defunx make-nftw-callback @var{scheme-function}
+@defunx primitive:make-ftw-callback @var{scheme-function}
+@defunx primitive:make-nftw-callback @var{scheme-function}
+Build and return a callback to be used with @func{ftw} and @func{nftw};
+they are implemented as follows:
+
+@smallexample
+(define (make-ftw-callback scheme-function)
+  (make-c-callback int
+     (lambda (pathname-cstr struct-stat flag)
+       (guard (E (else -1))
+         (scheme-function (cstring->string pathname-cstr)
+                          (if (bitwise-and flag FTW_NS)
+                              #f
+                            (struct-stat->record struct-stat))
+                          flag)))
+     (char* void* int)))
+
+(define (make-nftw-callback scheme-function)
+  (make-c-callback int
+     (lambda (pathname-cstr struct-stat flag struct-ftw)
+       (guard (E (else -1))
+         (scheme-function (cstring->string pathname-cstr)
+                          (if (bitwise-and flag FTW_NS)
+                              #f
+                            (struct-stat->record struct-stat))
+                          flag
+                          (struct-ftw-base-ref  struct-ftw)
+                          (struct-ftw-level-ref struct-ftw))))
+     (char* void* int void*)))
+@end smallexample
+@end defun
+
+
+The following bindings are exported by the @code{sizeof} library.
+
+
+@deffn Syntax struct-ftw-base-ref @var{pointer}
+@deffnx Syntax struct-ftw-level-ref @var{pointer}
+Accessors for the @code{base} and @code{level} fields of a @code{struct
+FTW} type.
+@end deffn
+
+
+@defvr Constant FTW_F
+@defvrx Constant FTW_D
+@defvrx Constant FTW_NS
+@defvrx Constant FTW_DNR
+@defvrx Constant FTW_SL
+Flags used for the @var{flag} argument to the @func{ftw} and @func{nftw}
+callbacks; we should use @func{bitwise-and} to test for them.
+@end defvr
+
+
+@defvr Constant FTW_DP
+@defvrx Constant FTW_SLN
+Additional flag values used for the @var{flag} argument to the
+@func{nftw} callback; we should use @func{bitwise-and} to test for them.
+@end defvr
+
+
+@defvr Constant FTW_PHYS
+@defvrx Constant FTW_MOUNT
+@defvrx Constant FTW_CHDIR
+@defvrx Constant FTW_DEPTH
+@defvrx Constant FTW_ACTIONRETVAL
+Flags for the @var{flags} arguments to @func{nftw};  we must use
+@func{bitwise-ior} to compose them.
+@end defvr
+
+
+@defvr Constant FTW_CONTINUE
+@defvrx Constant FTW_STOP
+@defvrx Constant FTW_SKIP_SUBTREE
+@defvrx Constant FTW_SKIP_SIBLINGS
+Possible return values for the callback to @func{nftw} when the
+@samp{FTW_ACTIONRETVAL} flag is used in the @var{flags} argument.
 @end defvr
 
 @c page

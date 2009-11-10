@@ -29,9 +29,8 @@
   (export
 
     ;; directory access
-    scandir
-    make-scandir-selector-callback
-    make-scandir-compare-callback
+    scandir		make-scandir-selector-callback
+			make-scandir-compare-callback
 
     ;; temporary files
     mktemp		tempnam		tmpnam
@@ -71,10 +70,6 @@
 ;;;; directory access
 
 (define (scandir dir selector-callback compare-callback)
-  (define-syntax %array-ref-struct-dirent
-    (syntax-rules ()
-      ((_ ?namelist ?index)
-       (array-ref-c-pointer ?namelist ?index))))
   (define-syntax d_name
     (syntax-rules ()
       ((_ ?entry)
@@ -93,8 +88,10 @@
 		       (ell '()))
 	      (if (= i result)
 		  (reverse ell)
-		(loop (+ 1 i) (cons (d_name (%array-ref-struct-dirent *namelist i))
-				    ell))))))))))
+		(let ((entry (array-ref-c-pointer *namelist i)))
+		  (loop (+ 1 i) (begin0
+				    (cons (d_name entry) ell)
+				  (primitive-free entry))))))))))))
 
 (define (make-scandir-selector-callback scheme-function)
   (make-c-callback int (lambda (struct-dirent)
@@ -102,7 +99,10 @@
 		   (void*)))
 
 (define (make-scandir-compare-callback scheme-function)
-  (make-c-callback int scheme-function (void* void*)))
+  (make-c-callback int (lambda (a b)
+			 (scheme-function (pointer-ref-c-pointer a 0)
+					  (pointer-ref-c-pointer b 0)))
+		   (void* void*)))
 
 
 ;;;; temporary files
