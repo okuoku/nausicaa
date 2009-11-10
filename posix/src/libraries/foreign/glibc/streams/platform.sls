@@ -32,7 +32,9 @@
     fwrite		fputc		fputs		fflush
     fread		fgetc		fgets
     ungetc
-    feof		fseek		ftell		rewind
+    feof		rewind
+    fseeko		fseek
+    ftell		ftello
     fdopen		fileno
 
     ferror_unlocked	clearerr_unlocked
@@ -48,6 +50,7 @@
 
     getline		getdelim)
   (import (rnrs)
+    (parameters)
     (foreign posix shared-object)
     (foreign ffi)
     (foreign ffi sizeof)
@@ -109,11 +112,20 @@
 (define-c-function/with-errno feof
   (int feof (FILE*)))
 
-(define-c-function/with-errno fseek
-  (int fseek (FILE* long int)))
+(define fseek
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno int nausicaa_posix_fseek (FILE* long int))))
+
+(define fseeko
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno int nausicaa_posix_fseeko (FILE* off_t int))))
 
 (define-c-function/with-errno ftell
   (long ftell (FILE*)))
+
+(define ftello
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno off_t nausicaa_posix_ftello (FILE*))))
 
 (define-c-function/with-errno rewind
   (void rewind (FILE*)))

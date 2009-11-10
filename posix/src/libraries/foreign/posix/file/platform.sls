@@ -27,6 +27,9 @@
 
 (library (foreign posix file platform)
   (export
+    ;; system inspection
+    pathconf		fpathconf
+
     ;; working directory
     getcwd		chdir		fchdir
 
@@ -34,7 +37,7 @@
     opendir		fdopendir	dirfd
     closedir		readdir		readdir_r
     rewinddir		telldir		seekdir
-    scandir		ftw		nftw
+    ftw		nftw
 
     ;; links
     link		symlink		readlink
@@ -64,7 +67,15 @@
     ;; file size
     ftruncate		truncate
 
-    struct-dirent-d_name-ptr-ref)
+    ;; temporary files
+    mkstemp		mkdtemp
+
+;;;This  does the  same work  of "struct-dirent-d_name-ref",  but  it is
+;;;implemented  as Nausicaa functions.   It is  here only  for debugging
+;;;purposes.
+;;;
+;;; struct-dirent-d_name-ptr-ref
+    )
   (import (except (rnrs)
 		  remove truncate)
     (only (parameters)
@@ -76,6 +87,14 @@
 
 (define dummy
   (shared-object standard-c-library))
+
+;;; --------------------------------------------------------------------
+
+(define-c-function/with-errno pathconf
+  (long pathconf (char* int)))
+
+(define-c-function/with-errno fpathconf
+  (long fpathconf (int int)))
 
 ;;; --------------------------------------------------------------------
 ;;; working directory
@@ -120,9 +139,6 @@
 
 (define-c-function seekdir
   (void seekdir (pointer long)))
-
-(define-c-function/with-errno scandir
-  (int scandir (char* pointer callback callback)))
 
 (define-c-function/with-errno ftw
   (int ftw (char* callback int)))
@@ -208,18 +224,33 @@
 ;;; --------------------------------------------------------------------
 ;;; tile size
 
-(define-c-function/with-errno ftruncate
-  (int ftruncate (int off_t)))
+(define ftruncate
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno int nausicaa_posix_ftruncate (int off_t))))
 
-(define-c-function/with-errno truncate
-  (int truncate (char* off_t)))
+(define truncate
+  (parametrise ((shared-object libnausicaa-posix))
+    (make-c-function/with-errno int nausicaa_posix_truncate (char* off_t))))
 
 ;;; --------------------------------------------------------------------
 ;;; struct dirent accessors
 
-(define struct-dirent-d_name-ptr-ref
-  (parametrise ((shared-object libnausicaa-posix))
-    (make-c-function char* nausicaa_posix_dirent_d_name_ptr_ref (void*))))
+;;;This  does the  same work  of "struct-dirent-d_name-ref",  but  it is
+;;;implemented  as Nausicaa functions.   It is  here only  for debugging
+;;;purposes.
+;;;
+;;; (define struct-dirent-d_name-ptr-ref
+;;;   (parametrise ((shared-object libnausicaa-posix))
+;;;     (make-c-function char* nausicaa_posix_dirent_d_name_ptr_ref (void*))))
+
+;;; --------------------------------------------------------------------
+;;; temporary files
+
+(define-c-function/with-errno mkstemp
+  (int mkstemp (char*)))
+
+(define-c-function/with-errno mkdtemp
+  (char* mkdtemp (char*)))
 
 
 ;;;; done

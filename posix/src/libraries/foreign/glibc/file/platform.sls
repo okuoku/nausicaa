@@ -30,13 +30,14 @@
     ;; times
     lutimes		futimes
 
-    ;; links
-    alphasort		versionsort
-    mknod
+    ;; directory access
+    scandir		alphasort	versionsort
 
     ;; temporary files
-    mktemp		mkstemp		mkdtemp
-    tempnam		tmpnam		tmpfile)
+    mktemp		tempnam		tmpnam		tmpfile
+
+    ;; miscellaneous
+    mknod)
   (import (except (rnrs)
 		  remove truncate)
     (parameters)
@@ -57,35 +58,11 @@
 (define-c-function/with-errno futimes
   (int futimes (int pointer)))
 
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno truncate
-  (int truncate (char* off_t)))
-
-;;; --------------------------------------------------------------------
-;;; special directory sort functions
-
-(define-c-function alphasort
-  (int alphasort (pointer pointer)))
-
-(define-c-function versionsort
-  (int versionsort (pointer pointer)))
-
 ;;; --------------------------------------------------------------------
 ;;; temporary files
 
 (define-c-function/with-errno mktemp
   (char* mktemp (char*)))
-
-(define-c-function/with-errno mkstemp
-  (int mkstemp (char*)))
-
-(define-c-function/with-errno mkdtemp
-  (char* mkdtemp (char*)))
-
-(define-c-function/with-errno tmpfile
-  (FILE* tmpfile (void)))
 
 (define-c-function/with-errno tempnam
   (char* tempnam (char* char*)))
@@ -93,11 +70,30 @@
 (define-c-function/with-errno tmpnam
   (char* tmpnam (char*)))
 
-;;; --------------------------------------------------------------------
+(define-c-function/with-errno tmpfile
+  (FILE* tmpfile (void)))
 
-(define mknod
-  (parametrise ((shared-object libnausicaa-posix))
-    (make-c-function/with-errno int nausicaa_posix_mknod (char* int int))))
+
+(define dummy2
+  (shared-object libnausicaa-posix))
+
+;;; --------------------------------------------------------------------
+;;; directory access functions
+
+(define-c-function/with-errno scandir
+  (int nausicaa_posix_scandir (char* pointer callback callback)))
+
+(define alphasort
+  (lookup-shared-object* libnausicaa-posix 'nausicaa_posix_alphasort))
+
+(define versionsort
+  (lookup-shared-object* libnausicaa-posix 'nausicaa_posix_versionsort))
+
+;;; --------------------------------------------------------------------
+;;; miscellaneous
+
+(define-c-function/with-errno mknod
+  (int nausicaa_posix_mknod (char* int int)))
 
 
 ;;;; done

@@ -1,7 +1,7 @@
 * system inspection
 
-  Fix the determination  of size for "off_t".  Is  it really "ullong" on
-  32 bits?
+  Interface sysconf(3).
+  Interface posixoptions(7).
 
 * stub
 

@@ -155,10 +155,23 @@ extern int nausicaa_posix_pread  (int filedes, void * buffer, size_t size, off_t
 extern int nausicaa_posix_pwrite (int filedes, const void * buffer, size_t size, off_t offset);
 
 extern int nausicaa_posix_lseek (int filedes, off_t offset, int whence);
+extern int nausicaa_posix_fseek  (FILE * stream, long int offset, int whence);
+extern int nausicaa_posix_fseeko (FILE * stream, off_t offset, int whence);
+extern off_t nausicaa_posix_ftello (FILE * stream);
+
+extern int nausicaa_posix_truncate (const char * filename, off_t length);
+extern int nausicaa_posix_ftruncate (int fd, off_t length);
 
 extern struct dirent * nausicaa_posix_readdir	(DIR * dir);
 extern int             nausicaa_posix_readdir_r (DIR * dir, struct dirent * entry,
 						 struct dirent ** result);
+
+extern int nausicaa_posix_scandir (const char * dir, struct dirent *** namelist,
+				   int (*selector) (const struct dirent *),
+				   int (*cmp) (const void *, const void *));
+
+extern int nausicaa_posix_alphasort (const void * a, const void * b);
+extern int nausicaa_posix_versionsort (const void * a, const void * b);
 
 
 /** --------------------------------------------------------------------
@@ -435,7 +448,7 @@ nausicaa_posix_stat_typeisshm (struct stat * s)
 
 
 /** --------------------------------------------------------------------
- ** Miscellaneous.
+ ** 32/64 bits function wrappers.
  ** ----------------------------------------------------------------- */
 
 int
@@ -454,6 +467,31 @@ nausicaa_posix_lseek (int filedes, off_t offset, int whence)
 {
   return lseek(filedes, offset, whence);
 }
+int
+nausicaa_posix_fseek (FILE * stream, long int offset, int whence)
+{
+  return fseek (stream, offset, whence);
+}
+int
+nausicaa_posix_fseeko (FILE * stream, off_t offset, int whence)
+{
+  return fseeko (stream, offset, whence);
+}
+off_t
+nausicaa_posix_ftello (FILE * stream)
+{
+  return ftello (stream);
+}
+int
+nausicaa_posix_truncate (const char * filename, off_t length)
+{
+  return truncate (filename, length);
+}
+int
+nausicaa_posix_ftruncate (int fd, off_t length)
+{
+  return ftruncate (fd, length);
+}
 struct dirent *
 nausicaa_posix_readdir (DIR * dir)
 {
@@ -463,6 +501,23 @@ int
 nausicaa_posix_readdir_r (DIR * dir, struct dirent * entry, struct dirent ** result)
 {
   return readdir_r(dir, entry, result);
+}
+int
+nausicaa_posix_scandir (const char * dir, struct dirent *** namelist,
+			int (*selector) (const struct dirent *),
+			int (*cmp) (const void *, const void *))
+{
+  return scandir (dir, namelist, selector, cmp);
+}
+int
+nausicaa_posix_alphasort (const void * a, const void * b)
+{
+  return alphasort (a, b);
+}
+int
+nausicaa_posix_versionsort (const void * a, const void * b)
+{
+  return versionsort (a, b);
 }
 
 

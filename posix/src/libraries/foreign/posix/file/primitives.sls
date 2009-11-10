@@ -27,6 +27,10 @@
 
 (library (foreign posix file primitives)
   (export
+
+    ;; system inspection
+    pathconf		fpathconf
+
     ;; working directory
     getcwd		chdir		fchdir
 
@@ -34,7 +38,7 @@
     opendir		fdopendir	dirfd
     closedir		readdir		readdir_r
     rewinddir		telldir		seekdir
-    scandir
+    dirent-name->string
 
     ;; links
     link		symlink		readlink
@@ -63,7 +67,10 @@
     utime		utimes
 
     ;; file size
-    file-size		ftruncate	truncate)
+    file-size		ftruncate	truncate
+
+    ;; temporary files
+    mkstemp		mkdtemp)
   (import (except (rnrs)
 		  remove truncate)
     (receive)
@@ -91,6 +98,24 @@
     (foreign posix sizeof)
     (prefix (foreign posix fd) posix:)
     (prefix (foreign posix file platform) platform:))
+
+
+;;;; system inspection
+
+(define (pathconf pathname name)
+  (with-compensations
+    (receive (result errno)
+	(platform:pathconf (string->cstring/c pathname) name)
+      (if (and (= -1 result) (not (= 0 errno)))
+	  (raise-errno-error 'pathconf errno (list pathname name))
+	result))))
+
+(define (fpathconf fd name)
+  (receive (result errno)
+      (platform:fpathconf fd name)
+    (if (and (= -1 result) (not (= 0 errno)))
+	(raise-errno-error 'pathconf errno (list fd name))
+      result)))
 
 
 ;;;; working directory
@@ -169,6 +194,21 @@
 (define (readdir_r stream)
   (let ((result (malloc-block/c sizeof-struct-dirent)))
     (with-compensations
+      ;;*FIXME*  It looks  like the  size  of the  "struct dirent"  type
+      ;;cannot  be  safely  determined  with  the  "sizeof"  C  language
+      ;;operator.   So the  allocation form  below  may turn  out to  be
+      ;;wrong.   See the  manual page  of "readdir_r()"  on  a GNU+Linux
+      ;;system for details on the correct way to determine the size.
+      ;;
+      ;;It  is not  implemented  here  because it  needs  to change  the
+      ;;interface adding the pathname  of the directory to be inspected;
+      ;;this is not desirable now, we will see in the future.
+      ;;
+      ;;For the time being, it  seems that on GNU+Linux systems for i686
+      ;;architectures   the   size  is   correct.    Also  notice   that
+      ;;MALLOC-BLOCK/C will  probably allocate a page  (4096 bytes) from
+      ;;its own cache; see the documentation of Nausicaa/Scheme.
+      ;;
       (let ((entry	(malloc-block/c sizeof-struct-dirent))
 	    (*result	(malloc-block/c sizeof-pointer)))
 	(receive (retval errno)
@@ -190,29 +230,8 @@
 (define (seekdir stream position)
   (platform:seekdir stream position))
 
-(define (scandir dir selector-callback cmp-callback)
-  (with-compensations
-    (let ((*namelist (malloc-block/c sizeof-pointer)))
-      (receive (result errno)
-	  (platform:scandir (string->cstring/c dir)
-			    *namelist
-			    (make-c-callback char* selector-callback (void*))
-			    (make-c-callback int cmp-callback (void* void*)))
-	(when (= -1 result)
-	  (raise-errno-error 'scandir errno (list dir)))
-	(let ((namelist	(pointer-ref-c-pointer *namelist 0))
-	      (ell	'()))
-	  (let-syntax
-	      ((%array-ref-struct-dirent (syntax-rules ()
-					   ((_ ?index)
-					    (pointer-ref-c-uint8 namelist
-								 (* ?index sizeof-struct-dirent))))))
-	    (do ((i 0 (+ 1 i)))
-		((= i result)
-		 (reverse ell))
-	      (set! ell (cons (cstring->string
-			       (struct-dirent-d_name-ref (%array-ref-struct-dirent i)))
-			      ell)))))))))
+(define (dirent-name->string struct-dirent-pointer)
+  (cstring->string (struct-dirent-d_name-ref struct-dirent-pointer)))
 
 
 ;;;; links
@@ -490,6 +509,27 @@
       (when (= -1 result)
 	(raise-errno-error 'primitive-mkdir errno (list pathname mode)))
       result)))
+
+
+;;;; temporary files
+
+(define (mkstemp template)
+  (with-compensations
+    (let ((p	(string->cstring/c template)))
+      (receive (result errno)
+	  (platform:mkstemp p)
+	(if (= -1 result)
+	    (raise-errno-error 'mktemp errno template)
+	  (values result (cstring->string p)))))))
+
+(define (mkdtemp template)
+  (with-compensations
+    (let ((p	(string->cstring/c template)))
+      (receive (result errno)
+	  (platform:mkdtemp p)
+	(if (pointer-null? result)
+	    (raise-errno-error 'mkdtemp errno template)
+	  (cstring->string p))))))
 
 
 ;;;; done

@@ -28,9 +28,14 @@
 (library (foreign glibc file primitives)
   (export
 
+    ;; directory access
+    scandir
+    make-scandir-selector-callback
+    make-scandir-compare-callback
+
     ;; temporary files
-    mktemp		mkstemp		mkdtemp
-    tempnam		tmpnam		tmpfile
+    mktemp		tempnam		tmpnam
+    tmpfile
 
     ;; times
     lutimes		futimes)
@@ -39,6 +44,13 @@
     (receive)
     (begin0)
     (compensations)
+    (only (foreign ffi sizeof)
+	  sizeof-pointer)
+    (only (foreign ffi)
+	  make-c-callback)
+    (only (foreign ffi peekers-and-pokers)
+	  pointer-ref-c-pointer
+	  array-ref-c-pointer)
     (only (foreign ffi pointers)
 	  pointer-add
 	  pointer-null
@@ -56,6 +68,43 @@
     (prefix (foreign glibc file platform) platform:))
 
 
+;;;; directory access
+
+(define (scandir dir selector-callback compare-callback)
+  (define-syntax %array-ref-struct-dirent
+    (syntax-rules ()
+      ((_ ?namelist ?index)
+       (array-ref-c-pointer ?namelist ?index))))
+  (define-syntax d_name
+    (syntax-rules ()
+      ((_ ?entry)
+       (cstring->string (struct-dirent-d_name-ref ?entry)))))
+  (with-compensations
+    (let ((&namelist (malloc-block/c sizeof-pointer)))
+      (receive (result errno)
+	  (platform:scandir (string->cstring/c dir) &namelist selector-callback compare-callback)
+	(if (= -1 result)
+	    (raise-errno-error 'scandir errno dir)
+	  (letrec ((*namelist (compensate
+				  (pointer-ref-c-pointer &namelist 0)
+				(with
+				 (primitive-free *namelist)))))
+	    (let loop ((i   0)
+		       (ell '()))
+	      (if (= i result)
+		  (reverse ell)
+		(loop (+ 1 i) (cons (d_name (%array-ref-struct-dirent *namelist i))
+				    ell))))))))))
+
+(define (make-scandir-selector-callback scheme-function)
+  (make-c-callback int (lambda (struct-dirent)
+			 (if (scheme-function struct-dirent) 1 0))
+		   (void*)))
+
+(define (make-scandir-compare-callback scheme-function)
+  (make-c-callback int scheme-function (void* void*)))
+
+
 ;;;; temporary files
 
 (define (mktemp template)
@@ -66,31 +115,6 @@
 	(if (or (pointer-null? result) (= 0 (strlen p)))
 	    (raise-errno-error 'mktemp errno template)
 	  (cstring->string p))))))
-
-(define (mkstemp template)
-  (with-compensations
-    (let ((p	(string->cstring/c template)))
-      (receive (result errno)
-	  (platform:mkstemp p)
-	(if (= -1 result)
-	    (raise-errno-error 'mktemp errno template)
-	  (values result (cstring->string p)))))))
-
-(define (mkdtemp template)
-  (with-compensations
-    (let ((p	(string->cstring/c template)))
-      (receive (result errno)
-	  (platform:mkdtemp p)
-	(if (pointer-null? result)
-	    (raise-errno-error 'mkdtemp errno template)
-	  (cstring->string p))))))
-
-(define (tmpfile)
-  (receive (result errno)
-      (platform:tmpfile)
-    (when (pointer-null? result)
-      (raise-errno-error 'tmpfile errno))
-    result))
 
 (define (tempnam directory prefix)
   (with-compensations
@@ -114,6 +138,13 @@
       (if (pointer-null? result)
 	  (raise-errno-error 'tmpnam errno)
 	(cstring->string result)))))
+
+(define (tmpfile)
+  (receive (result errno)
+      (platform:tmpfile)
+    (when (pointer-null? result)
+      (raise-errno-error 'tmpfile errno))
+    result))
 
 
 ;;;; file times

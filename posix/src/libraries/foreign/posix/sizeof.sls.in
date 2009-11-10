@@ -27,7 +27,8 @@
 (library (foreign posix sizeof)
   (export
 
-    ;; types
+;;; data types inspection
+
     blkcnt_t
     sizeof-blkcnt_t
     alignof-blkcnt_t
@@ -105,7 +106,9 @@
     pointer-set-c-uid_t!
     pointer-ref-c-uid_t
 
-    ;; structures
+;;; --------------------------------------------------------------------
+;;; data structures inspection
+
     sizeof-struct-dirent
     alignof-struct-dirent
     strideof-struct-dirent
@@ -131,7 +134,9 @@
 ;;;
 ;;;    sizeof-struct-stat alignof-struct-stat strideof-struct-stat
 
-    ;; constants
+;;; --------------------------------------------------------------------
+;;; constants
+
     O_ACCMODE		O_CREAT		O_EXCL
     O_EXEC		O_EXLOCK	O_IGNORE_CTTY
     O_NOCTTY		O_NOLINK	O_NONBLOCK
@@ -167,6 +172,27 @@
 
     EOF			MAXSYMLINKS
     PATH_MAX		NAME_MAX	MAXPATHLEN
+
+    ;; "struct dirent" related constants
+    _DIRENT_HAVE_D_NAMELEN	_DIRENT_HAVE_D_RECLEN
+    _DIRENT_HAVE_D_OFF		_DIRENT_HAVE_D_TYPE
+    DT_BLK		DT_CHR		DT_DIR
+    DT_FIFO		DT_LNK		DT_REG
+    DT_SOCK		DT_UNKNOWN
+    OFFSETOF_STRUCT_DIRENT_D_NAME
+
+    ;; constants related to "pathconf()"
+    _PC_LINK_MAX		_PC_MAX_CANON
+    _PC_MAX_INPUT		_PC_NAME_MAX
+    _PC_PATH_MAX		_PC_PIPE_BUF
+    _PC_CHOWN_RESTRICTED	_PC_NO_TRUNC
+    _PC_VDISABLE		_PC_SYNC_IO
+    _PC_ASYNC_IO		_PC_PRIO_IO
+    _PC_FILESIZEBITS		_PC_REC_INCR_XFER_SIZE
+    _PC_REC_MAX_XFER_SIZE	_PC_REC_MIN_XFER_SIZE
+    _PC_XFER_ALIGN
+
+;;; --------------------------------------------------------------------
 
     ;; struct inspection
     sizeof-struct-timezone
@@ -455,6 +481,40 @@
 (define NAME_MAX		@VALUEOF_NAME_MAX@)
 (define MAXPATHLEN		@VALUEOF_MAXPATHLEN@)
 
+;; "struct dirent" related stuff
+(define _DIRENT_HAVE_D_NAMELEN	@NAU_DIRENT_HAVE_D_NAMELEN@)
+(define _DIRENT_HAVE_D_RECLEN	@NAU_DIRENT_HAVE_D_RECLEN@)
+(define _DIRENT_HAVE_D_OFF	@NAU_DIRENT_HAVE_D_OFF@)
+(define _DIRENT_HAVE_D_TYPE	@NAU_DIRENT_HAVE_D_TYPE@)
+(define DT_BLK			@VALUEOF_DT_BLK@)
+(define DT_CHR			@VALUEOF_DT_CHR@)
+(define DT_DIR			@VALUEOF_DT_DIR@)
+(define DT_FIFO			@VALUEOF_DT_FIFO@)
+(define DT_LNK			@VALUEOF_DT_LNK@)
+(define DT_REG			@VALUEOF_DT_REG@)
+(define DT_SOCK			@VALUEOF_DT_SOCK@)
+(define DT_UNKNOWN		@VALUEOF_DT_UNKNOWN@)
+
+;; constants related to "pathconf()"
+(define _PC_LINK_MAX			@VALUEOF__PC_LINK_MAX@)
+(define _PC_MAX_CANON			@VALUEOF__PC_MAX_CANON@)
+(define _PC_MAX_INPUT			@VALUEOF__PC_MAX_INPUT@)
+(define _PC_NAME_MAX			@VALUEOF__PC_NAME_MAX@)
+(define _PC_PATH_MAX			@VALUEOF__PC_PATH_MAX@)
+(define _PC_PIPE_BUF			@VALUEOF__PC_PIPE_BUF@)
+(define _PC_CHOWN_RESTRICTED		@VALUEOF__PC_CHOWN_RESTRICTED@)
+(define _PC_NO_TRUNC			@VALUEOF__PC_NO_TRUNC@)
+(define _PC_VDISABLE			@VALUEOF__PC_VDISABLE@)
+(define _PC_SYNC_IO			@VALUEOF__PC_SYNC_IO@)
+(define _PC_ASYNC_IO			@VALUEOF__PC_ASYNC_IO@)
+(define _PC_PRIO_IO			@VALUEOF__PC_PRIO_IO@)
+(define _PC_FILESIZEBITS		@VALUEOF__PC_FILESIZEBITS@)
+(define _PC_REC_INCR_XFER_SIZE		@VALUEOF__PC_REC_INCR_XFER_SIZE@)
+(define _PC_REC_MAX_XFER_SIZE		@VALUEOF__PC_REC_MAX_XFER_SIZE@)
+(define _PC_REC_MIN_XFER_SIZE		@VALUEOF__PC_REC_MIN_XFER_SIZE@)
+(define _PC_XFER_ALIGN			@VALUEOF__PC_XFER_ALIGN@)
+
+
 
 ;;;; struct accessors
 
@@ -558,6 +618,8 @@
 (define-c-struct-field-pointer-accessor
   struct-dirent-d_name-ref
   @OFFSETOF_STRUCT_DIRENT_D_NAME@)
+
+(define OFFSETOF_STRUCT_DIRENT_D_NAME	@OFFSETOF_STRUCT_DIRENT_D_NAME@)
 
 ;;; --------------------------------------------------------------------
 

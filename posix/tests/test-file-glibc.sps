@@ -36,7 +36,10 @@
   (foreign cstrings)
 
   (prefix (foreign glibc file) glibc:)
-  (prefix (foreign glibc streams) posix:)
+
+  (prefix (only (foreign glibc streams) fclose) glibc:)
+
+  (prefix (foreign glibc file platform) glibc:platform:)
 
   (foreign posix sizeof)
   (prefix (foreign posix process) posix:)
@@ -99,6 +102,49 @@ Ses ailes de geant l'empechent de marcher.")
 
 (define (clean-test-hierarchy)
   (posix:system (string-append "rm -fr " the-root)))
+
+
+(parametrise ((check-test-name	'directory-access)
+	      (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in directory access" E))
+    (lambda ()
+      (with-compensations
+	(clean-test-hierarchy)
+	  (compensate
+	      (make-test-hierarchy)
+	    (with
+	     (clean-test-hierarchy)))
+
+	(check
+	    (glibc:scandir the-root
+			   (glibc:make-scandir-selector-callback
+			    (lambda (struct-dirent)
+			      #t))
+			   glibc:platform:alphasort)
+	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+
+	(check
+	    (glibc:scandir the-root
+			   (glibc:make-scandir-selector-callback
+			    (lambda (struct-dirent)
+			      #t))
+			   glibc:platform:versionsort)
+	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
+
+	(check
+	    (glibc:scandir the-root
+			   (glibc:make-scandir-selector-callback
+			    (lambda (struct-dirent)
+			      (let ((name (posix:dirent-name->string struct-dirent)))
+				(not (or (string=? "."  name)
+					 (string=? ".." name))))))
+			   glibc:platform:alphasort)
+	  => '("dir-1" "dir-2" "dir-3" "name.ext"))
+
+	#f))))
 
 
 (parametrise ((check-test-name	'times)
@@ -183,47 +229,28 @@ Ses ailes de geant l'empechent de marcher.")
 	    (with
 	     (clean-test-hierarchy)))
 
-	(check
+	(check		;mktemp
 	    (let ((pathname (glibc:mktemp (string-join (list TMPDIR "XXXXXX") "/"))))
 	      (list (string? pathname)
 		    (file-exists? pathname)))
 	  => '(#t #f))
 
-	(check
-	    (let-values (((fd pathname) (glibc:mkstemp (string-join (list TMPDIR "XXXXXX") "/"))))
-	      (posix:close fd)
-	      (list (string? pathname)
-		    (begin0
-			(file-exists? pathname)
-		      (delete-file pathname))))
-	  => '(#t #t))
-
-	(check
-	    (let ((pathname (glibc:mkdtemp (string-join (list TMPDIR "XXXXXX") "/"))))
-	      (list (string? pathname)
-		    (file-exists? pathname)
-		    (posix:file-is-regular? pathname)
-		    (posix:file-is-directory? pathname)))
-	  => '(#t #t #f #t))
-
-;;; --------------------------------------------------------------------
-
-	(check
-	    (let ((FILE* (glibc:tmpfile)))
-	      (posix:fclose FILE*))
-	  => 0)
-
-	(check
+	(check		;tempnam
 	    (let ((pathname (glibc:tempnam #f #f)))
 	      (list (string? pathname)
 		    (file-exists? pathname)))
 	  => '(#t #f))
 
-	(check
+	(check		;tmpnam
 	    (let ((pathname (glibc:tmpnam)))
 	      (list (string? pathname)
 		    (file-exists? pathname)))
 	  => '(#t #f))
+
+	(check		;tmpfile
+	    (let ((FILE* (glibc:tmpfile)))
+	      (glibc:fclose FILE*))
+	  => 0)
 
 	#f))))
 

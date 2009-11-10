@@ -27,6 +27,10 @@
 (library (foreign posix file)
   (export
 
+    ;; system inspection
+    pathconf			pathconf-function
+    fpathconf			fpathconf-function
+
     ;; working directory
     getcwd			getcwd-function
     chdir			chdir-function
@@ -45,8 +49,8 @@
 
     telldir			telldir-function
     seekdir			seekdir-function
-    scandir			scandir-function
 
+    (rename (primitive:dirent-name->string	dirent-name->string))
     opendir/compensated		(rename (opendir/compensated opendir/c))
     fdopendir/compensated	(rename (fdopendir/compensated fdopendir/c))
     directory-list		directory-list/fd
@@ -88,7 +92,11 @@
     ;; file size
     file-size			file-size-function
     ftruncate			ftruncate-function
-    truncate			truncate-function)
+    truncate			truncate-function
+
+    ;; temporary files
+    mkstemp			mkstemp-function
+    mkdtemp			mkdtemp-function)
   (import (except (rnrs)
 		  remove truncate)
     (compensations)
@@ -102,6 +110,11 @@
     (foreign posix sizeof))
 
 
+;; system inspection
+
+(define-parametrised pathconf pathname name)
+(define-parametrised fpathconf fd name)
+
 ;; working directory
 
 (define-parametrised getcwd)
@@ -119,7 +132,6 @@
 (define-parametrised rewinddir stream)
 (define-parametrised telldir stream)
 (define-parametrised seekdir stream position)
-(define-parametrised scandir dir-pathname selector-callback cmp-callback)
 
 ;; links
 
@@ -184,6 +196,11 @@
 
 (define-parametrised mkdir pathname mode)
 
+;; temporary files
+
+(define-parametrised mkstemp template)
+(define-parametrised mkdtemp template)
+
 
 (define (opendir/compensated pathname)
   (letrec ((stream (compensate
@@ -199,27 +216,23 @@
 		      (closedir stream)))))
     stream))
 
+;;; --------------------------------------------------------------------
+
+(define (%directory-list dir)
+  (let loop ((entry  (readdir_r dir))
+	     (layout '()))
+    (if (pointer-null? entry)
+	layout
+      (loop (readdir_r dir)
+	    (cons (primitive:dirent-name->string entry) layout)))))
+
 (define (directory-list pathname)
   (with-compensations
-    (let ((dir		(opendir/compensated pathname))
-	  (layout	'()))
-      (do ((entry (readdir dir) (readdir dir)))
-	  ((pointer-null? entry)
-	   layout)
-	(set! layout
-	      (cons (cstring->string (struct-dirent-d_name-ref entry))
-		    layout))))))
+    (%directory-list (opendir/compensated pathname))))
 
 (define (directory-list/fd fd)
   (with-compensations
-    (let ((dir		(fdopendir/compensated fd))
-	  (layout	'()))
-      (do ((entry (readdir dir) (readdir dir)))
-	  ((pointer-null? entry)
-	   layout)
-	(set! layout
-	      (cons (cstring->string (struct-dirent-d_name-ref entry))
-		    layout))))))
+    (%directory-list (fdopendir/compensated fd))))
 
 
 ;;;; done

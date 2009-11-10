@@ -26,13 +26,17 @@
 
 (library (foreign glibc file)
   (export
+
+    ;; directory access
+    scandir			scandir-function
+    (rename (primitive:make-scandir-selector-callback	make-scandir-selector-callback)
+	    (primitive:make-scandir-compare-callback	make-scandir-compare-callback))
+
     ;; temporary files
     mktemp			mktemp-function
-    mkstemp			mkstemp-function
-    mkdtemp			mkdtemp-function
-    tmpfile			tmpfile-function
     tempnam			tempnam-function
     tmpnam			tmpnam-function
+    tmpfile			tmpfile-function
 
     ;; times
     lutimes			lutimes-function
@@ -43,17 +47,17 @@
     (prefix (foreign glibc file primitives) primitive:))
 
 
+;;;; directory access
+
+(define-parametrised scandir dir-pathname selector-callback cmp-callback)
+
 ;;;; temporary files
 
 (define-parametrised mktemp template)
-(define-parametrised mkstemp template)
-(define-parametrised mkdtemp template)
-(define-parametrised tmpfile)
 (define-parametrised tempnam directory prefix)
 (define-parametrised tmpnam)
+(define-parametrised tmpfile)
 
-
-
 ;;;; file times
 
 (define-primitive-parameter lutimes-function	primitive:lutimes)

@@ -32,7 +32,8 @@
     fwrite		fputc		fputs		fflush
     fread		fgetc		fgets
     ungetc
-    feof		fseek		ftell		rewind
+    feof		fseek		fseeko
+    ftell		ftello		rewind
     fdopen		fileno
 
     ferror_unlocked
@@ -248,11 +249,25 @@
       (raise-errno-error 'fseek errno stream))
     result))
 
+(define (fseeko stream offset whence)
+  (receive (result errno)
+      (platform:fseeko stream offset whence)
+    (when (ferror stream)
+      (raise-errno-error 'fseeko errno stream))
+    result))
+
 (define (ftell stream)
   (receive (result errno)
       (platform:ftell stream)
     (when (ferror stream)
       (raise-errno-error 'ftell errno stream))
+    result))
+
+(define (ftello stream)
+  (receive (result errno)
+      (platform:ftello stream)
+    (when (ferror stream)
+      (raise-errno-error 'ftello errno stream))
     result))
 
 (define (rewind stream)

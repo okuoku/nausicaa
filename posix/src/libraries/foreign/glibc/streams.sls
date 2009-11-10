@@ -41,7 +41,9 @@
     fgets		fgets-function
     feof		feof-function
     fseek		fseek-function
+    fseeko		fseeko-function
     ftell		ftell-function
+    ftello		ftello-function
     rewind		rewind-function
     fdopen		fdopen-function
     fileno		fileno-function
@@ -117,7 +119,9 @@
 
 (define-parametrised feof stream)
 (define-parametrised fseek stream offset whence)
+(define-parametrised fseeko stream offset whence)
 (define-parametrised ftell stream)
+(define-parametrised ftello stream)
 (define-parametrised rewind stream)
 
 (define-parametrised feof_unlocked stream)

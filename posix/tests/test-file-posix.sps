@@ -36,7 +36,6 @@
   (prefix (foreign posix process) posix:)
   (prefix (foreign posix fd) posix:)
   (prefix (foreign posix file) posix:)
-  (only (foreign posix file platform) struct-dirent-d_name-ptr-ref)
   (prefix (foreign posix stat) posix:)
   (prefix (foreign posix stat record-types) posix:)
   (foreign posix sizeof))
@@ -97,6 +96,35 @@ Ses ailes de geant l'empechent de marcher.")
   (posix:system (string-append "rm -fr " the-root)))
 
 
+(parametrise ((check-test-name	'inspection))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in inspection" E))
+    (lambda ()
+      (with-compensations
+	(clean-test-hierarchy)
+	  (compensate
+	      (make-test-hierarchy)
+	    (with
+	     (clean-test-hierarchy)))
+
+	(check
+	    (integer? (posix:pathconf the-file _PC_LINK_MAX))
+	  => #t)
+
+	(check
+	    (with-compensations
+	      (letrec ((fd (compensate
+				 (posix:open the-file O_RDONLY 0)
+			       (with
+				(posix:close fd)))))
+		(integer? (posix:fpathconf fd _PC_LINK_MAX))))
+	  => #t)
+
+	#f))))
+
+
 (parametrise ((check-test-name	'working-directory)
 	      (debugging	#t))
 
@@ -104,39 +132,38 @@ Ses ailes de geant l'empechent de marcher.")
       (lambda (E)
 	(debug-print-condition "deferred condition in working directory" E))
     (lambda ()
-      (guard (E (else (debug-print-condition "working directory condition" E)))
 
-	(check
-	    (let ((dirname '/))
-	      (posix:chdir dirname))
-	  => 0)
+      (check
+	  (let ((dirname '/))
+	    (posix:chdir dirname))
+	=> 0)
 
-	(check
-	    (let ((dirname '/usr/local/bin))
-	      (posix:chdir dirname))
-	  => 0)
+      (check
+	  (let ((dirname '/usr/local/bin))
+	    (posix:chdir dirname))
+	=> 0)
 
-	(check
-	    (let ((dirname '/scrappy/dappy/doo))
-	      (guard (E (else (list (errno-condition? E)
-				    (condition-who E)
-				    (errno-symbolic-value E))))
-		(posix:chdir dirname)))
-	  => '(#t chdir ENOENT))
+      (check
+	  (let ((dirname '/scrappy/dappy/doo))
+	    (guard (E (else (list (errno-condition? E)
+				  (condition-who E)
+				  (errno-symbolic-value E))))
+	      (posix:chdir dirname)))
+	=> '(#t chdir ENOENT))
 
-	(check
-	    (let ((dirname '/usr/local/bin))
-	      (posix:chdir dirname)
-	      (posix:getcwd))
-	  => "/usr/local/bin")
+      (check
+	  (let ((dirname '/usr/local/bin))
+	    (posix:chdir dirname)
+	    (posix:getcwd))
+	=> "/usr/local/bin")
 
-	(check
-	    (let ((dirname '/bin))
-	      (posix:chdir dirname)
-	      (posix:pwd))
-	  => "/bin")
+      (check
+	  (let ((dirname '/bin))
+	    (posix:chdir dirname)
+	    (posix:pwd))
+	=> "/bin")
 
-	#f))))
+      #f)))
 
 
 (parametrise ((check-test-name	'directory-access)
@@ -157,14 +184,14 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(check
 	    (with-compensations
-	      (let ((dir	(posix:opendir/c the-root))
-		    (layout	'()))
-		(do ((entry (posix:readdir dir) (posix:readdir dir)))
-		    ((pointer-null? entry))
-		  (set! layout
-			(cons (cstring->string (struct-dirent-d_name-ref entry))
-			      layout)))
-		(list-sort string<? layout)))
+	      (let ((dir (posix:opendir/c the-root)))
+		(list-sort string<?
+			   (let loop ((entry	(posix:readdir dir))
+				      (layout	'()))
+			     (if (pointer-null? entry)
+				 layout
+			       (loop (posix:readdir dir)
+				     (cons (posix:dirent-name->string entry) layout)))))))
 	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
 	(check
@@ -173,9 +200,7 @@ Ses ailes de geant l'empechent de marcher.")
 		    (layout	'()))
 		(do ((entry (posix:readdir dir) (posix:readdir dir)))
 		    ((pointer-null? entry))
-		  (set! layout
-			(cons (cstring->string (struct-dirent-d_name-ref entry))
-			      layout)))
+		  (set! layout (cons (posix:dirent-name->string entry) layout)))
 		(list-sort string<? layout)))
 	  => '("." ".." "name-10.ext" "name-11.ext"))
 
@@ -185,9 +210,7 @@ Ses ailes de geant l'empechent de marcher.")
 		    (layout	'()))
 		(do ((entry (posix:readdir dir) (posix:readdir dir)))
 		    ((pointer-null? entry))
-		  (set! layout
-			(cons (cstring->string (struct-dirent-d_name-ref entry))
-			      layout)))
+		  (set! layout (cons (posix:dirent-name->string entry) layout)))
 		(list-sort string<? layout)))
 	  => '("." ".."))
 
@@ -199,9 +222,7 @@ Ses ailes de geant l'empechent de marcher.")
 		    (layout	'()))
 		(do ((entry (posix:readdir_r dir) (posix:readdir_r dir)))
 		    ((pointer-null? entry))
-		  (set! layout
-			(cons (cstring->string (struct-dirent-d_name-ref entry))
-			      layout)))
+		  (set! layout  (cons (posix:dirent-name->string entry) layout)))
 		(list-sort string<? layout)))
 	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"))
 
@@ -246,15 +267,11 @@ Ses ailes de geant l'empechent de marcher.")
 		    (layout1	'()))
 		(do ((entry (posix:readdir dir) (posix:readdir dir)))
 		    ((pointer-null? entry))
-		  (set! layout1
-			(cons (cstring->string (struct-dirent-d_name-ref entry))
-			      layout1)))
+		  (set! layout1 (cons (posix:dirent-name->string entry) layout1)))
 		(posix:rewinddir dir)
 		(do ((entry (posix:readdir dir) (posix:readdir dir)))
 		    ((pointer-null? entry))
-		  (set! layout2
-			(cons (cstring->string (struct-dirent-d_name-ref entry))
-			      layout2)))
+		  (set! layout2 (cons (posix:dirent-name->string entry) layout2)))
 		(append (list-sort string<? layout1)
 			(list-sort string<? layout2))))
 	  => '("." ".." "dir-1" "dir-2" "dir-3" "name.ext"
@@ -268,10 +285,8 @@ Ses ailes de geant l'empechent de marcher.")
 		    (layout	'()))
 		(do ((entry (posix:readdir dir) (posix:readdir dir)))
 		    ((pointer-null? entry))
-		  (set! layout
-			(cons (cons (cstring->string (struct-dirent-d_name-ref entry))
-				    (posix:telldir entry))
-			      layout)))
+		  (set! layout (cons (cons (posix:dirent-name->string entry) (posix:telldir entry))
+				     layout)))
 		(map car (list-sort (lambda (a b)
 				      (string<? (car a) (car b)))
 				    layout))))
@@ -710,6 +725,40 @@ Ses ailes de geant l'empechent de marcher.")
 	      (posix:truncate the-file 5)
 	      (posix:file-size the-file))
 	  => 5)
+
+	#f))))
+
+
+(parametrise ((check-test-name	'tempfile)
+	      (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in tmpfile" E))
+    (lambda ()
+      (with-compensations
+	(clean-test-hierarchy)
+	  (compensate
+	      (make-test-hierarchy)
+	    (with
+	     (clean-test-hierarchy)))
+
+	(check		;mkstemp
+	    (let-values (((fd pathname) (posix:mkstemp (string-join (list TMPDIR "XXXXXX") "/"))))
+	      (posix:close fd)
+	      (list (string? pathname)
+		    (begin0
+			(file-exists? pathname)
+		      (delete-file pathname))))
+	  => '(#t #t))
+
+	(check		;mkdtemp
+	    (let ((pathname (posix:mkdtemp (string-join (list TMPDIR "XXXXXX") "/"))))
+	      (list (string? pathname)
+		    (file-exists? pathname)
+		    (posix:file-is-regular? pathname)
+		    (posix:file-is-directory? pathname)))
+	  => '(#t #t #f #t))
 
 	#f))))
 
