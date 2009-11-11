@@ -384,7 +384,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
 @c email of the *single* author of this document.
-@set AUTHOR_EMAIL               @email{marcomaggi@@gna.org}
+@set AUTHOR_EMAIL               @email{marco.maggi-ipsu@@gna.org}
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
@@ -437,7 +437,7 @@ Copyright @copyright{} 2000 Neodesic Corporation.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the @gnu{} Free Documentation License, Version 1.2 or
+under the terms of the @gnu{} Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections being ``@gnu{} Free Documentation License'' and
 ``@gnu{} General Public License'', no Front--Cover Texts, and no
@@ -536,6 +536,7 @@ More libraries
 * schelog::                     Programming in Schelog.
 * email::                       Email processing.
 * infix::                       Infix notation utilities.
+* getopts::                     Parsing command line arguments.
 * foreign::                     Foreign functions interface.
 
 Low level libraries
@@ -50619,6 +50620,311 @@ Procedures are treated like non--operator symbols.
 @item
 Numbers and all ``the other'' values are just put there.
 @end itemize
+
+@c page
+@node getopts
+@chapter Parsing command line arguments
+
+
+The @library{getopts} library implements basic parsing of Unix--style
+command line arguments.  It is meant to be used as low--level module in
+an infrastructure for command line interfaces (@acronym{CLI}).
+
+@menu
+* getopts intro::               Introduction.
+* getopts records::             Record types.
+* getopts config::              Parser configuration.
+* getopts parser::              Parsing arguments.
+@end menu
+
+@c page
+@node getopts intro
+@section Introduction
+
+
+Command line arguments are available through the @func{command-line}
+function from the @library{rnrs programs} library.  For the purposes of
+this documentation, command line arguments are divided into three
+categories:
+
+@table @asis
+@item Option without value
+A string selecting a configuration option that can be turned on or off.
+It can be a single character (brief option) or a full--word (long
+option).
+
+@item Option with value
+A string selecting a value for a configuration option; an option's value
+is a string of any length, including the empty string.
+
+@item Non--option
+A value to be passed to the program.
+@end table
+
+Let's assume that:
+
+@itemize
+@item
+@option{-v}, @option{-i} and @option{-h} are brief options that do not
+require a value.
+
+@item
+@option{-f}, @option{-o} and @option{-I} are brief options that do
+require a value.
+
+@item
+@option{--verbose}, @option{--interactive} and @option{--help} are long
+options that do not require a value.
+
+@item
+@option{--file}, @option{--output} and @option{--include} are long
+options that do require a value.
+@end itemize
+
+@noindent
+the following command line chunks are so interpreted:
+
+@table @code
+@item -vh -o green -i -Iwhite -f red
+The @option{-v}, @option{-h} and @option{-i} options without value; the
+@option{-o} option with value @samp{green}; the @option{-I} option with
+value @samp{white}; the @option{-f} option with value @samp{red}.
+
+@item --verbose --help --output=green --interactive
+@itemx --include white --file=red
+The @option{--verbose}, @option{--help} and @option{--interactive}
+options without value; the @option{--output} option with value
+@samp{green}; the @option{--include} option with value @samp{white}; the
+@option{--file} option with value @samp{red}.
+@end table
+
+The argument @code{--} is recognised as ``end of options'' marker: All
+the arguments following it are interpreted as non--options, even if
+their string starts with a dash or double dash.
+
+Chains of brief options are allowed: The options @option{-v},
+@option{-i} and @option{-h} can be selected with the single argument
+@code{-vih}.  Notice, though, that only options with no value can be
+chained; an option with value can appear only as last in the train, with
+no value attached.  For example:
+
+@example
+-vihI white
+@end example
+
+@noindent
+is interpreted as the options @option{-v}, @option{-i} and @option{-h}
+with no value followed by the option @option{-I} with value
+@samp{white}; the following:
+
+@example
+-vihIwhite              ;forbidden
+@end example
+
+@noindent
+could be made possible but, being unreadable, it is forbidden.
+
+Notice that a single dash, @samp{-}, is a valid non--option argument.
+
+@c page
+@node getopts records
+@section Record types
+
+
+The following bindings are exported by the @library{getopts
+record-types} library and re--exported by the @library{getopts} library.
+
+
+@deftp {Record Type Name} <option>
+@deftpx {Record Type Descriptor} <option-rtd>
+Type of records representing command line options.  It has the following
+fields, all immutable:
+
+@table @code
+@item brief
+A Scheme character representing a brief option selector; to specify an
+option with not brief selector, we can set this field to @false{}.
+
+@item long
+A Scheme string representing a long option selector, without the
+double--dash prefix; to specify an option with not long selector, we can
+set this field to @false{}.
+
+@item with-arg?
+Boolean, true if this option requires an argument.
+
+@item description
+Scheme string describing this option, to be used in help screens.
+
+@item action
+Semantic action, a closure to be invoked when this option is found.
+@ref{getopts parser} for details.
+@end table
+@end deftp
+
+
+@defun make-<option> @var{brief} @var{long} @var{with-arg?} @var{description} @var{action}
+Build and return a new @class{option} record.
+@end defun
+
+
+@defun <option>? @var{obj}
+Return true if @var{obj} is a record of type @class{option}.
+@end defun
+
+
+@defun <option>-brief @var{record}
+@defunx <option>-long @var{record}
+@defunx <option>-with-arg? @var{record}
+@defunx <option>-description @var{record}
+@defunx <option>-action @var{record}
+Accessors for the fields of an @class{option} record.
+@end defun
+
+
+@deffn Syntax define-option @ameta{name} @ameta{spec} ...
+@deffnx {Auxiliary Syntax} brief @ameta{char}
+@deffnx {Auxiliary Syntax} long @ameta{string}
+@deffnx {Auxiliary Syntax} with-arg? @ameta{bool}
+@deffnx {Auxiliary Syntax} description @ameta{string}
+@deffnx {Auxiliary Syntax} action @ameta{function}
+Build a new @class{option} record and bind it to @ameta{name}, which
+must be a Scheme symbol.  All the @ameta{spec} arguments must be
+subforms with an auxiliary syntactic keyword as first element; the order
+of the subforms is mandatory and all of them must be present.
+
+Example:
+
+@example
+(define-option interactive
+  (brief        #\i)
+  (long         "interactive")
+  (with-arg?    #f)
+  (description  "ask the user first")
+  (action       (lambda (option)
+                  ---)))
+@end example
+@end deffn
+
+@c page
+@node getopts config
+@section Parser configuration
+
+
+@deftp Enumeration getopts-configuration
+Enumeration to be used to configure the @func{getopts} parser.  It
+contains the following symbols:
+
+@table @code
+@item delayed
+If given, action closures invocations are returned in a list rather that
+immediately evaluated; this allows @func{getopts} to parse the whole
+command line without changing the state of the program.
+
+The returned list has a thunk for each semantic action, in the same
+order in which the corresponding arguments appear on the command line.
+We can evaluate the thunks with:
+
+@example
+(let ((thunks (getopts ---)))
+  (for-each (lambda (T) (T)) thunks))
+@end example
+
+@item ignore-multiple-double-dashes
+The first double--dash argument, @samp{--}, always marks the end of
+options.  If this option is given, multiple @samp{--} after the first
+are all ignored; else they are interpreted as non--option arguments.
+@end table
+@end deftp
+
+
+@deffn Syntax getopts-options @var{symbol} ...
+Expands into an enumerated set of symbols to be used to configure the
+operations of the @func{getopts} parser.
+@end deffn
+
+@c page
+@node getopts parser
+@section Parsing arguments
+
+
+@defun getopts @var{command-line} @var{options} @var{argument-action}
+@defunx getopts @var{command-line} @var{options} @var{argument-action} @var{config-options}
+Parse the Scheme strings in the list @var{command-line} as command line
+arguments, according to the options described by the list @var{options}
+of @class{option} records.  If the configuration option @code{delayed} is
+not used, the return value is @false{}.
+
+@var{argument-action} must be a Scheme function accepting a single
+argument: A Scheme string representing a command line non--option.
+
+The optional @var{config-options} must be an enumerated set of values
+from the @code{getopts-configuration} enumeration.
+@end defun
+
+
+Meaningless usage example:
+
+@example
+(import (rnrs)
+  (getopts))
+
+(define result #f)
+
+(let-syntax
+    ((set-cons! (syntax-rules ()
+                  ((_ ?name ?form)
+                   (set! ?name (cons ?form ?name))))))
+
+  (define (register-with opt val)
+    (set-cons! result (list (<option>-long opt) val)))
+
+  (define (register-without opt)
+    (set-cons! result (list (<option>-long opt))))
+
+  (define (register-non-option arg)
+    (set-cons! result arg)))
+
+(define-option interactive
+  (brief #\i)
+  (long "interactive")
+  (with-arg? #f)
+  (description "ask the user first")
+  (action register-without))
+
+(define-option force
+  (brief #\f)
+  (long "force")
+  (with-arg? #f)
+  (description "hurt me plenty")
+  (action register-without))
+
+(define-option help
+  (brief #\h)
+  (long "help")
+  (with-arg? #f)
+  (description "print help screen")
+  (action register-without))
+
+(define-option file
+  (brief #\F)
+  (long "file")
+  (with-arg? #t)
+  (description "input file")
+  (action register-with))
+
+(define-option archive
+  (brief #\A)
+  (long "archive")
+  (with-arg? #t)
+  (description "output archive")
+  (action register-with))
+
+(getopts (command-line)
+         (list interactive force help file archive)
+         register-non-option
+         (getopts-options ignore-multiple-double-dashes))
+@end example
 
 @c page
 
