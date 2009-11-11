@@ -48,13 +48,13 @@
     (prefix (foreign glibc time primitives) primitive:))
 
 
-(define-parametrised stime)
+(define-parametrised stime calendar-time)
 
 ;;; --------------------------------------------------------------------
 
-(define-parametrised gettimeofday timeval timezone)
+(define-parametrised gettimeofday)
 (define-parametrised settimeofday timeval timezone)
-(define-parametrised adjtime timeval-delta timeval-old-delta)
+(define-parametrised adjtime timeval-delta)
 
 ;;; --------------------------------------------------------------------
 

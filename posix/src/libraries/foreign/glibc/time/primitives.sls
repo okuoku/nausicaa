@@ -48,45 +48,60 @@
 	  pointer-null
 	  pointer=?)
     (only (foreign memory)
-	  malloc-small/c)
+	  malloc-small/c
+	  malloc-block/c)
     (only (foreign errno)
 	  raise-errno-error)
     (foreign posix sizeof)
+    (foreign posix time record-types)
     (prefix (foreign glibc time platform) platform:))
 
 
 ;;;; simple calendar time
 
-(define (stime)
-  (receive (result errno)
-      (platform:stime pointer-null)
-    (if (= -1 result)
-	(raise-errno-error 'stime errno)
-      result)))
+(define (stime calendar-time)
+  (with-compensations
+    (let ((time* (malloc-block/c sizeof-time_t)))
+      (pointer-set-c-time_t! time* 0 (exact calendar-time))
+      (receive (result errno)
+	  (platform:stime time*)
+	(if (= -1 result)
+	    (raise-errno-error 'stime errno calendar-time)
+	  result)))))
 
 
 ;;;; high resolution calendar
 
-(define (gettimeofday timeval timezone)
-  (receive (result errno)
-      (platform:gettimeofday timeval timezone)
-    (if (= -1 result)
-	(raise-errno-error 'gettimeofday errno)
-      result)))
+(define (gettimeofday)
+  (with-compensations
+    (let ((timeval*	(malloc-block/c sizeof-struct-timeval))
+	  (timezone*	(malloc-block/c sizeof-struct-timezone)))
+      (receive (result errno)
+	  (platform:gettimeofday timeval* timezone*)
+	(if (= -1 result)
+	    (raise-errno-error 'gettimeofday errno)
+	  (values (struct-timeval->record  timeval*)
+		  (struct-timezone->record timezone*)))))))
 
 (define (settimeofday timeval timezone)
-  (receive (result errno)
-      (platform:settimeofday timeval timezone)
-    (if (= -1 result)
-	(raise-errno-error 'settimeofday errno)
-      result)))
+  (with-compensations
+    (let ((timeval*	(record->struct-timeval  timeval  malloc-block/c))
+	  (timezone*	(record->struct-timezone timezone malloc-block/c)))
+      (receive (result errno)
+	  (platform:settimeofday timeval* timezone*)
+	(if (= -1 result)
+	    (raise-errno-error 'settimeofday errno (list timeval timezone))
+	  result)))))
 
-(define (adjtime timeval-delta timeval-old-delta)
-  (receive (result errno)
-      (platform:adjtime timeval-delta timeval-old-delta)
-    (if (= -1 result)
-	(raise-errno-error 'adjtime errno)
-      result)))
+(define (adjtime timeval-delta)
+  (with-compensations
+    (let ((timeval-delta*	(record->struct-timeval timeval-delta malloc-block/c))
+	  (timeval-old-delta*	(malloc-block/c sizeof-struct-timeval)))
+      (receive (result errno)
+	  (platform:adjtime timeval-delta* timeval-old-delta*)
+	(if (= -1 result)
+	    (raise-errno-error 'adjtime errno timeval-delta)
+	  (values result (struct-timeval->record timeval-old-delta*)))))))
 
 
 ;;;; broken-down time

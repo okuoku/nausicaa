@@ -3883,9 +3883,12 @@ exported by the @posix{} @code{time} libraries.
 @section Data structures
 
 
-The bindings documented in this section are exported by the
-@code{sizeof} library.
+Unless otherwise specified, the bindings documented in this section are
+exported by the @code{sizeof} library.
 
+@c ------------------------------------------------------------
+
+@subsubheading @code{struct timeval}
 
 @defvr Constant sizeof-struct-timeval
 @defvrx Constant alignof-struct-timeval
@@ -3904,6 +3907,9 @@ structures.
 Accessors and mutators for the fields of a @code{struct timeval}.
 @end deffn
 
+@c ------------------------------------------------------------
+
+@subsubheading @code{struct timespec}
 
 @defvr Constant sizeof-struct-timespec
 @defvrx Constant alignof-struct-timespec
@@ -3922,6 +3928,9 @@ structures.
 Accessors and mutators for the fields of a @code{struct timespec}.
 @end deffn
 
+@c ------------------------------------------------------------
+
+@subsubheading @code{struct tms}
 
 @defvr Constant sizeof-struct-tms
 @defvrx Constant alignof-struct-tms
@@ -3931,6 +3940,36 @@ alignment of this structure when embedded into another structure; the
 number of bytes between two elements in an array of these structures.
 @end defvr
 
+
+@defun struct-tms-tms_utime-ref @var{pointer}
+@defunx struct-tms-tms_stime-ref @var{pointer}
+@defunx struct-tms-tms_cutime-ref @var{pointer}
+@defunx struct-tms-tms_cstime-ref @var{pointer}
+Accessors for the fields of a @code{struct tms} type.
+
+These bindings are exported by the @library{foreign posix time platform}
+library.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading @code{struct timezone}
+
+
+@defvr Constant sizeof-struct-timezone
+@defvrx Constant alignof-struct-timezone
+@defvrx Constant strideof-struct-timezone
+Size, alignment and array stride for the @code{struct timezone} type.
+@end defvr
+
+
+@deffn Syntax struct-timezone-tz_minuteswest-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timezone-tz_minuteswest-ref @var{pointer}
+@deffnx Syntax struct-timezone-tz_dsttime-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timezone-tz_dsttime-ref @var{pointer}
+Peekers and pokers for the fields of a @code{struct timezone}.
+@end deffn
+
 @c page
 @node time records
 @section Record types
@@ -3938,6 +3977,10 @@ number of bytes between two elements in an array of these structures.
 
 Unless otherwise specified, the following bindings are exported by the
 @library{foreign posix time record-types} library.
+
+@c ------------------------------------------------------------
+
+@subsubheading @code{struct tms} mirror
 
 
 @deftp {Record Type} <struct-tms>
@@ -3975,14 +4018,66 @@ Accessors for the fields of @class{struct-tms} records.  All the returned
 values are floating point numbers.
 @end defun
 
+@c ------------------------------------------------------------
+
+@subsubheading @code{struct timeval} mirror
 
 
-@defun struct-tms-tms_utime-ref @var{pointer}
-@defunx struct-tms-tms_stime-ref @var{pointer}
-@defunx struct-tms-tms_cutime-ref @var{pointer}
-@defunx struct-tms-tms_cstime-ref @var{pointer}
-Accessors for the fields of a @code{struct tms} type.  These bindings
-are exported by the @library{foreign posix time platform} library.
+@deftp {Record Type Name} <struct-timeval>
+@deftpx {Record Type Descriptor} <struct-timeval-rtd>
+Record type that mirrors the @code{struct timeval} type.  It has two
+fields @code{tv_sec} and @code{tv_usec}.
+@end deftp
+
+
+@defun make-<struct-timeval> @var{tv_sec} @var{tv_usec}
+@defunx <struct-timeval>? @var{obj}
+Constructor and predicate for @class{struct-timeval} records.
+@end defun
+
+
+@defun struct-timeval->record @var{struct-timeval-pointer}
+@defunx record->struct-timeval @var{timeval-record} @var{malloc}
+Conversion functions between @code{struct timeval} pointers and
+@class{struct-timeval} records.  The @var{malloc} function is used to
+allocate memory for the @code{struct timeval}.
+@end defun
+
+
+@defun <struct-timeval>-tv_sec @var{timeval-record}
+@defunx <struct-timeval>-tv_usec @var{timeval-record}
+Accessors for the @class{struct-timeval} records.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading @code{struct timezone} mirror
+
+
+@deftp {Record Type Name} <struct-timezone>
+@deftpx {Record Type Descriptor} <struct-timezone-rtd>
+Record type that mirrors the @code{struct timezone} type.  It has two
+fields @code{tz_minuteswest} and @code{tz_dsttime}.
+@end deftp
+
+
+@defun make-<struct-timezone> @var{tz_minuteswest} @var{tz_dsttime}
+@defunx <struct-timezone>? @var{obj}
+Constructor and predicate for @class{struct-timezone} records.
+@end defun
+
+
+@defun struct-timezone->record @var{struct-timezone-pointer}
+@defunx record->struct-timezone @var{timezone-record} @var{malloc}
+Conversion functions between @code{struct timezone} pointers and
+@class{struct-timezone} records.  The @var{malloc} function is used to
+allocate memory for the @code{struct timezone}.
+@end defun
+
+
+@defun <struct-timezone>-tz_minuteswest @var{timezone-record}
+@defunx <struct-timezone>-tz_dsttime @var{timezone-record}
+Accessors for the @class{struct-timezone} records.
 @end defun
 
 @c page
@@ -4062,67 +4157,48 @@ These bindings are exported by the Glibc @code{time} libraries.
 
 @c page
 @node time hires
-@section High resolution calendar
+@section High--resolution calendar
 
 
-The following bindings are exported by the following libraries:
-
-@example
-(foreign glibc time)
-(foreign glibc time primitives)
-(foreign glibc time platform)
-@end example
-
-@noindent
-while the bindings required to use a @code{struct timeval} are exported
-by the @library{posix sizeof} library.
+The following functions manage high--resolution calendar time; the
+bindings are exported by the Glibc @code{time} libraries.
+@glibcref{High--Resolution Calendar, High--Resolution Calendar}.
 
 
-@defvar sizeof-struct-timezone
-@defvarx alignof-struct-timezone
-@defvarx strideof-struct-timezone
-Size, alignment and array stride for the @code{struct timezone} type.
-These bindings are exported by @library{glibc sizeof}.
-@end defvar
-
-
-@deffn Syntax struct-timezone-tz_minuteswest-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timezone-tz_minuteswest-ref @var{pointer}
-@deffnx Syntax struct-timezone-tz_dsttime-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timezone-tz_dsttime-ref @var{pointer}
-Peekers and pokers for the fields of a @code{struct timezone}.  These
-bindings are exported by @library{glibc sizeof}.
-@end deffn
-
-
-@deffn Function gettimeofday @var{timeval} @var{timezone}
+@deffn Function gettimeofday
 @deffnx Parameter gettimeofday-function
-@deffnx Function primitive:gettimeofday @var{timeval} @var{timezone}
-@deffnx Function platform:gettimeofday @var{timeval} @var{timezone}
-Fill the @code{struct timeval} and @code{struct timezone} referenced by
-the @var{timeval} and @var{timezone} pointers with the current calendar
-time.
+@deffnx Function primitive:gettimeofday
+@deffnx Function platform:gettimeofday @var{timeval-ptr} @var{timezone-ptr}
+Build and return two values: a record of type @class{struct-timeval}, a
+record of type @class{struct-timezone}; they represent the current time.
 @end deffn
 
 
 @deffn Function settimeofday @var{timeval} @var{timezone}
-@deffnx Function settimeofday @var{timeval} @var{timezone}
-@deffnx Parameter primitive:settimeofday-function
-@deffnx Function platform:settimeofday @var{timeval} @var{timezone}
-Set the system clock to the calendar time specified by the @code{struct
-timeval} and @code{struct timezone} referenced by the @var{timeval} and
-@var{timezone} pointers.
+@deffnx Parameter settimeofday-function
+@deffnx Function primitive:settimeofday @var{timeval} @var{timezone}
+@deffnx Function platform:settimeofday @var{timeval-ptr} @var{timezone-ptr}
+Set the system clock to the calendar time specified by the @var{timeval}
+and @var{timezone} arguments, which must be a @class{struct-timeval}
+record and a @class{struct-timezone} record.
 
 Super user privileges are needed to successfully call this function.
 @end deffn
 
 
-@deffn Function adjtime @var{timeval-delta} @var{timeval-old-delta}
+@deffn Function adjtime @var{timeval-delta}
 @deffnx Parameter adjtime-function
-@deffnx Function primitive:adjtime @var{timeval-delta} @var{timeval-old-delta}
-@deffnx Function platform:adjtime @var{timeval-delta} @var{timeval-old-delta}
+@deffnx Function primitive:adjtime @var{timeval-delta}
+@deffnx Function platform:adjtime @var{timeval-delta-ptr} @var{timeval-old-delta-ptr}
 Speed up or slow down the system clock in order to make a gradual
-adjustment.
+adjustment maintaining a monotonic clock value.  The time delta is
+described by @var{timeval-delta}, which must be a record of type
+@class{struct-timeval}.
+
+The @func{adjtime} and @func{primitive:adjtime} functions return two
+values: the return value from the foreign function and a record of type
+@class{timeval-delta} describing any previous time adjustment that has
+yet not completed.
 
 Super user privileges are needed to successfully call this function.
 @end deffn

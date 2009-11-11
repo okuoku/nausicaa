@@ -70,6 +70,10 @@ shared library.
    $ make test
    $ make install
 
+		  **** BEGIN WARNING ****
+	Do NOT run the tests with root permissions.
+		   **** END WARNING ****
+
   To test what a rule will do use the "-n" option; example:
 
     $ make install -n

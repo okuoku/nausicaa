@@ -48,10 +48,13 @@
     (lambda ()
 
       (check
-	  (guard (E (else (list (errno-condition? E)
-				(condition-who E))))
-	    (glibc:stime))
-	=> '(#t stime))
+	  ;;This should fail because root permissions are needed.
+	  (guard (E ((errno-condition? E)
+		     (errno-symbolic-value E))
+		    (else
+		     #f))
+	    (glibc:stime (posix:time)))
+	=> 'EPERM)
 
       #t)))
 
@@ -64,13 +67,26 @@
     (lambda ()
 
       (check
-	  (with-compensations
-	    (let ((timeval	(malloc-block/c sizeof-struct-timeval))
-		  (timezone	(malloc-block/c sizeof-struct-timezone)))
-	      (glibc:gettimeofday timeval timezone)
-;;;	  (format #t "epoch ~s~%" (struct-timeval-tv_sec-ref timeval))
-	      (integer? (struct-timeval-tv_sec-ref timeval))))
+	  (let-values (((timeval timezone) (glibc:gettimeofday)))
+	    #t)
 	=> #t)
+
+      (check
+	  ;;This should fail because root permissions are needed.
+	  (guard (E ((errno-condition? E)
+		     (errno-symbolic-value E))
+		    (else #f))
+	    (let-values (((timeval timezone) (glibc:gettimeofday)))
+	      (glibc:settimeofday timeval timezone)))
+	=> 'EPERM)
+
+      (check
+	  ;;This should fail because root permissions are needed.
+	  (guard (E ((errno-condition? E)
+		     (errno-symbolic-value E))
+		    (else #f))
+	    (glibc:adjtime (make-<struct-timeval> 0 0)))
+	=> 'EPERM)
 
       #t)))
 
