@@ -108,6 +108,8 @@
   (only (email addresses parser))
   (only (email addresses))
 
+  (only (getopts))
+
   ;;Commented  out because the  expansion of  RECORD-FIELD-ACCESSOR* and
   ;;RECORD-FIELD-MUTATOR*  from (records)  cannot be  serialised.
   ;;

@@ -102,6 +102,8 @@
   (only (email addresses parser))
   (only (email addresses))
 
+  (only (getopts))
+
   (only (foreign memory))
   (only (foreign memory mempool))
   (only (foreign memory refcount))

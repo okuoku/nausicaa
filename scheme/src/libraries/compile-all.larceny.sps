@@ -316,6 +316,14 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "getopts/record-types.sls"
+		 "getopts/record-types.slfasl")
+
+(compile-library "getopts.sls"
+		 "getopts.slfasl")
+
+;;; --------------------------------------------------------------------
+
 (compile-library "foreign/ffi/sizeof.sls"
 		 "foreign/ffi/sizeof.slfasl")
 
