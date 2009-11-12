@@ -12,8 +12,8 @@ are also exposed.
   This package currently supports only GNU+Linux systems.
 
   The  libraries are  built  on top  of the  Nausicaa/Scheme
-libraries, making use  of their foreign-functions interface;
-some   libraries  depend   upon  the   C   language  library
+package, making use of its foreign-functions interface; some
+libraries    depend   upon    the    C   language    library
 "libnausicaa-posix",  which is built  and installed  by this
 package.
 
