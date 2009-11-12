@@ -56,6 +56,10 @@
     setitimer		setitimer*
     getitimer		getitimer*
     alarm
+
+    ;; sleeping
+    (rename (platform:sleep	sleep))
+    nanosleep		nanosleep*
     )
   (import (rnrs)
     (receive)
@@ -315,6 +319,23 @@
     (let ((itimerval-old* (malloc-block/c sizeof-struct-itimerval)))
       (getitimer which itimerval-old*)
       (struct-itimerval->record itimerval-old*))))
+
+
+;;;; sleeping
+
+(define (nanosleep requested-time* remaining-time*)
+  (receive (result errno)
+      (platform:nanosleep requested-time* remaining-time*)
+    (if (= -1 result)
+	(raise-errno-error 'nanosleep errno (list requested-time* remaining-time*))
+      result)))
+
+(define (nanosleep* requested-time)
+  (with-compensations
+    (let ((requested-time*	(record->struct-timespec requested-time malloc-block/c))
+	  (remaining-time*	(malloc-block/c sizeof-struct-timespec)))
+      (nanosleep requested-time* remaining-time*)
+      (struct-timespec->record remaining-time*))))
 
 
 ;;;; done

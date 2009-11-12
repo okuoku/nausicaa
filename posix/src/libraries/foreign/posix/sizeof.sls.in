@@ -288,7 +288,7 @@
 
     struct-timex-modes-set!		struct-timex-modes-ref
     struct-timex-offset-set!		struct-timex-offset-ref
-    struct-timex-frequency-set!		struct-timex-frequency-ref
+    struct-timex-freq-set!		struct-timex-freq-ref
     struct-timex-maxerror-set!		struct-timex-maxerror-ref
     struct-timex-esterror-set!		struct-timex-esterror-ref
     struct-timex-status-set!		struct-timex-status-ref
@@ -876,11 +876,11 @@
   @GETTEROF_STRUCT_TIMEX_OFFSET@)
 
 (define-c-struct-accessor-and-mutator
-  struct-timex-frequency-set!
-  struct-timex-frequency-ref
-  @OFFSETOF_STRUCT_TIMEX_FREQUENCY@
-  @SETTEROF_STRUCT_TIMEX_FREQUENCY@
-  @GETTEROF_STRUCT_TIMEX_FREQUENCY@)
+  struct-timex-freq-set!
+  struct-timex-freq-ref
+  @OFFSETOF_STRUCT_TIMEX_FREQ@
+  @SETTEROF_STRUCT_TIMEX_FREQ@
+  @GETTEROF_STRUCT_TIMEX_FREQ@)
 
 (define-c-struct-accessor-and-mutator
   struct-timex-maxerror-set!

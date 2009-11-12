@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/POSIX  tag 0.1a0
+Subject: [announce] Nausicaa/POSIX 2009-11-12 tag 0.1a0
 
 		       Nausicaa/POSIX
 		       ==============
@@ -35,10 +35,13 @@ the documentation is available on line:
   <http://marcomaggi.github.com/docs/nausicaa-posix.html>
 
 
-Notes for  tag 0.1a0
+Notes for 2009-11-12 tag 0.1a0
 ------------------------------
 
-* Mosh behaves weirdly because of Issue 106.
+* This is a prerelease.
+
+* Mosh Scheme behaves weirdly because of Issue 106.
+  <http://code.google.com/p/mosh-scheme/issues/detail?id=106>
 
 * Testing is needed.
 

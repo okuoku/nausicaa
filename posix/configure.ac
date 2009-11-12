@@ -31,12 +31,13 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-posix],[0.1d0],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-posix],[0.1a0],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/posix/fd.sls])
 dnl AC_CANONICAL_TARGET
 dnl AC_USE_SYSTEM_EXTENSIONS
-AC_SUBST([NAUSICAA_OS],[$target_os])
+dnl AC_SUBST([NAUSICAA_OS],[$target_os])
 NAUSICAA_BEGIN
+DS_EXCLUDE_SECTION([DEV_RULES])
 DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
 DS_EXCLUDE_SECTION([AUTOCONF])
 DS_EXCLUDE_SECTION([PKGCONFIG])
@@ -54,6 +55,14 @@ dnl These work!!!
 AC_CHECK_FUNC([stat])
 AC_CHECK_FUNC([lstat])
 AC_CHECK_FUNC([fstat])
+
+AC_HEADER_STDC
+AC_CHECK_HEADERS([errno.h])
+AC_CHECK_HEADERS([fcntl.h])
+AC_CHECK_HEADERS([inttypes.h])
+AC_CHECK_HEADERS([limits.h])
+AC_CHECK_HEADERS([stdint.h])
+AC_CHECK_HEADERS([unistd.h])
 
 AC_CHECK_HEADERS([dirent.h])
 AC_CHECK_HEADERS([fcntl.h])
@@ -293,7 +302,7 @@ AC_DEFUN([NAU_POSIX_STRUCT_TIMEX_POINTER_FIELD],
 NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_TIMEX],[struct timex])
 NAU_POSIX_STRUCT_TIMEX_FIELD([MODES],[modes],[unsigned-int])
 NAU_POSIX_STRUCT_TIMEX_FIELD([OFFSET],[offset],[signed-int])
-NAU_POSIX_STRUCT_TIMEX_FIELD([FREQUENCY],[frequency],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([FREQ],[freq],[signed-int])
 NAU_POSIX_STRUCT_TIMEX_FIELD([MAXERROR],[maxerror],[signed-int])
 NAU_POSIX_STRUCT_TIMEX_FIELD([ESTERROR],[esterror],[signed-int])
 NAU_POSIX_STRUCT_TIMEX_FIELD([STATUS],[status],[signed-int])
@@ -313,13 +322,10 @@ NAU_POSIX_STRUCT_TIMEX_FIELD([STBCNT],[stbcnt],[signed-int])
 
 dnl --------------------------------------------------------------------
 
-AC_DEFUN([NAU_POSIX_STRUCT_ITIMERVAL_FIELD],
-  [NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_ITIMERVAL_$1],[struct ITIMERVAL],[$2],[$3])])
-
 AC_DEFUN([NAU_POSIX_STRUCT_ITIMERVAL_POINTER_FIELD],
   [NAU_POSIX_INSPECT_FIELD_TYPE_POINTER([STRUCT_ITIMERVAL_$1],[struct itimerval],[$2])])
 
-NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_ITIMERVAL],[struct ITIMERVAL])
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_ITIMERVAL],[struct itimerval])
 NAU_POSIX_STRUCT_ITIMERVAL_POINTER_FIELD([IT_INTERVAL],[it_interval])
 NAU_POSIX_STRUCT_ITIMERVAL_POINTER_FIELD([IT_VALUE],[it_value])
 

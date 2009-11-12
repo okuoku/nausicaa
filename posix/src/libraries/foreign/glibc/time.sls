@@ -68,6 +68,11 @@
     getitimer		getitimer-function
     getitimer*		getitimer*-function
     alarm		alarm-function
+
+    ;; sleeping
+    (rename (primitive:sleep	sleep))
+    nanosleep		nanosleep-function
+    nanosleep*		nanosleep*-function
     )
   (import (rnrs)
     (foreign posix helpers)
@@ -120,6 +125,11 @@
 (define-parametrised getitimer  which struct-itimer-old*)
 (define-parametrised getitimer* which)
 (define-parametrised alarm seconds)
+
+;;; --------------------------------------------------------------------
+
+(define-parametrised nanosleep requested-time* remaining-time*)
+(define-parametrised nanosleep* requested-time)
 
 
 ;;;; done

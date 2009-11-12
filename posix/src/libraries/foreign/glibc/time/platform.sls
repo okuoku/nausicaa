@@ -51,6 +51,9 @@
     ;; setting alarms
     setitimer		getitimer
     alarm
+
+    ;; sleeping
+    sleep		nanosleep
     )
   (import (rnrs)
     (foreign posix shared-object)
@@ -65,6 +68,7 @@
 (define struct-ntptimeval*	'pointer)
 (define struct-timex*		'pointer)
 (define struct-itimerval*	'pointer)
+(define struct-timespec*	'pointer)
 
 
 (define dummy
@@ -112,6 +116,14 @@
 
 (define-c-function/with-errno alarm
   (unsigned alarm (unsigned)))
+
+;;;; sleeping
+
+(define-c-function sleep
+  (unsigned sleep (unsigned)))
+
+(define-c-function/with-errno nanosleep
+  (int nanosleep (struct-timespec* struct-timespec*)))
 
 
 (define dummy2

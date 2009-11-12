@@ -607,6 +607,9 @@ Date and time
 * time broken::                 Broken--down time.
 * time hiaccu::                 High accuracy clock.
 * time format::                 Formatting broken--down time.
+* time parsing::                Parsing time strings.
+* time alarm::                  Setting time alarms.
+* time sleep::                  Sleeping.
 
 Data structures
 
@@ -617,6 +620,7 @@ Data structures
 * time structs tm::             @code{struct tm} inspection.
 * time structs ntptimeval::     @code{struct ntptimeval} inspection.
 * time structs timex::          @code{struct timex} inspection.
+* time structs itimerval::      @code{struct itimerval} inspection.
 
 Record types
 
@@ -627,6 +631,7 @@ Record types
 * time records tm::             @code{struct tm} mirror.
 * time records ntptimeval::     @code{struct ntptimeval} mirror.
 * time records timex::          @code{struct timex} mirror.
+* time records itimerval::      @code{struct itimerval} mirror.
 
 Processes
 
@@ -3905,6 +3910,8 @@ exported by the @posix{} @code{time} libraries.
 * time hiaccu::                 High accuracy clock.
 * time format::                 Formatting broken--down time.
 * time parsing::                Parsing time strings.
+* time alarm::                  Setting time alarms.
+* time sleep::                  Sleeping.
 @end menu
 
 @c page
@@ -3925,8 +3932,8 @@ The @code{time_t} type is used by several functions, but it is not fully
 specified@footnote{See for example (@aurl{} last verified Thu Nov 12,
 2009):
 
-@center @url{http://en.wikipedia.org/wiki/Unix_time}};
-it represents the @dfn{epoch}: The number of seconds elapsed since
+@center @url{http://en.wikipedia.org/wiki/Unix_time}
+}; it represents the @dfn{epoch}: The number of seconds elapsed since
 00:00:00 on January 1, 1970, Coordinated Universal Time.
 
 To solve the representation problem, @code{time_t} values are casted to
@@ -4122,9 +4129,7 @@ type.
 
 
 The following bindings implement inspection for the @code{struct timex}
-type; not all the mentioned fields are available on all the platforms,
-we have to check the original documentation.  @glibcref{High Accuracy
-Clock, High Accuracy Clock}.
+type.  @glibcref{High Accuracy Clock, High Accuracy Clock}.
 
 
 @defvar sizeof-struct-timex
@@ -4148,8 +4153,8 @@ structure.
 @deffnx Syntax struct-timex-modes-set! @var{pointer} @var{value}
 @deffnx Syntax struct-timex-offset-ref @var{pointer}
 @deffnx Syntax struct-timex-offset-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timex-frequency-ref @var{pointer}
-@deffnx Syntax struct-timex-frequency-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-freq-ref @var{pointer}
+@deffnx Syntax struct-timex-freq-set! @var{pointer} @var{value}
 @deffnx Syntax struct-timex-maxerror-ref @var{pointer}
 @deffnx Syntax struct-timex-maxerror-set! @var{pointer} @var{value}
 @deffnx Syntax struct-timex-esterror-ref @var{pointer}
@@ -4189,6 +4194,27 @@ type.
 @subsection @code{struct itimerval} inspection
 
 
+The following bindings implement inspection for the @code{struct
+itimerval} type.  @glibcref{Setting an Alarm, Setting an Alarm}.
+
+
+@defvar sizeof-struct-itimerval
+@defvarx alignof-struct-itimerval
+@defvarx strideof-struct-itimerval
+These are: the number of bytes required to hold a @code{struct
+itimerval}; the alignment of this structure when embedded into another
+structure; the number of bytes between two elements in an array of these
+structures.
+@end defvar
+
+
+@deffn Syntax struct-itimerval-it_value-ref @var{pointer}
+@deffnx Syntax struct-itimerval-it_interval-ref @var{pointer}
+Given a pointer to a @code{struct itimerval} instance, evaluate to a
+pointer to the first byte of the @code{struct timeval it_interval} and
+@code{struct timeval it_value} fields of the structure.
+@end deffn
+
 @c page
 @node time records
 @section Record types
@@ -4205,6 +4231,7 @@ exported by the @library{foreign posix time record-types} library.
 * time records tm::             @code{struct tm} mirror.
 * time records ntptimeval::     @code{struct ntptimeval} mirror.
 * time records timex::          @code{struct timex} mirror.
+* time records itimerval::      @code{struct itimerval} mirror.
 @end menu
 
 @c page
@@ -4276,7 +4303,7 @@ Constructor and predicate for @class{struct-timeval} records.
 
 @defun struct-timeval->record @var{struct-timeval-pointer}
 @defunx record->struct-timeval @var{timeval-record} @var{malloc}
-Convert between a pointer to a@code{struct timeval} instance and a
+Convert between a pointer to a @code{struct timeval} instance and a
 record of type @class{struct-timeval}.  The @var{malloc} function is
 used to allocate memory in which the @code{struct timeval} is stored.
 @end defun
@@ -4314,7 +4341,7 @@ Constructor and predicate for @class{struct-timespec} records.
 
 @defun struct-timespec->record @var{struct-timespec-pointer}
 @defunx record->struct-timespec @var{timespec-record} @var{malloc}
-Convert between a pointer to a@code{struct timespec} instance and a
+Convert between a pointer to a @code{struct timespec} instance and a
 record of type @class{struct-timespec}.  The @var{malloc} function is
 used to allocate memory in which the @code{struct timespec} is stored.
 @end defun
@@ -4353,7 +4380,7 @@ Constructor and predicate for @class{struct-timezone} records.
 
 @defun struct-timezone->record @var{struct-timezone-pointer}
 @defunx record->struct-timezone @var{timezone-record} @var{malloc}
-Convert between a pointer to a@code{struct timezone} instance and a
+Convert between a pointer to a @code{struct timezone} instance and a
 record of type @class{struct-timezone}.  The @var{malloc} function is
 used to allocate memory in which the @code{struct timezone} is stored.
 @end defun
@@ -4396,7 +4423,7 @@ Constructor and predicate for @class{struct-tm} records.
 
 @defun struct-tm->record @var{struct-tm-pointer}
 @defunx record->struct-tm @var{tm-record} @var{malloc}
-Convert between a pointer to a@code{struct tm} instance and a
+Convert between a pointer to a @code{struct tm} instance and a
 record of type @class{struct-tm}.  The @var{malloc} function is
 used to allocate memory in which the @code{struct tm} is stored.
 
@@ -4458,7 +4485,7 @@ Constructor and predicate for @class{struct-ntptimeval} records.
 
 @defun struct-ntptimeval->record @var{struct-ntptimeval-pointer}
 @defunx record->struct-ntptimeval @var{ntptimeval-record} @var{malloc}
-Convert between a pointer to a@code{struct ntptimeval} instance and a
+Convert between a pointer to a @code{struct ntptimeval} instance and a
 record of type @class{struct-ntptimeval}.  The @var{malloc} function is
 used to allocate memory in which the @code{struct ntptimeval} is stored.
 @end defun
@@ -4487,7 +4514,7 @@ Clock}.
 @deftpx {Record Type Descriptor} <struct-timex-rtd>
 Record type that mirrors the @code{struct timex} type.  It has the
 following fields, one for each field in the @code{struct timex} type:
-@code{modes}, @code{offset}, @code{frequency}, @code{maxerror},
+@code{modes}, @code{offset}, @code{freq}, @code{maxerror},
 @code{esterror}, @code{status}, @code{constant}, @code{precision},
 @code{tolerance}, @code{time}, @code{tick}, @code{ppsfreq},
 @code{jitter}, @code{shift}, @code{stabil}, @code{jitcnt},
@@ -4496,7 +4523,7 @@ contains a @class{struct-timeval} record.
 @end deftp
 
 
-@defun make-<struct-timex> @var{modes} @var{offset} @var{frequency} @var{maxerror} @var{esterror} @var{status} @var{constant} @var{precision} @var{tolerance} @var{time} @var{tick} @var{ppsfreq} @var{jitter} @var{shift} @var{stabil} @var{jitcnt} @var{calcnt} @var{errcnt} @var{stbcnt}
+@defun make-<struct-timex> @var{modes} @var{offset} @var{freq} @var{maxerror} @var{esterror} @var{status} @var{constant} @var{precision} @var{tolerance} @var{time} @var{tick} @var{ppsfreq} @var{jitter} @var{shift} @var{stabil} @var{jitcnt} @var{calcnt} @var{errcnt} @var{stbcnt}
 @defunx <struct-timex>? @var{obj}
 Constructor and predicate for @class{struct-timex} records.
 @end defun
@@ -4504,9 +4531,9 @@ Constructor and predicate for @class{struct-timex} records.
 
 @defun struct-timex->record @var{struct-timex-pointer}
 @defunx record->struct-timex @var{timex-record} @var{malloc}
-Convert between a pointer to a@code{struct timex} instance and a
-record of type @class{struct-timex}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct timex} is stored.
+Convert between a pointer to a @code{struct timex} instance and a record
+of type @class{struct-timex}.  The @var{malloc} function is used to
+allocate memory in which the @code{struct timex} is stored.
 @end defun
 
 
@@ -4514,8 +4541,8 @@ used to allocate memory in which the @code{struct timex} is stored.
 @defunx <struct-timex>-modes-set! @var{pointer} @var{value}
 @defunx <struct-timex>-offset @var{pointer}
 @defunx <struct-timex>-offset-set! @var{pointer} @var{value}
-@defunx <struct-timex>-frequency @var{pointer}
-@defunx <struct-timex>-frequency-set! @var{pointer} @var{value}
+@defunx <struct-timex>-freq @var{pointer}
+@defunx <struct-timex>-freq-set! @var{pointer} @var{value}
 @defunx <struct-timex>-maxerror @var{pointer}
 @defunx <struct-timex>-maxerror-set! @var{pointer} @var{value}
 @defunx <struct-timex>-esterror @var{pointer}
@@ -4552,6 +4579,46 @@ Accessors and mutators @class{struct-timex} records.
 @end defun
 
 @c page
+@node time records itimerval
+@subsection @code{struct itimerval} mirror
+
+
+The record type described here is used to mirror the C language data
+type @code{struct itimerval}.  @glibcref{Setting an Alarm, Setting an
+Alarm}.
+
+
+@deftp {Record Type Name} <struct-itimerval>
+@deftpx {Record Type Descriptor} <struct-itimerval-rtd>
+Record type that mirrors the @code{struct itimerval} type.  It has the
+following fields, one for each field in the @code{struct itimerval}
+type: @code{interval}, @code{value}.  Both the fields contain a
+@class{struct-timeval} record.
+@end deftp
+
+
+@defun make-<struct-itimerval> @var{interval} @var{value}
+@defunx <struct-itimerval>? @var{obj}
+Constructor and predicate for @class{struct-itimerval} records.
+@end defun
+
+
+@defun struct-itimerval->record @var{struct-itimerval-pointer}
+@defunx record->struct-itimerval @var{itimerval-record} @var{malloc}
+Convert between a pointer to a @code{struct itimerval} instance and a
+record of type @class{struct-itimerval}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct itimerval} is stored.
+@end defun
+
+
+@defun <struct-itimerval>-interval @var{pointer}
+@defunx <struct-itimerval>-interval-set! @var{pointer} @var{value}
+@defunx <struct-itimerval>-value @var{pointer}
+@defunx <struct-itimerval>-value-set! @var{pointer} @var{value}
+Accessors and mutators @class{struct-itimerval} records.
+@end defun
+
+@c page
 @node time constants
 @section Constant values
 
@@ -4562,6 +4629,13 @@ The following bindings are exported by the @code{sizeof} library.
 @defvr Constant CLOCKS_PER_SEC
 The number of clock ticks per second measured by the @func{clock}
 function.
+@end defvr
+
+
+@defvr Constant ITIMER_REAL
+@defvrx Constant ITIMER_VIRTUAL
+@defvrx Constant ITIMER_PROF
+Timer selection for @func{setitimer}.
 @end defvr
 
 @c page
@@ -4944,6 +5018,110 @@ record.
 Before calling @func{primitive:strptime} all the integer fields of
 @code{struct tm} are initialised to @code{INT_MAX} and the @code{zone}
 field is initialised to the @cnull{} pointer.
+@end deffn
+
+@c page
+@node time alarm
+@section Setting time alarms
+
+
+The following functions manage time alarms; unless otherwise specified,
+the bindings are exported by the Glibc @code{time} libraries.
+@glibcref{Setting an Alarm, Setting an Alarm}.
+
+
+@deffn Function setitimer @var{which} @var{new} @var{old}
+@deffnx Parameter setitimer-function
+@deffnx Function primitive:setitimer @var{which} @var{new} @var{old}
+@deffnx Function platform:setitimer @var{which} @var{new} @var{old}
+Set the timer specified by @var{which} according to the time
+specification in the @code{struct itimerval} instance referenced by the
+pointer @var{new}; the old timer specification, for the selected type,
+is stored in the @code{struct itimerval} instance referenced by the
+pointer @var{old}.
+
+@var{which} can be one among the values bound to @code{ITIMER_REAL},
+@code{ITIMER_VIRTUAL} and @code{ITIMER_PROF}.
+@end deffn
+
+
+@deffn Function setitimer* @var{which} @var{new-record}
+@deffnx Parameter setitimer*-function
+@deffnx Function primitive:setitimer* @var{which} @var{new-pointer}
+Wrappers for @func{primitive:setitimer} which internally convert the
+@class{struct-itimerval} record @var{new-record} to a @code{struct
+itimerval} instance and set the selected timer accordingly; the return
+value is a @class{struct-itimerval} record representing the old
+specification of the selected timer.
+@end deffn
+
+
+@deffn Function getitimer @var{which} @var{old}
+@deffnx Parameter getitimer-function
+@deffnx Function primitive:getitimer @var{which} @var{old}
+@deffnx Function platform:getitimer @var{which} @var{old}
+Store, in the @code{struct itimerval} instance referenced by the pointer
+@var{old}, the current timer specification for the selected type.
+@var{which} can be one among the values bound to @code{ITIMER_REAL},
+@code{ITIMER_VIRTUAL} and @code{ITIMER_PROF}.
+@end deffn
+
+
+@deffn Function getitimer* @var{which}
+@deffnx Parameter getitimer*-function
+@deffnx Function primitive:getitimer* @var{which}
+Wrappers for @func{primitive:getitimer} which internally allocate a
+@code{struct itimerval} instance, query the timer status and return a
+@class{struct-itimerval} record.
+@end deffn
+
+
+@deffn Function alarm @var{seconds}
+@deffnx Parameter alarm-function
+@deffnx Function primitive:alarm @var{seconds}
+@deffnx Function platform:alarm @var{seconds}
+Set the timer of type @code{ITIMER_REAL} to trigger after @var{seconds}
+past the call.
+@end deffn
+
+@c page
+@node time sleep
+@section Sleeping
+
+
+The following bindings halt the process for a short interval; unless
+otherwise specified, the bindings are exported by the Glibc @code{time}
+libraries.  @glibcref{Sleeping, Sleeping}.
+
+
+@defun sleep @var{seconds}
+@defunx primitive:sleep @var{seconds}
+@defunx platform:sleep @var{seconds}
+Halt the process for @var{seconds}; return after the elapsed time or if
+a signal is received.  The return value is zero if the time is elapsed
+or, if a signal is received, the number of seconds still to wait.
+@end defun
+
+
+@deffn Function nanosleep @var{requested} @var{remaining}
+@deffnx Parameter nanosleep-function
+@deffnx Function primitive:nanosleep @var{requested} @var{remaining}
+@deffnx Function platform:nanosleep @var{requested} @var{remaining}
+Halt the process for the time specified in the @code{struct timespec}
+instance referenced by the @var{requested} pointer; return after the
+elapsed time or if a signal is received.  Store in the @code{struct
+timespec} instance referenced by the pointer @var{remaining} the
+remaining time.
+@end deffn
+
+
+@deffn Function nanosleep* @var{requested}
+@deffnx Parameter nanosleep*-function
+@deffnx Function primitive:nanosleep* @var{requested}
+Wrappers for @func{primitive:nanosleep} which internally convert the
+@class{struct-timespec} record @var{requested} in a @code{struct
+timespec} instance, halt the process and return the remaining time in a
+@class{struct-timespec} record.
 @end deffn
 
 @c page

@@ -297,6 +297,67 @@
       #t)))
 
 
+(parametrise ((check-test-name 'alarms))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in alarms" E))
+    (lambda ()
+
+      (check
+	  (<struct-itimerval>?
+	   (glibc:setitimer* ITIMER_REAL (make-<struct-itimerval>
+					  (make-<struct-timeval> 0 0)
+					  (make-<struct-timeval> 999999 1))))
+	=> #t)
+
+      ;;The record returned by GETITIMER* has unpredictable values.
+      ;;
+      ;; (check
+      ;; 	  (begin
+      ;; 	    (glibc:setitimer* ITIMER_REAL (make-<struct-itimerval>
+      ;; 					   (make-<struct-timeval> 0 0)
+      ;; 					   (make-<struct-timeval> 999999 1)))
+      ;; 	    (let* ((r (glibc:getitimer* ITIMER_REAL))
+      ;; 		   (i (<struct-itimerval>-interval r))
+      ;; 		   (v (<struct-itimerval>-value    r)))
+      ;; 	      (list (<struct-timeval>-sec  i)
+      ;; 		    (<struct-timeval>-usec i)
+      ;; 		    (<struct-timeval>-sec  v)
+      ;; 		    (<struct-timeval>-usec v))))
+      ;; 	=> '(0 0 999999 1))
+
+      (check
+	  (<struct-itimerval>? (glibc:getitimer* ITIMER_REAL))
+	=> #t)
+
+      (check
+	  (glibc:alarm 999999)
+	=> 999999)
+
+      #t)))
+
+
+(parametrise ((check-test-name 'sleep))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in sleep" E))
+    (lambda ()
+
+      (check
+	  (glibc:sleep 1)
+	=> 0)
+
+      (check
+	  (let ((r (glibc:nanosleep* (make-<struct-timespec> 1 0))))
+	    (list (<struct-timespec>-sec  r)
+		  (<struct-timespec>-nsec r)))
+	=> '(0 0))
+
+      #t)))
+
+
 ;;;; done
 
 (check-report)

@@ -81,7 +81,7 @@
     struct-timex->record		record->struct-timex
     <struct-timex>-modes		<struct-timex>-modes-set!
     <struct-timex>-offset		<struct-timex>-offset-set!
-    <struct-timex>-frequency		<struct-timex>-frequency-set!
+    <struct-timex>-freq			<struct-timex>-freq-set!
     <struct-timex>-maxerror		<struct-timex>-maxerror-set!
     <struct-timex>-esterror		<struct-timex>-esterror-set!
     <struct-timex>-status		<struct-timex>-status-set!
@@ -255,7 +255,7 @@
 (define-record-type <struct-timex>
   (fields (mutable modes)
 	  (mutable offset)
-	  (mutable frequency)
+	  (mutable freq)
 	  (mutable maxerror)
 	  (mutable esterror)
 	  (mutable status)
@@ -279,7 +279,7 @@
 (define (struct-timex->record pointer)
   (make-<struct-timex> (struct-timex-modes-ref pointer)
 		       (struct-timex-offset-ref pointer)
-		       (struct-timex-frequency-ref pointer)
+		       (struct-timex-freq-ref pointer)
 		       (struct-timex-maxerror-ref pointer)
 		       (struct-timex-esterror-ref pointer)
 		       (struct-timex-status-ref pointer)
@@ -305,7 +305,7 @@
       (struct-timeval-tv_usec-set! time-pointer (<struct-timeval>-usec time-record)))
     (struct-timex-modes-set!	 pointer (<struct-timex>-modes     record))
     (struct-timex-offset-set!    pointer (<struct-timex>-offset    record))
-    (struct-timex-frequency-set! pointer (<struct-timex>-frequency record))
+    (struct-timex-freq-set!      pointer (<struct-timex>-freq record))
     (struct-timex-maxerror-set!  pointer (<struct-timex>-maxerror  record))
     (struct-timex-esterror-set!  pointer (<struct-timex>-esterror  record))
     (struct-timex-status-set!    pointer (<struct-timex>-status    record))
