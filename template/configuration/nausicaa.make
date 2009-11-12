@@ -279,11 +279,12 @@ fasl_ypsilon_FASL	=
 fasl_ypsilon_TARGETS	=
 
 fasl_ypsilon_COMPILE_SCRIPT	= $(fasl_SRCDIR)/compile-all.ypsilon.sps
-ifeq (,$(strip $(YPSILON_LOADPATH)))
-fasl_ypsilon_COMPILE_ENV	= YPSILON_LOADPATH=$(fasl_BUILDDIR)
+ifeq (,$(strip $(YPSILON_SITELIB)))
+fasl_ypsilon_COMPILE_ENV	= YPSILON_SITELIB=$(fasl_BUILDDIR)
 else
-fasl_ypsilon_COMPILE_ENV	= YPSILON_LOADPATH=$(fasl_BUILDDIR):$(YPSILON_LOADPATH)
+fasl_ypsilon_COMPILE_ENV	= YPSILON_SITELIB=$(fasl_BUILDDIR):$(YPSILON_SITELIB)
 endif
+fasl_ypsilon_COMPILE_ENV	+= $(nau_test_ENV)
 fasl_ypsilon_COMPILE_COMMAND	= $(YPSILON) --verbose
 ## --acc=$(fasl_BUILDDIR)
 fasl_ypsilon_COMPILE_RUN	= $(fasl_ypsilon_COMPILE_ENV)		\
