@@ -152,14 +152,18 @@ $(eval $(call ds-builddir,fasl,$(builddir)/fasl.d))
 fasl_SOURCES	= $(shell cd $(fasl_SRCDIR) ; $(FIND) -type f -name \*.sls)
 fasl_TARGETS	= $(addprefix $(fasl_BUILDDIR)/,$(fasl_SOURCES))
 
-$(fasl_TARGETS): $(fasl_BUILDDIR)/%: $(fasl_SRCDIR)/%
-	@test -d $(dir $(@)) || $(MKDIR) $(dir $(@))
-	@$(CP) $(<) $(@)
+.PHONY: fasl-copy
 
 fasl: $(nau_FASL_IMPLEMENTATIONS)
 
 fasl-clean: $(foreach i,$(nau_FASL_IMPLEMENTATIONS),$(i)-clean)
 	$(RM) $(fasl_BUILDDIR)
+
+fasl-copy: $(fasl_TARGETS)
+
+$(fasl_TARGETS): $(fasl_BUILDDIR)/%: $(fasl_SRCDIR)/%
+	@test -d $(dir $(@)) || $(MKDIR) $(dir $(@))
+	@$(CP) $(<) $(@)
 
 bin:		fasl
 bin-clean:	fasl-clean
@@ -187,7 +191,8 @@ fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) \
 
 .PHONY: ifasl ifasl-clean
 
-ifasl: $(fasl_TARGETS) ifasl-clean
+ifasl: fasl-copy ifasl-clean
+	@echo "--- Compiling for Ikarus Scheme"
 	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_RUN)
 
 ifasl-clean:
@@ -204,8 +209,8 @@ endif # nausicaa_ENABLE_FASL == yes
 ifeq (yes,$(nausicaa_ENABLE_FASL))
 ifeq (yes,$(nausicaa_ENABLE_MOSH))
 
-fasl_mosh_FASL		= $(shell cd $(fasl_BUILDDIR) && $(FIND) -name \*.mosh*fasl)
-fasl_mosh_TARGETS	= $(addprefix $(fasl_BUILDDIR)/,$(fasl_mosh_FASL))
+fasl_mosh_FASL		=
+fasl_mosh_TARGETS	=
 
 fasl_mosh_COMPILE_SCRIPT	= $(fasl_SRCDIR)/compile-all.mosh.sps
 ifeq (,$(strip $(MOSH_LOADPATH)))
@@ -213,16 +218,16 @@ fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(fasl_BUILDDIR)
 else
 fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(fasl_BUILDDIR):$(MOSH_LOADPATH)
 endif
-fasl_mosh_COMPILE_COMMAND	= echo \
-	"(import (rnrs)(mosh))\n ((symbol-value 'pre-compile-r6rs-file) \"$(fasl_mosh_COMPILE_SCRIPT)\")\n(exit)\n" \
-	 | $(fasl_mosh_COMPILE_ENV) $(MOSH)
-fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_COMMAND)
+fasl_mosh_COMPILE_COMMAND	= $(MOSH)
+fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_ENV)		\
+					$(fasl_mosh_COMPILE_COMMAND)	\
+					$(fasl_mosh_COMPILE_SCRIPT)
 
 .PHONY: mfasl mfasl-clean
 
-mfasl: $(fasl_TARGETS) mfasl-clean
-# Commented out Wed Jun  3, 2009 because compiling is still unstable.
-#	test -f $(fasl_mosh_COMPILE_SCRIPT) && $(fasl_mosh_COMPILE_RUN)
+mfasl: fasl-copy mfasl-clean
+	@echo "--- Compiling for Mosh Scheme"
+	test -f $(fasl_mosh_COMPILE_SCRIPT) && $(fasl_mosh_COMPILE_RUN)
 
 mfasl-clean:
 	$(RM) $(fasl_mosh_TARGETS)
@@ -252,7 +257,8 @@ fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) \
 
 .PHONY: lfasl lfasl-clean
 
-lfasl: $(fasl_TARGETS) lfasl-clean
+lfasl: fasl-copy lfasl-clean
+	@echo "--- Compiling for Larceny Scheme"
 	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(fasl_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
 
 lfasl-clean:
@@ -269,13 +275,31 @@ endif # nausicaa_ENABLE_FASL == yes
 ifeq (yes,$(nausicaa_ENABLE_FASL))
 ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 
+fasl_ypsilon_FASL	=
+fasl_ypsilon_TARGETS	=
+
+fasl_ypsilon_COMPILE_SCRIPT	= $(fasl_SRCDIR)/compile-all.ypsilon.sps
+ifeq (,$(strip $(YPSILON_LOADPATH)))
+fasl_ypsilon_COMPILE_ENV	= YPSILON_LOADPATH=$(fasl_BUILDDIR)
+else
+fasl_ypsilon_COMPILE_ENV	= YPSILON_LOADPATH=$(fasl_BUILDDIR):$(YPSILON_LOADPATH)
+endif
+fasl_ypsilon_COMPILE_COMMAND	= $(YPSILON) --verbose
+## --acc=$(fasl_BUILDDIR)
+fasl_ypsilon_COMPILE_RUN	= $(fasl_ypsilon_COMPILE_ENV)		\
+					$(fasl_ypsilon_COMPILE_COMMAND)	\
+					$(fasl_ypsilon_COMPILE_SCRIPT)
+
 .PHONY: yfasl yfasl-clean
 
-yfasl: $(fasl_TARGETS) yfasl-clean
+yfasl: fasl-copy yfasl-clean
+	@echo "--- Compiling for Ypsilon Scheme"
+	test -f $(fasl_ypsilon_COMPILE_SCRIPT) && $(fasl_ypsilon_COMPILE_RUN)
 
 yfasl-clean:
+	$(RM) $(fasl_ypsilon_TARGETS)
 
-endif # nausicaa_ENABLE_MOSH == yes
+endif # nausicaa_ENABLE_YPSILON == yes
 endif # nausicaa_ENABLE_FASL == yes
 
 #page
