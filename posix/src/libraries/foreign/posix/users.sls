@@ -27,7 +27,7 @@
 (library (foreign posix users)
   (export)
   (import (rnrs)
-    (prefix (foreign posix users primitives) primitive:)
+    (prefix (foreign posix users primitives) primitive:))
 
 
 ;;;; code

@@ -25,25 +25,6 @@
 
 #page
 ## --------------------------------------------------------------------
-## Stub library.
-## --------------------------------------------------------------------
-
-posix_stub_SRCDIR	= $(srcdir)/src/posix-stub
-posix_stub_BUILDDIR	= $(builddir)/posix-objects.d
-
-posix_stub_PREREQUISITES = $(wildcard $(posix_stub_SRCDIR)/*.h)
-
-$(eval $(call ds-c-library,posix_stub))
-
-# This is needed to test.
-nau_test_LDPATH=$(posix_stub_shlib_BUILDDIR)
-
-.PHONY: library stub stub-library
-
-library stub stub-library: posix_stub_shlib-all
-
-#page
-## --------------------------------------------------------------------
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
@@ -55,7 +36,7 @@ $(eval $(call nau-libraries,posix_job,foreign/posix/job))
 $(eval $(call nau-libraries,posix_process,foreign/posix/process))
 $(eval $(call nau-libraries,posix_stat,foreign/posix/stat))
 $(eval $(call nau-libraries,posix_time,foreign/posix/time))
-$(eval $(call nau-libraries,posix_users,foreign/posix/users))
+##$(eval $(call nau-libraries,posix_users,foreign/posix/users))
 
 $(eval $(call nau-libraries,glibc,foreign/glibc))
 $(eval $(call nau-libraries,glibc_cstrings,foreign/glibc/cstrings))

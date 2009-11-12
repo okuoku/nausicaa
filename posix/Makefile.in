@@ -28,7 +28,8 @@ srcdir		= @srcdir@
 builddir	= @builddir@
 
 include meta.d/makefiles/develstuff.make
-include meta.d/makefiles/project.make
+include meta.d/makefiles/library.make
 include meta.d/makefiles/nausicaa.make
+include meta.d/makefiles/project.make
 
 ### end of file

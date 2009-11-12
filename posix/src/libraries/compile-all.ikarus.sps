@@ -24,6 +24,7 @@
 ;;;
 
 (import
+;;  (only (foreign posix users))
   (only (foreign posix environment))
   (only (foreign posix time))
   (only (foreign posix file))
