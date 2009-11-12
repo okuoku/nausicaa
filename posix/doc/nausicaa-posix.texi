@@ -605,6 +605,8 @@ Date and time
 * time calendar::               Simple calendar time.
 * time hires::                  High resolution calendar.
 * time broken::                 Broken--down time.
+* time hiaccu::                 High accuracy clock.
+* time format::                 Formatting broken--down time.
 
 Data structures
 
@@ -613,6 +615,8 @@ Data structures
 * time structs tms::            @code{struct tms} inspection.
 * time structs timezone::       @code{struct timezone} inspection.
 * time structs tm::             @code{struct tm} inspection.
+* time structs ntptimeval::     @code{struct ntptimeval} inspection.
+* time structs timex::          @code{struct timex} inspection.
 
 Record types
 
@@ -621,6 +625,8 @@ Record types
 * time records timespec::       @code{struct timespec} mirror.
 * time records timezone::       @code{struct timezone} mirror.
 * time records tm::             @code{struct tm} mirror.
+* time records ntptimeval::     @code{struct ntptimeval} mirror.
+* time records timex::          @code{struct timex} mirror.
 
 Processes
 
@@ -3897,6 +3903,8 @@ exported by the @posix{} @code{time} libraries.
 * time hires::                  High resolution calendar.
 * time broken::                 Broken--down time.
 * time hiaccu::                 High accuracy clock.
+* time format::                 Formatting broken--down time.
+* time parsing::                Parsing time strings.
 @end menu
 
 @c page
@@ -3941,6 +3949,7 @@ exported by the @code{sizeof} library.
 * time structs tm::             @code{struct tm} inspection.
 * time structs ntptimeval::     @code{struct ntptimeval} inspection.
 * time structs timex::          @code{struct timex} inspection.
+* time structs itimerval::      @code{struct itimerval} inspection.
 @end menu
 
 @c page
@@ -4112,6 +4121,12 @@ type.
 @subsection @code{struct timex} inspection
 
 
+The following bindings implement inspection for the @code{struct timex}
+type; not all the mentioned fields are available on all the platforms,
+we have to check the original documentation.  @glibcref{High Accuracy
+Clock, High Accuracy Clock}.
+
+
 @defvar sizeof-struct-timex
 @defvarx alignof-struct-timex
 @defvarx strideof-struct-timex
@@ -4168,6 +4183,10 @@ structure.
 Accessors and mutators for the fields of a @code{struct timex}
 type.
 @end deffn
+
+@c page
+@node time structs itimerval
+@subsection @code{struct itimerval} inspection
 
 
 @c page
@@ -4363,6 +4382,9 @@ following fields, one for each field in the @code{struct tm} type:
 @code{sec}, @code{min}, @code{hour}, @code{mday}, @code{mon},
 @code{year}, @code{wday}, @code{yday}, @code{isdst}, @code{gmtoff},
 @code{zone}.
+
+Notice that the @code{zone} field is meant to hold a pointer to a C
+string.
 @end deftp
 
 
@@ -4377,6 +4399,10 @@ Constructor and predicate for @class{struct-tm} records.
 Convert between a pointer to a@code{struct tm} instance and a
 record of type @class{struct-tm}.  The @var{malloc} function is
 used to allocate memory in which the @code{struct tm} is stored.
+
+Notice that no conversion is performed on the value in the @code{zone}
+field; we have to explicitly convert between C strings and Scheme
+strings.
 @end defun
 
 
@@ -4801,6 +4827,8 @@ record; return the record.
 Set the @code{struct timex} instance referenced by @var{pointer} to
 current values, also set some kernel values with values from the
 instance.  See the original documentation for details.
+
+Superuser privileges are needed to successfully call this function.
 @end deffn
 
 
@@ -4814,6 +4842,108 @@ convert the modified structure into a new @class{struct-timex} record
 and return it.
 
 The original @var{record} is @strong{not} mutated.
+@end deffn
+
+@c page
+@node time format
+@section Formatting broken--down time
+
+
+The following functions format broken--down time specifications into
+strings; unless otherwise specified, the bindings are exported by the
+Glibc @code{time} libraries.  @glibcref{Formatting Calendar Time,
+Formatting Calendar Time}.
+
+
+@deffn Function asctime @var{pointer}
+@deffnx Parameter asctime-function
+@deffnx Function primitive:asctime @var{pointer}
+@deffnx Function platform:asctime_r @var{pointer} @var{cstr}
+Convert the time specification in the @code{struct tm} instance
+referenced by @var{pointer} into a string in a standard format; return a
+Scheme string.
+
+Despite the names, these are wrappers for @cfunc{asctime_r}, so they are
+reentrant.
+@end deffn
+
+
+@deffn Function asctime* @var{record}
+@deffnx Parameter asctime*-function
+@deffnx Function primitive:asctime* @var{record}
+Wrappers for @func{primitive:asctime} which automatically convert the
+@class{struct-tm} @var{record} into an instance of @code{struct tm} and
+perform the conversion to string.
+@end deffn
+
+
+@deffn Function ctime @var{calendar-time}
+@deffnx Parameter ctime-function
+@deffnx Function primitive:ctime @var{calendar-time}
+@deffnx Function platform:ctime_r @var{calendar-time} @var{cstr}
+Convert the time specification of @var{calendar-time} into a string in a
+standard format; return a Scheme string.
+
+Despite the names, these are wrappers for @cfunc{ctime_r}, so they are
+reentrant.
+@end deffn
+
+
+@deffn Function strftime @var{template} @var{pointer}
+@deffnx Parameter strftime-function
+@deffnx Function primitive:strftime @var{template} @var{pointer}
+@deffnx Function platform:strftime @var{output-cstr} @var{output-len} @var{template-cstr} @var{pointer}
+Return a Scheme string representing the date and time specification
+described by @var{template}, which must be a Scheme string, and the
+@code{struct tm} instance referenced by @var{pointer}.
+
+@quotation
+@strong{NOTE} At present the maximum length of the output string is
+@math{4095} bytes.  If the time specification and template require more
+than that number of bytes, an error is raised.
+@end quotation
+@end deffn
+
+
+@deffn Function strftime* @var{template} @var{record}
+@deffnx Parameter strftime*-function
+@deffnx Function primitive:strftime* @var{template} @var{record}
+Wrappers for @func{primitive:strftime} which automatically convert the
+@class{struct-tm} @var{record} into an instance of @code{struct tm},
+then build and return the output string.
+@end deffn
+
+@c page
+@node time parsing
+@section Parsing time strings
+
+
+The following functions parse strings containing time and date
+specifications; unless otherwise specified, the bindings are exported by
+the Glibc @code{time} libraries.  @glibcref{Low-Level Time String
+Parsing, Interpret string according to given format}.
+
+
+@deffn Function strptime @var{input} @var{template} @var{pointer}
+@deffnx Parameter strptime-function
+@deffnx Function primitive:strptime @var{input} @var{template} @var{pointer}
+@deffnx Function platform:strptime @var{input-cstr} @var{template-cstr} @var{pointer}
+Parse the @var{input} Scheme string according to the @var{template}
+Scheme string and store the values in the @code{struct tm} instance
+referenced by @var{pointer}.
+@end deffn
+
+
+@deffn Function strptime* @var{input} @var{template}
+@deffnx Parameter strptime*-function
+@deffnx Function primitive:strptime* @var{input} @var{template}
+Wrappers for @func{primitive:strptime} which allocate a @code{struct tm}
+instance and convert it to a @class{struct-tm} record; return the
+record.
+
+Before calling @func{primitive:strptime} all the integer fields of
+@code{struct tm} are initialised to @code{INT_MAX} and the @code{zone}
+field is initialised to the @cnull{} pointer.
 @end deffn
 
 @c page

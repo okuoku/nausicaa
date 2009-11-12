@@ -148,6 +148,8 @@ NAU_POSIX_INSPECT_TYPE([PID_T],[pid_t],[signed-int])
 NAU_POSIX_INSPECT_TYPE([TIME_T],[time_t],[signed-int])
 NAU_POSIX_INSPECT_TYPE([UID_T],[uid_t],[signed-int])
 
+NAU_POSIX_INSPECT_TYPE([WCHAR_T],[wchar_t],[signed-int])
+
 dnl page
 dnl --------------------------------------------------------------------
 dnl Struct types inspection.
@@ -308,6 +310,18 @@ NAU_POSIX_STRUCT_TIMEX_FIELD([JITCNT],[jitcnt],[signed-int])
 NAU_POSIX_STRUCT_TIMEX_FIELD([CALCNT],[calcnt],[signed-int])
 NAU_POSIX_STRUCT_TIMEX_FIELD([ERRCNT],[errcnt],[signed-int])
 NAU_POSIX_STRUCT_TIMEX_FIELD([STBCNT],[stbcnt],[signed-int])
+
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAU_POSIX_STRUCT_ITIMERVAL_FIELD],
+  [NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_ITIMERVAL_$1],[struct ITIMERVAL],[$2],[$3])])
+
+AC_DEFUN([NAU_POSIX_STRUCT_ITIMERVAL_POINTER_FIELD],
+  [NAU_POSIX_INSPECT_FIELD_TYPE_POINTER([STRUCT_ITIMERVAL_$1],[struct itimerval],[$2])])
+
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_ITIMERVAL],[struct ITIMERVAL])
+NAU_POSIX_STRUCT_ITIMERVAL_POINTER_FIELD([IT_INTERVAL],[it_interval])
+NAU_POSIX_STRUCT_ITIMERVAL_POINTER_FIELD([IT_VALUE],[it_value])
 
 dnl --------------------------------------------------------------------
 
@@ -474,6 +488,11 @@ NAU_POSIX_DEFINE_VALUE([FTW_CONTINUE])
 NAU_POSIX_DEFINE_VALUE([FTW_STOP])
 NAU_POSIX_DEFINE_VALUE([FTW_SKIP_SUBTREE])
 NAU_POSIX_DEFINE_VALUE([FTW_SKIP_SIBLINGS])
+
+dnl "setitimer()" stuff
+NAU_POSIX_DEFINE_VALUE([ITIMER_REAL])
+NAU_POSIX_DEFINE_VALUE([ITIMER_VIRTUAL])
+NAU_POSIX_DEFINE_VALUE([ITIMER_PROF])
 
 dnl Misc
 NAU_POSIX_DEFINE_VALUE([EOF])

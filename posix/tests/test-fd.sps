@@ -77,7 +77,7 @@ Ses ailes de geant l'empechent de marcher.")
 		  (cstring->string bufptr2 buflen2)))))
 	=> the-string)
 
-      (check	;open, close, pwrite, pread, lseek, fsync
+      (check 	;open, close, pwrite, pread, lseek, fsync
 	  (with-compensations
 	    (let ((pathname the-pathname))
 	      (letrec ((fd (compensate

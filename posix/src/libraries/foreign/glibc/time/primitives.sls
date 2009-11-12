@@ -41,17 +41,39 @@
     timegm		timegm*
 
     ;; high accuracy time
-    ntp_gettime		ntp_adjtime
+    ntp_gettime		ntp_gettime*
+    ntp_adjtime		ntp_adjtime*
+
+    ;; formatting broken-down time
+    asctime		asctime*
+    ctime
+    strftime		strftime*
+
+    ;; parsing time strings
+    strptime		strptime*
+
+    ;; setting alarms
+    setitimer		setitimer*
+    getitimer		getitimer*
+    alarm
     )
   (import (rnrs)
     (receive)
     (compensations)
+    (only (foreign ffi sizeof)
+	  valueof-int-max)
     (only (foreign ffi pointers)
 	  pointer-null
+	  pointer-null?
 	  pointer=?)
+    (only (foreign ffi peekers-and-pokers)
+	  pointer-ref-c-uint8)
     (only (foreign memory)
 	  malloc-small/c
 	  malloc-block/c)
+    (only (foreign cstrings)
+	  cstring->string
+	  string->cstring/c)
     (only (foreign errno)
 	  raise-errno-error)
     (foreign posix sizeof)
@@ -163,7 +185,7 @@
 
 (define (ntp_gettime*)
   (with-compensations
-    (let ((ntptimeval* (mallock-block/c sizeof-struct-ntptimeval)))
+    (let ((ntptimeval* (malloc-block/c sizeof-struct-ntptimeval)))
       (platform:ntp_gettime ntptimeval*)
       (struct-ntptimeval->record ntptimeval*))))
 
@@ -179,6 +201,120 @@
     (let ((timex* (record->struct-timex record malloc-block/c)))
       (platform:ntp_gettime timex*)
       (struct-timex->record timex*))))
+
+
+;;;; formatting broken-down time
+
+(define (asctime struct-tm*)
+  (with-compensations
+    (let ((cstr (malloc-block/c 26)))
+      (receive (result errno)
+	  (platform:asctime_r struct-tm* cstr)
+	(if (pointer-null? cstr)
+	    (raise-errno-error 'asctime errno struct-tm*)
+	  (cstring->string cstr))))))
+
+(define (asctime* tm-record)
+  (with-compensations
+    (asctime (record->struct-tm tm-record malloc-block/c))))
+
+(define (ctime calendar-time)
+  (with-compensations
+    (let ((cstr (malloc-block/c 26)))
+      (receive (result errno)
+	  (platform:ctime_r calendar-time cstr)
+	(if (pointer-null? cstr)
+	    (raise-errno-error 'ctime errno calendar-time)
+	  (cstring->string cstr))))))
+
+(define (strftime template struct-tm*)
+  ;;*FIXME* Fixed  size for the output  buffer is UGLY!!!   But read the
+  ;;documentation of "strftime()".
+  (with-compensations
+    (let* ((c-template		(string->cstring/c template))
+	   (proposed-len	4096)
+	   (output		(malloc-block/c proposed-len)))
+      (receive (required-len errno)
+	  (platform:strftime output proposed-len c-template struct-tm*)
+	(if (= 0 required-len)
+	    (if (= 0 errno)
+		(error 'strftime "error formating output time/date string" (list template struct-tm*))
+	      (raise-errno-error 'strftime errno (list template struct-tm*)))
+	  (cstring->string output required-len))))))
+
+(define (strftime* template tm-record)
+  (with-compensations
+    (strftime template (record->struct-tm tm-record malloc-block/c))))
+
+
+;;;; parsing time strings
+
+(define (strptime input-string template-string struct-tm*)
+  (with-compensations
+    (let* ((input*	(string->cstring/c input-string))
+	   (template*	(string->cstring/c template-string))
+	   (result	(platform:strptime input* template* struct-tm*)))
+      (when (or (pointer-null? result)
+		(not (= 0 (pointer-ref-c-uint8 result 0))))
+	(error 'strptime
+	  "unable to parse date/time string according to the template"
+	  (list input-string template-string))))))
+
+(define (strptime* input-string template-string)
+  (with-compensations
+    (let ((struct-tm* (malloc-block/c sizeof-struct-tm)))
+      (struct-tm-tm_sec-set!    struct-tm* valueof-int-max)
+      (struct-tm-tm_min-set!    struct-tm* valueof-int-max)
+      (struct-tm-tm_hour-set!   struct-tm* valueof-int-max)
+      (struct-tm-tm_mday-set!   struct-tm* valueof-int-max)
+      (struct-tm-tm_mon-set!    struct-tm* valueof-int-max)
+      (struct-tm-tm_year-set!   struct-tm* valueof-int-max)
+      (struct-tm-tm_wday-set!   struct-tm* valueof-int-max)
+      (struct-tm-tm_yday-set!   struct-tm* valueof-int-max)
+      (struct-tm-tm_isdst-set!  struct-tm* valueof-int-max)
+      (struct-tm-tm_gmtoff-set! struct-tm* valueof-int-max)
+      (struct-tm-tm_zone-set!   struct-tm* pointer-null)
+      (strptime input-string template-string struct-tm*)
+      (struct-tm->record struct-tm*))))
+
+
+;;;; setting alarms
+
+(define (setitimer which itimerval-new* itimerval-old*)
+  (receive (result errno)
+      (platform:setitimer which itimerval-new* itimerval-old*)
+    (if (= -1 result)
+	(raise-errno-error 'setitimer errno (list which itimerval-new* itimerval-old*))
+      result)))
+
+(define (getitimer which itimerval-old*)
+  (receive (result errno)
+      (platform:getitimer which itimerval-old*)
+    (if (= -1 result)
+	(raise-errno-error 'getitimer errno (list which itimerval-old*))
+      result)))
+
+(define (alarm seconds)
+  (receive (result errno)
+      (platform:alarm seconds)
+    (if (= -1 result)
+	(raise-errno-error 'alarm errno seconds)
+      result)))
+
+;;; --------------------------------------------------------------------
+
+(define (setitimer* which itimerval-record)
+  (with-compensations
+    (let ((itimerval-new*	(record->struct-itimerval itimerval-record malloc-block/c))
+	  (itimerval-old*	(malloc-block/c sizeof-struct-itimerval)))
+      (setitimer which itimerval-new* itimerval-old*)
+      (struct-itimerval->record itimerval-old*))))
+
+(define (getitimer* which)
+  (with-compensations
+    (let ((itimerval-old* (malloc-block/c sizeof-struct-itimerval)))
+      (getitimer which itimerval-old*)
+      (struct-itimerval->record itimerval-old*))))
 
 
 ;;;; done

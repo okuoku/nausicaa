@@ -50,6 +50,24 @@
     ntp_gettime*	ntp_gettime*-function
     ntp_adjtime		ntp_adjtime-function
     ntp_adjtime*	ntp_adjtime*-function
+
+    ;; formatting broken-down time
+    asctime		asctime-function
+    asctime*		asctime*-function
+    ctime		ctime-function
+    strftime		strftime-function
+    strftime*		strftime*-function
+
+    ;; parsing time strings
+    strptime		strptime-function
+    strptime*		strptime*-function
+
+    ;; setting alarms
+    setitimer		setitimer-function
+    setitimer*		setitimer*-function
+    getitimer		getitimer-function
+    getitimer*		getitimer*-function
+    alarm		alarm-function
     )
   (import (rnrs)
     (foreign posix helpers)
@@ -81,6 +99,27 @@
 (define-parametrised ntp_gettime*)
 (define-parametrised ntp_adjtime timex*)
 (define-parametrised ntp_adjtime* timex-record)
+
+;;; --------------------------------------------------------------------
+
+(define-parametrised asctime struct-tm*)
+(define-parametrised asctime* record-tm)
+(define-parametrised ctime calendar-time)
+(define-parametrised strftime template struct-tm*)
+(define-parametrised strftime* template tm-record)
+
+;;; --------------------------------------------------------------------
+
+(define-parametrised strptime  input template struct-tm*)
+(define-parametrised strptime* input template)
+
+;;; --------------------------------------------------------------------
+
+(define-parametrised setitimer  which struct-itimer-new* struct-itimer-old*)
+(define-parametrised setitimer* which itimer-new-record)
+(define-parametrised getitimer  which struct-itimer-old*)
+(define-parametrised getitimer* which)
+(define-parametrised alarm seconds)
 
 
 ;;;; done

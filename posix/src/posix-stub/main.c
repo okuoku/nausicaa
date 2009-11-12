@@ -203,6 +203,8 @@ extern void nausicaa_posix_tms_stime_set (struct tms * T, double time);
 extern void nausicaa_posix_tms_cutime_set (struct tms * T, double time);
 extern void nausicaa_posix_tms_cstime_set (struct tms * T, double time);
 
+extern char * nausicaa_posix_ctime_r (double tim, char * cstr);
+
 
 /** --------------------------------------------------------------------
  ** Miscellaneous prototypes.
@@ -347,6 +349,12 @@ void
 nausicaa_posix_tms_cstime_set (struct tms * T, double tim)
 {
   T->tms_cstime = (time_t)tim;
+}
+char *
+nausicaa_posix_ctime_r (double tim, char * cstr)
+{
+  time_t	t = (time_t)tim;
+  return ctime_r(&t, cstr);
 }
 
 

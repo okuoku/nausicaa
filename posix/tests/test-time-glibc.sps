@@ -29,8 +29,10 @@
   (checks)
   (deferred-exceptions)
   (compensations)
-  (foreign errno)
+  (only (foreign ffi sizeof) valueof-int-max)
   (foreign memory)
+  (foreign cstrings)
+  (foreign errno)
   (foreign posix sizeof)
   (prefix (foreign posix time) posix:)
   (prefix (foreign glibc time) glibc:)
@@ -38,6 +40,33 @@
 
 (check-set-mode! 'report-failed)
 (display "*** testing Glibc time\n")
+
+
+;;;; helpers
+
+(define (equal-<struct-tm>? a b)
+  (and (equal? (<struct-tm>-sec a)
+	       (<struct-tm>-sec b))
+       (equal? (<struct-tm>-min a)
+	       (<struct-tm>-min b))
+       (equal? (<struct-tm>-hour a)
+	       (<struct-tm>-hour b))
+       (equal? (<struct-tm>-mday a)
+	       (<struct-tm>-mday b))
+       (equal? (<struct-tm>-mon a)
+	       (<struct-tm>-mon b))
+       (equal? (<struct-tm>-year a)
+	       (<struct-tm>-year b))
+       (equal? (<struct-tm>-wday a)
+	       (<struct-tm>-wday b))
+       (equal? (<struct-tm>-yday a)
+	       (<struct-tm>-yday b))
+       (equal? (<struct-tm>-isdst a)
+	       (<struct-tm>-isdst b))
+       (equal? (<struct-tm>-gmtoff a)
+	       (<struct-tm>-gmtoff b))
+       (pointer=? (<struct-tm>-zone a)
+		  (<struct-tm>-zone b))))
 
 
 (parametrise ((check-test-name 'simple-calendar))
@@ -160,12 +189,110 @@
 	(debug-print-condition "deferred condition in high accuracy" E))
     (lambda ()
 
+      (check
+	  (<struct-ntptimeval>? (glibc:ntp_gettime*))
+      	=> #t)
+
       ;; (check
-      ;; 	  (with-compensations
-      ;; 	    (let ((p (malloc-block/c sizeof-struct-ntptimeval)))
-      ;; 	      (glibc:ntp_gettime p)
-      ;; 	      (integer? (struct-timeval-tv_sec-ref (struct-ntptimeval-time-ref p)))))
-      ;; 	=> #t)
+      ;; 	  ;;This should fail because root permissions are needed.
+      ;; 	  (guard (E ((errno-condition? E)
+      ;; 		     (errno-symbolic-value E))
+      ;; 		    (else (write E) #f))
+      ;; 	    (glibc:ntp_adjtime* (make-<struct-timex>
+      ;; 				 100 ;modes
+      ;; 				 100 ;offset
+      ;; 				 100 ;frequency
+      ;; 				 100 ;maxerror
+      ;; 				 100 ;esterror
+      ;; 				 100 ;status
+      ;; 				 100 ;constant
+      ;; 				 100 ;precision
+      ;; 				 100 ;tolerance
+      ;; 				 (make-<struct-timeval> 100 100) ;time
+      ;; 				 100 ;tick
+      ;; 				 100 ;ppsfreq
+      ;; 				 100 ;jitter
+      ;; 				 100 ;shift
+      ;; 				 100 ;stabil
+      ;; 				 100 ;jitcnt
+      ;; 				 100 ;calcnt
+      ;; 				 100 ;errcnt
+      ;; 				 100 ;stbcnt
+      ;; 				 )))
+      ;; 	=> 'EPERM)
+
+      #t)))
+
+
+(parametrise ((check-test-name 'format-broken-down))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in format broken-down" E))
+    (lambda ()
+
+      (define broken
+	(make-<struct-tm> 0			;sec
+			  1			;min
+			  2			;hour
+			  3			;mday
+			  4			;mon
+			  5			;year
+			  3			;wday
+			  122			;yday, this is wrong
+			  0			;isdst
+			  0			;gmtoff
+			  (string->cstring/c "CET") ;zone
+			  ))
+
+      (define the-time
+	(glibc:timelocal* broken))
+
+;;; --------------------------------------------------------------------
+
+      (check
+	  (glibc:asctime* broken)
+	=> "Wed May  3 02:01:00 1905\n")
+
+      (check
+	  (glibc:ctime the-time)
+	=> "Wed May  3 02:01:00 1905\n")
+
+      (check
+	  (glibc:strftime* "%a %h %d %H:%M:%S %Y" broken)
+	=> "Wed May 03 02:01:00 1905")
+
+      #t)))
+
+
+(parametrise ((check-test-name 'parsing-strings))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in parsing strings" E))
+    (lambda ()
+
+      (define broken
+	(make-<struct-tm> 0			;sec
+			  1			;min
+			  2			;hour
+			  3			;mday
+			  4			;mon
+			  5			;year
+			  3			;wday
+			  122			;yday, this is wrong
+			  valueof-int-max	;isdst
+			  valueof-int-max	;gmtoff
+			  pointer-null		;zone
+			  ))
+
+      (define template "%a %h %d %H:%M:%S %Y")
+      (define the-string "Wed May 03 02:01:00 1905")
+
+      (check
+	  (glibc:strptime* the-string template)
+	(=> equal-<struct-tm>?)
+	broken)
 
       #t)))
 

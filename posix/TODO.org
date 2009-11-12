@@ -13,14 +13,9 @@
 
   Node "Name Service Switch" (with example stubs library?).
 
-* fd libraries
+  Fix the ugliness in PRIMITIVE:STRFTIME.
 
-  Fix failing tests in the file interface.
-
-  Fix dlsym on lseek.  The  version retrieved looking for "lseek" should
-  return an "off_t".  By artificially setting "off_t" as "unsigned-int",
-  everything works on a 32bit  platform.  Why the return value cannot be
-  the discovered "off_t"?.
+* posix
 
   Add the scatter/gather fd interface.
 
@@ -35,12 +30,6 @@
   Node "System Configuration".
 
   Node "Signal Handling".
-
-* streams
-
-  Test and document the streams-pipe library.
-
-  More tests.
 
 * linux
 

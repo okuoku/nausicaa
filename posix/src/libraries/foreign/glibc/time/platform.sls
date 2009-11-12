@@ -39,7 +39,19 @@
     timelocal		timegm
 
     ;; high accuracy time
-    ntp_gettime		ntp_adjtime)
+    ntp_gettime		ntp_adjtime
+
+    ;; formatting broken-down time
+    asctime_r		ctime_r
+    strftime
+
+    ;; parsing time strings
+    strptime
+
+    ;; setting alarms
+    setitimer		getitimer
+    alarm
+    )
   (import (rnrs)
     (foreign posix shared-object)
     (foreign posix sizeof)
@@ -52,6 +64,7 @@
 (define struct-tm*		'pointer)
 (define struct-ntptimeval*	'pointer)
 (define struct-timex*		'pointer)
+(define struct-itimerval*	'pointer)
 
 
 (define dummy
@@ -76,6 +89,30 @@
 (define-c-function/with-errno ntp_adjtime
   (int ntp_adjtime (struct-timex*)))
 
+;;;; formatting broken-down time
+
+(define-c-function/with-errno asctime_r
+  (char* asctime_r (struct-tm* char*)))
+
+(define-c-function/with-errno strftime
+  (size_t strftime (char* size_t char* struct-tm*)))
+
+;;;; parsing time strings
+
+(define-c-function strptime
+  (char* strptime (char* char* struct-tm*)))
+
+;;;; setting alarms
+
+(define-c-function/with-errno setitimer
+  (int setitimer (int struct-itimerval* struct-itimerval*)))
+
+(define-c-function/with-errno getitimer
+  (int getitimer (int struct-itimerval*)))
+
+(define-c-function/with-errno alarm
+  (unsigned alarm (unsigned)))
+
 
 (define dummy2
   (shared-object libnausicaa-posix))
@@ -98,6 +135,11 @@
 
 (define-c-function/with-errno timegm
   (double nausicaa_posix_timegm (struct-tm*)))
+
+;;;; formatting broken-down time
+
+(define-c-function/with-errno ctime_r
+  (char* nausicaa_posix_ctime_r (double char*)))
 
 
 ;;;; done

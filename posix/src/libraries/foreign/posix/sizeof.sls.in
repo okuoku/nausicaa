@@ -106,6 +106,13 @@
     pointer-set-c-uid_t!
     pointer-ref-c-uid_t
 
+    wchar_t
+    sizeof-wchar_t
+    alignof-wchar_t
+    strideof-wchar_t
+    pointer-set-c-wchar_t!
+    pointer-ref-c-wchar_t
+
 ;;; --------------------------------------------------------------------
 ;;; data structures inspection
 
@@ -128,6 +135,30 @@
     sizeof-struct-utimbuf
     alignof-struct-utimbuf
     strideof-struct-utimbuf
+
+    sizeof-struct-timezone
+    alignof-struct-timezone
+    strideof-struct-timezone
+
+    sizeof-struct-tms
+    alignof-struct-tms
+    strideof-struct-tms
+
+    sizeof-struct-tm
+    alignof-struct-tm
+    strideof-struct-tm
+
+    sizeof-struct-ntptimeval
+    alignof-struct-ntptimeval
+    strideof-struct-ntptimeval
+
+    sizeof-struct-timex
+    alignof-struct-timex
+    strideof-struct-timex
+
+    sizeof-struct-itimerval
+    alignof-struct-itimerval
+    strideof-struct-itimerval
 
 ;;;The  stat structure is  "special"; we  relay on  the stub  library to
 ;;;access it.
@@ -210,30 +241,14 @@
     FTW_SKIP_SUBTREE
     FTW_SKIP_SIBLINGS
 
+    ;; values related to "setitimer()"
+    ITIMER_REAL
+    ITIMER_VIRTUAL
+    ITIMER_PROF
+
 ;;; --------------------------------------------------------------------
+;;; struct accessors and mutators
 
-    ;; struct inspection
-    sizeof-struct-timezone
-    alignof-struct-timezone
-    strideof-struct-timezone
-
-    sizeof-struct-tm
-    alignof-struct-tm
-    strideof-struct-tm
-
-    sizeof-struct-tms
-    alignof-struct-tms
-    strideof-struct-tms
-
-    sizeof-struct-ntptimeval
-    alignof-struct-ntptimeval
-    strideof-struct-ntptimeval
-
-    sizeof-struct-timex
-    alignof-struct-timex
-    strideof-struct-timex
-
-    ;;struct accessors
     struct-flock-l_type-set!		struct-flock-l_type-ref
     struct-flock-l_whence-set!		struct-flock-l_whence-ref
     struct-flock-l_start-set!		struct-flock-l_start-ref
@@ -267,7 +282,7 @@
     struct-tm-tm_gmtoff-set!		struct-tm-tm_gmtoff-ref
     struct-tm-tm_zone-set!		struct-tm-tm_zone-ref
 
-					struct-ntptimeval-time-ref
+    struct-ntptimeval-time-ref
     struct-ntptimeval-maxerror-set!	struct-ntptimeval-maxerror-ref
     struct-ntptimeval-esterror-set!	struct-ntptimeval-esterror-ref
 
@@ -280,7 +295,7 @@
     struct-timex-constant-set!		struct-timex-constant-ref
     struct-timex-precision-set!		struct-timex-precision-ref
     struct-timex-tolerance-set!		struct-timex-tolerance-ref
-					struct-timex-time-ref
+    struct-timex-time-ref
     struct-timex-tick-set!		struct-timex-tick-ref
     struct-timex-ppsfreq-set!		struct-timex-ppsfreq-ref
     struct-timex-jitter-set!		struct-timex-jitter-ref
@@ -293,6 +308,9 @@
 
     struct-utimbuf-actime-set!		struct-utimbuf-actime-ref
     struct-utimbuf-modtime-set!		struct-utimbuf-modtime-ref
+
+    struct-itimerval-it_interval-ref
+    struct-itimerval-it_value-ref
 
     struct-ftw-base-ref			struct-ftw-level-ref
 
@@ -399,6 +417,13 @@
 (define pointer-set-c-uid_t!		@SETTEROF_UID_T@)
 (define pointer-ref-c-uid_t		@GETTEROF_UID_T@)
 
+(define wchar_t				(quote @TYPEOF_WCHAR_T@))
+(define sizeof-wchar_t			(quote @SIZEOF_WCHAR_T@))
+(define alignof-wchar_t			(quote @ALIGNOF_WCHAR_T@))
+(define strideof-wchar_t		(quote @STRIDEOF_WCHAR_T@))
+(define pointer-set-c-wchar_t!		@SETTEROF_WCHAR_T@)
+(define pointer-ref-c-wchar_t		@GETTEROF_WCHAR_T@)
+
 
 ;;;; struct type definitions
 
@@ -441,6 +466,10 @@
 (define sizeof-struct-timex		@SIZEOF_STRUCT_TIMEX@)
 (define alignof-struct-timex		@ALIGNOF_STRUCT_TIMEX@)
 (define strideof-struct-timex		@STRIDEOF_STRUCT_TIMEX@)
+
+(define sizeof-struct-itimerval		@SIZEOF_STRUCT_ITIMERVAL@)
+(define alignof-struct-itimerval	@ALIGNOF_STRUCT_ITIMERVAL@)
+(define strideof-struct-itimerval	@STRIDEOF_STRUCT_ITIMERVAL@)
 
 ;;;The  stat structure is  "special"; we  relay on  the stub  library to
 ;;;access it.
@@ -588,6 +617,10 @@
 (define FTW_SKIP_SUBTREE		@VALUEOF_FTW_SKIP_SUBTREE@)
 (define FTW_SKIP_SIBLINGS		@VALUEOF_FTW_SKIP_SIBLINGS@)
 
+;; constants related to "setitimer()"
+(define ITIMER_REAL			@VALUEOF_ITIMER_REAL@)
+(define ITIMER_VIRTUAL			@VALUEOF_ITIMER_VIRTUAL@)
+(define ITIMER_PROF			@VALUEOF_ITIMER_PROF@)
 
 
 ;;;; struct accessors
@@ -957,6 +990,16 @@
   @OFFSETOF_STRUCT_TIMEX_STBCNT@
   @SETTEROF_STRUCT_TIMEX_STBCNT@
   @GETTEROF_STRUCT_TIMEX_STBCNT@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-field-pointer-accessor
+  struct-itimerval-it_interval-ref
+  @OFFSETOF_STRUCT_ITIMERVAL_IT_INTERVAL@)
+
+(define-c-struct-field-pointer-accessor
+  struct-itimerval-it_value-ref
+  @OFFSETOF_STRUCT_ITIMERVAL_IT_VALUE@)
 
 ;;; --------------------------------------------------------------------
 
