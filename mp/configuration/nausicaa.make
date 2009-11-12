@@ -95,7 +95,9 @@ nau_fasl_$(1)_SOURCES	= $$(call ds-glob,nau_fasl_$(1),$$(nau_fasl_$(1)_PATTERNS)
 nau_fasl_$(1)_INSTLST	= $$(nau_fasl_$(1)_SOURCES)
 nau_fasl_$(1)_INSTDIR	= $$(pkglibdir)/$(2)
 
+ifneq (,$$(strip $$(nau_fasl_$(1)_INSTLST)))
 $$(eval $$(call ds-module,nau_fasl_$(1),bin))
+endif
 
 endif # nausicaa_ENABLE_FASL == yes
 endef
