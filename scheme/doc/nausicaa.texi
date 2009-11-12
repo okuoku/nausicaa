@@ -51050,7 +51050,7 @@ Accessor for the field of a @code{&brief/long} condition object.
 
 @deftp {Condition Type} &unknown-option
 Condition type used to signal an ``unknown option'' error; it is derived
-from @code{&error}.  It has no fields.
+from @code{&getopts}.  It has no fields.
 @end deftp
 
 
@@ -51074,7 +51074,7 @@ following types: @code{&who}, @code{&brief/long}, @code{&argument},
 
 @deftp {Condition Type} &option-requires-value
 Condition type used to signal an ``option requires value'' error; it is
-derived from @code{&error}.  It has no fields.
+derived from @code{&getopts}.  It has no fields.
 @end deftp
 
 
@@ -51099,7 +51099,7 @@ following types: @code{&who}, @code{&option}, @code{&argument},
 
 @deftp {Condition Type} &option-requires-no-value
 Condition type used to signal an ``option requires no value'' error; it
-is derived from @code{&error}.  It has no fields.
+is derived from @code{&getopts}.  It has no fields.
 @end deftp
 
 
@@ -51124,7 +51124,7 @@ following types: @code{&who}, @code{&option}, @code{&argument},
 
 @deftp {Condition Type} &invalid-option
 Condition type used to signal an ``invalid option'' error; it is derived
-from @code{&error}.  It has no fields.
+from @code{&getopts}.  It has no fields.
 @end deftp
 
 
