@@ -37,12 +37,20 @@
 
     ;; broken down time
     localtime		localtime-function
+    localtime*		localtime*-function
     gmtime		gmtime-function
+    gmtime*		gmtime*-function
     timelocal		timelocal-function
+    timelocal*		timelocal*-function
     timegm		timegm-function
+    timegm*		timegm*-function
 
     ;; high accuracy time
-    ntp_gettime		ntp_gettime-function)
+    ntp_gettime		ntp_gettime-function
+    ntp_gettime*	ntp_gettime*-function
+    ntp_adjtime		ntp_adjtime-function
+    ntp_adjtime*	ntp_adjtime*-function
+    )
   (import (rnrs)
     (foreign posix helpers)
     (prefix (foreign glibc time primitives) primitive:))
@@ -58,14 +66,21 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-parametrised localtime time *tm)
-(define-parametrised gmtime time *tm)
-(define-parametrised timelocal *tm)
-(define-parametrised timegm *tm)
+(define-parametrised localtime time malloc)
+(define-parametrised localtime* time)
+(define-parametrised gmtime time malloc)
+(define-parametrised gmtime* time)
+(define-parametrised timelocal tm-pointer)
+(define-parametrised timelocal* tm-record)
+(define-parametrised timegm tm-pointer)
+(define-parametrised timegm* tm-record)
 
 ;;; --------------------------------------------------------------------
 
-(define-parametrised ntp_gettime *ntptimeval)
+(define-parametrised ntp_gettime ntptimeval*)
+(define-parametrised ntp_gettime*)
+(define-parametrised ntp_adjtime timex*)
+(define-parametrised ntp_adjtime* timex-record)
 
 
 ;;;; done

@@ -73,7 +73,7 @@
 
 (define (time)
   (receive (result errno)
-      (platform:time pointer-null)
+      (platform:time)
     (if (= -1 result)
 	(raise-errno-error 'time errno)
       result)))

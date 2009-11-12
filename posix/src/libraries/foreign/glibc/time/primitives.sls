@@ -35,12 +35,14 @@
     adjtime
 
     ;; broken down time
-    localtime		gmtime
-    timelocal		timegm
-    (rename (timelocal mktime))
+    localtime		localtime*
+    gmtime		gmtime*
+    timelocal		timelocal*
+    timegm		timegm*
 
     ;; high accuracy time
-    ntp_gettime)
+    ntp_gettime		ntp_adjtime
+    )
   (import (rnrs)
     (receive)
     (compensations)
@@ -60,14 +62,11 @@
 ;;;; simple calendar time
 
 (define (stime calendar-time)
-  (with-compensations
-    (let ((time* (malloc-block/c sizeof-time_t)))
-      (pointer-set-c-time_t! time* 0 (exact calendar-time))
-      (receive (result errno)
-	  (platform:stime time*)
-	(if (= -1 result)
-	    (raise-errno-error 'stime errno calendar-time)
-	  result)))))
+  (receive (result errno)
+      (platform:stime calendar-time)
+    (if (= -1 result)
+	(raise-errno-error 'stime errno calendar-time)
+      result)))
 
 
 ;;;; high resolution calendar
@@ -106,49 +105,80 @@
 
 ;;;; broken-down time
 
-(define (localtime time *tm)
-  (receive (result errno)
-      (with-compensations
-	(let ((*time (malloc-small/c)))
-	  (pointer-set-c-time_t! *time 0 (exact time))
-	  (platform:localtime *time *tm)))
-    (if (pointer=? *tm result)
-	*tm
-      (raise-errno-error 'localtime errno))))
+(define (localtime time malloc)
+  (let ((tm* (malloc sizeof-struct-tm)))
+    (receive (result errno)
+	(platform:localtime_r time tm*)
+      (if (pointer=? tm* result)
+	  tm*
+	(raise-errno-error 'localtime errno time)))))
 
-(define (gmtime time *tm)
-  (receive (result errno)
-      (with-compensations
-	(let ((*time (malloc-small/c)))
-	  (pointer-set-c-time_t! *time 0 (exact time))
-	  (platform:gmtime *time *tm)))
-    (if (pointer=? *tm result)
-	*tm
-      (raise-errno-error 'gmtime errno))))
+(define (localtime* time)
+  (with-compensations
+    (struct-tm->record (localtime time malloc-block/c))))
 
-(define (timelocal *tm)
+(define (gmtime time malloc)
+  (let ((tm* (malloc sizeof-struct-tm)))
+    (receive (result errno)
+	(platform:gmtime_r time tm*)
+      (if (pointer=? tm* result)
+	  tm*
+	(raise-errno-error 'gmtime errno time)))))
+
+(define (gmtime* time)
+  (with-compensations
+    (struct-tm->record (gmtime time malloc-block/c))))
+
+(define (timelocal tm*)
   (receive (result errno)
-      (platform:timelocal *tm)
+      (platform:timelocal tm*)
     (if (= -1 result)
-	(raise-errno-error 'timelocal errno)
+	(raise-errno-error 'timelocal errno tm*)
       result)))
 
-(define (timegm *tm)
+(define (timelocal* tm-record)
+  (with-compensations
+    (timelocal (record->struct-tm tm-record malloc-block/c))))
+
+(define (timegm tm*)
   (receive (result errno)
-      (platform:timegm *tm)
+      (platform:timegm tm*)
     (if (= -1 result)
-	(raise-errno-error 'timegm errno)
+	(raise-errno-error 'timegm errno tm*)
       result)))
+
+(define (timegm* tm-record)
+  (with-compensations
+    (timegm (record->struct-tm tm-record malloc-block/c))))
 
 
-;;;; high accuracy time
+;;;; high-accuracy time
 
-(define (ntp_gettime *ntptimeval)
+(define (ntp_gettime ntptimeval*)
   (receive (result errno)
-      (platform:ntp_gettime *ntptimeval)
+      (platform:ntp_gettime ntptimeval*)
     (if (= 0 result)
 	result
-      (raise-errno-error 'ntp_gettime errno))))
+      (raise-errno-error 'ntp_gettime errno ntptimeval*))))
+
+(define (ntp_gettime*)
+  (with-compensations
+    (let ((ntptimeval* (mallock-block/c sizeof-struct-ntptimeval)))
+      (platform:ntp_gettime ntptimeval*)
+      (struct-ntptimeval->record ntptimeval*))))
+
+(define (ntp_adjtime timex*)
+  (receive (result errno)
+      (platform:ntp_adjtime timex*)
+    (if (= 0 result)
+	result
+      (raise-errno-error 'ntp_adjtime errno timex*))))
+
+(define (ntp_adjtime* record)
+  (with-compensations
+    (let ((timex* (record->struct-timex record malloc-block/c)))
+      (platform:ntp_gettime timex*)
+      (struct-timex->record timex*))))
 
 
 ;;;; done

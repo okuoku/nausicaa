@@ -185,13 +185,23 @@ extern int nausicaa_posix_nftw (const char * filename, __nftw_func_t func, int d
  ** ----------------------------------------------------------------- */
 
 extern double nausicaa_posix_clock	(void);
-extern double nausicaa_posix_times	(double * tms);
-extern double nausicaa_posix_time	(time_t * result);
+extern double nausicaa_posix_times	(struct tms * buffer);
+extern double nausicaa_posix_time	(void);
+extern int    nausicaa_posix_stime	(double tim);
+extern struct tm * nausicaa_posix_localtime_r (double tim, struct tm * result);
+extern struct tm * nausicaa_posix_gmtime_r    (double tim, struct tm * result);
+extern double nausicaa_posix_timelocal  (struct tm * buffer);
+extern double nausicaa_posix_timegm     (struct tm * buffer);
 
 extern double nausicaa_posix_tms_utime_ref (struct tms * T);
 extern double nausicaa_posix_tms_stime_ref (struct tms * T);
 extern double nausicaa_posix_tms_cutime_ref (struct tms * T);
 extern double nausicaa_posix_tms_cstime_ref (struct tms * T);
+
+extern void nausicaa_posix_tms_utime_set (struct tms * T, double time);
+extern void nausicaa_posix_tms_stime_set (struct tms * T, double time);
+extern void nausicaa_posix_tms_cutime_set (struct tms * T, double time);
+extern void nausicaa_posix_tms_cstime_set (struct tms * T, double time);
 
 
 /** --------------------------------------------------------------------
@@ -250,26 +260,50 @@ nausicaa_posix_wstopsig (int status)
 double
 nausicaa_posix_clock (void)
 {
-  return (double)clock();
-}
-double
-nausicaa_posix_times (double * tms)
-{
-  struct tms	t;
-  clock_t	result;
-
-  result = times(&t);
-  tms[0] = t.tms_utime;
-  tms[1] = t.tms_stime;
-  tms[2] = t.tms_cutime;
-  tms[3] = t.tms_cstime;
+  clock_t	result = clock();
   return (double)result;
 }
-
 double
-nausicaa_posix_time (time_t * result)
+nausicaa_posix_times (struct tms * buffer)
 {
-  return time(result);
+  clock_t	result = times(buffer);
+  return (double)result;
+}
+double
+nausicaa_posix_time (void)
+{
+  time_t	result = time(NULL);
+  return (double)result;
+}
+int
+nausicaa_posix_stime (double tim)
+{
+  time_t	t = (time_t)tim;
+  return stime(&t);
+}
+struct tm *
+nausicaa_posix_localtime_r (double tim, struct tm * result)
+{
+  time_t	t = (time_t)tim;
+  return localtime_r (&t, result);
+}
+struct tm *
+nausicaa_posix_gmtime_r (double tim, struct tm * result)
+{
+  time_t	t = (time_t)tim;
+  return gmtime_r (&t, result);
+}
+double
+nausicaa_posix_timelocal (struct tm * buffer)
+{
+  time_t	result = timelocal(buffer);
+  return (double)result;
+}
+double
+nausicaa_posix_timegm (struct tm * buffer)
+{
+  time_t	result = timegm(buffer);
+  return (double)result;
 }
 
 /* ------------------------------------------------------------------ */
@@ -293,6 +327,26 @@ double
 nausicaa_posix_tms_cstime_ref (struct tms * T)
 {
   return (double)(T->tms_cstime);
+}
+void
+nausicaa_posix_tms_utime_set (struct tms * T, double tim)
+{
+  T->tms_utime = (time_t)tim;
+}
+void
+nausicaa_posix_tms_stime_set (struct tms * T, double tim)
+{
+  T->tms_stime = (time_t)tim;
+}
+void
+nausicaa_posix_tms_cutime_set (struct tms * T, double tim)
+{
+  T->tms_cutime = (time_t)tim;
+}
+void
+nausicaa_posix_tms_cstime_set (struct tms * T, double tim)
+{
+  T->tms_cstime = (time_t)tim;
 }
 
 

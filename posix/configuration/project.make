@@ -28,15 +28,19 @@
 ## Stub library.
 ## --------------------------------------------------------------------
 
-posix_SRCDIR	= $(srcdir)/src/posix-stub
-posix_BUILDDIR	= $(builddir)/posix-objects.d
+posix_stub_SRCDIR	= $(srcdir)/src/posix-stub
+posix_stub_BUILDDIR	= $(builddir)/posix-objects.d
 
-posix_PREREQUISITES = $(wildcard $(posix_SRCDIR)/*.h)
+posix_stub_PREREQUISITES = $(wildcard $(posix_stub_SRCDIR)/*.h)
 
-$(eval $(call ds-c-library,posix))
+$(eval $(call ds-c-library,posix_stub))
 
 # This is needed to test.
-nau_test_LDPATH=$(posix_shlib_BUILDDIR)
+nau_test_LDPATH=$(posix_stub_shlib_BUILDDIR)
+
+.PHONY: library stub stub-library
+
+library stub stub-library: posix_stub_shlib-all
 
 #page
 ## --------------------------------------------------------------------

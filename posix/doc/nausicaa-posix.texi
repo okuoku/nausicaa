@@ -597,11 +597,30 @@ Stream functions
 
 Date and time
 
+* time intro::                  Introduction.
 * time structs::                Data structures.
+* time records::                Record types.
+* time constants::              Constant values.
 * time clock::                  Processor time.
 * time calendar::               Simple calendar time.
 * time hires::                  High resolution calendar.
 * time broken::                 Broken--down time.
+
+Data structures
+
+* time structs timeval::        @code{struct timeval} inspection.
+* time structs timespec::       @code{struct timespec} inspection.
+* time structs tms::            @code{struct tms} inspection.
+* time structs timezone::       @code{struct timezone} inspection.
+* time structs tm::             @code{struct tm} inspection.
+
+Record types
+
+* time records tms::            @code{struct tms} mirror.
+* time records timeval::        @code{struct timeval} mirror.
+* time records timespec::       @code{struct timespec} mirror.
+* time records timezone::       @code{struct timezone} mirror.
+* time records tm::             @code{struct tm} mirror.
 
 Processes
 
@@ -3869,6 +3888,7 @@ Unless otherwise specified, the bindings documented in this chapter are
 exported by the @posix{} @code{time} libraries.
 
 @menu
+* time intro::                  Introduction.
 * time structs::                Data structures.
 * time records::                Record types.
 * time constants::              Constant values.
@@ -3876,7 +3896,34 @@ exported by the @posix{} @code{time} libraries.
 * time calendar::               Simple calendar time.
 * time hires::                  High resolution calendar.
 * time broken::                 Broken--down time.
+* time hiaccu::                 High accuracy clock.
 @end menu
+
+@c page
+@node time intro
+@section Introduction
+
+
+Time handling is a complex topic, so we really want to read some
+discussion on it; for example the introduction in the @gnu{} C Library
+documentation.  @glibcref{Time Basics, Time Basics}.
+
+@c ------------------------------------------------------------
+
+@subsubheading About the @code{time_t} type
+
+
+The @code{time_t} type is used by several functions, but it is not fully
+specified@footnote{See for example (@aurl{} last verified Thu Nov 12,
+2009):
+
+@center @url{http://en.wikipedia.org/wiki/Unix_time}};
+it represents the @dfn{epoch}: The number of seconds elapsed since
+00:00:00 on January 1, 1970, Coordinated Universal Time.
+
+To solve the representation problem, @code{time_t} values are casted to
+native @code{double} values and then converted to Scheme inexact real
+numbers, whatever they are for the underlying Scheme representation.
 
 @c page
 @node time structs
@@ -3886,9 +3933,20 @@ exported by the @posix{} @code{time} libraries.
 Unless otherwise specified, the bindings documented in this section are
 exported by the @code{sizeof} library.
 
-@c ------------------------------------------------------------
+@menu
+* time structs timeval::        @code{struct timeval} inspection.
+* time structs timespec::       @code{struct timespec} inspection.
+* time structs tms::            @code{struct tms} inspection.
+* time structs timezone::       @code{struct timezone} inspection.
+* time structs tm::             @code{struct tm} inspection.
+* time structs ntptimeval::     @code{struct ntptimeval} inspection.
+* time structs timex::          @code{struct timex} inspection.
+@end menu
 
-@subsubheading @code{struct timeval}
+@c page
+@node time structs timeval
+@subsection @code{struct timeval} inspection
+
 
 @defvr Constant sizeof-struct-timeval
 @defvrx Constant alignof-struct-timeval
@@ -3900,16 +3958,17 @@ structures.
 @end defvr
 
 
-@deffn Syntax struct-timeval-tv_sec-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timeval-tv_sec-ref @var{pointer}
-@deffnx Syntax struct-timeval-tv_usec-set! @var{pointer} @var{value}
+@deffn Syntax struct-timeval-tv_sec-ref @var{pointer}
+@deffnx Syntax struct-timeval-tv_sec-set! @var{pointer} @var{value}
 @deffnx Syntax struct-timeval-tv_usec-ref @var{pointer}
+@deffnx Syntax struct-timeval-tv_usec-set! @var{pointer} @var{value}
 Accessors and mutators for the fields of a @code{struct timeval}.
 @end deffn
 
-@c ------------------------------------------------------------
+@c page
+@node time structs timespec
+@subsection @code{struct timespec} inspection
 
-@subsubheading @code{struct timespec}
 
 @defvr Constant sizeof-struct-timespec
 @defvrx Constant alignof-struct-timespec
@@ -3928,9 +3987,10 @@ structures.
 Accessors and mutators for the fields of a @code{struct timespec}.
 @end deffn
 
-@c ------------------------------------------------------------
+@c page
+@node time structs tms
+@subsection @code{struct tms} inspection
 
-@subsubheading @code{struct tms}
 
 @defvr Constant sizeof-struct-tms
 @defvrx Constant alignof-struct-tms
@@ -3942,91 +4002,250 @@ number of bytes between two elements in an array of these structures.
 
 
 @defun struct-tms-tms_utime-ref @var{pointer}
+@defunx struct-tms-tms_utime-set! @var{pointer} @var{value}
 @defunx struct-tms-tms_stime-ref @var{pointer}
+@defunx struct-tms-tms_stime-set! @var{pointer} @var{value}
 @defunx struct-tms-tms_cutime-ref @var{pointer}
+@defunx struct-tms-tms_cutime-set! @var{pointer} @var{value}
 @defunx struct-tms-tms_cstime-ref @var{pointer}
+@defunx struct-tms-tms_cstime-set! @var{pointer} @var{value}
 Accessors for the fields of a @code{struct tms} type.
 
 These bindings are exported by the @library{foreign posix time platform}
 library.
 @end defun
 
-@c ------------------------------------------------------------
-
-@subsubheading @code{struct timezone}
+@c page
+@node time structs timezone
+@subsection @code{struct timezone} inspection
 
 
 @defvr Constant sizeof-struct-timezone
 @defvrx Constant alignof-struct-timezone
 @defvrx Constant strideof-struct-timezone
-Size, alignment and array stride for the @code{struct timezone} type.
+These are: the number of bytes required to hold a @code{struct
+timezone}; the alignment of this structure when embedded into another
+structure; the number of bytes between two elements in an array of these
+structures.
 @end defvr
 
 
-@deffn Syntax struct-timezone-tz_minuteswest-set! @var{pointer} @var{value}
-@deffnx Syntax struct-timezone-tz_minuteswest-ref @var{pointer}
-@deffnx Syntax struct-timezone-tz_dsttime-set! @var{pointer} @var{value}
+@deffn Syntax struct-timezone-tz_minuteswest-ref @var{pointer}
+@deffnx Syntax struct-timezone-tz_minuteswest-set! @var{pointer} @var{value}
 @deffnx Syntax struct-timezone-tz_dsttime-ref @var{pointer}
+@deffnx Syntax struct-timezone-tz_dsttime-set! @var{pointer} @var{value}
 Peekers and pokers for the fields of a @code{struct timezone}.
 @end deffn
+
+@c page
+@node time structs tm
+@subsection @code{struct tm} inspection
+
+
+@defvar sizeof-struct-tm
+@defvarx alignof-struct-tm
+@defvarx strideof-struct-tm
+These are: the number of bytes required to hold a @code{struct tm}; the
+alignment of this structure when embedded into another structure; the
+number of bytes between two elements in an array of these structures.
+@end defvar
+
+
+@deffn Syntax struct-tm-tm_sec-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_sec-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_min-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_min-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_hour-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_hour-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_mday-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_mday-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_mon-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_mon-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_year-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_year-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_wday-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_wday-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_yday-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_yday-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_isdst-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_isdst-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_gmtoff-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_gmtoff-set! @var{pointer} @var{value}
+@deffnx Syntax struct-tm-tm_zone-ref @var{pointer}
+@deffnx Syntax struct-tm-tm_zone-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct tm}.
+@end deffn
+
+@c page
+@node time structs ntptimeval
+@subsection @code{struct ntptimeval} inspection
+
+
+
+@defvar sizeof-struct-ntptimeval
+@defvarx alignof-struct-ntptimeval
+@defvarx strideof-struct-ntptimeval
+These are: the number of bytes required to hold a @code{struct
+ntptimeval}; the alignment of this structure when embedded into another
+structure; the number of bytes between two elements in an array of these
+structures.
+@end defvar
+
+
+@deffn Syntax struct-ntptimeval-time-ref @var{pointer}
+Given a pointer to a @code{struct ntptimeval} instance, evaluates to a
+pointer to the first byte of the @code{struct timeval time} field of the
+structure.
+@end deffn
+
+
+@deffn Syntax struct-ntptimeval-maxerror-ref @var{pointer}
+@deffnx Syntax struct-ntptimeval-maxerror-set! @var{pointer} @var{value}
+@deffnx Syntax struct-ntptimeval-esterror-ref @var{pointer}
+@deffnx Syntax struct-ntptimeval-esterror-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct ntptimeval}
+type.
+@end deffn
+
+@c page
+@node time structs timex
+@subsection @code{struct timex} inspection
+
+
+@defvar sizeof-struct-timex
+@defvarx alignof-struct-timex
+@defvarx strideof-struct-timex
+These are: the number of bytes required to hold a @code{struct
+timex}; the alignment of this structure when embedded into another
+structure; the number of bytes between two elements in an array of these
+structures.
+@end defvar
+
+
+@deffn Syntax struct-timex-time-ref @var{pointer}
+Given a pointer to a @code{struct timex} instance, evaluates to a
+pointer to the first byte of the @code{struct timeval time} field of the
+structure.
+@end deffn
+
+
+@deffn Syntax struct-timex-modes-ref @var{pointer}
+@deffnx Syntax struct-timex-modes-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-offset-ref @var{pointer}
+@deffnx Syntax struct-timex-offset-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-frequency-ref @var{pointer}
+@deffnx Syntax struct-timex-frequency-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-maxerror-ref @var{pointer}
+@deffnx Syntax struct-timex-maxerror-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-esterror-ref @var{pointer}
+@deffnx Syntax struct-timex-esterror-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-status-ref @var{pointer}
+@deffnx Syntax struct-timex-status-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-constant-ref @var{pointer}
+@deffnx Syntax struct-timex-constant-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-precision-ref @var{pointer}
+@deffnx Syntax struct-timex-precision-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-tolerance-ref @var{pointer}
+@deffnx Syntax struct-timex-tolerance-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-tick-ref @var{pointer}
+@deffnx Syntax struct-timex-tick-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-ppsfreq-ref @var{pointer}
+@deffnx Syntax struct-timex-ppsfreq-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-jitter-ref @var{pointer}
+@deffnx Syntax struct-timex-jitter-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-shift-ref @var{pointer}
+@deffnx Syntax struct-timex-shift-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-stabil-ref @var{pointer}
+@deffnx Syntax struct-timex-stabil-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-jitcnt-ref @var{pointer}
+@deffnx Syntax struct-timex-jitcnt-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-calcnt-ref @var{pointer}
+@deffnx Syntax struct-timex-calcnt-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-errcnt-ref @var{pointer}
+@deffnx Syntax struct-timex-errcnt-set! @var{pointer} @var{value}
+@deffnx Syntax struct-timex-stbcnt-ref @var{pointer}
+@deffnx Syntax struct-timex-stbcnt-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct timex}
+type.
+@end deffn
+
 
 @c page
 @node time records
 @section Record types
 
 
-Unless otherwise specified, the following bindings are exported by the
-@library{foreign posix time record-types} library.
+Unless otherwise specified, the bindings described in this section are
+exported by the @library{foreign posix time record-types} library.
 
-@c ------------------------------------------------------------
+@menu
+* time records tms::            @code{struct tms} mirror.
+* time records timeval::        @code{struct timeval} mirror.
+* time records timespec::       @code{struct timespec} mirror.
+* time records timezone::       @code{struct timezone} mirror.
+* time records tm::             @code{struct tm} mirror.
+* time records ntptimeval::     @code{struct ntptimeval} mirror.
+* time records timex::          @code{struct timex} mirror.
+@end menu
 
-@subsubheading @code{struct tms} mirror
+@c page
+@node time records tms
+@subsection @code{struct tms} mirror
 
 
-@deftp {Record Type} <struct-tms>
+The record type described here is used to mirror the C language data
+type @code{struct tms}.  @glibcref{Processor Time, Processor Time
+Inquiry}.
+
+
+@deftp {Record Type Name} <struct-tms>
+@deftpx {Record Type Descriptor} <struct-tms-rtd>
 A Scheme record used to hold normalised results of @func{times}
-invocations.
-
-@table @code
-@item utime
-@itemx stime
-@itemx cutime
-@itemx cstime
-One field for each field of the @code{struct tms} type.  All the values
-are inexact real numbers.
-@end table
+invocations.  It has the following fields, one for each field of the
+@code{struct tms} type: @code{utime}, @code{stime}, @code{cutime},
+@code{cstime}; all the values are inexact real numbers.
 @end deftp
 
 
 @defun make-<struct-tms> @var{utime} @var{stime} @var{cutime} @var{cstime}
-Build and return a new @class{struct-tms} record.
+@defunx <struct-tms>? @var{obj}
+Constructor and predicate for records of type @class{struct-tms}.
 @end defun
 
 
 @defun struct-tms->record @var{pointer}
-Given a pointer to a @code{struct tms} memory block, build and return a
-record of type @class{struct-tms} initialised with the values from the
-structure.
+@defunx record->struct-tms @var{record} @var{malloc}
+Convert between a pointer to a @code{struct tms} instance and a record
+of type @class{struct-tms}.  The @var{malloc} function is used to
+allocate the block of memory in which the @code{struct tms} is stored.
 @end defun
 
 
 @defun <struct-tms>-utime @var{tms}
+@defunx <struct-tms>-utime-set! @var{tms} @var{value}
 @defunx <struct-tms>-stime @var{tms}
+@defunx <struct-tms>-stime-set! @var{tms} @var{value}
 @defunx <struct-tms>-cutime @var{tms}
+@defunx <struct-tms>-cutime-set! @var{tms} @var{value}
 @defunx <struct-tms>-cstime @var{tms}
-Accessors for the fields of @class{struct-tms} records.  All the returned
-values are floating point numbers.
+@defunx <struct-tms>-cstime-set! @var{tms} @var{value}
+Accessors and mutators for @class{struct-tms} records.
 @end defun
 
-@c ------------------------------------------------------------
+@c page
+@node time records timeval
+@subsection @code{struct timeval} mirror
 
-@subsubheading @code{struct timeval} mirror
+
+The record type described here is used to mirror the C language data
+type @code{struct timeval}.  @glibcref{Elapsed Time, Elapsed Time}.
 
 
 @deftp {Record Type Name} <struct-timeval>
 @deftpx {Record Type Descriptor} <struct-timeval-rtd>
-Record type that mirrors the @code{struct timeval} type.  It has two
-fields @code{tv_sec} and @code{tv_usec}.
+Record type that mirrors the @code{struct timeval} type.  It has the
+following fields, one for each field of the @code{struct timeval} type:
+@code{sec}, @code{usec}.
 @end deftp
 
 
@@ -4038,26 +4257,72 @@ Constructor and predicate for @class{struct-timeval} records.
 
 @defun struct-timeval->record @var{struct-timeval-pointer}
 @defunx record->struct-timeval @var{timeval-record} @var{malloc}
-Conversion functions between @code{struct timeval} pointers and
-@class{struct-timeval} records.  The @var{malloc} function is used to
-allocate memory for the @code{struct timeval}.
+Convert between a pointer to a@code{struct timeval} instance and a
+record of type @class{struct-timeval}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct timeval} is stored.
 @end defun
 
 
-@defun <struct-timeval>-tv_sec @var{timeval-record}
-@defunx <struct-timeval>-tv_usec @var{timeval-record}
-Accessors for the @class{struct-timeval} records.
+@defun <struct-timeval>-sec @var{timeval-record}
+@defunx <struct-timeval>-sec-set! @var{timeval-record} @var{value}
+@defunx <struct-timeval>-usec @var{timeval-record}
+@defunx <struct-timeval>-usec-set! @var{timeval-record} @var{value}
+Accessors and mutators @class{struct-timeval} records.
 @end defun
 
-@c ------------------------------------------------------------
+@c page
+@node time records timespec
+@subsection @code{struct timespec} mirror
 
-@subsubheading @code{struct timezone} mirror
+
+The record type described here is used to mirror the C language data
+type @code{struct timespec}.  @glibcref{Elapsed Time, Elapsed Time}.
+
+
+@deftp {Record Type Name} <struct-timespec>
+@deftpx {Record Type Descriptor} <struct-timespec-rtd>
+Record type that mirrors the @code{struct timespec} type.  It has the
+following fields, one for each field of the @code{struct timespec} type:
+@code{sec}, @code{nsec}.
+@end deftp
+
+
+@defun make-<struct-timespec> @var{tv_sec} @var{tv_nsec}
+@defunx <struct-timespec>? @var{obj}
+Constructor and predicate for @class{struct-timespec} records.
+@end defun
+
+
+@defun struct-timespec->record @var{struct-timespec-pointer}
+@defunx record->struct-timespec @var{timespec-record} @var{malloc}
+Convert between a pointer to a@code{struct timespec} instance and a
+record of type @class{struct-timespec}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct timespec} is stored.
+@end defun
+
+
+@defun <struct-timespec>-sec @var{timespec-record}
+@defunx <struct-timespec>-sec-set! @var{timespec-record} @var{value}
+@defunx <struct-timespec>-nsec @var{timespec-record}
+@defunx <struct-timespec>-nsec-set! @var{timespec-record} @var{value}
+Accessors and mutators @class{struct-timespec} records.
+@end defun
+
+@c page
+@node time records timezone
+@subsection @code{struct timezone} mirror
+
+
+The record type described here is used to mirror the C language data
+type @code{struct timezone}.  @glibcref{High-Resolution Calendar,
+High--Resolution Calendar}.
 
 
 @deftp {Record Type Name} <struct-timezone>
 @deftpx {Record Type Descriptor} <struct-timezone-rtd>
-Record type that mirrors the @code{struct timezone} type.  It has two
-fields @code{tz_minuteswest} and @code{tz_dsttime}.
+Record type that mirrors the @code{struct timezone} type.  It has the
+following fields, one for each field in the @code{struct timezone} type:
+@code{minuteswest}, @code{dsttime}.
 @end deftp
 
 
@@ -4069,15 +4334,195 @@ Constructor and predicate for @class{struct-timezone} records.
 
 @defun struct-timezone->record @var{struct-timezone-pointer}
 @defunx record->struct-timezone @var{timezone-record} @var{malloc}
-Conversion functions between @code{struct timezone} pointers and
-@class{struct-timezone} records.  The @var{malloc} function is used to
-allocate memory for the @code{struct timezone}.
+Convert between a pointer to a@code{struct timezone} instance and a
+record of type @class{struct-timezone}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct timezone} is stored.
 @end defun
 
 
-@defun <struct-timezone>-tz_minuteswest @var{timezone-record}
-@defunx <struct-timezone>-tz_dsttime @var{timezone-record}
-Accessors for the @class{struct-timezone} records.
+@defun <struct-timezone>-minuteswest @var{timezone-record}
+@defunx <struct-timezone>-minuteswest-set! @var{timezone-record} @var{value}
+@defunx <struct-timezone>-dsttime @var{timezone-record}
+@defunx <struct-timezone>-dsttime-set! @var{timezone-record} @var{value}
+Accessors and mutators @class{struct-timezone} records.
+@end defun
+
+@c page
+@node time records tm
+@subsection @code{struct tm} mirror
+
+
+The record type described here is used to mirror the C language data
+type @code{struct tm}.  @glibcref{Broken-down Time, Broken--down Time}.
+
+
+@deftp {Record Type Name} <struct-tm>
+@deftpx {Record Type Descriptor} <struct-tm-rtd>
+Record type that mirrors the @code{struct tm} type.  It has the
+following fields, one for each field in the @code{struct tm} type:
+@code{sec}, @code{min}, @code{hour}, @code{mday}, @code{mon},
+@code{year}, @code{wday}, @code{yday}, @code{isdst}, @code{gmtoff},
+@code{zone}.
+@end deftp
+
+
+@defun make-<struct-tm> @var{tm_sec} @var{tm_min} @var{tm_hour} @var{tm_mday} @var{tm_mon} @var{tm_year} @var{tm_wday} @var{tm_yday} @var{tm_isdst} @var{tm_gmtoff} @var{tm_zone}
+@defunx <struct-tm>? @var{obj}
+Constructor and predicate for @class{struct-tm} records.
+@end defun
+
+
+@defun struct-tm->record @var{struct-tm-pointer}
+@defunx record->struct-tm @var{tm-record} @var{malloc}
+Convert between a pointer to a@code{struct tm} instance and a
+record of type @class{struct-tm}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct tm} is stored.
+@end defun
+
+
+@defun <struct-tm>-sec @var{tm-record}
+@defunx <struct-tm>-sec-set! @var{tm-record} @var{value}
+@defunx <struct-tm>-min @var{tm-record}
+@defunx <struct-tm>-min-set! @var{tm-record} @var{value}
+@defunx <struct-tm>-hour @var{tm-record}
+@defunx <struct-tm>-hour-set! @var{tm-record} @var{value}
+@defunx <struct-tm>-mday @var{tm-record}
+@defunx <struct-tm>-mday-set! @var{tm-record} @var{value}
+@defunx <struct-tm>-mon @var{tm-record}
+@defunx <struct-tm>-mon-set! @var{tm-record} @var{value}
+@defunx <struct-tm>-year @var{tm-record}
+@defunx <struct-tm>-year-set! @var{tm-record} @var{value}
+@defunx <struct-tm>-wday @var{tm-record}
+@defunx <struct-tm>-wday-set! @var{tm-record} @var{value}
+@defunx <struct-tm>-yday @var{tm-record}
+@defunx <struct-tm>-yday-set! @var{tm-record} @var{value}
+@defunx <struct-tm>-isdst @var{tm-record}
+@defunx <struct-tm>-isdst-set! @var{tm-record} @var{value}
+@defunx <struct-tm>-gmtoff @var{tm-record}
+@defunx <struct-tm>-gmtoff-set! @var{tm-record} @var{value}
+@defunx <struct-tm>-zone @var{tm-record}
+@defunx <struct-tm>-zone-set! @var{tm-record} @var{value}
+Accessors and mutators @class{struct-tm} records.
+@end defun
+
+@c page
+@node time records ntptimeval
+@subsection @code{struct ntptimeval} mirror
+
+
+The record type described here is used to mirror the C language data
+type @code{struct ntptimeval}.  @glibcref{High Accuracy Clock, High
+Accuracy Clock}.
+
+
+@deftp {Record Type Name} <struct-ntptimeval>
+@deftpx {Record Type Descriptor} <struct-ntptimeval-rtd>
+Record type that mirrors the @code{struct ntptimeval} type.  It has the
+following fields, one for each field in the @code{struct ntptimeval} type:
+@code{time}, @code{maxerror}, @code{esterror}.  The @code{time} field
+contains a @class{struct-timeval} record.
+@end deftp
+
+
+@defun make-<struct-ntptimeval> @var{time}, @var{maxerror}, @var{esterror}
+@defunx <struct-ntptimeval>? @var{obj}
+Constructor and predicate for @class{struct-ntptimeval} records.
+@end defun
+
+
+@defun struct-ntptimeval->record @var{struct-ntptimeval-pointer}
+@defunx record->struct-ntptimeval @var{ntptimeval-record} @var{malloc}
+Convert between a pointer to a@code{struct ntptimeval} instance and a
+record of type @class{struct-ntptimeval}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct ntptimeval} is stored.
+@end defun
+
+
+@defun <struct-ntptimeval>-time @var{pointer}
+@defunx <struct-ntptimeval>-time-set! @var{pointer} @var{value}
+@defunx <struct-ntptimeval>-maxerror @var{pointer}
+@defunx <struct-ntptimeval>-maxerror-set! @var{pointer} @var{value}
+@defunx <struct-ntptimeval>-esterror @var{pointer}
+@defunx <struct-ntptimeval>-esterror-set! @var{pointer} @var{value}
+Accessors and mutators @class{struct-ntptimeval} records.
+@end defun
+
+@c page
+@node time records timex
+@subsection @code{struct timex} mirror
+
+
+The record type described here is used to mirror the C language data
+type @code{struct timex}.  @glibcref{High Accuracy Clock, High Accuracy
+Clock}.
+
+
+@deftp {Record Type Name} <struct-timex>
+@deftpx {Record Type Descriptor} <struct-timex-rtd>
+Record type that mirrors the @code{struct timex} type.  It has the
+following fields, one for each field in the @code{struct timex} type:
+@code{modes}, @code{offset}, @code{frequency}, @code{maxerror},
+@code{esterror}, @code{status}, @code{constant}, @code{precision},
+@code{tolerance}, @code{time}, @code{tick}, @code{ppsfreq},
+@code{jitter}, @code{shift}, @code{stabil}, @code{jitcnt},
+@code{calcnt}, @code{errcnt}, @code{stbcnt}.  The @code{time} field
+contains a @class{struct-timeval} record.
+@end deftp
+
+
+@defun make-<struct-timex> @var{modes} @var{offset} @var{frequency} @var{maxerror} @var{esterror} @var{status} @var{constant} @var{precision} @var{tolerance} @var{time} @var{tick} @var{ppsfreq} @var{jitter} @var{shift} @var{stabil} @var{jitcnt} @var{calcnt} @var{errcnt} @var{stbcnt}
+@defunx <struct-timex>? @var{obj}
+Constructor and predicate for @class{struct-timex} records.
+@end defun
+
+
+@defun struct-timex->record @var{struct-timex-pointer}
+@defunx record->struct-timex @var{timex-record} @var{malloc}
+Convert between a pointer to a@code{struct timex} instance and a
+record of type @class{struct-timex}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct timex} is stored.
+@end defun
+
+
+@defun <struct-timex>-modes @var{pointer}
+@defunx <struct-timex>-modes-set! @var{pointer} @var{value}
+@defunx <struct-timex>-offset @var{pointer}
+@defunx <struct-timex>-offset-set! @var{pointer} @var{value}
+@defunx <struct-timex>-frequency @var{pointer}
+@defunx <struct-timex>-frequency-set! @var{pointer} @var{value}
+@defunx <struct-timex>-maxerror @var{pointer}
+@defunx <struct-timex>-maxerror-set! @var{pointer} @var{value}
+@defunx <struct-timex>-esterror @var{pointer}
+@defunx <struct-timex>-esterror-set! @var{pointer} @var{value}
+@defunx <struct-timex>-status @var{pointer}
+@defunx <struct-timex>-status-set! @var{pointer} @var{value}
+@defunx <struct-timex>-constant @var{pointer}
+@defunx <struct-timex>-constant-set! @var{pointer} @var{value}
+@defunx <struct-timex>-precision @var{pointer}
+@defunx <struct-timex>-precision-set! @var{pointer} @var{value}
+@defunx <struct-timex>-tolerance @var{pointer}
+@defunx <struct-timex>-tolerance-set! @var{pointer} @var{value}
+@defunx <struct-timex>-time @var{pointer}
+@defunx <struct-timex>-time-set! @var{pointer} @var{value}
+@defunx <struct-timex>-tick @var{pointer}
+@defunx <struct-timex>-tick-set! @var{pointer} @var{value}
+@defunx <struct-timex>-ppsfreq @var{pointer}
+@defunx <struct-timex>-ppsfreq-set! @var{pointer} @var{value}
+@defunx <struct-timex>-jitter @var{pointer}
+@defunx <struct-timex>-jitter-set! @var{pointer} @var{value}
+@defunx <struct-timex>-shift @var{pointer}
+@defunx <struct-timex>-shift-set! @var{pointer} @var{value}
+@defunx <struct-timex>-stabil @var{pointer}
+@defunx <struct-timex>-stabil-set! @var{pointer} @var{value}
+@defunx <struct-timex>-jitcnt @var{pointer}
+@defunx <struct-timex>-jitcnt-set! @var{pointer} @var{value}
+@defunx <struct-timex>-calcnt @var{pointer}
+@defunx <struct-timex>-calcnt-set! @var{pointer} @var{value}
+@defunx <struct-timex>-errcnt @var{pointer}
+@defunx <struct-timex>-errcnt-set! @var{pointer} @var{value}
+@defunx <struct-timex>-stbcnt @var{pointer}
+@defunx <struct-timex>-stbcnt-set! @var{pointer} @var{value}
+Accessors and mutators @class{struct-timex} records.
 @end defun
 
 @c page
@@ -4106,9 +4551,8 @@ Time Inquiry}.  @glibcref{Processor Time, Processor Time Inquiry}.
 @deffnx Parameter clock-function
 @deffnx Function primitive:clock
 @deffnx Function platform:clock
-Return the calling process' current @cpu{} time, converted to a native
-@code{double} number and then to an inexact number as implemented by the
-underlying Scheme.
+Return the calling process' current @cpu{} time, casted to a native
+@code{double} number and then to a Scheme inexact real number.
 
 These bindings are exported by the @posix{} @code{time} libraries.
 @end deffn
@@ -4118,8 +4562,9 @@ These bindings are exported by the @posix{} @code{time} libraries.
 @deffnx Parameter times-function
 @deffnx Function primitive:times
 @deffnx Function platform:times @var{pointer}
-Return two values: the return value from the @cfunc{times} call and a
-record of type @class{struct-tms}.
+Return two values: the return value from the @cfunc{times} call casted
+to a native @code{double} number and then to a Scheme inexact real
+number; a record of type @class{struct-tms}.
 
 These bindings are exported by the @posix{} @code{time} libraries.
 @end deffn
@@ -4136,10 +4581,11 @@ The following functions deal with simple calendar time.
 @deffn Function time
 @deffnx Parameter time-function
 @deffnx Function primitive:time
-@deffnx Function platform:time @var{pointer}
-Return the current calendar time as an integer value.  It is the
-@dfn{epoch}: The number of seconds elapsed since 00:00:00 on January 1,
-1970, Coordinated Universal Time.
+@deffnx Function platform:time
+Return the current calendar time represented by a @code{time_t} value,
+casted to a native @code{double} value and then converted to a Scheme
+inexact real number.  It is the @dfn{epoch}: The number of seconds
+elapsed since 00:00:00 on January 1, 1970, Coordinated Universal Time.
 
 These bindings are exported by the @posix{} @code{time} libraries.
 @end deffn
@@ -4148,9 +4594,13 @@ These bindings are exported by the @posix{} @code{time} libraries.
 @deffn Function stime @var{calendar-time}
 @deffnx Parameter stime-function
 @deffnx Function primitive:stime @var{calendar-time}
-@deffnx Function platform:stime @var{pointer}
+@deffnx Function platform:stime @var{calendar-time-double}
 Set the system clock using a calendar time specification.  Superuser
 privileges are needed to successfully call this function.
+
+@var{calendar-time} must be a Scheme inexact real number, which is
+converted to a native @code{double} and finally casted to a
+@code{time_t} value.
 
 These bindings are exported by the Glibc @code{time} libraries.
 @end deffn
@@ -4208,111 +4658,162 @@ Super user privileges are needed to successfully call this function.
 @section Broken--down time
 
 
-The following bindings are exported by the following libraries:
-
-@example
-(foreign glibc time)
-(foreign glibc time primitives)
-(foreign glibc time platform)
-@end example
-
-@noindent
-The broken--down time @api{} described here is not in the
-@library{foreign posix ---} hierarchy of libraries because the
-@code{time_t} value is in general not fully specified (according to the
-@gnu{} C Library documentation), but it is in the @gnu{} C Library.
+The following functions manage broken--down time; unless otherwise
+specified, the bindings are exported by the Glibc @code{time} libraries.
+@glibcref{Broken-down Time, Broken--down Time}.
 
 
-@defvar sizeof-struct-tm
-@defvarx alignof-struct-tm
-@defvarx strideof-struct-tm
-Size, alignment and array stride for the @code{struct tm} type.
-
-These bindings are exported by the @library{glibc sizeof} library.
-@end defvar
-
-
-@deffn Syntax struct-tm-tm_sec-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_sec-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_min-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_min-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_hour-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_hour-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_mday-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_mday-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_mon-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_mon-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_year-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_year-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_wday-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_wday-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_yday-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_yday-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_isdst-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_isdst-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_gmtoff-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_gmtoff-ref @var{pointer}
-@deffnx Syntax struct-tm-tm_zone-set! @var{pointer} @var{value}
-@deffnx Syntax struct-tm-tm_zone-ref @var{pointer}
-Peekers and pokers for the @code{struct tm} type.
-
-These bindings are exported by the @library{glibc sizeof} library.
-@end deffn
-
-
-@deffn Function localtime @var{time} @var{tm}
+@deffn Function localtime @var{time} @var{malloc}
 @deffnx Parameter localtime-function
-@deffnx Function primitive:localtime @var{time} @var{tm}
-@deffnx Function platform:localtime @var{time} @var{tm}
-Despite the name, this is a wrapper for the @cfunc{localtime_r}
-function.  Fill the @code{struct tm} referenced by the @var{tm} pointer
-with broken down values from the calendar @var{time} (which can be the
-return value of @func{time}).
+@deffnx Function primitive:localtime @var{time} @var{malloc}
+@deffnx Function platform:localtime_r @var{time} @var{tm-pointer}
+Allocate a new @code{struct tm} instance using the @var{malloc}
+function, then fill it broken--down values from the calendar @var{time}
+(which can be the return value of @func{time}).  The return value is the
+pointer to the @code{struct tm} instance.
+
+Despite the names, these functions are wrappers for the
+@cfunc{localtime_r} function, so they are reentrant.
 
 For example, to get the current year:
 
 @example
 (define (gimme-year)
   (with-compensations
-    (let ((*tm (malloc-block/c sizeof-struct-tm)))
-      (localtime (time) *tm)
-      (+ 1900 (struct-tm-tm_year-ref *tm)))))
+    (let ((tm* (localtime (time) malloc-block/c)))
+      (+ 1900 (struct-tm-tm_year-ref tm*)))))
 @end example
 @end deffn
 
 
-@deffn Function gmtime @var{time} @var{tm}
+@deffn Function localtime* @var{time}
+@deffnx Parameter localtime*-parameter
+@deffnx Function primitive:localtime* @var{time}
+Wrapper for @func{primitive:localtime} which automatically converts the
+@code{struct tm} instance into a @class{struct-tm} record and returns
+it.
+
+For example, to get the current year:
+
+@example
+(define (gimme-year*)
+  (+ 1900 (<struct-tm>-year (localtime* (time)))))
+@end example
+@end deffn
+
+
+@deffn Function gmtime @var{time} @var{malloc}
 @deffnx Parameter gmtime-function
-@deffnx Function primitive:gmtime @var{time} @var{tm}
-@deffnx Function platform:gmtime @var{time} @var{tm}
+@deffnx Function primitive:gmtime @var{time} @var{malloc}
+@deffnx Function platform:gmtime @var{time} @var{tm-pointer}
 Like @func{localtime} but converts the given time as Coordinated
 Universal Time (@acronym{UTC}).
 @end deffn
 
 
-@deffn Function timelocal @var{tm}
+@deffn Function gmtime* @var{time}
+@deffnx Parameter gmtime*-parameter
+@deffnx Function primitive:gmtime* @var{time}
+Wrapper for @func{primitive:gmtime} which automatically converts the
+@code{struct tm} instance into a @class{struct-tm} record and returns
+it.
+@end deffn
+
+
+@deffn Function timelocal @var{tm-pointer}
 @deffnx Parameter timelocal-function
-@deffnx Function primitive:timelocal @var{tm}
-@deffnx Function platform:timelocal @var{tm}
-Return a calendar time value from the @code{struct tm} referenced by the
-@code{tm} pointer.  It is the inverse of @func{localtime}.
+@deffnx Function primitive:timelocal @var{tm-pointer}
+@deffnx Function platform:timelocal @var{tm-pointer}
+Return a calendar time value from the @code{struct tm} referenced by
+@var{tm-pointer}; the returned value is a @code{time_t} casted to a
+native @code{double} and converted to a Scheme inexact real number.  It
+is the inverse of @func{localtime}.
+
+@cindex @func{mktime}
+@quotation
+@strong{NOTE} The @cfunc{mktime} function does the same thing of the
+@cfunc{timelocal} function; for this reason it is not exported.
+@end quotation
 @end deffn
 
 
-@deffn Function mktime @var{tm}
-@deffnx Parameter mktime-function
-@deffnx Function primitive:mktime @var{tm}
-@deffnx Function platform:mktime @var{tm}
-Aliases for @func{timelocal}.
+@deffn Function timelocal* @var{tm-record}
+@deffnx Parameter timelocal*-function
+@deffnx Function primitive:timelocal* @var{tm-record}
+Wrapper for @func{primitive:timelocal} which automatically converts
+@var{tm-record}, which must be a @class{struct-tm} record, into an
+instance of @code{struct tm}.
 @end deffn
 
 
-@deffn Function timegm @var{tm}
+@deffn Function timegm @var{tm-pointer}
 @deffnx Parameter timegm-function
-@deffnx Function primitive:timegm @var{tm}
-@deffnx Function platform:timegm @var{tm}
-Return a calendar time value from the @code{struct tm} referenced by the
-@code{tm} pointer.  It is the inverse of @func{gmtime}.
+@deffnx Function primitive:timegm @var{tm-pointer}
+@deffnx Function platform:timegm @var{tm-pointer}
+Return a calendar time value from the @code{struct tm} referenced by
+@var{tm-pointer}; the returned value is a @code{time_t} casted to a
+native @code{double} and converted to a Scheme inexact real number.  It
+is the inverse of @func{gmtime}.
+@end deffn
+
+
+@deffn Function timegm* @var{tm-record}
+@deffnx Parameter timegm*-function
+@deffnx Function primitive:timegm* @var{tm-record}
+Wrapper for @func{primitive:timegm} which automatically converts
+@var{tm-record}, which must be a @class{struct-tm} record, into an
+instance of @code{struct tm}.
+@end deffn
+
+@c page
+@node time hiaccu
+@section High accuracy clock
+
+
+The following functions implement an interface to the system clock;
+unless otherwise specified, the bindings are exported by the Glibc
+@code{time} libraries.  @glibcref{High Accuracy Clock, High Accuracy
+Clock}.
+
+
+@deffn Function ntp_gettime @var{pointer}
+@deffnx Parameter ntp_gettime-function
+@deffnx Function primitive:ntp_gettime @var{pointer}
+@deffnx Function platform:ntp_gettime @var{pointer}
+Fill the @code{struct ntptimeval} instance referenced by @var{pointer}
+with current values from the system's kernel.
+@end deffn
+
+
+@deffn Function ntp_gettime*
+@deffnx Parameter ntp_gettime-function
+@deffnx Function primitive:ntp_gettime*
+Wrappers for @func{primitive:ntp_gettime} which automatically convert
+the @code{struct ntptimeval} instance into a @class{struct-ntptimeval}
+record; return the record.
+@end deffn
+
+
+@deffn Function ntp_adjtime @var{pointer}
+@deffnx Parameter ntp_adjtime-function
+@deffnx Function primitive:ntp_adjtime @var{pointer}
+@deffnx Function platform:ntp_adjtime @var{pointer}
+Set the @code{struct timex} instance referenced by @var{pointer} to
+current values, also set some kernel values with values from the
+instance.  See the original documentation for details.
+@end deffn
+
+
+@deffn Function ntp_adjtime* @var{record}
+@deffnx Parameter ntp_adjtime-function
+@deffnx Function primitive:ntp_adjtime* @var{record}
+Wrappers for @func{primitive:ntp_adjtime} which automatically convert
+the @class{struct-timex} @var{record} into a @code{struct timex}
+instance, hand the structure to @func{primitive:ntp_adjtime}, finally
+convert the modified structure into a new @class{struct-timex} record
+and return it.
+
+The original @var{record} is @strong{not} mutated.
 @end deffn
 
 @c page

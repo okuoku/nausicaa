@@ -35,12 +35,11 @@
     adjtime
 
     ;; broken down time
-    localtime		gmtime
+    localtime_r		gmtime_r
     timelocal		timegm
-    (rename (timelocal mktime))
 
     ;; high accuracy time
-    ntp_gettime)
+    ntp_gettime		ntp_adjtime)
   (import (rnrs)
     (foreign posix shared-object)
     (foreign posix sizeof)
@@ -48,13 +47,17 @@
     (foreign ffi sizeof))
 
 
+;;;; type aliases
+
+(define struct-tm*		'pointer)
+(define struct-ntptimeval*	'pointer)
+(define struct-timex*		'pointer)
+
+
 (define dummy
   (shared-object standard-c-library))
 
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno stime
-  (time_t stime (pointer)))
+;;;; high-resolution calendar
 
 (define-c-function/with-errno gettimeofday
   (int gettimeofday (pointer pointer)))
@@ -65,24 +68,36 @@
 (define-c-function/with-errno adjtime
   (int adjtime (pointer pointer)))
 
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno localtime
-  (pointer localtime_r (pointer pointer)))
-
-(define-c-function/with-errno gmtime
-  (pointer gmtime_r (pointer pointer)))
-
-(define-c-function/with-errno timelocal
-  (time_t timelocal (pointer)))
-
-(define-c-function/with-errno timegm
-  (time_t timegm (pointer)))
-
-;;; --------------------------------------------------------------------
+;;;; high-accuracy clock
 
 (define-c-function/with-errno ntp_gettime
-  (int ntp_gettime (pointer)))
+  (int ntp_gettime (struct-timex*)))
+
+(define-c-function/with-errno ntp_adjtime
+  (int ntp_adjtime (struct-timex*)))
+
+
+(define dummy2
+  (shared-object libnausicaa-posix))
+
+;;;; simple calendar time
+
+(define-c-function/with-errno stime
+  (int nausicaa_posix_stime (double)))
+
+;;;; broken-down time
+
+(define-c-function/with-errno localtime_r
+  (struct-tm* nausicaa_posix_localtime_r (double struct-tm*)))
+
+(define-c-function/with-errno gmtime_r
+  (struct-tm* nausicaa_posix_gmtime_r (double struct-tm*)))
+
+(define-c-function/with-errno timelocal
+  (double nausicaa_posix_timelocal (struct-tm*)))
+
+(define-c-function/with-errno timegm
+  (double nausicaa_posix_timegm (struct-tm*)))
 
 
 ;;;; done

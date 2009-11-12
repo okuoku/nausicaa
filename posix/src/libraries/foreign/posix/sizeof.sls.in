@@ -229,6 +229,10 @@
     alignof-struct-ntptimeval
     strideof-struct-ntptimeval
 
+    sizeof-struct-timex
+    alignof-struct-timex
+    strideof-struct-timex
+
     ;;struct accessors
     struct-flock-l_type-set!		struct-flock-l_type-ref
     struct-flock-l_whence-set!		struct-flock-l_whence-ref
@@ -266,6 +270,26 @@
 					struct-ntptimeval-time-ref
     struct-ntptimeval-maxerror-set!	struct-ntptimeval-maxerror-ref
     struct-ntptimeval-esterror-set!	struct-ntptimeval-esterror-ref
+
+    struct-timex-modes-set!		struct-timex-modes-ref
+    struct-timex-offset-set!		struct-timex-offset-ref
+    struct-timex-frequency-set!		struct-timex-frequency-ref
+    struct-timex-maxerror-set!		struct-timex-maxerror-ref
+    struct-timex-esterror-set!		struct-timex-esterror-ref
+    struct-timex-status-set!		struct-timex-status-ref
+    struct-timex-constant-set!		struct-timex-constant-ref
+    struct-timex-precision-set!		struct-timex-precision-ref
+    struct-timex-tolerance-set!		struct-timex-tolerance-ref
+					struct-timex-time-ref
+    struct-timex-tick-set!		struct-timex-tick-ref
+    struct-timex-ppsfreq-set!		struct-timex-ppsfreq-ref
+    struct-timex-jitter-set!		struct-timex-jitter-ref
+    struct-timex-shift-set!		struct-timex-shift-ref
+    struct-timex-stabil-set!		struct-timex-stabil-ref
+    struct-timex-jitcnt-set!		struct-timex-jitcnt-ref
+    struct-timex-calcnt-set!		struct-timex-calcnt-ref
+    struct-timex-errcnt-set!		struct-timex-errcnt-ref
+    struct-timex-stbcnt-set!		struct-timex-stbcnt-ref
 
     struct-utimbuf-actime-set!		struct-utimbuf-actime-ref
     struct-utimbuf-modtime-set!		struct-utimbuf-modtime-ref
@@ -413,6 +437,10 @@
 (define sizeof-struct-ntptimeval	@SIZEOF_STRUCT_NTPTIMEVAL@)
 (define alignof-struct-ntptimeval	@ALIGNOF_STRUCT_NTPTIMEVAL@)
 (define strideof-struct-ntptimeval	@STRIDEOF_STRUCT_NTPTIMEVAL@)
+
+(define sizeof-struct-timex		@SIZEOF_STRUCT_TIMEX@)
+(define alignof-struct-timex		@ALIGNOF_STRUCT_TIMEX@)
+(define strideof-struct-timex		@STRIDEOF_STRUCT_TIMEX@)
 
 ;;;The  stat structure is  "special"; we  relay on  the stub  library to
 ;;;access it.
@@ -797,6 +825,138 @@
   @OFFSETOF_STRUCT_NTPTIMEVAL_ESTERROR@
   @SETTEROF_STRUCT_NTPTIMEVAL_ESTERROR@
   @GETTEROF_STRUCT_NTPTIMEVAL_ESTERROR@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-modes-set!
+  struct-timex-modes-ref
+  @OFFSETOF_STRUCT_TIMEX_MODES@
+  @SETTEROF_STRUCT_TIMEX_MODES@
+  @GETTEROF_STRUCT_TIMEX_MODES@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-offset-set!
+  struct-timex-offset-ref
+  @OFFSETOF_STRUCT_TIMEX_OFFSET@
+  @SETTEROF_STRUCT_TIMEX_OFFSET@
+  @GETTEROF_STRUCT_TIMEX_OFFSET@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-frequency-set!
+  struct-timex-frequency-ref
+  @OFFSETOF_STRUCT_TIMEX_FREQUENCY@
+  @SETTEROF_STRUCT_TIMEX_FREQUENCY@
+  @GETTEROF_STRUCT_TIMEX_FREQUENCY@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-maxerror-set!
+  struct-timex-maxerror-ref
+  @OFFSETOF_STRUCT_TIMEX_MAXERROR@
+  @SETTEROF_STRUCT_TIMEX_MAXERROR@
+  @GETTEROF_STRUCT_TIMEX_MAXERROR@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-esterror-set!
+  struct-timex-esterror-ref
+  @OFFSETOF_STRUCT_TIMEX_ESTERROR@
+  @SETTEROF_STRUCT_TIMEX_ESTERROR@
+  @GETTEROF_STRUCT_TIMEX_ESTERROR@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-status-set!
+  struct-timex-status-ref
+  @OFFSETOF_STRUCT_TIMEX_STATUS@
+  @SETTEROF_STRUCT_TIMEX_STATUS@
+  @GETTEROF_STRUCT_TIMEX_STATUS@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-constant-set!
+  struct-timex-constant-ref
+  @OFFSETOF_STRUCT_TIMEX_CONSTANT@
+  @SETTEROF_STRUCT_TIMEX_CONSTANT@
+  @GETTEROF_STRUCT_TIMEX_CONSTANT@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-precision-set!
+  struct-timex-precision-ref
+  @OFFSETOF_STRUCT_TIMEX_PRECISION@
+  @SETTEROF_STRUCT_TIMEX_PRECISION@
+  @GETTEROF_STRUCT_TIMEX_PRECISION@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-tolerance-set!
+  struct-timex-tolerance-ref
+  @OFFSETOF_STRUCT_TIMEX_TOLERANCE@
+  @SETTEROF_STRUCT_TIMEX_TOLERANCE@
+  @GETTEROF_STRUCT_TIMEX_TOLERANCE@)
+
+(define-c-struct-field-pointer-accessor
+  struct-timex-time-ref
+  @OFFSETOF_STRUCT_TIMEX_TIME@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-tick-set!
+  struct-timex-tick-ref
+  @OFFSETOF_STRUCT_TIMEX_TICK@
+  @SETTEROF_STRUCT_TIMEX_TICK@
+  @GETTEROF_STRUCT_TIMEX_TICK@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-ppsfreq-set!
+  struct-timex-ppsfreq-ref
+  @OFFSETOF_STRUCT_TIMEX_PPSFREQ@
+  @SETTEROF_STRUCT_TIMEX_PPSFREQ@
+  @GETTEROF_STRUCT_TIMEX_PPSFREQ@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-jitter-set!
+  struct-timex-jitter-ref
+  @OFFSETOF_STRUCT_TIMEX_JITTER@
+  @SETTEROF_STRUCT_TIMEX_JITTER@
+  @GETTEROF_STRUCT_TIMEX_JITTER@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-shift-set!
+  struct-timex-shift-ref
+  @OFFSETOF_STRUCT_TIMEX_SHIFT@
+  @SETTEROF_STRUCT_TIMEX_SHIFT@
+  @GETTEROF_STRUCT_TIMEX_SHIFT@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-stabil-set!
+  struct-timex-stabil-ref
+  @OFFSETOF_STRUCT_TIMEX_STABIL@
+  @SETTEROF_STRUCT_TIMEX_STABIL@
+  @GETTEROF_STRUCT_TIMEX_STABIL@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-jitcnt-set!
+  struct-timex-jitcnt-ref
+  @OFFSETOF_STRUCT_TIMEX_JITCNT@
+  @SETTEROF_STRUCT_TIMEX_JITCNT@
+  @GETTEROF_STRUCT_TIMEX_JITCNT@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-calcnt-set!
+  struct-timex-calcnt-ref
+  @OFFSETOF_STRUCT_TIMEX_CALCNT@
+  @SETTEROF_STRUCT_TIMEX_CALCNT@
+  @GETTEROF_STRUCT_TIMEX_CALCNT@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-errcnt-set!
+  struct-timex-errcnt-ref
+  @OFFSETOF_STRUCT_TIMEX_ERRCNT@
+  @SETTEROF_STRUCT_TIMEX_ERRCNT@
+  @GETTEROF_STRUCT_TIMEX_ERRCNT@)
+
+(define-c-struct-accessor-and-mutator
+  struct-timex-stbcnt-set!
+  struct-timex-stbcnt-ref
+  @OFFSETOF_STRUCT_TIMEX_STBCNT@
+  @SETTEROF_STRUCT_TIMEX_STBCNT@
+  @GETTEROF_STRUCT_TIMEX_STBCNT@)
 
 ;;; --------------------------------------------------------------------
 

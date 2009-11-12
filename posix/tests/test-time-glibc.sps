@@ -93,6 +93,8 @@
 
 (parametrise ((check-test-name 'broken-down-time))
 
+  (define the-time (posix:time))
+
   (with-deferred-exceptions-handler
       (lambda (E)
 	(debug-print-condition "deferred condition in broken down" E))
@@ -100,41 +102,53 @@
 
       (check
 	  (with-compensations
-	    (let ((*tm	(malloc-block/c sizeof-struct-tm)))
-	      (glibc:localtime (posix:time) *tm)
-	      (struct-tm-tm_year-ref *tm)))
-	=> 108) ;; this is 1900 + 109 = 2008, it works only in 2008
+	    (let ((tm* (glibc:localtime (posix:time) malloc-block/c)))
+	      #t))
+	=> #t)
+
+      (check
+	  (<struct-tm>? (glibc:localtime* (posix:time)))
+	=> #t)
+
+;;; --------------------------------------------------------------------
 
       (check
 	  (with-compensations
-	    (let ((*tm	(malloc-block/c sizeof-struct-tm)))
-	      (glibc:gmtime (posix:time) *tm)
-	      (struct-tm-tm_year-ref *tm)))
-	=> 108) ;; this is 1900 + 109 = 2008, it works only in 2008
+	    (let ((tm* (glibc:localtime (posix:time) malloc-block/c)))
+	      #t))
+	=> #t)
 
-      (let ((t (posix:time)))
-	(check
-	    (with-compensations
-	      (let ((*tm	(malloc-block/c sizeof-struct-tm)))
-		(glibc:localtime t *tm)
-		(glibc:timelocal *tm)))
-	  => t))
+      (check
+	  (<struct-tm>? (glibc:localtime* (posix:time)))
+	=> #t)
 
-      (let ((t (posix:time)))
-	(check
-	    (with-compensations
-	      (let ((*tm	(malloc-block/c sizeof-struct-tm)))
-		(glibc:gmtime t *tm)
-		(glibc:timegm *tm)))
-	  => t))
+;;; --------------------------------------------------------------------
 
-      ;; (let ((t (posix:time)))
-      ;; 	(check
-      ;; 	    (with-compensations
-      ;; 	      (let ((*tm	(malloc-block/c sizeof-struct-tm)))
-      ;; 		(glibc:localtime t *tm)
-      ;; 		(glibc:mktime *tm)))
-      ;; 	  => t))
+      (check
+	  (with-compensations
+	    (let ((tm* (glibc:localtime the-time malloc-block/c)))
+	      (glibc:timelocal tm*)))
+	=> the-time)
+
+      (check
+	  (with-compensations
+	    (let ((tm-record (glibc:localtime* the-time)))
+	      (glibc:timelocal* tm-record)))
+	=> the-time)
+
+;;; --------------------------------------------------------------------
+
+      (check
+	  (with-compensations
+	    (let ((tm* (glibc:gmtime the-time malloc-block/c)))
+	      (glibc:timegm tm*)))
+	=> the-time)
+
+      (check
+	  (with-compensations
+	    (let ((tm-record (glibc:gmtime* the-time)))
+	      (glibc:timegm* tm-record)))
+	=> the-time)
 
       #t)))
 

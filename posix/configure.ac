@@ -48,7 +48,7 @@ DS_C99_LANGUAGE_COMMON_SETUP
 NAUSICAA_SIZEOF
 NAUSICAA_C_TYPES_LIMITS
 
-DS_C_LANGUAGE_LIBRARY([posix],1,0,[nausicaa-posix])
+DS_C_LANGUAGE_LIBRARY([posix_stub],1,0,[nausicaa-posix])
 
 dnl These work!!!
 AC_CHECK_FUNC([stat])
@@ -279,6 +279,35 @@ NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_NTPTIMEVAL],[struct ntptimeval])
 NAU_POSIX_STRUCT_NTPTIMEVAL_POINTER_FIELD([TIME],[time])
 NAU_POSIX_STRUCT_NTPTIMEVAL_FIELD([MAXERROR],[maxerror],[signed-int])
 NAU_POSIX_STRUCT_NTPTIMEVAL_FIELD([ESTERROR],[esterror],[signed-int])
+
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAU_POSIX_STRUCT_TIMEX_FIELD],
+  [NAU_POSIX_INSPECT_FIELD_TYPE([STRUCT_TIMEX_$1],[struct timex],[$2],[$3])])
+
+AC_DEFUN([NAU_POSIX_STRUCT_TIMEX_POINTER_FIELD],
+  [NAU_POSIX_INSPECT_FIELD_TYPE_POINTER([STRUCT_TIMEX_$1],[struct timex],[$2])])
+
+NAU_POSIX_INSPECT_STRUCT_TYPE([STRUCT_TIMEX],[struct timex])
+NAU_POSIX_STRUCT_TIMEX_FIELD([MODES],[modes],[unsigned-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([OFFSET],[offset],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([FREQUENCY],[frequency],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([MAXERROR],[maxerror],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([ESTERROR],[esterror],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([STATUS],[status],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([CONSTANT],[constant],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([PRECISION],[precision],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([TOLERANCE],[tolerance],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_POINTER_FIELD([TIME],[time])
+NAU_POSIX_STRUCT_TIMEX_FIELD([TICK],[tick],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([PPSFREQ],[ppsfreq],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([JITTER],[jitter],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([SHIFT],[shift],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([STABIL],[stabil],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([JITCNT],[jitcnt],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([CALCNT],[calcnt],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([ERRCNT],[errcnt],[signed-int])
+NAU_POSIX_STRUCT_TIMEX_FIELD([STBCNT],[stbcnt],[signed-int])
 
 dnl --------------------------------------------------------------------
 
