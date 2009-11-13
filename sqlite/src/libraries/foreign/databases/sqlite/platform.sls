@@ -49,7 +49,6 @@
     ;; database connection handle
 
     sqlite3_close
-    make-sqlite3_exec
     sqlite3_exec
 ;;; sqlite3_db_config
 
@@ -332,9 +331,6 @@
 
 (define-c-function sqlite3_close
   (int sqlite3_close (sqlite3*)))
-
-(define (make-sqlite3_exec closure)
-  (make-c-callback int closure (void* int char** char**)))
 
 (define-c-function sqlite3_exec
   (int sqlite3_exec (sqlite3* char* callback void* char**)))

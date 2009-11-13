@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
 @setfilename nausicaa-sqlite.info
-@settitle SQLite for Nausicaa
+@settitle SQLite3 for Nausicaa
 @c %**end of header
 
 @c page
@@ -380,7 +380,7 @@ Revised^6 Report on the algorithmic language Scheme
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      SQLite for Nausicaa
+@set TITLE                      SQLite3 for Nausicaa
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
@@ -412,8 +412,8 @@ Revised^6 Report on the algorithmic language Scheme
 @noindent
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of librarires for @rnrs{6} Scheme implementations; it
-provides a binding to the SQLite @sql{} database engine.  It is built
-upon Nausicaa/Scheme, making use of its foreign functions interface; so
+provides a binding to the SQLite3 @sql{} database engine.  It is built
+upon Nausicaa/Scheme, making use of its foreign--functions interface; so
 it currently supports only @gnu{}+Linux systems.
 
 The package is distributed under the terms of the @gnu{} General Public
@@ -467,8 +467,7 @@ entitled ``@gnu{} Free Documentation License''.
 @ifinfo
 @dircategory Development
 @direntry
-* nausicaa-sqlite: (nausicaa-sqlite). Sqlite library
-                                          for @rnrs{6} Scheme.
+* nausicaa-sqlite: (nausicaa-sqlite). Sqlite3 binding for Nausicaa Scheme.
 @end direntry
 @end ifinfo
 
@@ -489,6 +488,8 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* conditions::                  Condition objects.
+* marshaling::                  Functions marshaling arguments.
 
 Appendices
 
@@ -512,8 +513,9 @@ Indexes
 
 @value{PACKAGE} is a distribution of librarires for @rnrs{6} Scheme
 implementations; it provides a binding to the SQLite @sql{} database
-engine.  It is built upon Nausicaa/Scheme, making use of its foreign
-functions interface; so it currently supports only @gnu{}+Linux systems.
+engine.  It is built upon Nausicaa/Scheme, making use of its
+foreign--functions interface; so it currently supports only @gnu{}+Linux
+systems.
 
 The installed libraries are:
 
@@ -540,11 +542,50 @@ the foreign ones, but with underscores turned into dashes and the
 
 @item foreign databases sqlite
 Exports the high--level @api{}: All the bindings from @library{foreign
-sqlite sizeof} and @library{foreign databases sqlite primitives}.
+databases sqlite sizeof} and @library{foreign databases sqlite
+primitives}.
+
 Additionally bindings for constructors and destructors making use of the
 @library{compensations} library.  @nauref{compensations, Compensation
 stacks}
 @end table
+
+@c page
+@node conditions
+@chapter Condition objects
+
+
+@menu
+* conditions base::             Base condition type.
+@end menu
+
+@c page
+@node conditions base
+@section Base condition type
+
+
+@deftp {Condition Type} &sqlite
+Base condition type for @value{package} exceptions; it is derived from
+@code{&error}.  It has no fields.
+@end deftp
+
+
+@defun make-sqlite-condition
+@defunx sqlite-condition? @var{obj}
+Constructor and predicate for condition objects of type @code{&sqlite}.
+@end defun
+
+@c page
+@node marshaling
+@chapter Functions marshaling arguments
+
+
+@defun sqlite-open @var{pathname}
+Open the database file selected by @var{pathname}, which must be a
+Scheme string.  If successful returns zero, else raise an exception of
+type @code{&sqlite}.
+@end defun
+
 
 @c page
 
