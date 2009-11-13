@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/POSIX 2009-11-12 tag 0.1a0
+Subject: [announce] Nausicaa/POSIX 2009-11-13 tag 0.1a1
 
 		       Nausicaa/POSIX
 		       ==============
@@ -33,6 +33,13 @@ development takes place at:
 the documentation is available on line:
 
   <http://marcomaggi.github.com/docs/nausicaa-posix.html>
+
+
+Notes for 2009-11-13 tag 0.1a1
+------------------------------
+
+* Commented  out  test cases  which  fail without  superuser
+  privileges.
 
 
 Notes for 2009-11-12 tag 0.1a0
