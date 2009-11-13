@@ -31,6 +31,12 @@
   (only (foreign posix stat))
   (only (foreign posix fd))
   (only (foreign posix job))
-  (only (foreign posix process)))
+  (only (foreign posix process))
+
+  (only (foreign glibc environment))
+  (only (foreign glibc streams))
+  (only (foreign glibc time))
+  (only (foreign glibc file))
+  )
 
 ;;; end of file
