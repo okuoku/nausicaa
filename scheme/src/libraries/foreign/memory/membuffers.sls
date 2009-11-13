@@ -42,7 +42,6 @@
     (queues)
     (foreign memory)
     (foreign memory caches)
-    (for (records) expand run)
     (for (foreign memory memblocks) expand)
     (for (foreign memory membuffers types) expand run)
     (for (foreign memory membuffers extensions) expand run))
@@ -61,13 +60,13 @@
 ;;;; allocation and release of <buffer> records
 
 (define (buffer-alloc mb)
-  (with-record-fields ((cache <membuffer> mb))
+  (let-syntax ((cache (identifier-syntax (<membuffer>-cache mb))))
     (let ((pointer (cache)))
-      (make <buffer> pointer (cache 'size) pointer pointer))))
+      (make-<buffer> pointer (cache 'size) pointer pointer))))
 
 (define (buffer-free mb buf)
-  (with-record-fields ((cache <membuffer> mb)
-		       (pointer <buffer> buf))
+  (let-syntax ((cache	(identifier-syntax (<membuffer>-cache mb)))
+	       (pointer	(identifier-syntax (<buffer>-pointer buf))))
     (cache pointer)))
 
 
@@ -88,13 +87,18 @@
     (buffer-pop-bytevector! buf bv bv.start (bytevector-length bv)))
 
    ((buf bv bv.start bv.past)
-    (with-fields* (((pointer-used used-size) <buffer*> buf))
+    (let-syntax ((buf.pointer-used	(identifier-syntax
+					 (_ (<buffer>-pointer-used buf))
+					 ((set! _ ?value)
+					  (<buffer>-pointer-used-set! buf ?value))))
+		 (buf.used-size		(identifier-syntax
+					 (%buffer-used-size buf))))
       (if (zero? buf.used-size)
 	  bv.start
 	(let ((copy-len (min (- bv.past bv.start) buf.used-size)))
 	  (do ((i 0 (+ 1 i)))
 	      ((= i copy-len)
-	       (set! buf.pointer-used (pointer-add buf.pointer-used copy-len))
+	       (pointer-incr! buf.pointer-used copy-len)
 	       (+ bv.start copy-len))
 	    (bytevector-u8-set! bv (+ bv.start i)
 				(pointer-ref-c-uint8 buf.pointer-used i)))))))))
@@ -114,14 +118,20 @@
     (buffer-pop-memblock! buf blk blk.start (<memblock>-size blk)))
 
    ((buf blk blk.start blk.past)
-    (with-fields* ((pointer <memblock-rtd> blk)
-		   ((pointer-used used-size) <buffer*>   buf))
+    (let-syntax ((blk.pointer		(identifier-syntax
+					 (<memblock>-pointer blk)))
+		 (buf.pointer-used	(identifier-syntax
+					 (_ (<buffer>-pointer-used buf))
+					 ((set! _ ?value)
+					  (<buffer>-pointer-used-set! buf ?value))))
+		 (buf.used-size		(identifier-syntax
+					 (%buffer-used-size buf))))
       (if (zero? buf.used-size)
 	  blk.start
 	(let ((copy-len (min (- blk.past blk.start) buf.used-size)))
 	  (memcpy (pointer-add blk.pointer blk.start)
 		  buf.pointer-used copy-len)
-	  (set! buf.pointer-used (pointer-add buf.pointer-used copy-len))
+	  (pointer-incr! buf.pointer-used copy-len)
 	  (+ blk.start copy-len)))))))
 
 (define buffer-push-bytevector!
@@ -139,13 +149,18 @@
     (buffer-push-bytevector! buf bv bv.start (bytevector-length bv)))
 
    ((buf bv bv.start bv.past)
-    (with-fields* (((pointer-free free-size) <buffer*> buf))
+    (let-syntax ((buf.pointer-free	(identifier-syntax
+    					 (_ (<buffer>-pointer-free buf))
+    					 ((set! _ ?value)
+    					  (<buffer>-pointer-free-set! buf ?value))))
+    		 (buf.free-size		(identifier-syntax
+    					 (%buffer-free-size buf))))
       (if (zero? buf.free-size)
 	  bv.start
 	(let ((copy-len (min (- bv.past bv.start) buf.free-size)))
 	  (do ((i 0 (+ 1 i)))
 	      ((= i copy-len)
-	       (set! buf.pointer-free (pointer-add buf.pointer-free copy-len))
+	       (pointer-incr! buf.pointer-free copy-len)
 	       (+ bv.start copy-len))
 	    (pointer-set-c-uint8! buf.pointer-free i
 				  (bytevector-u8-ref bv (+ bv.start i))))))))))
@@ -165,53 +180,61 @@
     (buffer-push-memblock! buf blk blk.start (<memblock>-size blk)))
 
    ((buf blk blk.start blk.past)
-    (with-fields* ((pointer <memblock-rtd> blk)
-		   ((pointer-free free-size) <buffer*> buf))
+    (let-syntax ((blk.pointer		(identifier-syntax
+					 (<memblock>-pointer blk)))
+		 (buf.pointer-free	(identifier-syntax
+    					 (_ (<buffer>-pointer-free buf))
+    					 ((set! _ ?value)
+    					  (<buffer>-pointer-free-set! buf ?value))))
+    		 (buf.free-size		(identifier-syntax
+    					 (%buffer-free-size buf))))
       (if (zero? buf.free-size)
 	  blk.start
 	(let ((copy-len (min (- blk.past blk.start) buf.free-size)))
 	  (memcpy buf.pointer-free (pointer-add blk.pointer blk.start) copy-len)
-	  (set! buf.pointer-free (pointer-add buf.pointer-free copy-len))
+	  (pointer-incr! buf.pointer-free copy-len)
 	  (+ blk.start copy-len)))))))
 
 
 (define membuffer
   (case-lambda
    (()
-    (make <membuffer> '() #f page-blocks-cache))
+    (make-<membuffer> '() #f page-blocks-cache))
    ((cache)
-    (make <membuffer> '() #f cache))))
+    (make-<membuffer> '() #f cache))))
 
 (define (%membuffer-pop! mb dst dst.start dst.past popper)
   (let loop ((dst.start dst.start))
     (if (= dst.start dst.past)
 	dst.past
-      (with-fields* (((front empty?) <queue*> mb)
-		     (empty? <buffer*> mb.front))
-	(if mb.empty?
-	    dst.start
-	  (let ((start (popper mb.front dst dst.start dst.past)))
-	    (when mb.front.empty?
-	      (buffer-free mb (queue-dequeue! mb)))
-	    (loop start)))))))
+      (let-syntax ((mb.front	(identifier-syntax (queue-front mb)))
+		   (mb.empty?	(identifier-syntax (queue-empty? mb))))
+	(let-syntax ((mb.front.empty? (identifier-syntax (%buffer-empty? mb.front))))
+	  (if mb.empty?
+	      dst.start
+	    (let ((start (popper mb.front dst dst.start dst.past)))
+	      (when mb.front.empty?
+		(buffer-free mb (queue-dequeue! mb)))
+	      (loop start))))))))
 
 (define (%membuffer-push! mb src src.start src.past pusher)
   (let loop ((src.start src.start))
     (if (= src.start src.past)
 	src.past
-      (with-fields* (((rear empty?) <queue*> mb)
-		     (full? <buffer*> mb.rear))
-	(when (or mb.empty? mb.rear.full?)
-	  (with-exception-handler
-	      (lambda (E)
-		(raise-continuable
-		 (if (out-of-memory-condition? E)
-		     (condition E (make-membuffer-incomplete-push-condition mb src
-									    src.start src.past))
-		   E)))
-	    (lambda ()
-	      (queue-enqueue! mb (buffer-alloc mb)))))
-	(loop (pusher mb.rear src src.start src.past))))))
+      (let-syntax ((mb.rear	(identifier-syntax (queue-rear mb)))
+		   (mb.empty?	(identifier-syntax (queue-empty? mb))))
+	(let-syntax ((mb.rear.full? (identifier-syntax (%buffer-full? mb.rear))))
+	  (when (or mb.empty? mb.rear.full?)
+	    (with-exception-handler
+		(lambda (E)
+		  (raise-continuable
+		   (if (out-of-memory-condition? E)
+		       (condition E (make-membuffer-incomplete-push-condition mb src
+									      src.start src.past))
+		     E)))
+	      (lambda ()
+		(queue-enqueue! mb (buffer-alloc mb)))))
+	  (loop (pusher mb.rear src src.start src.past)))))))
 
 
 (define membuffer-pop-bytevector!

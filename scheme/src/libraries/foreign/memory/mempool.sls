@@ -36,7 +36,6 @@
     primitive-malloc/mempool	malloc/mempool)
   (import (rnrs)
     (parameters)
-    (records)
     (begin0)
     (foreign memory conditions)
     (foreign ffi pointers)
@@ -46,13 +45,18 @@
   (define memory-pool
     (make-parameter #f
       (lambda (obj)
-	(assert (or (not obj) (is-a? obj <mempool>)))
+	(assert (or (not obj) (<mempool>? obj)))
 	obj)))
 
   (define (primitive-malloc/mempool number-of-bytes)
     (let ((pool (memory-pool)))
       (assert pool)
-      (with-fields (((pointer-free free-size) <mempool*> pool))
+      (let-syntax ((pointer-free	(identifier-syntax
+					 (_ (<mempool>-pointer-free pool))
+					 ((set! _ ?value)
+					  (<mempool>-pointer-free-set! pool ?value))))
+		   (free-size		(identifier-syntax
+					 (%mempool-free-size pool))))
 	(and (< number-of-bytes free-size)
 	     (begin0
 		 pointer-free

@@ -30,8 +30,17 @@
 
 (library (foreign memory membuffers types)
   (export
+
+    <buffer>			<buffer-rtd>
+    make-<buffer>		<buffer>?
+    <buffer>-pointer-used	<buffer>-pointer-used-set!
+    <buffer>-pointer-free	<buffer>-pointer-free-set!
+    (rename (<memblock>-pointer	<buffer>-pointer)
+	    (<memblock>-size	<buffer>-size))
+
     <membuffer>			<membuffer-rtd>
-    <buffer>			<buffer-rtd>)
+    make-<membuffer>		<membuffer>?
+    <membuffer>-cache)
   (import (rnrs)
     (foreign memory memblocks)
     (queues))

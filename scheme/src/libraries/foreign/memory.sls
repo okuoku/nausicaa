@@ -58,6 +58,7 @@
     pointer-null		pointer-null?
     integer->pointer		pointer->integer
     pointer-diff		pointer-add
+    pointer-incr!
     pointer=?			pointer<>?
     pointer<?			pointer>?
     pointer<=?			pointer>=?

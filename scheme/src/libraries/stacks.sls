@@ -47,10 +47,9 @@
     stack->list		list->stack
     stack->vector	vector->stack)
   (import (rnrs)
-    (records)
     (rnrs mutable-pairs)
-    (for (stacks types) expand run)
-    (for (stacks extensions) expand run))
+    (stacks types)
+    (stacks extensions))
 
 
 ;;; helpers
@@ -74,12 +73,16 @@
 
 (define (stack-push! obj stk)
   (assert (<stack>? stk))
-  (with-fields ((first-pair <stack-rtd> stk))
+  (let-syntax ((first-pair	(identifier-syntax (_ (<stack>-first-pair stk))
+						   ((set! _ ?value)
+						    (<stack>-first-pair-set! stk ?value)))))
     (set! first-pair (cons obj first-pair))))
 
 (define (stack-pop! stk)
   (assert (<stack>? stk))
-  (with-fields ((first-pair <stack-rtd> stk))
+  (let-syntax ((first-pair	(identifier-syntax (_ (<stack>-first-pair stk))
+						   ((set! _ ?value)
+						    (<stack>-first-pair-set! stk ?value)))))
     (let ((first first-pair))
       (if (null? first)
 	  (error 'stack-pop! "stack is empty" stk)
@@ -104,7 +107,9 @@
 
 
 (define (%remove remover thing stk)
-  (with-fields ((first-pair <stack-rtd> stk))
+  (let-syntax ((first-pair	(identifier-syntax (_ (<stack>-first-pair stk))
+						   ((set! _ ?value)
+						    (<stack>-first-pair-set! stk ?value)))))
     (set! first-pair (remover thing first-pair))))
 
 (define (stack-remp! proc stk)

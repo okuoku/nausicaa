@@ -28,7 +28,8 @@
   (export
     <queue>		<queue-rtd>
     make-<queue>	<queue>?
-    <queue>-first-pair	<queue>-last-pair)
+    <queue>-first-pair	<queue>-first-pair-set!
+    <queue>-last-pair	<queue>-last-pair-set!)
   (import (rnrs))
   (define-record-type <queue>
     (fields (mutable first-pair)

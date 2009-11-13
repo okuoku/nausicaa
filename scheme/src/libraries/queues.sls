@@ -48,10 +48,9 @@
     queue->list		list->queue
     queue->vector	vector->queue)
   (import (rnrs)
-    (records)
     (rnrs mutable-pairs)
-    (for (queues types) expand run)
-    (for (queues extensions) expand run))
+    (queues types)
+    (queues extensions))
 
 
 ;;; helpers
@@ -91,16 +90,26 @@
   ;;Push VALUE at the beginning of QUE.
   ;;
   (assert (<queue>? que))
-  (with-fields (((first-pair last-pair) <queue-rtd> que))
-    (let ((first (cons value first-pair)))
-      (set! first-pair first)
-      (or last-pair (set! last-pair first)))))
+  (let-syntax ((first-pair	(identifier-syntax (_ (<queue>-first-pair que))
+						   ((set! _ ?value)
+						    (<queue>-first-pair-set! que ?value))))
+	       (last-pair	(identifier-syntax (_ (<queue>-last-pair que))
+						   ((set! _ ?value)
+						    (<queue>-last-pair-set! que ?value)))))
+      (let ((first (cons value first-pair)))
+	(set! first-pair first)
+	(or last-pair (set! last-pair first)))))
 
 (define (queue-pop! que)
   ;;Pop a value from the beginning of QUE.
   ;;
   (assert (<queue>? que))
-  (with-fields (((first-pair last-pair) <queue-rtd> que))
+  (let-syntax ((first-pair	(identifier-syntax (_ (<queue>-first-pair que))
+						   ((set! _ ?value)
+						    (<queue>-first-pair-set! que ?value))))
+	       (last-pair	(identifier-syntax (_ (<queue>-last-pair que))
+						   ((set! _ ?value)
+						    (<queue>-last-pair-set! que ?value)))))
     (let ((first first-pair))
       (if (null? first)
 	  (error 'queue-pop! "queue is empty" que)
@@ -114,7 +123,12 @@
   ;;Push VALUE at the end of QUE.
   ;;
   (assert (<queue>? que))
-  (with-fields (((first-pair last-pair) <queue-rtd> que))
+  (let-syntax ((first-pair	(identifier-syntax (_ (<queue>-first-pair que))
+						   ((set! _ ?value)
+						    (<queue>-first-pair-set! que ?value))))
+	       (last-pair	(identifier-syntax (_ (<queue>-last-pair que))
+						   ((set! _ ?value)
+						    (<queue>-last-pair-set! que ?value)))))
     (let ((last (list obj)))
       (if (null? first-pair)
 	  (set! first-pair last)
@@ -139,7 +153,12 @@
 
 
 (define (%remove remover thing que)
-  (with-record-fields (((first-pair last-pair) <queue> que))
+  (let-syntax ((first-pair	(identifier-syntax (_ (<queue>-first-pair que))
+						   ((set! _ ?value)
+						    (<queue>-first-pair-set! que ?value))))
+	       (last-pair	(identifier-syntax (_ (<queue>-last-pair que))
+						   ((set! _ ?value)
+						    (<queue>-last-pair-set! que ?value)))))
     (set! first-pair (remover thing first-pair))
     (set! last-pair (last-pair/stx first-pair))))
 

@@ -429,6 +429,15 @@ implemented as:
 @end defun
 
 
+@deffn Syntax pointer-incr! @ameta{pointer-var} @ameta{expr}
+Expands to:
+
+@example
+(set! @cmeta{pointer-var} (pointer-add @cmeta{pointer-var} @cmeta{expr}))
+@end example
+@end deffn
+
+
 @defun pointer=? @var{pointer0} @var{pointer} ...
 @defunx pointer<? @var{pointer0} @var{pointer} ...
 @defunx pointer>? @var{pointer0} @var{pointer} ...

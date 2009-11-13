@@ -186,14 +186,14 @@
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "queues/extensions.sls"
-;; 		 "queues/extensions.slfasl")
+(compile-library "queues/extensions.sls"
+		 "queues/extensions.slfasl")
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "queues.sls"
-;; 		 "queues.slfasl")
+(compile-library "queues.sls"
+		 "queues.slfasl")
 
 (compile-library "stacks/types.sls"
  		 "stacks/types.slfasl")
@@ -201,14 +201,14 @@
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "stacks/extensions.sls"
-;; 		 "stacks/extensions.slfasl")
+(compile-library "stacks/extensions.sls"
+		 "stacks/extensions.slfasl")
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "stacks.sls"
-;; 		 "stacks.slfasl")
+(compile-library "stacks.sls"
+		 "stacks.slfasl")
 
 (compile-library "combinators.sls"
 		 "combinators.slfasl")
@@ -377,87 +377,87 @@
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/memory/bytevectors.sls"
-;; 		 "foreign/memory/bytevectors.slfasl")
+(compile-library "foreign/memory/bytevectors.sls"
+		 "foreign/memory/bytevectors.slfasl")
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/memory/caches.sls"
-;; 		 "foreign/memory/caches.slfasl")
+(compile-library "foreign/memory/caches.sls"
+		 "foreign/memory/caches.slfasl")
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/memory/compensated.sls"
-;; 		 "foreign/memory/compensated.slfasl")
+(compile-library "foreign/memory/compensated.sls"
+		 "foreign/memory/compensated.slfasl")
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/memory.sls"
-;; 		 "foreign/memory.slfasl")
+(compile-library "foreign/memory.sls"
+		 "foreign/memory.slfasl")
 
 ;;; --------------------------------------------------------------------
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/memory/refcount.sls"
-;; 		 "foreign/memory/refcount.slfasl")
+(compile-library "foreign/memory/refcount.sls"
+		 "foreign/memory/refcount.slfasl")
 
 ;;; --------------------------------------------------------------------
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/memory/membuffers/types.sls"
-;;  		 "foreign/memory/membuffers/types.slfasl")
+(compile-library "foreign/memory/membuffers/types.sls"
+ 		 "foreign/memory/membuffers/types.slfasl")
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/memory/membuffers/extensions.sls"
-;; 		 "foreign/memory/membuffers/extensions.slfasl")
+(compile-library "foreign/memory/membuffers/extensions.sls"
+		 "foreign/memory/membuffers/extensions.slfasl")
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/memory/membuffers.sls"
-;; 		 "foreign/memory/membuffers.slfasl")
+(compile-library "foreign/memory/membuffers.sls"
+		 "foreign/memory/membuffers.slfasl")
 
 ;;; --------------------------------------------------------------------
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/memory/mempool/types.sls"
-;;  		 "foreign/memory/mempool/types.slfasl")
+(compile-library "foreign/memory/mempool/types.sls"
+ 		 "foreign/memory/mempool/types.slfasl")
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/memory/mempool/extensions.sls"
-;; 		 "foreign/memory/mempool/extensions.slfasl")
+(compile-library "foreign/memory/mempool/extensions.sls"
+		 "foreign/memory/mempool/extensions.slfasl")
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/memory/mempool.sls"
-;; 		 "foreign/memory/mempool.slfasl")
+(compile-library "foreign/memory/mempool.sls"
+		 "foreign/memory/mempool.slfasl")
 
 ;;; --------------------------------------------------------------------
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/cstrings.sls"
-;; 		 "foreign/cstrings.slfasl")
+(compile-library "foreign/cstrings.sls"
+		 "foreign/cstrings.slfasl")
 
 ;;Commented  out  because the  expansion  of RECORD-FIELD-ACCESSOR*  and
 ;;RECORD-FIELD-MUTATOR* from (records) cannot be serialised.
 ;;
-;; (compile-library "foreign/errno.sls"
-;; 		 "foreign/errno.slfasl")
+(compile-library "foreign/errno.sls"
+		 "foreign/errno.slfasl")
 
 ;;; end of file

@@ -30,11 +30,10 @@
     bytevector->pointer		pointer->bytevector
     bytevector->memblock	memblock->bytevector)
   (import (rnrs)
-    (records)
     (foreign ffi pointers)
     (foreign ffi peekers-and-pokers)
     (foreign memory alloc)
-    (for (foreign memory memblocks) expand))
+    (foreign memory memblocks))
 
 
 (define bytevector->pointer
@@ -57,7 +56,7 @@
    ((bv malloc number-of-bytes)
     (bytevector->memblock bv malloc number-of-bytes 0))
    ((bv malloc number-of-bytes offset)
-    (make <memblock>
+    (make-<memblock>
       (bytevector->pointer bv malloc number-of-bytes offset)
       number-of-bytes))))
 
@@ -77,12 +76,12 @@
 (define memblock->bytevector
   (case-lambda
    ((blk)
-    (with-record-fields ((size <memblock> blk))
+    (let-syntax ((size (identifier-syntax (<memblock>-size blk))))
       (memblock->bytevector blk size 0)))
    ((blk number-of-bytes)
     (memblock->bytevector blk number-of-bytes 0))
    ((blk number-of-bytes offset)
-    (with-record-fields ((pointer <memblock> blk))
+    (let-syntax ((pointer (identifier-syntax (<memblock>-pointer blk))))
       (pointer->bytevector pointer number-of-bytes offset)))))
 
 

@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Scheme 2009-11-01 tag 0.1a2
+Subject: [announce] Nausicaa/Scheme --- tag 0.1a3
 
 		      Nausicaa/Scheme
 		      ===============
@@ -40,6 +40,19 @@ the documentation is available on line:
      <http://marcomaggi.github.com/docs/nausicaa.html>
 
 
+Notes for --- tag 0.1a3
+------------------------------
+
+* Added the (getopts) library.
+
+* Removed usage  of WITH-FIELDS and similar  macros, to make
+  all the libraries in the base package serialisable.
+
+* In the  (nausicaa) language, changed the  behaviour of MAX
+  and * under Ypsilon and  of MAX under Ikarus to return NaN
+  when one of the operands is NaN.
+
+
 Notes for 2009-11-01 tag 0.1a2
 ------------------------------
 
@@ -52,6 +65,7 @@ Notes for 2009-11-01 tag 0.1a2
   foreign-functions interface.
 
 * Library (format) renamed to (formations).
+
 
 Notes for 2009-10-20 tag 0.1a0
 ------------------------------

@@ -815,7 +815,8 @@
 
     ;; other stuff
     pretty-print)
-  (import (except (rnrs) finite? infinite? nan? =)
+  (import (except (rnrs) finite? infinite? nan? = max *)
+    (prefix (only (rnrs) *) ypsilon:)
     (only (core)
 	  lookup-process-environment process-environment->alist)
     (nausicaa common)
@@ -826,7 +827,35 @@
 
 ;;;; Ypsilon specific stuff
 
+(define max
+  (case-lambda
+   ((n)
+    n)
+   ((n m)
+    (cond ((nan? n)
+	   +nan.0)
+	  ((nan? m)
+	   +nan.0)
+	  (else
+	   (if (< n m) m n))))
+   ((n m . args)
+    (max n (apply max m args)))))
 
+(define *
+  (case-lambda
+   (()
+    1)
+   ((n)
+    n)
+   ((n m)
+    (cond ((nan? n)
+	   +nan.0)
+	  ((nan? m)
+	   +nan.0)
+	  (else
+	   (ypsilon:* n m))))
+   ((n m . args)
+    (ypsilon:* n (apply * m args)))))
 
 
 ;;;; feature--based conditional expansion

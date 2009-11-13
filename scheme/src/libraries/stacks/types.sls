@@ -28,7 +28,7 @@
   (export
     <stack>		<stack-rtd>
     make-<stack>	<stack>?
-    <stack>-first-pair)
+    <stack>-first-pair	<stack>-first-pair-set!)
   (import (rnrs))
   (define-record-type <stack>
     (fields (mutable first-pair)))

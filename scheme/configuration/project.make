@@ -33,6 +33,18 @@ nau_scheme_ENABLE_BINFMT	= @nau_scheme_ENABLE_BINFMT@
 
 #page
 ## --------------------------------------------------------------------
+## Documentation dependencies.
+## --------------------------------------------------------------------
+
+nau_texinfo_TARGETS	= $(ds_texi_BUILDDIR)/nausicaa.info.gz \
+			  $(ds_texi_BUILDDIR)/nausicaa.html    \
+			  $(ds_texi_BUILDDIR)/nausicaa.pdf     \
+			  $(ds_texi_BUILDDIR)/nausicaa.ps.gz
+
+$(nau_texinfo_TARGETS) : $(ds_texi_SRCDIR)/foreign.texiinc
+
+#page
+## --------------------------------------------------------------------
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 

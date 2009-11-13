@@ -31,6 +31,7 @@
 (library (foreign memory memblocks)
   (export
     <memblock> <memblock-rtd>
+    make-<memblock>
     <memblock>? <memblock>-pointer <memblock>-size)
   (import (rnrs))
   (define-record-type <memblock>

@@ -18966,6 +18966,32 @@ can only be a real number.
 @end defun
 
 
+@defun max @var{arg} ...
+Like @func{max} defined by @rnrs{6}, but if an argument is
+not--a--number: The result is not--a--number.  This changes the
+behaviour of some Scheme implementations under which:
+
+@example
+(max 1 +nan.0) @result{} 1.0
+@end example
+@end defun
+
+
+@defun * @var{arg} ...
+Like @func{*} defined by @rnrs{6}, but if an argument is not--a--number:
+The result is not--a--number.  This changes the behaviour of some Scheme
+implementations under which:
+
+@example
+(* 0 +nan.0) @result{} 0
+@end example
+
+@noindent
+because, for those implementations, whatever number object multiplied by
+exact zero is exact zero.
+@end defun
+
+
 @defun {symbol*->string} @var{obj}
 Convert the symbol or string @var{obj} to a string.  If @var{obj} is a
 string return it, else apply @func{symbol->string} to it and return the

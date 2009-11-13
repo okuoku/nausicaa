@@ -26,7 +26,12 @@
 
 
 (library (foreign memory membuffers extensions)
-  (export <buffer*>)
+  (export
+    <buffer*>
+    %buffer-empty?
+    %buffer-full?
+    %buffer-free-size
+    %buffer-used-size)
   (import (rnrs)
     (records)
     (only (foreign ffi pointers)
@@ -36,19 +41,25 @@
 
 
 (define (%buffer-empty? buf)
-  (with-record-fields (((pointer-used pointer-free) <buffer> buf))
+  (let-syntax ((pointer-used	(identifier-syntax (<buffer>-pointer-used buf)))
+	       (pointer-free	(identifier-syntax (<buffer>-pointer-free buf))))
     (pointer=? pointer-used pointer-free)))
 
 (define (%buffer-full? buf)
-  (with-record-fields (((pointer size pointer-free) <buffer> buf))
+  (let-syntax ((pointer		(identifier-syntax (<buffer>-pointer      buf)))
+	       (pointer-free	(identifier-syntax (<buffer>-pointer-free buf)))
+	       (size		(identifier-syntax (<buffer>-size         buf))))
     (= size (pointer-diff pointer-free pointer))))
 
 (define (%buffer-free-size buf)
-  (with-record-fields (((size pointer pointer-free) <buffer> buf))
+  (let-syntax ((pointer		(identifier-syntax (<buffer>-pointer      buf)))
+	       (pointer-free	(identifier-syntax (<buffer>-pointer-free buf)))
+	       (size		(identifier-syntax (<buffer>-size         buf))))
     (- size (pointer-diff pointer-free pointer))))
 
 (define (%buffer-used-size buf)
-  (with-record-fields (((pointer-used pointer-free) <buffer> buf))
+  (let-syntax ((pointer-used	(identifier-syntax (<buffer>-pointer-used buf)))
+	       (pointer-free	(identifier-syntax (<buffer>-pointer-free buf))))
     (pointer-diff pointer-free pointer-used)))
 
 (define-record-extension <buffer*>

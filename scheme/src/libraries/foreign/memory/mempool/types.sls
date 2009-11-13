@@ -30,9 +30,9 @@
 
 (library (foreign memory mempool types)
   (export
-    <mempool>		<mempool-rtd>
-    make-mempool	<mempool>?
-    <mempool>-pointer-free
+    <mempool>			<mempool-rtd>
+    make-mempool		<mempool>?
+    <mempool>-pointer-free	<mempool>-pointer-free-set!
     (rename (<memblock>-pointer	<mempool>-pointer)
 	    (<memblock>-size	<mempool>-size)))
   (import (rnrs)

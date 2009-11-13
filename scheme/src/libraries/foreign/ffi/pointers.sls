@@ -31,10 +31,16 @@
     pointer-null		pointer-null?
     integer->pointer		pointer->integer
     pointer-diff		pointer-add
+    pointer-incr!
     pointer=?			pointer<>?
     pointer<?			pointer>?
     pointer<=?			pointer>=?)
   (import (rnrs)
-    (foreign ffi pointers compat)))
+    (foreign ffi pointers compat))
+
+  (define-syntax pointer-incr!
+    (syntax-rules ()
+      ((_ ?pointer ?expr)
+       (set! ?pointer (pointer-add ?pointer ?expr))))))
 
 ;;; end of file

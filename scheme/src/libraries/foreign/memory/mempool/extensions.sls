@@ -26,14 +26,18 @@
 
 
 (library (foreign memory mempool extensions)
-  (export <mempool*>)
+  (export
+    <mempool*>
+    %mempool-free-size)
   (import (rnrs)
     (records)
     (foreign ffi pointers)
     (for (foreign memory mempool types) expand run))
 
   (define (%mempool-free-size pool)
-    (with-record-fields (((pointer pointer-free size) <mempool> pool))
+    (let-syntax ((pointer	(identifier-syntax (<mempool>-pointer pool)))
+		 (pointer-free	(identifier-syntax (<mempool>-pointer-free pool)))
+		 (size		(identifier-syntax (<mempool>-size pool))))
       (- size (pointer-diff pointer-free pointer))))
 
   (define-record-extension <mempool*>

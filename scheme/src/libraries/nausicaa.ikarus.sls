@@ -818,7 +818,7 @@
     pretty-print)
   (import (except (rnrs)
 		  equal-hash finite? infinite? nan?
-		  =)
+		  = max)
     (only (ikarus) getenv)
     (nausicaa common)
     (parameters)
@@ -835,6 +835,20 @@
   (string-hash
    (call-with-string-output-port
        (lambda (port) (write obj port)))))
+
+(define max
+  (case-lambda
+   ((n)
+    n)
+   ((n m)
+    (cond ((nan? n)
+	   +nan.0)
+	  ((nan? m)
+	   +nan.0)
+	  (else
+	   (if (< n m) m n))))
+   ((n m . args)
+    (max n (apply max m args)))))
 
 
 ;;;; feature--based conditional expansion
