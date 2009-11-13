@@ -1,0 +1,19 @@
+#!/bin/bash
+## relink-readme-files.sh --
+##
+##
+
+top_srcdir=$PWD
+scheme_dir=${top_srcdir}/scheme
+
+./print-projects-not-scheme.sh | while read
+do
+    echo "processing $REPLY ..."
+    for item in README.nausicaa README.build
+    do
+        readme="$top_srcdir/$REPLY/$item"
+        ln --force --verbose "$scheme_dir/$item" "$readme"
+    done
+done
+
+### end of file
