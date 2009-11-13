@@ -76,14 +76,14 @@
 	(debug-print-condition "deferred condition in simple calendar" E))
     (lambda ()
 
-      (check
-	  ;;This should fail because root permissions are needed.
-	  (guard (E ((errno-condition? E)
-		     (errno-symbolic-value E))
-		    (else
-		     #f))
-	    (glibc:stime (posix:time)))
-	=> 'EPERM)
+      ;; (check
+      ;; 	  ;;This should fail because root permissions are needed.
+      ;; 	  (guard (E ((errno-condition? E)
+      ;; 		     (errno-symbolic-value E))
+      ;; 		    (else
+      ;; 		     #f))
+      ;; 	    (glibc:stime (posix:time)))
+      ;; 	=> 'EPERM)
 
       #t)))
 
@@ -100,22 +100,22 @@
 	    #t)
 	=> #t)
 
-      (check
-	  ;;This should fail because root permissions are needed.
-	  (guard (E ((errno-condition? E)
-		     (errno-symbolic-value E))
-		    (else #f))
-	    (let-values (((timeval timezone) (glibc:gettimeofday)))
-	      (glibc:settimeofday timeval timezone)))
-	=> 'EPERM)
+      ;; (check
+      ;; 	  ;;This should fail because root permissions are needed.
+      ;; 	  (guard (E ((errno-condition? E)
+      ;; 		     (errno-symbolic-value E))
+      ;; 		    (else #f))
+      ;; 	    (let-values (((timeval timezone) (glibc:gettimeofday)))
+      ;; 	      (glibc:settimeofday timeval timezone)))
+      ;; 	=> 'EPERM)
 
-      (check
-	  ;;This should fail because root permissions are needed.
-	  (guard (E ((errno-condition? E)
-		     (errno-symbolic-value E))
-		    (else #f))
-	    (glibc:adjtime (make-<struct-timeval> 0 0)))
-	=> 'EPERM)
+      ;; (check
+      ;; 	  ;;This should fail because root permissions are needed.
+      ;; 	  (guard (E ((errno-condition? E)
+      ;; 		     (errno-symbolic-value E))
+      ;; 		    (else #f))
+      ;; 	    (glibc:adjtime (make-<struct-timeval> 0 0)))
+      ;; 	=> 'EPERM)
 
       #t)))
 
