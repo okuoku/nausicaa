@@ -1956,7 +1956,7 @@ The following bindings are exported by the @library{foreign ffi}
 library.
 
 @deffn Syntax make-c-callback @ameta{ret-type} @ameta{scheme-proc} (@ameta{arg-type0} @ameta{arg-type} ...)
-Build and return a callback object to be used as arguments to a callout
+Build and return a callback object to be used as argument to a callout
 procedure.  When a foreign function invokes the C language callback, the
 callback:
 

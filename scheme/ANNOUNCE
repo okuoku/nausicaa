@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Scheme --- tag 0.1a3
+Subject: [announce] Nausicaa/Scheme 2009-11-13 tag 0.1a3
 
 		      Nausicaa/Scheme
 		      ===============
@@ -40,7 +40,7 @@ the documentation is available on line:
      <http://marcomaggi.github.com/docs/nausicaa.html>
 
 
-Notes for --- tag 0.1a3
+Notes for 2009-11-13 tag 0.1a3
 ------------------------------
 
 * Added the (getopts) library.
