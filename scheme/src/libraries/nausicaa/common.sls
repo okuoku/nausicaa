@@ -71,6 +71,7 @@
 
     ;; syntactic abstractions
     and-let* begin0 begin0-let receive recursion cut cute do*
+    set-cons!
 
     ;; shared structures
     read-with-shared-structure

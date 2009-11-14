@@ -160,10 +160,12 @@
 (library (language-extensions)
   (export
     and-let* begin0 begin0-let receive recursion cut cute do*
-    dotimes dolist loop-upon-list ensure)
+    dotimes dolist loop-upon-list ensure
+    set-cons!)
   (import (rnrs)
     (begin0)
-    (receive))
+    (receive)
+    (set-cons))
 
 
 (define-syntax and-let*
