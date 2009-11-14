@@ -234,10 +234,6 @@
     sqlite-vfs-register
     sqlite-vfs-unregister
 
-;;; --------------------------------------------------------------------
-
-    make-sqlite-exec-callback
-
 
 ;;; data types inspection
 

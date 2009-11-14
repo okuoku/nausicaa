@@ -40,6 +40,14 @@
 
 ;;;; helpers
 
+(define-syntax set-cons!
+  (syntax-rules ()
+    ((_ ?name ?form)
+     (set! ?name (cons ?form ?name)))))
+
+
+;;;; helpers
+
 (define-syntax with-database
   (syntax-rules ()
     ((_ (?name ?pathname) ?form ...)
@@ -92,24 +100,29 @@
 (parametrise ((check-test-name	'callback))
 
   (check
-      (let ((session	(sqlite-open ":memory:"))
-	    (cback	(make-sqlite-exec-callback
-			 (lambda (custom-data column-names column-values)
-			   (write column-names)(newline)
-			   (write column-values)(newline)
-			   SQLITE_OK))))
+      (let* ((session	(sqlite-open ":memory:"))
+	     (result	'())
+	     (cback	(lambda (custom-data column-names column-values)
+			  (set-cons! result (list column-names column-values))
+			  SQLITE_OK)))
 	(sqlite-exec session "create table alpha
 				(key INTEGER PRIMARY KEY, data TEXT, num double);
                                 insert into alpha (data, num)
 					values ('This is sample data', 3);
                                 insert into alpha (data, num)
-					values ('More sample data',6 );
+					values ('More sample data', 6);
 				insert into alpha (data, num)
-					values ('And a little more', 9);"
-		     pointer-null)
-	(sqlite-exec session "select data, num from alpha;" cback)
-	(sqlite-close session))
-    => 0)
+					values ('And a little more', 9);")
+	(let ((code (sqlite-exec session "select * from alpha;" cback)))
+	  (sqlite-close session)
+	  (list code (reverse result))))
+    => `(,SQLITE_OK
+	 ((("key" "data" "num")
+	   ("1" "This is sample data" "3.0"))
+	  (("key" "data" "num")
+	   ("2" "More sample data" "6.0"))
+	  (("key" "data" "num")
+	   ("3" "And a little more" "9.0")))))
 
   #t)
 

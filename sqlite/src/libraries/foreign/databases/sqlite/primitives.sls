@@ -244,8 +244,6 @@
     sqlite-open				sqlite-open-v2
     sqlite-exec
 
-    make-sqlite-exec-callback
-
     )
   (import (rnrs)
     (compensations)
@@ -340,44 +338,52 @@
 
 ;;;; executing query with callback
 
-(define (sqlite-exec session query callback)
-  (with-compensations
-    (let* ((query	(string->cstring/c query))
-	   (errmsg**	(malloc-small/c))
-	   (result	(sqlite3_exec session query callback pointer-null errmsg**)))
-      (if (= result SQLITE_OK)
-	  result
-	(let* ((errmsg* (pointer-ref-c-pointer errmsg** 0))
-	       (errmsg  (cstring->string errmsg*)))
-	  ;;According  to  SQLite documentation,  memory  for the  error
-	  ;;message    of    "sqlite3_exec()"    is    allocated    with
-	  ;;"sqlite3_malloc(), so we have to release it.
-	  (sqlite3_free errmsg*)
-	  (raise-sqlite-querying-error 'sqlite-exec errmsg session query))))))
+(define sqlite-exec
+  (case-lambda
+   ((session query)
+    (sqlite-exec session query #f))
+   ((session query scheme-callback)
+    (with-compensations
+      (let ((column-names	'())
+	    (condition-object	#f))
 
-(define (make-sqlite-exec-callback closure)
-  (define (%make-call-back closure)
-    (lambda (custom-data argc argv** column-names**)
-      (guard (E (else SQLITE_ABORT))
-	(newline)(write (list 'got argc 'columns))(newline)
-	(let ((column-names  '())
-	      (column-values '()))
-	  (do ((i 0 (+ 1 i)))
-	      ((= i argc))
-	    (write (list 'doing-name i (pointer-ref-c-pointer column-names** i)))(newline)
-	    (set-cons! column-names (cstring->string (pointer-ref-c-pointer column-names** i))))
-	  (write column-names)(newline)
-	  (do ((i 0 (+ 1 i)))
-	      ((= i argc))
-	    (let ((val* (pointer-ref-c-pointer argv** i)))
-	      (write (list 'doing i val*))(newline)
-	      (set-cons! column-values (if (pointer-null? val*)
-					   #f
-					 (cstring->string val*)))
-	      (write (list 'done i))(newline)
-	      ))
-	  (closure custom-data column-names column-values)))))
-  (make-c-callback int (%make-call-back closure) (void* int char** char**)))
+	(define (%cstring/null obj)
+	  (if (pointer-null? obj)
+	      #f
+	    (cstring->string obj)))
+
+	(define (%closure custom-data column-number values** names**)
+	  (guard (E (else (set! condition-object E)
+			  SQLITE_ABORT))
+	    (when (null? column-names)
+	      (do ((i 0 (+ 1 i)))
+		  ((= i column-number)
+		   (set! column-names (reverse column-names)))
+		(set-cons! column-names (cstring->string (array-ref-c-pointer names** i)))))
+	    (let ((column-values '()))
+	      (do ((i 0 (+ 1 i)))
+		  ((= i column-number))
+		(let ((val* (array-ref-c-pointer values** i)))
+		  (set-cons! column-values (%cstring/null val*))))
+	      (scheme-callback custom-data column-names (reverse column-values)))))
+
+	(define callback
+	  (if scheme-callback
+	      (make-c-callback int %closure (void* int char** char**))
+	    pointer-null))
+
+	(let* ((errmsg**	(malloc-small/c))
+	       (result		(sqlite3_exec session (string->cstring/c query)
+					      callback pointer-null errmsg**)))
+	  (if (= result SQLITE_OK)
+	      result
+	    (let* ((errmsg* (pointer-ref-c-pointer errmsg** 0))
+		   (errmsg  (cstring->string       errmsg*)))
+	      ;;According  to  SQLite documentation,  memory  for the  error
+	      ;;message    of    "sqlite3_exec()"    is    allocated    with
+	      ;;"sqlite3_malloc(), so we have to release it.
+	      (sqlite3_free errmsg*)
+	      (raise-sqlite-querying-error 'sqlite-exec errmsg session query)))))))))
 
 
 ;;;; done
