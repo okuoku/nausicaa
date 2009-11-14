@@ -84,6 +84,14 @@ Revised^6 Report on the algorithmic language Scheme
 @code{<\NAME\>}
 @end macro
 
+@macro record{NAME}
+@code{<\NAME\>}
+@end macro
+
+@macro condition{NAME}
+@code{&\NAME\}
+@end macro
+
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
 @c ------------------------------------------------------------
@@ -489,6 +497,7 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package.
 * conditions::                  Condition objects.
+* enumerations::                Enumeration definitions.
 * marshaling::                  Functions marshaling arguments.
 
 Appendices
@@ -533,6 +542,9 @@ one--to--one map between foreign functions and Scheme functions; the
 Scheme functions have the same name of the foreign ones, so
 @cfunc{sqlite3_close} is available as @func{sqlite3_close}.
 
+@item foreign databases sqlite conditions
+Defines condition types used to signal @value{PACKAGE} errors.
+
 @item foreign databases sqlite primitives
 Exports a binding for each foreign function, implementing marshaling of
 arguments and return values; the Scheme functions have the same name of
@@ -541,9 +553,13 @@ the foreign ones, but with underscores turned into dashes and the
 @func{sqlite-close}.
 
 @item foreign databases sqlite
-Exports the high--level @api{}: All the bindings from @library{foreign
-databases sqlite sizeof} and @library{foreign databases sqlite
-primitives}.
+Compound library; reexports bindings from the following libraries:
+
+@example
+(foreign databases sqlite sizeof)
+(foreign databases sqlite conditions)
+(foreign databases sqlite primitives)
+@end example
 
 Additionally bindings for constructors and destructors making use of the
 @library{compensations} library.  @nauref{compensations, Compensation
@@ -556,23 +572,268 @@ stacks}
 
 
 @menu
-* conditions base::             Base condition type.
+* conditions data::             Condition objects holding values.
+* conditions error::            Condition objects signaling errors.
 @end menu
 
 @c page
-@node conditions base
-@section Base condition type
+@node conditions data
+@section Condition objects holding values
 
 
-@deftp {Condition Type} &sqlite
-Base condition type for @value{package} exceptions; it is derived from
-@code{&error}.  It has no fields.
+@menu
+* conditions data database::    Database specification objects.
+* conditions data session::     Database session objects.
+* conditions data query::       Database query objects.
+@end menu
+
+@c page
+@node conditions data database
+@subsection Database specification objects
+
+
+@deftp {Condition Type} &sqlite-database
+Condition type used to hold the database connection object involved in
+an error; it is derived from @condition{condition}.  It has the
+following fields:
+
+@table @code
+@item database
+Contains a Scheme string representing a database selector for the SQLite
+open functions; it must valid as first argument to @func{sqlite-open}
+and @func{sqlite-open-v2}.
+@end table
 @end deftp
 
 
-@defun make-sqlite-condition
-@defunx sqlite-condition? @var{obj}
-Constructor and predicate for condition objects of type @code{&sqlite}.
+@defun make-sqlite-database-condition @var{database}
+@defunx sqlite-database-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{sqlite-database}.
+@end defun
+
+
+@defun sqlite-database-condition @var{condition}
+Accessor for the @code{database} field of @condition{sqlite-database}
+condition objects.
+@end defun
+
+@c page
+@node conditions data session
+@subsection Database session objects
+
+
+@deftp {Condition Type} &sqlite-session
+Condition type used to hold the database specification involved in an
+error; it is derived from @condition{condition}.  It has the following
+fields:
+
+@table @code
+@item session
+Contains a pointer to a database connection object.
+@end table
+@end deftp
+
+
+@defun make-sqlite-session-condition @var{session}
+@defunx sqlite-session-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{sqlite-session}.
+@end defun
+
+
+@defun sqlite-session-condition @var{condition}
+Accessor for the @code{session} field of @condition{sqlite-session}
+condition objects.
+@end defun
+
+@c page
+@node conditions data query
+@subsection Database query objects
+
+
+@deftp {Condition Type} &sqlite-query
+Condition type used to hold the @sql{} query involved in an error; it is
+derived from @condition{condition}.  It has the following fields:
+
+@table @code
+@item query
+Contains a Scheme string representing a @sql{} query for SQLite
+databases.
+@end table
+@end deftp
+
+
+@defun make-sqlite-query-condition @var{query}
+@defunx sqlite-query-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{sqlite-query}.
+@end defun
+
+
+@defun sqlite-query-condition @var{condition}
+Accessor for the @code{query} field of @condition{sqlite-query}
+condition objects.
+@end defun
+
+@c page
+@node conditions error
+@section Condition objects signaling errors
+
+
+@menu
+* conditions error base::       Base condition type for errors.
+* conditions error opening::    Database opening errors.
+* conditions error querying::   Database querying errors.
+@end menu
+
+@c page
+@node conditions error base
+@subsection Base condition type for errors
+
+
+@deftp {Condition Type} &sqlite-error
+Base type for condition objects representing errors in @value{PACKAGE}
+exceptions; it is derived from @condition{error}.  It has no fields.
+Objects of this type are not meant to be used directly.
+@end deftp
+
+
+@defun make-sqlite-error-condition
+@defunx sqlite-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{sqlite-error}.
+@end defun
+
+@c page
+@node conditions error opening
+@subsection Database opening errors
+
+
+@deftp {Condition Type} &sqlite-opening-error
+Condition type used to tag compound condition objects as representing
+SQLite database opening errors; it is derived from
+@condition{sqlite-error}.  It has no fields.
+@end deftp
+
+
+@defun make-sqlite-opening-error-condition
+@defunx sqlite-opening-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{sqlite-opening-error}.
+@end defun
+
+
+@deffn Syntax raise-sqlite-opening-error @ameta{who} @ameta{message} @ameta{database}
+Raise a continuable exception signaling an SQLite database opening
+error.  If the continuation is exercised, it must return a valid pointer
+to a SQLite database connection object.
+
+It is defined as:
+
+@example
+(define-syntax raise-sqlite-opening-error
+  (syntax-rules ()
+    ((_ ?who ?message ?database)
+     (raise-continuable
+      (condition (make-sqlite-opening-error-condition)
+                 (make-sqlite-database-condition ?database)
+                 (make-who-condition ?who)
+                 (make-message-condition ?message))))))
+@end example
+@end deffn
+
+@c page
+@node conditions error querying
+@subsection Database querying errors
+
+
+@deftp {Condition Type} &sqlite-querying-error
+Condition type used to tag compound condition objects as representing
+SQLite database querying errors; it is derived from
+@condition{sqlite-error}.  It has no fields.
+@end deftp
+
+
+@defun make-sqlite-querying-error-condition
+@defunx sqlite-querying-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{sqlite-querying-error}.
+@end defun
+
+
+@deffn Syntax raise-sqlite-querying-error @ameta{who} @ameta{message} @ameta{session} @ameta{query}
+Raise a continuable exception signaling an SQLite database querying
+error.  If the continuation is exercised, it must return an integer
+compatible with the return values of @func{sqlite-exec}.
+
+It is defined as:
+
+@example
+(define-syntax raise-sqlite-querying-error
+  (syntax-rules ()
+    ((_ ?who ?message ?session ?query)
+     (raise-continuable
+      (condition (make-sqlite-querying-error-condition)
+                 (make-sqlite-session-condition ?session)
+                 (make-sqlite-query-condition ?query)
+                 (make-who-condition ?who)
+                 (make-message-condition ?message))))))
+@end example
+@end deffn
+
+@c page
+@node enumerations
+@chapter Enumeration definitions
+
+
+This chapter defines the enumerations used to map at the Scheme level
+the constants exported by SQLite.  Unless otherwise specified, all the
+bindings are exported by the library @library{foreign databases sqlite
+enumerations} and reexported by the compound library @library{foreign
+databases sqlite}.
+
+@menu
+* enumerations open::           Database creation and opening flags.
+@end menu
+
+@c page
+@node enumerations open
+@section Database creation and opening flags
+
+
+@deftp {Enumeration Type} sqlite-open-flag-symbol
+Enumeration type for flags used by @func{sqlite-open-v2} to create
+and/or open a database.  The following symbols are supported, one for
+each @samp{SQLITE_OPEN_*} constant defined by SQLite:
+
+@example
+CREATE                  DELETEONCLOSE
+EXCLUSIVE               FULLMUTEX
+MAIN_DB                 MAIN_JOURNAL
+MASTER_JOURNAL          NOMUTEX
+PRIVATECACHE            READONLY
+READWRITE               SHAREDCACHE
+SUBJOURNAL              TEMP_DB
+TEMP_JOURNAL            TRANSIENT_DB
+@end example
+@end deftp
+
+
+@deffn Syntax sqlite-open-flags @ameta{symbol} ...
+Evaluates into an enumeration set of type @func{sqlite-open-flag-symbol}
+holding the argument symbols.
+@end deffn
+
+
+@defun %sqlite-open-enum->flags @var{enum-set}
+Convert an enumeration set of type @func{sqlite-open-flag-symbol} into
+the corresponding Inclusive OR combination of @samp{SQLITE_OPEN_*}
+values.
+
+This binding is exported by @library{foreign databases sqlite
+enumerations}, but @strong{not} by the compound library @library{foreign
+databases sqlite}.
 @end defun
 
 @c page
@@ -580,12 +841,65 @@ Constructor and predicate for condition objects of type @code{&sqlite}.
 @chapter Functions marshaling arguments
 
 
-@defun sqlite-open @var{pathname}
-Open the database file selected by @var{pathname}, which must be a
-Scheme string.  If successful returns zero, else raise an exception of
-type @code{&sqlite}.
+This chapter documents functions from the @library{foreign databases
+sqlite primitives} library implementing: marshaling of arguments and
+return values; conversion of SQLite errors into exceptions with
+condition objects.
+
+@menu
+* marshaling open::             Creating and opening a database.
+@end menu
+
+@c page
+@node marshaling open
+@section Creating and opening a database
+
+
+@defun sqlite-open @var{database}
+Create and/or open a database using @cfunc{sqlite3_open}.  If successful
+return a pointer value referencing a database connection object; else
+raise a continuable exception with condition object of type
+@condition{sqlite-opening-error}.
+
+@var{database} must be a Scheme string or symbol representing a database
+specification; it can be the pathname of a file or @samp{:memory:} or
+any other valid specification.
+
+@example
+(let ((session (sqlite-open ':memory:)))
+  ---
+  (sqlite-close session))
+@end example
 @end defun
 
+
+@defun sqlite-open-v2 @var{database} @var{flags-set}
+@defunx sqlite-open-v2 @var{database} @var{flags-set} @var{vfs-module}
+Create and/or open a database using @cfunc{sqlite3_open_v2}.  If
+successful return a pointer value referencing a database connection
+object; else raise a continuable exception with condition object of type
+@condition{sqlite-opening-error}.
+
+@var{database} must be a Scheme string or symbol representing a database
+specification; it can be the pathname of a file or @samp{:memory:} or
+any other valid specification.
+
+@var{flags-set} must be an enumeration set of composed
+@func{sqlite-open-flags}; notice that the @samp{CREATE} symbol is
+required to create a new database file.
+
+@var{vfs-module} must be a Scheme string or symbol representing the name
+of a SQLite @acronym{VFS} module; if it is not given or it is @false{},
+it selects the default SQLite @acronym{VFS} module.
+
+@example
+(let ((session (sqlite-open-v2 "/var/sqlite/accounts"
+                 (sqlite-open-flags CREATE READWRITE
+                                    NOMUTEX))))
+  ---
+  (sqlite-close db))
+@end example
+@end defun
 
 @c page
 

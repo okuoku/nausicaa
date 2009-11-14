@@ -246,29 +246,14 @@
 
     make-sqlite-exec-callback
 
-;;; --------------------------------------------------------------------
-;;; conditions
-
-    &sqlite
-    make-sqlite-condition
-    sqlite-condition?
-
-    &sqlite-session
-    make-sqlite-session
-    sqlite-session-condition?
-    session-condition
-
-    &opening
-    make-opening-condition
-    opening-condition?
-    raise-opening-error
-
     )
   (import (rnrs)
     (compensations)
     (foreign ffi)
     (foreign memory)
     (foreign cstrings)
+    (foreign databases sqlite conditions)
+    (foreign databases sqlite enumerations)
     (foreign databases sqlite platform)
     (foreign databases sqlite sizeof))
 
@@ -282,37 +267,6 @@
     ((_ ?name ?form)
      (set! ?name (cons ?form ?name)))))
 
-
-
-;;;; conditions
-
-(define-condition-type &sqlite &error
-  make-sqlite-condition sqlite-condition?)
-
-(define-condition-type &sqlite-session &condition
-  make-sqlite-session sqlite-session-condition?
-  (session session-condition))
-
-;;; --------------------------------------------------------------------
-
-(define-condition-type &opening &sqlite
-  make-opening-condition opening-condition?)
-
-(define (raise-opening-error who message)
-  (raise (condition (make-who-condition who)
-		    (make-opening-condition)
-		    (make-message-condition message))))
-
-;;; --------------------------------------------------------------------
-
-(define-condition-type &query &sqlite
-  make-query-condition query-condition?)
-
-(define (raise-query-error who session message)
-  (raise (condition (make-who-condition who)
-		    (make-query-condition)
-		    (make-sqlite-session session)
-		    (make-message-condition message))))
 
 
 ;;;; database locking
@@ -335,11 +289,12 @@
 (define (sqlite-open pathname)
   (with-compensations
     (let* ((session*	(malloc-small/c))
-	   (pathname	(string->cstring/c pathname))
-	   (result	(sqlite3_open pathname session*))
+	   (result	(sqlite3_open (string->cstring/c pathname) session*))
 	   (session	(pointer-ref-c-pointer session* 0)))
       (cond ((pointer-null? session)
-	     (raise-opening-error 'sqlite-open "not enough memory to open SQLite database" pathname))
+	     (raise-sqlite-opening-error 'sqlite-open
+					 "not enough memory to open SQLite database"
+					 pathname))
 	    ((= 0 result)
 	     session)
 	    (else
@@ -350,30 +305,37 @@
 	       ;;Yes,   we   have  to   close   the   session  even   if
 	       ;;opening/creating the database failed.
 	       (sqlite3_close session)
-	       (raise-opening-error 'sqlite-open errmsg)))))))
+	       (raise-sqlite-opening-error 'sqlite-open errmsg pathname)))))))
 
-(define (sqlite-open-v2 pathname flags name-of-vfs-module-to-use)
-  (with-compensations
-    (let* ((session*	(malloc-small/c))
-	   (pathname	(string->cstring/c pathname))
-	   (vfs-name	(if (pointer-null? name-of-vfs-module-to-use)
-			    name-of-vfs-module-to-use
-			  (string->cstring/c name-of-vfs-module-to-use)))
-	   (result	(sqlite3_open_v2 pathname session* flags vfs-name))
-	   (session	(pointer-ref-c-pointer session* 0)))
-      (cond ((pointer-null? session)
-	     (raise-opening-error 'sqlite-open-v2 "not enough memory to open SQLite database" pathname))
-	    ((= 0 result)
-	     session)
-	    (else
-	     ;;According  to SQLite  documentation,  memory returned  by
-	     ;;"sqlite_errmsg()" is  managed internally, we  do not need
-	     ;;to release it.
-	     (let ((errmsg (cstring->string (sqlite3_errmsg session))))
-	       ;;Yes,   we   have  to   close   the   session  even   if
-	       ;;opening/creating the database failed.
-	       (sqlite3_close session)
-	       (raise-opening-error 'sqlite-open-v2 errmsg)))))))
+(define sqlite-open-v2
+  (case-lambda
+   ((pathname flags)
+    (sqlite-open-v2 pathname flags #f))
+   ((pathname flags name-of-vfs-module)
+    (with-compensations
+      (let* ((session*	(malloc-small/c))
+	     (result	(sqlite3_open_v2 (string->cstring/c pathname)
+					 session*
+					 (%sqlite-open-enum->flags flags)
+					 (if name-of-vfs-module
+					     (string->cstring/c name-of-vfs-module)
+					   pointer-null)))
+	     (session	(pointer-ref-c-pointer session* 0)))
+	(cond ((pointer-null? session)
+	       (raise-sqlite-opening-error 'sqlite-open-v2
+					   "not enough memory to open SQLite database"
+					   pathname))
+	      ((= 0 result)
+	       session)
+	      (else
+	       ;;According  to SQLite  documentation,  memory returned  by
+	       ;;"sqlite_errmsg()" is  managed internally, we  do not need
+	       ;;to release it.
+	       (let ((errmsg (cstring->string (sqlite3_errmsg session))))
+		 ;;Yes,   we   have  to   close   the   session  even   if
+		 ;;opening/creating the database failed.
+		 (sqlite3_close session)
+		 (raise-sqlite-opening-error 'sqlite-open-v2 errmsg pathname)))))))))
 
 
 ;;;; executing query with callback
@@ -391,22 +353,30 @@
 	  ;;message    of    "sqlite3_exec()"    is    allocated    with
 	  ;;"sqlite3_malloc(), so we have to release it.
 	  (sqlite3_free errmsg*)
-	  (raise-query-error 'sqlite-exec session errmsg*))))))
+	  (raise-sqlite-querying-error 'sqlite-exec errmsg session query))))))
 
 (define (make-sqlite-exec-callback closure)
   (define (%make-call-back closure)
-    (lambda (custom-data argc argv column-names)
-      (let ((row '()))
-	(do ((i 0 (+ 1 i)))
-	    ((= i argc)
-	     (closure custom-data row))
-	  (write (list custom-data argc i row))(newline)
-	  (set-cons! row (cons (let ((val* (pointer-ref-c-pointer column-names i)))
-				 (and (pointer-null? val*)
-				      (cstring->string val*)))
-			       (let ((val* (pointer-ref-c-pointer argv i)))
-				 (and (pointer-null? val*)
-				      (cstring->string val*)))))))))
+    (lambda (custom-data argc argv** column-names**)
+      (guard (E (else SQLITE_ABORT))
+	(newline)(write (list 'got argc 'columns))(newline)
+	(let ((column-names  '())
+	      (column-values '()))
+	  (do ((i 0 (+ 1 i)))
+	      ((= i argc))
+	    (write (list 'doing-name i (pointer-ref-c-pointer column-names** i)))(newline)
+	    (set-cons! column-names (cstring->string (pointer-ref-c-pointer column-names** i))))
+	  (write column-names)(newline)
+	  (do ((i 0 (+ 1 i)))
+	      ((= i argc))
+	    (let ((val* (pointer-ref-c-pointer argv** i)))
+	      (write (list 'doing i val*))(newline)
+	      (set-cons! column-values (if (pointer-null? val*)
+					   #f
+					 (cstring->string val*)))
+	      (write (list 'done i))(newline)
+	      ))
+	  (closure custom-data column-names column-values)))))
   (make-c-callback int (%make-call-back closure) (void* int char** char**)))
 
 

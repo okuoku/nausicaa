@@ -29,6 +29,7 @@
   (compensations)
   (foreign memory)
   (foreign cstrings)
+  (foreign databases sqlite enumerations)
   (foreign databases sqlite primitives)
   (foreign databases sqlite sizeof)
   (checks))
@@ -66,16 +67,23 @@
 (parametrise ((check-test-name	'open-close))
 
   (check
-      (with-database (pathname "callback-0.db")
+      (let ((db (sqlite-open ':memory:)))
+	(sqlite-close db))
+    => 0)
+
+  (check
+      (with-database (pathname "database-0.db")
 		     (let ((db (sqlite-open pathname)))
 		       (sqlite-close db)))
     => 0)
 
   (check
-      (let ((db (sqlite-open-v2 ":memory:"
-				(bitwise-ior SQLITE_OPEN_READWRITE SQLITE_OPEN_NOMUTEX)
-				pointer-null)))
-	(sqlite-close db))
+      (with-database (pathname "database-0.db")
+  		     (let ((db (sqlite-open-v2 pathname
+  					       (sqlite-open-flags CREATE
+								  READWRITE
+								  NOMUTEX))))
+  		       (sqlite-close db)))
     => 0)
 
   #t)
@@ -86,9 +94,10 @@
   (check
       (let ((session	(sqlite-open ":memory:"))
 	    (cback	(make-sqlite-exec-callback
-			 (lambda (custom-data row)
-			   (write row)(newline)
-			   0))))
+			 (lambda (custom-data column-names column-values)
+			   (write column-names)(newline)
+			   (write column-values)(newline)
+			   SQLITE_OK))))
 	(sqlite-exec session "create table alpha
 				(key INTEGER PRIMARY KEY, data TEXT, num double);
                                 insert into alpha (data, num)
@@ -98,7 +107,7 @@
 				insert into alpha (data, num)
 					values ('And a little more', 9);"
 		     pointer-null)
-	(sqlite-exec session "select * from alpha;" cback)
+	(sqlite-exec session "select data, num from alpha;" cback)
 	(sqlite-close session))
     => 0)
 

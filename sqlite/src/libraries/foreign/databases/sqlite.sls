@@ -27,6 +27,7 @@
 
 (library (foreign databases sqlite)
   (export
+
     ;; version functions
     sqlite-libversion
     sqlite-sourceid
@@ -238,7 +239,8 @@
     make-sqlite-exec-callback
 
 
-    ;; data types inspection
+;;; data types inspection
+
     sqlite3_int64
     sizeof-sqlite3_int64
     strideof-sqlite3_int64
@@ -249,7 +251,7 @@
     strideof-sqlite3_uint64
     alignof-sqlite3_uint64
 
-;;; --------------------------------------------------------------------
+
 ;;; data structures inspection
 
     sizeof-sqlite3_file
@@ -276,7 +278,8 @@
     strideof-sqlite3_pcache_methods
     alignof-sqlite3_pcache_methods
 
-;;; --------------------------------------------------------------------
+
+;;; constants
 
     SQLITE_DEBUG
     SQLITE_ENABLE_COLUMN_METADATA
@@ -519,8 +522,7 @@
     SQLITE_STMTSTATUS_FULLSCAN_STEP
     SQLITE_STMTSTATUS_SORT
 
-
-;;; --------------------------------------------------------------------
+
 ;;; data structures accessors and mutators
 
     sqlite3-file-pMethods-set!			sqlite3-file-pMethods-ref
@@ -567,9 +569,16 @@
     sqlite3-mem-methods-xShutdown-set!		sqlite3-mem-methods-xShutdown-ref
     sqlite3-mem-methods-pAppData-set!		sqlite3-mem-methods-pAppData-ref
 
+
+;;;; enumerations
+
+    sqlite-open-flag-symbol		sqlite-open-flags
+
+
     )
   (import (rnrs)
     (compensations)
+    (foreign databases sqlite conditions)
     (foreign databases sqlite primitives)
     (foreign databases sqlite sizeof))
 
