@@ -63,7 +63,7 @@
      (sqlite3_complete16		sqlite-complete16)
      (sqlite3_busy_handler		sqlite-busy-handler)
      (sqlite3_busy_timeout		sqlite-busy-timeout)
-     (sqlite3_get_table			sqlite-get-table)
+;;;     (sqlite3_get_table		sqlite-get-table)
      (sqlite3_free_table		sqlite-free-table)
      (sqlite3_progress_handler		sqlite-progress-handler)
 
@@ -242,11 +242,12 @@
 ;;; marshaling functions and helpers
 
     sqlite-open				sqlite-open-v2
-    sqlite-exec
+    sqlite-exec				sqlite-get-table
 
     )
   (import (rnrs)
     (compensations)
+    (set-cons)
     (foreign ffi)
     (foreign memory)
     (foreign cstrings)
@@ -259,12 +260,6 @@
 ;;;; helpers
 
 (define char**		'pointer)
-
-(define-syntax set-cons!
-  (syntax-rules ()
-    ((_ ?name ?form)
-     (set! ?name (cons ?form ?name)))))
-
 
 
 ;;;; database locking
@@ -284,15 +279,18 @@
 
 ;;;; opening a session, creating a database
 
-(define (sqlite-open pathname)
+(define (sqlite-open database)
   (with-compensations
     (let* ((session*	(malloc-small/c))
-	   (result	(sqlite3_open (string->cstring/c pathname) session*))
+	   (result	(sqlite3_open (string->cstring/c database) session*))
 	   (session	(pointer-ref-c-pointer session* 0)))
       (cond ((pointer-null? session)
-	     (raise-sqlite-opening-error 'sqlite-open
-					 "not enough memory to open SQLite database"
-					 pathname))
+	     (raise-continuable
+	      (condition (make-sqlite-opening-error-condition)
+			 (make-out-of-memory-condition #f)
+			 (make-sqlite-database-condition database)
+			 (make-who-condition 'sqlite-open)
+			 (make-message-condition "not enough memory to open SQLite database"))))
 	    ((= 0 result)
 	     session)
 	    (else
@@ -303,16 +301,16 @@
 	       ;;Yes,   we   have  to   close   the   session  even   if
 	       ;;opening/creating the database failed.
 	       (sqlite3_close session)
-	       (raise-sqlite-opening-error 'sqlite-open errmsg pathname)))))))
+	       (raise-sqlite-opening-error 'sqlite-open errmsg database)))))))
 
 (define sqlite-open-v2
   (case-lambda
-   ((pathname flags)
-    (sqlite-open-v2 pathname flags #f))
-   ((pathname flags name-of-vfs-module)
+   ((database flags)
+    (sqlite-open-v2 database flags #f))
+   ((database flags name-of-vfs-module)
     (with-compensations
       (let* ((session*	(malloc-small/c))
-	     (result	(sqlite3_open_v2 (string->cstring/c pathname)
+	     (result	(sqlite3_open_v2 (string->cstring/c database)
 					 session*
 					 (%sqlite-open-enum->flags flags)
 					 (if name-of-vfs-module
@@ -320,9 +318,12 @@
 					   pointer-null)))
 	     (session	(pointer-ref-c-pointer session* 0)))
 	(cond ((pointer-null? session)
-	       (raise-sqlite-opening-error 'sqlite-open-v2
-					   "not enough memory to open SQLite database"
-					   pathname))
+	     (raise-continuable
+	      (condition (make-sqlite-opening-error-condition)
+			 (make-out-of-memory-condition #f)
+			 (make-sqlite-database-condition database)
+			 (make-who-condition 'sqlite-open-v2)
+			 (make-message-condition "not enough memory to open SQLite database"))))
 	      ((= 0 result)
 	       session)
 	      (else
@@ -333,11 +334,9 @@
 		 ;;Yes,   we   have  to   close   the   session  even   if
 		 ;;opening/creating the database failed.
 		 (sqlite3_close session)
-		 (raise-sqlite-opening-error 'sqlite-open-v2 errmsg pathname)))))))))
+		 (raise-sqlite-opening-error 'sqlite-open-v2 errmsg database)))))))))
 
 
-;;;; executing query with callback
-
 (define sqlite-exec
   (case-lambda
    ((session query)
@@ -352,7 +351,7 @@
 	      #f
 	    (cstring->string obj)))
 
-	(define (%closure custom-data column-number values** names**)
+	(define (%closure unused-custom-data column-number values** names**)
 	  (guard (E (else (set! condition-object E)
 			  SQLITE_ABORT))
 	    (when (null? column-names)
@@ -365,7 +364,7 @@
 		  ((= i column-number))
 		(let ((val* (array-ref-c-pointer values** i)))
 		  (set-cons! column-values (%cstring/null val*))))
-	      (scheme-callback custom-data column-names (reverse column-values)))))
+	      (scheme-callback column-names (reverse column-values)))))
 
 	(define callback
 	  (if scheme-callback
@@ -375,15 +374,53 @@
 	(let* ((errmsg**	(malloc-small/c))
 	       (result		(sqlite3_exec session (string->cstring/c query)
 					      callback pointer-null errmsg**)))
-	  (if (= result SQLITE_OK)
-	      result
-	    (let* ((errmsg* (pointer-ref-c-pointer errmsg** 0))
-		   (errmsg  (cstring->string       errmsg*)))
-	      ;;According  to  SQLite documentation,  memory  for the  error
-	      ;;message    of    "sqlite3_exec()"    is    allocated    with
-	      ;;"sqlite3_malloc(), so we have to release it.
-	      (sqlite3_free errmsg*)
-	      (raise-sqlite-querying-error 'sqlite-exec errmsg session query)))))))))
+	  (cond (condition-object
+		 (raise condition-object))
+		((= result SQLITE_OK)
+		 result)
+		(else
+		 (let* ((errmsg* (pointer-ref-c-pointer errmsg** 0))
+			(errmsg  (cstring->string       errmsg*)))
+		   ;;According to  SQLite documentation, memory  for the
+		   ;;error message of "sqlite3_exec()" is allocated with
+		   ;;"sqlite3_malloc(), so we have to release it.
+		   (sqlite3_free errmsg*)
+		   (raise-sqlite-querying-error 'sqlite-exec errmsg session query))))))))))
+
+
+(define (sqlite-get-table session query)
+  (with-compensations
+    (let* ((table**	(malloc-small/c))
+	   (rownum*	(malloc-small/c))
+	   (colnum*	(malloc-small/c))
+	   (errmsg**	(malloc-small/c))
+	   (result	(sqlite3_get_table session (string->cstring/c query)
+					   table** rownum* colnum* errmsg**)))
+      (if (= result SQLITE_OK)
+	  (let ((table*	(pointer-ref-c-pointer table** 0))
+		;;The reported rownum does NOT include the row of column
+		;;names, so we add one here.
+		(rownum	(+ 1 (pointer-ref-c-signed-int rownum* 0)))
+		(colnum	(pointer-ref-c-signed-int colnum* 0)))
+	    (do ((i 0 (+ 1 i))
+		 (table	'()))
+		((= i rownum)
+		 (sqlite3_free_table table*)
+		 (reverse table))
+	      (set-cons! table
+			 (do ((j 0 (+ 1 j))
+			      (row '()))
+			     ((= j colnum)
+			      (reverse row))
+			   (set-cons! row (cstring->string
+					   (array-ref-c-pointer table* (+ j (* i colnum)))))))))
+	(let* ((errmsg* (pointer-ref-c-pointer errmsg** 0))
+	       (errmsg  (cstring->string       errmsg*)))
+	  ;;According to  SQLite documentation, memory  for the error
+	  ;;message    of   "sqlite3_exec()"   is    allocated   with
+	  ;;"sqlite3_malloc(), so we have to release it.
+	  (sqlite3_free errmsg*)
+	  (raise-sqlite-querying-error 'sqlite-exec errmsg session query))))))
 
 
 ;;;; done

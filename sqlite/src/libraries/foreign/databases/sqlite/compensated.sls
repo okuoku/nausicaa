@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/SQLite
-;;;Contents: compile script for Ikarus Scheme
-;;;Date: Mon Nov  2, 2009
+;;;Contents: compensated constructors
+;;;Date: Sat Nov 14, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,9 +24,37 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (foreign databases sqlite))
-  (only (foreign databases sqlite compensated))
-  )
+
+(library (foreign databases sqlite compensated)
+  (export
+    sqlite-open/c		sqlite-open-v2/c
+    )
+  (import (rnrs)
+    (compensations)
+    (foreign databases sqlite))
+
+
+(define (sqlite-open/c pathname)
+  (letrec ((session (compensate
+			(sqlite-open pathname)
+		      (with
+		       (sqlite-close session)))))
+    session))
+
+(define sqlite-open-v2/c
+  (case-lambda
+   ((pathname flags)
+    (sqlite-open-v2/c pathname flags #f))
+   ((pathname flags name-of-vfs-module)
+    (letrec ((session (compensate
+			  (sqlite-open-v2 pathname flags name-of-vfs-module)
+			(with
+			 (sqlite-close session)))))
+      session))))
+
+
+;;;; done
+
+)
 
 ;;; end of file

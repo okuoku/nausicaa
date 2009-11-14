@@ -29,6 +29,7 @@
   (compensations)
   (foreign memory)
   (foreign cstrings)
+  (foreign databases sqlite conditions)
   (foreign databases sqlite enumerations)
   (foreign databases sqlite primitives)
   (foreign databases sqlite sizeof)
@@ -36,14 +37,6 @@
 
 (check-set-mode! 'report-failed)
 (display "*** testing SQLite primitives\n")
-
-
-;;;; helpers
-
-(define-syntax set-cons!
-  (syntax-rules ()
-    ((_ ?name ?form)
-     (set! ?name (cons ?form ?name)))))
 
 
 ;;;; helpers
@@ -102,27 +95,57 @@
   (check
       (let* ((session	(sqlite-open ":memory:"))
 	     (result	'())
-	     (cback	(lambda (custom-data column-names column-values)
+	     (cback	(lambda (column-names column-values)
+			  ;; (write column-names)(newline)
+			  ;; (write column-values)(newline)
+			  ;; (newline)
 			  (set-cons! result (list column-names column-values))
 			  SQLITE_OK)))
-	(sqlite-exec session "create table alpha
-				(key INTEGER PRIMARY KEY, data TEXT, num double);
-                                insert into alpha (data, num)
-					values ('This is sample data', 3);
-                                insert into alpha (data, num)
-					values ('More sample data', 6);
-				insert into alpha (data, num)
-					values ('And a little more', 9);")
-	(let ((code (sqlite-exec session "select * from alpha;" cback)))
+	(sqlite-exec session "create table accounts
+				(id INTEGER PRIMARY KEY,
+				 nickname TEXT,
+				 password TEXT);")
+	(sqlite-exec session "insert into accounts (nickname, password)
+				  values ('ichigo', 'abcde');
+                              insert into accounts (nickname, password)
+				  values ('rukia', '12345');
+			      insert into accounts (nickname, password)
+				  values ('chado', 'fist');")
+	(let ((code (sqlite-exec session "select * from accounts;" cback)))
 	  (sqlite-close session)
 	  (list code (reverse result))))
     => `(,SQLITE_OK
-	 ((("key" "data" "num")
-	   ("1" "This is sample data" "3.0"))
-	  (("key" "data" "num")
-	   ("2" "More sample data" "6.0"))
-	  (("key" "data" "num")
-	   ("3" "And a little more" "9.0")))))
+	 ((("id" "nickname" "password")
+	   ("1" "ichigo" "abcde"))
+	  (("id" "nickname" "password")
+	   ("2" "rukia" "12345"))
+	  (("id" "nickname" "password")
+	   ("3" "chado" "fist")))))
+
+  (check
+      (let ((session (sqlite-open ":memory:")))
+	(guard (E ((sqlite-querying-error-condition? E)
+		   #t)
+		  (else #f))
+	  (sqlite-exec session "create table")))
+    => #t)
+
+  (check
+      (let ((session (sqlite-open ":memory:")))
+	(guard (E ((warning? E)
+		   (condition-irritants E))
+		  (else #f))
+	  (sqlite-exec session "create table accounts
+				(id INTEGER PRIMARY KEY,
+				 nickname TEXT,
+				 password TEXT);")
+	  (sqlite-exec session "insert into accounts (nickname, password)
+				  values ('ichigo', 'abcde');")
+	  (sqlite-exec session "select * from accounts;"
+		       (lambda (n v)
+			 (raise (condition (make-warning)
+					   (make-irritants-condition 123)))))))
+    => 123)
 
   #t)
 

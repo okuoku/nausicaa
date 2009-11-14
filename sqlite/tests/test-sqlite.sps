@@ -27,13 +27,29 @@
 
 (import (nausicaa)
   (compensations)
-  (foreign memory)
-  (foreign cstrings)
+  (checks)
   (foreign databases sqlite)
-  (checks))
+  (foreign databases sqlite compensated))
 
 (check-set-mode! 'report-failed)
-(display "*** testing SQLite platform\n")
+(display "*** testing SQLite compound\n")
+
+
+;;;; helpers
+
+(define-syntax with-database
+  (syntax-rules ()
+    ((_ (?name ?pathname) ?form ...)
+     (let ((?name ?pathname))
+       (dynamic-wind
+	   (lambda ()
+	     (when (file-exists? ?name)
+	       (delete-file ?name)))
+	   (lambda ()
+	     ?form ...)
+	   (lambda ()
+	     (when (file-exists? ?name)
+	       (delete-file ?name))))))))
 
 
 (parametrise ((check-test-name	'version))
@@ -41,6 +57,134 @@
   (check
       (sqlite-libversion-number)
     => SQLITE_VERSION_NUMBER)
+
+  #t)
+
+
+(parametrise ((check-test-name	'open-close))
+
+  (check
+      (let ((db (sqlite-open ':memory:)))
+	(sqlite-close db))
+    => 0)
+
+  (check
+      (with-database (pathname "database-0.db")
+		     (let ((db (sqlite-open pathname)))
+		       (sqlite-close db)))
+    => 0)
+
+  (check
+      (with-database (pathname "database-0.db")
+  		     (let ((db (sqlite-open-v2 pathname
+  					       (sqlite-open-flags CREATE
+								  READWRITE
+								  NOMUTEX))))
+  		       (sqlite-close db)))
+    => 0)
+
+  #t)
+
+
+(parametrise ((check-test-name	'open-compensated))
+
+  (check
+      (with-compensations
+	(let ((session (sqlite-open/c ':memory:)))
+	  #t))
+    => #t)
+
+  (check
+      (with-database (pathname "database-0.db")
+		     (with-compensations
+		       (let ((session (sqlite-open-v2/c pathname
+							(sqlite-open-flags CREATE
+									   READWRITE
+									   NOMUTEX))))
+			 #t)))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'callback))
+
+  (check
+      (let* ((session	(sqlite-open ":memory:"))
+	     (result	'())
+	     (cback	(lambda (column-names column-values)
+			  (set-cons! result (list column-names column-values))
+			  SQLITE_OK)))
+	(sqlite-exec session "create table accounts
+				(id INTEGER PRIMARY KEY,
+				 nickname TEXT,
+				 password TEXT);")
+	(sqlite-exec session "insert into accounts (nickname, password)
+				  values ('ichigo', 'abcde');
+                              insert into accounts (nickname, password)
+				  values ('rukia', '12345');
+			      insert into accounts (nickname, password)
+				  values ('chado', 'fist');")
+	(let ((code (sqlite-exec session "select * from accounts;" cback)))
+	  (sqlite-close session)
+	  (list code (reverse result))))
+    => `(,SQLITE_OK
+	 ((("id" "nickname" "password")
+	   ("1" "ichigo" "abcde"))
+	  (("id" "nickname" "password")
+	   ("2" "rukia" "12345"))
+	  (("id" "nickname" "password")
+	   ("3" "chado" "fist")))))
+
+  (check
+      (let ((session (sqlite-open ":memory:")))
+	(guard (E ((sqlite-querying-error-condition? E)
+		   #t)
+		  (else #f))
+	  (sqlite-exec session "create table")))
+    => #t)
+
+  (check
+      (let ((session (sqlite-open ":memory:")))
+	(guard (E ((warning? E)
+		   (condition-irritants E))
+		  (else #f))
+	  (sqlite-exec session "create table accounts
+				(id INTEGER PRIMARY KEY,
+				 nickname TEXT,
+				 password TEXT);")
+	  (sqlite-exec session "insert into accounts (nickname, password)
+				  values ('ichigo', 'abcde');")
+	  (sqlite-exec session "select * from accounts;"
+		       (lambda (n v)
+			 (raise (condition (make-warning)
+					   (make-irritants-condition 123)))))))
+    => 123)
+
+  #t)
+
+
+(parametrise ((check-test-name	'get-table))
+
+  (check
+      (let ((session (sqlite-open ":memory:")))
+	(sqlite-exec session "create table accounts
+				(id INTEGER PRIMARY KEY,
+				 nickname TEXT,
+				 password TEXT);")
+	(sqlite-exec session "insert into accounts (nickname, password)
+				  values ('ichigo', 'abcde');
+                              insert into accounts (nickname, password)
+				  values ('rukia', '12345');
+			      insert into accounts (nickname, password)
+				  values ('chado', 'fist');")
+	(let ((table (sqlite-get-table session "select * from accounts;")))
+	  (sqlite-close session)
+	  table))
+    => '(("id" "nickname" "password")
+	 ("1" "ichigo" "abcde")
+	 ("2" "rukia" "12345")
+	 ("3" "chado" "fist")))
 
   #t)
 

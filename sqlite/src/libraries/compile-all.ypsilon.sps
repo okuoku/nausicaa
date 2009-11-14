@@ -25,6 +25,7 @@
 
 (import
     (only (foreign databases sqlite))
+    (only (foreign databases sqlite compensated))
   )
 
 ;;; end of file

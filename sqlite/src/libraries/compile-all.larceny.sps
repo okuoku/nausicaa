@@ -36,10 +36,19 @@
 (compile-library "foreign/databases/sqlite/platform.sls"
 		 "foreign/databases/sqlite/platform.larceny.slfasl")
 
+(compile-library "foreign/databases/sqlite/conditions.sls"
+		 "foreign/databases/sqlite/conditions.larceny.slfasl")
+
+(compile-library "foreign/databases/sqlite/enumerations.sls"
+		 "foreign/databases/sqlite/enumerations.larceny.slfasl")
+
 (compile-library "foreign/databases/sqlite/primitives.sls"
 		 "foreign/databases/sqlite/primitives.larceny.slfasl")
 
 (compile-library "foreign/databases/sqlite.sls"
 		 "foreign/databases/sqlite.larceny.slfasl")
+
+(compile-library "foreign/databases/sqlite/compensated.sls"
+		 "foreign/databases/sqlite/compensated.larceny.slfasl")
 
 ;;; end of file

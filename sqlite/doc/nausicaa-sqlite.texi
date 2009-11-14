@@ -499,6 +499,7 @@ entitled ``@gnu{} Free Documentation License''.
 * conditions::                  Condition objects.
 * enumerations::                Enumeration definitions.
 * marshaling::                  Functions marshaling arguments.
+* compensated::                 Compensated constructors.
 
 Appendices
 
@@ -512,7 +513,46 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Condition objects
+
+* conditions data::             Condition objects holding values.
+* conditions error::            Condition objects signaling errors.
+
+Condition objects holding values
+
+* conditions data database::    Database specification objects.
+* conditions data session::     Database session objects.
+* conditions data query::       Database query objects.
+
+Condition objects signaling errors
+
+* conditions error base::       Base condition type for errors.
+* conditions error opening::    Database opening errors.
+* conditions error querying::   Database querying errors.
+
+Enumeration definitions
+
+* enumerations open::           Database creation and opening flags.
+
+Functions marshaling arguments
+
+* marshaling open::             Creating and opening a database.
+* marshaling exec::             Executing @sql{} statements with
+                                a Scheme callback.
+* marshaling table::            Retrieving a table.
+* marshaling mutex::            Locking access to a database.
+
+Compensated constructors
+
+* compensated open::            Creating and/or opening databases.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 @c page
@@ -540,17 +580,22 @@ Exports bindings for constant values and data types inspection.
 Exports a binding for each function in SQLite.  It implements a
 one--to--one map between foreign functions and Scheme functions; the
 Scheme functions have the same name of the foreign ones, so
-@cfunc{sqlite3_close} is available as @func{sqlite3_close}.
+@cfunc{sqlite3_close} is available as @func{sqlite3_close}.  This
+library makes the original SQLite documentation relevant for this Scheme
+package.
 
 @item foreign databases sqlite conditions
 Defines condition types used to signal @value{PACKAGE} errors.
 
+@item foreign databases sqlite enumerations
+Defines enumeration sets of symbols.
+
 @item foreign databases sqlite primitives
-Exports a binding for each foreign function, implementing marshaling of
-arguments and return values; the Scheme functions have the same name of
-the foreign ones, but with underscores turned into dashes and the
-@code{3} stripped; so @cfunc{sqlite3_close} is available as
-@func{sqlite-close}.
+Exports a binding for each foreign function, implementing, for some of
+them, marshaling of arguments and return values; the Scheme functions
+have the same name of the foreign ones, but with underscores turned into
+dashes and the @code{3} stripped; so @cfunc{sqlite3_close} is available
+as @func{sqlite-close}.
 
 @item foreign databases sqlite
 Compound library; reexports bindings from the following libraries:
@@ -558,11 +603,14 @@ Compound library; reexports bindings from the following libraries:
 @example
 (foreign databases sqlite sizeof)
 (foreign databases sqlite conditions)
+(foreign databases sqlite enumerations)
 (foreign databases sqlite primitives)
 @end example
 
+@item foreign databases sqlite compensated
 Additionally bindings for constructors and destructors making use of the
-@library{compensations} library.  @nauref{compensations, Compensation
+@library{compensations} library; this library is built on top of
+@library{foreign databases sqlite}.  @nauref{compensations, Compensation
 stacks}
 @end table
 
@@ -848,6 +896,10 @@ condition objects.
 
 @menu
 * marshaling open::             Creating and opening a database.
+* marshaling exec::             Executing @sql{} statements with
+                                a Scheme callback.
+* marshaling table::            Retrieving a table.
+* marshaling mutex::            Locking access to a database.
 @end menu
 
 @c page
@@ -860,6 +912,10 @@ Create and/or open a database using @cfunc{sqlite3_open}.  If successful
 return a pointer value referencing a database connection object; else
 raise a continuable exception with condition object of type
 @condition{sqlite-opening-error}.
+
+If opening fails because not enough memory is available, the condition
+object also has a component of type @condition{out-of-memory}.
+@nauref{memory conditions, Out of memory errors}.
 
 @var{database} must be a Scheme string or symbol representing a database
 specification; it can be the pathname of a file or @samp{:memory:} or
@@ -880,6 +936,10 @@ successful return a pointer value referencing a database connection
 object; else raise a continuable exception with condition object of type
 @condition{sqlite-opening-error}.
 
+If opening fails because not enough memory is available, the condition
+object also has a component of type @condition{out-of-memory}.
+@nauref{memory conditions, Out of memory errors}.
+
 @var{database} must be a Scheme string or symbol representing a database
 specification; it can be the pathname of a file or @samp{:memory:} or
 any other valid specification.
@@ -899,6 +959,157 @@ it selects the default SQLite @acronym{VFS} module.
   ---
   (sqlite-close db))
 @end example
+@end defun
+
+@c page
+@node marshaling exec
+@section Executing @sql{} statements with a Scheme callback
+
+
+@defun sqlite-exec @var{session} @var{query}
+@defunx sqlite-exec @var{session} @var{query} @var{scheme-callback}
+Execute the @sql{} statement @var{query}, which must be a Scheme string,
+for the database referenced by the pointer @var{session}.
+
+If @var{scheme-callback} is given and it is not @false{}, it must be a
+Scheme function which is invoked for every row in the result; the
+function must accept two arguments: a list of Scheme strings
+representing the names of the columns, a list of Scheme strings
+representing the values of the columns.  Null values are represented by
+@false{}.
+
+The callback must return @samp{SQLITE_OK} to proceed with the iteration
+or @samp{SQLITE_ABORT} to interrupt it.  If the callback raises an
+exception, the raised object is catched and correctly rethrown by
+@func{sqlite-exec}; such exception must be non--continuable.
+
+@example
+(sqlite-exec session "create table accounts
+   (id       INTEGER PRIMARY KEY,
+    nickname TEXT,
+    password TEXT);")
+
+(sqlite-exec session
+  "insert into accounts (nickname, password)
+     values ('ichigo', 'abcde');
+   insert into accounts (nickname, password)
+     values ('rukia', '12345');
+   insert into accounts (nickname, password)
+     values ('chado', 'fist');")
+
+(sqlite-exec session "select * from accounts;"
+   (lambda (column-names column-values)
+     (write column-names)(newline)
+     (write column-values)(newline)
+     (newline)
+     SQLITE_OK))
+@print{} ("id" "nickname" "password")
+@print{} ("1" "ichigo" "abcde")
+@print{}
+@print{} ("id" "nickname" "password")
+@print{} ("2" "rukia" "12345")
+@print{}
+@print{} ("id" "nickname" "password")
+@print{} ("3" "chado" "fist")
+@end example
+@end defun
+
+@c page
+@node marshaling table
+@section Retrieving a table
+
+
+@defun sqlite-get-table @var{session} @var{query}
+Execute the @sql{} statement @var{query}, which must be a Scheme string,
+for the database referenced by the pointer @var{session}; the query
+should have a table as result (else it is better to use
+@func{sqlite-exec} without callback argument).
+
+Return a list of lists: the first sublist holding a Scheme string for
+each column name, the subsequent lists holding the row values.
+
+@example
+(sqlite-exec session "create table accounts
+   (id INTEGER PRIMARY KEY,
+    nickname TEXT,
+    password TEXT);")
+
+(sqlite-exec session
+  "insert into accounts (nickname, password)
+     values ('ichigo', 'abcde');
+   insert into accounts (nickname, password)
+     values ('rukia', '12345');
+   insert into accounts (nickname, password)
+     values ('chado', 'fist');")
+
+(sqlite-get-table session
+   "select * from accounts;")
+@result{} (("id" "nickname" "password")
+    ("1" "ichigo" "abcde")
+    ("2" "rukia" "12345")
+    ("3" "chado" "fist"))
+@end example
+@end defun
+
+@c page
+@node marshaling mutex
+@section Locking access to a database
+
+
+@deffn Syntax with-sqlite-locking @ameta{session} @ameta{form0} @ameta{form} ...
+Acquire the mutex for the database referenced by the pointer
+@ameta{session}, evaluate the forms, then release the mutex.
+
+It is implemented as follows:
+
+@example
+(define-syntax with-sqlite-locking
+  (syntax-rules ()
+    ((_ ?session ?form0 ?form ...)
+     (let ((mux (sqlite3_db_mutex ?session)))
+       (dynamic-wind
+           (lambda ()
+             (sqlite3_mutex_enter mux))
+           (lambda ()
+             ?form0 ?form ...)
+           (lambda ()
+             (sqlite3_mutex_leave mux)))))))
+@end example
+@end deffn
+
+@c page
+@node compensated
+@chapter Compensated constructors
+
+
+This chapter documents compensated constructor, which make use of the
+@library{compensations} library to automatically invoke the appropriate
+destructor for synchronous resources.  @nauref{compensations,
+Compensation stacks}.
+
+Unless otherwise specified, all the bindings are exported by the library
+@library{foreign databases sqlite compensated}.
+
+@menu
+* compensated open::            Creating and/or opening databases.
+@end menu
+
+@c page
+@node compensated open
+@section Creating and/or opening databases
+
+
+@defun sqlite-open/c @var{arg} ...
+Wrapper for @func{sqlite-open} which pushes the appropriate call to
+@func{sqlite-close} on the current compensations stack.  Take the same
+arguments of @func{sqlite-open}.
+@end defun
+
+
+@defun sqlite-open-v2/c @var{arg} ...
+Wrapper for @func{sqlite-open-ve} which pushes the appropriate call to
+@func{sqlite-close} on the current compensations stack.  Take the same
+arguments of @func{sqlite-open}.
 @end defun
 
 @c page

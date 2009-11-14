@@ -570,12 +570,46 @@
 
     sqlite-open-flag-symbol		sqlite-open-flags
 
+
+;;;; conditions
 
+    &sqlite-session
+    make-sqlite-session-condition
+    sqlite-session-condition?
+    sqlite-session-condition
+
+    &sqlite-database
+    make-sqlite-database-condition
+    sqlite-database-condition?
+    sqlite-database-condition
+
+    &sqlite-query
+    make-sqlite-query-condition
+    sqlite-query-condition?
+    sqlite-query-condition
+
+;;; --------------------------------------------------------------------
+
+    &sqlite-error
+    make-sqlite-error-condition
+    sqlite-error-condition?
+
+    &sqlite-opening-error
+    make-sqlite-opening-error-condition
+    sqlite-opening-error-condition?
+    raise-sqlite-opening-error
+
+    &sqlite-querying-error
+    make-sqlite-querying-error-condition
+    sqlite-querying-error-condition?
+    raise-sqlite-querying-error
+
+
     )
   (import (rnrs)
-    (compensations)
-    (foreign databases sqlite conditions)
     (foreign databases sqlite primitives)
+    (foreign databases sqlite enumerations)
+    (foreign databases sqlite conditions)
     (foreign databases sqlite sizeof))
 
 
