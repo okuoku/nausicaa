@@ -80,6 +80,10 @@ Revised^6 Report on the algorithmic language Scheme
 @code{<\NAME\>}
 @end macro
 
+@macro condition{NAME}
+@code{&\NAME\}
+@end macro
+
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
 @c ------------------------------------------------------------
@@ -19649,6 +19653,7 @@ the @library{unimplemented} library.
 
 @menu
 * conditions mismatch::         General mismatch error.
+* conditions num-args::         Wrong number of arguments error.
 @end menu
 
 @c page
@@ -19671,6 +19676,63 @@ Build and return a new @samp{&mismatch} condition object.
 Return @true{} if @var{obj} is a condition of object of type
 @samp{&mismatch}.
 @end defun
+
+@c page
+@node conditions num-args
+@section Wrong number of arguments error
+
+
+@deftp {Condition Type} &wrong-num-args
+Condition type used to signal a call to function with the wrong number
+of arguments; it is derived from @condition{assertion}.  It has the
+following fields:
+
+@table @code
+@item procname
+A Scheme symbol representing the name of the invoked function; @false{}
+if the name is not available.
+
+@item expected
+An exact integer representing the expected number of arguments.
+
+@item given
+An exact integer representing the number of arguments used in the
+offending call.
+@end table
+@end deftp
+
+
+@defun make-wrong-num-args-condition @var{procname} @var{expected} @var{given}
+@defunx wrong-num-args-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{wrong-num-args}.
+@end defun
+
+
+@defun condition-wrong-num-args-procname @var{condition}
+@defunx condition-expected-arguments-number @var{condition}
+@defunx condition-given-arguments-number @var{condition}
+Accessors for the fields of a condition object of type
+@condition{wrong-num-args}.
+@end defun
+
+
+@deffn raise-wrong-num-args @var{who} @var{message} @var{procname} @var{expected} @var{given}
+Raise a non--continuable exception with compound condition object of
+type: @condition{who}, @condition{message}, @condition{wrong-num-args}.
+it is defined as follows:
+
+@example
+(define-syntax raise-wrong-num-args
+  (syntax-rules ()
+    ((_ ?who ?message ?procname ?expected ?given)
+     (raise
+      (condition (make-who-condition ?who)
+                 (make-message-condition ?message)
+                 (make-wrong-num-args-condition
+                    ?procname ?expected ?given))))))
+@end example
+@end deffn
 
 @c page
 @node lists

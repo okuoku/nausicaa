@@ -29,17 +29,46 @@
   (export
 
     ;; mismatch
-    &mismatch make-mismatch-condition mismatch-condition?
+    &mismatch
+    make-mismatch-condition
+    mismatch-condition?
+
+    ;; wrong num args
+    &wrong-num-args
+    make-wrong-num-args-condition
+    wrong-num-args-condition?
+    condition-wrong-num-args-procname
+    condition-expected-arguments-number
+    condition-given-arguments-number
+    raise-wrong-num-args
 
     ;; unimplemented
-    &unimplemented make-unimplemented-condition
-    unimplemented-condition? raise-unimplemented-error)
+    &unimplemented
+    make-unimplemented-condition
+    unimplemented-condition?
+    raise-unimplemented-error)
   (import (rnrs)
     (unimplemented))
 
 
 (define-condition-type &mismatch
   &assertion make-mismatch-condition mismatch-condition?)
+
+;;; --------------------------------------------------------------------
+
+(define-condition-type &wrong-num-args
+  &assertion make-wrong-num-args-condition wrong-num-args-condition?
+  (procname	condition-wrong-num-args-procname)
+  (expected	condition-expected-arguments-number)
+  (given	condition-given-arguments-number))
+
+(define-syntax raise-wrong-num-args
+  (syntax-rules ()
+    ((_ ?who ?message ?procname ?expected ?given)
+     (raise
+      (condition (make-who-condition ?who)
+		 (make-message-condition ?message)
+		 (make-wrong-num-args-condition ?procname ?expected ?given))))))
 
 
 ;;;; done
