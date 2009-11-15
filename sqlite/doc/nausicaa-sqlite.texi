@@ -633,6 +633,7 @@ stacks}
 * conditions data database::    Database specification objects.
 * conditions data session::     Database session objects.
 * conditions data query::       Database query objects.
+* conditions data statement::   Database statement objects.
 @end menu
 
 @c page
@@ -725,6 +726,34 @@ condition objects.
 @end defun
 
 @c page
+@node conditions data statement
+@subsection Database statement objects
+
+
+@deftp {Condition Type} &sqlite-statement
+Condition type used to hold the @sql{} statement involved in an error;
+it is derived from @condition{condition}.  It has the following fields:
+
+@table @code
+@item statement
+Contains a pointer value referencing an SQLite statement data structure.
+@end table
+@end deftp
+
+
+@defun make-sqlite-statement-condition @var{statement}
+@defunx sqlite-statement-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{sqlite-statement}.
+@end defun
+
+
+@defun sqlite-statement-condition @var{condition}
+Accessor for the @code{statement} field of @condition{sqlite-statement}
+condition objects.
+@end defun
+
+@c page
 @node conditions error
 @section Condition objects signaling errors
 
@@ -733,6 +762,9 @@ condition objects.
 * conditions error base::       Base condition type for errors.
 * conditions error opening::    Database opening errors.
 * conditions error querying::   Database querying errors.
+* conditions error preparing::  Errors preparing @sql{} statements.
+* conditions error stepping::   Errors executing @sql{} statements.
+* conditions error finalising:: Errors finalising @sql{} statements.
 @end menu
 
 @c page
@@ -797,7 +829,7 @@ It is defined as:
 
 
 @deftp {Condition Type} &sqlite-querying-error
-Condition type used to tag compound condition objects as representing
+Condition type used to tag compound condition objects representing
 SQLite database querying errors; it is derived from
 @condition{sqlite-error}.  It has no fields.
 @end deftp
@@ -825,6 +857,124 @@ It is defined as:
       (condition (make-sqlite-querying-error-condition)
                  (make-sqlite-session-condition ?session)
                  (make-sqlite-query-condition ?query)
+                 (make-who-condition ?who)
+                 (make-message-condition ?message))))))
+@end example
+@end deffn
+
+@c page
+@node conditions error preparing
+@subsection Errors preparing @sql{} statements
+
+
+@deftp {Condition Type} &sqlite-preparing-error
+Condition type used to tag compound condition objects representing
+errors preparing @sql{} statements; it is derived from
+@condition{sqlite-error}.  It has no fields.
+@end deftp
+
+
+@defun make-sqlite-preparing-error-condition
+@defunx sqlite-preparing-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{sqlite-preparing-error}.
+@end defun
+
+
+@deffn Syntax raise-sqlite-preparing-error @ameta{who} @ameta{message} @ameta{session} @ameta{query}
+Raise a non--continuable exception signaling an error preparing an
+@sql{} statement for SQLite.
+
+It is defined as:
+
+@example
+(define-syntax raise-sqlite-preparing-error
+  (syntax-rules ()
+    ((_ ?who ?message ?session ?query)
+     (raise
+      (condition (make-sqlite-preparing-error-condition)
+                 (make-sqlite-session-condition ?session)
+                 (make-sqlite-query-condition ?query)
+                 (make-who-condition ?who)
+                 (make-message-condition ?message))))))
+@end example
+@end deffn
+
+@c page
+@node conditions error stepping
+@subsection Errors executing @sql{} statements
+
+
+@deftp {Condition Type} &sqlite-stepping-error
+Condition type used to tag compound condition objects representing
+errors stepping through the execution of @sql{} statements; it is
+derived from @condition{sqlite-error}.  It has no fields.
+@end deftp
+
+
+@defun make-sqlite-stepping-error-condition
+@defunx sqlite-stepping-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{sqlite-stepping-error}.
+@end defun
+
+
+@deffn Syntax raise-sqlite-stepping-error @ameta{who} @ameta{message} @ameta{session} @ameta{statement}
+Raise a non--continuable exception signaling an error stepping through
+the execution of an @sql{} statement for SQLite.
+
+It is defined as:
+
+@example
+(define-syntax raise-sqlite-stepping-error
+  (syntax-rules ()
+    ((_ ?who ?message ?session ?statement)
+     (raise
+      (condition (make-sqlite-stepping-error-condition)
+                 (make-sqlite-session-condition ?session)
+                 (make-sqlite-statement-condition ?statement)
+                 (make-who-condition ?who)
+                 (make-message-condition ?message))))))
+@end example
+@end deffn
+
+@c page
+@node conditions error finalising
+@subsection Errors finalising @sql{} statements
+
+
+@deftp {Condition Type} &sqlite-finalising-error
+@deftpx {Condition Type} &sqlite-finalizing-error
+Condition type used to tag compound condition objects representing
+errors finalising @sql{} statements; it is derived from
+@condition{sqlite-error}.  It has no fields.
+@end deftp
+
+
+@defun make-sqlite-finalising-error-condition
+@defunx make-sqlite-finalizing-error-condition
+@defunx sqlite-finalising-error-condition? @var{obj}
+@defunx sqlite-finalizing-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{sqlite-finalising-error}.
+@end defun
+
+
+@deffn Syntax raise-sqlite-finalising-error @ameta{who} @ameta{message} @ameta{session} @ameta{statement}
+@deffnx Syntax raise-sqlite-finalizing-error @ameta{who} @ameta{message} @ameta{session} @ameta{statement}
+Raise a non--continuable exception signaling an error finalising an
+@sql{} statement for SQLite.
+
+It is defined as:
+
+@example
+(define-syntax raise-sqlite-finalising-error
+  (syntax-rules ()
+    ((_ ?who ?message ?session ?statement)
+     (raise
+      (condition (make-sqlite-finalising-error-condition)
+                 (make-sqlite-session-condition ?session)
+                 (make-sqlite-statement-condition ?statement)
                  (make-who-condition ?who)
                  (make-message-condition ?message))))))
 @end example
@@ -899,6 +1049,8 @@ condition objects.
 * marshaling exec::             Executing @sql{} statements with
                                 a Scheme callback.
 * marshaling table::            Retrieving a table.
+* marshaling step::             Preparing and executing @sql{}
+                                statements.
 * marshaling mutex::            Locking access to a database.
 @end menu
 
@@ -1049,6 +1201,43 @@ each column name, the subsequent lists holding the row values.
     ("2" "rukia" "12345")
     ("3" "chado" "fist"))
 @end example
+@end defun
+
+@c page
+@node marshaling step
+@section Preparing and executing @sql{} statements
+
+
+@defun sqlite-prepare-v2 @var{session} @var{query}
+Prepare all the @sql{} statements in @var{query} for execution in the
+database referenced by the pointer @var{session}; return a list of
+pointers to SQLite statement structures.  If @var{query} is empty or
+contains only comments, the returned list is empty.
+
+@var{query} can contain multiple @sql{} statements and each of them is
+prepared separately; if an error occurs preparing a statement, an
+exception is raised with condition type
+@condition{sqlite-preparing-error}.  All the statements from @var{query}
+previously prepared are silently finalised.
+@end defun
+
+
+@defun sqlite-finalise @var{session} @var{statement}
+@defunx sqlite-finalize @var{session} @var{statement}
+Finalise the SQLite statement structure referenced by the pointer
+@var{statement}; @var{session} must be a pointer to the database and it
+is used to retrieve error messages.  If an error occurs, an exception is
+raised with condition type @condition{sqlite-finalising-error}.
+@end defun
+
+
+@defun sqlite-step @var{session} @var{statement}
+Execute a step of the SQLite statement whose structure is referenced by
+the pointer @var{statement}; @var{session} must be a pointer to the
+database and it is used to retrieve error messages.
+
+If an error occurs, an exception is raised with condition type
+@condition{sqlite-querying-error}.
 @end defun
 
 @c page

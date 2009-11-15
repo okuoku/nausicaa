@@ -43,6 +43,11 @@
     sqlite-query-condition?
     sqlite-query-condition
 
+    &sqlite-statement
+    make-sqlite-statement-condition
+    sqlite-statement-condition?
+    sqlite-statement-condition
+
 ;;; --------------------------------------------------------------------
 
     &sqlite-error
@@ -58,6 +63,26 @@
     make-sqlite-querying-error-condition
     sqlite-querying-error-condition?
     raise-sqlite-querying-error
+
+    &sqlite-preparing-error
+    make-sqlite-preparing-error-condition
+    sqlite-preparing-error-condition?
+    raise-sqlite-preparing-error
+
+    &sqlite-finalizing-error
+    make-sqlite-finalizing-error-condition
+    sqlite-finalizing-error-condition?
+    raise-sqlite-finalizing-error
+
+    &sqlite-stepping-error
+    make-sqlite-stepping-error-condition
+    sqlite-stepping-error-condition?
+    raise-sqlite-stepping-error
+
+    (rename (&sqlite-finalizing-error			&sqlite-finalising-error)
+	    (make-sqlite-finalizing-error-condition	make-sqlite-finalising-error-condition)
+	    (sqlite-finalizing-error-condition?		sqlite-finalising-error-condition?)
+	    (raise-sqlite-finalizing-error		raise-sqlite-finalising-error))
     )
   (import (rnrs))
 
@@ -79,6 +104,12 @@
   make-sqlite-query-condition
   sqlite-query-condition?
   (query	sqlite-query-condition))
+
+(define-condition-type &sqlite-statement
+  &condition
+  make-sqlite-statement-condition
+  sqlite-statement-condition?
+  (statement	sqlite-statement-condition))
 
 
 (define-condition-type &sqlite-error
@@ -116,6 +147,57 @@
       (condition (make-sqlite-querying-error-condition)
 		 (make-sqlite-session-condition ?session)
 		 (make-sqlite-query-condition ?query)
+		 (make-who-condition ?who)
+		 (make-message-condition ?message))))))
+
+;;; --------------------------------------------------------------------
+
+(define-condition-type &sqlite-preparing-error
+  &sqlite-error
+  make-sqlite-preparing-error-condition
+  sqlite-preparing-error-condition?)
+
+(define-syntax raise-sqlite-preparing-error
+  (syntax-rules ()
+    ((_ ?who ?message ?session ?query)
+     (raise
+      (condition (make-sqlite-preparing-error-condition)
+		 (make-sqlite-session-condition ?session)
+		 (make-sqlite-query-condition ?query)
+		 (make-who-condition ?who)
+		 (make-message-condition ?message))))))
+
+;;; --------------------------------------------------------------------
+
+(define-condition-type &sqlite-finalizing-error
+  &sqlite-error
+  make-sqlite-finalizing-error-condition
+  sqlite-finalizing-error-condition?)
+
+(define-syntax raise-sqlite-finalizing-error
+  (syntax-rules ()
+    ((_ ?who ?message ?session ?statement)
+     (raise
+      (condition (make-sqlite-finalizing-error-condition)
+		 (make-sqlite-session-condition ?session)
+		 (make-sqlite-statement-condition ?statement)
+		 (make-who-condition ?who)
+		 (make-message-condition ?message))))))
+
+;;; --------------------------------------------------------------------
+
+(define-condition-type &sqlite-stepping-error
+  &sqlite-error
+  make-sqlite-stepping-error-condition
+  sqlite-stepping-error-condition?)
+
+(define-syntax raise-sqlite-stepping-error
+  (syntax-rules ()
+    ((_ ?who ?message ?session ?statement)
+     (raise
+      (condition (make-sqlite-stepping-error-condition)
+		 (make-sqlite-session-condition ?session)
+		 (make-sqlite-statement-condition ?statement)
 		 (make-who-condition ?who)
 		 (make-message-condition ?message))))))
 

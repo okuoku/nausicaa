@@ -69,11 +69,11 @@
 
      ;; SQL stuff
      (sqlite3_prepare			sqlite-prepare)
-     (sqlite3_prepare_v2		sqlite-prepare-v2)
+;;;     (sqlite3_prepare_v2		sqlite-prepare-v2)
      (sqlite3_prepare16			sqlite-prepare16)
      (sqlite3_prepare16_v2		sqlite-prepare16-v2)
      (sqlite3_sql			sqlite-sql)
-     (sqlite3_finalize			sqlite-finalize)
+;;;     (sqlite3_finalize		sqlite-finalize)
      (sqlite3_reset			sqlite-reset)
      (sqlite3_db_handle			sqlite-db-handle)
      (sqlite3_next_stmt			sqlite-next-stmt)
@@ -96,7 +96,7 @@
 
      (sqlite3_column_decltype		sqlite-column-decltype)
      (sqlite3_column_decltype16		sqlite-column-decltype16)
-     (sqlite3_step			sqlite-step)
+;;;     (sqlite3_step			sqlite-step)
      (sqlite3_data_count		sqlite-data-count)
 
      (sqlite3_column_blob		sqlite-column-blob)
@@ -243,6 +243,7 @@
 
     sqlite-open				sqlite-open-v2
     sqlite-exec				sqlite-get-table
+    sqlite-prepare-v2
 
     )
   (import (rnrs)
@@ -421,6 +422,49 @@
 	  ;;"sqlite3_malloc(), so we have to release it.
 	  (sqlite3_free errmsg*)
 	  (raise-sqlite-querying-error 'sqlite-exec errmsg session query))))))
+
+
+(define (sqlite-prepare-v2 session query)
+  (with-compensations
+    (let* ((statement**	(malloc-small/c))
+	   (next**	(malloc-small/c))
+	   (sql*	(string->cstring/c query))
+	   (end*	(pointer-add sql* (strlen sql*)))
+	   (statements	'()))
+      (pointer-set-c-pointer! next** 0 pointer-null)
+      (let loop ()
+	(let* ((code	(sqlite3_prepare_v2 session sql -1 statement** next**))
+	       (next*	(pointer-ref-c-pointer next** 0)))
+	  (if (= code SQLITE_OK)
+	      (let ((statement* (pointer-ref-c-pointer statement** 0)))
+		(unless (pointer-null? statement*)
+		  (set-cons! statements statement*))
+		(if (pointer= next* end*)
+		    statements
+		  (begin
+		    (set! sql* next*)
+		    (loop))))
+	    ;;According  to  SQLite  documentation, memory  returned  by
+	    ;;"sqlite_errmsg()" is managed internally, we do not need to
+	    ;;release it.
+	    (let ((errmsg (cstring->string (sqlite3_errmsg session))))
+	      (for-each sqlite3_finalize statements)
+	      (raise-sqlite-preparing-error 'sqlite-prepare-v2 errmsg session
+					    (cstring->string sql* (pointer-diff next* sql*))))))))))
+
+(define (sqlite-finalize session statement)
+  (let ((code (sqlite3_finalize statement)))
+    (if (= code SQLITE_OK)
+	code
+      (let ((errmsg (cstring->string (sqlite3_errmsg session))))
+	(raise-sqlite-finalizing-error 'sqlite-finalize errmsg session statement)))))
+
+(define (sqlite-step session statement)
+  (let ((code (sqlite3_step statement)))
+    (if (= code SQLITE_OK)
+	code
+      (let ((errmsg (cstring->string (sqlite3_errmsg session))))
+	(raise-sqlite-stepping-error 'sqlite-step errmsg session statement)))))
 
 
 ;;;; done

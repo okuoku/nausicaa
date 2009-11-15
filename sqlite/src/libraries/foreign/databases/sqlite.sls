@@ -588,6 +588,11 @@
     sqlite-query-condition?
     sqlite-query-condition
 
+    &sqlite-statement
+    make-sqlite-statement-condition
+    sqlite-statement-condition?
+    sqlite-statement-condition
+
 ;;; --------------------------------------------------------------------
 
     &sqlite-error
@@ -603,6 +608,21 @@
     make-sqlite-querying-error-condition
     sqlite-querying-error-condition?
     raise-sqlite-querying-error
+
+    &sqlite-finalizing-error
+    make-sqlite-finalizing-error-condition
+    sqlite-finalizing-error-condition?
+    raise-sqlite-finalizing-error
+
+    &sqlite-stepping-error
+    make-sqlite-stepping-error-condition
+    sqlite-stepping-error-condition?
+    raise-sqlite-stepping-error
+
+    (rename (&sqlite-finalizing-error			&sqlite-finalising-error)
+	    (make-sqlite-finalizing-error-condition	make-sqlite-finalising-error-condition)
+	    (sqlite-finalizing-error-condition?		sqlite-finalising-error-condition?)
+	    (raise-sqlite-finalizing-error		raise-sqlite-finalising-error))
 
 
     )
