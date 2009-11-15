@@ -298,11 +298,6 @@ Ses ailes de geant l'empechent de marcher.")
 (parametrise ((check-test-name	'tree-walk)
 	      (debugging	#t))
 
-  (define-syntax set-cons!
-    (syntax-rules ()
-      ((_ ?name ?form)
-       (set! ?name (cons ?form ?name)))))
-
   (with-deferred-exceptions-handler
       (lambda (E)
 	(debug-print-condition "deferred condition in tree walking" E))

@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-posix],[0.1a1],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-posix],[0.1a2],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/posix/fd.sls])
 dnl AC_CANONICAL_TARGET
 dnl AC_USE_SYSTEM_EXTENSIONS
