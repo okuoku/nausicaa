@@ -25,7 +25,8 @@
 ;;;
 
 
-(import (nausicaa)
+(import (except (nausicaa) *)
+  (only (rnrs) *)
   (checks)
   (matches)
   (rnrs eval))
@@ -110,8 +111,8 @@
 
   (check
       (match '(1 2)
-	((* *)
-	 'ok))
+  	((* *)
+  	 'ok))
     => 'ok)
 
   #t)
@@ -851,8 +852,8 @@
 
   (check
       (match '(1 2 3)
-	((* (get! two) *)
-	 (two)))
+  	((* (get! two) *)
+  	 (two)))
     => 2)
 
   (check	;getter car
