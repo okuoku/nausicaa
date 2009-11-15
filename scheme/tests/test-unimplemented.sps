@@ -25,7 +25,6 @@
 
 
 
-
 (import (nausicaa)
   (checks))
 
@@ -33,7 +32,6 @@
 (display "*** testing unimplemented condition\n")
 
 
-
 (parameterize ((debugging	#f))
 
   (check
@@ -55,7 +53,7 @@
 	(raise-unimplemented-error 'woppa))
     => '(#t #t woppa #t))
 
-  )
+  #t)
 
 
 ;;;; done
