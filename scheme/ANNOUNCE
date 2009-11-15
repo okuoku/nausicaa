@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Scheme 2009-11-13 tag 0.1a3
+Subject: [announce] Nausicaa/Scheme 2009-11-15 tag 0.1a4
 
 		      Nausicaa/Scheme
 		      ===============
@@ -38,6 +38,12 @@ development takes place at:
 the documentation is available on line:
 
      <http://marcomaggi.github.com/docs/nausicaa.html>
+
+
+Notes for 2009-11-15 tag 0.1a4
+------------------------------
+
+* Small miscellaneous fixes and improvements.
 
 
 Notes for 2009-11-13 tag 0.1a3
