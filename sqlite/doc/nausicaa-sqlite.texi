@@ -615,7 +615,7 @@ Compound library; reexports bindings from the following libraries:
 @end example
 
 @item foreign databases sqlite compensated
-Additionally bindings for constructors and destructors making use of the
+Additional wrappers for constructors and destructors making use of the
 @library{compensations} library; this library is built on top of
 @library{foreign databases sqlite}.  @nauref{compensations, Compensation
 stacks}

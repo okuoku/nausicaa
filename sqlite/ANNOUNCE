@@ -5,8 +5,8 @@ Subject: [announce] Nausicaa/SQLite 2009-11-15 tag 0.1b0
 		      ===============
 
 Nausicaa/SQLite  is  a distribution  of  libraries for  R6RS
-Scheme implementations; it  implements a bindings to SQLite,
-a SQL  database engine.   It is built  upon Nausicaa/Scheme,
+Scheme implementations; it implements a binding to SQLite, a
+SQL  database  engine.  It  is  built upon  Nausicaa/Scheme,
 making  use  of  its  foreign  functions  interface;  so  it
 currently supports only GNU+Linux systems.  The installation
 infrastructure requires a  GNU+Linux system (for details see
