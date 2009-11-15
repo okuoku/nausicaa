@@ -49,6 +49,7 @@
     (rename (internal-type->implementation-type internal-type->implementation-type/callout))
     implementation-data-types)
   (import (rnrs)
+    (conditions)
     (foreign ffi conditions)
     (prefix (only (ypsilon ffi)
 		  load-shared-object lookup-shared-object
@@ -208,7 +209,8 @@
 (define (%make-c-function maker lib-spec ret-type funcname arg-types)
   (maker ret-type
 	 (lookup-shared-object* lib-spec funcname)
-	 (%normalise-arg-types arg-types)))
+	 (%normalise-arg-types arg-types)
+	 funcname))
 
 (define (make-c-function lib-spec ret-type funcname arg-types)
   (%make-c-function pointer->c-function lib-spec ret-type funcname arg-types))
@@ -216,33 +218,51 @@
 (define (make-c-function/with-errno lib-spec ret-type funcname arg-types)
   (%make-c-function pointer->c-function/with-errno lib-spec ret-type funcname arg-types))
 
-(define (pointer->c-function ret-type address arg-types)
-  (let-values (((closure mappers) (%closure-and-mappers ret-type address arg-types)))
-    (if (eq? ret-type 'void*)
+(define pointer->c-function
+  (case-lambda
+   ((ret-type address arg-types)
+    (pointer->c-function ret-type address arg-types #f))
+   ((ret-type address arg-types funcname)
+    (let-values (((closure mappers) (%closure-and-mappers ret-type address arg-types)))
+      (if (eq? ret-type 'void*)
+	  (lambda args
+	    (integer->pointer (apply closure (map (lambda (m a) (m a))
+					       mappers args))))
 	(lambda args
-	  (integer->pointer (apply closure (map (lambda (m a) (m a))
-					     mappers args))))
-      (lambda args
-	(apply closure (map (lambda (m a) (m a))
-			 mappers args))))))
+	  (let ((expected	(length mappers))
+		(given	(length args)))
+	    (if (= expected given)
+		(apply closure (map (lambda (m a) (m a)) mappers args))
+	      (raise-wrong-num-args funcname
+				    (string-append "called foreign function trampoline with wrong number of arguments, expected " (number->string expected) " given " (number->string given))
+				    funcname expected given)))))))))
 
-(define (pointer->c-function/with-errno ret-type address arg-types)
-  (let-values (((closure mappers) (%closure-and-mappers ret-type address arg-types)))
-    (if (eq? ret-type 'void*)
+(define pointer->c-function/with-errno
+  (case-lambda
+   ((ret-type address arg-types)
+    (pointer->c-function/with-errno ret-type address arg-types #f))
+   ((ret-type address arg-types funcname)
+    (let-values (((closure mappers) (%closure-and-mappers ret-type address arg-types)))
+      (if (eq? ret-type 'void*)
+	  (lambda args
+	    (let* ((retval (begin
+			     (ypsilon:shared-object-errno 0)
+			     (integer->pointer (apply closure (map (lambda (m a) (m a))
+								mappers args)))))
+		   (errval (ypsilon:shared-object-errno)))
+	      (values retval errval)))
 	(lambda args
-	  (let* ((retval (begin
-			   (ypsilon:shared-object-errno 0)
-			   (integer->pointer (apply closure (map (lambda (m a) (m a))
-							      mappers args)))))
-		 (errval (ypsilon:shared-object-errno)))
-	    (values retval errval)))
-      (lambda args
-	(let* ((retval (begin
-			 (ypsilon:shared-object-errno 0)
-			 (apply closure (map (lambda (m a) (m a))
-					  mappers args))))
-	       (errval (ypsilon:shared-object-errno)))
-	  (values retval errval))))))
+	  (let ((expected (length mappers))
+		(given    (length args)))
+	    (if (= expected given)
+		(let* ((retval   (begin
+				   (ypsilon:shared-object-errno 0)
+				   (apply closure (map (lambda (m a) (m a)) mappers args))))
+		       (errval (ypsilon:shared-object-errno)))
+		  (values retval errval))
+	      (raise-wrong-num-args funcname
+				    (string-append "called foreign function trampoline with wrong number of arguments, expected " (number->string expected) " given " (number->string given))
+				    funcname expected given)))))))))
 
 
 ;;;; callback functions
