@@ -527,12 +527,16 @@ Condition objects holding values
 * conditions data database::    Database specification objects.
 * conditions data session::     Database session objects.
 * conditions data query::       Database query objects.
+* conditions data statement::   Database statement objects.
 
 Condition objects signaling errors
 
 * conditions error base::       Base condition type for errors.
 * conditions error opening::    Database opening errors.
 * conditions error querying::   Database querying errors.
+* conditions error preparing::  Errors preparing @sql{} statements.
+* conditions error stepping::   Errors executing @sql{} statements.
+* conditions error finalising:: Errors finalising @sql{} statements.
 
 Enumeration definitions
 
@@ -544,6 +548,9 @@ Functions marshaling arguments
 * marshaling exec::             Executing @sql{} statements with
                                 a Scheme callback.
 * marshaling table::            Retrieving a table.
+* marshaling step::             Preparing and executing @sql{}
+                                statements.
+* marshaling column::           Statement column accessors.
 * marshaling mutex::            Locking access to a database.
 
 Compensated constructors
@@ -765,6 +772,7 @@ condition objects.
 * conditions error preparing::  Errors preparing @sql{} statements.
 * conditions error stepping::   Errors executing @sql{} statements.
 * conditions error finalising:: Errors finalising @sql{} statements.
+* conditions error resetting::  Errors resetting @sql{} statements.
 @end menu
 
 @c page
@@ -774,12 +782,17 @@ condition objects.
 
 @deftp {Condition Type} &sqlite-error
 Base type for condition objects representing errors in @value{PACKAGE}
-exceptions; it is derived from @condition{error}.  It has no fields.
-Objects of this type are not meant to be used directly.
+exceptions; it is derived from @condition{error}.  Objects of this type
+are not meant to be used directly.  It has no fields:
+
+@table @code
+@item code
+The error code returned by the SQLite foreign function.
+@end table
 @end deftp
 
 
-@defun make-sqlite-error-condition
+@defun make-sqlite-error-condition @var{code}
 @defunx sqlite-error-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{sqlite-error}.
@@ -797,14 +810,14 @@ SQLite database opening errors; it is derived from
 @end deftp
 
 
-@defun make-sqlite-opening-error-condition
+@defun make-sqlite-opening-error-condition @var{code}
 @defunx sqlite-opening-error-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{sqlite-opening-error}.
 @end defun
 
 
-@deffn Syntax raise-sqlite-opening-error @ameta{who} @ameta{message} @ameta{database}
+@deffn Syntax raise-sqlite-opening-error @ameta{who} @ameta{message} @ameta{code} @ameta{database}
 Raise a continuable exception signaling an SQLite database opening
 error.  If the continuation is exercised, it must return a valid pointer
 to a SQLite database connection object.
@@ -814,9 +827,9 @@ It is defined as:
 @example
 (define-syntax raise-sqlite-opening-error
   (syntax-rules ()
-    ((_ ?who ?message ?database)
+    ((_ ?who ?message ?code ?database)
      (raise-continuable
-      (condition (make-sqlite-opening-error-condition)
+      (condition (make-sqlite-opening-error-condition ?code)
                  (make-sqlite-database-condition ?database)
                  (make-who-condition ?who)
                  (make-message-condition ?message))))))
@@ -835,14 +848,14 @@ SQLite database querying errors; it is derived from
 @end deftp
 
 
-@defun make-sqlite-querying-error-condition
+@defun make-sqlite-querying-error-condition @var{code}
 @defunx sqlite-querying-error-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{sqlite-querying-error}.
 @end defun
 
 
-@deffn Syntax raise-sqlite-querying-error @ameta{who} @ameta{message} @ameta{session} @ameta{query}
+@deffn Syntax raise-sqlite-querying-error @ameta{who} @ameta{message} @ameta{code} @ameta{session} @ameta{query}
 Raise a continuable exception signaling an SQLite database querying
 error.  If the continuation is exercised, it must return an integer
 compatible with the return values of @func{sqlite-exec}.
@@ -852,9 +865,9 @@ It is defined as:
 @example
 (define-syntax raise-sqlite-querying-error
   (syntax-rules ()
-    ((_ ?who ?message ?session ?query)
+    ((_ ?who ?message ?code ?session ?query)
      (raise-continuable
-      (condition (make-sqlite-querying-error-condition)
+      (condition (make-sqlite-querying-error-condition ?code)
                  (make-sqlite-session-condition ?session)
                  (make-sqlite-query-condition ?query)
                  (make-who-condition ?who)
@@ -874,14 +887,14 @@ errors preparing @sql{} statements; it is derived from
 @end deftp
 
 
-@defun make-sqlite-preparing-error-condition
+@defun make-sqlite-preparing-error-condition @var{code}
 @defunx sqlite-preparing-error-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{sqlite-preparing-error}.
 @end defun
 
 
-@deffn Syntax raise-sqlite-preparing-error @ameta{who} @ameta{message} @ameta{session} @ameta{query}
+@deffn Syntax raise-sqlite-preparing-error @ameta{who} @ameta{message} @ameta{code} @ameta{session} @ameta{query}
 Raise a non--continuable exception signaling an error preparing an
 @sql{} statement for SQLite.
 
@@ -890,9 +903,9 @@ It is defined as:
 @example
 (define-syntax raise-sqlite-preparing-error
   (syntax-rules ()
-    ((_ ?who ?message ?session ?query)
+    ((_ ?who ?message ?code ?session ?query)
      (raise
-      (condition (make-sqlite-preparing-error-condition)
+      (condition (make-sqlite-preparing-error-condition ?code)
                  (make-sqlite-session-condition ?session)
                  (make-sqlite-query-condition ?query)
                  (make-who-condition ?who)
@@ -912,14 +925,14 @@ derived from @condition{sqlite-error}.  It has no fields.
 @end deftp
 
 
-@defun make-sqlite-stepping-error-condition
+@defun make-sqlite-stepping-error-condition @var{code}
 @defunx sqlite-stepping-error-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{sqlite-stepping-error}.
 @end defun
 
 
-@deffn Syntax raise-sqlite-stepping-error @ameta{who} @ameta{message} @ameta{session} @ameta{statement}
+@deffn Syntax raise-sqlite-stepping-error @ameta{who} @ameta{message} @ameta{code} @ameta{session} @ameta{statement}
 Raise a non--continuable exception signaling an error stepping through
 the execution of an @sql{} statement for SQLite.
 
@@ -928,9 +941,9 @@ It is defined as:
 @example
 (define-syntax raise-sqlite-stepping-error
   (syntax-rules ()
-    ((_ ?who ?message ?session ?statement)
+    ((_ ?who ?message ?code ?session ?statement)
      (raise
-      (condition (make-sqlite-stepping-error-condition)
+      (condition (make-sqlite-stepping-error-condition ?code)
                  (make-sqlite-session-condition ?session)
                  (make-sqlite-statement-condition ?statement)
                  (make-who-condition ?who)
@@ -951,8 +964,8 @@ errors finalising @sql{} statements; it is derived from
 @end deftp
 
 
-@defun make-sqlite-finalising-error-condition
-@defunx make-sqlite-finalizing-error-condition
+@defun make-sqlite-finalising-error-condition @var{code}
+@defunx make-sqlite-finalizing-error-condition @var{code}
 @defunx sqlite-finalising-error-condition? @var{obj}
 @defunx sqlite-finalizing-error-condition? @var{obj}
 Constructor and predicate for condition objects of type
@@ -960,8 +973,8 @@ Constructor and predicate for condition objects of type
 @end defun
 
 
-@deffn Syntax raise-sqlite-finalising-error @ameta{who} @ameta{message} @ameta{session} @ameta{statement}
-@deffnx Syntax raise-sqlite-finalizing-error @ameta{who} @ameta{message} @ameta{session} @ameta{statement}
+@deffn Syntax raise-sqlite-finalising-error @ameta{who} @ameta{message} @ameta{code} @ameta{session} @ameta{statement}
+@deffnx Syntax raise-sqlite-finalizing-error @ameta{who} @ameta{message} @ameta{code} @ameta{session} @ameta{statement}
 Raise a non--continuable exception signaling an error finalising an
 @sql{} statement for SQLite.
 
@@ -970,9 +983,47 @@ It is defined as:
 @example
 (define-syntax raise-sqlite-finalising-error
   (syntax-rules ()
-    ((_ ?who ?message ?session ?statement)
+    ((_ ?who ?message ?code ?session ?statement)
      (raise
-      (condition (make-sqlite-finalising-error-condition)
+      (condition (make-sqlite-finalising-error-condition ?code)
+                 (make-sqlite-session-condition ?session)
+                 (make-sqlite-statement-condition ?statement)
+                 (make-who-condition ?who)
+                 (make-message-condition ?message))))))
+@end example
+@end deffn
+
+@c page
+@node conditions error resetting
+@subsection Errors resetting @sql{} statements
+
+
+@deftp {Condition Type} &sqlite-resetting-error
+Condition type used to tag compound condition objects representing
+errors resetting @sql{} statements; it is derived from
+@condition{sqlite-error}.  It has no fields.
+@end deftp
+
+
+@defun make-sqlite-resetting-error-condition @var{code}
+@defunx sqlite-resetting-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{sqlite-resetting-error}.
+@end defun
+
+
+@deffn Syntax raise-sqlite-resetting-error @ameta{who} @ameta{message} @ameta{code} @ameta{session} @ameta{statement}
+Raise a non--continuable exception signaling an error resetting an
+@sql{} statement for SQLite.
+
+It is defined as:
+
+@example
+(define-syntax raise-sqlite-resetting-error
+  (syntax-rules ()
+    ((_ ?who ?message ?code ?session ?statement)
+     (raise
+      (condition (make-sqlite-resetting-error-condition ?code)
                  (make-sqlite-session-condition ?session)
                  (make-sqlite-statement-condition ?statement)
                  (make-who-condition ?who)
@@ -1051,6 +1102,7 @@ condition objects.
 * marshaling table::            Retrieving a table.
 * marshaling step::             Preparing and executing @sql{}
                                 statements.
+* marshaling column::           Statement column accessors.
 * marshaling mutex::            Locking access to a database.
 @end menu
 
@@ -1147,7 +1199,7 @@ exception, the raised object is catched and correctly rethrown by
    insert into accounts (nickname, password)
      values ('rukia', '12345');
    insert into accounts (nickname, password)
-     values ('chado', 'fist');")
+     values ('chad', 'fist');")
 
 (sqlite-exec session "select * from accounts;"
    (lambda (column-names column-values)
@@ -1162,7 +1214,7 @@ exception, the raised object is catched and correctly rethrown by
 @print{} ("2" "rukia" "12345")
 @print{}
 @print{} ("id" "nickname" "password")
-@print{} ("3" "chado" "fist")
+@print{} ("3" "chad" "fist")
 @end example
 @end defun
 
@@ -1192,20 +1244,25 @@ each column name, the subsequent lists holding the row values.
    insert into accounts (nickname, password)
      values ('rukia', '12345');
    insert into accounts (nickname, password)
-     values ('chado', 'fist');")
+     values ('chad', 'fist');")
 
 (sqlite-get-table session
    "select * from accounts;")
 @result{} (("id" "nickname" "password")
     ("1" "ichigo" "abcde")
     ("2" "rukia" "12345")
-    ("3" "chado" "fist"))
+    ("3" "chad" "fist"))
 @end example
 @end defun
 
 @c page
 @node marshaling step
 @section Preparing and executing @sql{} statements
+
+
+The function @func{sqlite2_prepare} is not wrapped by a marshaling
+function because, according to the documentation of SQLite version
+3.6.19, its usage is deprecated.
 
 
 @defun sqlite-prepare-v2 @var{session} @var{query}
@@ -1219,6 +1276,34 @@ prepared separately; if an error occurs preparing a statement, an
 exception is raised with condition type
 @condition{sqlite-preparing-error}.  All the statements from @var{query}
 previously prepared are silently finalised.
+
+Notice that preparing a statement may fail if a prerequisite statement
+has not been executed yet; for example, an @samp{insert} statement will
+fail if it is prepared before the involved table has been created.
+@end defun
+
+
+@defun sqlite-step @var{session} @var{statement}
+Execute a step of the SQLite statement whose structure is referenced by
+the pointer @var{statement}; @var{session} must be a pointer to the
+database and it is used to retrieve error messages.
+
+The return value is the return value of the foreign function; the codes
+representing successful evaluation are:
+
+@table @samp
+@item SQLITE_ROW
+Means that the a step of execution was correctly performed, but more
+steps are needed; data is available to be extracted with the column
+accessors.
+
+@item SQLITE_DONE
+Means that the last step of execution was correctly performed and the
+statement execution is completed.
+@end table
+
+If an error occurs, an exception is raised with condition type
+@condition{sqlite-stepping-error}.
 @end defun
 
 
@@ -1231,13 +1316,99 @@ raised with condition type @condition{sqlite-finalising-error}.
 @end defun
 
 
-@defun sqlite-step @var{session} @var{statement}
-Execute a step of the SQLite statement whose structure is referenced by
-the pointer @var{statement}; @var{session} must be a pointer to the
-database and it is used to retrieve error messages.
+@defun sqlite-reset @var{session} @var{statement}
+Reset the SQLite statement structure referenced by the pointer
+@var{statement} to its initial state @strong{after} preparation, so that
+the statement is ready to be reexecuted; @var{session} must be a pointer
+to the database and it is used to retrieve error messages.  If an error
+occurs, an exception is raised with condition type
+@condition{sqlite-resetting-error}.
+@end defun
 
-If an error occurs, an exception is raised with condition type
-@condition{sqlite-querying-error}.
+
+Usage example:
+
+@smallexample
+(let* ((sql  "create table accounts
+                (id       INTEGER PRIMARY KEY,
+                 nickname TEXT,
+                 password TEXT);")
+       (stmt (car (sqlite-prepare-v2 session sql))))
+  (let loop ()
+    (let ((code (sqlite-step session statement)))
+      (if (= code SQLITE_DONE)
+          (loop)
+        (sqlite-finalise session statement)))))
+
+(let ((sql   "insert into accounts (nickname, password)
+                values ('ichigo', 'abcde');
+              insert into accounts (nickname, password)
+                values ('rukia',  '12345');
+              insert into accounts (nickname, password)
+                values ('chad',   'fist');")
+      (stmts (sqlite-prepare-v2 session sql)))
+  (for-each
+      (lambda (statement)
+        (let loop ()
+          (let ((code (sqlite-step session statement)))
+            (if (= code SQLITE_DONE)
+                (loop)
+              (sqlite-finalise session statement)))))
+    stmts))
+
+(let ((sql   "select * from accounts;")
+      (stmts (sqlite-prepare-v2 session sql))
+      (first #t))
+  (for-each
+      (lambda (statement)
+        (let loop ()
+          (let ((code (sqlite-step session statement)))
+            (cond ((= code SQLITE_ROW)
+                   (when first
+                     (set first #t)
+                     (write (list (sqlite-column-count statement)
+                                  (sqlite-column-name  statement 0)
+                                  (sqlite-column-name  statement 1)
+                                  (sqlite-column-name  statement 2)))
+                     (newline))
+                   (write (list (sqlite-column-int  statement 0)
+                                (sqlite-column-text statement 1)
+                                (sqlite-column-text statement 2)))
+                   (newline)
+                   (loop))
+                  ((= code SQLITE_DONE)
+                   (sqlite-finalise session statement))
+                  (else
+                   (loop))))))
+    stmts))
+@print{} (3 "id" "nickname" "password")
+@print{} (1 "ichigo" "abcde")
+@print{} (2 "rukia" "12345")
+@print{} (3 "chad" "fist")
+@end smallexample
+
+@c page
+@node marshaling column
+@section Statement column accessors
+
+
+The following functions can be applied to a statement pointer to
+retrieve the execution result of an @sql{} statement; the number of
+columns in the result is returned by @func{sqlite-column-count}.
+
+
+@defun sqlite-column-name @var{statement} @var{column-index}
+Wrapper for @cfunc{sqlite3_column_name} which extracts the string
+representing the column name, from the column at @var{column-index} in
+the statement structure referenced by the pointer @var{statement}.
+Return a Scheme string.
+@end defun
+
+
+@defun sqlite-column-text @var{statement} @var{column-index}
+Wrapper for @cfunc{sqlite3_column_text} which extracts the string from
+the column at @var{column-index} in the statement structure referenced
+by the pointer @var{statement}.  Return a Scheme string.
 @end defun
 
 @c page

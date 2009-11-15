@@ -53,6 +53,7 @@
     &sqlite-error
     make-sqlite-error-condition
     sqlite-error-condition?
+    condition-sqlite-error-code
 
     &sqlite-opening-error
     make-sqlite-opening-error-condition
@@ -73,6 +74,11 @@
     make-sqlite-finalizing-error-condition
     sqlite-finalizing-error-condition?
     raise-sqlite-finalizing-error
+
+    &sqlite-resetting-error
+    make-sqlite-resetting-error-condition
+    sqlite-resetting-error-condition?
+    raise-sqlite-resetting-error
 
     &sqlite-stepping-error
     make-sqlite-stepping-error-condition
@@ -115,7 +121,8 @@
 (define-condition-type &sqlite-error
   &error
   make-sqlite-error-condition
-  sqlite-error-condition?)
+  sqlite-error-condition?
+  (code		condition-sqlite-error-code))
 
 ;;; --------------------------------------------------------------------
 
@@ -126,9 +133,9 @@
 
 (define-syntax raise-sqlite-opening-error
   (syntax-rules ()
-    ((_ ?who ?message ?database)
+    ((_ ?who ?message ?code ?database)
      (raise-continuable
-      (condition (make-sqlite-opening-error-condition)
+      (condition (make-sqlite-opening-error-condition ?code)
 		 (make-sqlite-database-condition ?database)
 		 (make-who-condition ?who)
 		 (make-message-condition ?message))))))
@@ -142,9 +149,9 @@
 
 (define-syntax raise-sqlite-querying-error
   (syntax-rules ()
-    ((_ ?who ?message ?session ?query)
+    ((_ ?who ?message ?code ?session ?query)
      (raise-continuable
-      (condition (make-sqlite-querying-error-condition)
+      (condition (make-sqlite-querying-error-condition ?code)
 		 (make-sqlite-session-condition ?session)
 		 (make-sqlite-query-condition ?query)
 		 (make-who-condition ?who)
@@ -159,9 +166,9 @@
 
 (define-syntax raise-sqlite-preparing-error
   (syntax-rules ()
-    ((_ ?who ?message ?session ?query)
+    ((_ ?who ?message ?code ?session ?query)
      (raise
-      (condition (make-sqlite-preparing-error-condition)
+      (condition (make-sqlite-preparing-error-condition ?code)
 		 (make-sqlite-session-condition ?session)
 		 (make-sqlite-query-condition ?query)
 		 (make-who-condition ?who)
@@ -176,9 +183,26 @@
 
 (define-syntax raise-sqlite-finalizing-error
   (syntax-rules ()
-    ((_ ?who ?message ?session ?statement)
+    ((_ ?who ?message ?code ?session ?statement)
      (raise
-      (condition (make-sqlite-finalizing-error-condition)
+      (condition (make-sqlite-finalizing-error-condition ?code)
+		 (make-sqlite-session-condition ?session)
+		 (make-sqlite-statement-condition ?statement)
+		 (make-who-condition ?who)
+		 (make-message-condition ?message))))))
+
+;;; --------------------------------------------------------------------
+
+(define-condition-type &sqlite-resetting-error
+  &sqlite-error
+  make-sqlite-resetting-error-condition
+  sqlite-resetting-error-condition?)
+
+(define-syntax raise-sqlite-resetting-error
+  (syntax-rules ()
+    ((_ ?who ?message ?code ?session ?statement)
+     (raise
+      (condition (make-sqlite-resetting-error-condition ?code)
 		 (make-sqlite-session-condition ?session)
 		 (make-sqlite-statement-condition ?statement)
 		 (make-who-condition ?who)
@@ -193,9 +217,9 @@
 
 (define-syntax raise-sqlite-stepping-error
   (syntax-rules ()
-    ((_ ?who ?message ?session ?statement)
+    ((_ ?who ?message ?code ?session ?statement)
      (raise
-      (condition (make-sqlite-stepping-error-condition)
+      (condition (make-sqlite-stepping-error-condition ?code)
 		 (make-sqlite-session-condition ?session)
 		 (make-sqlite-statement-condition ?statement)
 		 (make-who-condition ?who)

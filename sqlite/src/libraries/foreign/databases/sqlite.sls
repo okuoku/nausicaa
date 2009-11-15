@@ -234,6 +234,10 @@
     sqlite-vfs-register
     sqlite-vfs-unregister
 
+;;; --------------------------------------------------------------------
+
+    (rename (sqlite-finalize		sqlite-finalise))
+
 
 ;;; data types inspection
 

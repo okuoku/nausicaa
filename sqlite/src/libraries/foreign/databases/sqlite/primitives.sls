@@ -74,7 +74,7 @@
      (sqlite3_prepare16_v2		sqlite-prepare16-v2)
      (sqlite3_sql			sqlite-sql)
 ;;;     (sqlite3_finalize		sqlite-finalize)
-     (sqlite3_reset			sqlite-reset)
+;;;     (sqlite3_reset			sqlite-reset)
      (sqlite3_db_handle			sqlite-db-handle)
      (sqlite3_next_stmt			sqlite-next-stmt)
      (sqlite3_table_column_metadata	sqlite-table-column-metadata)
@@ -84,7 +84,7 @@
      (sqlite3_bind_parameter_index	sqlite-bind-parameter-index)
      (sqlite3_clear_bindings		sqlite-clear-bindings)
      (sqlite3_column_count		sqlite-column-count)
-     (sqlite3_column_name		sqlite-column-name)
+;;;     (sqlite3_column_name		sqlite-column-name)
      (sqlite3_column_name16		sqlite-column-name16)
 
      (sqlite3_column_database_name	sqlite-column-database-name)
@@ -105,7 +105,7 @@
      (sqlite3_column_double		sqlite-column-double)
      (sqlite3_column_int		sqlite-column-int)
      (sqlite3_column_int64		sqlite-column-int64)
-     (sqlite3_column_text		sqlite-column-text)
+;;;     (sqlite3_column_text		sqlite-column-text)
      (sqlite3_column_text16		sqlite-column-text16)
      (sqlite3_column_type		sqlite-column-type)
      (sqlite3_column_value		sqlite-column-value)
@@ -243,9 +243,12 @@
 
     sqlite-open				sqlite-open-v2
     sqlite-exec				sqlite-get-table
-    sqlite-prepare-v2
+    sqlite-prepare-v2			sqlite-finalize
+    sqlite-step				sqlite-reset
 
-    )
+    sqlite-column-name			sqlite-column-text
+
+    (rename (sqlite-finalize		sqlite-finalise)))
   (import (rnrs)
     (compensations)
     (set-cons)
@@ -263,8 +266,6 @@
 (define char**		'pointer)
 
 
-;;;; database locking
-
 (define-syntax with-sqlite-locking
   (syntax-rules ()
     ((_ ?session ?form0 ?form ...)
@@ -278,21 +279,19 @@
 	     (sqlite3_mutex_leave mux)))))))
 
 
-;;;; opening a session, creating a database
-
 (define (sqlite-open database)
   (with-compensations
     (let* ((session*	(malloc-small/c))
-	   (result	(sqlite3_open (string->cstring/c database) session*))
+	   (code	(sqlite3_open (string->cstring/c database) session*))
 	   (session	(pointer-ref-c-pointer session* 0)))
       (cond ((pointer-null? session)
 	     (raise-continuable
-	      (condition (make-sqlite-opening-error-condition)
+	      (condition (make-sqlite-opening-error-condition code)
 			 (make-out-of-memory-condition #f)
 			 (make-sqlite-database-condition database)
 			 (make-who-condition 'sqlite-open)
 			 (make-message-condition "not enough memory to open SQLite database"))))
-	    ((= 0 result)
+	    ((= 0 code)
 	     session)
 	    (else
 	     ;;According  to SQLite  documentation,  memory returned  by
@@ -302,7 +301,7 @@
 	       ;;Yes,   we   have  to   close   the   session  even   if
 	       ;;opening/creating the database failed.
 	       (sqlite3_close session)
-	       (raise-sqlite-opening-error 'sqlite-open errmsg database)))))))
+	       (raise-sqlite-opening-error 'sqlite-open errmsg code database)))))))
 
 (define sqlite-open-v2
   (case-lambda
@@ -311,7 +310,7 @@
    ((database flags name-of-vfs-module)
     (with-compensations
       (let* ((session*	(malloc-small/c))
-	     (result	(sqlite3_open_v2 (string->cstring/c database)
+	     (code	(sqlite3_open_v2 (string->cstring/c database)
 					 session*
 					 (%sqlite-open-enum->flags flags)
 					 (if name-of-vfs-module
@@ -320,12 +319,12 @@
 	     (session	(pointer-ref-c-pointer session* 0)))
 	(cond ((pointer-null? session)
 	     (raise-continuable
-	      (condition (make-sqlite-opening-error-condition)
+	      (condition (make-sqlite-opening-error-condition code)
 			 (make-out-of-memory-condition #f)
 			 (make-sqlite-database-condition database)
 			 (make-who-condition 'sqlite-open-v2)
 			 (make-message-condition "not enough memory to open SQLite database"))))
-	      ((= 0 result)
+	      ((= 0 code)
 	       session)
 	      (else
 	       ;;According  to SQLite  documentation,  memory returned  by
@@ -335,7 +334,7 @@
 		 ;;Yes,   we   have  to   close   the   session  even   if
 		 ;;opening/creating the database failed.
 		 (sqlite3_close session)
-		 (raise-sqlite-opening-error 'sqlite-open-v2 errmsg database)))))))))
+		 (raise-sqlite-opening-error 'sqlite-open-v2 errmsg code database)))))))))
 
 
 (define sqlite-exec
@@ -373,12 +372,12 @@
 	    pointer-null))
 
 	(let* ((errmsg**	(malloc-small/c))
-	       (result		(sqlite3_exec session (string->cstring/c query)
+	       (code		(sqlite3_exec session (string->cstring/c query)
 					      callback pointer-null errmsg**)))
 	  (cond (condition-object
 		 (raise condition-object))
-		((= result SQLITE_OK)
-		 result)
+		((= code SQLITE_OK)
+		 code)
 		(else
 		 (let* ((errmsg* (pointer-ref-c-pointer errmsg** 0))
 			(errmsg  (cstring->string       errmsg*)))
@@ -386,7 +385,7 @@
 		   ;;error message of "sqlite3_exec()" is allocated with
 		   ;;"sqlite3_malloc(), so we have to release it.
 		   (sqlite3_free errmsg*)
-		   (raise-sqlite-querying-error 'sqlite-exec errmsg session query))))))))))
+		   (raise-sqlite-querying-error 'sqlite-exec errmsg code session query))))))))))
 
 
 (define (sqlite-get-table session query)
@@ -395,9 +394,9 @@
 	   (rownum*	(malloc-small/c))
 	   (colnum*	(malloc-small/c))
 	   (errmsg**	(malloc-small/c))
-	   (result	(sqlite3_get_table session (string->cstring/c query)
+	   (code	(sqlite3_get_table session (string->cstring/c query)
 					   table** rownum* colnum* errmsg**)))
-      (if (= result SQLITE_OK)
+      (if (= code SQLITE_OK)
 	  (let ((table*	(pointer-ref-c-pointer table** 0))
 		;;The reported rownum does NOT include the row of column
 		;;names, so we add one here.
@@ -421,7 +420,7 @@
 	  ;;message    of   "sqlite3_exec()"   is    allocated   with
 	  ;;"sqlite3_malloc(), so we have to release it.
 	  (sqlite3_free errmsg*)
-	  (raise-sqlite-querying-error 'sqlite-exec errmsg session query))))))
+	  (raise-sqlite-querying-error 'sqlite-exec errmsg code session query))))))
 
 
 (define (sqlite-prepare-v2 session query)
@@ -433,14 +432,14 @@
 	   (statements	'()))
       (pointer-set-c-pointer! next** 0 pointer-null)
       (let loop ()
-	(let* ((code	(sqlite3_prepare_v2 session sql -1 statement** next**))
+	(let* ((code	(sqlite3_prepare_v2 session sql* -1 statement** next**))
 	       (next*	(pointer-ref-c-pointer next** 0)))
 	  (if (= code SQLITE_OK)
 	      (let ((statement* (pointer-ref-c-pointer statement** 0)))
 		(unless (pointer-null? statement*)
 		  (set-cons! statements statement*))
-		(if (pointer= next* end*)
-		    statements
+		(if (pointer=? next* end*)
+		    (reverse statements)
 		  (begin
 		    (set! sql* next*)
 		    (loop))))
@@ -449,22 +448,37 @@
 	    ;;release it.
 	    (let ((errmsg (cstring->string (sqlite3_errmsg session))))
 	      (for-each sqlite3_finalize statements)
-	      (raise-sqlite-preparing-error 'sqlite-prepare-v2 errmsg session
+	      (raise-sqlite-preparing-error 'sqlite-prepare-v2 errmsg code session
 					    (cstring->string sql* (pointer-diff next* sql*))))))))))
+
+(define (sqlite-step session statement)
+  (let ((code (sqlite3_step statement)))
+    (if (or (= code SQLITE_ROW)
+	    (= code SQLITE_DONE))
+	code
+      (let ((errmsg (cstring->string (sqlite3_errmsg session))))
+	(raise-sqlite-stepping-error 'sqlite-step errmsg code session statement)))))
 
 (define (sqlite-finalize session statement)
   (let ((code (sqlite3_finalize statement)))
     (if (= code SQLITE_OK)
 	code
       (let ((errmsg (cstring->string (sqlite3_errmsg session))))
-	(raise-sqlite-finalizing-error 'sqlite-finalize errmsg session statement)))))
+	(raise-sqlite-finalizing-error 'sqlite-finalize errmsg code session statement)))))
 
-(define (sqlite-step session statement)
-  (let ((code (sqlite3_step statement)))
+(define (sqlite-reset session statement)
+  (let ((code (sqlite3_reset statement)))
     (if (= code SQLITE_OK)
 	code
       (let ((errmsg (cstring->string (sqlite3_errmsg session))))
-	(raise-sqlite-stepping-error 'sqlite-step errmsg session statement)))))
+	(raise-sqlite-finalizing-error 'sqlite-reset errmsg code session statement)))))
+
+
+(define (sqlite-column-name statement column-index)
+  (cstring->string (sqlite3_column_name statement column-index)))
+
+(define (sqlite-column-text statement column-index)
+  (cstring->string (sqlite3_column_text statement column-index)))
 
 
 ;;;; done

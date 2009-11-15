@@ -124,7 +124,7 @@
                               insert into accounts (nickname, password)
 				  values ('rukia', '12345');
 			      insert into accounts (nickname, password)
-				  values ('chado', 'fist');")
+				  values ('chad', 'fist');")
 	(let ((code (sqlite-exec session "select * from accounts;" cback)))
 	  (sqlite-close session)
 	  (list code (reverse result))))
@@ -134,7 +134,7 @@
 	  (("id" "nickname" "password")
 	   ("2" "rukia" "12345"))
 	  (("id" "nickname" "password")
-	   ("3" "chado" "fist")))))
+	   ("3" "chad" "fist")))))
 
   (check
       (let ((session (sqlite-open ":memory:")))
@@ -177,14 +177,78 @@
                               insert into accounts (nickname, password)
 				  values ('rukia', '12345');
 			      insert into accounts (nickname, password)
-				  values ('chado', 'fist');")
+				  values ('chad', 'fist');")
 	(let ((table (sqlite-get-table session "select * from accounts;")))
 	  (sqlite-close session)
 	  table))
     => '(("id" "nickname" "password")
 	 ("1" "ichigo" "abcde")
 	 ("2" "rukia" "12345")
-	 ("3" "chado" "fist")))
+	 ("3" "chad" "fist")))
+
+  #t)
+
+
+(parametrise ((check-test-name	'step))
+
+  (define sql-create
+    "create table accounts (id INTEGER PRIMARY KEY, nickname TEXT, password TEXT);")
+
+  (define sql-insert
+    "insert into accounts (nickname, password) values ('ichigo', 'abcde');
+     insert into accounts (nickname, password) values ('rukia', '12345');
+     insert into accounts (nickname, password) values ('chad', 'fist');")
+
+  (define sql-query
+    "select * from accounts;")
+
+  (check
+      (guard (E (else E))
+	(let* ((session	(sqlite-open ":memory:"))
+	       (result	'()))
+
+	  (let ((ell1 (sqlite-prepare-v2 session sql-create)))
+	    (for-each (lambda (statement)
+			(let loop ((code (sqlite-step session statement)))
+			  (unless (= code SQLITE_DONE)
+			    (loop (sqlite-step session statement))))
+			(sqlite-finalise session statement))
+	      ell1))
+
+	  (let ((ell2 (sqlite-prepare-v2 session sql-insert)))
+	    (for-each (lambda (statement)
+			(let loop ((code (sqlite-step session statement)))
+			  (unless (= code SQLITE_DONE)
+			    (loop (sqlite-step session statement))))
+	  		(sqlite-finalise session statement))
+	      ell2))
+
+	  (let ((ell3 (sqlite-prepare-v2 session sql-query)))
+	    (for-each
+		(lambda (statement)
+		  (let loop ()
+		    (let ((code (sqlite-step session statement)))
+		      (cond ((= code SQLITE_ROW)
+			     (when (null? result)
+			       (set-cons! result (list (sqlite-column-count statement)
+						       (sqlite-column-name statement 0)
+						       (sqlite-column-name statement 1)
+						       (sqlite-column-name statement 2))))
+			     (set-cons! result (list (sqlite-column-int statement 0)
+						     (sqlite-column-text statement 1)
+						     (sqlite-column-text statement 2)))
+			     (loop))
+			    ((= code SQLITE_DONE)
+			     (sqlite-finalise session statement))
+			    (else
+			     (loop))))))
+	      ell3))
+
+	  (reverse result)))
+    => '((3 "id" "nickname" "password")
+	 (1 "ichigo" "abcde")
+	 (2 "rukia" "12345")
+	 (3 "chad" "fist")))
 
   #t)
 
