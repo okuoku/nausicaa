@@ -34,11 +34,6 @@
 (check-set-mode! 'report-failed)
 (display "*** testing getopts\n")
 
-(define-syntax set-cons!
-  (syntax-rules ()
-    ((_ ?name ?form)
-     (set! ?name (cons ?form ?name)))))
-
 
 (parametrise ((check-test-name	'non-options))
 
