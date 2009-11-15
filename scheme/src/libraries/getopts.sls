@@ -73,6 +73,7 @@
     raise-invalid-option
     )
   (import (rnrs)
+    (set-cons)
     (getopts record-types))
 
 
@@ -202,11 +203,6 @@
    ((command-line options argument-action config-options)
 
     (define actions '())
-
-    (define-syntax set-cons!
-      (syntax-rules ()
-	((_ ?name ?form)
-	 (set! ?name (cons ?form ?name)))))
 
     (define-syntax delayed?
       (identifier-syntax (enum-set-member? 'delayed config-options)))
