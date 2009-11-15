@@ -75,6 +75,7 @@
 
   (only (sexps))
   (only (sexps syntax))
+  (only (matches))
 
   (only (parser-tools source-location))
   (only (parser-tools lexical-token))
@@ -96,6 +97,8 @@
   (only (infix string-parser))
   (only (infix))
   (only (infix syntax))
+
+  (only (packrat))
 
   (only (email addresses common))
   (only (email addresses quoted-text-lexer))

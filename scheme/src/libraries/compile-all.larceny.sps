@@ -50,6 +50,9 @@
 (compile-library "begin0.sls"
 		 "begin0.slfasl")
 
+(compile-library "set-cons.sls"
+		 "set-cons.slfasl")
+
 (compile-library "receive.sls"
 		 "receive.slfasl")
 
@@ -225,6 +228,9 @@
 (compile-library "pregexp.sls"
 		 "pregexp.slfasl")
 
+(compile-library "matches.sls"
+		 "matches.slfasl")
+
 ;;; --------------------------------------------------------------------
 
 (compile-library "sexps.sls"
@@ -290,6 +296,11 @@
 
 (compile-library "infix/syntax.sls"
  		 "infix/syntax.slfasl")
+
+;;; --------------------------------------------------------------------
+
+(compile-library "packrat.sls"
+ 		 "packrat.slfasl")
 
 ;;; --------------------------------------------------------------------
 
