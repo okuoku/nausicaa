@@ -38,7 +38,7 @@ NAUSICAA_BEGIN
 DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
 DS_EXCLUDE_SECTION([AUTOCONF])
 DS_EXCLUDE_SECTION([PKGCONFIG])
-dnl NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
 NAUSICAA_C_LANGUAGE
 AC_CHECK_HEADERS([template.h],,[AC_MSG_FAILURE([cannot find Template header],[2])])
 AC_CHECK_LIB([template],[template_init],,[AC_MSG_FAILURE([cannot find Template library],[2])])
@@ -49,14 +49,18 @@ dnl --------------------------------------------------------------------
 dnl Helper functions.
 dnl --------------------------------------------------------------------
 
+m4_define([NAU_TEMPLATE_INCLUDES],[
+#include <template/template.h>
+])
+
 AC_DEFUN([NAU_TEMPLATE_INSPECT_TYPE],
-  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <template/template.h>])])
+  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[NAU_TEMPLATE_INCLUDES])])
 
 AC_DEFUN([NAU_TEMPLATE_INSPECT_STRUCT_TYPE],
-  [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[#f],[#include <template/template.h>])])
+  [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[#f],[NAU_TEMPLATE_INCLUDES])])
 
 AC_DEFUN([NAU_TEMPLATE_INSPECT_FIELD_TYPE],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[#include <template/template.h>])])
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[NAU_TEMPLATE_INCLUDES])])
 
 AC_DEFUN([NAU_TEMPLATE_ENUM_VALUE],
   [NAU_TEMPLATE_VALUEOF_TEST([$1],[$1])])
@@ -67,16 +71,16 @@ AC_DEFUN([NAU_TEMPLATE_DEFINE_VALUE],
 dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAU_TEMPLATE_SIZEOF_TEST],
-  [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <template/template.h>])])
+  [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_TEMPLATE_INCLUDES])])
 
 AC_DEFUN([NAU_TEMPLATE_VALUEOF_TEST],
-  [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[#include <template/template.h>])])
+  [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_TEMPLATE_INCLUDES])])
 
 AC_DEFUN([NAU_TEMPLATE_OFFSETOF_FIELD_TEST],
-  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <template/template.h>])])
+  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[NAU_TEMPLATE_INCLUDES])])
 
 AC_DEFUN([NAU_TEMPLATE_STRUCT_FIELD],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],,[#include <template/template.h>])])
+  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],,[NAU_TEMPLATE_INCLUDES])])
 
 dnl page
 dnl --------------------------------------------------------------------
