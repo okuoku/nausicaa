@@ -431,11 +431,7 @@ distribution of libraries for @rnrs{6} Scheme implementations; it
 provides bindings to the cURL library: A tool to transfer data from or
 to a server, using one of the supported protocols (@http{}, @https{},
 @ftp{}, @ftps{}, @tftp{}, @acronym{DICT}, @acronym{TELNET},
-@acronym{LDAP} or @acronym{FILE}.
-
-The @api{} of Libcurl makes heavy usage of callbacks, so unfortunatly
-Larceny Scheme is not supported.  The supported Scheme implementations
-are Ikarus, Mosh and Ypsilon.
+@acronym{LDAP} or @acronym{FILE}).
 
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}) and can be downloaded from:
@@ -534,33 +530,29 @@ Indexes
 implementations; it provides bindings to the Libcurl library: A tool to
 transfer data from or to a server, using one of the supported protocols
 (@http{}, @https{}, @ftp{}, @ftps{}, @tftp{}, @acronym{DICT},
-@acronym{TELNET}, @acronym{LDAP} or @acronym{FILE}.
-
-The @api{} of Libcurl makes heavy usage of callbacks, so unfortunatly
-Larceny Scheme is not supported.  The supported Scheme implementations
-are Ikarus, Mosh and Ypsilon.
+@acronym{TELNET}, @acronym{LDAP} or @acronym{FILE}).
 
 The installed libraries are:
 
 @table @library
 @item foreign net curl shared-object
-Exports the single bindings @code{curl-shared-object} which references
-Curl's shared library.
+Exports the single binding @code{curl-shared-object} which references
+@curl{}'s shared library.
 
 @item foreign net curl sizeof
 Exports bindings for constant values and data types inspection.
 
 @item foreign net curl platform
-Exports a binding for each function in Curl.  It implements a
+Exports a binding for each function in @curl{}.  It implements a
 one--to--one map between foreign functions and Scheme functions; the
 Scheme functions have the same name of the foreign ones, so
-@cfunc{curl_itemize} is available as @func{curl_itemize}.
+@cfunc{curl_global_init} is available as @func{curl_global_init}.
 
-This library makes the original Curl documentation relevant for this
+This library makes the original @curl{} documentation relevant for this
 Scheme package; the documentation should be at (@aurl{} last verified
 Mon Nov 16, 2009):
 
-@center @url{http://library.gnome.org/devel/curl/stable/}
+@center @url{http://curl.haxx.se/libcurl/c/}
 
 @item foreign net curl conditions
 Defines condition types used to signal @value{PACKAGE} errors.
@@ -572,7 +564,8 @@ Defines enumeration sets of symbols.
 Exports a binding for each foreign function, implementing, for some of
 them, marshaling of arguments and return values; the Scheme functions
 have the same name of the foreign ones, but with underscores turned into
-dashes; so @cfunc{curl_itemize} is available as @func{curl-itemize}.
+dashes; so @cfunc{curl_global_init} is available as
+@func{curl-global-init}.
 
 @item foreign net curl
 Compound library; reexports bindings from the following libraries:

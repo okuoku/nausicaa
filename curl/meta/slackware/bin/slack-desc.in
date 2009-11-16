@@ -1,12 +1,12 @@
               |-----handy-ruler-----------------------------------------------|
 @PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
 @PACKAGE_NAME@:
-@PACKAGE_NAME@: Bindings to cURL for R6RS Scheme implementations supported by
-@PACKAGE_NAME@: Nausicaa.
+@PACKAGE_NAME@: A distribution of Scheme libraries for R6RS Scheme
+@PACKAGE_NAME@: implementations; it provides bindings for the cURL C language
+@PACKAGE_NAME@: library.  It is  built  upon the  Nausicaa/Scheme package,
+@PACKAGE_NAME@: making use of its foreign-functions interface.
 @PACKAGE_NAME@:
-@PACKAGE_NAME@: It requires Nausicaa/Scheme.
-@PACKAGE_NAME@:
-@PACKAGE_NAME@:
-@PACKAGE_NAME@:
-@PACKAGE_NAME@:
+@PACKAGE_NAME@: cURL is a tool to transfer data from or to a server, using
+@PACKAGE_NAME@: one  of the  supported  protocols (HTTP,  HTTPS, FTP,  FTPS,
+@PACKAGE_NAME@: TFTP, DICT, TELNET, LDAP or FILE).
 @PACKAGE_NAME@:
