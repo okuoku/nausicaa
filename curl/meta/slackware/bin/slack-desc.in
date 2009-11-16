@@ -1,0 +1,12 @@
+              |-----handy-ruler-----------------------------------------------|
+@PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: Bindings to cURL for R6RS Scheme implementations supported by
+@PACKAGE_NAME@: Nausicaa.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: It requires Nausicaa/Scheme.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:

@@ -1,0 +1,241 @@
+;;;
+;;;Part of: Nausicaa/cURL
+;;;Contents: header files inspection for cURL
+;;;Date: Sat Oct 24, 2009
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+(library (foreign net curl sizeof)
+  (export
+
+;;; --------------------------------------------------------------------
+;;; data types aliases for function arguments
+
+    curl_progress_callback
+
+;;; --------------------------------------------------------------------
+;;; data types inspection
+
+    curl_off_t
+    sizeof-curl_off_t
+    strideof-curl_off_t
+    alignof-curl_off_t
+    pointer-ref-c-curl_off_t
+    pointer-set-c-curl_off_t-set!
+
+    curl_socket_t
+    sizeof-curl_socket_t
+    strideof-curl_socket_t
+    alignof-curl_socket_t
+    pointer-ref-c-curl_socket_t
+    pointer-set-c-curl_socket_t-set!
+
+;;; --------------------------------------------------------------------
+;;; data structures inspection
+
+    sizeof-curl_httppost_t
+    strideof-curl_httppost_t
+    alignof-curl_httppost_t
+
+;;; --------------------------------------------------------------------
+;;; constants
+
+    ;; version
+    LIBCURL_COPYRIGHT			LIBCURL_TIMESTAMP
+    LIBCURL_VERSION_MAJOR		LIBCURL_VERSION_MINOR
+    LIBCURL_VERSION_PATCH		LIBCURL_VERSION_NUM
+
+    ;; flag values for the "flags" field of structure "curl_httppost"
+    HTTPPOST_FILENAME
+    HTTPPOST_READFILE
+    HTTPPOST_PTRNAME
+    HTTPPOST_PTRCONTENTS
+    HTTPPOST_BUFFER
+    HTTPPOST_PTRBUFFER
+    HTTPPOST_CALLBACK
+
+    ;; miscellaneous constants
+    CURL_SOCKET_BAD
+
+;;; --------------------------------------------------------------------
+;;; data structures accessors and mutators
+
+
+
+    )
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof))
+
+
+;;;; data types inspection
+
+(define curl_progress_callback		'callback)
+
+;;; --------------------------------------------------------------------
+
+(define curl_off_t				(quote @TYPEOF_CURL_OFF@))
+(define sizeof-curl_off_t			@SIZEOF_CURL_OFF@)
+(define strideof-curl_off_t			@STRIDEOF_CURL_OFF@)
+(define alignof-curl_off_t			@ALIGNOF_CURL_OFF@)
+(define pointer-ref-c-curl_off_t		@SETTEROF_CURL_OFF@)
+(define pointer-set-c-curl_off_t-set!		@GETTEROF_CURL_OFF@)
+
+(define curl_socket_t				(quote @TYPEOF_CURL_SOCKET@))
+(define sizeof-curl_socket_t			@SIZEOF_CURL_SOCKET@)
+(define strideof-curl_socket_t			@STRIDEOF_CURL_SOCKET@)
+(define alignof-curl_socket_t			@ALIGNOF_CURL_SOCKET@)
+(define pointer-ref-c-curl_socket_t		@SETTEROF_CURL_SOCKET@)
+(define pointer-set-c-curl_socket_t-set!	@GETTEROF_CURL_SOCKET@)
+
+
+;;;; data structures inspection
+
+(define sizeof-curl_httppost_t		@SIZEOF_CURL_HTTPPOST@)
+(define strideof-curl_httppost_t	@STRIDEOF_CURL_HTTPPOST@)
+(define alignof-curl_httppost_t		@ALIGNOF_CURL_HTTPPOST@)
+
+
+
+
+;;;; constants
+
+;; version informations
+(define LIBCURL_COPYRIGHT		"@STRINGOF_LIBCURL_COPYRIGHT@")
+(define LIBCURL_TIMESTAMP		"@STRINGOF_LIBCURL_TIMESTAMP@")
+
+(define LIBCURL_VERSION_MAJOR		@VALUEOF_LIBCURL_VERSION_MAJOR@)
+(define LIBCURL_VERSION_MINOR		@VALUEOF_LIBCURL_VERSION_MINOR@)
+(define LIBCURL_VERSION_PATCH		@VALUEOF_LIBCURL_VERSION_PATCH@)
+(define LIBCURL_VERSION_NUM		@VALUEOF_LIBCURL_VERSION_NUM@)
+
+;; flag values for the "flags" field of structure "curl_httppost"
+(define HTTPPOST_FILENAME		@VALUEOF_HTTPPOST_FILENAME@)
+(define HTTPPOST_READFILE		@VALUEOF_HTTPPOST_READFILE@)
+(define HTTPPOST_PTRNAME		@VALUEOF_HTTPPOST_PTRNAME@)
+(define HTTPPOST_PTRCONTENTS		@VALUEOF_HTTPPOST_PTRCONTENTS@)
+(define HTTPPOST_BUFFER			@VALUEOF_HTTPPOST_BUFFER@)
+(define HTTPPOST_PTRBUFFER		@VALUEOF_HTTPPOST_PTRBUFFER@)
+(define HTTPPOST_CALLBACK		@VALUEOF_HTTPPOST_CALLBACK@)
+
+(define CURL_SOCKET_BAD			@VALUEOF_CURL_SOCKET_BAD@)
+
+
+;;;; data structures accessors and mutators
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-next-set!
+  curl_httppost_t-next-ref
+  @OFFSETOF_CURL_HTTPPOST_NEXT@
+  @SETTEROF_CURL_HTTPPOST_NEXT@
+  @GETTEROF_CURL_HTTPPOST_NEXT@)
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-name-set!
+  curl_httppost_t-name-ref
+  @OFFSETOF_CURL_HTTPPOST_NAME@
+  @SETTEROF_CURL_HTTPPOST_NAME@
+  @GETTEROF_CURL_HTTPPOST_NAME@)
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-namelength-set!
+  curl_httppost_t-namelength-ref
+  @OFFSETOF_CURL_HTTPPOST_NAMELENGTH@
+  @SETTEROF_CURL_HTTPPOST_NAMELENGTH@
+  @GETTEROF_CURL_HTTPPOST_NAMELENGTH@)
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-contents-set!
+  curl_httppost_t-contents-ref
+  @OFFSETOF_CURL_HTTPPOST_CONTENTS@
+  @SETTEROF_CURL_HTTPPOST_CONTENTS@
+  @GETTEROF_CURL_HTTPPOST_CONTENTS@)
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-contentslength-set!
+  curl_httppost_t-contentslength-ref
+  @OFFSETOF_CURL_HTTPPOST_CONTENTSLENGTH@
+  @SETTEROF_CURL_HTTPPOST_CONTENTSLENGTH@
+  @GETTEROF_CURL_HTTPPOST_CONTENTSLENGTH@)
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-buffer-set!
+  curl_httppost_t-buffer-ref
+  @OFFSETOF_CURL_HTTPPOST_BUFFER@
+  @SETTEROF_CURL_HTTPPOST_BUFFER@
+  @GETTEROF_CURL_HTTPPOST_BUFFER@)
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-bufferlength-set!
+  curl_httppost_t-bufferlength-ref
+  @OFFSETOF_CURL_HTTPPOST_BUFFERLENGTH@
+  @SETTEROF_CURL_HTTPPOST_BUFFERLENGTH@
+  @GETTEROF_CURL_HTTPPOST_BUFFERLENGTH@)
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-contenttype-set!
+  curl_httppost_t-contenttype-ref
+  @OFFSETOF_CURL_HTTPPOST_CONTENTTYPE@
+  @SETTEROF_CURL_HTTPPOST_CONTENTTYPE@
+  @GETTEROF_CURL_HTTPPOST_CONTENTTYPE@)
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-contentheader-set!
+  curl_httppost_t-contentheader-ref
+  @OFFSETOF_CURL_HTTPPOST_CONTENTHEADER@
+  @SETTEROF_CURL_HTTPPOST_CONTENTHEADER@
+  @GETTEROF_CURL_HTTPPOST_CONTENTHEADER@)
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-more-set!
+  curl_httppost_t-more-ref
+  @OFFSETOF_CURL_HTTPPOST_MORE@
+  @SETTEROF_CURL_HTTPPOST_MORE@
+  @GETTEROF_CURL_HTTPPOST_MORE@)
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-flags-set!
+  curl_httppost_t-flags-ref
+  @OFFSETOF_CURL_HTTPPOST_FLAGS@
+  @SETTEROF_CURL_HTTPPOST_FLAGS@
+  @GETTEROF_CURL_HTTPPOST_FLAGS@)
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-showfilename-set!
+  curl_httppost_t-showfilename-ref
+  @OFFSETOF_CURL_HTTPPOST_SHOWFILENAME@
+  @SETTEROF_CURL_HTTPPOST_SHOWFILENAME@
+  @GETTEROF_CURL_HTTPPOST_SHOWFILENAME@)
+
+(define-c-struct-accessor-and-mutator
+  curl_httppost_t-userp-set!
+  curl_httppost_t-userp-ref
+  @OFFSETOF_CURL_HTTPPOST_USERP@
+  @SETTEROF_CURL_HTTPPOST_USERP@
+  @GETTEROF_CURL_HTTPPOST_USERP@)
+
+
+;;;; done
+
+)
+
+;;; end of file
