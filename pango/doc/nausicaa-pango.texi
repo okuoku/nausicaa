@@ -397,7 +397,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
 @c email of the *single* author of this document.
-@set AUTHOR_EMAIL               @email{marcomaggi@@gna.org}
+@set AUTHOR_EMAIL               @email{marco.maggi-ipsu@@poste.it}
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
@@ -531,10 +531,59 @@ layout is needed.
 
 @value{PACKAGE} is currently usable, under the Nausicaa system, only
 with the Nausicaa/Cairo package, a binding for the Cairo graphics
-library.
+library.  The package supports the Ikarus, Mosh and Ypsilon Scheme
+implementations; Larceny Scheme is not supported.
 
-The package supports the Ikarus, Mosh and Ypsilon Scheme
-implementations.  Larceny Scheme is not supported.
+The installed libraries are:
+
+@table @library
+@item foreign graphics pango shared-object
+Exports the single bindings @code{pango-shared-object} which references
+Pango's shared library.
+
+@item foreign graphics pango sizeof
+Exports bindings for constant values and data types inspection.
+
+@item foreign graphics pango platform
+Exports a binding for each function in Pango.  It implements a
+one--to--one map between foreign functions and Scheme functions; the
+Scheme functions have the same name of the foreign ones, so
+@cfunc{pango_itemize} is available as @func{pango_itemize}.
+
+This library makes the original Pango documentation relevant for this
+Scheme package; the documentation should be at (@aurl{} last verified
+Mon Nov 16, 2009):
+
+@center @url{http://library.gnome.org/devel/pango/stable/}
+
+@item foreign graphics pango conditions
+Defines condition types used to signal @value{PACKAGE} errors.
+
+@item foreign graphics pango enumerations
+Defines enumeration sets of symbols.
+
+@item foreign graphics pango primitives
+Exports a binding for each foreign function, implementing, for some of
+them, marshaling of arguments and return values; the Scheme functions
+have the same name of the foreign ones, but with underscores turned into
+dashes; so @cfunc{pango_itemize} is available as @func{pango-itemize}.
+
+@item foreign graphics pango
+Compound library; reexports bindings from the following libraries:
+
+@example
+(foreign graphics pango sizeof)
+(foreign graphics pango conditions)
+(foreign graphics pango enumerations)
+(foreign graphics pango primitives)
+@end example
+
+@item foreign graphics pango compensated
+Additional wrappers for constructors and destructors making use of the
+@library{compensations} library; this library is built on top of
+@library{foreign graphics pango}.  @nauref{compensations, Compensation
+stacks}
+@end table
 
 @c page
 

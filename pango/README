@@ -18,7 +18,7 @@ Topics
 ---------------
 
 This is  a distribution of Scheme libraries  for R6RS Scheme
-implementation;  it  provides   bindings  for  the  Pango  C
+implementations;  it implements  a binding  for the  Pango C
 language  library.   It is  built  upon the  Nausicaa/Scheme
 package, making use of its foreign-functions interface.
 
@@ -28,13 +28,15 @@ anywhere that text layout is needed.
 
   Nausicaa/Pango  is currently  (Sat Oct  31,  2009) usable,
 under  the  Nausicaa system,  only  with the  Nausicaa/Cairo
-package, a binding for the Cairo graphics library.
+package,  a binding  for  the Cairo  graphics library.   The
+package  supports  the   Ikarus,  Mosh  and  Ypsilon  Scheme
+implementations; Larceny Scheme is not supported.
 
-  The package  supports the Ikarus, Mosh  and Ypsilon Scheme
-implementations.  Larceny Scheme is not supported.
-
-  The  last   time  the  author  bothered   to  update  this
-paragraph, he had tested Pango version 1.26.0.
+  Beware that upgading Pango to the latest version may break
+your installed  programs (for example  GNU Emacs), so  it is
+better to  stick with the version coming  with your system's
+distribution.  The  last time the author  bothered to update
+this paragraph, he had tested Pango version 1.26.0.
 
 
 2. License
@@ -48,13 +50,13 @@ License as published by the Free Software Foundation, either
 version  3 of  the License,  or (at  your option)  any later
 version.
 
-This  program is  distributed in  the hope  that it  will be
+  This program  is distributed in  the hope that it  will be
 useful, but  WITHOUT ANY WARRANTY; without  even the implied
 warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
 PURPOSE.   See  the  GNU  General Public  License  for  more
 details.
 
-You should  have received a  copy of the GNU  General Public
+  You should have received a  copy of the GNU General Public
 License   along   with    this   program.    If   not,   see
 <http://www.gnu.org/licenses/>.
 
@@ -64,14 +66,39 @@ License   along   with    this   program.    If   not,   see
 
 Be   sure  to   have  installed   the   Nausicaa/Scheme  and
 Nausicaa/Cairo packages first.  Read the "README.build" file
-for details  on the installation  infrastructure.  Basically
-we should do:
+for details on the installation infrastructure.
+
+  Inspecting  the  Pango  headers requires  finding  various
+installed files;  for a Pango installation  under the "/usr"
+hierarchy, Pango's own headers are in:
+
+    /usr/include/pango-1.0
+
+but we need to find  the Glibc headers, too, which should be
+under:
+
+    /usr/include/glib-2.0
+
+but we also need "glibconfig.h", which should be under:
+
+    /usr/lib/glib-2.0/include
+
+to locate all this  stuff, the "configure" script offers the
+following options:
+
+  --with-glib-includedir
+  --with-glib-libincludedir
+  --with-pango-includedir
+
+which default to the values above.  Take your pick.
+
+  Basically we should do:
 
    $ cd <nausicaa top>
    $ cd pango
    $ mkdir "=build"
    $ cd "=build"
-   $ ../configure
+   $ ../configure [... options ...]
    $ make
    $ make test
    $ make install

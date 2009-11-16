@@ -7,7 +7,7 @@ dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it  under the terms of the  GNU General Public
@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-pango],[0.1d0],[marcomaggi@gna.org])
+AC_INIT([nausicaa-pango],[0.1d0],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/graphics/pango.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN

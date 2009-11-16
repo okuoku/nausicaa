@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,6 +30,6 @@
   (import (rnrs)
     (foreign ffi))
   (define pango-shared-object
-    (open-shared-object 'libpango-1.0.so)))
+    (open-shared-object* 'libpango-1.0.so)))
 
 ;;; end of file
