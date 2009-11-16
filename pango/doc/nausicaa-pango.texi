@@ -538,7 +538,7 @@ The installed libraries are:
 
 @table @library
 @item foreign graphics pango shared-object
-Exports the single bindings @code{pango-shared-object} which references
+Exports the single binding @code{pango-shared-object} which references
 Pango's shared library.
 
 @item foreign graphics pango sizeof
