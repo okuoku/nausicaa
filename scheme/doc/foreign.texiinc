@@ -17,10 +17,14 @@ implementations.  The @api{} is exported by the following libraries:
 At present it supports only @gnu{}+Linux systems.
 
 @quotation
-@strong{For Larceny} Unfortunately, interfacing with the @ffi{} of
-Larceny Scheme has miscellaneous problems.  For this reason, the
+@strong{FOR LARCENY} Unfortunately, interfacing with the @ffi{} of
+Larceny Scheme has miscellaneous problems; for this reason, the
 @library{foreign ---} hierarchy of libraries officially does not support
 Larceny.
+
+When a Nausicaa package making use of the @ffi{} is released, we are
+authorised to try it with Larceny Scheme, too: if it works, we are all
+happy; if it does not work, that is life for us.
 @end quotation
 
 @menu
@@ -1539,10 +1543,10 @@ types} have redundant names to improve user friendlyness; when
 processing the definition of an interface, they are first normalised to
 @dfn{internal types} as described in the table below.
 
-The @meta{size_t-integer} and @meta{ssize_t-integer} are the unsigned
-and signed identifiers used on the hosting platform to represent the
-@code{size_t} and @code{ssize_t} C language data types; they are symbols
-among:
+The @meta{size_t-integer} and @meta{ssize_t-integer} type specifiers
+used in the tables, are the unsigned and signed identifiers used on the
+hosting platform to represent the @code{size_t} and @code{ssize_t} C
+language data types; they are symbols among:
 
 @example
 signed-int    signed-long    signed-long-long
@@ -1670,40 +1674,9 @@ revision 1865 (last updated Fri Oct 30, 2009).}
 revision 503 (last updated Fri Oct 30, 2009).}
 @end float
 
-@c @float Table
-@c @multitable {012345678901234567} {0123456789012345678}
-@c @headitem Internal type @tab Mosh type
-@c @item @code{int8_t}             @tab @code{int8_t}
-@c @item @code{int16_t}            @tab @code{int16_t}
-@c @item @code{int32_t}            @tab @code{int32_t}
-@c @item @code{int64_t}            @tab @code{int64_t}
-@c @item @code{uint8_t}            @tab @code{uint8_t}
-@c @item @code{uint16_t}           @tab @code{uint16_t}
-@c @item @code{uint32_t}           @tab @code{uint32_t}
-@c @item @code{uint64_t}           @tab @code{uint64_t}
-@c @item @code{signed-char}        @tab @code{char}
-@c @item @code{unsigned-char}      @tab @code{char}
-@c @item @code{signed-short}       @tab @code{short}
-@c @item @code{unsigned-short}     @tab @code{unsigned-short}
-@c @item @code{signed-int}         @tab @code{int}
-@c @item @code{unsigned-int}       @tab @code{unsigned-int}
-@c @item @code{signed-long}        @tab @code{long}
-@c @item @code{unsigned-long}      @tab @code{unsigned-long}
-@c @item @code{signed-long-long}   @tab @code{long-long}
-@c @item @code{unsigned-long-long} @tab @code{unsigned-long-long}
-@c @item @code{float}              @tab @code{float}
-@c @item @code{double}             @tab @code{double}
-@c @item @code{pointer}            @tab @code{void*}
-@c @item @code{callback}           @tab @code{void*}
-@c @item @code{void}               @tab @code{void}
-@c @end multitable
-@c @caption{Mapping from Nausicaa's internal types to Mosh's types,
-@c revision --- (last updated ---).}
-@c @end float
-
 @float Table
 @multitable {012345678901234567} {0123456789012345678}
-@headitem Internal type @tab Larceny type
+@headitem Internal type @tab Mosh type
 @item @code{int8_t}             @tab @code{int8_t}
 @item @code{int16_t}            @tab @code{int16_t}
 @item @code{int32_t}            @tab @code{int32_t}
@@ -1728,8 +1701,39 @@ revision 503 (last updated Fri Oct 30, 2009).}
 @item @code{callback}           @tab @code{void*}
 @item @code{void}               @tab @code{void}
 @end multitable
+@caption{Mapping from Nausicaa's internal types to Mosh's types,
+revision 2185 (last updated Tue Nov 17, 2009).}
+@end float
+
+@float Table
+@multitable {012345678901234567} {0123456789012345678}
+@headitem Internal type @tab Larceny type
+@item @code{int8_t}             @tab @code{int}
+@item @code{int16_t}            @tab @code{int}
+@item @code{int32_t}            @tab @code{int}
+@item @code{int64_t}            @tab @code{long}
+@item @code{uint8_t}            @tab @code{unsigned}
+@item @code{uint16_t}           @tab @code{unsigned}
+@item @code{uint32_t}           @tab @code{unsigned}
+@item @code{uint64_t}           @tab @code{ulong}
+@item @code{signed-char}        @tab @code{int}
+@item @code{unsigned-char}      @tab @code{int}
+@item @code{signed-short}       @tab @code{int}
+@item @code{unsigned-short}     @tab @code{unsigned}
+@item @code{signed-int}         @tab @code{int}
+@item @code{unsigned-int}       @tab @code{unsigned}
+@item @code{signed-long}        @tab @code{long}
+@item @code{unsigned-long}      @tab @code{ulong}
+@item @code{signed-long-long}   @tab @code{long}
+@item @code{unsigned-long-long} @tab @code{ulong}
+@item @code{float}              @tab @code{float}
+@item @code{double}             @tab @code{double}
+@item @code{pointer}            @tab @code{(maybe void*)}
+@item @code{callback}           @tab @code{(maybe void*)}
+@item @code{void}               @tab @code{void}
+@end multitable
 @caption{Mapping from Nausicaa's internal types to Larceny's types,
-revision 6404 (last updated Sat Oct 31, 2009).}
+revision 6404 (last updated Tue Nov 17, 2009).}
 @end float
 
 @c page

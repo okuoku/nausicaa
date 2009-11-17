@@ -48,7 +48,6 @@
 	  lookup-shared-object		lookup-shared-object*
 	  free-c-callback
 	  internal-type->implementation-type
-	  internal-type->implementation-type/callout
 	  implementation-data-types))
 
 
@@ -62,25 +61,25 @@
 
 (define (make-c-function lib-spec ret-type funcname arg-types)
   (platform:make-c-function lib-spec
-			    (internal-type->implementation-type/callout ret-type)
+			    (internal-type->implementation-type ret-type)
 			    (%normalise-foreign-symbol funcname)
-			    (map internal-type->implementation-type/callout arg-types)))
+			    (map internal-type->implementation-type arg-types)))
 
 (define (make-c-function/with-errno lib-spec ret-type funcname arg-types)
   (platform:make-c-function/with-errno lib-spec
-				       (internal-type->implementation-type/callout ret-type)
+				       (internal-type->implementation-type ret-type)
 				       (%normalise-foreign-symbol funcname)
-				       (map internal-type->implementation-type/callout arg-types)))
+				       (map internal-type->implementation-type arg-types)))
 
 (define (pointer->c-function ret-type address arg-types)
-  (platform:pointer->c-function (internal-type->implementation-type/callout ret-type)
+  (platform:pointer->c-function (internal-type->implementation-type ret-type)
 				address
-				(map internal-type->implementation-type/callout arg-types)))
+				(map internal-type->implementation-type arg-types)))
 
 (define (pointer->c-function/with-errno ret-type address arg-types)
-  (platform:pointer->c-function/with-errno (internal-type->implementation-type/callout ret-type)
+  (platform:pointer->c-function/with-errno (internal-type->implementation-type ret-type)
 					   address
-					   (map internal-type->implementation-type/callout arg-types)))
+					   (map internal-type->implementation-type arg-types)))
 
 (define (make-c-callback ret-type proc arg-types)
   (platform:make-c-callback (internal-type->implementation-type ret-type)

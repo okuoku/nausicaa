@@ -33,7 +33,6 @@
     pointer->c-function		pointer->c-function/with-errno
     make-c-callback
     (rename (mosh:free-c-callback	free-c-callback))
-    internal-type->implementation-type/callout
     internal-type->implementation-type
     implementation-data-types)
   (import (rnrs)
@@ -96,20 +95,29 @@
 
 ;;;; values normalisation
 ;;
-;;According to "lib/mosh/ffi.ss" (revision 2140):
+;;According to "lib/mosh/ffi.ss" (revision 2185):
 ;;
 ;;* The accepted return values for callouts are:
 ;;
 ;;  void
-;;  void*	char*
-;;  int
-;;  double
+;;  bool		char		size_t
+;;  short		int		long		long-long
+;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
+;;  int8_t		int16_t		int32_t		int64_t
+;;  uint8_t		uint16_t	uint32_t	uint64_t
+;;  float		double
+;;  void*
 ;;
 ;;* The accepted arguments for callouts are:
 ;;
-;;  int
-;;  double
-;;  void*	char*
+;;  void
+;;  bool		char		size_t
+;;  short		int		long		long-long
+;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
+;;  int8_t		int16_t		int32_t		int64_t
+;;  uint8_t		uint16_t	uint32_t	uint64_t
+;;  float		double
+;;  char*		void*
 ;;
 ;;  an empty list represents no arguments.
 ;;
@@ -146,35 +154,6 @@
 		      long-long unsigned-long-long
 		      float double pointer void bool)))
 
-(define (internal-type->implementation-type/callout type)
-  (case type
-    ((int8_t)				'int)
-    ((int16_t)				'int)
-    ((int32_t)				'int)
-    ((int64_t)				'int)
-    ((uint8_t)				'int)
-    ((uint16_t)				'int)
-    ((uint32_t)				'int)
-    ((uint64_t)				'int)
-    ((signed-char)			'int)
-    ((unsigned-char)			'int)
-    ((signed-short)			'int)
-    ((unsigned-short)			'int)
-    ((signed-int)			'int)
-    ((unsigned-int)			'int)
-    ((signed-long)			'int)
-    ((unsigned-long)			'int)
-    ((signed-long-long)			'int)
-    ((unsigned-long-long)		'int)
-    ((float)				'double)
-    ((double)				'double)
-    ((pointer)				'void*)
-    ((callback)				'void*)
-    ((void)				'void)
-    (else
-     (assertion-violation #f
-       "C language type identifier unknown by Mosh" type))))
-
 (define (internal-type->implementation-type type)
   (case type
     ((int8_t)				'int8_t)
@@ -203,6 +182,7 @@
     (else
      (assertion-violation #f
        "C language type identifier unknown by Mosh" type))))
+
 
 ;;;; interface functions
 
