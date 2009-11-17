@@ -194,6 +194,7 @@ fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) \
 .PHONY: ifasl ifasl-clean
 
 ifasl: fasl-copy ifasl-clean
+	@echo
 	@echo "--- Compiling for Ikarus Scheme"
 	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_RUN)
 
@@ -228,6 +229,7 @@ fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_ENV)		\
 .PHONY: mfasl mfasl-clean
 
 mfasl: fasl-copy mfasl-clean
+	@echo
 	@echo "--- Compiling for Mosh Scheme"
 	test -f $(fasl_mosh_COMPILE_SCRIPT) && $(fasl_mosh_COMPILE_RUN)
 
@@ -260,6 +262,7 @@ fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) \
 .PHONY: lfasl lfasl-clean
 
 lfasl: fasl-copy lfasl-clean
+	@echo
 	@echo "--- Compiling for Larceny Scheme"
 	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(fasl_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
 
@@ -296,6 +299,7 @@ fasl_ypsilon_COMPILE_RUN	= $(fasl_ypsilon_COMPILE_ENV)		\
 .PHONY: yfasl yfasl-clean
 
 yfasl: fasl-copy yfasl-clean
+	@echo
 	@echo "--- Compiling for Ypsilon Scheme"
 	test -f $(fasl_ypsilon_COMPILE_SCRIPT) && $(fasl_ypsilon_COMPILE_RUN)
 
