@@ -33,14 +33,21 @@
     %random-vector-sample		random-vector-sample
     %random-vector-sample-population	random-vector-sample-population
 
-    random-integers-with-sum
-    random-reals-with-sum		random-reals-with-sum-refine
+    random-integers-with-sum		random-reals-with-sum
     random-vector-unfold-numbers)
   (import (rnrs)
     (randomisations)
     (vectors low)
     (rename (only (vectors) %vector-unpack)
 	    (%vector-unpack unpack)))
+
+
+;;;; helpers
+
+(define-syntax set-incr!
+  (syntax-rules ()
+    ((_ ?name ?delta)
+     (set! ?name (+ ?name ?delta)))))
 
 
 ;;;; low level
@@ -112,132 +119,52 @@
 
 (define (random-integers-with-sum requested-sum number-of-numbers
 				  range-min ; inclusive
-				  range-max ; exclusive
+				  range-max ; inclusive
 				  source)
-  ;;This algorithms comes from the followign answer at StackOverflow:
-  ;;
-  ;;http://stackoverflow.com/questions/472013/generate-a-series-of-random-numbers-that-add-up-to-n-in-c
-  ;;
-  ;;URL last verified Thu Jul 2, 2009.
-  ;;
-;;   (when (<= (- range-max range-min) 0)
-;;     (assertion-violation 'random-integers-with-sum
-;;       "invalid range limits" range-min range-max))
-;;   (when (< requested-sum (* range-min number-of-numbers))
-;;     (assertion-violation 'random-integers-with-sum
-;;       (string-append "impossible to generate requested sum "
-;; 		     (number->string requested-sum)
-;; 		     " using at most "
-;; 		     (number->string number-of-numbers)
-;; 		     " numbers greater or equal to "
-;; 		     (number->string range-min))))
-;;   (when (> requested-sum (* (- range-max 1) number-of-numbers))
-;;     (assertion-violation 'random-integers-with-sum
-;;       (string-append "impossible to generate requested sum "
-;; 		     (number->string requested-sum)
-;; 		     " using at least "
-;; 		     (number->string number-of-numbers)
-;; 		     " numbers less than "
-;; 		     (number->string range-max))))
-  (let* ((integers-maker	(random-source-integers-maker source))
-	 (result		(make-vector number-of-numbers))
-	 (sum-so-far		0)
-	 (range-max		(- range-max 1))) ; now it is inclusive
-    (do ((i 0 (+ 1 i)))
-	((= i number-of-numbers)
-	 ;;This shuffling is required  because the generated numbers are
-	 ;;biased once "min" and "max" start to get close each other.
-	 (%random-vector-shuffle! source result 0 number-of-numbers)
-	 result)
-      (let* ((available-sum	(- requested-sum sum-so-far))
-	     (still-to-do-after-this-one (- number-of-numbers i 1))
-	     ;;If all  the numbers after this one  are "range-max", this
-	     ;;one can be at least "min".
-	     (min		(let ((a (- available-sum (* range-max still-to-do-after-this-one))))
-				  (if (< a range-min) range-min a)))
-	     ;;If all  the numbers after this one  are "range-min", this
-	     ;;one can be at most "max".
-  	     (max		(let ((b (- available-sum (* range-min still-to-do-after-this-one))))
-				  (if (> b range-max) range-max b))))
-	(let ((N (if (= min max)
-		     min
-		   (+ min (integers-maker (- max min))))))
-	  (vector-set! result i N)
-	  (set! sum-so-far (+ N sum-so-far)))))))
+  (assert (<= (* range-min number-of-numbers)
+	      requested-sum
+	      (* range-max number-of-numbers)))
+  (let* ((integers-maker (random-source-integers-maker-from-range source range-min range-max))
+	 (vec		 (random-vector-unfold-numbers integers-maker number-of-numbers))
+	 (delta		 (- requested-sum (vector-fold-left + 0 vec)))
+	 (step		 (if (positive? delta) +1 -1))
+	 (index-maker	 (random-source-integers-maker source)))
+    (let loop ((delta delta))
+      (if (zero? delta)
+	  vec
+	(let* ((idx (index-maker number-of-numbers))
+	       (val (+ step (vector-ref vec idx))))
+	  (if (<= range-min val range-max)
+	      (begin
+		(vector-set! vec idx val)
+		(loop (- delta step)))
+	    (loop delta)))))))
 
-(define (random-reals-with-sum requested-sum number-of-numbers
+(define (random-reals-with-sum requested-sum epsilon
+			       number-of-numbers
 			       range-min    ; exclusive
 			       range-max    ; exclusive
 			       source)
-  ;;This algorithms comes from the followign answer at StackOverflow:
-  ;;
-  ;;http://stackoverflow.com/questions/472013/generate-a-series-of-random-numbers-that-add-up-to-n-in-c
-  ;;
-  ;;URL last verified Thu Jul 2, 2009.
-  ;;
-;;;These  are commented  out because  real  numbers can  be positive  or
-;;;negative.
-;;;
-;;;   (when (<= (- range-max range-min) 0)
-;;;     (assertion-violation 'random-reals-with-sum
-;;;       "invalid range limits" range-min range-max))
-;;;   (when (< requested-sum (* range-min number-of-numbers))
-;;;     (assertion-violation 'random-reals-with-sum
-;;;       (string-append "impossible to generate requested sum "
-;;; 		     (number->string requested-sum)
-;;; 		     " using at most "
-;;; 		     (number->string number-of-numbers)
-;;; 		     " numbers greater or equal to "
-;;; 		     (number->string range-min))))
-;;;   (when (> requested-sum (* (- range-max 1) number-of-numbers))
-;;;     (assertion-violation 'random-reals-with-sum
-;;;       (string-append "impossible to generate requested sum "
-;;; 		     (number->string requested-sum)
-;;; 		     " using at least "
-;;; 		     (number->string number-of-numbers)
-;;; 		     " numbers less than "
-;;; 		     (number->string range-max))))
-  (let* ((reals-maker	(random-source-reals-maker source))
-	 (result	(make-vector number-of-numbers))
-	 (sum-so-far	0))
-    (do ((i 0 (+ 1 i)))
-	((= i number-of-numbers)
-	 ;;This shuffling is required  because the generated numbers are
-	 ;;biased once,  at the end of  the vector, "min"  and "max" get
-	 ;;close each other.
-	 (%random-vector-shuffle! source result 0 number-of-numbers)
-	 (values result sum-so-far))
-      (let* ((available-sum	(- requested-sum sum-so-far))
-	     (still-to-do-after-this-one
-	      (- number-of-numbers i 1))
-	     (min		(let ((a (- available-sum (* range-max still-to-do-after-this-one))))
-				  (if (< a range-min) range-min a)))
-  	     (max		(let ((b (- available-sum (* range-min still-to-do-after-this-one))))
-				  (if (> b range-max) range-max b))))
-	(let ((N (if (= min max)
-		     min
-		   (+ min (* (reals-maker) (- max min))))))
-	  (vector-set! result i N)
-	  (set! sum-so-far (+ N sum-so-far)))))))
-
-
-(define (random-reals-with-sum-refine vec actual-sum requested-sum tolerance max-ntries)
-  (define (difference actual-sum requested-sum)
-    (abs (- actual-sum requested-sum)))
-  (let ((len   (vector-length vec)))
-    (do ((i 0 (+ 1 i))
-	 (diff (difference actual-sum requested-sum)
-	       (difference actual-sum requested-sum)))
-	((or (= i max-ntries)
-	     (< diff tolerance))
-	 (values vec actual-sum))
-      (let ((e (/ diff len)))
-	(write (list 'fixing-diff e))(newline)
-	(vector-map! (lambda (idx num) (- num e))
-		     vec)
-	(set! actual-sum (vector-fold-left/stx
-			  (lambda (prev num) (+ prev num))
-			  0 vec))))))
+  (assert (<= (* range-min number-of-numbers)
+	      requested-sum
+	      (* range-max number-of-numbers)))
+  (let* ((reals-maker	(random-source-reals-maker-from-range source range-min range-max))
+  	 (vec		(random-vector-unfold-numbers reals-maker number-of-numbers))
+	 (index-maker	(random-source-integers-maker source))
+	 (epsilon+	(abs epsilon))
+	 (epsilon-	(- epsilon+)))
+    (let loop ()
+      (let* ((delta (- requested-sum (vector-fold-left + 0 vec)))
+	     (step  (/ delta number-of-numbers)))
+	(if (<= epsilon- (abs delta) epsilon+)
+	    vec
+	  (do ((i 0 (+ 1 i)))
+	      ((= i number-of-numbers)
+	       (loop))
+	    (let* ((idx (index-maker number-of-numbers))
+		   (val (+ step (vector-ref vec idx))))
+	      (when (< range-min val range-max)
+		(vector-set! vec idx val)))))))))
 
 
 ;;;; done

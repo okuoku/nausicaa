@@ -531,89 +531,64 @@
 
   (let ()
     (define (test-random-integers-with-sum requested-sum number-of-numbers
-					   range-min-inclusive range-max-exclusive)
+					   range-min-inclusive range-max-inclusive)
       (let ((obj (random-integers-with-sum requested-sum number-of-numbers
-					   range-min-inclusive range-max-exclusive
+					   range-min-inclusive range-max-inclusive
 					   default-random-source)))
-;;;	(write obj)(newline)
+	;; (write (list 'doing requested-sum number-of-numbers
+	;; 	     range-min-inclusive range-max-inclusive))(newline)
+	;; (write obj)(newline)
 	(check-for-true (vector? obj))
 	(check-for-true (= number-of-numbers (vector-length obj)))
 	(check-for-true (vector-every integer? obj))
 	(do ((i 0 (+ 1 i)))
 	    ((= i number-of-numbers))
 	  (check-for-true (let ((n (vector-ref obj i)))
-			    (and (<= range-min-inclusive n)
-				 (< n range-max-exclusive)))))
-	(check (vector-fold-left (lambda (x prev) (+ prev x)) 0 obj) => requested-sum)))
+;;;			    (write (list range-min-inclusive n range-max-inclusive))(newline)
+			    (<= range-min-inclusive n range-max-inclusive))))
+	(check (vector-fold-left + 0 obj) => requested-sum)))
 
     (test-random-integers-with-sum 25 8 0 10)
     (test-random-integers-with-sum 25 8 0 5)
     (test-random-integers-with-sum 50 8 0 20)
     (test-random-integers-with-sum 50 8 3 10)
-    (test-random-integers-with-sum 50 8 -10 2)
-    )
+    (test-random-integers-with-sum 0 8 -10 2)
+    (test-random-integers-with-sum 50 8 -10 20)
+    (test-random-integers-with-sum -400 8 -50 -20)
+    #f)
 
   (let ()
     (define (test-random-reals-with-sum requested-sum number-of-numbers
 					range-min-exclusive range-max-exclusive)
-      (let-values (((obj sum) (random-reals-with-sum requested-sum number-of-numbers
-						     range-min-exclusive range-max-exclusive
-						     default-random-source)))
+      (let* ((epsilon	1e-6)
+	     (obj	(random-reals-with-sum requested-sum epsilon
+					       number-of-numbers
+					       range-min-exclusive range-max-exclusive
+					       default-random-source)))
 ;;;	(write obj)(newline)
 	(check-for-true (vector? obj))
 	(check-for-true (= number-of-numbers (vector-length obj)))
 	(check-for-true (vector-every real? obj))
 	(do ((i 0 (+ 1 i)))
 	    ((= i number-of-numbers))
-	  (check-for-true (let ((n (vector-ref obj i)))
-			    (and (< range-min-exclusive n)
-				 (< n range-max-exclusive)))))
+	  (check-for-true (< range-min-exclusive (vector-ref obj i) range-max-exclusive)))
 	(check
-	    (vector-fold-left (lambda (x prev) (+ prev x)) 0 obj)
+	    (vector-fold-left + 0 obj)
 	  (=> (lambda (a b)
 		(> 1e-6 (abs (- a b)))))
-	  requested-sum)))
+	  requested-sum)
+    #f))
 
     (test-random-reals-with-sum 25 8 0 10)
     (test-random-reals-with-sum 25 8 0 5)
     (test-random-reals-with-sum 50 8 0 20)
     (test-random-reals-with-sum 50 8 3 10)
-    )
+    (test-random-reals-with-sum 0 8 -10 2)
+    (test-random-reals-with-sum 50 8 -10 20)
+    (test-random-reals-with-sum -400 8 -50 -20)
+    #f)
 
-  (let ()
-    (define (test-random-reals-with-sum requested-sum number-of-numbers
-					range-min-exclusive range-max-exclusive)
-      (let-values (((obj sum) (random-reals-with-sum requested-sum number-of-numbers
-						     range-min-exclusive range-max-exclusive
-						     default-random-source)))
-;;;	(write (list obj sum))(newline)
-	(write (list 'sum requested-sum sum (- requested-sum sum)))(newline)
-	(let-values (((obj sum) (random-reals-with-sum-refine obj sum
-							      requested-sum 1e-20 10)))
-
-	(write (list 'sum requested-sum sum (- requested-sum sum)))(newline)
-;;;	(write (list obj sum))(newline)
-	  (check-for-true (vector? obj))
-	  (check-for-true (= number-of-numbers (vector-length obj)))
-	  (check-for-true (vector-every real? obj))
-	  (do ((i 0 (+ 1 i)))
-	      ((= i number-of-numbers))
-	    (check-for-true (let ((n (vector-ref obj i)))
-			      (let ((r (and (< range-min-exclusive n)
-					    (< n range-max-exclusive))))
-				(if r r (begin
-					  (write (list 'out-of-bounds n))
-					  (newline)))))))
-	  (check
-	      (vector-fold-left (lambda (x prev) (+ prev x)) 0 obj)
-	    (=> (lambda (a b)
-		  (> 1e-6 (abs (- a b)))))
-	    requested-sum))))
-
-    (test-random-reals-with-sum 0.0 100 -50 +50)
-    )
-
-  )
+  #t)
 
 
 (parameterise ((check-test-name 'string))

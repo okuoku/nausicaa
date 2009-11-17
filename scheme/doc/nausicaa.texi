@@ -32536,45 +32536,26 @@ of @var{vec}, using randomness from @var{source}.
 @end deffn
 
 
-@defun random-integers-with-sum @var{requested-sum} @var{number-of-numbers} @var{inclusive-min} @var{exclusive-max} @var{source}
+@defun random-integers-with-sum @var{requested-sum} @var{number-of-numbers} @var{inclusive-min} @var{inclusive-max} @var{source}
 Return a vector of length @var{number-of-numbers}, holding random
-integers in the range @var{inclusive-min}, @var{exclusive-max} generated
-using randomness from @var{source}.  The integers are such that their
-sum equals @var{requested-sum}.
+integers in the range delimited by @var{inclusive-min} and
+@var{inclusive-max}, generated using randomness from @var{source}.  The
+integers are such that their sum equals @var{requested-sum}.
 @end defun
 
 
-@defun random-reals-with-sum @var{requested-sum} @var{number-of-numbers} @var{exclusive-min} @var{exclusive-max} @var{source}
-Return two values:
+@defun random-reals-with-sum @var{requested-sum} @var{tolerance} @var{number-of-numbers} @var{exclusive-min} @var{exclusive-max} @var{source}
+Return a vector of length @var{number-of-numbers}, holding random reals
+in the range delimited by @var{exclusive-min} and @var{exclusive-max},
+generated using randomness from @var{source}.  The numbers are such that
+their sum equals approximately @var{requested-sum} with @var{tolerance}:
 
-@enumerate
-@item
-A vector of length @var{number-of-numbers}, holding random reals in the
-range @var{exclusive-min}, @var{exclusive-max} generated using
-randomness from @var{source}; the numbers are such that their sum equals
-approximately @var{requested-sum}.
-
-@item
-The actual sum between the numbers in the vector.
-@end enumerate
-
-Notice that rounding errors can be can be sensible here, so the solution
-may need a refinement.
-@end defun
-
-
-@defun random-reals-with-sum-refine @var{vec} @var{actual-sum} @var{requested-sum} @var{tolerance} @var{max-ntries}
-@var{vec} and @var{actual-sum} must be the return values of a previous
-call to @func{random-reals-with-sum}.  This function refines the result
-trying to reduce the absolute difference between @var{actual-sum} and
-@var{requested-sum} below @var{tolerance}, which must be a strictly
-positive real number.  It is an iterative process: It will stop when the
-tolerance is achieved or when @var{max-ntries} iterations have been
-performed.
-
-The original vector @var{vec} is modified will hold the new results.
-Return two values: The modified @var{vec} itself and the new value of
-the sum between the elements.
+@example
+(< (- (abs @var{tolerance}))
+   (abs (- @var{requested-sum} actual-sum))
+   (abs @var{tolerance}))
+@result{} #t
+@end example
 @end defun
 
 @c page
