@@ -26,8 +26,7 @@
 
 
 (import (nausicaa)
-  (foreign curl)
-  (foreign curl sizeof)
+  (foreign net curl platform)
   (foreign memory)
   (foreign cstrings)
   (compensations)
