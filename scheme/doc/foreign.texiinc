@@ -4700,6 +4700,66 @@ a Scheme string.
 @end enumerate
 @end defun
 
+@c ------------------------------------------------------------
+
+@defun string->memblock @var{string/symbol}
+@defunx string->memblock @var{string/symbol} @var{malloc}
+@defunx string->memblock/c @var{string/symbol}
+Build and return new record of type @class{memblock} representing the
+Scheme @var{string/symbol} and return a pointer value referencing it.
+The returned memblock represents the string encoded in @acronym{UTF8}
+format @strong{without} the trailing zero byte.
+
+@func{string->memblock} allocates memory using the supplied @var{malloc}
+function, or @func{malloc} if @var{malloc} is not given.  To use a
+compensated allocation: We can use @func{malloc/c} or
+@func{malloc-block/c} as @var{malloc} argument.
+
+The conversion is performed as follows:
+
+@enumerate
+@item
+If @var{string/symbol} is a Scheme symbol, its string name is acquired
+and becomes the input string.
+
+@item
+The function @func{string->utf8} is used to convert the Scheme string
+into a bytevector holding the string representation in @acronym{UTF8}
+format.
+
+@item
+Raw memory is allocated and, byte by byte, the bytevector is duplicated
+into the memory block.
+@end enumerate
+
+@func{string->memblock/c} allocates memory using @func{malloc-block/c}.
+@end defun
+
+
+@defun memblock->string @var{mb}
+@defunx memblock->string @var{mb} @var{number-of-bytes}
+Build and return a new Scheme string representing the @class{memblock}
+record @var{mb}, which must hold a @acronym{UTF8} encoded, C language
+string with or without the trailing zero byte.
+
+The conversion is performed as follows:
+
+@enumerate
+@item
+If @var{number-of-bytes} is given, that number of bytes are taken from
+the memory block; else the length of the input string is the size of the
+@class{memblock} itself.
+
+@item
+A bytevector is allocated and, byte by byte, the string is copied into
+it.
+
+@item
+The function @func{utf8->string} is used to convert the bytevector into
+a Scheme string.
+@end enumerate
+@end defun
+
 @c page
 @node cstrings argv
 @subsection Converting arrays of cstrings

@@ -1,6 +1,7 @@
 ;;; low level strings library --
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009 Derick Eddington
 ;;;
 ;;;Derived from the SRFI 13 reference implementation.
 ;;;
@@ -101,7 +102,6 @@
 ;;;Copyright (c) 2008 Derick Eddington.  Ported to R6RS.
 
 
-#!r6rs
 (library (strings low)
   (export
 
@@ -111,11 +111,45 @@
     ;; predicates
     string-null?  %string-every  %string-any
 
-    ;; comparison
+    ;; lexicographic comparison
     %string-compare  %string-compare-ci
     %string=  %string<>  %string-ci=  %string-ci<>
     %string<  %string<=  %string-ci<  %string-ci<=
     %string>  %string>=  %string-ci>  %string-ci>=
+
+    ;; dictionary comparison
+    %string-dictionary-compare
+    %string-dictionary=?
+    %string-dictionary<>?
+    %string-dictionary<?
+    %string-dictionary<=?
+    %string-dictionary>?
+    %string-dictionary>=?
+
+    %string-dictionary-compare-ci
+    %string-dictionary-ci=?
+    %string-dictionary-ci<>?
+    %string-dictionary-ci<?
+    %string-dictionary-ci<=?
+    %string-dictionary-ci>?
+    %string-dictionary-ci>=?
+
+    ;; string/numbers lexicographic comparison
+    %string/numbers-compare	%string/numbers-compare-ci
+    %string/numbers=?	%string/numbers<>?	%string/numbers-ci=?	%string/numbers-ci<>?
+    %string/numbers<?	%string/numbers<=?	%string/numbers-ci<?	%string/numbers-ci>?
+    %string/numbers>?	%string/numbers>=?	%string/numbers-ci<=?	%string/numbers-ci>=?
+
+    ;; string/numbers dictionary comparison
+    %string/numbers-dictionary-compare
+    %string/numbers-dictionary=?	%string/numbers-dictionary<>?
+    %string/numbers-dictionary<?	%string/numbers-dictionary<=?
+    %string/numbers-dictionary>?	%string/numbers-dictionary>=?
+
+    %string/numbers-dictionary-compare-ci
+    %string/numbers-dictionary-ci=?	%string/numbers-dictionary-ci<>?
+    %string/numbers-dictionary-ci<?	%string/numbers-dictionary-ci>?
+    %string/numbers-dictionary-ci<=?	%string/numbers-dictionary-ci>=?
 
     ;; mapping
     string-map      string-map!
@@ -181,6 +215,9 @@
 
 (define (strings-list-min-length strings)
   (apply min (map string-length strings)))
+
+(define $white-spaces-for-dictionary-comparison
+  '(#\space #\tab #\vtab #\linefeed #\return #\page))
 
 
 ;;;; constructors
@@ -283,7 +320,7 @@
 		criterion)))))
 
 
-;;;; comparison
+;;;; lexicographic comparison
 
 (define (%true-string-compare string-prefix-length-proc char-less-proc
 			      str1 start1 past1 str2 start2 past2 proc< proc= proc>)
@@ -408,6 +445,305 @@
 (define (%string-ci>= str1 start1 past1 str2 start2 past2)
   (%true-string>= %string-prefix-length-ci char-ci<=?
 		 str1 start1 past1 str2 start2 past2))
+
+
+;;;; dictionary comparison
+
+(define (%true-string-dictionary-compare a b char=? char<? $lesser $equal $greater)
+  (let ((lena	(string-length a))
+	(lenb	(string-length b)))
+    (let loop ((i 0) (j 0))
+      (cond ((= i lena)
+	     (if (= j lenb)
+		 $equal
+	       $lesser))
+
+	    ((= j lenb)
+	     $greater)
+
+	    (else
+	     (let ((cha	(string-ref a i))
+		   (chb (string-ref b j)))
+	       (cond ((memv cha $white-spaces-for-dictionary-comparison)
+		      (loop (+ 1 i) j))
+
+		     ((memv chb $white-spaces-for-dictionary-comparison)
+		      (loop i (+ 1 j)))
+
+		     ((char=? cha chb)
+		      (loop (+ 1 i) (+ 1 j)))
+
+		     ((char<? cha chb)
+		      $lesser)
+
+		     (else
+		      $greater))))))))
+
+;;; --------------------------------------------------------------------
+
+(define (%string-dictionary-compare a b)
+  (%true-string-dictionary-compare a b char=? char<? -1 0 +1))
+
+(define (%string-dictionary=? a b)
+  (%true-string-dictionary-compare a b char=? char<? #f #t #f))
+
+(define (%string-dictionary<>? a b)
+  (%true-string-dictionary-compare a b char=? char<? #t #f #t))
+
+(define (%string-dictionary<? a b)
+  (%true-string-dictionary-compare a b char=? char<? #t #f #f))
+
+(define (%string-dictionary<=? a b)
+  (%true-string-dictionary-compare a b char=? char<? #t #t #f))
+
+(define (%string-dictionary>? a b)
+  (%true-string-dictionary-compare a b char=? char<? #f #f #t))
+
+(define (%string-dictionary>=? a b)
+  (%true-string-dictionary-compare a b char=? char<? #f #t #t))
+
+;;; --------------------------------------------------------------------
+
+(define (%string-dictionary-compare-ci a b)
+  (%true-string-dictionary-compare a b char-ci=? char-ci<?))
+
+(define (%string-dictionary-ci=? a b)
+  (%true-string-dictionary-compare a b char-ci=? char-ci<? #f #t #f))
+
+(define (%string-dictionary-ci<>? a b)
+  (%true-string-dictionary-compare a b char-ci=? char-ci<? #t #f #t))
+
+(define (%string-dictionary-ci<? a b)
+  (%true-string-dictionary-compare a b char-ci=? char-ci<? #t #f #f))
+
+(define (%string-dictionary-ci<=? a b)
+  (%true-string-dictionary-compare a b char-ci=? char-ci<? #t #t #f))
+
+(define (%string-dictionary-ci>? a b)
+  (%true-string-dictionary-compare a b char-ci=? char-ci<? #f #f #t))
+
+(define (%string-dictionary-ci>=? a b)
+  (%true-string-dictionary-compare a b char-ci=? char-ci<? #f #t #t))
+
+
+;;;; string/numbers lexicographic comparison
+
+(define (%string/numbers->parts input-string)
+  ;;Split a string into the list of its parts.  Example:
+  ;;
+  ;;	"foo4bar3zab10"
+  ;;
+  ;;becomes:
+  ;;
+  ;;	("foo" ("4" . 4) "bar" ("3" . 3) "zab" ("10" . 10))
+  ;;
+  (let loop ((chars	(reverse (string->list input-string)))
+	     (str	'())
+	     (num	'())
+	     (parts	'()))
+    (define (%accumulate-string-part)
+      (if (null? str)
+	  parts
+	(cons (list->string str) parts)))
+    (define (%accumulate-number-part)
+      (if (null? num)
+	  parts
+	(let ((s (list->string num)))
+	  (cons `(,s . ,(string->number s)) parts))))
+    (cond ((null? chars)
+	   (cond ((not (null? str))
+		  (assert (null? num))
+		  (%accumulate-string-part))
+		 ((not (null? num))
+		  (assert (null? str))
+		  (%accumulate-number-part))
+		 (else parts)))
+	  ((memv (car chars) '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9))
+	   (loop (cdr chars)
+		 '()
+		 (cons (car chars) num)
+		 (%accumulate-string-part)))
+	  (else
+	   (loop (cdr chars)
+		 (cons (car chars) str)
+		 '()
+		 (%accumulate-number-part))))))
+
+(define (%true-string/numbers-compare a b string->parts string=? string<? $lesser $equal $greater)
+  (let loop ((a (string->parts a))
+             (b (string->parts b)))
+    (cond ((null? a)
+	   (if (null? b) $equal $lesser))
+
+	  ((null? b) $greater)
+
+	  ((and (string? (car a))	;both strings
+		(string? (car b)))
+	   (if (string=? (car a) (car b))
+	       (loop (cdr a) (cdr b))
+	     (if (string<? (car a) (car b))
+		 $lesser
+	       $greater)))
+
+	  ((and (pair? (car a))		;both numbers
+		(pair? (car b)))
+	   (let ((num-a (cdar a))
+		 (num-b (cdar b)))
+	     (cond ((= num-a num-b)
+		    (loop (cdr a) (cdr b)))
+		   ((< num-a num-b)
+		    $lesser)
+		   (else
+		    $greater))))
+
+	  ((string? (car a))		;first string, second number
+	   (if (string<? (car a) (caar b))
+	       $lesser
+	     $greater))
+
+	  (else				;first number, second string
+	   (if (string<? (caar a) (car b))
+	       $lesser
+	     $greater)))))
+
+;;; --------------------------------------------------------------------
+
+(define (%string/numbers-compare a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string=? string<? -1 0 +1))
+
+(define (%string/numbers=? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string=? string<? #f #t #f))
+
+(define (%string/numbers<>? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string=? string<? #t #f #t))
+
+(define (%string/numbers<? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string=? string<? #t #f #f))
+
+(define (%string/numbers<=? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string=? string<? #t #t #f))
+
+(define (%string/numbers>? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string=? string<? #f #f #t))
+
+(define (%string/numbers>=? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string=? string<? #f #t #t))
+
+;;; --------------------------------------------------------------------
+
+(define (%string/numbers-compare-ci a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string-ci=? string-ci<?))
+
+(define (%string/numbers-ci=? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string-ci=? string-ci<? #f #t #f))
+
+(define (%string/numbers-ci<>? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string-ci=? string-ci<? #t #f #t))
+
+(define (%string/numbers-ci<? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string-ci=? string-ci<? #t #f #f))
+
+(define (%string/numbers-ci<=? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string-ci=? string-ci<? #t #t #f))
+
+(define (%string/numbers-ci>? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string-ci=? string-ci<? #f #f #t))
+
+(define (%string/numbers-ci>=? a b)
+  (%true-string/numbers-compare a b %string/numbers->parts string-ci=? string-ci<? #f #t #t))
+
+
+;;;; string/numbers dictionary comparison
+
+(define (%string/numbers-dictionary->parts input-string)
+  ;;Split a  string into  the list of  its parts, discard  white spaces.
+  ;;Example:
+  ;;
+  ;;	"foo4 bar3   zab10"
+  ;;
+  ;;becomes:
+  ;;
+  ;;	("foo" ("4" . 4) "bar" ("3" . 3) "zab" ("10" . 10))
+  ;;
+  (let loop ((chars	(reverse (string->list input-string)))
+	     (str	'())
+	     (num	'())
+	     (parts	'()))
+    (define (%accumulate-string-part)
+      (if (null? str)
+	  parts
+	(cons (list->string str) parts)))
+    (define (%accumulate-number-part)
+      (if (null? num)
+	  parts
+	(let ((s (list->string num)))
+	  (cons `(,s . ,(string->number s)) parts))))
+    (cond ((null? chars)
+	   (cond ((not (null? str))
+		  (assert (null? num))
+		  (%accumulate-string-part))
+		 ((not (null? num))
+		  (assert (null? str))
+		  (%accumulate-number-part))
+		 (else parts)))
+	  ((memv (car chars) '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9))
+	   (loop (cdr chars)
+		 '()
+		 (cons (car chars) num)
+		 (%accumulate-string-part)))
+	  ((memv (car chars) $white-spaces-for-dictionary-comparison)
+	   (loop (cdr chars) str num parts))
+	  (else
+	   (loop (cdr chars)
+		 (cons (car chars) str)
+		 '()
+		 (%accumulate-number-part))))))
+
+;;; --------------------------------------------------------------------
+
+(define (%string/numbers-dictionary-compare a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? -1 0 +1))
+
+(define (%string/numbers-dictionary=? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? #f #t #f))
+
+(define (%string/numbers-dictionary<>? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? #t #f #t))
+
+(define (%string/numbers-dictionary<? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? #t #f #f))
+
+(define (%string/numbers-dictionary<=? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? #t #t #f))
+
+(define (%string/numbers-dictionary>? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? #f #f #t))
+
+(define (%string/numbers-dictionary>=? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string=? string<? #f #t #t))
+
+;;; --------------------------------------------------------------------
+
+(define (%string/numbers-dictionary-compare-ci a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string-ci=? string-ci<?))
+
+(define (%string/numbers-dictionary-ci=? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string-ci=? string-ci<? #f #t #f))
+
+(define (%string/numbers-dictionary-ci<>? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string-ci=? string-ci<? #t #f #t))
+
+(define (%string/numbers-dictionary-ci<? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string-ci=? string-ci<? #t #f #f))
+
+(define (%string/numbers-dictionary-ci<=? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string-ci=? string-ci<? #t #t #f))
+
+(define (%string/numbers-dictionary-ci>? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string-ci=? string-ci<? #f #f #t))
+
+(define (%string/numbers-dictionary-ci>=? a b)
+  (%true-string/numbers-compare a b %string/numbers-dictionary->parts string-ci=? string-ci<? #f #t #t))
 
 
 ;;;; mapping

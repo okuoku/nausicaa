@@ -81,16 +81,14 @@ Written by Marco Maggi.
 Written by Marco Maggi.
 
 
-(email addresses)
-(email addresses *)
--------------------
+(email addresses ---)
+---------------------
 
 Written by Marco Maggi.
 
 
-(foreign)
-(foreign *)
------------
+(foreign ---)
+-------------
 
 Written by  Marco Maggi.  The  compatibility library was derived  by the
 (ffi) libraries  in the Ypsilon  distribution, by Yoshikatsu  Fujita and
@@ -106,9 +104,14 @@ version  (<1.4) were  Ken Dickey  and Aubrey  Jaffer.   Assimilated into
 Guile in May 1999.  Ported to R6RS Scheme and Nausicaa by Marco Maggi.
 
 
-(infix)
-(infix *)
----------
+(getopts ---)
+-------------
+
+Written by Marco Maggi.
+
+
+(infix ---)
+-----------
 
 Written  by Marco Maggi.   The string  lexer table  is derived  from the
 lexer in Guile-Arith by Ian Grant <iang@pobox.com>.
@@ -362,13 +365,12 @@ Derived from the reference implementation of SRFI 41 "Streams Library",
 by Philip L. Bewig of Saint Louis, Missouri, USA.
 
 
-(strings)
-(strings *)
------------
+(strings ---)
+-------------
 
 Derived from the reference implementation of SRFI 13 "String Libraries",
-by Olin Shivers.  Port to  R6RS by Derick Eddington.  Reorganisation and
-Nausicaa integration by Marco Maggi.
+by Olin  Shivers.  Port to  R6RS and contributions by  Derick Eddington.
+Reorganisation and Nausicaa integration by Marco Maggi.
 
 
 (unimplemented)

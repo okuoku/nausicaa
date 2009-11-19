@@ -889,6 +889,7 @@ The @library{nausicaa} language
 Predefined condition types
 
 * conditions mismatch::         General mismatch error.
+* conditions num-args::         Wrong number of arguments error.
 
 List library
 
@@ -961,6 +962,15 @@ Strings library
 * strings replicate::           Replicate and rotate.
 * strings mutate::              Mutators.
 * strings misc::                Miscellaneous functions.
+
+Comparison
+
+* strings compar lexi::         Lexicographic comparison.
+* strings compar dict::         String dictionary comparison.
+* strings compar number::       String and number parts lexicographic
+                                comparison.
+* strings compar dictnumber::   String and number parts dictionary
+                                comparison.
 
 Vectors library
 
@@ -24023,8 +24033,22 @@ boolean (@true{} or @false{}), but a general value.
 @section Comparison
 
 
-@deffn Function %string-compare @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
-@deffnx Function %string-compare-ci @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
+@menu
+* strings compar lexi::         Lexicographic comparison.
+* strings compar dict::         String dictionary comparison.
+* strings compar number::       String and numeric parts lexicographic
+                                comparison.
+* strings compar dictnumber::   String and numeric parts dictionary
+                                comparison.
+@end menu
+
+@c page
+@node strings compar lexi
+@subsection Lexicographic comparison
+
+
+@deffn Function %string-compare @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past} @var{proc<} @var{proc=} @var{proc>}
+@deffnx Function %string-compare-ci @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past} @var{proc<} @var{proc=} @var{proc>}
 @deffnx Macro string-compare @var{S1} @var{S2} @var{proc<} @var{proc=} @var{proc>}
 @deffnx Marco string-compare-ci @var{S1} @var{S2} @var{proc<} @var{proc=} @var{proc>}
 Determine the @dfn{mismatch index} between the two substrings: the
@@ -24032,15 +24056,15 @@ largest index @math{i} such that for every @math{0 <= j < i},
 @math{str1[j] = str2[j]}; that is, @math{i} is the first position that
 does not match.
 
-The mismatch index is always an index into @var{str1}; in the case of
-equal strings, it is always @var{past1}; the functions observe the
+The mismatch index is always an index into @vari{str}; in the case of
+equal strings, it is always @vari{past}; the functions observe the
 protocol in this redundant case for uniformity.
 
 The characters at the mismatch index are compared using @func{char<?}
 or @func{char-ci<?}.  @var{proc<}, @var{proc=}, or @var{proc>} are
 applied to the mismatch index (not character), depending upon whether
-the substring of @var{str1} is less than, equal to, or greater than the
-substring of @var{str2}.  The result of the application is returned.
+the substring of @vari{str} is less than, equal to, or greater than the
+substring of @varii{str}.  The result of the application is returned.
 
 If we just want to have the mismatch index as return value: We can use
 @func{values} as value for @var{proc<}, @var{proc=} and @var{proc>}.
@@ -24059,8 +24083,8 @@ Examples:
 @end deffn
 
 
-@deffn Function %string= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@deffnx Function %string-ci= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffn Function %string= @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
+@deffnx Function %string-ci= @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
 @deffnx Macro string= @var{S1} @var{S2}
 @deffnx Macro string-ci= @var{S1} @var{S2}
 Compare two substrings: Return true if they are equal according to
@@ -24068,8 +24092,8 @@ Compare two substrings: Return true if they are equal according to
 @end deffn
 
 
-@deffn Function %string<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@deffnx Function %string-ci<> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffn Function %string<> @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
+@deffnx Function %string-ci<> @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
 @deffnx Macro string<> @var{S1} @var{S1}
 @deffnx Macro string-ci<> @var{S1} @var{S2}
 Compare two substrings: Return @false{} if they are equal according to
@@ -24078,18 +24102,18 @@ Compare two substrings: Return @false{} if they are equal according to
 
 
 The following predicates are the lexicographic extensions of the
-corresponding character predicates.  A string @var{str1} is
-``lexicographically'' less than @var{str2} if @var{str1} would come
+corresponding character predicates.  A string @vari{str} is
+``lexicographically'' less than @varii{str} if @vari{str} would come
 first in a dictionary.
 
 
-@deffn Function %string< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@deffnx Function %string-ci< @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffn Function %string< @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
+@deffnx Function %string-ci< @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
 @deffnx Macro string< @var{S1} @var{S2}
 @deffnx Macro string-ci< @var{S1} @var{S2}
 Compare two substrings: Return true if the first is lexicographically
-less than the second, @false{} otherwise.  If @var{str2} is longer than
-@var{str1} but the substrings are equal up to the end of @var{str1}:
+less than the second, @false{} otherwise.  If @varii{str} is longer than
+@vari{str} but the substrings are equal up to the end of @vari{str}:
 Return @true{}.
 
 @example
@@ -24108,14 +24132,14 @@ Return @true{}.
 @end deffn
 
 
-@deffn Function %string<= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@deffnx Function %string-ci<= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffn Function %string<= @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
+@deffnx Function %string-ci<= @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
 @deffnx Macro string<= @var{S1} @var{S2}
 @deffnx Macro string-ci<= @var{S1} @var{S2}
 Compare two substrings: Return true if the first is lexicographically
-less than, or equal to, the second; @false{} otherwise.  If @var{str2}
-is longer than @var{str1} but the substrings are equal up to the end of
-@var{str1}: Return @true{}.
+less than, or equal to, the second; @false{} otherwise.  If @varii{str}
+is longer than @vari{str} but the substrings are equal up to the end of
+@vari{str}: Return @true{}.
 
 @example
 (string<= "abcd" "abcd") @result{} #t
@@ -24133,14 +24157,14 @@ is longer than @var{str1} but the substrings are equal up to the end of
 @end deffn
 
 
-@deffn Function %string> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@deffnx Function %string-ci> @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffn Function %string> @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
+@deffnx Function %string-ci> @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
 @deffnx Macro string> @var{S1} @var{S2}
 @deffnx Macro string-ci> @var{S1} @var{S2}
 Compare two substrings: Return true if the first is lexicographically
-greater than the second, @false{} otherwise.  If @var{str1} is longer
-than @var{str2} but the substrings are equal up to the end of
-@var{str2}: Return @true{}.
+greater than the second, @false{} otherwise.  If @vari{str} is longer
+than @varii{str} but the substrings are equal up to the end of
+@varii{str}: Return @true{}.
 
 @example
 (string> "abcd" "abcd") @result{} #f
@@ -24158,14 +24182,14 @@ than @var{str2} but the substrings are equal up to the end of
 @end deffn
 
 
-@deffn Function %string>= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
-@deffnx Function %string-ci>= @var{str1} @var{beg1} @var{past1} @var{str2} @var{beg2} @var{past2}
+@deffn Function %string>= @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
+@deffnx Function %string-ci>= @vari{str} @vari{beg} @vari{past} @varii{str} @varii{beg} @varii{past}
 @deffnx Macro string>= @var{S1} @var{S2}
 @deffnx Macro string-ci>= @var{S1} @var{S2}
 Compare two substrings: Return true if the first is lexicographically
 greater than, or equal to, the second; @false{} otherwise.  If
-@var{str1} is longer than @var{str2} but the substrings are equal up to
-the end of @var{str2}: Return @true{}.
+@vari{str} is longer than @varii{str} but the substrings are equal up to
+the end of @varii{str}: Return @true{}.
 
 @example
 (string>= "abcd" "abcd") @result{} #t
@@ -24181,6 +24205,242 @@ the end of @var{str2}: Return @true{}.
 (string-ci>= "a2cd" "abcd") @result{} #f
 @end example
 @end deffn
+
+@c page
+@node strings compar dict
+@subsection String dictionary comparison
+
+
+Dictionary comparison is like lexicographic string comparison, but white
+space characters in the string arguments are ignored; for example, the
+string @samp{foo 4bar\t3za\nb10} is equivalent to @samp{foo4bar3zab10}.
+Recognised white spaces are:
+
+@example
+#\space         #\tab           #\vtab
+#\linefeed      #\return        #\page
+@end example
+
+
+@defun string-dictionary-compare @vari{str} @varii{str}
+@defunx %string-dictionary-compare @vari{str} @varii{str}
+Compare the string arguments and return a ternary result: @samp{-1} if
+@vari{str} is less than @varii{str}, @samp{0} if @vari{str} is equal to
+@varii{str}, @samp{+1} if @vari{str} is greater than @varii{str}.  The
+comparison is case sensitive.
+@end defun
+
+
+@defun string-dictionary=? @vari{str} @varii{str}
+@defunx string-dictionary<>? @vari{str} @varii{str}
+@defunx string-dictionary<? @vari{str} @varii{str}
+@defunx string-dictionary<=? @vari{str} @varii{str}
+@defunx string-dictionary>? @vari{str} @varii{str}
+@defunx string-dictionary>=? @vari{str} @varii{str}
+@defunx %string-dictionary=? @vari{str} @varii{str}
+@defunx %string-dictionary<>? @vari{str} @varii{str}
+@defunx %string-dictionary<? @vari{str} @varii{str}
+@defunx %string-dictionary<=? @vari{str} @varii{str}
+@defunx %string-dictionary>? @vari{str} @varii{str}
+@defunx %string-dictionary>=? @vari{str} @varii{str}
+Return @true{} or @false{}, whether the string-dictionary arguments comply with the
+predicate.
+@end defun
+
+
+@defun string-dictionary-compare-ci @vari{str} @varii{str}
+@defunx %string-dictionary-compare-ci @vari{str} @varii{str}
+Compare the string arguments and return a ternary result: @samp{-1} if
+@vari{str} is less than @varii{str}, @samp{0} if @vari{str} is equal to
+@varii{str}, @samp{+1} if @vari{str} is greater than @varii{str}.  The
+comparison is case insensitive.
+@end defun
+
+
+@defun string-dictionary-ci=? @vari{str} @varii{str}
+@defunx string-dictionary-ci<>? @vari{str} @varii{str}
+@defunx string-dictionary-ci<? @vari{str} @varii{str}
+@defunx string-dictionary-ci>? @vari{str} @varii{str}
+@defunx string-dictionary-ci<=? @vari{str} @varii{str}
+@defunx string-dictionary-ci>=? @vari{str} @varii{str}
+@defunx %string-dictionary-ci=? @vari{str} @varii{str}
+@defunx %string-dictionary-ci<>? @vari{str} @varii{str}
+@defunx %string-dictionary-ci<? @vari{str} @varii{str}
+@defunx %string-dictionary-ci>? @vari{str} @varii{str}
+@defunx %string-dictionary-ci<=? @vari{str} @varii{str}
+@defunx %string-dictionary-ci>=? @vari{str} @varii{str}
+Return @true{} or @false{}, whether the string arguments comply with the
+predicate.  The comparison is case insensitive.
+@end defun
+
+@c page
+@node strings compar number
+@subsection String and numeric parts lexicographic comparison
+
+
+String/numbers comparison splits the strings to compare into their
+numeric and non--numeric parts and compares the parts one by one; for
+example, the string @samp{foo4bar3zab10} is split into the following
+list:
+
+@example
+("foo" 4 "bar" 3 "zab" 10)
+@end example
+
+@noindent
+in which non--numeric parts are retained as Scheme strings and numeric
+parts become exact integers; numeric parts only become @strong{exact}
+integer, never flonums.  String parts are compared with the ordinary
+lexicographic operators @func{string<?} and @func{string=?} (or
+@func{string-ci<?} and @func{string-ci=?}), while numeric parts are
+compared with the ordinary @func{<} and @func{=} operators; a string
+part and a numeric part are compared by converting the number into a
+string, then using @func{string<?} and @func{string=?}.
+
+Miscellaneous examples:
+
+@example
+(string/numbers<? "123" "45")
+@result{} #f
+
+(string/numbers<? "ciao3" "ciao10")
+@result{} #t
+
+(string/numbers<? "foo4bar3zab10" "foo4bar3zab2")
+@result{} #f
+
+(string/numbers<? "foo4bar10" "foo4bar3zab")
+@result{} #f
+@end example
+
+
+
+@defun string/numbers-compare @vari{str} @varii{str}
+@defunx %string/numbers-compare @vari{str} @varii{str}
+Compare the string and numeric parts of the arguments and return a
+ternary result: @samp{-1} if @vari{str} is less than @varii{str},
+@samp{0} if @vari{str} is equal to @varii{str}, @samp{+1} if @vari{str}
+is greater than @varii{str}.  The comparison is case sensitive.
+@end defun
+
+
+@defun string/numbers=? @vari{str} @varii{str}
+@defunx string/numbers<>? @vari{str} @varii{str}
+@defunx string/numbers<? @vari{str} @varii{str}
+@defunx string/numbers<=? @vari{str} @varii{str}
+@defunx string/numbers>? @vari{str} @varii{str}
+@defunx string/numbers>=? @vari{str} @varii{str}
+@defunx %string/numbers=? @vari{str} @varii{str}
+@defunx %string/numbers<>? @vari{str} @varii{str}
+@defunx %string/numbers<? @vari{str} @varii{str}
+@defunx %string/numbers<=? @vari{str} @varii{str}
+@defunx %string/numbers>? @vari{str} @varii{str}
+@defunx %string/numbers>=? @vari{str} @varii{str}
+Return @true{} or @false{}, whether the string arguments comply with the
+predicate.
+@end defun
+
+
+@defun string/numbers-compare-ci @vari{str} @varii{str}
+@defunx %string/numbers-compare-ci @vari{str} @varii{str}
+Compare the string and numeric parts of the arguments and return a
+ternary result: @samp{-1} if @vari{str} is less than @varii{str},
+@samp{0} if @vari{str} is equal to @varii{str}, @samp{+1} if @vari{str}
+is greater than @varii{str}.  The comparison is case insensitive.
+@end defun
+
+
+@defun string/numbers-ci=? @vari{str} @varii{str}
+@defunx string/numbers-ci<>? @vari{str} @varii{str}
+@defunx string/numbers-ci<? @vari{str} @varii{str}
+@defunx string/numbers-ci>? @vari{str} @varii{str}
+@defunx string/numbers-ci<=? @vari{str} @varii{str}
+@defunx string/numbers-ci>=? @vari{str} @varii{str}
+@defunx %string/numbers-ci=? @vari{str} @varii{str}
+@defunx %string/numbers-ci<>? @vari{str} @varii{str}
+@defunx %string/numbers-ci<? @vari{str} @varii{str}
+@defunx %string/numbers-ci>? @vari{str} @varii{str}
+@defunx %string/numbers-ci<=? @vari{str} @varii{str}
+@defunx %string/numbers-ci>=? @vari{str} @varii{str}
+Return @true{} or @false{}, whether the string arguments comply with the
+predicate.  The comparison is case insensitive.
+@end defun
+
+@c page
+@node strings compar dictnumber
+@subsection String and numeric parts dictionary comparison
+
+
+String/numbers dictionary comparison is like string/numbers comparison,
+but white space characters in the string arguments are ignored; for
+example, the string @samp{foo 4bar\t3za\nb10} is split into the
+following list:
+
+@example
+("foo" 4 "bar" 3 "zab" 10)
+@end example
+
+@noindent
+in which non--numeric parts are retained as Scheme strings, numeric
+parts become exact integers and white spaces are dropped.  Recognised
+white spaces are:
+
+@example
+#\space         #\tab           #\vtab
+#\linefeed      #\return        #\page
+@end example
+
+
+@defun string/numbers-dictionary-compare @vari{str} @varii{str}
+@defunx %string/numbers-dictionary-compare @vari{str} @varii{str}
+Compare the string and numeric parts of the arguments and return a
+ternary result: @samp{-1} if @vari{str} is less than @varii{str},
+@samp{0} if @vari{str} is equal to @varii{str}, @samp{+1} if @vari{str}
+is greater than @varii{str}.  The comparison is case sensitive.
+@end defun
+
+
+@defun string/numbers-dictionary=? @vari{str} @varii{str}
+@defunx string/numbers-dictionary<>? @vari{str} @varii{str}
+@defunx string/numbers-dictionary<? @vari{str} @varii{str}
+@defunx string/numbers-dictionary<=? @vari{str} @varii{str}
+@defunx string/numbers-dictionary>? @vari{str} @varii{str}
+@defunx string/numbers-dictionary>=? @vari{str} @varii{str}
+@defunx %string/numbers-dictionary=? @vari{str} @varii{str}
+@defunx %string/numbers-dictionary<>? @vari{str} @varii{str}
+@defunx %string/numbers-dictionary<? @vari{str} @varii{str}
+@defunx %string/numbers-dictionary<=? @vari{str} @varii{str}
+@defunx %string/numbers-dictionary>? @vari{str} @varii{str}
+@defunx %string/numbers-dictionary>=? @vari{str} @varii{str}
+Return @true{} or @false{}, whether the string arguments comply with the
+predicate.
+@end defun
+
+
+@defun string/numbers-dictionary-compare-ci @vari{str} @varii{str}
+@defunx %string/numbers-dictionary-compare-ci @vari{str} @varii{str}
+Compare the string and numeric parts of the arguments and return a
+ternary result: @samp{-1} if @vari{str} is less than @varii{str},
+@samp{0} if @vari{str} is equal to @varii{str}, @samp{+1} if @vari{str}
+is greater than @varii{str}.  The comparison is case insensitive.
+@end defun
+
+
+@defun string/numbers-dictionary-ci=? @vari{str} @varii{str}
+@defunx string/numbers-dictionary-ci<>? @vari{str} @varii{str}
+@defunx string/numbers-dictionary-ci<? @vari{str} @varii{str}
+@defunx string/numbers-dictionary-ci>? @vari{str} @varii{str}
+@defunx string/numbers-dictionary-ci<=? @vari{str} @varii{str}
+@defunx string/numbers-dictionary-ci>=? @vari{str} @varii{str}
+@defunx %string/numbers-dictionary-ci=? @vari{str} @varii{str}
+@defunx %string/numbers-dictionary-ci<>? @vari{str} @varii{str}
+@defunx %string/numbers-dictionary-ci<? @vari{str} @varii{str}
+@defunx %string/numbers-dictionary-ci>? @vari{str} @varii{str}
+@defunx %string/numbers-dictionary-ci<=? @vari{str} @varii{str}
+@defunx %string/numbers-dictionary-ci>=? @vari{str} @varii{str}
+Return @true{} or @false{}, whether the string arguments comply with the
+predicate.  The comparison is case insensitive.
+@end defun
 
 @c page
 @node strings map
@@ -24801,8 +25061,8 @@ Always return a newly allocated string.
 @section Prefixes and suffixes
 
 
-@deffn Function %string-prefix-length @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
-@deffnx Function %string-prefix-length-ci @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffn Function %string-prefix-length @vari{str} @vari{start} @vari{past} @varii{str} @varii{start} @varii{past}
+@deffnx Function %string-prefix-length-ci @vari{str} @vari{start} @vari{past} @varii{str} @varii{start} @varii{past}
 @deffnx Macro string-prefix-length @var{S1} @var{S2}
 @deffnx Macro string-prefix-length-ci @var{S1} @var{S2}
 Return the length of the longest common prefix of the two substrings.
@@ -24811,30 +25071,30 @@ start index offsets).
 @end deffn
 
 
-@deffn Function %string-suffix-length @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
-@deffnx Function %string-suffix-length-ci @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffn Function %string-suffix-length @vari{str} @vari{start} @vari{past} @varii{str} @varii{start} @varii{past}
+@deffnx Function %string-suffix-length-ci @vari{str} @vari{start} @vari{past} @varii{str} @varii{start} @varii{past}
 @deffnx Macro string-suffix-length @var{S1} @var{S2}
 @deffnx Macro string-suffix-length-ci @var{S1} @var{S2}
 Return the length of the longest common suffix of the two substrings.
 @end deffn
 
 
-@deffn Function %string-prefix? @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
-@deffnx Function %string-prefix-ci? @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffn Function %string-prefix? @vari{str} @vari{start} @vari{past} @varii{str} @varii{start} @varii{past}
+@deffnx Function %string-prefix-ci? @vari{str} @vari{start} @vari{past} @varii{str} @varii{start} @varii{past}
 @deffnx Macro string-prefix? @var{S1} @var{S2}
 @deffnx Macro string-prefix-ci? @var{S1} @var{S2}
-Return @true{} if the selected substring of @var{str1} is a prefix of
-the selected substring of @var{str2}, otherwise return @false{}.  Notice
+Return @true{} if the selected substring of @vari{str} is a prefix of
+the selected substring of @varii{str}, otherwise return @false{}.  Notice
 that the empty string is a prefix of every string.
 @end deffn
 
 
-@deffn Function %string-suffix? @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
-@deffnx Function %string-suffix-ci? @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffn Function %string-suffix? @vari{str} @vari{start} @vari{past} @varii{str} @varii{start} @varii{past}
+@deffnx Function %string-suffix-ci? @vari{str} @vari{start} @vari{past} @varii{str} @varii{start} @varii{past}
 @deffnx Macro string-suffix? @var{S1} @var{S2}
 @deffnx Macro string-suffix-ci? @var{S1} @var{S2}
-Return @true{} if the selected substring of @var{str1} is a suffix of
-the selected substring of @var{str2}, otherwise return @false{}.  Notice
+Return @true{} if the selected substring of @vari{str} is a suffix of
+the selected substring of @varii{str}, otherwise return @false{}.  Notice
 that the empty string is @strong{not} a suffix of every string.
 @end deffn
 
@@ -24906,13 +25166,13 @@ If it is a character, it is used in an equality test.
 @end deffn
 
 
-@deffn Function %string-contains @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
-@deffnx Function %string-contains-ci @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffn Function %string-contains @vari{str} @vari{start} @vari{past} @varii{str} @varii{start} @varii{past}
+@deffnx Function %string-contains-ci @vari{str} @vari{start} @vari{past} @varii{str} @varii{start} @varii{past}
 @deffnx Macro string-contains @var{S1} @var{S2}
 @deffnx Macro string-contains-ci @var{S1} @var{S2}
-Return true if the selected substring of @var{str1} contains the
-selected substring of @var{str2}, else return @false{}.  The return
-value is the index in @var{str1} where the substring of @var{str2}
+Return true if the selected substring of @vari{str} contains the
+selected substring of @varii{str}, else return @false{}.  The return
+value is the index in @vari{str} where the substring of @varii{str}
 occurs.
 @end deffn
 
@@ -25182,10 +25442,10 @@ string.
 @section Miscellaneous functions
 
 
-@deffn Function %string-replace @var{str1} @var{start1} @var{past1} @var{str2} @var{start2} @var{past2}
+@deffn Function %string-replace @vari{str} @vari{start} @vari{past} @varii{str} @varii{start} @varii{past}
 @deffnx Macro string-replace @var{S1} @var{S2}
-Replace the selected string in @var{str1} with the selected string in
-@var{str2}.  Return a newly allocated string.
+Replace the selected string in @vari{str} with the selected string in
+@varii{str}.  Return a newly allocated string.
 @end deffn
 
 
@@ -25595,15 +25855,15 @@ to indicate that they do not return a simple boolean (@true{} or
 @section Comparison
 
 
-@deffn Function %vector-compare @var{item=} @var{item<} @var{vec1} @var{beg1} @var{past1} @var{vec2} @var{beg2} @var{past2} @var{proc<} @var{proc=} @var{proc>}
-@deffnx Macro vector-compare @var{item=} @var{item<} @var{V1} @var{V2} @var{proc<} @var{proc=} @var{proc>}
+@deffn Function %vector-compare @var{item=} @var{item<} @vari{vec} @vari{beg} @vari{past} @varii{vec} @varii{beg} @varii{past} @var{proc<} @var{proc=} @var{proc>}
+@deffnx Macro vector-compare @var{item=} @var{item<} @vari{V} @varii{V} @var{proc<} @var{proc=} @var{proc>}
 Determine the @dfn{mismatch index} between the two subvectors: the
 largest index @math{i} such that for every @math{0 <= j < i},
 @math{vec1[j] = vec2[j]}; that is, @math{i} is the first position that
 does not match.
 
-The mismatch index is always an index into @var{vec1}; in the case of
-equal vectors, it is always @var{past1}; the functions observe the
+The mismatch index is always an index into @vari{vec}; in the case of
+equal vectors, it is always @vari{past}; the functions observe the
 protocol in this redundant case for uniformity.
 
 The items before the mismatch index are tested for equality using
@@ -25611,8 +25871,8 @@ The items before the mismatch index are tested for equality using
 @var{item<}, to determine the smallest.
 
 @var{proc<}, @var{proc=}, or @var{proc>} are applied to the mismatch
-index (not item), depending upon whether the subvector of @var{vec1} is
-less than, equal to, or greater than the subvector of @var{vec2}.  The
+index (not item), depending upon whether the subvector of @vari{vec} is
+less than, equal to, or greater than the subvector of @varii{vec}.  The
 result of the application is returned.
 
 If we just want to have the mismatch index as return value: We can use
@@ -25632,15 +25892,15 @@ Examples:
 @end deffn
 
 
-@deffn Function %vector= @var{item=} @var{vec1} @var{beg1} @var{past1} @var{vec2} @var{beg2} @var{past2}
-@deffnx Macro vector= @var{item=} @var{V1} @var{V2}
+@deffn Function %vector= @var{item=} @vari{vec} @vari{beg} @vari{past} @varii{vec} @varii{beg} @varii{past}
+@deffnx Macro vector= @var{item=} @vari{V} @varii{V}
 Compare two subvectors: Return true if they are equal according to
 @var{item=}, @false{} otherwise.
 @end deffn
 
 
-@deffn Function %vector<> @var{item=} @var{vec1} @var{beg1} @var{past1} @var{vec2} @var{beg2} @var{past2}
-@deffnx Macro vector<> @var{item=} @var{V1} @var{V1}
+@deffn Function %vector<> @var{item=} @vari{vec} @vari{beg} @vari{past} @varii{vec} @varii{beg} @varii{past}
+@deffnx Macro vector<> @var{item=} @vari{V} @vari{V}
 Compare two subvectors: Return @false{} if they are equal according to
 @var{item=}, true otherwise.
 @end deffn
@@ -25655,60 +25915,60 @@ Two subvectors are equal if: they have the same length and all their
 items are equal according to @var{item=}.
 
 @item
-A subvector @var{V1} is less than @var{V2} if:
+A subvector @vari{V} is less than @varii{V} if:
 
 @itemize
 @item
-@var{V1} is shorter than @var{V2} and the all the items in @var{V1} are
-equal to the corresponding items in @var{V2} according to @var{item=}.
+@vari{V} is shorter than @varii{V} and the all the items in @vari{V} are
+equal to the corresponding items in @varii{V} according to @var{item=}.
 
 @item
-The items in @var{V1} and @var{V2} are equal up to a certain index
-according to @var{item=}, and the item at the mismatch index in @var{V1}
-is less than the corresponding item in @var{V2} according to
+The items in @vari{V} and @varii{V} are equal up to a certain index
+according to @var{item=}, and the item at the mismatch index in @vari{V}
+is less than the corresponding item in @varii{V} according to
 @var{item<}.
 @end itemize
 
 @item
-A subvector @var{V1} is greater than @var{V2} if:
+A subvector @vari{V} is greater than @varii{V} if:
 
 @itemize
 @item
-@var{V1} is longer than @var{V2} and the all the items in @var{V1} are
-equal to the corresponding items in @var{V2} according to @var{item=}.
+@vari{V} is longer than @varii{V} and the all the items in @vari{V} are
+equal to the corresponding items in @varii{V} according to @var{item=}.
 
 @item
-The items in @var{V1} and @var{V2} are equal up to a certain index
-according to @var{item=}, and the item at the mismatch index in @var{V1}
-is greater than the corresponding item in @var{V2} according to
+The items in @vari{V} and @varii{V} are equal up to a certain index
+according to @var{item=}, and the item at the mismatch index in @vari{V}
+is greater than the corresponding item in @varii{V} according to
 @var{item<}.
 @end itemize
 @end enumerate
 
 
-@deffn Function %vector< @var{item=} @var{item<} @var{vec1} @var{beg1} @var{past1} @var{vec2} @var{beg2} @var{past2}
-@deffnx Macro vector< @var{item=} @var{item<} @var{V1} @var{V2}
+@deffn Function %vector< @var{item=} @var{item<} @vari{vec} @vari{beg} @vari{past} @varii{vec} @varii{beg} @varii{past}
+@deffnx Macro vector< @var{item=} @var{item<} @vari{V} @varii{V}
 Compare two subvectors: Return true if the first is less than the
 second, @false{} otherwise.
 @end deffn
 
 
-@deffn Function %vector<= @var{item=} @var{item<} @var{vec1} @var{beg1} @var{past1} @var{vec2} @var{beg2} @var{past2}
-@deffnx Macro vector<= @var{item=} @var{item<} @var{V1} @var{V2}
+@deffn Function %vector<= @var{item=} @var{item<} @vari{vec} @vari{beg} @vari{past} @varii{vec} @varii{beg} @varii{past}
+@deffnx Macro vector<= @var{item=} @var{item<} @vari{V} @varii{V}
 Compare two subvectors: Return true if the first is less than, or equal
 to, the second; @false{} otherwise.
 @end deffn
 
 
-@deffn Function %vector> @var{item=} @var{item<} @var{vec1} @var{beg1} @var{past1} @var{vec2} @var{beg2} @var{past2}
-@deffnx Macro vector> @var{item=} @var{item<} @var{V1} @var{V2}
+@deffn Function %vector> @var{item=} @var{item<} @vari{vec} @vari{beg} @vari{past} @varii{vec} @varii{beg} @varii{past}
+@deffnx Macro vector> @var{item=} @var{item<} @vari{V} @varii{V}
 Compare two subvectors: Return true if the first is greater than the
 second, @false{} otherwise.
 @end deffn
 
 
-@deffn Function %vector>= @var{item=} @var{item<} @var{vec1} @var{beg1} @var{past1} @var{vec2} @var{beg2} @var{past2}
-@deffnx Macro vector>= @var{item=} @var{item<} @var{V1} @var{V2}
+@deffn Function %vector>= @var{item=} @var{item<} @vari{vec} @vari{beg} @vari{past} @varii{vec} @varii{beg} @varii{past}
+@deffnx Macro vector>= @var{item=} @var{item<} @vari{V} @varii{V}
 Compare two subvectors: Return true if the first is greater than, or
 equal to, the second; @false{} otherwise.
 @end deffn
@@ -26396,32 +26656,32 @@ Always return a newly allocated vector.
 @section Prefixes and suffixes
 
 
-@deffn Function %vector-prefix-length @var{vec1} @var{start1} @var{past1} @var{vec2} @var{start2} @var{past2}
-@deffnx Macro vector-prefix-length @var{V1} @var{V2}
+@deffn Function %vector-prefix-length @vari{vec} @vari{start} @vari{past} @varii{vec} @varii{start} @varii{past}
+@deffnx Macro vector-prefix-length @vari{V} @varii{V}
 Return the length of the longest common prefix of the two subvectors.
 This is equivalent to the mismatch index for the vectors (modulo the
 start index offsets).
 @end deffn
 
 
-@deffn Function %vector-suffix-length @var{vec1} @var{start1} @var{past1} @var{vec2} @var{start2} @var{past2}
-@deffnx Macro vector-suffix-length @var{V1} @var{V2}
+@deffn Function %vector-suffix-length @vari{vec} @vari{start} @vari{past} @varii{vec} @varii{start} @varii{past}
+@deffnx Macro vector-suffix-length @vari{V} @varii{V}
 Return the length of the longest common suffix of the two subvectors.
 @end deffn
 
 
-@deffn Function %vector-prefix? @var{vec1} @var{start1} @var{past1} @var{vec2} @var{start2} @var{past2}
-@deffnx Macro vector-prefix? @var{V1} @var{V2}
-Return @true{} if the selected subvector of @var{vec1} is a prefix of
-the selected subvector of @var{vec2}, otherwise return @false{}.  Notice
+@deffn Function %vector-prefix? @vari{vec} @vari{start} @vari{past} @varii{vec} @varii{start} @varii{past}
+@deffnx Macro vector-prefix? @vari{V} @varii{V}
+Return @true{} if the selected subvector of @vari{vec} is a prefix of
+the selected subvector of @varii{vec}, otherwise return @false{}.  Notice
 that the empty vector is a prefix of every vector.
 @end deffn
 
 
-@deffn Function %vector-suffix? @var{vec1} @var{start1} @var{past1} @var{vec2} @var{start2} @var{past2}
-@deffnx Macro vector-suffix? @var{V1} @var{V2}
-Return @true{} if the selected subvector of @var{vec1} is a suffix of
-the selected subvector of @var{vec2}, otherwise return @false{}.  Notice
+@deffn Function %vector-suffix? @vari{vec} @vari{start} @vari{past} @varii{vec} @varii{start} @varii{past}
+@deffnx Macro vector-suffix? @vari{V} @varii{V}
+Return @true{} if the selected subvector of @vari{vec} is a suffix of
+the selected subvector of @varii{vec}, otherwise return @false{}.  Notice
 that the empty vector is @strong{not} a suffix of every vector.
 @end deffn
 
@@ -26457,11 +26717,11 @@ Return a count of the number of items in @var{vec} that satisfy the
 @end deffn
 
 
-@deffn Function %vector-contains @var{vec1} @var{start1} @var{past1} @var{vec2} @var{start2} @var{past2}
-@deffnx Macro vector-contains @var{V1} @var{V2}
-Return true if the selected subvector of @var{vec1} contains the
-selected subvector of @var{vec2}, else return @false{}.  The return
-value is the index in @var{vec1} where the subvector of @var{vec2}
+@deffn Function %vector-contains @vari{vec} @vari{start} @vari{past} @varii{vec} @varii{start} @varii{past}
+@deffnx Macro vector-contains @vari{V} @varii{V}
+Return true if the selected subvector of @vari{vec} contains the
+selected subvector of @varii{vec}, else return @false{}.  The return
+value is the index in @vari{vec} where the subvector of @varii{vec}
 occurs.
 @end deffn
 
@@ -26675,10 +26935,10 @@ vector.
 @section Miscellaneous functions
 
 
-@deffn Function %vector-replace @var{vec1} @var{start1} @var{past1} @var{vec2} @var{start2} @var{past2}
-@deffnx Macro vector-replace @var{V1} @var{V2}
-Replace the selected subvector in @var{vec1} with the selected subvector
-in @var{vec2}.  Return a newly allocated vector.
+@deffn Function %vector-replace @vari{vec} @vari{start} @vari{past} @varii{vec} @varii{start} @varii{past}
+@deffnx Macro vector-replace @vari{V} @varii{V}
+Replace the selected subvector in @vari{vec} with the selected subvector
+in @varii{vec}.  Return a newly allocated vector.
 @end deffn
 
 

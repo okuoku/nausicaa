@@ -118,6 +118,55 @@
     string<  string<=  string-ci<  string-ci<=
     string>  string>=  string-ci>  string-ci>=
 
+    ;; dictionary comparison
+    (rename (%string-dictionary-compare		string-dictionary-compare)
+	    (%string-dictionary=?		string-dictionary=?)
+	    (%string-dictionary<>?		string-dictionary<>?)
+	    (%string-dictionary<?		string-dictionary<?)
+	    (%string-dictionary<=?		string-dictionary<=?)
+	    (%string-dictionary>?		string-dictionary>?)
+	    (%string-dictionary>=?		string-dictionary>=?)
+
+	    (%string-dictionary-compare-ci	string-dictionary-compare-ci)
+	    (%string-dictionary-ci=?		string-dictionary-ci=?)
+	    (%string-dictionary-ci<>?		string-dictionary-ci<>?)
+	    (%string-dictionary-ci<?		string-dictionary-ci<?)
+	    (%string-dictionary-ci<=?		string-dictionary-ci<=?)
+	    (%string-dictionary-ci>?		string-dictionary-ci>?)
+	    (%string-dictionary-ci>=?		string-dictionary-ci>=?))
+
+    ;; string/numbers lexicographic comparison
+    (rename (%string/numbers-compare		string/numbers-compare)
+	    (%string/numbers=?			string/numbers=?)
+	    (%string/numbers<>?			string/numbers<>?)
+	    (%string/numbers<?			string/numbers<?)
+	    (%string/numbers<=?			string/numbers<=?)
+	    (%string/numbers>?			string/numbers>?)
+	    (%string/numbers>=?			string/numbers>=?)
+	    (%string/numbers-compare-ci		string/numbers-compare-ci)
+	    (%string/numbers-ci=?		string/numbers-ci=?)
+	    (%string/numbers-ci<>?		string/numbers-ci<>?)
+	    (%string/numbers-ci<?		string/numbers-ci<?)
+	    (%string/numbers-ci>?		string/numbers-ci>?)
+	    (%string/numbers-ci<=?		string/numbers-ci<=?)
+	    (%string/numbers-ci>=?		string/numbers-ci>=?))
+
+    ;; string/numbers dictionary comparison
+    (rename (%string/numbers-dictionary-compare		string/numbers-dictionary-compare)
+	    (%string/numbers-dictionary=?		string/numbers-dictionary=?)
+	    (%string/numbers-dictionary<>?		string/numbers-dictionary<>?)
+	    (%string/numbers-dictionary<?		string/numbers-dictionary<?)
+	    (%string/numbers-dictionary<=?		string/numbers-dictionary<=?)
+	    (%string/numbers-dictionary>?		string/numbers-dictionary>?)
+	    (%string/numbers-dictionary>=?		string/numbers-dictionary>=?)
+	    (%string/numbers-dictionary-compare-ci	string/numbers-dictionary-compare-ci)
+	    (%string/numbers-dictionary-ci=?		string/numbers-dictionary-ci=?)
+	    (%string/numbers-dictionary-ci<>?		string/numbers-dictionary-ci<>?)
+	    (%string/numbers-dictionary-ci<?		string/numbers-dictionary-ci<?)
+	    (%string/numbers-dictionary-ci>?		string/numbers-dictionary-ci>?)
+	    (%string/numbers-dictionary-ci<=?		string/numbers-dictionary-ci<=?)
+	    (%string/numbers-dictionary-ci>=?		string/numbers-dictionary-ci>=?))
+
     ;; mapping
     string-map     string-map!
     string-map*    string-map*!    string-for-each*
