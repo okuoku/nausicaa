@@ -33,8 +33,71 @@
     (foreign net curl sizeof)
     (foreign net curl shared-object))
 
+  (define dummy
+    (shared-object curl-shared-object))
+
 
-;;;; code
+(define int*					'pointer)
+(define CURL*					'pointer)
+(define struct-curl_httppost*			'pointer)
+(define struct-curl_httppost**			'pointer)
+(define struct-curl_slist*			'pointer)
+
+
+;;This is variadic.
+;;
+;; (define-c-function curl_formadd
+;;   (CURLFORMcode curl_formadd (struct-curl_httppost** struct-curl_httppost** ...)))
+
+
+(define-c-function curl_formget
+  (int curl_formget (struct-curl_httppost* void* curl_formget_callback)))
+
+(define-c-function curl_formfree
+  (void curl_formfree (struct-curl_httppost*)))
+
+(define-c-function curl_getenv
+  (char* curl_getenv (char*)))
+
+(define-c-function curl_version
+  (char* curl_version (void)))
+
+(define-c-function curl_easy_escape
+  (char* curl_easy_escape (CURL* handle char* int)))
+
+(define-c-function curl_escape
+  (char* curl_escape (char* int)))
+
+(define-c-function curl_easy_unescape
+  (char* curl_easy_unescape (CURL*  char* int int*)))
+
+(define-c-function curl_unescape
+  (char* curl_unescape (char* int)))
+
+(define-c-function curl_free
+  (void curl_free (void*)))
+
+(define-c-function curl_global_init
+  (CURLcode curl_global_init (long)))
+
+(define-c-function curl_global_init_mem
+  (CURLcode curl_global_init_mem (long curl_malloc_callback curl_free_callback
+				       curl_realloc_callback curl_strdup_callback
+				       curl_calloc_callback)))
+
+(define-c-function curl_global_cleanup
+  (void curl_global_cleanup (void)))
+
+(define-c-function curl_slist_append
+  (struct-curl_slist* curl_slist_append (struct-curl_slist* char*)))
+
+(define-c-function curl_slist_free_all
+  (void curl_slist_free_all (struct-curl_slist*)))
+
+;;*FIXME* How do they implement "time_t"?
+(define time_t 'long)
+(define-c-function curl_getdate
+  (time_t curl_getdate (char* time_t*)))
 
 
 

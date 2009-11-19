@@ -27,14 +27,16 @@
 (library (foreign net curl sizeof)
   (export
 
-;;;!!!!!!!! sono arrivato alla linea  1339 di curl.h
+;;;!!!!!!!! sono arrivato alla linea  1772 di curl.h
 
 ;;; --------------------------------------------------------------------
 ;;; data types aliases for function arguments
 
     curl_conv_callback
     curl_debug_callback
+    curl_formget_callback
     curl_ioctl_callback
+    curl_lock_function
     curl_opensocket_callback
     curl_progress_callback
     curl_read_callback
@@ -42,6 +44,7 @@
     curl_sockopt_callback
     curl_sshkeycallback
     curl_ssl_ctx_callback
+    curl_unlock_function
     curl_write_callback
 
     curl_calloc_callback
@@ -50,6 +53,7 @@
     curl_realloc_callback
     curl_strdup_callback
 
+
 ;;; --------------------------------------------------------------------
 ;;; data types inspection
 
@@ -165,7 +169,64 @@
     pointer-ref-c-CURLoption
     pointer-set-c-CURLoption-set!
 
+    CURL_NETRC_OPTION
+    sizeof-CURL_NETRC_OPTION
+    strideof-CURL_NETRC_OPTION
+    alignof-CURL_NETRC_OPTION
+    pointer-ref-c-CURL_NETRC_OPTION
+    pointer-set-c-CURL_NETRC_OPTION-set!
 
+    curl_TimeCond
+    sizeof-curl_TimeCond
+    strideof-curl_TimeCond
+    alignof-curl_TimeCond
+    pointer-ref-c-curl_TimeCond
+    pointer-set-c-curl_TimeCond-set!
+
+    CURLformoption
+    sizeof-CURLformoption
+    strideof-CURLformoption
+    alignof-CURLformoption
+    pointer-ref-c-CURLformoption
+    pointer-set-c-CURLformoption-set!
+
+    CURLFORMcode
+    sizeof-CURLFORMcode
+    strideof-CURLFORMcode
+    alignof-CURLFORMcode
+    pointer-ref-c-CURLFORMcode
+    pointer-set-c-CURLFORMcode-set!
+
+    CURLINFO
+    sizeof-CURLINFO
+    strideof-CURLINFO
+    alignof-CURLINFO
+    pointer-ref-c-CURLINFO
+    pointer-set-c-CURLINFO-set!
+
+    curl_closepolicy
+    sizeof-curl_closepolicy
+    strideof-curl_closepolicy
+    alignof-curl_closepolicy
+    pointer-ref-c-curl_closepolicy
+    pointer-set-c-curl_closepolicy-set!
+
+    curl_lock_data
+    sizeof-curl_lock_data
+    strideof-curl_lock_data
+    alignof-curl_lock_data
+    pointer-ref-c-curl_lock_data
+    pointer-set-c-curl_lock_data-set!
+
+    curl_lock_access
+    sizeof-curl_lock_access
+    strideof-curl_lock_access
+    alignof-curl_lock_access
+    pointer-ref-c-curl_lock_access
+    pointer-set-c-curl_lock_access-set!
+
+
+
 ;;; --------------------------------------------------------------------
 ;;; data structures inspection
 
@@ -177,12 +238,50 @@
     strideof-curl_sockaddr_t
     alignof-curl_sockaddr_t
 
-    sizeof-curl_khkey_t
-    strideof-curl_khkey_t
-    alignof-curl_khkey_t
+    sizeof-curl_khkey
+    strideof-curl_khkey
+    alignof-curl_khkey
 
+    sizeof-curl_forms_t
+    strideof-curl_forms_t
+    alignof-curl_forms_t
+
+    sizeof-curl_slist_t
+    strideof-curl_slist_t
+    alignof-curl_slist_t
+
+    sizeof-curl_certinfo_t
+    strideof-curl_certinfo_t
+    alignof-curl_certinfo_t
+
+
 ;;; --------------------------------------------------------------------
 ;;; constants
+
+    ;; miscellaneous constants
+    CURL_MAX_HTTP_HEADER		CURL_MAX_WRITE_SIZE
+    CURL_SOCKET_BAD			CURL_WRITEFUNC_PAUSE
+
+    CURL_IPRESOLVE_WHATEVER		CURL_IPRESOLVE_V4
+    CURL_IPRESOLVE_V6
+
+    CURLOPT_WRITEDATA			CURLOPT_READDATA
+    CURLOPT_HEADERDATA
+
+    CURL_HTTP_VERSION_NONE		CURL_HTTP_VERSION_1_1
+    CURL_HTTP_VERSION_LAST
+
+    CURL_SSLVERSION_DEFAULT		CURL_SSLVERSION_TLSv1
+    CURL_SSLVERSION_SSLv2		CURL_SSLVERSION_SSLv3
+    CURL_SSLVERSION_LAST
+
+    CURL_REDIR_GET_ALL			CURL_REDIR_POST_301
+    CURL_REDIR_POST_302			CURL_REDIR_POST_ALL
+
+    CURL_GLOBAL_SSL			CURL_GLOBAL_WIN32
+    CURL_GLOBAL_ALL			CURL_GLOBAL_NOTHING
+    CURL_GLOBAL_DEFAULT
+
 
     ;; version
     LIBCURL_COPYRIGHT			LIBCURL_TIMESTAMP
@@ -406,16 +505,82 @@
     CURLOPT_SSH_KNOWNHOSTS		CURLOPT_SSH_KEYFUNCTION
     CURLOPT_SSH_KEYDATA			CURLOPT_LASTENTRY
 
-    ;; miscellaneous constants
-    CURL_MAX_HTTP_HEADER		CURL_MAX_WRITE_SIZE
-    CURL_SOCKET_BAD			CURL_WRITEFUNC_PAUSE
-    CURL_IPRESOLVE_WHATEVER		CURL_IPRESOLVE_V4
-    CURL_IPRESOLVE_V6
-    CURLOPT_WRITEDATA			CURLOPT_READDATA
-    CURLOPT_HEADERDATA
-    CURL_HTTP_VERSION_NONE		CURL_HTTP_VERSION_1_1
-    CURL_HTTP_VERSION_LAST
+    ;; enum CURL_NETRC_OPTION
+    CURL_NETRC_IGNORED			CURL_NETRC_OPTIONAL
+    CURL_NETRC_REQUIRED			CURL_NETRC_LAST
 
+    ;; enum curl_TimeCond
+    CURL_TIMECOND_NONE			CURL_TIMECOND_IFMODSINCE
+    CURL_TIMECOND_IFUNMODSINCE		CURL_TIMECOND_LASTMOD
+    CURL_TIMECOND_LAST
+
+    ;; enum CURLformoption
+    CURLFORM_NOTHING			CURLFORM_COPYNAME
+    CURLFORM_PTRNAME			CURLFORM_NAMELENGTH
+    CURLFORM_COPYCONTENTS		CURLFORM_PTRCONTENTS
+    CURLFORM_CONTENTSLENGTH		CURLFORM_FILECONTENT
+    CURLFORM_ARRAY			CURLFORM_OBSOLETE
+    CURLFORM_FILE			CURLFORM_BUFFER
+    CURLFORM_BUFFERPTR			CURLFORM_BUFFERLENGTH
+    CURLFORM_CONTENTTYPE		CURLFORM_CONTENTHEADER
+    CURLFORM_FILENAME			CURLFORM_END
+    CURLFORM_OBSOLETE2			CURLFORM_STREAM
+    CURLFORM_LASTENTRY
+
+    ;; enum CURLFORMcode
+    CURL_FORMADD_OK			CURL_FORMADD_MEMORY
+    CURL_FORMADD_OPTION_TWICE		CURL_FORMADD_NULL
+    CURL_FORMADD_UNKNOWN_OPTION		CURL_FORMADD_INCOMPLETE
+    CURL_FORMADD_ILLEGAL_ARRAY		CURL_FORMADD_DISABLED
+    CURL_FORMADD_LAST
+
+    ;; ?
+    CURLINFO_STRING			CURLINFO_LONG
+    CURLINFO_DOUBLE			CURLINFO_SLIST
+    CURLINFO_MASK			CURLINFO_TYPEMASK
+
+    ;; enum CURLINFO
+    CURLINFO_NONE			CURLINFO_EFFECTIVE_URL
+    CURLINFO_RESPONSE_CODE		CURLINFO_TOTAL_TIME
+    CURLINFO_NAMELOOKUP_TIME		CURLINFO_CONNECT_TIME
+    CURLINFO_PRETRANSFER_TIME		CURLINFO_SIZE_UPLOAD
+    CURLINFO_SIZE_DOWNLOAD		CURLINFO_SPEED_DOWNLOAD
+    CURLINFO_SPEED_UPLOAD		CURLINFO_HEADER_SIZE
+    CURLINFO_REQUEST_SIZE		CURLINFO_SSL_VERIFYRESULT
+    CURLINFO_FILETIME			CURLINFO_CONTENT_LENGTH_DOWNLOAD
+    CURLINFO_CONTENT_LENGTH_UPLOAD	CURLINFO_STARTTRANSFER_TIME
+    CURLINFO_CONTENT_TYPE		CURLINFO_REDIRECT_TIME
+    CURLINFO_REDIRECT_COUNT		CURLINFO_PRIVATE
+    CURLINFO_HTTP_CONNECTCODE		CURLINFO_HTTPAUTH_AVAIL
+    CURLINFO_PROXYAUTH_AVAIL		CURLINFO_OS_ERRNO
+    CURLINFO_NUM_CONNECTS		CURLINFO_SSL_ENGINES
+    CURLINFO_COOKIELIST			CURLINFO_LASTSOCKET
+    CURLINFO_FTP_ENTRY_PATH		CURLINFO_REDIRECT_URL
+    CURLINFO_PRIMARY_IP			CURLINFO_APPCONNECT_TIME
+    CURLINFO_CERTINFO			CURLINFO_CONDITION_UNMET
+    CURLINFO_LASTONE
+
+    CURLINFO_HTTP_CODE
+
+    ;; enum curl_closepolicy
+    CURLCLOSEPOLICY_NONE		CURLCLOSEPOLICY_OLDEST
+    CURLCLOSEPOLICY_LEAST_RECENTLY_USED CURLCLOSEPOLICY_LEAST_TRAFFIC
+    CURLCLOSEPOLICY_SLOWEST		CURLCLOSEPOLICY_CALLBACK
+    CURLCLOSEPOLICY_LAST
+
+    ;; enum curl_lock_data
+    CURL_LOCK_DATA_NONE			CURL_LOCK_DATA_SHARE
+    CURL_LOCK_DATA_COOKIE		CURL_LOCK_DATA_DNS
+    CURL_LOCK_DATA_SSL_SESSION		CURL_LOCK_DATA_CONNECT
+    CURL_LOCK_DATA_LAST
+
+    ;; enum curl_lock_access
+    CURL_LOCK_ACCESS_NONE		CURL_LOCK_ACCESS_SHARED
+    CURL_LOCK_ACCESS_SINGLE		CURL_LOCK_ACCESS_LAST
+
+
+
+
 ;;; --------------------------------------------------------------------
 ;;; data structures accessors and mutators
 
@@ -438,11 +603,12 @@
     struct-curl_sockaddr_t-protocol-set!	struct-curl_sockaddr_t-protocol-ref
     struct-curl_sockaddr_t-addrlen-set!		struct-curl_sockaddr_t-addrlen-ref
 
-    struct-curl_khkey_t-key-set!		struct-curl_khkey_t-key-ref
-    struct-curl_khkey_t-len-set!		struct-curl_khkey_t-len-ref
-    struct-curl_khkey_t-keytype-set!		struct-curl_khkey_t-keytype-ref
+    struct-curl_khkey-key-set!			struct-curl_khkey-key-ref
+    struct-curl_khkey-len-set!			struct-curl_khkey-len-ref
+    struct-curl_khkey-keytype-set!		struct-curl_khkey-keytype-ref
 
-
+    struct-curl_forms-option-set!		struct-curl_forms-option-ref
+    struct-curl_forms-value-set!		struct-curl_forms-value-ref
     )
   (import (rnrs)
     (foreign ffi)
@@ -453,6 +619,8 @@
 
 (define curl_conv_callback		'callback)
 (define curl_debug_callback		'callback)
+(define curl_formget_callback		'callback)
+(define curl_lock_function		'callback)
 (define curl_ioctl_callback		'callback)
 (define curl_opensocket_callback	'callback)
 (define curl_progress_callback		'callback)
@@ -461,6 +629,7 @@
 (define curl_sockopt_callback		'callback)
 (define curl_sshkeycallback		'callback)
 (define curl_ssl_ctx_callback		'callback)
+(define curl_unlock_function		'callback)
 (define curl_write_callback		'callback)
 
 (define curl_calloc_callback		'callback)
@@ -583,6 +752,62 @@
 (define pointer-ref-c-CURLoption		@GETTEROF_CURLOPTION@)
 (define pointer-set-c-CURLoption-set!		@SETTEROF_CURLOPTION@)
 
+(define CURL_NETRC_OPTION			(quote @TYPEOF_CURLOPTION@))
+(define sizeof-CURL_NETRC_OPTION		@SIZEOF_CURLOPTION@)
+(define strideof-CURL_NETRC_OPTION		@STRIDEOF_CURLOPTION@)
+(define alignof-CURL_NETRC_OPTION		@ALIGNOF_CURLOPTION@)
+(define pointer-ref-c-CURL_NETRC_OPTION		@GETTEROF_CURLOPTION@)
+(define pointer-set-c-CURL_NETRC_OPTION-set!	@SETTEROF_CURLOPTION@)
+
+(define curl_TimeCond				(quote @TYPEOF_CURL_TIMECOND@))
+(define sizeof-curl_TimeCond			@SIZEOF_CURL_TIMECOND@)
+(define strideof-curl_TimeCond			@STRIDEOF_CURL_TIMECOND@)
+(define alignof-curl_TimeCond			@ALIGNOF_CURL_TIMECOND@)
+(define pointer-ref-c-curl_TimeCond		@GETTEROF_CURL_TIMECOND@)
+(define pointer-set-c-curl_TimeCond-set!	@SETTEROF_CURL_TIMECOND@)
+
+(define CURLformoption				(quote @TYPEOF_CURLFORMOPTION@))
+(define sizeof-CURLformoption			@SIZEOF_CURLFORMOPTION@)
+(define strideof-CURLformoption			@STRIDEOF_CURLFORMOPTION@)
+(define alignof-CURLformoption			@ALIGNOF_CURLFORMOPTION@)
+(define pointer-ref-c-CURLformoption		@GETTEROF_CURLFORMOPTION@)
+(define pointer-set-c-CURLformoption-set!	@SETTEROF_CURLFORMOPTION@)
+
+(define CURLFORMcode				(quote @TYPEOF_CURLFORMCODE@))
+(define sizeof-CURLFORMcode			@SIZEOF_CURLFORMCODE@)
+(define strideof-CURLFORMcode			@STRIDEOF_CURLFORMCODE@)
+(define alignof-CURLFORMcode			@ALIGNOF_CURLFORMCODE@)
+(define pointer-ref-c-CURLFORMcode		@GETTEROF_CURLFORMCODE@)
+(define pointer-set-c-CURLFORMcode-set!		@SETTEROF_CURLFORMCODE@)
+
+(define CURLINFO				(quote @TYPEOF_CURLINFO@))
+(define sizeof-CURLINFO				@SIZEOF_CURLINFO@)
+(define strideof-CURLINFO			@STRIDEOF_CURLINFO@)
+(define alignof-CURLINFO			@ALIGNOF_CURLINFO@)
+(define pointer-ref-c-CURLINFO			@GETTEROF_CURLINFO@)
+(define pointer-set-c-CURLINFO-set!		@SETTEROF_CURLINFO@)
+
+(define curl_closepolicy			(quote @TYPEOF_CURL_CLOSEPOLICY@))
+(define sizeof-curl_closepolicy			@SIZEOF_CURL_CLOSEPOLICY@)
+(define strideof-curl_closepolicy		@STRIDEOF_CURL_CLOSEPOLICY@)
+(define alignof-curl_closepolicy		@ALIGNOF_CURL_CLOSEPOLICY@)
+(define pointer-ref-c-curl_closepolicy		@GETTEROF_CURL_CLOSEPOLICY@)
+(define pointer-set-c-curl_closepolicy-set!	@SETTEROF_CURL_CLOSEPOLICY@)
+
+(define curl_lock_data				(quote @TYPEOF_CURL_LOCK_DATA@))
+(define sizeof-curl_lock_data			@SIZEOF_CURL_LOCK_DATA@)
+(define strideof-curl_lock_data			@STRIDEOF_CURL_LOCK_DATA@)
+(define alignof-curl_lock_data			@ALIGNOF_CURL_LOCK_DATA@)
+(define pointer-ref-c-curl_lock_data		@GETTEROF_CURL_LOCK_DATA@)
+(define pointer-set-c-curl_lock_data-set!	@SETTEROF_CURL_LOCK_DATA@)
+
+(define curl_lock_access			(quote @TYPEOF_CURL_LOCK_ACCESS@))
+(define sizeof-curl_lock_access			@SIZEOF_CURL_LOCK_ACCESS@)
+(define strideof-curl_lock_access		@STRIDEOF_CURL_LOCK_ACCESS@)
+(define alignof-curl_lock_access		@ALIGNOF_CURL_LOCK_ACCESS@)
+(define pointer-ref-c-curl_lock_access		@GETTEROF_CURL_LOCK_ACCESS@)
+(define pointer-set-c-curl_lock_access-set!	@SETTEROF_CURL_LOCK_ACCESS@)
+
 
 
 ;;;; data structures inspection
@@ -595,9 +820,21 @@
 (define strideof-curl_sockaddr_t	@STRIDEOF_CURL_SOCKADDR@)
 (define alignof-curl_sockaddr_t		@ALIGNOF_CURL_SOCKADDR@)
 
-(define sizeof-curl_khkey_t		@SIZEOF_CURL_KHKEY@)
-(define strideof-curl_khkey_t		@STRIDEOF_CURL_KHKEY@)
-(define alignof-curl_khkey_t		@ALIGNOF_CURL_KHKEY@)
+(define sizeof-curl_khkey		@SIZEOF_CURL_KHKEY@)
+(define strideof-curl_khkey		@STRIDEOF_CURL_KHKEY@)
+(define alignof-curl_khkey		@ALIGNOF_CURL_KHKEY@)
+
+(define sizeof-curl_forms_t		@SIZEOF_CURL_FORMS@)
+(define strideof-curl_forms_t		@STRIDEOF_CURL_FORMS@)
+(define alignof-curl_forms_t		@ALIGNOF_CURL_FORMS@)
+
+(define sizeof-curl_slist_t		@SIZEOF_CURL_SLIST@)
+(define strideof-curl_slist_t		@STRIDEOF_CURL_SLIST@)
+(define alignof-curl_slist_t		@ALIGNOF_CURL_SLIST@)
+
+(define sizeof-curl_certinfo_t		@SIZEOF_CURL_CERTINFO@)
+(define strideof-curl_certinfo_t	@STRIDEOF_CURL_CERTINFO@)
+(define alignof-curl_certinfo_t		@ALIGNOF_CURL_CERTINFO@)
 
 
 
@@ -608,16 +845,36 @@
 (define CURL_MAX_WRITE_SIZE		@VALUEOF_CURL_MAX_WRITE_SIZE@)
 (define CURL_MAX_HTTP_HEADER		@VALUEOF_CURL_MAX_HTTP_HEADER@)
 (define CURL_WRITEFUNC_PAUSE		@VALUEOF_CURL_WRITEFUNC_PAUSE@)
+
 (define CURL_IPRESOLVE_WHATEVER		@VALUEOF_CURL_IPRESOLVE_WHATEVER@)
 (define CURL_IPRESOLVE_V4		@VALUEOF_CURL_IPRESOLVE_V4@)
 (define CURL_IPRESOLVE_V6		@VALUEOF_CURL_IPRESOLVE_V6@)
+
 (define CURLOPT_WRITEDATA		@VALUEOF_CURLOPT_WRITEDATA@)
 (define CURLOPT_READDATA		@VALUEOF_CURLOPT_READDATA@)
 (define CURLOPT_HEADERDATA		@VALUEOF_CURLOPT_HEADERDATA@)
+
 (define CURL_HTTP_VERSION_NONE		@VALUEOF_CURL_HTTP_VERSION_NONE@)
 (define CURL_HTTP_VERSION_1_0		@VALUEOF_CURL_HTTP_VERSION_1_0@)
 (define CURL_HTTP_VERSION_1_1		@VALUEOF_CURL_HTTP_VERSION_1_1@)
 (define CURL_HTTP_VERSION_LAST		@VALUEOF_CURL_HTTP_VERSION_LAST@)
+
+(define CURL_SSLVERSION_DEFAULT		@VALUEOF_CURL_SSLVERSION_DEFAULT@)
+(define CURL_SSLVERSION_TLSv1		@VALUEOF_CURL_SSLVERSION_TLSv1@)
+(define CURL_SSLVERSION_SSLv2		@VALUEOF_CURL_SSLVERSION_SSLv2@)
+(define CURL_SSLVERSION_SSLv3		@VALUEOF_CURL_SSLVERSION_SSLv3@)
+(define CURL_SSLVERSION_LAST		@VALUEOF_CURL_SSLVERSION_LAST@)
+
+(define CURL_REDIR_GET_ALL		@VALUEOF_CURL_REDIR_GET_ALL@)
+(define CURL_REDIR_POST_301		@VALUEOF_CURL_REDIR_POST_301@)
+(define CURL_REDIR_POST_302		@VALUEOF_CURL_REDIR_POST_302@)
+(define CURL_REDIR_POST_ALL		@VALUEOF_CURL_REDIR_POST_ALL@)
+
+(define CURL_GLOBAL_SSL			@VALUEOF_CURL_GLOBAL_SSL@)
+(define CURL_GLOBAL_WIN32		@VALUEOF_CURL_GLOBAL_WIN32@)
+(define CURL_GLOBAL_ALL			@VALUEOF_CURL_GLOBAL_ALL@)
+(define CURL_GLOBAL_NOTHING		@VALUEOF_CURL_GLOBAL_NOTHING@)
+(define CURL_GLOBAL_DEFAULT		@VALUEOF_CURL_GLOBAL_DEFAULT@)
 
 ;; version informations
 (define LIBCURL_COPYRIGHT		"@STRINGOF_LIBCURL_COPYRIGHT@")
@@ -1020,6 +1277,126 @@
 (define CURLOPT_SSH_KEYDATA			@VALUEOF_CURLOPT_SSH_KEYDATA@)
 (define CURLOPT_LASTENTRY			@VALUEOF_CURLOPT_LASTENTRY@)
 
+;; enum CURL_NETRC_OPTION
+(define CURL_NETRC_IGNORED			@VALUEOF_CURL_NETRC_IGNORED@)
+(define CURL_NETRC_OPTIONAL			@VALUEOF_CURL_NETRC_OPTIONAL@)
+(define CURL_NETRC_REQUIRED			@VALUEOF_CURL_NETRC_REQUIRED@)
+(define CURL_NETRC_LAST				@VALUEOF_CURL_NETRC_LAST@)
+
+;; enum curl_TimeCond
+(define CURL_TIMECOND_NONE			@VALUEOF_CURL_TIMECOND_NONE@)
+(define CURL_TIMECOND_IFMODSINCE		@VALUEOF_CURL_TIMECOND_IFMODSINCE@)
+(define CURL_TIMECOND_IFUNMODSINCE		@VALUEOF_CURL_TIMECOND_IFUNMODSINCE@)
+(define CURL_TIMECOND_LASTMOD			@VALUEOF_CURL_TIMECOND_LASTMOD@)
+(define CURL_TIMECOND_LAST			@VALUEOF_CURL_TIMECOND_LAST@)
+
+;; enum CURLformoption
+(define CURLFORM_NOTHING			@VALUEOF_CURLFORM_NOTHING@)
+(define CURLFORM_COPYNAME			@VALUEOF_CURLFORM_COPYNAME@)
+(define CURLFORM_PTRNAME			@VALUEOF_CURLFORM_PTRNAME@)
+(define CURLFORM_NAMELENGTH			@VALUEOF_CURLFORM_NAMELENGTH@)
+(define CURLFORM_COPYCONTENTS			@VALUEOF_CURLFORM_COPYCONTENTS@)
+(define CURLFORM_PTRCONTENTS			@VALUEOF_CURLFORM_PTRCONTENTS@)
+(define CURLFORM_CONTENTSLENGTH			@VALUEOF_CURLFORM_CONTENTSLENGTH@)
+(define CURLFORM_FILECONTENT			@VALUEOF_CURLFORM_FILECONTENT@)
+(define CURLFORM_ARRAY				@VALUEOF_CURLFORM_ARRAY@)
+(define CURLFORM_OBSOLETE			@VALUEOF_CURLFORM_OBSOLETE@)
+(define CURLFORM_FILE				@VALUEOF_CURLFORM_FILE@)
+(define CURLFORM_BUFFER				@VALUEOF_CURLFORM_BUFFER@)
+(define CURLFORM_BUFFERPTR			@VALUEOF_CURLFORM_BUFFERPTR@)
+(define CURLFORM_BUFFERLENGTH			@VALUEOF_CURLFORM_BUFFERLENGTH@)
+(define CURLFORM_CONTENTTYPE			@VALUEOF_CURLFORM_CONTENTTYPE@)
+(define CURLFORM_CONTENTHEADER			@VALUEOF_CURLFORM_CONTENTHEADER@)
+(define CURLFORM_FILENAME			@VALUEOF_CURLFORM_FILENAME@)
+(define CURLFORM_END				@VALUEOF_CURLFORM_END@)
+(define CURLFORM_OBSOLETE2			@VALUEOF_CURLFORM_OBSOLETE2@)
+(define CURLFORM_STREAM				@VALUEOF_CURLFORM_STREAM@)
+(define CURLFORM_LASTENTRY			@VALUEOF_CURLFORM_LASTENTRY@)
+
+;; enum CURLFORMcode
+(define CURL_FORMADD_OK				@VALUEOF_CURL_FORMADD_OK@)
+(define CURL_FORMADD_MEMORY			@VALUEOF_CURL_FORMADD_MEMORY@)
+(define CURL_FORMADD_OPTION_TWICE		@VALUEOF_CURL_FORMADD_OPTION_TWICE@)
+(define CURL_FORMADD_NULL			@VALUEOF_CURL_FORMADD_NULL@)
+(define CURL_FORMADD_UNKNOWN_OPTION		@VALUEOF_CURL_FORMADD_UNKNOWN_OPTION@)
+(define CURL_FORMADD_INCOMPLETE			@VALUEOF_CURL_FORMADD_INCOMPLETE@)
+(define CURL_FORMADD_ILLEGAL_ARRAY		@VALUEOF_CURL_FORMADD_ILLEGAL_ARRAY@)
+(define CURL_FORMADD_DISABLED			@VALUEOF_CURL_FORMADD_DISABLED@)
+(define CURL_FORMADD_LAST			@VALUEOF_CURL_FORMADD_LAST@)
+
+;; ?
+(define CURLINFO_STRING				@VALUEOF_CURLINFO_STRING@)
+(define CURLINFO_LONG				@VALUEOF_CURLINFO_LONG@)
+(define CURLINFO_DOUBLE				@VALUEOF_CURLINFO_DOUBLE@)
+(define CURLINFO_SLIST				@VALUEOF_CURLINFO_SLIST@)
+(define CURLINFO_MASK				@VALUEOF_CURLINFO_MASK@)
+(define CURLINFO_TYPEMASK			@VALUEOF_CURLINFO_TYPEMASK@)
+
+;; enum CURLINFO
+(define CURLINFO_NONE				@VALUEOF_CURLINFO_NONE@)
+(define CURLINFO_EFFECTIVE_URL			@VALUEOF_CURLINFO_EFFECTIVE_URL@)
+(define CURLINFO_RESPONSE_CODE			@VALUEOF_CURLINFO_RESPONSE_CODE@)
+(define CURLINFO_TOTAL_TIME			@VALUEOF_CURLINFO_TOTAL_TIME@)
+(define CURLINFO_NAMELOOKUP_TIME		@VALUEOF_CURLINFO_NAMELOOKUP_TIME@)
+(define CURLINFO_CONNECT_TIME			@VALUEOF_CURLINFO_CONNECT_TIME@)
+(define CURLINFO_PRETRANSFER_TIME		@VALUEOF_CURLINFO_PRETRANSFER_TIME@)
+(define CURLINFO_SIZE_UPLOAD			@VALUEOF_CURLINFO_SIZE_UPLOAD@)
+(define CURLINFO_SIZE_DOWNLOAD			@VALUEOF_CURLINFO_SIZE_DOWNLOAD@)
+(define CURLINFO_SPEED_DOWNLOAD			@VALUEOF_CURLINFO_SPEED_DOWNLOAD@)
+(define CURLINFO_SPEED_UPLOAD			@VALUEOF_CURLINFO_SPEED_UPLOAD@)
+(define CURLINFO_HEADER_SIZE			@VALUEOF_CURLINFO_HEADER_SIZE@)
+(define CURLINFO_REQUEST_SIZE			@VALUEOF_CURLINFO_REQUEST_SIZE@)
+(define CURLINFO_SSL_VERIFYRESULT		@VALUEOF_CURLINFO_SSL_VERIFYRESULT@)
+(define CURLINFO_FILETIME			@VALUEOF_CURLINFO_FILETIME@)
+(define CURLINFO_CONTENT_LENGTH_DOWNLOAD	@VALUEOF_CURLINFO_CONTENT_LENGTH_DOWNLOAD@)
+(define CURLINFO_CONTENT_LENGTH_UPLOAD		@VALUEOF_CURLINFO_CONTENT_LENGTH_UPLOAD@)
+(define CURLINFO_STARTTRANSFER_TIME		@VALUEOF_CURLINFO_STARTTRANSFER_TIME@)
+(define CURLINFO_CONTENT_TYPE			@VALUEOF_CURLINFO_CONTENT_TYPE@)
+(define CURLINFO_REDIRECT_TIME			@VALUEOF_CURLINFO_REDIRECT_TIME@)
+(define CURLINFO_REDIRECT_COUNT			@VALUEOF_CURLINFO_REDIRECT_COUNT@)
+(define CURLINFO_PRIVATE			@VALUEOF_CURLINFO_PRIVATE@)
+(define CURLINFO_HTTP_CONNECTCODE		@VALUEOF_CURLINFO_HTTP_CONNECTCODE@)
+(define CURLINFO_HTTPAUTH_AVAIL			@VALUEOF_CURLINFO_HTTPAUTH_AVAIL@)
+(define CURLINFO_PROXYAUTH_AVAIL		@VALUEOF_CURLINFO_PROXYAUTH_AVAIL@)
+(define CURLINFO_OS_ERRNO			@VALUEOF_CURLINFO_OS_ERRNO@)
+(define CURLINFO_NUM_CONNECTS			@VALUEOF_CURLINFO_NUM_CONNECTS@)
+(define CURLINFO_SSL_ENGINES			@VALUEOF_CURLINFO_SSL_ENGINES@)
+(define CURLINFO_COOKIELIST			@VALUEOF_CURLINFO_COOKIELIST@)
+(define CURLINFO_LASTSOCKET			@VALUEOF_CURLINFO_LASTSOCKET@)
+(define CURLINFO_FTP_ENTRY_PATH			@VALUEOF_CURLINFO_FTP_ENTRY_PATH@)
+(define CURLINFO_REDIRECT_URL			@VALUEOF_CURLINFO_REDIRECT_URL@)
+(define CURLINFO_PRIMARY_IP			@VALUEOF_CURLINFO_PRIMARY_IP@)
+(define CURLINFO_APPCONNECT_TIME		@VALUEOF_CURLINFO_APPCONNECT_TIME@)
+(define CURLINFO_CERTINFO			@VALUEOF_CURLINFO_CERTINFO@)
+(define CURLINFO_CONDITION_UNMET		@VALUEOF_CURLINFO_CONDITION_UNMET@)
+(define CURLINFO_LASTONE			@VALUEOF_CURLINFO_LASTONE@)
+
+(define CURLINFO_HTTP_CODE			@VALUEOF_CURLINFO_HTTP_CODE@)
+
+;; enum curl_closepolicy
+(define CURLCLOSEPOLICY_NONE			@VALUEOF_CURLCLOSEPOLICY_NONE@)
+(define CURLCLOSEPOLICY_OLDEST			@VALUEOF_CURLCLOSEPOLICY_OLDEST@)
+(define CURLCLOSEPOLICY_LEAST_RECENTLY_USED	@VALUEOF_CURLCLOSEPOLICY_LEAST_RECENTLY_USED@)
+(define CURLCLOSEPOLICY_LEAST_TRAFFIC		@VALUEOF_CURLCLOSEPOLICY_LEAST_TRAFFIC@)
+(define CURLCLOSEPOLICY_SLOWEST			@VALUEOF_CURLCLOSEPOLICY_SLOWEST@)
+(define CURLCLOSEPOLICY_CALLBACK		@VALUEOF_CURLCLOSEPOLICY_CALLBACK@)
+(define CURLCLOSEPOLICY_LAST			@VALUEOF_CURLCLOSEPOLICY_LAST@)
+
+;; enum curl_lock_data
+(define CURL_LOCK_DATA_NONE			@VALUEOF_CURL_LOCK_DATA_NONE@)
+(define CURL_LOCK_DATA_SHARE			@VALUEOF_CURL_LOCK_DATA_SHARE@)
+(define CURL_LOCK_DATA_COOKIE			@VALUEOF_CURL_LOCK_DATA_COOKIE@)
+(define CURL_LOCK_DATA_DNS			@VALUEOF_CURL_LOCK_DATA_DNS@)
+(define CURL_LOCK_DATA_SSL_SESSION		@VALUEOF_CURL_LOCK_DATA_SSL_SESSION@)
+(define CURL_LOCK_DATA_CONNECT			@VALUEOF_CURL_LOCK_DATA_CONNECT@)
+(define CURL_LOCK_DATA_LAST			@VALUEOF_CURL_LOCK_DATA_LAST@)
+
+;; enum curl_lock_access
+(define CURL_LOCK_ACCESS_NONE			@VALUEOF_CURL_LOCK_ACCESS_NONE@)
+(define CURL_LOCK_ACCESS_SHARED			@VALUEOF_CURL_LOCK_ACCESS_SHARED@)
+(define CURL_LOCK_ACCESS_SINGLE			@VALUEOF_CURL_LOCK_ACCESS_SINGLE@)
+(define CURL_LOCK_ACCESS_LAST			@VALUEOF_CURL_LOCK_ACCESS_LAST@)
+
 
 
 ;;;; data structures accessors and mutators
@@ -1148,25 +1525,73 @@
 ;;; --------------------------------------------------------------------
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_khkey_t-key-set!
-  struct-curl_khkey_t-key-ref
+  struct-curl_khkey-key-set!
+  struct-curl_khkey-key-ref
   @OFFSETOF_CURL_KHKEY_KEY@
   @SETTEROF_CURL_KHKEY_KEY@
   @GETTEROF_CURL_KHKEY_KEY@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_khkey_t-len-set!
-  struct-curl_khkey_t-len-ref
+  struct-curl_khkey-len-set!
+  struct-curl_khkey-len-ref
   @OFFSETOF_CURL_KHKEY_LEN@
   @SETTEROF_CURL_KHKEY_LEN@
   @GETTEROF_CURL_KHKEY_LEN@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_khkey_t-keytype-set!
-  struct-curl_khkey_t-keytype-ref
+  struct-curl_khkey-keytype-set!
+  struct-curl_khkey-keytype-ref
   @OFFSETOF_CURL_KHKEY_KEYTYPE@
   @SETTEROF_CURL_KHKEY_KEYTYPE@
   @GETTEROF_CURL_KHKEY_KEYTYPE@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_forms-option-set!
+  struct-curl_forms-option-ref
+  @OFFSETOF_CURL_FORMS_OPTION@
+  @SETTEROF_CURL_FORMS_OPTION@
+  @GETTEROF_CURL_FORMS_OPTION@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_forms-value-set!
+  struct-curl_forms-value-ref
+  @OFFSETOF_CURL_FORMS_VALUE@
+  @SETTEROF_CURL_FORMS_VALUE@
+  @GETTEROF_CURL_FORMS_VALUE@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_slist-data-set!
+  struct-curl_slist-data-ref
+  @OFFSETOF_CURL_SLIST_DATA@
+  @SETTEROF_CURL_SLIST_DATA@
+  @GETTEROF_CURL_SLIST_DATA@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_slist-next-set!
+  struct-curl_slist-next-ref
+  @OFFSETOF_CURL_SLIST_NEXT@
+  @SETTEROF_CURL_SLIST_NEXT@
+  @GETTEROF_CURL_SLIST_NEXT@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_certinfo-num_of_certs-set!
+  struct-curl_certinfo-num_of_certs-ref
+  @OFFSETOF_CURL_CERTINFO_NUM_OF_CERTS@
+  @SETTEROF_CURL_CERTINFO_NUM_OF_CERTS@
+  @GETTEROF_CURL_CERTINFO_NUM_OF_CERTS@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_certinfo-certinfo-set!
+  struct-curl_certinfo-certinfo-ref
+  @OFFSETOF_CURL_CERTINFO_CERTINFO@
+  @SETTEROF_CURL_CERTINFO_CERTINFO@
+  @GETTEROF_CURL_CERTINFO_CERTINFO@)
 
 
 ;;;; done
