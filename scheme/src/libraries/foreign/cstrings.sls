@@ -36,8 +36,11 @@
     strdup			strndup
 
     ;;conversion
-    cstring->string		string->cstring
+    string->cstring		cstring->string
     string->cstring/c
+
+    string->memblock		memblock->string
+    string->memblock/c
 
     ;; null-terminated arrays of cstrings
     strings->argv		argv->strings
@@ -87,12 +90,14 @@
       p))))
 
 
-;;;; conversion functions
+;;;; conversion functions: scheme strings
 
 (define string->cstring
   (case-lambda
    ((s malloc)
-    (let* ((bv		(string->utf8 (symbol->string/maybe s)))
+    (let* ((bv		(string->utf8 (if (symbol? s)
+					  (symbol->string s)
+					s)))
 	   (len		(bytevector-length bv))
 	   (pointer	(malloc (+ 1 len))))
       (do ((i 0 (+ 1 i)))
@@ -112,6 +117,39 @@
     (cstring->string pointer (strlen pointer)))
    ((pointer len)
     (let* ((bv	(make-bytevector len)))
+      (do ((i 0 (+ 1 i)))
+	  ((= i len)
+	   (utf8->string bv))
+	(bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))))
+
+
+;;;; conversion functions: <memblock> records
+
+(define string->memblock
+  (case-lambda
+   ((s malloc)
+    (let* ((bv		(string->utf8 (if (symbol? s)
+					  (symbol->string s)
+					s)))
+	   (len		(bytevector-length bv))
+	   (pointer	(malloc len)))
+      (do ((i 0 (+ 1 i)))
+	  ((= i len)
+	   (make-<memblock> pointer len))
+	(pointer-set-c-signed-char! pointer i (bytevector-s8-ref bv i)))))
+   ((s)
+    (string->cstring s malloc))))
+
+(define (string->memblock/c s)
+  (string->memblock s malloc-block/c))
+
+(define memblock->string
+  (case-lambda
+   ((mb)
+    (memblock->string mb (<memblock>-size mb)))
+   ((mb len)
+    (let* ((pointer	(<memblock>-pointer mb))
+	   (bv		(make-bytevector len)))
       (do ((i 0 (+ 1 i)))
 	  ((= i len)
 	   (utf8->string bv))

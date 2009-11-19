@@ -107,7 +107,7 @@
   #t)
 
 
-(parameterize ((check-test-name 'conversion))
+(parameterize ((check-test-name 'conversion-string))
 
   (check
       (with-compensations
@@ -152,6 +152,56 @@
   (check
       (with-compensations
 	(cstring->string (string->cstring/c "ciao, hello") 4))
+    => "ciao")
+
+  #t)
+
+
+(parameterize ((check-test-name 'conversion-memblock))
+
+  (check
+      (with-compensations
+	(memblock->string (string->memblock "ciao" malloc/c)))
+    => "ciao")
+
+  (check
+      (with-compensations
+	(memblock->string (string->memblock "" malloc/c)))
+    => "")
+
+  (check
+      (with-compensations
+	(<memblock>-size (string->memblock "ciao" malloc/c)))
+    => 4)
+
+  (check
+      (with-compensations
+	(<memblock>-size (string->memblock "" malloc/c)))
+    => 0)
+
+  (check
+      (with-compensations
+	(memblock->string (string->memblock "ciao, hello" malloc/c) 4))
+    => "ciao")
+
+  (check
+      (with-compensations
+	(memblock->string (string->memblock "ciao, hello" malloc/c) 1))
+    => "c")
+
+  (check
+      (with-compensations
+	(memblock->string (string->memblock "ciao, hello" malloc/c) 0))
+    => "")
+
+  (check
+      (with-compensations
+	(memblock->string (string->memblock "ciao, hello" malloc/c) 11))
+    => "ciao, hello")
+
+  (check
+      (with-compensations
+	(memblock->string (string->memblock/c "ciao, hello") 4))
     => "ciao")
 
   #t)
