@@ -27,7 +27,7 @@
 (library (foreign net curl sizeof)
   (export
 
-;;;!!!!!!!! sono arrivato alla linea  1772 di curl.h
+;;;!!!!!!!! sono arrivato alla linea  xxx di curl.h
 
 ;;; --------------------------------------------------------------------
 ;;; data types aliases for function arguments
@@ -37,11 +37,13 @@
     curl_formget_callback
     curl_ioctl_callback
     curl_lock_function
+    curl_multi_timer_callback
     curl_opensocket_callback
     curl_progress_callback
     curl_read_callback
     curl_seek_callback
     curl_sockopt_callback
+    curl_socket_callback
     curl_sshkeycallback
     curl_ssl_ctx_callback
     curl_unlock_function
@@ -225,34 +227,85 @@
     pointer-ref-c-curl_lock_access
     pointer-set-c-curl_lock_access-set!
 
+    CURLSHcode
+    sizeof-CURLSHcode
+    strideof-CURLSHcode
+    alignof-CURLSHcode
+    pointer-ref-c-CURLSHcode
+    pointer-set-c-CURLSHcode-set!
+
+    CURLSHoption
+    sizeof-CURLSHoption
+    strideof-CURLSHoption
+    alignof-CURLSHoption
+    pointer-ref-c-CURLSHoption
+    pointer-set-c-CURLSHoption-set!
+
+    CURLversion
+    sizeof-CURLversion
+    strideof-CURLversion
+    alignof-CURLversion
+    pointer-ref-c-CURLversion
+    pointer-set-c-CURLversion-set!
+
+    CURLMcode
+    sizeof-CURLMcode
+    strideof-CURLMcode
+    alignof-CURLMcode
+    pointer-ref-c-CURLMcode
+    pointer-set-c-CURLMcode-set!
+
+    CURLMSG
+    sizeof-CURLMSG
+    strideof-CURLMSG
+    alignof-CURLMSG
+    pointer-ref-c-CURLMSG
+    pointer-set-c-CURLMSG-set!
+
+    CURLMotion
+    sizeof-CURLMotion
+    strideof-CURLMotion
+    alignof-CURLMotion
+    pointer-ref-c-CURLMotion
+    pointer-set-c-CURLMotion-set!
+
 
 
 ;;; --------------------------------------------------------------------
 ;;; data structures inspection
 
-    sizeof-curl_httppost_t
-    strideof-curl_httppost_t
-    alignof-curl_httppost_t
+    sizeof-curl_httppost
+    strideof-curl_httppost
+    alignof-curl_httppost
 
-    sizeof-curl_sockaddr_t
-    strideof-curl_sockaddr_t
-    alignof-curl_sockaddr_t
+    sizeof-curl_sockaddr
+    strideof-curl_sockaddr
+    alignof-curl_sockaddr
 
     sizeof-curl_khkey
     strideof-curl_khkey
     alignof-curl_khkey
 
-    sizeof-curl_forms_t
-    strideof-curl_forms_t
-    alignof-curl_forms_t
+    sizeof-curl_forms
+    strideof-curl_forms
+    alignof-curl_forms
 
-    sizeof-curl_slist_t
-    strideof-curl_slist_t
-    alignof-curl_slist_t
+    sizeof-curl_slist
+    strideof-curl_slist
+    alignof-curl_slist
 
-    sizeof-curl_certinfo_t
-    strideof-curl_certinfo_t
-    alignof-curl_certinfo_t
+    sizeof-curl_certinfo
+    strideof-curl_certinfo
+    alignof-curl_certinfo
+
+    sizeof-curl_version_info_data
+    strideof-curl_version_info_data
+    alignof-curl_version_info_data
+
+    sizeof-CURLMsg
+    strideof-CURLMsg
+    alignof-CURLMsg
+
 
 
 ;;; --------------------------------------------------------------------
@@ -282,6 +335,18 @@
     CURL_GLOBAL_ALL			CURL_GLOBAL_NOTHING
     CURL_GLOBAL_DEFAULT
 
+    CURLPAUSE_RECV			CURLPAUSE_RECV_CONT
+    CURLPAUSE_SEND			CURLPAUSE_SEND_CONT
+    CURLPAUSE_ALL			CURLPAUSE_CONT
+
+    CURL_POLL_NONE			CURL_POLL_IN
+    CURL_POLL_OUT			CURL_POLL_INOUT
+    CURL_POLL_REMOVE
+
+    CURL_SOCKET_TIMEOUT
+
+    CURL_CSELECT_IN			CURL_CSELECT_OUT
+    CURL_CSELECT_ERR
 
     ;; version
     LIBCURL_COPYRIGHT			LIBCURL_TIMESTAMP
@@ -578,30 +643,73 @@
     CURL_LOCK_ACCESS_NONE		CURL_LOCK_ACCESS_SHARED
     CURL_LOCK_ACCESS_SINGLE		CURL_LOCK_ACCESS_LAST
 
+    ;; enum CURLSHcode
+    CURLSHE_OK				CURLSHE_BAD_OPTION
+    CURLSHE_IN_USE			CURLSHE_INVALID
+    CURLSHE_NOMEM			CURLSHE_LAST
+
+    ;; enum CURLSHoption
+    CURLSHOPT_NONE			CURLSHOPT_SHARE
+    CURLSHOPT_UNSHARE			CURLSHOPT_LOCKFUNC
+    CURLSHOPT_UNLOCKFUNC		CURLSHOPT_USERDATA
+    CURLSHOPT_LAST
+
+    ;; enum CURLversion
+    CURLVERSION_FIRST			CURLVERSION_SECOND
+    CURLVERSION_THIRD			CURLVERSION_FOURTH
+    CURLVERSION_LAST
+
+    CURLVERSION_NOW
+
+    ;; version codes
+    CURL_VERSION_IPV6			CURL_VERSION_KERBEROS4
+    CURL_VERSION_SSL			CURL_VERSION_LIBZ
+    CURL_VERSION_NTLM			CURL_VERSION_GSSNEGOTIATE
+    CURL_VERSION_DEBUG			CURL_VERSION_ASYNCHDNS
+    CURL_VERSION_SPNEGO			CURL_VERSION_LARGEFILE
+    CURL_VERSION_IDN			CURL_VERSION_SSPI
+    CURL_VERSION_CONV			CURL_VERSION_CURLDEBUG
+
+    ;; enum CURLMcode
+    CURLM_CALL_MULTI_PERFORM		CURLM_OK
+    CURLM_BAD_HANDLE			CURLM_BAD_EASY_HANDLE
+    CURLM_OUT_OF_MEMORY			CURLM_INTERNAL_ERROR
+    CURLM_BAD_SOCKET			CURLM_UNKNOWN_OPTION
+    CURLM_LAST
+
+    ;; enum CURLMSG
+    CURLMSG_NONE			CURLMSG_DONE
+    CURLMSG_LAST
+
+    ;; enum CURLMoption
+    CURLMOPT_SOCKETFUNCTION		CURLMOPT_SOCKETDATA
+    CURLMOPT_PIPELINING			CURLMOPT_TIMERFUNCTION
+    CURLMOPT_TIMERDATA			CURLMOPT_MAXCONNECTS
+    CURLMOPT_LASTENTRY
 
 
 
 ;;; --------------------------------------------------------------------
 ;;; data structures accessors and mutators
 
-    struct-curl_httppost_t-next-set!		struct-curl_httppost_t-next-ref
-    struct-curl_httppost_t-name-set!		struct-curl_httppost_t-name-ref
-    struct-curl_httppost_t-namelength-set!	struct-curl_httppost_t-namelength-ref
-    struct-curl_httppost_t-contents-set!	struct-curl_httppost_t-contents-ref
-    struct-curl_httppost_t-contentslength-set!	struct-curl_httppost_t-contentslength-ref
-    struct-curl_httppost_t-buffer-set!		struct-curl_httppost_t-buffer-ref
-    struct-curl_httppost_t-bufferlength-set!	struct-curl_httppost_t-bufferlength-ref
-    struct-curl_httppost_t-contenttype-set!	struct-curl_httppost_t-contenttype-ref
-    struct-curl_httppost_t-contentheader-set!	struct-curl_httppost_t-contentheader-ref
-    struct-curl_httppost_t-more-set!		struct-curl_httppost_t-more-ref
-    struct-curl_httppost_t-flags-set!		struct-curl_httppost_t-flags-ref
-    struct-curl_httppost_t-showfilename-set!	struct-curl_httppost_t-showfilename-ref
-    struct-curl_httppost_t-userp-set!		struct-curl_httppost_t-userp-ref
+    struct-curl_httppost-next-set!		struct-curl_httppost-next-ref
+    struct-curl_httppost-name-set!		struct-curl_httppost-name-ref
+    struct-curl_httppost-namelength-set!	struct-curl_httppost-namelength-ref
+    struct-curl_httppost-contents-set!		struct-curl_httppost-contents-ref
+    struct-curl_httppost-contentslength-set!	struct-curl_httppost-contentslength-ref
+    struct-curl_httppost-buffer-set!		struct-curl_httppost-buffer-ref
+    struct-curl_httppost-bufferlength-set!	struct-curl_httppost-bufferlength-ref
+    struct-curl_httppost-contenttype-set!	struct-curl_httppost-contenttype-ref
+    struct-curl_httppost-contentheader-set!	struct-curl_httppost-contentheader-ref
+    struct-curl_httppost-more-set!		struct-curl_httppost-more-ref
+    struct-curl_httppost-flags-set!		struct-curl_httppost-flags-ref
+    struct-curl_httppost-showfilename-set!	struct-curl_httppost-showfilename-ref
+    struct-curl_httppost-userp-set!		struct-curl_httppost-userp-ref
 
-    struct-curl_sockaddr_t-family-set!		struct-curl_sockaddr_t-family-ref
-    struct-curl_sockaddr_t-socktype-set!	struct-curl_sockaddr_t-socktype-ref
-    struct-curl_sockaddr_t-protocol-set!	struct-curl_sockaddr_t-protocol-ref
-    struct-curl_sockaddr_t-addrlen-set!		struct-curl_sockaddr_t-addrlen-ref
+    struct-curl_sockaddr-family-set!		struct-curl_sockaddr-family-ref
+    struct-curl_sockaddr-socktype-set!		struct-curl_sockaddr-socktype-ref
+    struct-curl_sockaddr-protocol-set!		struct-curl_sockaddr-protocol-ref
+    struct-curl_sockaddr-addrlen-set!		struct-curl_sockaddr-addrlen-ref
 
     struct-curl_khkey-key-set!			struct-curl_khkey-key-ref
     struct-curl_khkey-len-set!			struct-curl_khkey-len-ref
@@ -609,6 +717,32 @@
 
     struct-curl_forms-option-set!		struct-curl_forms-option-ref
     struct-curl_forms-value-set!		struct-curl_forms-value-ref
+
+    struct-curl_slist-data-set!			struct-curl_slist-data-ref
+    struct-curl_slist-next-set!			struct-curl_slist-next-ref
+    struct-curl_certinfo-num_of_certs-set!	struct-curl_certinfo-num_of_certs-ref
+    struct-curl_certinfo-certinfo-set!		struct-curl_certinfo-certinfo-ref
+
+    struct-curl_version_info_data-age-set!		struct-curl_version_info_data-age-ref
+    struct-curl_version_info_data-version-set!		struct-curl_version_info_data-version-ref
+    struct-curl_version_info_data-version_num-set!	struct-curl_version_info_data-version_num-ref
+    struct-curl_version_info_data-host-set!		struct-curl_version_info_data-host-ref
+    struct-curl_version_info_data-features-set!		struct-curl_version_info_data-features-ref
+    struct-curl_version_info_data-ssl_version-set!	struct-curl_version_info_data-ssl_version-ref
+    struct-curl_version_info_data-ssl_version_num-set!	struct-curl_version_info_data-ssl_version_num-ref
+    struct-curl_version_info_data-libz_version-set!     struct-curl_version_info_data-libz_version-ref
+    struct-curl_version_info_data-protocols-set!	struct-curl_version_info_data-protocols-ref
+    struct-curl_version_info_data-ares-set!		struct-curl_version_info_data-ares-ref
+    struct-curl_version_info_data-ares_num-set!		struct-curl_version_info_data-ares_num-ref
+    struct-curl_version_info_data-libidn-set!		struct-curl_version_info_data-libidn-ref
+    struct-curl_version_info_data-iconv_ver_num-set!	struct-curl_version_info_data-iconv_ver_num-ref
+    struct-curl_version_info_data-libssh_version-set!	struct-curl_version_info_data-libssh_version-ref
+
+    struct-CURLMsg-msg-set!			struct-CURLMsg-msg-ref
+    struct-CURLMsg-easy_handle-set!		struct-CURLMsg-easy_handle-ref
+    struct-CURLMsg-whatever-set!		struct-CURLMsg-whatever-ref
+    struct-CURLMsg-result-set!			struct-CURLMsg-result-ref
+
     )
   (import (rnrs)
     (foreign ffi)
@@ -622,10 +756,12 @@
 (define curl_formget_callback		'callback)
 (define curl_lock_function		'callback)
 (define curl_ioctl_callback		'callback)
+(define curl_multi_timer_callback	'callback)
 (define curl_opensocket_callback	'callback)
 (define curl_progress_callback		'callback)
 (define curl_read_callback		'callback)
 (define curl_seek_callback		'callback)
+(define curl_socket_callback		'callback)
 (define curl_sockopt_callback		'callback)
 (define curl_sshkeycallback		'callback)
 (define curl_ssl_ctx_callback		'callback)
@@ -808,33 +944,83 @@
 (define pointer-ref-c-curl_lock_access		@GETTEROF_CURL_LOCK_ACCESS@)
 (define pointer-set-c-curl_lock_access-set!	@SETTEROF_CURL_LOCK_ACCESS@)
 
+(define CURLSHcode				(quote @TYPEOF_CURLSHCODE@))
+(define sizeof-CURLSHcode			@SIZEOF_CURLSHCODE@)
+(define strideof-CURLSHcode			@STRIDEOF_CURLSHCODE@)
+(define alignof-CURLSHcode			@ALIGNOF_CURLSHCODE@)
+(define pointer-ref-c-CURLSHcode		@GETTEROF_CURLSHCODE@)
+(define pointer-set-c-CURLSHcode-set!		@SETTEROF_CURLSHCODE@)
+
+(define CURLSHoption				(quote @TYPEOF_CURLSHOPTION@))
+(define sizeof-CURLSHoption			@SIZEOF_CURLSHOPTION@)
+(define strideof-CURLSHoption			@STRIDEOF_CURLSHOPTION@)
+(define alignof-CURLSHoption			@ALIGNOF_CURLSHOPTION@)
+(define pointer-ref-c-CURLSHoption		@GETTEROF_CURLSHOPTION@)
+(define pointer-set-c-CURLSHoption-set!		@SETTEROF_CURLSHOPTION@)
+
+(define CURLversion				(quote @TYPEOF_CURLVERSION@))
+(define sizeof-CURLversion			@SIZEOF_CURLVERSION@)
+(define strideof-CURLversion			@STRIDEOF_CURLVERSION@)
+(define alignof-CURLversion			@ALIGNOF_CURLVERSION@)
+(define pointer-ref-c-CURLversion		@GETTEROF_CURLVERSION@)
+(define pointer-set-c-CURLversion-set!		@SETTEROF_CURLVERSION@)
+
+(define CURLMcode				(quote @TYPEOF_CURLMCODE@))
+(define sizeof-CURLMcode			@SIZEOF_CURLMCODE@)
+(define strideof-CURLMcode			@STRIDEOF_CURLMCODE@)
+(define alignof-CURLMcode			@ALIGNOF_CURLMCODE@)
+(define pointer-ref-c-CURLMcode			@GETTEROF_CURLMCODE@)
+(define pointer-set-c-CURLMcode-set!		@SETTEROF_CURLMCODE@)
+
+(define CURLMSG					(quote @TYPEOF_CURLMSG@))
+(define sizeof-CURLMSG				@SIZEOF_CURLMSG@)
+(define strideof-CURLMSG			@STRIDEOF_CURLMSG@)
+(define alignof-CURLMSG				@ALIGNOF_CURLMSG@)
+(define pointer-ref-c-CURLMSG			@GETTEROF_CURLMSG@)
+(define pointer-set-c-CURLMSG-set!		@SETTEROF_CURLMSG@)
+
+(define CURLMotion				(quote @TYPEOF_CURLMOPTION@))
+(define sizeof-CURLMotion			@SIZEOF_CURLMOPTION@)
+(define strideof-CURLMotion			@STRIDEOF_CURLMOPTION@)
+(define alignof-CURLMotion			@ALIGNOF_CURLMOPTION@)
+(define pointer-ref-c-CURLMotion		@GETTEROF_CURLMOPTION@)
+(define pointer-set-c-CURLMotion-set!		@SETTEROF_CURLMOPTION@)
+
 
 
 ;;;; data structures inspection
 
-(define sizeof-curl_httppost_t		@SIZEOF_CURL_HTTPPOST@)
-(define strideof-curl_httppost_t	@STRIDEOF_CURL_HTTPPOST@)
-(define alignof-curl_httppost_t		@ALIGNOF_CURL_HTTPPOST@)
+(define sizeof-curl_httppost		@SIZEOF_CURL_HTTPPOST@)
+(define strideof-curl_httppost		@STRIDEOF_CURL_HTTPPOST@)
+(define alignof-curl_httppost		@ALIGNOF_CURL_HTTPPOST@)
 
-(define sizeof-curl_sockaddr_t		@SIZEOF_CURL_SOCKADDR@)
-(define strideof-curl_sockaddr_t	@STRIDEOF_CURL_SOCKADDR@)
-(define alignof-curl_sockaddr_t		@ALIGNOF_CURL_SOCKADDR@)
+(define sizeof-curl_sockaddr		@SIZEOF_CURL_SOCKADDR@)
+(define strideof-curl_sockaddr		@STRIDEOF_CURL_SOCKADDR@)
+(define alignof-curl_sockaddr		@ALIGNOF_CURL_SOCKADDR@)
 
 (define sizeof-curl_khkey		@SIZEOF_CURL_KHKEY@)
 (define strideof-curl_khkey		@STRIDEOF_CURL_KHKEY@)
 (define alignof-curl_khkey		@ALIGNOF_CURL_KHKEY@)
 
-(define sizeof-curl_forms_t		@SIZEOF_CURL_FORMS@)
-(define strideof-curl_forms_t		@STRIDEOF_CURL_FORMS@)
-(define alignof-curl_forms_t		@ALIGNOF_CURL_FORMS@)
+(define sizeof-curl_forms		@SIZEOF_CURL_FORMS@)
+(define strideof-curl_forms		@STRIDEOF_CURL_FORMS@)
+(define alignof-curl_forms		@ALIGNOF_CURL_FORMS@)
 
-(define sizeof-curl_slist_t		@SIZEOF_CURL_SLIST@)
-(define strideof-curl_slist_t		@STRIDEOF_CURL_SLIST@)
-(define alignof-curl_slist_t		@ALIGNOF_CURL_SLIST@)
+(define sizeof-curl_slist		@SIZEOF_CURL_SLIST@)
+(define strideof-curl_slist		@STRIDEOF_CURL_SLIST@)
+(define alignof-curl_slist		@ALIGNOF_CURL_SLIST@)
 
-(define sizeof-curl_certinfo_t		@SIZEOF_CURL_CERTINFO@)
-(define strideof-curl_certinfo_t	@STRIDEOF_CURL_CERTINFO@)
-(define alignof-curl_certinfo_t		@ALIGNOF_CURL_CERTINFO@)
+(define sizeof-curl_certinfo		@SIZEOF_CURL_CERTINFO@)
+(define strideof-curl_certinfo		@STRIDEOF_CURL_CERTINFO@)
+(define alignof-curl_certinfo		@ALIGNOF_CURL_CERTINFO@)
+
+(define sizeof-curl_version_info_data	@SIZEOF_CURL_VERSION_INFO_DATA@)
+(define strideof-curl_version_info_data	@STRIDEOF_CURL_VERSION_INFO_DATA@)
+(define alignof-curl_version_info_data	@ALIGNOF_CURL_VERSION_INFO_DATA@)
+
+(define sizeof-CURLMsg			@SIZEOF_CURLMSG@)
+(define strideof-CURLMsg		@STRIDEOF_CURLMSG@)
+(define alignof-CURLMsg			@ALIGNOF_CURLMSG@)
 
 
 
@@ -875,6 +1061,25 @@
 (define CURL_GLOBAL_ALL			@VALUEOF_CURL_GLOBAL_ALL@)
 (define CURL_GLOBAL_NOTHING		@VALUEOF_CURL_GLOBAL_NOTHING@)
 (define CURL_GLOBAL_DEFAULT		@VALUEOF_CURL_GLOBAL_DEFAULT@)
+
+(define CURLPAUSE_RECV			@VALUEOF_CURLPAUSE_RECV@)
+(define CURLPAUSE_RECV_CONT		@VALUEOF_CURLPAUSE_RECV_CONT@)
+(define CURLPAUSE_SEND			@VALUEOF_CURLPAUSE_SEND@)
+(define CURLPAUSE_SEND_CONT		@VALUEOF_CURLPAUSE_SEND_CONT@)
+(define CURLPAUSE_ALL			@VALUEOF_CURLPAUSE_ALL@)
+(define CURLPAUSE_CONT			@VALUEOF_CURLPAUSE_CONT@)
+
+(define CURL_POLL_NONE			@VALUEOF_CURL_POLL_NONE@)
+(define CURL_POLL_IN			@VALUEOF_CURL_POLL_IN@)
+(define CURL_POLL_OUT			@VALUEOF_CURL_POLL_OUT@)
+(define CURL_POLL_INOUT			@VALUEOF_CURL_POLL_INOUT@)
+(define CURL_POLL_REMOVE		@VALUEOF_CURL_POLL_REMOVE@)
+
+(define CURL_SOCKET_TIMEOUT		@VALUEOF_CURL_SOCKET_TIMEOUT@)
+
+(define CURL_CSELECT_IN			@VALUEOF_CURL_CSELECT_IN@)
+(define CURL_CSELECT_OUT		@VALUEOF_CURL_CSELECT_OUT@)
+(define CURL_CSELECT_ERR		@VALUEOF_CURL_CSELECT_ERR@)
 
 ;; version informations
 (define LIBCURL_COPYRIGHT		"@STRINGOF_LIBCURL_COPYRIGHT@")
@@ -1397,97 +1602,164 @@
 (define CURL_LOCK_ACCESS_SINGLE			@VALUEOF_CURL_LOCK_ACCESS_SINGLE@)
 (define CURL_LOCK_ACCESS_LAST			@VALUEOF_CURL_LOCK_ACCESS_LAST@)
 
+;; enum CURLSHcode
+(define CURLSHE_OK				@VALUEOF_CURLSHE_OK@)
+(define CURLSHE_BAD_OPTION			@VALUEOF_CURLSHE_BAD_OPTION@)
+(define CURLSHE_IN_USE				@VALUEOF_CURLSHE_IN_USE@)
+(define CURLSHE_INVALID				@VALUEOF_CURLSHE_INVALID@)
+(define CURLSHE_NOMEM				@VALUEOF_CURLSHE_NOMEM@)
+(define CURLSHE_LAST				@VALUEOF_CURLSHE_LAST@)
+
+;; enum CURLSHoption
+(define CURLSHOPT_NONE				@VALUEOF_CURLSHOPT_NONE@)
+(define CURLSHOPT_SHARE				@VALUEOF_CURLSHOPT_SHARE@)
+(define CURLSHOPT_UNSHARE			@VALUEOF_CURLSHOPT_UNSHARE@)
+(define CURLSHOPT_LOCKFUNC			@VALUEOF_CURLSHOPT_LOCKFUNC@)
+(define CURLSHOPT_UNLOCKFUNC			@VALUEOF_CURLSHOPT_UNLOCKFUNC@)
+(define CURLSHOPT_USERDATA			@VALUEOF_CURLSHOPT_USERDATA@)
+(define CURLSHOPT_LAST				@VALUEOF_CURLSHOPT_LAST@)
+
+;; enum CURLversion
+(define CURLVERSION_FIRST			@VALUEOF_CURLVERSION_FIRST@)
+(define CURLVERSION_SECOND			@VALUEOF_CURLVERSION_SECOND@)
+(define CURLVERSION_THIRD			@VALUEOF_CURLVERSION_THIRD@)
+(define CURLVERSION_FOURTH			@VALUEOF_CURLVERSION_FOURTH@)
+(define CURLVERSION_LAST			@VALUEOF_CURLVERSION_LAST@)
+
+(define CURLVERSION_NOW				@VALUEOF_CURLVERSION_NOW@)
+
+;; version codes
+(define CURL_VERSION_IPV6			@VALUEOF_CURL_VERSION_IPV6@)
+(define CURL_VERSION_KERBEROS4			@VALUEOF_CURL_VERSION_KERBEROS4@)
+(define CURL_VERSION_SSL			@VALUEOF_CURL_VERSION_SSL@)
+(define CURL_VERSION_LIBZ			@VALUEOF_CURL_VERSION_LIBZ@)
+(define CURL_VERSION_NTLM			@VALUEOF_CURL_VERSION_NTLM@)
+(define CURL_VERSION_GSSNEGOTIATE		@VALUEOF_CURL_VERSION_GSSNEGOTIATE@)
+(define CURL_VERSION_DEBUG			@VALUEOF_CURL_VERSION_DEBUG@)
+(define CURL_VERSION_ASYNCHDNS			@VALUEOF_CURL_VERSION_ASYNCHDNS@)
+(define CURL_VERSION_SPNEGO			@VALUEOF_CURL_VERSION_SPNEGO@)
+(define CURL_VERSION_LARGEFILE			@VALUEOF_CURL_VERSION_LARGEFILE@)
+(define CURL_VERSION_IDN			@VALUEOF_CURL_VERSION_IDN@)
+(define CURL_VERSION_SSPI			@VALUEOF_CURL_VERSION_SSPI@)
+(define CURL_VERSION_CONV			@VALUEOF_CURL_VERSION_CONV@)
+(define CURL_VERSION_CURLDEBUG			@VALUEOF_CURL_VERSION_CURLDEBUG@)
+
+;; enum CURLMcode
+(define CURLM_CALL_MULTI_PERFORM		@VALUEOF_CURLM_CALL_MULTI_PERFORM@)
+(define CURLM_OK				@VALUEOF_CURLM_OK@)
+(define CURLM_BAD_HANDLE			@VALUEOF_CURLM_BAD_HANDLE@)
+(define CURLM_BAD_EASY_HANDLE			@VALUEOF_CURLM_BAD_EASY_HANDLE@)
+(define CURLM_OUT_OF_MEMORY			@VALUEOF_CURLM_OUT_OF_MEMORY@)
+(define CURLM_INTERNAL_ERROR			@VALUEOF_CURLM_INTERNAL_ERROR@)
+(define CURLM_BAD_SOCKET			@VALUEOF_CURLM_BAD_SOCKET@)
+(define CURLM_UNKNOWN_OPTION			@VALUEOF_CURLM_UNKNOWN_OPTION@)
+(define CURLM_LAST				@VALUEOF_CURLM_LAST@)
+
+;; enum CURLMSG
+(define CURLMSG_NONE				@VALUEOF_CURLMSG_NONE@)
+(define CURLMSG_DONE				@VALUEOF_CURLMSG_DONE@)
+(define CURLMSG_LAST				@VALUEOF_CURLMSG_LAST@)
+
+;; enum CURLMoption
+(define CURLMOPT_SOCKETFUNCTION			@VALUEOF_CURLMOPT_SOCKETFUNCTION@)
+(define CURLMOPT_SOCKETDATA			@VALUEOF_CURLMOPT_SOCKETDATA@)
+(define CURLMOPT_PIPELINING			@VALUEOF_CURLMOPT_PIPELINING@)
+(define CURLMOPT_TIMERFUNCTION			@VALUEOF_CURLMOPT_TIMERFUNCTION@)
+(define CURLMOPT_TIMERDATA			@VALUEOF_CURLMOPT_TIMERDATA@)
+(define CURLMOPT_MAXCONNECTS			@VALUEOF_CURLMOPT_MAXCONNECTS@)
+(define CURLMOPT_LASTENTRY			@VALUEOF_CURLMOPT_LASTENTRY@)
+
 
 
 ;;;; data structures accessors and mutators
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-next-set!
-  struct-curl_httppost_t-next-ref
+  struct-curl_httppost-next-set!
+  struct-curl_httppost-next-ref
   @OFFSETOF_CURL_HTTPPOST_NEXT@
   @SETTEROF_CURL_HTTPPOST_NEXT@
   @GETTEROF_CURL_HTTPPOST_NEXT@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-name-set!
-  struct-curl_httppost_t-name-ref
+  struct-curl_httppost-name-set!
+  struct-curl_httppost-name-ref
   @OFFSETOF_CURL_HTTPPOST_NAME@
   @SETTEROF_CURL_HTTPPOST_NAME@
   @GETTEROF_CURL_HTTPPOST_NAME@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-namelength-set!
-  struct-curl_httppost_t-namelength-ref
+  struct-curl_httppost-namelength-set!
+  struct-curl_httppost-namelength-ref
   @OFFSETOF_CURL_HTTPPOST_NAMELENGTH@
   @SETTEROF_CURL_HTTPPOST_NAMELENGTH@
   @GETTEROF_CURL_HTTPPOST_NAMELENGTH@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-contents-set!
-  struct-curl_httppost_t-contents-ref
+  struct-curl_httppost-contents-set!
+  struct-curl_httppost-contents-ref
   @OFFSETOF_CURL_HTTPPOST_CONTENTS@
   @SETTEROF_CURL_HTTPPOST_CONTENTS@
   @GETTEROF_CURL_HTTPPOST_CONTENTS@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-contentslength-set!
-  struct-curl_httppost_t-contentslength-ref
+  struct-curl_httppost-contentslength-set!
+  struct-curl_httppost-contentslength-ref
   @OFFSETOF_CURL_HTTPPOST_CONTENTSLENGTH@
   @SETTEROF_CURL_HTTPPOST_CONTENTSLENGTH@
   @GETTEROF_CURL_HTTPPOST_CONTENTSLENGTH@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-buffer-set!
-  struct-curl_httppost_t-buffer-ref
+  struct-curl_httppost-buffer-set!
+  struct-curl_httppost-buffer-ref
   @OFFSETOF_CURL_HTTPPOST_BUFFER@
   @SETTEROF_CURL_HTTPPOST_BUFFER@
   @GETTEROF_CURL_HTTPPOST_BUFFER@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-bufferlength-set!
-  struct-curl_httppost_t-bufferlength-ref
+  struct-curl_httppost-bufferlength-set!
+  struct-curl_httppost-bufferlength-ref
   @OFFSETOF_CURL_HTTPPOST_BUFFERLENGTH@
   @SETTEROF_CURL_HTTPPOST_BUFFERLENGTH@
   @GETTEROF_CURL_HTTPPOST_BUFFERLENGTH@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-contenttype-set!
-  struct-curl_httppost_t-contenttype-ref
+  struct-curl_httppost-contenttype-set!
+  struct-curl_httppost-contenttype-ref
   @OFFSETOF_CURL_HTTPPOST_CONTENTTYPE@
   @SETTEROF_CURL_HTTPPOST_CONTENTTYPE@
   @GETTEROF_CURL_HTTPPOST_CONTENTTYPE@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-contentheader-set!
-  struct-curl_httppost_t-contentheader-ref
+  struct-curl_httppost-contentheader-set!
+  struct-curl_httppost-contentheader-ref
   @OFFSETOF_CURL_HTTPPOST_CONTENTHEADER@
   @SETTEROF_CURL_HTTPPOST_CONTENTHEADER@
   @GETTEROF_CURL_HTTPPOST_CONTENTHEADER@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-more-set!
-  struct-curl_httppost_t-more-ref
+  struct-curl_httppost-more-set!
+  struct-curl_httppost-more-ref
   @OFFSETOF_CURL_HTTPPOST_MORE@
   @SETTEROF_CURL_HTTPPOST_MORE@
   @GETTEROF_CURL_HTTPPOST_MORE@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-flags-set!
-  struct-curl_httppost_t-flags-ref
+  struct-curl_httppost-flags-set!
+  struct-curl_httppost-flags-ref
   @OFFSETOF_CURL_HTTPPOST_FLAGS@
   @SETTEROF_CURL_HTTPPOST_FLAGS@
   @GETTEROF_CURL_HTTPPOST_FLAGS@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-showfilename-set!
-  struct-curl_httppost_t-showfilename-ref
+  struct-curl_httppost-showfilename-set!
+  struct-curl_httppost-showfilename-ref
   @OFFSETOF_CURL_HTTPPOST_SHOWFILENAME@
   @SETTEROF_CURL_HTTPPOST_SHOWFILENAME@
   @GETTEROF_CURL_HTTPPOST_SHOWFILENAME@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_httppost_t-userp-set!
-  struct-curl_httppost_t-userp-ref
+  struct-curl_httppost-userp-set!
+  struct-curl_httppost-userp-ref
   @OFFSETOF_CURL_HTTPPOST_USERP@
   @SETTEROF_CURL_HTTPPOST_USERP@
   @GETTEROF_CURL_HTTPPOST_USERP@)
@@ -1495,29 +1767,29 @@
 ;;; --------------------------------------------------------------------
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_sockaddr_t-family-set!
-  struct-curl_sockaddr_t-family-ref
+  struct-curl_sockaddr-family-set!
+  struct-curl_sockaddr-family-ref
   @OFFSETOF_CURL_SOCKADDR_FAMILY@
   @SETTEROF_CURL_SOCKADDR_FAMILY@
   @GETTEROF_CURL_SOCKADDR_FAMILY@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_sockaddr_t-socktype-set!
-  struct-curl_sockaddr_t-socktype-ref
+  struct-curl_sockaddr-socktype-set!
+  struct-curl_sockaddr-socktype-ref
   @OFFSETOF_CURL_SOCKADDR_SOCKTYPE@
   @SETTEROF_CURL_SOCKADDR_SOCKTYPE@
   @GETTEROF_CURL_SOCKADDR_SOCKTYPE@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_sockaddr_t-protocol-set!
-  struct-curl_sockaddr_t-protocol-ref
+  struct-curl_sockaddr-protocol-set!
+  struct-curl_sockaddr-protocol-ref
   @OFFSETOF_CURL_SOCKADDR_PROTOCOL@
   @SETTEROF_CURL_SOCKADDR_PROTOCOL@
   @GETTEROF_CURL_SOCKADDR_PROTOCOL@)
 
 (define-c-struct-accessor-and-mutator
-  struct-curl_sockaddr_t-addrlen-set!
-  struct-curl_sockaddr_t-addrlen-ref
+  struct-curl_sockaddr-addrlen-set!
+  struct-curl_sockaddr-addrlen-ref
   @OFFSETOF_CURL_SOCKADDR_ADDRLEN@
   @SETTEROF_CURL_SOCKADDR_ADDRLEN@
   @GETTEROF_CURL_SOCKADDR_ADDRLEN@)
@@ -1592,6 +1864,137 @@
   @OFFSETOF_CURL_CERTINFO_CERTINFO@
   @SETTEROF_CURL_CERTINFO_CERTINFO@
   @GETTEROF_CURL_CERTINFO_CERTINFO@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-age-set!
+  struct-curl_version_info_data-age-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_AGE@
+  @SETTEROF_CURL_VERSION_INFO_DATA_AGE@
+  @GETTEROF_CURL_VERSION_INFO_DATA_AGE@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-version-set!
+  struct-curl_version_info_data-version-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_VERSION@
+  @SETTEROF_CURL_VERSION_INFO_DATA_VERSION@
+  @GETTEROF_CURL_VERSION_INFO_DATA_VERSION@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-version_num-set!
+  struct-curl_version_info_data-version_num-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_VERSION_NUM@
+  @SETTEROF_CURL_VERSION_INFO_DATA_VERSION_NUM@
+  @GETTEROF_CURL_VERSION_INFO_DATA_VERSION_NUM@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-host-set!
+  struct-curl_version_info_data-host-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_HOST@
+  @SETTEROF_CURL_VERSION_INFO_DATA_HOST@
+  @GETTEROF_CURL_VERSION_INFO_DATA_HOST@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-features-set!
+  struct-curl_version_info_data-features-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_FEATURES@
+  @SETTEROF_CURL_VERSION_INFO_DATA_FEATURES@
+  @GETTEROF_CURL_VERSION_INFO_DATA_FEATURES@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-ssl_version-set!
+  struct-curl_version_info_data-ssl_version-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_VERSION@
+  @SETTEROF_CURL_VERSION_INFO_DATA_VERSION@
+  @GETTEROF_CURL_VERSION_INFO_DATA_VERSION@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-ssl_version_num-set!
+  struct-curl_version_info_data-ssl_version_num-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_SSL_VERSION_NUM@
+  @SETTEROF_CURL_VERSION_INFO_DATA_SSL_VERSION_NUM@
+  @GETTEROF_CURL_VERSION_INFO_DATA_SSL_VERSION_NUM@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-libz_version-set!
+  struct-curl_version_info_data-libz_version-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_LIBZ_VERSION@
+  @SETTEROF_CURL_VERSION_INFO_DATA_LIBZ_VERSION@
+  @GETTEROF_CURL_VERSION_INFO_DATA_LIBZ_VERSION@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-protocols-set!
+  struct-curl_version_info_data-protocols-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_PROTOCOLS@
+  @SETTEROF_CURL_VERSION_INFO_DATA_PROTOCOLS@
+  @GETTEROF_CURL_VERSION_INFO_DATA_PROTOCOLS@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-ares-set!
+  struct-curl_version_info_data-ares-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_ARES@
+  @SETTEROF_CURL_VERSION_INFO_DATA_ARES@
+  @GETTEROF_CURL_VERSION_INFO_DATA_ARES@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-ares_num-set!
+  struct-curl_version_info_data-ares_num-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_ARES_NUM@
+  @SETTEROF_CURL_VERSION_INFO_DATA_ARES_NUM@
+  @GETTEROF_CURL_VERSION_INFO_DATA_ARES_NUM@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-libidn-set!
+  struct-curl_version_info_data-libidn-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_LIBIDN@
+  @SETTEROF_CURL_VERSION_INFO_DATA_LIBIDN@
+  @GETTEROF_CURL_VERSION_INFO_DATA_LIBIDN@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-iconv_ver_num-set!
+  struct-curl_version_info_data-iconv_ver_num-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_ICONV_VER_NUM@
+  @SETTEROF_CURL_VERSION_INFO_DATA_ICONV_VER_NUM@
+  @GETTEROF_CURL_VERSION_INFO_DATA_ICONV_VER_NUM@)
+
+(define-c-struct-accessor-and-mutator
+  struct-curl_version_info_data-libssh_version-set!
+  struct-curl_version_info_data-libssh_version-ref
+  @OFFSETOF_CURL_VERSION_INFO_DATA_LIBSSH_VERSION@
+  @SETTEROF_CURL_VERSION_INFO_DATA_LIBSSH_VERSION@
+  @GETTEROF_CURL_VERSION_INFO_DATA_LIBSSH_VERSION@)
+
+;;; --------------------------------------------------------------------
+
+(define-c-struct-accessor-and-mutator
+  struct-CURLMsg-msg-set!
+  struct-CURLMsg-msg-ref
+  @OFFSETOF_CURLMSG_MSG@
+  @SETTEROF_CURLMSG_MSG@
+  @GETTEROF_CURLMSG_MSG@)
+
+(define-c-struct-accessor-and-mutator
+  struct-CURLMsg-easy_handle-set!
+  struct-CURLMsg-easy_handle-ref
+  @OFFSETOF_CURLMSG_EASY_HANDLE@
+  @SETTEROF_CURLMSG_EASY_HANDLE@
+  @GETTEROF_CURLMSG_EASY_HANDLE@)
+
+(define-c-struct-accessor-and-mutator
+  struct-CURLMsg-whatever-set!
+  struct-CURLMsg-whatever-ref
+  @OFFSETOF_CURLMSG_WHATEVER@
+  @SETTEROF_CURLMSG_WHATEVER@
+  @GETTEROF_CURLMSG_WHATEVER@)
+
+(define-c-struct-accessor-and-mutator
+  struct-CURLMsg-result-set!
+  struct-CURLMsg-result-ref
+  @OFFSETOF_CURLMSG_RESULT@
+  @SETTEROF_CURLMSG_RESULT@
+  @GETTEROF_CURLMSG_RESULT@)
+
 
 
 ;;;; done

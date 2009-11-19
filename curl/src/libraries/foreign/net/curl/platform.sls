@@ -38,10 +38,18 @@
 
 
 (define int*					'pointer)
+(define long*					'pointer)
+(define size_t*					'pointer)
+(define time_t*					'pointer)
 (define CURL*					'pointer)
+(define CURLSH*					'pointer)
 (define struct-curl_httppost*			'pointer)
 (define struct-curl_httppost**			'pointer)
 (define struct-curl_slist*			'pointer)
+(define curl_version_info_data*			'pointer)
+
+;;*FIXME* How do they implement "time_t"?
+(define time_t					'signed-long)
 
 
 ;;This is variadic.
@@ -63,7 +71,7 @@
   (char* curl_version (void)))
 
 (define-c-function curl_easy_escape
-  (char* curl_easy_escape (CURL* handle char* int)))
+  (char* curl_easy_escape (CURL* char* int)))
 
 (define-c-function curl_escape
   (char* curl_escape (char* int)))
@@ -94,11 +102,112 @@
 (define-c-function curl_slist_free_all
   (void curl_slist_free_all (struct-curl_slist*)))
 
-;;*FIXME* How do they implement "time_t"?
-(define time_t 'long)
 (define-c-function curl_getdate
   (time_t curl_getdate (char* time_t*)))
 
+(define-c-function curl_share_init
+  (void* curl_share_init (void)))
+
+;;This is variadic.
+;;
+;; (define-c-function curl_share_setopt
+;;   (CURLSHcode curl_share_setopt (CURLSH* CURLSHoption ...)))
+
+(define-c-function curl_share_cleanup
+  (CURLSHcode curl_share_cleanup (CURLSH*)))
+
+(define-c-function curl_version_info
+  (curl_version_info_data* curl_version_info (CURLversion)))
+
+(define-c-function curl_easy_strerror
+  (char* curl_easy_strerror (CURLcode)))
+
+(define-c-function curl_share_strerror
+  (char* curl_share_strerror (CURLSHcode)))
+
+(define-c-function curl_easy_pause
+  (CURLcode curl_easy_pause (void* int)))
+
+;;; --------------------------------------------------------------------
+;;; The wollowing comes from "easy.h".
+
+(define-c-function curl_easy_init
+  (void* curl_easy_init (void)))
+
+;;This is variadic
+;;
+;; (define-c-function curl_easy_setopt
+;;   (CURLcode curl_easy_setopt (void* CURLoption ...)))
+
+(define-c-function curl_easy_perform
+  (CURLcode curl_easy_perform (void*)))
+
+(define-c-function curl_easy_cleanup
+  (void curl_easy_cleanup (void*)))
+
+;;This is variadic
+;;
+;; (define-c-function curl_easy_getinfo
+;;   (CURLcode curl_easy_getinfo (void* CURLINFO ...)))
+
+(define-c-function curl_easy_duphandle
+  (void* curl_easy_duphandle (void*)))
+
+(define-c-function curl_easy_reset
+  (void curl_easy_reset (void*)))
+
+(define-c-function curl_easy_recv
+  (CURLcode curl_easy_recv (void* void* size_t size_t*)))
+
+(define-c-function curl_easy_send
+  (CURLcode curl_easy_send (void* void* size_t size_t*)))
+
+;;; --------------------------------------------------------------------
+;;; The wollowing comes from "multi.h".
+
+(define-c-function curl_multi_init
+  (void* curl_multi_init (void)))
+
+(define-c-function curl_multi_add_handle
+  (CURLMcode curl_multi_add_handle (void* void*)))
+
+(define-c-function curl_multi_remove_handle
+  (CURLMcode curl_multi_remove_handle (void* void*)))
+
+(define-c-function curl_multi_fdset
+  (CURLMcode curl_multi_fdset (void* void* void* void* int*)))
+
+(define-c-function curl_multi_perform
+  (CURLMcode curl_multi_perform (void* int*)))
+
+(define-c-function curl_multi_cleanup
+  (CURLMcode curl_multi_cleanup (void*)))
+
+(define-c-function curl_multi_info_read
+  (void* curl_multi_info_read (void* int*)))
+
+(define-c-function curl_multi_strerror
+  (char* curl_multi_strerror (CURLMcode)))
+
+(define-c-function curl_multi_socket
+  (CURLMcode curl_multi_socket (void* curl_socket_t int*)))
+
+(define-c-function curl_multi_socket_action
+  (CURLMcode curl_multi_socket_action (void* curl_socket_t int int*)))
+
+(define-c-function curl_multi_socket_all
+  (CURLMcode curl_multi_socket_all (void* int*)))
+
+(define-c-function curl_multi_timeout
+  (CURLMcode curl_multi_timeout (void* long*)))
+
+;;This is variadic
+;;
+;; (define-c-function curl_multi_setopt
+;;   (CURLMcode curl_multi_setopt (void* CURLMoption ...)))
+
+(define-c-function curl_multi_assign
+  (CURLMcode curl_multi_assign (void* curl_socket_t void*)))
 
 
 ;;;; done
