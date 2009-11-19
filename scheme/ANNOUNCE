@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Scheme 2009-11-15 tag 0.1a4
+Subject: [announce] Nausicaa/Scheme 2009-11-19 tag 0.1a5
 
 		      Nausicaa/Scheme
 		      ===============
@@ -38,6 +38,16 @@ development takes place at:
 the documentation is available on line:
 
      <http://marcomaggi.github.com/docs/nausicaa.html>
+
+
+Notes for 2009-11-19 tag 0.1a5
+------------------------------
+
+* Updated FFI  to Mosh Scheme revision  2187, which provides
+  the full  set of Scheme-to-C callout  arguments and return
+  values.
+
+* Added dictionary and string/number comparison functions.
 
 
 Notes for 2009-11-15 tag 0.1a4
