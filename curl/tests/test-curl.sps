@@ -27,7 +27,9 @@
 
 (import (nausicaa)
   (compensations)
+  (foreign ffi)
   (foreign net curl)
+  (foreign net curl compensated)
   (foreign memory)
   (foreign cstrings)
   (checks))
@@ -105,6 +107,26 @@
 
 	(<curl-version-info>? s))
     => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'easy))
+
+  (check
+      (with-compensations
+	(let* ((handle	(curl-easy-init/c))
+	       (out	"")
+	       (cb	(lambda (buffer item-size item-count)
+			  (let ((len (* item-size item-count)))
+			    (set! out (string-append out (cstring->string buffer len)))
+			    len))))
+	  (curl-easy-setopt handle CURLOPT_URL "http://localhost:8080/index.html")
+	  (curl-easy-setopt handle CURLOPT_WRITEFUNCTION (curl-make-write-callback cb))
+	  (curl-easy-setopt handle CURLOPT_WRITEDATA pointer-null)
+	  (curl-easy-perform handle)
+	  out))
+    => "<html><body><p>proof page</p></body></html>\n")
 
   #t)
 

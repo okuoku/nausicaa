@@ -8,7 +8,8 @@ Topics
 
   1. Introduction
   2. License
-  4. Install
+  3. Install
+  4. Testing
   A. Credits
   B. Bug reports
   C. Resources
@@ -55,7 +56,7 @@ License   along   with    this   program.    If   not,   see
 <http://www.gnu.org/licenses/>.
 
 
-4. Install
+3. Install
 ----------
 
 Be sure to have installed the Nausicaa/Scheme package first.
@@ -83,6 +84,21 @@ to install the files under a temporary location; example:
   The   "Makefile"  supports  the   packages  infrastructure
 described  in the  Nausicaa documentation.   Refer to  it to
 build binary distribution archives.
+
+
+4. Testing
+----------
+
+Running  the  tests is  done  with  "make  test".  The  test
+programs expect that a  web server is listening on localhost
+port 8080  and ready to serve pages  from the "src/lighttpd"
+directory of the source tree.
+
+  The "src/lighttpd" has basic configuration for Lighttpd, a
+lightweight web  server which is  very simple to set  up for
+testing purposes.  To use it,  we only need to customise the
+pathnames  in  the   configuration  file  "config"  and  the
+"start.sh" shell script.
 
 
 A. Credits

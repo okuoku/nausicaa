@@ -29,6 +29,9 @@
   (export
 
     curl-version		curl-version-info
+    curl-easy-setopt
+
+    curl-make-read-callback	curl-make-write-callback
 
     (rename (curl_global_init		curl-global-init)
 	    (curl_global_init_mem	curl-global-init-mem)
@@ -41,7 +44,7 @@
 	    (curl_share_strerror	curl-share-strerror)
 	    (curl_easy_pause		curl-easy-pause)
 	    (curl_easy_init		curl-easy-init)
-	    ;;(curl_easy_setopt		curl-easy-setopt)	;this is variadic
+	    ;;(curl_easy_setopt		curl-easy-setopt)	marshaled
 	    (curl_easy_perform		curl-easy-perform)
 	    (curl_easy_cleanup		curl-easy-cleanup)
 	    ;;(curl_easy_getinfo	curl-easy-getinfo)	;this is variadic
@@ -85,9 +88,9 @@
 	    (curl_share_cleanup		curl-share-cleanup)))
   (import (rnrs)
     (compensations)
-    (only (foreign ffi pointers)
-	  pointer-null?)
+    (foreign ffi)
     (only (foreign cstrings)
+	  string->cstring/c
 	  cstring->string
 	  argv->strings)
     (foreign net curl record-types)
@@ -178,6 +181,43 @@
 	 (let ((p (struct-curl_version_info_data-libssh_version-ref struct*)))
 	   (if (pointer-null? p) #f (cstring->string p)))
        #f))))
+
+
+(define (curl-easy-setopt handle option value)
+  (with-compensations
+    (cond ((= option CURLOPT_URL)
+	   (curl_easy_setopt/void* handle option (string->cstring/c value)))
+
+	  ((memv option (list CURLOPT_WRITEFUNCTION CURLOPT_WRITEFUNCTION))
+	   (curl_easy_setopt/callback handle option value))
+
+	  ((memv option (list CURLOPT_WRITEDATA CURLOPT_READDATA))
+	   (curl_easy_setopt/void* handle option value))
+
+	  ((memv option (list CURLOPT_VERBOSE CURLOPT_HEADER
+			      CURLOPT_NOPROGRESS CURLOPT_NOSIGNAL))
+	   (curl_easy_setopt/long handle option (if value 1 0)))
+
+	  (else
+	   (assertion-violation 'curl-easy-setopt
+	     "invalid cURL option for handle" option)))))
+
+
+(define (curl-make-write-callback scheme-function)
+  (make-c-callback size_t
+		   (lambda (buffer item-size item-count custom)
+		     (guard (E (else 0))
+		       (scheme-function buffer item-size item-count)))
+		   (void* size_t size_t void*)))
+
+(define (curl-make-read-callback scheme-function)
+  (make-c-callback size_t
+		   (lambda (buffer item-size item-count custom)
+		     (guard (E (else 0))
+		       (scheme-function buffer item-size item-count)))
+		   (void* size_t size_t void*)))
+
+
 
 
 ;;;; done

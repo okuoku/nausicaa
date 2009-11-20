@@ -51,7 +51,13 @@
     curl_share_strerror
     curl_easy_pause
     curl_easy_init
-    ;;curl_easy_setopt			;;This is variadic
+    curl_easy_setopt/callback
+    curl_easy_setopt/void*
+    curl_easy_setopt/int
+    curl_easy_setopt/long
+    curl_easy_setopt/unsigned-int
+    curl_easy_setopt/unsigned-long
+    curl_easy_setopt/off_t
     curl_easy_perform
     curl_easy_cleanup
     ;;curl_easy_getinfo			;;This is variadic
@@ -97,39 +103,6 @@
 (define time_t					'signed-long)
 
 
-;;This is variadic.
-;;
-;; (define-c-function curl_formadd
-;;   (CURLFORMcode curl_formadd (struct-curl_httppost** struct-curl_httppost** ...)))
-
-
-(define-c-function curl_formget
-  (int curl_formget (struct-curl_httppost* void* curl_formget_callback)))
-
-(define-c-function curl_formfree
-  (void curl_formfree (struct-curl_httppost*)))
-
-(define-c-function curl_getenv
-  (char* curl_getenv (char*)))
-
-(define-c-function curl_version
-  (char* curl_version (void)))
-
-(define-c-function curl_easy_escape
-  (char* curl_easy_escape (CURL* char* int)))
-
-(define-c-function curl_escape
-  (char* curl_escape (char* int)))
-
-(define-c-function curl_easy_unescape
-  (char* curl_easy_unescape (CURL*  char* int int*)))
-
-(define-c-function curl_unescape
-  (char* curl_unescape (char* int)))
-
-(define-c-function curl_free
-  (void curl_free (void*)))
-
 (define-c-function curl_global_init
   (CURLcode curl_global_init (long)))
 
@@ -140,6 +113,96 @@
 
 (define-c-function curl_global_cleanup
   (void curl_global_cleanup (void)))
+
+;;; --------------------------------------------------------------------
+
+(define-c-function curl_version_info
+  (curl_version_info_data* curl_version_info (CURLversion)))
+
+(define-c-function curl_version
+  (char* curl_version (void)))
+
+;;; --------------------------------------------------------------------
+
+(define-c-function curl_easy_init
+  (void* curl_easy_init (void)))
+
+(define-c-function curl_easy_cleanup
+  (void curl_easy_cleanup (void*)))
+
+(define-c-function curl_easy_reset
+  (void curl_easy_reset (void*)))
+
+(define curl_easy_setopt/callback
+  (make-c-function CURLcode curl_easy_setopt (void* CURLoption callback)))
+
+(define curl_easy_setopt/void*
+  (make-c-function CURLcode curl_easy_setopt (void* CURLoption void*)))
+
+(define curl_easy_setopt/int
+  (make-c-function CURLcode curl_easy_setopt (void* CURLoption int)))
+
+(define curl_easy_setopt/long
+  (make-c-function CURLcode curl_easy_setopt (void* CURLoption long)))
+
+(define curl_easy_setopt/unsigned-int
+  (make-c-function CURLcode curl_easy_setopt (void* CURLoption unsigned-int)))
+
+(define curl_easy_setopt/unsigned-long
+  (make-c-function CURLcode curl_easy_setopt (void* CURLoption unsigned-long)))
+
+(define curl_easy_setopt/off_t
+  (make-c-function CURLcode curl_easy_setopt (void* CURLoption curl_off_t)))
+
+(define-c-function curl_easy_perform
+  (CURLcode curl_easy_perform (void*)))
+
+;;This is variadic
+;;
+;; (define-c-function curl_easy_getinfo
+;;   (CURLcode curl_easy_getinfo (void* CURLINFO ...)))
+
+(define-c-function curl_easy_duphandle
+  (void* curl_easy_duphandle (void*)))
+
+(define-c-function curl_easy_recv
+  (CURLcode curl_easy_recv (void* void* size_t size_t*)))
+
+(define-c-function curl_easy_send
+  (CURLcode curl_easy_send (void* void* size_t size_t*)))
+
+;;; --------------------------------------------------------------------
+
+(define-c-function curl_easy_escape
+  (char* curl_easy_escape (CURL* char* int)))
+
+(define-c-function curl_easy_unescape
+  (char* curl_easy_unescape (CURL*  char* int int*)))
+
+(define-c-function curl_escape
+  (char* curl_escape (char* int)))
+
+(define-c-function curl_unescape
+  (char* curl_unescape (char* int)))
+
+;;; --------------------------------------------------------------------
+
+;;This is variadic.
+;;
+;; (define-c-function curl_formadd
+;;   (CURLFORMcode curl_formadd (struct-curl_httppost** struct-curl_httppost** ...)))
+
+(define-c-function curl_formget
+  (int curl_formget (struct-curl_httppost* void* curl_formget_callback)))
+
+(define-c-function curl_formfree
+  (void curl_formfree (struct-curl_httppost*)))
+
+(define-c-function curl_getenv
+  (char* curl_getenv (char*)))
+
+(define-c-function curl_free
+  (void curl_free (void*)))
 
 (define-c-function curl_slist_append
   (struct-curl_slist* curl_slist_append (struct-curl_slist* char*)))
@@ -161,9 +224,6 @@
 (define-c-function curl_share_cleanup
   (CURLSHcode curl_share_cleanup (CURLSH*)))
 
-(define-c-function curl_version_info
-  (curl_version_info_data* curl_version_info (CURLversion)))
-
 (define-c-function curl_easy_strerror
   (char* curl_easy_strerror (CURLcode)))
 
@@ -172,40 +232,6 @@
 
 (define-c-function curl_easy_pause
   (CURLcode curl_easy_pause (void* int)))
-
-;;; --------------------------------------------------------------------
-;;; The wollowing comes from "easy.h".
-
-(define-c-function curl_easy_init
-  (void* curl_easy_init (void)))
-
-;;This is variadic
-;;
-;; (define-c-function curl_easy_setopt
-;;   (CURLcode curl_easy_setopt (void* CURLoption ...)))
-
-(define-c-function curl_easy_perform
-  (CURLcode curl_easy_perform (void*)))
-
-(define-c-function curl_easy_cleanup
-  (void curl_easy_cleanup (void*)))
-
-;;This is variadic
-;;
-;; (define-c-function curl_easy_getinfo
-;;   (CURLcode curl_easy_getinfo (void* CURLINFO ...)))
-
-(define-c-function curl_easy_duphandle
-  (void* curl_easy_duphandle (void*)))
-
-(define-c-function curl_easy_reset
-  (void curl_easy_reset (void*)))
-
-(define-c-function curl_easy_recv
-  (CURLcode curl_easy_recv (void* void* size_t size_t*)))
-
-(define-c-function curl_easy_send
-  (CURLcode curl_easy_send (void* void* size_t size_t*)))
 
 ;;; --------------------------------------------------------------------
 ;;; The wollowing comes from "multi.h".

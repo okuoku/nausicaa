@@ -416,7 +416,7 @@
 
     curl-easy-init
     curl-easy-strerror		curl-share-strerror
-    curl-easy-pause ;;curl-easy-setopt	;this is variadic
+    curl-easy-pause		curl-easy-setopt
     curl-easy-perform		curl-easy-cleanup
     ;;curl-easy-getinfo	;this is variadic
     curl-easy-duphandle		curl-easy-reset
@@ -431,7 +431,7 @@
     curl-multi-cleanup		curl-multi-info-read
     curl-multi-strerror		curl-multi-socket
     curl-multi-socket-action	curl-multi-socket-all
-    curl-multi-timeout ;;curl-multi-setopt	;this is variadic
+    curl-multi-timeout		;;curl-multi-setopt	;this is variadic
     curl-multi-assign
 
     ;;curl-formadd		;this is variadic
@@ -441,8 +441,12 @@
     curl-getdate		curl-slist-append
     curl-slist-free-all
 
-    curl-share-init ;;curl-share-setopt	;this is variadic
+    curl-share-init		;;curl-share-setopt	;this is variadic
     curl-share-cleanup
+
+;;; --------------------------------------------------------------------
+
+    curl-make-read-callback	curl-make-write-callback
 
 ;;; --------------------------------------------------------------------
 

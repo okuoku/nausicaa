@@ -1,0 +1,7 @@
+## config --
+##
+
+server.document-root = "/home/marco/src/devel/scheme/nausicaa/curl/src/lighttpd"
+server.port = 8080
+
+### end of file

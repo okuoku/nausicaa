@@ -506,6 +506,10 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package.
 * types::                       Record types.
+* easy::                        Easy interface.
+* misc::                        Miscellaneous functions.
+* compensated::                 Compensated constructors.
+* platform::                    Details on the platform library.
 
 Appendices
 
@@ -519,7 +523,27 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Record types
+
+* types version info::          Libraries version informations.
+
+Easy interface
+
+* easy intro::                  Introduction to the easy interface.
+* easy options::                Setting handle's options.
+* easy callbacks::              Preparing callbacks.
+
+Miscellaneous functions
+
+* misc version::                Version informations about @curl{}.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 @c page
@@ -528,7 +552,7 @@ Indexes
 
 
 @value{PACKAGE} is a distribution of libraries for @rnrs{6} Scheme
-implementations; it provides bindings to the Libcurl library: A tool to
+implementations; it provides bindings to the LibcURL library: A tool to
 transfer data from or to a server, using one of the supported protocols
 (@http{}, @https{}, @ftp{}, @ftps{}, @tftp{}, @acronym{DICT},
 @acronym{TELNET}, @acronym{LDAP} or @acronym{FILE}).
@@ -561,6 +585,9 @@ Defines condition types used to signal @value{PACKAGE} errors.
 @item foreign net curl enumerations
 Defines enumeration sets of symbols.
 
+@item foreign net curl record-types
+Defines record types that match @curl{} structures.
+
 @item foreign net curl primitives
 Exports a binding for each foreign function, implementing, for some of
 them, marshaling of arguments and return values; the Scheme functions
@@ -575,14 +602,19 @@ Compound library; reexports bindings from the following libraries:
 (foreign net curl sizeof)
 (foreign net curl conditions)
 (foreign net curl enumerations)
+(foreign net curl record-types)
 (foreign net curl primitives)
 @end example
+
+@noindent
+only bindings to constant values are reexported from @library{foreign
+net curl sizeof}.
 
 @item foreign net curl compensated
 Additional wrappers for constructors and destructors making use of the
 @library{compensations} library; this library is built on top of
 @library{foreign net curl}.  @nauref{compensations, Compensation
-stacks}
+stacks}.
 @end table
 
 @c page
@@ -687,6 +719,269 @@ Constructor and predicate for records of type @class{curl-version-info}.
 @defunx <curl-version-info>-iconv @var{record}
 @defunx <curl-version-info>-libssh-version @var{record}
 Field accessors for records of type @class{curl-version-info}.
+@end defun
+
+@c page
+@node easy
+@chapter Easy interface
+
+
+The bindings documented in this chapter are exported by @library{foreign
+net curl primitives} and reexported by @library{foreign net curl}.
+
+@menu
+* easy intro::                  Introduction to the easy interface.
+* easy options::                Setting handle's options.
+* easy callbacks::              Preparing callbacks.
+@end menu
+
+@c page
+@node easy intro
+@section Introduction to the easy interface
+
+
+The ``easy'' @api{} provides simple one-at-a-time file transfer
+features; a program that requests @file{index.html} from the @aurl{}
+@url{http://localhost:8080/} looks like this:
+
+@example
+(import (rnrs)
+  (only (foreign ffi pointers) pointer-null)
+  (compensations)
+  (foreign net curl))
+
+(define address "http://localhost:8080/index.html")
+
+(define document "")
+
+(define (write-callback buffer item-size item-count)
+  (let ((len (* item-size item-count)))
+    (set! out (string-append out (cstring->string buffer len)))
+    len))
+
+(curl-global-init CURL_GLOBAL_ALL)
+
+(with-compensations
+  (let* ((handle (curl-easy-init/c)))
+    (curl-easy-setopt handle CURLOPT_URL address)
+    (curl-easy-setopt handle CURLOPT_WRITEFUNCTION
+                      (curl-make-write-callback write-callback))
+    (curl-easy-setopt handle CURLOPT_WRITEDATA pointer-null)
+    (curl-easy-perform handle)
+    ---))
+@end example
+
+@noindent
+the callback @func{write-callback} may be called any number of times; if
+successful it must return the number of bytes consumed from the buffer,
+else it can return zero.
+
+@c page
+@node easy options
+@section Setting handle's options
+
+
+@curl{} offers countless options to be set with
+@cfunc{curl_easy_setopt}; the primitives library provides a special
+interface for some of them, implementing marshaling of arguments from
+Scheme to C language.  For the other options, the generic interfaces to
+@cfunc{curl_easy_setopt} from @library{foreign net curl platform} must
+be used.  @ref{platform, Details on the platform library}.
+
+
+
+@defun curl-easy-setopt @var{handle} @var{option} @var{value}
+Select an option's value for the session @var{handle}.  @var{option}
+must be an exact integer among the @samp{CURLOPT_*} values; @var{value}
+must be an appropriate value for the selected option.
+
+@func{curl-easy-setopt} recognises the value of @var{option} and does
+the appropriate marshaling of @var{value} for the underlying
+@func{curl_easy_setopt} function.  Conversion is as follows:
+
+@table @samp
+@item CURLOPT_URL
+@var{value} must be a Scheme string representing the @aurl{}.
+
+@item CURLOPT_WRITEFUNCTION
+@var{value} must be a C callback object, suitable to be used as callback
+of type @code{curl_write_callback}.
+
+@item CURLOPT_WRITEDATA
+@var{value} must be a pointer object; it will be used as last argument
+to the write callback.
+
+@item CURLOPT_READFUNCTION
+@var{value} must be a C callback object, suitable to be used as callback
+of type @code{curl_read_callback}.
+
+@item CURLOPT_READDATA
+@var{value} must be a pointer object; it will be used as last argument
+to the read callback.
+
+@item CURLOPT_VERBOSE
+@var{value} must be a Scheme boolean; @true{} tells @curl{} to display
+informations when performing.
+
+@item CURLOPT_HEADER
+@var{value} must be a Scheme boolean; @true{} tells @curl{} to include
+the protocol headers in the output.
+
+@item CURLOPT_NOPROGRESS
+@var{value} must be a Scheme boolean; @true{} tells @curl{} to shut off
+the internal progress meter.
+
+@item CURLOPT_NOSIGNAL
+@var{value} must be a Scheme boolean; @true{} tells @curl{} not to
+install signal handlers.
+@end table
+@end defun
+
+@c da fare CURLOPT_IOCTLFUNCTION
+
+
+@c page
+@node easy callbacks
+@section Preparing callbacks
+
+
+@defun curl-make-write-callback @var{scheme-function}
+Prepare a callback C function to be used as value for the
+@samp{CURLOPT_WRITEFUNCTION} option.  It is defined as follows:
+
+@example
+(define (curl-make-write-callback scheme-function)
+  (make-c-callback
+     size_t
+     (lambda (buffer item-size item-count custom)
+       (guard (E (else 0))
+         (scheme-function buffer item-size item-count)))
+     (void* size_t size_t void*)))
+@end example
+@end defun
+
+
+@defun curl-make-read-callback @var{scheme-function}
+Prepare a callback C function to be used as value for the
+@samp{CURLOPT_READFUNCTION} option.  It is defined as follows:
+
+@example
+(define (curl-make-read-callback scheme-function)
+  (make-c-callback
+     size_t
+     (lambda (buffer item-size item-count custom)
+       (guard (E (else 0))
+         (scheme-function buffer item-size item-count)))
+     (void* size_t size_t void*)))
+@end example
+@end defun
+
+
+@c page
+@node misc
+@chapter Miscellaneous functions
+
+
+The bindings documented in this chapter are exported by @library{foreign
+net curl primitives} and reexported by @library{foreign net curl}.
+
+@menu
+* misc version::                Version informations about @curl{}.
+@end menu
+
+@c page
+@node misc version
+@section Version informations about @curl{}
+
+
+@defun curl-version
+Return a Scheme string describing general @curl{} version informations.
+Example:
+
+@smallexample
+(cur-version)
+@result{} "libcurl/7.19.7 OpenSSL/0.9.8i zlib/1.2.3 c-ares/1.6.0 libidn/1.12"
+@end smallexample
+@end defun
+
+
+@defun curl-version-info
+Return a record of type @class{curl-version-info} filled with version
+informations on the build of @curl{}.  @ref{types version info,
+Libraries version informations}.
+@end defun
+
+@c page
+@node compensated
+@chapter Compensated constructors
+
+
+The following bindings are exported from the library @library{foreign
+net curl compensated}.  The library makes use of the compensation stacks
+library, @library{compensations}.  @nauref{compensations, Compensation
+stacks}.
+
+
+@defun curl-easy-init/c
+Wrapper for @func{curl-easy-init} which registers in the current
+compensation stack the appropriate call to @func{curl-easy-cleanup} to
+destroy the handle.
+@end defun
+
+
+@c page
+@node platform
+@chapter Details on the platform library
+
+
+Some functions from @curl{} are variadic; variadic C language functions
+are unsupported by Nausicaa's @ffi{}.  For this reason the following
+interface functions are exported by @library{foreign net curl platform}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Setting options for the easy @api{}
+
+
+@defun curl_easy_setopt/callback @var{void*} @var{CURLoption} @var{callback}
+Wrapper for @cfunc{curl_easy_setopt} which expects a callback as last
+argument.
+@end defun
+
+
+@defun curl_easy_setopt/void* @var{void*} @var{CURLoption} @var{void*}
+Wrapper for @cfunc{curl_easy_setopt} which expects a pointer as last
+argument.
+@end defun
+
+
+@defun curl_easy_setopt/int @var{void*} @var{CURLoption} @var{int}
+Wrapper for @cfunc{curl_easy_setopt} which expects an @code{int} as last
+argument.
+@end defun
+
+
+@defun curl_easy_setopt/long @var{void*} @var{CURLoption} @var{long}
+Wrapper for @cfunc{curl_easy_setopt} which expects a @code{long} as last
+argument.
+@end defun
+
+
+@defun curl_easy_setopt/unsigned-int @var{void*} @var{CURLoption} @var{unsigned-int}
+Wrapper for @cfunc{curl_easy_setopt} which expects an @code{unsigned
+int} as last argument.
+@end defun
+
+
+@defun curl_easy_setopt/unsigned-long @var{void*} @var{CURLoption} @var{unsigned-long}
+Wrapper for @cfunc{curl_easy_setopt} which expects an @code{unsigned
+long} as last argument.
+@end defun
+
+
+@defun curl_easy_setopt/off_t @var{void*} @var{CURLoption} @var{curl_off_t}
+Wrapper for @cfunc{curl_easy_setopt} which expects a @code{curl_off_t}
+as last argument.
 @end defun
 
 @c page
