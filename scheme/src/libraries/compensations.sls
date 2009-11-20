@@ -54,7 +54,7 @@
        (with-exception-handler
 	   (lambda (exc)
 	     (run-compensations)
-	     (raise exc))
+	     (raise-continuable exc))
 	 (lambda ()
 	   ?form0 ?form ...))))))
 
@@ -62,10 +62,23 @@
   (syntax-rules ()
     ((_ ?form0 ?form ...)
      (parametrise ((compensations '()))
-       (dynamic-wind
-	   (lambda () #f)
-	   (lambda () ?form0 ?form ...)
-	   (lambda () (run-compensations)))))))
+       (with-exception-handler
+	   (lambda (exc)
+	     (run-compensations)
+	     (raise-continuable exc))
+	 (lambda ()
+	   (let ((result (begin ?form0 ?form ...)))
+	     (run-compensations)
+	     result)))))))
+
+;; (define-syntax with-compensations
+;;   (syntax-rules ()
+;;     ((_ ?form0 ?form ...)
+;;      (parametrise ((compensations '()))
+;;        (dynamic-wind
+;; 	   (lambda () #f)
+;; 	   (lambda () ?form0 ?form ...)
+;; 	   (lambda () (run-compensations)))))))
 
 (define-syntax push-compensation
   (syntax-rules ()
