@@ -27,7 +27,52 @@
 
 (library (foreign net curl platform)
   (export
-    )
+    ;;curl_formadd			;;This is variadic.
+    curl_formget
+    curl_formfree
+    curl_getenv
+    curl_version
+    curl_easy_escape
+    curl_escape
+    curl_easy_unescape
+    curl_unescape
+    curl_free
+    curl_global_init
+    curl_global_init_mem
+    curl_global_cleanup
+    curl_slist_append
+    curl_slist_free_all
+    curl_getdate
+    curl_share_init
+    ;;curl_share_setopt			;;This is variadic.
+    curl_share_cleanup
+    curl_version_info
+    curl_easy_strerror
+    curl_share_strerror
+    curl_easy_pause
+    curl_easy_init
+    ;;curl_easy_setopt			;;This is variadic
+    curl_easy_perform
+    curl_easy_cleanup
+    ;;curl_easy_getinfo			;;This is variadic
+    curl_easy_duphandle
+    curl_easy_reset
+    curl_easy_recv
+    curl_easy_send
+    curl_multi_init
+    curl_multi_add_handle
+    curl_multi_remove_handle
+    curl_multi_fdset
+    curl_multi_perform
+    curl_multi_cleanup
+    curl_multi_info_read
+    curl_multi_strerror
+    curl_multi_socket
+    curl_multi_socket_action
+    curl_multi_socket_all
+    curl_multi_timeout
+    ;;curl_multi_setopt			;;This is variadic
+    curl_multi_assign)
   (import (rnrs)
     (foreign ffi)
     (foreign net curl sizeof)

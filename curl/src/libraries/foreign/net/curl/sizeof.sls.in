@@ -27,8 +27,6 @@
 (library (foreign net curl sizeof)
   (export
 
-;;;!!!!!!!! sono arrivato alla linea  xxx di curl.h
-
 ;;; --------------------------------------------------------------------
 ;;; data types aliases for function arguments
 

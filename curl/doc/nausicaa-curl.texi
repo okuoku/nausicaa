@@ -505,6 +505,7 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* types::                       Record types.
 
 Appendices
 
@@ -583,6 +584,110 @@ Additional wrappers for constructors and destructors making use of the
 @library{foreign net curl}.  @nauref{compensations, Compensation
 stacks}
 @end table
+
+@c page
+@node types
+@chapter Record types
+
+
+The bindings described in this chapter are exported by the
+@library{foreign net curl record-types} library and reexported by
+@library{foreign net curl}.
+
+@menu
+* types version info::          Libraries version informations.
+@end menu
+
+@c page
+@node types version info
+@section Libraries version informations
+
+
+@deftp {Record Type Name} <curl-version-info>
+@deftpx {Record Type Descriptor} <curl-version-info-rtd>
+Hold informations about the versions of @curl{} and the libraries
+@curl{} uses.  It has the following immutable fields (for details see
+the original @curl{} documentation); when a field's value is not
+available, it is set to @false{}:
+
+@table @code
+@item age
+The version number of the exported data structure of type
+@code{curl_version_info_data}.
+
+@item version
+Scheme string representing @curl{}'s version.
+
+@item version-num
+Integer number representing @curl{}'s version (hexadecimal coded).
+
+@item host
+Scheme string showing host information for this build of @curl{}.
+
+@item features
+A list of Scheme symbols among the following:
+
+@example
+IPV6            KERBEROS4       SSL
+LIBZ            NTLM            GSSNEGOTIATE
+DEBUG           ASYNCHDNS       SPNEGO
+LARGEFILE       IDN             SSPI
+CONV            CURLDEBUG
+@end example
+
+@item ssl-version
+Scheme string representing OpenSSL version.
+
+@item ssl-version-num
+Integer number representing OpenSSL version number.
+
+@item libz-version
+Scheme string representing Zlib version number.
+
+@item protocols
+List of Scheme symbols representing the supported protocols in this
+build of @curl{}.
+
+@item ares
+Scheme string representing C-Ares version.
+
+@item ares-num
+Integer number representing C-Ares version.
+
+@item libidn
+Scheme string representing Libidn version.
+
+@item iconv
+Scheme string representing Libiconf version.
+
+@item libssh-version
+Scheme string representing Libssh version.
+@end table
+@end deftp
+
+
+@defun make-<curl-version-info> @var{age} @var{version} @var{version-num} @var{host} @var{features} @var{ssl-version} @var{ssl-version-num} @var{libz-version} @var{protocols} @var{ares} @var{ares-num} @var{iconv} @var{libssh-version}
+@defunx <curl-version-info>? @var{obj}
+Constructor and predicate for records of type @class{curl-version-info}.
+@end defun
+
+
+@defun <curl-version-info>-age @var{record}
+@defunx <curl-version-info>-version @var{record}
+@defunx <curl-version-info>-version-num @var{record}
+@defunx <curl-version-info>-host @var{record}
+@defunx <curl-version-info>-features @var{record}
+@defunx <curl-version-info>-ssl-version @var{record}
+@defunx <curl-version-info>-ssl-version-num @var{record}
+@defunx <curl-version-info>-libz-version @var{record}
+@defunx <curl-version-info>-protocols @var{record}
+@defunx <curl-version-info>-ares @var{record}
+@defunx <curl-version-info>-ares-num @var{record}
+@defunx <curl-version-info>-libidn @var{record}
+@defunx <curl-version-info>-iconv @var{record}
+@defunx <curl-version-info>-libssh-version @var{record}
+Field accessors for records of type @class{curl-version-info}.
+@end defun
 
 @c page
 

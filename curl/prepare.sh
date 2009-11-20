@@ -20,7 +20,7 @@ set -x
     --enable-fasl                               \
     --enable-ikarus                             \
     --disable-larceny                           \
-    --enable-mosh                               \
+    --disable-mosh                               \
     --enable-ypsilon                            \
     --enable-doc-ps                             \
     --enable-time-tests                         \
