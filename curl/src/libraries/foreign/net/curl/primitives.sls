@@ -31,11 +31,15 @@
     curl-version			curl-version-info
 
     (rename (<curl-handle>?		curl-handle?))
-    curl-easy-init			curl-easy-cleanup
-    curl-easy-reset
-    curl-easy-setopt			curl-easy-perform
-
+    curl-easy-init			curl-easy-duphandle
+    curl-easy-cleanup			curl-easy-reset
+    curl-easy-setopt			curl-easy-getinfo
+    curl-easy-perform			curl-easy-pause
+    curl-easy-recv/string		curl-easy-recv/bytevector
+    curl-easy-send
+    curl-easy-escape			curl-easy-unescape
     curl-easy-strerror			curl-share-strerror
+
     curl-multi-strerror
 
     curl-make-read-callback		curl-make-write-callback
@@ -44,24 +48,6 @@
 	    (curl_global_init_mem	curl-global-init-mem)
 	    (curl_global_cleanup	curl-global-cleanup)
 
-	    ;;(curl_version		curl-version)		;marshaled
-	    ;;(curl_version_info	curl-version-info)	;marshaled
-
-	    ;;(curl_easy_init		curl-easy-init)		;marshaled
-	    ;;(curl_easy_cleanup	curl-easy-cleanup)	;marshaled
-	    ;;(curl_easy_reset		curl-easy-reset)	;marshaled
-	    ;;(curl_easy_setopt		curl-easy-setopt)	;marshaled
-	    ;;(curl_easy_perform	curl-easy-perform)	;marshaled
-	    ;;(curl_easy_getinfo	curl-easy-getinfo)	;this is variadic
-	    (curl_easy_duphandle	curl-easy-duphandle)
-	    (curl_easy_recv		curl-easy-recv)
-	    (curl_easy_send		curl-easy-send)
-	    (curl_easy_pause		curl-easy-pause)
-	    ;;(curl_easy_strerror	curl-easy-strerror)	;marshaled
-	    ;;(curl_share_strerror	curl-share-strerror)	;marshaled
-
-	    (curl_easy_escape		curl-easy-escape)
-	    (curl_easy_unescape		curl-easy-unescape)
 	    (curl_escape		curl-escape)
 	    (curl_unescape		curl-unescape)
 
@@ -96,14 +82,32 @@
   (import (rnrs)
     (compensations)
     (foreign ffi)
+    (only (foreign memory)
+	  malloc-small/c	malloc-block/c
+	  malloc/c
+	  bytevector->pointer	pointer->bytevector)
     (only (foreign cstrings)
-	  string->cstring/c
-	  cstring->string
-	  argv->strings)
+	  string->cstring/c	cstring->string
+	  strlen		argv->strings)
     (foreign net curl conditions)
+    (foreign net curl enumerations)
     (foreign net curl record-types)
     (foreign net curl sizeof)
     (foreign net curl platform))
+
+
+;;;; helpers
+
+(define (%slist->strings slist*)
+  (let loop ((slist*	slist*)
+	     (engines	'()))
+    (if (pointer-null? slist*)
+	engines
+      (loop (struct-curl_slist-next-ref slist*)
+	    (cstring->string (struct-curl_slist-data-ref slist*))))))
+
+;;*FIXME* !!!!
+(define pointer-ref-c-size_t	pointer-ref-c-unsigned-int)
 
 
 (define (curl-version)
@@ -197,17 +201,96 @@
 	(raise-curl-init-error 'curl-easy-init "error initialising cURL session handle")
       (make-<curl-handle> handle*))))
 
+(define (curl-easy-duphandle handle)
+  (let ((handle* (curl_easy_duphandle (<curl-handle>-pointer handle))))
+    (if (pointer-null? handle*)
+	(raise-curl-init-error 'curl-easy-duphandle "error duplicating cURL session handle")
+      (make-<curl-handle> handle*))))
+
 (define (curl-easy-cleanup handle)
   (curl_easy_cleanup (<curl-handle>-pointer handle)))
 
 (define (curl-easy-reset handle)
   (curl_easy_reset (<curl-handle>-pointer handle)))
 
+;;; --------------------------------------------------------------------
+
 (define (curl-easy-perform handle)
   (let ((code (curl_easy_perform (<curl-handle>-pointer handle))))
     (if (= code CURLE_OK)
 	code
       (raise-curl-easy-error 'curl-easy-perform code handle))))
+
+(define (curl-easy-pause handle bitmask-set)
+  (let ((code (curl_easy_pause (<curl-handle>-pointer handle)
+			       (%curl-pause-set->bitmask bitmask-set))))
+    (if (= code CURLE_OK)
+	code
+      (raise-curl-easy-error 'curl-easy-pause code handle))))
+
+;;; --------------------------------------------------------------------
+
+(define (curl-easy-send handle data)
+  (with-compensations
+    (let* ((buffer*	(if (string? data)
+			    (string->cstring/c data)
+			  (bytevector->pointer data malloc/c)))
+	   (size	(if (string? data)
+			    (strlen buffer*)
+			  (bytevector-length data)))
+	   (sent*	(malloc-small/c))
+	   (code	(curl_easy_send (<curl-handle>-pointer handle) buffer* size sent*)))
+      (if (= code CURLE_OK)
+	  (pointer-ref-c-size_t sent* 0)
+	(raise-curl-easy-error 'curl-easy-perform code handle)))))
+
+(define (curl-easy-recv/string handle number-of-bytes)
+  (with-compensations
+    (let* ((buffer*	(malloc-block/c number-of-bytes))
+	   (recv*	(malloc-small/c))
+	   (code	(curl_easy_recv (<curl-handle>-pointer handle)
+					buffer* number-of-bytes recv*)))
+      (if (= code CURLE_OK)
+	  (cstring->string buffer* (pointer-ref-c-size_t recv* 0))
+	(raise-curl-easy-error 'curl-easy-perform code handle)))))
+
+(define (curl-easy-recv/bytevector handle number-of-bytes)
+  (with-compensations
+    (let* ((buffer*	(malloc-block/c number-of-bytes))
+	   (recv*	(malloc-small/c))
+	   (code	(curl_easy_recv (<curl-handle>-pointer handle)
+					buffer* number-of-bytes recv*)))
+      (if (= code CURLE_OK)
+	  (pointer->bytevector buffer* (pointer-ref-c-size_t recv* 0))
+	(raise-curl-easy-error 'curl-easy-perform code handle)))))
+
+
+(define (curl-easy-escape handle str)
+  (with-compensations
+    (let ((p (curl_easy_escape (<curl-handle>-pointer handle) (string->cstring/c str) 0)))
+      (if (pointer-null? p)
+	  (raise (condition (make-curl-error-condition)
+			    (make-curl-handle-condition handle)
+			    (make-who-condition 'curl-easy-escape)
+			    (make-message-condition "error escaping a string as URL")))
+	(begin
+	  (push-compensation (curl_free p))
+	  (cstring->string p))))))
+
+(define (curl-easy-unescape handle str)
+  (with-compensations
+    (let* ((len*	(malloc-small/c))
+	   (p		(curl_easy_unescape (<curl-handle>-pointer handle)
+					    (string->cstring/c str) 0 len*)))
+      (if (pointer-null? p)
+	  (raise (condition (make-curl-error-condition)
+			    (make-curl-handle-condition handle)
+			    (make-who-condition 'curl-easy-unescape)
+			    (make-message-condition "error unescaping a string as URL")))
+	(begin
+	  (push-compensation (curl_free p))
+	  (cstring->string p))))))
+
 
 
 (define (curl-easy-setopt handle option value)
@@ -223,12 +306,74 @@
 	     (curl_easy_setopt/void* handle* option value))
 
 	    ((memv option (list CURLOPT_VERBOSE CURLOPT_HEADER
-				CURLOPT_NOPROGRESS CURLOPT_NOSIGNAL))
+				CURLOPT_NOPROGRESS CURLOPT_NOSIGNAL
+				CURLOPT_CONNECT_ONLY))
 	     (curl_easy_setopt/long handle* option (if value 1 0)))
 
 	    (else
 	     (assertion-violation 'curl-easy-setopt
-	       "invalid cURL option for handle" option))))))
+	       "invalid cURL option for handle" handle option value))))))
+
+
+(define curl-easy-getinfo
+  (let (($long-list	(list CURLINFO_RESPONSE_CODE		CURLINFO_HTTP_CONNECTCODE
+			      CURLINFO_FILETIME			CURLINFO_REDIRECT_COUNT
+			      CURLINFO_HEADER_SIZE		CURLINFO_REQUEST_SIZE
+			      CURLINFO_SSL_VERIFYRESULT		CURLINFO_HTTPAUTH_AVAIL
+			      CURLINFO_PROXYAUTH_AVAIL		CURLINFO_OS_ERRNO
+			      CURLINFO_NUM_CONNECTS		CURLINFO_LASTSOCKET
+			      CURLINFO_CONDITION_UNMET))
+	($string-list	(list CURLINFO_EFFECTIVE_URL		CURLINFO_REDIRECT_URL
+			      CURLINFO_CONTENT_TYPE		CURLINFO_PRIVATE
+			      CURLINFO_PRIMARY_IP		CURLINFO_FTP_ENTRY_PATH))
+	($double-list	(list CURLINFO_TOTAL_TIME		CURLINFO_NAMELOOKUP_TIME
+			      CURLINFO_CONNECT_TIME		CURLINFO_APPCONNECT_TIME
+			      CURLINFO_PRETRANSFER_TIME		CURLINFO_STARTTRANSFER_TIME
+			      CURLINFO_REDIRECT_TIME		CURLINFO_SIZE_UPLOAD
+			      CURLINFO_SIZE_DOWNLOAD		CURLINFO_SPEED_DOWNLOAD
+			      CURLINFO_SPEED_UPLOAD		CURLINFO_CONTENT_LENGTH_DOWNLOAD
+			      CURLINFO_CONTENT_LENGTH_UPLOAD))
+	($slist-list	(list CURLINFO_SSL_ENGINES		CURLINFO_COOKIELIST)))
+    (lambda (handle option)
+      (let ((handle* (<curl-handle>-pointer handle)))
+	(if (= option CURLINFO_CERTINFO)
+	    (let* ((info*	(malloc-block/c sizeof-curl_certinfo))
+		   (code	(curl_easy_getinfo handle* option info*)))
+	      (unless (= code CURLE_OK)
+		(raise-curl-easy-error 'curl-easy-getinfo code handle))
+	      (let ((num-of-certs	(struct-curl_certinfo-num_of_certs-ref info*))
+		    (slist**		(struct-curl_certinfo-certinfo-ref     info*))
+		    (certinfo		'()))
+		(do ((i 0 (+ 1 i)))
+		    ((= i num-of-certs)
+		     (reverse certinfo))
+		  (set! certinfo (cons (%slist->strings (array-ref-c-pointer slist** i))
+				       certinfo)))))
+	  (let* ((output*	(malloc-small/c))
+		 (code		(curl_easy_getinfo handle* option output*)))
+	    (unless (= code CURLE_OK)
+	      (raise-curl-easy-error 'curl-easy-getinfo code handle))
+	    (with-compensations
+	      (cond ((memv option $string-list)
+		     (let ((cstr* (pointer-ref-c-pointer output* 0)))
+		       (if (pointer-null? cstr*)
+			   #f
+			 (cstring->string cstr*))))
+
+		    ((memv option $long-list)
+		     (pointer-ref-c-signed-long output* 0))
+
+		    ((memv option $double-list)
+		     (pointer-ref-c-double output* 0))
+
+		    ((memv option $slist-list)
+		     (let ((slist*	(pointer-ref-c-double output* 0)))
+		       (push-compensation (curl_slist_free_all slist*))
+		       (%slist->strings slist*)))
+
+		    (else
+		     (assertion-violation 'curl-easy-getinfo
+		       "invalid cURL option information request" handle option))))))))))
 
 
 (define (curl-make-write-callback scheme-function)

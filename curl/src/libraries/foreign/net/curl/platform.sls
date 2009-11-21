@@ -60,7 +60,7 @@
     curl_easy_setopt/off_t
     curl_easy_perform
     curl_easy_cleanup
-    ;;curl_easy_getinfo			;;This is variadic
+    curl_easy_getinfo			;;This is variadic
     curl_easy_duphandle
     curl_easy_reset
     curl_easy_recv
@@ -157,10 +157,8 @@
 (define-c-function curl_easy_perform
   (CURLcode curl_easy_perform (void*)))
 
-;;This is variadic
-;;
-;; (define-c-function curl_easy_getinfo
-;;   (CURLcode curl_easy_getinfo (void* CURLINFO ...)))
+(define-c-function curl_easy_getinfo
+  (CURLcode curl_easy_getinfo (void* CURLINFO void*)))
 
 (define-c-function curl_easy_duphandle
   (void* curl_easy_duphandle (void*)))

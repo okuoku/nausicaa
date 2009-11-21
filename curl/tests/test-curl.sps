@@ -32,6 +32,8 @@
   (foreign net curl compensated)
   (foreign memory)
   (foreign cstrings)
+  (strings)
+  (irregex)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -127,6 +129,81 @@
 	  (curl-easy-perform handle)
 	  out))
     => "<html><body><p>proof page</p></body></html>\n")
+
+  (check
+      (with-compensations
+	(let* ((handle	(curl-easy-init/c))
+	       (clone	(curl-easy-duphandle/c handle))
+	       (out	"")
+	       (cb	(lambda (buffer item-size item-count)
+			  (let ((len (* item-size item-count)))
+			    (set! out (string-append out (cstring->string buffer len)))
+			    len))))
+	  (curl-easy-setopt handle CURLOPT_URL "http://localhost:8080/index.html")
+	  (curl-easy-setopt handle CURLOPT_WRITEFUNCTION (curl-make-write-callback cb))
+	  (curl-easy-setopt handle CURLOPT_WRITEDATA pointer-null)
+	  (curl-easy-perform handle)
+	  out))
+    => "<html><body><p>proof page</p></body></html>\n")
+
+  (check
+      (with-compensations
+	(let* ((handle	(curl-easy-init/c))
+	       (out	"")
+	       (cb	(lambda (buffer item-size item-count)
+			  (let ((len (* item-size item-count)))
+			    (set! out (string-append out (cstring->string buffer len)))
+			    len))))
+	  (curl-easy-setopt handle CURLOPT_URL "http://localhost:8080/index.html")
+	  (curl-easy-setopt handle CURLOPT_WRITEFUNCTION (curl-make-write-callback cb))
+	  (curl-easy-setopt handle CURLOPT_WRITEDATA pointer-null)
+	  (curl-easy-pause handle (curl-pause-mask ALL))
+	  (curl-easy-perform handle)
+	  out))
+    => "<html><body><p>proof page</p></body></html>\n")
+
+  (check
+      (with-compensations
+	(let* ((handle	(curl-easy-init/c)))
+	  (curl-easy-setopt handle CURLOPT_URL "http://localhost:8080/")
+	  (curl-easy-setopt handle CURLOPT_CONNECT_ONLY #t)
+;;;	  (curl-easy-setopt handle CURLOPT_VERBOSE #t)
+	  (curl-easy-perform handle)
+	  (curl-easy-send handle "GET index.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
+	  (let ((s (curl-easy-recv/string handle 256)))
+	    (irregex-match-data? (irregex-search "<html><body><p>proof page</p></body></html>\n" s)))))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'escaping))
+
+  (check
+      (with-compensations
+	(let ((handle	(curl-easy-init/c)))
+	  (curl-easy-escape handle "http://www.marco.it/")))
+    => "http%3A%2F%2Fwww%2Emarco%2Eit%2F")
+
+  (check
+      (with-compensations
+	(let ((handle	(curl-easy-init/c)))
+	  (curl-easy-escape handle "ciao")))
+    => "ciao")
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	(let ((handle	(curl-easy-init/c)))
+	  (curl-easy-unescape handle "http%3A%2F%2Fwww%2Emarco%2Eit%2F")))
+    => "http://www.marco.it/")
+
+  (check
+      (with-compensations
+	(let ((handle	(curl-easy-init/c)))
+	  (curl-easy-unescape handle "ciao")))
+    => "ciao")
 
   #t)
 

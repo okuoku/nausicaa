@@ -418,9 +418,10 @@
     curl-easy-strerror		curl-share-strerror
     curl-easy-pause		curl-easy-setopt
     curl-easy-perform		curl-easy-cleanup
-    ;;curl-easy-getinfo	;this is variadic
+    curl-easy-getinfo
     curl-easy-duphandle		curl-easy-reset
-    curl-easy-recv		curl-easy-send
+    curl-easy-send
+    curl-easy-recv/string	curl-easy-recv/bytevector
 
     curl-easy-escape		curl-escape
     curl-easy-unescape		curl-unescape
@@ -492,10 +493,14 @@
     curl-init-error-condition?
     raise-curl-init-error
 
+;;; --------------------------------------------------------------------
+
+    curl-pause-symbol		curl-pause-mask
     )
   (import (rnrs)
     (foreign net curl sizeof)
     (foreign net curl primitives)
+    (foreign net curl enumerations)
     (foreign net curl conditions)
     (foreign net curl record-types)))
 

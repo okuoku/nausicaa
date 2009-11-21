@@ -782,6 +782,7 @@ The bindings documented in this chapter are exported by the
 
 @menu
 * enumerations codes::          Error codes conversion.
+* enumerations pause::          Session pause mask.
 @end menu
 
 @c page
@@ -798,6 +799,41 @@ Example:
 (curl-numeric-code->symbolic-code
     CURLE_UNSUPPORTED_PROTOCOL)
 @result{} CURLE_UNSUPPORTED_PROTOCOL
+@end example
+@end defun
+
+@c page
+@node enumerations pause
+@section Session pause mask
+
+
+The bindings @func{curl-pause-symbol} and @func{curl-pause-mask} are
+reexported by the @library{foreign net curl} library.
+
+
+@deftp {Enumeration Type} curl-pause-symbol
+Enumeration type for @curl{} session pause operations.  Symbols in this
+enumeration are:
+
+@example
+RECV    SEND    ALL     CONT
+@end example
+@end deftp
+
+
+@deffn Syntax curl-pause-mask @ameta{symbol} ...
+Evaluate to an enumeration set holding the given symbols in the
+@code{curl-pause-symbol} set.
+@end deffn
+
+
+@defun %curl-pause-set->bitmask
+Convert an enumeration set of type @code{curl-pause-symbol} to an exact
+integer by combining with inclusive bitwise OR the flags:
+
+@example
+CURLPAUSE_RECV          CURLPAUSE_SEND
+CURLPAUSE_ALL           CURLPAUSE_CONT
 @end example
 @end defun
 
@@ -978,8 +1014,11 @@ net curl primitives} and reexported by @library{foreign net curl}.
 @menu
 * easy intro::                  Introduction to the easy interface.
 * easy init::                   Session handle construction.
+* easy perform::                Performing the transfer.
 * easy options::                Setting handle's options.
+* easy info::                   Getting informations.
 * easy callbacks::              Preparing callbacks.
+* easy misc::                   Miscellaneous functions.
 @end menu
 
 @c page
@@ -1042,6 +1081,11 @@ else resources leakes will ensue.
 @end defun
 
 
+@defun curl-easy-duphandle @var{handle}
+Duplicate @var{handle}.
+@end defun
+
+
 @defun curl-easy-cleanup @var{handle}
 Finalise a @curl{} session handle, releasing all the associated
 resources.
@@ -1051,6 +1095,37 @@ resources.
 @defun curl-easy-reset @var{handle}
 Reset to its initial state a @curl{} session handle.
 @end defun
+
+@c page
+@node easy perform
+@section Performing the transfer
+
+
+@defun curl-easy-perform @var{handle}
+Perform the requested transfer.
+@end defun
+
+
+@defun curl-easy-pause @var{handle} @var{bitmask}
+Pause the running connection in @var{handle}.
+@end defun
+
+
+@defun curl-easy-send @var{handle} @var{data}
+Send @var{data} to through the connection represented by @var{handle};
+@var{data} can be a Scheme string or bytevector, the string is converted
+to a C string with @func{string->cstring}.  Return the number of bytes
+actually sent.
+@end defun
+
+
+@defun curl-easy-recv/string @var{handle} @var{number-of-bytes}
+@defunx curl-easy-recv/bytevector @var{handle} @var{number-of-bytes}
+Read at most @var{number-of-bytes} from the connection represented by
+@var{handle}; the bytes actually read are returned as Scheme string or
+bytevector.  The string is built with @func{cstring->string}.
+@end defun
+
 
 @c page
 @node easy options
@@ -1117,6 +1192,39 @@ install signal handlers.
 
 
 @c page
+@node easy info
+@section Getting informations
+
+
+@defun curl-easy-getinfo @var{handle} @var{option}
+Exctract informations on the state of @var{handle}; @var{option} must be
+an exact integer among the ones to the @code{CURLINFO_*} constants.
+
+The returned value depends upon the selected option, see the original
+@curl{} documentation.  It can be:
+
+@itemize
+@item
+An exact integer.
+
+@item
+A flonum.
+
+@item
+A Scheme string.
+
+@item
+A list of Scheme strings when the result of the query is a @code{struct
+curl_slist}.
+
+@item
+A list of lists of Scheme strings when the result of the query is a
+@code{struct curl_certinfo}; each sublist holds informations on a
+certificate; the length of the list is the number of certificates.
+@end itemize
+@end defun
+
+@c page
 @node easy callbacks
 @section Preparing callbacks
 
@@ -1150,6 +1258,23 @@ Prepare a callback C function to be used as value for the
          (scheme-function buffer item-size item-count)))
      (void* size_t size_t void*)))
 @end example
+@end defun
+
+
+@c page
+@node easy misc
+@section Miscellaneous functions
+
+
+@defun curl-easy-escape @var{handle} @var{url}
+Convert the Scheme string @var{url} to an @aurl{} encoded Scheme string;
+return the new string.
+@end defun
+
+
+@defun curl-easy-unescape @var{handle} @var{url}
+Convert an @aurl{} encoded Scheme string @var{url} to an ordinary Scheme
+string; return the new string.
 @end defun
 
 

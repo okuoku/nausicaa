@@ -29,6 +29,9 @@
   (export
 
     curl-numeric-code->symbolic-code	curl-symbolic-code->numeric-code
+
+    curl-pause-symbol			curl-pause-mask
+    %curl-pause-set->bitmask
     )
   (import (rnrs)
     (foreign net curl sizeof))
@@ -222,6 +225,19 @@
     (hashtable-set! table 'CURL_LAST CURL_LAST)
     table))
 
+
+(define-enumeration curl-pause-symbol
+  (RECV SEND ALL CONT)
+  curl-pause-mask)
+
+(define (%curl-pause-set->bitmask set)
+  (apply bitwise-ior (map (lambda (symbol)
+			    (case symbol
+			      ((RECV)	CURLPAUSE_RECV)
+			      ((SEND)	CURLPAUSE_SEND)
+			      ((ALL)	CURLPAUSE_ALL)
+			      ((CONT)	CURLPAUSE_CONT)))
+		       (enum-set->list set))))
 
 
 ;;;; done

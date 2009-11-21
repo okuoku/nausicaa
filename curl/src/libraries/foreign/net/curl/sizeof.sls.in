@@ -718,6 +718,7 @@
 
     struct-curl_slist-data-set!			struct-curl_slist-data-ref
     struct-curl_slist-next-set!			struct-curl_slist-next-ref
+
     struct-curl_certinfo-num_of_certs-set!	struct-curl_certinfo-num_of_certs-ref
     struct-curl_certinfo-certinfo-set!		struct-curl_certinfo-certinfo-ref
 

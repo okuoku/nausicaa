@@ -27,7 +27,7 @@
 
 (library (foreign net curl compensated)
   (export
-    curl-easy-init/c)
+    curl-easy-init/c		curl-easy-duphandle/c)
   (import (rnrs)
     (compensations)
     (foreign net curl))
@@ -36,6 +36,13 @@
 (define (curl-easy-init/c)
   (letrec ((handle (compensate
 		       (curl-easy-init)
+		     (with
+		      (curl-easy-cleanup handle)))))
+    handle))
+
+(define (curl-easy-duphandle/c orig)
+  (letrec ((handle (compensate
+		       (curl-easy-duphandle orig)
 		     (with
 		      (curl-easy-cleanup handle)))))
     handle))
