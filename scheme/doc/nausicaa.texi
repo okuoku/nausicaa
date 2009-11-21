@@ -3046,7 +3046,7 @@ For example:
 #\xD800         &lexical exception in excluded range
 @end example
 
-(The notation @code{&lexical} means that the line in question is a
+(The notation @condition{lexical} means that the line in question is a
 lexical syntax violation.)
 
 Case is significant in @code{#\<character>}, and in @code{#\<character
@@ -3592,7 +3592,7 @@ Implementations must raise an exception when they are unable to continue
 correct execution of a correct program due to some @emph{implementation
 restriction}.  For example, an implementation that does not support
 infinities must raise an exception with condition type
-@code{&implementation-restriction} when it evaluates an expression whose
+@condition{implementation-restriction} when it evaluates an expression whose
 result would be an infinity.
 
 Some possible implementation restrictions such as the lack of
@@ -3647,7 +3647,7 @@ obligations may exceed the checking obligations of the implementation.
 
 When an implementation detects a violation of a restriction for an
 argument, it must raise an exception with condition type
-@code{&assertion} in a way consistent with the safety of execution as
+@condition{assertion} in a way consistent with the safety of execution as
 described in section ``Safety''.
 
 
@@ -3671,7 +3671,7 @@ syntax violation.
 
 If a top--level or library form in a program is not syntactically
 correct, then the implementation must raise an exception with condition
-type @code{&syntax}, and execution of that top--level program or library
+type @condition{syntax}, and execution of that top--level program or library
 must not be allowed to begin.
 
 
@@ -3691,7 +3691,7 @@ in ways that are inconsistent with the semantics described in this
 document, unless an exception is raised.
 
 Violations of an implementation restriction must raise an exception with
-condition type @code{&implementation-restriction}, as must all
+condition type @condition{implementation-restriction}, as must all
 violations and errors that would otherwise threaten system integrity in
 ways that might result in execution that is inconsistent with the
 semantics described in this document.
@@ -3789,7 +3789,7 @@ fields, and other values explicitly designated as immutable are
 immutable objects, while all objects created by the other procedures
 listed in this report are mutable.  An attempt to store a new value into
 a location referred to by an immutable object should raise an exception
-with condition type @code{&assertion}.
+with condition type @condition{assertion}.
 
 
 @c page
@@ -3933,7 +3933,7 @@ a restriction is formulated as a phrase of the form ``@meta{x} must be a
 the implementation's responsibility to check that these restrictions are
 satisfied, as long as the macro transformers involved in expanding the
 form terminate.  If the implementation detects that a component does not
-meet the restriction, an exception with condition type @code{&syntax}
+meet the restriction, an exception with condition type @condition{syntax}
 is raised.
 
 
@@ -3983,11 +3983,11 @@ same type as specified for the last parameter name.  In this case,
 objects.
 
 A procedure that detects an argument that it is not specified to handle
-must raise an exception with condition type @code{&assertion}.  Also,
+must raise an exception with condition type @condition{assertion}.  Also,
 the argument specifications are exhaustive: if the number of arguments
 provided in a procedure call does not match any number of arguments
 accepted by the procedure, an exception with condition type
-@code{&assertion} must be raised.
+@condition{assertion} must be raised.
 
 For succinctness, the report follows the convention that if a parameter
 name is also the name of a type, then the corresponding argument must be
@@ -4106,7 +4106,7 @@ then the entry describes a non--procedural value, and the
 @end deffn
 
 @noindent
-indicates that @code{&who} is a condition type.  The header line:
+indicates that @condition{who} is a condition type.  The header line:
 
 @deffn {Auxiliary Syntax} unquote
 @dots{}
@@ -4163,7 +4163,7 @@ expression causes a violation.  For example:
 
 @noindent
 means that the evaluation of the expression @code{(integer->char
-#xD800)} must raise an exception with condition type @code{&assertion}.
+#xD800)} must raise an exception with condition type @condition{assertion}.
 
 Moreover, the @code{@result{}} symbol is also used to explicitly say
 that the value of an expression in unspecified.  For example:
@@ -4210,7 +4210,7 @@ other than a letter, in which case the hyphen is omitted.  Short,
 unpronounceable prefixes (@code{fx} and @code{fl}) are not followed by a
 hyphen.
 
-By convention, the names of condition types start with @code{&}.
+By convention, the names of condition types start with @condition{}.
 
 
 @c page
@@ -5067,9 +5067,9 @@ imported:
 @end example
 
 If the value of @meta{operator} is not a procedure, an exception with
-condition type @code{&assertion} is raised.  Also, if @meta{operator}
+condition type @condition{assertion} is raised.  Also, if @meta{operator}
 does not accept as many arguments as there are @meta{operand}s, an
-exception with condition type @code{&assertion} is raised.
+exception with condition type @condition{assertion} is raised.
 
 @quotation
 @strong{NOTE} In contrast to other dialects of Lisp, the order of
@@ -5529,7 +5529,7 @@ assignments are made, as follows:
 
 The syntax @code{<undefined>} represents an expression that returns
 something that, when stored in a location, causes an exception with
-condition type @code{&assertion} to be raised if an attempt to read from
+condition type @condition{assertion} to be raised if an attempt to read from
 or write to the location occurs before the assignments generated by the
 @func{letrec} transformation take place.  (No such expression is defined
 in Scheme.)
@@ -5789,7 +5789,7 @@ once.
 @strong{Implementation responsibilities:} Implementations should detect
 that the continuation of @meta{expression} is invoked more than once.
 If the implementation detects this, it must raise an exception with
-condition type @code{&assertion}.
+condition type @condition{assertion}.
 
 The second form of @func{define} is equivalent to:
 
@@ -6474,10 +6474,10 @@ references to a @meta{variable} during the evaluation of the @meta{init}
 expressions (using one particular evaluation order and order of
 evaluating the @meta{init} expressions).  If an implementation detects
 such a violation of the restriction, it must raise an exception with
-condition type @code{&assertion}.  Implementations may or may not detect
+condition type @condition{assertion}.  Implementations may or may not detect
 that the continuation of each @meta{init} is invoked more than once.
 However, if the implementation detects this, it must raise an exception
-with condition type @code{&assertion}.
+with condition type @condition{assertion}.
 @end deffn
 
 @deffn Syntax {letrec*} @meta{bindings} @meta{body}
@@ -6527,10 +6527,10 @@ the evaluation of an @meta{init} expression, detect references to the
 value of the corresponding @meta{variable} or the @meta{variable} of any
 of the bindings that follow it in @meta{bindings}.  If an implementation
 detects such a violation of the restriction, it must raise an exception
-with condition type @code{&assertion}.  Implementations may or may not
+with condition type @condition{assertion}.  Implementations may or may not
 detect that the continuation of each @meta{init} is invoked more than
 once.  However, if the implementation detects this, it must raise an
-exception with condition type @code{&assertion}.
+exception with condition type @condition{assertion}.
 @end deffn
 
 
@@ -6555,7 +6555,7 @@ to the arguments in a procedure call.  Then, the @meta{body} is
 evaluated in the extended environment, and the values of the last
 expression of @meta{body} are returned.  Each binding of a variable has
 @meta{body} as its region.  If the @meta{formals} do not match, an
-exception with condition type @code{&assertion} is raised.
+exception with condition type @condition{assertion} is raised.
 
 @example
 (let-values (((a b) (values 1 2))
@@ -7053,7 +7053,7 @@ the @ieee{} 754 standard for binary floating--point arithmetic.
 
 An implementation of Scheme may or may not represent infinities and
 NaNs; however, an implementation must raise a continuable exception with
-condition type @code{&no-infinities} or @code{&no-nans} (respectively;
+condition type @condition{no-infinities} or @condition{no-nans} (respectively;
 @ref{stdlib arithmetics flonum}) whenever it is unable to represent an
 infinity or NaN as specified.  In this case, the continuation of the
 exception handler is the continuation that otherwise would have received
@@ -7425,7 +7425,7 @@ The @func{inexact} procedure returns an inexact representation of
 precision, then the value returned is an inexact number object that is
 nearest to the argument.  If an exact argument has no reasonably close
 inexact equivalent, an exception with condition type
-@code{&implementation-violation} may be raised.
+@condition{implementation-violation} may be raised.
 
 @quotation
 @strong{NOTE} For a real number object whose magnitude is finite but so
@@ -7443,7 +7443,7 @@ The value returned is the exact number object that is numerically
 closest to the argument; in most cases, the result of this procedure
 should be numerically equal to its argument.  If an inexact argument has
 no reasonably close exact equivalent, an exception with condition type
-@code{&implementation-violation} may be raised.
+@condition{implementation-violation} may be raised.
 @end deffn
 
 
@@ -7597,7 +7597,7 @@ implementations).  If @func{min} or @func{max} is used to compare number
 objects of mixed exactness, and the numerical value of the result cannot
 be represented as an inexact number object without loss of accuracy,
 then the procedure may raise an exception with condition type
-@code{&implementation-restriction}.
+@condition{implementation-restriction}.
 @end quotation
 @end deffn
 
@@ -7649,7 +7649,7 @@ For any real number object @var{x} that is not an exact 0:
 
 If any of these procedures are applied to mixed non--rational real and
 non--real complex arguments, they either raise an exception with
-condition type @code{&implementation-restriction} or return an
+condition type @condition{implementation-restriction} or return an
 unspecified number object.
 
 Implementations that distinguish @code{-0.0} should adopt behavior
@@ -7679,7 +7679,7 @@ returns the additive inverse of its argument.
 
 If this procedure is applied to mixed non--rational real and non--real
 complex arguments, it either raises an exception with condition type
-@code{&implementation-restriction} or returns an unspecified number
+@condition{implementation-restriction} or returns an unspecified number
 object.
 
 Implementations that distinguish @math{-0.0} should adopt behavior
@@ -7720,7 +7720,7 @@ however, it returns the multiplicative inverse of its argument.
 
 If this procedure is applied to mixed non--rational real and non--real
 complex arguments, it either raises an exception with condition type
-@code{&implementation-restriction} or returns an unspecified number
+@condition{implementation-restriction} or returns an unspecified number
 object.
 @end deffn
 
@@ -7747,7 +7747,7 @@ the results of the corresponding mathematical operations specified in
 exact, @varii{x} must be nonzero.  In the cases where the mathematical
 requirements in @ref{baselib math semantics integer} cannot be satisfied
 by any number object, either an exception is raised with condition type
-@code{&implementation-restriction}, or unspecified number objects (one
+@condition{implementation-restriction}, or unspecified number objects (one
 for for @func{div}, @func{mod}, @func{div0} and @func{mod0}, two for
 @func{div-and-mod} and @func{div0-and-mod0}) are returned.
 
@@ -7992,7 +7992,7 @@ this is @math{e^(z_2 \log z_1)}.  @math{0.0^z} is @math{1.0} if
 @math{@var{z} = 0.0}, and @math{0.0} if @code{(real-part @var{z})} is
 positive.  For other cases in which the first argument is zero, either
 an exception is raised with condition type
-@code{&implementation-restriction}, or an unspecified number object is
+@condition{implementation-restriction}, or an unspecified number object is
 returned.
 
 For an exact real number object @vari{z} and an exact integer object
@@ -8109,7 +8109,7 @@ object in the given radix such that:
 
 @noindent
 is true.  If no possible result makes this expression true, an exception
-with condition type @code{&implementation-restriction} is raised.
+with condition type @condition{implementation-restriction} is raised.
 
 @var{radix} must be an exact integer object, either @math{2}, @math{8},
 @math{10}, or @math{16}.  If omitted, @var{radix} defaults to @math{10}.
@@ -8872,7 +8872,7 @@ procedure stores @var{obj} in element @var{k} of @var{vector}, and
 returns unspecified.
 
 Passing an immutable vector to @func{vector-set!} should cause an
-exception with condition type @code{&assertion} to be raised.
+exception with condition type @condition{assertion} to be raised.
 
 @example
 (let ((vec (vector 0 '(2 2 2 2) "Anna")))
@@ -8978,23 +8978,23 @@ condition types:
 @itemize
 @item
 If @var{who} is not @false{}, the condition has condition type
-@code{&who}, with @var{who} as the value of its field.  In that case,
+@condition{who}, with @var{who} as the value of its field.  In that case,
 @var{who} should be the name of the procedure or entity that detected
 the exception.  If it is @false{}, the condition does not have condition
-type @code{&who}.
+type @condition{who}.
 
 @item
-The condition has condition type @code{&message}, with @var{message} as
+The condition has condition type @condition{message}, with @var{message} as
 the value of its field.
 
 @item
-The condition has condition type @code{&irritants}, and its field has as
+The condition has condition type @condition{irritants}, and its field has as
 its value a list of the @var{irritant}s.
 @end itemize
 
 Moreover, the condition created by @func{error} has condition type
-@code{&error}, and the condition created by @func{assertion-violation}
-has condition type @code{&assertion}.
+@condition{error}, and the condition created by @func{assertion-violation}
+has condition type @condition{assertion}.
 
 @example
 (define (fac n)
@@ -9022,7 +9022,7 @@ has condition type @code{&assertion}.
 An @func{assert} form is evaluated by evaluating @meta{expression}.  If
 @meta{expression} returns a true value, that value is returned from the
 @func{assert} expression.  If @meta{expression} returns @false{}, an
-exception with condition types @code{&assertion} and @code{&message} is
+exception with condition types @condition{assertion} and @condition{message} is
 raised.  The message provided in the condition object is
 implementation--dependent.
 
@@ -11726,7 +11726,7 @@ The last expression of a @meta{body} in a @func{case-lambda} expression
 is in tail context.
 
 If the arguments match none of the clauses, an exception with condition
-type @code{&assertion} is raised.
+type @condition{assertion} is raised.
 
 @example
 (define foo
@@ -12079,7 +12079,7 @@ arguments to @func{make-record-type-descriptor} must be equivalent as
 described under @func{make-record-type-descriptor}.
 
 If this condition is not met, it is either considered a syntax violation
-or an exception with condition type @samp{&assertion} is raised.  If the
+or an exception with condition type @condition{assertion} is raised.  If the
 condition is met, a single record type is generated for both
 definitions.
 
@@ -12412,7 +12412,7 @@ printing by the underlying Scheme system.
 The @var{parent} argument must be either @false{} or an @acronym{RTD}.
 If it is an @acronym{RTD}, the returned record type, @var{t}, extends
 the record type @var{p} represented by @var{parent}.  An exception with
-condition type @samp{&assertion} is raised if @var{parent} is sealed
+condition type @condition{assertion} is raised if @var{parent} is sealed
 (see below).
 
 The @var{uid} argument must be either @false{} or a symbol.  If
@@ -12429,7 +12429,7 @@ If @func{make-record-type-descriptor} is called twice with the same
 @func{eqv?}, the @var{fields} arguments @func{equal?}, the @var{sealed?}
 arguments boolean--equivalent (both @false{} or both true), and the
 @var{opaque?} arguments boolean--equivalent.  If these conditions are
-not met, an exception with condition type @samp{&assertion} is raised
+not met, an exception with condition type @condition{assertion} is raised
 when the second call occurs.  If they are met, the second call returns,
 without creating a new record type, the same record--type descriptor (in
 the sense of @func{eqv?}) as the first call.
@@ -12447,7 +12447,7 @@ The @var{opaque?} flag must be a boolean.  If true, the record type is
 opaque.  If passed an instance of the record type, @func{record?}
 returns @false{}.  Moreover, if @samp{record-rtd} (see ``Inspection''
 below) is called with an instance of the record type, an exception with
-condition type @samp{&assertion} is raised.  The record type is also
+condition type @condition{assertion} is raised.  The record type is also
 opaque if an opaque parent is supplied.  If @var{opaque?} is @false{}
 and an opaque parent is not supplied, the record is not opaque.
 
@@ -12458,7 +12458,7 @@ a symbol and names the corresponding field of the record type; the names
 need not be distinct.  A field identified as mutable may be modified,
 whereas, when a program attempts to obtain a mutator for a field
 identified as immutable, an exception with condition type
-@samp{&assertion} is raised.  Where field order is relevant, e.g., for
+@condition{assertion} is raised.  Where field order is relevant, e.g., for
 record construction and field access, the fields are considered to be
 ordered as specified, although no particular order is required for the
 actual representation of a record instance.
@@ -12687,7 +12687,7 @@ arguments must be a record record @var{r} of the type represented by
 @var{rtd} and an object @var{obj}.  This procedure stores @var{obj}
 within the field of @var{r} specified by @var{k}.  The @var{k} argument
 is as in @func{record-accessor}.  If @var{k} specifies an immutable
-field, an exception with condition type @samp{&assertion} is raised.
+field, an exception with condition type @condition{assertion} is raised.
 The mutator returns unspecified values.
 @end deffn
 
@@ -12814,7 +12814,7 @@ Return the rtd representing the type of @var{record} if the type is not
 opaque.  The rtd of the most precise type is returned; that is, the type
 @var{t} such that @var{record} is of type @var{t} but not of any type
 that extends @var{t}.  If the type is opaque, an exception is raised
-with condition type @code{&assertion}.
+with condition type @condition{assertion}.
 @end deffn
 
 
@@ -12919,12 +12919,12 @@ The system maintains the current exception handler as part of the
 dynamic environment of the program (@pxref{lang basic dynamic extent}).
 
 When a program begins its execution, the current exception handler is
-expected to handle all @code{&serious} conditions by interrupting
+expected to handle all @condition{serious} conditions by interrupting
 execution, reporting that an exception has been raised, and displaying
 information about the condition object that was provided.  The handler
 may then exit, or may provide a choice of other options.  Moreover, the
 exception handler is expected to return when passed any other
-non--@code{&serious} condition.  Interpretation of these expectations
+non--@condition{serious} condition.  Interpretation of these expectations
 necessarily depends upon the nature of the system in which programs are
 executed, but the intent is that users perceive the raising of an
 exception as a controlled escape from the situation that raised the
@@ -12976,7 +12976,7 @@ handler on @var{obj}.  The handler is called with a continuation whose
 dynamic environment is that of the call to @func{raise}, except that the
 current exception handler is the one that was in place when the handler
 being called was installed.  When the handler returns, a
-non--continuable exception with condition type @code{&non-continuable}
+non--continuable exception with condition type @condition{non-continuable}
 is raised in the same dynamic environment as the handler.
 @end deffn
 
@@ -13100,15 +13100,15 @@ compound condition represents multiple aspects of an exceptional
 situation as a list of simple conditions, its @emph{components}.  Most
 of the operations described in this section treat a simple condition
 identically to a compound condition with itself as its own sole
-component.  For a subtype @var{t} of @code{&condition}, a
+component.  For a subtype @var{t} of @condition{condition}, a
 @emph{condition of type @var{t}} is either a record of type @var{t} or a
 compound condition containing a component of type @var{t}.
 
 
 @tindex &condition
 @deffn {Condition Type} {&condition}
-Simple conditions are records of subtypes of the @code{&condition}
-record type.  The @code{&condition} type has no fields and is neither
+Simple conditions are records of subtypes of the @condition{condition}
+record type.  The @condition{condition} type has no fields and is neither
 sealed nor opaque.
 @end deffn
 
@@ -13147,7 +13147,7 @@ otherwise returns @false{}.
 
 @deffn Procedure condition-predicate @var{rtd}
 @var{rtd} must be a record--type descriptor of a subtype of
-@code{&condition}.  The @func{condition-predicate} procedure returns a
+@condition{condition}.  The @func{condition-predicate} procedure returns a
 procedure that takes one argument.  This procedure returns @true{} if
 its argument is a condition of the condition type represented by
 @var{rtd}, i.e., if it is either a simple condition of that record type
@@ -13158,7 +13158,7 @@ condition as one of its components, and @false{} otherwise.
 
 @deffn Procedure condition-accessor @var{rtd} @var{proc}
 @var{rtd} must be a record--type descriptor of a subtype of
-@code{&condition}.  @var{proc} should accept one argument, a record of
+@condition{condition}.  @var{proc} should accept one argument, a record of
 the record type of @var{rtd}.  The @func{condition-accessor} procedure
 returns a procedure that accepts a single argument, which must be a
 condition of the type represented by @var{rtd}.  This procedure extracts
@@ -13631,7 +13631,7 @@ libraries.
 
 The procedures described in this chapter, when they detect an
 exceptional situation that arises from an ``I/O errors'', raise an
-exception with condition type @code{&i/o}.
+exception with condition type @condition{i/o}.
 
 The condition types and corresponding predicates and accessors are
 exported by both the @rsixlibrary{io ports} and @rsixlibrary{io simple}
@@ -13813,7 +13813,7 @@ This condition type could be defined by:
 This condition type specifies the port with which an I/O error is
 associated.  @var{port} should be the port.  Conditions raised by
 procedures accepting a port as an argument should include an
-@code{&i/o-port-error} condition.
+@condition{i/o-port-error} condition.
 @end deffn
 
 
@@ -13901,26 +13901,26 @@ encapsulates the specified options.
 When supplied to an operation that opens a file for output, the
 file--options object returned by @code{(file-options)} (without
 arguments) specifies that the file is created if it does not exist and
-an exception with condition type @code{&i/o-file-already-exists} is
+an exception with condition type @condition{i/o-file-already-exists} is
 raised if it does exist.  The following standard options can be included
 to modify the default behavior.
 
 @table @code
 @item no-create
 If the file does not already exist, it is not created; instead, an
-exception with condition type @code{&i/o-file-does-not-exist} is raised.
+exception with condition type @condition{i/o-file-does-not-exist} is raised.
 If the file already exists, the exception with condition type
-@code{&i/o-file-already-exists} is not raised and the file is truncated
+@condition{i/o-file-already-exists} is not raised and the file is truncated
 to zero length.
 
 @item no-fail
 If the file already exists, the exception with condition type
-@code{&i/o-file-already-exists} is not raised, even if @code{no-create}
+@condition{i/o-file-already-exists} is not raised, even if @code{no-create}
 is not included, and the file is truncated to zero length.
 
 @item no-truncate
 If the file already exists and the exception with condition type
-@code{&i/o-file-already-exists} has been inhibited by inclusion of
+@condition{i/o-file-already-exists} has been inhibited by inclusion of
 @code{no-create} or @code{no-fail}, the file is not truncated, but the
 port's current position is still set to the beginning of the file.
 @end table
@@ -14145,7 +14145,7 @@ mode is @code{replace}, the replacement character @code{U+FFFD} is
 injected into the data stream, an appropriate number of bytes are
 ignored, and decoding continues with the following bytes.  If the
 error--handling mode is @code{raise}, an exception with condition type
-@code{&i/o-decoding} is raised.
+@condition{i/o-decoding} is raised.
 
 If a textual output operation encounters a character it cannot encode,
 and the error--handling mode is @code{ignore}, the character is ignored
@@ -14155,7 +14155,7 @@ emitted by the transcoder, and encoding continues with the next
 character.  The replacement character is @code{U+FFFD} for transcoders
 whose codec is one of the Unicode encodings, but is the @code{?}
 character for the Latin--1 encoding.  If the error--handling mode is
-@code{raise}, an exception with condition type @code{&i/o-encoding} is
+@code{raise}, an exception with condition type @condition{i/o-encoding} is
 raised.
 @end deffn
 
@@ -14300,7 +14300,7 @@ the @var{pos} argument to @func{set-port-position!}, if the latter is
 supported on the port (see below).
 
 If the port does not support the operation, @func{port-position} raises
-an exception with condition type @code{&assertion}.
+an exception with condition type @condition{assertion}.
 
 @quotation
 @strong{NOTE} For a textual port, the port position may or may not be an
@@ -14321,9 +14321,9 @@ port supports the @func{set-port-position!} operation, and @false{}
 otherwise.
 
 The @func{set-port-position!} procedure raises an exception with
-condition type @code{&assertion} if the port does not support the
+condition type @condition{assertion} if the port does not support the
 operation, and an exception with condition type
-@code{&i/o-invalid-position} if @var{pos} is not in the range of valid
+@condition{i/o-invalid-position} if @var{pos} is not in the range of valid
 positions of @var{port}.  Otherwise, it sets the current position of the
 port to @var{pos}.  If @var{port} is an output port,
 @func{set-port-position!} first flushes @var{port}.
@@ -14337,7 +14337,7 @@ created by @func{open-file-output-port} and
 within the limits of the underlying operating system.  In other cases,
 attempts to set the port beyond the current end of data in the
 underlying object may result in an exception with condition type
-@code{&i/o-invalid-position}.
+@condition{i/o-invalid-position}.
 @end deffn
 
 
@@ -14373,7 +14373,7 @@ objects.
 
 It is unspecified whether a character encoding consisting of several
 bytes may have an end of file between the bytes.  If, for example,
-@func{get-char} raises an @code{&i/o-decoding} exception because the
+@func{get-char} raises an @condition{i/o-decoding} exception because the
 character encoding at the port's position is incomplete up to the next
 end of file, a subsequent call to @func{get-char} may successfully
 decode a character if bytes completing the encoding are available after
@@ -14788,12 +14788,12 @@ space}, the end--of--file object is returned.
 
 If a character inconsistent with an external representation is
 encountered in the input, an exception with condition types
-@code{&lexical} and @code{&i/o-read} is raised.
+@condition{lexical} and @condition{i/o-read} is raised.
 
 Also, if the end of file is encountered after the beginning of an
 external representation, but the external representation is incomplete
 and therefore cannot be parsed, an exception with condition types
-@code{&lexical} and @code{&i/o-read} is raised.
+@condition{lexical} and @condition{i/o-read} is raised.
 @end deffn
 
 
@@ -15361,7 +15361,7 @@ exists at the time the procedure is called, @false{} otherwise.
 The @func{delete-file} procedure deletes the named file if it exists and
 can be deleted, and returns unspecified values.  If the file does not
 exist or cannot be deleted, an exception with condition type
-@code{&i/o-filename} is raised.
+@condition{i/o-filename} is raised.
 @end deffn
 
 
@@ -15443,7 +15443,7 @@ integer object whose value lies within this fixnum range.
 This section describes the @rsixlibrary{arithmetic fixnums} library,
 which defines various operations on fixnums.  Fixnum operations perform
 integer arithmetic on their fixnum arguments, but raise an exception
-with condition type @code{&implementation-restriction} if the result is
+with condition type @condition{implementation-restriction} if the result is
 not a fixnum.
 
 This section uses @var{fx}, @vari{fx}, @varii{fx}, etc., as names for
@@ -15498,7 +15498,7 @@ These procedures return the maximum or minimum of their arguments.
 @deffnx Procedure {fx*} @vari{fx} @varii{fx}
 These procedures return the sum or product of their arguments, provided
 that sum or product is a fixnum.  An exception with condition type
-@code{&implementation-restriction} is raised if that sum or product is
+@condition{implementation-restriction} is raised if that sum or product is
 not a fixnum.
 @end deffn
 
@@ -15511,7 +15511,7 @@ With two arguments, this procedure returns the difference
 With one argument, this procedure returns the additive inverse of its
 argument, provided that integer object is a fixnum.
 
-An exception with condition type @code{&implementation-restriction} is
+An exception with condition type @condition{implementation-restriction} is
 raised if the mathematically correct result of this procedure is not a
 fixnum.
 
@@ -15748,7 +15748,7 @@ If:
 
 @noindent
 is a fixnum, then that fixnum is returned.  Otherwise an exception with
-condition type @code{&implementation-restriction} is raised.
+condition type @condition{implementation-restriction} is raised.
 @end deffn
 
 
@@ -15995,7 +15995,7 @@ report section @ref{baselib math semantics integer}.
 
 In the cases where the mathematical requirements in @ref{baselib math
 semantics} cannot be satisfied by any number object, either an exception
-is raised with condition type @code{&implementation-restriction}, or
+is raised with condition type @condition{implementation-restriction}, or
 unspecified flonums (one for @func{fldiv}, @func{flmod}, @func{fldiv0}
 and @func{flmod0}, two for @func{fldiv-and-mod} and
 @func{fldiv0-and-mod0}) are returned.
@@ -16633,7 +16633,7 @@ Except with variable transformers (see below), if the keyword is found
 in any other definition or expression context, the transformer receives
 a wrapped syntax object representing just the keyword reference, and its
 output replaces just the reference.  Except with variable transformers,
-an exception with condition type @samp{&syntax} is raised if the keyword
+an exception with condition type @condition{syntax} is raised if the keyword
 appears on the left--hand side of a @func{set!} expression.
 
 
@@ -17730,17 +17730,17 @@ condition types:
 @itemize
 @item
 If @var{who} is not @false{} or can be inferred, the condition has
-condition type @samp{&who}, with @var{who} as the value of its field.
+condition type @condition{who}, with @var{who} as the value of its field.
 In that case, @var{who} should identify the procedure or entity that
 detected the exception.  If it is @false{}, the condition does not have
-condition type @samp{&who}.
+condition type @condition{who}.
 
 @item
-The condition has condition type @samp{&message}, with @var{message} as
+The condition has condition type @condition{message}, with @var{message} as
 the value of its field.
 
 @item
-The condition has condition type @code{&syntax} with @var{form} and
+The condition has condition type @condition{syntax} with @var{form} and
 @var{subform} as the value of its fields.  If @var{subform} is not
 provided, the value of the subform field is @false{}.
 @end itemize
@@ -18393,10 +18393,10 @@ procedure described below.
 
 If the first argument to @code{eval} is determined not to be a
 syntactically correct expression, then @func{eval} must raise an
-exception with condition type @code{&syntax}.  Specifically, if the
+exception with condition type @condition{syntax}.  Specifically, if the
 first argument to @code{eval} is a definition or a splicing @func{begin}
 form containing a definition, it must raise an exception with condition
-type @code{&syntax}.
+type @condition{syntax}.
 @end deffn
 
 
@@ -18411,7 +18411,7 @@ The bindings of the environment represented by the specifier are
 immutable: If @func{eval} is applied to an expression that is determined
 to contain an assignment to one of the variables of the environment,
 then @func{eval} must raise an exception with a condition type
-@code{&syntax}.
+@condition{syntax}.
 @ignore
 The errata corrige says to append the following here:
 
@@ -18467,7 +18467,7 @@ procedure returns unspecified values.
 @end example
 
 If an immutable pair is passed to @func{set-car!}, an exception with
-condition type @code{&assertion} should be raised.
+condition type @condition{assertion} should be raised.
 @end deffn
 
 
@@ -18476,7 +18476,7 @@ Store @var{obj} in the cdr field of @var{pair}.  The @func{set-cdr!}
 procedure returns unspecified values.
 
 If an immutable pair is passed to @func{set-cdr!}, an exception with
-condition type @code{&assertion} should be raised.
+condition type @condition{assertion} should be raised.
 
 @example
 (let ((x (list 'a 'b 'c 'a))
@@ -18509,7 +18509,7 @@ The @func{string-set!} procedure stores @var{char} in element @var{k} of
 @var{string} and returns unspecified values.
 
 Passing an immutable string to @func{string-set!} should cause an
-exception with condition type @code{&assertion} to be raised.
+exception with condition type @condition{assertion} to be raised.
 
 @example
 (define (f) (make-string 3 #\*))
@@ -19642,14 +19642,14 @@ defined as:
 @defunx raise-unimplemented-error @var{who} @var{message}
 @defunx raise-unimplemented-error @var{who} @var{message} @var{irritants}
 Raise a composite condition embedding a condition of type
-@code{&unimplemented}.
+@condition{unimplemented}.
 
-@var{who} is used for the @code{&who} component.
+@var{who} is used for the @condition{who} component.
 
-@var{message} is used for the @code{&message} component and defaults to
+@var{message} is used for the @condition{message} component and defaults to
 @code{feature not implemented or not available}.
 
-@var{irritants} is used for the @code{&irritants} component.
+@var{irritants} is used for the @condition{irritants} component.
 @end defun
 
 @c page
@@ -19673,18 +19673,18 @@ the @library{unimplemented} library.
 
 @deftp {Condition Type} &mismatch
 Signal a mismatch between two values.  It is derived from
-@samp{&assertion}.
+@condition{assertion}.
 @end deftp
 
 
 @defun make-mismatch-condition
-Build and return a new @samp{&mismatch} condition object.
+Build and return a new @condition{mismatch} condition object.
 @end defun
 
 
 @defun mismatch-condition? @var{obj}
 Return @true{} if @var{obj} is a condition of object of type
-@samp{&mismatch}.
+@condition{mismatch}.
 @end defun
 
 @c page
@@ -22538,7 +22538,7 @@ must be a non--empty list of lists.
 
 If all the sublists are null: The return value is null.  If at least one
 sublist, but not all, is null: Raise an assertion violation using
-@var{who} as value for the @samp{&who} condition.  @var{who} defaults to
+@var{who} as value for the @condition{who} condition.  @var{who} defaults to
 @false{}.
 @end defun
 
@@ -22556,7 +22556,7 @@ must be a non--empty list of lists.
 
 If all the sublists are null: The return value is null.  If at least one
 sublist, but not all, is null: Raise an assertion violation using
-@var{who} as value for the @samp{&who} condition.  @var{who} defaults to
+@var{who} as value for the @condition{who} condition.  @var{who} defaults to
 @false{}.
 @end defun
 
@@ -22596,7 +22596,7 @@ as last value.  @func{%knil+cars} adds @var{knil} as first value.
 
 If all the sublists are null: The return value is null.  If at least one
 sublist, but not all, is null: Raise an assertion violation using
-@var{who} as value for the @samp{&who} condition.  @var{who} defaults to
+@var{who} as value for the @condition{who} condition.  @var{who} defaults to
 @false{}.
 @end defun
 
@@ -22621,7 +22621,7 @@ cars.
 
 If all the sublists are null: The return values are both null.  If at
 least one sublist, but not all, is null: Raise an assertion violation
-using @var{who} as value for the @samp{&who} condition.  @var{who}
+using @var{who} as value for the @condition{who} condition.  @var{who}
 defaults to @false{}.
 @end defun
 
@@ -40672,7 +40672,7 @@ represent the bindings between variables from @var{pattern} and values
 from @var{form}, or null if no bindings where defined.
 
 If a mismatch between @var{pattern} and @var{form} is detected, an error
-is raised with condition of type @samp{&sexp-mismatch}.
+is raised with condition of type @condition{sexp-mismatch}.
 
 @var{pattern} must be a sexp template with the following constraints and
 semantics meaning:
@@ -40722,19 +40722,19 @@ match a procedure in @var{form}.
 
 @deffn Syntax sexp-mismatch-error @var{who} @var{pattern} @var{form}
 Raise a non--continuable exception with conditions of type
-@samp{&sexp-mismatch}, @samp{&message}, @samp{&who}.  All the arguments
+@condition{sexp-mismatch}, @condition{message}, @condition{who}.  All the arguments
 are evaluated only once.
 @end deffn
 
 
 @deftp {Condition Type} &sexp-mismatch
 Type of condition used to signal a sexp mismatch.  It is derived from
-@samp{&mismatch}.
+@condition{mismatch}.
 @end deftp
 
 
 @defun make-sexp-mismatch @var{pattern-token} @var{form-token}
-Return a new condition object of type @samp{&sexp-mismatch}.
+Return a new condition object of type @condition{sexp-mismatch}.
 @var{pattern-token} must be a value representing the portion of sexp
 pattern which failed to match.  @var{form-token} must be a value
 representing the portion of sexp form which failed to match.
@@ -40742,13 +40742,13 @@ representing the portion of sexp form which failed to match.
 
 @defun sexp-mismatch? @var{obj}
 Return @true{} if @var{obj} is a condition object of type
-@samp{&sexp-mismatch}.
+@condition{sexp-mismatch}.
 @end defun
 
 
 @defun sexp-mismatch-pattern @var{obj}
 @defunx sexp-mismatch-form @var{obj}
-Accessors for the fields of a @samp{&sexp-mismatch} condition object.
+Accessors for the fields of a @condition{sexp-mismatch} condition object.
 @end defun
 
 @c page
@@ -40767,7 +40767,7 @@ by the matching (see variables matching below), which can be null; the
 tail of the form still to match.
 
 @item
-If a mismatch is detected, it must raise a @samp{&sexp-mismatch}
+If a mismatch is detected, it must raise a @condition{sexp-mismatch}
 condition.
 @end itemize
 
@@ -41419,38 +41419,38 @@ Examples:
 
 When the expansion of @func{match}, or one of its derivatives, detects a
 mismatch between the expression and all the patterns in the clauses, an
-error is raised with condition type @samp{&match-mismatch}.
+error is raised with condition type @condition{match-mismatch}.
 
 
 @deftp {Condition Type} &match-mismatch
 Raised to signal an expression/pattern mismatch while evaluating the
-expansion of @func{match}; it is derived from @samp{&mismatch}.  There
+expansion of @func{match}; it is derived from @condition{mismatch}.  There
 is only one field, @samp{expression}, which holds the mismatched
 expression.
 @end deftp
 
 
 @defun make-match-mismatch @var{expression}
-Build and return a condition of type @samp{&match-mismatch}.
+Build and return a condition of type @condition{match-mismatch}.
 @end defun
 
 
 @defun match-mismatch? @var{obj}
 Return @true{} if @var{obj} is a condition of type
-@samp{&match-mismatch}.
+@condition{match-mismatch}.
 @end defun
 
 
 @defun match-mismatch-expression @var{obj}
-Accessor for the @samp{expression} field of a @samp{&match-mismatch}
+Accessor for the @samp{expression} field of a @condition{match-mismatch}
 condition object.
 @end defun
 
 
 @deffn Syntax match-mismatch-error @var{who} @var{expression}
 Raise a non--continuable exception with condition types:
-@samp{&match-mismatch}, @samp{&message}, @samp{&who}.  All the arguments
-are evaluated only once.
+@condition{match-mismatch}, @condition{message}, @condition{who}.  All
+the arguments are evaluated only once.
 @end deffn
 
 @c page
@@ -43397,7 +43397,7 @@ start and end points, inclusive, of character ranges.
 In addition, a number of set algebra operations is provided.  @code{or},
 of course, has the same meaning, but when all the options are character
 sets it can be thought of as the set union operator.  This is further
-extended by the @code{&} set intersection, @code{-} set difference, and
+extended by the @condition{} set intersection, @code{-} set difference, and
 @code{~} set complement operators.
 
 @example
@@ -51295,13 +51295,13 @@ described below.
 
 @deftp {Condition Type} &getopts
 Base type for all the condition objects thrown by @func{getopts}; it is
-derived from @code{&error}.  It has no fields.
+derived from @condition{error}.  It has no fields.
 @end deftp
 
 
 @defun make-getopts-condition
 @defunx getopts-condition? @var{obj}
-Constructor and predicate for the @code{&getopts} condition object.
+Constructor and predicate for the @condition{getopts} condition object.
 @end defun
 
 @c ------------------------------------------------------------
@@ -51312,18 +51312,18 @@ Constructor and predicate for the @code{&getopts} condition object.
 @deftp {Condition Type} &option
 Data condition type used to hold records of type @class{option}
 describing an option involved in an error; it is derived from
-@code{&condition}.
+@condition{condition}.
 @end deftp
 
 
 @defun make-option-condition @var{option-record}
 @defunx option-condition? @var{obj}
-Constructor and predicate for the @code{&option} condition object.
+Constructor and predicate for the @condition{option} condition object.
 @end defun
 
 
 @defun condition-option @var{option-condition}
-Accessor for the @code{option} field of a @code{&option} condition
+Accessor for the @code{option} field of a @condition{option} condition
 object.
 @end defun
 
@@ -51335,18 +51335,18 @@ object.
 @deftp {Condition Type} &argument
 Data condition type used to hold Scheme strings representing command
 line arguments involved in an error; it is derived from
-@code{&condition}.
+@condition{condition}.
 @end deftp
 
 
 @defun make-argument-condition @var{argument-string}
 @defunx argument-condition? @var{obj}
-Constructor and predicate for the @code{&argument} condition object.
+Constructor and predicate for the @condition{argument} condition object.
 @end defun
 
 
 @defun condition-argument @var{argument-condition}
-Accessor for the @code{argument} field of a @code{&argument} condition
+Accessor for the @code{argument} field of a @condition{argument} condition
 object.
 @end defun
 
@@ -51358,18 +51358,18 @@ object.
 @deftp {Condition Type} &brief/long
 Data condition type used to hold Scheme strings or characters
 representing option selectors involved in an error; it is derived from
-@code{&condition}.
+@condition{condition}.
 @end deftp
 
 
 @defun make-brief/long-condition @var{brief/long-string}
 @defunx brief/long-condition? @var{obj}
-Constructor and predicate for the @code{&brief/long} condition object.
+Constructor and predicate for the @condition{brief/long} condition object.
 @end defun
 
 
 @defun condition-brief/long @var{brief/long-condition}
-Accessor for the field of a @code{&brief/long} condition object.
+Accessor for the field of a @condition{brief/long} condition object.
 @end defun
 
 @c ------------------------------------------------------------
@@ -51379,21 +51379,21 @@ Accessor for the field of a @code{&brief/long} condition object.
 
 @deftp {Condition Type} &unknown-option
 Condition type used to signal an ``unknown option'' error; it is derived
-from @code{&getopts}.  It has no fields.
+from @condition{getopts}.  It has no fields.
 @end deftp
 
 
 @defun make-unknown-option-condition
 @defunx unknown-option-condition? @var{obj}
-Constructor and predicate for @code{&unknown-option} condition objects.
+Constructor and predicate for @condition{unknown-option} condition objects.
 @end defun
 
 
 @defun raise-unknown-option @var{who} @var{brief/long} @var{argument} @var{message}
 Raise a continuable exception describing an ``unknown option'' error;
 the raised object is a compound condition with components of the
-following types: @code{&who}, @code{&brief/long}, @code{&argument},
-@code{&message}.
+following types: @condition{who}, @condition{brief/long}, @condition{argument},
+@condition{message}.
 @end defun
 
 @c ------------------------------------------------------------
@@ -51403,13 +51403,13 @@ following types: @code{&who}, @code{&brief/long}, @code{&argument},
 
 @deftp {Condition Type} &option-requires-value
 Condition type used to signal an ``option requires value'' error; it is
-derived from @code{&getopts}.  It has no fields.
+derived from @condition{getopts}.  It has no fields.
 @end deftp
 
 
 @defun make-option-requires-value-condition
 @defunx option-requires-value-condition? @var{obj}
-Constructor and predicate for @code{&option-requires-value} condition
+Constructor and predicate for @condition{option-requires-value} condition
 objects.
 @end defun
 
@@ -51417,8 +51417,8 @@ objects.
 @defun raise-option-requires-value @var{who} @var{option} @var{argument} @var{message}
 Raise a continuable exception describing an ``option requires value''
 error; the raised object is a compound condition with components of the
-following types: @code{&who}, @code{&option}, @code{&argument},
-@code{&message}.
+following types: @condition{who}, @condition{option}, @condition{argument},
+@condition{message}.
 @end defun
 
 @c ------------------------------------------------------------
@@ -51428,13 +51428,13 @@ following types: @code{&who}, @code{&option}, @code{&argument},
 
 @deftp {Condition Type} &option-requires-no-value
 Condition type used to signal an ``option requires no value'' error; it
-is derived from @code{&getopts}.  It has no fields.
+is derived from @condition{getopts}.  It has no fields.
 @end deftp
 
 
 @defun make-option-requires-no-value-condition
 @defunx option-requires-no-value-condition? @var{obj}
-Constructor and predicate for @code{&option-requires-no-value} condition
+Constructor and predicate for @condition{option-requires-no-value} condition
 objects.
 @end defun
 
@@ -51442,8 +51442,8 @@ objects.
 @defun raise-option-requires-no-value @var{who} @var{option} @var{argument} @var{message}
 Raise a continuable exception describing an ``option requires no value''
 error; the raised object is a compound condition with components of the
-following types: @code{&who}, @code{&option}, @code{&argument},
-@code{&message}.
+following types: @condition{who}, @condition{option}, @condition{argument},
+@condition{message}.
 @end defun
 
 @c ------------------------------------------------------------
@@ -51453,21 +51453,21 @@ following types: @code{&who}, @code{&option}, @code{&argument},
 
 @deftp {Condition Type} &invalid-option
 Condition type used to signal an ``invalid option'' error; it is derived
-from @code{&getopts}.  It has no fields.
+from @condition{getopts}.  It has no fields.
 @end deftp
 
 
 @defun make-invalid-option-condition
 @defunx invalid-option-condition? @var{obj}
-Constructor and predicate for @code{&invalid-option} condition objects.
+Constructor and predicate for @condition{invalid-option} condition objects.
 @end defun
 
 
 @defun raise-invalid-option @var{who} @var{option} @var{argument} @var{message}
 Raise a continuable exception describing an ``invalid option'' error;
 the raised object is a compound condition with components of the
-following types: @code{&who}, @code{&option}, @code{&argument},
-@code{&message}.
+following types: @condition{who}, @condition{option},
+@condition{argument}, @condition{message}.
 @end defun
 
 @c page

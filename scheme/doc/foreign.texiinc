@@ -3466,16 +3466,33 @@ conditions} and re--exported by @library{foreign memory}.
 
 @deftp Condition {&out-of-memory}
 Type of condition objects representing a memory allocation error; it is
-derived from @samp{&error}.  This condition type is for failed memory
-allocations @strong{not} meant to be recoverable by an exception
-handler.
+derived from @condition{error}.  It has the following fields:
+
+@table @code
+@item number-of-bytes
+An exact non--negative integer representing the number of bytes
+requested in the failed memory allocation; it can be set to @false{} if
+the number is not known (for example when the error is raised by a
+foreign library).
+@end table
+
+This condition type is for failed memory allocations @strong{not} meant
+to be recoverable by an exception handler.
 @end deftp
 
 
 @deftp Condition {&memory-request}
 Type of condition objects representing a memory allocation error; it is
-derived from @samp{&out-of-memory}.  This condition type is for failed
-memory allocations meant to be recoverable by an exception handler.
+derived from @condition{out-of-memory}.  It has the following fields:
+
+@table @code
+@item clean
+A boolean value, @true{} if the requested memory was meant to be reset
+to zero.
+@end table
+
+This condition type is for failed memory allocations meant to be
+recoverable by an exception handler.
 @end deftp
 
 
@@ -3528,14 +3545,14 @@ Examples:
 @defun raise-out-of-memory @var{who} @var{number-of-bytes}
 Raise a non--continuable exception representing a non--recoverable
 memory allocation failure.  The raised condition object is a compound of
-@samp{&who}, @samp{&message} and @samp{&out-of-memory}.
+@condition{who}, @condition{message} and @condition{out-of-memory}.
 @end defun
 
 
 @defun raise-memory-request @var{who} @var{number-of-bytes} @var{clean}
 Raise a continuable exception representing a recoverable memory
 allocation failure.  The raised condition object is a compound of
-@samp{&who}, @samp{&message} and @samp{&memory-request}.  Functions
+@condition{who}, @condition{message} and @condition{memory-request}.  Functions
 raising this condition should be ready to accept as return value the
 requested block of memory (allocated by the exception handler).
 @end defun
@@ -3706,7 +3723,7 @@ The parameter is preset to @func{platform-free}.
 @defunx realloc @var{pointer} @var{new-number-of-bytes}
 @defunx calloc @var{count} @var{element-size}
 Wrappers for the corresponding @samp{primitive-} functions that raise a
-continuable @samp{&memory-request} condition in case of error.  Blocks
+continuable @condition{memory-request} condition in case of error.  Blocks
 of memory allocated with these functions can be freed with
 @func{primitive-free}.
 
@@ -4303,7 +4320,7 @@ Allocation functions}
 
 @defun malloc/mempool @var{number-of-bytes}
 A wrapper for @func{primitive-malloc/mempool} that raises an
-@samp{&out-of-memory} exception if there is not enough room in the pool.
+@condition{out-of-memory} exception if there is not enough room in the pool.
 @end defun
 
 
@@ -4444,7 +4461,7 @@ memory block cache interface function returned by
 @func{make-block-cache}; when not given, it defaults to
 @func{page-blocks-cache}.
 
-The cache function must raise an @samp{&out-of-memory} condition if
+The cache function must raise an @condition{out-of-memory} condition if
 memory allocation fails.
 @end defun
 
@@ -4461,7 +4478,7 @@ If no error occurs allocating memory, all the bytes in the selected
 range of @var{blk} are enqueued in @var{mb}.  If an error occurs
 allocating memory, @var{mb} is left in a consistent state and an
 exception is raised with a condition object of type
-@samp{&membuffer-incomplete-push}.
+@condition{membuffer-incomplete-push}.
 @end defun
 
 
@@ -4490,7 +4507,7 @@ If no error occurs allocating memory, all the bytes in the selected
 range of @var{bv} are enqueued in @var{mb}.  If an error occurs
 allocating memory, @var{mb} is left in a consistent state and an
 exception is raised with a condition object of type
-@samp{&membuffer-incomplete-push}.
+@condition{membuffer-incomplete-push}.
 @end defun
 
 
@@ -4534,13 +4551,13 @@ The exclusive upper limit offset of data in the source object.
 
 @defun make-membuffer-incomplete-push-condition @var{mb} @var{source} @var{source-offset}
 Build and return a condition object of type
-@samp{&membuffer-incomplete-push}.
+@condition{membuffer-incomplete-push}.
 @end defun
 
 
 @defun membuffer-incomplete-push-condition? @var{obj}
 Return true if @var{obj} is a condition object of type
-@samp{&membuffer-incomplete-push}.
+@condition{membuffer-incomplete-push}.
 @end defun
 
 
@@ -4549,7 +4566,7 @@ Return true if @var{obj} is a condition object of type
 @defunx membuffer-incomplete-push/source-start-offset @var{obj}
 @defunx membuffer-incomplete-push/source-past-offset @var{obj}
 Field accessors for condition objects of type
-@samp{&membuffer-incomplete-push}.
+@condition{membuffer-incomplete-push}.
 @end defun
 
 @c page
@@ -5045,7 +5062,7 @@ not an @samp{errno} numeric value.
 @deftp Condition {&errno}
 Type of condition objects that represent an error in a foreign function
 signaled with the @samp{errno} variable.  It is derived from
-@samp{&error}.
+@condition{error}.
 @end deftp
 
 
@@ -5070,7 +5087,7 @@ Fake example:
 
 
 @defun make-errno-condition* @var{errno-numeric-value}
-Wrapper for @func{make-errno-condition} that builds an @samp{&errno}
+Wrapper for @func{make-errno-condition} that builds an @condition{errno}
 condition from the numeric value only.
 @end defun
 
@@ -5080,7 +5097,7 @@ condition from the numeric value only.
 Raise a non--continuable exception representing a foreign function
 system error signaled through the @samp{errno} variable.  If
 @var{irritants} is not given, the condition object has no
-@samp{&irritants} component.
+@condition{irritants} component.
 
 The following form:
 
