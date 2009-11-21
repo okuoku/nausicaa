@@ -28,6 +28,10 @@
 (library (foreign net curl record-types)
   (export
 
+    <curl-handle>			<curl-handle-rtd>
+    make-<curl-handle>			<curl-handle>?
+    <curl-handle>-pointer
+
     <curl-version-info>			<curl-version-info-rtd>
     make-<curl-version-info>		<curl-version-info>?
     <curl-version-info>-age
@@ -49,6 +53,12 @@
   (import (rnrs))
 
 
+(define-record-type <curl-handle>
+  (fields (immutable pointer)))
+
+(define <curl-handle-rtd>
+  (record-type-descriptor <curl-handle>))
+
 (define-record-type <curl-version-info>
   (fields (immutable age)
 	  (immutable version)

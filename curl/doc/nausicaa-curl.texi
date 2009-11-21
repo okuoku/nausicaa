@@ -505,7 +505,9 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
-* types::                       Record types.
+* records::                     Record types.
+* enumerations::                Enumerations.
+* conditions::                  Condition object types.
 * easy::                        Easy interface.
 * misc::                        Miscellaneous functions.
 * compensated::                 Compensated constructors.
@@ -529,11 +531,26 @@ Indexes
 
 Record types
 
-* types version info::          Libraries version informations.
+* records handle::              @curl{} session handlers.
+* records version info::        Libraries version informations.
+
+Condition object types
+
+* conditions data::             Condition types for data values.
+* conditions error::            Error condition types.
+
+Condition types for data values
+
+* conditions data handle::      @curl{} handle objects.
+
+Error condition types
+
+* conditions error base::       Basic error condition.
 
 Easy interface
 
 * easy intro::                  Introduction to the easy interface.
+* easy init::                   Session handle construction.
 * easy options::                Setting handle's options.
 * easy callbacks::              Preparing callbacks.
 
@@ -618,20 +635,54 @@ stacks}.
 @end table
 
 @c page
-@node types
+@node records
 @chapter Record types
 
 
 The bindings described in this chapter are exported by the
-@library{foreign net curl record-types} library and reexported by
-@library{foreign net curl}.
+@library{foreign net curl record-types} library and, unless otherwise
+specified, reexported by @library{foreign net curl}.
 
 @menu
-* types version info::          Libraries version informations.
+* records handle::              @curl{} session handlers.
+* records version info::        Libraries version informations.
 @end menu
 
 @c page
-@node types version info
+@node records handle
+@section @curl{} session handlers
+
+
+The following bindings are @strong{not} reexported by the
+@library{foreign net curl} compound library.
+
+
+@deftp {Record Type Name} <curl-handle>
+@deftpx {Record Type Descriptor} <curl-handle-rtd>
+Record type to be used as wrapper for raw pointers to @curl{} session
+handler structures.  It has the following fields:
+
+@table @code
+@item pointer
+Holds a pointer object to a @curl{} session handler data structure.  It
+is immutable.
+@end table
+@end deftp
+
+
+@defun make-<curl-handle> @var{pointer}
+@defunx <curl-handle>? @var{obj}
+Constructor and predicate for records of type @class{curl-handle}.
+@end defun
+
+
+@defun <curl-handle>-pointer @var{record}
+Accessor for the @code{pointer} field of records of type
+@class{curl-handle}.
+@end defun
+
+@c page
+@node records version info
 @section Libraries version informations
 
 
@@ -722,6 +773,201 @@ Field accessors for records of type @class{curl-version-info}.
 @end defun
 
 @c page
+@node enumerations
+@chapter Enumerations
+
+
+The bindings documented in this chapter are exported by the
+@library{foreign net curl enumerations} library.
+
+@menu
+* enumerations codes::          Error codes conversion.
+@end menu
+
+@c page
+@node enumerations codes
+@section Error codes conversion
+
+
+@defun curl-numeric-code->symbolic-code @var{numeric-code}
+@defunx curl-symbolic-code->numeric-code @var{symbolic-code}
+Convert to and from numeric @curl{} error codes and Scheme symbols.
+Example:
+
+@example
+(curl-numeric-code->symbolic-code
+    CURLE_UNSUPPORTED_PROTOCOL)
+@result{} CURLE_UNSUPPORTED_PROTOCOL
+@end example
+@end defun
+
+@c page
+@node conditions
+@chapter Condition object types
+
+
+The bindings documented in this chapter are exported by the
+@library{foreign net curl conditions} library and, unless otherwise
+specified, reexported by the @library{foreign net curl} library.
+
+@menu
+* conditions data::             Condition types for data values.
+* conditions error::            Error condition types.
+@end menu
+
+@c page
+@node conditions data
+@section Condition types for data values
+
+
+Condition types described in this section can be used to store specific
+values in compound condition objects.
+
+@menu
+* conditions data handle::      @curl{} handle objects.
+* conditions data code::        @curl{} error code objects.
+@end menu
+
+@c page
+@node conditions data handle
+@subsection @curl{} handle objects
+
+
+@deftp {Condition Type} &curl-handle
+Condition type for records of type @class{curl-handle}; it is derived
+from @condition{condition}.  It has the following fields:
+
+@table @code
+@item handle
+Holds a record of type @class{curl-handle}.
+@end table
+@end deftp
+
+
+@defun make-curl-handle-condition @var{handle-record}
+@defunx curl-handle-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{curl-handle}.
+@end defun
+
+
+@defun condition-curl-handle @var{condition}
+Accessor for the @code{handle} field of condition objects of type
+@condition{curl-handle}.
+@end defun
+
+@c page
+@node conditions data code
+@subsection @curl{} error code objects
+
+
+@deftp {Condition Type} &curl-error-code
+Condition type for @curl{} error codes; it is derived from
+@condition{condition}.  It has the following fields:
+
+@table @code
+@item numeric-code
+Holds an exact integer representing a @curl{} numeric error code.
+
+@item symbolic-code
+Holds a Scheme symbol representing a @curl{} numeric error code.
+@end table
+@end deftp
+
+
+@defun make-curl-error-code-condition @var{numeric-error-code}
+@defunx curl-error-code-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{curl-error-code}.
+@end defun
+
+
+@defun condition-curl-error-numeric-code @var{condition}
+@defunx condition-curl-error-symbolic-code @var{condition}
+Accessors for the fields of condition objects of type
+@condition{curl-error-code}.
+@end defun
+
+@c page
+@node conditions error
+@section Error condition types
+
+
+@menu
+* conditions error base::       Basic error condition.
+* conditions error init::       Initialisation error condition.
+@end menu
+
+@c page
+@node conditions error base
+@subsection Basic error condition
+
+
+@deftp {Condition Type} &curl-error
+Condition type used to describe a @curl{} error; it is derived from
+@condition{error}.  It has no fields.
+@end deftp
+
+
+@defun make-curl-error-condition
+@defunx curl-error-condition? @var{obj}
+Constructor and predicate for condition object of type
+@condition{curl-error}.
+@end defun
+
+
+@defun raise-curl-easy-error @var{who} @var{code} @var{handle}
+Raise a non--continuable exception with compound condition object of
+types: @condition{who}, @condition{message}, @condition{curl-error},
+@condition{curl-error-code}, @condition{curl-handle}.  @var{code} must
+be a numeric @curl{} ``easy'' error code.  @var{handle} must be a
+@curl{} session handle object.
+@end defun
+
+
+@defun raise-curl-multi-error @var{who} @var{code} @var{handle}
+Raise a non--continuable exception with compound condition object of
+types: @condition{who}, @condition{message}, @condition{curl-error},
+@condition{curl-error-code}, @condition{curl-handle}.  @var{code} must
+be a numeric @curl{} ``multi'' error code.  @var{handle} must be a
+@curl{} session handle object.
+@end defun
+
+@c page
+@node conditions error init
+@subsection Initialisation error condition
+
+
+@deftp {Condition Type} &curl-init-error
+Condition type used to signal @curl{} session initialisation errors; it
+is derived from @condition{curl-init}.  It has no fields.
+@end deftp
+
+
+@defun make-curl-init-error-condition @var{code}
+@defunx curl-init-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{curl-init-error}.
+@end defun
+
+
+@deffn Syntax raise-curl-init-error @var{who} @var{message} @var{code}
+Raise a non--continuable exception with compound condition object of
+types: @condition{who}, @condition{message},
+@condition{curl-init-error}.  It is defined as follows:
+
+@example
+(define-syntax raise-curl-init-error
+  (syntax-rules ()
+    ((_ ?who ?message ?curl-code)
+     (raise
+      (condition (make-curl-init-error-condition ?curl-code)
+                 (make-who-condition ?who)
+                 (make-message-condition ?message))))))
+@end example
+@end deffn
+
+@c page
 @node easy
 @chapter Easy interface
 
@@ -731,6 +977,7 @@ net curl primitives} and reexported by @library{foreign net curl}.
 
 @menu
 * easy intro::                  Introduction to the easy interface.
+* easy init::                   Session handle construction.
 * easy options::                Setting handle's options.
 * easy callbacks::              Preparing callbacks.
 @end menu
@@ -775,6 +1022,35 @@ features; a program that requests @file{index.html} from the @aurl{}
 the callback @func{write-callback} may be called any number of times; if
 successful it must return the number of bytes consumed from the buffer,
 else it can return zero.
+
+@c page
+@node easy init
+@section Session handle construction
+
+
+@defun curl-easy-init
+Build and return a new @curl{} session handle.  @curl{} session handle
+objects are disjoint from the other Scheme object types.
+
+If @curl{} is not able to initialise a new handle, an exception is
+raised with condition object of type @condition{curl-init-error};
+unfortunately there is no way to distinguish among different causes of
+initialisation error.
+
+The returned handle must be finalised with @func{curl-easy-cleanup},
+else resources leakes will ensue.
+@end defun
+
+
+@defun curl-easy-cleanup @var{handle}
+Finalise a @curl{} session handle, releasing all the associated
+resources.
+@end defun
+
+
+@defun curl-easy-reset @var{handle}
+Reset to its initial state a @curl{} session handle.
+@end defun
 
 @c page
 @node easy options
@@ -907,7 +1183,7 @@ Example:
 
 @defun curl-version-info
 Return a record of type @class{curl-version-info} filled with version
-informations on the build of @curl{}.  @ref{types version info,
+informations on the build of @curl{}.  @ref{records version info,
 Libraries version informations}.
 @end defun
 

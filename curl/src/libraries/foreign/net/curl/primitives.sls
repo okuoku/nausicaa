@@ -28,10 +28,17 @@
 (library (foreign net curl primitives)
   (export
 
-    curl-version		curl-version-info
-    curl-easy-setopt
+    curl-version			curl-version-info
 
-    curl-make-read-callback	curl-make-write-callback
+    (rename (<curl-handle>?		curl-handle?))
+    curl-easy-init			curl-easy-cleanup
+    curl-easy-reset
+    curl-easy-setopt			curl-easy-perform
+
+    curl-easy-strerror			curl-share-strerror
+    curl-multi-strerror
+
+    curl-make-read-callback		curl-make-write-callback
 
     (rename (curl_global_init		curl-global-init)
 	    (curl_global_init_mem	curl-global-init-mem)
@@ -40,18 +47,18 @@
 	    ;;(curl_version		curl-version)		;marshaled
 	    ;;(curl_version_info	curl-version-info)	;marshaled
 
-	    (curl_easy_strerror		curl-easy-strerror)
-	    (curl_share_strerror	curl-share-strerror)
-	    (curl_easy_pause		curl-easy-pause)
-	    (curl_easy_init		curl-easy-init)
-	    ;;(curl_easy_setopt		curl-easy-setopt)	marshaled
-	    (curl_easy_perform		curl-easy-perform)
-	    (curl_easy_cleanup		curl-easy-cleanup)
+	    ;;(curl_easy_init		curl-easy-init)		;marshaled
+	    ;;(curl_easy_cleanup	curl-easy-cleanup)	;marshaled
+	    ;;(curl_easy_reset		curl-easy-reset)	;marshaled
+	    ;;(curl_easy_setopt		curl-easy-setopt)	;marshaled
+	    ;;(curl_easy_perform	curl-easy-perform)	;marshaled
 	    ;;(curl_easy_getinfo	curl-easy-getinfo)	;this is variadic
 	    (curl_easy_duphandle	curl-easy-duphandle)
-	    (curl_easy_reset		curl-easy-reset)
 	    (curl_easy_recv		curl-easy-recv)
 	    (curl_easy_send		curl-easy-send)
+	    (curl_easy_pause		curl-easy-pause)
+	    ;;(curl_easy_strerror	curl-easy-strerror)	;marshaled
+	    ;;(curl_share_strerror	curl-share-strerror)	;marshaled
 
 	    (curl_easy_escape		curl-easy-escape)
 	    (curl_easy_unescape		curl-easy-unescape)
@@ -65,7 +72,7 @@
 	    (curl_multi_perform		curl-multi-perform)
 	    (curl_multi_cleanup		curl-multi-cleanup)
 	    (curl_multi_info_read	curl-multi-info-read)
-	    (curl_multi_strerror	curl-multi-strerror)
+	    ;;(curl_multi_strerror	curl-multi-strerror)	;marshaled
 	    (curl_multi_socket		curl-multi-socket)
 	    (curl_multi_socket_action	curl-multi-socket-action)
 	    (curl_multi_socket_all	curl-multi-socket-all)
@@ -93,6 +100,7 @@
 	  string->cstring/c
 	  cstring->string
 	  argv->strings)
+    (foreign net curl conditions)
     (foreign net curl record-types)
     (foreign net curl sizeof)
     (foreign net curl platform))
@@ -183,24 +191,44 @@
        #f))))
 
 
+(define (curl-easy-init)
+  (let ((handle* (curl_easy_init)))
+    (if (pointer-null? handle*)
+	(raise-curl-init-error 'curl-easy-init "error initialising cURL session handle")
+      (make-<curl-handle> handle*))))
+
+(define (curl-easy-cleanup handle)
+  (curl_easy_cleanup (<curl-handle>-pointer handle)))
+
+(define (curl-easy-reset handle)
+  (curl_easy_reset (<curl-handle>-pointer handle)))
+
+(define (curl-easy-perform handle)
+  (let ((code (curl_easy_perform (<curl-handle>-pointer handle))))
+    (if (= code CURLE_OK)
+	code
+      (raise-curl-easy-error 'curl-easy-perform code handle))))
+
+
 (define (curl-easy-setopt handle option value)
-  (with-compensations
-    (cond ((= option CURLOPT_URL)
-	   (curl_easy_setopt/void* handle option (string->cstring/c value)))
+  (let ((handle* (<curl-handle>-pointer handle)))
+    (with-compensations
+      (cond ((= option CURLOPT_URL)
+	     (curl_easy_setopt/void* handle* option (string->cstring/c value)))
 
-	  ((memv option (list CURLOPT_WRITEFUNCTION CURLOPT_WRITEFUNCTION))
-	   (curl_easy_setopt/callback handle option value))
+	    ((memv option (list CURLOPT_WRITEFUNCTION CURLOPT_WRITEFUNCTION))
+	     (curl_easy_setopt/callback handle* option value))
 
-	  ((memv option (list CURLOPT_WRITEDATA CURLOPT_READDATA))
-	   (curl_easy_setopt/void* handle option value))
+	    ((memv option (list CURLOPT_WRITEDATA CURLOPT_READDATA))
+	     (curl_easy_setopt/void* handle* option value))
 
-	  ((memv option (list CURLOPT_VERBOSE CURLOPT_HEADER
-			      CURLOPT_NOPROGRESS CURLOPT_NOSIGNAL))
-	   (curl_easy_setopt/long handle option (if value 1 0)))
+	    ((memv option (list CURLOPT_VERBOSE CURLOPT_HEADER
+				CURLOPT_NOPROGRESS CURLOPT_NOSIGNAL))
+	     (curl_easy_setopt/long handle* option (if value 1 0)))
 
-	  (else
-	   (assertion-violation 'curl-easy-setopt
-	     "invalid cURL option for handle" option)))))
+	    (else
+	     (assertion-violation 'curl-easy-setopt
+	       "invalid cURL option for handle" option))))))
 
 
 (define (curl-make-write-callback scheme-function)
@@ -217,7 +245,15 @@
 		       (scheme-function buffer item-size item-count)))
 		   (void* size_t size_t void*)))
 
+
+(define (curl-easy-strerror code)
+  (cstring->string (curl_easy_strerror code)))
 
+(define (curl-share-strerror code)
+  (cstring->string (curl_share_strerror code)))
+
+(define (curl-multi-strerror code)
+  (cstring->string (curl_multi_strerror code)))
 
 
 ;;;; done

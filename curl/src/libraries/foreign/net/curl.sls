@@ -414,7 +414,7 @@
 
     curl-version		curl-version-info
 
-    curl-easy-init
+    curl-easy-init		curl-handle?
     curl-easy-strerror		curl-share-strerror
     curl-easy-pause		curl-easy-setopt
     curl-easy-perform		curl-easy-cleanup
@@ -467,10 +467,36 @@
     <curl-version-info>-iconv
     <curl-version-info>-libssh-version
 
+;;; --------------------------------------------------------------------
+
+    ;; data condition types
+    &curl-handle
+    make-curl-handle-condition
+    curl-handle-condition?
+    condition-curl-handle
+
+    &curl-error-code
+    make-curl-error-code-condition
+    curl-error-code-condition?
+    condition-curl-error-numeric-code
+
+    ;; error condition types
+    &curl-error
+    make-curl-error-condition
+    curl-error-condition?
+    raise-curl-easy-error
+    raise-curl-multi-error
+
+    &curl-init-error
+    make-curl-init-error-condition
+    curl-init-error-condition?
+    raise-curl-init-error
+
     )
   (import (rnrs)
     (foreign net curl sizeof)
     (foreign net curl primitives)
+    (foreign net curl conditions)
     (foreign net curl record-types)))
 
 ;;; end of file
