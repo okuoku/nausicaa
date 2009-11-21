@@ -84,6 +84,10 @@ Revised^6 Report on the algorithmic language Scheme
 @code{<\NAME\>}
 @end macro
 
+@macro condition{NAME}
+@code{&\NAME\}
+@end macro
+
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
 @c ------------------------------------------------------------
