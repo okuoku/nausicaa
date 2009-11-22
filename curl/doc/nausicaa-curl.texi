@@ -1255,14 +1255,14 @@ the appropriate marshaling of @var{value} for the underlying
 @menu
 * easy options behaviour::      Behaviour options.
 * easy options callback::       Callback related options.
+* easy options error::          Error options.
+* easy options network::        Network options.
+* easy options auth::           Authentication options.
+* easy options http::           @http{} options.
+* easy options tftp::           @tftp{} options.
+* easy options ftp::            @ftp{} options.
+* easy options protocol::       Protocol options.
 @end menu
-
-@defvr {@curl{} Option} CURLOPT_URL
-@var{value} must be a Scheme string representing the @aurl{}.
-@end defvr
-
-
-
 
 @c page
 @node easy options behaviour
@@ -1391,6 +1391,492 @@ for header data.
 @defvrx {@curl{} Option} CURLOPT_WRITEHEADER
 @var{value} must be a pointer object; it will be used as @strong{last}
 argument to the header callback.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_DEBUGFUNCTION
+@var{value} must be a callback object, suitable to be used as callback
+of type @code{curl_debug_callback}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_DEBUGDATA
+@var{value} must be a pointer object; it will be used as @strong{last}
+argument to the debug callback.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSL_CTX_UNCTION
+@var{value} must be a callback object, suitable to be used as callback
+of type @code{curl_ssl_ctx_callback}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSL_CTX_DATA
+@var{value} must be a pointer object; it will be used as @strong{last}
+argument to the debug callback.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_CONV_TO_NETWORK_FUNCTION
+@defvrx {@curl{} Option} CURLOPT_CONV_FROM_NETWORK_FUNCTION
+@defvrx {@curl{} Option} CURLOPT_CONV_FROM_UTF8_FUNCTION
+@var{value} must be a callback object, suitable to be used as callback
+of type @code{curl_conv_callback}.
+@end defvr
+
+@c page
+@node easy options error
+@subsection Error options
+
+
+@defvr {@curl{} Option} CURLOPT_ERRORBUFFER
+@var{value} must be a pointer to a raw memory block at least
+@samp{CURL_ERROR_SIZE} bytes wide, in which @curl{} can store an error
+message.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_STDERR
+@var{value} must be a pointer to a @samp{FILE} structure as used by the
+@file{stdio.h} standard library.  It selects a stream to which @curl{}
+will send verbose messages.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FAILONERROR
+@var{value} must be a boolean value which signals to @curl{} to fail if
+the @http{} response code is equal to, or greater than, @samp{400}.
+@end defvr
+
+@c page
+@node easy options network
+@subsection Network options
+
+
+@defvr {@curl{} Option} CURLOPT_URL
+@var{value} must be a Scheme string representing the @aurl{}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PROTOCOLS
+@var{value} must be an exact integer built as bitmask with values among
+the @samp{CURLPROTO_*} constants.  Example:
+
+@example
+(bitwise-ior CURLPROTO_HTTP CURLPROTO_HTTPS)
+@end example
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_REDIR_PROTOCOLS
+@var{value} must be an exact integer built as bitmask with values among
+the @samp{CURLPROTO_*} constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PROXY
+@var{value} must be a Scheme string representing the host name or dotted
+@ip{} address of the @http{} proxy to use.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PROXYPORT
+@var{value} must be an exact integer representing the port number of the
+@http{} proxy to use.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PROXYTYPE
+@var{value} must be an exact integer among @code{CURLPROXY_*} constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_NOPROXY
+@var{value} must be a Scheme string representing a comma--separated list
+of hosts which do not use a proxy if one was specified.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_HTTPPROXYTUNNEL
+@var{value} must be a boolean value.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SOCKS5_GSSAPI_SERVICE
+@var{value} must be a Scheme string representing the name of the
+service.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SOCKS5_GSSAPI_NEC
+@var{value} must be a boolean value.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_INTERFACE
+@var{value} must be a Scheme string representing the network interface
+to use for outgoing connections.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_LOCALPORT
+@var{value} must be an exact integer representing the local port number
+to use.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_LOCALPORTRANGE
+@var{value} must be an exact integer representing the number of attempts
+@curl{} must perform to find a working local port number.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_DNS_CACHE_TIMEOUT
+@var{value} must be an exact integer representing the timeout in
+seconds.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_DNS_USE_GLOBAL_CACHE
+@var{value} must be a boolean VALUE.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_BUFFERSIZE
+@var{value} must be an exact integer representing the size in bytes of
+the receive buffer used by @curl{}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PORT
+@var{value} must be an exact integer representing the remote port to
+connect to.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_TCP_NODELAY
+@var{value} must be a boolean value.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_ADDRESS_SCOPE
+@var{value} must be an exact integer.
+@end defvr
+
+@c page
+@node easy options auth
+@subsection Authentication options
+
+
+@defvr {@curl{} Option} CURLOPT_NETRC
+@var{value} must be an exact integer among the @samp{CURL_NETRC_*}
+constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_NETRC_FILE
+@var{value} must be a Scheme string representing the pathname to the
+netrc file to use.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_USERPWD
+@var{value} must be a Scheme string representing a @samp{user:password}
+specification.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PROXYUSERPWD
+@var{value} must be a Scheme string representing a @samp{user:password}
+specification.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_USERNAME
+@var{value} must be a Scheme string representing a user name
+specification.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PASSWORD
+@var{value} must be a Scheme string representing a user password
+specification.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PROXYUSERNAME
+@var{value} must be a Scheme string representing a user name
+specification.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PROXYPASSWORD
+@var{value} must be a Scheme string representing a user password
+specification.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_HTTPAUTH
+@var{value} must be an exact integer representing a bitmask built with
+the @samp{CURLAUTH_*} constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PROXYAUTH
+@var{value} must be an exact integer representing a bitmask built with
+the @samp{CURLAUTH_*} constants.
+@end defvr
+
+@c page
+@node easy options http
+@subsection @http{} options
+
+
+@defvr {@curl{} Option} CURLOPT_AUTOREFERER
+@var{value} must be a boolean value.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_ENCODING
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FOLLOWLOCATION
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_UNRESTRICTED_AUTH
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_MAXREDIRS
+@var{value} must be an exact integer representing the redirection limit.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_POSTREDIR
+@var{value} must be an exact integer representing a bitmaks of
+@samp{CURL_REDIR_*} constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PUT
+@var{value} must be a boolean value.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_POST
+@var{value} must be a boolean value.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_POSTFIELDS
+@var{value} must be a pointer to a raw block of memory.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_POSTFIELDSIZE
+@var{value} must be an exact integer representing the number of bytes in
+the block of memory selected with the @samp{CURLOPT_POSTFIELDS} option.
+The number must fit in a @code{long int} platform type.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_POSTFIELDSIZE_LARGE
+@var{value} must be an exact integer representing the number of bytes in
+the block of memory selected with the @samp{CURLOPT_POSTFIELDS} option.
+The number must fit in a @code{curl_off_t} platform type.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_COPYPOSTFIELDS
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_HTTPPOST
+@var{value} must be a pointer to a linked list of @code{struct
+curl_httppost} structures.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_REFERER
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_USERAGENT
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_HTTPHEADER
+@var{value} must be a pointer to a @code{struct curl_slist} linked list.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_HTTP200ALIASES
+@var{value} must be a pointer to a @code{struct curl_slist} linked list.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_COOKIE
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_COOKIEFILE
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_COOKIEJAR
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_COOKIESESSION
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_COOKIELIST
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_HTTPGET
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_HTTP_VERSION
+@var{value} must be an exact integer among the
+@samp{CURL_HTTP_VERSION_*} constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_IGNORE_CONTENT_LENGTH
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_HTTP_CONTENT_DECODING
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_HTTP_TRANSFER_DECODING
+@var{value} must be a boolean.
+@end defvr
+
+@c page
+@node easy options tftp
+@subsection @tftp{} options
+
+
+@defvr {@curl{} Option} CURLOPT_TFTP_BLKSIZE
+@var{value} must be an exact integer in the range @math{8...65464}.
+@end defvr
+
+@c page
+@node easy options ftp
+@subsection @ftp{} options
+
+
+@defvr {@curl{} Option} CURLOPT_FTPPORT
+@var{value} must be an exact integer.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_QUOTE
+@defvrx {@curl{} Option} CURLOPT_POSTQUOTE
+@defvrx {@curl{} Option} CURLOPT_PREQUOTE
+@var{value} must be a pointer to a linked list of @code{struct
+curl_slist} structures.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_DIRLISTONLY
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_APPEND
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FTP_USE_EPRT
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FTP_USE_EPSV
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FTP_CREATE_MISSING_DIRS
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FTP_RESPONSE_TIMEOUT
+@var{value} must be an exact integer representing the timeout in
+seconds.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FTP_ALTERNATIVE_TO_USER
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FTP_SKIP_PASV_IP
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_USE_SSL
+@var{value} must be an exact integer among the @samp{CURLUSESSL_*}
+constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FTPSSLAUTH
+@var{value} must be an exact integer among the @samp{CURLFTPAUTH_*}
+constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FTP_SSL_CCC
+@var{value} must be an exact integer among the @samp{CURLFTPSSL_*}
+constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FTP_ACCOUNT
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FTP_FILEMETHOD
+@var{value} must be an exact integer among the @samp{CURLFTPMETHOD_*}
+constants.
+@end defvr
+
+@c page
+@node easy options protocol
+@subsection Protocol options
+
+
+@defvr {@curl{} Option} CURLOPT_
+@var{value} must be
 @end defvr
 
 
@@ -1576,6 +2062,57 @@ Prepare a callback C function to be used as value for the
       (guard (E (else -1))
         (scheme-function custom-pointer item-size item-count stream)))
     (void* size_t size_t void*)))
+@end example
+@end defun
+
+
+@defun curl-make-debug-callback @var{scheme-function}
+Prepare a callback C function to be used as value for the
+@samp{CURLOPT_DEBUGFUNCTION} option.  It is defined as follows:
+
+@example
+(define (curl-make-debug-callback scheme-function)
+  (make-c-callback
+    int
+    (lambda (handle type data size custom-pointer)
+      (guard (E (else 0))
+        (scheme-function handle type data size custom-pointer)))
+    (void* curl_infotype char* size_t void*)))
+@end example
+@end defun
+
+
+@defun curl-make-ssl-ctx-callback @var{scheme-function}
+Prepare a callback C function to be used as value for the
+@samp{CURLOPT_SSL_CTXFUNCTION} option.  It is defined as follows:
+
+@example
+(define (curl-make-ssl-ctx-callback scheme-function)
+  (make-c-callback
+    int
+    (lambda (handle ssl_ctx custom-pointer)
+      (guard (E (else 0))
+        (scheme-function handle ssl_ctx custom-pointer)))
+    (void* void* void*)))
+@end example
+@end defun
+
+
+@defun curl-make-conv-callback @var{scheme-function}
+Prepare a callback C function to be used as value for the
+@samp{CURLOPT_CONV_TO_NETWORK_FUNCTION},
+@samp{CURLOPT_CONV_FROM_NETWORK_FUNCTION} and
+@samp{CURLOPT_CONV_FROM_UTF8_FUNCTION} options.  It is defined as
+follows:
+
+@example
+(define (curl-make-conv-callback scheme-function)
+  (make-c-callback
+    CURLcode
+    (lambda (buffer len)
+      (guard (E (else CURLE_OBSOLETE10))
+        (scheme-function buffer len)))
+    (char* size_t)))
 @end example
 @end defun
 

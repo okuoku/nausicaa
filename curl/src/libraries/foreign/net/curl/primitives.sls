@@ -46,6 +46,8 @@
     curl-make-ioctl-callback		curl-make-seek-callback
     curl-make-sockopt-callback		curl-make-opensocket-callback
     curl-make-progress-callback		curl-make-header-callback
+    curl-make-debug-callback		curl-make-ssl-ctx-callback
+    curl-make-conv-callback
 
     (rename (curl_global_init		curl-global-init)
 	    (curl_global_init_mem	curl-global-init-mem)
@@ -299,24 +301,68 @@
 (define curl-easy-setopt
   (let (($list-bool	(list CURLOPT_VERBOSE			CURLOPT_HEADER
 			      CURLOPT_NOPROGRESS		CURLOPT_NOSIGNAL
-			      CURLOPT_CONNECT_ONLY
+			      CURLOPT_CONNECT_ONLY		CURLOPT_FAILONERROR
+			      CURLOPT_DNS_USE_GLOBAL_CACHE	CURLOPT_TCP_NODELAY
+			      CURLOPT_AUTOREFERER		CURLOPT_FOLLOWLOCATION
+			      CURLOPT_UNRESTRICTED_AUTH		CURLOPT_PUT
+			      CURLOPT_POST			CURLOPT_COOKIESESSION
+			      CURLOPT_HTTPGET			CURLOPT_IGNORE_CONTENT_LENGTH
+			      CURLOPT_HTTP_CONTENT_DECODING	CURLOPT_HTTP_TRANSFER_DECODING
+			      CURLOPT_DIRLISTONLY		CURLOPT_APPEND
+			      CURLOPT_FTP_USE_EPRT		CURLOPT_FTP_USE_EPSV
+			      CURLOPT_FTP_CREATE_MISSING_DIRS	CURLOPT_FTP_SKIP_PASV_IP
 			      ))
 
-	($list-string	(list CURLOPT_URL))
+	($list-long	(list CURLOPT_PROTOCOLS			CURLOPT_REDIR_PROTOCOLS
+			      CURLOPT_PROXYPORT			CURLOPT_PROXYTYPE
+			      CURLOPT_HTTPPROXYTUNNEL		CURLOPT_SOCKS5_GSSAPI_NEC
+			      CURLOPT_LOCALPORT			CURLOPT_LOCALPORTRANGE
+			      CURLOPT_DNS_CACHE_TIMEOUT		CURLOPT_BUFFERSIZE
+			      CURLOPT_PORT			CURLOPT_ADDRESS_SCOPE
+			      CURLOPT_NETRC			CURLOPT_HTTPAUTH
+			      CURLOPT_PROXYAUTH			CURLOPT_MAXREDIRS
+			      CURLOPT_POSTREDIR			CURLOPT_POSTFIELDSIZE
+			      CURLOPT_HTTP_VERSION		CURLOPT_TFTP_BLKSIZE
+			      CURLOPT_FTPPORT			CURLOPT_FTP_RESPONSE_TIMEOUT
+			      CURLOPT_USE_SSL			CURLOPT_FTPSSLAUTH
+			      CURLOPT_FTP_SSL_CCC		CURLOPT_FTP_FILEMETHOD
+			      ))
+
+	($list-off_t	(list CURLOPT_POSTFIELDSIZE_LARGE))
+
+	($list-string	(list CURLOPT_URL			CURLOPT_PROXY
+			      CURLOPT_NOPROXY			CURLOPT_SOCKS5_GSSAPI_SERVICE
+			      CURLOPT_INTERFACE			CURLOPT_NETRC_FILE
+			      CURLOPT_USERPWD			CURLOPT_PROXYUSERPWD
+			      CURLOPT_USERNAME			CURLOPT_PASSWORD
+			      CURLOPT_PROXYUSERNAME		CURLOPT_PROXYPASSWORD
+			      CURLOPT_ENCODING			CURLOPT_COPYPOSTFIELDS
+			      CURLOPT_REFERER			CURLOPT_USERAGENT
+			      CURLOPT_COOKIE			CURLOPT_COOKIEFILE
+			      CURLOPT_COOKIEJAR			CURLOPT_COOKIELIST
+			      CURLOPT_FTP_ALTERNATIVE_TO_USER	CURLOPT_FTP_ACCOUNT
+			      ))
 
 	($list-callback	(list CURLOPT_READFUNCTION		CURLOPT_WRITEFUNCTION
 			      CURLOPT_IOCTLFUNCTION		CURLOPT_SEEKFUNCTION
 			      CURLOPT_SOCKOPTFUNCTION		CURLOPT_OPENSOCKETFUNCTION
 			      CURLOPT_PROGRESSFUNCTION		CURLOPT_HEADERFUNCTION
-			      ))
+			      CURLOPT_DEBUGFUNCTION		CURLOPT_SSL_CTX_FUNCTION
+			      CURLOPT_CONV_TO_NETWORK_FUNCTION
+			      CURLOPT_CONV_FROM_NETWORK_FUNCTION
+			      CURLOPT_CONV_FROM_UTF8_FUNCTION))
 
 	($list-pointer	(list CURLOPT_WRITEDATA			CURLOPT_READDATA
 			      CURLOPT_IOCTLDATA			CURLOPT_SEEKDATA
 			      CURLOPT_SOCKOPTDATA		CURLOPT_OPENSOCKETDATA
-			      CURLOPT_PROGRESSDATA		CURLOPT_HEADERDATA
-			      CURLOPT_WRITEHEADER
+			      CURLOPT_PROGRESSDATA		CURLOPT_HEADERDATA CURLOPT_WRITEHEADER
+			      CURLOPT_DEBUGDATA			CURLOPT_SSL_CTX_DATA
+			      CURLOPT_ERRORBUFFER		CURLOPT_STDERR
+			      CURLOPT_POSTFIELDS		CURLOPT_HTTPPOST
+			      CURLOPT_HTTPHEADER		CURLOPT_HTTP200ALIASES
+			      CURLOPT_QUOTE			CURLOPT_POSTQUOTE
+			      CURLOPT_PREQUOTE
 			      ))
-
 	)
     (lambda (handle option value)
       (let ((handle* (<curl-handle>-pointer handle)))
@@ -332,6 +378,12 @@
 
 		((memv option $list-bool)
 		 (curl_easy_setopt/long handle* option (if value 1 0)))
+
+		((memv option $list-long)
+		 (curl_easy_setopt/long handle* option value))
+
+		((memv option $list-off_t)
+		 (curl_easy_setopt/off_t handle* option value))
 
 		(else
 		 (assertion-violation 'curl-easy-setopt
@@ -454,6 +506,27 @@
 		     (guard (E (else -1))
 		       (scheme-function custom-pointer item-size item-count stream)))
 		   (void* size_t size_t void*)))
+
+(define (curl-make-debug-callback scheme-function)
+  (make-c-callback int
+		   (lambda (handle type data size custom-pointer)
+		     (guard (E (else 0))
+		       (scheme-function handle type data size custom-pointer)))
+		   (void* curl_infotype char* size_t void*)))
+
+(define (curl-make-ssl-ctx-callback scheme-function)
+  (make-c-callback int
+		   (lambda (handle ssl_ctx custom-pointer)
+		     (guard (E (else -1))
+		       (scheme-function handle ssl_ctx custom-pointer)))
+		   (void* void* void*)))
+
+(define (curl-make-conv-callback scheme-function)
+  (make-c-callback CURLcode
+		   (lambda (buffer len)
+		     (guard (E (else CURLE_OBSOLETE10))
+		       (scheme-function buffer len)))
+		   (char* size_t)))
 
 
 (define (curl-easy-strerror code)

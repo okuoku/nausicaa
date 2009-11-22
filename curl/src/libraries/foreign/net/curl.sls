@@ -450,6 +450,8 @@
     curl-make-ioctl-callback		curl-make-seek-callback
     curl-make-sockopt-callback		curl-make-opensocket-callback
     curl-make-progress-callback		curl-make-header-callback
+    curl-make-debug-callback		curl-make-ssl-ctx-callback
+    curl-make-conv-callback
 
 ;;; --------------------------------------------------------------------
 
