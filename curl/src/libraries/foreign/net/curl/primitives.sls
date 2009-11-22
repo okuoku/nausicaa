@@ -43,6 +43,9 @@
     curl-multi-strerror
 
     curl-make-read-callback		curl-make-write-callback
+    curl-make-ioctl-callback		curl-make-seek-callback
+    curl-make-sockopt-callback		curl-make-opensocket-callback
+    curl-make-progress-callback		curl-make-header-callback
 
     (rename (curl_global_init		curl-global-init)
 	    (curl_global_init_mem	curl-global-init-mem)
@@ -293,26 +296,46 @@
 
 
 
-(define (curl-easy-setopt handle option value)
-  (let ((handle* (<curl-handle>-pointer handle)))
-    (with-compensations
-      (cond ((= option CURLOPT_URL)
-	     (curl_easy_setopt/void* handle* option (string->cstring/c value)))
+(define curl-easy-setopt
+  (let (($list-bool	(list CURLOPT_VERBOSE			CURLOPT_HEADER
+			      CURLOPT_NOPROGRESS		CURLOPT_NOSIGNAL
+			      CURLOPT_CONNECT_ONLY
+			      ))
 
-	    ((memv option (list CURLOPT_WRITEFUNCTION CURLOPT_WRITEFUNCTION))
-	     (curl_easy_setopt/callback handle* option value))
+	($list-string	(list CURLOPT_URL))
 
-	    ((memv option (list CURLOPT_WRITEDATA CURLOPT_READDATA))
-	     (curl_easy_setopt/void* handle* option value))
+	($list-callback	(list CURLOPT_READFUNCTION		CURLOPT_WRITEFUNCTION
+			      CURLOPT_IOCTLFUNCTION		CURLOPT_SEEKFUNCTION
+			      CURLOPT_SOCKOPTFUNCTION		CURLOPT_OPENSOCKETFUNCTION
+			      CURLOPT_PROGRESSFUNCTION		CURLOPT_HEADERFUNCTION
+			      ))
 
-	    ((memv option (list CURLOPT_VERBOSE CURLOPT_HEADER
-				CURLOPT_NOPROGRESS CURLOPT_NOSIGNAL
-				CURLOPT_CONNECT_ONLY))
-	     (curl_easy_setopt/long handle* option (if value 1 0)))
+	($list-pointer	(list CURLOPT_WRITEDATA			CURLOPT_READDATA
+			      CURLOPT_IOCTLDATA			CURLOPT_SEEKDATA
+			      CURLOPT_SOCKOPTDATA		CURLOPT_OPENSOCKETDATA
+			      CURLOPT_PROGRESSDATA		CURLOPT_HEADERDATA
+			      CURLOPT_WRITEHEADER
+			      ))
 
-	    (else
-	     (assertion-violation 'curl-easy-setopt
-	       "invalid cURL option for handle" handle option value))))))
+	)
+    (lambda (handle option value)
+      (let ((handle* (<curl-handle>-pointer handle)))
+	(with-compensations
+	  (cond ((memv option $list-string)
+		 (curl_easy_setopt/void* handle* option (string->cstring/c value)))
+
+		((memv option $list-callback)
+		 (curl_easy_setopt/callback handle* option value))
+
+		((memv option $list-pointer)
+		 (curl_easy_setopt/void* handle* option value))
+
+		((memv option $list-bool)
+		 (curl_easy_setopt/long handle* option (if value 1 0)))
+
+		(else
+		 (assertion-violation 'curl-easy-setopt
+		   "invalid cURL option for handle" handle option value))))))))
 
 
 (define curl-easy-getinfo
@@ -388,6 +411,48 @@
 		   (lambda (buffer item-size item-count custom)
 		     (guard (E (else 0))
 		       (scheme-function buffer item-size item-count)))
+		   (void* size_t size_t void*)))
+
+(define (curl-make-ioctl-callback scheme-function)
+  (make-c-callback curlioerr
+		   (lambda (handle size custom-data)
+		     (guard (E (else -1))
+		       (scheme-function handle size custom-data)))
+		   (void* int void*)))
+
+(define (curl-make-seek-callback scheme-function)
+  (make-c-callback curlioerr
+		   (lambda (instream offset whence)
+		     (guard (E (else CURL_SEEKFUNC_FAIL))
+		       (scheme-function instream offset whence)))
+		   (void* curl_off_t int)))
+
+(define (curl-make-sockopt-callback scheme-function)
+  (make-c-callback curlioerr
+		   (lambda (instream offset whence)
+		     (guard (E (else 1))
+		       (scheme-function instream offset whence)))
+		   (void* curl_socket_t curlsocktype)))
+
+(define (curl-make-opensocket-callback scheme-function)
+  (make-c-callback curl_socket_t
+		   (lambda (custom-pointer purpose address)
+		     (guard (E (else CURL_SOCKET_BAD))
+		       (scheme-function custom-pointer purpose)))
+		   (void* curlsocktype void*)))
+
+(define (curl-make-progress-callback scheme-function)
+  (make-c-callback curl_socket_t
+		   (lambda (custom-pointer dltotal dlnow ultotal ulnow)
+		     (guard (E (else 1))
+		       (scheme-function custom-pointer dltotal dlnow ultotal ulnow)))
+		   (void* double double double double)))
+
+(define (curl-make-header-callback scheme-function)
+  (make-c-callback size_t
+		   (lambda (custom-pointer item-size item-count stream)
+		     (guard (E (else -1))
+		       (scheme-function custom-pointer item-size item-count stream)))
 		   (void* size_t size_t void*)))
 
 

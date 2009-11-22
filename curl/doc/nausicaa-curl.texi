@@ -505,6 +505,7 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* structs::                     Accessing foreign structures.
 * records::                     Record types.
 * enumerations::                Enumerations.
 * conditions::                  Condition object types.
@@ -534,6 +535,11 @@ Record types
 * records handle::              @curl{} session handlers.
 * records version info::        Libraries version informations.
 
+Enumerations
+
+* enumerations codes::          Error codes conversion.
+* enumerations pause::          Session pause mask.
+
 Condition object types
 
 * conditions data::             Condition types for data values.
@@ -542,17 +548,27 @@ Condition object types
 Condition types for data values
 
 * conditions data handle::      @curl{} handle objects.
+* conditions data code::        @curl{} error code objects.
 
 Error condition types
 
 * conditions error base::       Basic error condition.
+* conditions error init::       Initialisation error condition.
 
 Easy interface
 
 * easy intro::                  Introduction to the easy interface.
 * easy init::                   Session handle construction.
+* easy perform::                Performing the transfer.
 * easy options::                Setting handle's options.
+* easy info::                   Getting informations.
 * easy callbacks::              Preparing callbacks.
+* easy misc::                   Miscellaneous functions.
+
+Setting handle's options
+
+* easy options behaviour::      Behaviour options.
+* easy options callback::       Callback related options.
 
 Miscellaneous functions
 
@@ -633,6 +649,93 @@ Additional wrappers for constructors and destructors making use of the
 @library{foreign net curl}.  @nauref{compensations, Compensation
 stacks}.
 @end table
+
+@c page
+@node structs
+@chapter Accessing foreign structures
+
+
+The bindings described in this chapter are exported by the
+@library{foreign net curl sizeof} library.
+
+
+@deffn Syntax struct-curl_httppost-next-ref @var{pointer}
+@deffnx Syntax struct-curl_httppost-name-ref @var{pointer}
+@deffnx Syntax struct-curl_httppost-namelength-ref @var{pointer}
+@deffnx Syntax struct-curl_httppost-contents-ref @var{pointer}
+@deffnx Syntax struct-curl_httppost-contentslength-ref @var{pointer}
+@deffnx Syntax struct-curl_httppost-buffer-ref @var{pointer}
+@deffnx Syntax struct-curl_httppost-bufferlength-ref @var{pointer}
+@deffnx Syntax struct-curl_httppost-contenttype-ref @var{pointer}
+@deffnx Syntax struct-curl_httppost-contentheader-ref @var{pointer}
+@deffnx Syntax struct-curl_httppost-more-ref @var{pointer}
+@deffnx Syntax struct-curl_httppost-flags-ref @var{pointer}
+@deffnx Syntax struct-curl_httppost-showfilename-ref @var{pointer}
+@deffnx Syntax struct-curl_httppost-userp-ref @var{pointer}
+Field accessors for the @code{struct curl_httppost} data type.
+@end deffn
+
+
+@deffn Syntax struct-curl_sockaddr-family-ref @var{pointer}
+@deffnx Syntax struct-curl_sockaddr-socktype-ref @var{pointer}
+@deffnx Syntax struct-curl_sockaddr-protocol-ref @var{pointer}
+@deffnx Syntax struct-curl_sockaddr-addrlen-ref @var{pointer}
+@deffnx Syntax struct-curl_sockaddr-addr-ref @var{pointer}
+Field accessors for the @code{struct curl_sockaddr} data type.  Notice
+that @func{struct-curl_sockaddr-addr-ref} returns a pointer to the first
+byte of the @code{struct sockaddr addr} field.
+@end deffn
+
+
+@deffn Syntax struct-curl_khkey-key-ref @var{pointer}
+@deffnx Syntax struct-curl_khkey-len-ref @var{pointer}
+@deffnx Syntax struct-curl_khkey-keytype-ref @var{pointer}
+Field accessors for the @code{struct curl_khkey} data type.
+@end deffn
+
+
+@deffn Syntax struct-curl_forms-option-ref @var{pointer}
+@deffnx Syntax struct-curl_forms-value-ref @var{pointer}
+Field accessors for the @code{struct curl_forms} data type.
+@end deffn
+
+
+@deffn Syntax struct-curl_slist-data-ref @var{pointer}
+@deffnx Syntax struct-curl_slist-next-ref @var{pointer}
+Field accessors for the @code{struct curl_slist} data type.
+@end deffn
+
+
+@deffn Syntax struct-curl_certinfo-num_of_certs-ref @var{pointer}
+@deffnx Syntax struct-curl_certinfo-certinfo-ref @var{pointer}
+Field accessors for the @code{struct curl_certinfo} data type.
+@end deffn
+
+
+@deffn Syntax struct-curl_version_info_data-age-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-version-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-version_num-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-host-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-features-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-ssl_version-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-ssl_version_num-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-libz_version-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-protocols-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-ares-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-ares_num-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-libidn-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-iconv_ver_num-ref @var{pointer}
+@deffnx Syntax struct-curl_version_info_data-libssh_version-ref @var{pointer}
+Field accessors for the @code{struct curl_version_info_data} data type.
+@end deffn
+
+
+@deffn Syntax struct-CURLMsg-msg-ref @var{pointer}
+@deffnx Syntax struct-CURLMsg-easy_handle-ref @var{pointer}
+@deffnx Syntax struct-CURLMsg-whatever-ref @var{pointer}
+@deffnx Syntax struct-CURLMsg-result-ref @var{pointer}
+Field accessors for the @code{struct CURLMsg} data type.
+@end deffn
 
 @c page
 @node records
@@ -1135,10 +1238,7 @@ bytevector.  The string is built with @func{cstring->string}.
 @curl{} offers countless options to be set with
 @cfunc{curl_easy_setopt}; the primitives library provides a special
 interface for some of them, implementing marshaling of arguments from
-Scheme to C language.  For the other options, the generic interfaces to
-@cfunc{curl_easy_setopt} from @library{foreign net curl platform} must
-be used.  @ref{platform, Details on the platform library}.
-
+Scheme to C language.
 
 
 @defun curl-easy-setopt @var{handle} @var{option} @var{value}
@@ -1148,47 +1248,150 @@ must be an appropriate value for the selected option.
 
 @func{curl-easy-setopt} recognises the value of @var{option} and does
 the appropriate marshaling of @var{value} for the underlying
-@func{curl_easy_setopt} function.  Conversion is as follows:
-
-@table @samp
-@item CURLOPT_URL
-@var{value} must be a Scheme string representing the @aurl{}.
-
-@item CURLOPT_WRITEFUNCTION
-@var{value} must be a C callback object, suitable to be used as callback
-of type @code{curl_write_callback}.
-
-@item CURLOPT_WRITEDATA
-@var{value} must be a pointer object; it will be used as last argument
-to the write callback.
-
-@item CURLOPT_READFUNCTION
-@var{value} must be a C callback object, suitable to be used as callback
-of type @code{curl_read_callback}.
-
-@item CURLOPT_READDATA
-@var{value} must be a pointer object; it will be used as last argument
-to the read callback.
-
-@item CURLOPT_VERBOSE
-@var{value} must be a Scheme boolean; @true{} tells @curl{} to display
-informations when performing.
-
-@item CURLOPT_HEADER
-@var{value} must be a Scheme boolean; @true{} tells @curl{} to include
-the protocol headers in the output.
-
-@item CURLOPT_NOPROGRESS
-@var{value} must be a Scheme boolean; @true{} tells @curl{} to shut off
-the internal progress meter.
-
-@item CURLOPT_NOSIGNAL
-@var{value} must be a Scheme boolean; @true{} tells @curl{} not to
-install signal handlers.
-@end table
+@cfunc{curl_easy_setopt} function.
 @end defun
 
-@c da fare CURLOPT_IOCTLFUNCTION
+
+@menu
+* easy options behaviour::      Behaviour options.
+* easy options callback::       Callback related options.
+@end menu
+
+@defvr {@curl{} Option} CURLOPT_URL
+@var{value} must be a Scheme string representing the @aurl{}.
+@end defvr
+
+
+
+
+@c page
+@node easy options behaviour
+@subsection Behaviour options
+
+
+@defvr {@curl{} Option} CURLOPT_VERBOSE
+@var{value} must be a Scheme boolean; @true{} tells @curl{} to display
+informations when performing.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_HEADER
+@var{value} must be a Scheme boolean; @true{} tells @curl{} to include
+the protocol headers in the output.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_NOPROGRESS
+@var{value} must be a Scheme boolean; @true{} tells @curl{} to shut off
+the internal progress meter.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_NOSIGNAL
+@var{value} must be a Scheme boolean; @true{} tells @curl{} not to
+install signal handlers.
+@end defvr
+
+@c page
+@node easy options callback
+@subsection Callback related options
+
+
+@defvr {@curl{} Option} CURLOPT_WRITEFUNCTION
+@var{value} must be a C callback object, suitable to be used as callback
+of type @code{curl_write_callback}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_WRITEDATA
+@var{value} must be a pointer object; it will be used as @strong{last}
+argument to the write callback.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_READFUNCTION
+@var{value} must be a C callback object, suitable to be used as callback
+of type @code{curl_read_callback}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_READDATA
+@var{value} must be a pointer object; it will be used as @strong{last}
+argument to the read callback.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_IOCTLFUNCTION
+@var{value} must be a callback object, suitable to be used as callback
+of type @code{curl_ioctl_callback}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_IOCTLDATA
+@var{value} must be a pointer object; it will be used as @strong{last}
+argument to the ioctl callback.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SEEKFUNCTION
+@var{value} must be a callback object, suitable to be used as callback
+of type @code{curl_seek_callback}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SEEKDATA
+@var{value} must be a pointer object; it will be used as @strong{first}
+argument to the seek callback.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SOCKOPTFUNCTION
+@var{value} must be a callback object, suitable to be used as callback
+of type @code{curl_sockopt_callback}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SOCKOPTDATA
+@var{value} must be a pointer object; it will be used as @strong{first}
+argument to the sockopt callback.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_OPENSOCKETFUNCTION
+@var{value} must be a callback object, suitable to be used as callback
+of type @code{curl_opensocket_callback}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_OPENSOCKETDATA
+@var{value} must be a pointer object; it will be used as @strong{first}
+argument to the opensocket callback.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PROGRESSFUNCTION
+@var{value} must be a callback object, suitable to be used as callback
+of type @code{curl_progress_callback}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_PROGRESSDATA
+@var{value} must be a pointer object; it will be used as @strong{first}
+argument to the progress callback.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_HEADERFUNCTION
+@var{value} must be a callback object, suitable to be used as callback
+for header data.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_HEADERDATA
+@defvrx {@curl{} Option} CURLOPT_WRITEHEADER
+@var{value} must be a pointer object; it will be used as @strong{last}
+argument to the header callback.
+@end defvr
 
 
 @c page
@@ -1229,6 +1432,10 @@ certificate; the length of the list is the number of certificates.
 @section Preparing callbacks
 
 
+For details on the expected behaviour of the callback functions see the
+original @curl{} documentation.
+
+
 @defun curl-make-write-callback @var{scheme-function}
 Prepare a callback C function to be used as value for the
 @samp{CURLOPT_WRITEFUNCTION} option.  It is defined as follows:
@@ -1260,6 +1467,117 @@ Prepare a callback C function to be used as value for the
 @end example
 @end defun
 
+
+@defun curl-make-ioctl-callback @var{scheme-function}
+Prepare a callback C function to be used as value for the
+@samp{CURLOPT_IOCTLFUNCTION} option.  It is defined as follows:
+
+@example
+(define (curl-make-ioctl-callback scheme-function)
+  (make-c-callback
+     curlioerr
+     (lambda (handle action custom-data)
+       (guard (E (else -1))
+         (scheme-function handle size custom-data)))
+     (void* int void*)))
+@end example
+
+The first argument to @var{scheme-function} is the @curl{} session
+handle; the second argument is one of the @samp{CURLIOCMD_*} constants;
+the third argument is the pointer previously set with the
+@samp{CURLOPT_IOCTLDATA} option.
+
+At present (@curl{} version 7.19.7), the only meaningful requested
+action is @samp{CURLIOCMD_RESTARTREAD}; when @var{scheme-function}
+receives this value as second argument, it should rewind to the start
+the read stream of the data to be sent.  When successful, the callback
+must return zero; else it must return non--zero.
+@end defun
+
+
+@defun curl-make-seek-callback @var{scheme-function}
+Prepare a callback C function to be used as value for the
+@samp{CURLOPT_SEEKFUNCTION} option.  It is defined as follows:
+
+@example
+(define (curl-make-seek-callback scheme-function)
+  (make-c-callback
+    curlioerr
+    (lambda (instream offset whence)
+      (guard (E (else CURL_SEEKFUNC_FAIL))
+        (scheme-function intream offset whence)))
+    (void* curl_off_t int)))
+@end example
+
+@var{scheme-function} should seek @var{instream} as described by
+@var{offset} and @var{whence}; notice that @samp{SEEK_CUR},
+@samp{SEEK_SET} and @samp{SEEK_END} are provided as constants by
+@library{foreign net curl sizeof}.
+@end defun
+
+
+@defun curl-make-sockopt-callback @var{scheme-function}
+Prepare a callback C function to be used as value for the
+@samp{CURLOPT_SOCKOPTFUNCTION} option.  It is defined as follows:
+
+@example
+(define (curl-make-sockopt-callback scheme-function)
+  (make-c-callback
+    curlioerr
+    (lambda (instream offset whence)
+      (guard (E (else 1))
+        (scheme-function instream offset whence)))
+    (void* curl_socket_t curlsocktype)))
+@end example
+@end defun
+
+
+@defun curl-make-opensocket-callback @var{scheme-function}
+Prepare a callback C function to be used as value for the
+@samp{CURLOPT_OPENSOCKETFUNCTION} option.  It is defined as follows:
+
+@example
+(define (curl-make-opensocket-callback scheme-function)
+  (make-c-callback
+    curl_socket_t
+    (lambda (custom-pointer purpose address)
+      (guard (E (else CURL_SOCKET_BAD))
+        (scheme-function custom-pointer purpost)))
+    (void* curlsocktype void*)))
+@end example
+@end defun
+
+
+@defun curl-make-progress-callback @var{scheme-function}
+Prepare a callback C function to be used as value for the
+@samp{CURLOPT_PROGRESSFUNCTION} option.  It is defined as follows:
+
+@example
+(define (curl-make-progress-callback scheme-function)
+  (make-c-callback
+    curl_socket_t
+    (lambda (custom-pointer dltotal dlnow ultotal ulnow)
+      (guard (E (else 1))
+        (scheme-function custom-pointer dltotal dlnow ultotal ulnow)))
+    (void* double double double double)))
+@end example
+@end defun
+
+
+@defun curl-make-header-callback @var{scheme-function}
+Prepare a callback C function to be used as value for the
+@samp{CURLOPT_HEADERFUNCTION} option.  It is defined as follows:
+
+@example
+(define (curl-make-header-callback scheme-function)
+  (make-c-callback
+    size_t
+    (lambda (custom-pointer item-size item-count stream)
+      (guard (E (else -1))
+        (scheme-function custom-pointer item-size item-count stream)))
+    (void* size_t size_t void*)))
+@end example
+@end defun
 
 @c page
 @node easy misc

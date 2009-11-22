@@ -414,15 +414,14 @@
 
     curl-version		curl-version-info
 
-    curl-easy-init		curl-handle?
-    curl-easy-strerror		curl-share-strerror
-    curl-easy-pause		curl-easy-setopt
-    curl-easy-perform		curl-easy-cleanup
-    curl-easy-getinfo
-    curl-easy-duphandle		curl-easy-reset
+    curl-handle?
+    curl-easy-init		curl-easy-duphandle
+    curl-easy-cleanup		curl-easy-reset
+    curl-easy-setopt		curl-easy-getinfo
+    curl-easy-perform		curl-easy-pause
     curl-easy-send
     curl-easy-recv/string	curl-easy-recv/bytevector
-
+    curl-easy-strerror		curl-share-strerror
     curl-easy-escape		curl-escape
     curl-easy-unescape		curl-unescape
 
@@ -447,7 +446,10 @@
 
 ;;; --------------------------------------------------------------------
 
-    curl-make-read-callback	curl-make-write-callback
+    curl-make-read-callback		curl-make-write-callback
+    curl-make-ioctl-callback		curl-make-seek-callback
+    curl-make-sockopt-callback		curl-make-opensocket-callback
+    curl-make-progress-callback		curl-make-header-callback
 
 ;;; --------------------------------------------------------------------
 

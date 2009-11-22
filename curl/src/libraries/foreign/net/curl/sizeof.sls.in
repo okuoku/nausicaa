@@ -597,7 +597,12 @@
     CURL_FORMADD_ILLEGAL_ARRAY		CURL_FORMADD_DISABLED
     CURL_FORMADD_LAST
 
-    ;; ?
+    ;;Type bitmasks for the CURLINFO_* constants; to extract the type:
+    ;;
+    ;;	(bitwise-and info CURLINFO_TYPEMASK)
+    ;;
+    ;;the result is one of the other CURLINFO_* values.
+    ;;
     CURLINFO_STRING			CURLINFO_LONG
     CURLINFO_DOUBLE			CURLINFO_SLIST
     CURLINFO_MASK			CURLINFO_TYPEMASK
@@ -685,6 +690,9 @@
     CURLMOPT_TIMERDATA			CURLMOPT_MAXCONNECTS
     CURLMOPT_LASTENTRY
 
+;;; --------------------------------------------------------------------
+
+    SEEK_SET SEEK_CUR SEEK_END
 
 
 ;;; --------------------------------------------------------------------
@@ -708,6 +716,7 @@
     struct-curl_sockaddr-socktype-set!		struct-curl_sockaddr-socktype-ref
     struct-curl_sockaddr-protocol-set!		struct-curl_sockaddr-protocol-ref
     struct-curl_sockaddr-addrlen-set!		struct-curl_sockaddr-addrlen-ref
+						struct-curl_sockaddr-addr-ref
 
     struct-curl_khkey-key-set!			struct-curl_khkey-key-ref
     struct-curl_khkey-len-set!			struct-curl_khkey-len-ref
@@ -1668,6 +1677,11 @@
 (define CURLMOPT_MAXCONNECTS			@VALUEOF_CURLMOPT_MAXCONNECTS@)
 (define CURLMOPT_LASTENTRY			@VALUEOF_CURLMOPT_LASTENTRY@)
 
+;;; --------------------------------------------------------------------
+
+(define SEEK_SET				@VALUEOF_SEEK_SET@)
+(define SEEK_CUR				@VALUEOF_SEEK_CUR@)
+(define SEEK_END				@VALUEOF_SEEK_END@)
 
 
 ;;;; data structures accessors and mutators
@@ -1792,6 +1806,10 @@
   @OFFSETOF_CURL_SOCKADDR_ADDRLEN@
   @SETTEROF_CURL_SOCKADDR_ADDRLEN@
   @GETTEROF_CURL_SOCKADDR_ADDRLEN@)
+
+(define-c-struct-field-pointer-accessor
+  struct-curl_sockaddr-addr-ref
+  @OFFSETOF_CURL_SOCKADDR_ADDR@)
 
 ;;; --------------------------------------------------------------------
 

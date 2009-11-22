@@ -44,6 +44,8 @@ AC_CHECK_HEADERS([curl/curl.h],,[AC_MSG_FAILURE([cannot find Curl headers],[2])]
 AC_CHECK_LIB([curl],[curl_global_init],,[AC_MSG_FAILURE([cannot find Curl library],[2])])
 NAUSICAA_SIZEOF
 
+AC_CHECK_HEADER([ioctl.h])
+
 dnl page
 dnl --------------------------------------------------------------------
 dnl Helper functions.
@@ -61,6 +63,9 @@ AC_DEFUN([NAU_CURL_INSPECT_STRUCT_TYPE],
 
 AC_DEFUN([NAU_CURL_INSPECT_FIELD_TYPE],
   [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[NAU_CURL_INCLUDES])])
+
+AC_DEFUN([NAU_CURL_INSPECT_FIELD_TYPE_POINTER],
+  [NAUSICAA_INSPECT_FIELD_TYPE_POINTER([$1],[$2],[$3],[NAU_CURL_INCLUDES])])
 
 AC_DEFUN([NAU_CURL_ENUM_VALUE],
   [NAU_CURL_VALUEOF_TEST([$1],[$1])])
@@ -84,6 +89,18 @@ AC_DEFUN([NAU_CURL_OFFSETOF_FIELD_TEST],
 
 AC_DEFUN([NAU_CURL_STRUCT_FIELD],
   [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],,[NAU_CURL_INCLUDES])])
+
+dnl --------------------------------------------------------------------
+
+m4_define([NAU_POSIX_INCLUDES],[
+#ifdef HAVE_FCNTL_H
+#  include <fcntl.h>
+#endif
+])
+
+AC_DEFUN([NAU_POSIX_DEFINE_VALUE],
+  [NAUSICAA_VALUEOF_TEST([$1],[$1],[0],[NAU_POSIX_INCLUDES])])
+
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -155,8 +172,7 @@ NAU_CURL_SOCKADDR_FIELD([FAMILY],[family],[signed-int])
 NAU_CURL_SOCKADDR_FIELD([SOCKTYPE],[socktype],[signed-int])
 NAU_CURL_SOCKADDR_FIELD([PROTOCOL],[protocol],[signed-int])
 NAU_CURL_SOCKADDR_FIELD([ADDRLEN],[addrlen],[signed-int])
-dnl *NOTE* For  the time being, we  do not inspect  the "struct sockaddr
-dnl addr" field.
+NAU_CURL_INSPECT_FIELD_TYPE_POINTER([CURL_SOCKADDR_ADDR],[struct curl_sockaddr],[addr])
 
 dnl --------------------------------------------------------------------
 
@@ -233,6 +249,10 @@ dnl page
 dnl --------------------------------------------------------------------
 dnl Constants.
 dnl --------------------------------------------------------------------
+
+NAU_POSIX_DEFINE_VALUE([SEEK_SET])
+NAU_POSIX_DEFINE_VALUE([SEEK_CUR])
+NAU_POSIX_DEFINE_VALUE([SEEK_END])
 
 dnl miscellaneous constants
 NAU_CURL_DEFINE_VALUE([CURL_SOCKET_BAD])
