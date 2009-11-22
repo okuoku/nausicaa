@@ -29,6 +29,16 @@ List of things to do
 
 * Understand if SYMBOL-BOUND? does something useful or not.
 
+What I did (VSM)
+================
+
+* Moved the TOC to the front, and added a short TOC.
+
+* Fixed overfull boxes in the table in section 4.16.5.2.
+
+* Added discretionary line breaks in various places throughout the 
+  document to get rid of underfull/overfull boxes. 
+
 @end ignore
 
 @c page
@@ -490,6 +500,9 @@ maintainer is @value{AUTHOR} @value{AUTHOR_EMAIL}.  See the appendix
 @insertcopying
 @end titlepage
 
+@shortcontents
+@contents
+
 @c ------------------------------------------------------------
 
 @ifinfo
@@ -866,7 +879,7 @@ It is targeted to users who are unfamiliar with steps mentioned above.
 @enumerate
 @item
 Download the Ikarus source distribution: a @command{gzip}--compressed
-@command{tar} file (@file{ikarus-n.n.n.tar.gz} where @code{n.n.n} is a
+@command{tar} file (@file{ikarus-@-n.n.n.tar.gz} where @code{n.n.n} is a
 3--digit number indicating the current revision).  The latest revision
 can be downloaded from
 
@@ -3035,7 +3048,7 @@ hexadecimal string for IPv6, or a network address.
 
 @quotation
 @forunix{} These functions use of the @cfunc{socket}, @cfunc{connect}
-and @cfunc{getaddrinfo} system functions.
+and @cfunc{get@-addr@-info} system functions.
 
 @glibcref{Creating a Socket, Creating a Socket}@*
 @glibcref{Connecting, Making a Connection}@*
@@ -4348,7 +4361,7 @@ bytes on 64-bit systems.  The @code{void} specifier can only be used as
 a return value specifier to mean ``no useful value is returned''.
 
 
-@multitable {Type specifier} {4/8 bytes} {Valid Scheme types} {Corresponding C types}
+@multitable {@code{unsigned-short}} {4/8 bytes} {Valid Scheme types} {Corresponding C types}
 @headitem Type specifier @tab Size @tab Valid Scheme types @tab Corresponding C types
 @item
 @code{signed-char} @tab 1 byte @tab exact integer @tab @code{char}
@@ -5491,7 +5504,7 @@ Anton Van Straaten (Editors). 2007.
 
 @noindent
 @emph{Scheme Request for Implementation 41: Streams.}  Philip L. Bewig.
-2007.  @url{http://srfi.schemers.org/srfi-41/srfi-41.html}
+2007.  @url{http://@/srfi.schemers.org/@/srfi-41/@/srfi-41.html}
 
 @noindent
 @bibref{DYBGUA} @emph{Guardians in a generation--based garbage
@@ -5514,19 +5527,19 @@ Report DIUL-RT-0701, 2007.
 @noindent
 @emph{Extending the Scope of Syntactic Abstraction.}  Oscar Waddell.
 PhD thesis, Indiana University Computer Science Department, August 1999.
-@url{http://www.cs.indiana.edu/~owaddell/papers/thesis.ps.gz}
+@url{http://www.cs.indiana.edu/@/~owaddell/@/papers/@/thesis.ps.gz}
 
 @noindent
 @emph{Extending the Scope of Syntactic Abstraction.}  Oscar Waddell and
 R. Kent Dybvig.  In @emph{Conference Record of POPL'99: The 26th ACM
 SIGPLAN-SIGACT Symposium on Principles of Programming Languages}, pages
 203--213, January 1999.
-@url{http://www.cs.indiana.edu/~dyb/papers/popl99.ps.gz}
+@url{http://www.cs.indiana.edu/@/~dyb/@/papers/@/popl99.ps.gz}
 
 @noindent
 @emph{Chez Scheme Version 7 User's Guide.}  R. Kent Dybvig.  Cadence
 Research Systems, 2005.  User's guide and reference manual for Chez
-Scheme Version 7.  @url{http://www.scheme.com/csug7/}
+Scheme Version 7.  @url{http://@/www.scheme.com/@/csug7/}
 
 @noindent
 @emph{Implicit phasing for R6RS libraries.}  Abdulaziz Ghuloum and
@@ -5557,7 +5570,6 @@ New York, NY, USA, 2007.  ACM.
 
 @printindex tp
 
-@contents
 @bye
 
 @c end of file
