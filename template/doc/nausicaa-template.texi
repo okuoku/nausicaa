@@ -177,8 +177,20 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{IP}
 @end macro
 
+@macro ssh{}
+@acronym{SSH}
+@end macro
+
+@macro ssl{}
+@acronym{SSL}
+@end macro
+
 @macro tcp{}
 @acronym{TCP}
+@end macro
+
+@macro tls{}
+@acronym{TLS}
 @end macro
 
 @macro udp{}
