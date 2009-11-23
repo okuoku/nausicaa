@@ -221,7 +221,7 @@ fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(fasl_BUILDDIR)
 else
 fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(fasl_BUILDDIR):$(MOSH_LOADPATH)
 endif
-fasl_mosh_COMPILE_COMMAND	= $(MOSH)
+fasl_mosh_COMPILE_COMMAND	= $(MOSH) --verbose
 fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_ENV)		\
 					$(fasl_mosh_COMPILE_COMMAND)	\
 					$(fasl_mosh_COMPILE_SCRIPT)
