@@ -32,6 +32,10 @@
     make-<curl-handle>			<curl-handle>?
     <curl-handle>-pointer
 
+    <curl-multi>			<curl-multi-rtd>
+    make-<curl-multi>			<curl-multi>?
+    <curl-multi>-pointer
+
     <curl-version-info>			<curl-version-info-rtd>
     make-<curl-version-info>		<curl-version-info>?
     <curl-version-info>-age
@@ -49,8 +53,12 @@
     <curl-version-info>-iconv
     <curl-version-info>-libssh-version
 
+    <curl-message>			<curl-message-rtd>
+    make-<curl-message>			<curl-message>?
+    %struct-curlmsg->record
     )
-  (import (rnrs))
+  (import (rnrs)
+    (foreign net curl sizeof))
 
 
 (define-record-type <curl-handle>
@@ -59,6 +67,15 @@
 (define <curl-handle-rtd>
   (record-type-descriptor <curl-handle>))
 
+;;; --------------------------------------------------------------------
+
+(define-record-type <curl-multi>
+  (fields (immutable pointer)))
+
+(define <curl-multi-rtd>
+  (record-type-descriptor <curl-multi>))
+
+
 (define-record-type <curl-version-info>
   (fields (immutable age)
 	  (immutable version)
@@ -77,6 +94,20 @@
 
 (define <curl-version-info-rtd>
   (record-type-descriptor <curl-version-info>))
+
+
+(define-record-type <curl-message>
+  (fields (immutable code)
+	  (immutable handle)
+	  (immutable result)))
+
+(define <curl-message-rtd>
+  (record-type-descriptor <curl-message>))
+
+(define (%struct-curlmsg->record msg*)
+  (make-<curl-message> 'DONE	;this is the only code in version 7.19.7 of cURL
+		       (make-<curl-handle> (struct-CURLMsg-easy_handle-ref msg*))
+		       (struct-CURLMsg-result-ref msg*)))
 
 
 ;;;; done

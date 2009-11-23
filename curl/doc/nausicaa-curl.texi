@@ -189,8 +189,20 @@ cURL
 @acronym{IP}
 @end macro
 
+@macro ssl{}
+@acronym{SSL}
+@end macro
+
+@macro ssh{}
+@acronym{SSH}
+@end macro
+
 @macro tcp{}
 @acronym{TCP}
+@end macro
+
+@macro tls{}
+@acronym{TLS}
 @end macro
 
 @macro udp{}
@@ -569,6 +581,16 @@ Setting handle's options
 
 * easy options behaviour::      Behaviour options.
 * easy options callback::       Callback related options.
+* easy options error::          Error options.
+* easy options network::        Network options.
+* easy options auth::           Authentication options.
+* easy options http::           @http{} options.
+* easy options tftp::           @tftp{} options.
+* easy options ftp::            @ftp{} options.
+* easy options protocol::       Protocol options.
+* easy options connection::     Connection options.
+* easy options security::       @ssl{} and security options.
+* easy options ssh::            @ssh{} options.
 
 Miscellaneous functions
 
@@ -748,6 +770,7 @@ specified, reexported by @library{foreign net curl}.
 
 @menu
 * records handle::              @curl{} session handlers.
+* records multi::               @curl{} multi session handlers.
 * records version info::        Libraries version informations.
 @end menu
 
@@ -782,6 +805,39 @@ Constructor and predicate for records of type @class{curl-handle}.
 @defun <curl-handle>-pointer @var{record}
 Accessor for the @code{pointer} field of records of type
 @class{curl-handle}.
+@end defun
+
+@c page
+@node records multi
+@section @curl{} multi session handlers
+
+
+The following bindings are @strong{not} reexported by the
+@library{foreign net curl} compound library.
+
+
+@deftp {Record Type Name} <curl-multi>
+@deftpx {Record Type Descriptor} <curl-multi-rtd>
+Record type to be used as wrapper for raw pointers to @curl{} multi
+session handler structures.  It has the following fields:
+
+@table @code
+@item pointer
+Holds a pointer object to a @curl{} multi session handler data
+structure.  It is immutable.
+@end table
+@end deftp
+
+
+@defun make-<curl-multi> @var{pointer}
+@defunx <curl-multi>? @var{obj}
+Constructor and predicate for records of type @class{curl-multi}.
+@end defun
+
+
+@defun <curl-multi>-pointer @var{record}
+Accessor for the @code{pointer} field of records of type
+@class{curl-multi}.
 @end defun
 
 @c page
@@ -1121,6 +1177,7 @@ net curl primitives} and reexported by @library{foreign net curl}.
 * easy options::                Setting handle's options.
 * easy info::                   Getting informations.
 * easy callbacks::              Preparing callbacks.
+* easy forms::                  Composing forms data.
 * easy misc::                   Miscellaneous functions.
 @end menu
 
@@ -1249,6 +1306,24 @@ must be an appropriate value for the selected option.
 @func{curl-easy-setopt} recognises the value of @var{option} and does
 the appropriate marshaling of @var{value} for the underlying
 @cfunc{curl_easy_setopt} function.
+
+Notice that:
+
+@itemize
+@item
+When this documentation states that @var{value} must be a Scheme string,
+@false{} is also accepted and turned into a @cnull{} pointer.
+
+@item
+When this documentation states that @var{value} must be an exact
+integer, with no further specifications, the value must fit in the range
+allowed for a platform's @code{long int} data type.
+
+@item
+When this documentation states that @var{value} must be a boolean, any
+value is accepted with the usual truth value of Schem values; internally
+true is converted to @samp{1} and @false{} is converted to @samp{0}.
+@end itemize
 @end defun
 
 
@@ -1262,6 +1337,11 @@ the appropriate marshaling of @var{value} for the underlying
 * easy options tftp::           @tftp{} options.
 * easy options ftp::            @ftp{} options.
 * easy options protocol::       Protocol options.
+* easy options connection::     Connection options.
+* easy options security::       @ssl{} and security options.
+* easy options ssh::            @ssh{} options.
+* easy options telnet::         Telnet options.
+* easy options other::          Other options.
 @end menu
 
 @c page
@@ -1423,6 +1503,18 @@ argument to the debug callback.
 @defvrx {@curl{} Option} CURLOPT_CONV_FROM_UTF8_FUNCTION
 @var{value} must be a callback object, suitable to be used as callback
 of type @code{curl_conv_callback}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSH_KEYFUNCTION
+@var{value} must be a callback pointer for a function suitable to be
+used as @code{curl_sshkeycallback}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSH_KEYDATA
+@var{value} must be a pointer object; it will be used as @strong{last}
+argument to the sshkey callback.
 @end defvr
 
 @c page
@@ -1875,10 +1967,356 @@ constants.
 @subsection Protocol options
 
 
-@defvr {@curl{} Option} CURLOPT_
-@var{value} must be
+@defvr {@curl{} Option} CURLOPT_TRANSFERTEXT
+@var{value} must be a boolean.
 @end defvr
 
+
+@defvr {@curl{} Option} CURLOPT_PROXY_TRANSFER_MODE
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_CRLF
+@var{value} must be a boolean; if @true{} Unix newlines are converted to
+@samp{<CR><LF>} sequences.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_RANGE
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_RESUME_FROM
+@var{value} must be an exact integer in the range allowed by a
+platform's @code{long int} type.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_RESUME_FROM_LARGE
+@var{value} must be an exact integer in the range allowed by a
+platform's @code{curl_off_t} type.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_CUSTOMREQUEST
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FILETIME
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_NOBODY
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_INFILESIZE
+@var{value} must be an exact integer in the range allowed by a
+platform's @code{long int} type.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_INFILESIZE_LARGE
+@var{value} must be an exact integer in the range allowed by a
+platform's @code{curl_off_t} type.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_UPLOAD
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_MAXFILESIZE
+@var{value} must be an exact integer in the range allowed by a
+platform's @code{long int} type.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_MAXFILESIZE_LARGE
+@var{value} must be an exact integer in the range allowed by a
+platform's @code{curl_off_t} type.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_TIMECONDITION
+@var{value} must be an exact integer among the @samp{CURL_TIMECOND_*}
+constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_TIMEVALUE
+@var{value} must be an exact integer representing  a time in seconds
+since the Epoch (Jan 1, 1970).
+@end defvr
+
+@c page
+@node easy options connection
+@subsection Connection options
+
+
+@defvr {@curl{} Option} CURLOPT_TIMEOUT
+@var{value} must be an exact integer.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_TIMEOUT_MS
+@var{value} must be an exact integer.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_LOW_SPEED_LIMIT
+@var{value} must be an exact integer.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_LOW_SPEED_TIME
+@var{value} must be an exact integer.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_MAX_SEND_SPEED_LARGE
+@var{value} must be an exact integer in the range allowed for a
+platform's @code{curl_off_t} data type.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_MAX_RECV_SPEED_LARGE
+@var{value} must be an exact integer in the range allowed for a
+platform's @code{curl_off_t} data type.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_MAXCONNECTS
+@var{value} must be an exact integer.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FRESH_CONNECT
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_FORBID_REUSE
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_CONNECTTIMEOUT
+@var{value} must be an exact integer.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_CONNECTTIMEOUT_MS
+@var{value} must be an exact integer.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_IPRESOLVE
+@var{value} must be must be an exact integer among the
+@samp{CURL_IPRESOLVE_*} constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_CONNECT_ONLY
+@var{value} must be a boolean; if true tells @curl{} to perform all the
+required proxy authentication and connection setup, but no data
+transfer.
+@end defvr
+
+@c page
+@node easy options security
+@subsection @ssl{} and security options
+
+
+@defvr {@curl{} Option} CURLOPT_SSLCERT
+@var{value} must be a Scheme string representing the pathname of the
+certificate file.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSLCERTTYPE
+@var{value} must be a Scheme string representing the format of the
+certificate file; supported values are @samp{PEM} and @samp{DER}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSLKEY
+@var{value} must be a Scheme string representing the pathname of the
+private key file.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSLKEYTYPE
+@var{value} must be a Scheme string representing the format of the
+certificate file; supported values are @samp{PEM}, @samp{DER} and
+@samp{ENG}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_KEYPASSWD
+@var{value} must be a Scheme string representing the password for
+accessing the key files.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSLENGINE
+@var{value} must be a Scheme string; it is used as identifier for the
+crypto engine we want to use for the private key.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSLENGINE_DEFAULT
+@var{value} is ignored, but it should be a true boolean; the current
+crypto engine is selected as default.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSLVERSION
+@var{value} must be an exact integer among the @samp{CURL_SSLVERSION_*}
+constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSL_VERIFYPEER
+@var{value} must be a boolean; if true @curl{} verifies the authenticity
+of the peer's certificate; the default is true.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_CAINFO
+@var{value} must be a Scheme string representing the pathname to a file
+holding certificates to verify the peer with.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_ISSUERCERT
+@var{value} must be a Scheme string representing the pathname to a file
+holding a single certificate in @samp{PEM} format to verify the peer
+with.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_CAPATH
+@var{value} must be a Scheme string representing the pathname of a
+directory holding multiple CA certificates to verify the peer with.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_CRLFILE
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_CERTINFO
+@var{value} must be a boolean; if true instructs @curl{} to extract
+informations about the peer's certificate and make it available with
+@func{curl-easy-getinfo}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_RANDOM_FILE
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_EGDSOCKET
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSL_VERIFYHOST
+@var{value} must be an exact integer among @samp{0}, @samp{1} and
+@samp{2}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSL_CIPHER_LIST
+@var{value} must be a Scheme string.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSL_SESSIONID_CACHE
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_KRBLEVEL
+@var{value} must be a Scheme string.
+@end defvr
+
+@c page
+@node easy options ssh
+@subsection @ssh{} options
+
+
+@defvr {@curl{} Option} CURLOPT_SSH_AUTH_TYPES
+@var{value} must be an exact integer built as bitmask using the
+@samp{CURLSSH_AUTH_*} constants.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSH_HOST_PUBLIC_KEY_MD5
+@var{value} must be a Scheme string holding @math{32} hexadecimal
+digits.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSH_PUBLIC_KEYFILE
+@var{value} must be a Scheme string representing the pathname of the
+public key file.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSH_PRIVATE_KEYFILE
+@var{value} must be a Scheme string representing the pathname of the
+private key file.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SSH_KNOWNHOSTS
+@var{value} must be a Scheme string representing the pathname of the
+file holding the list of known hosts.
+@end defvr
+
+@c page
+@node easy options telnet
+@subsection Telnet options
+
+
+@defvr {@curl{} Option} CURLOPT_TELNETOPTIONS
+@var{value} must be a pointer referencing a @code{struct curl_slist}
+linked list.
+@end defvr
+
+@c page
+@node easy options other
+@subsection Other options
+
+
+@defvr {@curl{} Option} CURLOPT_PRIVATE
+@var{value} must be a pointer object.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_SHARE
+@var{value} must be a pointer object, referencing a share handle.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_NEW_FILE_PERMS
+@var{value} must be an exact integer.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLOPT_NEW_DIRECTORY_PERMS
+@var{value} must be an exact integer.
+@end defvr
 
 @c page
 @node easy info
@@ -2110,11 +2548,68 @@ follows:
   (make-c-callback
     CURLcode
     (lambda (buffer len)
-      (guard (E (else CURLE_OBSOLETE10))
+      (guard (E (else CURLE_ABORTED_BY_CALLBACK))
         (scheme-function buffer len)))
     (char* size_t)))
 @end example
 @end defun
+
+
+@defun curl-make-sshkey-callback @var{scheme-function}
+Prepare a callback C function to be used as value for the
+@samp{CURLOPT_SSH_KEYFUNCTION} option.  It is defined as follows:
+
+@example
+(define (curl-make-sshkey-callback scheme-function)
+  (make-c-callback
+    int
+    (lambda (handle knownkey foundkey status custom-pointer)
+      (guard (E (else CURLKHSTAT_REJECT))
+        (scheme-function handle knownkey foundkey
+                         status custom-pointer)))
+    (void* void* void* curl_khmatch void*)))
+@end example
+@end defun
+
+@c page
+@node easy forms
+@section Composing forms data
+
+
+The @samp{CURLOPT_HTTPPOST} option to @func{curl-easy-setopt} allows us
+to compose data to be posted with @http{}.
+
+
+@defun curl-formadd @var{alist}
+@defunx curl-formadd @var{alist} @var{first*} @var{last*}
+Transform the @var{alist} into a linked list of @code{struct
+curl_httppost} structures to compose a section of multipart/formdata
+@http{} @samp{POST}.  Return two values: a pointer to the first
+@code{struct curl_httppost} in the list, a pointer to the last
+@code{struct curl_httppost} in the list.
+
+@var{alist} must be a Scheme alist with @code{CURLFORM_*} constants as
+alist keys and the appropriate option values as alist values.
+Internally this function makes use of the @samp{CURLFORM_ARRAY} option.
+
+Example:
+
+@example
+(curl-formadd
+  `((,CURLFORM_COPYNAME     . "htmlcode")
+    (,CURLFORM_COPYCONTENTS . "<HTML></HTML>")
+    (,CURLFORM_CONTENTTYPE  . "text/html")))
+@end example
+
+@noindent
+there is @strong{no} need to terminate the alist with the
+@samp{CURLFORM_ARRAY}; also if the value is a Scheme string, it is
+automatically, internally, converted to a C string with
+@func{string->cstring} from @library{foreign cstrings}.
+@end defun
+
+
+
 
 @c page
 @node easy misc
@@ -2143,6 +2638,7 @@ net curl primitives} and reexported by @library{foreign net curl}.
 
 @menu
 * misc version::                Version informations about @curl{}.
+* misc slist::                  @curl{} linked lists.
 @end menu
 
 @c page
@@ -2166,6 +2662,20 @@ Return a record of type @class{curl-version-info} filled with version
 informations on the build of @curl{}.  @ref{records version info,
 Libraries version informations}.
 @end defun
+
+@c page
+@node misc slist
+@section @curl{} linked lists
+
+
+@defun strings->curl-slist @var{strings}
+Convert a list of Scheme strings into a linked list of @code{struct
+curl_slist} structures; return a pointer object to the first node of the
+list.  The strings are converted to C strings using
+@func{string->cstring}, and memory is allocated with
+@func{primitive-malloc} from @library{foreign memory alloc}.
+@end defun
+
 
 @c page
 @node compensated

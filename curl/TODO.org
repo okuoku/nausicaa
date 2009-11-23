@@ -1,0 +1,13 @@
+* libraries
+
+  Implement a record type for SSL certificates informations.
+
+  Add testing of SSL certificates retrieval.
+
+  Fix  implementation   of  curl-formadd.   Delay   true  testing  until
+  libmicrohttpd has been packaged.
+
+  Finish the multi interface.
+
+
+

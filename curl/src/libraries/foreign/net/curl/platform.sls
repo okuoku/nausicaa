@@ -27,7 +27,7 @@
 
 (library (foreign net curl platform)
   (export
-    ;;curl_formadd			;;This is variadic.
+    curl_formadd_1
     curl_formget
     curl_formfree
     curl_getenv
@@ -185,10 +185,14 @@
 
 ;;; --------------------------------------------------------------------
 
-;;This is variadic.
+;;This  is  meant  to  be  used only  with  the  CURLFORM_ARRAY  option.
+;;Example:
 ;;
-;; (define-c-function curl_formadd
-;;   (CURLFORMcode curl_formadd (struct-curl_httppost** struct-curl_httppost** ...)))
+;;  (curl_formadd_1 first** last** CURLFORM_ARRAY array* CURLFORM_END)
+;;
+(define-c-function curl_formadd_1
+  (CURLFORMcode curl_formadd (struct-curl_httppost**
+			      struct-curl_httppost** CURLformoption void* CURLformoption)))
 
 (define-c-function curl_formget
   (int curl_formget (struct-curl_httppost* void* curl_formget_callback)))

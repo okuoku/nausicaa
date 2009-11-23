@@ -287,6 +287,8 @@
     sizeof-curl_forms
     strideof-curl_forms
     alignof-curl_forms
+    sizeof-curl_forms-array
+    array-ref-c-curl_forms
 
     sizeof-curl_slist
     strideof-curl_slist
@@ -1013,6 +1015,12 @@
 (define sizeof-curl_forms		@SIZEOF_CURL_FORMS@)
 (define strideof-curl_forms		@STRIDEOF_CURL_FORMS@)
 (define alignof-curl_forms		@ALIGNOF_CURL_FORMS@)
+(define-syntax sizeof-curl_forms-array
+  (syntax-rules ()
+    ((_ ?number-of-elements)
+     (* strideof-curl_forms ?number-of-elements))))
+(define (array-ref-c-curl_forms pointer index)
+  (pointer-add pointer (* index strideof-curl_forms)))
 
 (define sizeof-curl_slist		@SIZEOF_CURL_SLIST@)
 (define strideof-curl_slist		@STRIDEOF_CURL_SLIST@)

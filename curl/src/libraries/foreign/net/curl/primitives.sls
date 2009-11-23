@@ -40,6 +40,9 @@
     curl-easy-escape			curl-easy-unescape
     curl-easy-strerror			curl-share-strerror
 
+    curl-formadd
+
+    (rename (<curl-multi>?		curl-multi?))
     curl-multi-strerror
 
     curl-make-read-callback		curl-make-write-callback
@@ -47,7 +50,9 @@
     curl-make-sockopt-callback		curl-make-opensocket-callback
     curl-make-progress-callback		curl-make-header-callback
     curl-make-debug-callback		curl-make-ssl-ctx-callback
-    curl-make-conv-callback
+    curl-make-conv-callback		curl-make-sshkey-callback
+
+    strings->curl-slist
 
     (rename (curl_global_init		curl-global-init)
 	    (curl_global_init_mem	curl-global-init-mem)
@@ -71,7 +76,6 @@
 	    ;;curl_multi_setopt		curl-multi-setopt)	;this is variadic
 	    (curl_multi_assign		curl-multi-assign)
 
-	    ;;(curl_formadd		curl-formadd)		;this is variadic
 	    (curl_formget		curl-formget)
 	    (curl_formfree		curl-formfree)
 
@@ -85,15 +89,11 @@
 	    ;;(curl_share_setopt	curl-share-setopt)	;this is variadic
 	    (curl_share_cleanup		curl-share-cleanup)))
   (import (rnrs)
+    (begin0)
     (compensations)
     (foreign ffi)
-    (only (foreign memory)
-	  malloc-small/c	malloc-block/c
-	  malloc/c
-	  bytevector->pointer	pointer->bytevector)
-    (only (foreign cstrings)
-	  string->cstring/c	cstring->string
-	  strlen		argv->strings)
+    (foreign memory)
+    (foreign cstrings)
     (foreign net curl conditions)
     (foreign net curl enumerations)
     (foreign net curl record-types)
@@ -101,7 +101,7 @@
     (foreign net curl platform))
 
 
-;;;; helpers
+;;;; slist
 
 (define (%slist->strings slist*)
   (let loop ((slist*	slist*)
@@ -111,8 +111,18 @@
       (loop (struct-curl_slist-next-ref slist*)
 	    (cstring->string (struct-curl_slist-data-ref slist*))))))
 
-;;*FIXME* !!!!
-(define pointer-ref-c-size_t	pointer-ref-c-unsigned-int)
+(define (strings->curl-slist strings)
+  (let loop ((strings	strings)
+	     (slist*	pointer-null))
+    (if (null? strings)
+	slist*
+      (let ((p (curl_slist_append slist* (string->cstring (car strings) primitive-malloc))))
+	(if (pointer-null? p)
+	    (begin
+	      (unless (pointer-null? slist*)
+		(curl_slist_free_all slist*))
+	      (raise-out-of-memory 'strings->curl-slist #f))
+	  (loop (cdr strings) p))))))
 
 
 (define (curl-version)
@@ -311,7 +321,14 @@
 			      CURLOPT_DIRLISTONLY		CURLOPT_APPEND
 			      CURLOPT_FTP_USE_EPRT		CURLOPT_FTP_USE_EPSV
 			      CURLOPT_FTP_CREATE_MISSING_DIRS	CURLOPT_FTP_SKIP_PASV_IP
-			      ))
+			      CURLOPT_TRANSFERTEXT		CURLOPT_PROXY_TRANSFER_MODE
+			      CURLOPT_CRLF			CURLOPT_FILETIME
+			      CURLOPT_NOBODY			CURLOPT_UPLOAD
+			      CURLOPT_TIMEOUT			CURLOPT_TIMEOUT_MS
+			      CURLOPT_LOW_SPEED_LIMIT		CURLOPT_LOW_SPEED_TIME
+			      CURLOPT_FRESH_CONNECT		CURLOPT_CONNECT_ONLY
+			      CURLOPT_SSL_VERIFYPEER		CURLOPT_CERTINFO
+			      CURLOPT_SSL_SESSIONID_CACHE))
 
 	($list-long	(list CURLOPT_PROTOCOLS			CURLOPT_REDIR_PROTOCOLS
 			      CURLOPT_PROXYPORT			CURLOPT_PROXYTYPE
@@ -326,9 +343,17 @@
 			      CURLOPT_FTPPORT			CURLOPT_FTP_RESPONSE_TIMEOUT
 			      CURLOPT_USE_SSL			CURLOPT_FTPSSLAUTH
 			      CURLOPT_FTP_SSL_CCC		CURLOPT_FTP_FILEMETHOD
-			      ))
+			      CURLOPT_RESUME_FROM		CURLOPT_INFILESIZE
+			      CURLOPT_MAXFILESIZE		CURLOPT_TIMECONDITION
+			      CURLOPT_MAXCONNECTS		CURLOPT_CONNECTTIMEOUT
+			      CURLOPT_CONNECTTIMEOUT_MS		CURLOPT_IPRESOLVE
+			      CURLOPT_SSLVERSION		CURLOPT_SSL_VERIFYHOST
+			      CURLOPT_SSH_AUTH_TYPES		CURLOPT_NEW_FILE_PERMS
+			      CURLOPT_NEW_DIRECTORY_PERMS))
 
-	($list-off_t	(list CURLOPT_POSTFIELDSIZE_LARGE))
+	($list-off_t	(list CURLOPT_POSTFIELDSIZE_LARGE	CURLOPT_RESUME_FROM_LARGE
+			      CURLOPT_INFILESIZE_LARGE		CURLOPT_MAXFILESIZE_LARGE
+			      CURLOPT_MAX_SEND_SPEED_LARGE	CURLOPT_MAX_RECV_SPEED_LARGE))
 
 	($list-string	(list CURLOPT_URL			CURLOPT_PROXY
 			      CURLOPT_NOPROXY			CURLOPT_SOCKS5_GSSAPI_SERVICE
@@ -341,16 +366,24 @@
 			      CURLOPT_COOKIE			CURLOPT_COOKIEFILE
 			      CURLOPT_COOKIEJAR			CURLOPT_COOKIELIST
 			      CURLOPT_FTP_ALTERNATIVE_TO_USER	CURLOPT_FTP_ACCOUNT
-			      ))
+			      CURLOPT_RANGE			CURLOPT_CUSTOMREQUEST
+			      CURLOPT_SSLCERT			CURLOPT_SSLCERTTYPE
+			      CURLOPT_SSLKEY			CURLOPT_SSLKEYTYPE
+			      CURLOPT_KEYPASSWD			CURLOPT_SSLENGINE
+			      CURLOPT_CAINFO			CURLOPT_ISSUERCERT
+			      CURLOPT_CAPATH			CURLOPT_CRLFILE
+			      CURLOPT_RANDOM_FILE		CURLOPT_EGDSOCKET
+			      CURLOPT_SSL_CIPHER_LIST		CURLOPT_KRBLEVEL
+			      CURLOPT_SSH_HOST_PUBLIC_KEY_MD5	CURLOPT_SSH_PUBLIC_KEYFILE
+			      CURLOPT_SSH_PRIVATE_KEYFILE	CURLOPT_SSH_KNOWNHOSTS))
 
 	($list-callback	(list CURLOPT_READFUNCTION		CURLOPT_WRITEFUNCTION
 			      CURLOPT_IOCTLFUNCTION		CURLOPT_SEEKFUNCTION
 			      CURLOPT_SOCKOPTFUNCTION		CURLOPT_OPENSOCKETFUNCTION
 			      CURLOPT_PROGRESSFUNCTION		CURLOPT_HEADERFUNCTION
 			      CURLOPT_DEBUGFUNCTION		CURLOPT_SSL_CTX_FUNCTION
-			      CURLOPT_CONV_TO_NETWORK_FUNCTION
-			      CURLOPT_CONV_FROM_NETWORK_FUNCTION
-			      CURLOPT_CONV_FROM_UTF8_FUNCTION))
+			      CURLOPT_CONV_TO_NETWORK_FUNCTION	CURLOPT_CONV_FROM_NETWORK_FUNCTION
+			      CURLOPT_CONV_FROM_UTF8_FUNCTION	CURLOPT_SSH_KEYFUNCTION))
 
 	($list-pointer	(list CURLOPT_WRITEDATA			CURLOPT_READDATA
 			      CURLOPT_IOCTLDATA			CURLOPT_SEEKDATA
@@ -361,14 +394,16 @@
 			      CURLOPT_POSTFIELDS		CURLOPT_HTTPPOST
 			      CURLOPT_HTTPHEADER		CURLOPT_HTTP200ALIASES
 			      CURLOPT_QUOTE			CURLOPT_POSTQUOTE
-			      CURLOPT_PREQUOTE
-			      ))
-	)
+			      CURLOPT_PREQUOTE			CURLOPT_PRIVATE
+			      CURLOPT_SHARE			CURLOPT_TELNETOPTIONS)))
+
     (lambda (handle option value)
       (let ((handle* (<curl-handle>-pointer handle)))
 	(with-compensations
 	  (cond ((memv option $list-string)
-		 (curl_easy_setopt/void* handle* option (string->cstring/c value)))
+		 (curl_easy_setopt/void* handle* option (if value
+							    (string->cstring/c value)
+							  pointer-null)))
 
 		((memv option $list-callback)
 		 (curl_easy_setopt/callback handle* option value))
@@ -451,6 +486,91 @@
 		       "invalid cURL option information request" handle option))))))))))
 
 
+(define curl-formadd
+  (case-lambda
+   ((alist)
+    (curl-formadd alist #f #f))
+   ((alist first* last*)
+    (with-compensations
+      (let* ((len	(length alist))
+	     (first**	(begin0-let ((p (malloc-small/c))) ;already sets memory to zero
+			  (when first* (pointer-set-c-pointer! p 0 first*))))
+	     (last**	(begin0-let ((p (malloc-small/c))) ;already sets memory to zero
+			  (when last*  (pointer-set-c-pointer! p 0 last*))))
+	     (array*	(malloc-block/c (sizeof-curl_forms-array len))))
+	(let fill-array ((i	0)
+			 (alist	alist))
+	  (unless (null? alist)
+	    (let ((p (array-ref-c-curl_forms array* i)))
+	      (struct-curl_forms-option-set! p (caar alist))
+	      (struct-curl_forms-value-set!  p (cdar alist)))
+	    (fill-array (+ 1 i) (cdr alist))))
+	(let* ((first*	(pointer-ref-c-pointer first** 0))
+	       (last*	(pointer-ref-c-pointer last** 0))
+	       (code	(compensate
+			    (curl_formadd_1 first* last* CURLFORM_ARRAY array* CURLFORM_END)
+			  (with
+			   (curl_formfree first*)))))
+	  (if (= code CURLE_OK)
+	      (values first* last*)
+	    (raise-curl-easy-error 'curl-formadd alist))))))))
+
+
+(define (curl-multi-init)
+  (let ((multi* (curl_multi_init)))
+    (if (pointer-null? multi*)
+	(raise-curl-init-error 'curl-multi-init "error initialising cURL multi session handle")
+      (make-<curl-multi> multi*))))
+
+(define (curl-multi-cleanup multi)
+  (let ((code (curl_multi_cleanup (<curl-multi>-pointer multi))))
+    (if (= code CURLM_OK)
+	code
+      (raise-curl-multi-error 'curl-multi-cleanup code multi))))
+
+(define (curl-multi-add-handle multi handle)
+  (let ((code (curl_multi_add_handle (<curl-multi>-pointer  multi)
+				     (<curl-handle>-pointer handle))))
+    (if (= code CURLM_OK)
+	code
+      (raise-curl-multi-error 'curl-multi-add-handle code multi))))
+
+(define (curl-multi-remove-handle multi handle)
+  (let ((code (curl_multi_remove_handle (<curl-multi>-pointer  multi)
+					(<curl-handle>-pointer handle))))
+    (if (= code CURLM_OK)
+	code
+      (raise-curl-multi-error 'curl-multi-remove-handle code multi))))
+
+(define (curl-multi-fdset multi)
+  #f)
+
+(define (curl-multi-perform multi)
+  (with-compensations
+    (let* ((running-handlers*	(malloc-small/c))
+	   (code		(curl_multi_perform (<curl-multi>-pointer multi) running-handlers*)))
+      (if (or (= code CURLM_OK) (= code CURLM_CALL_MULTI_PERFORM))
+	  (values code (pointer-ref-c-signed-int running-handlers*))
+	(raise-curl-multi-error 'curl-multi-perform code multi)))))
+
+(define (curl-multi-info-read multi)
+  ;;*NOTE*  The pointer  returned by  CURL_MULTI_INFO_READ  references a
+  ;;structure whose  memory is  managed by  cURL, so we  DO NOT  have to
+  ;;release it.
+  ;;
+  (with-compensations
+    (let ((msgs-in-queue*	(malloc-small/c))
+	  (multi*		(<curl-multi>-pointer multi)))
+      (let loop ((messages	'())
+		 (msg*		(curl_multi_info_read multi* msgs-in-queue*)))
+	(if (pointer-null? msg*)
+	    messages
+	  (loop (cons (%struct-curlmsg->record msg*) messages)
+		(curl_multi_info_read multi* msgs-in-queue*)))))))
+
+(define (curl-multi-socket))
+
+
 (define (curl-make-write-callback scheme-function)
   (make-c-callback size_t
 		   (lambda (buffer item-size item-count custom)
@@ -524,9 +644,16 @@
 (define (curl-make-conv-callback scheme-function)
   (make-c-callback CURLcode
 		   (lambda (buffer len)
-		     (guard (E (else CURLE_OBSOLETE10))
+		     (guard (E (else CURLE_ABORTED_BY_CALLBACK))
 		       (scheme-function buffer len)))
 		   (char* size_t)))
+
+(define (curl-make-sshkey-callback scheme-function)
+  (make-c-callback int
+		   (lambda (handle knownkey foundkey status custom-pointer)
+		     (guard (E (else CURLKHSTAT_REJECT))
+		       (scheme-function handle knownkey foundkey status custom-pointer)))
+		   (void* void* void* curl_khmatch void*)))
 
 
 (define (curl-easy-strerror code)

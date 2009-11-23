@@ -54,9 +54,11 @@
 	  (curl-easy-setopt handle CURLOPT_URL "https://gna.org/")
 	  (curl-easy-setopt handle CURLOPT_WRITEFUNCTION (curl-make-write-callback cb))
 	  (curl-easy-setopt handle CURLOPT_WRITEDATA pointer-null)
+	  (curl-easy-setopt handle CURLOPT_SSL_VERIFYPEER #f)
+	  (curl-easy-setopt handle CURLOPT_CERTINFO #t)
 	  (curl-easy-perform handle)
-	  out))
-    => "<html><body><p>proof page</p></body></html>\n")
+	  (irregex-match-data? (irregex-search "</html>" out))))
+    => #t)
 
   #t)
 

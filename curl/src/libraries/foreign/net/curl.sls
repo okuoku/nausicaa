@@ -425,6 +425,7 @@
     curl-easy-escape		curl-escape
     curl-easy-unescape		curl-unescape
 
+    curl-multi?
     curl-multi-init
     curl-multi-add-handle	curl-multi-remove-handle
     curl-multi-fdset		curl-multi-perform
@@ -451,7 +452,9 @@
     curl-make-sockopt-callback		curl-make-opensocket-callback
     curl-make-progress-callback		curl-make-header-callback
     curl-make-debug-callback		curl-make-ssl-ctx-callback
-    curl-make-conv-callback
+    curl-make-conv-callback		curl-make-sshkey-callback
+
+    strings->curl-slist
 
 ;;; --------------------------------------------------------------------
 
