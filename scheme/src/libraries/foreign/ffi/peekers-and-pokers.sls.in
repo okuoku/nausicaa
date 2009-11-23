@@ -206,10 +206,10 @@
     (foreign ffi peekers-and-pokers compat))
 
 
-(define pointer-set-c-size_t!		pointer-set-c-unsigned-int!)
-(define pointer-set-c-ssize_t!		pointer-set-c-signed-int!)
-(define pointer-ref-c-size_t		pointer-ref-c-unsigned-int)
-(define pointer-ref-c-ssize_t		pointer-ref-c-signed-int)
+(define pointer-set-c-size_t!		@SETTEROF_SIZE_T@)
+(define pointer-set-c-ssize_t!		@SETTEROF_SSIZE_T@)
+(define pointer-ref-c-size_t		@GETTEROF_SIZE_T@)
+(define pointer-ref-c-ssize_t		@GETTEROF_SSIZE_T@)
 
 
 ;;;; array peekers

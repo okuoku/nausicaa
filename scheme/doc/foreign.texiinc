@@ -271,6 +271,8 @@ example: Larceny checkout 5877).
 @defvrx Constant sizeof-double
 @defvrx Constant sizeof-long-double
 @defvrx Constant sizeof-pointer
+@defvrx Constant sizeof-size_t
+@defvrx Constant sizeof-ssize_t
 The number of bytes in the specified type.
 @end defvr
 
@@ -288,6 +290,8 @@ The number of bytes in the specified type.
 @defvrx Constant alignof-double
 @defvrx Constant alignof-long-double
 @defvrx Constant alignof-pointer
+@defvrx Constant alignof-size_t
+@defvrx Constant alignof-ssize_t
 The number of bytes of the alignment in data structures for the
 specified type.
 @end defvr
@@ -306,6 +310,8 @@ specified type.
 @defvrx Constant strideof-double
 @defvrx Constant strideof-long-double
 @defvrx Constant strideof-pointer
+@defvrx Constant strideof-size_t
+@defvrx Constant strideof-ssize_t
 The number of bytes of the array stride for the specified type.
 @end defvr
 
@@ -323,6 +329,8 @@ The number of bytes of the array stride for the specified type.
 @deffnx Syntax sizeof-double-array @var{number-of-elements}
 @deffnx Syntax sizeof-long-double-array @var{number-of-elements}
 @deffnx Syntax sizeof-pointer-array @var{number-of-elements}
+@deffnx Syntax sizeof-size_t-array @var{number-of-elements}
+@deffnx Syntax sizeof-ssize_t-array @var{number-of-elements}
 Compute the number of bytes to allocate to hold an array of the
 specified type.
 @end deffn
@@ -664,6 +672,20 @@ platform.
 @end deffn
 
 
+@deffn Procedure pointer-ref-c-size_t @var{pointer} @var{offset}
+@deffnx Procedure peek-size_t @var{pointer} @var{offset}
+Aliases for the fixed--size peeker whose target matches the size and
+range of the @samp{size_t} C language type of the underlying platform.
+@end deffn
+
+
+@deffn Procedure pointer-ref-c-ssize_t @var{pointer} @var{offset}
+@deffnx Procedure peek-ssize_t @var{pointer} @var{offset}
+Aliases for the fixed--size peeker whose target matches the size and
+range of the @samp{ssize_t} C language type of the underlying platform.
+@end deffn
+
+
 @subsubheading Peeking C language floating point numbers
 
 
@@ -849,6 +871,20 @@ platform.
 Aliases for the fixed--size pokers whose target matches the size and
 range of the @samp{unsigned long long} C language type of the underlying
 platform.
+@end deffn
+
+
+@deffn Procedure pointer-set-c-size_t! @var{pointer} @var{offset} @var{value}
+@deffnx Procedure poke-size_t! @var{pointer} @var{offset} @var{value}
+Aliases for the fixed--size pokers whose target matches the size and
+range of the @samp{size_t} C language type of the underlying platform.
+@end deffn
+
+
+@deffn Procedure pointer-set-c-ssize_t! @var{pointer} @var{offset} @var{value}
+@deffnx Procedure poke-ssize_t! @var{pointer} @var{offset} @var{value}
+Aliases for the fixed--size pokers whose target matches the size and
+range of the @samp{ssize_t} C language type of the underlying platform.
 @end deffn
 
 
@@ -1405,6 +1441,20 @@ underlying platform.
 Aliases for the fixed--size array pointer getter whose target matches
 the size and range of the @samp{unsigned long long} C language type of
 the underlying platform.
+@end defun
+
+
+@defun array-ptr-c-size_t @var{pointer} @var{index}
+Aliases for the fixed--size array pointer getter whose target matches
+the size and range of the @samp{size_t} C language type of the
+underlying platform.
+@end defun
+
+
+@defun array-ptr-c-ssize_t @var{pointer} @var{index}
+Aliases for the fixed--size array pointer getter whose target matches
+the size and range of the @samp{ssize_t} C language type of the
+underlying platform.
 @end defun
 
 

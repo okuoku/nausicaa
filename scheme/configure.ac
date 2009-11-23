@@ -15,9 +15,11 @@ DS_ENABLE_OPTION([nau_scheme_ENABLE_BINFMT],[binfmt],[no],
 NAUSICAA_C_LANGUAGE
 NAUSICAA_SIZEOF
 NAUSICAA_C_TYPES_LIMITS
+NAUSICAA_INSPECT_SIZE_T
 NAUSICAA_C_ERRNO
 
 AC_CONFIG_FILES([../src/libraries/foreign/ffi/sizeof.sls:../src/libraries/foreign/ffi/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/foreign/ffi/peekers-and-pokers.sls:../src/libraries/foreign/ffi/peekers-and-pokers.sls.in])
 AC_CONFIG_FILES([../src/libraries/foreign/errno.sls:../src/libraries/foreign/errno.sls.in])
 AC_CONFIG_FILES([../src/libraries/nausicaa/registry.sls:../src/libraries/nausicaa/registry.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC

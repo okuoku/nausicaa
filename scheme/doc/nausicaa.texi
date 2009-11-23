@@ -11801,17 +11801,17 @@ representing records.
 
 
 A record is a compound data structure with a fixed number of components,
-called @emph{fields}.  Each record has an associated type specified by a
-@emph{record-type descriptor}, which is an object that specifies the
+called @dfn{fields}.  Each record has an associated type specified by a
+@dfn{record-type descriptor}, which is an object that specifies the
 fields of the record and various other properties that all records of
-that type share.  Record objects are created by a @emph{record
+that type share.  Record objects are created by a @dfn{record
 constructor}, a procedure that creates a fresh record object and
 initializes its fields to values.  Records of different types can be
 distinguished from each other and from other types of objects by
-@emph{record predicates}.  A record predicate returns @true{} when
-passed a record of the type specified by the record--type descriptor and
-@false{} otherwise.  An @emph{accessor} extracts from a record the
-component associated with a field, and a @emph{mutator} changes the
+@dfn{record predicates}.  A record predicate returns @true{} when passed
+a record of the type specified by the record--type descriptor and
+@false{} otherwise.  An @dfn{accessor} extracts from a record the
+component associated with a field, and a @dfn{mutator} changes the
 component to a different value.
 
 Record types can be extended via single inheritance, allowing record
@@ -11835,15 +11835,15 @@ The record mechanism spans three libraries:
 
 @table @rsixlibrary
 @item records syntactic
-library, a syntactic layer for defining a record type and associated
-constructor, predicate, accessor, and mutators,
+Library, a syntactic layer for defining a record type and associated
+constructor, predicate, accessor, and mutators.
 
 @item records procedural
-library, a procedural layer for creating and manipulating record types
-and creating constructors, predicates, accessors, and mutators;
+Library, a procedural layer for creating and manipulating record types
+and creating constructors, predicates, accessors, and mutators.
 
 @item records inspection
-library, a set of inspection procedures.
+Library, a set of inspection procedures.
 @end table
 
 The inspection procedures allow programs to obtain from a record
@@ -11870,21 +11870,18 @@ layer rather than the procedural layer.
 
 The syntactic layer is used more commonly and therefore described first.
 This chapter uses the @var{rtd} and @var{constructor-descriptor}
-parameter names for arguments that must be record-type descriptors and
+parameter names for arguments that must be record--type descriptors and
 constructor descriptors, respectively.
-
-
 
 @c page
 @node stdlib records mutability
 @subsection Mutability and equivalence of records
 
 
-The fields of a record type are designated @emph{mutable} or
-@emph{immutable}.  Correspondingly, a record type with no mutable field
-is called @emph{immutable}, and all records of that type are immutable
-objects.  All other record types are @emph{mutable}, and so are their
-records.
+The fields of a record type are designated @dfn{mutable} or
+@dfn{immutable}.  Correspondingly, a record type with no mutable field
+is called immutable, and all records of that type are immutable objects.
+All other record types are mutable, and so are their records.
 
 Each call to a record constructor returns a new record with a fresh
 location (@ref{lang basic storage model}).  Consequently, for two

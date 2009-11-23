@@ -94,6 +94,7 @@
     pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
     pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
     pointer-ref-c-pointer		pointer-ref-c-void*
+    pointer-ref-c-size_t		pointer-ref-c-ssize_t
 
     ;;pokers
     pointer-set-c-int8!			pointer-set-c-uint8!
@@ -107,6 +108,7 @@
     pointer-set-c-signed-long!		pointer-set-c-unsigned-long!
     pointer-set-c-signed-long-long!	pointer-set-c-unsigned-long-long!
     pointer-set-c-pointer!		pointer-set-c-void*!
+    pointer-set-c-size_t!		pointer-set-c-ssize_t!
 
     ;;array peekers
     array-ref-c-int8			array-ref-c-uint8
@@ -120,6 +122,7 @@
     array-ref-c-signed-long		array-ref-c-unsigned-long
     array-ref-c-signed-long-long	array-ref-c-unsigned-long-long
     array-ref-c-void*			array-ref-c-pointer
+    array-ref-c-size_t			array-ref-c-ssize_t
 
     ;;array pokers
     array-set-c-int8!			array-set-c-uint8!
@@ -133,6 +136,7 @@
     array-set-c-signed-long!		array-set-c-unsigned-long!
     array-set-c-signed-long-long!	array-set-c-unsigned-long-long!
     array-set-c-void*!			array-set-c-pointer!
+    array-set-c-size_t!			array-set-c-ssize_t!
 
     ;; array pointer getters
     array-ptr-c-int8			array-ptr-c-uint8
@@ -146,6 +150,7 @@
     array-ptr-c-signed-long		array-ptr-c-unsigned-long
     array-ptr-c-signed-long-long	array-ptr-c-unsigned-long-long
     array-ptr-c-void*			array-ptr-c-pointer
+    array-ptr-c-size_t			array-ptr-c-ssize_t
 
     ;; aliases
     peek-signed-char			peek-unsigned-char
@@ -155,6 +160,7 @@
     peek-signed-long-long		peek-unsigned-long-long
     peek-float				peek-double
     peek-pointer			peek-void*
+    peek-ssize_t			peek-size_t
 
     peek-int8				peek-uint8
     peek-int16				peek-uint16
@@ -168,6 +174,7 @@
     poke-signed-long-long!		poke-unsigned-long-long!
     poke-float!				poke-double!
     poke-pointer!			poke-void*!
+    poke-ssize_t!			poke-size_t!
 
     poke-int8!				poke-uint8!
     poke-int16!				poke-uint16!
@@ -181,6 +188,7 @@
     peek-array-signed-long-long		peek-array-unsigned-long-long
     peek-array-float			peek-array-double
     peek-array-pointer			peek-array-void*
+    peek-array-ssize_t			peek-array-size_t
 
     peek-array-int8			peek-array-uint8
     peek-array-int16			peek-array-uint16
@@ -194,6 +202,7 @@
     poke-array-signed-long-long!	poke-array-unsigned-long-long!
     poke-array-float!			poke-array-double!
     poke-array-pointer!			poke-array-void*!
+    poke-array-ssize_t!			poke-array-size_t!
 
     poke-array-int8!			poke-array-uint8!
     poke-array-int16!			poke-array-uint16!

@@ -33,6 +33,7 @@
     sizeof-long-long		sizeof-float
     sizeof-double		sizeof-long-double
     sizeof-pointer
+    sizeof-size_t		sizeof-ssize_t
 
     pointer-integer
     size_t-integer		ssize_t-integer
@@ -44,6 +45,7 @@
     alignof-long-long		alignof-float
     alignof-double		alignof-long-double
     alignof-pointer
+    alignof-size_t		alignof-ssize_t
 
     strideof-int8		strideof-int16
     strideof-int32		strideof-int64
@@ -52,6 +54,7 @@
     strideof-long-long		strideof-float
     strideof-double		strideof-long-double
     strideof-pointer
+    strideof-size_t		strideof-ssize_t
 
     sizeof-int8-array		sizeof-int16-array
     sizeof-int32-array		sizeof-int64-array
@@ -60,6 +63,7 @@
     sizeof-long-long-array	sizeof-float-array
     sizeof-double-array		sizeof-long-double-array
     sizeof-pointer-array
+    sizeof-size_t-array		sizeof-ssize_t-array
 
     valueof-char-max		valueof-char-min
     valueof-schar-max		valueof-schar-min	valueof-uchar-max
@@ -88,10 +92,12 @@
 (define sizeof-double			@SIZEOF_DOUBLE@)
 (define sizeof-long-double		@SIZEOF_LONG_DOUBLE@)
 (define sizeof-pointer			@SIZEOF_POINTER@)
+(define sizeof-size_t			@SIZEOF_SIZE_T@)
+(define sizeof-ssize_t			@SIZEOF_SSIZE_T@)
 
 (define pointer-integer			(quote @TYPEOF_POINTER_INTEGER@))
-(define size_t-integer			(quote @TYPEOF_SIZE_T_INTEGER@))
-(define ssize_t-integer			(quote @TYPEOF_SSIZE_T_INTEGER@))
+(define size_t-integer			(quote @TYPEOF_SIZE_T@))
+(define ssize_t-integer			(quote @TYPEOF_SSIZE_T@))
 
 (define alignof-int8			@ALIGNOF_INT8@)
 (define alignof-int16			@ALIGNOF_INT16@)
@@ -106,6 +112,8 @@
 (define alignof-double			@ALIGNOF_DOUBLE@)
 (define alignof-long-double		@ALIGNOF_LONG_DOUBLE@)
 (define alignof-pointer			@ALIGNOF_POINTER@)
+(define alignof-size_t			@ALIGNOF_SIZE_T@)
+(define alignof-ssize_t			@ALIGNOF_SSIZE_T@)
 
 (define strideof-int8			@STRIDEOF_INT8@)
 (define strideof-int16			@STRIDEOF_INT16@)
@@ -120,6 +128,8 @@
 (define strideof-double			@STRIDEOF_DOUBLE@)
 (define strideof-long-double		@STRIDEOF_LONG_DOUBLE@)
 (define strideof-pointer		@STRIDEOF_POINTER@)
+(define strideof-size_t			@STRIDEOF_SIZE_T@)
+(define strideof-ssize_t		@STRIDEOF_SSIZE_T@)
 
 
 (define-syntax sizeof-int8-array
@@ -186,6 +196,16 @@
   (syntax-rules ()
     ((_ ?number-of-elements)
      (* strideof-pointer ?number-of-elements))))
+
+(define-syntax sizeof-size_t-array
+  (syntax-rules ()
+    ((_ ?number-of-elements)
+     (* strideof-size_t ?number-of-elements))))
+
+(define-syntax sizeof-ssize_t-array
+  (syntax-rules ()
+    ((_ ?number-of-elements)
+     (* strideof-ssize_t ?number-of-elements))))
 
 
 (define valueof-char-max		@VALUEOF_CHAR_MAX@)
