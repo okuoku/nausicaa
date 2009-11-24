@@ -260,12 +260,12 @@
     pointer-ref-c-CURLMSG
     pointer-set-c-CURLMSG-set!
 
-    CURLMotion
-    sizeof-CURLMotion
-    strideof-CURLMotion
-    alignof-CURLMotion
-    pointer-ref-c-CURLMotion
-    pointer-set-c-CURLMotion-set!
+    CURLMoption
+    sizeof-CURLMoption
+    strideof-CURLMoption
+    alignof-CURLMoption
+    pointer-ref-c-CURLMoption
+    pointer-set-c-CURLMoption-set!
 
 
 
@@ -989,12 +989,12 @@
 (define pointer-ref-c-CURLMSG			@GETTEROF_CURLMSG@)
 (define pointer-set-c-CURLMSG-set!		@SETTEROF_CURLMSG@)
 
-(define CURLMotion				(quote @TYPEOF_CURLMOPTION@))
-(define sizeof-CURLMotion			@SIZEOF_CURLMOPTION@)
-(define strideof-CURLMotion			@STRIDEOF_CURLMOPTION@)
-(define alignof-CURLMotion			@ALIGNOF_CURLMOPTION@)
-(define pointer-ref-c-CURLMotion		@GETTEROF_CURLMOPTION@)
-(define pointer-set-c-CURLMotion-set!		@SETTEROF_CURLMOPTION@)
+(define CURLMoption				(quote @TYPEOF_CURLMOPTION@))
+(define sizeof-CURLMoption			@SIZEOF_CURLMOPTION@)
+(define strideof-CURLMoption			@STRIDEOF_CURLMOPTION@)
+(define alignof-CURLMoption			@ALIGNOF_CURLMOPTION@)
+(define pointer-ref-c-CURLMoption		@GETTEROF_CURLMOPTION@)
+(define pointer-set-c-CURLMoption-set!		@SETTEROF_CURLMOPTION@)
 
 
 

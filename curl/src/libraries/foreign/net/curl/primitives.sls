@@ -28,23 +28,47 @@
 (library (foreign net curl primitives)
   (export
 
+    ;; global initialisation
+    (rename (curl_global_init		curl-global-init)
+	    (curl_global_init_mem	curl-global-init-mem)
+	    (curl_global_cleanup	curl-global-cleanup))
+
+    ;; version
     curl-version			curl-version-info
 
-    (rename (<curl-handle>?		curl-handle?))
+    ;; easy session handlers
+    curl-easy-handle?
     curl-easy-init			curl-easy-duphandle
     curl-easy-cleanup			curl-easy-reset
     curl-easy-setopt			curl-easy-getinfo
     curl-easy-perform			curl-easy-pause
     curl-easy-recv/string		curl-easy-recv/bytevector
-    curl-easy-send
-    curl-easy-escape			curl-easy-unescape
-    curl-easy-strerror			curl-share-strerror
+    curl-easy-send			curl-easy-strerror
 
+    ;; multi session handlers
+    curl-multi-handle?
+    curl-multi-init			curl-multi-cleanup
+    curl-multi-add-handle		curl-multi-remove-handle
+    curl-multi-fdset			curl-multi-info-read
+    curl-multi-perform			curl-multi-socket-action
+    curl-multi-setopt			curl-multi-assign
+    curl-multi-timeout			curl-multi-strerror
+
+    ;; HTTP POST
     curl-formadd
+    (rename (curl_formget		curl-formget)
+	    (curl_formfree		curl-formfree))
 
-    (rename (<curl-multi>?		curl-multi?))
-    curl-multi-strerror
+    ;; mutex/locking
+    curl-share-init			curl-share-cleanup
+    curl-share-setopt			curl-share-strerror
 
+    ;; URL escaping
+    curl-easy-escape			curl-easy-unescape
+    (rename (curl_escape		curl-escape)
+	    (curl_unescape		curl-unescape))
+
+    ;; callback utilities
     curl-make-read-callback		curl-make-write-callback
     curl-make-ioctl-callback		curl-make-seek-callback
     curl-make-sockopt-callback		curl-make-opensocket-callback
@@ -52,42 +76,15 @@
     curl-make-debug-callback		curl-make-ssl-ctx-callback
     curl-make-conv-callback		curl-make-sshkey-callback
 
+    ;; cURL linked list management
     strings->curl-slist
+    (rename (curl_slist_append		curl-slist-append)
+	    (curl_slist_free_all	curl-slist-free-all))
 
-    (rename (curl_global_init		curl-global-init)
-	    (curl_global_init_mem	curl-global-init-mem)
-	    (curl_global_cleanup	curl-global-cleanup)
-
-	    (curl_escape		curl-escape)
-	    (curl_unescape		curl-unescape)
-
-	    (curl_multi_init		curl-multi-init)
-	    (curl_multi_add_handle	curl-multi-add-handle)
-	    (curl_multi_remove_handle	curl-multi-remove-handle)
-	    (curl_multi_fdset		curl-multi-fdset)
-	    (curl_multi_perform		curl-multi-perform)
-	    (curl_multi_cleanup		curl-multi-cleanup)
-	    (curl_multi_info_read	curl-multi-info-read)
-	    ;;(curl_multi_strerror	curl-multi-strerror)	;marshaled
-	    (curl_multi_socket		curl-multi-socket)
-	    (curl_multi_socket_action	curl-multi-socket-action)
-	    (curl_multi_socket_all	curl-multi-socket-all)
-	    (curl_multi_timeout		curl-multi-timeout)
-	    ;;curl_multi_setopt		curl-multi-setopt)	;this is variadic
-	    (curl_multi_assign		curl-multi-assign)
-
-	    (curl_formget		curl-formget)
-	    (curl_formfree		curl-formfree)
-
-	    (curl_free			curl-free)
+    ;; miscellaneous
+    (rename (curl_free			curl-free)
 	    (curl_getenv		curl-getenv)
-	    (curl_getdate		curl-getdate)
-	    (curl_slist_append		curl-slist-append)
-	    (curl_slist_free_all	curl-slist-free-all)
-
-	    (curl_share_init		curl-share-init)
-	    ;;(curl_share_setopt	curl-share-setopt)	;this is variadic
-	    (curl_share_cleanup		curl-share-cleanup)))
+	    (curl_getdate		curl-getdate)))
   (import (rnrs)
     (begin0)
     (compensations)
@@ -96,7 +93,10 @@
     (foreign cstrings)
     (foreign net curl conditions)
     (foreign net curl enumerations)
-    (foreign net curl record-types)
+    (rename (foreign net curl record-types)
+	    (<curl-handle>-pointer	pointer)
+	    (<curl-easy-handle>?	curl-easy-handle?)
+	    (<curl-multi-handle>?	curl-multi-handle?))
     (foreign net curl sizeof)
     (foreign net curl platform))
 
@@ -125,127 +125,67 @@
 	  (loop (cdr strings) p))))))
 
 
+;;;; cURL version informations
+
 (define (curl-version)
   (cstring->string (curl_version)))
 
 (define (curl-version-info)
-  (let* ((struct*	(curl_version_info CURLVERSION_NOW))
-	 (age		(struct-curl_version_info_data-age-ref struct*)))
-    (make-<curl-version-info>
-
-     age
-
-     (let ((p (struct-curl_version_info_data-version-ref struct*)))
-       (if (pointer-null? p) #f (cstring->string p)))
-
-     (struct-curl_version_info_data-version_num-ref struct*)
-
-     (let ((p (struct-curl_version_info_data-host-ref struct*)))
-       (if (pointer-null? p) #f (cstring->string p)))
-
-     (let ((bitmask	(struct-curl_version_info_data-features-ref struct*))
-	   (features	'()))
-       (when (bitwise-ior bitmask CURL_VERSION_IPV6)
-	 (set! features (cons 'IPV6 features)))
-       (when (bitwise-ior bitmask CURL_VERSION_KERBEROS4)
-	 (set! features (cons 'KERBEROS4 features)))
-       (when (bitwise-ior bitmask CURL_VERSION_SSL)
-	 (set! features (cons 'SSL features)))
-       (when (bitwise-ior bitmask CURL_VERSION_LIBZ)
-	 (set! features (cons 'LIBZ features)))
-       (when (bitwise-ior bitmask CURL_VERSION_NTLM)
-	 (set! features (cons 'NTLM features)))
-       (when (bitwise-ior bitmask CURL_VERSION_GSSNEGOTIATE)
-	 (set! features (cons 'GSSNEGOTIATE features)))
-       (when (bitwise-ior bitmask CURL_VERSION_DEBUG)
-	 (set! features (cons 'DEBUG features)))
-       (when (bitwise-ior bitmask CURL_VERSION_ASYNCHDNS)
-	 (set! features (cons 'ASYNCHDNS features)))
-       (when (bitwise-ior bitmask CURL_VERSION_SPNEGO)
-	 (set! features (cons 'SPNEGO features)))
-       (when (bitwise-ior bitmask CURL_VERSION_LARGEFILE)
-	 (set! features (cons 'LARGEFILE features)))
-       (when (bitwise-ior bitmask CURL_VERSION_IDN)
-	 (set! features (cons 'IDN features)))
-       (when (bitwise-ior bitmask CURL_VERSION_SSPI)
-	 (set! features (cons 'SSPI features)))
-       (when (bitwise-ior bitmask CURL_VERSION_CONV)
-	 (set! features (cons 'CONV features)))
-       (when (bitwise-ior bitmask CURL_VERSION_CURLDEBUG)
-	 (set! features (cons 'CURLDEBUG features)))
-       features)
-
-     (let ((p (struct-curl_version_info_data-ssl_version-ref struct*)))
-       (if (pointer-null? p) #f (cstring->string p)))
-
-     (struct-curl_version_info_data-ssl_version_num-ref struct*)
-
-     (let ((p (struct-curl_version_info_data-libz_version-ref struct*)))
-       (if (pointer-null? p) #f (cstring->string p)))
-
-     (let ((p (struct-curl_version_info_data-protocols-ref struct*)))
-       (if (pointer-null? p) #f (map string->symbol (argv->strings p))))
-
-     (if (<= 1 age)
-	 (let ((p (struct-curl_version_info_data-ares-ref struct*)))
-	   (if (pointer-null? p) #f (cstring->string p)))
-       #f)
-
-     (if (<= 1 age)
-	 (struct-curl_version_info_data-ares_num-ref struct*)
-       #f)
-
-     (if (<= 2 age)
-	 (let ((p (struct-curl_version_info_data-libidn-ref struct*)))
-	   (if (pointer-null? p) #f (cstring->string p)))
-       #f)
-
-     (if (<= 3 age)
-	 (struct-curl_version_info_data-iconv_ver_num-ref struct*)
-       #f)
-
-     (if (<= 3 age)
-	 (let ((p (struct-curl_version_info_data-libssh_version-ref struct*)))
-	   (if (pointer-null? p) #f (cstring->string p)))
-       #f))))
+  (%struct-curl-version-info-data->record (curl_version_info CURLVERSION_NOW)))
 
 
+;;;; easy initialisation and finalisation
+
 (define (curl-easy-init)
-  (let ((handle* (curl_easy_init)))
-    (if (pointer-null? handle*)
-	(raise-curl-init-error 'curl-easy-init "error initialising cURL session handle")
-      (make-<curl-handle> handle*))))
+  (let ((easy* (curl_easy_init)))
+    (if (pointer-null? easy*)
+	(raise (condition (make-curl-init-error-condition)
+			  (make-who-condition 'curl-easy-init)
+			  (make-message-condition "error initialising cURL session handle")))
+      (make-<curl-easy-handle> easy*))))
 
-(define (curl-easy-duphandle handle)
-  (let ((handle* (curl_easy_duphandle (<curl-handle>-pointer handle))))
-    (if (pointer-null? handle*)
-	(raise-curl-init-error 'curl-easy-duphandle "error duplicating cURL session handle")
-      (make-<curl-handle> handle*))))
+(define (curl-easy-duphandle easy)
+  (let ((easy* (curl_easy_duphandle (pointer easy))))
+    (if (pointer-null? easy*)
+	(raise (condition (make-curl-init-error-condition)
+			  (make-who-condition 'curl-easy-duphandle)
+			  (make-message-condition "error duplicating cURL session handle")
+			  (make-curl-easy-handle-condition easy)))
+      (make-<curl-easy-handle> easy*))))
 
-(define (curl-easy-cleanup handle)
-  (curl_easy_cleanup (<curl-handle>-pointer handle)))
+(define (curl-easy-cleanup easy)
+  (curl_easy_cleanup (pointer easy)))
 
-(define (curl-easy-reset handle)
-  (curl_easy_reset (<curl-handle>-pointer handle)))
+(define (curl-easy-reset easy)
+  (curl_easy_reset (pointer easy)))
 
-;;; --------------------------------------------------------------------
+
+;;;; easy performing
 
-(define (curl-easy-perform handle)
-  (let ((code (curl_easy_perform (<curl-handle>-pointer handle))))
+(define (curl-easy-perform easy)
+  (let ((code (curl_easy_perform (pointer easy))))
     (if (= code CURLE_OK)
 	code
-      (raise-curl-easy-error 'curl-easy-perform code handle))))
+      (raise (condition (make-curl-easy-action-error-condition)
+			(make-who-condition 'curl-easy-perform)
+			(make-curl-easy-message-condition code)
+			(make-curl-error-code-condition code)
+			(make-curl-easy-handle-condition easy))))))
 
-(define (curl-easy-pause handle bitmask-set)
-  (let ((code (curl_easy_pause (<curl-handle>-pointer handle)
-			       (%curl-pause-set->bitmask bitmask-set))))
+(define (curl-easy-pause easy bitmask-set)
+  (let ((code (curl_easy_pause (pointer easy) (%curl-pause-set->bitmask bitmask-set))))
     (if (= code CURLE_OK)
 	code
-      (raise-curl-easy-error 'curl-easy-pause code handle))))
+      (raise (condition (make-curl-easy-action-error-condition)
+			(make-who-condition 'curl-easy-pause)
+			(make-curl-easy-message-condition code)
+			(make-curl-error-code-condition code)
+			(make-curl-easy-handle-condition easy))))))
 
-;;; --------------------------------------------------------------------
+
+;;;; easy raw sending and receiving
 
-(define (curl-easy-send handle data)
+(define (curl-easy-send easy data)
   (with-compensations
     (let* ((buffer*	(if (string? data)
 			    (string->cstring/c data)
@@ -254,60 +194,46 @@
 			    (strlen buffer*)
 			  (bytevector-length data)))
 	   (sent*	(malloc-small/c))
-	   (code	(curl_easy_send (<curl-handle>-pointer handle) buffer* size sent*)))
+	   (code	(curl_easy_send (pointer easy) buffer* size sent*)))
       (if (= code CURLE_OK)
 	  (pointer-ref-c-size_t sent* 0)
-	(raise-curl-easy-error 'curl-easy-perform code handle)))))
+	(raise (condition (make-curl-action-error-condition)
+			  (make-who-condition 'curl-easy-send)
+			  (make-curl-easy-error-code-condition code)
+			  (make-curl-easy-message-condition code)
+			  (make-curl-easy-handle-condition easy)))))))
 
-(define (curl-easy-recv/string handle number-of-bytes)
+(define (curl-easy-recv/string easy number-of-bytes)
   (with-compensations
     (let* ((buffer*	(malloc-block/c number-of-bytes))
 	   (recv*	(malloc-small/c))
-	   (code	(curl_easy_recv (<curl-handle>-pointer handle)
+	   (code	(curl_easy_recv (pointer easy)
 					buffer* number-of-bytes recv*)))
       (if (= code CURLE_OK)
 	  (cstring->string buffer* (pointer-ref-c-size_t recv* 0))
-	(raise-curl-easy-error 'curl-easy-perform code handle)))))
+	(raise (condition (make-curl-action-error-condition)
+			  (make-who-condition 'curl-easy-recv/string)
+			  (make-curl-easy-error-code-condition code)
+			  (make-curl-easy-message-condition code)
+			  (make-curl-easy-handle-condition easy)))))))
 
-(define (curl-easy-recv/bytevector handle number-of-bytes)
+(define (curl-easy-recv/bytevector easy number-of-bytes)
   (with-compensations
     (let* ((buffer*	(malloc-block/c number-of-bytes))
 	   (recv*	(malloc-small/c))
-	   (code	(curl_easy_recv (<curl-handle>-pointer handle)
+	   (code	(curl_easy_recv (pointer easy)
 					buffer* number-of-bytes recv*)))
       (if (= code CURLE_OK)
 	  (pointer->bytevector buffer* (pointer-ref-c-size_t recv* 0))
-	(raise-curl-easy-error 'curl-easy-perform code handle)))))
+	(raise (condition (make-curl-action-error-condition)
+			  (make-who-condition 'curl-easy-recv/bytevector)
+			  (make-curl-easy-error-code-condition code)
+			  (make-curl-easy-message-condition code)
+			  (make-curl-easy-handle-condition easy)))))))
 
 
-(define (curl-easy-escape handle str)
-  (with-compensations
-    (let ((p (curl_easy_escape (<curl-handle>-pointer handle) (string->cstring/c str) 0)))
-      (if (pointer-null? p)
-	  (raise (condition (make-curl-error-condition)
-			    (make-curl-handle-condition handle)
-			    (make-who-condition 'curl-easy-escape)
-			    (make-message-condition "error escaping a string as URL")))
-	(begin
-	  (push-compensation (curl_free p))
-	  (cstring->string p))))))
+;;;; easy options setting
 
-(define (curl-easy-unescape handle str)
-  (with-compensations
-    (let* ((len*	(malloc-small/c))
-	   (p		(curl_easy_unescape (<curl-handle>-pointer handle)
-					    (string->cstring/c str) 0 len*)))
-      (if (pointer-null? p)
-	  (raise (condition (make-curl-error-condition)
-			    (make-curl-handle-condition handle)
-			    (make-who-condition 'curl-easy-unescape)
-			    (make-message-condition "error unescaping a string as URL")))
-	(begin
-	  (push-compensation (curl_free p))
-	  (cstring->string p))))))
-
-
-
 (define curl-easy-setopt
   (let (($list-bool	(list CURLOPT_VERBOSE			CURLOPT_HEADER
 			      CURLOPT_NOPROGRESS		CURLOPT_NOSIGNAL
@@ -397,34 +323,43 @@
 			      CURLOPT_PREQUOTE			CURLOPT_PRIVATE
 			      CURLOPT_SHARE			CURLOPT_TELNETOPTIONS)))
 
-    (lambda (handle option value)
-      (let ((handle* (<curl-handle>-pointer handle)))
+    (lambda (easy option value)
+      (let ((easy* (pointer easy)))
 	(with-compensations
-	  (cond ((memv option $list-string)
-		 (curl_easy_setopt/void* handle* option (if value
-							    (string->cstring/c value)
-							  pointer-null)))
+	  (let ((code (cond ((memv option $list-string)
+			     (curl_easy_setopt/void* easy* option (if value
+								      (string->cstring/c value)
+								    pointer-null)))
 
-		((memv option $list-callback)
-		 (curl_easy_setopt/callback handle* option value))
+			    ((memv option $list-callback)
+			     (curl_easy_setopt/callback easy* option value))
 
-		((memv option $list-pointer)
-		 (curl_easy_setopt/void* handle* option value))
+			    ((memv option $list-pointer)
+			     (curl_easy_setopt/void* easy* option value))
 
-		((memv option $list-bool)
-		 (curl_easy_setopt/long handle* option (if value 1 0)))
+			    ((memv option $list-bool)
+			     (curl_easy_setopt/long easy* option (if value 1 0)))
 
-		((memv option $list-long)
-		 (curl_easy_setopt/long handle* option value))
+			    ((memv option $list-long)
+			     (curl_easy_setopt/long easy* option value))
 
-		((memv option $list-off_t)
-		 (curl_easy_setopt/off_t handle* option value))
+			    ((memv option $list-off_t)
+			     (curl_easy_setopt/off_t easy* option value))
 
-		(else
-		 (assertion-violation 'curl-easy-setopt
-		   "invalid cURL option for handle" handle option value))))))))
+			    (else
+			     (assertion-violation 'curl-easy-setopt
+			       "invalid cURL option for easy session handle" easy option value)))))
+	    (if (= code CURLE_OK)
+		code
+	      (raise (condition (make-curl-error-condition)
+				(make-who-condition 'curl-easy-setopt)
+				(make-curl-easy-error-code-condition code)
+				(make-curl-easy-message-condition code)
+				(make-curl-easy-handle-condition easy))))))))))
 
 
+;;;; easy information retrieving
+
 (define curl-easy-getinfo
   (let (($long-list	(list CURLINFO_RESPONSE_CODE		CURLINFO_HTTP_CONNECTCODE
 			      CURLINFO_FILETIME			CURLINFO_REDIRECT_COUNT
@@ -444,13 +379,17 @@
 			      CURLINFO_SPEED_UPLOAD		CURLINFO_CONTENT_LENGTH_DOWNLOAD
 			      CURLINFO_CONTENT_LENGTH_UPLOAD))
 	($slist-list	(list CURLINFO_SSL_ENGINES		CURLINFO_COOKIELIST)))
-    (lambda (handle option)
-      (let ((handle* (<curl-handle>-pointer handle)))
+    (lambda (easy option)
+      (let ((easy* (pointer easy)))
 	(if (= option CURLINFO_CERTINFO)
 	    (let* ((info*	(malloc-block/c sizeof-curl_certinfo))
-		   (code	(curl_easy_getinfo handle* option info*)))
+		   (code	(curl_easy_getinfo easy* option info*)))
 	      (unless (= code CURLE_OK)
-		(raise-curl-easy-error 'curl-easy-getinfo code handle))
+		(raise (condition (make-curl-error-condition)
+				  (make-who-condition 'curl-easy-getinfo)
+				  (make-curl-easy-error-code-condition code)
+				  (make-curl-easy-message-condition code)
+				  (make-curl-easy-handle-condition easy))))
 	      (let ((num-of-certs	(struct-curl_certinfo-num_of_certs-ref info*))
 		    (slist**		(struct-curl_certinfo-certinfo-ref     info*))
 		    (certinfo		'()))
@@ -460,9 +399,13 @@
 		  (set! certinfo (cons (%slist->strings (array-ref-c-pointer slist** i))
 				       certinfo)))))
 	  (let* ((output*	(malloc-small/c))
-		 (code		(curl_easy_getinfo handle* option output*)))
+		 (code		(curl_easy_getinfo easy* option output*)))
 	    (unless (= code CURLE_OK)
-	      (raise-curl-easy-error 'curl-easy-getinfo code handle))
+	      (raise (condition (make-curl-error-condition)
+				(make-who-condition 'curl-easy-getinfo)
+				(make-curl-easy-error-code-condition code)
+				(make-curl-easy-message-condition code)
+				(make-curl-easy-handle-condition easy))))
 	    (with-compensations
 	      (cond ((memv option $string-list)
 		     (let ((cstr* (pointer-ref-c-pointer output* 0)))
@@ -483,9 +426,11 @@
 
 		    (else
 		     (assertion-violation 'curl-easy-getinfo
-		       "invalid cURL option information request" handle option))))))))))
+		       "invalid cURL option information request" easy option))))))))))
 
 
+;;;; HTTP POST composition
+
 (define curl-formadd
   (case-lambda
    ((alist)
@@ -513,45 +458,78 @@
 			   (curl_formfree first*)))))
 	  (if (= code CURLE_OK)
 	      (values first* last*)
-	    (raise-curl-easy-error 'curl-formadd alist))))))))
+	    (raise (condition (make-curl-error-condition)
+			      (make-who-condition 'curl-formadd)
+			      (make-curl-easy-error-code-condition code)
+			      (make-curl-easy-message-condition code)
+			      (make-irritants-condition alist))))))))))
 
 
+;;;; multi interface
+
 (define (curl-multi-init)
   (let ((multi* (curl_multi_init)))
     (if (pointer-null? multi*)
-	(raise-curl-init-error 'curl-multi-init "error initialising cURL multi session handle")
-      (make-<curl-multi> multi*))))
+	(raise (condition (make-curl-init-error-condition)
+			  (make-who-condition 'curl-multi-init)
+			  (make-message-condition "error initialising cURL multi session handle")))
+      (make-<curl-multi-handle> multi*))))
 
 (define (curl-multi-cleanup multi)
-  (let ((code (curl_multi_cleanup (<curl-multi>-pointer multi))))
+  (let ((code (curl_multi_cleanup (pointer multi))))
     (if (= code CURLM_OK)
 	code
-      (raise-curl-multi-error 'curl-multi-cleanup code multi))))
+      (raise (condition (make-curl-init-error-condition)
+			(make-who-condition 'curl-multi-cleanup)
+			(make-curl-multi-error-code-condition code)
+			(make-curl-multi-message-condition code)
+			(make-curl-multi-handle-condition multi))))))
 
-(define (curl-multi-add-handle multi handle)
-  (let ((code (curl_multi_add_handle (<curl-multi>-pointer  multi)
-				     (<curl-handle>-pointer handle))))
+(define (curl-multi-add-handle multi easy)
+  (let ((code (curl_multi_add_handle (pointer multi) (pointer easy))))
     (if (= code CURLM_OK)
 	code
-      (raise-curl-multi-error 'curl-multi-add-handle code multi))))
+      (raise (condition (make-curl-error-condition)
+			(make-who-condition 'curl-multi-add-handle)
+			(make-curl-multi-error-code-condition code)
+			(make-curl-multi-message-condition code)
+			(make-curl-multi-handle-condition multi)
+			(make-curl-easy-handle-condition easy))))))
 
-(define (curl-multi-remove-handle multi handle)
-  (let ((code (curl_multi_remove_handle (<curl-multi>-pointer  multi)
-					(<curl-handle>-pointer handle))))
+(define (curl-multi-remove-handle multi easy)
+  (let ((code (curl_multi_remove_handle (pointer multi) (pointer easy))))
     (if (= code CURLM_OK)
 	code
-      (raise-curl-multi-error 'curl-multi-remove-handle code multi))))
+      (raise (condition (make-curl-init-error-condition)
+			(make-who-condition 'curl-multi-remove-handle)
+			(make-curl-multi-error-code-condition code)
+			(make-curl-multi-message-condition code)
+			(make-curl-multi-handle-condition multi)
+			(make-curl-easy-handle-condition easy))))))
 
-(define (curl-multi-fdset multi)
-  #f)
+(define (curl-multi-fdset multi read-fdset* write-fdset* exc-fdset)
+  (with-compensations
+    (let* ((max-fd*	(malloc-small/c))
+	   (code	(curl_multi_fdset (pointer multi) read-fdset* write-fdset* max-fd*)))
+      (if (= code CURLM_OK)
+	  (pointer-ref-c-signed-int max-fd* 0)
+	(raise (condition (make-curl-action-error-condition)
+			  (make-who-condition 'curl-multi-fdset)
+			  (make-curl-multi-error-code-condition code)
+			  (make-curl-multi-message-condition code)
+			  (make-curl-multi-handle-condition multi)))))))
 
 (define (curl-multi-perform multi)
   (with-compensations
     (let* ((running-handlers*	(malloc-small/c))
-	   (code		(curl_multi_perform (<curl-multi>-pointer multi) running-handlers*)))
+	   (code		(curl_multi_perform (pointer multi) running-handlers*)))
       (if (or (= code CURLM_OK) (= code CURLM_CALL_MULTI_PERFORM))
 	  (values code (pointer-ref-c-signed-int running-handlers*))
-	(raise-curl-multi-error 'curl-multi-perform code multi)))))
+	(raise (condition (make-curl-action-error-condition)
+			  (make-who-condition 'curl-multi-perform)
+			  (make-curl-multi-error-code-condition code)
+			  (make-curl-multi-message-condition code)
+			  (make-curl-multi-handle-condition multi)))))))
 
 (define (curl-multi-info-read multi)
   ;;*NOTE*  The pointer  returned by  CURL_MULTI_INFO_READ  references a
@@ -560,7 +538,7 @@
   ;;
   (with-compensations
     (let ((msgs-in-queue*	(malloc-small/c))
-	  (multi*		(<curl-multi>-pointer multi)))
+	  (multi*		(pointer multi)))
       (let loop ((messages	'())
 		 (msg*		(curl_multi_info_read multi* msgs-in-queue*)))
 	(if (pointer-null? msg*)
@@ -568,9 +546,92 @@
 	  (loop (cons (%struct-curlmsg->record msg*) messages)
 		(curl_multi_info_read multi* msgs-in-queue*)))))))
 
-(define (curl-multi-socket))
+(define (curl-multi-socket-action multi sockfd event-bitmask)
+  (with-compensations
+    (let* ((running*	(malloc-small/c))
+	   (code	(curl_multi_socket_action (pointer multi) sockfd event-bitmask running*)))
+      (if (or (= code CURLM_OK) (= code CURLM_CALL_MULTI_PERFORM))
+	  (values code (pointer-ref-c-signed-int running* 0))
+	(raise (condition (make-curl-action-error-condition)
+			  (make-who-condition 'curl-multi-socket-action)
+			  (make-curl-multi-error-code-condition code)
+			  (make-curl-multi-message-condition code)
+			  (make-curl-multi-handle-condition multi)))))))
+
+(define (curl-multi-timeout multi)
+  (with-compensations
+    (let* ((timeout*	(malloc-small/c))
+	   (code	(curl_multi_timeout (pointer multi) timeout*)))
+      (if (= code CURLM_OK)
+	  (pointer-ref-c-signed-int timeout* 0)
+	(raise (condition (make-curl-action-error-condition)
+			  (make-who-condition 'curl-multi-timeout)
+			  (make-curl-multi-error-code-condition code)
+			  (make-curl-multi-message-condition code)
+			  (make-curl-multi-handle-condition multi)))))))
+
+(define (curl-multi-assign multi sockfd custom-pointer)
+  (let ((code (curl_multi_timeout (pointer multi) sockfd custom-pointer)))
+    (if (= code CURLM_OK)
+	code
+      (raise (condition (make-curl-error-condition)
+			(make-who-condition 'curl-multi-assign)
+			(make-curl-multi-error-code-condition code)
+			(make-curl-multi-message-condition code)
+			(make-curl-multi-handle-condition multi))))))
 
 
+;;;; multi options setting
+
+(define curl-multi-setopt
+  (let (($list-bool	(list CURLMOPT_PIPELINING))
+
+	($list-long	(list CURLMOPT_MAXCONNECTS))
+
+;;;	($list-off_t	(list))
+;;;	($list-string	(list))
+
+	($list-callback	(list CURLMOPT_SOCKETFUNCTION	CURLMOPT_TIMERFUNCTION))
+
+	($list-pointer	(list CURLMOPT_SOCKETDATA	CURLMOPT_TIMERDATA)))
+
+    (lambda (multi option value)
+      (let ((multi* (pointer multi)))
+	(with-compensations
+	  (let ((code (cond ((memv option $list-callback)
+			     (curl_multi_setopt/callback multi* option value))
+
+;;;		((memv option $list-string)
+;;;		 (curl_multi_setopt/void* multi* option (if value
+;;;		                                            (string->cstring/c value)
+;;;		                                          pointer-null)))
+
+			    ((memv option $list-pointer)
+			     (curl_multi_setopt/void* multi* option value))
+
+			    ((memv option $list-bool)
+			     (curl_multi_setopt/long multi* option (if value 1 0)))
+
+			    ((memv option $list-long)
+			     (curl_multi_setopt/long multi* option value))
+
+;;;		((memv option $list-off_t)
+;;;		 (curl_multi_setopt/off_t multi* option value))
+
+			    (else
+			     (assertion-violation 'curl-multi-setopt
+			       "invalid cURL option for multi session handle" multi option value)))))
+	    (if (= code CURLM_OK)
+		code
+	      (raise (condition (make-curl-error-condition)
+				(make-who-condition 'curl-multi-setopt)
+				(make-curl-multi-error-code-condition code)
+				(make-curl-multi-message-condition code)
+				(make-curl-multi-handle-condition multi))))))))))
+
+
+;;;; callback constructors
+
 (define (curl-make-write-callback scheme-function)
   (make-c-callback size_t
 		   (lambda (buffer item-size item-count custom)
@@ -656,6 +717,89 @@
 		   (void* void* void* curl_khmatch void*)))
 
 
+;;;; URL escaping
+
+(define (curl-easy-escape handle str)
+  (with-compensations
+    (let ((p (curl_easy_escape (pointer handle) (string->cstring/c str) 0)))
+      (if (pointer-null? p)
+	  (raise (condition (make-curl-error-condition)
+			    (make-curl-easy-handle-condition handle)
+			    (make-who-condition 'curl-easy-escape)
+			    (make-message-condition "error escaping a string as URL")))
+	(begin
+	  (push-compensation (curl_free p))
+	  (cstring->string p))))))
+
+(define (curl-easy-unescape handle str)
+  (with-compensations
+    (let* ((len*	(malloc-small/c))
+	   (p		(curl_easy_unescape (pointer handle) (string->cstring/c str) 0 len*)))
+      (if (pointer-null? p)
+	  (raise (condition (make-curl-error-condition)
+			    (make-curl-easy-handle-condition handle)
+			    (make-who-condition 'curl-easy-unescape)
+			    (make-message-condition "error unescaping a string as URL")))
+	(begin
+	  (push-compensation (curl_free p))
+	  (cstring->string p))))))
+
+
+;;;; mutex/locking
+;;
+;;Use of this API makes sense only in multithreading applications.
+;;
+
+(define (curl-share-init)
+  (let ((shared* (curl_share_init)))
+    (if (pointer-null? shared*)
+	(raise (condition (make-curl-error-condition)
+			  (make-who-condition 'curl-share-init)
+			  (make-message-condition "error initialising cURL shared object")))
+      (make-<curl-shared-object> shared*))))
+
+(define (curl-share-cleanup shared)
+  (let ((code (curl_share_cleanup (<curl-shared-object>-pointer shared))))
+    (if (= code CURLSHE_OK)
+	code
+      (raise (condition (make-curl-error-condition)
+			(make-who-condition 'curl-share-cleanup)
+			(make-curl-shared-object-condition shared)
+			(make-curl-share-message-condition code))))))
+
+(define curl-share-setopt
+  (let (($list-long	(list CURLSHOPT_SHARE		CURLSHOPT_UNSHARE))
+
+	($list-callback	(list CURLSHOPT_LOCKFUNC	CURLSHOPT_UNLOCKFUNC))
+
+	($list-pointer	(list CURLSHOPT_USERDATA)))
+
+    (lambda (shared option value)
+      (let ((shared* (<curl-shared-object>-pointer shared)))
+	(with-compensations
+	  (let ((code (cond ((memv option $list-callback)
+			     (curl_share_setopt/callback shared* option value))
+
+			    ((memv option $list-pointer)
+			     (curl_share_setopt/void* shared* option value))
+
+			    ((memv option $list-long)
+			     (curl_share_setopt/long shared* option value))
+
+			    (else
+			     (assertion-violation 'curl-share-setopt
+			       "invalid cURL option for shared object" shared option value)))))
+	    (if (= code CURLSHE_OK)
+		code
+	      (raise (condition (make-curl-error-condition)
+				(make-who-condition 'curl-share-setopt)
+				(make-curl-share-error-code-condition code)
+				(make-curl-share-message-condition code)
+				(make-curl-shared-object-condition shared))))))))))
+
+
+;;;; error strings
+
 (define (curl-easy-strerror code)
   (cstring->string (curl_easy_strerror code)))
 

@@ -545,7 +545,14 @@ Indexes
 Record types
 
 * records handle::              @curl{} session handlers.
+* records multi::               @curl{} multi session handlers.
 * records version info::        Libraries version informations.
+
+@curl{} session handlers
+
+* records handle base::         Base handle type.
+* records handle easy::         Easy handle type.
+* records handle multi::        Multi handle type.
 
 Enumerations
 
@@ -555,17 +562,19 @@ Enumerations
 Condition object types
 
 * conditions data::             Condition types for data values.
-* conditions error::            Error condition types.
+* conditions error::            Error condition types and utilities.
 
 Condition types for data values
 
-* conditions data handle::      @curl{} handle objects.
+* conditions data easy::        @curl{} easy handle objects.
+* conditions data multi::       @curl{} multi handle objects.
+* conditions data sockfd::      Socket file descriptor objects.
 * conditions data code::        @curl{} error code objects.
 
-Error condition types
+Error condition types and utilities
 
-* conditions error base::       Basic error condition.
-* conditions error init::       Initialisation error condition.
+* conditions error tag::        Tagging error condition objects.
+* conditions error utils::      Utility functions.
 
 Easy interface
 
@@ -575,6 +584,7 @@ Easy interface
 * easy options::                Setting handle's options.
 * easy info::                   Getting informations.
 * easy callbacks::              Preparing callbacks.
+* easy forms::                  Composing forms data.
 * easy misc::                   Miscellaneous functions.
 
 Setting handle's options
@@ -591,10 +601,13 @@ Setting handle's options
 * easy options connection::     Connection options.
 * easy options security::       @ssl{} and security options.
 * easy options ssh::            @ssh{} options.
+* easy options telnet::         Telnet options.
+* easy options other::          Other options.
 
 Miscellaneous functions
 
 * misc version::                Version informations about @curl{}.
+* misc slist::                  @curl{} linked lists.
 
 @end detailmenu
 @end menu
@@ -766,7 +779,9 @@ Field accessors for the @code{struct CURLMsg} data type.
 
 The bindings described in this chapter are exported by the
 @library{foreign net curl record-types} library and, unless otherwise
-specified, reexported by @library{foreign net curl}.
+specified, they are @strong{not} reexported by @library{foreign net
+curl}; the fact that @curl{} handle objects are records is kept hidden
+from the client code.
 
 @menu
 * records handle::              @curl{} session handlers.
@@ -779,8 +794,15 @@ specified, reexported by @library{foreign net curl}.
 @section @curl{} session handlers
 
 
-The following bindings are @strong{not} reexported by the
-@library{foreign net curl} compound library.
+@menu
+* records handle base::         Base handle type.
+* records handle easy::         Easy handle type.
+* records handle multi::        Multi handle type.
+@end menu
+
+@c page
+@node records handle base
+@subsection Base handle type
 
 
 @deftp {Record Type Name} <curl-handle>
@@ -805,6 +827,42 @@ Constructor and predicate for records of type @class{curl-handle}.
 @defun <curl-handle>-pointer @var{record}
 Accessor for the @code{pointer} field of records of type
 @class{curl-handle}.
+@end defun
+
+@c page
+@node records handle easy
+@subsection Easy handle type
+
+
+@deftp {Record Type Name} <curl-easy>
+@deftpx {Record Type Descriptor} <curl-easy-rtd>
+Record type to be used as reference for @curl{} easy session handler
+structures.  It is derived from @class{curl-handle}; it has no own
+fields.
+@end deftp
+
+
+@defun make-<curl-easy> @var{pointer}
+@defunx <curl-easy>? @var{obj}
+Constructor and predicate for records of type @class{curl-easy}.
+@end defun
+
+@c page
+@node records handle multi
+@subsection Multi handle type
+
+
+@deftp {Record Type Name} <curl-multi>
+@deftpx {Record Type Descriptor} <curl-multi-rtd>
+Record type to be used as reference for @curl{} multi session handler
+structures.  It is derived from @class{curl-handle}; it has no own
+fields.
+@end deftp
+
+
+@defun make-<curl-multi> @var{pointer}
+@defunx <curl-multi>? @var{obj}
+Constructor and predicate for records of type @class{curl-multi}.
 @end defun
 
 @c page
@@ -843,6 +901,10 @@ Accessor for the @code{pointer} field of records of type
 @c page
 @node records version info
 @section Libraries version informations
+
+
+The following bindings are reexported by the library @library{foreign
+net curl}.
 
 
 @deftp {Record Type Name} <curl-version-info>
@@ -1001,13 +1063,13 @@ CURLPAUSE_ALL           CURLPAUSE_CONT
 @chapter Condition object types
 
 
-The bindings documented in this chapter are exported by the
-@library{foreign net curl conditions} library and, unless otherwise
-specified, reexported by the @library{foreign net curl} library.
+The bindings documented in this chapter are exported by the library
+@library{foreign net curl conditions} and, unless otherwise specified,
+reexported by the library @library{foreign net curl}.
 
 @menu
 * conditions data::             Condition types for data values.
-* conditions error::            Error condition types.
+* conditions error::            Error condition types and utilities.
 @end menu
 
 @c page
@@ -1019,36 +1081,97 @@ Condition types described in this section can be used to store specific
 values in compound condition objects.
 
 @menu
-* conditions data handle::      @curl{} handle objects.
+* conditions data easy::        @curl{} easy handle objects.
+* conditions data multi::       @curl{} multi handle objects.
+* conditions data sockfd::      Socket file descriptor objects.
 * conditions data code::        @curl{} error code objects.
 @end menu
 
 @c page
-@node conditions data handle
-@subsection @curl{} handle objects
+@node conditions data easy
+@subsection @curl{} easy handle objects
 
 
-@deftp {Condition Type} &curl-handle
-Condition type for records of type @class{curl-handle}; it is derived
-from @condition{condition}.  It has the following fields:
+@deftp {Condition Type} &curl-easy-handle
+Condition type representing a @curl{} easy handle involved in an
+exception; it is derived from @condition{condition}.  It has the
+following fields:
 
 @table @code
 @item handle
-Holds a record of type @class{curl-handle}.
+Holds an easy handle object.
 @end table
 @end deftp
 
 
-@defun make-curl-handle-condition @var{handle-record}
-@defunx curl-handle-condition? @var{obj}
+@defun make-curl-easy-handle-condition @var{handle-record}
+@defunx curl-easy-handle-condition? @var{obj}
 Constructor and predicate for condition objects of type
-@condition{curl-handle}.
+@condition{curl-easy-handle}.
 @end defun
 
 
-@defun condition-curl-handle @var{condition}
+@defun condition-curl-easy-handle @var{condition}
 Accessor for the @code{handle} field of condition objects of type
-@condition{curl-handle}.
+@condition{curl-easy-handle}.
+@end defun
+
+@c page
+@node conditions data multi
+@subsection @curl{} multi handle objects
+
+
+@deftp {Condition Type} &curl-multi-handle
+Condition type representing a @curl{} multi handle involved in an
+exception; it is derived from @condition{condition}.  It has the
+following fields:
+
+@table @code
+@item handle
+Holds a multi handle object.
+@end table
+@end deftp
+
+
+@defun make-curl-multi-handle-condition @var{handle-record}
+@defunx curl-multi-handle-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{curl-multi-handle}.
+@end defun
+
+
+@defun condition-curl-multi-handle @var{condition}
+Accessor for the @code{handle} field of condition objects of type
+@condition{curl-multi-handle}.
+@end defun
+
+@c page
+@node conditions data sockfd
+@subsection Socket file descriptor objects
+
+
+@deftp {Condition Type} &curl-sockfd
+Condition type representing a socket file descriptor (embedded in a
+@curl{} easy handle) involved in an exception; it is derived from
+@condition{condition}.  It has the following fields:
+
+@table @code
+@item file-descriptor
+Holds an exact integer representing the socket file descriptor.
+@end table
+@end deftp
+
+
+@defun make-curl-sockfd-condition @var{handle-record}
+@defunx curl-sockfd-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{curl-sockfd}.
+@end defun
+
+
+@defun condition-curl-sockfd @var{condition}
+Accessor for the @code{file-descriptor} field of condition objects of
+type @condition{curl-sockfd}.
 @end defun
 
 @c page
@@ -1070,7 +1193,7 @@ Holds a Scheme symbol representing a @curl{} numeric error code.
 @end deftp
 
 
-@defun make-curl-error-code-condition @var{numeric-error-code}
+@defun make-curl-error-code-condition @var{numeric-error-code} @var{symbolic-error-code}
 @defunx curl-error-code-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{curl-error-code}.
@@ -1085,57 +1208,43 @@ Accessors for the fields of condition objects of type
 
 @c page
 @node conditions error
-@section Error condition types
+@section Error condition types and utilities
 
 
 @menu
-* conditions error base::       Basic error condition.
-* conditions error init::       Initialisation error condition.
+* conditions error tag::        Tagging error condition objects.
+* conditions error utils::      Utility functions.
 @end menu
 
 @c page
-@node conditions error base
-@subsection Basic error condition
+@node conditions error tag
+@subsection Tagging error condition objects
+
+
+@subsubheading Basic error condition
 
 
 @deftp {Condition Type} &curl-error
-Condition type used to describe a @curl{} error; it is derived from
-@condition{error}.  It has no fields.
+Condition type used to tag condition objects as representing @curl{}
+errors; it is derived from @condition{error}.  It has no fields.
 @end deftp
 
 
 @defun make-curl-error-condition
 @defunx curl-error-condition? @var{obj}
-Constructor and predicate for condition object of type
+Constructor and predicate for condition objects of type
 @condition{curl-error}.
 @end defun
 
+@c ------------------------------------------------------------
 
-@defun raise-curl-easy-error @var{who} @var{code} @var{handle}
-Raise a non--continuable exception with compound condition object of
-types: @condition{who}, @condition{message}, @condition{curl-error},
-@condition{curl-error-code}, @condition{curl-handle}.  @var{code} must
-be a numeric @curl{} ``easy'' error code.  @var{handle} must be a
-@curl{} session handle object.
-@end defun
-
-
-@defun raise-curl-multi-error @var{who} @var{code} @var{handle}
-Raise a non--continuable exception with compound condition object of
-types: @condition{who}, @condition{message}, @condition{curl-error},
-@condition{curl-error-code}, @condition{curl-handle}.  @var{code} must
-be a numeric @curl{} ``multi'' error code.  @var{handle} must be a
-@curl{} session handle object.
-@end defun
-
-@c page
-@node conditions error init
-@subsection Initialisation error condition
+@subsubheading Initialisation error condition
 
 
 @deftp {Condition Type} &curl-init-error
-Condition type used to signal @curl{} session initialisation errors; it
-is derived from @condition{curl-init}.  It has no fields.
+Condition type used to tag condition objects as representing session
+initialisation errors; it is derived from @condition{curl-error}.  It
+has no fields.
 @end deftp
 
 
@@ -1145,22 +1254,73 @@ Constructor and predicate for condition objects of type
 @condition{curl-init-error}.
 @end defun
 
+@c ------------------------------------------------------------
 
-@deffn Syntax raise-curl-init-error @var{who} @var{message} @var{code}
-Raise a non--continuable exception with compound condition object of
-types: @condition{who}, @condition{message},
-@condition{curl-init-error}.  It is defined as follows:
+@subsubheading Performing error condition
 
-@example
-(define-syntax raise-curl-init-error
-  (syntax-rules ()
-    ((_ ?who ?message ?curl-code)
-     (raise
-      (condition (make-curl-init-error-condition ?curl-code)
-                 (make-who-condition ?who)
-                 (make-message-condition ?message))))))
-@end example
-@end deffn
+
+@deftp {Condition Type} &curl-action-error
+Condition type used to tag condition objects as representing session
+action errors; it is derived from @condition{curl-error}.  It has no
+fields.
+@end deftp
+
+
+@defun make-curl-action-error-condition @var{code}
+@defunx curl-action-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{curl-action-error}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Easy performing error condition
+
+
+@deftp {Condition Type} &curl-easy-action-error
+Condition type used to tag condition objects as representing easy
+session action errors; it is derived from
+@condition{curl-action-error}.  It has no fields.
+@end deftp
+
+
+@defun make-curl-easy-action-error-condition @var{code}
+@defunx curl-easy-action-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{curl-easy-action-error}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Multi performing error condition
+
+
+@deftp {Condition Type} &curl-multi-action-error
+Condition type used to tag condition objects as representing multi
+session action errors; it is derived from
+@condition{curl-action-error}.  It has no fields.
+@end deftp
+
+
+@defun make-curl-multi-action-error-condition @var{code}
+@defunx curl-multi-action-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{curl-multi-action-error}.
+@end defun
+
+@c page
+@node conditions error utils
+@subsection Utility functions
+
+
+@defun make-curl-easy-message-condition @var{easy-numeric-code}
+@defunx make-curl-multi-message-condition @var{multi-numeric-code}
+Build and return a condition object of type @condition{message}
+representing the error message associated with the given numeric code.
+The message is retrieved with @func{curl_easy_strerror} and
+@func{curl_multi_strerror}.
+@end defun
+
 
 @c page
 @node easy
@@ -2721,27 +2881,9 @@ argument.
 @end defun
 
 
-@defun curl_easy_setopt/int @var{void*} @var{CURLoption} @var{int}
-Wrapper for @cfunc{curl_easy_setopt} which expects an @code{int} as last
-argument.
-@end defun
-
-
 @defun curl_easy_setopt/long @var{void*} @var{CURLoption} @var{long}
 Wrapper for @cfunc{curl_easy_setopt} which expects a @code{long} as last
 argument.
-@end defun
-
-
-@defun curl_easy_setopt/unsigned-int @var{void*} @var{CURLoption} @var{unsigned-int}
-Wrapper for @cfunc{curl_easy_setopt} which expects an @code{unsigned
-int} as last argument.
-@end defun
-
-
-@defun curl_easy_setopt/unsigned-long @var{void*} @var{CURLoption} @var{unsigned-long}
-Wrapper for @cfunc{curl_easy_setopt} which expects an @code{unsigned
-long} as last argument.
 @end defun
 
 
