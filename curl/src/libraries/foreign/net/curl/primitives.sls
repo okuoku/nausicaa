@@ -60,6 +60,7 @@
 	    (curl_formfree		curl-formfree))
 
     ;; mutex/locking
+    curl-shared-object?
     curl-share-init			curl-share-cleanup
     curl-share-setopt			curl-share-strerror
 
@@ -96,7 +97,8 @@
     (rename (foreign net curl record-types)
 	    (<curl-handle>-pointer	pointer)
 	    (<curl-easy-handle>?	curl-easy-handle?)
-	    (<curl-multi-handle>?	curl-multi-handle?))
+	    (<curl-multi-handle>?	curl-multi-handle?)
+	    (<curl-shared-object>?	curl-shared-object?))
     (foreign net curl sizeof)
     (foreign net curl platform))
 

@@ -120,13 +120,13 @@
   (numeric-code		condition-curl-error-numeric-code)
   (symbolic-code	condition-curl-error-symbolic-code))
 
-(define-condition-type &curl-easy-error-code &condition
+(define-condition-type &curl-easy-error-code &curl-error-code
   %make-curl-easy-error-code-condition curl-easy-error-code-condition?)
 
-(define-condition-type &curl-multi-error-code &condition
+(define-condition-type &curl-multi-error-code &curl-error-code
   %make-curl-multi-error-code-condition curl-multi-error-code-condition?)
 
-(define-condition-type &curl-share-error-code &condition
+(define-condition-type &curl-share-error-code &curl-error-code
   %make-curl-share-error-code-condition curl-share-error-code-condition?)
 
 (define (make-curl-easy-error-code-condition numeric-code)

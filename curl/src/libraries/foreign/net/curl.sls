@@ -443,8 +443,7 @@ CURLMOPT_LASTENTRY
     curl-slist-free-all
 
     curl-share-init		curl-share-cleanup
-    curl-share-setopt
-
+    curl-share-setopt		curl-shared-object?
 
 ;;; --------------------------------------------------------------------
 
@@ -495,13 +494,32 @@ make-curl-sockfd-condition
 curl-sockfd-condition?
 condition-curl-sockfd
 
+&curl-shared-object
+make-curl-shared-object-condition
+curl-shared-object-condition?
+condition-curl-shared-object
+
 &curl-error-code
 make-curl-error-code-condition
 curl-error-code-condition?
 condition-curl-error-numeric-code
+condition-curl-error-symbolic-code
+
+&curl-easy-error-code
+make-curl-easy-error-code-condition
+curl-easy-error-code-condition?
+
+&curl-multi-error-code
+make-curl-multi-error-code-condition
+curl-multi-error-code-condition?
+
+&curl-share-error-code
+make-curl-share-error-code-condition
+curl-share-error-code-condition?
 
 make-curl-easy-message-condition
 make-curl-multi-message-condition
+make-curl-share-message-condition
 
 ;;; --------------------------------------------------------------------
 

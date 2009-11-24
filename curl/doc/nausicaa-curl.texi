@@ -517,6 +517,7 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* constants::                   Constant values.
 * structs::                     Accessing foreign structures.
 * records::                     Record types.
 * enumerations::                Enumerations.
@@ -545,7 +546,7 @@ Indexes
 Record types
 
 * records handle::              @curl{} session handlers.
-* records multi::               @curl{} multi session handlers.
+* records shared::              @curl{} shared objects.
 * records version info::        Libraries version informations.
 
 @curl{} session handlers
@@ -569,6 +570,7 @@ Condition types for data values
 * conditions data easy::        @curl{} easy handle objects.
 * conditions data multi::       @curl{} multi handle objects.
 * conditions data sockfd::      Socket file descriptor objects.
+* conditions data shared::      Shared object objects.
 * conditions data code::        @curl{} error code objects.
 
 Error condition types and utilities
@@ -633,13 +635,15 @@ Exports the single binding @code{curl-shared-object} which references
 @curl{}'s shared library.
 
 @item foreign net curl sizeof
-Exports bindings for constant values and data types inspection.
+Exports bindings for constant values and @curl{} data types inspection.
 
 @item foreign net curl platform
 Exports a binding for each function in @curl{}.  It implements a
-one--to--one map between foreign functions and Scheme functions; the
-Scheme functions have the same name of the foreign ones, so
-@cfunc{curl_global_init} is available as @func{curl_global_init}.
+one--to--one map between foreign functions and Scheme functions.  Most
+of the Scheme functions have the same name of the foreign ones, so
+@cfunc{curl_global_init} is available as @func{curl_global_init};
+consult this documentation for the differences.  @ref{platform, Details
+on the platform library}.
 
 This library makes the original @curl{} documentation relevant for this
 Scheme package; the documentation should be at (@aurl{} last verified
@@ -651,17 +655,19 @@ Mon Nov 16, 2009):
 Defines condition types used to signal @value{PACKAGE} errors.
 
 @item foreign net curl enumerations
-Defines enumeration sets of symbols.
+Defines enumeration sets of symbols and conversion functions between
+constant values and Scheme symbols.
 
 @item foreign net curl record-types
-Defines record types that match @curl{} structures.
+Defines record types that match @curl{} structures and functions to
+convert between foreign structures and Scheme records.
 
 @item foreign net curl primitives
-Exports a binding for each foreign function, implementing, for some of
-them, marshaling of arguments and return values; the Scheme functions
-have the same name of the foreign ones, but with underscores turned into
-dashes; so @cfunc{curl_global_init} is available as
-@func{curl-global-init}.
+Defines a high--level @api{} for @library{foreign net curl platform},
+implementing, for most functions, marshaling of arguments and return
+values; the Scheme functions have the same name of the foreign ones, but
+with underscores turned into dashes; so @cfunc{curl_global_init} is
+available as @func{curl-global-init}.
 
 @item foreign net curl
 Compound library; reexports bindings from the following libraries:
@@ -670,13 +676,13 @@ Compound library; reexports bindings from the following libraries:
 (foreign net curl sizeof)
 (foreign net curl conditions)
 (foreign net curl enumerations)
-(foreign net curl record-types)
 (foreign net curl primitives)
 @end example
 
 @noindent
-only bindings to constant values are reexported from @library{foreign
-net curl sizeof}.
+all the bindings from the @samp{primitives} library are reexported; only
+bindings to constant values are reexported from the @samp{sizeof}
+library.
 
 @item foreign net curl compensated
 Additional wrappers for constructors and destructors making use of the
@@ -686,12 +692,739 @@ stacks}.
 @end table
 
 @c page
+@node constants
+@chapter Constant values
+
+
+The bindings described in this chapter are exported by the
+@library{foreign net curl sizeof} library and, unless otherwise
+specified, reexported by the compound library @library{foreign net
+curl}.
+
+
+@defvr Constant CURL_MAX_HTTP_HEADER
+@defvrx Constant CURL_MAX_WRITE_SIZE
+@defvrx Constant CURL_SOCKET_BAD
+@defvrx Constant CURL_WRITEFUNC_PAUSE
+@defvrx Constant CURL_IPRESOLVE_WHATEVER
+@defvrx Constant CURL_IPRESOLVE_V4
+@defvrx Constant CURL_IPRESOLVE_V6
+@defvrx Constant CURLOPT_WRITEDATA
+@defvrx Constant CURLOPT_READDATA
+@defvrx Constant CURLOPT_HEADERDATA
+@defvrx Constant CURL_HTTP_VERSION_NONE
+@defvrx Constant CURL_HTTP_VERSION_1_1
+@defvrx Constant CURL_HTTP_VERSION_LAST
+@defvrx Constant CURL_SSLVERSION_DEFAULT
+@defvrx Constant CURL_SSLVERSION_TLSv1
+@defvrx Constant CURL_SSLVERSION_SSLv2
+@defvrx Constant CURL_SSLVERSION_SSLv3
+@defvrx Constant CURL_SSLVERSION_LAST
+@defvrx Constant CURL_REDIR_GET_ALL
+@defvrx Constant CURL_REDIR_POST_301
+@defvrx Constant CURL_REDIR_POST_302
+@defvrx Constant CURL_REDIR_POST_ALL
+@defvrx Constant CURL_GLOBAL_SSL
+@defvrx Constant CURL_GLOBAL_WIN32
+@defvrx Constant CURL_GLOBAL_ALL
+@defvrx Constant CURL_GLOBAL_NOTHING
+@defvrx Constant CURL_GLOBAL_DEFAULT
+@defvrx Constant CURLPAUSE_RECV
+@defvrx Constant CURLPAUSE_RECV_CONT
+@defvrx Constant CURLPAUSE_SEND
+@defvrx Constant CURLPAUSE_SEND_CONT
+@defvrx Constant CURLPAUSE_ALL
+@defvrx Constant CURLPAUSE_CONT
+@defvrx Constant CURL_POLL_NONE
+@defvrx Constant CURL_POLL_IN
+@defvrx Constant CURL_POLL_OUT
+@defvrx Constant CURL_POLL_INOUT
+@defvrx Constant CURL_POLL_REMOVE
+@defvrx Constant CURL_SOCKET_TIMEOUT
+@defvrx Constant CURL_CSELECT_IN
+@defvrx Constant CURL_CSELECT_OUT
+@defvrx Constant CURL_CSELECT_ERR
+Miscellaneous constants.
+@end defvr
+
+
+@defvr Constant LIBCURL_COPYRIGHT
+@defvrx Constant LIBCURL_TIMESTAMP
+@defvrx Constant LIBCURL_VERSION_MAJOR
+@defvrx Constant LIBCURL_VERSION_MINOR
+@defvrx Constant LIBCURL_VERSION_PATCH
+@defvrx Constant LIBCURL_VERSION_NUM
+Version values.
+@end defvr
+
+
+@defvr Constant HTTPPOST_BUFFER
+@defvrx Constant HTTPPOST_CALLBACK
+@defvrx Constant HTTPPOST_FILENAME
+@defvrx Constant HTTPPOST_PTRBUFFER
+@defvrx Constant HTTPPOST_PTRCONTENTS
+@defvrx Constant HTTPPOST_PTRNAME
+@defvrx Constant HTTPPOST_READFILE
+Flag values for the @samp{flags} field of structure @code{curl_httppost}.
+@end defvr
+
+
+@defvr Constant CURL_SEEKFUNC_OK
+@defvrx Constant CURL_SEEKFUNC_FAIL
+@defvrx Constant CURL_SEEKFUNC_CANTSEEK
+Return codes for the seek callbacks.
+@end defvr
+
+
+@defvr Constant CURL_READFUNC_ABORT
+@defvrx Constant CURL_READFUNC_PAUSE
+Return codes for the read callbacks.
+@end defvr
+
+
+@defvr Constant CURLIOE_OK
+@defvrx Constant CURLIOE_UNKNOWNCMD
+@defvrx Constant CURLIOE_FAILRESTART
+@defvrx Constant CURLIOE_LAST
+Values for the @code{curlioerr} enumeration.
+@end defvr
+
+
+@defvr Constant CURLIOCMD_NOP
+@defvrx Constant CURLIOCMD_RESTARTREAD
+@defvrx Constant CURLIOCMD_LAST
+Values for the @code{curliocmd} enumeration.
+@end defvr
+
+
+@defvr Constant CURLINFO_DATA_IN
+@defvrx Constant CURLINFO_DATA_OUT
+@defvrx Constant CURLINFO_END
+@defvrx Constant CURLINFO_HEADER_IN
+@defvrx Constant CURLINFO_HEADER_OUT
+@defvrx Constant CURLINFO_SSL_DATA_IN
+@defvrx Constant CURLINFO_SSL_DATA_OUT
+@defvrx Constant CURLINFO_TEXT
+Values for the @code{curl_infotype} enumeration.
+@end defvr
+
+
+@defvr Constant CURLE_OK
+@defvrx Constant CURLE_UNSUPPORTED_PROTOCOL
+@defvrx Constant CURLE_FAILED_INIT
+@defvrx Constant CURLE_URL_MALFORMAT
+@defvrx Constant CURLE_OBSOLETE4
+@defvrx Constant CURLE_COULDNT_RESOLVE_PROXY
+@defvrx Constant CURLE_COULDNT_RESOLVE_HOST
+@defvrx Constant CURLE_COULDNT_CONNECT
+@defvrx Constant CURLE_FTP_WEIRD_SERVER_REPLY
+@defvrx Constant CURLE_REMOTE_ACCESS_DENIED
+@defvrx Constant CURLE_OBSOLETE10
+@defvrx Constant CURLE_FTP_WEIRD_PASS_REPLY
+@defvrx Constant CURLE_OBSOLETE12
+@defvrx Constant CURLE_FTP_WEIRD_PASV_REPLY
+@defvrx Constant CURLE_FTP_WEIRD_227_FORMAT
+@defvrx Constant CURLE_FTP_CANT_GET_HOST
+@defvrx Constant CURLE_OBSOLETE16
+@defvrx Constant CURLE_FTP_COULDNT_SET_TYPE
+@defvrx Constant CURLE_PARTIAL_FILE
+@defvrx Constant CURLE_FTP_COULDNT_RETR_FILE
+@defvrx Constant CURLE_OBSOLETE20
+@defvrx Constant CURLE_QUOTE_ERROR
+@defvrx Constant CURLE_HTTP_RETURNED_ERROR
+@defvrx Constant CURLE_WRITE_ERROR
+@defvrx Constant CURLE_OBSOLETE24
+@defvrx Constant CURLE_UPLOAD_FAILED
+@defvrx Constant CURLE_READ_ERROR
+@defvrx Constant CURLE_OUT_OF_MEMORY
+@defvrx Constant CURLE_OPERATION_TIMEDOUT
+@defvrx Constant CURLE_OBSOLETE29
+@defvrx Constant CURLE_FTP_PORT_FAILED
+@defvrx Constant CURLE_FTP_COULDNT_USE_REST
+@defvrx Constant CURLE_OBSOLETE32
+@defvrx Constant CURLE_RANGE_ERROR
+@defvrx Constant CURLE_HTTP_POST_ERROR
+@defvrx Constant CURLE_SSL_CONNECT_ERROR
+@defvrx Constant CURLE_BAD_DOWNLOAD_RESUME
+@defvrx Constant CURLE_FILE_COULDNT_READ_FILE
+@defvrx Constant CURLE_LDAP_CANNOT_BIND
+@defvrx Constant CURLE_LDAP_SEARCH_FAILED
+@defvrx Constant CURLE_OBSOLETE40
+@defvrx Constant CURLE_FUNCTION_NOT_FOUND
+@defvrx Constant CURLE_ABORTED_BY_CALLBACK
+@defvrx Constant CURLE_BAD_FUNCTION_ARGUMENT
+@defvrx Constant CURLE_OBSOLETE44
+@defvrx Constant CURLE_INTERFACE_FAILED
+@defvrx Constant CURLE_OBSOLETE46
+@defvrx Constant CURLE_TOO_MANY_REDIRECTS
+@defvrx Constant CURLE_UNKNOWN_TELNET_OPTION
+@defvrx Constant CURLE_TELNET_OPTION_SYNTAX
+@defvrx Constant CURLE_OBSOLETE50
+@defvrx Constant CURLE_PEER_FAILED_VERIFICATION
+@defvrx Constant CURLE_GOT_NOTHING
+@defvrx Constant CURLE_SSL_ENGINE_NOTFOUND
+@defvrx Constant CURLE_SSL_ENGINE_SETFAILED
+@defvrx Constant CURLE_SEND_ERROR
+@defvrx Constant CURLE_RECV_ERROR
+@defvrx Constant CURLE_OBSOLETE57
+@defvrx Constant CURLE_SSL_CERTPROBLEM
+@defvrx Constant CURLE_SSL_CIPHER
+@defvrx Constant CURLE_SSL_CACERT
+@defvrx Constant CURLE_BAD_CONTENT_ENCODING
+@defvrx Constant CURLE_LDAP_INVALID_URL
+@defvrx Constant CURLE_FILESIZE_EXCEEDED
+@defvrx Constant CURLE_USE_SSL_FAILED
+@defvrx Constant CURLE_SEND_FAIL_REWIND
+@defvrx Constant CURLE_SSL_ENGINE_INITFAILED
+@defvrx Constant CURLE_LOGIN_DENIED
+@defvrx Constant CURLE_TFTP_NOTFOUND
+@defvrx Constant CURLE_TFTP_PERM
+@defvrx Constant CURLE_REMOTE_DISK_FULL
+@defvrx Constant CURLE_TFTP_ILLEGAL
+@defvrx Constant CURLE_TFTP_UNKNOWNID
+@defvrx Constant CURLE_REMOTE_FILE_EXISTS
+@defvrx Constant CURLE_TFTP_NOSUCHUSER
+@defvrx Constant CURLE_CONV_FAILED
+@defvrx Constant CURLE_CONV_REQD
+@defvrx Constant CURLE_SSL_CACERT_BADFILE
+@defvrx Constant CURLE_REMOTE_FILE_NOT_FOUND
+@defvrx Constant CURLE_SSH
+@defvrx Constant CURLE_SSL_SHUTDOWN_FAILED
+@defvrx Constant CURLE_AGAIN
+@defvrx Constant CURLE_SSL_CRL_BADFILE
+@defvrx Constant CURLE_SSL_ISSUER_ERROR
+@defvrx Constant CURL_LAST
+Return values for the easy @api{}, @code{
+CURLcode} enumeration.
+@end defvr
+
+
+@defvr Constant CURLPROXY_HTTP
+@defvrx Constant CURLPROXY_HTTP_1_0
+@defvrx Constant CURLPROXY_SOCKS4
+@defvrx Constant CURLPROXY_SOCKS5
+@defvrx Constant CURLPROXY_SOCKS4A
+@defvrx Constant CURLPROXY_SOCKS5_HOSTNAME
+Values for the @code{curl_proxytype} enumeration.
+@end defvr
+
+
+@defvr Constant CURLAUTH_NONE
+@defvrx Constant CURLAUTH_BASIC
+@defvrx Constant CURLAUTH_DIGEST
+@defvrx Constant CURLAUTH_GSSNEGOTIATE
+@defvrx Constant CURLAUTH_NTLM
+@defvrx Constant CURLAUTH_DIGEST_IE
+@defvrx Constant CURLAUTH_ANY
+@defvrx Constant CURLAUTH_ANYSAFE
+@defvrx Constant CURLSSH_AUTH_ANY
+@defvrx Constant CURLSSH_AUTH_NONE
+@defvrx Constant CURLSSH_AUTH_PUBLICKEY
+@defvrx Constant CURLSSH_AUTH_PASSWORD
+@defvrx Constant CURLSSH_AUTH_HOST
+@defvrx Constant CURLSSH_AUTH_KEYBOARD
+@defvrx Constant CURLSSH_AUTH_DEFAULT
+@defvrx Constant CURL_ERROR_SIZE
+Values for the authorisation stuff.
+@end defvr
+
+
+@defvr Constant CURLKHTYPE_UNKNOWN
+@defvrx Constant CURLKHTYPE_RSA1
+@defvrx Constant CURLKHTYPE_RSA
+@defvrx Constant CURLKHTYPE_DSS
+Values for the @code{keytype} enumeration.
+@end defvr
+
+
+@defvr Constant CURLKHSTAT_FINE_ADD_TO_FILE
+@defvrx Constant CURLKHSTAT_FINE
+@defvrx Constant CURLKHSTAT_REJECT
+@defvrx Constant CURLKHSTAT_DEFER
+@defvrx Constant CURLKHSTAT_LAST
+Values for the @code{cur_khstat} enumeration.
+@end defvr
+
+
+@defvr Constant CURLKHMATCH_OK
+@defvrx Constant CURLKHMATCH_MISMATCH
+@defvrx Constant CURLKHMATCH_MISSING
+@defvrx Constant CURLKHMATCH_LAST
+Values for the @code{curl_khmatch} enumeration.
+@end defvr
+
+
+@defvr Constant CURLUSESSL_NONE
+@defvrx Constant CURLUSESSL_TRY
+@defvrx Constant CURLUSESSL_CONTROL
+@defvrx Constant CURLUSESSL_ALL
+@defvrx Constant CURLUSESSL_LAST
+Values for the @code{enum curl_usessl} enumeration.
+@end defvr
+
+
+@defvr Constant CURLFTPSSL_CCC_NONE
+@defvrx Constant CURLFTPSSL_CCC_PASSIVE
+@defvrx Constant CURLFTPSSL_CCC_ACTIVE
+@defvrx Constant CURLFTPSSL_CCC_LAST
+Values for the @code{curl_ftpccc} enumeration.
+@end defvr
+
+
+@defvr Constant CURLFTPAUTH_DEFAULT
+@defvrx Constant CURLFTPAUTH_SSL
+@defvrx Constant CURLFTPAUTH_TLS
+@defvrx Constant CURLFTPAUTH_LAST
+Values for the @code{curl_ftpauth} enumeration.
+@end defvr
+
+
+@defvr Constant CURLFTP_CREATE_DIR_NONE
+@defvrx Constant CURLFTP_CREATE_DIR
+@defvrx Constant CURLFTP_CREATE_DIR_RETRY
+@defvrx Constant CURLFTP_CREATE_DIR_LAST
+Values for the @code{curl_ftpcreatedir} enumeration.
+@end defvr
+
+
+@defvr Constant CURLFTPMETHOD_DEFAULT
+@defvrx Constant CURLFTPMETHOD_MULTICWD
+@defvrx Constant CURLFTPMETHOD_NOCWD
+@defvrx Constant CURLFTPMETHOD_SINGLECWD
+@defvrx Constant CURLFTPMETHOD_LAST
+Values for the @code{curl_ftpmethod} enumeration.
+@end defvr
+
+
+@defvr Constant CURLPROTO_HTTP
+@defvrx Constant CURLPROTO_HTTPS
+@defvrx Constant CURLPROTO_FTP
+@defvrx Constant CURLPROTO_FTPS
+@defvrx Constant CURLPROTO_SCP
+@defvrx Constant CURLPROTO_SFTP
+@defvrx Constant CURLPROTO_TELNET
+@defvrx Constant CURLPROTO_LDAP
+@defvrx Constant CURLPROTO_LDAPS
+@defvrx Constant CURLPROTO_DICT
+@defvrx Constant CURLPROTO_FILE
+@defvrx Constant CURLPROTO_TFTP
+@defvrx Constant CURLPROTO_ALL
+Defines for the @code{CURLOPT_*PROTOCOLS} options.
+@end defvr
+
+
+@defvr Constant CURLOPT_FILE
+@defvrx Constant CURLOPT_URL
+@defvrx Constant CURLOPT_PORT
+@defvrx Constant CURLOPT_PROXY
+@defvrx Constant CURLOPT_USERPWD
+@defvrx Constant CURLOPT_PROXYUSERPWD
+@defvrx Constant CURLOPT_RANGE
+@defvrx Constant CURLOPT_INFILE
+@defvrx Constant CURLOPT_ERRORBUFFER
+@defvrx Constant CURLOPT_WRITEFUNCTION
+@defvrx Constant CURLOPT_READFUNCTION
+@defvrx Constant CURLOPT_TIMEOUT
+@defvrx Constant CURLOPT_INFILESIZE
+@defvrx Constant CURLOPT_POSTFIELDS
+@defvrx Constant CURLOPT_REFERER
+@defvrx Constant CURLOPT_FTPPORT
+@defvrx Constant CURLOPT_USERAGENT
+@defvrx Constant CURLOPT_LOW_SPEED_LIMIT
+@defvrx Constant CURLOPT_LOW_SPEED_TIME
+@defvrx Constant CURLOPT_RESUME_FROM
+@defvrx Constant CURLOPT_COOKIE
+@defvrx Constant CURLOPT_HTTPHEADER
+@defvrx Constant CURLOPT_HTTPPOST
+@defvrx Constant CURLOPT_SSLCERT
+@defvrx Constant CURLOPT_KEYPASSWD
+@defvrx Constant CURLOPT_CRLF
+@defvrx Constant CURLOPT_QUOTE
+@defvrx Constant CURLOPT_WRITEHEADER
+@defvrx Constant CURLOPT_COOKIEFILE
+@defvrx Constant CURLOPT_SSLVERSION
+@defvrx Constant CURLOPT_TIMECONDITION
+@defvrx Constant CURLOPT_TIMEVALUE
+@defvrx Constant CURLOPT_CUSTOMREQUEST
+@defvrx Constant CURLOPT_STDERR
+@defvrx Constant CURLOPT_POSTQUOTE
+@defvrx Constant CURLOPT_WRITEINFO
+@defvrx Constant CURLOPT_VERBOSE
+@defvrx Constant CURLOPT_HEADER
+@defvrx Constant CURLOPT_NOPROGRESS
+@defvrx Constant CURLOPT_NOBODY
+@defvrx Constant CURLOPT_FAILONERROR
+@defvrx Constant CURLOPT_UPLOAD
+@defvrx Constant CURLOPT_POST
+@defvrx Constant CURLOPT_DIRLISTONLY
+@defvrx Constant CURLOPT_APPEND
+@defvrx Constant CURLOPT_NETRC
+@defvrx Constant CURLOPT_FOLLOWLOCATION
+@defvrx Constant CURLOPT_TRANSFERTEXT
+@defvrx Constant CURLOPT_PUT
+@defvrx Constant CURLOPT_PROGRESSFUNCTION
+@defvrx Constant CURLOPT_PROGRESSDATA
+@defvrx Constant CURLOPT_AUTOREFERER
+@defvrx Constant CURLOPT_PROXYPORT
+@defvrx Constant CURLOPT_POSTFIELDSIZE
+@defvrx Constant CURLOPT_HTTPPROXYTUNNEL
+@defvrx Constant CURLOPT_INTERFACE
+@defvrx Constant CURLOPT_KRBLEVEL
+@defvrx Constant CURLOPT_SSL_VERIFYPEER
+@defvrx Constant CURLOPT_CAINFO
+@defvrx Constant CURLOPT_MAXREDIRS
+@defvrx Constant CURLOPT_FILETIME
+@defvrx Constant CURLOPT_TELNETOPTIONS
+@defvrx Constant CURLOPT_MAXCONNECTS
+@defvrx Constant CURLOPT_CLOSEPOLICY
+@defvrx Constant CURLOPT_FRESH_CONNECT
+@defvrx Constant CURLOPT_FORBID_REUSE
+@defvrx Constant CURLOPT_RANDOM_FILE
+@defvrx Constant CURLOPT_EGDSOCKET
+@defvrx Constant CURLOPT_CONNECTTIMEOUT
+@defvrx Constant CURLOPT_HEADERFUNCTION
+@defvrx Constant CURLOPT_HTTPGET
+@defvrx Constant CURLOPT_SSL_VERIFYHOST
+@defvrx Constant CURLOPT_COOKIEJAR
+@defvrx Constant CURLOPT_SSL_CIPHER_LIST
+@defvrx Constant CURLOPT_HTTP_VERSION
+@defvrx Constant CURLOPT_FTP_USE_EPSV
+@defvrx Constant CURLOPT_SSLCERTTYPE
+@defvrx Constant CURLOPT_SSLKEY
+@defvrx Constant CURLOPT_SSLKEYTYPE
+@defvrx Constant CURLOPT_SSLENGINE
+@defvrx Constant CURLOPT_SSLENGINE_DEFAULT
+@defvrx Constant CURLOPT_DNS_USE_GLOBAL_CACHE
+@defvrx Constant CURLOPT_DNS_CACHE_TIMEOUT
+@defvrx Constant CURLOPT_PREQUOTE
+@defvrx Constant CURLOPT_DEBUGFUNCTION
+@defvrx Constant CURLOPT_DEBUGDATA
+@defvrx Constant CURLOPT_COOKIESESSION
+@defvrx Constant CURLOPT_CAPATH
+@defvrx Constant CURLOPT_BUFFERSIZE
+@defvrx Constant CURLOPT_NOSIGNAL
+@defvrx Constant CURLOPT_SHARE
+@defvrx Constant CURLOPT_PROXYTYPE
+@defvrx Constant CURLOPT_ENCODING
+@defvrx Constant CURLOPT_PRIVATE
+@defvrx Constant CURLOPT_HTTP200ALIASES
+@defvrx Constant CURLOPT_UNRESTRICTED_AUTH
+@defvrx Constant CURLOPT_FTP_USE_EPRT
+@defvrx Constant CURLOPT_HTTPAUTH
+@defvrx Constant CURLOPT_SSL_CTX_FUNCTION
+@defvrx Constant CURLOPT_SSL_CTX_DATA
+@defvrx Constant CURLOPT_FTP_CREATE_MISSING_DIRS
+@defvrx Constant CURLOPT_PROXYAUTH
+@defvrx Constant CURLOPT_FTP_RESPONSE_TIMEOUT
+@defvrx Constant CURLOPT_IPRESOLVE
+@defvrx Constant CURLOPT_MAXFILESIZE
+@defvrx Constant CURLOPT_INFILESIZE_LARGE
+@defvrx Constant CURLOPT_RESUME_FROM_LARGE
+@defvrx Constant CURLOPT_MAXFILESIZE_LARGE
+@defvrx Constant CURLOPT_NETRC_FILE
+@defvrx Constant CURLOPT_USE_SSL
+@defvrx Constant CURLOPT_POSTFIELDSIZE_LARGE
+@defvrx Constant CURLOPT_TCP_NODELAY
+@defvrx Constant CURLOPT_FTPSSLAUTH
+@defvrx Constant CURLOPT_IOCTLFUNCTION
+@defvrx Constant CURLOPT_IOCTLDATA
+@defvrx Constant CURLOPT_FTP_ACCOUNT
+@defvrx Constant CURLOPT_COOKIELIST
+@defvrx Constant CURLOPT_IGNORE_CONTENT_LENGTH
+@defvrx Constant CURLOPT_FTP_SKIP_PASV_IP
+@defvrx Constant CURLOPT_FTP_FILEMETHOD
+@defvrx Constant CURLOPT_LOCALPORT
+@defvrx Constant CURLOPT_LOCALPORTRANGE
+@defvrx Constant CURLOPT_CONNECT_ONLY
+@defvrx Constant CURLOPT_CONV_FROM_NETWORK_FUNCTION
+@defvrx Constant CURLOPT_CONV_TO_NETWORK_FUNCTION
+@defvrx Constant CURLOPT_CONV_FROM_UTF8_FUNCTION
+@defvrx Constant CURLOPT_MAX_SEND_SPEED_LARGE
+@defvrx Constant CURLOPT_MAX_RECV_SPEED_LARGE
+@defvrx Constant CURLOPT_FTP_ALTERNATIVE_TO_USER
+@defvrx Constant CURLOPT_SOCKOPTFUNCTION
+@defvrx Constant CURLOPT_SOCKOPTDATA
+@defvrx Constant CURLOPT_SSL_SESSIONID_CACHE
+@defvrx Constant CURLOPT_SSH_AUTH_TYPES
+@defvrx Constant CURLOPT_SSH_PUBLIC_KEYFILE
+@defvrx Constant CURLOPT_SSH_PRIVATE_KEYFILE
+@defvrx Constant CURLOPT_FTP_SSL_CCC
+@defvrx Constant CURLOPT_TIMEOUT_MS
+@defvrx Constant CURLOPT_CONNECTTIMEOUT_MS
+@defvrx Constant CURLOPT_HTTP_TRANSFER_DECODING
+@defvrx Constant CURLOPT_HTTP_CONTENT_DECODING
+@defvrx Constant CURLOPT_NEW_FILE_PERMS
+@defvrx Constant CURLOPT_NEW_DIRECTORY_PERMS
+@defvrx Constant CURLOPT_POSTREDIR
+@defvrx Constant CURLOPT_SSH_HOST_PUBLIC_KEY_MD5
+@defvrx Constant CURLOPT_OPENSOCKETFUNCTION
+@defvrx Constant CURLOPT_OPENSOCKETDATA
+@defvrx Constant CURLOPT_COPYPOSTFIELDS
+@defvrx Constant CURLOPT_PROXY_TRANSFER_MODE
+@defvrx Constant CURLOPT_SEEKFUNCTION
+@defvrx Constant CURLOPT_SEEKDATA
+@defvrx Constant CURLOPT_CRLFILE
+@defvrx Constant CURLOPT_ISSUERCERT
+@defvrx Constant CURLOPT_ADDRESS_SCOPE
+@defvrx Constant CURLOPT_CERTINFO
+@defvrx Constant CURLOPT_USERNAME
+@defvrx Constant CURLOPT_PASSWORD
+@defvrx Constant CURLOPT_PROXYUSERNAME
+@defvrx Constant CURLOPT_PROXYPASSWORD
+@defvrx Constant CURLOPT_NOPROXY
+@defvrx Constant CURLOPT_TFTP_BLKSIZE
+@defvrx Constant CURLOPT_SOCKS5_GSSAPI_SERVICE
+@defvrx Constant CURLOPT_SOCKS5_GSSAPI_NEC
+@defvrx Constant CURLOPT_PROTOCOLS
+@defvrx Constant CURLOPT_REDIR_PROTOCOLS
+@defvrx Constant CURLOPT_SSH_KNOWNHOSTS
+@defvrx Constant CURLOPT_SSH_KEYFUNCTION
+@defvrx Constant CURLOPT_SSH_KEYDATA
+@defvrx Constant CURLOPT_LASTENTRY
+Values for the @code{CURLoption} enumeration.
+@end defvr
+
+
+@defvr Constant CURL_NETRC_IGNORED
+@defvrx Constant CURL_NETRC_OPTIONAL
+@defvrx Constant CURL_NETRC_REQUIRED
+@defvrx Constant CURL_NETRC_LAST
+Values for the @code{CURL_NETRC_OPTION} enumeration.
+@end defvr
+
+
+@defvr Constant CURL_TIMECOND_NONE
+@defvrx Constant CURL_TIMECOND_IFMODSINCE
+@defvrx Constant CURL_TIMECOND_IFUNMODSINCE
+@defvrx Constant CURL_TIMECOND_LASTMOD
+@defvrx Constant CURL_TIMECOND_LAST
+Values for the @code{curl_TimeCond} enumeration.
+@end defvr
+
+
+@defvr Constant CURLFORM_NOTHING
+@defvrx Constant CURLFORM_COPYNAME
+@defvrx Constant CURLFORM_PTRNAME
+@defvrx Constant CURLFORM_NAMELENGTH
+@defvrx Constant CURLFORM_COPYCONTENTS
+@defvrx Constant CURLFORM_PTRCONTENTS
+@defvrx Constant CURLFORM_CONTENTSLENGTH
+@defvrx Constant CURLFORM_FILECONTENT
+@defvrx Constant CURLFORM_ARRAY
+@defvrx Constant CURLFORM_OBSOLETE
+@defvrx Constant CURLFORM_FILE
+@defvrx Constant CURLFORM_BUFFER
+@defvrx Constant CURLFORM_BUFFERPTR
+@defvrx Constant CURLFORM_BUFFERLENGTH
+@defvrx Constant CURLFORM_CONTENTTYPE
+@defvrx Constant CURLFORM_CONTENTHEADER
+@defvrx Constant CURLFORM_FILENAME
+@defvrx Constant CURLFORM_END
+@defvrx Constant CURLFORM_OBSOLETE2
+@defvrx Constant CURLFORM_STREAM
+@defvrx Constant CURLFORM_LASTENTRY
+Values for the @code{CURLformoption} enumeration.
+@end defvr
+
+
+@defvr Constant CURL_FORMADD_OK
+@defvrx Constant CURL_FORMADD_MEMORY
+@defvrx Constant CURL_FORMADD_OPTION_TWICE
+@defvrx Constant CURL_FORMADD_NULL
+@defvrx Constant CURL_FORMADD_UNKNOWN_OPTION
+@defvrx Constant CURL_FORMADD_INCOMPLETE
+@defvrx Constant CURL_FORMADD_ILLEGAL_ARRAY
+@defvrx Constant CURL_FORMADD_DISABLED
+@defvrx Constant CURL_FORMADD_LAST
+Values for the @code{CURLFORMcode} enumeration.
+@end defvr
+
+
+@defvr Constant CURLINFO_STRING
+@defvrx Constant CURLINFO_LONG
+@defvrx Constant CURLINFO_DOUBLE
+@defvrx Constant CURLINFO_SLIST
+@defvrx Constant CURLINFO_MASK
+@defvrx Constant CURLINFO_TYPEMASK
+Bitmask values for the information callback.
+@end defvr
+
+
+@defvr Constant CURLINFO_NONE
+@defvrx Constant CURLINFO_EFFECTIVE_URL
+@defvrx Constant CURLINFO_RESPONSE_CODE
+@defvrx Constant CURLINFO_TOTAL_TIME
+@defvrx Constant CURLINFO_NAMELOOKUP_TIME
+@defvrx Constant CURLINFO_CONNECT_TIME
+@defvrx Constant CURLINFO_PRETRANSFER_TIME
+@defvrx Constant CURLINFO_SIZE_UPLOAD
+@defvrx Constant CURLINFO_SIZE_DOWNLOAD
+@defvrx Constant CURLINFO_SPEED_DOWNLOAD
+@defvrx Constant CURLINFO_SPEED_UPLOAD
+@defvrx Constant CURLINFO_HEADER_SIZE
+@defvrx Constant CURLINFO_REQUEST_SIZE
+@defvrx Constant CURLINFO_SSL_VERIFYRESULT
+@defvrx Constant CURLINFO_FILETIME
+@defvrx Constant CURLINFO_CONTENT_LENGTH_DOWNLOAD
+@defvrx Constant CURLINFO_CONTENT_LENGTH_UPLOAD
+@defvrx Constant CURLINFO_STARTTRANSFER_TIME
+@defvrx Constant CURLINFO_CONTENT_TYPE
+@defvrx Constant CURLINFO_REDIRECT_TIME
+@defvrx Constant CURLINFO_REDIRECT_COUNT
+@defvrx Constant CURLINFO_PRIVATE
+@defvrx Constant CURLINFO_HTTP_CONNECTCODE
+@defvrx Constant CURLINFO_HTTPAUTH_AVAIL
+@defvrx Constant CURLINFO_PROXYAUTH_AVAIL
+@defvrx Constant CURLINFO_OS_ERRNO
+@defvrx Constant CURLINFO_NUM_CONNECTS
+@defvrx Constant CURLINFO_SSL_ENGINES
+@defvrx Constant CURLINFO_COOKIELIST
+@defvrx Constant CURLINFO_LASTSOCKET
+@defvrx Constant CURLINFO_FTP_ENTRY_PATH
+@defvrx Constant CURLINFO_REDIRECT_URL
+@defvrx Constant CURLINFO_PRIMARY_IP
+@defvrx Constant CURLINFO_APPCONNECT_TIME
+@defvrx Constant CURLINFO_CERTINFO
+@defvrx Constant CURLINFO_CONDITION_UNMET
+@defvrx Constant CURLINFO_HTTP_CODE
+@defvrx Constant CURLINFO_LASTONE
+Values for the @code{CURLINFO} enumeration.
+@end defvr
+
+
+@defvr Constant CURLCLOSEPOLICY_NONE
+@defvrx Constant CURLCLOSEPOLICY_OLDEST
+@defvrx Constant CURLCLOSEPOLICY_LEAST_RECENTLY_USED
+@defvrx Constant CURLCLOSEPOLICY_LEAST_TRAFFIC
+@defvrx Constant CURLCLOSEPOLICY_SLOWEST
+@defvrx Constant CURLCLOSEPOLICY_CALLBACK
+@defvrx Constant CURLCLOSEPOLICY_LAST
+Values for the @code{curl_closepolicy} enumeration.
+@end defvr
+
+
+@defvr Constant CURL_LOCK_DATA_NONE
+@defvrx Constant CURL_LOCK_DATA_SHARE
+@defvrx Constant CURL_LOCK_DATA_COOKIE
+@defvrx Constant CURL_LOCK_DATA_DNS
+@defvrx Constant CURL_LOCK_DATA_SSL_SESSION
+@defvrx Constant CURL_LOCK_DATA_CONNECT
+@defvrx Constant CURL_LOCK_DATA_LAST
+Values for the @code{curl_lock_data} enumeration.
+@end defvr
+
+
+@defvr Constant CURL_LOCK_ACCESS_NONE
+@defvrx Constant CURL_LOCK_ACCESS_SHARED
+@defvrx Constant CURL_LOCK_ACCESS_SINGLE
+@defvrx Constant CURL_LOCK_ACCESS_LAST
+Values for the @code{curl_lock_access} enumeration.
+@end defvr
+
+
+@defvr Constant CURLSHE_OK
+@defvrx Constant CURLSHE_BAD_OPTION
+@defvrx Constant CURLSHE_IN_USE
+@defvrx Constant CURLSHE_INVALID
+@defvrx Constant CURLSHE_NOMEM
+@defvrx Constant CURLSHE_LAST
+Values for the @code{CURLSHcode} enumeration.
+@end defvr
+
+
+@defvr Constant CURLSHOPT_NONE
+@defvrx Constant CURLSHOPT_SHARE
+@defvrx Constant CURLSHOPT_UNSHARE
+@defvrx Constant CURLSHOPT_LOCKFUNC
+@defvrx Constant CURLSHOPT_UNLOCKFUNC
+@defvrx Constant CURLSHOPT_USERDATA
+@defvrx Constant CURLSHOPT_LAST
+Values for the @code{CURLSHoption} enumeration.
+@end defvr
+
+
+@defvr Constant CURLVERSION_FIRST
+@defvrx Constant CURLVERSION_SECOND
+@defvrx Constant CURLVERSION_THIRD
+@defvrx Constant CURLVERSION_FOURTH
+@defvrx Constant CURLVERSION_NOW
+@defvrx Constant CURLVERSION_LAST
+Values for the @code{CURLversion} enumeration.
+@end defvr
+
+
+@defvr Constant CURL_VERSION_IPV6
+@defvrx Constant CURL_VERSION_KERBEROS4
+@defvrx Constant CURL_VERSION_SSL
+@defvrx Constant CURL_VERSION_LIBZ
+@defvrx Constant CURL_VERSION_NTLM
+@defvrx Constant CURL_VERSION_GSSNEGOTIATE
+@defvrx Constant CURL_VERSION_DEBUG
+@defvrx Constant CURL_VERSION_ASYNCHDNS
+@defvrx Constant CURL_VERSION_SPNEGO
+@defvrx Constant CURL_VERSION_LARGEFILE
+@defvrx Constant CURL_VERSION_IDN
+@defvrx Constant CURL_VERSION_SSPI
+@defvrx Constant CURL_VERSION_CONV
+@defvrx Constant CURL_VERSION_CURLDEBUG
+Version codes.
+@end defvr
+
+
+@defvr Constant CURLM_CALL_MULTI_PERFORM
+@defvrx Constant CURLM_OK
+@defvrx Constant CURLM_BAD_HANDLE
+@defvrx Constant CURLM_BAD_EASY_HANDLE
+@defvrx Constant CURLM_OUT_OF_MEMORY
+@defvrx Constant CURLM_INTERNAL_ERROR
+@defvrx Constant CURLM_BAD_SOCKET
+@defvrx Constant CURLM_UNKNOWN_OPTION
+@defvrx Constant CURLM_LAST
+Values for the @code{CURLMcode} enumeration.
+@end defvr
+
+
+@defvr Constant CURLMSG_NONE
+@defvrx Constant CURLMSG_DONE
+@defvrx Constant CURLMSG_LAST
+Values for the @code{CURLMSG} enumeration.
+@end defvr
+
+
+@defvr Constant CURLMOPT_SOCKETFUNCTION
+@defvrx Constant CURLMOPT_SOCKETDATA
+@defvrx Constant CURLMOPT_PIPELINING
+@defvrx Constant CURLMOPT_TIMERFUNCTION
+@defvrx Constant CURLMOPT_TIMERDATA
+@defvrx Constant CURLMOPT_MAXCONNECTS
+@defvrx Constant CURLMOPT_LASTENTRY
+Values for the @code{CURLMoption} enumeration.
+@end defvr
+
+
+@defvr Constant SEEK_SET
+@defvrx Constant SEEK_CUR
+@defvrx Constant SEEK_END
+Constant values for the @var{whence} argument to the seek callback; they
+are the same as the values defined for @cfunc{lseek} C standard
+function.  These bindings are @strong{not} reexported by the compound
+library.
+@end defvr
+
+@c page
 @node structs
 @chapter Accessing foreign structures
 
 
 The bindings described in this chapter are exported by the
 @library{foreign net curl sizeof} library.
+
+
+@defvr Constant sizeof-curl_httppost
+@defvrx Constant strideof-curl_httppost
+@defvrx Constant alignof-curl_httppost
+Size, stride and aligment of @code{struct curl_httppost} data types.
+@end defvr
 
 
 @deffn Syntax struct-curl_httppost-next-ref @var{pointer}
@@ -711,6 +1444,13 @@ Field accessors for the @code{struct curl_httppost} data type.
 @end deffn
 
 
+@defvr Constant sizeof-curl_sockaddr
+@defvrx Constant strideof-curl_sockaddr
+@defvrx Constant alignof-curl_sockaddr
+Size, stride and aligment of @code{struct curl_sockaddr} data types.
+@end defvr
+
+
 @deffn Syntax struct-curl_sockaddr-family-ref @var{pointer}
 @deffnx Syntax struct-curl_sockaddr-socktype-ref @var{pointer}
 @deffnx Syntax struct-curl_sockaddr-protocol-ref @var{pointer}
@@ -722,11 +1462,25 @@ byte of the @code{struct sockaddr addr} field.
 @end deffn
 
 
+@defvr Constant sizeof-curl_khkey
+@defvrx Constant strideof-curl_khkey
+@defvrx Constant alignof-curl_khkey
+Size, stride and aligment of @code{struct curl_khkey} data types.
+@end defvr
+
+
 @deffn Syntax struct-curl_khkey-key-ref @var{pointer}
 @deffnx Syntax struct-curl_khkey-len-ref @var{pointer}
 @deffnx Syntax struct-curl_khkey-keytype-ref @var{pointer}
 Field accessors for the @code{struct curl_khkey} data type.
 @end deffn
+
+
+@defvr Constant sizeof-curl_forms
+@defvrx Constant strideof-curl_forms
+@defvrx Constant alignof-curl_forms
+Size, stride and aligment  of @code{} data types.
+@end defvr
 
 
 @deffn Syntax struct-curl_forms-option-ref @var{pointer}
@@ -735,16 +1489,51 @@ Field accessors for the @code{struct curl_forms} data type.
 @end deffn
 
 
+@deffn Syntax sizeof-curl_forms-array @var{number-of-elements}
+Return the size of a memory block which can hold an array of
+@var{number-of-elements} of @code{struct curl_forms} structures.
+@end deffn
+
+
+@deffn Syntax array-ref-c-curl_forms @var{pointer} @var{index}
+Return a pointer to the first byte of the element at @var{index} in the
+array of @code{struct curl_forms} structures referenced by
+@var{pointer}.
+@end deffn
+
+
+@defvr Constantsizeof-curl_slist
+@defvrx Constant strideof-curl_slist
+@defvrx Constant alignof-curl_slist
+Size, stride and aligment of @code{struct curl_slist} data types.
+@end defvr
+
+
 @deffn Syntax struct-curl_slist-data-ref @var{pointer}
 @deffnx Syntax struct-curl_slist-next-ref @var{pointer}
 Field accessors for the @code{struct curl_slist} data type.
 @end deffn
 
 
+@defvr Constant sizeof-curl_certinfo
+@defvrx Constant strideof-curl_certinfo
+@defvrx Constant alignof-curl_certinfo
+Size, stride and aligment of @code{struct curl_certinfo} data types.
+@end defvr
+
+
 @deffn Syntax struct-curl_certinfo-num_of_certs-ref @var{pointer}
 @deffnx Syntax struct-curl_certinfo-certinfo-ref @var{pointer}
 Field accessors for the @code{struct curl_certinfo} data type.
 @end deffn
+
+
+@defvr Constant sizeof-curl_version_info_data
+@defvrx Constant strideof-curl_version_info_data
+@defvrx Constant alignof-curl_version_info_data
+Size, stride and aligment of @code{struct curl_version_info_data} data
+types.
+@end defvr
 
 
 @deffn Syntax struct-curl_version_info_data-age-ref @var{pointer}
@@ -763,6 +1552,13 @@ Field accessors for the @code{struct curl_certinfo} data type.
 @deffnx Syntax struct-curl_version_info_data-libssh_version-ref @var{pointer}
 Field accessors for the @code{struct curl_version_info_data} data type.
 @end deffn
+
+
+@defvr Constant sizeof-CURLMsg
+@defvrx Constant strideof-CURLMsg
+@defvrx Constant alignof-CURLMsg
+Size, stride and aligment of @code{struct CURLMsg} data types.
+@end defvr
 
 
 @deffn Syntax struct-CURLMsg-msg-ref @var{pointer}
@@ -785,7 +1581,7 @@ from the client code.
 
 @menu
 * records handle::              @curl{} session handlers.
-* records multi::               @curl{} multi session handlers.
+* records shared::              @curl{} shared objects.
 * records version info::        Libraries version informations.
 @end menu
 
@@ -834,17 +1630,17 @@ Accessor for the @code{pointer} field of records of type
 @subsection Easy handle type
 
 
-@deftp {Record Type Name} <curl-easy>
-@deftpx {Record Type Descriptor} <curl-easy-rtd>
+@deftp {Record Type Name} <curl-easy-handle>
+@deftpx {Record Type Descriptor} <curl-easy-handle-rtd>
 Record type to be used as reference for @curl{} easy session handler
 structures.  It is derived from @class{curl-handle}; it has no own
 fields.
 @end deftp
 
 
-@defun make-<curl-easy> @var{pointer}
-@defunx <curl-easy>? @var{obj}
-Constructor and predicate for records of type @class{curl-easy}.
+@defun make-<curl-easy-handle> @var{pointer}
+@defunx <curl-easy-handle>? @var{obj}
+Constructor and predicate for records of type @class{curl-easy-handle}.
 @end defun
 
 @c page
@@ -852,50 +1648,46 @@ Constructor and predicate for records of type @class{curl-easy}.
 @subsection Multi handle type
 
 
-@deftp {Record Type Name} <curl-multi>
-@deftpx {Record Type Descriptor} <curl-multi-rtd>
+@deftp {Record Type Name} <curl-multi-handle>
+@deftpx {Record Type Descriptor} <curl-multi-handle-rtd>
 Record type to be used as reference for @curl{} multi session handler
 structures.  It is derived from @class{curl-handle}; it has no own
 fields.
 @end deftp
 
 
-@defun make-<curl-multi> @var{pointer}
-@defunx <curl-multi>? @var{obj}
-Constructor and predicate for records of type @class{curl-multi}.
+@defun make-<curl-multi-handle> @var{pointer}
+@defunx <curl-multi-handle>? @var{obj}
+Constructor and predicate for records of type @class{curl-multi-handle}.
 @end defun
 
 @c page
-@node records multi
-@section @curl{} multi session handlers
+@node records shared
+@section @curl{} shared objects
 
 
-The following bindings are @strong{not} reexported by the
-@library{foreign net curl} compound library.
-
-
-@deftp {Record Type Name} <curl-multi>
-@deftpx {Record Type Descriptor} <curl-multi-rtd>
-Record type to be used as wrapper for raw pointers to @curl{} multi
-session handler structures.  It has the following fields:
+@deftp {Record Type Name} <curl-shared-object>
+@deftpx {Record Type Descriptor} <curl-shared-object-rtd>
+Record type to be used as wrapper for raw pointers to @curl{} shared
+object structures.  It has the following fields:
 
 @table @code
 @item pointer
-Holds a pointer object to a @curl{} multi session handler data
-structure.  It is immutable.
+Holds a pointer object to a @curl{} shared object data structure.  It is
+immutable.
 @end table
 @end deftp
 
 
-@defun make-<curl-multi> @var{pointer}
-@defunx <curl-multi>? @var{obj}
-Constructor and predicate for records of type @class{curl-multi}.
+@defun make-<curl-shared-object> @var{pointer}
+@defunx <curl-shared-object>? @var{obj}
+Constructor and predicate for records of type @class{curl-shared-object}.
 @end defun
 
 
-@defun <curl-multi>-pointer @var{record}
+@defun <curl-shared-object>-pointer @var{record}
 Accessor for the @code{pointer} field of records of type
-@class{curl-multi}.
+@class{curl-shared-object}.
 @end defun
 
 @c page
@@ -999,7 +1791,9 @@ Field accessors for records of type @class{curl-version-info}.
 
 
 The bindings documented in this chapter are exported by the
-@library{foreign net curl enumerations} library.
+@library{foreign net curl enumerations} library; unless otherwise
+specified, the bindings are @strong{not} reexported by the compound
+library.
 
 @menu
 * enumerations codes::          Error codes conversion.
@@ -1011,16 +1805,30 @@ The bindings documented in this chapter are exported by the
 @section Error codes conversion
 
 
-@defun curl-numeric-code->symbolic-code @var{numeric-code}
-@defunx curl-symbolic-code->numeric-code @var{symbolic-code}
-Convert to and from numeric @curl{} error codes and Scheme symbols.
-Example:
+@defun curl-easy-numeric-code->symbolic-code @var{numeric-code}
+@defunx curl-easy-symbolic-code->numeric-code @var{symbolic-code}
+Convert to and from numeric @curl{} error codes, of the easy @api{}, and
+Scheme symbols.  Example:
 
 @example
-(curl-numeric-code->symbolic-code
+(curl-easy-numeric-code->symbolic-code
     CURLE_UNSUPPORTED_PROTOCOL)
 @result{} CURLE_UNSUPPORTED_PROTOCOL
 @end example
+@end defun
+
+
+@defun curl-multi-numeric-code->symbolic-code @var{numeric-code}
+@defunx curl-multi-symbolic-code->numeric-code @var{symbolic-code}
+Convert to and from numeric @curl{} error codes, of the multi @api{},
+and Scheme symbols.
+@end defun
+
+
+@defun curl-share-numeric-code->symbolic-code @var{numeric-code}
+@defunx curl-share-symbolic-code->numeric-code @var{symbolic-code}
+Convert to and from numeric @curl{} error codes, of the shared objects
+@api{}, and Scheme symbols.
 @end defun
 
 @c page
@@ -1084,6 +1892,7 @@ values in compound condition objects.
 * conditions data easy::        @curl{} easy handle objects.
 * conditions data multi::       @curl{} multi handle objects.
 * conditions data sockfd::      Socket file descriptor objects.
+* conditions data shared::      Shared object objects.
 * conditions data code::        @curl{} error code objects.
 @end menu
 
@@ -1093,18 +1902,18 @@ values in compound condition objects.
 
 
 @deftp {Condition Type} &curl-easy-handle
-Condition type representing a @curl{} easy handle involved in an
+Condition type representing a @curl{} easy session handle involved in an
 exception; it is derived from @condition{condition}.  It has the
 following fields:
 
 @table @code
 @item handle
-Holds an easy handle object.
+Holds an easy session handle object.
 @end table
 @end deftp
 
 
-@defun make-curl-easy-handle-condition @var{handle-record}
+@defun make-curl-easy-handle-condition @var{handle}
 @defunx curl-easy-handle-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{curl-easy-handle}.
@@ -1122,18 +1931,18 @@ Accessor for the @code{handle} field of condition objects of type
 
 
 @deftp {Condition Type} &curl-multi-handle
-Condition type representing a @curl{} multi handle involved in an
-exception; it is derived from @condition{condition}.  It has the
+Condition type representing a @curl{} multi session handle involved in
+an exception; it is derived from @condition{condition}.  It has the
 following fields:
 
 @table @code
 @item handle
-Holds a multi handle object.
+Holds a multi session handle object.
 @end table
 @end deftp
 
 
-@defun make-curl-multi-handle-condition @var{handle-record}
+@defun make-curl-multi-handle-condition @var{handle}
 @defunx curl-multi-handle-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{curl-multi-handle}.
@@ -1162,7 +1971,7 @@ Holds an exact integer representing the socket file descriptor.
 @end deftp
 
 
-@defun make-curl-sockfd-condition @var{handle-record}
+@defun make-curl-sockfd-condition @var{descriptor}
 @defunx curl-sockfd-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{curl-sockfd}.
@@ -1172,6 +1981,35 @@ Constructor and predicate for condition objects of type
 @defun condition-curl-sockfd @var{condition}
 Accessor for the @code{file-descriptor} field of condition objects of
 type @condition{curl-sockfd}.
+@end defun
+
+@c page
+@node conditions data shared
+@subsection Shared object objects
+
+
+@deftp {Condition Type} &curl-shared-object
+Condition type representing a @curl{} shared object involved in an
+exception; it is derived from @condition{condition}.  It has the
+following fields:
+
+@table @code
+@item object
+Holds a shared object.
+@end table
+@end deftp
+
+
+@defun make-curl-shared-object-condition @var{shared}
+@defunx curl-shared-object-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{curl-shared-object}.
+@end defun
+
+
+@defun condition-curl-shared-object @var{condition}
+Accessor for the @code{object} field of condition objects of type
+@condition{curl-shared-object}.
 @end defun
 
 @c page
@@ -1204,6 +2042,51 @@ Constructor and predicate for condition objects of type
 @defunx condition-curl-error-symbolic-code @var{condition}
 Accessors for the fields of condition objects of type
 @condition{curl-error-code}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@deftp {Condition Type} &curl-easy-error-code
+Condition type for @curl{} error codes, easy session @api{}; it is
+derived from @condition{curl-error-code}, it has no own fields.
+@end deftp
+
+
+@defun make-curl-easy-error-code-condition @var{numeric-error-code}
+@defunx curl-easy-error-code-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{curl-easy-error-code}.  The constructor automatically
+converts the numeric error code to the symbolic one.
+@end defun
+
+@c ------------------------------------------------------------
+
+@deftp {Condition Type} &curl-multi-error-code
+Condition type for @curl{} error codes, multi session @api{}; it is
+derived from @condition{curl-error-code}, it has no own fields.
+@end deftp
+
+
+@defun make-curl-multi-error-code-condition @var{numeric-error-code}
+@defunx curl-multi-error-code-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{curl-multi-error-code}.  The constructor automatically
+converts the numeric error code to the symbolic one.
+@end defun
+
+@c ------------------------------------------------------------
+
+@deftp {Condition Type} &curl-share-error-code
+Condition type for @curl{} error codes, shared objects @api{}; it is
+derived from @condition{curl-error-code}, it has no own fields.
+@end deftp
+
+
+@defun make-curl-share-error-code-condition @var{numeric-error-code}
+@defunx curl-share-error-code-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{curl-share-error-code}.  The constructor automatically
+converts the numeric error code to the symbolic one.
 @end defun
 
 @c page
@@ -1315,12 +2198,12 @@ Constructor and predicate for condition objects of type
 
 @defun make-curl-easy-message-condition @var{easy-numeric-code}
 @defunx make-curl-multi-message-condition @var{multi-numeric-code}
+@defunx make-curl-share-message-condition @var{share-numeric-code}
 Build and return a condition object of type @condition{message}
 representing the error message associated with the given numeric code.
-The message is retrieved with @func{curl_easy_strerror} and
-@func{curl_multi_strerror}.
+The message is retrieved with @func{curl_easy_strerror},
+@func{curl_multi_strerror} and @func{curl_share_strerror}.
 @end defun
-
 
 @c page
 @node easy
@@ -1346,35 +2229,37 @@ net curl primitives} and reexported by @library{foreign net curl}.
 @section Introduction to the easy interface
 
 
-The ``easy'' @api{} provides simple one-at-a-time file transfer
+The ``easy'' session @api{} provides simple one-at-a-time file transfer
 features; a program that requests @file{index.html} from the @aurl{}
 @url{http://localhost:8080/} looks like this:
 
 @example
 (import (rnrs)
-  (only (foreign ffi pointers) pointer-null)
   (compensations)
-  (foreign net curl))
+  (begin0)
+  (only (foreign ffi pointers) pointer-null)
+  (foreign net curl)
+  (foreign net curl compensated))
 
 (define address "http://localhost:8080/index.html")
 
 (define document "")
 
 (define (write-callback buffer item-size item-count)
-  (let ((len (* item-size item-count)))
-    (set! out (string-append out (cstring->string buffer len)))
-    len))
+  (begin0-let ((len (* item-size item-count)))
+    (set! out (string-append out (cstring->string buffer len)))))
 
 (curl-global-init CURL_GLOBAL_ALL)
 
 (with-compensations
-  (let* ((handle (curl-easy-init/c)))
-    (curl-easy-setopt handle CURLOPT_URL address)
-    (curl-easy-setopt handle CURLOPT_WRITEFUNCTION
+  (let ((easy (curl-easy-init/c)))
+    (curl-easy-setopt easy CURLOPT_URL address)
+    (curl-easy-setopt easy CURLOPT_WRITEFUNCTION
                       (curl-make-write-callback write-callback))
-    (curl-easy-setopt handle CURLOPT_WRITEDATA pointer-null)
-    (curl-easy-perform handle)
-    ---))
+    (curl-easy-setopt easy CURLOPT_WRITEDATA pointer-null)
+    (curl-easy-perform easy)))
+
+(do-something-with document)
 @end example
 
 @noindent
