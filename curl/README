@@ -94,7 +94,7 @@ programs expect that a  web server is listening on localhost
 port 8080  and ready to serve pages  from the "src/lighttpd"
 directory of the source tree.
 
-  The "src/lighttpd" has basic configuration for Lighttpd, a
+  The  "src/httpd" has basic  configuration for  Lighttpd, a
 lightweight web  server which is  very simple to set  up for
 testing purposes.  To use it,  we only need to customise the
 pathnames  in  the   configuration  file  "config"  and  the

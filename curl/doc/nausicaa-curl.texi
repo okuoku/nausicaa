@@ -1502,7 +1502,7 @@ array of @code{struct curl_forms} structures referenced by
 @end deffn
 
 
-@defvr Constantsizeof-curl_slist
+@defvr Constant sizeof-curl_slist
 @defvrx Constant strideof-curl_slist
 @defvrx Constant alignof-curl_slist
 Size, stride and aligment of @code{struct curl_slist} data types.

@@ -206,7 +206,7 @@
 (define (%struct-curlmsg->record msg*)
   (make-<curl-message> 'DONE	;this is the only code in version 7.19.7 of cURL
 		       (make-<curl-handle> (struct-CURLMsg-easy_handle-ref msg*))
-		       (struct-CURLMsg-result-ref msg*)))
+		       (struct-CURLMsg-data.result-ref msg*)))
 
 
 ;;;; done

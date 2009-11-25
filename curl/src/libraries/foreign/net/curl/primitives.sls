@@ -171,7 +171,7 @@
       (raise (condition (make-curl-easy-action-error-condition)
 			(make-who-condition 'curl-easy-perform)
 			(make-curl-easy-message-condition code)
-			(make-curl-error-code-condition code)
+			(make-curl-easy-error-code-condition code)
 			(make-curl-easy-handle-condition easy))))))
 
 (define (curl-easy-pause easy bitmask-set)
@@ -181,7 +181,7 @@
       (raise (condition (make-curl-easy-action-error-condition)
 			(make-who-condition 'curl-easy-pause)
 			(make-curl-easy-message-condition code)
-			(make-curl-error-code-condition code)
+			(make-curl-easy-error-code-condition code)
 			(make-curl-easy-handle-condition easy))))))
 
 

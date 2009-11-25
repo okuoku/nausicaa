@@ -1,0 +1,836 @@
+;;;!mosh
+;;; -*- coding: utf-8-unix -*-
+;;;
+;;;Part of: Nausicaa/cURL
+;;;Contents: foreign library inspection generator
+;;;Date: Wed Nov 25, 2009
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+(import (nausicaa)
+  (foreign ffi inspector-maker))
+
+(define curl-library-spec
+  '(foreign net curl sizeof))
+
+
+;;;; types inspection
+
+(define-c-type curl_socket_t		signed-int)
+(define-c-type curl_off_t		signed-int)
+(define-c-type curlsocktype		signed-int)
+(define-c-type curlioerr		signed-int)
+(define-c-type curliocmd		signed-int)
+(define-c-type curl_infotype		signed-int)
+(define-c-type CURLcode			signed-int)
+(define-c-type curl_proxytype		signed-int)
+(define-c-type curl_khstat		signed-int	"enum curl_khstat")
+(define-c-type curl_khmatch		signed-int	"enum curl_khmatch")
+(define-c-type curl_usessl		signed-int)
+(define-c-type curl_ftpccc		signed-int)
+(define-c-type curl_ftpauth		signed-int)
+(define-c-type curl_ftpcreatedir	signed-int)
+(define-c-type curl_ftpmethod		signed-int)
+(define-c-type CURLoption		signed-int)
+(define-c-type curl_netrc_option	signed-int	"enum CURL_NETRC_OPTION")
+(define-c-type curl_TimeCond		signed-int)
+(define-c-type CURLformoption		signed-int)
+(define-c-type CURLFORMcode		signed-int)
+(define-c-type CURLINFO			signed-int)
+(define-c-type curl_closepolicy		signed-int)
+(define-c-type curl_lock_data		signed-int)
+(define-c-type curl_lock_access		signed-int)
+(define-c-type CURLSHcode		signed-int)
+(define-c-type CURLSHoption		signed-int)
+(define-c-type CURLversion		signed-int)
+(define-c-type CURLMcode		signed-int)
+(define-c-type CURLMSG			signed-int)
+(define-c-type CURLMoption		signed-int)
+
+
+;;;; type aliases
+
+(define-c-type-alias curl_conv_callback		callback)
+(define-c-type-alias curl_debug_callback	callback)
+(define-c-type-alias curl_formget_callback	callback)
+(define-c-type-alias curl_lock_function		callback)
+(define-c-type-alias curl_ioctl_callback	callback)
+(define-c-type-alias curl_multi_timer_callback	callback)
+(define-c-type-alias curl_opensocket_callback	callback)
+(define-c-type-alias curl_progress_callback	callback)
+(define-c-type-alias curl_read_callback		callback)
+(define-c-type-alias curl_seek_callback		callback)
+(define-c-type-alias curl_socket_callback	callback)
+(define-c-type-alias curl_sockopt_callback	callback)
+(define-c-type-alias curl_sshkeycallback	callback)
+(define-c-type-alias curl_ssl_ctx_callback	callback)
+(define-c-type-alias curl_unlock_function	callback)
+(define-c-type-alias curl_write_callback	callback)
+
+(define-c-type-alias curl_calloc_callback	callback)
+(define-c-type-alias curl_free_callback		callback)
+(define-c-type-alias curl_malloc_callback	callback)
+(define-c-type-alias curl_realloc_callback	callback)
+(define-c-type-alias curl_strdup_callback	callback)
+
+
+;;;; struct inspection
+
+(define-c-struct curl_httppost
+  "struct curl_httppost"
+  (pointer		next)
+  (pointer		name)
+  (signed-int		namelength)
+  (pointer		contents)
+  (signed-int		contentslength)
+  (pointer		buffer)
+  (signed-int		bufferlength)
+  (pointer		contenttype)
+  (pointer		contentheader)
+  (pointer		more)
+  (signed-int		flags)
+  (pointer		showfilename)
+  (pointer		userp))
+
+(define-c-struct curl_sockaddr
+  "struct curl_sockaddr"
+  (signed-int		family)
+  (signed-int		socktype)
+  (signed-int		protocol)
+  (signed-int		addrlen)
+  (embedded		addr))
+
+(define-c-struct curl_khkey
+  "struct curl_khkey"
+  (pointer		key)
+  (unsigned-int		len)
+  (signed-int		keytype))
+
+(define-c-struct curl_forms
+  "struct curl_forms"
+  (signed-int		option)
+  (pointer		value))
+
+(sizeof-lib (define-syntax sizeof-curl_forms-array
+	      (syntax-rules ()
+		((_ ?number-of-elements)
+		 (* strideof-curl_forms ?number-of-elements))))
+
+	    (define (array-ref-c-curl_forms pointer index)
+	      (pointer-add pointer (* index strideof-curl_forms))))
+
+(sizeof-lib-exports sizeof-curl_forms-array
+		    array-ref-c-curl_forms)
+
+(define-c-struct curl_slist
+  "struct curl_slist"
+  (pointer		data)
+  (pointer		next))
+
+(define-c-struct curl_certinfo
+  "struct curl_certinfo"
+  (signed-int		num_of_certs)
+  (pointer		certinfo))
+
+(define-c-struct curl_version_info_data
+  "curl_version_info_data"
+  (signed-int		age)
+  (pointer		version)
+  (signed-int		version_num)
+  (pointer		host)
+  (signed-int		features)
+  (pointer		ssl_version)
+  (signed-int		ssl_version_num)
+  (pointer		libz_version)
+  (pointer		protocols)
+  (pointer		ares)
+  (signed-int		ares_num)
+  (pointer		libidn)
+  (signed-int		iconv_ver_num)
+  (pointer		libssh_version))
+
+(define-c-struct CURLMsg
+  "CURLMsg"
+  (signed-int		msg)
+  (pointer		easy_handle)
+  (pointer		data.whatever)
+  (signed-int		data.result))
+
+
+;;;; preprocessor symbols
+
+(define-c-defines "seek whence values"
+  SEEK_SET
+  SEEK_CUR
+  SEEK_END)
+
+(define-c-defines "miscellaneous constants"
+  CURL_SOCKET_BAD
+  CURL_MAX_WRITE_SIZE
+  CURL_MAX_HTTP_HEADER
+  CURL_WRITEFUNC_PAUSE
+
+  CURL_IPRESOLVE_WHATEVER
+  CURL_IPRESOLVE_V4
+  CURL_IPRESOLVE_V6
+
+  CURLOPT_WRITEDATA
+  CURLOPT_READDATA
+  CURLOPT_HEADERDATA
+
+  CURL_HTTP_VERSION_NONE
+  CURL_HTTP_VERSION_1_0
+  CURL_HTTP_VERSION_1_1
+  CURL_HTTP_VERSION_LAST
+
+  CURL_SSLVERSION_DEFAULT
+  CURL_SSLVERSION_TLSv1
+  CURL_SSLVERSION_SSLv2
+  CURL_SSLVERSION_SSLv3
+  CURL_SSLVERSION_LAST
+
+  CURL_REDIR_GET_ALL
+  CURL_REDIR_POST_301
+  CURL_REDIR_POST_302
+  CURL_REDIR_POST_ALL
+
+  CURL_GLOBAL_SSL
+  CURL_GLOBAL_WIN32
+  CURL_GLOBAL_ALL
+  CURL_GLOBAL_NOTHING
+  CURL_GLOBAL_DEFAULT
+
+  CURLPAUSE_RECV
+  CURLPAUSE_RECV_CONT
+  CURLPAUSE_SEND
+  CURLPAUSE_SEND_CONT
+  CURLPAUSE_ALL
+  CURLPAUSE_CONT
+
+  CURL_POLL_NONE
+  CURL_POLL_IN
+  CURL_POLL_OUT
+  CURL_POLL_INOUT
+  CURL_POLL_REMOVE
+
+  CURL_SOCKET_TIMEOUT
+
+  CURL_CSELECT_IN
+  CURL_CSELECT_OUT
+  CURL_CSELECT_ERR)
+
+(define-c-string-defines "version informations"
+  LIBCURL_COPYRIGHT LIBCURL_TIMESTAMP)
+
+(define-c-defines "version numbers"
+  LIBCURL_VERSION_MAJOR
+  LIBCURL_VERSION_MINOR
+  LIBCURL_VERSION_PATCH
+  LIBCURL_VERSION_NUM)
+
+(define-c-defines "flag values for the 'flags' field of structure 'curl_httppost'"
+  HTTPPOST_FILENAME
+  HTTPPOST_READFILE
+  HTTPPOST_PTRNAME
+  HTTPPOST_PTRCONTENTS
+  HTTPPOST_BUFFER
+  HTTPPOST_PTRBUFFER
+  HTTPPOST_CALLBACK)
+
+(define-c-defines "return codes for the seek callbacks"
+  CURL_SEEKFUNC_OK
+  CURL_SEEKFUNC_FAIL
+  CURL_SEEKFUNC_CANTSEEK)
+
+(define-c-defines "return codes for the read callbacks"
+  CURL_READFUNC_ABORT
+  CURL_READFUNC_PAUSE)
+
+(define-c-defines "enum curlsocktype"
+  CURLSOCKTYPE_IPCXN
+  CURLSOCKTYPE_LAST)
+
+(define-c-defines "enum curlioerr"
+  CURLIOE_OK
+  CURLIOE_UNKNOWNCMD
+  CURLIOE_FAILRESTART
+  CURLIOE_LAST)
+
+(define-c-defines "enum curliocmd"
+  CURLIOCMD_NOP
+  CURLIOCMD_RESTARTREAD
+  CURLIOCMD_LAST)
+
+(define-c-defines "enum curl_infotype"
+  CURLINFO_TEXT
+  CURLINFO_HEADER_IN
+  CURLINFO_HEADER_OUT
+  CURLINFO_DATA_IN
+  CURLINFO_DATA_OUT
+  CURLINFO_SSL_DATA_IN
+  CURLINFO_SSL_DATA_OUT
+  CURLINFO_END)
+
+(define-c-defines "enum CURLcode"
+  CURLE_OK
+  CURLE_UNSUPPORTED_PROTOCOL
+  CURLE_FAILED_INIT
+  CURLE_URL_MALFORMAT
+  CURLE_OBSOLETE4
+  CURLE_COULDNT_RESOLVE_PROXY
+  CURLE_COULDNT_RESOLVE_HOST
+  CURLE_COULDNT_CONNECT
+  CURLE_FTP_WEIRD_SERVER_REPLY
+  CURLE_REMOTE_ACCESS_DENIED
+  CURLE_OBSOLETE10
+  CURLE_FTP_WEIRD_PASS_REPLY
+  CURLE_OBSOLETE12
+  CURLE_FTP_WEIRD_PASV_REPLY
+  CURLE_FTP_WEIRD_227_FORMAT
+  CURLE_FTP_CANT_GET_HOST
+  CURLE_OBSOLETE16
+  CURLE_FTP_COULDNT_SET_TYPE
+  CURLE_PARTIAL_FILE
+  CURLE_FTP_COULDNT_RETR_FILE
+  CURLE_OBSOLETE20
+  CURLE_QUOTE_ERROR
+  CURLE_HTTP_RETURNED_ERROR
+  CURLE_WRITE_ERROR
+  CURLE_OBSOLETE24
+  CURLE_UPLOAD_FAILED
+  CURLE_READ_ERROR
+  CURLE_OUT_OF_MEMORY
+  CURLE_OPERATION_TIMEDOUT
+  CURLE_OBSOLETE29
+  CURLE_FTP_PORT_FAILED
+  CURLE_FTP_COULDNT_USE_REST
+  CURLE_OBSOLETE32
+  CURLE_RANGE_ERROR
+  CURLE_HTTP_POST_ERROR
+  CURLE_SSL_CONNECT_ERROR
+  CURLE_BAD_DOWNLOAD_RESUME
+  CURLE_FILE_COULDNT_READ_FILE
+  CURLE_LDAP_CANNOT_BIND
+  CURLE_LDAP_SEARCH_FAILED
+  CURLE_OBSOLETE40
+  CURLE_FUNCTION_NOT_FOUND
+  CURLE_ABORTED_BY_CALLBACK
+  CURLE_BAD_FUNCTION_ARGUMENT
+  CURLE_OBSOLETE44
+  CURLE_INTERFACE_FAILED
+  CURLE_OBSOLETE46
+  CURLE_TOO_MANY_REDIRECTS
+  CURLE_UNKNOWN_TELNET_OPTION
+  CURLE_TELNET_OPTION_SYNTAX
+  CURLE_OBSOLETE50
+  CURLE_PEER_FAILED_VERIFICATION
+  CURLE_GOT_NOTHING
+  CURLE_SSL_ENGINE_NOTFOUND
+  CURLE_SSL_ENGINE_SETFAILED
+  CURLE_SEND_ERROR
+  CURLE_RECV_ERROR
+  CURLE_OBSOLETE57
+  CURLE_SSL_CERTPROBLEM
+  CURLE_SSL_CIPHER
+  CURLE_SSL_CACERT
+  CURLE_BAD_CONTENT_ENCODING
+  CURLE_LDAP_INVALID_URL
+  CURLE_FILESIZE_EXCEEDED
+  CURLE_USE_SSL_FAILED
+  CURLE_SEND_FAIL_REWIND
+  CURLE_SSL_ENGINE_INITFAILED
+  CURLE_LOGIN_DENIED
+  CURLE_TFTP_NOTFOUND
+  CURLE_TFTP_PERM
+  CURLE_REMOTE_DISK_FULL
+  CURLE_TFTP_ILLEGAL
+  CURLE_TFTP_UNKNOWNID
+  CURLE_REMOTE_FILE_EXISTS
+  CURLE_TFTP_NOSUCHUSER
+  CURLE_CONV_FAILED
+  CURLE_CONV_REQD
+  CURLE_SSL_CACERT_BADFILE
+  CURLE_REMOTE_FILE_NOT_FOUND
+  CURLE_SSH
+  CURLE_SSL_SHUTDOWN_FAILED
+  CURLE_AGAIN
+  CURLE_SSL_CRL_BADFILE
+  CURLE_SSL_ISSUER_ERROR
+  CURL_LAST)
+
+(define-c-defines "enum curl_proxytype"
+  CURLPROXY_HTTP
+  CURLPROXY_HTTP_1_0
+  CURLPROXY_SOCKS4
+  CURLPROXY_SOCKS5
+  CURLPROXY_SOCKS4A
+  CURLPROXY_SOCKS5_HOSTNAME)
+
+(define-c-defines "auth constants"
+  CURLAUTH_NONE
+  CURLAUTH_BASIC
+  CURLAUTH_DIGEST
+  CURLAUTH_GSSNEGOTIATE
+  CURLAUTH_NTLM
+  CURLAUTH_DIGEST_IE
+  CURLAUTH_ANY
+  CURLAUTH_ANYSAFE
+  CURLSSH_AUTH_ANY
+  CURLSSH_AUTH_NONE
+  CURLSSH_AUTH_PUBLICKEY
+  CURLSSH_AUTH_PASSWORD
+  CURLSSH_AUTH_HOST
+  CURLSSH_AUTH_KEYBOARD
+  CURLSSH_AUTH_DEFAULT
+  CURL_ERROR_SIZE)
+
+(define-c-defines "enum keytype"
+  CURLKHTYPE_UNKNOWN
+  CURLKHTYPE_RSA1
+  CURLKHTYPE_RSA
+  CURLKHTYPE_DSS)
+
+(define-c-defines "enum curl_khstat"
+  CURLKHSTAT_FINE_ADD_TO_FILE
+  CURLKHSTAT_FINE
+  CURLKHSTAT_REJECT
+  CURLKHSTAT_DEFER
+  CURLKHSTAT_LAST)
+
+(define-c-defines "enum curl_khmatch"
+  CURLKHMATCH_OK
+  CURLKHMATCH_MISMATCH
+  CURLKHMATCH_MISSING
+  CURLKHMATCH_LAST)
+
+(define-c-defines "enum curl_usessl"
+  CURLUSESSL_NONE
+  CURLUSESSL_TRY
+  CURLUSESSL_CONTROL
+  CURLUSESSL_ALL
+  CURLUSESSL_LAST)
+
+(define-c-defines "enum curl_ftpccc"
+  CURLFTPSSL_CCC_NONE
+  CURLFTPSSL_CCC_PASSIVE
+  CURLFTPSSL_CCC_ACTIVE
+  CURLFTPSSL_CCC_LAST)
+
+(define-c-defines "curl_ftpauth"
+  CURLFTPAUTH_DEFAULT
+  CURLFTPAUTH_SSL
+  CURLFTPAUTH_TLS
+  CURLFTPAUTH_LAST)
+
+(define-c-defines "enum curl_ftpcreatedir"
+  CURLFTP_CREATE_DIR_NONE
+  CURLFTP_CREATE_DIR
+  CURLFTP_CREATE_DIR_RETRY
+  CURLFTP_CREATE_DIR_LAST)
+
+(define-c-defines "enum curl_ftpmethod"
+  CURLFTPMETHOD_DEFAULT
+  CURLFTPMETHOD_MULTICWD
+  CURLFTPMETHOD_NOCWD
+  CURLFTPMETHOD_SINGLECWD
+  CURLFTPMETHOD_LAST)
+
+(define-c-defines "CURLPROTO_ defines are for the CURLOPT_*PROTOCOLS options"
+  CURLPROTO_HTTP
+  CURLPROTO_HTTPS
+  CURLPROTO_FTP
+  CURLPROTO_FTPS
+  CURLPROTO_SCP
+  CURLPROTO_SFTP
+  CURLPROTO_TELNET
+  CURLPROTO_LDAP
+  CURLPROTO_LDAPS
+  CURLPROTO_DICT
+  CURLPROTO_FILE
+  CURLPROTO_TFTP
+  CURLPROTO_ALL)
+
+(define-c-defines "enum CURLoption"
+  CURLOPT_FILE
+  CURLOPT_URL
+  CURLOPT_PORT
+  CURLOPT_PROXY
+  CURLOPT_USERPWD
+  CURLOPT_PROXYUSERPWD
+  CURLOPT_RANGE
+  CURLOPT_INFILE
+  CURLOPT_ERRORBUFFER
+  CURLOPT_WRITEFUNCTION
+  CURLOPT_READFUNCTION
+  CURLOPT_TIMEOUT
+  CURLOPT_INFILESIZE
+  CURLOPT_POSTFIELDS
+  CURLOPT_REFERER
+  CURLOPT_FTPPORT
+  CURLOPT_USERAGENT
+  CURLOPT_LOW_SPEED_LIMIT
+  CURLOPT_LOW_SPEED_TIME
+  CURLOPT_RESUME_FROM
+  CURLOPT_COOKIE
+  CURLOPT_HTTPHEADER
+  CURLOPT_HTTPPOST
+  CURLOPT_SSLCERT
+  CURLOPT_KEYPASSWD
+  CURLOPT_CRLF
+  CURLOPT_QUOTE
+  CURLOPT_WRITEHEADER
+  CURLOPT_COOKIEFILE
+  CURLOPT_SSLVERSION
+  CURLOPT_TIMECONDITION
+  CURLOPT_TIMEVALUE
+  CURLOPT_CUSTOMREQUEST
+  CURLOPT_STDERR
+  CURLOPT_POSTQUOTE
+  CURLOPT_WRITEINFO
+  CURLOPT_VERBOSE
+  CURLOPT_HEADER
+  CURLOPT_NOPROGRESS
+  CURLOPT_NOBODY
+  CURLOPT_FAILONERROR
+  CURLOPT_UPLOAD
+  CURLOPT_POST
+  CURLOPT_DIRLISTONLY
+  CURLOPT_APPEND
+  CURLOPT_NETRC
+  CURLOPT_FOLLOWLOCATION
+  CURLOPT_TRANSFERTEXT
+  CURLOPT_PUT
+  CURLOPT_PROGRESSFUNCTION
+  CURLOPT_PROGRESSDATA
+  CURLOPT_AUTOREFERER
+  CURLOPT_PROXYPORT
+  CURLOPT_POSTFIELDSIZE
+  CURLOPT_HTTPPROXYTUNNEL
+  CURLOPT_INTERFACE
+  CURLOPT_KRBLEVEL
+  CURLOPT_SSL_VERIFYPEER
+  CURLOPT_CAINFO
+  CURLOPT_MAXREDIRS
+  CURLOPT_FILETIME
+  CURLOPT_TELNETOPTIONS
+  CURLOPT_MAXCONNECTS
+  CURLOPT_CLOSEPOLICY
+  CURLOPT_FRESH_CONNECT
+  CURLOPT_FORBID_REUSE
+  CURLOPT_RANDOM_FILE
+  CURLOPT_EGDSOCKET
+  CURLOPT_CONNECTTIMEOUT
+  CURLOPT_HEADERFUNCTION
+  CURLOPT_HTTPGET
+  CURLOPT_SSL_VERIFYHOST
+  CURLOPT_COOKIEJAR
+  CURLOPT_SSL_CIPHER_LIST
+  CURLOPT_HTTP_VERSION
+  CURLOPT_FTP_USE_EPSV
+  CURLOPT_SSLCERTTYPE
+  CURLOPT_SSLKEY
+  CURLOPT_SSLKEYTYPE
+  CURLOPT_SSLENGINE
+  CURLOPT_SSLENGINE_DEFAULT
+  CURLOPT_DNS_USE_GLOBAL_CACHE
+  CURLOPT_DNS_CACHE_TIMEOUT
+  CURLOPT_PREQUOTE
+  CURLOPT_DEBUGFUNCTION
+  CURLOPT_DEBUGDATA
+  CURLOPT_COOKIESESSION
+  CURLOPT_CAPATH
+  CURLOPT_BUFFERSIZE
+  CURLOPT_NOSIGNAL
+  CURLOPT_SHARE
+  CURLOPT_PROXYTYPE
+  CURLOPT_ENCODING
+  CURLOPT_PRIVATE
+  CURLOPT_HTTP200ALIASES
+  CURLOPT_UNRESTRICTED_AUTH
+  CURLOPT_FTP_USE_EPRT
+  CURLOPT_HTTPAUTH
+  CURLOPT_SSL_CTX_FUNCTION
+  CURLOPT_SSL_CTX_DATA
+  CURLOPT_FTP_CREATE_MISSING_DIRS
+  CURLOPT_PROXYAUTH
+  CURLOPT_FTP_RESPONSE_TIMEOUT
+  CURLOPT_IPRESOLVE
+  CURLOPT_MAXFILESIZE
+  CURLOPT_INFILESIZE_LARGE
+  CURLOPT_RESUME_FROM_LARGE
+  CURLOPT_MAXFILESIZE_LARGE
+  CURLOPT_NETRC_FILE
+  CURLOPT_USE_SSL
+  CURLOPT_POSTFIELDSIZE_LARGE
+  CURLOPT_TCP_NODELAY
+  CURLOPT_FTPSSLAUTH
+  CURLOPT_IOCTLFUNCTION
+  CURLOPT_IOCTLDATA
+  CURLOPT_FTP_ACCOUNT
+  CURLOPT_COOKIELIST
+  CURLOPT_IGNORE_CONTENT_LENGTH
+  CURLOPT_FTP_SKIP_PASV_IP
+  CURLOPT_FTP_FILEMETHOD
+  CURLOPT_LOCALPORT
+  CURLOPT_LOCALPORTRANGE
+  CURLOPT_CONNECT_ONLY
+  CURLOPT_CONV_FROM_NETWORK_FUNCTION
+  CURLOPT_CONV_TO_NETWORK_FUNCTION
+  CURLOPT_CONV_FROM_UTF8_FUNCTION
+  CURLOPT_MAX_SEND_SPEED_LARGE
+  CURLOPT_MAX_RECV_SPEED_LARGE
+  CURLOPT_FTP_ALTERNATIVE_TO_USER
+  CURLOPT_SOCKOPTFUNCTION
+  CURLOPT_SOCKOPTDATA
+  CURLOPT_SSL_SESSIONID_CACHE
+  CURLOPT_SSH_AUTH_TYPES
+  CURLOPT_SSH_PUBLIC_KEYFILE
+  CURLOPT_SSH_PRIVATE_KEYFILE
+  CURLOPT_FTP_SSL_CCC
+  CURLOPT_TIMEOUT_MS
+  CURLOPT_CONNECTTIMEOUT_MS
+  CURLOPT_HTTP_TRANSFER_DECODING
+  CURLOPT_HTTP_CONTENT_DECODING
+  CURLOPT_NEW_FILE_PERMS
+  CURLOPT_NEW_DIRECTORY_PERMS
+  CURLOPT_POSTREDIR
+  CURLOPT_SSH_HOST_PUBLIC_KEY_MD5
+  CURLOPT_OPENSOCKETFUNCTION
+  CURLOPT_OPENSOCKETDATA
+  CURLOPT_COPYPOSTFIELDS
+  CURLOPT_PROXY_TRANSFER_MODE
+  CURLOPT_SEEKFUNCTION
+  CURLOPT_SEEKDATA
+  CURLOPT_CRLFILE
+  CURLOPT_ISSUERCERT
+  CURLOPT_ADDRESS_SCOPE
+  CURLOPT_CERTINFO
+  CURLOPT_USERNAME
+  CURLOPT_PASSWORD
+  CURLOPT_PROXYUSERNAME
+  CURLOPT_PROXYPASSWORD
+  CURLOPT_NOPROXY
+  CURLOPT_TFTP_BLKSIZE
+  CURLOPT_SOCKS5_GSSAPI_SERVICE
+  CURLOPT_SOCKS5_GSSAPI_NEC
+  CURLOPT_PROTOCOLS
+  CURLOPT_REDIR_PROTOCOLS
+  CURLOPT_SSH_KNOWNHOSTS
+  CURLOPT_SSH_KEYFUNCTION
+  CURLOPT_SSH_KEYDATA
+  CURLOPT_LASTENTRY)
+
+(define-c-defines "enum CURL_NETRC_OPTION"
+  CURL_NETRC_IGNORED
+  CURL_NETRC_OPTIONAL
+  CURL_NETRC_REQUIRED
+  CURL_NETRC_LAST)
+
+(define-c-defines "enum curl_TimeCond"
+  CURL_TIMECOND_NONE
+  CURL_TIMECOND_IFMODSINCE
+  CURL_TIMECOND_IFUNMODSINCE
+  CURL_TIMECOND_LASTMOD
+  CURL_TIMECOND_LAST)
+
+(define-c-defines "enum CURLformoption"
+  CURLFORM_NOTHING
+  CURLFORM_COPYNAME
+  CURLFORM_PTRNAME
+  CURLFORM_NAMELENGTH
+  CURLFORM_COPYCONTENTS
+  CURLFORM_PTRCONTENTS
+  CURLFORM_CONTENTSLENGTH
+  CURLFORM_FILECONTENT
+  CURLFORM_ARRAY
+  CURLFORM_OBSOLETE
+  CURLFORM_FILE
+  CURLFORM_BUFFER
+  CURLFORM_BUFFERPTR
+  CURLFORM_BUFFERLENGTH
+  CURLFORM_CONTENTTYPE
+  CURLFORM_CONTENTHEADER
+  CURLFORM_FILENAME
+  CURLFORM_END
+  CURLFORM_OBSOLETE2
+  CURLFORM_STREAM
+  CURLFORM_LASTENTRY)
+
+(define-c-defines "enum CURLFORMcode"
+  CURL_FORMADD_OK
+  CURL_FORMADD_MEMORY
+  CURL_FORMADD_OPTION_TWICE
+  CURL_FORMADD_NULL
+  CURL_FORMADD_UNKNOWN_OPTION
+  CURL_FORMADD_INCOMPLETE
+  CURL_FORMADD_ILLEGAL_ARRAY
+  CURL_FORMADD_DISABLED
+  CURL_FORMADD_LAST)
+
+(define-c-defines "?"
+  CURLINFO_STRING
+  CURLINFO_LONG
+  CURLINFO_DOUBLE
+  CURLINFO_SLIST
+  CURLINFO_MASK
+  CURLINFO_TYPEMASK)
+
+(define-c-defines "enum CURLINFO"
+  CURLINFO_NONE
+  CURLINFO_EFFECTIVE_URL
+  CURLINFO_RESPONSE_CODE
+  CURLINFO_TOTAL_TIME
+  CURLINFO_NAMELOOKUP_TIME
+  CURLINFO_CONNECT_TIME
+  CURLINFO_PRETRANSFER_TIME
+  CURLINFO_SIZE_UPLOAD
+  CURLINFO_SIZE_DOWNLOAD
+  CURLINFO_SPEED_DOWNLOAD
+  CURLINFO_SPEED_UPLOAD
+  CURLINFO_HEADER_SIZE
+  CURLINFO_REQUEST_SIZE
+  CURLINFO_SSL_VERIFYRESULT
+  CURLINFO_FILETIME
+  CURLINFO_CONTENT_LENGTH_DOWNLOAD
+  CURLINFO_CONTENT_LENGTH_UPLOAD
+  CURLINFO_STARTTRANSFER_TIME
+  CURLINFO_CONTENT_TYPE
+  CURLINFO_REDIRECT_TIME
+  CURLINFO_REDIRECT_COUNT
+  CURLINFO_PRIVATE
+  CURLINFO_HTTP_CONNECTCODE
+  CURLINFO_HTTPAUTH_AVAIL
+  CURLINFO_PROXYAUTH_AVAIL
+  CURLINFO_OS_ERRNO
+  CURLINFO_NUM_CONNECTS
+  CURLINFO_SSL_ENGINES
+  CURLINFO_COOKIELIST
+  CURLINFO_LASTSOCKET
+  CURLINFO_FTP_ENTRY_PATH
+  CURLINFO_REDIRECT_URL
+  CURLINFO_PRIMARY_IP
+  CURLINFO_APPCONNECT_TIME
+  CURLINFO_CERTINFO
+  CURLINFO_CONDITION_UNMET
+  CURLINFO_LASTONE
+
+  CURLINFO_HTTP_CODE)
+
+(define-c-defines "enum curl_closepolicy"
+  CURLCLOSEPOLICY_NONE
+  CURLCLOSEPOLICY_OLDEST
+  CURLCLOSEPOLICY_LEAST_RECENTLY_USED
+  CURLCLOSEPOLICY_LEAST_TRAFFIC
+  CURLCLOSEPOLICY_SLOWEST
+  CURLCLOSEPOLICY_CALLBACK
+  CURLCLOSEPOLICY_LAST)
+
+(define-c-defines "enum curl_lock_data"
+  CURL_LOCK_DATA_NONE
+  CURL_LOCK_DATA_SHARE
+  CURL_LOCK_DATA_COOKIE
+  CURL_LOCK_DATA_DNS
+  CURL_LOCK_DATA_SSL_SESSION
+  CURL_LOCK_DATA_CONNECT
+  CURL_LOCK_DATA_LAST)
+
+(define-c-defines "enum curl_lock_access"
+  CURL_LOCK_ACCESS_NONE
+  CURL_LOCK_ACCESS_SHARED
+  CURL_LOCK_ACCESS_SINGLE
+  CURL_LOCK_ACCESS_LAST)
+
+(define-c-defines "enum CURLSHcode"
+  CURLSHE_OK
+  CURLSHE_BAD_OPTION
+  CURLSHE_IN_USE
+  CURLSHE_INVALID
+  CURLSHE_NOMEM
+  CURLSHE_LAST)
+
+(define-c-defines "enum CURLSHoption"
+  CURLSHOPT_NONE
+  CURLSHOPT_SHARE
+  CURLSHOPT_UNSHARE
+  CURLSHOPT_LOCKFUNC
+  CURLSHOPT_UNLOCKFUNC
+  CURLSHOPT_USERDATA
+  CURLSHOPT_LAST)
+
+(define-c-defines "enum CURLversion"
+  CURLVERSION_FIRST
+  CURLVERSION_SECOND
+  CURLVERSION_THIRD
+  CURLVERSION_FOURTH
+  CURLVERSION_LAST
+
+  CURLVERSION_NOW)
+
+(define-c-defines "version codes"
+  CURL_VERSION_IPV6
+  CURL_VERSION_KERBEROS4
+  CURL_VERSION_SSL
+  CURL_VERSION_LIBZ
+  CURL_VERSION_NTLM
+  CURL_VERSION_GSSNEGOTIATE
+  CURL_VERSION_DEBUG
+  CURL_VERSION_ASYNCHDNS
+  CURL_VERSION_SPNEGO
+  CURL_VERSION_LARGEFILE
+  CURL_VERSION_IDN
+  CURL_VERSION_SSPI
+  CURL_VERSION_CONV
+  CURL_VERSION_CURLDEBUG)
+
+(define-c-defines "enum CURLMcode"
+  CURLM_CALL_MULTI_PERFORM
+  CURLM_OK
+  CURLM_BAD_HANDLE
+  CURLM_BAD_EASY_HANDLE
+  CURLM_OUT_OF_MEMORY
+  CURLM_INTERNAL_ERROR
+  CURLM_BAD_SOCKET
+  CURLM_UNKNOWN_OPTION
+  CURLM_LAST)
+
+(define-c-defines "enum CURLMSG"
+  CURLMSG_NONE
+  CURLMSG_DONE
+  CURLMSG_LAST)
+
+(define-c-defines "enum CURLMoption"
+  CURLMOPT_SOCKETFUNCTION
+  CURLMOPT_SOCKETDATA
+  CURLMOPT_PIPELINING
+  CURLMOPT_TIMERFUNCTION
+  CURLMOPT_TIMERDATA
+  CURLMOPT_MAXCONNECTS
+  CURLMOPT_LASTENTRY)
+
+
+
+;;;; done
+
+(autoconf-lib-write "configuration/curl-inspector.m4" curl-library-spec)
+(sizeof-lib-write   "src/libraries/foreign/net/curl/sizeof.sls.in" curl-library-spec)
+
+;;; end of file
