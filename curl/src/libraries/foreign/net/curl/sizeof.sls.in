@@ -208,6 +208,12 @@
     strideof-CURLMoption
     pointer-set-c-CURLMoption!
     pointer-ref-c-CURLMoption
+    time_t
+    sizeof-time_t
+    alignof-time_t
+    strideof-time_t
+    pointer-set-c-time_t!
+    pointer-ref-c-time_t
     curl_conv_callback
     curl_debug_callback
     curl_formget_callback
@@ -1333,6 +1339,12 @@
   (define
     pointer-ref-c-CURLMoption
     @SETTEROF_CURLMOPTION@)
+  (define time_t '@TYPEOF_TIME_T@)
+  (define sizeof-time_t @SIZEOF_TIME_T@)
+  (define alignof-time_t @ALIGNOF_TIME_T@)
+  (define strideof-time_t @STRIDEOF_TIME_T@)
+  (define pointer-set-c-time_t! @GETTEROF_TIME_T@)
+  (define pointer-ref-c-time_t @SETTEROF_TIME_T@)
   (define curl_conv_callback 'callback)
   (define curl_debug_callback 'callback)
   (define curl_formget_callback 'callback)

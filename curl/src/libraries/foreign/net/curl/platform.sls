@@ -95,9 +95,6 @@
 (define struct-curl_slist*			'pointer)
 (define curl_version_info_data*			'pointer)
 
-;;*FIXME* How do they implement "time_t"?
-(define time_t					'signed-long)
-
 
 ;;;; global initialisation
 

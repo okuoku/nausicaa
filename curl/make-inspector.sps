@@ -66,6 +66,8 @@
 (define-c-type CURLMSG			signed-int)
 (define-c-type CURLMoption		signed-int)
 
+(define-c-type time_t			signed-int)
+
 
 ;;;; type aliases
 

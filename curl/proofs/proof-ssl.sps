@@ -60,6 +60,25 @@
 	  (irregex-match-data? (irregex-search "</html>" out))))
     => #t)
 
+  (check
+      (with-compensations
+	(let* ((handle	(curl-easy-init/c))
+	       (out	"")
+	       (cb	(lambda (buffer item-size item-count)
+			  (let ((len (* item-size item-count)))
+			    (set! out (string-append out (cstring->string buffer len)))
+			    len))))
+	  (curl-easy-setopt handle CURLOPT_URL "https://gna.org/")
+	  (curl-easy-setopt handle CURLOPT_WRITEFUNCTION (curl-make-write-callback cb))
+	  (curl-easy-setopt handle CURLOPT_WRITEDATA pointer-null)
+	  (curl-easy-setopt handle CURLOPT_SSL_VERIFYPEER #f)
+	  (curl-easy-setopt handle CURLOPT_CERTINFO #t)
+	  (curl-easy-perform handle)
+	  (write (curl-easy-getinfo handle CURLINFO_CERTINFO))
+	  (newline)
+	  (irregex-match-data? (irregex-search "</html>" out))))
+    => #t)
+
   #t)
 
 

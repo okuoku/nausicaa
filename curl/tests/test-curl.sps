@@ -113,7 +113,7 @@
   #t)
 
 
-(parametrise ((check-test-name	'easy))
+(parametrise ((check-test-name	'easy-perform))
 
   (check
       (with-compensations
@@ -162,7 +162,14 @@
 	  out))
     => "<html><body><p>proof page</p></body></html>\n")
 
-  (check
+  #t)
+
+
+(parametrise ((check-test-name	'easy-send/recv))
+
+;;; --------------------------------------------------------------------
+
+  (check		;send/recv string
       (with-compensations
 	(let* ((handle	(curl-easy-init/c)))
 	  (curl-easy-setopt handle CURLOPT_URL "http://localhost:8080/")
@@ -170,9 +177,71 @@
 ;;;	  (curl-easy-setopt handle CURLOPT_VERBOSE #t)
 	  (curl-easy-perform handle)
 	  (curl-easy-send handle "GET index.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
-	  (let ((s (curl-easy-recv/string handle 256)))
-	    (irregex-match-data? (irregex-search "<html><body><p>proof page</p></body></html>\n" s)))))
+	  (let loop ()
+	    (let ((s (curl-easy-recv/string handle 256)))
+	      (if (not s)
+		  (loop)
+		(irregex-match-data?
+		 (irregex-search "<html><body><p>proof page</p></body></html>\n" s)))))))
     => #t)
+
+  (check		;send/recv bytevector
+      (with-compensations
+	(let* ((handle	(curl-easy-init/c)))
+	  (curl-easy-setopt handle CURLOPT_URL "http://localhost:8080/")
+	  (curl-easy-setopt handle CURLOPT_CONNECT_ONLY #t)
+;;;	  (curl-easy-setopt handle CURLOPT_VERBOSE #t)
+	  (curl-easy-perform handle)
+	  (curl-easy-send handle (string->utf8 "GET index.html HTTP/1.1\r\nHost: localhost\r\n\r\n"))
+	  (let loop ()
+	    (let ((s (curl-easy-recv/bytevector handle 256)))
+	      (if (not s)
+		  (loop)
+		(irregex-match-data?
+		 (irregex-search "<html><body><p>proof page</p></body></html>\n"
+				 (utf8->string s))))))))
+    => #t)
+
+  (check		;send/recv memblock
+      (with-compensations
+	(let* ((handle	(curl-easy-init/c)))
+	  (curl-easy-setopt handle CURLOPT_URL "http://localhost:8080/")
+	  (curl-easy-setopt handle CURLOPT_CONNECT_ONLY #t)
+;;;	  (curl-easy-setopt handle CURLOPT_VERBOSE #t)
+	  (curl-easy-perform handle)
+	  (curl-easy-send handle
+			  (bytevector->memblock
+			   (string->utf8 "GET index.html HTTP/1.1\r\nHost: localhost\r\n\r\n")
+			   malloc-block/c))
+	  (let loop ()
+	    (let ((s (curl-easy-recv/memblock handle 256)))
+	      (if (not s)
+		  (loop)
+		(irregex-match-data?
+		 (irregex-search "<html><body><p>proof page</p></body></html>\n"
+				 (utf8->string (memblock->bytevector s)))))))))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'easy-getinfo))
+
+  (check
+      (with-compensations
+	(let* ((handle	(curl-easy-init/c))
+	       (out	"")
+	       (cb	(lambda (buffer item-size item-count)
+			  (let ((len (* item-size item-count)))
+			    (set! out (string-append out (cstring->string buffer len)))
+			    len))))
+	  (curl-easy-setopt handle CURLOPT_URL "http://localhost:8080/index.html")
+	  (curl-easy-setopt handle CURLOPT_WRITEFUNCTION (curl-make-write-callback cb))
+	  (curl-easy-setopt handle CURLOPT_WRITEDATA pointer-null)
+	  (curl-easy-perform handle)
+	  (list (curl-easy-getinfo handle CURLINFO_EFFECTIVE_URL)
+		(curl-easy-getinfo handle CURLINFO_RESPONSE_CODE))))
+    => '("http://localhost:8080/index.html" 200))
 
   #t)
 

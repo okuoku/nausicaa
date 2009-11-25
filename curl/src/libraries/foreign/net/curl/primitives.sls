@@ -43,6 +43,7 @@
     curl-easy-setopt			curl-easy-getinfo
     curl-easy-perform			curl-easy-pause
     curl-easy-recv/string		curl-easy-recv/bytevector
+    curl-easy-recv/memblock
     curl-easy-send			curl-easy-strerror
 
     ;; multi session handlers
@@ -118,7 +119,7 @@
 	     (slist*	pointer-null))
     (if (null? strings)
 	slist*
-      (let ((p (curl_slist_append slist* (string->cstring (car strings) primitive-malloc))))
+      (let ((p (curl_slist_append slist* (string->cstring (car strings) malloc))))
 	(if (pointer-null? p)
 	    (begin
 	      (unless (pointer-null? slist*)
@@ -166,8 +167,7 @@
 
 (define (curl-easy-perform easy)
   (let ((code (curl_easy_perform (pointer easy))))
-    (if (= code CURLE_OK)
-	code
+    (unless (= code CURLE_OK)
       (raise (condition (make-curl-easy-action-error-condition)
 			(make-who-condition 'curl-easy-perform)
 			(make-curl-easy-message-condition code)
@@ -176,8 +176,7 @@
 
 (define (curl-easy-pause easy bitmask-set)
   (let ((code (curl_easy_pause (pointer easy) (%curl-pause-set->bitmask bitmask-set))))
-    (if (= code CURLE_OK)
-	code
+    (unless (= code CURLE_OK)
       (raise (condition (make-curl-easy-action-error-condition)
 			(make-who-condition 'curl-easy-pause)
 			(make-curl-easy-message-condition code)
@@ -189,49 +188,76 @@
 
 (define (curl-easy-send easy data)
   (with-compensations
-    (let* ((buffer*	(if (string? data)
-			    (string->cstring/c data)
-			  (bytevector->pointer data malloc/c)))
-	   (size	(if (string? data)
-			    (strlen buffer*)
-			  (bytevector-length data)))
-	   (sent*	(malloc-small/c))
-	   (code	(curl_easy_send (pointer easy) buffer* size sent*)))
-      (if (= code CURLE_OK)
-	  (pointer-ref-c-size_t sent* 0)
-	(raise (condition (make-curl-action-error-condition)
-			  (make-who-condition 'curl-easy-send)
-			  (make-curl-easy-error-code-condition code)
-			  (make-curl-easy-message-condition code)
-			  (make-curl-easy-handle-condition easy)))))))
+    (let-values (((buf.ptr buf.len) (cond ((string? data)
+					   (let ((p (string->cstring/c data)))
+					     (values p (strlen p))))
+					  ((bytevector? data)
+					   (values (bytevector->pointer data malloc-block/c)
+						   (bytevector-length data)))
+					  ((<memblock>? data)
+					   (values (<memblock>-pointer data)
+						   (<memblock>-size data)))
+					  (else
+					   (assertion-violation 'curl-easy-send
+					     "trying to send data of unsupported type" data)))))
+      (let* ((sent-bytes-num*	(malloc-small/c))
+	     (code		(curl_easy_send (pointer easy) buf.ptr buf.len sent-bytes-num*)))
+	(if (= code CURLE_OK)
+	    (pointer-ref-c-size_t sent-bytes-num* 0)
+	  (raise (condition (make-curl-action-error-condition)
+			    (make-who-condition 'curl-easy-send)
+			    (make-curl-easy-error-code-condition code)
+			    (make-curl-easy-message-condition code)
+			    (make-curl-easy-handle-condition easy))))))))
 
 (define (curl-easy-recv/string easy number-of-bytes)
   (with-compensations
-    (let* ((buffer*	(malloc-block/c number-of-bytes))
-	   (recv*	(malloc-small/c))
-	   (code	(curl_easy_recv (pointer easy)
-					buffer* number-of-bytes recv*)))
-      (if (= code CURLE_OK)
-	  (cstring->string buffer* (pointer-ref-c-size_t recv* 0))
-	(raise (condition (make-curl-action-error-condition)
-			  (make-who-condition 'curl-easy-recv/string)
-			  (make-curl-easy-error-code-condition code)
-			  (make-curl-easy-message-condition code)
-			  (make-curl-easy-handle-condition easy)))))))
+    (let* ((buf.ptr		(malloc-block/c number-of-bytes))
+	   (recv-bytes-num*	(malloc-small/c))
+	   (code		(curl_easy_recv (pointer easy) buf.ptr number-of-bytes recv-bytes-num*)))
+      (cond ((= code CURLE_OK)
+	     (cstring->string buf.ptr (pointer-ref-c-size_t recv-bytes-num* 0)))
+	    ((= code CURLE_AGAIN)
+	     #f)
+	    (else
+	     (raise (condition (make-curl-action-error-condition)
+			       (make-who-condition 'curl-easy-recv/string)
+			       (make-curl-easy-error-code-condition code)
+			       (make-curl-easy-message-condition code)
+			       (make-curl-easy-handle-condition easy))))))))
 
 (define (curl-easy-recv/bytevector easy number-of-bytes)
   (with-compensations
-    (let* ((buffer*	(malloc-block/c number-of-bytes))
-	   (recv*	(malloc-small/c))
-	   (code	(curl_easy_recv (pointer easy)
-					buffer* number-of-bytes recv*)))
-      (if (= code CURLE_OK)
-	  (pointer->bytevector buffer* (pointer-ref-c-size_t recv* 0))
-	(raise (condition (make-curl-action-error-condition)
-			  (make-who-condition 'curl-easy-recv/bytevector)
-			  (make-curl-easy-error-code-condition code)
-			  (make-curl-easy-message-condition code)
-			  (make-curl-easy-handle-condition easy)))))))
+    (let* ((buf.ptr		(malloc-block/c number-of-bytes))
+	   (recv-bytes-num*	(malloc-small/c))
+	   (code		(curl_easy_recv (pointer easy) buf.ptr number-of-bytes recv-bytes-num*)))
+      (cond ((= code CURLE_OK)
+	     (pointer->bytevector buf.ptr (pointer-ref-c-size_t recv-bytes-num* 0)))
+	    ((= code CURLE_AGAIN)
+	     #f)
+	    (else
+	     (raise (condition (make-curl-action-error-condition)
+			       (make-who-condition 'curl-easy-recv/bytevector)
+			       (make-curl-easy-error-code-condition code)
+			       (make-curl-easy-message-condition code)
+			       (make-curl-easy-handle-condition easy))))))))
+
+(define (curl-easy-recv/memblock easy number-of-bytes)
+  (with-compensations/on-error
+    (let ((buf.ptr (malloc-block/c number-of-bytes)))
+      (with-compensations
+	(let* ((recv-bytes-num*	(malloc-small/c))
+	       (code		(curl_easy_recv (pointer easy) buf.ptr number-of-bytes recv-bytes-num*)))
+	  (cond ((= code CURLE_OK)
+		 (make-<memblock> buf.ptr (pointer-ref-c-size_t recv-bytes-num* 0)))
+		((= code CURLE_AGAIN)
+		 #f)
+		(else
+		 (raise (condition (make-curl-action-error-condition)
+				   (make-who-condition 'curl-easy-recv/bytevector)
+				   (make-curl-easy-error-code-condition code)
+				   (make-curl-easy-message-condition code)
+				   (make-curl-easy-handle-condition easy))))))))))
 
 
 ;;;; easy options setting
@@ -351,8 +377,7 @@
 			    (else
 			     (assertion-violation 'curl-easy-setopt
 			       "invalid cURL option for easy session handle" easy option value)))))
-	    (if (= code CURLE_OK)
-		code
+	    (unless (= code CURLE_OK)
 	      (raise (condition (make-curl-error-condition)
 				(make-who-condition 'curl-easy-setopt)
 				(make-curl-easy-error-code-condition code)
@@ -429,42 +454,6 @@
 		    (else
 		     (assertion-violation 'curl-easy-getinfo
 		       "invalid cURL option information request" easy option))))))))))
-
-
-;;;; HTTP POST composition
-
-(define curl-formadd
-  (case-lambda
-   ((alist)
-    (curl-formadd alist #f #f))
-   ((alist first* last*)
-    (with-compensations
-      (let* ((len	(length alist))
-	     (first**	(begin0-let ((p (malloc-small/c))) ;already sets memory to zero
-			  (when first* (pointer-set-c-pointer! p 0 first*))))
-	     (last**	(begin0-let ((p (malloc-small/c))) ;already sets memory to zero
-			  (when last*  (pointer-set-c-pointer! p 0 last*))))
-	     (array*	(malloc-block/c (sizeof-curl_forms-array len))))
-	(let fill-array ((i	0)
-			 (alist	alist))
-	  (unless (null? alist)
-	    (let ((p (array-ref-c-curl_forms array* i)))
-	      (struct-curl_forms-option-set! p (caar alist))
-	      (struct-curl_forms-value-set!  p (cdar alist)))
-	    (fill-array (+ 1 i) (cdr alist))))
-	(let* ((first*	(pointer-ref-c-pointer first** 0))
-	       (last*	(pointer-ref-c-pointer last** 0))
-	       (code	(compensate
-			    (curl_formadd_1 first* last* CURLFORM_ARRAY array* CURLFORM_END)
-			  (with
-			   (curl_formfree first*)))))
-	  (if (= code CURLE_OK)
-	      (values first* last*)
-	    (raise (condition (make-curl-error-condition)
-			      (make-who-condition 'curl-formadd)
-			      (make-curl-easy-error-code-condition code)
-			      (make-curl-easy-message-condition code)
-			      (make-irritants-condition alist))))))))))
 
 
 ;;;; multi interface
@@ -587,39 +576,20 @@
 
 (define curl-multi-setopt
   (let (($list-bool	(list CURLMOPT_PIPELINING))
-
 	($list-long	(list CURLMOPT_MAXCONNECTS))
-
-;;;	($list-off_t	(list))
-;;;	($list-string	(list))
-
 	($list-callback	(list CURLMOPT_SOCKETFUNCTION	CURLMOPT_TIMERFUNCTION))
-
 	($list-pointer	(list CURLMOPT_SOCKETDATA	CURLMOPT_TIMERDATA)))
-
     (lambda (multi option value)
       (let ((multi* (pointer multi)))
 	(with-compensations
 	  (let ((code (cond ((memv option $list-callback)
 			     (curl_multi_setopt/callback multi* option value))
-
-;;;		((memv option $list-string)
-;;;		 (curl_multi_setopt/void* multi* option (if value
-;;;		                                            (string->cstring/c value)
-;;;		                                          pointer-null)))
-
 			    ((memv option $list-pointer)
 			     (curl_multi_setopt/void* multi* option value))
-
 			    ((memv option $list-bool)
 			     (curl_multi_setopt/long multi* option (if value 1 0)))
-
 			    ((memv option $list-long)
 			     (curl_multi_setopt/long multi* option value))
-
-;;;		((memv option $list-off_t)
-;;;		 (curl_multi_setopt/off_t multi* option value))
-
 			    (else
 			     (assertion-violation 'curl-multi-setopt
 			       "invalid cURL option for multi session handle" multi option value)))))
@@ -630,6 +600,42 @@
 				(make-curl-multi-error-code-condition code)
 				(make-curl-multi-message-condition code)
 				(make-curl-multi-handle-condition multi))))))))))
+
+
+;;;; HTTP POST composition
+
+(define curl-formadd
+  (case-lambda
+   ((alist)
+    (curl-formadd alist #f #f))
+   ((alist first* last*)
+    (with-compensations
+      (let* ((len	(length alist))
+	     (first**	(begin0-let ((p (malloc-small/c))) ;already sets memory to zero
+			  (when first* (pointer-set-c-pointer! p 0 first*))))
+	     (last**	(begin0-let ((p (malloc-small/c))) ;already sets memory to zero
+			  (when last*  (pointer-set-c-pointer! p 0 last*))))
+	     (array*	(malloc-block/c (sizeof-curl_forms-array len))))
+	(let fill-array ((i	0)
+			 (alist	alist))
+	  (unless (null? alist)
+	    (let ((p (array-ref-c-curl_forms array* i)))
+	      (struct-curl_forms-option-set! p (caar alist))
+	      (struct-curl_forms-value-set!  p (cdar alist)))
+	    (fill-array (+ 1 i) (cdr alist))))
+	(let* ((first*	(pointer-ref-c-pointer first** 0))
+	       (last*	(pointer-ref-c-pointer last** 0))
+	       (code	(compensate
+			    (curl_formadd_1 first* last* CURLFORM_ARRAY array* CURLFORM_END)
+			  (with
+			   (curl_formfree first*)))))
+	  (if (= code CURLE_OK)
+	      (values first* last*)
+	    (raise (condition (make-curl-error-condition)
+			      (make-who-condition 'curl-formadd)
+			      (make-curl-easy-error-code-condition code)
+			      (make-curl-easy-message-condition code)
+			      (make-irritants-condition alist))))))))))
 
 
 ;;;; callback constructors

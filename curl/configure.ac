@@ -45,6 +45,7 @@ AC_CHECK_LIB([curl],[curl_global_init],,[AC_MSG_FAILURE([cannot find cURL librar
 NAUSICAA_SIZEOF
 
 AC_CHECK_HEADER([ioctl.h])
+AC_CHECK_HEADER([time.h])
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -55,6 +56,9 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #include <curl/curl.h>
 #ifdef HAVE_FCNTL_H
 #  include <fcntl.h>
+#endif
+#ifdef HAVE_TIME_H
+#  include <time.h>
 #endif
 ])
 

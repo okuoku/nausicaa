@@ -55,6 +55,7 @@ NAUSICAA_INSPECT_TYPE([CURLVERSION],[CURLversion],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([CURLMCODE],[CURLMcode],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([CURLMSG],[CURLMSG],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([CURLMOPTION],[CURLMoption],[signed-int],[#f])
+NAUSICAA_INSPECT_TYPE([TIME_T],[time_t],[signed-int],[#f])
 
 dnl Struct inspection: curl_httppost
 NAUSICAA_INSPECT_STRUCT_TYPE([CURL_HTTPPOST],[struct curl_httppost],[#f])

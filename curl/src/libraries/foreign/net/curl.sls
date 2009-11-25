@@ -420,8 +420,8 @@ CURLMOPT_LASTENTRY
     curl-easy-cleanup		curl-easy-reset
     curl-easy-setopt		curl-easy-getinfo
     curl-easy-perform		curl-easy-pause
-    curl-easy-send
-    curl-easy-recv/string	curl-easy-recv/bytevector
+    curl-easy-send		curl-easy-recv/string
+    curl-easy-recv/bytevector	curl-easy-recv/memblock
     curl-easy-strerror		curl-share-strerror
     curl-easy-escape		curl-escape
     curl-easy-unescape		curl-unescape

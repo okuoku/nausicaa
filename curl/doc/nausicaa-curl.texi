@@ -450,7 +450,8 @@ License (@gpl{}) and can be downloaded from:
 
 @center @url{http://github.com/marcomaggi/nausicaa/downloads}
 
-The project home page of Nausicaa is at:
+@noindent
+the project home page of Nausicaa is at:
 
 @center @url{http://marcomaggi.github.com/nausicaa.html}
 
@@ -459,7 +460,8 @@ development of Nausicaa takes place at:
 
 @center @url{http://github.com/marcomaggi/nausicaa/tree/master}
 
-@curl{} is available here:
+@noindent
+@curl{} is available at:
 
 @center @url{http://curl.haxx.se/}
 
@@ -468,7 +470,7 @@ Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_E
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the @gnu{} Free Documentation License, Version 1.2 or
+under the terms of the @gnu{} Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with
 Invariant Sections being ``@gnu{} Free Documentation License'' and
 ``@gnu{} General Public License'', no Front--Cover Texts, and no
@@ -523,6 +525,8 @@ entitled ``@gnu{} Free Documentation License''.
 * enumerations::                Enumerations.
 * conditions::                  Condition object types.
 * easy::                        Easy interface.
+* forms::                       Composing forms data.
+* callbacks::                   Preparing callbacks.
 * misc::                        Miscellaneous functions.
 * compensated::                 Compensated constructors.
 * platform::                    Details on the platform library.
@@ -585,9 +589,6 @@ Easy interface
 * easy perform::                Performing the transfer.
 * easy options::                Setting handle's options.
 * easy info::                   Getting informations.
-* easy callbacks::              Preparing callbacks.
-* easy forms::                  Composing forms data.
-* easy misc::                   Miscellaneous functions.
 
 Setting handle's options
 
@@ -610,6 +611,7 @@ Miscellaneous functions
 
 * misc version::                Version informations about @curl{}.
 * misc slist::                  @curl{} linked lists.
+* misc escape::                 Escaping @aurl{}s.
 
 @end detailmenu
 @end menu
@@ -2219,9 +2221,6 @@ net curl primitives} and reexported by @library{foreign net curl}.
 * easy perform::                Performing the transfer.
 * easy options::                Setting handle's options.
 * easy info::                   Getting informations.
-* easy callbacks::              Preparing callbacks.
-* easy forms::                  Composing forms data.
-* easy misc::                   Miscellaneous functions.
 @end menu
 
 @c page
@@ -2273,21 +2272,26 @@ else it can return zero.
 
 
 @defun curl-easy-init
-Build and return a new @curl{} session handle.  @curl{} session handle
-objects are disjoint from the other Scheme object types.
+Build and return a new @curl{} session handle; the returned handle must
+be finalised with @func{curl-easy-cleanup}, else resources leakage will
+ensue.
 
 If @curl{} is not able to initialise a new handle, an exception is
 raised with condition object of type @condition{curl-init-error};
 unfortunately there is no way to distinguish among different causes of
-initialisation error.
+initialisation error (for example @curl{} error or out--of--memory
+error).
+@end defun
 
-The returned handle must be finalised with @func{curl-easy-cleanup},
-else resources leakes will ensue.
+
+@defun curl-easy-handle? @var{obj}
+Return true if @var{obj} is an easy session handle; easy session handle
+objects are disjoint from the other Scheme object types.
 @end defun
 
 
 @defun curl-easy-duphandle @var{handle}
-Duplicate @var{handle}.
+Duplicate @var{handle} behaving like @func{curl-easy-init}.
 @end defun
 
 
@@ -2316,41 +2320,41 @@ Pause the running connection in @var{handle}.
 @end defun
 
 
+The raw send and receive functions can use records of type
+@class{memblock}, @nauref{memory blocks, Memory blocks}.
+
+
 @defun curl-easy-send @var{handle} @var{data}
 Send @var{data} to through the connection represented by @var{handle};
-@var{data} can be a Scheme string or bytevector, the string is converted
-to a C string with @func{string->cstring}.  Return the number of bytes
-actually sent.
+@var{data} can be a Scheme string or bytevector or a record of type
+@class{memblock}; the string is converted to a C string with
+@func{string->cstring}.  Return the number of bytes actually sent.
 @end defun
 
 
 @defun curl-easy-recv/string @var{handle} @var{number-of-bytes}
 @defunx curl-easy-recv/bytevector @var{handle} @var{number-of-bytes}
+@defunx curl-easy-recv/memblock @var{handle} @var{number-of-bytes}
 Read at most @var{number-of-bytes} from the connection represented by
 @var{handle}; the bytes actually read are returned as Scheme string or
-bytevector.  The string is built with @func{cstring->string}.
-@end defun
+bytevector or as record of type @class{memblock}; the string is built
+with @func{cstring->string}.
 
+If the underlying @cfunc{curl_easy_recv} returns @samp{CURLE_AGAIN}, the
+return value is @false{}, .
+@end defun
 
 @c page
 @node easy options
 @section Setting handle's options
 
 
-@curl{} offers countless options to be set with
-@cfunc{curl_easy_setopt}; the primitives library provides a special
-interface for some of them, implementing marshaling of arguments from
-Scheme to C language.
-
-
 @defun curl-easy-setopt @var{handle} @var{option} @var{value}
 Select an option's value for the session @var{handle}.  @var{option}
-must be an exact integer among the @samp{CURLOPT_*} values; @var{value}
-must be an appropriate value for the selected option.
-
-@func{curl-easy-setopt} recognises the value of @var{option} and does
-the appropriate marshaling of @var{value} for the underlying
-@cfunc{curl_easy_setopt} function.
+must be an exact integer among the @samp{CURLOPT_*} constants;
+@var{value} must be an appropriate value for the selected option.
+@var{option} is recognised and the appropriate marshaling of @var{value}
+is performed.
 
 Notice that:
 
@@ -2366,8 +2370,9 @@ allowed for a platform's @code{long int} data type.
 
 @item
 When this documentation states that @var{value} must be a boolean, any
-value is accepted with the usual truth value of Schem values; internally
-true is converted to @samp{1} and @false{} is converted to @samp{0}.
+value is accepted with the usual truth value of Scheme objects;
+internally true is converted to @samp{1} and @false{} is converted to
+@samp{0}.
 @end itemize
 @end defun
 
@@ -3370,7 +3375,7 @@ linked list.
 
 @defun curl-easy-getinfo @var{handle} @var{option}
 Exctract informations on the state of @var{handle}; @var{option} must be
-an exact integer among the ones to the @code{CURLINFO_*} constants.
+an exact integer among the @samp{CURLINFO_*} constants.
 
 The returned value depends upon the selected option, see the original
 @curl{} documentation.  It can be:
@@ -3397,8 +3402,8 @@ certificate; the length of the list is the number of certificates.
 @end defun
 
 @c page
-@node easy callbacks
-@section Preparing callbacks
+@node callbacks
+@chapter Preparing callbacks
 
 
 For details on the expected behaviour of the callback functions see the
@@ -3617,8 +3622,8 @@ Prepare a callback C function to be used as value for the
 @end defun
 
 @c page
-@node easy forms
-@section Composing forms data
+@node forms
+@chapter Composing forms data
 
 
 The @samp{CURLOPT_HTTPPOST} option to @func{curl-easy-setopt} allows us
@@ -3653,26 +3658,6 @@ automatically, internally, converted to a C string with
 @func{string->cstring} from @library{foreign cstrings}.
 @end defun
 
-
-
-
-@c page
-@node easy misc
-@section Miscellaneous functions
-
-
-@defun curl-easy-escape @var{handle} @var{url}
-Convert the Scheme string @var{url} to an @aurl{} encoded Scheme string;
-return the new string.
-@end defun
-
-
-@defun curl-easy-unescape @var{handle} @var{url}
-Convert an @aurl{} encoded Scheme string @var{url} to an ordinary Scheme
-string; return the new string.
-@end defun
-
-
 @c page
 @node misc
 @chapter Miscellaneous functions
@@ -3684,6 +3669,7 @@ net curl primitives} and reexported by @library{foreign net curl}.
 @menu
 * misc version::                Version informations about @curl{}.
 * misc slist::                  @curl{} linked lists.
+* misc escape::                 Escaping @aurl{}s.
 @end menu
 
 @c page
@@ -3717,10 +3703,26 @@ Libraries version informations}.
 Convert a list of Scheme strings into a linked list of @code{struct
 curl_slist} structures; return a pointer object to the first node of the
 list.  The strings are converted to C strings using
-@func{string->cstring}, and memory is allocated with
-@func{primitive-malloc} from @library{foreign memory alloc}.
+@func{string->cstring}, and memory is allocated with @func{malloc} from
+@library{foreign memory alloc}.
 @end defun
 
+
+@c page
+@node misc escape
+@section Escaping @aurl{}s
+
+
+@defun curl-easy-escape @var{handle} @var{url}
+Convert the Scheme string @var{url} to an @aurl{} encoded Scheme string;
+return the new string.
+@end defun
+
+
+@defun curl-easy-unescape @var{handle} @var{url}
+Convert an @aurl{} encoded Scheme string @var{url} to an ordinary Scheme
+string; return the new string.
+@end defun
 
 @c page
 @node compensated
