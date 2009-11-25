@@ -418,6 +418,8 @@ dnl --------------------------------------------------------------------
 dnl C language basic tests.
 dnl --------------------------------------------------------------------
 
+m4_define([NAUSICAA_CUSTOM_INCLUDES],)
+
 m4_define([NAUSICAA_INCLUDES_DEFAULT],[AC_INCLUDES_DEFAULT
 #ifdef HAVE_ERRNO_H
 #  include <errno.h>
@@ -437,6 +439,7 @@ m4_define([NAUSICAA_INCLUDES_DEFAULT],[AC_INCLUDES_DEFAULT
 #ifdef HAVE_UNISTD_H
 #  include <unistd.h>
 #endif
+NAUSICAA_CUSTOM_INCLUDES
 $1
 ])
 
@@ -455,6 +458,16 @@ AC_DEFUN([NAUSICAA_VALUEOF_TEST],
            [nausicaa_cv_valueof_$1="$nausicaa_default_valueof_$1"])])
       VALUEOF_$1="$nausicaa_cv_valueof_$1"],[#f])
    AC_SUBST([VALUEOF_$1])])
+
+dnl 1 output-variable-suffix/enum name
+dnl 2 optional headers
+AC_DEFUN([NAUSICAA_ENUM_VALUE],
+  [NAUSICAA_VALUEOF_TEST([$1],[$1],,[$2])])
+
+dnl 1 output-variable-suffix/define name
+dnl 2 optional headers
+AC_DEFUN([NAUSICAA_DEFINE_VALUE],
+  [NAUSICAA_VALUEOF_TEST([$1],[$1],,[$2])])
 
 dnl 1 output-variable-suffix
 dnl 2 the-typedef

@@ -2653,9 +2653,10 @@ AC_INCLUDES_DEFAULT
 @end example
 
 @noindent
-and additionally the optional @var{headers} are included.
-@samp{AC_INCLUDES_DEFAULT} is defined by Autoconf.  @autoconfref{Default
-Includes,Default Includes}
+and additionally: the current value of the
+@samp{NAUSICAA_CUSTOM_INCLUDES} macro is appended along with the
+optional @var{headers}.  @samp{AC_INCLUDES_DEFAULT} is defined by
+Autoconf.  @autoconfref{Default Includes,Default Includes}
 
 For example, it can be used as third argument for @samp{AC_COMPUTE_INT},
 without arguments:
@@ -2672,6 +2673,30 @@ or with arguments:
 AC_COMPUTE_INT([SIZEOF_MPFR],[sizeof(mpfr_t)],
   NAUSICAA_INCLUDES_DEFAULT([#include <gmp.h>
 #include <mpfr.h>])
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_CUSTOM_INCLUDES
+Appended to the expansion of @coode{NAUSICAA_INCLUDES_DEFAULT}; by
+default defined to the empty string, it is meant to be redefined in the
+@file{configure.ac} template file.
+
+For example an extension for the cURL library can do:
+
+@example
+m4_define([NAUSICAA_CUSTOM_INCLUDES],[
+#include <curl/curl.h>
+])
+@end example
+
+@noindent
+while an extension for the Zlib library can do:
+
+@example
+m4_define([NAUSICAA_CUSTOM_INCLUDES],[
+#include <zlib.h>
+])
 @end example
 @end deffn
 
@@ -2723,6 +2748,24 @@ If the test fails: The value of the output variable will be
 The optional @var{headers} must be a chunk of code including header
 files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
 included in the test program.
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_ENUM_VALUE @var{symbol} @var{headers}
+Wrapper for @code{NAUSICAA_VALUEOF_TEST} which expands to:
+
+@example
+NAUSICAA_VALUEOF_TEST([@var{symbol}],[@var{symbol}],,[@var{headers}])
+@end example
+@end deffn
+
+
+@deffn {Autoconf Macro} NAUSICAA_DEFINE_VALUE @var{symbol} @var{headers}
+Wrapper for @code{NAUSICAA_VALUEOF_TEST} which expands to:
+
+@example
+NAUSICAA_VALUEOF_TEST([@var{symbol}],[@var{symbol}],,[@var{headers}])
+@end example
 @end deffn
 
 @c page
