@@ -2678,7 +2678,7 @@ AC_COMPUTE_INT([SIZEOF_MPFR],[sizeof(mpfr_t)],
 
 
 @deffn {Autoconf Macro} NAUSICAA_CUSTOM_INCLUDES
-Appended to the expansion of @coode{NAUSICAA_INCLUDES_DEFAULT}; by
+Appended to the expansion of @code{NAUSICAA_INCLUDES_DEFAULT}; by
 default defined to the empty string, it is meant to be redefined in the
 @file{configure.ac} template file.
 
