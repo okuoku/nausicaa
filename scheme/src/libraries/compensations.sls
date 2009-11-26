@@ -67,9 +67,9 @@
 	     (run-compensations)
 	     (raise-continuable exc))
 	 (lambda ()
-	   (let ((result (begin ?form0 ?form ...)))
-	     (run-compensations)
-	     result)))))))
+	   (begin0
+	       (begin ?form0 ?form ...)
+	     (run-compensations))))))))
 
 ;; (define-syntax with-compensations
 ;;   (syntax-rules ()
