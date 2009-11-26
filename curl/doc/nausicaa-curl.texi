@@ -524,7 +524,8 @@ entitled ``@gnu{} Free Documentation License''.
 * records::                     Record types.
 * enumerations::                Enumerations.
 * conditions::                  Condition object types.
-* easy::                        Easy interface.
+* easy::                        Easy session interface.
+* multi::                       Multi session interface.
 * forms::                       Composing forms data.
 * callbacks::                   Preparing callbacks.
 * misc::                        Miscellaneous functions.
@@ -549,15 +550,16 @@ Indexes
 
 Record types
 
-* records handle::              @curl{} session handlers.
+* records handler::              @curl{} session handlers.
 * records shared::              @curl{} shared objects.
+* records message::             Easy handlers informations.
 * records version info::        Libraries version informations.
 
 @curl{} session handlers
 
-* records handle base::         Base handle type.
-* records handle easy::         Easy handle type.
-* records handle multi::        Multi handle type.
+* records handler base::         Base handler type.
+* records handler easy::         Easy handler type.
+* records handler multi::        Multi handler type.
 
 Enumerations
 
@@ -571,8 +573,8 @@ Condition object types
 
 Condition types for data values
 
-* conditions data easy::        @curl{} easy handle objects.
-* conditions data multi::       @curl{} multi handle objects.
+* conditions data easy::        @curl{} easy handler objects.
+* conditions data multi::       @curl{} multi handler objects.
 * conditions data sockfd::      Socket file descriptor objects.
 * conditions data shared::      Shared object objects.
 * conditions data code::        @curl{} error code objects.
@@ -582,15 +584,15 @@ Error condition types and utilities
 * conditions error tag::        Tagging error condition objects.
 * conditions error utils::      Utility functions.
 
-Easy interface
+Easy session interface
 
 * easy intro::                  Introduction to the easy interface.
-* easy init::                   Session handle construction.
+* easy init::                   Session handler construction.
 * easy perform::                Performing the transfer.
-* easy options::                Setting handle's options.
+* easy options::                Setting handler's options.
 * easy info::                   Getting informations.
 
-Setting handle's options
+Setting handler's options
 
 * easy options behaviour::      Behaviour options.
 * easy options callback::       Callback related options.
@@ -606,6 +608,14 @@ Setting handle's options
 * easy options ssh::            @ssh{} options.
 * easy options telnet::         Telnet options.
 * easy options other::          Other options.
+
+Multi session interface
+
+* multi init::                  Initialisation and finalisation.
+* multi register::              Easy session handlers registration.
+* multi socket::                Socket operations.
+* multi options::               Setting options.
+* multi aux::                   Auxiliary operations.
 
 Miscellaneous functions
 
@@ -1578,29 +1588,30 @@ Field accessors for the @code{struct CURLMsg} data type.
 The bindings described in this chapter are exported by the
 @library{foreign net curl record-types} library and, unless otherwise
 specified, they are @strong{not} reexported by @library{foreign net
-curl}; the fact that @curl{} handle objects are records is kept hidden
+curl}; the fact that @curl{} handler objects are records is kept hidden
 from the client code.
 
 @menu
-* records handle::              @curl{} session handlers.
+* records handler::              @curl{} session handlers.
 * records shared::              @curl{} shared objects.
+* records message::             Easy handlers informations.
 * records version info::        Libraries version informations.
 @end menu
 
 @c page
-@node records handle
+@node records handler
 @section @curl{} session handlers
 
 
 @menu
-* records handle base::         Base handle type.
-* records handle easy::         Easy handle type.
-* records handle multi::        Multi handle type.
+* records handler base::         Base handler type.
+* records handler easy::         Easy handler type.
+* records handler multi::        Multi handler type.
 @end menu
 
 @c page
-@node records handle base
-@subsection Base handle type
+@node records handler base
+@subsection Base handler type
 
 
 @deftp {Record Type Name} <curl-handle>
@@ -1628,8 +1639,8 @@ Accessor for the @code{pointer} field of records of type
 @end defun
 
 @c page
-@node records handle easy
-@subsection Easy handle type
+@node records handler easy
+@subsection Easy handler type
 
 
 @deftp {Record Type Name} <curl-easy-handle>
@@ -1645,9 +1656,23 @@ fields.
 Constructor and predicate for records of type @class{curl-easy-handle}.
 @end defun
 
+
+@defun curl-easy-handle-eqv? @var{a} @var{b}
+Return true if the arguments are records of type
+@class{curl-easy-handle} and the @curl{} easy session they reference is
+the same.
+@end defun
+
+
+@defun curl-easy-handle-memv @var{obj} @var{ell}
+Return true if @var{obj} is a record of type @class{curl-easy-handle}
+and a record of type @class{curl-easy-handle} referencing the same easy
+session is present in the list @var{ell}.
+@end defun
+
 @c page
-@node records handle multi
-@subsection Multi handle type
+@node records handler multi
+@subsection Multi handler type
 
 
 @deftp {Record Type Name} <curl-multi-handle>
@@ -1690,6 +1715,47 @@ Constructor and predicate for records of type @class{curl-shared-object}.
 @defun <curl-shared-object>-pointer @var{record}
 Accessor for the @code{pointer} field of records of type
 @class{curl-shared-object}.
+@end defun
+
+@c page
+@node records message
+@section Easy handlers informations
+
+
+The following bindings are reexported by the @library{foreign net curl}
+library.
+
+
+@deftp {Record Type Name} <curl-message>
+@deftpx {Record Type Descriptor} <curl-message-rtd>
+Record type to be used as mirror of data structure of type @code{struct
+CURLMsg}.  It has the following fields:
+
+@table @code
+@item handle
+The easy session handler object this record is about.
+
+@item code
+Scheme symbol representing the status of the easy handler; currently it
+can only be @samp{DONE}.
+
+@item result
+A @code{CURLcode} integer representing the result of the last transfer
+operation for the handler.
+@end table
+@end deftp
+
+
+@defun make-<curl-message> @var{handle} @var{code} @var{result}
+@defunx <curl-message>? @var{obj}
+Constructor and predicate for records of type @class{curl-message}.
+@end defun
+
+
+@defun <curl-message>-handle @var{record}
+@defunx <curl-message>-code @var{record}
+@defunx <curl-message>-result @var{record}
+Accessors for the fields records of type @class{curl-message}.
 @end defun
 
 @c page
@@ -1891,8 +1957,8 @@ Condition types described in this section can be used to store specific
 values in compound condition objects.
 
 @menu
-* conditions data easy::        @curl{} easy handle objects.
-* conditions data multi::       @curl{} multi handle objects.
+* conditions data easy::        @curl{} easy handler objects.
+* conditions data multi::       @curl{} multi handler objects.
 * conditions data sockfd::      Socket file descriptor objects.
 * conditions data shared::      Shared object objects.
 * conditions data code::        @curl{} error code objects.
@@ -1900,17 +1966,17 @@ values in compound condition objects.
 
 @c page
 @node conditions data easy
-@subsection @curl{} easy handle objects
+@subsection @curl{} easy handler objects
 
 
 @deftp {Condition Type} &curl-easy-handle
-Condition type representing a @curl{} easy session handle involved in an
-exception; it is derived from @condition{condition}.  It has the
+Condition type representing a @curl{} easy session handler involved in
+an exception; it is derived from @condition{condition}.  It has the
 following fields:
 
 @table @code
 @item handle
-Holds an easy session handle object.
+Holds an easy session handler object.
 @end table
 @end deftp
 
@@ -1929,17 +1995,17 @@ Accessor for the @code{handle} field of condition objects of type
 
 @c page
 @node conditions data multi
-@subsection @curl{} multi handle objects
+@subsection @curl{} multi handler objects
 
 
 @deftp {Condition Type} &curl-multi-handle
-Condition type representing a @curl{} multi session handle involved in
+Condition type representing a @curl{} multi session handler involved in
 an exception; it is derived from @condition{condition}.  It has the
 following fields:
 
 @table @code
 @item handle
-Holds a multi session handle object.
+Holds a multi session handler object.
 @end table
 @end deftp
 
@@ -1963,7 +2029,7 @@ Accessor for the @code{handle} field of condition objects of type
 
 @deftp {Condition Type} &curl-sockfd
 Condition type representing a socket file descriptor (embedded in a
-@curl{} easy handle) involved in an exception; it is derived from
+@curl{} easy handler) involved in an exception; it is derived from
 @condition{condition}.  It has the following fields:
 
 @table @code
@@ -2209,7 +2275,7 @@ The message is retrieved with @func{curl_easy_strerror},
 
 @c page
 @node easy
-@chapter Easy interface
+@chapter Easy session interface
 
 
 The bindings documented in this chapter are exported by @library{foreign
@@ -2217,9 +2283,9 @@ net curl primitives} and reexported by @library{foreign net curl}.
 
 @menu
 * easy intro::                  Introduction to the easy interface.
-* easy init::                   Session handle construction.
+* easy init::                   Session handler construction.
 * easy perform::                Performing the transfer.
-* easy options::                Setting handle's options.
+* easy options::                Setting handler's options.
 * easy info::                   Getting informations.
 @end menu
 
@@ -2268,15 +2334,15 @@ else it can return zero.
 
 @c page
 @node easy init
-@section Session handle construction
+@section Session handler construction
 
 
 @defun curl-easy-init
-Build and return a new @curl{} session handle; the returned handle must
-be finalised with @func{curl-easy-cleanup}, else resources leakage will
-ensue.
+Build and return a new @curl{} session handler; the returned handler
+must be finalised with @func{curl-easy-cleanup}, else resources leakage
+will ensue.
 
-If @curl{} is not able to initialise a new handle, an exception is
+If @curl{} is not able to initialise a new handler, an exception is
 raised with condition object of type @condition{curl-init-error};
 unfortunately there is no way to distinguish among different causes of
 initialisation error (for example @curl{} error or out--of--memory
@@ -2285,24 +2351,24 @@ error).
 
 
 @defun curl-easy-handle? @var{obj}
-Return true if @var{obj} is an easy session handle; easy session handle
-objects are disjoint from the other Scheme object types.
+Return true if @var{obj} is an easy session handler; easy session
+handler objects are disjoint from the other Scheme object types.
 @end defun
 
 
-@defun curl-easy-duphandle @var{handle}
-Duplicate @var{handle} behaving like @func{curl-easy-init}.
+@defun curl-easy-duphandle @var{easy}
+Duplicate @var{easy} behaving like @func{curl-easy-init}.
 @end defun
 
 
-@defun curl-easy-cleanup @var{handle}
-Finalise a @curl{} session handle, releasing all the associated
+@defun curl-easy-cleanup @var{easy}
+Finalise a @curl{} session handler, releasing all the associated
 resources.
 @end defun
 
 
-@defun curl-easy-reset @var{handle}
-Reset to its initial state a @curl{} session handle.
+@defun curl-easy-reset @var{easy}
+Reset to its initial state a @curl{} session handler.
 @end defun
 
 @c page
@@ -2310,13 +2376,13 @@ Reset to its initial state a @curl{} session handle.
 @section Performing the transfer
 
 
-@defun curl-easy-perform @var{handle}
+@defun curl-easy-perform @var{easy}
 Perform the requested transfer.
 @end defun
 
 
-@defun curl-easy-pause @var{handle} @var{bitmask}
-Pause the running connection in @var{handle}.
+@defun curl-easy-pause @var{easy} @var{bitmask}
+Pause the running connection in @var{easy}.
 @end defun
 
 
@@ -2324,19 +2390,19 @@ The raw send and receive functions can use records of type
 @class{memblock}, @nauref{memory blocks, Memory blocks}.
 
 
-@defun curl-easy-send @var{handle} @var{data}
-Send @var{data} to through the connection represented by @var{handle};
+@defun curl-easy-send @var{easy} @var{data}
+Send @var{data} to through the connection represented by @var{easy};
 @var{data} can be a Scheme string or bytevector or a record of type
 @class{memblock}; the string is converted to a C string with
 @func{string->cstring}.  Return the number of bytes actually sent.
 @end defun
 
 
-@defun curl-easy-recv/string @var{handle} @var{number-of-bytes}
-@defunx curl-easy-recv/bytevector @var{handle} @var{number-of-bytes}
-@defunx curl-easy-recv/memblock @var{handle} @var{number-of-bytes}
+@defun curl-easy-recv/string @var{easy} @var{number-of-bytes}
+@defunx curl-easy-recv/bytevector @var{easy} @var{number-of-bytes}
+@defunx curl-easy-recv/memblock @var{easy} @var{number-of-bytes}
 Read at most @var{number-of-bytes} from the connection represented by
-@var{handle}; the bytes actually read are returned as Scheme string or
+@var{easy}; the bytes actually read are returned as Scheme string or
 bytevector or as record of type @class{memblock}; the string is built
 with @func{cstring->string}.
 
@@ -2346,15 +2412,14 @@ return value is @false{}, .
 
 @c page
 @node easy options
-@section Setting handle's options
+@section Setting handler's options
 
 
-@defun curl-easy-setopt @var{handle} @var{option} @var{value}
-Select an option's value for the session @var{handle}.  @var{option}
-must be an exact integer among the @samp{CURLOPT_*} constants;
-@var{value} must be an appropriate value for the selected option.
-@var{option} is recognised and the appropriate marshaling of @var{value}
-is performed.
+@defun curl-easy-setopt @var{easy} @var{option} @var{value}
+Select an option's value for the session @var{easy}.  @var{option} must
+be an exact integer among the @samp{CURLOPT_*} constants; @var{value}
+must be an appropriate value for the selected option.  @var{option} is
+recognised and the appropriate marshaling of @var{value} is performed.
 
 Notice that:
 
@@ -3355,7 +3420,7 @@ linked list.
 
 
 @defvr {@curl{} Option} CURLOPT_SHARE
-@var{value} must be a pointer object, referencing a share handle.
+@var{value} must be a pointer object, referencing a share handler.
 @end defvr
 
 
@@ -3373,8 +3438,8 @@ linked list.
 @section Getting informations
 
 
-@defun curl-easy-getinfo @var{handle} @var{option}
-Exctract informations on the state of @var{handle}; @var{option} must be
+@defun curl-easy-getinfo @var{easy} @var{option}
+Exctract informations on the state of @var{easy}; @var{option} must be
 an exact integer among the @samp{CURLINFO_*} constants.
 
 The returned value depends upon the selected option, see the original
@@ -3457,7 +3522,7 @@ Prepare a callback C function to be used as value for the
 @end example
 
 The first argument to @var{scheme-function} is the @curl{} session
-handle; the second argument is one of the @samp{CURLIOCMD_*} constants;
+handler; the second argument is one of the @samp{CURLIOCMD_*} constants;
 the third argument is the pointer previously set with the
 @samp{CURLOPT_IOCTLDATA} option.
 
@@ -3622,6 +3687,203 @@ Prepare a callback C function to be used as value for the
 @end defun
 
 @c page
+@node multi
+@chapter Multi session interface
+
+
+The bindings documented in this chapter are exported by @library{foreign
+net curl primitives} and reexported by @library{foreign net curl}.  The
+multi @api{} allows us to manage many easy sessions through a single
+handler.
+
+@menu
+* multi init::                  Initialisation and finalisation.
+* multi register::              Easy session handlers registration.
+* multi socket::                Socket operations.
+* multi options::               Setting options.
+* multi aux::                   Auxiliary operations.
+@end menu
+
+@c page
+@node multi init
+@section Initialisation and finalisation
+
+
+@defun curl-multi-init
+Build and return a new @curl{} multi session handler; the returned
+handler must be finalised with @func{curl-multi-cleanup}, else resources
+leakage will ensue.
+
+If @curl{} is not able to initialise a new handler, an exception is
+raised with condition object of type @condition{curl-init-error};
+unfortunately there is no way to distinguish among different causes of
+initialisation error (for example @curl{} error or out--of--memory
+error).
+@end defun
+
+
+@defun curl-multi-handle? @var{obj}
+Return true if @var{obj} is an multi session handler; multi session
+handler objects are disjoint from the other Scheme object types.
+@end defun
+
+
+@defun curl-multi-cleanup @var{multi}
+Release all the resources associated with the @var{multi} session
+handler.  The easy session handler registered are @strong{not} finalised
+by this function.
+@end defun
+
+@c page
+@node multi register
+@section Easy session handlers registration
+
+
+@defun curl-multi-add-handle @var{multi} @var{easy}
+Register the @var{easy} session handler into the @var{multi} session
+handler; if multiple attempts to register @var{easy} in @var{multi} are
+performed, the registration is completed only the first time, the other
+times it fails silently with no error.  @curl{} initiates the connection
+for @var{easy}.
+@end defun
+
+
+@defun curl-multi-remove-handle @var{multi} @var{easy}
+Unregister the @var{easy} session handler from the @var{multi} session
+handler.  Nothing happens if @var{easy} was not registered in
+@var{multi}.
+@end defun
+
+
+@defun curl-multi-remove-handle/all @var{multi}
+Remove all the easy session handlers registered in @var{multi}.
+@end defun
+
+
+@defun curl-multi-registered-handlers @var{multi}
+Return the list of easy session handlers registered in @var{multi}.
+@end defun
+
+@c page
+@node multi socket
+@section Socket operations
+
+
+@defun curl-multi-perform @var{multi}
+Perform network operations for the easy session handlers registered in
+@var{multi}.  Return two values: the return code from
+@func{curl_multi_perform} and the number of easy handlers still running;
+when the return code is @samp{CURLM_CALL_MULTI_PERFORM} we should repeat
+the function call.
+@end defun
+
+
+@defun curl-multi-info-read @var{multi}
+Query the state of the @var{multi} session handler for informations
+about the registered easy handlers.  Return a list of records of type
+@class{curl-message}, one record for each easy handler whose state
+changed.  @ref{records message, Easy handlers informations}.
+@end defun
+
+
+@defun curl-multi-fdset @var{multi} @var{read-fdset} @var{write-fdset} @var{exc-fdset}
+Extracts file descriptor informations from a @var{multi} handler.
+@var{read-fdset}, @var{write-fdset} and @var{exc-fdset} must be pointer
+objects referencing values of type @code{fd_set}.  Return the higher
+file descriptor number stored in the sets; if no descriptors where
+extracted, the return value is @samp{-1}.
+
+This function is meant to prepare what is needed to call @cfunc{select}
+upon the @curl{} file descriptors.
+@end defun
+
+
+@defun curl-multi-socket-action @var{multi} @var{sockfd} @var{event-bitmask}
+Perform socket operations on @var{sockfd} descriptor from the
+@var{multi} session handler; @var{event-bitmask} selects the events for
+which action should be taken.  Return two values: the return code from
+@func{curl_multi_socket_function} and the number of easy handlers still
+running; when the return code is @samp{CURLM_CALL_MULTI_PERFORM}, the
+function invocation should be repeated.
+
+This function is meant to perform socket operations after a call to
+@cfunc{select} on the @curl{} file descriptors.
+@end defun
+
+@c page
+@node multi options
+@section Setting options
+
+
+@defun curl-multi-setopt @var{multi} @var{option} @var{value}
+Select an option's value for the session @var{multi}.  @var{option} must
+be an exact integer among the @samp{CURLMOPT_*} constants; @var{value}
+must be an appropriate value for the selected option.  @var{option} is
+recognised and the appropriate marshaling of @var{value} is performed.
+
+Notice that:
+
+@itemize
+@item
+When this documentation states that @var{value} must be an exact
+integer, with no further specifications, the value must fit in the range
+allowed for a platform's @code{long int} data type.
+
+@item
+When this documentation states that @var{value} must be a boolean, any
+value is accepted with the usual truth value of Scheme objects;
+internally true is converted to @samp{1} and @false{} is converted to
+@samp{0}.
+@end itemize
+@end defun
+
+
+@defvr {@curl{} Option} CURLMOPT_SOCKETFUNCTION
+@var{value} must be a callback function.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLMOPT_SOCKETDATA
+@var{value} must be a pointer object.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLMOPT_PIPELINING
+@var{value} must be a boolean.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLMOPT_TIMERFUNCTION
+@var{value} must be a callback function.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLMOPT_TIMERDATA
+@var{value} must be a pointer object.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLMOPT_MAXCONNECTS
+@var{value} must be an exact integer.
+@end defvr
+
+@c page
+@node multi aux
+@section Auxiliary operations
+
+
+@defun curl-multi-timeout @var{multi}
+Return the number of milliseconds to wait before proceeding with sockets
+operations on the @var{multi} handler.
+@end defun
+
+
+@defun curl-multi-assign @var{multi} @var{sockfd} @var{custom-pointer}
+Associate the pointer object @var{custom-pointer} to the socket file
+descriptor @var{sockfd} in the @var{multi} session handle.
+@end defun
+
+@c page
 @node forms
 @chapter Composing forms data
 
@@ -3738,7 +4000,7 @@ stacks}.
 @defun curl-easy-init/c
 Wrapper for @func{curl-easy-init} which registers in the current
 compensation stack the appropriate call to @func{curl-easy-cleanup} to
-destroy the handle.
+destroy the handler.
 @end defun
 
 

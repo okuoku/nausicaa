@@ -410,71 +410,78 @@ CURLMOPT_LASTENTRY
 
 ;;;; functions
 
-    curl-global-init		curl-global-init-mem
-    curl-global-cleanup
+curl-global-init		curl-global-init-mem
+curl-global-cleanup
 
-    curl-version		curl-version-info
+curl-version			curl-version-info
 
-    curl-easy-handle?
-    curl-easy-init		curl-easy-duphandle
-    curl-easy-cleanup		curl-easy-reset
-    curl-easy-setopt		curl-easy-getinfo
-    curl-easy-perform		curl-easy-pause
-    curl-easy-send		curl-easy-recv/string
-    curl-easy-recv/bytevector	curl-easy-recv/memblock
-    curl-easy-strerror		curl-share-strerror
-    curl-easy-escape		curl-escape
-    curl-easy-unescape		curl-unescape
+curl-easy-handle?
+curl-easy-init			curl-easy-duphandle
+curl-easy-cleanup		curl-easy-reset
+curl-easy-setopt		curl-easy-getinfo
+curl-easy-perform		curl-easy-pause
+curl-easy-send			curl-easy-recv/string
+curl-easy-recv/bytevector	curl-easy-recv/memblock
+curl-easy-strerror		curl-share-strerror
+curl-easy-escape		curl-escape
+curl-easy-unescape		curl-unescape
 
-    curl-multi-handle?
-    curl-multi-init		curl-multi-cleanup
-    curl-multi-add-handle	curl-multi-remove-handle
-    curl-multi-fdset		curl-multi-perform
-    curl-multi-info-read
-    curl-multi-socket-action	curl-multi-setopt
-    curl-multi-timeout		curl-multi-assign
-    curl-multi-strerror
+curl-multi-handle?
+curl-multi-init			curl-multi-cleanup
+curl-multi-add-handle		curl-multi-remove-handle
+curl-multi-remove-handle/all	curl-multi-registered-handlers
+curl-multi-fdset		curl-multi-perform
+curl-multi-info-read
+curl-multi-socket-action	curl-multi-setopt
+curl-multi-timeout		curl-multi-assign
+curl-multi-strerror
 
-    ;;curl-formadd		;this is variadic
-    curl-formget		curl-formfree
+;;curl-formadd			;this is variadic
+curl-formget			curl-formfree
 
-    curl-free			curl-getenv
-    curl-getdate		curl-slist-append
-    curl-slist-free-all
+curl-free			curl-getenv
+curl-getdate			curl-slist-append
+curl-slist-free-all
 
-    curl-share-init		curl-share-cleanup
-    curl-share-setopt		curl-shared-object?
+curl-share-init			curl-share-cleanup
+curl-share-setopt		curl-shared-object?
 
 ;;; --------------------------------------------------------------------
 
-    curl-make-read-callback		curl-make-write-callback
-    curl-make-ioctl-callback		curl-make-seek-callback
-    curl-make-sockopt-callback		curl-make-opensocket-callback
-    curl-make-progress-callback		curl-make-header-callback
-    curl-make-debug-callback		curl-make-ssl-ctx-callback
-    curl-make-conv-callback		curl-make-sshkey-callback
+curl-make-read-callback		curl-make-write-callback
+curl-make-ioctl-callback	curl-make-seek-callback
+curl-make-sockopt-callback	curl-make-opensocket-callback
+curl-make-progress-callback	curl-make-header-callback
+curl-make-debug-callback	curl-make-ssl-ctx-callback
+curl-make-conv-callback		curl-make-sshkey-callback
 
-    strings->curl-slist
+strings->curl-slist
 
 
 ;;;; record types
 
-    <curl-version-info>			<curl-version-info-rtd>
-    make-<curl-version-info>		<curl-version-info>?
-    <curl-version-info>-age
-    <curl-version-info>-version
-    <curl-version-info>-version-num
-    <curl-version-info>-host
-    <curl-version-info>-features
-    <curl-version-info>-ssl-version
-    <curl-version-info>-ssl-version-num
-    <curl-version-info>-libz-version
-    <curl-version-info>-protocols
-    <curl-version-info>-ares
-    <curl-version-info>-ares-num
-    <curl-version-info>-libidn
-    <curl-version-info>-iconv
-    <curl-version-info>-libssh-version
+<curl-version-info>			<curl-version-info-rtd>
+make-<curl-version-info>		<curl-version-info>?
+<curl-version-info>-age
+<curl-version-info>-version
+<curl-version-info>-version-num
+<curl-version-info>-host
+<curl-version-info>-features
+<curl-version-info>-ssl-version
+<curl-version-info>-ssl-version-num
+<curl-version-info>-libz-version
+<curl-version-info>-protocols
+<curl-version-info>-ares
+<curl-version-info>-ares-num
+<curl-version-info>-libidn
+<curl-version-info>-iconv
+<curl-version-info>-libssh-version
+
+<curl-message>				<curl-message-rtd>
+make-<curl-message>			<curl-message>?
+<curl-message>-handle
+<curl-message>-code
+<curl-message>-result
 
 
 ;;;; conditions

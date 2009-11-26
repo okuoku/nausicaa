@@ -28,8 +28,7 @@
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,core))
-$(eval $(call nau-libraries,nausicaa,nausicaa))
+$(eval $(call nau-libraries,curl,foreign/net/curl))
 
 
 ### end of file

@@ -35,8 +35,11 @@
     <curl-easy-handle>			<curl-easy-handle-rtd>
     make-<curl-easy-handle>		<curl-easy-handle>?
 
+    curl-easy-handle-memv		curl-easy-handle-eqv?
+
     <curl-multi-handle>			<curl-multi-handle-rtd>
     make-<curl-multi-handle>		<curl-multi-handle>?
+    <curl-multi-handle>-registered	<curl-multi-handle>-registered-set!
 
     <curl-shared-object>		<curl-shared-object-rtd>
     make-<curl-shared-object>		<curl-shared-object>?
@@ -62,9 +65,12 @@
 
     <curl-message>			<curl-message-rtd>
     make-<curl-message>			<curl-message>?
+    <curl-message>-handle
+    <curl-message>-code
+    <curl-message>-result
     %struct-curlmsg->record)
   (import (rnrs)
-    (only (foreign ffi pointers) pointer-null?)
+    (only (foreign ffi pointers) pointer-null? pointer=?)
     (only (foreign cstrings) cstring->string argv->strings)
     (foreign net curl platform)
     (foreign net curl sizeof))
@@ -83,7 +89,8 @@
   (record-type-descriptor <curl-easy-handle>))
 
 (define-record-type <curl-multi-handle>
-  (parent <curl-handle>))
+  (parent <curl-handle>)
+  (fields (mutable registered)))
 
 (define <curl-multi-handle-rtd>
   (record-type-descriptor <curl-multi-handle>))
@@ -93,6 +100,20 @@
 
 (define <curl-shared-object-rtd>
   (record-type-descriptor <curl-shared-object>))
+
+;;; --------------------------------------------------------------------
+
+(define (curl-easy-handle-eqv? a b)
+  (and (<curl-easy-handle>? a) (<curl-easy-handle>? b)
+       (pointer=? (<curl-handle>-pointer a) (<curl-handle>-pointer b))))
+
+(define (curl-easy-handle-memv pivot ell)
+  (and (<curl-easy-handle>? pivot)
+       (let ((pivot* (<curl-handle>-pointer pivot)))
+	 (memp (lambda (obj)
+		 (and (<curl-easy-handle>? obj)
+		      (pointer=? pivot* (<curl-handle>-pointer obj))))
+	       ell))))
 
 
 (define-record-type <curl-version-info>
@@ -196,16 +217,16 @@
 
 
 (define-record-type <curl-message>
-  (fields (immutable code)
-	  (immutable handle)
+  (fields (immutable handle)
+	  (immutable code)
 	  (immutable result)))
 
 (define <curl-message-rtd>
   (record-type-descriptor <curl-message>))
 
 (define (%struct-curlmsg->record msg*)
-  (make-<curl-message> 'DONE	;this is the only code in version 7.19.7 of cURL
-		       (make-<curl-handle> (struct-CURLMsg-easy_handle-ref msg*))
+  (make-<curl-message> (make-<curl-handle> (struct-CURLMsg-easy_handle-ref msg*))
+		       'DONE ;this is the only code in version 7.19.7 of cURL
 		       (struct-CURLMsg-data.result-ref msg*)))
 
 
