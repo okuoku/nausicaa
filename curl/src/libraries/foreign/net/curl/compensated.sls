@@ -27,26 +27,38 @@
 
 (library (foreign net curl compensated)
   (export
-    curl-easy-init/c		curl-easy-duphandle/c)
+    curl-easy-init/compensated
+    curl-easy-duphandle/compensated
+    curl-multi-init/compensated
+
+    (rename (curl-easy-init/compensated		curl-easy-init/c)
+	    (curl-easy-duphandle/compensated	curl-easy-duphandle/c)
+	    (curl-multi-init/compensated	curl-multi-init/c)))
   (import (rnrs)
     (compensations)
     (foreign net curl))
 
 
-(define (curl-easy-init/c)
+(define (curl-easy-init/compensated)
   (letrec ((handle (compensate
 		       (curl-easy-init)
 		     (with
 		      (curl-easy-cleanup handle)))))
     handle))
 
-(define (curl-easy-duphandle/c orig)
+(define (curl-easy-duphandle/compensated orig)
   (letrec ((handle (compensate
 		       (curl-easy-duphandle orig)
 		     (with
 		      (curl-easy-cleanup handle)))))
     handle))
 
+(define (curl-multi-init/compensated)
+  (letrec ((handle (compensate
+		       (curl-multi-init)
+		     (with
+		      (curl-multi-cleanup handle)))))
+    handle))
 
 
 ;;;; done

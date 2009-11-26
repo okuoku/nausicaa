@@ -246,6 +246,87 @@
   #t)
 
 
+(parametrise ((check-test-name	'multi-handlers))
+
+  (check
+      (with-compensations
+	(let ((multi	(curl-multi-init/c))
+	      (easy1	(curl-easy-init/c))
+	      (easy2	(curl-easy-init/c)))
+	  (curl-multi-add-handle multi easy1)
+	  (curl-multi-add-handle multi easy2)
+	  (length (curl-multi-registered-handlers multi))))
+    => 2)
+
+  (check
+      (with-compensations
+	(let ((multi	(curl-multi-init/c))
+	      (easy1	(curl-easy-init/c))
+	      (easy2	(curl-easy-init/c)))
+	  (curl-multi-add-handle multi easy1)
+	  (curl-multi-add-handle multi easy2)
+	  (curl-multi-remove-handle multi easy1)
+	  (let ((ell (curl-multi-registered-handlers multi)))
+	    (list (length ell) (eq? easy2 (car ell))))))
+    => '(1 #t))
+
+  (check
+      (with-compensations
+	(let ((multi	(curl-multi-init/c))
+	      (easy1	(curl-easy-init/c))
+	      (easy2	(curl-easy-init/c)))
+	  (curl-multi-add-handle multi easy1)
+	  (curl-multi-add-handle multi easy2)
+	  (curl-multi-remove-handle/all multi)
+	  (length (curl-multi-registered-handlers multi))))
+    => 0)
+
+  #t)
+
+
+(parametrise ((check-test-name	'multi-perform))
+
+  (check
+      (with-compensations
+	(let ((multi	(curl-multi-init/c))
+	      (easy1	(curl-easy-init/c))
+	      (easy2	(curl-easy-init/c))
+	      (out1	"")
+	      (out2	""))
+	  (define (doit multi easy url result-proc)
+	    (let ((cb (lambda (buffer item-size item-count)
+			(let ((len (* item-size item-count)))
+			  (result-proc (cstring->string buffer len))
+			  len))))
+	      (curl-easy-setopt easy CURLOPT_URL url)
+	      (curl-easy-setopt easy CURLOPT_WRITEFUNCTION (curl-make-write-callback cb))
+	      (curl-easy-setopt easy CURLOPT_WRITEDATA pointer-null)
+	      (curl-multi-add-handle multi easy)))
+	  (doit multi easy1 "http://localhost:8080/index.html"
+		(lambda (str)
+		  (set! out1 (string-append out1 str))))
+	  (doit multi easy2 "http://localhost:8080/index.html"
+		(lambda (str)
+		  (set! out2 (string-append out2 str))))
+
+	  (let loop ((running 0))
+	    (let-values (((code running) (curl-multi-perform multi)))
+	      (when (or (= code CURLM_CALL_MULTI_PERFORM)
+			(not (= 0 running)))
+		(loop running))))
+	  (let ((messages (curl-multi-info-read multi)))
+	    (for-each (lambda (msg)
+			(write msg)
+			(newline))
+	      messages))
+	  (curl-multi-remove-handle/all multi)
+	  (list out1 out2)))
+    => '("<html><body><p>proof page</p></body></html>\n"
+	 "<html><body><p>proof page</p></body></html>\n"))
+
+  #t)
+
+
 (parametrise ((check-test-name	'escaping))
 
   (check

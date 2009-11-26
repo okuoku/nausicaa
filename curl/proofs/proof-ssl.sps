@@ -41,7 +41,8 @@
 (display "*** proof of SSL\n")
 
 
-(parametrise ((check-test-name	'gna))
+(parametrise ((check-test-name	'gna)
+	      (debugging	#t))
 
   (check
       (with-compensations
@@ -55,12 +56,11 @@
 	  (curl-easy-setopt handle CURLOPT_WRITEFUNCTION (curl-make-write-callback cb))
 	  (curl-easy-setopt handle CURLOPT_WRITEDATA pointer-null)
 	  (curl-easy-setopt handle CURLOPT_SSL_VERIFYPEER #f)
-	  (curl-easy-setopt handle CURLOPT_CERTINFO #t)
 	  (curl-easy-perform handle)
 	  (irregex-match-data? (irregex-search "</html>" out))))
     => #t)
 
-  (check
+  (check 'this
       (with-compensations
 	(let* ((handle	(curl-easy-init/c))
 	       (out	"")

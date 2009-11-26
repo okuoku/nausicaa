@@ -89,6 +89,7 @@
 	    (curl_getenv		curl-getenv)
 	    (curl_getdate		curl-getdate)))
   (import (rnrs)
+;;;    (debugging)
     (begin0)
     (compensations)
     (foreign ffi)
@@ -116,14 +117,20 @@
 (define (%bitmask? obj)
   (and (integer? obj) (exact? obj) (< -1 obj const:2^32)))
 
+(define (%number-of-bytes? obj)
+  (and (integer? obj) (exact? obj) (< -1 obj const:2^32)))
+
+(define (%option? obj)
+  (and (integer? obj) (exact? obj)))
+
 
 ;;;; slist
 
 (define (%slist->strings slist*)
   (let loop ((slist*	slist*)
-	     (engines	'()))
+	     (strings	'()))
     (if (pointer-null? slist*)
-	engines
+	strings
       (loop (struct-curl_slist-next-ref slist*)
 	    (cstring->string (struct-curl_slist-data-ref slist*))))))
 
@@ -161,6 +168,7 @@
       (make-<curl-easy-handle> easy*))))
 
 (define (curl-easy-duphandle easy)
+  (assert (curl-easy-handle? easy))
   (let ((easy* (curl_easy_duphandle (pointer easy))))
     (if (pointer-null? easy*)
 	(raise (condition (make-curl-init-error-condition)
@@ -170,15 +178,18 @@
       (make-<curl-easy-handle> easy*))))
 
 (define (curl-easy-cleanup easy)
+  (assert (curl-easy-handle? easy))
   (curl_easy_cleanup (pointer easy)))
 
 (define (curl-easy-reset easy)
+  (assert (curl-easy-handle? easy))
   (curl_easy_reset (pointer easy)))
 
 
 ;;;; easy API socket operations
 
 (define (curl-easy-perform easy)
+  (assert (curl-easy-handle? easy))
   (let ((code (curl_easy_perform (pointer easy))))
     (unless (= code CURLE_OK)
       (raise (condition (make-curl-easy-action-error-condition)
@@ -188,6 +199,8 @@
 			(make-curl-easy-handle-condition easy))))))
 
 (define (curl-easy-pause easy bitmask-set)
+  (assert (curl-easy-handle? easy))
+  (assert (enum-set-subset? bitmask-set (enum-set-universe (curl-pause-mask))))
   (let ((code (curl_easy_pause (pointer easy) (%curl-pause-set->bitmask bitmask-set))))
     (unless (= code CURLE_OK)
       (raise (condition (make-curl-easy-action-error-condition)
@@ -200,6 +213,7 @@
 ;;;; easy API operations, raw sending and receiving
 
 (define (curl-easy-send easy data)
+  (assert (curl-easy-handle? easy))
   (with-compensations
     (let-values (((buf.ptr buf.len) (cond ((string? data)
 					   (let ((p (string->cstring/c data)))
@@ -224,6 +238,8 @@
 			    (make-curl-easy-handle-condition easy))))))))
 
 (define (curl-easy-recv/string easy number-of-bytes)
+  (assert (curl-easy-handle? easy))
+  (assert (%number-of-bytes? number-of-bytes))
   (with-compensations
     (let* ((buf.ptr		(malloc-block/c number-of-bytes))
 	   (recv-bytes-num*	(malloc-small/c))
@@ -240,6 +256,8 @@
 			       (make-curl-easy-handle-condition easy))))))))
 
 (define (curl-easy-recv/bytevector easy number-of-bytes)
+  (assert (curl-easy-handle? easy))
+  (assert (%number-of-bytes? number-of-bytes))
   (with-compensations
     (let* ((buf.ptr		(malloc-block/c number-of-bytes))
 	   (recv-bytes-num*	(malloc-small/c))
@@ -256,6 +274,8 @@
 			       (make-curl-easy-handle-condition easy))))))))
 
 (define (curl-easy-recv/memblock easy number-of-bytes)
+  (assert (curl-easy-handle? easy))
+  (assert (%number-of-bytes? number-of-bytes))
   (with-compensations/on-error
     (let ((buf.ptr (malloc-block/c number-of-bytes)))
       (with-compensations
@@ -365,6 +385,7 @@
 			      CURLOPT_SHARE			CURLOPT_TELNETOPTIONS)))
 
     (lambda (easy option value)
+      (assert (curl-easy-handle? easy))
       (let ((easy* (pointer easy)))
 	(with-compensations
 	  (let ((code (cond ((memv option $list-string)
@@ -420,32 +441,35 @@
 			      CURLINFO_CONTENT_LENGTH_UPLOAD))
 	($slist-list	(list CURLINFO_SSL_ENGINES		CURLINFO_COOKIELIST)))
     (lambda (easy option)
+      (define (raise-error code)
+	(raise (condition (make-curl-error-condition)
+			  (make-who-condition 'curl-easy-getinfo)
+			  (make-curl-easy-error-code-condition code)
+			  (make-curl-easy-message-condition code)
+			  (make-curl-easy-handle-condition easy))))
+      (assert (curl-easy-handle? easy))
+      (assert (%option? option))
       (let ((easy* (pointer easy)))
 	(if (= option CURLINFO_CERTINFO)
-	    (let* ((info*	(malloc-block/c sizeof-curl_certinfo))
-		   (code	(curl_easy_getinfo easy* option info*)))
-	      (unless (= code CURLE_OK)
-		(raise (condition (make-curl-error-condition)
-				  (make-who-condition 'curl-easy-getinfo)
-				  (make-curl-easy-error-code-condition code)
-				  (make-curl-easy-message-condition code)
-				  (make-curl-easy-handle-condition easy))))
-	      (let ((num-of-certs	(struct-curl_certinfo-num_of_certs-ref info*))
-		    (slist**		(struct-curl_certinfo-certinfo-ref     info*))
-		    (certinfo		'()))
-		(do ((i 0 (+ 1 i)))
-		    ((= i num-of-certs)
-		     (reverse certinfo))
-		  (set! certinfo (cons (%slist->strings (array-ref-c-pointer slist** i))
-				       certinfo)))))
+	    (let* ((info**	(malloc-small/c))
+		   (code	(curl_easy_getinfo easy* option info**)))
+	      (if (= code CURLE_OK)
+		  (let* ((info*		(pointer-ref-c-pointer info** 0))
+			 (num-of-certs	(struct-curl_certinfo-num_of_certs-ref info*))
+			 (slist**	(struct-curl_certinfo-certinfo-ref     info*))
+			 (certinfo	'()))
+;;;		    (debug "extracting ~s certs" num-of-certs)
+		    (do ((i 0 (+ 1 i)))
+			((= i num-of-certs)
+			 (reverse certinfo))
+;;;		      (debug "~s" certinfo)
+		      (set! certinfo (cons (%slist->strings (array-ref-c-pointer slist** i))
+					   certinfo))))
+		(raise-error code)))
 	  (let* ((output*	(malloc-small/c))
 		 (code		(curl_easy_getinfo easy* option output*)))
 	    (unless (= code CURLE_OK)
-	      (raise (condition (make-curl-error-condition)
-				(make-who-condition 'curl-easy-getinfo)
-				(make-curl-easy-error-code-condition code)
-				(make-curl-easy-message-condition code)
-				(make-curl-easy-handle-condition easy))))
+	      (raise-error code))
 	    (with-compensations
 	      (cond ((memv option $string-list)
 		     (let ((cstr* (pointer-ref-c-pointer output* 0)))
@@ -477,9 +501,10 @@
 	(raise (condition (make-curl-init-error-condition)
 			  (make-who-condition 'curl-multi-init)
 			  (make-message-condition "error initialising cURL multi session handle")))
-      (make-<curl-multi-handle> multi*))))
+      (make-<curl-multi-handle> multi* '()))))
 
 (define (curl-multi-cleanup multi)
+  (curl-multi-remove-handle/all multi)
   (assert (curl-multi-handle? multi))
   (let ((code (curl_multi_cleanup (pointer multi))))
     (unless (= code CURLM_OK)
@@ -541,7 +566,7 @@
     (let* ((running-handlers*	(malloc-small/c))
 	   (code		(curl_multi_perform (pointer multi) running-handlers*)))
       (if (or (= code CURLM_OK) (= code CURLM_CALL_MULTI_PERFORM))
-	  (values code (pointer-ref-c-signed-int running-handlers*))
+	  (values code (pointer-ref-c-signed-int running-handlers* 0))
 	(raise (condition (make-curl-action-error-condition)
 			  (make-who-condition 'curl-multi-perform)
 			  (make-curl-multi-error-code-condition code)
