@@ -27,6 +27,7 @@
 
 (import (nausicaa)
   (compensations)
+  (receive)
   (foreign ffi)
   (foreign net curl)
   (foreign net curl compensated)
@@ -323,6 +324,41 @@
 	  (list out1 out2)))
     => '("<html><body><p>proof page</p></body></html>\n"
 	 "<html><body><p>proof page</p></body></html>\n"))
+
+  #t)
+
+
+(parametrise ((check-test-name	'shared-object))
+
+  (check
+      (with-compensations
+	(letrec ((so (compensate
+			 (curl-share-init)
+		       (with
+			(curl-share-cleanup so)))))
+	  (curl-share-setopt so CURLSHOPT_SHARE CURL_LOCK_DATA_COOKIE)
+	  (curl-share-setopt so CURLSHOPT_UNSHARE CURL_LOCK_DATA_COOKIE)
+	  #t))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'forms))
+
+  (check
+      (with-compensations
+	(receive (first* last*)
+	    (curl-formadd `((,CURLFORM_COPYNAME     . "htmlcode")
+			    (,CURLFORM_COPYCONTENTS . "<html></html>")
+			    (,CURLFORM_CONTENTTYPE  . "text/html")))
+	  (receive (first* last*)
+	      (curl-formadd `((,CURLFORM_COPYNAME     . "name")
+			      (,CURLFORM_COPYCONTENTS . "content"))
+			    first* last*)
+	    (curl-formfree first*)
+	    #t)))
+    => #t)
 
   #t)
 

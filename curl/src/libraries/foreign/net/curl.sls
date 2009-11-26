@@ -436,8 +436,8 @@ curl-multi-socket-action	curl-multi-setopt
 curl-multi-timeout		curl-multi-assign
 curl-multi-strerror
 
-;;curl-formadd			;this is variadic
-curl-formget			curl-formfree
+curl-formadd			curl-formfree
+curl-formget			curl-formadd-strerror
 
 curl-free			curl-getenv
 curl-getdate			curl-slist-append

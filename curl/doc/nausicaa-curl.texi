@@ -527,6 +527,7 @@ entitled ``@gnu{} Free Documentation License''.
 * easy::                        Easy session interface.
 * multi::                       Multi session interface.
 * forms::                       Composing forms data.
+* share::                       Shared objects.
 * callbacks::                   Preparing callbacks.
 * misc::                        Miscellaneous functions.
 * compensated::                 Compensated constructors.
@@ -608,6 +609,11 @@ Setting handler's options
 * easy options ssh::            @ssh{} options.
 * easy options telnet::         Telnet options.
 * easy options other::          Other options.
+
+Shared objects
+
+* share init::                  Initialisation and finalisation.
+* share options::               Setting options.
 
 Multi session interface
 
@@ -2288,6 +2294,7 @@ net curl primitives} and reexported by @library{foreign net curl}.
 * easy perform::                Performing the transfer.
 * easy options::                Setting handler's options.
 * easy info::                   Getting informations.
+* easy misc::                   Miscellaneous functions.
 @end menu
 
 @c page
@@ -3468,6 +3475,79 @@ certificate; the length of the list is the number of certificates.
 @end defun
 
 @c page
+@node easy misc
+@section Miscellaneous functions
+
+
+@defun curl-easy-strerror @var{code}
+Return a Scheme string describing the @var{code} easy @api{} error.
+@end defun
+
+
+@c page
+@node share
+@chapter Shared objects
+
+
+The bindings documented in this chapter are exported by @library{foreign
+net curl primitives} and reexported by @library{foreign net curl}.
+
+@menu
+* share init::                  Initialisation and finalisation.
+* share options::               Setting options.
+@end menu
+
+@c page
+@node share init
+@section Initialisation and finalisation
+
+
+@defun curl-share-init
+Build and return a new shared object.  The object must be finalised with
+@func{curl-share-cleanup}.
+@end defun
+
+
+@defun curl-share-cleanup @var{shared}
+Finalise a shared object.
+@end defun
+
+
+@defun curl-shared-object? @var{obj}
+Return true if @var{obj} is a @curl{} shared object.
+@end defun
+
+@c page
+@node share options
+@section Setting options
+
+
+@defun curl-share-setopt @var{shared} @var{option} @var{value}
+Select an option's value for the @var{shared} object.  @var{option} must
+be an exact integer among the @samp{CURLSHOPT_*} constants; @var{value}
+must be an appropriate value for the selected option.  @var{option} is
+recognised and the appropriate marshaling of @var{value} is performed.
+@end defun
+
+
+@defvr {@curl{} Option} CURLSHOPT_LOCKFUNC
+@defvrx {@curl{} Option} CURLSHOPT_UNLOCKFUNC
+@var{value} must be a callback pointer.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLSHOPT_SHARE
+@defvrx {@curl{} Option} CURLSHOPT_UNSHARE
+@var{value} must be an exact integer among @samp{CURL_LOCK_DATA_COOKIE}
+and @samp{CURL_LOCK_DATA_DNS}.
+@end defvr
+
+
+@defvr {@curl{} Option} CURLSHOPT_USERDATA
+@var{value} must be a pointer object.
+@end defvr
+
+@c page
 @node callbacks
 @chapter Preparing callbacks
 
@@ -3704,6 +3784,7 @@ handler.
 * multi socket::                Socket operations.
 * multi options::               Setting options.
 * multi aux::                   Auxiliary operations.
+* multi misc::                  Miscellaneous functions.
 @end menu
 
 @c page
@@ -3939,6 +4020,15 @@ descriptor @var{sockfd} in the @var{multi} session handle.
 @end defun
 
 @c page
+@node multi misc
+@section Miscellaneous functions
+
+
+@defun curl-multi-strerror @var{code}
+Return a Scheme string describing the @var{code} multi @api{} error.
+@end defun
+
+@c page
 @node forms
 @chapter Composing forms data
 
@@ -3950,30 +4040,59 @@ to compose data to be posted with @http{}.
 @defun curl-formadd @var{alist}
 @defunx curl-formadd @var{alist} @var{first*} @var{last*}
 Transform the @var{alist} into a linked list of @code{struct
-curl_httppost} structures to compose a section of multipart/formdata
-@http{} @samp{POST}.  Return two values: a pointer to the first
-@code{struct curl_httppost} in the list, a pointer to the last
-@code{struct curl_httppost} in the list.
+curl_httppost} structures to compose a single section of
+multipart/formdata @http{} @samp{POST}; each invocation to this function
+must add a full section, else an error is raised.
+
+Return two values: a pointer to the first @code{curl_httppost} in the
+list, a pointer to the last @code{curl_httppost} in the list.
+
+To build a new list, we have to invoke the function without @var{first*}
+and @var{last*} arguments; to add sections to the list we use the
+returned values.
 
 @var{alist} must be a Scheme alist with @code{CURLFORM_*} constants as
-alist keys and the appropriate option values as alist values.
-Internally this function makes use of the @samp{CURLFORM_ARRAY} option.
+alist keys and the appropriate option values as alist values; there is
+@strong{no} need to terminate each alist with the @samp{CURLFORM_END}
+code.  Internally this function makes use of the @samp{CURLFORM_ARRAY}
+option to @cfunc{curl_formadd}.
+
+If an alist value is a Scheme string, it is automatically, internally,
+converted to a C string with @func{string->cstring} from
+@library{foreign cstrings} and its memory released before returning.
 
 Example:
 
-@example
-(curl-formadd
-  `((,CURLFORM_COPYNAME     . "htmlcode")
-    (,CURLFORM_COPYCONTENTS . "<HTML></HTML>")
-    (,CURLFORM_CONTENTTYPE  . "text/html")))
-@end example
-
-@noindent
-there is @strong{no} need to terminate the alist with the
-@samp{CURLFORM_ARRAY}; also if the value is a Scheme string, it is
-automatically, internally, converted to a C string with
-@func{string->cstring} from @library{foreign cstrings}.
+@smallexample
+(receive (first* last*)
+    ;; add the first section
+    (curl-formadd `((,CURLFORM_COPYNAME     . "htmlcode")
+                    (,CURLFORM_COPYCONTENTS . "<html></html>")
+                    (,CURLFORM_CONTENTTYPE  . "text/html")))
+  (receive (first* last*)
+      ;; add the second section
+      (curl-formadd `((,CURLFORM_COPYNAME     . "name")
+                      (,CURLFORM_COPYCONTENTS . "content"))
+                    first* last*)
+    ---
+    (curl-easy-setopt handle CURLOPT_HTTPPOST first*)
+    ---
+    (curl-formfree first*)))
+@end smallexample
 @end defun
+
+
+@defun curl-formfree @var{first*}
+Releases the memory associated to a linked list of @code{struct
+curl_httppost} structures.
+@end defun
+
+
+@defun curl-formadd-strerror @var{code}
+Return a Scheme string describing the @var{code} returned by
+@func{curl-formadd}.
+@end defun
+
 
 @c page
 @node misc

@@ -60,6 +60,7 @@
     curl-formadd
     (rename (curl_formget		curl-formget)
 	    (curl_formfree		curl-formfree))
+    curl-formadd-strerror
 
     ;; mutex/locking
     curl-shared-object?
@@ -679,35 +680,53 @@
 (define curl-formadd
   (case-lambda
    ((alist)
-    (curl-formadd alist #f #f))
+    (curl-formadd alist pointer-null pointer-null))
    ((alist first* last*)
-    (with-compensations
+
+    (define (%fill-array alist)
       (let* ((len	(length alist))
-	     (first**	(begin0-let ((p (malloc-small/c))) ;already sets memory to zero
-			  (when first* (pointer-set-c-pointer! p 0 first*))))
-	     (last**	(begin0-let ((p (malloc-small/c))) ;already sets memory to zero
-			  (when last*  (pointer-set-c-pointer! p 0 last*))))
-	     (array*	(malloc-block/c (sizeof-curl_forms-array len))))
-	(let fill-array ((i	0)
-			 (alist	alist))
-	  (unless (null? alist)
-	    (let ((p (array-ref-c-curl_forms array* i)))
-	      (struct-curl_forms-option-set! p (caar alist))
-	      (struct-curl_forms-value-set!  p (cdar alist)))
-	    (fill-array (+ 1 i) (cdr alist))))
-	(let* ((first*	(pointer-ref-c-pointer first** 0))
-	       (last*	(pointer-ref-c-pointer last** 0))
-	       (code	(compensate
-			    (curl_formadd_1 first* last* CURLFORM_ARRAY array* CURLFORM_END)
-			  (with
-			   (curl_formfree first*)))))
+	     (array*	(malloc-block/c (sizeof-curl_forms-array (+ 1 len)))))
+	(do ((i 0 (+ 1 i))
+	     (ell alist (cdr ell)))
+	    ((= i len)
+	     (%set-element array* len CURLFORM_END pointer-null)
+	     array*)
+	  (%set-element array* i (caar ell) (let ((val (cdar ell)))
+					      (if (string? val)
+						  (string->cstring/c val)
+						val))))))
+
+    (define (%set-element array* i key val)
+      (let ((p (array-ref-c-curl_forms array* i)))
+	(struct-curl_forms-option-set! p key)
+	(struct-curl_forms-value-set!  p val)))
+
+    (with-compensations
+      (let ((first**	(begin0-let ((p (malloc-small/c)))
+			  (pointer-set-c-pointer! p 0 first*)))
+	    (last**	(begin0-let ((p (malloc-small/c)))
+			  (pointer-set-c-pointer! p 0 last*)))
+	    (array*	(%fill-array alist)))
+	(let ((code (curl_formadd_1 first** last** CURLFORM_ARRAY array* CURLFORM_END)))
 	  (if (= code CURLE_OK)
-	      (values first* last*)
+	      (values (pointer-ref-c-pointer first** 0) (pointer-ref-c-pointer last** 0))
 	    (raise (condition (make-curl-error-condition)
 			      (make-who-condition 'curl-formadd)
 			      (make-curl-easy-error-code-condition code)
-			      (make-curl-easy-message-condition code)
+			      (make-message-condition (curl-formadd-strerror code))
 			      (make-irritants-condition alist))))))))))
+
+(define (curl-formadd-strerror code)
+  (let ((p (assv code `((,CURL_FORMADD_OK		. "success")
+			(,CURL_FORMADD_MEMORY		. "memory allocation error")
+			(,CURL_FORMADD_OPTION_TWICE	. "option was given twice")
+			(,CURL_FORMADD_NULL		. "a NULL pointer was given for a char")
+			(,CURL_FORMADD_UNKNOWN_OPTION	. "unknown option")
+			(,CURL_FORMADD_INCOMPLETE	. "incomplete form specification")
+			(,CURL_FORMADD_ILLEGAL_ARRAY	. "an illegal option is used in an array")))))
+    (if p
+	(cdr p)
+      (assertion-violation 'curl-formadd-strerror "invalid formadd message code" code))))
 
 
 ;;;; callback constructors
