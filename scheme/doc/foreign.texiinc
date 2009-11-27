@@ -4082,10 +4082,10 @@ The returned block has @code{alloc-size} set to @false{}.
 @subsubsection Miscellaneous stuff
 
 
-@defvr Constant memblock-null
-A @class{memblock} record holding a @cnull{} pointer and zero size; it
-is meant to be used as sentinel value.
-@end defvr
+@defun memblock-null
+Return a new record of type @class{memblock} holding a @cnull{} pointer
+and zero size; it is meant to be used as sentinel value.
+@end defun
 
 @c page
 @node memory cache

@@ -338,9 +338,6 @@
 (compile-library "foreign/ffi/sizeof.sls"
 		 "foreign/ffi/sizeof.slfasl")
 
-(compile-library "foreign/ffi/peekers-and-pokers/size_t.sls"
-		 "foreign/ffi/peekers-and-pokers/size_t.slfasl")
-
 (compile-library "foreign/ffi/conditions.sls"
 		 "foreign/ffi/conditions.slfasl")
 

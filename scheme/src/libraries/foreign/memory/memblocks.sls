@@ -60,7 +60,7 @@
 (define <memblock-rtd>
   (record-type-descriptor <memblock>))
 
-(define memblock-null
+(define (memblock-null)
   (make-<memblock> pointer-null 0 0))
 
 (define (memblock-shallow-clone mb)
@@ -153,7 +153,7 @@
 	(block.len	(<memblock>-size    block))
 	(tail.ptr	(<memblock>-pointer tail))
 	(tail.len	(<memblock>-size    tail)))
-    (assert (pointer<? block.ptr tail.ptr))
+    (assert (pointer<=? block.ptr tail.ptr))
     (assert (<= tail.len block.len))
     (make-<memblock> block.ptr (- block.len tail.len) #f)))
 

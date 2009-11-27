@@ -44,6 +44,7 @@
 
 
 (define (platform-malloc* number-of-bytes)
+(write number-of-bytes)(newline)
   (let ((p (platform-malloc number-of-bytes)))
     (if (pointer-null? p) #f p)))
 
