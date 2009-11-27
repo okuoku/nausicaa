@@ -1,0 +1,12 @@
+              |-----handy-ruler-----------------------------------------------|
+@PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: This is  a distribution of Scheme libraries  for R6RS Scheme
+@PACKAGE_NAME@: implementations; it provides bindings for the GNU Libiconv C
+@PACKAGE_NAME@: language  library.   It is  built  upon the  Nausicaa/Scheme
+@PACKAGE_NAME@: package, making use of its foreign-functions interface.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: GNU Libiconv converts text between encodings.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: The package  supports the Ikarus, Mosh  and Ypsilon Scheme
+@PACKAGE_NAME@: implementations; Larceny Scheme is not supported.

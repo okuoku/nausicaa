@@ -1,0 +1,1081 @@
+dnl
+dnl Part of: Nausicaa
+dnl Contents: autoconf macros
+dnl Date: Thu Nov 13, 2008
+dnl
+dnl Abstract
+dnl
+dnl   This is  a library of GNU Autoconf  macros to be used  by all the
+dnl   Nausicaa "configure.ac" templates.  To use this file it is enough
+dnl   o create a symbolic link from the project directory to this file.
+dnl
+dnl     Full  documentation  for the  macros  in  this  file is  in  the
+dnl   Nausicaa/Scheme texinfo  documentation.
+dnl
+dnl Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+dnl
+dnl This program is free software: you can redistribute it and/or modify
+dnl it under the terms of the GNU General Public License as published by
+dnl the Free  Software Foundation, either  version 3 of the  License, or
+dnl (at your option) any later version.
+dnl
+dnl This program is distributed in the  hope that it will be useful, but
+dnl WITHOUT  ANY   WARRANTY;  without  even  the   implied  warranty  of
+dnl MERCHANTABILITY or  FITNESS FOR A  PARTICULAR PURPOSE.  See  the GNU
+dnl General Public License for more details.
+dnl
+dnl You should  have received a copy  of the GNU  General Public License
+dnl along      with      this       program.       If      not,      see
+dnl <http://www.gnu.org/licenses/>.
+dnl
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Helper macros.
+dnl --------------------------------------------------------------------
+
+dnl 1 variable_suffix
+dnl 2 default_value
+AC_DEFUN([NAUSICAA_DEFAULT_VALUE],[
+if test -z "$2" ; then
+  nausicaa_default_$1="#f"
+else
+  nausicaa_default_$1="$2"
+fi
+])
+
+AC_DEFUN([NAUSICAA_ENABLE_TESTS],[nausicaa_private_tests_enabled=yes])
+AC_DEFUN([NAUSICAA_DISABLE_TESTS],[nausicaa_private_tests_enabled=no])
+
+dnl 1 output-variable
+dnl 2 body
+dnl 3 output-value-if-disabled
+AC_DEFUN([NAUSICAA_OPTIONAL_TEST],[
+  if test "$nausicaa_private_tests_enabled" = yes ; then
+    $2
+  else
+    $1=$3
+  fi
+])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl DevelStuff macros.
+dnl --------------------------------------------------------------------
+
+dnl 1 OUTPUT_VARIABLE
+dnl 2 PROGRAM_NAME
+dnl 3 PROGRAM_DESCRIPTION
+dnl
+dnl AC_DEFUN([NAU_DS_PROGRAM],
+dnl   [AC_PATH_PROG([$1],[$2],[:])
+dnl    AC_ARG_VAR([$1],[$3])])
+AC_DEFUN([NAU_DS_PROGRAM],
+  [AC_PATH_PROG([$1],[$2],[:])])
+
+dnl 1 OUTPUT_VARIABLE
+dnl 2 IDENTIFIER
+dnl 3 DEFAULT
+dnl 4 CHECKING-DESCRIPTION
+dnl 5 OPTION-DESCRIPTION
+AC_DEFUN([NAU_DS_ENABLE_OPTION],
+  [AC_MSG_CHECKING([$4])
+   AC_ARG_ENABLE([$2],
+     AC_HELP_STRING(--enable-$2,[$5 (default: $3)]),
+     [if test "$enableval" = yes ; then $1=yes ; else $1=no ; fi],
+     [$1=$3])
+   AC_MSG_RESULT([$[]$1])
+   AC_SUBST([$1])])
+
+dnl 1 OUTPUT_VARIABLE
+dnl 2 IDENTIFIER
+dnl 3 DEFAULT
+dnl 4 CHECKING-DESCRIPTION
+dnl 5 OPTION-DESCRIPTION
+AC_DEFUN([NAU_DS_WITH_OPTION],
+  [AC_MSG_CHECKING([$4])
+   AC_ARG_WITH([$2],
+     AC_HELP_STRING([--with-$2],[$5 (default: $3)]),
+     [if test -n "$withval" ; then $1=$withval ; else $1=$withval ; fi],
+     [$1=$3])
+   AC_MSG_RESULT([$[]$1])
+   AC_SUBST([$1])])
+
+dnl --------------------------------------------------------------------
+
+dnl 1 WITH_TEMP_FILE_CHUNK
+dnl 2 AFTER_CHUNK
+AC_DEFUN([NAU_DS_WITH_TMPFILE],
+  [: ${TMPDIR=/tmp}
+   {
+     ds_private_TMPDIR=$((umask 077 && mktemp -d "$TMPDIR/fooXXXXXX") 2>/dev/null) &&
+       test -n "${ds_private_TMPDIR}" && test -d "${ds_private_TMPDIR}"
+   } || {
+     ds_private_TMPDIR=${TMPDIR}/foo$$-$RANDOM
+     (umask 077 && mkdir "${ds_private_TMPDIR}")
+   } || exit $?
+   ds_TMPFILE=${ds_private_TMPDIR}/temporary.txt
+   dnl Chunk with temporary file usage.
+   $1
+   rm -fr "${ds_private_TMPDIR}"
+   dnl Chunk after temporary file usage.
+   $2
+   ])
+
+dnl --------------------------------------------------------------------
+
+dnl 1 - VARIABLE_TO_SAVE
+dnl 2 - CHUNK
+AC_DEFUN([NAU_DS_WITH_SAVED_VARIABLE],
+  [ds_private_$1=${$1}
+   $2
+   $1=${ds_private_$1}])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Common blocks.
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAUSICAA_SCHEME_PROGRAMS],
+  [if test "$nausicaa_ENABLE_IKARUS" = yes ; then
+    NAU_DS_PROGRAM([IKARUS],[ikarus],[the Ikarus Scheme executable])
+  fi
+  if test "$nausicaa_ENABLE_YPSILON" = yes ; then
+    NAU_DS_PROGRAM([YPSILON],[ypsilon],[the Ypsilon Scheme executable])
+  fi
+  if test "$nausicaa_ENABLE_LARCENY" = yes ; then
+    NAU_DS_PROGRAM([LARCENY],[larceny],[the Larceny Scheme executable])
+  fi
+  if test "$nausicaa_ENABLE_MOSH" = yes ; then
+    NAU_DS_PROGRAM([MOSH],[mosh],[the Mosh Scheme executable])
+  fi
+  AC_CACHE_SAVE])
+
+AC_DEFUN([NAUSICAA_OPTIONS],
+  [NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_IKARUS],[ikarus],[no],
+     [whether usage of Ikarus Scheme is enabled],
+     [disable usage of Ikarus Scheme])
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_LARCENY],[larceny],[no],
+     [whether usage of Larceny Scheme is enabled],
+     [disable usage of Larceny Scheme])
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_MOSH],[mosh],[no],
+     [whether usage of Mosh Scheme is enabled],
+     [disable usage of Mosh Scheme])
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_YPSILON],[ypsilon],[yes],
+     [whether usage of Ypsilon Scheme is enabled],
+     [disable usage of Ypsilon Scheme])
+
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[no],
+     [whether compiled files will be built and installed],
+     [enable installation of precompiled libraries])
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_FASL_LARCENY],[fasl-larceny],[yes],
+     [whether compiled files for Larceny will be built and installed],
+     [enable installation of Larceny precompiled libraries])
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_FASL_IKARUS],[fasl-ikarus],[yes],
+     [whether compiled files for Ikarus will be built and installed],
+     [enable installation of Ikarus precompiled libraries])
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_FASL_MOSH],[fasl-mosh],[yes],
+     [whether compiled files for Mosh will be built and installed],
+     [enable installation of Mosh precompiled libraries])
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_FASL_YPSILON],[fasl-ypsilon],[yes],
+     [whether compiled files for Ypsilon will be built and installed],
+     [enable installation of Ypsilon precompiled libraries])
+
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_SLS],[sls],[yes],
+     [whether source files will be installed],
+     [enable installation of source files])
+   NAU_DS_ENABLE_OPTION([nausicaa_TIME_TESTS],[time-tests],[no],
+     [whether tests will be timed],
+     [enable timing of tests])])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Main macros.
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAUSICAA_BEGIN],
+  [AC_SUBST([pkglibdir],[\${libdir}/nausicaa])
+   NAU_DS_PROGRAM([FIND],[find],[the GNU find program])
+   NAUSICAA_ENABLE_TESTS
+   NAUSICAA_OPTIONS
+   NAUSICAA_SCHEME_PROGRAMS
+   AC_CACHE_SAVE])
+
+AC_DEFUN([NAUSICAA_END],
+  [AC_CONFIG_FILES([meta.d/makefiles/nausicaa.make:configuration/nausicaa.make])])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Macros for Ikarus Scheme.
+dnl --------------------------------------------------------------------
+
+dnl 1 SCHEME_CODE
+dnl 2 ADDITIONAL_IKARUS_OPTIONS
+dnl 3 AFTER_SHELL_CODE
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT],
+  [NAU_DS_WITH_TMPFILE([
+    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+    "${IKARUS}" --r6rs-script "${ds_TMPFILE}" $2`],[$3])])
+
+dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
+dnl 2 LIBRARY_IMPORT_SPEC
+dnl 3 OPTIONAL_ACTION_IF_FOUND
+dnl 4 OPTIONAL_ACTION_IF_FOUND
+AC_DEFUN([NAUSICAA_IKARUS_CHECK_LIBRARY],
+  [AC_MSG_CHECKING([availability of Ikarus library $2])
+   NAUSICAA_WITH_OUTPUT_FROM_IKARUS_SCRIPT([(import (rnrs) (rnrs eval (6)))
+     (with-exception-handler
+        (lambda (ex)
+          (display "no\n")
+          (exit))
+        (lambda ()
+          (environment (quote $2))
+          (display "yes\n")))],,
+       [AC_MSG_RESULT([$nausicaa_ANSWER])
+        AC_SUBST([HAS_IKARUS_LIB_$1],[$nausicaa_ANSWER])
+        if test "$nausicaa_ANSWER" = yes ; then
+          dnl action if found
+          :
+          $3
+        else
+          dnl action if not found
+          AC_MSG_WARN([Ikarus Scheme could not find library])
+          $4
+        fi])])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Macros for Ypsilon Scheme.
+dnl --------------------------------------------------------------------
+
+dnl 1 SCHEME_CODE
+dnl 2 ADDITIONAL_YPSILON_OPTIONS
+dnl 3 AFTER_SHELL_CODE
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT],
+  [NAU_DS_WITH_TMPFILE([
+    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+    "${YPSILON}" --r6rs "${ds_TMPFILE}" $2`],[$3])])
+
+dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
+dnl 2 LIBRARY_IMPORT_SPEC
+dnl 3 OPTIONAL_ACTION_IF_FOUND
+dnl 4 OPTIONAL_ACTION_IF_FOUND
+AC_DEFUN([NAUSICAA_YPSILON_CHECK_LIBRARY],
+  [AC_MSG_CHECKING([availability of Ypsilon library $2])
+   NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT([(import (rnrs) (rnrs eval (6)))
+     (with-exception-handler
+       (lambda (ex)
+         (display "no\n")
+         (exit))
+       (lambda ()
+         (environment (quote $2))
+         (display "yes\n")))
+     ],[--compatible],
+     [AC_MSG_RESULT([$nausicaa_ANSWER])
+      AC_SUBST([HAS_YPSILON_LIB_$1],[$nausicaa_ANSWER])
+      if test "$nausicaa_ANSWER" = yes ; then
+        dnl action if found.
+        :
+        $3
+      else
+        dnl action if not found.
+        :
+        AC_MSG_WARN([Ypsilon Scheme could not find library '$2'])
+        $4
+      fi])])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Macros for Larceny Scheme.
+dnl --------------------------------------------------------------------
+
+dnl 1 SCHEME_CODE
+dnl 2 ADDITIONAL_LARCENY_OPTIONS
+dnl 3 AFTER_SHELL_CODE
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT],
+  [NAU_DS_WITH_TMPFILE([
+    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+    "${LARCENY}" -r6rs -program "${ds_TMPFILE}" $2`],[$3])])
+
+dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
+dnl 2 LIBRARY_IMPORT_SPEC
+dnl 3 OPTIONAL_ACTION_IF_FOUND
+dnl 4 OPTIONAL_ACTION_IF_FOUND
+AC_DEFUN([NAUSICAA_LARCENY_CHECK_LIBRARY],
+  [AC_MSG_CHECKING([availability of Larceny library $2])
+   NAUSICAA_WITH_OUTPUT_FROM_LARCENY_SCRIPT([(import (rnrs) (rnrs eval (6)))
+     (with-exception-handler
+       (lambda (ex)
+         (display "no\n")
+         (exit))
+       (lambda ()
+         (environment (quote $2))
+         (display "yes\n")))],,
+     [AC_MSG_RESULT([$nausicaa_ANSWER])
+      AC_SUBST([HAS_LARCENY_LIB_$1],[$nausicaa_ANSWER])
+      if test "$nausicaa_ANSWER" = yes ; then
+        dnl action if found.
+        :
+        $3
+      else
+        dnl action if not found.
+        :
+        AC_MSG_WARN([Larceny Scheme could not find library '$2'])
+        $4
+      fi])])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Macros for Mosh Scheme.
+dnl --------------------------------------------------------------------
+
+dnl 1 SCHEME_CODE
+dnl 2 ADDITIONAL_MOSH_OPTIONS
+dnl 3 AFTER_SHELL_CODE
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_MOSH_SCRIPT],
+  [NAU_DS_WITH_TMPFILE([
+    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+    "${MOSH}" "${ds_TMPFILE}" $2`],[$3])])
+
+dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
+dnl 2 LIBRARY_IMPORT_SPEC
+dnl 3 OPTIONAL_ACTION_IF_FOUND
+dnl 4 OPTIONAL_ACTION_IF_FOUND
+AC_DEFUN([NAUSICAA_MOSH_CHECK_LIBRARY],
+  [AC_MSG_CHECKING([availability of Mosh library $2])
+   NAUSICAA_WITH_OUTPUT_FROM_MOSH_SCRIPT([(import (rnrs) (rnrs eval (6)))
+     (with-exception-handler
+       (lambda (ex)
+         (display "no\n")
+         (exit))
+       (lambda ()
+         (environment (quote $2))
+         (display "yes\n")))],,
+     [AC_MSG_RESULT([$nausicaa_ANSWER])
+      AC_SUBST([HAS_MOSH_LIB_$1],[$nausicaa_ANSWER])
+      if test "$nausicaa_ANSWER" = yes ; then
+        dnl action if found.
+        :
+        $3
+      else
+        dnl action if not found.
+        :
+        AC_MSG_WARN([Mosh Scheme could not find library '$2'])
+        $4
+      fi])])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Macros for Scheme.
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAUSICAA_SCHEME_CHECK_LIBRARY],
+  [if test "$nausicaa_ENABLE_IKARUS" = yes ; then
+     NAUSICAA_IKARUS_CHECK_LIBRARY([$1],[$2],[$3],[$4])
+   fi
+   if test "$nausicaa_ENABLE_YPSILON" = yes ; then
+     NAUSICAA_YPSILON_CHECK_LIBRARY([$1],[$2],[$3],[$4])
+   fi
+   if test "$nausicaa_ENABLE_LARCENY" = yes ; then
+     NAUSICAA_LARCENY_CHECK_LIBRARY([$1],[$2],[$3],[$4])
+   fi
+   if test "$nausicaa_ENABLE_MOSH" = yes ; then
+     NAUSICAA_MOSH_CHECK_LIBRARY([$1],[$2],[$3],[$4])
+   fi
+])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl C language system setup.
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAUSICAA_SYSTEM_SETUP],[
+# Notice that this one defines '_GNU_SOURCE' and others.
+AC_USE_SYSTEM_EXTENSIONS
+
+AC_SYS_INTERPRETER
+#AC_SYS_LARGEFILE
+AC_SYS_LONG_FILE_NAMES
+AC_CANONICAL_BUILD
+AC_CANONICAL_HOST
+AC_CANONICAL_TARGET
+])
+
+AC_DEFUN([NAUSICAA_C_LANGUAGE],[
+AC_PROG_CC
+AC_PROG_CC_C99
+AC_HEADER_STDC
+AC_CHECK_HEADERS([errno.h])
+AC_CHECK_HEADERS([fcntl.h])
+AC_CHECK_HEADERS([inttypes.h])
+AC_CHECK_HEADERS([limits.h])
+AC_CHECK_HEADERS([stdint.h])
+AC_CHECK_HEADERS([unistd.h])
+])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl C language basic tests.
+dnl --------------------------------------------------------------------
+
+m4_define([NAUSICAA_CUSTOM_INCLUDES],)
+
+m4_define([NAUSICAA_INCLUDES_DEFAULT],[AC_INCLUDES_DEFAULT
+#ifdef HAVE_ERRNO_H
+#  include <errno.h>
+#endif
+#ifdef HAVE_FCNTL_H
+#  include <fcntl.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
+#ifdef HAVE_LIMITS_H
+#  include <limits.h>
+#endif
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+#endif
+NAUSICAA_CUSTOM_INCLUDES
+$1
+])
+
+dnl 1 output-variable-suffix
+dnl 2 the-expression
+dnl 3 optional-default-value
+dnl 4 optional headers
+AC_DEFUN([NAUSICAA_VALUEOF_TEST],
+  [NAUSICAA_OPTIONAL_TEST([VALUEOF_$1],
+     [NAUSICAA_DEFAULT_VALUE([valueof_$1],[$3])
+      AC_CACHE_CHECK([the value of '$2'],
+        [nausicaa_cv_valueof_$1],
+        [AC_COMPUTE_INT([nausicaa_cv_valueof_$1],
+           [$2],
+           [NAUSICAA_INCLUDES_DEFAULT([$4])],
+           [nausicaa_cv_valueof_$1="$nausicaa_default_valueof_$1"])])
+      VALUEOF_$1="$nausicaa_cv_valueof_$1"],[#f])
+   AC_SUBST([VALUEOF_$1])])
+
+dnl 1 output-variable-suffix/enum name
+dnl 2 optional headers
+AC_DEFUN([NAUSICAA_ENUM_VALUE],
+  [NAUSICAA_VALUEOF_TEST([$1],[$1],,[$2])])
+
+dnl 1 output-variable-suffix/define name
+dnl 2 optional headers
+AC_DEFUN([NAUSICAA_DEFINE_VALUE],
+  [NAUSICAA_VALUEOF_TEST([$1],[$1],,[$2])])
+
+dnl 1 output-variable-suffix
+dnl 2 the-typedef
+dnl 3 optional-default-value
+dnl 4 optional headers
+AC_DEFUN([NAUSICAA_SIZEOF_TEST],
+  [NAUSICAA_OPTIONAL_TEST([SIZEOF_$1],
+     [NAUSICAA_DEFAULT_VALUE([sizeof_$1],[$3])
+      AC_CACHE_CHECK([the size of '$2'],
+        [nausicaa_cv_sizeof_$1],
+        [AC_COMPUTE_INT([nausicaa_cv_sizeof_$1],
+           [sizeof($2)],
+           [NAUSICAA_INCLUDES_DEFAULT([$4])],
+           [nausicaa_cv_sizeof_$1="$nausicaa_default_sizeof_$1"])])
+      SIZEOF_$1="$nausicaa_cv_sizeof_$1"],[#f])
+   AC_SUBST([SIZEOF_$1])])
+
+dnl 1 output-variable-suffix
+dnl 2 the-typedef
+dnl 3 optional-default-value
+dnl 4 optional headers
+AC_DEFUN([NAUSICAA_ALIGNOF_TEST],
+  [NAUSICAA_OPTIONAL_TEST([ALIGNOF_$1],
+     [NAUSICAA_DEFAULT_VALUE([alignof_$1],[$3])
+      AC_CACHE_CHECK([the alignment of '$2'],
+        [nausicaa_cv_alignof_$1],
+        [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$4])],
+           [#ifndef offsetof
+# define offsetof(type, member) ((char *) &((type *) 0)->member - (char *) 0)
+#endif
+            typedef struct { char x; $2 y; } ac__type_alignof_;
+            FILE *f = fopen ("conftest.val", "w");
+            fprintf(f, "%ld", (long int)offsetof(ac__type_alignof_,y));
+            return ferror (f) || fclose (f) != 0;])],
+           [nausicaa_cv_alignof_$1=`cat conftest.val`],
+           [nausicaa_cv_alignof_$1="$nausicaa_default_alignof_$1"])
+         rm -f conftest.val])
+      ALIGNOF_$1="$nausicaa_cv_alignof_$1"],[#f])
+   AC_SUBST([ALIGNOF_$1])])
+
+dnl 1 output-variable-suffix
+dnl 2 the-typedef
+dnl 3 optional-default-value
+dnl 4 optional headers
+AC_DEFUN([NAUSICAA_STRIDEOF_TEST],
+  [NAUSICAA_OPTIONAL_TEST([STRIDEOF_$1],
+     [NAUSICAA_DEFAULT_VALUE([strideof_$1],[$3])
+      AC_CACHE_CHECK([the stride of '$2'],
+        [nausicaa_cv_strideof_$1],
+        [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$4])],
+           [$2 x[[3]];
+            FILE *f = fopen ("conftest.val", "w");
+            fprintf(f, "%ld", (long int)((unsigned char *)&(x[[2]])-(unsigned char *)&(x[[1]])));
+            return ferror (f) || fclose (f) != 0;])],
+           [nausicaa_cv_strideof_$1=`cat conftest.val`],
+           [nausicaa_cv_strideof_$1="$nausicaa_default_strideof_$1"])
+         rm -f conftest.val])
+      STRIDEOF_$1="$nausicaa_cv_strideof_$1"],[#f])
+   AC_SUBST([STRIDEOF_$1])])
+
+dnl 1 variable-suffix
+dnl 2 struct-typedef
+dnl 3 struct-field-name
+dnl 4 optional-headers
+AC_DEFUN([NAUSICAA_OFFSETOF_FIELD_TEST],
+  [NAUSICAA_OPTIONAL_TEST([OFFSETOF_$1],
+     [NAUSICAA_DEFAULT_VALUE([offsetof_$1],[#f])
+      AC_CACHE_CHECK([the offset of field '$3' in '$2'],
+        [nausicaa_cv_offsetof_$1],
+        [AC_COMPUTE_INT([nausicaa_cv_offsetof_$1],
+           [offsetof($2,$3)],
+           [NAUSICAA_INCLUDES_DEFAULT([$4])],
+           [nausicaa_cv_offsetof_$1="$nausicaa_default_offsetof_$1"])])
+      OFFSETOF_$1="$nausicaa_cv_offsetof_$1"],[#f])
+   AC_SUBST([OFFSETOF_$1])])
+
+dnl 1 variable-suffix
+dnl 2 struct-typedef
+dnl 3 struct-field-name
+dnl 4 default-value
+dnl 5 optional-headers
+AC_DEFUN([NAUSICAA_SIZEOF_FIELD_TEST],
+  [NAUSICAA_OPTIONAL_TEST([SIZEOF_$1],
+     [NAUSICAA_DEFAULT_VALUE([sizeof_field_$1],[#f])
+      AC_CACHE_CHECK([the size of field '$3' in struct '$2'],
+        [nausicaa_cv_sizeof_field_$1],
+        [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$5])],
+           [$2 s;
+            FILE *f = fopen ("conftest.val", "w");
+            fprintf(f, "%d", sizeof(s.$3));
+            return ferror (f) || fclose (f) != 0;])],
+           [nausicaa_cv_sizeof_field_$1=`cat conftest.val`],
+           [nausicaa_cv_sizeof_field_$1="$nausicaa_default_sizeof_field_$1"])
+         rm -f conftest.val])
+      SIZEOF_$1="$nausicaa_cv_sizeof_field_$1"],[#f])
+   AC_SUBST([SIZEOF_$1])])
+
+dnl 1 output-variable-suffix
+dnl 2 C expression
+dnl 3 optional-default-value
+dnl 4 optional headers
+AC_DEFUN([NAUSICAA_STRING_TEST],
+  [NAUSICAA_OPTIONAL_TEST([STRINGOF_$1],
+     [NAUSICAA_DEFAULT_VALUE([stringof_$1],[$3])
+      AC_CACHE_CHECK([the string value of of '$2'],
+        [nausicaa_cv_stringof_$1],
+        [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$4])],
+           [FILE *f = fopen ("conftest.val", "w");
+            fprintf(f, "%s", $2);
+            return ferror (f) || fclose (f) != 0;])],
+           [nausicaa_cv_stringof_$1=`cat conftest.val`],
+           [nausicaa_cv_stringof_$1="$nausicaa_default_stringof_$1"])
+         rm -f conftest.val])
+      STRINGOF_$1="$nausicaa_cv_stringof_$1"],[#f])
+   AC_SUBST([STRINGOF_$1])])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl C language type inference from size.
+dnl --------------------------------------------------------------------
+
+dnl *** WARNING ***
+dnl
+dnl Remember that the parentheses have special meaning for m4, so we
+dnl cannot use them in the shell 'case' construct.  This is why we use
+dnl all these 'if' statements.
+
+dnl 1 variable-suffix
+dnl 2 type-definition
+dnl 3 type-guess
+AC_DEFUN([NAUSICAA_BASE_TYPE_TEST],
+  [NAUSICAA_OPTIONAL_TEST([TYPEOF_$1],
+     [if   test "$3" = signed-int ; then
+          NAUSICAA_INTTYPE_TEST([$1],[$2])
+      elif test "$3" = unsigned-int ; then
+          NAUSICAA_UINTTYPE_TEST([$1],[$2])
+      elif test "$3" = float ; then
+          NAUSICAA_FLOATTYPE_TEST([$1],[$2])
+      elif test "$3" = pointer ; then
+          TYPEOF_$1=pointer
+          AC_SUBST([TYPEOF_$1])
+      else
+          AC_MSG_WARN([cannot determine base type of '$2' from guess '$3'])
+      fi],[#f])
+   AC_SUBST([TYPEOF_$1])])
+
+dnl 1 variable-suffix
+dnl 2 type-definition
+AC_DEFUN([NAUSICAA_INTTYPE_TEST],
+  [NAUSICAA_OPTIONAL_TEST([TYPEOF_$1],
+     [AC_REQUIRE([NAUSICAA_SIZEOF])
+      NAUSICAA_DEFAULT_VALUE([typeof_$1],[#f])
+      AC_CACHE_CHECK([equivalent integer type of '$2'],
+        [nausicaa_cv_typeof_$1],
+        [if   test "${SIZEOF_$1}" = "${SIZEOF_INT}" ; then
+            nausicaa_cv_typeof_$1=signed-int
+         elif test "${SIZEOF_$1}" = "${SIZEOF_CHAR}" ; then
+            nausicaa_cv_typeof_$1=signed-char
+         elif test "${SIZEOF_$1}" = "${SIZEOF_SHORT_INT}" ; then
+            nausicaa_cv_typeof_$1=signed-short
+         elif test "${SIZEOF_$1}" = "${SIZEOF_LONG}" ; then
+            nausicaa_cv_typeof_$1=signed-long
+         elif test "${SIZEOF_$1}" = "${SIZEOF_LLONG}" ; then
+            nausicaa_cv_typeof_$1=signed-long-long
+         else
+            AC_MSG_WARN([cannot determine signed integer type of '$2'])
+            nausicaa_cv_typeof_$1="$nausicaa_default_typeof_$1"
+         fi])
+      TYPEOF_$1="$nausicaa_cv_typeof_$1"],[#f])
+   AC_SUBST([TYPEOF_$1])])
+
+dnl 1 variable-suffix
+dnl 2 type-definition
+AC_DEFUN([NAUSICAA_UINTTYPE_TEST],
+  [NAUSICAA_OPTIONAL_TEST([TYPEOF_$1],
+     [AC_REQUIRE([NAUSICAA_SIZEOF])
+      NAUSICAA_DEFAULT_VALUE([typeof_$1],[#f])
+      AC_CACHE_CHECK([equivalent unsigned integer type of '$2'],
+        [nausicaa_cv_typeof_$1],
+        [if   test "${SIZEOF_$1}" = "${SIZEOF_UINT}" ; then
+             nausicaa_cv_typeof_$1=unsigned-int
+         elif test "${SIZEOF_$1}" = "${SIZEOF_CHAR}" ; then
+             nausicaa_cv_typeof_$1=unsigned-char
+         elif test "${SIZEOF_$1}" = "${SIZEOF_SHORT_UINT}" ; then
+             nausicaa_cv_typeof_$1=unsigned-short
+         elif test "${SIZEOF_$1}" = "${SIZEOF_ULONG}" ; then
+             nausicaa_cv_typeof_$1=unsigned-long
+         elif test "${SIZEOF_$1}" = "${SIZEOF_ULLONG}" ; then
+             nausicaa_cv_typeof_$1=unsigned-long-long
+         else
+             AC_MSG_WARN([cannot determine unsigned integer type of '$2'])
+             nausicaa_cv_typeof_$1="$nausicaa_default_typeof_$1"
+         fi])
+      TYPEOF_$1="$nausicaa_cv_typeof_$1"],[#f])
+   AC_SUBST([TYPEOF_$1])])
+
+dnl 1 variable-suffix
+dnl 2 type-definition
+AC_DEFUN([NAUSICAA_FLOATTYPE_TEST],
+  [NAUSICAA_OPTIONAL_TEST([TYPEOF_$1],
+     [AC_REQUIRE([NAUSICAA_SIZEOF])
+      NAUSICAA_DEFAULT_VALUE([typeof_$1],[#f])
+      AC_CACHE_CHECK([equivalent floating point type of '$2'],
+        [nausicaa_cv_typeof_$1],
+        [if   test "${SIZEOF_$1}" = "${SIZEOF_FLOAT}" ; then
+            nausicaa_cv_typeof_$1=float
+         elif test "${SIZEOF_$1}" = "${SIZEOF_DOUBLE}" ; then
+            nausicaa_cv_typeof_$1=double
+         elif test "${SIZEOF_$1}" = "${SIZEOF_LONG_DOUBLE}" ; then
+            nausicaa_cv_typeof_$1=long-double
+         else
+            AC_MSG_WARN([cannot determine floating point type of '$2'])
+            nausicaa_cv_typeof_$1="$nausicaa_default_typeof_$1"
+         fi])
+      TYPEOF_$1="$nausicaa_cv_typeof_$1"],[#f])
+   AC_SUBST([TYPEOF_$1])])
+
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl C language types accessors.
+dnl --------------------------------------------------------------------
+
+dnl *** WARNING ***
+dnl
+dnl Remember that the parentheses have special meaning for m4, so we
+dnl cannot use them in the shell 'case' construct.  This is why we use
+dnl all these 'if' statements.
+
+AC_DEFUN([NAUSICAA_ACCESSORS_TEST],
+  [NAUSICAA_GETTER_TEST([$1],[$2])
+   NAUSICAA_SETTER_TEST([$1],[$2])])
+
+AC_DEFUN([NAUSICAA_GETTER_TEST],
+  [NAUSICAA_OPTIONAL_TEST([GETTEROF_$1],
+     [NAUSICAA_DEFAULT_VALUE([getterof_$1],[#f])
+      AC_CACHE_CHECK([getter for type '$2'],
+        [nausicaa_cv_getterof_$1],
+        [if   test "${TYPEOF_$1}" = signed-char ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-signed-char"
+         elif test "${TYPEOF_$1}" = unsigned-char ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-char"
+         elif test "${TYPEOF_$1}" = signed-int ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-signed-int"
+         elif test "${TYPEOF_$1}" = unsigned-int ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-int"
+         elif test "${TYPEOF_$1}" = signed-short ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-signed-short"
+         elif test "${TYPEOF_$1}" = unsigned-short ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-short"
+         elif test "${TYPEOF_$1}" = signed-long ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-signed-long"
+         elif test "${TYPEOF_$1}" = unsigned-long ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-long"
+         elif test "${TYPEOF_$1}" = signed-long-long ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-signed-long-long"
+         elif test "${TYPEOF_$1}" = unsigned-long-long ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-unsigned-long-long"
+         elif test "${TYPEOF_$1}" = float ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-float"
+         elif test "${TYPEOF_$1}" = double ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-double"
+         elif test "${TYPEOF_$1}" = long-double ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-long-double"
+         elif test "${TYPEOF_$1}" = pointer ; then
+            nausicaa_cv_getterof_$1="pointer-ref-c-pointer"
+         else
+            AC_MSG_WARN([cannot determine getter for '$2' from '$TYPEOF_$1'])
+            nausicaa_cv_getterof_$1="$nausicaa_default_getterof_$1"
+         fi])
+      GETTEROF_$1="$nausicaa_cv_getterof_$1"],[#f])
+   AC_SUBST([GETTEROF_$1])])
+
+AC_DEFUN([NAUSICAA_SETTER_TEST],
+  [NAUSICAA_OPTIONAL_TEST([SETTEROF_$1],
+     [NAUSICAA_DEFAULT_VALUE([setterof_$1],[#f])
+      AC_CACHE_CHECK([setter for type '$2'],
+        [nausicaa_cv_setterof_$1],
+        [if   test "${TYPEOF_$1}" = signed-char       ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-signed-char!"
+         elif test "${TYPEOF_$1}" = unsigned-char     ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-unsigned-char!"
+         elif test "${TYPEOF_$1}" = signed-int    ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-signed-int!"
+         elif test "${TYPEOF_$1}" = unsigned-int  ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-unsigned-int!"
+         elif test "${TYPEOF_$1}" = signed-short      ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-signed-short!"
+         elif test "${TYPEOF_$1}" = unsigned-short    ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-unsigned-short!"
+         elif test "${TYPEOF_$1}" = signed-long       ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-signed-long!"
+         elif test "${TYPEOF_$1}" = unsigned-long     ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-unsigned-long!"
+         elif test "${TYPEOF_$1}" = signed-long-long  ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-signed-long-long!"
+         elif test "${TYPEOF_$1}" = unsigned-long-long; then
+            nausicaa_cv_setterof_$1="pointer-set-c-unsigned-long-long!"
+         elif test "${TYPEOF_$1}" = float             ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-float!"
+         elif test "${TYPEOF_$1}" = double            ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-double!"
+         elif test "${TYPEOF_$1}" = long-double       ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-long-double!"
+         elif test "${TYPEOF_$1}" = pointer           ; then
+            nausicaa_cv_setterof_$1="pointer-set-c-pointer!"
+         else
+            AC_MSG_WARN([cannot determine setter for '${TYPEOF_$1}'],[2])
+            nausicaa_cv_setterof_$1="$nausicaa_default_setterof_$1"
+         fi])
+      SETTEROF_$1="$nausicaa_cv_setterof_$1"],[#f])
+   AC_SUBST([SETTEROF_$1])])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl C language type full inspection.
+dnl --------------------------------------------------------------------
+
+dnl 1 variable-suffix
+dnl 2 typedef
+dnl 3 type-guess
+dnl 4 default-value
+dnl 5 optional-headers
+AC_DEFUN([NAUSICAA_INSPECT_TYPE],
+  [NAUSICAA_SIZEOF_TEST([$1],[$2],[$4],[$5])
+   NAUSICAA_ALIGNOF_TEST([$1],[$2],[$4],[$5])
+   NAUSICAA_STRIDEOF_TEST([$1],[$2],[$4],[$5])
+   NAUSICAA_BASE_TYPE_TEST([$1],[$2],[$3])
+   NAUSICAA_ACCESSORS_TEST([$1],[$2])])
+
+dnl 1 variable-suffix
+dnl 2 typedef
+dnl 3 default-value
+dnl 4 optional-headers
+AC_DEFUN([NAUSICAA_INSPECT_STRUCT_TYPE],
+  [NAUSICAA_SIZEOF_TEST([$1],[$2],[$3],[$4])
+   NAUSICAA_ALIGNOF_TEST([$1],[$2],[$3],[$4])
+   NAUSICAA_STRIDEOF_TEST([$1],[$2],[$3],[$4])])
+
+dnl 1 variable-suffix
+dnl 2 struct-typedef
+dnl 3 field-name
+dnl 4 type-guess
+dnl 5 default-value
+dnl 6 optional-headers
+AC_DEFUN([NAUSICAA_INSPECT_FIELD_TYPE],
+  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[$6])
+   NAUSICAA_SIZEOF_FIELD_TEST([$1],[$2],[$3],[$5],[$6])
+   NAUSICAA_BASE_TYPE_TEST([$1],[$2.$3],[$4])
+   NAUSICAA_ACCESSORS_TEST([$1],[$2.$3])])
+
+dnl 1 variable-suffix
+dnl 2 struct-typedef
+dnl 3 field-name
+dnl 4 optional-headers
+AC_DEFUN([NAUSICAA_INSPECT_FIELD_TYPE_POINTER],
+  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[$4])])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Common sets of C language tests.
+dnl --------------------------------------------------------------------
+
+AC_DEFUN([NAUSICAA_SIZEOF],
+  [NAUSICAA_SIZEOF_TEST([INT8],[int8_t])
+   NAUSICAA_ALIGNOF_TEST([INT8],[int8_t])
+   NAUSICAA_STRIDEOF_TEST([INT8],[int8_t])
+
+   NAUSICAA_SIZEOF_TEST([INT16],[int16_t])
+   NAUSICAA_ALIGNOF_TEST([INT16],[int16_t])
+   NAUSICAA_STRIDEOF_TEST([INT16],[int16_t])
+
+   NAUSICAA_SIZEOF_TEST([INT32],[int32_t])
+   NAUSICAA_ALIGNOF_TEST([INT32],[int32_t])
+   NAUSICAA_STRIDEOF_TEST([INT32],[int32_t])
+
+   NAUSICAA_SIZEOF_TEST([INT64],[int64_t])
+   NAUSICAA_ALIGNOF_TEST([INT64],[int64_t])
+   NAUSICAA_STRIDEOF_TEST([INT64],[int64_t])
+
+   NAUSICAA_SIZEOF_TEST([CHAR],[char])
+   NAUSICAA_ALIGNOF_TEST([CHAR],[char])
+   NAUSICAA_STRIDEOF_TEST([CHAR],[char])
+
+   NAUSICAA_SIZEOF_TEST([SHORT_INT],[short int])
+   NAUSICAA_ALIGNOF_TEST([SHORT_INT],[short int])
+   NAUSICAA_STRIDEOF_TEST([SHORT_INT],[short int])
+
+   NAUSICAA_SIZEOF_TEST([SHORT_UINT],[unsigned short int])
+   NAUSICAA_ALIGNOF_TEST([SHORT_UINT],[unsigned short int])
+   NAUSICAA_STRIDEOF_TEST([SHORT_UINT],[unsigned short int])
+
+   NAUSICAA_SIZEOF_TEST([INT],[int])
+   NAUSICAA_ALIGNOF_TEST([INT],[int])
+   NAUSICAA_STRIDEOF_TEST([INT],[int])
+
+   NAUSICAA_SIZEOF_TEST([UINT],[unsigned int])
+   NAUSICAA_ALIGNOF_TEST([UINT],[unsigned int])
+   NAUSICAA_STRIDEOF_TEST([UINT],[unsigned int])
+
+   NAUSICAA_SIZEOF_TEST([LONG],[long])
+   NAUSICAA_ALIGNOF_TEST([LONG],[long])
+   NAUSICAA_STRIDEOF_TEST([LONG],[long])
+
+   NAUSICAA_SIZEOF_TEST([ULONG],[unsigned long])
+   NAUSICAA_ALIGNOF_TEST([ULONG],[unsigned long])
+   NAUSICAA_STRIDEOF_TEST([ULONG],[unsigned long])
+
+   NAUSICAA_SIZEOF_TEST([LLONG],[long long])
+   NAUSICAA_ALIGNOF_TEST([LLONG],[long long])
+   NAUSICAA_STRIDEOF_TEST([LLONG],[long long])
+
+   NAUSICAA_SIZEOF_TEST([ULLONG],[unsigned long long])
+   NAUSICAA_ALIGNOF_TEST([ULLONG],[unsigned long long])
+   NAUSICAA_STRIDEOF_TEST([ULLONG],[unsigned long long])
+
+   NAUSICAA_SIZEOF_TEST([FLOAT],[float])
+   NAUSICAA_ALIGNOF_TEST([FLOAT],[float])
+   NAUSICAA_STRIDEOF_TEST([FLOAT],[float])
+
+   NAUSICAA_SIZEOF_TEST([DOUBLE],[double])
+   NAUSICAA_ALIGNOF_TEST([DOUBLE],[double])
+   NAUSICAA_STRIDEOF_TEST([DOUBLE],[double])
+
+   NAUSICAA_SIZEOF_TEST([LONG_DOUBLE],[long double])
+   NAUSICAA_ALIGNOF_TEST([LONG_DOUBLE],[long double])
+   NAUSICAA_STRIDEOF_TEST([LONG_DOUBLE],[long double])
+
+   NAUSICAA_SIZEOF_TEST([POINTER],[void *])
+   NAUSICAA_ALIGNOF_TEST([POINTER],[void *])
+   NAUSICAA_STRIDEOF_TEST([POINTER],[void *])
+
+   if test "${SIZEOF_POINTER}" = "${SIZEOF_UINT}" ; then
+     TYPEOF_POINTER_INTEGER=unsigned-int
+   elif test "${SIZEOF_POINTER}" = "${SIZEOF_ULONG}" ; then
+     TYPEOF_POINTER_INTEGER=unsigned-long
+   elif test "${SIZEOF_POINTER}" = "${SIZEOF_ULLONG}" ; then
+     TYPEOF_POINTER_INTEGER=unsigned-long-long
+   else
+     AC_MSG_WARN([cannot determine the integer equivalent of a pointer])
+   fi
+   AC_SUBST([TYPEOF_POINTER_INTEGER])
+
+   AC_CACHE_SAVE])
+
+AC_DEFUN([NAUSICAA_C_TYPES_LIMITS],
+  [NAUSICAA_VALUEOF_TEST([CHAR_MAX],[CHAR_MAX])
+   NAUSICAA_VALUEOF_TEST([CHAR_MIN],[CHAR_MIN])
+   NAUSICAA_VALUEOF_TEST([SCHAR_MAX],[SCHAR_MAX])
+   NAUSICAA_VALUEOF_TEST([SCHAR_MIN],[SCHAR_MIN])
+   NAUSICAA_VALUEOF_TEST([UCHAR_MAX],[UCHAR_MAX])
+   NAUSICAA_VALUEOF_TEST([SHRT_MAX],[SHRT_MAX])
+   NAUSICAA_VALUEOF_TEST([SHRT_MIN],[SHRT_MIN])
+   NAUSICAA_VALUEOF_TEST([USHRT_MAX],[USHRT_MAX])
+   NAUSICAA_VALUEOF_TEST([INT_MAX],[INT_MAX])
+   NAUSICAA_VALUEOF_TEST([INT_MIN],[INT_MIN])
+   NAUSICAA_VALUEOF_TEST([UINT_MAX],[UINT_MAX])
+   NAUSICAA_VALUEOF_TEST([LONG_MAX],[LONG_MAX])
+   NAUSICAA_VALUEOF_TEST([LONG_MIN],[LONG_MIN])
+   NAUSICAA_VALUEOF_TEST([ULONG_MAX],[ULONG_MAX])
+   NAUSICAA_VALUEOF_TEST([LLONG_MAX],[LLONG_MAX])
+   NAUSICAA_VALUEOF_TEST([LLONG_MIN],[LLONG_MIN])
+   NAUSICAA_VALUEOF_TEST([ULLONG_MAX],[ULLONG_MAX])
+   NAUSICAA_VALUEOF_TEST([WCHAR_MAX],[WCHAR_MAX])
+   NAUSICAA_VALUEOF_TEST([SSIZE_MAX],[SSIZE_MAX])
+   AC_C_BIGENDIAN([AC_SUBST(WORDS_BIGENDIAN,[#t])],[AC_SUBST(WORDS_BIGENDIAN,[#f])])
+   AC_CACHE_SAVE])
+
+AC_DEFUN([NAUSICAA_C_ERRNO],
+  [NAUSICAA_VALUEOF_TEST([EPERM],[EPERM])
+   NAUSICAA_VALUEOF_TEST([ENOENT],[ENOENT])
+   NAUSICAA_VALUEOF_TEST([ESRCH],[ESRCH])
+   NAUSICAA_VALUEOF_TEST([EINTR],[EINTR])
+   NAUSICAA_VALUEOF_TEST([EIO],[EIO])
+   NAUSICAA_VALUEOF_TEST([ENXIO],[ENXIO])
+   NAUSICAA_VALUEOF_TEST([E2BIG],[E2BIG])
+   NAUSICAA_VALUEOF_TEST([ENOEXEC],[ENOEXEC])
+   NAUSICAA_VALUEOF_TEST([EBADF],[EBADF])
+   NAUSICAA_VALUEOF_TEST([ECHILD],[ECHILD])
+   NAUSICAA_VALUEOF_TEST([EAGAIN],[EAGAIN])
+   NAUSICAA_VALUEOF_TEST([ENOMEM],[ENOMEM])
+   NAUSICAA_VALUEOF_TEST([EACCES],[EACCES])
+   NAUSICAA_VALUEOF_TEST([EFAULT],[EFAULT])
+   NAUSICAA_VALUEOF_TEST([ENOTBLK],[ENOTBLK])
+   NAUSICAA_VALUEOF_TEST([EBUSY],[EBUSY])
+   NAUSICAA_VALUEOF_TEST([EEXIST],[EEXIST])
+   NAUSICAA_VALUEOF_TEST([EXDEV],[EXDEV])
+   NAUSICAA_VALUEOF_TEST([ENODEV],[ENODEV])
+   NAUSICAA_VALUEOF_TEST([ENOTDIR],[ENOTDIR])
+   NAUSICAA_VALUEOF_TEST([EISDIR],[EISDIR])
+   NAUSICAA_VALUEOF_TEST([EINVAL],[EINVAL])
+   NAUSICAA_VALUEOF_TEST([ENFILE],[ENFILE])
+   NAUSICAA_VALUEOF_TEST([EMFILE],[EMFILE])
+   NAUSICAA_VALUEOF_TEST([ENOTTY],[ENOTTY])
+   NAUSICAA_VALUEOF_TEST([ETXTBSY],[ETXTBSY])
+   NAUSICAA_VALUEOF_TEST([EFBIG],[EFBIG])
+   NAUSICAA_VALUEOF_TEST([ENOSPC],[ENOSPC])
+   NAUSICAA_VALUEOF_TEST([ESPIPE],[ESPIPE])
+   NAUSICAA_VALUEOF_TEST([EROFS],[EROFS])
+   NAUSICAA_VALUEOF_TEST([EMLINK],[EMLINK])
+   NAUSICAA_VALUEOF_TEST([EPIPE],[EPIPE])
+   NAUSICAA_VALUEOF_TEST([EDOM],[EDOM])
+   NAUSICAA_VALUEOF_TEST([ERANGE],[ERANGE])
+   NAUSICAA_VALUEOF_TEST([EDEADLK],[EDEADLK])
+   NAUSICAA_VALUEOF_TEST([ENAMETOOLONG],[ENAMETOOLONG])
+   NAUSICAA_VALUEOF_TEST([ENOLCK],[ENOLCK])
+   NAUSICAA_VALUEOF_TEST([ENOSYS],[ENOSYS])
+   NAUSICAA_VALUEOF_TEST([ENOTEMPTY],[ENOTEMPTY])
+   NAUSICAA_VALUEOF_TEST([ELOOP],[ELOOP])
+   NAUSICAA_VALUEOF_TEST([EWOULDBLOCK],[EWOULDBLOCK])
+   NAUSICAA_VALUEOF_TEST([ENOMSG],[ENOMSG])
+   NAUSICAA_VALUEOF_TEST([EIDRM],[EIDRM])
+   NAUSICAA_VALUEOF_TEST([ECHRNG],[ECHRNG])
+   NAUSICAA_VALUEOF_TEST([EL2NSYNC],[EL2NSYNC])
+   NAUSICAA_VALUEOF_TEST([EL3HLT],[EL3HLT])
+   NAUSICAA_VALUEOF_TEST([EL3RST],[EL3RST])
+   NAUSICAA_VALUEOF_TEST([ELNRNG],[ELNRNG])
+   NAUSICAA_VALUEOF_TEST([EUNATCH],[EUNATCH])
+   NAUSICAA_VALUEOF_TEST([ENOCSI],[ENOCSI])
+   NAUSICAA_VALUEOF_TEST([EL2HLT],[EL2HLT])
+   NAUSICAA_VALUEOF_TEST([EBADE],[EBADE])
+   NAUSICAA_VALUEOF_TEST([EBADR],[EBADR])
+   NAUSICAA_VALUEOF_TEST([EXFULL],[EXFULL])
+   NAUSICAA_VALUEOF_TEST([ENOANO],[ENOANO])
+   NAUSICAA_VALUEOF_TEST([EBADRQC],[EBADRQC])
+   NAUSICAA_VALUEOF_TEST([EBADSLT],[EBADSLT])
+   NAUSICAA_VALUEOF_TEST([EDEADLOCK],[EDEADLOCK])
+   NAUSICAA_VALUEOF_TEST([EBFONT],[EBFONT])
+   NAUSICAA_VALUEOF_TEST([ENOSTR],[ENOSTR])
+   NAUSICAA_VALUEOF_TEST([ENODATA],[ENODATA])
+   NAUSICAA_VALUEOF_TEST([ETIME],[ETIME])
+   NAUSICAA_VALUEOF_TEST([ENOSR],[ENOSR])
+   NAUSICAA_VALUEOF_TEST([ENONET],[ENONET])
+   NAUSICAA_VALUEOF_TEST([ENOPKG],[ENOPKG])
+   NAUSICAA_VALUEOF_TEST([EREMOTE],[EREMOTE])
+   NAUSICAA_VALUEOF_TEST([ENOLINK],[ENOLINK])
+   NAUSICAA_VALUEOF_TEST([EADV],[EADV])
+   NAUSICAA_VALUEOF_TEST([ESRMNT],[ESRMNT])
+   NAUSICAA_VALUEOF_TEST([ECOMM],[ECOMM])
+   NAUSICAA_VALUEOF_TEST([EPROTO],[EPROTO])
+   NAUSICAA_VALUEOF_TEST([EMULTIHOP],[EMULTIHOP])
+   NAUSICAA_VALUEOF_TEST([EDOTDOT],[EDOTDOT])
+   NAUSICAA_VALUEOF_TEST([EBADMSG],[EBADMSG])
+   NAUSICAA_VALUEOF_TEST([EOVERFLOW],[EOVERFLOW])
+   NAUSICAA_VALUEOF_TEST([ENOTUNIQ],[ENOTUNIQ])
+   NAUSICAA_VALUEOF_TEST([EBADFD],[EBADFD])
+   NAUSICAA_VALUEOF_TEST([EREMCHG],[EREMCHG])
+   NAUSICAA_VALUEOF_TEST([ELIBACC],[ELIBACC])
+   NAUSICAA_VALUEOF_TEST([ELIBBAD],[ELIBBAD])
+   NAUSICAA_VALUEOF_TEST([ELIBSCN],[ELIBSCN])
+   NAUSICAA_VALUEOF_TEST([ELIBMAX],[ELIBMAX])
+   NAUSICAA_VALUEOF_TEST([ELIBEXEC],[ELIBEXEC])
+   NAUSICAA_VALUEOF_TEST([EILSEQ],[EILSEQ])
+   NAUSICAA_VALUEOF_TEST([ERESTART],[ERESTART])
+   NAUSICAA_VALUEOF_TEST([ESTRPIPE],[ESTRPIPE])
+   NAUSICAA_VALUEOF_TEST([EUSERS],[EUSERS])
+   NAUSICAA_VALUEOF_TEST([ENOTSOCK],[ENOTSOCK])
+   NAUSICAA_VALUEOF_TEST([EDESTADDRREQ],[EDESTADDRREQ])
+   NAUSICAA_VALUEOF_TEST([EMSGSIZE],[EMSGSIZE])
+   NAUSICAA_VALUEOF_TEST([EPROTOTYPE],[EPROTOTYPE])
+   NAUSICAA_VALUEOF_TEST([ENOPROTOOPT],[ENOPROTOOPT])
+   NAUSICAA_VALUEOF_TEST([EPROTONOSUPPORT],[EPROTONOSUPPORT])
+   NAUSICAA_VALUEOF_TEST([ESOCKTNOSUPPORT],[ESOCKTNOSUPPORT])
+   NAUSICAA_VALUEOF_TEST([EOPNOTSUPP],[EOPNOTSUPP])
+   NAUSICAA_VALUEOF_TEST([EPFNOSUPPORT],[EPFNOSUPPORT])
+   NAUSICAA_VALUEOF_TEST([EAFNOSUPPORT],[EAFNOSUPPORT])
+   NAUSICAA_VALUEOF_TEST([EADDRINUSE],[EADDRINUSE])
+   NAUSICAA_VALUEOF_TEST([EADDRNOTAVAIL],[EADDRNOTAVAIL])
+   NAUSICAA_VALUEOF_TEST([ENETDOWN],[ENETDOWN])
+   NAUSICAA_VALUEOF_TEST([ENETUNREACH],[ENETUNREACH])
+   NAUSICAA_VALUEOF_TEST([ENETRESET],[ENETRESET])
+   NAUSICAA_VALUEOF_TEST([ECONNABORTED],[ECONNABORTED])
+   NAUSICAA_VALUEOF_TEST([ECONNRESET],[ECONNRESET])
+   NAUSICAA_VALUEOF_TEST([ENOBUFS],[ENOBUFS])
+   NAUSICAA_VALUEOF_TEST([EISCONN],[EISCONN])
+   NAUSICAA_VALUEOF_TEST([ENOTCONN],[ENOTCONN])
+   NAUSICAA_VALUEOF_TEST([ESHUTDOWN],[ESHUTDOWN])
+   NAUSICAA_VALUEOF_TEST([ETOOMANYREFS],[ETOOMANYREFS])
+   NAUSICAA_VALUEOF_TEST([ETIMEDOUT],[ETIMEDOUT])
+   NAUSICAA_VALUEOF_TEST([ECONNREFUSED],[ECONNREFUSED])
+   NAUSICAA_VALUEOF_TEST([EHOSTDOWN],[EHOSTDOWN])
+   NAUSICAA_VALUEOF_TEST([EHOSTUNREACH],[EHOSTUNREACH])
+   NAUSICAA_VALUEOF_TEST([EALREADY],[EALREADY])
+   NAUSICAA_VALUEOF_TEST([EINPROGRESS],[EINPROGRESS])
+   NAUSICAA_VALUEOF_TEST([ESTALE],[ESTALE])
+   NAUSICAA_VALUEOF_TEST([EUCLEAN],[EUCLEAN])
+   NAUSICAA_VALUEOF_TEST([ENOTNAM],[ENOTNAM])
+   NAUSICAA_VALUEOF_TEST([ENAVAIL],[ENAVAIL])
+   NAUSICAA_VALUEOF_TEST([EISNAM],[EISNAM])
+   NAUSICAA_VALUEOF_TEST([EREMOTEIO],[EREMOTEIO])
+   NAUSICAA_VALUEOF_TEST([EDQUOT],[EDQUOT])
+   NAUSICAA_VALUEOF_TEST([ENOMEDIUM],[ENOMEDIUM])
+   NAUSICAA_VALUEOF_TEST([EMEDIUMTYPE],[EMEDIUMTYPE])
+   NAUSICAA_VALUEOF_TEST([ECANCELED],[ECANCELED])
+   NAUSICAA_VALUEOF_TEST([ENOKEY],[ENOKEY])
+   NAUSICAA_VALUEOF_TEST([EKEYEXPIRED],[EKEYEXPIRED])
+   NAUSICAA_VALUEOF_TEST([EKEYREVOKED],[EKEYREVOKED])
+   NAUSICAA_VALUEOF_TEST([EKEYREJECTED],[EKEYREJECTED])
+   NAUSICAA_VALUEOF_TEST([EOWNERDEAD],[EOWNERDEAD])
+   NAUSICAA_VALUEOF_TEST([ENOTRECOVERABLE],[ENOTRECOVERABLE])
+   AC_CACHE_SAVE])
+
+AC_DEFUN([NAUSICAA_INSPECT_SIZE_T],
+  [NAUSICAA_INSPECT_TYPE([SIZE_T],[size_t],[unsigned-int],[#f])
+   NAUSICAA_INSPECT_TYPE([SSIZE_T],[ssize_t],[signed-int],[#f])])
+
+
+dnl end of file
+dnl Local Variables:
+dnl mode: autoconf
+dnl End:
