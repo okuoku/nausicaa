@@ -27,8 +27,11 @@
 (library (foreign memory)
   (export
 
-    make-<memblock> <memblock> <memblock-rtd>
-    <memblock>? <memblock>-pointer <memblock>-size
+    ;; memory blocks
+    <memblock>			<memblock-rtd>
+    make-<memblock>		<memblock>?
+    <memblock>-pointer		<memblock>-pointer-set!
+    <memblock>-size		<memblock>-size-set!
 
     ;; bindings from (foreign memory conditions)
     &out-of-memory			&memory-request

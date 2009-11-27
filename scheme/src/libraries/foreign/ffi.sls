@@ -39,6 +39,7 @@
     define-c-function				define-c-function/with-errno
     make-c-function				make-c-function/with-errno
     define-pointer-c-function			define-pointer-c-function/with-errno
+    define-c-callouts				define-c-callouts/with-errno
     pointer->c-function				pointer->c-function/with-errno
     make-c-callback
     (rename (primitive:free-c-callback		free-c-callback))
@@ -279,6 +280,27 @@
     ((_ ?name (?ret-type ?pointer (?arg-type0 ?arg-type ...)))
      (define ?name
        (pointer->c-function/with-errno ?ret-type ?pointer (?arg-type0 ?arg-type ...))))))
+
+
+(define-syntax define-c-callouts
+  (syntax-rules ()
+    ((_ ?shared-object (?name (?retval ?funcname (?arg0 ?arg ...))) ...)
+     (begin
+       (define dummy
+	 (shared-object ?shared-object))
+       (define-c-function ?name
+	 (?retval ?funcname (?arg0 ?arg ...)))
+       ...))))
+
+(define-syntax define-c-callouts/with-errno
+  (syntax-rules ()
+    ((_ ?shared-object (?name (?retval ?funcname (?arg0 ?arg ...))) ...)
+     (begin
+       (define dummy
+	 (shared-object ?shared-object))
+       (define-c-function/with-errno ?name
+	 (?retval ?funcname (?arg0 ?arg ...)))
+       ...))))
 
 
 (define-syntax make-c-callback

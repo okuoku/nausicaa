@@ -2001,6 +2001,24 @@ Wrappers for @func{pointer->c-function} and
 callout closure.
 @end deffn
 
+
+@deffn Syntax define-c-callouts @ameta{lib-spec} (@ameta{pub-name} (@ameta{ret-type} @ameta{export-name} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
+@deffnx Syntax define-c-callouts/with-errno @ameta{lib-spec} (@ameta{pub-name} (@ameta{ret-type} @ameta{export-name} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
+Another interface to the above functions.  Example
+
+@example
+(define zlib-shared-object
+  (open-shared-object* 'libz.so))
+
+(define z_streamp 'z_streamp)
+
+(define-c-callouts zlib-shared-object
+  (deflateInit  (int deflateInit_ (z_streamp int)))
+  (deflate      (int deflate (z_streamp int)))
+  (deflateEnd   (int deflateEnd (z_streamp))))
+@end example
+@end deffn
+
 @c page
 @node ffi call back
 @subsubsection Calling Scheme functions
@@ -3911,7 +3929,7 @@ blocks.
 @deftp {Record Type Name} <memblock>
 @deftpx {Record Type Descriptor} <memblock-rtd>
 Type of record used to represent memory blocks.  It has the following
-fields:
+mutable fields:
 
 @table @samp
 @item pointer
@@ -3935,8 +3953,10 @@ Return true if @var{obj} is a record of type @class{memblock}, return
 
 
 @defun <memblock>-pointer @var{mb}
+@defunx <memblock>-pointer-set! @var{mb} @var{pointer}
 @defunx <memblock>-size @var{mb}
-Field accessors.
+@defunx <memblock>-size-set! @var{mb} @var{number-of-bytes}
+Field accessors and mutators.
 @end defun
 
 @c page

@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Scheme 2009-11-26 tag 0.1a6
+Subject: [announce] Nausicaa/Scheme --- tag 0.1a7
 
 		      Nausicaa/Scheme
 		      ===============
@@ -38,6 +38,14 @@ development takes place at:
 the documentation is available on line:
 
      <http://marcomaggi.github.com/docs/nausicaa.html>
+
+
+Notes for --- tag 0.1a7
+------------------------------
+
+* Changed <memblock> fields from immutable to mutable.
+
+* Added define-c-callouts and define-c-callouts/with-errno.
 
 
 Notes for 2009-11-26 tag 0.1a6
