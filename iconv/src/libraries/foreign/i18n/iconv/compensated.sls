@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Iconv
-;;;Contents: platform bindings to iconv
+;;;Contents: compensations for Iconv bindings
 ;;;Date: Fri Nov 27, 2009
 ;;;
 ;;;Abstract
@@ -25,27 +25,18 @@
 ;;;
 
 
-(library (foreign i18n iconv platform)
-  (export iconv_open iconv iconv_close)
+(library (foreign i18n iconv compensated)
+  (export iconv-open/compensated
+	  (rename (iconv-open/compensated	iconv-open/c)))
   (import (rnrs)
-    (foreign ffi)
-    (foreign ffi sizeof)
-    (foreign i18n iconv sizeof)
-    (foreign i18n iconv shared-object))
+    (compensations)
+    (foreign i18n iconv))
 
-
-(define char*		'pointer)
-(define char**		'pointer)
-(define size_t*		'pointer)
-
-(define-c-callouts/with-errno iconv-shared-object
-  (iconv_open	(iconv_t iconv_open (char* char*)))
-  (iconv	(size_t iconv (iconv_t char** size_t* char** size_t*)))
-  (iconv_close	(int iconv_close (iconv_t))))
-
-
-;;;; done
-
-)
+  (define (iconv-open/compensated . args)
+    (letrec ((handle (compensate
+			 (apply iconv-open args)
+		       (with
+			(iconv-close handle)))))
+      handle)))
 
 ;;; end of file

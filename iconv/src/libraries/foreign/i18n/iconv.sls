@@ -26,9 +26,12 @@
 
 
 (library (foreign i18n iconv)
-  (export iconv-open iconv iconv-close)
+  (export
+    iconv-open iconv! iconv-close iconv-context?
+    iconv-encoding-symbol iconv-encoding iconv-encoding-universe)
   (import (rnrs)
     (foreign i18n iconv primitives)
+    (foreign i18n iconv enumerations)
     (foreign i18n iconv sizeof)))
 
 ;;; end of file

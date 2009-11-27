@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Iconv
-;;;Contents: platform bindings to iconv
+;;;Contents: record type definitions
 ;;;Date: Fri Nov 27, 2009
 ;;;
 ;;;Abstract
@@ -24,24 +24,25 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
-(library (foreign i18n iconv platform)
-  (export iconv_open iconv iconv_close)
-  (import (rnrs)
-    (foreign ffi)
-    (foreign ffi sizeof)
-    (foreign i18n iconv sizeof)
-    (foreign i18n iconv shared-object))
 
 
-(define char*		'pointer)
-(define char**		'pointer)
-(define size_t*		'pointer)
+(library (foreign i18n iconv record-types)
+  (export
+    <iconv-context>			<iconv-context-rtd>
+    make-<iconv-context>		<iconv-context>?
+    <iconv-context>-pointer
+    <iconv-context>-from
+    <iconv-context>-to)
+  (import (rnrs))
 
-(define-c-callouts/with-errno iconv-shared-object
-  (iconv_open	(iconv_t iconv_open (char* char*)))
-  (iconv	(size_t iconv (iconv_t char** size_t* char** size_t*)))
-  (iconv_close	(int iconv_close (iconv_t))))
+
+(define-record-type <iconv-context>
+  (fields (immutable pointer)
+	  (immutable from)
+	  (immutable to)))
+
+(define <iconv-context-rtd>
+  (record-type-descriptor <iconv-context>))
 
 
 ;;;; done

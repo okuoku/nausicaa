@@ -25,6 +25,7 @@
 
 (import
   (only (foreign i18n iconv))
+  (only (foreign i18n iconv compensated))
   )
 
 ;;; end of file

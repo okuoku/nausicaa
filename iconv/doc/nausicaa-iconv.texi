@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
-@setfilename template.info
-@settitle Template
+@setfilename nausicaa-iconv.info
+@settitle GNU Libiconv for Nausicaa
 @c %**end of header
 
 @c page
@@ -396,16 +396,16 @@ Revised^6 Report on the algorithmic language Scheme
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      This Package
+@set TITLE                      @gnu{} Libiconv for Nausicaa
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
-@set PACKAGE                    ThisPackage
+@set PACKAGE                    Nausicaa/Iconv
 
 @c To be used as @value{PACKAGE_NICKNAME} whenever we need to include
 @c the nickname of the project: the name that is used to compose the
 @c distribution tarball or the web address.
-@set PACKAGE_NICKNAME           this-package
+@set PACKAGE_NICKNAME           nausicaa-iconv
 
 @c To be used as @value{AUTHOR} whenever we need to include the list of
 @c authors of this document.
@@ -413,7 +413,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
 @c email of the *single* author of this document.
-@set AUTHOR_EMAIL               @email{marcomaggi@@gna.org}
+@set AUTHOR_EMAIL               @email{marco.maggi-ipsu@@poste.it}
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
@@ -426,7 +426,16 @@ Revised^6 Report on the algorithmic language Scheme
 
 @copying
 @noindent
-This document describes version @version{} of @value{PACKAGE}, ...
+This document describes version @version{} of @value{PACKAGE}, a
+distribution of Scheme libraries for @rnrs{6} Scheme implementations; it
+provides bindings for the @gnu{} Libiconv C language library.  It is
+built upon the Nausicaa/Scheme package, making use of its
+foreign-functions interface.
+
+@gnu{} Libiconv converts text between encodings.
+
+The package supports the Ikarus, Mosh and Ypsilon Scheme
+implementations; Larceny Scheme is not supported.
 
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}) and can be downloaded from:
@@ -441,6 +450,11 @@ The project home page of Nausicaa is at:
 development of Nausicaa takes place at:
 
 @center @url{http://github.com/marcomaggi/nausicaa/tree/master}
+
+@noindent
+@gnu{} Libiconv is available from:
+
+@center @url{http://www.gnu.org/software/libiconv/}
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
@@ -475,8 +489,7 @@ entitled ``@gnu{} Free Documentation License''.
 @ifinfo
 @dircategory Development
 @direntry
-* nausicaa-template: (nausicaa-template). Template library
-                                          for @rnrs{6} Scheme.
+* nausicaa-iconv: (nausicaa-iconv). @gnu{} Libiconv for Nausicaa.
 @end direntry
 @end ifinfo
 
@@ -497,6 +510,10 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* enumerations::                Enumeration types.
+* records::                     Record types.
+* api::                         Conversion functions.
+* compensations::               Compensated constructors.
 
 Appendices
 
@@ -510,7 +527,9 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
 @end menu
+
 @end ifnottex
 
 @c page
@@ -518,8 +537,237 @@ Indexes
 @chapter Overview of the package
 
 
-This ...
+This document describes version @version{} of @value{PACKAGE}, a
+distribution of Scheme libraries for @rnrs{6} Scheme implementations; it
+provides bindings for the @gnu{} Libiconv C language library.  It is
+built upon the Nausicaa/Scheme package, making use of its
+foreign-functions interface.
 
+@gnu{} Libiconv converts text between encodings.
+
+The package supports the Ikarus, Mosh and Ypsilon Scheme
+implementations; Larceny Scheme is not supported.
+
+The installed libraries are:
+
+@table @library
+@item foreign i18n iconv shared-object
+Exports the single binding @code{iconv-shared-object}, which references
+the Iconv shared library.
+
+@item foreign i18n iconv sizeof
+Exports bindings for constant values and data structure accessors and
+mutators.
+
+@item foreign i18n iconv enumerations
+Defines enumeration types for Iconv encoding symbols.
+
+@item foreign i18n iconv record-types
+Defines a record type wrapping the Iconv context descriptor.
+
+@item foreign i18n iconv platform
+Implements a one--to--one map between Iconv's foreign functions and
+Scheme functions.  All the Iconv functions are available as Scheme
+functions with the same name; for example @cfunc{iconv_open} is exported
+as @func{iconv_open}.
+
+@item foreign i18n iconv primitives
+Implements a middle level interface with marshaling of function
+arguments and return values.  All the Iconv functions are available as
+Scheme functions with the same name but underscores turned into dashes;
+for example @cfunc{iconv_open} is exported as @func{iconv-open}.
+
+@item foreign i18n iconv
+Compound library whic reexports bindings from the following libraries:
+
+@example
+foreign i18n iconv primitive
+foreign i18n iconv record-types
+@end example
+
+@noindent
+this interface is the one documented here.
+
+@item foreign i18n iconv compensated
+Exports wrappers for constructor functions making use of the
+compensation stacks from the @library{compensations} library.
+@nauref{compensations, Compensation stacks}.
+@end table
+
+@c page
+@node enumerations
+@chapter Enumeration types
+
+
+The following bindings are exported by the @library{foreign i18n iconv
+enumeration} library and reexported by the compound library
+@library{foreign i18n iconv}.
+
+
+@deftp {Enumeration Type} iconv-encoding-symbol
+Enumeration type for the symbols describing supported Iconv encodings.
+All the encoding symbols are included with the exception of @samp{850},
+@samp{862} and @samp{866} (because they are numbers) which are alises
+for @samp{CP850}, @samp{CP862} and @samp{CP866}.
+
+Additionally @samp{TRANSLIT} and @samp{IGNORE} are included to allow the
+specification of the corresponding modes for @func{iconv!}.
+@end deftp
+
+
+@deffn Syntax iconv-encoding @ameta{symbol} ...
+Evaluate to an enumeration set holding symbols from the
+@code{iconv-encoding-symbol} enumeration.  It should be used to compose
+sets with a single encoding symbol and optionally none, one or both the
+symbols @samp{TRANSLIT} and @samp{IGNORE}.
+
+Examples:
+
+@example
+(iconv-encoding ISO8859-4)
+(iconv-encoding UTF-16BE IGNORE)
+(iconv-encoding UCS-4 TRANSLIT IGNORE)
+@end example
+@end deffn
+
+
+@defvr Constant iconv-encoding-universe
+Enumeration set holding all the symbols in the
+@code{iconv-encoding-symbol} enumeration.
+@end defvr
+
+@c page
+@node records
+@chapter Record types
+
+
+The following bindings are exported by the @library{foreign i18n iconv
+record-types} library.
+
+
+@deftp {Record Type Name} <iconv-context>
+@deftpx {Record Type Descriptor} <iconv-context-rtd>
+Record type representing an Iconv context.  It has the following fields,
+all immutable:
+
+@table @code
+@item pointer
+Pointer object to a foreign Iconv context structure.
+
+@item from
+Enumeration set of type @code{iconv-encoding-symbol} describing the
+input of the conversion context.
+
+@item to
+Enumeration set of type @code{iconv-encoding-symbol} describing the
+output of the conversion context.
+@end table
+@end deftp
+
+
+@defun make-<iconv-context> @var{pointer} @var{from} @var{to}
+@defunx <iconv-context>? @var{obj}
+Constructor and predicate for records of type @class{iconv-context}.
+@end defun
+
+
+@defun <iconv-context>-pointer @var{record}
+@defunx <iconv-context>-from @var{record}
+@defunx <iconv-context>-to @var{record}
+Accessors for records of type @class{iconv-context}.
+@end defun
+
+@c page
+@node api
+@chapter Conversion functions
+
+
+The following bindings are exported by the @library{foreign i18n iconv
+primitives} library and reexported by the compound library
+@library{foreign i18n iconv}.
+
+In case of error, all the following functions raise an exception with
+condition object of type @condition{errno}.
+
+
+@defun iconv-open @var{from} @var{to}
+Build and return a new conversion context object for the specified
+encodings.  @var{from} and @var{to} must be enumeration sets of type
+@code{iconv-encoding-symbol}.
+@end defun
+
+
+@defun iconv-context? @var{obj}
+Return true if @var{obj} is an Iconv context object.  Context objects
+are disjoint from the other Scheme objects.
+@end defun
+
+
+@defun iconv-close @var{context}
+Close the conversion @var{context} releases all the associated
+resources.
+@end defun
+
+
+@defun iconv! @var{context} @var{in-block} @var{out-block}
+Convert text from @var{in-block} to text into @var{out-block} as
+specified by @var{context}, which must be an Iconv conversion context
+object.
+
+@var{in-block} and @var{out-block} must be records of type
+@class{memblock}, from the @library{foreign memory memblocks} library.
+@nauref{memory blocks, Memory blocks}.
+
+The input and output blocks are mutated as described in the original
+documentation of @cfunc{iconv}; this happens in case or error, too.
+@end defun
+
+
+Example using compensations:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign memory)
+  (foreign i18n iconv)
+  (foreign i18n iconv compensated))
+
+(define (copy-memblock mb)
+  (make-<memblock> (<memblock>-pointer mb)
+                   (<memblock>-size    mb)))
+
+(with-compensations
+  (let* ((ctx        (iconv-open/c (iconv-encoding UTF-8)
+                                   (iconv-encoding UTF-16)))
+         (in         (bytevector->memblock
+                       (string->utf8 "ciao")
+                       malloc/c))
+         (ou         (malloc-memblock/c 256))
+         (in-cursor  (copy-memblock in))
+         (ou-cursor  (copy-memblock ou)))
+
+    (iconv! ctx in-cursor ou-cursor)
+
+    (<memblock>-size in-cursor) @result{} 0
+
+    ---))
+@end example
+
+@c page
+@node compensations
+@chapter Compensated constructors
+
+
+The following bindings are exported by the @library{foreign i18n iconv
+compensated} library.  @nauref{compensations, Compensation stacks}.
+
+
+@defun iconv-open/compensated @var{arg} ...
+@defunx iconv-open/c @var{arg} ...
+Wrapper for @func{iconv-open} which pushes the appropriate call to
+@func{iconv-close} to the current compensation stack.  Take the same
+arguments of @func{iconv-open}.
+@end defun
 
 @c page
 

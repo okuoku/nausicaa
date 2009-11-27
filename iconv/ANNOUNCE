@@ -1,0 +1,54 @@
+To: comp.lang.scheme
+Subject: [announce] Nausicaa/Iconv --- 0.1b0
+
+		       Nausicaa/Iconv
+		       ==============
+
+Nausicaa/Iconv  is a  distribution of  Scheme  libraries for
+R6RS  Scheme implementations; it  provides bindings  for the
+GNU  Libiconv C  language  library.  It  is  built upon  the
+Nausicaa/Scheme package, making use of its foreign-functions
+interface.
+
+  GNU Libiconv converts text between encodings.
+
+  The package  works with  Ikarus, Mosh and  Ypsilon Scheme;
+Larceny Scheme is not supported.  It currently supports only
+GNU+Linux systems.
+
+  The  latest  release  of  the  Nausicaa/Iconv  package  is
+available at:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+the documentation is available on line:
+
+   <http://marcomaggi.github.com/docs/nausicaa-Iconv.html>
+
+GNU Libiconv is available here:
+
+	  <http://www.gnu.org/software/libiconv/>
+
+
+Notes for --- tag 0.1b0
+------------------------------
+
+* It has been tested with GNU Libiconv 1.13.1.
+
+* Requires Nausicaa/Scheme version 0.1a7.
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:
