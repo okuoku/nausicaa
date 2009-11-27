@@ -25,6 +25,7 @@
 
 (import
   (only (foreign net curl))
+  (only (foreign net curl compensated))
   )
 
 ;;; end of file
