@@ -39,78 +39,68 @@
 
 (parametrise ((check-test-name	'iconv))
 
-  (define (copy-memblock mb)
-    (make-<memblock> (<memblock>-pointer mb)
-		     (<memblock>-size    mb)))
-
-  (define (done-memblock base cursor)
-    (make-<memblock> (<memblock>-pointer base)
-		     (- (<memblock>-size base)
-			(<memblock>-size cursor))))
-
-  (define memblock-null
-    (make-<memblock> pointer-null 0))
-
   (check
       (with-compensations
-	(let* ((ctx		(iconv-open/c (iconv-encoding UTF-8)
-					      (iconv-encoding UTF-16)))
-	       (in		(bytevector->memblock (string->utf8 "ciao") malloc/c))
-	       (ou		(malloc-memblock/c 16))
-	       (in-cursor	(copy-memblock in))
-	       (ou-cursor	(copy-memblock ou)))
-	  (iconv! ctx in-cursor ou-cursor)
-	  (<memblock>-size in-cursor)))
+	(let* ((ctx	(iconv-open/c (iconv-encoding UTF-16)
+				      (iconv-encoding UTF-8)))
+	       (in	(bytevector->memblock (string->utf8 "ciao") malloc/c))
+	       (ou	(malloc-memblock/c 16))
+	       (in-tail	(memblock-shallow-clone in))
+	       (ou-tail	(memblock-shallow-clone ou)))
+	  (iconv! ctx ou-tail in-tail)
+	  (iconv! ctx ou-tail)
+	  (<memblock>-size in-tail)))
     => 0)
 
   (check
       (with-compensations
-	(let* ((ctx		(iconv-open/c (iconv-encoding UTF-8 TRANSLIT IGNORE)
-					      (iconv-encoding UTF-16)))
-	       (in		(bytevector->memblock (string->utf8 "ciao") malloc/c))
-	       (ou		(malloc-memblock/c 16))
-	       (in-cursor	(copy-memblock in))
-	       (ou-cursor	(copy-memblock ou)))
-	  (iconv! ctx in-cursor ou-cursor)
-	  (<memblock>-size in-cursor)))
+	(let* ((ctx	(iconv-open/c (iconv-encoding UTF-16)
+				      (iconv-encoding UTF-8 TRANSLIT IGNORE)))
+	       (in	(bytevector->memblock (string->utf8 "ciao") malloc/c))
+	       (ou	(malloc-memblock/c 16))
+	       (in-tail	(memblock-shallow-clone in))
+	       (ou-tail	(memblock-shallow-clone ou)))
+	  (iconv! ctx ou-tail in-tail)
+	  (iconv! ctx ou-tail)
+	  (<memblock>-size in-tail)))
     => 0)
+
+;;; --------------------------------------------------------------------
 
   (check
       (with-compensations
-	(let* ((ctx		(iconv-open/c (iconv-encoding UTF-8)
-					      (iconv-encoding UTF-16)))
-	       (in		(bytevector->memblock (string->utf8 "ciao") malloc/c))
-	       (ou		(malloc-memblock/c 16))
-	       (in-cursor	(copy-memblock in))
-	       (ou-cursor	(copy-memblock ou)))
-	  (iconv! ctx in-cursor ou-cursor)
-	  (let* ((ou-done	(done-memblock ou ou-cursor))
-		 (bv		(memblock->bytevector ou-done)))
+	(let* ((ctx	(iconv-open/c (iconv-encoding UTF-16)
+				      (iconv-encoding UTF-8)))
+	       (in	(bytevector->memblock (string->utf8 "ciao") malloc/c))
+	       (ou	(malloc-memblock/c 16))
+	       (in-tail	(memblock-shallow-clone in))
+	       (ou-tail	(memblock-shallow-clone ou)))
+	  (iconv! ctx ou-tail in-tail)
+	  (iconv! ctx ou-tail)
+	  (let* ((ou-head	(memblock&tail-head ou ou-tail))
+		 (bv		(memblock->bytevector ou-head)))
 	    (utf16->string bv (if words-bigendian 'big 'little)))))
     => "ciao")
 
-  (check 'this
-      (with-compensations
-	(let* ((ctx1		(iconv-open/c (iconv-encoding UTF-8)
-					      (iconv-encoding UTF-32)))
-
-	       (A		(bytevector->memblock (string->utf8 "ciao") malloc/c))
-	       (B		(malloc-memblock/c 16))
-	       (A-cursor	(copy-memblock A))
-	       (B-cursor	(copy-memblock B)))
-	  (iconv! ctx1 A-cursor B-cursor)
-(write (<memblock>-size A-cursor))(newline)
-(write (<memblock>-size B-cursor))(newline)
-	  (iconv! ctx1 memblock-null B-cursor)
-(write (<memblock>-size B-cursor))(newline)
-	  (let* ((ctx2		(iconv-open/c (iconv-encoding UTF-32)
-					      (iconv-encoding UTF-8)))
-		 (B-done	(done-memblock B B-cursor))
-		 (C		(malloc-memblock/c 16))
-		 (C-cursor	(copy-memblock C)))
-	    (iconv! ctx2 B-done C-cursor)
-	    (let ((C-done (done-memblock C C-cursor)))
-	      (utf8->string (memblock->bytevector C-done))))))
+  (check
+    (with-compensations
+      (let* ((ctx1	(iconv-open/c (iconv-encoding UTF-32)
+				      (iconv-encoding UTF-8)))
+	     (A		(bytevector->memblock (string->utf8 "ciao") malloc/c))
+	     (B		(malloc-memblock/c 64))
+	     (A-tail	(memblock-shallow-clone A))
+	     (B-tail	(memblock-shallow-clone B)))
+	(iconv! ctx1 B-tail A-tail)
+	(iconv! ctx1 B-tail)
+	(let* ((B-head	(memblock&tail-head B B-tail))
+	       (ctx2	(iconv-open/c (iconv-encoding UTF-8)
+				      (iconv-encoding UTF-32)))
+	       (C	(malloc-memblock/c 64))
+	       (C-tail	(memblock-shallow-clone C)))
+	  (iconv! ctx2 C-tail B-head)
+	  (iconv! ctx2 C-tail)
+	  (let ((C-head (memblock&tail-head C C-tail)))
+	    (utf8->string (memblock->bytevector C-head))))))
     => "ciao")
 
   #t)

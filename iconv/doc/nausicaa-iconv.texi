@@ -687,13 +687,20 @@ primitives} library and reexported by the compound library
 @library{foreign i18n iconv}.
 
 In case of error, all the following functions raise an exception with
-condition object of type @condition{errno}.
+condition object of type @condition{errno}; when the @code{errno} code
+is @code{E2BIG}, it means that the output buffer was not big enough to
+hold the whole output.
 
 
-@defun iconv-open @var{from} @var{to}
+@defun iconv-open @var{to} @var{from}
 Build and return a new conversion context object for the specified
 encodings.  @var{from} and @var{to} must be enumeration sets of type
 @code{iconv-encoding-symbol}.
+
+@quotation
+@strong{NOTE} Beware of the order of the arguments!  An error may be
+difficult to detect.
+@end quotation
 @end defun
 
 
@@ -709,17 +716,27 @@ resources.
 @end defun
 
 
-@defun iconv! @var{context} @var{in-block} @var{out-block}
-Convert text from @var{in-block} to text into @var{out-block} as
+@defun iconv! @var{context} @var{to-block} @var{from-block}
+@defunx iconv! @var{context} @var{to-block}
+Convert text from @var{from-block} to text into @var{to-block} as
 specified by @var{context}, which must be an Iconv conversion context
-object.
+object.  Return the return code of the foreign function.
 
-@var{in-block} and @var{out-block} must be records of type
+@var{from-block} and @var{to-block} must be records of type
 @class{memblock}, from the @library{foreign memory memblocks} library.
 @nauref{memory blocks, Memory blocks}.
 
+When @var{from-block} is not given, the contents of the context are
+flushed to @var{to-block} and the context is restored to its initial
+state.
+
 The input and output blocks are mutated as described in the original
 documentation of @cfunc{iconv}; this happens in case or error, too.
+
+@quotation
+@strong{NOTE} Beware of the order of the arguments!  An error may be
+difficult to detect.
+@end quotation
 @end defun
 
 
@@ -732,25 +749,20 @@ Example using compensations:
   (foreign i18n iconv)
   (foreign i18n iconv compensated))
 
-(define (copy-memblock mb)
-  (make-<memblock> (<memblock>-pointer mb)
-                   (<memblock>-size    mb)))
-
 (with-compensations
-  (let* ((ctx        (iconv-open/c (iconv-encoding UTF-8)
-                                   (iconv-encoding UTF-16)))
-         (in         (bytevector->memblock
-                       (string->utf8 "ciao")
-                       malloc/c))
-         (ou         (malloc-memblock/c 256))
-         (in-cursor  (copy-memblock in))
-         (ou-cursor  (copy-memblock ou)))
+  (let* ((ctx      (iconv-open/c (iconv-encoding UTF-16)
+                                 (iconv-encoding UTF-8)))
+         (in       (bytevector->memblock (string->utf8 "ciao")
+                                         malloc/c))
+         (ou       (malloc-memblock/c 256))
+         (in-tail  (memblock-shallow-clone in))
+         (ou-tail  (memblock-shallow-clone ou)))
 
-    (iconv! ctx in-cursor ou-cursor)
+    (iconv! ctx ou-tail in-tail) ;begin conversion
+    (iconv! ctx ou-tail)         ;flush context
 
-    (<memblock>-size in-cursor) @result{} 0
-
-    ---))
+    (let ((result (memblock&tail-head ou ou-tail)))
+      ---)))
 @end example
 
 @c page

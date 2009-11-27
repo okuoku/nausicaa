@@ -62,13 +62,13 @@
       (assertion-violation procname "invalid Iconv enumeration set" set))))
 
 
-(define (iconv-open from to)
+(define (iconv-open to from)
   (assert (enum-set-subset? from iconv-encoding-universe))
   (assert (enum-set-subset? to   iconv-encoding-universe))
   (with-compensations
     (receive (context* errno)
-	(iconv_open (string->cstring/c (%enum-set->string from 'iconv-open))
-		    (string->cstring/c (%enum-set->string to   'iconv-open)))
+	(iconv_open (string->cstring/c (%enum-set->string to   'iconv-open))
+		    (string->cstring/c (%enum-set->string from 'iconv-open)))
       (if (= -1 (pointer->integer context*))
 	  (raise-errno-error 'iconv-open errno from to)
 	(make-<iconv-context> context* from to)))))
@@ -81,29 +81,32 @@
 	(raise-errno-error 'iconv-close errno context)
       code)))
 
-(define (iconv! context inbuf oubuf)
-  (assert (iconv-context? context))
-  (assert (<memblock>? inbuf))
-  (assert (<memblock>? oubuf))
-  (with-compensations
-    (let ((inbuf** (malloc-small/c)) (oubuf** (malloc-small/c))
-	  (inlen*  (malloc-small/c)) (oulen*  (malloc-small/c)))
-      (pointer-set-c-pointer! inbuf** 0 (<memblock>-pointer inbuf))
-      (pointer-set-c-pointer! oubuf** 0 (<memblock>-pointer oubuf))
-      (pointer-set-c-size_t!  inlen*  0 (<memblock>-size    inbuf))
-      (pointer-set-c-size_t!  oulen*  0 (<memblock>-size    oubuf))
-      (write (pointer-ref-c-size_t  oulen*  0))(newline)
-      (receive (code errno)
-	  (iconv (<iconv-context>-pointer context) inbuf** inlen* oubuf** oulen*)
-	(write (pointer-ref-c-size_t  oulen*  0))(newline)
-	(write (list 'errno code errno))(newline)
-	(<memblock>-pointer-set! inbuf (pointer-ref-c-pointer inbuf** 0))
-	(<memblock>-size-set!    inbuf (pointer-ref-c-size_t  inlen*  0))
-	(<memblock>-pointer-set! oubuf (pointer-ref-c-pointer oubuf** 0))
-	(<memblock>-size-set!    oubuf (pointer-ref-c-size_t  oulen*  0))
-	(if (= 0 code)
-	    (raise-errno-error 'iconv errno context)
-	  code)))))
+(define iconv!
+  (case-lambda
+   ((context to-block)
+    (iconv! context to-block (memblock-null)))
+   ((context to-block from-block)
+    (assert (iconv-context? context))
+    (assert (<memblock>? from-block))
+    (assert (<memblock>? to-block))
+    (with-compensations
+      (let ((from.ptr* (malloc-small/c))
+	    (from.len* (malloc-small/c))
+	    (to.ptr*   (malloc-small/c))
+	    (to.len*   (malloc-small/c)))
+	(pointer-set-c-pointer! from.ptr* 0 (<memblock>-pointer from-block))
+	(pointer-set-c-size_t!  from.len* 0 (<memblock>-size    from-block))
+	(pointer-set-c-pointer! to.ptr*   0 (<memblock>-pointer to-block))
+	(pointer-set-c-size_t!  to.len*   0 (<memblock>-size    to-block))
+	(receive (code errno)
+	    (iconv (<iconv-context>-pointer context) from.ptr* from.len* to.ptr* to.len*)
+	  (<memblock>-pointer-set! from-block (pointer-ref-c-pointer from.ptr* 0))
+	  (<memblock>-size-set!    from-block (pointer-ref-c-size_t  from.len* 0))
+	  (<memblock>-pointer-set! to-block   (pointer-ref-c-pointer to.ptr*   0))
+	  (<memblock>-size-set!    to-block   (pointer-ref-c-size_t  to.len*   0))
+	  (if (= -1 code)
+	      (raise-errno-error 'iconv errno context)
+	    code)))))))
 
 
 ;;;; done
