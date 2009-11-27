@@ -107,9 +107,9 @@
   (check
       (let ((p (memblocks-cache 10)))
 	(begin0
-	    (list (<memblock>? p) (<memblock>-size p))
+	    (list (<memblock>? p) (<memblock>-size p) (<memblock>-alloc-size p))
 	  (memblocks-cache p)))
-    => `(#t ,small-blocks-size))
+    => `(#t 10 ,small-blocks-size))
 
   (check
       (let ((ell '()))
@@ -129,9 +129,9 @@
   (check
       (let ((p (memblocks-cache 50)))
 	(begin0
-	    (list (<memblock>? p) (<memblock>-size p))
+	    (list (<memblock>? p) (<memblock>-size p) (<memblock>-alloc-size p))
 	  (memblocks-cache p)))
-    => `(#t ,page-blocks-size))
+    => `(#t 50 ,page-blocks-size))
 
   (check
       (let ((ell '()))

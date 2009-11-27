@@ -43,7 +43,7 @@
     (fields (mutable pointer-free))) ;pointer to the first free byte
 
   (define (make-mempool pointer size)
-    (make-<mempool> pointer size pointer))
+    (make-<mempool> pointer size #f pointer))
 
   (define <mempool-rtd>
     (record-type-descriptor <mempool>)))

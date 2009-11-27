@@ -77,7 +77,7 @@
       (let* ((len  100)
 	     (mb   (membuffer small-blocks-cache))
 	     (src  default-blk)
-	     (dst  (make <memblock> (malloc len) len)))
+	     (dst  (make <memblock> (malloc len) len len)))
 	(membuffer-push-memblock! mb src)
 	(membuffer-pop-memblock!  mb dst)
 	(with-record-fields* ((pointer <memblock> dst)

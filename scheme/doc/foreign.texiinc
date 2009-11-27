@@ -3909,21 +3909,31 @@ To log memory allocations we can do:
 @subsection Memory blocks
 
 
-The following bindings are exported by @library{foreign memory memblocks}
-and re--exported by @library{foreign memory}.  A number of libraries in
-the @library{foreign memory ---} hierarchy makes use of this library.
+The bindings described in this section are exported by @library{foreign
+memory memblocks} and reexported by @library{foreign memory}; a number
+of libraries in the @library{foreign memory ---} hierarchy makes use of
+this library.
 
 To use the @class{memblock} record type with the @library{records}
 library, we have to import @library{foreign memory memblock} for the
 @samp{expand} phase.
 
+@menu
+* memory blocks type::          Record type definition.
+* memory blocks clone::         Duplicating blocks.
+* memory blocks conversion::    Conversion between blocks and other
+                                objects.
+* memory blocks portions::      Dealing with block portions.
+* memory blocks misc::          Miscellaneous stuff.
+@end menu
+
+@c page
+@node memory blocks type
+@subsubsection Record type definition
+
+
 A @class{memblock} is a record that holds a pointer to a raw memory
-block and its size.  It is meant to reference, but not necessarily own,
-a block of raw memory filled with data; a @class{memblock} should not be
-used to reference half--filled memory.  For example, it can reference a
-C language data structure or an array of data structures.  It is fine if
-more @class{memblock} records reference the same block or overlapping
-blocks.
+block and its size.
 
 
 @deftp {Record Type Name} <memblock>
@@ -3936,7 +3946,13 @@ mutable fields:
 A pointer value referencing a memory block.
 
 @item size
-The number of bytes in the referenced memory block.
+The ``official'' number of bytes in the referenced memory block.
+
+@item alloc-size
+The number of bytes really allocated in the referenced memory block;
+this number can be different from the one in the @code{size} field.
+This field is set to @false{} when the record does not own the memory
+block.
 @end table
 @end deftp
 
@@ -3956,8 +3972,120 @@ Return true if @var{obj} is a record of type @class{memblock}, return
 @defunx <memblock>-pointer-set! @var{mb} @var{pointer}
 @defunx <memblock>-size @var{mb}
 @defunx <memblock>-size-set! @var{mb} @var{number-of-bytes}
+@defunx <memblock>-alloc-size @var{mb}
+@defunx <memblock>-alloc-size-set! @var{mb} @var{number-of-bytes/false}
 Field accessors and mutators.
 @end defun
+
+@c page
+@node memory blocks clone
+@subsubsection Duplicating blocks
+
+
+@defun memblock-shallow-clone @var{mb}
+Return a new @class{memblock} record holding the same values of
+@var{mb}.  Set to @false{} the @code{alloc-size} field of the returned
+record.
+@end defun
+
+
+@defun memblock-deep-clone @var{mb} @var{malloc}
+Return a new @class{memblock} record holding a newly allocated memory
+block equal to the one referenced by @var{mb}.  The new block is
+allocated with @var{malloc}, which must be a function like @func{malloc}
+from @library{foreign memory alloc}.
+@end defun
+
+@c page
+@node memory blocks conversion
+@subsubsection Conversion between blocks and other objects
+
+
+@defun memblock->string-hex @var{mb}
+@defunx string-hex->memblock @var{str} @var{malloc}
+Convert to and from a @class{memblock} record and a string, encoding
+each byte in the block with two characters in the string in hexadecimal
+format.  These functions are slow, but they are fine for debugging
+purposes.
+
+When converting from a string, the new memory block is allocated with
+@var{malloc}, which must be a function like @func{malloc} from
+@library{foreign memory alloc}.
+@end defun
+
+@c page
+@node memory blocks portions
+@subsubsection Dealing with block portions
+
+
+The following functions handle blocks and portions with the meaning
+displayed in this picture:
+
+@example
+                block
+|-----------------------------------|
+|---------------|
+      head       |------------------|
+                         tail
+@end example
+
+
+@defun memblock-head @var{block} @var{head-size}
+Return a new @class{memblock} record referencing a portion of
+@var{head-size} bytes anchored to the beginning of @var{block}.
+
+The returned block has @code{alloc-size} set to @false{}.
+@end defun
+
+
+@defun memblock-tail @var{block} @var{tail-size}
+Return a new @class{memblock} record referencing a portion of
+@var{tail-size} bytes anchored to the end of @var{block}.
+
+The returned block has @code{alloc-size} set to @false{}.
+@end defun
+
+
+@defun memblock-head? @var{block} @var{head}
+Return true if @var{head} references a portion of @var{block} anchored
+to its beginning.
+@end defun
+
+
+@defun memblock-tail? @var{block} @var{tail}
+Return true if @var{tail} references a portion of @var{block} anchored
+to its end.
+@end defun
+
+
+@defun memblock&head-tail @var{block} @var{head}
+Both @var{block} and @var{head} must be @class{memblock} records;
+interpret @var{head} as a reference to a portion of @var{block} anchored
+to its beginning; return a new memory block representing the tail of
+@var{block} non--overlapping with @var{head}.
+
+The returned block has @code{alloc-size} set to @false{}.
+@end defun
+
+
+@defun memblock&tail-head @var{block} @var{tail}
+Both @var{block} and @var{tail} must be @class{memblock} records;
+interpret @var{tail} as a reference to a portion of @var{block} anchored
+to its end; return a new memory block representing the head of
+@var{block} non--overlapping with @var{tail}.
+
+The returned block has @code{alloc-size} set to @false{}.
+@end defun
+
+@c page
+@node memory blocks misc
+@subsubsection Miscellaneous stuff
+
+
+@defvr Constant memblock-null
+A @class{memblock} record holding a @cnull{} pointer and zero size; it
+is meant to be used as sentinel value.
+@end defvr
 
 @c page
 @node memory cache

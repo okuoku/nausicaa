@@ -119,19 +119,18 @@
   (cond ((<memblock>? memblock/size)
 	 (let-syntax ((pointer	(identifier-syntax (<memblock>-pointer memblock/size)))
 		      (size	(identifier-syntax (<memblock>-size    memblock/size))))
-	   (cond
-	    ((= size small-blocks-size)
-	     (small-blocks-cache pointer))
-	    ((= size page-blocks-size)
-	     (page-blocks-cache pointer))
-	    (else
-	     (primitive-free pointer)))))
+	   (cond ((= size small-blocks-size)
+		  (small-blocks-cache pointer))
+		 ((= size page-blocks-size)
+		  (page-blocks-cache pointer))
+		 (else
+		  (primitive-free pointer)))))
 	((<= memblock/size small-blocks-size)
-	 (make-<memblock> (small-blocks-cache) small-blocks-size))
+	 (make-<memblock> (small-blocks-cache) memblock/size small-blocks-size))
 	((<= memblock/size page-blocks-size)
-	 (make-<memblock> (page-blocks-cache) page-blocks-size))
+	 (make-<memblock> (page-blocks-cache) memblock/size page-blocks-size))
 	(else
-	 (make-<memblock> (malloc memblock/size) memblock/size))))
+	 (make-<memblock> (malloc memblock/size) memblock/size memblock/size))))
 
 
 ;;;; done

@@ -135,7 +135,7 @@
 	   (pointer	(malloc len)))
       (do ((i 0 (+ 1 i)))
 	  ((= i len)
-	   (make-<memblock> pointer len))
+	   (make-<memblock> pointer len len))
 	(pointer-set-c-signed-char! pointer i (bytevector-s8-ref bv i)))))
    ((s)
     (string->cstring s malloc))))

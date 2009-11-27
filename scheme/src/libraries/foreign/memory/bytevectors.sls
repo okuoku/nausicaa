@@ -58,7 +58,7 @@
    ((bv malloc number-of-bytes offset)
     (make-<memblock>
       (bytevector->pointer bv malloc number-of-bytes offset)
-      number-of-bytes))))
+      number-of-bytes number-of-bytes))))
 
 ;;; --------------------------------------------------------------------
 

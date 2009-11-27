@@ -32,6 +32,13 @@
     make-<memblock>		<memblock>?
     <memblock>-pointer		<memblock>-pointer-set!
     <memblock>-size		<memblock>-size-set!
+    <memblock>-alloc-size	<memblock>-alloc-size-set!
+    memblock-null
+    memblock-shallow-clone	memblock-deep-clone
+    memblock->string-hex	string-hex->memblock
+    memblock-head		memblock-tail
+    memblock-head?		memblock-tail?
+    memblock&tail-head		memblock&head-tail
 
     ;; bindings from (foreign memory conditions)
     &out-of-memory			&memory-request

@@ -373,14 +373,14 @@
 (compile-library "foreign/memory/conditions.sls"
  		 "foreign/memory/conditions.slfasl")
 
-(compile-library "foreign/memory/memblocks.sls"
- 		 "foreign/memory/memblocks.slfasl")
-
 (compile-library "foreign/memory/operations/compat.larceny.sls"
  		 "foreign/memory/operations/compat.larceny.slfasl")
 
 (compile-library "foreign/memory/operations.sls"
  		 "foreign/memory/operations.slfasl")
+
+(compile-library "foreign/memory/memblocks.sls"
+ 		 "foreign/memory/memblocks.slfasl")
 
 (compile-library "foreign/memory/alloc/compat.larceny.sls"
  		 "foreign/memory/alloc/compat.larceny.slfasl")

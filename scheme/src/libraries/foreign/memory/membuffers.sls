@@ -62,7 +62,7 @@
 (define (buffer-alloc mb)
   (let-syntax ((cache (identifier-syntax (<membuffer>-cache mb))))
     (let ((pointer (cache)))
-      (make-<buffer> pointer (cache 'size) pointer pointer))))
+      (make-<buffer> pointer (cache 'size) (cache 'size) pointer pointer))))
 
 (define (buffer-free mb buf)
   (let-syntax ((cache	(identifier-syntax (<membuffer>-cache mb)))
