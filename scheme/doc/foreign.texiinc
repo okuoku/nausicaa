@@ -5080,6 +5080,7 @@ The bindings described in this chapter are exported by the
 
 @menu
 * errno values::                Error codes.
+* errno enumerations::          Enumeration type.
 * errno conversion::            Conversion of error codes.
 * errno condition::             Raising exceptions.
 @end menu
@@ -5274,6 +5275,25 @@ EXDEV               EXFULL
 @end example
 
 @c page
+@node errno enumerations
+@subsection Enumeration type
+
+
+@deftp {Enumeration Type} enum-errno
+Enumeration type for the @code{errno} symbols.
+@end deftp
+
+
+@deffn Syntax errno-symbols @ameta{symbol} ...
+Evaluate to an enumeration set holding the @ameta{symbol} symbols.
+@end deffn
+
+
+@deffn Syntax errno @ameta{symbol}
+Like @func{errno-symbols} but accept only one symbol as argument.
+@end deffn
+
+@c page
 @node errno conversion
 @subsection Conversion of error codes
 
@@ -5367,6 +5387,14 @@ is equivalent to:
              (make-irritants-condition pathname)))
 @end example
 @end defun
+
+
+@defun raise-errno-error/continuable @var{who} @var{errno-numeric-value}
+@defunx raise-errno-error/continuable @var{who} @var{errno-numeric-value} @var{irritants}
+Like @func{raise-errno-error}, but raise a continuable exception.  This
+is occasionally useful with particular error codes like @samp{E2BIG}.
+@end defun
+
 
 @c end of file
 @c Local Variables:
