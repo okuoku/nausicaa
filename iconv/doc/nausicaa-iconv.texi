@@ -604,7 +604,7 @@ enumeration} library and reexported by the compound library
 @library{foreign i18n iconv}.
 
 
-@deftp {Enumeration Type} iconv-encoding-symbol
+@deftp {Enumeration Type} enum-iconv-encoding
 Enumeration type for the symbols describing supported Iconv encodings.
 All the encoding symbols are included with the exception of @samp{850},
 @samp{862} and @samp{866} (because they are numbers) which are alises
@@ -635,6 +635,21 @@ Examples:
 Enumeration set holding all the symbols in the
 @code{iconv-encoding-symbol} enumeration.
 @end defvr
+
+
+@defun iconv-encoding-aliases? @vari{set} @varii{set}
+Return true if the encodings specified by the enumeration sets
+@vari{set} and @varii{set} are aliases for the same encoding.  This
+predicate does @strong{not} take into account the @samp{TRANSLIT} and
+@samp{IGNORE} symbols.
+@end defun
+
+
+@defun iconv-encoding=?
+Return true if the encodings specified by the enumeration sets
+@vari{set} and @varii{set} are aliases for the same encoding, taking
+into account the @samp{TRANSLIT} and @samp{IGNORE} symbols.
+@end defun
 
 @c page
 @node records

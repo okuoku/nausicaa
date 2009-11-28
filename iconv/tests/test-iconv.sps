@@ -37,33 +37,70 @@
 (display "*** testing Iconv\n")
 
 
+(parametrise ((check-test-name	'iconv-enum))
+
+  (check
+      (with-compensations
+	(iconv-open/c (iconv-encoding UTF-16)
+		      (iconv-encoding UTF-8))
+	#t)
+    => #t)
+
+  (check
+      (with-compensations
+	(iconv-open/c (iconv-encoding UTF-16 TRANSLIT IGNORE)
+		      (iconv-encoding UTF-8))
+	#t)
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (iconv-encoding-aliases? (iconv-encoding IBM819)
+			       (iconv-encoding ISO-8859-1))
+    => #t)
+
+  (check
+      (iconv-encoding-aliases? (iconv-encoding IBM819)
+			       (iconv-encoding UTF-8))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (iconv-encoding=? (iconv-encoding IBM819)
+			(iconv-encoding ISO-8859-1))
+    => #t)
+
+  (check
+      (iconv-encoding=? (iconv-encoding IBM819 TRANSLIT)
+			(iconv-encoding ISO-8859-1))
+    => #f)
+
+  (check
+      (iconv-encoding=? (iconv-encoding IBM819 IGNORE)
+			(iconv-encoding ISO-8859-1))
+    => #f)
+
+  (check
+      (iconv-encoding=? (iconv-encoding IBM819 TRANSLIT)
+			(iconv-encoding ISO-8859-1 TRANSLIT))
+    => #t)
+
+  (check
+      (iconv-encoding=? (iconv-encoding IBM819 TRANSLIT)
+			(iconv-encoding ISO-8859-1 TRANSLIT IGNORE))
+    => #f)
+
+  (check
+      (iconv-encoding=? (iconv-encoding IBM819)
+			(iconv-encoding UTF-8))
+    => #f)
+
+  #t)
+
+
 (parametrise ((check-test-name	'iconv))
-
-  (check
-      (with-compensations
-	(let* ((ctx	(iconv-open/c (iconv-encoding UTF-16)
-				      (iconv-encoding UTF-8)))
-	       (in	(bytevector->memblock (string->utf8 "ciao") malloc/c))
-	       (ou	(malloc-memblock/c 16))
-	       (in-tail	(memblock-shallow-clone in))
-	       (ou-tail	(memblock-shallow-clone ou)))
-	  (iconv! ctx ou-tail in-tail)
-	  (iconv! ctx ou-tail)
-	  (<memblock>-size in-tail)))
-    => 0)
-
-  (check
-      (with-compensations
-	(let* ((ctx	(iconv-open/c (iconv-encoding UTF-16)
-				      (iconv-encoding UTF-8 TRANSLIT IGNORE)))
-	       (in	(bytevector->memblock (string->utf8 "ciao") malloc/c))
-	       (ou	(malloc-memblock/c 16))
-	       (in-tail	(memblock-shallow-clone in))
-	       (ou-tail	(memblock-shallow-clone ou)))
-	  (iconv! ctx ou-tail in-tail)
-	  (iconv! ctx ou-tail)
-	  (<memblock>-size in-tail)))
-    => 0)
 
 ;;; --------------------------------------------------------------------
 

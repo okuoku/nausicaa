@@ -27,8 +27,11 @@
 
 (library (foreign i18n iconv)
   (export
-    iconv-open iconv! iconv-close iconv-context?
-    iconv-encoding-symbol iconv-encoding iconv-encoding-universe)
+    iconv-open			iconv-close
+    iconv!			iconv-context?
+    enum-iconv-encoding		iconv-encoding
+    iconv-encoding-universe
+    iconv-encoding-aliases?	iconv-encoding=?)
   (import (rnrs)
     (foreign i18n iconv primitives)
     (foreign i18n iconv enumerations)
