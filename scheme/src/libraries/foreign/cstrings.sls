@@ -182,12 +182,20 @@
        i)
     #f))
 
-(define (argv->strings argv)
-  (let ((args	'()))
-    (do ((i 0 (+ 1 i)))
-	((pointer-null? (array-ref-c-pointer argv i))
-	 (reverse args))
-      (set! args (cons (cstring->string (array-ref-c-pointer argv i)) args)))))
+(define argv->strings
+  (case-lambda
+   ((argv argc)
+    (let ((args	'()))
+      (do ((i 0 (+ 1 i)))
+	  ((= i argc)
+	   (reverse args))
+	(set! args (cons (cstring->string (array-ref-c-pointer argv i)) args)))))
+   ((argv)
+    (let ((args	'()))
+      (do ((i 0 (+ 1 i)))
+	  ((pointer-null? (array-ref-c-pointer argv i))
+	   (reverse args))
+	(set! args (cons (cstring->string (array-ref-c-pointer argv i)) args)))))))
 
 
 ;;;; done

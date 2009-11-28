@@ -4011,6 +4011,8 @@ purposes.
 When converting from a string, the new memory block is allocated with
 @var{malloc}, which must be a function like @func{malloc} from
 @library{foreign memory alloc}.
+
+When converting to a string, the returned value is in upper case.
 @end defun
 
 @c page
@@ -5058,8 +5060,14 @@ referenced by the @var{argv} pointer.
 
 
 @defun argv->strings @var{argv}
-Convert the null--terminated array of strings referenced by the
-@var{argv} pointer to a list of Scheme strings.
+@defunx argv->strings @var{argv} @var{argc}
+Without the @var{argc} arguments: Convert the null--terminated array of
+strings referenced by the @var{argv} pointer to a list of Scheme
+strings.
+
+With the @var{argc} arguments: Convert @var{argc} strings in the array
+of strings referenced by the @var{argv} pointer to a list of Scheme
+strings.
 @end defun
 
 @c page

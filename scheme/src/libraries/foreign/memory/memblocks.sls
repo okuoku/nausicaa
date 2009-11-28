@@ -84,7 +84,7 @@
     (do ((i 0 (+ 1 i))
 	 (j 0 (+ 1 j)))
 	((= i len)
-	 str)
+	 (string-upcase str))
       (let ((hex (number->string (pointer-ref-c-uint8 ptr i) 16)))
 	(if (= 1 (string-length hex))
 	    (begin

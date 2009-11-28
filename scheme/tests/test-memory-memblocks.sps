@@ -68,7 +68,7 @@
 		((= i 16))
 	      (pointer-set-c-uint8! ptr i i)))
 	  (memblock->string-hex mb)))
-    => "000102030405060708090a0b0c0d0e0f")
+    => "000102030405060708090A0B0C0D0E0F")
 
   (check
       (with-compensations
@@ -78,17 +78,17 @@
 		((= i 16))
 	      (pointer-set-c-uint8! ptr i (+ 16 i))))
 	  (memblock->string-hex mb)))
-    => "101112131415161718191a1b1c1d1e1f")
+    => "101112131415161718191A1B1C1D1E1F")
 
 ;;; --------------------------------------------------------------------
 
-  (let ((str "000102030405060708090a0b0c0d0e0f"))
+  (let ((str "000102030405060708090A0B0C0D0E0F"))
     (check
 	(with-compensations
 	  (memblock->string-hex (string-hex->memblock str malloc)))
       => str))
 
-  (let ((str "101112131415161718191a1b1c1d1e1f"))
+  (let ((str "101112131415161718191A1B1C1D1E1F"))
     (check
 	(with-compensations
 	  (memblock->string-hex (string-hex->memblock str malloc)))
