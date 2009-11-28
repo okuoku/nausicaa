@@ -95,13 +95,13 @@
   (make-c-function self 'void 'free '(void*)))
 
 (define platform-malloc
-  (make-c-function self 'void* 'malloc '(int)))
+  (make-c-function self 'void* 'malloc '(size_t)))
 
 (define platform-realloc
-  (make-c-function self 'void* 'realloc '(void* int)))
+  (make-c-function self 'void* 'realloc '(void* size_t)))
 
 (define platform-calloc
-  (make-c-function self 'void* 'calloc '(int int)))
+  (make-c-function self 'void* 'calloc '(size_t size_t)))
 
 ;;; --------------------------------------------------------------------
 

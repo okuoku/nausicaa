@@ -99,15 +99,17 @@
 (define (string-hex->memblock str malloc)
   ;;Slow but fine for debugging purposes.
   ;;
-  (let* ((len	(string-length str))
-	 (size	(/ len 2))
-	 (ptr	(malloc size)))
-    (do ((i  0 (+ 2 i))
-	 (i2 2 (+ 2 i2))
-	 (j  0 (+ 1 j)))
-	((= i len)
-	 (make-<memblock> ptr size size))
-      (pointer-set-c-uint8! ptr j (string->number (substring str i i2) 16)))))
+  (let ((len (string-length str)))
+    (unless (even? len)
+      (assertion-violation 'string-hex->memblock "hex string must have even length" str))
+    (let* ((size  (div len 2))
+	   (ptr   (malloc size)))
+      (do ((i  0 (+ 2 i))
+	   (i2 2 (+ 2 i2))
+	   (j  0 (+ 1 j)))
+	  ((= i len)
+	   (make-<memblock> ptr size size))
+	(pointer-set-c-uint8! ptr j (string->number (substring str i i2) 16))))))
 
 
 (define (memblock-tail block tail.len)
