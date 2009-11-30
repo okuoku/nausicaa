@@ -31,11 +31,8 @@
 
 (library (foreign ffi platform)
   (export
-    self-shared-object
-    open-shared-object		open-shared-object*
-    lookup-shared-object	lookup-shared-object*
-    make-c-function		make-c-function/with-errno
-    pointer->c-function		pointer->c-function/with-errno
+    open-shared-object		lookup-shared-object
+    make-c-callout		make-c-callout/with-errno
     make-c-callback		free-c-callback)
   (import (rnrs)
     (foreign ffi conditions)
@@ -77,61 +74,42 @@
     (larceny:foreign-file library-name)
     (larceny:ffi/dlopen library-name)))
 
-(define (open-shared-object* library-name)
-  (let* ((library-name	(%normalise-foreign-symbol library-name))
-	 (lib-ref	(open-shared-object library-name)))
-    (or lib-ref
-	(raise-unknown-shared-object library-name 'open-shared-object*
-				     "unable to open shared object"))))
-
-(define self-shared-object
-  (larceny:ffi/dlopen ""))
-
-;;; --------------------------------------------------------------------
-
 (define (lookup-shared-object lib-spec foreign-symbol)
   ;;This already returns #f when the symbol is not found.
   (let ((address (larceny:ffi/dlsym lib-spec (%normalise-foreign-symbol foreign-symbol))))
     (and address (integer->pointer address))))
 
-(define (lookup-shared-object* lib-spec foreign-symbol)
-  (let* ((foreign-symbol	(%normalise-foreign-symbol foreign-symbol))
-	 (ptr			(lookup-shared-object lib-spec foreign-symbol)))
-    (or ptr
-	(raise-unknown-foreign-symbol lib-spec foreign-symbol
-				      'lookup-shared-object*
-				      "could not find foreign symbol in foreign library"))))
-
 
-(define (make-c-function lib-spec ret-type funcname arg-types)
-  (let ((callout-closure (larceny:foreign-procedure funcname
-						    (%normalise-arg-types arg-types)
-						    ret-type)))
-    ;;When the  return value is a  pointer: if the pointer  is NULL, the
-    ;;return value  is #f.   So we have  to convert it  to POINTER-NULL.
-    ;;Ugly but what can I do?
-    (if (equal? ret-type '(maybe void*))
-	(lambda args
-	  (or (apply callout-closure args) pointer-null))
-      callout-closure)))
+;; (define (make-c-function lib-spec ret-type funcname arg-types)
+;;   (let ((callout-closure (larceny:foreign-procedure funcname
+;; 						    (%normalise-arg-types arg-types)
+;; 						    ret-type)))
+;;     ;;When the  return value is a  pointer: if the pointer  is NULL, the
+;;     ;;return value  is #f.   So we have  to convert it  to POINTER-NULL.
+;;     ;;Ugly but what can I do?
+;;     (if (equal? ret-type '(maybe void*))
+;; 	(lambda args
+;; 	  (or (apply callout-closure args) pointer-null))
+;;       callout-closure)))
 
-(define (make-c-function/with-errno lib-spec ret-type funcname arg-types)
-  (let ((f (make-c-function lib-spec ret-type funcname arg-types)))
-    (lambda args
-      ;;We have to use LET* here  to enforce the order of evaluation: we
-      ;;want  to gather  the "errno"  value AFTER  the  foreign function
-      ;;call.
-      (let* ((retval	(begin
-			  (errno 0)
-			  (apply f args)))
-	     (errval	(errno)))
-	(values retval errval)))))
+;; (define (make-c-function/with-errno lib-spec ret-type funcname arg-types)
+;;   (let ((f (make-c-function lib-spec ret-type funcname arg-types)))
+;;     (lambda args
+;;       ;;We have to use LET* here  to enforce the order of evaluation: we
+;;       ;;want  to gather  the "errno"  value AFTER  the  foreign function
+;;       ;;call.
+;;       (let* ((retval	(begin
+;; 			  (errno 0)
+;; 			  (apply f args)))
+;; 	     (errval	(errno)))
+;; 	(values retval errval)))))
 
-(define (pointer->c-function ret-type address arg-types)
-  (raise-unimplemented-error 'pointer->c-function))
+(define (make-c-callout ret-type address arg-types)
+  (raise-unimplemented-error 'make-c-callback
+			     "callouts are not implemented for Larceny"))
 
-(define (pointer->c-function/with-errno ret-type address arg-types)
-  (let ((closure (pointer->c-function ret-type address arg-types)))
+(define (make-c-callout/with-errno ret-type address arg-types)
+  (let ((closure (make-c-callout ret-type address arg-types)))
     (lambda args
       ;;We have to use LET* here  to enforce the order of evaluation: we
       ;;want  to gather  the "errno"  value AFTER  the  foreign function

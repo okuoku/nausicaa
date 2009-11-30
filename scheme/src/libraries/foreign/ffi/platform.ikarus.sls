@@ -26,13 +26,12 @@
 
 (library (foreign ffi platform)
   (export
-    self-shared-object
-    open-shared-object		open-shared-object*
-    lookup-shared-object	lookup-shared-object*
-    make-c-function		make-c-function/with-errno
-    pointer->c-function		pointer->c-function/with-errno
+    open-shared-object		lookup-shared-object
+    make-c-callout		make-c-callout/with-errno
     make-c-callback		free-c-callback)
   (import (rnrs)
+    (only (foreign ffi sizeof)
+	  LIBC_SHARED_OBJECT_SPEC)
     (foreign ffi conditions)
     (prefix (only (ikarus foreign)
 		  dlopen dlsym dlerror
@@ -65,35 +64,19 @@
 (define (open-shared-object library-name)
   (ikarus:dlopen (%normalise-foreign-symbol library-name)))
 
-(define (open-shared-object* library-name)
-  (let* ((library-name	(%normalise-foreign-symbol library-name))
-	 (lib-ref	(open-shared-object library-name)))
-    (or lib-ref
-	(raise-unknown-shared-object library-name 'open-shared-object*
-				     "unable to open shared object"))))
-
-(define self-shared-object
-  (open-shared-object* ""))
-
-;;; --------------------------------------------------------------------
-
 (define (lookup-shared-object lib-spec foreign-symbol)
   ;;This already returns #f when the symbol is not found.
   (ikarus:dlsym lib-spec (%normalise-foreign-symbol foreign-symbol)))
 
-(define (lookup-shared-object* lib-spec foreign-symbol)
-  (let* ((foreign-symbol	(%normalise-foreign-symbol foreign-symbol))
-	 (ptr			(lookup-shared-object lib-spec foreign-symbol)))
-    (or ptr
-	(raise-unknown-foreign-symbol lib-spec foreign-symbol
-				      'lookup-shared-object*
-				      "could not find foreign symbol in foreign library"))))
-
 
 ;;;; errno interface
 
+(define libc-shared-object
+  (ikarus:dlopen LIBC_SHARED_OBJECT_SPEC))
+
 (define errno-location
-  (make-c-function self-shared-object 'pointer "__errno_location" '(void)))
+  ((ikarus:make-c-callout 'pointer '())
+   (ikarus:dlsym libc-shared-object "__errno_location")))
 
 (define-syntax errno
   (syntax-rules ()
@@ -105,13 +88,7 @@
 
 ;;;; callout functions
 
-(define (make-c-function lib-spec ret-type funcname arg-types)
-  (pointer->c-function ret-type (lookup-shared-object* lib-spec funcname) arg-types))
-
-(define (make-c-function/with-errno lib-spec ret-type funcname arg-types)
-  (pointer->c-function/with-errno ret-type (lookup-shared-object* lib-spec funcname) arg-types))
-
-(define (pointer->c-function ret-type address arg-types)
+(define (make-c-callout ret-type address arg-types)
   ;;Given a  signature of types,  create a callout  closure constructor;
   ;;cache the closure constructors to avoid duplication.
   ;;
@@ -127,8 +104,8 @@
 	(hashtable-set! callout-maker-table signature callout-maker)
 	(callout-maker address)))))
 
-(define (pointer->c-function/with-errno ret-type address arg-types)
-  (let ((callout-closure (pointer->c-function ret-type address arg-types)))
+(define (make-c-callout/with-errno ret-type address arg-types)
+  (let ((callout-closure (make-c-callout ret-type address arg-types)))
     (lambda args
       ;;We have to use LET* here  to enforce the order of evaluation: We
       ;;want  to gather  the "errno"  value AFTER  the  foreign function

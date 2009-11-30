@@ -44,8 +44,6 @@
     make-c-callback		free-c-callback)
   (import (rnrs)
     (conditions)
-    (only (foreign ffi sizeof)
-	  LIBC_SHARED_OBJECT_SPEC)
     (foreign ffi conditions)
     (prefix (only (ypsilon ffi)
 		  load-shared-object lookup-shared-object

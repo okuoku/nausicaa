@@ -18,9 +18,8 @@ set -x
     --with-abi=local-slackware                  \
     --enable-use-sudo                           \
     --enable-fasl                               \
-    --disable-fasl-larceny                      \
     --enable-ikarus                             \
-    --disable-larceny                           \
+    --enable-larceny                            \
     --enable-mosh                               \
     --enable-ypsilon                            \
     --enable-binfmt                             \

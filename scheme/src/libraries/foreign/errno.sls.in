@@ -426,8 +426,8 @@
 
 ;;;; functions
 
-(define-c-function primitive-strerror
-  (pointer strerror (int)))
+(define-c-functions libc-shared-object
+  (primitive-strerror (pointer strerror (int))))
 
 (define (strerror errno-value)
   (cstring->string (primitive-strerror errno-value)))

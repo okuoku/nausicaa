@@ -119,7 +119,7 @@
 (define (clang-quote-type-stx-if-external type-stx)
   (let ((type (syntax->datum type-stx)))
     (if (enum-set-member? type clang-external-types-universe)
-	(quasisyntax (quote (unsyntax type)))
+	(quasisyntax (quote (unsyntax (datum->syntax type-stx type))))
       type-stx)))
 
 
