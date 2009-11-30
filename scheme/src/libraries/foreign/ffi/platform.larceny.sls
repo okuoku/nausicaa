@@ -36,10 +36,7 @@
     lookup-shared-object	lookup-shared-object*
     make-c-function		make-c-function/with-errno
     pointer->c-function		pointer->c-function/with-errno
-    make-c-callback		free-c-callback
-    internal-type->implementation-type
-    (rename (internal-type->implementation-type internal-type->implementation-type/callout))
-    implementation-data-types)
+    make-c-callback		free-c-callback)
   (import (rnrs)
     (foreign ffi conditions)
     (prefix (primitives ffi/dlopen ffi/dlsym
@@ -104,58 +101,6 @@
 	(raise-unknown-foreign-symbol lib-spec foreign-symbol
 				      'lookup-shared-object*
 				      "could not find foreign symbol in foreign library"))))
-
-
-;;;; values normalisation
-;;
-;;Larceny revision  6404 supports the following data  types for function
-;;arguments and return values:
-;;
-;;  void
-;;  int		unsigned
-;;  long	unsigned-long
-;;  float	double
-;;  void*	(maybe void*)
-;;
-;;The ugly "(maybe void*)" represents a pointer which can be NULL.  When
-;;not NULL, it is a record of type void*-rt; when NULL it is #f.
-;;
-
-(define implementation-data-types
-  (make-enumeration '(void
-		      int	unsigned
-		      long	unsigned-long
-		      float	double
-		      void*)))
-
-(define (internal-type->implementation-type type)
-  (case type
-    ((int8_t)				'int)
-    ((int16_t)				'int)
-    ((int32_t)				'int)
-    ((int64_t)				'long)
-    ((uint8_t)				'unsigned)
-    ((uint16_t)				'unsigned)
-    ((uint32_t)				'unsigned)
-    ((uint64_t)				'ulong)
-    ((signed-char)			'int)
-    ((unsigned-char)			'int)
-    ((signed-short)			'int)
-    ((unsigned-short)			'unsigned)
-    ((signed-int)			'int)
-    ((unsigned-int)			'unsigned)
-    ((signed-long)			'long)
-    ((unsigned-long)			'ulong)
-    ((signed-long-long)			'long)
-    ((unsigned-long-long)		'long-long)
-    ((float)				'float)
-    ((double)				'double)
-    ((pointer)				'(maybe void*))
-    ((callback)				'(maybe void*))
-    ((void)				'void)
-    (else
-     (assertion-violation #f
-       "C language type identifier is unknown by Larceny" type))))
 
 
 (define (make-c-function lib-spec ret-type funcname arg-types)

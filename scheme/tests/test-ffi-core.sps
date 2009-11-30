@@ -32,11 +32,12 @@
   (checks)
   (compensations))
 
+(cond-expand (larceny (exit)) (else #f))
+
 (check-set-mode! 'report-failed)
 (display "*** testing FFI core\n")
 
-(define ffitest-lib
-  (open-shared-object 'libnausicaa-ffitest1.0.so))
+(define-shared-object ffitest-lib 'libnausicaa-ffitest1.0.so)
 
 
 (parametrise ((check-test-name	'open-shared))
@@ -46,7 +47,7 @@
     => #t)
 
   (check
-      (and (open-shared-object* 'libc.so.6) #t)
+    (and (open-shared-object* 'libc.so.6) #t)
     => #t)
 
   (check
@@ -54,59 +55,52 @@
     => #f)
 
   (check
-      (guard (E (else (list (unknown-shared-object-condition? E)
-			    (condition-shared-object E)
-			    (condition-message E)
-			    (condition-who E))))
+      (guard (E ((unknown-shared-object-error-condition? E)
+		 (list (condition-library-name E)
+		       (condition-message E)
+		       (condition-who E))))
 	(open-shared-object* 'ciao))
-    => '(#t "ciao" "unable to open shared object" open-shared-object*))
+    => '("ciao" "unable to open shared object" open-shared-object*))
 
   #t)
 
-
 
-(cond-expand
- (larceny #f)
- (else
-  (parametrise ((check-test-name	'lookup))
+(parametrise ((check-test-name	'lookup))
 
-    (check
-	(pointer? (lookup-shared-object self-shared-object 'printf))
-      => #t)
+  (check
+      (pointer? (lookup-shared-object libc-shared-object 'printf))
+    => #t)
 
-    (check
-	(pointer? (lookup-shared-object self-shared-object 'ciao))
-      => #f)
+  (check
+      (pointer? (lookup-shared-object libc-shared-object 'ciao))
+    => #f)
 
-    (check
-	(pointer? (lookup-shared-object* self-shared-object 'printf))
-      => #t)
+  (check
+      (pointer? (lookup-shared-object* libc-shared-object 'printf))
+    => #t)
 
-    (check
-	(guard (E (else (list (unknown-foreign-symbol-condition? E)
-			      (condition-shared-object E)
-			      (condition-foreign-symbol E)
-			      (condition-message E)
-			      (condition-who E))))
-	  (lookup-shared-object* self-shared-object 'ciao))
-      => `(#t ,self-shared-object "ciao"
-	      "could not find foreign symbol in foreign library" lookup-shared-object*))
+  (check
+      (guard (E ((unknown-foreign-symbol-error-condition? E)
+		 (list (condition-shared-object E)
+		       (condition-foreign-symbol E)
+		       (condition-message E)
+		       (condition-who E))))
+	(lookup-shared-object* libc-shared-object 'ciao))
+    => `( ;;
+	 ,libc-shared-object "ciao"
+	 "could not find foreign symbol in foreign library" lookup-shared-object*))
 
-    #t)
-  #t))
+  #t)
 
 
 (parameterize ((check-test-name	'conditions)
 	       (debugging	#f))
 
-  (define dummy
-    (shared-object self-shared-object))
-
 ;;; --------------------------------------------------------------------
 ;;; This is used to raise a ENOENT errno error.
 
-  (define-c-function/with-errno primitive-chdir
-    (int chdir (char*)))
+  (define-c-functions/with-errno libc-shared-object
+    (primitive-chdir	(int chdir (char*))))
 
   (define (chdir directory-pathname)
     (with-compensations
@@ -119,8 +113,8 @@
 ;;; --------------------------------------------------------------------
 ;;; This is used to raise a EINVAL errno error.
 
-  (define-c-function/with-errno platform-pread
-    (int pread (int void* int int)))
+  (define-c-functions/with-errno libc-shared-object
+    (platform-pread	(int pread (int void* int int))))
 
   (define-syntax temp-failure-retry-minus-one
     (syntax-rules ()
@@ -149,8 +143,8 @@
 ;;; --------------------------------------------------------------------
 ;;; This is used to raise a ENOEXEC errno error.
 
-  (define-c-function/with-errno platform-execv
-    (int execv (char* pointer)))
+  (define-c-functions/with-errno libc-shared-object
+    (platform-execv	(int execv (char* pointer))))
 
   (define (primitive-execv pathname args)
     (with-compensations
@@ -175,8 +169,8 @@
 ;;; --------------------------------------------------------------------
 ;;; This is used to raise a ENOTDIR errno error.
 
-  (define-c-function/with-errno platform-opendir
-    (pointer opendir (char*)))
+  (define-c-functions/with-errno libc-shared-object
+    (platform-opendir	(pointer opendir (char*))))
 
   (define (primitive-opendir pathname)
     (with-compensations
@@ -197,8 +191,6 @@
 
   (define (opendir pathname)
     ((primitive-opendir-function) pathname))
-
-
 
 ;;;If the raised exception has the expected "errno" value, it means that
 ;;;the foreign function call was performed correctly.
@@ -243,683 +235,500 @@
   #t)
 
 
-(cond-expand
- (larceny #f)
- (else
-  (parametrise ((check-test-name	'callouts-basic))
+(parametrise ((check-test-name	'callouts-basic))
 
-    (define dummy
-      (shared-object ffitest-lib))
+  (define-c-functions ffitest-lib
+    (callout_int8	(int8_t nausicaa_ffitest_callout_int8 (int int8_t int)))
+    (callout_int16	(int16_t nausicaa_ffitest_callout_int16 (int int16_t int)))
+    (callout_int32	(int32_t nausicaa_ffitest_callout_int32 (int int32_t int)))
+    (callout_int64	(int64_t nausicaa_ffitest_callout_int64 (int int64_t int)))
+    (callout_char	(char nausicaa_ffitest_callout_char (int char int)))
+    (callout_uchar	(unsigned-char nausicaa_ffitest_callout_uchar (int unsigned-char int)))
+    (callout_short	(signed-short nausicaa_ffitest_callout_short (int signed-short int)))
+    (callout_ushort	(unsigned-short nausicaa_ffitest_callout_ushort (int unsigned-short int)))
+    (callout_int	(int nausicaa_ffitest_callout_int (int int int)))
+    (callout_uint	(unsigned-int nausicaa_ffitest_callout_uint (int unsigned-int int)))
+    (callout_long	(long nausicaa_ffitest_callout_long (int long int)))
+    (callout_ulong	(unsigned-long nausicaa_ffitest_callout_ulong (int unsigned-long int)))
+    (callout_llong	(long-long nausicaa_ffitest_callout_llong (int long-long int)))
+    (callout_ullong	(unsigned-long-long nausicaa_ffitest_callout_ullong (int unsigned-long-long int)))
+    (callout_float	(float nausicaa_ffitest_callout_float (int float int)))
+    (callout_double	(double nausicaa_ffitest_callout_double (int double int)))
+    (callout_pointer	(void* nausicaa_ffitest_callout_pointer (int void* int))))
 
-    (define-c-function callout_int8
-      (int8_t nausicaa_ffitest_callout_int8 (int int8_t int)))
+  (check (callout_int8 1 2 3) => 2)
+  (check (callout_int16 1 2 3) => 2)
+  (check (callout_int32 1 2 3) => 2)
+  (check (callout_int64 1 2 3) => 2)
+  (check (integer->char (callout_char  1 (char->integer #\a) 3)) => #\a)
+  (check (integer->char (callout_uchar 1 (char->integer #\a) 3)) => #\a)
+  (check (callout_short 1 2 3) => 2)
+  (check (callout_ushort 1 2 3) => 2)
+  (check (callout_int 1 2 3) => 2)
+  (check (callout_uint 1 2 3) => 2)
+  (check (callout_long 1 2 3) => 2)
+  (check (callout_ulong 1 2 3) => 2)
+  (check (callout_llong 1 2 3) => 2)
+  (check (callout_ullong 1 2 3) => 2)
+  (check (callout_float 1 2.3 3) (=> (lambda (a b) (< (abs (- a b)) 1e-6))) 2.3)
+  (check (callout_double 1 2.3 3) => 2.3)
+  (check (pointer->integer (callout_pointer 1 (integer->pointer 2) 3)) => 2)
 
-    (define-c-function callout_int16
-      (int16_t nausicaa_ffitest_callout_int16 (int int16_t int)))
-
-    (define-c-function callout_int32
-      (int32_t nausicaa_ffitest_callout_int32 (int int32_t int)))
-
-    (define-c-function callout_int64
-      (int64_t nausicaa_ffitest_callout_int64 (int int64_t int)))
-
-    (define-c-function callout_char
-      (char nausicaa_ffitest_callout_char (int char int)))
-
-    (define-c-function callout_uchar
-      (unsigned-char nausicaa_ffitest_callout_uchar (int unsigned-char int)))
-
-    (define-c-function callout_short
-      (signed-short nausicaa_ffitest_callout_short (int signed-short int)))
-
-    (define-c-function callout_ushort
-      (unsigned-short nausicaa_ffitest_callout_ushort (int unsigned-short int)))
-
-    (define-c-function callout_int
-      (int nausicaa_ffitest_callout_int (int int int)))
-
-    (define-c-function callout_uint
-      (unsigned-int nausicaa_ffitest_callout_uint (int unsigned-int int)))
-
-    (define-c-function callout_long
-      (long nausicaa_ffitest_callout_long (int long int)))
-
-    (define-c-function callout_ulong
-      (unsigned-long nausicaa_ffitest_callout_ulong (int unsigned-long int)))
-
-    (define-c-function callout_llong
-      (long-long nausicaa_ffitest_callout_llong (int long-long int)))
-
-    (define-c-function callout_ullong
-      (unsigned-long-long nausicaa_ffitest_callout_ullong (int unsigned-long-long int)))
-
-    (define-c-function callout_float
-      (float nausicaa_ffitest_callout_float (int float int)))
-
-    (define-c-function callout_double
-      (double nausicaa_ffitest_callout_double (int double int)))
-
-    (define-c-function callout_pointer
-      (void* nausicaa_ffitest_callout_pointer (int void* int)))
-
-    (check (callout_int8 1 2 3) => 2)
-    (check (callout_int16 1 2 3) => 2)
-    (check (callout_int32 1 2 3) => 2)
-    (check (callout_int64 1 2 3) => 2)
-    (check (integer->char (callout_char  1 (char->integer #\a) 3)) => #\a)
-    (check (integer->char (callout_uchar 1 (char->integer #\a) 3)) => #\a)
-    (check (callout_short 1 2 3) => 2)
-    (check (callout_ushort 1 2 3) => 2)
-    (check (callout_int 1 2 3) => 2)
-    (check (callout_uint 1 2 3) => 2)
-    (check (callout_long 1 2 3) => 2)
-    (check (callout_ulong 1 2 3) => 2)
-    (check (callout_llong 1 2 3) => 2)
-    (check (callout_ullong 1 2 3) => 2)
-    (check (callout_float 1 2.3 3) (=> (lambda (a b) (< (abs (- a b)) 1e-6))) 2.3)
-    (check (callout_double 1 2.3 3) => 2.3)
-    (check (pointer->integer (callout_pointer 1 (integer->pointer 2) 3)) => 2)
-
-    #t)
-  #t))
+  #t)
 
 
-(cond-expand
- (larceny #f)
- (else
-  (parametrise ((check-test-name	'callouts-with-errno))
+(parametrise ((check-test-name	'callouts-with-errno))
 
-    (define dummy
-      (shared-object ffitest-lib))
+  (define-c-functions/with-errno ffitest-lib
+    (callout_int8	(int8_t nausicaa_ffitest_callout_int8 (int int8_t int)))
+    (callout_int16	(int16_t nausicaa_ffitest_callout_int16 (int int16_t int)))
+    (callout_int32	(int32_t nausicaa_ffitest_callout_int32 (int int32_t int)))
+    (callout_int64	(int64_t nausicaa_ffitest_callout_int64 (int int64_t int)))
+    (callout_uint8	(int8_t nausicaa_ffitest_callout_uint8 (int int8_t int)))
+    (callout_uint16	(int16_t nausicaa_ffitest_callout_uint16 (int int16_t int)))
+    (callout_uint32	(int32_t nausicaa_ffitest_callout_uint32 (int int32_t int)))
+    (callout_uint64	(int64_t nausicaa_ffitest_callout_uint64 (int int64_t int)))
+    (callout_char	(char nausicaa_ffitest_callout_char (int char int)))
+    (callout_uchar	(unsigned-char nausicaa_ffitest_callout_uchar (int unsigned-char int)))
+    (callout_short	(signed-short nausicaa_ffitest_callout_short (int signed-short int)))
+    (callout_ushort	(unsigned-short nausicaa_ffitest_callout_ushort (int unsigned-short int)))
+    (callout_int	(int nausicaa_ffitest_callout_int (int int int)))
+    (callout_uint	(unsigned-int nausicaa_ffitest_callout_uint (int unsigned-int int)))
+    (callout_long	(long nausicaa_ffitest_callout_long (int long int)))
+    (callout_ulong	(unsigned-long nausicaa_ffitest_callout_ulong (int unsigned-long int)))
+    (callout_llong	(long-long nausicaa_ffitest_callout_llong (int long-long int)))
+    (callout_ullong	(unsigned-long-long nausicaa_ffitest_callout_ullong (int unsigned-long-long int)))
+    (callout_float	(float nausicaa_ffitest_callout_float (int float int)))
+    (callout_double	(double nausicaa_ffitest_callout_double (int double int)))
+    (callout_pointer	(void* nausicaa_ffitest_callout_pointer (int void* int))))
 
-    (define-c-function/with-errno callout_int8
-      (int8_t nausicaa_ffitest_callout_int8 (int int8_t int)))
+  (check (let-values (((ret errno) (callout_int8  1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_int16 1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_int32 1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_int64 1 2 3))) (list ret errno)) => '(2 1))
 
-    (define-c-function/with-errno callout_int16
-      (int16_t nausicaa_ffitest_callout_int16 (int int16_t int)))
+  (check (let-values (((ret errno) (callout_uint8  1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_uint16 1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_uint32 1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_uint64 1 2 3))) (list ret errno)) => '(2 1))
 
-    (define-c-function/with-errno callout_int32
-      (int32_t nausicaa_ffitest_callout_int32 (int int32_t int)))
+  (check
+      (let-values (((ret errno) (callout_char  1 (char->integer #\a) 3)))
+	(list (integer->char ret) errno))
+    => '(#\a 1))
 
-    (define-c-function/with-errno callout_int64
-      (int64_t nausicaa_ffitest_callout_int64 (int int64_t int)))
+  (check
+      (let-values (((ret errno) (callout_uchar 1 (char->integer #\a) 3)))
+	(list (integer->char ret) errno))
+    => '(#\a 1))
 
-    (define-c-function/with-errno callout_uint8
-      (int8_t nausicaa_ffitest_callout_uint8 (int int8_t int)))
+  (check (let-values (((ret errno) (callout_short  1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_ushort 1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_int    1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_uint   1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_long   1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_ulong  1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_llong  1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_ullong 1 2 3))) (list ret errno)) => '(2 1))
 
-    (define-c-function/with-errno callout_uint16
-      (int16_t nausicaa_ffitest_callout_uint16 (int int16_t int)))
+  (check
+      (let-values (((ret errno) (callout_float 1 2.3 3)))
+	(list ret errno))
+    (=> (lambda (a b)
+	  (and (< (abs (- (car a) (car b))) 1e-6)
+	       (= (cadr a) (cadr b)))))
+    '(2.3 1))
 
-    (define-c-function/with-errno callout_uint32
-      (int32_t nausicaa_ffitest_callout_uint32 (int int32_t int)))
+  (check
+      (let-values (((ret errno) (callout_double 1 2.3 3)))
+	(list ret errno))
+    => '(2.3 1))
 
-    (define-c-function/with-errno callout_uint64
-      (int64_t nausicaa_ffitest_callout_uint64 (int int64_t int)))
+  (check
+      (let-values (((ret errno) (callout_pointer 1 (integer->pointer 2) 3)))
+	(list (pointer->integer ret) errno))
+    => '(2 1))
 
-    (define-c-function/with-errno callout_char
-      (char nausicaa_ffitest_callout_char (int char int)))
-
-    (define-c-function/with-errno callout_uchar
-      (unsigned-char nausicaa_ffitest_callout_uchar (int unsigned-char int)))
-
-    (define-c-function/with-errno callout_short
-      (signed-short nausicaa_ffitest_callout_short (int signed-short int)))
-
-    (define-c-function/with-errno callout_ushort
-      (unsigned-short nausicaa_ffitest_callout_ushort (int unsigned-short int)))
-
-    (define-c-function/with-errno callout_int
-      (int nausicaa_ffitest_callout_int (int int int)))
-
-    (define-c-function/with-errno callout_uint
-      (unsigned-int nausicaa_ffitest_callout_uint (int unsigned-int int)))
-
-    (define-c-function/with-errno callout_long
-      (long nausicaa_ffitest_callout_long (int long int)))
-
-    (define-c-function/with-errno callout_ulong
-      (unsigned-long nausicaa_ffitest_callout_ulong (int unsigned-long int)))
-
-    (define-c-function/with-errno callout_llong
-      (long-long nausicaa_ffitest_callout_llong (int long-long int)))
-
-    (define-c-function/with-errno callout_ullong
-      (unsigned-long-long nausicaa_ffitest_callout_ullong (int unsigned-long-long int)))
-
-    (define-c-function/with-errno callout_float
-      (float nausicaa_ffitest_callout_float (int float int)))
-
-    (define-c-function/with-errno callout_double
-      (double nausicaa_ffitest_callout_double (int double int)))
-
-    (define-c-function/with-errno callout_pointer
-      (void* nausicaa_ffitest_callout_pointer (int void* int)))
-
-    (check (let-values (((ret errno) (callout_int8  1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_int16 1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_int32 1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_int64 1 2 3))) (list ret errno)) => '(2 1))
-
-    (check (let-values (((ret errno) (callout_uint8  1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_uint16 1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_uint32 1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_uint64 1 2 3))) (list ret errno)) => '(2 1))
-
-    (check
-	(let-values (((ret errno) (callout_char  1 (char->integer #\a) 3)))
-	  (list (integer->char ret) errno))
-      => '(#\a 1))
-
-    (check
-	(let-values (((ret errno) (callout_uchar 1 (char->integer #\a) 3)))
-	  (list (integer->char ret) errno))
-      => '(#\a 1))
-
-    (check (let-values (((ret errno) (callout_short  1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_ushort 1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_int    1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_uint   1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_long   1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_ulong  1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_llong  1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_ullong 1 2 3))) (list ret errno)) => '(2 1))
-
-    (check
-	(let-values (((ret errno) (callout_float 1 2.3 3)))
-	  (list ret errno))
-      (=> (lambda (a b)
-	    (and (< (abs (- (car a) (car b))) 1e-6)
-		 (= (cadr a) (cadr b)))))
-      '(2.3 1))
-
-    (check
-	(let-values (((ret errno) (callout_double 1 2.3 3)))
-	  (list ret errno))
-      => '(2.3 1))
-
-    (check
-	(let-values (((ret errno) (callout_pointer 1 (integer->pointer 2) 3)))
-	  (list (pointer->integer ret) errno))
-      => '(2 1))
-
-    #t)
-  #t))
+  #t)
 
 
-(cond-expand
- (larceny #f)
- (else
-  (parametrise ((check-test-name	'callouts-pointers))
+(parametrise ((check-test-name	'callouts-pointers))
 
-    (define dummy
-      (shared-object ffitest-lib))
+  (define-c-callouts
+    (callout_int8
+     (int8_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int8) (int int8_t int)))
+    (callout_int16
+     (int16_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int16) (int int16_t int)))
+    (callout_int32
+     (int32_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int32) (int int32_t int)))
+    (callout_int64
+     (int64_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int64) (int int64_t int)))
+    (callout_uint8
+     (uint8_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint8) (int uint8_t int)))
+    (callout_uint16
+     (uint16_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint16) (int uint16_t int)))
+    (callout_uint32
+     (uint32_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint32) (int uint32_t int)))
+    (callout_uint64
+     (uint64_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint64) (int uint64_t int)))
+    (callout_char
+     (char (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_char) (int char int)))
+    (callout_uchar
+     (unsigned-char (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uchar)
+		    (int unsigned-char int)))
+    (callout_short
+     (signed-short (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_short)
+		   (int signed-short int)))
+    (callout_ushort
+     (unsigned-short (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_ushort)
+		     (int unsigned-short int)))
+    (callout_int
+     (int (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int) (int int int)))
+    (callout_uint
+     (unsigned-int (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint)
+		   (int unsigned-int int)))
+    (callout_long
+     (long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_long) (int long int)))
+    (callout_ulong
+     (unsigned-long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_ulong)
+		    (int unsigned-long int)))
+    (callout_llong
+     (long-long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_llong) (int long-long int)))
+    (callout_ullong
+     (unsigned-long-long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_ullong)
+			 (int unsigned-long-long int)))
+    (callout_float
+     (float (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_float) (int float int)))
+    (callout_double
+     (double (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_double) (int double int)))
+    (callout_pointer
+     (void* (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_pointer) (int void* int))))
 
-    (define-pointer-c-function callout_int8
-      (int8_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int8) (int int8_t int)))
+  (check (callout_int8 1 2 3) => 2)
+  (check (callout_int16 1 2 3) => 2)
+  (check (callout_int32 1 2 3) => 2)
+  (check (callout_int64 1 2 3) => 2)
+  (check (callout_uint8 1 2 3) => 2)
+  (check (callout_uint16 1 2 3) => 2)
+  (check (callout_uint32 1 2 3) => 2)
+  (check (callout_uint64 1 2 3) => 2)
+  (check (integer->char (callout_char  1 (char->integer #\a) 3)) => #\a)
+  (check (integer->char (callout_uchar 1 (char->integer #\a) 3)) => #\a)
+  (check (callout_short 1 2 3) => 2)
+  (check (callout_ushort 1 2 3) => 2)
+  (check (callout_int 1 2 3) => 2)
+  (check (callout_uint 1 2 3) => 2)
+  (check (callout_long 1 2 3) => 2)
+  (check (callout_ulong 1 2 3) => 2)
+  (check (callout_llong 1 2 3) => 2)
+  (check (callout_ullong 1 2 3) => 2)
+  (check (callout_float 1 2.3 3) (=> (lambda (a b) (< (abs (- a b)) 1e-6))) 2.3)
+  (check (callout_double 1 2.3 3) => 2.3)
+  (check (pointer->integer (callout_pointer 1 (integer->pointer 2) 3)) => 2)
 
-    (define-pointer-c-function callout_int16
-      (int16_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int16) (int int16_t int)))
-
-    (define-pointer-c-function callout_int32
-      (int32_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int32) (int int32_t int)))
-
-    (define-pointer-c-function callout_int64
-      (int64_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int64) (int int64_t int)))
-
-    (define-pointer-c-function callout_uint8
-      (uint8_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint8) (int uint8_t int)))
-
-    (define-pointer-c-function callout_uint16
-      (uint16_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint16) (int uint16_t int)))
-
-    (define-pointer-c-function callout_uint32
-      (uint32_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint32) (int uint32_t int)))
-
-    (define-pointer-c-function callout_uint64
-      (uint64_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint64) (int uint64_t int)))
-
-    (define-pointer-c-function callout_char
-      (char (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_char) (int char int)))
-
-    (define-pointer-c-function callout_uchar
-      (unsigned-char (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uchar)
-		     (int unsigned-char int)))
-
-    (define-pointer-c-function callout_short
-      (signed-short (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_short)
-		    (int signed-short int)))
-
-    (define-pointer-c-function callout_ushort
-      (unsigned-short (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_ushort)
-		      (int unsigned-short int)))
-
-    (define-pointer-c-function callout_int
-      (int (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int) (int int int)))
-
-    (define-pointer-c-function callout_uint
-      (unsigned-int (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint) (int unsigned-int int)))
-
-    (define-pointer-c-function callout_long
-      (long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_long) (int long int)))
-
-    (define-pointer-c-function callout_ulong
-      (unsigned-long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_ulong)
-		     (int unsigned-long int)))
-
-    (define-pointer-c-function callout_llong
-      (long-long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_llong) (int long-long int)))
-
-    (define-pointer-c-function callout_ullong
-      (unsigned-long-long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_ullong)
-			  (int unsigned-long-long int)))
-
-    (define-pointer-c-function callout_float
-      (float (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_float) (int float int)))
-
-    (define-pointer-c-function callout_double
-      (double (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_double) (int double int)))
-
-    (define-pointer-c-function callout_pointer
-      (void* (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_pointer) (int void* int)))
-
-    (check (callout_int8 1 2 3) => 2)
-    (check (callout_int16 1 2 3) => 2)
-    (check (callout_int32 1 2 3) => 2)
-    (check (callout_int64 1 2 3) => 2)
-    (check (callout_uint8 1 2 3) => 2)
-    (check (callout_uint16 1 2 3) => 2)
-    (check (callout_uint32 1 2 3) => 2)
-    (check (callout_uint64 1 2 3) => 2)
-    (check (integer->char (callout_char  1 (char->integer #\a) 3)) => #\a)
-    (check (integer->char (callout_uchar 1 (char->integer #\a) 3)) => #\a)
-    (check (callout_short 1 2 3) => 2)
-    (check (callout_ushort 1 2 3) => 2)
-    (check (callout_int 1 2 3) => 2)
-    (check (callout_uint 1 2 3) => 2)
-    (check (callout_long 1 2 3) => 2)
-    (check (callout_ulong 1 2 3) => 2)
-    (check (callout_llong 1 2 3) => 2)
-    (check (callout_ullong 1 2 3) => 2)
-    (check (callout_float 1 2.3 3) (=> (lambda (a b) (< (abs (- a b)) 1e-6))) 2.3)
-    (check (callout_double 1 2.3 3) => 2.3)
-    (check (pointer->integer (callout_pointer 1 (integer->pointer 2) 3)) => 2)
-
-    #t)
-  #t))
+  #t)
 
 
-(cond-expand
- (larceny #f)
- (else
-  (parametrise ((check-test-name	'callouts-pointers-with-errno))
+(parametrise ((check-test-name	'callouts-pointers-with-errno))
 
-    (define dummy
-      (shared-object ffitest-lib))
+  (define-c-callouts/with-errno
+    (callout_int8
+     (int8_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int8) (int int8_t int)))
+    (callout_int16
+     (int16_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int16) (int int16_t int)))
+    (callout_int32
+     (int32_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int32) (int int32_t int)))
+    (callout_int64
+     (int64_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int64) (int int64_t int)))
+    (callout_uint8
+     (uint8_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint8) (int uint8_t int)))
+    (callout_uint16
+     (uint16_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint16) (int uint16_t int)))
+    (callout_uint32
+     (uint32_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint32) (int uint32_t int)))
+    (callout_uint64
+     (uint64_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint64) (int uint64_t int)))
+    (callout_char
+     (char (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_char) (int char int)))
+    (callout_uchar
+     (unsigned-char (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uchar)
+		    (int unsigned-char int)))
+    (callout_short
+     (signed-short (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_short)
+		   (int signed-short int)))
+    (callout_ushort
+     (unsigned-short (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_ushort)
+		     (int unsigned-short int)))
+    (callout_int
+     (int (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int) (int int int)))
+    (callout_uint
+     (unsigned-int (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint)
+		   (int unsigned-int int)))
+    (callout_long
+     (long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_long) (int long int)))
+    (callout_ulong
+     (unsigned-long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_ulong)
+		    (int unsigned-long int)))
+    (callout_llong
+     (long-long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_llong) (int long-long int)))
+    (callout_ullong
+     (unsigned-long-long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_ullong)
+			 (int unsigned-long-long int)))
+    (callout_float
+     (float (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_float) (int float int)))
+    (callout_double
+     (double (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_double) (int double int)))
+    (callout_pointer
+     (void* (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_pointer) (int void* int))))
 
-    (define-pointer-c-function/with-errno callout_int8
-      (int8_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int8) (int int8_t int)))
+  (check (let-values (((ret errno) (callout_int8  1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_int16 1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_int32 1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_int64 1 2 3))) (list ret errno)) => '(2 1))
 
-    (define-pointer-c-function/with-errno callout_int16
-      (int16_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int16) (int int16_t int)))
+  (check (let-values (((ret errno) (callout_uint8  1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_uint16 1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_uint32 1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_uint64 1 2 3))) (list ret errno)) => '(2 1))
 
-    (define-pointer-c-function/with-errno callout_int32
-      (int32_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int32) (int int32_t int)))
+  (check
+      (let-values (((ret errno) (callout_char  1 (char->integer #\a) 3)))
+	(list (integer->char ret) errno))
+    => '(#\a 1))
 
-    (define-pointer-c-function/with-errno callout_int64
-      (int64_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int64) (int int64_t int)))
+  (check
+      (let-values (((ret errno) (callout_uchar 1 (char->integer #\a) 3)))
+	(list (integer->char ret) errno))
+    => '(#\a 1))
 
-    (define-pointer-c-function/with-errno callout_uint8
-      (uint8_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint8) (int uint8_t int)))
+  (check (let-values (((ret errno) (callout_short  1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_ushort 1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_int    1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_uint   1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_long   1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_ulong  1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_llong  1 2 3))) (list ret errno)) => '(2 1))
+  (check (let-values (((ret errno) (callout_ullong 1 2 3))) (list ret errno)) => '(2 1))
 
-    (define-pointer-c-function/with-errno callout_uint16
-      (uint16_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint16) (int uint16_t int)))
+  (check
+      (let-values (((ret errno) (callout_float 1 2.3 3)))
+	(list ret errno))
+    (=> (lambda (a b)
+	  (and (< (abs (- (car a) (car b))) 1e-6)
+	       (= (cadr a) (cadr b)))))
+    '(2.3 1))
 
-    (define-pointer-c-function/with-errno callout_uint32
-      (uint32_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint32) (int uint32_t int)))
+  (check
+      (let-values (((ret errno) (callout_double 1 2.3 3)))
+	(list ret errno))
+    => '(2.3 1))
 
-    (define-pointer-c-function/with-errno callout_uint64
-      (uint64_t (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint64) (int uint64_t int)))
+  (check
+      (let-values (((ret errno) (callout_pointer 1 (integer->pointer 2) 3)))
+	(list (pointer->integer ret) errno))
+    => '(2 1))
 
-    (define-pointer-c-function/with-errno callout_char
-      (char (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_char) (int char int)))
-
-    (define-pointer-c-function/with-errno callout_uchar
-      (unsigned-char (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uchar)
-		     (int unsigned-char int)))
-
-    (define-pointer-c-function/with-errno callout_short
-      (signed-short (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_short)
-		    (int signed-short int)))
-
-    (define-pointer-c-function/with-errno callout_ushort
-      (unsigned-short (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_ushort)
-		      (int unsigned-short int)))
-
-    (define-pointer-c-function/with-errno callout_int
-      (int (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_int) (int int int)))
-
-    (define-pointer-c-function/with-errno callout_uint
-      (unsigned-int (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_uint) (int unsigned-int int)))
-
-    (define-pointer-c-function/with-errno callout_long
-      (long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_long) (int long int)))
-
-    (define-pointer-c-function/with-errno callout_ulong
-      (unsigned-long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_ulong)
-		     (int unsigned-long int)))
-
-    (define-pointer-c-function/with-errno callout_llong
-      (long-long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_llong) (int long-long int)))
-
-    (define-pointer-c-function/with-errno callout_ullong
-      (unsigned-long-long (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_ullong)
-			  (int unsigned-long-long int)))
-
-    (define-pointer-c-function/with-errno callout_float
-      (float (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_float) (int float int)))
-
-    (define-pointer-c-function/with-errno callout_double
-      (double (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_double) (int double int)))
-
-    (define-pointer-c-function/with-errno callout_pointer
-      (void* (lookup-shared-object ffitest-lib 'nausicaa_ffitest_callout_pointer) (int void* int)))
-
-    (check (let-values (((ret errno) (callout_int8  1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_int16 1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_int32 1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_int64 1 2 3))) (list ret errno)) => '(2 1))
-
-    (check (let-values (((ret errno) (callout_uint8  1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_uint16 1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_uint32 1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_uint64 1 2 3))) (list ret errno)) => '(2 1))
-
-    (check
-	(let-values (((ret errno) (callout_char  1 (char->integer #\a) 3)))
-	  (list (integer->char ret) errno))
-      => '(#\a 1))
-
-    (check
-	(let-values (((ret errno) (callout_uchar 1 (char->integer #\a) 3)))
-	  (list (integer->char ret) errno))
-      => '(#\a 1))
-
-    (check (let-values (((ret errno) (callout_short  1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_ushort 1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_int    1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_uint   1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_long   1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_ulong  1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_llong  1 2 3))) (list ret errno)) => '(2 1))
-    (check (let-values (((ret errno) (callout_ullong 1 2 3))) (list ret errno)) => '(2 1))
-
-    (check
-	(let-values (((ret errno) (callout_float 1 2.3 3)))
-	  (list ret errno))
-      (=> (lambda (a b)
-	    (and (< (abs (- (car a) (car b))) 1e-6)
-		 (= (cadr a) (cadr b)))))
-      '(2.3 1))
-
-    (check
-	(let-values (((ret errno) (callout_double 1 2.3 3)))
-	  (list ret errno))
-      => '(2.3 1))
-
-    (check
-	(let-values (((ret errno) (callout_pointer 1 (integer->pointer 2) 3)))
-	  (list (pointer->integer ret) errno))
-      => '(2 1))
-
-    #t)
-  #t))
+  #t)
 
 
-(cond-expand
- (larceny #f)
- (else
-  (parametrise ((check-test-name	'callback))
+(parametrise ((check-test-name	'callback))
 
-    (define dummy
-      (shared-object ffitest-lib))
+  (define-c-functions ffitest-lib
+    (callback_int8	(int8_t nausicaa_ffitest_callback_int8 (callback int int8_t int)))
+    (callback_int16	(int16_t nausicaa_ffitest_callback_int16 (callback int int16_t int)))
+    (callback_int32	(int32_t nausicaa_ffitest_callback_int32 (callback int int32_t int)))
+    (callback_int64	(int64_t nausicaa_ffitest_callback_int64 (callback int int64_t int)))
+    (callback_uint8	(uint8_t nausicaa_ffitest_callback_uint8 (callback int uint8_t int)))
+    (callback_uint16	(uint16_t nausicaa_ffitest_callback_uint16 (callback int uint16_t int)))
+    (callback_uint32	(uint32_t nausicaa_ffitest_callback_uint32 (callback int uint32_t int)))
+    (callback_uint64	(uint64_t nausicaa_ffitest_callback_uint64 (callback int uint64_t int)))
+    (callback_char	(char nausicaa_ffitest_callback_char (callback int char int)))
+    (callback_uchar	(unsigned-char nausicaa_ffitest_callback_uchar (callback int unsigned-char int)))
+    (callback_short	(short nausicaa_ffitest_callback_short (callback int short int)))
+    (callback_ushort	(unsigned-short nausicaa_ffitest_callback_ushort
+					(callback int unsigned-short int)))
+    (callback_int	(unsigned nausicaa_ffitest_callback_int (callback int int int)))
+    (callback_uint	(unsigned nausicaa_ffitest_callback_uint (callback int unsigned-int int)))
+    (callback_long	(long nausicaa_ffitest_callback_long (callback int long int)))
+    (callback_ulong	(unsigned-long nausicaa_ffitest_callback_ulong (callback int unsigned-long int)))
+    (callback_llong	(long-long nausicaa_ffitest_callback_llong (callback int long-long int)))
+    (callback_ullong	(unsigned-long-long nausicaa_ffitest_callback_ullong
+					    (callback int unsigned-long-long int)))
+    (callback_float	(float nausicaa_ffitest_callback_float (callback int float int)))
+    (callback_double	(double nausicaa_ffitest_callback_double (callback int double int)))
+    (callback_pointer	(void* nausicaa_ffitest_callback_pointer (callback int void* int))))
 
-    (define-c-function callback_int8
-      (int8_t nausicaa_ffitest_callback_int8 (callback int int8_t int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* int8_t fn (int int8_t int))))
+	(begin0
+	    (callback_int8 cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_int16
-      (int16_t nausicaa_ffitest_callback_int16 (callback int int16_t int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* int16_t fn (int int16_t int))))
+	(begin0
+	    (callback_int16 cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_int32
-      (int32_t nausicaa_ffitest_callback_int32 (callback int int32_t int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* int32_t fn (int int32_t int))))
+	(begin0
+	    (callback_int32 cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_int64
-      (int64_t nausicaa_ffitest_callback_int64 (callback int int64_t int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* int64_t fn (int int64_t int))))
+	(begin0
+	    (callback_int64 cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_uint8
-      (uint8_t nausicaa_ffitest_callback_uint8 (callback int uint8_t int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* uint8_t fn (int uint8_t int))))
+	(begin0
+	    (callback_uint8 cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_uint16
-      (uint16_t nausicaa_ffitest_callback_uint16 (callback int uint16_t int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* uint16_t fn (int uint16_t int))))
+	(begin0
+	    (callback_uint16 cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_uint32
-      (uint32_t nausicaa_ffitest_callback_uint32 (callback int uint32_t int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* uint32_t fn (int uint32_t int))))
+	(begin0
+	    (callback_uint32 cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_uint64
-      (uint64_t nausicaa_ffitest_callback_uint64 (callback int uint64_t int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* uint64_t fn (int uint64_t int))))
+	(begin0
+	    (callback_uint64 cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_char
-      (char nausicaa_ffitest_callback_char (callback int char int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* short fn (int short int))))
+	(begin0
+	    (callback_short cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_uchar
-      (unsigned-char nausicaa_ffitest_callback_uchar (callback int unsigned-char int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* ushort fn (int ushort int))))
+	(begin0
+	    (callback_ushort cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_short
-      (short nausicaa_ffitest_callback_short (callback int short int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* int fn (int int int))))
+	(begin0
+	    (callback_int cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_ushort
-      (unsigned-short nausicaa_ffitest_callback_ushort (callback int unsigned-short int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* uint fn (int uint int))))
+	(begin0
+	    (callback_uint cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_int
-      (int nausicaa_ffitest_callback_int (callback int int int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* long fn (int long int))))
+	(begin0
+	    (callback_long cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_uint
-      (unsigned nausicaa_ffitest_callback_uint (callback int unsigned-int int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* ulong fn (int ulong int))))
+	(begin0
+	    (callback_ulong cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_long
-      (long nausicaa_ffitest_callback_long (callback int long int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* llong fn (int llong int))))
+	(begin0
+	    (callback_llong cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_ulong
-      (unsigned-long nausicaa_ffitest_callback_ulong (callback int unsigned-long int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* ullong fn (int ullong int))))
+	(begin0
+	    (callback_ullong cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_llong
-      (long-long nausicaa_ffitest_callback_llong (callback int long-long int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* char fn (int char int))))
+	(begin0
+	    (callback_char cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_ullong
-      (unsigned-long-long nausicaa_ffitest_callback_ullong (callback int unsigned-long-long int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* uchar fn (int uchar int))))
+	(begin0
+	    (callback_uchar cb 1 2 3)
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-    (define-c-function callback_float
-      (float nausicaa_ffitest_callback_float (callback int float int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* float fn (int float int))))
+	(begin0
+	    (callback_float cb 1 2.3 3)
+	  (free-c-callback cb)))
+    (=> (lambda (a b)
+	  (< (abs (- a b)) 1e-6)))
+    (+ 1 2.3 3))
 
-    (define-c-function callback_double
-      (double nausicaa_ffitest_callback_double (callback int double int)))
+  (check
+      (let* ((fn (lambda (a b c) (+ a b c)))
+	     (cb (make-c-callback* double fn (int double int))))
+	(begin0
+	    (callback_double cb 1 2.3 3)
+	  (free-c-callback cb)))
+    => (+ 1 2.3 3))
 
-    (define-c-function callback_pointer
-      (void* nausicaa_ffitest_callback_pointer (callback int void* int)))
+  (check
+      (let* ((fn (lambda (a b c) (pointer-add (pointer-add b a) c)))
+	     (cb (make-c-callback* void* fn (int void* int))))
+	(begin0
+	    (pointer->integer (callback_pointer cb 1 (integer->pointer 2) 3))
+	  (free-c-callback cb)))
+    => (+ 1 2 3))
 
-;;; --------------------------------------------------------------------
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback int8_t fn (int int8_t int))))
-	  (begin0
-	      (callback_int8 cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback int16_t fn (int int16_t int))))
-	  (begin0
-	      (callback_int16 cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback int32_t fn (int int32_t int))))
-	  (begin0
-	      (callback_int32 cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback int64_t fn (int int64_t int))))
-	  (begin0
-	      (callback_int64 cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback uint8_t fn (int uint8_t int))))
-	  (begin0
-	      (callback_uint8 cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback uint16_t fn (int uint16_t int))))
-	  (begin0
-	      (callback_uint16 cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback uint32_t fn (int uint32_t int))))
-	  (begin0
-	      (callback_uint32 cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback uint64_t fn (int uint64_t int))))
-	  (begin0
-	      (callback_uint64 cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback short fn (int short int))))
-	  (begin0
-	      (callback_short cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback ushort fn (int ushort int))))
-	  (begin0
-	      (callback_ushort cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback int fn (int int int))))
-	  (begin0
-	      (callback_int cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback uint fn (int uint int))))
-	  (begin0
-	      (callback_uint cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback long fn (int long int))))
-	  (begin0
-	      (callback_long cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback ulong fn (int ulong int))))
-	  (begin0
-	      (callback_ulong cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback llong fn (int llong int))))
-	  (begin0
-	      (callback_llong cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback ullong fn (int ullong int))))
-	  (begin0
-	      (callback_ullong cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback char fn (int char int))))
-	  (begin0
-	      (callback_char cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback uchar fn (int uchar int))))
-	  (begin0
-	      (callback_uchar cb 1 2 3)
-	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback float fn (int float int))))
-	  (begin0
-	      (callback_float cb 1 2.3 3)
-	    (free-c-callback cb)))
-      (=> (lambda (a b)
-	    (< (abs (- a b)) 1e-6)))
-      (+ 1 2.3 3))
-
-    (check
-	(let* ((fn (lambda (a b c) (+ a b c)))
-	       (cb (make-c-callback double fn (int double int))))
-	  (begin0
-	      (callback_double cb 1 2.3 3)
-	    (free-c-callback cb)))
-      => (+ 1 2.3 3))
-
-    (check
-    	(let* ((fn (lambda (a b c) (pointer-add (pointer-add b a) c)))
-    	       (cb (make-c-callback void* fn (int void* int))))
-    	  (begin0
-    	      (pointer->integer (callback_pointer cb 1 (integer->pointer 2) 3))
-    	    (free-c-callback cb)))
-      => (+ 1 2 3))
-
-    #f)
-  #t))
+  #t)
 
 
 ;;;; done

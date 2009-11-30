@@ -32,9 +32,7 @@
     make-c-function		make-c-function/with-errno
     pointer->c-function		pointer->c-function/with-errno
     make-c-callback
-    (rename (mosh:free-c-callback	free-c-callback))
-    internal-type->implementation-type
-    implementation-data-types)
+    (rename (mosh:free-c-callback	free-c-callback)))
   (import (rnrs)
     (unimplemented)
     (foreign ffi conditions)
@@ -42,7 +40,8 @@
 		  open-shared-library	lookup-shared-library
 		  make-c-function	pointer->c-function
 		  make-c-callback	free-c-callback
-		  shared-errno)
+		  shared-errno
+		  pointer-ref-c-uint8)
 	    mosh:))
 
 
@@ -61,9 +60,16 @@
 
 ;;;; dynamic loading
 
+(define self-shared-object
+  (mosh:open-shared-library ""))
+
 (define (open-shared-object library-name)
+  ;;In  case  of  error  MOSH:OPEN-SHARED-LIBARRY raises  an  exception.
+  ;;Internally  Mosh  (revision 2190)  calls  "dlerror()" consuming  the
+  ;;error message,  which is  no more accessible  with further  calls to
+  ;;"dlerror()".   The  message  is  accessible  only  in  the  &MESSAGE
+  ;;condition raised here.
   (guard (E (else #f))
-    ;;In case of error this raises an exception.
     (mosh:open-shared-library (%normalise-foreign-symbol library-name))))
 
 (define (open-shared-object* library-name)
@@ -73,115 +79,22 @@
 	(raise-unknown-shared-object library-name 'open-shared-object*
 				     "unable to open shared object"))))
 
-(define self-shared-object
-  (open-shared-object* ""))
-
 ;;; --------------------------------------------------------------------
 
 (define (lookup-shared-object lib-spec foreign-symbol)
-  ;;This already returns #f when the symbol is not found.
+  ;;This   already  returns   #f   when  the   symbol   is  not   found.
+  ;;MOSH:LOOKUP-SHARED-LIBRARY does NOT  call "dlerror()" (Mosh revision
+  ;;2190), so the error message would be avaiable here.
   (mosh:lookup-shared-library lib-spec (if (string? foreign-symbol)
 					   (string->symbol foreign-symbol)
 					 foreign-symbol)))
 
 (define (lookup-shared-object* lib-spec foreign-symbol)
   (let* ((foreign-symbol	(%normalise-foreign-symbol foreign-symbol))
-	 (ptr			(lookup-shared-object lib-spec foreign-symbol)))
-    (or ptr
-	(raise-unknown-foreign-symbol lib-spec foreign-symbol
-				      'lookup-shared-object*
+	 (pointer		(lookup-shared-object lib-spec foreign-symbol)))
+    (or pointer
+	(raise-unknown-foreign-symbol lib-spec foreign-symbol 'lookup-shared-object*
 				      "could not find foreign symbol in foreign library"))))
-
-
-;;;; values normalisation
-;;
-;;According to "lib/mosh/ffi.ss" (revision 2185):
-;;
-;;* The accepted return values for callouts are:
-;;
-;;  void
-;;  bool		char		size_t
-;;  short		int		long		long-long
-;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
-;;  int8_t		int16_t		int32_t		int64_t
-;;  uint8_t		uint16_t	uint32_t	uint64_t
-;;  float		double
-;;  void*
-;;
-;;* The accepted arguments for callouts are:
-;;
-;;  void
-;;  bool		char		size_t
-;;  short		int		long		long-long
-;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
-;;  int8_t		int16_t		int32_t		int64_t
-;;  uint8_t		uint16_t	uint32_t	uint64_t
-;;  float		double
-;;  char*		void*
-;;
-;;  an empty list represents no arguments.
-;;
-;;* The accepted return values for callbacks are:
-;;
-;;  void
-;;  bool		char		size_t
-;;  short		int		long		long-long
-;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
-;;  int8_t		int16_t		int32_t		int64_t
-;;  uint8_t		uint16_t	uint32_t	uint64_t
-;;  float		double
-;;  void*
-;;
-;;* The accepted arguments for callbacks are:
-;;
-;;  void
-;;  bool		char		size_t
-;;  short		int		long		long-long
-;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
-;;  int8_t		int16_t		int32_t		int64_t
-;;  uint8_t		uint16_t	uint32_t	uint64_t
-;;  float		double
-;;  void*
-;;
-;;  an empty list represents no arguments.
-;;
-
-(define implementation-data-types
-  (make-enumeration '(int8_t int16_t int32_t int64_t
- 		      uint8_t uint16_t uint32_t uint64_t
-		      char short unsigned-short
-		      int unsigned-int long unsigned-long
-		      long-long unsigned-long-long
-		      float double pointer void bool)))
-
-(define (internal-type->implementation-type type)
-  (case type
-    ((int8_t)				'int8_t)
-    ((int16_t)				'int16_t)
-    ((int32_t)				'int32_t)
-    ((int64_t)				'int64_t)
-    ((uint8_t)				'uint8_t)
-    ((uint16_t)				'uint16_t)
-    ((uint32_t)				'uint32_t)
-    ((uint64_t)				'uint64_t)
-    ((signed-char)			'char)
-    ((unsigned-char)			'char)
-    ((signed-short)			'short)
-    ((unsigned-short)			'unsigned-short)
-    ((signed-int)			'int)
-    ((unsigned-int)			'unsigned-int)
-    ((signed-long)			'long)
-    ((unsigned-long)			'unsigned-long)
-    ((signed-long-long)			'long-long)
-    ((unsigned-long-long)		'unsigned-long-long)
-    ((float)				'float)
-    ((double)				'double)
-    ((pointer)				'void*)
-    ((callback)				'void*)
-    ((void)				'void)
-    (else
-     (assertion-violation #f
-       "C language type identifier unknown by Mosh" type))))
 
 
 ;;;; interface functions

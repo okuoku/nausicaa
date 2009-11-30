@@ -7,7 +7,7 @@
 ;;;
 ;;;	This is the core of the foreign functions interface.
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,39 +27,12 @@
 (library (foreign ffi)
   (export
 
-    ;;shared object access
-    shared-object
-    (rename (primitive:open-shared-object	open-shared-object)
-	    (primitive:open-shared-object*	open-shared-object*)
-	    (primitive:self-shared-object	self-shared-object)
-	    (primitive:lookup-shared-object	lookup-shared-object)
-	    (primitive:lookup-shared-object*	lookup-shared-object*))
+;;; bindings from (foreign ffi conditions)
+    &library-name
+    make-library-name-condition
+    library-name-condition?
+    condition-library-name
 
-    ;;interface functions
-    define-c-function				define-c-function/with-errno
-    make-c-function				make-c-function/with-errno
-    define-pointer-c-function			define-pointer-c-function/with-errno
-    define-c-callouts				define-c-callouts/with-errno
-    pointer->c-function				pointer->c-function/with-errno
-    make-c-callback
-    (rename (primitive:free-c-callback		free-c-callback))
-
-    ;;foreign struct accessors
-    define-c-struct-accessor-and-mutator
-    define-c-struct-accessor		define-c-struct-mutator
-    define-c-struct-field-pointer-accessor
-
-    ;; bindings from (foreign ffi pointers)
-    pointer?
-    pointer-null		pointer-null?
-    integer->pointer		pointer->integer
-    pointer-diff		pointer-add
-    pointer-incr!
-    pointer=?			pointer<>?
-    pointer<?			pointer>?
-    pointer<=?			pointer>=?
-
-    ;; bindings from (foreign ffi conditions)
     &shared-object
     make-shared-object-condition
     shared-object-condition?
@@ -70,16 +43,45 @@
     foreign-symbol-condition?
     condition-foreign-symbol
 
-    &unknown-shared-object
-    make-unknown-shared-object-condition
-    unknown-shared-object-condition?
+    &unknown-shared-object-error
+    make-unknown-shared-object-error-condition
+    unknown-shared-object-error-condition?
 
-    &unknown-foreign-symbol
-    make-unknown-foreign-symbol-condition
-    unknown-foreign-symbol-condition?
+    &unknown-foreign-symbol-error
+    make-unknown-foreign-symbol-error-condition
+    unknown-foreign-symbol-error-condition?
 
     raise-unknown-shared-object
     raise-unknown-foreign-symbol
+
+;;; bindings from (foreign ffi primitives)
+    shared-object?			libc-shared-object
+    open-shared-object			open-shared-object*
+    lookup-shared-object		lookup-shared-object*
+    make-c-function			make-c-function/with-errno
+    make-c-callout			make-c-callout/with-errno
+    make-c-callback			free-c-callback
+    define-c-struct-accessor		define-c-struct-mutator
+    define-c-struct-accessor-and-mutator
+    define-c-struct-field-pointer-accessor
+
+;;; bindings from (foreign ffi utilities)
+    define-shared-object
+    define-c-functions			define-c-functions/with-errno
+    define-c-callouts			define-c-callouts/with-errno
+    make-c-function*			make-c-function/with-errno*
+    make-c-callout*			make-c-callout/with-errno*
+    make-c-callback*
+
+;;; bindings from (foreign ffi pointers)
+    pointer?
+    pointer-null			pointer-null?
+    integer->pointer			pointer->integer
+    pointer-diff			pointer-add
+    pointer-incr!
+    pointer=?				pointer<>?
+    pointer<?				pointer>?
+    pointer<=?				pointer>=?
 
 ;;; bindings from (foreign ffi peekers-and-pokers)
 
@@ -210,164 +212,10 @@
     poke-array-int32!			poke-array-uint32!
     poke-array-int64!			poke-array-uint64!)
   (import (rnrs)
-    (parameters)
     (foreign ffi conditions)
     (foreign ffi pointers)
     (foreign ffi peekers-and-pokers)
-    (prefix (foreign ffi primitives) primitive:)
-    (for (foreign ffi clang-data-types) expand)
-    (only (unimplemented)
-	  raise-unimplemented-error))
-
-
-(define shared-object
-  (make-parameter primitive:self-shared-object))
-
-
-(define-syntax make-c-function
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
-       (with-syntax ((ret	(%normalise-and-maybe-quote-type #'?ret-type))
-		     ((arg ...)	(map %normalise-and-maybe-quote-type #'(?arg-type0 ?arg-type ...))))
-	 #'(primitive:make-c-function (shared-object) ret '?funcname (list arg ...)))))))
-
-(define-syntax define-c-function
-  (syntax-rules ()
-    ((_ ?name (?ret-type ?funcname (?arg-type0 ?arg-type ...)))
-     (define ?name
-       (make-c-function ?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
-
-(define-syntax make-c-function/with-errno
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?ret-type ?funcname (?arg-type0 ?arg-type ...))
-       (with-syntax ((ret	(%normalise-and-maybe-quote-type #'?ret-type))
-		     ((arg ...)	(map %normalise-and-maybe-quote-type #'(?arg-type0 ?arg-type ...))))
-	 #'(primitive:make-c-function/with-errno (shared-object) ret '?funcname (list arg ...)))))))
-
-(define-syntax define-c-function/with-errno
-  (syntax-rules ()
-    ((_ ?name (?ret-type ?funcname (?arg-type0 ?arg-type ...)))
-     (define ?name
-       (make-c-function/with-errno ?ret-type ?funcname (?arg-type0 ?arg-type ...))))))
-
-
-(define-syntax pointer->c-function
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?ret-type ?pointer (?arg-type0 ?arg-type ...))
-       (with-syntax ((ret	(%normalise-and-maybe-quote-type #'?ret-type))
-		     ((arg ...)	(map %normalise-and-maybe-quote-type #'(?arg-type0 ?arg-type ...))))
-	 #'(primitive:pointer->c-function ret ?pointer (list arg ...)))))))
-
-(define-syntax define-pointer-c-function
-  (syntax-rules ()
-    ((_ ?name (?ret-type ?pointer (?arg-type0 ?arg-type ...)))
-     (define ?name
-       (pointer->c-function ?ret-type ?pointer (?arg-type0 ?arg-type ...))))))
-
-(define-syntax pointer->c-function/with-errno
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?ret-type ?pointer (?arg-type0 ?arg-type ...))
-       (with-syntax ((ret	(%normalise-and-maybe-quote-type #'?ret-type))
-		     ((arg ...)	(map %normalise-and-maybe-quote-type #'(?arg-type0 ?arg-type ...))))
-	 #'(primitive:pointer->c-function/with-errno ret ?pointer (list arg ...)))))))
-
-(define-syntax define-pointer-c-function/with-errno
-  (syntax-rules ()
-    ((_ ?name (?ret-type ?pointer (?arg-type0 ?arg-type ...)))
-     (define ?name
-       (pointer->c-function/with-errno ?ret-type ?pointer (?arg-type0 ?arg-type ...))))))
-
-
-(define-syntax define-c-callouts
-  (syntax-rules ()
-    ((_ ?shared-object (?name (?retval ?funcname (?arg0 ?arg ...))) ...)
-     (begin
-       (define dummy
-	 (shared-object ?shared-object))
-       (define-c-function ?name
-	 (?retval ?funcname (?arg0 ?arg ...)))
-       ...))))
-
-(define-syntax define-c-callouts/with-errno
-  (syntax-rules ()
-    ((_ ?shared-object (?name (?retval ?funcname (?arg0 ?arg ...))) ...)
-     (begin
-       (define dummy
-	 (shared-object ?shared-object))
-       (define-c-function/with-errno ?name
-	 (?retval ?funcname (?arg0 ?arg ...)))
-       ...))))
-
-
-(define-syntax make-c-callback
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?ret-type ?scheme-function (?arg-type0 ?arg-type ...))
-       (with-syntax ((ret	(%normalise-and-maybe-quote-type #'?ret-type))
-		     ((arg ...)	(map %normalise-and-maybe-quote-type #'(?arg-type0 ?arg-type ...))))
-	 #'(primitive:make-c-callback ret ?scheme-function (list arg ...)))))))
-
-
-;;;; foreign structures accessors
-
-(define-syntax define-c-struct-accessor-and-mutator
-  (syntax-rules ()
-    ((_ ?mutator-name ?accessor-name ?field-offset ?foreign-type-mutator ?foreign-type-accessor)
-     (begin
-       (define-c-struct-accessor ?accessor-name ?field-offset ?foreign-type-accessor)
-       (define-c-struct-mutator  ?mutator-name ?field-offset ?foreign-type-mutator)))))
-
-(define-syntax define-c-struct-accessor
-  (lambda (use-stx)
-    (syntax-case use-stx ()
-      ((_ ?accessor-name ?field-offset ?foreign-type-accessor)
-       (if (syntax->datum (syntax ?field-offset))
-	   #'(define-syntax ?accessor-name
-	       (syntax-rules ()
-		 ((_ struct-pointer)
-		  (?foreign-type-accessor struct-pointer ?field-offset))))
-	 #'(define-syntax ?accessor-name
-	     (syntax-rules ()
-	       ((_ struct-pointer)
-		(raise-unimplemented-error (quote ?accessor-name))))))))))
-
-(define-syntax define-c-struct-mutator
-  (lambda (use-stx)
-    (syntax-case use-stx ()
-      ((_ ?mutator-name ?field-offset ?foreign-type-mutator)
-       (if (syntax->datum (syntax ?field-offset))
-	   #'(define-syntax ?mutator-name
-	       (syntax-rules ()
-		 ((_ struct-pointer value)
-		  (?foreign-type-mutator struct-pointer
-					?field-offset
-					value))))
-	 #'(define-syntax ?mutator-name
-	     (syntax-rules ()
-	       ((_ struct-pointer value)
-		(raise-unimplemented-error (quote ?mutator-name))))))))))
-
-(define-syntax define-c-struct-field-pointer-accessor
-  (lambda (use-stx)
-    (syntax-case use-stx ()
-      ((_ ?accessor-name ?field-offset)
-       (if (syntax->datum (syntax ?field-offset))
-	   #'(define-syntax ?accessor-name
-	       (syntax-rules ()
-		 ((_ struct-pointer)
-		  (pointer-add struct-pointer ?field-offset))))
-	 #'(define-syntax ?accessor-name
-	     (syntax-rules ()
-	       ((_ struct-pointer)
-		(raise-unimplemented-error (quote ?accessor-name))))))))))
-
-
-;;;; done
-
-)
+    (foreign ffi primitives)
+    (foreign ffi utilities)))
 
 ;;; end of file

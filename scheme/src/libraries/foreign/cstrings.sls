@@ -52,25 +52,14 @@
     (compensations))
 
 
-;;;; inspection
+;;;; inspection and operations
 
-(define-c-function strlen
-  (size_t strlen (char*)))
-
-(define-c-function strcmp
-  (int strcmp (char* char*)))
-
-(define-c-function strncmp
-  (int strncmp (char* char* size_t)))
-
-
-;;;; operations
-
-(define-c-function strcpy
-  (char* strcpy (char* char*)))
-
-(define-c-function strncpy
-  (char* strncpy (char* char* size_t)))
+(define-c-functions libc-shared-object
+  (strlen	(size_t strlen (char*)))
+  (strcmp	(int strcmp (char* char*)))
+  (strncmp	(int strncmp (char* char* size_t)))
+  (strcpy	(char* strcpy (char* char*)))
+  (strncpy	(char* strncpy (char* char* size_t))))
 
 (define strdup
   (case-lambda

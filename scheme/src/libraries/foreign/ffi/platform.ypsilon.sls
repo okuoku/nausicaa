@@ -39,17 +39,13 @@
 
 (library (foreign ffi platform)
   (export
-    self-shared-object
-    open-shared-object		open-shared-object*
-    lookup-shared-object	lookup-shared-object*
-    make-c-function		make-c-function/with-errno
-    pointer->c-function		pointer->c-function/with-errno
-    make-c-callback		free-c-callback
-    internal-type->implementation-type
-    (rename (internal-type->implementation-type internal-type->implementation-type/callout))
-    implementation-data-types)
+    open-shared-object		lookup-shared-object
+    make-c-callout		make-c-callout/with-errno
+    make-c-callback		free-c-callback)
   (import (rnrs)
     (conditions)
+    (only (foreign ffi sizeof)
+	  LIBC_SHARED_OBJECT_SPEC)
     (foreign ffi conditions)
     (prefix (only (ypsilon ffi)
 		  load-shared-object lookup-shared-object
@@ -89,180 +85,72 @@
 ;;;; dynamic loading
 
 (define (open-shared-object library-name)
+  ;;Open  a shared  object selected  with the  string  LIBRARY-NAME.  If
+  ;;successful: Return  a shared object reference, which  for Ypsilon is
+  ;;an exact integer representing the return value of "dlopen()".  If an
+  ;;error occurs return #f.
+  ;;
+  ;;In case of error YPSILON:LOAD-SHARED-OBJECT raises an exception.
+  ;;
   (guard (E (else #f))
-    ;;In case of error this raises an exception
     (ypsilon:load-shared-object (%normalise-foreign-symbol library-name))))
 
-(define (open-shared-object* library-name)
-  (let* ((library-name	(%normalise-foreign-symbol library-name))
-	 (lib-ref	(open-shared-object library-name)))
-    (or lib-ref
-	(raise-unknown-shared-object library-name 'open-shared-object*
-				     "unable to open shared object"))))
-
-(define self-shared-object
-  (open-shared-object* ""))
-
-;;; --------------------------------------------------------------------
-
-(define (lookup-shared-object lib-spec foreign-symbol)
-  ;;This already returns #f when the symbol is not found.
-  (let ((address (ypsilon:lookup-shared-object lib-spec foreign-symbol)))
+(define (lookup-shared-object library-reference foreign-symbol)
+  ;;YPSILON:LOOKUP-SHARED-OBJECT already  returns #f when  the symbol is
+  ;;not found.
+  ;;
+  (let* ((foreign-symbol	(%normalise-foreign-symbol foreign-symbol))
+	 (address		(ypsilon:lookup-shared-object library-reference foreign-symbol)))
     (and address (integer->pointer address))))
 
-(define (lookup-shared-object* lib-spec foreign-symbol)
-  (let* ((foreign-symbol	(%normalise-foreign-symbol foreign-symbol))
-	 (ptr			(lookup-shared-object lib-spec foreign-symbol)))
-    (or ptr
-	(raise-unknown-foreign-symbol lib-spec foreign-symbol
-				      'lookup-shared-object*
-				      "could not find foreign symbol in foreign library"))))
-
 
-;;;; types normalisation
-;;
-;;In Ypsilon revision 503, it appears that an argument to a function can
-;;be one among:
-;;
-;;  bool		char		size_t
-;;  short		int		long		long-long
-;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
-;;  float		double
-;;  void*
-;;  int8_t		int16_t		int32_t		int64_t
-;;  uint8_t		uint16_t	uint32_t	uint64_t
-;;
-;;the return type of a callout function can be one among:
-;;
-;;  void
-;;  bool		char		size_t
-;;  short		int		long		long-long
-;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
-;;  float		double
-;;  void*		char*
-;;  int8_t		int16_t		int32_t		int64_t
-;;  uint8_t		uint16_t	uint32_t	uint64_t
-;;
-;;the return type of a callback function can be one among:
-;;
-;;  void
-;;  bool		char		size_t
-;;  short		int		long		long-long
-;;  unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
-;;  float		double
-;;  void*
-;;  int8_t		int16_t		int32_t		int64_t
-;;  uint8_t		uint16_t	uint32_t	uint64_t
-;;
-;;Care  must  be  taken  in  selecting  types,  because:
-;;
-;;* Selecting "void*"  as Ypsilon type will cause  Ypsilon to allocate a
-;;  bytevector and use it as value.
-;;
-;;* Selecting "char*"  as Ypsilon type will cause  Ypsilon to allocate a
-;;  string and use it as value.
-;;
-
-(define implementation-data-types
-  (make-enumeration '(bool		char		size_t
-		      short		int		long		long-long
-		      unsigned-short	unsigned-int	unsigned-long	unsigned-long-long
-		      float		double
-		      void*
-		      int8_t		int16_t		int32_t		int64_t
-		      uint8_t		uint16_t	uint32_t	uint64_t)))
-
-(define (internal-type->implementation-type type)
-  (case type
-    ((int8_t)				'int8_t)
-    ((int16_t)				'int16_t)
-    ((int32_t)				'int32_t)
-    ((int64_t)				'int64_t)
-    ((uint8_t)				'uint8_t)
-    ((uint16_t)				'uint16_t)
-    ((uint32_t)				'uint32_t)
-    ((uint64_t)				'uint32_t)
-    ((signed-char)			'char)
-    ((unsigned-char)			'char)
-    ((signed-short)			'short)
-    ((unsigned-short)			'unsigned-short)
-    ((signed-int)			'int)
-    ((unsigned-int)			'unsigned-int)
-    ((signed-long)			'long)
-    ((unsigned-long)			'unsigned-long)
-    ((signed-long-long)			'long-long)
-    ((unsigned-long-long)		'unsigned-long-long)
-    ((float)				'float)
-    ((double)				'double)
-    ((pointer)				'void*)
-    ((callback)				'void*)
-    ((void)				'void)
-    (else
-     (assertion-violation #f
-       "C language data type unknown to Ypsilon" type))))
-
-
-(define (%closure-and-mappers ret-type address arg-types)
-  (values (ypsilon:make-cdecl-callout ret-type arg-types (pointer->integer address))
-	  (%make-mappers-list pointer->integer arg-types)))
-
-(define (%make-c-function maker lib-spec ret-type funcname arg-types)
-  (maker ret-type
-	 (lookup-shared-object* lib-spec funcname)
-	 (%normalise-arg-types arg-types)
-	 funcname))
-
-(define (make-c-function lib-spec ret-type funcname arg-types)
-  (%make-c-function pointer->c-function lib-spec ret-type funcname arg-types))
-
-(define (make-c-function/with-errno lib-spec ret-type funcname arg-types)
-  (%make-c-function pointer->c-function/with-errno lib-spec ret-type funcname arg-types))
-
-(define pointer->c-function
+(define make-c-callout
   (case-lambda
    ((ret-type address arg-types)
-    (pointer->c-function ret-type address arg-types #f))
+    (make-c-callout ret-type address arg-types "<anonymous function>"))
    ((ret-type address arg-types funcname)
-    (let-values (((closure mappers) (%closure-and-mappers ret-type address arg-types)))
-      (if (eq? ret-type 'void*)
-	  (lambda args
-	    (integer->pointer (apply closure (map (lambda (m a) (m a))
-					       mappers args))))
-	(lambda args
-	  (let ((expected	(length mappers))
-		(given	(length args)))
-	    (if (= expected given)
-		(apply closure (map (lambda (m a) (m a)) mappers args))
-	      (raise-wrong-num-args funcname
-				    (string-append "called foreign function trampoline with wrong number of arguments, expected " (number->string expected) " given " (number->string given))
-				    funcname expected given)))))))))
+    (let* ((closure	(ypsilon:make-cdecl-callout ret-type arg-types (pointer->integer address)))
+	   (mappers	(%make-mappers-list pointer->integer arg-types))
+	   (expected	(length mappers))
+	   (ret-ptr?	(eq? ret-type 'void*)))
+      (lambda args
+	(let ((given	(length args)))
+	  (unless (= expected given)
+	    (raise-wrong-num-args funcname
+				  (string-append "wrong number of arguments to callout, expected "
+						 (number->string expected)
+						 " given "
+						 (number->string given))
+				  funcname expected given))
+	  (let ((ret-val (apply closure (map (lambda (m a) (m a)) mappers args))))
+	    (if ret-ptr?
+		(integer->pointer ret-val)
+	      ret-val))))))))
 
-(define pointer->c-function/with-errno
+(define make-c-callout/with-errno
   (case-lambda
    ((ret-type address arg-types)
-    (pointer->c-function/with-errno ret-type address arg-types #f))
+    (make-c-callout/with-errno ret-type address arg-types "<anonymous function>"))
    ((ret-type address arg-types funcname)
-    (let-values (((closure mappers) (%closure-and-mappers ret-type address arg-types)))
-      (if (eq? ret-type 'void*)
-	  (lambda args
-	    (let* ((retval (begin
-			     (ypsilon:shared-object-errno 0)
-			     (integer->pointer (apply closure (map (lambda (m a) (m a))
-								mappers args)))))
-		   (errval (ypsilon:shared-object-errno)))
-	      (values retval errval)))
-	(lambda args
-	  (let ((expected (length mappers))
-		(given    (length args)))
-	    (if (= expected given)
-		(let* ((retval   (begin
-				   (ypsilon:shared-object-errno 0)
-				   (apply closure (map (lambda (m a) (m a)) mappers args))))
-		       (errval (ypsilon:shared-object-errno)))
-		  (values retval errval))
-	      (raise-wrong-num-args funcname
-				    (string-append "called foreign function trampoline with wrong number of arguments, expected " (number->string expected) " given " (number->string given))
-				    funcname expected given)))))))))
+    (let* ((closure	(ypsilon:make-cdecl-callout ret-type arg-types (pointer->integer address)))
+	   (mappers	(%make-mappers-list pointer->integer arg-types))
+	   (expected	(length mappers))
+	   (ret-ptr?	(eq? ret-type 'void*)))
+      (lambda args
+	(let ((given	(length args)))
+	  (unless (= expected given)
+	    (raise-wrong-num-args funcname
+				  (string-append "wrong number of arguments to callout, expected "
+						 (number->string expected)
+						 " given "
+						 (number->string given))
+				  funcname expected given))
+	  (let ((ret-val	(begin
+				  (ypsilon:shared-object-errno 0)
+				  (apply closure (map (lambda (m a) (m a)) mappers args))))
+		(errval	(ypsilon:shared-object-errno)))
+	    (values (if ret-ptr? (integer->pointer ret-val) ret-val)
+		    errval))))))))
 
 
 ;;;; callback functions

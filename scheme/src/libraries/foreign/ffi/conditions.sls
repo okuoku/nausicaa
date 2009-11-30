@@ -27,6 +27,11 @@
 
 (library (foreign ffi conditions)
   (export
+    &library-name
+    make-library-name-condition
+    library-name-condition?
+    condition-library-name
+
     &shared-object
     make-shared-object-condition
     shared-object-condition?
@@ -37,19 +42,23 @@
     foreign-symbol-condition?
     condition-foreign-symbol
 
-    &unknown-shared-object
-    make-unknown-shared-object-condition
-    unknown-shared-object-condition?
+    &unknown-shared-object-error
+    make-unknown-shared-object-error-condition
+    unknown-shared-object-error-condition?
 
-    &unknown-foreign-symbol
-    make-unknown-foreign-symbol-condition
-    unknown-foreign-symbol-condition?
+    &unknown-foreign-symbol-error
+    make-unknown-foreign-symbol-error-condition
+    unknown-foreign-symbol-error-condition?
 
     raise-unknown-shared-object
     raise-unknown-foreign-symbol)
   (import (rnrs))
 
 
+(define-condition-type &library-name &condition
+  make-library-name-condition library-name-condition?
+  (object condition-library-name))
+
 (define-condition-type &shared-object &condition
   make-shared-object-condition shared-object-condition?
   (object condition-shared-object))
@@ -58,36 +67,33 @@
   make-foreign-symbol-condition foreign-symbol-condition?
   (symbol condition-foreign-symbol))
 
-(define-condition-type &unknown-shared-object &error
-  make-unknown-shared-object-condition unknown-shared-object-condition?)
+
+(define-condition-type &unknown-shared-object-error &error
+  make-unknown-shared-object-error-condition
+  unknown-shared-object-error-condition?)
 
-(define-condition-type &unknown-foreign-symbol &error
-  make-unknown-foreign-symbol-condition unknown-foreign-symbol-condition?)
+(define-condition-type &unknown-foreign-symbol-error &error
+  make-unknown-foreign-symbol-error-condition
+  unknown-foreign-symbol-error-condition?)
 
-(define raise-unknown-shared-object
-  (case-lambda
-   ((lib-spec)
-    (raise-unknown-shared-object lib-spec #f))
-   ((lib-spec who)
-    (raise-unknown-shared-object lib-spec who "unknown shared object"))
-   ((lib-spec who message)
-    (raise-continuable (condition (make-unknown-shared-object-condition)
-				  (make-who-condition who)
-				  (make-message-condition message)
-				  (make-shared-object-condition lib-spec))))))
+(define-syntax raise-unknown-shared-object
+  (syntax-rules ()
+    ((_ ?who ?message ?library-name)
+     (raise-continuable
+      (condition (make-unknown-shared-object-error-condition)
+		 (make-who-condition ?who)
+		 (make-message-condition ?message)
+		 (make-library-name-condition ?library-name))))))
 
-(define raise-unknown-foreign-symbol
-  (case-lambda
-   ((lib-spec foreign-symbol)
-    (raise-unknown-foreign-symbol lib-spec foreign-symbol #f))
-   ((lib-spec foreign-symbol who)
-    (raise-unknown-foreign-symbol lib-spec foreign-symbol who "unknown foreign symbol"))
-   ((lib-spec foreign-symbol who message)
-    (raise-continuable (condition (make-unknown-foreign-symbol-condition)
-				  (make-who-condition who)
-				  (make-message-condition message)
-				  (make-shared-object-condition lib-spec)
-				  (make-foreign-symbol-condition foreign-symbol))))))
+(define-syntax raise-unknown-foreign-symbol
+  (syntax-rules ()
+    ((_ ?who ?message ?shared-object ?foreign-symbol)
+     (raise-continuable
+      (condition (make-unknown-foreign-symbol-error-condition)
+		 (make-who-condition ?who)
+		 (make-message-condition ?message)
+		 (make-shared-object-condition ?shared-object)
+		 (make-foreign-symbol-condition ?foreign-symbol))))))
 
 
 ;;;; done

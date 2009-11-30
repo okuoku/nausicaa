@@ -26,6 +26,9 @@
 
 (library (foreign ffi sizeof)
   (export
+
+    LIBC_SHARED_OBJECT_SPEC
+
     sizeof-int8			sizeof-int16
     sizeof-int32		sizeof-int64
     sizeof-char			sizeof-short
@@ -232,6 +235,8 @@
 (define on-64-bits-system		(= sizeof-int 8))
 
 (define words-bigendian			@WORDS_BIGENDIAN@)
+
+(define LIBC_SHARED_OBJECT_SPEC		"@LIBC_SHARED_OBJECT_SPEC@")
 
 
 ;;;; done

@@ -18,6 +18,9 @@ NAUSICAA_C_TYPES_LIMITS
 NAUSICAA_INSPECT_SIZE_T
 NAUSICAA_C_ERRNO
 
+NAU_DS_WITH_OPTION([LIBC_SHARED_OBJECT_SPEC],[libc-shared-object],[],
+  [C library shared object string],[select C library shared object string])
+
 AC_CONFIG_FILES([../src/libraries/foreign/ffi/sizeof.sls:../src/libraries/foreign/ffi/sizeof.sls.in])
 AC_CONFIG_FILES([../src/libraries/foreign/ffi/peekers-and-pokers.sls:../src/libraries/foreign/ffi/peekers-and-pokers.sls.in])
 AC_CONFIG_FILES([../src/libraries/foreign/errno.sls:../src/libraries/foreign/errno.sls.in])

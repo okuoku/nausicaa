@@ -31,10 +31,7 @@
     lookup-shared-object	lookup-shared-object*
     make-c-function		make-c-function/with-errno
     pointer->c-function		pointer->c-function/with-errno
-    make-c-callback		free-c-callback
-    internal-type->implementation-type
-    (rename (internal-type->implementation-type internal-type->implementation-type/callout))
-    implementation-data-types)
+    make-c-callback		free-c-callback)
   (import (rnrs)
     (foreign ffi conditions)
     (prefix (only (ikarus foreign)
@@ -91,44 +88,6 @@
 	(raise-unknown-foreign-symbol lib-spec foreign-symbol
 				      'lookup-shared-object*
 				      "could not find foreign symbol in foreign library"))))
-
-
-;;;; types normalisation
-
-(define implementation-data-types
-  (make-enumeration '(signed-char unsigned-char signed-short unsigned-short
-		      signed-int unsigned-int signed-long unsigned-long
-		      signed-long-long unsigned-long-long
-		      float double pointer void)))
-
-(define (internal-type->implementation-type type)
-  (case type
-    ((int8_t)				'signed-char)
-    ((int16_t)				'signed-short)
-    ((int32_t)				'signed-int)
-    ((int64_t)				'signed-long-long)
-    ((uint8_t)				'unsigned-char)
-    ((uint16_t)				'unsigned-short)
-    ((uint32_t)				'unsigned-int)
-    ((uint64_t)				'unsigned-long-long)
-    ((signed-char)			'signed-char)
-    ((unsigned-char)			'unsigned-char)
-    ((signed-short)			'signed-short)
-    ((unsigned-short)			'unsigned-short)
-    ((signed-int)			'signed-int)
-    ((unsigned-int)			'unsigned-int)
-    ((signed-long)			'signed-long)
-    ((unsigned-long)			'unsigned-long)
-    ((signed-long-long)			'signed-long-long)
-    ((unsigned-long-long)		'unsigned-long-long)
-    ((float)				'float)
-    ((double)				'double)
-    ((pointer)				'pointer)
-    ((callback)				'pointer)
-    ((void)				'void)
-    (else
-     (assertion-violation #f
-       "C language type identifier is unknown by Ikarus" type))))
 
 
 ;;;; errno interface

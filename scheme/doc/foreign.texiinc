@@ -44,6 +44,22 @@ shared libraries coded in the C language; it is a common interface to
 the foreign--functions interfaces of the underlying Scheme
 implementations.
 
+@menu
+* ffi libraries::               Installed libraries.
+* ffi conditions::              Condition objects.
+* ffi sizeof::                  Sizes and limits.
+* ffi pointers::                Pointer objects.
+* ffi access::                  Direct access to memory blocks.
+* ffi call::                    Callouts and callbacks.
+* ffi struct::                  Accessing data structures.
+* ffi headers::                 Inspecting foreign header files.
+@end menu
+
+@c page
+@node ffi libraries
+@subsection Installed libraries
+
+
 The following libraries are installed:
 
 @table @library
@@ -70,32 +86,30 @@ directly by client code.
 Exports a function--based interface to the constructors of callout and
 callback functions.  This library is rarely used by client code.
 
+@item foreign ffi utilities
+User friendly macros to the @api{} of @library{foreign ffi primitives}.
+
 @item foreign ffi
-Exports the high level @api{}, mostly based on macros for user
-friendliness.  It re--exports bindings from the following libraries:
+Compound library exporting the high--level @api{}.
 
-@example
-(foreign ffi pointers)
-(foreign ffi peekers-and-pokers)
-@end example
+@item foreign ffi parametrised
+Deprecated interface using parameters.
 @end table
-
-@menu
-* ffi conditions::              Condition objects.
-* ffi sizeof::                  Sizes and limits.
-* ffi pointers::                Pointer objects.
-* ffi access::                  Direct access to memory blocks.
-* ffi call::                    Callouts and callbacks.
-* ffi struct::                  Accessing data structures.
-* ffi headers::                 Inspecting foreign header files.
-@end menu
 
 @c page
 @node ffi conditions
 @subsection Condition objects
 
 
+The bindings described in this section are exported by the
+@library{foreign ffi conditions} library and reexported by the compound
+library @library{foreign ffi}.  There are two kinds of condition
+objects: data conditions, which are meant to hold values; error
+conditions, which are meant to tag condition objects describing the
+cause of the exception.
+
 @menu
+* ffi conditions library-name::         Foreign library names.
 * ffi conditions shared-object::        Shared objects.
 * ffi conditions foreign-symbol::       Foreign symbols.
 * ffi conditions unknown-shared::       Unknown shared objects.
@@ -103,35 +117,60 @@ friendliness.  It re--exports bindings from the following libraries:
 @end menu
 
 @c page
+@node ffi conditions library-name
+@subsubsection Foreign library names
+
+
+@deftp {Condition Type} &library-name
+References a foreign library name involved in an exception; it is
+derived from @condition{condition}.  It has the following fields:
+
+@table @code
+@item library-name
+A Scheme string representing a foreign library name.  Examples:
+@samp{zlib.so}, @samp{zlib.dylib}, @samp{zlib.dll}.
+@end table
+@end deftp
+
+
+@defun make-library-name-condition @var{library-name}
+@defunx library-name-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{library-name}.
+@end defun
+
+
+@defun condition-library-name @var{obj}
+Accessor for the field of condition objects of type
+@condition{library-name}.
+@end defun
+
+@c page
 @node ffi conditions shared-object
 @subsubsection Shared objects
 
 
 @deftp {Condition Type} &shared-object
-Describes a shared object; it is derived from @code{&condition}.  It
-holds the following fields:
+References a shared object involved in an exception; it is derived from
+@condition{condition}.  It has the following fields:
 
 @table @code
 @item object
-A foreign library descriptor.
+A foreign library object.
 @end table
 @end deftp
 
 
 @defun make-shared-object-condition @var{shared-object}
-Build and return a new @code{&shared-object} condition object.
-@end defun
-
-
-@defun shared-object-condition? @var{obj}
-Return @true{} if @var{obj} is a condition object of type
-@code{&shared-object}.
+@defunx shared-object-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{shared-object}.
 @end defun
 
 
 @defun condition-shared-object @var{obj}
-If @var{obj} is a condition object of type @code{&shared-object}, return
-the value stored in its @code{object} field.
+Accessor for the field of condition objects of type
+@condition{shared-object}.
 @end defun
 
 @c page
@@ -140,8 +179,9 @@ the value stored in its @code{object} field.
 
 
 @deftp {Condition Type} &foreign-symbol
-Describes a foreign symbol exported by a shared library; it is derived
-from @code{&condition}.  It holds the following fields:
+References a foreign symbol, exported by a shared library, involved in
+an exception; it is derived from @condition{condition}.  It has the
+following fields:
 
 @table @code
 @item symbol
@@ -151,19 +191,15 @@ A Scheme string representing the foreign symbol.
 
 
 @defun make-foreign-symbol-condition @var{foreign-symbol}
-Build and return a new @code{&foreign-symbol} condition object.
-@end defun
-
-
-@defun foreign-symbol-condition? @var{obj}
-Return @true{} if @var{obj} is a condition object of type
-@code{&foreign-symbol}.
+@defunx foreign-symbol-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{foreign-symbol}.
 @end defun
 
 
 @defun condition-foreign-symbol @var{obj}
-If @var{obj} is a condition object of type @code{&foreign-symbol},
-return the value stored in its @code{symbol} field.
+Accessor for the field of condition objects of type
+@condition{foreign-symbol}.
 @end defun
 
 @c page
@@ -171,73 +207,60 @@ return the value stored in its @code{symbol} field.
 @subsubsection Unknown shared objects
 
 
-@deftp {Condition Type} &unknown-shared-object
-Describes a failed attempt to open a shared library; it is derived from
-@code{&error}.
+@deftp {Condition Type} &unknown-shared-object-error
+Tags a compound condition object as describing a failed attempt to open
+a shared library; it is derived from @condition{error}.  It has no
+fields.
 @end deftp
 
 
-@defun make-unknown-shared-object-condition
-Build and return a new @code{&unknown-shared-object} condition object.
+@defun make-unknown-shared-object-error-condition
+@defunx unknown-shared-object-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{unknown-shared-object-error}.
 @end defun
 
 
-@defun unknown-shared-object-condition? @var{obj}
-Return @true{} if @var{obj} is a condition object of type
-@code{&unknown-shared-object}.
-@end defun
+@deffn Syntax raise-unknown-shared-object @ameta{who} @ameta{message} @ameta{library-name}
+Raise a continuable exception using as exception value a composite
+condition object with components of type: @condition{who},
+@condition{message}, @condition{library-name},
+@condition{unknown-shared-object-error}
 
-
-@defun raise-unknown-shared-object @var{lib-spec}
-@defunx raise-unknown-shared-object @var{lib-spec} @var{who}
-@defunx raise-unknown-shared-object @var{lib-spec} @var{who} @var{message}
-Build a new composite condition object, as the union of condition
-objects of type: @code{&shared-object}, @code{&who}, @code{&message};
-raise a continuable exception using the object.
-
-@var{lib-spec} must be a shared library descriptor.  @var{who} must be
-the value of the @code{&who} condition; it defaults to @false{}.
-@var{message} must be the value of the @code{&message} condition; it
-defaults to a standard Scheme string.
-@end defun
+It is meant to be used when opening a shared object fails; when
+returning to the continuation, the returned value must be a valid,
+initialised, shared object.
+@end deffn
 
 @c page
 @node ffi conditions unknown-foreign
 @subsubsection Unknown foreign symbols
 
 
-@deftp {Condition Type} &unknown-foreign-symbol
-Describes a failed attempt to retrieve the address of a foreign symbol
-from a shared library; it is derived from @code{&error}.
+@deftp {Condition Type} &unknown-foreign-symbol-error
+Tags a compound condition object as describing a failed attempt to
+retrieve the address of an exported entity from a shared library; it is
+derived from @condition{error}.
 @end deftp
 
 
-@defun make-unknown-foreign-symbol-condition
-Build and return a new @code{&unknown-foreign-symbol} condition object.
+@defun make-unknown-foreign-symbol-error-condition
+@defunx unknown-foreign-symbol-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{unknown-foreign-symbol-error}.
 @end defun
 
 
-@defun unknown-foreign-symbol-condition? @var{obj}
-Return @true{} if @var{obj} is a condition object of type
-@code{&unknown-foreign-symbol}.
-@end defun
+@deffn Syntax raise-unknown-foreign-symbol-error @ameta{who} @ameta{message} @ameta{shared-object} @ameta{foreign-symbol}
+Raise a continuable exception using as exception value a composite
+condition object with components of type: @condition{who},
+@condition{message}, @condition{shared-object},
+@condition{foreign-symbol}.
 
-
-@defun raise-unknown-foreign-symbol @var{lib-spec} @var{foreign-symbol}
-@defunx raise-unknown-foreign-symbol @var{lib-spec} @var{foreign-symbol} @var{who}
-@defunx raise-unknown-foreign-symbol @var{lib-spec} @var{foreign-symbol} @var{who} @var{message}
-Build a new composite condition object, as the union of condition
-objects of type: @code{&foreign-symbol}, @code{&shared-object},
-@code{&who}, @code{&message}; raise a continuable exception using the
-object.
-
-@var{lib-spec} must be a shared library descriptor.
-@var{foreign-symbol} must be the value of the @code{&foreign-symbol}
-condition; @var{who} must be the value of the @code{&who} condition; it
-defaults to @false{}.  @var{message} must be the value of the
-@code{&message} condition; it defaults to the Scheme string
-@code{unknown shared object}.
-@end defun
+It is meant to be used when retrieving the pointer of an entity exported
+by a shared object fails; when returning to the continuation, the
+returned value must be the pointer object referencing the entity.
+@end deffn
 
 @c page
 @node ffi sizeof
@@ -1494,7 +1517,8 @@ referenced by @var{pointer}.
 * ffi call types::              Interface to C language types.
 * ffi call out::                Calling foreign functions.
 * ffi call back::               Calling Scheme functions.
-* ffi call primitives::         Middle level interface.
+* ffi call utilities::          Utility macros.
+* ffi call parametrised::       Auxiliary parametrised interface.
 * ffi call platform::           Low level interface.
 @end menu
 
@@ -1507,39 +1531,28 @@ A foreign shared library loadable with the @cfunc{dlopen} @posix{}
 interface is called @dfn{shared object}.  Under @value{PACKAGE}, a
 shared object can be opened, but not closed.  The @api{} makes use of a
 Scheme object to represent a shared object; it allows access to all the
-functions exported by the library.
+functions and variables exported by the library.
 
-The following bindings are exported by the @library{foreign ffi}
+The following bindings are exported by the @library{foreign ffi
+primitives} library and reexported by the @library{foreign ffi} compound
 library.
 
 
 @defun open-shared-object @var{library-name}
 @defunx open-shared-object* @var{library-name}
-Open a new shared object and return its identifier.  The return value is
-meant to be stored in the @code{shared-object} parameter while creating
-interface functions for it.  @var{library-name} must be a Scheme string
-or symbol representing the file name or pathname to be opened.
+Open a foreign shared library on the host system and return shared
+object; shared objects are disjoint from the other Scheme object types.
 
-If opening the shared object fails, @func{open-shared-object} returns
+If opening the shared library fails: @func{open-shared-object} returns
 @false{}, while @func{open-shared-object*} raises a continuable
 exception with @func{raise-unknown-shared-object}.  @ref{ffi conditions
 unknown-shared, Unknown shared objects}
 
-Examples:
-
-@example
-(define mpfr-lib
-  (begin0-let ((l (open-shared-object 'libmpfr.so)))
-    (shared-object l)))
-
-(define mpfi-lib
-  (begin0-let ((l (open-shared-object
-                    '/usr/local/lib/libmpfi.so)))
-    (shared-object l)))
-@end example
-
-In the case of a name (wihtout directory part) the search path for
-shared objects is implemenation dependent.
+@var{library-name} must be a Scheme string or symbol representing the
+file name or pathname to be opened; examples: @samp{zlib.so},
+@samp{zlib.dylib}, @samp{zlib.dll}.  In the case of a name (wihtout
+directory part) the search path for shared objects is implemenation
+dependent.
 
 @quotation
 @strong{For Unix} We can find documentation about the search path of
@@ -1548,39 +1561,28 @@ shared objects in the manual page of @cfunc{dlopen}.
 @end defun
 
 
-@defvr Constant self-shared-object
-Bound to the shared object value identifying the current process; it is
-the initial value of @samp{shared-object}.  With this value we can
-access symbols exported by the current program and the libraries that
-have been already loaded (this may be platform specific, check out the
-documentation of your system).
-
-For example, the symbols from the standard C library, like @cfunc{fread}
-and @cfunc{fwrite}, can be accessed this way.
-@end defvr
+@defun shared-object? @var{obj}
+Return true if @var{obj} is a shared object.
+@end defun
 
 
-@defun lookup-shared-object @var{lib-ref} @var{foreign-symbol}
-@defunx lookup-shared-object* @var{lib-ref} @var{foreign-symbol}
-Search the shared object referenced by @var{lib-ref} for an exported
+@defun lookup-shared-object @var{shared} @var{foreign-symbol}
+@defunx lookup-shared-object* @var{shared} @var{foreign-symbol}
+Search the shared object referenced by @var{shared} for an exported
 symbol matching @var{foreign-symbol}, which must be a Scheme symbol or
-string, and return its address in a pointer value.  Shared objects
-references are produced with @func{open-shared-object}.
+string, and return its address as a pointer object.
 
-If the foreign symbol is not found, the return value of
-@func{lookup-shared-object} is @false{} while
-@func{lookup-shared-object*} raises a continuable exception with
-@func{raise-unknown-foreign-symbol}.  @ref{ffi conditions
+If the foreign symbol is not found: @func{lookup-shared-object} returns
+@false{}, while @func{lookup-shared-object*} raises a continuable
+exception with @func{raise-unknown-foreign-symbol}.  @ref{ffi conditions
 unknown-foreign, Unknown foreign symbols}
 @end defun
 
 
-@deffn Parameter shared-object
-Holds a value referencing the ``current'' shared object: The shared
-object in which @func{make-c-function} will look for symbols.  The
-initial value is @samp{self-shared-object}.  Shared objects references
-are produced with @func{open-shared-object}.
-@end deffn
+@defvr Constant libc-shared-object
+Bound to the shared object value identifying the C language runtime
+library.
+@end defvr
 
 @c page
 @node ffi call types
@@ -1786,46 +1788,72 @@ revision 2185 (last updated Tue Nov 17, 2009).}
 revision 6404 (last updated Tue Nov 17, 2009).}
 @end float
 
+
+The following bindings are exported by the @library{foreign ffi
+clang-data-types} library.
+
+
+@deftp {Enumeration Type} enum-clang-external-types
+@deftpx {Enumeration Type} enum-clang-internal-types
+@deftpx {Enumeration Type} enum-clang-types
+Enumeration type for the external, internal or implementation type
+symbols.
+@end deftp
+
+
+@deffn Syntax clang-external-types @ameta{symbol} ...
+@deffnx Syntax clang-internal-types @ameta{symbol} ...
+@deffnx Syntax clang-types @ameta{symbol} ...
+Evaluate to an enumeration set of external, internal or implementation
+type symbols.
+@end deffn
+
+
+@defun clang-external-type->clang-internal-type @var{type-symbol}
+@defunx clang-internal-type->clang-type @var{type-symbol}
+@defunx clang-external-type->clang-type @var{type-symbol}
+Convert between a type symbols.
+@end defun
+
+
+@defun clang-quote-type-stx-if-external @var{stx}
+@var{stx} must be a syntax object holding a single symbol; if the symbol
+is in the @code{enum-clang-external-types} enumeration set, the return
+value is a syntax object holding the same symbol quoted; else the return
+value is @var{stx} itself.
+
+@quotation
+@strong{NOTE} This function is used internally and it is not meant to be
+used by client code.
+@end quotation
+@end defun
+
 @c page
 @node ffi call out
 @subsubsection Calling foreign functions
 
 
-The following bindings are exported by the @library{foreign ffi}
+The following bindings are exported by the @library{foreign ffi
+primitives} library and reexported by the @library{foreign ffi} compound
 library.
 
 
-@deffn Syntax make-c-function @ameta{ret-type} @ameta{export-name} (@ameta{arg-type0} @ameta{arg-type} ...)
-@deffnx Syntax make-c-function/with-errno @ameta{ret-type} @ameta{export-name} (@ameta{arg-type0} @ameta{arg-type} ...)
+@defun make-c-callout @var{ret-type} @var{address} @var{arg-types}
+@defunx make-c-callout/with-errno @var{ret-type} @var{address} @var{arg-types}
 Build and return a new Scheme callout closure for a C language foreign
-function in the shared object selected by the current value of the
-@func{shared-object} parameter.
+function whose address is specified by the @var{address} pointer
+object.
 
-The closure returned by @func{make-c-function}:
+@var{ret-type} must be a symbol in the @code{clang-external-types}
+enumeration; it represents the type of the foreign function return
+value.  @var{arg-types} must be a list of symbols in the
+@code{clang-external-types} enumeration; they represent the types of the
+foreign function arguments.
 
-@enumerate
-@item
-Accepts as many Scheme object arguments as there are @meta{arg-type}
-symbols.  To specify an empty list of arguments, we can use
-@code{(void)} as list of @meta{arg-type}.
-
-@item
-Does marshaling from Scheme arguments to C language values as specified
-by the @meta{arg-type} symbols.
-
-@item
-Applies the foreign function to the C values.
-
-@item
-Returns the return value of the foreign function, marshaled to a Scheme
-value as specified by the @meta{ret-type} symbol.
-@end enumerate
-
-The closure returned by @func{make-c-function/with-errno} does the same,
-but returns two values: the return value from the foreign function,
-marshaled as specified by the @meta{ret-type} symbol, and the value of
-the @samp{errno} variable (an exact integer) right after the call to the
-foreign function.
+The @samp{/with-errno} variant returns a callout closure which, when
+evaluated, returns two values: the return value from the foreign
+function and the value of the C standard variable @code{errno} right
+after the foreign function call.
 
 @quotation
 @strong{NOTE} Some @posix{} functions return an integer representing
@@ -1833,28 +1861,40 @@ success or failure and only when the returned value represents failure
 the @samp{errno} value is meaningful.
 @end quotation
 
-@table @meta
-@item ret-type
-The type of value returned by the foreign function.  It must be a Scheme
-symbol among the ones representing the external C language types
-supported by Nausicaa or a binding for a custom symbol; see below for
-details.
+The returned closure:
 
-@item export-name
-A Scheme symbol representing the name of the function exported by the
-shared object.  Beware that, sometimes, the exported symbols are
-different from the ones we write in C language code to call a function.
-If the foreign symbol is not found, a continuable exception is raised
-with @func{raise-unknown-foreign-symbol}; returning with the
-continuation must return the address of the function.  @ref{ffi
-conditions unknown-foreign, Unknown foreign symbols}
+@enumerate
+@item
+Accepts as many Scheme object arguments as there are symbols in
+@var{arg-types}; to specify an empty list of arguments, we can use
+@code{(void)}.
 
-@item arg-type
-The type of an argument required by the foreign function.  It must be a
-Scheme symbol among the ones representing the external C language types
-supported by Nausicaa or a binding for a custom symbol; see below for
-details.
-@end table
+@item
+Does marshaling from Scheme arguments to C language values as specified
+by the @var{arg-types} symbols.
+
+@item
+Applies the foreign function to the C values.
+
+@item
+Returns the return value of the foreign function, marshaled to a Scheme
+value as specified by the @var{ret-type} symbol.
+@end enumerate
+@end defun
+
+
+@defun make-c-function @var{shared-object} @var{ret-type} @var{funcname} @var{arg-types}
+@defunx make-c-function/with-errno @var{shared-object} @var{ret-type} @var{funcname} @var{arg-types}
+Wrappers for the @func{make-c-callout} functions which determine the
+address of the function by looking for the @var{funcname} symbol in the
+@var{shared-object} using @func{lookup-shared-object*}.
+
+Beware that, sometimes, the exported symbols are different from the ones
+we write in C language code to call a function.  If the foreign symbol
+is not found, a continuable exception is raised with
+@func{raise-unknown-foreign-symbol}; returning with the continuation
+must return the address of the function.  @ref{ffi conditions
+unknown-foreign, Unknown foreign symbols}.
 
 @quotation
 @strong{For Unix} One way to discover the names of symbols exported by a
@@ -1870,21 +1910,127 @@ deflateEnd
 ...
 @end example
 @end quotation
+@end defun
+
+@c page
+@node ffi call back
+@subsubsection Calling Scheme functions
+
+
+The following bindings are exported by the @library{foreign ffi
+primitives} library and reexported by the @library{foreign ffi} compound
+library.  As example, the following form defines a callback accepting
+three @samp{int} as arguments and returning an @samp{int}:
+
+@example
+(define (fn a b c)
+  (* a b c))
+
+(define cb
+  (make-c-callback 'int fn '(int int int)))
+@end example
+
+
+@defun make-c-callback @var{ret-type} @var{scheme-proc} @var{arg-types}
+Build and return a callback object to be used as argument to a callout
+procedure.  The callback invokes the Scheme function @var{scheme-proc}.
+
+@var{ret-type} must be a symbol in the @code{clang-external-types}
+enumeration; it represents the type of the callback return value.
+@var{arg-types} must be a list of symbols in the
+@code{clang-external-types} enumeration; they represent the types of the
+callback arguments.
+
+When a foreign function invokes the C language callback, the callback:
+
+@enumerate
+@item
+Accepts as many C language arguments as there are symbols in
+@var{arg-types}; to specify an empty list of arguments, we can use
+@code{(void)}.
+
+@item
+Does marshaling from C language arguments to Scheme objects as specified
+by the @var{arg-type} symbols.
+
+@item
+Applies the Scheme function to the Scheme values.
+
+@item
+Returns the return value of the Scheme function, marshaled to a C
+language value as specified by the @var{ret-type} symbol.
+@end enumerate
+
+Every time a callback is built, a small amount of memory is allocated;
+such memory cannot be subject to garbage collection, so it is leaked
+unless we apply @func{free-c-callback} to the callback object.
+@end defun
+
+
+@defun free-c-callback @var{callback}
+Release the memory associated to @var{callback}.  On some Scheme
+implementations this call does nothing, because they do not allow
+releasing such a resource.
+@end defun
+
+@c page
+@node ffi call utilities
+@subsubsection Utility macros
+
+
+The following bindings are exported by the @library{foreign ffi
+utilities} library and reexported by the compound library
+@library{foreign ffi}.
+
+
+@deffn Syntax define-shared-object @ameta{name} @ameta{library-name}
+Expands to:
+
+@example
+(define @meta{name}
+  (open-shared-object* @meta{library-name}))
+@end example
+@end deffn
+
+
+@deffn Syntax make-c-callout* @ameta{ret-type} @ameta{address} (@ameta{arg-type0} @ameta{arg-type} ...)
+@deffnx Syntax make-c-callout/with-errno* @ameta{ret-type} @ameta{address} (@ameta{arg-type0} @ameta{arg-type} ...)
+Wrappers for the @func{make-c-callout} functions which allow us not to
+quote the arguments.
+
+The type symbols in @ameta{ret-type} and @ameta{arg-type} can be
+elements of the enumeration @code{clang-external-types} or custom type
+symbols bound to a symbol in the enumeration.
+@end deffn
+
+
+@deffn Syntax make-c-function* @ameta{shared-object} @ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...)
+@deffnx Syntax make-c-function/with-errno* @ameta{shared-object} @ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...)
+Wrappers for the @func{make-c-function} functions which determine the
+address of the function by looking for the @ameta{funcname} symbol in
+the @ameta{shared-object}.
+
+The type symbols in @ameta{ret-type} and @ameta{arg-type} can be
+elements of the enumeration @code{clang-external-types} or custom type
+symbols bound to a symbol in the enumeration.
 
 As an example, the main deflate functions from Zlib can be defined with:
 
 @example
-(define dummy
-  (shared-object (open-shared-object 'libz.so)))
+(define zlib-shared-object
+  (open-shared-object* 'libz.so))
 
 (define deflateInit
-  (make-c-function int deflateInit_ (pointer int)))
+  (make-c-function* zlib-shared-object
+                    int deflateInit_ (pointer int)))
 
 (define deflate
-  (make-c-function int deflate (pointer int)))
+  (make-c-function* zlib-shared-object
+                    int deflate (pointer int)))
 
 (define deflateEnd
-  (make-c-function int deflateEnd (pointer)))
+  (make-c-function* zlib-shared-object
+                    int deflateEnd (pointer)))
 @end example
 
 @noindent
@@ -1892,33 +2038,40 @@ but we can also take advantage of these macro features to define them
 like this:
 
 @example
-(define dummy
-  (shared-object (open-shared-object 'libz.so)))
+(define zlib-shared-object
+  (open-shared-object* 'libz.so))
 
 (define z_streamp 'pointer)
 
 (define deflateInit
-  (make-c-function int deflateInit_ (z_streamp int)))
+  (make-c-function* zlib-shared-object
+                    int deflateInit_ (z_streamp int)))
 
 (define deflate
-  (make-c-function int deflate (z_streamp int)))
+  (make-c-function* zlib-shared-object
+                    int deflate (z_streamp int)))
 
 (define deflateEnd
-  (make-c-function int deflateEnd (z_streamp)))
+  (make-c-function* zlib-shared-object
+                    int deflateEnd (z_streamp)))
 @end example
 
 @noindent
-where the binding for @code{z_streamp} is recognised as a custom type
-and expanded to @code{pointer}.
+where the binding for @samp{z_streamp} is recognised as a custom type
+and expanded to @samp{pointer}.
 
 Variadic functions, like @cfunc{fprintf}, are @strong{not} supported,
 but we can interface with them by fixing the arguments; for example:
 
 @example
+(define uuid-shared-object
+  (open-shared-object* 'libuuid.so))
+
 (define uuid_make
-  (let ((arg-2  (make-c-function int uuid_make
-                  (void* unsigned-int)))
-        (arg-4  (make-c-function int uuid_make
+  (let ((arg-2  (make-c-function* uuid-shared-object
+                  int uuid_make (void* unsigned-int)))
+        (arg-4  (make-c-function* uuid-shared-object
+                  int uuid_make
                   (void* unsigned-int void* char*))))
     (case-lambda
      ((*id mode)
@@ -1929,17 +2082,56 @@ but we can interface with them by fixing the arguments; for example:
 @end deffn
 
 
-@deffn Syntax define-c-function @ameta{pub-name} (@ameta{ret-type} @ameta{export-name} (@ameta{arg-type0} @ameta{arg-type} ...))
-@deffnx Syntax define-c-function/with-errno @ameta{pub-name} (@ameta{ret-type} @ameta{export-name} (@ameta{arg-type0} @ameta{arg-type} ...))
-Wrappers for @func{make-c-function} and
-@func{make-c-function/with-errno} that define a binding for the callout
-closure.
+@deffn Syntax make-c-callback* @ameta{ret-type} @ameta{scheme-proc} (@ameta{arg-type0} @ameta{arg-type} ...)
+Wrapper for the @func{make-c-callback} function which allows us not to
+quote the arguments.
+@end deffn
+
+
+@deffn Syntax define-c-functions @ameta{lib-spec} (@ameta{pub-name} (@ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
+@deffnx Syntax define-c-functions/with-errno @ameta{lib-spec} (@ameta{pub-name} (@ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
+An interface to the above macros.  Example:
+
+@example
+(define-shared-object zlib-shared-object 'libz.so)
+
+(define z_streamp 'void*)
+
+(define-c-functions zlib-shared-object
+  (deflateInit  (int deflateInit_ (z_streamp int)))
+  (deflate      (int deflate      (z_streamp int)))
+  (deflateEnd   (int deflateEnd   (z_streamp))))
+@end example
+@end deffn
+
+@c page
+@node ffi call parametrised
+@subsubsection Auxiliary parametrised interface
+
+
+The following bindings are exported by the @library{foreign ffi
+parametrised} library.  This interface is deprecated.
+
+
+@deffn Parameter current-shared-object
+Holds a value referencing the ``current'' shared object; the initial
+value is @samp{libc-shared-object}.
+@end deffn
+
+
+@deffn Syntax define-c-function @ameta{pub-name} (@ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...))
+@deffnx Syntax define-c-function/with-errno @ameta{pub-name} (@ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...))
+Wrappers for @func{make-c-function*} and
+@func{make-c-function/with-errno*} that define a binding for the callout
+closure.  The function symbols are searched in the shared object
+selected by the @func{current-shared-object} parameter.
 
 As an example, the main deflate functions from Zlib can be defined with:
 
 @example
 (define dummy
-  (shared-object (open-shared-object 'libz.so)))
+  (current-shared-object
+     (open-shared-object* 'libz.so)))
 
 (define z_streamp 'z_streamp)
 
@@ -1959,287 +2151,28 @@ other, miscellaneous, examples from the C standard library and the
 
 @example
 (define dummy
-  (shared-object self-shared-object))
+  (current-shared-object self-shared-object))
 
-(define-c-function fopen
+(define-c-function/with-errno fopen
   (void* fopen (void* void*)))
 
-(define-c-function fwrite
+(define-c-function/with-errno fwrite
   (size_t fwrite (void* size_t size_t void*)))
 
-(define-c-function fread
+(define-c-function/with-errno fread
   (size_t fread (void* size_t size_t void*)))
 
-(define-c-function open
+(define-c-function/with-errno open
   (int open (void* int)))
 
-(define-c-function write
+(define-c-function/with-errno write
   (ssize_t write (int void* size_t)))
 
-(define-c-function read
+(define-c-function/with-errno read
   (ssize_t read (int void* size_t)))
 @end example
 @end deffn
 
-
-@deffn Syntax pointer->c-function @ameta{ret-type} @ameta{pointer-expr} (@ameta{arg-type0} @ameta{arg-type} ...)
-@deffnx Syntax pointer->c-function/with-errno @ameta{ret-type} @ameta{pointer-expr} (@ameta{arg-type0} @ameta{arg-type} ...)
-Like @func{make-c-function} and @func{make-c-function/with-errno}, but
-build a callout closure from a raw pointer to the function.
-@meta{pointer-expr} must be an expression evaluating to a pointer value
-representing the address of the foreign function.
-
-As an example, this interface is required for a proper binding to the
-SQLite Amalgamation version 3.6 shared library.
-@end deffn
-
-
-@deffn Syntax define-pointer-c-function @ameta{pub-name} (@ameta{ret-type} @ameta{pointer-expr} (@ameta{arg-type0} @ameta{arg-type} ...))
-@deffnx Syntax define-pointer-c-function/with-errno @ameta{pub-name} (@ameta{ret-type} @ameta{pointer-expr} (@ameta{arg-type0} @ameta{arg-type} ...))
-Wrappers for @func{pointer->c-function} and
-@func{pointer->c-function/with-errno} which define a binding for the
-callout closure.
-@end deffn
-
-
-@deffn Syntax define-c-callouts @ameta{lib-spec} (@ameta{pub-name} (@ameta{ret-type} @ameta{export-name} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
-@deffnx Syntax define-c-callouts/with-errno @ameta{lib-spec} (@ameta{pub-name} (@ameta{ret-type} @ameta{export-name} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
-Another interface to the above functions.  Example
-
-@example
-(define zlib-shared-object
-  (open-shared-object* 'libz.so))
-
-(define z_streamp 'z_streamp)
-
-(define-c-callouts zlib-shared-object
-  (deflateInit  (int deflateInit_ (z_streamp int)))
-  (deflate      (int deflate (z_streamp int)))
-  (deflateEnd   (int deflateEnd (z_streamp))))
-@end example
-@end deffn
-
-@c page
-@node ffi call back
-@subsubsection Calling Scheme functions
-
-
-The following bindings are exported by the @library{foreign ffi}
-library.
-
-@deffn Syntax make-c-callback @ameta{ret-type} @ameta{scheme-proc} (@ameta{arg-type0} @ameta{arg-type} ...)
-Build and return a callback object to be used as argument to a callout
-procedure.  When a foreign function invokes the C language callback, the
-callback:
-
-@enumerate
-@item
-Accepts as many C language arguments as there are @meta{arg-type}
-symbols.  To specify an empty list of arguments, we can use
-@code{(void)} as list of @meta{arg-type}.
-
-@item
-Does marshaling from C language arguments to Scheme objects as specified
-by the @meta{arg-type} symbols.
-
-@item
-Applies the Scheme function to the Scheme values.
-
-@item
-Returns the return value of the Scheme function, marshaled to a C
-language value as specified by the @meta{ret-type} symbol.
-@end enumerate
-
-@table @meta
-@item ret-type
-The type of value returned by the foreign callback.  It must be a Scheme
-symbol among the ones representing the external C language types
-supported by Nausicaa or a binding for a custom symbol.
-
-@item scheme-proc
-An expression evaluating to a Scheme function.
-
-@item arg-type
-The type of an argument required by the Scheme function.  It must be a
-Scheme symbol among the ones representing the external C language types
-supported by Nausicaa or a binding for a custom symbol.
-@end table
-
-Every time a callback is built, a small amount of memory is allocated;
-such memory cannot be subject to garbage collection, so it is leaked
-unless we apply @func{free-c-callback} to the callback object.
-
-For example, the following form defines a callback accepting three
-@samp{int} as arguments and returning an @samp{int}:
-
-@example
-(define (fn a b c)
-  (* a b c))
-
-(define cb
-  (make-c-callback int fn (int int int)))
-@end example
-@end deffn
-
-
-@defun free-c-callback @var{callback}
-Release the memory associated to @var{callback}.  On some Scheme
-implementations this call does nothing, because they do not allow
-releasing such a resource.
-@end defun
-
-@c page
-@node ffi call primitives
-@subsubsection Middle level interface
-
-
-The following bindings are exported by the @library{foreign ffi
-primitives} library.
-
-@c ------------------------------------------------------------
-
-@subsubheading Accessing shared libraries
-
-
-@defun open-shared-object @var{library-name}
-@defunx open-shared-object* @var{library-name}
-Open a shared library and return its reference object.
-@var{library-name} must be a Scheme string or symbol representing the
-file name or pathname to be opened.
-
-If opening the shared object fails, @func{open-shared-object} returns
-@false{}, while @func{open-shared-object*} raises a continuable
-exception with @func{raise-unknown-shared-object}.  @ref{ffi conditions
-unknown-shared, Unknown shared objects}
-@end defun
-
-
-@defun lookup-shared-object @var{lib-ref} @var{foreign-symbol}
-@defunx lookup-shared-object* @var{lib-ref} @var{foreign-symbol}
-Search the shared object referenced by @var{lib-ref} for an exported
-symbol matching @var{foreign-symbol}, which must be a Scheme string or
-symbol, and return its address in a pointer value.
-
-If the foreign symbol is not found, the return value of
-@func{lookup-shared-object} is @false{} while
-@func{lookup-shared-object*} raises a continuable exception with
-@func{raise-unknown-foreign-symbol}.  @ref{ffi conditions
-unknown-foreign, Unknown foreign symbols}
-@end defun
-
-
-@defvr Constant self-shared-object
-Bound to the shared object value that identifies the current process;
-with this value we can access symbols exported by the current program
-and the libraries that have been already loaded (this may be platform
-specific, check out the documentation of your operative system).
-@end defvr
-
-@c ------------------------------------------------------------
-
-@subsubheading Making callout closures
-
-A callout is a Scheme closure wrapping a foreign function; it can be
-used to apply it to a set of arguments.  It implements basic marshaling
-between Scheme objects and C language values.
-
-
-@defun make-c-function @var{lib-ref} @var{ret-type} @var{funcname} @var{arg-types}
-Build and return a new callout closure wrapping a foreign function
-exported by the shared library referenced by @var{lib-ref}.  The name
-of the foreign function is specified by @var{funcname}, which must be a
-Scheme string or symbol.
-
-If the foreign symbol is not found, a continuable exception is raised
-with @func{raise-unknown-foreign-symbol}; returning with the
-continuation must return the address of the function.  @ref{ffi
-conditions unknown-foreign, Unknown foreign symbols}
-
-@var{ret-type} must be a Scheme symbol representing the C language data
-type of the foreign function's return value; @var{arg-types} must be a
-list of Scheme symbols representing the C language data types of the
-foreign function's arguments.  Both the return type and argument type
-symbols must be internal types recognised by Nausicaa.  To specify a
-foreign function accepting no arguments, @var{arg-types} must be
-@code{(void)}.
-
-Variadic functions are not supported.
-@end defun
-
-
-@defun make-c-function/with-errno @var{lib-ref} @var{ret-type} @var{funcname} @var{arg-types}
-Like @func{make-c-function}, but the callout closure returns two values:
-the marshaled return value from the foreign function and the value of
-@code{errno} right after the foreign call.
-@end defun
-
-
-@defun pointer->c-function @var{ret-type} @var{address} @var{arg-types}
-Like @func{make-c-function}, but build the callout closure from a raw
-pointer value representing the function address.
-@end defun
-
-
-@defun pointer->c-function/with-errno @var{ret-type} @var{address} @var{arg-types}
-Like @func{make-c-function/with-errno}, but build the callout closure
-from a raw pointer value representing the function address.
-@end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading Making callback pointers
-
-A callback is a C language function wrapping a Scheme closure; it can be
-used by foreign functions to apply a Scheme function a set of arguments.
-It implements basic marshaling between Scheme objects and C language
-values.
-
-
-@defun make-c-callback @var{ret-type} @var{scheme-proc} @var{arg-types}
-Build and return a new pointer value referencing a callback object; the
-callback, when invoked, applies the @var{scheme-proc} to the marshaled
-arguments.
-
-@var{ret-type} must be a Scheme symbol representing the C language data
-type of the foreign function's return value; @var{arg-types} must be a
-list of Scheme symbols representing the C language data types of the
-foreign function's arguments.  Both the return type and argument type
-symbols must be internal types recognised by Nausicaa.  To specify a
-foreign function accepting no arguments, @var{arg-types} must be
-@code{(void)}.
-
-Variadic functions are not supported.
-@end defun
-
-
-@defun free-c-callback @var{callback}
-Release all the resources associated to the referenced callback.  This
-operation is supported by some Sceme implementations, and unsupported by
-other ones; in the latter case, calling this function does nothing.
-@end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading Converting data types
-
-
-@defun external-type->internal-type @var{type}
-Convert a Scheme symbol representing a Nausicaa's external C language
-type into a Scheme symbol representing a Nausicaa's internal C language
-type.
-@end defun
-
-
-@defvr Constant external-data-types
-Enumeration object representing the C language data types externally
-recognised by Nausicaa.
-@end defvr
-
-
-@defvr Constant internal-data-types
-Enumeration object representing the C language data types internally
-recognised by Nausicaa.
-@end defvr
 
 @c page
 @node ffi call platform
@@ -2247,110 +2180,56 @@ recognised by Nausicaa.
 
 
 The following bindings are exported by the @library{foreign ffi
-platform} library.
-
-@c ------------------------------------------------------------
-
-@subsubheading Accessing shared libraries
+platform} library.  This interface adapts the Scheme implementation
+@ffi{} to the requirements of the Nausicaa distribution.
 
 
 @defun open-shared-object @var{library-name}
 Open a shared library and return its reference object.
 @var{library-name} must be a Scheme string representing the file name or
-pathname to be opened.
+pathname to be opened.  If the operation fails, the return value is
+@false{}.
 @end defun
 
 
-@defun lookup-shared-object @var{lib-spec} @var{foreign-symbol}
-@defunx lookup-shared-object* @var{lib-ref} @var{foreign-symbol}
-Search the shared object referenced by @var{lib-spec} for an exported
-symbol matching @var{foreign-symbol}, which must be a Scheme string, and
-return its address in a pointer value.
-
-If the foreign symbol is not found, the return value of
-@func{lookup-shared-object} is @false{} while
-@func{lookup-shared-object*} raises an @code{&error} exception.
+@defun lookup-shared-object @var{library-reference} @var{foreign-symbol}
+Search the shared object referenced by @var{library-reference} for an
+exported symbol matching @var{foreign-symbol}, which must be a Scheme
+string, and return its address as pointer object.  If the foreign symbol
+is not found, the return value is @false{}.
 @end defun
 
 
-@defvr Constant self-shared-object
-Bound to the shared object value that identifies the current process;
-with this value we can access symbols exported by the current program
-and the libraries that have been already loaded (this may be platform
-specific, check out the documentation of your operative system).
-@end defvr
-
-@c ------------------------------------------------------------
-
-@subsubheading Making callout closures
-
-A callout is a Scheme closure wrapping a foreign function; it can be
-used to apply it to a set of arguments.  It implements basic marshaling
-between Scheme objects and C language values.
-
-
-@defun make-c-function @var{lib-spec} @var{ret-type} @var{funcname} @var{arg-types}
+@defun make-c-callout @var{ret-type} @var{address} @var{arg-types}
+@defunx make-c-callout/with-errno @var{ret-type} @var{address} @var{arg-types}
 Build and return a new callout closure wrapping a foreign function
-exported by the shared library referenced by @var{lib-spec}.  The name
-of the foreign function is specified by @var{funcname}, which must be a
-Scheme string.
+referenced by the pointer object @var{address}.
 
-If the foreign symbol is not found, a continuable exception is raised
-with @func{raise-unknown-foreign-symbol}; returning with the
-continuation must return the address of the function.  @ref{ffi
-conditions unknown-foreign, Unknown foreign symbols}
+@var{ret-type} must be a Scheme symbol in the enumeration
+@code{enum-clang-types}, representing the C language data type of the
+foreign function's return value.
 
-@var{ret-type} must be a Scheme symbol representing the C language data
-type of the foreign function's return value; @var{arg-types} must be a
-list of Scheme symbols representing the C language data types of the
-foreign function's arguments.  Both the return type and argument type
-symbols must be types recognised by the Scheme implementation.  To
-specify a foreign function accepting no arguments, @var{arg-types} must
-be @code{(void)}.
+@var{arg-types} must be a list of Scheme symbols in the enumeration
+@code{enum-clang-types}, representing the C language data types of the
+foreign function's arguments.  To specify a foreign function accepting
+no arguments, @var{arg-types} must be @code{(void)}.
 
 Variadic functions are not supported.
 @end defun
-
-
-@defun make-c-function/with-errno @var{lib-spec} @var{ret-type} @var{funcname} @var{arg-types}
-Like @func{make-c-function}, but the callout closure returns two values:
-the marshaled return value from the foreign function and the value of
-@code{errno} right after the foreign call.
-@end defun
-
-
-@defun pointer->c-function @var{ret-type} @var{address} @var{arg-types}
-Like @func{make-c-function}, but build the callout closure from a raw
-pointer value representing the function address.
-@end defun
-
-
-@defun pointer->c-function/with-errno @var{ret-type} @var{address} @var{arg-types}
-Like @func{make-c-function/with-errno}, but build the callout closure
-from a raw pointer value representing the function address.
-@end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading Making callback pointers
-
-A callback is a C language function wrapping a Scheme closure; it can be
-used by foreign functions to apply a Scheme function a set of arguments.
-It implements basic marshaling between Scheme objects and C language
-values.
 
 
 @defun make-c-callback @var{ret-type} @var{scheme-function} @var{arg-types}
 Build and return a new pointer value referencing a callback object; the
 callback, when invoked, applies the scheme function
 
-@var{ret-type} must be a Scheme symbol representing the C language data
-type of the foreign function's return value; @var{arg-types} must be a
-list of Scheme symbols representing the C language data types of the
-foreign function's arguments.  Both the return type and argument type
-symbols must be types recognised by the Scheme implementation.  To
-specify a foreign function accepting no arguments, @var{arg-types} must
-be @code{(void)}.
+@var{ret-type} must be a Scheme symbol in the enumeration
+@code{enum-clang-types}, representing the C language data type of the
+foreign function's return value.
+
+@var{arg-types} must be a list of Scheme symbols in the enumeration
+@code{enum-clang-types}, representing the C language data types of the
+foreign function's arguments.  To specify a foreign function accepting
+no arguments, @var{arg-types} must be @code{(void)}.
 
 Variadic functions are not supported.
 @end defun
@@ -2361,23 +2240,6 @@ Release all the resources associated to the referenced callback.  This
 operation is supported by some Sceme implementations, and unsupported by
 other ones; in the latter case, calling this function does nothing.
 @end defun
-
-@c ------------------------------------------------------------
-
-@subsubheading Converting data types
-
-
-@defun internal-type->implementation-type @var{type}
-Convert a Scheme symbol representing a Nausicaa's internal C language
-type identifier into a Scheme implementation specific C language type
-identifier.
-@end defun
-
-
-@defvr Constant implementation-data-types
-Enumeration object representing the C language data types recognised by
-the underlying Scheme implementation.
-@end defvr
 
 @c page
 @node ffi struct
@@ -2399,8 +2261,9 @@ equivalent to knowing the required peeker and poker.  @ref{ffi access,
 Direct access to memory blocks}
 @end itemize
 
-The following bindings are exported by the @library{foreign ffi}
-library.
+The following bindings are exported by the @library{foreign ffi
+primitives} library and reexported by the compound library
+@library{foreign ffi}.
 
 
 @deffn Syntax define-c-struct-accessor @ameta{accessor-name} @ameta{field-offset} @ameta{foreign-type-accessor}
