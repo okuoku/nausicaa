@@ -96,7 +96,7 @@ AC_DEFUN([NAU_DS_WITH_OPTION],
   [AC_MSG_CHECKING([$4])
    AC_ARG_WITH([$2],
      AC_HELP_STRING([--with-$2],[$5 (default: $3)]),
-     [if test -n "$withval" ; then $1=$withval ; else $1=$withval ; fi],
+     [if test -n "$withval" ; then $1=$withval ; else $1=$3 ; fi],
      [$1=$3])
    AC_MSG_RESULT([$[]$1])
    AC_SUBST([$1])])
@@ -572,7 +572,7 @@ dnl 4 optional headers
 AC_DEFUN([NAUSICAA_STRING_TEST],
   [NAUSICAA_OPTIONAL_TEST([STRINGOF_$1],
      [NAUSICAA_DEFAULT_VALUE([stringof_$1],[$3])
-      AC_CACHE_CHECK([the string value of of '$2'],
+      AC_CACHE_CHECK([the string value of '$2'],
         [nausicaa_cv_stringof_$1],
         [AC_RUN_IFELSE([AC_LANG_PROGRAM([NAUSICAA_INCLUDES_DEFAULT([$4])],
            [FILE *f = fopen ("conftest.val", "w");
