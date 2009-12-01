@@ -283,7 +283,7 @@
 	(let* ((recv-bytes-num*	(malloc-small/c))
 	       (code		(curl_easy_recv (pointer easy) buf.ptr number-of-bytes recv-bytes-num*)))
 	  (cond ((= code CURLE_OK)
-		 (make-<memblock> buf.ptr (pointer-ref-c-size_t recv-bytes-num* 0)))
+		 (make-<memblock> buf.ptr (pointer-ref-c-size_t recv-bytes-num* 0) number-of-bytes))
 		((= code CURLE_AGAIN)
 		 #f)
 		(else
@@ -732,88 +732,88 @@
 ;;;; callback constructors
 
 (define (curl-make-write-callback scheme-function)
-  (make-c-callback size_t
-		   (lambda (buffer item-size item-count custom)
-		     (guard (E (else 0))
-		       (scheme-function buffer item-size item-count)))
-		   (void* size_t size_t void*)))
+  (make-c-callback* size_t
+		    (lambda (buffer item-size item-count custom)
+		      (guard (E (else 0))
+			(scheme-function buffer item-size item-count)))
+		    (void* size_t size_t void*)))
 
 (define (curl-make-read-callback scheme-function)
-  (make-c-callback size_t
-		   (lambda (buffer item-size item-count custom)
-		     (guard (E (else 0))
-		       (scheme-function buffer item-size item-count)))
-		   (void* size_t size_t void*)))
+  (make-c-callback* size_t
+		    (lambda (buffer item-size item-count custom)
+		      (guard (E (else 0))
+			(scheme-function buffer item-size item-count)))
+		    (void* size_t size_t void*)))
 
 (define (curl-make-ioctl-callback scheme-function)
-  (make-c-callback curlioerr
-		   (lambda (handle size custom-data)
-		     (guard (E (else -1))
-		       (scheme-function handle size custom-data)))
-		   (void* int void*)))
+  (make-c-callback* curlioerr
+		    (lambda (handle size custom-data)
+		      (guard (E (else -1))
+			(scheme-function handle size custom-data)))
+		    (void* int void*)))
 
 (define (curl-make-seek-callback scheme-function)
-  (make-c-callback curlioerr
-		   (lambda (instream offset whence)
-		     (guard (E (else CURL_SEEKFUNC_FAIL))
-		       (scheme-function instream offset whence)))
-		   (void* curl_off_t int)))
+  (make-c-callback* curlioerr
+		    (lambda (instream offset whence)
+		      (guard (E (else CURL_SEEKFUNC_FAIL))
+			(scheme-function instream offset whence)))
+		    (void* curl_off_t int)))
 
 (define (curl-make-sockopt-callback scheme-function)
-  (make-c-callback curlioerr
-		   (lambda (instream offset whence)
-		     (guard (E (else 1))
-		       (scheme-function instream offset whence)))
-		   (void* curl_socket_t curlsocktype)))
+  (make-c-callback* curlioerr
+		    (lambda (instream offset whence)
+		      (guard (E (else 1))
+			(scheme-function instream offset whence)))
+		    (void* curl_socket_t curlsocktype)))
 
 (define (curl-make-opensocket-callback scheme-function)
-  (make-c-callback curl_socket_t
-		   (lambda (custom-pointer purpose address)
-		     (guard (E (else CURL_SOCKET_BAD))
-		       (scheme-function custom-pointer purpose)))
-		   (void* curlsocktype void*)))
+  (make-c-callback* curl_socket_t
+		    (lambda (custom-pointer purpose address)
+		      (guard (E (else CURL_SOCKET_BAD))
+			(scheme-function custom-pointer purpose)))
+		    (void* curlsocktype void*)))
 
 (define (curl-make-progress-callback scheme-function)
-  (make-c-callback curl_socket_t
-		   (lambda (custom-pointer dltotal dlnow ultotal ulnow)
-		     (guard (E (else 1))
-		       (scheme-function custom-pointer dltotal dlnow ultotal ulnow)))
-		   (void* double double double double)))
+  (make-c-callback* curl_socket_t
+		    (lambda (custom-pointer dltotal dlnow ultotal ulnow)
+		      (guard (E (else 1))
+			(scheme-function custom-pointer dltotal dlnow ultotal ulnow)))
+		    (void* double double double double)))
 
 (define (curl-make-header-callback scheme-function)
-  (make-c-callback size_t
-		   (lambda (custom-pointer item-size item-count stream)
-		     (guard (E (else -1))
-		       (scheme-function custom-pointer item-size item-count stream)))
-		   (void* size_t size_t void*)))
+  (make-c-callback* size_t
+		    (lambda (custom-pointer item-size item-count stream)
+		      (guard (E (else -1))
+			(scheme-function custom-pointer item-size item-count stream)))
+		    (void* size_t size_t void*)))
 
 (define (curl-make-debug-callback scheme-function)
-  (make-c-callback int
-		   (lambda (handle type data size custom-pointer)
-		     (guard (E (else 0))
-		       (scheme-function handle type data size custom-pointer)))
-		   (void* curl_infotype char* size_t void*)))
+  (make-c-callback* int
+		    (lambda (handle type data size custom-pointer)
+		      (guard (E (else 0))
+			(scheme-function handle type data size custom-pointer)))
+		    (void* curl_infotype char* size_t void*)))
 
 (define (curl-make-ssl-ctx-callback scheme-function)
-  (make-c-callback int
-		   (lambda (handle ssl_ctx custom-pointer)
-		     (guard (E (else -1))
-		       (scheme-function handle ssl_ctx custom-pointer)))
-		   (void* void* void*)))
+  (make-c-callback* int
+		    (lambda (handle ssl_ctx custom-pointer)
+		      (guard (E (else -1))
+			(scheme-function handle ssl_ctx custom-pointer)))
+		    (void* void* void*)))
 
 (define (curl-make-conv-callback scheme-function)
-  (make-c-callback CURLcode
-		   (lambda (buffer len)
-		     (guard (E (else CURLE_ABORTED_BY_CALLBACK))
-		       (scheme-function buffer len)))
-		   (char* size_t)))
+  (make-c-callback* CURLcode
+		    (lambda (buffer len)
+		      (guard (E (else CURLE_ABORTED_BY_CALLBACK))
+			(scheme-function buffer len)))
+		    (char* size_t)))
 
 (define (curl-make-sshkey-callback scheme-function)
-  (make-c-callback int
-		   (lambda (handle knownkey foundkey status custom-pointer)
-		     (guard (E (else CURLKHSTAT_REJECT))
-		       (scheme-function handle knownkey foundkey status custom-pointer)))
-		   (void* void* void* curl_khmatch void*)))
+  (make-c-callback* int
+		    (lambda (handle knownkey foundkey status custom-pointer)
+		      (guard (E (else CURLKHSTAT_REJECT))
+			(scheme-function handle knownkey foundkey status custom-pointer)))
+		    (void* void* void* curl_khmatch void*)))
 
 
 ;;;; URL escaping

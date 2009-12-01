@@ -2,7 +2,7 @@ dnl (foreign net curl sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Wed Nov 25, 2009
+dnl Date: Tue Dec  1, 2009
 dnl
 dnl Abstract
 dnl
@@ -25,6 +25,8 @@ dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
 
+NAU_DS_WITH_OPTION([CURL_SHARED_OBJECT],[curl-shared-object],[libcurl.so],
+  [Curl shared library file],[select Curl shared library file])
 NAUSICAA_INSPECT_TYPE([CURL_SOCKET_T],[curl_socket_t],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([CURL_OFF_T],[curl_off_t],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([CURLSOCKTYPE],[curlsocktype],[signed-int],[#f])

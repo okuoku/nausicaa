@@ -1,5 +1,5 @@
 dnl
-dnl Part of: Nausicaa/Curl
+dnl Part of: Nausicaa/cURL
 dnl Contents: configuration script
 dnl Date: Mon Nov 16, 2009
 dnl
@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-curl],[0.1a0],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-curl],[0.1a1],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/net/curl.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN

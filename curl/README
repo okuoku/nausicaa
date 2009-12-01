@@ -28,7 +28,8 @@ one  of the  supported  protocols (HTTP,  HTTPS, FTP,  FTPS,
 TFTP, DICT, TELNET, LDAP or FILE).
 
   The package  supports the Ikarus, Mosh  and Ypsilon Scheme
-implementations; Larceny Scheme is not supported.
+implementations; Larceny Scheme is not supported.  Currently
+it supports only GNU+Linux systems.
 
   The  last   time  the  author  bothered   to  update  this
 paragraph, he had tested cURL version 7.19.7.

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,8 +28,9 @@
 (library (foreign net curl shared-object)
   (export curl-shared-object)
   (import (rnrs)
-    (foreign ffi))
-  (define curl-shared-object
-    (open-shared-object* 'libcurl.so)))
+    (foreign ffi)
+    (foreign net curl sizeof))
+  (define-shared-object curl-shared-object
+    CURL_SHARED_OBJECT))
 
 ;;; end of file

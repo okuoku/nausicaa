@@ -78,9 +78,6 @@
     (foreign net curl sizeof)
     (foreign net curl shared-object))
 
-  (define dummy
-    (shared-object curl-shared-object))
-
 
 ;;;; type aliases
 
@@ -98,213 +95,221 @@
 
 ;;;; global initialisation
 
-(define-c-function curl_global_init
-  (CURLcode curl_global_init (long)))
+(define-c-functions curl-shared-object
+  (curl_global_init
+   (CURLcode curl_global_init (long)))
 
-(define-c-function curl_global_init_mem
-  (CURLcode curl_global_init_mem (long curl_malloc_callback curl_free_callback
-				       curl_realloc_callback curl_strdup_callback
-				       curl_calloc_callback)))
+  (curl_global_init_mem
+   (CURLcode curl_global_init_mem (long curl_malloc_callback curl_free_callback
+					curl_realloc_callback curl_strdup_callback
+					curl_calloc_callback)))
 
-(define-c-function curl_global_cleanup
-  (void curl_global_cleanup (void)))
+  (curl_global_cleanup
+   (void curl_global_cleanup (void))))
 
 
 ;;; curl version
 
-(define-c-function curl_version_info
-  (curl_version_info_data* curl_version_info (CURLversion)))
+(define-c-functions curl-shared-object
+  (curl_version_info
+   (curl_version_info_data* curl_version_info (CURLversion)))
 
-(define-c-function curl_version
-  (char* curl_version (void)))
+  (curl_version
+   (char* curl_version (void))))
 
 
 ;;;; easy interface
 
-(define-c-function curl_easy_init
-  (void* curl_easy_init (void)))
+(define-c-functions curl-shared-object
+  (curl_easy_init
+   (void* curl_easy_init (void)))
 
-(define-c-function curl_easy_cleanup
-  (void curl_easy_cleanup (void*)))
+  (curl_easy_cleanup
+   (void curl_easy_cleanup (void*)))
 
-(define-c-function curl_easy_reset
-  (void curl_easy_reset (void*)))
+  (curl_easy_reset
+   (void curl_easy_reset (void*)))
 
-(define-c-function curl_easy_duphandle
-  (void* curl_easy_duphandle (void*)))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function curl_easy_perform
-  (CURLcode curl_easy_perform (void*)))
-
-(define-c-function curl_easy_recv
-  (CURLcode curl_easy_recv (void* void* size_t size_t*)))
-
-(define-c-function curl_easy_send
-  (CURLcode curl_easy_send (void* void* size_t size_t*)))
-
-(define-c-function curl_easy_pause
-  (CURLcode curl_easy_pause (void* int)))
+  (curl_easy_duphandle
+   (void* curl_easy_duphandle (void*)))
 
 ;;; --------------------------------------------------------------------
 
-(define curl_easy_setopt/callback
-  (make-c-function CURLcode curl_easy_setopt (void* CURLoption callback)))
+  (curl_easy_perform
+   (CURLcode curl_easy_perform (void*)))
 
-(define curl_easy_setopt/void*
-  (make-c-function CURLcode curl_easy_setopt (void* CURLoption void*)))
+  (curl_easy_recv
+   (CURLcode curl_easy_recv (void* void* size_t size_t*)))
 
-(define curl_easy_setopt/long
-  (make-c-function CURLcode curl_easy_setopt (void* CURLoption long)))
+  (curl_easy_send
+   (CURLcode curl_easy_send (void* void* size_t size_t*)))
 
-(define curl_easy_setopt/off_t
-  (make-c-function CURLcode curl_easy_setopt (void* CURLoption curl_off_t)))
+  (curl_easy_pause
+   (CURLcode curl_easy_pause (void* int)))
 
 ;;; --------------------------------------------------------------------
 
-(define-c-function curl_easy_getinfo
-  (CURLcode curl_easy_getinfo (void* CURLINFO void*)))
+  (curl_easy_setopt/callback
+   (CURLcode curl_easy_setopt (void* CURLoption callback)))
 
-(define-c-function curl_easy_strerror
-  (char* curl_easy_strerror (CURLcode)))
+  (curl_easy_setopt/void*
+   (CURLcode curl_easy_setopt (void* CURLoption void*)))
+
+  (curl_easy_setopt/long
+   (CURLcode curl_easy_setopt (void* CURLoption long)))
+
+  (curl_easy_setopt/off_t
+   (CURLcode curl_easy_setopt (void* CURLoption curl_off_t)))
+
+;;; --------------------------------------------------------------------
+
+  (curl_easy_getinfo
+   (CURLcode curl_easy_getinfo (void* CURLINFO void*)))
+
+  (curl_easy_strerror
+   (char* curl_easy_strerror (CURLcode))))
 
 
 ;;;; multi interface
 
-(define-c-function curl_multi_init
-  (void* curl_multi_init (void)))
+(define-c-functions curl-shared-object
+  (curl_multi_init
+   (void* curl_multi_init (void)))
 
-(define-c-function curl_multi_cleanup
-  (CURLMcode curl_multi_cleanup (void*)))
+  (curl_multi_cleanup
+   (CURLMcode curl_multi_cleanup (void*)))
 
-(define-c-function curl_multi_add_handle
-  (CURLMcode curl_multi_add_handle (void* void*)))
+  (curl_multi_add_handle
+   (CURLMcode curl_multi_add_handle (void* void*)))
 
-(define-c-function curl_multi_remove_handle
-  (CURLMcode curl_multi_remove_handle (void* void*)))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function curl_multi_perform
-  (CURLMcode curl_multi_perform (void* int*)))
-
-(define-c-function curl_multi_fdset
-  (CURLMcode curl_multi_fdset (void* void* void* void* int*)))
-
-(define-c-function curl_multi_info_read
-  (void* curl_multi_info_read (void* int*)))
-
-(define-c-function curl_multi_socket
-  (CURLMcode curl_multi_socket (void* curl_socket_t int*)))
-
-(define-c-function curl_multi_socket_action
-  (CURLMcode curl_multi_socket_action (void* curl_socket_t int int*)))
-
-(define-c-function curl_multi_socket_all
-  (CURLMcode curl_multi_socket_all (void* int*)))
+  (curl_multi_remove_handle
+   (CURLMcode curl_multi_remove_handle (void* void*)))
 
 ;;; --------------------------------------------------------------------
 
-(define curl_multi_setopt/void*
-  (make-c-function CURLMcode curl_multi_setopt (void* CURLMoption void*)))
+  (curl_multi_perform
+   (CURLMcode curl_multi_perform (void* int*)))
 
-(define curl_multi_setopt/callback
-  (make-c-function CURLMcode curl_multi_setopt (void* CURLMoption callback)))
+  (curl_multi_fdset
+   (CURLMcode curl_multi_fdset (void* void* void* void* int*)))
 
-(define curl_multi_setopt/long
-  (make-c-function CURLMcode curl_multi_setopt (void* CURLMoption long)))
+  (curl_multi_info_read
+   (void* curl_multi_info_read (void* int*)))
 
-(define curl_multi_setopt/off_t
-  (make-c-function CURLMcode curl_multi_setopt (void* CURLMoption curl_off_t)))
+  (curl_multi_socket
+   (CURLMcode curl_multi_socket (void* curl_socket_t int*)))
+
+  (curl_multi_socket_action
+   (CURLMcode curl_multi_socket_action (void* curl_socket_t int int*)))
+
+  (curl_multi_socket_all
+   (CURLMcode curl_multi_socket_all (void* int*)))
 
 ;;; --------------------------------------------------------------------
 
-(define-c-function curl_multi_timeout
-  (CURLMcode curl_multi_timeout (void* long*)))
+  (curl_multi_setopt/void*
+   (CURLMcode curl_multi_setopt (void* CURLMoption void*)))
 
-(define-c-function curl_multi_assign
-  (CURLMcode curl_multi_assign (void* curl_socket_t void*)))
+  (curl_multi_setopt/callback
+   (CURLMcode curl_multi_setopt (void* CURLMoption callback)))
 
-(define-c-function curl_multi_strerror
-  (char* curl_multi_strerror (CURLMcode)))
+  (curl_multi_setopt/long
+   (CURLMcode curl_multi_setopt (void* CURLMoption long)))
+
+  (curl_multi_setopt/off_t
+   (CURLMcode curl_multi_setopt (void* CURLMoption curl_off_t)))
+
+;;; --------------------------------------------------------------------
+
+  (curl_multi_timeout
+   (CURLMcode curl_multi_timeout (void* long*)))
+
+  (curl_multi_assign
+   (CURLMcode curl_multi_assign (void* curl_socket_t void*)))
+
+  (curl_multi_strerror
+   (char* curl_multi_strerror (CURLMcode))))
 
 
 ;;; URL escaping
 
-(define-c-function curl_easy_escape
-  (char* curl_easy_escape (CURL* char* int)))
+(define-c-functions curl-shared-object
+  (curl_easy_escape
+   (char* curl_easy_escape (CURL* char* int)))
 
-(define-c-function curl_easy_unescape
-  (char* curl_easy_unescape (CURL*  char* int int*)))
+  (curl_easy_unescape
+   (char* curl_easy_unescape (CURL*  char* int int*)))
 
-(define-c-function curl_escape
-  (char* curl_escape (char* int)))
+  (curl_escape
+   (char* curl_escape (char* int)))
 
-(define-c-function curl_unescape
-  (char* curl_unescape (char* int)))
+  (curl_unescape
+   (char* curl_unescape (char* int))))
 
 
 ;;;; HTTP POST
 
-;;This  is  meant  to  be  used only  with  the  CURLFORM_ARRAY  option.
-;;Example:
-;;
-;;  (curl_formadd_1 first** last** CURLFORM_ARRAY array* CURLFORM_END)
-;;
-(define-c-function curl_formadd_1
-  (CURLFORMcode curl_formadd (struct-curl_httppost**
-			      struct-curl_httppost** CURLformoption void* CURLformoption)))
+(define-c-functions curl-shared-object
+  ;;This  is  meant  to  be  used only  with  the  CURLFORM_ARRAY  option.
+  ;;Example:
+  ;;
+  ;;  (curl_formadd_1 first** last** CURLFORM_ARRAY array* CURLFORM_END)
+  ;;
+  (curl_formadd_1
+   (CURLFORMcode curl_formadd (struct-curl_httppost**
+			       struct-curl_httppost** CURLformoption void* CURLformoption)))
 
-(define-c-function curl_formget
-  (int curl_formget (struct-curl_httppost* void* curl_formget_callback)))
+  (curl_formget
+   (int curl_formget (struct-curl_httppost* void* curl_formget_callback)))
 
-(define-c-function curl_formfree
-  (void curl_formfree (struct-curl_httppost*)))
+  (curl_formfree
+   (void curl_formfree (struct-curl_httppost*))))
 
 
 ;;;; mutext/locking interface
 
-(define-c-function curl_share_init
-  (void* curl_share_init (void)))
+(define-c-functions curl-shared-object
+  (curl_share_init
+   (void* curl_share_init (void)))
 
-(define-c-function curl_share_cleanup
-  (CURLSHcode curl_share_cleanup (CURLSH*)))
+  (curl_share_cleanup
+   (CURLSHcode curl_share_cleanup (CURLSH*)))
 
-(define curl_share_setopt/void*
-  (make-c-function CURLSHcode curl_share_setopt (CURLSH* CURLMoption void*)))
+  (curl_share_setopt/void*
+   (CURLSHcode curl_share_setopt (CURLSH* CURLMoption void*)))
 
-(define curl_share_setopt/callback
-  (make-c-function CURLSHcode curl_share_setopt (CURLSH* CURLMoption callback)))
+  (curl_share_setopt/callback
+   (CURLSHcode curl_share_setopt (CURLSH* CURLMoption callback)))
 
-(define curl_share_setopt/long
-  (make-c-function CURLSHcode curl_share_setopt (CURLSH* CURLMoption long)))
+  (curl_share_setopt/long
+   (CURLSHcode curl_share_setopt (CURLSH* CURLMoption long)))
 
-(define curl_share_setopt/off_t
-  (make-c-function CURLSHcode curl_share_setopt (CURLSH* CURLMoption curl_off_t)))
+  (curl_share_setopt/off_t
+   (CURLSHcode curl_share_setopt (CURLSH* CURLMoption curl_off_t)))
 
-(define-c-function curl_share_strerror
-  (char* curl_share_strerror (CURLSHcode)))
+  (curl_share_strerror
+   (char* curl_share_strerror (CURLSHcode))))
 
 
 ;;;; miscellaneous
 
-(define-c-function curl_slist_append
-  (struct-curl_slist* curl_slist_append (struct-curl_slist* char*)))
+(define-c-functions curl-shared-object
+  (curl_slist_append
+   (struct-curl_slist* curl_slist_append (struct-curl_slist* char*)))
 
-(define-c-function curl_slist_free_all
-  (void curl_slist_free_all (struct-curl_slist*)))
+  (curl_slist_free_all
+   (void curl_slist_free_all (struct-curl_slist*)))
 
 ;;; --------------------------------------------------------------------
 
-(define-c-function curl_getenv
-  (char* curl_getenv (char*)))
+  (curl_getenv
+   (char* curl_getenv (char*)))
 
-(define-c-function curl_free
-  (void curl_free (void*)))
+  (curl_free
+   (void curl_free (void*)))
 
-(define-c-function curl_getdate
-  (time_t curl_getdate (char* time_t*)))
+  (curl_getdate
+   (time_t curl_getdate (char* time_t*))))
 
 
 ;;;; done

@@ -32,6 +32,8 @@
 (define curl-library-spec
   '(foreign net curl sizeof))
 
+(define-shared-object curl libcurl.so)
+
 
 ;;;; types inspection
 
