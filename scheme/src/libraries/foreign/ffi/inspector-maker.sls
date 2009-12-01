@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -274,12 +274,11 @@
 (define-syntax define-c-struct
   (syntax-rules ()
     ((_ ?name ?type-string
-	(?field-type-category0 ?field-name0)
-	(?field-type-category  ?field-name)
+	(?field-type-category ?field-name)
 	...)
      (%register-struct-type (quote ?name) (quote ?type-string)
-			    (quote (?field-name0 ?field-name ...))
-			    (quote (?field-type-category0 ?field-type-category ...))))))
+			    (quote (?field-name ...))
+			    (quote (?field-type-category ...))))))
 
 (define (%register-struct-type struct-name struct-string-typedef field-names field-type-categories)
   (autoconf-lib (format "\ndnl Struct inspection: ~a" struct-name))
