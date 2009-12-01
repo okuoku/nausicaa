@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -31,7 +31,7 @@
   (only (foreign math mp mpfr))
   (only (foreign math mp mpfi))
   (only (foreign math mp mpc))
-;;  (only (foreign math mp mpfrcx))
+  (only (foreign math mp mpfrcx))
   )
 
 ;;; end of file

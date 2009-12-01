@@ -8,7 +8,8 @@ set -x
         configure -ot configure.ac                              -o \
         configure -ot aclocal.m4                                -o \
         configure -ot infrastructure/develstuff.autoconf        -o \
-        configure -ot configuration/nausicaa.autoconf
+        configure -ot configuration/nausicaa.autoconf           -o \
+        configure -ot configuration/mp-inspector.m4
         then
         autoconf
     fi)
@@ -24,6 +25,7 @@ set -x
     --enable-ypsilon                            \
     --enable-doc-ps                             \
     --enable-time-tests                         \
+    --enable-mpfrcx                             \
     "$@"
 
 ### end of file

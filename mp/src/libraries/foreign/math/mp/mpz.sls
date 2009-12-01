@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -186,453 +186,452 @@
 
 ;;;; loading
 
-(define gmp-lib
-  (let ((o (open-shared-object 'libgmp.so)))
-    (shared-object o)
-    o))
+(define-shared-object gmp-shared-object
+  GMP_SHARED_OBJECT)
 
 
 ;;;; MPZ functions
 
+(define-c-functions gmp-shared-object
+
 ;;;This is not always defined.
-;;; (define-c-function mpz_abs
+;;;   (mpz_abs
 ;;;   (void __mpz_abs (mpz_ptr mpz_srcptr)))
 
-(define-c-function mpz_add
-  (void __gmpz_add (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_add
+   (void __gmpz_add (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_add_ui
-  (void __gmpz_add_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_add_ui
+   (void __gmpz_add_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_addmul
-  (void __gmpz_addmul (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_addmul
+   (void __gmpz_addmul (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_addmul_ui
-  (void __gmpz_addmul_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_addmul_ui
+   (void __gmpz_addmul_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_and
-  (void __gmpz_and (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_and
+   (void __gmpz_and (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_array_init
-  (void __gmpz_array_init (mpz_ptr mp_size_t mp_size_t)))
+  (mpz_array_init
+   (void __gmpz_array_init (mpz_ptr mp_size_t mp_size_t)))
 
-(define-c-function mpz_bin_ui
-  (void __gmpz_bin_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_bin_ui
+   (void __gmpz_bin_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_bin_uiui
-  (void __gmpz_bin_uiui (mpz_ptr ulong ulong)))
+  (mpz_bin_uiui
+   (void __gmpz_bin_uiui (mpz_ptr ulong ulong)))
 
-(define-c-function mpz_cdiv_q
-  (void __gmpz_cdiv_q (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_cdiv_q
+   (void __gmpz_cdiv_q (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_cdiv_q_2exp
-  (void __gmpz_cdiv_q_2exp (mpz_ptr mpz_srcptr long)))
+  (mpz_cdiv_q_2exp
+   (void __gmpz_cdiv_q_2exp (mpz_ptr mpz_srcptr long)))
 
-(define-c-function mpz_cdiv_q_ui
-  (ulong __gmpz_cdiv_q_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_cdiv_q_ui
+   (ulong __gmpz_cdiv_q_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_cdiv_qr
-  (void __gmpz_cdiv_qr (mpz_ptr mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_cdiv_qr
+   (void __gmpz_cdiv_qr (mpz_ptr mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_cdiv_qr_ui
-  (ulong __gmpz_cdiv_qr_ui (mpz_ptr mpz_ptr mpz_srcptr ulong)))
+  (mpz_cdiv_qr_ui
+   (ulong __gmpz_cdiv_qr_ui (mpz_ptr mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_cdiv_r
-  (void __gmpz_cdiv_r (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_cdiv_r
+   (void __gmpz_cdiv_r (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_cdiv_r_2exp
-  (void __gmpz_cdiv_r_2exp (mpz_ptr mpz_srcptr long)))
+  (mpz_cdiv_r_2exp
+   (void __gmpz_cdiv_r_2exp (mpz_ptr mpz_srcptr long)))
 
-(define-c-function mpz_cdiv_r_ui
-  (ulong __gmpz_cdiv_r_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_cdiv_r_ui
+   (ulong __gmpz_cdiv_r_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_cdiv_ui
-  (ulong __gmpz_cdiv_ui (mpz_srcptr ulong)))
+  (mpz_cdiv_ui
+   (ulong __gmpz_cdiv_ui (mpz_srcptr ulong)))
 
-(define-c-function mpz_clear
-  (void __gmpz_clear (mpz_ptr)))
+  (mpz_clear
+   (void __gmpz_clear (mpz_ptr)))
 
-(define-c-function mpz_clrbit
-  (void __gmpz_clrbit (mpz_ptr ulong)))
+  (mpz_clrbit
+   (void __gmpz_clrbit (mpz_ptr ulong)))
 
-(define-c-function mpz_cmp
-  (int __gmpz_cmp (mpz_srcptr mpz_srcptr)))
+  (mpz_cmp
+   (int __gmpz_cmp (mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_cmp_d
-  (int __gmpz_cmp_d (mpz_srcptr double)))
+  (mpz_cmp_d
+   (int __gmpz_cmp_d (mpz_srcptr double)))
 
-(define-c-function mpz_cmp_si
-  (int __gmpz_cmp_si (mpz_srcptr long)))
+  (mpz_cmp_si
+   (int __gmpz_cmp_si (mpz_srcptr long)))
 
-(define-c-function mpz_cmp_ui
-  (int __gmpz_cmp_ui (mpz_srcptr ulong)))
+  (mpz_cmp_ui
+   (int __gmpz_cmp_ui (mpz_srcptr ulong)))
 
-(define-c-function mpz_cmpabs
-  (int __gmpz_cmpabs (mpz_srcptr mpz_srcptr)))
+  (mpz_cmpabs
+   (int __gmpz_cmpabs (mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_cmpabs_d
-  (int __gmpz_cmpabs_d (mpz_srcptr double)))
+  (mpz_cmpabs_d
+   (int __gmpz_cmpabs_d (mpz_srcptr double)))
 
-(define-c-function mpz_cmpabs_ui
-  (int __gmpz_cmpabs_ui (mpz_srcptr ulong)))
+  (mpz_cmpabs_ui
+   (int __gmpz_cmpabs_ui (mpz_srcptr ulong)))
 
-(define-c-function mpz_com
-  (void __gmpz_com (mpz_ptr mpz_srcptr)))
+  (mpz_com
+   (void __gmpz_com (mpz_ptr mpz_srcptr)))
 
-(define-c-function mpz_combit
-  (void __gmpz_combit (mpz_ptr ulong)))
+  (mpz_combit
+   (void __gmpz_combit (mpz_ptr ulong)))
 
-(define-c-function mpz_congruent_p
-  (int __gmpz_congruent_p (mpz_srcptr mpz_srcptr mpz_srcptr)))
+  (mpz_congruent_p
+   (int __gmpz_congruent_p (mpz_srcptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_congruent_2exp_p
-  (int __gmpz_congruent_2exp_p (mpz_srcptr mpz_srcptr ulong)))
+  (mpz_congruent_2exp_p
+   (int __gmpz_congruent_2exp_p (mpz_srcptr mpz_srcptr ulong)))
 
-(define-c-function mpz_congruent_ui_p
-  (int __gmpz_congruent_ui_p (mpz_srcptr ulong ulong)))
+  (mpz_congruent_ui_p
+   (int __gmpz_congruent_ui_p (mpz_srcptr ulong ulong)))
 
-(define-c-function mpz_divexact
-  (void __gmpz_divexact (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_divexact
+   (void __gmpz_divexact (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_divexact_ui
-  (void __gmpz_divexact_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_divexact_ui
+   (void __gmpz_divexact_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_divisible_p
-  (int __gmpz_divisible_p (mpz_srcptr mpz_srcptr)))
+  (mpz_divisible_p
+   (int __gmpz_divisible_p (mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_divisible_ui_p
-  (int __gmpz_divisible_ui_p (mpz_srcptr ulong)))
+  (mpz_divisible_ui_p
+   (int __gmpz_divisible_ui_p (mpz_srcptr ulong)))
 
-(define-c-function mpz_divisible_2exp_p
-  (int __gmpz_divisible_2exp_p (mpz_srcptr ulong)))
+  (mpz_divisible_2exp_p
+   (int __gmpz_divisible_2exp_p (mpz_srcptr ulong)))
 
-(define-c-function mpz_dump
-  (void __gmpz_dump (mpz_srcptr)))
+  (mpz_dump
+   (void __gmpz_dump (mpz_srcptr)))
 
-(define-c-function mpz_export
-  (pointer __gmpz_export (pointer pointer int size_t int size_t mpz_srcptr)))
+  (mpz_export
+   (pointer __gmpz_export (pointer pointer int size_t int size_t mpz_srcptr)))
 
-(define-c-function mpz_fac_ui
-  (void __gmpz_fac_ui (mpz_ptr ulong)))
+  (mpz_fac_ui
+   (void __gmpz_fac_ui (mpz_ptr ulong)))
 
-(define-c-function mpz_fdiv_q
-  (void __gmpz_fdiv_q (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_fdiv_q
+   (void __gmpz_fdiv_q (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_fdiv_q_2exp
-  (void __gmpz_fdiv_q_2exp (mpz_ptr mpz_srcptr ulong)))
+  (mpz_fdiv_q_2exp
+   (void __gmpz_fdiv_q_2exp (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_fdiv_q_ui
-  (ulong __gmpz_fdiv_q_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_fdiv_q_ui
+   (ulong __gmpz_fdiv_q_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_fdiv_qr
-  (void __gmpz_fdiv_qr (mpz_ptr mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_fdiv_qr
+   (void __gmpz_fdiv_qr (mpz_ptr mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_fdiv_qr_ui
-  (ulong __gmpz_fdiv_qr_ui (mpz_ptr mpz_ptr mpz_srcptr ulong)))
+  (mpz_fdiv_qr_ui
+   (ulong __gmpz_fdiv_qr_ui (mpz_ptr mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_fdiv_r
-  (void __gmpz_fdiv_r (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_fdiv_r
+   (void __gmpz_fdiv_r (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_fdiv_r_2exp
-  (void __gmpz_fdiv_r_2exp (mpz_ptr mpz_srcptr ulong)))
+  (mpz_fdiv_r_2exp
+   (void __gmpz_fdiv_r_2exp (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_fdiv_r_ui
-  (ulong __gmpz_fdiv_r_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_fdiv_r_ui
+   (ulong __gmpz_fdiv_r_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_fdiv_ui
-  (ulong __gmpz_fdiv_ui (mpz_srcptr ulong)))
+  (mpz_fdiv_ui
+   (ulong __gmpz_fdiv_ui (mpz_srcptr ulong)))
 
-(define-c-function mpz_fib_ui
-  (void __gmpz_fib_ui (mpz_ptr ulong)))
+  (mpz_fib_ui
+   (void __gmpz_fib_ui (mpz_ptr ulong)))
 
-(define-c-function mpz_fib2_ui
-  (void __gmpz_fib2_ui (mpz_ptr mpz_ptr ulong)))
+  (mpz_fib2_ui
+   (void __gmpz_fib2_ui (mpz_ptr mpz_ptr ulong)))
 
-(define-c-function mpz_fits_sint_p
-  (int __gmpz_fits_sint_p (mpz_srcptr)))
+  (mpz_fits_sint_p
+   (int __gmpz_fits_sint_p (mpz_srcptr)))
 
-(define-c-function mpz_fits_slong_p
-  (int __gmpz_fits_slong_p (mpz_srcptr)))
+  (mpz_fits_slong_p
+   (int __gmpz_fits_slong_p (mpz_srcptr)))
 
-(define-c-function mpz_fits_sshort_p
-  (int __gmpz_fits_sshort_p (mpz_srcptr)))
+  (mpz_fits_sshort_p
+   (int __gmpz_fits_sshort_p (mpz_srcptr)))
 
-(define-c-function mpz_fits_uint_p
-  (int __gmpz_fits_uint_p (mpz_srcptr)))
+  (mpz_fits_uint_p
+   (int __gmpz_fits_uint_p (mpz_srcptr)))
 
-(define-c-function mpz_fits_ulong_p
-  (int __gmpz_fits_ulong_p (mpz_srcptr)))
+  (mpz_fits_ulong_p
+   (int __gmpz_fits_ulong_p (mpz_srcptr)))
 
-(define-c-function mpz_fits_ushort_p
-  (int __gmpz_fits_ushort_p (mpz_srcptr)))
+  (mpz_fits_ushort_p
+   (int __gmpz_fits_ushort_p (mpz_srcptr)))
 
-(define-c-function mpz_gcd
-  (void __gmpz_gcd (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_gcd
+   (void __gmpz_gcd (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_gcd_ui
-  (ulong __gmpz_gcd_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_gcd_ui
+   (ulong __gmpz_gcd_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_gcdext
-  (void __gmpz_gcdext (mpz_ptr mpz_ptr mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_gcdext
+   (void __gmpz_gcdext (mpz_ptr mpz_ptr mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_get_d
-  (double __gmpz_get_d (mpz_srcptr)))
+  (mpz_get_d
+   (double __gmpz_get_d (mpz_srcptr)))
 
-(define-c-function mpz_get_d_2exp
-  (double __gmpz_get_d_2exp (pointer mpz_srcptr)))
+  (mpz_get_d_2exp
+   (double __gmpz_get_d_2exp (pointer mpz_srcptr)))
 
-(define-c-function mpz_get_si
-  (long __gmpz_get_si (mpz_srcptr)))
+  (mpz_get_si
+   (long __gmpz_get_si (mpz_srcptr)))
 
-(define-c-function mpz_get_str
-  (char* __gmpz_get_str (char* int mpz_srcptr)))
+  (mpz_get_str
+   (char* __gmpz_get_str (char* int mpz_srcptr)))
 
-(define-c-function mpz_get_ui
-  (ulong __gmpz_get_ui (mpz_srcptr)))
+  (mpz_get_ui
+   (ulong __gmpz_get_ui (mpz_srcptr)))
 
-(define-c-function mpz_getlimbn
-  (mp_limb_t __gmpz_getlimbn (mpz_srcptr mp_size_t)))
+  (mpz_getlimbn
+   (mp_limb_t __gmpz_getlimbn (mpz_srcptr mp_size_t)))
 
-(define-c-function mpz_hamdist
-  (ulong __gmpz_hamdist (mpz_srcptr mpz_srcptr)))
+  (mpz_hamdist
+   (ulong __gmpz_hamdist (mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_import
-  (void __gmpz_import (mpz_ptr size_t int size_t int size_t pointer)))
+  (mpz_import
+   (void __gmpz_import (mpz_ptr size_t int size_t int size_t pointer)))
 
-(define-c-function mpz_init
-  (void __gmpz_init (mpz_ptr)))
+  (mpz_init
+   (void __gmpz_init (mpz_ptr)))
 
-(define-c-function mpz_init2
-  (void __gmpz_init2 (mpz_ptr ulong)))
+  (mpz_init2
+   (void __gmpz_init2 (mpz_ptr ulong)))
 
-(define-c-function mpz_init_set
-  (void __gmpz_init_set (mpz_ptr mpz_srcptr)))
+  (mpz_init_set
+   (void __gmpz_init_set (mpz_ptr mpz_srcptr)))
 
-(define-c-function mpz_init_set_d
-  (void __gmpz_init_set_d (mpz_ptr double)))
+  (mpz_init_set_d
+   (void __gmpz_init_set_d (mpz_ptr double)))
 
-(define-c-function mpz_init_set_si
-  (void __gmpz_init_set_si (mpz_ptr long)))
+  (mpz_init_set_si
+   (void __gmpz_init_set_si (mpz_ptr long)))
 
-(define-c-function mpz_init_set_str
-  (int __gmpz_init_set_str (mpz_ptr char* int)))
+  (mpz_init_set_str
+   (int __gmpz_init_set_str (mpz_ptr char* int)))
 
-(define-c-function mpz_init_set_ui
-  (void __gmpz_init_set_ui (mpz_ptr ulong)))
+  (mpz_init_set_ui
+   (void __gmpz_init_set_ui (mpz_ptr ulong)))
 
-(define-c-function mpz_inp_raw
-  (size_t __gmpz_inp_raw (mpz_ptr FILE*)))
+  (mpz_inp_raw
+   (size_t __gmpz_inp_raw (mpz_ptr FILE*)))
 
-(define-c-function mpz_inp_str
-  (size_t __gmpz_inp_str (mpz_ptr FILE* int)))
+  (mpz_inp_str
+   (size_t __gmpz_inp_str (mpz_ptr FILE* int)))
 
-(define-c-function mpz_invert
-  (int __gmpz_invert (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_invert
+   (int __gmpz_invert (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_ior
-  (void __gmpz_ior (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_ior
+   (void __gmpz_ior (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_jacobi
-  (int __gmpz_jacobi (mpz_srcptr mpz_srcptr)))
+  (mpz_jacobi
+   (int __gmpz_jacobi (mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_kronecker_si
-  (int __gmpz_kronecker_si (mpz_srcptr long)))
+  (mpz_kronecker_si
+   (int __gmpz_kronecker_si (mpz_srcptr long)))
 
-(define-c-function mpz_kronecker_ui
-  (int __gmpz_kronecker_ui (mpz_srcptr ulong)))
+  (mpz_kronecker_ui
+   (int __gmpz_kronecker_ui (mpz_srcptr ulong)))
 
-(define-c-function mpz_si_kronecker
-  (int __gmpz_si_kronecker (long mpz_srcptr)))
+  (mpz_si_kronecker
+   (int __gmpz_si_kronecker (long mpz_srcptr)))
 
-(define-c-function mpz_ui_kronecker
-  (int __gmpz_ui_kronecker (ulong mpz_srcptr)))
+  (mpz_ui_kronecker
+   (int __gmpz_ui_kronecker (ulong mpz_srcptr)))
 
-(define-c-function mpz_lcm
-  (void __gmpz_lcm (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_lcm
+   (void __gmpz_lcm (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_lcm_ui
-  (void __gmpz_lcm_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_lcm_ui
+   (void __gmpz_lcm_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_lucnum_ui
-  (void __gmpz_lucnum_ui (mpz_ptr ulong)))
+  (mpz_lucnum_ui
+   (void __gmpz_lucnum_ui (mpz_ptr ulong)))
 
-(define-c-function mpz_lucnum2_ui
-  (void __gmpz_lucnum2_ui (mpz_ptr mpz_ptr ulong)))
+  (mpz_lucnum2_ui
+   (void __gmpz_lucnum2_ui (mpz_ptr mpz_ptr ulong)))
 
-(define-c-function mpz_millerrabin
-  (int __gmpz_millerrabin (mpz_srcptr int)))
+  (mpz_millerrabin
+   (int __gmpz_millerrabin (mpz_srcptr int)))
 
-(define-c-function mpz_mod
-  (void __gmpz_mod (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_mod
+   (void __gmpz_mod (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_mul
-  (void __gmpz_mul (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_mul
+   (void __gmpz_mul (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_mul_2exp
-  (void __gmpz_mul_2exp (mpz_ptr mpz_srcptr ulong)))
+  (mpz_mul_2exp
+   (void __gmpz_mul_2exp (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_mul_si
-  (void __gmpz_mul_si (mpz_ptr mpz_srcptr long int)))
+  (mpz_mul_si
+   (void __gmpz_mul_si (mpz_ptr mpz_srcptr long int)))
 
-(define-c-function mpz_mul_ui
-  (void __gmpz_mul_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_mul_ui
+   (void __gmpz_mul_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_neg
-  (void __gmpz_neg (mpz_ptr mpz_srcptr)))
+  (mpz_neg
+   (void __gmpz_neg (mpz_ptr mpz_srcptr)))
 
-(define-c-function mpz_nextprime
-  (void __gmpz_nextprime (mpz_ptr mpz_srcptr)))
+  (mpz_nextprime
+   (void __gmpz_nextprime (mpz_ptr mpz_srcptr)))
 
-(define-c-function mpz_out_raw
-  (size_t __gmpz_out_raw (FILE* mpz_srcptr)))
+  (mpz_out_raw
+   (size_t __gmpz_out_raw (FILE* mpz_srcptr)))
 
-(define-c-function mpz_out_str
-  (size_t __gmpz_out_str (FILE* int mpz_srcptr)))
+  (mpz_out_str
+   (size_t __gmpz_out_str (FILE* int mpz_srcptr)))
 
-(define-c-function mpz_perfect_power_p
-  (int __gmpz_perfect_power_p (mpz_srcptr)))
+  (mpz_perfect_power_p
+   (int __gmpz_perfect_power_p (mpz_srcptr)))
 
-(define-c-function mpz_perfect_square_p
-  (int __gmpz_perfect_square_p (mpz_srcptr)))
+  (mpz_perfect_square_p
+   (int __gmpz_perfect_square_p (mpz_srcptr)))
 
-(define-c-function mpz_popcount
-  (ulong __gmpz_popcount (mpz_srcptr)))
+  (mpz_popcount
+   (ulong __gmpz_popcount (mpz_srcptr)))
 
-(define-c-function mpz_pow_ui
-  (void __gmpz_pow_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_pow_ui
+   (void __gmpz_pow_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_powm
-  (void __gmpz_powm (mpz_ptr mpz_srcptr mpz_srcptr mpz_srcptr)))
+  (mpz_powm
+   (void __gmpz_powm (mpz_ptr mpz_srcptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_powm_ui
-  (void __gmpz_powm_ui (mpz_ptr mpz_srcptr ulong mpz_srcptr)))
+  (mpz_powm_ui
+   (void __gmpz_powm_ui (mpz_ptr mpz_srcptr ulong mpz_srcptr)))
 
-(define-c-function mpz_probab_prime_p
-  (int __gmpz_probab_prime_p (mpz_srcptr int)))
+  (mpz_probab_prime_p
+   (int __gmpz_probab_prime_p (mpz_srcptr int)))
 
-(define-c-function mpz_random
-  (void __gmpz_random (mpz_ptr mp_size_t)))
+  (mpz_random
+   (void __gmpz_random (mpz_ptr mp_size_t)))
 
-(define-c-function mpz_random2
-  (void __gmpz_random2 (mpz_ptr mp_size_t)))
+  (mpz_random2
+   (void __gmpz_random2 (mpz_ptr mp_size_t)))
 
-(define-c-function mpz_realloc2
-  (void __gmpz_realloc2 (mpz_ptr ulong)))
+  (mpz_realloc2
+   (void __gmpz_realloc2 (mpz_ptr ulong)))
 
-(define-c-function mpz_remove
-  (ulong __gmpz_remove (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_remove
+   (ulong __gmpz_remove (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_root
-  (int __gmpz_root (mpz_ptr mpz_srcptr ulong)))
+  (mpz_root
+   (int __gmpz_root (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_rootrem
-  (void __gmpz_rootrem (mpz_ptr mpz_ptr mpz_srcptr ulong)))
+  (mpz_rootrem
+   (void __gmpz_rootrem (mpz_ptr mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_rrandomb
-  (void __gmpz_rrandomb (mpz_ptr gmp_randstate_t ulong)))
+  (mpz_rrandomb
+   (void __gmpz_rrandomb (mpz_ptr gmp_randstate_t ulong)))
 
-(define-c-function mpz_scan0
-  (ulong __gmpz_scan0 (mpz_srcptr ulong)))
+  (mpz_scan0
+   (ulong __gmpz_scan0 (mpz_srcptr ulong)))
 
-(define-c-function mpz_scan1
-  (ulong __gmpz_scan1 (mpz_srcptr ulong)))
+  (mpz_scan1
+   (ulong __gmpz_scan1 (mpz_srcptr ulong)))
 
-(define-c-function mpz_set
-  (void __gmpz_set (mpz_ptr mpz_srcptr)))
+  (mpz_set
+   (void __gmpz_set (mpz_ptr mpz_srcptr)))
 
-(define-c-function mpz_set_d
-  (void __gmpz_set_d (mpz_ptr double)))
+  (mpz_set_d
+   (void __gmpz_set_d (mpz_ptr double)))
 
-(define-c-function mpz_set_f
-  (void __gmpz_set_f (mpz_ptr mpf_srcptr)))
+  (mpz_set_f
+   (void __gmpz_set_f (mpz_ptr mpf_srcptr)))
 
-(define-c-function mpz_set_q
-  (void __gmpz_set_q (mpz_ptr mpq_srcptr)))
+  (mpz_set_q
+   (void __gmpz_set_q (mpz_ptr mpq_srcptr)))
 
-(define-c-function mpz_set_si
-  (void __gmpz_set_si (mpz_ptr long)))
+  (mpz_set_si
+   (void __gmpz_set_si (mpz_ptr long)))
 
-(define-c-function mpz_set_str
-  (int __gmpz_set_str (mpz_ptr char* int)))
+  (mpz_set_str
+   (int __gmpz_set_str (mpz_ptr char* int)))
 
-(define-c-function mpz_set_ui
-  (void __gmpz_set_ui (mpz_ptr ulong)))
+  (mpz_set_ui
+   (void __gmpz_set_ui (mpz_ptr ulong)))
 
-(define-c-function mpz_setbit
-  (void __gmpz_setbit (mpz_ptr ulong)))
+  (mpz_setbit
+   (void __gmpz_setbit (mpz_ptr ulong)))
 
-(define-c-function mpz_size
-  (size_t __gmpz_size (mpz_srcptr)))
+  (mpz_size
+   (size_t __gmpz_size (mpz_srcptr)))
 
-(define-c-function mpz_sizeinbase
-  (size_t __gmpz_sizeinbase (mpz_srcptr int)))
+  (mpz_sizeinbase
+   (size_t __gmpz_sizeinbase (mpz_srcptr int)))
 
-(define-c-function mpz_sqrt
-  (void __gmpz_sqrt (mpz_ptr mpz_srcptr)))
+  (mpz_sqrt
+   (void __gmpz_sqrt (mpz_ptr mpz_srcptr)))
 
-(define-c-function mpz_sqrtrem
-  (void __gmpz_sqrtrem (mpz_ptr mpz_ptr mpz_srcptr)))
+  (mpz_sqrtrem
+   (void __gmpz_sqrtrem (mpz_ptr mpz_ptr mpz_srcptr)))
 
-(define-c-function mpz_sub
-  (void __gmpz_sub (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_sub
+   (void __gmpz_sub (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_sub_ui
-  (void __gmpz_sub_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_sub_ui
+   (void __gmpz_sub_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_ui_sub
-  (void __gmpz_ui_sub (mpz_ptr ulong mpz_srcptr)))
+  (mpz_ui_sub
+   (void __gmpz_ui_sub (mpz_ptr ulong mpz_srcptr)))
 
-(define-c-function mpz_submul
-  (void __gmpz_submul (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_submul
+   (void __gmpz_submul (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_submul_ui
-  (void __gmpz_submul_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_submul_ui
+   (void __gmpz_submul_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_swap
-  (void __gmpz_swap (mpz_ptr mpz_ptr)))
+  (mpz_swap
+   (void __gmpz_swap (mpz_ptr mpz_ptr)))
 
-(define-c-function mpz_tdiv_ui
-  (ulong __gmpz_tdiv_ui (mpz_srcptr ulong)))
+  (mpz_tdiv_ui
+   (ulong __gmpz_tdiv_ui (mpz_srcptr ulong)))
 
-(define-c-function mpz_tdiv_q
-  (void __gmpz_tdiv_q (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_tdiv_q
+   (void __gmpz_tdiv_q (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_tdiv_q_2exp
-  (void __gmpz_tdiv_q_2exp (mpz_ptr mpz_srcptr ulong)))
+  (mpz_tdiv_q_2exp
+   (void __gmpz_tdiv_q_2exp (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_tdiv_q_ui
-  (ulong __gmpz_tdiv_q_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_tdiv_q_ui
+   (ulong __gmpz_tdiv_q_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_tdiv_qr
-  (void __gmpz_tdiv_qr (mpz_ptr mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_tdiv_qr
+   (void __gmpz_tdiv_qr (mpz_ptr mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_tdiv_qr_ui
-  (ulong __gmpz_tdiv_qr_ui (mpz_ptr mpz_ptr mpz_srcptr ulong)))
+  (mpz_tdiv_qr_ui
+   (ulong __gmpz_tdiv_qr_ui (mpz_ptr mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_tdiv_r
-  (void __gmpz_tdiv_r (mpz_ptr mpz_srcptr mpz_srcptr)))
+  (mpz_tdiv_r
+   (void __gmpz_tdiv_r (mpz_ptr mpz_srcptr mpz_srcptr)))
 
-(define-c-function mpz_tdiv_r_2exp
-  (void __gmpz_tdiv_r_2exp (mpz_ptr mpz_srcptr ulong)))
+  (mpz_tdiv_r_2exp
+   (void __gmpz_tdiv_r_2exp (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_tdiv_r_ui
-  (ulong __gmpz_tdiv_r_ui (mpz_ptr mpz_srcptr ulong)))
+  (mpz_tdiv_r_ui
+   (ulong __gmpz_tdiv_r_ui (mpz_ptr mpz_srcptr ulong)))
 
-(define-c-function mpz_tstbit
-  (int __gmpz_tstbit (mpz_srcptr ulong)))
+  (mpz_tstbit
+   (int __gmpz_tstbit (mpz_srcptr ulong)))
 
-(define-c-function mpz_ui_pow_ui
-  (void __gmpz_ui_pow_ui (mpz_ptr ulong ulong)))
+  (mpz_ui_pow_ui
+   (void __gmpz_ui_pow_ui (mpz_ptr ulong ulong)))
 
-(define-c-function mpz_urandomb
-  (void __gmpz_urandomb (mpz_ptr gmp_randstate_t ulong)))
+  (mpz_urandomb
+   (void __gmpz_urandomb (mpz_ptr gmp_randstate_t ulong)))
 
-(define-c-function mpz_urandomm
-  (void __gmpz_urandomm (mpz_ptr gmp_randstate_t mpz_srcptr)))
+  (mpz_urandomm
+   (void __gmpz_urandomm (mpz_ptr gmp_randstate_t mpz_srcptr)))
 
-(define-c-function mpz_xor
-  (void __gmpz_xor (mpz_ptr mpz_srcptr mpz_srcptr)))
-
+  (mpz_xor
+   (void __gmpz_xor (mpz_ptr mpz_srcptr mpz_srcptr))))
 
 
 ;;;; done

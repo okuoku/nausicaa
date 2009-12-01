@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -41,41 +41,40 @@
     (foreign ffi sizeof)
     (foreign math mp sizeof))
 
-  (define gmp-lib
-    (let ((o (open-shared-object 'libgmp.so)))
-      (shared-object o)
-      o))
+  (define-shared-object gmp-shared-object
+    GMP_SHARED_OBJECT)
 
 
-(define-c-function gmp_randinit_default
-  (void __gmp_randinit_default (gmp_randstate_t)))
+(define-c-functions gmp-shared-object
+  (gmp_randinit_default
+   (void __gmp_randinit_default (gmp_randstate_t)))
 
-(define-c-function gmp_randinit_lc_2exp
-  (void __gmp_randinit_lc_2exp (gmp_randstate_t mpz_srcptr ulong ulong)))
+  (gmp_randinit_lc_2exp
+   (void __gmp_randinit_lc_2exp (gmp_randstate_t mpz_srcptr ulong ulong)))
 
-(define-c-function gmp_randinit_lc_2exp_size
-  (int __gmp_randinit_lc_2exp_size (gmp_randstate_t ulong)))
+  (gmp_randinit_lc_2exp_size
+   (int __gmp_randinit_lc_2exp_size (gmp_randstate_t ulong)))
 
-(define-c-function gmp_randinit_mt
-  (void __gmp_randinit_mt (gmp_randstate_t)))
+  (gmp_randinit_mt
+   (void __gmp_randinit_mt (gmp_randstate_t)))
 
-(define-c-function gmp_randinit_set
-  (void __gmp_randinit_set (gmp_randstate_t gmp_randstate_t)))
+  (gmp_randinit_set
+   (void __gmp_randinit_set (gmp_randstate_t gmp_randstate_t)))
 
-(define-c-function gmp_randseed
-  (void __gmp_randseed (gmp_randstate_t mpz_srcptr)))
+  (gmp_randseed
+   (void __gmp_randseed (gmp_randstate_t mpz_srcptr)))
 
-(define-c-function gmp_randseed_ui
-  (void __gmp_randseed_ui (gmp_randstate_t ulong)))
+  (gmp_randseed_ui
+   (void __gmp_randseed_ui (gmp_randstate_t ulong)))
 
-(define-c-function gmp_randclear
-  (void __gmp_randclear (gmp_randstate_t)))
+  (gmp_randclear
+   (void __gmp_randclear (gmp_randstate_t)))
 
-(define-c-function gmp_urandomb_ui
-  (ulong __gmp_urandomb_ui (gmp_randstate_t ulong)))
+  (gmp_urandomb_ui
+   (ulong __gmp_urandomb_ui (gmp_randstate_t ulong)))
 
-(define-c-function gmp_urandomm_ui
-  (ulong __gmp_urandomm_ui (gmp_randstate_t ulong)))
+  (gmp_urandomm_ui
+   (ulong __gmp_urandomm_ui (gmp_randstate_t ulong))))
 
 
 ;;;; done

@@ -77,7 +77,7 @@ NAU_DS_ENABLE_OPTION([nau_ENABLE_MPFI],[mpfi],[yes],
 if test "${nau_ENABLE_MPFI}" = yes ; then
   if test "${nau_ENABLE_MPFR}" = yes ; then
 
-AC_CHECK_HEADERS([mpfi.h],,[AC_MSG_FAILURE([missing mpfr.h header],[2])])
+AC_CHECK_HEADERS([mpfi.h],,[AC_MSG_FAILURE([missing mpfi.h header],[2])])
 AC_CHECK_LIB([mpfi],[mpfi_init],,[AC_MSG_FAILURE([missing or unusable MPFI library],[2])])
 
   else
@@ -96,8 +96,8 @@ if test "${nau_ENABLE_MPC}" = yes ; then
 
 # In version 0.7 of MPC the function "mpc_init()" does not exist.
 #
-AC_CHECK_LIB([mpc],[mpc_clear],,[AC_MSG_FAILURE([missing or unusable MPC library],[2])])
 AC_CHECK_HEADERS([mpc.h],,[AC_MSG_FAILURE([missing mpc.h header],[2])])
+AC_CHECK_LIB([mpc],[mpc_clear],,[AC_MSG_FAILURE([missing or unusable MPC library],[2])])
 
   else
     AC_MSG_FAILURE([to enable MPC, MPFR support must be enabled, too],[2])
@@ -114,8 +114,9 @@ if test "${nau_ENABLE_MPFRCX}" = yes ; then
   if test "${nau_ENABLE_MPFR}" = yes ; then
     if test "${nau_ENABLE_MPC}" = yes ; then
 
-AC_CHECK_LIB([mpfrcx],[mpfrx_mul],,[AC_MSG_FAILURE([missing or unusable MPFRCX library],[2])])
 AC_CHECK_HEADERS([mpfrcx.h],,[AC_MSG_FAILURE([missing mpfrcx.h header],[2])])
+AC_CHECK_LIB([mpfrcx],[mpfrx_mul],,[AC_MSG_FAILURE([missing or unusable MPFRCX library],[2])])
+
 
     else
       AC_MSG_FAILURE([to enable MPFRCX, MPC support must be enabled, too],[2])
@@ -131,16 +132,13 @@ dnl Inspection.
 dnl --------------------------------------------------------------------
 
 m4_define([NAUSICAA_CUSTOM_INCLUDES],[
-#ifdef HAVE_STDINT_H
-#  include <stdint.h>
-#endif
 #ifdef HAVE_GMP_H
 #  include <gmp.h>
 #endif
 #ifdef HAVE_MFPR_H
 #  include <mpfr.h>
 #endif
-#ifdef HAVE_MFPI_H
+#ifdef HAVE_MPFI_H
 #  include <mpfi.h>
 #endif
 #ifdef HAVE_MPC_H

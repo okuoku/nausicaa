@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -58,10 +58,8 @@
     (foreign math mp mpfr)
     (foreign math mp mpc))
 
-  (define mpfrcx-lib
-    (let ((o (open-shared-object* 'libmpfrcx.so)))
-      (shared-object o)
-      o))
+  (define-shared-object mpfrcx-shared-object
+    MPFRCX_SHARED_OBJECT)
 
 
 ;;;; type aliases
@@ -71,10 +69,6 @@
 (define mpcx_t*		'pointer)
 (define mpfr_t*		'pointer)
 (define mpc_t*		'pointer)
-
-
-;;;; constants
-
 
 
 ;;;; accessors
@@ -89,92 +83,91 @@
     ((_ ?polynomial ?index)
      (array-ref-c-mpcx_t (struct-mpcx_t-coeff-ref ?polynomial) ?index))))
 
-
-
 
 ;;;; functions
 
-(define-c-function mpcx_init
-  (void mpcx_init (mpcx_ptr int mp_prec_t)))
-(define-c-function mpcx_set
-  (void mpcx_set (mpcx_ptr mpcx_srcptr)))
-(define-c-function mpcx_init_set
-  (void mpcx_init_set (mpcx_ptr mpcx_srcptr)))
-(define-c-function mpcx_clear
-  (void mpcx_clear (mpcx_ptr)))
-(define-c-function mpcx_realloc
-  (void mpcx_realloc (mpcx_ptr int)))
+(define-c-functions mpfrcx-shared-object
+  (mpcx_init
+   (void mpcx_init (mpcx_ptr int mp_prec_t)))
+  (mpcx_set
+   (void mpcx_set (mpcx_ptr mpcx_srcptr)))
+  (mpcx_init_set
+   (void mpcx_init_set (mpcx_ptr mpcx_srcptr)))
+  (mpcx_clear
+   (void mpcx_clear (mpcx_ptr)))
+  (mpcx_realloc
+   (void mpcx_realloc (mpcx_ptr int)))
 
-(define-c-function mpfrx_init
-  (void mpfrx_init (mpfrx_ptr int mp_prec_t)))
-(define-c-function mpfrx_set
-  (void mpfrx_set (mpfrx_ptr mpfrx_srcptr)))
-(define-c-function mpfrx_init_set
-  (void mpfrx_init_set (mpfrx_ptr mpfrx_srcptr)))
-(define-c-function mpfrx_clear
-  (void mpfrx_clear (mpfrx_ptr)))
-(define-c-function mpfrx_realloc
-  (void mpfrx_realloc (mpfrx_ptr int)))
+  (mpfrx_init
+   (void mpfrx_init (mpfrx_ptr int mp_prec_t)))
+  (mpfrx_set
+   (void mpfrx_set (mpfrx_ptr mpfrx_srcptr)))
+  (mpfrx_init_set
+   (void mpfrx_init_set (mpfrx_ptr mpfrx_srcptr)))
+  (mpfrx_clear
+   (void mpfrx_clear (mpfrx_ptr)))
+  (mpfrx_realloc
+   (void mpfrx_realloc (mpfrx_ptr int)))
 
-(define-c-function mpcx_cmp
-  (int mpcx_cmp (mpcx_srcptr mpcx_srcptr)))
-(define-c-function mpcx_urandom
-  (void mpcx_urandom (mpcx_ptr int gmp_randstate_t)))
-(define-c-function mpfrx_cmp
-  (int mpfrx_cmp (mpfrx_srcptr mpfrx_srcptr)))
-(define-c-function mpfrx_urandom
-  (void mpfrx_urandom (mpfrx_ptr int gmp_randstate_t)))
+  (mpcx_cmp
+   (int mpcx_cmp (mpcx_srcptr mpcx_srcptr)))
+  (mpcx_urandom
+   (void mpcx_urandom (mpcx_ptr int gmp_randstate_t)))
+  (mpfrx_cmp
+   (int mpfrx_cmp (mpfrx_srcptr mpfrx_srcptr)))
+  (mpfrx_urandom
+   (void mpfrx_urandom (mpfrx_ptr int gmp_randstate_t)))
 
-(define-c-function mpcx_add
-  (void mpcx_add (mpcx_ptr mpcx_srcptr mpcx_srcptr)))
-(define-c-function mpcx_sub
-  (void mpcx_sub (mpcx_ptr mpcx_srcptr mpcx_srcptr)))
-(define-c-function mpcx_si_sub
-  (void mpcx_si_sub (mpcx_ptr long mpcx_srcptr)))
-(define-c-function mpcx_neg
-  (void mpcx_neg (mpcx_ptr mpcx_srcptr)))
+  (mpcx_add
+   (void mpcx_add (mpcx_ptr mpcx_srcptr mpcx_srcptr)))
+  (mpcx_sub
+   (void mpcx_sub (mpcx_ptr mpcx_srcptr mpcx_srcptr)))
+  (mpcx_si_sub
+   (void mpcx_si_sub (mpcx_ptr long mpcx_srcptr)))
+  (mpcx_neg
+   (void mpcx_neg (mpcx_ptr mpcx_srcptr)))
 
-(define-c-function mpfrx_add
-  (void mpfrx_add (mpfrx_ptr mpfrx_srcptr mpfrx_srcptr)))
-(define-c-function mpfrx_sub
-  (void mpfrx_sub (mpfrx_ptr mpfrx_srcptr mpfrx_srcptr)))
-(define-c-function mpfrx_si_sub
-  (void mpfrx_si_sub (mpfrx_ptr long mpfrx_srcptr)))
-(define-c-function mpfrx_neg
-  (void mpfrx_neg (mpfrx_ptr mpfrx_srcptr)))
+  (mpfrx_add
+   (void mpfrx_add (mpfrx_ptr mpfrx_srcptr mpfrx_srcptr)))
+  (mpfrx_sub
+   (void mpfrx_sub (mpfrx_ptr mpfrx_srcptr mpfrx_srcptr)))
+  (mpfrx_si_sub
+   (void mpfrx_si_sub (mpfrx_ptr long mpfrx_srcptr)))
+  (mpfrx_neg
+   (void mpfrx_neg (mpfrx_ptr mpfrx_srcptr)))
 
-(define-c-function mpcx_mul
-  (void mpcx_mul (mpcx_ptr mpcx_srcptr mpcx_srcptr)))
+  (mpcx_mul
+   (void mpcx_mul (mpcx_ptr mpcx_srcptr mpcx_srcptr)))
 
-(define-c-function mpfrx_mul
-  (void mpfrx_mul (mpfrx_ptr mpfrx_srcptr mpfrx_srcptr)))
+  (mpfrx_mul
+   (void mpfrx_mul (mpfrx_ptr mpfrx_srcptr mpfrx_srcptr)))
 
 
-(define-c-function mpcx_rem
-  (void mpcx_rem (mpcx_ptr mpcx_srcptr mpcx_srcptr)))
+  (mpcx_rem
+   (void mpcx_rem (mpcx_ptr mpcx_srcptr mpcx_srcptr)))
 
-(define-c-function mpfrx_rem
-  (void mpfrx_rem (mpfrx_ptr mpfrx_srcptr mpfrx_srcptr)))
+  (mpfrx_rem
+   (void mpfrx_rem (mpfrx_ptr mpfrx_srcptr mpfrx_srcptr)))
 
-(define-c-function mpcx_reconstruct
-  (void mpcx_reconstruct (mpcx_t mpcx_t* int)))
-(define-c-function mpcx_multieval
-  (void mpcx_multieval (mpc_t* mpc_t* int mpcx_srcptr)))
-(define-c-function mpcx_root
-  (void mpcx_root (mpc_t mpcx_t)))
+  (mpcx_reconstruct
+   (void mpcx_reconstruct (mpcx_ptr mpcx_t* int)))
+  (mpcx_multieval
+   (void mpcx_multieval (mpc_t* mpc_t* int mpcx_srcptr)))
+  (mpcx_root
+   (void mpcx_root (mpc_ptr mpcx_ptr)))
 
-(define-c-function mpfrx_reconstruct
-  (void mpfrx_reconstruct (mpfrx_t mpfrx_t* int)))
-(define-c-function mpfrx_multieval
-  (void mpfrx_multieval (mpfr_t* mpfr_t* int mpfrx_srcptr)))
-(define-c-function mpfrx_root
-  (void mpfrx_root (mpfr_t mpfrx_t)))
+  (mpfrx_reconstruct
+   (void mpfrx_reconstruct (mpfrx_ptr mpfrx_t* int)))
+  (mpfrx_multieval
+   (void mpfrx_multieval (mpfr_t* mpfr_t* int mpfrx_srcptr)))
+  (mpfrx_root
+   (void mpfrx_root (mpfr_ptr mpfrx_ptr)))
 
-(define-c-function mpcx_out_str
-  (size_t mpcx_out_str (FILE* int size_t mpcx_srcptr)))
+  (mpcx_out_str
+   (size_t mpcx_out_str (FILE* int size_t mpcx_srcptr)))
 
-(define-c-function mpfrx_out_str
-  (size_t mpfrx_out_str (FILE* int size_t mpfrx_srcptr)))
+  (mpfrx_out_str
+   (size_t mpfrx_out_str (FILE* int size_t mpfrx_srcptr))))
 
 
 ;;;; done
