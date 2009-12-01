@@ -17,9 +17,14 @@ Topics
 1. Introduction
 ---------------
 
-This  package  implements a  binding  between  the Cairo  2D
-graphics  library   and  the  R6RS   Scheme  implementations
-supported by Nausicaa.
+This package is a  distribution of libraries for R6RS Scheme
+implementations;  it  provides  bindings  for the  Cairo  2D
+graphics library.
+
+  It  is  built  upon  Nausicaa/Scheme, making  use  of  its
+foreign  functions interface; it  supports Ikarus,  Mosh and
+Ypsilon  Scheme  and it  currently  supports only  GNU+Linux
+systems.
 
   The  last   time  the  author  bothered   to  update  this
 paragraph,  he had  tested  Cairo version  1.8.8 and  Pixman
@@ -29,7 +34,7 @@ version 0.16.2.
 2. License
 ----------
 
-Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 
 This  program  is free  software:  you  can redistribute  it
 and/or modify it  under the terms of the  GNU General Public

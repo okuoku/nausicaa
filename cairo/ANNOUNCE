@@ -1,15 +1,17 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Cairo 2009-11-01 tag 0.1b0
+Subject: [announce] Nausicaa/Cairo 2009-12-01 tag 0.1b1
 
 		       Nausicaa/Cairo
 		       ==============
 
-Nausicaa/Cairo  is  a  binding  between  Cairo  2D  graphics
-library and  R6RS Scheme implementations.  It  is built upon
-Nausicaa/Scheme,  making   use  of  its   foreign  functions
-interface; so it  currently supports only GNU+Linux systems.
-The installation infrastructure  requires a GNU+Linux system
-(for details see the "README.build" file).
+Nausicaa/Cairo  is  a  distribution  of libraries  for  R6RS
+Scheme implementations;  it provides bindings  for the Cairo
+2D graphics library.
+
+  It  is  built  upon  Nausicaa/Scheme, making  use  of  its
+foreign  functions interface; it  supports Ikarus,  Mosh and
+Ypsilon  Scheme  and it  currently  supports only  GNU+Linux
+systems.
 
   The  latest  release  of  the  Nausicaa/Cairo  package  is
 available at:
@@ -31,6 +33,12 @@ the documentation is available on line:
 Cairo is available at:
 
 		<http://cairographics.org/>
+
+
+Notes for 2009-12-01 tag 0.1b1
+------------------------------
+
+* Updated to Nausicaa/Scheme version 0.1a7.
 
 
 Notes for 2009-11-01 tag 0.1b0

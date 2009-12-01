@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -74,10 +74,10 @@
 
 	  (let ((te   (malloc-block/c sizeof-cairo_text_extents_t))
 		(astr (string->cstring/c "a")))
-	    (let-syntax ((te.width     (identifier-syntax (cairo_text_extents_t-width-ref  te)))
-			 (te.height    (identifier-syntax (cairo_text_extents_t-height-ref te)))
-			 (te.x_bearing (identifier-syntax (cairo_text_extents_t-x_bearing-ref te)))
-			 (te.y_bearing (identifier-syntax (cairo_text_extents_t-y_bearing-ref te))))
+	    (let-syntax ((te.width     (identifier-syntax (struct-cairo_text_extents_t-width-ref  te)))
+			 (te.height    (identifier-syntax (struct-cairo_text_extents_t-height-ref te)))
+			 (te.x_bearing (identifier-syntax (struct-cairo_text_extents_t-x_bearing-ref te)))
+			 (te.y_bearing (identifier-syntax (struct-cairo_text_extents_t-y_bearing-ref te))))
 	      (cairo_set_source_rgb cr 0.0 0.0 0.0)
 	      (cairo_select_font_face cr (string->cstring/c "Georgia")
 				      CAIRO_FONT_SLANT_NORMAL CAIRO_FONT_WEIGHT_BOLD)

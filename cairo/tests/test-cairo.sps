@@ -26,11 +26,12 @@
 
 
 (import (nausicaa)
+  (compensations)
   (foreign ffi sizeof)
-  (foreign graphics cairo)
   (foreign cstrings)
   (foreign memory)
-  (compensations)
+  (foreign graphics cairo)
+  (foreign graphics cairo compensated)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -67,10 +68,10 @@
 
 	  (let ((te   (malloc-block/c sizeof-cairo_text_extents_t))
 		(astr "a"))
-	    (let-syntax ((te.width     (identifier-syntax (cairo_text_extents_t-width-ref  te)))
-			 (te.height    (identifier-syntax (cairo_text_extents_t-height-ref te)))
-			 (te.x_bearing (identifier-syntax (cairo_text_extents_t-x_bearing-ref te)))
-			 (te.y_bearing (identifier-syntax (cairo_text_extents_t-y_bearing-ref te))))
+	    (let-syntax ((te.width     (identifier-syntax (struct-cairo_text_extents_t-width-ref  te)))
+			 (te.height    (identifier-syntax (struct-cairo_text_extents_t-height-ref te)))
+			 (te.x_bearing (identifier-syntax (struct-cairo_text_extents_t-x_bearing-ref te)))
+			 (te.y_bearing (identifier-syntax (struct-cairo_text_extents_t-y_bearing-ref te))))
 	      (cairo-set-source-rgb cr 0.0 0.0 0.0)
 	      (cairo-select-font-face cr "Georgia" CAIRO_FONT_SLANT_NORMAL CAIRO_FONT_WEIGHT_BOLD)
 	      (cairo-set-font-size cr 1.2)

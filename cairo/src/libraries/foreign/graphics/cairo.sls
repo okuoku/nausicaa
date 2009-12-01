@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,53 +27,6 @@
 
 (library (foreign graphics cairo)
   (export
-
-    ;; compensated constructors
-    cairo-create/c
-    cairo-reference/c
-    cairo-save/c
-    cairo-push-group/c
-    cairo-push-group-to-source/c
-    cairo-push-group/content/c
-    cairo-push-group-to-source/content/c
-
-    cairo-font-options-create/c
-    cairo-font-options-copy/c
-    cairo-scaled-font-reference/c
-    cairo-toy-font-face-create/c
-    cairo-user-font-face-create/c
-
-    cairo-surface-create-similar/c
-    cairo-surface-reference/c
-    cairo-image-surface-create/c
-    cairo-image-surface-create-from-png/c
-    cairo-image-surface-create-from-png-stream/c
-
-    cairo-pattern-create-rgb/c
-    cairo-pattern-create-rgba/c
-    cairo-pattern-create-for-surface/c
-    cairo-pattern-create-linear/c
-    cairo-pattern-create-radial/c
-    cairo-pattern-reference/c
-
-    cairo-pdf-surface-create/c
-    cairo-pdf-surface-create-for-stream/c
-
-    cairo-svg-surface-create/c
-    cairo-svg-surface-create-for-stream/c
-
-    cairo-ps-surface-create/c
-    cairo-ps-surface-create-for-stream/c
-
-    cairo-xlib-surface-create-with-xrender-format/c
-
-    cairo-ft-font-face-create-for-pattern/c
-    cairo-ft-font-face-create-for-ft-face/c
-
-    cairo-xlib-surface-create/c
-    cairo-xlib-surface-create-for-bitmap/c
-
-;;; --------------------------------------------------------------------
 
     ;; version functions
     cairo-version
@@ -430,9 +383,9 @@
     strideof-cairo_matrix_t
     alignof-cairo_matrix_t
 
-    sizeof-cairo_user_data_key_t
-    strideof-cairo_user_data_key_t
-    alignof-cairo_user_data_key_t
+;;; sizeof-cairo_user_data_key_t
+;;; strideof-cairo_user_data_key_t
+;;; alignof-cairo_user_data_key_t
 
     cairo_operator_t
     sizeof-cairo_operator_t
@@ -712,208 +665,52 @@
     CAIRO_PS_LEVEL_3
 
     ;; accessors and mutators
-    cairo_matrix_t-xx-set!			cairo_matrix_t-xx-ref
-    cairo_matrix_t-xy-set!			cairo_matrix_t-xy-ref
-    cairo_matrix_t-yx-set!			cairo_matrix_t-yx-ref
-    cairo_matrix_t-yy-set!			cairo_matrix_t-yy-ref
-    cairo_matrix_t-x0-set!			cairo_matrix_t-x0-ref
-    cairo_matrix_t-y0-set!			cairo_matrix_t-y0-ref
+    struct-cairo_matrix_t-xx-set!			struct-cairo_matrix_t-xx-ref
+    struct-cairo_matrix_t-xy-set!			struct-cairo_matrix_t-xy-ref
+    struct-cairo_matrix_t-yx-set!			struct-cairo_matrix_t-yx-ref
+    struct-cairo_matrix_t-yy-set!			struct-cairo_matrix_t-yy-ref
+    struct-cairo_matrix_t-x0-set!			struct-cairo_matrix_t-x0-ref
+    struct-cairo_matrix_t-y0-set!			struct-cairo_matrix_t-y0-ref
 
-    cairo_rectangle_t-x-set!			cairo_rectangle_t-x-ref
-    cairo_rectangle_t-y-set!			cairo_rectangle_t-y-ref
-    cairo_rectangle_t-width-set!		cairo_rectangle_t-width-ref
-    cairo_rectangle_t-height-set!		cairo_rectangle_t-height-ref
+    struct-cairo_rectangle_t-x-set!			struct-cairo_rectangle_t-x-ref
+    struct-cairo_rectangle_t-y-set!			struct-cairo_rectangle_t-y-ref
+    struct-cairo_rectangle_t-width-set!			struct-cairo_rectangle_t-width-ref
+    struct-cairo_rectangle_t-height-set!		struct-cairo_rectangle_t-height-ref
 
-    cairo_rectangle_list_t-status-set!		cairo_rectangle_list_t-status-ref
-    cairo_rectangle_list_t-rectangles-set!	cairo_rectangle_list_t-rectangles-ref
-    cairo_rectangle_list_t-num_rectangles-set!	cairo_rectangle_list_t-num_rectangles-ref
+    struct-cairo_rectangle_list_t-status-set!		struct-cairo_rectangle_list_t-status-ref
+    struct-cairo_rectangle_list_t-rectangles-set!	struct-cairo_rectangle_list_t-rectangles-ref
+    struct-cairo_rectangle_list_t-num_rectangles-set!	struct-cairo_rectangle_list_t-num_rectangles-ref
 
-    cairo_glyph_t-index-set!			cairo_glyph_t-index-ref
-    cairo_glyph_t-x-set!			cairo_glyph_t-x-ref
-    cairo_glyph_t-y-set!			cairo_glyph_t-y-ref
+    struct-cairo_glyph_t-index-set!			struct-cairo_glyph_t-index-ref
+    struct-cairo_glyph_t-x-set!				struct-cairo_glyph_t-x-ref
+    struct-cairo_glyph_t-y-set!				struct-cairo_glyph_t-y-ref
 
-    cairo_text_cluster_t-num_bytes-set!		cairo_text_cluster_t-num_bytes-ref
-    cairo_text_cluster_t-num_glyphs-set!	cairo_text_cluster_t-num_glyphs-ref
+    struct-cairo_text_cluster_t-num_bytes-set!		struct-cairo_text_cluster_t-num_bytes-ref
+    struct-cairo_text_cluster_t-num_glyphs-set!		struct-cairo_text_cluster_t-num_glyphs-ref
 
-    cairo_text_extents_t-x_bearing-set!		cairo_text_extents_t-x_bearing-ref
-    cairo_text_extents_t-y_bearing-set!		cairo_text_extents_t-y_bearing-ref
-    cairo_text_extents_t-width-set!		cairo_text_extents_t-width-ref
-    cairo_text_extents_t-height-set!		cairo_text_extents_t-height-ref
-    cairo_text_extents_t-x_advance-set!		cairo_text_extents_t-x_advance-ref
-    cairo_text_extents_t-y_advance-set!		cairo_text_extents_t-y_advance-ref
+    struct-cairo_text_extents_t-x_bearing-set!		struct-cairo_text_extents_t-x_bearing-ref
+    struct-cairo_text_extents_t-y_bearing-set!		struct-cairo_text_extents_t-y_bearing-ref
+    struct-cairo_text_extents_t-width-set!		struct-cairo_text_extents_t-width-ref
+    struct-cairo_text_extents_t-height-set!		struct-cairo_text_extents_t-height-ref
+    struct-cairo_text_extents_t-x_advance-set!		struct-cairo_text_extents_t-x_advance-ref
+    struct-cairo_text_extents_t-y_advance-set!		struct-cairo_text_extents_t-y_advance-ref
 
-    cairo_font_extents_t-ascent-set!		cairo_font_extents_t-ascent-ref
-    cairo_font_extents_t-descent-set!		cairo_font_extents_t-descent-ref
-    cairo_font_extents_t-height-set!		cairo_font_extents_t-height-ref
-    cairo_font_extents_t-max_x_advance-set!	cairo_font_extents_t-max_x_advance-ref
-    cairo_font_extents_t-max_y_advance-set!	cairo_font_extents_t-max_y_advance-ref
+    struct-cairo_font_extents_t-ascent-set!		struct-cairo_font_extents_t-ascent-ref
+    struct-cairo_font_extents_t-descent-set!		struct-cairo_font_extents_t-descent-ref
+    struct-cairo_font_extents_t-height-set!		struct-cairo_font_extents_t-height-ref
+    struct-cairo_font_extents_t-max_x_advance-set!	struct-cairo_font_extents_t-max_x_advance-ref
+    struct-cairo_font_extents_t-max_y_advance-set!	struct-cairo_font_extents_t-max_y_advance-ref
 
-    cairo_path_data_t-header.type-set!		cairo_path_data_t-header.type-ref
-    cairo_path_data_t-header.length-set!	cairo_path_data_t-header.length-ref
-    cairo_path_data_t-point.x-set!		cairo_path_data_t-point.x-ref
-    cairo_path_data_t-point.y-set!		cairo_path_data_t-point.y-ref
+    struct-cairo_path_data_t-header.type-set!		struct-cairo_path_data_t-header.type-ref
+    struct-cairo_path_data_t-header.length-set!		struct-cairo_path_data_t-header.length-ref
+    struct-cairo_path_data_t-point.x-set!		struct-cairo_path_data_t-point.x-ref
+    struct-cairo_path_data_t-point.y-set!		struct-cairo_path_data_t-point.y-ref
 
-    cairo_path_t-status-set!			cairo_path_t-status-ref
-    cairo_path_t-data-set!			cairo_path_t-data-ref
-    cairo_path_t-num_data-set!			cairo_path_t-num_data-ref)
+    struct-cairo_path_t-status-set!			struct-cairo_path_t-status-ref
+    struct-cairo_path_t-data-set!			struct-cairo_path_t-data-ref
+    struct-cairo_path_t-num_data-set!			struct-cairo_path_t-num_data-ref)
   (import (rnrs)
-    (compensations)
     (foreign graphics cairo primitives)
-    (foreign graphics cairo sizeof))
-
-
-;;;; compensations
-
-(define-syntax define-compensated
-  (syntax-rules ()
-    ((_ ?name ?constructor ?destructor)
-     (define (?name . args)
-       (letrec ((obj (compensate
-			 (apply ?constructor args)
-		       (with
-			(?destructor obj)))))
-	 obj)))))
-
-;;; --------------------------------------------------------------------
-
-(define-compensated cairo-create/c
-  cairo-create cairo-destroy)
-
-(define-compensated cairo-reference/c
-  cairo-reference cairo-destroy)
-
-(define (cairo-save/c cr)
-  (compensate
-      (cairo-save cr)
-    (with
-     (cairo-restore cr))))
-
-(define (cairo-push-group/c cr)
-  (compensate
-      (cairo-push-group cr)
-    (with
-     (cairo-pop-group cr))))
-
-(define (cairo-push-group-to-source/c cr)
-  (compensate
-      (cairo-push-group cr)
-    (with
-     (cairo-pop-group-to-source cr))))
-
-(define (cairo-push-group/content/c cr content)
-  (compensate
-      (cairo-push-group-with-content cr content)
-    (with
-     (cairo-pop-group cr))))
-
-(define (cairo-push-group-to-source/content/c cr content)
-  (compensate
-      (cairo-push-group-with-content cr content)
-    (with
-     (cairo-pop-group-to-source cr))))
-
-;;; --------------------------------------------------------------------
-
-(define-compensated cairo-font-options-create/c
-  cairo-font-options-create cairo-font-options-destroy)
-
-(define-compensated cairo-font-options-copy/c
-  cairo-font-options-copy cairo-font-options-destroy)
-
-(define-compensated cairo-scaled-font-reference/c
-  cairo-scaled-font-reference cairo-scaled-font-destroy)
-
-(define-compensated cairo-toy-font-face-create/c
-  cairo-toy-font-face-create cairo-scaled-font-destroy)
-
-(define-compensated cairo-user-font-face-create/c
-  cairo-user-font-face-create cairo-scaled-font-destroy)
-
-;;; --------------------------------------------------------------------
-
-(define-compensated cairo-surface-create-similar/c
-  cairo-surface-create-similar cairo-surface-destroy)
-
-(define-compensated cairo-surface-reference/c
-  cairo-surface-reference cairo-surface-destroy)
-
-(define-compensated cairo-image-surface-create/c
-  cairo-image-surface-create cairo-surface-destroy)
-
-(define-compensated cairo-image-surface-create-from-png/c
-  cairo-image-surface-create-from-png cairo-surface-destroy)
-
-(define-compensated cairo-image-surface-create-from-png-stream/c
-  cairo-image-surface-create-from-png-stream cairo-surface-destroy)
-
-;;; --------------------------------------------------------------------
-
-(define-compensated cairo-pattern-create-rgb/c
-  cairo-pattern-create-rgb cairo-pattern-destroy)
-
-(define-compensated cairo-pattern-create-rgba/c
-  cairo-pattern-create-rgba cairo-pattern-destroy)
-
-(define-compensated cairo-pattern-create-for-surface/c
-  cairo-pattern-create-for-surface cairo-pattern-destroy)
-
-(define-compensated cairo-pattern-create-linear/c
-  cairo-pattern-create-linear cairo-pattern-destroy)
-
-(define-compensated cairo-pattern-create-radial/c
-  cairo-pattern-create-radial cairo-pattern-destroy)
-
-(define-compensated cairo-pattern-reference/c
-  cairo-pattern-reference cairo-pattern-destroy)
-
-;;; --------------------------------------------------------------------
-
-(define-compensated cairo-pdf-surface-create/c
-   cairo-pdf-surface-create cairo-surface-destroy)
-
-(define-compensated cairo-pdf-surface-create-for-stream/c
-  cairo-pdf-surface-create-for-stream cairo-surface-destroy)
-
-;;; --------------------------------------------------------------------
-
-(define-compensated cairo-svg-surface-create/c
-  cairo-svg-surface-create cairo-surface-destroy)
-
-(define-compensated cairo-svg-surface-create-for-stream/c
-  cairo-svg-surface-create-for-stream cairo-surface-destroy)
-
-;;; --------------------------------------------------------------------
-
-(define-compensated cairo-ps-surface-create/c
-  cairo-ps-surface-create cairo-surface-destroy)
-
-(define-compensated cairo-ps-surface-create-for-stream/c
-  cairo-ps-surface-create-for-stream cairo-surface-destroy)
-
-;;; --------------------------------------------------------------------
-
-(define-compensated cairo-xlib-surface-create-with-xrender-format/c
-  cairo-xlib-surface-create-with-xrender-format cairo-surface-destroy)
-
-;;; --------------------------------------------------------------------
-
-(define-compensated cairo-ft-font-face-create-for-pattern/c
-  cairo-ft-font-face-create-for-pattern cairo-scaled-font-destroy)
-
-(define-compensated cairo-ft-font-face-create-for-ft-face/c
-  cairo-ft-font-face-create-for-ft-face cairo-scaled-font-destroy)
-
-;;; --------------------------------------------------------------------
-
-(define-compensated cairo-xlib-surface-create/c
-  cairo-xlib-surface-create cairo-surface-destroy)
-
-(define-compensated cairo-xlib-surface-create-for-bitmap/c
-  cairo-xlib-surface-create-for-bitmap cairo-surface-destroy)
-
-
-;;;; done
-
-)
+    (foreign graphics cairo sizeof)))
 
 ;;; end of file

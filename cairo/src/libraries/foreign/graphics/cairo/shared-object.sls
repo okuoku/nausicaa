@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Cairo
-;;;Contents: compile script for Mosh Scheme
-;;;Date: Thu Oct 22, 2009
+;;;Contents: foreign shared library loading
+;;;Date: Tue Dec  1, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,9 +24,13 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-    (only (foreign graphics cairo))
-    (only (foreign graphics cairo compensated))
-  )
+
+(library (foreign graphics cairo shared-object)
+  (export cairo-shared-object)
+  (import (rnrs)
+    (foreign ffi)
+    (foreign graphics cairo sizeof))
+  (define-shared-object cairo-shared-object
+    CAIRO_SHARED_OBJECT))
 
 ;;; end of file
