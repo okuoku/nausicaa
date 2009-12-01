@@ -28,8 +28,9 @@
 (library (foreign i18n iconv shared-object)
   (export iconv-shared-object)
   (import (rnrs)
-    (foreign ffi))
-  (define iconv-shared-object
-    (open-shared-object* 'libiconv.so)))
+    (foreign ffi)
+    (foreign i18n iconv sizeof))
+  (define-shared-object iconv-shared-object
+    ICONV_SHARED_OBJECT))
 
 ;;; end of file

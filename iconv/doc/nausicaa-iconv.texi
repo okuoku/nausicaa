@@ -578,15 +578,7 @@ Scheme functions with the same name but underscores turned into dashes;
 for example @cfunc{iconv_open} is exported as @func{iconv-open}.
 
 @item foreign i18n iconv
-Compound library whic reexports bindings from the following libraries:
-
-@example
-foreign i18n iconv primitive
-foreign i18n iconv record-types
-@end example
-
-@noindent
-this interface is the one documented here.
+Compound library which reexporting bindings from the other libraries.
 
 @item foreign i18n iconv compensated
 Exports wrappers for constructor functions making use of the
@@ -755,6 +747,19 @@ difficult to detect.
 @end defun
 
 
+@defun iconv-membuffer! @var{ctx} @var{buffer}
+@defunx iconv-membuffer! @var{ctx} @var{buffer} @var{from-block}
+Like @func{iconv!} but push the processed output to the membuffer
+@var{buffer} object; we can access the output using
+@func{membuffer-pop-memblock!} on @var{buffer}.  @nauref{memory
+membuffer, Memory buffers}.
+
+When @var{from-block} is not given, the contents of the context are
+flushed to @var{buffer} and the context is restored to its initial
+state.
+@end defun
+
+
 Example using compensations:
 
 @example
@@ -778,6 +783,31 @@ Example using compensations:
 
     (let ((result (memblock&tail-head ou ou-tail)))
       ---)))
+@end example
+
+@noindent
+example using memory buffers:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign cstrings)
+  (foreign memory)
+  (foreign memory membuffers)
+  (foreign i18n iconv)
+  (foreign i18n iconv compensated))
+
+(let ((ctx        (iconv-open/c (iconv-encoding UTF-16)
+                                (iconv-encoding UTF-8)))
+      (buffer     (membuffer)))
+  (iconv-membuffer! ctx buffer (string->memblock/c "verde "))
+  (iconv-membuffer! ctx buffer (string->memblock/c "bianco "))
+  (iconv-membuffer! ctx buffer (string->memblock/c "rosso"))
+  (iconv-membuffer! ctx buffer)
+  (let* ((block   (malloc-memblock/c 256))
+         (len     (membuffer-pop-memblock! buffer block))
+         (bv      (memblock->bytevector block len)))
+    ---))
 @end example
 
 @c page

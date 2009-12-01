@@ -38,7 +38,7 @@
 (define char**		'pointer)
 (define size_t*		'pointer)
 
-(define-c-callouts/with-errno iconv-shared-object
+(define-c-functions/with-errno iconv-shared-object
   (iconv_open	(iconv_t iconv_open (char* char*)))
   (iconv	(size_t iconv (iconv_t char** size_t* char** size_t*)))
   (iconv_close	(int iconv_close (iconv_t))))

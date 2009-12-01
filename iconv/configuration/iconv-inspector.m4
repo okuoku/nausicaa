@@ -2,7 +2,7 @@ dnl (foreign i18n iconv sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Fri Nov 27, 2009
+dnl Date: Tue Dec  1, 2009
 dnl
 dnl Abstract
 dnl
@@ -25,5 +25,7 @@ dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
 
+NAU_DS_WITH_OPTION([ICONV_SHARED_OBJECT],[iconv-shared-object],[libiconv.so],
+  [Iconv shared library file],[select Iconv shared library file])
 
 dnl end of file

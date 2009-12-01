@@ -32,6 +32,8 @@
 (define iconv-library-spec
   '(foreign i18n iconv sizeof))
 
+(define-shared-object iconv libiconv.so)
+
 (define-c-type-alias iconv_t		pointer)
 
 (autoconf-lib-write "configuration/iconv-inspector.m4" iconv-library-spec)

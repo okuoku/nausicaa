@@ -30,6 +30,8 @@
   (foreign i18n iconv)
   (foreign i18n iconv compensated)
   (foreign memory)
+  (foreign memory membuffers)
+  (foreign cstrings)
   (only (foreign ffi sizeof) words-bigendian)
   (checks))
 
@@ -37,7 +39,7 @@
 (display "*** testing Iconv\n")
 
 
-(parametrise ((check-test-name	'iconv-enum))
+(parametrise ((check-test-name	'enumerations))
 
   (check
       (with-compensations
@@ -100,9 +102,7 @@
   #t)
 
 
-(parametrise ((check-test-name	'iconv))
-
-;;; --------------------------------------------------------------------
+(parametrise ((check-test-name	'back-and-forth))
 
   (check
       (with-compensations
@@ -139,6 +139,25 @@
 	  (let ((C-head (memblock&tail-head C C-tail)))
 	    (utf8->string (memblock->bytevector C-head))))))
     => "ciao")
+
+  #t)
+
+
+(parametrise ((check-test-name	'buffered))
+
+  (check
+      (let ((ctx	(iconv-open/c (iconv-encoding UTF-16)
+				      (iconv-encoding UTF-8)))
+	    (buffer	(membuffer)))
+	(iconv-membuffer! ctx buffer (string->memblock/c "verde "))
+	(iconv-membuffer! ctx buffer (string->memblock/c "bianco "))
+	(iconv-membuffer! ctx buffer (string->memblock/c "rosso"))
+	(iconv-membuffer! ctx buffer)
+	(let* ((block	(malloc-memblock/c 256))
+	       (len	(membuffer-pop-memblock! buffer block))
+	       (bv	(memblock->bytevector block len)))
+	    (utf16->string bv (if words-bigendian 'big 'little))))
+    => "verde bianco rosso")
 
   #t)
 

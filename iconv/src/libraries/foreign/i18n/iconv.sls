@@ -29,6 +29,7 @@
   (export
     iconv-open			iconv-close
     iconv!			iconv-context?
+    iconv-membuffer!
     enum-iconv-encoding		iconv-encoding
     iconv-encoding-universe
     iconv-encoding-aliases?	iconv-encoding=?)

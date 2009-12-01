@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Fri Nov 27, 2009
+;;;Date: Tue Dec  1, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -27,11 +27,14 @@
 
 (library
   (foreign i18n iconv sizeof)
-  (export iconv_t)
+  (export ICONV_SHARED_OBJECT iconv_t)
   (import
     (rnrs)
     (foreign ffi)
     (foreign ffi sizeof))
+  (define
+    ICONV_SHARED_OBJECT
+    "@ICONV_SHARED_OBJECT@")
   (define iconv_t 'pointer))
 
 

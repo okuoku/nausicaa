@@ -26,13 +26,14 @@
 
 
 (library (foreign i18n iconv primitives)
-  (export iconv-open iconv! iconv-close iconv-context?)
+  (export iconv-open iconv! iconv-close iconv-context?
+	  iconv-membuffer!)
   (import (rnrs)
     (compensations)
     (receive)
     (only (foreign cstrings) string->cstring/c)
-    (only (foreign memory) malloc-small/c)
-    (foreign memory memblocks)
+    (foreign memory)
+    (foreign memory membuffers)
     (foreign errno)
     (only (foreign ffi pointers) pointer->integer)
     (only (foreign ffi peekers-and-pokers)
@@ -107,6 +108,19 @@
 	  (if (= -1 code)
 	      (raise-errno-error 'iconv errno context)
 	    code)))))))
+
+(define iconv-membuffer!
+  (case-lambda
+   ((ctx buffer)
+    (iconv-membuffer! ctx buffer (memblock-null)))
+   ((ctx buffer in-block)
+    (with-compensations
+      (let* ((in-tail	(memblock-shallow-clone in-block))
+	     (ou	(malloc-memblock/c 1024))
+	     (ou-tail	(memblock-shallow-clone ou)))
+	(iconv! ctx ou-tail in-tail)
+	(let ((ou-head	(memblock&tail-head ou ou-tail)))
+	  (membuffer-push-memblock! buffer ou-head)))))))
 
 
 ;;;; done
