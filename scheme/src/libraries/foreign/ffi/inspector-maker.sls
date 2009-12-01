@@ -32,6 +32,7 @@
     sizeof-lib			sizeof-lib-write
     sizeof-lib-exports
     autoconf-lib		autoconf-lib-write
+    define-shared-object
 
     ;; inspection
     define-c-defines		define-c-string-defines
@@ -129,6 +130,28 @@
 	(display strout port)
 	(display "\n\n;;; end of file\n" port)
 	(close-port port)))))
+
+
+;;;; shared library
+
+(define-syntax define-shared-object
+  (syntax-rules ()
+    ((_ ?name ?default-library-name)
+     (%define-shared-object (quote ?name) (quote ?default-library-name)))))
+
+(define (%define-shared-object name default-library-name)
+  (let* ((name		(symbol->string name))
+	 (upname	(string-upcase name))
+	 (dnname	(string-downcase name))
+	 (tiname	(string-titlecase name))
+	 (varname	(format "~a_SHARED_OBJECT" upname))
+	 (varname-sym	(string->symbol varname)))
+    (autoconf-lib (format "NAU_DS_WITH_OPTION([~a],[~a-shared-object],[~a],
+  [~a shared library file],[select ~a shared library file])"
+		    varname dnname default-library-name tiname tiname))
+    (let ((at-symbol (string->symbol (format "\"^~a^\"" varname))))
+      (%sizeof-lib `((define ,varname-sym ,at-symbol)))
+      (%sizeof-lib-exports varname-sym))))
 
 
 ;;;; enumerations
