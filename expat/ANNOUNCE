@@ -1,0 +1,52 @@
+To: comp.lang.scheme
+Subject: [announce] Nausicaa/Expat --- tag 0.1b1
+
+		       Nausicaa/Expat
+		       ==============
+
+Nausicaa/Expat This  package is a  distribution of libraries
+for  R6RS Scheme implementations;  it provides  bindings for
+the Expat XML parser library.
+
+  It  is  built  upon  Nausicaa/Scheme, making  use  of  its
+foreign  functions interface; it  supports Ikarus,  Mosh and
+Ypsilon  Scheme  and it  currently  supports only  GNU+Linux
+systems.
+
+  The  latest  release  of  the  Nausicaa/Expat  package  is
+available at:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+the documentation is available on line:
+
+    <http://marcomaggi.github.com/docs/nausicaa-expat.html>
+
+Expat is available at:
+
+	      <http://expat.sourceforge.net/>
+
+
+Notes for --- 0.1b1
+------------------------------
+
+* Tested with Expat version 2.0.1.
+
+* Does not work  on Mosh because of Mosh  bug with callbacks
+  (reported upstream).
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:

@@ -17,18 +17,14 @@ Topics
 1. Introduction
 ---------------
 
-This is  a binding  between the Expat  library and  the R6RS
-Scheme implementations.   It is built  upon Nausicaa/Scheme.
-Expat is  a C  library for parsing  XML documents;  it's the
-underlying XML  parser for the open  source Mozilla project,
-Perl's  XML::Parser, Python's  xml.parsers.expat,  and other
-open-source XML parsers.
+This package is a  distribution of libraries for R6RS Scheme
+implementations;  it  provides bindings  for  the Expat  XML
+parser library.
 
-  Unfortunately,  Expat   makes  heavy  usage   of  callback
-functions  and  currently  the  Nausicaa  foreign  functions
-interface  does  not support  callbacks  when running  under
-Larceny Scheme; so the only supported Scheme implementations
-are Ikarus, Mosh and Ypsilon.
+  It  is  built  upon  Nausicaa/Scheme, making  use  of  its
+foreign  functions interface; it  supports Ikarus,  Mosh and
+Ypsilon  Scheme  and it  currently  supports only  GNU+Linux
+systems.
 
   The  last   time  the  author  bothered   to  update  this
 paragraph, he had tested Expat version 2.0.1.
@@ -37,7 +33,7 @@ paragraph, he had tested Expat version 2.0.1.
 2. License
 ----------
 
-Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 
 This  program  is free  software:  you  can redistribute  it
 and/or modify it  under the terms of the  GNU General Public
@@ -109,11 +105,7 @@ tracker at Nausicaa's GitHub site.
 C. Resources
 ------------
 
-Expat can be found here:
-
-	      <http://expat.sourceforge.net/>
-
-  The latest version of this package can be downloaded from:
+The latest version of this package can be downloaded from:
 
      <http://github.com/marcomaggi/nausicaa/downloads>
 
@@ -124,6 +116,10 @@ the home page of the Nausicaa project is at:
 development takes place at:
 
     <http://github.com/marcomaggi/nausicaa/tree/master>
+
+Expat can be found here:
+
+	      <http://expat.sourceforge.net/>
 
 
 ### end of file
