@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Expat
-;;;Contents: interface to Expat for R6RS Scheme
-;;;Date: Sat Jan  3, 2009
+;;;Contents: Expat primitives
+;;;Date: Tue Dec  1, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -24,12 +25,19 @@
 ;;;
 
 
-(library (foreign xml expat)
-  (export
-    )
+(library (foreign xml expat primitives)
+  (export)
   (import (rnrs)
-    (foreign ffi)
-    (foreign xml expat primitives)
-    (foreign xml expat sizeof)))
+    (foreign xml expat platform)
+    (foreign xml expat sizeof))
+
+
+;;;; code
+
+
+
+;;;; done
+
+)
 
 ;;; end of file

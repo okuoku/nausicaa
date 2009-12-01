@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/Expat
-;;;Contents: compile script for Ikarus
+;;;Contents: compile script for Ikarus Scheme
 ;;;Date: Sat Jan  3, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,7 +24,8 @@
 ;;;
 
 (import
-  (only (foreign expat))
+  (only (foreign xml expat))
+  (only (foreign xml expat compensated))
   )
 
 ;;; end of file

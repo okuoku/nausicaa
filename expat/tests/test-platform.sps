@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,9 +26,9 @@
 
 (import (nausicaa)
   (only (foreign ffi)
-	make-c-callback)
-  (foreign expat platform)
-  (foreign expat sizeof)
+	make-c-callback*)
+  (foreign xml expat platform)
+  (foreign xml expat sizeof)
   (checks)
   (debugging)
   (compensations)
@@ -76,8 +76,8 @@
 	    (let ((element	(cstring->string element)))
 	      (debug "end ~s - ~s" element data)))
 
-	  (let ((start	(make-c-callback void start-callback (pointer pointer pointer)))
-		(end	(make-c-callback void end-callback   (pointer pointer))))
+	  (let ((start	(make-c-callback* void start-callback (pointer pointer pointer)))
+		(end	(make-c-callback* void end-callback   (pointer pointer))))
 	    (XML_SetElementHandler parser start end)
 	    (let* ((buflen	(string-length xml-1))
 		   (bufptr	(string->cstring/c xml-1))

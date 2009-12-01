@@ -7,7 +7,7 @@ dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it  under the terms of the  GNU General Public
@@ -31,8 +31,8 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-expat],[0.1d0],[marcomaggi@gna.org])
-DS_BEGIN([./src/libraries/foreign/expat.sls])
+AC_INIT([nausicaa-expat],[0.1d0],[marco.maggi-ipsu@poste.it])
+DS_BEGIN([./src/libraries/foreign/xml/expat.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
 DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
@@ -50,225 +50,21 @@ NAUSICAA_SIZEOF
 
 dnl page
 dnl --------------------------------------------------------------------
-dnl Helper functions.
+dnl Inspection.
 dnl --------------------------------------------------------------------
 
-AC_DEFUN([NAU_EXPAT_INSPECT_TYPE],
-  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[#include <expat.h>])])
+m4_define([NAUSICAA_CUSTOM_INCLUDES],[
+#include <expat.h>
+])
 
-AC_DEFUN([NAU_EXPAT_INSPECT_STRUCT_TYPE],
-  [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[#f],[#include <expat.h>])])
-
-AC_DEFUN([NAU_EXPAT_INSPECT_FIELD_TYPE],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[#include <expat.h>])])
-
-AC_DEFUN([NAU_EXPAT_ENUM_VALUE],
-  [NAU_EXPAT_VALUEOF_TEST([$1],[$1])])
-
-AC_DEFUN([NAU_EXPAT_DEFINE_VALUE],
-  [NAU_EXPAT_VALUEOF_TEST([$1],[$1])])
-
-AC_DEFUN([NAU_EXPAT_INSPECT_FIELD_TYPE_POINTER],
-  [NAUSICAA_INSPECT_FIELD_TYPE_POINTER([$1],[$2],[$3],[#include <expat.h>])])
-
-dnl --------------------------------------------------------------------
-
-AC_DEFUN([NAU_EXPAT_SIZEOF_TEST],
-  [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[#include <expat.h>])])
-
-AC_DEFUN([NAU_EXPAT_VALUEOF_TEST],
-  [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[#include <expat.h>])])
-
-AC_DEFUN([NAU_EXPAT_OFFSETOF_FIELD_TEST],
-  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[#include <expat.h>])])
-
-AC_DEFUN([NAU_EXPAT_STRUCT_FIELD],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],,[#include <expat.h>])])
-
-dnl page
-dnl --------------------------------------------------------------------
-dnl Type definitions.
-dnl --------------------------------------------------------------------
-
-NAU_EXPAT_INSPECT_TYPE([XML_CHAR],[XML_Char],[signed-int])
-NAU_EXPAT_INSPECT_TYPE([XML_LCHAR],[XML_Char],[signed-int])
-
-NAU_EXPAT_INSPECT_TYPE([XML_BOOL],[XML_Bool],[signed-int])
-NAU_EXPAT_INSPECT_TYPE([XML_STATUS],[enum XML_Status],[signed-int])
-NAU_EXPAT_INSPECT_TYPE([XML_ERROR],[enum XML_Error],[signed-int])
-NAU_EXPAT_INSPECT_TYPE([XML_CONTENT_TYPE],[enum XML_Content_Type],[signed-int])
-NAU_EXPAT_INSPECT_TYPE([XML_CONTENT_QUANT],[enum XML_Content_Quant],[signed-int])
-NAU_EXPAT_INSPECT_TYPE([XML_FEATURE_ENUM],[enum XML_FeatureEnum],[signed-int])
-NAU_EXPAT_INSPECT_TYPE([XML_INDEX],[XML_Index],[signed-int])
-NAU_EXPAT_INSPECT_TYPE([XML_PARSING],[enum XML_Parsing],[signed-int])
-NAU_EXPAT_INSPECT_TYPE([XML_PARAM_ENTITY_PARSING],[enum XML_ParamEntityParsing],[signed-int])
-NAU_EXPAT_INSPECT_TYPE([XML_SIZE],[XML_Size],[unsigned-int])
-
-dnl page
-dnl --------------------------------------------------------------------
-dnl Data structures inspection.
-dnl --------------------------------------------------------------------
-
-dnl Structure "XML_Content" == "struct XML_cp".
-NAU_EXPAT_INSPECT_STRUCT_TYPE([XML_CONTENT],[XML_Content])
-
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_CONTENT_TYPE],
-  [struct XML_cp],[type],[signed-int])
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_CONTENT_QUANT],
-  [struct XML_cp],[quant],[signed-int])
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_CONTENT_NAME],
-  [struct XML_cp],[name],[pointer])
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_CONTENT_NUMCHILDREN],
-  [struct XML_cp],[numchildren],[unsigned-int])
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_CONTENT_CHILDREN],
-  [struct XML_cp],[children],[pointer])
-
-dnl Structure "XML_Encoding".
-NAU_EXPAT_INSPECT_STRUCT_TYPE([XML_ENCODING],[XML_Encoding])
-
-NAU_EXPAT_INSPECT_FIELD_TYPE_POINTER([STRUCT_XML_ENCODING_MAP],
-  [XML_Encoding],[map])
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_ENCODING_DATA],
-  [XML_Encoding],[data],[pointer])
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_ENCODING_CONVERT],
-  [XML_Encoding],[convert],[pointer])
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_ENCODING_RELEASE],
-  [XML_Encoding],[release],[pointer])
-
-dnl Structure "XML_ParsingStatus".
-NAU_EXPAT_INSPECT_STRUCT_TYPE([XML_PARSING_STATUS],[XML_ParsingStatus])
-
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_PARSING_STATUS_PARSING],
-  [XML_ParsingStatus],[parsing],[pointer])
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_PARSING_STATUS_FINAL_BUFFER],
-  [XML_ParsingStatus],[finalBuffer],[signed-int])
-
-dnl Structure "XML_Expat_Version".
-NAU_EXPAT_INSPECT_STRUCT_TYPE([XML_EXPAT_VERSION],[XML_Expat_Version])
-
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_EXPAT_VERSION_MAJOR],
-  [XML_Expat_Version],[major],[signed-int])
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_EXPAT_VERSION_MINOR],
-  [XML_Expat_Version],[minor],[signed-int])
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_EXPAT_VERSION_MICRO],
-  [XML_Expat_Version],[micro],[signed-int])
-
-dnl Structure "XML_Feature".
-NAU_EXPAT_INSPECT_STRUCT_TYPE([XML_FEATURE],[XML_Feature])
-
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_FEATURE_FEATURE],
-  [XML_Feature],[feature],[signed-int])
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_FEATURE_NAME],
-  [XML_Feature],[name],[pointer])
-NAU_EXPAT_INSPECT_FIELD_TYPE([STRUCT_XML_FEATURE_VALUE],
-  [XML_Feature],[value],[signed-int])
-
-
-dnl page
-dnl --------------------------------------------------------------------
-dnl Constants.
-dnl --------------------------------------------------------------------
-
-dnl Values for "XML_Bool".
-NAU_EXPAT_ENUM_VALUE([XML_TRUE])
-NAU_EXPAT_ENUM_VALUE([XML_FALSE])
-
-dnl Values for the "XML_Status" enumeration.
-NAU_EXPAT_ENUM_VALUE([XML_STATUS_ERROR])
-NAU_EXPAT_ENUM_VALUE([XML_STATUS_OK])
-NAU_EXPAT_ENUM_VALUE([XML_STATUS_SUSPENDED])
-
-dnl Values for the "XML_Error" enumeration.
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_NONE])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_NO_MEMORY])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_SYNTAX])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_NO_ELEMENTS])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_INVALID_TOKEN])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_UNCLOSED_TOKEN])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_PARTIAL_CHAR])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_TAG_MISMATCH])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_DUPLICATE_ATTRIBUTE])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_JUNK_AFTER_DOC_ELEMENT])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_PARAM_ENTITY_REF])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_UNDEFINED_ENTITY])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_RECURSIVE_ENTITY_REF])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_ASYNC_ENTITY])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_BAD_CHAR_REF])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_BINARY_ENTITY_REF])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_ATTRIBUTE_EXTERNAL_ENTITY_REF])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_MISPLACED_XML_PI])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_UNKNOWN_ENCODING])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_INCORRECT_ENCODING])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_UNCLOSED_CDATA_SECTION])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_EXTERNAL_ENTITY_HANDLING])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_NOT_STANDALONE])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_UNEXPECTED_STATE])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_ENTITY_DECLARED_IN_PE])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_FEATURE_REQUIRES_XML_DTD])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_CANT_CHANGE_FEATURE_ONCE_PARSING])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_UNBOUND_PREFIX])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_UNDECLARING_PREFIX])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_INCOMPLETE_PE])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_XML_DECL])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_TEXT_DECL])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_PUBLICID])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_SUSPENDED])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_NOT_SUSPENDED])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_ABORTED])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_FINISHED])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_SUSPEND_PE])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_RESERVED_PREFIX_XML])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_RESERVED_PREFIX_XMLNS])
-NAU_EXPAT_ENUM_VALUE([XML_ERROR_RESERVED_NAMESPACE_URI])
-
-dnl Values for the "XML_Content_Type" enumeration.
-NAU_EXPAT_ENUM_VALUE([XML_CTYPE_EMPTY])
-NAU_EXPAT_ENUM_VALUE([XML_CTYPE_ANY])
-NAU_EXPAT_ENUM_VALUE([XML_CTYPE_MIXED])
-NAU_EXPAT_ENUM_VALUE([XML_CTYPE_NAME])
-NAU_EXPAT_ENUM_VALUE([XML_CTYPE_CHOICE])
-NAU_EXPAT_ENUM_VALUE([XML_CTYPE_SEQ])
-
-dnl Values for the "XML_Content_Quant" enumeration.
-NAU_EXPAT_ENUM_VALUE([XML_CQUANT_NONE])
-NAU_EXPAT_ENUM_VALUE([XML_CQUANT_OPT])
-NAU_EXPAT_ENUM_VALUE([XML_CQUANT_REP])
-NAU_EXPAT_ENUM_VALUE([XML_CQUANT_PLUS])
-
-dnl Values for the "XML_Parsing" enumeration.
-NAU_EXPAT_ENUM_VALUE([XML_INITIALIZED])
-NAU_EXPAT_ENUM_VALUE([XML_PARSING])
-NAU_EXPAT_ENUM_VALUE([XML_FINISHED])
-NAU_EXPAT_ENUM_VALUE([XML_SUSPENDED])
-
-dnl Values for the "XML_ParamEntityParsing" enumeration.
-NAU_EXPAT_ENUM_VALUE([XML_PARAM_ENTITY_PARSING_NEVER])
-NAU_EXPAT_ENUM_VALUE([XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE])
-NAU_EXPAT_ENUM_VALUE([XML_PARAM_ENTITY_PARSING_ALWAYS])
-
-dnl Version numbers.
-NAU_EXPAT_ENUM_VALUE([XML_MAJOR_VERSION])
-NAU_EXPAT_ENUM_VALUE([XML_MINOR_VERSION])
-NAU_EXPAT_ENUM_VALUE([XML_MICRO_VERSION])
-
-dnl Values for the "XML_FeatureEnum" enumeration.
-NAU_EXPAT_ENUM_VALUE([XML_FEATURE_END])
-NAU_EXPAT_ENUM_VALUE([XML_FEATURE_UNICODE])
-NAU_EXPAT_ENUM_VALUE([XML_FEATURE_UNICODE_WCHAR_T])
-NAU_EXPAT_ENUM_VALUE([XML_FEATURE_DTD])
-NAU_EXPAT_ENUM_VALUE([XML_FEATURE_CONTEXT_BYTES])
-NAU_EXPAT_ENUM_VALUE([XML_FEATURE_MIN_SIZE])
-NAU_EXPAT_ENUM_VALUE([XML_FEATURE_SIZEOF_XML_CHAR])
-NAU_EXPAT_ENUM_VALUE([XML_FEATURE_SIZEOF_XML_LCHAR])
-NAU_EXPAT_ENUM_VALUE([XML_FEATURE_NS])
-NAU_EXPAT_ENUM_VALUE([XML_FEATURE_LARGE_SIZE])
+m4_include(configuration/expat-inspector.m4)
 
 dnl page
 dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../src/libraries/foreign/expat/sizeof.sls:src/libraries/foreign/expat/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/foreign/xml/expat/sizeof.sls:src/libraries/foreign/xml/expat/sizeof.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END

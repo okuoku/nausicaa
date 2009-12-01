@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
-;;;Part of: Nausicaa/Expat
-;;;Contents: interface to Expat for R6RS Scheme
-;;;Date: Sat Jan  3, 2009
+;;;Part of: Nausicaa/Scheme
+;;;Contents: shared object loading
+;;;Date: Tue Dec  1, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -24,12 +25,12 @@
 ;;;
 
 
-(library (foreign xml expat)
-  (export
-    )
+(library (foreign xml expat shared-object)
+  (export expat-shared-object)
   (import (rnrs)
     (foreign ffi)
-    (foreign xml expat primitives)
-    (foreign xml expat sizeof)))
+    (foreign xml expat sizeof))
+  (define-shared-object expat-shared-object
+    EXPAT_SHARED_OBJECT))
 
 ;;; end of file
