@@ -1,13 +1,14 @@
+;;; (foreign uuid sizeof) --
 ;;;
-;;;Part of: Nausicaa/UUID
-;;;Contents: data types inspection for OSSP UUID
-;;;Date: Tue Oct 27, 2009
+;;;Part of: Nausicaa
+;;;Contents: foreign library inspection generation
+;;;Date: Wed Dec  2, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,100 +24,92 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
-(library (foreign uuid sizeof)
-  (export
 
-    ;; type inspection
+(library
+  (foreign uuid sizeof)
+  (export
     uuid_rc_t
     sizeof-uuid_rc_t
-    strideof-uuid_rc_t
     alignof-uuid_rc_t
-
+    strideof-uuid_rc_t
+    pointer-set-c-uuid_rc_t!
+    pointer-ref-c-uuid_rc_t
     uuid_fmt_t
     sizeof-uuid_fmt_t
-    strideof-uuid_fmt_t
     alignof-uuid_fmt_t
-
+    strideof-uuid_fmt_t
+    pointer-set-c-uuid_fmt_t!
+    pointer-ref-c-uuid_fmt_t
+    uuid_t
     UUID_VERSION
-
-    ;; encoding octet stream lengths
     UUID_LEN_BIN
     UUID_LEN_STR
     UUID_LEN_SIV
-
-    ;; enum uuid_rc_t
     UUID_RC_OK
     UUID_RC_ARG
     UUID_RC_MEM
     UUID_RC_SYS
     UUID_RC_INT
     UUID_RC_IMP
-
-    ;; UUID make modes
     UUID_MAKE_V1
     UUID_MAKE_V3
     UUID_MAKE_V4
     UUID_MAKE_V5
     UUID_MAKE_MC
-
-    ;; enum uuid_fmt_t
     UUID_FMT_BIN
     UUID_FMT_STR
     UUID_FMT_SIV
-    UUID_FMT_TXT)
-  (import (rnrs)
-    (foreign ffi sizeof)
-    (foreign ffi))
+    UUID_FMT_TXT
+    UUID_SHARED_OBJECT)
+  (import
+    (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof))
+  (define uuid_rc_t '@TYPEOF_UUID_RC_T@)
+  (define sizeof-uuid_rc_t @SIZEOF_UUID_RC_T@)
+  (define alignof-uuid_rc_t @ALIGNOF_UUID_RC_T@)
+  (define strideof-uuid_rc_t @STRIDEOF_UUID_RC_T@)
+  (define
+    pointer-set-c-uuid_rc_t!
+    @GETTEROF_UUID_RC_T@)
+  (define
+    pointer-ref-c-uuid_rc_t
+    @SETTEROF_UUID_RC_T@)
+  (define uuid_fmt_t '@TYPEOF_UUID_FMT_T@)
+  (define sizeof-uuid_fmt_t @SIZEOF_UUID_FMT_T@)
+  (define alignof-uuid_fmt_t @ALIGNOF_UUID_FMT_T@)
+  (define
+    strideof-uuid_fmt_t
+    @STRIDEOF_UUID_FMT_T@)
+  (define
+    pointer-set-c-uuid_fmt_t!
+    @GETTEROF_UUID_FMT_T@)
+  (define
+    pointer-ref-c-uuid_fmt_t
+    @SETTEROF_UUID_FMT_T@)
+  (define uuid_t 'pointer)
+  (define UUID_VERSION @VALUEOF_UUID_VERSION@)
+  (define UUID_LEN_BIN @VALUEOF_UUID_LEN_BIN@)
+  (define UUID_LEN_STR @VALUEOF_UUID_LEN_STR@)
+  (define UUID_LEN_SIV @VALUEOF_UUID_LEN_SIV@)
+  (define UUID_RC_OK @VALUEOF_UUID_RC_OK@)
+  (define UUID_RC_ARG @VALUEOF_UUID_RC_ARG@)
+  (define UUID_RC_MEM @VALUEOF_UUID_RC_MEM@)
+  (define UUID_RC_SYS @VALUEOF_UUID_RC_SYS@)
+  (define UUID_RC_INT @VALUEOF_UUID_RC_INT@)
+  (define UUID_RC_IMP @VALUEOF_UUID_RC_IMP@)
+  (define UUID_MAKE_V1 @VALUEOF_UUID_MAKE_V1@)
+  (define UUID_MAKE_V3 @VALUEOF_UUID_MAKE_V3@)
+  (define UUID_MAKE_V4 @VALUEOF_UUID_MAKE_V4@)
+  (define UUID_MAKE_V5 @VALUEOF_UUID_MAKE_V5@)
+  (define UUID_MAKE_MC @VALUEOF_UUID_MAKE_MC@)
+  (define UUID_FMT_BIN @VALUEOF_UUID_FMT_BIN@)
+  (define UUID_FMT_STR @VALUEOF_UUID_FMT_STR@)
+  (define UUID_FMT_SIV @VALUEOF_UUID_FMT_SIV@)
+  (define UUID_FMT_TXT @VALUEOF_UUID_FMT_TXT@)
+  (define
+    UUID_SHARED_OBJECT
+    "@UUID_SHARED_OBJECT@"))
 
-
-
-;;;; data types inspection
-
-(define uuid_rc_t			(quote @TYPEOF_UUID_RC@))
-(define sizeof-uuid_rc_t		@SIZEOF_UUID_RC@)
-(define strideof-uuid_rc_t		@STRIDEOF_UUID_RC@)
-(define alignof-uuid_rc_t		@ALIGNOF_UUID_RC@)
-
-(define uuid_fmt_t			(quote @TYPEOF_UUID_FMT@))
-(define sizeof-uuid_fmt_t		@SIZEOF_UUID_FMT@)
-(define strideof-uuid_fmt_t		@STRIDEOF_UUID_FMT@)
-(define alignof-uuid_fmt_t		@ALIGNOF_UUID_FMT@)
-
-
-;;;; constants
-
-(define UUID_VERSION		@VALUEOF_UUID_VERSION@)
-
-;;; encoding octet stream lengths
-(define UUID_LEN_BIN		@VALUEOF_UUID_LEN_BIN@)
-(define UUID_LEN_STR		@VALUEOF_UUID_LEN_STR@)
-(define UUID_LEN_SIV		@VALUEOF_UUID_LEN_SIV@)
-
-;;; enum uuid_rc_t
-(define UUID_RC_OK		@VALUEOF_UUID_RC_OK@)
-(define UUID_RC_ARG		@VALUEOF_UUID_RC_ARG@)
-(define UUID_RC_MEM		@VALUEOF_UUID_RC_MEM@)
-(define UUID_RC_SYS		@VALUEOF_UUID_RC_SYS@)
-(define UUID_RC_INT		@VALUEOF_UUID_RC_INT@)
-(define UUID_RC_IMP		@VALUEOF_UUID_RC_IMP@)
-
-;;; UUID make modes
-(define UUID_MAKE_V1		@VALUEOF_UUID_MAKE_V1@)
-(define UUID_MAKE_V3		@VALUEOF_UUID_MAKE_V3@)
-(define UUID_MAKE_V4		@VALUEOF_UUID_MAKE_V4@)
-(define UUID_MAKE_V5		@VALUEOF_UUID_MAKE_V5@)
-(define UUID_MAKE_MC		@VALUEOF_UUID_MAKE_MC@)
-
-;;; enum uuid_fmt_t
-(define UUID_FMT_BIN		@VALUEOF_UUID_FMT_BIN@)
-(define UUID_FMT_STR		@VALUEOF_UUID_FMT_STR@)
-(define UUID_FMT_SIV		@VALUEOF_UUID_FMT_SIV@)
-(define UUID_FMT_TXT		@VALUEOF_UUID_FMT_TXT@)
-
-
-;;;; done
-
-)
 
 ;;; end of file

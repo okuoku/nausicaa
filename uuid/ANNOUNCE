@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/UUID 2009-11-08 tag 0.1b0
+Subject: [announce] Nausicaa/UUID 2009-12-02 tag 0.1b1
 
 		       Nausicaa/UUID
 		       =============
@@ -39,6 +39,14 @@ the documentation is available on line:
 
 	    <http://www.ossp.org/pkg/lib/uuid/>
 	     <ftp://ftp.ossp.org/pkg/lib/uuid/>
+
+
+Notes for 2009-12-02 tag 0.1b1
+------------------------------
+
+* Updated to Nausicaa/Scheme version 0.1a7.
+
+* Split compensated constructor in a separate library.
 
 
 Notes for 2009-11-08 tag 0.1b0

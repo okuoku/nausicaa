@@ -408,7 +408,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
 @c email of the *single* author of this document.
-@set AUTHOR_EMAIL               @email{marcomaggi@@gna.org}
+@set AUTHOR_EMAIL               @email{marco.maggi-ipsu@@poste.it}
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
@@ -560,11 +560,14 @@ the foreign ones, but with underscores turned into dashes; so
 @cfunc{uuid_create} is available as @func{uuid-create}.
 
 @item foreign uuid
-Exports the high level @api{}: all the bindings from @library{foreign
-uuid sizeof} and @library{foreign uuid primitives}; additionally
-bindings for constructors and destructors making use of the
+Exports the high level @api{}: all the bindings to constants from
+@library{foreign uuid sizeof} and all the bindings from @library{foreign
+uuid primitives}.
+
+@item foreign uuid compensated
+Exports bindings for constructors and destructors making use of the
 @library{compensations} library.  @nauref{compensations, Compensation
-stacks}
+stacks}.
 @end table
 
 @c page
@@ -804,6 +807,7 @@ Usage examples follow:
 (import (rnrs)
   (compensations)
   (foreign uuid)
+  (foreign uuid compensated)
   (foreign cstrings))
 
 ;; import and export

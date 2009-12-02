@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,38 +28,23 @@
 (library (foreign uuid)
   (export
     ;; UUID object handling
-    uuid-create			uuid-create/c
-    uuid-destroy
-    uuid-clone			uuid-clone/c
+    uuid-create			uuid-destroy
+    uuid-clone
 
     ;; UUID generation
-    uuid-load			uuid-load/c
-    uuid-make			uuid-make/c
+    uuid-load			uuid-make
 
     ;; UUID comparison
-    uuid-isnil?
-    uuid-compare
+    uuid-isnil?			uuid-compare
     uuid-equal?
 
     ;; UUID import/export
-    uuid-import			uuid-import/c
-    uuid-export
+    uuid-import			uuid-export
 
     ;; library utilities
-    uuid-error
-    uuid-version
+    uuid-error			uuid-version
 
-    ;; type inspection
-    uuid_rc_t
-    sizeof-uuid_rc_t
-    strideof-uuid_rc_t
-    alignof-uuid_rc_t
-
-    uuid_fmt_t
-    sizeof-uuid_fmt_t
-    strideof-uuid_fmt_t
-    alignof-uuid_fmt_t
-
+    ;; version number
     UUID_VERSION
 
     ;; encoding octet stream lengths
@@ -88,30 +73,7 @@
     UUID_FMT_SIV
     UUID_FMT_TXT)
   (import (rnrs)
-    (compensations)
     (foreign uuid primitives)
-    (foreign uuid sizeof))
-
-
-(define-syntax define-compensated
-  (syntax-rules ()
-    ((_ ?name ?func)
-     (define (?name . args)
-       (letrec ((uuid (compensate
-			  (apply ?func args)
-			(with
-			 (uuid-destroy)))))
-	 uuid)))))
-
-(define-compensated uuid-create/c	uuid-create)
-(define-compensated uuid-clone/c	uuid-clone)
-(define-compensated uuid-load/c		uuid-load)
-(define-compensated uuid-make/c		uuid-make)
-(define-compensated uuid-import/c	uuid-import)
-
-
-;;;; done
-
-)
+    (foreign uuid sizeof)))
 
 ;;; end of file

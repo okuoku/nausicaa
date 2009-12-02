@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/UUID
-;;;Contents: compile script for Mosh Scheme
-;;;Date: Tue Oct 27, 2009
+;;;Contents: compensated constructors
+;;;Date: Wed Dec  2, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,9 +24,29 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-    (only (foreign uuid))
-    (only (foreign uuid compensated))
-  )
+
+(library (foreign uuid compensated)
+  (export
+    uuid-create/c uuid-clone/c uuid-load/c uuid-make/c
+    uuid-import/c)
+  (import (rnrs)
+    (compensations)
+    (foreign uuid))
+
+  (define-syntax define-compensated
+    (syntax-rules ()
+      ((_ ?name ?func)
+       (define (?name . args)
+	 (letrec ((uuid (compensate
+			    (apply ?func args)
+			  (with
+			   (uuid-destroy)))))
+	   uuid)))))
+
+  (define-compensated uuid-create/c	uuid-create)
+  (define-compensated uuid-clone/c	uuid-clone)
+  (define-compensated uuid-load/c	uuid-load)
+  (define-compensated uuid-make/c	uuid-make)
+  (define-compensated uuid-import/c	uuid-import))
 
 ;;; end of file

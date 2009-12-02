@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,9 +28,9 @@
 (library (foreign uuid shared-object)
   (export ossp-uuid-shared-object)
   (import (rnrs)
-    (foreign ffi))
-
-  (define ossp-uuid-shared-object
-    (open-shared-object 'libuuid.so)))
+    (foreign ffi)
+    (foreign uuid sizeof))
+  (define-shared-object ossp-uuid-shared-object
+    UUID_SHARED_OBJECT))
 
 ;;; end of file
