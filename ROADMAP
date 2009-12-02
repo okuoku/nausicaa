@@ -12,7 +12,11 @@ Weekly library program
 2009-11-08	Nausicaa/UUID		*** DONE
 2009-11-15	Nausicaa/SQLite		*** DONE
 2009-11-27	Nausicaa/cURL		*** DONE (late)
-2009-11-29	Nausicaa/Iconv
+2009-12-02	Nausicaa/Iconv		*** DONE (late)
+2009-12-06	Nausicaa/MHD
+2009-12-13
+2009-12-20
+2009-12-27
 
 Nausicaa/Pango - Delayed because it requires Glib.
 

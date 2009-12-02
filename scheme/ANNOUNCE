@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Scheme 2009-12-01 tag 0.1a7
+Subject: [announce] Nausicaa/Scheme 2009-12-02 tag 0.1a7
 
 		      Nausicaa/Scheme
 		      ===============
@@ -40,7 +40,7 @@ the documentation is available on line:
      <http://marcomaggi.github.com/docs/nausicaa.html>
 
 
-Notes for 2009-12-01 tag 0.1a7
+Notes for 2009-12-02 tag 0.1a7
 ------------------------------
 
 * Changed <memblock> fields from immutable to mutable; added

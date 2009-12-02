@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/CURL 2009-12-01 tag 0.1a1
+Subject: [announce] Nausicaa/CURL 2009-12-02 tag 0.1a1
 
 		       Nausicaa/cURL
 		       =============
@@ -39,7 +39,7 @@ cURL is available here:
 		   <http://curl.haxx.se/>
 
 
-Notes for 2009-12-01 tag 0.1a1
+Notes for 2009-12-02 tag 0.1a1
 ------------------------------
 
 * Updated to Nausicaa/Scheme 0.1a7.
