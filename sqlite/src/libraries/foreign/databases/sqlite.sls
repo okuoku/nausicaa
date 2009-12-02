@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -525,49 +525,50 @@
 
 ;;; data structures accessors and mutators
 
-    sqlite3-file-pMethods-set!			sqlite3-file-pMethods-ref
+struct-sqlite3_file-pMethods-set!			struct-sqlite3_file-pMethods-ref
 
-    sqlite3-io-methods-iVersion-set!		sqlite3-io-methods-iVersion-ref
-    sqlite3-io-methods-xClose-set!		sqlite3-io-methods-xClose-ref
-    sqlite3-io-methods-xRead-set!		sqlite3-io-methods-xRead-ref
-    sqlite3-io-methods-xWrite-set!		sqlite3-io-methods-xWrite-ref
-    sqlite3-io-methods-xTruncate-set!		sqlite3-io-methods-xTruncate-ref
-    sqlite3-io-methods-xSync-set!		sqlite3-io-methods-xSync-ref
-    sqlite3-io-methods-xFileSize-set!		sqlite3-io-methods-xFileSize-ref
-    sqlite3-io-methods-xLock-set!		sqlite3-io-methods-xLock-ref
-    sqlite3-io-methods-xUnlock-set!		sqlite3-io-methods-xUnlock-ref
-    sqlite3-io-methods-xCheckReservedLock-set!	sqlite3-io-methods-xCheckReservedLock-ref
-    sqlite3-io-methods-xFileControl-set!	sqlite3-io-methods-xFileControl-ref
-    sqlite3-io-methods-xSectorSize-set!		sqlite3-io-methods-xSectorSize-ref
-    sqlite3-io-methods-xDeviceCharacteristics-set! sqlite3-io-methods-xDeviceCharacteristics-ref
+struct-sqlite3_io_methods-iVersion-set!			struct-sqlite3_io_methods-iVersion-ref
+struct-sqlite3_io_methods-xClose-set!			struct-sqlite3_io_methods-xClose-ref
+struct-sqlite3_io_methods-xRead-set!			struct-sqlite3_io_methods-xRead-ref
+struct-sqlite3_io_methods-xWrite-set!			struct-sqlite3_io_methods-xWrite-ref
+struct-sqlite3_io_methods-xTruncate-set!		struct-sqlite3_io_methods-xTruncate-ref
+struct-sqlite3_io_methods-xSync-set!			struct-sqlite3_io_methods-xSync-ref
+struct-sqlite3_io_methods-xFileSize-set!		struct-sqlite3_io_methods-xFileSize-ref
+struct-sqlite3_io_methods-xLock-set!			struct-sqlite3_io_methods-xLock-ref
+struct-sqlite3_io_methods-xUnlock-set!			struct-sqlite3_io_methods-xUnlock-ref
+struct-sqlite3_io_methods-xCheckReservedLock-set!	struct-sqlite3_io_methods-xCheckReservedLock-ref
+struct-sqlite3_io_methods-xFileControl-set!		struct-sqlite3_io_methods-xFileControl-ref
+struct-sqlite3_io_methods-xSectorSize-set!		struct-sqlite3_io_methods-xSectorSize-ref
+struct-sqlite3_io_methods-xDeviceCharacteristics-set!
+struct-sqlite3_io_methods-xDeviceCharacteristics-ref
 
-    sqlite3-vfs-iVersion-set!			sqlite3-vfs-iVersion-ref
-    sqlite3-vfs-szOsFile-set!			sqlite3-vfs-szOsFile-ref
-    sqlite3-vfs-mxPathname-set!			sqlite3-vfs-mxPathname-ref
-    sqlite3-vfs-pNext-set!			sqlite3-vfs-pNext-ref
-    sqlite3-vfs-zName-set!			sqlite3-vfs-zName-ref
-    sqlite3-vfs-pAppData-set!			sqlite3-vfs-pAppData-ref
-    sqlite3-vfs-xOpen-set!			sqlite3-vfs-xOpen-ref
-    sqlite3-vfs-xDelete-set!			sqlite3-vfs-xDelete-ref
-    sqlite3-vfs-xAccess-set!			sqlite3-vfs-xAccess-ref
-    sqlite3-vfs-xFullPathname-set!		sqlite3-vfs-xFullPathname-ref
-    sqlite3-vfs-xDlOpen-set!			sqlite3-vfs-xDlOpen-ref
-    sqlite3-vfs-xDlError-set!			sqlite3-vfs-xDlError-ref
-    sqlite3-vfs-xDlSym-set!			sqlite3-vfs-xDlSym-ref
-    sqlite3-vfs-xDlClose-set!			sqlite3-vfs-xDlClose-ref
-    sqlite3-vfs-xRandomness-set!		sqlite3-vfs-xRandomness-ref
-    sqlite3-vfs-xSleep-set!			sqlite3-vfs-xSleep-ref
-    sqlite3-vfs-xCurrentTime-set!		sqlite3-vfs-xCurrentTime-ref
-    sqlite3-vfs-xGetLastError-set!		sqlite3-vfs-xGetLastError-ref
+struct-sqlite3_vfs-iVersion-set!		struct-sqlite3_vfs-iVersion-ref
+struct-sqlite3_vfs-szOsFile-set!		struct-sqlite3_vfs-szOsFile-ref
+struct-sqlite3_vfs-mxPathname-set!		struct-sqlite3_vfs-mxPathname-ref
+struct-sqlite3_vfs-pNext-set!			struct-sqlite3_vfs-pNext-ref
+struct-sqlite3_vfs-zName-set!			struct-sqlite3_vfs-zName-ref
+struct-sqlite3_vfs-pAppData-set!		struct-sqlite3_vfs-pAppData-ref
+struct-sqlite3_vfs-xOpen-set!			struct-sqlite3_vfs-xOpen-ref
+struct-sqlite3_vfs-xDelete-set!			struct-sqlite3_vfs-xDelete-ref
+struct-sqlite3_vfs-xAccess-set!			struct-sqlite3_vfs-xAccess-ref
+struct-sqlite3_vfs-xFullPathname-set!		struct-sqlite3_vfs-xFullPathname-ref
+struct-sqlite3_vfs-xDlOpen-set!			struct-sqlite3_vfs-xDlOpen-ref
+struct-sqlite3_vfs-xDlError-set!		struct-sqlite3_vfs-xDlError-ref
+struct-sqlite3_vfs-xDlSym-set!			struct-sqlite3_vfs-xDlSym-ref
+struct-sqlite3_vfs-xDlClose-set!		struct-sqlite3_vfs-xDlClose-ref
+struct-sqlite3_vfs-xRandomness-set!		struct-sqlite3_vfs-xRandomness-ref
+struct-sqlite3_vfs-xSleep-set!			struct-sqlite3_vfs-xSleep-ref
+struct-sqlite3_vfs-xCurrentTime-set!		struct-sqlite3_vfs-xCurrentTime-ref
+struct-sqlite3_vfs-xGetLastError-set!		struct-sqlite3_vfs-xGetLastError-ref
 
-    sqlite3-mem-methods-xMalloc-set!		sqlite3-mem-methods-xMalloc-ref
-    sqlite3-mem-methods-xFree-set!		sqlite3-mem-methods-xFree-ref
-    sqlite3-mem-methods-xRealloc-set!		sqlite3-mem-methods-xRealloc-ref
-    sqlite3-mem-methods-xSize-set!		sqlite3-mem-methods-xSize-ref
-    sqlite3-mem-methods-xRoundup-set!		sqlite3-mem-methods-xRoundup-ref
-    sqlite3-mem-methods-xInit-set!		sqlite3-mem-methods-xInit-ref
-    sqlite3-mem-methods-xShutdown-set!		sqlite3-mem-methods-xShutdown-ref
-    sqlite3-mem-methods-pAppData-set!		sqlite3-mem-methods-pAppData-ref
+struct-sqlite3_mem_methods-xMalloc-set!		struct-sqlite3_mem_methods-xMalloc-ref
+struct-sqlite3_mem_methods-xFree-set!		struct-sqlite3_mem_methods-xFree-ref
+struct-sqlite3_mem_methods-xRealloc-set!	struct-sqlite3_mem_methods-xRealloc-ref
+struct-sqlite3_mem_methods-xSize-set!		struct-sqlite3_mem_methods-xSize-ref
+struct-sqlite3_mem_methods-xRoundup-set!	struct-sqlite3_mem_methods-xRoundup-ref
+struct-sqlite3_mem_methods-xInit-set!		struct-sqlite3_mem_methods-xInit-ref
+struct-sqlite3_mem_methods-xShutdown-set!	struct-sqlite3_mem_methods-xShutdown-ref
+struct-sqlite3_mem_methods-pAppData-set!	struct-sqlite3_mem_methods-pAppData-ref
 
 
 ;;;; enumerations
@@ -634,15 +635,6 @@
     (foreign databases sqlite primitives)
     (foreign databases sqlite enumerations)
     (foreign databases sqlite conditions)
-    (foreign databases sqlite sizeof))
-
-
-;;;; code
-
-
-
-;;;; done
-
-)
+    (foreign databases sqlite sizeof)))
 
 ;;; end of file

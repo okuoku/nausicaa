@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/SQLite 2009-11-15 tag 0.1b0
+Subject: [announce] Nausicaa/SQLite 2009-12-02 tag 0.1b1
 
 		      Nausicaa/SQLite
 		      ===============
@@ -10,7 +10,8 @@ SQL  database  engine.  It  is  built upon  Nausicaa/Scheme,
 making  use  of  its  foreign  functions  interface;  so  it
 currently supports only GNU+Linux systems.  The installation
 infrastructure requires a  GNU+Linux system (for details see
-the "README.build" file).
+the  "README.build"  file).   It  suports Ikarus,  Mosh  and
+Ypsilon Scheme.
 
   The  latest  release  of  the Nausicaa/SQLite  package  is
 available at:
@@ -32,6 +33,12 @@ the documentation is available on line:
 SQLite is available at:
 
 		  <http://www.sqlite.org/>
+
+
+Notes for 2009-12-02 tag 0.1b1
+------------------------------
+
+* Updated to Nausicaa/Scheme version 0.1a7.
 
 
 Notes for 2009-11-15 tag 0.1b0

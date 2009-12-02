@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,9 +28,9 @@
 (library (foreign databases sqlite shared-object)
   (export sqlite-shared-object)
   (import (rnrs)
-    (foreign ffi))
-
-  (define sqlite-shared-object
-    (open-shared-object* 'libsqlite3.so)))
+    (foreign ffi)
+    (foreign databases sqlite sizeof))
+  (define-shared-object sqlite-shared-object
+    SQLITE_SHARED_OBJECT))
 
 ;;; end of file

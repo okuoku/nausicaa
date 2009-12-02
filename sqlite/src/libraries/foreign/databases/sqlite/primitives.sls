@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -368,7 +368,7 @@
 
 	(define callback
 	  (if scheme-callback
-	      (make-c-callback int %closure (void* int char** char**))
+	      (make-c-callback* int %closure (void* int char** char**))
 	    pointer-null))
 
 	(let* ((errmsg**	(malloc-small/c))

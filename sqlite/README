@@ -21,7 +21,8 @@ Nausicaa/SQLite  is a  distribution of  librarires  for R6RS
 Scheme  implementations;  it  implements  a binding  to  the
 SQLite   SQL   database    engine.    It   is   built   upon
 Nausicaa/Scheme,  making   use  of  its   foreign  functions
-interface; so it currently supports only GNU+Linux systems.
+interface; so it  currently supports only GNU+Linux systems.
+It suports Ikarus, Mosh and Ypsilon Scheme.
 
   Unfortunately,  SQLite makes use  of callbacks,  which are
 not  supported by  Nausicaa for  Larceny Scheme;  so Larceny
