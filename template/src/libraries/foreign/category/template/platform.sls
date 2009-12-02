@@ -1,6 +1,7 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Template
-;;;Contents: compile script for Ikarus Scheme
+;;;Contents: bindings to foreign functions
 ;;;Date:
 ;;;
 ;;;Abstract
@@ -23,9 +24,22 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (foreign category template))
-  (only (foreign category template compensated))
+
+(library (foreign category template platform)
+  (export template-shared-object)
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof)
+    (foreign category template shared-object)
+    (foreign category template sizeof))
+
+
+(define-c-functions template-shared-object
   )
+
+
+;;;; done
+
+)
 
 ;;; end of file

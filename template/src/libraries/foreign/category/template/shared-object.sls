@@ -1,14 +1,14 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Template
-;;;Contents: compile script for Larceny Scheme
-;;;Date: Thu Dec 25, 2008
+;;;Contents: load foreign shared library
+;;;Date:
 ;;;
 ;;;Abstract
 ;;;
-;;;	Order  does matter!!!  Libraries  that are  imported into  other
-;;;	libraries must be compiled first.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,22 +24,13 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import (rnrs)
-  (larceny compiler))
-
-(compile-library "foreign/template/sizeof.sls"
-		 "foreign/template/sizeof.larceny.slfasl")
-
-(compile-library "foreign/template/shared-object.sls"
-		 "foreign/template/shared-object.larceny.slfasl")
-
-(compile-library "foreign/template/platform.sls"
-		 "foreign/template/platform.larceny.slfasl")
-
-(compile-library "foreign/template/primitives.sls"
-		 "foreign/template/primitives.larceny.slfasl")
-
-(compile-library "foreign/template.sls"
-		 "foreign/template.larceny.slfasl")
+
+(library (foreign category template shared-object)
+  (export template-shared-object)
+  (import (rnrs)
+    (foreign ffi)
+    (foreign category template sizeof))
+  (define-shared-object template-shared-object
+    TEMPLATE_SHARED_OBJECT))
 
 ;;; end of file

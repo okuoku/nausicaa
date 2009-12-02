@@ -1,6 +1,6 @@
 
-	      Template library for R6RS Scheme
-	      ================================
+		     Nausicaa/Template
+		     =================
 
 
 Topics
@@ -8,7 +8,7 @@ Topics
 
   1. Introduction
   2. License
-  4. Install
+  3. Install
   A. Credits
   B. Bug reports
   C. Resources
@@ -17,13 +17,22 @@ Topics
 1. Introduction
 ---------------
 
-This is a Scheme library.
+This package is a  distribution of libraries for R6RS Scheme
+implementations;  it provides  a binding  to the  Template C
+language library.  It  is built upon Nausicaa/Scheme, making
+use of its foreign-functions interface.
+
+  The libraries support Ikarus, Mosh and Ypsilon Scheme; the
+package supports GNU+Linux systems.
+
+  The  last time  the  author has  bothered  to update  this
+paragraph, he had tested Template version X.X.X.
 
 
 2. License
 ----------
 
-Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 
 This  program  is free  software:  you  can redistribute  it
 and/or modify it  under the terms of the  GNU General Public
@@ -100,7 +109,9 @@ development takes place at:
 
     <http://github.com/marcomaggi/nausicaa/tree/master>
 
+Template is available at:
 
+			   <http>
 
 ### end of file
 # Local Variables:

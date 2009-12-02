@@ -8,7 +8,8 @@ set -x
         configure -ot configure.ac                              -o \
         configure -ot aclocal.m4                                -o \
         configure -ot infrastructure/develstuff.autoconf        -o \
-        configure -ot configuration/nausicaa.autoconf
+        configure -ot configuration/nausicaa.autoconf           -o \
+        configure -ot configuration/template-inspector.m4
         then
         autoconf
     fi)
@@ -20,7 +21,7 @@ set -x
     --enable-fasl                               \
     --disable-fasl-larceny                      \
     --enable-ikarus                             \
-    --enable-larceny                            \
+    --disable-larceny                           \
     --enable-mosh                               \
     --enable-ypsilon                            \
     --enable-doc-ps                             \

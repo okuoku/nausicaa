@@ -1,7 +1,9 @@
+;;;!mosh
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Template
-;;;Contents: compile script for Ikarus Scheme
-;;;Date:
+;;;Contents: foreign library inspection generator
+;;;Date: Fri Nov 27, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,9 +25,23 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (foreign category template))
-  (only (foreign category template compensated))
-  )
+
+(import (nausicaa)
+  (foreign ffi inspector-maker))
+
+
+
+(define-c-type-alias template_t		pointer)
+
+
+;;;; done
+
+(define template-library-spec
+  '(foreign category template sizeof))
+
+(define-shared-object template libtemplate.so)
+
+(autoconf-lib-write "configuration/template-inspector.m4" template-library-spec)
+(sizeof-lib-write   "src/libraries/foreign/category/template/sizeof.sls.in" template-library-spec)
 
 ;;; end of file

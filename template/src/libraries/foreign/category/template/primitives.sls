@@ -1,6 +1,7 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Template
-;;;Contents: compile script for Ikarus Scheme
+;;;Contents: primitive functions
 ;;;Date:
 ;;;
 ;;;Abstract
@@ -23,9 +24,23 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (foreign category template))
-  (only (foreign category template compensated))
-  )
+
+(library (foreign category template primitives)
+  (export)
+  (import (rnrs)
+    (compensations)
+    (foreign ffi)
+    (foreign memory)
+    (foreign cstrings)
+    (foreign category template primitives)
+    (foreign category template sizeof))
+
+
+
+
+
+;;;; done
+
+)
 
 ;;; end of file

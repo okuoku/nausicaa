@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/Template
 ;;;Contents: compile script for Mosh Scheme
-;;;Date: Mon Jan 19, 2009
+;;;Date:
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,7 +24,8 @@
 ;;;
 
 (import
-    (only (foreign template))
+    (only (foreign category template))
+    (only (foreign category template compensated))
   )
 
 ;;; end of file

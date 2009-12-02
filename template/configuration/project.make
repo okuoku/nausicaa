@@ -1,5 +1,5 @@
 #
-# Part of: Nausicaa/Scheme
+# Part of: Nausicaa/Template
 # Contents: project specific makefile
 # Date: Wed Jan 21, 2009
 #
@@ -7,7 +7,7 @@
 #
 #
 #
-# Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+# Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 #
 # This program is  free software: you can redistribute  it and/or modify
 # it under the  terms of the GNU General Public  License as published by
@@ -28,8 +28,8 @@
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,core))
-$(eval $(call nau-libraries,nausicaa,nausicaa))
+$(eval $(call nau-libraries,base,foreign/category))
+$(eval $(call nau-libraries,template,foreign/category/template))
 
 
 ### end of file

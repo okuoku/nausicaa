@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
-@setfilename template.info
-@settitle Template
+@setfilename nausicaa-template.info
+@settitle Template for Nausicaa
 @c %**end of header
 
 @c page
@@ -396,16 +396,16 @@ Revised^6 Report on the algorithmic language Scheme
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      This Package
+@set TITLE                      Template for Nausicaa
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
-@set PACKAGE                    ThisPackage
+@set PACKAGE                    Nausicaa/Template
 
 @c To be used as @value{PACKAGE_NICKNAME} whenever we need to include
 @c the nickname of the project: the name that is used to compose the
 @c distribution tarball or the web address.
-@set PACKAGE_NICKNAME           this-package
+@set PACKAGE_NICKNAME           nausicaa-template
 
 @c To be used as @value{AUTHOR} whenever we need to include the list of
 @c authors of this document.
@@ -413,7 +413,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
 @c email of the *single* author of this document.
-@set AUTHOR_EMAIL               @email{marcomaggi@@gna.org}
+@set AUTHOR_EMAIL               @email{marco.maggi-ipsu@@poste.it}
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
@@ -426,7 +426,13 @@ Revised^6 Report on the algorithmic language Scheme
 
 @copying
 @noindent
-This document describes version @version{} of @value{PACKAGE}, ...
+This document describes version @version{} of @value{PACKAGE}, is a
+distribution of libraries for @rnrs{6} Scheme implementations; it
+provides a binding to the Template C language library.  It is built upon
+Nausicaa/Scheme, making use of its foreign--functions interface.
+
+The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
+supports @gnu{}+Linux systems.
 
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}) and can be downloaded from:
@@ -441,6 +447,11 @@ The project home page of Nausicaa is at:
 development of Nausicaa takes place at:
 
 @center @url{http://github.com/marcomaggi/nausicaa/tree/master}
+
+@noindent
+Template is available at:
+
+@center @url{http}
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
@@ -475,8 +486,7 @@ entitled ``@gnu{} Free Documentation License''.
 @ifinfo
 @dircategory Development
 @direntry
-* nausicaa-template: (nausicaa-template). Template library
-                                          for @rnrs{6} Scheme.
+* nausicaa-template: (nausicaa-template).       Template for Nausicaa.
 @end direntry
 @end ifinfo
 
@@ -518,8 +528,48 @@ Indexes
 @chapter Overview of the package
 
 
-This ...
+This document describes version @version{} of @value{PACKAGE}, is a
+distribution of libraries for @rnrs{6} Scheme implementations; it
+provides a binding to the Template C language library.  It is built upon
+Nausicaa/Scheme, making use of its foreign--functions interface.
 
+The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
+supports @gnu{}+Linux systems.
+
+The installed libraries are:
+
+@table @library
+@item foreign category template shared-object
+Exports the single binding @code{template-shared-object} which
+references the foreign shared library.
+
+@item foreign category template sizeof
+Exports bindings to constant values and data structures accessors.
+
+@item foreign category template platform
+Exports one binding for each foreign function; the Scheme functions have
+the same name of the C functions, so @cfunc{template_init} is availale
+as @func{template_init}.  This library makes the original @template{}
+documentation relevant for this package.
+@c @templateref{Top, The GNU Libmicrohttpd library}.
+
+@item foreign category template primitives
+Exports one binding for each foreign function, implementing marshaling
+of arguments and return values.  The Scheme functions have the same name
+of the C functions, buth with in lower case and with the underscores
+converted to dashes; so @cfunc{template_init} is availale as
+@func{template-init}.
+
+@item foreign category template
+Compound library exporting the high--level @api{}; it reexports bindings
+from the @samp{primitives} library and the constant values from the
+@samp{sizeof} library.
+
+@item foreign category template compensated
+Exports bindings to constructor functions making use of the
+@library{compensations} library from Nausicaa/Scheme.
+@nauref{compensations, Compensation stacks}.
+@end table
 
 @c page
 
