@@ -237,6 +237,10 @@ Revised^6 Report on the algorithmic language Scheme
 @ref{\NODE\,\TITLE\,\TITLE\,ikarus}
 @end macro
 
+@macro nauref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nausicaa}
+@end macro
+
 @macro bibref{TAG}
 @code{[\TAG\]}
 @end macro
@@ -392,7 +396,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
 @c email of the *single* author of this document.
-@set AUTHOR_EMAIL               @email{marcomaggi@@gna.org}
+@set AUTHOR_EMAIL               @email{marco.maggi-ipsu@@poste.it}
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
@@ -406,7 +410,10 @@ Revised^6 Report on the algorithmic language Scheme
 @copying
 @noindent
 This document describes version @version{} of @value{PACKAGE}, a library
-for @rnrs{6} Scheme that exposes the Zlib programming interface.
+for @rnrs{6} Scheme that exposes the Zlib programming interface.  It is
+built upon the Nausicaa/Scheme package, making use of its
+foreign--functions interface.  It supports Ikarus, Mosh and Ypsilon
+Scheme.
 
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}); the project home page of Nausicaa is at:
@@ -501,25 +508,35 @@ Indexes
 
 
 @value{PACKAGE} is a part of the Nausicaa distribution of libraries for
-@rnrs{6} Scheme implementations.  It exposes the @api{} of the popular
-Zlib compression library at the Scheme level.  The installed libraries
-are:
+@rnrs{6} Scheme implementations, exposing the @api{} of the popular Zlib
+compression library at the Scheme level.  It is built upon the
+Nausicaa/Scheme package, making use of its foreign--functions interface.
+It supports Ikarus, Mosh and Ypsilon Scheme.
 
-@example
-(foreign zlib)
-(foreign zlib sizeof)
-(foreign zlib shared-object)
-@end example
+The installed libraries are:
 
-@noindent
-the exported @api{} is a map between foreign C language functions and
-Scheme functions, so the original documentation of ZLib can be used as
-reference.  @ref{zlib, Zlib compression library}
+@table @library
+@item foreign compression zlib shared-object
+Exports the single binding @code{zlib-shared-object} which references
+the Zlib shared library.
 
-The @library{foreign zlib} library exports bindings for the functions,
-while @library{foreign zlib sizeof} exports bindings for the constants
-(like @samp{Z_STREAM_END} etc.) and the data structure accessors and
-mutators.
+@item foreign compression zlib sizeof
+Exports bindings to constant values and data structure accessors.
+
+@item foreign compression zlib platform
+Exports a binding for each foreign function; this library makes the
+original Zlib documentation relevant for this package.  @ref{zlib, Zlib
+compression library}.
+
+@item foreign compression zlib primitives
+Reexports bindings from @library{foreign compression zlib platform}
+along with some functions implementing marshaling of arguments and
+return values.
+
+@item foreign compression zlib
+Compound library reexporting bindings from the primitives and sizeof
+libraries.
+@end table
 
 The Scheme documentation focuses on providing usage example to
 familiarise with the mapping and with methods to handle resources.
@@ -529,12 +546,13 @@ familiarise with the mapping and with methods to handle resources.
 @chapter Constant values
 
 
-The following bindings are exported by @library{foreign zlib sizeof}.
-@ref{zlib constants, Constants}
+The following bindings are exported by @library{foreign compression zlib
+sizeof} and reexported by @library{foreign compression zlib}.  @ref{zlib
+constants, Constants}.
 
 
-@defvr Constant sizeof-zstream
-@defvrx Constant sizeof-gzheader
+@defvr Constant sizeof-z_stream
+@defvrx Constant sizeof-gz_header
 Size of the @samp{z_stream} and @samp{gz_header} data structures.
 @end defvr
 
@@ -600,65 +618,66 @@ Bound to zero.
 @chapter Data structure accessors and mutators
 
 
-The following bindings are exported by @library{foreign zlib sizeof}.
-@ref{zlib types, Data types}
+The following bindings are exported by @library{foreign compression zlib
+sizeof} and reexported by @library{foreign compression zlib}.  @ref{zlib
+types, Data types}.
 
 
-@deffn Syntax zstream-next_in-set! @var{pointer} @var{value}
-@deffnx Syntax zstream-next_in-ref @var{pointer}
-@deffnx Syntax zstream-avail_in-set! @var{pointer} @var{value}
-@deffnx Syntax zstream-avail_in-ref @var{pointer}
-@deffnx Syntax zstream-total_in-set! @var{pointer} @var{value}
-@deffnx Syntax zstream-total_in-ref @var{pointer}
-@deffnx Syntax zstream-next_out-set! @var{pointer} @var{value}
-@deffnx Syntax zstream-next_out-ref @var{pointer}
-@deffnx Syntax zstream-avail_out-set! @var{pointer} @var{value}
-@deffnx Syntax zstream-avail_out-ref @var{pointer}
-@deffnx Syntax zstream-total_out-set! @var{pointer} @var{value}
-@deffnx Syntax zstream-total_out-ref @var{pointer}
-@deffnx Syntax zstream-msg-set! @var{pointer} @var{value}
-@deffnx Syntax zstream-msg-ref @var{pointer}
-@deffnx Syntax zstream-data_type-set! @var{pointer} @var{value}
-@deffnx Syntax zstream-data_type-ref @var{pointer}
-@deffnx Syntax zstream-adler-set! @var{pointer} @var{value}
-@deffnx Syntax zstream-adler-ref @var{pointer}
-@deffnx Syntax zstream-zalloc-set! @var{pointer} @var{value}
-@deffnx Syntax zstream-zalloc-ref @var{pointer}
-@deffnx Syntax zstream-zfree-set! @var{pointer} @var{value}
-@deffnx Syntax zstream-zfree-ref @var{pointer}
-@deffnx Syntax zstream-opaque-set! @var{pointer} @var{value}
-@deffnx Syntax zstream-opaque-ref @var{pointer}
+@deffn Syntax struct-z_stream-next_in-set! @var{pointer} @var{value}
+@deffnx Syntax struct-z_stream-next_in-ref @var{pointer}
+@deffnx Syntax struct-z_stream-avail_in-set! @var{pointer} @var{value}
+@deffnx Syntax struct-z_stream-avail_in-ref @var{pointer}
+@deffnx Syntax struct-z_stream-total_in-set! @var{pointer} @var{value}
+@deffnx Syntax struct-z_stream-total_in-ref @var{pointer}
+@deffnx Syntax struct-z_stream-next_out-set! @var{pointer} @var{value}
+@deffnx Syntax struct-z_stream-next_out-ref @var{pointer}
+@deffnx Syntax struct-z_stream-avail_out-set! @var{pointer} @var{value}
+@deffnx Syntax struct-z_stream-avail_out-ref @var{pointer}
+@deffnx Syntax struct-z_stream-total_out-set! @var{pointer} @var{value}
+@deffnx Syntax struct-z_stream-total_out-ref @var{pointer}
+@deffnx Syntax struct-z_stream-msg-set! @var{pointer} @var{value}
+@deffnx Syntax struct-z_stream-msg-ref @var{pointer}
+@deffnx Syntax struct-z_stream-data_type-set! @var{pointer} @var{value}
+@deffnx Syntax struct-z_stream-data_type-ref @var{pointer}
+@deffnx Syntax struct-z_stream-adler-set! @var{pointer} @var{value}
+@deffnx Syntax struct-z_stream-adler-ref @var{pointer}
+@deffnx Syntax struct-z_stream-zalloc-set! @var{pointer} @var{value}
+@deffnx Syntax struct-z_stream-zalloc-ref @var{pointer}
+@deffnx Syntax struct-z_stream-zfree-set! @var{pointer} @var{value}
+@deffnx Syntax struct-z_stream-zfree-ref @var{pointer}
+@deffnx Syntax struct-z_stream-opaque-set! @var{pointer} @var{value}
+@deffnx Syntax struct-z_stream-opaque-ref @var{pointer}
 Accessors and mutators for structures of type @samp{z_stream}.
 @var{pointer} must be a pointer to such a data strcture.
 @end deffn
 
 
-@deffn Syntax gzheader-text-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-text-ref @var{pointer}
-@deffnx Syntax gzheader-time-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-time-ref @var{pointer}
-@deffnx Syntax gzheader-xflags-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-xflags-ref @var{pointer}
-@deffnx Syntax gzheader-os-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-os-ref @var{pointer}
-@deffnx Syntax gzheader-extra-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-extra-ref @var{pointer}
-@deffnx Syntax gzheader-extra_len-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-extra_len-ref @var{pointer}
-@deffnx Syntax gzheader-extra_max-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-extra_max-ref @var{pointer}
-@deffnx Syntax gzheader-name-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-name-ref @var{pointer}
-@deffnx Syntax gzheader-name_max-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-name_max-ref @var{pointer}
-@deffnx Syntax gzheader-comment-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-comment-ref @var{pointer}
-@deffnx Syntax gzheader-comm_max-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-comm_max-ref @var{pointer}
-@deffnx Syntax gzheader-hcrc-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-hcrc-ref @var{pointer}
-@deffnx Syntax gzheader-done-set! @var{pointer} @var{value}
-@deffnx Syntax gzheader-done-ref @var{pointer}
+@deffn Syntax struct-gz_header-text-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-text-ref @var{pointer}
+@deffnx Syntax struct-gz_header-time-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-time-ref @var{pointer}
+@deffnx Syntax struct-gz_header-xflags-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-xflags-ref @var{pointer}
+@deffnx Syntax struct-gz_header-os-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-os-ref @var{pointer}
+@deffnx Syntax struct-gz_header-extra-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-extra-ref @var{pointer}
+@deffnx Syntax struct-gz_header-extra_len-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-extra_len-ref @var{pointer}
+@deffnx Syntax struct-gz_header-extra_max-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-extra_max-ref @var{pointer}
+@deffnx Syntax struct-gz_header-name-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-name-ref @var{pointer}
+@deffnx Syntax struct-gz_header-name_max-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-name_max-ref @var{pointer}
+@deffnx Syntax struct-gz_header-comment-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-comment-ref @var{pointer}
+@deffnx Syntax struct-gz_header-comm_max-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-comm_max-ref @var{pointer}
+@deffnx Syntax struct-gz_header-hcrc-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-hcrc-ref @var{pointer}
+@deffnx Syntax struct-gz_header-done-set! @var{pointer} @var{value}
+@deffnx Syntax struct-gz_header-done-ref @var{pointer}
 Accessors and mutators for structures of type @samp{gz_header}.
 @var{pointer} must be a pointer to such a data strcture.
 @end deffn
@@ -668,14 +687,18 @@ Accessors and mutators for structures of type @samp{gz_header}.
 @chapter Error messages
 
 
+The following bindings are exported by @library{foreign compression zlib
+primitives} and reexported by @library{foreign compression zlib}.
+
+
 @defun zError* @var{error-code}
 @defunx zError @var{error-code}
 These functions accept as argument one of the error code constants
 defined by Zlib (@samp{Z_OK}, @samp{Z_BUF_ERROR}, @dots{}) and return a
 string describing the error.
 
-@func{zError} returns a Scheme string.  @func{primitive-zError} returns
-a pointer value referencing a statically allocated, @ascii{} coded, zero
+@func{zError*} returns a Scheme string.  @func{zError} returns a pointer
+value referencing a statically allocated, @ascii{} coded, zero
 terminated C string.
 @end defun
 
@@ -687,13 +710,13 @@ terminated C string.
 The utility functions @func{compress}, @func{compress2} and
 @func{uncompress} are the simplest and less configurable interface to
 the compression features of Zlib; they can compress and uncompress a
-block of data in memory.  @ref{zlib utility, Utility functions}
+block of data in memory.  @ref{zlib utility, Utility functions}.
 
 Let's start a program with:
 
 @example
 (import (rnrs)
-  (foreign zlib)
+  (foreign compression zlib)
   (only (compensations)
         with-compensations)
   (only (foreign ffi peekers-and-pokers)
@@ -709,8 +732,10 @@ Let's start a program with:
 
 @noindent
 we will make use of the @library{compensations} library, from
-Nausicaa/Scheme, to handle memory allocation.  Let's say we want to
-compress a Scheme string:
+Nausicaa/Scheme, to handle memory allocation.  @nauref{compensations,
+Compensation stacks}.
+
+Let's say we want to compress a Scheme string:
 
 @example
 (define original "Is this the real life?
@@ -721,7 +746,7 @@ compress a Scheme string:
 @end example
 
 @noindent
-first we convert it to a C string, the we can use @func{compress}:
+first we convert it to a C string, then we can use @func{compress}:
 
 @example
 (with-compensations
@@ -804,13 +829,13 @@ value of @func{uncompress} is @samp{Z_OK}.
 
 
 The basic functions allow us to compress and decompress data one block
-at a time.  @ref{zlib basic, Basic functions}
+at a time.  @ref{zlib basic, Basic functions}.
 
 Let's start a program with:
 
 @example
 (import (rnrs)
-  (foreign zlib)
+  (foreign compression zlib)
   (only (compensations)
         with-compensations)
   (only (foreign memory)
@@ -819,7 +844,9 @@ Let's start a program with:
 
 @noindent
 we will use the @library{compensations} library from Nausicaa/Scheme to
-handle memory allocation.  To compress a block of data we do:
+handle memory allocation.  @nauref{compensations, Compensation stacks}.
+
+To compress a block of data we do:
 
 @example
 (with-compensations
@@ -829,21 +856,21 @@ handle memory allocation.  To compress a block of data we do:
          (output.ptr  (malloc-block/c output.len))
          (zstream     (malloc-block/c sizeof-zstream)))
 
-    (zstream-next_in-set!   zstream input.ptr)
-    (zstream-avail_in-set!  zstream input.len)
+    (struct-z_stream-next_in-set!   zstream input.ptr)
+    (struct-z_stream-avail_in-set!  zstream input.len)
 
-    (zstream-next_out-set!  zstream output.ptr)
-    (zstream-avail_out-set! zstream output.len)
+    (struct-z_stream-next_out-set!  zstream output.ptr)
+    (struct-z_stream-avail_out-set! zstream output.len)
 
-    (zstream-zalloc-set! zstream pointer-null)
-    (zstream-zfree-set!  zstream pointer-null)
-    (zstream-opaque-set! zstream pointer-null)
+    (struct-z_stream-zalloc-set! zstream pointer-null)
+    (struct-z_stream-zfree-set!  zstream pointer-null)
+    (struct-z_stream-opaque-set! zstream pointer-null)
 
     (deflateInit zstream Z_BEST_COMPRESSION)
     (deflate zstream Z_FINISH)
     (deflateEnd zstream)
 
-    (let ((compressed.len (zstream-total_out-ref zstream)))
+    (let ((compressed.len (struct-z_stream-total_out-ref zstream)))
       ;; The compressed data is bound to "output.ptr".
       ;; The size of the compressed data is bound to
       ;; "compressed.len".
@@ -867,21 +894,21 @@ block:
          (output.ptr  (malloc-block/c output.len))
          (zstream     (malloc-block/c sizeof-zstream)))
 
-    (zstream-next_in-set!   zstream input.ptr)
-    (zstream-avail_in-set!  zstream input.len)
+    (struct-z_stream-next_in-set!   zstream input.ptr)
+    (struct-z_stream-avail_in-set!  zstream input.len)
 
-    (zstream-next_out-set!  zstream output.ptr)
-    (zstream-avail_out-set! zstream output.len)
+    (struct-z_stream-next_out-set!  zstream output.ptr)
+    (struct-z_stream-avail_out-set! zstream output.len)
 
-    (zstream-zalloc-set! zstream pointer-null)
-    (zstream-zfree-set!  zstream pointer-null)
-    (zstream-opaque-set! zstream pointer-null)
+    (struct-z_stream-zalloc-set! zstream pointer-null)
+    (struct-z_stream-zfree-set!  zstream pointer-null)
+    (struct-z_stream-opaque-set! zstream pointer-null)
 
     (inflateInit zstream)
     (inflate zstream Z_FINISH)
     (inflateEnd zstream)
 
-    (let ((decompressed.len (zstream-total_out-ref zstream)))
+    (let ((decompressed.len (struct-z_stream-total_out-ref zstream)))
       ;; The compressed data is bound to "output.ptr".
       ;; The size of the compressed data is bound to
       ;; "decompressed.len".
@@ -901,13 +928,13 @@ output buffers accordingly.
 
 The advanced functions allow us to compress and decompress data one
 block at a time, using customised compression options.  @ref{zlib
-advanced, Advanced functions}
+advanced, Advanced functions}.
 
 Let's start a program with:
 
 @example
 (import (rnrs)
-  (foreign zlib)
+  (foreign compression zlib)
   (only (compensations)
         with-compensations)
   (only (foreign memory)
@@ -916,7 +943,9 @@ Let's start a program with:
 
 @noindent
 we will use the @library{compensations} library from Nausicaa/Scheme to
-handle memory allocation.  To compress a block of data we do:
+handle memory allocation.  @nauref{compensations, Compensation stacks}.
+
+To compress a block of data we do:
 
 @example
 (define dictionary.len ---)
@@ -929,15 +958,15 @@ handle memory allocation.  To compress a block of data we do:
          (output.ptr    (malloc-block/c output.len))
          (zstream       (malloc-block/c sizeof-zstream)))
 
-    (zstream-next_in-set!   zstream input.ptr)
-    (zstream-avail_in-set!  zstream input.len)
+    (struct-z_stream-next_in-set!   zstream input.ptr)
+    (struct-z_stream-avail_in-set!  zstream input.len)
 
-    (zstream-next_out-set!  zstream output.ptr)
-    (zstream-avail_out-set! zstream output.len)
+    (struct-z_stream-next_out-set!  zstream output.ptr)
+    (struct-z_stream-avail_out-set! zstream output.len)
 
-    (zstream-zalloc-set! zstream pointer-null)
-    (zstream-zfree-set!  zstream pointer-null)
-    (zstream-opaque-set! zstream pointer-null)
+    (struct-z_stream-zalloc-set! zstream pointer-null)
+    (struct-z_stream-zfree-set!  zstream pointer-null)
+    (struct-z_stream-opaque-set! zstream pointer-null)
 
     (deflateInit2 zstream Z_BEST_COMPRESSION
       Z_DEFLATED          ; method
@@ -949,7 +978,7 @@ handle memory allocation.  To compress a block of data we do:
     (deflate zstream Z_FINISH)
     (deflateEnd zstream)
 
-    (let ((compressed.len (zstream-total_out-ref zstream)))
+    (let ((compressed.len (struct-z_stream-total_out-ref zstream)))
       ;; The compressed data is bound to "output.ptr".
       ;; The size of the compressed data is bound to
       ;; "compressed.len".
@@ -976,11 +1005,11 @@ block and the dictionary:
          (output.ptr    (malloc-block/c output.len))
          (zstream       (malloc-block/c sizeof-zstream)))
 
-    (zstream-next_in-set!   zstream input.ptr)
-    (zstream-avail_in-set!  zstream input.len)
+    (struct-z_stream-next_in-set!   zstream input.ptr)
+    (struct-z_stream-avail_in-set!  zstream input.len)
 
-    (zstream-next_out-set!  zstream output.ptr)
-    (zstream-avail_out-set! zstream output.len)
+    (struct-z_stream-next_out-set!  zstream output.ptr)
+    (struct-z_stream-avail_out-set! zstream output.len)
 
     (inflateInit2 zstream 10)
     (assert (= Z_NEED_DICT (inflate zstream Z_FINISH)))
@@ -988,7 +1017,7 @@ block and the dictionary:
     (inflate zstream Z_FINISH)
     (inflateEnd zstream)
 
-    (let ((decompressed.len (zstream-total_out-ref zstream)))
+    (let ((decompressed.len (struct-z_stream-total_out-ref zstream)))
       ;; The compressed data is bound to "output.ptr".
       ;; The size of the compressed data is bound to
       ;; "decompressed.len".
@@ -1007,10 +1036,9 @@ output buffers accordingly.
 
 
 The file functions allow us to read and write files compressed with the
-Gzip format.  The @api{} provided by @library{foreign zlib} has two
-parts: the low level one is a simple map between foreign functions and
-Scheme function; the high level one implements marshaling of arguments.
-@ref{zlib file, File functions}
+Gzip format.  The following bindings are exported by @library{foreign
+compression zlib primitives} and reexported by @library{foreign
+compression zlib}.  @ref{zlib file, File functions}.
 
 For the low level @api{} see the original documentation of Zlib, but
 notice that:

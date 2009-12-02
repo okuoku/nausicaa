@@ -8,7 +8,8 @@ set -x
         configure -ot configure.ac                              -o \
         configure -ot aclocal.m4                                -o \
         configure -ot infrastructure/develstuff.autoconf        -o \
-        configure -ot configuration/nausicaa.autoconf
+        configure -ot configuration/nausicaa.autoconf           -o \
+        configure -ot configuration/zlib-inspector.m4
         then
         autoconf
     fi)

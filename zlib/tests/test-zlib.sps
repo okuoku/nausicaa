@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -29,7 +29,7 @@
   (foreign ffi sizeof)
   (foreign memory)
   (foreign cstrings)
-  (foreign zlib)
+  (foreign compression zlib)
   (compensations)
   (checks)
   (formations))
@@ -107,12 +107,12 @@ next_out:\t~s
 avail_out:\t~s
 total_out:\t~s\n"
 	  (pointer->integer zstream)
-	  (zstream-next_in-ref zstream)
-	  (zstream-avail_in-ref zstream)
-	  (zstream-total_in-ref zstream)
-	  (zstream-next_out-ref zstream)
-	  (zstream-avail_out-ref zstream)
-	  (zstream-total_out-ref zstream)))
+	  (struct-z_stream-next_in-ref zstream)
+	  (struct-z_stream-avail_in-ref zstream)
+	  (struct-z_stream-total_in-ref zstream)
+	  (struct-z_stream-next_out-ref zstream)
+	  (struct-z_stream-avail_out-ref zstream)
+	  (struct-z_stream-total_out-ref zstream)))
 
 
 (parametrise ((check-test-name 'auxiliary-functions))
@@ -215,46 +215,46 @@ total_out:\t~s\n"
 		 (input.ptr	original.ptr)
 		 (output.len	(compressBound input.len))
 		 (output.ptr	(malloc-block/c output.len))
-		 (zstream	(malloc-block/c sizeof-zstream)))
+		 (zstream	(malloc-block/c sizeof-z_stream)))
 
-	    (zstream-next_in-set!   zstream input.ptr)
-	    (zstream-avail_in-set!  zstream input.len)
+	    (struct-z_stream-next_in-set!   zstream input.ptr)
+	    (struct-z_stream-avail_in-set!  zstream input.len)
 
-	    (zstream-next_out-set!  zstream output.ptr)
-	    (zstream-avail_out-set! zstream output.len)
+	    (struct-z_stream-next_out-set!  zstream output.ptr)
+	    (struct-z_stream-avail_out-set! zstream output.len)
 
-	    (zstream-zalloc-set! zstream pointer-null)
-	    (zstream-zfree-set!  zstream pointer-null)
-	    (zstream-opaque-set! zstream pointer-null)
+	    (struct-z_stream-zalloc-set! zstream pointer-null)
+	    (struct-z_stream-zfree-set!  zstream pointer-null)
+	    (struct-z_stream-opaque-set! zstream pointer-null)
 
 	    (deflateInit zstream Z_BEST_COMPRESSION)
 	    (deflate zstream Z_FINISH)
 	    (deflateEnd zstream)
 
-	    (set! compressed.len (zstream-total_out-ref zstream))
+	    (set! compressed.len (struct-z_stream-total_out-ref zstream))
 	    (set! compressed.ptr output.ptr))
 
 	  (let* ((input.len	compressed.len)
 		 (input.ptr	compressed.ptr)
 		 (output.len	original.len)
 		 (output.ptr	(malloc-block/c output.len))
-		 (zstream	(malloc-block/c sizeof-zstream)))
+		 (zstream	(malloc-block/c sizeof-z_stream)))
 
-	    (zstream-next_in-set!   zstream input.ptr)
-	    (zstream-avail_in-set!  zstream input.len)
+	    (struct-z_stream-next_in-set!   zstream input.ptr)
+	    (struct-z_stream-avail_in-set!  zstream input.len)
 
-	    (zstream-next_out-set!  zstream output.ptr)
-	    (zstream-avail_out-set! zstream output.len)
+	    (struct-z_stream-next_out-set!  zstream output.ptr)
+	    (struct-z_stream-avail_out-set! zstream output.len)
 
-	    (zstream-zalloc-set! zstream pointer-null)
-	    (zstream-zfree-set!  zstream pointer-null)
-	    (zstream-opaque-set! zstream pointer-null)
+	    (struct-z_stream-zalloc-set! zstream pointer-null)
+	    (struct-z_stream-zfree-set!  zstream pointer-null)
+	    (struct-z_stream-opaque-set! zstream pointer-null)
 
 	    (inflateInit zstream)
 	    (inflate zstream Z_FINISH)
 	    (inflateEnd zstream)
 
-	    (set! decompressed.len (zstream-total_out-ref zstream))
+	    (set! decompressed.len (struct-z_stream-total_out-ref zstream))
 	    (set! decompressed.ptr output.ptr))
 
 	  (and (= original.len decompressed.len)
@@ -279,17 +279,17 @@ total_out:\t~s\n"
 		 (input.ptr	original.ptr)
 		 (output.len	(compressBound input.len))
 		 (output.ptr	(malloc-block/c output.len))
-		 (zstream	(malloc-block/c sizeof-zstream)))
+		 (zstream	(malloc-block/c sizeof-z_stream)))
 
-	    (zstream-next_in-set!   zstream input.ptr)
-	    (zstream-avail_in-set!  zstream input.len)
+	    (struct-z_stream-next_in-set!   zstream input.ptr)
+	    (struct-z_stream-avail_in-set!  zstream input.len)
 
-	    (zstream-next_out-set!  zstream output.ptr)
-	    (zstream-avail_out-set! zstream output.len)
+	    (struct-z_stream-next_out-set!  zstream output.ptr)
+	    (struct-z_stream-avail_out-set! zstream output.len)
 
-	    (zstream-zalloc-set! zstream pointer-null)
-	    (zstream-zfree-set!  zstream pointer-null)
-	    (zstream-opaque-set! zstream pointer-null)
+	    (struct-z_stream-zalloc-set! zstream pointer-null)
+	    (struct-z_stream-zfree-set!  zstream pointer-null)
+	    (struct-z_stream-opaque-set! zstream pointer-null)
 
 	    (deflateInit2 zstream Z_BEST_COMPRESSION
 	      Z_DEFLATED	  ; method
@@ -302,20 +302,20 @@ total_out:\t~s\n"
 	    (deflate zstream Z_FINISH)
 	    (deflateEnd zstream)
 
-	    (set! compressed.len (zstream-total_out-ref zstream))
+	    (set! compressed.len (struct-z_stream-total_out-ref zstream))
 	    (set! compressed.ptr output.ptr))
 
 	  (let* ((input.len	compressed.len)
 		 (input.ptr	compressed.ptr)
 		 (output.len	original.len)
 		 (output.ptr	(malloc-block/c output.len))
-		 (zstream	(malloc-block/c sizeof-zstream)))
+		 (zstream	(malloc-block/c sizeof-z_stream)))
 
-	    (zstream-next_in-set!   zstream input.ptr)
-	    (zstream-avail_in-set!  zstream input.len)
+	    (struct-z_stream-next_in-set!   zstream input.ptr)
+	    (struct-z_stream-avail_in-set!  zstream input.len)
 
-	    (zstream-next_out-set!  zstream output.ptr)
-	    (zstream-avail_out-set! zstream output.len)
+	    (struct-z_stream-next_out-set!  zstream output.ptr)
+	    (struct-z_stream-avail_out-set! zstream output.len)
 
 	    (inflateInit2 zstream 10)
 	    (assert (= Z_NEED_DICT (inflate zstream Z_FINISH)))
@@ -323,7 +323,7 @@ total_out:\t~s\n"
 	    (inflate zstream Z_FINISH)
 	    (inflateEnd zstream)
 
-	    (set! decompressed.len (zstream-total_out-ref zstream))
+	    (set! decompressed.len (struct-z_stream-total_out-ref zstream))
 	    (set! decompressed.ptr output.ptr))
 
 	  (and (= original.len decompressed.len)

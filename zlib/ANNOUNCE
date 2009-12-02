@@ -1,15 +1,15 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Zlib 2009-11-01 tag 0.1b1
+Subject: [announce] Nausicaa/Zlib 2009-12-02 tag 0.1b2
 
 		       Nausicaa/Zlib
 		       =============
 
 Nausicaa/Zlib  is a  binding  between Zlib  and R6RS  Scheme
 implementations.  It  is built upon  Nausicaa/Scheme, making
-use  of its  foreign  functions interface;  so it  currently
-supports   only   GNU+Linux   systems.    The   installation
-infrastructure requires a  GNU+Linux system (for details see
-the "README.build" file).
+use of its foreign functions interface.  It supports Ikarus,
+Mosh and Ypsilon Scheme.
+
+  Currently the package supports only GNU+Linux systems.
 
   The  latest  release   of  the  Nausicaa/Zlib  package  is
 available at:
@@ -27,6 +27,14 @@ development takes place at:
 the documentation is available on line:
 
     <http://marcomaggi.github.com/docs/nausicaa-zlib.html>
+
+
+Notes for 2009-12-02 tag 0.1b2
+------------------------------
+
+* Updated to Nausicaa/Scheme version 0.1a7.
+
+* Reorganised the low level libraries.
 
 
 Notes for 2009-11-01 tag 0.1b1
