@@ -172,7 +172,7 @@
   (for-each (lambda (symbol)
 	      (autoconf-lib (format "NAUSICAA_ENUM_VALUE([~a])" symbol))
 	      (let ((at-symbol (string->symbol (format "^VALUEOF_~a^"
-						 (string-upcase (symbol->string symbol))))))
+						 (symbol->string symbol)))))
 		(%sizeof-lib `((define ,symbol ,at-symbol)))
 		(%sizeof-lib-exports symbol)))
     symbol-names))
