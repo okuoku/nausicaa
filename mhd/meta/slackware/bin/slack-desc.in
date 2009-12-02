@@ -1,12 +1,12 @@
               |-----handy-ruler-----------------------------------------------|
 @PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
 @PACKAGE_NAME@:
-@PACKAGE_NAME@: Base libraries for the Nausicaa R6RS distribution.
+@PACKAGE_NAME@: This package is a  distribution of libraries for R6RS Scheme
+@PACKAGE_NAME@: implementations;   it  provides   a  binding   to   the  GNU
+@PACKAGE_NAME@: Libmicrohttpd  C   language  library.   It   is  built  upon
+@PACKAGE_NAME@: Nausicaa/Scheme,   making  use   of   its  foreign-functions
+@PACKAGE_NAME@: interface.
 @PACKAGE_NAME@:
-@PACKAGE_NAME@:
-@PACKAGE_NAME@:
-@PACKAGE_NAME@:
-@PACKAGE_NAME@:
-@PACKAGE_NAME@:
-@PACKAGE_NAME@:
+@PACKAGE_NAME@: The libraries support Ikarus, Mosh and Ypsilon Scheme; the
+@PACKAGE_NAME@: package supports GNU+Linux systems.
 @PACKAGE_NAME@:

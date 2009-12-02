@@ -27,15 +27,150 @@
 
 (library (foreign net mhd platform)
   (export
+    MHD_start_daemon
+    MHD_stop_daemon
+    MHD_get_fdset
+    MHD_get_timeout
+    MHD_run
+
+    MHD_get_connection_values
+    MHD_set_connection_value
+    MHD_lookup_connection_value
+    MHD_queue_response
+
+    MHD_create_response_from_callback
+    MHD_create_response_from_data
+    MHD_destroy_response
+    MHD_add_response_header
+    MHD_del_response_header
+    MHD_get_response_headers
+    MHD_get_response_header
+
+    MHD_create_post_processor
+    MHD_post_process
+    MHD_destroy_post_processor
+
+;;; MHD_get_connection_info
+;;; MHD_get_daemon_info
+
+;;;    MHD_get_version
     )
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof)
+    (foreign net mhd sizeof)
     (foreign net mhd shared-object))
 
 
+(define fd_set*			'pointer)
+(define int*			'pointer)
+(define unsigned-long-long*	'pointer)
+
+
 (define-c-functions mhd-shared-object
+
+;;;Cannot interface with "va_list".
+;;;
+;;; (MHD_start_daemon_va
+;;;  (MHD_Daemon* MHD_start_daemon_va (unsigned int options,
+;;;                                       unsigned short port,
+;;;                                       MHD_AcceptPolicyCallback apc,
+;;;                                       void *apc_cls,
+;;;                                       MHD_AccessHandlerCallback dh,
+;;;                                       void *dh_cls, va_list ap)))
+
+;;;In truth this is variadic.
+;;;
+  (MHD_start_daemon
+   (MHD_Daemon* MHD_start_daemon (unsigned-int unsigned-short
+					       MHD_AcceptPolicyCallback
+					       void*
+					       MHD_AccessHandlerCallback
+					       void*)))
+
+  (MHD_stop_daemon
+   (void MHD_stop_daemon (MHD_Daemon*)))
+
+  (MHD_get_fdset
+   (int MHD_get_fdset (MHD_Daemon* fd_set* fd_set* fd_set* int*)))
+
+  (MHD_get_timeout
+   (int MHD_get_timeout (MHD_Daemon* unsigned-long-long*)))
+
+  (MHD_run
+   (int MHD_run (MHD_Daemon*))))
+
+(define-c-functions mhd-shared-object
+
+  (MHD_get_connection_values
+   (int MHD_get_connection_values (MHD_Connection* MHD_ValueKind MHD_KeyValueIterator void*)))
+
+  (MHD_set_connection_value
+   (int MHD_set_connection_value (MHD_Connection* MHD_ValueKind char* char*)))
+
+  (MHD_lookup_connection_value
+   (char* MHD_lookup_connection_value (MHD_Connection* MHD_ValueKind char*)))
+
+  (MHD_queue_response
+   (int MHD_queue_response (MHD_Connection* unsigned-int MHD_Response*))))
+
+(define-c-functions mhd-shared-object
+
+  (MHD_create_response_from_callback
+   (MHD_Response* MHD_create_response_from_callback
+		  (uint64_t size_t MHD_ContentReaderCallback void* MHD_ContentReaderFreeCallback)))
+
+  (MHD_create_response_from_data
+   (MHD_Response* MHD_create_response_from_data (size_t void* int int)))
+
+  (MHD_destroy_response
+   (void MHD_destroy_response (MHD_Response*)))
+
+  (MHD_add_response_header
+   (int MHD_add_response_header (MHD_Response* char* char*)))
+
+  (MHD_del_response_header
+   (int MHD_del_response_header (MHD_Response* char* char*)))
+
+  (MHD_get_response_headers
+   (int MHD_get_response_headers (MHD_Response* MHD_KeyValueIterator void*)))
+
+  (MHD_get_response_header
+   (char* MHD_get_response_header (MHD_Response* char*))))
+
+(define-c-functions mhd-shared-object
+
+  (MHD_create_post_processor
+   (MHD_PostProcessor* MHD_create_post_processor (MHD_Connection* size_t MHD_PostDataIterator void*)))
+
+  (MHD_post_process
+   (int MHD_post_process (MHD_PostProcessor* char* size_t)))
+
+  (MHD_destroy_post_processor
+   (int MHD_destroy_post_processor (MHD_PostProcessor*))))
+
+#;(define-c-functions mhd-shared-object
+
+;;; This is variadic
+;;;
+  ;; (MHD_get_connection_info
+  ;;  (MHD_ConnectionInfo* MHD_get_connection_info (MHD_Connection* MHD_ConnectionInfoType ...)))
+
+
+;;; This is variadic
+;;;
+  ;; (MHD_get_daemon_info
+  ;;  (MHD_DaemonInfo* MHD_get_daemon_info (MHD_Daemon* MHD_DaemonInfoType ...)))
+
   )
+
+;;;This is in the header file, but  then it is not present in the shared
+;;;library version 0.4.4.
+;;;
+;;; (define-c-functions mhd-shared-object
+;;;
+;;;   (MHD_get_version
+;;;    (char* MHD_get_version (void))))
 
 
 ;;;; done

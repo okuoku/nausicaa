@@ -27,7 +27,34 @@
 
 (library (foreign net mhd primitives)
   (export
-    )
+    (rename (MHD_start_daemon			mhd-start-daemon)
+	    (MHD_stop_daemon			mhd-stop-daemon)
+	    (MHD_get_fdset			mhd-get-fdset)
+	    (MHD_get_timeout			mhd-get-timeout)
+	    (MHD_run				mhd-run)
+
+	    (MHD_get_connection_values		mhd-get-connection-values)
+	    (MHD_set_connection_value		mhd-set-connection-value)
+	    (MHD_lookup_connection_value	mhd-lookup-connection-value)
+	    (MHD_queue_response			mhd-queue-response)
+
+	    (MHD_create_response_from_callback	mhd-create-response-from-callback)
+	    (MHD_create_response_from_data	mhd-create-response-from-data)
+	    (MHD_destroy_response		mhd-destroy-response)
+	    (MHD_add_response_header		mhd-add-response-header)
+	    (MHD_del_response_header		mhd-del-response-header)
+	    (MHD_get_response_headers		mhd-get-response-headers)
+	    (MHD_get_response_header		mhd-get-response-header)
+
+	    (MHD_create_post_processor		mhd-create-post-processor)
+	    (MHD_post_process			mhd-post-process)
+	    (MHD_destroy_post_processor		mhd-destroy-post-processor)
+
+;;;	(MHD_get_connection_info	 mhd-get-connection-info)
+;;;	(MHD_get_daemon_info		mhd-get-daemon-info)
+
+;;;	    (MHD_get_version			mhd-get-version)
+	    ))
   (import (rnrs)
     (compensations)
     (foreign ffi)

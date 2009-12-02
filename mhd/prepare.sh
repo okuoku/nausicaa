@@ -21,7 +21,7 @@ set -x
     --enable-fasl                               \
     --disable-fasl-larceny                      \
     --enable-ikarus                             \
-    --enable-larceny                            \
+    --disable-larceny                           \
     --enable-mosh                               \
     --enable-ypsilon                            \
     --enable-doc-ps                             \

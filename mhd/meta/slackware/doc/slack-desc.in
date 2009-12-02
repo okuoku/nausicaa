@@ -1,7 +1,7 @@
                   |-----handy-ruler-----------------------------------------------|
 @PACKAGE_NAME@-doc: @PACKAGE_NAME@ @PACKAGE_VERSION@ documentation
 @PACKAGE_NAME@-doc:
-@PACKAGE_NAME@-doc: This is the documentation for Nausicaa/Scheme.
+@PACKAGE_NAME@-doc: This is the documentation for Nausicaa/MHD.
 @PACKAGE_NAME@-doc:
 @PACKAGE_NAME@-doc:
 @PACKAGE_NAME@-doc:
