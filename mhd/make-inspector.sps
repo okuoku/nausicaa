@@ -248,6 +248,7 @@
 (define-c-type MHD_GNUTLS_Protocol		signed-int	"enum MHD_GNUTLS_Protocol")
 (define-c-type MHD_ConnectionInfoType		signed-int	"enum MHD_ConnectionInfoType")
 (define-c-type MHD_DaemonInfoType		signed-int	"enum MHD_DaemonInfoType")
+(define-c-type socklen_t			unsigned-int)
 
 (define-c-type-alias MHD_Daemon*			pointer)
 (define-c-type-alias MHD_Connection*			pointer)

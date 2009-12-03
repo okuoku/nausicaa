@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Wed Dec  2, 2009
+;;;Date: Thu Dec  3, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -245,6 +245,12 @@
     strideof-MHD_DaemonInfoType
     pointer-set-c-MHD_DaemonInfoType!
     pointer-ref-c-MHD_DaemonInfoType
+    socklen_t
+    sizeof-socklen_t
+    alignof-socklen_t
+    strideof-socklen_t
+    pointer-set-c-socklen_t!
+    pointer-ref-c-socklen_t
     MHD_Daemon*
     MHD_Connection*
     MHD_Response*
@@ -892,6 +898,16 @@
   (define
     pointer-ref-c-MHD_DaemonInfoType
     @SETTEROF_MHD_DAEMONINFOTYPE@)
+  (define socklen_t '@TYPEOF_SOCKLEN_T@)
+  (define sizeof-socklen_t @SIZEOF_SOCKLEN_T@)
+  (define alignof-socklen_t @ALIGNOF_SOCKLEN_T@)
+  (define strideof-socklen_t @STRIDEOF_SOCKLEN_T@)
+  (define
+    pointer-set-c-socklen_t!
+    @GETTEROF_SOCKLEN_T@)
+  (define
+    pointer-ref-c-socklen_t
+    @SETTEROF_SOCKLEN_T@)
   (define MHD_Daemon* 'pointer)
   (define MHD_Connection* 'pointer)
   (define MHD_Response* 'pointer)

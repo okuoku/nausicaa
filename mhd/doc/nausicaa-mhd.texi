@@ -117,6 +117,11 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{CSV}
 @end macro
 
+@c Remember that @html is already used by Texinfo.
+@macro ahtml{}
+@acronym{HTML}
+@end macro
+
 @macro ieee{}
 @acronym{IEEE}
 @end macro
@@ -448,7 +453,8 @@ License (@gpl{}) and can be downloaded from:
 
 @center @url{http://github.com/marcomaggi/nausicaa/downloads}
 
-The project home page of Nausicaa is at:
+@noindent
+the project home page of Nausicaa is at:
 
 @center @url{http://marcomaggi.github.com/nausicaa.html}
 
@@ -457,12 +463,14 @@ development of Nausicaa takes place at:
 
 @center @url{http://github.com/marcomaggi/nausicaa/tree/master}
 
+@noindent
 @gnu{} Libmicrohttpd is available at:
 
 @center @url{http://www.gnu.org/software/libmicrohttpd/}
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
+Copyright @copyright{}  2008 by Sebastian Gerhardt @email{sebgerhardt@@gmx.net}
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -515,9 +523,15 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* enumerations::                Enumeration types.
+* daemon::                      Starting and stopping the daemon.
+* connections::                 Handling connections.
+* responses::                   Handling @http{} responses.
+* post::                        @http{} @samp{POST} processor.
 
 Appendices
 
+* tutorial::                    A Tutorial for GNU libmicrohttpd.
 * Package License::             GNU General Public License.
 * Documentation License::       GNU Free Documentation License.
 * references::                  Bibliography and references.
@@ -545,6 +559,9 @@ foreign--functions interface.
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
 
+This document includes a tutorial for @mhd{} written by Sebastian
+Gerhardt for the C library and adapted to Scheme with @value{PACKAGE}.
+
 The installed libraries are:
 
 @table @library
@@ -554,6 +571,13 @@ foreign shared library.
 
 @item foreign net mhd sizeof
 Exports bindings to constant values and data structures accessors.
+
+@item foreign net mhd record-types
+Define record types to be used as wrappers for pointers to @mhd{} data
+structures.
+
+@item foreign net mhd enumerations
+Defines enumeration types.
 
 @item foreign net mhd platform
 Exports one binding for each foreign function; the Scheme functions have
@@ -574,6 +598,747 @@ Compound library exporting the high--level @api{}; it reexports bindings
 from the @samp{primitives} library and the constant values from the
 @samp{sizeof} library.
 @end table
+
+@c page
+@node enumerations
+@chapter Enumeration types
+
+
+The following bindings are exported by @library{foreign net mhd
+enumerations} and reexported by @library{foreign net mhd}.
+
+
+@deftp {Enumeration Type} enum-mhd-flags
+Enumeration for daemon configuration flags.  Members are:
+
+@example
+NO_FLAG                 USE_DEBUG
+USE_SSL                 USE_THREAD_PER_CONNECTION
+USE_SELECT_INTERNALLY   USE_IPv6
+USE_PEDANTIC_CHECKS
+@end example
+@end deftp
+
+
+@deffn Syntax mhd-flags @ameta{symbol} ...
+Build and return a new enumeration set of type @code{enum-mhd-flags}.
+@end deffn
+
+@c page
+@node daemon
+@chapter Starting and stopping the daemon
+
+
+The following bindings are exported by @library{foreign net mhd
+primitives} and reexported by @library{foreign net mhd}.
+
+
+@defun mhd-start-daemon @var{flags-set} @var{port} @var{accept-policy-callback} @var{access-handler-callback}
+Start an @mhd{} daemon and return its handler object; daemon handler
+objects are disjoint from the other Scheme objects.  The daemon must be
+finalised with a call to @func{mhd-start-daemon}.
+
+@var{flags-set} must be an enumeration set of type
+@code{enum-mhd-flags}.  @var{port} must be an exact integer representing
+the server port number.
+
+@var{accept-policy-callback} and @var{access-handler-callback} must be
+callback objects implementing the client accept policy and the contents
+access method.  Using @false{} as value for @var{accept-policy-callback}
+causes the daemon to accept by default all the connections.
+@end defun
+
+
+@defun mhd-stop-daemon @var{daemon}
+Stop @var{daemon} and release all the associated resources.
+@end defun
+
+
+@defun mhd-daemon? @var{obj}
+Return true if @var{obj} is an @mhd{} daemon handler.
+@end defun
+
+
+@defun mhd-daemon @var{daemon}
+Run the daemon.
+@end defun
+
+
+@defun make-mhd-access-policy-callback @var{scheme-function}
+Build and return a new callback object to be used as
+@var{accept-policy-callback} argument to @func{mhd-start-daemon}.
+
+The @var{scheme-function} must accept as single argument a
+@class{memblock} record referencing a @code{struct sockaddr} data
+structure; it must return @code{MHD_YES} if the connection request must
+be accepted or @code{MHD_NO} if the connection request must be rejected.
+
+If @var{scheme-function} raises an exception, the exception is catched
+and the return value of the callabck is @code{MHD_NO}; the exception's
+value is ignored.
+@end defun
+
+
+@defun make-mhd-access-contents-callback @var{scheme-function}
+Build and returen a new callback object to be used as
+@var{access-contents-callback} argument to @func{mhd-start-daemon}.
+
+The @var{scheme-function} must accept the following arguments:
+
+@enumerate
+@item
+An @mhd{} connection object.
+
+@item
+A Scheme string representing the requested @aurl{}.
+
+@item
+A Scheme symbol representing the @http{} method used by the client; one
+among: @samp{GET}, @samp{PUT}, @samp{DELETE}, @samp{POST}, @dots{}
+
+@item
+A Scheme string representing the @http{} version; for exampe
+@samp{HTTP/1.1}.
+
+@item
+A pointer to a memory block used to store the uploaded data; see the
+original documentation for details.
+
+@item
+A pointer to a @code{size_t} integer which must be updated with the
+number of bytes consumed from the uploaded data; see the original
+documentation for details.
+
+@item
+A boolean value, true if this is the first call to the callback for a
+given connection request.
+@end enumerate
+
+@noindent
+it must return @code{MHD_YES} if the connection was handled successfully
+or @code{MHD_NO} if the socket must be closed due to an unrecoverable
+error.
+
+If @var{scheme-function} raises an exception, the exception is catched
+and the return value of the callabck is @code{MHD_NO}; the exception's
+value is ignored.
+@end defun
+
+
+@defun mhd-get-fdset @var{daemon} @var{read-fd-set*} @var{write-fd-set*} @var{except-fd-set*}
+Fill the @code{fd_set} structures referenced by the pointers with the
+file descriptors used by @var{daemon}.  Return the file descriptor with
+the maximum value.
+@end defun
+
+
+@defun mhd-get-timeout @var{daemon}
+Return the timeout in milliseconds to be used for the file descriptors
+of @var{daemon}.
+@end defun
+
+@c page
+@node connections
+@chapter Handling connections
+
+
+The following bindings are exported by @library{foreign net mhd
+primitives} and reexported by @library{foreign net mhd}.
+
+
+@defun mhd-connection? @var{obj}
+Return true if @var{obj} is an @mhd{} connection handler.
+@end defun
+
+
+@defun mhd-get-connection-values @var{connection} @var{header-kind} @var{header-callback}
+Invoke @var{header-callback} for each header of @var{header-kind} in the
+last client request of @var{connection}.  Return the number of iterated
+headers.
+
+@var{header-kind} must be one among:
+
+@example
+MHD_RESPONSE_HEADER_KIND        MHD_HEADER_KIND
+MHD_COOKIE_KIND                 MHD_POSTDATA_KIND
+MHD_GET_ARGUMENT_KIND           MHD_FOOTER_KIND
+@end example
+@end defun
+
+
+@defun make-mhd-header-callback @var{scheme-function}
+Build and return a callback object meant to be used as
+@var{header-callback} argument to @func{mhd-get-connection-values}.
+
+@var{scheme-function} must accept the following arguments:
+
+@enumerate
+@item
+An exact integer representing the header kind; it is the
+@var{header-kind} argument to @func{mhd-get-connection-values}.
+
+@item
+A Scheme string representing the header key.
+
+@item
+A Scheme string representing the header value.
+@end enumerate
+
+@noindent
+and it must return @code{MHD_YES} if the iteration must continue or
+@code{MHD_NO} if the iteration must be aborted.
+
+If @var{scheme-function} raises an exception, the return value of the
+callback is @code{MHD_NO} and the exception value is ignored.
+@end defun
+
+
+@defun mhd-set-connection-value @var{connection} @var{kind} @var{key} @var{value} @var{malloc}
+Add a header to the state of @var{connection}; read carefully the
+original @mhd{} documentation.
+
+The Scheme strings @var{key} and @var{value} are converted to C strings
+with @func{string->cstring} with @var{malloc} as memory allocation
+function.
+@end defun
+
+
+@defun mhd-lookup-connection-value @var{connection} @var{header-kind} @var{key}
+Return the value of a header from @var{connection}; @var{key} must be
+the header key.  If no header of the selected kind is found, the return
+value is @false{}.
+@end defun
+
+@c page
+@node responses
+@chapter Handling @http{} responses
+
+
+The bindings documented in this section are exported by @library{foreign
+net mhd primitives} and reexported by @library{foreign net mhd}.
+
+@menu
+* responses callback::          Creating responses with callback
+                                functions.
+* responses data::              Creating responses from a buffer.
+* responses handling::          Handling response objects.
+* responses headers::           Managing response headers.
+@end menu
+
+@c page
+@node responses callback
+@section Creating responses with callback functions
+
+
+@defun mhd-create-response-from-callback @var{content-size} @var{block-size} @var{content-reader-callback} @var{content-reader-free-callback}
+Build and return a new response object.
+
+@var{content-size} must be an exact integer representing the size of the
+data portion or @samp{-1} it the size is not known; @var{block-size}
+must be an exact integer representing the input/output buffer size to be
+used with @var{content-reader-callback}.
+
+@var{content-reader-callback} must be a callback object invoked to build
+the response data.  @var{content-reader-free-callback} is invoked when
+the response data must be finalised.
+@end defun
+
+
+@defun make-mhd-content-reader-callback @var{scheme-function}
+Build and return a new callback object to be used as
+@var{content-reader-callback} argument to
+@func{mhd-create-response-from-callback}.
+
+@var{scheme-function} must accept the following arguments:
+
+@enumerate
+@item
+An exact integer representing the position in the input buffer from
+which the content must be read.
+
+@item
+A pointer object referencing the position in the output buffer to which
+the content must be written.
+
+@item
+An exact integer representing the maximum number of bytes to write in
+the output buffer.
+@end enumerate
+
+@noindent
+and it must return the total number of bytes placed in the buffer, or
+@samp{-1} if an error occurs.
+
+If @var{scheme-function} raises an exception, the exception is catched
+and the return code of the callback is @samp{-1}; the exception value is
+ignored.
+@end defun
+
+
+@defun make-mhd-content-reader-free-callback @var{scheme-function}
+Build and return a new callback object to be used as
+@var{content-reader-free-callback} argument to
+@func{mhd-create-response-from-callback}.
+
+@var{scheme-function} is called without arguments.
+@end defun
+
+@c page
+@node responses data
+@section Creating responses from a buffer
+
+
+@defun mhd-create-response-from-data @var{data} @var{must-free} @var{must-copy}
+Build and return a new response object.
+
+@var{data} must be a record of type @class{memblock} referencing the
+content data.
+
+If @var{must-free} is true, @mhd{} takes ownership of the buffer in
+@var{data} and it will call the standard @cfunc{free} function to
+release the memory.
+
+If @var{must-copy} is true, @mhd{} will copy the @var{data} buffer.
+@end defun
+
+@c page
+@node responses handling
+@section Handling response objects
+
+
+@defun mhd-response? @var{obj}
+Return true if @var{obj} is an @mhd{} response handler.
+@end defun
+
+
+@defun mhd-queue-response @var{connection} @var{response-code} @var{response}
+Enqueue a @var{response} to be transmitted to the client of
+@var{connection} along with @http{} @var{response-code}.  Increments by
+one the reference counter of @var{response}.
+@end defun
+
+
+@defun mhd-destroy-response @var{response}
+Decrements by one the reference counter of @var{response}.
+@end defun
+
+@c page
+@node responses headers
+@section Managing response headers
+
+
+@defun mhd-add-response-header @var{response} @var{key} @var{value}
+Add the header @var{key} with content @var{value} to the @var{response}
+object.  @var{key} and @var{value} must be Scheme strings or symbols.
+@end defun
+
+
+@defun mhd-del-response-header @var{response} @var{key} @var{value}
+Delete the header @var{key} with content @var{value} from the
+@var{response} object.  @var{key} and @var{value} must be Scheme strings
+or symbols.
+@end defun
+
+
+@defun mhd-get-response-headers @var{response} @var{header-callback}
+Invoke @var{header-callback} for each header in the @var{response}
+object; return the number of headers.  The callback interface is the
+same as the one of the @var{header-callback} argument to
+@func{mhd-get-connection-values}.
+@end defun
+
+
+@defun mhd-get-response-header @var{response} @var{key}
+Return a Scheme string representing the value of the header @var{key}, a
+Scheme string or symbol, in the @var{response} object.  Return @false{}
+if no such header exists in the response object.
+@end defun
+
+@c page
+@node post
+@chapter @http{} @samp{POST} processor
+
+
+The following bindings are exported by @library{foreign net mhd
+primitives} and reexported by @library{foreign net mhd}.
+
+
+@defun mhd-create-post-processor @var{connection} @var{buffer-size} @var{post-data-callback}
+Build and return a new @http{} @samp{POST} data processor.
+
+@var{buffer-size} must be an exact integer representing the internal
+processor buffer size used to parse data; it must be at least @math{256}
+bytes.
+
+@var{post-data-callback} must be a callback object which is invoked to
+process the data.
+@end defun
+
+
+@defun mhd-destroy-post-processor @var{processor}
+Release all the resources associated with @var{processor}.  Return the
+return code of the foreign function.
+@end defun
+
+
+@defun mhd-post-processor? @var{obj}
+Return true if @var{obj} is an @mhd{} post processor object.  Post
+processor objects are disjoint from other Scheme objects.
+@end defun
+
+
+@defun mhd-post-process @var{post-processor} @var{buffer-pointer} @var{number-of-bytes}
+Process @var{number-of-bytes} in @var{buffer-pointer} using
+@var{post-processor}.
+@end defun
+
+@c page
+@node tutorial
+@appendix A Tutorial for GNU libmicrohttpd
+
+
+@set TUTORIAL_MHD_VERSION       0.4.0
+
+
+This appendix is an adaptation to Scheme of the C library tutorial by
+Sebastian Gerhardt for @mhd{} version @value{TUTORIAL_MHD_VERSION}.
+
+@menu
+* tutorial intro::              Introduction.
+* tutorial hello::              Hello browser example.
+@c * Exploring requests::
+@c * Response headers::
+@c * Supporting basic authentication::
+@c * Processing POST data::
+@c * Improved processing of POST data::
+@c * Adding a layer of security::
+@c * Bibliography::
+@c * License text::
+@c * Example programs::
+@end menu
+
+@c page
+@node tutorial intro
+@appendixsec Introduction
+
+
+This tutorial is for developers who want to learn how they can add
+@http{} serving capabilities to their applications with @value{PACKAGE};
+the reader will learn how to implement basic @http{} functions from
+simple executable sample programs that implement various features.
+
+The text is supposed to be a supplement to the @api{} reference manual
+of @gnu{} @mhd{} and for that reason does not explain many of the
+parameters; therefore, the reader should always consult the manual to
+find the exact meaning of the functions used in the tutorial;
+furthermore, the reader is encouraged to study the relevant @rfc{}s,
+which document the @http{} standard.
+
+@gnu{} @mhd{} and @value{PACKAGE} are assumed to be already installed.
+This tutorial is written for @mhd{} version
+@value{TUTORIAL_MHD_VERSION}.  At the time being, this tutorial has only
+been tested on @gnu{}+Linux.
+
+@c page
+@node tutorial hello
+@appendixsec Hello browser example
+
+
+The most basic task for an @http{} server is to deliver a static text
+message to any client connecting to it; given that this is also easy to
+implement, it is an excellent problem to start with.
+
+For now, the particular filename the client asks for shall have no
+effect on the message that will be returned.  In addition, the server
+shall end the connection after the message has been sent so that the
+client will know there is nothing more to expect.
+
+We must start with the appropriate library import specifications:
+
+@example
+(import (rnrs)
+  (foreign net mhd))
+@end example
+
+@noindent
+the desired behaviour of the server when @http{} requests arrive has to
+be implemented.  We already have agreed that it should not care about
+the particular details of the request, such as who is requesting what.
+The server will respond merely with the same small @ahtml{} page to
+every request.
+
+The function we are going to write now will be called by @mhd{} every
+time an appropriate request comes in.  While the name of this callback
+function is arbitrary, its arguments list has to follow a certain
+layout; so please, ignore the lot of arguments for now, they will be
+explained at the point they are needed.
+
+We have to use only one of them, @var{connection}, for the minimalistic
+functionality we want to achive at the moment; this argument is set by
+the @mhd{} daemon and holds the necessary information to relate the call
+with a certain connection.  Keep in mind that a server might have to
+satisfy hundreds of concurrent connections and we have to make sure that
+the correct data is sent to the destined client; therefore, this
+argument is a means to refer to a particular connection if we ask the
+daemon to sent the reply.
+
+Talking about the reply, it is defined as a string right after the
+function header:
+
+@verbatim
+int answer_to_connection (void *cls, struct MHD_Connection *connection, const char *url,
+                          const char *method, const char *version, const char *upload_data,
+                          size_t *upload_data_size, void **con_cls)
+{
+  const char *page  = "<html><body>Hello, browser!</body></html>";
+@end verbatim
+@noindent
+HTTP is a rather strict protocol and the client would certainly consider it "inappropriate" if we
+just sent the answer string "as is". Instead, it has to be wrapped in certain layers, called headers,
+of additional information. Luckily, most of the work in this area is done by the library for us---we
+just have to ask. Our reply string packed in the necessary layers will be called a "response".
+To obtain such a response we hand our data (the reply--string) and its size over to the
+@code{MHD_create_response_from_data} function. The last two parameters basically tell @emph{MHD}
+that we do not want it to dispose the message data for us when it has been sent and there also needs
+no internal copy to be done because the @emph{constant} string won't change anyway.
+
+@verbatim
+  struct MHD_Response *response;
+  int ret;
+
+  response = MHD_create_response_from_data (strlen (page),
+                                            (void*) page, MHD_NO, MHD_NO);
+@end verbatim
+@noindent
+Now that the the response has been laced up, it is ready for delivery and can be queued for sending.
+This is done by passing it to another @emph{GNU libmicrohttpd} function. As all our work was done in
+the scope of one function, the recipient is without doubt the one associated with the
+local variable @code{connection} and consequently this variable is given to the queue function.
+Every HTTP response is accompanied by a status code, here "OK", so that the client knows
+this response is the intended result of his request and not due to some error or malfunction.
+
+Finally, the packet is destroyed and the return value from the queue returned,
+already being set at this point to either MHD_YES or MHD_NO in case of success or failure.
+
+@verbatim
+  ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
+  MHD_destroy_response (response);
+
+  return ret;
+}
+@end verbatim
+@noindent
+With the primary task of our server implemented, we can start the actual server daemon which will listen
+on @code{PORT} for connections. This is done in the main function.
+@verbatim
+int main ()
+{
+  struct MHD_Daemon *daemon;
+
+  daemon = MHD_start_daemon (MHD_USE_SELECT_INTERNALLY, PORT, NULL, NULL,
+                             &answer_to_connection, NULL, MHD_OPTION_END);
+  if (NULL == daemon) return 1;
+@end verbatim
+@noindent
+The first parameter is one of three possible modes of operation. Here we want the daemon to run in
+a separate thread and to manage all incoming connections in the same thread. This means that while
+producing the response for one connection, the other connections will be put on hold. In this
+chapter, where the reply is already known and therefore the request is served quickly, this poses no problem.
+
+We will allow all clients to connect regardless of their name or location, therefore we do not check
+them on connection and set the forth and fifth parameter to NULL.
+
+Parameter six is the address of the function we want to be called whenever a new connection has been
+established. Our @code{AnswerToConnection} knows best what the client wants and needs no additional
+information (which could be passed via the next parameter) so the next parameter is NULL. Likewise,
+we do not need to pass extra options to the daemon so we just write the MHD_OPTION_END as the last parameter.
+
+As the server daemon runs in the background in its own thread, the execution flow in our main
+function will contine right after the call. Because of this, we must delay the execution flow in the
+main thread or else the program will terminate prematurely. We let it pause in a processing-time
+friendly manner by waiting for the enter key to be pressed. In the end, we stop the daemon so it can
+do its cleanup tasks.
+@verbatim
+  getchar ();
+
+  MHD_stop_daemon (daemon);
+  return 0;
+}
+
+@end verbatim
+@noindent
+The first example is now complete.
+
+Compile it with
+@verbatim
+cc hellobrowser.c -o hellobrowser -I$PATH_TO_LIBMHD_INCLUDES
+  -L$PATH_TO_LIBMHD_INCLUDES -static -lmicrohttpd -pthread
+@end verbatim
+with the two paths set accordingly and run it.
+
+Now open your favorite Internet browser and go to the address @code{localhost:8888}, provided that
+is the port you chose. If everything works as expected, the browser will present the message of the
+static HTML page it got from our minimal server.
+
+@heading Remarks
+To keep this first example as small as possible, some drastic shortcuts were taken and are to be
+discussed now.
+
+Firstly, there is no distinction made between the kinds of requests a client could send. We implied
+that the client sends a GET request, that means, that he actually asked for some data. Even when
+it is not intended to accept POST requests, a good server should at least recognize that this
+request does not constitute a legal request and answer with an error code. This can be easily
+implemented by checking if the parameter @code{method} equals the string "GET" and returning a
+@code{MHD_NO} if not so.
+
+Secondly, the above practice of queuing a response upon the first call of the callback function
+brings with it some limitations. This is because the content of the message body will not be
+received if a response is queued in the first iteration. Furthermore, the connection will be closed
+right after the response has been transferred then.
+
+Both of these issues you will find addressed in the official @code{minimal_example.c} residing in
+the @code{src/examples} directory of the @emph{GNU libmicrohttpd} package. The source code of this
+program should look very familiar to you by now and easy to understand.
+
+For our example, the @code{must_copy} and @code{must_free} parameter at the response construction
+function could be set to @code{MHD_NO}. In the usual case, responses cannot be sent immediately
+after being queued. For example, there might be other data on the system that needs to be sent with
+a higher priority. Nevertheless, the queue function will return successfully---raising the problem
+that the data we have pointed to may be invalid by the time it is about being sent. This is not an
+issue here because we can expect the @code{page} string, which is a constant @emph{string literal}
+here, to be static. That means it will be present and unchanged for as long as the program runs.
+For dynamic data, one could choose to either have @emph{MHD} free the memory @code{page} points
+to itself when it is not longer needed or, alternatively, have the library to make and manage
+its own copy of it.
+
+@heading Exercises
+@itemize @bullet
+@item
+While the server is running, use a program like telnet or netcat to connect to it. Try to form a
+valid HTTP1.1 request yourself like
+@verbatim
+GET /dontcare HTTP1.1
+Host: itsme
+<enter>
+@end verbatim
+@noindent
+and see what the server returns to you.
+
+
+@item
+Also, try other requests, like POST, and see how our server does not mind and why.
+How far in malforming a request can you go before the builtin functionality of @emph{MHD} intervenes
+and an altered response is sent? Make sure you read about the status codes in the @emph{RFC}.
+
+
+@item
+Add the option @code{MHD_USE_PEDANTIC_CHECKS} to the start function of the daemon in @code{main}.
+Mind the special format of the parameter list here which is described in the manual. How indulgent
+is the server now to your input?
+
+
+@item
+Let the main function take a string as the first command line argument and pass @code{argv[1]} to
+the @code{MHD_start_daemon} function as the sixth parameter. The address of this string will be
+passed to the callback function via the @code{cls} variable. Decorate the text given at the command
+line when the server is started with proper HTML tags and send it as the response instead of the
+former static string.
+
+
+@item
+@emph{Demanding:} Write a separate function returning a string containing some useful information,
+for example, the time. Pass the function's address as the sixth parameter and evaluate this function
+on every request anew in @code{AnswerToConnection}. Remember to free the memory of the string
+every time after satisfying the request.
+
+@end itemize
+
+@c page
+@c @node Exploring requests
+@c @chapter Exploring requests
+@c @include chapters/exploringrequests.inc
+
+@c @node Response headers
+@c @chapter Response headers
+@c @include chapters/responseheaders.inc
+
+@c @node Supporting basic authentication
+@c @chapter Supporting basic authentication
+@c @include chapters/basicauthentication.inc
+
+@c @node Processing POST data
+@c @chapter Processing POST data
+@c @include chapters/processingpost.inc
+
+@c @node Improved processing of POST data
+@c @chapter Improved processing of POST data
+@c @include chapters/largerpost.inc
+
+@c @node Adding a layer of security
+@c @chapter Adding a layer of security
+@c @include chapters/tlsauthentication.inc
+
+@c @node Bibliography
+@c @appendix Bibliography
+@c @include chapters/bibliography.inc
+
+@c @node License text
+@c @appendix GNU Free Documentation License
+@c @include fdl-1.3.texi
+
+@c @node Example programs
+@c @appendix Example programs
+@c @menu
+@c * hellobrowser.c::
+@c * logging.c::
+@c * responseheaders.c::
+@c * basicauthentication.c::
+@c * simplepost.c::
+@c * largepost.c::
+@c * tlsauthentication.c::
+@c @end menu
+
+@c @node hellobrowser.c
+@c @section hellobrowser.c
+@c @smalldisplay
+@c @verbatiminclude examples/hellobrowser.c
+@c @end smalldisplay
+
+@c @node logging.c
+@c @section logging.c
+@c @smalldisplay
+@c @verbatiminclude examples/logging.c
+@c @end smalldisplay
+
+@c @node responseheaders.c
+@c @section responseheaders.c
+@c @smalldisplay
+@c @verbatiminclude examples/responseheaders.c
+@c @end smalldisplay
+
+@c @node basicauthentication.c
+@c @section basicauthentication.c
+@c @smalldisplay
+@c @verbatiminclude examples/basicauthentication.c
+@c @end smalldisplay
+
+@c @node simplepost.c
+@c @section simplepost.c
+@c @smalldisplay
+@c @verbatiminclude examples/simplepost.c
+@c @end smalldisplay
+
+@c @node largepost.c
+@c @section largepost.c
+@c @smalldisplay
+@c @verbatiminclude examples/largepost.c
+@c @end smalldisplay
+
+@c @node tlsauthentication.c
+@c @section tlsauthentication.c
+@c @smalldisplay
+@c @verbatiminclude examples/tlsauthentication.c
+@c @end smalldisplay
 
 @c page
 

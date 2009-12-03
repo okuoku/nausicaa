@@ -86,7 +86,8 @@
 					       MHD_AcceptPolicyCallback
 					       void*
 					       MHD_AccessHandlerCallback
-					       void*)))
+					       void*
+					       signed-int)))
 
   (MHD_stop_daemon
    (void MHD_stop_daemon (MHD_Daemon*)))

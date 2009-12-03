@@ -2,7 +2,7 @@ dnl (foreign net mhd sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Wed Dec  2, 2009
+dnl Date: Thu Dec  3, 2009
 dnl
 dnl Abstract
 dnl
@@ -234,6 +234,7 @@ NAUSICAA_INSPECT_TYPE([MHD_GNUTLS_CIPHERALGORITHM],[enum MHD_GNUTLS_CipherAlgori
 NAUSICAA_INSPECT_TYPE([MHD_GNUTLS_PROTOCOL],[enum MHD_GNUTLS_Protocol],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([MHD_CONNECTIONINFOTYPE],[enum MHD_ConnectionInfoType],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([MHD_DAEMONINFOTYPE],[enum MHD_DaemonInfoType],[signed-int],[#f])
+NAUSICAA_INSPECT_TYPE([SOCKLEN_T],[socklen_t],[unsigned-int],[#f])
 
 dnl Struct inspection: MHD_ConnectionInfo
 NAUSICAA_INSPECT_STRUCT_TYPE([MHD_CONNECTIONINFO],[union MHD_ConnectionInfo],[#f])

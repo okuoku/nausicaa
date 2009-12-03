@@ -45,12 +45,19 @@ AC_CHECK_HEADERS([microhttpd.h],,[AC_MSG_FAILURE([cannot find MHD header],[2])])
 AC_CHECK_LIB([microhttpd],[MHD_start_daemon],,[AC_MSG_FAILURE([cannot find MHD library],[2])])
 NAUSICAA_SIZEOF
 
+AC_CHECK_HEADER([unistd.h])
+
 dnl page
 dnl --------------------------------------------------------------------
 dnl Inspection.
 dnl --------------------------------------------------------------------
 
 m4_define([NAUSICAA_CUSTOM_INCLUDES],[
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+#else
+#define socklen_t       size_t
+#endif
 #include <microhttpd.h>
 ])
 
