@@ -1,7 +1,7 @@
 #
 # Part of: Nausicaa/Template
 # Contents: project specific makefile
-# Date: Wed Jan 21, 2009
+# Date:
 #
 # Abstract
 #
