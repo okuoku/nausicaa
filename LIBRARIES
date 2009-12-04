@@ -11,10 +11,6 @@
 
 * PostgreSQL
 
-* Sqlite
-
-* Libcurl
-
 * Bzip2
 
 * GNU Scientific Library
@@ -25,13 +21,9 @@
 
 * Nettle
 
-* Iconv
-
 * Libev
 
 * Unac?
-
-* DPE
 
 * Neon
 
