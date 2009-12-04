@@ -511,6 +511,7 @@ entitled ``@gnu{} Free Documentation License''.
 
 Appendices
 
+* bzlib::                       Original Bzlib documentation.
 * Package License::             GNU General Public License.
 * Documentation License::       GNU Free Documentation License.
 * references::                  Bibliography and references.
@@ -551,7 +552,8 @@ Exports bindings to constant values and data structures accessors.
 Exports one binding for each foreign function; the Scheme functions have
 the same name of the C functions, so @cfunc{BZ2_bzCompressInit} is
 availale as @func{BZ2_bzCompressInit}.  This library makes the original
-Bzlib documentation relevant for this package.
+Bzlib documentation relevant for this package.  @ref{bzlib, Original
+Bzlib documentation}.
 
 @item foreign compression bzlib primitives
 Exports one binding for each foreign function, implementing marshaling
@@ -573,6 +575,7 @@ Exports bindings to constructor functions making use of the
 
 @c page
 
+@include bzlib.texiinc
 @include gpl-3.0.texiinc
 @include fdl-1.3.texiinc
 

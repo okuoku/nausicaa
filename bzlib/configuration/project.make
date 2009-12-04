@@ -1,7 +1,7 @@
 #
 # Part of: Nausicaa/Bzlib
 # Contents: project specific makefile
-# Date: Wed Jan 21, 2009
+# Date: Fri Dec  4, 2009
 #
 # Abstract
 #
@@ -22,6 +22,16 @@
 # You  should have received  a copy  of the  GNU General  Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
+#page
+## --------------------------------------------------------------------
+## Documentation targets.
+## --------------------------------------------------------------------
+
+$(ds_texi_BUILDDIR)/nausicaa-bzlib.info: $(ds_texi_SRCDIR)/bzlib.texiinc
+$(ds_texi_BUILDDIR)/nausicaa-bzlib.html: $(ds_texi_SRCDIR)/bzlib.texiinc
+$(ds_texi_BUILDDIR)/nausicaa-bzlib.dvi:  $(ds_texi_SRCDIR)/bzlib.texiinc
+$(ds_texi_BUILDDIR)/nausicaa-bzlib.pdf:  $(ds_texi_SRCDIR)/bzlib.texiinc
 
 #page
 ## --------------------------------------------------------------------
