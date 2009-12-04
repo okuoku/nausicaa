@@ -48,6 +48,16 @@
 
     bzlib-lib-version
 
+    bzopen
+    bzdopen
+    bzread
+    bzwrite
+    bzflush
+    bzclose
+    bzerror
+
+;;; --------------------------------------------------------------------
+
     BZ_RUN			BZ_FLUSH
     BZ_FINISH
 
@@ -59,7 +69,26 @@
     BZ_IO_ERROR			BZ_UNEXPECTED_EOF
     BZ_OUTBUFF_FULL		BZ_CONFIG_ERROR
 
-    BZ_MAX_UNUSED)
+    BZ_MAX_UNUSED
+
+;;; --------------------------------------------------------------------
+
+    sizeof-bz_stream
+    alignof-bz_stream
+    strideof-bz_stream
+
+    struct-bz_stream-next_in-set!		struct-bz_stream-next_in-ref
+    struct-bz_stream-avail_in-set!		struct-bz_stream-avail_in-ref
+    struct-bz_stream-total_in_lo32-set!		struct-bz_stream-total_in_lo32-ref
+    struct-bz_stream-total_in_hi32-set!		struct-bz_stream-total_in_hi32-ref
+    struct-bz_stream-next_out-set!		struct-bz_stream-next_out-ref
+    struct-bz_stream-avail_out-set!		struct-bz_stream-avail_out-ref
+    struct-bz_stream-total_out_lo32-set!	struct-bz_stream-total_out_lo32-ref
+    struct-bz_stream-total_out_hi32-set!	struct-bz_stream-total_out_hi32-ref
+    struct-bz_stream-state-set!			struct-bz_stream-state-ref
+    struct-bz_stream-bzalloc-set!		struct-bz_stream-bzalloc-ref
+    struct-bz_stream-bzfree-set!		struct-bz_stream-bzfree-ref
+    struct-bz_stream-opaque-set!		struct-bz_stream-opaque-ref)
   (import (rnrs)
     (foreign compression bzlib primitives)
     (foreign compression bzlib sizeof)))

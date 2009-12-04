@@ -27,12 +27,12 @@
 
 (library (foreign compression bzlib primitives)
   (export
-    bzlib-compress-init
-    bzlib-compress
-    bzlib-compress-end
-    bzlib-decompress-init
-    bzlib-decompress
-    bzlib-decompress-end
+    (rename (BZ2_bzCompressInit		bzlib-compress-init)
+	    (BZ2_bzCompress		bzlib-compress)
+	    (BZ2_bzCompressEnd		bzlib-compress-end)
+	    (BZ2_bzDecompressInit	bzlib-decompress-init)
+	    (BZ2_bzDecompress		bzlib-decompress)
+	    (BZ2_bzDecompressEnd	bzlib-decompress-end))
 
     bzlib-read-open
     bzlib-read-close
@@ -46,7 +46,15 @@
     bzlib-buff-to-buff-compress
     bzlib-buff-to-buff-decompress
 
-    bzlib-lib-version)
+    bzlib-lib-version
+
+    bzopen
+    bzdopen
+    bzread
+    bzwrite
+    bzflush
+    bzclose
+    bzerror)
   (import (rnrs)
     (compensations)
     (foreign ffi)
@@ -54,25 +62,6 @@
     (foreign cstrings)
     (foreign compression bzlib platform)
     (foreign compression bzlib sizeof))
-
-
-(define (bzlib-compress-init)
-  #t)
-
-(define (bzlib-compress)
-  #t)
-
-(define (bzlib-compress-end)
-  #t)
-
-(define (bzlib-decompress-init)
-  #t)
-
-(define (bzlib-decompress)
-  #t)
-
-(define (bzlib-decompress-end)
-  #t)
 
 
 (define (bzlib-read-open)
@@ -108,6 +97,28 @@
 
 
 (define (bzlib-lib-version)
+  (cstring->string (BZ2_bzlibVersion)))
+
+
+(define (bzopen)
+  #t)
+
+(define (bzdopen)
+  #t)
+
+(define (bzread)
+  #t)
+
+(define (bzwrite)
+  #t)
+
+(define (bzflush)
+  #t)
+
+(define (bzclose)
+  #t)
+
+(define (bzerror)
   #t)
 
 

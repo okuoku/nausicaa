@@ -508,6 +508,7 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* memory::                      Memory to memory operations.
 
 Appendices
 
@@ -564,14 +565,21 @@ to the one of the C functions: the @code{BZ2_bz} is converted to
 
 @item foreign compression bzlib
 Compound library exporting the high--level @api{}; it reexports bindings
-from the @samp{primitives} library and the constant values from the
-@samp{sizeof} library.
+from the @samp{primitives} library and the constant values and structure
+accessors from the @samp{sizeof} library.
 
 @item foreign compression bzlib compensated
 Exports bindings to constructor functions making use of the
 @library{compensations} library from Nausicaa/Scheme.
 @nauref{compensations, Compensation stacks}.
 @end table
+
+@c page
+@node memory
+@chapter Memory to memory operations
+
+
+
 
 @c page
 
