@@ -7,7 +7,7 @@ dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it  under the terms of the  GNU General Public
@@ -31,8 +31,8 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-template],[0.1d0],[marcomaggi@gna.org])
-DS_BEGIN([./src/libraries/foreign/template.sls])
+AC_INIT([nausicaa-template],[0.1d0],[marco.maggi-ipsu@poste.it])
+DS_BEGIN([./src/libraries/foreign/category/template.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
 NAUSICAA_SYSTEM_SETUP
@@ -50,45 +50,18 @@ dnl --------------------------------------------------------------------
 dnl Helper functions.
 dnl --------------------------------------------------------------------
 
-m4_define([NAU_TEMPLATE_INCLUDES],[
+m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #include <template/template.h>
 ])
 
-AC_DEFUN([NAU_TEMPLATE_INSPECT_TYPE],
-  [NAUSICAA_INSPECT_TYPE([$1],[$2],[$3],[#f],[NAU_TEMPLATE_INCLUDES])])
-
-AC_DEFUN([NAU_TEMPLATE_INSPECT_STRUCT_TYPE],
-  [NAUSICAA_INSPECT_STRUCT_TYPE([$1],[$2],[#f],[NAU_TEMPLATE_INCLUDES])])
-
-AC_DEFUN([NAU_TEMPLATE_INSPECT_FIELD_TYPE],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],[#f],[NAU_TEMPLATE_INCLUDES])])
-
-AC_DEFUN([NAU_TEMPLATE_ENUM_VALUE],
-  [NAU_TEMPLATE_VALUEOF_TEST([$1],[$1])])
-
-AC_DEFUN([NAU_TEMPLATE_DEFINE_VALUE],
-  [NAU_TEMPLATE_VALUEOF_TEST([$1],[$1])])
-
-dnl --------------------------------------------------------------------
-
-AC_DEFUN([NAU_TEMPLATE_SIZEOF_TEST],
-  [NAUSICAA_SIZEOF_TEST([$1],[$2],[#f],[NAU_TEMPLATE_INCLUDES])])
-
-AC_DEFUN([NAU_TEMPLATE_VALUEOF_TEST],
-  [NAUSICAA_VALUEOF_TEST([$1],[$2],[#f],[NAU_TEMPLATE_INCLUDES])])
-
-AC_DEFUN([NAU_TEMPLATE_OFFSETOF_FIELD_TEST],
-  [NAUSICAA_OFFSETOF_FIELD_TEST([$1],[$2],[$3],[NAU_TEMPLATE_INCLUDES])])
-
-AC_DEFUN([NAU_TEMPLATE_STRUCT_FIELD],
-  [NAUSICAA_INSPECT_FIELD_TYPE([$1],[$2],[$3],[$4],,[NAU_TEMPLATE_INCLUDES])])
+m4_include([configuration/template-inspector.m4])
 
 dnl page
 dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../src/libraries/foreign/template/sizeof.sls:src/libraries/foreign/template/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/foreign/category/template/sizeof.sls:src/libraries/foreign/category/template/sizeof.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END

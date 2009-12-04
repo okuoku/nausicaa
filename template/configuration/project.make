@@ -28,7 +28,7 @@
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,base,foreign/category))
+$(eval $(call nau-libraries,category,foreign/category))
 $(eval $(call nau-libraries,template,foreign/category/template))
 
 

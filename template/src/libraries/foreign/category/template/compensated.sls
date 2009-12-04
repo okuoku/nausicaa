@@ -1,8 +1,8 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Template
-;;;Contents: primitive functions
-;;;Date:
+;;;Contents: compensated constructors
+;;;Date: Fri Dec  4, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -25,17 +25,14 @@
 ;;;
 
 
-(library (foreign category template primitives)
+(library (foreign category template compensated)
   (export)
   (import (rnrs)
     (compensations)
-    (foreign ffi)
-    (foreign memory)
-    (foreign cstrings)
-    (foreign category template platform)
-    (foreign category template sizeof))
+    (foreign category template))
 
 
+;;;; code
 
 
 
