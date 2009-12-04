@@ -1,0 +1,193 @@
+;;; (foreign compression bzlib sizeof) --
+;;;
+;;;Part of: Nausicaa
+;;;Contents: foreign library inspection generation
+;;;Date: Fri Dec  4, 2009
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+(library
+  (foreign compression bzlib sizeof)
+  (export
+    BZ_RUN
+    BZ_FLUSH
+    BZ_FINISH
+    BZ_OK
+    BZ_RUN_OK
+    BZ_FLUSH_OK
+    BZ_FINISH_OK
+    BZ_STREAM_END
+    BZ_SEQUENCE_ERROR
+    BZ_PARAM_ERROR
+    BZ_MEM_ERROR
+    BZ_DATA_ERROR
+    BZ_DATA_ERROR_MAGIC
+    BZ_IO_ERROR
+    BZ_UNEXPECTED_EOF
+    BZ_OUTBUFF_FULL
+    BZ_CONFIG_ERROR
+    BZ_MAX_UNUSED
+    bz_stream*
+    BZFILE*
+    sizeof-bz_stream
+    alignof-bz_stream
+    strideof-bz_stream
+    struct-bz_stream-next_in-set!
+    struct-bz_stream-next_in-ref
+    struct-bz_stream-avail_in-set!
+    struct-bz_stream-avail_in-ref
+    struct-bz_stream-total_in_lo32-set!
+    struct-bz_stream-total_in_lo32-ref
+    struct-bz_stream-total_in_hi32-set!
+    struct-bz_stream-total_in_hi32-ref
+    struct-bz_stream-next_out-set!
+    struct-bz_stream-next_out-ref
+    struct-bz_stream-avail_out-set!
+    struct-bz_stream-avail_out-ref
+    struct-bz_stream-total_out_lo32-set!
+    struct-bz_stream-total_out_lo32-ref
+    struct-bz_stream-total_out_hi32-set!
+    struct-bz_stream-total_out_hi32-ref
+    struct-bz_stream-state-set!
+    struct-bz_stream-state-ref
+    struct-bz_stream-bzalloc-set!
+    struct-bz_stream-bzalloc-ref
+    struct-bz_stream-bzfree-set!
+    struct-bz_stream-bzfree-ref
+    struct-bz_stream-opaque-set!
+    struct-bz_stream-opaque-ref
+    BZLIB_SHARED_OBJECT)
+  (import
+    (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof))
+  (define BZ_RUN @VALUEOF_BZ_RUN@)
+  (define BZ_FLUSH @VALUEOF_BZ_FLUSH@)
+  (define BZ_FINISH @VALUEOF_BZ_FINISH@)
+  (define BZ_OK @VALUEOF_BZ_OK@)
+  (define BZ_RUN_OK @VALUEOF_BZ_RUN_OK@)
+  (define BZ_FLUSH_OK @VALUEOF_BZ_FLUSH_OK@)
+  (define BZ_FINISH_OK @VALUEOF_BZ_FINISH_OK@)
+  (define BZ_STREAM_END @VALUEOF_BZ_STREAM_END@)
+  (define
+    BZ_SEQUENCE_ERROR
+    @VALUEOF_BZ_SEQUENCE_ERROR@)
+  (define BZ_PARAM_ERROR @VALUEOF_BZ_PARAM_ERROR@)
+  (define BZ_MEM_ERROR @VALUEOF_BZ_MEM_ERROR@)
+  (define BZ_DATA_ERROR @VALUEOF_BZ_DATA_ERROR@)
+  (define
+    BZ_DATA_ERROR_MAGIC
+    @VALUEOF_BZ_DATA_ERROR_MAGIC@)
+  (define BZ_IO_ERROR @VALUEOF_BZ_IO_ERROR@)
+  (define
+    BZ_UNEXPECTED_EOF
+    @VALUEOF_BZ_UNEXPECTED_EOF@)
+  (define
+    BZ_OUTBUFF_FULL
+    @VALUEOF_BZ_OUTBUFF_FULL@)
+  (define
+    BZ_CONFIG_ERROR
+    @VALUEOF_BZ_CONFIG_ERROR@)
+  (define BZ_MAX_UNUSED @VALUEOF_BZ_MAX_UNUSED@)
+  (define bz_stream* 'pointer)
+  (define BZFILE* 'pointer)
+  (define sizeof-bz_stream @SIZEOF_BZ_STREAM@)
+  (define alignof-bz_stream @ALIGNOF_BZ_STREAM@)
+  (define strideof-bz_stream @STRIDEOF_BZ_STREAM@)
+  (define-c-struct-accessor-and-mutator
+    struct-bz_stream-next_in-set!
+    struct-bz_stream-next_in-ref
+    @OFFSETOF_BZ_STREAM_NEXT_IN@
+    @SETTEROF_BZ_STREAM_NEXT_IN@
+    @GETTEROF_BZ_STREAM_NEXT_IN@)
+  (define-c-struct-accessor-and-mutator
+    struct-bz_stream-avail_in-set!
+    struct-bz_stream-avail_in-ref
+    @OFFSETOF_BZ_STREAM_AVAIL_IN@
+    @SETTEROF_BZ_STREAM_AVAIL_IN@
+    @GETTEROF_BZ_STREAM_AVAIL_IN@)
+  (define-c-struct-accessor-and-mutator
+    struct-bz_stream-total_in_lo32-set!
+    struct-bz_stream-total_in_lo32-ref
+    @OFFSETOF_BZ_STREAM_TOTAL_IN_LO32@
+    @SETTEROF_BZ_STREAM_TOTAL_IN_LO32@
+    @GETTEROF_BZ_STREAM_TOTAL_IN_LO32@)
+  (define-c-struct-accessor-and-mutator
+    struct-bz_stream-total_in_hi32-set!
+    struct-bz_stream-total_in_hi32-ref
+    @OFFSETOF_BZ_STREAM_TOTAL_IN_HI32@
+    @SETTEROF_BZ_STREAM_TOTAL_IN_HI32@
+    @GETTEROF_BZ_STREAM_TOTAL_IN_HI32@)
+  (define-c-struct-accessor-and-mutator
+    struct-bz_stream-next_out-set!
+    struct-bz_stream-next_out-ref
+    @OFFSETOF_BZ_STREAM_NEXT_OUT@
+    @SETTEROF_BZ_STREAM_NEXT_OUT@
+    @GETTEROF_BZ_STREAM_NEXT_OUT@)
+  (define-c-struct-accessor-and-mutator
+    struct-bz_stream-avail_out-set!
+    struct-bz_stream-avail_out-ref
+    @OFFSETOF_BZ_STREAM_AVAIL_OUT@
+    @SETTEROF_BZ_STREAM_AVAIL_OUT@
+    @GETTEROF_BZ_STREAM_AVAIL_OUT@)
+  (define-c-struct-accessor-and-mutator
+    struct-bz_stream-total_out_lo32-set!
+    struct-bz_stream-total_out_lo32-ref
+    @OFFSETOF_BZ_STREAM_TOTAL_OUT_LO32@
+    @SETTEROF_BZ_STREAM_TOTAL_OUT_LO32@
+    @GETTEROF_BZ_STREAM_TOTAL_OUT_LO32@)
+  (define-c-struct-accessor-and-mutator
+    struct-bz_stream-total_out_hi32-set!
+    struct-bz_stream-total_out_hi32-ref
+    @OFFSETOF_BZ_STREAM_TOTAL_OUT_HI32@
+    @SETTEROF_BZ_STREAM_TOTAL_OUT_HI32@
+    @GETTEROF_BZ_STREAM_TOTAL_OUT_HI32@)
+  (define-c-struct-accessor-and-mutator
+    struct-bz_stream-state-set!
+    struct-bz_stream-state-ref
+    @OFFSETOF_BZ_STREAM_STATE@
+    @SETTEROF_BZ_STREAM_STATE@
+    @GETTEROF_BZ_STREAM_STATE@)
+  (define-c-struct-accessor-and-mutator
+    struct-bz_stream-bzalloc-set!
+    struct-bz_stream-bzalloc-ref
+    @OFFSETOF_BZ_STREAM_BZALLOC@
+    @SETTEROF_BZ_STREAM_BZALLOC@
+    @GETTEROF_BZ_STREAM_BZALLOC@)
+  (define-c-struct-accessor-and-mutator
+    struct-bz_stream-bzfree-set!
+    struct-bz_stream-bzfree-ref
+    @OFFSETOF_BZ_STREAM_BZFREE@
+    @SETTEROF_BZ_STREAM_BZFREE@
+    @GETTEROF_BZ_STREAM_BZFREE@)
+  (define-c-struct-accessor-and-mutator
+    struct-bz_stream-opaque-set!
+    struct-bz_stream-opaque-ref
+    @OFFSETOF_BZ_STREAM_OPAQUE@
+    @SETTEROF_BZ_STREAM_OPAQUE@
+    @GETTEROF_BZ_STREAM_OPAQUE@)
+  (define
+    BZLIB_SHARED_OBJECT
+    "@BZLIB_SHARED_OBJECT@"))
+
+
+;;; end of file
