@@ -508,6 +508,7 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* struct::                      Accessing data structures.
 * memory::                      Memory--to--memory operations.
 * file::                        File operations.
 
@@ -524,7 +525,9 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
 @end menu
+
 @end ifnottex
 
 @c page
@@ -575,6 +578,50 @@ Exports bindings to constructor functions making use of the
 @library{compensations} library from Nausicaa/Scheme.
 @nauref{compensations, Compensation stacks}.
 @end table
+
+@c page
+@node struct
+@chapter Accessing data structures
+
+
+The following bindings are exported by @library{foreign compress bzlib
+sizeof} and reexported by @library{foreign compress bzlib}.
+
+
+@defvr Constant sizeof-bz_stream
+@defvrx Constant alignof-bz_stream
+@defvrx Constant strideof-bz_stream
+Size, alignment and array stride for data structures of type
+@code{bz_stream}.
+@end defvr
+
+
+@deffn Syntax struct-bz_stream-next_in-set! @var{pointer} @var{value}
+@deffnx Syntax struct-bz_stream-next_in-ref @var{pointer}
+@deffnx Syntax struct-bz_stream-avail_in-set! @var{pointer} @var{value}
+@deffnx Syntax struct-bz_stream-avail_in-ref @var{pointer}
+@deffnx Syntax struct-bz_stream-total_in_lo32-set! @var{pointer} @var{value}
+@deffnx Syntax struct-bz_stream-total_in_lo32-ref @var{pointer}
+@deffnx Syntax struct-bz_stream-total_in_hi32-set! @var{pointer} @var{value}
+@deffnx Syntax struct-bz_stream-total_in_hi32-ref @var{pointer}
+@deffnx Syntax struct-bz_stream-next_out-set! @var{pointer} @var{value}
+@deffnx Syntax struct-bz_stream-next_out-ref @var{pointer}
+@deffnx Syntax struct-bz_stream-avail_out-set! @var{pointer} @var{value}
+@deffnx Syntax struct-bz_stream-avail_out-ref @var{pointer}
+@deffnx Syntax struct-bz_stream-total_out_lo32-set! @var{pointer} @var{value}
+@deffnx Syntax struct-bz_stream-total_out_lo32-ref @var{pointer}
+@deffnx Syntax struct-bz_stream-total_out_hi32-set! @var{pointer} @var{value}
+@deffnx Syntax struct-bz_stream-total_out_hi32-ref @var{pointer}
+@deffnx Syntax struct-bz_stream-state-set! @var{pointer} @var{value}
+@deffnx Syntax struct-bz_stream-state-ref @var{pointer}
+@deffnx Syntax struct-bz_stream-bzalloc-set! @var{pointer} @var{value}
+@deffnx Syntax struct-bz_stream-bzalloc-ref @var{pointer}
+@deffnx Syntax struct-bz_stream-bzfree-set! @var{pointer} @var{value}
+@deffnx Syntax struct-bz_stream-bzfree-ref @var{pointer}
+@deffnx Syntax struct-bz_stream-opaque-set! @var{pointer} @var{value}
+@deffnx Syntax struct-bz_stream-opaque-ref @var{pointer}
+Accessors and mutators for data structures of type @code{bz_stream}.
+@end deffn
 
 @c page
 @node memory
