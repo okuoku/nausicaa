@@ -148,7 +148,7 @@ Any way the wind blows.
 	      (struct-bz_stream-bzfree-set!  bz2* pointer-null)
 	      (struct-bz_stream-opaque-set!  bz2* pointer-null)
 
-	      (bzlib-decompress-init bz2* 0 0))
+	      (bzlib-decompress-init bz2* 0 #f))
 
 	    (begin ;decompress
 	      (struct-bz_stream-next_in-set!   bz2* cm.ptr)

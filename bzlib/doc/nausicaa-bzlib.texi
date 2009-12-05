@@ -579,6 +579,100 @@ Exports bindings to constructor functions making use of the
 @chapter Memory to memory operations
 
 
+Basically, to compress a data buffer we should do:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign memory)
+  (foreign compression bzlib))
+
+(with-compensations
+  (let* ((bz*     (malloc-block/c sizeof-bz_stream))
+
+         (in.len  ---)  ;input number of bytes
+         (in.ptr  ---)  ;pointer object
+
+         (ou.len  ---)  ;output number of bytes
+         (ou.ptr  ---)) ;pointer ojbect
+
+    ;;initialise
+    (struct-bz_stream-bzalloc-set! bz* pointer-null)
+    (struct-bz_stream-bzfree-set!  bz* pointer-null)
+    (struct-bz_stream-opaque-set!  bz* pointer-null)
+    (bzlib-compress-init bz* 1 0 0)
+
+    ;;compress
+    (struct-bz_stream-next_in-set!   bz* in.ptr)
+    (struct-bz_stream-avail_in-set!  bz* in.len)
+    (struct-bz_stream-next_out-set!  bz* ou.ptr)
+    (struct-bz_stream-avail_out-set! bz* ou.len)
+    (bzlib-compress bz* BZ_RUN)
+    (let loop ()
+      (unless (= BZ_STREAM_END (bzlib-compress bz* BZ_FINISH))
+        (loop)))
+
+    ;;finalise
+    (bzlib-compress-end bz*)
+
+    (let ((compr.len (struct-bz_stream-total_out_lo32-ref bz*)))
+      ---)))
+@end example
+
+@noindent
+and to decompress a data buffer we should do:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign memory)
+  (foreign compression bzlib))
+
+(with-compensations
+  (let* ((bz*     (malloc-block/c sizeof-bz_stream))
+
+         (in.len  ---)  ;input number of bytes
+         (in.ptr  ---)  ;pointer object
+
+         (ou.len  ---)  ;output number of bytes
+         (ou.ptr  ---)) ;pointer ojbect
+
+    ;;initialise
+    (struct-bz_stream-bzalloc-set! bz* pointer-null)
+    (struct-bz_stream-bzfree-set!  bz* pointer-null)
+    (struct-bz_stream-opaque-set!  bz* pointer-null)
+    (bzlib-decompress-init bz* 0 #f)
+
+    ;;decompress
+    (struct-bz_stream-next_in-set!   bz* cm.ptr)
+    (struct-bz_stream-avail_in-set!  bz* cm.len)
+    (struct-bz_stream-next_out-set!  bz* ou.ptr)
+    (struct-bz_stream-avail_out-set! bz* ou.len)
+    (let loop ()
+      (unless (= BZ_STREAM_END (bzlib-decompress bz*))
+        (loop)))
+
+    ;;finalise
+    (bzlib-decompress-end bz*)
+
+    (let ((decomp.len (struct-bz_stream-total_out_lo32-ref bz*)))
+      ---)))
+@end example
+
+@noindent
+tuning the management of input and output buffers and handling of errors
+are application specific.
+
+All the functions behave as explained in the original Bzlib
+documentation, accepting the same arguments with the following
+exceptions.
+
+
+@defun bzlib-decompress-init @var{stream} @var{verbosity} @var{small}
+The argument @var{small} can be any Scheme object: if true, it turns on
+``small memory usage'' decompression; if @false{}, it causes the default
+algorithm to be used.
+@end defun
 
 
 @c page

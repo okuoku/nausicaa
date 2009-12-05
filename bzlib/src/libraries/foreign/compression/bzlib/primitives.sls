@@ -30,9 +30,10 @@
     (rename (BZ2_bzCompressInit		bzlib-compress-init)
 	    (BZ2_bzCompress		bzlib-compress)
 	    (BZ2_bzCompressEnd		bzlib-compress-end)
-	    (BZ2_bzDecompressInit	bzlib-decompress-init)
 	    (BZ2_bzDecompress		bzlib-decompress)
 	    (BZ2_bzDecompressEnd	bzlib-decompress-end))
+
+    bzlib-decompress-init
 
     bzlib-read-open
     bzlib-read-close
@@ -62,6 +63,10 @@
     (foreign cstrings)
     (foreign compression bzlib platform)
     (foreign compression bzlib sizeof))
+
+
+(define (bzlib-decompress-init stream verbosity small)
+  (BZ2_bzDecompressInit stream verbosity (if small 1 0)))
 
 
 (define (bzlib-read-open)
