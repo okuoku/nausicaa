@@ -106,15 +106,15 @@ Any way the wind blows.
   #t)
 
 
-(parametrise ((check-test-name 'low-level))
+(parametrise ((check-test-name 'memory))
 
   (check
       (with-compensations
-	(let* ((bz*	(malloc-block/c sizeof-bz_stream))
+	(let* ((bz*	(malloc/c sizeof-bz_stream))
 	       (in.len	original.len)
 	       (in.ptr	original.ptr)
 	       (cm.len	1024)
-	       (cm.ptr	(malloc-block/c cm.len)))
+	       (cm.ptr	(malloc/c cm.len)))
 
 	  (begin	;initialise
 	    (struct-bz_stream-bzalloc-set! bz* pointer-null)
@@ -137,11 +137,11 @@ Any way the wind blows.
 
 	  (bzlib-compress-end bz*)
 
-	  (let* ((bz2*		(malloc-block/c sizeof-bz_stream))
+	  (let* ((bz2*		(malloc/c sizeof-bz_stream))
 		 (cm.len	(struct-bz_stream-total_out_lo32-ref bz*))
 		 (cm.ptr	cm.ptr)
 		 (ou.len	(* 2 original.len));to be safe
-		 (ou.ptr	(malloc-block/c ou.len)))
+		 (ou.ptr	(malloc/c ou.len)))
 
 	    (begin ;initialise
 	      (struct-bz_stream-bzalloc-set! bz2* pointer-null)
@@ -166,47 +166,51 @@ Any way the wind blows.
 	    (memcmp in.ptr ou.ptr (struct-bz_stream-total_out_lo32-ref bz2*)))))
     => 0)
 
+  (check
+      (with-compensations
+	(let* ((in.len	original.len)
+	       (in.ptr	original.ptr)
+	       (cm.len	1024)
+	       (cm.ptr	(malloc/c cm.len))
+	       (cm.len*	(let ((p (malloc-small/c)))
+			  (pointer-set-c-unsigned-int! p 0 cm.len)
+			  p)))
+
+	  (bzlib-buff-to-buff-compress cm.ptr cm.len* in.ptr in.len 1 0 1)
+
+	  (let* ((cm.ptr	cm.ptr)
+		 (cm.len	(pointer-ref-c-unsigned-int cm.len* 0))
+		 (ou.len	in.len)
+		 (ou.ptr	(malloc/c ou.len))
+		 (ou.len*	(let ((p (malloc-small/c)))
+				  (pointer-set-c-unsigned-int! p 0 ou.len)
+				  p)))
+
+	    (bzlib-buff-to-buff-decompress ou.ptr ou.len* cm.ptr cm.len 0 0)
+
+	    (memcmp in.ptr ou.ptr (pointer-ref-c-unsigned-int ou.len* 0)))))
+    => 0)
+
   #t)
 
 
-#;(parametrise ((check-test-name	'file))
+(parametrise ((check-test-name	'file))
 
   (check
       (begin
-	(guard (E (else #f)) (delete-file "proof.gz"))
-	(let-values (((F errno) (bzopen* "proof.gz" "wb9")))
+	(guard (E (else #f)) (delete-file "proof.bz2"))
+	(let ((F (bzopen "proof.bz2" "wb")))
 	  (bzwrite F original.ptr original.len)
-	  (bzflush F Z_FINISH)
+	  (bzflush F)
 	  (bzclose F))
 	(with-compensations
-	  (let-values (((ptr)		(malloc-block/c original.len))
-		       ((F errno)	(bzopen* "proof.gz" "rb")))
+	  (let ((ptr	(malloc-block/c original.len))
+		(F	(bzopen "proof.bz2" "rb")))
 	    (memset ptr 0 original.len)
 	    (bzread F ptr original.len)
 	    (bzclose F)
 	    (cstring->string ptr original.len))))
     => original-string)
-
-  (check
-      (begin
-	(guard (E (else #f)) (delete-file "proof1.gz"))
-	(let-values (((F errno) (bzopen* "proof1.gz" "wb")))
-	  (let-values (((code message) (bzerror* F)))
-	    (bzclose F)
-	    (and (= code Z_OK)
-		 (= 0 (string-length message))))))
-    => #t)
-
-  (check
-      (begin
-	(guard (E (else #f)) (delete-file "scrappydappydoo.gz"))
-	(let-values (((F errno)	(bzopen* "scrappydappydoo.gz" "rb"))
-		     ((ptr)	(malloc-block/c original.len)))
-	  (bzread F ptr original.len)
-	  (let-values (((code message) (bzerror* F)))
-	    (bzclose F)
-	    (list code message))))
-    => `(,Z_STREAM_ERROR "stream error"))
 
   #t)
 

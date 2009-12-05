@@ -31,31 +31,28 @@
 	    (BZ2_bzCompress		bzlib-compress)
 	    (BZ2_bzCompressEnd		bzlib-compress-end)
 	    (BZ2_bzDecompress		bzlib-decompress)
-	    (BZ2_bzDecompressEnd	bzlib-decompress-end))
+	    (BZ2_bzDecompressEnd	bzlib-decompress-end)
 
-    bzlib-decompress-init
+	    (BZ2_bzBuffToBuffCompress	bzlib-buff-to-buff-compress)
+	    (BZ2_bzBuffToBuffDecompress	bzlib-buff-to-buff-decompress)
 
-    bzlib-read-open
-    bzlib-read-close
-    bzlib-read-get-unused
-    bzlib-read
-    bzlib-write-open
-    bzlib-write
-    bzlib-write-close
-    bzlib-write-close64
+	    (BZ2_bzReadOpen		bzlib-read-open)
+	    (BZ2_bzReadClose		bzlib-read-close)
+	    (BZ2_bzReadGetUnused	bzlib-read-get-unused)
+	    (BZ2_bzRead			bzlib-read)
+	    (BZ2_bzWriteOpen		bzlib-write-open)
+	    (BZ2_bzWrite		bzlib-write)
+	    (BZ2_bzWriteClose		bzlib-write-close)
+	    (BZ2_bzWriteClose64		bzlib-write-close64)
 
-    bzlib-buff-to-buff-compress
-    bzlib-buff-to-buff-decompress
+	    (BZ2_bzread			bzread)
+	    (BZ2_bzwrite		bzwrite)
+	    (BZ2_bzflush		bzflush)
+	    (BZ2_bzclose		bzclose))
 
     bzlib-lib-version
-
-    bzopen
-    bzdopen
-    bzread
-    bzwrite
-    bzflush
-    bzclose
-    bzerror)
+    bzlib-decompress-init
+    bzopen bzdopen bzerror)
   (import (rnrs)
     (compensations)
     (foreign ffi)
@@ -68,63 +65,28 @@
 (define (bzlib-decompress-init stream verbosity small)
   (BZ2_bzDecompressInit stream verbosity (if small 1 0)))
 
-
-(define (bzlib-read-open)
-  #t)
-
-(define (bzlib-read-close)
-  #t)
-
-(define (bzlib-read-get-unused)
-  #t)
-
-(define (bzlib-read)
-  #t)
-
-(define (bzlib-write-open)
-  #t)
-
-(define (bzlib-write)
-  #t)
-
-(define (bzlib-write-close)
-  #t)
-
-(define (bzlib-write-close64)
-  #t)
-
-
-(define (bzlib-buff-to-buff-compress)
-  #t)
-
-(define (bzlib-buff-to-buff-decompress)
-  #t)
-
-
 (define (bzlib-lib-version)
   (cstring->string (BZ2_bzlibVersion)))
 
-
-(define (bzopen)
-  #t)
+(define (bzopen pathname mode)
+  (with-compensations
+    (let ((bz* (BZ2_bzopen (string->cstring/c pathname) (string->cstring/c mode))))
+      (if (pointer-null? bz*) #f bz*))))
 
-(define (bzdopen)
-  #t)
+(define (bzdopen fd mode)
+  (with-compensations
+    (let ((bz* (BZ2_bzdopen fd (string->cstring/c mode))))
+      (if (pointer-null? bz*) #f bz*))))
 
-(define (bzread)
-  #t)
-
-(define (bzwrite)
-  #t)
-
-(define (bzflush)
-  #t)
-
-(define (bzclose)
-  #t)
-
-(define (bzerror)
-  #t)
+(define (bzerror bzfile*)
+  (with-compensations
+    (let* ((errnum*	(malloc-small/c))
+	   (message*	(BZ2_bzerror bzfile* errnum*)))
+      (let ((code (pointer-ref-c-signed-int errnum* 0)))
+	(values code
+		(if (= code BZ_OK)
+		    "success"
+		  (cstring->string message*)))))))
 
 
 ;;;; done

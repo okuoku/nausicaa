@@ -508,7 +508,8 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
-* memory::                      Memory to memory operations.
+* memory::                      Memory--to--memory operations.
+* file::                        File operations.
 
 Appendices
 
@@ -559,7 +560,8 @@ Bzlib documentation}.
 @item foreign compression bzlib primitives
 Exports one binding for each foreign function, implementing marshaling
 of arguments and return values.  The Scheme functions have name similar
-to the one of the C functions: the @code{BZ2_bz} is converted to
+to the one of the C functions: with the exception of the Zlib
+compatibility functions, the @code{BZ2_bz} is converted to
 @code{bzlib-}, camel case is converted to dash separated words; so
 @cfunc{BZ2_bzCompressInit} is availale as @func{bzlib-compress-init}.
 
@@ -588,7 +590,7 @@ Basically, to compress a data buffer we should do:
   (foreign compression bzlib))
 
 (with-compensations
-  (let* ((bz*     (malloc-block/c sizeof-bz_stream))
+  (let* ((bz*     (malloc/c sizeof-bz_stream))
 
          (in.len  ---)  ;input number of bytes
          (in.ptr  ---)  ;pointer object
@@ -629,7 +631,7 @@ and to decompress a data buffer we should do:
   (foreign compression bzlib))
 
 (with-compensations
-  (let* ((bz*     (malloc-block/c sizeof-bz_stream))
+  (let* ((bz*     (malloc/c sizeof-bz_stream))
 
          (in.len  ---)  ;input number of bytes
          (in.ptr  ---)  ;pointer object
@@ -663,8 +665,59 @@ and to decompress a data buffer we should do:
 tuning the management of input and output buffers and handling of errors
 are application specific.
 
+To use the simplified one--shot compression function:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign memory)
+  (foreign compression bzlib))
+
+(with-compensations
+  (let* ((in.len  ---)    ;input number of bytes
+         (in.ptr  ---)    ;pointer object
+
+         (cm.len  ---)    ;output number of bytes
+         (cm.ptr  ---)    ;pointer object
+
+         (cm.len* (let ((p (malloc-small/c)))
+                    (pointer-set-c-unsigned-int! p 0 cm.len)
+                    p)))
+
+    (bzlib-buff-to-buff-compress cm.ptr cm.len* in.ptr in.len 1 0 1)
+
+    (let ((compr.len (pointer-ref-c-unsigned-int cm.len* 0)))
+      ---)))
+@end example
+
+@noindent
+and to use the simplified one--shot decompression function:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign memory)
+  (foreign compression bzlib))
+
+(with-compensations
+  (let* ((cm.len  ---)    ;input number of bytes
+         (cm.ptr  ---)    ;pointer object
+
+         (ou.len  ---)    ;output number of bytes
+         (ou.ptr  ---)    ;pointer object
+
+         (ou.len* (let ((p (malloc-small/c)))
+                    (pointer-set-c-unsigned-int! p 0 ou.len)
+                    p)))
+
+    (bzlib-buff-to-buff-decompress ou.ptr ou.len* cm.ptr cm.len 0 0)
+
+    (let ((decomp.len (pointer-ref-c-unsigned-int ou.len* 0)))
+      ---)))
+@end example
+
 All the functions behave as explained in the original Bzlib
-documentation, accepting the same arguments with the following
+documentation, accepting the same arguments, with the following
 exceptions.
 
 
@@ -674,6 +727,57 @@ The argument @var{small} can be any Scheme object: if true, it turns on
 algorithm to be used.
 @end defun
 
+@c page
+@node file
+@chapter File operations
+
+
+The Bzlib proper file functions allow to read and write more compressed
+streams from/to the same file.  The Zlib compatibility functions only
+use a single strea, but they are easier to use.
+
+The proper file functions are exported by @library{foreign compression
+bzlib primitives} with no marshaling of values with respect to the
+foreign C functions; the original documentation is relevant for them.
+@ref{bzlib file}.
+
+The Zlib compatibility functions are exported by @library{foreign
+compression bzlib primitives} with marshaling of arguments and return
+values; they are documented here.
+
+
+@defun bzopen @var{pathname} @var{mode}
+@defunx bzdopen @var{fd} @var{mode}
+Open a @code{.bz2} file for reading or writing, using either its name or
+a file descriptor; return a pointer to the Bzlib stream or @false{} if
+an error occurred.  Analogous to @cfunc{fopen} and @cfunc{fdopen}.
+
+@var{pathname} must be a Scheme string representing the file pathname.
+@var{mode} must be a Scheme string representing the open mode as
+documented for @cfunc{fopen} and @cfunc{fdopen}.  @glibcref{Opening
+Streams, Opening Streams}.
+@end defun
+
+
+@defun bzread @var{stream} @var{buffer-pointer} @var{buffer-len}
+@defunx bzwrite @var{stream} @var{buffer-pointer} @var{buffer-len}
+Read or write data from/to a previously opened Bzlib @var{stream};
+return the number of bytes read or written.  Analogous to @cfunc{fread}
+and @cfunc{fwrite}.
+@end defun
+
+
+@defun bzflush @var{stream}
+@defunx bzclose @var{stream}
+Flush or close a @var{stream}.  Analogous to @cfunc{fflush} and
+@cfunc{fclose}.  @cfunc{BZ2_bzflush} actually does nothing.
+@end defun
+
+
+@defun bzerror @var{stream}
+Return two values: the numerical value of the most recent error status
+for @var{stream} and a Scheme string describing the error.
+@end defun
 
 @c page
 

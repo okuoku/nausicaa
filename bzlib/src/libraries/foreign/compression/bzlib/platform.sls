@@ -137,7 +137,9 @@
 (define-c-functions bzlib-shared-object
 
   (BZ2_bzlibVersion
-   (char* BZ2_bzlibVersion (void)))
+   (char* BZ2_bzlibVersion (void))))
+
+(define-c-functions bzlib-shared-object
 
   (BZ2_bzopen
    (BZFILE* BZ2_bzopen (char* char*)))

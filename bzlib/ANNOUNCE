@@ -1,0 +1,49 @@
+To: comp.lang.scheme
+Subject: [announce] Nausicaa/Bzlib --- tag 0.1b0
+
+		       Nausicaa/Bzlib
+		       ==============
+
+Nausicaa/Bzlib is a binding between Libbzip2 and R6RS Scheme
+implementations.  It  is built upon  Nausicaa/Scheme, making
+use of its foreign functions interface.  It supports Ikarus,
+Mosh and Ypsilon Scheme.
+
+  Currently the package supports only GNU+Linux systems.
+
+  The  latest  release   of  the  Nausicaa/Bzlib  package  is
+available at:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+the documentation is available on line:
+
+    <http://marcomaggi.github.com/docs/nausicaa-bzlib.html>
+
+Libbzip2 is available at:
+
+		   <http://www.bzip.org>
+
+
+Notes for --- tag 0.1b0
+------------------------------
+
+* It has been tested with Libbzip2 version 1.0.5.
+
+* Original documentation is included.
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:
