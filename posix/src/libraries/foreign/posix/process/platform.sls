@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -36,67 +36,29 @@
     WCOREDUMP		WIFSTOPPED
     WSTOPSIG)
   (import (rnrs)
-    (parameters)
-    (foreign posix shared-object)
     (foreign ffi)
+    (foreign posix shared-object)
     (foreign posix sizeof))
 
-
-(define dummy
-  (shared-object standard-c-library))
+  (define-c-functions libc-shared-object
+    (getpid		(pid_t getpid (void)))
+    (getppid		(pid_t getppid (void))))
 
-(define-c-function getpid
-  (pid_t getpid (void)))
+  (define-c-functions/with-errno libc-shared-object
+    (fork		(pid_t fork (void)))
+    (execv		(int execv (char* pointer)))
+    (execve		(int execve (char* pointer pointer)))
+    (execvp		(int execvp (char* pointer)))
+    (system		(int system (char*)))
+    (waitpid		(pid_t waitpid (pid_t pointer int))))
 
-(define-c-function getppid
-  (pid_t getppid (void)))
-
-(define-c-function/with-errno fork
-  (pid_t fork (void)))
-
-(define-c-function/with-errno execv
-  (int execv (char* pointer)))
-
-(define-c-function/with-errno execve
-  (int execve (char* pointer pointer)))
-
-(define-c-function/with-errno execvp
-  (int execvp (char* pointer)))
-
-(define-c-function/with-errno system
-  (int system (char*)))
-
-(define-c-function/with-errno waitpid
-  (pid_t waitpid (pid_t pointer int)))
-
-
-(define dummy2
-  (shared-object libnausicaa-posix))
-
-(define-c-function WIFEXITED
-  (int nausicaa_posix_wifexited	(int)))
-
-(define-c-function WEXITSTATUS
-  (int nausicaa_posix_wexitstatus (int)))
-
-(define-c-function WIFSIGNALED
-  (int nausicaa_posix_wifsignaled (int)))
-
-(define-c-function WTERMSIG
-  (int nausicaa_posix_wtermsig (int)))
-
-(define-c-function WCOREDUMP
-  (int nausicaa_posix_wcoredump	(int)))
-
-(define-c-function WIFSTOPPED
-  (int nausicaa_posix_wifstopped (int)))
-
-(define-c-function WSTOPSIG
-  (int nausicaa_posix_wstopsig (int)))
-
-
-;;;; done
-
-)
+  (define-c-functions libnausicaa-posix
+    (WIFEXITED		(int nausicaa_posix_wifexited (int)))
+    (WEXITSTATUS	(int nausicaa_posix_wexitstatus (int)))
+    (WIFSIGNALED	(int nausicaa_posix_wifsignaled (int)))
+    (WTERMSIG		(int nausicaa_posix_wtermsig (int)))
+    (WCOREDUMP		(int nausicaa_posix_wcoredump (int)))
+    (WIFSTOPPED		(int nausicaa_posix_wifstopped (int)))
+    (WSTOPSIG		(int nausicaa_posix_wstopsig (int)))))
 
 ;;; end of file

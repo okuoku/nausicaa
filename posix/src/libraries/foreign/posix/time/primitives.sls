@@ -64,7 +64,7 @@
 
 (define (times)
   (with-compensations
-    (let* ((struct-tms*	(malloc-block/c sizeof-struct-tms))
+    (let* ((struct-tms*	(malloc-block/c sizeof-tms))
 	   (result	(platform:times struct-tms*)))
       (values result (struct-tms->record struct-tms*)))))
 

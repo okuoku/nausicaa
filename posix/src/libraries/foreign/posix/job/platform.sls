@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,41 +30,18 @@
     getpgrp		setpgid
     tcgetpgrp		tcsetpgrp	tcgetsid)
   (import (rnrs)
-    (foreign posix shared-object)
     (foreign ffi)
+    (foreign posix shared-object)
     (foreign posix sizeof))
 
-(define dummy
-  (shared-object standard-c-library))
-
-
-(define-c-function/with-errno ctermid
-  (char* ctermid (char*)))
-
-(define-c-function/with-errno setsid
-  (pid_t setsid (void)))
-
-(define-c-function/with-errno getsid
-  (pid_t getsid (pid_t)))
-
-(define-c-function/with-errno getpgrp
-  (pid_t getpgrp (void)))
-
-(define-c-function/with-errno setpgid
-  (int setpgid (pid_t pid_t)))
-
-(define-c-function/with-errno tcgetpgrp
-  (pid_t tcgetpgrp (int)))
-
-(define-c-function/with-errno tcsetpgrp
-  (pid_t tcsetpgrp (int pid_t)))
-
-(define-c-function/with-errno tcgetsid
-  (pid_t tcgetsid (int)))
-
-
-;;;; done
-
-)
+  (define-c-functions/with-errno libc-shared-object
+    (ctermid		(char* ctermid (char*)))
+    (setsid		(pid_t setsid (void)))
+    (getsid		(pid_t getsid (pid_t)))
+    (getpgrp		(pid_t getpgrp (void)))
+    (setpgid		(int setpgid (pid_t pid_t)))
+    (tcgetpgrp		(pid_t tcgetpgrp (int)))
+    (tcsetpgrp		(pid_t tcsetpgrp (int pid_t)))
+    (tcgetsid		(pid_t tcgetsid (int)))))
 
 ;;; end of file

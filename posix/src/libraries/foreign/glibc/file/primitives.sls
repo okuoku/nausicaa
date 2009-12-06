@@ -46,7 +46,7 @@
     (only (foreign ffi sizeof)
 	  sizeof-pointer)
     (only (foreign ffi)
-	  make-c-callback)
+	  make-c-callback*)
     (only (foreign ffi peekers-and-pokers)
 	  pointer-ref-c-pointer
 	  array-ref-c-pointer)
@@ -94,15 +94,15 @@
 				  (primitive-free entry))))))))))))
 
 (define (make-scandir-selector-callback scheme-function)
-  (make-c-callback int (lambda (struct-dirent)
-			 (if (scheme-function struct-dirent) 1 0))
-		   (void*)))
+  (make-c-callback* int (lambda (struct-dirent)
+			  (if (scheme-function struct-dirent) 1 0))
+		    (void*)))
 
 (define (make-scandir-compare-callback scheme-function)
-  (make-c-callback int (lambda (a b)
-			 (scheme-function (pointer-ref-c-pointer a 0)
-					  (pointer-ref-c-pointer b 0)))
-		   (void* void*)))
+  (make-c-callback* int (lambda (a b)
+			  (scheme-function (pointer-ref-c-pointer a 0)
+					   (pointer-ref-c-pointer b 0)))
+		    (void* void*)))
 
 
 ;;;; temporary files
@@ -155,9 +155,9 @@
 	  access-time-sec	    access-time-usec
 	  modification-time-sec modification-time-usec)
     (with-compensations
-      (let* ((*arry	(malloc-block/c (* 2 strideof-struct-timeval)))
+      (let* ((*arry	(malloc-block/c (* 2 strideof-timeval)))
 	     (*atime	*arry)
-	     (*mtime	(pointer-add *arry strideof-struct-timeval)))
+	     (*mtime	(pointer-add *arry strideof-timeval)))
 	(struct-timeval-tv_sec-set!  *atime access-time-sec)
 	(struct-timeval-tv_usec-set! *atime access-time-usec)
 	(struct-timeval-tv_sec-set!  *mtime modification-time-sec)

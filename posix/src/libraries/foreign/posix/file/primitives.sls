@@ -79,7 +79,7 @@
     (begin0)
     (compensations)
     (only (foreign ffi)
-	  make-c-callback)
+	  make-c-callback*)
     (foreign ffi sizeof)
     (only (foreign ffi peekers-and-pokers)
 	  pointer-ref-c-pointer
@@ -196,7 +196,7 @@
       result)))
 
 (define (readdir_r stream)
-  (let ((result (malloc-block/c sizeof-struct-dirent)))
+  (let ((result (malloc-block/c sizeof-dirent)))
     (with-compensations
       ;;*FIXME*  It looks  like the  size  of the  "struct dirent"  type
       ;;cannot  be  safely  determined  with  the  "sizeof"  C  language
@@ -213,7 +213,7 @@
       ;;MALLOC-BLOCK/C will  probably allocate a page  (4096 bytes) from
       ;;its own cache; see the documentation of Nausicaa/Scheme.
       ;;
-      (let ((entry	(malloc-block/c sizeof-struct-dirent))
+      (let ((entry	(malloc-block/c sizeof-dirent))
 	    (*result	(malloc-block/c sizeof-pointer)))
 	(receive (retval errno)
 	    (platform:readdir_r stream entry *result)
@@ -222,7 +222,7 @@
 		((pointer-null? (pointer-ref-c-pointer *result 0))
 		 pointer-null)
 		(else
-		 (memcpy result entry sizeof-struct-dirent)
+		 (memcpy result entry sizeof-dirent)
 		 result)))))))
 
 (define (rewinddir stream)
@@ -257,28 +257,28 @@
 	result))))
 
 (define (make-ftw-callback scheme-function)
-  (make-c-callback int
-		   (lambda (pathname-cstr struct-stat flag)
-		     (guard (E (else -1))
-		       (scheme-function (cstring->string pathname-cstr)
-					(if (= 0 (bitwise-and flag FTW_NS))
-					    #f
-					  (struct-stat->record struct-stat))
-					flag)))
-		   (char* void* int)))
+  (make-c-callback* int
+		    (lambda (pathname-cstr struct-stat flag)
+		      (guard (E (else -1))
+			(scheme-function (cstring->string pathname-cstr)
+					 (if (= 0 (bitwise-and flag FTW_NS))
+					     #f
+					   (struct-stat->record struct-stat))
+					 flag)))
+		    (char* void* int)))
 
 (define (make-nftw-callback scheme-function)
-  (make-c-callback int
-		   (lambda (pathname-cstr struct-stat flag struct-ftw)
-		     (guard (E (else -1))
-		       (scheme-function (cstring->string pathname-cstr)
-					(if (= 0 (bitwise-and flag FTW_NS))
-					    #f
-					  (struct-stat->record struct-stat))
-					flag
-					(struct-ftw-base-ref  struct-ftw)
-					(struct-ftw-level-ref struct-ftw))))
-		   (char* void* int void*)))
+  (make-c-callback* int
+		    (lambda (pathname-cstr struct-stat flag struct-ftw)
+		      (guard (E (else -1))
+			(scheme-function (cstring->string pathname-cstr)
+					 (if (= 0 (bitwise-and flag FTW_NS))
+					     #f
+					   (struct-stat->record struct-stat))
+					 flag
+					 (struct-FTW-base-ref  struct-ftw)
+					 (struct-FTW-level-ref struct-ftw))))
+		    (char* void* int void*)))
 
 
 ;;;; links
@@ -402,7 +402,7 @@
 
    ((pathname access-time modification-time)
     (with-compensations
-      (let ((struct-utimbuf* (malloc-block/c sizeof-struct-utimbuf)))
+      (let ((struct-utimbuf* (malloc-block/c sizeof-utimbuf)))
 	(struct-utimbuf-actime-set!  struct-utimbuf* access-time)
 	(struct-utimbuf-modtime-set! struct-utimbuf* modification-time)
 	(receive (result errno)
@@ -437,9 +437,9 @@
 	  access-time-sec	    access-time-usec
 	  modification-time-sec modification-time-usec)
     (with-compensations
-      (let* ((*arry	(malloc-block/c (* 2 strideof-struct-timeval)))
+      (let* ((*arry	(malloc-block/c (* 2 strideof-timeval)))
 	     (*atime	*arry)
-	     (*mtime	(pointer-add *arry strideof-struct-timeval)))
+	     (*mtime	(pointer-add *arry strideof-timeval)))
 	(struct-timeval-tv_sec-set!  *atime access-time-sec)
 	(struct-timeval-tv_usec-set! *atime access-time-usec)
 	(struct-timeval-tv_sec-set!  *mtime modification-time-sec)

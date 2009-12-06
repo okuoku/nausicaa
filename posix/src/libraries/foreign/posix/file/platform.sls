@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -78,181 +78,73 @@
     )
   (import (except (rnrs)
 		  remove truncate)
-    (only (parameters)
-	  parametrise)
     (foreign ffi)
     (foreign posix shared-object)
     (foreign posix sizeof))
 
 
-(define dummy
-  (shared-object standard-c-library))
+(define-c-functions/with-errno libc-shared-object
+  (pathconf		(long pathconf (char* int)))
+  (fpathconf		(long fpathconf (int int)))
 
-;;; --------------------------------------------------------------------
+  (getcwd		(char* getcwd (char* size_t)))
+  (chdir		(int chdir (char*)))
+  (fchdir		(int fchdir (int)))
 
-(define-c-function/with-errno pathconf
-  (long pathconf (char* int)))
+  (opendir		(pointer opendir (char*)))
+  (fdopendir		(pointer fdopendir (int)))
+  (dirfd		(int dirfd (pointer)))
 
-(define-c-function/with-errno fpathconf
-  (long fpathconf (int int)))
+  (closedir		(int closedir (pointer)))
 
-;;; --------------------------------------------------------------------
-;;; working directory
+  (link			(int link (char* char*)))
+  (symlink		(int symlink (char* char*)))
+  (readlink		(int readlink (char* char* size_t)))
+  (realpath		(char* realpath (char* char*)))
 
-(define-c-function/with-errno getcwd
-  (char* getcwd (char* size_t)))
+  (unlink		(int unlink (char*)))
+  (rmdir		(int rmdir (char*)))
+  (remove		(int remove (char*)))
 
-(define-c-function/with-errno chdir
-  (int chdir (char*)))
+  (rename		(int rename (char* char*)))
 
-(define-c-function/with-errno fchdir
-  (int fchdir (int)))
+  (mkdir		(int mkdir (char* mode_t)))
 
-;;; --------------------------------------------------------------------
-;;; directory access
+  (chown		(int chown (char* uid_t gid_t)))
+  (fchown		(int fchown (int int int)))
 
-(define-c-function/with-errno opendir
-  (pointer opendir (char*)))
+  (umask		(mode_t umask (mode_t)))
+  (chmod		(int chmod (char* mode_t)))
+  (fchmod		(int fchmod (int int)))
 
-(define-c-function/with-errno fdopendir
-  (pointer fdopendir (int)))
+  (access		(int access (char* int)))
 
-(define-c-function/with-errno dirfd
-  (int dirfd (pointer)))
+  (utime		(int utime (char* pointer)))
+  (utimes		(int utimes (char* pointer)))
 
-(define readdir
-  (parametrise ((shared-object libnausicaa-posix))
-    (make-c-function/with-errno pointer nausicaa_posix_readdir (pointer))))
+  (mkstemp		(int mkstemp (char*)))
+  (mkdtemp		(char* mkdtemp (char*))))
 
-(define readdir_r
-  (parametrise ((shared-object libnausicaa-posix))
-    (make-c-function/with-errno int nausicaa_posix_readdir_r (pointer pointer pointer))))
+(define-c-functions libc-shared-object
+  (rewinddir		(void rewinddir (pointer)))
+  (telldir		(long telldir (pointer)))
+  (seekdir		(void seekdir (pointer long))))
 
-(define-c-function/with-errno closedir
-  (int closedir (pointer)))
+(define-c-functions/with-errno libnausicaa-posix
+  (readdir		(pointer nausicaa_posix_readdir (pointer)))
+  (readdir_r		(int nausicaa_posix_readdir_r (pointer pointer pointer)))
+  (ftw			(int nausicaa_posix_ftw (char* callback int)))
+  (nftw			(int nausicaa_posix_nftw (char* callback int int)))
 
-(define-c-function rewinddir
-  (void rewinddir (pointer)))
-
-(define-c-function telldir
-  (long telldir (pointer)))
-
-(define-c-function seekdir
-  (void seekdir (pointer long)))
-
-(define ftw
-  (parametrise ((shared-object libnausicaa-posix))
-    (make-c-function/with-errno int nausicaa_posix_ftw (char* callback int))))
-
-(define nftw
-  (parametrise ((shared-object libnausicaa-posix))
-    (make-c-function/with-errno int nausicaa_posix_nftw (char* callback int int))))
-
-;;; --------------------------------------------------------------------
-;;; links
-
-(define-c-function/with-errno link
-  (int link (char* char*)))
-
-(define-c-function/with-errno symlink
-  (int symlink (char* char*)))
-
-(define-c-function/with-errno readlink
-  (int readlink (char* char* size_t)))
-
-(define-c-function/with-errno realpath
-  (char* realpath (char* char*)))
-
-;;; --------------------------------------------------------------------
-;;; removing
-
-(define-c-function/with-errno unlink
-  (int unlink (char*)))
-
-(define-c-function/with-errno rmdir
-  (int rmdir (char*)))
-
-(define-c-function/with-errno remove
-  (int remove (char*)))
-
-;;; --------------------------------------------------------------------
-;;; renaming
-
-(define-c-function/with-errno rename
-  (int rename (char* char*)))
-
-;;; --------------------------------------------------------------------
-;;; mkdir
-
-(define-c-function/with-errno mkdir
-  (int mkdir (char* mode_t)))
-
-;;; --------------------------------------------------------------------
-;;; changing owner
-
-(define-c-function/with-errno chown
-  (int chown (char* uid_t gid_t)))
-
-(define-c-function/with-errno fchown
-  (int fchown (int int int)))
-
-;;; --------------------------------------------------------------------
-;;; changing permissions
-
-(define-c-function/with-errno umask
-  (mode_t umask (mode_t)))
-
-(define-c-function/with-errno chmod
-  (int chmod (char* mode_t)))
-
-(define-c-function/with-errno fchmod
-  (int fchmod (int int)))
-
-;;; --------------------------------------------------------------------
-;;; access test
-
-(define-c-function/with-errno access
-  (int access (char* int)))
-
-;;; --------------------------------------------------------------------
-;;; file times
-
-(define-c-function/with-errno utime
-  (int utime (char* pointer)))
-
-(define-c-function/with-errno utimes
-  (int utimes (char* pointer)))
-
-;;; --------------------------------------------------------------------
-;;; tile size
-
-(define ftruncate
-  (parametrise ((shared-object libnausicaa-posix))
-    (make-c-function/with-errno int nausicaa_posix_ftruncate (int off_t))))
-
-(define truncate
-  (parametrise ((shared-object libnausicaa-posix))
-    (make-c-function/with-errno int nausicaa_posix_truncate (char* off_t))))
-
-;;; --------------------------------------------------------------------
-;;; struct dirent accessors
+  (ftruncate		(int nausicaa_posix_ftruncate (int off_t)))
+  (truncate		(int nausicaa_posix_truncate (char* off_t))))
 
 ;;;This  does the  same work  of "struct-dirent-d_name-ref",  but  it is
 ;;;implemented  as Nausicaa functions.   It is  here only  for debugging
 ;;;purposes.
 ;;;
-;;; (define struct-dirent-d_name-ptr-ref
-;;;   (parametrise ((shared-object libnausicaa-posix))
-;;;     (make-c-function char* nausicaa_posix_dirent_d_name_ptr_ref (void*))))
-
-;;; --------------------------------------------------------------------
-;;; temporary files
-
-(define-c-function/with-errno mkstemp
-  (int mkstemp (char*)))
-
-(define-c-function/with-errno mkdtemp
-  (char* mkdtemp (char*)))
+;;;(define-c-functions libnausicaa-posix
+;;;   (struct-dirent-d_name-ptr-ref (char* nausicaa_posix_dirent_d_name_ptr_ref (void*))))
 
 
 ;;;; done

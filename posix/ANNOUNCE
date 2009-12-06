@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/POSIX 2009-11-15 tag 0.1a2
+Subject: [announce] Nausicaa/POSIX --- 0.1a3
 
 		       Nausicaa/POSIX
 		       ==============
@@ -33,6 +33,14 @@ development takes place at:
 the documentation is available on line:
 
   <http://marcomaggi.github.com/docs/nausicaa-posix.html>
+
+
+Notes for --- tag 0.1a3
+------------------------------
+
+* Updated to work with Nausicaa/Scheme 0.1a7
+
+* Recordificated pointers and file descriptors.
 
 
 Notes for 2009-11-15 tag 0.1a2

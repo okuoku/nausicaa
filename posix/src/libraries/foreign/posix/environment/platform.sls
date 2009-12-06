@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,24 +27,15 @@
 (library (foreign posix environment platform)
   (export getenv setenv environ)
   (import (rnrs)
-    (foreign posix shared-object)
-    (only (foreign ffi)
-	  shared-object
-	  lookup-shared-object*
-	  define-c-function)
+    (foreign ffi)
     (only (foreign ffi peekers-and-pokers)
 	  pointer-ref-c-pointer))
 
-  (define dummy
-    (shared-object standard-c-library))
-
-  (define-c-function setenv
-    (int setenv (char* char* int)))
-
-  (define-c-function getenv
-    (char* getenv (char*)))
+  (define-c-functions libc-shared-object
+    (setenv		(int setenv (char* char* int)))
+    (getenv		(char* getenv (char*))))
 
   (define (environ)
-    (pointer-ref-c-pointer (lookup-shared-object* standard-c-library "__environ") 0)))
+    (pointer-ref-c-pointer (lookup-shared-object* libc-shared-object "__environ") 0)))
 
 ;;; end of file

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,14 +26,10 @@
 
 
 (library (foreign posix shared-object)
-  (export standard-c-library libnausicaa-posix)
+  (export libnausicaa-posix)
   (import (rnrs)
     (foreign ffi))
-
-  (define standard-c-library
-    self-shared-object)
-
-  (define libnausicaa-posix
-    (open-shared-object* 'libnausicaa-posix1.so)))
+  (define-shared-object libnausicaa-posix
+    'libnausicaa-posix1.so))
 
 ;;; end of file

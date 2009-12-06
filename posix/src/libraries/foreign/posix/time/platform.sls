@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -42,58 +42,27 @@
 
     )
   (import (rnrs)
-    (foreign posix shared-object)
     (foreign ffi)
+    (foreign posix shared-object)
     (foreign posix sizeof))
 
-
-(define dummy2
-  (shared-object libnausicaa-posix))
+  (define struct-tms*	'pointer)
 
-(define struct-tms*	'pointer)
+  (define-c-functions/with-errno libnausicaa-posix
+    (clock		(double nausicaa_posix_clock (void)))
+    (time		(double nausicaa_posix_time (void))))
 
-;;; CPU ticks and process ticks
+  (define-c-functions libnausicaa-posix
+    (times		(double nausicaa_posix_times (struct-tms*))))
 
-(define-c-function/with-errno clock
-  (double nausicaa_posix_clock (void)))
-
-(define-c-function times
-  (double nausicaa_posix_times (struct-tms*)))
-
-;;;; calendar time
-
-(define-c-function/with-errno time
-  (double nausicaa_posix_time (void)))
-
-;;;; "struct tms" accessors and mutators
-
-(define-c-function struct-tms-tms_utime-ref
-  (double nausicaa_posix_tms_utime_ref (void*)))
-
-(define-c-function struct-tms-tms_stime-ref
-  (double nausicaa_posix_tms_stime_ref (void*)))
-
-(define-c-function struct-tms-tms_cutime-ref
-  (double nausicaa_posix_tms_cutime_ref (void*)))
-
-(define-c-function struct-tms-tms_cstime-ref
-  (double nausicaa_posix_tms_cstime_ref (void*)))
-
-(define-c-function struct-tms-tms_utime-set!
-  (void nausicaa_posix_tms_utime_set (void* double)))
-
-(define-c-function struct-tms-tms_stime-set!
-  (void nausicaa_posix_tms_stime_set (void* double)))
-
-(define-c-function struct-tms-tms_cutime-set!
-  (void nausicaa_posix_tms_cutime_set (void* double)))
-
-(define-c-function struct-tms-tms_cstime-set!
-  (void nausicaa_posix_tms_cstime_set (void* double)))
-
-
-;;;; done
-
-)
+  (define-c-functions libnausicaa-posix
+    (struct-tms-tms_utime-ref	(double nausicaa_posix_tms_utime_ref (void*)))
+    (struct-tms-tms_stime-ref	(double nausicaa_posix_tms_stime_ref (void*)))
+    (struct-tms-tms_cutime-ref	(double nausicaa_posix_tms_cutime_ref (void*)))
+    (struct-tms-tms_cstime-ref	(double nausicaa_posix_tms_cstime_ref (void*)))
+    (struct-tms-tms_utime-set!	(void nausicaa_posix_tms_utime_set (void* double)))
+    (struct-tms-tms_stime-set!	(void nausicaa_posix_tms_stime_set (void* double)))
+    (struct-tms-tms_cutime-set!	(void nausicaa_posix_tms_cutime_set (void* double)))
+    (struct-tms-tms_cstime-set!	(void nausicaa_posix_tms_cstime_set (void* double)))))
 
 ;;; end of file

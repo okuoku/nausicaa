@@ -99,8 +99,8 @@
 
 (define (gettimeofday)
   (with-compensations
-    (let ((timeval*	(malloc-block/c sizeof-struct-timeval))
-	  (timezone*	(malloc-block/c sizeof-struct-timezone)))
+    (let ((timeval*	(malloc-block/c sizeof-timeval))
+	  (timezone*	(malloc-block/c sizeof-timezone)))
       (receive (result errno)
 	  (platform:gettimeofday timeval* timezone*)
 	(if (= -1 result)
@@ -121,7 +121,7 @@
 (define (adjtime timeval-delta)
   (with-compensations
     (let ((timeval-delta*	(record->struct-timeval timeval-delta malloc-block/c))
-	  (timeval-old-delta*	(malloc-block/c sizeof-struct-timeval)))
+	  (timeval-old-delta*	(malloc-block/c sizeof-timeval)))
       (receive (result errno)
 	  (platform:adjtime timeval-delta* timeval-old-delta*)
 	(if (= -1 result)
@@ -132,7 +132,7 @@
 ;;;; broken-down time
 
 (define (localtime time malloc)
-  (let ((tm* (malloc sizeof-struct-tm)))
+  (let ((tm* (malloc sizeof-tm)))
     (receive (result errno)
 	(platform:localtime_r time tm*)
       (if (pointer=? tm* result)
@@ -144,7 +144,7 @@
     (struct-tm->record (localtime time malloc-block/c))))
 
 (define (gmtime time malloc)
-  (let ((tm* (malloc sizeof-struct-tm)))
+  (let ((tm* (malloc sizeof-tm)))
     (receive (result errno)
 	(platform:gmtime_r time tm*)
       (if (pointer=? tm* result)
@@ -189,7 +189,7 @@
 
 (define (ntp_gettime*)
   (with-compensations
-    (let ((ntptimeval* (malloc-block/c sizeof-struct-ntptimeval)))
+    (let ((ntptimeval* (malloc-block/c sizeof-ntptimeval)))
       (platform:ntp_gettime ntptimeval*)
       (struct-ntptimeval->record ntptimeval*))))
 
@@ -266,7 +266,7 @@
 
 (define (strptime* input-string template-string)
   (with-compensations
-    (let ((struct-tm* (malloc-block/c sizeof-struct-tm)))
+    (let ((struct-tm* (malloc-block/c sizeof-tm)))
       (struct-tm-tm_sec-set!    struct-tm* valueof-int-max)
       (struct-tm-tm_min-set!    struct-tm* valueof-int-max)
       (struct-tm-tm_hour-set!   struct-tm* valueof-int-max)
@@ -310,13 +310,13 @@
 (define (setitimer* which itimerval-record)
   (with-compensations
     (let ((itimerval-new*	(record->struct-itimerval itimerval-record malloc-block/c))
-	  (itimerval-old*	(malloc-block/c sizeof-struct-itimerval)))
+	  (itimerval-old*	(malloc-block/c sizeof-itimerval)))
       (setitimer which itimerval-new* itimerval-old*)
       (struct-itimerval->record itimerval-old*))))
 
 (define (getitimer* which)
   (with-compensations
-    (let ((itimerval-old* (malloc-block/c sizeof-struct-itimerval)))
+    (let ((itimerval-old* (malloc-block/c sizeof-itimerval)))
       (getitimer which itimerval-old*)
       (struct-itimerval->record itimerval-old*))))
 
@@ -333,7 +333,7 @@
 (define (nanosleep* requested-time)
   (with-compensations
     (let ((requested-time*	(record->struct-timespec requested-time malloc-block/c))
-	  (remaining-time*	(malloc-block/c sizeof-struct-timespec)))
+	  (remaining-time*	(malloc-block/c sizeof-timespec)))
       (nanosleep requested-time* remaining-time*)
       (struct-timespec->record remaining-time*))))
 

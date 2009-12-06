@@ -401,7 +401,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
 @c email of the *single* author of this document.
-@set AUTHOR_EMAIL               @email{marcomaggi@@gna.org}
+@set AUTHOR_EMAIL               @email{marco.maggi-ipsu@@poste.it}
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
@@ -469,8 +469,7 @@ entitled ``@gnu{} Free Documentation License''.
 @ifinfo
 @dircategory Development
 @direntry
-* nausicaa-posix: (nausicaa-posix).     @posix{} library for
-                                        @rnrs{6} Scheme.
+* nausicaa-posix: (nausicaa-posix).     @posix{} for Nausicaa.
 @end direntry
 @end ifinfo
 
@@ -1084,9 +1083,9 @@ The following bindings are exported from the @code{sizeof} library.
 @glibcref{Directory Entries,Format of a directory entry}.
 
 
-@defvr Constant sizeof-struct-dirent
-@defvrx Constant alignof-struct-dirent
-@defvrx Constant strideof-struct-dirent
+@defvr Constant sizeof-dirent
+@defvrx Constant alignof-dirent
+@defvrx Constant strideof-dirent
 Size, alignment and array stride of @code{struct dirent} types.
 @end defvr
 
@@ -2082,7 +2081,7 @@ platform} library; this is because @code{struct stat} is somewhat
 to deal with it.
 
 
-@defvr Constant sizeof-struct-stat
+@defvr Constant sizeof-stat
 The size of the @code{struct stat} data structure in bytes.  This
 binding is exported by @library{foreign posix stat platform}.
 @end defvr
@@ -3006,9 +3005,9 @@ The following bindings are exported by the @library{foreign posix
 sizeof} library.
 
 
-@defvr Constant sizeof-struct-flock
-@defvrx Constant alignof-struct-flock
-@defvrx Constant strideof-struct-flock
+@defvr Constant sizeof-flock
+@defvrx Constant alignof-flock
+@defvrx Constant strideof-flock
 These are: the number of bytes required to hold a structure of type
 @code{struct flock}; the alignment of the structure when embedded in
 another structure; the number of bytes between two elements in an array
@@ -3034,7 +3033,7 @@ Peekers and pokers for the fields of a @code{struct flock}.
 @example
 (with-compensations
   (let* ((fd ---)
-         (p  (malloc-block/c sizeof-struct-flock))
+         (p  (malloc-block/c sizeof-flock))
          (i  (pointer->integer p)))
     (fcntl fd F_SETLK i)
     ---
@@ -3964,9 +3963,9 @@ exported by the @code{sizeof} library.
 @subsection @code{struct timeval} inspection
 
 
-@defvr Constant sizeof-struct-timeval
-@defvrx Constant alignof-struct-timeval
-@defvrx Constant strideof-struct-timeval
+@defvr Constant sizeof-timeval
+@defvrx Constant alignof-timeval
+@defvrx Constant strideof-timeval
 These are: the number of bytes required to hold a @code{struct timeval};
 the alignment of this structure when embedded into another structure;
 the number of bytes between two elements in an array of these
@@ -3986,9 +3985,9 @@ Accessors and mutators for the fields of a @code{struct timeval}.
 @subsection @code{struct timespec} inspection
 
 
-@defvr Constant sizeof-struct-timespec
-@defvrx Constant alignof-struct-timespec
-@defvrx Constant strideof-struct-timespec
+@defvr Constant sizeof-timespec
+@defvrx Constant alignof-timespec
+@defvrx Constant strideof-timespec
 These are: the number of bytes required to hold a @code{struct timespec};
 the alignment of this structure when embedded into another structure;
 the number of bytes between two elements in an array of these
@@ -4008,9 +4007,9 @@ Accessors and mutators for the fields of a @code{struct timespec}.
 @subsection @code{struct tms} inspection
 
 
-@defvr Constant sizeof-struct-tms
-@defvrx Constant alignof-struct-tms
-@defvrx Constant strideof-struct-tms
+@defvr Constant sizeof-tms
+@defvrx Constant alignof-tms
+@defvrx Constant strideof-tms
 These are: the number of bytes required to hold a @code{struct tms}; the
 alignment of this structure when embedded into another structure; the
 number of bytes between two elements in an array of these structures.
@@ -4036,9 +4035,9 @@ library.
 @subsection @code{struct timezone} inspection
 
 
-@defvr Constant sizeof-struct-timezone
-@defvrx Constant alignof-struct-timezone
-@defvrx Constant strideof-struct-timezone
+@defvr Constant sizeof-timezone
+@defvrx Constant alignof-timezone
+@defvrx Constant strideof-timezone
 These are: the number of bytes required to hold a @code{struct
 timezone}; the alignment of this structure when embedded into another
 structure; the number of bytes between two elements in an array of these
@@ -4058,9 +4057,9 @@ Peekers and pokers for the fields of a @code{struct timezone}.
 @subsection @code{struct tm} inspection
 
 
-@defvar sizeof-struct-tm
-@defvarx alignof-struct-tm
-@defvarx strideof-struct-tm
+@defvar sizeof-tm
+@defvarx alignof-tm
+@defvarx strideof-tm
 These are: the number of bytes required to hold a @code{struct tm}; the
 alignment of this structure when embedded into another structure; the
 number of bytes between two elements in an array of these structures.
@@ -4098,9 +4097,9 @@ Accessors and mutators for the fields of a @code{struct tm}.
 
 
 
-@defvar sizeof-struct-ntptimeval
-@defvarx alignof-struct-ntptimeval
-@defvarx strideof-struct-ntptimeval
+@defvar sizeof-ntptimeval
+@defvarx alignof-ntptimeval
+@defvarx strideof-ntptimeval
 These are: the number of bytes required to hold a @code{struct
 ntptimeval}; the alignment of this structure when embedded into another
 structure; the number of bytes between two elements in an array of these
@@ -4132,9 +4131,9 @@ The following bindings implement inspection for the @code{struct timex}
 type.  @glibcref{High Accuracy Clock, High Accuracy Clock}.
 
 
-@defvar sizeof-struct-timex
-@defvarx alignof-struct-timex
-@defvarx strideof-struct-timex
+@defvar sizeof-timex
+@defvarx alignof-timex
+@defvarx strideof-timex
 These are: the number of bytes required to hold a @code{struct
 timex}; the alignment of this structure when embedded into another
 structure; the number of bytes between two elements in an array of these
@@ -4198,9 +4197,9 @@ The following bindings implement inspection for the @code{struct
 itimerval} type.  @glibcref{Setting an Alarm, Setting an Alarm}.
 
 
-@defvar sizeof-struct-itimerval
-@defvarx alignof-struct-itimerval
-@defvarx strideof-struct-itimerval
+@defvar sizeof-itimerval
+@defvarx alignof-itimerval
+@defvarx strideof-itimerval
 These are: the number of bytes required to hold a @code{struct
 itimerval}; the alignment of this structure when embedded into another
 structure; the number of bytes between two elements in an array of these

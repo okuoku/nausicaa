@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -202,7 +202,7 @@ Ses ailes de geant l'empechent de marcher.")
 		       (bufptr2	(malloc-block/c buflen2)))
 		  (posix:write fd bufptr buflen)
 		  (posix:lseek fd 0 SEEK_SET)
-		  (let ((lock	(malloc-block/c sizeof-struct-flock)))
+		  (let ((lock	(malloc-block/c sizeof-flock)))
 		    (struct-flock-l_type-set!   lock F_WRLCK)
 		    (struct-flock-l_whence-set! lock SEEK_SET)
 		    (struct-flock-l_start-set!  lock 0)

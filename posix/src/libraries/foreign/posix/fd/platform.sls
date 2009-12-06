@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -36,77 +36,30 @@
     dup	dup2
     pipe	mkfifo)
   (import (except (rnrs) read write)
-    (parameters)
-    (foreign posix shared-object)
     (foreign ffi)
+    (foreign posix shared-object)
     (foreign posix sizeof))
 
-  (define dummy
-    (shared-object standard-c-library))
-
 
-(define-c-function/with-errno open
-  (int open (char* int mode_t)))
+(define-c-functions/with-errno libc-shared-object
+  (open			(int open (char* int mode_t)))
+  (close		(int close (int)))
+  (read			(ssize_t read (int void* size_t)))
+  (write		(ssize_t write (int void* size_t)))
+  (sync			(int sync (void)))
+  (fsync		(int fsync (int)))
+  (fdatasync		(int fdatasync (int)))
+  (fcntl		(int fcntl (int int int)))
+  (ioctl		(int ioctl (int int int)))
+  (dup			(int dup (int)))
+  (dup2			(int dup2 (int int)))
+  (pipe			(int pipe (pointer)))
+  (mkfifo		(int mkfifo (char* mode_t))))
 
-(define-c-function/with-errno close
-  (int close (int)))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno read
-  (ssize_t read (int void* size_t)))
-
-(define pread
-  (parametrise ((shared-object libnausicaa-posix))
-    (make-c-function/with-errno ssize_t nausicaa_posix_pread (int void* size_t off_t))))
-
-(define-c-function/with-errno write
-  (ssize_t write (int void* size_t)))
-
-(define pwrite
-  (parametrise ((shared-object libnausicaa-posix))
-    (make-c-function/with-errno ssize_t nausicaa_posix_pwrite (int void* size_t off_t))))
-
-;;; --------------------------------------------------------------------
-
-(define lseek
-  (parametrise ((shared-object libnausicaa-posix))
-    (make-c-function/with-errno off_t nausicaa_posix_lseek (int off_t int))))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno sync
-  (int sync (void)))
-
-(define-c-function/with-errno fsync
-  (int fsync (int)))
-
-(define-c-function/with-errno fdatasync
-  (int fdatasync (int)))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno fcntl
-  (int fcntl (int int int)))
-
-(define-c-function/with-errno ioctl
-  (int ioctl (int int int)))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno dup
-  (int dup (int)))
-
-(define-c-function/with-errno dup2
-  (int dup2 (int int)))
-
-;;; --------------------------------------------------------------------
-
-(define-c-function/with-errno pipe
-  (int pipe (pointer)))
-
-(define-c-function/with-errno mkfifo
-  (int mkfifo (char* mode_t)))
+(define-c-functions/with-errno libnausicaa-posix
+  (pread		(ssize_t nausicaa_posix_pread (int void* size_t off_t)))
+  (pwrite		(ssize_t nausicaa_posix_pwrite (int void* size_t off_t)))
+  (lseek		(off_t nausicaa_posix_lseek (int off_t int))))
 
 
 ;;;; done

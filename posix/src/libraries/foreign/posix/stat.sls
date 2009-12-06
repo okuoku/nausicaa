@@ -72,7 +72,7 @@
 		  stat lstat fstat)
 	    primitive:)
     (prefix (only (foreign posix stat platform)
-		  stat fstat sizeof-struct-stat)
+		  stat fstat sizeof-stat)
 	    platform:)
     (only (foreign posix stat primitives)
 	  S_ISDIR		S_ISCHR		S_ISBLK
@@ -143,7 +143,7 @@
 (define (%pointer-type-inspection funcname getter obj)
   (cond ((and (integer? obj) (< -1 obj)) ;file descriptor
 	 (with-compensations
-	   (let ((*struct-stat (malloc-block/c platform:sizeof-struct-stat)))
+	   (let ((*struct-stat (malloc-block/c platform:sizeof-stat)))
 	     (receive (result errno)
 		 (platform:fstat obj *struct-stat)
 	       (when (= -1 result)
@@ -152,7 +152,7 @@
 
 	((or (string? obj) (symbol? obj)) ;pathname
 	 (with-compensations
-	   (let ((*struct-stat (malloc-block/c platform:sizeof-struct-stat)))
+	   (let ((*struct-stat (malloc-block/c platform:sizeof-stat)))
 	     (receive (result errno)
 		 (platform:stat (string->cstring/c obj) *struct-stat)
 	       (when (= -1 result)

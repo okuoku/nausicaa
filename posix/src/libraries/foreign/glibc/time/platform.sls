@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -71,87 +71,30 @@
 (define struct-timespec*	'pointer)
 
 
-(define dummy
-  (shared-object standard-c-library))
+(define-c-functions/with-errno libc-shared-object
+  (gettimeofday		(int gettimeofday (pointer pointer)))
+  (settimeofday		(int settimeofday (pointer pointer)))
+  (adjtime		(int adjtime (pointer pointer)))
+  (ntp_gettime		(int ntp_gettime (struct-timex*)))
+  (ntp_adjtime		(int ntp_adjtime (struct-timex*)))
+  (asctime_r		(char* asctime_r (struct-tm* char*)))
+  (strftime		(size_t strftime (char* size_t char* struct-tm*)))
+  (setitimer		(int setitimer (int struct-itimerval* struct-itimerval*)))
+  (getitimer		(int getitimer (int struct-itimerval*)))
+  (alarm		(unsigned alarm (unsigned)))
+  (nanosleep		(int nanosleep (struct-timespec* struct-timespec*))))
 
-;;;; high-resolution calendar
+(define-c-functions libc-shared-object
+  (strptime		(char* strptime (char* char* struct-tm*)))
+  (sleep		(unsigned sleep (unsigned))))
 
-(define-c-function/with-errno gettimeofday
-  (int gettimeofday (pointer pointer)))
-
-(define-c-function/with-errno settimeofday
-  (int settimeofday (pointer pointer)))
-
-(define-c-function/with-errno adjtime
-  (int adjtime (pointer pointer)))
-
-;;;; high-accuracy clock
-
-(define-c-function/with-errno ntp_gettime
-  (int ntp_gettime (struct-timex*)))
-
-(define-c-function/with-errno ntp_adjtime
-  (int ntp_adjtime (struct-timex*)))
-
-;;;; formatting broken-down time
-
-(define-c-function/with-errno asctime_r
-  (char* asctime_r (struct-tm* char*)))
-
-(define-c-function/with-errno strftime
-  (size_t strftime (char* size_t char* struct-tm*)))
-
-;;;; parsing time strings
-
-(define-c-function strptime
-  (char* strptime (char* char* struct-tm*)))
-
-;;;; setting alarms
-
-(define-c-function/with-errno setitimer
-  (int setitimer (int struct-itimerval* struct-itimerval*)))
-
-(define-c-function/with-errno getitimer
-  (int getitimer (int struct-itimerval*)))
-
-(define-c-function/with-errno alarm
-  (unsigned alarm (unsigned)))
-
-;;;; sleeping
-
-(define-c-function sleep
-  (unsigned sleep (unsigned)))
-
-(define-c-function/with-errno nanosleep
-  (int nanosleep (struct-timespec* struct-timespec*)))
-
-
-(define dummy2
-  (shared-object libnausicaa-posix))
-
-;;;; simple calendar time
-
-(define-c-function/with-errno stime
-  (int nausicaa_posix_stime (double)))
-
-;;;; broken-down time
-
-(define-c-function/with-errno localtime_r
-  (struct-tm* nausicaa_posix_localtime_r (double struct-tm*)))
-
-(define-c-function/with-errno gmtime_r
-  (struct-tm* nausicaa_posix_gmtime_r (double struct-tm*)))
-
-(define-c-function/with-errno timelocal
-  (double nausicaa_posix_timelocal (struct-tm*)))
-
-(define-c-function/with-errno timegm
-  (double nausicaa_posix_timegm (struct-tm*)))
-
-;;;; formatting broken-down time
-
-(define-c-function/with-errno ctime_r
-  (char* nausicaa_posix_ctime_r (double char*)))
+(define-c-functions/with-errno libnausicaa-posix
+  (stime		(int nausicaa_posix_stime (double)))
+  (localtime_r		(struct-tm* nausicaa_posix_localtime_r (double struct-tm*)))
+  (gmtime_r		(struct-tm* nausicaa_posix_gmtime_r (double struct-tm*)))
+  (timelocal		(double nausicaa_posix_timelocal (struct-tm*)))
+  (timegm		(double nausicaa_posix_timegm (struct-tm*)))
+  (ctime_r		(char* nausicaa_posix_ctime_r (double char*))))
 
 
 ;;;; done

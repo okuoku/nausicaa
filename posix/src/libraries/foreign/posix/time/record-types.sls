@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -127,7 +127,7 @@
 		     (struct-tms-tms_cutime-ref pointer)))
 
 (define (record->struct-tms record malloc)
-  (begin0-let ((pointer (malloc sizeof-struct-tms)))
+  (begin0-let ((pointer (malloc sizeof-tms)))
     (struct-tms-tms_utime-set!  pointer (<struct-tms>-utime  record))
     (struct-tms-tms_stime-set!  pointer (<struct-tms>-stime  record))
     (struct-tms-tms_cutime-set! pointer (<struct-tms>-cutime record))
@@ -146,7 +146,7 @@
 			 (struct-timeval-tv_usec-ref pointer)))
 
 (define (record->struct-timeval record malloc)
-  (begin0-let ((pointer (malloc sizeof-struct-timeval)))
+  (begin0-let ((pointer (malloc sizeof-timeval)))
     (struct-timeval-tv_sec-set!  pointer (<struct-timeval>-sec  record))
     (struct-timeval-tv_usec-set! pointer (<struct-timeval>-usec record))))
 
@@ -163,7 +163,7 @@
 			  (struct-timespec-tv_nsec-ref pointer)))
 
 (define (record->struct-timespec record malloc)
-  (begin0-let ((pointer (malloc sizeof-struct-timespec)))
+  (begin0-let ((pointer (malloc sizeof-timespec)))
     (struct-timespec-tv_sec-set!  pointer (<struct-timespec>-sec  record))
     (struct-timespec-tv_nsec-set! pointer (<struct-timespec>-nsec record))))
 
@@ -180,7 +180,7 @@
 			  (struct-timezone-tz_dsttime-ref      pointer)))
 
 (define (record->struct-timezone record malloc)
-  (begin0-let ((pointer (malloc sizeof-struct-timezone)))
+  (begin0-let ((pointer (malloc sizeof-timezone)))
     (struct-timezone-tz_minuteswest-set! pointer (<struct-timezone>-minuteswest record))
     (struct-timezone-tz_dsttime-set!     pointer (<struct-timezone>-dsttime     record))))
 
@@ -215,7 +215,7 @@
 		    (struct-tm-tm_zone-ref pointer)))
 
 (define (record->struct-tm record malloc)
-  (begin0-let ((pointer (malloc sizeof-struct-tm)))
+  (begin0-let ((pointer (malloc sizeof-tm)))
     (struct-tm-tm_sec-set!    pointer (<struct-tm>-sec    record))
     (struct-tm-tm_min-set!    pointer (<struct-tm>-min    record))
     (struct-tm-tm_hour-set!   pointer (<struct-tm>-hour   record))
@@ -243,7 +243,7 @@
 			    (struct-ntptimeval-esterror-ref pointer)))
 
 (define (record->struct-ntptimeval record malloc)
-  (begin0-let ((pointer (malloc sizeof-struct-ntptimeval)))
+  (begin0-let ((pointer (malloc sizeof-ntptimeval)))
     (let ((time-pointer (struct-ntptimeval-time-ref pointer))
 	  (time-record  (<struct-ntptimeval>-time record)))
       (struct-timeval-tv_sec-set!  time-pointer (<struct-timeval>-sec  time-record))
@@ -298,7 +298,7 @@
 		       (struct-timex-stbcnt-ref pointer)))
 
 (define (record->struct-timex record malloc)
-  (begin0-let ((pointer (malloc sizeof-struct-timex)))
+  (begin0-let ((pointer (malloc sizeof-timex)))
     (let ((time-pointer (struct-timex-time-ref pointer))
 	  (time-record  (<struct-timex>-time record)))
       (struct-timeval-tv_sec-set!  time-pointer (<struct-timeval>-sec  time-record))
@@ -339,7 +339,7 @@
 						    (struct-timeval-tv_usec-ref value-timeval*)))))
 
 (define (record->struct-itimerval record malloc)
-  (begin0-let ((pointer (malloc sizeof-struct-itimerval)))
+  (begin0-let ((pointer (malloc sizeof-itimerval)))
     (let ((interval-timeval*	(struct-itimerval-it_interval-ref pointer))
 	  (value-timeval*	(struct-itimerval-it_value-ref    pointer))
 	  (interval-record	(<struct-itimerval>-interval record))

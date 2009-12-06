@@ -54,7 +54,7 @@
 
 (define (%real-stat func funcname pathname)
   (with-compensations
-    (let ((*struct-stat	(malloc-block/c platform:sizeof-struct-stat)))
+    (let ((*struct-stat	(malloc-block/c platform:sizeof-stat)))
       (receive (result errno)
 	  (func (string->cstring/c pathname) *struct-stat)
 	(when (= -1 result)
@@ -69,7 +69,7 @@
 
 (define (fstat fd)
   (with-compensations
-    (let ((*struct-stat (malloc-block/c platform:sizeof-struct-stat)))
+    (let ((*struct-stat (malloc-block/c platform:sizeof-stat)))
       (receive (result errno)
 	  (platform:fstat fd *struct-stat)
 	(when (= -1 result)

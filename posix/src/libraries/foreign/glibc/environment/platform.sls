@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,21 +28,13 @@
 (library (foreign glibc environment platform)
   (export unsetenv clearenv putenv)
   (import (rnrs)
-    (foreign posix shared-object)
-    (only (foreign ffi)
-	  shared-object
-	  define-c-function))
+    (foreign ffi)
+    (foreign ffi sizeof)
+    (foreign posix shared-object))
 
-  (define dummy
-    (shared-object standard-c-library))
-
-  (define-c-function clearenv
-    (int clearenv (void)))
-
-  (define-c-function unsetenv
-    (int unsetenv (char*)))
-
-  (define-c-function putenv
-    (int putenv (char*))))
+  (define-c-functions libc-shared-object
+    (clearenv		(int clearenv (void)))
+    (unsetenv		(int unsetenv (char*)))
+    (putenv		(int putenv (char*)))))
 
 ;;; end of file

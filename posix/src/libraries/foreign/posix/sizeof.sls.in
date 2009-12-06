@@ -1,13 +1,14 @@
+;;; (foreign posix sizeof) --
 ;;;
-;;;Part of: Nausicaa/POSIX
-;;;Contents: size of definitions
-;;;Date: Fri Dec  5, 2008
+;;;Part of: Nausicaa
+;;;Contents: foreign library inspection generation
+;;;Date: Sun Dec  6, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,207 +24,317 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
-(library (foreign posix sizeof)
+
+(library
+  (foreign posix sizeof)
   (export
-
-;;; data types inspection
-
     blkcnt_t
     sizeof-blkcnt_t
     alignof-blkcnt_t
     strideof-blkcnt_t
     pointer-set-c-blkcnt_t!
     pointer-ref-c-blkcnt_t
-
     clock_t
     sizeof-clock_t
     alignof-clock_t
     strideof-clock_t
     pointer-set-c-clock_t!
     pointer-ref-c-clock_t
-
     dev_t
     sizeof-dev_t
     alignof-dev_t
     strideof-dev_t
     pointer-set-c-dev_t!
     pointer-ref-c-dev_t
-
     gid_t
     sizeof-gid_t
     alignof-gid_t
     strideof-gid_t
     pointer-set-c-gid_t!
     pointer-ref-c-gid_t
-
     ino_t
     sizeof-ino_t
     alignof-ino_t
     strideof-ino_t
     pointer-set-c-ino_t!
     pointer-ref-c-ino_t
-
     mode_t
     sizeof-mode_t
     alignof-mode_t
     strideof-mode_t
     pointer-set-c-mode_t!
     pointer-ref-c-mode_t
-
     nlink_t
     sizeof-nlink_t
     alignof-nlink_t
     strideof-nlink_t
     pointer-set-c-nlink_t!
     pointer-ref-c-nlink_t
-
     off_t
     sizeof-off_t
     alignof-off_t
     strideof-off_t
     pointer-set-c-off_t!
     pointer-ref-c-off_t
-
     pid_t
     sizeof-pid_t
     alignof-pid_t
     strideof-pid_t
     pointer-set-c-pid_t!
     pointer-ref-c-pid_t
-
     time_t
     sizeof-time_t
     alignof-time_t
     strideof-time_t
     pointer-set-c-time_t!
     pointer-ref-c-time_t
-
     uid_t
     sizeof-uid_t
     alignof-uid_t
     strideof-uid_t
     pointer-set-c-uid_t!
     pointer-ref-c-uid_t
-
     wchar_t
     sizeof-wchar_t
     alignof-wchar_t
     strideof-wchar_t
     pointer-set-c-wchar_t!
     pointer-ref-c-wchar_t
-
-;;; --------------------------------------------------------------------
-;;; data structures inspection
-
-    sizeof-struct-dirent
-    alignof-struct-dirent
-    strideof-struct-dirent
-
-    sizeof-struct-flock
-    alignof-struct-flock
-    strideof-struct-flock
-
-    sizeof-struct-timespec
-    alignof-struct-timespec
-    strideof-struct-timespec
-
-    sizeof-struct-timeval
-    alignof-struct-timeval
-    strideof-struct-timeval
-
-    sizeof-struct-utimbuf
-    alignof-struct-utimbuf
-    strideof-struct-utimbuf
-
-    sizeof-struct-timezone
-    alignof-struct-timezone
-    strideof-struct-timezone
-
-    sizeof-struct-tms
-    alignof-struct-tms
-    strideof-struct-tms
-
-    sizeof-struct-tm
-    alignof-struct-tm
-    strideof-struct-tm
-
-    sizeof-struct-ntptimeval
-    alignof-struct-ntptimeval
-    strideof-struct-ntptimeval
-
-    sizeof-struct-timex
-    alignof-struct-timex
-    strideof-struct-timex
-
-    sizeof-struct-itimerval
-    alignof-struct-itimerval
-    strideof-struct-itimerval
-
-;;;The  stat structure is  "special"; we  relay on  the stub  library to
-;;;access it.
-;;;
-;;;    sizeof-struct-stat alignof-struct-stat strideof-struct-stat
-
-;;; --------------------------------------------------------------------
-;;; constants
-
-    O_ACCMODE		O_CREAT		O_EXCL
-    O_EXEC		O_EXLOCK	O_IGNORE_CTTY
-    O_NOCTTY		O_NOLINK	O_NONBLOCK
-    O_NOTRANS		O_RDONLY	O_RDWR
-    O_READ		O_SHLOCK	O_TRUNC
-    O_WRITE		O_WRONLY	O_APPEND
+    sizeof-flock
+    alignof-flock
+    strideof-flock
+    struct-flock-l_type-set!
+    struct-flock-l_type-ref
+    struct-flock-l_whence-set!
+    struct-flock-l_whence-ref
+    struct-flock-l_start-set!
+    struct-flock-l_start-ref
+    struct-flock-l_len-set!
+    struct-flock-l_len-ref
+    struct-flock-l_pid-set!
+    struct-flock-l_pid-ref
+    sizeof-timeval
+    alignof-timeval
+    strideof-timeval
+    struct-timeval-tv_sec-set!
+    struct-timeval-tv_sec-ref
+    struct-timeval-tv_usec-set!
+    struct-timeval-tv_usec-ref
+    sizeof-timespec
+    alignof-timespec
+    strideof-timespec
+    struct-timespec-tv_sec-set!
+    struct-timespec-tv_sec-ref
+    struct-timespec-tv_nsec-set!
+    struct-timespec-tv_nsec-ref
+    sizeof-tms
+    alignof-tms
+    strideof-tms
+    sizeof-dirent
+    alignof-dirent
+    strideof-dirent
+    struct-dirent-d_ino-set!
+    struct-dirent-d_ino-ref
+    struct-dirent-d_off-set!
+    struct-dirent-d_off-ref
+    struct-dirent-d_reclen-set!
+    struct-dirent-d_reclen-ref
+    struct-dirent-d_type-set!
+    struct-dirent-d_type-ref
+    struct-dirent-d_name-ref
+    sizeof-utimbuf
+    alignof-utimbuf
+    strideof-utimbuf
+    struct-utimbuf-actime-set!
+    struct-utimbuf-actime-ref
+    struct-utimbuf-modtime-set!
+    struct-utimbuf-modtime-ref
+    sizeof-timezone
+    alignof-timezone
+    strideof-timezone
+    struct-timezone-tz_minuteswest-set!
+    struct-timezone-tz_minuteswest-ref
+    struct-timezone-tz_dsttime-set!
+    struct-timezone-tz_dsttime-ref
+    sizeof-tm
+    alignof-tm
+    strideof-tm
+    struct-tm-tm_sec-set!
+    struct-tm-tm_sec-ref
+    struct-tm-tm_min-set!
+    struct-tm-tm_min-ref
+    struct-tm-tm_hour-set!
+    struct-tm-tm_hour-ref
+    struct-tm-tm_mday-set!
+    struct-tm-tm_mday-ref
+    struct-tm-tm_mon-set!
+    struct-tm-tm_mon-ref
+    struct-tm-tm_year-set!
+    struct-tm-tm_year-ref
+    struct-tm-tm_wday-set!
+    struct-tm-tm_wday-ref
+    struct-tm-tm_yday-set!
+    struct-tm-tm_yday-ref
+    struct-tm-tm_isdst-set!
+    struct-tm-tm_isdst-ref
+    struct-tm-tm_gmtoff-set!
+    struct-tm-tm_gmtoff-ref
+    struct-tm-tm_zone-set!
+    struct-tm-tm_zone-ref
+    sizeof-ntptimeval
+    alignof-ntptimeval
+    strideof-ntptimeval
+    struct-ntptimeval-time-ref
+    struct-ntptimeval-maxerror-set!
+    struct-ntptimeval-maxerror-ref
+    struct-ntptimeval-esterror-set!
+    struct-ntptimeval-esterror-ref
+    sizeof-timex
+    alignof-timex
+    strideof-timex
+    struct-timex-modes-set!
+    struct-timex-modes-ref
+    struct-timex-offset-set!
+    struct-timex-offset-ref
+    struct-timex-freq-set!
+    struct-timex-freq-ref
+    struct-timex-maxerror-set!
+    struct-timex-maxerror-ref
+    struct-timex-esterror-set!
+    struct-timex-esterror-ref
+    struct-timex-status-set!
+    struct-timex-status-ref
+    struct-timex-constant-set!
+    struct-timex-constant-ref
+    struct-timex-precision-set!
+    struct-timex-precision-ref
+    struct-timex-tolerance-set!
+    struct-timex-tolerance-ref
+    struct-timex-time-ref
+    struct-timex-tick-set!
+    struct-timex-tick-ref
+    struct-timex-ppsfreq-set!
+    struct-timex-ppsfreq-ref
+    struct-timex-jitter-set!
+    struct-timex-jitter-ref
+    struct-timex-shift-set!
+    struct-timex-shift-ref
+    struct-timex-stabil-set!
+    struct-timex-stabil-ref
+    struct-timex-jitcnt-set!
+    struct-timex-jitcnt-ref
+    struct-timex-calcnt-set!
+    struct-timex-calcnt-ref
+    struct-timex-errcnt-set!
+    struct-timex-errcnt-ref
+    struct-timex-stbcnt-set!
+    struct-timex-stbcnt-ref
+    sizeof-itimerval
+    alignof-itimerval
+    strideof-itimerval
+    struct-itimerval-it_interval-ref
+    struct-itimerval-it_value-ref
+    sizeof-FTW
+    alignof-FTW
+    strideof-FTW
+    struct-FTW-base-set!
+    struct-FTW-base-ref
+    struct-FTW-level-set!
+    struct-FTW-level-ref
+    SEEK_SET
+    SEEK_CUR
+    SEEK_END
+    O_ACCMODE
+    O_APPEND
+    O_ASYNC
+    O_CREAT
+    O_EXCL
+    O_EXEC
+    O_EXLOCK
+    O_FSYNC
+    O_IGNORE_CTTY
     O_NDELAY
-
+    O_NOCTTY
+    O_NOLINK
+    O_NONBLOCK
+    O_NOTRANS
+    O_RDONLY
+    O_RDWR
+    O_READ
+    O_SHLOCK
+    O_SYNC
+    O_TRUNC
+    O_WRITE
+    O_WRONLY
     O_NOATIME
-
-    F_DUPFD		F_GETFD		F_GETFL
-    F_GETLK		F_GETOWN	F_SETFD
-    F_SETFL		F_SETLKW	F_SETLK
-    F_SETOWN
-
     FD_CLOEXEC
-
-    F_RDLCK		F_WRLCK		F_UNLCK
-
-    R_OK		W_OK		X_OK		F_OK
-
-    SEEK_SET		SEEK_CUR	SEEK_END
-    WNOHANG		WUNTRACED	WCONTINUED
+    F_DUPFD
+    F_GETFD
+    F_GETFL
+    F_GETLK
+    F_GETOWN
+    F_SETFD
+    F_SETFL
+    F_SETLKW
+    F_SETLK
+    F_SETOWN
+    F_RDLCK
+    F_UNLCK
+    F_WRLCK
+    WNOHANG
+    WUNTRACED
+    WCONTINUED
+    R_OK
+    W_OK
+    X_OK
+    F_OK
+    L_ctermid
+    L_tmpnam
     CLOCKS_PER_SEC
-
-    L_ctermid		L_tmpnam
-
-    S_IRUSR		S_IWUSR		S_IXUSR
-    S_IRGRP		S_IWGRP		S_IXGRP
-    S_IROTH		S_IWOTH		S_IXOTH
-    S_IRWXU		S_IRWXG		S_IRWXO
-    S_ISUID		S_ISGID		S_ISVTX
-
-    EOF			MAXSYMLINKS
-    PATH_MAX		NAME_MAX	MAXPATHLEN
-
-    ;; "struct dirent" related constants
-    _DIRENT_HAVE_D_NAMELEN	_DIRENT_HAVE_D_RECLEN
-    _DIRENT_HAVE_D_OFF		_DIRENT_HAVE_D_TYPE
-    DT_BLK		DT_CHR		DT_DIR
-    DT_FIFO		DT_LNK		DT_REG
-    DT_SOCK		DT_UNKNOWN
-    OFFSETOF_STRUCT_DIRENT_D_NAME
-
-    ;; constants related to "pathconf()"
-    _PC_LINK_MAX		_PC_MAX_CANON
-    _PC_MAX_INPUT		_PC_NAME_MAX
-    _PC_PATH_MAX		_PC_PIPE_BUF
-    _PC_CHOWN_RESTRICTED	_PC_NO_TRUNC
-    _PC_VDISABLE		_PC_SYNC_IO
-    _PC_ASYNC_IO		_PC_PRIO_IO
-    _PC_FILESIZEBITS		_PC_REC_INCR_XFER_SIZE
-    _PC_REC_MAX_XFER_SIZE	_PC_REC_MIN_XFER_SIZE
+    S_IRUSR
+    S_IWUSR
+    S_IXUSR
+    S_IRGRP
+    S_IWGRP
+    S_IXGRP
+    S_IROTH
+    S_IWOTH
+    S_IXOTH
+    S_IRWXU
+    S_IRWXG
+    S_IRWXO
+    S_ISUID
+    S_ISGID
+    S_ISVTX
+    _DIRENT_HAVE_D_NAMELEN
+    _DIRENT_HAVE_D_RECLEN
+    _DIRENT_HAVE_D_OFF
+    _DIRENT_HAVE_D_TYPE
+    DT_BLK
+    DT_CHR
+    DT_DIR
+    DT_FIFO
+    DT_LNK
+    DT_REG
+    DT_SOCK
+    DT_UNKNOWN
+    _PC_LINK_MAX
+    _PC_MAX_CANON
+    _PC_MAX_INPUT
+    _PC_NAME_MAX
+    _PC_PATH_MAX
+    _PC_PIPE_BUF
+    _PC_CHOWN_RESTRICTED
+    _PC_NO_TRUNC
+    _PC_VDISABLE
+    _PC_SYNC_IO
+    _PC_ASYNC_IO
+    _PC_PRIO_IO
+    _PC_FILESIZEBITS
+    _PC_REC_INCR_XFER_SIZE
+    _PC_REC_MAX_XFER_SIZE
+    _PC_REC_MIN_XFER_SIZE
     _PC_XFER_ALIGN
-
-    ;; constants related to "ftw()" and "nftw()"
     FTW_F
     FTW_D
     FTW_NS
@@ -240,891 +351,595 @@
     FTW_STOP
     FTW_SKIP_SUBTREE
     FTW_SKIP_SIBLINGS
-
-    ;; values related to "setitimer()"
     ITIMER_REAL
     ITIMER_VIRTUAL
     ITIMER_PROF
-
-;;; --------------------------------------------------------------------
-;;; struct accessors and mutators
-
-    struct-flock-l_type-set!		struct-flock-l_type-ref
-    struct-flock-l_whence-set!		struct-flock-l_whence-ref
-    struct-flock-l_start-set!		struct-flock-l_start-ref
-    struct-flock-l_len-set!		struct-flock-l_len-ref
-    struct-flock-l_pid-set!		struct-flock-l_pid-ref
-
-    struct-timeval-tv_sec-set!		struct-timeval-tv_sec-ref
-    struct-timeval-tv_usec-set!		struct-timeval-tv_usec-ref
-
-    struct-timespec-tv_sec-set!		struct-timespec-tv_sec-ref
-    struct-timespec-tv_nsec-set!	struct-timespec-tv_nsec-ref
-
-    struct-dirent-d_ino-set!		struct-dirent-d_ino-ref
-    struct-dirent-d_off-set!		struct-dirent-d_off-ref
-    struct-dirent-d_reclen-set!		struct-dirent-d_reclen-ref
-    struct-dirent-d_type-set!		struct-dirent-d_type-ref
-    struct-dirent-d_name-ref
-
-    struct-timezone-tz_minuteswest-set!	struct-timezone-tz_minuteswest-ref
-    struct-timezone-tz_dsttime-set!	struct-timezone-tz_dsttime-ref
-
-    struct-tm-tm_sec-set!		struct-tm-tm_sec-ref
-    struct-tm-tm_min-set!		struct-tm-tm_min-ref
-    struct-tm-tm_hour-set!		struct-tm-tm_hour-ref
-    struct-tm-tm_mday-set!		struct-tm-tm_mday-ref
-    struct-tm-tm_mon-set!		struct-tm-tm_mon-ref
-    struct-tm-tm_year-set!		struct-tm-tm_year-ref
-    struct-tm-tm_wday-set!		struct-tm-tm_wday-ref
-    struct-tm-tm_yday-set!		struct-tm-tm_yday-ref
-    struct-tm-tm_isdst-set!		struct-tm-tm_isdst-ref
-    struct-tm-tm_gmtoff-set!		struct-tm-tm_gmtoff-ref
-    struct-tm-tm_zone-set!		struct-tm-tm_zone-ref
-
-    struct-ntptimeval-time-ref
-    struct-ntptimeval-maxerror-set!	struct-ntptimeval-maxerror-ref
-    struct-ntptimeval-esterror-set!	struct-ntptimeval-esterror-ref
-
-    struct-timex-modes-set!		struct-timex-modes-ref
-    struct-timex-offset-set!		struct-timex-offset-ref
-    struct-timex-freq-set!		struct-timex-freq-ref
-    struct-timex-maxerror-set!		struct-timex-maxerror-ref
-    struct-timex-esterror-set!		struct-timex-esterror-ref
-    struct-timex-status-set!		struct-timex-status-ref
-    struct-timex-constant-set!		struct-timex-constant-ref
-    struct-timex-precision-set!		struct-timex-precision-ref
-    struct-timex-tolerance-set!		struct-timex-tolerance-ref
-    struct-timex-time-ref
-    struct-timex-tick-set!		struct-timex-tick-ref
-    struct-timex-ppsfreq-set!		struct-timex-ppsfreq-ref
-    struct-timex-jitter-set!		struct-timex-jitter-ref
-    struct-timex-shift-set!		struct-timex-shift-ref
-    struct-timex-stabil-set!		struct-timex-stabil-ref
-    struct-timex-jitcnt-set!		struct-timex-jitcnt-ref
-    struct-timex-calcnt-set!		struct-timex-calcnt-ref
-    struct-timex-errcnt-set!		struct-timex-errcnt-ref
-    struct-timex-stbcnt-set!		struct-timex-stbcnt-ref
-
-    struct-utimbuf-actime-set!		struct-utimbuf-actime-ref
-    struct-utimbuf-modtime-set!		struct-utimbuf-modtime-ref
-
-    struct-itimerval-it_interval-ref
-    struct-itimerval-it_value-ref
-
-    struct-ftw-base-ref			struct-ftw-level-ref
-
-;;;The  stat structure is  "special"; we  relay on  the stub  library to
-;;;access it.
-;;;
-;;;  struct-stat-st_mode-set!		struct-stat-st_mode-ref
-;;;  struct-stat-st_ino-set!		struct-stat-st_ino-ref
-;;;  struct-stat-st_dev-set!		struct-stat-st_dev-ref
-;;;  struct-stat-st_nlink-set!		struct-stat-st_nlink-ref
-;;;  struct-stat-st_uid-set!		struct-stat-st_uid-ref
-;;;  struct-stat-st_gid-set!		struct-stat-st_gid-ref
-;;;  struct-stat-st_size-set!		struct-stat-st_size-ref
-;;;  struct-stat-st_atime-set!		struct-stat-st_atime-ref
-;;;  struct-stat-st_atime_usec-set!	struct-stat-st_atime_usec-ref
-;;;  struct-stat-st_mtime-set!		struct-stat-st_mtime-ref
-;;;  struct-stat-st_mtime_usec-set!	struct-stat-st_mtime_usec-ref
-;;;  struct-stat-st_ctime-set!		struct-stat-st_ctime-ref
-;;;  struct-stat-st_ctime_usec-set!	struct-stat-st_ctime_usec-ref
-;;;  struct-stat-st_blocks-set!		struct-stat-st_blocks-ref
-;;;  struct-stat-st_blksize-set!	struct-stat-st_blksize-ref
-    )
-  (import (rnrs)
+    EOF
+    MAXSYMLINKS
+    NAME_MAX
+    PATH_MAX
+    MAXPATHLEN)
+  (import
+    (rnrs)
     (foreign ffi)
     (foreign ffi sizeof))
+  (define blkcnt_t '@TYPEOF_BLKCNT_T@)
+  (define sizeof-blkcnt_t @SIZEOF_BLKCNT_T@)
+  (define alignof-blkcnt_t @ALIGNOF_BLKCNT_T@)
+  (define strideof-blkcnt_t @STRIDEOF_BLKCNT_T@)
+  (define
+    pointer-set-c-blkcnt_t!
+    @GETTEROF_BLKCNT_T@)
+  (define
+    pointer-ref-c-blkcnt_t
+    @SETTEROF_BLKCNT_T@)
+  (define clock_t '@TYPEOF_CLOCK_T@)
+  (define sizeof-clock_t @SIZEOF_CLOCK_T@)
+  (define alignof-clock_t @ALIGNOF_CLOCK_T@)
+  (define strideof-clock_t @STRIDEOF_CLOCK_T@)
+  (define
+    pointer-set-c-clock_t!
+    @GETTEROF_CLOCK_T@)
+  (define pointer-ref-c-clock_t @SETTEROF_CLOCK_T@)
+  (define dev_t '@TYPEOF_DEV_T@)
+  (define sizeof-dev_t @SIZEOF_DEV_T@)
+  (define alignof-dev_t @ALIGNOF_DEV_T@)
+  (define strideof-dev_t @STRIDEOF_DEV_T@)
+  (define pointer-set-c-dev_t! @GETTEROF_DEV_T@)
+  (define pointer-ref-c-dev_t @SETTEROF_DEV_T@)
+  (define gid_t '@TYPEOF_GID_T@)
+  (define sizeof-gid_t @SIZEOF_GID_T@)
+  (define alignof-gid_t @ALIGNOF_GID_T@)
+  (define strideof-gid_t @STRIDEOF_GID_T@)
+  (define pointer-set-c-gid_t! @GETTEROF_GID_T@)
+  (define pointer-ref-c-gid_t @SETTEROF_GID_T@)
+  (define ino_t '@TYPEOF_INO_T@)
+  (define sizeof-ino_t @SIZEOF_INO_T@)
+  (define alignof-ino_t @ALIGNOF_INO_T@)
+  (define strideof-ino_t @STRIDEOF_INO_T@)
+  (define pointer-set-c-ino_t! @GETTEROF_INO_T@)
+  (define pointer-ref-c-ino_t @SETTEROF_INO_T@)
+  (define mode_t '@TYPEOF_MODE_T@)
+  (define sizeof-mode_t @SIZEOF_MODE_T@)
+  (define alignof-mode_t @ALIGNOF_MODE_T@)
+  (define strideof-mode_t @STRIDEOF_MODE_T@)
+  (define pointer-set-c-mode_t! @GETTEROF_MODE_T@)
+  (define pointer-ref-c-mode_t @SETTEROF_MODE_T@)
+  (define nlink_t '@TYPEOF_NLINK_T@)
+  (define sizeof-nlink_t @SIZEOF_NLINK_T@)
+  (define alignof-nlink_t @ALIGNOF_NLINK_T@)
+  (define strideof-nlink_t @STRIDEOF_NLINK_T@)
+  (define
+    pointer-set-c-nlink_t!
+    @GETTEROF_NLINK_T@)
+  (define pointer-ref-c-nlink_t @SETTEROF_NLINK_T@)
+  (define off_t '@TYPEOF_OFF_T@)
+  (define sizeof-off_t @SIZEOF_OFF_T@)
+  (define alignof-off_t @ALIGNOF_OFF_T@)
+  (define strideof-off_t @STRIDEOF_OFF_T@)
+  (define pointer-set-c-off_t! @GETTEROF_OFF_T@)
+  (define pointer-ref-c-off_t @SETTEROF_OFF_T@)
+  (define pid_t '@TYPEOF_PID_T@)
+  (define sizeof-pid_t @SIZEOF_PID_T@)
+  (define alignof-pid_t @ALIGNOF_PID_T@)
+  (define strideof-pid_t @STRIDEOF_PID_T@)
+  (define pointer-set-c-pid_t! @GETTEROF_PID_T@)
+  (define pointer-ref-c-pid_t @SETTEROF_PID_T@)
+  (define time_t '@TYPEOF_TIME_T@)
+  (define sizeof-time_t @SIZEOF_TIME_T@)
+  (define alignof-time_t @ALIGNOF_TIME_T@)
+  (define strideof-time_t @STRIDEOF_TIME_T@)
+  (define pointer-set-c-time_t! @GETTEROF_TIME_T@)
+  (define pointer-ref-c-time_t @SETTEROF_TIME_T@)
+  (define uid_t '@TYPEOF_UID_T@)
+  (define sizeof-uid_t @SIZEOF_UID_T@)
+  (define alignof-uid_t @ALIGNOF_UID_T@)
+  (define strideof-uid_t @STRIDEOF_UID_T@)
+  (define pointer-set-c-uid_t! @GETTEROF_UID_T@)
+  (define pointer-ref-c-uid_t @SETTEROF_UID_T@)
+  (define wchar_t '@TYPEOF_WCHAR_T@)
+  (define sizeof-wchar_t @SIZEOF_WCHAR_T@)
+  (define alignof-wchar_t @ALIGNOF_WCHAR_T@)
+  (define strideof-wchar_t @STRIDEOF_WCHAR_T@)
+  (define
+    pointer-set-c-wchar_t!
+    @GETTEROF_WCHAR_T@)
+  (define pointer-ref-c-wchar_t @SETTEROF_WCHAR_T@)
+  (define sizeof-flock @SIZEOF_FLOCK@)
+  (define alignof-flock @ALIGNOF_FLOCK@)
+  (define strideof-flock @STRIDEOF_FLOCK@)
+  (define-c-struct-accessor-and-mutator
+    struct-flock-l_type-set!
+    struct-flock-l_type-ref
+    @OFFSETOF_FLOCK_L_TYPE@
+    @SETTEROF_FLOCK_L_TYPE@
+    @GETTEROF_FLOCK_L_TYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-flock-l_whence-set!
+    struct-flock-l_whence-ref
+    @OFFSETOF_FLOCK_L_WHENCE@
+    @SETTEROF_FLOCK_L_WHENCE@
+    @GETTEROF_FLOCK_L_WHENCE@)
+  (define-c-struct-accessor-and-mutator
+    struct-flock-l_start-set!
+    struct-flock-l_start-ref
+    @OFFSETOF_FLOCK_L_START@
+    @SETTEROF_FLOCK_L_START@
+    @GETTEROF_FLOCK_L_START@)
+  (define-c-struct-accessor-and-mutator
+    struct-flock-l_len-set!
+    struct-flock-l_len-ref
+    @OFFSETOF_FLOCK_L_LEN@
+    @SETTEROF_FLOCK_L_LEN@
+    @GETTEROF_FLOCK_L_LEN@)
+  (define-c-struct-accessor-and-mutator
+    struct-flock-l_pid-set!
+    struct-flock-l_pid-ref
+    @OFFSETOF_FLOCK_L_PID@
+    @SETTEROF_FLOCK_L_PID@
+    @GETTEROF_FLOCK_L_PID@)
+  (define sizeof-timeval @SIZEOF_TIMEVAL@)
+  (define alignof-timeval @ALIGNOF_TIMEVAL@)
+  (define strideof-timeval @STRIDEOF_TIMEVAL@)
+  (define-c-struct-accessor-and-mutator
+    struct-timeval-tv_sec-set!
+    struct-timeval-tv_sec-ref
+    @OFFSETOF_TIMEVAL_TV_SEC@
+    @SETTEROF_TIMEVAL_TV_SEC@
+    @GETTEROF_TIMEVAL_TV_SEC@)
+  (define-c-struct-accessor-and-mutator
+    struct-timeval-tv_usec-set!
+    struct-timeval-tv_usec-ref
+    @OFFSETOF_TIMEVAL_TV_USEC@
+    @SETTEROF_TIMEVAL_TV_USEC@
+    @GETTEROF_TIMEVAL_TV_USEC@)
+  (define sizeof-timespec @SIZEOF_TIMESPEC@)
+  (define alignof-timespec @ALIGNOF_TIMESPEC@)
+  (define strideof-timespec @STRIDEOF_TIMESPEC@)
+  (define-c-struct-accessor-and-mutator
+    struct-timespec-tv_sec-set!
+    struct-timespec-tv_sec-ref
+    @OFFSETOF_TIMESPEC_TV_SEC@
+    @SETTEROF_TIMESPEC_TV_SEC@
+    @GETTEROF_TIMESPEC_TV_SEC@)
+  (define-c-struct-accessor-and-mutator
+    struct-timespec-tv_nsec-set!
+    struct-timespec-tv_nsec-ref
+    @OFFSETOF_TIMESPEC_TV_NSEC@
+    @SETTEROF_TIMESPEC_TV_NSEC@
+    @GETTEROF_TIMESPEC_TV_NSEC@)
+  (define sizeof-tms @SIZEOF_TMS@)
+  (define alignof-tms @ALIGNOF_TMS@)
+  (define strideof-tms @STRIDEOF_TMS@)
+  (define sizeof-dirent @SIZEOF_DIRENT@)
+  (define alignof-dirent @ALIGNOF_DIRENT@)
+  (define strideof-dirent @STRIDEOF_DIRENT@)
+  (define-c-struct-accessor-and-mutator
+    struct-dirent-d_ino-set!
+    struct-dirent-d_ino-ref
+    @OFFSETOF_DIRENT_D_INO@
+    @SETTEROF_DIRENT_D_INO@
+    @GETTEROF_DIRENT_D_INO@)
+  (define-c-struct-accessor-and-mutator
+    struct-dirent-d_off-set!
+    struct-dirent-d_off-ref
+    @OFFSETOF_DIRENT_D_OFF@
+    @SETTEROF_DIRENT_D_OFF@
+    @GETTEROF_DIRENT_D_OFF@)
+  (define-c-struct-accessor-and-mutator
+    struct-dirent-d_reclen-set!
+    struct-dirent-d_reclen-ref
+    @OFFSETOF_DIRENT_D_RECLEN@
+    @SETTEROF_DIRENT_D_RECLEN@
+    @GETTEROF_DIRENT_D_RECLEN@)
+  (define-c-struct-accessor-and-mutator
+    struct-dirent-d_type-set!
+    struct-dirent-d_type-ref
+    @OFFSETOF_DIRENT_D_TYPE@
+    @SETTEROF_DIRENT_D_TYPE@
+    @GETTEROF_DIRENT_D_TYPE@)
+  (define-c-struct-field-pointer-accessor
+    struct-dirent-d_name-ref
+    @OFFSETOF_DIRENT_D_NAME@)
+  (define sizeof-utimbuf @SIZEOF_UTIMBUF@)
+  (define alignof-utimbuf @ALIGNOF_UTIMBUF@)
+  (define strideof-utimbuf @STRIDEOF_UTIMBUF@)
+  (define-c-struct-accessor-and-mutator
+    struct-utimbuf-actime-set!
+    struct-utimbuf-actime-ref
+    @OFFSETOF_UTIMBUF_ACTIME@
+    @SETTEROF_UTIMBUF_ACTIME@
+    @GETTEROF_UTIMBUF_ACTIME@)
+  (define-c-struct-accessor-and-mutator
+    struct-utimbuf-modtime-set!
+    struct-utimbuf-modtime-ref
+    @OFFSETOF_UTIMBUF_MODTIME@
+    @SETTEROF_UTIMBUF_MODTIME@
+    @GETTEROF_UTIMBUF_MODTIME@)
+  (define sizeof-timezone @SIZEOF_TIMEZONE@)
+  (define alignof-timezone @ALIGNOF_TIMEZONE@)
+  (define strideof-timezone @STRIDEOF_TIMEZONE@)
+  (define-c-struct-accessor-and-mutator
+    struct-timezone-tz_minuteswest-set!
+    struct-timezone-tz_minuteswest-ref
+    @OFFSETOF_TIMEZONE_TZ_MINUTESWEST@
+    @SETTEROF_TIMEZONE_TZ_MINUTESWEST@
+    @GETTEROF_TIMEZONE_TZ_MINUTESWEST@)
+  (define-c-struct-accessor-and-mutator
+    struct-timezone-tz_dsttime-set!
+    struct-timezone-tz_dsttime-ref
+    @OFFSETOF_TIMEZONE_TZ_DSTTIME@
+    @SETTEROF_TIMEZONE_TZ_DSTTIME@
+    @GETTEROF_TIMEZONE_TZ_DSTTIME@)
+  (define sizeof-tm @SIZEOF_TM@)
+  (define alignof-tm @ALIGNOF_TM@)
+  (define strideof-tm @STRIDEOF_TM@)
+  (define-c-struct-accessor-and-mutator
+    struct-tm-tm_sec-set!
+    struct-tm-tm_sec-ref
+    @OFFSETOF_TM_TM_SEC@
+    @SETTEROF_TM_TM_SEC@
+    @GETTEROF_TM_TM_SEC@)
+  (define-c-struct-accessor-and-mutator
+    struct-tm-tm_min-set!
+    struct-tm-tm_min-ref
+    @OFFSETOF_TM_TM_MIN@
+    @SETTEROF_TM_TM_MIN@
+    @GETTEROF_TM_TM_MIN@)
+  (define-c-struct-accessor-and-mutator
+    struct-tm-tm_hour-set!
+    struct-tm-tm_hour-ref
+    @OFFSETOF_TM_TM_HOUR@
+    @SETTEROF_TM_TM_HOUR@
+    @GETTEROF_TM_TM_HOUR@)
+  (define-c-struct-accessor-and-mutator
+    struct-tm-tm_mday-set!
+    struct-tm-tm_mday-ref
+    @OFFSETOF_TM_TM_MDAY@
+    @SETTEROF_TM_TM_MDAY@
+    @GETTEROF_TM_TM_MDAY@)
+  (define-c-struct-accessor-and-mutator
+    struct-tm-tm_mon-set!
+    struct-tm-tm_mon-ref
+    @OFFSETOF_TM_TM_MON@
+    @SETTEROF_TM_TM_MON@
+    @GETTEROF_TM_TM_MON@)
+  (define-c-struct-accessor-and-mutator
+    struct-tm-tm_year-set!
+    struct-tm-tm_year-ref
+    @OFFSETOF_TM_TM_YEAR@
+    @SETTEROF_TM_TM_YEAR@
+    @GETTEROF_TM_TM_YEAR@)
+  (define-c-struct-accessor-and-mutator
+    struct-tm-tm_wday-set!
+    struct-tm-tm_wday-ref
+    @OFFSETOF_TM_TM_WDAY@
+    @SETTEROF_TM_TM_WDAY@
+    @GETTEROF_TM_TM_WDAY@)
+  (define-c-struct-accessor-and-mutator
+    struct-tm-tm_yday-set!
+    struct-tm-tm_yday-ref
+    @OFFSETOF_TM_TM_YDAY@
+    @SETTEROF_TM_TM_YDAY@
+    @GETTEROF_TM_TM_YDAY@)
+  (define-c-struct-accessor-and-mutator
+    struct-tm-tm_isdst-set!
+    struct-tm-tm_isdst-ref
+    @OFFSETOF_TM_TM_ISDST@
+    @SETTEROF_TM_TM_ISDST@
+    @GETTEROF_TM_TM_ISDST@)
+  (define-c-struct-accessor-and-mutator
+    struct-tm-tm_gmtoff-set!
+    struct-tm-tm_gmtoff-ref
+    @OFFSETOF_TM_TM_GMTOFF@
+    @SETTEROF_TM_TM_GMTOFF@
+    @GETTEROF_TM_TM_GMTOFF@)
+  (define-c-struct-accessor-and-mutator
+    struct-tm-tm_zone-set!
+    struct-tm-tm_zone-ref
+    @OFFSETOF_TM_TM_ZONE@
+    @SETTEROF_TM_TM_ZONE@
+    @GETTEROF_TM_TM_ZONE@)
+  (define sizeof-ntptimeval @SIZEOF_NTPTIMEVAL@)
+  (define alignof-ntptimeval @ALIGNOF_NTPTIMEVAL@)
+  (define
+    strideof-ntptimeval
+    @STRIDEOF_NTPTIMEVAL@)
+  (define-c-struct-field-pointer-accessor
+    struct-ntptimeval-time-ref
+    @OFFSETOF_NTPTIMEVAL_TIME@)
+  (define-c-struct-accessor-and-mutator
+    struct-ntptimeval-maxerror-set!
+    struct-ntptimeval-maxerror-ref
+    @OFFSETOF_NTPTIMEVAL_MAXERROR@
+    @SETTEROF_NTPTIMEVAL_MAXERROR@
+    @GETTEROF_NTPTIMEVAL_MAXERROR@)
+  (define-c-struct-accessor-and-mutator
+    struct-ntptimeval-esterror-set!
+    struct-ntptimeval-esterror-ref
+    @OFFSETOF_NTPTIMEVAL_ESTERROR@
+    @SETTEROF_NTPTIMEVAL_ESTERROR@
+    @GETTEROF_NTPTIMEVAL_ESTERROR@)
+  (define sizeof-timex @SIZEOF_TIMEX@)
+  (define alignof-timex @ALIGNOF_TIMEX@)
+  (define strideof-timex @STRIDEOF_TIMEX@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-modes-set!
+    struct-timex-modes-ref
+    @OFFSETOF_TIMEX_MODES@
+    @SETTEROF_TIMEX_MODES@
+    @GETTEROF_TIMEX_MODES@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-offset-set!
+    struct-timex-offset-ref
+    @OFFSETOF_TIMEX_OFFSET@
+    @SETTEROF_TIMEX_OFFSET@
+    @GETTEROF_TIMEX_OFFSET@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-freq-set!
+    struct-timex-freq-ref
+    @OFFSETOF_TIMEX_FREQ@
+    @SETTEROF_TIMEX_FREQ@
+    @GETTEROF_TIMEX_FREQ@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-maxerror-set!
+    struct-timex-maxerror-ref
+    @OFFSETOF_TIMEX_MAXERROR@
+    @SETTEROF_TIMEX_MAXERROR@
+    @GETTEROF_TIMEX_MAXERROR@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-esterror-set!
+    struct-timex-esterror-ref
+    @OFFSETOF_TIMEX_ESTERROR@
+    @SETTEROF_TIMEX_ESTERROR@
+    @GETTEROF_TIMEX_ESTERROR@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-status-set!
+    struct-timex-status-ref
+    @OFFSETOF_TIMEX_STATUS@
+    @SETTEROF_TIMEX_STATUS@
+    @GETTEROF_TIMEX_STATUS@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-constant-set!
+    struct-timex-constant-ref
+    @OFFSETOF_TIMEX_CONSTANT@
+    @SETTEROF_TIMEX_CONSTANT@
+    @GETTEROF_TIMEX_CONSTANT@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-precision-set!
+    struct-timex-precision-ref
+    @OFFSETOF_TIMEX_PRECISION@
+    @SETTEROF_TIMEX_PRECISION@
+    @GETTEROF_TIMEX_PRECISION@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-tolerance-set!
+    struct-timex-tolerance-ref
+    @OFFSETOF_TIMEX_TOLERANCE@
+    @SETTEROF_TIMEX_TOLERANCE@
+    @GETTEROF_TIMEX_TOLERANCE@)
+  (define-c-struct-field-pointer-accessor
+    struct-timex-time-ref
+    @OFFSETOF_TIMEX_TIME@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-tick-set!
+    struct-timex-tick-ref
+    @OFFSETOF_TIMEX_TICK@
+    @SETTEROF_TIMEX_TICK@
+    @GETTEROF_TIMEX_TICK@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-ppsfreq-set!
+    struct-timex-ppsfreq-ref
+    @OFFSETOF_TIMEX_PPSFREQ@
+    @SETTEROF_TIMEX_PPSFREQ@
+    @GETTEROF_TIMEX_PPSFREQ@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-jitter-set!
+    struct-timex-jitter-ref
+    @OFFSETOF_TIMEX_JITTER@
+    @SETTEROF_TIMEX_JITTER@
+    @GETTEROF_TIMEX_JITTER@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-shift-set!
+    struct-timex-shift-ref
+    @OFFSETOF_TIMEX_SHIFT@
+    @SETTEROF_TIMEX_SHIFT@
+    @GETTEROF_TIMEX_SHIFT@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-stabil-set!
+    struct-timex-stabil-ref
+    @OFFSETOF_TIMEX_STABIL@
+    @SETTEROF_TIMEX_STABIL@
+    @GETTEROF_TIMEX_STABIL@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-jitcnt-set!
+    struct-timex-jitcnt-ref
+    @OFFSETOF_TIMEX_JITCNT@
+    @SETTEROF_TIMEX_JITCNT@
+    @GETTEROF_TIMEX_JITCNT@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-calcnt-set!
+    struct-timex-calcnt-ref
+    @OFFSETOF_TIMEX_CALCNT@
+    @SETTEROF_TIMEX_CALCNT@
+    @GETTEROF_TIMEX_CALCNT@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-errcnt-set!
+    struct-timex-errcnt-ref
+    @OFFSETOF_TIMEX_ERRCNT@
+    @SETTEROF_TIMEX_ERRCNT@
+    @GETTEROF_TIMEX_ERRCNT@)
+  (define-c-struct-accessor-and-mutator
+    struct-timex-stbcnt-set!
+    struct-timex-stbcnt-ref
+    @OFFSETOF_TIMEX_STBCNT@
+    @SETTEROF_TIMEX_STBCNT@
+    @GETTEROF_TIMEX_STBCNT@)
+  (define sizeof-itimerval @SIZEOF_ITIMERVAL@)
+  (define alignof-itimerval @ALIGNOF_ITIMERVAL@)
+  (define strideof-itimerval @STRIDEOF_ITIMERVAL@)
+  (define-c-struct-field-pointer-accessor
+    struct-itimerval-it_interval-ref
+    @OFFSETOF_ITIMERVAL_IT_INTERVAL@)
+  (define-c-struct-field-pointer-accessor
+    struct-itimerval-it_value-ref
+    @OFFSETOF_ITIMERVAL_IT_VALUE@)
+  (define sizeof-FTW @SIZEOF_FTW@)
+  (define alignof-FTW @ALIGNOF_FTW@)
+  (define strideof-FTW @STRIDEOF_FTW@)
+  (define-c-struct-accessor-and-mutator
+    struct-FTW-base-set!
+    struct-FTW-base-ref
+    @OFFSETOF_FTW_BASE@
+    @SETTEROF_FTW_BASE@
+    @GETTEROF_FTW_BASE@)
+  (define-c-struct-accessor-and-mutator
+    struct-FTW-level-set!
+    struct-FTW-level-ref
+    @OFFSETOF_FTW_LEVEL@
+    @SETTEROF_FTW_LEVEL@
+    @GETTEROF_FTW_LEVEL@)
+  (define SEEK_SET @VALUEOF_SEEK_SET@)
+  (define SEEK_CUR @VALUEOF_SEEK_CUR@)
+  (define SEEK_END @VALUEOF_SEEK_END@)
+  (define O_ACCMODE @VALUEOF_O_ACCMODE@)
+  (define O_APPEND @VALUEOF_O_APPEND@)
+  (define O_ASYNC @VALUEOF_O_ASYNC@)
+  (define O_CREAT @VALUEOF_O_CREAT@)
+  (define O_EXCL @VALUEOF_O_EXCL@)
+  (define O_EXEC @VALUEOF_O_EXEC@)
+  (define O_EXLOCK @VALUEOF_O_EXLOCK@)
+  (define O_FSYNC @VALUEOF_O_FSYNC@)
+  (define O_IGNORE_CTTY @VALUEOF_O_IGNORE_CTTY@)
+  (define O_NDELAY @VALUEOF_O_NDELAY@)
+  (define O_NOCTTY @VALUEOF_O_NOCTTY@)
+  (define O_NOLINK @VALUEOF_O_NOLINK@)
+  (define O_NONBLOCK @VALUEOF_O_NONBLOCK@)
+  (define O_NOTRANS @VALUEOF_O_NOTRANS@)
+  (define O_RDONLY @VALUEOF_O_RDONLY@)
+  (define O_RDWR @VALUEOF_O_RDWR@)
+  (define O_READ @VALUEOF_O_READ@)
+  (define O_SHLOCK @VALUEOF_O_SHLOCK@)
+  (define O_SYNC @VALUEOF_O_SYNC@)
+  (define O_TRUNC @VALUEOF_O_TRUNC@)
+  (define O_WRITE @VALUEOF_O_WRITE@)
+  (define O_WRONLY @VALUEOF_O_WRONLY@)
+  (define O_NOATIME @VALUEOF_O_NOATIME@)
+  (define FD_CLOEXEC @VALUEOF_FD_CLOEXEC@)
+  (define F_DUPFD @VALUEOF_F_DUPFD@)
+  (define F_GETFD @VALUEOF_F_GETFD@)
+  (define F_GETFL @VALUEOF_F_GETFL@)
+  (define F_GETLK @VALUEOF_F_GETLK@)
+  (define F_GETOWN @VALUEOF_F_GETOWN@)
+  (define F_SETFD @VALUEOF_F_SETFD@)
+  (define F_SETFL @VALUEOF_F_SETFL@)
+  (define F_SETLKW @VALUEOF_F_SETLKW@)
+  (define F_SETLK @VALUEOF_F_SETLK@)
+  (define F_SETOWN @VALUEOF_F_SETOWN@)
+  (define F_RDLCK @VALUEOF_F_RDLCK@)
+  (define F_UNLCK @VALUEOF_F_UNLCK@)
+  (define F_WRLCK @VALUEOF_F_WRLCK@)
+  (define WNOHANG @VALUEOF_WNOHANG@)
+  (define WUNTRACED @VALUEOF_WUNTRACED@)
+  (define WCONTINUED @VALUEOF_WCONTINUED@)
+  (define R_OK @VALUEOF_R_OK@)
+  (define W_OK @VALUEOF_W_OK@)
+  (define X_OK @VALUEOF_X_OK@)
+  (define F_OK @VALUEOF_F_OK@)
+  (define L_ctermid @VALUEOF_L_ctermid@)
+  (define L_tmpnam @VALUEOF_L_tmpnam@)
+  (define CLOCKS_PER_SEC @VALUEOF_CLOCKS_PER_SEC@)
+  (define S_IRUSR @VALUEOF_S_IRUSR@)
+  (define S_IWUSR @VALUEOF_S_IWUSR@)
+  (define S_IXUSR @VALUEOF_S_IXUSR@)
+  (define S_IRGRP @VALUEOF_S_IRGRP@)
+  (define S_IWGRP @VALUEOF_S_IWGRP@)
+  (define S_IXGRP @VALUEOF_S_IXGRP@)
+  (define S_IROTH @VALUEOF_S_IROTH@)
+  (define S_IWOTH @VALUEOF_S_IWOTH@)
+  (define S_IXOTH @VALUEOF_S_IXOTH@)
+  (define S_IRWXU @VALUEOF_S_IRWXU@)
+  (define S_IRWXG @VALUEOF_S_IRWXG@)
+  (define S_IRWXO @VALUEOF_S_IRWXO@)
+  (define S_ISUID @VALUEOF_S_ISUID@)
+  (define S_ISGID @VALUEOF_S_ISGID@)
+  (define S_ISVTX @VALUEOF_S_ISVTX@)
+  (define
+    _DIRENT_HAVE_D_NAMELEN
+    @NAU_DIRENT_HAVE_D_NAMELEN@)
+  (define
+    _DIRENT_HAVE_D_RECLEN
+    @NAU_DIRENT_HAVE_D_RECLEN@)
+  (define
+    _DIRENT_HAVE_D_OFF
+    @NAU_DIRENT_HAVE_D_OFF@)
+  (define
+    _DIRENT_HAVE_D_TYPE
+    @NAU_DIRENT_HAVE_D_TYPE@)
+  (define DT_BLK @VALUEOF_DT_BLK@)
+  (define DT_CHR @VALUEOF_DT_CHR@)
+  (define DT_DIR @VALUEOF_DT_DIR@)
+  (define DT_FIFO @VALUEOF_DT_FIFO@)
+  (define DT_LNK @VALUEOF_DT_LNK@)
+  (define DT_REG @VALUEOF_DT_REG@)
+  (define DT_SOCK @VALUEOF_DT_SOCK@)
+  (define DT_UNKNOWN @VALUEOF_DT_UNKNOWN@)
+  (define _PC_LINK_MAX @VALUEOF__PC_LINK_MAX@)
+  (define _PC_MAX_CANON @VALUEOF__PC_MAX_CANON@)
+  (define _PC_MAX_INPUT @VALUEOF__PC_MAX_INPUT@)
+  (define _PC_NAME_MAX @VALUEOF__PC_NAME_MAX@)
+  (define _PC_PATH_MAX @VALUEOF__PC_PATH_MAX@)
+  (define _PC_PIPE_BUF @VALUEOF__PC_PIPE_BUF@)
+  (define
+    _PC_CHOWN_RESTRICTED
+    @VALUEOF__PC_CHOWN_RESTRICTED@)
+  (define _PC_NO_TRUNC @VALUEOF__PC_NO_TRUNC@)
+  (define _PC_VDISABLE @VALUEOF__PC_VDISABLE@)
+  (define _PC_SYNC_IO @VALUEOF__PC_SYNC_IO@)
+  (define _PC_ASYNC_IO @VALUEOF__PC_ASYNC_IO@)
+  (define _PC_PRIO_IO @VALUEOF__PC_PRIO_IO@)
+  (define
+    _PC_FILESIZEBITS
+    @VALUEOF__PC_FILESIZEBITS@)
+  (define
+    _PC_REC_INCR_XFER_SIZE
+    @VALUEOF__PC_REC_INCR_XFER_SIZE@)
+  (define
+    _PC_REC_MAX_XFER_SIZE
+    @VALUEOF__PC_REC_MAX_XFER_SIZE@)
+  (define
+    _PC_REC_MIN_XFER_SIZE
+    @VALUEOF__PC_REC_MIN_XFER_SIZE@)
+  (define _PC_XFER_ALIGN @VALUEOF__PC_XFER_ALIGN@)
+  (define FTW_F @VALUEOF_FTW_F@)
+  (define FTW_D @VALUEOF_FTW_D@)
+  (define FTW_NS @VALUEOF_FTW_NS@)
+  (define FTW_DNR @VALUEOF_FTW_DNR@)
+  (define FTW_SL @VALUEOF_FTW_SL@)
+  (define FTW_DP @VALUEOF_FTW_DP@)
+  (define FTW_SLN @VALUEOF_FTW_SLN@)
+  (define FTW_PHYS @VALUEOF_FTW_PHYS@)
+  (define FTW_MOUNT @VALUEOF_FTW_MOUNT@)
+  (define FTW_CHDIR @VALUEOF_FTW_CHDIR@)
+  (define FTW_DEPTH @VALUEOF_FTW_DEPTH@)
+  (define
+    FTW_ACTIONRETVAL
+    @VALUEOF_FTW_ACTIONRETVAL@)
+  (define FTW_CONTINUE @VALUEOF_FTW_CONTINUE@)
+  (define FTW_STOP @VALUEOF_FTW_STOP@)
+  (define
+    FTW_SKIP_SUBTREE
+    @VALUEOF_FTW_SKIP_SUBTREE@)
+  (define
+    FTW_SKIP_SIBLINGS
+    @VALUEOF_FTW_SKIP_SIBLINGS@)
+  (define ITIMER_REAL @VALUEOF_ITIMER_REAL@)
+  (define ITIMER_VIRTUAL @VALUEOF_ITIMER_VIRTUAL@)
+  (define ITIMER_PROF @VALUEOF_ITIMER_PROF@)
+  (define EOF @VALUEOF_EOF@)
+  (define MAXSYMLINKS @VALUEOF_MAXSYMLINKS@)
+  (define NAME_MAX @VALUEOF_NAME_MAX@)
+  (define PATH_MAX @VALUEOF_PATH_MAX@)
+  (define MAXPATHLEN @VALUEOF_MAXPATHLEN@))
 
-
-;;;; basic type definitions
-
-(define blkcnt_t			(quote @TYPEOF_BLKCNT_T@))
-(define sizeof-blkcnt_t			(quote @SIZEOF_BLKCNT_T@))
-(define alignof-blkcnt_t		(quote @ALIGNOF_BLKCNT_T@))
-(define strideof-blkcnt_t		(quote @STRIDEOF_BLKCNT_T@))
-(define pointer-set-c-blkcnt_t!		@SETTEROF_BLKCNT_T@)
-(define pointer-ref-c-blkcnt_t		@GETTEROF_BLKCNT_T@)
-
-(define clock_t				(quote @TYPEOF_CLOCK_T@))
-(define sizeof-clock_t			(quote @SIZEOF_CLOCK_T@))
-(define alignof-clock_t			(quote @ALIGNOF_CLOCK_T@))
-(define strideof-clock_t		(quote @STRIDEOF_CLOCK_T@))
-(define pointer-set-c-clock_t!		@SETTEROF_CLOCK_T@)
-(define pointer-ref-c-clock_t		@GETTEROF_CLOCK_T@)
-
-(define dev_t				(quote @TYPEOF_DEV_T@))
-(define sizeof-dev_t			(quote @SIZEOF_DEV_T@))
-(define alignof-dev_t			(quote @ALIGNOF_DEV_T@))
-(define strideof-dev_t			(quote @STRIDEOF_DEV_T@))
-(define pointer-set-c-dev_t!		@SETTEROF_DEV_T@)
-(define pointer-ref-c-dev_t		@GETTEROF_DEV_T@)
-
-(define gid_t				(quote @TYPEOF_GID_T@))
-(define sizeof-gid_t			(quote @SIZEOF_GID_T@))
-(define alignof-gid_t			(quote @ALIGNOF_GID_T@))
-(define strideof-gid_t			(quote @STRIDEOF_GID_T@))
-(define pointer-set-c-gid_t!		@SETTEROF_GID_T@)
-(define pointer-ref-c-gid_t		@GETTEROF_GID_T@)
-
-(define ino_t				(quote @TYPEOF_INO_T@))
-(define sizeof-ino_t			(quote @SIZEOF_INO_T@))
-(define alignof-ino_t			(quote @ALIGNOF_INO_T@))
-(define strideof-ino_t			(quote @STRIDEOF_INO_T@))
-(define pointer-set-c-ino_t!		@SETTEROF_INO_T@)
-(define pointer-ref-c-ino_t		@GETTEROF_INO_T@)
-
-(define mode_t				(quote @TYPEOF_MODE_T@))
-(define sizeof-mode_t			(quote @SIZEOF_MODE_T@))
-(define alignof-mode_t			(quote @ALIGNOF_MODE_T@))
-(define strideof-mode_t			(quote @STRIDEOF_MODE_T@))
-(define pointer-set-c-mode_t!		@SETTEROF_MODE_T@)
-(define pointer-ref-c-mode_t		@GETTEROF_MODE_T@)
-
-(define nlink_t				(quote @TYPEOF_NLINK_T@))
-(define sizeof-nlink_t			(quote @SIZEOF_NLINK_T@))
-(define alignof-nlink_t			(quote @ALIGNOF_NLINK_T@))
-(define strideof-nlink_t		(quote @STRIDEOF_NLINK_T@))
-(define pointer-set-c-nlink_t!		@SETTEROF_NLINK_T@)
-(define pointer-ref-c-nlink_t		@GETTEROF_NLINK_T@)
-
-(define off_t				(quote @TYPEOF_OFF_T@))
-(define sizeof-off_t			@SIZEOF_OFF_T@)
-(define alignof-off_t			@ALIGNOF_OFF_T@)
-(define strideof-off_t			@STRIDEOF_OFF_T@)
-(define pointer-set-c-off_t!		@SETTEROF_OFF_T@)
-(define pointer-ref-c-off_t		@GETTEROF_OFF_T@)
-
-(define pid_t				(quote @TYPEOF_PID_T@))
-(define sizeof-pid_t			(quote @SIZEOF_PID_T@))
-(define alignof-pid_t			(quote @ALIGNOF_PID_T@))
-(define strideof-pid_t			(quote @STRIDEOF_PID_T@))
-(define pointer-set-c-pid_t!		@SETTEROF_PID_T@)
-(define pointer-ref-c-pid_t		@GETTEROF_PID_T@)
-
-(define time_t				(quote @TYPEOF_TIME_T@))
-(define sizeof-time_t			(quote @SIZEOF_TIME_T@))
-(define alignof-time_t			(quote @ALIGNOF_TIME_T@))
-(define strideof-time_t			(quote @STRIDEOF_TIME_T@))
-(define pointer-set-c-time_t!		@SETTEROF_TIME_T@)
-(define pointer-ref-c-time_t		@GETTEROF_TIME_T@)
-
-(define uid_t				(quote @TYPEOF_UID_T@))
-(define sizeof-uid_t			(quote @SIZEOF_UID_T@))
-(define alignof-uid_t			(quote @ALIGNOF_UID_T@))
-(define strideof-uid_t			(quote @STRIDEOF_UID_T@))
-(define pointer-set-c-uid_t!		@SETTEROF_UID_T@)
-(define pointer-ref-c-uid_t		@GETTEROF_UID_T@)
-
-(define wchar_t				(quote @TYPEOF_WCHAR_T@))
-(define sizeof-wchar_t			(quote @SIZEOF_WCHAR_T@))
-(define alignof-wchar_t			(quote @ALIGNOF_WCHAR_T@))
-(define strideof-wchar_t		(quote @STRIDEOF_WCHAR_T@))
-(define pointer-set-c-wchar_t!		@SETTEROF_WCHAR_T@)
-(define pointer-ref-c-wchar_t		@GETTEROF_WCHAR_T@)
-
-
-;;;; struct type definitions
-
-(define sizeof-struct-flock		@SIZEOF_STRUCT_FLOCK@)
-(define alignof-struct-flock		@ALIGNOF_STRUCT_FLOCK@)
-(define strideof-struct-flock		@STRIDEOF_STRUCT_FLOCK@)
-
-(define sizeof-struct-timeval		@SIZEOF_STRUCT_TIMEVAL@)
-(define alignof-struct-timeval		@ALIGNOF_STRUCT_TIMEVAL@)
-(define strideof-struct-timeval		@STRIDEOF_STRUCT_TIMEVAL@)
-
-(define sizeof-struct-timespec		@SIZEOF_STRUCT_TIMESPEC@)
-(define alignof-struct-timespec		@ALIGNOF_STRUCT_TIMESPEC@)
-(define strideof-struct-timespec	@STRIDEOF_STRUCT_TIMESPEC@)
-
-(define sizeof-struct-dirent		@SIZEOF_STRUCT_DIRENT@)
-(define alignof-struct-dirent		@ALIGNOF_STRUCT_DIRENT@)
-(define strideof-struct-dirent		@STRIDEOF_STRUCT_DIRENT@)
-
-(define sizeof-struct-utimbuf		@SIZEOF_STRUCT_UTIMBUF@)
-(define alignof-struct-utimbuf		@ALIGNOF_STRUCT_UTIMBUF@)
-(define strideof-struct-utimbuf		@STRIDEOF_STRUCT_UTIMBUF@)
-
-(define sizeof-struct-timezone		@SIZEOF_STRUCT_TIMEZONE@)
-(define alignof-struct-timezone		@ALIGNOF_STRUCT_TIMEZONE@)
-(define strideof-struct-timezone	@STRIDEOF_STRUCT_TIMEZONE@)
-
-(define sizeof-struct-tms		@SIZEOF_STRUCT_TMS@)
-(define alignof-struct-tms		@ALIGNOF_STRUCT_TMS@)
-(define strideof-struct-tms		@STRIDEOF_STRUCT_TMS@)
-
-(define sizeof-struct-tm		@SIZEOF_STRUCT_TM@)
-(define alignof-struct-tm		@ALIGNOF_STRUCT_TM@)
-(define strideof-struct-tm		@STRIDEOF_STRUCT_TM@)
-
-(define sizeof-struct-ntptimeval	@SIZEOF_STRUCT_NTPTIMEVAL@)
-(define alignof-struct-ntptimeval	@ALIGNOF_STRUCT_NTPTIMEVAL@)
-(define strideof-struct-ntptimeval	@STRIDEOF_STRUCT_NTPTIMEVAL@)
-
-(define sizeof-struct-timex		@SIZEOF_STRUCT_TIMEX@)
-(define alignof-struct-timex		@ALIGNOF_STRUCT_TIMEX@)
-(define strideof-struct-timex		@STRIDEOF_STRUCT_TIMEX@)
-
-(define sizeof-struct-itimerval		@SIZEOF_STRUCT_ITIMERVAL@)
-(define alignof-struct-itimerval	@ALIGNOF_STRUCT_ITIMERVAL@)
-(define strideof-struct-itimerval	@STRIDEOF_STRUCT_ITIMERVAL@)
-
-;;;The  stat structure is  "special"; we  relay on  the stub  library to
-;;;access it.
-;;;
-;;; (define sizeof-struct-stat		@SIZEOF_STRUCT_STAT@)
-;;; (define alignof-struct-stat		@ALIGNOF_STRUCT_STAT@)
-;;; (define strideof-struct-stat	@STRIDEOF_STRUCT_STAT@)
-
-
-;;;; constants
-
-(define O_ACCMODE		@VALUEOF_O_ACCMODE@)
-(define O_APPEND		@VALUEOF_O_APPEND@)
-(define O_ASYNC			@VALUEOF_O_ASYNC@)
-(define O_CREAT			@VALUEOF_O_CREAT@)
-(define O_EXCL			@VALUEOF_O_EXCL@)
-(define O_EXEC			@VALUEOF_O_EXEC@)
-(define O_EXLOCK		@VALUEOF_O_EXLOCK@)
-(define O_FSYNC			@VALUEOF_O_FSYNC@)
-(define O_IGNORE_CTTY		@VALUEOF_O_IGNORE_CTTY@)
-(define O_NDELAY		@VALUEOF_O_NDELAY@)
-(define O_NOATIME		@VALUEOF_O_NOATIME@)
-(define O_NOCTTY		@VALUEOF_O_NOCTTY@)
-(define O_NOLINK		@VALUEOF_O_NOLINK@)
-(define O_NONBLOCK		@VALUEOF_O_NONBLOCK@)
-(define O_NOTRANS		@VALUEOF_O_NOTRANS@)
-(define O_RDONLY		@VALUEOF_O_RDONLY@)
-(define O_RDWR			@VALUEOF_O_RDWR@)
-(define O_READ			@VALUEOF_O_READ@)
-(define O_SHLOCK		@VALUEOF_O_SHLOCK@)
-(define O_SYNC			@VALUEOF_O_SYNC@)
-(define O_TRUNC			@VALUEOF_O_TRUNC@)
-(define O_WRITE			@VALUEOF_O_WRITE@)
-(define O_WRONLY		@VALUEOF_O_WRONLY@)
-
-(define F_DUPFD			@VALUEOF_F_DUPFD@)
-(define F_GETFD			@VALUEOF_F_GETFD@)
-(define F_GETFL			@VALUEOF_F_GETFL@)
-(define F_GETLK			@VALUEOF_F_GETLK@)
-(define F_GETOWN		@VALUEOF_F_GETOWN@)
-(define F_SETFD			@VALUEOF_F_SETFD@)
-(define F_SETFL			@VALUEOF_F_SETFL@)
-(define F_SETLKW		@VALUEOF_F_SETLKW@)
-(define F_SETLK			@VALUEOF_F_SETLK@)
-(define F_SETOWN		@VALUEOF_F_SETOWN@)
-
-(define FD_CLOEXEC		@VALUEOF_FD_CLOEXEC@)
-
-(define F_RDLCK			@VALUEOF_F_RDLCK@)
-(define F_WRLCK			@VALUEOF_F_WRLCK@)
-(define F_UNLCK			@VALUEOF_F_UNLCK@)
-
-(define R_OK			@VALUEOF_R_OK@)
-(define W_OK			@VALUEOF_W_OK@)
-(define X_OK			@VALUEOF_X_OK@)
-(define F_OK			@VALUEOF_F_OK@)
-
-(define SEEK_SET		@VALUEOF_SEEK_SET@)
-(define SEEK_CUR		@VALUEOF_SEEK_CUR@)
-(define SEEK_END		@VALUEOF_SEEK_END@)
-
-(define WNOHANG			@VALUEOF_WNOHANG@)
-(define WUNTRACED		@VALUEOF_WUNTRACED@)
-(define WCONTINUED		@VALUEOF_WCONTINUED@)
-
-(define L_ctermid		@VALUEOF_L_ctermid@)
-(define L_tmpnam		@VALUEOF_L_tmpnam@)
-
-(define CLOCKS_PER_SEC		@VALUEOF_CLOCKS_PER_SEC@)
-
-(define S_IRUSR			@VALUEOF_S_IRUSR@)
-(define S_IWUSR			@VALUEOF_S_IWUSR@)
-(define S_IXUSR			@VALUEOF_S_IXUSR@)
-
-(define S_IRGRP			@VALUEOF_S_IRGRP@)
-(define S_IWGRP			@VALUEOF_S_IWGRP@)
-(define S_IXGRP			@VALUEOF_S_IXGRP@)
-
-(define S_IROTH			@VALUEOF_S_IROTH@)
-(define S_IWOTH			@VALUEOF_S_IWOTH@)
-(define S_IXOTH			@VALUEOF_S_IXOTH@)
-
-(define S_IRWXU			@VALUEOF_S_IRWXU@)
-(define S_IRWXG			@VALUEOF_S_IRWXG@)
-(define S_IRWXO			@VALUEOF_S_IRWXO@)
-
-(define S_ISUID			@VALUEOF_S_ISUID@)
-(define S_ISGID			@VALUEOF_S_ISGID@)
-(define S_ISVTX			@VALUEOF_S_ISVTX@)
-
-(define EOF			@VALUEOF_EOF@)
-(define MAXSYMLINKS		@VALUEOF_MAXSYMLINKS@)
-(define PATH_MAX		@VALUEOF_PATH_MAX@)
-(define NAME_MAX		@VALUEOF_NAME_MAX@)
-(define MAXPATHLEN		@VALUEOF_MAXPATHLEN@)
-
-;; "struct dirent" related stuff
-(define _DIRENT_HAVE_D_NAMELEN	@NAU_DIRENT_HAVE_D_NAMELEN@)
-(define _DIRENT_HAVE_D_RECLEN	@NAU_DIRENT_HAVE_D_RECLEN@)
-(define _DIRENT_HAVE_D_OFF	@NAU_DIRENT_HAVE_D_OFF@)
-(define _DIRENT_HAVE_D_TYPE	@NAU_DIRENT_HAVE_D_TYPE@)
-(define DT_BLK			@VALUEOF_DT_BLK@)
-(define DT_CHR			@VALUEOF_DT_CHR@)
-(define DT_DIR			@VALUEOF_DT_DIR@)
-(define DT_FIFO			@VALUEOF_DT_FIFO@)
-(define DT_LNK			@VALUEOF_DT_LNK@)
-(define DT_REG			@VALUEOF_DT_REG@)
-(define DT_SOCK			@VALUEOF_DT_SOCK@)
-(define DT_UNKNOWN		@VALUEOF_DT_UNKNOWN@)
-
-;; constants related to "pathconf()"
-(define _PC_LINK_MAX			@VALUEOF__PC_LINK_MAX@)
-(define _PC_MAX_CANON			@VALUEOF__PC_MAX_CANON@)
-(define _PC_MAX_INPUT			@VALUEOF__PC_MAX_INPUT@)
-(define _PC_NAME_MAX			@VALUEOF__PC_NAME_MAX@)
-(define _PC_PATH_MAX			@VALUEOF__PC_PATH_MAX@)
-(define _PC_PIPE_BUF			@VALUEOF__PC_PIPE_BUF@)
-(define _PC_CHOWN_RESTRICTED		@VALUEOF__PC_CHOWN_RESTRICTED@)
-(define _PC_NO_TRUNC			@VALUEOF__PC_NO_TRUNC@)
-(define _PC_VDISABLE			@VALUEOF__PC_VDISABLE@)
-(define _PC_SYNC_IO			@VALUEOF__PC_SYNC_IO@)
-(define _PC_ASYNC_IO			@VALUEOF__PC_ASYNC_IO@)
-(define _PC_PRIO_IO			@VALUEOF__PC_PRIO_IO@)
-(define _PC_FILESIZEBITS		@VALUEOF__PC_FILESIZEBITS@)
-(define _PC_REC_INCR_XFER_SIZE		@VALUEOF__PC_REC_INCR_XFER_SIZE@)
-(define _PC_REC_MAX_XFER_SIZE		@VALUEOF__PC_REC_MAX_XFER_SIZE@)
-(define _PC_REC_MIN_XFER_SIZE		@VALUEOF__PC_REC_MIN_XFER_SIZE@)
-(define _PC_XFER_ALIGN			@VALUEOF__PC_XFER_ALIGN@)
-
-;; constants related to "ftw()" and "nftw()"
-(define FTW_F				@VALUEOF_FTW_F@)
-(define FTW_D				@VALUEOF_FTW_D@)
-(define FTW_NS				@VALUEOF_FTW_NS@)
-(define FTW_DNR				@VALUEOF_FTW_DNR@)
-(define FTW_SL				@VALUEOF_FTW_SL@)
-(define FTW_DP				@VALUEOF_FTW_DP@)
-(define FTW_SLN				@VALUEOF_FTW_SLN@)
-(define FTW_PHYS			@VALUEOF_FTW_PHYS@)
-(define FTW_MOUNT			@VALUEOF_FTW_MOUNT@)
-(define FTW_CHDIR			@VALUEOF_FTW_CHDIR@)
-(define FTW_DEPTH			@VALUEOF_FTW_DEPTH@)
-(define FTW_ACTIONRETVAL		@VALUEOF_FTW_ACTIONRETVAL@)
-(define FTW_CONTINUE			@VALUEOF_FTW_CONTINUE@)
-(define FTW_STOP			@VALUEOF_FTW_STOP@)
-(define FTW_SKIP_SUBTREE		@VALUEOF_FTW_SKIP_SUBTREE@)
-(define FTW_SKIP_SIBLINGS		@VALUEOF_FTW_SKIP_SIBLINGS@)
-
-;; constants related to "setitimer()"
-(define ITIMER_REAL			@VALUEOF_ITIMER_REAL@)
-(define ITIMER_VIRTUAL			@VALUEOF_ITIMER_VIRTUAL@)
-(define ITIMER_PROF			@VALUEOF_ITIMER_PROF@)
-
-
-;;;; struct accessors
-
-(define-c-struct-accessor-and-mutator
-  struct-flock-l_type-set!
-  struct-flock-l_type-ref
-  @OFFSETOF_STRUCT_FLOCK_L_TYPE@
-  @SETTEROF_STRUCT_FLOCK_L_TYPE@
-  @GETTEROF_STRUCT_FLOCK_L_TYPE@)
-
-(define-c-struct-accessor-and-mutator
-  struct-flock-l_whence-set!
-  struct-flock-l_whence-ref
-  @OFFSETOF_STRUCT_FLOCK_L_WHENCE@
-  @SETTEROF_STRUCT_FLOCK_L_WHENCE@
-  @GETTEROF_STRUCT_FLOCK_L_WHENCE@)
-
-(define-c-struct-accessor-and-mutator
-  struct-flock-l_start-set!
-  struct-flock-l_start-ref
-  @OFFSETOF_STRUCT_FLOCK_L_START@
-  @SETTEROF_STRUCT_FLOCK_L_START@
-  @GETTEROF_STRUCT_FLOCK_L_START@)
-
-(define-c-struct-accessor-and-mutator
-  struct-flock-l_len-set!
-  struct-flock-l_len-ref
-  @OFFSETOF_STRUCT_FLOCK_L_LEN@
-  @SETTEROF_STRUCT_FLOCK_L_LEN@
-  @GETTEROF_STRUCT_FLOCK_L_LEN@)
-
-(define-c-struct-accessor-and-mutator
-  struct-flock-l_pid-set!
-  struct-flock-l_pid-ref
-  @OFFSETOF_STRUCT_FLOCK_L_PID@
-  @SETTEROF_STRUCT_FLOCK_L_PID@
-  @GETTEROF_STRUCT_FLOCK_L_PID@)
-
-;;; --------------------------------------------------------------------
-
-(define-c-struct-accessor-and-mutator
-  struct-timeval-tv_sec-set!
-  struct-timeval-tv_sec-ref
-  @OFFSETOF_STRUCT_TIMEVAL_TV_SEC@
-  @SETTEROF_STRUCT_TIMEVAL_TV_SEC@
-  @GETTEROF_STRUCT_TIMEVAL_TV_SEC@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timeval-tv_usec-set!
-  struct-timeval-tv_usec-ref
-  @OFFSETOF_STRUCT_TIMEVAL_TV_USEC@
-  @SETTEROF_STRUCT_TIMEVAL_TV_USEC@
-  @GETTEROF_STRUCT_TIMEVAL_TV_USEC@)
-
-;;; --------------------------------------------------------------------
-
-(define-c-struct-accessor-and-mutator
-  struct-timespec-tv_sec-set!
-  struct-timespec-tv_sec-ref
-  @OFFSETOF_STRUCT_TIMESPEC_TV_SEC@
-  @SETTEROF_STRUCT_TIMESPEC_TV_SEC@
-  @GETTEROF_STRUCT_TIMESPEC_TV_SEC@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timespec-tv_nsec-set!
-  struct-timespec-tv_nsec-ref
-  @OFFSETOF_STRUCT_TIMESPEC_TV_NSEC@
-  @SETTEROF_STRUCT_TIMESPEC_TV_NSEC@
-  @GETTEROF_STRUCT_TIMESPEC_TV_NSEC@)
-
-;;; --------------------------------------------------------------------
-
-(define-c-struct-accessor-and-mutator
-  struct-dirent-d_ino-set!
-  struct-dirent-d_ino-ref
-  @OFFSETOF_STRUCT_DIRENT_D_INO@
-  @SETTEROF_STRUCT_DIRENT_D_INO@
-  @GETTEROF_STRUCT_DIRENT_D_INO@)
-
-(define-c-struct-accessor-and-mutator
-  struct-dirent-d_off-set!
-  struct-dirent-d_off-ref
-  @OFFSETOF_STRUCT_DIRENT_D_OFF@
-  @SETTEROF_STRUCT_DIRENT_D_OFF@
-  @GETTEROF_STRUCT_DIRENT_D_OFF@)
-
-(define-c-struct-accessor-and-mutator
-  struct-dirent-d_reclen-set!
-  struct-dirent-d_reclen-ref
-  @OFFSETOF_STRUCT_DIRENT_D_RECLEN@
-  @SETTEROF_STRUCT_DIRENT_D_RECLEN@
-  @GETTEROF_STRUCT_DIRENT_D_RECLEN@)
-
-(define-c-struct-accessor-and-mutator
-  struct-dirent-d_type-set!
-  struct-dirent-d_type-ref
-  @OFFSETOF_STRUCT_DIRENT_D_TYPE@
-  @SETTEROF_STRUCT_DIRENT_D_TYPE@
-  @GETTEROF_STRUCT_DIRENT_D_TYPE@)
-
-(define-c-struct-field-pointer-accessor
-  struct-dirent-d_name-ref
-  @OFFSETOF_STRUCT_DIRENT_D_NAME@)
-
-(define OFFSETOF_STRUCT_DIRENT_D_NAME	@OFFSETOF_STRUCT_DIRENT_D_NAME@)
-
-;;; --------------------------------------------------------------------
-
-(define-c-struct-accessor-and-mutator
-  struct-utimbuf-actime-set!
-  struct-utimbuf-actime-ref
-  @OFFSETOF_STRUCT_UTIMBUF_ACTIME@
-  @SETTEROF_STRUCT_UTIMBUF_ACTIME@
-  @GETTEROF_STRUCT_UTIMBUF_ACTIME@)
-
-(define-c-struct-accessor-and-mutator
-  struct-utimbuf-modtime-set!
-  struct-utimbuf-modtime-ref
-  @OFFSETOF_STRUCT_UTIMBUF_MODTIME@
-  @SETTEROF_STRUCT_UTIMBUF_MODTIME@
-  @GETTEROF_STRUCT_UTIMBUF_MODTIME@)
-
-;;; --------------------------------------------------------------------
-
-(define-c-struct-accessor-and-mutator
-  struct-timezone-tz_minuteswest-set!
-  struct-timezone-tz_minuteswest-ref
-  @OFFSETOF_STRUCT_TIMEZONE_TZ_MINUTESWEST@
-  @SETTEROF_STRUCT_TIMEZONE_TZ_MINUTESWEST@
-  @GETTEROF_STRUCT_TIMEZONE_TZ_MINUTESWEST@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timezone-tz_dsttime-set!
-  struct-timezone-tz_dsttime-ref
-  @OFFSETOF_STRUCT_TIMEZONE_TZ_DSTTIME@
-  @SETTEROF_STRUCT_TIMEZONE_TZ_DSTTIME@
-  @GETTEROF_STRUCT_TIMEZONE_TZ_DSTTIME@)
-
-;;; --------------------------------------------------------------------
-
-(define-c-struct-accessor-and-mutator
-  struct-tm-tm_sec-set!
-  struct-tm-tm_sec-ref
-  @OFFSETOF_STRUCT_TM_TM_SEC@
-  @SETTEROF_STRUCT_TM_TM_SEC@
-  @GETTEROF_STRUCT_TM_TM_SEC@)
-
-(define-c-struct-accessor-and-mutator
-  struct-tm-tm_min-set!
-  struct-tm-tm_min-ref
-  @OFFSETOF_STRUCT_TM_TM_MIN@
-  @SETTEROF_STRUCT_TM_TM_MIN@
-  @GETTEROF_STRUCT_TM_TM_MIN@)
-
-(define-c-struct-accessor-and-mutator
-  struct-tm-tm_hour-set!
-  struct-tm-tm_hour-ref
-  @OFFSETOF_STRUCT_TM_TM_HOUR@
-  @SETTEROF_STRUCT_TM_TM_HOUR@
-  @GETTEROF_STRUCT_TM_TM_HOUR@)
-
-(define-c-struct-accessor-and-mutator
-  struct-tm-tm_mday-set!
-  struct-tm-tm_mday-ref
-  @OFFSETOF_STRUCT_TM_TM_MDAY@
-  @SETTEROF_STRUCT_TM_TM_MDAY@
-  @GETTEROF_STRUCT_TM_TM_MDAY@)
-
-(define-c-struct-accessor-and-mutator
-  struct-tm-tm_mon-set!
-  struct-tm-tm_mon-ref
-  @OFFSETOF_STRUCT_TM_TM_MON@
-  @SETTEROF_STRUCT_TM_TM_MON@
-  @GETTEROF_STRUCT_TM_TM_MON@)
-
-(define-c-struct-accessor-and-mutator
-  struct-tm-tm_year-set!
-  struct-tm-tm_year-ref
-  @OFFSETOF_STRUCT_TM_TM_YEAR@
-  @SETTEROF_STRUCT_TM_TM_YEAR@
-  @GETTEROF_STRUCT_TM_TM_YEAR@)
-
-(define-c-struct-accessor-and-mutator
-  struct-tm-tm_wday-set!
-  struct-tm-tm_wday-ref
-  @OFFSETOF_STRUCT_TM_TM_WDAY@
-  @SETTEROF_STRUCT_TM_TM_WDAY@
-  @GETTEROF_STRUCT_TM_TM_WDAY@)
-
-(define-c-struct-accessor-and-mutator
-  struct-tm-tm_yday-set!
-  struct-tm-tm_yday-ref
-  @OFFSETOF_STRUCT_TM_TM_YDAY@
-  @SETTEROF_STRUCT_TM_TM_YDAY@
-  @GETTEROF_STRUCT_TM_TM_YDAY@)
-
-(define-c-struct-accessor-and-mutator
-  struct-tm-tm_isdst-set!
-  struct-tm-tm_isdst-ref
-  @OFFSETOF_STRUCT_TM_TM_ISDST@
-  @SETTEROF_STRUCT_TM_TM_ISDST@
-  @GETTEROF_STRUCT_TM_TM_ISDST@)
-
-(define-c-struct-accessor-and-mutator
-  struct-tm-tm_gmtoff-set!
-  struct-tm-tm_gmtoff-ref
-  @OFFSETOF_STRUCT_TM_TM_GMTOFF@
-  @SETTEROF_STRUCT_TM_TM_GMTOFF@
-  @GETTEROF_STRUCT_TM_TM_GMTOFF@)
-
-(define-c-struct-accessor-and-mutator
-  struct-tm-tm_zone-set!
-  struct-tm-tm_zone-ref
-  @OFFSETOF_STRUCT_TM_TM_ZONE@
-  @SETTEROF_STRUCT_TM_TM_ZONE@
-  @GETTEROF_STRUCT_TM_TM_ZONE@)
-
-;;; --------------------------------------------------------------------
-
-(define-c-struct-field-pointer-accessor
-  struct-ntptimeval-time-ref
-  @OFFSETOF_STRUCT_NTPTIMEVAL_TIME@)
-
-(define-c-struct-accessor-and-mutator
-  struct-ntptimeval-maxerror-set!
-  struct-ntptimeval-maxerror-ref
-  @OFFSETOF_STRUCT_NTPTIMEVAL_MAXERROR@
-  @SETTEROF_STRUCT_NTPTIMEVAL_MAXERROR@
-  @GETTEROF_STRUCT_NTPTIMEVAL_MAXERROR@)
-
-(define-c-struct-accessor-and-mutator
-  struct-ntptimeval-esterror-set!
-  struct-ntptimeval-esterror-ref
-  @OFFSETOF_STRUCT_NTPTIMEVAL_ESTERROR@
-  @SETTEROF_STRUCT_NTPTIMEVAL_ESTERROR@
-  @GETTEROF_STRUCT_NTPTIMEVAL_ESTERROR@)
-
-;;; --------------------------------------------------------------------
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-modes-set!
-  struct-timex-modes-ref
-  @OFFSETOF_STRUCT_TIMEX_MODES@
-  @SETTEROF_STRUCT_TIMEX_MODES@
-  @GETTEROF_STRUCT_TIMEX_MODES@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-offset-set!
-  struct-timex-offset-ref
-  @OFFSETOF_STRUCT_TIMEX_OFFSET@
-  @SETTEROF_STRUCT_TIMEX_OFFSET@
-  @GETTEROF_STRUCT_TIMEX_OFFSET@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-freq-set!
-  struct-timex-freq-ref
-  @OFFSETOF_STRUCT_TIMEX_FREQ@
-  @SETTEROF_STRUCT_TIMEX_FREQ@
-  @GETTEROF_STRUCT_TIMEX_FREQ@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-maxerror-set!
-  struct-timex-maxerror-ref
-  @OFFSETOF_STRUCT_TIMEX_MAXERROR@
-  @SETTEROF_STRUCT_TIMEX_MAXERROR@
-  @GETTEROF_STRUCT_TIMEX_MAXERROR@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-esterror-set!
-  struct-timex-esterror-ref
-  @OFFSETOF_STRUCT_TIMEX_ESTERROR@
-  @SETTEROF_STRUCT_TIMEX_ESTERROR@
-  @GETTEROF_STRUCT_TIMEX_ESTERROR@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-status-set!
-  struct-timex-status-ref
-  @OFFSETOF_STRUCT_TIMEX_STATUS@
-  @SETTEROF_STRUCT_TIMEX_STATUS@
-  @GETTEROF_STRUCT_TIMEX_STATUS@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-constant-set!
-  struct-timex-constant-ref
-  @OFFSETOF_STRUCT_TIMEX_CONSTANT@
-  @SETTEROF_STRUCT_TIMEX_CONSTANT@
-  @GETTEROF_STRUCT_TIMEX_CONSTANT@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-precision-set!
-  struct-timex-precision-ref
-  @OFFSETOF_STRUCT_TIMEX_PRECISION@
-  @SETTEROF_STRUCT_TIMEX_PRECISION@
-  @GETTEROF_STRUCT_TIMEX_PRECISION@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-tolerance-set!
-  struct-timex-tolerance-ref
-  @OFFSETOF_STRUCT_TIMEX_TOLERANCE@
-  @SETTEROF_STRUCT_TIMEX_TOLERANCE@
-  @GETTEROF_STRUCT_TIMEX_TOLERANCE@)
-
-(define-c-struct-field-pointer-accessor
-  struct-timex-time-ref
-  @OFFSETOF_STRUCT_TIMEX_TIME@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-tick-set!
-  struct-timex-tick-ref
-  @OFFSETOF_STRUCT_TIMEX_TICK@
-  @SETTEROF_STRUCT_TIMEX_TICK@
-  @GETTEROF_STRUCT_TIMEX_TICK@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-ppsfreq-set!
-  struct-timex-ppsfreq-ref
-  @OFFSETOF_STRUCT_TIMEX_PPSFREQ@
-  @SETTEROF_STRUCT_TIMEX_PPSFREQ@
-  @GETTEROF_STRUCT_TIMEX_PPSFREQ@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-jitter-set!
-  struct-timex-jitter-ref
-  @OFFSETOF_STRUCT_TIMEX_JITTER@
-  @SETTEROF_STRUCT_TIMEX_JITTER@
-  @GETTEROF_STRUCT_TIMEX_JITTER@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-shift-set!
-  struct-timex-shift-ref
-  @OFFSETOF_STRUCT_TIMEX_SHIFT@
-  @SETTEROF_STRUCT_TIMEX_SHIFT@
-  @GETTEROF_STRUCT_TIMEX_SHIFT@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-stabil-set!
-  struct-timex-stabil-ref
-  @OFFSETOF_STRUCT_TIMEX_STABIL@
-  @SETTEROF_STRUCT_TIMEX_STABIL@
-  @GETTEROF_STRUCT_TIMEX_STABIL@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-jitcnt-set!
-  struct-timex-jitcnt-ref
-  @OFFSETOF_STRUCT_TIMEX_JITCNT@
-  @SETTEROF_STRUCT_TIMEX_JITCNT@
-  @GETTEROF_STRUCT_TIMEX_JITCNT@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-calcnt-set!
-  struct-timex-calcnt-ref
-  @OFFSETOF_STRUCT_TIMEX_CALCNT@
-  @SETTEROF_STRUCT_TIMEX_CALCNT@
-  @GETTEROF_STRUCT_TIMEX_CALCNT@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-errcnt-set!
-  struct-timex-errcnt-ref
-  @OFFSETOF_STRUCT_TIMEX_ERRCNT@
-  @SETTEROF_STRUCT_TIMEX_ERRCNT@
-  @GETTEROF_STRUCT_TIMEX_ERRCNT@)
-
-(define-c-struct-accessor-and-mutator
-  struct-timex-stbcnt-set!
-  struct-timex-stbcnt-ref
-  @OFFSETOF_STRUCT_TIMEX_STBCNT@
-  @SETTEROF_STRUCT_TIMEX_STBCNT@
-  @GETTEROF_STRUCT_TIMEX_STBCNT@)
-
-;;; --------------------------------------------------------------------
-
-(define-c-struct-field-pointer-accessor
-  struct-itimerval-it_interval-ref
-  @OFFSETOF_STRUCT_ITIMERVAL_IT_INTERVAL@)
-
-(define-c-struct-field-pointer-accessor
-  struct-itimerval-it_value-ref
-  @OFFSETOF_STRUCT_ITIMERVAL_IT_VALUE@)
-
-;;; --------------------------------------------------------------------
-
-(define-c-struct-accessor
-  struct-ftw-base-ref
-  @OFFSETOF_STRUCT_FTW_BASE@
-  @GETTEROF_STRUCT_FTW_BASE@)
-
-(define-c-struct-accessor
-  struct-ftw-level-ref
-  @OFFSETOF_STRUCT_FTW_LEVEL@
-  @GETTEROF_STRUCT_FTW_LEVEL@)
-
-;;; --------------------------------------------------------------------
-;;;The  stat structure is  "special"; we  relay on  the stub  library to
-;;;access it.
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_mode-set!
-;;   struct-stat-st_mode-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_MODE@
-;;   @SETTEROF_STRUCT_STAT_ST_MODE@
-;;   @GETTEROF_STRUCT_STAT_ST_MODE@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_ino-set!
-;;   struct-stat-st_ino-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_INO@
-;;   @SETTEROF_STRUCT_STAT_ST_INO@
-;;   @GETTEROF_STRUCT_STAT_ST_INO@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_dev-set!
-;;   struct-stat-st_dev-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_DEV@
-;;   @SETTEROF_STRUCT_STAT_ST_DEV@
-;;   @GETTEROF_STRUCT_STAT_ST_DEV@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_nlink-set!
-;;   struct-stat-st_nlink-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_NLINK@
-;;   @SETTEROF_STRUCT_STAT_ST_NLINK@
-;;   @GETTEROF_STRUCT_STAT_ST_NLINK@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_uid-set!
-;;   struct-stat-st_uid-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_UID@
-;;   @SETTEROF_STRUCT_STAT_ST_UID@
-;;   @GETTEROF_STRUCT_STAT_ST_UID@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_gid-set!
-;;   struct-stat-st_gid-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_GID@
-;;   @SETTEROF_STRUCT_STAT_ST_GID@
-;;   @GETTEROF_STRUCT_STAT_ST_GID@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_size-set!
-;;   struct-stat-st_size-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_SIZE@
-;;   @SETTEROF_STRUCT_STAT_ST_SIZE@
-;;   @GETTEROF_STRUCT_STAT_ST_SIZE@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_atime-set!
-;;   struct-stat-st_atime-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_ATIME@
-;;   @SETTEROF_STRUCT_STAT_ST_ATIME@
-;;   @GETTEROF_STRUCT_STAT_ST_ATIME@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_atime_usec-set!
-;;   struct-stat-st_atime_usec-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_ATIME_USEC@
-;;   @SETTEROF_STRUCT_STAT_ST_ATIME_USEC@
-;;   @GETTEROF_STRUCT_STAT_ST_ATIME_USEC@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_mtime-set!
-;;   struct-stat-st_mtime-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_MTIME@
-;;   @SETTEROF_STRUCT_STAT_ST_MTIME@
-;;   @GETTEROF_STRUCT_STAT_ST_MTIME@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_mtime_usec-set!
-;;   struct-stat-st_mtime_usec-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_MTIME_USEC@
-;;   @SETTEROF_STRUCT_STAT_ST_MTIME_USEC@
-;;   @GETTEROF_STRUCT_STAT_ST_MTIME_USEC@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_ctime-set!
-;;   struct-stat-st_ctime-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_CTIME@
-;;   @SETTEROF_STRUCT_STAT_ST_CTIME@
-;;   @GETTEROF_STRUCT_STAT_ST_CTIME@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_ctime_usec-set!
-;;   struct-stat-st_ctime_usec-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_CTIME_USEC@
-;;   @SETTEROF_STRUCT_STAT_ST_CTIME_USEC@
-;;   @GETTEROF_STRUCT_STAT_ST_CTIME_USEC@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_blocks-set!
-;;   struct-stat-st_blocks-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_BLOCKS@
-;;   @SETTEROF_STRUCT_STAT_ST_BLOCKS@
-;;   @GETTEROF_STRUCT_STAT_ST_BLOCKS@)
-
-;; (define-c-struct-accessor-and-mutator
-;;   struct-stat-st_blksize-set!
-;;   struct-stat-st_blksize-ref
-;;   @OFFSETOF_STRUCT_STAT_ST_BLKSIZE@
-;;   @SETTEROF_STRUCT_STAT_ST_BLKSIZE@
-;;   @GETTEROF_STRUCT_STAT_ST_BLKSIZE@)
-
-
-;;;; done
-
-)
 
 ;;; end of file
