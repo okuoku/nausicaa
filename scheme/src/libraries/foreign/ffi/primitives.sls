@@ -41,6 +41,7 @@
     (foreign ffi sizeof)
     (foreign ffi conditions)
     (foreign ffi clang-data-types)
+    (foreign ffi pointers)
     (prefix (foreign ffi platform) platform:)
     (only (unimplemented)
 	  raise-unimplemented-error))
