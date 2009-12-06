@@ -26,6 +26,10 @@
 
 (library (foreign posix fd)
   (export
+    (rename (primitive:integer->file-descriptor	integer->file-descriptor)
+	    (primitive:file-descriptor->integer	file-descriptor->integer)
+	    (primitive:file-descriptor?		file-descriptor?))
+
     open	open-function
     close	close-function
 

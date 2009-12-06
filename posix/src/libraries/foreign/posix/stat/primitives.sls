@@ -49,17 +49,18 @@
 	  S_ISDIR		S_ISCHR		S_ISBLK
 	  S_ISREG		S_ISFIFO	S_ISLNK
 	  S_ISSOCK
-	  S_TYPEISMQ		S_TYPEISSEM	S_TYPEISSHM))
+	  S_TYPEISMQ		S_TYPEISSEM	S_TYPEISSHM)
+    (foreign posix wrappers))
 
 
 (define (%real-stat func funcname pathname)
   (with-compensations
-    (let ((*struct-stat	(malloc-block/c platform:sizeof-stat)))
+    (let ((struct-stat*	(malloc-block/c platform:sizeof-stat)))
       (receive (result errno)
-	  (func (string->cstring/c pathname) *struct-stat)
+	  (func (string->cstring/c pathname) struct-stat*)
 	(when (= -1 result)
 	  (raise-errno-error funcname errno pathname))
-	(struct-stat->record *struct-stat)))))
+	(struct-stat->record struct-stat*)))))
 
 (define (stat pathname)
   (%real-stat platform:stat 'stat pathname))
@@ -69,12 +70,12 @@
 
 (define (fstat fd)
   (with-compensations
-    (let ((*struct-stat (malloc-block/c platform:sizeof-stat)))
+    (let ((struct-stat* (malloc-block/c platform:sizeof-stat)))
       (receive (result errno)
-	  (platform:fstat fd *struct-stat)
+	  (platform:fstat (file-descriptor->integer fd) struct-stat*)
 	(when (= -1 result)
 	  (raise-errno-error 'fstat errno fd))
-	(struct-stat->record *struct-stat)))))
+	(struct-stat->record struct-stat*)))))
 
 
 ;;;; done

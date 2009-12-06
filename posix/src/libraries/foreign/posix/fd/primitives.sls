@@ -27,6 +27,10 @@
 
 (library (foreign posix fd primitives)
   (export
+    integer->file-descriptor
+    file-descriptor->integer
+    file-descriptor?
+
     open	close
     read	write
     pread	pwrite
@@ -49,7 +53,8 @@
 	  EINTR raise-errno-error)
     (only (foreign ffi sizeof)
 	  sizeof-int-array)
-    (prefix (foreign posix fd platform) platform:))
+    (prefix (foreign posix fd platform) platform:)
+    (foreign posix wrappers))
 
 
 ;;;; helpers
@@ -91,14 +96,14 @@
 ;;;; opening and closing
 
 (define (open pathname open-mode permissions)
-  (with-compensations
-    (%temp-failure-retry-minus-one
-     open
-     (platform:open (string->cstring/c pathname) open-mode permissions)
-     (list pathname open-mode permissions))))
+  (integer->file-descriptor (with-compensations
+			      (%temp-failure-retry-minus-one
+			       open
+			       (platform:open (string->cstring/c pathname) open-mode permissions)
+			       (list pathname open-mode permissions)))))
 
 (define (close fd)
-  (%temp-failure-retry-minus-one close (platform:close fd) fd))
+  (%temp-failure-retry-minus-one close (platform:close (file-descriptor->integer fd)) fd))
 
 
 ;;;; reading and writing
@@ -108,7 +113,7 @@
     ((_ ?funcname ?primitive ?fd ?pointer ?number-of-bytes)
      (%temp-failure-retry-minus-one
       ?funcname
-      (?primitive ?fd ?pointer ?number-of-bytes)
+      (?primitive (file-descriptor->integer ?fd) ?pointer ?number-of-bytes)
       ?fd))))
 
 (define-syntax %do-pread-or-pwrite
@@ -116,7 +121,7 @@
     ((_ ?funcname ?primitive ?fd ?pointer ?number-of-bytes ?offset)
      (%temp-failure-retry-minus-one
       ?funcname
-      (?primitive ?fd ?pointer ?number-of-bytes ?offset)
+      (?primitive (file-descriptor->integer ?fd) ?pointer ?number-of-bytes ?offset)
       ?fd))))
 
 (define (read fd pointer number-of-bytes)
@@ -137,7 +142,7 @@
 (define (lseek fd offset whence)
   ;;It seems  that EINTR  cannot happen with  "lseek()", but it  does no
   ;;harm to use the macro.
-  (%temp-failure-retry-minus-one lseek (platform:lseek fd offset whence) fd))
+  (%temp-failure-retry-minus-one lseek (platform:lseek (file-descriptor->integer fd) offset whence) fd))
 
 
 ;;;; synchronisation
@@ -150,28 +155,30 @@
     result))
 
 (define (fsync fd)
-  (%call-for-minus-one fsync platform:fsync fd))
+  (%call-for-minus-one fsync platform:fsync (file-descriptor->integer fd)))
 
 (define (fdatasync fd)
-  (%call-for-minus-one fdatasync platform:fdatasync fd))
+  (%call-for-minus-one fdatasync platform:fdatasync (file-descriptor->integer fd)))
 
 
 ;;;; control operations
 
 (define (fcntl fd operation arg)
-  (%call-for-minus-one fcntl platform:fcntl fd operation arg))
+  (%call-for-minus-one fcntl platform:fcntl (file-descriptor->integer fd) operation arg))
 
 (define (ioctl fd operation arg)
-  (%call-for-minus-one ioctl platform:ioctl fd operation arg))
+  (%call-for-minus-one ioctl platform:ioctl (file-descriptor->integer fd) operation arg))
 
 
 ;;;; duplicating
 
 (define (dup fd)
-  (%call-for-minus-one dup platform:dup fd))
+  (integer->file-descriptor (%call-for-minus-one dup platform:dup (file-descriptor->integer fd))))
 
 (define (dup2 old new)
-  (%call-for-minus-one dup2 platform:dup2 old new))
+  (integer->file-descriptor (%call-for-minus-one dup2 platform:dup2
+						 (file-descriptor->integer old)
+						 new)))
 
 
 ;;;; making pipes
@@ -183,8 +190,8 @@
 	  (platform:pipe p)
 	(if (= -1 result)
 	    (raise-errno-error 'pipe errno)
-	  (values (array-ref-c-signed-int p 0)
-		  (array-ref-c-signed-int p 1)))))))
+	  (values (integer->file-descriptor (array-ref-c-signed-int p 0))
+		  (integer->file-descriptor (array-ref-c-signed-int p 1))))))))
 
 (define (mkfifo pathname mode)
   (with-compensations

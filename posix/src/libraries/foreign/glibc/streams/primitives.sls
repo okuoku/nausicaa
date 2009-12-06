@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,6 +27,8 @@
 
 (library (foreign glibc streams primitives)
   (export
+    pointer->FILE*	FILE*->pointer	FILE*?
+
     ferror
     fopen		fclose		fcloseall
     fwrite		fputc		fputs		fflush
@@ -70,31 +72,32 @@
 	  raise-errno-error)
     (only (foreign posix sizeof)
 	  EOF)
-    (prefix (foreign glibc streams platform) platform:))
+    (prefix (foreign glibc streams platform) platform:)
+    (foreign posix wrappers))
 
 
 (define (ferror stream)
-  (if (= 0 (platform:ferror stream)) #f #t))
+  (if (= 0 (platform:ferror (FILE*->pointer stream))) #f #t))
 
 ;;; --------------------------------------------------------------------
 
 (define (ferror_unlocked stream)
-  (if (= 0 (platform:ferror_unlocked stream)) #f #t))
+  (if (= 0 (platform:ferror_unlocked (FILE*->pointer stream))) #f #t))
 
 
 (define (fopen pathname mode)
   (receive (result errno)
       (with-compensations
-	(let ((pathname	(string->cstring/c pathname))
-	      (mode	(string->cstring/c mode)))
-	  (platform:fopen pathname mode)))
-    (when (pointer-null? result)
-      (raise-errno-error 'fopen errno (list pathname mode)))
-    result))
+	(let ((pathname-cstr	(string->cstring/c pathname))
+	      (mode-cstr	(string->cstring/c mode)))
+	  (platform:fopen pathname-cstr mode-cstr)))
+    (if (pointer-null? result)
+	(raise-errno-error 'fopen errno (list pathname mode))
+      (pointer->FILE* result))))
 
 (define (fclose stream)
   (receive (result errno)
-      (platform:fclose stream)
+      (platform:fclose (FILE*->pointer stream))
     (unless (= 0 result)
       (raise-errno-error 'fclose errno stream))
     result))
@@ -109,10 +112,10 @@
 
 (define (fwrite pointer size count stream)
   (receive (result errno)
-      (platform:fwrite pointer size count stream)
-    (unless (= count result)
-      (raise-errno-error 'fwrite errno (list pointer size count stream)))
-    result))
+      (platform:fwrite pointer size count (FILE*->pointer stream))
+    (if (= count result)
+	result
+      (raise-errno-error 'fwrite errno (list pointer size count stream)))))
 
 (define (fputc char stream)
   (let ((c-char (char->integer char)))
@@ -120,7 +123,7 @@
       (assertion-violation 'fputc
 	"expected character with scalar value in range [0, 255]" char))
     (receive (result errno)
-	(platform:fputc char stream)
+	(platform:fputc char (FILE*->pointer stream))
       (unless (= char result)
 	(raise-errno-error 'fputc errno (list char stream)))
       result)))
@@ -129,14 +132,14 @@
   (receive (result errno)
       (with-compensations
 	(let ((cstring (string->cstring/c string)))
-	  (platform:fputs cstring stream)))
+	  (platform:fputs cstring (FILE*->pointer stream))))
     (when (= EOF result)
       (raise-errno-error 'fputs errno (list string stream)))
     result))
 
 (define (fflush stream)
   (receive (result errno)
-      (platform:fflush stream)
+      (platform:fflush (FILE*->pointer stream))
     (when (= EOF result)
       (raise-errno-error 'fflush errno stream))
     result))
@@ -145,7 +148,7 @@
 
 (define (fwrite_unlocked pointer size count stream)
   (receive (result errno)
-      (platform:fwrite_unlocked pointer size count stream)
+      (platform:fwrite_unlocked pointer size count (FILE*->pointer stream))
     (unless (= count result)
       (raise-errno-error 'fwrite_unlocked errno (list pointer size count stream)))
     result))
@@ -156,7 +159,7 @@
       (assertion-violation 'fputc_unlocked
 	"expected character with scalar value in range [0, 255]" char))
     (receive (result errno)
-	(platform:fputc_unlocked char stream)
+	(platform:fputc_unlocked char (FILE*->pointer stream))
       (unless (= c-char result)
 	(raise-errno-error 'fputc_unlocked errno (list char stream)))
       result)))
@@ -165,14 +168,14 @@
   (receive (result errno)
       (with-compensations
 	(let ((cstring (string->cstring/c string)))
-	  (platform:fputs_unlocked cstring stream)))
+	  (platform:fputs_unlocked cstring (FILE*->pointer stream))))
     (when (= EOF result)
       (raise-errno-error 'fputs_unlocked errno (list string stream)))
     result))
 
 (define (fflush_unlocked stream)
   (receive (result errno)
-      (platform:fflush_unlocked stream)
+      (platform:fflush_unlocked (FILE*->pointer stream))
     (when (= EOF result)
       (raise-errno-error 'fflush_unlocked errno stream))
     result))
@@ -180,21 +183,21 @@
 
 (define (fread pointer size count stream)
   (receive (result errno)
-      (platform:fread pointer size count stream)
+      (platform:fread pointer size count (FILE*->pointer stream))
     (when (ferror stream)
       (raise-errno-error 'fread errno (list pointer size count stream)))
     result))
 
 (define (fgetc char stream)
   (receive (result errno)
-      (platform:fgetc stream)
+      (platform:fgetc (FILE*->pointer stream))
     (when (= EOF result)
       (raise-errno-error 'fgetc errno stream))
     (integer->char result)))
 
 (define (fgets pointer count stream)
   (receive (result errno)
-      (platform:fgets pointer count stream)
+      (platform:fgets pointer count (FILE*->pointer stream))
     (when (ferror stream)
       (raise-errno-error 'fgets errno (list pointer count stream)))
     result))
@@ -203,21 +206,21 @@
 
 (define (fread_unlocked pointer size count stream)
   (receive (result errno)
-      (platform:fread_unlocked pointer size count stream)
+      (platform:fread_unlocked pointer size count (FILE*->pointer stream))
     (when (ferror stream)
       (raise-errno-error 'fread_unlocked errno (list pointer size count stream)))
     result))
 
 (define (fgetc_unlocked char stream)
   (receive (result errno)
-      (platform:fgetc_unlocked stream)
+      (platform:fgetc_unlocked (FILE*->pointer stream))
     (when (= EOF result)
       (raise-errno-error 'fgetc_unlocked errno stream))
     (integer->char result)))
 
 (define (fgets_unlocked pointer count stream)
   (receive (result errno)
-      (platform:fgets_unlocked pointer count stream)
+      (platform:fgets_unlocked pointer count (FILE*->pointer stream))
     (when (ferror stream)
       (raise-errno-error 'fgets_unlocked errno (list pointer count stream)))
     result))
@@ -229,7 +232,7 @@
 	(when (< 255 c-char)
 	  (assertion-violation 'ungetc
 	    "expected character with scalar value in range [0, 255]" char))
-	(platform:ungetc char stream))
+	(platform:ungetc char (FILE*->pointer stream)))
     (when (ferror stream)
       (raise-errno-error 'ungetc errno (list char stream)))
     result))
@@ -237,42 +240,42 @@
 
 (define (feof stream)
   (receive (result errno)
-      (platform:feof stream)
+      (platform:feof (FILE*->pointer stream))
     (when (ferror stream)
       (raise-errno-error 'feof errno stream))
     (not (= 0 result))))
 
 (define (fseek stream offset whence)
   (receive (result errno)
-      (platform:fseek stream offset whence)
+      (platform:fseek (FILE*->pointer stream) offset whence)
     (when (ferror stream)
       (raise-errno-error 'fseek errno stream))
     result))
 
 (define (fseeko stream offset whence)
   (receive (result errno)
-      (platform:fseeko stream offset whence)
+      (platform:fseeko (FILE*->pointer stream) offset whence)
     (when (ferror stream)
       (raise-errno-error 'fseeko errno stream))
     result))
 
 (define (ftell stream)
   (receive (result errno)
-      (platform:ftell stream)
+      (platform:ftell (FILE*->pointer stream))
     (when (ferror stream)
       (raise-errno-error 'ftell errno stream))
     result))
 
 (define (ftello stream)
   (receive (result errno)
-      (platform:ftello stream)
+      (platform:ftello (FILE*->pointer stream))
     (when (ferror stream)
       (raise-errno-error 'ftello errno stream))
     result))
 
 (define (rewind stream)
   (receive (result errno)
-      (platform:rewind stream)
+      (platform:rewind (FILE*->pointer stream))
     (when (ferror stream)
       (raise-errno-error 'rewind errno stream))
     result))
@@ -281,7 +284,7 @@
 
 (define (feof_unlocked stream)
   (receive (result errno)
-      (platform:feof_unlocked stream)
+      (platform:feof_unlocked (FILE*->pointer stream))
     (when (ferror stream)
       (raise-errno-error 'feof_unlocked errno stream))
     (not (= 0 result))))
@@ -292,13 +295,13 @@
       (with-compensations
 	(let ((mode	(string->cstring/c open-mode)))
 	  (platform:fdopen fd mode)))
-    (when (pointer-null? result)
-      (raise-errno-error 'fdopen errno (list fd open-mode)))
-    result))
+    (if (pointer-null? result)
+	(raise-errno-error 'fdopen errno (list fd open-mode))
+      (pointer->FILE* result))))
 
 (define (fileno stream)
   (receive (result errno)
-      (platform:fileno stream)
+      (platform:fileno (FILE*->pointer stream))
     (when (pointer-null? result)
       (raise-errno-error 'fileno errno stream))
     result))
@@ -307,7 +310,7 @@
 
 (define (fileno_unlocked stream)
   (receive (result errno)
-      (platform:fileno_unlocked stream)
+      (platform:fileno_unlocked (FILE*->pointer stream))
     (when (pointer-null? result)
       (raise-errno-error 'fileno_unlocked errno stream))
     result))
@@ -320,29 +323,28 @@
       (receive (result errno)
 	  (platform:popen c-command c-mode)
 	(if (pointer-null? result)
-	    (raise-errno-error 'popen errno
-			       (list command mode))
-	  result)))))
+	    (raise-errno-error 'popen errno (list command mode))
+	  (pointer->FILE* result))))))
 
 (define (pclose stream)
   (receive (result errno)
-      (platform:pclose stream)
+      (platform:pclose (FILE*->pointer stream))
     (unless (= 0 result)
       (raise-errno-error 'pclose errno stream))
     result))
 
 
 (define (freadable stream)
-  (not (= 0 (platform:freadable stream))))
+  (not (= 0 (platform:freadable (FILE*->pointer stream)))))
 
 (define (fwritable stream)
-  (not (= 0 (platform:fwritable stream))))
+  (not (= 0 (platform:fwritable (FILE*->pointer stream)))))
 
 (define (freading stream)
-  (not (= 0 (platform:freading stream))))
+  (not (= 0 (platform:freading (FILE*->pointer stream)))))
 
 (define (fwriting stream)
-  (not (= 0 (platform:fwriting stream))))
+  (not (= 0 (platform:fwriting (FILE*->pointer stream)))))
 
 
 (define (getline stream)
@@ -356,7 +358,7 @@
 			    (unless (pointer-null? p)
 			      (primitive-free p))))))
       (receive (result errno)
-	  (platform:getline *pointer *count stream)
+	  (platform:getline *pointer *count (FILE*->pointer stream))
 	(cond ((ferror stream)
 	       (free)
 	       (raise-errno-error 'getline errno stream))
@@ -385,7 +387,7 @@
 			    (unless (pointer-null? p)
 			      (primitive-free p))))))
 	(receive (result errno)
-	    (platform:getdelim *pointer *count delimiter stream)
+	    (platform:getdelim *pointer *count delimiter (FILE*->pointer stream))
 	  (cond ((ferror stream)
 		 (free)
 		 (raise-errno-error 'getline errno stream))

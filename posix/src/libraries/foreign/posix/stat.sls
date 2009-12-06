@@ -78,7 +78,8 @@
 	  S_ISDIR		S_ISCHR		S_ISBLK
 	  S_ISREG		S_ISFIFO	S_ISLNK
 	  S_ISSOCK
-	  S_TYPEISMQ		S_TYPEISSEM	S_TYPEISSHM))
+	  S_TYPEISMQ		S_TYPEISSEM	S_TYPEISSHM)
+    (foreign posix wrappers))
 
 
 ;;;; stat functions
@@ -89,7 +90,7 @@
 
 
 (define (%type-inspection funcname pred obj)
-  (cond ((and (integer? obj) (< -1 obj)) ;file descriptor
+  (cond ((file-descriptor? obj)
 	 (pred (fstat obj)))
 
 	((or (string? obj) (symbol? obj)) ;pathname
@@ -141,11 +142,11 @@
 
 
 (define (%pointer-type-inspection funcname getter obj)
-  (cond ((and (integer? obj) (< -1 obj)) ;file descriptor
+  (cond ((file-descriptor? obj)
 	 (with-compensations
 	   (let ((*struct-stat (malloc-block/c platform:sizeof-stat)))
 	     (receive (result errno)
-		 (platform:fstat obj *struct-stat)
+		 (platform:fstat (file-descriptor->integer obj) *struct-stat)
 	       (when (= -1 result)
 		 (raise-errno-error funcname errno obj))
 	       (not (= 0 (getter *struct-stat)))))))
@@ -177,7 +178,7 @@
 (define (%mode-inspection the-stat funcname mask obj)
   (define (set? record)
     (not (= 0 (bitwise-and mask (<struct-stat>-mode record)))))
-  (cond ((and (eq? the-stat stat) (integer? obj) (< -1 obj)) ;file descriptor
+  (cond ((and (eq? the-stat stat) (file-descriptor? obj))
 	 (set? (fstat obj)))
 
 	((or (string? obj) (symbol? obj)) ;pathname
@@ -271,7 +272,7 @@
        (bitwise-ior S_ISUID S_ISGID S_IRWXU S_IRWXG S_IRWXO)
        mode)))
 
-  (cond ((and (integer? obj) (< -1 obj)) ;file descriptor
+  (cond ((file-descriptor? obj)
 	 (get-mode (fstat obj)))
 
 	((or (string? obj) (symbol? obj)) ;pathname

@@ -1944,8 +1944,7 @@ The following bindings are exported by the Glibc @code{file} libraries.
 @deffnx Parameter tmpfile-function
 @deffnx Function primitive:tmpfile
 @deffnx Function platform:tmpfile
-Create a temporary file, open it and return a pointer to its stream
-object (@code{FILE *}).
+Create a temporary file, open it and return a file stream object.
 
 @quotation
 @strong{NOTE} This function is @posix{} compliant, but it is exported by
@@ -2401,10 +2400,8 @@ exported by the following libraries:
 (foreign posix fd platform)
 @end example
 
-File descriptor arguments and return values are handled at the Scheme
-level as exact integers.
-
 @menu
+* fd types::                    Data types.
 * fd constants::                Bindings for constant values.
 * fd open close::               Opening and closing.
 * fd read write::               Reading and writing.
@@ -2416,6 +2413,33 @@ level as exact integers.
 * fd pipe::                     Pipes and FIFOs.
 * fd custom::                   Custom Scheme ports.
 @end menu
+
+@c page
+@node fd types
+@section Data types
+
+
+Functions from the primitives and high--level stream libraries accept as
+arguments objects of type @code{file-descriptor} as @var{stream}
+arguments.  Functions from the platform libraries accept exact intgers
+as representing file descriptors.
+
+
+@deftp {Object Type} file-descriptor
+Object type representing a file descriptor integer; it is disjoint from
+all the other Scheme object types.
+@end deftp
+
+
+@defun file-descriptor->integer @var{stream}
+@defunx integer->file-descriptor @var{integer}
+Convert between a file descriptor object and a integer object.
+@end defun
+
+
+@defun file-descriptor? @var{obj}
+Return true if @var{obj} is a stream object.
+@end defun
 
 @c page
 @node fd constants
@@ -3324,6 +3348,7 @@ exported by the following libraries:
 @end example
 
 @menu
+* streams types::               Data types.
 * streams constants::           Constants.
 * streams errors::              Detecting errors on streams.
 * streams open close::          Opening and closing.
@@ -3338,6 +3363,31 @@ exported by the following libraries:
 @end menu
 
 @c page
+@node streams types
+@section Data types
+
+
+Functions from the primitives and high--level stream libraries accept as
+arguments objects of type @code{FILE*} as @var{stream} arguments.
+
+
+@deftp {Object Type} FILE*
+Object type representing a @code{FILE *} pointer; it is disjoint from
+all the other Scheme object types.
+@end deftp
+
+
+@defun FILE*->pointer @var{stream}
+@defunx pointer->FILE* @var{pointer}
+Convert between a stream object and a pointer object.
+@end defun
+
+
+@defun FILE*? @var{obj}
+Return true if @var{obj} is a stream object.
+@end defun
+
+@c page
 @node streams constants
 @section Constants
 
@@ -3349,7 +3399,8 @@ library.  @ref{fd constants seek, File positions}
 
 
 @defvr Constant EOF
-The value of @code{EOF}.  @glibcref{EOF and Errors,EOF}
+The value of @code{EOF}.  @glibcref{EOF and Errors, End--of--file and
+Errors}.
 @end defvr
 
 @c page
