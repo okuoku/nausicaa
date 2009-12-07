@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Sun Dec  6, 2009
+;;;Date: Mon Dec  7, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -241,6 +241,15 @@
     struct-FTW-base-ref
     struct-FTW-level-set!
     struct-FTW-level-ref
+    sizeof-iovec
+    alignof-iovec
+    strideof-iovec
+    struct-iovec-iov_base-set!
+    struct-iovec-iov_base-ref
+    struct-iovec-iov_len-set!
+    struct-iovec-iov_len-ref
+    sizeof-iovec-array
+    array-ref-c-iovec
     SEEK_SET
     SEEK_CUR
     SEEK_END
@@ -798,6 +807,27 @@
     @OFFSETOF_FTW_LEVEL@
     @SETTEROF_FTW_LEVEL@
     @GETTEROF_FTW_LEVEL@)
+  (define sizeof-iovec @SIZEOF_IOVEC@)
+  (define alignof-iovec @ALIGNOF_IOVEC@)
+  (define strideof-iovec @STRIDEOF_IOVEC@)
+  (define-c-struct-accessor-and-mutator
+    struct-iovec-iov_base-set!
+    struct-iovec-iov_base-ref
+    @OFFSETOF_IOVEC_IOV_BASE@
+    @SETTEROF_IOVEC_IOV_BASE@
+    @GETTEROF_IOVEC_IOV_BASE@)
+  (define-c-struct-accessor-and-mutator
+    struct-iovec-iov_len-set!
+    struct-iovec-iov_len-ref
+    @OFFSETOF_IOVEC_IOV_LEN@
+    @SETTEROF_IOVEC_IOV_LEN@
+    @GETTEROF_IOVEC_IOV_LEN@)
+  (define
+    (sizeof-iovec-array number-of-elements)
+    (* strideof-iovec number-of-elements))
+  (define
+    (array-ref-c-iovec pointer index)
+    (pointer-add pointer (* index strideof-iovec)))
   (define SEEK_SET @VALUEOF_SEEK_SET@)
   (define SEEK_CUR @VALUEOF_SEEK_CUR@)
   (define SEEK_END @VALUEOF_SEEK_END@)

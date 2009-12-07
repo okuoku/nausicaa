@@ -2,7 +2,7 @@ dnl (foreign posix sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Sun Dec  6, 2009
+dnl Date: Mon Dec  7, 2009
 dnl
 dnl Abstract
 dnl
@@ -133,6 +133,11 @@ dnl Struct inspection: FTW
 NAUSICAA_INSPECT_STRUCT_TYPE([FTW],[struct FTW],[#f])
 NAUSICAA_INSPECT_FIELD_TYPE([FTW_BASE],[struct FTW],[base],[signed-int])
 NAUSICAA_INSPECT_FIELD_TYPE([FTW_LEVEL],[struct FTW],[level],[signed-int])
+
+dnl Struct inspection: iovec
+NAUSICAA_INSPECT_STRUCT_TYPE([IOVEC],[struct iovec],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([IOVEC_IOV_BASE],[struct iovec],[iov_base],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([IOVEC_IOV_LEN],[struct iovec],[iov_len],[unsigned-int])
 AC_CACHE_SAVE
 
 dnl Preprocessor symbols: seek whence arguments

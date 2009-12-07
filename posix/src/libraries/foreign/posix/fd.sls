@@ -53,6 +53,9 @@
     pipe	pipe-function
     mkfifo	mkfifo-function
 
+    readv	readv-function
+    writev	writev-function
+
     fd->binary-input-port		fd->textual-input-port
     fd->binary-output-port		fd->textual-output-port
     fd->binary-input/ouput-port		fd->textual-input/ouput-port
@@ -108,6 +111,11 @@
 
 (define-parametrised pipe)
 (define-parametrised mkfifo pathname mode)
+
+;; scatter/gather
+
+(define-parametrised readv fd buffers buffer-count)
+(define-parametrised writev fd buffers buffer-count)
 
 
 ;;;; custom binary ports

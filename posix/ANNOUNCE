@@ -40,7 +40,7 @@ Notes for --- tag 0.1a3
 
 * Updated to work with Nausicaa/Scheme 0.1a7
 
-* Recordificated pointers and file descriptors.
+* Recordificated FILE* pointers and file descriptors.
 
 
 Notes for 2009-11-15 tag 0.1a2

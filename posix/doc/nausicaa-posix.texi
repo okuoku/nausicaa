@@ -2411,6 +2411,7 @@ exported by the following libraries:
 * fd dup::                      Duplicating file descriptors.
 * fd lock::                     File locks.
 * fd pipe::                     Pipes and FIFOs.
+* fd scatter::                  Scatter/gather input/output.
 * fd custom::                   Custom Scheme ports.
 @end menu
 
@@ -2419,10 +2420,10 @@ exported by the following libraries:
 @section Data types
 
 
-Functions from the primitives and high--level stream libraries accept as
-arguments objects of type @code{file-descriptor} as @var{stream}
-arguments.  Functions from the platform libraries accept exact intgers
-as representing file descriptors.
+Functions from the primitives and high--level file descriptor libraries
+accept objects of type @code{file-descriptor} as @var{fd} arguments.
+Functions from the platform libraries accept exact intgers as
+representing file descriptors.
 
 
 @deftp {Object Type} file-descriptor
@@ -2431,14 +2432,14 @@ all the other Scheme object types.
 @end deftp
 
 
-@defun file-descriptor->integer @var{stream}
+@defun file-descriptor->integer @var{fd}
 @defunx integer->file-descriptor @var{integer}
-Convert between a file descriptor object and a integer object.
+Convert between a file descriptor object and an integer object.
 @end defun
 
 
 @defun file-descriptor? @var{obj}
-Return true if @var{obj} is a stream object.
+Return true if @var{obj} is a file descriptor object.
 @end defun
 
 @c page
@@ -2686,7 +2687,7 @@ Flags for file descriptor locking.
 The following functions manage opening and closing file descriptors.
 @glibcref{Opening and Closing Files, Opening and Closing Files}.
 
-Example:
+Example using compensations:
 
 @example
 (letrec
@@ -2712,6 +2713,19 @@ with symbolic permissions bits (more portable):
             (close fd))))
   ---)
 @end example
+
+@noindent
+we should really create bindings for a selection of precomputed modes
+and permissions:
+
+@example
+(define open-mode-cew
+  (bitwise-ior O_CREAT O_EXCL O_WRONLY))
+
+(define open-perm-rw/w
+  (bitwise-ior S_IRUSR S_IWUSR S_IRGRP))
+@end example
+
 
 @float Table
 @multitable {#o755} {user perms} {group perms} {other perms}
@@ -2750,18 +2764,17 @@ executable.}
 @end float
 
 
-@deffn Function open @var{pathname} @var{open-mode} @var{permissions}
+@deffn Function open @var{pathname} @var{mode} @var{permissions}
 @deffnx Parameter open-function
-@deffnx Function primitive:open @var{pathname} @var{open-mode} @var{permissions}
-@deffnx Function platform:open @var{pathname} @var{open-mode} @var{permissions}
-Open with @var{open-mode} the file selected by @var{pathname} and return
-a file descriptor.  If the file is created, it is created with
+@deffnx Function primitive:open @var{pathname} @var{mode} @var{permissions}
+@deffnx Function platform:open @var{pathname-cstr} @var{mode} @var{permissions}
+Open with @var{mode} the file selected by @var{pathname} and return a
+file descriptor object; if the file is created, it is created with
 access @var{permissions}.
 
-@var{pathname} must be a Scheme string or symbol representing a file
-pathname.
+@var{pathname} must be a Scheme string or symbol.
 
-@var{open-mode} must be an exact integer, and it can be built with
+@var{mode} must be an exact integer, and it can be built with
 @func{bitwise-ior} from the following constants: one among
 @code{O_RDWR}, @code{O_RDONLY} and @code{O_WRONLY} and optionally
 @code{O_TRUNC}, @code{O_EXCL}, @code{O_NONBLOCK}.
@@ -2776,7 +2789,7 @@ file.
 @deffn Function close @var{fd}
 @deffnx Parameter close-function
 @deffnx Function primitive:close @var{fd}
-@deffnx Function platform:close @var{fd}
+@deffnx Function platform:close @var{fd-int}
 Close the file descriptor @var{fd}.
 @end deffn
 
@@ -2813,22 +2826,22 @@ and the following prefixes with @samp{posix:} all the bindings from
 @subsubheading Reading
 
 
-@deffn Function read @var{fd} @var{pointer} @var{buffer-size}
+@deffn Function read @var{fd} @var{pointer} @var{number-of-bytes}
 @deffnx Parameter read-function
-@deffnx Function primitive:read @var{fd} @var{pointer} @var{buffer-size}
-@deffnx Function platform:read @var{fd} @var{pointer} @var{buffer-size}
-Read at most @var{buffer-size} bytes from @var{fd}, starting at the
+@deffnx Function primitive:read @var{fd} @var{pointer} @var{number-of-bytes}
+@deffnx Function platform:read @var{fd-int} @var{pointer} @var{number-of-bytes}
+Read at most @var{number-of-bytes} from @var{fd}, starting at the
 current file position, and store them in the buffer referenced by
 @var{pointer}.  The file position is advanced.  Return the number of
 bytes actually read.
 @end deffn
 
 
-@deffn Function pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+@deffn Function pread @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
 @deffnx Parameter pread-function
-@deffnx Function primitive:pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
-@deffnx Function platform:pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
-Read at most @var{buffer-size} bytes from @var{fd}, starting at
+@deffnx Function primitive:pread @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
+@deffnx Function platform:pread @var{fd-int} @var{pointer} @var{number-of-bytes} @var{offset}
+Read at most @var{number-of-bytes} from @var{fd}, starting at
 @var{offset} from the beginning of the file, and store them in the
 buffer referenced by @var{pointer}.  The file position is left
 untouched.  Return the number of bytes actually read.
@@ -2839,23 +2852,22 @@ untouched.  Return the number of bytes actually read.
 @subsubheading Writing
 
 
-@deffn Function write @var{fd} @var{pointer} @var{buffer-size}
+@deffn Function write @var{fd} @var{pointer} @var{number-of-bytes}
 @deffnx Parameter write-function
-@deffnx Function primitive:write @var{fd} @var{pointer} @var{buffer-size}
-@deffnx Function platform:write @var{fd} @var{pointer} @var{buffer-size}
+@deffnx Function primitive:write @var{fd} @var{pointer} @var{number-of-bytes}
+@deffnx Function platform:write @var{fd-int} @var{pointer} @var{number-of-bytes}
 Write to @var{fd}, starting at the current file position, at most
-@var{buffer-size} bytes from the buffer referenced by @var{pointer}.
-The file position is advanced.  Return the number of bytes actually
-written.
+@var{number-of-bytes} from the buffer referenced by @var{pointer}.  The
+file position is advanced.  Return the number of bytes actually written.
 @end deffn
 
 
-@deffn Function pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+@deffn Function pwrite @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
 @deffnx Parameter pwrite-function
-@deffnx Function primitive:pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
-@deffnx Function platform:pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+@deffnx Function primitive:pwrite @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
+@deffnx Function platform:pwrite @var{fd-int} @var{pointer} @var{number-of-bytes} @var{offset}
 Write to @var{fd}, starting at @var{offset} from the beginning of the
-file, at most @var{buffer-size} bytes from the buffer referenced by
+file, at most @var{number-of-bytes} from the buffer referenced by
 @var{pointer}.  The file position is left untouched.  Return the number
 of bytes actually written.
 @end deffn
@@ -2871,9 +2883,9 @@ Position of a Descriptor}.
 
 
 @deffn Function lseek @var{fd} @var{offset} @var{whence}
-@deffnx Paramter primitive:lseek-function
+@deffnx Paramter lseek-function
 @deffnx Function primitive:lseek @var{fd} @var{offset} @var{whence}
-@deffnx Function platform:lseek @var{fd} @var{offset} @var{whence}
+@deffnx Function platform:lseek @var{fd-int} @var{offset} @var{whence}
 Move the file position of @var{fd} at @var{offset} from the position
 selected with @var{whence}, which must be a value among @code{SEEK_SET},
 @code{SEEK_CUR}, @code{SEEK_END} (@pxref{fd constants seek}).  Return
@@ -2929,7 +2941,7 @@ devices.  Does not return until the operation is terminated.
 @deffn Function fsync @var{fd}
 @deffnx Parameter fsync-function
 @deffnx Function primitive:fsync @var{fd}
-@deffnx Function platform:fsync @var{fd}
+@deffnx Function platform:fsync @var{fd-int}
 Synchronise data for @var{fd} with the underlying device.
 @end deffn
 
@@ -2937,7 +2949,7 @@ Synchronise data for @var{fd} with the underlying device.
 @deffn Function fdatasync @var{fd}
 @deffnx Parameter fdatasync-function
 @deffnx Function primitive:fdatasync @var{fd}
-@deffnx Function platform:fdatasync @var{fd}
+@deffnx Function platform:fdatasync @var{fd-int}
 Flushes the output buffer of @var{fd} to the underlying device.  This
 function does not synchronise the file meta data (like the access time).
 @end deffn
@@ -2947,42 +2959,36 @@ function does not synchronise the file meta data (like the access time).
 @section Control operations
 
 
-The following functions manage miscellaneous control operation on a file
-descriptor.  @glibcref{Control Operations, Control Operations on Files}.
-@glibcref{IOCTLs, I/O Control Operations}.
+The following functions manage miscellaneous control operations on a
+file descriptor.  @glibcref{Control Operations, Control Operations on
+Files}.  @glibcref{IOCTLs, I/O Control Operations}.
 
 
 @deffn Function fcntl @var{fd} @var{operation} @var{arg}
 @deffnx Parameter fcntl-function
 @deffnx Function primitive:fcntl @var{fd} @var{operation} @var{arg}
-@deffnx Function platform:fcntl @var{fd} @var{operation} @var{arg}
+@deffnx Function platform:fcntl @var{fd-int} @var{operation} @var{arg-int}
+@deffnx Function platform:fcntl/ptr @var{fd-int} @var{operation} @var{arg-ptr}
 Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
-and @var{arg} must be exact integers.  @ref{fd constants control} for
-the list of the supported operations.
+must be an exact integer, @var{arg} can be an exact integer or a pointer
+object.  @ref{fd constants control} for the list of the supported
+operations.
 
 @func{primitive:fcntl} assumes that: If the return value of
-@func{platform:fcntl} is @code{-1}, an error occurred.
+@func{platform:fcntl} or @func{platform:fcntl/ptr} is @code{-1}, an
+error occurred.
 
-@quotation
-@strong{NOTE} If @var{arg} has to be a pointer (like when requesting a
-lock on the file), we have to use @func{pointer->integer} to convert the
-pointer value to an integer; example:
-
-@example
-(fcntl fd F_SETLK (pointer->integer lock-struct))
-@end example
-
-@noindent
-this is a temporary requirement; it will be fixed in a future version of
-the package by providing an alternative @func{fnctl} interface.
-@end quotation
+If @var{arg} has to be a pointer (like when requesting a lock on the
+file), we must use @func{platform:fcntl/ptr}; if it has to be an exact
+integer, we must use @func{platform:fcntl}.  @func{primitive:fcntl}
+dispatches correctly by examining the type of @var{arg}.
 @end deffn
 
 
 @deffn Function ioctl @var{fd} @var{operation} @var{arg}
 @deffnx Parameter ioctl-function
 @deffnx Function primitive:ioctl @var{fd} @var{operation} @var{arg}
-@deffnx Function platform:ioctl @var{fd} @var{operation} @var{arg}
+@deffnx Function platform:ioctl @var{fd-int} @var{operation} @var{arg}
 Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
 and @var{arg} must be exact integers.  @ref{fd constants control} for
 the list of the supported operations.
@@ -3004,15 +3010,17 @@ The following functions manage duplication of file descriptors.
 @deffnx Parameter dup-function
 @deffnx Function primitive:dup @var{fd}
 @deffnx Function platform:dup @var{fd}
-Duplicate @var{fd}, return the new file descriptor.
+Duplicate @var{fd}, return the new file descriptor object.
 @end deffn
 
 
-@deffn Function dup2 @var{old-fd} @var{new-fd}
+@deffn Function dup2 @var{old-fd} @var{new-fd-int}
 @deffnx Parameter dup2-function
-@deffnx Function primitive:dup2 @var{old-fd} @var{new-fd}
-@deffnx Function platform:dup2 @var{old-fd} @var{new-fd}
-Copy @var{old-fd} to @var{new-fd}.
+@deffnx Function primitive:dup2 @var{old-fd} @var{new-fd-int}
+@deffnx Function platform:dup2 @var{old-fd-int} @var{new-fd-int}
+Copy @var{old-fd}, a file descriptor object, to a file descriptor
+whose number is @var{new-fd-int}, an exact integer.  Return the new file
+descriptor object.
 @end deffn
 
 @c page
@@ -3039,7 +3047,6 @@ of structures.
 @end defvr
 
 
-
 @deffn Syntax struct-flock-l_type-set! @var{pointer} @var{value}
 @deffnx Syntax struct-flock-l_type-ref @var{pointer}
 @deffnx Syntax struct-flock-l_whence-set! @var{pointer} @var{value}
@@ -3054,14 +3061,19 @@ Peekers and pokers for the fields of a @code{struct flock}.
 @end deffn
 
 
+Usage example:
+
 @example
 (with-compensations
-  (let* ((fd ---)
-         (p  (malloc-block/c sizeof-flock))
-         (i  (pointer->integer p)))
-    (fcntl fd F_SETLK i)
+  (let ((fd     ---)
+        (flock* (malloc-block/c sizeof-flock)))
+    (struct-flock-l_type-set!   flock* F_WRLCK)
+    (struct-flock-l_whence-set! flock* SEEK_SET)
+    (struct-flock-l_start-set!  flock* 0)
+    (struct-flock-l_len-set!    flock* 10)
+    (fcntl fd F_SETLK flock*)
     ---
-    (fcntl fd F_UNLCK i)))
+    (fcntl fd F_UNLCK flock*)))
 @end example
 
 @c page
@@ -3121,6 +3133,91 @@ interprocess communication.  The Scheme string or symbol @var{pathname}
 selects the file pathname.  @var{mode} is a numeric access permissions
 mode like the one used by @func{open}.
 @end deffn
+
+@c page
+@node fd scatter
+@section Scatter/gather input/output
+
+
+The following functions manage reading/writing from/to file descriptors
+using an array of data buffers.  @glibcref{Scatter-Gather, Fast
+Scatter--Gather I/O}.
+
+
+@deffn Function readv @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
+@deffnx Parameter readv-function
+@deffnx Function primitive:readv @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
+@deffnx Function platform:readv @var{fd-int} @var{iovec-array-pointer} @var{iovec-array-size}
+Read data from @var{fd} storing it in the buffers described by the
+@code{iovec} array.  Return the total number of bytes read.
+@end deffn
+
+
+@deffn Function writev @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
+@deffnx Parameter writev-function
+@deffnx Function primitive:writev @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
+@deffnx Function platform:writev @var{fd-int} @var{iovec-array-pointer} @var{iovec-array-size}
+Write data to @var{fd} reading it from the buffers described by the
+@code{iovec} array.  Return the total number of bytes written.
+@end deffn
+
+
+The following bindings are exported by the library @library{foreign
+posix sizeof}.
+
+
+@defvr Constant sizeof-iovec
+@defvrx Constant alignof-iovec
+@defvrx Constant strideof-iovec
+Size, structure alignment and array stride of data structures of type
+@code{struct iovec}.
+@end defvr
+
+
+@defun sizeof-iovec-array @var{number-of-elements}
+Return the size of an array holding @var{number-of-elements} data
+structures of type @code{struct iovec}.
+@end defun
+
+
+@defun array-ref-c-iovec @var{pointer} @var{index}
+Return a pointer to the first bye of the element at @var{index} in the
+array of @code{struct iovec} referenced by @var{pointer}.
+@end defun
+
+
+@deffn Syntax struct-iovec-iov_base-ref @var{pointer}
+@deffnx Syntax struct-iovec-iov_base-set! @var{pointer} @var{value}
+@deffnx Syntax struct-iovec-iov_len-ref @var{pointer}
+@deffnx Syntax struct-iovec-iov_len-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of @code{struct iovec}.
+@end deffn
+
+
+Usage example, writing strings:
+
+@example
+(with-compensations
+  (letrec ((fd (compensate
+                   (posix:open pathname
+                               (bitwise-ior O_CREAT O_RDWR)
+                               (bitwise-ior S_IRUSR S_IWUSR))
+                 (with
+                  (posix:close fd)))))
+    (let* ((iovec-count 3)
+           (iovec**     (malloc-block/c
+                          (sizeof-iovec-array iovec-count))))
+      (let loop ((i     0)
+                 (ell   '("ciao" "salut" "hello")))
+        (unless (= i iovec-count)
+          (let ((iovec* (array-ref-c-iovec iovec** i))
+                (cstr   (string->cstring/c (car ell))))
+            (struct-iovec-iov_base-set! iovec* cstr)
+            (struct-iovec-iov_len-set!  iovec* (strlen cstr)))
+          (loop (+ 1 i) (cdr ell))))
+
+      (posix:writev fd iovec** iovec-count))))
+@end example
 
 @c page
 @node fd custom
@@ -3367,8 +3464,10 @@ exported by the following libraries:
 @section Data types
 
 
-Functions from the primitives and high--level stream libraries accept as
-arguments objects of type @code{FILE*} as @var{stream} arguments.
+Functions from the primitives and high--level stream libraries accept
+objects of type @code{FILE*} as @var{stream} arguments.  Functions from
+the platform libraries accept pointer objects as representing stream
+pointers.
 
 
 @deftp {Object Type} FILE*

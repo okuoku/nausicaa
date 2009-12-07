@@ -208,11 +208,11 @@ Ses ailes de geant l'empechent de marcher.")
 		    (struct-flock-l_start-set!  lock 0)
 		    (struct-flock-l_len-set!    lock 10)
 		    (compensate
-			(posix:fcntl fd F_SETLK (pointer->integer lock))
+			(posix:fcntl fd F_SETLK lock)
 		      (with
-		       (posix:fcntl fd F_UNLCK (pointer->integer lock))))
+		       (posix:fcntl fd F_UNLCK lock)))
 		    (posix:read fd bufptr2 buflen2)
-		    (posix:fcntl fd F_GETLK (pointer->integer lock))
+		    (posix:fcntl fd F_GETLK lock)
 ;;;(display (list (struct-flock-l_type-ref lock)
 ;;;		  (struct-flock-l_start-ref lock)))
 ;;;(newline)
@@ -220,6 +220,48 @@ Ses ailes de geant l'empechent de marcher.")
 	=> the-string)
 
       #t)))
+
+
+(parametrise ((check-test-name	'scatter/gather)
+	      (debugging	#f))
+
+  (check
+      (with-compensations
+	(let ((pathname the-pathname))
+	  (letrec ((fd		(compensate
+				    (posix:open pathname
+						(bitwise-ior O_CREAT O_RDWR)
+						(bitwise-ior S_IRUSR S_IWUSR))
+				  (with
+				   (posix:close fd)))))
+	    (let* ((iovec-count	3)
+		   (iovec**	(malloc-block/c (sizeof-iovec-array iovec-count))))
+
+	      (let loop ((i	0)
+			 (ell	'("ciao" "salut" "hello")))
+		(unless (= i iovec-count)
+		  (let ((iovec*	(array-ref-c-iovec iovec** i))
+			(cstr	(string->cstring/c (car ell))))
+		    (struct-iovec-iov_base-set! iovec* cstr)
+		    (struct-iovec-iov_len-set!  iovec* (strlen cstr)))
+		  (loop (+ 1 i) (cdr ell))))
+
+	      (posix:writev fd iovec** iovec-count)
+	      (posix:lseek  fd 0 SEEK_SET)
+	      (posix:readv  fd iovec** iovec-count)
+
+	      (let loop ((i	0)
+			 (ell	'()))
+		(if (= i iovec-count)
+		    ell
+		  (let ((iovec*	(array-ref-c-iovec iovec** i)))
+		    (loop (+ 1 i)
+			  (cons (cstring->string (struct-iovec-iov_base-ref iovec*)
+						 (struct-iovec-iov_len-ref  iovec*))
+				ell)))))))))
+    => '("hello" "salut" "ciao"))
+
+  #t)
 
 
 (parametrise ((check-test-name	'pipe)

@@ -39,7 +39,8 @@
     fdatasync
     fcntl	ioctl
     dup	dup2
-    pipe	mkfifo)
+    pipe	mkfifo
+    readv	writev)
   (import (except (rnrs) read write)
     (receive)
     (compensations)
@@ -51,6 +52,8 @@
 	  array-ref-c-signed-int)
     (only (foreign errno)
 	  EINTR raise-errno-error)
+    (only (foreign ffi pointers)
+	  pointer?)
     (only (foreign ffi sizeof)
 	  sizeof-int-array)
     (prefix (foreign posix fd platform) platform:)
@@ -164,7 +167,11 @@
 ;;;; control operations
 
 (define (fcntl fd operation arg)
-  (%call-for-minus-one fcntl platform:fcntl (file-descriptor->integer fd) operation arg))
+  (%call-for-minus-one fcntl
+		       (if (pointer? arg)
+			   platform:fcntl/ptr
+			 platform:fcntl)
+		       (file-descriptor->integer fd) operation arg))
 
 (define (ioctl fd operation arg)
   (%call-for-minus-one ioctl platform:ioctl (file-descriptor->integer fd) operation arg))
@@ -202,6 +209,23 @@
       (if (= -1 result)
 	  (raise-errno-error 'mkfifo errno (list pathname mode))
 	result))))
+
+
+;;;; scatter/gather reading and writing
+
+(define (readv fd buffers buffer-count)
+  (receive (bytes-read errno)
+      (platform:readv (file-descriptor->integer fd) buffers buffer-count)
+    (if (= -1 bytes-read)
+	(raise-errno-error 'readv errno (list fd buffers buffer-count))
+      bytes-read)))
+
+(define (writev fd buffers buffer-count)
+  (receive (bytes-written errno)
+      (platform:writev (file-descriptor->integer fd) buffers buffer-count)
+    (if (= -1 bytes-written)
+	(raise-errno-error 'writev errno (list fd buffers buffer-count))
+      bytes-written)))
 
 
 ;;;; done

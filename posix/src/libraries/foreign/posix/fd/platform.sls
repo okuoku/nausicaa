@@ -32,9 +32,10 @@
     lseek
     sync	fsync
     fdatasync
-    fcntl	ioctl
+    fcntl	fcntl/ptr	ioctl
     dup	dup2
-    pipe	mkfifo)
+    pipe	mkfifo
+    readv	writev)
   (import (except (rnrs) read write)
     (foreign ffi)
     (foreign posix shared-object)
@@ -49,11 +50,15 @@
     (fsync		(int fsync (int)))
     (fdatasync		(int fdatasync (int)))
     (fcntl		(int fcntl (int int int)))
+    (fcntl/ptr		(int fcntl (int int void*)))
     (ioctl		(int ioctl (int int int)))
     (dup		(int dup (int)))
     (dup2		(int dup2 (int int)))
     (pipe		(int pipe (pointer)))
-    (mkfifo		(int mkfifo (char* mode_t))))
+    (mkfifo		(int mkfifo (char* mode_t)))
+    (readv		(ssize_t readv (int void* int)))
+    (writev		(ssize_t writev (int void* int)))
+    )
 
   (define-c-functions/with-errno libnausicaa-posix
     (pread		(ssize_t nausicaa_posix_pread (int void* size_t off_t)))

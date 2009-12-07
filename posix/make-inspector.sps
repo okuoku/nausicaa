@@ -180,6 +180,22 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (signed-int		base)
   (signed-int		level))
 
+(define-c-struct iovec
+  "struct iovec"
+  (pointer		iov_base)
+  (unsigned-int		iov_len))
+
+(sizeof-lib
+ (define (sizeof-iovec-array number-of-elements)
+   (* strideof-iovec number-of-elements))
+ (define (array-ref-c-iovec pointer index)
+   (pointer-add pointer (* index strideof-iovec)))
+ )
+
+(sizeof-lib-exports
+ sizeof-iovec-array
+ array-ref-c-iovec)
+
 (autoconf-lib "AC_CACHE_SAVE")
 
 
