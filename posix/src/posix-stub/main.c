@@ -64,6 +64,9 @@
 #ifdef HAVE_FTW_H
 #  include <ftw.h>
 #endif
+#ifdef HAVE_SYS_MMAN_H
+#  include <sys/mman.h>
+#endif
 #ifdef HAVE_TIME_H
 #  include <time.h>
 #endif
@@ -178,6 +181,9 @@ extern int nausicaa_posix_versionsort (const void * a, const void * b);
 
 extern int nausicaa_posix_ftw (const char * filename, __ftw_func_t func, int descriptors);
 extern int nausicaa_posix_nftw (const char * filename, __nftw_func_t func, int descriptors, int flag);
+
+extern int nausicaa_posix_mmap (void * address, size_t length, int protect,
+				int flags, int fd, off_t offset);
 
 
 /** --------------------------------------------------------------------
@@ -636,6 +642,11 @@ int
 nausicaa_posix_nftw (const char * filename, __nftw_func_t func, int descriptors, int flag)
 {
   return nftw (filename, func, descriptors, flag);
+}
+int
+nausicaa_posix_mmap (void * address, size_t length, int protect, int flags, int fd, off_t offset)
+{
+  return mmap(address, length, protect, flags, fd, offset);
 }
 
 

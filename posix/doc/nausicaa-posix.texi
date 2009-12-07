@@ -2412,6 +2412,8 @@ exported by the following libraries:
 * fd lock::                     File locks.
 * fd pipe::                     Pipes and FIFOs.
 * fd scatter::                  Scatter/gather input/output.
+* fd mmap::                     Memory mapped input/output.
+* fd select::                   Waiting for input or output.
 * fd custom::                   Custom Scheme ports.
 @end menu
 
@@ -2453,6 +2455,7 @@ Return true if @var{obj} is a file descriptor object.
 * fd constants control::        File control flags.
 * fd constants seek::           File positions.
 * fd constants lock::           Locking.
+* fd constants mmap::           Memory mapped files.
 @end menu
 
 @c page
@@ -2677,6 +2680,59 @@ sizeof} library.  @glibcref{File Locks, File Locks}.
 @defvrx Constant F_WRLCK
 @defvrx Constant F_UNLCK
 Flags for file descriptor locking.
+@end defvr
+
+@c page
+@node fd constants mmap
+@subsection Memory mapped files
+
+
+All the following bindings are exported by the @library{foreign posix
+sizeof} library.  @glibcref{Memory-mapped I/O, Memory--mapped I/O}.
+
+
+@defvr Constant MAP_PRIVATE
+@defvrx Constant MAP_SHARED
+@defvrx Constant MAP_FIXED
+@defvrx Constant MAP_ANON
+@defvrx Constant MAP_ANONYMOUS
+@defvrx Constant MAP_32BITS
+@defvrx Constant MAP_DENYWRITE
+@defvrx Constant MAP_EXECUTABLE
+@defvrx Constant MAP_FILE
+@defvrx Constant MAP_GROWSDOWN
+@defvrx Constant MAP_LOCKED
+@defvrx Constant MAP_NONBLOCK
+@defvrx Constant MAP_NORESERVE
+@defvrx Constant MAP_POPULATE
+@defvrx Constant MAP_STACK
+@defvrx Constant MAP_AUTOGROW
+@defvrx Constant MAP_AUTORESRV
+@defvrx Constant MAP_COPY
+Values for the @var{flags} argument to @func{mmap}; they must be
+composed with bitwise inclusive OR.  One among @samp{MAP_PRIVATE} and
+@samp{MAP_SHARED} must be used.
+@end defvr
+
+
+@defvr Constant PROT_READ
+@defvrx Constant PROT_WRITE
+@defvrx Constant PROT_EXEC
+@defvrx Constant PROT_NONE
+Values for the @var{protect} argument to @func{mmap}; they must be
+composed with bitwise inclusive OR.
+@end defvr
+
+
+@defvr Constant MS_SYNC
+@defvrx Constant MS_ASYNC
+Values for the @var{flags} argument to @func{msync}; they must be
+composed with bitwise inclusive OR.
+@end defvr
+
+
+@defvr Constant MREMAP_MAYMOVE
+Value for the @var{flags} argument to @func{mremap}.
 @end defvr
 
 @c page
@@ -3174,16 +3230,16 @@ Size, structure alignment and array stride of data structures of type
 @end defvr
 
 
-@defun sizeof-iovec-array @var{number-of-elements}
-Return the size of an array holding @var{number-of-elements} data
+@deffn Syntax sizeof-iovec-array @var{number-of-elements}
+Expands to the size of an array holding @var{number-of-elements} data
 structures of type @code{struct iovec}.
-@end defun
+@end deffn
 
 
-@defun array-ref-c-iovec @var{pointer} @var{index}
-Return a pointer to the first bye of the element at @var{index} in the
-array of @code{struct iovec} referenced by @var{pointer}.
-@end defun
+@deffn Syntax array-ref-c-iovec @var{pointer} @var{index}
+Expands to a pointer to the first byte of the element at @var{index} in
+the array of @code{struct iovec} referenced by @var{pointer}.
+@end deffn
 
 
 @deffn Syntax struct-iovec-iov_base-ref @var{pointer}
@@ -3218,6 +3274,95 @@ Usage example, writing strings:
 
       (posix:writev fd iovec** iovec-count))))
 @end example
+
+@c page
+@node fd mmap
+@section Memory mapped input/output
+
+
+The following functions manage input/outut through a file mapped to a
+region of memory.  @glibcref{Memory-mapped I/O, Memory--mapped I/O}.
+
+
+@deffn Function mmap @var{address} @var{length} @var{protect} @var{flags} @var{fd} @var{offset}
+@deffnx Parameter mmap-function
+@deffnx Function primitive:mmap @var{address} @var{length} @var{protect} @var{flags} @var{fd} @var{offset}
+@deffnx Function platform:mmap @var{address} @var{length} @var{protect} @var{flags} @var{fd-int} @var{offset}
+Create a memory mapping for @var{fd}, starting at file position
+@var{offset}, for @var{length} bytes starting at @var{address} (which
+can be @code{pointer-null}).  Return the effective address of the
+mapping, which may be different from @var{address}.
+
+Beware that @var{address} and @var{offset} must be page aligned or an
+@code{EINVAL} error will be raised; see the original documentation.
+
+The @var{flags} and @var{protect} arguments must be exact integers
+composed with bitwise inclusive OR from appropriate constant values.
+@ref{fd constants mmap, Memory mapped files}.
+@end deffn
+
+
+@deffn Function munmap @var{address} @var{length}
+@deffnx Parameter munmap-function
+@deffnx Function primitive:munmap @var{address} @var{length}
+@deffnx Function platform:munmap @var{address} @var{length}
+Unmap a previously created memory mapping.
+@end deffn
+
+
+@deffn Function msync @var{address} @var{length} @var{flags}
+@deffnx Parameter msync-function
+@deffnx Function primitive:msync @var{address} @var{length} @var{flags}
+@deffnx Function platform:msync @var{address} @var{length} @var{flags}
+Synchronise a memory mapped region with the corresponding file on the
+underlying device.
+
+The @var{flags} argument must be an exact integer composed with bitwise
+inclusive OR from appropriate constant values.  @ref{fd constants mmap,
+Memory mapped files}.
+@end deffn
+
+
+@deffn Function mremap @var{address} @var{length} @var{new-length} @var{flags}
+@deffnx Parameter mremap-function
+@deffnx Function primitive:mremap @var{address} @var{length} @var{new-length} @var{flags}
+@deffnx Function platform:mremap @var{address} @var{length} @var{new-length} @var{flags}
+Change the size of an existing memory mapping.
+
+The @var{flags} argument must be an exact integer composed with bitwise
+inclusive OR from appropriate constant values.  @ref{fd constants mmap,
+Memory mapped files}.
+@end deffn
+
+
+Usage example:
+
+@example
+(letrec* ((fd         (compensate
+                          (open pathname
+                                (bitwise-ior O_CREAT O_RDWR)
+                                (bitwise-ior S_IRUSR S_IWUSR))
+                        (with
+                         (close fd))))
+          (map-len    4096)
+          (address    (compensate
+                          (mmap pointer-null map-len
+                                (bitwise-ior PROT_READ PROT_WRITE)
+                                MAP_SHARED fd 0)
+                        (with
+                         (munmap address map-len)))))
+
+  (pointer-ref-c-signed-char address 10))
+@end example
+
+@c page
+@node fd select
+@section Waiting for input or output
+
+
+The following functions manage watining for input and outut on file
+descriptors.  @glibcref{Waiting for I/O, Waiting for Input and Output}.
+
 
 @c page
 @node fd custom

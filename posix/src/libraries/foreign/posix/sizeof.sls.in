@@ -367,7 +367,32 @@
     MAXSYMLINKS
     NAME_MAX
     PATH_MAX
-    MAXPATHLEN)
+    MAXPATHLEN
+    MAP_PRIVATE
+    MAP_SHARED
+    MAP_FIXED
+    MAP_ANON
+    MAP_ANONYMOUS
+    MAP_32BITS
+    MAP_DENYWRITE
+    MAP_EXECUTABLE
+    MAP_FILE
+    MAP_GROWSDOWN
+    MAP_LOCKED
+    MAP_NONBLOCK
+    MAP_NORESERVE
+    MAP_POPULATE
+    MAP_STACK
+    MAP_AUTOGROW
+    MAP_AUTORESRV
+    MAP_COPY
+    PROT_READ
+    PROT_WRITE
+    PROT_EXEC
+    PROT_NONE
+    MS_SYNC
+    MS_ASYNC
+    MREMAP_MAYMOVE)
   (import
     (rnrs)
     (foreign ffi)
@@ -822,12 +847,18 @@
     @OFFSETOF_IOVEC_IOV_LEN@
     @SETTEROF_IOVEC_IOV_LEN@
     @GETTEROF_IOVEC_IOV_LEN@)
-  (define
-    (sizeof-iovec-array number-of-elements)
-    (* strideof-iovec number-of-elements))
-  (define
-    (array-ref-c-iovec pointer index)
-    (pointer-add pointer (* index strideof-iovec)))
+  (define-syntax
+    sizeof-iovec-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-iovec ?number-of-elements))))
+  (define-syntax
+    array-ref-c-iovec
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-iovec)))))
   (define SEEK_SET @VALUEOF_SEEK_SET@)
   (define SEEK_CUR @VALUEOF_SEEK_CUR@)
   (define SEEK_END @VALUEOF_SEEK_END@)
@@ -969,7 +1000,32 @@
   (define MAXSYMLINKS @VALUEOF_MAXSYMLINKS@)
   (define NAME_MAX @VALUEOF_NAME_MAX@)
   (define PATH_MAX @VALUEOF_PATH_MAX@)
-  (define MAXPATHLEN @VALUEOF_MAXPATHLEN@))
+  (define MAXPATHLEN @VALUEOF_MAXPATHLEN@)
+  (define MAP_PRIVATE @VALUEOF_MAP_PRIVATE@)
+  (define MAP_SHARED @VALUEOF_MAP_SHARED@)
+  (define MAP_FIXED @VALUEOF_MAP_FIXED@)
+  (define MAP_ANON @VALUEOF_MAP_ANON@)
+  (define MAP_ANONYMOUS @VALUEOF_MAP_ANONYMOUS@)
+  (define MAP_32BITS @VALUEOF_MAP_32BITS@)
+  (define MAP_DENYWRITE @VALUEOF_MAP_DENYWRITE@)
+  (define MAP_EXECUTABLE @VALUEOF_MAP_EXECUTABLE@)
+  (define MAP_FILE @VALUEOF_MAP_FILE@)
+  (define MAP_GROWSDOWN @VALUEOF_MAP_GROWSDOWN@)
+  (define MAP_LOCKED @VALUEOF_MAP_LOCKED@)
+  (define MAP_NONBLOCK @VALUEOF_MAP_NONBLOCK@)
+  (define MAP_NORESERVE @VALUEOF_MAP_NORESERVE@)
+  (define MAP_POPULATE @VALUEOF_MAP_POPULATE@)
+  (define MAP_STACK @VALUEOF_MAP_STACK@)
+  (define MAP_AUTOGROW @VALUEOF_MAP_AUTOGROW@)
+  (define MAP_AUTORESRV @VALUEOF_MAP_AUTORESRV@)
+  (define MAP_COPY @VALUEOF_MAP_COPY@)
+  (define PROT_READ @VALUEOF_PROT_READ@)
+  (define PROT_WRITE @VALUEOF_PROT_WRITE@)
+  (define PROT_EXEC @VALUEOF_PROT_EXEC@)
+  (define PROT_NONE @VALUEOF_PROT_NONE@)
+  (define MS_SYNC @VALUEOF_MS_SYNC@)
+  (define MS_ASYNC @VALUEOF_MS_ASYNC@)
+  (define MREMAP_MAYMOVE @VALUEOF_MREMAP_MAYMOVE@))
 
 
 ;;; end of file

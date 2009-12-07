@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-posix],[0.1a2],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-posix],[0.1a3],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/posix/fd.sls])
 NAUSICAA_BEGIN
 NAUSICAA_SYSTEM_SETUP
@@ -43,21 +43,11 @@ NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
 
 DS_C99_LANGUAGE_COMMON_SETUP
 DS_EXCLUDE_SECTION([DEV_RULES])
-NAUSICAA_SIZEOF
-NAUSICAA_C_TYPES_LIMITS
-
-DS_C_LANGUAGE_LIBRARY([posix_stub],1,0,[nausicaa-posix])
-
-dnl page
-dnl --------------------------------------------------------------------
-dnl Platform checking.
-dnl --------------------------------------------------------------------
 
 AC_CHECK_FUNC([stat])
 AC_CHECK_FUNC([lstat])
 AC_CHECK_FUNC([fstat])
 
-AC_HEADER_STDC
 AC_CHECK_HEADERS([errno.h])
 AC_CHECK_HEADERS([fcntl.h])
 AC_CHECK_HEADERS([inttypes.h])
@@ -68,6 +58,7 @@ AC_CHECK_HEADERS([unistd.h])
 AC_CHECK_HEADERS([dirent.h])
 AC_CHECK_HEADERS([fcntl.h])
 AC_CHECK_HEADERS([ftw.h])
+AC_CHECK_HEADERS([sys/mman.h])
 AC_CHECK_HEADERS([sys/stat.h])
 AC_CHECK_HEADERS([sys/time.h])
 AC_CHECK_HEADERS([sys/times.h])
@@ -76,6 +67,11 @@ AC_CHECK_HEADERS([sys/wait.h])
 AC_CHECK_HEADERS([time.h])
 AC_CHECK_HEADERS([unistd.h])
 AC_CHECK_HEADERS([utime.h])
+
+NAUSICAA_SIZEOF
+NAUSICAA_C_TYPES_LIMITS
+
+DS_C_LANGUAGE_LIBRARY([posix_stub],1,0,[nausicaa-posix])
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -92,11 +88,20 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #ifdef HAVE_FTW_H
 #  include <ftw.h>
 #endif
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
+#ifdef HAVE_LIMITS_H
+#  include <limits.h>
+#endif
 #ifdef HAVE_TIME_H
 #  include <time.h>
 #endif
 #ifdef HAVE_UTIME_H
 #  include <utime.h>
+#endif
+#ifdef HAVE_SYS_MMAN_H
+#  include <sys/mman.h>
 #endif
 #ifdef HAVE_SYS_STAT_H
 #  include <sys/stat.h>
@@ -112,6 +117,12 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #endif
 #ifdef HAVE_SYS_WAIT_H
 #  include <sys/wait.h>
+#endif
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#  include <unistd.h>
 #endif
 ])
 

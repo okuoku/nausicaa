@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -40,7 +40,8 @@
     fcntl	ioctl
     dup	dup2
     pipe	mkfifo
-    readv	writev)
+    readv	writev
+    mmap	munmap		msync	mremap)
   (import (except (rnrs) read write)
     (receive)
     (compensations)
@@ -53,7 +54,10 @@
     (only (foreign errno)
 	  EINTR raise-errno-error)
     (only (foreign ffi pointers)
-	  pointer?)
+	  pointer?
+	  pointer=?
+	  integer->pointer
+	  pointer->integer)
     (only (foreign ffi sizeof)
 	  sizeof-int-array)
     (prefix (foreign posix fd platform) platform:)
@@ -226,6 +230,42 @@
     (if (= -1 bytes-written)
 	(raise-errno-error 'writev errno (list fd buffers buffer-count))
       bytes-written)))
+
+
+;;;; mmap
+
+(define (mmap address length protect flags fd offset)
+  (receive (effective-address errno)
+      (platform:mmap address length protect flags (file-descriptor->integer fd) offset)
+    ;;;(pointer=? effective-address (integer->pointer -1)) ;ugly, but what can I do?
+    (if (let ((i (pointer->integer effective-address)))
+	  (or (= -1 i) ;for ikarus and ypsilon
+	      (= #xffffffff i)
+	      (= #xffffffffffffffff i)))
+	(raise-errno-error 'mmap errno (list address length protect flags fd offset))
+      effective-address)))
+
+(define (munmap address length)
+  (receive (result errno)
+      (platform:munmap address length)
+    (if (= -1 result)
+	(raise-errno-error 'munmap errno (list address length))
+      result)))
+
+(define (msync address length flags)
+  (receive (result errno)
+      (platform:msync address length flags)
+    (if (= -1 result)
+	(raise-errno-error 'msync errno (list address length flags))
+      result)))
+
+(define (mremap address length new-length flags)
+  (receive (result errno)
+      (platform:mremap address length new-length flags)
+    (if (= -1 result)
+	(raise-errno-error 'mremap errno (list address length new-length flags))
+      result)))
+
 
 
 ;;;; done

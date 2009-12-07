@@ -264,6 +264,36 @@ Ses ailes de geant l'empechent de marcher.")
   #t)
 
 
+(parametrise ((check-test-name	'mmap)
+	      (debugging	#f))
+
+  (check
+      (with-compensations
+	(let ((pathname the-pathname))
+	  (letrec* ((fd		(compensate
+				    (posix:open pathname
+						(bitwise-ior O_CREAT O_RDWR)
+						(bitwise-ior S_IRUSR S_IWUSR))
+				  (with
+				   (posix:close fd))))
+		    (map-len	10)
+		    (address	(compensate
+				    (posix:mmap pointer-null map-len
+						(bitwise-ior PROT_READ PROT_WRITE)
+						MAP_SHARED fd 0)
+				  (with
+				   (posix:munmap address map-len)))))
+	    (posix:write fd (string->cstring/c "0123456789") 10)
+	    (posix:lseek fd 0 SEEK_SET)
+	    (pointer-set-c-signed-char! address 3 (char->integer #\A))
+	    (posix:msync address 5 MS_SYNC) ;just to verify that no error occurs
+	    (list (integer->char (pointer-ref-c-signed-char address 3))
+		  (integer->char (pointer-ref-c-signed-char address 5))))))
+    => '(#\A #\5))
+
+  #t)
+
+
 (parametrise ((check-test-name	'pipe)
 	      (debugging	#t))
 

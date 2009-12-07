@@ -35,7 +35,9 @@
     fcntl	fcntl/ptr	ioctl
     dup	dup2
     pipe	mkfifo
-    readv	writev)
+    readv	writev
+    mmap	munmap		msync		mremap
+    )
   (import (except (rnrs) read write)
     (foreign ffi)
     (foreign posix shared-object)
@@ -63,6 +65,11 @@
   (define-c-functions/with-errno libnausicaa-posix
     (pread		(ssize_t nausicaa_posix_pread (int void* size_t off_t)))
     (pwrite		(ssize_t nausicaa_posix_pwrite (int void* size_t off_t)))
-    (lseek		(off_t nausicaa_posix_lseek (int off_t int)))))
+    (lseek		(off_t nausicaa_posix_lseek (int off_t int)))
+    (mmap		(void* mmap (void* size_t int int int off_t)))
+    (munmap		(int munmap (void* size_t)))
+    (msync		(int msync (void* size_t int)))
+    (mremap		(int mremap (void* size_t size_t int)))
+    ))
 
 ;;; end of file

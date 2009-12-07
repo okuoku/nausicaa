@@ -56,6 +56,11 @@
     readv	readv-function
     writev	writev-function
 
+    mmap	mmap-function
+    munmap	munmap-function
+    msync	msync-function
+    mremap	mremap-function
+
     fd->binary-input-port		fd->textual-input-port
     fd->binary-output-port		fd->textual-output-port
     fd->binary-input/ouput-port		fd->textual-input/ouput-port
@@ -116,6 +121,13 @@
 
 (define-parametrised readv fd buffers buffer-count)
 (define-parametrised writev fd buffers buffer-count)
+
+;; mmap
+
+(define-parametrised mmap address length protect flags fd offset)
+(define-parametrised munmap address length)
+(define-parametrised msync address length flags)
+(define-parametrised mremap address length new-length flags)
 
 
 ;;;; custom binary ports

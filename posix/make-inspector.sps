@@ -186,11 +186,14 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (unsigned-int		iov_len))
 
 (sizeof-lib
- (define (sizeof-iovec-array number-of-elements)
-   (* strideof-iovec number-of-elements))
- (define (array-ref-c-iovec pointer index)
-   (pointer-add pointer (* index strideof-iovec)))
- )
+ (define-syntax sizeof-iovec-array
+   (syntax-rules ()
+     ((_ ?number-of-elements)
+      (* strideof-iovec ?number-of-elements))))
+ (define-syntax array-ref-c-iovec
+   (syntax-rules ()
+     ((_ ?pointer ?index)
+      (pointer-add ?pointer (* ?index strideof-iovec))))))
 
 (sizeof-lib-exports
  sizeof-iovec-array
@@ -377,6 +380,25 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   NAME_MAX
   PATH_MAX
   MAXPATHLEN)
+
+(define-c-defines "mmap constants"
+  MAP_PRIVATE		MAP_SHARED
+  MAP_FIXED
+  MAP_ANON		MAP_ANONYMOUS
+  MAP_32BITS		MAP_DENYWRITE
+  MAP_EXECUTABLE	MAP_FILE
+  MAP_GROWSDOWN		MAP_LOCKED
+  MAP_NONBLOCK		MAP_NORESERVE
+  MAP_POPULATE		MAP_STACK
+  MAP_AUTOGROW		MAP_AUTORESRV
+  MAP_COPY
+
+  PROT_READ	PROT_WRITE
+  PROT_EXEC	PROT_NONE
+
+  MS_SYNC	MS_ASYNC
+
+  MREMAP_MAYMOVE)
 
 (autoconf-lib "AC_CACHE_SAVE")
 
