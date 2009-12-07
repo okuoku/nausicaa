@@ -41,7 +41,11 @@
     dup	dup2
     pipe	mkfifo
     readv	writev
-    mmap	munmap		msync	mremap)
+    mmap	munmap		msync	mremap
+    select
+    FD_ISSET FD_SET FD_CLR
+    (rename (platform:FD_ZERO	FD_ZERO))
+    )
   (import (except (rnrs) read write)
     (receive)
     (compensations)
@@ -189,7 +193,9 @@
 (define (dup2 old new)
   (integer->file-descriptor (%call-for-minus-one dup2 platform:dup2
 						 (file-descriptor->integer old)
-						 new)))
+						 (if (file-descriptor? new)
+						     (file-descriptor->integer new)
+						   new))))
 
 
 ;;;; making pipes
@@ -266,6 +272,27 @@
 	(raise-errno-error 'mremap errno (list address length new-length flags))
       result)))
 
+
+;;; select
+
+(define (FD_ISSET fd fdset)
+  (not (= 0 (platform:FD_ISSET (file-descriptor->integer fd) fdset))))
+
+(define (FD_SET fd set)
+  (platform:FD_SET (file-descriptor->integer fd) set))
+
+(define (FD_CLR fd set)
+  (platform:FD_CLR (file-descriptor->integer fd) set))
+
+(define (select max-fd read-fdset write-fdset except-fdset timeval)
+  (receive (total-number-of-ready-fds errno)
+      (platform:select (if (file-descriptor? max-fd)
+			   (file-descriptor->integer max-fd)
+			 max-fd)
+		       read-fdset write-fdset except-fdset timeval)
+    (if (= -1 total-number-of-ready-fds)
+	(raise-errno-error 'select errno (list max-fd read-fdset write-fdset except-fdset timeval))
+      total-number-of-ready-fds)))
 
 
 ;;;; done

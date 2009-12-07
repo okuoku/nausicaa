@@ -61,6 +61,12 @@
     msync	msync-function
     mremap	mremap-function
 
+    select	select-function
+    (rename (primitive:FD_ZERO		FD_ZERO)
+	    (primitive:FD_SET		FD_SET)
+	    (primitive:FD_CLR		FD_CLR)
+	    (primitive:FD_ISSET		FD_ISSET))
+
     fd->binary-input-port		fd->textual-input-port
     fd->binary-output-port		fd->textual-output-port
     fd->binary-input/ouput-port		fd->textual-input/ouput-port
@@ -128,6 +134,10 @@
 (define-parametrised munmap address length)
 (define-parametrised msync address length flags)
 (define-parametrised mremap address length new-length flags)
+
+;; select
+(define-parametrised select max-fd read-set write-set except-set timeout)
+
 
 
 ;;;; custom binary ports

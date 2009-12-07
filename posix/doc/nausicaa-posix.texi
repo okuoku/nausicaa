@@ -3363,6 +3363,67 @@ Usage example:
 The following functions manage watining for input and outut on file
 descriptors.  @glibcref{Waiting for I/O, Waiting for Input and Output}.
 
+In the following descriptions the @var{fdset} arguments are pointers to
+data structures of type @code{fd_set} (whatever they are).
+
+
+@deffn Function select @var{max-fd} @var{read-fdset} @var{write-fdset} @var{except-fdset} @var{timeout}
+@deffnx Parameter select-function
+@deffnx Function primitive:select @var{max-fd} @var{read-fdset} @var{write-fdset} @var{except-fdset} @var{timeout}
+@deffnx Function platform:select @var{max-fd} @var{read-fdset} @var{write-fdset} @var{except-fdset} @var{timeout}
+Wait for an event on the file descriptors in the sets referenced by the
+@var{fdset} arguments.  @var{timeout} must be a pointer to a
+@code{struct timeval} data structure.
+
+@strong{NOTE} This function can be interrupted and return with
+@code{errno} set to @code{EINTR}; the library does not automatically
+reinvoke it, rather it raises an error with @func{raise-errno-error}.
+@end deffn
+
+
+@deffn Function FD_ZERO @var{fdset}
+@deffnx Function primitive:FD_ZERO @var{fdset}
+@deffnx Function platform:FD_ZERO @var{fdset}
+Initialises the file descriptor set referenced by @var{fdset}.  The
+return value is undefined, platform function included.
+@end deffn
+
+
+@deffn Function FD_SET @var{fd} @var{fdset}
+@deffnx Function primitive:FD_SET @var{fd} @var{fdset}
+@deffnx Function platform:FD_SET @var{fd} @var{fdset}
+Add @var{fd} to the file descriptor set referenced by @var{fdset}.  The
+return value is undefined, platform function included.
+@end deffn
+
+
+@deffn Function FD_CLR @var{fd} @var{fdset}
+@deffnx Function primitive:FD_CLR @var{fd} @var{fdset}
+@deffnx Function platform:FD_CLR @var{fd} @var{fdset}
+Remove @var{fd} from the file descriptor set referenced by @var{fdset}.
+The return value is undefined, platform function included.
+@end deffn
+
+
+@deffn Function FD_ISSET @var{fd} @var{fdset}
+@deffnx Function primitive:FD_ISSET @var{fd} @var{fdset}
+@deffnx Function platform:FD_ISSET @var{fd} @var{fdset}
+Return true if @var{fd} is a member of the file descriptor set
+referenced by @var{fdset}.
+@end deffn
+
+
+The following bindings are exported by the library @library{foreign
+posix sizeof}.
+
+
+@defvr Constant sizeof-fdset
+@defvrx Constant alignof-fdset
+@defvrx Constant strideof-fdset
+Size, alignment and array stride of data structures of type
+@code{fd_set}.
+@end defvr
+
 
 @c page
 @node fd custom

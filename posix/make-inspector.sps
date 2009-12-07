@@ -199,6 +199,9 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
  sizeof-iovec-array
  array-ref-c-iovec)
 
+(define-c-struct fdset
+  "fd_set")
+
 (autoconf-lib "AC_CACHE_SAVE")
 
 
@@ -399,6 +402,9 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   MS_SYNC	MS_ASYNC
 
   MREMAP_MAYMOVE)
+
+(define-c-defines "select related symbols"
+  FD_SETSIZE)
 
 (autoconf-lib "AC_CACHE_SAVE")
 

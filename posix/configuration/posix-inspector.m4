@@ -138,6 +138,9 @@ dnl Struct inspection: iovec
 NAUSICAA_INSPECT_STRUCT_TYPE([IOVEC],[struct iovec],[#f])
 NAUSICAA_INSPECT_FIELD_TYPE([IOVEC_IOV_BASE],[struct iovec],[iov_base],[pointer])
 NAUSICAA_INSPECT_FIELD_TYPE([IOVEC_IOV_LEN],[struct iovec],[iov_len],[unsigned-int])
+
+dnl Struct inspection: fdset
+NAUSICAA_INSPECT_STRUCT_TYPE([FDSET],[fd_set],[#f])
 AC_CACHE_SAVE
 
 dnl Preprocessor symbols: seek whence arguments
@@ -317,6 +320,9 @@ NAUSICAA_DEFINE_VALUE([PROT_NONE])
 NAUSICAA_DEFINE_VALUE([MS_SYNC])
 NAUSICAA_DEFINE_VALUE([MS_ASYNC])
 NAUSICAA_DEFINE_VALUE([MREMAP_MAYMOVE])
+
+dnl Preprocessor symbols: select related symbols
+NAUSICAA_DEFINE_VALUE([FD_SETSIZE])
 AC_CACHE_SAVE
 
 dnl end of file

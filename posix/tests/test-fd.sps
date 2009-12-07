@@ -294,6 +294,47 @@ Ses ailes de geant l'empechent de marcher.")
   #t)
 
 
+(parametrise ((check-test-name	'select)
+	      (debugging	#f))
+
+  (check
+      (with-compensations
+	(let ((pathname the-pathname))
+	  (letrec ((fd (compensate
+			   (posix:open pathname
+				       (bitwise-ior O_CREAT O_RDWR)
+				       (bitwise-ior S_IRUSR S_IWUSR))
+			 (with
+			  (posix:close fd)))))
+
+	    (posix:write fd (string->cstring/c "0123456789") 10)
+
+	    (let ((rd-fdset	(malloc-block/c sizeof-fdset))
+		  (wr-fdset	(malloc-block/c sizeof-fdset))
+		  (ex-fdset	(malloc-block/c sizeof-fdset))
+		  (timeout	(malloc-block/c sizeof-timeval)))
+
+	      (posix:FD_ZERO rd-fdset)
+	      (posix:FD_ZERO wr-fdset)
+	      (posix:FD_ZERO ex-fdset)
+
+	      (posix:FD_SET fd rd-fdset)
+	      (posix:FD_SET fd wr-fdset)
+	      (posix:FD_SET fd ex-fdset)
+
+	      (struct-timeval-tv_sec-set!  timeout 1)
+	      (struct-timeval-tv_usec-set! timeout 0)
+
+	      (posix:select fd rd-fdset wr-fdset ex-fdset timeout)
+
+	      (list (posix:FD_ISSET fd rd-fdset)
+		    (posix:FD_ISSET fd wr-fdset)
+		    (posix:FD_ISSET fd ex-fdset))))))
+    => '(#f #f #f))
+
+  #t)
+
+
 (parametrise ((check-test-name	'pipe)
 	      (debugging	#t))
 

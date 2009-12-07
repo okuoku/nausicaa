@@ -250,6 +250,9 @@
     struct-iovec-iov_len-ref
     sizeof-iovec-array
     array-ref-c-iovec
+    sizeof-fdset
+    alignof-fdset
+    strideof-fdset
     SEEK_SET
     SEEK_CUR
     SEEK_END
@@ -392,7 +395,8 @@
     PROT_NONE
     MS_SYNC
     MS_ASYNC
-    MREMAP_MAYMOVE)
+    MREMAP_MAYMOVE
+    FD_SETSIZE)
   (import
     (rnrs)
     (foreign ffi)
@@ -859,6 +863,9 @@
       ()
       ((_ ?pointer ?index)
        (pointer-add ?pointer (* ?index strideof-iovec)))))
+  (define sizeof-fdset @SIZEOF_FDSET@)
+  (define alignof-fdset @ALIGNOF_FDSET@)
+  (define strideof-fdset @STRIDEOF_FDSET@)
   (define SEEK_SET @VALUEOF_SEEK_SET@)
   (define SEEK_CUR @VALUEOF_SEEK_CUR@)
   (define SEEK_END @VALUEOF_SEEK_END@)
@@ -1025,7 +1032,8 @@
   (define PROT_NONE @VALUEOF_PROT_NONE@)
   (define MS_SYNC @VALUEOF_MS_SYNC@)
   (define MS_ASYNC @VALUEOF_MS_ASYNC@)
-  (define MREMAP_MAYMOVE @VALUEOF_MREMAP_MAYMOVE@))
+  (define MREMAP_MAYMOVE @VALUEOF_MREMAP_MAYMOVE@)
+  (define FD_SETSIZE @VALUEOF_FD_SETSIZE@))
 
 
 ;;; end of file

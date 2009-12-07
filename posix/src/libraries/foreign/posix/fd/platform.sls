@@ -37,6 +37,8 @@
     pipe	mkfifo
     readv	writev
     mmap	munmap		msync		mremap
+
+    select FD_ZERO FD_SET FD_CLR FD_ISSET
     )
   (import (except (rnrs) read write)
     (foreign ffi)
@@ -60,6 +62,10 @@
     (mkfifo		(int mkfifo (char* mode_t)))
     (readv		(ssize_t readv (int void* int)))
     (writev		(ssize_t writev (int void* int)))
+    (munmap		(int munmap (void* size_t)))
+    (msync		(int msync (void* size_t int)))
+    (mremap		(int mremap (void* size_t size_t int)))
+    (select		(int select (int void* void* void* void*)))
     )
 
   (define-c-functions/with-errno libnausicaa-posix
@@ -67,9 +73,13 @@
     (pwrite		(ssize_t nausicaa_posix_pwrite (int void* size_t off_t)))
     (lseek		(off_t nausicaa_posix_lseek (int off_t int)))
     (mmap		(void* mmap (void* size_t int int int off_t)))
-    (munmap		(int munmap (void* size_t)))
-    (msync		(int msync (void* size_t int)))
-    (mremap		(int mremap (void* size_t size_t int)))
-    ))
+    )
+
+  (define-c-functions libnausicaa-posix
+    (FD_ZERO		(void nausicaa_posix_FD_ZERO (void*)))
+    (FD_SET		(void nausicaa_posix_FD_SET (int void*)))
+    (FD_CLR		(void nausicaa_posix_FD_CLR (int void*)))
+    (FD_ISSET		(int nausicaa_posix_FD_ISSET (int void*))))
+  )
 
 ;;; end of file

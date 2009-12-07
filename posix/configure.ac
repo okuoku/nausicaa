@@ -59,10 +59,12 @@ AC_CHECK_HEADERS([dirent.h])
 AC_CHECK_HEADERS([fcntl.h])
 AC_CHECK_HEADERS([ftw.h])
 AC_CHECK_HEADERS([sys/mman.h])
+AC_CHECK_HEADERS([sys/select.h])
 AC_CHECK_HEADERS([sys/stat.h])
 AC_CHECK_HEADERS([sys/time.h])
 AC_CHECK_HEADERS([sys/times.h])
 AC_CHECK_HEADERS([sys/timex.h])
+AC_CHECK_HEADERS([sys/types.h])
 AC_CHECK_HEADERS([sys/wait.h])
 AC_CHECK_HEADERS([time.h])
 AC_CHECK_HEADERS([unistd.h])
@@ -103,6 +105,9 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #ifdef HAVE_SYS_MMAN_H
 #  include <sys/mman.h>
 #endif
+#ifdef HAVE_SYS_SELECT_H
+#  include <sys/select.h>
+#endif
 #ifdef HAVE_SYS_STAT_H
 #  include <sys/stat.h>
 #endif
@@ -114,6 +119,9 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #endif
 #ifdef HAVE_SYS_TIMEX_H
 #  include <sys/timex.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
 #endif
 #ifdef HAVE_SYS_WAIT_H
 #  include <sys/wait.h>
