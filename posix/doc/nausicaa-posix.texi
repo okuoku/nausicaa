@@ -2401,8 +2401,8 @@ exported by the following libraries:
 @end example
 
 @menu
-* fd types::                    Data types.
-* fd constants::                Bindings for constant values.
+* fd typedefs::                 File descriptor related data types.
+* fd constants::                Constant values and structure accessors.
 * fd open close::               Opening and closing.
 * fd read write::               Reading and writing.
 * fd seek::                     Setting the file position.
@@ -2418,13 +2418,27 @@ exported by the following libraries:
 @end menu
 
 @c page
-@node fd types
-@section Data types
+@node fd typedefs
+@section File descriptor related data types
+
+
+Unless otherwise specified, the bindings documented in this section are
+exported by the @library{foreign posix typedefs} library.
+
+@menu
+* fd typedefs fds::             File descriptors.
+* fd typedefs flocks::          File locking.
+* fd typedefs fdsets::          File descriptor sets.
+@end menu
+
+@c page
+@node fd typedefs fds
+@subsection File descriptors
 
 
 Functions from the primitives and high--level file descriptor libraries
 accept objects of type @code{file-descriptor} as @var{fd} arguments.
-Functions from the platform libraries accept exact intgers as
+Functions from the platform libraries accept exact integers as
 representing file descriptors.
 
 
@@ -2434,19 +2448,120 @@ all the other Scheme object types.
 @end deftp
 
 
+@defun file-descriptor? @var{obj}
+Return true if @var{obj} is a file descriptor object.
+@end defun
+
+
 @defun file-descriptor->integer @var{fd}
 @defunx integer->file-descriptor @var{integer}
 Convert between a file descriptor object and an integer object.
 @end defun
 
+@c page
+@node fd typedefs flocks
+@subsection File locking
 
-@defun file-descriptor? @var{obj}
+
+Functions from the primitives and high--level file descriptor libraries
+accept objects of type @code{struct-flock} as @var{flock} arguments.
+Functions from the platform libraries accept pointer objects as
+references to @code{struct flock} data structures.
+
+
+@deftp {Object Type} struct-flock
+Object type referencing a @code{struct flock} data structure; it is
+disjoint from all the other Scheme object types.
+@end deftp
+
+
+@defun make-struct-flock @var{malloc}
+Build and return a new @code{struct-flock} object, referencing a newly
+allocated C language @code{struct flock} value.
+
+Memory is allocated using the function @var{malloc}, whose behaviour
+must match the one of @func{malloc} from @library{foreign memory}.
+@nauref{memory alloc high, Exception raising functions}.  To release
+memory we have to convert the @code{struct-flock} object to a pointer
+object and call the appropriate free function.
+@end defun
+
+
+@defun struct-flock? @var{obj}
+Return true if @var{obj} is a @code{struct-flock} object.
+@end defun
+
+
+@defun struct-flock->pointer @var{fd}
+@defunx pointer->struct-flock @var{flock}
+Convert between a @code{struct-flock} object and a pointer object.
+@end defun
+
+
+The following bindings are exported by the @library{foreign posix
+extensions} library.
+
+
+@deftp {Extension Type} struct-flock*
+Extension type which allows accessing and mutating the fields of a
+@code{struct flock} data structure using the facilities of the
+@library{records} library.  It has the following fields:
+
+@table @code
+@item type
+@itemx whence
+@itemx start
+@itemx len
+@itemx pid
+One virtual field for each field of @code{struct flock}.
+@end table
+@end deftp
+
+
+@c page
+@node fd typedefs fdsets
+@subsection File descriptor sets
+
+
+Functions from the primitive and high--level libraries acting upon file
+descriptor sets (C language type @code{fd_set}) accept objects of type
+@code{fdset} as @var{fdset} arguments.  Functions from the platform
+libraries accept pointer objects as references to @code{fd_set} values.
+@ref{fd typedefs, File descriptor related data types}.
+
+
+@deftp {Object Type} fdset
+Object type referencing a file descriptor set; it is disjoint from all
+the other Scheme object types.
+@end deftp
+
+
+@defun fdset? @var{obj}
 Return true if @var{obj} is a file descriptor object.
 @end defun
 
+
+@defun make-fdset @var{malloc}
+Build and return a new @code{fdset} object, referencing a newly
+allocated C language @code{fd_set} value.
+
+Memory is allocated using the function @var{malloc}, whose behaviour
+must match the one of @func{malloc} from @library{foreign memory}.
+@nauref{memory alloc high, Exception raising functions}.  To release
+memory we have to convert the @code{fdset} object to a pointer object
+and call the appropriate free function.
+@end defun
+
+
+@defun fdset->pointer @var{fdset}
+@defunx pointer->fdset @var{integer}
+Convert between a file descriptor object and an integer object.
+@end defun
+
+
 @c page
 @node fd constants
-@section Bindings for constant values
+@section Constant values and structure accessors
 
 
 @menu
@@ -2455,7 +2570,8 @@ Return true if @var{obj} is a file descriptor object.
 * fd constants control::        File control flags.
 * fd constants seek::           File positions.
 * fd constants lock::           Locking.
-* fd constants mmap::           Memory mapped files.
+* fd constants mmap::           Memory--mapped files.
+* fd constants select::         Waiting for file descriptor events.
 @end menu
 
 @c page
@@ -2682,9 +2798,33 @@ sizeof} library.  @glibcref{File Locks, File Locks}.
 Flags for file descriptor locking.
 @end defvr
 
+
+@defvr Constant sizeof-flock
+@defvrx Constant alignof-flock
+@defvrx Constant strideof-flock
+These are: the number of bytes required to hold a structure of type
+@code{struct flock}; the alignment of the structure when embedded in
+another structure; the number of bytes between two elements in an array
+of structures.
+@end defvr
+
+
+@deffn Syntax struct-flock-l_type-set! @var{pointer} @var{value}
+@deffnx Syntax struct-flock-l_type-ref @var{pointer}
+@deffnx Syntax struct-flock-l_whence-set! @var{pointer} @var{value}
+@deffnx Syntax struct-flock-l_whence-ref @var{pointer}
+@deffnx Syntax struct-flock-l_start-set! @var{pointer} @var{value}
+@deffnx Syntax struct-flock-l_start-ref @var{pointer}
+@deffnx Syntax struct-flock-l_len-set! @var{pointer} @var{value}
+@deffnx Syntax struct-flock-l_len-ref @var{pointer}
+@deffnx Syntax struct-flock-l_pid-set! @var{pointer} @var{value}
+@deffnx Syntax struct-flock-l_pid-ref @var{pointer}
+Peekers and pokers for the fields of a @code{struct flock}.
+@end deffn
+
 @c page
 @node fd constants mmap
-@subsection Memory mapped files
+@subsection Memory--mapped files
 
 
 All the following bindings are exported by the @library{foreign posix
@@ -2733,6 +2873,30 @@ composed with bitwise inclusive OR.
 
 @defvr Constant MREMAP_MAYMOVE
 Value for the @var{flags} argument to @func{mremap}.
+@end defvr
+
+@c page
+@node fd constants select
+@subsection Waiting for file descriptor events
+
+
+All the following bindings are exported by the @library{foreign posix
+sizeof} library.  @glibcref{Waiting for I/O, Waiting for Input and
+Output}.
+
+
+@defvr Constant FD_SETSIZE
+Maximum number of file descriptors that a @code{fd_set} can hold
+informations about.  It is meant to be used as @var{max-fd} argument to
+@func{select}.
+@end defvr
+
+
+@defvr Constant sizeof-fdset
+@defvrx Constant alignof-fdset
+@defvrx Constant strideof-fdset
+Size, alignment and array stride of data structures of type
+@code{fd_set}.
 @end defvr
 
 @c page
@@ -3026,9 +3190,9 @@ Files}.  @glibcref{IOCTLs, I/O Control Operations}.
 @deffnx Function platform:fcntl @var{fd-int} @var{operation} @var{arg-int}
 @deffnx Function platform:fcntl/ptr @var{fd-int} @var{operation} @var{arg-ptr}
 Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
-must be an exact integer, @var{arg} can be an exact integer or a pointer
-object.  @ref{fd constants control} for the list of the supported
-operations.
+must be an exact integer; @var{arg} can be an exact integer, a pointer
+object or a @code{struct-flock} object.  @ref{fd constants control} for
+the list of the supported operations.
 
 @func{primitive:fcntl} assumes that: If the return value of
 @func{platform:fcntl} or @func{platform:fcntl/ptr} is @code{-1}, an
@@ -3070,13 +3234,13 @@ Duplicate @var{fd}, return the new file descriptor object.
 @end deffn
 
 
-@deffn Function dup2 @var{old-fd} @var{new-fd-int}
+@deffn Function dup2 @var{old-fd} @var{new-fd/int}
 @deffnx Parameter dup2-function
-@deffnx Function primitive:dup2 @var{old-fd} @var{new-fd-int}
+@deffnx Function primitive:dup2 @var{old-fd} @var{new-fd/int}
 @deffnx Function platform:dup2 @var{old-fd-int} @var{new-fd-int}
-Copy @var{old-fd}, a file descriptor object, to a file descriptor
-whose number is @var{new-fd-int}, an exact integer.  Return the new file
-descriptor object.
+Copy @var{old-fd}, a file descriptor object, to a file descriptor whose
+number is @var{new-fd/int}, which can be a file descriptor object or an
+exact integer.  Return the new file descriptor object.
 @end deffn
 
 @c page
@@ -3089,47 +3253,21 @@ Locking is performed by @func{fcntl} with the @code{F_GETLK},
 argument to @func{fcntl} must be a pointer to a structure of type
 @code{struct flock}.  @glibcref{File Locks,File Locks}.
 
-The following bindings are exported by the @library{foreign posix
-sizeof} library.
-
-
-@defvr Constant sizeof-flock
-@defvrx Constant alignof-flock
-@defvrx Constant strideof-flock
-These are: the number of bytes required to hold a structure of type
-@code{struct flock}; the alignment of the structure when embedded in
-another structure; the number of bytes between two elements in an array
-of structures.
-@end defvr
-
-
-@deffn Syntax struct-flock-l_type-set! @var{pointer} @var{value}
-@deffnx Syntax struct-flock-l_type-ref @var{pointer}
-@deffnx Syntax struct-flock-l_whence-set! @var{pointer} @var{value}
-@deffnx Syntax struct-flock-l_whence-ref @var{pointer}
-@deffnx Syntax struct-flock-l_start-set! @var{pointer} @var{value}
-@deffnx Syntax struct-flock-l_start-ref @var{pointer}
-@deffnx Syntax struct-flock-l_len-set! @var{pointer} @var{value}
-@deffnx Syntax struct-flock-l_len-ref @var{pointer}
-@deffnx Syntax struct-flock-l_pid-set! @var{pointer} @var{value}
-@deffnx Syntax struct-flock-l_pid-ref @var{pointer}
-Peekers and pokers for the fields of a @code{struct flock}.
-@end deffn
-
-
 Usage example:
 
 @example
 (with-compensations
   (let ((fd     ---)
-        (flock* (malloc-block/c sizeof-flock)))
-    (struct-flock-l_type-set!   flock* F_WRLCK)
-    (struct-flock-l_whence-set! flock* SEEK_SET)
-    (struct-flock-l_start-set!  flock* 0)
-    (struct-flock-l_len-set!    flock* 10)
-    (fcntl fd F_SETLK flock*)
-    ---
-    (fcntl fd F_UNLCK flock*)))
+        (lock   (make-struct-flock malloc-block/c)))
+    (with-fields* (((type whence start len) struct-flock* lock))
+      (set! lock.type   F_WRLCK)
+      (set! lock.whence SEEK_SET)
+      (set! lock.start  0)
+      (set! lock.len    10)
+
+      (fcntl fd F_SETLK lock)
+      ---
+      (fcntl fd F_UNLCK lock))))
 @end example
 
 @c page
@@ -3360,11 +3498,11 @@ Usage example:
 @section Waiting for input or output
 
 
-The following functions manage watining for input and outut on file
+The following functions manage watiting for input and outut on file
 descriptors.  @glibcref{Waiting for I/O, Waiting for Input and Output}.
 
-In the following descriptions the @var{fdset} arguments are pointers to
-data structures of type @code{fd_set} (whatever they are).
+In the following descriptions the @var{fdset} arguments are @code{fdset}
+objects.  @ref{fd typedefs, File descriptor related data types}.
 
 
 @deffn Function select @var{max-fd} @var{read-fdset} @var{write-fdset} @var{except-fdset} @var{timeout}
@@ -3372,8 +3510,8 @@ data structures of type @code{fd_set} (whatever they are).
 @deffnx Function primitive:select @var{max-fd} @var{read-fdset} @var{write-fdset} @var{except-fdset} @var{timeout}
 @deffnx Function platform:select @var{max-fd} @var{read-fdset} @var{write-fdset} @var{except-fdset} @var{timeout}
 Wait for an event on the file descriptors in the sets referenced by the
-@var{fdset} arguments.  @var{timeout} must be a pointer to a
-@code{struct timeval} data structure.
+@var{fdset} arguments.  @var{timeout} must be a @code{struct-timeval}
+object.
 
 @strong{NOTE} This function can be interrupted and return with
 @code{errno} set to @code{EINTR}; the library does not automatically
@@ -3413,17 +3551,36 @@ referenced by @var{fdset}.
 @end deffn
 
 
-The following bindings are exported by the library @library{foreign
-posix sizeof}.
+Usage example:
 
+@example
+(import (except (rnrs) read write)
+  (records)
+  (foreign memory)
+  (foreign posix fd)
+  (foreign posix sizeof)
+  (for (foreign posix typedefs) expand run)
+  (for (foreign posix extensions) expand))
 
-@defvr Constant sizeof-fdset
-@defvrx Constant alignof-fdset
-@defvrx Constant strideof-fdset
-Size, alignment and array stride of data structures of type
-@code{fd_set}.
-@end defvr
+(let ((fd        ---)
+      (rd-fdset  (make-fdset malloc-block/c))
+      (wr-fdset  (make-fdset malloc-block/c))
+      (ex-fdset  (make-fdset malloc-block/c))
+      (timeout   (make-struct-timeval malloc-block/c)))
 
+  (with-fields* (((sec usec) struct-timeval* timeout))
+    (set! timeout.sec  1)
+    (set! timeout.usec 0))
+
+  (posix:FD_ZERO rd-fdset)
+  (posix:FD_ZERO wr-fdset)
+  (posix:FD_ZERO ex-fdset)
+
+  (posix:FD_SET fd rd-fdset)
+
+  (posix:select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
+  (posix:FD_ISSET fd rd-fdset))
+@end example
 
 @c page
 @node fd custom

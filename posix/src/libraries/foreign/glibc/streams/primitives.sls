@@ -73,7 +73,7 @@
     (only (foreign posix sizeof)
 	  EOF)
     (prefix (foreign glibc streams platform) platform:)
-    (foreign posix wrappers))
+    (foreign posix typedefs))
 
 
 (define (ferror stream)
@@ -294,7 +294,7 @@
   (receive (result errno)
       (with-compensations
 	(let ((mode	(string->cstring/c open-mode)))
-	  (platform:fdopen fd mode)))
+	  (platform:fdopen (file-descriptor->integer fd) mode)))
     (if (pointer-null? result)
 	(raise-errno-error 'fdopen errno (list fd open-mode))
       (pointer->FILE* result))))
@@ -304,7 +304,7 @@
       (platform:fileno (FILE*->pointer stream))
     (when (pointer-null? result)
       (raise-errno-error 'fileno errno stream))
-    result))
+    (integer->file-descriptor result)))
 
 ;;; --------------------------------------------------------------------
 

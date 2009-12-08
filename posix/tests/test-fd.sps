@@ -27,10 +27,13 @@
 (import (nausicaa)
   (checks)
   (strings)
+  (records)
   (foreign ffi)
   (foreign memory)
   (foreign cstrings)
   (foreign errno)
+  (for (foreign posix typedefs) expand run)
+  (for (foreign posix extensions) expand)
   (prefix (foreign posix fd) posix:)
   (foreign posix sizeof)
   (deferred-exceptions)
@@ -202,21 +205,19 @@ Ses ailes de geant l'empechent de marcher.")
 		       (bufptr2	(malloc-block/c buflen2)))
 		  (posix:write fd bufptr buflen)
 		  (posix:lseek fd 0 SEEK_SET)
-		  (let ((lock	(malloc-block/c sizeof-flock)))
-		    (struct-flock-l_type-set!   lock F_WRLCK)
-		    (struct-flock-l_whence-set! lock SEEK_SET)
-		    (struct-flock-l_start-set!  lock 0)
-		    (struct-flock-l_len-set!    lock 10)
-		    (compensate
-			(posix:fcntl fd F_SETLK lock)
-		      (with
-		       (posix:fcntl fd F_UNLCK lock)))
-		    (posix:read fd bufptr2 buflen2)
-		    (posix:fcntl fd F_GETLK lock)
-;;;(display (list (struct-flock-l_type-ref lock)
-;;;		  (struct-flock-l_start-ref lock)))
-;;;(newline)
-		    (cstring->string bufptr2 buflen2))))))
+		  (let ((lock	(make-struct-flock malloc-block/c)))
+		    (with-fields* (((type whence start len) struct-flock* lock))
+		      (set! lock.type   F_WRLCK)
+		      (set! lock.whence SEEK_SET)
+		      (set! lock.start  0)
+		      (set! lock.len    10)
+		      (compensate
+			  (posix:fcntl fd F_SETLK lock)
+			(with
+			 (posix:fcntl fd F_UNLCK lock)))
+		      (posix:read fd bufptr2 buflen2)
+		      (posix:fcntl fd F_GETLK lock)
+		      (cstring->string bufptr2 buflen2)))))))
 	=> the-string)
 
       #t)))
@@ -260,77 +261,6 @@ Ses ailes de geant l'empechent de marcher.")
 						 (struct-iovec-iov_len-ref  iovec*))
 				ell)))))))))
     => '("hello" "salut" "ciao"))
-
-  #t)
-
-
-(parametrise ((check-test-name	'mmap)
-	      (debugging	#f))
-
-  (check
-      (with-compensations
-	(let ((pathname the-pathname))
-	  (letrec* ((fd		(compensate
-				    (posix:open pathname
-						(bitwise-ior O_CREAT O_RDWR)
-						(bitwise-ior S_IRUSR S_IWUSR))
-				  (with
-				   (posix:close fd))))
-		    (map-len	10)
-		    (address	(compensate
-				    (posix:mmap pointer-null map-len
-						(bitwise-ior PROT_READ PROT_WRITE)
-						MAP_SHARED fd 0)
-				  (with
-				   (posix:munmap address map-len)))))
-	    (posix:write fd (string->cstring/c "0123456789") 10)
-	    (posix:lseek fd 0 SEEK_SET)
-	    (pointer-set-c-signed-char! address 3 (char->integer #\A))
-	    (posix:msync address 5 MS_SYNC) ;just to verify that no error occurs
-	    (list (integer->char (pointer-ref-c-signed-char address 3))
-		  (integer->char (pointer-ref-c-signed-char address 5))))))
-    => '(#\A #\5))
-
-  #t)
-
-
-(parametrise ((check-test-name	'select)
-	      (debugging	#f))
-
-  (check
-      (with-compensations
-	(let ((pathname the-pathname))
-	  (letrec ((fd (compensate
-			   (posix:open pathname
-				       (bitwise-ior O_CREAT O_RDWR)
-				       (bitwise-ior S_IRUSR S_IWUSR))
-			 (with
-			  (posix:close fd)))))
-
-	    (posix:write fd (string->cstring/c "0123456789") 10)
-
-	    (let ((rd-fdset	(malloc-block/c sizeof-fdset))
-		  (wr-fdset	(malloc-block/c sizeof-fdset))
-		  (ex-fdset	(malloc-block/c sizeof-fdset))
-		  (timeout	(malloc-block/c sizeof-timeval)))
-
-	      (posix:FD_ZERO rd-fdset)
-	      (posix:FD_ZERO wr-fdset)
-	      (posix:FD_ZERO ex-fdset)
-
-	      (posix:FD_SET fd rd-fdset)
-	      (posix:FD_SET fd wr-fdset)
-	      (posix:FD_SET fd ex-fdset)
-
-	      (struct-timeval-tv_sec-set!  timeout 1)
-	      (struct-timeval-tv_usec-set! timeout 0)
-
-	      (posix:select fd rd-fdset wr-fdset ex-fdset timeout)
-
-	      (list (posix:FD_ISSET fd rd-fdset)
-		    (posix:FD_ISSET fd wr-fdset)
-		    (posix:FD_ISSET fd ex-fdset))))))
-    => '(#f #f #f))
 
   #t)
 
@@ -474,6 +404,107 @@ Ses ailes de geant l'empechent de marcher.")
 	=> "ciao\n")
 
       #f)))
+
+
+(parametrise ((check-test-name	'mmap)
+	      (debugging	#f))
+
+  (check
+      (with-compensations
+	(let ((pathname the-pathname))
+	  (letrec* ((fd		(compensate
+				    (posix:open pathname
+						(bitwise-ior O_CREAT O_RDWR)
+						(bitwise-ior S_IRUSR S_IWUSR))
+				  (with
+				   (posix:close fd))))
+		    (map-len	10)
+		    (address	(compensate
+				    (posix:mmap pointer-null map-len
+						(bitwise-ior PROT_READ PROT_WRITE)
+						MAP_SHARED fd 0)
+				  (with
+				   (posix:munmap address map-len)))))
+	    (posix:write fd (string->cstring/c "0123456789") 10)
+	    (posix:lseek fd 0 SEEK_SET)
+	    (pointer-set-c-signed-char! address 3 (char->integer #\A))
+	    (posix:msync address 5 MS_SYNC) ;just to verify that no error occurs
+	    (list (integer->char (pointer-ref-c-signed-char address 3))
+		  (integer->char (pointer-ref-c-signed-char address 5))))))
+    => '(#\A #\5))
+
+  #t)
+
+
+(parametrise ((check-test-name	'select)
+	      (debugging	#f))
+
+  (check
+      (with-compensations
+	(let ((pathname the-pathname))
+	  (letrec ((fd (compensate
+			   (posix:open pathname
+				       (bitwise-ior O_CREAT O_RDWR)
+				       (bitwise-ior S_IRUSR S_IWUSR))
+			 (with
+			  (posix:close fd)))))
+
+	    (posix:write fd (string->cstring/c "0123456789") 10)
+
+	    (let ((rd-fdset	(make-fdset malloc-block/c))
+		  (wr-fdset	(make-fdset malloc-block/c))
+		  (ex-fdset	(make-fdset malloc-block/c))
+		  (timeout	(make-struct-timeval malloc-block/c)))
+
+	      (posix:FD_ZERO rd-fdset)
+	      (posix:FD_ZERO wr-fdset)
+	      (posix:FD_ZERO ex-fdset)
+
+	      (posix:FD_SET fd rd-fdset)
+	      (posix:FD_SET fd wr-fdset)
+	      (posix:FD_SET fd ex-fdset)
+
+	      (with-fields* (((sec usec) struct-timeval* timeout))
+		(set! timeout.sec  1)
+		(set! timeout.usec 0))
+
+	      (posix:select fd rd-fdset wr-fdset ex-fdset timeout)
+
+	      (list (posix:FD_ISSET fd rd-fdset)
+		    (posix:FD_ISSET fd wr-fdset)
+		    (posix:FD_ISSET fd ex-fdset))))))
+    => '(#f #f #f))
+
+  (check
+      (with-compensations
+	(let-values (((in ou) (posix:pipe)))
+	  (push-compensation (posix:close in))
+	  (push-compensation (posix:close ou))
+
+	  (let ((rd-fdset	(make-fdset malloc-block/c))
+		(wr-fdset	(make-fdset malloc-block/c))
+		(ex-fdset	(make-fdset malloc-block/c))
+		(timeout	(make-struct-timeval malloc-block/c)))
+
+	    (with-fields* (((sec usec) struct-timeval* timeout))
+	      (set! timeout.sec  1)
+	      (set! timeout.usec 0)
+
+	      (posix:FD_ZERO rd-fdset)
+	      (posix:FD_ZERO wr-fdset)
+	      (posix:FD_ZERO ex-fdset)
+
+	      (posix:FD_SET in rd-fdset)
+
+	      (posix:write ou (string->cstring/c "ciao") 4)
+
+	      (posix:select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
+	      (posix:FD_ISSET in rd-fdset)
+	      ))))
+    => #t)
+
+  #t)
+
 
 
 ;;;; done

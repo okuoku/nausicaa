@@ -65,7 +65,7 @@
 	  raise-errno-error)
     (foreign posix sizeof)
     (prefix (foreign glibc file platform) platform:)
-    (foreign posix wrappers))
+    (foreign posix typedefs))
 
 
 ;;;; directory access

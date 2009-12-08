@@ -102,7 +102,7 @@
 	  struct-stat->record)
     (prefix (foreign posix fd) posix:)
     (prefix (foreign posix file platform) platform:)
-    (foreign posix wrappers))
+    (foreign posix typedefs))
 
 
 ;;;; system inspection

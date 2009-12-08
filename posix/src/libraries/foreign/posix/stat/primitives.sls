@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -50,7 +50,7 @@
 	  S_ISREG		S_ISFIFO	S_ISLNK
 	  S_ISSOCK
 	  S_TYPEISMQ		S_TYPEISSEM	S_TYPEISSHM)
-    (foreign posix wrappers))
+    (foreign posix typedefs))
 
 
 (define (%real-stat func funcname pathname)

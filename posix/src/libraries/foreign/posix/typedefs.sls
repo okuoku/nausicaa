@@ -25,7 +25,7 @@
 ;;;
 
 
-(library (foreign posix wrappers)
+(library (foreign posix typedefs)
   (export
 
     <posix-wrapper>
@@ -35,10 +35,23 @@
     file-descriptor		file-descriptor?
     integer->file-descriptor	(rename (<posix-wrapper>-object file-descriptor->integer))
 
-    <FILE*>			FILE*?
+    FILE*			FILE*?
     pointer->FILE*		(rename (<posix-wrapper>-object FILE*->pointer))
+
+    fdset			fdset?
+    make-fdset
+    pointer->fdset		(rename (<posix-wrapper>-object fdset->pointer))
+
+    struct-flock
+    make-struct-flock		struct-flock?
+    struct-flock->pointer	pointer->struct-flock
+
+    struct-timeval
+    make-struct-timeval		struct-timeval?
+    struct-timeval->pointer	pointer->struct-timeval
     )
-  (import (rnrs))
+  (import (rnrs)
+    (foreign posix sizeof))
 
 
 (define-record-type <posix-wrapper>
@@ -47,9 +60,35 @@
 (define-record-type (file-descriptor integer->file-descriptor file-descriptor?)
   (parent <posix-wrapper>))
 
-(define-record-type (<FILE*> pointer->FILE* FILE*?)
+(define-record-type (FILE* pointer->FILE* FILE*?)
   (parent <posix-wrapper>))
 
+;;; --------------------------------------------------------------------
+
+(define-record-type (fdset pointer->fdset fdset?)
+  (parent <posix-wrapper>))
+
+(define (make-fdset malloc)
+  (pointer->fdset (malloc sizeof-fdset)))
+
+;;; --------------------------------------------------------------------
+
+(define-record-type (struct-flock pointer->struct-flock struct-flock?)
+  (parent <posix-wrapper>))
+
+(define (make-struct-flock malloc)
+  (pointer->struct-flock (malloc sizeof-flock)))
+
+(define struct-flock->pointer <posix-wrapper>-object)
+
+
+(define-record-type (struct-timeval pointer->struct-timeval struct-timeval?)
+  (parent <posix-wrapper>))
+
+(define struct-timeval->pointer <posix-wrapper>-object)
+
+(define (make-struct-timeval malloc)
+  (pointer->struct-timeval (malloc sizeof-timeval)))
 
 
 ;;;; done

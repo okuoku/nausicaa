@@ -4,9 +4,6 @@
   Interface posixoptions(7).
 
 * stub
-
-  Add select stuff to the stub library.
-
 * glibc
 
   Add the string functions.
@@ -15,13 +12,9 @@
 
   Fix the ugliness in PRIMITIVE:STRFTIME.
 
+  Add pselect() (see the manual page).
+
 * posix
-
-  Add the scatter/gather fd interface.
-
-  Add the mmap interface.
-
-  Finish the time interface.
 
   Node "Users and Groups".
 

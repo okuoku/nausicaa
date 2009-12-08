@@ -42,9 +42,9 @@
     pipe	mkfifo
     readv	writev
     mmap	munmap		msync	mremap
-    select
-    FD_ISSET FD_SET FD_CLR
-    (rename (platform:FD_ZERO	FD_ZERO))
+
+    ;; select
+    select FD_ISSET FD_SET FD_CLR FD_ZERO
     )
   (import (except (rnrs) read write)
     (receive)
@@ -64,8 +64,10 @@
 	  pointer->integer)
     (only (foreign ffi sizeof)
 	  sizeof-int-array)
-    (prefix (foreign posix fd platform) platform:)
-    (foreign posix wrappers))
+    (only (foreign posix sizeof)
+	  sizeof-fdset)
+    (foreign posix typedefs)
+    (prefix (foreign posix fd platform) platform:))
 
 
 ;;;; helpers
@@ -176,10 +178,18 @@
 
 (define (fcntl fd operation arg)
   (%call-for-minus-one fcntl
-		       (if (pointer? arg)
+		       (if (or (pointer? arg)
+			       (struct-flock? arg))
 			   platform:fcntl/ptr
 			 platform:fcntl)
-		       (file-descriptor->integer fd) operation arg))
+		       (file-descriptor->integer fd)
+		       operation
+		       (cond ((pointer? arg)
+			      arg)
+			     ((struct-flock? arg)
+			      (struct-flock->pointer arg))
+			     (else
+			      arg))))
 
 (define (ioctl fd operation arg)
   (%call-for-minus-one ioctl platform:ioctl (file-descriptor->integer fd) operation arg))
@@ -275,21 +285,27 @@
 
 ;;; select
 
-(define (FD_ISSET fd fdset)
-  (not (= 0 (platform:FD_ISSET (file-descriptor->integer fd) fdset))))
+(define (FD_ZERO set)
+  (platform:FD_ZERO (fdset->pointer set)))
+
+(define (FD_ISSET fd set)
+  (not (= 0 (platform:FD_ISSET (file-descriptor->integer fd) (fdset->pointer set)))))
 
 (define (FD_SET fd set)
-  (platform:FD_SET (file-descriptor->integer fd) set))
+  (platform:FD_SET (file-descriptor->integer fd) (fdset->pointer set)))
 
 (define (FD_CLR fd set)
-  (platform:FD_CLR (file-descriptor->integer fd) set))
+  (platform:FD_CLR (file-descriptor->integer fd) (fdset->pointer set)))
 
 (define (select max-fd read-fdset write-fdset except-fdset timeval)
   (receive (total-number-of-ready-fds errno)
       (platform:select (if (file-descriptor? max-fd)
 			   (file-descriptor->integer max-fd)
 			 max-fd)
-		       read-fdset write-fdset except-fdset timeval)
+		       (fdset->pointer read-fdset)
+		       (fdset->pointer write-fdset)
+		       (fdset->pointer except-fdset)
+		       (struct-timeval->pointer timeval))
     (if (= -1 total-number-of-ready-fds)
 	(raise-errno-error 'select errno (list max-fd read-fdset write-fdset except-fdset timeval))
       total-number-of-ready-fds)))

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,10 +26,6 @@
 
 (library (foreign posix fd)
   (export
-    (rename (primitive:integer->file-descriptor	integer->file-descriptor)
-	    (primitive:file-descriptor->integer	file-descriptor->integer)
-	    (primitive:file-descriptor?		file-descriptor?))
-
     open	open-function
     close	close-function
 
