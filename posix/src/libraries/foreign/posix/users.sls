@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,13 +25,47 @@
 
 
 (library (foreign posix users)
-  (export)
+  (export
+    getuid		getuid-function
+    getgid		getgid-function
+    geteuid		geteuid-function
+    getegid		getegid-function
+
+    setuid		setuid-function
+    setgid		setgid-function
+    seteuid		seteuid-function
+    setegid		setegid-function
+
+    getgroups		getgroups-function
+    setgroups		setgroups-function
+    initgroups		initgroups-function
+    getgrouplist	getgrouplist-function
+
+    getlogin		cuserid
+
+    )
   (import (rnrs)
+    (foreign posix helpers)
     (prefix (foreign posix users primitives) primitive:))
 
 
-;;;; code
+(define-parametrised getuid)
+(define-parametrised getgid)
+(define-parametrised geteuid)
+(define-parametrised getegid)
+(define-parametrised getgroups)
 
+(define-parametrised setuid uid)
+(define-parametrised setgid gid)
+(define-parametrised seteuid uid)
+(define-parametrised setegid gid)
+(define-parametrised setgroups gid-list)
+
+(define-parametrised initgroups user-name gid)
+(define-parametrised getgrouplist user-name gid)
+
+(define-parametrised getlogin)
+(define-parametrised cuserid)
 
 
 ;;;; done

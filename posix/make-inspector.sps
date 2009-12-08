@@ -48,6 +48,15 @@
 
 (define-c-type wchar_t		signed-int)
 
+(sizeof-lib
+ (define-syntax sizeof-gid_t-array
+   (syntax-rules ()
+     ((_ ?number-of-elements)
+      (* ?number-of-elements strideof-gid_t)))))
+
+(sizeof-lib-exports
+ sizeof-gid_t-array)
+
 
 ;;; --------------------------------------------------------------------
 ;;; Struct types inspection.
@@ -405,6 +414,9 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 
 (define-c-defines "select related symbols"
   FD_SETSIZE)
+
+(define-c-defines "max size of string for cuserid()"
+  L_cuserid)
 
 (autoconf-lib "AC_CACHE_SAVE")
 

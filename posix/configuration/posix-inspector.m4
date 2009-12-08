@@ -323,6 +323,9 @@ NAUSICAA_DEFINE_VALUE([MREMAP_MAYMOVE])
 
 dnl Preprocessor symbols: select related symbols
 NAUSICAA_DEFINE_VALUE([FD_SETSIZE])
+
+dnl Preprocessor symbols: max size of string for cuserid()
+NAUSICAA_DEFINE_VALUE([L_cuserid])
 AC_CACHE_SAVE
 
 dnl end of file

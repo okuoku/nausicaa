@@ -32,74 +32,75 @@
     sizeof-blkcnt_t
     alignof-blkcnt_t
     strideof-blkcnt_t
-    pointer-set-c-blkcnt_t!
     pointer-ref-c-blkcnt_t
+    pointer-set-c-blkcnt_t!
     clock_t
     sizeof-clock_t
     alignof-clock_t
     strideof-clock_t
-    pointer-set-c-clock_t!
     pointer-ref-c-clock_t
+    pointer-set-c-clock_t!
     dev_t
     sizeof-dev_t
     alignof-dev_t
     strideof-dev_t
-    pointer-set-c-dev_t!
     pointer-ref-c-dev_t
+    pointer-set-c-dev_t!
     gid_t
     sizeof-gid_t
     alignof-gid_t
     strideof-gid_t
-    pointer-set-c-gid_t!
     pointer-ref-c-gid_t
+    pointer-set-c-gid_t!
     ino_t
     sizeof-ino_t
     alignof-ino_t
     strideof-ino_t
-    pointer-set-c-ino_t!
     pointer-ref-c-ino_t
+    pointer-set-c-ino_t!
     mode_t
     sizeof-mode_t
     alignof-mode_t
     strideof-mode_t
-    pointer-set-c-mode_t!
     pointer-ref-c-mode_t
+    pointer-set-c-mode_t!
     nlink_t
     sizeof-nlink_t
     alignof-nlink_t
     strideof-nlink_t
-    pointer-set-c-nlink_t!
     pointer-ref-c-nlink_t
+    pointer-set-c-nlink_t!
     off_t
     sizeof-off_t
     alignof-off_t
     strideof-off_t
-    pointer-set-c-off_t!
     pointer-ref-c-off_t
+    pointer-set-c-off_t!
     pid_t
     sizeof-pid_t
     alignof-pid_t
     strideof-pid_t
-    pointer-set-c-pid_t!
     pointer-ref-c-pid_t
+    pointer-set-c-pid_t!
     time_t
     sizeof-time_t
     alignof-time_t
     strideof-time_t
-    pointer-set-c-time_t!
     pointer-ref-c-time_t
+    pointer-set-c-time_t!
     uid_t
     sizeof-uid_t
     alignof-uid_t
     strideof-uid_t
-    pointer-set-c-uid_t!
     pointer-ref-c-uid_t
+    pointer-set-c-uid_t!
     wchar_t
     sizeof-wchar_t
     alignof-wchar_t
     strideof-wchar_t
-    pointer-set-c-wchar_t!
     pointer-ref-c-wchar_t
+    pointer-set-c-wchar_t!
+    sizeof-gid_t-array
     sizeof-flock
     alignof-flock
     strideof-flock
@@ -396,7 +397,8 @@
     MS_SYNC
     MS_ASYNC
     MREMAP_MAYMOVE
-    FD_SETSIZE)
+    FD_SETSIZE
+    L_cuserid)
   (import
     (rnrs)
     (foreign ffi)
@@ -406,83 +408,89 @@
   (define alignof-blkcnt_t @ALIGNOF_BLKCNT_T@)
   (define strideof-blkcnt_t @STRIDEOF_BLKCNT_T@)
   (define
-    pointer-set-c-blkcnt_t!
+    pointer-ref-c-blkcnt_t
     @GETTEROF_BLKCNT_T@)
   (define
-    pointer-ref-c-blkcnt_t
+    pointer-set-c-blkcnt_t!
     @SETTEROF_BLKCNT_T@)
   (define clock_t '@TYPEOF_CLOCK_T@)
   (define sizeof-clock_t @SIZEOF_CLOCK_T@)
   (define alignof-clock_t @ALIGNOF_CLOCK_T@)
   (define strideof-clock_t @STRIDEOF_CLOCK_T@)
+  (define pointer-ref-c-clock_t @GETTEROF_CLOCK_T@)
   (define
     pointer-set-c-clock_t!
-    @GETTEROF_CLOCK_T@)
-  (define pointer-ref-c-clock_t @SETTEROF_CLOCK_T@)
+    @SETTEROF_CLOCK_T@)
   (define dev_t '@TYPEOF_DEV_T@)
   (define sizeof-dev_t @SIZEOF_DEV_T@)
   (define alignof-dev_t @ALIGNOF_DEV_T@)
   (define strideof-dev_t @STRIDEOF_DEV_T@)
-  (define pointer-set-c-dev_t! @GETTEROF_DEV_T@)
-  (define pointer-ref-c-dev_t @SETTEROF_DEV_T@)
+  (define pointer-ref-c-dev_t @GETTEROF_DEV_T@)
+  (define pointer-set-c-dev_t! @SETTEROF_DEV_T@)
   (define gid_t '@TYPEOF_GID_T@)
   (define sizeof-gid_t @SIZEOF_GID_T@)
   (define alignof-gid_t @ALIGNOF_GID_T@)
   (define strideof-gid_t @STRIDEOF_GID_T@)
-  (define pointer-set-c-gid_t! @GETTEROF_GID_T@)
-  (define pointer-ref-c-gid_t @SETTEROF_GID_T@)
+  (define pointer-ref-c-gid_t @GETTEROF_GID_T@)
+  (define pointer-set-c-gid_t! @SETTEROF_GID_T@)
   (define ino_t '@TYPEOF_INO_T@)
   (define sizeof-ino_t @SIZEOF_INO_T@)
   (define alignof-ino_t @ALIGNOF_INO_T@)
   (define strideof-ino_t @STRIDEOF_INO_T@)
-  (define pointer-set-c-ino_t! @GETTEROF_INO_T@)
-  (define pointer-ref-c-ino_t @SETTEROF_INO_T@)
+  (define pointer-ref-c-ino_t @GETTEROF_INO_T@)
+  (define pointer-set-c-ino_t! @SETTEROF_INO_T@)
   (define mode_t '@TYPEOF_MODE_T@)
   (define sizeof-mode_t @SIZEOF_MODE_T@)
   (define alignof-mode_t @ALIGNOF_MODE_T@)
   (define strideof-mode_t @STRIDEOF_MODE_T@)
-  (define pointer-set-c-mode_t! @GETTEROF_MODE_T@)
-  (define pointer-ref-c-mode_t @SETTEROF_MODE_T@)
+  (define pointer-ref-c-mode_t @GETTEROF_MODE_T@)
+  (define pointer-set-c-mode_t! @SETTEROF_MODE_T@)
   (define nlink_t '@TYPEOF_NLINK_T@)
   (define sizeof-nlink_t @SIZEOF_NLINK_T@)
   (define alignof-nlink_t @ALIGNOF_NLINK_T@)
   (define strideof-nlink_t @STRIDEOF_NLINK_T@)
+  (define pointer-ref-c-nlink_t @GETTEROF_NLINK_T@)
   (define
     pointer-set-c-nlink_t!
-    @GETTEROF_NLINK_T@)
-  (define pointer-ref-c-nlink_t @SETTEROF_NLINK_T@)
+    @SETTEROF_NLINK_T@)
   (define off_t '@TYPEOF_OFF_T@)
   (define sizeof-off_t @SIZEOF_OFF_T@)
   (define alignof-off_t @ALIGNOF_OFF_T@)
   (define strideof-off_t @STRIDEOF_OFF_T@)
-  (define pointer-set-c-off_t! @GETTEROF_OFF_T@)
-  (define pointer-ref-c-off_t @SETTEROF_OFF_T@)
+  (define pointer-ref-c-off_t @GETTEROF_OFF_T@)
+  (define pointer-set-c-off_t! @SETTEROF_OFF_T@)
   (define pid_t '@TYPEOF_PID_T@)
   (define sizeof-pid_t @SIZEOF_PID_T@)
   (define alignof-pid_t @ALIGNOF_PID_T@)
   (define strideof-pid_t @STRIDEOF_PID_T@)
-  (define pointer-set-c-pid_t! @GETTEROF_PID_T@)
-  (define pointer-ref-c-pid_t @SETTEROF_PID_T@)
+  (define pointer-ref-c-pid_t @GETTEROF_PID_T@)
+  (define pointer-set-c-pid_t! @SETTEROF_PID_T@)
   (define time_t '@TYPEOF_TIME_T@)
   (define sizeof-time_t @SIZEOF_TIME_T@)
   (define alignof-time_t @ALIGNOF_TIME_T@)
   (define strideof-time_t @STRIDEOF_TIME_T@)
-  (define pointer-set-c-time_t! @GETTEROF_TIME_T@)
-  (define pointer-ref-c-time_t @SETTEROF_TIME_T@)
+  (define pointer-ref-c-time_t @GETTEROF_TIME_T@)
+  (define pointer-set-c-time_t! @SETTEROF_TIME_T@)
   (define uid_t '@TYPEOF_UID_T@)
   (define sizeof-uid_t @SIZEOF_UID_T@)
   (define alignof-uid_t @ALIGNOF_UID_T@)
   (define strideof-uid_t @STRIDEOF_UID_T@)
-  (define pointer-set-c-uid_t! @GETTEROF_UID_T@)
-  (define pointer-ref-c-uid_t @SETTEROF_UID_T@)
+  (define pointer-ref-c-uid_t @GETTEROF_UID_T@)
+  (define pointer-set-c-uid_t! @SETTEROF_UID_T@)
   (define wchar_t '@TYPEOF_WCHAR_T@)
   (define sizeof-wchar_t @SIZEOF_WCHAR_T@)
   (define alignof-wchar_t @ALIGNOF_WCHAR_T@)
   (define strideof-wchar_t @STRIDEOF_WCHAR_T@)
+  (define pointer-ref-c-wchar_t @GETTEROF_WCHAR_T@)
   (define
     pointer-set-c-wchar_t!
-    @GETTEROF_WCHAR_T@)
-  (define pointer-ref-c-wchar_t @SETTEROF_WCHAR_T@)
+    @SETTEROF_WCHAR_T@)
+  (define-syntax
+    sizeof-gid_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* ?number-of-elements strideof-gid_t))))
   (define sizeof-flock @SIZEOF_FLOCK@)
   (define alignof-flock @ALIGNOF_FLOCK@)
   (define strideof-flock @STRIDEOF_FLOCK@)
@@ -1033,7 +1041,8 @@
   (define MS_SYNC @VALUEOF_MS_SYNC@)
   (define MS_ASYNC @VALUEOF_MS_ASYNC@)
   (define MREMAP_MAYMOVE @VALUEOF_MREMAP_MAYMOVE@)
-  (define FD_SETSIZE @VALUEOF_FD_SETSIZE@))
+  (define FD_SETSIZE @VALUEOF_FD_SETSIZE@)
+  (define L_cuserid @VALUEOF_L_cuserid@))
 
 
 ;;; end of file

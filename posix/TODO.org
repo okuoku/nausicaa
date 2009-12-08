@@ -14,6 +14,9 @@
 
   Add pselect() (see the manual page).
 
+  Add  API for  the user  accounting database?   (Node  "User Accounting
+  Database" in glibc info file.)
+
 * posix
 
   Node "Users and Groups".

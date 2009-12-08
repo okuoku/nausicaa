@@ -662,7 +662,9 @@ Job control
 
 Users and groups
 
-* users persona::               Process' persona.
+* users typedefs::              Object type definitions.
+* users accessors::             Retrieving user and group identifiers.
+* users mutators::              Changing user and group identifiers.
 
 More C string functions
 
@@ -6088,15 +6090,214 @@ exported by the following libraries:
 @end example
 
 @menu
-* users persona::               Process' persona.
+* users typedefs::              Object type definitions.
+* users accessors::             Retrieving user and group identifiers.
+* users mutators::              Changing user and group identifiers.
+* users login::                 Retrieving user login names.
+* users userdb::                Users database.
 @end menu
 
 @c page
-@node users persona
-@section Process' persona
+@node users typedefs
+@section Object type definitions
 
 
-@glibcref{Reading Persona, Reading the Persona of a Process}
+Functions from the primitives and high--level libraries accept objects
+of type @code{uid} and @code{gid} as values for the @var{uid} and
+@var{gid} arguments.  Functions from the platform libraries accept exact
+integers as representing user and group identifiers.  The following
+bindings are exported by the @library{foreign posix typedefs} library.
+
+@c ------------------------------------------------------------
+
+@subsubheading User identifiers
+
+
+@deftp {Object Type} uid
+Type of user identifiers.  It is disjoint from all the other Scheme
+object types.
+@end deftp
+
+
+@defun uid? @var{obj}
+Return true if @var{obj} is of type @code{uid}.
+@end defun
+
+
+@defun uid->integer @var{uid}
+@defunx integer->uid @var{integer}
+Convert between @code{uid} objects and integer objects.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Group identifiers
+
+
+@deftp {Object Type} gid
+Type of user identifiers.  It is disjoint from all the other Scheme
+object types.
+@end deftp
+
+
+@defun gid? @var{obj}
+Return true if @var{obj} is of type @code{gid}.
+@end defun
+
+
+@defun gid->integer @var{gid}
+@defunx integer->gid @var{integer}
+Convert between @code{gid} objects and integer objects.
+@end defun
+
+@c page
+@node users accessors
+@section Retrieving user and group identifiers
+
+
+The following bindings manage acquisition of user and group identifiers.
+@glibcref{Reading Persona, Reading the Persona of a Process}.
+
+
+@deffn Function getuid
+@deffnx Parameter getuid-function
+@deffnx Function primitive:getuid
+@deffnx Function platform:getuid
+Return an @code{uid} object representing the real user identifier.
+@end deffn
+
+
+@deffn Function getgid
+@deffnx Parameter getgid-function
+@deffnx Function primitive:getgid
+@deffnx Function platform:getgid
+Return an @code{gid} object representing the real group identifier.
+@end deffn
+
+
+@deffn Function geteuid
+@deffnx Parameter geteuid-function
+@deffnx Function primitive:geteuid
+@deffnx Function platform:geteuid
+Return an @code{uid} object representing the effective user identifier.
+@end deffn
+
+
+@deffn Function getegid
+@deffnx Parameter getegid-function
+@deffnx Function primitive:getegid
+@deffnx Function platform:getegid
+Return an @code{gid} object representing the effective group identifier.
+@end deffn
+
+
+@deffn Function getgroups
+@deffnx Parameter getgroups-function
+@deffnx Function primitive:getgroups
+@deffnx Function platform:getgroups @var{count} @var{group-array}
+Return a (possibly empty) list of @code{gid} objects representing the
+supplementary group identifiers of the process.
+@end deffn
+
+
+@deffn Function getgrouplist @var{user-name} @var{gid}
+@deffnx Parameter getgrouplist-function @var{user-name} @var{gid}
+@deffnx Function primitive:getgrouplist
+@deffnx Function platform:getgrouplist @var{user-name-cstr} @var{gid-int}
+Return a (never empty) list of @code{gid} objects representing the
+supplementary group identifiers of groups to which the user with name
+@var{user-name} belongs to.  @var{gid} is added to the list.
+
+@var{user-name} must be a Scheme string or symbol.
+@end deffn
+
+@c page
+@node users mutators
+@section Changing user and group identifiers
+
+
+The following bindings manage setting user and group identifiers.
+@glibcref{Setting User ID, Setting the User ID}.  @glibcref{Setting
+Groups, Setting the Group IDs}.
+
+
+@deffn Function setuid @var{uid}
+@deffnx Parameter setuid-function
+@deffnx Function primitive:setuid @var{uid}
+@deffnx Function platform:setuid @var{uid-int}
+Set both the real and effective user identifier to @var{uid}.
+@end deffn
+
+
+@deffn Function seteuid @var{uid}
+@deffnx Parameter seteuid-function
+@deffnx Function primitive:seteuid @var{uid}
+@deffnx Function platform:seteuid @var{uid-int}
+Set the effective user identifier to @var{uid}.
+@end deffn
+
+
+@deffn Function setgid @var{gid}
+@deffnx Parameter setgid-function
+@deffnx Function primitive:setgid @var{gid}
+@deffnx Function platform:setgid @var{gid-int}
+Set both the real and effective group identifier to @var{gid}.
+@end deffn
+
+
+@deffn Function setegid @var{gid}
+@deffnx Parameter setegid-function
+@deffnx Function primitive:setegid @var{gid}
+@deffnx Function platform:setegid @var{gid-int}
+Set the effective group identifier to @var{gid}.
+@end deffn
+
+
+@deffn Function setgroups @var{gid-list}
+@deffnx Parameter setgroups-function
+@deffnx Function primitive:setgroups @var{gid-list}
+@deffnx Function platform:setgroups @var{count} @var{group-array}
+Set the supplementary group identifiers of the process to the given list
+of identifiers.
+@end deffn
+
+
+@deffn Function initgroups @var{user-name} @var{gid}
+@deffnx Parameter initgroups-function
+@deffnx Function primitive:initgroups @var{user-name} @var{gid}
+@deffnx Function platform:initgroups @var{user-name-cstr} @var{gid-int}
+Set the current supplementary groups to be the default for the user
+selected by @var{user-name}, which must be a Scheme string or symbol.
+The group identifier @var{gid} is automatically included.
+@end deffn
+
+
+@c page
+@node users login
+@section Retrieving user login names
+
+
+The following bindings manage retrieval of user's login name.
+@glibcref{Who Logged In, Identifying Who Logged In}.
+
+
+@deffn Function getlogin
+@deffnx Parameter getlogin-function
+@deffnx Function primitive:getlogin
+@deffnx Function platform:getlogin
+Return a Scheme string representing the name of the logged in user.
+This function is not reentrant.
+@end deffn
+
+
+@deffn Function cuserid
+@deffnx Parameter cuserid-function
+@deffnx Function primitive:cuserid
+@deffnx Function platform:cuserid @var{cstr}
+Return a Scheme string representing the name of the logged in user.
+This function is reentrant.
+@end deffn
+
 
 @c page
 @node strings

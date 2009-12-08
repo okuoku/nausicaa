@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,7 +24,6 @@
 ;;;
 
 (import
-;;  (only (foreign posix users))
   (only (foreign posix environment))
   (only (foreign posix time))
   (only (foreign posix file))
@@ -32,6 +31,7 @@
   (only (foreign posix fd))
   (only (foreign posix job))
   (only (foreign posix process))
+  (only (foreign posix users))
 
   (only (foreign glibc environment))
   (only (foreign glibc streams))

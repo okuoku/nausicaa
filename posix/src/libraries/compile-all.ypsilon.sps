@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: compile script for Mosh Scheme
+;;;Contents: compile script for Ypsilon Scheme
 ;;;Date: Tue Nov  3, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -31,6 +31,7 @@
   (only (foreign posix fd))
   (only (foreign posix job))
   (only (foreign posix process))
+  (only (foreign posix users))
 
   (only (foreign glibc environment))
   (only (foreign glibc streams))

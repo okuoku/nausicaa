@@ -38,6 +38,12 @@
     make-fdset
     pointer->fdset		fdset->pointer
 
+    uid			uid?
+    integer->uid		uid->integer
+
+    gid			gid?
+    integer->gid		gid->integer
+
     struct-flock
     make-struct-flock		struct-flock?
     struct-flock->pointer	pointer->struct-flock
@@ -55,6 +61,12 @@
 
 (define-record-type (FILE* pointer->FILE* FILE*?)
   (fields (immutable object FILE*->pointer)))
+
+(define-record-type (uid integer->uid uid?)
+  (fields (immutable object uid->integer)))
+
+(define-record-type (gid integer->gid gid?)
+  (fields (immutable object gid->integer)))
 
 ;;; --------------------------------------------------------------------
 
