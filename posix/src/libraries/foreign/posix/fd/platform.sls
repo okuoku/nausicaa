@@ -39,6 +39,7 @@
     mmap	munmap		msync		mremap
 
     select FD_ZERO FD_SET FD_CLR FD_ISSET
+;;;    aio_read aio_write aio_error aio_return aio_fsync aio_suspend aio_cancel lio_listio
     )
   (import (except (rnrs) read write)
     (foreign ffi)
@@ -72,7 +73,15 @@
     (pread		(ssize_t nausicaa_posix_pread (int void* size_t off_t)))
     (pwrite		(ssize_t nausicaa_posix_pwrite (int void* size_t off_t)))
     (lseek		(off_t nausicaa_posix_lseek (int off_t int)))
-    (mmap		(void* mmap (void* size_t int int int off_t)))
+    (mmap		(void* nausicaa_posix_mmap (void* size_t int int int off_t)))
+    (aio_read		(int nausicaa_posix_aio_read (void*)))
+    (aio_write		(int nausicaa_posix_aio_write (void*)))
+    (aio_error		(int nausicaa_posix_aio_error (void*)))
+    (aio_return		(int nausicaa_posix_aio_return (void*)))
+    (aio_fsync		(int nausicaa_posix_aio_fsync (int void*)))
+    (aio_suspend	(int nausicaa_posix_aio_suspend (void* int void*)))
+    (aio_cancel		(int nausicaa_posix_aio_cancel (void* void*)))
+    (lio_listio		(int nausicaa_posix_lio_listio (int void* int void*)))
     )
 
   (define-c-functions libnausicaa-posix

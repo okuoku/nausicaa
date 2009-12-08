@@ -24,6 +24,8 @@
 
   Node "Signal Handling".
 
+  Implemente the fd AIO API?  It requires pthreads...
+
 * linux
 
   Add a library  with an interface to the  "waitid()" function described

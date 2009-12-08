@@ -43,8 +43,8 @@
     readv	writev
     mmap	munmap		msync	mremap
 
-    ;; select
     select FD_ISSET FD_SET FD_CLR FD_ZERO
+;;;    aio-read aio-write aio-error aio-return aio-fsync aio-suspend aio-cancel lio-listio
     )
   (import (except (rnrs) read write)
     (receive)
@@ -309,6 +309,38 @@
     (if (= -1 total-number-of-ready-fds)
 	(raise-errno-error 'select errno (list max-fd read-fdset write-fdset except-fdset timeval))
       total-number-of-ready-fds)))
+
+
+;;; asynchronous input/output
+
+;; (define (aio-read aiocb)
+;;   (receive (result errno)
+;;       (platform:aio_read (struct-aciocb->pointer aciocb))
+;;     (if (= -1 result)
+;; 	(raise-errno-error 'aio-read errno aiocb)
+;;       result)))
+
+;; (define (aio_write)
+;;   )
+
+;; (define (lio_listio)
+;;   )
+
+
+;; (define (aio_error)
+;;   )
+
+;; (define (aio_return)
+;;   )
+
+;; (define (aio_fsync)
+;;   )
+
+;; (define (aio_suspend)
+;;   )
+
+;; (define (aio_cancel)
+;;   )
 
 
 ;;;; done

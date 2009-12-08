@@ -28,19 +28,15 @@
 (library (foreign posix typedefs)
   (export
 
-    <posix-wrapper>
-    make-<posix-wrapper>	<posix-wrapper>?
-    <posix-wrapper>-object
-
     file-descriptor		file-descriptor?
-    integer->file-descriptor	(rename (<posix-wrapper>-object file-descriptor->integer))
+    integer->file-descriptor	file-descriptor->integer
 
     FILE*			FILE*?
-    pointer->FILE*		(rename (<posix-wrapper>-object FILE*->pointer))
+    pointer->FILE*		FILE*->pointer
 
     fdset			fdset?
     make-fdset
-    pointer->fdset		(rename (<posix-wrapper>-object fdset->pointer))
+    pointer->fdset		fdset->pointer
 
     struct-flock
     make-struct-flock		struct-flock?
@@ -54,19 +50,16 @@
     (foreign posix sizeof))
 
 
-(define-record-type <posix-wrapper>
-  (fields (immutable object)))
-
 (define-record-type (file-descriptor integer->file-descriptor file-descriptor?)
-  (parent <posix-wrapper>))
+  (fields (immutable object file-descriptor->integer)))
 
 (define-record-type (FILE* pointer->FILE* FILE*?)
-  (parent <posix-wrapper>))
+  (fields (immutable object FILE*->pointer)))
 
 ;;; --------------------------------------------------------------------
 
 (define-record-type (fdset pointer->fdset fdset?)
-  (parent <posix-wrapper>))
+  (fields (immutable object fdset->pointer)))
 
 (define (make-fdset malloc)
   (pointer->fdset (malloc sizeof-fdset)))
@@ -74,18 +67,14 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type (struct-flock pointer->struct-flock struct-flock?)
-  (parent <posix-wrapper>))
+  (fields (immutable object struct-flock->pointer)))
 
 (define (make-struct-flock malloc)
   (pointer->struct-flock (malloc sizeof-flock)))
 
-(define struct-flock->pointer <posix-wrapper>-object)
-
 
 (define-record-type (struct-timeval pointer->struct-timeval struct-timeval?)
-  (parent <posix-wrapper>))
-
-(define struct-timeval->pointer <posix-wrapper>-object)
+  (fields (immutable object struct-timeval->pointer)))
 
 (define (make-struct-timeval malloc)
   (pointer->struct-timeval (malloc sizeof-timeval)))

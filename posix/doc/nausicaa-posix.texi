@@ -561,7 +561,8 @@ Inspecting file attributes
 
 File descriptors
 
-* fd constants::                Bindings for constant values.
+* fd typedefs::                 File descriptor related data types.
+* fd constants::                Constant values and structure accessors.
 * fd open close::               Opening and closing.
 * fd read write::               Reading and writing.
 * fd seek::                     Setting the file position.
@@ -570,18 +571,31 @@ File descriptors
 * fd dup::                      Duplicating file descriptors.
 * fd lock::                     File locks.
 * fd pipe::                     Pipes and FIFOs.
+* fd scatter::                  Scatter/gather input/output.
+* fd mmap::                     Memory mapped input/output.
+* fd select::                   Waiting for input or output.
+@c * fd aio::                      Asynchronous input/output.
 * fd custom::                   Custom Scheme ports.
 
-Bindings for constant values
+File descriptor related data types
+
+* fd typedefs fds::             File descriptors.
+* fd typedefs flocks::          File locking.
+* fd typedefs fdsets::          File descriptor sets.
+
+Constant values and structure accessors
 
 * fd constants status::         File status flags.
 * fd constants perms::          Permissions.
 * fd constants control::        File control flags.
 * fd constants seek::           File positions.
 * fd constants lock::           Locking.
+* fd constants mmap::           Memory--mapped files.
+* fd constants select::         Waiting for file descriptor events.
 
 Stream functions
 
+* streams typedefs::            Object type definitions.
 * streams constants::           Constants.
 * streams errors::              Detecting errors on streams.
 * streams open close::          Opening and closing.
@@ -727,6 +741,16 @@ Additionally, the following libraries are installed:
 @item foreign posix sizeof
 Exports bindings for constant values (like @samp{O_CREAT}) and data
 structure accessors and mutators.
+
+@item foreign posix typedefs
+Defines new Scheme object types to be used as wrappers for system
+objects (file descriptors, pointers to specific data structures, etc.)
+
+@item foreign posix extensions
+Defines extensions for the types exported by @library{foreign posix
+typedefs}, to be used with the @file{records} library (from the
+Nausicaa/Scheme package).  For this purpose, this library must be
+imported for the @code{expand} phase.
 @end table
 
 Let's take as reference the @code{file} set of features; when the
@@ -2414,6 +2438,7 @@ exported by the following libraries:
 * fd scatter::                  Scatter/gather input/output.
 * fd mmap::                     Memory mapped input/output.
 * fd select::                   Waiting for input or output.
+@c * fd aio::                      Asynchronous input/output.
 * fd custom::                   Custom Scheme ports.
 @end menu
 
@@ -3547,7 +3572,8 @@ The return value is undefined, platform function included.
 @deffnx Function primitive:FD_ISSET @var{fd} @var{fdset}
 @deffnx Function platform:FD_ISSET @var{fd} @var{fdset}
 Return true if @var{fd} is a member of the file descriptor set
-referenced by @var{fdset}.
+referenced by @var{fdset}.  @func{platform:FD_ISSET} returns a single
+value, an integer with C language true/false meaning.
 @end deffn
 
 
@@ -3581,6 +3607,17 @@ Usage example:
   (posix:select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
   (posix:FD_ISSET fd rd-fdset))
 @end example
+
+@c page
+@ignore
+@node fd aio
+@section Asynchronous input/output
+
+
+The following functions asynchronous input/output on multiple file
+descriptors.  @glibcref{Asynchronous I/O, Perform I/O Operations in
+Parallel}.
+@end ignore
 
 @c page
 @node fd custom
@@ -3808,7 +3845,7 @@ exported by the following libraries:
 @end example
 
 @menu
-* streams types::               Data types.
+* streams typedefs::            Object type definitions.
 * streams constants::           Constants.
 * streams errors::              Detecting errors on streams.
 * streams open close::          Opening and closing.
@@ -3823,14 +3860,17 @@ exported by the following libraries:
 @end menu
 
 @c page
-@node streams types
-@section Data types
+@node streams typedefs
+@section Object type definitions
 
 
 Functions from the primitives and high--level stream libraries accept
 objects of type @code{FILE*} as @var{stream} arguments.  Functions from
 the platform libraries accept pointer objects as representing stream
 pointers.
+
+The following bindings are exported by the @library{foreign posix
+typedefs} library.
 
 
 @deftp {Object Type} FILE*
@@ -3856,7 +3896,7 @@ Return true if @var{obj} is a stream object.
 
 The following bindings are exported by the @library{foreign posix
 sizeof} library.  Notice that the seek constants @code{SEEK_SET},
-@code{SEEK_CUR} and @code{SEEK_END}) are also exported by the same
+@code{SEEK_CUR} and @code{SEEK_END} are also exported by the same
 library.  @ref{fd constants seek, File positions}
 
 
@@ -3888,6 +3928,8 @@ value of the foreign function call.
 @defunx primitive:clearerr @var{stream}
 @defunx platform:clearerr @var{stream}
 Clear the error and end--of--file indicators for @var{stream}.
+@func{platform:clearerr} returns a single value: The return value of the
+foreign function call.
 @end defun
 
 @c page
@@ -3903,9 +3945,9 @@ Closing Streams}.
 @deffn Function fopen @var{pathname} @var{mode}
 @deffnx Parameter fopen-function
 @deffnx Function primitive:fopen @var{pathname} @var{mode}
-@deffnx Function platform:fopen @var{pathname-cstr} @var{mode}
+@deffnx Function platform:fopen @var{pathname-cstr} @var{mode-cstr}
 Open a file selected by @var{pathname} with the given mode and return a
-pointer to the stream.  @var{pathname} and @var{mode} must be Scheme
+@code{FILE*} object.  @var{pathname} and @var{mode} must be Scheme
 strings or symbols.
 @end deffn
 
@@ -3913,7 +3955,7 @@ strings or symbols.
 @deffn Function fclose @var{stream}
 @deffnx Parameter fclose-function
 @deffnx Function primitive:fclose @var{stream}
-@deffnx Function platform:fclose @var{stream}
+@deffnx Function platform:fclose @var{stream-ptr}
 Close the previously opened @var{stream}.
 @end deffn
 
@@ -3938,7 +3980,7 @@ Buffers}.
 @deffn Function fwrite @var{pointer} @var{size} @var{count} @var{stream}
 @deffnx Parameter fwrite-function
 @deffnx Function primitive:fwrite @var{pointer} @var{size} @var{count} @var{stream}
-@deffnx Function platform:fwrite @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform:fwrite @var{pointer} @var{size} @var{count} @var{stream-ptr}
 Write up to @var{count} elements of @var{size} bytes from the block of
 memory referenced by @var{pointer} to @var{stream}.  If successful
 return @var{count}.
@@ -3948,7 +3990,7 @@ return @var{count}.
 @deffn Function fputc @var{char} @var{stream}
 @deffnx Parameter fputc-function
 @deffnx Function primitive:fputc @var{char} @var{stream}
-@deffnx Function platform:fputc @var{char} @var{stream}
+@deffnx Function platform:fputc @var{char} @var{stream-ptr}
 Write a character to @var{stream}.  @var{char} must be a Scheme
 character with scalar value in the range @code{[0, 255]}; the scalar
 value is computed with @func{char->integer}.  If successful return the
@@ -3959,7 +4001,7 @@ scalar representing @var{char}.
 @deffn Function fputs @var{string} @var{stream}
 @deffnx Parameter fputs-function
 @deffnx Function primitive:fputs @var{string} @var{stream}
-@deffnx Function platform:fputs @var{cstring} @var{stream}
+@deffnx Function platform:fputs @var{cstring} @var{stream-ptr}
 Write a string to @var{stream}.  @var{string} must be a Scheme string or
 symbol.  If successful return the scalar representing @var{char}.
 @end deffn
@@ -3968,7 +4010,7 @@ symbol.  If successful return the scalar representing @var{char}.
 @deffn Function fflush @var{stream}
 @deffnx Parameter fflush-function
 @deffnx Function primitive:fflush @var{stream}
-@deffnx Function platform:fflush @var{stream}
+@deffnx Function platform:fflush @var{stream-ptr}
 Flush the contents of the buffer to the underlying device.
 @end deffn
 
@@ -3984,7 +4026,7 @@ The following functions manage reading data from streams.
 @deffn Function fread @var{pointer} @var{size} @var{count} @var{stream}
 @deffnx Parameter fread-function
 @deffnx Function primitive:fread @var{pointer} @var{size} @var{count} @var{stream}
-@deffnx Function platform:fread @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform:fread @var{pointer} @var{size} @var{count} @var{stream-ptr}
 Read up to @var{count} elements of @var{size} bytes from @var{stream}
 and store them in the block of memory referenced by @var{pointer}.
 Return the number of objects actually read (which may be less than
@@ -3995,7 +4037,7 @@ Return the number of objects actually read (which may be less than
 @deffn Function fgetc @var{stream}
 @deffnx Parameter fgetc-function
 @deffnx Function primitive:fgetc @var{stream}
-@deffnx Function platform:fgetc @var{stream}
+@deffnx Function platform:fgetc @var{stream-ptr}
 Read a single character from @var{stream}.  Return a Scheme character.
 @end deffn
 
@@ -4003,7 +4045,7 @@ Read a single character from @var{stream}.  Return a Scheme character.
 @deffn Function fgets @var{pointer} @var{count} @var{stream}
 @deffnx Parameter fgets-function
 @deffnx Function primitive:fgets @var{pointer} @var{count} @var{stream}
-@deffnx Function platform-fgets @var{pointer} @var{count} @var{stream}
+@deffnx Function platform-fgets @var{pointer} @var{count} @var{stream-ptr}
 Read a line from @var{stream} and store it in the buffer of @var{count}
 bytes referenced by @var{pointer}.  Return @var{pointer}.
 @end deffn
@@ -4020,7 +4062,7 @@ The following functions manage ``unreading'' data from streams.
 @deffn Function ungetc @var{char} @var{stream}
 @deffnx Parameter ungetc-function
 @deffnx Function primitive:ungetc @var{char} @var{stream}
-@deffnx Function platform:ungetc @var{c-char} @var{stream}
+@deffnx Function platform:ungetc @var{c-char} @var{stream-ptr}
 Unread a character to @var{stream}.  @var{char} must be a Scheme
 character with scalar value in the range @code{[0, 255]}; the scalar
 value is computed with @func{char->integer}.
@@ -4042,7 +4084,7 @@ library.  @ref{fd constants seek, File positions}
 @deffn Function feof @var{stream}
 @deffnx Parameter feof-function
 @deffnx Function primitive:feof @var{stream}
-@deffnx Function platform:feof @var{stream}
+@deffnx Function platform:feof @var{stream-ptr}
 Return @true{} if the end--of--file indicator of @var{stream} is set,
 otherwise @false{}.
 @end deffn
@@ -4051,7 +4093,7 @@ otherwise @false{}.
 @deffn Function fseek @var{stream} @var{offset} @var{whence}
 @deffnx Parameter fseek-function
 @deffnx Function primitive:fseek @var{stream} @var{offset} @var{whence}
-@deffnx Function platform:fseek @var{stream} @var{offset} @var{whence}
+@deffnx Function platform:fseek @var{stream-ptr} @var{offset} @var{whence}
 Change the file position of @var{stream} to @var{offset} from
 @var{whence}.
 @end deffn
@@ -4060,7 +4102,7 @@ Change the file position of @var{stream} to @var{offset} from
 @deffn Function fseeko @var{stream} @var{offset} @var{whence}
 @deffnx Parameter fseeko-function
 @deffnx Function primitive:fseeko @var{stream} @var{offset} @var{whence}
-@deffnx Function platform:fseeko @var{stream} @var{offset} @var{whence}
+@deffnx Function platform:fseeko @var{stream-ptr} @var{offset} @var{whence}
 Like @func{fseek}, but the return value is of type @code{off_t}.
 @end deffn
 
@@ -4068,7 +4110,7 @@ Like @func{fseek}, but the return value is of type @code{off_t}.
 @deffn Function ftell @var{stream}
 @deffnx Parameter ftell-function
 @deffnx Function primitive:ftell @var{stream}
-@deffnx Function platform:ftell @var{stream}
+@deffnx Function platform:ftell @var{stream-ptr}
 Return the current file position of @var{stream}.
 @end deffn
 
@@ -4076,7 +4118,7 @@ Return the current file position of @var{stream}.
 @deffn Function ftello @var{stream}
 @deffnx Parameter ftello-function
 @deffnx Function primitive:ftello @var{stream}
-@deffnx Function platform:ftello @var{stream}
+@deffnx Function platform:ftello @var{stream-ptr}
 Like @func{ftell}, but the return value is of type @code{off_t}.
 @end deffn
 
@@ -4084,7 +4126,7 @@ Like @func{ftell}, but the return value is of type @code{off_t}.
 @deffn Function rewind @var{stream}
 @deffnx Parameter rewind-function
 @deffnx Function primitive:rewind @var{stream}
-@deffnx Function platform:rewind @var{stream}
+@deffnx Function platform:rewind @var{stream-ptr}
 Change the file position of @var{stream} to the beginning of the file.
 @end deffn
 
@@ -4102,17 +4144,19 @@ Streams}.
 @deffnx Parameter fdopen-function
 @deffnx Function primitive:fdopen @var{fd} @var{open-mode}
 @deffnx Function platform:fdopen @var{fd} @var{open-mode}
-Build and return a new stream wrapping file descriptor @var{fd}.
-@var{open-mode} must be a Scheme string or symbol representing the open
-mode of @var{fd}; it can have the same values accepted by @func{fopen}.
+Build a new stream referencing the file descriptor @var{fd} and return a
+@code{FILE*} object.  @var{open-mode} must be a Scheme string or symbol
+representing the open mode of @var{fd}; it can have the same values
+accepted by @func{fopen}.
 @end deffn
 
 
 @deffn Function fileno @var{stream}
 @deffnx Parameter fileno-function
 @deffnx Function primitive:fileno @var{stream}
-@deffnx Function platform:fileno @var{stream}
-Return the file descriptor wrapped by @var{stream}, an exact integer.
+@deffnx Function platform:fileno @var{stream-ptr}
+Return a @code{file-descriptor} object representing the file descriptor
+wrapped by @var{stream}.
 @end deffn
 
 @c page
@@ -4132,14 +4176,14 @@ variants, but they do not implicitly lock the stream.
 @deffn Function ferror_unlocked @var{stream}
 @deffnx Parameter ferror_unlocked-function
 @deffnx Function primitive:ferror_unlocked @var{stream}
-@deffnx Function platform:ferror_unlocked @var{stream}
+@deffnx Function platform:ferror_unlocked @var{stream-ptr}
 Like @func{ferror}.
 @end deffn
 
 
 @defun clearerr_unlocked @var{stream}
 @defunx primitive:clearerr_unlocked @var{stream}
-@defunx platform:clearerr_unlocked @var{stream}
+@defunx platform:clearerr_unlocked @var{stream-ptr}
 Like @func{clearerr}.
 @end defun
 
@@ -4151,7 +4195,7 @@ Like @func{clearerr}.
 @deffn Function fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
 @deffnx Parameter fwrite_unlocked-function
 @deffnx Function primitive:fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
-@deffnx Function platform:fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform:fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream-ptr}
 Like @func{fwrite}.
 @end deffn
 
@@ -4159,7 +4203,7 @@ Like @func{fwrite}.
 @deffn Function fputc_unlocked @var{char} @var{stream}
 @deffnx Parameter fputc_unlocked-function
 @deffnx Function primitive:fputc_unlocked @var{c-char} @var{stream}
-@deffnx Function platform:fputc_unlocked @var{c-char} @var{stream}
+@deffnx Function platform:fputc_unlocked @var{c-char} @var{stream-ptr}
 Like @func{fputc}.
 @end deffn
 
@@ -4167,7 +4211,7 @@ Like @func{fputc}.
 @deffn Function fputs_unlocked @var{string} @var{stream}
 @deffnx Parameter fputs_unlocked-function
 @deffnx Function primitive:fputs_unlocked @var{cstring} @var{stream}
-@deffnx Function platform:fputs_unlocked @var{cstring} @var{stream}
+@deffnx Function platform:fputs_unlocked @var{cstring} @var{stream-ptr}
 Like @func{fputs}.
 @end deffn
 
@@ -4175,7 +4219,7 @@ Like @func{fputs}.
 @deffn Function fflush_unlocked @var{stream}
 @deffnx Parameter fflush_unlocked-function
 @deffnx Function primitive:fflush_unlocked @var{stream}
-@deffnx Function platform:fflush_unlocked @var{stream}
+@deffnx Function platform:fflush_unlocked @var{stream-ptr}
 Like @func{fflush}.
 @end deffn
 
@@ -4187,7 +4231,7 @@ Like @func{fflush}.
 @deffn Function fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
 @deffnx Parameter fread_unlocked-function
 @deffnx Function primitive:fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
-@deffnx Function platform:fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform:fread_unlocked @var{pointer} @var{size} @var{count} @var{stream-ptr}
 Like @func{fread}.
 @end deffn
 
@@ -4195,7 +4239,7 @@ Like @func{fread}.
 @deffn Function fgetc_unlocked @var{stream}
 @deffnx Parameter fgetc_unlocked-function
 @deffnx Function primitive:fgetc_unlocked @var{stream}
-@deffnx Function platform:fgetc_unlocked @var{stream}
+@deffnx Function platform:fgetc_unlocked @var{stream-ptr}
 Like @func{fgetc}.
 @end deffn
 
@@ -4203,7 +4247,7 @@ Like @func{fgetc}.
 @deffn Function fgets_unlocked @var{pointer} @var{count} @var{stream}
 @deffnx Parameter fgets_unlocked-function
 @deffnx Function primitive:fgets_unlocked @var{pointer} @var{count} @var{stream}
-@deffnx Function platform:fgets_unlocked @var{pointer} @var{count} @var{stream}
+@deffnx Function platform:fgets_unlocked @var{pointer} @var{count} @var{stream-ptr}
 Like @func{fgets}.
 @end deffn
 
@@ -4215,7 +4259,7 @@ Like @func{fgets}.
 @deffn Function feof_unlocked @var{stream}
 @deffnx Parameter feof_unlocked-function
 @deffnx Function primitive:feof_unlocked @var{stream}
-@deffnx Function platform:feof_unlocked @var{stream}
+@deffnx Function platform:feof_unlocked @var{stream-ptr}
 Like @func{feof}.
 @end deffn
 
@@ -4227,7 +4271,7 @@ Like @func{feof}.
 @deffn Function fileno_unlocked @var{stream}
 @deffnx Parameter fileno_unlocked-function
 @deffnx Function primitive:fileno_unlocked @var{stream}
-@deffnx Function platform:fileno_unlocked @var{stream}
+@deffnx Function platform:fileno_unlocked @var{stream-ptr}
 Like @func{fileno}.
 @end deffn
 
@@ -4246,45 +4290,50 @@ The following functions implement extended operations on streams.
 @deffn Function freadable @var{stream}
 @deffnx Parameter freadable-function
 @deffnx Function primitive:freadable @var{stream}
-@deffnx Function platform:freadable @var{stream}
+@deffnx Function platform:freadable @var{stream-ptr}
 Return @true{} if @var{stream} was opened for reading, otherwise return
-@false{}.
+@false{}.  @func{platform:freadable} returns a single value: the return
+value from the foreign function.
 @end deffn
 
 
 @deffn Function fwritable @var{stream}
 @deffnx Parameter fwritable-function
 @deffnx Function primitive:fwritable @var{stream}
-@deffnx Function platform:fwritable @var{stream}
+@deffnx Function platform:fwritable @var{stream-ptr}
 Return @true{} if @var{stream} was opened for writing, otherwise return
-@false{}.
+@false{}.  @func{platform:fwritable} returns a single value: the return
+value from the foreign function.
 @end deffn
 
 
 @deffn Function freading @var{stream}
 @deffnx Parameter freading-function
 @deffnx Function primitive:freading @var{stream}
-@deffnx Function platform:freading @var{stream}
+@deffnx Function platform:freading @var{stream-ptr}
 Return @true{} if @var{stream} was last read from, otherwise return
-@false{}.
+@false{}.  @func{platform:freading} returns a single value: the return
+value from the foreign function.
 @end deffn
 
 
 @deffn Function fwriting @var{stream}
 @deffnx Parameter fwriting-function
 @deffnx Function primitive:fwriting @var{stream}
-@deffnx Function platform:fwriting @var{stream}
+@deffnx Function platform:fwriting @var{stream-ptr}
 Return @true{} if @var{stream} was last written to, otherwise return
-@false{}.
+@false{}.  @func{platform:fwriting} returns a single value: the return
+value from the foreign function.
 @end deffn
 
 
 @deffn Function fwide @var{stream} @var{mode}
 @deffnx Parameter fwide-function
 @deffnx Function primitive:fwide @var{stream} @var{mode}
-@deffnx Function platform:fwide @var{stream} @var{mode}
+@deffnx Function platform:fwide @var{stream-ptr} @var{mode}
 Set or query the orientation of @var{stream}.  @var{mode} must be an
-exact integer.
+exact integer.  @func{platform:fwide} returns a single value: the return
+value from the foreign function.
 
 @itemize
 @item
@@ -4313,8 +4362,9 @@ characters.
 @deffn Function fpurge @var{stream}
 @deffnx Parameter fpurge-function
 @deffnx Function primitive:fpurge @var{stream}
-@deffnx Function platform:fpurge @var{stream}
-Discard the contents of the buffer.
+@deffnx Function platform:fpurge @var{stream-ptr}
+Discard the contents of the buffer.  @func{platform:fpurge} returns a
+single value: the return value from the foreign function.
 @end deffn
 
 @c page
@@ -4329,7 +4379,7 @@ The following functions manage reading lines from streams.
 @deffn Function getline @var{stream}
 @deffnx Parameter getline-function
 @deffnx Function primitive:getline @var{stream}
-@deffnx Function platform:getline @var{pointer-pointer} @var{pointer-count} @var{stream}
+@deffnx Function platform:getline @var{pointer-pointer} @var{pointer-count} @var{stream-ptr}
 Read characters from @var{stream} until a newline is found, then returns
 a string holding those characters and a terminating newline.
 
@@ -4347,7 +4397,7 @@ If an error occurs while reading: An exception is raised.
 @deffn Function getdelim @var{stream} @var{delimiter}
 @deffnx Parameter getdelim-function
 @deffnx Function primitive:getdelim @var{stream} @var{delimiter}
-@deffnx Function platform:getdelim @var{pointer-pointer} @var{pointer-count} @var{delimiter} @var{stream}
+@deffnx Function platform:getdelim @var{pointer-pointer} @var{pointer-count} @var{delimiter} @var{stream-ptr}
 Like @func{getline} but reads characters until @var{delimiter} is found.
 @var{delimiter} must be a Scheme character with an integer
 representation in the range @code{[0, 255]}.
@@ -4400,7 +4450,6 @@ file and accumulates them in the @code{lines} variables:
                              lines))
                  (loop))))))))
 @end smallexample
-
 
 @c page
 @node time
