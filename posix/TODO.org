@@ -25,6 +25,8 @@
 
   Node "Signal Handling".
 
+  Node "Sockets".
+
   Implemente the fd AIO API?  It requires pthreads...
 
 * linux

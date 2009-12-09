@@ -182,6 +182,8 @@
 
 ;;;; users database
 
+;;; CHECK THE MANPAGES FOR EINTR!!!!
+
 (define (getpwuid uid)
   ;; (receive (result errno)
   ;;     (platform:getpwuid_r)
