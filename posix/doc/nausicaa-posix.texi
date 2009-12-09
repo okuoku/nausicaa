@@ -500,6 +500,7 @@ entitled ``@gnu{} Free Documentation License''.
 * job::                         Job control.
 * users::                       Users and groups.
 * strings::                     More C string functions.
+* system::                      System resources and configuration.
 
 Appendices
 
@@ -665,10 +666,17 @@ Users and groups
 * users typedefs::              Object type definitions.
 * users accessors::             Retrieving user and group identifiers.
 * users mutators::              Changing user and group identifiers.
+* users login::                 Retrieving user login names.
+* users userdb::                Users database.
 
 More C string functions
 
 * strings search::              Searching.
+
+System resources and configuration
+
+* system constants::            Constant values.
+* system inspection::           Inspecting configuration.
 
 @end detailmenu
 @end menu
@@ -6298,6 +6306,13 @@ Return a Scheme string representing the name of the logged in user.
 This function is reentrant.
 @end deffn
 
+@c page
+@node users userdb
+@section Users database
+
+
+
+
 
 @c page
 @node strings
@@ -6330,6 +6345,427 @@ starting at @var{pointer}.  Return a pointer to the located byte or a
 null pointer if @var{uchar} was not found.
 @end defun
 
+
+@c page
+@node system
+@chapter System resources and configuration
+
+
+Unless otherwise specified, the functions documented in this chapter are
+exported by the following libraries:
+
+@example
+(foreign posix system)
+(foreign posix system primitives)
+(foreign posix system platform)
+@end example
+
+@menu
+* system constants::            Constant values.
+* system inspection::           Inspecting configuration.
+@end menu
+
+@c page
+@node system constants
+@section Constant values
+
+
+The following bindings are exported from the @library{foreign posix
+sizeof} library.
+
+
+@defvr Constant ARG_MAX
+@defvrx Constant _POSIX_ARG_MAX
+@defvrx Constant CHILD_MAX
+@defvrx Constant _POSIX_CHILD_MAX
+@defvrx Constant OPEN_MAX
+@defvrx Constant _POSIX_OPEN_MAX
+@defvrx Constant STREAM_MAX
+@defvrx Constant _POSIX_STREAM_MAX
+@defvrx Constant TZNAME_MAX
+@defvrx Constant _POSIX_TZNAME_MAX
+@defvrx Constant NGROUPS_MAX
+@defvrx Constant SSIZE_MAX
+@defvrx Constant RE_DUP_MAX
+System capacity limitations.  @glibcref{General Limits, General Capacity
+Limits}.
+@end defvr
+
+
+@defvr Constant _POSIX_JOB_CONTROL
+@defvrx Constant _POSIX_SAVED_IDS
+@defvrx Constant _POSIX2_C_DEV
+@defvrx Constant _POSIX2_FORT_DEV
+@defvrx Constant _POSIX2_FORT_RUN
+@defvrx Constant _POSIX2_LOCALEDEF
+@defvrx Constant _POSIX2_SW_DEV
+Overall system options.  @glibcref{System Options, Overall System
+Options}.
+@end defvr
+
+
+@defvr Constant _POSIX_VERSION
+@defvrx Constant _POSIX2_C_VERSION
+Supported @posix{} version.  @glibcref{Version Supported, Which Version
+of @posix{} is Supported}.
+@end defvr
+
+
+@defvr Constant _SC_ARG_MAX
+@defvrx Constant _SC_CHILD_MAX
+@defvrx Constant _SC_CLK_TCK
+@defvrx Constant _SC_NGROUPS_MAX
+@defvrx Constant _SC_OPEN_MAX
+@defvrx Constant _SC_STREAM_MAX
+@defvrx Constant _SC_TZNAME_MAX
+@defvrx Constant _SC_JOB_CONTROL
+@defvrx Constant _SC_SAVED_IDS
+@defvrx Constant _SC_REALTIME_SIGNALS
+@defvrx Constant _SC_PRIORITY_SCHEDULING
+@defvrx Constant _SC_TIMERS
+@defvrx Constant _SC_ASYNCHRONOUS_IO
+@defvrx Constant _SC_PRIORITIZED_IO
+@defvrx Constant _SC_SYNCHRONIZED_IO
+@defvrx Constant _SC_FSYNC
+@defvrx Constant _SC_MAPPED_FILES
+@defvrx Constant _SC_MEMLOCK
+@defvrx Constant _SC_MEMLOCK_RANGE
+@defvrx Constant _SC_MEMORY_PROTECTION
+@defvrx Constant _SC_MESSAGE_PASSING
+@defvrx Constant _SC_SEMAPHORES
+@defvrx Constant _SC_SHARED_MEMORY_OBJECTS
+@defvrx Constant _SC_AIO_LISTIO_MAX
+@defvrx Constant _SC_AIO_MAX
+@defvrx Constant _SC_AIO_PRIO_DELTA_MAX
+@defvrx Constant _SC_DELAYTIMER_MAX
+@defvrx Constant _SC_MQ_OPEN_MAX
+@defvrx Constant _SC_MQ_PRIO_MAX
+@defvrx Constant _SC_VERSION
+@defvrx Constant _SC_PAGESIZE
+@defvrx Constant _SC_PAGE_SIZE
+@defvrx Constant _SC_RTSIG_MAX
+@defvrx Constant _SC_SEM_NSEMS_MAX
+@defvrx Constant _SC_SEM_VALUE_MAX
+@defvrx Constant _SC_SIGQUEUE_MAX
+@defvrx Constant _SC_TIMER_MAX
+@defvrx Constant _SC_BC_BASE_MAX
+@defvrx Constant _SC_BC_DIM_MAX
+@defvrx Constant _SC_BC_SCALE_MAX
+@defvrx Constant _SC_BC_STRING_MAX
+@defvrx Constant _SC_COLL_WEIGHTS_MAX
+@defvrx Constant _SC_EQUIV_CLASS_MAX
+@defvrx Constant _SC_EXPR_NEST_MAX
+@defvrx Constant _SC_LINE_MAX
+@defvrx Constant _SC_RE_DUP_MAX
+@defvrx Constant _SC_CHARCLASS_NAME_MAX
+@defvrx Constant _SC_2_VERSION
+@defvrx Constant _SC_2_C_BIND
+@defvrx Constant _SC_2_C_DEV
+@defvrx Constant _SC_2_FORT_DEV
+@defvrx Constant _SC_2_FORT_RUN
+@defvrx Constant _SC_2_SW_DEV
+@defvrx Constant _SC_2_LOCALEDEF
+@defvrx Constant _SC_PII
+@defvrx Constant _SC_PII_XTI
+@defvrx Constant _SC_PII_SOCKET
+@defvrx Constant _SC_PII_INTERNET
+@defvrx Constant _SC_PII_OSI
+@defvrx Constant _SC_POLL
+@defvrx Constant _SC_SELECT
+@defvrx Constant _SC_UIO_MAXIOV
+@defvrx Constant _SC_IOV_MAX = _SC_UIO_MAXIOV
+@defvrx Constant _SC_PII_INTERNET_STREAM
+@defvrx Constant _SC_PII_INTERNET_DGRAM
+@defvrx Constant _SC_PII_OSI_COTS
+@defvrx Constant _SC_PII_OSI_CLTS
+@defvrx Constant _SC_PII_OSI_M
+@defvrx Constant _SC_T_IOV_MAX
+@defvrx Constant _SC_THREADS
+@defvrx Constant _SC_THREAD_SAFE_FUNCTIONS
+@defvrx Constant _SC_GETGR_R_SIZE_MAX
+@defvrx Constant _SC_GETPW_R_SIZE_MAX
+@defvrx Constant _SC_LOGIN_NAME_MAX
+@defvrx Constant _SC_TTY_NAME_MAX
+@defvrx Constant _SC_THREAD_DESTRUCTOR_ITERATIONS
+@defvrx Constant _SC_THREAD_KEYS_MAX
+@defvrx Constant _SC_THREAD_STACK_MIN
+@defvrx Constant _SC_THREAD_THREADS_MAX
+@defvrx Constant _SC_THREAD_ATTR_STACKADDR
+@defvrx Constant _SC_THREAD_ATTR_STACKSIZE
+@defvrx Constant _SC_THREAD_PRIORITY_SCHEDULING
+@defvrx Constant _SC_THREAD_PRIO_INHERIT
+@defvrx Constant _SC_THREAD_PRIO_PROTECT
+@defvrx Constant _SC_THREAD_PROCESS_SHARED
+@defvrx Constant _SC_NPROCESSORS_CONF
+@defvrx Constant _SC_NPROCESSORS_ONLN
+@defvrx Constant _SC_PHYS_PAGES
+@defvrx Constant _SC_AVPHYS_PAGES
+@defvrx Constant _SC_ATEXIT_MAX
+@defvrx Constant _SC_PASS_MAX
+@defvrx Constant _SC_XOPEN_VERSION
+@defvrx Constant _SC_XOPEN_XCU_VERSION
+@defvrx Constant _SC_XOPEN_UNIX
+@defvrx Constant _SC_XOPEN_CRYPT
+@defvrx Constant _SC_XOPEN_ENH_I18N
+@defvrx Constant _SC_XOPEN_SHM
+@defvrx Constant _SC_2_CHAR_TERM
+@defvrx Constant _SC_2_C_VERSION
+@defvrx Constant _SC_2_UPE
+@defvrx Constant _SC_XOPEN_XPG2
+@defvrx Constant _SC_XOPEN_XPG3
+@defvrx Constant _SC_XOPEN_XPG4
+@defvrx Constant _SC_CHAR_BIT
+@defvrx Constant _SC_CHAR_MAX
+@defvrx Constant _SC_CHAR_MIN
+@defvrx Constant _SC_INT_MAX
+@defvrx Constant _SC_INT_MIN
+@defvrx Constant _SC_LONG_BIT
+@defvrx Constant _SC_WORD_BIT
+@defvrx Constant _SC_MB_LEN_MAX
+@defvrx Constant _SC_NZERO
+@defvrx Constant _SC_SSIZE_MAX
+@defvrx Constant _SC_SCHAR_MAX
+@defvrx Constant _SC_SCHAR_MIN
+@defvrx Constant _SC_SHRT_MAX
+@defvrx Constant _SC_SHRT_MIN
+@defvrx Constant _SC_UCHAR_MAX
+@defvrx Constant _SC_UINT_MAX
+@defvrx Constant _SC_ULONG_MAX
+@defvrx Constant _SC_USHRT_MAX
+@defvrx Constant _SC_NL_ARGMAX
+@defvrx Constant _SC_NL_LANGMAX
+@defvrx Constant _SC_NL_MSGMAX
+@defvrx Constant _SC_NL_NMAX
+@defvrx Constant _SC_NL_SETMAX
+@defvrx Constant _SC_NL_TEXTMAX
+@defvrx Constant _SC_XBS5_ILP32_OFF32
+@defvrx Constant _SC_XBS5_ILP32_OFFBIG
+@defvrx Constant _SC_XBS5_LP64_OFF64
+@defvrx Constant _SC_XBS5_LPBIG_OFFBIG
+@defvrx Constant _SC_XOPEN_LEGACY
+@defvrx Constant _SC_XOPEN_REALTIME
+@defvrx Constant _SC_XOPEN_REALTIME_THREADS
+@defvrx Constant _SC_ADVISORY_INFO
+@defvrx Constant _SC_BARRIERS
+@defvrx Constant _SC_BASE
+@defvrx Constant _SC_C_LANG_SUPPORT
+@defvrx Constant _SC_C_LANG_SUPPORT_R
+@defvrx Constant _SC_CLOCK_SELECTION
+@defvrx Constant _SC_CPUTIME
+@defvrx Constant _SC_THREAD_CPUTIME
+@defvrx Constant _SC_DEVICE_IO
+@defvrx Constant _SC_DEVICE_SPECIFIC
+@defvrx Constant _SC_DEVICE_SPECIFIC_R
+@defvrx Constant _SC_FD_MGMT
+@defvrx Constant _SC_FIFO
+@defvrx Constant _SC_PIPE
+@defvrx Constant _SC_FILE_ATTRIBUTES
+@defvrx Constant _SC_FILE_LOCKING
+@defvrx Constant _SC_FILE_SYSTEM
+@defvrx Constant _SC_MONOTONIC_CLOCK
+@defvrx Constant _SC_MULTI_PROCESS
+@defvrx Constant _SC_SINGLE_PROCESS
+@defvrx Constant _SC_NETWORKING
+@defvrx Constant _SC_READER_WRITER_LOCKS
+@defvrx Constant _SC_SPIN_LOCKS
+@defvrx Constant _SC_REGEXP
+@defvrx Constant _SC_REGEX_VERSION
+@defvrx Constant _SC_SHELL
+@defvrx Constant _SC_SIGNALS
+@defvrx Constant _SC_SPAWN
+@defvrx Constant _SC_SPORADIC_SERVER
+@defvrx Constant _SC_THREAD_SPORADIC_SERVER
+@defvrx Constant _SC_SYSTEM_DATABASE
+@defvrx Constant _SC_SYSTEM_DATABASE_R
+@defvrx Constant _SC_TIMEOUTS
+@defvrx Constant _SC_TYPED_MEMORY_OBJECTS
+@defvrx Constant _SC_USER_GROUPS
+@defvrx Constant _SC_USER_GROUPS_R
+@defvrx Constant _SC_2_PBS
+@defvrx Constant _SC_2_PBS_ACCOUNTING
+@defvrx Constant _SC_2_PBS_LOCATE
+@defvrx Constant _SC_2_PBS_MESSAGE
+@defvrx Constant _SC_2_PBS_TRACK
+@defvrx Constant _SC_SYMLOOP_MAX
+@defvrx Constant _SC_STREAMS
+@defvrx Constant _SC_2_PBS_CHECKPOINT
+@defvrx Constant _SC_V6_ILP32_OFF32
+@defvrx Constant _SC_V6_ILP32_OFFBIG
+@defvrx Constant _SC_V6_LP64_OFF64
+@defvrx Constant _SC_V6_LPBIG_OFFBIG
+@defvrx Constant _SC_HOST_NAME_MAX
+@defvrx Constant _SC_TRACE
+@defvrx Constant _SC_TRACE_EVENT_FILTER
+@defvrx Constant _SC_TRACE_INHERIT
+@defvrx Constant _SC_TRACE_LOG
+@defvrx Constant _SC_LEVEL1_ICACHE_SIZE
+@defvrx Constant _SC_LEVEL1_ICACHE_ASSOC
+@defvrx Constant _SC_LEVEL1_ICACHE_LINESIZE
+@defvrx Constant _SC_LEVEL1_DCACHE_SIZE
+@defvrx Constant _SC_LEVEL1_DCACHE_ASSOC
+@defvrx Constant _SC_LEVEL1_DCACHE_LINESIZE
+@defvrx Constant _SC_LEVEL2_CACHE_SIZE
+@defvrx Constant _SC_LEVEL2_CACHE_ASSOC
+@defvrx Constant _SC_LEVEL2_CACHE_LINESIZE
+@defvrx Constant _SC_LEVEL3_CACHE_SIZE
+@defvrx Constant _SC_LEVEL3_CACHE_ASSOC
+@defvrx Constant _SC_LEVEL3_CACHE_LINESIZE
+@defvrx Constant _SC_LEVEL4_CACHE_SIZE
+@defvrx Constant _SC_LEVEL4_CACHE_ASSOC
+@defvrx Constant _SC_LEVEL4_CACHE_LINESIZE
+@defvrx Constant _SC_IPV6
+@defvrx Constant _SC_RAW_SOCKETS
+Values for the @var{param} argument to @func{sysconf}.
+@glibcref{Constants for Sysconf, Constants for @code{sysconf}
+Parameters}.
+@end defvr
+
+
+@defvr Constant LINK_MAX
+@defvrx Constant MAX_CANON
+@defvrx Constant MAX_INPUT
+@defvrx Constant NAME_MAX
+@defvrx Constant PATH_MAX
+@defvrx Constant PIPE_BUF
+@defvrx Constant MAXNAMLEN
+@defvrx Constant FILENAME_MAX
+Limits on file system capacity.  @glibcref{Limits for Files, Limits on
+File System Capacity}.
+@end defvr
+
+
+@defvr Constant _POSIX_CHOWN_RESTRICTED
+@defvrx Constant _POSIX_NO_TRUNC
+@defvrx Constant _POSIX_VDISABLE
+Optional features in file support.  @glibcref{Options for Files,
+Optional Features in File Support}.
+@end defvr
+
+
+@defvr Constant _POSIX_LINK_MAX
+@defvrx Constant _POSIX_MAX_CANON
+@defvrx Constant _POSIX_MAX_INPUT
+@defvrx Constant _POSIX_NAME_MAX
+@defvrx Constant _POSIX_PATH_MAX
+@defvrx Constant _POSIX_PIPE_BUF
+@defvrx Constant SYMLINK_MAX
+@defvrx Constant POSIX_REC_INCR_XFER_SIZE
+@defvrx Constant POSIX_REC_MAX_XFER_SIZE
+@defvrx Constant POSIX_REC_MIN_XFER_SIZE
+@defvrx Constant POSIX_REC_XFER_ALIGN
+Minimum values for file system limits.
+@end defvr
+
+
+@defvr Constant _PC_LINK_MAX
+@defvrx Constant _PC_MAX_CANON
+@defvrx Constant _PC_MAX_INPUT
+@defvrx Constant _PC_NAME_MAX
+@defvrx Constant _PC_PATH_MAX
+@defvrx Constant _PC_PIPE_BUF
+@defvrx Constant _PC_CHOWN_RESTRICTED
+@defvrx Constant _PC_NO_TRUNC
+@defvrx Constant _PC_VDISABLE
+@defvrx Constant _PC_SYNC_IO
+@defvrx Constant _PC_ASYNC_IO
+@defvrx Constant _PC_PRIO_IO
+@defvrx Constant _PC_FILESIZEBITS
+@defvrx Constant _PC_REC_INCR_XFER_SIZE
+@defvrx Constant _PC_REC_MAX_XFER_SIZE
+@defvrx Constant _PC_REC_MIN_XFER_SIZE
+@defvrx Constant _PC_REC_XFER_ALIGN
+Constants for the @var{param} argument to @func{pathconf} and
+@func{fpathconf}.  @glibcref{Utility Limits, Using @code{pathconf}}.
+@end defvr
+
+
+@defvr Constant BC_BASE_MAX
+@defvrx Constant _POSIX_BC_BASE_MAX
+@defvrx Constant BC_DIM_MAX
+@defvrx Constant _POSIX_BC_DIM_MAX
+@defvrx Constant BC_SCALE_MAX
+@defvrx Constant _POSIX_BC_SCALE_MAX
+@defvrx Constant BC_STRING_MAX
+@defvrx Constant _POSIX_BC_STRING_MAX
+@defvrx Constant COLL_WEIGHTS_MAX
+@defvrx Constant _POSIX_COLL_WEIGHTS_MAX
+@defvrx Constant EXPR_NEXT_MAX
+@defvrx Constant _POSIX_EXPR_NEXT_MAX
+@defvrx Constant LINE_MAX
+@defvrx Constant _POSIX_LINE_MAX
+@defvrx Constant EQUIV_CLASS_MAX
+@defvrx Constant _POSIX_EQUIV_CLASS_MAX
+Utility program capacity limits.  @glibcref{Utility Limits, Utility
+Program Capacity Limits}.
+@end defvr
+
+
+@defvr Constant _CS_PATH
+@defvrx Constant _CS_LFS_CFLAGS
+@defvrx Constant _CS_LFS_LDFLAGS
+@defvrx Constant _CS_LFS_LIBS
+@defvrx Constant _CS_LFS_LINTFLAGS
+@defvrx Constant _CS_LFS64_CFLAGS
+@defvrx Constant _CS_LFS64_LDFLAGS
+@defvrx Constant _CS_LFS64_LIBS
+@defvrx Constant _CS_LFS64_LINTFLAGS
+String--valued system configuration parameters.
+@end defvr
+
+@c page
+@node system inspection
+@section Inspecting configuration
+
+
+@deffn Function sysconf @var{param}
+@deffnx Parameter sysconf-function
+@deffnx Function primitive:sysconf @var{param}
+@deffnx Function platform:sysconf @var{param}
+Return an exact integer representing the configuration value selected by
+@var{param}.  @glibcref{Sysconf, Using @code{sysconf}}.
+
+@var{param} must be one among the @samp{_SC_*} values.  @ref{system
+constants, Constant values}.
+
+If the system does not impose a limit: the return value is @true{}.
+@end deffn
+
+
+@deffn Function pathconf @var{pathname} @var{param}
+@deffnx Parameter pathconf-function
+@deffnx Function primitive:pathconf @var{pathname} @var{param}
+@deffnx Function platform:pathconf @var{pathname-cstr} @var{param}
+Return an exact integer representing the configuration value selected by
+@var{param} associated to the file @var{pathname}.  @glibcref{Utility
+Limits, Using @code{pathconf}}.
+
+
+@var{pathname} must be a Scheme string or symbol; @var{param} must be
+one among the @samp{_PC_*} values.  @ref{system constants, Constant
+values}.
+
+If the system does not impose a limit: the return value is @true{}.
+@end deffn
+
+
+@deffn Function fpathconf @var{fd} @var{param}
+@deffnx Parameter fpathconf-function
+@deffnx Function primitive:fpathconf @var{fd} @var{param}
+@deffnx Function platform:fpathconf @var{fd} @var{param}
+Like @func{pathconf} but select the file through the file descriptor
+@var{fd}.
+@end deffn
+
+
+@deffn Function confstr @var{param}
+@deffnx Parameter confstr-function
+@deffnx Function primitive:confstr @var{param}
+@deffnx Function platform:confstr @var{param} @var{buf} @var{len}
+Return the value of a string--valued system parameter.
+
+@var{param} must be one among the @samp{_CS_*} values.  @ref{system
+constants, Constant values}.
+@end deffn
 
 @c page
 

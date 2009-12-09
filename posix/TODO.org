@@ -23,8 +23,6 @@
 
   Node "System Management".
 
-  Node "System Configuration".
-
   Node "Signal Handling".
 
   Implemente the fd AIO API?  It requires pthreads...

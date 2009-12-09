@@ -48,6 +48,10 @@
     make-struct-flock		struct-flock?
     struct-flock->pointer	pointer->struct-flock
 
+    struct-passwd
+    make-struct-passwd		struct-passwd?
+    struct-passwd->pointer	pointer->struct-passwd
+
     struct-timeval
     make-struct-timeval		struct-timeval?
     struct-timeval->pointer	pointer->struct-timeval
@@ -83,6 +87,14 @@
 
 (define (make-struct-flock malloc)
   (pointer->struct-flock (malloc sizeof-flock)))
+
+;;; --------------------------------------------------------------------
+
+(define-record-type (struct-passwd pointer->struct-passwd struct-passwd?)
+  (fields (immutable object struct-passwd->pointer)))
+
+(define (make-struct-passwd malloc)
+  (pointer->struct-passwd (malloc sizeof-passwd)))
 
 
 (define-record-type (struct-timeval pointer->struct-timeval struct-timeval?)

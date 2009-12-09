@@ -58,6 +58,7 @@ AC_CHECK_HEADERS([unistd.h])
 AC_CHECK_HEADERS([dirent.h])
 AC_CHECK_HEADERS([fcntl.h])
 AC_CHECK_HEADERS([ftw.h])
+AC_CHECK_HEADERS([pwd.h])
 AC_CHECK_HEADERS([sys/mman.h])
 AC_CHECK_HEADERS([sys/select.h])
 AC_CHECK_HEADERS([sys/stat.h])
@@ -95,6 +96,9 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #endif
 #ifdef HAVE_LIMITS_H
 #  include <limits.h>
+#endif
+#ifdef HAVE_PWD_H
+#  include <pwd.h>
 #endif
 #ifdef HAVE_TIME_H
 #  include <time.h>

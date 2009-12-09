@@ -37,6 +37,9 @@
     initgroups		getgrouplist
 
     getlogin		cuserid
+
+    getpwuid		getpwnam
+
     )
   (import (rnrs)
     (receive)
@@ -175,6 +178,18 @@
     (let ((cstr (malloc-block/c L_cuserid)))
       (platform:cuserid cstr)
       (cstring->string cstr))))
+
+
+;;;; users database
+
+(define (getpwuid uid)
+  ;; (receive (result errno)
+  ;;     (platform:getpwuid_r)
+  ;;   )
+  #f)
+
+(define (getpwnam)
+  #f)
 
 
 ;;;; done

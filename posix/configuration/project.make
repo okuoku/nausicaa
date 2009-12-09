@@ -7,7 +7,7 @@
 #
 #
 #
-# Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+# Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 #
 # This program is  free software: you can redistribute  it and/or modify
 # it under the  terms of the GNU General Public  License as published by
@@ -36,7 +36,8 @@ $(eval $(call nau-libraries,posix_job,foreign/posix/job))
 $(eval $(call nau-libraries,posix_process,foreign/posix/process))
 $(eval $(call nau-libraries,posix_stat,foreign/posix/stat))
 $(eval $(call nau-libraries,posix_time,foreign/posix/time))
-##$(eval $(call nau-libraries,posix_users,foreign/posix/users))
+$(eval $(call nau-libraries,posix_users,foreign/posix/users))
+$(eval $(call nau-libraries,posix_system,foreign/posix/system))
 
 $(eval $(call nau-libraries,glibc,foreign/glibc))
 $(eval $(call nau-libraries,glibc_cstrings,foreign/glibc/cstrings))

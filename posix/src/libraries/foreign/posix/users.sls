@@ -42,6 +42,7 @@
     getgrouplist	getgrouplist-function
 
     getlogin		cuserid
+    getpwuid		getpwnam
 
     )
   (import (rnrs)
@@ -66,6 +67,9 @@
 
 (define-parametrised getlogin)
 (define-parametrised cuserid)
+
+(define-parametrised getpwuid uid)
+(define-parametrised getpwnam user-name)
 
 
 ;;;; done

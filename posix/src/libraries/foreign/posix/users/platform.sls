@@ -36,6 +36,9 @@
     initgroups		getgrouplist
 
     getlogin		cuserid
+
+    getpwuid		getpwuid_r
+    getpwnam		getpwnam_r
     )
   (import (rnrs)
     (foreign ffi)
@@ -60,6 +63,10 @@
     (getgrouplist	(int getgrouplist (char* gid_t void* void*)))
     (setgroups		(int setgroups (int void*)))
     (initgroups		(int initgroups (char* gid_t)))
+    (getpwuid		(void* getpwuid (uid_t)))
+    (getpwuid_r		(void* getpwuid_r (uid_t void* char* size_t void*)))
+    (getpwnam		(void* getpwnam (char*)))
+    (getpwnam_r		(void* getpwnam_r (char* void* char* size_t void*)))
     ))
 
 ;;; end of file

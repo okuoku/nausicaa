@@ -32,6 +32,7 @@
   (only (foreign posix job))
   (only (foreign posix process))
   (only (foreign posix users))
+  (only (foreign posix system))
 
   (only (foreign glibc environment))
   (only (foreign glibc streams))
