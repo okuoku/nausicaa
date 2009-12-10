@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -48,6 +48,20 @@
 
     pipe	pipe-function
     mkfifo	mkfifo-function
+
+    readv	readv-function
+    writev	writev-function
+
+    mmap	mmap-function
+    munmap	munmap-function
+    msync	msync-function
+    mremap	mremap-function
+
+    select	select-function
+    (rename (primitive:FD_ZERO		FD_ZERO)
+	    (primitive:FD_SET		FD_SET)
+	    (primitive:FD_CLR		FD_CLR)
+	    (primitive:FD_ISSET		FD_ISSET))
 
     fd->binary-input-port		fd->textual-input-port
     fd->binary-output-port		fd->textual-output-port
@@ -104,6 +118,22 @@
 
 (define-parametrised pipe)
 (define-parametrised mkfifo pathname mode)
+
+;; scatter/gather
+
+(define-parametrised readv fd buffers buffer-count)
+(define-parametrised writev fd buffers buffer-count)
+
+;; mmap
+
+(define-parametrised mmap address length protect flags fd offset)
+(define-parametrised munmap address length)
+(define-parametrised msync address length flags)
+(define-parametrised mremap address length new-length flags)
+
+;; select
+(define-parametrised select max-fd read-set write-set except-set timeout)
+
 
 
 ;;;; custom binary ports

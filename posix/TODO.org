@@ -4,9 +4,6 @@
   Interface posixoptions(7).
 
 * stub
-
-  Add select stuff to the stub library.
-
 * glibc
 
   Add the string functions.
@@ -15,21 +12,22 @@
 
   Fix the ugliness in PRIMITIVE:STRFTIME.
 
+  Add pselect() (see the manual page).
+
+  Add  API for  the user  accounting database?   (Node  "User Accounting
+  Database" in glibc info file.)
+
 * posix
-
-  Add the scatter/gather fd interface.
-
-  Add the mmap interface.
-
-  Finish the time interface.
 
   Node "Users and Groups".
 
   Node "System Management".
 
-  Node "System Configuration".
-
   Node "Signal Handling".
+
+  Node "Sockets".
+
+  Implemente the fd AIO API?  It requires pthreads...
 
 * linux
 

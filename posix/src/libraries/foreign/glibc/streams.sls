@@ -27,6 +27,10 @@
 
 (library (foreign glibc streams)
   (export
+    (rename (primitive:pointer->FILE*	pointer->FILE*)
+	    (primitive:FILE*->pointer	FILE*->pointer)
+	    (primitive:FILE*?		FILE*?))
+
     ferror		ferror-function
     clearerr		clearerr-function
     fopen		fopen-function

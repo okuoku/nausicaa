@@ -7,7 +7,7 @@
 #
 #
 #
-# Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+# Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 #
 # This program is  free software: you can redistribute  it and/or modify
 # it under the  terms of the GNU General Public  License as published by
@@ -41,6 +41,8 @@ nau_test_LDPATH=$(posix_stub_shlib_BUILDDIR)
 .PHONY: library stub stub-library
 
 library stub stub-library: posix_stub_shlib-all
+
+fasl: library
 
 ### end of file
 # Local Variables:

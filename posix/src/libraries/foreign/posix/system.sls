@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: compile script for Mosh Scheme
-;;;Date: Tue Nov  3, 2009
+;;;Contents: parametrised interface to system inspection functions
+;;;Date: Wed Dec  9, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,22 +24,16 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (foreign posix environment))
-  (only (foreign posix time))
-  (only (foreign posix file))
-  (only (foreign posix stat))
-  (only (foreign posix fd))
-  (only (foreign posix job))
-  (only (foreign posix process))
-  (only (foreign posix users))
-  (only (foreign posix system))
+
+(library (foreign posix system)
+  (export sysconf pathconf fpathconf confstr)
+  (import (rnrs)
+    (foreign posix helpers)
+    (prefix (foreign posix system primitives) primitive:))
 
-  (only (foreign glibc environment))
-  (only (foreign glibc streams))
-  (only (foreign glibc time))
-  (only (foreign glibc file))
-
-  )
+  (define-parametrised sysconf param)
+  (define-parametrised pathconf pathname param)
+  (define-parametrised fpathconf fd param)
+  (define-parametrised confstr param))
 
 ;;; end of file

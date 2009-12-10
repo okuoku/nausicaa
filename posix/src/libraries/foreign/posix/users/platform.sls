@@ -26,21 +26,47 @@
 
 (library (foreign posix users platform)
   (export
+    getuid		getgid
+    geteuid		getegid
+
+    setuid		seteuid
+    setgid		setegid
+
+    getgroups		setgroups
+    initgroups		getgrouplist
+
+    getlogin		cuserid
+
+    getpwuid		getpwuid_r
+    getpwnam		getpwnam_r
     )
   (import (rnrs)
     (foreign ffi)
     (foreign posix shared-object)
     (foreign posix sizeof))
 
-
-;;;; code
+  (define-c-functions libc-shared-object
+    (getuid		(uid_t getuid (void)))
+    (getgid		(gid_t getgid (void)))
+    (geteuid		(uid_t geteuid (void)))
+    (getegid		(uid_t getegid (void)))
+    (getlogin		(char* getlogin (void)))
+    (cuserid		(char* cuserid (char*)))
+    )
 
-
-
-
-
-;;;; done
-
-)
+  (define-c-functions/with-errno libc-shared-object
+    (setuid		(int setuid (uid_t)))
+    (seteuid		(int seteuid (uid_t)))
+    (setgid		(int setgid (uid_t)))
+    (setegid		(int setegid (uid_t)))
+    (getgroups		(int getgroups (int void*)))
+    (getgrouplist	(int getgrouplist (char* gid_t void* void*)))
+    (setgroups		(int setgroups (int void*)))
+    (initgroups		(int initgroups (char* gid_t)))
+    (getpwuid		(void* getpwuid (uid_t)))
+    (getpwuid_r		(void* getpwuid_r (uid_t void* char* size_t void*)))
+    (getpwnam		(void* getpwnam (char*)))
+    (getpwnam_r		(void* getpwnam_r (char* void* char* size_t void*)))
+    ))
 
 ;;; end of file

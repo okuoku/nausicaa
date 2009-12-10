@@ -254,8 +254,8 @@
 	 (name-sizeof		(string->symbol (format "sizeof-~s"		name)))
 	 (name-alignof		(string->symbol (format "alignof-~s"		name)))
 	 (name-strideof		(string->symbol (format "strideof-~s"		name)))
-	 (name-accessor		(string->symbol (format "pointer-set-c-~s!"	name)))
-	 (name-mutator		(string->symbol (format "pointer-ref-c-~s"	name))))
+	 (name-accessor		(string->symbol (format "pointer-ref-c-~s"	name)))
+	 (name-mutator		(string->symbol (format "pointer-set-c-~s!"	name))))
     (autoconf-lib (format "NAUSICAA_INSPECT_TYPE([~a],[~a],[~a],[#f])"
 		    keyword string-typedef type-category))
     (%sizeof-lib `((define ,name-typeof	(quote ,symbol-typeof))

@@ -500,6 +500,7 @@ entitled ``@gnu{} Free Documentation License''.
 * job::                         Job control.
 * users::                       Users and groups.
 * strings::                     More C string functions.
+* system::                      System resources and configuration.
 
 Appendices
 
@@ -561,7 +562,8 @@ Inspecting file attributes
 
 File descriptors
 
-* fd constants::                Bindings for constant values.
+* fd typedefs::                 File descriptor related data types.
+* fd constants::                Constant values and structure accessors.
 * fd open close::               Opening and closing.
 * fd read write::               Reading and writing.
 * fd seek::                     Setting the file position.
@@ -570,18 +572,31 @@ File descriptors
 * fd dup::                      Duplicating file descriptors.
 * fd lock::                     File locks.
 * fd pipe::                     Pipes and FIFOs.
+* fd scatter::                  Scatter/gather input/output.
+* fd mmap::                     Memory mapped input/output.
+* fd select::                   Waiting for input or output.
+@c * fd aio::                      Asynchronous input/output.
 * fd custom::                   Custom Scheme ports.
 
-Bindings for constant values
+File descriptor related data types
+
+* fd typedefs fds::             File descriptors.
+* fd typedefs flocks::          File locking.
+* fd typedefs fdsets::          File descriptor sets.
+
+Constant values and structure accessors
 
 * fd constants status::         File status flags.
 * fd constants perms::          Permissions.
 * fd constants control::        File control flags.
 * fd constants seek::           File positions.
 * fd constants lock::           Locking.
+* fd constants mmap::           Memory--mapped files.
+* fd constants select::         Waiting for file descriptor events.
 
 Stream functions
 
+* streams typedefs::            Object type definitions.
 * streams constants::           Constants.
 * streams errors::              Detecting errors on streams.
 * streams open close::          Opening and closing.
@@ -648,11 +663,20 @@ Job control
 
 Users and groups
 
-* users persona::               Process' persona.
+* users typedefs::              Object type definitions.
+* users accessors::             Retrieving user and group identifiers.
+* users mutators::              Changing user and group identifiers.
+* users login::                 Retrieving user login names.
+* users userdb::                Users database.
 
 More C string functions
 
 * strings search::              Searching.
+
+System resources and configuration
+
+* system constants::            Constant values.
+* system inspection::           Inspecting configuration.
 
 @end detailmenu
 @end menu
@@ -727,6 +751,16 @@ Additionally, the following libraries are installed:
 @item foreign posix sizeof
 Exports bindings for constant values (like @samp{O_CREAT}) and data
 structure accessors and mutators.
+
+@item foreign posix typedefs
+Defines new Scheme object types to be used as wrappers for system
+objects (file descriptors, pointers to specific data structures, etc.)
+
+@item foreign posix extensions
+Defines extensions for the types exported by @library{foreign posix
+typedefs}, to be used with the @file{records} library (from the
+Nausicaa/Scheme package).  For this purpose, this library must be
+imported for the @code{expand} phase.
 @end table
 
 Let's take as reference the @code{file} set of features; when the
@@ -1944,8 +1978,7 @@ The following bindings are exported by the Glibc @code{file} libraries.
 @deffnx Parameter tmpfile-function
 @deffnx Function primitive:tmpfile
 @deffnx Function platform:tmpfile
-Create a temporary file, open it and return a pointer to its stream
-object (@code{FILE *}).
+Create a temporary file, open it and return a file stream object.
 
 @quotation
 @strong{NOTE} This function is @posix{} compliant, but it is exported by
@@ -2401,11 +2434,9 @@ exported by the following libraries:
 (foreign posix fd platform)
 @end example
 
-File descriptor arguments and return values are handled at the Scheme
-level as exact integers.
-
 @menu
-* fd constants::                Bindings for constant values.
+* fd typedefs::                 File descriptor related data types.
+* fd constants::                Constant values and structure accessors.
 * fd open close::               Opening and closing.
 * fd read write::               Reading and writing.
 * fd seek::                     Setting the file position.
@@ -2414,12 +2445,158 @@ level as exact integers.
 * fd dup::                      Duplicating file descriptors.
 * fd lock::                     File locks.
 * fd pipe::                     Pipes and FIFOs.
+* fd scatter::                  Scatter/gather input/output.
+* fd mmap::                     Memory mapped input/output.
+* fd select::                   Waiting for input or output.
+@c * fd aio::                      Asynchronous input/output.
 * fd custom::                   Custom Scheme ports.
 @end menu
 
 @c page
+@node fd typedefs
+@section File descriptor related data types
+
+
+Unless otherwise specified, the bindings documented in this section are
+exported by the @library{foreign posix typedefs} library.
+
+@menu
+* fd typedefs fds::             File descriptors.
+* fd typedefs flocks::          File locking.
+* fd typedefs fdsets::          File descriptor sets.
+@end menu
+
+@c page
+@node fd typedefs fds
+@subsection File descriptors
+
+
+Functions from the primitives and high--level file descriptor libraries
+accept objects of type @code{file-descriptor} as @var{fd} arguments.
+Functions from the platform libraries accept exact integers as
+representing file descriptors.
+
+
+@deftp {Object Type} file-descriptor
+Object type representing a file descriptor integer; it is disjoint from
+all the other Scheme object types.
+@end deftp
+
+
+@defun file-descriptor? @var{obj}
+Return true if @var{obj} is a file descriptor object.
+@end defun
+
+
+@defun file-descriptor->integer @var{fd}
+@defunx integer->file-descriptor @var{integer}
+Convert between a file descriptor object and an integer object.
+@end defun
+
+@c page
+@node fd typedefs flocks
+@subsection File locking
+
+
+Functions from the primitives and high--level file descriptor libraries
+accept objects of type @code{struct-flock} as @var{flock} arguments.
+Functions from the platform libraries accept pointer objects as
+references to @code{struct flock} data structures.
+
+
+@deftp {Object Type} struct-flock
+Object type referencing a @code{struct flock} data structure; it is
+disjoint from all the other Scheme object types.
+@end deftp
+
+
+@defun make-struct-flock @var{malloc}
+Build and return a new @code{struct-flock} object, referencing a newly
+allocated C language @code{struct flock} value.
+
+Memory is allocated using the function @var{malloc}, whose behaviour
+must match the one of @func{malloc} from @library{foreign memory}.
+@nauref{memory alloc high, Exception raising functions}.  To release
+memory we have to convert the @code{struct-flock} object to a pointer
+object and call the appropriate free function.
+@end defun
+
+
+@defun struct-flock? @var{obj}
+Return true if @var{obj} is a @code{struct-flock} object.
+@end defun
+
+
+@defun struct-flock->pointer @var{fd}
+@defunx pointer->struct-flock @var{flock}
+Convert between a @code{struct-flock} object and a pointer object.
+@end defun
+
+
+The following bindings are exported by the @library{foreign posix
+extensions} library.
+
+
+@deftp {Extension Type} struct-flock*
+Extension type which allows accessing and mutating the fields of a
+@code{struct flock} data structure using the facilities of the
+@library{records} library.  It has the following fields:
+
+@table @code
+@item type
+@itemx whence
+@itemx start
+@itemx len
+@itemx pid
+One virtual field for each field of @code{struct flock}.
+@end table
+@end deftp
+
+
+@c page
+@node fd typedefs fdsets
+@subsection File descriptor sets
+
+
+Functions from the primitive and high--level libraries acting upon file
+descriptor sets (C language type @code{fd_set}) accept objects of type
+@code{fdset} as @var{fdset} arguments.  Functions from the platform
+libraries accept pointer objects as references to @code{fd_set} values.
+@ref{fd typedefs, File descriptor related data types}.
+
+
+@deftp {Object Type} fdset
+Object type referencing a file descriptor set; it is disjoint from all
+the other Scheme object types.
+@end deftp
+
+
+@defun fdset? @var{obj}
+Return true if @var{obj} is a file descriptor object.
+@end defun
+
+
+@defun make-fdset @var{malloc}
+Build and return a new @code{fdset} object, referencing a newly
+allocated C language @code{fd_set} value.
+
+Memory is allocated using the function @var{malloc}, whose behaviour
+must match the one of @func{malloc} from @library{foreign memory}.
+@nauref{memory alloc high, Exception raising functions}.  To release
+memory we have to convert the @code{fdset} object to a pointer object
+and call the appropriate free function.
+@end defun
+
+
+@defun fdset->pointer @var{fdset}
+@defunx pointer->fdset @var{integer}
+Convert between a file descriptor object and an integer object.
+@end defun
+
+
+@c page
 @node fd constants
-@section Bindings for constant values
+@section Constant values and structure accessors
 
 
 @menu
@@ -2428,6 +2605,8 @@ level as exact integers.
 * fd constants control::        File control flags.
 * fd constants seek::           File positions.
 * fd constants lock::           Locking.
+* fd constants mmap::           Memory--mapped files.
+* fd constants select::         Waiting for file descriptor events.
 @end menu
 
 @c page
@@ -2654,6 +2833,107 @@ sizeof} library.  @glibcref{File Locks, File Locks}.
 Flags for file descriptor locking.
 @end defvr
 
+
+@defvr Constant sizeof-flock
+@defvrx Constant alignof-flock
+@defvrx Constant strideof-flock
+These are: the number of bytes required to hold a structure of type
+@code{struct flock}; the alignment of the structure when embedded in
+another structure; the number of bytes between two elements in an array
+of structures.
+@end defvr
+
+
+@deffn Syntax struct-flock-l_type-set! @var{pointer} @var{value}
+@deffnx Syntax struct-flock-l_type-ref @var{pointer}
+@deffnx Syntax struct-flock-l_whence-set! @var{pointer} @var{value}
+@deffnx Syntax struct-flock-l_whence-ref @var{pointer}
+@deffnx Syntax struct-flock-l_start-set! @var{pointer} @var{value}
+@deffnx Syntax struct-flock-l_start-ref @var{pointer}
+@deffnx Syntax struct-flock-l_len-set! @var{pointer} @var{value}
+@deffnx Syntax struct-flock-l_len-ref @var{pointer}
+@deffnx Syntax struct-flock-l_pid-set! @var{pointer} @var{value}
+@deffnx Syntax struct-flock-l_pid-ref @var{pointer}
+Peekers and pokers for the fields of a @code{struct flock}.
+@end deffn
+
+@c page
+@node fd constants mmap
+@subsection Memory--mapped files
+
+
+All the following bindings are exported by the @library{foreign posix
+sizeof} library.  @glibcref{Memory-mapped I/O, Memory--mapped I/O}.
+
+
+@defvr Constant MAP_PRIVATE
+@defvrx Constant MAP_SHARED
+@defvrx Constant MAP_FIXED
+@defvrx Constant MAP_ANON
+@defvrx Constant MAP_ANONYMOUS
+@defvrx Constant MAP_32BITS
+@defvrx Constant MAP_DENYWRITE
+@defvrx Constant MAP_EXECUTABLE
+@defvrx Constant MAP_FILE
+@defvrx Constant MAP_GROWSDOWN
+@defvrx Constant MAP_LOCKED
+@defvrx Constant MAP_NONBLOCK
+@defvrx Constant MAP_NORESERVE
+@defvrx Constant MAP_POPULATE
+@defvrx Constant MAP_STACK
+@defvrx Constant MAP_AUTOGROW
+@defvrx Constant MAP_AUTORESRV
+@defvrx Constant MAP_COPY
+Values for the @var{flags} argument to @func{mmap}; they must be
+composed with bitwise inclusive OR.  One among @samp{MAP_PRIVATE} and
+@samp{MAP_SHARED} must be used.
+@end defvr
+
+
+@defvr Constant PROT_READ
+@defvrx Constant PROT_WRITE
+@defvrx Constant PROT_EXEC
+@defvrx Constant PROT_NONE
+Values for the @var{protect} argument to @func{mmap}; they must be
+composed with bitwise inclusive OR.
+@end defvr
+
+
+@defvr Constant MS_SYNC
+@defvrx Constant MS_ASYNC
+Values for the @var{flags} argument to @func{msync}; they must be
+composed with bitwise inclusive OR.
+@end defvr
+
+
+@defvr Constant MREMAP_MAYMOVE
+Value for the @var{flags} argument to @func{mremap}.
+@end defvr
+
+@c page
+@node fd constants select
+@subsection Waiting for file descriptor events
+
+
+All the following bindings are exported by the @library{foreign posix
+sizeof} library.  @glibcref{Waiting for I/O, Waiting for Input and
+Output}.
+
+
+@defvr Constant FD_SETSIZE
+Maximum number of file descriptors that a @code{fd_set} can hold
+informations about.  It is meant to be used as @var{max-fd} argument to
+@func{select}.
+@end defvr
+
+
+@defvr Constant sizeof-fdset
+@defvrx Constant alignof-fdset
+@defvrx Constant strideof-fdset
+Size, alignment and array stride of data structures of type
+@code{fd_set}.
+@end defvr
+
 @c page
 @node fd open close
 @section Opening and closing
@@ -2662,7 +2942,7 @@ Flags for file descriptor locking.
 The following functions manage opening and closing file descriptors.
 @glibcref{Opening and Closing Files, Opening and Closing Files}.
 
-Example:
+Example using compensations:
 
 @example
 (letrec
@@ -2688,6 +2968,19 @@ with symbolic permissions bits (more portable):
             (close fd))))
   ---)
 @end example
+
+@noindent
+we should really create bindings for a selection of precomputed modes
+and permissions:
+
+@example
+(define open-mode-cew
+  (bitwise-ior O_CREAT O_EXCL O_WRONLY))
+
+(define open-perm-rw/w
+  (bitwise-ior S_IRUSR S_IWUSR S_IRGRP))
+@end example
+
 
 @float Table
 @multitable {#o755} {user perms} {group perms} {other perms}
@@ -2726,18 +3019,17 @@ executable.}
 @end float
 
 
-@deffn Function open @var{pathname} @var{open-mode} @var{permissions}
+@deffn Function open @var{pathname} @var{mode} @var{permissions}
 @deffnx Parameter open-function
-@deffnx Function primitive:open @var{pathname} @var{open-mode} @var{permissions}
-@deffnx Function platform:open @var{pathname} @var{open-mode} @var{permissions}
-Open with @var{open-mode} the file selected by @var{pathname} and return
-a file descriptor.  If the file is created, it is created with
+@deffnx Function primitive:open @var{pathname} @var{mode} @var{permissions}
+@deffnx Function platform:open @var{pathname-cstr} @var{mode} @var{permissions}
+Open with @var{mode} the file selected by @var{pathname} and return a
+file descriptor object; if the file is created, it is created with
 access @var{permissions}.
 
-@var{pathname} must be a Scheme string or symbol representing a file
-pathname.
+@var{pathname} must be a Scheme string or symbol.
 
-@var{open-mode} must be an exact integer, and it can be built with
+@var{mode} must be an exact integer, and it can be built with
 @func{bitwise-ior} from the following constants: one among
 @code{O_RDWR}, @code{O_RDONLY} and @code{O_WRONLY} and optionally
 @code{O_TRUNC}, @code{O_EXCL}, @code{O_NONBLOCK}.
@@ -2752,7 +3044,7 @@ file.
 @deffn Function close @var{fd}
 @deffnx Parameter close-function
 @deffnx Function primitive:close @var{fd}
-@deffnx Function platform:close @var{fd}
+@deffnx Function platform:close @var{fd-int}
 Close the file descriptor @var{fd}.
 @end deffn
 
@@ -2789,22 +3081,22 @@ and the following prefixes with @samp{posix:} all the bindings from
 @subsubheading Reading
 
 
-@deffn Function read @var{fd} @var{pointer} @var{buffer-size}
+@deffn Function read @var{fd} @var{pointer} @var{number-of-bytes}
 @deffnx Parameter read-function
-@deffnx Function primitive:read @var{fd} @var{pointer} @var{buffer-size}
-@deffnx Function platform:read @var{fd} @var{pointer} @var{buffer-size}
-Read at most @var{buffer-size} bytes from @var{fd}, starting at the
+@deffnx Function primitive:read @var{fd} @var{pointer} @var{number-of-bytes}
+@deffnx Function platform:read @var{fd-int} @var{pointer} @var{number-of-bytes}
+Read at most @var{number-of-bytes} from @var{fd}, starting at the
 current file position, and store them in the buffer referenced by
 @var{pointer}.  The file position is advanced.  Return the number of
 bytes actually read.
 @end deffn
 
 
-@deffn Function pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+@deffn Function pread @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
 @deffnx Parameter pread-function
-@deffnx Function primitive:pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
-@deffnx Function platform:pread @var{fd} @var{pointer} @var{buffer-size} @var{offset}
-Read at most @var{buffer-size} bytes from @var{fd}, starting at
+@deffnx Function primitive:pread @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
+@deffnx Function platform:pread @var{fd-int} @var{pointer} @var{number-of-bytes} @var{offset}
+Read at most @var{number-of-bytes} from @var{fd}, starting at
 @var{offset} from the beginning of the file, and store them in the
 buffer referenced by @var{pointer}.  The file position is left
 untouched.  Return the number of bytes actually read.
@@ -2815,23 +3107,22 @@ untouched.  Return the number of bytes actually read.
 @subsubheading Writing
 
 
-@deffn Function write @var{fd} @var{pointer} @var{buffer-size}
+@deffn Function write @var{fd} @var{pointer} @var{number-of-bytes}
 @deffnx Parameter write-function
-@deffnx Function primitive:write @var{fd} @var{pointer} @var{buffer-size}
-@deffnx Function platform:write @var{fd} @var{pointer} @var{buffer-size}
+@deffnx Function primitive:write @var{fd} @var{pointer} @var{number-of-bytes}
+@deffnx Function platform:write @var{fd-int} @var{pointer} @var{number-of-bytes}
 Write to @var{fd}, starting at the current file position, at most
-@var{buffer-size} bytes from the buffer referenced by @var{pointer}.
-The file position is advanced.  Return the number of bytes actually
-written.
+@var{number-of-bytes} from the buffer referenced by @var{pointer}.  The
+file position is advanced.  Return the number of bytes actually written.
 @end deffn
 
 
-@deffn Function pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+@deffn Function pwrite @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
 @deffnx Parameter pwrite-function
-@deffnx Function primitive:pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
-@deffnx Function platform:pwrite @var{fd} @var{pointer} @var{buffer-size} @var{offset}
+@deffnx Function primitive:pwrite @var{fd} @var{pointer} @var{number-of-bytes} @var{offset}
+@deffnx Function platform:pwrite @var{fd-int} @var{pointer} @var{number-of-bytes} @var{offset}
 Write to @var{fd}, starting at @var{offset} from the beginning of the
-file, at most @var{buffer-size} bytes from the buffer referenced by
+file, at most @var{number-of-bytes} from the buffer referenced by
 @var{pointer}.  The file position is left untouched.  Return the number
 of bytes actually written.
 @end deffn
@@ -2847,9 +3138,9 @@ Position of a Descriptor}.
 
 
 @deffn Function lseek @var{fd} @var{offset} @var{whence}
-@deffnx Paramter primitive:lseek-function
+@deffnx Paramter lseek-function
 @deffnx Function primitive:lseek @var{fd} @var{offset} @var{whence}
-@deffnx Function platform:lseek @var{fd} @var{offset} @var{whence}
+@deffnx Function platform:lseek @var{fd-int} @var{offset} @var{whence}
 Move the file position of @var{fd} at @var{offset} from the position
 selected with @var{whence}, which must be a value among @code{SEEK_SET},
 @code{SEEK_CUR}, @code{SEEK_END} (@pxref{fd constants seek}).  Return
@@ -2905,7 +3196,7 @@ devices.  Does not return until the operation is terminated.
 @deffn Function fsync @var{fd}
 @deffnx Parameter fsync-function
 @deffnx Function primitive:fsync @var{fd}
-@deffnx Function platform:fsync @var{fd}
+@deffnx Function platform:fsync @var{fd-int}
 Synchronise data for @var{fd} with the underlying device.
 @end deffn
 
@@ -2913,7 +3204,7 @@ Synchronise data for @var{fd} with the underlying device.
 @deffn Function fdatasync @var{fd}
 @deffnx Parameter fdatasync-function
 @deffnx Function primitive:fdatasync @var{fd}
-@deffnx Function platform:fdatasync @var{fd}
+@deffnx Function platform:fdatasync @var{fd-int}
 Flushes the output buffer of @var{fd} to the underlying device.  This
 function does not synchronise the file meta data (like the access time).
 @end deffn
@@ -2923,42 +3214,36 @@ function does not synchronise the file meta data (like the access time).
 @section Control operations
 
 
-The following functions manage miscellaneous control operation on a file
-descriptor.  @glibcref{Control Operations, Control Operations on Files}.
-@glibcref{IOCTLs, I/O Control Operations}.
+The following functions manage miscellaneous control operations on a
+file descriptor.  @glibcref{Control Operations, Control Operations on
+Files}.  @glibcref{IOCTLs, I/O Control Operations}.
 
 
 @deffn Function fcntl @var{fd} @var{operation} @var{arg}
 @deffnx Parameter fcntl-function
 @deffnx Function primitive:fcntl @var{fd} @var{operation} @var{arg}
-@deffnx Function platform:fcntl @var{fd} @var{operation} @var{arg}
+@deffnx Function platform:fcntl @var{fd-int} @var{operation} @var{arg-int}
+@deffnx Function platform:fcntl/ptr @var{fd-int} @var{operation} @var{arg-ptr}
 Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
-and @var{arg} must be exact integers.  @ref{fd constants control} for
+must be an exact integer; @var{arg} can be an exact integer, a pointer
+object or a @code{struct-flock} object.  @ref{fd constants control} for
 the list of the supported operations.
 
 @func{primitive:fcntl} assumes that: If the return value of
-@func{platform:fcntl} is @code{-1}, an error occurred.
+@func{platform:fcntl} or @func{platform:fcntl/ptr} is @code{-1}, an
+error occurred.
 
-@quotation
-@strong{NOTE} If @var{arg} has to be a pointer (like when requesting a
-lock on the file), we have to use @func{pointer->integer} to convert the
-pointer value to an integer; example:
-
-@example
-(fcntl fd F_SETLK (pointer->integer lock-struct))
-@end example
-
-@noindent
-this is a temporary requirement; it will be fixed in a future version of
-the package by providing an alternative @func{fnctl} interface.
-@end quotation
+If @var{arg} has to be a pointer (like when requesting a lock on the
+file), we must use @func{platform:fcntl/ptr}; if it has to be an exact
+integer, we must use @func{platform:fcntl}.  @func{primitive:fcntl}
+dispatches correctly by examining the type of @var{arg}.
 @end deffn
 
 
 @deffn Function ioctl @var{fd} @var{operation} @var{arg}
 @deffnx Parameter ioctl-function
 @deffnx Function primitive:ioctl @var{fd} @var{operation} @var{arg}
-@deffnx Function platform:ioctl @var{fd} @var{operation} @var{arg}
+@deffnx Function platform:ioctl @var{fd-int} @var{operation} @var{arg}
 Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
 and @var{arg} must be exact integers.  @ref{fd constants control} for
 the list of the supported operations.
@@ -2980,15 +3265,17 @@ The following functions manage duplication of file descriptors.
 @deffnx Parameter dup-function
 @deffnx Function primitive:dup @var{fd}
 @deffnx Function platform:dup @var{fd}
-Duplicate @var{fd}, return the new file descriptor.
+Duplicate @var{fd}, return the new file descriptor object.
 @end deffn
 
 
-@deffn Function dup2 @var{old-fd} @var{new-fd}
+@deffn Function dup2 @var{old-fd} @var{new-fd/int}
 @deffnx Parameter dup2-function
-@deffnx Function primitive:dup2 @var{old-fd} @var{new-fd}
-@deffnx Function platform:dup2 @var{old-fd} @var{new-fd}
-Copy @var{old-fd} to @var{new-fd}.
+@deffnx Function primitive:dup2 @var{old-fd} @var{new-fd/int}
+@deffnx Function platform:dup2 @var{old-fd-int} @var{new-fd-int}
+Copy @var{old-fd}, a file descriptor object, to a file descriptor whose
+number is @var{new-fd/int}, which can be a file descriptor object or an
+exact integer.  Return the new file descriptor object.
 @end deffn
 
 @c page
@@ -3001,43 +3288,21 @@ Locking is performed by @func{fcntl} with the @code{F_GETLK},
 argument to @func{fcntl} must be a pointer to a structure of type
 @code{struct flock}.  @glibcref{File Locks,File Locks}.
 
-The following bindings are exported by the @library{foreign posix
-sizeof} library.
-
-
-@defvr Constant sizeof-flock
-@defvrx Constant alignof-flock
-@defvrx Constant strideof-flock
-These are: the number of bytes required to hold a structure of type
-@code{struct flock}; the alignment of the structure when embedded in
-another structure; the number of bytes between two elements in an array
-of structures.
-@end defvr
-
-
-
-@deffn Syntax struct-flock-l_type-set! @var{pointer} @var{value}
-@deffnx Syntax struct-flock-l_type-ref @var{pointer}
-@deffnx Syntax struct-flock-l_whence-set! @var{pointer} @var{value}
-@deffnx Syntax struct-flock-l_whence-ref @var{pointer}
-@deffnx Syntax struct-flock-l_start-set! @var{pointer} @var{value}
-@deffnx Syntax struct-flock-l_start-ref @var{pointer}
-@deffnx Syntax struct-flock-l_len-set! @var{pointer} @var{value}
-@deffnx Syntax struct-flock-l_len-ref @var{pointer}
-@deffnx Syntax struct-flock-l_pid-set! @var{pointer} @var{value}
-@deffnx Syntax struct-flock-l_pid-ref @var{pointer}
-Peekers and pokers for the fields of a @code{struct flock}.
-@end deffn
-
+Usage example:
 
 @example
 (with-compensations
-  (let* ((fd ---)
-         (p  (malloc-block/c sizeof-flock))
-         (i  (pointer->integer p)))
-    (fcntl fd F_SETLK i)
-    ---
-    (fcntl fd F_UNLCK i)))
+  (let ((fd     ---)
+        (lock   (make-struct-flock malloc-block/c)))
+    (with-fields* (((type whence start len) struct-flock* lock))
+      (set! lock.type   F_WRLCK)
+      (set! lock.whence SEEK_SET)
+      (set! lock.start  0)
+      (set! lock.len    10)
+
+      (fcntl fd F_SETLK lock)
+      ---
+      (fcntl fd F_UNLCK lock))))
 @end example
 
 @c page
@@ -3097,6 +3362,272 @@ interprocess communication.  The Scheme string or symbol @var{pathname}
 selects the file pathname.  @var{mode} is a numeric access permissions
 mode like the one used by @func{open}.
 @end deffn
+
+@c page
+@node fd scatter
+@section Scatter/gather input/output
+
+
+The following functions manage reading/writing from/to file descriptors
+using an array of data buffers.  @glibcref{Scatter-Gather, Fast
+Scatter--Gather I/O}.
+
+
+@deffn Function readv @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
+@deffnx Parameter readv-function
+@deffnx Function primitive:readv @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
+@deffnx Function platform:readv @var{fd-int} @var{iovec-array-pointer} @var{iovec-array-size}
+Read data from @var{fd} storing it in the buffers described by the
+@code{iovec} array.  Return the total number of bytes read.
+@end deffn
+
+
+@deffn Function writev @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
+@deffnx Parameter writev-function
+@deffnx Function primitive:writev @var{fd} @var{iovec-array-pointer} @var{iovec-array-size}
+@deffnx Function platform:writev @var{fd-int} @var{iovec-array-pointer} @var{iovec-array-size}
+Write data to @var{fd} reading it from the buffers described by the
+@code{iovec} array.  Return the total number of bytes written.
+@end deffn
+
+
+The following bindings are exported by the library @library{foreign
+posix sizeof}.
+
+
+@defvr Constant sizeof-iovec
+@defvrx Constant alignof-iovec
+@defvrx Constant strideof-iovec
+Size, structure alignment and array stride of data structures of type
+@code{struct iovec}.
+@end defvr
+
+
+@deffn Syntax sizeof-iovec-array @var{number-of-elements}
+Expands to the size of an array holding @var{number-of-elements} data
+structures of type @code{struct iovec}.
+@end deffn
+
+
+@deffn Syntax array-ref-c-iovec @var{pointer} @var{index}
+Expands to a pointer to the first byte of the element at @var{index} in
+the array of @code{struct iovec} referenced by @var{pointer}.
+@end deffn
+
+
+@deffn Syntax struct-iovec-iov_base-ref @var{pointer}
+@deffnx Syntax struct-iovec-iov_base-set! @var{pointer} @var{value}
+@deffnx Syntax struct-iovec-iov_len-ref @var{pointer}
+@deffnx Syntax struct-iovec-iov_len-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of @code{struct iovec}.
+@end deffn
+
+
+Usage example, writing strings:
+
+@example
+(with-compensations
+  (letrec ((fd (compensate
+                   (posix:open pathname
+                               (bitwise-ior O_CREAT O_RDWR)
+                               (bitwise-ior S_IRUSR S_IWUSR))
+                 (with
+                  (posix:close fd)))))
+    (let* ((iovec-count 3)
+           (iovec**     (malloc-block/c
+                          (sizeof-iovec-array iovec-count))))
+      (let loop ((i     0)
+                 (ell   '("ciao" "salut" "hello")))
+        (unless (= i iovec-count)
+          (let ((iovec* (array-ref-c-iovec iovec** i))
+                (cstr   (string->cstring/c (car ell))))
+            (struct-iovec-iov_base-set! iovec* cstr)
+            (struct-iovec-iov_len-set!  iovec* (strlen cstr)))
+          (loop (+ 1 i) (cdr ell))))
+
+      (posix:writev fd iovec** iovec-count))))
+@end example
+
+@c page
+@node fd mmap
+@section Memory mapped input/output
+
+
+The following functions manage input/outut through a file mapped to a
+region of memory.  @glibcref{Memory-mapped I/O, Memory--mapped I/O}.
+
+
+@deffn Function mmap @var{address} @var{length} @var{protect} @var{flags} @var{fd} @var{offset}
+@deffnx Parameter mmap-function
+@deffnx Function primitive:mmap @var{address} @var{length} @var{protect} @var{flags} @var{fd} @var{offset}
+@deffnx Function platform:mmap @var{address} @var{length} @var{protect} @var{flags} @var{fd-int} @var{offset}
+Create a memory mapping for @var{fd}, starting at file position
+@var{offset}, for @var{length} bytes starting at @var{address} (which
+can be @code{pointer-null}).  Return the effective address of the
+mapping, which may be different from @var{address}.
+
+Beware that @var{address} and @var{offset} must be page aligned or an
+@code{EINVAL} error will be raised; see the original documentation.
+
+The @var{flags} and @var{protect} arguments must be exact integers
+composed with bitwise inclusive OR from appropriate constant values.
+@ref{fd constants mmap, Memory mapped files}.
+@end deffn
+
+
+@deffn Function munmap @var{address} @var{length}
+@deffnx Parameter munmap-function
+@deffnx Function primitive:munmap @var{address} @var{length}
+@deffnx Function platform:munmap @var{address} @var{length}
+Unmap a previously created memory mapping.
+@end deffn
+
+
+@deffn Function msync @var{address} @var{length} @var{flags}
+@deffnx Parameter msync-function
+@deffnx Function primitive:msync @var{address} @var{length} @var{flags}
+@deffnx Function platform:msync @var{address} @var{length} @var{flags}
+Synchronise a memory mapped region with the corresponding file on the
+underlying device.
+
+The @var{flags} argument must be an exact integer composed with bitwise
+inclusive OR from appropriate constant values.  @ref{fd constants mmap,
+Memory mapped files}.
+@end deffn
+
+
+@deffn Function mremap @var{address} @var{length} @var{new-length} @var{flags}
+@deffnx Parameter mremap-function
+@deffnx Function primitive:mremap @var{address} @var{length} @var{new-length} @var{flags}
+@deffnx Function platform:mremap @var{address} @var{length} @var{new-length} @var{flags}
+Change the size of an existing memory mapping.
+
+The @var{flags} argument must be an exact integer composed with bitwise
+inclusive OR from appropriate constant values.  @ref{fd constants mmap,
+Memory mapped files}.
+@end deffn
+
+
+Usage example:
+
+@example
+(letrec* ((fd         (compensate
+                          (open pathname
+                                (bitwise-ior O_CREAT O_RDWR)
+                                (bitwise-ior S_IRUSR S_IWUSR))
+                        (with
+                         (close fd))))
+          (map-len    4096)
+          (address    (compensate
+                          (mmap pointer-null map-len
+                                (bitwise-ior PROT_READ PROT_WRITE)
+                                MAP_SHARED fd 0)
+                        (with
+                         (munmap address map-len)))))
+
+  (pointer-ref-c-signed-char address 10))
+@end example
+
+@c page
+@node fd select
+@section Waiting for input or output
+
+
+The following functions manage watiting for input and outut on file
+descriptors.  @glibcref{Waiting for I/O, Waiting for Input and Output}.
+
+In the following descriptions the @var{fdset} arguments are @code{fdset}
+objects.  @ref{fd typedefs, File descriptor related data types}.
+
+
+@deffn Function select @var{max-fd} @var{read-fdset} @var{write-fdset} @var{except-fdset} @var{timeout}
+@deffnx Parameter select-function
+@deffnx Function primitive:select @var{max-fd} @var{read-fdset} @var{write-fdset} @var{except-fdset} @var{timeout}
+@deffnx Function platform:select @var{max-fd} @var{read-fdset} @var{write-fdset} @var{except-fdset} @var{timeout}
+Wait for an event on the file descriptors in the sets referenced by the
+@var{fdset} arguments.  @var{timeout} must be a @code{struct-timeval}
+object.
+
+@strong{NOTE} This function can be interrupted and return with
+@code{errno} set to @code{EINTR}; the library does not automatically
+reinvoke it, rather it raises an error with @func{raise-errno-error}.
+@end deffn
+
+
+@deffn Function FD_ZERO @var{fdset}
+@deffnx Function primitive:FD_ZERO @var{fdset}
+@deffnx Function platform:FD_ZERO @var{fdset}
+Initialises the file descriptor set referenced by @var{fdset}.  The
+return value is undefined, platform function included.
+@end deffn
+
+
+@deffn Function FD_SET @var{fd} @var{fdset}
+@deffnx Function primitive:FD_SET @var{fd} @var{fdset}
+@deffnx Function platform:FD_SET @var{fd} @var{fdset}
+Add @var{fd} to the file descriptor set referenced by @var{fdset}.  The
+return value is undefined, platform function included.
+@end deffn
+
+
+@deffn Function FD_CLR @var{fd} @var{fdset}
+@deffnx Function primitive:FD_CLR @var{fd} @var{fdset}
+@deffnx Function platform:FD_CLR @var{fd} @var{fdset}
+Remove @var{fd} from the file descriptor set referenced by @var{fdset}.
+The return value is undefined, platform function included.
+@end deffn
+
+
+@deffn Function FD_ISSET @var{fd} @var{fdset}
+@deffnx Function primitive:FD_ISSET @var{fd} @var{fdset}
+@deffnx Function platform:FD_ISSET @var{fd} @var{fdset}
+Return true if @var{fd} is a member of the file descriptor set
+referenced by @var{fdset}.  @func{platform:FD_ISSET} returns a single
+value, an integer with C language true/false meaning.
+@end deffn
+
+
+Usage example:
+
+@example
+(import (except (rnrs) read write)
+  (records)
+  (foreign memory)
+  (foreign posix fd)
+  (foreign posix sizeof)
+  (for (foreign posix typedefs) expand run)
+  (for (foreign posix extensions) expand))
+
+(let ((fd        ---)
+      (rd-fdset  (make-fdset malloc-block/c))
+      (wr-fdset  (make-fdset malloc-block/c))
+      (ex-fdset  (make-fdset malloc-block/c))
+      (timeout   (make-struct-timeval malloc-block/c)))
+
+  (with-fields* (((sec usec) struct-timeval* timeout))
+    (set! timeout.sec  1)
+    (set! timeout.usec 0))
+
+  (posix:FD_ZERO rd-fdset)
+  (posix:FD_ZERO wr-fdset)
+  (posix:FD_ZERO ex-fdset)
+
+  (posix:FD_SET fd rd-fdset)
+
+  (posix:select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
+  (posix:FD_ISSET fd rd-fdset))
+@end example
+
+@c page
+@ignore
+@node fd aio
+@section Asynchronous input/output
+
+
+The following functions asynchronous input/output on multiple file
+descriptors.  @glibcref{Asynchronous I/O, Perform I/O Operations in
+Parallel}.
+@end ignore
 
 @c page
 @node fd custom
@@ -3324,6 +3855,7 @@ exported by the following libraries:
 @end example
 
 @menu
+* streams typedefs::            Object type definitions.
 * streams constants::           Constants.
 * streams errors::              Detecting errors on streams.
 * streams open close::          Opening and closing.
@@ -3338,18 +3870,49 @@ exported by the following libraries:
 @end menu
 
 @c page
+@node streams typedefs
+@section Object type definitions
+
+
+Functions from the primitives and high--level stream libraries accept
+objects of type @code{FILE*} as @var{stream} arguments.  Functions from
+the platform libraries accept pointer objects as representing stream
+pointers.
+
+The following bindings are exported by the @library{foreign posix
+typedefs} library.
+
+
+@deftp {Object Type} FILE*
+Object type representing a @code{FILE *} pointer; it is disjoint from
+all the other Scheme object types.
+@end deftp
+
+
+@defun FILE*->pointer @var{stream}
+@defunx pointer->FILE* @var{pointer}
+Convert between a stream object and a pointer object.
+@end defun
+
+
+@defun FILE*? @var{obj}
+Return true if @var{obj} is a stream object.
+@end defun
+
+@c page
 @node streams constants
 @section Constants
 
 
 The following bindings are exported by the @library{foreign posix
 sizeof} library.  Notice that the seek constants @code{SEEK_SET},
-@code{SEEK_CUR} and @code{SEEK_END}) are also exported by the same
+@code{SEEK_CUR} and @code{SEEK_END} are also exported by the same
 library.  @ref{fd constants seek, File positions}
 
 
 @defvr Constant EOF
-The value of @code{EOF}.  @glibcref{EOF and Errors,EOF}
+The value of @code{EOF}.  @glibcref{EOF and Errors, End--of--file and
+Errors}.
 @end defvr
 
 @c page
@@ -3375,6 +3938,8 @@ value of the foreign function call.
 @defunx primitive:clearerr @var{stream}
 @defunx platform:clearerr @var{stream}
 Clear the error and end--of--file indicators for @var{stream}.
+@func{platform:clearerr} returns a single value: The return value of the
+foreign function call.
 @end defun
 
 @c page
@@ -3390,9 +3955,9 @@ Closing Streams}.
 @deffn Function fopen @var{pathname} @var{mode}
 @deffnx Parameter fopen-function
 @deffnx Function primitive:fopen @var{pathname} @var{mode}
-@deffnx Function platform:fopen @var{pathname-cstr} @var{mode}
+@deffnx Function platform:fopen @var{pathname-cstr} @var{mode-cstr}
 Open a file selected by @var{pathname} with the given mode and return a
-pointer to the stream.  @var{pathname} and @var{mode} must be Scheme
+@code{FILE*} object.  @var{pathname} and @var{mode} must be Scheme
 strings or symbols.
 @end deffn
 
@@ -3400,7 +3965,7 @@ strings or symbols.
 @deffn Function fclose @var{stream}
 @deffnx Parameter fclose-function
 @deffnx Function primitive:fclose @var{stream}
-@deffnx Function platform:fclose @var{stream}
+@deffnx Function platform:fclose @var{stream-ptr}
 Close the previously opened @var{stream}.
 @end deffn
 
@@ -3425,7 +3990,7 @@ Buffers}.
 @deffn Function fwrite @var{pointer} @var{size} @var{count} @var{stream}
 @deffnx Parameter fwrite-function
 @deffnx Function primitive:fwrite @var{pointer} @var{size} @var{count} @var{stream}
-@deffnx Function platform:fwrite @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform:fwrite @var{pointer} @var{size} @var{count} @var{stream-ptr}
 Write up to @var{count} elements of @var{size} bytes from the block of
 memory referenced by @var{pointer} to @var{stream}.  If successful
 return @var{count}.
@@ -3435,7 +4000,7 @@ return @var{count}.
 @deffn Function fputc @var{char} @var{stream}
 @deffnx Parameter fputc-function
 @deffnx Function primitive:fputc @var{char} @var{stream}
-@deffnx Function platform:fputc @var{char} @var{stream}
+@deffnx Function platform:fputc @var{char} @var{stream-ptr}
 Write a character to @var{stream}.  @var{char} must be a Scheme
 character with scalar value in the range @code{[0, 255]}; the scalar
 value is computed with @func{char->integer}.  If successful return the
@@ -3446,7 +4011,7 @@ scalar representing @var{char}.
 @deffn Function fputs @var{string} @var{stream}
 @deffnx Parameter fputs-function
 @deffnx Function primitive:fputs @var{string} @var{stream}
-@deffnx Function platform:fputs @var{cstring} @var{stream}
+@deffnx Function platform:fputs @var{cstring} @var{stream-ptr}
 Write a string to @var{stream}.  @var{string} must be a Scheme string or
 symbol.  If successful return the scalar representing @var{char}.
 @end deffn
@@ -3455,7 +4020,7 @@ symbol.  If successful return the scalar representing @var{char}.
 @deffn Function fflush @var{stream}
 @deffnx Parameter fflush-function
 @deffnx Function primitive:fflush @var{stream}
-@deffnx Function platform:fflush @var{stream}
+@deffnx Function platform:fflush @var{stream-ptr}
 Flush the contents of the buffer to the underlying device.
 @end deffn
 
@@ -3471,7 +4036,7 @@ The following functions manage reading data from streams.
 @deffn Function fread @var{pointer} @var{size} @var{count} @var{stream}
 @deffnx Parameter fread-function
 @deffnx Function primitive:fread @var{pointer} @var{size} @var{count} @var{stream}
-@deffnx Function platform:fread @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform:fread @var{pointer} @var{size} @var{count} @var{stream-ptr}
 Read up to @var{count} elements of @var{size} bytes from @var{stream}
 and store them in the block of memory referenced by @var{pointer}.
 Return the number of objects actually read (which may be less than
@@ -3482,7 +4047,7 @@ Return the number of objects actually read (which may be less than
 @deffn Function fgetc @var{stream}
 @deffnx Parameter fgetc-function
 @deffnx Function primitive:fgetc @var{stream}
-@deffnx Function platform:fgetc @var{stream}
+@deffnx Function platform:fgetc @var{stream-ptr}
 Read a single character from @var{stream}.  Return a Scheme character.
 @end deffn
 
@@ -3490,7 +4055,7 @@ Read a single character from @var{stream}.  Return a Scheme character.
 @deffn Function fgets @var{pointer} @var{count} @var{stream}
 @deffnx Parameter fgets-function
 @deffnx Function primitive:fgets @var{pointer} @var{count} @var{stream}
-@deffnx Function platform-fgets @var{pointer} @var{count} @var{stream}
+@deffnx Function platform-fgets @var{pointer} @var{count} @var{stream-ptr}
 Read a line from @var{stream} and store it in the buffer of @var{count}
 bytes referenced by @var{pointer}.  Return @var{pointer}.
 @end deffn
@@ -3507,7 +4072,7 @@ The following functions manage ``unreading'' data from streams.
 @deffn Function ungetc @var{char} @var{stream}
 @deffnx Parameter ungetc-function
 @deffnx Function primitive:ungetc @var{char} @var{stream}
-@deffnx Function platform:ungetc @var{c-char} @var{stream}
+@deffnx Function platform:ungetc @var{c-char} @var{stream-ptr}
 Unread a character to @var{stream}.  @var{char} must be a Scheme
 character with scalar value in the range @code{[0, 255]}; the scalar
 value is computed with @func{char->integer}.
@@ -3529,7 +4094,7 @@ library.  @ref{fd constants seek, File positions}
 @deffn Function feof @var{stream}
 @deffnx Parameter feof-function
 @deffnx Function primitive:feof @var{stream}
-@deffnx Function platform:feof @var{stream}
+@deffnx Function platform:feof @var{stream-ptr}
 Return @true{} if the end--of--file indicator of @var{stream} is set,
 otherwise @false{}.
 @end deffn
@@ -3538,7 +4103,7 @@ otherwise @false{}.
 @deffn Function fseek @var{stream} @var{offset} @var{whence}
 @deffnx Parameter fseek-function
 @deffnx Function primitive:fseek @var{stream} @var{offset} @var{whence}
-@deffnx Function platform:fseek @var{stream} @var{offset} @var{whence}
+@deffnx Function platform:fseek @var{stream-ptr} @var{offset} @var{whence}
 Change the file position of @var{stream} to @var{offset} from
 @var{whence}.
 @end deffn
@@ -3547,7 +4112,7 @@ Change the file position of @var{stream} to @var{offset} from
 @deffn Function fseeko @var{stream} @var{offset} @var{whence}
 @deffnx Parameter fseeko-function
 @deffnx Function primitive:fseeko @var{stream} @var{offset} @var{whence}
-@deffnx Function platform:fseeko @var{stream} @var{offset} @var{whence}
+@deffnx Function platform:fseeko @var{stream-ptr} @var{offset} @var{whence}
 Like @func{fseek}, but the return value is of type @code{off_t}.
 @end deffn
 
@@ -3555,7 +4120,7 @@ Like @func{fseek}, but the return value is of type @code{off_t}.
 @deffn Function ftell @var{stream}
 @deffnx Parameter ftell-function
 @deffnx Function primitive:ftell @var{stream}
-@deffnx Function platform:ftell @var{stream}
+@deffnx Function platform:ftell @var{stream-ptr}
 Return the current file position of @var{stream}.
 @end deffn
 
@@ -3563,7 +4128,7 @@ Return the current file position of @var{stream}.
 @deffn Function ftello @var{stream}
 @deffnx Parameter ftello-function
 @deffnx Function primitive:ftello @var{stream}
-@deffnx Function platform:ftello @var{stream}
+@deffnx Function platform:ftello @var{stream-ptr}
 Like @func{ftell}, but the return value is of type @code{off_t}.
 @end deffn
 
@@ -3571,7 +4136,7 @@ Like @func{ftell}, but the return value is of type @code{off_t}.
 @deffn Function rewind @var{stream}
 @deffnx Parameter rewind-function
 @deffnx Function primitive:rewind @var{stream}
-@deffnx Function platform:rewind @var{stream}
+@deffnx Function platform:rewind @var{stream-ptr}
 Change the file position of @var{stream} to the beginning of the file.
 @end deffn
 
@@ -3589,17 +4154,19 @@ Streams}.
 @deffnx Parameter fdopen-function
 @deffnx Function primitive:fdopen @var{fd} @var{open-mode}
 @deffnx Function platform:fdopen @var{fd} @var{open-mode}
-Build and return a new stream wrapping file descriptor @var{fd}.
-@var{open-mode} must be a Scheme string or symbol representing the open
-mode of @var{fd}; it can have the same values accepted by @func{fopen}.
+Build a new stream referencing the file descriptor @var{fd} and return a
+@code{FILE*} object.  @var{open-mode} must be a Scheme string or symbol
+representing the open mode of @var{fd}; it can have the same values
+accepted by @func{fopen}.
 @end deffn
 
 
 @deffn Function fileno @var{stream}
 @deffnx Parameter fileno-function
 @deffnx Function primitive:fileno @var{stream}
-@deffnx Function platform:fileno @var{stream}
-Return the file descriptor wrapped by @var{stream}, an exact integer.
+@deffnx Function platform:fileno @var{stream-ptr}
+Return a @code{file-descriptor} object representing the file descriptor
+wrapped by @var{stream}.
 @end deffn
 
 @c page
@@ -3619,14 +4186,14 @@ variants, but they do not implicitly lock the stream.
 @deffn Function ferror_unlocked @var{stream}
 @deffnx Parameter ferror_unlocked-function
 @deffnx Function primitive:ferror_unlocked @var{stream}
-@deffnx Function platform:ferror_unlocked @var{stream}
+@deffnx Function platform:ferror_unlocked @var{stream-ptr}
 Like @func{ferror}.
 @end deffn
 
 
 @defun clearerr_unlocked @var{stream}
 @defunx primitive:clearerr_unlocked @var{stream}
-@defunx platform:clearerr_unlocked @var{stream}
+@defunx platform:clearerr_unlocked @var{stream-ptr}
 Like @func{clearerr}.
 @end defun
 
@@ -3638,7 +4205,7 @@ Like @func{clearerr}.
 @deffn Function fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
 @deffnx Parameter fwrite_unlocked-function
 @deffnx Function primitive:fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
-@deffnx Function platform:fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform:fwrite_unlocked @var{pointer} @var{size} @var{count} @var{stream-ptr}
 Like @func{fwrite}.
 @end deffn
 
@@ -3646,7 +4213,7 @@ Like @func{fwrite}.
 @deffn Function fputc_unlocked @var{char} @var{stream}
 @deffnx Parameter fputc_unlocked-function
 @deffnx Function primitive:fputc_unlocked @var{c-char} @var{stream}
-@deffnx Function platform:fputc_unlocked @var{c-char} @var{stream}
+@deffnx Function platform:fputc_unlocked @var{c-char} @var{stream-ptr}
 Like @func{fputc}.
 @end deffn
 
@@ -3654,7 +4221,7 @@ Like @func{fputc}.
 @deffn Function fputs_unlocked @var{string} @var{stream}
 @deffnx Parameter fputs_unlocked-function
 @deffnx Function primitive:fputs_unlocked @var{cstring} @var{stream}
-@deffnx Function platform:fputs_unlocked @var{cstring} @var{stream}
+@deffnx Function platform:fputs_unlocked @var{cstring} @var{stream-ptr}
 Like @func{fputs}.
 @end deffn
 
@@ -3662,7 +4229,7 @@ Like @func{fputs}.
 @deffn Function fflush_unlocked @var{stream}
 @deffnx Parameter fflush_unlocked-function
 @deffnx Function primitive:fflush_unlocked @var{stream}
-@deffnx Function platform:fflush_unlocked @var{stream}
+@deffnx Function platform:fflush_unlocked @var{stream-ptr}
 Like @func{fflush}.
 @end deffn
 
@@ -3674,7 +4241,7 @@ Like @func{fflush}.
 @deffn Function fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
 @deffnx Parameter fread_unlocked-function
 @deffnx Function primitive:fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
-@deffnx Function platform:fread_unlocked @var{pointer} @var{size} @var{count} @var{stream}
+@deffnx Function platform:fread_unlocked @var{pointer} @var{size} @var{count} @var{stream-ptr}
 Like @func{fread}.
 @end deffn
 
@@ -3682,7 +4249,7 @@ Like @func{fread}.
 @deffn Function fgetc_unlocked @var{stream}
 @deffnx Parameter fgetc_unlocked-function
 @deffnx Function primitive:fgetc_unlocked @var{stream}
-@deffnx Function platform:fgetc_unlocked @var{stream}
+@deffnx Function platform:fgetc_unlocked @var{stream-ptr}
 Like @func{fgetc}.
 @end deffn
 
@@ -3690,7 +4257,7 @@ Like @func{fgetc}.
 @deffn Function fgets_unlocked @var{pointer} @var{count} @var{stream}
 @deffnx Parameter fgets_unlocked-function
 @deffnx Function primitive:fgets_unlocked @var{pointer} @var{count} @var{stream}
-@deffnx Function platform:fgets_unlocked @var{pointer} @var{count} @var{stream}
+@deffnx Function platform:fgets_unlocked @var{pointer} @var{count} @var{stream-ptr}
 Like @func{fgets}.
 @end deffn
 
@@ -3702,7 +4269,7 @@ Like @func{fgets}.
 @deffn Function feof_unlocked @var{stream}
 @deffnx Parameter feof_unlocked-function
 @deffnx Function primitive:feof_unlocked @var{stream}
-@deffnx Function platform:feof_unlocked @var{stream}
+@deffnx Function platform:feof_unlocked @var{stream-ptr}
 Like @func{feof}.
 @end deffn
 
@@ -3714,7 +4281,7 @@ Like @func{feof}.
 @deffn Function fileno_unlocked @var{stream}
 @deffnx Parameter fileno_unlocked-function
 @deffnx Function primitive:fileno_unlocked @var{stream}
-@deffnx Function platform:fileno_unlocked @var{stream}
+@deffnx Function platform:fileno_unlocked @var{stream-ptr}
 Like @func{fileno}.
 @end deffn
 
@@ -3733,45 +4300,50 @@ The following functions implement extended operations on streams.
 @deffn Function freadable @var{stream}
 @deffnx Parameter freadable-function
 @deffnx Function primitive:freadable @var{stream}
-@deffnx Function platform:freadable @var{stream}
+@deffnx Function platform:freadable @var{stream-ptr}
 Return @true{} if @var{stream} was opened for reading, otherwise return
-@false{}.
+@false{}.  @func{platform:freadable} returns a single value: the return
+value from the foreign function.
 @end deffn
 
 
 @deffn Function fwritable @var{stream}
 @deffnx Parameter fwritable-function
 @deffnx Function primitive:fwritable @var{stream}
-@deffnx Function platform:fwritable @var{stream}
+@deffnx Function platform:fwritable @var{stream-ptr}
 Return @true{} if @var{stream} was opened for writing, otherwise return
-@false{}.
+@false{}.  @func{platform:fwritable} returns a single value: the return
+value from the foreign function.
 @end deffn
 
 
 @deffn Function freading @var{stream}
 @deffnx Parameter freading-function
 @deffnx Function primitive:freading @var{stream}
-@deffnx Function platform:freading @var{stream}
+@deffnx Function platform:freading @var{stream-ptr}
 Return @true{} if @var{stream} was last read from, otherwise return
-@false{}.
+@false{}.  @func{platform:freading} returns a single value: the return
+value from the foreign function.
 @end deffn
 
 
 @deffn Function fwriting @var{stream}
 @deffnx Parameter fwriting-function
 @deffnx Function primitive:fwriting @var{stream}
-@deffnx Function platform:fwriting @var{stream}
+@deffnx Function platform:fwriting @var{stream-ptr}
 Return @true{} if @var{stream} was last written to, otherwise return
-@false{}.
+@false{}.  @func{platform:fwriting} returns a single value: the return
+value from the foreign function.
 @end deffn
 
 
 @deffn Function fwide @var{stream} @var{mode}
 @deffnx Parameter fwide-function
 @deffnx Function primitive:fwide @var{stream} @var{mode}
-@deffnx Function platform:fwide @var{stream} @var{mode}
+@deffnx Function platform:fwide @var{stream-ptr} @var{mode}
 Set or query the orientation of @var{stream}.  @var{mode} must be an
-exact integer.
+exact integer.  @func{platform:fwide} returns a single value: the return
+value from the foreign function.
 
 @itemize
 @item
@@ -3800,8 +4372,9 @@ characters.
 @deffn Function fpurge @var{stream}
 @deffnx Parameter fpurge-function
 @deffnx Function primitive:fpurge @var{stream}
-@deffnx Function platform:fpurge @var{stream}
-Discard the contents of the buffer.
+@deffnx Function platform:fpurge @var{stream-ptr}
+Discard the contents of the buffer.  @func{platform:fpurge} returns a
+single value: the return value from the foreign function.
 @end deffn
 
 @c page
@@ -3816,7 +4389,7 @@ The following functions manage reading lines from streams.
 @deffn Function getline @var{stream}
 @deffnx Parameter getline-function
 @deffnx Function primitive:getline @var{stream}
-@deffnx Function platform:getline @var{pointer-pointer} @var{pointer-count} @var{stream}
+@deffnx Function platform:getline @var{pointer-pointer} @var{pointer-count} @var{stream-ptr}
 Read characters from @var{stream} until a newline is found, then returns
 a string holding those characters and a terminating newline.
 
@@ -3834,7 +4407,7 @@ If an error occurs while reading: An exception is raised.
 @deffn Function getdelim @var{stream} @var{delimiter}
 @deffnx Parameter getdelim-function
 @deffnx Function primitive:getdelim @var{stream} @var{delimiter}
-@deffnx Function platform:getdelim @var{pointer-pointer} @var{pointer-count} @var{delimiter} @var{stream}
+@deffnx Function platform:getdelim @var{pointer-pointer} @var{pointer-count} @var{delimiter} @var{stream-ptr}
 Like @func{getline} but reads characters until @var{delimiter} is found.
 @var{delimiter} must be a Scheme character with an integer
 representation in the range @code{[0, 255]}.
@@ -3887,7 +4460,6 @@ file and accumulates them in the @code{lines} variables:
                              lines))
                  (loop))))))))
 @end smallexample
-
 
 @c page
 @node time
@@ -5526,15 +6098,221 @@ exported by the following libraries:
 @end example
 
 @menu
-* users persona::               Process' persona.
+* users typedefs::              Object type definitions.
+* users accessors::             Retrieving user and group identifiers.
+* users mutators::              Changing user and group identifiers.
+* users login::                 Retrieving user login names.
+* users userdb::                Users database.
 @end menu
 
 @c page
-@node users persona
-@section Process' persona
+@node users typedefs
+@section Object type definitions
 
 
-@glibcref{Reading Persona, Reading the Persona of a Process}
+Functions from the primitives and high--level libraries accept objects
+of type @code{uid} and @code{gid} as values for the @var{uid} and
+@var{gid} arguments.  Functions from the platform libraries accept exact
+integers as representing user and group identifiers.  The following
+bindings are exported by the @library{foreign posix typedefs} library.
+
+@c ------------------------------------------------------------
+
+@subsubheading User identifiers
+
+
+@deftp {Object Type} uid
+Type of user identifiers.  It is disjoint from all the other Scheme
+object types.
+@end deftp
+
+
+@defun uid? @var{obj}
+Return true if @var{obj} is of type @code{uid}.
+@end defun
+
+
+@defun uid->integer @var{uid}
+@defunx integer->uid @var{integer}
+Convert between @code{uid} objects and integer objects.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Group identifiers
+
+
+@deftp {Object Type} gid
+Type of user identifiers.  It is disjoint from all the other Scheme
+object types.
+@end deftp
+
+
+@defun gid? @var{obj}
+Return true if @var{obj} is of type @code{gid}.
+@end defun
+
+
+@defun gid->integer @var{gid}
+@defunx integer->gid @var{integer}
+Convert between @code{gid} objects and integer objects.
+@end defun
+
+@c page
+@node users accessors
+@section Retrieving user and group identifiers
+
+
+The following bindings manage acquisition of user and group identifiers.
+@glibcref{Reading Persona, Reading the Persona of a Process}.
+
+
+@deffn Function getuid
+@deffnx Parameter getuid-function
+@deffnx Function primitive:getuid
+@deffnx Function platform:getuid
+Return an @code{uid} object representing the real user identifier.
+@end deffn
+
+
+@deffn Function getgid
+@deffnx Parameter getgid-function
+@deffnx Function primitive:getgid
+@deffnx Function platform:getgid
+Return an @code{gid} object representing the real group identifier.
+@end deffn
+
+
+@deffn Function geteuid
+@deffnx Parameter geteuid-function
+@deffnx Function primitive:geteuid
+@deffnx Function platform:geteuid
+Return an @code{uid} object representing the effective user identifier.
+@end deffn
+
+
+@deffn Function getegid
+@deffnx Parameter getegid-function
+@deffnx Function primitive:getegid
+@deffnx Function platform:getegid
+Return an @code{gid} object representing the effective group identifier.
+@end deffn
+
+
+@deffn Function getgroups
+@deffnx Parameter getgroups-function
+@deffnx Function primitive:getgroups
+@deffnx Function platform:getgroups @var{count} @var{group-array}
+Return a (possibly empty) list of @code{gid} objects representing the
+supplementary group identifiers of the process.
+@end deffn
+
+
+@deffn Function getgrouplist @var{user-name} @var{gid}
+@deffnx Parameter getgrouplist-function @var{user-name} @var{gid}
+@deffnx Function primitive:getgrouplist
+@deffnx Function platform:getgrouplist @var{user-name-cstr} @var{gid-int}
+Return a (never empty) list of @code{gid} objects representing the
+supplementary group identifiers of groups to which the user with name
+@var{user-name} belongs to.  @var{gid} is added to the list.
+
+@var{user-name} must be a Scheme string or symbol.
+@end deffn
+
+@c page
+@node users mutators
+@section Changing user and group identifiers
+
+
+The following bindings manage setting user and group identifiers.
+@glibcref{Setting User ID, Setting the User ID}.  @glibcref{Setting
+Groups, Setting the Group IDs}.
+
+
+@deffn Function setuid @var{uid}
+@deffnx Parameter setuid-function
+@deffnx Function primitive:setuid @var{uid}
+@deffnx Function platform:setuid @var{uid-int}
+Set both the real and effective user identifier to @var{uid}.
+@end deffn
+
+
+@deffn Function seteuid @var{uid}
+@deffnx Parameter seteuid-function
+@deffnx Function primitive:seteuid @var{uid}
+@deffnx Function platform:seteuid @var{uid-int}
+Set the effective user identifier to @var{uid}.
+@end deffn
+
+
+@deffn Function setgid @var{gid}
+@deffnx Parameter setgid-function
+@deffnx Function primitive:setgid @var{gid}
+@deffnx Function platform:setgid @var{gid-int}
+Set both the real and effective group identifier to @var{gid}.
+@end deffn
+
+
+@deffn Function setegid @var{gid}
+@deffnx Parameter setegid-function
+@deffnx Function primitive:setegid @var{gid}
+@deffnx Function platform:setegid @var{gid-int}
+Set the effective group identifier to @var{gid}.
+@end deffn
+
+
+@deffn Function setgroups @var{gid-list}
+@deffnx Parameter setgroups-function
+@deffnx Function primitive:setgroups @var{gid-list}
+@deffnx Function platform:setgroups @var{count} @var{group-array}
+Set the supplementary group identifiers of the process to the given list
+of identifiers.
+@end deffn
+
+
+@deffn Function initgroups @var{user-name} @var{gid}
+@deffnx Parameter initgroups-function
+@deffnx Function primitive:initgroups @var{user-name} @var{gid}
+@deffnx Function platform:initgroups @var{user-name-cstr} @var{gid-int}
+Set the current supplementary groups to be the default for the user
+selected by @var{user-name}, which must be a Scheme string or symbol.
+The group identifier @var{gid} is automatically included.
+@end deffn
+
+
+@c page
+@node users login
+@section Retrieving user login names
+
+
+The following bindings manage retrieval of user's login name.
+@glibcref{Who Logged In, Identifying Who Logged In}.
+
+
+@deffn Function getlogin
+@deffnx Parameter getlogin-function
+@deffnx Function primitive:getlogin
+@deffnx Function platform:getlogin
+Return a Scheme string representing the name of the logged in user.
+This function is not reentrant.
+@end deffn
+
+
+@deffn Function cuserid
+@deffnx Parameter cuserid-function
+@deffnx Function primitive:cuserid
+@deffnx Function platform:cuserid @var{cstr}
+Return a Scheme string representing the name of the logged in user.
+This function is reentrant.
+@end deffn
+
+@c page
+@node users userdb
+@section Users database
+
+
+
+
 
 @c page
 @node strings
@@ -5567,6 +6345,427 @@ starting at @var{pointer}.  Return a pointer to the located byte or a
 null pointer if @var{uchar} was not found.
 @end defun
 
+
+@c page
+@node system
+@chapter System resources and configuration
+
+
+Unless otherwise specified, the functions documented in this chapter are
+exported by the following libraries:
+
+@example
+(foreign posix system)
+(foreign posix system primitives)
+(foreign posix system platform)
+@end example
+
+@menu
+* system constants::            Constant values.
+* system inspection::           Inspecting configuration.
+@end menu
+
+@c page
+@node system constants
+@section Constant values
+
+
+The following bindings are exported from the @library{foreign posix
+sizeof} library.
+
+
+@defvr Constant ARG_MAX
+@defvrx Constant _POSIX_ARG_MAX
+@defvrx Constant CHILD_MAX
+@defvrx Constant _POSIX_CHILD_MAX
+@defvrx Constant OPEN_MAX
+@defvrx Constant _POSIX_OPEN_MAX
+@defvrx Constant STREAM_MAX
+@defvrx Constant _POSIX_STREAM_MAX
+@defvrx Constant TZNAME_MAX
+@defvrx Constant _POSIX_TZNAME_MAX
+@defvrx Constant NGROUPS_MAX
+@defvrx Constant SSIZE_MAX
+@defvrx Constant RE_DUP_MAX
+System capacity limitations.  @glibcref{General Limits, General Capacity
+Limits}.
+@end defvr
+
+
+@defvr Constant _POSIX_JOB_CONTROL
+@defvrx Constant _POSIX_SAVED_IDS
+@defvrx Constant _POSIX2_C_DEV
+@defvrx Constant _POSIX2_FORT_DEV
+@defvrx Constant _POSIX2_FORT_RUN
+@defvrx Constant _POSIX2_LOCALEDEF
+@defvrx Constant _POSIX2_SW_DEV
+Overall system options.  @glibcref{System Options, Overall System
+Options}.
+@end defvr
+
+
+@defvr Constant _POSIX_VERSION
+@defvrx Constant _POSIX2_C_VERSION
+Supported @posix{} version.  @glibcref{Version Supported, Which Version
+of @posix{} is Supported}.
+@end defvr
+
+
+@defvr Constant _SC_ARG_MAX
+@defvrx Constant _SC_CHILD_MAX
+@defvrx Constant _SC_CLK_TCK
+@defvrx Constant _SC_NGROUPS_MAX
+@defvrx Constant _SC_OPEN_MAX
+@defvrx Constant _SC_STREAM_MAX
+@defvrx Constant _SC_TZNAME_MAX
+@defvrx Constant _SC_JOB_CONTROL
+@defvrx Constant _SC_SAVED_IDS
+@defvrx Constant _SC_REALTIME_SIGNALS
+@defvrx Constant _SC_PRIORITY_SCHEDULING
+@defvrx Constant _SC_TIMERS
+@defvrx Constant _SC_ASYNCHRONOUS_IO
+@defvrx Constant _SC_PRIORITIZED_IO
+@defvrx Constant _SC_SYNCHRONIZED_IO
+@defvrx Constant _SC_FSYNC
+@defvrx Constant _SC_MAPPED_FILES
+@defvrx Constant _SC_MEMLOCK
+@defvrx Constant _SC_MEMLOCK_RANGE
+@defvrx Constant _SC_MEMORY_PROTECTION
+@defvrx Constant _SC_MESSAGE_PASSING
+@defvrx Constant _SC_SEMAPHORES
+@defvrx Constant _SC_SHARED_MEMORY_OBJECTS
+@defvrx Constant _SC_AIO_LISTIO_MAX
+@defvrx Constant _SC_AIO_MAX
+@defvrx Constant _SC_AIO_PRIO_DELTA_MAX
+@defvrx Constant _SC_DELAYTIMER_MAX
+@defvrx Constant _SC_MQ_OPEN_MAX
+@defvrx Constant _SC_MQ_PRIO_MAX
+@defvrx Constant _SC_VERSION
+@defvrx Constant _SC_PAGESIZE
+@defvrx Constant _SC_PAGE_SIZE
+@defvrx Constant _SC_RTSIG_MAX
+@defvrx Constant _SC_SEM_NSEMS_MAX
+@defvrx Constant _SC_SEM_VALUE_MAX
+@defvrx Constant _SC_SIGQUEUE_MAX
+@defvrx Constant _SC_TIMER_MAX
+@defvrx Constant _SC_BC_BASE_MAX
+@defvrx Constant _SC_BC_DIM_MAX
+@defvrx Constant _SC_BC_SCALE_MAX
+@defvrx Constant _SC_BC_STRING_MAX
+@defvrx Constant _SC_COLL_WEIGHTS_MAX
+@defvrx Constant _SC_EQUIV_CLASS_MAX
+@defvrx Constant _SC_EXPR_NEST_MAX
+@defvrx Constant _SC_LINE_MAX
+@defvrx Constant _SC_RE_DUP_MAX
+@defvrx Constant _SC_CHARCLASS_NAME_MAX
+@defvrx Constant _SC_2_VERSION
+@defvrx Constant _SC_2_C_BIND
+@defvrx Constant _SC_2_C_DEV
+@defvrx Constant _SC_2_FORT_DEV
+@defvrx Constant _SC_2_FORT_RUN
+@defvrx Constant _SC_2_SW_DEV
+@defvrx Constant _SC_2_LOCALEDEF
+@defvrx Constant _SC_PII
+@defvrx Constant _SC_PII_XTI
+@defvrx Constant _SC_PII_SOCKET
+@defvrx Constant _SC_PII_INTERNET
+@defvrx Constant _SC_PII_OSI
+@defvrx Constant _SC_POLL
+@defvrx Constant _SC_SELECT
+@defvrx Constant _SC_UIO_MAXIOV
+@defvrx Constant _SC_IOV_MAX = _SC_UIO_MAXIOV
+@defvrx Constant _SC_PII_INTERNET_STREAM
+@defvrx Constant _SC_PII_INTERNET_DGRAM
+@defvrx Constant _SC_PII_OSI_COTS
+@defvrx Constant _SC_PII_OSI_CLTS
+@defvrx Constant _SC_PII_OSI_M
+@defvrx Constant _SC_T_IOV_MAX
+@defvrx Constant _SC_THREADS
+@defvrx Constant _SC_THREAD_SAFE_FUNCTIONS
+@defvrx Constant _SC_GETGR_R_SIZE_MAX
+@defvrx Constant _SC_GETPW_R_SIZE_MAX
+@defvrx Constant _SC_LOGIN_NAME_MAX
+@defvrx Constant _SC_TTY_NAME_MAX
+@defvrx Constant _SC_THREAD_DESTRUCTOR_ITERATIONS
+@defvrx Constant _SC_THREAD_KEYS_MAX
+@defvrx Constant _SC_THREAD_STACK_MIN
+@defvrx Constant _SC_THREAD_THREADS_MAX
+@defvrx Constant _SC_THREAD_ATTR_STACKADDR
+@defvrx Constant _SC_THREAD_ATTR_STACKSIZE
+@defvrx Constant _SC_THREAD_PRIORITY_SCHEDULING
+@defvrx Constant _SC_THREAD_PRIO_INHERIT
+@defvrx Constant _SC_THREAD_PRIO_PROTECT
+@defvrx Constant _SC_THREAD_PROCESS_SHARED
+@defvrx Constant _SC_NPROCESSORS_CONF
+@defvrx Constant _SC_NPROCESSORS_ONLN
+@defvrx Constant _SC_PHYS_PAGES
+@defvrx Constant _SC_AVPHYS_PAGES
+@defvrx Constant _SC_ATEXIT_MAX
+@defvrx Constant _SC_PASS_MAX
+@defvrx Constant _SC_XOPEN_VERSION
+@defvrx Constant _SC_XOPEN_XCU_VERSION
+@defvrx Constant _SC_XOPEN_UNIX
+@defvrx Constant _SC_XOPEN_CRYPT
+@defvrx Constant _SC_XOPEN_ENH_I18N
+@defvrx Constant _SC_XOPEN_SHM
+@defvrx Constant _SC_2_CHAR_TERM
+@defvrx Constant _SC_2_C_VERSION
+@defvrx Constant _SC_2_UPE
+@defvrx Constant _SC_XOPEN_XPG2
+@defvrx Constant _SC_XOPEN_XPG3
+@defvrx Constant _SC_XOPEN_XPG4
+@defvrx Constant _SC_CHAR_BIT
+@defvrx Constant _SC_CHAR_MAX
+@defvrx Constant _SC_CHAR_MIN
+@defvrx Constant _SC_INT_MAX
+@defvrx Constant _SC_INT_MIN
+@defvrx Constant _SC_LONG_BIT
+@defvrx Constant _SC_WORD_BIT
+@defvrx Constant _SC_MB_LEN_MAX
+@defvrx Constant _SC_NZERO
+@defvrx Constant _SC_SSIZE_MAX
+@defvrx Constant _SC_SCHAR_MAX
+@defvrx Constant _SC_SCHAR_MIN
+@defvrx Constant _SC_SHRT_MAX
+@defvrx Constant _SC_SHRT_MIN
+@defvrx Constant _SC_UCHAR_MAX
+@defvrx Constant _SC_UINT_MAX
+@defvrx Constant _SC_ULONG_MAX
+@defvrx Constant _SC_USHRT_MAX
+@defvrx Constant _SC_NL_ARGMAX
+@defvrx Constant _SC_NL_LANGMAX
+@defvrx Constant _SC_NL_MSGMAX
+@defvrx Constant _SC_NL_NMAX
+@defvrx Constant _SC_NL_SETMAX
+@defvrx Constant _SC_NL_TEXTMAX
+@defvrx Constant _SC_XBS5_ILP32_OFF32
+@defvrx Constant _SC_XBS5_ILP32_OFFBIG
+@defvrx Constant _SC_XBS5_LP64_OFF64
+@defvrx Constant _SC_XBS5_LPBIG_OFFBIG
+@defvrx Constant _SC_XOPEN_LEGACY
+@defvrx Constant _SC_XOPEN_REALTIME
+@defvrx Constant _SC_XOPEN_REALTIME_THREADS
+@defvrx Constant _SC_ADVISORY_INFO
+@defvrx Constant _SC_BARRIERS
+@defvrx Constant _SC_BASE
+@defvrx Constant _SC_C_LANG_SUPPORT
+@defvrx Constant _SC_C_LANG_SUPPORT_R
+@defvrx Constant _SC_CLOCK_SELECTION
+@defvrx Constant _SC_CPUTIME
+@defvrx Constant _SC_THREAD_CPUTIME
+@defvrx Constant _SC_DEVICE_IO
+@defvrx Constant _SC_DEVICE_SPECIFIC
+@defvrx Constant _SC_DEVICE_SPECIFIC_R
+@defvrx Constant _SC_FD_MGMT
+@defvrx Constant _SC_FIFO
+@defvrx Constant _SC_PIPE
+@defvrx Constant _SC_FILE_ATTRIBUTES
+@defvrx Constant _SC_FILE_LOCKING
+@defvrx Constant _SC_FILE_SYSTEM
+@defvrx Constant _SC_MONOTONIC_CLOCK
+@defvrx Constant _SC_MULTI_PROCESS
+@defvrx Constant _SC_SINGLE_PROCESS
+@defvrx Constant _SC_NETWORKING
+@defvrx Constant _SC_READER_WRITER_LOCKS
+@defvrx Constant _SC_SPIN_LOCKS
+@defvrx Constant _SC_REGEXP
+@defvrx Constant _SC_REGEX_VERSION
+@defvrx Constant _SC_SHELL
+@defvrx Constant _SC_SIGNALS
+@defvrx Constant _SC_SPAWN
+@defvrx Constant _SC_SPORADIC_SERVER
+@defvrx Constant _SC_THREAD_SPORADIC_SERVER
+@defvrx Constant _SC_SYSTEM_DATABASE
+@defvrx Constant _SC_SYSTEM_DATABASE_R
+@defvrx Constant _SC_TIMEOUTS
+@defvrx Constant _SC_TYPED_MEMORY_OBJECTS
+@defvrx Constant _SC_USER_GROUPS
+@defvrx Constant _SC_USER_GROUPS_R
+@defvrx Constant _SC_2_PBS
+@defvrx Constant _SC_2_PBS_ACCOUNTING
+@defvrx Constant _SC_2_PBS_LOCATE
+@defvrx Constant _SC_2_PBS_MESSAGE
+@defvrx Constant _SC_2_PBS_TRACK
+@defvrx Constant _SC_SYMLOOP_MAX
+@defvrx Constant _SC_STREAMS
+@defvrx Constant _SC_2_PBS_CHECKPOINT
+@defvrx Constant _SC_V6_ILP32_OFF32
+@defvrx Constant _SC_V6_ILP32_OFFBIG
+@defvrx Constant _SC_V6_LP64_OFF64
+@defvrx Constant _SC_V6_LPBIG_OFFBIG
+@defvrx Constant _SC_HOST_NAME_MAX
+@defvrx Constant _SC_TRACE
+@defvrx Constant _SC_TRACE_EVENT_FILTER
+@defvrx Constant _SC_TRACE_INHERIT
+@defvrx Constant _SC_TRACE_LOG
+@defvrx Constant _SC_LEVEL1_ICACHE_SIZE
+@defvrx Constant _SC_LEVEL1_ICACHE_ASSOC
+@defvrx Constant _SC_LEVEL1_ICACHE_LINESIZE
+@defvrx Constant _SC_LEVEL1_DCACHE_SIZE
+@defvrx Constant _SC_LEVEL1_DCACHE_ASSOC
+@defvrx Constant _SC_LEVEL1_DCACHE_LINESIZE
+@defvrx Constant _SC_LEVEL2_CACHE_SIZE
+@defvrx Constant _SC_LEVEL2_CACHE_ASSOC
+@defvrx Constant _SC_LEVEL2_CACHE_LINESIZE
+@defvrx Constant _SC_LEVEL3_CACHE_SIZE
+@defvrx Constant _SC_LEVEL3_CACHE_ASSOC
+@defvrx Constant _SC_LEVEL3_CACHE_LINESIZE
+@defvrx Constant _SC_LEVEL4_CACHE_SIZE
+@defvrx Constant _SC_LEVEL4_CACHE_ASSOC
+@defvrx Constant _SC_LEVEL4_CACHE_LINESIZE
+@defvrx Constant _SC_IPV6
+@defvrx Constant _SC_RAW_SOCKETS
+Values for the @var{param} argument to @func{sysconf}.
+@glibcref{Constants for Sysconf, Constants for @code{sysconf}
+Parameters}.
+@end defvr
+
+
+@defvr Constant LINK_MAX
+@defvrx Constant MAX_CANON
+@defvrx Constant MAX_INPUT
+@defvrx Constant NAME_MAX
+@defvrx Constant PATH_MAX
+@defvrx Constant PIPE_BUF
+@defvrx Constant MAXNAMLEN
+@defvrx Constant FILENAME_MAX
+Limits on file system capacity.  @glibcref{Limits for Files, Limits on
+File System Capacity}.
+@end defvr
+
+
+@defvr Constant _POSIX_CHOWN_RESTRICTED
+@defvrx Constant _POSIX_NO_TRUNC
+@defvrx Constant _POSIX_VDISABLE
+Optional features in file support.  @glibcref{Options for Files,
+Optional Features in File Support}.
+@end defvr
+
+
+@defvr Constant _POSIX_LINK_MAX
+@defvrx Constant _POSIX_MAX_CANON
+@defvrx Constant _POSIX_MAX_INPUT
+@defvrx Constant _POSIX_NAME_MAX
+@defvrx Constant _POSIX_PATH_MAX
+@defvrx Constant _POSIX_PIPE_BUF
+@defvrx Constant SYMLINK_MAX
+@defvrx Constant POSIX_REC_INCR_XFER_SIZE
+@defvrx Constant POSIX_REC_MAX_XFER_SIZE
+@defvrx Constant POSIX_REC_MIN_XFER_SIZE
+@defvrx Constant POSIX_REC_XFER_ALIGN
+Minimum values for file system limits.
+@end defvr
+
+
+@defvr Constant _PC_LINK_MAX
+@defvrx Constant _PC_MAX_CANON
+@defvrx Constant _PC_MAX_INPUT
+@defvrx Constant _PC_NAME_MAX
+@defvrx Constant _PC_PATH_MAX
+@defvrx Constant _PC_PIPE_BUF
+@defvrx Constant _PC_CHOWN_RESTRICTED
+@defvrx Constant _PC_NO_TRUNC
+@defvrx Constant _PC_VDISABLE
+@defvrx Constant _PC_SYNC_IO
+@defvrx Constant _PC_ASYNC_IO
+@defvrx Constant _PC_PRIO_IO
+@defvrx Constant _PC_FILESIZEBITS
+@defvrx Constant _PC_REC_INCR_XFER_SIZE
+@defvrx Constant _PC_REC_MAX_XFER_SIZE
+@defvrx Constant _PC_REC_MIN_XFER_SIZE
+@defvrx Constant _PC_REC_XFER_ALIGN
+Constants for the @var{param} argument to @func{pathconf} and
+@func{fpathconf}.  @glibcref{Utility Limits, Using @code{pathconf}}.
+@end defvr
+
+
+@defvr Constant BC_BASE_MAX
+@defvrx Constant _POSIX_BC_BASE_MAX
+@defvrx Constant BC_DIM_MAX
+@defvrx Constant _POSIX_BC_DIM_MAX
+@defvrx Constant BC_SCALE_MAX
+@defvrx Constant _POSIX_BC_SCALE_MAX
+@defvrx Constant BC_STRING_MAX
+@defvrx Constant _POSIX_BC_STRING_MAX
+@defvrx Constant COLL_WEIGHTS_MAX
+@defvrx Constant _POSIX_COLL_WEIGHTS_MAX
+@defvrx Constant EXPR_NEXT_MAX
+@defvrx Constant _POSIX_EXPR_NEXT_MAX
+@defvrx Constant LINE_MAX
+@defvrx Constant _POSIX_LINE_MAX
+@defvrx Constant EQUIV_CLASS_MAX
+@defvrx Constant _POSIX_EQUIV_CLASS_MAX
+Utility program capacity limits.  @glibcref{Utility Limits, Utility
+Program Capacity Limits}.
+@end defvr
+
+
+@defvr Constant _CS_PATH
+@defvrx Constant _CS_LFS_CFLAGS
+@defvrx Constant _CS_LFS_LDFLAGS
+@defvrx Constant _CS_LFS_LIBS
+@defvrx Constant _CS_LFS_LINTFLAGS
+@defvrx Constant _CS_LFS64_CFLAGS
+@defvrx Constant _CS_LFS64_LDFLAGS
+@defvrx Constant _CS_LFS64_LIBS
+@defvrx Constant _CS_LFS64_LINTFLAGS
+String--valued system configuration parameters.
+@end defvr
+
+@c page
+@node system inspection
+@section Inspecting configuration
+
+
+@deffn Function sysconf @var{param}
+@deffnx Parameter sysconf-function
+@deffnx Function primitive:sysconf @var{param}
+@deffnx Function platform:sysconf @var{param}
+Return an exact integer representing the configuration value selected by
+@var{param}.  @glibcref{Sysconf, Using @code{sysconf}}.
+
+@var{param} must be one among the @samp{_SC_*} values.  @ref{system
+constants, Constant values}.
+
+If the system does not impose a limit: the return value is @true{}.
+@end deffn
+
+
+@deffn Function pathconf @var{pathname} @var{param}
+@deffnx Parameter pathconf-function
+@deffnx Function primitive:pathconf @var{pathname} @var{param}
+@deffnx Function platform:pathconf @var{pathname-cstr} @var{param}
+Return an exact integer representing the configuration value selected by
+@var{param} associated to the file @var{pathname}.  @glibcref{Utility
+Limits, Using @code{pathconf}}.
+
+
+@var{pathname} must be a Scheme string or symbol; @var{param} must be
+one among the @samp{_PC_*} values.  @ref{system constants, Constant
+values}.
+
+If the system does not impose a limit: the return value is @true{}.
+@end deffn
+
+
+@deffn Function fpathconf @var{fd} @var{param}
+@deffnx Parameter fpathconf-function
+@deffnx Function primitive:fpathconf @var{fd} @var{param}
+@deffnx Function platform:fpathconf @var{fd} @var{param}
+Like @func{pathconf} but select the file through the file descriptor
+@var{fd}.
+@end deffn
+
+
+@deffn Function confstr @var{param}
+@deffnx Parameter confstr-function
+@deffnx Function primitive:confstr @var{param}
+@deffnx Function platform:confstr @var{param} @var{buf} @var{len}
+Return the value of a string--valued system parameter.
+
+@var{param} must be one among the @samp{_CS_*} values.  @ref{system
+constants, Constant values}.
+@end deffn
 
 @c page
 

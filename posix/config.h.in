@@ -55,6 +55,9 @@
 /* Define to 1 if the system has the type `ptrdiff_t'. */
 #undef HAVE_PTRDIFF_T
 
+/* Define to 1 if you have the <pwd.h> header file. */
+#undef HAVE_PWD_H
+
 /* Define to 1 if stdbool.h conforms to C99. */
 #undef HAVE_STDBOOL_H
 
@@ -92,9 +95,15 @@
    */
 #undef HAVE_SYS_DIR_H
 
+/* Define to 1 if you have the <sys/mman.h> header file. */
+#undef HAVE_SYS_MMAN_H
+
 /* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
    */
 #undef HAVE_SYS_NDIR_H
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+#undef HAVE_SYS_SELECT_H
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H

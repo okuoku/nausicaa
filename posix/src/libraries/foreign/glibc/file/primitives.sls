@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -64,7 +64,8 @@
     (only (foreign errno)
 	  raise-errno-error)
     (foreign posix sizeof)
-    (prefix (foreign glibc file platform) platform:))
+    (prefix (foreign glibc file platform) platform:)
+    (foreign posix typedefs))
 
 
 ;;;; directory access
@@ -144,7 +145,7 @@
       (platform:tmpfile)
     (when (pointer-null? result)
       (raise-errno-error 'tmpfile errno))
-    result))
+    (pointer->FILE* result)))
 
 
 ;;;; file times
@@ -194,13 +195,13 @@
   (case-lambda
    ((fd access-time-sec access-time-usec modification-time-sec modification-time-usec)
     (%real-utimes (lambda (*arry)
-		    (platform:futimes fd *arry))
+		    (platform:futimes (file-descriptor->integer fd) *arry))
 		  'futimes fd
 		  access-time-sec access-time-usec
 		  modification-time-sec modification-time-usec))
    ((fd)
     (%real-utimes (lambda (*arry)
-		    (platform:futimes fd *arry))
+		    (platform:futimes (file-descriptor->integer fd) *arry))
 		  'futimes fd))))
 
 

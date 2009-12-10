@@ -32,38 +32,63 @@
     lseek
     sync	fsync
     fdatasync
-    fcntl	ioctl
+    fcntl	fcntl/ptr	ioctl
     dup	dup2
-    pipe	mkfifo)
+    pipe	mkfifo
+    readv	writev
+    mmap	munmap		msync		mremap
+
+    select FD_ZERO FD_SET FD_CLR FD_ISSET
+;;;    aio_read aio_write aio_error aio_return aio_fsync aio_suspend aio_cancel lio_listio
+    )
   (import (except (rnrs) read write)
     (foreign ffi)
     (foreign posix shared-object)
     (foreign posix sizeof))
 
-
-(define-c-functions/with-errno libc-shared-object
-  (open			(int open (char* int mode_t)))
-  (close		(int close (int)))
-  (read			(ssize_t read (int void* size_t)))
-  (write		(ssize_t write (int void* size_t)))
-  (sync			(int sync (void)))
-  (fsync		(int fsync (int)))
-  (fdatasync		(int fdatasync (int)))
-  (fcntl		(int fcntl (int int int)))
-  (ioctl		(int ioctl (int int int)))
-  (dup			(int dup (int)))
-  (dup2			(int dup2 (int int)))
-  (pipe			(int pipe (pointer)))
-  (mkfifo		(int mkfifo (char* mode_t))))
+  (define-c-functions/with-errno libc-shared-object
+    (open		(int open (char* int mode_t)))
+    (close		(int close (int)))
+    (read		(ssize_t read (int void* size_t)))
+    (write		(ssize_t write (int void* size_t)))
+    (sync		(int sync (void)))
+    (fsync		(int fsync (int)))
+    (fdatasync		(int fdatasync (int)))
+    (fcntl		(int fcntl (int int int)))
+    (fcntl/ptr		(int fcntl (int int void*)))
+    (ioctl		(int ioctl (int int int)))
+    (dup		(int dup (int)))
+    (dup2		(int dup2 (int int)))
+    (pipe		(int pipe (pointer)))
+    (mkfifo		(int mkfifo (char* mode_t)))
+    (readv		(ssize_t readv (int void* int)))
+    (writev		(ssize_t writev (int void* int)))
+    (munmap		(int munmap (void* size_t)))
+    (msync		(int msync (void* size_t int)))
+    (mremap		(int mremap (void* size_t size_t int)))
+    (select		(int select (int void* void* void* void*)))
+    )
 
-(define-c-functions/with-errno libnausicaa-posix
-  (pread		(ssize_t nausicaa_posix_pread (int void* size_t off_t)))
-  (pwrite		(ssize_t nausicaa_posix_pwrite (int void* size_t off_t)))
-  (lseek		(off_t nausicaa_posix_lseek (int off_t int))))
+  (define-c-functions/with-errno libnausicaa-posix
+    (pread		(ssize_t nausicaa_posix_pread (int void* size_t off_t)))
+    (pwrite		(ssize_t nausicaa_posix_pwrite (int void* size_t off_t)))
+    (lseek		(off_t nausicaa_posix_lseek (int off_t int)))
+    (mmap		(void* nausicaa_posix_mmap (void* size_t int int int off_t)))
+    ;; (aio_read		(int nausicaa_posix_aio_read (void*)))
+    ;; (aio_write		(int nausicaa_posix_aio_write (void*)))
+    ;; (aio_error		(int nausicaa_posix_aio_error (void*)))
+    ;; (aio_return		(int nausicaa_posix_aio_return (void*)))
+    ;; (aio_fsync		(int nausicaa_posix_aio_fsync (int void*)))
+    ;; (aio_suspend	(int nausicaa_posix_aio_suspend (void* int void*)))
+    ;; (aio_cancel		(int nausicaa_posix_aio_cancel (void* void*)))
+    ;; (lio_listio		(int nausicaa_posix_lio_listio (int void* int void*)))
+    )
 
-
-;;;; done
-
-)
+  (define-c-functions libnausicaa-posix
+    (FD_ZERO		(void nausicaa_posix_FD_ZERO (void*)))
+    (FD_SET		(void nausicaa_posix_FD_SET (int void*)))
+    (FD_CLR		(void nausicaa_posix_FD_CLR (int void*)))
+    (FD_ISSET		(int nausicaa_posix_FD_ISSET (int void*))))
+  )
 
 ;;; end of file

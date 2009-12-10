@@ -64,6 +64,9 @@
 #ifdef HAVE_FTW_H
 #  include <ftw.h>
 #endif
+#ifdef HAVE_SYS_MMAN_H
+#  include <sys/mman.h>
+#endif
 #ifdef HAVE_TIME_H
 #  include <time.h>
 #endif
@@ -84,6 +87,9 @@
 #endif
 #ifdef HAVE_SYS_TIMEX_H
 #  include <sys/timex.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
 #endif
 #ifdef HAVE_SYS_WAIT_H
 #  include <sys/wait.h>
@@ -179,6 +185,9 @@ extern int nausicaa_posix_versionsort (const void * a, const void * b);
 extern int nausicaa_posix_ftw (const char * filename, __ftw_func_t func, int descriptors);
 extern int nausicaa_posix_nftw (const char * filename, __nftw_func_t func, int descriptors, int flag);
 
+extern void * nausicaa_posix_mmap (void * address, size_t length, int protect,
+				   int flags, int fd, off_t offset);
+
 
 /** --------------------------------------------------------------------
  ** Time related function prototypes.
@@ -204,6 +213,16 @@ extern void nausicaa_posix_tms_cutime_set (struct tms * T, double time);
 extern void nausicaa_posix_tms_cstime_set (struct tms * T, double time);
 
 extern char * nausicaa_posix_ctime_r (double tim, char * cstr);
+
+
+/** --------------------------------------------------------------------
+ ** Select related function prototypes.
+ ** ----------------------------------------------------------------- */
+
+extern void nausicaa_posix_FD_ZERO	(fd_set * set);
+extern void nausicaa_posix_FD_SET	(int fd, fd_set * set);
+extern void nausicaa_posix_FD_CLR	(int fd, fd_set * set);
+extern int  nausicaa_posix_FD_ISSET	(int fd, const fd_set * set);
 
 
 /** --------------------------------------------------------------------
@@ -637,6 +656,11 @@ nausicaa_posix_nftw (const char * filename, __nftw_func_t func, int descriptors,
 {
   return nftw (filename, func, descriptors, flag);
 }
+void *
+nausicaa_posix_mmap (void * address, size_t length, int protect, int flags, int fd, off_t offset)
+{
+  return mmap(address, length, protect, flags, fd, offset);
+}
 
 
 /** --------------------------------------------------------------------
@@ -647,6 +671,32 @@ char *
 nausicaa_posix_dirent_d_name_ptr_ref (struct dirent * buf)
 {
   return &(buf->d_name[0]);
+}
+
+
+/** --------------------------------------------------------------------
+ ** Select related functions.
+ ** ----------------------------------------------------------------- */
+
+void
+nausicaa_posix_FD_ZERO (fd_set * set)
+{
+  FD_ZERO(set);
+}
+void
+nausicaa_posix_FD_SET (int fd, fd_set * set)
+{
+  FD_SET(fd, set);
+}
+void
+nausicaa_posix_FD_CLR (int fd, fd_set * set)
+{
+  FD_CLR(fd, set);
+}
+int
+nausicaa_posix_FD_ISSET (int fd, const fd_set * set)
+{
+  return FD_ISSET(fd, set);
 }
 
 

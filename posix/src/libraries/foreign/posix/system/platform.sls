@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: compile script for Mosh Scheme
-;;;Date: Tue Nov  3, 2009
+;;;Contents: direct bindings for system configuration inspection
+;;;Date: Wed Dec  9, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,22 +24,19 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (foreign posix environment))
-  (only (foreign posix time))
-  (only (foreign posix file))
-  (only (foreign posix stat))
-  (only (foreign posix fd))
-  (only (foreign posix job))
-  (only (foreign posix process))
-  (only (foreign posix users))
-  (only (foreign posix system))
-
-  (only (foreign glibc environment))
-  (only (foreign glibc streams))
-  (only (foreign glibc time))
-  (only (foreign glibc file))
-
-  )
+
+(library (foreign posix system platform)
+  (export
+    sysconf		pathconf
+    fpathconf		confstr)
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof)
+    (foreign posix shared-object))
+  (define-c-functions/with-errno libc-shared-object
+    (sysconf		(long sysconf (int)))
+    (pathconf		(long pathconf (char* int)))
+    (fpathconf		(long fpathconf (int int)))
+    (confstr		(size_t confstr (int char* size_t)))))
 
 ;;; end of file

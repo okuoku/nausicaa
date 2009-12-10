@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -49,17 +49,18 @@
 	  S_ISDIR		S_ISCHR		S_ISBLK
 	  S_ISREG		S_ISFIFO	S_ISLNK
 	  S_ISSOCK
-	  S_TYPEISMQ		S_TYPEISSEM	S_TYPEISSHM))
+	  S_TYPEISMQ		S_TYPEISSEM	S_TYPEISSHM)
+    (foreign posix typedefs))
 
 
 (define (%real-stat func funcname pathname)
   (with-compensations
-    (let ((*struct-stat	(malloc-block/c platform:sizeof-stat)))
+    (let ((struct-stat*	(malloc-block/c platform:sizeof-stat)))
       (receive (result errno)
-	  (func (string->cstring/c pathname) *struct-stat)
+	  (func (string->cstring/c pathname) struct-stat*)
 	(when (= -1 result)
 	  (raise-errno-error funcname errno pathname))
-	(struct-stat->record *struct-stat)))))
+	(struct-stat->record struct-stat*)))))
 
 (define (stat pathname)
   (%real-stat platform:stat 'stat pathname))
@@ -69,12 +70,12 @@
 
 (define (fstat fd)
   (with-compensations
-    (let ((*struct-stat (malloc-block/c platform:sizeof-stat)))
+    (let ((struct-stat* (malloc-block/c platform:sizeof-stat)))
       (receive (result errno)
-	  (platform:fstat fd *struct-stat)
+	  (platform:fstat (file-descriptor->integer fd) struct-stat*)
 	(when (= -1 result)
 	  (raise-errno-error 'fstat errno fd))
-	(struct-stat->record *struct-stat)))))
+	(struct-stat->record struct-stat*)))))
 
 
 ;;;; done

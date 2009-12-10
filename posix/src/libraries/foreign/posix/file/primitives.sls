@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -101,7 +101,8 @@
     (only (foreign posix stat record-types)
 	  struct-stat->record)
     (prefix (foreign posix fd) posix:)
-    (prefix (foreign posix file platform) platform:))
+    (prefix (foreign posix file platform) platform:)
+    (foreign posix typedefs))
 
 
 ;;;; system inspection
@@ -116,7 +117,7 @@
 
 (define (fpathconf fd name)
   (receive (result errno)
-      (platform:fpathconf fd name)
+      (platform:fpathconf (file-descriptor->integer fd) name)
     (if (and (= -1 result) (not (= 0 errno)))
 	(raise-errno-error 'pathconf errno (list fd name))
       result)))
@@ -150,7 +151,7 @@
 
 (define (fchdir fd)
   (receive (result errno)
-      (platform:fchdir fd)
+      (platform:fchdir (file-descriptor->integer fd))
     (unless (= 0 result)
       (raise-errno-error 'fchdir errno fd))
     result))
@@ -168,7 +169,7 @@
 
 (define (fdopendir fd)
   (receive (result errno)
-      (platform:fdopendir fd)
+      (platform:fdopendir (file-descriptor->integer fd))
     (when (pointer-null? result)
       (raise-errno-error 'fdopendir errno fd))
     result))
@@ -343,7 +344,7 @@
 (define (fchown fd owner-id group-id)
   (with-compensations
     (receive (result errno)
-	(platform:fchown fd owner-id group-id)
+	(platform:fchown (file-descriptor->integer fd) owner-id group-id)
       (when (= -1 result)
 	(raise-errno-error 'fchown errno (list fd owner-id group-id)))
       result)))
@@ -375,7 +376,7 @@
 (define (fchmod fd mode)
   (with-compensations
     (receive (result errno)
-	(platform:fchmod fd mode)
+	(platform:fchmod (file-descriptor->integer fd) mode)
       (when (= -1 result)
 	(raise-errno-error 'fchmod errno (list fd mode)))
       result)))
@@ -470,7 +471,7 @@
 			  (with
 			   (posix:close fd)))))
 	     (file-size fd))))
-	((and (integer? obj) (<= 0 obj))
+	((file-descriptor? obj)
 	 (with-compensations
 	   (letrec ((pos (compensate
 			     (posix:lseek obj 0 SEEK_CUR)
@@ -488,10 +489,10 @@
 			    (posix:open obj O_WRONLY 0)
 			  (with
 			   (posix:close fd)))))
-	     (platform:ftruncate fd length))))
-	((and (integer? obj) (<= 0 obj))
+	     (platform:ftruncate (file-descriptor->integer fd) length))))
+	((file-descriptor? obj)
 	 (receive (result errno)
-	     (platform:ftruncate obj length)
+	     (platform:ftruncate (file-descriptor->integer obj) length)
 	   (when (= -1 result)
 	     (raise-errno-error 'ftruncate errno (list obj length)))
 	   result))
@@ -567,7 +568,7 @@
 	  (platform:mkstemp p)
 	(if (= -1 result)
 	    (raise-errno-error 'mktemp errno template)
-	  (values result (cstring->string p)))))))
+	  (values (integer->file-descriptor result) (cstring->string p)))))))
 
 (define (mkdtemp template)
   (with-compensations
