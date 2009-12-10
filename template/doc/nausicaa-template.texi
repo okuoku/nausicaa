@@ -149,6 +149,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{TAI}
 @end macro
 
+@macro axml{}
+@acronym{XML}
+@end macro
+
 @c ------------------------------------------------------------
 @c Software acronyms.
 @c ------------------------------------------------------------

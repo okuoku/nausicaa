@@ -1,7 +1,7 @@
 dnl
 dnl Part of: Nausicaa/Template
 dnl Contents: configuration template
-dnl Date: Thu Oct 22, 2009
+dnl Date:
 dnl
 dnl Abstract
 dnl

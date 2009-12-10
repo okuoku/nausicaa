@@ -3,7 +3,7 @@
 ;;;
 ;;;Part of: Nausicaa/Template
 ;;;Contents: foreign library inspection generator
-;;;Date: Fri Nov 27, 2009
+;;;Date:
 ;;;
 ;;;Abstract
 ;;;

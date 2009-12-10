@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa/Template
 ;;;Contents: compensated constructors
-;;;Date: Fri Dec  4, 2009
+;;;Date:
 ;;;
 ;;;Abstract
 ;;;
