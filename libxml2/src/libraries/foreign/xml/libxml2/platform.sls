@@ -1422,6 +1422,28 @@
     xmlXPathIsNaN
     xmlXPathIsInf
 
+    ;; API to handle XML Pointers
+    xmlXPtrLocationSetCreate
+    xmlXPtrFreeLocationSet
+    xmlXPtrLocationSetMerge
+    xmlXPtrNewRange
+    xmlXPtrNewRangePoints
+    xmlXPtrNewRangeNodePoint
+    xmlXPtrNewRangePointNode
+    xmlXPtrNewRangeNodes
+    xmlXPtrNewLocationSetNodes
+    xmlXPtrNewLocationSetNodeSet
+    xmlXPtrNewRangeNodeObject
+    xmlXPtrNewCollapsedRange
+    xmlXPtrLocationSetAdd
+    xmlXPtrWrapLocationSet
+    xmlXPtrLocationSetDel
+    xmlXPtrLocationSetRemove
+    xmlXPtrNewContext
+    xmlXPtrEval
+    xmlXPtrRangeToFunction
+    xmlXPtrBuildNodeList
+    xmlXPtrEvalRangePredicate
     )
   (import (rnrs)
     (foreign ffi)
@@ -4741,8 +4763,54 @@
   )
 
 
+;;;; API to handle XML Pointers
+;;
+;;Header file "xpointer.h".
+;;
 
-
+(define-c-functions libxml2-shared-object
+  (xmlXPtrLocationSetCreate
+   (xmlLocationSetPtr xmlXPtrLocationSetCreate (xmlXPathObjectPtr)))
+  (xmlXPtrFreeLocationSet
+   (void xmlXPtrFreeLocationSet (xmlLocationSetPtr)))
+  (xmlXPtrLocationSetMerge
+   (xmlLocationSetPtr xmlXPtrLocationSetMerge (xmlLocationSetPtr xmlLocationSetPtr)))
+  (xmlXPtrNewRange
+   (xmlXPathObjectPtr xmlXPtrNewRange (xmlNodePtr int xmlNodePtr int)))
+  (xmlXPtrNewRangePoints
+   (xmlXPathObjectPtr xmlXPtrNewRangePoints (xmlXPathObjectPtr xmlXPathObjectPtr)))
+  (xmlXPtrNewRangeNodePoint
+   (xmlXPathObjectPtr xmlXPtrNewRangeNodePoint (xmlNodePtr xmlXPathObjectPtr)))
+  (xmlXPtrNewRangePointNode
+   (xmlXPathObjectPtr xmlXPtrNewRangePointNode (xmlXPathObjectPtr xmlNodePtr)))
+  (xmlXPtrNewRangeNodes
+   (xmlXPathObjectPtr xmlXPtrNewRangeNodes (xmlNodePtr xmlNodePtr)))
+  (xmlXPtrNewLocationSetNodes
+   (xmlXPathObjectPtr xmlXPtrNewLocationSetNodes (xmlNodePtr xmlNodePtr)))
+  (xmlXPtrNewLocationSetNodeSet
+   (xmlXPathObjectPtr xmlXPtrNewLocationSetNodeSet (xmlNodeSetPtr)))
+  (xmlXPtrNewRangeNodeObject
+   (xmlXPathObjectPtr xmlXPtrNewRangeNodeObject (xmlNodePtr xmlXPathObjectPtr)))
+  (xmlXPtrNewCollapsedRange
+   (xmlXPathObjectPtr xmlXPtrNewCollapsedRange (xmlNodePtr)))
+  (xmlXPtrLocationSetAdd
+   (void xmlXPtrLocationSetAdd (xmlLocationSetPtr xmlXPathObjectPtr)))
+  (xmlXPtrWrapLocationSet
+   (xmlXPathObjectPtr xmlXPtrWrapLocationSet (xmlLocationSetPtr)))
+  (xmlXPtrLocationSetDel
+   (void xmlXPtrLocationSetDel (xmlLocationSetPtr xmlXPathObjectPtr)))
+  (xmlXPtrLocationSetRemove
+   (void xmlXPtrLocationSetRemove (xmlLocationSetPtr int)))
+  (xmlXPtrNewContext
+   (xmlXPathContextPtr xmlXPtrNewContext (xmlDocPtr xmlNodePtr xmlNodePtr)))
+  (xmlXPtrEval
+   (xmlXPathObjectPtr xmlXPtrEval (xmlChar* xmlXPathContextPtr)))
+  (xmlXPtrRangeToFunction
+   (void xmlXPtrRangeToFunction (xmlXPathParserContextPtr int)))
+  (xmlXPtrBuildNodeList
+   (xmlNodePtr xmlXPtrBuildNodeList (xmlXPathObjectPtr)))
+  (xmlXPtrEvalRangePredicate
+   (void xmlXPtrEvalRangePredicate (xmlXPathParserContextPtr))))
 
 
 ;;;; done

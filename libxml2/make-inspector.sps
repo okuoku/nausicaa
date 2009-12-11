@@ -101,7 +101,7 @@
 ;;Header file "catalog.h".
 ;;
 
-(define-c-string-defines
+(define-c-string-defines "catalog strings"
   XML_CATALOGS_NAMESPACE
   XML_CATALOG_PI)
 
@@ -354,7 +354,7 @@
 ;;Header file "list.h".
 ;;
 
-(define-c-type-alias xmlLink *		pointer)
+(define-c-type-alias xmlLink*		pointer)
 (define-c-type-alias xmlLinkPtr		pointer)
 
 (define-c-type-alias xmlList*		pointer)
@@ -944,7 +944,7 @@
   XML_ELEMENT_CONTENT_PLUS)
 
 (define-c-type-alias xmlElementContent*			pointer)
-(define-c-type-alisa xmlElementContentPtr		pointer)
+(define-c-type-alias xmlElementContentPtr		pointer)
 
 (define-c-struct xmlElementContent
   "xmlElementContent"
@@ -986,7 +986,7 @@
 
 (define-c-type-alias xmlNsType*		pointer)
 
-(define-c-define "a namespace declaration node"
+(define-c-defines "a namespace declaration node"
   XML_LOCAL_NAMESPACE)
 
 (define-c-type-alias xmlNs*		pointer)
@@ -1024,7 +1024,7 @@
   (pointer			pentities))
 
 (define-c-type-alias xmlAttr*		pointer)
-(define-c-type-alas xmlAttrPtr		pointer)
+(define-c-type-alias xmlAttrPtr		pointer)
 
 (define-c-struct xmlAttr
   "xmlAttr"
@@ -2138,7 +2138,7 @@
   XML_READER_TYPE_XML_DECLARATION)
 
 (define-c-type-alias xmlTextReader*		pointer)
-(define-c-type-alisa xmlTextReaderPtr		pointer)
+(define-c-type-alias xmlTextReaderPtr		pointer)
 
 (define-c-type-alias xmlTextReaderLocatorPtr	pointer)
 
@@ -2158,7 +2158,7 @@
 (define-c-type-alias xmlExpCtxtPtr	pointer)
 
 (define-c-type-alias xmlExpNode*	pointer)
-(define-c-type-alisa xmlExpNodePtr	pointer)
+(define-c-type-alias xmlExpNodePtr	pointer)
 
 (define-c-enumeration xmlExpNodeType
   XML_EXP_EMPTY
@@ -2513,76 +2513,11 @@
 (define-c-type-alias xmlLocationSet*		pointer)
 (define-c-type-alias xmlLocationSetPtr		pointer)
 
-struct _xmlLocationSet {
-    int locNr;		      /* number of locations in the set */
-    int locMax;		      /* size of the array as allocated */
-    xmlXPathObjectPtr *locTab;/* array of locations */
-};
-
-
-XMLPUBFUN xmlLocationSetPtr XMLCALL
-		    xmlXPtrLocationSetCreate	(xmlXPathObjectPtr val);
-XMLPUBFUN void XMLCALL
-		    xmlXPtrFreeLocationSet	(xmlLocationSetPtr obj);
-XMLPUBFUN xmlLocationSetPtr XMLCALL
-		    xmlXPtrLocationSetMerge	(xmlLocationSetPtr val1,
-						 xmlLocationSetPtr val2);
-XMLPUBFUN xmlXPathObjectPtr XMLCALL
-		    xmlXPtrNewRange		(xmlNodePtr start,
-						 int startindex,
-						 xmlNodePtr end,
-						 int endindex);
-XMLPUBFUN xmlXPathObjectPtr XMLCALL
-		    xmlXPtrNewRangePoints	(xmlXPathObjectPtr start,
-						 xmlXPathObjectPtr end);
-XMLPUBFUN xmlXPathObjectPtr XMLCALL
-		    xmlXPtrNewRangeNodePoint	(xmlNodePtr start,
-						 xmlXPathObjectPtr end);
-XMLPUBFUN xmlXPathObjectPtr XMLCALL
-		    xmlXPtrNewRangePointNode	(xmlXPathObjectPtr start,
-						 xmlNodePtr end);
-XMLPUBFUN xmlXPathObjectPtr XMLCALL
-		    xmlXPtrNewRangeNodes	(xmlNodePtr start,
-						 xmlNodePtr end);
-XMLPUBFUN xmlXPathObjectPtr XMLCALL
-		    xmlXPtrNewLocationSetNodes	(xmlNodePtr start,
-						 xmlNodePtr end);
-XMLPUBFUN xmlXPathObjectPtr XMLCALL
-		    xmlXPtrNewLocationSetNodeSet(xmlNodeSetPtr set);
-XMLPUBFUN xmlXPathObjectPtr XMLCALL
-		    xmlXPtrNewRangeNodeObject	(xmlNodePtr start,
-						 xmlXPathObjectPtr end);
-XMLPUBFUN xmlXPathObjectPtr XMLCALL
-		    xmlXPtrNewCollapsedRange	(xmlNodePtr start);
-XMLPUBFUN void XMLCALL
-		    xmlXPtrLocationSetAdd	(xmlLocationSetPtr cur,
-						 xmlXPathObjectPtr val);
-XMLPUBFUN xmlXPathObjectPtr XMLCALL
-		    xmlXPtrWrapLocationSet	(xmlLocationSetPtr val);
-XMLPUBFUN void XMLCALL
-		    xmlXPtrLocationSetDel	(xmlLocationSetPtr cur,
-						 xmlXPathObjectPtr val);
-XMLPUBFUN void XMLCALL
-		    xmlXPtrLocationSetRemove	(xmlLocationSetPtr cur,
-						 int val);
-
-/*
- * Functions.
- */
-XMLPUBFUN xmlXPathContextPtr XMLCALL
-		    xmlXPtrNewContext		(xmlDocPtr doc,
-						 xmlNodePtr here,
-						 xmlNodePtr origin);
-XMLPUBFUN xmlXPathObjectPtr XMLCALL
-		    xmlXPtrEval			(const xmlChar *str,
-						 xmlXPathContextPtr ctx);
-XMLPUBFUN void XMLCALL
-		    xmlXPtrRangeToFunction	(xmlXPathParserContextPtr ctxt,
-       						 int nargs);
-XMLPUBFUN xmlNodePtr XMLCALL
-		    xmlXPtrBuildNodeList	(xmlXPathObjectPtr obj);
-XMLPUBFUN void XMLCALL
-		    xmlXPtrEvalRangePredicate	(xmlXPathParserContextPtr ctxt);
+(define-c-struct xmlLocationSet
+  "xmlLocationSet"
+  (signed-int		locNr)
+  (signed-int		locMax)
+  (pointer		locTab))
 
 
 ;;;; done
