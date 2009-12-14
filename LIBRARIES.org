@@ -1,0 +1,221 @@
+* Libraries to look at
+
+** GNU Mailutils
+
+** GNU TLS
+
+** GraphicsMagick
+
+** PostgreSQL
+
+** GNU Scientific Library
+
+** OOL
+
+** Gcrypt
+
+** Nettle
+
+** Libev
+
+** Unac?
+
+** Neon
+
+** OSSP/MM
+
+** WB
+
+   B-Tree for SCM.
+
+
+* Extension canditates
+
+** "Small" extension candidates
+
+*** ACOTSP, Ant Colony Optimization applied to TSP problem
+
+*** OSSP xds
+
+*** mssmtp
+
+*** PC1 encryption algorithm
+
+    (some ZIPs )
+
+*** LZO (compression library, )
+
+*** GRZipII (compression library, )
+
+*** ZZip/ZZlib (compression library, )
+
+*** Oniguruma regex library (initially developed for Ruby).
+
+
+** Big but maybe feasible extension candidates
+
+*** Libg3d - 3d viewer
+
+    <http://automagically.de/g3dviewer/>
+
+*** ICU - International Components for Unicode
+  <http://icu-project.org/>
+
+
+*** igraph (graph library, ,
+
+    <http://cneurocvs.rmki.kfki.hu/igraph/>)
+
+*** GAUL, genetic algorithm utility library
+
+    (http://gaul.sourceforge.net/, )
+
+*** Recode, encoding conversion
+
+
+* Probably too big extension candidates
+
+** netwib (note to self: )
+
+** GpgME (GnuPG Made Easy)
+
+** GNU Simple Authentication and Security Layer (GSASL)
+
+
+* Big but interesting math extension candidates
+
+** NSNAM (nsnam.sourceforge.net, network protocol simulator)
+
+** IT++
+
+   (!!!beautiful!!!
+   itpp.sourceforge.net, signal processing and communication library)
+
+** GetDP (are you crazy?)
+
+** glpk - GNU Linear Programming Kit
+
+   (http://savannah.gnu.org/projects/glpk/)
+
+* Libraries to be evaluated
+
+** LDNS, DNS library
+
+  (http://www.nlnetlabs.nl/ldns/index.html)
+
+** Libtsp, signal processing library
+
+   http://www-mmsp.ece.mcgill.ca/Documents/Software/Packages/libtsp/libtsp.html
+   ftp://ftp.tsp.ece.mcgill.ca/pub/libtsp/
+   (downloaded along with FilterDesign)
+   Check out the copyright!!
+
+** Libuninum, converts integers to Unicode strings
+
+   (http://billposer.org/Software/libuninum.html)
+
+** LibTom, <http://libtom.org>, crypto library (a LOT of algorithms).
+
+** xySSL, SSL implementation
+
+** oRTP, real time protocol
+
+** libmrss, handles RSS stuff
+
+   (it needs libcurl!!!)
+
+
+* Discarded libraries
+
+** liboop
+
+   What is it: an event library.
+
+   Why not: cannot remember exactly, MM  looked at it as a competitor for
+   Libevent, but it has not impressed him.
+
+** MAPM, MAPMX
+
+   What is it: arbitrary precision math library and extension for complex
+   numbers.
+
+   Why not: the  library is nice but, in MM's  opinion, it cannot compete
+   with the GMP tree of libraries.
+
+** Ilib
+
+  What is it: a competitor for  GD, a graphics library to compose images
+  from scripts.
+
+  Why not: it has less functionalities of  GD and it is not used like GD
+  is.
+
+** Libevnet (http://www.25thandclement.com/~william/projects/libevnet.html)
+
+  Built upon Provos' Libevent. MM is not happy with Libevent, so...
+
+** Gri
+
+  What is it: a command line tool like gnuplot.
+
+  Why not: it is not a library.
+
+** MiniGUI
+
+  What is it: a standalone GUI environment for embedded devices.
+
+  Why not: it does not run under X Window.
+
+** GNU libavl
+
+  What is it: a powerful tree library.
+
+  Why not: too much time needed to learn how to use it.
+
+
+** PGPLOT
+
+  What is it: a plotting application.
+
+  Why not: other libraries are better.
+
+
+** GAOL:
+
+  What is it: NOT Just Another Interval Library
+
+  Where: http://sourceforge.net/projects/gaol/
+
+  Why not: it  is written in C++  ;), we already have MPFI,  is it still
+  distributed (Thu Feb 1, 2007)?
+
+
+** Montreal Scientific Library
+
+  What is it: a collection of modules built upon GSL.
+
+  Where: http://savannah.nongnu.org/projects/libmsl/
+
+  Why not: are these algorithms useful  at the Scheme level? I am a math
+  non-expert and do not know what to do with them.
+
+
+** GD graphics library
+
+  Why not: stick with GraphicsMagick and Cairo.
+
+
+** G2 graphics library
+
+  What is it: a graphics library built on top of GD.
+
+  Why not: stick with GraphicsMagick and Cairo.
+
+
+** MPFS
+
+  What is it: an MP library with optimisation for exact computations.
+
+  Why not: it is unfinished and undocumented.
+
+
