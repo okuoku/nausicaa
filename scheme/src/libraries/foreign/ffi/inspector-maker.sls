@@ -164,10 +164,12 @@
   ;;    LIB_VALUE_ZERO LIB_VALUE_ONE LIB_VALUE_TWO)
   ;;
   (syntax-rules ()
-    ((_ ?enum-name ?symbol-name0 ?symbol-name ...)
-     (%register-enumeration (quote ?enum-name) (quote (?symbol-name0 ?symbol-name ...))))))
+    ((_ ?enum-name ?string-typedef ?symbol-name0 ?symbol-name ...)
+     (%register-enumeration (quote ?enum-name) ?string-typedef
+			    (quote (?symbol-name0 ?symbol-name ...))))))
 
-(define (%register-enumeration enum-name symbol-names)
+(define (%register-enumeration enum-name string-typedef symbol-names)
+  (%register-type enum-name 'signed-int string-typedef)
   (autoconf-lib (format "\ndnl enum ~a" enum-name))
   (for-each (lambda (symbol)
 	      (autoconf-lib (format "NAUSICAA_ENUM_VALUE([~a])" symbol))
