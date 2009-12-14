@@ -31,6 +31,11 @@
 (import (nausicaa)
   (foreign ffi inspector-maker))
 
+(define-syntax define-c-callback-pointer-type
+  (syntax-rules ()
+    ((_ ?name)
+     (define-c-type-alias ?name pointer))))
+
 
 ;;;; basic
 
@@ -46,41 +51,50 @@
 (define-c-type-alias xmlGlobalState*		pointer)
 (define-c-type-alias xmlGlobalStatePtr		pointer)
 
-(define-c-struct xmlGlobalState
-  "xmlGlobalState"
-  (pointer		xmlParserVersion)
-  (embedded		xmlDefaultSAXLocator)
-  (embedded		xmlDefaultSAXHandler)
-  (embedded		docbDefaultSAXHandler)
-  (embedded		htmlDefaultSAXHandler)
-  (pointer		xmlFree)
-  (pointer		xmlMalloc)
-  (pointer		xmlMemStrdup)
-  (pointer		xmlRealloc)
-  (pointer		xmlGenericError)
-  (pointer		xmlStructuredError)
-  (pointer		xmlGenericErrorContext)
-  (signed-int		oldXMLWDcompatibility)
-  (signed-int		xmlBufferAllocScheme)
-  (signed-int		xmlDefaultBufferSize)
-  (singed-int		xmlSubstituteEntitiesDefaultValue)
-  (signed-int		xmlDoValidityCheckingDefaultValue)
-  (signed-int		xmlGetWarningsDefaultValue)
-  (signed-int		xmlKeepBlanksDefaultValue)
-  (signed-int		xmlLineNumbersDefaultValue)
-  (signed-int		xmlLoadExtDtdDefaultValue)
-  (signed-int		xmlParserDebugEntities)
-  (signed-int		xmlPedanticParserDefaultValue)
-  (signed-int		xmlSaveNoEmptyTags)
-  (signed-int		xmlIndentTreeOutput)
-  (pointer		xmlTreeIndentString)
-  (pointer		xmlRegisterNodeDefaultValue)
-  (pointer		xmlDeregisterNodeDefaultValue)
-  (pointer		xmlMallocAtomic)
-  (embedded		xmlLastError)
-  (pointer		xmlParserInputBufferCreateFilenameValue)
-  (pointer		xmlOutputBufferCreateFilenameValue)
-  (pointer		xmlStructuredErrorContext))
+(define-c-type-alias xmlParserInputBufferCreateFilenameFunc	pointer)
+(define-c-type-alias xmlOutputBufferCreateFilenameFunc		pointer)
+(define-c-type-alias xmlRegisterNodeFunc			pointer)
+(define-c-type-alias xmlDeregisterNodeFunc			pointer)
+
+;;This structure is excluded  because "globals.h" defines C preprocessor
+;;macros with names  matching the names of the  fields, so inspection of
+;;the fields always fails.
+;;
+;; (define-c-struct xmlGlobalState
+;;   "struct _xmlGlobalState"
+;;   (pointer		xmlParserVersion)
+;;   (embedded		xmlDefaultSAXLocator)
+;;   (embedded		xmlDefaultSAXHandler)
+;;   (embedded		docbDefaultSAXHandler)
+;;   (embedded		htmlDefaultSAXHandler)
+;;   (pointer		xmlFree)
+;;   (pointer		xmlMalloc)
+;;   (pointer		xmlMemStrdup)
+;;   (pointer		xmlRealloc)
+;;   (pointer		xmlGenericError)
+;;   (pointer		xmlStructuredError)
+;;   (pointer		xmlGenericErrorContext)
+;;   (signed-int		oldXMLWDcompatibility)
+;;   (signed-int		xmlBufferAllocScheme)
+;;   (signed-int		xmlDefaultBufferSize)
+;;   (singed-int		xmlSubstituteEntitiesDefaultValue)
+;;   (signed-int		xmlDoValidityCheckingDefaultValue)
+;;   (signed-int		xmlGetWarningsDefaultValue)
+;;   (signed-int		xmlKeepBlanksDefaultValue)
+;;   (signed-int		xmlLineNumbersDefaultValue)
+;;   (signed-int		xmlLoadExtDtdDefaultValue)
+;;   (signed-int		xmlParserDebugEntities)
+;;   (signed-int		xmlPedanticParserDefaultValue)
+;;   (signed-int		xmlSaveNoEmptyTags)
+;;   (signed-int		xmlIndentTreeOutput)
+;;   (pointer		xmlTreeIndentString)
+;;   (pointer		xmlRegisterNodeDefaultValue)
+;;   (pointer		xmlDeregisterNodeDefaultValue)
+;;   (pointer		xmlMallocAtomic)
+;;   (embedded		xmlLastError)
+;;   (pointer		xmlParserInputBufferCreateFilenameValue)
+;;   (pointer		xmlOutputBufferCreateFilenameValue)
+;;   (pointer		xmlStructuredErrorContext))
 
 
 ;;;; Canonical XML and Exclusive XML Canonicalization
@@ -89,6 +103,7 @@
 ;;
 
 (define-c-enumeration xmlC14NMode
+  "xmlC14NMode"
   XML_C14N_1_0
   XML_C14N_EXCLUSIVE_1_0
   XML_C14N_1_1)
@@ -106,11 +121,13 @@
   XML_CATALOG_PI)
 
 (define-c-enumeration xmlCatalogPrefer
+  "xmlCatalogPrefer"
   XML_CATA_PREFER_NONE
   XML_CATA_PREFER_PUBLIC
   XML_CATA_PREFER_SYSTEM)
 
 (define-c-enumeration xmlCatalogAllow
+  "xmlCatalogAllow"
   XML_CATA_ALLOW_NONE
   XML_CATA_ALLOW_GLOBAL
   XML_CATA_ALLOW_DOCUMENT
@@ -130,8 +147,8 @@
 
 (define-c-struct xmlChSRange
   "xmlChSRange"
-  (unsigned-short		low)
-  (unsigned-short		high))
+  (unsigned-int		low)
+  (unsigned-int		high))
 
 (define-c-type-alias xmlChLRange*		pointer)
 (define-c-type-alias xmlChLRangePtr		pointer)
@@ -192,7 +209,11 @@
 ;;Header file "encoding.h"
 ;;
 
+(define-c-type-alias xmlCharEncodingInputFunc		pointer)
+(define-c-type-alias xmlCharEncodingOutputFunc		pointer)
+
 (define-c-enumeration xmlCharEncoding
+  "xmlCharEncoding"
   XML_CHAR_ENCODING_ERROR
   XML_CHAR_ENCODING_NONE
   XML_CHAR_ENCODING_UTF8
@@ -237,6 +258,7 @@
 ;;
 
 (define-c-enumeration xmlEntityType
+  "xmlEntityType"
   XML_INTERNAL_GENERAL_ENTITY
   XML_EXTERNAL_GENERAL_PARSED_ENTITY
   XML_EXTERNAL_GENERAL_UNPARSED_ENTITY
@@ -280,10 +302,15 @@
 (define-c-type-alias xmlHashTable*		pointer)
 (define-c-type-alias xmlHashTablePtr		pointer)
 
+(define-c-type-alias xmlHashDeallocator		pointer)
+(define-c-type-alias xmlHashCopier		pointer)
+(define-c-type-alias xmlHashScanner		pointer)
+(define-c-type-alias xmlHashScannerFull		pointer)
+
 
 ;;;; specific APIs to process HTML tree, especially serialization
 ;;
-;;Header file "HTMLTree.h".
+;;Header file "HTMLtree.h".
 ;;
 
 (define-c-defines "HTML tree symbols"
@@ -299,8 +326,15 @@
 ;;Non-validating real-world HTML parser.  Header file "HTMLparser.h".
 ;;
 
+(define-c-type-alias htmlDocPtr			pointer)
+(define-c-type-alias htmlNodePtr		pointer)
+(define-c-type-alias htmlParserCtxtPtr		pointer)
+(define-c-type-alias htmlSAXHandlerPtr		pointer)
+(define-c-type-alias htmlParserInputPtr		pointer)
+
 (define-c-type-alias htmlElemDescPtr		pointer)
 (define-c-type-alias htmlElemDesc*		pointer)
+
 (define-c-type-alias htmlEntityDescPtr		pointer)
 (define-c-type-alias htmlEntityDesc*		pointer)
 
@@ -308,7 +342,7 @@
 ;;XHTML 1.0 (which share the same structure).
 ;;
 (define-c-struct htmlElemDesc
-  "struct htmlElemDesc"
+  "struct _htmlElemDesc"
   (pointer		name)
   (signed-int		startTag)
   (signed-int		endTag)
@@ -333,6 +367,7 @@
   (pointer		desc))
 
 (define-c-enumeration htmlParserOption
+  "htmlParserOption"
   HTML_PARSE_RECOVER
   HTML_PARSE_NOERROR
   HTML_PARSE_NOWARNING
@@ -342,6 +377,7 @@
   HTML_PARSE_COMPACT)
 
 (define-c-enumeration htmlStatus
+  "htmlStatus"
   HTML_NA
   HTML_INVALID
   HTML_DEPRECATED
@@ -354,18 +390,25 @@
 ;;Header file "list.h".
 ;;
 
-(define-c-type-alias xmlLink*		pointer)
-(define-c-type-alias xmlLinkPtr		pointer)
+(define-c-type-alias xmlLink*			pointer)
+(define-c-type-alias xmlLinkPtr			pointer)
 
-(define-c-type-alias xmlList*		pointer)
-(define-c-type-alias xmlListPtr		pointer)
+(define-c-type-alias xmlList*			pointer)
+(define-c-type-alias xmlListPtr			pointer)
 
+(define-c-type-alias xmlListDeallocator		pointer)
+(define-c-type-alias xmlListDataCompare		pointer)
+(define-c-type-alias xmlListWalker		pointer)
 
 
 ;;;; minimal FTP implementation
 ;;
 ;;Header file "nanoftp.h".
 ;;
+
+(define-c-type-alias ftpListCallback		pointer)
+(define-c-type-alias ftpDataCallback		pointer)
+
 
 
 ;;;; minimal HTTP implementation
@@ -393,7 +436,7 @@
   (signed-int		length)
   (signed-int		line)
   (signed-int		col)
-  (unsigned-long	consumed)
+  (unsigned-int	consumed)
   (pointer		free)
   (pointer		encoding)
   (pointer		version)
@@ -406,21 +449,22 @@
 (define-c-struct xmlParserNodeInfo
   "xmlParserNodeInfo"
   (pointer		node)
-  (unsigned-long	begin_pos)
-  (unsigned-long	begin_line)
-  (unsigned-long	end_pos)
-  (unsigned-long	end_line))
+  (unsigned-int	begin_pos)
+  (unsigned-int	begin_line)
+  (unsigned-int	end_pos)
+  (unsigned-int	end_line))
 
 (define-c-type-alias xmlParserNodeInfoSeq*	pointer)
 (define-c-type-alias xmlParserNodeInfoSeqPtr	pointer)
 
 (define-c-struct xmlParserNodeInfoSeq
   "xmlParserNodeInfoSeq"
-  (unsigned-long	maximum)
-  (unsigned-long	length)
+  (unsigned-int	maximum)
+  (unsigned-int	length)
   (pointer		buffer))
 
 (define-c-enumeration xmlParserInputState
+  "xmlParserInputState"
   XML_PARSER_EOF
   XML_PARSER_START
   XML_PARSER_MISC
@@ -446,6 +490,7 @@
   XML_SKIP_IDS)
 
 (define-c-enumeration xmlParserMode
+  "xmlParserMode"
   XML_PARSE_UNKNOWN
   XML_PARSE_DOM
   XML_PARSE_SAX
@@ -520,24 +565,24 @@
   (pointer		str_xmlns)
   (pointer		str_xml_ns)
   (signed-int           sax2)
-    (signed-int			nsNr)
-    (signed-int			nsMax)
-    (pointer			nsTab)
-    (pointer			attallocs)
-    (pointer			pushTab)
-    (pointer			attsDefault)
-    (pointer			attsSpecial)
-    (signed-int			nsWellFormed)
-    (signed-int			options)
-    (signed-int			dictNames)
-    (signed-int			freeElemsNr)
-    (pointer			freeElems)
-    (signed-int			freeAttrsNr)
-    (pointer			freeAttrs)
-    (embedded			lastError)
-    (embedded			xmlParserMode)
-    (unsigned-long		nbentities)
-    (unsigned-long		sizeentities))
+  (signed-int		nsNr)
+  (signed-int		nsMax)
+  (pointer		nsTab)
+  (pointer		attallocs)
+  (pointer		pushTab)
+  (pointer		attsDefault)
+  (pointer		attsSpecial)
+  (signed-int		nsWellFormed)
+  (signed-int		options)
+  (signed-int		dictNames)
+  (signed-int		freeElemsNr)
+  (pointer		freeElems)
+  (signed-int		freeAttrsNr)
+  (pointer		freeAttrs)
+  (embedded		lastError)
+  (embedded		xmlParserMode)
+  (unsigned-int		nbentities)
+  (unsigned-int		sizeentities))
 
 (define-c-struct _xmlSAXLocator
   "struct _xmlSAXLocator"
@@ -622,6 +667,7 @@
 
 
 (define-c-enumeration xmlParserOption
+  "xmlParserOption"
   XML_PARSE_RECOVER
   XML_PARSE_NOENT
   XML_PARSE_DTDLOAD
@@ -645,6 +691,7 @@
   XML_PARSE_OLDSAX)
 
 (define-c-enumeration xmlFeature
+  "xmlFeature"
   XML_WITH_THREAD
   XML_WITH_TREE
   XML_WITH_OUTPUT
@@ -678,6 +725,41 @@
   XML_WITH_ZLIB
   XML_WITH_NONE)
 
+(define-c-callback-pointer-type xmlParserInputDeallocate)
+(define-c-callback-pointer-type resolveEntitySAXFunc)
+(define-c-callback-pointer-type internalSubsetSAXFunc)
+(define-c-callback-pointer-type externalSubsetSAXFunc)
+(define-c-callback-pointer-type getEntitySAXFunc)
+(define-c-callback-pointer-type getParameterEntitySAXFunc)
+(define-c-callback-pointer-type entityDeclSAXFunc)
+(define-c-callback-pointer-type notationDeclSAXFunc)
+(define-c-callback-pointer-type attributeDeclSAXFunc)
+(define-c-callback-pointer-type elementDeclSAXFunc)
+(define-c-callback-pointer-type unparsedEntityDeclSAXFunc)
+(define-c-callback-pointer-type setDocumentLocatorSAXFunc)
+(define-c-callback-pointer-type startDocumentSAXFunc)
+(define-c-callback-pointer-type endDocumentSAXFunc)
+(define-c-callback-pointer-type startElementSAXFunc)
+(define-c-callback-pointer-type endElementSAXFunc)
+(define-c-callback-pointer-type attributeSAXFunc)
+(define-c-callback-pointer-type referenceSAXFunc)
+(define-c-callback-pointer-type charactersSAXFunc)
+(define-c-callback-pointer-type ignorableWhitespaceSAXFunc)
+(define-c-callback-pointer-type processingInstructionSAXFunc)
+(define-c-callback-pointer-type commentSAXFunc)
+(define-c-callback-pointer-type cdataBlockSAXFunc)
+(define-c-callback-pointer-type warningSAXFunc)
+(define-c-callback-pointer-type errorSAXFunc)
+(define-c-callback-pointer-type fatalErrorSAXFunc)
+(define-c-callback-pointer-type isStandaloneSAXFunc)
+(define-c-callback-pointer-type hasInternalSubsetSAXFunc)
+(define-c-callback-pointer-type hasExternalSubsetSAXFunc)
+(define-c-callback-pointer-type startElementNsSAX2Func)
+(define-c-callback-pointer-type endElementNsSAX2Func)
+(define-c-callback-pointer-type xmlExternalEntityLoader)
+
+(define-c-callback-pointer-type xmlEntityReferenceFunc)
+
 
 ;;;; pattern expression handling
 ;;
@@ -688,6 +770,7 @@
 (define-c-type-alias xmlPatternPtr		pointer)
 
 (define-c-enumeration xmlPatternFlags
+  "xmlPatternFlags"
   XML_PATTERN_DEFAULT
   XML_PATTERN_XPATH
   XML_PATTERN_XSSEL
@@ -711,7 +794,11 @@
 (define-c-type-alias xmlRelaxNGValidCtxt*	pointer)
 (define-c-type-alias xmlRelaxNGValidCtxtPtr	pointer)
 
+(define-c-callback-pointer-type xmlRelaxNGValidityErrorFunc)
+(define-c-callback-pointer-type xmlRelaxNGValidityWarningFunc)
+
 (define-c-enumeration xmlRelaxNGValidErr
+  "xmlRelaxNGValidErr"
   XML_RELAXNG_OK
   XML_RELAXNG_ERR_MEMORY
   XML_RELAXNG_ERR_TYPE
@@ -754,6 +841,7 @@
   XML_RELAXNG_ERR_TEXTWRONG)
 
 (define-c-enumeration xmlRelaxNGParserFlag
+  "xmlRelaxNGParserFlag"
   XML_RELAXNGP_NONE
   XML_RELAXNGP_FREE_DOC
   XML_RELAXNGP_CRNG)
@@ -771,6 +859,7 @@
 ;;
 
 (define-c-enumeration xmlSchematronValidOptions
+  "xmlSchematronValidOptions"
   XML_SCHEMATRON_OUT_QUIET
   XML_SCHEMATRON_OUT_TEXT
   XML_SCHEMATRON_OUT_XML
@@ -788,6 +877,9 @@
 (define-c-type-alias xmlSchematronValidCtxt*	pointer)
 (define-c-type-alias xmlSchematronValidCtxtPtr	pointer)
 
+
+(define-c-callback-pointer-type xmlSchematronValidityErrorFunc)
+(define-c-callback-pointer-type xmlSchematronValidityWarningFunc)
 
 
 ;;;; interfaces for thread handling
@@ -828,10 +920,13 @@
 (define-c-type-alias xmlEntity*				pointer)
 (define-c-type-alias xmlEntityPtr			pointer)
 
+(define-c-callback-pointer-type xmlDOMWrapAcquireNsFunction)
+
 (define-c-defines "tree constants"
   BASE_BUFFER_SIZE)
 
 (define-c-enumeration xmlBufferAllocationScheme
+  "xmlBufferAllocationScheme"
   XML_BUFFER_ALLOC_DOUBLEIT
   XML_BUFFER_ALLOC_EXACT
   XML_BUFFER_ALLOC_IMMUTABLE
@@ -853,6 +948,7 @@
   XML_XML_ID)
 
 (define-c-enumeration xmlElementType
+  "xmlElementType"
   XML_ELEMENT_NODE
   XML_ATTRIBUTE_NODE
   XML_TEXT_NODE
@@ -885,6 +981,7 @@
   (pointer			SystemID))
 
 (define-c-enumeration xmlAttributeType
+  "xmlAttributeType"
   XML_ATTRIBUTE_CDATA
   XML_ATTRIBUTE_ID
   XML_ATTRIBUTE_IDREF
@@ -897,6 +994,7 @@
   XML_ATTRIBUTE_NOTATION)
 
 (define-c-enumeration xmlAttributeDefault
+  "xmlAttributeDefault"
   XML_ATTRIBUTE_NONE
   XML_ATTRIBUTE_REQUIRED
   XML_ATTRIBUTE_IMPLIED
@@ -906,6 +1004,7 @@
 (define-c-type-alias xmlEnumerationPtr		pointer)
 
 (define-c-struct xmlEnumeration
+  "xmlEnumeration"
   (pointer			next)
   (pointer			name))
 
@@ -932,12 +1031,14 @@
   (pointer			elem))
 
 (define-c-enumeration xmlElementContentType
+  "xmlElementContentType"
   XML_ELEMENT_CONTENT_PCDATA
   XML_ELEMENT_CONTENT_ELEMENT
   XML_ELEMENT_CONTENT_SEQ
   XML_ELEMENT_CONTENT_OR)
 
 (define-c-enumeration xmlElementContentOccur
+  "xmlElementContentOccur"
   XML_ELEMENT_CONTENT_ONCE
   XML_ELEMENT_CONTENT_OP
   XML_ELEMENT_CONTENT_MULT
@@ -956,7 +1057,8 @@
   (pointer			parent)
   (pointer			prefix))
 
-(define-c-enumeration
+(define-c-enumeration xmlElementTypeVal
+  "xmlElementTypeVal"
   XML_ELEMENT_TYPE_UNDEFINED
   XML_ELEMENT_TYPE_EMPTY
   XML_ELEMENT_TYPE_ANY
@@ -981,7 +1083,6 @@
   (pointer			content)
   (pointer			attributes)
   (pointer			prefix)
-  (pointer			contModel)
   (pointer			contModel))
 
 (define-c-type-alias xmlNsType*		pointer)
@@ -1066,6 +1167,7 @@
 
 (define-c-type-alias xmlNode*		pointer)
 (define-c-type-alias xmlNodePtr		pointer)
+(define-c-type-alias xmlNodePtr*	pointer)
 
 (define-c-struct xmlNode
   "xmlNode"
@@ -1087,6 +1189,7 @@
   (unsigned-int			extra))
 
 (define-c-enumeration xmlDocProperties
+  "xmlDocProperties"
   XML_DOC_WELLFORMED
   XML_DOC_NSVALID
   XML_DOC_OLD10
@@ -1098,6 +1201,7 @@
 
 (define-c-type-alias xmlDoc*		pointer)
 (define-c-type-alias xmlDocPtr		pointer)
+(define-c-type-alias xmlDocPtr*		pointer)
 
 (define-c-struct xmlDoc
   "xmlDoc"
@@ -1166,6 +1270,9 @@
 ;;Header file "valid.h".
 ;;
 
+(define-c-callback-pointer-type xmlValidityErrorFunc)
+(define-c-callback-pointer-type xmlValidityWarningFunc)
+
 (define-c-type-alias xmlValidState*		pointer)
 (define-c-type-alias xmlValidStatePtr		pointer)
 
@@ -1192,8 +1299,6 @@
   (signed-int			vstateNr)
   (signed-int			vstateMax)
   (pointer			vstateTab)
-  (pointer			am)
-  (pointer			state)
   (pointer			am)
   (pointer			state))
 
@@ -1252,12 +1357,14 @@
 ;;
 
 (define-c-enumeration xmlErrorLevel
+  "xmlErrorLevel"
   XML_ERR_NONE
   XML_ERR_WARNING
   XML_ERR_ERROR
   XML_ERR_FATAL)
 
 (define-c-enumeration xmlErrorDomain
+  "xmlErrorDomain"
   XML_FROM_NONE
   XML_FROM_PARSER
   XML_FROM_TREE
@@ -1308,6 +1415,7 @@
   (pointer		node))
 
 (define-c-enumeration xmlParserErrors
+  "xmlParserErrors"
   XML_ERR_OK
   XML_ERR_INTERNAL_ERROR
   XML_ERR_NO_MEMORY
@@ -2042,6 +2150,10 @@
   XML_CHECK_
   XML_CHECK_X)
 
+(define-c-callback-pointer-type xmlGenericErrorFunc)
+(define-c-callback-pointer-type xmlStructuredErrorFunc)
+
+
 
 ;;;; interface for the I/O interfaces used by the parser
 ;;
@@ -2058,7 +2170,7 @@
   (pointer			raw)
   (signed-int			compressed)
   (signed-int			error)
-  (unsigned-long		rawconsumed))
+  (unsigned-int		rawconsumed))
 
 (define-c-struct _xmlOutputBuffer
   "struct _xmlOutputBuffer"
@@ -2071,12 +2183,27 @@
   (signed-int			written)
   (signed-int			error))
 
+(define-c-callback-pointer-type xmlInputMatchCallback)
+(define-c-callback-pointer-type xmlInputOpenCallback)
+(define-c-callback-pointer-type xmlInputReadCallback)
+(define-c-callback-pointer-type xmlInputCloseCallback)
+(define-c-callback-pointer-type xmlOutputMatchCallback)
+(define-c-callback-pointer-type xmlOutputOpenCallback)
+(define-c-callback-pointer-type xmlOutputWriteCallback)
+(define-c-callback-pointer-type xmlOutputCloseCallback)
+
+
+
 
 ;;;; interface for the memory allocator
 ;;
 ;;Header file "xmlmemory.h".
 ;;
 
+(define-c-callback-pointer-type xmlFreeFunc)
+(define-c-callback-pointer-type xmlMallocFunc)
+(define-c-callback-pointer-type xmlReallocFunc)
+(define-c-callback-pointer-type xmlStrdupFunc)
 
 
 ;;;; dynamic module loading
@@ -2088,6 +2215,7 @@
 (define-c-type-alias xmlModulePtr	pointer)
 
 (define-c-enumeration xmlModuleOption
+  "xmlModuleOption"
   XML_MODULE_LAZY
   XML_MODULE_LOCAL)
 
@@ -2098,12 +2226,14 @@
 ;;
 
 (define-c-enumeration xmlParserSeverities
+  "xmlParserSeverities"
   XML_PARSER_SEVERITY_VALIDITY_WARNING
   XML_PARSER_SEVERITY_VALIDITY_ERROR
   XML_PARSER_SEVERITY_WARNING
   XML_PARSER_SEVERITY_ERROR)
 
 (define-c-enumeration xmlTextReaderMode
+  "xmlTextReaderMode"
   XML_TEXTREADER_MODE_INITIAL
   XML_TEXTREADER_MODE_INTERACTIVE
   XML_TEXTREADER_MODE_ERROR
@@ -2112,12 +2242,14 @@
   XML_TEXTREADER_MODE_READING)
 
 (define-c-enumeration xmlParserProperties
+  "xmlParserProperties"
   XML_PARSER_LOADDTD
   XML_PARSER_DEFAULTATTRS
   XML_PARSER_VALIDATE
   XML_PARSER_SUBST_ENTITIES)
 
 (define-c-enumeration xmlReaderTypes
+  "xmlReaderTypes"
   XML_READER_TYPE_NONE
   XML_READER_TYPE_ELEMENT
   XML_READER_TYPE_ATTRIBUTE
@@ -2142,6 +2274,8 @@
 
 (define-c-type-alias xmlTextReaderLocatorPtr	pointer)
 
+(define-c-callback-pointer-type xmlTextReaderErrorFunc)
+
 
 ;;;; regular expressions handling
 ;;
@@ -2161,12 +2295,16 @@
 (define-c-type-alias xmlExpNodePtr	pointer)
 
 (define-c-enumeration xmlExpNodeType
+  "xmlExpNodeType"
   XML_EXP_EMPTY
   XML_EXP_FORBID
   XML_EXP_ATOM
   XML_EXP_SEQ
   XML_EXP_OR
   XML_EXP_COUNT)
+
+(define-c-callback-pointer-type xmlRegExecCallbacks)
+
 
 
 ;;;; the XML document serializer
@@ -2175,6 +2313,7 @@
 ;;
 
 (define-c-enumeration xmlSaveOption
+  "xmlSaveOption"
   XML_SAVE_FORMAT
   XML_SAVE_NO_DECL
   XML_SAVE_NO_EMPTY
@@ -2187,12 +2326,457 @@
 (define-c-type-alias xmlSaveCtxtPtr		pointer)
 
 
+;;;; internal interfaces for XML Schemas
+;;
+;;Header file "schemasInternals.h"
+;;
+
+(define-c-enumeration xmlSchemaValType
+  "xmlSchemaValType"
+  XML_SCHEMAS_UNKNOWN
+  XML_SCHEMAS_STRING
+  XML_SCHEMAS_NORMSTRING
+  XML_SCHEMAS_DECIMAL
+  XML_SCHEMAS_TIME
+  XML_SCHEMAS_GDAY
+  XML_SCHEMAS_GMONTH
+  XML_SCHEMAS_GMONTHDAY
+  XML_SCHEMAS_GYEAR
+  XML_SCHEMAS_GYEARMONTH
+  XML_SCHEMAS_DATE
+  XML_SCHEMAS_DATETIME
+  XML_SCHEMAS_DURATION
+  XML_SCHEMAS_FLOAT
+  XML_SCHEMAS_DOUBLE
+  XML_SCHEMAS_BOOLEAN
+  XML_SCHEMAS_TOKEN
+  XML_SCHEMAS_LANGUAGE
+  XML_SCHEMAS_NMTOKEN
+  XML_SCHEMAS_NMTOKENS
+  XML_SCHEMAS_NAME
+  XML_SCHEMAS_QNAME
+  XML_SCHEMAS_NCNAME
+  XML_SCHEMAS_ID
+  XML_SCHEMAS_IDREF
+  XML_SCHEMAS_IDREFS
+  XML_SCHEMAS_ENTITY
+  XML_SCHEMAS_ENTITIES
+  XML_SCHEMAS_NOTATION
+  XML_SCHEMAS_ANYURI
+  XML_SCHEMAS_INTEGER
+  XML_SCHEMAS_NPINTEGER
+  XML_SCHEMAS_NINTEGER
+  XML_SCHEMAS_NNINTEGER
+  XML_SCHEMAS_PINTEGER
+  XML_SCHEMAS_INT
+  XML_SCHEMAS_UINT
+  XML_SCHEMAS_LONG
+  XML_SCHEMAS_ULONG
+  XML_SCHEMAS_SHORT
+  XML_SCHEMAS_USHORT
+  XML_SCHEMAS_BYTE
+  XML_SCHEMAS_UBYTE
+  XML_SCHEMAS_HEXBINARY
+  XML_SCHEMAS_BASE64BINARY
+  XML_SCHEMAS_ANYTYPE
+  XML_SCHEMAS_ANYSIMPLETYPE)
+
+(define-c-enumeration xmlSchemaTypeType
+  "xmlSchemaTypeType"
+  XML_SCHEMA_TYPE_BASIC
+  XML_SCHEMA_TYPE_ANY
+  XML_SCHEMA_TYPE_FACET
+  XML_SCHEMA_TYPE_SIMPLE
+  XML_SCHEMA_TYPE_COMPLEX
+  XML_SCHEMA_TYPE_SEQUENCE
+  XML_SCHEMA_TYPE_CHOICE
+  XML_SCHEMA_TYPE_ALL
+  XML_SCHEMA_TYPE_SIMPLE_CONTENT
+  XML_SCHEMA_TYPE_COMPLEX_CONTENT
+  XML_SCHEMA_TYPE_UR
+  XML_SCHEMA_TYPE_RESTRICTION
+  XML_SCHEMA_TYPE_EXTENSION
+  XML_SCHEMA_TYPE_ELEMENT
+  XML_SCHEMA_TYPE_ATTRIBUTE
+  XML_SCHEMA_TYPE_ATTRIBUTEGROUP
+  XML_SCHEMA_TYPE_GROUP
+  XML_SCHEMA_TYPE_NOTATION
+  XML_SCHEMA_TYPE_LIST
+  XML_SCHEMA_TYPE_UNION
+  XML_SCHEMA_TYPE_ANY_ATTRIBUTE
+  XML_SCHEMA_TYPE_IDC_UNIQUE
+  XML_SCHEMA_TYPE_IDC_KEY
+  XML_SCHEMA_TYPE_IDC_KEYREF
+  XML_SCHEMA_TYPE_PARTICLE
+  XML_SCHEMA_TYPE_ATTRIBUTE_USE
+  XML_SCHEMA_FACET_MININCLUSIVE
+  XML_SCHEMA_FACET_MINEXCLUSIVE
+  XML_SCHEMA_FACET_MAXINCLUSIVE
+  XML_SCHEMA_FACET_MAXEXCLUSIVE
+  XML_SCHEMA_FACET_TOTALDIGITS
+  XML_SCHEMA_FACET_FRACTIONDIGITS
+  XML_SCHEMA_FACET_PATTERN
+  XML_SCHEMA_FACET_ENUMERATION
+  XML_SCHEMA_FACET_WHITESPACE
+  XML_SCHEMA_FACET_LENGTH
+  XML_SCHEMA_FACET_MAXLENGTH
+  XML_SCHEMA_FACET_MINLENGTH
+  XML_SCHEMA_EXTRA_QNAMEREF
+  XML_SCHEMA_EXTRA_ATTR_USE_PROHIB)
+
+(define-c-enumeration xmlSchemaContentType
+  "xmlSchemaContentType"
+  XML_SCHEMA_CONTENT_UNKNOWN
+  XML_SCHEMA_CONTENT_EMPTY
+  XML_SCHEMA_CONTENT_ELEMENTS
+  XML_SCHEMA_CONTENT_MIXED
+  XML_SCHEMA_CONTENT_SIMPLE
+  XML_SCHEMA_CONTENT_MIXED_OR_ELEMENTS
+  XML_SCHEMA_CONTENT_BASIC
+  XML_SCHEMA_CONTENT_ANY)
+
+(define-c-type-alias xmlSchemaVal*		pointer)
+(define-c-type-alias xmlSchemaValPtr		pointer)
+(define-c-type-alias xmlSchemaValPtr*		pointer)
+
+(define-c-type-alias xmlSchemaType*		pointer)
+(define-c-type-alias xmlSchemaTypePtr		pointer)
+(define-c-type-alias xmlSchemaTypePtr*		pointer)
+
+(define-c-type-alias xmlSchemaFacet*		pointer)
+(define-c-type-alias xmlSchemaFacetPtr		pointer)
+(define-c-type-alias xmlSchemaFacetPtr*		pointer)
+
+(define-c-type-alias xmlSchemaAnnot*		pointer)
+(define-c-type-alias xmlSchemaAnnotPtr		pointer)
+(define-c-type-alias xmlSchemaAnnotPtr*		pointer)
+
+(define-c-struct xmlSchemaAnnot
+  "struct _xmlSchemaAnnot"
+  (pointer			next)
+  (pointer			content))
+
+(define-c-defines "schemas constants"
+  XML_SCHEMAS_ANYATTR_SKIP
+  XML_SCHEMAS_ANYATTR_LAX
+  XML_SCHEMAS_ANYATTR_STRICT
+  XML_SCHEMAS_ANY_SKIP
+  XML_SCHEMAS_ANY_LAX
+  XML_SCHEMAS_ANY_STRICT
+  XML_SCHEMAS_ATTR_USE_PROHIBITED
+  XML_SCHEMAS_ATTR_USE_REQUIRED
+  XML_SCHEMAS_ATTR_USE_OPTIONAL
+  XML_SCHEMAS_ATTR_GLOBAL
+  XML_SCHEMAS_ATTR_NSDEFAULT
+  XML_SCHEMAS_ATTR_INTERNAL_RESOLVED
+  XML_SCHEMAS_ATTR_FIXED)
+
+(define-c-type-alias xmlSchemaAttribute*	pointer)
+(define-c-type-alias xmlSchemaAttributePtr	pointer)
+
+(define-c-struct xmlSchemaAttribute
+  "struct _xmlSchemaAttribute"
+  (signed-int			type)
+  (pointer			next)
+  (pointer			name)
+  (pointer			id)
+  (pointer			ref)
+  (pointer			refNs)
+  (pointer			typeName)
+  (pointer			typeNs)
+  (pointer			annot)
+  (pointer			base)
+  (signed-int			occurs)
+  (pointer			defValue)
+  (pointer			subtypes)
+  (pointer			node)
+  (pointer			targetNamespace)
+  (signed-int			flags)
+  (pointer			refPrefix)
+  (pointer			defVal)
+  (pointer			refDecl))
+
+(define-c-type-alias xmlSchemaAttributeLink*		pointer)
+(define-c-type-alias xmlSchemaAttributeLinkPtr		pointer)
+(define-c-type-alias xmlSchemaAttributeLinkPtr*		pointer)
+
+(define-c-struct xmlSchemaAttributeLink
+  "struct _xmlSchemaAttributeLink"
+  (pointer			next)
+  (pointer			attr))
+
+(define-c-type-alias xmlSchemaWildcardNs*		pointer)
+(define-c-type-alias xmlSchemaWildcardNsPtr		pointer)
+
+(define-c-struct xmlSchemaWildcardNs
+  "struct _xmlSchemaWildcardNs"
+  (pointer			next)
+  (pointer			value))
+
+(define-c-type-alias xmlSchemaWildcard*			pointer)
+(define-c-type-alias xmlSchemaWildcardPtr		pointer)
+(define-c-type-alias xmlSchemaWildcardPtr*		pointer)
+
+(define-c-struct xmlSchemaWildcard
+  "struct _xmlSchemaWildcard"
+  (signed-int			type)
+  (pointer			id)
+  (pointer			annot)
+  (pointer			xmlNodePtr)
+  (signed-int			minOccurs)
+  (signed-int			maxOccurs)
+  (signed-int			processContents)
+  (signed-int			any)
+  (pointer			nsSet)
+  (pointer			negNsSet)
+  (signed-int			flags))
+
+(define-c-defines "schemas constants"
+  XML_SCHEMAS_WILDCARD_COMPLETE
+
+  XML_SCHEMAS_ATTRGROUP_WILDCARD_BUILDED
+  XML_SCHEMAS_ATTRGROUP_GLOBAL
+  XML_SCHEMAS_ATTRGROUP_MARKED
+  XML_SCHEMAS_ATTRGROUP_REDEFINED
+  XML_SCHEMAS_ATTRGROUP_HAS_REFS
+
+  XML_SCHEMAS_TYPE_MIXED
+  XML_SCHEMAS_TYPE_DERIVATION_METHOD_EXTENSION
+  XML_SCHEMAS_TYPE_DERIVATION_METHOD_RESTRICTION
+  XML_SCHEMAS_TYPE_GLOBAL
+  XML_SCHEMAS_TYPE_OWNED_ATTR_WILDCARD
+  XML_SCHEMAS_TYPE_VARIETY_ABSENT
+  XML_SCHEMAS_TYPE_VARIETY_LIST
+  XML_SCHEMAS_TYPE_VARIETY_UNION
+  XML_SCHEMAS_TYPE_VARIETY_ATOMIC
+  XML_SCHEMAS_TYPE_FINAL_EXTENSION
+  XML_SCHEMAS_TYPE_FINAL_RESTRICTION
+  XML_SCHEMAS_TYPE_FINAL_LIST
+  XML_SCHEMAS_TYPE_FINAL_UNION
+  XML_SCHEMAS_TYPE_FINAL_DEFAULT
+  XML_SCHEMAS_TYPE_BUILTIN_PRIMITIVE
+  XML_SCHEMAS_TYPE_MARKED
+  XML_SCHEMAS_TYPE_BLOCK_DEFAULT
+  XML_SCHEMAS_TYPE_BLOCK_EXTENSION
+  XML_SCHEMAS_TYPE_BLOCK_RESTRICTION
+  XML_SCHEMAS_TYPE_ABSTRACT
+  XML_SCHEMAS_TYPE_FACETSNEEDVALUE
+  XML_SCHEMAS_TYPE_INTERNAL_RESOLVED
+  XML_SCHEMAS_TYPE_INTERNAL_INVALID
+  XML_SCHEMAS_TYPE_WHITESPACE_PRESERVE
+  XML_SCHEMAS_TYPE_WHITESPACE_REPLACE
+  XML_SCHEMAS_TYPE_WHITESPACE_COLLAPSE
+  XML_SCHEMAS_TYPE_HAS_FACETS
+  XML_SCHEMAS_TYPE_NORMVALUENEEDED
+  XML_SCHEMAS_TYPE_FIXUP_1
+  XML_SCHEMAS_TYPE_REDEFINED
+;;; XML_SCHEMAS_TYPE_REDEFINING
+
+  XML_SCHEMAS_ELEM_NILLABLE
+  XML_SCHEMAS_ELEM_GLOBAL
+  XML_SCHEMAS_ELEM_DEFAULT
+  XML_SCHEMAS_ELEM_FIXED
+  XML_SCHEMAS_ELEM_ABSTRACT
+  XML_SCHEMAS_ELEM_TOPLEVEL
+  XML_SCHEMAS_ELEM_REF
+  XML_SCHEMAS_ELEM_NSDEFAULT
+  XML_SCHEMAS_ELEM_INTERNAL_RESOLVED
+  XML_SCHEMAS_ELEM_CIRCULAR
+  XML_SCHEMAS_ELEM_BLOCK_ABSENT
+  XML_SCHEMAS_ELEM_BLOCK_EXTENSION
+  XML_SCHEMAS_ELEM_BLOCK_RESTRICTION
+  XML_SCHEMAS_ELEM_BLOCK_SUBSTITUTION
+  XML_SCHEMAS_ELEM_FINAL_ABSENT
+  XML_SCHEMAS_ELEM_FINAL_EXTENSION
+  XML_SCHEMAS_ELEM_FINAL_RESTRICTION
+  XML_SCHEMAS_ELEM_SUBST_GROUP_HEAD
+  XML_SCHEMAS_ELEM_INTERNAL_CHECKED
+
+  XML_SCHEMAS_FACET_UNKNOWN
+  XML_SCHEMAS_FACET_PRESERVE
+  XML_SCHEMAS_FACET_REPLACE
+  XML_SCHEMAS_FACET_COLLAPSE
+
+  XML_SCHEMAS_QUALIF_ELEM
+  XML_SCHEMAS_QUALIF_ATTR
+  XML_SCHEMAS_FINAL_DEFAULT_EXTENSION
+  XML_SCHEMAS_FINAL_DEFAULT_RESTRICTION
+  XML_SCHEMAS_FINAL_DEFAULT_LIST
+  XML_SCHEMAS_FINAL_DEFAULT_UNION
+  XML_SCHEMAS_BLOCK_DEFAULT_EXTENSION
+  XML_SCHEMAS_BLOCK_DEFAULT_RESTRICTION
+  XML_SCHEMAS_BLOCK_DEFAULT_SUBSTITUTION
+  XML_SCHEMAS_INCLUDING_CONVERT_NS)
+
+(define-c-type-alias xmlSchemaAttributeGroup*		pointer)
+(define-c-type-alias xmlSchemaAttributeGroupPtr		pointer)
+(define-c-type-alias xmlSchemaAttributeGroupPtr*	pointer)
+
+(define-c-struct xmlSchemaAttributeGroup
+  "struct _xmlSchemaAttributeGroup"
+  (signed-int			type)
+  (pointer			next)
+  (pointer			name)
+  (pointer			id)
+  (pointer			ref)
+  (pointer			refNs)
+  (pointer			annot)
+  (pointer			attributes)
+  (pointer			node)
+  (signed-int			flags)
+  (pointer			attributeWildcard)
+  (pointer			refPrefix)
+  (pointer			refItem)
+  (pointer			targetNamespace)
+  (pointer			attrUses))
+
+(define-c-type-alias xmlSchemaTypeLink*		pointer)
+(define-c-type-alias xmlSchemaTypeLinkPtr	pointer)
+(define-c-type-alias xmlSchemaTypeLinkPtr*	pointer)
+
+(define-c-struct xmlSchemaTypeLink
+  "struct _xmlSchemaTypeLink"
+  (pointer			next)
+  (pointer			type))
+
+(define-c-type-alias xmlSchemaFacetLink*	pointer)
+(define-c-type-alias xmlSchemaFacetLinkPtr	pointer)
+(define-c-type-alias xmlSchemaFacetLinkPtr*	pointer)
+
+(define-c-struct xmlSchemaFacetLink
+  "struct _xmlSchemaFacetLink"
+  (pointer			next)
+  (pointer			facet))
+
+;; struct _xmlSchemaType {
+;;     xmlSchemaTypeType type; /* The kind of type */
+;;     struct _xmlSchemaType *next; /* the next type if in a sequence ... */
+;;     const xmlChar *name;
+;;     const xmlChar *id ; /* Deprecated; not used */
+;;     const xmlChar *ref; /* Deprecated; not used */
+;;     const xmlChar *refNs; /* Deprecated; not used */
+;;     xmlSchemaAnnotPtr annot;
+;;     xmlSchemaTypePtr subtypes;
+;;     xmlSchemaAttributePtr attributes; /* Deprecated; not used */
+;;     xmlNodePtr node;
+;;     int minOccurs; /* Deprecated; not used */
+;;     int maxOccurs; /* Deprecated; not used */
+
+;;     int flags;
+;;     xmlSchemaContentType contentType;
+;;     const xmlChar *base; /* Base type's local name */
+;;     const xmlChar *baseNs; /* Base type's target namespace */
+;;     xmlSchemaTypePtr baseType; /* The base type component */
+;;     xmlSchemaFacetPtr facets; /* Local facets */
+;;     struct _xmlSchemaType *redef; /* Deprecated; not used */
+;;     int recurse; /* Obsolete */
+;;     xmlSchemaAttributeLinkPtr *attributeUses; /* Deprecated; not used */
+;;     xmlSchemaWildcardPtr attributeWildcard;
+;;     int builtInType; /* Type of built-in types. */
+;;     xmlSchemaTypeLinkPtr memberTypes; /* member-types if a union type. */
+;;     xmlSchemaFacetLinkPtr facetSet; /* All facets (incl. inherited) */
+;;     const xmlChar *refPrefix; /* Deprecated; not used */
+;;     xmlSchemaTypePtr contentTypeDef; /* Used for the simple content of complex types.
+;;                                         Could we use @subtypes for this? */
+;;     xmlRegexpPtr contModel; /* Holds the automaton of the content model */
+;;     const xmlChar *targetNamespace;
+;;     void *attrUses;
+;; };
+
+(define-c-type-alias xmlSchemaElement*		pointer)
+(define-c-type-alias xmlSchemaElementPtr	pointer)
+(define-c-type-alias xmlSchemaElementPtr*	pointer)
+
+(define-c-struct xmlSchemaElement
+  "struct _xmlSchemaElement"
+  (signed-int			type)
+  (pointer			next)
+  (pointer			name)
+  (pointer			id)
+  (pointer			ref)
+  (pointer			refNs)
+  (pointer			annot)
+  (pointer			subtypes)
+  (pointer			attributes)
+  (pointer			node)
+  (signed-int			minOccurs)
+  (signed-int			maxOccurs)
+  (signed-int			flags)
+  (pointer			targetNamespace)
+  (pointer			namedType)
+  (pointer			namedTypeNs)
+  (pointer			substGroup)
+  (pointer			substGroupNs)
+  (pointer			scope)
+  (pointer			value)
+  (pointer			refDecl)
+  (pointer			contModel)
+  (signed-int			contentType)
+  (pointer			refPrefix)
+  (pointer			defVal)
+  (pointer			idcs))
+
+;; struct _xmlSchemaFacet {
+;;     xmlSchemaTypeType type;        /* The kind of type */
+;;     struct _xmlSchemaFacet *next;/* the next type if in a sequence ... */
+;;     const xmlChar *value; /* The original value */
+;;     const xmlChar *id; /* Obsolete */
+;;     xmlSchemaAnnotPtr annot;
+;;     xmlNodePtr node;
+;;     int fixed; /* XML_SCHEMAS_FACET_PRESERVE, etc. */
+;;     int whitespace;
+;;     xmlSchemaValPtr val; /* The compiled value */
+;;     xmlRegexpPtr    regexp; /* The regex for patterns */
+;; };
+
+(define-c-type-alias xmlSchemaNotation*		pointer)
+(define-c-type-alias xmlSchemaNotationPtr	pointer)
+(define-c-type-alias xmlSchemaNotationPtr*	pointer)
+
+(define-c-struct xmlSchemaNotation
+  "struct _xmlSchemaNotation"
+  (signed-int			type)
+  (pointer			name)
+  (pointer			annot)
+  (pointer			identifier)
+  (pointer			targetNamespace))
+
+;; struct _xmlSchema {
+;;     const xmlChar *name; /* schema name */
+;;     const xmlChar *targetNamespace; /* the target namespace */
+;;     const xmlChar *version;
+;;     const xmlChar *id; /* Obsolete */
+;;     xmlDocPtr doc;
+;;     xmlSchemaAnnotPtr annot;
+;;     int flags;
+
+;;     xmlHashTablePtr typeDecl;
+;;     xmlHashTablePtr attrDecl;
+;;     xmlHashTablePtr attrgrpDecl;
+;;     xmlHashTablePtr elemDecl;
+;;     xmlHashTablePtr notaDecl;
+
+;;     xmlHashTablePtr schemasImports;
+
+;;     void *_private;        /* unused by the library for users or bindings */
+;;     xmlHashTablePtr groupDecl;
+;;     xmlDictPtr      dict;
+;;     void *includes;     /* the includes, this is opaque for now */
+;;     int preserve;        /* whether to free the document */
+;;     int counter; /* used to give ononymous components unique names */
+;;     xmlHashTablePtr idcDef; /* All identity-constraint defs. */
+;;     void *volatiles; /* Obsolete */
+;; };
+
+
+
 ;;;; incomplete XML Schemas structure implementation
 ;;
 ;;Header file "xmlschemas.h".
 ;;
 
 (define-c-enumeration xmlSchemaValidError
+  "xmlSchemaValidError"
   XML_SCHEMAS_ERR_OK
   XML_SCHEMAS_ERR_NOROOT
   XML_SCHEMAS_ERR_UNDECLAREDELEM
@@ -2221,6 +2805,7 @@
   XML_SCHEMAS_ERR_XXX)
 
 (define-c-enumeration xmlSchemaValidOption
+  "xmlSchemaValidOption"
   XML_SCHEMA_VAL_VC_I_CREATE)
 
 (define-c-type-alias xmlSchema*			pointer)
@@ -2235,6 +2820,8 @@
 (define-c-type-alias xmlSchemaSAXPlugStruct*	pointer)
 (define-c-type-alias xmlSchemaSAXPlugPtr	pointer)
 
+(define-c-callback-pointer-type xmlSchemaValidityErrorFunc)
+(define-c-callback-pointer-type xmlSchemaValidityWarningFunc)
 
 
 ;;;; implementation of XML Schema Datatypes
@@ -2243,6 +2830,7 @@
 ;;
 
 (define-c-enumeration xmlSchemaWhitespaceValueType
+  "xmlSchemaWhitespaceValueType"
   XML_SCHEMA_WHITESPACE_UNKNOWN
   XML_SCHEMA_WHITESPACE_PRESERVE
   XML_SCHEMA_WHITESPACE_REPLACE
@@ -2335,6 +2923,7 @@
 (define-c-type-alias xmlXPathParserContextPtr	pointer)
 
 (define-c-enumeration xmlXPathError
+  "xmlXPathError"
   XPATH_EXPRESSION_OK
   XPATH_NUMBER_ERROR
   XPATH_UNFINISHED_LITERAL_ERROR
@@ -2369,6 +2958,7 @@
   (pointer		nodeTab))
 
 (define-c-enumeration xmlXPathObjectType
+  "xmlXPathObjectType"
   XPATH_UNDEFINED
   XPATH_NODESET
   XPATH_BOOLEAN
@@ -2388,7 +2978,7 @@
   (signed-int		type)
   (pointer		nodesetval)
   (signed-int		boolval)
-  (double		floatval)
+  (float		floatval)
   (pointer		stringval)
   (pointer		user)
   (signed-int		index)
@@ -2502,6 +3092,13 @@
 ;; 		 : NULL)
 ;; #define xmlXPathNodeSetIsEmpty(ns)                                      \
 ;;     (((ns) == NULL) || ((ns)->nodeNr == 0) || ((ns)->nodeTab == NULL))
+
+(define-c-callback-pointer-type xmlXPathConvertFunc)
+(define-c-callback-pointer-type xmlXPathEvalFunc)
+(define-c-callback-pointer-type xmlXPathAxisFunc)
+(define-c-callback-pointer-type xmlXPathFunction)
+(define-c-callback-pointer-type xmlXPathVariableLookupFunc)
+(define-c-callback-pointer-type xmlXPathFuncLookupFunc)
 
 
 

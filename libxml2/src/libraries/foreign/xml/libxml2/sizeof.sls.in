@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Fri Dec 11, 2009
+;;;Date: Mon Dec 14, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -32,79 +32,37 @@
     xmlChar**
     xmlGlobalState*
     xmlGlobalStatePtr
-    sizeof-xmlGlobalState
-    alignof-xmlGlobalState
-    strideof-xmlGlobalState
-    struct-xmlGlobalState-xmlParserVersion-set!
-    struct-xmlGlobalState-xmlParserVersion-ref
-    struct-xmlGlobalState-xmlDefaultSAXLocator-ref
-    struct-xmlGlobalState-xmlDefaultSAXHandler-ref
-    struct-xmlGlobalState-docbDefaultSAXHandler-ref
-    struct-xmlGlobalState-htmlDefaultSAXHandler-ref
-    struct-xmlGlobalState-xmlFree-set!
-    struct-xmlGlobalState-xmlFree-ref
-    struct-xmlGlobalState-xmlMalloc-set!
-    struct-xmlGlobalState-xmlMalloc-ref
-    struct-xmlGlobalState-xmlMemStrdup-set!
-    struct-xmlGlobalState-xmlMemStrdup-ref
-    struct-xmlGlobalState-xmlRealloc-set!
-    struct-xmlGlobalState-xmlRealloc-ref
-    struct-xmlGlobalState-xmlGenericError-set!
-    struct-xmlGlobalState-xmlGenericError-ref
-    struct-xmlGlobalState-xmlStructuredError-set!
-    struct-xmlGlobalState-xmlStructuredError-ref
-    struct-xmlGlobalState-xmlGenericErrorContext-set!
-    struct-xmlGlobalState-xmlGenericErrorContext-ref
-    struct-xmlGlobalState-oldXMLWDcompatibility-set!
-    struct-xmlGlobalState-oldXMLWDcompatibility-ref
-    struct-xmlGlobalState-xmlBufferAllocScheme-set!
-    struct-xmlGlobalState-xmlBufferAllocScheme-ref
-    struct-xmlGlobalState-xmlDefaultBufferSize-set!
-    struct-xmlGlobalState-xmlDefaultBufferSize-ref
-    struct-xmlGlobalState-xmlSubstituteEntitiesDefaultValue-set!
-    struct-xmlGlobalState-xmlSubstituteEntitiesDefaultValue-ref
-    struct-xmlGlobalState-xmlDoValidityCheckingDefaultValue-set!
-    struct-xmlGlobalState-xmlDoValidityCheckingDefaultValue-ref
-    struct-xmlGlobalState-xmlGetWarningsDefaultValue-set!
-    struct-xmlGlobalState-xmlGetWarningsDefaultValue-ref
-    struct-xmlGlobalState-xmlKeepBlanksDefaultValue-set!
-    struct-xmlGlobalState-xmlKeepBlanksDefaultValue-ref
-    struct-xmlGlobalState-xmlLineNumbersDefaultValue-set!
-    struct-xmlGlobalState-xmlLineNumbersDefaultValue-ref
-    struct-xmlGlobalState-xmlLoadExtDtdDefaultValue-set!
-    struct-xmlGlobalState-xmlLoadExtDtdDefaultValue-ref
-    struct-xmlGlobalState-xmlParserDebugEntities-set!
-    struct-xmlGlobalState-xmlParserDebugEntities-ref
-    struct-xmlGlobalState-xmlPedanticParserDefaultValue-set!
-    struct-xmlGlobalState-xmlPedanticParserDefaultValue-ref
-    struct-xmlGlobalState-xmlSaveNoEmptyTags-set!
-    struct-xmlGlobalState-xmlSaveNoEmptyTags-ref
-    struct-xmlGlobalState-xmlIndentTreeOutput-set!
-    struct-xmlGlobalState-xmlIndentTreeOutput-ref
-    struct-xmlGlobalState-xmlTreeIndentString-set!
-    struct-xmlGlobalState-xmlTreeIndentString-ref
-    struct-xmlGlobalState-xmlRegisterNodeDefaultValue-set!
-    struct-xmlGlobalState-xmlRegisterNodeDefaultValue-ref
-    struct-xmlGlobalState-xmlDeregisterNodeDefaultValue-set!
-    struct-xmlGlobalState-xmlDeregisterNodeDefaultValue-ref
-    struct-xmlGlobalState-xmlMallocAtomic-set!
-    struct-xmlGlobalState-xmlMallocAtomic-ref
-    struct-xmlGlobalState-xmlLastError-ref
-    struct-xmlGlobalState-xmlParserInputBufferCreateFilenameValue-set!
-    struct-xmlGlobalState-xmlParserInputBufferCreateFilenameValue-ref
-    struct-xmlGlobalState-xmlOutputBufferCreateFilenameValue-set!
-    struct-xmlGlobalState-xmlOutputBufferCreateFilenameValue-ref
-    struct-xmlGlobalState-xmlStructuredErrorContext-set!
-    struct-xmlGlobalState-xmlStructuredErrorContext-ref
+    xmlParserInputBufferCreateFilenameFunc
+    xmlOutputBufferCreateFilenameFunc
+    xmlRegisterNodeFunc
+    xmlDeregisterNodeFunc
+    xmlC14NMode
+    sizeof-xmlC14NMode
+    alignof-xmlC14NMode
+    strideof-xmlC14NMode
+    pointer-ref-c-xmlC14NMode
+    pointer-set-c-xmlC14NMode!
     XML_C14N_1_0
     XML_C14N_EXCLUSIVE_1_0
     XML_C14N_1_1
     xmlC14NIsVisibleCallback
     XML_CATALOGS_NAMESPACE
     XML_CATALOG_PI
+    xmlCatalogPrefer
+    sizeof-xmlCatalogPrefer
+    alignof-xmlCatalogPrefer
+    strideof-xmlCatalogPrefer
+    pointer-ref-c-xmlCatalogPrefer
+    pointer-set-c-xmlCatalogPrefer!
     XML_CATA_PREFER_NONE
     XML_CATA_PREFER_PUBLIC
     XML_CATA_PREFER_SYSTEM
+    xmlCatalogAllow
+    sizeof-xmlCatalogAllow
+    alignof-xmlCatalogAllow
+    strideof-xmlCatalogAllow
+    pointer-ref-c-xmlCatalogAllow
+    pointer-set-c-xmlCatalogAllow!
     XML_CATA_ALLOW_NONE
     XML_CATA_ALLOW_GLOBAL
     XML_CATA_ALLOW_DOCUMENT
@@ -165,6 +123,14 @@
     xmlShellCmd
     xmlDict*
     xmlDictPtr
+    xmlCharEncodingInputFunc
+    xmlCharEncodingOutputFunc
+    xmlCharEncoding
+    sizeof-xmlCharEncoding
+    alignof-xmlCharEncoding
+    strideof-xmlCharEncoding
+    pointer-ref-c-xmlCharEncoding
+    pointer-set-c-xmlCharEncoding!
     XML_CHAR_ENCODING_ERROR
     XML_CHAR_ENCODING_NONE
     XML_CHAR_ENCODING_UTF8
@@ -204,6 +170,12 @@
     struct-xmlCharEncodingHandler-iconv_in-ref
     struct-xmlCharEncodingHandler-iconv_out-set!
     struct-xmlCharEncodingHandler-iconv_out-ref
+    xmlEntityType
+    sizeof-xmlEntityType
+    alignof-xmlEntityType
+    strideof-xmlEntityType
+    pointer-ref-c-xmlEntityType
+    pointer-set-c-xmlEntityType!
     XML_INTERNAL_GENERAL_ENTITY
     XML_EXTERNAL_GENERAL_PARSED_ENTITY
     XML_EXTERNAL_GENERAL_UNPARSED_ENTITY
@@ -255,11 +227,20 @@
     xmlEntitiesTablePtr
     xmlHashTable*
     xmlHashTablePtr
+    xmlHashDeallocator
+    xmlHashCopier
+    xmlHashScanner
+    xmlHashScannerFull
     HTML_TEXT_NODE
     HTML_ENTITY_REF_NODE
     HTML_COMMENT_NODE
     HTML_PRESERVE_NODE
     HTML_PI_NODE
+    htmlDocPtr
+    htmlNodePtr
+    htmlParserCtxtPtr
+    htmlSAXHandlerPtr
+    htmlParserInputPtr
     htmlElemDescPtr
     htmlElemDesc*
     htmlEntityDescPtr
@@ -304,6 +285,12 @@
     struct-htmlEntityDesc-name-ref
     struct-htmlEntityDesc-desc-set!
     struct-htmlEntityDesc-desc-ref
+    htmlParserOption
+    sizeof-htmlParserOption
+    alignof-htmlParserOption
+    strideof-htmlParserOption
+    pointer-ref-c-htmlParserOption
+    pointer-set-c-htmlParserOption!
     HTML_PARSE_RECOVER
     HTML_PARSE_NOERROR
     HTML_PARSE_NOWARNING
@@ -311,6 +298,12 @@
     HTML_PARSE_NOBLANKS
     HTML_PARSE_NONET
     HTML_PARSE_COMPACT
+    htmlStatus
+    sizeof-htmlStatus
+    alignof-htmlStatus
+    strideof-htmlStatus
+    pointer-ref-c-htmlStatus
+    pointer-set-c-htmlStatus!
     HTML_NA
     HTML_INVALID
     HTML_DEPRECATED
@@ -320,6 +313,11 @@
     xmlLinkPtr
     xmlList*
     xmlListPtr
+    xmlListDeallocator
+    xmlListDataCompare
+    xmlListWalker
+    ftpListCallback
+    ftpDataCallback
     XML_DEFAULT_VERSION
     sizeof-_xmlParserInput
     alignof-_xmlParserInput
@@ -380,6 +378,12 @@
     struct-xmlParserNodeInfoSeq-length-ref
     struct-xmlParserNodeInfoSeq-buffer-set!
     struct-xmlParserNodeInfoSeq-buffer-ref
+    xmlParserInputState
+    sizeof-xmlParserInputState
+    alignof-xmlParserInputState
+    strideof-xmlParserInputState
+    pointer-ref-c-xmlParserInputState
+    pointer-set-c-xmlParserInputState!
     XML_PARSER_EOF
     XML_PARSER_START
     XML_PARSER_MISC
@@ -401,6 +405,12 @@
     XML_DETECT_IDS
     XML_COMPLETE_ATTRS
     XML_SKIP_IDS
+    xmlParserMode
+    sizeof-xmlParserMode
+    alignof-xmlParserMode
+    strideof-xmlParserMode
+    pointer-ref-c-xmlParserMode
+    pointer-set-c-xmlParserMode!
     XML_PARSE_UNKNOWN
     XML_PARSE_DOM
     XML_PARSE_SAX
@@ -585,6 +595,12 @@
     XML_SAX2_MAGIC
     xmlSAXHandlerV1*
     xmlSAXHandlerV1Ptr
+    xmlParserOption
+    sizeof-xmlParserOption
+    alignof-xmlParserOption
+    strideof-xmlParserOption
+    pointer-ref-c-xmlParserOption
+    pointer-set-c-xmlParserOption!
     XML_PARSE_RECOVER
     XML_PARSE_NOENT
     XML_PARSE_DTDLOAD
@@ -606,6 +622,12 @@
     XML_PARSE_NOBASEFIX
     XML_PARSE_HUGE
     XML_PARSE_OLDSAX
+    xmlFeature
+    sizeof-xmlFeature
+    alignof-xmlFeature
+    strideof-xmlFeature
+    pointer-ref-c-xmlFeature
+    pointer-set-c-xmlFeature!
     XML_WITH_THREAD
     XML_WITH_TREE
     XML_WITH_OUTPUT
@@ -638,8 +660,47 @@
     XML_WITH_DEBUG_RUN
     XML_WITH_ZLIB
     XML_WITH_NONE
+    xmlParserInputDeallocate
+    resolveEntitySAXFunc
+    internalSubsetSAXFunc
+    externalSubsetSAXFunc
+    getEntitySAXFunc
+    getParameterEntitySAXFunc
+    entityDeclSAXFunc
+    notationDeclSAXFunc
+    attributeDeclSAXFunc
+    elementDeclSAXFunc
+    unparsedEntityDeclSAXFunc
+    setDocumentLocatorSAXFunc
+    startDocumentSAXFunc
+    endDocumentSAXFunc
+    startElementSAXFunc
+    endElementSAXFunc
+    attributeSAXFunc
+    referenceSAXFunc
+    charactersSAXFunc
+    ignorableWhitespaceSAXFunc
+    processingInstructionSAXFunc
+    commentSAXFunc
+    cdataBlockSAXFunc
+    warningSAXFunc
+    errorSAXFunc
+    fatalErrorSAXFunc
+    isStandaloneSAXFunc
+    hasInternalSubsetSAXFunc
+    hasExternalSubsetSAXFunc
+    startElementNsSAX2Func
+    endElementNsSAX2Func
+    xmlExternalEntityLoader
+    xmlEntityReferenceFunc
     xmlPattern*
     xmlPatternPtr
+    xmlPatternFlags
+    sizeof-xmlPatternFlags
+    alignof-xmlPatternFlags
+    strideof-xmlPatternFlags
+    pointer-ref-c-xmlPatternFlags
+    pointer-set-c-xmlPatternFlags!
     XML_PATTERN_DEFAULT
     XML_PATTERN_XPATH
     XML_PATTERN_XSSEL
@@ -652,6 +713,14 @@
     xmlRelaxNGParserCtxtPtr
     xmlRelaxNGValidCtxt*
     xmlRelaxNGValidCtxtPtr
+    xmlRelaxNGValidityErrorFunc
+    xmlRelaxNGValidityWarningFunc
+    xmlRelaxNGValidErr
+    sizeof-xmlRelaxNGValidErr
+    alignof-xmlRelaxNGValidErr
+    strideof-xmlRelaxNGValidErr
+    pointer-ref-c-xmlRelaxNGValidErr
+    pointer-set-c-xmlRelaxNGValidErr!
     XML_RELAXNG_OK
     XML_RELAXNG_ERR_MEMORY
     XML_RELAXNG_ERR_TYPE
@@ -692,9 +761,21 @@
     XML_RELAXNG_ERR_INTERNAL
     XML_RELAXNG_ERR_ELEMWRONG
     XML_RELAXNG_ERR_TEXTWRONG
+    xmlRelaxNGParserFlag
+    sizeof-xmlRelaxNGParserFlag
+    alignof-xmlRelaxNGParserFlag
+    strideof-xmlRelaxNGParserFlag
+    pointer-ref-c-xmlRelaxNGParserFlag
+    pointer-set-c-xmlRelaxNGParserFlag!
     XML_RELAXNGP_NONE
     XML_RELAXNGP_FREE_DOC
     XML_RELAXNGP_CRNG
+    xmlSchematronValidOptions
+    sizeof-xmlSchematronValidOptions
+    alignof-xmlSchematronValidOptions
+    strideof-xmlSchematronValidOptions
+    pointer-ref-c-xmlSchematronValidOptions
+    pointer-set-c-xmlSchematronValidOptions!
     XML_SCHEMATRON_OUT_QUIET
     XML_SCHEMATRON_OUT_TEXT
     XML_SCHEMATRON_OUT_XML
@@ -708,6 +789,8 @@
     xmlSchematronParserCtxtPtr
     xmlSchematronValidCtxt*
     xmlSchematronValidCtxtPtr
+    xmlSchematronValidityErrorFunc
+    xmlSchematronValidityWarningFunc
     xmlMutex*
     xmlMutexPtr
     xmlRMutex*
@@ -726,7 +809,14 @@
     xmlSAXHandlerPtr
     xmlEntity*
     xmlEntityPtr
+    xmlDOMWrapAcquireNsFunction
     BASE_BUFFER_SIZE
+    xmlBufferAllocationScheme
+    sizeof-xmlBufferAllocationScheme
+    alignof-xmlBufferAllocationScheme
+    strideof-xmlBufferAllocationScheme
+    pointer-ref-c-xmlBufferAllocationScheme
+    pointer-set-c-xmlBufferAllocationScheme!
     XML_BUFFER_ALLOC_DOUBLEIT
     XML_BUFFER_ALLOC_EXACT
     XML_BUFFER_ALLOC_IMMUTABLE
@@ -747,6 +837,12 @@
     struct-xmlBuffer-contentIO-ref
     XML_XML_NAMESPACE
     XML_XML_ID
+    xmlElementType
+    sizeof-xmlElementType
+    alignof-xmlElementType
+    strideof-xmlElementType
+    pointer-ref-c-xmlElementType
+    pointer-set-c-xmlElementType!
     XML_ELEMENT_NODE
     XML_ATTRIBUTE_NODE
     XML_TEXT_NODE
@@ -779,6 +875,12 @@
     struct-xmlNotation-PublicID-ref
     struct-xmlNotation-SystemID-set!
     struct-xmlNotation-SystemID-ref
+    xmlAttributeType
+    sizeof-xmlAttributeType
+    alignof-xmlAttributeType
+    strideof-xmlAttributeType
+    pointer-ref-c-xmlAttributeType
+    pointer-set-c-xmlAttributeType!
     XML_ATTRIBUTE_CDATA
     XML_ATTRIBUTE_ID
     XML_ATTRIBUTE_IDREF
@@ -789,6 +891,12 @@
     XML_ATTRIBUTE_NMTOKENS
     XML_ATTRIBUTE_ENUMERATION
     XML_ATTRIBUTE_NOTATION
+    xmlAttributeDefault
+    sizeof-xmlAttributeDefault
+    alignof-xmlAttributeDefault
+    strideof-xmlAttributeDefault
+    pointer-ref-c-xmlAttributeDefault
+    pointer-set-c-xmlAttributeDefault!
     XML_ATTRIBUTE_NONE
     XML_ATTRIBUTE_REQUIRED
     XML_ATTRIBUTE_IMPLIED
@@ -798,6 +906,8 @@
     sizeof-xmlEnumeration
     alignof-xmlEnumeration
     strideof-xmlEnumeration
+    struct-xmlEnumeration-next-set!
+    struct-xmlEnumeration-next-ref
     struct-xmlEnumeration-name-set!
     struct-xmlEnumeration-name-ref
     xmlAttribute*
@@ -834,10 +944,22 @@
     struct-xmlAttribute-prefix-ref
     struct-xmlAttribute-elem-set!
     struct-xmlAttribute-elem-ref
+    xmlElementContentType
+    sizeof-xmlElementContentType
+    alignof-xmlElementContentType
+    strideof-xmlElementContentType
+    pointer-ref-c-xmlElementContentType
+    pointer-set-c-xmlElementContentType!
     XML_ELEMENT_CONTENT_PCDATA
     XML_ELEMENT_CONTENT_ELEMENT
     XML_ELEMENT_CONTENT_SEQ
     XML_ELEMENT_CONTENT_OR
+    xmlElementContentOccur
+    sizeof-xmlElementContentOccur
+    alignof-xmlElementContentOccur
+    strideof-xmlElementContentOccur
+    pointer-ref-c-xmlElementContentOccur
+    pointer-set-c-xmlElementContentOccur!
     XML_ELEMENT_CONTENT_ONCE
     XML_ELEMENT_CONTENT_OP
     XML_ELEMENT_CONTENT_MULT
@@ -859,6 +981,13 @@
     struct-xmlElementContent-parent-ref
     struct-xmlElementContent-prefix-set!
     struct-xmlElementContent-prefix-ref
+    xmlElementTypeVal
+    sizeof-xmlElementTypeVal
+    alignof-xmlElementTypeVal
+    strideof-xmlElementTypeVal
+    pointer-ref-c-xmlElementTypeVal
+    pointer-set-c-xmlElementTypeVal!
+    XML_ELEMENT_TYPE_UNDEFINED
     XML_ELEMENT_TYPE_EMPTY
     XML_ELEMENT_TYPE_ANY
     XML_ELEMENT_TYPE_MIXED
@@ -892,8 +1021,6 @@
     struct-xmlElement-attributes-ref
     struct-xmlElement-prefix-set!
     struct-xmlElement-prefix-ref
-    struct-xmlElement-contModel-set!
-    struct-xmlElement-contModel-ref
     struct-xmlElement-contModel-set!
     struct-xmlElement-contModel-ref
     xmlNsType*
@@ -1009,6 +1136,7 @@
     struct-xmlRef-lineno-ref
     xmlNode*
     xmlNodePtr
+    xmlNodePtr*
     sizeof-xmlNode
     alignof-xmlNode
     strideof-xmlNode
@@ -1043,6 +1171,12 @@
     struct-xmlNode-line-ref
     struct-xmlNode-extra-set!
     struct-xmlNode-extra-ref
+    xmlDocProperties
+    sizeof-xmlDocProperties
+    alignof-xmlDocProperties
+    strideof-xmlDocProperties
+    pointer-ref-c-xmlDocProperties
+    pointer-set-c-xmlDocProperties!
     XML_DOC_WELLFORMED
     XML_DOC_NSVALID
     XML_DOC_OLD10
@@ -1053,6 +1187,7 @@
     XML_DOC_HTML
     xmlDoc*
     xmlDocPtr
+    xmlDocPtr*
     sizeof-xmlDoc
     alignof-xmlDoc
     strideof-xmlDoc
@@ -1143,6 +1278,8 @@
     struct-xmlURI-cleanup-ref
     struct-xmlURI-query_raw-set!
     struct-xmlURI-query_raw-ref
+    xmlValidityErrorFunc
+    xmlValidityWarningFunc
     xmlValidState*
     xmlValidStatePtr
     XML_CTXT_FINISH_DTD_0
@@ -1184,10 +1321,6 @@
     struct-xmlValidCtxt-am-ref
     struct-xmlValidCtxt-state-set!
     struct-xmlValidCtxt-state-ref
-    struct-xmlValidCtxt-am-set!
-    struct-xmlValidCtxt-am-ref
-    struct-xmlValidCtxt-state-set!
-    struct-xmlValidCtxt-state-ref
     xmlNotationTable*
     xmlNotationTablePtr
     xmlElementTable*
@@ -1214,10 +1347,22 @@
     xmlAutomataPtr
     xmlAutomataState*
     xmlAutomataStatePtr
+    xmlErrorLevel
+    sizeof-xmlErrorLevel
+    alignof-xmlErrorLevel
+    strideof-xmlErrorLevel
+    pointer-ref-c-xmlErrorLevel
+    pointer-set-c-xmlErrorLevel!
     XML_ERR_NONE
     XML_ERR_WARNING
     XML_ERR_ERROR
     XML_ERR_FATAL
+    xmlErrorDomain
+    sizeof-xmlErrorDomain
+    alignof-xmlErrorDomain
+    strideof-xmlErrorDomain
+    pointer-ref-c-xmlErrorDomain
+    pointer-set-c-xmlErrorDomain!
     XML_FROM_NONE
     XML_FROM_PARSER
     XML_FROM_TREE
@@ -1278,6 +1423,12 @@
     struct-xmlError-ctxt-ref
     struct-xmlError-node-set!
     struct-xmlError-node-ref
+    xmlParserErrors
+    sizeof-xmlParserErrors
+    alignof-xmlParserErrors
+    strideof-xmlParserErrors
+    pointer-ref-c-xmlParserErrors
+    pointer-set-c-xmlParserErrors!
     XML_ERR_OK
     XML_ERR_INTERNAL_ERROR
     XML_ERR_NO_MEMORY
@@ -2011,6 +2162,8 @@
     XML_I18N_NO_OUTPUT
     XML_CHECK_
     XML_CHECK_X
+    xmlGenericErrorFunc
+    xmlStructuredErrorFunc
     sizeof-_xmlParserInputBuffer
     alignof-_xmlParserInputBuffer
     strideof-_xmlParserInputBuffer
@@ -2051,24 +2204,66 @@
     struct-_xmlOutputBuffer-written-ref
     struct-_xmlOutputBuffer-error-set!
     struct-_xmlOutputBuffer-error-ref
+    xmlInputMatchCallback
+    xmlInputOpenCallback
+    xmlInputReadCallback
+    xmlInputCloseCallback
+    xmlOutputMatchCallback
+    xmlOutputOpenCallback
+    xmlOutputWriteCallback
+    xmlOutputCloseCallback
+    xmlFreeFunc
+    xmlMallocFunc
+    xmlReallocFunc
+    xmlStrdupFunc
     xmlModule*
     xmlModulePtr
+    xmlModuleOption
+    sizeof-xmlModuleOption
+    alignof-xmlModuleOption
+    strideof-xmlModuleOption
+    pointer-ref-c-xmlModuleOption
+    pointer-set-c-xmlModuleOption!
     XML_MODULE_LAZY
     XML_MODULE_LOCAL
+    xmlParserSeverities
+    sizeof-xmlParserSeverities
+    alignof-xmlParserSeverities
+    strideof-xmlParserSeverities
+    pointer-ref-c-xmlParserSeverities
+    pointer-set-c-xmlParserSeverities!
     XML_PARSER_SEVERITY_VALIDITY_WARNING
     XML_PARSER_SEVERITY_VALIDITY_ERROR
     XML_PARSER_SEVERITY_WARNING
     XML_PARSER_SEVERITY_ERROR
+    xmlTextReaderMode
+    sizeof-xmlTextReaderMode
+    alignof-xmlTextReaderMode
+    strideof-xmlTextReaderMode
+    pointer-ref-c-xmlTextReaderMode
+    pointer-set-c-xmlTextReaderMode!
     XML_TEXTREADER_MODE_INITIAL
     XML_TEXTREADER_MODE_INTERACTIVE
     XML_TEXTREADER_MODE_ERROR
     XML_TEXTREADER_MODE_EOF
     XML_TEXTREADER_MODE_CLOSED
     XML_TEXTREADER_MODE_READING
+    xmlParserProperties
+    sizeof-xmlParserProperties
+    alignof-xmlParserProperties
+    strideof-xmlParserProperties
+    pointer-ref-c-xmlParserProperties
+    pointer-set-c-xmlParserProperties!
     XML_PARSER_LOADDTD
     XML_PARSER_DEFAULTATTRS
     XML_PARSER_VALIDATE
     XML_PARSER_SUBST_ENTITIES
+    xmlReaderTypes
+    sizeof-xmlReaderTypes
+    alignof-xmlReaderTypes
+    strideof-xmlReaderTypes
+    pointer-ref-c-xmlReaderTypes
+    pointer-set-c-xmlReaderTypes!
     XML_READER_TYPE_NONE
     XML_READER_TYPE_ELEMENT
     XML_READER_TYPE_ATTRIBUTE
@@ -2090,6 +2285,7 @@
     xmlTextReader*
     xmlTextReaderPtr
     xmlTextReaderLocatorPtr
+    xmlTextReaderErrorFunc
     xmlRegexp*
     xmlRegexpPtr
     xmlRegExecCtxt*
@@ -2098,12 +2294,25 @@
     xmlExpCtxtPtr
     xmlExpNode*
     xmlExpNodePtr
+    xmlExpNodeType
+    sizeof-xmlExpNodeType
+    alignof-xmlExpNodeType
+    strideof-xmlExpNodeType
+    pointer-ref-c-xmlExpNodeType
+    pointer-set-c-xmlExpNodeType!
     XML_EXP_EMPTY
     XML_EXP_FORBID
     XML_EXP_ATOM
     XML_EXP_SEQ
     XML_EXP_OR
     XML_EXP_COUNT
+    xmlRegExecCallbacks
+    xmlSaveOption
+    sizeof-xmlSaveOption
+    alignof-xmlSaveOption
+    strideof-xmlSaveOption
+    pointer-ref-c-xmlSaveOption
+    pointer-set-c-xmlSaveOption!
     XML_SAVE_FORMAT
     XML_SAVE_NO_DECL
     XML_SAVE_NO_EMPTY
@@ -2113,6 +2322,446 @@
     XML_SAVE_AS_HTML
     xmlSaveCtxt*
     xmlSaveCtxtPtr
+    xmlSchemaValType
+    sizeof-xmlSchemaValType
+    alignof-xmlSchemaValType
+    strideof-xmlSchemaValType
+    pointer-ref-c-xmlSchemaValType
+    pointer-set-c-xmlSchemaValType!
+    XML_SCHEMAS_UNKNOWN
+    XML_SCHEMAS_STRING
+    XML_SCHEMAS_NORMSTRING
+    XML_SCHEMAS_DECIMAL
+    XML_SCHEMAS_TIME
+    XML_SCHEMAS_GDAY
+    XML_SCHEMAS_GMONTH
+    XML_SCHEMAS_GMONTHDAY
+    XML_SCHEMAS_GYEAR
+    XML_SCHEMAS_GYEARMONTH
+    XML_SCHEMAS_DATE
+    XML_SCHEMAS_DATETIME
+    XML_SCHEMAS_DURATION
+    XML_SCHEMAS_FLOAT
+    XML_SCHEMAS_DOUBLE
+    XML_SCHEMAS_BOOLEAN
+    XML_SCHEMAS_TOKEN
+    XML_SCHEMAS_LANGUAGE
+    XML_SCHEMAS_NMTOKEN
+    XML_SCHEMAS_NMTOKENS
+    XML_SCHEMAS_NAME
+    XML_SCHEMAS_QNAME
+    XML_SCHEMAS_NCNAME
+    XML_SCHEMAS_ID
+    XML_SCHEMAS_IDREF
+    XML_SCHEMAS_IDREFS
+    XML_SCHEMAS_ENTITY
+    XML_SCHEMAS_ENTITIES
+    XML_SCHEMAS_NOTATION
+    XML_SCHEMAS_ANYURI
+    XML_SCHEMAS_INTEGER
+    XML_SCHEMAS_NPINTEGER
+    XML_SCHEMAS_NINTEGER
+    XML_SCHEMAS_NNINTEGER
+    XML_SCHEMAS_PINTEGER
+    XML_SCHEMAS_INT
+    XML_SCHEMAS_UINT
+    XML_SCHEMAS_LONG
+    XML_SCHEMAS_ULONG
+    XML_SCHEMAS_SHORT
+    XML_SCHEMAS_USHORT
+    XML_SCHEMAS_BYTE
+    XML_SCHEMAS_UBYTE
+    XML_SCHEMAS_HEXBINARY
+    XML_SCHEMAS_BASE64BINARY
+    XML_SCHEMAS_ANYTYPE
+    XML_SCHEMAS_ANYSIMPLETYPE
+    xmlSchemaTypeType
+    sizeof-xmlSchemaTypeType
+    alignof-xmlSchemaTypeType
+    strideof-xmlSchemaTypeType
+    pointer-ref-c-xmlSchemaTypeType
+    pointer-set-c-xmlSchemaTypeType!
+    XML_SCHEMA_TYPE_BASIC
+    XML_SCHEMA_TYPE_ANY
+    XML_SCHEMA_TYPE_FACET
+    XML_SCHEMA_TYPE_SIMPLE
+    XML_SCHEMA_TYPE_COMPLEX
+    XML_SCHEMA_TYPE_SEQUENCE
+    XML_SCHEMA_TYPE_CHOICE
+    XML_SCHEMA_TYPE_ALL
+    XML_SCHEMA_TYPE_SIMPLE_CONTENT
+    XML_SCHEMA_TYPE_COMPLEX_CONTENT
+    XML_SCHEMA_TYPE_UR
+    XML_SCHEMA_TYPE_RESTRICTION
+    XML_SCHEMA_TYPE_EXTENSION
+    XML_SCHEMA_TYPE_ELEMENT
+    XML_SCHEMA_TYPE_ATTRIBUTE
+    XML_SCHEMA_TYPE_ATTRIBUTEGROUP
+    XML_SCHEMA_TYPE_GROUP
+    XML_SCHEMA_TYPE_NOTATION
+    XML_SCHEMA_TYPE_LIST
+    XML_SCHEMA_TYPE_UNION
+    XML_SCHEMA_TYPE_ANY_ATTRIBUTE
+    XML_SCHEMA_TYPE_IDC_UNIQUE
+    XML_SCHEMA_TYPE_IDC_KEY
+    XML_SCHEMA_TYPE_IDC_KEYREF
+    XML_SCHEMA_TYPE_PARTICLE
+    XML_SCHEMA_TYPE_ATTRIBUTE_USE
+    XML_SCHEMA_FACET_MININCLUSIVE
+    XML_SCHEMA_FACET_MINEXCLUSIVE
+    XML_SCHEMA_FACET_MAXINCLUSIVE
+    XML_SCHEMA_FACET_MAXEXCLUSIVE
+    XML_SCHEMA_FACET_TOTALDIGITS
+    XML_SCHEMA_FACET_FRACTIONDIGITS
+    XML_SCHEMA_FACET_PATTERN
+    XML_SCHEMA_FACET_ENUMERATION
+    XML_SCHEMA_FACET_WHITESPACE
+    XML_SCHEMA_FACET_LENGTH
+    XML_SCHEMA_FACET_MAXLENGTH
+    XML_SCHEMA_FACET_MINLENGTH
+    XML_SCHEMA_EXTRA_QNAMEREF
+    XML_SCHEMA_EXTRA_ATTR_USE_PROHIB
+    xmlSchemaContentType
+    sizeof-xmlSchemaContentType
+    alignof-xmlSchemaContentType
+    strideof-xmlSchemaContentType
+    pointer-ref-c-xmlSchemaContentType
+    pointer-set-c-xmlSchemaContentType!
+    XML_SCHEMA_CONTENT_UNKNOWN
+    XML_SCHEMA_CONTENT_EMPTY
+    XML_SCHEMA_CONTENT_ELEMENTS
+    XML_SCHEMA_CONTENT_MIXED
+    XML_SCHEMA_CONTENT_SIMPLE
+    XML_SCHEMA_CONTENT_MIXED_OR_ELEMENTS
+    XML_SCHEMA_CONTENT_BASIC
+    XML_SCHEMA_CONTENT_ANY
+    xmlSchemaVal*
+    xmlSchemaValPtr
+    xmlSchemaValPtr*
+    xmlSchemaType*
+    xmlSchemaTypePtr
+    xmlSchemaTypePtr*
+    xmlSchemaFacet*
+    xmlSchemaFacetPtr
+    xmlSchemaFacetPtr*
+    xmlSchemaAnnot*
+    xmlSchemaAnnotPtr
+    xmlSchemaAnnotPtr*
+    sizeof-xmlSchemaAnnot
+    alignof-xmlSchemaAnnot
+    strideof-xmlSchemaAnnot
+    struct-xmlSchemaAnnot-next-set!
+    struct-xmlSchemaAnnot-next-ref
+    struct-xmlSchemaAnnot-content-set!
+    struct-xmlSchemaAnnot-content-ref
+    XML_SCHEMAS_ANYATTR_SKIP
+    XML_SCHEMAS_ANYATTR_LAX
+    XML_SCHEMAS_ANYATTR_STRICT
+    XML_SCHEMAS_ANY_SKIP
+    XML_SCHEMAS_ANY_LAX
+    XML_SCHEMAS_ANY_STRICT
+    XML_SCHEMAS_ATTR_USE_PROHIBITED
+    XML_SCHEMAS_ATTR_USE_REQUIRED
+    XML_SCHEMAS_ATTR_USE_OPTIONAL
+    XML_SCHEMAS_ATTR_GLOBAL
+    XML_SCHEMAS_ATTR_NSDEFAULT
+    XML_SCHEMAS_ATTR_INTERNAL_RESOLVED
+    XML_SCHEMAS_ATTR_FIXED
+    xmlSchemaAttribute*
+    xmlSchemaAttributePtr
+    sizeof-xmlSchemaAttribute
+    alignof-xmlSchemaAttribute
+    strideof-xmlSchemaAttribute
+    struct-xmlSchemaAttribute-type-set!
+    struct-xmlSchemaAttribute-type-ref
+    struct-xmlSchemaAttribute-next-set!
+    struct-xmlSchemaAttribute-next-ref
+    struct-xmlSchemaAttribute-name-set!
+    struct-xmlSchemaAttribute-name-ref
+    struct-xmlSchemaAttribute-id-set!
+    struct-xmlSchemaAttribute-id-ref
+    struct-xmlSchemaAttribute-ref-set!
+    struct-xmlSchemaAttribute-ref-ref
+    struct-xmlSchemaAttribute-refNs-set!
+    struct-xmlSchemaAttribute-refNs-ref
+    struct-xmlSchemaAttribute-typeName-set!
+    struct-xmlSchemaAttribute-typeName-ref
+    struct-xmlSchemaAttribute-typeNs-set!
+    struct-xmlSchemaAttribute-typeNs-ref
+    struct-xmlSchemaAttribute-annot-set!
+    struct-xmlSchemaAttribute-annot-ref
+    struct-xmlSchemaAttribute-base-set!
+    struct-xmlSchemaAttribute-base-ref
+    struct-xmlSchemaAttribute-occurs-set!
+    struct-xmlSchemaAttribute-occurs-ref
+    struct-xmlSchemaAttribute-defValue-set!
+    struct-xmlSchemaAttribute-defValue-ref
+    struct-xmlSchemaAttribute-subtypes-set!
+    struct-xmlSchemaAttribute-subtypes-ref
+    struct-xmlSchemaAttribute-node-set!
+    struct-xmlSchemaAttribute-node-ref
+    struct-xmlSchemaAttribute-targetNamespace-set!
+    struct-xmlSchemaAttribute-targetNamespace-ref
+    struct-xmlSchemaAttribute-flags-set!
+    struct-xmlSchemaAttribute-flags-ref
+    struct-xmlSchemaAttribute-refPrefix-set!
+    struct-xmlSchemaAttribute-refPrefix-ref
+    struct-xmlSchemaAttribute-defVal-set!
+    struct-xmlSchemaAttribute-defVal-ref
+    struct-xmlSchemaAttribute-refDecl-set!
+    struct-xmlSchemaAttribute-refDecl-ref
+    xmlSchemaAttributeLink*
+    xmlSchemaAttributeLinkPtr
+    xmlSchemaAttributeLinkPtr*
+    sizeof-xmlSchemaAttributeLink
+    alignof-xmlSchemaAttributeLink
+    strideof-xmlSchemaAttributeLink
+    struct-xmlSchemaAttributeLink-next-set!
+    struct-xmlSchemaAttributeLink-next-ref
+    struct-xmlSchemaAttributeLink-attr-set!
+    struct-xmlSchemaAttributeLink-attr-ref
+    xmlSchemaWildcardNs*
+    xmlSchemaWildcardNsPtr
+    sizeof-xmlSchemaWildcardNs
+    alignof-xmlSchemaWildcardNs
+    strideof-xmlSchemaWildcardNs
+    struct-xmlSchemaWildcardNs-next-set!
+    struct-xmlSchemaWildcardNs-next-ref
+    struct-xmlSchemaWildcardNs-value-set!
+    struct-xmlSchemaWildcardNs-value-ref
+    xmlSchemaWildcard*
+    xmlSchemaWildcardPtr
+    xmlSchemaWildcardPtr*
+    sizeof-xmlSchemaWildcard
+    alignof-xmlSchemaWildcard
+    strideof-xmlSchemaWildcard
+    struct-xmlSchemaWildcard-type-set!
+    struct-xmlSchemaWildcard-type-ref
+    struct-xmlSchemaWildcard-id-set!
+    struct-xmlSchemaWildcard-id-ref
+    struct-xmlSchemaWildcard-annot-set!
+    struct-xmlSchemaWildcard-annot-ref
+    struct-xmlSchemaWildcard-xmlNodePtr-set!
+    struct-xmlSchemaWildcard-xmlNodePtr-ref
+    struct-xmlSchemaWildcard-minOccurs-set!
+    struct-xmlSchemaWildcard-minOccurs-ref
+    struct-xmlSchemaWildcard-maxOccurs-set!
+    struct-xmlSchemaWildcard-maxOccurs-ref
+    struct-xmlSchemaWildcard-processContents-set!
+    struct-xmlSchemaWildcard-processContents-ref
+    struct-xmlSchemaWildcard-any-set!
+    struct-xmlSchemaWildcard-any-ref
+    struct-xmlSchemaWildcard-nsSet-set!
+    struct-xmlSchemaWildcard-nsSet-ref
+    struct-xmlSchemaWildcard-negNsSet-set!
+    struct-xmlSchemaWildcard-negNsSet-ref
+    struct-xmlSchemaWildcard-flags-set!
+    struct-xmlSchemaWildcard-flags-ref
+    XML_SCHEMAS_WILDCARD_COMPLETE
+    XML_SCHEMAS_ATTRGROUP_WILDCARD_BUILDED
+    XML_SCHEMAS_ATTRGROUP_GLOBAL
+    XML_SCHEMAS_ATTRGROUP_MARKED
+    XML_SCHEMAS_ATTRGROUP_REDEFINED
+    XML_SCHEMAS_ATTRGROUP_HAS_REFS
+    XML_SCHEMAS_TYPE_MIXED
+    XML_SCHEMAS_TYPE_DERIVATION_METHOD_EXTENSION
+    XML_SCHEMAS_TYPE_DERIVATION_METHOD_RESTRICTION
+    XML_SCHEMAS_TYPE_GLOBAL
+    XML_SCHEMAS_TYPE_OWNED_ATTR_WILDCARD
+    XML_SCHEMAS_TYPE_VARIETY_ABSENT
+    XML_SCHEMAS_TYPE_VARIETY_LIST
+    XML_SCHEMAS_TYPE_VARIETY_UNION
+    XML_SCHEMAS_TYPE_VARIETY_ATOMIC
+    XML_SCHEMAS_TYPE_FINAL_EXTENSION
+    XML_SCHEMAS_TYPE_FINAL_RESTRICTION
+    XML_SCHEMAS_TYPE_FINAL_LIST
+    XML_SCHEMAS_TYPE_FINAL_UNION
+    XML_SCHEMAS_TYPE_FINAL_DEFAULT
+    XML_SCHEMAS_TYPE_BUILTIN_PRIMITIVE
+    XML_SCHEMAS_TYPE_MARKED
+    XML_SCHEMAS_TYPE_BLOCK_DEFAULT
+    XML_SCHEMAS_TYPE_BLOCK_EXTENSION
+    XML_SCHEMAS_TYPE_BLOCK_RESTRICTION
+    XML_SCHEMAS_TYPE_ABSTRACT
+    XML_SCHEMAS_TYPE_FACETSNEEDVALUE
+    XML_SCHEMAS_TYPE_INTERNAL_RESOLVED
+    XML_SCHEMAS_TYPE_INTERNAL_INVALID
+    XML_SCHEMAS_TYPE_WHITESPACE_PRESERVE
+    XML_SCHEMAS_TYPE_WHITESPACE_REPLACE
+    XML_SCHEMAS_TYPE_WHITESPACE_COLLAPSE
+    XML_SCHEMAS_TYPE_HAS_FACETS
+    XML_SCHEMAS_TYPE_NORMVALUENEEDED
+    XML_SCHEMAS_TYPE_FIXUP_1
+    XML_SCHEMAS_TYPE_REDEFINED
+    XML_SCHEMAS_ELEM_NILLABLE
+    XML_SCHEMAS_ELEM_GLOBAL
+    XML_SCHEMAS_ELEM_DEFAULT
+    XML_SCHEMAS_ELEM_FIXED
+    XML_SCHEMAS_ELEM_ABSTRACT
+    XML_SCHEMAS_ELEM_TOPLEVEL
+    XML_SCHEMAS_ELEM_REF
+    XML_SCHEMAS_ELEM_NSDEFAULT
+    XML_SCHEMAS_ELEM_INTERNAL_RESOLVED
+    XML_SCHEMAS_ELEM_CIRCULAR
+    XML_SCHEMAS_ELEM_BLOCK_ABSENT
+    XML_SCHEMAS_ELEM_BLOCK_EXTENSION
+    XML_SCHEMAS_ELEM_BLOCK_RESTRICTION
+    XML_SCHEMAS_ELEM_BLOCK_SUBSTITUTION
+    XML_SCHEMAS_ELEM_FINAL_ABSENT
+    XML_SCHEMAS_ELEM_FINAL_EXTENSION
+    XML_SCHEMAS_ELEM_FINAL_RESTRICTION
+    XML_SCHEMAS_ELEM_SUBST_GROUP_HEAD
+    XML_SCHEMAS_ELEM_INTERNAL_CHECKED
+    XML_SCHEMAS_FACET_UNKNOWN
+    XML_SCHEMAS_FACET_PRESERVE
+    XML_SCHEMAS_FACET_REPLACE
+    XML_SCHEMAS_FACET_COLLAPSE
+    XML_SCHEMAS_QUALIF_ELEM
+    XML_SCHEMAS_QUALIF_ATTR
+    XML_SCHEMAS_FINAL_DEFAULT_EXTENSION
+    XML_SCHEMAS_FINAL_DEFAULT_RESTRICTION
+    XML_SCHEMAS_FINAL_DEFAULT_LIST
+    XML_SCHEMAS_FINAL_DEFAULT_UNION
+    XML_SCHEMAS_BLOCK_DEFAULT_EXTENSION
+    XML_SCHEMAS_BLOCK_DEFAULT_RESTRICTION
+    XML_SCHEMAS_BLOCK_DEFAULT_SUBSTITUTION
+    XML_SCHEMAS_INCLUDING_CONVERT_NS
+    xmlSchemaAttributeGroup*
+    xmlSchemaAttributeGroupPtr
+    xmlSchemaAttributeGroupPtr*
+    sizeof-xmlSchemaAttributeGroup
+    alignof-xmlSchemaAttributeGroup
+    strideof-xmlSchemaAttributeGroup
+    struct-xmlSchemaAttributeGroup-type-set!
+    struct-xmlSchemaAttributeGroup-type-ref
+    struct-xmlSchemaAttributeGroup-next-set!
+    struct-xmlSchemaAttributeGroup-next-ref
+    struct-xmlSchemaAttributeGroup-name-set!
+    struct-xmlSchemaAttributeGroup-name-ref
+    struct-xmlSchemaAttributeGroup-id-set!
+    struct-xmlSchemaAttributeGroup-id-ref
+    struct-xmlSchemaAttributeGroup-ref-set!
+    struct-xmlSchemaAttributeGroup-ref-ref
+    struct-xmlSchemaAttributeGroup-refNs-set!
+    struct-xmlSchemaAttributeGroup-refNs-ref
+    struct-xmlSchemaAttributeGroup-annot-set!
+    struct-xmlSchemaAttributeGroup-annot-ref
+    struct-xmlSchemaAttributeGroup-attributes-set!
+    struct-xmlSchemaAttributeGroup-attributes-ref
+    struct-xmlSchemaAttributeGroup-node-set!
+    struct-xmlSchemaAttributeGroup-node-ref
+    struct-xmlSchemaAttributeGroup-flags-set!
+    struct-xmlSchemaAttributeGroup-flags-ref
+    struct-xmlSchemaAttributeGroup-attributeWildcard-set!
+    struct-xmlSchemaAttributeGroup-attributeWildcard-ref
+    struct-xmlSchemaAttributeGroup-refPrefix-set!
+    struct-xmlSchemaAttributeGroup-refPrefix-ref
+    struct-xmlSchemaAttributeGroup-refItem-set!
+    struct-xmlSchemaAttributeGroup-refItem-ref
+    struct-xmlSchemaAttributeGroup-targetNamespace-set!
+    struct-xmlSchemaAttributeGroup-targetNamespace-ref
+    struct-xmlSchemaAttributeGroup-attrUses-set!
+    struct-xmlSchemaAttributeGroup-attrUses-ref
+    xmlSchemaTypeLink*
+    xmlSchemaTypeLinkPtr
+    xmlSchemaTypeLinkPtr*
+    sizeof-xmlSchemaTypeLink
+    alignof-xmlSchemaTypeLink
+    strideof-xmlSchemaTypeLink
+    struct-xmlSchemaTypeLink-next-set!
+    struct-xmlSchemaTypeLink-next-ref
+    struct-xmlSchemaTypeLink-type-set!
+    struct-xmlSchemaTypeLink-type-ref
+    xmlSchemaFacetLink*
+    xmlSchemaFacetLinkPtr
+    xmlSchemaFacetLinkPtr*
+    sizeof-xmlSchemaFacetLink
+    alignof-xmlSchemaFacetLink
+    strideof-xmlSchemaFacetLink
+    struct-xmlSchemaFacetLink-next-set!
+    struct-xmlSchemaFacetLink-next-ref
+    struct-xmlSchemaFacetLink-facet-set!
+    struct-xmlSchemaFacetLink-facet-ref
+    xmlSchemaElement*
+    xmlSchemaElementPtr
+    xmlSchemaElementPtr*
+    sizeof-xmlSchemaElement
+    alignof-xmlSchemaElement
+    strideof-xmlSchemaElement
+    struct-xmlSchemaElement-type-set!
+    struct-xmlSchemaElement-type-ref
+    struct-xmlSchemaElement-next-set!
+    struct-xmlSchemaElement-next-ref
+    struct-xmlSchemaElement-name-set!
+    struct-xmlSchemaElement-name-ref
+    struct-xmlSchemaElement-id-set!
+    struct-xmlSchemaElement-id-ref
+    struct-xmlSchemaElement-ref-set!
+    struct-xmlSchemaElement-ref-ref
+    struct-xmlSchemaElement-refNs-set!
+    struct-xmlSchemaElement-refNs-ref
+    struct-xmlSchemaElement-annot-set!
+    struct-xmlSchemaElement-annot-ref
+    struct-xmlSchemaElement-subtypes-set!
+    struct-xmlSchemaElement-subtypes-ref
+    struct-xmlSchemaElement-attributes-set!
+    struct-xmlSchemaElement-attributes-ref
+    struct-xmlSchemaElement-node-set!
+    struct-xmlSchemaElement-node-ref
+    struct-xmlSchemaElement-minOccurs-set!
+    struct-xmlSchemaElement-minOccurs-ref
+    struct-xmlSchemaElement-maxOccurs-set!
+    struct-xmlSchemaElement-maxOccurs-ref
+    struct-xmlSchemaElement-flags-set!
+    struct-xmlSchemaElement-flags-ref
+    struct-xmlSchemaElement-targetNamespace-set!
+    struct-xmlSchemaElement-targetNamespace-ref
+    struct-xmlSchemaElement-namedType-set!
+    struct-xmlSchemaElement-namedType-ref
+    struct-xmlSchemaElement-namedTypeNs-set!
+    struct-xmlSchemaElement-namedTypeNs-ref
+    struct-xmlSchemaElement-substGroup-set!
+    struct-xmlSchemaElement-substGroup-ref
+    struct-xmlSchemaElement-substGroupNs-set!
+    struct-xmlSchemaElement-substGroupNs-ref
+    struct-xmlSchemaElement-scope-set!
+    struct-xmlSchemaElement-scope-ref
+    struct-xmlSchemaElement-value-set!
+    struct-xmlSchemaElement-value-ref
+    struct-xmlSchemaElement-refDecl-set!
+    struct-xmlSchemaElement-refDecl-ref
+    struct-xmlSchemaElement-contModel-set!
+    struct-xmlSchemaElement-contModel-ref
+    struct-xmlSchemaElement-contentType-set!
+    struct-xmlSchemaElement-contentType-ref
+    struct-xmlSchemaElement-refPrefix-set!
+    struct-xmlSchemaElement-refPrefix-ref
+    struct-xmlSchemaElement-defVal-set!
+    struct-xmlSchemaElement-defVal-ref
+    struct-xmlSchemaElement-idcs-set!
+    struct-xmlSchemaElement-idcs-ref
+    xmlSchemaNotation*
+    xmlSchemaNotationPtr
+    xmlSchemaNotationPtr*
+    sizeof-xmlSchemaNotation
+    alignof-xmlSchemaNotation
+    strideof-xmlSchemaNotation
+    struct-xmlSchemaNotation-type-set!
+    struct-xmlSchemaNotation-type-ref
+    struct-xmlSchemaNotation-name-set!
+    struct-xmlSchemaNotation-name-ref
+    struct-xmlSchemaNotation-annot-set!
+    struct-xmlSchemaNotation-annot-ref
+    struct-xmlSchemaNotation-identifier-set!
+    struct-xmlSchemaNotation-identifier-ref
+    struct-xmlSchemaNotation-targetNamespace-set!
+    struct-xmlSchemaNotation-targetNamespace-ref
+    xmlSchemaValidError
+    sizeof-xmlSchemaValidError
+    alignof-xmlSchemaValidError
+    strideof-xmlSchemaValidError
+    pointer-ref-c-xmlSchemaValidError
+    pointer-set-c-xmlSchemaValidError!
     XML_SCHEMAS_ERR_OK
     XML_SCHEMAS_ERR_NOROOT
     XML_SCHEMAS_ERR_UNDECLAREDELEM
@@ -2139,6 +2788,12 @@
     XML_SCHEMAS_ERR_FACET
     XML_SCHEMAS_ERR_
     XML_SCHEMAS_ERR_XXX
+    xmlSchemaValidOption
+    sizeof-xmlSchemaValidOption
+    alignof-xmlSchemaValidOption
+    strideof-xmlSchemaValidOption
+    pointer-ref-c-xmlSchemaValidOption
+    pointer-set-c-xmlSchemaValidOption!
     XML_SCHEMA_VAL_VC_I_CREATE
     xmlSchema*
     xmlSchemaPtr
@@ -2148,6 +2803,14 @@
     xmlSchemaValidCtxtPtr
     xmlSchemaSAXPlugStruct*
     xmlSchemaSAXPlugPtr
+    xmlSchemaValidityErrorFunc
+    xmlSchemaValidityWarningFunc
+    xmlSchemaWhitespaceValueType
+    sizeof-xmlSchemaWhitespaceValueType
+    alignof-xmlSchemaWhitespaceValueType
+    strideof-xmlSchemaWhitespaceValueType
+    pointer-ref-c-xmlSchemaWhitespaceValueType
+    pointer-set-c-xmlSchemaWhitespaceValueType!
     XML_SCHEMA_WHITESPACE_UNKNOWN
     XML_SCHEMA_WHITESPACE_PRESERVE
     XML_SCHEMA_WHITESPACE_REPLACE
@@ -2198,6 +2861,12 @@
     xmlXPathContextPtr
     xmlXPathParserContext*
     xmlXPathParserContextPtr
+    xmlXPathError
+    sizeof-xmlXPathError
+    alignof-xmlXPathError
+    strideof-xmlXPathError
+    pointer-ref-c-xmlXPathError
+    pointer-set-c-xmlXPathError!
     XPATH_EXPRESSION_OK
     XPATH_NUMBER_ERROR
     XPATH_UNFINISHED_LITERAL_ERROR
@@ -2232,6 +2901,12 @@
     struct-xmlNodeSet-nodeMax-ref
     struct-xmlNodeSet-nodeTab-set!
     struct-xmlNodeSet-nodeTab-ref
+    xmlXPathObjectType
+    sizeof-xmlXPathObjectType
+    alignof-xmlXPathObjectType
+    strideof-xmlXPathObjectType
+    pointer-ref-c-xmlXPathObjectType
+    pointer-set-c-xmlXPathObjectType!
     XPATH_UNDEFINED
     XPATH_NODESET
     XPATH_BOOLEAN
@@ -2410,6 +3085,12 @@
     struct-xmlXPathParserContext-xptr-ref
     struct-xmlXPathParserContext-ancestor-set!
     struct-xmlXPathParserContext-ancestor-ref
+    xmlXPathConvertFunc
+    xmlXPathEvalFunc
+    xmlXPathAxisFunc
+    xmlXPathFunction
+    xmlXPathVariableLookupFunc
+    xmlXPathFuncLookupFunc
     xmlLocationSet*
     xmlLocationSetPtr
     sizeof-xmlLocationSet
@@ -2431,197 +3112,27 @@
   (define xmlGlobalState* 'pointer)
   (define xmlGlobalStatePtr 'pointer)
   (define
-    sizeof-xmlGlobalState
-    @SIZEOF_XMLGLOBALSTATE@)
+    xmlParserInputBufferCreateFilenameFunc
+    'pointer)
   (define
-    alignof-xmlGlobalState
-    @ALIGNOF_XMLGLOBALSTATE@)
+    xmlOutputBufferCreateFilenameFunc
+    'pointer)
+  (define xmlRegisterNodeFunc 'pointer)
+  (define xmlDeregisterNodeFunc 'pointer)
+  (define xmlC14NMode '@TYPEOF_XMLC14NMODE@)
+  (define sizeof-xmlC14NMode @SIZEOF_XMLC14NMODE@)
   (define
-    strideof-xmlGlobalState
-    @STRIDEOF_XMLGLOBALSTATE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlParserVersion-set!
-    struct-xmlGlobalState-xmlParserVersion-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLPARSERVERSION@
-    @SETTEROF_XMLGLOBALSTATE_XMLPARSERVERSION@
-    @GETTEROF_XMLGLOBALSTATE_XMLPARSERVERSION@)
-  (define-c-struct-field-pointer-accessor
-    struct-xmlGlobalState-xmlDefaultSAXLocator-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLDEFAULTSAXLOCATOR@)
-  (define-c-struct-field-pointer-accessor
-    struct-xmlGlobalState-xmlDefaultSAXHandler-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLDEFAULTSAXHANDLER@)
-  (define-c-struct-field-pointer-accessor
-    struct-xmlGlobalState-docbDefaultSAXHandler-ref
-    @OFFSETOF_XMLGLOBALSTATE_DOCBDEFAULTSAXHANDLER@)
-  (define-c-struct-field-pointer-accessor
-    struct-xmlGlobalState-htmlDefaultSAXHandler-ref
-    @OFFSETOF_XMLGLOBALSTATE_HTMLDEFAULTSAXHANDLER@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlFree-set!
-    struct-xmlGlobalState-xmlFree-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLFREE@
-    @SETTEROF_XMLGLOBALSTATE_XMLFREE@
-    @GETTEROF_XMLGLOBALSTATE_XMLFREE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlMalloc-set!
-    struct-xmlGlobalState-xmlMalloc-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLMALLOC@
-    @SETTEROF_XMLGLOBALSTATE_XMLMALLOC@
-    @GETTEROF_XMLGLOBALSTATE_XMLMALLOC@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlMemStrdup-set!
-    struct-xmlGlobalState-xmlMemStrdup-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLMEMSTRDUP@
-    @SETTEROF_XMLGLOBALSTATE_XMLMEMSTRDUP@
-    @GETTEROF_XMLGLOBALSTATE_XMLMEMSTRDUP@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlRealloc-set!
-    struct-xmlGlobalState-xmlRealloc-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLREALLOC@
-    @SETTEROF_XMLGLOBALSTATE_XMLREALLOC@
-    @GETTEROF_XMLGLOBALSTATE_XMLREALLOC@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlGenericError-set!
-    struct-xmlGlobalState-xmlGenericError-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLGENERICERROR@
-    @SETTEROF_XMLGLOBALSTATE_XMLGENERICERROR@
-    @GETTEROF_XMLGLOBALSTATE_XMLGENERICERROR@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlStructuredError-set!
-    struct-xmlGlobalState-xmlStructuredError-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLSTRUCTUREDERROR@
-    @SETTEROF_XMLGLOBALSTATE_XMLSTRUCTUREDERROR@
-    @GETTEROF_XMLGLOBALSTATE_XMLSTRUCTUREDERROR@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlGenericErrorContext-set!
-    struct-xmlGlobalState-xmlGenericErrorContext-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLGENERICERRORCONTEXT@
-    @SETTEROF_XMLGLOBALSTATE_XMLGENERICERRORCONTEXT@
-    @GETTEROF_XMLGLOBALSTATE_XMLGENERICERRORCONTEXT@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-oldXMLWDcompatibility-set!
-    struct-xmlGlobalState-oldXMLWDcompatibility-ref
-    @OFFSETOF_XMLGLOBALSTATE_OLDXMLWDCOMPATIBILITY@
-    @SETTEROF_XMLGLOBALSTATE_OLDXMLWDCOMPATIBILITY@
-    @GETTEROF_XMLGLOBALSTATE_OLDXMLWDCOMPATIBILITY@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlBufferAllocScheme-set!
-    struct-xmlGlobalState-xmlBufferAllocScheme-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLBUFFERALLOCSCHEME@
-    @SETTEROF_XMLGLOBALSTATE_XMLBUFFERALLOCSCHEME@
-    @GETTEROF_XMLGLOBALSTATE_XMLBUFFERALLOCSCHEME@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlDefaultBufferSize-set!
-    struct-xmlGlobalState-xmlDefaultBufferSize-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLDEFAULTBUFFERSIZE@
-    @SETTEROF_XMLGLOBALSTATE_XMLDEFAULTBUFFERSIZE@
-    @GETTEROF_XMLGLOBALSTATE_XMLDEFAULTBUFFERSIZE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlSubstituteEntitiesDefaultValue-set!
-    struct-xmlGlobalState-xmlSubstituteEntitiesDefaultValue-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLSUBSTITUTEENTITIESDEFAULTVALUE@
-    @SETTEROF_XMLGLOBALSTATE_XMLSUBSTITUTEENTITIESDEFAULTVALUE@
-    @GETTEROF_XMLGLOBALSTATE_XMLSUBSTITUTEENTITIESDEFAULTVALUE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlDoValidityCheckingDefaultValue-set!
-    struct-xmlGlobalState-xmlDoValidityCheckingDefaultValue-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLDOVALIDITYCHECKINGDEFAULTVALUE@
-    @SETTEROF_XMLGLOBALSTATE_XMLDOVALIDITYCHECKINGDEFAULTVALUE@
-    @GETTEROF_XMLGLOBALSTATE_XMLDOVALIDITYCHECKINGDEFAULTVALUE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlGetWarningsDefaultValue-set!
-    struct-xmlGlobalState-xmlGetWarningsDefaultValue-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLGETWARNINGSDEFAULTVALUE@
-    @SETTEROF_XMLGLOBALSTATE_XMLGETWARNINGSDEFAULTVALUE@
-    @GETTEROF_XMLGLOBALSTATE_XMLGETWARNINGSDEFAULTVALUE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlKeepBlanksDefaultValue-set!
-    struct-xmlGlobalState-xmlKeepBlanksDefaultValue-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLKEEPBLANKSDEFAULTVALUE@
-    @SETTEROF_XMLGLOBALSTATE_XMLKEEPBLANKSDEFAULTVALUE@
-    @GETTEROF_XMLGLOBALSTATE_XMLKEEPBLANKSDEFAULTVALUE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlLineNumbersDefaultValue-set!
-    struct-xmlGlobalState-xmlLineNumbersDefaultValue-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLLINENUMBERSDEFAULTVALUE@
-    @SETTEROF_XMLGLOBALSTATE_XMLLINENUMBERSDEFAULTVALUE@
-    @GETTEROF_XMLGLOBALSTATE_XMLLINENUMBERSDEFAULTVALUE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlLoadExtDtdDefaultValue-set!
-    struct-xmlGlobalState-xmlLoadExtDtdDefaultValue-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLLOADEXTDTDDEFAULTVALUE@
-    @SETTEROF_XMLGLOBALSTATE_XMLLOADEXTDTDDEFAULTVALUE@
-    @GETTEROF_XMLGLOBALSTATE_XMLLOADEXTDTDDEFAULTVALUE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlParserDebugEntities-set!
-    struct-xmlGlobalState-xmlParserDebugEntities-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLPARSERDEBUGENTITIES@
-    @SETTEROF_XMLGLOBALSTATE_XMLPARSERDEBUGENTITIES@
-    @GETTEROF_XMLGLOBALSTATE_XMLPARSERDEBUGENTITIES@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlPedanticParserDefaultValue-set!
-    struct-xmlGlobalState-xmlPedanticParserDefaultValue-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLPEDANTICPARSERDEFAULTVALUE@
-    @SETTEROF_XMLGLOBALSTATE_XMLPEDANTICPARSERDEFAULTVALUE@
-    @GETTEROF_XMLGLOBALSTATE_XMLPEDANTICPARSERDEFAULTVALUE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlSaveNoEmptyTags-set!
-    struct-xmlGlobalState-xmlSaveNoEmptyTags-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLSAVENOEMPTYTAGS@
-    @SETTEROF_XMLGLOBALSTATE_XMLSAVENOEMPTYTAGS@
-    @GETTEROF_XMLGLOBALSTATE_XMLSAVENOEMPTYTAGS@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlIndentTreeOutput-set!
-    struct-xmlGlobalState-xmlIndentTreeOutput-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLINDENTTREEOUTPUT@
-    @SETTEROF_XMLGLOBALSTATE_XMLINDENTTREEOUTPUT@
-    @GETTEROF_XMLGLOBALSTATE_XMLINDENTTREEOUTPUT@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlTreeIndentString-set!
-    struct-xmlGlobalState-xmlTreeIndentString-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLTREEINDENTSTRING@
-    @SETTEROF_XMLGLOBALSTATE_XMLTREEINDENTSTRING@
-    @GETTEROF_XMLGLOBALSTATE_XMLTREEINDENTSTRING@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlRegisterNodeDefaultValue-set!
-    struct-xmlGlobalState-xmlRegisterNodeDefaultValue-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLREGISTERNODEDEFAULTVALUE@
-    @SETTEROF_XMLGLOBALSTATE_XMLREGISTERNODEDEFAULTVALUE@
-    @GETTEROF_XMLGLOBALSTATE_XMLREGISTERNODEDEFAULTVALUE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlDeregisterNodeDefaultValue-set!
-    struct-xmlGlobalState-xmlDeregisterNodeDefaultValue-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLDEREGISTERNODEDEFAULTVALUE@
-    @SETTEROF_XMLGLOBALSTATE_XMLDEREGISTERNODEDEFAULTVALUE@
-    @GETTEROF_XMLGLOBALSTATE_XMLDEREGISTERNODEDEFAULTVALUE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlMallocAtomic-set!
-    struct-xmlGlobalState-xmlMallocAtomic-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLMALLOCATOMIC@
-    @SETTEROF_XMLGLOBALSTATE_XMLMALLOCATOMIC@
-    @GETTEROF_XMLGLOBALSTATE_XMLMALLOCATOMIC@)
-  (define-c-struct-field-pointer-accessor
-    struct-xmlGlobalState-xmlLastError-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLLASTERROR@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlParserInputBufferCreateFilenameValue-set!
-    struct-xmlGlobalState-xmlParserInputBufferCreateFilenameValue-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLPARSERINPUTBUFFERCREATEFILENAMEVALUE@
-    @SETTEROF_XMLGLOBALSTATE_XMLPARSERINPUTBUFFERCREATEFILENAMEVALUE@
-    @GETTEROF_XMLGLOBALSTATE_XMLPARSERINPUTBUFFERCREATEFILENAMEVALUE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlOutputBufferCreateFilenameValue-set!
-    struct-xmlGlobalState-xmlOutputBufferCreateFilenameValue-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLOUTPUTBUFFERCREATEFILENAMEVALUE@
-    @SETTEROF_XMLGLOBALSTATE_XMLOUTPUTBUFFERCREATEFILENAMEVALUE@
-    @GETTEROF_XMLGLOBALSTATE_XMLOUTPUTBUFFERCREATEFILENAMEVALUE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlGlobalState-xmlStructuredErrorContext-set!
-    struct-xmlGlobalState-xmlStructuredErrorContext-ref
-    @OFFSETOF_XMLGLOBALSTATE_XMLSTRUCTUREDERRORCONTEXT@
-    @SETTEROF_XMLGLOBALSTATE_XMLSTRUCTUREDERRORCONTEXT@
-    @GETTEROF_XMLGLOBALSTATE_XMLSTRUCTUREDERRORCONTEXT@)
+    alignof-xmlC14NMode
+    @ALIGNOF_XMLC14NMODE@)
+  (define
+    strideof-xmlC14NMode
+    @STRIDEOF_XMLC14NMODE@)
+  (define
+    pointer-ref-c-xmlC14NMode
+    @GETTEROF_XMLC14NMODE@)
+  (define
+    pointer-set-c-xmlC14NMode!
+    @SETTEROF_XMLC14NMODE@)
   (define XML_C14N_1_0 @VALUEOF_XML_C14N_1_0@)
   (define
     XML_C14N_EXCLUSIVE_1_0
@@ -2635,6 +3146,24 @@
     XML_CATALOG_PI
     "@STRINGOF_XML_CATALOG_PI@")
   (define
+    xmlCatalogPrefer
+    '@TYPEOF_XMLCATALOGPREFER@)
+  (define
+    sizeof-xmlCatalogPrefer
+    @SIZEOF_XMLCATALOGPREFER@)
+  (define
+    alignof-xmlCatalogPrefer
+    @ALIGNOF_XMLCATALOGPREFER@)
+  (define
+    strideof-xmlCatalogPrefer
+    @STRIDEOF_XMLCATALOGPREFER@)
+  (define
+    pointer-ref-c-xmlCatalogPrefer
+    @GETTEROF_XMLCATALOGPREFER@)
+  (define
+    pointer-set-c-xmlCatalogPrefer!
+    @SETTEROF_XMLCATALOGPREFER@)
+  (define
     XML_CATA_PREFER_NONE
     @VALUEOF_XML_CATA_PREFER_NONE@)
   (define
@@ -2643,6 +3172,24 @@
   (define
     XML_CATA_PREFER_SYSTEM
     @VALUEOF_XML_CATA_PREFER_SYSTEM@)
+  (define
+    xmlCatalogAllow
+    '@TYPEOF_XMLCATALOGALLOW@)
+  (define
+    sizeof-xmlCatalogAllow
+    @SIZEOF_XMLCATALOGALLOW@)
+  (define
+    alignof-xmlCatalogAllow
+    @ALIGNOF_XMLCATALOGALLOW@)
+  (define
+    strideof-xmlCatalogAllow
+    @STRIDEOF_XMLCATALOGALLOW@)
+  (define
+    pointer-ref-c-xmlCatalogAllow
+    @GETTEROF_XMLCATALOGALLOW@)
+  (define
+    pointer-set-c-xmlCatalogAllow!
+    @SETTEROF_XMLCATALOGALLOW@)
   (define
     XML_CATA_ALLOW_NONE
     @VALUEOF_XML_CATA_ALLOW_NONE@)
@@ -2791,6 +3338,26 @@
   (define xmlShellCmd 'pointer)
   (define xmlDict* 'pointer)
   (define xmlDictPtr 'pointer)
+  (define xmlCharEncodingInputFunc 'pointer)
+  (define xmlCharEncodingOutputFunc 'pointer)
+  (define
+    xmlCharEncoding
+    '@TYPEOF_XMLCHARENCODING@)
+  (define
+    sizeof-xmlCharEncoding
+    @SIZEOF_XMLCHARENCODING@)
+  (define
+    alignof-xmlCharEncoding
+    @ALIGNOF_XMLCHARENCODING@)
+  (define
+    strideof-xmlCharEncoding
+    @STRIDEOF_XMLCHARENCODING@)
+  (define
+    pointer-ref-c-xmlCharEncoding
+    @GETTEROF_XMLCHARENCODING@)
+  (define
+    pointer-set-c-xmlCharEncoding!
+    @SETTEROF_XMLCHARENCODING@)
   (define
     XML_CHAR_ENCODING_ERROR
     @VALUEOF_XML_CHAR_ENCODING_ERROR@)
@@ -2904,6 +3471,22 @@
     @OFFSETOF_XMLCHARENCODINGHANDLER_ICONV_OUT@
     @SETTEROF_XMLCHARENCODINGHANDLER_ICONV_OUT@
     @GETTEROF_XMLCHARENCODINGHANDLER_ICONV_OUT@)
+  (define xmlEntityType '@TYPEOF_XMLENTITYTYPE@)
+  (define
+    sizeof-xmlEntityType
+    @SIZEOF_XMLENTITYTYPE@)
+  (define
+    alignof-xmlEntityType
+    @ALIGNOF_XMLENTITYTYPE@)
+  (define
+    strideof-xmlEntityType
+    @STRIDEOF_XMLENTITYTYPE@)
+  (define
+    pointer-ref-c-xmlEntityType
+    @GETTEROF_XMLENTITYTYPE@)
+  (define
+    pointer-set-c-xmlEntityType!
+    @SETTEROF_XMLENTITYTYPE@)
   (define
     XML_INTERNAL_GENERAL_ENTITY
     @VALUEOF_XML_INTERNAL_GENERAL_ENTITY@)
@@ -3045,6 +3628,10 @@
   (define xmlEntitiesTablePtr 'pointer)
   (define xmlHashTable* 'pointer)
   (define xmlHashTablePtr 'pointer)
+  (define xmlHashDeallocator 'pointer)
+  (define xmlHashCopier 'pointer)
+  (define xmlHashScanner 'pointer)
+  (define xmlHashScannerFull 'pointer)
   (define HTML_TEXT_NODE @VALUEOF_HTML_TEXT_NODE@)
   (define
     HTML_ENTITY_REF_NODE
@@ -3056,6 +3643,11 @@
     HTML_PRESERVE_NODE
     @VALUEOF_HTML_PRESERVE_NODE@)
   (define HTML_PI_NODE @VALUEOF_HTML_PI_NODE@)
+  (define htmlDocPtr 'pointer)
+  (define htmlNodePtr 'pointer)
+  (define htmlParserCtxtPtr 'pointer)
+  (define htmlSAXHandlerPtr 'pointer)
+  (define htmlParserInputPtr 'pointer)
   (define htmlElemDescPtr 'pointer)
   (define htmlElemDesc* 'pointer)
   (define htmlEntityDescPtr 'pointer)
@@ -3181,6 +3773,24 @@
     @SETTEROF_HTMLENTITYDESC_DESC@
     @GETTEROF_HTMLENTITYDESC_DESC@)
   (define
+    htmlParserOption
+    '@TYPEOF_HTMLPARSEROPTION@)
+  (define
+    sizeof-htmlParserOption
+    @SIZEOF_HTMLPARSEROPTION@)
+  (define
+    alignof-htmlParserOption
+    @ALIGNOF_HTMLPARSEROPTION@)
+  (define
+    strideof-htmlParserOption
+    @STRIDEOF_HTMLPARSEROPTION@)
+  (define
+    pointer-ref-c-htmlParserOption
+    @GETTEROF_HTMLPARSEROPTION@)
+  (define
+    pointer-set-c-htmlParserOption!
+    @SETTEROF_HTMLPARSEROPTION@)
+  (define
     HTML_PARSE_RECOVER
     @VALUEOF_HTML_PARSE_RECOVER@)
   (define
@@ -3201,6 +3811,18 @@
   (define
     HTML_PARSE_COMPACT
     @VALUEOF_HTML_PARSE_COMPACT@)
+  (define htmlStatus '@TYPEOF_HTMLSTATUS@)
+  (define sizeof-htmlStatus @SIZEOF_HTMLSTATUS@)
+  (define alignof-htmlStatus @ALIGNOF_HTMLSTATUS@)
+  (define
+    strideof-htmlStatus
+    @STRIDEOF_HTMLSTATUS@)
+  (define
+    pointer-ref-c-htmlStatus
+    @GETTEROF_HTMLSTATUS@)
+  (define
+    pointer-set-c-htmlStatus!
+    @SETTEROF_HTMLSTATUS@)
   (define HTML_NA @VALUEOF_HTML_NA@)
   (define HTML_INVALID @VALUEOF_HTML_INVALID@)
   (define
@@ -3212,6 +3834,11 @@
   (define xmlLinkPtr 'pointer)
   (define xmlList* 'pointer)
   (define xmlListPtr 'pointer)
+  (define xmlListDeallocator 'pointer)
+  (define xmlListDataCompare 'pointer)
+  (define xmlListWalker 'pointer)
+  (define ftpListCallback 'pointer)
+  (define ftpDataCallback 'pointer)
   (define
     XML_DEFAULT_VERSION
     "@STRINGOF_XML_DEFAULT_VERSION@")
@@ -3384,6 +4011,24 @@
     @OFFSETOF_XMLPARSERNODEINFOSEQ_BUFFER@
     @SETTEROF_XMLPARSERNODEINFOSEQ_BUFFER@
     @GETTEROF_XMLPARSERNODEINFOSEQ_BUFFER@)
+  (define
+    xmlParserInputState
+    '@TYPEOF_XMLPARSERINPUTSTATE@)
+  (define
+    sizeof-xmlParserInputState
+    @SIZEOF_XMLPARSERINPUTSTATE@)
+  (define
+    alignof-xmlParserInputState
+    @ALIGNOF_XMLPARSERINPUTSTATE@)
+  (define
+    strideof-xmlParserInputState
+    @STRIDEOF_XMLPARSERINPUTSTATE@)
+  (define
+    pointer-ref-c-xmlParserInputState
+    @GETTEROF_XMLPARSERINPUTSTATE@)
+  (define
+    pointer-set-c-xmlParserInputState!
+    @SETTEROF_XMLPARSERINPUTSTATE@)
   (define XML_PARSER_EOF @VALUEOF_XML_PARSER_EOF@)
   (define
     XML_PARSER_START
@@ -3437,6 +4082,22 @@
     XML_COMPLETE_ATTRS
     @VALUEOF_XML_COMPLETE_ATTRS@)
   (define XML_SKIP_IDS @VALUEOF_XML_SKIP_IDS@)
+  (define xmlParserMode '@TYPEOF_XMLPARSERMODE@)
+  (define
+    sizeof-xmlParserMode
+    @SIZEOF_XMLPARSERMODE@)
+  (define
+    alignof-xmlParserMode
+    @ALIGNOF_XMLPARSERMODE@)
+  (define
+    strideof-xmlParserMode
+    @STRIDEOF_XMLPARSERMODE@)
+  (define
+    pointer-ref-c-xmlParserMode
+    @GETTEROF_XMLPARSERMODE@)
+  (define
+    pointer-set-c-xmlParserMode!
+    @SETTEROF_XMLPARSERMODE@)
   (define
     XML_PARSE_UNKNOWN
     @VALUEOF_XML_PARSE_UNKNOWN@)
@@ -3980,6 +4641,24 @@
   (define xmlSAXHandlerV1* 'pointer)
   (define xmlSAXHandlerV1Ptr 'pointer)
   (define
+    xmlParserOption
+    '@TYPEOF_XMLPARSEROPTION@)
+  (define
+    sizeof-xmlParserOption
+    @SIZEOF_XMLPARSEROPTION@)
+  (define
+    alignof-xmlParserOption
+    @ALIGNOF_XMLPARSEROPTION@)
+  (define
+    strideof-xmlParserOption
+    @STRIDEOF_XMLPARSEROPTION@)
+  (define
+    pointer-ref-c-xmlParserOption
+    @GETTEROF_XMLPARSEROPTION@)
+  (define
+    pointer-set-c-xmlParserOption!
+    @SETTEROF_XMLPARSEROPTION@)
+  (define
     XML_PARSE_RECOVER
     @VALUEOF_XML_PARSE_RECOVER@)
   (define
@@ -4038,6 +4717,18 @@
   (define
     XML_PARSE_OLDSAX
     @VALUEOF_XML_PARSE_OLDSAX@)
+  (define xmlFeature '@TYPEOF_XMLFEATURE@)
+  (define sizeof-xmlFeature @SIZEOF_XMLFEATURE@)
+  (define alignof-xmlFeature @ALIGNOF_XMLFEATURE@)
+  (define
+    strideof-xmlFeature
+    @STRIDEOF_XMLFEATURE@)
+  (define
+    pointer-ref-c-xmlFeature
+    @GETTEROF_XMLFEATURE@)
+  (define
+    pointer-set-c-xmlFeature!
+    @SETTEROF_XMLFEATURE@)
   (define
     XML_WITH_THREAD
     @VALUEOF_XML_WITH_THREAD@)
@@ -4104,8 +4795,59 @@
     @VALUEOF_XML_WITH_DEBUG_RUN@)
   (define XML_WITH_ZLIB @VALUEOF_XML_WITH_ZLIB@)
   (define XML_WITH_NONE @VALUEOF_XML_WITH_NONE@)
+  (define xmlParserInputDeallocate 'pointer)
+  (define resolveEntitySAXFunc 'pointer)
+  (define internalSubsetSAXFunc 'pointer)
+  (define externalSubsetSAXFunc 'pointer)
+  (define getEntitySAXFunc 'pointer)
+  (define getParameterEntitySAXFunc 'pointer)
+  (define entityDeclSAXFunc 'pointer)
+  (define notationDeclSAXFunc 'pointer)
+  (define attributeDeclSAXFunc 'pointer)
+  (define elementDeclSAXFunc 'pointer)
+  (define unparsedEntityDeclSAXFunc 'pointer)
+  (define setDocumentLocatorSAXFunc 'pointer)
+  (define startDocumentSAXFunc 'pointer)
+  (define endDocumentSAXFunc 'pointer)
+  (define startElementSAXFunc 'pointer)
+  (define endElementSAXFunc 'pointer)
+  (define attributeSAXFunc 'pointer)
+  (define referenceSAXFunc 'pointer)
+  (define charactersSAXFunc 'pointer)
+  (define ignorableWhitespaceSAXFunc 'pointer)
+  (define processingInstructionSAXFunc 'pointer)
+  (define commentSAXFunc 'pointer)
+  (define cdataBlockSAXFunc 'pointer)
+  (define warningSAXFunc 'pointer)
+  (define errorSAXFunc 'pointer)
+  (define fatalErrorSAXFunc 'pointer)
+  (define isStandaloneSAXFunc 'pointer)
+  (define hasInternalSubsetSAXFunc 'pointer)
+  (define hasExternalSubsetSAXFunc 'pointer)
+  (define startElementNsSAX2Func 'pointer)
+  (define endElementNsSAX2Func 'pointer)
+  (define xmlExternalEntityLoader 'pointer)
+  (define xmlEntityReferenceFunc 'pointer)
   (define xmlPattern* 'pointer)
   (define xmlPatternPtr 'pointer)
+  (define
+    xmlPatternFlags
+    '@TYPEOF_XMLPATTERNFLAGS@)
+  (define
+    sizeof-xmlPatternFlags
+    @SIZEOF_XMLPATTERNFLAGS@)
+  (define
+    alignof-xmlPatternFlags
+    @ALIGNOF_XMLPATTERNFLAGS@)
+  (define
+    strideof-xmlPatternFlags
+    @STRIDEOF_XMLPATTERNFLAGS@)
+  (define
+    pointer-ref-c-xmlPatternFlags
+    @GETTEROF_XMLPATTERNFLAGS@)
+  (define
+    pointer-set-c-xmlPatternFlags!
+    @SETTEROF_XMLPATTERNFLAGS@)
   (define
     XML_PATTERN_DEFAULT
     @VALUEOF_XML_PATTERN_DEFAULT@)
@@ -4126,6 +4868,26 @@
   (define xmlRelaxNGParserCtxtPtr 'pointer)
   (define xmlRelaxNGValidCtxt* 'pointer)
   (define xmlRelaxNGValidCtxtPtr 'pointer)
+  (define xmlRelaxNGValidityErrorFunc 'pointer)
+  (define xmlRelaxNGValidityWarningFunc 'pointer)
+  (define
+    xmlRelaxNGValidErr
+    '@TYPEOF_XMLRELAXNGVALIDERR@)
+  (define
+    sizeof-xmlRelaxNGValidErr
+    @SIZEOF_XMLRELAXNGVALIDERR@)
+  (define
+    alignof-xmlRelaxNGValidErr
+    @ALIGNOF_XMLRELAXNGVALIDERR@)
+  (define
+    strideof-xmlRelaxNGValidErr
+    @STRIDEOF_XMLRELAXNGVALIDERR@)
+  (define
+    pointer-ref-c-xmlRelaxNGValidErr
+    @GETTEROF_XMLRELAXNGVALIDERR@)
+  (define
+    pointer-set-c-xmlRelaxNGValidErr!
+    @SETTEROF_XMLRELAXNGVALIDERR@)
   (define XML_RELAXNG_OK @VALUEOF_XML_RELAXNG_OK@)
   (define
     XML_RELAXNG_ERR_MEMORY
@@ -4245,6 +5007,24 @@
     XML_RELAXNG_ERR_TEXTWRONG
     @VALUEOF_XML_RELAXNG_ERR_TEXTWRONG@)
   (define
+    xmlRelaxNGParserFlag
+    '@TYPEOF_XMLRELAXNGPARSERFLAG@)
+  (define
+    sizeof-xmlRelaxNGParserFlag
+    @SIZEOF_XMLRELAXNGPARSERFLAG@)
+  (define
+    alignof-xmlRelaxNGParserFlag
+    @ALIGNOF_XMLRELAXNGPARSERFLAG@)
+  (define
+    strideof-xmlRelaxNGParserFlag
+    @STRIDEOF_XMLRELAXNGPARSERFLAG@)
+  (define
+    pointer-ref-c-xmlRelaxNGParserFlag
+    @GETTEROF_XMLRELAXNGPARSERFLAG@)
+  (define
+    pointer-set-c-xmlRelaxNGParserFlag!
+    @SETTEROF_XMLRELAXNGPARSERFLAG@)
+  (define
     XML_RELAXNGP_NONE
     @VALUEOF_XML_RELAXNGP_NONE@)
   (define
@@ -4253,6 +5033,24 @@
   (define
     XML_RELAXNGP_CRNG
     @VALUEOF_XML_RELAXNGP_CRNG@)
+  (define
+    xmlSchematronValidOptions
+    '@TYPEOF_XMLSCHEMATRONVALIDOPTIONS@)
+  (define
+    sizeof-xmlSchematronValidOptions
+    @SIZEOF_XMLSCHEMATRONVALIDOPTIONS@)
+  (define
+    alignof-xmlSchematronValidOptions
+    @ALIGNOF_XMLSCHEMATRONVALIDOPTIONS@)
+  (define
+    strideof-xmlSchematronValidOptions
+    @STRIDEOF_XMLSCHEMATRONVALIDOPTIONS@)
+  (define
+    pointer-ref-c-xmlSchematronValidOptions
+    @GETTEROF_XMLSCHEMATRONVALIDOPTIONS@)
+  (define
+    pointer-set-c-xmlSchematronValidOptions!
+    @SETTEROF_XMLSCHEMATRONVALIDOPTIONS@)
   (define
     XML_SCHEMATRON_OUT_QUIET
     @VALUEOF_XML_SCHEMATRON_OUT_QUIET@)
@@ -4280,6 +5078,10 @@
   (define xmlSchematronParserCtxtPtr 'pointer)
   (define xmlSchematronValidCtxt* 'pointer)
   (define xmlSchematronValidCtxtPtr 'pointer)
+  (define xmlSchematronValidityErrorFunc 'pointer)
+  (define
+    xmlSchematronValidityWarningFunc
+    'pointer)
   (define xmlMutex* 'pointer)
   (define xmlMutexPtr 'pointer)
   (define xmlRMutex* 'pointer)
@@ -4298,9 +5100,28 @@
   (define xmlSAXHandlerPtr 'pointer)
   (define xmlEntity* 'pointer)
   (define xmlEntityPtr 'pointer)
+  (define xmlDOMWrapAcquireNsFunction 'pointer)
   (define
     BASE_BUFFER_SIZE
     @VALUEOF_BASE_BUFFER_SIZE@)
+  (define
+    xmlBufferAllocationScheme
+    '@TYPEOF_XMLBUFFERALLOCATIONSCHEME@)
+  (define
+    sizeof-xmlBufferAllocationScheme
+    @SIZEOF_XMLBUFFERALLOCATIONSCHEME@)
+  (define
+    alignof-xmlBufferAllocationScheme
+    @ALIGNOF_XMLBUFFERALLOCATIONSCHEME@)
+  (define
+    strideof-xmlBufferAllocationScheme
+    @STRIDEOF_XMLBUFFERALLOCATIONSCHEME@)
+  (define
+    pointer-ref-c-xmlBufferAllocationScheme
+    @GETTEROF_XMLBUFFERALLOCATIONSCHEME@)
+  (define
+    pointer-set-c-xmlBufferAllocationScheme!
+    @SETTEROF_XMLBUFFERALLOCATIONSCHEME@)
   (define
     XML_BUFFER_ALLOC_DOUBLEIT
     @VALUEOF_XML_BUFFER_ALLOC_DOUBLEIT@)
@@ -4349,6 +5170,22 @@
     XML_XML_NAMESPACE
     "@STRINGOF_XML_XML_NAMESPACE@")
   (define XML_XML_ID "@STRINGOF_XML_XML_ID@")
+  (define xmlElementType '@TYPEOF_XMLELEMENTTYPE@)
+  (define
+    sizeof-xmlElementType
+    @SIZEOF_XMLELEMENTTYPE@)
+  (define
+    alignof-xmlElementType
+    @ALIGNOF_XMLELEMENTTYPE@)
+  (define
+    strideof-xmlElementType
+    @STRIDEOF_XMLELEMENTTYPE@)
+  (define
+    pointer-ref-c-xmlElementType
+    @GETTEROF_XMLELEMENTTYPE@)
+  (define
+    pointer-set-c-xmlElementType!
+    @SETTEROF_XMLELEMENTTYPE@)
   (define
     XML_ELEMENT_NODE
     @VALUEOF_XML_ELEMENT_NODE@)
@@ -4434,6 +5271,24 @@
     @SETTEROF_XMLNOTATION_SYSTEMID@
     @GETTEROF_XMLNOTATION_SYSTEMID@)
   (define
+    xmlAttributeType
+    '@TYPEOF_XMLATTRIBUTETYPE@)
+  (define
+    sizeof-xmlAttributeType
+    @SIZEOF_XMLATTRIBUTETYPE@)
+  (define
+    alignof-xmlAttributeType
+    @ALIGNOF_XMLATTRIBUTETYPE@)
+  (define
+    strideof-xmlAttributeType
+    @STRIDEOF_XMLATTRIBUTETYPE@)
+  (define
+    pointer-ref-c-xmlAttributeType
+    @GETTEROF_XMLATTRIBUTETYPE@)
+  (define
+    pointer-set-c-xmlAttributeType!
+    @SETTEROF_XMLATTRIBUTETYPE@)
+  (define
     XML_ATTRIBUTE_CDATA
     @VALUEOF_XML_ATTRIBUTE_CDATA@)
   (define
@@ -4464,6 +5319,24 @@
     XML_ATTRIBUTE_NOTATION
     @VALUEOF_XML_ATTRIBUTE_NOTATION@)
   (define
+    xmlAttributeDefault
+    '@TYPEOF_XMLATTRIBUTEDEFAULT@)
+  (define
+    sizeof-xmlAttributeDefault
+    @SIZEOF_XMLATTRIBUTEDEFAULT@)
+  (define
+    alignof-xmlAttributeDefault
+    @ALIGNOF_XMLATTRIBUTEDEFAULT@)
+  (define
+    strideof-xmlAttributeDefault
+    @STRIDEOF_XMLATTRIBUTEDEFAULT@)
+  (define
+    pointer-ref-c-xmlAttributeDefault
+    @GETTEROF_XMLATTRIBUTEDEFAULT@)
+  (define
+    pointer-set-c-xmlAttributeDefault!
+    @SETTEROF_XMLATTRIBUTEDEFAULT@)
+  (define
     XML_ATTRIBUTE_NONE
     @VALUEOF_XML_ATTRIBUTE_NONE@)
   (define
@@ -4486,6 +5359,12 @@
   (define
     strideof-xmlEnumeration
     @STRIDEOF_XMLENUMERATION@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlEnumeration-next-set!
+    struct-xmlEnumeration-next-ref
+    @OFFSETOF_XMLENUMERATION_NEXT@
+    @SETTEROF_XMLENUMERATION_NEXT@
+    @GETTEROF_XMLENUMERATION_NEXT@)
   (define-c-struct-accessor-and-mutator
     struct-xmlEnumeration-name-set!
     struct-xmlEnumeration-name-ref
@@ -4591,6 +5470,24 @@
     @SETTEROF_XMLATTRIBUTE_ELEM@
     @GETTEROF_XMLATTRIBUTE_ELEM@)
   (define
+    xmlElementContentType
+    '@TYPEOF_XMLELEMENTCONTENTTYPE@)
+  (define
+    sizeof-xmlElementContentType
+    @SIZEOF_XMLELEMENTCONTENTTYPE@)
+  (define
+    alignof-xmlElementContentType
+    @ALIGNOF_XMLELEMENTCONTENTTYPE@)
+  (define
+    strideof-xmlElementContentType
+    @STRIDEOF_XMLELEMENTCONTENTTYPE@)
+  (define
+    pointer-ref-c-xmlElementContentType
+    @GETTEROF_XMLELEMENTCONTENTTYPE@)
+  (define
+    pointer-set-c-xmlElementContentType!
+    @SETTEROF_XMLELEMENTCONTENTTYPE@)
+  (define
     XML_ELEMENT_CONTENT_PCDATA
     @VALUEOF_XML_ELEMENT_CONTENT_PCDATA@)
   (define
@@ -4602,6 +5499,24 @@
   (define
     XML_ELEMENT_CONTENT_OR
     @VALUEOF_XML_ELEMENT_CONTENT_OR@)
+  (define
+    xmlElementContentOccur
+    '@TYPEOF_XMLELEMENTCONTENTOCCUR@)
+  (define
+    sizeof-xmlElementContentOccur
+    @SIZEOF_XMLELEMENTCONTENTOCCUR@)
+  (define
+    alignof-xmlElementContentOccur
+    @ALIGNOF_XMLELEMENTCONTENTOCCUR@)
+  (define
+    strideof-xmlElementContentOccur
+    @STRIDEOF_XMLELEMENTCONTENTOCCUR@)
+  (define
+    pointer-ref-c-xmlElementContentOccur
+    @GETTEROF_XMLELEMENTCONTENTOCCUR@)
+  (define
+    pointer-set-c-xmlElementContentOccur!
+    @SETTEROF_XMLELEMENTCONTENTOCCUR@)
   (define
     XML_ELEMENT_CONTENT_ONCE
     @VALUEOF_XML_ELEMENT_CONTENT_ONCE@)
@@ -4661,6 +5576,27 @@
     @OFFSETOF_XMLELEMENTCONTENT_PREFIX@
     @SETTEROF_XMLELEMENTCONTENT_PREFIX@
     @GETTEROF_XMLELEMENTCONTENT_PREFIX@)
+  (define
+    xmlElementTypeVal
+    '@TYPEOF_XMLELEMENTTYPEVAL@)
+  (define
+    sizeof-xmlElementTypeVal
+    @SIZEOF_XMLELEMENTTYPEVAL@)
+  (define
+    alignof-xmlElementTypeVal
+    @ALIGNOF_XMLELEMENTTYPEVAL@)
+  (define
+    strideof-xmlElementTypeVal
+    @STRIDEOF_XMLELEMENTTYPEVAL@)
+  (define
+    pointer-ref-c-xmlElementTypeVal
+    @GETTEROF_XMLELEMENTTYPEVAL@)
+  (define
+    pointer-set-c-xmlElementTypeVal!
+    @SETTEROF_XMLELEMENTTYPEVAL@)
+  (define
+    XML_ELEMENT_TYPE_UNDEFINED
+    @VALUEOF_XML_ELEMENT_TYPE_UNDEFINED@)
   (define
     XML_ELEMENT_TYPE_EMPTY
     @VALUEOF_XML_ELEMENT_TYPE_EMPTY@)
@@ -4752,12 +5688,6 @@
     @OFFSETOF_XMLELEMENT_PREFIX@
     @SETTEROF_XMLELEMENT_PREFIX@
     @GETTEROF_XMLELEMENT_PREFIX@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlElement-contModel-set!
-    struct-xmlElement-contModel-ref
-    @OFFSETOF_XMLELEMENT_CONTMODEL@
-    @SETTEROF_XMLELEMENT_CONTMODEL@
-    @GETTEROF_XMLELEMENT_CONTMODEL@)
   (define-c-struct-accessor-and-mutator
     struct-xmlElement-contModel-set!
     struct-xmlElement-contModel-ref
@@ -5047,6 +5977,7 @@
     @GETTEROF_XMLREF_LINENO@)
   (define xmlNode* 'pointer)
   (define xmlNodePtr 'pointer)
+  (define xmlNodePtr* 'pointer)
   (define sizeof-xmlNode @SIZEOF_XMLNODE@)
   (define alignof-xmlNode @ALIGNOF_XMLNODE@)
   (define strideof-xmlNode @STRIDEOF_XMLNODE@)
@@ -5144,6 +6075,24 @@
     @SETTEROF_XMLNODE_EXTRA@
     @GETTEROF_XMLNODE_EXTRA@)
   (define
+    xmlDocProperties
+    '@TYPEOF_XMLDOCPROPERTIES@)
+  (define
+    sizeof-xmlDocProperties
+    @SIZEOF_XMLDOCPROPERTIES@)
+  (define
+    alignof-xmlDocProperties
+    @ALIGNOF_XMLDOCPROPERTIES@)
+  (define
+    strideof-xmlDocProperties
+    @STRIDEOF_XMLDOCPROPERTIES@)
+  (define
+    pointer-ref-c-xmlDocProperties
+    @GETTEROF_XMLDOCPROPERTIES@)
+  (define
+    pointer-set-c-xmlDocProperties!
+    @SETTEROF_XMLDOCPROPERTIES@)
+  (define
     XML_DOC_WELLFORMED
     @VALUEOF_XML_DOC_WELLFORMED@)
   (define
@@ -5165,6 +6114,7 @@
   (define XML_DOC_HTML @VALUEOF_XML_DOC_HTML@)
   (define xmlDoc* 'pointer)
   (define xmlDocPtr 'pointer)
+  (define xmlDocPtr* 'pointer)
   (define sizeof-xmlDoc @SIZEOF_XMLDOC@)
   (define alignof-xmlDoc @ALIGNOF_XMLDOC@)
   (define strideof-xmlDoc @STRIDEOF_XMLDOC@)
@@ -5415,6 +6365,8 @@
     @OFFSETOF_XMLURI_QUERY_RAW@
     @SETTEROF_XMLURI_QUERY_RAW@
     @GETTEROF_XMLURI_QUERY_RAW@)
+  (define xmlValidityErrorFunc 'pointer)
+  (define xmlValidityWarningFunc 'pointer)
   (define xmlValidState* 'pointer)
   (define xmlValidStatePtr 'pointer)
   (define
@@ -5530,18 +6482,6 @@
     @OFFSETOF_XMLVALIDCTXT_STATE@
     @SETTEROF_XMLVALIDCTXT_STATE@
     @GETTEROF_XMLVALIDCTXT_STATE@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlValidCtxt-am-set!
-    struct-xmlValidCtxt-am-ref
-    @OFFSETOF_XMLVALIDCTXT_AM@
-    @SETTEROF_XMLVALIDCTXT_AM@
-    @GETTEROF_XMLVALIDCTXT_AM@)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlValidCtxt-state-set!
-    struct-xmlValidCtxt-state-ref
-    @OFFSETOF_XMLVALIDCTXT_STATE@
-    @SETTEROF_XMLVALIDCTXT_STATE@
-    @GETTEROF_XMLVALIDCTXT_STATE@)
   (define xmlNotationTable* 'pointer)
   (define xmlNotationTablePtr 'pointer)
   (define xmlElementTable* 'pointer)
@@ -5582,12 +6522,44 @@
   (define xmlAutomataPtr 'pointer)
   (define xmlAutomataState* 'pointer)
   (define xmlAutomataStatePtr 'pointer)
+  (define xmlErrorLevel '@TYPEOF_XMLERRORLEVEL@)
+  (define
+    sizeof-xmlErrorLevel
+    @SIZEOF_XMLERRORLEVEL@)
+  (define
+    alignof-xmlErrorLevel
+    @ALIGNOF_XMLERRORLEVEL@)
+  (define
+    strideof-xmlErrorLevel
+    @STRIDEOF_XMLERRORLEVEL@)
+  (define
+    pointer-ref-c-xmlErrorLevel
+    @GETTEROF_XMLERRORLEVEL@)
+  (define
+    pointer-set-c-xmlErrorLevel!
+    @SETTEROF_XMLERRORLEVEL@)
   (define XML_ERR_NONE @VALUEOF_XML_ERR_NONE@)
   (define
     XML_ERR_WARNING
     @VALUEOF_XML_ERR_WARNING@)
   (define XML_ERR_ERROR @VALUEOF_XML_ERR_ERROR@)
   (define XML_ERR_FATAL @VALUEOF_XML_ERR_FATAL@)
+  (define xmlErrorDomain '@TYPEOF_XMLERRORDOMAIN@)
+  (define
+    sizeof-xmlErrorDomain
+    @SIZEOF_XMLERRORDOMAIN@)
+  (define
+    alignof-xmlErrorDomain
+    @ALIGNOF_XMLERRORDOMAIN@)
+  (define
+    strideof-xmlErrorDomain
+    @STRIDEOF_XMLERRORDOMAIN@)
+  (define
+    pointer-ref-c-xmlErrorDomain
+    @GETTEROF_XMLERRORDOMAIN@)
+  (define
+    pointer-set-c-xmlErrorDomain!
+    @SETTEROF_XMLERRORDOMAIN@)
   (define XML_FROM_NONE @VALUEOF_XML_FROM_NONE@)
   (define
     XML_FROM_PARSER
@@ -5732,6 +6704,24 @@
     @OFFSETOF_XMLERROR_NODE@
     @SETTEROF_XMLERROR_NODE@
     @GETTEROF_XMLERROR_NODE@)
+  (define
+    xmlParserErrors
+    '@TYPEOF_XMLPARSERERRORS@)
+  (define
+    sizeof-xmlParserErrors
+    @SIZEOF_XMLPARSERERRORS@)
+  (define
+    alignof-xmlParserErrors
+    @ALIGNOF_XMLPARSERERRORS@)
+  (define
+    strideof-xmlParserErrors
+    @STRIDEOF_XMLPARSERERRORS@)
+  (define
+    pointer-ref-c-xmlParserErrors
+    @GETTEROF_XMLPARSERERRORS@)
+  (define
+    pointer-set-c-xmlParserErrors!
+    @SETTEROF_XMLPARSERERRORS@)
   (define XML_ERR_OK @VALUEOF_XML_ERR_OK@)
   (define
     XML_ERR_INTERNAL_ERROR
@@ -7831,6 +8821,8 @@
     @VALUEOF_XML_I18N_NO_OUTPUT@)
   (define XML_CHECK_ @VALUEOF_XML_CHECK_@)
   (define XML_CHECK_X @VALUEOF_XML_CHECK_X@)
+  (define xmlGenericErrorFunc 'pointer)
+  (define xmlStructuredErrorFunc 'pointer)
   (define
     sizeof-_xmlParserInputBuffer
     @SIZEOF__XMLPARSERINPUTBUFFER@)
@@ -7951,14 +8943,62 @@
     @OFFSETOF__XMLOUTPUTBUFFER_ERROR@
     @SETTEROF__XMLOUTPUTBUFFER_ERROR@
     @GETTEROF__XMLOUTPUTBUFFER_ERROR@)
+  (define xmlInputMatchCallback 'pointer)
+  (define xmlInputOpenCallback 'pointer)
+  (define xmlInputReadCallback 'pointer)
+  (define xmlInputCloseCallback 'pointer)
+  (define xmlOutputMatchCallback 'pointer)
+  (define xmlOutputOpenCallback 'pointer)
+  (define xmlOutputWriteCallback 'pointer)
+  (define xmlOutputCloseCallback 'pointer)
+  (define xmlFreeFunc 'pointer)
+  (define xmlMallocFunc 'pointer)
+  (define xmlReallocFunc 'pointer)
+  (define xmlStrdupFunc 'pointer)
   (define xmlModule* 'pointer)
   (define xmlModulePtr 'pointer)
+  (define
+    xmlModuleOption
+    '@TYPEOF_XMLMODULEOPTION@)
+  (define
+    sizeof-xmlModuleOption
+    @SIZEOF_XMLMODULEOPTION@)
+  (define
+    alignof-xmlModuleOption
+    @ALIGNOF_XMLMODULEOPTION@)
+  (define
+    strideof-xmlModuleOption
+    @STRIDEOF_XMLMODULEOPTION@)
+  (define
+    pointer-ref-c-xmlModuleOption
+    @GETTEROF_XMLMODULEOPTION@)
+  (define
+    pointer-set-c-xmlModuleOption!
+    @SETTEROF_XMLMODULEOPTION@)
   (define
     XML_MODULE_LAZY
     @VALUEOF_XML_MODULE_LAZY@)
   (define
     XML_MODULE_LOCAL
     @VALUEOF_XML_MODULE_LOCAL@)
+  (define
+    xmlParserSeverities
+    '@TYPEOF_XMLPARSERSEVERITIES@)
+  (define
+    sizeof-xmlParserSeverities
+    @SIZEOF_XMLPARSERSEVERITIES@)
+  (define
+    alignof-xmlParserSeverities
+    @ALIGNOF_XMLPARSERSEVERITIES@)
+  (define
+    strideof-xmlParserSeverities
+    @STRIDEOF_XMLPARSERSEVERITIES@)
+  (define
+    pointer-ref-c-xmlParserSeverities
+    @GETTEROF_XMLPARSERSEVERITIES@)
+  (define
+    pointer-set-c-xmlParserSeverities!
+    @SETTEROF_XMLPARSERSEVERITIES@)
   (define
     XML_PARSER_SEVERITY_VALIDITY_WARNING
     @VALUEOF_XML_PARSER_SEVERITY_VALIDITY_WARNING@)
@@ -7971,6 +9011,24 @@
   (define
     XML_PARSER_SEVERITY_ERROR
     @VALUEOF_XML_PARSER_SEVERITY_ERROR@)
+  (define
+    xmlTextReaderMode
+    '@TYPEOF_XMLTEXTREADERMODE@)
+  (define
+    sizeof-xmlTextReaderMode
+    @SIZEOF_XMLTEXTREADERMODE@)
+  (define
+    alignof-xmlTextReaderMode
+    @ALIGNOF_XMLTEXTREADERMODE@)
+  (define
+    strideof-xmlTextReaderMode
+    @STRIDEOF_XMLTEXTREADERMODE@)
+  (define
+    pointer-ref-c-xmlTextReaderMode
+    @GETTEROF_XMLTEXTREADERMODE@)
+  (define
+    pointer-set-c-xmlTextReaderMode!
+    @SETTEROF_XMLTEXTREADERMODE@)
   (define
     XML_TEXTREADER_MODE_INITIAL
     @VALUEOF_XML_TEXTREADER_MODE_INITIAL@)
@@ -7990,6 +9048,24 @@
     XML_TEXTREADER_MODE_READING
     @VALUEOF_XML_TEXTREADER_MODE_READING@)
   (define
+    xmlParserProperties
+    '@TYPEOF_XMLPARSERPROPERTIES@)
+  (define
+    sizeof-xmlParserProperties
+    @SIZEOF_XMLPARSERPROPERTIES@)
+  (define
+    alignof-xmlParserProperties
+    @ALIGNOF_XMLPARSERPROPERTIES@)
+  (define
+    strideof-xmlParserProperties
+    @STRIDEOF_XMLPARSERPROPERTIES@)
+  (define
+    pointer-ref-c-xmlParserProperties
+    @GETTEROF_XMLPARSERPROPERTIES@)
+  (define
+    pointer-set-c-xmlParserProperties!
+    @SETTEROF_XMLPARSERPROPERTIES@)
+  (define
     XML_PARSER_LOADDTD
     @VALUEOF_XML_PARSER_LOADDTD@)
   (define
@@ -8001,6 +9077,22 @@
   (define
     XML_PARSER_SUBST_ENTITIES
     @VALUEOF_XML_PARSER_SUBST_ENTITIES@)
+  (define xmlReaderTypes '@TYPEOF_XMLREADERTYPES@)
+  (define
+    sizeof-xmlReaderTypes
+    @SIZEOF_XMLREADERTYPES@)
+  (define
+    alignof-xmlReaderTypes
+    @ALIGNOF_XMLREADERTYPES@)
+  (define
+    strideof-xmlReaderTypes
+    @STRIDEOF_XMLREADERTYPES@)
+  (define
+    pointer-ref-c-xmlReaderTypes
+    @GETTEROF_XMLREADERTYPES@)
+  (define
+    pointer-set-c-xmlReaderTypes!
+    @SETTEROF_XMLREADERTYPES@)
   (define
     XML_READER_TYPE_NONE
     @VALUEOF_XML_READER_TYPE_NONE@)
@@ -8058,6 +9150,7 @@
   (define xmlTextReader* 'pointer)
   (define xmlTextReaderPtr 'pointer)
   (define xmlTextReaderLocatorPtr 'pointer)
+  (define xmlTextReaderErrorFunc 'pointer)
   (define xmlRegexp* 'pointer)
   (define xmlRegexpPtr 'pointer)
   (define xmlRegExecCtxt* 'pointer)
@@ -8066,12 +9159,45 @@
   (define xmlExpCtxtPtr 'pointer)
   (define xmlExpNode* 'pointer)
   (define xmlExpNodePtr 'pointer)
+  (define xmlExpNodeType '@TYPEOF_XMLEXPNODETYPE@)
+  (define
+    sizeof-xmlExpNodeType
+    @SIZEOF_XMLEXPNODETYPE@)
+  (define
+    alignof-xmlExpNodeType
+    @ALIGNOF_XMLEXPNODETYPE@)
+  (define
+    strideof-xmlExpNodeType
+    @STRIDEOF_XMLEXPNODETYPE@)
+  (define
+    pointer-ref-c-xmlExpNodeType
+    @GETTEROF_XMLEXPNODETYPE@)
+  (define
+    pointer-set-c-xmlExpNodeType!
+    @SETTEROF_XMLEXPNODETYPE@)
   (define XML_EXP_EMPTY @VALUEOF_XML_EXP_EMPTY@)
   (define XML_EXP_FORBID @VALUEOF_XML_EXP_FORBID@)
   (define XML_EXP_ATOM @VALUEOF_XML_EXP_ATOM@)
   (define XML_EXP_SEQ @VALUEOF_XML_EXP_SEQ@)
   (define XML_EXP_OR @VALUEOF_XML_EXP_OR@)
   (define XML_EXP_COUNT @VALUEOF_XML_EXP_COUNT@)
+  (define xmlRegExecCallbacks 'pointer)
+  (define xmlSaveOption '@TYPEOF_XMLSAVEOPTION@)
+  (define
+    sizeof-xmlSaveOption
+    @SIZEOF_XMLSAVEOPTION@)
+  (define
+    alignof-xmlSaveOption
+    @ALIGNOF_XMLSAVEOPTION@)
+  (define
+    strideof-xmlSaveOption
+    @STRIDEOF_XMLSAVEOPTION@)
+  (define
+    pointer-ref-c-xmlSaveOption
+    @GETTEROF_XMLSAVEOPTION@)
+  (define
+    pointer-set-c-xmlSaveOption!
+    @SETTEROF_XMLSAVEOPTION@)
   (define
     XML_SAVE_FORMAT
     @VALUEOF_XML_SAVE_FORMAT@)
@@ -8093,6 +9219,1250 @@
     @VALUEOF_XML_SAVE_AS_HTML@)
   (define xmlSaveCtxt* 'pointer)
   (define xmlSaveCtxtPtr 'pointer)
+  (define
+    xmlSchemaValType
+    '@TYPEOF_XMLSCHEMAVALTYPE@)
+  (define
+    sizeof-xmlSchemaValType
+    @SIZEOF_XMLSCHEMAVALTYPE@)
+  (define
+    alignof-xmlSchemaValType
+    @ALIGNOF_XMLSCHEMAVALTYPE@)
+  (define
+    strideof-xmlSchemaValType
+    @STRIDEOF_XMLSCHEMAVALTYPE@)
+  (define
+    pointer-ref-c-xmlSchemaValType
+    @GETTEROF_XMLSCHEMAVALTYPE@)
+  (define
+    pointer-set-c-xmlSchemaValType!
+    @SETTEROF_XMLSCHEMAVALTYPE@)
+  (define
+    XML_SCHEMAS_UNKNOWN
+    @VALUEOF_XML_SCHEMAS_UNKNOWN@)
+  (define
+    XML_SCHEMAS_STRING
+    @VALUEOF_XML_SCHEMAS_STRING@)
+  (define
+    XML_SCHEMAS_NORMSTRING
+    @VALUEOF_XML_SCHEMAS_NORMSTRING@)
+  (define
+    XML_SCHEMAS_DECIMAL
+    @VALUEOF_XML_SCHEMAS_DECIMAL@)
+  (define
+    XML_SCHEMAS_TIME
+    @VALUEOF_XML_SCHEMAS_TIME@)
+  (define
+    XML_SCHEMAS_GDAY
+    @VALUEOF_XML_SCHEMAS_GDAY@)
+  (define
+    XML_SCHEMAS_GMONTH
+    @VALUEOF_XML_SCHEMAS_GMONTH@)
+  (define
+    XML_SCHEMAS_GMONTHDAY
+    @VALUEOF_XML_SCHEMAS_GMONTHDAY@)
+  (define
+    XML_SCHEMAS_GYEAR
+    @VALUEOF_XML_SCHEMAS_GYEAR@)
+  (define
+    XML_SCHEMAS_GYEARMONTH
+    @VALUEOF_XML_SCHEMAS_GYEARMONTH@)
+  (define
+    XML_SCHEMAS_DATE
+    @VALUEOF_XML_SCHEMAS_DATE@)
+  (define
+    XML_SCHEMAS_DATETIME
+    @VALUEOF_XML_SCHEMAS_DATETIME@)
+  (define
+    XML_SCHEMAS_DURATION
+    @VALUEOF_XML_SCHEMAS_DURATION@)
+  (define
+    XML_SCHEMAS_FLOAT
+    @VALUEOF_XML_SCHEMAS_FLOAT@)
+  (define
+    XML_SCHEMAS_DOUBLE
+    @VALUEOF_XML_SCHEMAS_DOUBLE@)
+  (define
+    XML_SCHEMAS_BOOLEAN
+    @VALUEOF_XML_SCHEMAS_BOOLEAN@)
+  (define
+    XML_SCHEMAS_TOKEN
+    @VALUEOF_XML_SCHEMAS_TOKEN@)
+  (define
+    XML_SCHEMAS_LANGUAGE
+    @VALUEOF_XML_SCHEMAS_LANGUAGE@)
+  (define
+    XML_SCHEMAS_NMTOKEN
+    @VALUEOF_XML_SCHEMAS_NMTOKEN@)
+  (define
+    XML_SCHEMAS_NMTOKENS
+    @VALUEOF_XML_SCHEMAS_NMTOKENS@)
+  (define
+    XML_SCHEMAS_NAME
+    @VALUEOF_XML_SCHEMAS_NAME@)
+  (define
+    XML_SCHEMAS_QNAME
+    @VALUEOF_XML_SCHEMAS_QNAME@)
+  (define
+    XML_SCHEMAS_NCNAME
+    @VALUEOF_XML_SCHEMAS_NCNAME@)
+  (define XML_SCHEMAS_ID @VALUEOF_XML_SCHEMAS_ID@)
+  (define
+    XML_SCHEMAS_IDREF
+    @VALUEOF_XML_SCHEMAS_IDREF@)
+  (define
+    XML_SCHEMAS_IDREFS
+    @VALUEOF_XML_SCHEMAS_IDREFS@)
+  (define
+    XML_SCHEMAS_ENTITY
+    @VALUEOF_XML_SCHEMAS_ENTITY@)
+  (define
+    XML_SCHEMAS_ENTITIES
+    @VALUEOF_XML_SCHEMAS_ENTITIES@)
+  (define
+    XML_SCHEMAS_NOTATION
+    @VALUEOF_XML_SCHEMAS_NOTATION@)
+  (define
+    XML_SCHEMAS_ANYURI
+    @VALUEOF_XML_SCHEMAS_ANYURI@)
+  (define
+    XML_SCHEMAS_INTEGER
+    @VALUEOF_XML_SCHEMAS_INTEGER@)
+  (define
+    XML_SCHEMAS_NPINTEGER
+    @VALUEOF_XML_SCHEMAS_NPINTEGER@)
+  (define
+    XML_SCHEMAS_NINTEGER
+    @VALUEOF_XML_SCHEMAS_NINTEGER@)
+  (define
+    XML_SCHEMAS_NNINTEGER
+    @VALUEOF_XML_SCHEMAS_NNINTEGER@)
+  (define
+    XML_SCHEMAS_PINTEGER
+    @VALUEOF_XML_SCHEMAS_PINTEGER@)
+  (define
+    XML_SCHEMAS_INT
+    @VALUEOF_XML_SCHEMAS_INT@)
+  (define
+    XML_SCHEMAS_UINT
+    @VALUEOF_XML_SCHEMAS_UINT@)
+  (define
+    XML_SCHEMAS_LONG
+    @VALUEOF_XML_SCHEMAS_LONG@)
+  (define
+    XML_SCHEMAS_ULONG
+    @VALUEOF_XML_SCHEMAS_ULONG@)
+  (define
+    XML_SCHEMAS_SHORT
+    @VALUEOF_XML_SCHEMAS_SHORT@)
+  (define
+    XML_SCHEMAS_USHORT
+    @VALUEOF_XML_SCHEMAS_USHORT@)
+  (define
+    XML_SCHEMAS_BYTE
+    @VALUEOF_XML_SCHEMAS_BYTE@)
+  (define
+    XML_SCHEMAS_UBYTE
+    @VALUEOF_XML_SCHEMAS_UBYTE@)
+  (define
+    XML_SCHEMAS_HEXBINARY
+    @VALUEOF_XML_SCHEMAS_HEXBINARY@)
+  (define
+    XML_SCHEMAS_BASE64BINARY
+    @VALUEOF_XML_SCHEMAS_BASE64BINARY@)
+  (define
+    XML_SCHEMAS_ANYTYPE
+    @VALUEOF_XML_SCHEMAS_ANYTYPE@)
+  (define
+    XML_SCHEMAS_ANYSIMPLETYPE
+    @VALUEOF_XML_SCHEMAS_ANYSIMPLETYPE@)
+  (define
+    xmlSchemaTypeType
+    '@TYPEOF_XMLSCHEMATYPETYPE@)
+  (define
+    sizeof-xmlSchemaTypeType
+    @SIZEOF_XMLSCHEMATYPETYPE@)
+  (define
+    alignof-xmlSchemaTypeType
+    @ALIGNOF_XMLSCHEMATYPETYPE@)
+  (define
+    strideof-xmlSchemaTypeType
+    @STRIDEOF_XMLSCHEMATYPETYPE@)
+  (define
+    pointer-ref-c-xmlSchemaTypeType
+    @GETTEROF_XMLSCHEMATYPETYPE@)
+  (define
+    pointer-set-c-xmlSchemaTypeType!
+    @SETTEROF_XMLSCHEMATYPETYPE@)
+  (define
+    XML_SCHEMA_TYPE_BASIC
+    @VALUEOF_XML_SCHEMA_TYPE_BASIC@)
+  (define
+    XML_SCHEMA_TYPE_ANY
+    @VALUEOF_XML_SCHEMA_TYPE_ANY@)
+  (define
+    XML_SCHEMA_TYPE_FACET
+    @VALUEOF_XML_SCHEMA_TYPE_FACET@)
+  (define
+    XML_SCHEMA_TYPE_SIMPLE
+    @VALUEOF_XML_SCHEMA_TYPE_SIMPLE@)
+  (define
+    XML_SCHEMA_TYPE_COMPLEX
+    @VALUEOF_XML_SCHEMA_TYPE_COMPLEX@)
+  (define
+    XML_SCHEMA_TYPE_SEQUENCE
+    @VALUEOF_XML_SCHEMA_TYPE_SEQUENCE@)
+  (define
+    XML_SCHEMA_TYPE_CHOICE
+    @VALUEOF_XML_SCHEMA_TYPE_CHOICE@)
+  (define
+    XML_SCHEMA_TYPE_ALL
+    @VALUEOF_XML_SCHEMA_TYPE_ALL@)
+  (define
+    XML_SCHEMA_TYPE_SIMPLE_CONTENT
+    @VALUEOF_XML_SCHEMA_TYPE_SIMPLE_CONTENT@)
+  (define
+    XML_SCHEMA_TYPE_COMPLEX_CONTENT
+    @VALUEOF_XML_SCHEMA_TYPE_COMPLEX_CONTENT@)
+  (define
+    XML_SCHEMA_TYPE_UR
+    @VALUEOF_XML_SCHEMA_TYPE_UR@)
+  (define
+    XML_SCHEMA_TYPE_RESTRICTION
+    @VALUEOF_XML_SCHEMA_TYPE_RESTRICTION@)
+  (define
+    XML_SCHEMA_TYPE_EXTENSION
+    @VALUEOF_XML_SCHEMA_TYPE_EXTENSION@)
+  (define
+    XML_SCHEMA_TYPE_ELEMENT
+    @VALUEOF_XML_SCHEMA_TYPE_ELEMENT@)
+  (define
+    XML_SCHEMA_TYPE_ATTRIBUTE
+    @VALUEOF_XML_SCHEMA_TYPE_ATTRIBUTE@)
+  (define
+    XML_SCHEMA_TYPE_ATTRIBUTEGROUP
+    @VALUEOF_XML_SCHEMA_TYPE_ATTRIBUTEGROUP@)
+  (define
+    XML_SCHEMA_TYPE_GROUP
+    @VALUEOF_XML_SCHEMA_TYPE_GROUP@)
+  (define
+    XML_SCHEMA_TYPE_NOTATION
+    @VALUEOF_XML_SCHEMA_TYPE_NOTATION@)
+  (define
+    XML_SCHEMA_TYPE_LIST
+    @VALUEOF_XML_SCHEMA_TYPE_LIST@)
+  (define
+    XML_SCHEMA_TYPE_UNION
+    @VALUEOF_XML_SCHEMA_TYPE_UNION@)
+  (define
+    XML_SCHEMA_TYPE_ANY_ATTRIBUTE
+    @VALUEOF_XML_SCHEMA_TYPE_ANY_ATTRIBUTE@)
+  (define
+    XML_SCHEMA_TYPE_IDC_UNIQUE
+    @VALUEOF_XML_SCHEMA_TYPE_IDC_UNIQUE@)
+  (define
+    XML_SCHEMA_TYPE_IDC_KEY
+    @VALUEOF_XML_SCHEMA_TYPE_IDC_KEY@)
+  (define
+    XML_SCHEMA_TYPE_IDC_KEYREF
+    @VALUEOF_XML_SCHEMA_TYPE_IDC_KEYREF@)
+  (define
+    XML_SCHEMA_TYPE_PARTICLE
+    @VALUEOF_XML_SCHEMA_TYPE_PARTICLE@)
+  (define
+    XML_SCHEMA_TYPE_ATTRIBUTE_USE
+    @VALUEOF_XML_SCHEMA_TYPE_ATTRIBUTE_USE@)
+  (define
+    XML_SCHEMA_FACET_MININCLUSIVE
+    @VALUEOF_XML_SCHEMA_FACET_MININCLUSIVE@)
+  (define
+    XML_SCHEMA_FACET_MINEXCLUSIVE
+    @VALUEOF_XML_SCHEMA_FACET_MINEXCLUSIVE@)
+  (define
+    XML_SCHEMA_FACET_MAXINCLUSIVE
+    @VALUEOF_XML_SCHEMA_FACET_MAXINCLUSIVE@)
+  (define
+    XML_SCHEMA_FACET_MAXEXCLUSIVE
+    @VALUEOF_XML_SCHEMA_FACET_MAXEXCLUSIVE@)
+  (define
+    XML_SCHEMA_FACET_TOTALDIGITS
+    @VALUEOF_XML_SCHEMA_FACET_TOTALDIGITS@)
+  (define
+    XML_SCHEMA_FACET_FRACTIONDIGITS
+    @VALUEOF_XML_SCHEMA_FACET_FRACTIONDIGITS@)
+  (define
+    XML_SCHEMA_FACET_PATTERN
+    @VALUEOF_XML_SCHEMA_FACET_PATTERN@)
+  (define
+    XML_SCHEMA_FACET_ENUMERATION
+    @VALUEOF_XML_SCHEMA_FACET_ENUMERATION@)
+  (define
+    XML_SCHEMA_FACET_WHITESPACE
+    @VALUEOF_XML_SCHEMA_FACET_WHITESPACE@)
+  (define
+    XML_SCHEMA_FACET_LENGTH
+    @VALUEOF_XML_SCHEMA_FACET_LENGTH@)
+  (define
+    XML_SCHEMA_FACET_MAXLENGTH
+    @VALUEOF_XML_SCHEMA_FACET_MAXLENGTH@)
+  (define
+    XML_SCHEMA_FACET_MINLENGTH
+    @VALUEOF_XML_SCHEMA_FACET_MINLENGTH@)
+  (define
+    XML_SCHEMA_EXTRA_QNAMEREF
+    @VALUEOF_XML_SCHEMA_EXTRA_QNAMEREF@)
+  (define
+    XML_SCHEMA_EXTRA_ATTR_USE_PROHIB
+    @VALUEOF_XML_SCHEMA_EXTRA_ATTR_USE_PROHIB@)
+  (define
+    xmlSchemaContentType
+    '@TYPEOF_XMLSCHEMACONTENTTYPE@)
+  (define
+    sizeof-xmlSchemaContentType
+    @SIZEOF_XMLSCHEMACONTENTTYPE@)
+  (define
+    alignof-xmlSchemaContentType
+    @ALIGNOF_XMLSCHEMACONTENTTYPE@)
+  (define
+    strideof-xmlSchemaContentType
+    @STRIDEOF_XMLSCHEMACONTENTTYPE@)
+  (define
+    pointer-ref-c-xmlSchemaContentType
+    @GETTEROF_XMLSCHEMACONTENTTYPE@)
+  (define
+    pointer-set-c-xmlSchemaContentType!
+    @SETTEROF_XMLSCHEMACONTENTTYPE@)
+  (define
+    XML_SCHEMA_CONTENT_UNKNOWN
+    @VALUEOF_XML_SCHEMA_CONTENT_UNKNOWN@)
+  (define
+    XML_SCHEMA_CONTENT_EMPTY
+    @VALUEOF_XML_SCHEMA_CONTENT_EMPTY@)
+  (define
+    XML_SCHEMA_CONTENT_ELEMENTS
+    @VALUEOF_XML_SCHEMA_CONTENT_ELEMENTS@)
+  (define
+    XML_SCHEMA_CONTENT_MIXED
+    @VALUEOF_XML_SCHEMA_CONTENT_MIXED@)
+  (define
+    XML_SCHEMA_CONTENT_SIMPLE
+    @VALUEOF_XML_SCHEMA_CONTENT_SIMPLE@)
+  (define
+    XML_SCHEMA_CONTENT_MIXED_OR_ELEMENTS
+    @VALUEOF_XML_SCHEMA_CONTENT_MIXED_OR_ELEMENTS@)
+  (define
+    XML_SCHEMA_CONTENT_BASIC
+    @VALUEOF_XML_SCHEMA_CONTENT_BASIC@)
+  (define
+    XML_SCHEMA_CONTENT_ANY
+    @VALUEOF_XML_SCHEMA_CONTENT_ANY@)
+  (define xmlSchemaVal* 'pointer)
+  (define xmlSchemaValPtr 'pointer)
+  (define xmlSchemaValPtr* 'pointer)
+  (define xmlSchemaType* 'pointer)
+  (define xmlSchemaTypePtr 'pointer)
+  (define xmlSchemaTypePtr* 'pointer)
+  (define xmlSchemaFacet* 'pointer)
+  (define xmlSchemaFacetPtr 'pointer)
+  (define xmlSchemaFacetPtr* 'pointer)
+  (define xmlSchemaAnnot* 'pointer)
+  (define xmlSchemaAnnotPtr 'pointer)
+  (define xmlSchemaAnnotPtr* 'pointer)
+  (define
+    sizeof-xmlSchemaAnnot
+    @SIZEOF_XMLSCHEMAANNOT@)
+  (define
+    alignof-xmlSchemaAnnot
+    @ALIGNOF_XMLSCHEMAANNOT@)
+  (define
+    strideof-xmlSchemaAnnot
+    @STRIDEOF_XMLSCHEMAANNOT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAnnot-next-set!
+    struct-xmlSchemaAnnot-next-ref
+    @OFFSETOF_XMLSCHEMAANNOT_NEXT@
+    @SETTEROF_XMLSCHEMAANNOT_NEXT@
+    @GETTEROF_XMLSCHEMAANNOT_NEXT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAnnot-content-set!
+    struct-xmlSchemaAnnot-content-ref
+    @OFFSETOF_XMLSCHEMAANNOT_CONTENT@
+    @SETTEROF_XMLSCHEMAANNOT_CONTENT@
+    @GETTEROF_XMLSCHEMAANNOT_CONTENT@)
+  (define
+    XML_SCHEMAS_ANYATTR_SKIP
+    @VALUEOF_XML_SCHEMAS_ANYATTR_SKIP@)
+  (define
+    XML_SCHEMAS_ANYATTR_LAX
+    @VALUEOF_XML_SCHEMAS_ANYATTR_LAX@)
+  (define
+    XML_SCHEMAS_ANYATTR_STRICT
+    @VALUEOF_XML_SCHEMAS_ANYATTR_STRICT@)
+  (define
+    XML_SCHEMAS_ANY_SKIP
+    @VALUEOF_XML_SCHEMAS_ANY_SKIP@)
+  (define
+    XML_SCHEMAS_ANY_LAX
+    @VALUEOF_XML_SCHEMAS_ANY_LAX@)
+  (define
+    XML_SCHEMAS_ANY_STRICT
+    @VALUEOF_XML_SCHEMAS_ANY_STRICT@)
+  (define
+    XML_SCHEMAS_ATTR_USE_PROHIBITED
+    @VALUEOF_XML_SCHEMAS_ATTR_USE_PROHIBITED@)
+  (define
+    XML_SCHEMAS_ATTR_USE_REQUIRED
+    @VALUEOF_XML_SCHEMAS_ATTR_USE_REQUIRED@)
+  (define
+    XML_SCHEMAS_ATTR_USE_OPTIONAL
+    @VALUEOF_XML_SCHEMAS_ATTR_USE_OPTIONAL@)
+  (define
+    XML_SCHEMAS_ATTR_GLOBAL
+    @VALUEOF_XML_SCHEMAS_ATTR_GLOBAL@)
+  (define
+    XML_SCHEMAS_ATTR_NSDEFAULT
+    @VALUEOF_XML_SCHEMAS_ATTR_NSDEFAULT@)
+  (define
+    XML_SCHEMAS_ATTR_INTERNAL_RESOLVED
+    @VALUEOF_XML_SCHEMAS_ATTR_INTERNAL_RESOLVED@)
+  (define
+    XML_SCHEMAS_ATTR_FIXED
+    @VALUEOF_XML_SCHEMAS_ATTR_FIXED@)
+  (define xmlSchemaAttribute* 'pointer)
+  (define xmlSchemaAttributePtr 'pointer)
+  (define
+    sizeof-xmlSchemaAttribute
+    @SIZEOF_XMLSCHEMAATTRIBUTE@)
+  (define
+    alignof-xmlSchemaAttribute
+    @ALIGNOF_XMLSCHEMAATTRIBUTE@)
+  (define
+    strideof-xmlSchemaAttribute
+    @STRIDEOF_XMLSCHEMAATTRIBUTE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-type-set!
+    struct-xmlSchemaAttribute-type-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_TYPE@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_TYPE@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_TYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-next-set!
+    struct-xmlSchemaAttribute-next-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_NEXT@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_NEXT@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_NEXT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-name-set!
+    struct-xmlSchemaAttribute-name-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_NAME@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_NAME@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_NAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-id-set!
+    struct-xmlSchemaAttribute-id-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_ID@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_ID@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_ID@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-ref-set!
+    struct-xmlSchemaAttribute-ref-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_REF@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_REF@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_REF@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-refNs-set!
+    struct-xmlSchemaAttribute-refNs-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_REFNS@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_REFNS@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_REFNS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-typeName-set!
+    struct-xmlSchemaAttribute-typeName-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_TYPENAME@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_TYPENAME@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_TYPENAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-typeNs-set!
+    struct-xmlSchemaAttribute-typeNs-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_TYPENS@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_TYPENS@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_TYPENS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-annot-set!
+    struct-xmlSchemaAttribute-annot-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_ANNOT@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_ANNOT@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_ANNOT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-base-set!
+    struct-xmlSchemaAttribute-base-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_BASE@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_BASE@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_BASE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-occurs-set!
+    struct-xmlSchemaAttribute-occurs-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_OCCURS@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_OCCURS@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_OCCURS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-defValue-set!
+    struct-xmlSchemaAttribute-defValue-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_DEFVALUE@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_DEFVALUE@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_DEFVALUE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-subtypes-set!
+    struct-xmlSchemaAttribute-subtypes-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_SUBTYPES@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_SUBTYPES@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_SUBTYPES@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-node-set!
+    struct-xmlSchemaAttribute-node-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_NODE@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_NODE@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_NODE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-targetNamespace-set!
+    struct-xmlSchemaAttribute-targetNamespace-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_TARGETNAMESPACE@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_TARGETNAMESPACE@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_TARGETNAMESPACE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-flags-set!
+    struct-xmlSchemaAttribute-flags-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_FLAGS@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_FLAGS@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_FLAGS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-refPrefix-set!
+    struct-xmlSchemaAttribute-refPrefix-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_REFPREFIX@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_REFPREFIX@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_REFPREFIX@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-defVal-set!
+    struct-xmlSchemaAttribute-defVal-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_DEFVAL@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_DEFVAL@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_DEFVAL@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttribute-refDecl-set!
+    struct-xmlSchemaAttribute-refDecl-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTE_REFDECL@
+    @SETTEROF_XMLSCHEMAATTRIBUTE_REFDECL@
+    @GETTEROF_XMLSCHEMAATTRIBUTE_REFDECL@)
+  (define xmlSchemaAttributeLink* 'pointer)
+  (define xmlSchemaAttributeLinkPtr 'pointer)
+  (define xmlSchemaAttributeLinkPtr* 'pointer)
+  (define
+    sizeof-xmlSchemaAttributeLink
+    @SIZEOF_XMLSCHEMAATTRIBUTELINK@)
+  (define
+    alignof-xmlSchemaAttributeLink
+    @ALIGNOF_XMLSCHEMAATTRIBUTELINK@)
+  (define
+    strideof-xmlSchemaAttributeLink
+    @STRIDEOF_XMLSCHEMAATTRIBUTELINK@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeLink-next-set!
+    struct-xmlSchemaAttributeLink-next-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTELINK_NEXT@
+    @SETTEROF_XMLSCHEMAATTRIBUTELINK_NEXT@
+    @GETTEROF_XMLSCHEMAATTRIBUTELINK_NEXT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeLink-attr-set!
+    struct-xmlSchemaAttributeLink-attr-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTELINK_ATTR@
+    @SETTEROF_XMLSCHEMAATTRIBUTELINK_ATTR@
+    @GETTEROF_XMLSCHEMAATTRIBUTELINK_ATTR@)
+  (define xmlSchemaWildcardNs* 'pointer)
+  (define xmlSchemaWildcardNsPtr 'pointer)
+  (define
+    sizeof-xmlSchemaWildcardNs
+    @SIZEOF_XMLSCHEMAWILDCARDNS@)
+  (define
+    alignof-xmlSchemaWildcardNs
+    @ALIGNOF_XMLSCHEMAWILDCARDNS@)
+  (define
+    strideof-xmlSchemaWildcardNs
+    @STRIDEOF_XMLSCHEMAWILDCARDNS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcardNs-next-set!
+    struct-xmlSchemaWildcardNs-next-ref
+    @OFFSETOF_XMLSCHEMAWILDCARDNS_NEXT@
+    @SETTEROF_XMLSCHEMAWILDCARDNS_NEXT@
+    @GETTEROF_XMLSCHEMAWILDCARDNS_NEXT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcardNs-value-set!
+    struct-xmlSchemaWildcardNs-value-ref
+    @OFFSETOF_XMLSCHEMAWILDCARDNS_VALUE@
+    @SETTEROF_XMLSCHEMAWILDCARDNS_VALUE@
+    @GETTEROF_XMLSCHEMAWILDCARDNS_VALUE@)
+  (define xmlSchemaWildcard* 'pointer)
+  (define xmlSchemaWildcardPtr 'pointer)
+  (define xmlSchemaWildcardPtr* 'pointer)
+  (define
+    sizeof-xmlSchemaWildcard
+    @SIZEOF_XMLSCHEMAWILDCARD@)
+  (define
+    alignof-xmlSchemaWildcard
+    @ALIGNOF_XMLSCHEMAWILDCARD@)
+  (define
+    strideof-xmlSchemaWildcard
+    @STRIDEOF_XMLSCHEMAWILDCARD@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcard-type-set!
+    struct-xmlSchemaWildcard-type-ref
+    @OFFSETOF_XMLSCHEMAWILDCARD_TYPE@
+    @SETTEROF_XMLSCHEMAWILDCARD_TYPE@
+    @GETTEROF_XMLSCHEMAWILDCARD_TYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcard-id-set!
+    struct-xmlSchemaWildcard-id-ref
+    @OFFSETOF_XMLSCHEMAWILDCARD_ID@
+    @SETTEROF_XMLSCHEMAWILDCARD_ID@
+    @GETTEROF_XMLSCHEMAWILDCARD_ID@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcard-annot-set!
+    struct-xmlSchemaWildcard-annot-ref
+    @OFFSETOF_XMLSCHEMAWILDCARD_ANNOT@
+    @SETTEROF_XMLSCHEMAWILDCARD_ANNOT@
+    @GETTEROF_XMLSCHEMAWILDCARD_ANNOT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcard-xmlNodePtr-set!
+    struct-xmlSchemaWildcard-xmlNodePtr-ref
+    @OFFSETOF_XMLSCHEMAWILDCARD_XMLNODEPTR@
+    @SETTEROF_XMLSCHEMAWILDCARD_XMLNODEPTR@
+    @GETTEROF_XMLSCHEMAWILDCARD_XMLNODEPTR@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcard-minOccurs-set!
+    struct-xmlSchemaWildcard-minOccurs-ref
+    @OFFSETOF_XMLSCHEMAWILDCARD_MINOCCURS@
+    @SETTEROF_XMLSCHEMAWILDCARD_MINOCCURS@
+    @GETTEROF_XMLSCHEMAWILDCARD_MINOCCURS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcard-maxOccurs-set!
+    struct-xmlSchemaWildcard-maxOccurs-ref
+    @OFFSETOF_XMLSCHEMAWILDCARD_MAXOCCURS@
+    @SETTEROF_XMLSCHEMAWILDCARD_MAXOCCURS@
+    @GETTEROF_XMLSCHEMAWILDCARD_MAXOCCURS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcard-processContents-set!
+    struct-xmlSchemaWildcard-processContents-ref
+    @OFFSETOF_XMLSCHEMAWILDCARD_PROCESSCONTENTS@
+    @SETTEROF_XMLSCHEMAWILDCARD_PROCESSCONTENTS@
+    @GETTEROF_XMLSCHEMAWILDCARD_PROCESSCONTENTS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcard-any-set!
+    struct-xmlSchemaWildcard-any-ref
+    @OFFSETOF_XMLSCHEMAWILDCARD_ANY@
+    @SETTEROF_XMLSCHEMAWILDCARD_ANY@
+    @GETTEROF_XMLSCHEMAWILDCARD_ANY@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcard-nsSet-set!
+    struct-xmlSchemaWildcard-nsSet-ref
+    @OFFSETOF_XMLSCHEMAWILDCARD_NSSET@
+    @SETTEROF_XMLSCHEMAWILDCARD_NSSET@
+    @GETTEROF_XMLSCHEMAWILDCARD_NSSET@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcard-negNsSet-set!
+    struct-xmlSchemaWildcard-negNsSet-ref
+    @OFFSETOF_XMLSCHEMAWILDCARD_NEGNSSET@
+    @SETTEROF_XMLSCHEMAWILDCARD_NEGNSSET@
+    @GETTEROF_XMLSCHEMAWILDCARD_NEGNSSET@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaWildcard-flags-set!
+    struct-xmlSchemaWildcard-flags-ref
+    @OFFSETOF_XMLSCHEMAWILDCARD_FLAGS@
+    @SETTEROF_XMLSCHEMAWILDCARD_FLAGS@
+    @GETTEROF_XMLSCHEMAWILDCARD_FLAGS@)
+  (define
+    XML_SCHEMAS_WILDCARD_COMPLETE
+    @VALUEOF_XML_SCHEMAS_WILDCARD_COMPLETE@)
+  (define
+    XML_SCHEMAS_ATTRGROUP_WILDCARD_BUILDED
+    @VALUEOF_XML_SCHEMAS_ATTRGROUP_WILDCARD_BUILDED@)
+  (define
+    XML_SCHEMAS_ATTRGROUP_GLOBAL
+    @VALUEOF_XML_SCHEMAS_ATTRGROUP_GLOBAL@)
+  (define
+    XML_SCHEMAS_ATTRGROUP_MARKED
+    @VALUEOF_XML_SCHEMAS_ATTRGROUP_MARKED@)
+  (define
+    XML_SCHEMAS_ATTRGROUP_REDEFINED
+    @VALUEOF_XML_SCHEMAS_ATTRGROUP_REDEFINED@)
+  (define
+    XML_SCHEMAS_ATTRGROUP_HAS_REFS
+    @VALUEOF_XML_SCHEMAS_ATTRGROUP_HAS_REFS@)
+  (define
+    XML_SCHEMAS_TYPE_MIXED
+    @VALUEOF_XML_SCHEMAS_TYPE_MIXED@)
+  (define
+    XML_SCHEMAS_TYPE_DERIVATION_METHOD_EXTENSION
+    @VALUEOF_XML_SCHEMAS_TYPE_DERIVATION_METHOD_EXTENSION@)
+  (define
+    XML_SCHEMAS_TYPE_DERIVATION_METHOD_RESTRICTION
+    @VALUEOF_XML_SCHEMAS_TYPE_DERIVATION_METHOD_RESTRICTION@)
+  (define
+    XML_SCHEMAS_TYPE_GLOBAL
+    @VALUEOF_XML_SCHEMAS_TYPE_GLOBAL@)
+  (define
+    XML_SCHEMAS_TYPE_OWNED_ATTR_WILDCARD
+    @VALUEOF_XML_SCHEMAS_TYPE_OWNED_ATTR_WILDCARD@)
+  (define
+    XML_SCHEMAS_TYPE_VARIETY_ABSENT
+    @VALUEOF_XML_SCHEMAS_TYPE_VARIETY_ABSENT@)
+  (define
+    XML_SCHEMAS_TYPE_VARIETY_LIST
+    @VALUEOF_XML_SCHEMAS_TYPE_VARIETY_LIST@)
+  (define
+    XML_SCHEMAS_TYPE_VARIETY_UNION
+    @VALUEOF_XML_SCHEMAS_TYPE_VARIETY_UNION@)
+  (define
+    XML_SCHEMAS_TYPE_VARIETY_ATOMIC
+    @VALUEOF_XML_SCHEMAS_TYPE_VARIETY_ATOMIC@)
+  (define
+    XML_SCHEMAS_TYPE_FINAL_EXTENSION
+    @VALUEOF_XML_SCHEMAS_TYPE_FINAL_EXTENSION@)
+  (define
+    XML_SCHEMAS_TYPE_FINAL_RESTRICTION
+    @VALUEOF_XML_SCHEMAS_TYPE_FINAL_RESTRICTION@)
+  (define
+    XML_SCHEMAS_TYPE_FINAL_LIST
+    @VALUEOF_XML_SCHEMAS_TYPE_FINAL_LIST@)
+  (define
+    XML_SCHEMAS_TYPE_FINAL_UNION
+    @VALUEOF_XML_SCHEMAS_TYPE_FINAL_UNION@)
+  (define
+    XML_SCHEMAS_TYPE_FINAL_DEFAULT
+    @VALUEOF_XML_SCHEMAS_TYPE_FINAL_DEFAULT@)
+  (define
+    XML_SCHEMAS_TYPE_BUILTIN_PRIMITIVE
+    @VALUEOF_XML_SCHEMAS_TYPE_BUILTIN_PRIMITIVE@)
+  (define
+    XML_SCHEMAS_TYPE_MARKED
+    @VALUEOF_XML_SCHEMAS_TYPE_MARKED@)
+  (define
+    XML_SCHEMAS_TYPE_BLOCK_DEFAULT
+    @VALUEOF_XML_SCHEMAS_TYPE_BLOCK_DEFAULT@)
+  (define
+    XML_SCHEMAS_TYPE_BLOCK_EXTENSION
+    @VALUEOF_XML_SCHEMAS_TYPE_BLOCK_EXTENSION@)
+  (define
+    XML_SCHEMAS_TYPE_BLOCK_RESTRICTION
+    @VALUEOF_XML_SCHEMAS_TYPE_BLOCK_RESTRICTION@)
+  (define
+    XML_SCHEMAS_TYPE_ABSTRACT
+    @VALUEOF_XML_SCHEMAS_TYPE_ABSTRACT@)
+  (define
+    XML_SCHEMAS_TYPE_FACETSNEEDVALUE
+    @VALUEOF_XML_SCHEMAS_TYPE_FACETSNEEDVALUE@)
+  (define
+    XML_SCHEMAS_TYPE_INTERNAL_RESOLVED
+    @VALUEOF_XML_SCHEMAS_TYPE_INTERNAL_RESOLVED@)
+  (define
+    XML_SCHEMAS_TYPE_INTERNAL_INVALID
+    @VALUEOF_XML_SCHEMAS_TYPE_INTERNAL_INVALID@)
+  (define
+    XML_SCHEMAS_TYPE_WHITESPACE_PRESERVE
+    @VALUEOF_XML_SCHEMAS_TYPE_WHITESPACE_PRESERVE@)
+  (define
+    XML_SCHEMAS_TYPE_WHITESPACE_REPLACE
+    @VALUEOF_XML_SCHEMAS_TYPE_WHITESPACE_REPLACE@)
+  (define
+    XML_SCHEMAS_TYPE_WHITESPACE_COLLAPSE
+    @VALUEOF_XML_SCHEMAS_TYPE_WHITESPACE_COLLAPSE@)
+  (define
+    XML_SCHEMAS_TYPE_HAS_FACETS
+    @VALUEOF_XML_SCHEMAS_TYPE_HAS_FACETS@)
+  (define
+    XML_SCHEMAS_TYPE_NORMVALUENEEDED
+    @VALUEOF_XML_SCHEMAS_TYPE_NORMVALUENEEDED@)
+  (define
+    XML_SCHEMAS_TYPE_FIXUP_1
+    @VALUEOF_XML_SCHEMAS_TYPE_FIXUP_1@)
+  (define
+    XML_SCHEMAS_TYPE_REDEFINED
+    @VALUEOF_XML_SCHEMAS_TYPE_REDEFINED@)
+  (define
+    XML_SCHEMAS_ELEM_NILLABLE
+    @VALUEOF_XML_SCHEMAS_ELEM_NILLABLE@)
+  (define
+    XML_SCHEMAS_ELEM_GLOBAL
+    @VALUEOF_XML_SCHEMAS_ELEM_GLOBAL@)
+  (define
+    XML_SCHEMAS_ELEM_DEFAULT
+    @VALUEOF_XML_SCHEMAS_ELEM_DEFAULT@)
+  (define
+    XML_SCHEMAS_ELEM_FIXED
+    @VALUEOF_XML_SCHEMAS_ELEM_FIXED@)
+  (define
+    XML_SCHEMAS_ELEM_ABSTRACT
+    @VALUEOF_XML_SCHEMAS_ELEM_ABSTRACT@)
+  (define
+    XML_SCHEMAS_ELEM_TOPLEVEL
+    @VALUEOF_XML_SCHEMAS_ELEM_TOPLEVEL@)
+  (define
+    XML_SCHEMAS_ELEM_REF
+    @VALUEOF_XML_SCHEMAS_ELEM_REF@)
+  (define
+    XML_SCHEMAS_ELEM_NSDEFAULT
+    @VALUEOF_XML_SCHEMAS_ELEM_NSDEFAULT@)
+  (define
+    XML_SCHEMAS_ELEM_INTERNAL_RESOLVED
+    @VALUEOF_XML_SCHEMAS_ELEM_INTERNAL_RESOLVED@)
+  (define
+    XML_SCHEMAS_ELEM_CIRCULAR
+    @VALUEOF_XML_SCHEMAS_ELEM_CIRCULAR@)
+  (define
+    XML_SCHEMAS_ELEM_BLOCK_ABSENT
+    @VALUEOF_XML_SCHEMAS_ELEM_BLOCK_ABSENT@)
+  (define
+    XML_SCHEMAS_ELEM_BLOCK_EXTENSION
+    @VALUEOF_XML_SCHEMAS_ELEM_BLOCK_EXTENSION@)
+  (define
+    XML_SCHEMAS_ELEM_BLOCK_RESTRICTION
+    @VALUEOF_XML_SCHEMAS_ELEM_BLOCK_RESTRICTION@)
+  (define
+    XML_SCHEMAS_ELEM_BLOCK_SUBSTITUTION
+    @VALUEOF_XML_SCHEMAS_ELEM_BLOCK_SUBSTITUTION@)
+  (define
+    XML_SCHEMAS_ELEM_FINAL_ABSENT
+    @VALUEOF_XML_SCHEMAS_ELEM_FINAL_ABSENT@)
+  (define
+    XML_SCHEMAS_ELEM_FINAL_EXTENSION
+    @VALUEOF_XML_SCHEMAS_ELEM_FINAL_EXTENSION@)
+  (define
+    XML_SCHEMAS_ELEM_FINAL_RESTRICTION
+    @VALUEOF_XML_SCHEMAS_ELEM_FINAL_RESTRICTION@)
+  (define
+    XML_SCHEMAS_ELEM_SUBST_GROUP_HEAD
+    @VALUEOF_XML_SCHEMAS_ELEM_SUBST_GROUP_HEAD@)
+  (define
+    XML_SCHEMAS_ELEM_INTERNAL_CHECKED
+    @VALUEOF_XML_SCHEMAS_ELEM_INTERNAL_CHECKED@)
+  (define
+    XML_SCHEMAS_FACET_UNKNOWN
+    @VALUEOF_XML_SCHEMAS_FACET_UNKNOWN@)
+  (define
+    XML_SCHEMAS_FACET_PRESERVE
+    @VALUEOF_XML_SCHEMAS_FACET_PRESERVE@)
+  (define
+    XML_SCHEMAS_FACET_REPLACE
+    @VALUEOF_XML_SCHEMAS_FACET_REPLACE@)
+  (define
+    XML_SCHEMAS_FACET_COLLAPSE
+    @VALUEOF_XML_SCHEMAS_FACET_COLLAPSE@)
+  (define
+    XML_SCHEMAS_QUALIF_ELEM
+    @VALUEOF_XML_SCHEMAS_QUALIF_ELEM@)
+  (define
+    XML_SCHEMAS_QUALIF_ATTR
+    @VALUEOF_XML_SCHEMAS_QUALIF_ATTR@)
+  (define
+    XML_SCHEMAS_FINAL_DEFAULT_EXTENSION
+    @VALUEOF_XML_SCHEMAS_FINAL_DEFAULT_EXTENSION@)
+  (define
+    XML_SCHEMAS_FINAL_DEFAULT_RESTRICTION
+    @VALUEOF_XML_SCHEMAS_FINAL_DEFAULT_RESTRICTION@)
+  (define
+    XML_SCHEMAS_FINAL_DEFAULT_LIST
+    @VALUEOF_XML_SCHEMAS_FINAL_DEFAULT_LIST@)
+  (define
+    XML_SCHEMAS_FINAL_DEFAULT_UNION
+    @VALUEOF_XML_SCHEMAS_FINAL_DEFAULT_UNION@)
+  (define
+    XML_SCHEMAS_BLOCK_DEFAULT_EXTENSION
+    @VALUEOF_XML_SCHEMAS_BLOCK_DEFAULT_EXTENSION@)
+  (define
+    XML_SCHEMAS_BLOCK_DEFAULT_RESTRICTION
+    @VALUEOF_XML_SCHEMAS_BLOCK_DEFAULT_RESTRICTION@)
+  (define
+    XML_SCHEMAS_BLOCK_DEFAULT_SUBSTITUTION
+    @VALUEOF_XML_SCHEMAS_BLOCK_DEFAULT_SUBSTITUTION@)
+  (define
+    XML_SCHEMAS_INCLUDING_CONVERT_NS
+    @VALUEOF_XML_SCHEMAS_INCLUDING_CONVERT_NS@)
+  (define xmlSchemaAttributeGroup* 'pointer)
+  (define xmlSchemaAttributeGroupPtr 'pointer)
+  (define xmlSchemaAttributeGroupPtr* 'pointer)
+  (define
+    sizeof-xmlSchemaAttributeGroup
+    @SIZEOF_XMLSCHEMAATTRIBUTEGROUP@)
+  (define
+    alignof-xmlSchemaAttributeGroup
+    @ALIGNOF_XMLSCHEMAATTRIBUTEGROUP@)
+  (define
+    strideof-xmlSchemaAttributeGroup
+    @STRIDEOF_XMLSCHEMAATTRIBUTEGROUP@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-type-set!
+    struct-xmlSchemaAttributeGroup-type-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_TYPE@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_TYPE@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_TYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-next-set!
+    struct-xmlSchemaAttributeGroup-next-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_NEXT@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_NEXT@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_NEXT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-name-set!
+    struct-xmlSchemaAttributeGroup-name-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_NAME@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_NAME@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_NAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-id-set!
+    struct-xmlSchemaAttributeGroup-id-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_ID@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_ID@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_ID@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-ref-set!
+    struct-xmlSchemaAttributeGroup-ref-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_REF@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_REF@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_REF@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-refNs-set!
+    struct-xmlSchemaAttributeGroup-refNs-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_REFNS@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_REFNS@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_REFNS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-annot-set!
+    struct-xmlSchemaAttributeGroup-annot-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_ANNOT@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_ANNOT@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_ANNOT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-attributes-set!
+    struct-xmlSchemaAttributeGroup-attributes-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_ATTRIBUTES@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_ATTRIBUTES@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_ATTRIBUTES@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-node-set!
+    struct-xmlSchemaAttributeGroup-node-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_NODE@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_NODE@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_NODE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-flags-set!
+    struct-xmlSchemaAttributeGroup-flags-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_FLAGS@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_FLAGS@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_FLAGS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-attributeWildcard-set!
+    struct-xmlSchemaAttributeGroup-attributeWildcard-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_ATTRIBUTEWILDCARD@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_ATTRIBUTEWILDCARD@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_ATTRIBUTEWILDCARD@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-refPrefix-set!
+    struct-xmlSchemaAttributeGroup-refPrefix-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_REFPREFIX@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_REFPREFIX@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_REFPREFIX@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-refItem-set!
+    struct-xmlSchemaAttributeGroup-refItem-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_REFITEM@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_REFITEM@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_REFITEM@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-targetNamespace-set!
+    struct-xmlSchemaAttributeGroup-targetNamespace-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_TARGETNAMESPACE@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_TARGETNAMESPACE@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_TARGETNAMESPACE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaAttributeGroup-attrUses-set!
+    struct-xmlSchemaAttributeGroup-attrUses-ref
+    @OFFSETOF_XMLSCHEMAATTRIBUTEGROUP_ATTRUSES@
+    @SETTEROF_XMLSCHEMAATTRIBUTEGROUP_ATTRUSES@
+    @GETTEROF_XMLSCHEMAATTRIBUTEGROUP_ATTRUSES@)
+  (define xmlSchemaTypeLink* 'pointer)
+  (define xmlSchemaTypeLinkPtr 'pointer)
+  (define xmlSchemaTypeLinkPtr* 'pointer)
+  (define
+    sizeof-xmlSchemaTypeLink
+    @SIZEOF_XMLSCHEMATYPELINK@)
+  (define
+    alignof-xmlSchemaTypeLink
+    @ALIGNOF_XMLSCHEMATYPELINK@)
+  (define
+    strideof-xmlSchemaTypeLink
+    @STRIDEOF_XMLSCHEMATYPELINK@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaTypeLink-next-set!
+    struct-xmlSchemaTypeLink-next-ref
+    @OFFSETOF_XMLSCHEMATYPELINK_NEXT@
+    @SETTEROF_XMLSCHEMATYPELINK_NEXT@
+    @GETTEROF_XMLSCHEMATYPELINK_NEXT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaTypeLink-type-set!
+    struct-xmlSchemaTypeLink-type-ref
+    @OFFSETOF_XMLSCHEMATYPELINK_TYPE@
+    @SETTEROF_XMLSCHEMATYPELINK_TYPE@
+    @GETTEROF_XMLSCHEMATYPELINK_TYPE@)
+  (define xmlSchemaFacetLink* 'pointer)
+  (define xmlSchemaFacetLinkPtr 'pointer)
+  (define xmlSchemaFacetLinkPtr* 'pointer)
+  (define
+    sizeof-xmlSchemaFacetLink
+    @SIZEOF_XMLSCHEMAFACETLINK@)
+  (define
+    alignof-xmlSchemaFacetLink
+    @ALIGNOF_XMLSCHEMAFACETLINK@)
+  (define
+    strideof-xmlSchemaFacetLink
+    @STRIDEOF_XMLSCHEMAFACETLINK@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaFacetLink-next-set!
+    struct-xmlSchemaFacetLink-next-ref
+    @OFFSETOF_XMLSCHEMAFACETLINK_NEXT@
+    @SETTEROF_XMLSCHEMAFACETLINK_NEXT@
+    @GETTEROF_XMLSCHEMAFACETLINK_NEXT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaFacetLink-facet-set!
+    struct-xmlSchemaFacetLink-facet-ref
+    @OFFSETOF_XMLSCHEMAFACETLINK_FACET@
+    @SETTEROF_XMLSCHEMAFACETLINK_FACET@
+    @GETTEROF_XMLSCHEMAFACETLINK_FACET@)
+  (define xmlSchemaElement* 'pointer)
+  (define xmlSchemaElementPtr 'pointer)
+  (define xmlSchemaElementPtr* 'pointer)
+  (define
+    sizeof-xmlSchemaElement
+    @SIZEOF_XMLSCHEMAELEMENT@)
+  (define
+    alignof-xmlSchemaElement
+    @ALIGNOF_XMLSCHEMAELEMENT@)
+  (define
+    strideof-xmlSchemaElement
+    @STRIDEOF_XMLSCHEMAELEMENT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-type-set!
+    struct-xmlSchemaElement-type-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_TYPE@
+    @SETTEROF_XMLSCHEMAELEMENT_TYPE@
+    @GETTEROF_XMLSCHEMAELEMENT_TYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-next-set!
+    struct-xmlSchemaElement-next-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_NEXT@
+    @SETTEROF_XMLSCHEMAELEMENT_NEXT@
+    @GETTEROF_XMLSCHEMAELEMENT_NEXT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-name-set!
+    struct-xmlSchemaElement-name-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_NAME@
+    @SETTEROF_XMLSCHEMAELEMENT_NAME@
+    @GETTEROF_XMLSCHEMAELEMENT_NAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-id-set!
+    struct-xmlSchemaElement-id-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_ID@
+    @SETTEROF_XMLSCHEMAELEMENT_ID@
+    @GETTEROF_XMLSCHEMAELEMENT_ID@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-ref-set!
+    struct-xmlSchemaElement-ref-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_REF@
+    @SETTEROF_XMLSCHEMAELEMENT_REF@
+    @GETTEROF_XMLSCHEMAELEMENT_REF@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-refNs-set!
+    struct-xmlSchemaElement-refNs-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_REFNS@
+    @SETTEROF_XMLSCHEMAELEMENT_REFNS@
+    @GETTEROF_XMLSCHEMAELEMENT_REFNS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-annot-set!
+    struct-xmlSchemaElement-annot-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_ANNOT@
+    @SETTEROF_XMLSCHEMAELEMENT_ANNOT@
+    @GETTEROF_XMLSCHEMAELEMENT_ANNOT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-subtypes-set!
+    struct-xmlSchemaElement-subtypes-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_SUBTYPES@
+    @SETTEROF_XMLSCHEMAELEMENT_SUBTYPES@
+    @GETTEROF_XMLSCHEMAELEMENT_SUBTYPES@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-attributes-set!
+    struct-xmlSchemaElement-attributes-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_ATTRIBUTES@
+    @SETTEROF_XMLSCHEMAELEMENT_ATTRIBUTES@
+    @GETTEROF_XMLSCHEMAELEMENT_ATTRIBUTES@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-node-set!
+    struct-xmlSchemaElement-node-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_NODE@
+    @SETTEROF_XMLSCHEMAELEMENT_NODE@
+    @GETTEROF_XMLSCHEMAELEMENT_NODE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-minOccurs-set!
+    struct-xmlSchemaElement-minOccurs-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_MINOCCURS@
+    @SETTEROF_XMLSCHEMAELEMENT_MINOCCURS@
+    @GETTEROF_XMLSCHEMAELEMENT_MINOCCURS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-maxOccurs-set!
+    struct-xmlSchemaElement-maxOccurs-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_MAXOCCURS@
+    @SETTEROF_XMLSCHEMAELEMENT_MAXOCCURS@
+    @GETTEROF_XMLSCHEMAELEMENT_MAXOCCURS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-flags-set!
+    struct-xmlSchemaElement-flags-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_FLAGS@
+    @SETTEROF_XMLSCHEMAELEMENT_FLAGS@
+    @GETTEROF_XMLSCHEMAELEMENT_FLAGS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-targetNamespace-set!
+    struct-xmlSchemaElement-targetNamespace-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_TARGETNAMESPACE@
+    @SETTEROF_XMLSCHEMAELEMENT_TARGETNAMESPACE@
+    @GETTEROF_XMLSCHEMAELEMENT_TARGETNAMESPACE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-namedType-set!
+    struct-xmlSchemaElement-namedType-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_NAMEDTYPE@
+    @SETTEROF_XMLSCHEMAELEMENT_NAMEDTYPE@
+    @GETTEROF_XMLSCHEMAELEMENT_NAMEDTYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-namedTypeNs-set!
+    struct-xmlSchemaElement-namedTypeNs-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_NAMEDTYPENS@
+    @SETTEROF_XMLSCHEMAELEMENT_NAMEDTYPENS@
+    @GETTEROF_XMLSCHEMAELEMENT_NAMEDTYPENS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-substGroup-set!
+    struct-xmlSchemaElement-substGroup-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_SUBSTGROUP@
+    @SETTEROF_XMLSCHEMAELEMENT_SUBSTGROUP@
+    @GETTEROF_XMLSCHEMAELEMENT_SUBSTGROUP@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-substGroupNs-set!
+    struct-xmlSchemaElement-substGroupNs-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_SUBSTGROUPNS@
+    @SETTEROF_XMLSCHEMAELEMENT_SUBSTGROUPNS@
+    @GETTEROF_XMLSCHEMAELEMENT_SUBSTGROUPNS@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-scope-set!
+    struct-xmlSchemaElement-scope-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_SCOPE@
+    @SETTEROF_XMLSCHEMAELEMENT_SCOPE@
+    @GETTEROF_XMLSCHEMAELEMENT_SCOPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-value-set!
+    struct-xmlSchemaElement-value-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_VALUE@
+    @SETTEROF_XMLSCHEMAELEMENT_VALUE@
+    @GETTEROF_XMLSCHEMAELEMENT_VALUE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-refDecl-set!
+    struct-xmlSchemaElement-refDecl-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_REFDECL@
+    @SETTEROF_XMLSCHEMAELEMENT_REFDECL@
+    @GETTEROF_XMLSCHEMAELEMENT_REFDECL@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-contModel-set!
+    struct-xmlSchemaElement-contModel-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_CONTMODEL@
+    @SETTEROF_XMLSCHEMAELEMENT_CONTMODEL@
+    @GETTEROF_XMLSCHEMAELEMENT_CONTMODEL@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-contentType-set!
+    struct-xmlSchemaElement-contentType-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_CONTENTTYPE@
+    @SETTEROF_XMLSCHEMAELEMENT_CONTENTTYPE@
+    @GETTEROF_XMLSCHEMAELEMENT_CONTENTTYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-refPrefix-set!
+    struct-xmlSchemaElement-refPrefix-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_REFPREFIX@
+    @SETTEROF_XMLSCHEMAELEMENT_REFPREFIX@
+    @GETTEROF_XMLSCHEMAELEMENT_REFPREFIX@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-defVal-set!
+    struct-xmlSchemaElement-defVal-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_DEFVAL@
+    @SETTEROF_XMLSCHEMAELEMENT_DEFVAL@
+    @GETTEROF_XMLSCHEMAELEMENT_DEFVAL@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaElement-idcs-set!
+    struct-xmlSchemaElement-idcs-ref
+    @OFFSETOF_XMLSCHEMAELEMENT_IDCS@
+    @SETTEROF_XMLSCHEMAELEMENT_IDCS@
+    @GETTEROF_XMLSCHEMAELEMENT_IDCS@)
+  (define xmlSchemaNotation* 'pointer)
+  (define xmlSchemaNotationPtr 'pointer)
+  (define xmlSchemaNotationPtr* 'pointer)
+  (define
+    sizeof-xmlSchemaNotation
+    @SIZEOF_XMLSCHEMANOTATION@)
+  (define
+    alignof-xmlSchemaNotation
+    @ALIGNOF_XMLSCHEMANOTATION@)
+  (define
+    strideof-xmlSchemaNotation
+    @STRIDEOF_XMLSCHEMANOTATION@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaNotation-type-set!
+    struct-xmlSchemaNotation-type-ref
+    @OFFSETOF_XMLSCHEMANOTATION_TYPE@
+    @SETTEROF_XMLSCHEMANOTATION_TYPE@
+    @GETTEROF_XMLSCHEMANOTATION_TYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaNotation-name-set!
+    struct-xmlSchemaNotation-name-ref
+    @OFFSETOF_XMLSCHEMANOTATION_NAME@
+    @SETTEROF_XMLSCHEMANOTATION_NAME@
+    @GETTEROF_XMLSCHEMANOTATION_NAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaNotation-annot-set!
+    struct-xmlSchemaNotation-annot-ref
+    @OFFSETOF_XMLSCHEMANOTATION_ANNOT@
+    @SETTEROF_XMLSCHEMANOTATION_ANNOT@
+    @GETTEROF_XMLSCHEMANOTATION_ANNOT@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaNotation-identifier-set!
+    struct-xmlSchemaNotation-identifier-ref
+    @OFFSETOF_XMLSCHEMANOTATION_IDENTIFIER@
+    @SETTEROF_XMLSCHEMANOTATION_IDENTIFIER@
+    @GETTEROF_XMLSCHEMANOTATION_IDENTIFIER@)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlSchemaNotation-targetNamespace-set!
+    struct-xmlSchemaNotation-targetNamespace-ref
+    @OFFSETOF_XMLSCHEMANOTATION_TARGETNAMESPACE@
+    @SETTEROF_XMLSCHEMANOTATION_TARGETNAMESPACE@
+    @GETTEROF_XMLSCHEMANOTATION_TARGETNAMESPACE@)
+  (define
+    xmlSchemaValidError
+    '@TYPEOF_XMLSCHEMAVALIDERROR@)
+  (define
+    sizeof-xmlSchemaValidError
+    @SIZEOF_XMLSCHEMAVALIDERROR@)
+  (define
+    alignof-xmlSchemaValidError
+    @ALIGNOF_XMLSCHEMAVALIDERROR@)
+  (define
+    strideof-xmlSchemaValidError
+    @STRIDEOF_XMLSCHEMAVALIDERROR@)
+  (define
+    pointer-ref-c-xmlSchemaValidError
+    @GETTEROF_XMLSCHEMAVALIDERROR@)
+  (define
+    pointer-set-c-xmlSchemaValidError!
+    @SETTEROF_XMLSCHEMAVALIDERROR@)
   (define
     XML_SCHEMAS_ERR_OK
     @VALUEOF_XML_SCHEMAS_ERR_OK@)
@@ -8172,6 +10542,24 @@
     XML_SCHEMAS_ERR_XXX
     @VALUEOF_XML_SCHEMAS_ERR_XXX@)
   (define
+    xmlSchemaValidOption
+    '@TYPEOF_XMLSCHEMAVALIDOPTION@)
+  (define
+    sizeof-xmlSchemaValidOption
+    @SIZEOF_XMLSCHEMAVALIDOPTION@)
+  (define
+    alignof-xmlSchemaValidOption
+    @ALIGNOF_XMLSCHEMAVALIDOPTION@)
+  (define
+    strideof-xmlSchemaValidOption
+    @STRIDEOF_XMLSCHEMAVALIDOPTION@)
+  (define
+    pointer-ref-c-xmlSchemaValidOption
+    @GETTEROF_XMLSCHEMAVALIDOPTION@)
+  (define
+    pointer-set-c-xmlSchemaValidOption!
+    @SETTEROF_XMLSCHEMAVALIDOPTION@)
+  (define
     XML_SCHEMA_VAL_VC_I_CREATE
     @VALUEOF_XML_SCHEMA_VAL_VC_I_CREATE@)
   (define xmlSchema* 'pointer)
@@ -8182,6 +10570,26 @@
   (define xmlSchemaValidCtxtPtr 'pointer)
   (define xmlSchemaSAXPlugStruct* 'pointer)
   (define xmlSchemaSAXPlugPtr 'pointer)
+  (define xmlSchemaValidityErrorFunc 'pointer)
+  (define xmlSchemaValidityWarningFunc 'pointer)
+  (define
+    xmlSchemaWhitespaceValueType
+    '@TYPEOF_XMLSCHEMAWHITESPACEVALUETYPE@)
+  (define
+    sizeof-xmlSchemaWhitespaceValueType
+    @SIZEOF_XMLSCHEMAWHITESPACEVALUETYPE@)
+  (define
+    alignof-xmlSchemaWhitespaceValueType
+    @ALIGNOF_XMLSCHEMAWHITESPACEVALUETYPE@)
+  (define
+    strideof-xmlSchemaWhitespaceValueType
+    @STRIDEOF_XMLSCHEMAWHITESPACEVALUETYPE@)
+  (define
+    pointer-ref-c-xmlSchemaWhitespaceValueType
+    @GETTEROF_XMLSCHEMAWHITESPACEVALUETYPE@)
+  (define
+    pointer-set-c-xmlSchemaWhitespaceValueType!
+    @SETTEROF_XMLSCHEMAWHITESPACEVALUETYPE@)
   (define
     XML_SCHEMA_WHITESPACE_UNKNOWN
     @VALUEOF_XML_SCHEMA_WHITESPACE_UNKNOWN@)
@@ -8312,6 +10720,22 @@
   (define xmlXPathContextPtr 'pointer)
   (define xmlXPathParserContext* 'pointer)
   (define xmlXPathParserContextPtr 'pointer)
+  (define xmlXPathError '@TYPEOF_XMLXPATHERROR@)
+  (define
+    sizeof-xmlXPathError
+    @SIZEOF_XMLXPATHERROR@)
+  (define
+    alignof-xmlXPathError
+    @ALIGNOF_XMLXPATHERROR@)
+  (define
+    strideof-xmlXPathError
+    @STRIDEOF_XMLXPATHERROR@)
+  (define
+    pointer-ref-c-xmlXPathError
+    @GETTEROF_XMLXPATHERROR@)
+  (define
+    pointer-set-c-xmlXPathError!
+    @SETTEROF_XMLXPATHERROR@)
   (define
     XPATH_EXPRESSION_OK
     @VALUEOF_XPATH_EXPRESSION_OK@)
@@ -8406,6 +10830,24 @@
     @OFFSETOF_XMLNODESET_NODETAB@
     @SETTEROF_XMLNODESET_NODETAB@
     @GETTEROF_XMLNODESET_NODETAB@)
+  (define
+    xmlXPathObjectType
+    '@TYPEOF_XMLXPATHOBJECTTYPE@)
+  (define
+    sizeof-xmlXPathObjectType
+    @SIZEOF_XMLXPATHOBJECTTYPE@)
+  (define
+    alignof-xmlXPathObjectType
+    @ALIGNOF_XMLXPATHOBJECTTYPE@)
+  (define
+    strideof-xmlXPathObjectType
+    @STRIDEOF_XMLXPATHOBJECTTYPE@)
+  (define
+    pointer-ref-c-xmlXPathObjectType
+    @GETTEROF_XMLXPATHOBJECTTYPE@)
+  (define
+    pointer-set-c-xmlXPathObjectType!
+    @SETTEROF_XMLXPATHOBJECTTYPE@)
   (define
     XPATH_UNDEFINED
     @VALUEOF_XPATH_UNDEFINED@)
@@ -8902,6 +11344,12 @@
     @OFFSETOF_XMLXPATHPARSERCONTEXT_ANCESTOR@
     @SETTEROF_XMLXPATHPARSERCONTEXT_ANCESTOR@
     @GETTEROF_XMLXPATHPARSERCONTEXT_ANCESTOR@)
+  (define xmlXPathConvertFunc 'pointer)
+  (define xmlXPathEvalFunc 'pointer)
+  (define xmlXPathAxisFunc 'pointer)
+  (define xmlXPathFunction 'pointer)
+  (define xmlXPathVariableLookupFunc 'pointer)
+  (define xmlXPathFuncLookupFunc 'pointer)
   (define xmlLocationSet* 'pointer)
   (define xmlLocationSetPtr 'pointer)
   (define

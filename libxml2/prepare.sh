@@ -9,7 +9,7 @@ set -x
         configure -ot aclocal.m4                                -o \
         configure -ot infrastructure/develstuff.autoconf        -o \
         configure -ot configuration/nausicaa.autoconf           -o \
-        configure -ot configuration/template-inspector.m4
+        configure -ot configuration/libxml2-inspector.m4
         then
         autoconf
     fi)

@@ -40,7 +40,7 @@
 ;;;; callback makers
 
 (define (make-xml-c14n-is-visible-callback scheme-function)
-  (makc-c-callback* int
+  (make-c-callback* int
 		    scheme-function
 		    (void* xmlNodePtr xmlNodePtr)))
 
@@ -160,9 +160,9 @@
 		    scheme-function
 		    (void* xmlChar*)))
 
-(define (make- scheme-function)
+(define (make-entity-decl-sax-func scheme-function)
   (make-c-callback* void
-		    entityDeclSAXFunc
+		    scheme-function
 		    (void* xmlChar* int xmlChar* xmlChar* xmlChar*)))
 
 (define (make-notation-decl-sax-func scheme-function)

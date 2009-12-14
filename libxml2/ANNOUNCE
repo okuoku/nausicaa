@@ -1,0 +1,54 @@
+To: comp.lang.scheme
+Subject: [announce] Nausicaa/Libxml2 --- tag 0.1b0
+
+		      Nausicaa/Libxml2
+		      ================
+
+Nausicaa/Libxml2 is  a distribution of  Scheme libraries for
+R6RS  Scheme implementations; it  provides bindings  for the
+Libxml2 C  language library, the  XML toolkit for  the GNOME
+project.   It  is built  upon  the Nausicaa/Scheme  package,
+making use of its foreign-functions interface.
+
+  The package  works with  Ikarus, Mosh and  Ypsilon Scheme;
+Larceny Scheme is not  supported.  The package supports only
+GNU+Linux systems.
+
+  The  latest  release  of  the  Nausicaa/Libxml2  package  is
+available at:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+the documentation is available on line:
+
+   <http://marcomaggi.github.com/docs/nausicaa-Libxml2.html>
+
+Libxml2 is available here:
+
+		   <http://xmlsoft.org/>
+
+
+Notes for --- tag 0.1b0
+------------------------------
+
+* It has been tested with Libxml2 version 2.7.6.
+
+* Requires Nausicaa/Scheme version 0.1a8.
+
+* It was really boring to interface this. :-D
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:

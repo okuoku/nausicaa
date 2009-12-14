@@ -54,7 +54,10 @@ dnl --------------------------------------------------------------------
 CPPFLAGS="$XML_CPPFLAGS $CPPFLAGS"
 
 m4_define([NAUSICAA_CUSTOM_INCLUDES],[
-#include <libxml2/libxml/DOCBparser.h>
+#ifndef offsetof
+#  define offsetof(type, member) ((char *) &((type *) 0)->member - (char *) 0)
+#endif
+
 #include <libxml2/libxml/debugXML.h>
 #include <libxml2/libxml/nanohttp.h>
 #include <libxml2/libxml/tree.h>

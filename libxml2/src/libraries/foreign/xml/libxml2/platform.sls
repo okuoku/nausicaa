@@ -525,17 +525,17 @@
     xmlSchematronNewMemParserCtxt
     xmlSchematronNewDocParserCtxt
     xmlSchematronFreeParserCtxt
-    xmlSchematronSetParserErrors
-    xmlSchematronGetParserErrors
-    xmlSchematronIsValid
+;;; xmlSchematronSetParserErrors
+;;; xmlSchematronGetParserErrors
+;;; xmlSchematronIsValid
     xmlSchematronParse
     xmlSchematronFree
     xmlSchematronSetValidStructuredErrors
-    xmlSchematronSetValidErrors
-    xmlSchematronGetValidErrors
-    xmlSchematronSetValidOptions
-    xmlSchematronValidCtxtGetOptions
-    xmlSchematronValidateOneElement
+;;;    xmlSchematronSetValidErrors
+;;;    xmlSchematronGetValidErrors
+;;;    xmlSchematronSetValidOptions
+;;;    xmlSchematronValidCtxtGetOptions
+;;;    xmlSchematronValidateOneElement
     xmlSchematronNewValidCtxt
     xmlSchematronFreeValidCtxt
     xmlSchematronValidateDoc
@@ -556,7 +556,7 @@
     xmlIsMainThread
     xmlCleanupThreads
     xmlGetGlobalState
-    xmlDllMain
+;;;    xmlDllMain
 
     ;; interfaces for tree manipulation
     xmlValidateNCName
@@ -1063,6 +1063,10 @@
     xmlSaveSetEscape
     xmlSaveSetAttrEscape
 
+    ;; internal interfaces for XML Schemas
+    xmlSchemaFreeType
+    xmlSchemaFreeWildcard
+
     ;; incomplete XML Schemas structure implementation
     xmlSchemaNewParserCtxt
     xmlSchemaNewMemParserCtxt
@@ -1452,6 +1456,31 @@
     (foreign xml libxml2 sizeof))
 
 
+(define char**		'pointer)
+(define int*		'pointer)
+(define int**		'pointer)
+(define void**		'pointer)
+(define unsigned-long*	'pointer)
+(define unsigned-char*	'pointer)
+
+(define xmlRelaxNGValidityErrorFunc*		'pointer)
+(define xmlRelaxNGValidityWarningFunc*		'pointer)
+(define xmlGenericErrorFunc*			'pointer)
+(define xmlTextReaderErrorFunc*			'pointer)
+(define xmlSchematronValidityErrorFunc*		'pointer)
+(define xmlSchematronValidityWarningFunc*	'pointer)
+
+(define xmlSchemaValidityErrorFunc*		'pointer)
+(define xmlSchemaValidityWarningFunc*		'pointer)
+(define xmlSAXHandlerPtr*			'pointer)
+
+(define xmlNsPtr*				'pointer)
+(define xmlFreeFunc*				'pointer)
+(define xmlMallocFunc*				'pointer)
+(define xmlReallocFunc*				'pointer)
+(define xmlStrdupFunc*				'pointer)
+
+
 ;;;; Canonical XML and Exclusive XML Canonicalization
 ;;
 ;; Header file "c14.h".
@@ -1459,7 +1488,7 @@
 
 (define-c-functions libxml2-shared-object
   (xmlC14NDocSaveTo
-   (int xmlC14NDocSaveTo (xmlDocPtr xmlNodeSetPtr int mode xmlChar** int xmlOutputBufferPtr)))
+   (int xmlC14NDocSaveTo (xmlDocPtr xmlNodeSetPtr int xmlChar** int xmlOutputBufferPtr)))
   (xmlC14NDocDumpMemory
    (int xmlC14NDocDumpMemory (xmlDocPtr xmlNodeSetPtr int xmlChar** int xmlChar**)))
   (xmlC14NDocSave
@@ -1500,13 +1529,13 @@
       (<= #xd8 c #xf6)
       (<= #xf8 c)))
 
+(define xmlIsBaseCharGroup
+  (lookup-shared-object* libxml2-shared-object 'xmlIsBaseCharGroup))
+
 (define (xmlIsBaseCharQ c)
   (if (< c #x100)
       (xmlIsBaseChar_ch c)
     (xmlCharInRange c xmlIsBaseCharGroup)))
-
-(define xmlIsBaseCharGroup
-  (lookup-shared-object* libxml2-shared-object xmlIsBaseCharGroup))
 
 (define (xmlIsBlank_ch c)
   (or (= c #x20)
@@ -1531,7 +1560,7 @@
 	(<= #x10000 c #x10ffff))))
 
 (define xmlIsCharGroup
-  (lookup-shared-object* libxml2-shared-object xmlIsCharGroup))
+  (lookup-shared-object* libxml2-shared-object 'xmlIsCharGroup))
 
 (define (xmlIsCombiningQ c)
   (if (< c #x100)
@@ -1539,7 +1568,7 @@
     (xmlCharInRange c xmlIsCombiningGroup)))
 
 (define xmlIsCombiningGroup
-  (lookup-shared-object* libxml2-shared-object xmlIsCombiningGroup))
+  (lookup-shared-object* libxml2-shared-object 'xmlIsCombiningGroup))
 
 (define (xmlIsDigit_ch c)
   (<= #x30 c #x39))
@@ -1550,7 +1579,7 @@
     (xmlCharInRange c xmlIsDigitGroup)))
 
 (define xmlIsDigitGroup
-  (lookup-shared-object* libxml2-shared-object xmlIsDigitGroup))
+  (lookup-shared-object* libxml2-shared-object 'xmlIsDigitGroup))
 
 (define (xmlIsExtender_ch c)
   (= c #xb7))
@@ -1561,7 +1590,7 @@
     (xmlCharInRange c xmlIsExtenderGroup)))
 
 (define xmlIsExtenderGroup
-  (lookup-shared-object* libxml2-shared-object xmlIsExtenderGroup))
+  (lookup-shared-object* libxml2-shared-object 'xmlIsExtenderGroup))
 
 (define (xmlIsIdeographicQ c)
   (if (< c #x100)
@@ -1571,10 +1600,10 @@
 	(<= #x3021 c #x3029))))
 
 (define xmlIsIdeographicGroup
-  (lookup-shared-object* libxml2-shared-object xmlIsIdeographicGroup))
+  (lookup-shared-object* libxml2-shared-object 'xmlIsIdeographicGroup))
 
 (define xmlIsPubidChar_tab
-  (lookup-shared-object* libxml2-shared-object xmlIsPubidChar_tab))
+  (lookup-shared-object* libxml2-shared-object 'xmlIsPubidChar_tab))
 
 (define (xmlIsPubidChar_ch c)
   (pointer-ref-c-unsigned-char xmlIsPubidChar_tab c))
@@ -1722,7 +1751,7 @@
   (xmlCatalogResolve
    (xmlChar* xmlCatalogResolve (xmlChar* xmlChar*)))
   (xmlCatalogResolveSystem
-   (xmlChar* xmlCatalogResolveSystem (xmlChar* sysID)))
+   (xmlChar* xmlCatalogResolveSystem (xmlChar*)))
   (xmlCatalogResolvePublic
    (xmlChar* xmlCatalogResolvePublic (xmlChar*)))
   (xmlCatalogResolveURI
@@ -1992,10 +2021,10 @@
   (htmlCreatePushParserCtxt	(htmlParserCtxtPtr htmlCreatePushParserCtxt
 					   (htmlSAXHandlerPtr void* char* int char* xmlCharEncoding)))
   (htmlParseChunk		(int htmlParseChunk (htmlParserCtxtPtr char* int int)))
-  (htmlFreeParserCtxt		(void htmlFreeParserCtxt (htmlParserCtxtPtr))))
+  (htmlFreeParserCtxt		(void htmlFreeParserCtxt (htmlParserCtxtPtr)))
 
-  (htmlCtxtReset		(void htmlCtxtReset (htmlParserCtxtPtr ctxt)))
-  (htmlCtxtUseOptions		(int htmlCtxtUseOptions (htmlParserCtxtPtr ctxt, int options)))
+  (htmlCtxtReset		(void htmlCtxtReset (htmlParserCtxtPtr)))
+  (htmlCtxtUseOptions		(int htmlCtxtUseOptions (htmlParserCtxtPtr int)))
   (htmlReadDoc			(htmlDocPtr htmlReadDoc (xmlChar* char* char* int)))
   (htmlReadFile			(htmlDocPtr htmlReadFile (char* char* int)))
   (htmlReadMemory		(htmlDocPtr htmlReadMemory (char* int char* char* int)))
@@ -2057,7 +2086,7 @@
   (htmlSaveFileFormat
    (int htmlSaveFileFormat (char* xmlDocPtr char* int)))
   (htmlNodeDumpFormatOutput
-   (void htmlNodeDumpFormatOutput (xmlOutputBufferPtr xmlDocPtr xmlNodePtr char* inte)))
+   (void htmlNodeDumpFormatOutput (xmlOutputBufferPtr xmlDocPtr xmlNodePtr char* int)))
   (htmlDocContentDumpOutput
    (void htmlDocContentDumpOutput (xmlOutputBufferPtr xmlDocPtr char*)))
   (htmlDocContentDumpFormatOutput
@@ -2461,7 +2490,7 @@
 	 (xmlRelaxNGParserCtxtPtr xmlRelaxNGValidityErrorFunc xmlRelaxNGValidityWarningFunc void*)))
   (xmlRelaxNGGetParserErrors
    (int xmlRelaxNGGetParserErrors
-	(xmlRelaxNGParserCtxtPtr xmlRelaxNGValidityErrorFunc* xmlRelaxNGValidityWarningFunc * void**)))
+	(xmlRelaxNGParserCtxtPtr xmlRelaxNGValidityErrorFunc xmlRelaxNGValidityWarningFunc void**)))
   (xmlRelaxNGSetParserStructuredErrors
    (void xmlRelaxNGSetParserStructuredErrors
 	 (xmlRelaxNGParserCtxtPtr xmlStructuredErrorFunc void*)))
@@ -2477,7 +2506,7 @@
   ;; #endif /* LIBXML_OUTPUT_ENABLED */
   (xmlRelaxNGSetValidErrors
    (void xmlRelaxNGSetValidErrors
-	 (xmlRelaxNGValidCtxtPtr xmlRelaxNGValidityErrorFunc xmlRelaxNGValidityWarningFunc void*)))
+	 (xmlRelaxNGValidCtxtPtr xmlRelaxNGValidityErrorFunc* xmlRelaxNGValidityWarningFunc* void*)))
   (xmlRelaxNGGetValidErrors
    (int xmlRelaxNGGetValidErrors
 	(xmlRelaxNGValidCtxtPtr xmlRelaxNGValidityErrorFunc* xmlRelaxNGValidityWarningFunc* void**)))
@@ -2608,18 +2637,18 @@
    (xmlSchematronParserCtxtPtr xmlSchematronNewDocParserCtxt (xmlDocPtr)))
   (xmlSchematronFreeParserCtxt
    (void xmlSchematronFreeParserCtxt (xmlSchematronParserCtxtPtr)))
-  (xmlSchematronSetParserErrors
-   (void xmlSchematronSetParserErrors (xmlSchematronParserCtxtPtr
-				       xmlSchematronValidityErrorFunc
-				       xmlSchematronValidityWarningFunc
-				       void*)))
-  (xmlSchematronGetParserErrors
-   (int xmlSchematronGetParserErrors (xmlSchematronParserCtxtPtr
-				      xmlSchematronValidityErrorFunc*
-				      xmlSchematronValidityWarningFunc*
-				      void**)))
-  (xmlSchematronIsValid
-   (int xmlSchematronIsValid (xmlSchematronValidCtxtPtr)))
+;;; (xmlSchematronSetParserErrors
+;;;  (void xmlSchematronSetParserErrors (xmlSchematronParserCtxtPtr
+;;; 				       xmlSchematronValidityErrorFunc
+;;; 				       xmlSchematronValidityWarningFunc
+;;; 				       void*)))
+;;; (xmlSchematronGetParserErrors
+;;;  (int xmlSchematronGetParserErrors (xmlSchematronParserCtxtPtr
+;;; 				      xmlSchematronValidityErrorFunc*
+;;; 				      xmlSchematronValidityWarningFunc*
+;;; 				      void**)))
+;;; (xmlSchematronIsValid
+;;;  (int xmlSchematronIsValid (xmlSchematronValidCtxtPtr)))
   (xmlSchematronParse
    (xmlSchematronPtr xmlSchematronParse (xmlSchematronParserCtxtPtr)))
   (xmlSchematronFree
@@ -2628,22 +2657,22 @@
    (void xmlSchematronSetValidStructuredErrors (xmlSchematronValidCtxtPtr
 						xmlStructuredErrorFunc
 						void*)))
-  (xmlSchematronSetValidErrors
-   (void xmlSchematronSetValidErrors (xmlSchematronValidCtxtPtr
-				      xmlSchematronValidityErrorFunc
-				      xmlSchematronValidityWarningFunc
-				      void*)))
-  (xmlSchematronGetValidErrors
-   (int xmlSchematronGetValidErrors (xmlSchematronValidCtxtPtr
-				     xmlSchematronValidityErrorFunc*
-				     xmlSchematronValidityWarningFunc*
-				     void**)))
-  (xmlSchematronSetValidOptions
-   (int xmlSchematronSetValidOptions (xmlSchematronValidCtxtPtr int)))
-  (xmlSchematronValidCtxtGetOptions
-   (int xmlSchematronValidCtxtGetOptions (xmlSchematronValidCtxtPtr)))
-  (xmlSchematronValidateOneElement
-   (int xmlSchematronValidateOneElement (xmlSchematronValidCtxtPtr xmlNodePtr)))
+;;; (xmlSchematronSetValidErrors
+;;;  (void xmlSchematronSetValidErrors (xmlSchematronValidCtxtPtr
+;;; 				      xmlSchematronValidityErrorFunc
+;;; 				      xmlSchematronValidityWarningFunc
+;;; 				      void*)))
+;;; (xmlSchematronGetValidErrors
+;;;  (int xmlSchematronGetValidErrors (xmlSchematronValidCtxtPtr
+;;; 				     xmlSchematronValidityErrorFunc*
+;;; 				     xmlSchematronValidityWarningFunc*
+;;; 				     void**)))
+;;; (xmlSchematronSetValidOptions
+;;;  (int xmlSchematronSetValidOptions (xmlSchematronValidCtxtPtr int)))
+;;; (xmlSchematronValidCtxtGetOptions
+;;;  (int xmlSchematronValidCtxtGetOptions (xmlSchematronValidCtxtPtr)))
+;;; (xmlSchematronValidateOneElement
+;;;  (int xmlSchematronValidateOneElement (xmlSchematronValidCtxtPtr xmlNodePtr)))
   (xmlSchematronNewValidCtxt
    (xmlSchematronValidCtxtPtr xmlSchematronNewValidCtxt (xmlSchematronPtr int)))
   (xmlSchematronFreeValidCtxt
@@ -2690,8 +2719,8 @@
   (xmlGetGlobalState
    (xmlGlobalStatePtr xmlGetGlobalState (void)))
   ;; #if defined(HAVE_WIN32_THREADS) && !defined(HAVE_COMPILER_TLS) && defined(LIBXML_STATIC_FOR_DLL)
-  (xmlDllMain
-   (int xmlDllMain (void* unsigned-long void*)))
+;;;  (xmlDllMain
+;;;   (int xmlDllMain (void* unsigned-long void*)))
   ;; #endif
   )
 
@@ -2737,7 +2766,7 @@
   (xmlBufferResize
    (int xmlBufferResize (xmlBufferPtr unsigned-int)))
   (xmlBufferFree
-   (void xmlBufferFree (xmlBufferPtr buf)))
+   (void xmlBufferFree (xmlBufferPtr)))
   (xmlBufferDump
    (int xmlBufferDump (FILE* xmlBufferPtr)))
   (xmlBufferAdd
@@ -2998,7 +3027,7 @@
   (xmlBufferWriteQuotedString
    (void xmlBufferWriteQuotedString (xmlBufferPtr xmlChar*)))
   ;; #ifdef LIBXML_OUTPUT_ENABLED
-  (xmlDocPtr
+  (xmlAttrSerializeTxtContent
    (void xmlAttrSerializeTxtContent (xmlBufferPtr xmlDocPtr xmlAttrPtr xmlChar*)))
   ;; #endif /* LIBXML_OUTPUT_ENABLED */
   ;; #ifdef LIBXML_TREE_ENABLED
@@ -3046,7 +3075,7 @@
   (xmlGetCompressMode
    (int xmlGetCompressMode (void)))
   (xmlSetCompressMode
-   (void xmlSetCompressMode (int mode)))
+   (void xmlSetCompressMode (int)))
   (xmlDOMWrapNewCtxt
    (xmlDOMWrapCtxtPtr xmlDOMWrapNewCtxt (void)))
   (xmlDOMWrapFreeCtxt
@@ -3537,7 +3566,7 @@
   (xmlIOFTPRead
    (int xmlIOFTPRead (void* char* int)))
   (xmlIOFTPClose
-   (int xmlIOFTPClose (void*  context)))
+   (int xmlIOFTPClose (void*)))
   ;;#endif /* LIBXML_FTP_ENABLED */
   )
 
@@ -3893,6 +3922,18 @@
    (int xmlSaveSetAttrEscape (xmlSaveCtxtPtr xmlCharEncodingOutputFunc))))
 
 
+;;;; internal interfaces for XML Schemas
+;;
+;;Header file "schemasInternals.h"
+;;
+
+(define-c-functions libxml2-shared-object
+  (xmlSchemaFreeType
+   (void xmlSchemaFreeType (xmlSchemaTypePtr)))
+  (xmlSchemaFreeWildcard
+   (void xmlSchemaFreeWildcard (xmlSchemaWildcardPtr))))
+
+
 ;;;; incomplete XML Schemas structure implementation
 ;;
 ;;Header file "xmlschemas.h".
@@ -3969,7 +4010,7 @@
 
 ;;;; implementation of XML Schema Datatypes
 ;;
-;;Header file "xmlschemestypes.h".
+;;Header file "xmlschemastypes.h".
 ;;
 
 (define-c-functions libxml2-shared-object
@@ -4589,7 +4630,7 @@
   (xmlTextWriterStartPI
    (int xmlTextWriterStartPI (xmlTextWriterPtr xmlChar*)))
   (xmlTextWriterEndPI
-   (int xmlTextWriterEndPI (xmlTextWriterPtr writer)))
+   (int xmlTextWriterEndPI (xmlTextWriterPtr)))
   ;;Variadic!!!
   ;;
   ;; (xmlTextWriterWriteFormatPI
