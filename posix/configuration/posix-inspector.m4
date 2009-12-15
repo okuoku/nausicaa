@@ -157,6 +157,34 @@ NAUSICAA_INSPECT_STRUCT_TYPE([GROUP],[struct group],[#f])
 NAUSICAA_INSPECT_FIELD_TYPE([GROUP_GR_NAME],[struct group],[gr_name],[pointer])
 NAUSICAA_INSPECT_FIELD_TYPE([GROUP_GR_GID],[struct group],[gr_gid],[signed-int])
 NAUSICAA_INSPECT_FIELD_TYPE([GROUP_GR_MEM],[struct group],[gr_mem],[pointer])
+
+dnl Struct inspection: utsname
+NAUSICAA_INSPECT_STRUCT_TYPE([UTSNAME],[struct utsname],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE_POINTER([UTSNAME_SYSNAME],[struct utsname],[sysname])
+NAUSICAA_INSPECT_FIELD_TYPE_POINTER([UTSNAME_RELEASE],[struct utsname],[release])
+NAUSICAA_INSPECT_FIELD_TYPE_POINTER([UTSNAME_VERSION],[struct utsname],[version])
+NAUSICAA_INSPECT_FIELD_TYPE_POINTER([UTSNAME_MACHINE],[struct utsname],[machine])
+NAUSICAA_INSPECT_FIELD_TYPE_POINTER([UTSNAME_NODENAME],[struct utsname],[nodename])
+NAUSICAA_INSPECT_FIELD_TYPE_POINTER([UTSNAME_DOMAINNAME],[struct utsname],[domainname])
+
+dnl Struct inspection: fstab
+NAUSICAA_INSPECT_STRUCT_TYPE([FSTAB],[struct fstab],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([FSTAB_FS_SPEC],[struct fstab],[fs_spec],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([FSTAB_FS_FILE],[struct fstab],[fs_file],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([FSTAB_FS_VFSTYPE],[struct fstab],[fs_vfstype],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([FSTAB_FS_MNTOPS],[struct fstab],[fs_mntops],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([FSTAB_FS_TYPE],[struct fstab],[fs_type],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([FSTAB_FS_FREQ],[struct fstab],[fs_freq],[signed-int])
+NAUSICAA_INSPECT_FIELD_TYPE([FSTAB_FS_PASSNO],[struct fstab],[fs_passno],[signed-int])
+
+dnl Struct inspection: mntent
+NAUSICAA_INSPECT_STRUCT_TYPE([MNTENT],[struct mntent],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([MNTENT_MNT_FSNAME],[struct mntent],[mnt_fsname],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([MNTENT_MNT_DIR],[struct mntent],[mnt_dir],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([MNTENT_MNT_TYPE],[struct mntent],[mnt_type],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([MNTENT_MNT_OPTS],[struct mntent],[mnt_opts],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([MNTENT_MNT_FREQ],[struct mntent],[mnt_freq],[signed-int])
+NAUSICAA_INSPECT_FIELD_TYPE([MNTENT_MNT_PASSNO],[struct mntent],[mnt_passno],[signed-int])
 AC_CACHE_SAVE
 
 dnl Preprocessor symbols: seek whence arguments
@@ -631,6 +659,31 @@ NAUSICAA_DEFINE_VALUE([_CS_LFS64_CFLAGS])
 NAUSICAA_DEFINE_VALUE([_CS_LFS64_LDFLAGS])
 NAUSICAA_DEFINE_VALUE([_CS_LFS64_LIBS])
 NAUSICAA_DEFINE_VALUE([_CS_LFS64_LINTFLAGS])
+
+dnl String preprocessor symbols: file system files pathnames
+NAUSICAA_STRING_TEST([_PATH_MNTTAB],[_PATH_MNTTAB])
+NAUSICAA_STRING_TEST([_PATH_FSTAB],[_PATH_FSTAB])
+NAUSICAA_STRING_TEST([_PATH_MOUNTED],[_PATH_MOUNTED])
+
+dnl String preprocessor symbols: mount options
+NAUSICAA_STRING_TEST([FSTAB_RW],[FSTAB_RW])
+NAUSICAA_STRING_TEST([FSTAB_RQ],[FSTAB_RQ])
+NAUSICAA_STRING_TEST([FSTAB_RO],[FSTAB_RO])
+NAUSICAA_STRING_TEST([FSTAB_SW],[FSTAB_SW])
+NAUSICAA_STRING_TEST([FSTAB_XX],[FSTAB_XX])
+
+dnl String preprocessor symbols: values for the mnt_type field of struct mtab
+NAUSICAA_STRING_TEST([MNTTYPE_IGNORE],[MNTTYPE_IGNORE])
+NAUSICAA_STRING_TEST([MNTTYPE_NFS],[MNTTYPE_NFS])
+NAUSICAA_STRING_TEST([MNTTYPE_SWAP],[MNTTYPE_SWAP])
+
+dnl String preprocessor symbols: values for the mnt_opts field of struct mtab
+NAUSICAA_STRING_TEST([MNTOPT_DEFAULTS],[MNTOPT_DEFAULTS])
+NAUSICAA_STRING_TEST([MNTOPT_RO],[MNTOPT_RO])
+NAUSICAA_STRING_TEST([MNTOPT_RW],[MNTOPT_RW])
+NAUSICAA_STRING_TEST([MNTOPT_SUID],[MNTOPT_SUID])
+NAUSICAA_STRING_TEST([MNTOPT_NOSUID],[MNTOPT_NOSUID])
+NAUSICAA_STRING_TEST([MNTOPT_NOAUTO],[MNTOPT_NOAUTO])
 AC_CACHE_SAVE
 
 dnl end of file

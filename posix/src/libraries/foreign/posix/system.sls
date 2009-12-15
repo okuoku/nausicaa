@@ -26,7 +26,12 @@
 
 
 (library (foreign posix system)
-  (export sysconf pathconf fpathconf confstr)
+  (export
+    sysconf pathconf fpathconf confstr
+    gethostname sethostname
+    getdomainname setdomainname
+    uname
+    )
   (import (rnrs)
     (foreign posix helpers)
     (prefix (foreign posix system primitives) primitive:))
@@ -34,6 +39,13 @@
   (define-parametrised sysconf param)
   (define-parametrised pathconf pathname param)
   (define-parametrised fpathconf fd param)
-  (define-parametrised confstr param))
+  (define-parametrised confstr param)
+
+  (define-parametrised gethostname)
+  (define-parametrised sethostname host-name)
+  (define-parametrised getdomainname)
+  (define-parametrised setdomainname domain-name)
+  (define-parametrised uname)
+  )
 
 ;;; end of file

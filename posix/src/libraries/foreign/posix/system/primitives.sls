@@ -28,17 +28,25 @@
 (library (foreign posix system primitives)
   (export
     sysconf		pathconf
-    fpathconf		confstr)
+    fpathconf		confstr
+
+    gethostname		sethostname
+    getdomainname	setdomainname
+    uname
+    )
   (import (rnrs)
     (receive)
     (compensations)
     (foreign memory)
     (foreign errno)
     (foreign cstrings)
+    (foreign posix sizeof)
     (foreign posix typedefs)
     (prefix (foreign posix system platform) platform:))
 
 
+;;;; system configuration inspection
+
 (define (sysconf param)
   (receive (result errno)
       (platform:sysconf param)
@@ -81,6 +89,68 @@
 	    (if (= 0 len)
 		(raise-errno-error 'pathconf errno param)
 	      (cstring->string cstr (- len 1)))))))))
+
+
+;;;; host names
+
+(define (gethostname)
+  (with-compensations
+    (let ((len 64))
+      (let loop ((name.ptr (malloc-block/c len))
+		 (name.len len))
+	(receive (result errno)
+	    (platform:gethostname name.ptr name.len)
+	  (if (= -1 result)
+	      (if (= errno ENAMETOOLONG)
+		  (loop)
+		(raise-errno-error 'gethostname errno))
+	    (cstring->string name.ptr)))))))
+
+(define (sethostname host-name)
+  (with-compensations
+    (let* ((buf.ptr (cstring->string host-name))
+	   (buf.len (strlen buf.ptr)))
+      (receive (result errno)
+	  (platform:sethostname buf.ptr buf.len)
+	(if (= -1 result)
+	    (raise-errno-error 'sethostname errno host-name)
+	  result)))))
+
+(define (getdomainname)
+  (with-compensations
+    (let ((len 64))
+      (let loop ((name.ptr (malloc-block/c len))
+		 (name.len len))
+	(receive (result errno)
+	    (platform:getdomainname name.ptr name.len)
+	  (if (= -1 result)
+	      (if (= errno ENAMETOOLONG)
+		  (loop)
+		(raise-errno-error 'getdomainname errno))
+	    (cstring->string name.ptr)))))))
+
+(define (setdomainname host-name)
+  (with-compensations
+    (let* ((buf.ptr (cstring->string host-name))
+	   (buf.len (strlen buf.ptr)))
+      (receive (result errno)
+	  (platform:setdomainname buf.ptr buf.len)
+	(if (= -1 result)
+	    (raise-errno-error 'setdomainname errno host-name)
+	  result)))))
+
+
+;;;; platform types
+
+(define (uname)
+  (with-compensations
+    (let ((utsname* (malloc-block/c sizeof-utsname)))
+      (receive (result errno)
+	  (platform:uname utsname*)
+	(if (= -1 result)
+	    (raise-errno-error 'uname errno)
+	  (pointer->struct-utsname utsname*))))))
+
 
 
 ;;;; done

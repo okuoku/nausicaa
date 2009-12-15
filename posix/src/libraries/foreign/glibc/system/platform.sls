@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa/POSIX
 ;;;Contents: direct bindings for system inspection
-;;;Date: Wed Dec  9, 2009
+;;;Date: Tue Dec 15, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -25,29 +25,21 @@
 ;;;
 
 
-(library (foreign posix system platform)
+(library (foreign glibc system platform)
   (export
-    sysconf		pathconf
-    fpathconf		confstr
-
-    gethostname		sethostname
-    getdomainname	setdomainname
-    uname
+    setfsent		endfsent
+    getfsent		getfsspec		getfsfile
     )
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof)
     (foreign posix shared-object))
-  (define-c-functions/with-errno libc-shared-object
-    (sysconf		(long sysconf (int)))
-    (pathconf		(long pathconf (char* int)))
-    (fpathconf		(long fpathconf (int int)))
-    (confstr		(size_t confstr (int char* size_t)))
-
-    (gethostname	(int gethostname (char* size_t)))
-    (sethostname	(int sethostname (char* size_t)))
-    (getdomainname	(int getdomainname (char* size_t)))
-    (setdomainname	(int setdomainname (char* size_t)))
-    (uname		(int uname (void*)))))
+  (define-c-functions libc-shared-object
+    (setfsent		(int setfsent (void)))
+    (endfsent		(int endfsent (void)))
+    (getfsent		(void* getfsent (void)))
+    (getfsspec		(void* getfsspec (char*)))
+    (getfsfile		(void* getfsfile (char*)))
+    ))
 
 ;;; end of file

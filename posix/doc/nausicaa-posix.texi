@@ -6577,10 +6577,208 @@ exported by the following libraries:
 @end example
 
 @menu
+* system typedefs::             Types definition.
 * system constants::            Constant values.
 * system inspection::           Inspecting configuration.
 * system host::                 Host identification.
+* system uname::                Platform identification.
+* system mount::                Mounting file systems.
 @end menu
+
+@c page
+@node system typedefs
+@section Types definition
+
+
+The bindings documented in this section are exported by the
+@library{foreign posix typedefs} library.
+
+@menu
+* system typedefs utsname::     Platform type informations.
+* system typedefs fstab::       Mountable file systems informations.
+* system typedefs mtab::        Mounted file systems informations.
+@end menu
+
+@c page
+@node system typedefs utsname
+@subsection Platform type informations
+
+
+@deftp {Record Type Name} <struct-utsname>
+@deftpx {Record Type Descriptor} <struct-utsname-rtd>
+Record type used to mirror C language structures of type @code{struct
+utsname}.  It has the following mutable fields:
+
+@table @code
+@item sysname
+A Scheme string representing the operating system name.
+
+@item release
+A Scheme string representing the operating system release.
+
+@item version
+A Scheme string representing the operating system version.
+
+@item machine
+A Scheme string representing the hardware.
+@end table
+@end deftp
+
+
+@defun make-<struct-utsname> @var{sysname} @var{release} @var{version} @var{machine}
+@defunx <struct-utsname>? @var{obj}
+Constructor and predicate for records of type @class{struct-utsname}.
+@end defun
+
+
+@defun <struct-utsname>-sysname @var{record}
+@defunx <struct-utsname>-sysname-set! @var{record} @var{value}
+@defunx <struct-utsname>-release @var{record}
+@defunx <struct-utsname>-release-set! @var{record} @var{value}
+@defunx <struct-utsname>-version @var{record}
+@defunx <struct-utsname>-version-set! @var{record} @var{value}
+@defunx <struct-utsname>-machine @var{record}
+@defunx <struct-utsname>-machine-set! @var{record} @var{value}
+Accessors and mutators for records of type @class{struct-utsname}.
+@end defun
+
+
+@defun pointer->struct-utsname @var{pointer}
+Build and return a new record of type @class{struct-utsname} initialised
+with data from the C structure of type @code{struct utsname} referenced
+by @var{pointer}.
+@end defun
+
+@c page
+@node system typedefs fstab
+@subsection Mountable file systems informations
+
+
+@deftp {Record Type Name} <struct-fstab>
+@deftpx {Record Type Descriptor} <struct-fstab-rtd>
+Record type used to mirror C language structures of type @code{struct
+fstab}.  It has the following mutable fields:
+
+@table @code
+@item spec
+A Scheme string representing the device from which the file system is
+mounted.
+
+@item file
+A Scheme string representing the mount point.
+
+@item vfstype
+A Scheme string representing the type of file system.
+
+@item mntops
+A Scheme string representing the options handed to the kernel when
+mounting.
+
+@item type
+A Scheme string representing the modes with which the file system is
+mounted.
+
+@item freq
+An exact integer representing the dump frequency in days.
+
+@item passno
+An exact integer representing the pass number on parallel dumps.
+@end table
+@end deftp
+
+
+@defun make-<struct-fstab> @var{spec} @var{file} @var{vfstype} @var{mntops} @var{type} @var{freq} @var{passno}
+@defunx <struct-fstab>? @var{obj}
+Constructor and predicate for records of type @class{struct-fstab}.
+@end defun
+
+
+@defun <struct-fstab>-spec @var{record}
+@defunx <struct-fstab>-spec-set! @var{record} @var{value}
+@defunx <struct-fstab>-file @var{record}
+@defunx <struct-fstab>-file-set! @var{record} @var{value}
+@defunx <struct-fstab>-vfstype @var{record}
+@defunx <struct-fstab>-vfstype-set! @var{record} @var{value}
+@defunx <struct-fstab>-mntops @var{record}
+@defunx <struct-fstab>-mntops-set! @var{record} @var{value}
+@defunx <struct-fstab>-type @var{record}
+@defunx <struct-fstab>-type-set! @var{record} @var{value}
+@defunx <struct-fstab>-type @var{record}
+@defunx <struct-fstab>-type-set! @var{record} @var{value}
+@defunx <struct-fstab>-freq @var{record}
+@defunx <struct-fstab>-freq-set! @var{record} @var{value}
+@defunx <struct-fstab>-passno @var{record}
+@defunx <struct-fstab>-passno-set! @var{record} @var{value}
+Accessors and mutators for records of type @class{struct-fstab}.
+@end defun
+
+
+@defun pointer->struct-fstab @var{pointer}
+Build and return a new record of type @class{struct-fstab} initialised
+with data from the C structure of type @code{struct fstab} referenced by
+@var{pointer}.
+@end defun
+
+@c page
+@node system typedefs mtab
+@subsection Mounted file systems informations
+
+
+@deftp {Record Type Name} <struct-mtab>
+@deftpx {Record Type Descriptor} <struct-mtab-rtd>
+Record type used to mirror C language structures of type @code{struct
+mtab}.  It has the following mutable fields:
+
+@table @code
+@item fsname
+A Scheme string representing the device from which the file system is
+mounted.
+
+@item dir
+A Scheme string representing the mount point.
+
+@item type
+A Scheme string representing the file system type.
+
+@item opts
+A Scheme string representing the mount options.
+
+@item freq
+An exact integer representing the dump frequency in days.
+
+@item passno
+An exact integer representing the pass number on parallel dumps.
+@end table
+@end deftp
+
+
+@defun make-<struct-mtab> @var{fsname} @var{dir} @var{type} @var{opts} @var{freq} @var{passno}
+@defunx <struct-mtab>? @var{obj}
+Constructor and predicate for records of type @class{struct-mtab}.
+@end defun
+
+
+@defun <struct-mtab>-fsname @var{record}
+@defunx <struct-mtab>-fsname-set! @var{record} @var{value}
+@defunx <struct-mtab>-dir @var{record}
+@defunx <struct-mtab>-dir-set! @var{record} @var{value}
+@defunx <struct-mtab>-type @var{record}
+@defunx <struct-mtab>-type-set! @var{record} @var{value}
+@defunx <struct-mtab>-opts @var{record}
+@defunx <struct-mtab>-opts-set! @var{record} @var{value}
+@defunx <struct-mtab>-freq @var{record}
+@defunx <struct-mtab>-freq-set! @var{record} @var{value}
+@defunx <struct-mtab>-passno @var{record}
+@defunx <struct-mtab>-passno-set! @var{record} @var{value}
+Accessors and mutators for records of type @class{struct-mtab}.
+@end defun
+
+
+@defun pointer->struct-mtab @var{pointer}
+Build and return a new record of type @class{struct-mtab} initialised
+with data from the C structure of type @code{struct mtab} referenced by
+@var{pointer}.
+@end defun
 
 @c page
 @node system constants
@@ -6929,6 +7127,39 @@ Program Capacity Limits}.
 String--valued system configuration parameters.
 @end defvr
 
+
+@defvr Constant _PATH_MNTTAB
+@defvrx Constant _PATH_FSTAB
+@defvrx Constant _PATH_MOUNTED
+File system related files pathnames as strings.
+@end defvr
+
+
+@defvr Constant FSTAB_RW
+@defvrx Constant FSTAB_RQ
+@defvrx Constant FSTAB_RO
+@defvrx Constant FSTAB_SW
+@defvrx Constant FSTAB_XX
+Mount options as strings.
+@end defvr
+
+
+@defvr Constant MNTTYPE_IGNORE
+@defvrx Constant MNTTYPE_NFS
+@defvrx Constant MNTTYPE_SWAP
+Values for the @code{mnt_type} field of @code{struct mtab}.
+@end defvr
+
+
+@defvr Constant MNTOPT_DEFAULTS
+@defvrx Constant MNTOPT_RO
+@defvrx Constant MNTOPT_RW
+@defvrx Constant MNTOPT_SUID
+@defvrx Constant MNTOPT_NOSUID
+@defvrx Constant MNTOPT_NOAUTO
+Values for the @code{mnt_opts} field of @code{struct mtab}.
+@end defvr
+
 @c page
 @node system inspection
 @section Inspecting configuration
@@ -6989,8 +7220,152 @@ constants, Constant values}.
 @section Host identification
 
 
+The following functions manage local host identification.
 @glibcref{Host Identification, Host Identification}.
 
+
+@deffn Function gethostname
+@deffnx Parameter gethostname-function
+@deffnx Function primitive:gethostname
+@deffnx Function platform:gethostname @var{buf-ptr} @var{buf-len}
+Return a Scheme string representing the local host name.
+@end deffn
+
+
+@deffn Function sethostname @var{host-name}
+@deffnx Parameter sethostname-function
+@deffnx Function primitive:sethostname @var{host-name}
+@deffnx Function platform:sethostname @var{buf-ptr} @var{buf-len}
+Set the local host name to @var{host-name}, a Scheme string or symbol.
+@end deffn
+
+
+@deffn Function getdomainname
+@deffnx Parameter getdomainname-function
+@deffnx Function primitive:getdomainname
+@deffnx Function platform:getdomainname @var{buf-ptr} @var{buf-len}
+Return a Scheme string representing the local domain name.
+@end deffn
+
+
+@deffn Function setdomainname @var{host-name}
+@deffnx Parameter setdomainname-function
+@deffnx Function primitive:setdomainname @var{host-name}
+@deffnx Function platform:setdomainname @var{buf-ptr} @var{buf-len}
+Set the local domain name to @var{host-name}, a Scheme string or symbol.
+@end deffn
+
+
+@c page
+@node system uname
+@section Platform identification
+
+
+The following functions manage platform identification.
+@glibcref{Platform Type, Platform Type Identification}.
+
+
+@deffn Function uname
+@deffnx Parameter uname-function
+@deffnx Function primitive:uname
+@deffnx Function platform:uname @var{struct-ptr}
+Return a record of type @class{struct-utsname} describing the underlying
+platform.
+@end deffn
+
+
+@c page
+@node system mount
+@section Mounting file systems
+
+
+Unless otherwise specified, the functions documented in this section are
+exported by the following libraries:
+
+@example
+(foreign glibc system)
+(foreign glibc system primitives)
+(foreign glibc system platform)
+@end example
+
+@noindent
+The following functions manage reading the @file{fstab} file.
+@glibcref{fstab, The @file{fstab} file}.
+
+
+@deffn Function setfsent
+@deffnx Parameter setfsent-function
+@deffnx Function primitive:setfsent
+@deffnx Function platform:setfsent
+Initialise the next iteration over the @file{fstab} file.  Raise an
+exception if an error occurs.
+@end deffn
+
+
+@deffn Function endfsent
+@deffnx Parameter endfsent-function
+@deffnx Function primitive:endfsent
+@deffnx Function platform:endfsent
+Finalise the last iteration over the @file{fstab} file.  Raise an
+exception if an error occurs.
+@end deffn
+
+
+@deffn Function getfsent
+@deffnx Parameter getfsent-function
+@deffnx Function primitive:getfsent
+@deffnx Function platform:getfsent
+Return a record of type @class{struct-fstab} describing the next entry
+in the @file{fstab} file.  It is impossible to distinguish between
+errors and end of iteration, so when no more records can be returned:
+the return value is @false{}.
+
+@example
+(setfsent)
+(let ((tabs (let loop ((tabs '()))
+              (let ((t (getfsent)))
+                (if t
+                    (loop (cons t tabs))
+                  (begin
+                    (endfsent)
+                    tabs))))))
+  ---)
+@end example
+@end deffn
+
+
+@deffn Function getfsspec @var{spec}
+@deffnx Parameter getfsspec-function
+@deffnx Function primitive:getfsspec @var{spec}
+@deffnx Function platform:getfsspec @var{spec}
+Return a record of type @class{struct-fstab} describing the next entry
+in the @file{fstab} file having @var{spec}, a Scheme string or symbol,
+as content of the @code{fs_spec} field.  It is impossible to distinguish
+between errors and end of iteration, so when no more records can be
+returned: the return value is @false{}.
+
+Multiple, successful, calls to this function may return the same result
+and never @false{}.
+@end deffn
+
+
+@deffn Function getfsfile @var{file}
+@deffnx Parameter getfsfile-function
+@deffnx Function primitive:getfsfile @var{file}
+@deffnx Function platform:getfsfile @var{file}
+Return a record of type @class{struct-fstab} describing the next entry
+in the @file{fstab} file having @var{file}, a Scheme string or symbol,
+as content of the @code{fs_file} field.  It is impossible to distinguish
+between errors and end of iteration, so when no more records can be
+returned: the return value is @false{}.
+
+Multiple, successful, calls to this function may return the same result
+and never @false{}.
+@end deffn
+
+
+The following functions manage reading the @file{mtab} file.
+@glibcref{mtab, The @file{mtab} file}.
 
 
 @c page

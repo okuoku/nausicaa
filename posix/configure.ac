@@ -58,8 +58,11 @@ AC_CHECK_HEADERS([unistd.h])
 AC_CHECK_HEADERS([dirent.h])
 AC_CHECK_HEADERS([fcntl.h])
 AC_CHECK_HEADERS([ftw.h])
-AC_CHECK_HEADERS([pwd.h])
+AC_CHECK_HEADERS([fstab.h])
 AC_CHECK_HEADERS([grp.h])
+AC_CHECK_HEADERS([mntent.h])
+AC_CHECK_HEADERS([paths.h])
+AC_CHECK_HEADERS([pwd.h])
 AC_CHECK_HEADERS([sys/mman.h])
 AC_CHECK_HEADERS([sys/select.h])
 AC_CHECK_HEADERS([sys/stat.h])
@@ -67,6 +70,7 @@ AC_CHECK_HEADERS([sys/time.h])
 AC_CHECK_HEADERS([sys/times.h])
 AC_CHECK_HEADERS([sys/timex.h])
 AC_CHECK_HEADERS([sys/types.h])
+AC_CHECK_HEADERS([sys/utsname.h])
 AC_CHECK_HEADERS([sys/wait.h])
 AC_CHECK_HEADERS([time.h])
 AC_CHECK_HEADERS([unistd.h])
@@ -92,6 +96,9 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #ifdef HAVE_FTW_H
 #  include <ftw.h>
 #endif
+#ifdef HAVE_FSTAB_H
+#  include <fstab.h>
+#endif
 #ifdef HAVE_GRP_H
 #  include <grp.h>
 #endif
@@ -100,6 +107,12 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #endif
 #ifdef HAVE_LIMITS_H
 #  include <limits.h>
+#endif
+#ifdef HAVE_MNTENT_H
+#  include <mntent.h>
+#endif
+#ifdef HAVE_PATHS_H
+#  include <paths.h>
 #endif
 #ifdef HAVE_PWD_H
 #  include <pwd.h>
@@ -133,6 +146,9 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #endif
 #ifdef HAVE_SYS_WAIT_H
 #  include <sys/wait.h>
+#endif
+#ifdef HAVE_SYS_UTSNAME_H
+#  include <sys/utsname.h>
 #endif
 #ifdef HAVE_STDINT_H
 #  include <stdint.h>

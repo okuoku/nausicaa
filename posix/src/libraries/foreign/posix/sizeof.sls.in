@@ -280,6 +280,47 @@
     struct-group-gr_gid-ref
     struct-group-gr_mem-set!
     struct-group-gr_mem-ref
+    sizeof-utsname
+    alignof-utsname
+    strideof-utsname
+    struct-utsname-sysname-ref
+    struct-utsname-release-ref
+    struct-utsname-version-ref
+    struct-utsname-machine-ref
+    struct-utsname-nodename-ref
+    struct-utsname-domainname-ref
+    sizeof-fstab
+    alignof-fstab
+    strideof-fstab
+    struct-fstab-fs_spec-set!
+    struct-fstab-fs_spec-ref
+    struct-fstab-fs_file-set!
+    struct-fstab-fs_file-ref
+    struct-fstab-fs_vfstype-set!
+    struct-fstab-fs_vfstype-ref
+    struct-fstab-fs_mntops-set!
+    struct-fstab-fs_mntops-ref
+    struct-fstab-fs_type-set!
+    struct-fstab-fs_type-ref
+    struct-fstab-fs_freq-set!
+    struct-fstab-fs_freq-ref
+    struct-fstab-fs_passno-set!
+    struct-fstab-fs_passno-ref
+    sizeof-mntent
+    alignof-mntent
+    strideof-mntent
+    struct-mntent-mnt_fsname-set!
+    struct-mntent-mnt_fsname-ref
+    struct-mntent-mnt_dir-set!
+    struct-mntent-mnt_dir-ref
+    struct-mntent-mnt_type-set!
+    struct-mntent-mnt_type-ref
+    struct-mntent-mnt_opts-set!
+    struct-mntent-mnt_opts-ref
+    struct-mntent-mnt_freq-set!
+    struct-mntent-mnt_freq-ref
+    struct-mntent-mnt_passno-set!
+    struct-mntent-mnt_passno-ref
     SEEK_SET
     SEEK_CUR
     SEEK_END
@@ -695,7 +736,24 @@
     _CS_LFS64_CFLAGS
     _CS_LFS64_LDFLAGS
     _CS_LFS64_LIBS
-    _CS_LFS64_LINTFLAGS)
+    _CS_LFS64_LINTFLAGS
+    _PATH_MNTTAB
+    _PATH_FSTAB
+    _PATH_MOUNTED
+    FSTAB_RW
+    FSTAB_RQ
+    FSTAB_RO
+    FSTAB_SW
+    FSTAB_XX
+    MNTTYPE_IGNORE
+    MNTTYPE_NFS
+    MNTTYPE_SWAP
+    MNTOPT_DEFAULTS
+    MNTOPT_RO
+    MNTOPT_RW
+    MNTOPT_SUID
+    MNTOPT_NOSUID
+    MNTOPT_NOAUTO)
   (import
     (rnrs)
     (foreign ffi)
@@ -1237,6 +1295,111 @@
     @OFFSETOF_GROUP_GR_MEM@
     @SETTEROF_GROUP_GR_MEM@
     @GETTEROF_GROUP_GR_MEM@)
+  (define sizeof-utsname @SIZEOF_UTSNAME@)
+  (define alignof-utsname @ALIGNOF_UTSNAME@)
+  (define strideof-utsname @STRIDEOF_UTSNAME@)
+  (define-c-struct-field-pointer-accessor
+    struct-utsname-sysname-ref
+    @OFFSETOF_UTSNAME_SYSNAME@)
+  (define-c-struct-field-pointer-accessor
+    struct-utsname-release-ref
+    @OFFSETOF_UTSNAME_RELEASE@)
+  (define-c-struct-field-pointer-accessor
+    struct-utsname-version-ref
+    @OFFSETOF_UTSNAME_VERSION@)
+  (define-c-struct-field-pointer-accessor
+    struct-utsname-machine-ref
+    @OFFSETOF_UTSNAME_MACHINE@)
+  (define-c-struct-field-pointer-accessor
+    struct-utsname-nodename-ref
+    @OFFSETOF_UTSNAME_NODENAME@)
+  (define-c-struct-field-pointer-accessor
+    struct-utsname-domainname-ref
+    @OFFSETOF_UTSNAME_DOMAINNAME@)
+  (define sizeof-fstab @SIZEOF_FSTAB@)
+  (define alignof-fstab @ALIGNOF_FSTAB@)
+  (define strideof-fstab @STRIDEOF_FSTAB@)
+  (define-c-struct-accessor-and-mutator
+    struct-fstab-fs_spec-set!
+    struct-fstab-fs_spec-ref
+    @OFFSETOF_FSTAB_FS_SPEC@
+    @SETTEROF_FSTAB_FS_SPEC@
+    @GETTEROF_FSTAB_FS_SPEC@)
+  (define-c-struct-accessor-and-mutator
+    struct-fstab-fs_file-set!
+    struct-fstab-fs_file-ref
+    @OFFSETOF_FSTAB_FS_FILE@
+    @SETTEROF_FSTAB_FS_FILE@
+    @GETTEROF_FSTAB_FS_FILE@)
+  (define-c-struct-accessor-and-mutator
+    struct-fstab-fs_vfstype-set!
+    struct-fstab-fs_vfstype-ref
+    @OFFSETOF_FSTAB_FS_VFSTYPE@
+    @SETTEROF_FSTAB_FS_VFSTYPE@
+    @GETTEROF_FSTAB_FS_VFSTYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-fstab-fs_mntops-set!
+    struct-fstab-fs_mntops-ref
+    @OFFSETOF_FSTAB_FS_MNTOPS@
+    @SETTEROF_FSTAB_FS_MNTOPS@
+    @GETTEROF_FSTAB_FS_MNTOPS@)
+  (define-c-struct-accessor-and-mutator
+    struct-fstab-fs_type-set!
+    struct-fstab-fs_type-ref
+    @OFFSETOF_FSTAB_FS_TYPE@
+    @SETTEROF_FSTAB_FS_TYPE@
+    @GETTEROF_FSTAB_FS_TYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-fstab-fs_freq-set!
+    struct-fstab-fs_freq-ref
+    @OFFSETOF_FSTAB_FS_FREQ@
+    @SETTEROF_FSTAB_FS_FREQ@
+    @GETTEROF_FSTAB_FS_FREQ@)
+  (define-c-struct-accessor-and-mutator
+    struct-fstab-fs_passno-set!
+    struct-fstab-fs_passno-ref
+    @OFFSETOF_FSTAB_FS_PASSNO@
+    @SETTEROF_FSTAB_FS_PASSNO@
+    @GETTEROF_FSTAB_FS_PASSNO@)
+  (define sizeof-mntent @SIZEOF_MNTENT@)
+  (define alignof-mntent @ALIGNOF_MNTENT@)
+  (define strideof-mntent @STRIDEOF_MNTENT@)
+  (define-c-struct-accessor-and-mutator
+    struct-mntent-mnt_fsname-set!
+    struct-mntent-mnt_fsname-ref
+    @OFFSETOF_MNTENT_MNT_FSNAME@
+    @SETTEROF_MNTENT_MNT_FSNAME@
+    @GETTEROF_MNTENT_MNT_FSNAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-mntent-mnt_dir-set!
+    struct-mntent-mnt_dir-ref
+    @OFFSETOF_MNTENT_MNT_DIR@
+    @SETTEROF_MNTENT_MNT_DIR@
+    @GETTEROF_MNTENT_MNT_DIR@)
+  (define-c-struct-accessor-and-mutator
+    struct-mntent-mnt_type-set!
+    struct-mntent-mnt_type-ref
+    @OFFSETOF_MNTENT_MNT_TYPE@
+    @SETTEROF_MNTENT_MNT_TYPE@
+    @GETTEROF_MNTENT_MNT_TYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-mntent-mnt_opts-set!
+    struct-mntent-mnt_opts-ref
+    @OFFSETOF_MNTENT_MNT_OPTS@
+    @SETTEROF_MNTENT_MNT_OPTS@
+    @GETTEROF_MNTENT_MNT_OPTS@)
+  (define-c-struct-accessor-and-mutator
+    struct-mntent-mnt_freq-set!
+    struct-mntent-mnt_freq-ref
+    @OFFSETOF_MNTENT_MNT_FREQ@
+    @SETTEROF_MNTENT_MNT_FREQ@
+    @GETTEROF_MNTENT_MNT_FREQ@)
+  (define-c-struct-accessor-and-mutator
+    struct-mntent-mnt_passno-set!
+    struct-mntent-mnt_passno-ref
+    @OFFSETOF_MNTENT_MNT_PASSNO@
+    @SETTEROF_MNTENT_MNT_PASSNO@
+    @GETTEROF_MNTENT_MNT_PASSNO@)
   (define SEEK_SET @VALUEOF_SEEK_SET@)
   (define SEEK_CUR @VALUEOF_SEEK_CUR@)
   (define SEEK_END @VALUEOF_SEEK_END@)
@@ -1984,7 +2147,28 @@
   (define _CS_LFS64_LIBS @VALUEOF__CS_LFS64_LIBS@)
   (define
     _CS_LFS64_LINTFLAGS
-    @VALUEOF__CS_LFS64_LINTFLAGS@))
+    @VALUEOF__CS_LFS64_LINTFLAGS@)
+  (define _PATH_MNTTAB "@STRINGOF__PATH_MNTTAB@")
+  (define _PATH_FSTAB "@STRINGOF__PATH_FSTAB@")
+  (define _PATH_MOUNTED "@STRINGOF__PATH_MOUNTED@")
+  (define FSTAB_RW "@STRINGOF_FSTAB_RW@")
+  (define FSTAB_RQ "@STRINGOF_FSTAB_RQ@")
+  (define FSTAB_RO "@STRINGOF_FSTAB_RO@")
+  (define FSTAB_SW "@STRINGOF_FSTAB_SW@")
+  (define FSTAB_XX "@STRINGOF_FSTAB_XX@")
+  (define
+    MNTTYPE_IGNORE
+    "@STRINGOF_MNTTYPE_IGNORE@")
+  (define MNTTYPE_NFS "@STRINGOF_MNTTYPE_NFS@")
+  (define MNTTYPE_SWAP "@STRINGOF_MNTTYPE_SWAP@")
+  (define
+    MNTOPT_DEFAULTS
+    "@STRINGOF_MNTOPT_DEFAULTS@")
+  (define MNTOPT_RO "@STRINGOF_MNTOPT_RO@")
+  (define MNTOPT_RW "@STRINGOF_MNTOPT_RW@")
+  (define MNTOPT_SUID "@STRINGOF_MNTOPT_SUID@")
+  (define MNTOPT_NOSUID "@STRINGOF_MNTOPT_NOSUID@")
+  (define MNTOPT_NOAUTO "@STRINGOF_MNTOPT_NOAUTO@"))
 
 
 ;;; end of file

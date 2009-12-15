@@ -1,8 +1,8 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: direct bindings for system inspection
-;;;Date: Wed Dec  9, 2009
+;;;Contents: parametrised API for glibc system inspection
+;;;Date: Tue Dec 15, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -25,29 +25,22 @@
 ;;;
 
 
-(library (foreign posix system platform)
+(library (foreign glibc system)
   (export
-    sysconf		pathconf
-    fpathconf		confstr
+    setfsent		endfsent
+    getfsent		getfsspec		getfsfile
 
-    gethostname		sethostname
-    getdomainname	setdomainname
-    uname
     )
   (import (rnrs)
-    (foreign ffi)
-    (foreign ffi sizeof)
-    (foreign posix shared-object))
-  (define-c-functions/with-errno libc-shared-object
-    (sysconf		(long sysconf (int)))
-    (pathconf		(long pathconf (char* int)))
-    (fpathconf		(long fpathconf (int int)))
-    (confstr		(size_t confstr (int char* size_t)))
+    (foreign posix helpers)
+    (prefix (foreign glibc system primitives) primitive:))
 
-    (gethostname	(int gethostname (char* size_t)))
-    (sethostname	(int sethostname (char* size_t)))
-    (getdomainname	(int getdomainname (char* size_t)))
-    (setdomainname	(int setdomainname (char* size_t)))
-    (uname		(int uname (void*)))))
+  (define-parametrised setfsent)
+  (define-parametrised endfsent)
+  (define-parametrised getfsent)
+  (define-parametrised getfsspec spec)
+  (define-parametrised getfsfile file)
+
+  )
 
 ;;; end of file

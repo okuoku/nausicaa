@@ -29,10 +29,12 @@
   (strings)
   (compensations)
   (deferred-exceptions)
+  (pretty-print)
   (foreign errno)
   (foreign posix sizeof)
   (foreign posix typedefs)
   (prefix (foreign posix system) posix:)
+  (prefix (foreign glibc system) glibc:)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -58,6 +60,78 @@
       (check
 	  (posix:confstr _CS_PATH)
 	=> "/bin:/usr/bin")
+
+      #t)))
+
+
+(parameterize ((check-test-name	'names)
+	       (debugging	#f))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in names" E))
+    (lambda ()
+
+      (check
+	  (posix:gethostname)
+	=> "rapitore")
+
+      (check
+	  (posix:getdomainname)
+	=> "(none)")
+
+      (check
+	  (let ((r (posix:uname)))
+	    (<struct-utsname>? r))
+	=> #t)
+
+      (check
+	  (let ((r (posix:uname)))
+	    (<struct-utsname>-sysname r))
+	=> "Linux")
+
+      #t)))
+
+
+(parameterize ((check-test-name	'mount)
+	       (debugging	#f))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in mount" E))
+    (lambda ()
+
+      (check
+	  (begin
+	    (glibc:setfsent)
+	    (let ((tabs (let loop ((tabs '()))
+			  (let ((t (glibc:getfsent)))
+			    (if t
+				(loop (cons t tabs))
+			      (begin
+				(glibc:endfsent)
+				tabs))))))
+;;;(pretty-print tabs)
+	      (for-all <struct-fstab>? tabs)))
+	=> #t)
+
+      (check
+	  (begin
+	    (glibc:setfsent)
+	    (let ((tab (glibc:getfsspec "/dev/sda3")))
+	      (glibc:endfsent)
+;;;(pretty-print tab)(newline)
+	      (<struct-fstab>? tab)))
+	=> #t)
+
+      (check
+	  (begin
+	    (glibc:setfsent)
+	    (let ((tab (glibc:getfsfile "/")))
+	      (glibc:endfsent)
+;;;(pretty-print tab)(newline)
+	      (<struct-fstab>? tab)))
+	=> #t)
 
       #t)))
 

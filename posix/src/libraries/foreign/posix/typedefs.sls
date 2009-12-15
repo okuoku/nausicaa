@@ -59,6 +59,40 @@
     <struct-group>-mem		<struct-group>-mem-set!
     pointer->struct-group
 
+;;; --------------------------------------------------------------------
+
+    <struct-utsname>		<struct-utsname-rtd>
+    make-<struct-utsname>	<struct-utsname>?
+    <struct-utsname>-sysname	<struct-utsname>-sysname-set!
+    <struct-utsname>-release	<struct-utsname>-release-set!
+    <struct-utsname>-version	<struct-utsname>-version-set!
+    <struct-utsname>-machine	<struct-utsname>-machine-set!
+    pointer->struct-utsname
+
+;;; --------------------------------------------------------------------
+
+    <struct-fstab>		<struct-fstab-rtd>
+    make-<struct-fstab>		<struct-fstab>?
+    <struct-fstab>-spec		<struct-fstab>-spec-set!
+    <struct-fstab>-file		<struct-fstab>-file-set!
+    <struct-fstab>-vfstype	<struct-fstab>-vfstype-set!
+    <struct-fstab>-mntops	<struct-fstab>-mntops-set!
+    <struct-fstab>-type		<struct-fstab>-type-set!
+    <struct-fstab>-freq		<struct-fstab>-freq-set!
+    <struct-fstab>-passno	<struct-fstab>-passno-set!
+    pointer->struct-fstab
+
+;;; --------------------------------------------------------------------
+
+    <struct-mtab>		<struct-mtab-rtd>
+    <struct-mtab>-fsname	<struct-mtab>-fsname-set!
+    <struct-mtab>-dir		<struct-mtab>-dir-set!
+    <struct-mtab>-type		<struct-mtab>-type-set!
+    <struct-mtab>-opts		<struct-mtab>-opts-set!
+    <struct-mtab>-freq		<struct-mtab>-freq-set!
+    <struct-mtab>-passno	<struct-mtab>-passno-set!
+    pointer->struct-mtab
+
     )
   (import (rnrs)
     (only (foreign cstrings)
@@ -154,6 +188,67 @@
   (make-<struct-group> (cstring->string (struct-group-gr_name-ref group*))
 		       (integer->gid (struct-group-gr_gid-ref group*))
 		       (argv->strings (struct-group-gr_mem-ref group*))))
+
+
+(define-record-type <struct-utsname>
+  (nongenerative nausicaa:posix:struct-utsname)
+  (fields (mutable sysname)
+	  (mutable release)
+	  (mutable version)
+	  (mutable machine)))
+
+(define <struct-utsname-rtd>
+  (record-type-descriptor <struct-utsname>))
+
+(define (pointer->struct-utsname utsname*)
+  (make-<struct-utsname> (cstring->string (struct-utsname-sysname-ref utsname*))
+			 (cstring->string (struct-utsname-release-ref utsname*))
+			 (cstring->string (struct-utsname-version-ref utsname*))
+			 (cstring->string (struct-utsname-machine-ref utsname*))))
+
+
+(define-record-type <struct-fstab>
+  (nongenerative nausicaa:posix:struct-fstab)
+  (fields (mutable spec)
+	  (mutable file)
+	  (mutable vfstype)
+	  (mutable mntops)
+	  (mutable type)
+	  (mutable freq)
+	  (mutable passno)))
+
+(define <struct-fstab-rtd>
+  (record-type-descriptor <struct-fstab>))
+
+(define (pointer->struct-fstab fstab*)
+  (make-<struct-fstab> (cstring->string (struct-fstab-fs_spec-ref fstab*))
+		       (cstring->string (struct-fstab-fs_file-ref fstab*))
+		       (cstring->string (struct-fstab-fs_vfstype-ref fstab*))
+		       (cstring->string (struct-fstab-fs_mntops-ref fstab*))
+		       (cstring->string (struct-fstab-fs_type-ref fstab*))
+		       (struct-fstab-fs_freq-ref fstab*)
+		       (struct-fstab-fs_passno-ref fstab*)))
+
+
+(define-record-type <struct-mtab>
+  (nongenerative nausicaa:posix:struct-mtab)
+  (fields (mutable fsname)
+	  (mutable dir)
+	  (mutable type)
+	  (mutable opts)
+	  (mutable freq)
+	  (mutable passno)))
+
+(define <struct-mtab-rtd>
+  (record-type-descriptor <struct-mtab>))
+
+(define (pointer->struct-mtab mtab*)
+  (make-<struct-mtab> (cstring->string (struct-mtab-mnt_fsname-ref mtab*))
+		      (cstring->string (struct-mtab-mnt_dir-ref mtab*))
+		      (cstring->string (struct-mtab-mnt_type-ref mtab*))
+		      (cstring->string (struct-mtab-mnt_opts-ref mtab*))
+		      (struct-mtab-mnt_freq-ref mtab*)
+		      (struct-mtab-mnt_passno-ref mtab*)))
 
 
 ;;;; done

@@ -1,8 +1,3 @@
-* system inspection
-
-  Interface sysconf(3).
-  Interface posixoptions(7).
-
 * stub
 * glibc
 
@@ -20,6 +15,7 @@
 * posix
 
   Node "System Management".
+  Interface posixoptions(7).
 
   Node "Signal Handling".
 
@@ -31,4 +27,7 @@
 
   Add a library  with an interface to the  "waitid()" function described
   in the waitpid manual page (linux specific).
+
+  Decide  what to do  for the  "sysctl()" call,  glibc info  doc "System
+  Parameters".
 

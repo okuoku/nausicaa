@@ -227,6 +227,34 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (signed-int		gr_gid)
   (pointer		gr_mem))
 
+(define-c-struct utsname
+  "struct utsname"
+  (embedded		sysname)
+  (embedded		release)
+  (embedded		version)
+  (embedded		machine)
+  (embedded		nodename)
+  (embedded		domainname))
+
+(define-c-struct fstab
+  "struct fstab"
+  (pointer		fs_spec)
+  (pointer		fs_file)
+  (pointer		fs_vfstype)
+  (pointer		fs_mntops)
+  (pointer		fs_type)
+  (signed-int		fs_freq)
+  (signed-int		fs_passno))
+
+(define-c-struct mntent
+  "struct mntent"
+  (pointer		mnt_fsname)
+  (pointer		mnt_dir)
+  (pointer		mnt_type)
+  (pointer		mnt_opts)
+  (signed-int		mnt_freq)
+  (signed-int		mnt_passno))
+
 (autoconf-lib "AC_CACHE_SAVE")
 
 
@@ -709,6 +737,31 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   _CS_LFS64_LDFLAGS
   _CS_LFS64_LIBS
   _CS_LFS64_LINTFLAGS)
+
+(define-c-string-defines "file system files pathnames"
+  _PATH_MNTTAB
+  _PATH_FSTAB
+  _PATH_MOUNTED)
+
+(define-c-string-defines "mount options"
+  FSTAB_RW
+  FSTAB_RQ
+  FSTAB_RO
+  FSTAB_SW
+  FSTAB_XX)
+
+(define-c-string-defines "values for the mnt_type field of struct mtab"
+  MNTTYPE_IGNORE
+  MNTTYPE_NFS
+  MNTTYPE_SWAP)
+
+(define-c-string-defines "values for the mnt_opts field of struct mtab"
+  MNTOPT_DEFAULTS
+  MNTOPT_RO
+  MNTOPT_RW
+  MNTOPT_SUID
+  MNTOPT_NOSUID
+  MNTOPT_NOAUTO)
 
 (autoconf-lib "AC_CACHE_SAVE")
 
