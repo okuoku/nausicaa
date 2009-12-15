@@ -39,6 +39,11 @@
 
     getpwuid		getpwuid_r
     getpwnam		getpwnam_r
+    fgetpwent		fgetpwent_r
+
+    getgrgid		getgrgid_r
+    getgrnam		getgrnam_r
+    fgetgrent		fgetgrent_r
     )
   (import (rnrs)
     (foreign ffi)
@@ -67,6 +72,14 @@
     (getpwuid_r		(void* getpwuid_r (uid_t void* char* size_t void*)))
     (getpwnam		(void* getpwnam (char*)))
     (getpwnam_r		(void* getpwnam_r (char* void* char* size_t void*)))
+    (fgetpwent		(void* fgetpwent (FILE*)))
+    (fgetpwent_r	(int fgetpwent_r (FILE* void* char* size_t void*)))
+    (getgrgid		(void* getgrgid (uid_t)))
+    (getgrgid_r		(void* getgrgid_r (uid_t void* char* size_t void*)))
+    (getgrnam		(void* getgrnam (char*)))
+    (getgrnam_r		(void* getgrnam_r (char* void* char* size_t void*)))
+    (fgetgrent		(void* fgetgrent (FILE*)))
+    (fgetgrent_r	(int fgetgrent_r (FILE* void* char* size_t void*)))
     ))
 
 ;;; end of file

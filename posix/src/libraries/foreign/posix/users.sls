@@ -43,7 +43,8 @@
 
     getlogin		cuserid
     getpwuid		getpwnam
-
+    getgrgid		getgrnam
+    fgetpwent		fgetgrent
     )
   (import (rnrs)
     (foreign posix helpers)
@@ -70,6 +71,11 @@
 
 (define-parametrised getpwuid uid)
 (define-parametrised getpwnam user-name)
+(define-parametrised fgetpwent stream)
+
+(define-parametrised getgrgid uid)
+(define-parametrised getgrnam user-name)
+(define-parametrised fgetgrent stream)
 
 
 ;;;; done

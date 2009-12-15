@@ -221,6 +221,12 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (pointer		pw_dir)
   (pointer		pw_shell))
 
+(define-c-struct group
+  "struct group"
+  (pointer		gr_name)
+  (signed-int		gr_gid)
+  (pointer		gr_mem))
+
 (autoconf-lib "AC_CACHE_SAVE")
 
 

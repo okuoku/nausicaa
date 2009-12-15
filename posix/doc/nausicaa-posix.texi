@@ -668,6 +668,13 @@ Users and groups
 * users mutators::              Changing user and group identifiers.
 * users login::                 Retrieving user login names.
 * users userdb::                Users database.
+* users groupdb::               Groups database.
+
+Object type definitions
+
+* users typedefs uid::          User identifiers.
+* users typedefs gid::          Group identifiers.
+* users typedefs passwd::       User informations.
 
 More C string functions
 
@@ -6103,6 +6110,7 @@ exported by the following libraries:
 * users mutators::              Changing user and group identifiers.
 * users login::                 Retrieving user login names.
 * users userdb::                Users database.
+* users groupdb::               Groups database.
 @end menu
 
 @c page
@@ -6110,15 +6118,25 @@ exported by the following libraries:
 @section Object type definitions
 
 
+The bindings documented in this section are exported by the
+@library{foreign posix typedefs} library.
+
+@menu
+* users typedefs uid::          User identifiers.
+* users typedefs gid::          Group identifiers.
+* users typedefs passwd::       User informations.
+* users typedefs groups::       Groups informations.
+@end menu
+
+@c page
+@node users typedefs uid
+@subsection User identifiers
+
+
 Functions from the primitives and high--level libraries accept objects
-of type @code{uid} and @code{gid} as values for the @var{uid} and
-@var{gid} arguments.  Functions from the platform libraries accept exact
-integers as representing user and group identifiers.  The following
-bindings are exported by the @library{foreign posix typedefs} library.
-
-@c ------------------------------------------------------------
-
-@subsubheading User identifiers
+of type @code{uid} as values for the @var{uid} arguments; functions from
+the platform libraries accept exact integers as representing user
+identifiers.
 
 
 @deftp {Object Type} uid
@@ -6137,9 +6155,15 @@ Return true if @var{obj} is of type @code{uid}.
 Convert between @code{uid} objects and integer objects.
 @end defun
 
-@c ------------------------------------------------------------
+@c page
+@node users typedefs gid
+@subsection Group identifiers
 
-@subsubheading Group identifiers
+
+Functions from the primitives and high--level libraries accept objects
+of type @code{gid} as values for the @var{gid} arguments; functions from
+the platform libraries accept exact integers as representing group
+identifiers.
 
 
 @deftp {Object Type} gid
@@ -6156,6 +6180,106 @@ Return true if @var{obj} is of type @code{gid}.
 @defun gid->integer @var{gid}
 @defunx integer->gid @var{integer}
 Convert between @code{gid} objects and integer objects.
+@end defun
+
+@c page
+@node users typedefs passwd
+@subsection User informations
+
+
+@deftp {Record Type Name} <struct-passwd>
+@deftpx {Record Type Descriptor} <struct-passwd-rtd>
+Record type that mirrors @code{struct passwd} C language data
+structures.  It has the following mutable fields:
+
+@table @code
+@item name
+Scheme string representing the user's name.
+
+@item passwd
+Scheme string representing the password field content.
+
+@item uid
+A @code{uid} object representing the user's identifier.
+
+@item gid
+A @code{gid} object representing the user's group identifier.
+
+@item gecos
+A Scheme string representing the user's real name and possibly other
+informations.
+
+@item dir
+A Scheme string representing the user's home directory or initial
+working directory.  It can be @false{}.
+
+@item shell
+A Scheme string representing the user's default shell.  It can be
+@false{}.
+@end table
+@end deftp
+
+
+@defun make-<struct-passwd> @var{name} @var{passwd} @var{uid} @var{gid} @var{gecos} @var{dir} @var{shell}
+@defunx <struct-passwd>? @var{obj}
+Constructor and predicate for records of type @class{struct-passwd}.
+@end defun
+
+
+@defun <struct-passwd>-name @var{record}
+@defunx <struct-passwd>-name-set! @var{record} @var{value}
+@defunx <struct-passwd>-passwd @var{record}
+@defunx <struct-passwd>-passwd-set! @var{record} @var{value}
+@defunx <struct-passwd>-uid @var{record}
+@defunx <struct-passwd>-uid-set! @var{record} @var{value}
+@defunx <struct-passwd>-gid @var{record}
+@defunx <struct-passwd>-gid-set! @var{record} @var{value}
+@defunx <struct-passwd>-gecos @var{record}
+@defunx <struct-passwd>-gecos-set! @var{record} @var{value}
+@defunx <struct-passwd>-dir @var{record}
+@defunx <struct-passwd>-dir-set! @var{record} @var{value}
+@defunx <struct-passwd>-shell @var{record}
+@defunx <struct-passwd>-shell-set! @var{record} @var{value}
+Accessors and mutators for records of type @class{struct-passwd}.
+@end defun
+
+@c page
+@node users typedefs groups
+@subsection Groups informations
+
+
+@deftp {Record Type Name} <struct-group>
+@deftpx {Record Type Descriptor} <struct-group-rtd>
+Record type that mirrors @code{struct passwd} C language data
+structures.  It has the following mutable fields:
+
+@table @code
+@item name
+A Scheme string representing the group name.
+
+@item gid
+A @code{gid} object representing the group identifier.
+
+@item mem
+A list of Scheme strings representing the name of the users registered
+in this group.
+@end table
+@end deftp
+
+
+@defun make-<struct-group> @var{name} @var{gid} @var{mem}
+@defunx <struct-group>? @var{obj}
+Constructor and predicate for records of type @class{struct-group}.
+@end defun
+
+
+@defun <struct-group>-name @var{record}
+@defunx <struct-group>-name-set @var{record} @var{value}
+@defunx <struct-group>-gid @var{record}
+@defunx <struct-group>-gid-set @var{record} @var{value}
+@defunx <struct-group>-mem @var{record}
+@defunx <struct-group>-mem-set @var{record} @var{value}
+Accessors and mutators for records of type @class{struct-group}.
 @end defun
 
 @c page
@@ -6311,8 +6435,100 @@ This function is reentrant.
 @section Users database
 
 
+The following bindings manage access to the users database.
+@glibcref{Lookup User, Looking Up One User}.  @glibcref{Scanning All
+Users, Scanning the List of All Users}.
 
 
+@deffn Function getpwuid @var{uid}
+@deffnx Parameter getpwuid-function
+@deffnx Function primitive:getpwuid @var{uid}
+@deffnx Function platform:getpwuid @var{uid-int}
+@deffnx Function platform:getpwuid_r @var{uid-int} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
+Return a record of type @class{struct-passwd} representing data about
+the user identified by @var{uid}.  This function is reentrant.
+@end deffn
+
+
+@deffn Function getpwnam @var{user-name}
+@deffnx Parameter getpwnam-function
+@deffnx Function primitive:getpwnam @var{user-name}
+@deffnx Function platform:getpwnam @var{name-cstr}
+@deffnx Function platform:getpwnam_r @var{name-cstr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
+Return a record of type @class{struct-passwd} representing data about
+the user whose name is @var{user-name}, a Scheme string or symbol.  This
+function is reentrant.
+@end deffn
+
+
+@deffn Function fgetpwent @var{stream}
+@deffnx Parameter fgetpwent
+@deffnx Function primitive:fgetpwent @var{stream}
+@deffnx Function platform:fgetpwent @var{stream-ptr}
+@deffnx Function platform:fgetpwent_r @var{stream-ptr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
+Return a record of type @class{struct-passwd} representing data about
+the next user from the database file referenced by @var{stream}, a
+@code{FILE*} object.  When the iteration over the database ends, the
+return value is @false{}.  This function is reentrant.
+
+@example
+(let ((pwds (with-compensations
+              (letrec
+                  ((file* (compensate
+                             (glibc:fopen "/etc/passwd" "r")
+                            (with
+                             (glibc:fclose file*)))))
+                (let loop ((pwds '()))
+                  (let ((pwd (posix:fgetpwent file*)))
+                    (if pwd
+                        (loop (cons pwd pwds))
+                      pwds)))))))
+  ---)
+@end example
+@end deffn
+
+
+@c page
+@node users groupdb
+@section Groups database
+
+
+The following bindings manage access to the groups database.
+@glibcref{Lookup Group, Looking Up One Group}.  @glibcref{Scanning All
+Groups, Scanning the List of All Groups}.
+
+
+@deffn Function getgrgid @var{gid}
+@deffnx Parameter getgrgid-function
+@deffnx Function primitive:getgrgid @var{gid}
+@deffnx Function platform:getgrgid @var{gid-int}
+@deffnx Function platform:getgrgid_r @var{gid-int} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
+Return a record of type @class{struct-group} representing data about
+the group identified by @var{gid}.  This function is reentrant.
+@end deffn
+
+
+@deffn Function getgrnam @var{group-name}
+@deffnx Parameter getgrnam-function
+@deffnx Function primitive:getgrnam @var{group-name}
+@deffnx Function platform:getgrnam @var{name-cstr}
+@deffnx Function platform:getgrnam_r @var{name-cstr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
+Return a record of type @class{struct-group} representing data about
+the group whose name is @var{group-name}, a Scheme string or symbol.  This
+function is reentrant.
+@end deffn
+
+
+@deffn Function fgetgrent @var{stream}
+@deffnx Parameter fgetgrent
+@deffnx Function primitive:fgetgrent @var{stream}
+@deffnx Function platform:fgetgrent @var{stream-ptr}
+@deffnx Function platform:fgetgrent_r @var{stream-ptr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
+Return a record of type @class{struct-group} representing data about the
+next group from the database file referenced by @var{stream}, a
+@code{FILE*} object.  When the iteration over the database ends, the
+return value is @false{}.  This function is reentrant.
+@end deffn
 
 @c page
 @node strings
@@ -6363,6 +6579,7 @@ exported by the following libraries:
 @menu
 * system constants::            Constant values.
 * system inspection::           Inspecting configuration.
+* system host::                 Host identification.
 @end menu
 
 @c page
@@ -6766,6 +6983,15 @@ Return the value of a string--valued system parameter.
 @var{param} must be one among the @samp{_CS_*} values.  @ref{system
 constants, Constant values}.
 @end deffn
+
+@c page
+@node system host
+@section Host identification
+
+
+@glibcref{Host Identification, Host Identification}.
+
+
 
 @c page
 

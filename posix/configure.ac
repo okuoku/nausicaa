@@ -59,6 +59,7 @@ AC_CHECK_HEADERS([dirent.h])
 AC_CHECK_HEADERS([fcntl.h])
 AC_CHECK_HEADERS([ftw.h])
 AC_CHECK_HEADERS([pwd.h])
+AC_CHECK_HEADERS([grp.h])
 AC_CHECK_HEADERS([sys/mman.h])
 AC_CHECK_HEADERS([sys/select.h])
 AC_CHECK_HEADERS([sys/stat.h])
@@ -90,6 +91,9 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #endif
 #ifdef HAVE_FTW_H
 #  include <ftw.h>
+#endif
+#ifdef HAVE_GRP_H
+#  include <grp.h>
 #endif
 #ifdef HAVE_INTTYPES_H
 #  include <inttypes.h>

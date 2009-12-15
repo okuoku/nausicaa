@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Wed Dec  9, 2009
+;;;Date: Tue Dec 15, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -271,6 +271,15 @@
     struct-passwd-pw_dir-ref
     struct-passwd-pw_shell-set!
     struct-passwd-pw_shell-ref
+    sizeof-group
+    alignof-group
+    strideof-group
+    struct-group-gr_name-set!
+    struct-group-gr_name-ref
+    struct-group-gr_gid-set!
+    struct-group-gr_gid-ref
+    struct-group-gr_mem-set!
+    struct-group-gr_mem-ref
     SEEK_SET
     SEEK_CUR
     SEEK_END
@@ -1207,6 +1216,27 @@
     @OFFSETOF_PASSWD_PW_SHELL@
     @SETTEROF_PASSWD_PW_SHELL@
     @GETTEROF_PASSWD_PW_SHELL@)
+  (define sizeof-group @SIZEOF_GROUP@)
+  (define alignof-group @ALIGNOF_GROUP@)
+  (define strideof-group @STRIDEOF_GROUP@)
+  (define-c-struct-accessor-and-mutator
+    struct-group-gr_name-set!
+    struct-group-gr_name-ref
+    @OFFSETOF_GROUP_GR_NAME@
+    @SETTEROF_GROUP_GR_NAME@
+    @GETTEROF_GROUP_GR_NAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-group-gr_gid-set!
+    struct-group-gr_gid-ref
+    @OFFSETOF_GROUP_GR_GID@
+    @SETTEROF_GROUP_GR_GID@
+    @GETTEROF_GROUP_GR_GID@)
+  (define-c-struct-accessor-and-mutator
+    struct-group-gr_mem-set!
+    struct-group-gr_mem-ref
+    @OFFSETOF_GROUP_GR_MEM@
+    @SETTEROF_GROUP_GR_MEM@
+    @GETTEROF_GROUP_GR_MEM@)
   (define SEEK_SET @VALUEOF_SEEK_SET@)
   (define SEEK_CUR @VALUEOF_SEEK_CUR@)
   (define SEEK_END @VALUEOF_SEEK_END@)

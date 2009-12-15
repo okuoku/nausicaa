@@ -39,8 +39,8 @@
     getlogin		cuserid
 
     getpwuid		getpwnam
-
-    )
+    getgrgid		getgrnam
+    fgetpwent		fgetgrent)
   (import (rnrs)
     (receive)
     (compensations)
@@ -182,16 +182,132 @@
 
 ;;;; users database
 
-;;; CHECK THE MANPAGES FOR EINTR!!!!
-
 (define (getpwuid uid)
-  ;; (receive (result errno)
-  ;;     (platform:getpwuid_r)
-  ;;   )
-  #f)
+  (with-compensations
+    (let ((passwd*	(malloc-block/c sizeof-passwd))
+	  (output*	(malloc-small/c))
+	  (uid-int	(uid->integer uid))
+	  (len		256))
+      (let loop ((buf.len len)
+		 (buf.ptr (malloc-block/c len)))
+	(receive (result errno)
+	    (platform:getpwuid_r uid-int passwd* buf.ptr buf.len output*)
+	  (cond ((= errno ERANGE)
+		 (let ((len (* 2 buf.len)))
+		   (loop len (malloc-block/c len))))
+		((= errno EINTR)
+		 (loop buf.len buf.ptr))
+		((pointer-null? (pointer-ref-c-pointer output* 0))
+		 (raise-errno-error 'getpwuid errno uid))
+		(else
+		 (pointer->struct-passwd passwd*))))))))
 
-(define (getpwnam)
-  #f)
+(define (getpwnam user-name)
+  (with-compensations
+    (let ((passwd*	(malloc-block/c sizeof-passwd))
+	  (output*	(malloc-small/c))
+	  (name*	(string->cstring/c user-name))
+	  (len		256))
+      (let loop ((buf.len len)
+		 (buf.ptr (malloc-block/c len)))
+	(receive (result errno)
+	    (platform:getpwnam_r name* passwd* buf.ptr buf.len output*)
+	  (cond ((= errno ERANGE)
+		 (let ((len (* 2 buf.len)))
+		   (loop len (malloc-block/c len))))
+		((= errno EINTR)
+		 (loop buf.len buf.ptr))
+		((pointer-null? (pointer-ref-c-pointer output* 0))
+		 (raise-errno-error 'getpwnam errno user-name))
+		(else
+		 (pointer->struct-passwd passwd*))))))))
+
+(define (fgetpwent stream)
+  (with-compensations
+    (let ((passwd*	(malloc-block/c sizeof-passwd))
+	  (output*	(malloc-small/c))
+	  (stream*	(FILE*->pointer stream))
+	  (len		256))
+      (let loop ((buf.len len)
+		 (buf.ptr (malloc-block/c len)))
+	(receive (result errno)
+	    (platform:fgetpwent_r stream* passwd* buf.ptr buf.len output*)
+	  (cond ((= errno ERANGE)
+		 (let ((len (* 2 buf.len)))
+		   (loop len (malloc-block/c len))))
+		((= errno EINTR)
+		 (loop buf.len buf.ptr))
+		((= result ENOENT)
+		 #f)
+		((= 0 result)
+		 (pointer->struct-passwd (pointer-ref-c-pointer output* 0)))
+		(else
+		 (raise-errno-error 'fgetpwent errno stream))))))))
+
+
+;;;; groups database
+
+(define (getgrgid gid)
+  (with-compensations
+    (let ((group*	(malloc-block/c sizeof-group))
+	  (output*	(malloc-small/c))
+	  (gid-int	(gid->integer gid))
+	  (len		256))
+      (let loop ((buf.len len)
+		 (buf.ptr (malloc-block/c len)))
+	(receive (result errno)
+	    (platform:getgrgid_r gid-int group* buf.ptr buf.len output*)
+	  (cond ((= errno ERANGE)
+		 (let ((len (* 2 buf.len)))
+		   (loop len (malloc-block/c len))))
+		((= errno EINTR)
+		 (loop buf.len buf.ptr))
+		((pointer-null? (pointer-ref-c-pointer output* 0))
+		 (raise-errno-error 'getgrgid errno gid))
+		(else
+		 (pointer->struct-group group*))))))))
+
+(define (getgrnam group-name)
+  (with-compensations
+    (let ((group*	(malloc-block/c sizeof-group))
+	  (output*	(malloc-small/c))
+	  (name*	(string->cstring/c group-name))
+	  (len		256))
+      (let loop ((buf.len len)
+		 (buf.ptr (malloc-block/c len)))
+	(receive (result errno)
+	    (platform:getgrnam_r name* group* buf.ptr buf.len output*)
+	  (cond ((= errno ERANGE)
+		 (let ((len (* 2 buf.len)))
+		   (loop len (malloc-block/c len))))
+		((= errno EINTR)
+		 (loop buf.len buf.ptr))
+		((pointer-null? (pointer-ref-c-pointer output* 0))
+		 (raise-errno-error 'getgrnam errno group-name))
+		(else
+		 (pointer->struct-group group*))))))))
+
+(define (fgetgrent stream)
+  (with-compensations
+    (let ((group*	(malloc-block/c sizeof-group))
+	  (output*	(malloc-small/c))
+	  (stream*	(FILE*->pointer stream))
+	  (len		256))
+      (let loop ((buf.len len)
+		 (buf.ptr (malloc-block/c len)))
+	(receive (result errno)
+	    (platform:fgetgrent_r stream* group* buf.ptr buf.len output*)
+	  (cond ((= errno ERANGE)
+		 (let ((len (* 2 buf.len)))
+		   (loop len (malloc-block/c len))))
+		((= errno EINTR)
+		 (loop buf.len buf.ptr))
+		((= result ENOENT)
+		 #f)
+		((= 0 result)
+		 (pointer->struct-group (pointer-ref-c-pointer output* 0)))
+		(else
+		 (raise-errno-error 'fgetgrent errno stream))))))))
 
 
 ;;;; done

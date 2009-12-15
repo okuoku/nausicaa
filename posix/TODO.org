@@ -19,8 +19,6 @@
 
 * posix
 
-  Node "Users and Groups".
-
   Node "System Management".
 
   Node "Signal Handling".

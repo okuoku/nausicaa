@@ -2,7 +2,7 @@ dnl (foreign posix sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Wed Dec  9, 2009
+dnl Date: Tue Dec 15, 2009
 dnl
 dnl Abstract
 dnl
@@ -151,6 +151,12 @@ NAUSICAA_INSPECT_FIELD_TYPE([PASSWD_PW_GID],[struct passwd],[pw_gid],[signed-int
 NAUSICAA_INSPECT_FIELD_TYPE([PASSWD_PW_GECOS],[struct passwd],[pw_gecos],[pointer])
 NAUSICAA_INSPECT_FIELD_TYPE([PASSWD_PW_DIR],[struct passwd],[pw_dir],[pointer])
 NAUSICAA_INSPECT_FIELD_TYPE([PASSWD_PW_SHELL],[struct passwd],[pw_shell],[pointer])
+
+dnl Struct inspection: group
+NAUSICAA_INSPECT_STRUCT_TYPE([GROUP],[struct group],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([GROUP_GR_NAME],[struct group],[gr_name],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([GROUP_GR_GID],[struct group],[gr_gid],[signed-int])
+NAUSICAA_INSPECT_FIELD_TYPE([GROUP_GR_MEM],[struct group],[gr_mem],[pointer])
 AC_CACHE_SAVE
 
 dnl Preprocessor symbols: seek whence arguments
