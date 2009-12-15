@@ -102,7 +102,8 @@
 	    (platform:gethostname name.ptr name.len)
 	  (if (= -1 result)
 	      (if (= errno ENAMETOOLONG)
-		  (loop)
+		  (let ((len (* 2 name.len)))
+		    (loop (malloc-block/c len) len))
 		(raise-errno-error 'gethostname errno))
 	    (cstring->string name.ptr)))))))
 
@@ -125,7 +126,8 @@
 	    (platform:getdomainname name.ptr name.len)
 	  (if (= -1 result)
 	      (if (= errno ENAMETOOLONG)
-		  (loop)
+		  (let ((len (* 2 name.len)))
+		    (loop (malloc-block/c len) len))
 		(raise-errno-error 'getdomainname errno))
 	    (cstring->string name.ptr)))))))
 

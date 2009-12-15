@@ -84,14 +84,14 @@
 
 ;;; --------------------------------------------------------------------
 
-    <struct-mtab>		<struct-mtab-rtd>
-    <struct-mtab>-fsname	<struct-mtab>-fsname-set!
-    <struct-mtab>-dir		<struct-mtab>-dir-set!
-    <struct-mtab>-type		<struct-mtab>-type-set!
-    <struct-mtab>-opts		<struct-mtab>-opts-set!
-    <struct-mtab>-freq		<struct-mtab>-freq-set!
-    <struct-mtab>-passno	<struct-mtab>-passno-set!
-    pointer->struct-mtab
+    <struct-mntent>		<struct-mntent-rtd>
+    <struct-mntent>-fsname	<struct-mntent>-fsname-set!
+    <struct-mntent>-dir		<struct-mntent>-dir-set!
+    <struct-mntent>-type	<struct-mntent>-type-set!
+    <struct-mntent>-opts	<struct-mntent>-opts-set!
+    <struct-mntent>-freq	<struct-mntent>-freq-set!
+    <struct-mntent>-passno	<struct-mntent>-passno-set!
+    pointer->struct-mntent
 
     )
   (import (rnrs)
@@ -230,8 +230,8 @@
 		       (struct-fstab-fs_passno-ref fstab*)))
 
 
-(define-record-type <struct-mtab>
-  (nongenerative nausicaa:posix:struct-mtab)
+(define-record-type <struct-mntent>
+  (nongenerative nausicaa:posix:struct-mntent)
   (fields (mutable fsname)
 	  (mutable dir)
 	  (mutable type)
@@ -239,16 +239,16 @@
 	  (mutable freq)
 	  (mutable passno)))
 
-(define <struct-mtab-rtd>
-  (record-type-descriptor <struct-mtab>))
+(define <struct-mntent-rtd>
+  (record-type-descriptor <struct-mntent>))
 
-(define (pointer->struct-mtab mtab*)
-  (make-<struct-mtab> (cstring->string (struct-mtab-mnt_fsname-ref mtab*))
-		      (cstring->string (struct-mtab-mnt_dir-ref mtab*))
-		      (cstring->string (struct-mtab-mnt_type-ref mtab*))
-		      (cstring->string (struct-mtab-mnt_opts-ref mtab*))
-		      (struct-mtab-mnt_freq-ref mtab*)
-		      (struct-mtab-mnt_passno-ref mtab*)))
+(define (pointer->struct-mntent mntent*)
+  (make-<struct-mntent> (cstring->string (struct-mntent-mnt_fsname-ref mntent*))
+		      (cstring->string (struct-mntent-mnt_dir-ref mntent*))
+		      (cstring->string (struct-mntent-mnt_type-ref mntent*))
+		      (cstring->string (struct-mntent-mnt_opts-ref mntent*))
+		      (struct-mntent-mnt_freq-ref mntent*)
+		      (struct-mntent-mnt_passno-ref mntent*)))
 
 
 ;;;; done
