@@ -28,23 +28,21 @@
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,posix,foreign/posix))
-$(eval $(call nau-libraries,posix_environment,foreign/posix/environment))
-$(eval $(call nau-libraries,posix_fd,foreign/posix/fd))
-$(eval $(call nau-libraries,posix_file,foreign/posix/file))
-$(eval $(call nau-libraries,posix_job,foreign/posix/job))
-$(eval $(call nau-libraries,posix_process,foreign/posix/process))
-$(eval $(call nau-libraries,posix_stat,foreign/posix/stat))
-$(eval $(call nau-libraries,posix_time,foreign/posix/time))
-$(eval $(call nau-libraries,posix_system,foreign/posix/system))
+$(eval $(call nau-libraries,posix,posix))
+$(eval $(call nau-libraries,posix_fd,posix/fd))
+$(eval $(call nau-libraries,posix_file,posix/file))
+$(eval $(call nau-libraries,posix_job,posix/job))
+$(eval $(call nau-libraries,posix_process,posix/process))
+$(eval $(call nau-libraries,posix_stat,posix/stat))
+$(eval $(call nau-libraries,posix_system,posix/system))
+$(eval $(call nau-libraries,posix_time,posix/time))
 
-$(eval $(call nau-libraries,glibc,foreign/glibc))
-$(eval $(call nau-libraries,glibc_cstrings,foreign/glibc/cstrings))
-$(eval $(call nau-libraries,glibc_environment,foreign/glibc/environment))
-$(eval $(call nau-libraries,glibc_file,foreign/glibc/file))
-$(eval $(call nau-libraries,glibc_streams,foreign/glibc/streams))
-$(eval $(call nau-libraries,glibc_system,foreign/glibc/system))
-$(eval $(call nau-libraries,glibc_time,foreign/glibc/time))
+$(eval $(call nau-libraries,glibc,glibc))
+$(eval $(call nau-libraries,glibc_cstrings,glibc/cstrings))
+$(eval $(call nau-libraries,glibc_file,glibc/file))
+$(eval $(call nau-libraries,glibc_streams,glibc/streams))
+$(eval $(call nau-libraries,glibc_system,glibc/system))
+$(eval $(call nau-libraries,glibc_time,glibc/time))
 
 
 ### end of file

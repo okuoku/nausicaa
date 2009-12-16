@@ -33,12 +33,12 @@
   (foreign memory)
   (foreign errno)
   (foreign cstrings)
-  (prefix (foreign posix process) posix:)
-  (prefix (foreign posix fd) posix:)
-  (prefix (foreign posix file) posix:)
-  (prefix (foreign posix stat) posix:)
-  (prefix (foreign posix stat record-types) posix:)
-  (foreign posix sizeof))
+  (posix sizeof)
+  (posix typedefs)
+  (prefix (posix process) posix:)
+  (prefix (posix fd) posix:)
+  (prefix (posix file) posix:)
+  (prefix (posix stat) posix:))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX file\n")
@@ -94,35 +94,6 @@ Ses ailes de geant l'empechent de marcher.")
 
 (define (clean-test-hierarchy)
   (posix:system (string-append "rm -fr " the-root)))
-
-
-(parametrise ((check-test-name	'inspection))
-
-  (with-deferred-exceptions-handler
-      (lambda (E)
-	(debug-print-condition "deferred condition in inspection" E))
-    (lambda ()
-      (with-compensations
-	(clean-test-hierarchy)
-	  (compensate
-	      (make-test-hierarchy)
-	    (with
-	     (clean-test-hierarchy)))
-
-	(check
-	    (integer? (posix:pathconf the-file _PC_LINK_MAX))
-	  => #t)
-
-	(check
-	    (with-compensations
-	      (letrec ((fd (compensate
-				 (posix:open the-file O_RDONLY 0)
-			       (with
-				(posix:close fd)))))
-		(integer? (posix:fpathconf fd _PC_LINK_MAX))))
-	  => #t)
-
-	#f))))
 
 
 (parametrise ((check-test-name	'working-directory)
@@ -546,8 +517,8 @@ Ses ailes de geant l'empechent de marcher.")
 
 	  (check
 	      (let* ((record	(posix:stat the-file))
-		     (uid	(posix:<struct-stat>-uid record))
-		     (gid	(posix:<struct-stat>-gid record)))
+		     (uid	(<struct-stat>-uid record))
+		     (gid	(<struct-stat>-gid record)))
 		(posix:chown the-file uid gid))
 	    => 0)
 
@@ -558,8 +529,8 @@ Ses ailes de geant l'empechent de marcher.")
 			       (with
 				(posix:close fd)))))
 		  (let* ((record	(posix:fstat fd))
-			 (uid		(posix:<struct-stat>-uid record))
-			 (gid		(posix:<struct-stat>-gid record)))
+			 (uid		(<struct-stat>-uid record))
+			 (gid		(<struct-stat>-gid record)))
 		    (posix:fchown fd uid gid))))
 	    => 0)
 
@@ -699,8 +670,8 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(define (get-times pathname)
 	  (let ((record (posix:stat the-file)))
-	    (list (posix:<struct-stat>-atime record)
-		  (posix:<struct-stat>-mtime record))))
+	    (list (<struct-stat>-atime record)
+		  (<struct-stat>-mtime record))))
 
 	(with-compensations
 	  (clean-test-hierarchy)

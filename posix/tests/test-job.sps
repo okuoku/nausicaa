@@ -26,8 +26,8 @@
 
 (import (nausicaa)
   (checks)
-  (prefix (foreign posix job) posix:)
-  (prefix (foreign posix process) posix:))
+  (prefix (posix job) posix:)
+  (prefix (posix process) posix:))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX job\n")

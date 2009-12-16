@@ -32,7 +32,7 @@ dnl Setup.
 dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-posix],[0.1a3],[marco.maggi-ipsu@poste.it])
-DS_BEGIN([./src/libraries/foreign/posix/fd.sls])
+DS_BEGIN([./src/libraries/posix/fd.sls])
 NAUSICAA_BEGIN
 NAUSICAA_SYSTEM_SETUP
 DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
@@ -169,7 +169,7 @@ dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../src/libraries/foreign/posix/sizeof.sls:../src/libraries/foreign/posix/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/posix/sizeof.sls:../src/libraries/posix/sizeof.sls.in])
 AC_CONFIG_FILES([meta.d/makefiles/library.make:../configuration/library.make])
 
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC

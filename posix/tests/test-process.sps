@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,8 +30,8 @@
   (foreign errno)
   (foreign cstrings)
   (checks)
-  (prefix (foreign posix process) posix:)
-  (prefix (foreign posix process record-types) posix:))
+  (posix typedefs)
+  (prefix (posix process) posix:))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX process\n")
@@ -159,8 +159,8 @@
 	    (posix:execv '/bin/ls '(ls "-l" /bin/ls))
 	  (receive (result status)
 	      (posix:waitpid pid 0)
-	    (let ((r (posix:process-term-status->record status)))
-	      (posix:WIFEXITED? r)))))
+	    (let ((r (integer-><process-term-status> status)))
+	      (WIFEXITED? r)))))
     => #t)
 
   #t)

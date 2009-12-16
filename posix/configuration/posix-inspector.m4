@@ -1,4 +1,4 @@
-dnl (foreign posix sizeof) --
+dnl (posix sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation

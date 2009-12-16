@@ -786,9 +786,9 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 ;;;; done
 
 (define posix-library-spec
-  '(foreign posix sizeof))
+  '(posix sizeof))
 
 (autoconf-lib-write "configuration/posix-inspector.m4" posix-library-spec)
-(sizeof-lib-write   "src/libraries/foreign/posix/sizeof.sls.in" posix-library-spec)
+(sizeof-lib-write   "src/libraries/posix/sizeof.sls.in" posix-library-spec)
 
 ;;; end of file

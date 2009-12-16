@@ -33,9 +33,9 @@
   (foreign memory)
   (foreign cstrings)
   (foreign errno)
-  (foreign posix sizeof)
-  (foreign glibc streams)
-  (prefix (foreign glibc streams platform) platform:))
+  (posix sizeof)
+  (glibc streams)
+  (prefix (glibc streams platform) platform:))
 
 (check-set-mode! 'report-failed)
 

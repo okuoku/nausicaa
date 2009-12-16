@@ -24,20 +24,18 @@
 ;;;
 
 (import
-  (only (foreign posix environment))
-  (only (foreign posix time))
-  (only (foreign posix file))
-  (only (foreign posix stat))
-  (only (foreign posix fd))
-  (only (foreign posix job))
-  (only (foreign posix process))
-  (only (foreign posix system))
+  (only (posix fd))
+  (only (posix file))
+  (only (posix job))
+  (only (posix process))
+  (only (posix stat))
+  (only (posix system))
+  (only (posix time))
 
-  (only (foreign glibc environment))
-  (only (foreign glibc streams))
-  (only (foreign glibc time))
-  (only (foreign glibc file))
-  (only (foreign glibc system))
+  (only (glibc file))
+  (only (glibc streams))
+  (only (glibc system))
+  (only (glibc time))
   )
 
 ;;; end of file

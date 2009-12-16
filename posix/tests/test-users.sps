@@ -31,9 +31,9 @@
   (deferred-exceptions)
   (records)
   (foreign errno)
-  (for (foreign posix typedefs) expand run)
-  (prefix (foreign posix system) posix:)
-  (prefix (foreign glibc streams) glibc:)
+  (for (posix typedefs) expand run)
+  (prefix (posix system) posix:)
+  (prefix (glibc streams) glibc:)
   (checks))
 
 (check-set-mode! 'report-failed)

@@ -26,11 +26,11 @@
 
 (import (nausicaa)
   (checks)
-  (foreign posix environment)
-  (foreign glibc environment))
+  (posix system)
+  (glibc system))
 
 (check-set-mode! 'report-failed)
-(display "*** testing POSIX generic\n")
+(display "*** testing POSIX and Glibc environment variables access\n")
 
 
 (parametrise ((check-test-name 'setget))

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -34,12 +34,12 @@
   (foreign memory)
   (foreign errno)
   (foreign cstrings)
-  (prefix (foreign posix process) posix:)
-  (prefix (foreign posix fd) posix:)
-  (prefix (foreign posix file) posix:)
-  (prefix (foreign posix stat) posix:)
-  (prefix (foreign posix stat record-types) posix:)
-  (foreign posix sizeof))
+  (posix sizeof)
+  (posix typedefs)
+  (prefix (posix process) posix:)
+  (prefix (posix fd) posix:)
+  (prefix (posix file) posix:)
+  (prefix (posix stat) posix:))
 
 (check-set-mode! 'report-failed)
 (display "*** testing POSIX stat\n")
@@ -122,16 +122,16 @@ Ses ailes de geant l'empechent de marcher.")
 	     (delete-file the-other)))
 
 	  (check
-	      (posix:<struct-stat>? (posix:stat the-file))
+	      (<struct-stat>? (posix:stat the-file))
 	    => #t)
 
 	  (check
-	      (posix:<struct-stat>? (posix:fstat fd))
+	      (<struct-stat>? (posix:fstat fd))
 	    => #t)
 
 	  (check
 	      (with-compensations
-		(posix:<struct-stat>? (posix:lstat the-other)))
+		(<struct-stat>? (posix:lstat the-other)))
 	    => #t)
 
 ;;; --------------------------------------------------------------------
@@ -208,11 +208,11 @@ Ses ailes de geant l'empechent de marcher.")
 ;;; --------------------------------------------------------------------
 
 	  (check
-	      (= 0 (bitwise-ior S_IRUSR (posix:<struct-stat>-mode (posix:stat the-file))))
+	      (= 0 (bitwise-ior S_IRUSR (<struct-stat>-mode (posix:stat the-file))))
 	    => #f)
 
 	  (check
-	      (= 0 (bitwise-ior S_IROTH (posix:<struct-stat>-mode (posix:stat the-file))))
+	      (= 0 (bitwise-ior S_IROTH (<struct-stat>-mode (posix:stat the-file))))
 	    => #f)
 
 	  (check

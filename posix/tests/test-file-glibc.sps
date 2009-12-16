@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -34,19 +34,15 @@
   (foreign memory)
   (foreign errno)
   (foreign cstrings)
-
-  (prefix (foreign glibc file) glibc:)
-
-  (prefix (only (foreign glibc streams) fclose) glibc:)
-
-  (prefix (foreign glibc file platform) glibc:platform:)
-
-  (foreign posix sizeof)
-  (prefix (foreign posix process) posix:)
-  (prefix (foreign posix fd) posix:)
-  (prefix (foreign posix file) posix:)
-  (prefix (foreign posix stat) posix:)
-  (prefix (foreign posix stat record-types) posix:))
+  (posix sizeof)
+  (posix typedefs)
+  (prefix (glibc file) glibc:)
+  (prefix (only (glibc streams) fclose) glibc:)
+  (prefix (glibc file platform) glibc:platform:)
+  (prefix (posix process) posix:)
+  (prefix (posix fd) posix:)
+  (prefix (posix file) posix:)
+  (prefix (posix stat) posix:))
 
 (check-set-mode! 'report-failed)
 (display "*** testing Glibc file\n")
@@ -171,8 +167,8 @@ Ses ailes de geant l'empechent de marcher.")
     (lambda ()
       (define (get-times pathname)
 	(let ((record (posix:stat the-file)))
-	  (list (posix:<struct-stat>-atime record)
-		(posix:<struct-stat>-mtime record))))
+	  (list (<struct-stat>-atime record)
+		(<struct-stat>-mtime record))))
 
       (with-compensations
 	(clean-test-hierarchy)
