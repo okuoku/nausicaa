@@ -27,6 +27,8 @@
 (library (foreign cstrings)
   (export
 
+    empty-string
+
     ;;inspection
     strlen
     strcmp			strncmp
@@ -110,6 +112,9 @@
 	  ((= i len)
 	   (utf8->string bv))
 	(bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))))
+
+(define empty-string
+  (string->cstring ""))
 
 
 ;;;; conversion functions: <memblock> records

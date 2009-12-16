@@ -4712,11 +4712,22 @@ terminated by a zero byte.  The functions described in this chapter are
 exported by the @library{foreign cstrings} library.
 
 @menu
+* cstrings constants::          Constant values.
 * cstrings inspection::         Inspecting cstrings.
 * cstrings operations::         Acting upon cstrings.
 * cstrings conversion::         Converting to and from cstrings.
 * cstrings argv::               Converting arrays of cstrings.
 @end menu
+
+@c page
+@node cstrings constants
+@subsection Constant values
+
+
+@defvr Constant empty-string
+Pointer to an empty, zero--terminated, string.
+@end defvr
+
 
 @c page
 @node cstrings inspection
