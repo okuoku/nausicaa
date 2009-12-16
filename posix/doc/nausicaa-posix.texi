@@ -416,10 +416,11 @@ Revised^6 Report on the algorithmic language Scheme
 @noindent
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of libraries for @rnrs{6} Scheme exposing the @posix{}
-interface to the Scheme language level; some @gnu{} C Library extensions
-are also exposed.  It is built on top of the Nausicaa/Scheme libraries,
-making use of its foreign-functions interface; so, at present, it
-supports only @gnu{}+Linux systems.
+interface to the Scheme language level; some @gnu{} C Library and
+Linux--specific extensions are also exposed.  This package is built on
+top of the Nausicaa/Scheme package, making use of its foreign--functions
+interface; at present, it supports only @gnu{}+Linux systems and the
+Ikarus, Mosh and Ypsilon Scheme implementations.
 
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}) and can be downloaded from:
@@ -711,10 +712,10 @@ Types definition
 exposing the @posix{} interface to the Scheme language level; some
 @gnu{} C Library extensions and Linux extensions are also exposed.
 
-The libraries are built on top of the Nausicaa/Scheme libraries, making
-use of their foreign-functions interface; some libraries depend upon the
-C language library @samp{libnausicaa-posix}, which is built and
-installed by this package.
+The libraries are built on top of the Nausicaa/Scheme package, making
+use of its foreign-functions interface; some libraries depend upon the C
+language library @samp{libnausicaa-posix}, which is built and installed
+by this package.
 
 @menu
 * overview libraries::          Libraries organisation.
@@ -727,20 +728,44 @@ installed by this package.
 
 
 The distribution attempts to split functions compliant to the @posix{}
-standard from functions available only through extensions; the standard
-C library functions are classified as extensions.  This splitting is
-meant to make it easier to port the distribution on non--@gnu{} systems;
-it is an ongoing process (the manual pages on GNU+Linux systems should
-contain notes about @posix{} standard compliance).
+standard from functions available only through extensions; this
+splitting is meant to make it easier to port the distribution on
+non--@gnu{} systems.
+
+@quotation
+@strong{NOTE} As of this version of the project, correct splitting is
+still an ongoing process (the manual pages on @gnu{}+Linux systems
+should contain notes about @posix{} standard compliance).
+@end quotation
 
 Unless otherwise specified, libraries are split in three sets:
 
 @table @library
+@item foreign posix --- platform
+@itemx foreign glibc --- platform
+@itemx foreign linux --- platform
+The low--level interface: faster but raw.  In this documentation, all
+the bindings from these libraries are prefixed with @samp{platform:},
+but they are exported @strong{without} this prefix.
+
+Some functions are exposed by these libraries but not by the upper level
+libraries (for example many non--reentrant functions which have a
+corresponding reentrant counterpart).
+
+@item foreign posix --- primitives
+@itemx foreign glibc --- primitives
+@itemx foreign linux --- primitives
+The middle--level interface: does marshaling of arguments and return
+values, it is built on top of the @code{platform} libraries.  In this
+documentation, all the bindings from these libraries are prefixed with
+@samp{primitive:}, but they are exported @strong{without} this prefix.
+
 @item foreign posix ---
 @itemx foreign glibc ---
 @itemx foreign linux ---
-The high--level interface: Slower but user friendly.  We should really
-import these libraries by prefixing the identifiers; for example:
+The high--level interface: slower but user friendly, it is built on top
+of the @code{primitives} libraries.  We should really import these
+libraries by prefixing the identifiers; for example:
 
 @example
 (import (rnrs)
@@ -748,20 +773,6 @@ import these libraries by prefixing the identifiers; for example:
   (prefix (foreign glibc file) glibc:))
 @end example
 
-@item foreign posix --- primitives
-@itemx foreign glibc --- primitives
-@itemx foreign linux --- primitives
-The middle--level interface; does marshaling of arguments and return
-values.  In this documentation, all the bindings from these libraries
-are prefixed with @samp{primitive:}, but they are exported
-@strong{without} this prefix.
-
-@item foreign posix --- platform
-@itemx foreign glibc --- platform
-@itemx foreign linux --- platform
-The low--level interface: Faster but raw.  In this documentation, all
-the bindings from these libraries are prefixed with @samp{platform:},
-but they are exported @strong{without} this prefix.
 @end table
 
 Additionally, the following libraries are installed:
@@ -777,47 +788,10 @@ objects (file descriptors, pointers to specific data structures, etc.)
 
 @item foreign posix extensions
 Defines extensions for the types exported by @library{foreign posix
-typedefs}, to be used with the @file{records} library (from the
+typedefs}, to be used with the @library{records} library (from the
 Nausicaa/Scheme package).  For this purpose, this library must be
 imported for the @code{expand} phase.
 @end table
-
-Let's take as reference the @code{file} set of features; when the
-documentation states that a set of bindings is exported by the @posix{}
-@code{file} libraries, it means that the bindings are exported by the
-following libraries:
-
-@example
-(foreign posix file)
-(foreign posix file primitives)
-(foreign posix file platform)
-@end example
-
-@noindent
-when the documentation states that a set of bindings is exported by the
-Glibc @code{file} libraries, it means that the bindings are exported by
-the following libraries:
-
-@example
-(foreign glibc file)
-(foreign glibc file primitives)
-(foreign glibc file platform)
-@end example
-
-@noindent
-when the documentation states that a set of bindings is exported by the
-Linux @code{file} libraries, it means that the bindings are exported by
-the following libraries:
-
-@example
-(foreign linux file)
-(foreign linux file primitives)
-(foreign linux file platform)
-@end example
-
-When the documentation states that a set of bindings is exported by the
-@code{sizeof} libraries, it means that the bindings are exported by the
-@library{foreign posix sizeof} library.
 
 @c page
 @node overview interface
@@ -865,7 +839,7 @@ This interface gives us 3 choices:
 @enumerate
 @item
 To call directly the foreign function using the @func{platform:x}
-wrapper; in this case we are responsible to convert the Scheme arguments
+callout; in this case we are responsible to convert the Scheme arguments
 to the appropriate C language level values (beware to non--garbage
 collected values!).
 
@@ -873,14 +847,14 @@ collected values!).
 To call the Scheme adapter @func{primitive:x}; this gives us: automatic
 conversion of arguments, exceptions in case of errors, automatic
 retrying in case the foreign function call is interrupted by an
-@samp{EINTR} signal.
+@samp{EINTR} signal (unless otherwise specified).
 
 @item
-To call the high--level, parameterised, @func{x} interface; this gives
-us everything @func{primitive:x} does and additionally allows us to
-replace the primitive function with a version that returns controlled
-values, or raises an error, and/or logs the operation.  This feature can
-be used to test Scheme code execution paths that handle exceptions.
+To call the high--level, parametrised, @func{x} interface; this gives us
+everything @func{primitive:x} does and additionally allows us to replace
+the primitive function with a version that returns controlled values, or
+raises an error, and/or logs the operation.  This feature can be used to
+test Scheme code execution paths that handle exceptions.
 @end enumerate
 
 
@@ -6308,6 +6282,9 @@ The following bindings manage acquisition of user and group identifiers.
 @deffnx Function primitive:getuid
 @deffnx Function platform:getuid
 Return an @code{uid} object representing the real user identifier.
+
+@func{platform:getuid} returns a single argument: the return value from
+the foreign function.
 @end deffn
 
 
@@ -6316,6 +6293,9 @@ Return an @code{uid} object representing the real user identifier.
 @deffnx Function primitive:getgid
 @deffnx Function platform:getgid
 Return an @code{gid} object representing the real group identifier.
+
+@func{platform:getgid} returns a single argument: the return value from
+the foreign function.
 @end deffn
 
 
@@ -6324,6 +6304,9 @@ Return an @code{gid} object representing the real group identifier.
 @deffnx Function primitive:geteuid
 @deffnx Function platform:geteuid
 Return an @code{uid} object representing the effective user identifier.
+
+@func{platform:geteuid} returns a single argument: the return value from
+the foreign function.
 @end deffn
 
 
@@ -6332,6 +6315,9 @@ Return an @code{uid} object representing the effective user identifier.
 @deffnx Function primitive:getegid
 @deffnx Function platform:getegid
 Return an @code{gid} object representing the effective group identifier.
+
+@func{platform:getegid} returns a single argument: the return value from
+the foreign function.
 @end deffn
 
 
@@ -6415,7 +6401,6 @@ selected by @var{user-name}, which must be a Scheme string or symbol.
 The group identifier @var{gid} is automatically included.
 @end deffn
 
-
 @c page
 @node users login
 @section Retrieving user login names
@@ -6431,6 +6416,9 @@ The following bindings manage retrieval of user's login name.
 @deffnx Function platform:getlogin
 Return a Scheme string representing the name of the logged in user.
 This function is not reentrant.
+
+@func{platform:getlogin} returns a single argument: the return value
+from the foreign function.
 @end deffn
 
 
@@ -6440,6 +6428,9 @@ This function is not reentrant.
 @deffnx Function platform:cuserid @var{cstr}
 Return a Scheme string representing the name of the logged in user.
 This function is reentrant.
+
+@func{platform:cuserid} returns a single argument: the return value from
+the foreign function.
 @end deffn
 
 @c page
@@ -7342,6 +7333,9 @@ The following functions manage reading the @file{fstab} file.
 @deffnx Function platform:setfsent
 Initialise the next iteration over the @file{fstab} file.  Raise an
 exception if an error occurs.
+
+@func{platform:setfsent} returns a single argument: the return value
+from the foreign function.
 @end deffn
 
 
@@ -7351,6 +7345,9 @@ exception if an error occurs.
 @deffnx Function platform:endfsent
 Finalise the last iteration over the @file{fstab} file.  Raise an
 exception if an error occurs.
+
+@func{platform:endfsent} returns a single argument: the return value
+from the foreign function.
 @end deffn
 
 
@@ -7374,6 +7371,9 @@ the return value is @false{}.
                     tabs))))))
   ---)
 @end example
+
+@func{platform:getfsent} returns a single argument: the return value
+from the foreign function.
 @end deffn
 
 
@@ -7389,6 +7389,9 @@ returned: the return value is @false{}.
 
 Multiple, successful, calls to this function may return the same result
 and never @false{}.
+
+@func{platform:getfsspec} returns a single argument: the return value
+from the foreign function.
 @end deffn
 
 
@@ -7404,6 +7407,9 @@ returned: the return value is @false{}.
 
 Multiple, successful, calls to this function may return the same result
 and never @false{}.
+
+@func{platform:getfsfile} returns a single argument: the return value
+from the foreign function.
 @end deffn
 
 
@@ -7428,6 +7434,9 @@ be read as a @file{mtab} file; returne a @code{FILE*} object.
 @deffnx Function platform:endmntent @var{stream}
 Close @var{stream}, a @code{FILE*} object, releasing all the resources
 associated to the @file{mtab} iteration.
+
+@func{platform:endmntent} returns a single argument: the return value
+from the foreign function.
 @end deffn
 
 
@@ -7456,6 +7465,9 @@ iteration, so when one of these envents happens: the return value is
                      tabs)))))
   ---)
 @end example
+
+@func{platform:getmntent} and @func{platform:getmntent_r} return a
+single argument: the return value from the foreign function.
 @end deffn
 
 
