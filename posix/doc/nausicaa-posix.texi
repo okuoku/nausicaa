@@ -788,7 +788,10 @@ structure accessors and mutators.
 
 @item posix typedefs
 Defines new Scheme object types to be used as wrappers for system
-objects (file descriptors, pointers to specific data structures, etc.)
+objects (file descriptors, pointers to specific data structures, etc.).
+This library defines a lot of record types, but it depends only upon the
+@library{posix sizeof} library; so it is fine to import it for the
+@code{expand} phase.
 
 @item posix extensions
 Defines extensions for the types exported by @library{posix
@@ -879,8 +882,14 @@ Example of usage of failing primitive fork function:
 @chapter File system
 
 
-Unless otherwise specified, the bindings described in this chapter are
-exported by the @posix{} @code{file} libraries.
+Unless otherwise specified, the bindings documented in this chapter are
+exported by the following libraries:
+
+@example
+(posix file)
+(posix file primitives)
+(posix file platform)
+@end example
 
 @menu
 * file working directory::      The working directory.
@@ -1026,23 +1035,6 @@ The following functions manage opening and closing of special
 @glibcref{Opening a Directory,Opening a directory stream}.
 @glibcref{Reading/Closing Directory,Reading and closing a directory
 stream}.
-
-Usage examples:
-
-@example
-(let ((stream #f))
-  (dynamic-wind
-    (lambda ()
-      (set! stream (opendir "/home/marco/share/sounds")))
-    (lambda ()
-      ---)
-    (lambda ()
-      (closedir stream))))
-
-(with-compensations
-  (let ((stream (opendir/c "/home/marco/share/sounds")))
-    ---))
-@end example
 
 
 @deffn Function opendir @var{pathname}
@@ -1815,7 +1807,13 @@ must include the @code{XXXXXX} sequence of characters (six times
 
 @subsubheading @gnu{} C Library functions
 
-The following bindings are exported by the Glibc @code{file} libraries.
+The bindings documented below are exported by the following libraries:
+
+@example
+(glibc file)
+(glibc file primitives)
+(glibc file platform)
+@end example
 
 
 @deffn Function tmpfile
@@ -1910,7 +1908,15 @@ times to the current time.
 
 @subsubheading @gnu{} C Library functions
 
-The following bindings are exported by the Glibc @code{file} library.
+The bindings documented below are exported by the following libraries:
+
+@example
+(glibc file)
+(glibc file primitives)
+(glibc file platform)
+@end example
+
+
 @deffn Function lutimes @var{pathname}
 @deffnx Function lutimes @var{pathname} @var{atime} @var{atime-usec} @var{mtime} @var{mtime-usec}
 @deffnx Parameter lutimes-function
@@ -1977,9 +1983,9 @@ binding is exported by @library{posix stat platform}.
 @defunx struct-stat-st_blocks-ref @var{stat-pointer}
 @defunx struct-stat-st_blksize-ref @var{stat-pointer}
 Accessors for the named field of a @code{struct stat}.  Notice that some
-field may be undefined on some platform (examples: @code{st_atime_usec},
-@code{st_mtime_usec}, @code{st_ctime_usec}), in this case the return
-value is zero.
+field may be undefined on some platforms (examples:
+@code{st_atime_usec}, @code{st_mtime_usec}, @code{st_ctime_usec}), in
+this case the return value is zero.
 @end defun
 
 @c page
@@ -1988,9 +1994,9 @@ value is zero.
 
 
 The following bindings are exported by the @library{posix typedefs}
-library.  The informations about a file or directory can be stored in a
-Scheme record.  @glibcref{Attribute Meanings, The meaning of the File
-Attributes}.
+library.  The informations about a file or directory are stored in a
+Scheme record which mirrors @code{struct stat}.  @glibcref{Attribute
+Meanings, The meaning of the File Attributes}.
 
 
 @deftp {Record Type Name} <struct-stat>
@@ -2022,12 +2028,8 @@ available on some common platforms.
 
 
 @defun make-<struct-stat> @var{mode} @var{ino} @var{dev} @var{nlink} @var{uid} @var{gid} @var{size} @var{atime} @var{atime_usec} @var{mtime} @var{mtime_usec} @var{ctime} @var{ctime_usec} @var{blocks} @var{blksize}
-Build and return a new @class{struct-stat} record.
-@end defun
-
-
-@defun <struct-stat>? @var{obj}
-Return @true{} if @var{obj} is a @class{struct-stat} record.
+@defunx <struct-stat>? @var{obj}
+Constructor and predicate for records of type @class{struct-stat}.
 @end defun
 
 
@@ -2103,31 +2105,40 @@ the following bindings are exported by the @library{posix stat}
 library.
 
 
-@defun file-is-directory? @var{fd/pathname}
-@defunx file-is-character-special? @var{fd/pathname}
-@defunx file-is-block-special? @var{fd/pathname}
-@defunx file-is-regular? @var{fd/pathname}
-@defunx file-is-fifo? @var{fd/pathname}
-@defunx file-is-socket? @var{fd/pathname}
-Return @true{} if @var{fd/pathname} is associated to a file of the named
-type, @false{} otherwise.  @var{fd/pathname} can be a file descriptor or
-a Scheme string or symbol representing a pathname.  The @code{mode}
-field of @code{struct stat} is acquired with a call to @func{fstat} or
+@defun file-is-directory? @var{fd/pathname/mode}
+@defunx file-is-character-special? @var{fd/pathname/mode}
+@defunx file-is-block-special? @var{fd/pathname/mode}
+@defunx file-is-regular? @var{fd/pathname/mode}
+@defunx file-is-fifo? @var{fd/pathname/mode}
+@defunx file-is-socket? @var{fd/pathname/mode}
+Return @true{} if @var{fd/pathname/mode} is associated to a file of the
+named type, @false{} otherwise.
+
+@var{fd/pathname/mode} can be: a file descriptor, a Scheme string or
+symbol representing a pathname, an exact integer representing the
+@code{st_mode} field of a @code{struct stat}.
+
+In the file descriptor and file pathname cases: the @code{mode} field of
+@code{struct stat} is acquired with a call to @func{fstat} or
 @func{stat}.
 
 @quotation
-@strong{NOTE} There is no way to distinguish between an integer
-representing a file descriptor and an integer representing the
-@code{mode} field, so the argument to these functions @strong{cannot} be
-a mode field.
+@strong{NOTE} There is no @func{file-is-link?} function because, for
+symbolic links, we have to use @func{lstat}.  See below for
+@func{file-is-symbolic-link?}.
 @end quotation
 @end defun
 
 
-@defun file-is-symbolic-link? @var{pathname}
-Return @true{} if @var{pathname} is associated to a symbolic link,
-@false{} otherwise.  @var{pathname} must be a Scheme string or symbol
-representing a pathname.  The @code{mode} field of @code{struct stat} is
+@defun file-is-symbolic-link? @var{pathname/mode}
+Return @true{} if @var{pathname/mode} is associated to a symbolic link,
+@false{} otherwise.
+
+@var{pathname/mode} can be: a Scheme string or symbol representing a
+pathname, an exact integer representing the @code{st_mode} field of a
+@code{struct stat} acquired with @cfunc{lstat}.
+
+In the pathname case: the @code{st_mode} field of @code{struct stat} is
 acquired with a call to @func{lstat}.
 @end defun
 
@@ -2142,19 +2153,20 @@ a Scheme string or symbol representing a pathname.
 Unfortunately, these predicates require access to the full @code{struct
 stat}, so, at present, they are implemented with the low--level
 @func{platform:stat} and @func{platform:fstat}.  This prevents using
-parameterised functions like @func{stat} and @func{fstat}.
+parametrised functions like @func{stat} and @func{fstat}.
 @end defun
 
 @c ------------------------------------------------------------
 
 @subsubheading Low--level predicates
 
-The following bindings are exported by the libraries:
+The bindings documented below are exported by the all the following
+libraries:
 
 @example
-(posix stat)
-(posix stat primitives)
-(posix stat platform)
+(posix file)
+(posix file primitives)
+(posix file platform)
 @end example
 
 
@@ -2165,8 +2177,12 @@ The following bindings are exported by the libraries:
 @defunx S_ISFIFO @var{mode}
 @defunx S_ISLNK @var{mode}
 @defunx S_ISSOCK @var{mode}
-Return non--zero if the file or directory associated with the integer
-@var{mode} is of the named type, otherwise return zero.
+Return non--zero if the file or directory having the integer @var{mode}
+in the @code{st_mode} field of its @code{struct stat} is of the named
+type, otherwise return zero.
+
+@func{S_ISLNK} is meaningful only if @var{mode} is acquired with
+@cfunc{lstat}.
 @end defun
 
 
@@ -2184,7 +2200,7 @@ otherwise return zero.
 
 
 Access permissions can be inspected with a bitwise combination between
-the @code{mode} field of @code{struct stat} and the permissions
+the @code{st_mode} field of @code{struct stat} and the permissions
 constants, @ref{fd constants perms}.  For example, the following
 evaluates to @false{} if @file{/bin/ls} is readable by its owner:
 
@@ -2202,52 +2218,60 @@ both by its owner and group:
                   (<struct-stat>-mode (stat "/bin/ls"))))
 @end example
 
-The following bindings are exported by the @library{posix stat}
-library.
+The following bindings are exported by the @library{posix file} library.
 
 
-@defun file-user-readable? @var{fd/pathname}
-@defunx file-user-writable? @var{fd/pathname}
-@defunx file-user-executable? @var{fd/pathname}
-@defunx file-group-readable? @var{fd/pathname}
-@defunx file-group-writable? @var{fd/pathname}
-@defunx file-group-executable? @var{fd/pathname}
-@defunx file-other-readable? @var{fd/pathname}
-@defunx file-other-writable? @var{fd/pathname}
-@defunx file-other-executable? @var{fd/pathname}
-@defunx file-setuid? @var{fd/pathname}
-@defunx file-setgid? @var{fd/pathname}
-@defunx file-sticky? @var{fd/pathname}
+@defun file-user-readable? @var{fd/mode/pathname}
+@defunx file-user-writable? @var{fd/mode/pathname}
+@defunx file-user-executable? @var{fd/mode/pathname}
+@defunx file-group-readable? @var{fd/mode/pathname}
+@defunx file-group-writable? @var{fd/mode/pathname}
+@defunx file-group-executable? @var{fd/mode/pathname}
+@defunx file-other-readable? @var{fd/mode/pathname}
+@defunx file-other-writable? @var{fd/mode/pathname}
+@defunx file-other-executable? @var{fd/mode/pathname}
+@defunx file-setuid? @var{fd/mode/pathname}
+@defunx file-setgid? @var{fd/mode/pathname}
+@defunx file-sticky? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
-@var{fd/pathname} can a file descriptor or a Scheme string or symbol
-representing a pathname.  The @code{mode} field of @code{struct stat} is
-acquired with a call to @func{fstat} or @func{stat}.
+
+@var{fd/mode/pathname} can be: a file descriptor, a Scheme string or
+symbol representing a pathname, an exact integer representing the
+@code{st_mode} field of a @code{struct stat}.
+
+In the file descriptor and pathname cases: the @code{st_mode} field of
+@code{struct stat} is acquired with a call to @func{fstat} or
+@func{stat}.
 @end defun
 
 
-@defun lfile-user-readable? @var{pathname}
-@defunx lfile-user-writable? @var{pathname}
-@defunx lfile-user-executable? @var{pathname}
-@defunx lfile-group-readable? @var{pathname}
-@defunx lfile-group-writable? @var{pathname}
-@defunx lfile-group-executable? @var{pathname}
-@defunx lfile-other-readable? @var{pathname}
-@defunx lfile-other-writable? @var{pathname}
-@defunx lfile-other-executable? @var{pathname}
-@defunx lfile-setuid? @var{pathname}
-@defunx lfile-setgid? @var{pathname}
-@defunx lfile-sticky? @var{pathname}
+@defun lfile-user-readable? @var{mode/pathname}
+@defunx lfile-user-writable? @var{mode/pathname}
+@defunx lfile-user-executable? @var{mode/pathname}
+@defunx lfile-group-readable? @var{mode/pathname}
+@defunx lfile-group-writable? @var{mode/pathname}
+@defunx lfile-group-executable? @var{mode/pathname}
+@defunx lfile-other-readable? @var{mode/pathname}
+@defunx lfile-other-writable? @var{mode/pathname}
+@defunx lfile-other-executable? @var{mode/pathname}
+@defunx lfile-setuid? @var{mode/pathname}
+@defunx lfile-setgid? @var{mode/pathname}
+@defunx lfile-sticky? @var{mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
-@var{pathname} must be a Scheme string or symbol representing a
-pathname.  The the @code{mode} field of @code{struct stat} is acquired
-with @func{lstat}.
+
+@var{mode/pathname} must be: a Scheme string or symbol representing a
+pathname, an exact integer representing the @code{st_mode} field of a
+@code{struct stat} acquired with @cfunc{lstat}.
+
+In the pathname case: the the @code{st_mode} field of @code{struct stat}
+is acquired with @func{lstat}.
 @end defun
 
 
 @defun file-permissions @var{fd/pathname}
 @defunx lfile-permissions @var{pathname}
 Return an exact integer representing the access permissions bits from
-the @code{mode} field of a @code{struct stat}.
+the @code{st_mode} field of a @code{struct stat}.
 
 For @func{file-permissions}: @var{fd/pathname} can be a file descriptor
 or a pathname in the form of a Scheme string or symbol; the mode is
@@ -4309,7 +4333,13 @@ file and accumulates them in the @code{lines} variables:
 
 
 Unless otherwise specified, the bindings documented in this chapter are
-exported by the @posix{} @code{time} libraries.
+exported by the following libraries:
+
+@example
+(posix time)
+(posix time primitives)
+(posix time platform)
+@end example
 
 @menu
 * time intro::                  Introduction.
