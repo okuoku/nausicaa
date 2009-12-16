@@ -159,7 +159,7 @@
 	    (posix:execv '/bin/ls '(ls "-l" /bin/ls))
 	  (receive (result status)
 	      (posix:waitpid pid 0)
-	    (let ((r (integer-><process-term-status> status)))
+	    (let ((r (posix:integer-><process-term-status> status)))
 	      (WIFEXITED? r)))))
     => #t)
 

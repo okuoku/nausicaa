@@ -69,30 +69,32 @@
     file-size		ftruncate	truncate
 
     ;; temporary files
-    mkstemp		mkdtemp)
-  (import (except (rnrs)
-		  remove truncate)
+    mkstemp		mkdtemp
+
+    ;; stat
+    stat lstat fstat
+    (rename (platform:S_ISDIR		S_ISDIR)
+	    (platform:S_ISCHR		S_ISCHR)
+	    (platform:S_ISBLK		S_ISBLK)
+	    (platform:S_ISREG		S_ISREG)
+	    (platform:S_ISFIFO		S_ISFIFO)
+	    (platform:S_ISLNK		S_ISLNK)
+	    (platform:S_ISSOCK		S_ISSOCK)
+	    (platform:S_TYPEISMQ	S_TYPEISMQ)
+	    (platform:S_TYPEISSEM	S_TYPEISSEM)
+	    (platform:S_TYPEISSHM	S_TYPEISSHM))
+
+    pointer-><struct-stat>
+
+    )
+  (import (except (rnrs) remove truncate)
     (receive)
     (begin0)
     (compensations)
-    (only (foreign ffi)
-	  make-c-callback*)
+    (foreign ffi)
     (foreign ffi sizeof)
-    (only (foreign ffi peekers-and-pokers)
-	  pointer-ref-c-pointer
-	  pointer-ref-c-uint8)
-    (only (foreign ffi pointers)
-	  pointer-null?
-	  pointer-null
-	  pointer->integer
-	  pointer-add)
-    (only (foreign memory)
-	  malloc-block/c
-	  memcpy
-	  malloc
-	  primitive-free)
-    (only (foreign cstrings)
-	  cstring->string string->cstring/c)
+    (foreign memory)
+    (only (foreign cstrings) cstring->string string->cstring/c)
     (foreign errno)
     (posix sizeof)
     (posix typedefs)
@@ -241,7 +243,7 @@
 			(scheme-function (cstring->string pathname-cstr)
 					 (if (= 0 (bitwise-and flag FTW_NS))
 					     #f
-					   (struct-stat->record struct-stat))
+					   (pointer-><struct-stat> struct-stat))
 					 flag)))
 		    (char* void* int)))
 
@@ -252,7 +254,7 @@
 			(scheme-function (cstring->string pathname-cstr)
 					 (if (= 0 (bitwise-and flag FTW_NS))
 					     #f
-					   (struct-stat->record struct-stat))
+					   (pointer-><struct-stat> struct-stat))
 					 flag
 					 (struct-FTW-base-ref  struct-ftw)
 					 (struct-FTW-level-ref struct-ftw))))
@@ -555,6 +557,57 @@
 	(if (pointer-null? result)
 	    (raise-errno-error 'mkdtemp errno template)
 	  (cstring->string p))))))
+
+
+;;; stat interface
+
+(define (pointer-><struct-stat> struct-stat*)
+  ;;Some "struct  stat" field  may be unimplemented,  so we  default its
+  ;;value to #f.
+  (let-syntax ((get	(syntax-rules ()
+			  ((_ ?getter)
+			   (guard (exc (else #f))
+			     (?getter struct-stat*))))))
+    (make-<struct-stat>
+     (get platform:struct-stat-st_mode-ref)
+     (get platform:struct-stat-st_ino-ref)
+     (get platform:struct-stat-st_dev-ref)
+     (get platform:struct-stat-st_nlink-ref)
+     (get platform:struct-stat-st_uid-ref)
+     (get platform:struct-stat-st_gid-ref)
+     (get platform:struct-stat-st_size-ref)
+     (get platform:struct-stat-st_atime-ref)
+     (get platform:struct-stat-st_atime_usec-ref)
+     (get platform:struct-stat-st_mtime-ref)
+     (get platform:struct-stat-st_mtime_usec-ref)
+     (get platform:struct-stat-st_ctime-ref)
+     (get platform:struct-stat-st_ctime_usec-ref)
+     (get platform:struct-stat-st_blocks-ref)
+     (get platform:struct-stat-st_blksize-ref))))
+
+(define (%real-stat func funcname pathname)
+  (with-compensations
+    (let ((struct-stat*	(malloc-block/c platform:sizeof-stat)))
+      (receive (result errno)
+	  (func (string->cstring/c pathname) struct-stat*)
+	(when (= -1 result)
+	  (raise-errno-error funcname errno pathname))
+	(pointer-><struct-stat> struct-stat*)))))
+
+(define (stat pathname)
+  (%real-stat platform:stat 'stat pathname))
+
+(define (lstat pathname)
+  (%real-stat platform:lstat 'lstat pathname))
+
+(define (fstat fd)
+  (with-compensations
+    (let ((struct-stat* (malloc-block/c platform:sizeof-stat)))
+      (receive (result errno)
+	  (platform:fstat (file-descriptor->integer fd) struct-stat*)
+	(when (= -1 result)
+	  (raise-errno-error 'fstat errno fd))
+	(pointer-><struct-stat> struct-stat*)))))
 
 
 ;;;; done

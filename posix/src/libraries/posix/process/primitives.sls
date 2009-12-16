@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -33,14 +33,23 @@
 
     fork		execv
     execve		execvp
-    system		waitpid)
+    system		waitpid
+
+    integer-><process-term-status>
+
+    ctermid		setsid		getsid
+    getpgrp		setpgid
+    tcgetpgrp		tcsetpgrp	tcgetsid)
   (import (rnrs)
     (receive)
     (compensations)
+    (only (foreign ffi pointers) pointer-null?)
+    (only (foreign ffi peekers-and-pokers) pointer-ref-c-uint8)
     (only (foreign memory) malloc-small/c malloc-block/c)
     (only (foreign errno) raise-errno-error EINTR)
-    (only (foreign cstrings) string->cstring/c strings->argv)
-    (only (foreign ffi peekers-and-pokers) pointer-ref-c-uint8)
+    (foreign cstrings)
+    (only (posix sizeof) L_ctermid)
+    (posix typedefs)
     (prefix (posix process platform) platform:))
 
 
@@ -92,6 +101,19 @@
 
 ;;;; waiting
 
+(define (integer-><process-term-status> status)
+  (let-syntax ((bool (syntax-rules ()
+		       ((_ ?form)
+			(if ?form #t #f)))))
+    (make-<process-term-status>
+     (bool (platform:WIFEXITED status))
+     (bool (platform:WEXITSTATUS status))
+     (bool (platform:WIFSIGNALED status))
+     (bool (platform:WTERMSIG status))
+     (bool (platform:WCOREDUMP status))
+     (bool (platform:WIFSTOPPED status))
+     (bool (platform:WSTOPSIG status)))))
+
 (define (waitpid pid options)
   (with-compensations
     (let ((status* (malloc-small/c)))
@@ -103,6 +125,71 @@
 	      (loop))
 	    (raise-errno-error 'waitpid errno pid))
 	  (values result (pointer-ref-c-uint8 status* 0)))))))
+
+
+;;;; job control
+
+(define (ctermid)
+  (with-compensations
+    (let ((p (malloc-block/c L_ctermid)))
+      (receive (result errno)
+	  (platform:ctermid p)
+	(if (pointer-null? result)
+	    (raise-errno-error 'ctermid errno)
+	  (cstring->string p))))))
+
+;;; --------------------------------------------------------------------
+
+(define (setsid)
+  (receive (result errno)
+      (platform:setsid)
+    (if (= -1 errno)
+	(raise-errno-error 'setsid errno)
+      result)))
+
+(define (getsid pid)
+  (receive (result errno)
+      (platform:getsid pid)
+    (if (= -1 errno)
+	(raise-errno-error 'getsid errno pid)
+      result)))
+
+(define (getpgrp)
+  (receive (result errno)
+      (platform:getpgrp)
+    (if (= -1 errno)
+	(raise-errno-error 'getpgrp errno)
+      result)))
+
+(define (setpgid pid pgid)
+  (receive (result errno)
+      (platform:setpgid pid pgid)
+    (if (= -1 errno)
+	(raise-errno-error 'setpgid errno (list pid pgid))
+      result)))
+
+;;; --------------------------------------------------------------------
+
+(define (tcgetpgrp fd)
+  (receive (result errno)
+      (platform:tcgetpgrp fd)
+    (if (= -1 errno)
+	(raise-errno-error 'tcgetpgrp errno fd)
+      result)))
+
+(define (tcsetpgrp fd pgid)
+  (receive (result errno)
+      (platform:tcsetpgrp fd pgid)
+    (if (= -1 errno)
+	(raise-errno-error 'tcsetpgrp errno (list fd pgid))
+      result)))
+
+(define (tcgetsid fd)
+  (receive (result errno)
+      (platform:tcgetsid fd)
+    (if (= -1 errno)
+	(raise-errno-error 'tcgetsid errno fd)
+      result)))
 
 
 ;;;; done

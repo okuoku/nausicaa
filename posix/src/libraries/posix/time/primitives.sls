@@ -34,8 +34,12 @@
     ;; calendar time
     time
 
+    ;; structure/record conversion
+    <struct-tms>->pointer		pointer-><struct-tms>
+    <struct-timeval>->pointer		pointer-><struct-timeval>
     )
   (import (rnrs)
+    (begin0)
     (receive)
     (compensations)
     (only (foreign ffi sizeof) sizeof-double-array)
@@ -46,6 +50,31 @@
     (posix typedefs)
     (posix sizeof)
     (prefix (posix time platform) platform:))
+
+
+(define (pointer-><struct-tms> pointer)
+  (make-<struct-tms> (platform:struct-tms-tms_utime-ref  pointer)
+		     (platform:struct-tms-tms_stime-ref  pointer)
+		     (platform:struct-tms-tms_cutime-ref pointer)
+		     (platform:struct-tms-tms_cutime-ref pointer)))
+
+(define (<struct-tms>->pointer record malloc)
+  (begin0-let ((pointer (malloc sizeof-tms)))
+    (platform:struct-tms-tms_utime-set!  pointer (<struct-tms>-utime  record))
+    (platform:struct-tms-tms_stime-set!  pointer (<struct-tms>-stime  record))
+    (platform:struct-tms-tms_cutime-set! pointer (<struct-tms>-cutime record))
+    (platform:struct-tms-tms_cstime-set! pointer (<struct-tms>-cstime record))))
+
+;;; --------------------------------------------------------------------
+
+(define (pointer-><struct-timeval> pointer)
+  (make-<struct-timeval> (struct-timeval-tv_sec-ref  pointer)
+			 (struct-timeval-tv_usec-ref pointer)))
+
+(define (<struct-timeval>->pointer record malloc)
+  (begin0-let ((pointer (malloc sizeof-timeval)))
+    (struct-timeval-tv_sec-set!  pointer (<struct-timeval>-sec  record))
+    (struct-timeval-tv_usec-set! pointer (<struct-timeval>-usec record))))
 
 
 ;;;; clock ticks and CPU time
@@ -61,7 +90,7 @@
   (with-compensations
     (let* ((struct-tms*	(malloc-block/c sizeof-tms))
 	   (result	(platform:times struct-tms*)))
-      (values result (struct-tms->record struct-tms*)))))
+      (values result (pointer-><struct-tms> struct-tms*)))))
 
 
 ;;;; calendar time

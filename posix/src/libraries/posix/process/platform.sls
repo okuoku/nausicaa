@@ -34,7 +34,11 @@
     WIFEXITED		WEXITSTATUS
     WIFSIGNALED		WTERMSIG
     WCOREDUMP		WIFSTOPPED
-    WSTOPSIG)
+    WSTOPSIG
+
+    ctermid		setsid		getsid
+    getpgrp		setpgid
+    tcgetpgrp		tcsetpgrp	tcgetsid)
   (import (rnrs)
     (foreign ffi)
     (posix shared-object)
@@ -59,6 +63,16 @@
     (WTERMSIG		(int nausicaa_posix_wtermsig (int)))
     (WCOREDUMP		(int nausicaa_posix_wcoredump (int)))
     (WIFSTOPPED		(int nausicaa_posix_wifstopped (int)))
-    (WSTOPSIG		(int nausicaa_posix_wstopsig (int)))))
+    (WSTOPSIG		(int nausicaa_posix_wstopsig (int))))
+
+  (define-c-functions/with-errno libc-shared-object
+    (ctermid		(char* ctermid (char*)))
+    (setsid		(pid_t setsid (void)))
+    (getsid		(pid_t getsid (pid_t)))
+    (getpgrp		(pid_t getpgrp (void)))
+    (setpgid		(int setpgid (pid_t pid_t)))
+    (tcgetpgrp		(pid_t tcgetpgrp (int)))
+    (tcsetpgrp		(pid_t tcsetpgrp (int pid_t)))
+    (tcgetsid		(pid_t tcgetsid (int)))))
 
 ;;; end of file

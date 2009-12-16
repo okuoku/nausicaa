@@ -38,7 +38,7 @@
   (checks))
 
 (check-set-mode! 'report-failed)
-(display "*** testing system configuration inspection functions\n")
+(display "*** testing system inspection functions\n")
 
 
 (parameterize ((check-test-name	'sysconf)

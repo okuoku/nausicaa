@@ -42,7 +42,17 @@
     ;; waiting
     waitpid		waitpid-function
     waitpid/any		waitpid/any-my-group
-    waitpid/group)
+    waitpid/group
+    (rename (primitive:integer-><process-term-status> integer-><process-term-status>))
+
+    ctermid	ctermid-function
+    setsid	setsid-function
+    getsid	getsid-function
+    getpgrp	getpgrp-function
+    setpgid	setpgid-function
+    tcgetpgrp	tcgetpgrp-function
+    tcsetpgrp	tcsetpgrp-function
+    tcgetsid	tcgetsid-function)
   (import (rnrs)
     (receive)
     (compensations)
@@ -87,6 +97,23 @@
     (assertion-violation 'waitpid/group
       "expected strictly positive process group id" gpid))
   ((waitpid-function) (- gpid) options))
+
+;; terminal identification
+
+(define-parametrised ctermid)
+
+;; process group
+
+(define-parametrised setsid)
+(define-parametrised getsid pid)
+(define-parametrised getpgrp)
+(define-parametrised setpgid pid pgid)
+
+;; terminal access
+
+(define-parametrised tcgetpgrp fd)
+(define-parametrised tcsetpgrp fd pgid)
+(define-parametrised tcgetsid fd)
 
 
 ;;;; done

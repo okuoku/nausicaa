@@ -26,9 +26,7 @@
 (import
   (only (posix fd))
   (only (posix file))
-  (only (posix job))
   (only (posix process))
-  (only (posix stat))
   (only (posix system))
   (only (posix time))
 

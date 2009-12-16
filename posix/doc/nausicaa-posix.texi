@@ -492,12 +492,10 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview.
 * file::                        File system.
-* stat::                        Inspecting file attributes.
 * fd::                          File descriptors.
 * streams::                     Stream functions.
 * time::                        Date and time.
 * process::                     Processes.
-* job::                         Job control.
 * users::                       Users and groups.
 * strings::                     More C string functions.
 * system::                      System resources and configuration.
@@ -534,6 +532,7 @@ File system
 * file attr::                   Changing file attributes.
 * file temp::                   Temporary files.
 * file times::                  Setting file times.
+* file stat::                   Inspecting file attributes.
 
 Accessing directory entries
 
@@ -553,11 +552,11 @@ Changing file attributes
 
 Inspecting file attributes
 
-* stat constants::              Constant values and structure accessors.
-* stat record::                 Acquiring the file attributes.
-* stat api::                    Interface functions.
-* stat type::                   Type inspection.
-* stat perms::                  Access permissions inspection.
+* file stat constants::         Constant values and structure accessors.
+* file stat record::            Acquiring the file attributes.
+* file stat api::               Interface functions.
+* file stat type::              Type inspection.
+* file stat perms::             Access permissions inspection.
 
 File descriptors
 
@@ -648,17 +647,18 @@ Record types
 
 Processes
 
-* process record::              Record types.
+* process typedefs::            Object type defintions.
 * process id::                  Process identification.
 * process fork::                Creating a process.
 * process exec::                Executing a file.
 * process wait::                Process completion.
+* process job::                 Job control.
 
 Job control
 
-* job terminal::                Terminal identification.
-* job group::                   Process group functions.
-* job access::                  Terminal access.
+* process job terminal::        Terminal identification.
+* process job group::           Process group functions.
+* process job access::          Terminal access.
 
 Users and groups
 
@@ -892,6 +892,7 @@ exported by the @posix{} @code{file} libraries.
 * file attr::                   Changing file attributes.
 * file temp::                   Temporary files.
 * file times::                  Setting file times.
+* file stat::                   Inspecting file attributes.
 @end menu
 
 @c page
@@ -1931,30 +1932,27 @@ descriptor.
 @end deffn
 
 @c page
-@node stat
-@chapter Inspecting file attributes
+@node file stat
+@section Inspecting file attributes
 
-
-Unless otherwise specified, the bindings described in this section are
-exported by the @posix{} @code{stat} libraries.
 
 @menu
-* stat constants::              Constant values and structure accessors.
-* stat record::                 Acquiring the file attributes.
-* stat api::                    Interface functions.
-* stat type::                   Type inspection.
-* stat perms::                  Access permissions inspection.
+* file stat constants::         Constant values and structure accessors.
+* file stat record::            Acquiring the file attributes.
+* file stat api::               Interface functions.
+* file stat type::              Type inspection.
+* file stat perms::             Access permissions inspection.
 @end menu
 
 @c page
-@node stat constants
-@section Constant values and structures accessors
+@node file stat constants
+@subsection Constant values and structures accessors
 
 
-The following bindings are exported by the @library{posix stat
-platform} library; this is because @code{struct stat} is somewhat
-``special'', so we relay on the @file{libnausicaa-posix.so} stub library
-to deal with it.
+The following bindings are exported by the @library{posix file platform}
+library; this is because @code{struct stat} is somewhat ``special'', so
+we relay on the @file{libnausicaa-posix.so} stub library to deal with
+it.
 
 
 @defvr Constant sizeof-stat
@@ -1985,8 +1983,8 @@ value is zero.
 @end defun
 
 @c page
-@node stat record
-@section Acquiring the file attributes
+@node file stat record
+@subsection Acquiring the file attributes
 
 
 The following bindings are exported by the @library{posix typedefs}
@@ -2051,20 +2049,21 @@ Return @true{} if @var{obj} is a @class{struct-stat} record.
 Accessors for the fields of a @class{struct-stat} record.
 @end defun
 
-
-@defun struct-stat->record @var{pointer}
-Given a pointer to a block of memory holding a foreign @code{struct
-stat}, build and return a @class{struct-stat} record.  All the fields
-that are not available in the foreign structure are set to zero.
-@end defun
-
 @c page
-@node stat api
-@section Interface functions
+@node file stat api
+@subsection Interface functions
 
 
 The following bindings manage file attributes inspection.
 @glibcref{Reading Attributes, Reading Attributes}.
+
+
+@defun primitive:pointer-><struct-stat> @var{pointer}
+Given a pointer to a block of memory holding a C language @code{struct
+stat}, build and return a @class{struct-stat} record mirroring it.  All
+the fields that are not available in the foreign structure are set to
+zero.
+@end defun
 
 
 @deffn Function stat @var{pathname}
@@ -2094,8 +2093,8 @@ symbolic link selected by the Scheme string or symbol @var{pathname}.
 @end deffn
 
 @c page
-@node stat type
-@section Type inspection
+@node file stat type
+@subsection Type inspection
 
 
 The integer in the @code{mode} field of a @class{struct-stat} record can
@@ -2180,8 +2179,8 @@ otherwise return zero.
 @end defun
 
 @c page
-@node stat perms
-@section Access permissions inspection
+@node file stat perms
+@subsection Access permissions inspection
 
 
 Access permissions can be inspected with a bitwise combination between
@@ -4673,14 +4672,6 @@ Constructor and predicate for records of type @class{struct-tms}.
 @end defun
 
 
-@defun struct-tms->record @var{pointer}
-@defunx record->struct-tms @var{record} @var{malloc}
-Convert between a pointer to a @code{struct tms} instance and a record
-of type @class{struct-tms}.  The @var{malloc} function is used to
-allocate the block of memory in which the @code{struct tms} is stored.
-@end defun
-
-
 @defun <struct-tms>-utime @var{tms}
 @defunx <struct-tms>-utime-set! @var{tms} @var{value}
 @defunx <struct-tms>-stime @var{tms}
@@ -4690,6 +4681,17 @@ allocate the block of memory in which the @code{struct tms} is stored.
 @defunx <struct-tms>-cstime @var{tms}
 @defunx <struct-tms>-cstime-set! @var{tms} @var{value}
 Accessors and mutators for @class{struct-tms} records.
+@end defun
+
+
+@defun pointer-><struct-tms> @var{pointer}
+@defunx <struct-tms>->pointer @var{record} @var{malloc}
+Convert between a pointer to a @code{struct tms} instance and a record
+of type @class{struct-tms}.  The @var{malloc} function is used to
+allocate the block of memory in which the @code{struct tms} is stored.
+
+These bindings are exported by the @library{posix time primitives}
+library.
 @end defun
 
 @c page
@@ -4715,19 +4717,22 @@ Constructor and predicate for @class{struct-timeval} records.
 @end defun
 
 
-@defun struct-timeval->record @var{struct-timeval-pointer}
-@defunx record->struct-timeval @var{timeval-record} @var{malloc}
-Convert between a pointer to a @code{struct timeval} instance and a
-record of type @class{struct-timeval}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct timeval} is stored.
-@end defun
-
-
 @defun <struct-timeval>-sec @var{timeval-record}
 @defunx <struct-timeval>-sec-set! @var{timeval-record} @var{value}
 @defunx <struct-timeval>-usec @var{timeval-record}
 @defunx <struct-timeval>-usec-set! @var{timeval-record} @var{value}
 Accessors and mutators @class{struct-timeval} records.
+@end defun
+
+
+@defun pointer-><struct-timeval> @var{struct-timeval-pointer}
+@defunx <struct-timeval>->pointer @var{timeval-record} @var{malloc}
+Convert between a pointer to a @code{struct timeval} instance and a
+record of type @class{struct-timeval}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct timeval} is stored.
+
+These bindings are exported by the @library{posix time primitives}
+library.
 @end defun
 
 @c page
@@ -4753,19 +4758,22 @@ Constructor and predicate for @class{struct-timespec} records.
 @end defun
 
 
-@defun struct-timespec->record @var{struct-timespec-pointer}
-@defunx record->struct-timespec @var{timespec-record} @var{malloc}
-Convert between a pointer to a @code{struct timespec} instance and a
-record of type @class{struct-timespec}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct timespec} is stored.
-@end defun
-
-
 @defun <struct-timespec>-sec @var{timespec-record}
 @defunx <struct-timespec>-sec-set! @var{timespec-record} @var{value}
 @defunx <struct-timespec>-nsec @var{timespec-record}
 @defunx <struct-timespec>-nsec-set! @var{timespec-record} @var{value}
 Accessors and mutators @class{struct-timespec} records.
+@end defun
+
+
+@defun pointer-><struct-timespec> @var{struct-timespec-pointer}
+@defunx <struct-timespec>->pointer @var{timespec-record} @var{malloc}
+Convert between a pointer to a @code{struct timespec} instance and a
+record of type @class{struct-timespec}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct timespec} is stored.
+
+These bindings are exported by the @library{posix glibc primitives}
+library.
 @end defun
 
 @c page
@@ -4792,19 +4800,22 @@ Constructor and predicate for @class{struct-timezone} records.
 @end defun
 
 
-@defun struct-timezone->record @var{struct-timezone-pointer}
-@defunx record->struct-timezone @var{timezone-record} @var{malloc}
-Convert between a pointer to a @code{struct timezone} instance and a
-record of type @class{struct-timezone}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct timezone} is stored.
-@end defun
-
-
 @defun <struct-timezone>-minuteswest @var{timezone-record}
 @defunx <struct-timezone>-minuteswest-set! @var{timezone-record} @var{value}
 @defunx <struct-timezone>-dsttime @var{timezone-record}
 @defunx <struct-timezone>-dsttime-set! @var{timezone-record} @var{value}
 Accessors and mutators @class{struct-timezone} records.
+@end defun
+
+
+@defun pointer-><struct-timezone> @var{struct-timezone-pointer}
+@defunx <struct-timezone>->pointer @var{timezone-record} @var{malloc}
+Convert between a pointer to a @code{struct timezone} instance and a
+record of type @class{struct-timezone}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct timezone} is stored.
+
+These bindings are exported by the @library{posix glibc primitives}
+library.
 @end defun
 
 @c page
@@ -4835,18 +4846,6 @@ Constructor and predicate for @class{struct-tm} records.
 @end defun
 
 
-@defun struct-tm->record @var{struct-tm-pointer}
-@defunx record->struct-tm @var{tm-record} @var{malloc}
-Convert between a pointer to a @code{struct tm} instance and a
-record of type @class{struct-tm}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct tm} is stored.
-
-Notice that no conversion is performed on the value in the @code{zone}
-field; we have to explicitly convert between C strings and Scheme
-strings.
-@end defun
-
-
 @defun <struct-tm>-sec @var{tm-record}
 @defunx <struct-tm>-sec-set! @var{tm-record} @var{value}
 @defunx <struct-tm>-min @var{tm-record}
@@ -4870,6 +4869,21 @@ strings.
 @defunx <struct-tm>-zone @var{tm-record}
 @defunx <struct-tm>-zone-set! @var{tm-record} @var{value}
 Accessors and mutators @class{struct-tm} records.
+@end defun
+
+
+@defun pointer-><struct-tm> @var{struct-tm-pointer}
+@defunx <struct-tm>->pointer @var{tm-record} @var{malloc}
+Convert between a pointer to a @code{struct tm} instance and a
+record of type @class{struct-tm}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct tm} is stored.
+
+Notice that no conversion is performed on the value in the @code{zone}
+field; we have to explicitly convert between C strings and Scheme
+strings.
+
+These bindings are exported by the @library{posix glibc primitives}
+library.
 @end defun
 
 @c page
@@ -4897,14 +4911,6 @@ Constructor and predicate for @class{struct-ntptimeval} records.
 @end defun
 
 
-@defun struct-ntptimeval->record @var{struct-ntptimeval-pointer}
-@defunx record->struct-ntptimeval @var{ntptimeval-record} @var{malloc}
-Convert between a pointer to a @code{struct ntptimeval} instance and a
-record of type @class{struct-ntptimeval}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct ntptimeval} is stored.
-@end defun
-
-
 @defun <struct-ntptimeval>-time @var{pointer}
 @defunx <struct-ntptimeval>-time-set! @var{pointer} @var{value}
 @defunx <struct-ntptimeval>-maxerror @var{pointer}
@@ -4912,6 +4918,17 @@ used to allocate memory in which the @code{struct ntptimeval} is stored.
 @defunx <struct-ntptimeval>-esterror @var{pointer}
 @defunx <struct-ntptimeval>-esterror-set! @var{pointer} @var{value}
 Accessors and mutators @class{struct-ntptimeval} records.
+@end defun
+
+
+@defun pointer-><struct-ntptimeval> @var{struct-ntptimeval-pointer}
+@defunx <struct-ntptimeval>->pointer @var{ntptimeval-record} @var{malloc}
+Convert between a pointer to a @code{struct ntptimeval} instance and a
+record of type @class{struct-ntptimeval}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct ntptimeval} is stored.
+
+These bindings are exported by the @library{posix glibc primitives}
+library.
 @end defun
 
 @c page
@@ -4935,20 +4952,6 @@ following fields, one for each field in the @code{struct timex} type:
 @code{calcnt}, @code{errcnt}, @code{stbcnt}.  The @code{time} field
 contains a @class{struct-timeval} record.
 @end deftp
-
-
-@defun make-<struct-timex> @var{modes} @var{offset} @var{freq} @var{maxerror} @var{esterror} @var{status} @var{constant} @var{precision} @var{tolerance} @var{time} @var{tick} @var{ppsfreq} @var{jitter} @var{shift} @var{stabil} @var{jitcnt} @var{calcnt} @var{errcnt} @var{stbcnt}
-@defunx <struct-timex>? @var{obj}
-Constructor and predicate for @class{struct-timex} records.
-@end defun
-
-
-@defun struct-timex->record @var{struct-timex-pointer}
-@defunx record->struct-timex @var{timex-record} @var{malloc}
-Convert between a pointer to a @code{struct timex} instance and a record
-of type @class{struct-timex}.  The @var{malloc} function is used to
-allocate memory in which the @code{struct timex} is stored.
-@end defun
 
 
 @defun <struct-timex>-modes @var{pointer}
@@ -4992,6 +4995,26 @@ allocate memory in which the @code{struct timex} is stored.
 Accessors and mutators @class{struct-timex} records.
 @end defun
 
+
+@defun make-<struct-timex> @var{modes} @var{offset} @var{freq} @var{maxerror} @var{esterror} @var{status} @var{constant} @var{precision} @var{tolerance} @var{time} @var{tick} @var{ppsfreq} @var{jitter} @var{shift} @var{stabil} @var{jitcnt} @var{calcnt} @var{errcnt} @var{stbcnt}
+@defunx <struct-timex>? @var{obj}
+Constructor and predicate for @class{struct-timex} records.
+
+These bindings are exported by the @library{posix glibc primitives}
+library.
+@end defun
+
+
+@defun pointer-><struct-timex> @var{struct-timex-pointer}
+@defunx <struct-timex>->pointer @var{timex-record} @var{malloc}
+Convert between a pointer to a @code{struct timex} instance and a record
+of type @class{struct-timex}.  The @var{malloc} function is used to
+allocate memory in which the @code{struct timex} is stored.
+
+These bindings are exported by the @library{posix glibc primitives}
+library.
+@end defun
+
 @c page
 @node time records itimerval
 @subsection @code{struct itimerval} mirror
@@ -5017,19 +5040,22 @@ Constructor and predicate for @class{struct-itimerval} records.
 @end defun
 
 
-@defun struct-itimerval->record @var{struct-itimerval-pointer}
-@defunx record->struct-itimerval @var{itimerval-record} @var{malloc}
-Convert between a pointer to a @code{struct itimerval} instance and a
-record of type @class{struct-itimerval}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct itimerval} is stored.
-@end defun
-
-
 @defun <struct-itimerval>-interval @var{pointer}
 @defunx <struct-itimerval>-interval-set! @var{pointer} @var{value}
 @defunx <struct-itimerval>-value @var{pointer}
 @defunx <struct-itimerval>-value-set! @var{pointer} @var{value}
 Accessors and mutators @class{struct-itimerval} records.
+@end defun
+
+
+@defun pointer-><struct-itimerval> @var{struct-itimerval-pointer}
+@defunx <struct-itimerval>->pointer @var{itimerval-record} @var{malloc}
+Convert between a pointer to a @code{struct itimerval} instance and a
+record of type @class{struct-itimerval}.  The @var{malloc} function is
+used to allocate memory in which the @code{struct itimerval} is stored.
+
+These bindings are exported by the @library{posix glibc primitives}
+library.
 @end defun
 
 @c page
@@ -5553,16 +5579,17 @@ exported by the following libraries:
 @end example
 
 @menu
-* process record::              Record types.
+* process typedefs::            Object type defintions.
 * process id::                  Process identification.
 * process fork::                Creating a process.
 * process exec::                Executing a file.
 * process wait::                Process completion.
+* process job::                 Job control.
 @end menu
 
 @c page
-@node process record
-@section Record types
+@node process typedefs
+@section Object type defintions
 
 
 The following bindings are exported by the @library{posix typedefs}
@@ -5586,12 +5613,6 @@ WSTOPSIG
 
 @defun make-<process-term-status> @var{WIFEXITED} @var{WEXITSTATUS} @var{WIFSIGNALED} @var{WTERMSIG} @var{WCOREDUMP} @var{WIFSTOPPED} @var{WSTOPSIG}
 Build and return a new record of type @class{process-term-status}.
-@end defun
-
-
-@defun integer-><process-term-status> @var{status}
-Given the exact integer @var{status} representing a process' termination
-status, build and return a record of type @class{process-term-status}.
 @end defun
 
 
@@ -5758,7 +5779,8 @@ exported by @library{posix sizeof}.
 
 The following @code{waitpid} functions return a process termination
 status in the form of an exact integer.  Such integer can be analysed
-with the functions described in @ref{process record, Record types}.
+with the functions described in @ref{process typedefs, Object type
+definitions}.
 
 
 @deffn Parameter waitpid-function
@@ -5794,6 +5816,12 @@ tracks all the child processes in the group with id @var{gpid}.
 @end defun
 
 
+@defun integer-><process-term-status> @var{status}
+Given the exact integer @var{status} representing a process' termination
+status, build and return a record of type @class{process-term-status}.
+@end defun
+
+
 @defun platform:WIFEXITED @var{status}
 @defunx platform:WEXITSTATUS @var{status}
 @defunx platform:WIFSIGNALED @var{status}
@@ -5807,28 +5835,18 @@ used to query the status without building a record.
 @end defun
 
 @c page
-@node job
-@chapter Job control
-
-
-Unless otherwise specified, the bindings described in this chapter are
-exported by the following libraries:
-
-@example
-(posix job)
-(posix job primitives)
-(posix job platform)
-@end example
+@node process job
+@section Job control
 
 @menu
-* job terminal::                Terminal identification.
-* job group::                   Process group functions.
-* job access::                  Terminal access.
+* process job terminal::        Terminal identification.
+* process job group::           Process group functions.
+* process job access::          Terminal access.
 @end menu
 
 @c page
-@node job terminal
-@section Terminal identification
+@node process job terminal
+@subsection Terminal identification
 
 
 The following functions manage identification of the terminal of the
@@ -5850,8 +5868,8 @@ terminal file pathname as a C string.  @code{L_ctermid} is exported by
 @end deffn
 
 @c page
-@node job group
-@section Process group functions
+@node process job group
+@subsection Process group functions
 
 
 The following functions manage process groups and sessions.
@@ -5892,8 +5910,8 @@ Put the process @var{pid} in the group @var{pgid}.
 @end deffn
 
 @c page
-@node job access
-@section Terminal access
+@node process job access
+@subsection Terminal access
 
 
 The following functions manage process access to the controlling
@@ -6293,6 +6311,13 @@ The following bindings manage access to the users database.
 Users, Scanning the List of All Users}.
 
 
+@defun primitive:pointer-><struct-passwd> @var{pointer}
+Build and return a new @class{struct-passwd} record mirroring the
+@code{struct passwd} C language data structure referenced by
+@var{pointer}.
+@end defun
+
+
 @deffn Function getpwuid @var{uid}
 @deffnx Parameter getpwuid-function
 @deffnx Function primitive:getpwuid @var{uid}
@@ -6349,6 +6374,13 @@ return value is @false{}.  This function is reentrant.
 The following bindings manage access to the groups database.
 @glibcref{Lookup Group, Looking Up One Group}.  @glibcref{Scanning All
 Groups, Scanning the List of All Groups}.
+
+
+@defun primitive:pointer-><struct-group> @var{pointer}
+Build and return a new @class{struct-group} record mirroring the
+@code{struct group} C language data structure referenced by
+@var{pointer}.
+@end defun
 
 
 @deffn Function getgrgid @var{gid}
@@ -6497,13 +6529,6 @@ Constructor and predicate for records of type @class{struct-utsname}.
 Accessors and mutators for records of type @class{struct-utsname}.
 @end defun
 
-
-@defun pointer->struct-utsname @var{pointer}
-Build and return a new record of type @class{struct-utsname} initialised
-with data from the C structure of type @code{struct utsname} referenced
-by @var{pointer}.
-@end defun
-
 @c page
 @node system typedefs fstab
 @subsection Mountable file systems informations
@@ -6567,13 +6592,6 @@ Constructor and predicate for records of type @class{struct-fstab}.
 Accessors and mutators for records of type @class{struct-fstab}.
 @end defun
 
-
-@defun pointer->struct-fstab @var{pointer}
-Build and return a new record of type @class{struct-fstab} initialised
-with data from the C structure of type @code{struct fstab} referenced by
-@var{pointer}.
-@end defun
-
 @c page
 @node system typedefs mntent
 @subsection Mounted file systems informations
@@ -6626,22 +6644,6 @@ Constructor and predicate for records of type @class{struct-mntent}.
 @defunx <struct-mntent>-passno @var{record}
 @defunx <struct-mntent>-passno-set! @var{record} @var{value}
 Accessors and mutators for records of type @class{struct-mntent}.
-@end defun
-
-
-@defun pointer->struct-mntent @var{pointer}
-Build and return a new record of type @class{struct-mntent} initialised
-with data from the C structure of type @code{struct mntent} referenced
-by @var{pointer}.
-@end defun
-
-
-@defun struct-mntent->pointer @var{mntent} @var{malloc}
-Allocate a new @code{struct mntent} C language data structure
-initialised with values from @var{mntent}, which must be a record of
-type @class{struct-mntent}.  All the needed memory is allocated with the
-function @var{malloc}, which must have the same protocol of
-@func{malloc} from @library{memory}.
 @end defun
 
 @c page
@@ -7271,6 +7273,13 @@ The following functions manage platform identification.
 @glibcref{Platform Type, Platform Type Identification}.
 
 
+@defun pointer-><struct-utsname> @var{pointer}
+Build and return a new record of type @class{struct-utsname} initialised
+with data from the C structure of type @code{struct utsname} referenced
+by @var{pointer}.
+@end defun
+
+
 @deffn Function uname
 @deffnx Parameter uname-function
 @deffnx Function primitive:uname
@@ -7297,6 +7306,13 @@ exported by the following libraries:
 @noindent
 The following functions manage reading the @file{fstab} file.
 @glibcref{fstab, The @file{fstab} file}.
+
+
+@defun primitive:pointer-><struct-fstab> @var{pointer}
+Build and return a new record of type @class{struct-fstab} initialised
+with data from the C structure of type @code{struct fstab} referenced by
+@var{pointer}.
+@end defun
 
 
 @deffn Function setfsent
@@ -7387,6 +7403,22 @@ from the foreign function.
 
 The following functions manage reading the @file{mtab} file.
 @glibcref{mtab, The @file{mtab} file}.
+
+
+@defun primitive:pointer-><struct-mntent> @var{pointer}
+Build and return a new record of type @class{struct-mntent} initialised
+with data from the C structure of type @code{struct mntent} referenced
+by @var{pointer}.
+@end defun
+
+
+@defun primitive:<struct-mntent>->pointer @var{mntent} @var{malloc}
+Allocate a new @code{struct mntent} C language data structure
+initialised with values from @var{mntent}, which must be a record of
+type @class{struct-mntent}.  All the needed memory is allocated with the
+function @var{malloc}, which must have the same protocol of
+@func{malloc} from @library{memory}.
+@end defun
 
 
 @deffn Function setmntent @var{pathname} @var{open-mode}

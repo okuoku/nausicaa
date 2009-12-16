@@ -31,9 +31,7 @@
 $(eval $(call nau-libraries,posix,posix))
 $(eval $(call nau-libraries,posix_fd,posix/fd))
 $(eval $(call nau-libraries,posix_file,posix/file))
-$(eval $(call nau-libraries,posix_job,posix/job))
 $(eval $(call nau-libraries,posix_process,posix/process))
-$(eval $(call nau-libraries,posix_stat,posix/stat))
 $(eval $(call nau-libraries,posix_system,posix/system))
 $(eval $(call nau-libraries,posix_time,posix/time))
 

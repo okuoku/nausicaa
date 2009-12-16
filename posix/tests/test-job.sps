@@ -26,11 +26,10 @@
 
 (import (nausicaa)
   (checks)
-  (prefix (posix job) posix:)
   (prefix (posix process) posix:))
 
 (check-set-mode! 'report-failed)
-(display "*** testing POSIX job\n")
+(display "*** testing POSIX job control\n")
 
 
 (parametrise ((check-test-name	'terminal-id)

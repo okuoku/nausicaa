@@ -45,6 +45,10 @@
     getgrgid		getgrnam
     fgetpwent		fgetgrent
 
+    pointer-><struct-passwd>
+    pointer-><struct-group>
+    pointer-><struct-utsname>
+
     setenv getenv environ)
   (import (rnrs)
     (receive)
@@ -157,6 +161,12 @@
 
 ;;;; platform types
 
+(define (pointer-><struct-utsname> utsname*)
+  (make-<struct-utsname> (cstring->string (struct-utsname-sysname-ref utsname*))
+			 (cstring->string (struct-utsname-release-ref utsname*))
+			 (cstring->string (struct-utsname-version-ref utsname*))
+			 (cstring->string (struct-utsname-machine-ref utsname*))))
+
 (define (uname)
   (with-compensations
     (let ((utsname* (malloc-block/c sizeof-utsname)))
@@ -164,7 +174,7 @@
 	  (platform:uname utsname*)
 	(if (= -1 result)
 	    (raise-errno-error 'uname errno)
-	  (pointer->struct-utsname utsname*))))))
+	  (pointer-><struct-utsname> utsname*))))))
 
 
 
@@ -330,6 +340,21 @@
 
 ;;;; users database
 
+(define (pointer-><struct-passwd> passwd*)
+  (make-<struct-passwd> (cstring->string (struct-passwd-pw_name-ref passwd*))
+			(cstring->string (struct-passwd-pw_passwd-ref passwd*))
+			(integer->uid (struct-passwd-pw_uid-ref passwd*))
+			(integer->gid (struct-passwd-pw_gid-ref passwd*))
+			(cstring->string (struct-passwd-pw_gecos-ref passwd*))
+			(let ((p (struct-passwd-pw_dir-ref passwd*)))
+			  (if (pointer-null? p)
+			      #f
+			    (cstring->string p)))
+			(let ((p (struct-passwd-pw_shell-ref passwd*)))
+			  (if (pointer-null? p)
+			      #f
+			    (cstring->string p)))))
+
 (define (getpwuid uid)
   (with-compensations
     (let ((passwd*	(malloc-block/c sizeof-passwd))
@@ -348,7 +373,7 @@
 		((pointer-null? (pointer-ref-c-pointer output* 0))
 		 (raise-errno-error 'getpwuid errno uid))
 		(else
-		 (pointer->struct-passwd passwd*))))))))
+		 (pointer-><struct-passwd> passwd*))))))))
 
 (define (getpwnam user-name)
   (with-compensations
@@ -368,7 +393,7 @@
 		((pointer-null? (pointer-ref-c-pointer output* 0))
 		 (raise-errno-error 'getpwnam errno user-name))
 		(else
-		 (pointer->struct-passwd passwd*))))))))
+		 (pointer-><struct-passwd> passwd*))))))))
 
 (define (fgetpwent stream)
   (with-compensations
@@ -388,12 +413,17 @@
 		((= result ENOENT)
 		 #f)
 		((= 0 result)
-		 (pointer->struct-passwd (pointer-ref-c-pointer output* 0)))
+		 (pointer-><struct-passwd> (pointer-ref-c-pointer output* 0)))
 		(else
 		 (raise-errno-error 'fgetpwent errno stream))))))))
 
 
 ;;;; groups database
+
+(define (pointer-><struct-group> group*)
+  (make-<struct-group> (cstring->string (struct-group-gr_name-ref group*))
+		       (integer->gid (struct-group-gr_gid-ref group*))
+		       (argv->strings (struct-group-gr_mem-ref group*))))
 
 (define (getgrgid gid)
   (with-compensations
@@ -413,7 +443,7 @@
 		((pointer-null? (pointer-ref-c-pointer output* 0))
 		 (raise-errno-error 'getgrgid errno gid))
 		(else
-		 (pointer->struct-group group*))))))))
+		 (pointer-><struct-group> group*))))))))
 
 (define (getgrnam group-name)
   (with-compensations
@@ -433,7 +463,7 @@
 		((pointer-null? (pointer-ref-c-pointer output* 0))
 		 (raise-errno-error 'getgrnam errno group-name))
 		(else
-		 (pointer->struct-group group*))))))))
+		 (pointer-><struct-group> group*))))))))
 
 (define (fgetgrent stream)
   (with-compensations
@@ -453,7 +483,7 @@
 		((= result ENOENT)
 		 #f)
 		((= 0 result)
-		 (pointer->struct-group (pointer-ref-c-pointer output* 0)))
+		 (pointer-><struct-group> (pointer-ref-c-pointer output* 0)))
 		(else
 		 (raise-errno-error 'fgetgrent errno stream))))))))
 

@@ -41,8 +41,7 @@
   (prefix (glibc file platform) glibc:platform:)
   (prefix (posix process) posix:)
   (prefix (posix fd) posix:)
-  (prefix (posix file) posix:)
-  (prefix (posix stat) posix:))
+  (prefix (posix file) posix:))
 
 (check-set-mode! 'report-failed)
 (display "*** testing Glibc file\n")
