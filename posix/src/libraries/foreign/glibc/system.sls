@@ -29,7 +29,8 @@
   (export
     setfsent		endfsent
     getfsent		getfsspec		getfsfile
-
+    setmntent		endmntent
+    getmntent		addmntent
     )
   (import (rnrs)
     (foreign posix helpers)
@@ -40,6 +41,11 @@
   (define-parametrised getfsent)
   (define-parametrised getfsspec spec)
   (define-parametrised getfsfile file)
+
+  (define-parametrised setmntent file-name open-mode)
+  (define-parametrised endmntent stream)
+  (define-parametrised getmntent stream)
+  (define-parametrised addmntent stream mntent)
 
   )
 

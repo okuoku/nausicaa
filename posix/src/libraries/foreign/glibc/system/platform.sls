@@ -29,7 +29,9 @@
   (export
     setfsent		endfsent
     getfsent		getfsspec		getfsfile
-    )
+    setmntent		endmntent
+    getmntent		getmntent_r
+    addmntent)
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof)
@@ -40,6 +42,11 @@
     (getfsent		(void* getfsent (void)))
     (getfsspec		(void* getfsspec (char*)))
     (getfsfile		(void* getfsfile (char*)))
-    ))
+    (endmntent		(int endmntent (FILE*)))
+    (getmntent		(void* getmntent (FILE*)))
+    (getmntent_r	(void* getmntent_r (FILE* void* char* int))))
+  (define-c-functions/with-errno libc-shared-object
+    (setmntent		(FILE* setmntent (char* char*)))
+    (addmntent		(int addmntent (FILE* void*)))))
 
 ;;; end of file

@@ -36,7 +36,6 @@ $(eval $(call nau-libraries,posix_job,foreign/posix/job))
 $(eval $(call nau-libraries,posix_process,foreign/posix/process))
 $(eval $(call nau-libraries,posix_stat,foreign/posix/stat))
 $(eval $(call nau-libraries,posix_time,foreign/posix/time))
-$(eval $(call nau-libraries,posix_users,foreign/posix/users))
 $(eval $(call nau-libraries,posix_system,foreign/posix/system))
 
 $(eval $(call nau-libraries,glibc,foreign/glibc))
@@ -44,6 +43,7 @@ $(eval $(call nau-libraries,glibc_cstrings,foreign/glibc/cstrings))
 $(eval $(call nau-libraries,glibc_environment,foreign/glibc/environment))
 $(eval $(call nau-libraries,glibc_file,foreign/glibc/file))
 $(eval $(call nau-libraries,glibc_streams,foreign/glibc/streams))
+$(eval $(call nau-libraries,glibc_system,foreign/glibc/system))
 $(eval $(call nau-libraries,glibc_time,foreign/glibc/time))
 
 

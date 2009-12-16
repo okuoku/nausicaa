@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Tue Dec 15, 2009
+;;;Date: Wed Dec 16, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -753,7 +753,20 @@
     MNTOPT_RW
     MNTOPT_SUID
     MNTOPT_NOSUID
-    MNTOPT_NOAUTO)
+    MNTOPT_NOAUTO
+    MS_MGC_MASK
+    MS_REMOUNT
+    MS_RDONLY
+    S_IMMUTABLE
+    S_APPEND
+    MS_NOSUID
+    MS_NOEXEC
+    MS_NODEV
+    MS_SYNCHRONOUS
+    MS_MANDLOCK
+    MS_NOATIME
+    MS_NODIRATIME
+    MNT_FORCE)
   (import
     (rnrs)
     (foreign ffi)
@@ -2168,7 +2181,20 @@
   (define MNTOPT_RW "@STRINGOF_MNTOPT_RW@")
   (define MNTOPT_SUID "@STRINGOF_MNTOPT_SUID@")
   (define MNTOPT_NOSUID "@STRINGOF_MNTOPT_NOSUID@")
-  (define MNTOPT_NOAUTO "@STRINGOF_MNTOPT_NOAUTO@"))
+  (define MNTOPT_NOAUTO "@STRINGOF_MNTOPT_NOAUTO@")
+  (define MS_MGC_MASK @VALUEOF_MS_MGC_MASK@)
+  (define MS_REMOUNT @VALUEOF_MS_REMOUNT@)
+  (define MS_RDONLY @VALUEOF_MS_RDONLY@)
+  (define S_IMMUTABLE @VALUEOF_S_IMMUTABLE@)
+  (define S_APPEND @VALUEOF_S_APPEND@)
+  (define MS_NOSUID @VALUEOF_MS_NOSUID@)
+  (define MS_NOEXEC @VALUEOF_MS_NOEXEC@)
+  (define MS_NODEV @VALUEOF_MS_NODEV@)
+  (define MS_SYNCHRONOUS @VALUEOF_MS_SYNCHRONOUS@)
+  (define MS_MANDLOCK @VALUEOF_MS_MANDLOCK@)
+  (define MS_NOATIME @VALUEOF_MS_NOATIME@)
+  (define MS_NODIRATIME @VALUEOF_MS_NODIRATIME@)
+  (define MNT_FORCE @VALUEOF_MNT_FORCE@))
 
 
 ;;; end of file

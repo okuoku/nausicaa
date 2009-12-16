@@ -32,7 +32,7 @@
   (records)
   (foreign errno)
   (for (foreign posix typedefs) expand run)
-  (prefix (foreign posix users) posix:)
+  (prefix (foreign posix system) posix:)
   (prefix (foreign glibc streams) glibc:)
   (checks))
 

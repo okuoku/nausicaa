@@ -85,19 +85,18 @@
 ;;; --------------------------------------------------------------------
 
     <struct-mntent>		<struct-mntent-rtd>
+    make-<struct-mntent>	<struct-mntent>?
     <struct-mntent>-fsname	<struct-mntent>-fsname-set!
     <struct-mntent>-dir		<struct-mntent>-dir-set!
     <struct-mntent>-type	<struct-mntent>-type-set!
     <struct-mntent>-opts	<struct-mntent>-opts-set!
     <struct-mntent>-freq	<struct-mntent>-freq-set!
     <struct-mntent>-passno	<struct-mntent>-passno-set!
-    pointer->struct-mntent
+    pointer->struct-mntent	struct-mntent->pointer
 
     )
   (import (rnrs)
-    (only (foreign cstrings)
-	  cstring->string
-	  argv->strings)
+    (foreign cstrings)
     (only (foreign ffi pointers)
 	  pointer-null?)
     (foreign posix sizeof))
@@ -244,11 +243,21 @@
 
 (define (pointer->struct-mntent mntent*)
   (make-<struct-mntent> (cstring->string (struct-mntent-mnt_fsname-ref mntent*))
-		      (cstring->string (struct-mntent-mnt_dir-ref mntent*))
-		      (cstring->string (struct-mntent-mnt_type-ref mntent*))
-		      (cstring->string (struct-mntent-mnt_opts-ref mntent*))
-		      (struct-mntent-mnt_freq-ref mntent*)
-		      (struct-mntent-mnt_passno-ref mntent*)))
+			(cstring->string (struct-mntent-mnt_dir-ref mntent*))
+			(cstring->string (struct-mntent-mnt_type-ref mntent*))
+			(cstring->string (struct-mntent-mnt_opts-ref mntent*))
+			(struct-mntent-mnt_freq-ref mntent*)
+			(struct-mntent-mnt_passno-ref mntent*)))
+
+(define (struct-mntent->pointer mntent malloc)
+  (let ((mntent* (malloc sizeof-mntent)))
+    (struct-mntent-mnt_fsname-set! mntent* (string->cstring (<struct-mntent>-fsname mntent) malloc))
+    (struct-mntent-mnt_dir-set!    mntent* (string->cstring (<struct-mntent>-dir mntent)    malloc))
+    (struct-mntent-mnt_type-set!   mntent* (string->cstring (<struct-mntent>-type mntent)   malloc))
+    (struct-mntent-mnt_opts-set!   mntent* (string->cstring (<struct-mntent>-opts mntent)   malloc))
+    (struct-mntent-mnt_freq-set!   mntent* (<struct-mntent>-freq mntent))
+    (struct-mntent-mnt_passno-set! mntent* (<struct-mntent>-passno mntent))
+    mntent*))
 
 
 ;;;; done

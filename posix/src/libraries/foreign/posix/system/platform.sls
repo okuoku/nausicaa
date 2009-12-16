@@ -33,10 +33,26 @@
     gethostname		sethostname
     getdomainname	setdomainname
     uname
-    )
+
+    mount		umount2			umount
+
+    getuid		getgid
+    geteuid		getegid
+    setuid		seteuid
+    setgid		setegid
+    getgroups		setgroups
+    initgroups		getgrouplist
+    getlogin		cuserid
+    getpwuid		getpwuid_r
+    getpwnam		getpwnam_r
+    fgetpwent		fgetpwent_r
+    getgrgid		getgrgid_r
+    getgrnam		getgrnam_r
+    fgetgrent		fgetgrent_r)
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof)
+    (foreign posix sizeof)
     (foreign posix shared-object))
   (define-c-functions/with-errno libc-shared-object
     (sysconf		(long sysconf (int)))
@@ -48,6 +64,40 @@
     (sethostname	(int sethostname (char* size_t)))
     (getdomainname	(int getdomainname (char* size_t)))
     (setdomainname	(int setdomainname (char* size_t)))
-    (uname		(int uname (void*)))))
+    (uname		(int uname (void*)))
+
+    (mount		(int mount (char* char* char* long void*)))
+    (umount2		(int umount2 (char* int)))
+    (umount		(int umount (char*))))
+
+  (define-c-functions libc-shared-object
+    (getuid		(uid_t getuid (void)))
+    (getgid		(gid_t getgid (void)))
+    (geteuid		(uid_t geteuid (void)))
+    (getegid		(uid_t getegid (void)))
+    (getlogin		(char* getlogin (void)))
+    (cuserid		(char* cuserid (char*))))
+
+  (define-c-functions/with-errno libc-shared-object
+    (setuid		(int setuid (uid_t)))
+    (seteuid		(int seteuid (uid_t)))
+    (setgid		(int setgid (uid_t)))
+    (setegid		(int setegid (uid_t)))
+    (getgroups		(int getgroups (int void*)))
+    (getgrouplist	(int getgrouplist (char* gid_t void* void*)))
+    (setgroups		(int setgroups (int void*)))
+    (initgroups		(int initgroups (char* gid_t)))
+    (getpwuid		(void* getpwuid (uid_t)))
+    (getpwuid_r		(void* getpwuid_r (uid_t void* char* size_t void*)))
+    (getpwnam		(void* getpwnam (char*)))
+    (getpwnam_r		(void* getpwnam_r (char* void* char* size_t void*)))
+    (fgetpwent		(void* fgetpwent (FILE*)))
+    (fgetpwent_r	(int fgetpwent_r (FILE* void* char* size_t void*)))
+    (getgrgid		(void* getgrgid (uid_t)))
+    (getgrgid_r		(void* getgrgid_r (uid_t void* char* size_t void*)))
+    (getgrnam		(void* getgrnam (char*)))
+    (getgrnam_r		(void* getgrnam_r (char* void* char* size_t void*)))
+    (fgetgrent		(void* fgetgrent (FILE*)))
+    (fgetgrent_r	(int fgetgrent_r (FILE* void* char* size_t void*)))))
 
 ;;; end of file

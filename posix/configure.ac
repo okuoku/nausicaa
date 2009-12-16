@@ -64,6 +64,7 @@ AC_CHECK_HEADERS([mntent.h])
 AC_CHECK_HEADERS([paths.h])
 AC_CHECK_HEADERS([pwd.h])
 AC_CHECK_HEADERS([sys/mman.h])
+AC_CHECK_HEADERS([sys/mount.h])
 AC_CHECK_HEADERS([sys/select.h])
 AC_CHECK_HEADERS([sys/stat.h])
 AC_CHECK_HEADERS([sys/time.h])
@@ -125,6 +126,9 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #endif
 #ifdef HAVE_SYS_MMAN_H
 #  include <sys/mman.h>
+#endif
+#ifdef HAVE_SYS_MOUNT_H
+#  include <sys/mount.h>
 #endif
 #ifdef HAVE_SYS_SELECT_H
 #  include <sys/select.h>

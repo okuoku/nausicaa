@@ -31,7 +31,27 @@
     gethostname sethostname
     getdomainname setdomainname
     uname
-    )
+    mount		umount2			umount
+
+    getuid		getuid-function
+    getgid		getgid-function
+    geteuid		geteuid-function
+    getegid		getegid-function
+
+    setuid		setuid-function
+    setgid		setgid-function
+    seteuid		seteuid-function
+    setegid		setegid-function
+
+    getgroups		getgroups-function
+    setgroups		setgroups-function
+    initgroups		initgroups-function
+    getgrouplist	getgrouplist-function
+
+    getlogin		cuserid
+    getpwuid		getpwnam
+    getgrgid		getgrnam
+    fgetpwent		fgetgrent)
   (import (rnrs)
     (foreign posix helpers)
     (prefix (foreign posix system primitives) primitive:))
@@ -46,6 +66,35 @@
   (define-parametrised getdomainname)
   (define-parametrised setdomainname domain-name)
   (define-parametrised uname)
-  )
+
+  (define-parametrised mount special-file mount-point fstype options data*)
+  (define-parametrised umount2)
+  (define-parametrised umount)
+
+  (define-parametrised getuid)
+  (define-parametrised getgid)
+  (define-parametrised geteuid)
+  (define-parametrised getegid)
+  (define-parametrised getgroups)
+
+  (define-parametrised setuid uid)
+  (define-parametrised setgid gid)
+  (define-parametrised seteuid uid)
+  (define-parametrised setegid gid)
+  (define-parametrised setgroups gid-list)
+
+  (define-parametrised initgroups user-name gid)
+  (define-parametrised getgrouplist user-name gid)
+
+  (define-parametrised getlogin)
+  (define-parametrised cuserid)
+
+  (define-parametrised getpwuid uid)
+  (define-parametrised getpwnam user-name)
+  (define-parametrised fgetpwent stream)
+
+  (define-parametrised getgrgid uid)
+  (define-parametrised getgrnam user-name)
+  (define-parametrised fgetgrent stream))
 
 ;;; end of file

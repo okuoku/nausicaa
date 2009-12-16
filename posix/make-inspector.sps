@@ -763,6 +763,23 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   MNTOPT_NOSUID
   MNTOPT_NOAUTO)
 
+(define-c-defines "options for mount"
+  MS_MGC_MASK
+  MS_REMOUNT
+  MS_RDONLY
+  S_IMMUTABLE
+  S_APPEND
+  MS_NOSUID
+  MS_NOEXEC
+  MS_NODEV
+  MS_SYNCHRONOUS
+  MS_MANDLOCK
+  MS_NOATIME
+  MS_NODIRATIME)
+
+(define-c-defines "flags for umount2"
+  MNT_FORCE)
+
 (autoconf-lib "AC_CACHE_SAVE")
 
 

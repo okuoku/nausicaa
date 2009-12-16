@@ -675,6 +675,7 @@ Object type definitions
 * users typedefs uid::          User identifiers.
 * users typedefs gid::          Group identifiers.
 * users typedefs passwd::       User informations.
+* users typedefs groups::       Groups informations.
 
 More C string functions
 
@@ -682,8 +683,19 @@ More C string functions
 
 System resources and configuration
 
+* system typedefs::             Types definition.
 * system constants::            Constant values.
 * system inspection::           Inspecting configuration.
+* system host::                 Host identification.
+* system uname::                Platform identification.
+* system mount tabs::           Inspecting mounted file systems.
+* system mount::                Mounting file systems.
+
+Types definition
+
+* system typedefs utsname::     Platform type informations.
+* system typedefs fstab::       Mountable file systems informations.
+* system typedefs mntent::      Mounted file systems informations.
 
 @end detailmenu
 @end menu
@@ -6099,9 +6111,9 @@ Unless otherwise specified, the bindings described in this chapter are
 exported by the following libraries:
 
 @example
-(foreign posix users)
-(foreign posix users primitives)
-(foreign posix users platform)
+(foreign posix system)
+(foreign posix system primitives)
+(foreign posix system platform)
 @end example
 
 @menu
@@ -6582,6 +6594,7 @@ exported by the following libraries:
 * system inspection::           Inspecting configuration.
 * system host::                 Host identification.
 * system uname::                Platform identification.
+* system mount tabs::           Inspecting mounted file systems.
 * system mount::                Mounting file systems.
 @end menu
 
@@ -6596,7 +6609,7 @@ The bindings documented in this section are exported by the
 @menu
 * system typedefs utsname::     Platform type informations.
 * system typedefs fstab::       Mountable file systems informations.
-* system typedefs mtab::        Mounted file systems informations.
+* system typedefs mntent::      Mounted file systems informations.
 @end menu
 
 @c page
@@ -6720,14 +6733,14 @@ with data from the C structure of type @code{struct fstab} referenced by
 @end defun
 
 @c page
-@node system typedefs mtab
+@node system typedefs mntent
 @subsection Mounted file systems informations
 
 
-@deftp {Record Type Name} <struct-mtab>
-@deftpx {Record Type Descriptor} <struct-mtab-rtd>
+@deftp {Record Type Name} <struct-mntent>
+@deftpx {Record Type Descriptor} <struct-mntent-rtd>
 Record type used to mirror C language structures of type @code{struct
-mtab}.  It has the following mutable fields:
+mntent}.  It has the following mutable fields:
 
 @table @code
 @item fsname
@@ -6752,32 +6765,41 @@ An exact integer representing the pass number on parallel dumps.
 @end deftp
 
 
-@defun make-<struct-mtab> @var{fsname} @var{dir} @var{type} @var{opts} @var{freq} @var{passno}
-@defunx <struct-mtab>? @var{obj}
-Constructor and predicate for records of type @class{struct-mtab}.
+@defun make-<struct-mntent> @var{fsname} @var{dir} @var{type} @var{opts} @var{freq} @var{passno}
+@defunx <struct-mntent>? @var{obj}
+Constructor and predicate for records of type @class{struct-mntent}.
 @end defun
 
 
-@defun <struct-mtab>-fsname @var{record}
-@defunx <struct-mtab>-fsname-set! @var{record} @var{value}
-@defunx <struct-mtab>-dir @var{record}
-@defunx <struct-mtab>-dir-set! @var{record} @var{value}
-@defunx <struct-mtab>-type @var{record}
-@defunx <struct-mtab>-type-set! @var{record} @var{value}
-@defunx <struct-mtab>-opts @var{record}
-@defunx <struct-mtab>-opts-set! @var{record} @var{value}
-@defunx <struct-mtab>-freq @var{record}
-@defunx <struct-mtab>-freq-set! @var{record} @var{value}
-@defunx <struct-mtab>-passno @var{record}
-@defunx <struct-mtab>-passno-set! @var{record} @var{value}
-Accessors and mutators for records of type @class{struct-mtab}.
+@defun <struct-mntent>-fsname @var{record}
+@defunx <struct-mntent>-fsname-set! @var{record} @var{value}
+@defunx <struct-mntent>-dir @var{record}
+@defunx <struct-mntent>-dir-set! @var{record} @var{value}
+@defunx <struct-mntent>-type @var{record}
+@defunx <struct-mntent>-type-set! @var{record} @var{value}
+@defunx <struct-mntent>-opts @var{record}
+@defunx <struct-mntent>-opts-set! @var{record} @var{value}
+@defunx <struct-mntent>-freq @var{record}
+@defunx <struct-mntent>-freq-set! @var{record} @var{value}
+@defunx <struct-mntent>-passno @var{record}
+@defunx <struct-mntent>-passno-set! @var{record} @var{value}
+Accessors and mutators for records of type @class{struct-mntent}.
 @end defun
 
 
-@defun pointer->struct-mtab @var{pointer}
-Build and return a new record of type @class{struct-mtab} initialised
-with data from the C structure of type @code{struct mtab} referenced by
-@var{pointer}.
+@defun pointer->struct-mntent @var{pointer}
+Build and return a new record of type @class{struct-mntent} initialised
+with data from the C structure of type @code{struct mntent} referenced
+by @var{pointer}.
+@end defun
+
+
+@defun struct-mntent->pointer @var{mntent} @var{malloc}
+Allocate a new @code{struct mntent} C language data structure
+initialised with values from @var{mntent}, which must be a record of
+type @class{struct-mntent}.  All the needed memory is allocated with the
+function @var{malloc}, which must have the same protocol of
+@func{malloc} from @library{foreign memory}.
 @end defun
 
 @c page
@@ -7160,6 +7182,27 @@ Values for the @code{mnt_type} field of @code{struct mtab}.
 Values for the @code{mnt_opts} field of @code{struct mtab}.
 @end defvr
 
+
+@defvr Constant MS_MGC_MASK
+@defvrx Constant MS_REMOUNT
+@defvrx Constant MS_RDONLY
+@defvrx Constant S_IMMUTABLE
+@defvrx Constant S_APPEND
+@defvrx Constant MS_NOSUID
+@defvrx Constant MS_NOEXEC
+@defvrx Constant MS_NODEV
+@defvrx Constant MS_SYNCHRONOUS
+@defvrx Constant MS_MANDLOCK
+@defvrx Constant MS_NOATIME
+@defvrx Constant MS_NODIRATIME
+Options for @func{mount}.
+@end defvr
+
+
+@defvr Constant MNT_FORCE
+Flags for @func{umount2}.
+@end defvr
+
 @c page
 @node system inspection
 @section Inspecting configuration
@@ -7275,8 +7318,8 @@ platform.
 
 
 @c page
-@node system mount
-@section Mounting file systems
+@node system mount tabs
+@section Inspecting mounted file systems
 
 
 Unless otherwise specified, the functions documented in this section are
@@ -7367,6 +7410,105 @@ and never @false{}.
 The following functions manage reading the @file{mtab} file.
 @glibcref{mtab, The @file{mtab} file}.
 
+
+@deffn Function setmntent @var{pathname} @var{open-mode}
+@deffnx Parameter setmntent-function
+@deffnx Function primitive:setmntent @var{pathname} @var{open-mode}
+@deffnx Function platform:setmntent @var{pathname-cstr} @var{open-mode-cstr}
+Open the file selected by @var{pathname}, a Scheme string or symbol, to
+be read as a @file{mtab} file; returne a @code{FILE*} object.
+@var{open-mode} must be a file open mode like the ones allowed for
+@func{fopen}.
+@end deffn
+
+
+@deffn Function endmntent @var{stream}
+@deffnx Parameter endmntent-function
+@deffnx Function primitive:endmntent @var{stream}
+@deffnx Function platform:endmntent @var{stream}
+Close @var{stream}, a @code{FILE*} object, releasing all the resources
+associated to the @file{mtab} iteration.
+@end deffn
+
+
+@deffn Function getmntent @var{stream}
+@deffnx Parameter getmntent-function
+@deffnx Function primitive:getmntent @var{stream}
+@deffnx Function platform:getmntent @var{file-ptr}
+@deffnx Function platform:getmntent_r @var{file-ptr} @var{mntent-ptr} @var{buf-ptr} @var{buf-len}
+Return a record of type @class{struct-mntent} representing the next
+entry read from @var{stream}, a @code{FILE*} object.  This function is
+reentrant.
+
+It is impossible to distinguish between an error and the end of
+iteration, so when one of these envents happens: the return value is
+@false{}.
+
+@example
+(let* ((stream (setmntent _PATH_MOUNTED "r"))
+       (tabs   (let loop ((tabs '())
+                          (entry (glibc:getmntent stream)))
+                 (if entry
+                     (loop (cons entry tabs)
+                           (glibc:getmntent stream))
+                   (begin
+                     (glibc:endmntent stream)
+                     tabs)))))
+  ---)
+@end example
+@end deffn
+
+
+@deffn Function addmntent @var{stream} @var{mntent}
+@deffnx Parameter addmntent-function
+@deffnx Function primitive:addmntent @var{stream} @var{mntent}
+@deffnx Function platform:addmntent @var{file-ptr} @var{mntent-ptr}
+Append a new entry to the @file{mtab} file referenced by @var{stream}.
+@var{mntent} must be a record of type @class{struct-mntent}.
+@end deffn
+
+@c page
+@node system mount
+@section Mounting file systems
+
+
+The following functions manage mounting and unmounting file systems.
+@glibcref{Mount-Unmount-Remount, Mount Unmount Remount}.
+
+
+@deffn Function mount @var{special-file} @var{mount-point} @var{fstype} @var{options} @var{data-ptr}
+@deffnx Parameter mount-function
+@deffnx Function primitive:mount @var{special-file} @var{mount-point} @var{fstype} @var{options} @var{data-ptr}
+@deffnx Function platform:mount @var{special-file-cstr} @var{mount-point-cstr} @var{fstype-cstr} @var{options} @var{data-ptr}
+Mount or remount the device selected by @var{special-file} (a Scheme
+string) under @var{mount-point} (a Scheme string) assuming it is of
+@var{fstype} (a Scheme string).
+
+@var{options} must be an exact integer composed by inclusive bitwise OR
+of the @code{MS_*} flags, or zero.  @var{data-ptr} is a kernel--defined
+buffer, the constant @code{empty-string} from @library{foreing cstrings}
+may be a valid value.
+@end deffn
+
+
+@deffn Function umount2 @var{pathname} @var{flags}
+@deffnx Parameter umount2-function
+@deffnx Function primitive:umount2 @var{pathname} @var{flags}
+@deffnx Function platform:umount2 @var{pathname-cstr} @var{flags}
+Unmount the file system selected by @var{pathname} (a Scheme string)
+which can be the mount point or the device.  @var{flags} must be an
+exact integer composed by inclusive bitwise OR of the @code{MNT_*}
+flags, or zero.
+@end deffn
+
+
+@deffn Function umount @var{pathname}
+@deffnx Parameter umount-function
+@deffnx Function primitive:umount @var{pathname}
+@deffnx Function platform:umount @var{pathname-cstr}
+Unmount the file system selected by @var{pathname} (a Scheme string)
+which can be the mount point or the device.
+@end deffn
 
 @c page
 

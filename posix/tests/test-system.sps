@@ -93,12 +93,12 @@
       #t)))
 
 
-(parameterize ((check-test-name	'mount)
+(parameterize ((check-test-name	'ftab)
 	       (debugging	#f))
 
   (with-deferred-exceptions-handler
       (lambda (E)
-	(debug-print-condition "deferred condition in mount" E))
+	(debug-print-condition "deferred condition in fstab" E))
     (lambda ()
 
       (check
@@ -131,6 +131,30 @@
 	      (glibc:endfsent)
 ;;;(pretty-print tab)(newline)
 	      (<struct-fstab>? tab)))
+	=> #t)
+
+      #t)))
+
+
+(parameterize ((check-test-name	'mtab)
+	       (debugging	#f))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in mtab" E))
+    (lambda ()
+
+      (check
+	  (let* ((stream (glibc:setmntent _PATH_MOUNTED "r"))
+		 (tabs	 (let loop ((tabs '())
+				    (entry (glibc:getmntent stream)))
+			   (if entry
+			       (loop (cons entry tabs) (glibc:getmntent stream))
+			     (begin
+			       (glibc:endmntent stream)
+			       tabs)))))
+;;;(pretty-print tabs)
+	    (for-all <struct-mntent>? tabs))
 	=> #t)
 
       #t)))

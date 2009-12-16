@@ -31,13 +31,13 @@
   (only (foreign posix fd))
   (only (foreign posix job))
   (only (foreign posix process))
-  (only (foreign posix users))
   (only (foreign posix system))
 
   (only (foreign glibc environment))
   (only (foreign glibc streams))
   (only (foreign glibc time))
   (only (foreign glibc file))
+  (only (foreign glibc system))
   )
 
 ;;; end of file

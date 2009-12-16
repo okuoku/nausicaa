@@ -29,7 +29,8 @@
   (export
     setfsent		endfsent
     getfsent		getfsspec		getfsfile
-
+    setmntent		endmntent
+    getmntent		addmntent
     )
   (import (rnrs)
     (receive)
@@ -37,10 +38,13 @@
     (foreign memory)
     (foreign cstrings)
     (foreign errno)
+    (foreign posix sizeof)
     (foreign posix typedefs)
     (prefix (foreign glibc system platform) platform:))
 
 
+;;;; reading fstab
+
 (define (setfsent)
   (let ((result (platform:setfsent)))
     (if (= 0 result)
@@ -73,6 +77,40 @@
       (if (pointer-null? fstab*)
 	  #f
 	(pointer->struct-fstab fstab*)))))
+
+
+;;;; reading mtab
+
+(define (setmntent file-name open-mode)
+  (with-compensations
+    (receive (file* errno)
+	(platform:setmntent (string->cstring/c file-name)
+			    (string->cstring/c open-mode))
+      (if (pointer-null? file*)
+	  (raise-errno-error 'setmntent errno (list file-name open-mode))
+	(pointer->FILE* file*)))))
+
+(define (endmntent stream)
+  (when (= 0 (platform:endmntent (FILE*->pointer stream)))
+    (error 'endmntent "error finalising mtab file iteration" stream)))
+
+(define (getmntent stream)
+  (with-compensations
+    (let* ((mntent*	(malloc-block/c sizeof-mntent))
+	   (buf.len	4096) ;let's try to play it safe
+	   (buf.ptr	(malloc-block/c buf.len)))
+      (let ((result* (platform:getmntent_r (FILE*->pointer stream) mntent* buf.ptr buf.len)))
+	(if (pointer-null? result*)
+	    #f
+	  (pointer->struct-mntent mntent*))))))
+
+(define (addmntent stream mntent)
+  (with-compensations
+    (receive (result errno)
+	(platform:addmntent (FILE*->pointer stream) (struct-mntent->pointer mntent malloc-block/c))
+      (if (= 0 result)
+	  result
+	(raise-errno-error 'addmntent errno (list stream mntent))))))
 
 
 ;;;; done
