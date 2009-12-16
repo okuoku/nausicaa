@@ -197,13 +197,7 @@
 
     )
   (import (rnrs)
-    (begin0)
     (posix sizeof))
-    ;; (foreign cstrings)
-    ;; (only (foreign ffi pointers) pointer-null?)
-    ;; (prefix (posix time platform) platform:)
-    ;; (prefix (posix file platform) platform:)
-    ;; (prefix (posix process platform) platform:))
 
 
 (define-record-type (file-descriptor integer->file-descriptor file-descriptor?)

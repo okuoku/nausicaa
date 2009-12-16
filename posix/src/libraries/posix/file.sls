@@ -281,74 +281,67 @@
 
 (define (%type-inspection funcname pred obj)
   (cond ((file-descriptor? obj)
-	 (pred (fstat obj)))
+	 (not (= 0 (pred (<struct-stat>-mode (fstat obj))))))
 
 	((or (string? obj) (symbol? obj)) ;pathname
-	 (pred (stat obj)))
+	 (not (= 0 (pred (<struct-stat>-mode (stat obj))))))
+
+	((and (integer? obj) (exact? obj)) ;"st_mode" field in "struct stat"
+	 (not (= 0 (pred obj))))
 
 	(else
-	 (error funcname "expected file descriptor or file pathname" obj))))
+	 (error funcname "expected file descriptor, file pathname or st_mode integer" obj))))
 
 ;;; --------------------------------------------------------------------
 
 (define (file-is-directory? obj)
-  (%type-inspection 'file-is-directory?
-		    (lambda (record)
-		      (not (= 0 (primitive:S_ISDIR (<struct-stat>-mode record)))))
-		    obj))
+  (%type-inspection 'file-is-directory? primitive:S_ISDIR obj))
 
 (define (file-is-character-special? obj)
-  (%type-inspection 'file-is-character-special?
-		    (lambda (record)
-		      (not (= 0 (primitive:S_ISCHR (<struct-stat>-mode record)))))
-		    obj))
+  (%type-inspection 'file-is-character-special? primitive:S_ISCHR obj))
 
 (define (file-is-block-special? obj)
-  (%type-inspection 'file-is-block-special?
-		    (lambda (record)
-		      (not (= 0 (primitive:S_ISBLK (<struct-stat>-mode record)))))
-		    obj))
+  (%type-inspection 'file-is-block-special? primitive:S_ISBLK obj))
 
 (define (file-is-regular? obj)
-  (%type-inspection 'file-is-regular?
-		    (lambda (record)
-		      (not (= 0 (primitive:S_ISREG (<struct-stat>-mode record)))))
-		    obj))
+  (%type-inspection 'file-is-regular? primitive:S_ISREG obj))
 
 (define (file-is-fifo? obj)
-  (%type-inspection 'file-is-fifo?
-		    (lambda (record)
-		      (not (= 0 (primitive:S_ISFIFO (<struct-stat>-mode record)))))
-		    obj))
+  (%type-inspection 'file-is-fifo? primitive:S_ISFIFO obj))
 
 (define (file-is-socket? obj)
-  (%type-inspection 'file-is-socket?
-		    (lambda (record)
-		      (not (= 0 (primitive:S_ISSOCK (<struct-stat>-mode record)))))
-		    obj))
+  (%type-inspection 'file-is-socket? primitive:S_ISSOCK obj))
 
-(define (file-is-symbolic-link? pathname)
-  (not (= 0 (primitive:S_ISLNK (<struct-stat>-mode (lstat pathname))))))
+(define (file-is-symbolic-link? mode/pathname)
+  (cond ((and (integer? mode/pathname) (exact? mode/pathname))
+	 (not (= 0 (primitive:S_ISLNK mode/pathname))))
+
+	((or (string? mode/pathname) (symbol? mode/pathname)) ;pathname
+	 (not (= 0 (primitive:S_ISLNK (<struct-stat>-mode (lstat mode/pathname))))))
+
+	(else
+	 (error 'file-is-symbolic-link?
+	   "file pathname or st_mode integer" mode/pathname))))
 
 
 (define (%pointer-type-inspection funcname getter obj)
   (cond ((file-descriptor? obj)
 	 (with-compensations
-	   (let ((*struct-stat (malloc-block/c platform:sizeof-stat)))
+	   (let ((struct-stat* (malloc-block/c platform:sizeof-stat)))
 	     (receive (result errno)
-		 (platform:fstat (file-descriptor->integer obj) *struct-stat)
+		 (platform:fstat (file-descriptor->integer obj) struct-stat*)
 	       (when (= -1 result)
 		 (raise-errno-error funcname errno obj))
-	       (not (= 0 (getter *struct-stat)))))))
+	       (not (= 0 (getter struct-stat*)))))))
 
 	((or (string? obj) (symbol? obj)) ;pathname
 	 (with-compensations
-	   (let ((*struct-stat (malloc-block/c platform:sizeof-stat)))
+	   (let ((struct-stat* (malloc-block/c platform:sizeof-stat)))
 	     (receive (result errno)
-		 (platform:stat (string->cstring/c obj) *struct-stat)
+		 (platform:stat (string->cstring/c obj) struct-stat*)
 	       (when (= -1 result)
 		 (raise-errno-error funcname errno obj))
-	       (not (= 0 (getter *struct-stat)))))))
+	       (not (= 0 (getter struct-stat*)))))))
 
 	(else
 	 (error funcname "expected file descriptor or file pathname" obj))))
@@ -366,92 +359,97 @@
 
 
 (define (%mode-inspection the-stat funcname mask obj)
-  (define (set? record)
-    (not (= 0 (bitwise-and mask (<struct-stat>-mode record)))))
-  (cond ((and (eq? the-stat stat) (file-descriptor? obj))
-	 (set? (fstat obj)))
+  (define (set? mode)
+    (not (= 0 (bitwise-and mask mode))))
+  (cond ((and (eq? the-stat 'stat) (file-descriptor? obj))
+	 (set? (<struct-stat>-mode (fstat obj))))
 
 	((or (string? obj) (symbol? obj)) ;pathname
-	 (set? (the-stat obj)))
+	 (set? (<struct-stat>-mode ((case the-stat
+				      ((stat)  stat)
+				      ((lstat) lstat)) obj))))
+
+	((and (integer? obj) (exact? obj)) ;"st_mode" field in "struct stat"
+	 (set? obj))
 
 	(else
-	 (error funcname "expected file descriptor or file pathname" obj))))
+	 (error funcname "expected file descriptor, file pathname or st_mode integer" obj))))
 
 ;;; --------------------------------------------------------------------
 
 (define (file-user-readable? obj)
-  (%mode-inspection stat 'file-user-readable? S_IRUSR obj))
+  (%mode-inspection 'stat 'file-user-readable? S_IRUSR obj))
 
 (define (file-user-writable? obj)
-  (%mode-inspection stat 'file-user-writable? S_IWUSR obj))
+  (%mode-inspection 'stat 'file-user-writable? S_IWUSR obj))
 
 (define (file-user-executable? obj)
-  (%mode-inspection stat 'file-user-executable? S_IXUSR obj))
+  (%mode-inspection 'stat 'file-user-executable? S_IXUSR obj))
 
 (define (file-group-readable? obj)
-  (%mode-inspection stat 'file-user-readable? S_IRGRP obj))
+  (%mode-inspection 'stat 'file-user-readable? S_IRGRP obj))
 
 (define (file-group-writable? obj)
-  (%mode-inspection stat 'file-group-writable? S_IWGRP obj))
+  (%mode-inspection 'stat 'file-group-writable? S_IWGRP obj))
 
 (define (file-group-executable? obj)
-  (%mode-inspection stat 'file-group-executable? S_IXGRP obj))
+  (%mode-inspection 'stat 'file-group-executable? S_IXGRP obj))
 
 (define (file-other-readable? obj)
-  (%mode-inspection stat 'file-other-readable? S_IROTH obj))
+  (%mode-inspection 'stat 'file-other-readable? S_IROTH obj))
 
 (define (file-other-writable? obj)
-  (%mode-inspection stat 'file-other-writable? S_IWOTH obj))
+  (%mode-inspection 'stat 'file-other-writable? S_IWOTH obj))
 
 (define (file-other-executable? obj)
-  (%mode-inspection stat 'file-other-executable? S_IXOTH obj))
+  (%mode-inspection 'stat 'file-other-executable? S_IXOTH obj))
 
 (define (file-setuid? obj)
-  (%mode-inspection stat 'file-setuid? S_ISUID obj))
+  (%mode-inspection 'stat 'file-setuid? S_ISUID obj))
 
 (define (file-setgid? obj)
-  (%mode-inspection stat 'file-setgid? S_ISGID obj))
+  (%mode-inspection 'stat 'file-setgid? S_ISGID obj))
 
 (define (file-sticky? obj)
-  (%mode-inspection stat 'file-sticky? S_ISVTX obj))
+  (%mode-inspection 'stat 'file-sticky? S_ISVTX obj))
 
 ;;; --------------------------------------------------------------------
 
 (define (lfile-user-readable? obj)
-  (%mode-inspection lstat 'lfile-user-readable? S_IRUSR obj))
+  (%mode-inspection 'lstat 'lfile-user-readable? S_IRUSR obj))
 
 (define (lfile-user-writable? obj)
-  (%mode-inspection lstat 'lfile-user-writable? S_IWUSR obj))
+  (%mode-inspection 'lstat 'lfile-user-writable? S_IWUSR obj))
 
 (define (lfile-user-executable? obj)
-  (%mode-inspection lstat 'lfile-user-executable? S_IXUSR obj))
+  (%mode-inspection 'lstat 'lfile-user-executable? S_IXUSR obj))
 
 (define (lfile-group-readable? obj)
-  (%mode-inspection lstat 'lfile-user-readable? S_IRGRP obj))
+  (%mode-inspection 'lstat 'lfile-user-readable? S_IRGRP obj))
 
 (define (lfile-group-writable? obj)
-  (%mode-inspection lstat 'lfile-group-writable? S_IWGRP obj))
+  (%mode-inspection 'lstat 'lfile-group-writable? S_IWGRP obj))
 
 (define (lfile-group-executable? obj)
-  (%mode-inspection lstat 'lfile-group-executable? S_IXGRP obj))
+  (%mode-inspection 'lstat 'lfile-group-executable? S_IXGRP obj))
 
 (define (lfile-other-readable? obj)
-  (%mode-inspection lstat 'lfile-other-readable? S_IROTH obj))
+  (%mode-inspection 'lstat 'lfile-other-readable? S_IROTH obj))
 
 (define (lfile-other-writable? obj)
-  (%mode-inspection lstat 'lfile-other-writable? S_IWOTH obj))
+  (%mode-inspection 'lstat 'lfile-other-writable? S_IWOTH obj))
 
 (define (lfile-other-executable? obj)
-  (%mode-inspection lstat 'lfile-other-executable? S_IXOTH obj))
+  (%mode-inspection 'lstat 'lfile-other-executable? S_IXOTH obj))
 
 (define (lfile-setuid? obj)
-  (%mode-inspection lstat 'lfile-setuid? S_ISUID obj))
+  (%mode-inspection 'lstat 'lfile-setuid? S_ISUID obj))
 
 (define (lfile-setgid? obj)
-  (%mode-inspection lstat 'lfile-setgid? S_ISGID obj))
+  (%mode-inspection 'lstat 'lfile-setgid? S_ISGID obj))
 
 (define (lfile-sticky? obj)
-  (%mode-inspection lstat 'lfile-sticky? S_ISVTX obj))
+  (%mode-inspection 'lstat 'lfile-sticky? S_ISVTX obj))
 
 
 (define (file-permissions obj)
