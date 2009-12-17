@@ -28,9 +28,7 @@
 (library (posix process primitives)
   (export
 
-    (rename (platform:getpid		getpid)
-	    (platform:getppid		getppid))
-
+    getpid		getppid
     fork		execv
     execve		execvp
     system		waitpid
@@ -53,14 +51,22 @@
     (prefix (posix process platform) platform:))
 
 
-;;;; forking
+;;;; inspection and forking
+
+(define (getpid)
+  (integer->pid (platform:getpid)))
+
+(define (getppid)
+  (integer->pid (platform:getppid)))
 
 (define (fork)
   (receive (result errno)
       (platform:fork)
-    (when (= -1 result)
-      (raise-errno-error 'fork errno))
-    result))
+    (if (= -1 result)
+	(raise-errno-error 'fork errno)
+      (if (= 0 result)
+	  #f
+	(integer->pid result)))))
 
 
 ;;;; executing
@@ -119,7 +125,7 @@
     (let ((status* (malloc-small/c)))
       (let loop ()
 	(receive (result errno)
-	    (platform:waitpid pid status* options)
+	    (platform:waitpid (pid->integer pid) status* options)
 	  (when (= -1 result)
 	    (when (= EINTR errno)
 	      (loop))
@@ -145,25 +151,25 @@
       (platform:setsid)
     (if (= -1 errno)
 	(raise-errno-error 'setsid errno)
-      result)))
+      (integer->pid result))))
 
 (define (getsid pid)
   (receive (result errno)
-      (platform:getsid pid)
+      (platform:getsid (pid->integer pid))
     (if (= -1 errno)
 	(raise-errno-error 'getsid errno pid)
-      result)))
+      (integer->pid result))))
 
 (define (getpgrp)
   (receive (result errno)
       (platform:getpgrp)
     (if (= -1 errno)
 	(raise-errno-error 'getpgrp errno)
-      result)))
+      (integer->pid result))))
 
 (define (setpgid pid pgid)
   (receive (result errno)
-      (platform:setpgid pid pgid)
+      (platform:setpgid (pid->integer pid) (pid->integer pgid))
     (if (= -1 errno)
 	(raise-errno-error 'setpgid errno (list pid pgid))
       result)))
@@ -172,24 +178,24 @@
 
 (define (tcgetpgrp fd)
   (receive (result errno)
-      (platform:tcgetpgrp fd)
+      (platform:tcgetpgrp (file-descriptor->integer fd))
     (if (= -1 errno)
 	(raise-errno-error 'tcgetpgrp errno fd)
-      result)))
+      (integer->pid result))))
 
 (define (tcsetpgrp fd pgid)
   (receive (result errno)
-      (platform:tcsetpgrp fd pgid)
+      (platform:tcsetpgrp (file-descriptor->integer fd) (pid->integer pgid))
     (if (= -1 errno)
 	(raise-errno-error 'tcsetpgrp errno (list fd pgid))
       result)))
 
 (define (tcgetsid fd)
   (receive (result errno)
-      (platform:tcgetsid fd)
+      (platform:tcgetsid (file-descriptor->integer fd))
     (if (= -1 errno)
 	(raise-errno-error 'tcgetsid errno fd)
-      result)))
+      (integer->pid result))))
 
 
 ;;;; done

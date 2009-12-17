@@ -34,6 +34,9 @@
     fdset fdset? make-fdset pointer->fdset fdset->pointer
     uid uid? integer->uid uid->integer
     gid gid? integer->gid gid->integer
+    pid pid? integer->pid pid->integer
+
+    pid-zero? pid=? pid<? pid<=? pid>? pid>=? pid<>?
 
     struct-flock
     make-struct-flock		struct-flock?
@@ -215,6 +218,26 @@
 (define-record-type (gid integer->gid gid?)
   (nongenerative nausicaa:posix:gid)
   (fields (immutable object gid->integer)))
+
+(define-record-type (pid integer->pid pid?)
+  (nongenerative nausicaa:posix:pid)
+  (fields (immutable object pid->integer)))
+
+(define (pid-zero? obj)
+  (and (pid? obj) (= 0 (pid->integer obj))))
+
+(let-syntax ((define-pidop (syntax-rules ()
+			     ((_ ?name ?op)
+			      (define (?name a b)
+				(?op (pid->integer a) (pid->integer b)))))))
+  (define-pidop pid=?  =)
+  (define-pidop pid<?  <)
+  (define-pidop pid<=? <=)
+  (define-pidop pid>?  >)
+  (define-pidop pid>=? >=))
+
+(define (pid<>? a b)
+  (not (= (pid->integer a) (pid->integer b))))
 
 ;;; --------------------------------------------------------------------
 

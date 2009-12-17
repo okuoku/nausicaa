@@ -40,15 +40,16 @@
 (parametrise ((check-test-name 'pid))
 
   (check
-      (integer? (posix:getpid))
+      (pid? (posix:getpid))
     => #t)
 
   (check
-      (integer? (posix:getppid))
+      (pid? (posix:getppid))
     => #t)
 
   (check
-      (< (posix:getppid) (posix:getpid))
+      (< (pid->integer (posix:getppid))
+	 (pid->integer (posix:getpid)))
     => #t)
 
   #t)
@@ -58,9 +59,9 @@
 
   (check
       (let ((pid (posix:fork)))
-	(if (= 0 pid)
-	    (exit)
-	  #t))
+	(if pid
+	    #t
+	  (exit)))
     => #t)
 
   (check
@@ -80,7 +81,7 @@
 
   (check
       (begin
-	(when (= 0 (posix:fork))
+	(unless (posix:fork)
 	  (posix:execv '/bin/ls '(ls "-l" /bin/ls))
 	  (exit))
 	#t)
@@ -88,7 +89,7 @@
 
   (check
       (begin
-	(when (= 0 (posix:fork))
+	(unless (posix:fork)
 	  (posix:execv '/usr/bin/du '(du /bin/ls))
 	  (exit))
 	#t)
@@ -107,7 +108,7 @@
 
   (check
       (begin
-	(when (= 0 (posix:fork))
+	(unless (posix:fork)
 	  (posix:execve '/usr/bin/du '(du /bin/ls) '("BLOCK_SIZE=human-readable"))
 	  (exit))
 	#t)
@@ -125,7 +126,7 @@
 
   (check
       (begin
-	(when (= 0 (posix:fork))
+	(unless (posix:fork)
 	  (posix:execvp 'ls '(ls "-l" /bin/ls))
 	  (exit))
 	#t)
@@ -146,21 +147,21 @@
 
   (check
       (let ((pid (posix:fork)))
-	(if (= 0 pid)
-	    (posix:execv '/bin/ls '(ls "-l" /bin/ls))
-	  (receive (result status)
-	      (posix:waitpid pid 0)
-	    (= pid result))))
+	(if pid
+	    (receive (result status)
+		(posix:waitpid pid 0)
+	      (= (pid->integer pid) result))
+	  (posix:execv '/bin/ls '(ls "-l" /bin/ls))))
     => #t)
 
   (check
       (let ((pid (posix:fork)))
-	(if (= 0 pid)
-	    (posix:execv '/bin/ls '(ls "-l" /bin/ls))
-	  (receive (result status)
-	      (posix:waitpid pid 0)
-	    (let ((r (posix:integer-><process-term-status> status)))
-	      (WIFEXITED? r)))))
+	(if pid
+	    (receive (result status)
+		(posix:waitpid pid 0)
+	      (let ((r (posix:integer-><process-term-status> status)))
+		(WIFEXITED? r)))
+	  (posix:execv '/bin/ls '(ls "-l" /bin/ls))))
     => #t)
 
   #t)

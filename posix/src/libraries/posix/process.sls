@@ -57,6 +57,7 @@
     (receive)
     (compensations)
     (posix helpers)
+    (posix typedefs)
     (prefix (posix process primitives) primitive:))
 
 
@@ -81,7 +82,7 @@
 (define-primitive-parameter waitpid-function		primitive:waitpid)
 
 (define (waitpid pid options)
-  (unless (< 0 pid)
+  (unless (< 0 (pid->integer pid))
     (assertion-violation 'waitpid
       "expected strictly positive process id" pid))
   ((waitpid-function) pid options))
@@ -93,7 +94,7 @@
   ((waitpid-function) 0 options))
 
 (define (waitpid/group gpid options)
-  (unless (< 0 gpid)
+  (unless (< 0 (pid->integer gpid))
     (assertion-violation 'waitpid/group
       "expected strictly positive process group id" gpid))
   ((waitpid-function) (- gpid) options))
