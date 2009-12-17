@@ -686,10 +686,6 @@ Object type definitions
 * users typedefs passwd::       User informations.
 * users typedefs groups::       Groups informations.
 
-More C string functions
-
-* strings search::              Searching.
-
 System resources and configuration
 
 * system typedefs::             Types definition.
@@ -6640,32 +6636,29 @@ return value is @false{}.  This function is reentrant.
 @chapter More C string functions
 
 
-Unless otherwise specified, the functions described in this chapter are
-exported by the following libraries:
+The library @library{glibc cstrings platform} exports bindings to
+callouts for all the @strong{string} functions exported by the @gnu{} C
+Library.  @glibcref{String and Array Utilities, String and Array
+Utilities}.
+
+@quotation
+@strong{NOTE} If we find a string function not interfaced by
+@library{glibc cstrings platform}, we can report it as a bug.
+@end quotation
+
+The purpose of this @api{} is to allow some string processing without
+conversion from C strings to Scheme strings.  When importing this
+library we better prefix its identifiers to avoid collisions; example:
 
 @example
-(glibc cstrings platform)
+(import (rnrs)
+  (prefix (posix cstrings platform) cstr:))
 @end example
 
-@noindent
-the purpose of this interface is to allow some string processing without
-conversion from C strings to Scheme strings.
-
-@menu
-* strings search::              Searching.
-@end menu
-
-@c page
-@node strings search
-@section Searching
-
-
-@defun memchr @var{pointer} @var{byte} @var{size}
-Finds the first occurrence of @var{byte} in the initial @var{size} bytes
-starting at @var{pointer}.  Return a pointer to the located byte or a
-null pointer if @var{uchar} was not found.
-@end defun
-
+We have to remember that characters of type @code{char} and
+@code{wchar_t} must be handed as integers to the callouts.  Also, all
+the callouts return a single value: the return value of the foreign
+functions.
 
 @c page
 @node system
