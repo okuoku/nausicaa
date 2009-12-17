@@ -1,8 +1,6 @@
 * stub
 * glibc
 
-  Add the string functions.
-
   Node "Name Service Switch" (with example stubs library?).
 
   Fix the ugliness in PRIMITIVE:STRFTIME.
