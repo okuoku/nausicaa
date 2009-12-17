@@ -36,6 +36,7 @@
     gid gid? integer->gid gid->integer
     pid pid? integer->pid pid->integer
 
+    uid=? gid=?
     pid-zero? pid=? pid<? pid<=? pid>? pid>=? pid<>?
 
     struct-flock
@@ -222,6 +223,12 @@
 (define-record-type (pid integer->pid pid?)
   (nongenerative nausicaa:posix:pid)
   (fields (immutable object pid->integer)))
+
+(define (uid=? a b)
+  (= (uid->integer a) (uid->integer b)))
+
+(define (gid=? a b)
+  (= (gid->integer a) (gid->integer b)))
 
 (define (pid-zero? obj)
   (and (pid? obj) (= 0 (pid->integer obj))))
