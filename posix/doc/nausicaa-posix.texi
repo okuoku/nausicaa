@@ -611,6 +611,7 @@ Date and time
 
 * time intro::                  Introduction.
 * time structs::                Data structures.
+* time typedefs::               Object type definitions.
 * time records::                Record types.
 * time constants::              Constant values.
 * time clock::                  Processor time.
@@ -634,11 +635,15 @@ Data structures
 * time structs timex::          @code{struct timex} inspection.
 * time structs itimerval::      @code{struct itimerval} inspection.
 
+Object type definitions
+
+* time typedefs timeval::       Wrapper for @code{struct timeval}.
+
 Record types
 
-* time records tms::            @code{struct tms} mirror.
 * time records timeval::        @code{struct timeval} mirror.
 * time records timespec::       @code{struct timespec} mirror.
+* time records tms::            @code{struct tms} mirror.
 * time records timezone::       @code{struct timezone} mirror.
 * time records tm::             @code{struct tm} mirror.
 * time records ntptimeval::     @code{struct ntptimeval} mirror.
@@ -653,6 +658,11 @@ Processes
 * process exec::                Executing a file.
 * process wait::                Process completion.
 * process job::                 Job control.
+
+Object type defintions
+
+* process typedefs pid::        Process identifier.
+* process typedefs status::     Process termination status.
 
 Job control
 
@@ -688,7 +698,8 @@ System resources and configuration
 * system inspection::           Inspecting configuration.
 * system host::                 Host identification.
 * system uname::                Platform identification.
-* system mount tabs::           Inspecting mounted file systems.
+* system mount fstab::          Inspecting mountable file systems.
+* system mount mtab::           Inspecting mounted file systems.
 * system mount::                Mounting file systems.
 
 Types definition
@@ -2381,7 +2392,7 @@ Build and return a new @code{struct-flock} object, referencing a newly
 allocated C language @code{struct flock} value.
 
 Memory is allocated using the function @var{malloc}, whose behaviour
-must match the one of @func{malloc} from @library{memory}.
+must match the one of @func{malloc} from @library{foreign memory}.
 @nauref{memory alloc high, Exception raising functions}.  To release
 memory we have to convert the @code{struct-flock} object to a pointer
 object and call the appropriate free function.
@@ -2428,7 +2439,6 @@ Functions from the primitive and high--level libraries acting upon file
 descriptor sets (C language type @code{fd_set}) accept objects of type
 @code{fdset} as @var{fdset} arguments.  Functions from the platform
 libraries accept pointer objects as references to @code{fd_set} values.
-@ref{fd typedefs, File descriptor related data types}.
 
 
 @deftp {Object Type} fdset
@@ -2447,7 +2457,7 @@ Build and return a new @code{fdset} object, referencing a newly
 allocated C language @code{fd_set} value.
 
 Memory is allocated using the function @var{malloc}, whose behaviour
-must match the one of @func{malloc} from @library{memory}.
+must match the one of @func{malloc} from @library{foreign memory}.
 @nauref{memory alloc high, Exception raising functions}.  To release
 memory we have to convert the @code{fdset} object to a pointer object
 and call the appropriate free function.
@@ -2480,10 +2490,10 @@ Convert between a file descriptor object and an integer object.
 @subsection File status flags
 
 
-All the following bindings are exported by the @library{posix
-sizeof} library.  If a value is not defined on the underlying platform:
-The corresponding binding is to @false{}.  @glibcref{File Status Flags,
-File Status Flags}.
+All the following bindings are exported by the @library{posix sizeof}
+library.  If a value is not defined on the underlying platform: the
+corresponding binding is to @false{}.  @glibcref{File Status Flags, File
+Status Flags}.
 
 
 @defvr Constant O_RDONLY
@@ -3095,7 +3105,7 @@ must be an exact integer; @var{arg} can be an exact integer, a pointer
 object or a @code{struct-flock} object.  @ref{fd constants control} for
 the list of the supported operations.
 
-@func{primitive:fcntl} assumes that: If the return value of
+@func{primitive:fcntl} assumes that: if the return value of
 @func{platform:fcntl} or @func{platform:fcntl/ptr} is @code{-1}, an
 error occurred.
 
@@ -3114,7 +3124,7 @@ Perform @var{operation} on @var{fd} using @var{arg}.  @var{operation}
 and @var{arg} must be exact integers.  @ref{fd constants control} for
 the list of the supported operations.
 
-@func{primitive:ioctl} assumes that: If the return value of
+@func{primitive:ioctl} assumes that: if the return value of
 @func{platform:ioctl} is @code{-1}, an error occurred.
 @end deffn
 
@@ -3130,7 +3140,7 @@ The following functions manage duplication of file descriptors.
 @deffn Function dup @var{fd}
 @deffnx Parameter dup-function
 @deffnx Function primitive:dup @var{fd}
-@deffnx Function platform:dup @var{fd}
+@deffnx Function platform:dup @var{fd-int}
 Duplicate @var{fd}, return the new file descriptor object.
 @end deffn
 
@@ -3152,7 +3162,8 @@ exact integer.  Return the new file descriptor object.
 Locking is performed by @func{fcntl} with the @code{F_GETLK},
 @code{F_SETLK} and @code{F_SETLKW} operations.  When locking, the third
 argument to @func{fcntl} must be a pointer to a structure of type
-@code{struct flock}.  @glibcref{File Locks,File Locks}.
+@code{struct flock} or a @code{struct-flock} object.  @glibcref{File
+Locks,File Locks}.
 
 Usage example:
 
@@ -3164,11 +3175,13 @@ Usage example:
       (set! lock.type   F_WRLCK)
       (set! lock.whence SEEK_SET)
       (set! lock.start  0)
-      (set! lock.len    10)
+      (set! lock.len    10))
 
-      (fcntl fd F_SETLK lock)
-      ---
-      (fcntl fd F_UNLCK lock))))
+    (compensate
+        (fcntl fd F_SETLK lock)
+      (with
+       (fcntl fd F_UNLCK lock)))
+    ---))
 @end example
 
 @c page
@@ -3213,7 +3226,7 @@ order we have to use @func{let*}:
 @deffnx Parameter pipe-function
 @deffnx Function primitive:pipe
 @deffnx Function platform:pipe @var{pointer}
-Open a pipe: A pair of file descriptors linked together.  Return two
+Open a pipe: a pair of file descriptors linked together.  Return two
 values: the first is the reading file descriptor, the second is the
 writing file descriptor.
 @end deffn
@@ -3223,7 +3236,7 @@ writing file descriptor.
 @deffnx Parameter mkfifo-function
 @deffnx Function primitive:mkfifo mkfifo @var{pathname} @var{mode}
 @deffnx Function platform:mkfifo @var{pathname-cstr} @var{mode}
-Create a named pipe pseudofile: A special file that can be used for
+Create a named pipe pseudofile: a special file that can be used for
 interprocess communication.  The Scheme string or symbol @var{pathname}
 selects the file pathname.  @var{mode} is a numeric access permissions
 mode like the one used by @func{open}.
@@ -3294,11 +3307,11 @@ Usage example, writing strings:
 @example
 (with-compensations
   (letrec ((fd (compensate
-                   (posix:open pathname
-                               (bitwise-ior O_CREAT O_RDWR)
-                               (bitwise-ior S_IRUSR S_IWUSR))
+                   (open pathname
+                         (bitwise-ior O_CREAT O_RDWR)
+                         (bitwise-ior S_IRUSR S_IWUSR))
                  (with
-                  (posix:close fd)))))
+                  (close fd)))))
     (let* ((iovec-count 3)
            (iovec**     (malloc-block/c
                           (sizeof-iovec-array iovec-count))))
@@ -3311,7 +3324,7 @@ Usage example, writing strings:
             (struct-iovec-iov_len-set!  iovec* (strlen cstr)))
           (loop (+ 1 i) (cdr ell))))
 
-      (posix:writev fd iovec** iovec-count))))
+      (writev fd iovec** iovec-count))))
 @end example
 
 @c page
@@ -3341,18 +3354,18 @@ composed with bitwise inclusive OR from appropriate constant values.
 @end deffn
 
 
-@deffn Function munmap @var{address} @var{length}
+@deffn Function munmap @var{pointer} @var{length}
 @deffnx Parameter munmap-function
-@deffnx Function primitive:munmap @var{address} @var{length}
-@deffnx Function platform:munmap @var{address} @var{length}
+@deffnx Function primitive:munmap @var{pointer} @var{length}
+@deffnx Function platform:munmap @var{pointer} @var{length}
 Unmap a previously created memory mapping.
 @end deffn
 
 
-@deffn Function msync @var{address} @var{length} @var{flags}
+@deffn Function msync @var{pointer} @var{length} @var{flags}
 @deffnx Parameter msync-function
-@deffnx Function primitive:msync @var{address} @var{length} @var{flags}
-@deffnx Function platform:msync @var{address} @var{length} @var{flags}
+@deffnx Function primitive:msync @var{pointer} @var{length} @var{flags}
+@deffnx Function platform:msync @var{pointer} @var{length} @var{flags}
 Synchronise a memory mapped region with the corresponding file on the
 underlying device.
 
@@ -3362,10 +3375,10 @@ Memory mapped files}.
 @end deffn
 
 
-@deffn Function mremap @var{address} @var{length} @var{new-length} @var{flags}
+@deffn Function mremap @var{pointer} @var{length} @var{new-length} @var{flags}
 @deffnx Parameter mremap-function
-@deffnx Function primitive:mremap @var{address} @var{length} @var{new-length} @var{flags}
-@deffnx Function platform:mremap @var{address} @var{length} @var{new-length} @var{flags}
+@deffnx Function primitive:mremap @var{pointer} @var{length} @var{new-length} @var{flags}
+@deffnx Function platform:mremap @var{pointer} @var{length} @var{new-length} @var{flags}
 Change the size of an existing memory mapping.
 
 The @var{flags} argument must be an exact integer composed with bitwise
@@ -3458,30 +3471,33 @@ Usage example:
 @example
 (import (except (rnrs) read write)
   (records)
+  (compensations)
   (foreign memory)
   (posix fd)
   (posix sizeof)
   (for (posix typedefs) expand run)
   (for (posix extensions) expand))
 
-(let ((fd        ---)
-      (rd-fdset  (make-fdset malloc-block/c))
-      (wr-fdset  (make-fdset malloc-block/c))
-      (ex-fdset  (make-fdset malloc-block/c))
-      (timeout   (make-struct-timeval malloc-block/c)))
+(with-compensations
+  (let ((fd        ---)
+        (rd-fdset  (make-fdset malloc-block/c))
+        (wr-fdset  (make-fdset malloc-block/c))
+        (ex-fdset  (make-fdset malloc-block/c))
+        (timeout   (make-struct-timeval malloc-block/c)))
 
-  (with-fields* (((sec usec) struct-timeval* timeout))
-    (set! timeout.sec  1)
-    (set! timeout.usec 0))
+    (with-fields* (((sec usec) struct-timeval* timeout))
+      (set! timeout.sec  1)
+      (set! timeout.usec 0))
 
-  (posix:FD_ZERO rd-fdset)
-  (posix:FD_ZERO wr-fdset)
-  (posix:FD_ZERO ex-fdset)
+    (FD_ZERO rd-fdset)
+    (FD_ZERO wr-fdset)
+    (FD_ZERO ex-fdset)
 
-  (posix:FD_SET fd rd-fdset)
+    (FD_SET fd rd-fdset)
 
-  (posix:select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
-  (posix:FD_ISSET fd rd-fdset))
+    (select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
+    (when (FD_ISSET fd rd-fdset)
+      ---)))
 @end example
 
 @c page
@@ -4341,9 +4357,20 @@ exported by the following libraries:
 (posix time platform)
 @end example
 
+@noindent
+it is explicitly stated when bindings are exported by the following
+libraries:
+
+@example
+(glibc time)
+(glibc time primitives)
+(glibc time platform)
+@end example
+
 @menu
 * time intro::                  Introduction.
 * time structs::                Data structures.
+* time typedefs::               Object type definitions.
 * time records::                Record types.
 * time constants::              Constant values.
 * time clock::                  Processor time.
@@ -4389,7 +4416,7 @@ numbers, whatever they are for the underlying Scheme representation.
 
 
 Unless otherwise specified, the bindings documented in this section are
-exported by the @code{sizeof} library.
+exported by the @library{posix sizeof} library.
 
 @menu
 * time structs timeval::        @code{struct timeval} inspection.
@@ -4659,6 +4686,54 @@ pointer to the first byte of the @code{struct timeval it_interval} and
 @end deffn
 
 @c page
+@node time typedefs
+@section Object type definitions
+
+
+Unless otherwise specified, the bindings described in this section are
+exported by the @library{posix typedefs} library.
+
+@menu
+* time typedefs timeval::       Wrapper for @code{struct timeval}.
+@end menu
+
+@c page
+@node time typedefs timeval
+@subsection Wrapper for @code{struct timeval}
+
+
+The following object type is different from the @class{struct-timeval}
+record type.  @ref{time records timeval, @code{struct timeval} mirror}.
+
+
+@deftp {Object Type} struct-timeval
+Object type used to wrap pointers to @code{struct timeval} C language
+data structures.  It is disjoint from the other Scheme object types.
+@end deftp
+
+
+@defun struct-timeval? @var{obj}
+Return true if @var{obj} is of type @code{struct-timeval}.
+@end defun
+
+
+@defun pointer->struct-timeval @var{pointer}
+@defunx struct-timeval->pointer @var{timeval}
+Convert between pointer objects and @code{struct-timeval} objects.
+@end defun
+
+
+@defun make-struct-timeval @var{malloc}
+Build and return a new @code{struct-timeval} object referencing a newly
+allocated @code{struct timeval}.
+
+Memory for the foreign structure is allocated with the @var{malloc}
+function, whose interface protocol must match the one of @func{malloc}
+from the @library{foreign memory} library.  @nauref{memory alloc high,
+Exception raising functions}.
+@end defun
+
+@c page
 @node time records
 @section Record types
 
@@ -4667,15 +4742,108 @@ Unless otherwise specified, the bindings described in this section are
 exported by the @library{posix typedefs} library.
 
 @menu
-* time records tms::            @code{struct tms} mirror.
 * time records timeval::        @code{struct timeval} mirror.
 * time records timespec::       @code{struct timespec} mirror.
+* time records tms::            @code{struct tms} mirror.
 * time records timezone::       @code{struct timezone} mirror.
 * time records tm::             @code{struct tm} mirror.
 * time records ntptimeval::     @code{struct ntptimeval} mirror.
 * time records timex::          @code{struct timex} mirror.
 * time records itimerval::      @code{struct itimerval} mirror.
 @end menu
+
+@c page
+@node time records timeval
+@subsection @code{struct timeval} mirror
+
+
+The record type described here is used to mirror the C language data
+type @code{struct timeval}.  @glibcref{Elapsed Time, Elapsed Time}.
+
+This record type is different from the @code{struct-timeval} object.
+@ref{time typedefs timeval, Wrapper for @code{struc timeval}}.
+
+
+@deftp {Record Type Name} <struct-timeval>
+@deftpx {Record Type Descriptor} <struct-timeval-rtd>
+Record type that mirrors the @code{struct timeval} type.  It has the
+following fields, one for each field of the @code{struct timeval} type:
+@code{sec}, @code{usec}.
+@end deftp
+
+
+@defun make-<struct-timeval> @var{tv_sec} @var{tv_usec}
+@defunx <struct-timeval>? @var{obj}
+Constructor and predicate for @class{struct-timeval} records.
+@end defun
+
+
+@defun <struct-timeval>-sec @var{timeval-record}
+@defunx <struct-timeval>-sec-set! @var{timeval-record} @var{value}
+@defunx <struct-timeval>-usec @var{timeval-record}
+@defunx <struct-timeval>-usec-set! @var{timeval-record} @var{value}
+Accessors and mutators @class{struct-timeval} records.
+@end defun
+
+
+@defun pointer-><struct-timeval> @var{struct-timeval-pointer}
+@defunx <struct-timeval>->pointer @var{timeval-record} @var{malloc}
+Convert between a pointer to a @code{struct timeval} instance and a
+record of type @class{struct-timeval}.
+
+Memory for the foreign structure is allocated with the @var{malloc}
+function, whose interface protocol must match the one of @func{malloc}
+from the @library{foreign memory} library.  @nauref{memory alloc high,
+Exception raising functions}.
+
+These bindings are exported by the @library{posix time primitives}
+library.
+@end defun
+
+@c page
+@node time records timespec
+@subsection @code{struct timespec} mirror
+
+
+The record type described here is used to mirror the C language data
+type @code{struct timespec}.  @glibcref{Elapsed Time, Elapsed Time}.
+
+
+@deftp {Record Type Name} <struct-timespec>
+@deftpx {Record Type Descriptor} <struct-timespec-rtd>
+Record type that mirrors the @code{struct timespec} type.  It has the
+following fields, one for each field of the @code{struct timespec} type:
+@code{sec}, @code{nsec}.
+@end deftp
+
+
+@defun make-<struct-timespec> @var{tv_sec} @var{tv_nsec}
+@defunx <struct-timespec>? @var{obj}
+Constructor and predicate for @class{struct-timespec} records.
+@end defun
+
+
+@defun <struct-timespec>-sec @var{timespec-record}
+@defunx <struct-timespec>-sec-set! @var{timespec-record} @var{value}
+@defunx <struct-timespec>-nsec @var{timespec-record}
+@defunx <struct-timespec>-nsec-set! @var{timespec-record} @var{value}
+Accessors and mutators @class{struct-timespec} records.
+@end defun
+
+
+@defun pointer-><struct-timespec> @var{struct-timespec-pointer}
+@defunx <struct-timespec>->pointer @var{timespec-record} @var{malloc}
+Convert between a pointer to a @code{struct timespec} instance and a
+record of type @class{struct-timespec}.
+
+Memory for the foreign structure is allocated with the @var{malloc}
+function, whose interface protocol must match the one of @func{malloc}
+from the @library{foreign memory} library.  @nauref{memory alloc high,
+Exception raising functions}.
+
+These bindings are exported by the @library{posix glibc primitives}
+library.
+@end defun
 
 @c page
 @node time records tms
@@ -4717,92 +4885,14 @@ Accessors and mutators for @class{struct-tms} records.
 @defun pointer-><struct-tms> @var{pointer}
 @defunx <struct-tms>->pointer @var{record} @var{malloc}
 Convert between a pointer to a @code{struct tms} instance and a record
-of type @class{struct-tms}.  The @var{malloc} function is used to
-allocate the block of memory in which the @code{struct tms} is stored.
+of type @class{struct-tms}.
+
+Memory for the foreign structure is allocated with the @var{malloc}
+function, whose interface protocol must match the one of @func{malloc}
+from the @library{foreign memory} library.  @nauref{memory alloc high,
+Exception raising functions}.
 
 These bindings are exported by the @library{posix time primitives}
-library.
-@end defun
-
-@c page
-@node time records timeval
-@subsection @code{struct timeval} mirror
-
-
-The record type described here is used to mirror the C language data
-type @code{struct timeval}.  @glibcref{Elapsed Time, Elapsed Time}.
-
-
-@deftp {Record Type Name} <struct-timeval>
-@deftpx {Record Type Descriptor} <struct-timeval-rtd>
-Record type that mirrors the @code{struct timeval} type.  It has the
-following fields, one for each field of the @code{struct timeval} type:
-@code{sec}, @code{usec}.
-@end deftp
-
-
-@defun make-<struct-timeval> @var{tv_sec} @var{tv_usec}
-@defunx <struct-timeval>? @var{obj}
-Constructor and predicate for @class{struct-timeval} records.
-@end defun
-
-
-@defun <struct-timeval>-sec @var{timeval-record}
-@defunx <struct-timeval>-sec-set! @var{timeval-record} @var{value}
-@defunx <struct-timeval>-usec @var{timeval-record}
-@defunx <struct-timeval>-usec-set! @var{timeval-record} @var{value}
-Accessors and mutators @class{struct-timeval} records.
-@end defun
-
-
-@defun pointer-><struct-timeval> @var{struct-timeval-pointer}
-@defunx <struct-timeval>->pointer @var{timeval-record} @var{malloc}
-Convert between a pointer to a @code{struct timeval} instance and a
-record of type @class{struct-timeval}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct timeval} is stored.
-
-These bindings are exported by the @library{posix time primitives}
-library.
-@end defun
-
-@c page
-@node time records timespec
-@subsection @code{struct timespec} mirror
-
-
-The record type described here is used to mirror the C language data
-type @code{struct timespec}.  @glibcref{Elapsed Time, Elapsed Time}.
-
-
-@deftp {Record Type Name} <struct-timespec>
-@deftpx {Record Type Descriptor} <struct-timespec-rtd>
-Record type that mirrors the @code{struct timespec} type.  It has the
-following fields, one for each field of the @code{struct timespec} type:
-@code{sec}, @code{nsec}.
-@end deftp
-
-
-@defun make-<struct-timespec> @var{tv_sec} @var{tv_nsec}
-@defunx <struct-timespec>? @var{obj}
-Constructor and predicate for @class{struct-timespec} records.
-@end defun
-
-
-@defun <struct-timespec>-sec @var{timespec-record}
-@defunx <struct-timespec>-sec-set! @var{timespec-record} @var{value}
-@defunx <struct-timespec>-nsec @var{timespec-record}
-@defunx <struct-timespec>-nsec-set! @var{timespec-record} @var{value}
-Accessors and mutators @class{struct-timespec} records.
-@end defun
-
-
-@defun pointer-><struct-timespec> @var{struct-timespec-pointer}
-@defunx <struct-timespec>->pointer @var{timespec-record} @var{malloc}
-Convert between a pointer to a @code{struct timespec} instance and a
-record of type @class{struct-timespec}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct timespec} is stored.
-
-These bindings are exported by the @library{posix glibc primitives}
 library.
 @end defun
 
@@ -4841,8 +4931,12 @@ Accessors and mutators @class{struct-timezone} records.
 @defun pointer-><struct-timezone> @var{struct-timezone-pointer}
 @defunx <struct-timezone>->pointer @var{timezone-record} @var{malloc}
 Convert between a pointer to a @code{struct timezone} instance and a
-record of type @class{struct-timezone}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct timezone} is stored.
+record of type @class{struct-timezone}.
+
+Memory for the foreign structure is allocated with the @var{malloc}
+function, whose interface protocol must match the one of @func{malloc}
+from the @library{foreign memory} library.  @nauref{memory alloc high,
+Exception raising functions}.
 
 These bindings are exported by the @library{posix glibc primitives}
 library.
@@ -4905,8 +4999,12 @@ Accessors and mutators @class{struct-tm} records.
 @defun pointer-><struct-tm> @var{struct-tm-pointer}
 @defunx <struct-tm>->pointer @var{tm-record} @var{malloc}
 Convert between a pointer to a @code{struct tm} instance and a
-record of type @class{struct-tm}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct tm} is stored.
+record of type @class{struct-tm}.
+
+Memory for the foreign structure is allocated with the @var{malloc}
+function, whose interface protocol must match the one of @func{malloc}
+from the @library{foreign memory} library.  @nauref{memory alloc high,
+Exception raising functions}.
 
 Notice that no conversion is performed on the value in the @code{zone}
 field; we have to explicitly convert between C strings and Scheme
@@ -4954,8 +5052,12 @@ Accessors and mutators @class{struct-ntptimeval} records.
 @defun pointer-><struct-ntptimeval> @var{struct-ntptimeval-pointer}
 @defunx <struct-ntptimeval>->pointer @var{ntptimeval-record} @var{malloc}
 Convert between a pointer to a @code{struct ntptimeval} instance and a
-record of type @class{struct-ntptimeval}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct ntptimeval} is stored.
+record of type @class{struct-ntptimeval}.
+
+Memory for the foreign structure is allocated with the @var{malloc}
+function, whose interface protocol must match the one of @func{malloc}
+from the @library{foreign memory} library.  @nauref{memory alloc high,
+Exception raising functions}.
 
 These bindings are exported by the @library{posix glibc primitives}
 library.
@@ -5038,8 +5140,12 @@ library.
 @defun pointer-><struct-timex> @var{struct-timex-pointer}
 @defunx <struct-timex>->pointer @var{timex-record} @var{malloc}
 Convert between a pointer to a @code{struct timex} instance and a record
-of type @class{struct-timex}.  The @var{malloc} function is used to
-allocate memory in which the @code{struct timex} is stored.
+of type @class{struct-timex}.
+
+Memory for the foreign structure is allocated with the @var{malloc}
+function, whose interface protocol must match the one of @func{malloc}
+from the @library{foreign memory} library.  @nauref{memory alloc high,
+Exception raising functions}.
 
 These bindings are exported by the @library{posix glibc primitives}
 library.
@@ -5081,8 +5187,12 @@ Accessors and mutators @class{struct-itimerval} records.
 @defun pointer-><struct-itimerval> @var{struct-itimerval-pointer}
 @defunx <struct-itimerval>->pointer @var{itimerval-record} @var{malloc}
 Convert between a pointer to a @code{struct itimerval} instance and a
-record of type @class{struct-itimerval}.  The @var{malloc} function is
-used to allocate memory in which the @code{struct itimerval} is stored.
+record of type @class{struct-itimerval}.
+
+Memory for the foreign structure is allocated with the @var{malloc}
+function, whose interface protocol must match the one of @func{malloc}
+from the @library{foreign memory} library.  @nauref{memory alloc high,
+Exception raising functions}.
 
 These bindings are exported by the @library{posix glibc primitives}
 library.
@@ -5123,8 +5233,6 @@ Time Inquiry}.  @glibcref{Processor Time, Processor Time Inquiry}.
 @deffnx Function platform:clock
 Return the calling process' current @cpu{} time, casted to a native
 @code{double} number and then to a Scheme inexact real number.
-
-These bindings are exported by the @posix{} @code{time} libraries.
 @end deffn
 
 
@@ -5135,8 +5243,6 @@ These bindings are exported by the @posix{} @code{time} libraries.
 Return two values: the return value from the @cfunc{times} call casted
 to a native @code{double} number and then to a Scheme inexact real
 number; a record of type @class{struct-tms}.
-
-These bindings are exported by the @posix{} @code{time} libraries.
 @end deffn
 
 @c page
@@ -5154,7 +5260,7 @@ The following functions deal with simple calendar time.
 @deffnx Function platform:time
 Return the current calendar time represented by a @code{time_t} value,
 casted to a native @code{double} value and then converted to a Scheme
-inexact real number.  It is the @dfn{epoch}: The number of seconds
+inexact real number.  It is the @dfn{epoch}: the number of seconds
 elapsed since 00:00:00 on January 1, 1970, Coordinated Universal Time.
 
 These bindings are exported by the @posix{} @code{time} libraries.
@@ -5237,13 +5343,18 @@ specified, the bindings are exported by the Glibc @code{time} libraries.
 @deffnx Parameter localtime-function
 @deffnx Function primitive:localtime @var{time} @var{malloc}
 @deffnx Function platform:localtime_r @var{time} @var{tm-pointer}
-Allocate a new @code{struct tm} instance using the @var{malloc}
-function, then fill it broken--down values from the calendar @var{time}
-(which can be the return value of @func{time}).  The return value is the
-pointer to the @code{struct tm} instance.
+Allocate a new @code{struct tm} instance, then fill it with broken--down
+values from the calendar @var{time} (which can be the return value of
+@func{time}).  The return value is the pointer to the @code{struct tm}
+instance (see below about how to get a @class{struct-tm} record).
+
+Memory for the foreign structure is allocated with the @var{malloc}
+function, whose interface protocol must match the one of @func{malloc}
+from the @library{foreign memory} library.  @nauref{memory alloc high,
+Exception raising functions}.
 
 Despite the names, these functions are wrappers for the
-@cfunc{localtime_r} function, so they are reentrant.
+@cfunc{localtime_r} foreign function, so they are reentrant.
 
 For example, to get the current year:
 
@@ -5261,7 +5372,7 @@ For example, to get the current year:
 @deffnx Function primitive:localtime* @var{time}
 Wrapper for @func{primitive:localtime} which automatically converts the
 @code{struct tm} instance into a @class{struct-tm} record and returns
-it.
+it.  Memory is managed internally.
 
 For example, to get the current year:
 
@@ -5286,7 +5397,7 @@ Universal Time (@acronym{UTC}).
 @deffnx Function primitive:gmtime* @var{time}
 Wrapper for @func{primitive:gmtime} which automatically converts the
 @code{struct tm} instance into a @class{struct-tm} record and returns
-it.
+it.  Memory is managed internally.
 @end deffn
 
 
@@ -5312,7 +5423,7 @@ is the inverse of @func{localtime}.
 @deffnx Function primitive:timelocal* @var{tm-record}
 Wrapper for @func{primitive:timelocal} which automatically converts
 @var{tm-record}, which must be a @class{struct-tm} record, into an
-instance of @code{struct tm}.
+instance of @code{struct tm}.  Memory is managed internally.
 @end deffn
 
 
@@ -5332,7 +5443,7 @@ is the inverse of @func{gmtime}.
 @deffnx Function primitive:timegm* @var{tm-record}
 Wrapper for @func{primitive:timegm} which automatically converts
 @var{tm-record}, which must be a @class{struct-tm} record, into an
-instance of @code{struct tm}.
+instance of @code{struct tm}.  Memory is managed internally.
 @end deffn
 
 @c page
@@ -5346,30 +5457,30 @@ unless otherwise specified, the bindings are exported by the Glibc
 Clock}.
 
 
-@deffn Function ntp_gettime @var{pointer}
+@deffn Function ntp_gettime @var{ntptimeval-pointer}
 @deffnx Parameter ntp_gettime-function
-@deffnx Function primitive:ntp_gettime @var{pointer}
-@deffnx Function platform:ntp_gettime @var{pointer}
-Fill the @code{struct ntptimeval} instance referenced by @var{pointer}
-with current values from the system's kernel.
+@deffnx Function primitive:ntp_gettime @var{ntptimeval-pointer}
+@deffnx Function platform:ntp_gettime @var{ntptimeval-pointer}
+Fill the @code{struct ntptimeval} instance referenced by
+@var{ntptimeval-pointer} with current values from the system's kernel.
 @end deffn
 
 
 @deffn Function ntp_gettime*
 @deffnx Parameter ntp_gettime-function
 @deffnx Function primitive:ntp_gettime*
-Wrappers for @func{primitive:ntp_gettime} which automatically convert
-the @code{struct ntptimeval} instance into a @class{struct-ntptimeval}
-record; return the record.
+Wrappers for @func{primitive:ntp_gettime} which automatically allocate
+the @code{struct ntptimeval} instance and convert it into a
+@class{struct-ntptimeval} record; return the record.
 @end deffn
 
 
-@deffn Function ntp_adjtime @var{pointer}
+@deffn Function ntp_adjtime @var{timex-pointer}
 @deffnx Parameter ntp_adjtime-function
-@deffnx Function primitive:ntp_adjtime @var{pointer}
-@deffnx Function platform:ntp_adjtime @var{pointer}
-Set the @code{struct timex} instance referenced by @var{pointer} to
-current values, also set some kernel values with values from the
+@deffnx Function primitive:ntp_adjtime @var{timex-pointer}
+@deffnx Function platform:ntp_adjtime @var{timex-pointer}
+Set the @code{struct timex} instance referenced by @var{timex-pointer}
+to current values, also set some kernel values with values from the
 instance.  See the original documentation for details.
 
 Superuser privileges are needed to successfully call this function.
@@ -5399,25 +5510,25 @@ Glibc @code{time} libraries.  @glibcref{Formatting Calendar Time,
 Formatting Calendar Time}.
 
 
-@deffn Function asctime @var{pointer}
+@deffn Function asctime @var{tm-pointer}
 @deffnx Parameter asctime-function
-@deffnx Function primitive:asctime @var{pointer}
-@deffnx Function platform:asctime_r @var{pointer} @var{cstr}
+@deffnx Function primitive:asctime @var{tm-pointer}
+@deffnx Function platform:asctime_r @var{tm-pointer} @var{cstr}
 Convert the time specification in the @code{struct tm} instance
-referenced by @var{pointer} into a string in a standard format; return a
-Scheme string.
+referenced by @var{tm-pointer} into a string in a standard format;
+return a Scheme string.
 
 Despite the names, these are wrappers for @cfunc{asctime_r}, so they are
 reentrant.
 @end deffn
 
 
-@deffn Function asctime* @var{record}
+@deffn Function asctime* @var{tm-record}
 @deffnx Parameter asctime*-function
-@deffnx Function primitive:asctime* @var{record}
+@deffnx Function primitive:asctime* @var{tm-record}
 Wrappers for @func{primitive:asctime} which automatically convert the
-@class{struct-tm} @var{record} into an instance of @code{struct tm} and
-perform the conversion to string.
+@class{struct-tm} @var{tm-record} into an instance of @code{struct tm}
+and perform the conversion to string.
 @end deffn
 
 
@@ -5433,13 +5544,13 @@ reentrant.
 @end deffn
 
 
-@deffn Function strftime @var{template} @var{pointer}
+@deffn Function strftime @var{template} @var{tm-pointer}
 @deffnx Parameter strftime-function
-@deffnx Function primitive:strftime @var{template} @var{pointer}
-@deffnx Function platform:strftime @var{output-cstr} @var{output-len} @var{template-cstr} @var{pointer}
+@deffnx Function primitive:strftime @var{template} @var{tm-pointer}
+@deffnx Function platform:strftime @var{output-cstr} @var{output-len} @var{template-cstr} @var{tm-pointer}
 Return a Scheme string representing the date and time specification
 described by @var{template}, which must be a Scheme string, and the
-@code{struct tm} instance referenced by @var{pointer}.
+@code{struct tm} instance referenced by @var{tm-pointer}.
 
 @quotation
 @strong{NOTE} At present the maximum length of the output string is
@@ -5449,11 +5560,11 @@ than that number of bytes, an error is raised.
 @end deffn
 
 
-@deffn Function strftime* @var{template} @var{record}
+@deffn Function strftime* @var{template} @var{tm-record}
 @deffnx Parameter strftime*-function
-@deffnx Function primitive:strftime* @var{template} @var{record}
+@deffnx Function primitive:strftime* @var{template} @var{tm-record}
 Wrappers for @func{primitive:strftime} which automatically convert the
-@class{struct-tm} @var{record} into an instance of @code{struct tm},
+@class{struct-tm} @var{tm-record} into an instance of @code{struct tm},
 then build and return the output string.
 @end deffn
 
@@ -5468,13 +5579,13 @@ the Glibc @code{time} libraries.  @glibcref{Low-Level Time String
 Parsing, Interpret string according to given format}.
 
 
-@deffn Function strptime @var{input} @var{template} @var{pointer}
+@deffn Function strptime @var{input} @var{template} @var{tm-pointer}
 @deffnx Parameter strptime-function
-@deffnx Function primitive:strptime @var{input} @var{template} @var{pointer}
-@deffnx Function platform:strptime @var{input-cstr} @var{template-cstr} @var{pointer}
+@deffnx Function primitive:strptime @var{input} @var{template} @var{tm-pointer}
+@deffnx Function platform:strptime @var{input-cstr} @var{template-cstr} @var{tm-pointer}
 Parse the @var{input} Scheme string according to the @var{template}
 Scheme string and store the values in the @code{struct tm} instance
-referenced by @var{pointer}.
+referenced by @var{tm-pointer}.
 @end deffn
 
 
@@ -5500,15 +5611,15 @@ the bindings are exported by the Glibc @code{time} libraries.
 @glibcref{Setting an Alarm, Setting an Alarm}.
 
 
-@deffn Function setitimer @var{which} @var{new} @var{old}
+@deffn Function setitimer @var{which} @var{itimerval-ptr-new} @var{itimerval-ptr-old}
 @deffnx Parameter setitimer-function
-@deffnx Function primitive:setitimer @var{which} @var{new} @var{old}
-@deffnx Function platform:setitimer @var{which} @var{new} @var{old}
+@deffnx Function primitive:setitimer @var{which} @var{itimerval-ptr-new} @var{itimerval-ptr-old}
+@deffnx Function platform:setitimer @var{which} @var{itimerval-ptr-new} @var{itimerval-ptr-old}
 Set the timer specified by @var{which} according to the time
 specification in the @code{struct itimerval} instance referenced by the
-pointer @var{new}; the old timer specification, for the selected type,
-is stored in the @code{struct itimerval} instance referenced by the
-pointer @var{old}.
+pointer @var{itimerval-ptr-new}; the old timer specification, for the
+selected type, is stored in the @code{struct itimerval} instance
+referenced by the pointer @var{itimerval-ptr-old}.
 
 @var{which} can be one among the values bound to @code{ITIMER_REAL},
 @code{ITIMER_VIRTUAL} and @code{ITIMER_PROF}.
@@ -5517,7 +5628,7 @@ pointer @var{old}.
 
 @deffn Function setitimer* @var{which} @var{new-record}
 @deffnx Parameter setitimer*-function
-@deffnx Function primitive:setitimer* @var{which} @var{new-pointer}
+@deffnx Function primitive:setitimer* @var{which} @var{new-record}
 Wrappers for @func{primitive:setitimer} which internally convert the
 @class{struct-itimerval} record @var{new-record} to a @code{struct
 itimerval} instance and set the selected timer accordingly; the return
@@ -5526,14 +5637,14 @@ specification of the selected timer.
 @end deffn
 
 
-@deffn Function getitimer @var{which} @var{old}
+@deffn Function getitimer @var{which} @var{itimerval-ptr-old}
 @deffnx Parameter getitimer-function
-@deffnx Function primitive:getitimer @var{which} @var{old}
-@deffnx Function platform:getitimer @var{which} @var{old}
+@deffnx Function primitive:getitimer @var{which} @var{itimerval-ptr-old}
+@deffnx Function platform:getitimer @var{which} @var{itimerval-ptr-old}
 Store, in the @code{struct itimerval} instance referenced by the pointer
-@var{old}, the current timer specification for the selected type.
-@var{which} can be one among the values bound to @code{ITIMER_REAL},
-@code{ITIMER_VIRTUAL} and @code{ITIMER_PROF}.
+@var{itimerval-ptr-old}, the current timer specification for the
+selected type.  @var{which} can be one among the values bound to
+@code{ITIMER_REAL}, @code{ITIMER_VIRTUAL} and @code{ITIMER_PROF}.
 @end deffn
 
 
@@ -5573,15 +5684,15 @@ or, if a signal is received, the number of seconds still to wait.
 @end defun
 
 
-@deffn Function nanosleep @var{requested} @var{remaining}
+@deffn Function nanosleep @var{requested-timespec-ptr} @var{remaining-timespec-ptr}
 @deffnx Parameter nanosleep-function
-@deffnx Function primitive:nanosleep @var{requested} @var{remaining}
-@deffnx Function platform:nanosleep @var{requested} @var{remaining}
+@deffnx Function primitive:nanosleep @var{requested-timespec-ptr} @var{remaining-timespec-ptr}
+@deffnx Function platform:nanosleep @var{requested-timespec-ptr} @var{remaining-timespec-ptr}
 Halt the process for the time specified in the @code{struct timespec}
-instance referenced by the @var{requested} pointer; return after the
-elapsed time or if a signal is received.  Store in the @code{struct
-timespec} instance referenced by the pointer @var{remaining} the
-remaining time.
+instance referenced by the @var{requested-timespec-ptr} pointer; return
+after the elapsed time or if a signal is received.  Store in the
+@code{struct timespec} instance referenced by the pointer
+@var{remaining-timespec-ptr} the remaining time.
 @end deffn
 
 
@@ -5622,15 +5733,69 @@ exported by the following libraries:
 @section Object type defintions
 
 
-The following bindings are exported by the @library{posix typedefs}
-library.  @glibcref{Process Completion Status, Process Completion
-Status}.
+Unless otherwise specified, the bindings described in this section are
+exported by the @library{posix typedefs} library.
+
+@menu
+* process typedefs pid::        Process identifier.
+* process typedefs status::     Process termination status.
+@end menu
+
+@c page
+@node process typedefs pid
+@subsection Process identifier
+
+
+Functions in the parametrised and primitives libraries accept @code{pid}
+objects as values for the @var{pid} arguments.  Functions in the
+platform libraries accept exact integers as values for the @var{pid-int}
+arguments.
+
+
+@deftp {Object Type} pid
+Object type used to represent a process identifier.  It is disjoint from
+all the other Scheme object types.
+@end deftp
+
+
+@defun pid? @var{obj}
+Return @true{} if @var{obj} is a @code{pid} object.
+@end defun
+
+
+@defun pid->integer @var{pid}
+@defunx integer->pid @var{integer}
+Convert between @code{pid} object and exact integers.
+@end defun
+
+
+@defun pid-zero? @var{obj}
+Return @true{} if @var{obj} is a @code{pid} object and its integer value
+is zero.
+@end defun
+
+
+@defun pid=? @vari{pid} @varii{pid}
+@defunx pid<? @vari{pid} @varii{pid}
+@defunx pid<=? @vari{pid} @varii{pid}
+@defunx pid>? @vari{pid} @varii{pid}
+@defunx pid>=? @vari{pid} @varii{pid}
+@defunx pid<>? @vari{pid} @varii{pid}
+Comparison operators for @code{pid} objects; they work like their
+counterparts for integer values.  @func{pid<>?} stands for ``not
+equal''.
+@end defun
+
+@c page
+@node process typedefs status
+@subsection Process termination status
 
 
 @deftp {Record Type Name} <process-term-status>
 @deftpx {Record Type Descriptor} <process-term-status-rtd>
-Record type describing the details of a process termination.  It has the
-following fields:
+Record type describing the details of a process termination.
+@glibcref{Process Completion Status, Process Completion Status}.  It has
+the following immutable fields:
 
 @example
 WIFEXITED               WEXITSTATUS
@@ -5642,7 +5807,9 @@ WSTOPSIG
 
 
 @defun make-<process-term-status> @var{WIFEXITED} @var{WEXITSTATUS} @var{WIFSIGNALED} @var{WTERMSIG} @var{WCOREDUMP} @var{WIFSTOPPED} @var{WSTOPSIG}
-Build and return a new record of type @class{process-term-status}.
+@defunx <process-term-status>? @var{obj}
+Constructor and predicate for records of type
+@class{process-term-status}.
 @end defun
 
 
@@ -5674,8 +5841,9 @@ The following functions inspect the process identifier.
 @deffnx Parameter getpid-function
 @deffnx Function primitive:getpid
 @deffnx Function platform:getpid
-Return the process id of the current process.  This function cannot
-fail, so @func{platform:getpid} returns a single value.
+Return a @code{pid} object representing the identifier of the current
+process.  This function cannot fail, so @func{platform:getpid} returns a
+single value: the return value from the foreign function.
 @end deffn
 
 
@@ -5683,8 +5851,9 @@ fail, so @func{platform:getpid} returns a single value.
 @deffnx Parameter getppid-function
 @deffnx Functionx primitive:getppid
 @deffnx Functionx platform:getppid
-Return the process id of the parent process.  This function cannot fail,
-so @func{platform:getppid} returns a single value.
+Return a @code{pid} object representing the identifier of the parent
+process.  This function cannot fail, so @func{platform:getppid} returns
+a single value: the return value from the foreign function.
 @end deffn
 
 @c page
@@ -5706,8 +5875,8 @@ impossible to know what the underlying Scheme implementation does.
 @deffnx Function primitive:fork
 @deffnx Function platform:fork
 Create a new process by forking the current one.  If successful
-@func{fork} returns zero in the child process and the child process' id
-in the parent process.
+@func{fork} returns @false{} in the child process and a @code{pid}
+object representing the child process' id in the parent process.
 @end deffn
 
 @c page
@@ -5715,7 +5884,7 @@ in the parent process.
 @section Executing a file
 
 
-The following functions manage process forking.  @glibcref{Executing a
+The following functions manage process execution.  @glibcref{Executing a
 File, Executing a File}.
 
 
@@ -5732,7 +5901,7 @@ new process is executed and these functions do not return.
 Usage example:
 
 @example
-(when (= 0 (fork))
+(unless (fork)
   (execv '/bin/ls '(ls "-l" /bin)))
 @end example
 
@@ -5761,7 +5930,7 @@ return.
 Usage example:
 
 @example
-(when (= 0 (fork))
+(unless (fork)
   (execve '/usr/bin/du
           '(du /bin/ls)
           '("BLOCK_SIZE=human-readable")))
@@ -5805,7 +5974,7 @@ The following functions manage waiting for spawned processes.
 
 The @var{options} argument can be zero or a @func{bitwise-ior} of
 @code{WNOHANG}, @code{WUNTRACED} and @code{WCONTINUED} which are
-exported by @library{posix sizeof}.
+exported by the library @library{posix sizeof}.
 
 The following @code{waitpid} functions return a process termination
 status in the form of an exact integer.  Such integer can be analysed
@@ -5815,7 +5984,7 @@ definitions}.
 
 @deffn Parameter waitpid-function
 @deffnx Function primitive:waitpid @var{pid} @var{options}
-@deffnx Function platform:waitpid @var{pid} @var{pointer} @var{options}
+@deffnx Function platform:waitpid @var{pid-int} @var{pointer} @var{options}
 Wait for a single process or a set of processes in a group.  For the
 full documentation we have to refer to the documentation of the foreign
 function @cfunc{waitpid}.
@@ -5847,6 +6016,7 @@ tracks all the child processes in the group with id @var{gpid}.
 
 
 @defun integer-><process-term-status> @var{status}
+@defunx primitive:integer-><process-term-status> @var{status}
 Given the exact integer @var{status} representing a process' termination
 status, build and return a record of type @class{process-term-status}.
 @end defun
@@ -5910,16 +6080,17 @@ The following functions manage process groups and sessions.
 @deffnx Parameter setsid-function
 @deffnx Function primitive:setsid
 @deffnx Function platform:setsid
-Create a new session and return an integer representing the new process
-group id.
+Create a new session and return a @code{pid} object representing the new
+process group id.
 @end deffn
 
 
 @deffn Function getsid @var{pid}
 @deffnx Parameter getsid-function
 @deffnx Function primitive:getsid @var{pid}
-@deffnx Function platform:getsid @var{pid}
-Return the group id of the session leader of the process with @var{pid}.
+@deffnx Function platform:getsid @var{pid-int}
+Return a @code{pid} object representing the group id of the session
+leader of the process with @var{pid}.
 @end deffn
 
 
@@ -5927,15 +6098,15 @@ Return the group id of the session leader of the process with @var{pid}.
 @deffnx Parameter getpgrp-function
 @deffnx Function primitive:getpgrp
 @deffnx Function platform:getpgrp
-Return the process group id of the group to which the current process
-belongs.
+Return a @code{pid} object representing the process group id of the
+group to which the current process belongs.
 @end deffn
 
 
 @deffn Function setpgid @var{pid} @var{pgid}
 @deffnx Parameter setpgid-function
 @deffnx Function primitive:setpgid @var{pid} @var{pgid}
-@deffnx Function platform:setpgid @var{pid} @var{pgid}
+@deffnx Function platform:setpgid @var{pid-int} @var{pgid-int}
 Put the process @var{pid} in the group @var{pgid}.
 @end deffn
 
@@ -5952,16 +6123,17 @@ Controlling Terminal Access}.
 @deffn Function tcgetpgrp @var{fd}
 @deffnx Parameter tcgetpgrp-function
 @deffnx Function primitive:tcgetpgrp @var{fd}
-@deffnx Function platform:tcgetpgrp @var{fd}
-Return the process group id of the foreground process group associated
-with the terminal open on descriptor @var{fd}.
+@deffnx Function platform:tcgetpgrp @var{fd-int}
+Return a @code{pid} object representing the process group id of the
+foreground process group associated with the terminal open on descriptor
+@var{fd}.
 @end deffn
 
 
 @deffn Function tcsetpgrp @var{fd} @var{pgid}
 @deffnx Parameter tcsetpgrp-function
 @deffnx Function primitive:tcsetpgrp @var{fd} @var{pgid}
-@deffnx Function platform:tcsetpgrp @var{fd} @var{pgid}
+@deffnx Function platform:tcsetpgrp @var{fd-int} @var{pgid-int}
 Set a terminal's foreground process group id.
 @end deffn
 
@@ -5969,9 +6141,10 @@ Set a terminal's foreground process group id.
 @deffn Function tcgetsid @var{fd}
 @deffnx Parameter tcgetsid-function
 @deffnx Function primitive:tcgetsid @var{fd}
-@deffnx Function platform:tcgetsid @var{fd}
-Return the process group id of the session for which the file descriptor
-@var{fd} is the controlling terminal.
+@deffnx Function platform:tcgetsid @var{fd-int}
+Return a @code{pid} object representing the process group id of the
+session for which the file descriptor @var{fd} is the controlling
+terminal.
 @end deffn
 
 @c page
@@ -6039,6 +6212,12 @@ Return true if @var{obj} is of type @code{uid}.
 Convert between @code{uid} objects and integer objects.
 @end defun
 
+
+@defun uid=? @vari{uid} @varii{uid}
+Return @true{} if the two @code{uid} objects represent the same user
+identifier.
+@end defun
+
 @c page
 @node users typedefs gid
 @subsection Group identifiers
@@ -6064,6 +6243,12 @@ Return true if @var{obj} is of type @code{gid}.
 @defun gid->integer @var{gid}
 @defunx integer->gid @var{integer}
 Convert between @code{gid} objects and integer objects.
+@end defun
+
+
+@defun gid=? @vari{gid} @varii{gid}
+Return @true{} if the two @code{gid} objects represent the same group
+identifier.
 @end defun
 
 @c page
@@ -6127,6 +6312,16 @@ Constructor and predicate for records of type @class{struct-passwd}.
 Accessors and mutators for records of type @class{struct-passwd}.
 @end defun
 
+
+@defun primitive:pointer-><struct-passwd> @var{pointer}
+Build and return a new @class{struct-passwd} record mirroring the
+@code{struct passwd} C language data structure referenced by
+@var{pointer}.
+
+This binding is exported by the library @library{posix system
+primitives}.
+@end defun
+
 @c page
 @node users typedefs groups
 @subsection Groups informations
@@ -6166,6 +6361,16 @@ Constructor and predicate for records of type @class{struct-group}.
 Accessors and mutators for records of type @class{struct-group}.
 @end defun
 
+
+@defun primitive:pointer-><struct-group> @var{pointer}
+Build and return a new @class{struct-group} record mirroring the
+@code{struct group} C language data structure referenced by
+@var{pointer}.
+
+This binding is exported by the library @library{posix system
+primitives}.
+@end defun
+
 @c page
 @node users accessors
 @section Retrieving user and group identifiers
@@ -6190,7 +6395,7 @@ the foreign function.
 @deffnx Parameter getgid-function
 @deffnx Function primitive:getgid
 @deffnx Function platform:getgid
-Return an @code{gid} object representing the real group identifier.
+Return a @code{gid} object representing the real group identifier.
 
 @func{platform:getgid} returns a single argument: the return value from
 the foreign function.
@@ -6212,7 +6417,7 @@ the foreign function.
 @deffnx Parameter getegid-function
 @deffnx Function primitive:getegid
 @deffnx Function platform:getegid
-Return an @code{gid} object representing the effective group identifier.
+Return a @code{gid} object representing the effective group identifier.
 
 @func{platform:getegid} returns a single argument: the return value from
 the foreign function.
@@ -6312,8 +6517,8 @@ The following bindings manage retrieval of user's login name.
 @deffnx Parameter getlogin-function
 @deffnx Function primitive:getlogin
 @deffnx Function platform:getlogin
-Return a Scheme string representing the name of the logged in user.
-This function is not reentrant.
+Return a Scheme string representing the name of the logged in user; this
+function is not reentrant.
 
 @func{platform:getlogin} returns a single argument: the return value
 from the foreign function.
@@ -6324,8 +6529,8 @@ from the foreign function.
 @deffnx Parameter cuserid-function
 @deffnx Function primitive:cuserid
 @deffnx Function platform:cuserid @var{cstr}
-Return a Scheme string representing the name of the logged in user.
-This function is reentrant.
+Return a Scheme string representing the name of the logged in user; this
+function is reentrant.
 
 @func{platform:cuserid} returns a single argument: the return value from
 the foreign function.
@@ -6339,13 +6544,6 @@ the foreign function.
 The following bindings manage access to the users database.
 @glibcref{Lookup User, Looking Up One User}.  @glibcref{Scanning All
 Users, Scanning the List of All Users}.
-
-
-@defun primitive:pointer-><struct-passwd> @var{pointer}
-Build and return a new @class{struct-passwd} record mirroring the
-@code{struct passwd} C language data structure referenced by
-@var{pointer}.
-@end defun
 
 
 @deffn Function getpwuid @var{uid}
@@ -6383,7 +6581,7 @@ return value is @false{}.  This function is reentrant.
 (let ((pwds (with-compensations
               (letrec
                   ((file* (compensate
-                             (glibc:fopen "/etc/passwd" "r")
+                              (glibc:fopen "/etc/passwd" "r")
                             (with
                              (glibc:fclose file*)))))
                 (let loop ((pwds '()))
@@ -6395,7 +6593,6 @@ return value is @false{}.  This function is reentrant.
 @end example
 @end deffn
 
-
 @c page
 @node users groupdb
 @section Groups database
@@ -6404,13 +6601,6 @@ return value is @false{}.  This function is reentrant.
 The following bindings manage access to the groups database.
 @glibcref{Lookup Group, Looking Up One Group}.  @glibcref{Scanning All
 Groups, Scanning the List of All Groups}.
-
-
-@defun primitive:pointer-><struct-group> @var{pointer}
-Build and return a new @class{struct-group} record mirroring the
-@code{struct group} C language data structure referenced by
-@var{pointer}.
-@end defun
 
 
 @deffn Function getgrgid @var{gid}
@@ -6458,7 +6648,7 @@ exported by the following libraries:
 @end example
 
 @noindent
-the purpose of this interface is to alloc some string processing without
+the purpose of this interface is to allow some string processing without
 conversion from C strings to Scheme strings.
 
 @menu
@@ -6498,7 +6688,8 @@ exported by the following libraries:
 * system inspection::           Inspecting configuration.
 * system host::                 Host identification.
 * system uname::                Platform identification.
-* system mount tabs::           Inspecting mounted file systems.
+* system mount fstab::          Inspecting mountable file systems.
+* system mount mtab::           Inspecting mounted file systems.
 * system mount::                Mounting file systems.
 @end menu
 
@@ -6557,6 +6748,16 @@ Constructor and predicate for records of type @class{struct-utsname}.
 @defunx <struct-utsname>-machine @var{record}
 @defunx <struct-utsname>-machine-set! @var{record} @var{value}
 Accessors and mutators for records of type @class{struct-utsname}.
+@end defun
+
+
+@defun primitive:pointer-><struct-utsname> @var{pointer}
+Build and return a new record of type @class{struct-utsname} initialised
+with data from the C structure of type @code{struct utsname} referenced
+by @var{pointer}.
+
+This binding is exported by the library @library{posix system
+primitives}.
 @end defun
 
 @c page
@@ -6622,6 +6823,16 @@ Constructor and predicate for records of type @class{struct-fstab}.
 Accessors and mutators for records of type @class{struct-fstab}.
 @end defun
 
+
+@defun primitive:pointer-><struct-fstab> @var{pointer}
+Build and return a new record of type @class{struct-fstab} initialised
+with data from the C structure of type @code{struct fstab} referenced by
+@var{pointer}.
+
+This binding is exported by the library @library{posix system
+primitives}.
+@end defun
+
 @c page
 @node system typedefs mntent
 @subsection Mounted file systems informations
@@ -6674,6 +6885,30 @@ Constructor and predicate for records of type @class{struct-mntent}.
 @defunx <struct-mntent>-passno @var{record}
 @defunx <struct-mntent>-passno-set! @var{record} @var{value}
 Accessors and mutators for records of type @class{struct-mntent}.
+@end defun
+
+
+@defun primitive:pointer-><struct-mntent> @var{pointer}
+Build and return a new record of type @class{struct-mntent} initialised
+with data from the C structure of type @code{struct mntent} referenced
+by @var{pointer}.
+
+This binding is exported by the library @library{posix system
+primitives}.
+@end defun
+
+
+@defun primitive:<struct-mntent>->pointer @var{mntent} @var{malloc}
+Allocate a new @code{struct mntent} C language data structure
+initialised with values from @var{mntent}, which must be a record of
+type @class{struct-mntent}.
+
+All the needed memory is allocated with the function @var{malloc}, which
+must have the same protocol of @func{malloc} from @library{memory}.
+@nauref{memory alloc high, Exception raising functions}.
+
+This binding is exported by the library @library{posix system
+primitives}.
 @end defun
 
 @c page
@@ -7303,13 +7538,6 @@ The following functions manage platform identification.
 @glibcref{Platform Type, Platform Type Identification}.
 
 
-@defun pointer-><struct-utsname> @var{pointer}
-Build and return a new record of type @class{struct-utsname} initialised
-with data from the C structure of type @code{struct utsname} referenced
-by @var{pointer}.
-@end defun
-
-
 @deffn Function uname
 @deffnx Parameter uname-function
 @deffnx Function primitive:uname
@@ -7320,8 +7548,8 @@ platform.
 
 
 @c page
-@node system mount tabs
-@section Inspecting mounted file systems
+@node system mount fstab
+@section Inspecting mountable file systems
 
 
 Unless otherwise specified, the functions documented in this section are
@@ -7333,16 +7561,8 @@ exported by the following libraries:
 (glibc system platform)
 @end example
 
-@noindent
 The following functions manage reading the @file{fstab} file.
 @glibcref{fstab, The @file{fstab} file}.
-
-
-@defun primitive:pointer-><struct-fstab> @var{pointer}
-Build and return a new record of type @class{struct-fstab} initialised
-with data from the C structure of type @code{struct fstab} referenced by
-@var{pointer}.
-@end defun
 
 
 @deffn Function setfsent
@@ -7379,15 +7599,17 @@ errors and end of iteration, so when no more records can be returned:
 the return value is @false{}.
 
 @example
-(setfsent)
-(let ((tabs (let loop ((tabs '()))
-              (let ((t (getfsent)))
-                (if t
-                    (loop (cons t tabs))
-                  (begin
-                    (endfsent)
-                    tabs))))))
-  ---)
+(with-compensations
+  (compesate
+      (setfsent)
+    (with
+     (endfsent))
+  (let ((tabs (let loop ((tabs '()))
+                (let ((t (getfsent)))
+                  (if t
+                      (loop (cons t tabs))
+                    tabs)))))
+    ---)))
 @end example
 
 @func{platform:getfsent} returns a single argument: the return value
@@ -7431,24 +7653,22 @@ from the foreign function.
 @end deffn
 
 
+@c page
+@node system mount mtab
+@section Inspecting mounted file systems
+
+
+Unless otherwise specified, the functions documented in this section are
+exported by the following libraries:
+
+@example
+(glibc system)
+(glibc system primitives)
+(glibc system platform)
+@end example
+
 The following functions manage reading the @file{mtab} file.
 @glibcref{mtab, The @file{mtab} file}.
-
-
-@defun primitive:pointer-><struct-mntent> @var{pointer}
-Build and return a new record of type @class{struct-mntent} initialised
-with data from the C structure of type @code{struct mntent} referenced
-by @var{pointer}.
-@end defun
-
-
-@defun primitive:<struct-mntent>->pointer @var{mntent} @var{malloc}
-Allocate a new @code{struct mntent} C language data structure
-initialised with values from @var{mntent}, which must be a record of
-type @class{struct-mntent}.  All the needed memory is allocated with the
-function @var{malloc}, which must have the same protocol of
-@func{malloc} from @library{memory}.
-@end defun
 
 
 @deffn Function setmntent @var{pathname} @var{open-mode}
@@ -7488,16 +7708,18 @@ iteration, so when one of these envents happens: the return value is
 @false{}.
 
 @example
-(let* ((stream (setmntent _PATH_MOUNTED "r"))
-       (tabs   (let loop ((tabs '())
-                          (entry (glibc:getmntent stream)))
-                 (if entry
-                     (loop (cons entry tabs)
-                           (glibc:getmntent stream))
-                   (begin
-                     (glibc:endmntent stream)
+(with-compensations
+  (let* ((stream (compensate
+                     (setmntent _PATH_MOUNTED "r")
+                   (with
+                    (endmntent stream)))
+         (tabs   (let loop ((tabs '())
+                            (entry (getmntent stream)))
+                   (if entry
+                       (loop (cons entry tabs)
+                             (getmntent stream))
                      tabs)))))
-  ---)
+    ---))
 @end example
 
 @func{platform:getmntent} and @func{platform:getmntent_r} return a
@@ -7533,7 +7755,7 @@ string) under @var{mount-point} (a Scheme string) assuming it is of
 @var{options} must be an exact integer composed by inclusive bitwise OR
 of the @code{MS_*} flags, or zero.  @var{data-ptr} is a kernel--defined
 buffer, the constant @code{empty-string} from @library{foreing cstrings}
-may be a valid value.
+may be a valid value.  @nauref{cstrings constants, Constant values}.
 @end deffn
 
 
