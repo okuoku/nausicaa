@@ -234,7 +234,8 @@
 (define (make-struct-flock malloc)
   (pointer->struct-flock (malloc sizeof-flock)))
 
-
+;;; --------------------------------------------------------------------
+
 (define-record-type (struct-timeval pointer->struct-timeval struct-timeval?)
   (nongenerative nausicaa:posix:struct-timeval)
   (fields (immutable object struct-timeval->pointer)))
