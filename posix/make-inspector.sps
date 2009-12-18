@@ -780,6 +780,45 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 (define-c-defines "flags for umount2"
   MNT_FORCE)
 
+(define-c-defines "interprocess signal constants"
+  NSIG
+
+  ;; program error
+  SIGFPE	SIGILL
+  SIGSEGV	SIGBUS
+  SIGABRT	SIGIOT
+  SIGTRAP	SIGEMT
+  SIGSYS
+
+  ;; termination
+  SIGTERM	SIGINT
+  SIGQUIT	SIGKILL
+  SIGHUP
+
+  ;; alarm
+  SIGALRM	SIGVRALRM
+  SIGPROF
+
+  ;; asynchronous I/O
+  SIGIO		SIGURG
+  SIGPOLL
+
+  ;; job control
+  SIGCHLD	SIGCLD
+  SIGCONT	SIGSTOP
+  SIGTSTP	SIGTTIN
+  SIGTTOU
+
+  ;; operation error
+  SIGPIPE	SIGLOST
+  SIGXCPU	SIGXSFZ
+
+  ;; misc
+  SIGUSR1	SIGUSR2
+  SIGWINCH	SIGINFO
+
+  )
+
 (autoconf-lib "AC_CACHE_SAVE")
 
 

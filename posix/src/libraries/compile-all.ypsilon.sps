@@ -27,10 +27,12 @@
   (only (posix fd))
   (only (posix file))
   (only (posix process))
+  (only (posix signals))
   (only (posix system))
   (only (posix time))
 
   (only (glibc file))
+  (only (glibc signals))
   (only (glibc streams))
   (only (glibc system))
   (only (glibc time))

@@ -67,6 +67,9 @@
 #ifdef HAVE_SYS_MMAN_H
 #  include <sys/mman.h>
 #endif
+#ifdef HAVE_SIGNAL_H
+#  include <signal.h>
+#endif
 #ifdef HAVE_TIME_H
 #  include <time.h>
 #endif
@@ -223,6 +226,12 @@ extern void nausicaa_posix_FD_ZERO	(fd_set * set);
 extern void nausicaa_posix_FD_SET	(int fd, fd_set * set);
 extern void nausicaa_posix_FD_CLR	(int fd, fd_set * set);
 extern int  nausicaa_posix_FD_ISSET	(int fd, const fd_set * set);
+
+
+/** --------------------------------------------------------------------
+ ** Interprocess signal handling.
+ ** ----------------------------------------------------------------- */
+
 
 
 /** --------------------------------------------------------------------
@@ -701,7 +710,64 @@ nausicaa_posix_FD_ISSET (int fd, const fd_set * set)
 
 
 /** --------------------------------------------------------------------
- ** Miscellaneous.
+ ** Interprocess signal handling.
  ** ----------------------------------------------------------------- */
+
+extern void	nausicaa_posix_signal_bub_init		(void);
+extern void	nausicaa_posix_signal_bub_final		(void);
+extern void	nausicaa_posix_signal_bub_acquire		(void);
+extern int	nausicaa_posix_signal_bub_delivered		(int signum);
+
+static int	arrived_signals[NSIG];
+static sigset_t	all_signals_set;
+
+static void
+nausicaa_posix_signal_bub_handler (int signum)
+{
+  ++arrived_signals[signum];
+}
+void
+nausicaa_posix_signal_bub_init (void)
+{ /* Block all the signals and register our handler for each. */
+  struct sigaction	ac = {
+    .sa_handler	= nausicaa_posix_signal_bub_handler,
+    .sa_flags	= SA_RESTART | SA_NOCLDSTOP
+  };
+  sigfillset(&all_signals_set);
+  sigprocmask(SIG_BLOCK, &all_signals_set, NULL);
+  for (int signum=0; signum<NSIG; ++signum) {
+    arrived_signals[signum] = 0;
+    sigaction(signum, &ac, NULL);
+  }
+}
+void
+nausicaa_posix_signal_bub_final (void)
+{ /* Set all the handlers to SIG_IGN, then unblock the signals. */
+  struct sigaction	ac = {
+    .sa_handler	= SIG_IGN,
+    .sa_flags	= SA_RESTART
+  };
+  for (int signum=0; signum<NSIG; ++signum) {
+    arrived_signals[signum] = 0;
+    sigaction(signum, &ac, NULL);
+  }
+  sigprocmask(SIG_UNBLOCK, &all_signals_set, NULL);
+}
+void
+nausicaa_posix_signal_bub_acquire (void)
+{ /* Unblock then block all the signals.  This causes blocked signals to
+     be delivered. */
+  sigprocmask(SIG_UNBLOCK, &all_signals_set, NULL);
+  sigprocmask(SIG_BLOCK,   &all_signals_set, NULL);
+}
+int
+nausicaa_posix_signal_bub_delivered (int signum)
+{ /* Return true if  the signal SIGNUM has been  delivered at least once
+     since  the   last  call  to  "nausicaa_posix_signal_bub_acquire()".
+     Clear the signal flag. */
+  int	is_set = arrived_signals[signum];
+  arrived_signals[signum] = 0;
+  return is_set;
+}
 
 /* end of file */

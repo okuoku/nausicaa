@@ -48,21 +48,20 @@ AC_CHECK_FUNC([stat])
 AC_CHECK_FUNC([lstat])
 AC_CHECK_FUNC([fstat])
 
+AC_CHECK_HEADERS([dirent.h])
 AC_CHECK_HEADERS([errno.h])
 AC_CHECK_HEADERS([fcntl.h])
+AC_CHECK_HEADERS([fcntl.h])
+AC_CHECK_HEADERS([fstab.h])
+AC_CHECK_HEADERS([ftw.h])
+AC_CHECK_HEADERS([grp.h])
 AC_CHECK_HEADERS([inttypes.h])
 AC_CHECK_HEADERS([limits.h])
-AC_CHECK_HEADERS([stdint.h])
-AC_CHECK_HEADERS([unistd.h])
-
-AC_CHECK_HEADERS([dirent.h])
-AC_CHECK_HEADERS([fcntl.h])
-AC_CHECK_HEADERS([ftw.h])
-AC_CHECK_HEADERS([fstab.h])
-AC_CHECK_HEADERS([grp.h])
 AC_CHECK_HEADERS([mntent.h])
 AC_CHECK_HEADERS([paths.h])
 AC_CHECK_HEADERS([pwd.h])
+AC_CHECK_HEADERS([signal.h])
+AC_CHECK_HEADERS([stdint.h])
 AC_CHECK_HEADERS([sys/mman.h])
 AC_CHECK_HEADERS([sys/mount.h])
 AC_CHECK_HEADERS([sys/select.h])
@@ -74,6 +73,7 @@ AC_CHECK_HEADERS([sys/types.h])
 AC_CHECK_HEADERS([sys/utsname.h])
 AC_CHECK_HEADERS([sys/wait.h])
 AC_CHECK_HEADERS([time.h])
+AC_CHECK_HEADERS([unistd.h])
 AC_CHECK_HEADERS([unistd.h])
 AC_CHECK_HEADERS([utime.h])
 
@@ -117,6 +117,9 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #endif
 #ifdef HAVE_PWD_H
 #  include <pwd.h>
+#endif
+#ifdef HAVE_SIGNAL_H
+#  include <signal.h>
 #endif
 #ifdef HAVE_TIME_H
 #  include <time.h>

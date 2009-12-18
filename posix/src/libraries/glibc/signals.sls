@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: compile script for Mosh Scheme
-;;;Date: Tue Nov  3, 2009
+;;;Contents: high-level API to interprocess signal functions
+;;;Date: Fri Dec 18, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,19 +24,25 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (posix fd))
-  (only (posix file))
-  (only (posix process))
-  (only (posix signals))
-  (only (posix system))
-  (only (posix time))
+
+(library (glibc signals)
+  (export
 
-  (only (glibc file))
-  (only (glibc signals))
-  (only (glibc streams))
-  (only (glibc system))
-  (only (glibc time))
-  )
+    ;; description messages
+    (rename (primitive:strsignal	strsignal)
+	    (primitive:psignal		psignal))
+
+    )
+  (import (rnrs)
+    (prefix (glibc signals primitives) primitive:))
+
+
+;;;; code
+
+
+
+;;;; done
+
+)
 
 ;;; end of file

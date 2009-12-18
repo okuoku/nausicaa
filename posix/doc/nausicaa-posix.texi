@@ -105,6 +105,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{ASCII}
 @end macro
 
+@macro bub{}
+@acronym{BUB}
+@end macro
+
 @macro cpu{}
 @acronym{CPU}
 @end macro
@@ -497,6 +501,7 @@ entitled ``@gnu{} Free Documentation License''.
 * time::                        Date and time.
 * process::                     Processes.
 * users::                       Users and groups.
+* signals::                     Interprocess signals.
 * strings::                     More C string functions.
 * system::                      System resources and configuration.
 
@@ -685,6 +690,15 @@ Object type definitions
 * users typedefs gid::          Group identifiers.
 * users typedefs passwd::       User informations.
 * users typedefs groups::       Groups informations.
+
+Interprocess signals
+
+* signals constants::           Constant values.
+* signals enumerations::        Enumeration definitions.
+* signals messages::            Signal descriptions.
+* signals bub::                 Block/unblock signals handling.
+* signals sending::             Sending signals.
+* signals waiting::             Waiting for signals.
 
 System resources and configuration
 
@@ -6630,6 +6644,283 @@ next group from the database file referenced by @var{stream}, a
 @code{FILE*} object.  When the iteration over the database ends, the
 return value is @false{}.  This function is reentrant.
 @end deffn
+
+@c page
+@node signals
+@chapter Interprocess signals
+
+
+Unless otherwise specified, the functions documented in this chapter are
+exported by the following libraries:
+
+@example
+(posix signal)
+(posix signal primitive)
+(posix signal platform)
+@end example
+
+@noindent
+it is explicitly stated when the functions are exported by the following
+libraries:
+
+@example
+(glibc signal)
+(glibc signal primitive)
+(glibc signal platform)
+@end example
+
+@menu
+* signals constants::           Constant values.
+* signals enumerations::        Enumeration definitions.
+* signals messages::            Signal descriptions.
+* signals bub::                 Block/unblock signals handling.
+* signals sending::             Sending signals.
+* signals waiting::             Waiting for signals.
+@end menu
+
+@c page
+@node signals constants
+@section Constant values
+
+
+The following bindings are exported by the @library{posix sizeof}
+library.  @glibcref{Standard Signals, Standard Signals}.
+
+
+@defvr Constant NSIG
+Maximum number of defined signal constants.
+@end defvr
+
+
+@defvr Constant SIGFPE
+@defvrx Constant SIGILL
+@defvrx Constant SIGSEGV
+@defvrx Constant SIGBUS
+@defvrx Constant SIGABRT
+@defvrx Constant SIGIOT
+@defvrx Constant SIGTRAP
+@defvrx Constant SIGEMT
+@defvrx Constant SIGSYS
+Program error signals.
+@end defvr
+
+
+@defvr Constant
+@defvrx Constant SIGTERM
+@defvrx Constant SIGINT
+@defvrx Constant SIGQUIT
+@defvrx Constant SIGKILL
+@defvrx Constant SIGHUP
+Termination signals.
+@end defvr
+
+
+@defvr Constant SIGALRM
+@defvrx Constant SIGVRALRM
+@defvrx Constant SIGPROF
+Alarm signals.
+@end defvr
+
+
+@defvr Constant SIGIO
+@defvrx Constant SIGURG
+@defvrx Constant SIGPOLL
+Asynchronous input/output signals.
+@end defvr
+
+
+@defvr Constant SIGCHLD
+@defvrx Constant SIGCLD
+@defvrx Constant SIGCONT
+@defvrx Constant SIGSTOP
+@defvrx Constant SIGTSTP
+@defvrx Constant SIGTTIN
+@defvrx Constant SIGTTOU
+Job control signals.
+@end defvr
+
+
+@defvr Constant SIGPIPE
+@defvrx Constant SIGLOST
+@defvrx Constant SIGXCPU
+@defvrx Constant SIGXSFZ
+Operation error signals.
+@end defvr
+
+
+@defvr Constant SIGUSR1
+@defvrx Constant SIGUSR2
+@defvrx Constant SIGWINCH
+@defvrx Constant SIGINFO
+Miscellaneous signals.
+@end defvr
+
+@c page
+@node signals enumerations
+@section Enumeration definitions
+
+
+The following bindings are exported by the @library{posix typedefs}
+library.  @glibcref{Standard Signals, Standard Signals}.
+
+
+@deftp {Enumeration Type} enum-interprocess-signal
+Enumeration type for the Scheme symbols of the known interprocess
+symbols.  All the symbols which appear as bindings in @ref{signals
+constants, Constant values} are part of this enumeration.
+@end deftp
+
+
+@deffn Syntax interprocess-signals @ameta{symbol} ...
+Expand to an enumeration set of type @code{enum-interprocess-signal}
+with the @meta{symbol} arguments as elements.
+@end deffn
+
+
+@defun interprocess-signal->symbol @var{signum}
+@defunx symbol->interprocess-signal @var{symbol}
+Convert to and from a signal number and its corresponding Scheme symbol.
+@end defun
+
+@c page
+@node signals messages
+@section Signal descriptions
+
+
+The following bindings are exported by the Glibc @code{signals}
+libraries.  @glibcref{Signal Messages, Signal Messages}.
+
+
+@deffn Function strsignal @var{signum}
+@deffnx Function primitive:strsignal @var{signum}
+@deffnx Function platform:strsignal @var{signum}
+Return a Scheme string representing a description of the signal
+@var{signum}.
+@end deffn
+
+
+@deffn Function psignal @var{signum} @var{message-prefix}
+@deffnx Function primitive:psignal @var{signum} @var{message-prefix}
+@deffnx Function platform:psignal @var{signum} @var{message-prefix-cstr}
+Print a Scheme string representing a description of the signal
+@var{signum} to @code{stderr}.
+@end deffn
+
+
+@c page
+@node signals bub
+@section Block/unblock signals handling
+
+
+The @bub{} @api{} is a simplified interface to detect the arrival of
+interprocess signals; if it does not suit the application's model, we
+should just ignore it.  Here is a meaningless usage example:
+
+@example
+(with-compensations
+  (compensate
+      (signal-bub-init)
+    (with
+     (signal-bub-final)))
+  (signal-raise SIGUSR1)
+  (signal-bub-acquire)
+  (list (signal-bub-delivered? SIGUSR1)
+        (signal-bub-delivered? SIGUSR2)))
+@result{} (#t #f)
+@end example
+
+
+@defun signal-bub-init
+@defunx primitive:signal-bub-init
+Block for all the signals and initialise the @bub{} interface.
+@end defun
+
+
+@defun signal-bub-final
+@defunx primitive:signal-bub-final
+Set all the signal handlers to @code{SIG_IGN}, then unblock all the
+signals and finalise the @bub{} interface.
+@end defun
+
+
+@defun signal-bub-acquire
+@defunx primitive:signal-bub-acquire
+Unblock all the signals, then block them again.  This should allow all
+the pending signals to be delivered to the process.
+@end defun
+
+
+@defun signal-bub-delivered? @var{signum}
+@defunx primitive:signal-bub-delivered? @var{signum}
+Return @true{} if the signal @var{signum} has been delivered at least
+once @strong{before} the last call to @func{signal-bub-acquire}.
+Calling this function with @var{signum} clears the internal flag for
+this signal, so calling it again without acquiring new signals always
+returns @false{}.
+
+This function interferes with @func{signal-bub-all-delivered}.
+@end defun
+
+
+@defun signal-bub-all-delivered
+@defunx primitive:signal-bub-all-delivered
+Return an enumeration set of type @code{enum-interprocess-signals}
+representing the signals delivered before the last call to
+@func{signal-bub-acquire}.  Calling this function clears the internal
+flags for all the signals, so calling it again without acquiring new
+signals always returns null.
+
+This function interferes with @func{signal-bub-delivered?}.
+@end defun
+
+
+@c page
+@node signals sending
+@section Sending signals
+
+
+The following functions manage sending interprocess signals.
+@glibcref{Generating Signals, Generating Signals}.
+
+
+@deffn Function signal-raise @var{signum}
+@deffnx Parameter signal-raise-function
+@deffnx Function primitive:signal-raise @var{signum}
+@deffnx Function platform:signal_raise @var{signum}
+Send the signal @var{signum} to this process.
+
+This is a wrapper for the @cfunc{raise} foreign function.
+@func{signal_raise} returns a single value: the return value from the
+foreign function.
+@end deffn
+
+
+@deffn Function kill @var{pid} @var{signum}
+@deffnx Parameter kill-function
+@deffnx Function primitive:kill @var{pid} @var{signum}
+@deffnx Function platform:kill @var{pid-int} @var{signum}
+Send the signal @var{signum} to the process or process groups identified
+by @var{pid}, a @code{pid} object.
+@end deffn
+
+@c page
+@node signals waiting
+@section Waiting for signals
+
+
+The following functions manage waiting for the arrival or an
+interprocess signal.  @glibcref{Using Pause, Using @cfunc{pause}}.
+
+@c @glibcref{Sigsuspend, Using @cfunc{sigsuspend}}.
+
+@deffn Function pause
+@deffnx Parameter pause-function
+@deffnx Function primitive:pause
+@deffnx Function platform:pause
+Block the process and wait until the next signal arrives.
+@end deffn
+
+
 
 @c page
 @node strings

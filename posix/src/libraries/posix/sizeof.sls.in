@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Wed Dec 16, 2009
+;;;Date: Fri Dec 18, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -766,7 +766,43 @@
     MS_MANDLOCK
     MS_NOATIME
     MS_NODIRATIME
-    MNT_FORCE)
+    MNT_FORCE
+    NSIG
+    SIGFPE
+    SIGILL
+    SIGSEGV
+    SIGBUS
+    SIGABRT
+    SIGIOT
+    SIGTRAP
+    SIGEMT
+    SIGSYS
+    SIGTERM
+    SIGINT
+    SIGQUIT
+    SIGKILL
+    SIGHUP
+    SIGALRM
+    SIGVRALRM
+    SIGPROF
+    SIGIO
+    SIGURG
+    SIGPOLL
+    SIGCHLD
+    SIGCLD
+    SIGCONT
+    SIGSTOP
+    SIGTSTP
+    SIGTTIN
+    SIGTTOU
+    SIGPIPE
+    SIGLOST
+    SIGXCPU
+    SIGXSFZ
+    SIGUSR1
+    SIGUSR2
+    SIGWINCH
+    SIGINFO)
   (import
     (rnrs)
     (foreign ffi)
@@ -2194,7 +2230,43 @@
   (define MS_MANDLOCK @VALUEOF_MS_MANDLOCK@)
   (define MS_NOATIME @VALUEOF_MS_NOATIME@)
   (define MS_NODIRATIME @VALUEOF_MS_NODIRATIME@)
-  (define MNT_FORCE @VALUEOF_MNT_FORCE@))
+  (define MNT_FORCE @VALUEOF_MNT_FORCE@)
+  (define NSIG @VALUEOF_NSIG@)
+  (define SIGFPE @VALUEOF_SIGFPE@)
+  (define SIGILL @VALUEOF_SIGILL@)
+  (define SIGSEGV @VALUEOF_SIGSEGV@)
+  (define SIGBUS @VALUEOF_SIGBUS@)
+  (define SIGABRT @VALUEOF_SIGABRT@)
+  (define SIGIOT @VALUEOF_SIGIOT@)
+  (define SIGTRAP @VALUEOF_SIGTRAP@)
+  (define SIGEMT @VALUEOF_SIGEMT@)
+  (define SIGSYS @VALUEOF_SIGSYS@)
+  (define SIGTERM @VALUEOF_SIGTERM@)
+  (define SIGINT @VALUEOF_SIGINT@)
+  (define SIGQUIT @VALUEOF_SIGQUIT@)
+  (define SIGKILL @VALUEOF_SIGKILL@)
+  (define SIGHUP @VALUEOF_SIGHUP@)
+  (define SIGALRM @VALUEOF_SIGALRM@)
+  (define SIGVRALRM @VALUEOF_SIGVRALRM@)
+  (define SIGPROF @VALUEOF_SIGPROF@)
+  (define SIGIO @VALUEOF_SIGIO@)
+  (define SIGURG @VALUEOF_SIGURG@)
+  (define SIGPOLL @VALUEOF_SIGPOLL@)
+  (define SIGCHLD @VALUEOF_SIGCHLD@)
+  (define SIGCLD @VALUEOF_SIGCLD@)
+  (define SIGCONT @VALUEOF_SIGCONT@)
+  (define SIGSTOP @VALUEOF_SIGSTOP@)
+  (define SIGTSTP @VALUEOF_SIGTSTP@)
+  (define SIGTTIN @VALUEOF_SIGTTIN@)
+  (define SIGTTOU @VALUEOF_SIGTTOU@)
+  (define SIGPIPE @VALUEOF_SIGPIPE@)
+  (define SIGLOST @VALUEOF_SIGLOST@)
+  (define SIGXCPU @VALUEOF_SIGXCPU@)
+  (define SIGXSFZ @VALUEOF_SIGXSFZ@)
+  (define SIGUSR1 @VALUEOF_SIGUSR1@)
+  (define SIGUSR2 @VALUEOF_SIGUSR2@)
+  (define SIGWINCH @VALUEOF_SIGWINCH@)
+  (define SIGINFO @VALUEOF_SIGINFO@))
 
 
 ;;; end of file

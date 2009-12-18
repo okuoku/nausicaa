@@ -199,6 +199,10 @@
     <struct-itimerval>-interval		<struct-itimerval>-interval-set!
     <struct-itimerval>-value		<struct-itimerval>-value-set!
 
+;;; --------------------------------------------------------------------
+
+    enum-interprocess-signal		interprocess-signals
+    interprocess-signal->symbol		symbol->interprocess-signal
     )
   (import (rnrs)
     (posix sizeof))
@@ -470,6 +474,161 @@
 
 (define <struct-itimerval-rtd>
   (record-type-descriptor <struct-itimerval>))
+
+
+(define-enumeration enum-interprocess-signal
+  (SIGABRT
+   SIGALRM
+   SIGBUS
+   SIGCHLD
+   SIGCLD
+   SIGCONT
+   SIGEMT
+   SIGFPE
+   SIGHUP
+   SIGILL
+   SIGINFO
+   SIGINT
+   SIGIO
+   SIGIOT
+   SIGKILL
+   SIGLOST
+   SIGPIPE
+   SIGPOLL
+   SIGPROF
+   SIGQUIT
+   SIGSEGV
+   SIGSTOP
+   SIGSYS
+   SIGTERM
+   SIGTRAP
+   SIGTSTP
+   SIGTTIN
+   SIGTTOU
+   SIGURG
+   SIGUSR1
+   SIGUSR2
+   SIGVRALRM
+   SIGWINCH
+   SIGXCPU
+   SIGXSFZ)
+  interprocess-signals)
+
+(define (interprocess-signal->symbol signum)
+  (cond ((and SIGABRT (= signum SIGABRT))
+	 'SIGABRT)
+	((and SIGALRM (= signum SIGALRM))
+	 'SIGALRM)
+	((and SIGBUS (= signum SIGBUS))
+	 'SIGBUS)
+	((and SIGCHLD (= signum SIGCHLD))
+	 'SIGCHLD)
+	((and SIGCLD (= signum SIGCLD))
+	 'SIGCLD)
+	((and SIGCONT (= signum SIGCONT))
+	 'SIGCONT)
+	((and SIGEMT (= signum SIGEMT))
+	 'SIGEMT)
+	((and SIGFPE (= signum SIGFPE))
+	 'SIGFPE)
+	((and SIGHUP (= signum SIGHUP))
+	 'SIGHUP)
+	((and SIGILL (= signum SIGILL))
+	 'SIGILL)
+	((and SIGINFO (= signum SIGINFO))
+	 'SIGINFO)
+	((and SIGINT (= signum SIGINT))
+	 'SIGINT)
+	((and SIGIO (= signum SIGIO))
+	 'SIGIO)
+	((and SIGIOT (= signum SIGIOT))
+	 'SIGIOT)
+	((and SIGKILL (= signum SIGKILL))
+	 'SIGKILL)
+	((and SIGLOST (= signum SIGLOST))
+	 'SIGLOST)
+	((and SIGPIPE (= signum SIGPIPE))
+	 'SIGPIPE)
+	((and SIGPOLL (= signum SIGPOLL))
+	 'SIGPOLL)
+	((and SIGPROF (= signum SIGPROF))
+	 'SIGPROF)
+	((and SIGQUIT (= signum SIGQUIT))
+	 'SIGQUIT)
+	((and SIGSEGV (= signum SIGSEGV))
+	 'SIGSEGV)
+	((and SIGSTOP (= signum SIGSTOP))
+	 'SIGSTOP)
+	((and SIGSYS (= signum SIGSYS))
+	 'SIGSYS)
+	((and SIGTERM (= signum SIGTERM))
+	 'SIGTERM)
+	((and SIGTRAP (= signum SIGTRAP))
+	 'SIGTRAP)
+	((and SIGTSTP (= signum SIGTSTP))
+	 'SIGTSTP)
+	((and SIGTTIN (= signum SIGTTIN))
+	 'SIGTTIN)
+	((and SIGTTOU (= signum SIGTTOU))
+	 'SIGTTOU)
+	((and SIGURG (= signum SIGURG))
+	 'SIGURG)
+	((and SIGUSR1 (= signum SIGUSR1))
+	 'SIGUSR1)
+	((and SIGUSR2 (= signum SIGUSR2))
+	 'SIGUSR2)
+	((and SIGVRALRM (= signum SIGVRALRM))
+	 'SIGVRALRM)
+	((and SIGWINCH (= signum SIGWINCH))
+	 'SIGWINCH)
+	((and SIGXCPU (= signum SIGXCPU))
+	 'SIGXCPU)
+	((and SIGXSFZ (= signum SIGXSFZ))
+	 'SIGXSFZ)
+	(else
+	 (assertion-violation 'interprocess-signal->symbol
+	   "unknown interprocess signal number" signum))))
+
+(define (symbol->interprocess-signal symbol)
+  (case symbol
+    ((SIGABRT) SIGABRT)
+    ((SIGALRM) SIGALRM)
+    ((SIGBUS) SIGBUS)
+    ((SIGCHLD) SIGCHLD)
+    ((SIGCLD) SIGCLD)
+    ((SIGCONT) SIGCONT)
+    ((SIGEMT) SIGEMT)
+    ((SIGFPE) SIGFPE)
+    ((SIGHUP) SIGHUP)
+    ((SIGILL) SIGILL)
+    ((SIGINFO) SIGINFO)
+    ((SIGINT) SIGINT)
+    ((SIGIO) SIGIO)
+    ((SIGIOT) SIGIOT)
+    ((SIGKILL) SIGKILL)
+    ((SIGLOST) SIGLOST)
+    ((SIGPIPE) SIGPIPE)
+    ((SIGPOLL) SIGPOLL)
+    ((SIGPROF) SIGPROF)
+    ((SIGQUIT) SIGQUIT)
+    ((SIGSEGV) SIGSEGV)
+    ((SIGSTOP) SIGSTOP)
+    ((SIGSYS) SIGSYS)
+    ((SIGTERM) SIGTERM)
+    ((SIGTRAP) SIGTRAP)
+    ((SIGTSTP) SIGTSTP)
+    ((SIGTTIN) SIGTTIN)
+    ((SIGTTOU) SIGTTOU)
+    ((SIGURG) SIGURG)
+    ((SIGUSR1) SIGUSR1)
+    ((SIGUSR2) SIGUSR2)
+    ((SIGVRALRM) SIGVRALRM)
+    ((SIGWINCH) SIGWINCH)
+    ((SIGXCPU) SIGXCPU)
+    ((SIGXSFZ) SIGXSFZ)
+    (else
+     (assertion-violation 'symbol->interprocess-signal
+       "unknown interprocess signal symbol" symbol))))
 
 
 ;;;; done

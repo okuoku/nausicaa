@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: compile script for Mosh Scheme
-;;;Date: Tue Nov  3, 2009
+;;;Contents: parametrised API to interprocess signal functions
+;;;Date: Fri Dec 18, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,19 +24,28 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (posix fd))
-  (only (posix file))
-  (only (posix process))
-  (only (posix signals))
-  (only (posix system))
-  (only (posix time))
+
+(library (posix signals)
+  (export
+    signal-bub-delivered?	signal-bub-all-delivered
+    (rename (primitive:signal-bub-init		signal-bub-init)
+	    (primitive:signal-bub-final		signal-bub-final)
+	    (primitive:signal-bub-acquire	signal-bub-acquire))
 
-  (only (glibc file))
-  (only (glibc signals))
-  (only (glibc streams))
-  (only (glibc system))
-  (only (glibc time))
+    signal-raise
+    kill
+    pause
+    )
+  (import (rnrs)
+    (posix helpers)
+    (prefix (posix signals primitives) primitive:))
+
+  (define-parametrised signal-bub-delivered? signum)
+  (define-parametrised signal-bub-all-delivered)
+  (define-parametrised signal-raise signum)
+  (define-parametrised kill pid signum)
+  (define-parametrised pause)
+
   )
 
 ;;; end of file

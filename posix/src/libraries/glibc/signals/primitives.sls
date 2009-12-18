@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: compile script for Mosh Scheme
-;;;Date: Tue Nov  3, 2009
+;;;Contents: marshaling functions for interprocess signal callouts
+;;;Date: Fri Dec 18, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,19 +24,32 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (posix fd))
-  (only (posix file))
-  (only (posix process))
-  (only (posix signals))
-  (only (posix system))
-  (only (posix time))
+
+(library (glibc signals primitives)
+  (export
 
-  (only (glibc file))
-  (only (glibc signals))
-  (only (glibc streams))
-  (only (glibc system))
-  (only (glibc time))
-  )
+    ;; description messages
+    strsignal		psignal
+    )
+  (import (rnrs)
+    (compensations)
+    (foreign cstrings)
+    (prefix (glibc signals platform) platform:))
+
+
+;;;; description messages
+
+(define (strsignal signum)
+  (cstring->string (platform:strsignal signum)))
+
+(define (psignal signum message)
+  (with-compensations
+    (platform:psignal signum (string->cstring/c message))))
+
+
+
+;;;; done
+
+)
 
 ;;; end of file
