@@ -26,6 +26,7 @@
 
 (import (nausicaa)
   (checks)
+  (posix typedefs)
   (prefix (posix process) posix:))
 
 (check-set-mode! 'report-failed)
@@ -46,23 +47,23 @@
 
   (check
       (let ((pid (posix:fork)))
-	(when (= 0 pid)
+	(unless pid
 	  (posix:setsid)
 	  (exit))
 	#t)
     => #t)
 
   (check
-      (integer? (posix:getsid (posix:getpid)))
+      (pid? (posix:getsid (posix:getpid)))
     => #t)
 
   (check
-      (integer? (posix:getpgrp))
+      (pid? (posix:getpgrp))
     => #t)
 
   (check
-      (integer? (posix:setpgid 0 0))
-    => #t)
+      (posix:setpgid (integer->pid 0) (integer->pid 0))
+    => 0)
 
   #t)
 
@@ -70,20 +71,20 @@
 (parametrise ((check-test-name 'access))
 
   (check
-      (integer? (posix:tcgetpgrp 1))
+      (pid? (posix:tcgetpgrp (integer->file-descriptor 1)))
     => #t)
 
 ;;; Is there a way to test this without losing control of the terminal?
 ;;   (check
 ;;       (let ((pid (posix:fork)))
-;; 	(when (= 0 pid)
-;; 	  (posix:tcsetpgrp 1 (posix:getpgrp))
+;; 	(unless pid
+;; 	  (posix:tcsetpgrp (integer->file-descriptor 1) (posix:getpgrp))
 ;; 	  (exit))
 ;; 	#t)
 ;;     => #t)
 
   (check
-      (integer? (posix:tcgetsid 1))
+      (pid? (posix:tcgetsid (integer->file-descriptor 1)))
     => #t)
 
   #t)
