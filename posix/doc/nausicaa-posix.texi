@@ -497,6 +497,7 @@ entitled ``@gnu{} Free Documentation License''.
 * overview::                    Overview.
 * file::                        File system.
 * fd::                          File descriptors.
+* sockets::                     Sockets.
 * streams::                     Stream functions.
 * time::                        Date and time.
 * process::                     Processes.
@@ -596,6 +597,36 @@ Constant values and structure accessors
 * fd constants lock::           Locking.
 * fd constants mmap::           Memory--mapped files.
 * fd constants select::         Waiting for file descriptor events.
+
+Sockets
+
+* sockets constants::           Constant values.
+* sockets structs::             Accessing data structures.
+* sockets typedefs::            Object type definitions.
+* sockets records::             Record types mirroring data structures.
+
+Accessing data structures
+
+* sockets structs sockaddr::      Structure @code{struct sockaddr}.
+* sockets structs sockaddr_un::   Structure @code{struct sockaddr_un}.
+* sockets structs sockaddr_in::   Structure @code{struct sockaddr_in}.
+* sockets structs in_addr::       Structure @code{struct in_addr}.
+* sockets structs in6_addr::      Structure @code{struct in6_addr}.
+* sockets structs if_nameindex::  Structure @code{if_nameindex}.
+* sockets structs netent::        Structure @code{netent}.
+
+Object type definitions
+
+* sockets typedefs in-addr::    IPv4 host address structure.
+* sockets typedefs in6-addr::   IPv6 host address structure.
+
+Record types mirroring data structures
+
+* sockets records sockaddr::      Socket address.
+* sockets records sockaddr-in::   Internet namespace socket address.
+* sockets records sockaddr-un::   Local namespace socket address.
+* sockets records if-nameindex::  Interface name.
+* sockets records netent::        Network database entry.
 
 Stream functions
 
@@ -3733,6 +3764,520 @@ Then the following implementations are possible:
 @end example
 
 @c page
+@node sockets
+@chapter Sockets
+
+
+Unless otherwise specified, the functions documented in this chapter are
+exported by the following libraries:
+
+@example
+(posix sockets)
+(posix sockets primitives)
+(posix sockets platform)
+@end example
+
+@menu
+* sockets constants::           Constant values.
+* sockets structs::             Accessing data structures.
+* sockets typedefs::            Object type definitions.
+* sockets records::             Record types mirroring data structures.
+@end menu
+
+@c page
+@node sockets constants
+@section Constant values
+
+
+Unless otherwise specified, the following bindings are exported by the
+@library{posix sizeof} library.
+
+
+@defvr Constant SOCK_STREAM
+@defvrx Constant SOCK_DGRAM
+@defvrx Constant SOCK_RAW
+@defvrx Constant SOCK_RDM
+Communication styles.
+@end defvr
+
+
+@defvr Constant IPPORT_RESERVED
+@defvrx Constant IPPORT_USERRESERVED
+Port number limits reserved for superuser or explicit allocation.
+@glibcref{Ports, Ports}.
+@end defvr
+
+
+@defvr Constant IFNAMSIZ
+Maximum buffer size needed to hold an interface name, including the
+terminating zero byte.  @glibcref{Interface Naming, Interface Naming}.
+@end defvr
+
+
+@defvr Constant AF_LOCAL
+@defvrx Constant PF_LOCAL
+@defvrx Constant AF_UNIX
+@defvrx Constant PF_UNIX
+@defvrx Constant AF_FILE
+@defvrx Constant PF_FILE
+@defvrx Constant AF_INET
+@defvrx Constant PF_INET
+@defvrx Constant AF_INET6
+@defvrx Constant PF_INET6
+@defvrx Constant AF_UNSPEC
+@defvrx Constant PF_UNSPEC
+Address formats.
+@end defvr
+
+
+@defvr Constant MSG_OOB
+@defvrx Constant MSG_PEEK
+@defvrx Constant MSG_ONROUTE
+Flag values for the @var{flags} argument to @func{send} and @func{recv}.
+@end defvr
+
+
+@defvr Constant SOL_SOCKET
+@defvrx Constant SO_DEBUG
+@defvrx Constant SO_REUSEADDR
+@defvrx Constant SO_KEEPALIVE
+@defvrx Constant SO_DONTROUTE
+@defvrx Constant SO_LINGER
+@defvrx Constant SO_BROADCAST
+@defvrx Constant SO_OOBINLINE
+@defvrx Constant SO_SNDBUF
+@defvrx Constant SO_RCVBUF
+@defvrx Constant SO_STYLE
+@defvrx Constant SO_TYPE
+@defvrx Constant SO_ERROR
+Constants for socket options and the @func{getsockopt} and
+@func{setsockopt} functions.
+@end defvr
+
+@c page
+@node sockets structs
+@section Accessing data structures
+
+
+Unless otherwise specified, the following bindings are exported by the
+@library{posix sizeof} library.
+
+@menu
+* sockets structs sockaddr::      Structure @code{struct sockaddr}.
+* sockets structs sockaddr_un::   Structure @code{struct sockaddr_un}.
+* sockets structs sockaddr_in::   Structure @code{struct sockaddr_in}.
+* sockets structs in_addr::       Structure @code{struct in_addr}.
+* sockets structs in6_addr::      Structure @code{struct in6_addr}.
+* sockets structs if_nameindex::  Structure @code{if_nameindex}.
+* sockets structs netent::        Structure @code{netent}.
+@end menu
+
+@c page
+@node sockets structs sockaddr
+@subsection Structure @code{struct sockaddr}
+
+
+@defvr Constant sizeof-sockaddr
+@defvrx Constant alignof-sockaddr
+@defvrx Constant strideof-sockaddr
+Size, array alignment and stride of @code{struct sockaddr} C language
+data structures.
+@end defvr
+
+
+@deffn Syntax struct-sockaddr-sa_family-ref @var{pointer}
+@deffnx Syntax struct-sockaddr-sa_family-set! @var{pointer} @var{value}
+@deffnx Syntax struct-sockaddr-sa_data-ref @var{pointer}
+@deffnx Syntax struct-sockaddr-sa_data-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct sockaddr} C
+language data structure.
+@end deffn
+
+@c page
+@node sockets structs sockaddr_un
+@subsection Structure @code{struct sockaddr_un}
+
+
+@defvr Constant sizeof-sockaddr_un
+@defvrx Constant alignof-sockaddr_un
+@defvrx Constant strideof-sockaddr_un
+Size, array alignment and stride of @code{struct sockaddr_un} C language
+data structures.
+@end defvr
+
+
+@deffn Syntax struct-sockaddr_un-sun_family-ref @var{pointer}
+@deffnx Syntax struct-sockaddr_un-sun_family-set! @var{pointer} @var{value}
+@deffnx Syntax struct-sockaddr_un-sun_path-ref @var{pointer}
+@deffnx Syntax struct-sockaddr_un-sun_path-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct sockaddr_un} C
+language data structure.
+@end deffn
+
+@c page
+@node sockets structs sockaddr_in
+@subsection Structure @code{struct sockaddr_in}
+
+
+@defvr Constant sizeof-sockaddr-in
+@defvrx Constant alignof-sockaddr-in
+@defvrx Constant strideof-sockaddr-in
+Size, array alignment and stride of @code{struct sockaddr_in} C language
+data structures.
+@end defvr
+
+
+@deffn Syntax struct-sockaddr-in-sa_family-ref @var{pointer}
+@deffnx Syntax struct-sockaddr-in-sa_family-set! @var{pointer} @var{value}
+@deffnx Syntax struct-sockaddr-in-sa_data-ref @var{pointer}
+@deffnx Syntax struct-sockaddr-in-sa_data-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct sockaddr-in} C
+language data structure.
+@end deffn
+
+@c page
+@node sockets structs in_addr
+@subsection Structure @code{struct in_addr}
+
+
+@defvr Constant sizeof-in_addr
+@defvrx Constant alignof-in_addr
+@defvrx Constant strideof-in_addr
+Size, array alignment and stride of @code{struct in_addr} C language
+data structures.
+@end defvr
+
+@c page
+@node sockets structs in6_addr
+@subsection Structure @code{struct in6_addr}
+
+
+@defvr Constant sizeof-in6_addr
+@defvrx Constant alignof-in6_addr
+@defvrx Constant strideof-in6_addr
+Size, array alignment and stride of @code{struct in6_addr} C language
+data structures.
+@end defvr
+
+@c page
+@node sockets structs if_nameindex
+@subsection Structure @code{if_nameindex}
+
+
+@defvr Constant sizeof-if_nameindex
+@defvrx Constant alignof-if_nameindex
+@defvrx Constant strideof-if_nameindex
+Size, array alignment and stride of @code{struct if_nameindex} C
+language data structures.
+@end defvr
+
+
+@deffn Syntax struct-if_nameindex-if_index-ref @var{pointer}
+@deffnx Syntax struct-if_nameindex-if_index-set! @var{pointer} @var{value}
+@deffnx Syntax struct-if_nameindex-if_name-ref @var{pointer}
+@deffnx Syntax struct-if_nameindex-if_name-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct if_nameindex} C
+language data structure.
+@end deffn
+
+@c page
+@node sockets structs netent
+@subsection Structure @code{netent}
+
+
+@defvr Constant sizeof-netent
+@defvrx Constant alignof-netent
+@defvrx Constant strideof-netent
+Size, array alignment and stride of @code{struct netent} C language
+data structures.
+@end defvr
+
+
+@deffn Syntax struct-netent-n_name-ref @var{pointer}
+@deffnx Syntax struct-netent-n_name-set! @var{pointer} @var{value}
+@deffnx Syntax struct-netent-n_aliases-ref @var{pointer}
+@deffnx Syntax struct-netent-n_aliases-set! @var{pointer} @var{value}
+@deffnx Syntax struct-netent-n_addrtype-ref @var{pointer}
+@deffnx Syntax struct-netent-n_addrtype-set! @var{pointer} @var{value}
+@deffnx Syntax struct-netent-n_net-ref @var{pointer}
+@deffnx Syntax struct-netent-n_net-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct netent} C
+language data structure.
+@end deffn
+
+@c page
+@node sockets typedefs
+@section Object type definitions
+
+
+Unless otherwise specified, the following bindings are exported by the
+@library{posix typedefs} library.
+
+@menu
+* sockets typedefs in-addr::    IPv4 host address structure.
+* sockets typedefs in6-addr::   IPv6 host address structure.
+@end menu
+
+@c page
+@node sockets typedefs in-addr
+@subsection IPv4 host address structure
+
+
+Functions from the parametrised and primitives libraries accept objects
+of type @code{struct-in-addr} as @var{in-addr} arguments.  Functions
+from the platform libraries accept pointer objects as @var{in-addr-ptr}
+arguments.
+
+
+@deftp {Object Type} struct-in-addr
+Object type used to reference @code{struct in_addr} C language data
+structures.  It is disjoint from all the other Scheme object types.
+@end deftp
+
+
+@defun struct-in-addr? @var{obj}
+Return @true{} if @var{obj} is of type @code{struct-in-addr}.
+@end defun
+
+
+@defun struct-in-addr->pointer @var{in-addr}
+@defunx pointer->struct-in-addr @var{pointer}
+Convert to and from objects of type @code{in-addr} and pointer objects.
+@end defun
+
+@c page
+@node sockets typedefs in6-addr
+@subsection IPv4 host address structure
+
+
+Functions from the parametrised and primitives libraries accept objects
+of type @code{struct-in6-addr} as @var{in6-addr} arguments.  Functions
+from the platform libraries accept pointer objects as @var{in6-addr-ptr}
+arguments.
+
+
+@deftp {Object Type} struct-in6-addr
+Object type used to reference @code{struct in6_addr} C language data
+structures.  It is disjoint from all the other Scheme object types.
+@end deftp
+
+
+@defun struct-in6-addr? @var{obj}
+Return @true{} if @var{obj} is of type @code{struct-in6-addr}.
+@end defun
+
+
+@defun struct-in6-addr->pointer @var{in6-addr}
+@defunx pointer->struct-in6-addr @var{pointer}
+Convert to and from objects of type @code{in6-addr} and pointer objects.
+@end defun
+
+@c page
+@node sockets records
+@section Record types mirroring data structures
+
+
+Unless otherwise specified, the following bindings are exported by the
+@library{posix sizeof} library.
+
+@menu
+* sockets records sockaddr::      Socket address.
+* sockets records sockaddr-in::   Internet namespace socket address.
+* sockets records sockaddr-un::   Local namespace socket address.
+* sockets records if-nameindex::  Interface name.
+* sockets records netent::        Network database entry.
+@end menu
+
+@c page
+@node sockets records sockaddr
+@subsection Socket address
+
+
+@deftp {Record Type Name} <struct-sockaddr>
+@deftpx {Record Type Descriptor} <struct-sockaddr-rtd>
+Record type used to mirror @code{struct sockaddr} C language data
+structures.  It has the following mutable fields:
+
+@table @code
+@item family
+An exact integer representing the code of the address format for this
+address.
+
+@item data
+A Scheme string representing the address data.
+@end table
+@end deftp
+
+
+@defun make-<struct-sockaddr> @var{family} @var{data}
+@defunx <struct-sockaddr>? @var{obj}
+Constructor and predicate for records of type @class{struct-sockaddr}.
+@end defun
+
+
+@defun <struct-sockaddr>-family @var{sockaddr}
+@defunx <struct-sockaddr>-family-set! @var{sockaddr} @var{value}
+@defunx <struct-sockaddr>-data @var{sockaddr}
+@defunx <struct-sockaddr>-data-set! @var{sockaddr} @var{value}
+Accessors and mutators for records of type @class{struct-sockaddr}.
+@end defun
+
+@c page
+@node sockets records sockaddr-in
+@subsection Internet namespace socket address
+
+
+@deftp {Record Type Name} <struct-sockaddr-in>
+@deftpx {Record Type Descriptor} <struct-sockaddr-in-rtd>
+Record type used to mirror @code{struct sockaddr_in} C language data
+structures.  It has the following mutable fields:
+
+@table @code
+@item family
+An exact integer representing the code of the address format for this
+address.  It should be @code{AF_INET}.
+
+@item addr
+A record of type @class{struct-in-addr}.
+
+@item port
+An exact integer representing the port number.
+@end table
+@end deftp
+
+
+@defun make-<struct-sockaddr-in> @var{family} @var{data}
+@defunx <struct-sockaddr-in>? @var{obj}
+Constructor and predicate for records of type
+@class{struct-sockaddr-in}.
+@end defun
+
+
+@defun <struct-sockaddr-in>-family @var{sockaddr-in}
+@defunx <struct-sockaddr-in>-family-set! @var{sockaddr-in} @var{value}
+@defunx <struct-sockaddr-in>-addr @var{sockaddr-in}
+@defunx <struct-sockaddr-in>-addr-set! @var{sockaddr-in} @var{value}
+@defunx <struct-sockaddr-in>-port @var{sockaddr-in}
+@defunx <struct-sockaddr-in>-port-set! @var{sockaddr-in} @var{value}
+Accessors and mutators for records of type @class{struct-sockaddr-in}.
+@end defun
+
+@c page
+@node sockets records sockaddr-un
+@subsection Local namespace socket address
+
+
+@deftp {Record Type Name} <struct-sockaddr-un>
+@deftpx {Record Type Descriptor} <struct-sockaddr-un-rtd>
+Record type used to mirror @code{struct sockaddr_un} C language data
+structures.  It has the following mutable fields:
+
+@table @code
+@item family
+An exact integer representing the address family or format.  It should
+be @code{AF_LOCAL}.
+
+@item path
+A Scheme string representing the pathname of the file to use.
+@end table
+@end deftp
+
+
+@defun make-<struct-sockaddr-un> @var{family} @var{data}
+@defunx <struct-sockaddr-un>? @var{obj}
+Constructor and predicate for records of type @class{struct-sockaddr-un}.
+@end defun
+
+
+@defun <struct-sockaddr-un>-family @var{sockaddr-un}
+@defunx <struct-sockaddr-un>-family-set! @var{sockaddr-un} @var{value}
+@defunx <struct-sockaddr-un>-path @var{sockaddr-un}
+@defunx <struct-sockaddr-un>-path-set! @var{sockaddr-un} @var{value}
+Accessors and mutators for records of type @class{struct-sockaddr-un}.
+@end defun
+
+@c page
+@node sockets records if-nameindex
+@subsection Interface name
+
+
+@deftp {Record Type Name} <struct-if-nameindex>
+@deftpx {Record Type Descriptor} <struct-if-nameindex-rtd>
+Record type used to mirror @code{struct if_nameindex} C language data
+structures.  It has the following mutable fields:
+
+@table @code
+@item index
+An exact integer representing the interface index.
+
+@item name
+A Scheme string representing the interface name.
+@end table
+@end deftp
+
+
+@defun make-<struct-if-nameindex> @var{family} @var{data}
+@defunx <struct-if-nameindex>? @var{obj}
+Constructor and predicate for records of type
+@class{struct-if-nameindex}.
+@end defun
+
+
+@defun <struct-if-nameindex>-index @var{if-nameindex}
+@defunx <struct-if-nameindex>-index-set! @var{if-nameindex} @var{value}
+@defunx <struct-if-nameindex>-name @var{if-nameindex}
+@defunx <struct-if-nameindex>-name-set! @var{if-nameindex} @var{value}
+Accessors and mutators for records of type @class{struct-if-nameindex}.
+@end defun
+
+@c page
+@node sockets records netent
+@subsection Network database entry
+
+
+@deftp {Record Type Name} <struct-netent>
+@deftpx {Record Type Descriptor} <struct-netent-rtd>
+Record type used to mirror @code{struct netent} C language data
+structures.  It has the following mutable fields:
+
+@table @code
+@item name
+A Scheme string representing the official name of the network.
+
+@item aliases
+A list of Scheme strings representing the alternative names of the
+network.
+
+@item addrtype
+An exact integer representing the type of the network.  It should be
+@code{AF_INET} for Internet networks.
+
+@item net
+An exact integer representing the network number in host byte order.
+@end table
+@end deftp
+
+
+@defun make-<struct-netent> @var{family} @var{data}
+@defunx <struct-netent>? @var{obj}
+Constructor and predicate for records of type
+@class{struct-netent}.
+@end defun
+
+
+@defun <struct-netent>-name @var{netent}
+@defunx <struct-netent>-name-set! @var{netent} @var{value}
+@defunx <struct-netent>-aliases @var{netent}
+@defunx <struct-netent>-aliases-set! @var{netent} @var{value}
+@defunx <struct-netent>-addrtype @var{netent}
+@defunx <struct-netent>-addrtype-set! @var{netent} @var{value}
+@defunx <struct-netent>-net @var{netent}
+@defunx <struct-netent>-net-set! @var{netent} @var{value}
+Accessors and mutators for records of type @class{struct-netent}.
+@end defun
+
+
+@c page
 @node streams
 @chapter Stream functions
 
@@ -6705,8 +7250,7 @@ Program error signals.
 @end defvr
 
 
-@defvr Constant
-@defvrx Constant SIGTERM
+@defvr Constant SIGTERM
 @defvrx Constant SIGINT
 @defvrx Constant SIGQUIT
 @defvrx Constant SIGKILL

@@ -45,8 +45,10 @@
 (define-c-type pid_t		signed-int)
 (define-c-type time_t		signed-int)
 (define-c-type uid_t		signed-int)
-
 (define-c-type wchar_t		signed-int)
+(define-c-type socklen_t	signed-int)
+
+(define-c-type-alias socklen_t*	pointer)
 
 (sizeof-lib
  (define-syntax sizeof-gid_t-array
@@ -254,6 +256,54 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (pointer		mnt_opts)
   (signed-int		mnt_freq)
   (signed-int		mnt_passno))
+
+(define-c-type-alias sockaddr*	pointer)
+
+(define-c-struct sockaddr
+  "struct sockaddr"
+  (signed-int		sa_family)
+  (embedded		sa_data))
+
+(define-c-type-alias sockaddr_in*	pointer)
+
+(define-c-struct sockaddr_in
+  "struct sockaddr_in"
+  (signed-int		sin_family)
+  (pointer		sin_addr)
+  (signed-int		sin_port))
+
+(define-c-type-alias sockaddr_un*	pointer)
+
+(define-c-struct sockaddr_un
+  "struct sockaddr_un"
+  (signed-int		sun_family)
+  (embedded		sun_path))
+
+(define-c-type-alias in_addr*		pointer)
+
+(define-c-struct in_addr
+  "struct in_addr")
+
+(define-c-type-alias in6_addr*		pointer)
+
+(define-c-struct in6_addr
+  "struct in6_addr")
+
+(define-c-type-alias if_nameindex*	pointer)
+
+(define-c-struct if_nameindex
+  "struct if_nameindex"
+  (unsigned-int		if_index)
+  (char*		if_name))
+
+(define-c-type-alias netent*		pointer)
+
+(define-c-struct netent
+  "struct netent"
+  (pointer		n_name)
+  (pointer		n_aliases)
+  (signed-int		n_addrtype)
+  (unsigned-int		n_net))
 
 (autoconf-lib "AC_CACHE_SAVE")
 
@@ -815,7 +865,35 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 
   ;; misc
   SIGUSR1	SIGUSR2
-  SIGWINCH	SIGINFO
+  SIGWINCH	SIGINFO)
+
+(define-c-defines "sockets constants"
+  SOCK_STREAM	SOCK_DGRAM
+  SOCK_RAW	SOCK_RDM
+
+  AF_LOCAL	PF_LOCAL
+  AF_UNIX	PF_UNIX
+  AF_FILE	PF_FILE
+  AF_INET	PF_INET
+  AF_INET6	PF_INET6
+  AF_UNSPEC	PF_UNSPEC
+
+  IPPORT_RESERVED
+  IPPORT_USERRESERVED
+
+  IFNAMSIZ
+
+  MSG_OOB
+  MSG_PEEK
+  MSG_ONROUTE
+
+  SOL_SOCKET
+  SO_DEBUG	SO_REUSEADDR
+  SO_KEEPALIVE	SO_DONTROUTE
+  SO_LINGER	SO_BROADCAST
+  SO_OOBINLINE	SO_SNDBUF
+  SO_RCVBUF	SO_STYLE
+  SO_TYPE	SO_ERROR
 
   )
 

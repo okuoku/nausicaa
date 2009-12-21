@@ -28,6 +28,7 @@
   (only (posix file))
   (only (posix process))
   (only (posix signals))
+  (only (posix sockets))
   (only (posix system))
   (only (posix time))
 

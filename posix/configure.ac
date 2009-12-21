@@ -58,6 +58,9 @@ AC_CHECK_HEADERS([grp.h])
 AC_CHECK_HEADERS([inttypes.h])
 AC_CHECK_HEADERS([limits.h])
 AC_CHECK_HEADERS([mntent.h])
+AC_CHECK_HEADERS([net/if.h])
+AC_CHECK_HEADERS([netinet/in.h])
+AC_CHECK_HEADERS([netdb.h])
 AC_CHECK_HEADERS([paths.h])
 AC_CHECK_HEADERS([pwd.h])
 AC_CHECK_HEADERS([signal.h])
@@ -65,11 +68,13 @@ AC_CHECK_HEADERS([stdint.h])
 AC_CHECK_HEADERS([sys/mman.h])
 AC_CHECK_HEADERS([sys/mount.h])
 AC_CHECK_HEADERS([sys/select.h])
+AC_CHECK_HEADERS([sys/socket.h])
 AC_CHECK_HEADERS([sys/stat.h])
 AC_CHECK_HEADERS([sys/time.h])
 AC_CHECK_HEADERS([sys/times.h])
 AC_CHECK_HEADERS([sys/timex.h])
 AC_CHECK_HEADERS([sys/types.h])
+AC_CHECK_HEADERS([sys/un.h])
 AC_CHECK_HEADERS([sys/utsname.h])
 AC_CHECK_HEADERS([sys/wait.h])
 AC_CHECK_HEADERS([time.h])
@@ -112,6 +117,15 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #ifdef HAVE_MNTENT_H
 #  include <mntent.h>
 #endif
+#ifdef HAVE_NETDB_H
+#  include <netdb.h>
+#endif
+#ifdef HAVE_NET_IF_H
+#  include <net/if.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#  include <netinet/in.h>
+#endif
 #ifdef HAVE_PATHS_H
 #  include <paths.h>
 #endif
@@ -136,6 +150,9 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #ifdef HAVE_SYS_SELECT_H
 #  include <sys/select.h>
 #endif
+#ifdef HAVE_SYS_SOCKET_H
+#  include <sys/socket.h>
+#endif
 #ifdef HAVE_SYS_STAT_H
 #  include <sys/stat.h>
 #endif
@@ -150,6 +167,9 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #endif
 #ifdef HAVE_SYS_TYPES_H
 #  include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_UN_H
+#  include <sys/un.h>
 #endif
 #ifdef HAVE_SYS_WAIT_H
 #  include <sys/wait.h>

@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Fri Dec 18, 2009
+;;;Date: Mon Dec 21, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -100,6 +100,13 @@
     strideof-wchar_t
     pointer-ref-c-wchar_t
     pointer-set-c-wchar_t!
+    socklen_t
+    sizeof-socklen_t
+    alignof-socklen_t
+    strideof-socklen_t
+    pointer-ref-c-socklen_t
+    pointer-set-c-socklen_t!
+    socklen_t*
     sizeof-gid_t-array
     sizeof-flock
     alignof-flock
@@ -321,6 +328,58 @@
     struct-mntent-mnt_freq-ref
     struct-mntent-mnt_passno-set!
     struct-mntent-mnt_passno-ref
+    sockaddr*
+    sizeof-sockaddr
+    alignof-sockaddr
+    strideof-sockaddr
+    struct-sockaddr-sa_family-set!
+    struct-sockaddr-sa_family-ref
+    struct-sockaddr-sa_data-ref
+    sockaddr_in*
+    sizeof-sockaddr_in
+    alignof-sockaddr_in
+    strideof-sockaddr_in
+    struct-sockaddr_in-sin_family-set!
+    struct-sockaddr_in-sin_family-ref
+    struct-sockaddr_in-sin_addr-set!
+    struct-sockaddr_in-sin_addr-ref
+    struct-sockaddr_in-sin_port-set!
+    struct-sockaddr_in-sin_port-ref
+    sockaddr_un*
+    sizeof-sockaddr_un
+    alignof-sockaddr_un
+    strideof-sockaddr_un
+    struct-sockaddr_un-sun_family-set!
+    struct-sockaddr_un-sun_family-ref
+    struct-sockaddr_un-sun_path-ref
+    in_addr*
+    sizeof-in_addr
+    alignof-in_addr
+    strideof-in_addr
+    in6_addr*
+    sizeof-in6_addr
+    alignof-in6_addr
+    strideof-in6_addr
+    if_nameindex*
+    sizeof-if_nameindex
+    alignof-if_nameindex
+    strideof-if_nameindex
+    struct-if_nameindex-if_index-set!
+    struct-if_nameindex-if_index-ref
+    struct-if_nameindex-if_name-set!
+    struct-if_nameindex-if_name-ref
+    netent*
+    sizeof-netent
+    alignof-netent
+    strideof-netent
+    struct-netent-n_name-set!
+    struct-netent-n_name-ref
+    struct-netent-n_aliases-set!
+    struct-netent-n_aliases-ref
+    struct-netent-n_addrtype-set!
+    struct-netent-n_addrtype-ref
+    struct-netent-n_net-set!
+    struct-netent-n_net-ref
     SEEK_SET
     SEEK_CUR
     SEEK_END
@@ -802,7 +861,42 @@
     SIGUSR1
     SIGUSR2
     SIGWINCH
-    SIGINFO)
+    SIGINFO
+    SOCK_STREAM
+    SOCK_DGRAM
+    SOCK_RAW
+    SOCK_RDM
+    AF_LOCAL
+    PF_LOCAL
+    AF_UNIX
+    PF_UNIX
+    AF_FILE
+    PF_FILE
+    AF_INET
+    PF_INET
+    AF_INET6
+    PF_INET6
+    AF_UNSPEC
+    PF_UNSPEC
+    IPPORT_RESERVED
+    IPPORT_USERRESERVED
+    IFNAMSIZ
+    MSG_OOB
+    MSG_PEEK
+    MSG_ONROUTE
+    SOL_SOCKET
+    SO_DEBUG
+    SO_REUSEADDR
+    SO_KEEPALIVE
+    SO_DONTROUTE
+    SO_LINGER
+    SO_BROADCAST
+    SO_OOBINLINE
+    SO_SNDBUF
+    SO_RCVBUF
+    SO_STYLE
+    SO_TYPE
+    SO_ERROR)
   (import
     (rnrs)
     (foreign ffi)
@@ -889,6 +983,17 @@
   (define
     pointer-set-c-wchar_t!
     @SETTEROF_WCHAR_T@)
+  (define socklen_t '@TYPEOF_SOCKLEN_T@)
+  (define sizeof-socklen_t @SIZEOF_SOCKLEN_T@)
+  (define alignof-socklen_t @ALIGNOF_SOCKLEN_T@)
+  (define strideof-socklen_t @STRIDEOF_SOCKLEN_T@)
+  (define
+    pointer-ref-c-socklen_t
+    @GETTEROF_SOCKLEN_T@)
+  (define
+    pointer-set-c-socklen_t!
+    @SETTEROF_SOCKLEN_T@)
+  (define socklen_t* 'pointer)
   (define-syntax
     sizeof-gid_t-array
     (syntax-rules
@@ -1449,6 +1554,120 @@
     @OFFSETOF_MNTENT_MNT_PASSNO@
     @SETTEROF_MNTENT_MNT_PASSNO@
     @GETTEROF_MNTENT_MNT_PASSNO@)
+  (define sockaddr* 'pointer)
+  (define sizeof-sockaddr @SIZEOF_SOCKADDR@)
+  (define alignof-sockaddr @ALIGNOF_SOCKADDR@)
+  (define strideof-sockaddr @STRIDEOF_SOCKADDR@)
+  (define-c-struct-accessor-and-mutator
+    struct-sockaddr-sa_family-set!
+    struct-sockaddr-sa_family-ref
+    @OFFSETOF_SOCKADDR_SA_FAMILY@
+    @SETTEROF_SOCKADDR_SA_FAMILY@
+    @GETTEROF_SOCKADDR_SA_FAMILY@)
+  (define-c-struct-field-pointer-accessor
+    struct-sockaddr-sa_data-ref
+    @OFFSETOF_SOCKADDR_SA_DATA@)
+  (define sockaddr_in* 'pointer)
+  (define sizeof-sockaddr_in @SIZEOF_SOCKADDR_IN@)
+  (define
+    alignof-sockaddr_in
+    @ALIGNOF_SOCKADDR_IN@)
+  (define
+    strideof-sockaddr_in
+    @STRIDEOF_SOCKADDR_IN@)
+  (define-c-struct-accessor-and-mutator
+    struct-sockaddr_in-sin_family-set!
+    struct-sockaddr_in-sin_family-ref
+    @OFFSETOF_SOCKADDR_IN_SIN_FAMILY@
+    @SETTEROF_SOCKADDR_IN_SIN_FAMILY@
+    @GETTEROF_SOCKADDR_IN_SIN_FAMILY@)
+  (define-c-struct-accessor-and-mutator
+    struct-sockaddr_in-sin_addr-set!
+    struct-sockaddr_in-sin_addr-ref
+    @OFFSETOF_SOCKADDR_IN_SIN_ADDR@
+    @SETTEROF_SOCKADDR_IN_SIN_ADDR@
+    @GETTEROF_SOCKADDR_IN_SIN_ADDR@)
+  (define-c-struct-accessor-and-mutator
+    struct-sockaddr_in-sin_port-set!
+    struct-sockaddr_in-sin_port-ref
+    @OFFSETOF_SOCKADDR_IN_SIN_PORT@
+    @SETTEROF_SOCKADDR_IN_SIN_PORT@
+    @GETTEROF_SOCKADDR_IN_SIN_PORT@)
+  (define sockaddr_un* 'pointer)
+  (define sizeof-sockaddr_un @SIZEOF_SOCKADDR_UN@)
+  (define
+    alignof-sockaddr_un
+    @ALIGNOF_SOCKADDR_UN@)
+  (define
+    strideof-sockaddr_un
+    @STRIDEOF_SOCKADDR_UN@)
+  (define-c-struct-accessor-and-mutator
+    struct-sockaddr_un-sun_family-set!
+    struct-sockaddr_un-sun_family-ref
+    @OFFSETOF_SOCKADDR_UN_SUN_FAMILY@
+    @SETTEROF_SOCKADDR_UN_SUN_FAMILY@
+    @GETTEROF_SOCKADDR_UN_SUN_FAMILY@)
+  (define-c-struct-field-pointer-accessor
+    struct-sockaddr_un-sun_path-ref
+    @OFFSETOF_SOCKADDR_UN_SUN_PATH@)
+  (define in_addr* 'pointer)
+  (define sizeof-in_addr @SIZEOF_IN_ADDR@)
+  (define alignof-in_addr @ALIGNOF_IN_ADDR@)
+  (define strideof-in_addr @STRIDEOF_IN_ADDR@)
+  (define in6_addr* 'pointer)
+  (define sizeof-in6_addr @SIZEOF_IN6_ADDR@)
+  (define alignof-in6_addr @ALIGNOF_IN6_ADDR@)
+  (define strideof-in6_addr @STRIDEOF_IN6_ADDR@)
+  (define if_nameindex* 'pointer)
+  (define
+    sizeof-if_nameindex
+    @SIZEOF_IF_NAMEINDEX@)
+  (define
+    alignof-if_nameindex
+    @ALIGNOF_IF_NAMEINDEX@)
+  (define
+    strideof-if_nameindex
+    @STRIDEOF_IF_NAMEINDEX@)
+  (define-c-struct-accessor-and-mutator
+    struct-if_nameindex-if_index-set!
+    struct-if_nameindex-if_index-ref
+    @OFFSETOF_IF_NAMEINDEX_IF_INDEX@
+    @SETTEROF_IF_NAMEINDEX_IF_INDEX@
+    @GETTEROF_IF_NAMEINDEX_IF_INDEX@)
+  (define-c-struct-accessor-and-mutator
+    struct-if_nameindex-if_name-set!
+    struct-if_nameindex-if_name-ref
+    @OFFSETOF_IF_NAMEINDEX_IF_NAME@
+    @SETTEROF_IF_NAMEINDEX_IF_NAME@
+    @GETTEROF_IF_NAMEINDEX_IF_NAME@)
+  (define netent* 'pointer)
+  (define sizeof-netent @SIZEOF_NETENT@)
+  (define alignof-netent @ALIGNOF_NETENT@)
+  (define strideof-netent @STRIDEOF_NETENT@)
+  (define-c-struct-accessor-and-mutator
+    struct-netent-n_name-set!
+    struct-netent-n_name-ref
+    @OFFSETOF_NETENT_N_NAME@
+    @SETTEROF_NETENT_N_NAME@
+    @GETTEROF_NETENT_N_NAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-netent-n_aliases-set!
+    struct-netent-n_aliases-ref
+    @OFFSETOF_NETENT_N_ALIASES@
+    @SETTEROF_NETENT_N_ALIASES@
+    @GETTEROF_NETENT_N_ALIASES@)
+  (define-c-struct-accessor-and-mutator
+    struct-netent-n_addrtype-set!
+    struct-netent-n_addrtype-ref
+    @OFFSETOF_NETENT_N_ADDRTYPE@
+    @SETTEROF_NETENT_N_ADDRTYPE@
+    @GETTEROF_NETENT_N_ADDRTYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-netent-n_net-set!
+    struct-netent-n_net-ref
+    @OFFSETOF_NETENT_N_NET@
+    @SETTEROF_NETENT_N_NET@
+    @GETTEROF_NETENT_N_NET@)
   (define SEEK_SET @VALUEOF_SEEK_SET@)
   (define SEEK_CUR @VALUEOF_SEEK_CUR@)
   (define SEEK_END @VALUEOF_SEEK_END@)
@@ -2266,7 +2485,46 @@
   (define SIGUSR1 @VALUEOF_SIGUSR1@)
   (define SIGUSR2 @VALUEOF_SIGUSR2@)
   (define SIGWINCH @VALUEOF_SIGWINCH@)
-  (define SIGINFO @VALUEOF_SIGINFO@))
+  (define SIGINFO @VALUEOF_SIGINFO@)
+  (define SOCK_STREAM @VALUEOF_SOCK_STREAM@)
+  (define SOCK_DGRAM @VALUEOF_SOCK_DGRAM@)
+  (define SOCK_RAW @VALUEOF_SOCK_RAW@)
+  (define SOCK_RDM @VALUEOF_SOCK_RDM@)
+  (define AF_LOCAL @VALUEOF_AF_LOCAL@)
+  (define PF_LOCAL @VALUEOF_PF_LOCAL@)
+  (define AF_UNIX @VALUEOF_AF_UNIX@)
+  (define PF_UNIX @VALUEOF_PF_UNIX@)
+  (define AF_FILE @VALUEOF_AF_FILE@)
+  (define PF_FILE @VALUEOF_PF_FILE@)
+  (define AF_INET @VALUEOF_AF_INET@)
+  (define PF_INET @VALUEOF_PF_INET@)
+  (define AF_INET6 @VALUEOF_AF_INET6@)
+  (define PF_INET6 @VALUEOF_PF_INET6@)
+  (define AF_UNSPEC @VALUEOF_AF_UNSPEC@)
+  (define PF_UNSPEC @VALUEOF_PF_UNSPEC@)
+  (define
+    IPPORT_RESERVED
+    @VALUEOF_IPPORT_RESERVED@)
+  (define
+    IPPORT_USERRESERVED
+    @VALUEOF_IPPORT_USERRESERVED@)
+  (define IFNAMSIZ @VALUEOF_IFNAMSIZ@)
+  (define MSG_OOB @VALUEOF_MSG_OOB@)
+  (define MSG_PEEK @VALUEOF_MSG_PEEK@)
+  (define MSG_ONROUTE @VALUEOF_MSG_ONROUTE@)
+  (define SOL_SOCKET @VALUEOF_SOL_SOCKET@)
+  (define SO_DEBUG @VALUEOF_SO_DEBUG@)
+  (define SO_REUSEADDR @VALUEOF_SO_REUSEADDR@)
+  (define SO_KEEPALIVE @VALUEOF_SO_KEEPALIVE@)
+  (define SO_DONTROUTE @VALUEOF_SO_DONTROUTE@)
+  (define SO_LINGER @VALUEOF_SO_LINGER@)
+  (define SO_BROADCAST @VALUEOF_SO_BROADCAST@)
+  (define SO_OOBINLINE @VALUEOF_SO_OOBINLINE@)
+  (define SO_SNDBUF @VALUEOF_SO_SNDBUF@)
+  (define SO_RCVBUF @VALUEOF_SO_RCVBUF@)
+  (define SO_STYLE @VALUEOF_SO_STYLE@)
+  (define SO_TYPE @VALUEOF_SO_TYPE@)
+  (define SO_ERROR @VALUEOF_SO_ERROR@))
 
 
 ;;; end of file

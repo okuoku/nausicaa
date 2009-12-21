@@ -47,6 +47,12 @@
     make-struct-timeval		struct-timeval?
     struct-timeval->pointer	pointer->struct-timeval
 
+    struct-in-addr		struct-in-addr?
+    struct-in-addr->pointer	pointer->struct-in-addr
+
+    struct-in6-addr		struct-in6-addr?
+    struct-in6-addr->pointer	pointer->struct-in6-addr
+
 ;;; --------------------------------------------------------------------
 
     <struct-passwd>		<struct-passwd-rtd>
@@ -198,6 +204,35 @@
     make-<struct-itimerval>		<struct-itimerval>?
     <struct-itimerval>-interval		<struct-itimerval>-interval-set!
     <struct-itimerval>-value		<struct-itimerval>-value-set!
+
+;;; --------------------------------------------------------------------
+
+    <struct-sockaddr>			<struct-sockaddr-rtd>
+    make-<struct-sockaddr>		<struct-sockaddr>?
+    <struct-sockaddr>-family		<struct-sockaddr>-family-set!
+    <struct-sockaddr>-data		<struct-sockaddr>-data-set!
+
+    <struct-sockaddr-in>		<struct-sockaddr-in-rtd>
+    make-<struct-sockaddr-in>		<struct-sockaddr-in>?
+    <struct-sockaddr-in>-family		<struct-sockaddr-in>-family-set!
+    <struct-sockaddr-in>-addr		<struct-sockaddr-in>-addr-set!
+    <struct-sockaddr-in>-port		<struct-sockaddr-in>-port-set!
+
+    <struct-sockaddr-un>		<struct-sockaddr-un-rtd>
+    make-<struct-sockaddr-un>		<struct-sockaddr-un>?
+    <struct-sockaddr-un>-family		<struct-sockaddr-un>-family-set!
+    <struct-sockaddr-un>-path		<struct-sockaddr-un>-path-set!
+
+    <struct-if-nameindex>		<struct-if-nameindex-rtd>
+    make-<struct-if-nameindex>		<struct-if-nameindex>?
+    <struct-if-nameindex>-index		<struct-if-nameindex>-index-set!
+    <struct-if-nameindex>-name		<struct-if-nameindex>-name-set!
+
+    <struct-netent>			<struct-netent>?
+    <struct-netent>-name		<struct-netent>-name-set!
+    <struct-netent>-aliases		<struct-netent>-aliases-set!
+    <struct-netent>-addrtype		<struct-netent>-addrtype-set!
+    <struct-netent>-net			<struct-netent>-net-set!
 
 ;;; --------------------------------------------------------------------
 
@@ -474,6 +509,64 @@
 
 (define <struct-itimerval-rtd>
   (record-type-descriptor <struct-itimerval>))
+
+
+(define-record-type <struct-sockaddr>
+  (fields (mutable family)
+	  (mutable data)))
+
+(define <struct-sockaddr-rtd>
+  (record-type-name <struct-sockaddr>))
+
+;;; --------------------------------------------------------------------
+
+(define-record-type <struct-sockaddr-in>
+  (fields (mutable family)
+	  (mutable addr)
+	  (mutable port)))
+
+(define <struct-sockaddr-in-rtd>
+  (record-type-name <struct-sockaddr-in>))
+
+;;; --------------------------------------------------------------------
+
+(define-record-type <struct-sockaddr-un>
+  (fields (mutable family)
+	  (mutable path)))
+
+(define <struct-sockaddr-un-rtd>
+  (record-type-name <struct-sockaddr-un>))
+
+;;; --------------------------------------------------------------------
+
+(define-record-type <struct-if-nameindex>
+  (fields (mutable index)
+	  (mutable name)))
+
+(define <struct-if-nameindex-rtd>
+  (record-type-name <struct-if-nameindex>))
+
+;;; --------------------------------------------------------------------
+
+(define-record-type <struct-netent>
+  (fields (mutable name)
+	  (mutable aliases)
+	  (mutable addrtype)
+	  (mutable net)))
+
+(define <struct-netent-rtd>
+  (record-type-name <struct-netent>))
+
+
+(define-record-type struct-in-addr
+  (fields (immutable pointer struct-in-addr->pointer)))
+
+(define pointer->struct-in-addr make-struct-in-addr)
+
+(define-record-type struct-in6-addr
+  (fields (immutable pointer struct-in6-addr->pointer)))
+
+(define pointer->struct-in6-addr make-struct-in6-addr)
 
 
 (define-enumeration enum-interprocess-signal

@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: compile script for Ypsilon Scheme
-;;;Date: Tue Nov  3, 2009
+;;;Contents: parametrised interface to sockets functions
+;;;Date: Sun Dec 20, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,20 +24,15 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (posix fd))
-  (only (posix file))
-  (only (posix process))
-  (only (posix signals))
-  (only (posix sockets))
-  (only (posix system))
-  (only (posix time))
+
+(library (posix sockets)
+  (export
+    )
+  (import (rnrs)
+    (posix helpers)
+    (prefix (posix sockets primitives) primitive:))
 
-  (only (glibc file))
-  (only (glibc signals))
-  (only (glibc streams))
-  (only (glibc system))
-  (only (glibc time))
+
   )
 
 ;;; end of file

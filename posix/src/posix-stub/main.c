@@ -64,11 +64,17 @@
 #ifdef HAVE_FTW_H
 #  include <ftw.h>
 #endif
-#ifdef HAVE_SYS_MMAN_H
-#  include <sys/mman.h>
+#ifdef HAVE_NET_IF_H
+#  include <net/if.h>
 #endif
 #ifdef HAVE_SIGNAL_H
 #  include <signal.h>
+#endif
+#ifdef HAVE_SYS_MMAN_H
+#  include <sys/mman.h>
+#endif
+#ifdef HAVE_SYS_UN_H
+#  include <net/un.h>
 #endif
 #ifdef HAVE_TIME_H
 #  include <time.h>
@@ -78,6 +84,9 @@
 #endif
 #ifdef HAVE_UTIME_H
 #  include <utime.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#  include <sys/socket.h>
 #endif
 #ifdef HAVE_SYS_STAT_H
 #  include <sys/stat.h>
@@ -232,6 +241,17 @@ extern int  nausicaa_posix_FD_ISSET	(int fd, const fd_set * set);
  ** Interprocess signal handling.
  ** ----------------------------------------------------------------- */
 
+extern void	nausicaa_posix_signal_bub_init		(void);
+extern void	nausicaa_posix_signal_bub_final		(void);
+extern void	nausicaa_posix_signal_bub_acquire	(void);
+extern int	nausicaa_posix_signal_bub_delivered	(int signum);
+
+
+/** --------------------------------------------------------------------
+ ** Socket functions.
+ ** ----------------------------------------------------------------- */
+
+extern int nausicaa_posix_SUN_LEN (struct sockaddr_un * p);
 
 
 /** --------------------------------------------------------------------
@@ -673,17 +693,6 @@ nausicaa_posix_mmap (void * address, size_t length, int protect, int flags, int 
 
 
 /** --------------------------------------------------------------------
- ** Dirent structure accessors.
- ** ----------------------------------------------------------------- */
-
-char *
-nausicaa_posix_dirent_d_name_ptr_ref (struct dirent * buf)
-{
-  return &(buf->d_name[0]);
-}
-
-
-/** --------------------------------------------------------------------
  ** Select related functions.
  ** ----------------------------------------------------------------- */
 
@@ -712,11 +721,6 @@ nausicaa_posix_FD_ISSET (int fd, const fd_set * set)
 /** --------------------------------------------------------------------
  ** Interprocess signal handling.
  ** ----------------------------------------------------------------- */
-
-extern void	nausicaa_posix_signal_bub_init		(void);
-extern void	nausicaa_posix_signal_bub_final		(void);
-extern void	nausicaa_posix_signal_bub_acquire		(void);
-extern int	nausicaa_posix_signal_bub_delivered		(int signum);
 
 static int	arrived_signals[NSIG];
 static sigset_t	all_signals_set;
@@ -769,5 +773,28 @@ nausicaa_posix_signal_bub_delivered (int signum)
   arrived_signals[signum] = 0;
   return is_set;
 }
+
+
+/** --------------------------------------------------------------------
+ ** Socket functions.
+ ** ----------------------------------------------------------------- */
+
+int
+nausicaa_posix_SUN_LEN (struct sockaddr_un * p)
+{
+  return SUN_LEN(p);
+}
+
+
+/** --------------------------------------------------------------------
+ ** Miscellaneous.
+ ** ----------------------------------------------------------------- */
+
+char *
+nausicaa_posix_dirent_d_name_ptr_ref (struct dirent * buf)
+{
+  return &(buf->d_name[0]);
+}
+
 
 /* end of file */

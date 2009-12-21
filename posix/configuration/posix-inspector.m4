@@ -2,7 +2,7 @@ dnl (posix sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Fri Dec 18, 2009
+dnl Date: Mon Dec 21, 2009
 dnl
 dnl Abstract
 dnl
@@ -37,6 +37,7 @@ NAUSICAA_INSPECT_TYPE([PID_T],[pid_t],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([TIME_T],[time_t],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([UID_T],[uid_t],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([WCHAR_T],[wchar_t],[signed-int],[#f])
+NAUSICAA_INSPECT_TYPE([SOCKLEN_T],[socklen_t],[signed-int],[#f])
 
 dnl Struct inspection: flock
 NAUSICAA_INSPECT_STRUCT_TYPE([FLOCK],[struct flock],[#f])
@@ -185,6 +186,40 @@ NAUSICAA_INSPECT_FIELD_TYPE([MNTENT_MNT_TYPE],[struct mntent],[mnt_type],[pointe
 NAUSICAA_INSPECT_FIELD_TYPE([MNTENT_MNT_OPTS],[struct mntent],[mnt_opts],[pointer])
 NAUSICAA_INSPECT_FIELD_TYPE([MNTENT_MNT_FREQ],[struct mntent],[mnt_freq],[signed-int])
 NAUSICAA_INSPECT_FIELD_TYPE([MNTENT_MNT_PASSNO],[struct mntent],[mnt_passno],[signed-int])
+
+dnl Struct inspection: sockaddr
+NAUSICAA_INSPECT_STRUCT_TYPE([SOCKADDR],[struct sockaddr],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_SA_FAMILY],[struct sockaddr],[sa_family],[signed-int])
+NAUSICAA_INSPECT_FIELD_TYPE_POINTER([SOCKADDR_SA_DATA],[struct sockaddr],[sa_data])
+
+dnl Struct inspection: sockaddr_in
+NAUSICAA_INSPECT_STRUCT_TYPE([SOCKADDR_IN],[struct sockaddr_in],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_IN_SIN_FAMILY],[struct sockaddr_in],[sin_family],[signed-int])
+NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_IN_SIN_ADDR],[struct sockaddr_in],[sin_addr],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_IN_SIN_PORT],[struct sockaddr_in],[sin_port],[signed-int])
+
+dnl Struct inspection: sockaddr_un
+NAUSICAA_INSPECT_STRUCT_TYPE([SOCKADDR_UN],[struct sockaddr_un],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_UN_SUN_FAMILY],[struct sockaddr_un],[sun_family],[signed-int])
+NAUSICAA_INSPECT_FIELD_TYPE_POINTER([SOCKADDR_UN_SUN_PATH],[struct sockaddr_un],[sun_path])
+
+dnl Struct inspection: in_addr
+NAUSICAA_INSPECT_STRUCT_TYPE([IN_ADDR],[struct in_addr],[#f])
+
+dnl Struct inspection: in6_addr
+NAUSICAA_INSPECT_STRUCT_TYPE([IN6_ADDR],[struct in6_addr],[#f])
+
+dnl Struct inspection: if_nameindex
+NAUSICAA_INSPECT_STRUCT_TYPE([IF_NAMEINDEX],[struct if_nameindex],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([IF_NAMEINDEX_IF_INDEX],[struct if_nameindex],[if_index],[unsigned-int])
+NAUSICAA_INSPECT_FIELD_TYPE([IF_NAMEINDEX_IF_NAME],[struct if_nameindex],[if_name],[char*])
+
+dnl Struct inspection: netent
+NAUSICAA_INSPECT_STRUCT_TYPE([NETENT],[struct netent],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([NETENT_N_NAME],[struct netent],[n_name],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([NETENT_N_ALIASES],[struct netent],[n_aliases],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([NETENT_N_ADDRTYPE],[struct netent],[n_addrtype],[signed-int])
+NAUSICAA_INSPECT_FIELD_TYPE([NETENT_N_NET],[struct netent],[n_net],[unsigned-int])
 AC_CACHE_SAVE
 
 dnl Preprocessor symbols: seek whence arguments
@@ -739,6 +774,43 @@ NAUSICAA_DEFINE_VALUE([SIGUSR1])
 NAUSICAA_DEFINE_VALUE([SIGUSR2])
 NAUSICAA_DEFINE_VALUE([SIGWINCH])
 NAUSICAA_DEFINE_VALUE([SIGINFO])
+
+dnl Preprocessor symbols: sockets constants
+NAUSICAA_DEFINE_VALUE([SOCK_STREAM])
+NAUSICAA_DEFINE_VALUE([SOCK_DGRAM])
+NAUSICAA_DEFINE_VALUE([SOCK_RAW])
+NAUSICAA_DEFINE_VALUE([SOCK_RDM])
+NAUSICAA_DEFINE_VALUE([AF_LOCAL])
+NAUSICAA_DEFINE_VALUE([PF_LOCAL])
+NAUSICAA_DEFINE_VALUE([AF_UNIX])
+NAUSICAA_DEFINE_VALUE([PF_UNIX])
+NAUSICAA_DEFINE_VALUE([AF_FILE])
+NAUSICAA_DEFINE_VALUE([PF_FILE])
+NAUSICAA_DEFINE_VALUE([AF_INET])
+NAUSICAA_DEFINE_VALUE([PF_INET])
+NAUSICAA_DEFINE_VALUE([AF_INET6])
+NAUSICAA_DEFINE_VALUE([PF_INET6])
+NAUSICAA_DEFINE_VALUE([AF_UNSPEC])
+NAUSICAA_DEFINE_VALUE([PF_UNSPEC])
+NAUSICAA_DEFINE_VALUE([IPPORT_RESERVED])
+NAUSICAA_DEFINE_VALUE([IPPORT_USERRESERVED])
+NAUSICAA_DEFINE_VALUE([IFNAMSIZ])
+NAUSICAA_DEFINE_VALUE([MSG_OOB])
+NAUSICAA_DEFINE_VALUE([MSG_PEEK])
+NAUSICAA_DEFINE_VALUE([MSG_ONROUTE])
+NAUSICAA_DEFINE_VALUE([SOL_SOCKET])
+NAUSICAA_DEFINE_VALUE([SO_DEBUG])
+NAUSICAA_DEFINE_VALUE([SO_REUSEADDR])
+NAUSICAA_DEFINE_VALUE([SO_KEEPALIVE])
+NAUSICAA_DEFINE_VALUE([SO_DONTROUTE])
+NAUSICAA_DEFINE_VALUE([SO_LINGER])
+NAUSICAA_DEFINE_VALUE([SO_BROADCAST])
+NAUSICAA_DEFINE_VALUE([SO_OOBINLINE])
+NAUSICAA_DEFINE_VALUE([SO_SNDBUF])
+NAUSICAA_DEFINE_VALUE([SO_RCVBUF])
+NAUSICAA_DEFINE_VALUE([SO_STYLE])
+NAUSICAA_DEFINE_VALUE([SO_TYPE])
+NAUSICAA_DEFINE_VALUE([SO_ERROR])
 AC_CACHE_SAVE
 
 dnl end of file
