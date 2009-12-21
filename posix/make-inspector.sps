@@ -269,8 +269,19 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 (define-c-struct sockaddr_in
   "struct sockaddr_in"
   (signed-int		sin_family)
-  (pointer		sin_addr)
+  (embedded		sin_addr)
   (signed-int		sin_port))
+
+(define-c-type-alias sockaddr_in6*	pointer)
+
+(define-c-struct sockaddr_in6
+  "struct sockaddr_in"
+  (signed-int		sin6_family)
+  (embedded		sin6_addr)
+;;;This field is documented as unimplemented in Glibc.
+;;;
+;;;  (unsigned-int		sin6_flowinfo)
+  (signed-int		sin6_port))
 
 (define-c-type-alias sockaddr_un*	pointer)
 
@@ -294,7 +305,7 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 (define-c-struct if_nameindex
   "struct if_nameindex"
   (unsigned-int		if_index)
-  (char*		if_name))
+  (pointer		if_name))
 
 (define-c-type-alias netent*		pointer)
 
@@ -877,6 +888,9 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   AF_INET	PF_INET
   AF_INET6	PF_INET6
   AF_UNSPEC	PF_UNSPEC
+
+  SHUT_RD	SHUT_WR
+  SHUT_RDWR
 
   IPPORT_RESERVED
   IPPORT_USERRESERVED

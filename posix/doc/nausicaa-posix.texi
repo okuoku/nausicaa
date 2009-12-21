@@ -601,9 +601,18 @@ Constant values and structure accessors
 Sockets
 
 * sockets constants::           Constant values.
+* sockets enumerations::        Enumeration type definitions.
 * sockets structs::             Accessing data structures.
 * sockets typedefs::            Object type definitions.
 * sockets records::             Record types mirroring data structures.
+* sockets ifaces::              Network interfaces.
+
+Enumeration type definitions
+
+* sockets enumerations namespace::      Socket namespace.
+* sockets enumerations style::          Socket styles.
+* sockets enumerations addrfrm::        Socket address formats.
+* sockets enumerations shutdown::       Socket shutdown modes.
 
 Accessing data structures
 
@@ -622,6 +631,7 @@ Object type definitions
 
 Record types mirroring data structures
 
+* sockets records socket::        Socket file descriptor.
 * sockets records sockaddr::      Socket address.
 * sockets records sockaddr-in::   Internet namespace socket address.
 * sockets records sockaddr-un::   Local namespace socket address.
@@ -3779,9 +3789,12 @@ exported by the following libraries:
 
 @menu
 * sockets constants::           Constant values.
+* sockets enumerations::        Enumeration type definitions.
 * sockets structs::             Accessing data structures.
 * sockets typedefs::            Object type definitions.
 * sockets records::             Record types mirroring data structures.
+* sockets ifaces::              Network interfaces.
+* sockets address::             Network addresses.
 @end menu
 
 @c page
@@ -3805,6 +3818,13 @@ Communication styles.
 @defvrx Constant IPPORT_USERRESERVED
 Port number limits reserved for superuser or explicit allocation.
 @glibcref{Ports, Ports}.
+@end defvr
+
+
+@defvr Constant SHUT_RD
+@defvrx Constant SHUT_WR
+@defvrx Constant SHUT_RDWR
+Values for the @var{how} argument to @cfunc{shutdown}.
 @end defvr
 
 
@@ -3855,6 +3875,153 @@ Constants for socket options and the @func{getsockopt} and
 @end defvr
 
 @c page
+@node sockets enumerations
+@section Enumeration type definitions
+
+
+Unless otherwise specified, the following bindings are exported by the
+@library{posix typedefs} library.
+
+@menu
+* sockets enumerations namespace::      Socket namespace.
+* sockets enumerations style::          Socket styles.
+* sockets enumerations addrfrm::        Socket address formats.
+* sockets enumerations shutdown::       Socket shutdown modes.
+@end menu
+
+@c page
+@node sockets enumerations namespace
+@subsection Socket namespaces
+
+
+@deftp {Enumeration Type} enum-socket-namespace
+Enumeration type for the symbols representing socket communication
+namespaces; it has the following members:
+
+@example
+local  unix   file
+inet   inet6  unspec
+@end example
+@end deftp
+
+
+@deffn Syntax socket-namespace @ameta{symbol}
+Expand to an enumeration set of type @code{enum-socket-namespace}
+holding the given symbol argument.
+@end deffn
+
+
+@defun socket-namespace->value @var{set}
+@defunx value->socket-namespace @var{value}
+Convert to and from an enumeration set of type
+@code{enum-socket-namespace} holding a single element and the
+corresponding exact integer value, one among:
+
+@example
+PF_LOCAL  PF_UNIX   PF_FILE
+PF_INET   PF_INET6  PF_UNSPEC
+@end example
+@end defun
+
+@c page
+@node sockets enumerations style
+@subsection Socket styles
+
+
+@deftp {Enumeration Type} enum-socket-style
+Enumeration type for the symbols representing socket communication
+styles; it has the following members:
+
+@example
+stream  datagram  raw
+@end example
+@end deftp
+
+
+@deffn Syntax socket-style @ameta{symbol}
+Expand to an enumeration set of type @code{enum-socket-style} holding
+the given symbol argument.
+@end deffn
+
+
+@defun socket-style->value @var{set}
+@defunx value->socket-style @var{value}
+Convert to and from an enumeration set of type @code{enum-socket-style}
+holding a single element and the corresponding exact integer value, one
+among:
+
+@example
+SOCK_STREAM  SOCK_DGRAM  SOCK_RAW
+@end example
+@end defun
+
+@c page
+@node sockets enumerations addrfrm
+@subsection Socket addrfrms
+
+
+@deftp {Enumeration Type} enum-socket-address-format
+Enumeration type for the symbols representing socket address formats; it
+has the following members:
+
+@example
+local  unix   file
+inet   inet6  unspec
+@end example
+@end deftp
+
+
+@deffn Syntax socket-address-format @ameta{symbol}
+Expand to an enumeration set of type @code{enum-socket-address-format}
+holding the given symbol argument.
+@end deffn
+
+
+@defun socket-address-format->value @var{set}
+@defunx value->socket-address-format @var{value}
+Convert to and from an enumeration set of type
+@code{enum-socket-address-format} holding a single element and the
+corresponding exact integer value, one among:
+
+@example
+AF_LOCAL  AF_UNIX   AF_FILE
+AF_INET   AF_INET6  AF_UNSPEC
+@end example
+@end defun
+
+@c page
+@node sockets enumerations shutdown
+@subsection Socket shutdown modes
+
+
+@deftp {Enumeration Type} enum-socket-shutdown-mode
+Enumeration type for the symbols representing socket shutdown modes; it
+has the following members:
+
+@example
+read    write   both
+@end example
+@end deftp
+
+
+@deffn Syntax shutdown-mode @ameta{symbol}
+Expand to an enumeration set of type @code{enum-socket-shutdown-mode}
+holding the given symbol argument.
+@end deffn
+
+
+@defun socket-shutdown-mode->value @var{set}
+@defunx value->socket-shutdown-mode @var{value}
+Convert to and from an enumeration set of type
+@code{enum-socket-shutdown-mode} holding a single element and the
+corresponding exact integer value, one among:
+
+@example
+SHUT_RD  SHUT_WR  SHUT_RDWR
+@end example
+@end defun
+
+@c page
 @node sockets structs
 @section Accessing data structures
 
@@ -3888,9 +4055,11 @@ data structures.
 @deffn Syntax struct-sockaddr-sa_family-ref @var{pointer}
 @deffnx Syntax struct-sockaddr-sa_family-set! @var{pointer} @var{value}
 @deffnx Syntax struct-sockaddr-sa_data-ref @var{pointer}
-@deffnx Syntax struct-sockaddr-sa_data-set! @var{pointer} @var{value}
 Accessors and mutators for the fields of a @code{struct sockaddr} C
 language data structure.
+
+@func{struct-sockaddr-sa_data-ref} returns a pointer to the first byte
+of the @code{sa_data} array field, which is embedded in the structure.
 @end deffn
 
 @c page
@@ -4081,12 +4250,54 @@ Unless otherwise specified, the following bindings are exported by the
 @library{posix sizeof} library.
 
 @menu
+* sockets records socket::        Socket file descriptor.
 * sockets records sockaddr::      Socket address.
 * sockets records sockaddr-in::   Internet namespace socket address.
 * sockets records sockaddr-un::   Local namespace socket address.
 * sockets records if-nameindex::  Interface name.
 * sockets records netent::        Network database entry.
 @end menu
+
+@c page
+@node sockets records socket
+@subsection Socket file descriptor
+
+
+@deftp {Record Type Name} <socket>
+@deftpx {Record Type Descriptor} <socket-rtd>
+Record type used to wrap socket file descriptors; it is derived from
+@code{file-descriptor} and it adds the following immutable fields:
+
+@table @code
+@item namespace
+An enumeration set of type @code{enum-socket-namespace} holding a single
+element.
+
+@item style
+An enumeration set of type @code{enum-socket-style} holding a single
+element.
+
+@item protocol
+An enumeraftion set of type @code{enum-socket-protocl} holding a single
+element.
+@end table
+@end deftp
+
+
+@defun make-<socket> @var{fd} @var{namespace} @var{style} @var{protocol}
+@defunx <socket>? @var{obj}
+Constructor and predicate for records of type @class{socket}.
+@end defun
+
+
+@defun <socket>-namespace @var{sockaddr}
+@defunx <socket>-namespace-set! @var{sockaddr} @var{value}
+@defunx <socket>-style @var{sockaddr}
+@defunx <socket>-style-set! @var{sockaddr} @var{value}
+@defunx <socket>-protocol @var{sockaddr}
+@defunx <socket>-protocol-set! @var{sockaddr} @var{value}
+Accessors and mutators for records of type @class{socket}.
+@end defun
 
 @c page
 @node sockets records sockaddr
@@ -4276,6 +4487,72 @@ Constructor and predicate for records of type
 Accessors and mutators for records of type @class{struct-netent}.
 @end defun
 
+
+@c page
+@node sockets ifaces
+@section Network interfaces
+
+
+The following functions manage inspection of network interfaces.
+@glibcref{Interface Naming, Interface Naming}.
+
+
+@deffn Function if-nametoindex @var{name}
+@deffnx Parameter if-nametoindex-function
+@deffnx Function primitive:if-nametoindex @var{name}
+@deffnx Function platform:if_nametoindex @var{name-cstr}
+Convert the Scheme string or symbol @var{name} to the corresponing
+network interface index.  Correct indexes should start at @math{1}, with
+@math{0} being invalid.  Examples:
+
+@example
+(if-nametoindex "lo")
+@result{} 1
+
+(if-nametoindex "eth0")
+@result{} 2
+@end example
+@end deffn
+
+
+@deffn Function if-indextoname @var{index}
+@deffnx Parameter if-indextoname-function
+@deffnx Function primitive:if-indextoname @var{index}
+@deffnx Function platform:if_indextoname @var{index}
+Convert the exact integer @var{index} representing a network interface
+integer to a Scheme string or symbol representing the corresponing
+network interface name.  Correct indexes should start at @math{1}, with
+@math{0} being invalid.  Example:
+
+@example
+(if-indextoname 1)
+@result{} "lo"
+
+(if-indextoname 2)
+@result{} "eth0"
+@end example
+@end deffn
+
+
+@deffn Function if-nameindex
+@deffnx Parameter if-nameindex-function
+@deffnx Function primitive:if-nameindex
+@deffnx Function platform:if_nameindex
+@deffnx Function platform:if_freenameindex @var{nameindex-ptr}
+Return a list of @class{struct-if-nameindex} records representing the
+known network interfaces.
+@end deffn
+
+@c page
+@node sockets address
+@section Network addresses
+
+
+@defun socket-namespace->socklen @var{set}
+Given an enumeration set of type @code{enum-socket-namespace} holding a
+single element, return the size in bytes of the C language structure
+required to hold an address of the selected namespace.
+@end defun
 
 @c page
 @node streams

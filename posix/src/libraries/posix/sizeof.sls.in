@@ -341,10 +341,18 @@
     strideof-sockaddr_in
     struct-sockaddr_in-sin_family-set!
     struct-sockaddr_in-sin_family-ref
-    struct-sockaddr_in-sin_addr-set!
     struct-sockaddr_in-sin_addr-ref
     struct-sockaddr_in-sin_port-set!
     struct-sockaddr_in-sin_port-ref
+    sockaddr_in6*
+    sizeof-sockaddr_in6
+    alignof-sockaddr_in6
+    strideof-sockaddr_in6
+    struct-sockaddr_in6-sin6_family-set!
+    struct-sockaddr_in6-sin6_family-ref
+    struct-sockaddr_in6-sin6_addr-ref
+    struct-sockaddr_in6-sin6_port-set!
+    struct-sockaddr_in6-sin6_port-ref
     sockaddr_un*
     sizeof-sockaddr_un
     alignof-sockaddr_un
@@ -878,6 +886,9 @@
     PF_INET6
     AF_UNSPEC
     PF_UNSPEC
+    SHUT_RD
+    SHUT_WR
+    SHUT_RDWR
     IPPORT_RESERVED
     IPPORT_USERRESERVED
     IFNAMSIZ
@@ -1581,18 +1592,40 @@
     @OFFSETOF_SOCKADDR_IN_SIN_FAMILY@
     @SETTEROF_SOCKADDR_IN_SIN_FAMILY@
     @GETTEROF_SOCKADDR_IN_SIN_FAMILY@)
-  (define-c-struct-accessor-and-mutator
-    struct-sockaddr_in-sin_addr-set!
+  (define-c-struct-field-pointer-accessor
     struct-sockaddr_in-sin_addr-ref
-    @OFFSETOF_SOCKADDR_IN_SIN_ADDR@
-    @SETTEROF_SOCKADDR_IN_SIN_ADDR@
-    @GETTEROF_SOCKADDR_IN_SIN_ADDR@)
+    @OFFSETOF_SOCKADDR_IN_SIN_ADDR@)
   (define-c-struct-accessor-and-mutator
     struct-sockaddr_in-sin_port-set!
     struct-sockaddr_in-sin_port-ref
     @OFFSETOF_SOCKADDR_IN_SIN_PORT@
     @SETTEROF_SOCKADDR_IN_SIN_PORT@
     @GETTEROF_SOCKADDR_IN_SIN_PORT@)
+  (define sockaddr_in6* 'pointer)
+  (define
+    sizeof-sockaddr_in6
+    @SIZEOF_SOCKADDR_IN6@)
+  (define
+    alignof-sockaddr_in6
+    @ALIGNOF_SOCKADDR_IN6@)
+  (define
+    strideof-sockaddr_in6
+    @STRIDEOF_SOCKADDR_IN6@)
+  (define-c-struct-accessor-and-mutator
+    struct-sockaddr_in6-sin6_family-set!
+    struct-sockaddr_in6-sin6_family-ref
+    @OFFSETOF_SOCKADDR_IN6_SIN6_FAMILY@
+    @SETTEROF_SOCKADDR_IN6_SIN6_FAMILY@
+    @GETTEROF_SOCKADDR_IN6_SIN6_FAMILY@)
+  (define-c-struct-field-pointer-accessor
+    struct-sockaddr_in6-sin6_addr-ref
+    @OFFSETOF_SOCKADDR_IN6_SIN6_ADDR@)
+  (define-c-struct-accessor-and-mutator
+    struct-sockaddr_in6-sin6_port-set!
+    struct-sockaddr_in6-sin6_port-ref
+    @OFFSETOF_SOCKADDR_IN6_SIN6_PORT@
+    @SETTEROF_SOCKADDR_IN6_SIN6_PORT@
+    @GETTEROF_SOCKADDR_IN6_SIN6_PORT@)
   (define sockaddr_un* 'pointer)
   (define sizeof-sockaddr_un @SIZEOF_SOCKADDR_UN@)
   (define
@@ -2502,6 +2535,9 @@
   (define PF_INET6 @VALUEOF_PF_INET6@)
   (define AF_UNSPEC @VALUEOF_AF_UNSPEC@)
   (define PF_UNSPEC @VALUEOF_PF_UNSPEC@)
+  (define SHUT_RD @VALUEOF_SHUT_RD@)
+  (define SHUT_WR @VALUEOF_SHUT_WR@)
+  (define SHUT_RDWR @VALUEOF_SHUT_RDWR@)
   (define
     IPPORT_RESERVED
     @VALUEOF_IPPORT_RESERVED@)

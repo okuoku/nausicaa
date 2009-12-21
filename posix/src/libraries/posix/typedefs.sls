@@ -207,10 +207,17 @@
 
 ;;; --------------------------------------------------------------------
 
+    <socket>				<socket-rtd>
+    make-<socket>			<socket>?
+    <socket>-namespace
+    <socket>-style
+    <socket>-protocol
+
     <struct-sockaddr>			<struct-sockaddr-rtd>
     make-<struct-sockaddr>		<struct-sockaddr>?
     <struct-sockaddr>-family		<struct-sockaddr>-family-set!
     <struct-sockaddr>-data		<struct-sockaddr>-data-set!
+    <struct-sockaddr>-struct		<struct-sockaddr>-struct-set!
 
     <struct-sockaddr-in>		<struct-sockaddr-in-rtd>
     make-<struct-sockaddr-in>		<struct-sockaddr-in>?
@@ -238,6 +245,28 @@
 
     enum-interprocess-signal		interprocess-signals
     interprocess-signal->symbol		symbol->interprocess-signal
+
+;;; --------------------------------------------------------------------
+
+    enum-socket-namespace		socket-namespace
+    socket-namespace->value		value->socket-namespace
+    socket-namespace->socklen
+
+;;; --------------------------------------------------------------------
+
+    enum-socket-address-format		socket-address-format
+    socket-address-format->value	value->socket-address-format
+
+;;; --------------------------------------------------------------------
+
+    enum-socket-style			socket-style
+    socket-style->value			value->socket-style
+
+;;; --------------------------------------------------------------------
+
+    enum-socket-shutdown-mode		shutdown-mode
+    socket-shutdown-mode->value		value->socket-shutdown-mode
+
     )
   (import (rnrs)
     (posix sizeof))
@@ -513,10 +542,11 @@
 
 (define-record-type <struct-sockaddr>
   (fields (mutable family)
-	  (mutable data)))
+	  (mutable data)
+	  (mutable struct)))
 
 (define <struct-sockaddr-rtd>
-  (record-type-name <struct-sockaddr>))
+  (record-type-descriptor <struct-sockaddr>))
 
 ;;; --------------------------------------------------------------------
 
@@ -526,7 +556,7 @@
 	  (mutable port)))
 
 (define <struct-sockaddr-in-rtd>
-  (record-type-name <struct-sockaddr-in>))
+  (record-type-descriptor <struct-sockaddr-in>))
 
 ;;; --------------------------------------------------------------------
 
@@ -535,7 +565,7 @@
 	  (mutable path)))
 
 (define <struct-sockaddr-un-rtd>
-  (record-type-name <struct-sockaddr-un>))
+  (record-type-descriptor <struct-sockaddr-un>))
 
 ;;; --------------------------------------------------------------------
 
@@ -544,7 +574,7 @@
 	  (mutable name)))
 
 (define <struct-if-nameindex-rtd>
-  (record-type-name <struct-if-nameindex>))
+  (record-type-descriptor <struct-if-nameindex>))
 
 ;;; --------------------------------------------------------------------
 
@@ -555,7 +585,7 @@
 	  (mutable net)))
 
 (define <struct-netent-rtd>
-  (record-type-name <struct-netent>))
+  (record-type-descriptor <struct-netent>))
 
 
 (define-record-type struct-in-addr
@@ -567,6 +597,15 @@
   (fields (immutable pointer struct-in6-addr->pointer)))
 
 (define pointer->struct-in6-addr make-struct-in6-addr)
+
+(define-record-type <socket>
+  (parent file-descriptor)
+  (fields (immutable namespace)
+	  (immutable style)
+	  (immutable protocol)))
+
+(define <socket-rtd>
+  (record-type-descriptor <socket>))
 
 
 (define-enumeration enum-interprocess-signal
@@ -722,6 +761,197 @@
     (else
      (assertion-violation 'symbol->interprocess-signal
        "unknown interprocess signal symbol" symbol))))
+
+
+(define-enumeration enum-socket-style
+  (stream datagram raw)
+  %socket-style)
+
+(define-syntax socket-style
+  (syntax-rules ()
+    ((_ ?mode)
+     (%socket-style ?mode))))
+
+(define %socket-style-universe
+  (enum-set-universe (%socket-style)))
+
+(define (socket-style->value set)
+  (assert (enum-set-subset? set %socket-style-universe))
+  (let ((ell (enum-set->list set)))
+    (assert (= 1 (length ell)))
+    (case (car ell)
+      ((stream)		SOCK_STREAM)
+      ((datagram)	SOCK_DGRAM)
+      ((raw)		SOCK_RAW)
+      (else
+       (assertion-violation 'socket-style->value
+	 "invalid symbol in enumeration set of socket style"
+	 (car ell))))))
+
+(define (value->socket-style value)
+  (cond ((= value SOCK_STREAM)
+	 (socket-style stream))
+	((= value SOCK_DGRAM)
+	 (socket-style datagram))
+	((= value SOCK_RAW)
+	 (socket-style raw))
+	(else
+	 (assertion-violation 'value->socket-style
+	   "invalid value as socket style" value))))
+
+
+(define-enumeration enum-socket-namespace
+  (local
+   unix
+   file
+   inet
+   inet6
+   unspec)
+  %socket-namespace)
+
+(define-syntax socket-namespace
+  (syntax-rules ()
+    ((_ ?mode)
+     (%socket-namespace ?mode))))
+
+(define %socket-namespace-universe
+  (enum-set-universe (%socket-namespace)))
+
+(define (socket-namespace->value set)
+  ;; PF_LOCAL, PF_UNIX and PF_FILE are synonims.
+  ;;
+  (assert (enum-set-subset? set %socket-namespace-universe))
+  (let ((ell (enum-set->list set)))
+    (assert (= 1 (length ell)))
+    (case (car ell)
+      ((local unix file)	PF_LOCAL)
+      ((inet)			PF_INET)
+      ((inet6)			PF_INET6)
+      ((unspec)			PF_UNSPEC)
+      (else
+       (assertion-violation 'socket-namespace->value
+	 "invalid symbol in enumeration set of socket namespace"
+	 (car ell))))))
+
+(define (value->socket-namespace value)
+  (cond ((= value PF_LOCAL)
+	 (socket-namespace local))
+	((= value PF_INET)
+	 (socket-namespace inet))
+	((= value PF_INET6)
+	 (socket-namespace inet6))
+	((= value PF_UNSPEC)
+	 (socket-namespace unspec))
+	(else
+	 (assertion-violation 'value->socket-namespace
+	   "invalid value as socket style" value))))
+
+(define (socket-namespace->socklen set)
+  ;;Given a set built with  SOCKET-NAMESPACE return the size in bytes of
+  ;;the sockaddr structure required to represent an address of the given
+  ;;namespace.
+  ;;
+  (cond ((enum-set-subset? set (%socket-namespace local unix file))
+	 sizeof-sockaddr_un)
+	((enum-set=? set (socket-namespace inet))
+	 sizeof-sockaddr_in)
+	((enum-set=? set (socket-namespace inet6))
+	 sizeof-sockaddr_in6)
+	((enum-set=? set (socket-namespace unspec))
+	 (error 'socket-namespace->socklen
+	   "unknown socket address structure size for selected namespace"
+	   set))
+	(else
+	 (assertion-violation 'socket-namespace->socklen
+	   "invalid socket address namespace" set))))
+
+
+(define-enumeration enum-socket-address-format
+  (local
+   unix
+   file
+   inet
+   inet6
+   unspec)
+  %socket-address-format)
+
+(define-syntax socket-address-format
+  (syntax-rules ()
+    ((_ ?mode)
+     (%socket-address-format ?mode))))
+
+(define %socket-address-format-universe
+  (enum-set-universe (%socket-address-format)))
+
+(define (socket-address-format->value set)
+  (assert (enum-set-subset? set %socket-address-format-universe))
+  (let ((ell (enum-set->list set)))
+    (assert (= 1 (length ell)))
+    (case (car ell)
+      ((local)		AF_LOCAL)
+      ((unix)		AF_UNIX)
+      ((file)		AF_FILE)
+      ((inet)		AF_INET)
+      ((inet6)		AF_INET6)
+      ((unspec)		AF_UNSPEC)
+      (else
+       (assertion-violation 'socket-address-format->value
+	 "invalid symbol in enumeration set of socket namespace"
+	 (car ell))))))
+
+(define (value->socket-address-format value)
+  (cond ((= value AF_LOCAL)
+	 (socket-address-format local))
+	((= value AF_UNIX)
+	 (socket-address-format unix))
+	((= value AF_FILE)
+	 (socket-address-format file))
+	((= value AF_INET)
+	 (socket-address-format inet))
+	((= value AF_INET6)
+	 (socket-address-format inet6))
+	((= value AF_UNSPEC)
+	 (socket-address-format unspec))
+	(else
+	 (assertion-violation 'value->socket-address-format
+	   "invalid value as socket style" value))))
+
+
+(define-enumeration enum-socket-shutdown-mode
+  (read write both)
+  %socket-shutdown-mode)
+
+(define-syntax shutdown-mode
+  (syntax-rules ()
+    ((_ ?mode)
+     (%socket-shutdown-mode ?mode))))
+
+(define %socket-shutdown-mode-universe
+  (enum-set-universe (%socket-shutdown-mode)))
+
+(define (socket-shutdown-mode->value set)
+  (assert (enum-set-subset? set %socket-shutdown-mode-universe))
+  (let ((ell (enum-set->list set)))
+    (assert (= 1 (length ell)))
+    (case (car ell)
+      ((read)	SHUT_RD)
+      ((write)	SHUT_WR)
+      ((both)	SHUT_RDWR)
+      (else
+       (assertion-violation 'socket-shutdown-mode->value
+	 "invalid symbol in enumeration set of socket shutdown mode"
+	 (car ell))))))
+
+(define (value->socket-shutdown-mode value)
+  (cond ((= value SHUT_RD)
+	 (shutdown-mode read))
+	((= value SHUT_WR)
+	 (shutdown-mode write))
+	((= value SHUT_RDWR)
+	 (shutdown-mode both))
+	(else
+	 (assertion-violation 'value->socket-shutdown-mode
+	   "invalid value as socket shutdown mode" value))))
 
 
 ;;;; done

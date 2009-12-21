@@ -27,11 +27,19 @@
 
 (library (posix sockets)
   (export
+
+    ;; interface name
+    if-nametoindex		if-indextoname
+    if-nameindex
+
     )
   (import (rnrs)
     (posix helpers)
     (prefix (posix sockets primitives) primitive:))
 
+  (define-parametrised if-nametoindex name)
+  (define-parametrised if-indextoname index)
+  (define-parametrised if-nameindex)
 
   )
 

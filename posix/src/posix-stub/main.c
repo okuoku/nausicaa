@@ -74,7 +74,7 @@
 #  include <sys/mman.h>
 #endif
 #ifdef HAVE_SYS_UN_H
-#  include <net/un.h>
+#  include <sys/un.h>
 #endif
 #ifdef HAVE_TIME_H
 #  include <time.h>
