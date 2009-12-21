@@ -621,6 +621,19 @@ This document gives only a brief description of some functions, and
 focuses on providing some usage example to get a feeling about how to
 manage resources allocation in a Scheme program.
 
+The original libraries can be found at the following sites (@aurl{} last
+verified Mon Dec 21, 2009):
+
+@center @url{http://gmplib.org/}
+
+@center @url{http://www.mpfr.org/}
+
+@center @url{http://gforge.inria.fr/projects/mpfi/}
+
+@center @url{http://www.multiprecision.org/index.php?prog=mpc}
+
+@center @url{http://www.multiprecision.org/index.php?prog=mpfrcx}
+
 @c page
 @node constants
 @chapter Constant values

@@ -76,7 +76,7 @@
 (define-syntax struct-mpfrx_t-coeff-ptr-ref
   (syntax-rules ()
     ((_ ?polynomial ?index)
-     (array-ref-c-mpfrx_t (struct-mpcx_t-coeff-ref ?polynomial) ?index))))
+     (array-ref-c-mpfrx_t (struct-mpfrx_t-coeff-ref ?polynomial) ?index))))
 
 (define-syntax struct-mpcx_t-coeff-ptr-ref
   (syntax-rules ()

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -33,8 +33,6 @@
   (foreign math mp mpfr)
   (foreign math mp mpfrcx)
   (foreign math mp sizeof))
-
-(exit)
 
 (check-set-mode! 'report-failed)
 (display "*** testing MPFRCX\n")
@@ -63,6 +61,8 @@
   (let-values (((port getter) (open-string-output-port)))
     (let ((len (struct-mpfrx_t-size-ref poly)))
       (display "(" port)
+      (display (struct-mpfrx_t-size-ref poly) port)
+      (display " " port)
       (display (struct-mpfrx_t-deg-ref poly) port)
       (display ";" port)
       (do ((i 0 (+ 1 i)))
@@ -79,6 +79,7 @@
   (define (init-poly! poly coeffs)
     (let ((len (vector-length coeffs)))
       (mpfrx_init poly len 50)
+      (struct-mpfrx_t-deg-set! poly (- len 1))
       (do ((i 0 (+ 1 i)))
 	  ((= i len))
 	(mpfr_set_d (struct-mpfrx_t-coeff-ptr-ref poly i)
@@ -93,13 +94,7 @@
 	(init-poly! a '#(1.2 3.4 5.6 7.8 9.0))
 	(init-poly! b '#(-1. -3. -5. -7. -9.))
 	(mpfrx_init c 5 50)
-
-	;; (write (mpfrx->string a))(newline)
-	;; (write (mpfrx->string b))(newline)
-	;; (write (mpfrx->string c))(newline)
-
 	(mpfrx_add c a b)
-
 	(mpfrx_clear a)
 	(mpfrx_clear b)
 	(primitive-free a)
@@ -109,7 +104,7 @@
 	    (mpfrx->string c)
 	  (mpfrx_clear c)
 	  (primitive-free c)))
-    => "")
+    => "(5 3; .20000 .40000 .60000 .80000 .00000)")
 
   #t)
 
