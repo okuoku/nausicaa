@@ -30,8 +30,10 @@
   (pretty-print)
   (posix sizeof)
   (posix typedefs)
+  (prefix (posix system) posix:)
   (prefix (posix sockets) posix:)
   (prefix (posix fd) posix:)
+  (prefix (posix file) posix:)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -87,6 +89,27 @@
       (value->socket-shutdown-mode SHUT_RDWR)
     (=> enum-set=?)
     (shutdown-mode both))
+
+  #t)
+
+
+(parametrise ((check-test-name	'local))
+
+  (check
+      (with-compensations
+	(let* ((pathname	(string-append (posix:getenv "TMPDIR") "/proof"))
+	       (sockaddr	(pathname-><struct-sockaddr-un> pathname)))
+	  (letrec ((sock (compensate
+			     (posix:socket (socket-namespace local)
+					   (socket-style stream))
+			   (with
+			    (posix:close sock)))))
+	    (compensate
+		(posix:bind sock sockaddr)
+	      (with
+	       (posix:remove pathname)))
+	    #t)))
+    => #t)
 
   #t)
 

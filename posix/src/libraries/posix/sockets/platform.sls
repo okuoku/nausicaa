@@ -38,6 +38,7 @@
     send		recv
     sendto		recvfrom
     getsockopt		setsockopt
+    SUN_LEN
 
     if_nametoindex	if_indextoname
     if_nameindex	if_freenameindex
@@ -47,6 +48,7 @@
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof)
+    (posix shared-object)
     (posix sizeof))
 
   (define-c-functions libc-shared-object
@@ -83,6 +85,11 @@
     (setnetent			(void setnetent (int)))
     (getnetent			(netent* getnetent (void)))
     (endnetent			(void endnetent (void)))
-    ))
+    )
+
+  (define-c-functions libnausicaa-posix
+    (SUN_LEN			(int nausicaa_posix_SUN_LEN (pointer)))
+    )
+  )
 
 ;;; end of file

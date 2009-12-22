@@ -213,17 +213,17 @@
     <socket>-style
     <socket>-protocol
 
-    <struct-sockaddr>			<struct-sockaddr-rtd>
-    make-<struct-sockaddr>		<struct-sockaddr>?
-    <struct-sockaddr>-family		<struct-sockaddr>-family-set!
-    <struct-sockaddr>-data		<struct-sockaddr>-data-set!
-    <struct-sockaddr>-struct		<struct-sockaddr>-struct-set!
-
     <struct-sockaddr-in>		<struct-sockaddr-in-rtd>
     make-<struct-sockaddr-in>		<struct-sockaddr-in>?
     <struct-sockaddr-in>-family		<struct-sockaddr-in>-family-set!
     <struct-sockaddr-in>-addr		<struct-sockaddr-in>-addr-set!
     <struct-sockaddr-in>-port		<struct-sockaddr-in>-port-set!
+
+    <struct-sockaddr-in6>		<struct-sockaddr-in6-rtd>
+    make-<struct-sockaddr-in6>		<struct-sockaddr-in6>?
+    <struct-sockaddr-in6>-family	<struct-sockaddr-in6>-family-set!
+    <struct-sockaddr-in6>-addr		<struct-sockaddr-in6>-addr-set!
+    <struct-sockaddr-in6>-port		<struct-sockaddr-in6>-port-set!
 
     <struct-sockaddr-un>		<struct-sockaddr-un-rtd>
     make-<struct-sockaddr-un>		<struct-sockaddr-un>?
@@ -264,8 +264,18 @@
 
 ;;; --------------------------------------------------------------------
 
+    enum-socket-protocol		socket-protocol
+    socket-protocol->value		value->socket-protocol
+
+;;; --------------------------------------------------------------------
+
     enum-socket-shutdown-mode		shutdown-mode
     socket-shutdown-mode->value		value->socket-shutdown-mode
+
+;;; --------------------------------------------------------------------
+
+    enum-socket-data-options		socket-data-options
+    socket-data-options->value		value->socket-data-options
 
     )
   (import (rnrs)
@@ -540,16 +550,6 @@
   (record-type-descriptor <struct-itimerval>))
 
 
-(define-record-type <struct-sockaddr>
-  (fields (mutable family)
-	  (mutable data)
-	  (mutable struct)))
-
-(define <struct-sockaddr-rtd>
-  (record-type-descriptor <struct-sockaddr>))
-
-;;; --------------------------------------------------------------------
-
 (define-record-type <struct-sockaddr-in>
   (fields (mutable family)
 	  (mutable addr)
@@ -560,12 +560,25 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <struct-sockaddr-un>
+(define-record-type <struct-sockaddr-in6>
+  (fields (mutable family)
+	  (mutable addr)
+	  (mutable port)))
+
+(define <struct-sockaddr-in6-rtd>
+  (record-type-descriptor <struct-sockaddr-in6>))
+
+;;; --------------------------------------------------------------------
+
+(define-record-type (<struct-sockaddr-un> %make-<struct-sockaddr-un> <struct-sockaddr-un>?)
   (fields (mutable family)
 	  (mutable path)))
 
 (define <struct-sockaddr-un-rtd>
   (record-type-descriptor <struct-sockaddr-un>))
+
+(define (make-<struct-sockaddr-un> pathname)
+  (%make-<struct-sockaddr-un> AF_LOCAL pathname))
 
 ;;; --------------------------------------------------------------------
 
@@ -800,6 +813,37 @@
 	   "invalid value as socket style" value))))
 
 
+(define-enumeration enum-socket-protocol
+  (zero)
+  %socket-protocol)
+
+(define-syntax socket-protocol
+  (syntax-rules ()
+    ((_ ?mode)
+     (%socket-protocol ?mode))))
+
+(define %socket-protocol-universe
+  (enum-set-universe (%socket-protocol)))
+
+(define (socket-protocol->value set)
+  (assert (enum-set-subset? set %socket-protocol-universe))
+  (let ((ell (enum-set->list set)))
+    (assert (= 1 (length ell)))
+    (case (car ell)
+      ((zero)		0)
+      (else
+       (assertion-violation 'socket-protocol->value
+	 "invalid symbol in enumeration set of socket protocol"
+	 (car ell))))))
+
+(define (value->socket-protocol value)
+  (cond ((= value 0)
+	 (socket-protocol zero))
+	(else
+	 (assertion-violation 'value->socket-protocol
+	   "invalid value as socket protocol" value))))
+
+
 (define-enumeration enum-socket-namespace
   (local
    unix
@@ -849,7 +893,7 @@
 (define (socket-namespace->socklen set)
   ;;Given a set built with  SOCKET-NAMESPACE return the size in bytes of
   ;;the sockaddr structure required to represent an address of the given
-  ;;namespace.
+  ;;namespace.  It may not be significant.
   ;;
   (cond ((enum-set-subset? set (%socket-namespace local unix file))
 	 sizeof-sockaddr_un)
@@ -952,6 +996,41 @@
 	(else
 	 (assertion-violation 'value->socket-shutdown-mode
 	   "invalid value as socket shutdown mode" value))))
+
+
+(define-enumeration enum-socket-data-options
+  (read write both)
+  socket-data-options)
+
+(define %socket-data-options-universe
+  (enum-set-universe (%socket-data-options)))
+
+(define %socket-data-options-constructor
+  (enum-set-constructor %socket-data-options-universe))
+
+(define (socket-data-options->value set)
+  (assert (enum-set-subset? set %socket-data-options-universe))
+  (fold-left (lambda (knil symbol)
+	       (bitwise-ior (case symbol
+			      ((oob)		MSG_OOB)
+			      ((peek)		MSG_PEEK)
+			      ((dontroute)	MSG_DONTROUTE))))
+	       0
+	       (enum-set->list set)))
+
+(define value->socket-data-options
+  (let ((alist `((MSG_OOB	. oob)
+		 (MSG_PEEK	. peek)
+		 (MSG_DONTROUTE	. dontroute))))
+    (lambda (value)
+      (let loop ((alist alist)
+		 (ell	'()))
+	(cond ((null? alist)
+	       (%socket-data-options-constructor ell))
+	      ((not (= 0 (bitwise-and value (caar alist))))
+	       (loop (cdr alist) (cons (cdar alist) ell)))
+	      (else
+	       (loop (cdr alist) ell)))))))
 
 
 ;;;; done

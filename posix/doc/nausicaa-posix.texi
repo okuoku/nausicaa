@@ -606,19 +606,26 @@ Sockets
 * sockets typedefs::            Object type definitions.
 * sockets records::             Record types mirroring data structures.
 * sockets ifaces::              Network interfaces.
+* sockets open close::          Opening and closing sockets.
+* sockets ops::                 Operations on sockets.
+* sockets address::             Network addresses.
+* sockets transfer::            Transferring data.
 
 Enumeration type definitions
 
 * sockets enumerations namespace::      Socket namespace.
 * sockets enumerations style::          Socket styles.
+* sockets enumerations protocol::       Socket protocols.
 * sockets enumerations addrfrm::        Socket address formats.
 * sockets enumerations shutdown::       Socket shutdown modes.
+* sockets enumerations dataopts::       Socket data options.
 
 Accessing data structures
 
 * sockets structs sockaddr::      Structure @code{struct sockaddr}.
 * sockets structs sockaddr_un::   Structure @code{struct sockaddr_un}.
 * sockets structs sockaddr_in::   Structure @code{struct sockaddr_in}.
+* sockets structs sockaddr_in6::  Structure @code{struct sockaddr_in6}.
 * sockets structs in_addr::       Structure @code{struct in_addr}.
 * sockets structs in6_addr::      Structure @code{struct in6_addr}.
 * sockets structs if_nameindex::  Structure @code{if_nameindex}.
@@ -632,8 +639,8 @@ Object type definitions
 Record types mirroring data structures
 
 * sockets records socket::        Socket file descriptor.
-* sockets records sockaddr::      Socket address.
-* sockets records sockaddr-in::   Internet namespace socket address.
+* sockets records sockaddr-in::   Internet namespace socket address IPv4.
+* sockets records sockaddr-in6::  Internet namespace socket address IPv6.
 * sockets records sockaddr-un::   Local namespace socket address.
 * sockets records if-nameindex::  Interface name.
 * sockets records netent::        Network database entry.
@@ -3794,7 +3801,10 @@ exported by the following libraries:
 * sockets typedefs::            Object type definitions.
 * sockets records::             Record types mirroring data structures.
 * sockets ifaces::              Network interfaces.
+* sockets open close::          Opening and closing sockets.
+* sockets ops::                 Operations on sockets.
 * sockets address::             Network addresses.
+* sockets transfer::            Transferring data.
 @end menu
 
 @c page
@@ -3885,8 +3895,10 @@ Unless otherwise specified, the following bindings are exported by the
 @menu
 * sockets enumerations namespace::      Socket namespace.
 * sockets enumerations style::          Socket styles.
+* sockets enumerations protocol::       Socket protocols.
 * sockets enumerations addrfrm::        Socket address formats.
 * sockets enumerations shutdown::       Socket shutdown modes.
+* sockets enumerations dataopts::       Socket data options.
 @end menu
 
 @c page
@@ -3902,6 +3914,9 @@ namespaces; it has the following members:
 local  unix   file
 inet   inet6  unspec
 @end example
+
+@noindent
+@code{local}, @code{unix} and @code{file} are synonyms.
 @end deftp
 
 
@@ -3952,6 +3967,38 @@ among:
 
 @example
 SOCK_STREAM  SOCK_DGRAM  SOCK_RAW
+@end example
+@end defun
+
+@c page
+@node sockets enumerations protocol
+@subsection Socket protocols
+
+
+@deftp {Enumeration Type} enum-socket-protocol
+Enumeration type for the symbols representing socket communication
+protocols; it has the following members:
+
+@example
+zero
+@end example
+@end deftp
+
+
+@deffn Syntax socket-protocol @ameta{symbol}
+Expand to an enumeration set of type @code{enum-socket-protocol} holding
+the given symbol argument.
+@end deffn
+
+
+@defun socket-protocol->value @var{set}
+@defunx value->socket-protocol @var{value}
+Convert to and from an enumeration set of type
+@code{enum-socket-protocol} holding a single element and the
+corresponding exact integer value, one among:
+
+@example
+0
 @end example
 @end defun
 
@@ -4022,6 +4069,39 @@ SHUT_RD  SHUT_WR  SHUT_RDWR
 @end defun
 
 @c page
+@node sockets enumerations dataopts
+@subsection Socket data options
+
+
+@deftp {Enumeration Type} enum-socket-data-options
+Enumeration type for the symbols representing socket data options; it
+has the following members:
+
+@example
+oob  peek  dontroute
+@end example
+@end deftp
+
+
+@deffn Syntax socket-data-options @ameta{symbol} ...
+Expand to an enumeration set of type @code{enum-socket-data-options}
+holding the given argument symbols.
+@end deffn
+
+
+@defun socket-data-options->value @var{set}
+@defunx value->socket-data-options @var{value}
+Convert to and from an enumeration set of type
+@code{enum-socket-data-options} and the corresponding exact integer
+value representing a inclusive bitwise OR combination of the following
+constants:
+
+@example
+MSG_OOB  MSG_PEEK  MSG_DONTROUTE
+@end example
+@end defun
+
+@c page
 @node sockets structs
 @section Accessing data structures
 
@@ -4033,6 +4113,7 @@ Unless otherwise specified, the following bindings are exported by the
 * sockets structs sockaddr::      Structure @code{struct sockaddr}.
 * sockets structs sockaddr_un::   Structure @code{struct sockaddr_un}.
 * sockets structs sockaddr_in::   Structure @code{struct sockaddr_in}.
+* sockets structs sockaddr_in6::  Structure @code{struct sockaddr_in6}.
 * sockets structs in_addr::       Structure @code{struct in_addr}.
 * sockets structs in6_addr::      Structure @code{struct in6_addr}.
 * sockets structs if_nameindex::  Structure @code{if_nameindex}.
@@ -4088,21 +4169,53 @@ language data structure.
 @subsection Structure @code{struct sockaddr_in}
 
 
-@defvr Constant sizeof-sockaddr-in
-@defvrx Constant alignof-sockaddr-in
-@defvrx Constant strideof-sockaddr-in
+@defvr Constant sizeof-sockaddr_in
+@defvrx Constant alignof-sockaddr_in
+@defvrx Constant strideof-sockaddr_in
 Size, array alignment and stride of @code{struct sockaddr_in} C language
 data structures.
 @end defvr
 
 
-@deffn Syntax struct-sockaddr-in-sa_family-ref @var{pointer}
-@deffnx Syntax struct-sockaddr-in-sa_family-set! @var{pointer} @var{value}
-@deffnx Syntax struct-sockaddr-in-sa_data-ref @var{pointer}
-@deffnx Syntax struct-sockaddr-in-sa_data-set! @var{pointer} @var{value}
-Accessors and mutators for the fields of a @code{struct sockaddr-in} C
+@deffn Syntax struct-sockaddr_in-sin_family-ref @var{pointer}
+@deffnx Syntax struct-sockaddr_in-sin_family-set! @var{pointer} @var{value}
+@deffnx Syntax struct-sockaddr_in-sin_addr-ref @var{pointer}
+@deffnx Syntax struct-sockaddr_in-sin_port-ref @var{pointer}
+@deffnx Syntax struct-sockaddr_in-sin_port-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct sockaddr_in} C
 language data structure.
+
+The @code{sin_addr} field is an embedded data structure of type
+@code{struct in_addr}; @func{struct-sockaddr_in-sin_addr-ref} returns a
+pointer to its first byte.
 @end deffn
+
+@c page
+@node sockets structs sockaddr_in6
+@subsection Structure @code{struct sockaddr_in6}
+
+
+@defvr Constant sizeof-sockaddr_in6
+@defvrx Constant alignof-sockaddr_in6
+@defvrx Constant strideof-sockaddr_in6
+Size, array alignment and stride of @code{struct sockaddr_in6} C language
+data structures.
+@end defvr
+
+
+@deffn Syntax struct-sockaddr_in6-sin6_family-ref @var{pointer}
+@deffnx Syntax struct-sockaddr_in6-sin6_family-set! @var{pointer} @var{value}
+@deffnx Syntax struct-sockaddr_in6-sin6_addr-ref @var{pointer}
+@deffnx Syntax struct-sockaddr_in6-sin6_port-ref @var{pointer}
+@deffnx Syntax struct-sockaddr_in6-sin6_port-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct sockaddr_in6} C
+language data structure.
+
+The @code{sin6_addr} field is an embedded data structure of type
+@code{struct in6_addr}; @func{struct-sockaddr_in6-sin6_addr-ref} returns
+a pointer to its first byte.
+@end deffn
+
 
 @c page
 @node sockets structs in_addr
@@ -4251,8 +4364,8 @@ Unless otherwise specified, the following bindings are exported by the
 
 @menu
 * sockets records socket::        Socket file descriptor.
-* sockets records sockaddr::      Socket address.
-* sockets records sockaddr-in::   Internet namespace socket address.
+* sockets records sockaddr-in::   Internet namespace socket address IPv4.
+* sockets records sockaddr-in6::  Internet namespace socket address IPv6.
 * sockets records sockaddr-un::   Local namespace socket address.
 * sockets records if-nameindex::  Interface name.
 * sockets records netent::        Network database entry.
@@ -4300,42 +4413,8 @@ Accessors and mutators for records of type @class{socket}.
 @end defun
 
 @c page
-@node sockets records sockaddr
-@subsection Socket address
-
-
-@deftp {Record Type Name} <struct-sockaddr>
-@deftpx {Record Type Descriptor} <struct-sockaddr-rtd>
-Record type used to mirror @code{struct sockaddr} C language data
-structures.  It has the following mutable fields:
-
-@table @code
-@item family
-An exact integer representing the code of the address format for this
-address.
-
-@item data
-A Scheme string representing the address data.
-@end table
-@end deftp
-
-
-@defun make-<struct-sockaddr> @var{family} @var{data}
-@defunx <struct-sockaddr>? @var{obj}
-Constructor and predicate for records of type @class{struct-sockaddr}.
-@end defun
-
-
-@defun <struct-sockaddr>-family @var{sockaddr}
-@defunx <struct-sockaddr>-family-set! @var{sockaddr} @var{value}
-@defunx <struct-sockaddr>-data @var{sockaddr}
-@defunx <struct-sockaddr>-data-set! @var{sockaddr} @var{value}
-Accessors and mutators for records of type @class{struct-sockaddr}.
-@end defun
-
-@c page
 @node sockets records sockaddr-in
-@subsection Internet namespace socket address
+@subsection Internet namespace socket address IPv4
 
 
 @deftp {Record Type Name} <struct-sockaddr-in>
@@ -4373,6 +4452,66 @@ Constructor and predicate for records of type
 Accessors and mutators for records of type @class{struct-sockaddr-in}.
 @end defun
 
+
+@defun primitive:pointer-><struct-sockaddr-in> @var{pointer}
+Given a pointer object to a @code{struct sockaddr_in} data structure,
+build and return a record of type @class{struct-sockaddr-in} which
+mirrors it.
+
+This function is exported by the @library{posix sockets primitives}
+library.
+@end defun
+
+@c page
+@node sockets records sockaddr-in6
+@subsection Internet namespace socket address IPv6
+
+
+@deftp {Record Type Name} <struct-sockaddr-in6>
+@deftpx {Record Type Descriptor} <struct-sockaddr-in6-rtd>
+Record type used to mirror @code{struct sockaddr_in6} C language data
+structures.  It has the following mutable fields:
+
+@table @code
+@item family
+An exact integer representing the code of the address format for this
+address.  It should be @code{AF_INET}.
+
+@item addr
+A record of type @class{struct-in6-addr}.
+
+@item port
+An exact integer representing the port number.
+@end table
+@end deftp
+
+
+@defun make-<struct-sockaddr-in6> @var{family} @var{data}
+@defunx <struct-sockaddr-in6>? @var{obj}
+Constructor and predicate for records of type
+@class{struct-sockaddr-in6}.
+@end defun
+
+
+@defun <struct-sockaddr-in6>-family @var{sockaddr-in6}
+@defunx <struct-sockaddr-in6>-family-set! @var{sockaddr-in6} @var{value}
+@defunx <struct-sockaddr-in6>-addr @var{sockaddr-in6}
+@defunx <struct-sockaddr-in6>-addr-set! @var{sockaddr-in6} @var{value}
+@defunx <struct-sockaddr-in6>-port @var{sockaddr-in6}
+@defunx <struct-sockaddr-in6>-port-set! @var{sockaddr-in6} @var{value}
+Accessors and mutators for records of type @class{struct-sockaddr-in6}.
+@end defun
+
+
+@defun primitive:pointer-><struct-sockaddr-in6> @var{pointer}
+Given a pointer object to a @code{struct sockaddr_in6} data structure,
+build and return a record of type @class{struct-sockaddr-in6} which
+mirrors it.
+
+This function is exported by the @library{posix sockets primitives}
+library.
+@end defun
+
 @c page
 @node sockets records sockaddr-un
 @subsection Local namespace socket address
@@ -4394,9 +4533,13 @@ A Scheme string representing the pathname of the file to use.
 @end deftp
 
 
-@defun make-<struct-sockaddr-un> @var{family} @var{data}
+@defun make-<struct-sockaddr-un> @var{pathname}
 @defunx <struct-sockaddr-un>? @var{obj}
-Constructor and predicate for records of type @class{struct-sockaddr-un}.
+Constructor and predicate for records of type
+@class{struct-sockaddr-un}.
+
+For the constructor: @var{pathname} is the value of the @code{path}
+field, the @code{family} field is set to @code{AF_LOCAL} automatically.
 @end defun
 
 
@@ -4405,6 +4548,16 @@ Constructor and predicate for records of type @class{struct-sockaddr-un}.
 @defunx <struct-sockaddr-un>-path @var{sockaddr-un}
 @defunx <struct-sockaddr-un>-path-set! @var{sockaddr-un} @var{value}
 Accessors and mutators for records of type @class{struct-sockaddr-un}.
+@end defun
+
+
+@defun primitive:pointer-><struct-sockaddr-un> @var{pointer}
+Given a pointer object to a @code{struct sockaddr_un} data structure,
+build and return a record of type @class{struct-sockaddr-in} which
+mirrors it.
+
+This function is exported by the @library{posix sockets primitives}
+library.
 @end defun
 
 @c page
@@ -4544,15 +4697,229 @@ known network interfaces.
 @end deffn
 
 @c page
+@node sockets open close
+@section Opening and closing sockets
+
+
+The following functions manage opening and closing sockets.
+@glibcref{Open/Close Sockets, Opening and Closing Sockets}.
+
+
+@deffn Function socket @var{namespace} @var{style}
+@deffnx Function socket @var{namespace} @var{style} @var{protocol}
+@deffnx Parameter socket-function
+@deffnx Function primitive:socket @var{namespace} @var{style}
+@deffnx Function primitive:socket @var{namespace} @var{style} @var{protocol}
+@deffnx Function platform:socket @var{namespace-int} @var{style-int} @var{protocol-int}
+Create a new socket and return a @class{socket} record representing it.
+
+@var{namespace} must be an enumeration set of type
+@code{enum-socket-namespace} holding a single element.  @var{style} must
+be an enumeration set of type @code{enum-socket-style} holding a single
+element.  @var{protocol} must be an enumeration set of type
+@code{enum-socket-protocol} holding a single element; when not used, it
+defaults to protocol zero.
+@end deffn
+
+
+@deffn Function socketpair @var{namespace} @var{style}
+@deffnx Function socketpair @var{namespace} @var{style} @var{protocol}
+@deffnx Parameter socketpair-function
+@deffnx Function primitive:socketpair @var{namespace} @var{style}
+@deffnx Function primitive:socketpair @var{namespace} @var{style} @var{protocol}
+@deffnx Function platform:socketpair @var{namespace-int} @var{style-int} @var{protocol-int}
+Create a two interconnected sockets and return two values being
+@class{socket} records representing them.
+
+@var{namespace} must be an enumeration set of type
+@code{enum-socket-namespace} holding a single element; the namespace
+must be @code{local} (or @code{unix} or @code{file}).  @var{style} must
+be an enumeration set of type @code{enum-socket-style} holding a single
+element.  @var{protocol} must be an enumeration set of type
+@code{enum-socket-protocol} holding a single element; when not used, it
+defaults to protocol zero.
+@end deffn
+
+
+@deffn Function shutdown @var{sock} @var{how}
+@deffnx Parameter shutdown-function
+@deffnx Function primitive:shutdown @var{sock} @var{how}
+@deffnx Function platform:shutdown @var{sock-int} @var{how-int}
+Shut down the connection socket @var{sock}, which must be a
+@class{socket} record, according to the mode selected by @var{how},
+which must be an enumeration set of type
+@code{enum-socket-shutdown-mode} holding a single element.
+
+This funciton is an alternative to @func{close}, which can be applied to
+@var{sock}, too, and which closes both the channels.
+@end deffn
+
+@c page
+@node sockets ops
+@section Operations on sockets
+
+
+The following functions perform operations on sockets.
+@glibcref{Connecting, Making a Connection}.  @glibcref{Setting Address,
+Setting the Address of a Socket}.  @glibcref{Listening, Listening for
+Connections}.  @glibcref{Accepting Connections, Accepting Connections}.
+
+
+@deffn Function connect @var{sock} @var{sockaddr}
+@deffnx Parameter connect-function
+@deffnx Function primitive:connect @var{sock} @var{sockaddr}
+@deffnx Function platform:connect @var{sock-int} @var{sockaddr-ptr} @var{socklen}
+Initiate a connection from @var{sock} to the address described by
+@var{sockaddr}.  @var{sock} must be a @class{socket} record,
+@var{sockaddr} must be a record of type @class{struct-sockaddr-un},
+@class{struct-sockaddr-in} or @class{struct-sockaddr-in6}.
+@end deffn
+
+
+@deffn Function bind @var{sock} @var{sockaddr}
+@deffnx Parameter bind-function
+@deffnx Function primitive:bind @var{sock} @var{sockaddr}
+@deffnx Function platform:bind @var{sock} @var{sockaddr-ptr} @var{socklen}
+Assign an address to a socket.  @var{sock} must be a record of type
+@class{socket}.  @var{sockaddr} must be a record of type
+@class{struct-sockaddr-un}, @class{struct-sockaddr-in} or
+@class{struct-sockaddr-in6}.
+@end deffn
+
+
+@deffn Function listen @var{sock} @var{max-pending-connections}
+@deffnx Parameter listen-function
+@deffnx Function primitive:listen @var{sock} @var{max-pending-connections}
+@deffnx Function platform:listen @var{sock-int} @var{max-pending-connections}
+Enable @var{sock} to accept connection, making it a server socket;
+@var{sock} must be a record of type @class{socket}.
+
+The exact positive integer @var{max-pending-connections} establishes the
+length of the queue for pending connections; when this limit is reached,
+the connection si refused.
+@end deffn
+
+
+@deffn Function accept @var{sock}
+@deffnx Parameter accept-function
+@deffnx Function primitive:accept @var{sock}
+@deffnx Function platform:accept @var{sock-int} @var{sockaddr-ptr} @var{socklen}
+Accept a connection to the server--socket @var{sock}, which must be a
+@class{socket} record.
+
+Return two values: a new @class{socket} record representing the socket
+connected to the client, a record of type @class{struct-sockaddr-un},
+@class{struct-sockaddr-in} or @class{struct-sockaddr-in6} describing the
+client's address.
+@end deffn
+
+@c page
 @node sockets address
 @section Network addresses
+
+
+The following functions manage querying sockets for their associated
+addresses.  @glibcref{Reading Address, Reading the Address of a Socket}.
+@glibcref{Who is Connected, Who is Connected to Me?}.
+
+
+@deffn Function getsockname @var{sock}
+@deffnx Parameter getsockname-function
+@deffnx Function primitive:getsockname @var{sock}
+@deffnx Function platform:getsockname @var{sock-int} @var{sockaddr-ptr} @var{socklen-ptr}
+Return a record of type @class{struct-sockaddr-un},
+@class{struct-sockaddr-in} or @class{struct-sockaddr-in6} describing the
+address bound to @var{sock}, which must be a @class{socket} record.
+
+This is the address associated to @var{sock} by @func{bind}.
+@end deffn
+
+
+@deffn Function getpeername @var{sock}
+@deffnx Parameter getpeername-function
+@deffnx Function primitive:getpeername @var{sock}
+@deffnx Function platform:getpeername @var{sock-int} @var{sockaddr-ptr} @var{socklen-ptr}
+Return a record of type @class{struct-sockaddr-un},
+@class{struct-sockaddr-in} or @class{struct-sockaddr-in6} describing the
+address to which @var{sock} is connected; @var{sock} must be a
+@class{socket} record.
+
+This is the address associated to @var{sock} by @func{connect} or
+@func{accept}.
+@end deffn
 
 
 @defun socket-namespace->socklen @var{set}
 Given an enumeration set of type @code{enum-socket-namespace} holding a
 single element, return the size in bytes of the C language structure
 required to hold an address of the selected namespace.
+
+The size may not be significant, see the original documentation.
+
+This binding is exported by the @library{posix typedef} library.
 @end defun
+
+@c page
+@node sockets transfer
+@section Transferring data
+
+
+The following functions manage transferring data between sockets.
+@glibcref{Transferring Data, Transferring Data}.  @glibcref{Datagrams,
+Datagram Socket Operations}.
+
+
+@deffn Function send @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
+@deffnx Parameter send-function
+@deffnx Function primitive:send @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
+@deffnx Function platform:send @var{sock-int} @var{buf-ptr} @var{buf-len} @var{data-options-int}
+Write at most @var{buf-len} bytes from the buffer referenced by
+@var{buf-ptr} to the socket @var{sock}, which must be a @class{socket}
+record.  Return the number of bytes actually sent.
+
+@var{data-options} must be an enumeration set of type
+@code{enum-socket-data-options}.
+@end deffn
+
+
+@deffn Function recv @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
+@deffnx Parameter recv-function
+@deffnx Function primitive:recv @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
+@deffnx Function platform:recv @var{sock-int} @var{buf-ptr} @var{buf-len} @var{data-options-int}
+Read at most @var{buf-len} bytes to the buffer referenced by
+@var{buf-ptr} reading them from the socket @var{sock}, which must be a
+@class{socket} record.  Return the number of bytes actually received.
+
+@var{data-options} must be an enumeration set of type
+@code{enum-socket-data-options}.
+@end deffn
+
+
+@deffn Function sendto @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
+@deffnx Parameter sendto-function
+@deffnx Function primitive:sendto @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
+@deffnx Function platform:sendto @var{sock-int} @var{buf-ptr} @var{buf-len} @var{data-options-int}
+Write at most @var{buf-len} bytes from the buffer referenced by
+@var{buf-ptr} to the socket @var{sock}, which must be a @class{socket}
+record.  Return the number of bytes actually sent.
+
+@var{data-options} must be an enumeration set of type
+@code{enum-socket-data-options}.
+@end deffn
+
+
+@deffn Function recvfrom @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
+@deffnx Parameter recvfrom-function
+@deffnx Function primitive:recvfrom @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
+@deffnx Function platform:recvfrom @var{sock-int} @var{buf-ptr} @var{buf-len} @var{data-options-int}
+Read at most @var{buf-len} bytes to the buffer referenced by
+@var{buf-ptr} reading them from the socket @var{sock}, which must be a
+@class{socket} record.  Return the number of bytes actually received.
+
+@var{data-options} must be an enumeration set of type
+@code{enum-socket-data-options}.
+@end deffn
+
 
 @c page
 @node streams

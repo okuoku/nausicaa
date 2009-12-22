@@ -32,6 +32,11 @@
     if-nametoindex		if-indextoname
     if-nameindex
 
+    ;; socket operations
+    socket			socketpair
+    shutdown
+    bind			getsockname
+
     )
   (import (rnrs)
     (posix helpers)
@@ -40,6 +45,27 @@
   (define-parametrised if-nametoindex name)
   (define-parametrised if-indextoname index)
   (define-parametrised if-nameindex)
+
+  (define-primitive-parameter socket-function primitive:socket)
+  (define socket
+    (case-lambda
+     ((namespace style)
+      ((socket-function) namespace style))
+     ((namespace style protocol)
+      ((socket-function) namespace style protocol))))
+
+  (define-primitive-parameter socketpair-function primitive:socketpair)
+  (define socketpair
+    (case-lambda
+     ((namespace style)
+      ((socketpair-function) namespace style))
+     ((namespace style protocol)
+      ((socketpair-function) namespace style protocol))))
+
+  (define-parametrised shutdown sock how)
+
+  (define-parametrised bind sock sockaddr)
+  (define-parametrised getsockname sock)
 
   )
 
