@@ -619,6 +619,7 @@ Enumeration type definitions
 * sockets enumerations addrfrm::        Socket address formats.
 * sockets enumerations shutdown::       Socket shutdown modes.
 * sockets enumerations dataopts::       Socket data options.
+* sockets enumerations options::        Socket options.
 
 Accessing data structures
 
@@ -705,7 +706,7 @@ Record types
 
 Processes
 
-* process typedefs::            Object type defintions.
+* process typedefs::            Object type definitions.
 * process id::                  Process identification.
 * process fork::                Creating a process.
 * process exec::                Executing a file.
@@ -1918,7 +1919,7 @@ sequence of characters (six times @code{X}).  @var{template} is
 @deffnx Function platform:tempnam @var{directory-cstr} @var{prefix-cstr}
 Build and return a file pathname, as Scheme string, that, at the time of
 the call, does not exists on the system.  @var{directory} and
-@var{prefix} can be Scheme string or symbols or @false{} (inplace of
+@var{prefix} can be Scheme string or symbols or @false{} (in place of
 @cnull{} pointers).  @var{directory} is used as directory pathname in
 which to create the temporary file; @var{prefix} is used as prefix for
 the file name.
@@ -3072,7 +3073,7 @@ Position of a Descriptor}.
 
 
 @deffn Function lseek @var{fd} @var{offset} @var{whence}
-@deffnx Paramter lseek-function
+@deffnx Parameter lseek-function
 @deffnx Function primitive:lseek @var{fd} @var{offset} @var{whence}
 @deffnx Function platform:lseek @var{fd-int} @var{offset} @var{whence}
 Move the file position of @var{fd} at @var{offset} from the position
@@ -3390,7 +3391,7 @@ Usage example, writing strings:
 @section Memory mapped input/output
 
 
-The following functions manage input/outut through a file mapped to a
+The following functions manage input/output through a file mapped to a
 region of memory.  @glibcref{Memory-mapped I/O, Memory--mapped I/O}.
 
 
@@ -3470,7 +3471,7 @@ Usage example:
 @section Waiting for input or output
 
 
-The following functions manage watiting for input and outut on file
+The following functions manage waiting for input and outut on file
 descriptors.  @glibcref{Waiting for I/O, Waiting for Input and Output}.
 
 In the following descriptions the @var{fdset} arguments are @code{fdset}
@@ -3805,6 +3806,7 @@ exported by the following libraries:
 * sockets ops::                 Operations on sockets.
 * sockets address::             Network addresses.
 * sockets transfer::            Transferring data.
+* sockets options::             Configuring sockets behaviour.
 @end menu
 
 @c page
@@ -3899,6 +3901,7 @@ Unless otherwise specified, the following bindings are exported by the
 * sockets enumerations addrfrm::        Socket address formats.
 * sockets enumerations shutdown::       Socket shutdown modes.
 * sockets enumerations dataopts::       Socket data options.
+* sockets enumerations options::        Socket options.
 @end menu
 
 @c page
@@ -3906,7 +3909,7 @@ Unless otherwise specified, the following bindings are exported by the
 @subsection Socket namespaces
 
 
-@deftp {Enumeration Type} enum-socket-namespace
+@deftp {Enumeration Type} enum-socket-namespaces
 Enumeration type for the symbols representing socket communication
 namespaces; it has the following members:
 
@@ -3921,7 +3924,7 @@ inet   inet6  unspec
 
 
 @deffn Syntax socket-namespace @ameta{symbol}
-Expand to an enumeration set of type @code{enum-socket-namespace}
+Expand to an enumeration set of type @code{enum-socket-namespaces}
 holding the given symbol argument.
 @end deffn
 
@@ -3929,13 +3932,16 @@ holding the given symbol argument.
 @defun socket-namespace->value @var{set}
 @defunx value->socket-namespace @var{value}
 Convert to and from an enumeration set of type
-@code{enum-socket-namespace} holding a single element and the
+@code{enum-socket-namespaces} holding a single element and the
 corresponding exact integer value, one among:
 
 @example
 PF_LOCAL  PF_UNIX   PF_FILE
 PF_INET   PF_INET6  PF_UNSPEC
 @end example
+
+@noindent
+@code{PF_LOCAL}, @code{PF_UNIX} and @code{PF_FILE} are synonyms.
 @end defun
 
 @c page
@@ -3943,7 +3949,7 @@ PF_INET   PF_INET6  PF_UNSPEC
 @subsection Socket styles
 
 
-@deftp {Enumeration Type} enum-socket-style
+@deftp {Enumeration Type} enum-socket-styles
 Enumeration type for the symbols representing socket communication
 styles; it has the following members:
 
@@ -3954,14 +3960,14 @@ stream  datagram  raw
 
 
 @deffn Syntax socket-style @ameta{symbol}
-Expand to an enumeration set of type @code{enum-socket-style} holding
+Expand to an enumeration set of type @code{enum-socket-styles} holding
 the given symbol argument.
 @end deffn
 
 
 @defun socket-style->value @var{set}
 @defunx value->socket-style @var{value}
-Convert to and from an enumeration set of type @code{enum-socket-style}
+Convert to and from an enumeration set of type @code{enum-socket-styles}
 holding a single element and the corresponding exact integer value, one
 among:
 
@@ -3975,7 +3981,7 @@ SOCK_STREAM  SOCK_DGRAM  SOCK_RAW
 @subsection Socket protocols
 
 
-@deftp {Enumeration Type} enum-socket-protocol
+@deftp {Enumeration Type} enum-socket-protocols
 Enumeration type for the symbols representing socket communication
 protocols; it has the following members:
 
@@ -3986,7 +3992,7 @@ zero
 
 
 @deffn Syntax socket-protocol @ameta{symbol}
-Expand to an enumeration set of type @code{enum-socket-protocol} holding
+Expand to an enumeration set of type @code{enum-socket-protocols} holding
 the given symbol argument.
 @end deffn
 
@@ -3994,7 +4000,7 @@ the given symbol argument.
 @defun socket-protocol->value @var{set}
 @defunx value->socket-protocol @var{value}
 Convert to and from an enumeration set of type
-@code{enum-socket-protocol} holding a single element and the
+@code{enum-socket-protocols} holding a single element and the
 corresponding exact integer value, one among:
 
 @example
@@ -4004,10 +4010,10 @@ corresponding exact integer value, one among:
 
 @c page
 @node sockets enumerations addrfrm
-@subsection Socket addrfrms
+@subsection Socket address formats
 
 
-@deftp {Enumeration Type} enum-socket-address-format
+@deftp {Enumeration Type} enum-socket-address-formats
 Enumeration type for the symbols representing socket address formats; it
 has the following members:
 
@@ -4019,7 +4025,7 @@ inet   inet6  unspec
 
 
 @deffn Syntax socket-address-format @ameta{symbol}
-Expand to an enumeration set of type @code{enum-socket-address-format}
+Expand to an enumeration set of type @code{enum-socket-address-formats}
 holding the given symbol argument.
 @end deffn
 
@@ -4027,7 +4033,7 @@ holding the given symbol argument.
 @defun socket-address-format->value @var{set}
 @defunx value->socket-address-format @var{value}
 Convert to and from an enumeration set of type
-@code{enum-socket-address-format} holding a single element and the
+@code{enum-socket-address-formats} holding a single element and the
 corresponding exact integer value, one among:
 
 @example
@@ -4041,7 +4047,7 @@ AF_INET   AF_INET6  AF_UNSPEC
 @subsection Socket shutdown modes
 
 
-@deftp {Enumeration Type} enum-socket-shutdown-mode
+@deftp {Enumeration Type} enum-socket-shutdown-modes
 Enumeration type for the symbols representing socket shutdown modes; it
 has the following members:
 
@@ -4052,7 +4058,7 @@ read    write   both
 
 
 @deffn Syntax shutdown-mode @ameta{symbol}
-Expand to an enumeration set of type @code{enum-socket-shutdown-mode}
+Expand to an enumeration set of type @code{enum-socket-shutdown-modes}
 holding the given symbol argument.
 @end deffn
 
@@ -4060,7 +4066,7 @@ holding the given symbol argument.
 @defun socket-shutdown-mode->value @var{set}
 @defunx value->socket-shutdown-mode @var{value}
 Convert to and from an enumeration set of type
-@code{enum-socket-shutdown-mode} holding a single element and the
+@code{enum-socket-shutdown-modes} holding a single element and the
 corresponding exact integer value, one among:
 
 @example
@@ -4099,6 +4105,60 @@ constants:
 @example
 MSG_OOB  MSG_PEEK  MSG_DONTROUTE
 @end example
+@end defun
+
+@c page
+@node sockets enumerations options
+@subsection Socket options
+
+
+@deftp {Enumeration Type} enum-socket-options
+Enumeration type for the symbols representing socket options; it has the
+following members:
+
+@example
+debug           reuseaddr
+keepalive       dontroute
+linger          broadcast
+oobinline       sndbuf
+rcvbuf          style
+type            error
+@end example
+
+@noindent
+@code{type} and @code{style} are synonyms.
+@end deftp
+
+
+@deffn Syntax socket-option @ameta{symbol}
+Expand to an enumeration set of type @code{enum-socket-options} holding
+the given symbol argument.
+@end deffn
+
+
+@defun socket-option->value @var{set}
+@defunx value->socket-option @var{value}
+Convert to and from an enumeration set of type
+@code{enum-socket-options} holding a single element and the
+corresponding exact integer value, one among:
+
+@example
+SO_DEBUG        SO_REUSEADDR
+SO_KEEPALIVE    SO_DONTROUTE
+SO_LINGER       SO_BROADCAST
+SO_OOBINLINE    SO_SNDBUF
+SO_RCVBUF       SO_STYLE
+SO_TYPE         SO_ERROR
+@end example
+
+@noindent
+@code{SO_TYPE} and @code{SO_STYLE} are synonyms.
+@end defun
+
+
+@defun socket-option->symbol @var{set}
+Convert an enumeration set of type @code{enum-socket-options} holding a
+single element to the element itself.
 @end defun
 
 @c page
@@ -4383,15 +4443,15 @@ Record type used to wrap socket file descriptors; it is derived from
 
 @table @code
 @item namespace
-An enumeration set of type @code{enum-socket-namespace} holding a single
+An enumeration set of type @code{enum-socket-namespaces} holding a single
 element.
 
 @item style
-An enumeration set of type @code{enum-socket-style} holding a single
+An enumeration set of type @code{enum-socket-styles} holding a single
 element.
 
 @item protocol
-An enumeraftion set of type @code{enum-socket-protocl} holding a single
+An enumeration set of type @code{enum-socket-protocl} holding a single
 element.
 @end table
 @end deftp
@@ -4654,7 +4714,7 @@ The following functions manage inspection of network interfaces.
 @deffnx Parameter if-nametoindex-function
 @deffnx Function primitive:if-nametoindex @var{name}
 @deffnx Function platform:if_nametoindex @var{name-cstr}
-Convert the Scheme string or symbol @var{name} to the corresponing
+Convert the Scheme string or symbol @var{name} to the corresponding
 network interface index.  Correct indexes should start at @math{1}, with
 @math{0} being invalid.  Examples:
 
@@ -4673,7 +4733,7 @@ network interface index.  Correct indexes should start at @math{1}, with
 @deffnx Function primitive:if-indextoname @var{index}
 @deffnx Function platform:if_indextoname @var{index}
 Convert the exact integer @var{index} representing a network interface
-integer to a Scheme string or symbol representing the corresponing
+integer to a Scheme string or symbol representing the corresponding
 network interface name.  Correct indexes should start at @math{1}, with
 @math{0} being invalid.  Example:
 
@@ -4714,10 +4774,10 @@ The following functions manage opening and closing sockets.
 Create a new socket and return a @class{socket} record representing it.
 
 @var{namespace} must be an enumeration set of type
-@code{enum-socket-namespace} holding a single element.  @var{style} must
-be an enumeration set of type @code{enum-socket-style} holding a single
+@code{enum-socket-namespaces} holding a single element.  @var{style} must
+be an enumeration set of type @code{enum-socket-styles} holding a single
 element.  @var{protocol} must be an enumeration set of type
-@code{enum-socket-protocol} holding a single element; when not used, it
+@code{enum-socket-protocols} holding a single element; when not used, it
 defaults to protocol zero.
 @end deffn
 
@@ -4732,11 +4792,11 @@ Create a two interconnected sockets and return two values being
 @class{socket} records representing them.
 
 @var{namespace} must be an enumeration set of type
-@code{enum-socket-namespace} holding a single element; the namespace
+@code{enum-socket-namespaces} holding a single element; the namespace
 must be @code{local} (or @code{unix} or @code{file}).  @var{style} must
-be an enumeration set of type @code{enum-socket-style} holding a single
+be an enumeration set of type @code{enum-socket-styles} holding a single
 element.  @var{protocol} must be an enumeration set of type
-@code{enum-socket-protocol} holding a single element; when not used, it
+@code{enum-socket-protocols} holding a single element; when not used, it
 defaults to protocol zero.
 @end deffn
 
@@ -4748,9 +4808,9 @@ defaults to protocol zero.
 Shut down the connection socket @var{sock}, which must be a
 @class{socket} record, according to the mode selected by @var{how},
 which must be an enumeration set of type
-@code{enum-socket-shutdown-mode} holding a single element.
+@code{enum-socket-shutdown-modes} holding a single element.
 
-This funciton is an alternative to @func{close}, which can be applied to
+This function is an alternative to @func{close}, which can be applied to
 @var{sock}, too, and which closes both the channels.
 @end deffn
 
@@ -4796,7 +4856,7 @@ Enable @var{sock} to accept connection, making it a server socket;
 
 The exact positive integer @var{max-pending-connections} establishes the
 length of the queue for pending connections; when this limit is reached,
-the connection si refused.
+the connection is refused.
 @end deffn
 
 
@@ -4850,13 +4910,13 @@ This is the address associated to @var{sock} by @func{connect} or
 
 
 @defun socket-namespace->socklen @var{set}
-Given an enumeration set of type @code{enum-socket-namespace} holding a
+Given an enumeration set of type @code{enum-socket-namespaces} holding a
 single element, return the size in bytes of the C language structure
 required to hold an address of the selected namespace.
 
 The size may not be significant, see the original documentation.
 
-This binding is exported by the @library{posix typedef} library.
+This binding is exported by the @library{posix typedefs} library.
 @end defun
 
 @c page
@@ -4869,57 +4929,123 @@ The following functions manage transferring data between sockets.
 Datagram Socket Operations}.
 
 
-@deffn Function send @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
+@deffn Function send @var{sock} @var{ptr} @var{len} @var{options}
 @deffnx Parameter send-function
-@deffnx Function primitive:send @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
-@deffnx Function platform:send @var{sock-int} @var{buf-ptr} @var{buf-len} @var{data-options-int}
-Write at most @var{buf-len} bytes from the buffer referenced by
-@var{buf-ptr} to the socket @var{sock}, which must be a @class{socket}
-record.  Return the number of bytes actually sent.
+@deffnx Function primitive:send @var{sock} @var{ptr} @var{len} @var{options}
+@deffnx Function platform:send @var{sock-int} @var{ptr} @var{len} @var{options-int}
+Write at most @var{len} bytes from the buffer referenced by @var{ptr} to
+the socket @var{sock}, which must be a @class{socket} record.  Return
+the number of bytes actually sent.
 
-@var{data-options} must be an enumeration set of type
+@var{options} must be an enumeration set of type
 @code{enum-socket-data-options}.
 @end deffn
 
 
-@deffn Function recv @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
+@deffn Function recv @var{sock} @var{ptr} @var{len} @var{options}
 @deffnx Parameter recv-function
-@deffnx Function primitive:recv @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
-@deffnx Function platform:recv @var{sock-int} @var{buf-ptr} @var{buf-len} @var{data-options-int}
-Read at most @var{buf-len} bytes to the buffer referenced by
-@var{buf-ptr} reading them from the socket @var{sock}, which must be a
+@deffnx Function primitive:recv @var{sock} @var{ptr} @var{len} @var{options}
+@deffnx Function platform:recv @var{sock-int} @var{ptr} @var{len} @var{options-int}
+Read at most @var{len} bytes to the buffer referenced by
+@var{ptr} reading them from the socket @var{sock}, which must be a
 @class{socket} record.  Return the number of bytes actually received.
 
-@var{data-options} must be an enumeration set of type
+@var{options} must be an enumeration set of type
 @code{enum-socket-data-options}.
 @end deffn
 
 
-@deffn Function sendto @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
+@deffn Function sendto @var{sock} @var{ptr} @var{len} @var{options} @var{sockaddr}
 @deffnx Parameter sendto-function
-@deffnx Function primitive:sendto @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
-@deffnx Function platform:sendto @var{sock-int} @var{buf-ptr} @var{buf-len} @var{data-options-int}
-Write at most @var{buf-len} bytes from the buffer referenced by
-@var{buf-ptr} to the socket @var{sock}, which must be a @class{socket}
+@deffnx Function primitive:sendto @var{sock} @var{ptr} @var{len} @var{options} @var{sockaddr}
+@deffnx Function platform:sendto @var{sock-int} @var{ptr} @var{len} @var{options-int}
+Write at most @var{len} bytes from the buffer referenced by
+@var{ptr} to the socket @var{sock}, which must be a @class{socket}
 record.  Return the number of bytes actually sent.
 
-@var{data-options} must be an enumeration set of type
+@var{options} must be an enumeration set of type
 @code{enum-socket-data-options}.
 @end deffn
 
 
-@deffn Function recvfrom @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
+@deffn Function recvfrom @var{sock} @var{ptr} @var{len} @var{options}
 @deffnx Parameter recvfrom-function
-@deffnx Function primitive:recvfrom @var{sock} @var{buf-ptr} @var{buf-len} @var{data-options}
-@deffnx Function platform:recvfrom @var{sock-int} @var{buf-ptr} @var{buf-len} @var{data-options-int}
-Read at most @var{buf-len} bytes to the buffer referenced by
-@var{buf-ptr} reading them from the socket @var{sock}, which must be a
-@class{socket} record.  Return the number of bytes actually received.
+@deffnx Function primitive:recvfrom @var{sock} @var{ptr} @var{len} @var{options}
+@deffnx Function platform:recvfrom @var{sock-int} @var{ptr} @var{len} @var{options-int}
+Read at most @var{len} bytes to the buffer referenced by @var{ptr}
+reading them from the socket @var{sock}, which must be a @class{socket}
+record.  Return the number of bytes actually received.
 
-@var{data-options} must be an enumeration set of type
+@var{options} must be an enumeration set of type
 @code{enum-socket-data-options}.
 @end deffn
 
+@c page
+@node sockets options
+@section Configuring sockets behaviour
+
+
+The following functions manage configuration of sockets.
+@glibcref{Socket Options, Socket Options}.
+
+
+@deffn Function getsockopt @var{sock} @var{option}
+@deffnx Parameter getsockopt-function
+@deffnx Function primitive:getsockopt @var{sock} @var{option}
+@deffnx Function platform:getsockopt @var{sock-int} @var{level} @var{option} @var{optptr} @var{optlen}
+Retrieve the selected option from a socket and return its value.
+@var{sock} must be an object of type @class{socket}; @var{option} must
+be an enumeration set of type @code{enum-socket-options} holding a
+single element.
+@end deffn
+
+
+@deffn Function setsockopt @var{sock} @var{option} @var{value}
+@deffnx Parameter setsockopt-function
+@deffnx Function primitive:setsockopt @var{sock} @var{option} @var{value}
+@deffnx Function platform:setsockopt @var{sock-int} @var{level} @var{option} @var{optptr} @var{optlen}
+Set the selected option for a socket.  @var{sock} must be an object of
+type @class{socket}; @var{option} must be an enumeration set of type
+@code{enum-socket-options} holding a single element.
+@end deffn
+
+
+The following symbols from @code{enum-socket-options} are supported for
+@posix{} systems:
+
+@table @code
+@item debug
+@itemx reuseaddr
+@itemx keepalive
+@itemx dontroute
+@itemx broadcast
+@itemx oobinline
+The value is a Scheme boolean.  Can be used with both @func{getsockopt}
+and @func{setsockopt}.
+
+@item sndbuf
+@itemx rcvbuf
+The value is an exact non--negative integer, representing the size of
+input/output buffers; notice that this appears to be more a
+``suggestion'' to the system, rather than a strict order.  Can be used
+with both @func{getsockopt} and @func{setsockopt}.
+
+@item linger
+The value is @false{} or an exact positive integer, representing the
+linger time out in seconds; @false{} means no lingering and it is
+equivalent to zero.  Can be used with both @func{getsockopt} and
+@func{setsockopt}.
+
+@item style
+@itemx type
+The value is a socket style, an enumeration set of type
+@code{enum-socket-styles} holding a single element.  Can be used only
+with @func{getsockopt}.
+
+@item error
+Retrieve and clear the pending socket error.  Can be used only with
+@func{getsockopt}.
+@end table
 
 @c page
 @node streams
@@ -7048,8 +7174,8 @@ single value: the return value from the foreign function.
 
 @deffn Function getppid
 @deffnx Parameter getppid-function
-@deffnx Functionx primitive:getppid
-@deffnx Functionx platform:getppid
+@deffnx Function primitive:getppid
+@deffnx Function platform:getppid
 Return a @code{pid} object representing the identifier of the parent
 process.  This function cannot fail, so @func{platform:getppid} returns
 a single value: the return value from the foreign function.
@@ -9148,7 +9274,7 @@ The following functions manage reading the @file{mtab} file.
 @deffnx Function primitive:setmntent @var{pathname} @var{open-mode}
 @deffnx Function platform:setmntent @var{pathname-cstr} @var{open-mode-cstr}
 Open the file selected by @var{pathname}, a Scheme string or symbol, to
-be read as a @file{mtab} file; returne a @code{FILE*} object.
+be read as a @file{mtab} file; return a @code{FILE*} object.
 @var{open-mode} must be a file open mode like the ones allowed for
 @func{fopen}.
 @end deffn
@@ -9176,7 +9302,7 @@ entry read from @var{stream}, a @code{FILE*} object.  This function is
 reentrant.
 
 It is impossible to distinguish between an error and the end of
-iteration, so when one of these envents happens: the return value is
+iteration, so when one of these events happens: the return value is
 @false{}.
 
 @example
@@ -9226,7 +9352,7 @@ string) under @var{mount-point} (a Scheme string) assuming it is of
 
 @var{options} must be an exact integer composed by inclusive bitwise OR
 of the @code{MS_*} flags, or zero.  @var{data-ptr} is a kernel--defined
-buffer, the constant @code{empty-string} from @library{foreing cstrings}
+buffer, the constant @code{empty-string} from @library{foreign cstrings}
 may be a valid value.  @nauref{cstrings constants, Constant values}.
 @end deffn
 

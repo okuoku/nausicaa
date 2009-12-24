@@ -248,34 +248,40 @@
 
 ;;; --------------------------------------------------------------------
 
-    enum-socket-namespace		socket-namespace
+    enum-socket-namespaces		socket-namespace
     socket-namespace->value		value->socket-namespace
     socket-namespace->socklen
 
 ;;; --------------------------------------------------------------------
 
-    enum-socket-address-format		socket-address-format
+    enum-socket-address-formats		socket-address-format
     socket-address-format->value	value->socket-address-format
 
 ;;; --------------------------------------------------------------------
 
-    enum-socket-style			socket-style
+    enum-socket-styles			socket-style
     socket-style->value			value->socket-style
 
 ;;; --------------------------------------------------------------------
 
-    enum-socket-protocol		socket-protocol
+    enum-socket-protocols		socket-protocol
     socket-protocol->value		value->socket-protocol
 
 ;;; --------------------------------------------------------------------
 
-    enum-socket-shutdown-mode		shutdown-mode
+    enum-socket-shutdown-modes		shutdown-mode
     socket-shutdown-mode->value		value->socket-shutdown-mode
 
 ;;; --------------------------------------------------------------------
 
     enum-socket-data-options		socket-data-options
     socket-data-options->value		value->socket-data-options
+
+;;; --------------------------------------------------------------------
+
+    enum-socket-options			socket-option
+    socket-option->symbol
+    socket-option->value		value->socket-option
 
     )
   (import (rnrs)
@@ -353,7 +359,7 @@
 
 
 (define-record-type <struct-passwd>
-  (nongenerative nausicaa:posix:struct-passwd)
+  (nongenerative nausicaa:posix:<struct-passwd>)
   (fields (mutable name)
 	  (mutable passwd)
 	  (mutable uid)
@@ -368,7 +374,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type <struct-group>
-  (nongenerative nausicaa:posix:struct-group)
+  (nongenerative nausicaa:posix:<struct-group>)
   (fields (mutable name)
 	  (mutable gid)
 	  (mutable mem)))
@@ -378,7 +384,7 @@
 
 
 (define-record-type <struct-utsname>
-  (nongenerative nausicaa:posix:struct-utsname)
+  (nongenerative nausicaa:posix:<struct-utsname>)
   (fields (mutable sysname)
 	  (mutable release)
 	  (mutable version)
@@ -389,7 +395,7 @@
 
 
 (define-record-type <struct-fstab>
-  (nongenerative nausicaa:posix:struct-fstab)
+  (nongenerative nausicaa:posix:<struct-fstab>)
   (fields (mutable spec)
 	  (mutable file)
 	  (mutable vfstype)
@@ -404,7 +410,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type <struct-mntent>
-  (nongenerative nausicaa:posix:struct-mntent)
+  (nongenerative nausicaa:posix:<struct-mntent>)
   (fields (mutable fsname)
 	  (mutable dir)
 	  (mutable type)
@@ -417,6 +423,7 @@
 
 
 (define-record-type <process-term-status>
+  (nongenerative nausicaa:posix:<process-term-status>)
   (fields (immutable WIFEXITED		WIFEXITED?)
 	  (immutable WEXITSTATUS	WEXITSTATUS?)
 	  (immutable WIFSIGNALED	WIFSIGNALED?)
@@ -430,6 +437,7 @@
 
 
 (define-record-type <struct-stat>
+  (nongenerative nausicaa:posix:<struct-stat>)
   (fields (immutable mode)
 	  (immutable ino)
 	  (immutable dev)
@@ -451,6 +459,7 @@
 
 
 (define-record-type <struct-tms>
+  (nongenerative nausicaa:posix:<struct-tms>)
   (fields (mutable utime)
 	  (mutable stime)
 	  (mutable cutime)
@@ -462,6 +471,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type <struct-timeval>
+  (nongenerative nausicaa:posix:<struct-timeval>)
   (fields (mutable sec)
 	  (mutable usec)))
 
@@ -471,6 +481,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type <struct-timespec>
+  (nongenerative nausicaa:posix:<struct-timespec>)
   (fields (mutable sec)
 	  (mutable nsec)))
 
@@ -480,6 +491,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type <struct-timezone>
+  (nongenerative nausicaa:posix:<struct-timezone>)
   (fields (mutable minuteswest)
 	  (mutable dsttime)))
 
@@ -489,6 +501,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type <struct-tm>
+  (nongenerative nausicaa:posix:<struct-tm>)
   (fields (mutable sec)
 	  (mutable min)
 	  (mutable hour)
@@ -507,6 +520,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type <struct-ntptimeval>
+  (nongenerative nausicaa:posix:<struct-ntptimeval>)
   (fields (mutable time)
 	  (mutable maxerror)
 	  (mutable esterror)))
@@ -517,6 +531,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type <struct-timex>
+  (nongenerative nausicaa:posix:<struct-timex>)
   (fields (mutable modes)
 	  (mutable offset)
 	  (mutable freq)
@@ -543,6 +558,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type <struct-itimerval>
+  (nongenerative nausicaa:posix:<struct-itimerval>)
   (fields (mutable interval)
 	  (mutable value)))
 
@@ -551,6 +567,7 @@
 
 
 (define-record-type <struct-sockaddr-in>
+  (nongenerative nausicaa:posix:<struct-sockaddr-in>)
   (fields (mutable family)
 	  (mutable addr)
 	  (mutable port)))
@@ -561,6 +578,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type <struct-sockaddr-in6>
+  (nongenerative nausicaa:posix:<struct-sockaddr-in6>)
   (fields (mutable family)
 	  (mutable addr)
 	  (mutable port)))
@@ -571,6 +589,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type (<struct-sockaddr-un> %make-<struct-sockaddr-un> <struct-sockaddr-un>?)
+  (nongenerative nausicaa:posix:<struct-sockaddr-un>)
   (fields (mutable family)
 	  (mutable path)))
 
@@ -583,6 +602,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type <struct-if-nameindex>
+  (nongenerative nausicaa:posix:<struct-if-nameindex>)
   (fields (mutable index)
 	  (mutable name)))
 
@@ -592,6 +612,7 @@
 ;;; --------------------------------------------------------------------
 
 (define-record-type <struct-netent>
+  (nongenerative nausicaa:posix:<struct-netent>)
   (fields (mutable name)
 	  (mutable aliases)
 	  (mutable addrtype)
@@ -602,16 +623,23 @@
 
 
 (define-record-type struct-in-addr
+  (nongenerative nausicaa:posix:struct-in-addr)
   (fields (immutable pointer struct-in-addr->pointer)))
 
 (define pointer->struct-in-addr make-struct-in-addr)
 
+;;; --------------------------------------------------------------------
+
 (define-record-type struct-in6-addr
+  (nongenerative nausicaa:posix:struct-in6-addr)
   (fields (immutable pointer struct-in6-addr->pointer)))
 
 (define pointer->struct-in6-addr make-struct-in6-addr)
 
+;;; --------------------------------------------------------------------
+
 (define-record-type <socket>
+  (nongenerative nausicaa:posix:<socket>)
   (parent file-descriptor)
   (fields (immutable namespace)
 	  (immutable style)
@@ -776,7 +804,7 @@
        "unknown interprocess signal symbol" symbol))))
 
 
-(define-enumeration enum-socket-style
+(define-enumeration enum-socket-styles
   (stream datagram raw)
   %socket-style)
 
@@ -813,7 +841,7 @@
 	   "invalid value as socket style" value))))
 
 
-(define-enumeration enum-socket-protocol
+(define-enumeration enum-socket-protocols
   (zero)
   %socket-protocol)
 
@@ -844,7 +872,7 @@
 	   "invalid value as socket protocol" value))))
 
 
-(define-enumeration enum-socket-namespace
+(define-enumeration enum-socket-namespaces
   (local
    unix
    file
@@ -878,7 +906,9 @@
 	 (car ell))))))
 
 (define (value->socket-namespace value)
-  (cond ((= value PF_LOCAL)
+  (cond ((or (= value PF_LOCAL)
+	     (= value PF_FILE)	;redundant
+	     (= value PF_UNIX))	;redundant
 	 (socket-namespace local))
 	((= value PF_INET)
 	 (socket-namespace inet))
@@ -910,7 +940,7 @@
 	   "invalid socket address namespace" set))))
 
 
-(define-enumeration enum-socket-address-format
+(define-enumeration enum-socket-address-formats
   (local
    unix
    file
@@ -961,7 +991,7 @@
 	   "invalid value as socket style" value))))
 
 
-(define-enumeration enum-socket-shutdown-mode
+(define-enumeration enum-socket-shutdown-modes
   (read write both)
   %socket-shutdown-mode)
 
@@ -999,11 +1029,11 @@
 
 
 (define-enumeration enum-socket-data-options
-  (read write both)
+  (oob peek dontroute)
   socket-data-options)
 
 (define %socket-data-options-universe
-  (enum-set-universe (%socket-data-options)))
+  (enum-set-universe (socket-data-options)))
 
 (define %socket-data-options-constructor
   (enum-set-constructor %socket-data-options-universe))
@@ -1011,17 +1041,17 @@
 (define (socket-data-options->value set)
   (assert (enum-set-subset? set %socket-data-options-universe))
   (fold-left (lambda (knil symbol)
-	       (bitwise-ior (case symbol
-			      ((oob)		MSG_OOB)
-			      ((peek)		MSG_PEEK)
-			      ((dontroute)	MSG_DONTROUTE))))
+	       (bitwise-ior knil (case symbol
+				   ((oob)	MSG_OOB)
+				   ((peek)	MSG_PEEK)
+				   ((dontroute)	MSG_DONTROUTE))))
 	       0
 	       (enum-set->list set)))
 
 (define value->socket-data-options
-  (let ((alist `((MSG_OOB	. oob)
-		 (MSG_PEEK	. peek)
-		 (MSG_DONTROUTE	. dontroute))))
+  (let ((alist `((,MSG_OOB		. oob)
+		 (,MSG_PEEK		. peek)
+		 (,MSG_DONTROUTE	. dontroute))))
     (lambda (value)
       (let loop ((alist alist)
 		 (ell	'()))
@@ -1031,6 +1061,85 @@
 	       (loop (cdr alist) (cons (cdar alist) ell)))
 	      (else
 	       (loop (cdr alist) ell)))))))
+
+
+(define-enumeration enum-socket-options
+  (debug
+   reuseaddr
+   keepalive
+   dontroute
+   linger
+   broadcast
+   oobinline
+   sndbuf
+   rcvbuf
+   style
+   type
+   error)
+  %socket-option)
+
+(define %socket-options-universe
+  (enum-set-universe (%socket-option)))
+
+(define-syntax socket-option
+  (syntax-rules ()
+    ((_ ?opt)
+     (%socket-option ?opt))))
+
+(define (socket-option->symbol set)
+  (assert (enum-set-subset? set %socket-options-universe))
+  (let ((ell (enum-set->list set)))
+    (assert (= 1 (length ell)))
+    (car ell)))
+
+(define (socket-option->value set)
+  (let ((symbol (socket-option->symbol set)))
+    (case symbol
+      ((debug)		SO_DEBUG)
+      ((reuseaddr)	SO_REUSEADDR)
+      ((keepalive)	SO_KEEPALIVE)
+      ((dontroute)	SO_DONTROUTE)
+      ((linger)		SO_LINGER)
+      ((broadcast)	SO_BROADCAST)
+      ((oobinline)	SO_OOBINLINE)
+      ((sndbuf)		SO_SNDBUF)
+      ((rcvbuf)		SO_RCVBUF)
+      ((style)		SO_STYLE)
+      ((type)		SO_TYPE)
+      ((error)		SO_ERROR)
+      (else
+       (assertion-violation 'socket-option->value
+	 "invalid symbol in enumeration set of socket option"
+	 symbol)))))
+
+(define (value->socket-option value)
+  (cond ((= value SO_DEBUG)
+	 (socket-option debug))
+	((= value SO_REUSEADDR)
+	 (socket-option reuseaddr))
+	((= value SO_KEEPALIVE)
+	 (socket-option keepalive))
+	((= value SO_DONTROUTE)
+	 (socket-option dontroute))
+	((= value SO_LINGER)
+	 (socket-option linger))
+	((= value SO_BROADCAST)
+	 (socket-option broadcast))
+	((= value SO_OOBINLINE)
+	 (socket-option oobinline))
+	((= value SO_SNDBUF)
+	 (socket-option sndbuf))
+	((= value SO_RCVBUF)
+	 (socket-option rcvbuf))
+	((= value SO_STYLE)
+	 (socket-option style))
+	((= value SO_TYPE)
+	 (socket-option type))
+	((= value SO_ERROR)
+	 (socket-option error))
+	(else
+	 (assertion-violation 'value->socket-option
+	   "invalid value as socket option" value))))
 
 
 ;;;; done

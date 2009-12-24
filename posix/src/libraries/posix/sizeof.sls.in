@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Mon Dec 21, 2009
+;;;Date: Thu Dec 24, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -388,6 +388,13 @@
     struct-netent-n_addrtype-ref
     struct-netent-n_net-set!
     struct-netent-n_net-ref
+    sizeof-linger
+    alignof-linger
+    strideof-linger
+    struct-linger-l_onoff-set!
+    struct-linger-l_onoff-ref
+    struct-linger-l_linger-set!
+    struct-linger-l_linger-ref
     SEEK_SET
     SEEK_CUR
     SEEK_END
@@ -894,7 +901,7 @@
     IFNAMSIZ
     MSG_OOB
     MSG_PEEK
-    MSG_ONROUTE
+    MSG_DONTROUTE
     SOL_SOCKET
     SO_DEBUG
     SO_REUSEADDR
@@ -905,9 +912,9 @@
     SO_OOBINLINE
     SO_SNDBUF
     SO_RCVBUF
-    SO_STYLE
     SO_TYPE
-    SO_ERROR)
+    SO_ERROR
+    SO_STYLE)
   (import
     (rnrs)
     (foreign ffi)
@@ -1701,6 +1708,21 @@
     @OFFSETOF_NETENT_N_NET@
     @SETTEROF_NETENT_N_NET@
     @GETTEROF_NETENT_N_NET@)
+  (define sizeof-linger @SIZEOF_LINGER@)
+  (define alignof-linger @ALIGNOF_LINGER@)
+  (define strideof-linger @STRIDEOF_LINGER@)
+  (define-c-struct-accessor-and-mutator
+    struct-linger-l_onoff-set!
+    struct-linger-l_onoff-ref
+    @OFFSETOF_LINGER_L_ONOFF@
+    @SETTEROF_LINGER_L_ONOFF@
+    @GETTEROF_LINGER_L_ONOFF@)
+  (define-c-struct-accessor-and-mutator
+    struct-linger-l_linger-set!
+    struct-linger-l_linger-ref
+    @OFFSETOF_LINGER_L_LINGER@
+    @SETTEROF_LINGER_L_LINGER@
+    @GETTEROF_LINGER_L_LINGER@)
   (define SEEK_SET @VALUEOF_SEEK_SET@)
   (define SEEK_CUR @VALUEOF_SEEK_CUR@)
   (define SEEK_END @VALUEOF_SEEK_END@)
@@ -2547,7 +2569,7 @@
   (define IFNAMSIZ @VALUEOF_IFNAMSIZ@)
   (define MSG_OOB @VALUEOF_MSG_OOB@)
   (define MSG_PEEK @VALUEOF_MSG_PEEK@)
-  (define MSG_ONROUTE @VALUEOF_MSG_ONROUTE@)
+  (define MSG_DONTROUTE @VALUEOF_MSG_DONTROUTE@)
   (define SOL_SOCKET @VALUEOF_SOL_SOCKET@)
   (define SO_DEBUG @VALUEOF_SO_DEBUG@)
   (define SO_REUSEADDR @VALUEOF_SO_REUSEADDR@)
@@ -2558,9 +2580,9 @@
   (define SO_OOBINLINE @VALUEOF_SO_OOBINLINE@)
   (define SO_SNDBUF @VALUEOF_SO_SNDBUF@)
   (define SO_RCVBUF @VALUEOF_SO_RCVBUF@)
-  (define SO_STYLE @VALUEOF_SO_STYLE@)
   (define SO_TYPE @VALUEOF_SO_TYPE@)
-  (define SO_ERROR @VALUEOF_SO_ERROR@))
+  (define SO_ERROR @VALUEOF_SO_ERROR@)
+  (define SO_STYLE SO_TYPE))
 
 
 ;;; end of file

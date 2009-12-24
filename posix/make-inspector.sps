@@ -316,6 +316,11 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (signed-int		n_addrtype)
   (unsigned-int		n_net))
 
+(define-c-struct linger
+  "struct linger"
+  (signed-int		l_onoff)
+  (signed-int		l_linger))
+
 (autoconf-lib "AC_CACHE_SAVE")
 
 
@@ -899,17 +904,23 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 
   MSG_OOB
   MSG_PEEK
-  MSG_ONROUTE
+  MSG_DONTROUTE
 
   SOL_SOCKET
   SO_DEBUG	SO_REUSEADDR
   SO_KEEPALIVE	SO_DONTROUTE
   SO_LINGER	SO_BROADCAST
   SO_OOBINLINE	SO_SNDBUF
-  SO_RCVBUF	SO_STYLE
+  SO_RCVBUF
   SO_TYPE	SO_ERROR
 
   )
+
+(sizeof-lib
+ (define SO_STYLE SO_TYPE))
+
+(sizeof-lib-exports
+ SO_STYLE)
 
 (autoconf-lib "AC_CACHE_SAVE")
 
