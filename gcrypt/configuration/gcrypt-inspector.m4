@@ -25,9 +25,6 @@ dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
 
-NAUSICAA_INSPECT_TYPE([GPG_ERROR_T],[gpg_error_t],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([GPG_ERR_CODE_T],[gpg_err_code_t],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([GPG_ERR_SOURCE_T],[gpg_err_source_t],[signed-int],[#f])
 
 dnl Struct inspection: gcry_md_handle
 NAUSICAA_INSPECT_STRUCT_TYPE([GCRY_MD_HANDLE],[struct gcry_md_handle],[#f])

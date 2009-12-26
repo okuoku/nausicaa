@@ -28,8 +28,8 @@
 (library (foreign crypto gcrypt platform)
   (export
     gcry_check_version
-    gcry_control
     gcry_control/int
+    gcry_control/uint
     gcry_control/ptr
 
     gcry_strerror
@@ -207,7 +207,8 @@
     (foreign ffi)
     (foreign ffi sizeof)
     (foreign crypto gcrypt shared-object)
-    (foreign crypto gcrypt sizeof))
+    (foreign crypto gcrypt sizeof)
+    (only (foreign crypto gpg-error sizeof) gpg_error_t))
 
 
 (define void**			'pointer)
@@ -220,8 +221,8 @@
 (define-c-functions gcrypt-shared-object
   (gcry_check_version		(char* gcry_check_version (char*)))
 
-  (gcry_control			(gcry_error_t gcry_control (gcry_ctl_cmds)))
   (gcry_control/int		(gcry_error_t gcry_control (gcry_ctl_cmds int)))
+  (gcry_control/uint		(gcry_error_t gcry_control (gcry_ctl_cmds unsigned-int)))
   (gcry_control/ptr		(gcry_error_t gcry_control (gcry_ctl_cmds pointer)))
   )
 

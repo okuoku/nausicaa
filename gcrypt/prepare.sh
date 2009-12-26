@@ -9,7 +9,8 @@ set -x
         configure -ot aclocal.m4                                -o \
         configure -ot infrastructure/develstuff.autoconf        -o \
         configure -ot configuration/nausicaa.autoconf           -o \
-        configure -ot configuration/gcrypt-inspector.m4
+        configure -ot configuration/gcrypt-inspector.m4         -o \
+        configure -ot configuration/gpg-error-inspector.m4
         then
         autoconf
     fi)

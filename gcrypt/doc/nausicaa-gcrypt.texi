@@ -521,6 +521,8 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* init::                        Initialisation and control.
+* error::                       Error inspection.
 
 Appendices
 
@@ -559,27 +561,36 @@ The installed libraries are:
 
 @table @library
 @item foreign crypto gcrypt shared-object
-Exports the single binding @code{gcrypt-shared-object} which references
-the foreign shared library.
+@itemx foreign crypto gpg-error shared-object
+Each library exports a single binding, @code{gcrypt-shared-object} and
+@code{gpg-error-shared-object}, which references the foreign shared
+library.
 
 @item foreign crypto gcrypt sizeof
+@itemx foreign crypto gpg-error sizeof
 Exports bindings to constant values and data structures accessors.
 
 @item foreign crypto gcrypt platform
+@itemx foreign crypto gpg-error platform
 Exports one binding for each foreign function; the Scheme functions have
-the same name of the C functions, so @cfunc{gcrypt_init} is availale as
-@func{gcrypt_init}.  This library makes the original Libgcrypt
-documentation relevant for this package.  @gcryptref{Top, The Libgcrypt
-library}.
+the same name of the C functions, so @cfunc{gcry_check_version} is
+available as @func{gcry_check_version}.  This library makes the original
+Libgcrypt documentation relevant for this package.  @gcryptref{Top, The
+Libgcrypt library}.
 
 @item foreign crypto gcrypt primitives
+@itemx foreign crypto gpg-error primitives
 Exports one binding for each foreign function, implementing marshaling
 of arguments and return values.  The Scheme functions have the same name
 of the C functions, buth with in lower case and with the underscores
-converted to dashes; so @cfunc{gcrypt_init} is availale as
-@func{gcrypt-init}.
+converted to dashes; so @cfunc{gcry_check_version} is available as
+@func{gcry-check-version}.
+
+This documentation file describes the @api{} exported by this library;
+only functions implementing marshaling of values are described.
 
 @item foreign crypto gcrypt
+@itemx foreign crypto gpg-error
 Compound library exporting the high--level @api{}; it reexports bindings
 from the @samp{primitives} library and the constant values from the
 @samp{sizeof} library.
@@ -589,6 +600,52 @@ Exports bindings to constructor functions making use of the
 @library{compensations} library from Nausicaa/Scheme.
 @nauref{compensations, Compensation stacks}.
 @end table
+
+@c page
+@node init
+@chapter Initialisation and control
+
+
+The following functions manage library initialisation and configuration.
+@gcryptref{Initializing the library, Initializing the library}.
+
+
+@defun gcry-check-version
+Initialise the library and check its version number.  If successful:
+return a Scheme string representing the foreign library's version
+number; if an error occurs: return @false{}.
+@end defun
+
+
+@defun gcry-control/int @var{cmd} @var{int-value}
+@defunx gcry-control/uint @var{cmd} @var{unsigned-int-value}
+@defunx gcry-control/ptr @var{cmd} @var{pointer-value}
+Specialisations of the variadic function @cfunc{gcry_control} accepting
+an integer, an unsigned integer or a pointer value.  Notice that when
+the command @var{cmd} requires no argument, we can use
+@func{gcry-control/int} with @var{int-value} set to zero.
+
+The return value is always an integer; @strong{no} error detection is
+performed by @library{foreign gcrypt primitives}.
+@end defun
+
+@c page
+@node error
+@chapter Error inspection
+
+
+@defun gcry-strerror @var{code}
+@defunx gpg-strerror @var{code}
+@defunx gpg-strerror-r @var{code}
+Return a Scheme string describing the error @var{code}.
+@end defun
+
+
+@defun gcry-strsource @var{code}
+@defunx gpg-strsource @var{code}
+Return a Scheme string describing the error source specified by
+@var{code}.
+@end defun
 
 @c page
 

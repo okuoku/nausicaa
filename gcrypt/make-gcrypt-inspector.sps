@@ -32,10 +32,6 @@
 
 ;;;; type definitions
 
-(define-c-type gpg_error_t		signed-int)
-(define-c-type gpg_err_code_t		signed-int)
-(define-c-type gpg_err_source_t		signed-int)
-
 (define-c-type-alias gcry_error_t	signed-int)
 (define-c-type-alias gcry_err_code_t	signed-int)
 (define-c-type-alias gcry_err_source_t	signed-int)

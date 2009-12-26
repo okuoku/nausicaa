@@ -28,24 +28,6 @@
 (library
   (foreign crypto gcrypt sizeof)
   (export
-    gpg_error_t
-    sizeof-gpg_error_t
-    alignof-gpg_error_t
-    strideof-gpg_error_t
-    pointer-ref-c-gpg_error_t
-    pointer-set-c-gpg_error_t!
-    gpg_err_code_t
-    sizeof-gpg_err_code_t
-    alignof-gpg_err_code_t
-    strideof-gpg_err_code_t
-    pointer-ref-c-gpg_err_code_t
-    pointer-set-c-gpg_err_code_t!
-    gpg_err_source_t
-    sizeof-gpg_err_source_t
-    alignof-gpg_err_source_t
-    strideof-gpg_err_source_t
-    pointer-ref-c-gpg_err_source_t
-    pointer-set-c-gpg_err_source_t!
     gcry_error_t
     gcry_err_code_t
     gcry_err_source_t
@@ -314,54 +296,6 @@
     (rnrs)
     (foreign ffi)
     (foreign ffi sizeof))
-  (define gpg_error_t '@TYPEOF_GPG_ERROR_T@)
-  (define sizeof-gpg_error_t @SIZEOF_GPG_ERROR_T@)
-  (define
-    alignof-gpg_error_t
-    @ALIGNOF_GPG_ERROR_T@)
-  (define
-    strideof-gpg_error_t
-    @STRIDEOF_GPG_ERROR_T@)
-  (define
-    pointer-ref-c-gpg_error_t
-    @GETTEROF_GPG_ERROR_T@)
-  (define
-    pointer-set-c-gpg_error_t!
-    @SETTEROF_GPG_ERROR_T@)
-  (define gpg_err_code_t '@TYPEOF_GPG_ERR_CODE_T@)
-  (define
-    sizeof-gpg_err_code_t
-    @SIZEOF_GPG_ERR_CODE_T@)
-  (define
-    alignof-gpg_err_code_t
-    @ALIGNOF_GPG_ERR_CODE_T@)
-  (define
-    strideof-gpg_err_code_t
-    @STRIDEOF_GPG_ERR_CODE_T@)
-  (define
-    pointer-ref-c-gpg_err_code_t
-    @GETTEROF_GPG_ERR_CODE_T@)
-  (define
-    pointer-set-c-gpg_err_code_t!
-    @SETTEROF_GPG_ERR_CODE_T@)
-  (define
-    gpg_err_source_t
-    '@TYPEOF_GPG_ERR_SOURCE_T@)
-  (define
-    sizeof-gpg_err_source_t
-    @SIZEOF_GPG_ERR_SOURCE_T@)
-  (define
-    alignof-gpg_err_source_t
-    @ALIGNOF_GPG_ERR_SOURCE_T@)
-  (define
-    strideof-gpg_err_source_t
-    @STRIDEOF_GPG_ERR_SOURCE_T@)
-  (define
-    pointer-ref-c-gpg_err_source_t
-    @GETTEROF_GPG_ERR_SOURCE_T@)
-  (define
-    pointer-set-c-gpg_err_source_t!
-    @SETTEROF_GPG_ERR_SOURCE_T@)
   (define gcry_error_t 'signed-int)
   (define gcry_err_code_t 'signed-int)
   (define gcry_err_source_t 'signed-int)

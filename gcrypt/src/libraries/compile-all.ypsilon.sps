@@ -24,6 +24,7 @@
 ;;;
 
 (import
+    (only (foreign crypto gpg-error))
     (only (foreign crypto gcrypt))
     (only (foreign crypto gcrypt compensated))
   )

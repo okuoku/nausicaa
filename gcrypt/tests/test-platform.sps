@@ -30,10 +30,12 @@
   (foreign cstrings)
   (foreign crypto gcrypt platform)
   (foreign crypto gcrypt sizeof)
+  (prefix (foreign crypto gpg-error platform) gpg:)
+  (prefix (foreign crypto gpg-error sizeof) gpg:)
   (checks))
 
 (check-set-mode! 'report-failed)
-(display "*** testing Gcrypt platform\n")
+(display "*** testing Gcrypt and GPG-Error platform\n")
 
 
 (parametrise ((check-test-name	'version))

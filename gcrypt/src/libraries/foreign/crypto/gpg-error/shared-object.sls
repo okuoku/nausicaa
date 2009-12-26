@@ -1,6 +1,7 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Gcrypt
-;;;Contents: compile script for Ikarus Scheme
+;;;Contents: load foreign shared library gpg-error
 ;;;Date: Sat Dec 26, 2009
 ;;;
 ;;;Abstract
@@ -23,10 +24,13 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (foreign crypto gpg-error))
-  (only (foreign crypto gcrypt))
-  (only (foreign crypto gcrypt compensated))
-  )
+
+(library (foreign crypto gpg-error shared-object)
+  (export gpg-error-shared-object)
+  (import (rnrs)
+    (foreign ffi)
+    (foreign crypto gpg-error sizeof))
+  (define-shared-object gpg-error-shared-object
+    GPG_ERROR_SHARED_OBJECT))
 
 ;;; end of file
