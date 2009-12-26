@@ -805,7 +805,7 @@
 
 
 (define-enumeration enum-socket-styles
-  (stream datagram raw)
+  (stream datagram raw seqpacket)
   %socket-style)
 
 (define-syntax socket-style
@@ -824,6 +824,7 @@
       ((stream)		SOCK_STREAM)
       ((datagram)	SOCK_DGRAM)
       ((raw)		SOCK_RAW)
+      ((seqpacket)	SOCK_SEQPACKET)
       (else
        (assertion-violation 'socket-style->value
 	 "invalid symbol in enumeration set of socket style"
@@ -836,6 +837,8 @@
 	 (socket-style datagram))
 	((= value SOCK_RAW)
 	 (socket-style raw))
+	((= value SOCK_SEQPACKET)
+	 (socket-style seqpacket))
 	(else
 	 (assertion-violation 'value->socket-style
 	   "invalid value as socket style" value))))

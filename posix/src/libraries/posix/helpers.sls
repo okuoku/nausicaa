@@ -30,10 +30,16 @@
     define-primitive-parameter
     define-parametrised)
   (import (rnrs)
-    (only (parameters)
-	  make-parameter))
+    (only (parameters) make-parameter))
 
   (define-syntax define-primitive-parameter
+    ;;Define a parameter to be used to invoke a function.  Usage:
+    ;;
+    ;;  (define-primitive-parameter parm func)
+    ;;
+    ;;where  PARM is the  identifier of  the parameter  and FUNC  is the
+    ;;identifier of the function.
+    ;;
     (syntax-rules ()
       ((_ ?parameter-name ?primitive-name)
        (define ?parameter-name
@@ -48,8 +54,42 @@
 	     func))))))
 
   (define-syntax define-parametrised
+    ;;Define a  parameter to  be used to  invoke a function.   Usage for
+    ;;functions of fixed formals:
+    ;;
+    ;;   (define-parametrised NAME ARG1 ARG2 ...)
+    ;;
+    ;;where  NAME is the  function identifier;  the parameter  will have
+    ;;identifier  "NAME-function"; the  ARG identifiers  are  the formal
+    ;;arguments.
+    ;;
+    ;;Usage for CASE-LAMBDA functions:
+    ;;
+    ;;   (define-parametrised NAME ((A1 A2 ...) (B1 B2 ...) ...))
+    ;;
+    ;;where  NAME is the  function identifier;  the parameter  will have
+    ;;identifier "NAME-function"; the function is defined as:
+    ;;
+    ;;   (define NAME
+    ;;     (case-lambda ((A1 A2 ...) ((NAME-function) A1 A2 ...))
+    ;;                   (B1 B2 ...) ((NAME-function) B1 B2 ...))
+    ;;                   ...))
+    ;;
     (lambda (stx)
       (syntax-case stx ()
+	((_ ?name ((?arg ...) ...))
+	 (let* ((name		(symbol->string (syntax->datum #'?name)))
+		(parm-name	(string->symbol (string-append name "-function")))
+		(prim-name	(string->symbol (string-append "primitive:" name))))
+	   (with-syntax ((PARM-NAME (datum->syntax #'?name parm-name))
+			 (PRIM-NAME (datum->syntax #'?name prim-name)))
+	     #'(begin
+		 (define-primitive-parameter PARM-NAME PRIM-NAME)
+		 (define ?name
+		   (case-lambda
+		    ((?arg ...)
+		     ((PARM-NAME) ?arg ...))
+		    ...))))))
 	((_ ?name ?arg ...)
 	 (let* ((name		(symbol->string (syntax->datum #'?name)))
 		(parm-name	(string->symbol (string-append name "-function")))
@@ -59,7 +99,9 @@
 	     #'(begin
 		 (define-primitive-parameter PARM-NAME PRIM-NAME)
 		 (define (?name ?arg ...)
-		   ((PARM-NAME) ?arg ...)))))))))
+		   ((PARM-NAME) ?arg ...))))))
+	)))
+
   )
 
 ;;; end of file

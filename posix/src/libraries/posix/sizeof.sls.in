@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Thu Dec 24, 2009
+;;;Date: Fri Dec 25, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -881,6 +881,7 @@
     SOCK_DGRAM
     SOCK_RAW
     SOCK_RDM
+    SOCK_SEQPACKET
     AF_LOCAL
     PF_LOCAL
     AF_UNIX
@@ -2545,6 +2546,7 @@
   (define SOCK_DGRAM @VALUEOF_SOCK_DGRAM@)
   (define SOCK_RAW @VALUEOF_SOCK_RAW@)
   (define SOCK_RDM @VALUEOF_SOCK_RDM@)
+  (define SOCK_SEQPACKET @VALUEOF_SOCK_SEQPACKET@)
   (define AF_LOCAL @VALUEOF_AF_LOCAL@)
   (define PF_LOCAL @VALUEOF_PF_LOCAL@)
   (define AF_UNIX @VALUEOF_AF_UNIX@)

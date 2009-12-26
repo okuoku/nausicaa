@@ -3796,6 +3796,7 @@ exported by the following libraries:
 @end example
 
 @menu
+* sockets intro::               Introduction.
 * sockets constants::           Constant values.
 * sockets enumerations::        Enumeration type definitions.
 * sockets structs::             Accessing data structures.
@@ -3807,7 +3808,40 @@ exported by the following libraries:
 * sockets address::             Network addresses.
 * sockets transfer::            Transferring data.
 * sockets options::             Configuring sockets behaviour.
+* sockets examples::            Client and server examples.
 @end menu
+
+@c page
+@node sockets intro
+@section Introduction
+
+
+Sockets programming is a bit complex task, so we want to read
+documentation to learn how to do it.  First there is the @gnu{} C
+Library chapter on sockets (@glibcref{Sockets, Sockets}), then there are
+the Unix/Linux manual pages.  Each function documented in this chapter
+has a manual page we may want to read; additionally the following manual
+pages, available on Linux systems, report useful informations:
+
+@table @code
+@item socket(7)
+
+@item unix(7)
+Details about the sockets for local interprocess communications; these
+are the sockets with namespace @code{AF_LOCAL}.
+
+@item raw(7)
+
+@item packet(7)
+
+@item capabilities(7)
+
+@item credentials(7)
+
+@item ip(7)
+
+@end table
+
 
 @c page
 @node sockets constants
@@ -3954,7 +3988,7 @@ Enumeration type for the symbols representing socket communication
 styles; it has the following members:
 
 @example
-stream  datagram  raw
+stream  datagram  raw  seqpacket
 @end example
 @end deftp
 
@@ -3972,7 +4006,7 @@ holding a single element and the corresponding exact integer value, one
 among:
 
 @example
-SOCK_STREAM  SOCK_DGRAM  SOCK_RAW
+SOCK_STREAM  SOCK_DGRAM  SOCK_RAW  SOCK_SEQPACKET
 @end example
 @end defun
 
@@ -5046,6 +5080,82 @@ with @func{getsockopt}.
 Retrieve and clear the pending socket error.  Can be used only with
 @func{getsockopt}.
 @end table
+
+@c page
+@node sockets examples
+@section Client and server examples
+
+
+@menu
+* sockets examples local::      Local namespace sockets.
+@end menu
+
+@c page
+@node sockets examples local
+@subsection Local namespace sockets
+
+
+The following is an example program which forks a subprocess and makes
+the parent and child exchange strings; it uses a pair of sockets
+connected through a @code{PF_LOCAL} namespace socket.  Notice that the
+exchanged strings are discarded to keep the program simple; for the same
+reason there is no error handling.
+
+@smallexample
+(import (rnrs)
+  (compensations)
+  (posix typedefs)
+  (prefix (posix system)  posix:)
+  (prefix (posix sockets) posix:)
+  (prefix (posix fd)      posix:)
+  (prefix (posix file)    posix:)
+  (prefix (posix process) posix:)
+  (prefix (glibc time)    glibc:))
+
+(with-compensations
+  (let* ((TMPDIR   (posix:getenv "TMPDIR"))
+         (pathname (string-append TMPDIR "/proof"))
+         (sockaddr (make-<struct-sockaddr-un> pathname)))
+
+    (if (posix:fork)
+
+        (begin ;parent, server
+          (push-compensation (when (file-exists? pathname)
+                               (posix:remove pathname)))
+          (letrec ((server-sock
+                     (compensate
+                         (posix:socket (socket-namespace local)
+                                       (socket-style stream))
+                       (with
+                        (posix:close server-sock)))))
+            (posix:bind   server-sock sockaddr)
+            (posix:listen server-sock 2)
+            (receive (client-sock client-address)
+                (posix:accept server-sock)
+              (push-compensation (posix:close client-sock))
+              (posix:send/string client-sock "ciao client")
+              (posix:recv/string client-sock 100)
+              (posix:send/string client-sock "quit client")
+              (posix:recv/string client-sock 100))))
+
+      (begin ;child, client
+        (letrec ((client-sock
+                   (compensate
+                       (posix:socket (socket-namespace local)
+                                     (socket-style stream))
+                     (with
+                      (posix:close client-sock)))))
+
+          ;;Give the server some time to setup
+          ;;itself and reach the ACCEPT call.
+          (glibc:sleep 1)
+
+          (posix:connect client-sock sockaddr)
+          (posix:recv/string client-sock 100)
+          (posix:send/string client-sock "ciao server")
+          (posix:recv/string client-sock 100)
+          (posix:send/string client-sock "quit server"))))))
+@end smallexample
 
 @c page
 @node streams

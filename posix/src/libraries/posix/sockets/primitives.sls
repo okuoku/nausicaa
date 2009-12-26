@@ -52,6 +52,10 @@
     sendto/memblock	recvfrom/memblock
     getsockopt		setsockopt
 
+    ;; ancillary messages
+    ;; cmsg
+    ;; sendmsg		recvmsg
+
     ;; networks database
     ;; getnetbyname	getnetbyaddr
     ;; setnetent		getnetent	endnetent
@@ -143,7 +147,7 @@
 	  (if (= -1 result)
 	      (raise-errno-error 'socketpair errno (list namespace style protocol))
 	    (values (make-<socket> (pointer-ref-c-signed-int fds* 0) namespace style protocol)
-		    (make-<socket> (pointer-ref-c-signed-int fds* 0) namespace style protocol)))))))))
+		    (make-<socket> (pointer-ref-c-signed-int fds* 1) namespace style protocol)))))))))
 
 (define (shutdown sock how)
   (receive (result errno)
@@ -207,20 +211,20 @@
 	   (assertion-violation 'accept
 	     "invalid namespace in sockaddr structure" namespace)))))
 
-(define (pointer-><struct-sockaddr-in> pointer)
+(define (pointer-><struct-sockaddr-un> sockaddr*)
+  (make-<struct-sockaddr-un> (cstring->string (struct-sockaddr_un-sun_path-ref sockaddr*))))
+
+(define (pointer-><struct-sockaddr-in> sockaddr*)
   (make-<struct-sockaddr-in>
-   (struct-sockaddr_in-sin_family-ref pointer)
-   (pointer->bytevector (struct-sockaddr_in-sin_addr-ref pointer) sizeof-in_addr)
-   (struct-sockaddr_in-sin_port-ref pointer)))
+   (struct-sockaddr_in-sin_family-ref sockaddr*)
+   (pointer->bytevector (struct-sockaddr_in-sin_addr-ref sockaddr*) sizeof-in_addr)
+   (struct-sockaddr_in-sin_port-ref sockaddr*)))
 
-(define (pointer-><struct-sockaddr-in6> pointer)
+(define (pointer-><struct-sockaddr-in6> sockaddr*)
   (make-<struct-sockaddr-in6>
-   (struct-sockaddr_in6-sin6_family-ref pointer)
-   (pointer->bytevector (struct-sockaddr_in6-sin6_addr-ref pointer) sizeof-in6_addr)
-   (struct-sockaddr_in6-sin6_port-ref pointer)))
-
-(define (pointer-><struct-sockaddr-un> pointer)
-  (make-<struct-sockaddr-un> (cstring->string (struct-sockaddr_un-sun_path-ref pointer))))
+   (struct-sockaddr_in6-sin6_family-ref sockaddr*)
+   (pointer->bytevector (struct-sockaddr_in6-sin6_addr-ref sockaddr*) sizeof-in6_addr)
+   (struct-sockaddr_in6-sin6_port-ref sockaddr*)))
 
 
 ;;;; addresses
@@ -265,7 +269,7 @@
 	       (error 'accept
 		 "sockaddr structure of source address too big" socklen))
 	      (else
-	       (values (make-<socket> (integer->file-descriptor result)
+	       (values (make-<socket> result
 				      (<socket>-namespace sock)
 				      (<socket>-style     sock)
 				      (<socket>-protocol  sock))
@@ -311,130 +315,194 @@
 	       (pointer->sockaddr sockaddr*)))))))
 
 
-(define (send sock buf.ptr buf.len flags)
-(write sock)(newline)
-(write (file-descriptor->integer sock))(newline)
-  (receive (result errno)
-      (platform:send (file-descriptor->integer sock) buf.ptr buf.len
-		     (socket-data-options->value flags))
-    (if (= -1 result)
-	(raise-errno-error 'send errno (list sock buf.ptr buf.len flags))
-      result)))
+(define send
+  (case-lambda
+   ((sock buf.ptr buf.len)
+    (send sock buf.ptr buf.len (socket-data-options)))
+   ((sock buf.ptr buf.len flags)
+    (receive (result errno)
+	(platform:send (file-descriptor->integer sock) buf.ptr buf.len
+		       (socket-data-options->value flags))
+      (if (= -1 result)
+	  (raise-errno-error 'send errno (list sock buf.ptr buf.len flags))
+	result)))))
 
-(define (send/string sock str flags)
-  (assert (string? str))
-  (with-compensations
-    (let ((buf.ptr (string->cstring/c str)))
-      (send sock buf.ptr (strlen buf.ptr) flags))))
+(define send/string
+  (case-lambda
+   ((sock str)
+    (send/string sock str (socket-data-options)))
+   ((sock str flags)
+    (assert (string? str))
+    (with-compensations
+      (let ((buf.ptr (string->cstring/c str)))
+	;;We want to send the terminating zero, too.
+	(send sock buf.ptr (+ 1 (strlen buf.ptr)) flags))))))
 
-(define (send/bytevector sock bv flags)
-  (assert (bytevector? bv))
-  (with-compensations
-    (let ((buf.ptr (bytevector->pointer bv malloc-block/c))
-	  (buf.len (bytevector-length bv)))
-      (send sock buf.ptr (strlen buf.ptr) flags))))
+(define send/bytevector
+  (case-lambda
+   ((sock bv)
+    (send/bytevector sock bv (socket-data-options)))
+   ((sock bv flags)
+    (assert (bytevector? bv))
+    (with-compensations
+      (let ((buf.ptr (bytevector->pointer bv malloc-block/c))
+	    (buf.len (bytevector-length bv)))
+	(send sock buf.ptr (strlen buf.ptr) flags))))))
 
-(define (send/memblock sock mb flags)
-  (assert (<memblock>? mb))
-  (send sock (<memblock>-pointer mb) (<memblock>-size mb) flags))
+(define send/memblock
+  (case-lambda
+   ((sock mb)
+    (send/memblock sock mb (socket-data-options)))
+   ((sock mb flags)
+    (assert (<memblock>? mb))
+    (send sock (<memblock>-pointer mb) (<memblock>-size mb) flags))))
 
 
-(define (recv sock buf.ptr buf.len flags)
-  (receive (result errno)
-      (platform:recv (file-descriptor->integer sock) buf.ptr buf.len
-		     (socket-data-options->value flags))
-    (if (= -1 result)
-	(raise-errno-error 'recv errno (list sock buf.ptr buf.len flags))
-      result)))
+(define recv
+  (case-lambda
+   ((sock buf.ptr buf.len)
+    (recv sock buf.ptr buf.len (socket-data-options)))
+   ((sock buf.ptr buf.len flags)
+    (receive (result errno)
+	(platform:recv (file-descriptor->integer sock) buf.ptr buf.len
+		       (socket-data-options->value flags))
+      (if (= -1 result)
+	  (raise-errno-error 'recv errno (list sock buf.ptr buf.len flags))
+	result)))))
 
-(define (recv/string sock max-len flags)
-  (with-compensations
-    (let* ((buf.ptr (malloc-block/c max-len))
+(define recv/string
+  (case-lambda
+   ((sock max-len)
+    (recv/string sock max-len (socket-data-options)))
+   ((sock max-len flags)
+    (with-compensations
+      (let* ((buf.ptr (malloc-block/c max-len))
+	     (buf.len (recv sock buf.ptr max-len flags)))
+	(cstring->string buf.ptr buf.len))))))
+
+(define recv/bytevector
+  (case-lambda
+   ((sock max-len)
+    (recv/bytevector sock max-len (socket-data-options)))
+   ((sock max-len flags)
+    (with-compensations
+      (let* ((buf.ptr (malloc-block/c max-len))
+	     (buf.len (recv sock buf.ptr max-len flags)))
+	(pointer->bytevector buf.ptr buf.len))))))
+
+(define recv/memblock
+  (case-lambda
+   ((sock max-len malloc)
+    (recv/memblock sock max-len (socket-data-options) malloc))
+   ((sock max-len flags malloc)
+    (let* ((buf.ptr (malloc max-len))
 	   (buf.len (recv sock buf.ptr max-len flags)))
-      (cstring->string buf.ptr buf.len))))
-
-(define (recv/bytevector sock max-len flags)
-  (with-compensations
-    (let* ((buf.ptr (malloc-block/c max-len))
-	   (buf.len (recv sock buf.ptr max-len flags)))
-      (pointer->bytevector buf.ptr buf.len))))
-
-(define (recv/memblock sock max-len flags malloc)
-  (let* ((buf.ptr (malloc max-len))
-	 (buf.len (recv sock buf.ptr max-len flags)))
-    (make-<memblock> buf.ptr buf.len max-len)))
+      (make-<memblock> buf.ptr buf.len max-len)))))
 
 
-(define (sendto sock buf.ptr buf.len flags sockaddr)
-  (with-compensations
-    (receive (sockaddr* socklen)
-	(%sockaddr->pointer&length sockaddr malloc)
-      (push-compensation (primitive-free sockaddr*))
-      (receive (result errno)
-	  (platform:sendto (file-descriptor->integer sock)
-			   buf.ptr buf.len
-			   (socket-data-options->value flags)
-			   sockaddr* socklen)
-	(if (= -1 result)
-	    (raise-errno-error 'sendto errno (list sock buf.ptr buf.len flags))
-	  result)))))
-
-(define (sendto/string sock str flags sockaddr)
-  (assert (string? str))
-  (with-compensations
-    (let ((buf.ptr (string->cstring/c str)))
-      (sendto sock buf.ptr (strlen buf.ptr) flags sockaddr))))
-
-(define (sendto/bytevector sock bv flags sockaddr)
-  (assert (bytevector? bv))
-  (with-compensations
-    (let ((buf.ptr (pointer->bytevector bv malloc-block/c))
-	  (buf.len (bytevector-length bv)))
-      (sendto sock buf.ptr (strlen buf.ptr) flags sockaddr))))
-
-(define (sendto/memblock sock mb flags sockaddr)
-  (assert (<memblock>? mb))
-  (sendto sock (<memblock>-pointer mb) (<memblock>-size mb) flags sockaddr))
-
-
-(define (recvfrom sock buf.ptr buf.len flags)
-  (with-compensations
-    (let* ((socklen	4096) ;let's play it safe
-	   (sockaddr*	(malloc-block/c socklen))
-	   (socklen*	(malloc-small/c)))
-      (pointer-set-c-socklen_t! socklen* socklen)
-      (receive (result errno)
-	  (platform:recvfrom (file-descriptor->integer sock)
+(define sendto
+  (case-lambda
+   ((sock buf.ptr buf.len sockaddr)
+    (sendto sock buf.ptr buf.len (socket-data-options) sockaddr))
+   ((sock buf.ptr buf.len flags sockaddr)
+    (with-compensations
+      (receive (sockaddr* socklen)
+	  (%sockaddr->pointer&length sockaddr malloc)
+	(push-compensation (primitive-free sockaddr*))
+	(receive (result errno)
+	    (platform:sendto (file-descriptor->integer sock)
 			     buf.ptr buf.len
 			     (socket-data-options->value flags)
-			     sockaddr* socklen*)
-	(cond ((= -1 result)
-	       (raise-errno-error 'recvfrom errno (list sock buf.ptr buf.len flags)))
-	      ((< socklen (pointer-ref-c-socklen_t socklen*))
-	       (error 'recvfrom
-		 "sockaddr structure of source address too big" socklen))
-	      (else
-	       (values result (pointer->sockaddr sockaddr*))))))))
+			     sockaddr* socklen)
+	  (if (= -1 result)
+	      (raise-errno-error 'sendto errno (list sock buf.ptr buf.len flags))
+	    result)))))))
 
-(define (recvfrom/string sock max-len flags)
-  (with-compensations
-    (let ((buf.ptr (malloc-block/c max-len)))
+(define sendto/string
+  (case-lambda
+   ((sock str sockaddr)
+    (sendto/string sock str (socket-data-options) sockaddr))
+   ((sock str flags sockaddr)
+    (assert (string? str))
+    (with-compensations
+      (let ((buf.ptr (string->cstring/c str)))
+	;;We want to send the terminating zero, too.
+	(sendto sock buf.ptr (+ 1 (strlen buf.ptr)) flags sockaddr))))))
+
+(define sendto/bytevector
+  (case-lambda
+   ((sock bv sockaddr)
+    (sendto/bytevector sock bv (socket-data-options) sockaddr))
+   ((sock bv flags sockaddr)
+    (assert (bytevector? bv))
+    (with-compensations
+      (let ((buf.ptr (pointer->bytevector bv malloc-block/c))
+	    (buf.len (bytevector-length bv)))
+	(sendto sock buf.ptr (strlen buf.ptr) flags sockaddr))))))
+
+(define sendto/memblock
+  (case-lambda
+   ((sock mb sockaddr)
+    (sendto/memblock sock mb (socket-data-options) sockaddr))
+   ((sock mb flags sockaddr)
+    (assert (<memblock>? mb))
+    (sendto sock (<memblock>-pointer mb) (<memblock>-size mb) flags sockaddr))))
+
+
+(define recvfrom
+  (case-lambda
+   ((sock buf.ptr buf.len)
+    (recvfrom sock buf.ptr buf.len (socket-data-options)))
+   ((sock buf.ptr buf.len flags)
+    (with-compensations
+      (let* ((socklen	4096) ;let's play it safe
+	     (sockaddr*	(malloc-block/c socklen))
+	     (socklen*	(malloc-small/c)))
+	(pointer-set-c-socklen_t! socklen* socklen)
+	(receive (result errno)
+	    (platform:recvfrom (file-descriptor->integer sock)
+			       buf.ptr buf.len
+			       (socket-data-options->value flags)
+			       sockaddr* socklen*)
+	  (cond ((= -1 result)
+		 (raise-errno-error 'recvfrom errno (list sock buf.ptr buf.len flags)))
+		((< socklen (pointer-ref-c-socklen_t socklen*))
+		 (error 'recvfrom
+		   "sockaddr structure of source address too big" socklen))
+		(else
+		 (values result (pointer->sockaddr sockaddr*))))))))))
+
+(define recvfrom/string
+  (case-lambda
+   ((sock max-len)
+    (recvfrom/string sock max-len (socket-data-options)))
+   ((sock max-len flags)
+    (with-compensations
+      (let ((buf.ptr (malloc-block/c max-len)))
+	(receive (buf.len sockaddr)
+	    (recvfrom sock buf.ptr max-len flags)
+	  (values (cstring->string buf.ptr buf.len) sockaddr)))))))
+
+(define recvfrom/bytevector
+  (case-lambda
+   ((sock max-len)
+    (recvfrom/bytevector sock max-len (socket-data-options)))
+   ((sock max-len flags)
+    (with-compensations
+      (let ((buf.ptr (malloc-block/c max-len)))
+	(receive (buf.len sockaddr)
+	    (recvfrom sock buf.ptr max-len flags)
+	  (values (pointer->bytevector buf.ptr buf.len) sockaddr)))))))
+
+(define recvfrom/memblock
+  (case-lambda
+   ((sock max-len malloc)
+    (recvfrom/memblock sock max-len (socket-data-options) malloc))
+   ((sock max-len flags malloc)
+    (let ((buf.ptr (malloc max-len)))
       (receive (buf.len sockaddr)
 	  (recvfrom sock buf.ptr max-len flags)
-	(values (cstring->string buf.ptr buf.len) sockaddr)))))
-
-(define (recvfrom/bytevector sock max-len flags)
-  (with-compensations
-    (let ((buf.ptr (malloc-block/c max-len)))
-      (receive (buf.len sockaddr)
-	  (recvfrom sock buf.ptr max-len flags)
-	(values (pointer->bytevector buf.ptr buf.len) sockaddr)))))
-
-(define (recvfrom/memblock sock max-len flags malloc)
-  (let ((buf.ptr (malloc max-len)))
-    (receive (buf.len sockaddr)
-	(recvfrom sock buf.ptr max-len flags)
-      (values (make-<memblock> buf.ptr buf.len max-len) sockaddr))))
+	(values (make-<memblock> buf.ptr buf.len max-len) sockaddr))))))
 
 
 (define (getsockopt sock option)

@@ -66,22 +66,8 @@
 (define-parametrised if-indextoname index)
 (define-parametrised if-nameindex)
 
-(define-primitive-parameter socket-function primitive:socket)
-(define socket
-  (case-lambda
-   ((namespace style)
-    ((socket-function) namespace style))
-   ((namespace style protocol)
-    ((socket-function) namespace style protocol))))
-
-(define-primitive-parameter socketpair-function primitive:socketpair)
-(define socketpair
-  (case-lambda
-   ((namespace style)
-    ((socketpair-function) namespace style))
-   ((namespace style protocol)
-    ((socketpair-function) namespace style protocol))))
-
+(define-parametrised socket     ((namespace style) (namespace style protocol)))
+(define-parametrised socketpair ((namespace style) (namespace style protocol)))
 (define-parametrised shutdown sock how)
 
 (define-parametrised bind sock sockaddr)
@@ -89,25 +75,26 @@
 (define-parametrised listen sock max-pending-connections)
 (define-parametrised accept sock)
 
-(define-parametrised send		sock buf.ptr buf.len flags)
-(define-parametrised send/string	sock str flags)
-(define-parametrised send/bytevector	sock bv flags)
-(define-parametrised send/memblock	sock mb flags)
+(define-parametrised send		((sock buf.ptr buf.len) (sock buf.ptr buf.len flags)))
+(define-parametrised send/string	((sock str) (sock str flags)))
+(define-parametrised send/bytevector	((sock bv) (sock bv flags)))
+(define-parametrised send/memblock	((sock mb) (sock mb flags)))
 
-(define-parametrised recv		sock buf.ptr buf.len flags)
-(define-parametrised recv/string	sock max-len flags)
-(define-parametrised recv/bytevector	sock max-len flags)
-(define-parametrised recv/memblock	sock max-len flags)
+(define-parametrised recv		((sock buf.ptr buf.len) (sock buf.ptr buf.len flags)))
+(define-parametrised recv/string	((sock max-len) (sock max-len flags)))
+(define-parametrised recv/bytevector	((sock max-len) (sock max-len flags)))
+(define-parametrised recv/memblock	((sock max-len malloc) (sock max-len flags malloc)))
 
-(define-parametrised sendto		sock buf.ptr buf.len flags)
-(define-parametrised sendto/string	sock str flags)
-(define-parametrised sendto/bytevector	sock bv flags)
-(define-parametrised sendto/memblock	sock mb flags)
+(define-parametrised sendto		((sock buf.ptr buf.len sockaddr)
+					 (sock buf.ptr buf.len flags sockaddr)))
+(define-parametrised sendto/string	((sock str sockaddr) (sock str flags sockaddr)))
+(define-parametrised sendto/bytevector	((sock bv sockaddr) (sock bv flags sockaddr)))
+(define-parametrised sendto/memblock	((sock mb sockaddr) (sock mb flags sockaddr)))
 
-(define-parametrised recvfrom			sock buf.ptr buf.len flags)
-(define-parametrised recvfrom/string		sock max-len flags)
-(define-parametrised recvfrom/bytevector	sock max-len flags)
-(define-parametrised recvfrom/memblock		sock max-len flags)
+(define-parametrised recvfrom		((sock buf.ptr buf.len) (sock buf.ptr buf.len flags)))
+(define-parametrised recvfrom/string	((sock max-len) (sock max-len flags)))
+(define-parametrised recvfrom/bytevector ((sock max-len) (sock max-len flags)))
+(define-parametrised recvfrom/memblock  ((sock max-len malloc) (sock max-len flags malloc)))
 
 (define-parametrised getsockname sock)
 (define-parametrised getpeername sock)

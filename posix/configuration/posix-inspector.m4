@@ -2,7 +2,7 @@ dnl (posix sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Thu Dec 24, 2009
+dnl Date: Fri Dec 25, 2009
 dnl
 dnl Abstract
 dnl
@@ -791,6 +791,7 @@ NAUSICAA_DEFINE_VALUE([SOCK_STREAM])
 NAUSICAA_DEFINE_VALUE([SOCK_DGRAM])
 NAUSICAA_DEFINE_VALUE([SOCK_RAW])
 NAUSICAA_DEFINE_VALUE([SOCK_RDM])
+NAUSICAA_DEFINE_VALUE([SOCK_SEQPACKET])
 NAUSICAA_DEFINE_VALUE([AF_LOCAL])
 NAUSICAA_DEFINE_VALUE([PF_LOCAL])
 NAUSICAA_DEFINE_VALUE([AF_UNIX])
