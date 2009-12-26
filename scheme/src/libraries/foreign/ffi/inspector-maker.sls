@@ -60,6 +60,13 @@
 		  ch))
 	      str))
 
+(define (dash->underscore str)
+  (string-map (lambda (idx ch)
+		(if (char=? #\- ch)
+		    #\_
+		  ch))
+	      str))
+
 
 ;;;; Autoconf and Scheme libraries
 
@@ -141,7 +148,7 @@
 
 (define (%define-shared-object name default-library-name)
   (let* ((name		(symbol->string name))
-	 (upname	(string-upcase name))
+	 (upname	(dash->underscore (string-upcase name)))
 	 (dnname	(string-downcase name))
 	 (tiname	(string-titlecase name))
 	 (varname	(format "~a_SHARED_OBJECT" upname))
