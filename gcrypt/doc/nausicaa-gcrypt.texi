@@ -567,10 +567,10 @@ Exports bindings to constant values and data structures accessors.
 
 @item foreign crypto gcrypt platform
 Exports one binding for each foreign function; the Scheme functions have
-the same name of the C functions, so @cfunc{gcrypt_init} is availale
-as @func{gcrypt_init}.  This library makes the original @gcrypt{}
-documentation relevant for this package.
-@c @gcryptref{Top, The GNU Libmicrohttpd library}.
+the same name of the C functions, so @cfunc{gcrypt_init} is availale as
+@func{gcrypt_init}.  This library makes the original Libgcrypt
+documentation relevant for this package.  @gcryptref{Top, The Libgcrypt
+library}.
 
 @item foreign crypto gcrypt primitives
 Exports one binding for each foreign function, implementing marshaling

@@ -41,8 +41,9 @@ DS_EXCLUDE_SECTION([AUTOCONF])
 DS_EXCLUDE_SECTION([PKGCONFIG])
 NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
 NAUSICAA_C_LANGUAGE
+AC_CHECK_HEADERS([gpg-error.h],,[AC_MSG_FAILURE([cannot find GPG-Error header],[2])])
 AC_CHECK_HEADERS([gcrypt.h],,[AC_MSG_FAILURE([cannot find Gcrypt header],[2])])
-AC_CHECK_LIB([gcrypt],[gcrypt_init],,[AC_MSG_FAILURE([cannot find Gcrypt library],[2])])
+AC_CHECK_LIB([gcrypt],[gcry_check_version],,[AC_MSG_FAILURE([cannot find Gcrypt library],[2])])
 NAUSICAA_SIZEOF
 
 dnl page
