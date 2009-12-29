@@ -32,6 +32,14 @@
     gcry-strerror
     gcry-strsource
 
+    ;; symmetric encryption
+    gcry-cipher-open		gcry-cipher-close
+    gcry-cipher-setkey		gcry-cipher-reset
+    gcry-cipher-setiv		gcry-cipher-setctr
+    gcry-cipher-encrypt		gcry-cipher-decrypt
+    gcry-cipher-encrypt*	gcry-cipher-decrypt*
+    gcry-cipher-sync
+
     (rename (platform:gcry_control/int			gcry-control/int)
 	    (platform:gcry_control/uint			gcry-control/uint)
 	    (platform:gcry_control/ptr			gcry-control/ptr)
@@ -107,25 +115,15 @@
 	    (platform:gcry_mpi_clear_flag		gcry-mpi-clear-flag)
 	    (platform:gcry_mpi_get_flag			gcry-mpi-get-flag)
 
-	    (platform:gcry_cipher_open			gcry-cipher-open)
-	    (platform:gcry_cipher_close			gcry-cipher-close)
 	    (platform:gcry_cipher_ctl			gcry-cipher-ctl)
 	    (platform:gcry_cipher_info			gcry-cipher-info)
 	    (platform:gcry_cipher_algo_info		gcry-cipher-algo-info)
 	    (platform:gcry_cipher_algo_name		gcry-cipher-algo-name)
 	    (platform:gcry_cipher_map_name		gcry-cipher-map-name)
 	    (platform:gcry_cipher_mode_from_oid		gcry-cipher-mode-from-oid)
-	    (platform:gcry_cipher_encrypt		gcry-cipher-encrypt)
-	    (platform:gcry_cipher_decrypt		gcry-cipher-decrypt)
-	    (platform:gcry_cipher_setkey		gcry-cipher-setkey)
-	    (platform:gcry_cipher_setiv			gcry-cipher-setiv)
-	    (platform:gcry_cipher_setctr		gcry-cipher-setctr)
 	    (platform:gcry_cipher_get_algo_keylen	gcry-cipher-get-algo-keylen)
 	    (platform:gcry_cipher_get_algo_blklen	gcry-cipher-get-algo-blklen)
 	    (platform:gcry_cipher_list			gcry-cipher-list)
-
-	    (platform:gcry_cipher_reset			gcry-cipher-reset)
-	    (platform:gcry_cipher_sync			gcry-cipher-sync)
 	    (platform:gcry_cipher_cts			gcry-cipher-cts)
 	    (platform:gcry_cipher_test_algo		gcry-cipher-test-algo)
 
@@ -207,12 +205,43 @@
 	    (platform:gcry_fips_mode_active		gcry-fips-mode-active))
     )
   (import (rnrs)
+    (receive)
     (compensations)
     (foreign ffi)
     (foreign memory)
     (foreign cstrings)
+    (foreign crypto gpg-error conditions)
+    (foreign crypto gcrypt typedefs)
+    (foreign crypto gcrypt enumerations)
     (prefix (foreign crypto gcrypt platform) platform:)
     (foreign crypto gcrypt sizeof))
+
+
+;;;; helpers
+
+(define (%object->ptr&len obj who description)
+  ;;Take an  object OBJ, convert  it to a  memory buffer and  return two
+  ;;values: the pointer and the number of bytes.  Memory is allocated by
+  ;;pushing release closures to the current compensation stack.
+  ;;
+  ;;OBJ can  be a Scheme string,  a Scheme bytevector  or a "<memblock>"
+  ;;object.
+  ;;
+  ;;WHO must be a Scheme symbol  representing the caller: it is used for
+  ;;the  "&who"   condition.   DESCRIPTION  must  be   a  Scheme  string
+  ;;describing  the  nature  of  OBJ:  it is  used  for  the  "&message"
+  ;;condition.
+  ;;
+  (cond ((string? obj)
+	 (let ((obj.ptr (string->cstring/c obj)))
+	   (values obj.ptr (strlen obj.ptr))))
+	((bytevector? obj)
+	 (let ((obj.ptr (bytevector->pointer obj malloc-block/c)))
+	   (values obj.ptr (bytevector-length obj))))
+	((<memblock>? obj)
+	 (values (<memblock>-pointer obj) (<memblock>-size obj)))
+	(else
+	 (assertion-violation who description obj))))
 
 
 ;;;; initialisation, control, errors
@@ -229,6 +258,99 @@
 
 (define (gcry-strsource errcode)
   (cstring->string (platform:gcry_strsource errcode)))
+
+
+;;;; symmetric cryptography
+
+(define (gcry-cipher-open algo mode flags)
+  (with-compensations
+    (let* ((hd*		(malloc-small/c))
+	   (errcode	(platform:gcry_cipher_open hd*
+						   (gcry-cipher-algo->value  algo)
+						   (gcry-cipher-mode->value  mode)
+						   (gcry-cipher-flags->value flags))))
+      (if (= 0 errcode)
+	  (pointer->gcrypt-symmetric-handle (pointer-ref-c-pointer hd* 0))
+	(raise-gpg-error 'gcry-cipher-open errcode algo mode flags)))))
+
+(define (gcry-cipher-close syhd)
+  (platform:gcry_cipher_close syhd))
+
+;;; --------------------------------------------------------------------
+
+(define (%gcry-cipher-set-vector who platform-function syhd obj description)
+  (with-compensations
+    (receive (obj.ptr obj.len)
+	(%object->ptr&len obj who (string-append "expected string, bytevector or memblock as "
+						 description))
+      (let ((errcode (platform-function (gcrypt-symmetric-handle->pointer syhd) obj.ptr obj.len)))
+	(unless (= 0 errcode)
+	  (raise-gpg-error who errcode syhd obj))))))
+
+(define (gcry-cipher-setkey syhd key)
+  (%gcry-cipher-set-vector 'gcry-cipher-setkey platform:gcry_cipher_setkey
+			   syhd key "encryption key"))
+
+(define (gcry-cipher-setiv syhd iv)
+  (%gcry-cipher-set-vector 'gcry-cipher-setiv platform:gcry_cipher_setiv
+			   syhd iv "initialisation vector"))
+
+(define (gcry-cipher-setctr syhd ctr)
+  (%gcry-cipher-set-vector 'gcry-cipher-setctr platform:gcry_cipher_setctr
+			   syhd ctr "counter"))
+
+;;; --------------------------------------------------------------------
+
+(define (gcry-cipher-encrypt syhd ou.ptr ou.len in.ptr in.len)
+  (let ((errcode (platform:gcry_cipher_encrypt (gcrypt-symmetric-handle->pointer syhd)
+					       ou.ptr ou.len in.ptr in.len)))
+    (unless (= 0 errcode)
+      (raise-gpg-error 'gcry-cipher-encrypt errcode syhd ou.ptr ou.len in.ptr in.len))))
+
+(define (gcry-cipher-encrypt* syhd obj)
+  (with-compensations
+    (receive (in.ptr len)
+	(%object->ptr&len obj 'gcry-cipher-encrypt* "encryption input")
+      (let ((ou.ptr (malloc-block/c len)))
+	(gcry-cipher-encrypt syhd ou.ptr len in.ptr len)
+	(pointer->bytevector ou.ptr len)))))
+
+;;; --------------------------------------------------------------------
+
+(define (gcry-cipher-decrypt syhd ou.ptr ou.len in.ptr in.len)
+  (let ((errcode (platform:gcry_cipher_decrypt (gcrypt-symmetric-handle->pointer syhd)
+					       ou.ptr ou.len in.ptr in.len)))
+    (unless (= 0 errcode)
+      (raise-gpg-error 'gcry-cipher-decrypt errcode syhd ou.ptr ou.len in.ptr in.len))))
+
+(define (gcry-cipher-decrypt* syhd obj)
+  (with-compensations
+    (receive (in.ptr len)
+	(%object->ptr&len obj 'gcry-cipher-decrypt* "decryption input")
+      (let ((ou.ptr (malloc-block/c len)))
+	(gcry-cipher-decrypt syhd ou.ptr len in.ptr len)
+	(pointer->bytevector ou.ptr len)))))
+
+;;; --------------------------------------------------------------------
+
+(define (gcry-cipher-reset syhd)
+  (let ((errcode (platform:gcry_cipher_reset (gcrypt-symmetric-handle->pointer syhd))))
+    (unless (= 0 errcode)
+      (raise-gpg-error 'gcry-cipher-reset errcode syhd))))
+
+(define (gcry-cipher-sync syhd)
+  (let ((errcode (platform:gcry_cipher_sync (gcrypt-symmetric-handle->pointer syhd))))
+    (unless (= 0 errcode)
+      (raise-gpg-error 'gcry-cipher-sync errcode syhd))))
+
+(define (gcry-cipher-ctl syhd command buf.ptr buf.len)
+  (let ((errcode (platform:gcry_cipher_sync (gcrypt-symmetric-handle->pointer syhd))))
+    (unless (= 0 errcode)
+      (raise-gpg-error 'gcry-cipher-ctl errcode syhd command buf.ptr buf.len))))
+
+;;; --------------------------------------------------------------------
+
+
 
 
 ;;;; callback makers

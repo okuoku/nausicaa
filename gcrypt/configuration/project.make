@@ -28,7 +28,6 @@
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,crypto,foreign/crypto))
 $(eval $(call nau-libraries,gcrypt,foreign/crypto/gcrypt))
 $(eval $(call nau-libraries,gpgerror,foreign/crypto/gpg-error))
 

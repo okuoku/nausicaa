@@ -223,8 +223,7 @@
 
   (gcry_control/int		(gcry_error_t gcry_control (gcry_ctl_cmds int)))
   (gcry_control/uint		(gcry_error_t gcry_control (gcry_ctl_cmds unsigned-int)))
-  (gcry_control/ptr		(gcry_error_t gcry_control (gcry_ctl_cmds pointer)))
-  )
+  (gcry_control/ptr		(gcry_error_t gcry_control (gcry_ctl_cmds pointer))))
 
 (define-c-functions gcrypt-shared-object
   (gcry_strerror		(char* gcry_strerror (gcry_error_t)))
@@ -232,8 +231,7 @@
   (gcry_err_code_from_errno	(gcry_err_code_t gcry_err_code_from_errno (int)))
   (gcry_err_code_to_errno	(int gcry_err_code_to_errno (gcry_err_code_t)))
   (gcry_err_make_from_errno	(gcry_error_t gcry_err_make_from_errno (gcry_err_source_t int)))
-  (gcry_error_from_errno	(gcry_err_code_t gcry_error_from_errno (int)))
-  )
+  (gcry_error_from_errno	(gcry_err_code_t gcry_error_from_errno (int))))
 
 
 (define-c-functions gcrypt-shared-object
@@ -260,9 +258,9 @@
   (gcry_sexp_cadr		(gcry_sexp_t gcry_sexp_cadr (gcry_sexp_t)))
   (gcry_sexp_nth_data		(char* gcry_sexp_nth_data (gcry_sexp_t int size_t*)))
   (gcry_sexp_nth_string		(char* gcry_sexp_nth_string (gcry_sexp_t int)))
-  (gcry_sexp_nth_mpi		(gcry_mpi_t gcry_sexp_nth_mpi (gcry_sexp_t int int)))
-  )
+  (gcry_sexp_nth_mpi		(gcry_mpi_t gcry_sexp_nth_mpi (gcry_sexp_t int int))))
 
+
 (define-c-functions gcrypt-shared-object
   (gcry_mpi_new			(gcry_mpi_t gcry_mpi_new (unsigned int)))
   (gcry_mpi_snew		(gcry_mpi_t gcry_mpi_snew (unsigned int)))
@@ -306,8 +304,7 @@
   (gcry_mpi_get_opaque		(void* gcry_mpi_get_opaque (gcry_mpi_t unsigned-int*)))
   (gcry_mpi_set_flag		(void gcry_mpi_set_flag (gcry_mpi_t gcry_mpi_flag)))
   (gcry_mpi_clear_flag		(void gcry_mpi_clear_flag (gcry_mpi_t gcry_mpi_flag)))
-  (gcry_mpi_get_flag		(int gcry_mpi_get_flag (gcry_mpi_t gcry_mpi_flag)))
-  )
+  (gcry_mpi_get_flag		(int gcry_mpi_get_flag (gcry_mpi_t gcry_mpi_flag))))
 
 
 (define-c-functions gcrypt-shared-object
@@ -416,6 +413,7 @@
   (gcry_prime_release_factors	(void gcry_prime_release_factors (gcry_mpi_t*)))
   (gcry_prime_check		(gcry_error_t gcry_prime_check (gcry_mpi_t unsigned-int))))
 
+
 (define-c-functions gcrypt-shared-object
   (gcry_set_progress_handler	(void gcry_set_progress_handler (gcry_handler_progress_t void*)))
   (gcry_set_allocation_handler	(void gcry_set_allocation_handler

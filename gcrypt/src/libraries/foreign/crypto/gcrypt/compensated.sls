@@ -26,14 +26,19 @@
 
 
 (library (foreign crypto gcrypt compensated)
-  (export)
+  (export
+    gcry-cipher-open/c)
   (import (rnrs)
     (compensations)
     (foreign crypto gcrypt))
 
 
-;;;; code
-
+(define (gcry-cipher-open/c . args)
+  (letrec ((hd (compensate
+		   (apply gcry-cipher-open args)
+		 (with
+		  (gcry-cipher-close hd)))))
+    hd))
 
 
 ;;;; done

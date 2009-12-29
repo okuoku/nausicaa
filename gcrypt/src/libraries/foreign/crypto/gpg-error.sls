@@ -27,6 +27,8 @@
 
 (library (foreign crypto gpg-error)
   (export
+
+    ;; functions
     gpg-err-init
     gpg-strerror
     gpg-strerror-r
@@ -42,6 +44,12 @@
     gpg-error-from-errno
     gpg-error-from-syserror
 
+    ;; conditions
+    &gpg-error				gpg-error-condition?
+    make-gpg-error-condition		raise-gpg-error
+    condition-gpg-error-code
+
+    ;; constants
     GPG_ERR_SOURCE_UNKNOWN
     GPG_ERR_SOURCE_GCRYPT
     GPG_ERR_SOURCE_GPG
@@ -447,6 +455,7 @@
     GPG_ERR_INITIALIZED
     GPG_ERR_SOURCE_DEFAULT)
   (import (foreign crypto gpg-error primitives)
+    (foreign crypto gpg-error conditions)
     (foreign crypto gpg-error sizeof)))
 
 ;;; end of file

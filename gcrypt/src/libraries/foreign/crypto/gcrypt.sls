@@ -189,6 +189,14 @@
     GCRY_LOG_DEBUG
     GCRYPT_SHARED_OBJECT
 
+
+
+    ;; enumerations
+    gcry-cipher-algo		gcry-cipher-algo->value		value->gcry-cipher-algo
+    gcry-cipher-mode		gcry-cipher-mode->value		value->gcry-cipher-mode
+    gcry-cipher-flags		gcry-cipher-flags->value	value->gcry-cipher-flags
+
+    ;; functions
     (rename (primitive:gcry-check-version		gcry-check-version)
 	    (primitive:gcry-control/int			gcry-control/int)
 	    (primitive:gcry-control/uint		gcry-control/uint)
@@ -277,6 +285,8 @@
 	    (primitive:gcry-cipher-mode-from-oid	gcry-cipher-mode-from-oid)
 	    (primitive:gcry-cipher-encrypt		gcry-cipher-encrypt)
 	    (primitive:gcry-cipher-decrypt		gcry-cipher-decrypt)
+	    (primitive:gcry-cipher-encrypt*		gcry-cipher-encrypt*)
+	    (primitive:gcry-cipher-decrypt*		gcry-cipher-decrypt*)
 	    (primitive:gcry-cipher-setkey		gcry-cipher-setkey)
 	    (primitive:gcry-cipher-setiv		gcry-cipher-setiv)
 	    (primitive:gcry-cipher-setctr		gcry-cipher-setctr)
@@ -366,6 +376,7 @@
 
 	    (primitive:gcry-fips-mode-active		gcry-fips-mode-active)))
   (import (foreign crypto gcrypt sizeof)
+    (foreign crypto gcrypt enumerations)
     (prefix (foreign crypto gcrypt primitives) primitive:)))
 
 ;;; end of file

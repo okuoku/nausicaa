@@ -522,7 +522,10 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package.
 * init::                        Initialisation and control.
-* error::                       Error inspection.
+* typedefs::                    Type definitions.
+* error::                       Error handling.
+* symmetric::                   Symmetric cryptography.
+* compensations::               Compensated constructors.
 
 Appendices
 
@@ -536,7 +539,37 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Type definitions
+
+* typedefs handle::             Symmetric cryptography handle.
+
+Error handling
+
+* error codes::                 Handling error codes.
+* error conditions::            Condition objects.
+
+Condition objects
+
+* error conditions gpg-error::  GPG-error error conditions.
+
+Symmetric cryptography
+
+* symmetric intro::             Introduction to symmetric cryptography.
+* symmetric enums::             Enumeration types.
+* symmetric api::               Programming interface.
+
+Enumeration types
+
+* symmetric enums algo::        Symmetric cipher algorithms.
+* symmetric enums mode::        Symmetric cipher modes.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 @c page
@@ -568,11 +601,17 @@ library.
 
 @item foreign crypto gcrypt sizeof
 @itemx foreign crypto gpg-error sizeof
-Exports bindings to constant values and data structures accessors.
+Export bindings to constant values and data structures accessors.
+
+@item foreign crypto gpg-error conditions
+Defines condition types for errors raised by Gcrypt.
+
+@item foreign crypto gcrypt enumerations
+Defines enumeration types used to handle Gcrypt options and flags.
 
 @item foreign crypto gcrypt platform
 @itemx foreign crypto gpg-error platform
-Exports one binding for each foreign function; the Scheme functions have
+Export one binding for each foreign function; the Scheme functions have
 the same name of the C functions, so @cfunc{gcry_check_version} is
 available as @func{gcry_check_version}.  This library makes the original
 Libgcrypt documentation relevant for this package.  @gcryptref{Top, The
@@ -580,20 +619,23 @@ Libgcrypt library}.
 
 @item foreign crypto gcrypt primitives
 @itemx foreign crypto gpg-error primitives
-Exports one binding for each foreign function, implementing marshaling
-of arguments and return values.  The Scheme functions have the same name
-of the C functions, buth with in lower case and with the underscores
-converted to dashes; so @cfunc{gcry_check_version} is available as
-@func{gcry-check-version}.
+Export one binding for each foreign function, implementing marshaling of
+arguments and return values.  The Scheme functions have the same name of
+the C functions, but with the underscores converted to dashes; so
+@cfunc{gcry_check_version} is available as @func{gcry-check-version}.
+
+All the Gcrypt functions are prefixed with @code{gcry-}, while the
+GPG-error functions are prefixed with @code{gpg-}.
 
 This documentation file describes the @api{} exported by this library;
 only functions implementing marshaling of values are described.
 
 @item foreign crypto gcrypt
 @itemx foreign crypto gpg-error
-Compound library exporting the high--level @api{}; it reexports bindings
-from the @samp{primitives} library and the constant values from the
-@samp{sizeof} library.
+Compound librarie exporting the high--level @api{}; they reexport
+bindings from the @samp{primitives} libraries and the constant values
+from the @samp{sizeof} libraries.  Additionally the @code{gpg-error}
+library reexports bindings for the condition objects.
 
 @item foreign crypto gcrypt compensated
 Exports bindings to constructor functions making use of the
@@ -630,8 +672,62 @@ performed by @library{foreign gcrypt primitives}.
 @end defun
 
 @c page
+@node typedefs
+@chapter Type definitions
+
+
+Unless otherwise specified, the bindings documented in this chapter are
+exported by the @library{foreign crypto gcrypt typedefs} library and
+reexported by the @library{foreign crypto gcrypt} library.
+
+@menu
+* typedefs handle::             Symmetric cryptography handle.
+@end menu
+
+@c page
+@node typedefs handle
+@section Symmetric cryptography handle
+
+
+Functions from the primitives and high--level @api{} accept objects of
+type @code{gcrypt-symmetric-handle} as @var{syhd} arguments.  Functions
+from the platform libraries accept raw pointers as references to
+symmetric cryptography handles.
+
+
+@deftp {Object Type} gcrypt-symmetric-handle
+Reference to a Gcrypt symmetric cryptography handle.  It is disjoint
+from all the other Scheme object types.
+@end deftp
+
+
+@defun gcrypt-symmetric-handle? @var{obj}
+Return @true{} if @var{obj} is of type @code{gcrypt-symmetric-handle}.
+@end defun
+
+
+@defun pointer->gcrypt-symmetric-handle @var{pointer}
+@defunx gcrypt-symmetric-handle->pointer @var{syhd}
+Convert between a raw pointer object and a
+@code{gcrypt-symmetric-handle} object.
+@end defun
+
+@c page
 @node error
-@chapter Error inspection
+@chapter Error handling
+
+
+Unless otherwise specified, all the functions from the @code{primitives}
+libraries raise an exception in case of error.
+
+@menu
+* error codes::                 Handling error codes.
+* error conditions::            Condition objects.
+@end menu
+
+@c page
+@node error codes
+@section Handling error codes
 
 
 @defun gcry-strerror @var{code}
@@ -645,6 +741,239 @@ Return a Scheme string describing the error @var{code}.
 @defunx gpg-strsource @var{code}
 Return a Scheme string describing the error source specified by
 @var{code}.
+@end defun
+
+@c page
+@node error conditions
+@section Condition objects
+
+
+@menu
+* error conditions gpg-error::  GPG-error error conditions.
+@end menu
+
+@c page
+@node error conditions gpg-error
+@subsection GPG-error error conditions
+
+
+The following bindings are exported by the library @library{foreign
+crypto gpg-error conditions} and reexported by the library
+@library{foreign crypto gpg-error}.
+
+
+@deftp {Condition Type} &gpg-error
+Used to signal an error involving a Gcrypt function; it is derived from
+@condition{error}.  It has the following fields:
+
+@table @code
+@item code
+The error code.
+@end table
+@end deftp
+
+
+@defun make-gpg-error-condition @var{errcode}
+@defunx gpg-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{gpg-error}.
+@end defun
+
+
+@defun condition-gpg-error-code @var{condition}
+Accessor for the field of condition objects of type
+@condition{gpg-error}.
+@end defun
+
+
+@deffn Syntax raise-gpg-error @ameta{who} @ameta{errcode} @ameta{irritant} ...
+Raise a non--continuable exception with compound condition object of
+types: @condition{who}, @condition{message}, @condition{gpg-error},
+@condition{irritants}.
+@end deffn
+
+@c page
+@node symmetric
+@chapter Symmetric cryptography
+
+
+@menu
+* symmetric intro::             Introduction to symmetric cryptography.
+* symmetric enums::             Enumeration types.
+* symmetric api::               Programming interface.
+@end menu
+
+@c page
+@node symmetric intro
+@section Introduction to symmetric cryptography
+
+
+For an introduction to symmetric block and stream ciphers, see:
+
+@center @url{http://en.wikipedia.org/wiki/Block_cipher}
+@center @url{http://en.wikipedia.org/wiki/Stream_cipher}
+
+@noindent
+for an explanation of block cipher modes:
+
+@center @url{http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation}
+
+@c page
+@node symmetric enums
+@section Enumeration types
+
+
+The bindings described in this section are exported by the
+@library{foreign crypto gcrypt enumerations} library and reexported by
+the @library{foreign crypto gcrypt} library.
+
+@menu
+* symmetric enums algo::        Symmetric cipher algorithms.
+* symmetric enums mode::        Symmetric cipher modes.
+@end menu
+
+@c page
+@node symmetric enums algo
+@subsection Symmetric cipher algorithms
+
+
+@deftp {Enumeration Type} enum-gcry-cipher-algo
+Used to select symmetric cypher algorithms.  It enumerates the following
+symbols:
+
+@example
+idea                         triple-des
+cast5                        blowfish
+safer-sk128                  des-sk
+aes                          aes192
+aes256                       twofish
+arcfour                      des
+twofish128                   serpent128
+serpent192                   serpent256
+rfc2268-40                   rfc2268-128
+seed                         camellia128
+camellia192                  camellia256
+aes128                       rijndael
+rijndael128                  rijndael192
+rijndael256
+@end example
+@end deftp
+
+
+@deffn Syntax gcry-cipher-algo @ameta{symbol}
+Expand to an enumeration set of type @code{enum-gcry-cipher-algo}
+holding the symbol @meta{symbol}.
+@end deffn
+
+
+@defun gcry-cipher-algo->value @var{set}
+@defunx value->gcry-cipher-algo @var{integer}
+Expand to and from an enumeration set of type
+@code{enum-gcry-cipher-algo} holding a single element and the
+corresponding constant recognised by Gcrypt.
+@end defun
+
+@c page
+@node symmetric enums mode
+@subsection Symmetric cipher modes
+
+
+@deftp {Enumeration Type} enum-gcry-cipher-mode
+Used to select symmetric cypher modes.  It enumerates the following
+symbols:
+
+@example
+ecb cfb cbc stream ofb ctr
+@end example
+@end deftp
+
+
+@deffn Syntax gcry-cipher-mode @ameta{symbol}
+Expand to an enumeration set of type @code{enum-gcry-cipher-mode}
+holding the symbol @meta{symbol}.
+@end deffn
+
+
+@defun gcry-cipher-mode->value @var{set}
+@defunx value->gcry-cipher-mode @var{integer}
+Expand to and from an enumeration set of type
+@code{enum-gcry-cipher-mode} holding a single element and the
+corresponding constant recognised by Gcrypt.
+@end defun
+
+@c page
+@node symmetric api
+@section Programming interface
+
+
+The following functions manage symmetric encryption and decryption.
+@gcryptref{Working with cipher handles, Working with cipher handles}.
+
+
+@defun gcry-cipher-open @var{algo} @var{mode} @var{flags}
+Build and return a new handler for symmetric encryption and decryption.
+@var{algo} must be one of the @code{GCRY_CIPHER_*} constants; @var{mode}
+must be one of the @code{GCRY_CIPHER_MODE_*} constants; @var{flags} must
+be an inclusive OR combination of flags.
+@end defun
+
+
+@defun gcry-cipher-close @var{syhd}
+Release all the resources associated to @var{syhd}.
+@end defun
+
+
+@defun gcry-cipher-setkey @var{syhd} @var{key}
+@defunx gcry-cipher-setiv @var{syhd} @var{iv}
+@defunx gcry-cipher-setctr @var{syhd} @var{ctr}
+Set encryption keyword @var{key}, the initialisation vector @var{iv} or
+the counter vector @var{ctr} in the context of @var{syhd}.  @var{key},
+@var{iv} and @var{ctr} can be Scheme strings, Scheme bytevectors or
+@class{memblock} objects.  @nauref{memory blocks, Memory blocks}.
+@end defun
+
+
+@defun gcry-cipher-reset @var{syhd}
+Reset the state of @var{syhd}.
+@end defun
+
+
+@defun gcry-cipher-sync @var{syhd}
+Perform the synchronisation on @var{syhd}, as defined by OpenPGP.
+@end defun
+
+
+@defun gcry-cipher-encrypt @var{syhd} @var{ou.ptr} @var{ou.len} @var{in.ptr} @var{in.len}
+@defunx gcry-cipher-decrypt @var{syhd} @var{ou.ptr} @var{ou.len} @var{in.ptr} @var{in.len}
+Encrypt or decrypt a block of memory in the context of @var{syhd}.
+@end defun
+
+
+@defun gcry-cipher-encrypt* @var{syhd} @var{obj}
+@defunx gcry-cipher-decrypt* @var{syhd} @var{obj}
+Encrypt or decrypt @var{obj} in the context of @var{syhd}; return a
+bytevector representing the result.  @var{obj} can be a Scheme string, a
+Scheme bytevector or a @class{memblock} object.  @nauref{memory blocks,
+Memory blocks}.
+@end defun
+
+
+@defun gcry-cipher-ctl @var{syhd} @var{command} @var{buf.ptr} @var{buf.len}
+Control the behaviour of @var{syhd}.
+@end defun
+
+@c page
+@node compensations
+@chapter Compensated constructors
+
+
+The following bindings are exported by the @library{foreign crypto
+gcrypt compensated} library.
+
+
+@defun gcry-cipher-open/c @var{arg} ...
+Like @func{gcry-cipher-open}, but push the appropriated call to
+@func{gcry-cipher-close} to the current compensation stack.
 @end defun
 
 @c page

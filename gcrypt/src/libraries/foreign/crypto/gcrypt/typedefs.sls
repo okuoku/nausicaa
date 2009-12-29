@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Gcrypt
-;;;Contents: compile script for Ikarus Scheme
-;;;Date: Sat Dec 26, 2009
+;;;Contents: type definitions
+;;;Date: Mon Dec 28, 2009
 ;;;
 ;;;Abstract
 ;;;
@@ -23,11 +24,22 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (foreign crypto gpg-error))
-  (only (foreign crypto gcrypt))
-  (only (foreign crypto gcrypt compensated))
-  (only (foreign crypto gcrypt enumerations))
+
+(library (foreign crypto gcrypt typedefs)
+  (export
+
+    gcrypt-symmetric-handle		gcrypt-symmetric-handle?
+    pointer->gcrypt-symmetric-handle	gcrypt-symmetric-handle->pointer
+
+    )
+  (import (rnrs)
+    (foreign crypto gcrypt sizeof))
+
+
+  (define-record-type (gcrypt-symmetric-handle pointer->gcrypt-symmetric-handle gcrypt-symmetric-handle?)
+    (nongenerative nausicaa:gcrypt:symmetric-handle)
+    (fields (immutable pointer gcrypt-symmetric-handle->pointer)))
+
   )
 
 ;;; end of file

@@ -27,6 +27,7 @@
     (only (foreign crypto gpg-error))
     (only (foreign crypto gcrypt))
     (only (foreign crypto gcrypt compensated))
+  (only (foreign crypto gcrypt enumerations))
   )
 
 ;;; end of file
