@@ -561,7 +561,7 @@ documentation relevant for this package.
 @item foreign category template primitives
 Exports one binding for each foreign function, implementing marshaling
 of arguments and return values.  The Scheme functions have the same name
-of the C functions, buth with in lower case and with the underscores
+of the C functions, but with in lower case and with the underscores
 converted to dashes; so @cfunc{template_init} is available as
 @func{template-init}.
 
