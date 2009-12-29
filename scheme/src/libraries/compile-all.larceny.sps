@@ -41,6 +41,9 @@
 (compile-library "conditions.sls"
 		 "conditions.slfasl")
 
+(compile-library "enumerations.sls"
+		 "enumerations.slfasl")
+
 (compile-library "parameters.larceny.sls"
 		 "parameters.larceny.slfasl")
 

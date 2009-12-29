@@ -28,6 +28,7 @@
   (only (profiling))
   (only (unimplemented))
   (only (conditions))
+  (only (enumerations))
   (only (parameters))
   (only (pretty-print))
   (only (nausicaa common))
