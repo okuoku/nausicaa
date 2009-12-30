@@ -30,6 +30,9 @@
     gcry-cipher-algo	gcry-cipher-algo->value		value->gcry-cipher-algo
     gcry-cipher-mode	gcry-cipher-mode->value		value->gcry-cipher-mode
     gcry-cipher-flags	gcry-cipher-flags->value	value->gcry-cipher-flags
+
+    gcry-md-algo	gcry-md-algo->value		value->gcry-md-algo
+    gcry-md-flags	gcry-md-flags->value		value->gcry-md-flags
     )
   (import (rnrs)
     (enumerations)
@@ -80,6 +83,30 @@
    GCRY_CIPHER_CBC_CTS
    GCRY_CIPHER_CBC_MAC)
   (secure enable-sync cbc-cts cbc-mac))
+
+
+(define-c-flags gcry-md-algo
+  ;;; GCRY_MD_NONE
+  (GCRY_MD_MD5			GCRY_MD_SHA1
+   GCRY_MD_RMD160		GCRY_MD_MD2
+   GCRY_MD_TIGER		GCRY_MD_HAVAL
+   GCRY_MD_SHA256		GCRY_MD_SHA384
+   GCRY_MD_SHA512		GCRY_MD_SHA224
+   GCRY_MD_MD4			GCRY_MD_CRC32
+   GCRY_MD_CRC32_RFC1510	GCRY_MD_CRC24_RFC2440
+   GCRY_MD_WHIRLPOOL)
+  (md5			sha1
+   rmd160		md2
+   tiger		haval
+   sha256		sha384
+   sha512		sha224
+   md4			crc32
+   crc32-rfc1510	crc24-rfc2440
+   whirlpool))
+
+(define-c-ior-flags gcry-md-flags
+  (GCRY_MD_FLAG_SECURE		GCRY_MD_FLAG_HMAC)
+  (secure			hmac))
 
 
 ;;;; done

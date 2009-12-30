@@ -191,10 +191,20 @@
 
 
 
+    ;; type definitions
+    gcrypt-symmetric-handle		gcrypt-symmetric-handle?
+    pointer->gcrypt-symmetric-handle	gcrypt-symmetric-handle->pointer
+
+    gcrypt-md-handle			gcrypt-md-handle?
+    pointer->gcrypt-md-handle		gcrypt-md-handle->pointer
+
     ;; enumerations
     gcry-cipher-algo		gcry-cipher-algo->value		value->gcry-cipher-algo
     gcry-cipher-mode		gcry-cipher-mode->value		value->gcry-cipher-mode
     gcry-cipher-flags		gcry-cipher-flags->value	value->gcry-cipher-flags
+
+    gcry-md-algo		gcry-md-algo->value		value->gcry-md-algo
+    gcry-md-flags		gcry-md-flags->value		value->gcry-md-flags
 
     ;; functions
     (rename (primitive:gcry-check-version		gcry-check-version)
@@ -322,8 +332,10 @@
 	    (primitive:gcry-md-reset			gcry-md-reset)
 	    (primitive:gcry-md-ctl			gcry-md-ctl)
 	    (primitive:gcry-md-write			gcry-md-write)
+	    (primitive:gcry-md-write*			gcry-md-write*)
 	    (primitive:gcry-md-read			gcry-md-read)
 	    (primitive:gcry-md-hash-buffer		gcry-md-hash-buffer)
+	    (primitive:gcry-md-hash-buffer*		gcry-md-hash-buffer*)
 	    (primitive:gcry-md-get-algo			gcry-md-get-algo)
 	    (primitive:gcry-md-get-algo-dlen		gcry-md-get-algo-dlen)
 	    (primitive:gcry-md-is-enabled		gcry-md-is-enabled)
@@ -376,6 +388,7 @@
 
 	    (primitive:gcry-fips-mode-active		gcry-fips-mode-active)))
   (import (foreign crypto gcrypt sizeof)
+    (foreign crypto gcrypt typedefs)
     (foreign crypto gcrypt enumerations)
     (prefix (foreign crypto gcrypt primitives) primitive:)))
 

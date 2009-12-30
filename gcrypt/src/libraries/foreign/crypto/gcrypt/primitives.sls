@@ -32,13 +32,25 @@
     gcry-strerror
     gcry-strsource
 
-    ;; symmetric encryption
+    ;; symmetric cryptography
     gcry-cipher-open		gcry-cipher-close
     gcry-cipher-setkey		gcry-cipher-reset
     gcry-cipher-setiv		gcry-cipher-setctr
     gcry-cipher-encrypt		gcry-cipher-decrypt
     gcry-cipher-encrypt*	gcry-cipher-decrypt*
     gcry-cipher-sync
+
+    ;; public key cryptography
+    gcry-pk-genkey
+
+    ;; message digest
+    gcry-md-open		gcry-md-copy
+    gcry-md-final		gcry-md-close
+    gcry-md-reset		gcry-md-enable
+    gcry-md-setkey
+    gcry-md-write		gcry-md-write*
+    gcry-md-read
+    gcry-md-hash-buffer		gcry-md-hash-buffer*
 
     (rename (platform:gcry_control/int			gcry-control/int)
 	    (platform:gcry_control/uint			gcry-control/uint)
@@ -132,7 +144,6 @@
 	    (platform:gcry_pk_sign			gcry-pk-sign)
 	    (platform:gcry_pk_verify			gcry-pk-verify)
 	    (platform:gcry_pk_testkey			gcry-pk-testkey)
-	    (platform:gcry_pk_genkey			gcry-pk-genkey)
 	    (platform:gcry_pk_ctl			gcry-pk-ctl)
 	    (platform:gcry_pk_algo_info			gcry-pk-algo-info)
 	    (platform:gcry_pk_algo_name			gcry-pk-algo-name)
@@ -143,15 +154,7 @@
 
 	    (platform:gcry_pk_test_algo			gcry-pk-test-algo)
 
-	    (platform:gcry_md_open			gcry-md-open)
-	    (platform:gcry_md_close			gcry-md-close)
-	    (platform:gcry_md_enable			gcry-md-enable)
-	    (platform:gcry_md_copy			gcry-md-copy)
-	    (platform:gcry_md_reset			gcry-md-reset)
 	    (platform:gcry_md_ctl			gcry-md-ctl)
-	    (platform:gcry_md_write			gcry-md-write)
-	    (platform:gcry_md_read			gcry-md-read)
-	    (platform:gcry_md_hash_buffer		gcry-md-hash-buffer)
 	    (platform:gcry_md_get_algo			gcry-md-get-algo)
 	    (platform:gcry_md_get_algo_dlen		gcry-md-get-algo-dlen)
 	    (platform:gcry_md_is_enabled		gcry-md-is-enabled)
@@ -160,11 +163,9 @@
 	    (platform:gcry_md_algo_info			gcry-md-algo-info)
 	    (platform:gcry_md_algo_name			gcry-md-algo-name)
 	    (platform:gcry_md_map_name			gcry-md-map-name)
-	    (platform:gcry_md_setkey			gcry-md-setkey)
 	    (platform:gcry_md_debug			gcry-md-debug)
 	    (platform:gcry_md_list			gcry-md-list)
 
-	    (platform:gcry_md_final			gcry-md-final)
 	    (platform:gcry_md_test_algo			gcry-md-test-algo)
 	    (platform:gcry_md_get_asnoid		gcry-md-get-asnoid)
 
@@ -262,19 +263,23 @@
 
 ;;;; symmetric cryptography
 
-(define (gcry-cipher-open algo mode flags)
-  (with-compensations
-    (let* ((hd*		(malloc-small/c))
-	   (errcode	(platform:gcry_cipher_open hd*
+(define gcry-cipher-open
+  (case-lambda
+   ((algo mode)
+    (gcry-cipher-open algo mode (gcry-cipher-flags)))
+   ((algo mode flags)
+    (with-compensations
+      (let* ((hd*	(malloc-small/c))
+	     (errcode	(platform:gcry_cipher_open hd*
 						   (gcry-cipher-algo->value  algo)
 						   (gcry-cipher-mode->value  mode)
 						   (gcry-cipher-flags->value flags))))
-      (if (= 0 errcode)
-	  (pointer->gcrypt-symmetric-handle (pointer-ref-c-pointer hd* 0))
-	(raise-gpg-error 'gcry-cipher-open errcode algo mode flags)))))
+	(if (= 0 errcode)
+	    (pointer->gcrypt-symmetric-handle (pointer-ref-c-pointer hd* 0))
+	  (raise-gpg-error 'gcry-cipher-open errcode algo mode flags)))))))
 
 (define (gcry-cipher-close syhd)
-  (platform:gcry_cipher_close syhd))
+  (platform:gcry_cipher_close (gcrypt-symmetric-handle->pointer syhd)))
 
 ;;; --------------------------------------------------------------------
 
@@ -348,8 +353,101 @@
     (unless (= 0 errcode)
       (raise-gpg-error 'gcry-cipher-ctl errcode syhd command buf.ptr buf.len))))
 
+
+;;;; message digest
+
+(define gcry-md-open
+  (case-lambda
+   ((algo)
+    (gcry-md-open algo #f))
+   ((algo flags)
+    (with-compensations
+      (let* ((hd*	(malloc-small/c))
+	     (errcode	(platform:gcry_md_open hd*
+					       (gcry-md-algo->value algo)
+					       (if flags
+						   (gcry-md-flags->value flags)
+						 0))))
+	(if (= 0 errcode)
+	    (pointer->gcrypt-md-handle (pointer-ref-c-pointer hd* 0))
+	  (raise-gpg-error 'gcry-md-open errcode algo flags)))))))
+
+(define (gcry-md-copy mdhd)
+  (with-compensations
+    (let* ((hd*		(malloc-small/c))
+	   (errcode	(platform:gcry_md_copy hd* (gcrypt-md-handle->pointer mdhd))))
+      (if (= 0 errcode)
+	  (pointer->gcrypt-md-handle (pointer-ref-c-pointer hd* 0))
+	(raise-gpg-error 'gcry-md-copy errcode mdhd)))))
+
+(define (gcry-md-close mdhd)
+  (platform:gcry_md_close (gcrypt-md-handle->pointer mdhd)))
+
+(define (gcry-md-reset mdhd)
+  (platform:gcry_md_reset (gcrypt-md-handle->pointer mdhd)))
+
+(define (gcry-md-final mdhd)
+  (platform:gcry_md_final (gcrypt-md-handle->pointer mdhd)))
+
 ;;; --------------------------------------------------------------------
 
+(define (gcry-md-enable mdhd algo)
+  (let ((errcode (platform:gcry_md_enable (gcrypt-md-handle->pointer mdhd)
+					  (gcry-md-algo->value algo))))
+    (unless (= 0 errcode)
+      (raise-gpg-error 'gcry-cipher-encrypt errcode mdhd algo))))
+
+(define (gcry-md-setkey mdhd obj)
+  (with-compensations
+    (receive (obj.ptr obj.len)
+	(%object->ptr&len obj 'gcry-md-setkey "expected string, bytevector or memblock as MAC key")
+      (let ((errcode (platform:gcry_md_setkey (gcrypt-md-handle->pointer mdhd) obj.ptr obj.len)))
+	(unless (= 0 errcode)
+	  (raise-gpg-error 'gcry-md-setkey errcode mdhd obj))))))
+
+;;; --------------------------------------------------------------------
+
+(define (gcry-md-write mdhd in.ptr in.len)
+  (let ((errcode (platform:gcry_md_write (gcrypt-md-handle->pointer mdhd) in.ptr in.len)))
+    (unless (= 0 errcode)
+      (raise-gpg-error 'gcry-md-write errcode mdhd in.ptr in.len))))
+
+(define (gcry-md-write* mdhd obj)
+  (with-compensations
+    (receive (in.ptr in.len)
+	(%object->ptr&len obj 'gcry-md-write* "message digest input")
+      (gcry-md-write mdhd in.ptr in.len))))
+
+(define (gcry-md-read mdhd algo)
+  (let* ((algo    (gcry-md-algo->value algo))
+	 (buf.len (platform:gcry_md_get_algo_dlen algo))
+	 (buf.ptr (platform:gcry_md_read (gcrypt-md-handle->pointer mdhd) algo)))
+    (pointer->bytevector buf.ptr buf.len)))
+
+(define (gcry-md-hash-buffer algo in.ptr in.len)
+  (with-compensations
+    (let* ((algo-int	(gcry-md-algo->value algo))
+	   (dig.len	(platform:gcry_md_get_algo_dlen algo-int))
+	   (dig.ptr	(malloc-block/c dig.len)))
+      (platform:gcry_md_hash_buffer algo-int dig.ptr in.ptr in.len)
+      (pointer->bytevector dig.ptr dig.len))))
+
+(define (gcry-md-hash-buffer* algo obj)
+  (with-compensations
+    (receive (in.ptr in.len)
+	(%object->ptr&len obj 'gcry-md-hash-buffer* "message digest input")
+      (gcry-md-hash-buffer algo in.ptr in.len))))
+
+
+;;;; public key cryptography
+
+(define (gcry-pk-genkey params)
+  (with-compensations
+    (let* ((key*	(malloc-small/c))
+	   (errcode	(platform:gcry_pk_genkey key* params)))
+      (if (= 0 errcode)
+	  (pointer-ref-c-pointer key*)
+	(raise-gpg-error 'gcry-pk-genkey errcode params)))))
 
 
 

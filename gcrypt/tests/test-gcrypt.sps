@@ -79,8 +79,7 @@
       (with-compensations
 	(define (make)
 	  (begin0-let ((hd (gcry-cipher-open/c (gcry-cipher-algo arcfour)
-					       (gcry-cipher-mode stream)
-					       (gcry-cipher-flags))))
+					       (gcry-cipher-mode stream))))
 	    (gcry-cipher-setkey hd "ciao, ciao")))
 	(let ((enc (make))
 	      (dec (make)))

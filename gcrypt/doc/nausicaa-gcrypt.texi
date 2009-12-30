@@ -522,9 +522,10 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package.
 * init::                        Initialisation and control.
-* typedefs::                    Type definitions.
 * error::                       Error handling.
 * symmetric::                   Symmetric cryptography.
+* pubkey::                      Public key cryptography.
+* hash::                        Hash functions.
 * compensations::               Compensated constructors.
 
 Appendices
@@ -543,10 +544,6 @@ Indexes
 @detailmenu
  --- The Detailed Node Listing ---
 
-Type definitions
-
-* typedefs handle::             Symmetric cryptography handle.
-
 Error handling
 
 * error codes::                 Handling error codes.
@@ -559,6 +556,7 @@ Condition objects
 Symmetric cryptography
 
 * symmetric intro::             Introduction to symmetric cryptography.
+* symmetric handle::            Symmetric cryptography handle.
 * symmetric enums::             Enumeration types.
 * symmetric api::               Programming interface.
 
@@ -566,6 +564,22 @@ Enumeration types
 
 * symmetric enums algo::        Symmetric cipher algorithms.
 * symmetric enums mode::        Symmetric cipher modes.
+* symmetric enums flags::       Symmetric cipher flags.
+
+Public key cryptography
+
+* pubkey intro::                Introduction.
+
+Hash functions
+
+* hash handle::                 Message digest handle.
+* hash enums::                  Enumerations.
+* hash api::                    Hash functions interface.
+
+Enumerations
+
+* hash enums algo::             Hash algorithms.
+* hash enums flags::            Hash algorithm flags.
 
 @end detailmenu
 @end menu
@@ -613,29 +627,35 @@ Defines enumeration types used to handle Gcrypt options and flags.
 @itemx foreign crypto gpg-error platform
 Export one binding for each foreign function; the Scheme functions have
 the same name of the C functions, so @cfunc{gcry_check_version} is
-available as @func{gcry_check_version}.  This library makes the original
-Libgcrypt documentation relevant for this package.  @gcryptref{Top, The
-Libgcrypt library}.
+available as @func{gcry_check_version}.
+
+This library makes the original Libgcrypt documentation relevant for
+this package; unfortunately there is no documentation for the GPG-Error
+library, we have to read the header file @file{gpg-error.h}.
+@gcryptref{Top, The Libgcrypt library}.
 
 @item foreign crypto gcrypt primitives
 @itemx foreign crypto gpg-error primitives
-Export one binding for each foreign function, implementing marshaling of
-arguments and return values.  The Scheme functions have the same name of
-the C functions, but with the underscores converted to dashes; so
-@cfunc{gcry_check_version} is available as @func{gcry-check-version}.
+Export one binding for each callout function in the @code{platform}
+libraries, implementing marshaling of arguments and return values.  The
+Scheme functions have the same name of the C functions, but with the
+underscores converted to dashes; so @cfunc{gcry_check_version} is
+available as @func{gcry-check-version}.
 
 All the Gcrypt functions are prefixed with @code{gcry-}, while the
 GPG-error functions are prefixed with @code{gpg-}.
 
 This documentation file describes the @api{} exported by this library;
-only functions implementing marshaling of values are described.
+only functions implementing marshaling of values are described: if a
+function is not documented here it is exported ``as is'' from the
+@code{platform} libraries.
 
 @item foreign crypto gcrypt
 @itemx foreign crypto gpg-error
-Compound librarie exporting the high--level @api{}; they reexport
+Compound libraries exporting the high--level @api{}; they reexport
 bindings from the @samp{primitives} libraries and the constant values
-from the @samp{sizeof} libraries.  Additionally the @code{gpg-error}
-library reexports bindings for the condition objects.
+from the @samp{sizeof} libraries.  Additionally bindings from other
+libraries are rexported as described in this document.
 
 @item foreign crypto gcrypt compensated
 Exports bindings to constructor functions making use of the
@@ -669,47 +689,6 @@ the command @var{cmd} requires no argument, we can use
 
 The return value is always an integer; @strong{no} error detection is
 performed by @library{foreign gcrypt primitives}.
-@end defun
-
-@c page
-@node typedefs
-@chapter Type definitions
-
-
-Unless otherwise specified, the bindings documented in this chapter are
-exported by the @library{foreign crypto gcrypt typedefs} library and
-reexported by the @library{foreign crypto gcrypt} library.
-
-@menu
-* typedefs handle::             Symmetric cryptography handle.
-@end menu
-
-@c page
-@node typedefs handle
-@section Symmetric cryptography handle
-
-
-Functions from the primitives and high--level @api{} accept objects of
-type @code{gcrypt-symmetric-handle} as @var{syhd} arguments.  Functions
-from the platform libraries accept raw pointers as references to
-symmetric cryptography handles.
-
-
-@deftp {Object Type} gcrypt-symmetric-handle
-Reference to a Gcrypt symmetric cryptography handle.  It is disjoint
-from all the other Scheme object types.
-@end deftp
-
-
-@defun gcrypt-symmetric-handle? @var{obj}
-Return @true{} if @var{obj} is of type @code{gcrypt-symmetric-handle}.
-@end defun
-
-
-@defun pointer->gcrypt-symmetric-handle @var{pointer}
-@defunx gcrypt-symmetric-handle->pointer @var{syhd}
-Convert between a raw pointer object and a
-@code{gcrypt-symmetric-handle} object.
 @end defun
 
 @c page
@@ -799,6 +778,7 @@ types: @condition{who}, @condition{message}, @condition{gpg-error},
 
 @menu
 * symmetric intro::             Introduction to symmetric cryptography.
+* symmetric handle::            Symmetric cryptography handle.
 * symmetric enums::             Enumeration types.
 * symmetric api::               Programming interface.
 @end menu
@@ -818,6 +798,54 @@ for an explanation of block cipher modes:
 
 @center @url{http://en.wikipedia.org/wiki/Block_cipher_modes_of_operation}
 
+Here is an example, using compesations:
+
+@example
+(import (nausicaa)
+  (compensations)
+  (foreign cstrings)
+  (foreign crypto gcrypt)
+  (foreign crypto gcrypt compensated))
+
+(with-compensations
+  (let ((hd (gcry-cipher-open/c (gcry-cipher-algo arcfour)
+                                (gcry-cipher-mode stream))))
+    (gcry-cipher-setkey hd "ciao, ciao")
+    (gcry-cipher-encrypt* enc "you complete my fate")))
+@end example
+
+@c page
+@node symmetric handle
+@section Symmetric cryptography handle
+
+
+Unless otherwise specified, the folowing bindings are exported by the
+@library{foreign crypto gcrypt typedefs} library and reexported by the
+@library{foreign crypto gcrypt} library.
+
+Functions from the primitives and high--level @api{} accept objects of
+type @code{gcrypt-symmetric-handle} as @var{syhd} arguments.  Functions
+from the platform libraries accept raw pointers as references to
+symmetric cryptography handles.
+
+
+@deftp {Object Type} gcrypt-symmetric-handle
+Reference to a Gcrypt symmetric cryptography handle.  It is disjoint
+from all the other Scheme object types.
+@end deftp
+
+
+@defun gcrypt-symmetric-handle? @var{obj}
+Return @true{} if @var{obj} is of type @code{gcrypt-symmetric-handle}.
+@end defun
+
+
+@defun pointer->gcrypt-symmetric-handle @var{pointer}
+@defunx gcrypt-symmetric-handle->pointer @var{syhd}
+Convert between a raw pointer object and a
+@code{gcrypt-symmetric-handle} object.
+@end defun
+
 @c page
 @node symmetric enums
 @section Enumeration types
@@ -830,6 +858,7 @@ the @library{foreign crypto gcrypt} library.
 @menu
 * symmetric enums algo::        Symmetric cipher algorithms.
 * symmetric enums mode::        Symmetric cipher modes.
+* symmetric enums flags::       Symmetric cipher flags.
 @end menu
 
 @c page
@@ -868,7 +897,7 @@ holding the symbol @meta{symbol}.
 
 @defun gcry-cipher-algo->value @var{set}
 @defunx value->gcry-cipher-algo @var{integer}
-Expand to and from an enumeration set of type
+Convert to and from an enumeration set of type
 @code{enum-gcry-cipher-algo} holding a single element and the
 corresponding constant recognised by Gcrypt.
 @end defun
@@ -896,9 +925,37 @@ holding the symbol @meta{symbol}.
 
 @defun gcry-cipher-mode->value @var{set}
 @defunx value->gcry-cipher-mode @var{integer}
-Expand to and from an enumeration set of type
+Convert to and from an enumeration set of type
 @code{enum-gcry-cipher-mode} holding a single element and the
 corresponding constant recognised by Gcrypt.
+@end defun
+
+@c page
+@node symmetric enums flags
+@subsection Symmetric cipher flags
+
+
+@deftp {Enumeration Type} enum-gcry-cipher-flags
+Used to select symmetric cypher flags.  It enumerates the following
+symbols:
+
+@example
+secure  enable-sync  cbc-cts  cbc-mac
+@end example
+@end deftp
+
+
+@deffn Syntax gcry-cipher-flags @ameta{symbol} ...
+Expand to an enumeration set of type @code{enum-gcry-cipher-flags}
+holding the given @meta{symbol} arguments.
+@end deffn
+
+
+@defun gcry-cipher-flags->value @var{set}
+@defunx value->gcry-cipher-flags @var{integer}
+Convert to and from an enumeration set of type
+@code{enum-gcry-cipher-flags} and the corresponding constant recognised
+by Gcrypt.
 @end defun
 
 @c page
@@ -910,11 +967,15 @@ The following functions manage symmetric encryption and decryption.
 @gcryptref{Working with cipher handles, Working with cipher handles}.
 
 
-@defun gcry-cipher-open @var{algo} @var{mode} @var{flags}
-Build and return a new handler for symmetric encryption and decryption.
-@var{algo} must be one of the @code{GCRY_CIPHER_*} constants; @var{mode}
-must be one of the @code{GCRY_CIPHER_MODE_*} constants; @var{flags} must
-be an inclusive OR combination of flags.
+@defun gcry-cipher-open @var{algo} @var{mode}
+@defunx gcry-cipher-open @var{algo} @var{mode} @var{flags}
+Build and return a new handler for symmetric encryption and decryption,
+an object of type @code{gcrypt-md-handle}.
+
+@var{algo} must be an enumeration set of type
+@code{enum-gcry-cipher-algo}; @var{mode} must be an enumeration set of
+type @code{enum-gcry-cipher-mode}; the optional @var{flags} must be an
+enumeration set of type @code{enum-gcry-cipher-flags}.
 @end defun
 
 
@@ -963,6 +1024,224 @@ Control the behaviour of @var{syhd}.
 @end defun
 
 @c page
+@node pubkey
+@chapter Public key cryptography
+
+
+@menu
+* pubkey intro::                Introduction.
+@end menu
+
+@c page
+@node pubkey intro
+@section Introduction
+
+
+@c page
+@node hash
+@chapter Hash functions
+
+
+@menu
+* hash handle::                 Message digest handle.
+* hash enums::                  Enumerations.
+* hash api::                    Hash functions interface.
+@end menu
+
+@c page
+@node hash handle
+@section Message digest handle
+
+
+Unless otherwise specified, the folowing bindings are exported by the
+@library{foreign crypto gcrypt typedefs} library and reexported by the
+@library{foreign crypto gcrypt} library.
+
+Functions from the primitives and high--level @api{} accept objects of
+type @code{gcrypt-md-handle} as @var{mdhd} arguments.  Functions from
+the platform libraries accept raw pointers as references to message
+digest handles.
+
+
+@deftp {Object Type} gcrypt-md-handle
+Reference to a Gcrypt message digest handle.  It is disjoint from all
+the other Scheme object types.
+@end deftp
+
+
+@defun gcrypt-md-handle? @var{obj}
+Return @true{} if @var{obj} is of type @code{gcrypt-md-handle}.
+@end defun
+
+
+@defun pointer->gcrypt-md-handle @var{pointer}
+@defunx gcrypt-md-handle->pointer @var{syhd}
+Convert between a raw pointer object and a @code{gcrypt-md-handle}
+object.
+@end defun
+
+@c page
+@node hash enums
+@section Enumerations
+
+
+The bindings documented in this section are exported by the
+@library{foreign crypto gcrypt enumeration} library and reexported by
+the @library{foreign crypto gcrypt} library.
+
+@menu
+* hash enums algo::             Hash algorithms.
+* hash enums flags::            Hash algorithm flags.
+@end menu
+
+@c page
+@node hash enums algo
+@subsection Hash algorithms
+
+
+@deftp {Enumeration Type} enum-gcry-md-algo
+Used to select hash function algorithms.  It enumerates the following
+symbols:
+
+@example
+md5                  sha1
+rmd160               md2
+tiger                haval
+sha256               sha384
+sha512               sha224
+md4                  crc32
+crc32-rfc1510        crc24-rfc2440
+whirlpool
+@end example
+@end deftp
+
+
+@deffn Syntax gcry-md-algo @ameta{symbol}
+Expand to an enumeration set of type @code{enum-gcry-md-algo} holding
+the symbol @meta{symbol}.
+@end deffn
+
+
+@defun gcry-md-algo->value @var{set}
+@defunx value->gcry-md-algo @var{integer}
+Convert to and from an enumeration set of type @code{enum-gcry-md-algo}
+holding a single element and the corresponding constant recognised by
+Gcrypt.
+@end defun
+
+@c page
+@node hash enums flags
+@subsection Hash algorithm flags
+
+
+@deftp {Enumeration Type} enum-gcry-md-flags
+Used to select hash algorithm flags.  It enumerates the following
+symbols:
+
+@example
+secure  hmac
+@end example
+@end deftp
+
+
+@deffn Syntax gcry-md-flags @ameta{symbol} ...
+Expand to an enumeration set of type @code{enum-gcry-md-flags} holding
+the given @meta{symbol} arguments.
+@end deffn
+
+
+@defun gcry-md-flags->value @var{set}
+@defunx value->gcry-md-flags @var{integer}
+Convert to and from an enumeration set of type @code{enum-gcry-md-flags}
+and the corresponding constant recognised by Gcrypt.
+@end defun
+
+@c page
+@node hash api
+@section Hash functions interface
+
+
+@defun gcry-md-open @var{algo}
+@defunx gcry-md-open @var{algo} @var{flags}
+Build and return a new handler for message digest computation, an object
+of type @code{gcrypt-md-handle}.
+
+@var{algo} can be an enumeration set of type @code{enum-gcry-md-algo} or
+@false{} if the algorithm is selected later.  The optional @var{flags}
+must be an enumeration set of type @code{enum-gcry-md-flags}.
+@end defun
+
+
+@defun gcry-md-copy @var{mdhd}
+Build and return a new handler for message digest computation, an object
+of type @code{gcrypt-md-handle}, cloning the context in @var{mdhd}.
+@end defun
+
+
+@defun gcry-md-close @var{mdhd}
+Release all the resources associated to @var{mdhd}.
+@end defun
+
+
+@defun gcry-md-final @var{mdhd}
+Finalise @var{mdhd}.
+@end defun
+
+
+@defun gcry-md-reset @var{mdhd}
+Reset the context in @var{mdhd} to its initial state.
+@end defun
+
+
+@defun gcry-md-enable @var{mdhd} @var{algo}
+Enable @var{algo} for @var{mdhd}.  @var{algo} must be an enumeration set
+of type @code{enum-gcry-md-algo}.
+@end defun
+
+
+@defun gcry-cipher-setkey @var{mdhd} @var{key}
+Set MAC keyword @var{key} in the context of @var{mdhd}.  @var{key} can
+be a Scheme string, a Scheme bytevector or @class{memblock} object.
+@nauref{memory blocks, Memory blocks}.
+@end defun
+
+
+@defun gcry-md-write @var{mdhd} @var{in.ptr} @var{in.len}
+Update @var{mdhd} with the given block of memory.
+@end defun
+
+
+@defun gcry-md-write* @var{mdhd} @var{obj}
+Update @var{mdhd} with @var{obj}, which can be a Scheme string, a Scheme
+bytevector or a @class{memblock} object.  @nauref{memory blocks, Memory
+blocks}.
+@end defun
+
+
+@defun gcry-md-read @var{mdhd} @var{algo}
+Finalise @var{mdhd} and compute the message digest of @var{algo}, which
+must be an enumeration set of type @code{enum-gcry-md-algo} selecting a
+previously enabled algorithm; return a Scheme bytevector holding the
+digest.
+@end defun
+
+
+@defun gcry-md-hash-buffer @var{algo} @var{in.ptr} @var{in.len}
+Compute the message digest of the specified memory block using
+@var{algo}, which must be an enumeration set of type
+@code{enum-gcry-md-algo}; return a Scheme bytevector holding the digest.
+@end defun
+
+
+@defun gcry-md-hash-buffer* @var{algo} @var{obj}
+Compute the message digest of @var{obj} using @var{algo}, which must be
+an enumeration set of type @code{enum-gcry-md-algo}; return a Scheme
+bytevector holding the digest.  @var{obj} can be a Scheme string, a
+Scheme bytevector or a @class{memblock} object.  @nauref{memory blocks,
+Memory blocks}.
+@end defun
+
+@c page
 @node compensations
 @chapter Compensated constructors
 
@@ -972,8 +1251,20 @@ gcrypt compensated} library.
 
 
 @defun gcry-cipher-open/c @var{arg} ...
-Like @func{gcry-cipher-open}, but push the appropriated call to
+Like @func{gcry-cipher-open}, but push the appropriate call to
 @func{gcry-cipher-close} to the current compensation stack.
+@end defun
+
+
+@defun gcry-md-open/c @var{arg} ...
+Like @func{gcry-md-open}, but push the appropriate call to
+@func{gcry-md-close} to the current compensation stack.
+@end defun
+
+
+@defun gcry-md-copy/c @var{arg}
+Like @func{gcry-md-copy}, but push the appropriate call to
+@func{gcry-md-close} to the current compensation stack.
 @end defun
 
 @c page

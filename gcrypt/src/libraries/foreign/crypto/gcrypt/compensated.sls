@@ -27,7 +27,8 @@
 
 (library (foreign crypto gcrypt compensated)
   (export
-    gcry-cipher-open/c)
+    gcry-cipher-open/c
+    gcry-md-open/c		gcry-md-copy/c)
   (import (rnrs)
     (compensations)
     (foreign crypto gcrypt))
@@ -38,6 +39,20 @@
 		   (apply gcry-cipher-open args)
 		 (with
 		  (gcry-cipher-close hd)))))
+    hd))
+
+(define (gcry-md-open/c . args)
+  (letrec ((hd (compensate
+		   (apply gcry-md-open args)
+		 (with
+		  (gcry-md-close hd)))))
+    hd))
+
+(define (gcry-md-copy/c . args)
+  (letrec ((hd (compensate
+		   (apply gcry-md-copy args)
+		 (with
+		  (gcry-md-close hd)))))
     hd))
 
 

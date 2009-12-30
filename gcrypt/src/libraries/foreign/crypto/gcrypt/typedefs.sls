@@ -31,6 +31,9 @@
     gcrypt-symmetric-handle		gcrypt-symmetric-handle?
     pointer->gcrypt-symmetric-handle	gcrypt-symmetric-handle->pointer
 
+    gcrypt-md-handle			gcrypt-md-handle?
+    pointer->gcrypt-md-handle		gcrypt-md-handle->pointer
+
     )
   (import (rnrs)
     (foreign crypto gcrypt sizeof))
@@ -39,6 +42,10 @@
   (define-record-type (gcrypt-symmetric-handle pointer->gcrypt-symmetric-handle gcrypt-symmetric-handle?)
     (nongenerative nausicaa:gcrypt:symmetric-handle)
     (fields (immutable pointer gcrypt-symmetric-handle->pointer)))
+
+  (define-record-type (gcrypt-md-handle pointer->gcrypt-md-handle gcrypt-md-handle?)
+    (nongenerative nausicaa:gcrypt:md-handle)
+    (fields (immutable pointer gcrypt-md-handle->pointer)))
 
   )
 
