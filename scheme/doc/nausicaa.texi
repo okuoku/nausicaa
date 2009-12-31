@@ -19802,7 +19802,11 @@ foreign constants.
 @meta{name} must be an identifier to which an enumeration set
 constructor syntax is bound; the syntax accepts only a single symbol as
 argument and it expands to an enumeration set with that symbol as
-element.  The enumeration type is @code{enum-@cmeta{name}}.
+element.
+
+The enumeration type is @code{enum-@cmeta{name}} and the original
+constructor syntax accepting any number of arguments is
+@code{%@cmeta{name}}.
 
 The @meta{flag} arguments are meant to be identifiers bound to any
 Scheme value, but they can be any value.  The @meta{symbol} arguments
