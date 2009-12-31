@@ -206,6 +206,8 @@
     gcry-md-algo		gcry-md-algo->value		value->gcry-md-algo
     gcry-md-flags		gcry-md-flags->value		value->gcry-md-flags
 
+    gcry-random-quality		gcry-random-quality->value	value->gcry-random-quality
+
     ;; functions
     (rename (primitive:gcry-check-version		gcry-check-version)
 	    (primitive:gcry-control/int			gcry-control/int)
@@ -339,7 +341,9 @@
 	    (primitive:gcry-md-get-algo			gcry-md-get-algo)
 	    (primitive:gcry-md-get-algo-dlen		gcry-md-get-algo-dlen)
 	    (primitive:gcry-md-is-enabled?		gcry-md-is-enabled?)
+	    (primitive:gcry-md-is-enabled		gcry-md-is-enabled)
 	    (primitive:gcry-md-is-secure?		gcry-md-is-secure?)
+	    (primitive:gcry-md-is-secure		gcry-md-is-secure)
 	    (primitive:gcry-md-info			gcry-md-info)
 	    (primitive:gcry-md-algo-info		gcry-md-algo-info)
 	    (primitive:gcry-md-algo-name		gcry-md-algo-name)
@@ -357,6 +361,7 @@
 	    (primitive:gcry-random-add-bytes		gcry-random-add-bytes)
 	    (primitive:gcry-random-bytes		gcry-random-bytes)
 	    (primitive:gcry-random-bytes-secure		gcry-random-bytes-secure)
+	    (primitive:gcry-random-bytes/secure		gcry-random-bytes/secure)
 	    (primitive:gcry-mpi-randomize		gcry-mpi-randomize)
 	    (primitive:gcry-create-nonce		gcry-create-nonce)
 

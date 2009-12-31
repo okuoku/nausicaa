@@ -34,6 +34,8 @@
     gcry-md-algo	gcry-md-algo->value		value->gcry-md-algo
     gcry-md-flags	gcry-md-flags->value		value->gcry-md-flags
 
+    gcry-random-quality	gcry-random-quality->value	value->gcry-random-quality
+
     %gcry-md-algo
     )
   (import (rnrs)
@@ -109,6 +111,14 @@
 (define-c-ior-flags gcry-md-flags
   (GCRY_MD_FLAG_SECURE		GCRY_MD_FLAG_HMAC)
   (secure			hmac))
+
+
+(define-c-flags gcry-random-quality
+  (GCRY_WEAK_RANDOM
+   GCRY_STRONG_RANDOM
+   GCRY_VERY_STRONG_RANDOM)
+  (weak strong very-strong))
+
 
 
 ;;;; done

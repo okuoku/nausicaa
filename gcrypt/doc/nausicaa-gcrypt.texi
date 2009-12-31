@@ -523,9 +523,10 @@ entitled ``@gnu{} Free Documentation License''.
 * overview::                    Overview of the package.
 * init::                        Initialisation and control.
 * error::                       Error handling.
+* hash::                        Hash functions.
 * symmetric::                   Symmetric cryptography.
 * pubkey::                      Public key cryptography.
-* hash::                        Hash functions.
+* random::                      Pseudo--random numbers generation.
 * compensations::               Compensated constructors.
 
 Appendices
@@ -553,23 +554,6 @@ Condition objects
 
 * error conditions gpg-error::  GPG-error error conditions.
 
-Symmetric cryptography
-
-* symmetric intro::             Introduction to symmetric cryptography.
-* symmetric handle::            Symmetric cryptography handle.
-* symmetric enums::             Enumeration types.
-* symmetric api::               Programming interface.
-
-Enumeration types
-
-* symmetric enums algo::        Symmetric cipher algorithms.
-* symmetric enums mode::        Symmetric cipher modes.
-* symmetric enums flags::       Symmetric cipher flags.
-
-Public key cryptography
-
-* pubkey intro::                Introduction.
-
 Hash functions
 
 * hash handle::                 Message digest handle.
@@ -586,6 +570,23 @@ Hash functions interface
 * hash api init::               Initialisation and finalisation.
 * hash api digest::             Processing input data.
 * hash api inspect::            Inspection.
+
+Symmetric cryptography
+
+* symmetric intro::             Introduction to symmetric cryptography.
+* symmetric handle::            Symmetric cryptography handle.
+* symmetric enums::             Enumeration types.
+* symmetric api::               Programming interface.
+
+Enumeration types
+
+* symmetric enums algo::        Symmetric cipher algorithms.
+* symmetric enums mode::        Symmetric cipher modes.
+* symmetric enums flags::       Symmetric cipher flags.
+
+Public key cryptography
+
+* pubkey intro::                Introduction.
 
 @end detailmenu
 @end menu
@@ -778,9 +779,294 @@ types: @condition{who}, @condition{message}, @condition{gpg-error},
 @end deffn
 
 @c page
+@node hash
+@chapter Hash functions
+
+
+The functions documented in this chapter manage creation of message
+digests for streams of bytes.  @gcryptref{Hashing, Hashing}.
+
+@menu
+* hash handle::                 Message digest handle.
+* hash enums::                  Enumerations.
+* hash api::                    Hash functions interface.
+@end menu
+
+@c page
+@node hash handle
+@section Message digest handle
+
+
+Unless otherwise specified, the folowing bindings are exported by the
+@library{foreign crypto gcrypt typedefs} library and reexported by the
+@library{foreign crypto gcrypt} library.
+
+Functions from the primitives and high--level @api{} accept objects of
+type @code{gcry-md-handle} as @var{mdhd} arguments.  Functions from the
+platform libraries accept raw pointers as references to message digest
+handles.
+
+
+@deftp {Object Type} gcry-md-handle
+Reference to a Gcrypt message digest handle.  It is disjoint from all
+the other Scheme object types.
+@end deftp
+
+
+@defun gcry-md-handle? @var{obj}
+Return @true{} if @var{obj} is of type @code{gcry-md-handle}.
+@end defun
+
+
+@defun pointer->gcry-md-handle @var{pointer}
+@defunx gcry-md-handle->pointer @var{syhd}
+Convert between a raw pointer object and a @code{gcry-md-handle} object.
+@end defun
+
+@c page
+@node hash enums
+@section Enumerations
+
+
+The bindings documented in this section are exported by the
+@library{foreign crypto gcrypt enumeration} library and reexported by
+the @library{foreign crypto gcrypt} library.
+
+@menu
+* hash enums algo::             Hash algorithms.
+* hash enums flags::            Hash algorithm flags.
+@end menu
+
+@c page
+@node hash enums algo
+@subsection Hash algorithms
+
+
+@deftp {Enumeration Type} enum-gcry-md-algo
+Used to select hash function algorithms.  It enumerates the following
+symbols:
+
+@example
+md5                  sha1
+rmd160               md2
+tiger                haval
+sha256               sha384
+sha512               sha224
+md4                  crc32
+crc32-rfc1510        crc24-rfc2440
+whirlpool
+@end example
+@end deftp
+
+
+@deffn Syntax gcry-md-algo @ameta{symbol}
+Expand to an enumeration set of type @code{enum-gcry-md-algo} holding
+the symbol @meta{symbol}.
+@end deffn
+
+
+@defun gcry-md-algo->value @var{set}
+@defunx value->gcry-md-algo @var{integer}
+Convert to and from an enumeration set of type @code{enum-gcry-md-algo}
+holding a single element and the corresponding constant recognised by
+Gcrypt.
+@end defun
+
+@c page
+@node hash enums flags
+@subsection Hash algorithm flags
+
+
+@deftp {Enumeration Type} enum-gcry-md-flags
+Used to select hash algorithm flags.  It enumerates the following
+symbols:
+
+@example
+secure  hmac
+@end example
+@end deftp
+
+
+@deffn Syntax gcry-md-flags @ameta{symbol} ...
+Expand to an enumeration set of type @code{enum-gcry-md-flags} holding
+the given @meta{symbol} arguments.
+@end deffn
+
+
+@defun gcry-md-flags->value @var{set}
+@defunx value->gcry-md-flags @var{integer}
+Convert to and from an enumeration set of type @code{enum-gcry-md-flags}
+and the corresponding constant recognised by Gcrypt.
+@end defun
+
+@c page
+@node hash api
+@section Hash functions interface
+
+
+@menu
+* hash api init::               Initialisation and finalisation.
+* hash api digest::             Processing input data.
+* hash api inspect::            Inspection.
+@end menu
+
+@c page
+@node hash api init
+@subsection Initialisation and finalisation
+
+
+In the following descriptions, unless otherwise specified, the argument
+@var{algo} is an enumeration set of type @code{enum-gcry-md-algo}
+holding a single element.
+
+
+@defun gcry-md-open @var{algo}
+@defunx gcry-md-open @var{algo} @var{flags}
+Build and return a new handler for message digest computation, an object
+of type @code{gcrypt-md-handle}.
+
+@var{algo} can be an enumeration set of type @code{enum-gcry-md-algo} or
+@false{} if the algorithm is selected later.  The optional @var{flags}
+must be an enumeration set of type @code{enum-gcry-md-flags}.
+@end defun
+
+
+@defun gcry-md-copy @var{mdhd}
+Build and return a new handler for message digest computation, an object
+of type @code{gcrypt-md-handle}, cloning the context in @var{mdhd}.
+@end defun
+
+
+@defun gcry-md-close @var{mdhd}
+Release all the resources associated to @var{mdhd}.
+@end defun
+
+
+@defun gcry-md-final @var{mdhd}
+Finalise @var{mdhd}.
+@end defun
+
+
+@defun gcry-md-reset @var{mdhd}
+Reset the context in @var{mdhd} to its initial state.
+@end defun
+
+
+@defun gcry-md-enable @var{mdhd} @var{algo}
+Enable @var{algo} for @var{mdhd}.
+@end defun
+
+
+@defun gcry-cipher-setkey @var{mdhd} @var{key}
+Set MAC keyword @var{key} in the context of @var{mdhd}.  @var{key} can
+be a Scheme string, a Scheme bytevector or @class{memblock} object.
+@nauref{memory blocks, Memory blocks}.
+@end defun
+
+
+@c page
+@node hash api digest
+@subsection Processing input data
+
+
+In the following descriptions, unless otherwise specified, the argument
+@var{algo} is an enumeration set of type @code{enum-gcry-md-algo}
+holding a single element.
+
+
+@defun gcry-md-write @var{mdhd} @var{in.ptr} @var{in.len}
+Update @var{mdhd} with the given block of memory.
+@end defun
+
+
+@defun gcry-md-write* @var{mdhd} @var{obj}
+Update @var{mdhd} with @var{obj}, which can be a Scheme string, a Scheme
+bytevector or a @class{memblock} object.  @nauref{memory blocks, Memory
+blocks}.
+@end defun
+
+
+@defun gcry-md-read @var{mdhd} @var{algo}
+Finalise @var{mdhd} and compute the message digest of @var{algo}, which
+must represent a previously enabled algorithm; return a Scheme
+bytevector holding the digest.
+@end defun
+
+
+@defun gcry-md-hash-buffer @var{algo} @var{in.ptr} @var{in.len}
+Compute the message digest of the specified memory block using
+@var{algo}; return a Scheme bytevector holding the digest.
+@end defun
+
+
+@defun gcry-md-hash-buffer* @var{algo} @var{obj}
+Compute the message digest of @var{obj} using @var{algo}; return a
+Scheme bytevector holding the digest.  @var{obj} can be a Scheme string,
+a Scheme bytevector or a @class{memblock} object.  @nauref{memory
+blocks, Memory blocks}.
+@end defun
+
+@c page
+@node hash api inspect
+@subsection Inspection
+
+
+In the following descriptions, unless otherwise specified, the argument
+@var{algo} is an enumeration set of type @code{enum-gcry-md-algo}
+holding a single element.
+
+
+@defun gcry-md-algo-name @var{algo}
+@defunx gcry-md-map-name @var{name}
+Convert to and from an an enumeration set of type
+@code{enum-gcry-md-algo} and a Scheme string or symbol representing an
+algorithm name.
+@end defun
+
+
+@defun gcry-md-test-algo @var{algo}
+Return @true{} if the algorithm selected by @var{algo} is available in
+the installed Gcrypt.
+@end defun
+
+
+@defun gcry-md-get-algo-dlen @var{algo}
+Return the number of bytes in the message digest produced by @var{algo}.
+@end defun
+
+
+@defun gcry-md-is-secure? @var{mdhd}
+@defunx gcry-md-is-secure @var{mdhd}
+Return @true{} if @var{mdhd} is allocated in secure memory.
+@end defun
+
+
+@defun gcry-md-is-enabled? @var{mdhd} @var{algo}
+@defunx gcry-md-is-enabled @var{mdhd} @var{algo}
+Return @true{} if @var{algo} is enabled in @var{mdhd}.
+@end defun
+
+
+@defun gcry-md-enabled-algos @var{mdhd}
+Return an enumeration set of type @code{enum-gcry-md-algo} representing
+the algorithms enabled in @var{mdhd}.
+@end defun
+
+
+@defun gcry-md-get-asnoid @var{algo}
+Return a Scheme bytevector representing a DER encoded ASN.1 OID for
+@var{algo}.
+@end defun
+
+
+@c page
 @node symmetric
 @chapter Symmetric cryptography
 
+
+The functions documented in this chapter manage encryption and
+decryption for streams of bytes using symmetric key algorithms.
+@gcryptref{Symmetric cryptography, Symmetric cryptography}.
 
 @menu
 * symmetric intro::             Introduction to symmetric cryptography.
@@ -1034,6 +1320,10 @@ Control the behaviour of @var{syhd}.
 @chapter Public key cryptography
 
 
+The functions documented in this chapter manage encryption and
+decryption for streams of bytes using public key algorithms.
+@gcryptref{Public Key cryptography, Public Key cryptography}.
+
 @menu
 * pubkey intro::                Introduction.
 @end menu
@@ -1044,279 +1334,96 @@ Control the behaviour of @var{syhd}.
 
 
 @c page
-@node hash
-@chapter Hash functions
+@node random
+@chapter Pseudo--random numbers generation
 
+
+The functions documented in this chapter manage generation of
+pseudo--random numbers.  @gcryptref{Random Numbers, Random Numbers}.
 
 @menu
-* hash handle::                 Message digest handle.
-* hash enums::                  Enumerations.
-* hash api::                    Hash functions interface.
+* random quality::              Selecting pseudo--random numbers
+                                quality.
+* random api::                  Programming interface.
 @end menu
 
 @c page
-@node hash handle
-@section Message digest handle
+@node random quality
+@section Selecting pseudo--random numbers quality
 
 
-Unless otherwise specified, the folowing bindings are exported by the
-@library{foreign crypto gcrypt typedefs} library and reexported by the
-@library{foreign crypto gcrypt} library.
-
-Functions from the primitives and high--level @api{} accept objects of
-type @code{gcry-md-handle} as @var{mdhd} arguments.  Functions from the
-platform libraries accept raw pointers as references to message digest
-handles.
+The following bingdings are exported by the @library{foreign crypto
+gcrypt enumerations} library and reexported by the @library{foreign
+crypto gcrypt} library.
 
 
-@deftp {Object Type} gcry-md-handle
-Reference to a Gcrypt message digest handle.  It is disjoint from all
-the other Scheme object types.
-@end deftp
-
-
-@defun gcry-md-handle? @var{obj}
-Return @true{} if @var{obj} is of type @code{gcry-md-handle}.
-@end defun
-
-
-@defun pointer->gcry-md-handle @var{pointer}
-@defunx gcry-md-handle->pointer @var{syhd}
-Convert between a raw pointer object and a @code{gcry-md-handle} object.
-@end defun
-
-@c page
-@node hash enums
-@section Enumerations
-
-
-The bindings documented in this section are exported by the
-@library{foreign crypto gcrypt enumeration} library and reexported by
-the @library{foreign crypto gcrypt} library.
-
-@menu
-* hash enums algo::             Hash algorithms.
-* hash enums flags::            Hash algorithm flags.
-@end menu
-
-@c page
-@node hash enums algo
-@subsection Hash algorithms
-
-
-@deftp {Enumeration Type} enum-gcry-md-algo
-Used to select hash function algorithms.  It enumerates the following
-symbols:
+@deftp {Enumeration Type} enum-gcry-random-quality
+Used to select the quality of generated pseudo--random numbers.  It
+enumerates the following symbols:
 
 @example
-md5                  sha1
-rmd160               md2
-tiger                haval
-sha256               sha384
-sha512               sha224
-md4                  crc32
-crc32-rfc1510        crc24-rfc2440
-whirlpool
+weak  strong  very-strong
 @end example
 @end deftp
 
 
-@deffn Syntax gcry-md-algo @ameta{symbol}
-Expand to an enumeration set of type @code{enum-gcry-md-algo} holding
-the symbol @meta{symbol}.
+@deffn Syntax gcry-random-quality @ameta{symbol}
+Expand to an enumeration set of type @code{enum-gcry-random-quality}
+holding the symbol @meta{symbol}.
 @end deffn
 
 
-@defun gcry-md-algo->value @var{set}
-@defunx value->gcry-md-algo @var{integer}
-Convert to and from an enumeration set of type @code{enum-gcry-md-algo}
-holding a single element and the corresponding constant recognised by
-Gcrypt.
+@defun gcry-random-quality->value @var{set}
+@defunx value->gcry-random-quality @var{integer}
+Convert to and from an enumeration set of type
+@code{enum-gcry-random-quality} holding a single element and the
+corresponding constant recognised by Gcrypt.
 @end defun
 
 @c page
-@node hash enums flags
-@subsection Hash algorithm flags
-
-
-@deftp {Enumeration Type} enum-gcry-md-flags
-Used to select hash algorithm flags.  It enumerates the following
-symbols:
-
-@example
-secure  hmac
-@end example
-@end deftp
-
-
-@deffn Syntax gcry-md-flags @ameta{symbol} ...
-Expand to an enumeration set of type @code{enum-gcry-md-flags} holding
-the given @meta{symbol} arguments.
-@end deffn
-
-
-@defun gcry-md-flags->value @var{set}
-@defunx value->gcry-md-flags @var{integer}
-Convert to and from an enumeration set of type @code{enum-gcry-md-flags}
-and the corresponding constant recognised by Gcrypt.
-@end defun
-
-@c page
-@node hash api
-@section Hash functions interface
-
-
-@menu
-* hash api init::               Initialisation and finalisation.
-* hash api digest::             Processing input data.
-* hash api inspect::            Inspection.
-@end menu
-
-@c page
-@node hash api init
-@subsection Initialisation and finalisation
+@node random api
+@section Programming interface
 
 
 In the following descriptions, unless otherwise specified, the argument
-@var{algo} is an enumeration set of type @code{enum-gcry-md-algo}
-holding a single element.
+@var{quality} is an enumeration set of type
+@code{enum-gcry-random-quality} holding a single element.
 
 
-@defun gcry-md-open @var{algo}
-@defunx gcry-md-open @var{algo} @var{flags}
-Build and return a new handler for message digest computation, an object
-of type @code{gcrypt-md-handle}.
-
-@var{algo} can be an enumeration set of type @code{enum-gcry-md-algo} or
-@false{} if the algorithm is selected later.  The optional @var{flags}
-must be an enumeration set of type @code{enum-gcry-md-flags}.
+@defun gcry-randomize @var{mb} @var{quality}
+Fill the memory referenced by the @class{memblock} object @var{mb} with
+random bytes of @var{quality}.
 @end defun
 
 
-@defun gcry-md-copy @var{mdhd}
-Build and return a new handler for message digest computation, an object
-of type @code{gcrypt-md-handle}, cloning the context in @var{mdhd}.
+@defun gcry-random-add-bytes @var{mb}
+@defunx gcry-random-add-bytes @var{mb} @var{quality}
+Add the bytes in memory referenced by the @class{memblock} object
+@var{mb} to the random pool; the numbers are meant to be of
+@var{quality}, which can be @false{} or omitted if the quality is
+unknown.
 @end defun
 
 
-@defun gcry-md-close @var{mdhd}
-Release all the resources associated to @var{mdhd}.
+@defun gcry-random-bytes @var{nbytes} @var{quality}
+Return a new @class{memblock} object referencing a newly allocated
+memory block holding @var{nbytes} pseudo--random bytes of @var{quality}.
 @end defun
 
 
-@defun gcry-md-final @var{mdhd}
-Finalise @var{mdhd}.
+@defun gcry-random-bytes-secure @var{nbytes} @var{quality}
+@defunx gcry-random-bytes/secure @var{nbytes} @var{quality}
+Return a new @class{memblock} object referencing a newly allocated
+memory block holding @var{nbytes} pseudo--random bytes of
+@var{quality}.  The memory is allocated in a ``secure'' area.
 @end defun
 
 
-@defun gcry-md-reset @var{mdhd}
-Reset the context in @var{mdhd} to its initial state.
+@defun gcry-create-nonce @var{mb}
+Fill the memory referenced by the @class{memblock} object @var{mb} with
+random bytes.
 @end defun
 
-
-@defun gcry-md-enable @var{mdhd} @var{algo}
-Enable @var{algo} for @var{mdhd}.
-@end defun
-
-
-@defun gcry-cipher-setkey @var{mdhd} @var{key}
-Set MAC keyword @var{key} in the context of @var{mdhd}.  @var{key} can
-be a Scheme string, a Scheme bytevector or @class{memblock} object.
-@nauref{memory blocks, Memory blocks}.
-@end defun
-
-
-@c page
-@node hash api digest
-@subsection Processing input data
-
-
-In the following descriptions, unless otherwise specified, the argument
-@var{algo} is an enumeration set of type @code{enum-gcry-md-algo}
-holding a single element.
-
-
-@defun gcry-md-write @var{mdhd} @var{in.ptr} @var{in.len}
-Update @var{mdhd} with the given block of memory.
-@end defun
-
-
-@defun gcry-md-write* @var{mdhd} @var{obj}
-Update @var{mdhd} with @var{obj}, which can be a Scheme string, a Scheme
-bytevector or a @class{memblock} object.  @nauref{memory blocks, Memory
-blocks}.
-@end defun
-
-
-@defun gcry-md-read @var{mdhd} @var{algo}
-Finalise @var{mdhd} and compute the message digest of @var{algo}, which
-must represent a previously enabled algorithm; return a Scheme
-bytevector holding the digest.
-@end defun
-
-
-@defun gcry-md-hash-buffer @var{algo} @var{in.ptr} @var{in.len}
-Compute the message digest of the specified memory block using
-@var{algo}; return a Scheme bytevector holding the digest.
-@end defun
-
-
-@defun gcry-md-hash-buffer* @var{algo} @var{obj}
-Compute the message digest of @var{obj} using @var{algo}; return a
-Scheme bytevector holding the digest.  @var{obj} can be a Scheme string,
-a Scheme bytevector or a @class{memblock} object.  @nauref{memory
-blocks, Memory blocks}.
-@end defun
-
-@c page
-@node hash api inspect
-@subsection Inspection
-
-
-In the following descriptions, unless otherwise specified, the argument
-@var{algo} is an enumeration set of type @code{enum-gcry-md-algo}
-holding a single element.
-
-
-@defun gcry-md-algo-name @var{algo}
-@defunx gcry-md-map-name @var{name}
-Convert to and from an an enumeration set of type
-@code{enum-gcry-md-algo} and a Scheme string or symbol representing an
-algorithm name.
-@end defun
-
-
-@defun gcry-md-test-algo @var{algo}
-Return @true{} if the algorithm selected by @var{algo} is available in
-the installed Gcrypt.
-@end defun
-
-
-@defun gcry-md-get-algo-dlen @var{algo}
-Return the number of bytes in the message digest produced by @var{algo}.
-@end defun
-
-
-@defun gcry-md-is-secure? @var{mdhd}
-Return @true{} if @var{mdhd} is allocated in secure memory.
-@end defun
-
-
-@defun gcry-md-is-enabled? @var{mdhd} @var{algo}
-Return @true{} if @var{algo} is enabled in @var{mdhd}.
-@end defun
-
-
-@defun gcry-md-enabled-algos @var{mdhd}
-Return an enumeration set of type @code{enum-gcry-md-algo} representing
-the algorithms enabled in @var{mdhd}.
-@end defun
-
-
-@defun gcry-md-get-asnoid @var{algo}
-Return a Scheme bytevector representing a DER encoded ASN.1 OID for
-@var{algo}.
-@end defun
 
 @c page
 @node compensations

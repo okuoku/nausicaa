@@ -27,6 +27,7 @@
 
 (import (nausicaa)
   (compensations)
+  (foreign memory)
   (foreign cstrings)
   (foreign crypto gcrypt)
   (foreign crypto gcrypt compensated)
@@ -67,6 +68,19 @@
   (check
       (gcry-cipher-flags->value (gcry-cipher-flags secure enable-sync))
     => (bitwise-ior GCRY_CIPHER_SECURE GCRY_CIPHER_ENABLE_SYNC))
+
+;;; --------------------------------------------------------------------
+
+  (check (gcry-random-quality->value (gcry-random-quality weak))	=> GCRY_WEAK_RANDOM)
+  (check (gcry-random-quality->value (gcry-random-quality strong))	=> GCRY_STRONG_RANDOM)
+  (check (gcry-random-quality->value (gcry-random-quality very-strong))	=> GCRY_VERY_STRONG_RANDOM)
+
+  (check (value->gcry-random-quality GCRY_WEAK_RANDOM)
+    (=> enum-set=?) (gcry-random-quality weak))
+  (check (value->gcry-random-quality GCRY_STRONG_RANDOM)
+    (=> enum-set=?) (gcry-random-quality strong))
+  (check (value->gcry-random-quality GCRY_VERY_STRONG_RANDOM)
+    (=> enum-set=?) (gcry-random-quality very-strong))
 
   #t)
 
@@ -237,6 +251,59 @@
 
   (check
       (bytevector? (gcry-md-get-asnoid (gcry-md-algo md5)))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'random))
+
+  (check
+      (with-compensations
+	(letrec ((mb (compensate
+			 (memblocks-cache 1024)
+		       (with
+			(memblocks-cache mb)))))
+	  (gcry-randomize mb (gcry-random-quality weak)))
+	#t)
+    => #t)
+
+  (check
+      (with-compensations
+	(letrec ((mb (compensate
+			 (memblocks-cache 1024)
+		       (with
+			(memblocks-cache mb)))))
+	  (gcry-random-add-bytes mb (gcry-random-quality weak)))
+	#t)
+    => #t)
+
+  (check
+      (with-compensations
+	(letrec ((mb (compensate
+			 (memblocks-cache 1024)
+		       (with
+			(memblocks-cache mb)))))
+	  (gcry-random-add-bytes mb))
+	#t)
+    => #t)
+
+  (check
+      (<memblock>? (gcry-random-bytes 100 (gcry-random-quality weak)))
+    => #t)
+
+  (check
+      (<memblock>? (gcry-random-bytes/secure 100 (gcry-random-quality weak)))
+    => #t)
+
+  (check
+      (with-compensations
+	(letrec ((mb (compensate
+			 (memblocks-cache 1024)
+		       (with
+			(memblocks-cache mb)))))
+	  (gcry-create-nonce mb))
+	#t)
     => #t)
 
   #t)

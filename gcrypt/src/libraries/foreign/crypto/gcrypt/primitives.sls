@@ -53,8 +53,16 @@
     gcry-md-hash-buffer		gcry-md-hash-buffer*
     gcry-md-algo-name		gcry-md-map-name
     gcry-md-test-algo		gcry-md-get-algo-dlen
+    gcry-md-is-enabled		gcry-md-is-secure
     gcry-md-is-enabled?		gcry-md-is-secure?
     gcry-md-get-asnoid		gcry-md-enabled-algos
+
+    ;; pseudo-random numbers
+    gcry-randomize
+    gcry-random-add-bytes
+    gcry-random-bytes
+    gcry-random-bytes-secure	gcry-random-bytes/secure
+    gcry-create-nonce
 
     (rename (platform:gcry_control/int			gcry-control/int)
 	    (platform:gcry_control/uint			gcry-control/uint)
@@ -130,6 +138,7 @@
 	    (platform:gcry_mpi_set_flag			gcry-mpi-set-flag)
 	    (platform:gcry_mpi_clear_flag		gcry-mpi-clear-flag)
 	    (platform:gcry_mpi_get_flag			gcry-mpi-get-flag)
+	    (platform:gcry_mpi_randomize		gcry-mpi-randomize)
 
 	    (platform:gcry_cipher_ctl			gcry-cipher-ctl)
 	    (platform:gcry_cipher_info			gcry-cipher-info)
@@ -164,13 +173,6 @@
 	    (platform:gcry_md_algo_info			gcry-md-algo-info)
 	    (platform:gcry_md_debug			gcry-md-debug)
 	    (platform:gcry_md_list			gcry-md-list)
-
-	    (platform:gcry_randomize			gcry-randomize)
-	    (platform:gcry_random_add_bytes		gcry-random-add-bytes)
-	    (platform:gcry_random_bytes			gcry-random-bytes)
-	    (platform:gcry_random_bytes_secure		gcry-random-bytes-secure)
-	    (platform:gcry_mpi_randomize		gcry-mpi-randomize)
-	    (platform:gcry_create_nonce			gcry-create-nonce)
 
 	    (platform:gcry_fast_random_poll		gcry-fast-random-poll)
 
@@ -447,12 +449,16 @@
 (define (gcry-md-get-algo-dlen algo)
   (platform:gcry_md_get_algo_dlen (gcry-md-algo->value algo)))
 
-(define (gcry-md-is-secure? mdhd)
+(define (gcry-md-is-secure mdhd)
   (not (= 0 (platform:gcry_md_is_secure (gcry-md-handle->pointer mdhd)))))
 
-(define (gcry-md-is-enabled? mdhd algo)
+(define gcry-md-is-secure? gcry-md-is-secure)
+
+(define (gcry-md-is-enabled mdhd algo)
   (not (= 0 (platform:gcry_md_is_enabled (gcry-md-handle->pointer mdhd)
 					 (gcry-md-algo->value algo)))))
+
+(define gcry-md-is-enabled? gcry-md-is-enabled)
 
 (define gcry-md-enabled-algos
   (let ((algos (list GCRY_MD_MD5		GCRY_MD_SHA1
@@ -494,6 +500,36 @@
 	  (pointer-ref-c-pointer key*)
 	(raise-gpg-error 'gcry-pk-genkey errcode params)))))
 
+
+
+;;;; pseudo-random numbers
+
+(define (gcry-randomize mb quality)
+  (platform:gcry_randomize (<memblock>-pointer mb) (<memblock>-size mb)
+			   (gcry-random-quality->value quality)))
+
+(define gcry-random-add-bytes
+  (case-lambda
+   ((mb)
+    (gcry-random-add-bytes mb #f))
+   ((mb quality)
+    (platform:gcry_random_add_bytes (<memblock>-pointer mb) (<memblock>-size mb)
+				    (if quality
+					(gcry-random-quality->value quality)
+				      -1)))))
+
+(define (gcry-random-bytes nbytes quality)
+  (let ((ptr (platform:gcry_random_bytes nbytes (gcry-random-quality->value quality))))
+    (make-<memblock> ptr nbytes #f)))
+
+(define (gcry-random-bytes-secure nbytes quality)
+  (let ((ptr (platform:gcry_random_bytes_secure nbytes (gcry-random-quality->value quality))))
+    (make-<memblock> ptr nbytes #f)))
+
+(define gcry-random-bytes/secure gcry-random-bytes-secure)
+
+(define (gcry-create-nonce mb)
+  (platform:gcry_create_nonce (<memblock>-pointer mb) (<memblock>-size mb)))
 
 
 ;;;; callback makers
