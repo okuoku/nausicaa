@@ -33,6 +33,8 @@
 
     gcry-md-algo	gcry-md-algo->value		value->gcry-md-algo
     gcry-md-flags	gcry-md-flags->value		value->gcry-md-flags
+
+    %gcry-md-algo
     )
   (import (rnrs)
     (enumerations)

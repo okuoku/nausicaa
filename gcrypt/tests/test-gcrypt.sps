@@ -30,6 +30,7 @@
   (foreign cstrings)
   (foreign crypto gcrypt)
   (foreign crypto gcrypt compensated)
+  (prefix (foreign crypto gcrypt enumerations) enums:)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -66,9 +67,6 @@
   (check
       (gcry-cipher-flags->value (gcry-cipher-flags secure enable-sync))
     => (bitwise-ior GCRY_CIPHER_SECURE GCRY_CIPHER_ENABLE_SYNC))
-
-
-
 
   #t)
 
@@ -135,6 +133,111 @@
 	    (let ((bv (gcry-cipher-encrypt* enc str)))
 	      (utf8->string (gcry-cipher-decrypt* dec bv)))))
       => str))
+
+  #t)
+
+
+(parametrise ((check-test-name	'hash))
+
+  (check
+      (with-compensations
+	(let ((hd (gcry-md-open/c (gcry-md-algo md5))))
+	  (gcry-md-write* hd "ciao, ciao")
+	  (bytevector? (gcry-md-read hd (gcry-md-algo md5)))))
+    => #t)
+
+  (check	;final
+      (with-compensations
+	(let ((hd (gcry-md-open/c (gcry-md-algo md5))))
+	  (gcry-md-write* hd "ciao, ciao")
+	  (gcry-md-final hd)
+	  (bytevector? (gcry-md-read hd (gcry-md-algo md5)))))
+    => #t)
+
+  (check	;copy
+      (with-compensations
+	(let* ((hd  (gcry-md-open/c (gcry-md-algo md5)))
+	       (hd1 (gcry-md-copy/c hd)))
+	  (gcry-md-write* hd1 "ciao, ciao")
+	  (bytevector? (gcry-md-read hd1 (gcry-md-algo md5)))))
+    => #t)
+
+  (check	;reset
+      (with-compensations
+	(let ((hd  (gcry-md-open/c (gcry-md-algo md5))))
+	  (gcry-md-write* hd "ciao, ciao")
+	  (gcry-md-read hd (gcry-md-algo md5))
+	  (gcry-md-reset hd)
+	  (gcry-md-write* hd "hello, hello")
+	  (bytevector? (gcry-md-read hd (gcry-md-algo md5)))))
+    => #t)
+
+  (check	;enable
+      (with-compensations
+	(let ((hd (gcry-md-open/c (gcry-md-algo md5))))
+	  (gcry-md-enable hd (gcry-md-algo sha1))
+	  (gcry-md-write* hd "ciao, ciao")
+	  (list (bytevector? (gcry-md-read hd (gcry-md-algo md5)))
+		(bytevector? (gcry-md-read hd (gcry-md-algo sha1))))))
+    => '(#t #t))
+
+  (check	;mac
+      (with-compensations
+	(let ((hd (gcry-md-open/c (gcry-md-algo md5) (gcry-md-flags hmac))))
+	  (gcry-md-setkey hd "woppa")
+	  (gcry-md-write* hd "ciao, ciao")
+	  (bytevector? (gcry-md-read hd (gcry-md-algo md5)))))
+    => #t)
+
+  (check	;hash buffer
+      (bytevector? (gcry-md-hash-buffer* (gcry-md-algo md5) "ciao, ciao"))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (gcry-md-algo-name (gcry-md-algo md5))
+    => "MD5")
+
+  (check
+      (gcry-md-map-name "MD5")
+    (=> enum-set=?) (gcry-md-algo md5))
+
+  (check
+      (gcry-md-test-algo (gcry-md-algo md5))
+    => #t)
+
+  (check
+      (with-compensations
+	(let ((hd (gcry-md-open/c (gcry-md-algo md5))))
+	  (list (gcry-md-is-enabled? hd (gcry-md-algo md5))
+		(gcry-md-is-enabled? hd (gcry-md-algo sha1)))))
+    => '(#t #f))
+
+  (check
+      (with-compensations
+	(let ((hd1 (gcry-md-open/c (gcry-md-algo md5) (gcry-md-flags secure)))
+	      (hd2 (gcry-md-open/c (gcry-md-algo md5))))
+	  (list (gcry-md-is-secure? hd1)
+		(gcry-md-is-secure? hd2))))
+    => '(#t #f))
+
+
+  (check
+      (gcry-md-get-algo-dlen (gcry-md-algo md5))
+    => 16)
+
+  (check
+      (with-compensations
+	(let ((hd (gcry-md-open/c (gcry-md-algo md5))))
+	  (gcry-md-enable hd (gcry-md-algo sha1))
+	  (gcry-md-enable hd (gcry-md-algo sha256))
+	  (gcry-md-enabled-algos hd)))
+    (=> enum-set=?) (enums:%gcry-md-algo md5 sha1 sha256))
+
+  (check
+      (bytevector? (gcry-md-get-asnoid (gcry-md-algo md5)))
+    => #t)
 
   #t)
 

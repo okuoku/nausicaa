@@ -51,6 +51,10 @@
     gcry-md-write		gcry-md-write*
     gcry-md-read
     gcry-md-hash-buffer		gcry-md-hash-buffer*
+    gcry-md-algo-name		gcry-md-map-name
+    gcry-md-test-algo		gcry-md-get-algo-dlen
+    gcry-md-is-enabled?		gcry-md-is-secure?
+    gcry-md-get-asnoid		gcry-md-enabled-algos
 
     (rename (platform:gcry_control/int			gcry-control/int)
 	    (platform:gcry_control/uint			gcry-control/uint)
@@ -156,18 +160,10 @@
 
 	    (platform:gcry_md_ctl			gcry-md-ctl)
 	    (platform:gcry_md_get_algo			gcry-md-get-algo)
-	    (platform:gcry_md_get_algo_dlen		gcry-md-get-algo-dlen)
-	    (platform:gcry_md_is_enabled		gcry-md-is-enabled)
-	    (platform:gcry_md_is_secure			gcry-md-is-secure)
 	    (platform:gcry_md_info			gcry-md-info)
 	    (platform:gcry_md_algo_info			gcry-md-algo-info)
-	    (platform:gcry_md_algo_name			gcry-md-algo-name)
-	    (platform:gcry_md_map_name			gcry-md-map-name)
 	    (platform:gcry_md_debug			gcry-md-debug)
 	    (platform:gcry_md_list			gcry-md-list)
-
-	    (platform:gcry_md_test_algo			gcry-md-test-algo)
-	    (platform:gcry_md_get_asnoid		gcry-md-get-asnoid)
 
 	    (platform:gcry_randomize			gcry-randomize)
 	    (platform:gcry_random_add_bytes		gcry-random-add-bytes)
@@ -275,11 +271,11 @@
 						   (gcry-cipher-mode->value  mode)
 						   (gcry-cipher-flags->value flags))))
 	(if (= 0 errcode)
-	    (pointer->gcrypt-symmetric-handle (pointer-ref-c-pointer hd* 0))
+	    (pointer->gcry-symmetric-handle (pointer-ref-c-pointer hd* 0))
 	  (raise-gpg-error 'gcry-cipher-open errcode algo mode flags)))))))
 
 (define (gcry-cipher-close syhd)
-  (platform:gcry_cipher_close (gcrypt-symmetric-handle->pointer syhd)))
+  (platform:gcry_cipher_close (gcry-symmetric-handle->pointer syhd)))
 
 ;;; --------------------------------------------------------------------
 
@@ -288,7 +284,7 @@
     (receive (obj.ptr obj.len)
 	(%object->ptr&len obj who (string-append "expected string, bytevector or memblock as "
 						 description))
-      (let ((errcode (platform-function (gcrypt-symmetric-handle->pointer syhd) obj.ptr obj.len)))
+      (let ((errcode (platform-function (gcry-symmetric-handle->pointer syhd) obj.ptr obj.len)))
 	(unless (= 0 errcode)
 	  (raise-gpg-error who errcode syhd obj))))))
 
@@ -307,7 +303,7 @@
 ;;; --------------------------------------------------------------------
 
 (define (gcry-cipher-encrypt syhd ou.ptr ou.len in.ptr in.len)
-  (let ((errcode (platform:gcry_cipher_encrypt (gcrypt-symmetric-handle->pointer syhd)
+  (let ((errcode (platform:gcry_cipher_encrypt (gcry-symmetric-handle->pointer syhd)
 					       ou.ptr ou.len in.ptr in.len)))
     (unless (= 0 errcode)
       (raise-gpg-error 'gcry-cipher-encrypt errcode syhd ou.ptr ou.len in.ptr in.len))))
@@ -323,7 +319,7 @@
 ;;; --------------------------------------------------------------------
 
 (define (gcry-cipher-decrypt syhd ou.ptr ou.len in.ptr in.len)
-  (let ((errcode (platform:gcry_cipher_decrypt (gcrypt-symmetric-handle->pointer syhd)
+  (let ((errcode (platform:gcry_cipher_decrypt (gcry-symmetric-handle->pointer syhd)
 					       ou.ptr ou.len in.ptr in.len)))
     (unless (= 0 errcode)
       (raise-gpg-error 'gcry-cipher-decrypt errcode syhd ou.ptr ou.len in.ptr in.len))))
@@ -339,17 +335,17 @@
 ;;; --------------------------------------------------------------------
 
 (define (gcry-cipher-reset syhd)
-  (let ((errcode (platform:gcry_cipher_reset (gcrypt-symmetric-handle->pointer syhd))))
+  (let ((errcode (platform:gcry_cipher_reset (gcry-symmetric-handle->pointer syhd))))
     (unless (= 0 errcode)
       (raise-gpg-error 'gcry-cipher-reset errcode syhd))))
 
 (define (gcry-cipher-sync syhd)
-  (let ((errcode (platform:gcry_cipher_sync (gcrypt-symmetric-handle->pointer syhd))))
+  (let ((errcode (platform:gcry_cipher_sync (gcry-symmetric-handle->pointer syhd))))
     (unless (= 0 errcode)
       (raise-gpg-error 'gcry-cipher-sync errcode syhd))))
 
 (define (gcry-cipher-ctl syhd command buf.ptr buf.len)
-  (let ((errcode (platform:gcry_cipher_sync (gcrypt-symmetric-handle->pointer syhd))))
+  (let ((errcode (platform:gcry_cipher_sync (gcry-symmetric-handle->pointer syhd))))
     (unless (= 0 errcode)
       (raise-gpg-error 'gcry-cipher-ctl errcode syhd command buf.ptr buf.len))))
 
@@ -369,30 +365,30 @@
 						   (gcry-md-flags->value flags)
 						 0))))
 	(if (= 0 errcode)
-	    (pointer->gcrypt-md-handle (pointer-ref-c-pointer hd* 0))
+	    (pointer->gcry-md-handle (pointer-ref-c-pointer hd* 0))
 	  (raise-gpg-error 'gcry-md-open errcode algo flags)))))))
 
 (define (gcry-md-copy mdhd)
   (with-compensations
     (let* ((hd*		(malloc-small/c))
-	   (errcode	(platform:gcry_md_copy hd* (gcrypt-md-handle->pointer mdhd))))
+	   (errcode	(platform:gcry_md_copy hd* (gcry-md-handle->pointer mdhd))))
       (if (= 0 errcode)
-	  (pointer->gcrypt-md-handle (pointer-ref-c-pointer hd* 0))
+	  (pointer->gcry-md-handle (pointer-ref-c-pointer hd* 0))
 	(raise-gpg-error 'gcry-md-copy errcode mdhd)))))
 
 (define (gcry-md-close mdhd)
-  (platform:gcry_md_close (gcrypt-md-handle->pointer mdhd)))
+  (platform:gcry_md_close (gcry-md-handle->pointer mdhd)))
 
 (define (gcry-md-reset mdhd)
-  (platform:gcry_md_reset (gcrypt-md-handle->pointer mdhd)))
+  (platform:gcry_md_reset (gcry-md-handle->pointer mdhd)))
 
 (define (gcry-md-final mdhd)
-  (platform:gcry_md_final (gcrypt-md-handle->pointer mdhd)))
+  (platform:gcry_md_final (gcry-md-handle->pointer mdhd)))
 
 ;;; --------------------------------------------------------------------
 
 (define (gcry-md-enable mdhd algo)
-  (let ((errcode (platform:gcry_md_enable (gcrypt-md-handle->pointer mdhd)
+  (let ((errcode (platform:gcry_md_enable (gcry-md-handle->pointer mdhd)
 					  (gcry-md-algo->value algo))))
     (unless (= 0 errcode)
       (raise-gpg-error 'gcry-cipher-encrypt errcode mdhd algo))))
@@ -401,16 +397,14 @@
   (with-compensations
     (receive (obj.ptr obj.len)
 	(%object->ptr&len obj 'gcry-md-setkey "expected string, bytevector or memblock as MAC key")
-      (let ((errcode (platform:gcry_md_setkey (gcrypt-md-handle->pointer mdhd) obj.ptr obj.len)))
+      (let ((errcode (platform:gcry_md_setkey (gcry-md-handle->pointer mdhd) obj.ptr obj.len)))
 	(unless (= 0 errcode)
 	  (raise-gpg-error 'gcry-md-setkey errcode mdhd obj))))))
 
 ;;; --------------------------------------------------------------------
 
 (define (gcry-md-write mdhd in.ptr in.len)
-  (let ((errcode (platform:gcry_md_write (gcrypt-md-handle->pointer mdhd) in.ptr in.len)))
-    (unless (= 0 errcode)
-      (raise-gpg-error 'gcry-md-write errcode mdhd in.ptr in.len))))
+  (platform:gcry_md_write (gcry-md-handle->pointer mdhd) in.ptr in.len))
 
 (define (gcry-md-write* mdhd obj)
   (with-compensations
@@ -421,7 +415,7 @@
 (define (gcry-md-read mdhd algo)
   (let* ((algo    (gcry-md-algo->value algo))
 	 (buf.len (platform:gcry_md_get_algo_dlen algo))
-	 (buf.ptr (platform:gcry_md_read (gcrypt-md-handle->pointer mdhd) algo)))
+	 (buf.ptr (platform:gcry_md_read (gcry-md-handle->pointer mdhd) algo)))
     (pointer->bytevector buf.ptr buf.len)))
 
 (define (gcry-md-hash-buffer algo in.ptr in.len)
@@ -437,6 +431,57 @@
     (receive (in.ptr in.len)
 	(%object->ptr&len obj 'gcry-md-hash-buffer* "message digest input")
       (gcry-md-hash-buffer algo in.ptr in.len))))
+
+;;; --------------------------------------------------------------------
+
+(define (gcry-md-algo-name algo)
+  (cstring->string (platform:gcry_md_algo_name (gcry-md-algo->value algo))))
+
+(define (gcry-md-map-name name)
+  (with-compensations
+    (value->gcry-md-algo (platform:gcry_md_map_name (string->cstring/c name)))))
+
+(define (gcry-md-test-algo algo)
+  (= 0 (platform:gcry_md_test_algo (gcry-md-algo->value algo))))
+
+(define (gcry-md-get-algo-dlen algo)
+  (platform:gcry_md_get_algo_dlen (gcry-md-algo->value algo)))
+
+(define (gcry-md-is-secure? mdhd)
+  (not (= 0 (platform:gcry_md_is_secure (gcry-md-handle->pointer mdhd)))))
+
+(define (gcry-md-is-enabled? mdhd algo)
+  (not (= 0 (platform:gcry_md_is_enabled (gcry-md-handle->pointer mdhd)
+					 (gcry-md-algo->value algo)))))
+
+(define gcry-md-enabled-algos
+  (let ((algos (list GCRY_MD_MD5		GCRY_MD_SHA1
+		     GCRY_MD_RMD160		GCRY_MD_MD2
+		     GCRY_MD_TIGER		GCRY_MD_HAVAL
+		     GCRY_MD_SHA256		GCRY_MD_SHA384
+		     GCRY_MD_SHA512		GCRY_MD_SHA224
+		     GCRY_MD_MD4		GCRY_MD_CRC32
+		     GCRY_MD_CRC32_RFC1510	GCRY_MD_CRC24_RFC2440
+		     GCRY_MD_WHIRLPOOL)))
+    (lambda (mdhd)
+      (let ((hd (gcry-md-handle->pointer mdhd)))
+	(fold-left (lambda (knil algo)
+		     (if (= 0 (platform:gcry_md_is_enabled hd algo))
+			 knil
+		       (enum-set-union (value->gcry-md-algo algo) knil)))
+		   (%gcry-md-algo)
+		   algos)))))
+
+(define (gcry-md-get-asnoid algo)
+  (with-compensations
+    (let* ((algo-int	(gcry-md-algo->value algo))
+	   (buf.len*	(malloc-small/c)))
+      (platform:gcry_md_get_asnoid algo-int pointer-null buf.len*)
+      (let* ((buf.ptr	(malloc-block/c (pointer-ref-c-size_t buf.len* 0)))
+	     (errcode	(platform:gcry_md_get_asnoid algo-int buf.ptr buf.len*)))
+	(if (= 0 errcode)
+	    (pointer->bytevector buf.ptr (pointer-ref-c-size_t buf.len* 0))
+	  (raise-gpg-error 'gcry-md-get-asnoid errcode algo))))))
 
 
 ;;;; public key cryptography

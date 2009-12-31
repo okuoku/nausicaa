@@ -192,11 +192,11 @@
 
 
     ;; type definitions
-    gcrypt-symmetric-handle		gcrypt-symmetric-handle?
-    pointer->gcrypt-symmetric-handle	gcrypt-symmetric-handle->pointer
+    gcry-symmetric-handle		gcry-symmetric-handle?
+    pointer->gcry-symmetric-handle	gcry-symmetric-handle->pointer
 
-    gcrypt-md-handle			gcrypt-md-handle?
-    pointer->gcrypt-md-handle		gcrypt-md-handle->pointer
+    gcry-md-handle			gcry-md-handle?
+    pointer->gcry-md-handle		gcry-md-handle->pointer
 
     ;; enumerations
     gcry-cipher-algo		gcry-cipher-algo->value		value->gcry-cipher-algo
@@ -338,8 +338,8 @@
 	    (primitive:gcry-md-hash-buffer*		gcry-md-hash-buffer*)
 	    (primitive:gcry-md-get-algo			gcry-md-get-algo)
 	    (primitive:gcry-md-get-algo-dlen		gcry-md-get-algo-dlen)
-	    (primitive:gcry-md-is-enabled		gcry-md-is-enabled)
-	    (primitive:gcry-md-is-secure		gcry-md-is-secure)
+	    (primitive:gcry-md-is-enabled?		gcry-md-is-enabled?)
+	    (primitive:gcry-md-is-secure?		gcry-md-is-secure?)
 	    (primitive:gcry-md-info			gcry-md-info)
 	    (primitive:gcry-md-algo-info		gcry-md-algo-info)
 	    (primitive:gcry-md-algo-name		gcry-md-algo-name)
@@ -347,6 +347,7 @@
 	    (primitive:gcry-md-setkey			gcry-md-setkey)
 	    (primitive:gcry-md-debug			gcry-md-debug)
 	    (primitive:gcry-md-list			gcry-md-list)
+	    (primitive:gcry-md-enabled-algos		gcry-md-enabled-algos)
 
 	    (primitive:gcry-md-final			gcry-md-final)
 	    (primitive:gcry-md-test-algo		gcry-md-test-algo)

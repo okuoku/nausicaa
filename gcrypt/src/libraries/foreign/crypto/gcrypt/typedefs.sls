@@ -28,24 +28,24 @@
 (library (foreign crypto gcrypt typedefs)
   (export
 
-    gcrypt-symmetric-handle		gcrypt-symmetric-handle?
-    pointer->gcrypt-symmetric-handle	gcrypt-symmetric-handle->pointer
+    gcry-symmetric-handle		gcry-symmetric-handle?
+    pointer->gcry-symmetric-handle	gcry-symmetric-handle->pointer
 
-    gcrypt-md-handle			gcrypt-md-handle?
-    pointer->gcrypt-md-handle		gcrypt-md-handle->pointer
+    gcry-md-handle			gcry-md-handle?
+    pointer->gcry-md-handle		gcry-md-handle->pointer
 
     )
   (import (rnrs)
     (foreign crypto gcrypt sizeof))
 
 
-  (define-record-type (gcrypt-symmetric-handle pointer->gcrypt-symmetric-handle gcrypt-symmetric-handle?)
-    (nongenerative nausicaa:gcrypt:symmetric-handle)
-    (fields (immutable pointer gcrypt-symmetric-handle->pointer)))
+  (define-record-type (gcry-symmetric-handle pointer->gcry-symmetric-handle gcry-symmetric-handle?)
+    (nongenerative nausicaa:gcry:symmetric-handle)
+    (fields (immutable pointer gcry-symmetric-handle->pointer)))
 
-  (define-record-type (gcrypt-md-handle pointer->gcrypt-md-handle gcrypt-md-handle?)
-    (nongenerative nausicaa:gcrypt:md-handle)
-    (fields (immutable pointer gcrypt-md-handle->pointer)))
+  (define-record-type (gcry-md-handle pointer->gcry-md-handle gcry-md-handle?)
+    (nongenerative nausicaa:gcry:md-handle)
+    (fields (immutable pointer gcry-md-handle->pointer)))
 
   )
 

@@ -581,6 +581,12 @@ Enumerations
 * hash enums algo::             Hash algorithms.
 * hash enums flags::            Hash algorithm flags.
 
+Hash functions interface
+
+* hash api init::               Initialisation and finalisation.
+* hash api digest::             Processing input data.
+* hash api inspect::            Inspection.
+
 @end detailmenu
 @end menu
 
@@ -824,26 +830,26 @@ Unless otherwise specified, the folowing bindings are exported by the
 @library{foreign crypto gcrypt} library.
 
 Functions from the primitives and high--level @api{} accept objects of
-type @code{gcrypt-symmetric-handle} as @var{syhd} arguments.  Functions
+type @code{gcry-symmetric-handle} as @var{syhd} arguments.  Functions
 from the platform libraries accept raw pointers as references to
 symmetric cryptography handles.
 
 
-@deftp {Object Type} gcrypt-symmetric-handle
+@deftp {Object Type} gcry-symmetric-handle
 Reference to a Gcrypt symmetric cryptography handle.  It is disjoint
 from all the other Scheme object types.
 @end deftp
 
 
-@defun gcrypt-symmetric-handle? @var{obj}
-Return @true{} if @var{obj} is of type @code{gcrypt-symmetric-handle}.
+@defun gcry-symmetric-handle? @var{obj}
+Return @true{} if @var{obj} is of type @code{gcry-symmetric-handle}.
 @end defun
 
 
-@defun pointer->gcrypt-symmetric-handle @var{pointer}
-@defunx gcrypt-symmetric-handle->pointer @var{syhd}
-Convert between a raw pointer object and a
-@code{gcrypt-symmetric-handle} object.
+@defun pointer->gcry-symmetric-handle @var{pointer}
+@defunx gcry-symmetric-handle->pointer @var{syhd}
+Convert between a raw pointer object and a @code{gcry-symmetric-handle}
+object.
 @end defun
 
 @c page
@@ -1058,26 +1064,25 @@ Unless otherwise specified, the folowing bindings are exported by the
 @library{foreign crypto gcrypt} library.
 
 Functions from the primitives and high--level @api{} accept objects of
-type @code{gcrypt-md-handle} as @var{mdhd} arguments.  Functions from
-the platform libraries accept raw pointers as references to message
-digest handles.
+type @code{gcry-md-handle} as @var{mdhd} arguments.  Functions from the
+platform libraries accept raw pointers as references to message digest
+handles.
 
 
-@deftp {Object Type} gcrypt-md-handle
+@deftp {Object Type} gcry-md-handle
 Reference to a Gcrypt message digest handle.  It is disjoint from all
 the other Scheme object types.
 @end deftp
 
 
-@defun gcrypt-md-handle? @var{obj}
-Return @true{} if @var{obj} is of type @code{gcrypt-md-handle}.
+@defun gcry-md-handle? @var{obj}
+Return @true{} if @var{obj} is of type @code{gcry-md-handle}.
 @end defun
 
 
-@defun pointer->gcrypt-md-handle @var{pointer}
-@defunx gcrypt-md-handle->pointer @var{syhd}
-Convert between a raw pointer object and a @code{gcrypt-md-handle}
-object.
+@defun pointer->gcry-md-handle @var{pointer}
+@defunx gcry-md-handle->pointer @var{syhd}
+Convert between a raw pointer object and a @code{gcry-md-handle} object.
 @end defun
 
 @c page
@@ -1161,6 +1166,22 @@ and the corresponding constant recognised by Gcrypt.
 @section Hash functions interface
 
 
+@menu
+* hash api init::               Initialisation and finalisation.
+* hash api digest::             Processing input data.
+* hash api inspect::            Inspection.
+@end menu
+
+@c page
+@node hash api init
+@subsection Initialisation and finalisation
+
+
+In the following descriptions, unless otherwise specified, the argument
+@var{algo} is an enumeration set of type @code{enum-gcry-md-algo}
+holding a single element.
+
+
 @defun gcry-md-open @var{algo}
 @defunx gcry-md-open @var{algo} @var{flags}
 Build and return a new handler for message digest computation, an object
@@ -1194,8 +1215,7 @@ Reset the context in @var{mdhd} to its initial state.
 
 
 @defun gcry-md-enable @var{mdhd} @var{algo}
-Enable @var{algo} for @var{mdhd}.  @var{algo} must be an enumeration set
-of type @code{enum-gcry-md-algo}.
+Enable @var{algo} for @var{mdhd}.
 @end defun
 
 
@@ -1204,6 +1224,16 @@ Set MAC keyword @var{key} in the context of @var{mdhd}.  @var{key} can
 be a Scheme string, a Scheme bytevector or @class{memblock} object.
 @nauref{memory blocks, Memory blocks}.
 @end defun
+
+
+@c page
+@node hash api digest
+@subsection Processing input data
+
+
+In the following descriptions, unless otherwise specified, the argument
+@var{algo} is an enumeration set of type @code{enum-gcry-md-algo}
+holding a single element.
 
 
 @defun gcry-md-write @var{mdhd} @var{in.ptr} @var{in.len}
@@ -1220,25 +1250,72 @@ blocks}.
 
 @defun gcry-md-read @var{mdhd} @var{algo}
 Finalise @var{mdhd} and compute the message digest of @var{algo}, which
-must be an enumeration set of type @code{enum-gcry-md-algo} selecting a
-previously enabled algorithm; return a Scheme bytevector holding the
-digest.
+must represent a previously enabled algorithm; return a Scheme
+bytevector holding the digest.
 @end defun
 
 
 @defun gcry-md-hash-buffer @var{algo} @var{in.ptr} @var{in.len}
 Compute the message digest of the specified memory block using
-@var{algo}, which must be an enumeration set of type
-@code{enum-gcry-md-algo}; return a Scheme bytevector holding the digest.
+@var{algo}; return a Scheme bytevector holding the digest.
 @end defun
 
 
 @defun gcry-md-hash-buffer* @var{algo} @var{obj}
-Compute the message digest of @var{obj} using @var{algo}, which must be
-an enumeration set of type @code{enum-gcry-md-algo}; return a Scheme
-bytevector holding the digest.  @var{obj} can be a Scheme string, a
-Scheme bytevector or a @class{memblock} object.  @nauref{memory blocks,
-Memory blocks}.
+Compute the message digest of @var{obj} using @var{algo}; return a
+Scheme bytevector holding the digest.  @var{obj} can be a Scheme string,
+a Scheme bytevector or a @class{memblock} object.  @nauref{memory
+blocks, Memory blocks}.
+@end defun
+
+@c page
+@node hash api inspect
+@subsection Inspection
+
+
+In the following descriptions, unless otherwise specified, the argument
+@var{algo} is an enumeration set of type @code{enum-gcry-md-algo}
+holding a single element.
+
+
+@defun gcry-md-algo-name @var{algo}
+@defunx gcry-md-map-name @var{name}
+Convert to and from an an enumeration set of type
+@code{enum-gcry-md-algo} and a Scheme string or symbol representing an
+algorithm name.
+@end defun
+
+
+@defun gcry-md-test-algo @var{algo}
+Return @true{} if the algorithm selected by @var{algo} is available in
+the installed Gcrypt.
+@end defun
+
+
+@defun gcry-md-get-algo-dlen @var{algo}
+Return the number of bytes in the message digest produced by @var{algo}.
+@end defun
+
+
+@defun gcry-md-is-secure? @var{mdhd}
+Return @true{} if @var{mdhd} is allocated in secure memory.
+@end defun
+
+
+@defun gcry-md-is-enabled? @var{mdhd} @var{algo}
+Return @true{} if @var{algo} is enabled in @var{mdhd}.
+@end defun
+
+
+@defun gcry-md-enabled-algos @var{mdhd}
+Return an enumeration set of type @code{enum-gcry-md-algo} representing
+the algorithms enabled in @var{mdhd}.
+@end defun
+
+
+@defun gcry-md-get-asnoid @var{algo}
+Return a Scheme bytevector representing a DER encoded ASN.1 OID for
+@var{algo}.
 @end defun
 
 @c page
