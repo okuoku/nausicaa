@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -35,7 +35,7 @@
   (checks))
 
 (check-set-mode! 'report-failed)
-(display "*** testing Gcrypt platform\n")
+(display "*** testing Gcrypt high-level API\n")
 
 (assert (gcry-check-version))
 (gcry-control/int GCRYCTL_DISABLE_SECMEM 0)
@@ -304,6 +304,326 @@
 			(memblocks-cache mb)))))
 	  (gcry-create-nonce mb))
 	#t)
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'mpi))
+
+  (check	;format STD
+      (with-compensations
+	(let ((n (gcry-mpi-new/c 50)))
+	  (gcry-mpi-set-ui n 100)
+	  (bytevector? (gcry-mpi-print n (gcry-mpi-format std)))))
+    => #t)
+
+  (check	;format STD
+      (with-compensations
+	(let ((a (gcry-mpi-new/c 50))
+	      (b (gcry-mpi-new/c 50)))
+	  (gcry-mpi-set-ui a 100)
+	  (gcry-mpi-set-ui b 100)
+	  (gcry-mpi=? a (gcry-mpi-scan (gcry-mpi-print b (gcry-mpi-format std))
+				       (gcry-mpi-format std)))))
+    => #t)
+
+  (check	;format PGP
+      (with-compensations
+  	(letrec ((n (compensate
+  			(gcry-mpi-new 50)
+  		      (with
+  		       (gcry-mpi-release n)))))
+  	  (gcry-mpi-set-ui n 100)
+  	  (bytevector? (gcry-mpi-print n (gcry-mpi-format pgp)))))
+    => #t)
+
+  (check	;format PGP
+      (with-compensations
+	(let ((a (gcry-mpi-new/c 50))
+	      (b (gcry-mpi-new/c 50)))
+	  (gcry-mpi-set-ui a 100)
+	  (gcry-mpi-set-ui b 100)
+	  (gcry-mpi=? a (gcry-mpi-scan (gcry-mpi-print b (gcry-mpi-format pgp))
+				       (gcry-mpi-format pgp)))))
+    => #t)
+
+  (check	;format SSH
+      (with-compensations
+  	(letrec ((n (compensate
+  			(gcry-mpi-new 50)
+  		      (with
+  		       (gcry-mpi-release n)))))
+  	  (gcry-mpi-set-ui n 100)
+  	  (bytevector? (gcry-mpi-print n (gcry-mpi-format ssh)))))
+    => #t)
+
+  (check	;format SSH
+      (with-compensations
+	(let ((a (gcry-mpi-new/c 50))
+	      (b (gcry-mpi-new/c 50)))
+	  (gcry-mpi-set-ui a 100)
+	  (gcry-mpi-set-ui b 100)
+	  (gcry-mpi=? a (gcry-mpi-scan (gcry-mpi-print b (gcry-mpi-format ssh))
+				       (gcry-mpi-format ssh)))))
+    => #t)
+
+  (check	;format HEX
+      (with-compensations
+  	(letrec ((n (compensate
+  			(gcry-mpi-new 50)
+  		      (with
+  		       (gcry-mpi-release n)))))
+  	  (gcry-mpi-set-ui n 100)
+  	  (string? (gcry-mpi-print n (gcry-mpi-format hex)))))
+    => #t)
+
+  (check	;format HEX
+      (with-compensations
+	(let ((a (gcry-mpi-new/c 50))
+	      (b (gcry-mpi-new/c 50)))
+	  (gcry-mpi-set-ui a 100)
+	  (gcry-mpi-set-ui b 100)
+	  (gcry-mpi=? a (gcry-mpi-scan (gcry-mpi-print b (gcry-mpi-format hex))
+				       (gcry-mpi-format hex)))))
+    => #t)
+
+  (check 	;format USG
+      (with-compensations
+	(letrec ((n (compensate
+			(gcry-mpi-new 50)
+		      (with
+		       (gcry-mpi-release n)))))
+	  (gcry-mpi-set-ui n 100)
+	  (bytevector? (gcry-mpi-print n (gcry-mpi-format usg)))))
+    => #t)
+
+  (check	;format USG
+      (with-compensations
+  	(let ((a (gcry-mpi-new/c 50))
+  	      (b (gcry-mpi-new/c 50)))
+  	  (gcry-mpi-set-ui a 100)
+  	  (gcry-mpi-set-ui b 100)
+  	  (gcry-mpi=? a (gcry-mpi-scan (gcry-mpi-print b (gcry-mpi-format usg))
+  				       (gcry-mpi-format usg)))))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	(letrec ((n (compensate
+			(gcry-mpi-new 50)
+		      (with
+		       (gcry-mpi-release n)))))
+	  (gcry-mpi-set-ui n 100)
+	  (gcry-mpi->uint n)))
+    => 100)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+  	(let ((a (gcry-mpi-new/c 50))
+  	      (b (gcry-mpi-new/c 50))
+  	      (c (gcry-mpi-new/c 50)))
+  	  (gcry-mpi-set-ui a 100)
+  	  (gcry-mpi-set-ui b 50)
+	  (gcry-mpi-add c a b)
+	  (gcry-mpi->uint c)))
+    => 150)
+
+  (check
+      (with-compensations
+  	(let ((a (gcry-mpi-new/c 50))
+  	      (b (gcry-mpi-new/c 50))
+  	      (c (gcry-mpi-new/c 50)))
+  	  (gcry-mpi-set-ui a 100)
+  	  (gcry-mpi-set-ui b 50)
+	  (gcry-mpi-sub c a b)
+	  (gcry-mpi->uint c)))
+    => 50)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+    (define (cmp f A B C)
+      (with-compensations
+  	(let ((a (gcry-mpi-new/c 50))
+  	      (b (gcry-mpi-new/c 50))
+  	      (c (gcry-mpi-new/c 50)))
+  	  (gcry-mpi-set-ui a A)
+  	  (gcry-mpi-set-ui b B)
+  	  (gcry-mpi-set-ui c C)
+	  (f a b c))))
+
+    (check (cmp gcry-mpi=? 10 10 10)	=> #t)
+    (check (cmp gcry-mpi=? 10 12 10)	=> #f)
+
+    (check (cmp gcry-mpi<? 10 10 10)	=> #f)
+    (check (cmp gcry-mpi<? 10 12 10)	=> #f)
+    (check (cmp gcry-mpi<? 10 12 14)	=> #t)
+
+    (check (cmp gcry-mpi<=? 10 10 10)	=> #t)
+    (check (cmp gcry-mpi<=? 10 12 10)	=> #f)
+    (check (cmp gcry-mpi<=? 10 12 14)	=> #t)
+
+    (check (cmp gcry-mpi>? 10 10 10)	=> #f)
+    (check (cmp gcry-mpi>? 10 12 10)	=> #f)
+    (check (cmp gcry-mpi>? 14 12 10)	=> #t)
+
+    (check (cmp gcry-mpi>=? 10 10 10)	=> #t)
+    (check (cmp gcry-mpi>=? 10 12 10)	=> #f)
+    (check (cmp gcry-mpi>=? 14 12 10)	=> #t)
+
+    #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'sexps))
+
+  (let ((str "(a (b (c)))"))
+
+    (check
+	(with-compensations
+	  (gcry-sexp->string (string->gcry-sexp str)))
+      => "(1:a\n (1:b\n  (1:c)\n  )\n )\n")
+
+    (check
+	(with-compensations
+	  (gcry-sexp->string (string->gcry-sexp str) (gcry-sexp-format canon)))
+      => "(1:a(1:b(1:c)))")
+
+    (check
+	(with-compensations
+	  (gcry-sexp->string (string->gcry-sexp str) (gcry-sexp-format advanced)))
+      => "(a \n (b \n  (c)\n  )\n )\n")
+
+    (check
+    	(with-compensations
+    	  (gcry-sexp->string (gcry-sexp-find-token/str (string->gcry-sexp str) "b")
+			     (gcry-sexp-format canon)))
+      => "(1:b(1:c))")
+
+    #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	(gcry-sexp->list (string->gcry-sexp/c "")))
+    => '())
+
+  (check
+      (with-compensations
+	(gcry-sexp->list (string->gcry-sexp/c "()")))
+    => '())
+
+  (check
+      (with-compensations
+	(gcry-sexp->list (string->gcry-sexp/c "(a)")))
+    => '(a))
+
+  (check
+      (with-compensations
+	(gcry-sexp->list (string->gcry-sexp/c "(a b c)")))
+    => '(a b c))
+
+  (check
+      (with-compensations
+	(gcry-sexp->list (string->gcry-sexp/c "(a (b (c)))")))
+    => '(a (b (c))))
+
+  (check
+      (with-compensations
+	(gcry-sexp->list (string->gcry-sexp/c "(a (b (c) d) e)")))
+    => '(a (b (c) d) e))
+
+  (check
+      (with-compensations
+	(gcry-sexp->list (string->gcry-sexp/c "(a 2:12 c)")))
+    => '(a 12 c))
+
+  (check
+      (with-compensations
+	(gcry-sexp->list (string->gcry-sexp/c "(a 4:1024 5:12345)")))
+    => '(a 1024 12345))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	(gcry-sexp->string (list->gcry-sexp/c '()) (gcry-sexp-format canon)))
+    => "()")
+
+  (check
+      (with-compensations
+	(gcry-sexp->string (list->gcry-sexp/c '(a)) (gcry-sexp-format canon)))
+    => "(1:a)")
+
+  (check
+      (with-compensations
+	(gcry-sexp->string (list->gcry-sexp/c '(a b c)) (gcry-sexp-format canon)))
+    => "(1:a1:b1:c)")
+
+  (check
+      (with-compensations
+	(gcry-sexp->string (list->gcry-sexp/c '(a (b (c)))) (gcry-sexp-format canon)))
+    => "(1:a(1:b(1:c)))")
+
+  (check
+      (with-compensations
+	(gcry-sexp->string (list->gcry-sexp/c '(a (b (c) d) e)) (gcry-sexp-format canon)))
+    => "(1:a(1:b(1:c)1:d)1:e)")
+
+  (check
+      (with-compensations
+  	(gcry-sexp->string (list->gcry-sexp/c '(a 12 c)) (gcry-sexp-format canon)))
+    => "(1:a2:121:c)")
+
+  (check
+      (with-compensations
+  	(gcry-sexp->string (list->gcry-sexp/c '(a 1024 12345)) (gcry-sexp-format canon)))
+    => "(1:a4:10245:12345)")
+
+  #t)
+
+
+(parametrise ((check-test-name	'pubkey))
+
+  (define (gcry-pk-genkey/c . args)
+    (letrec ((key-pair (compensate
+			   (apply gcry-pk-genkey args)
+			 (with
+			  (gcry-sexp-release key-pair)))))
+      key-pair))
+
+  (check
+      (with-compensations
+	(let ((key-pair (gcry-pk-genkey/c "(genkey (dsa (nbits 4:1024)(transient-key)))")))
+	  (letrec ((pub-key (compensate
+				(gcry-sexp-find-token/str key-pair "public-key")
+			      (with
+			       (gcry-sexp-release pub-key))))
+		   (pri-key (compensate
+				(gcry-sexp-find-token/str key-pair "private-key")
+			      (with
+			       (gcry-sexp-release pri-key)))))
+;;;(display (gcry-sexp->list pub-key))(newline)
+	    (let ((s (gcry-sexp->string key-pair (gcry-sexp-format canon))))
+	      (write (string-length s))(newline)
+	      (display s)
+	      (newline)
+	      ;; (display (gcry-sexp->string pub-key (gcry-sexp-format canon)))
+	      ;; (newline)
+	      )
+;; (display (gcry-sexp->string
+;; 	  (string->gcry-sexp
+;; 	   (gcry-sexp->string key-pair (gcry-sexp-format advanced)))
+;; 	  (gcry-sexp-format advanced)))
+
+	    #t)))
     => #t)
 
   #t)

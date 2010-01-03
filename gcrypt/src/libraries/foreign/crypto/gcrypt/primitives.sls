@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -40,9 +40,6 @@
     gcry-cipher-encrypt*	gcry-cipher-decrypt*
     gcry-cipher-sync
 
-    ;; public key cryptography
-    gcry-pk-genkey
-
     ;; message digest
     gcry-md-open		gcry-md-copy
     gcry-md-final		gcry-md-close
@@ -63,6 +60,22 @@
     gcry-random-bytes
     gcry-random-bytes-secure	gcry-random-bytes/secure
     gcry-create-nonce
+
+    ;; MPI numbers
+    gcry-mpi-scan		gcry-mpi-print
+    gcry-mpi->uint
+    gcry-mpi=?
+    gcry-mpi<?			gcry-mpi<=?
+    gcry-mpi>?			gcry-mpi>=?
+
+    ;; S-expressions
+    gcry-sexp->list		list->gcry-sexp
+    string->gcry-sexp		gcry-sexp->string
+    gcry-sexp-find-token/str
+
+    ;; public key cryptography
+    gcry-pk-genkey
+
 
     (rename (platform:gcry_control/int			gcry-control/int)
 	    (platform:gcry_control/uint			gcry-control/uint)
@@ -106,9 +119,6 @@
 	    (platform:gcry_mpi_swap			gcry-mpi-swap)
 	    (platform:gcry_mpi_cmp			gcry-mpi-cmp)
 	    (platform:gcry_mpi_cmp_ui			gcry-mpi-cmp-ui)
-	    (platform:gcry_mpi_scan			gcry-mpi-scan)
-	    (platform:gcry_mpi_print			gcry-mpi-print)
-	    (platform:gcry_mpi_aprint			gcry-mpi-aprint)
 	    (platform:gcry_mpi_dump			gcry-mpi-dump)
 	    (platform:gcry_mpi_add			gcry-mpi-add)
 	    (platform:gcry_mpi_add_ui			gcry-mpi-add-ui)
@@ -139,6 +149,7 @@
 	    (platform:gcry_mpi_clear_flag		gcry-mpi-clear-flag)
 	    (platform:gcry_mpi_get_flag			gcry-mpi-get-flag)
 	    (platform:gcry_mpi_randomize		gcry-mpi-randomize)
+	    (platform:gcry_mpi_aprint			gcry-mpi-aprint)
 
 	    (platform:gcry_cipher_ctl			gcry-cipher-ctl)
 	    (platform:gcry_cipher_info			gcry-cipher-info)
@@ -205,8 +216,10 @@
     )
   (import (rnrs)
     (receive)
+    (begin0)
     (compensations)
     (foreign ffi)
+    (only (foreign ffi sizeof) sizeof-int)
     (foreign memory)
     (foreign cstrings)
     (foreign crypto gpg-error conditions)
@@ -490,15 +503,137 @@
 	  (raise-gpg-error 'gcry-md-get-asnoid errcode algo))))))
 
 
+;;;; S-expressions
+
+(define strtoul
+  (make-c-function/with-errno* libc-shared-object unsigned-long strtoul (char* void* int)))
+
+(define (gcry-sexp->list sexp)
+  (assert (pointer? sexp))
+  (with-compensations
+
+    (define (elm->item sexp i)
+      (let* ((buf.len*	(malloc-small/c))
+	     (buf.ptr	(platform:gcry_sexp_nth_data sexp i buf.len*)))
+	(if (pointer-null? buf.ptr) ;true if element is a pair
+	    (letrec ((sub (compensate
+			      (begin0-let ((p (platform:gcry_sexp_nth sexp i)))
+				(when (pointer-null? p)
+				  (error 'gcry-sexp->list "memory error converting sexp to list" sexp)))
+			    (with
+			     (platform:gcry_sexp_release sub)))))
+	      (gcry-sexp->list sub))
+	  (let* ((buf.len	(pointer-ref-c-size_t buf.len* 0))
+		 (cstr		(malloc-block/c (+ 1 buf.len)))
+		 (tail**	(malloc-small/c)))
+	    (memcpy cstr buf.ptr buf.len)
+	    (pointer-set-c-signed-char! cstr buf.len 0)
+	    (receive (uint errno)
+		(strtoul cstr tail** 0)
+	      (newline)
+	      (cond ((not (pointer=? cstr (pointer-ref-c-pointer tail** 0)))
+		     (if (= 0 errno)
+			 (begin
+			   (write (list 'number uint))(newline)
+			   uint)
+		       (error 'gcry-sexp->list "overflow in integer conversion" sexp)))
+		    ((= 0 (pointer-ref-c-unsigned-char buf.ptr 0))
+		     (let ((mpi (platform:gcry_sexp_nth_mpi sexp i GCRYMPI_FMT_USG)))
+		       (if (not (pointer-null? mpi))
+			   mpi
+			 (error 'gcry-sexp->list "invalid MPI number in sexp" sexp))))
+		    (else
+		     (write (list 'symbol (cstring->string buf.ptr buf.len)))(newline)
+		     (string->symbol (cstring->string buf.ptr buf.len))
+		     ))
+	      )))))
+
+    (let ((len (platform:gcry_sexp_length sexp)))
+      (let loop ((i 0) (ell '()))
+	(if (= i len)
+	    (reverse ell)
+	  (loop (+ 1 i) (cons (elm->item sexp i) ell)))))))
+
+(define (list->gcry-sexp ell)
+  ;;Convert ELL to a canonical sexp string, then apply STRING->GCRY-SEXP.
+  ;;
+  (define (print-list obj port)
+    (cond ((null? obj)
+	   (display "()" port))
+	  ((pair? obj)
+	   (display "(" port)
+	   (for-each (lambda (item)
+		       (print-list item port))
+	     obj)
+	   (display ")" port))
+	  ((symbol? obj)
+	   (let ((str (symbol->string obj)))
+	     (display (string-length str) port)
+	     (display #\: port)
+	     (display str port)))
+	  ((and (integer? obj) (exact? obj) (<= 0 obj))
+	   (let ((str (number->string obj)))
+	     (display (string-length str) port)
+	     (display #\: port)
+	     (display str port)))
+	  (else
+	   (error 'list->gcry-sexp "invalid sexp element in list" obj))))
+  (string->gcry-sexp (call-with-string-output-port
+			 (lambda (port)
+			   (print-list ell port)))))
+
+;;; --------------------------------------------------------------------
+
+(define (string->gcry-sexp str)
+  (assert (string? str))
+  (with-compensations
+    (let* ((sexp*	(malloc-small/c))
+	   (errcode	(platform:gcry_sexp_new sexp* (string->cstring/c str) 0 1)))
+      (if (= 0 errcode)
+	  (pointer-ref-c-pointer sexp* 0)
+	(raise-gpg-error 'gcry-sexp-new errcode str)))))
+
+(define gcry-sexp->string
+  (case-lambda
+   ((sexp)
+    (gcry-sexp->string sexp (gcry-sexp-format default)))
+   ((sexp fmt)
+    (assert (pointer? sexp))
+    (let* ((mode	(gcry-sexp-format->value fmt))
+	   (buf.len	(platform:gcry_sexp_sprint sexp mode pointer-null 0)))
+      (with-compensations
+	(let ((buf.ptr (malloc-block/c buf.len)))
+	  (platform:gcry_sexp_sprint sexp mode buf.ptr buf.len)
+	  (cstring->string buf.ptr (- buf.len 1))))))))
+
+(define (gcry-sexp-find-token/str sexp str)
+  (assert (pointer? sexp))
+  (assert (string? str))
+  (with-compensations
+    (let ((p (platform:gcry_sexp_find_token sexp (string->cstring/c str) 0)))
+      (if (pointer-null? p)
+	  #f
+	p))))
+
+
 ;;;; public key cryptography
 
 (define (gcry-pk-genkey params)
+  (define (raise-error-maybe errcode)
+    (unless (= 0 errcode)
+      (raise-gpg-error 'gcry-pk-genkey errcode params)))
+  (assert (string? params))
   (with-compensations
-    (let* ((key*	(malloc-small/c))
-	   (errcode	(platform:gcry_pk_genkey key* params)))
-      (if (= 0 errcode)
-	  (pointer-ref-c-pointer key*)
-	(raise-gpg-error 'gcry-pk-genkey errcode params)))))
+    (letrec ((sexp (compensate
+		       (let ((sexp* (malloc-small/c)))
+			 (raise-error-maybe
+			  (platform:gcry_sexp_new sexp* (string->cstring/c params) 0 1))
+			 (pointer-ref-c-pointer sexp* 0))
+		     (with
+		      (platform:gcry_sexp_release sexp)))))
+      (let ((key* (malloc-small/c)))
+	(raise-error-maybe (platform:gcry_pk_genkey key* sexp))
+	(pointer-ref-c-pointer key* 0)))))
 
 
 
@@ -530,6 +665,97 @@
 
 (define (gcry-create-nonce mb)
   (platform:gcry_create_nonce (<memblock>-pointer mb) (<memblock>-size mb)))
+
+
+;;;; MPI numbers
+
+(define gcry-mpi=?
+  (case-lambda
+   (() #f)
+   ((n) #t)
+   ((a b)
+    (= 0 (platform:gcry_mpi_cmp a b)))
+   ((a b . args)
+    (and (gcry-mpi=? a b) (apply gcry-mpi=? b args)))))
+
+(define gcry-mpi<?
+  (case-lambda
+   (() #f)
+   ((n) #t)
+   ((a b)
+    (> 0 (platform:gcry_mpi_cmp a b)))
+   ((a b . args)
+    (and (gcry-mpi<? a b) (apply gcry-mpi<? b args)))))
+
+(define gcry-mpi>?
+  (case-lambda
+   (() #f)
+   ((n) #t)
+   ((a b)
+    (< 0 (platform:gcry_mpi_cmp a b)))
+   ((a b . args)
+    (and (gcry-mpi>? a b) (apply gcry-mpi>? b args)))))
+
+(define gcry-mpi<=?
+  (case-lambda
+   (() #f)
+   ((n) #t)
+   ((a b)
+    (>= 0 (platform:gcry_mpi_cmp a b)))
+   ((a b . args)
+    (and (gcry-mpi<=? a b) (apply gcry-mpi<=? b args)))))
+
+(define gcry-mpi>=?
+  (case-lambda
+   (() #f)
+   ((n) #t)
+   ((a b)
+    (<= 0 (platform:gcry_mpi_cmp a b)))
+   ((a b . args)
+    (and (gcry-mpi>=? a b) (apply gcry-mpi>=? b args)))))
+
+;;; --------------------------------------------------------------------
+
+(define (gcry-mpi-scan obj fmt)
+  (with-compensations
+    (receive (obj.ptr obj.len)
+	(%object->ptr&len obj 'gcry-mpi-scan
+			  "expected string, bytevector or memblock as MPI representation")
+      (let* ((mpi*	(malloc-small/c))
+	     (errcode	(platform:gcry_mpi_scan mpi* (gcry-mpi-format->value fmt)
+						obj.ptr (if (= (gcry-mpi-format->value fmt)
+							       GCRYMPI_FMT_HEX)
+							    0
+							  obj.len)
+						pointer-null)))
+	(if (= 0 errcode)
+	    (pointer-ref-c-pointer mpi* 0)
+	  (raise-gpg-error 'gcry-mpi-scan errcode obj fmt))))))
+
+(define (gcry-mpi-print mpi fmt)
+  (with-compensations
+    (let* ((fmt-int	(gcry-mpi-format->value fmt))
+	   (buf.len	(let* ((nwritten* (malloc-small/c))
+			       (errcode	  (platform:gcry_mpi_print fmt-int pointer-null 0 nwritten* mpi)))
+			  (if (= 0 errcode)
+			      (pointer-ref-c-size_t nwritten* 0)
+			    (raise-gpg-error 'gcry-mpi-print errcode mpi fmt)))))
+      (let* ((buf.ptr	(malloc-block/c buf.len))
+	     (errcode	(platform:gcry_mpi_print fmt-int buf.ptr buf.len pointer-null mpi)))
+	(cond ((not (= 0 errcode))
+	       (raise-gpg-error 'gcry-mpi-print errcode mpi fmt))
+	      ((= fmt-int GCRYMPI_FMT_HEX)
+	       (cstring->string buf.ptr (- buf.len 1)))
+	      (else
+	       (pointer->bytevector buf.ptr buf.len)))))))
+
+(define (gcry-mpi->uint mpi)
+  (with-compensations
+    (let* ((buf.ptr	(malloc-block/c sizeof-int))
+	   (errcode	(platform:gcry_mpi_print GCRYMPI_FMT_USG buf.ptr sizeof-int pointer-null mpi)))
+      (if (= 0 errcode)
+	  (pointer-ref-c-unsigned-int buf.ptr 0)
+	(raise-gpg-error 'gcry-mpi-print errcode mpi)))))
 
 
 ;;;; callback makers

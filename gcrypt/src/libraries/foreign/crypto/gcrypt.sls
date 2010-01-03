@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -190,212 +190,152 @@
     GCRYPT_SHARED_OBJECT
 
 
+;;;; functions
 
-    ;; type definitions
-    gcry-symmetric-handle		gcry-symmetric-handle?
-    pointer->gcry-symmetric-handle	gcry-symmetric-handle->pointer
+;; type definitions
+gcry-symmetric-handle		gcry-symmetric-handle?
+pointer->gcry-symmetric-handle	gcry-symmetric-handle->pointer
 
-    gcry-md-handle			gcry-md-handle?
-    pointer->gcry-md-handle		gcry-md-handle->pointer
+gcry-md-handle			gcry-md-handle?
+pointer->gcry-md-handle		gcry-md-handle->pointer
 
-    ;; enumerations
-    gcry-cipher-algo		gcry-cipher-algo->value		value->gcry-cipher-algo
-    gcry-cipher-mode		gcry-cipher-mode->value		value->gcry-cipher-mode
-    gcry-cipher-flags		gcry-cipher-flags->value	value->gcry-cipher-flags
+;; enumerations
+gcry-cipher-algo	gcry-cipher-algo->value		value->gcry-cipher-algo
+gcry-cipher-mode	gcry-cipher-mode->value		value->gcry-cipher-mode
+gcry-cipher-flags	gcry-cipher-flags->value	value->gcry-cipher-flags
+gcry-md-algo		gcry-md-algo->value		value->gcry-md-algo
+gcry-md-flags		gcry-md-flags->value		value->gcry-md-flags
+gcry-random-quality	gcry-random-quality->value	value->gcry-random-quality
+gcry-mpi-format		gcry-mpi-format->value		value->gcry-mpi-format
+gcry-sexp-format	gcry-sexp-format->value		value->gcry-sexp-format
 
-    gcry-md-algo		gcry-md-algo->value		value->gcry-md-algo
-    gcry-md-flags		gcry-md-flags->value		value->gcry-md-flags
+;; control functions
+gcry-check-version		gcry-control/int
+gcry-control/uint		gcry-control/ptr
 
-    gcry-random-quality		gcry-random-quality->value	value->gcry-random-quality
+;; errors
+gcry-strerror			gcry-strsource
+gcry-err-code-from-errno	gcry-err-code-to-errno
+gcry-err-make-from-errno	gcry-error-from-errno
 
-    ;; functions
-    (rename (primitive:gcry-check-version		gcry-check-version)
-	    (primitive:gcry-control/int			gcry-control/int)
-	    (primitive:gcry-control/uint		gcry-control/uint)
-	    (primitive:gcry-control/ptr			gcry-control/ptr)
+;; symmetric cryptography
+gcry-cipher-open		gcry-cipher-close
+gcry-cipher-ctl			gcry-cipher-info
+gcry-cipher-algo-info		gcry-cipher-algo-name
+gcry-cipher-map-name		gcry-cipher-mode-from-oid
+gcry-cipher-encrypt		gcry-cipher-encrypt*
+gcry-cipher-decrypt		gcry-cipher-decrypt*
+gcry-cipher-setkey		gcry-cipher-setiv
+gcry-cipher-setctr
+gcry-cipher-get-algo-keylen	gcry-cipher-get-algo-blklen
+gcry-cipher-list		gcry-cipher-reset
+gcry-cipher-sync		gcry-cipher-cts
+gcry-cipher-test-algo
 
-	    (primitive:gcry-strerror			gcry-strerror)
-	    (primitive:gcry-strsource			gcry-strsource)
-	    (primitive:gcry-err-code-from-errno		gcry-err-code-from-errno)
-	    (primitive:gcry-err-code-to-errno		gcry-err-code-to-errno)
-	    (primitive:gcry-err-make-from-errno		gcry-err-make-from-errno)
-	    (primitive:gcry-error-from-errno		gcry-error-from-errno)
+;;; S-expressions
+gcry-sexp-new			gcry-sexp-create
+gcry-sexp-sscan			;;;gcry-sexp-build
+gcry-sexp-build-array		gcry-sexp-release
+gcry-sexp-canon-len		gcry-sexp-sprint
+gcry-sexp-dump			gcry-sexp-cons
+gcry-sexp-alist			;;;gcry-sexp-vlist
+gcry-sexp-append		gcry-sexp-prepend
+gcry-sexp-find-token		gcry-sexp-length
+gcry-sexp-nth			gcry-sexp-car
+gcry-sexp-cdr			gcry-sexp-cadr
+gcry-sexp-nth-data		gcry-sexp-nth-string
+gcry-sexp-nth-mpi
 
-	    (primitive:gcry-sexp-new			gcry-sexp-new)
-	    (primitive:gcry-sexp-create			gcry-sexp-create)
-	    (primitive:gcry-sexp-sscan			gcry-sexp-sscan)
-;;;  (primitive:gcry-sexp-build		gcry-sexp-build)
-	    (primitive:gcry-sexp-build-array		gcry-sexp-build-array)
-	    (primitive:gcry-sexp-release		gcry-sexp-release)
-	    (primitive:gcry-sexp-canon-len		gcry-sexp-canon-len)
-	    (primitive:gcry-sexp-sprint			gcry-sexp-sprint)
-	    (primitive:gcry-sexp-dump			gcry-sexp-dump)
-	    (primitive:gcry-sexp-cons			gcry-sexp-cons)
-	    (primitive:gcry-sexp-alist			gcry-sexp-alist)
-;;;  (primitive:gcry-sexp-vlist		gcry-sexp-vlist)
-	    (primitive:gcry-sexp-append			gcry-sexp-append)
-	    (primitive:gcry-sexp-prepend		gcry-sexp-prepend)
-	    (primitive:gcry-sexp-find-token		gcry-sexp-find-token)
-	    (primitive:gcry-sexp-length			gcry-sexp-length)
-	    (primitive:gcry-sexp-nth			gcry-sexp-nth)
-	    (primitive:gcry-sexp-car			gcry-sexp-car)
-	    (primitive:gcry-sexp-cdr			gcry-sexp-cdr)
-	    (primitive:gcry-sexp-cadr			gcry-sexp-cadr)
-	    (primitive:gcry-sexp-nth-data		gcry-sexp-nth-data)
-	    (primitive:gcry-sexp-nth-string		gcry-sexp-nth-string)
-	    (primitive:gcry-sexp-nth-mpi		gcry-sexp-nth-mpi)
+gcry-sexp->list			list->gcry-sexp
+gcry-sexp->string		string->gcry-sexp
+gcry-sexp-find-token/str
 
-	    (primitive:gcry-mpi-new			gcry-mpi-new)
-	    (primitive:gcry-mpi-snew			gcry-mpi-snew)
-	    (primitive:gcry-mpi-release			gcry-mpi-release)
-	    (primitive:gcry-mpi-copy			gcry-mpi-copy)
-	    (primitive:gcry-mpi-set			gcry-mpi-set)
-	    (primitive:gcry-mpi-set-ui			gcry-mpi-set-ui)
-	    (primitive:gcry-mpi-swap			gcry-mpi-swap)
-	    (primitive:gcry-mpi-cmp			gcry-mpi-cmp)
-	    (primitive:gcry-mpi-cmp-ui			gcry-mpi-cmp-ui)
-	    (primitive:gcry-mpi-scan			gcry-mpi-scan)
-	    (primitive:gcry-mpi-print			gcry-mpi-print)
-	    (primitive:gcry-mpi-aprint			gcry-mpi-aprint)
-	    (primitive:gcry-mpi-dump			gcry-mpi-dump)
-	    (primitive:gcry-mpi-add			gcry-mpi-add)
-	    (primitive:gcry-mpi-add-ui			gcry-mpi-add-ui)
-	    (primitive:gcry-mpi-addm			gcry-mpi-addm)
-	    (primitive:gcry-mpi-sub			gcry-mpi-sub)
-	    (primitive:gcry-mpi-sub-ui			gcry-mpi-sub-ui)
-	    (primitive:gcry-mpi-subm			gcry-mpi-subm)
-	    (primitive:gcry-mpi-mul			gcry-mpi-mul)
-	    (primitive:gcry-mpi-mul-ui			gcry-mpi-mul-ui)
-	    (primitive:gcry-mpi-mulm			gcry-mpi-mulm)
-	    (primitive:gcry-mpi-mul-2exp		gcry-mpi-mul-2exp)
-	    (primitive:gcry-mpi-div			gcry-mpi-div)
-	    (primitive:gcry-mpi-mod			gcry-mpi-mod)
-	    (primitive:gcry-mpi-powm			gcry-mpi-powm)
-	    (primitive:gcry-mpi-gcd			gcry-mpi-gcd)
-	    (primitive:gcry-mpi-invm			gcry-mpi-invm)
-	    (primitive:gcry-mpi-get-nbits		gcry-mpi-get-nbits)
-	    (primitive:gcry-mpi-test-bit		gcry-mpi-test-bit)
-	    (primitive:gcry-mpi-set-bit			gcry-mpi-set-bit)
-	    (primitive:gcry-mpi-clear-bit		gcry-mpi-clear-bit)
-	    (primitive:gcry-mpi-set-highbit		gcry-mpi-set-highbit)
-	    (primitive:gcry-mpi-clear-highbit		gcry-mpi-clear-highbit)
-	    (primitive:gcry-mpi-rshift			gcry-mpi-rshift)
-	    (primitive:gcry-mpi-lshift			gcry-mpi-lshift)
-	    (primitive:gcry-mpi-set-opaque		gcry-mpi-set-opaque)
-	    (primitive:gcry-mpi-get-opaque		gcry-mpi-get-opaque)
-	    (primitive:gcry-mpi-set-flag		gcry-mpi-set-flag)
-	    (primitive:gcry-mpi-clear-flag		gcry-mpi-clear-flag)
-	    (primitive:gcry-mpi-get-flag		gcry-mpi-get-flag)
+;;; multi-precision integers
+gcry-mpi-new			gcry-mpi-snew
+gcry-mpi-release		gcry-mpi-copy
+gcry-mpi-set			gcry-mpi-set-ui
+gcry-mpi-swap			gcry-mpi-cmp
+gcry-mpi-cmp-ui			gcry-mpi-scan
+gcry-mpi-print			gcry-mpi-aprint
+gcry-mpi-dump			gcry-mpi-add
+gcry-mpi-add-ui			gcry-mpi-addm
+gcry-mpi-sub			gcry-mpi-sub-ui
+gcry-mpi-subm			gcry-mpi-mul
+gcry-mpi-mul-ui			gcry-mpi-mulm
+gcry-mpi-mul-2exp		gcry-mpi-div
+gcry-mpi-mod			gcry-mpi-powm
+gcry-mpi-gcd			gcry-mpi-invm
+gcry-mpi-get-nbits		gcry-mpi-test-bit
+gcry-mpi-set-bit		gcry-mpi-clear-bit
+gcry-mpi-set-highbit		gcry-mpi-clear-highbit
+gcry-mpi-rshift			gcry-mpi-lshift
+gcry-mpi-set-opaque		gcry-mpi-get-opaque
+gcry-mpi-set-flag		gcry-mpi-clear-flag
+gcry-mpi-get-flag
 
-	    (primitive:gcry-cipher-open			gcry-cipher-open)
-	    (primitive:gcry-cipher-close		gcry-cipher-close)
-	    (primitive:gcry-cipher-ctl			gcry-cipher-ctl)
-	    (primitive:gcry-cipher-info			gcry-cipher-info)
-	    (primitive:gcry-cipher-algo-info		gcry-cipher-algo-info)
-	    (primitive:gcry-cipher-algo-name		gcry-cipher-algo-name)
-	    (primitive:gcry-cipher-map-name		gcry-cipher-map-name)
-	    (primitive:gcry-cipher-mode-from-oid	gcry-cipher-mode-from-oid)
-	    (primitive:gcry-cipher-encrypt		gcry-cipher-encrypt)
-	    (primitive:gcry-cipher-decrypt		gcry-cipher-decrypt)
-	    (primitive:gcry-cipher-encrypt*		gcry-cipher-encrypt*)
-	    (primitive:gcry-cipher-decrypt*		gcry-cipher-decrypt*)
-	    (primitive:gcry-cipher-setkey		gcry-cipher-setkey)
-	    (primitive:gcry-cipher-setiv		gcry-cipher-setiv)
-	    (primitive:gcry-cipher-setctr		gcry-cipher-setctr)
-	    (primitive:gcry-cipher-get-algo-keylen	gcry-cipher-get-algo-keylen)
-	    (primitive:gcry-cipher-get-algo-blklen	gcry-cipher-get-algo-blklen)
-	    (primitive:gcry-cipher-list			gcry-cipher-list)
+gcry-mpi->uint
 
-	    (primitive:gcry-cipher-reset		gcry-cipher-reset)
-	    (primitive:gcry-cipher-sync			gcry-cipher-sync)
-	    (primitive:gcry-cipher-cts			gcry-cipher-cts)
-	    (primitive:gcry-cipher-test-algo		gcry-cipher-test-algo)
+gcry-mpi=?
+gcry-mpi<?			gcry-mpi<=?
+gcry-mpi>?			gcry-mpi>=?
 
-	    (primitive:gcry-pk-encrypt			gcry-pk-encrypt)
-	    (primitive:gcry-pk-decrypt			gcry-pk-decrypt)
-	    (primitive:gcry-pk-sign			gcry-pk-sign)
-	    (primitive:gcry-pk-verify			gcry-pk-verify)
-	    (primitive:gcry-pk-testkey			gcry-pk-testkey)
-	    (primitive:gcry-pk-genkey			gcry-pk-genkey)
-	    (primitive:gcry-pk-ctl			gcry-pk-ctl)
-	    (primitive:gcry-pk-algo-info		gcry-pk-algo-info)
-	    (primitive:gcry-pk-algo-name		gcry-pk-algo-name)
-	    (primitive:gcry-pk-map-name			gcry-pk-map-name)
-	    (primitive:gcry-pk-get-nbits		gcry-pk-get-nbits)
-	    (primitive:gcry-pk-get-keygrip		gcry-pk-get-keygrip)
-	    (primitive:gcry-pk-list			gcry-pk-list)
+;;; public key cryptography
+gcry-pk-encrypt			gcry-pk-decrypt
+gcry-pk-sign			gcry-pk-verify
+gcry-pk-testkey			gcry-pk-genkey
+gcry-pk-ctl			gcry-pk-algo-info
+gcry-pk-algo-name		gcry-pk-map-name
+gcry-pk-get-nbits		gcry-pk-get-keygrip
+gcry-pk-list			gcry-pk-test-algo
 
-	    (primitive:gcry-pk-test-algo		gcry-pk-test-algo)
+;;; message digest
+gcry-md-open			gcry-md-close
+gcry-md-enable			gcry-md-copy
+gcry-md-reset			gcry-md-ctl
+gcry-md-write			gcry-md-write*
+gcry-md-read			gcry-md-hash-buffer
+gcry-md-hash-buffer*		gcry-md-get-algo
+gcry-md-get-algo-dlen		gcry-md-is-enabled?
+gcry-md-is-enabled		gcry-md-is-secure?
+gcry-md-is-secure		gcry-md-info
+gcry-md-algo-info		gcry-md-algo-name
+gcry-md-map-name		gcry-md-setkey
+gcry-md-debug			gcry-md-list
+gcry-md-enabled-algos		gcry-md-final
+gcry-md-test-algo		gcry-md-get-asnoid
 
-	    (primitive:gcry-md-open			gcry-md-open)
-	    (primitive:gcry-md-close			gcry-md-close)
-	    (primitive:gcry-md-enable			gcry-md-enable)
-	    (primitive:gcry-md-copy			gcry-md-copy)
-	    (primitive:gcry-md-reset			gcry-md-reset)
-	    (primitive:gcry-md-ctl			gcry-md-ctl)
-	    (primitive:gcry-md-write			gcry-md-write)
-	    (primitive:gcry-md-write*			gcry-md-write*)
-	    (primitive:gcry-md-read			gcry-md-read)
-	    (primitive:gcry-md-hash-buffer		gcry-md-hash-buffer)
-	    (primitive:gcry-md-hash-buffer*		gcry-md-hash-buffer*)
-	    (primitive:gcry-md-get-algo			gcry-md-get-algo)
-	    (primitive:gcry-md-get-algo-dlen		gcry-md-get-algo-dlen)
-	    (primitive:gcry-md-is-enabled?		gcry-md-is-enabled?)
-	    (primitive:gcry-md-is-enabled		gcry-md-is-enabled)
-	    (primitive:gcry-md-is-secure?		gcry-md-is-secure?)
-	    (primitive:gcry-md-is-secure		gcry-md-is-secure)
-	    (primitive:gcry-md-info			gcry-md-info)
-	    (primitive:gcry-md-algo-info		gcry-md-algo-info)
-	    (primitive:gcry-md-algo-name		gcry-md-algo-name)
-	    (primitive:gcry-md-map-name			gcry-md-map-name)
-	    (primitive:gcry-md-setkey			gcry-md-setkey)
-	    (primitive:gcry-md-debug			gcry-md-debug)
-	    (primitive:gcry-md-list			gcry-md-list)
-	    (primitive:gcry-md-enabled-algos		gcry-md-enabled-algos)
+;;; pseudo-random numbers
+gcry-randomize			gcry-random-add-bytes
+gcry-random-bytes
+gcry-random-bytes-secure	gcry-random-bytes/secure
+gcry-mpi-randomize		gcry-create-nonce
+gcry-fast-random-poll
 
-	    (primitive:gcry-md-final			gcry-md-final)
-	    (primitive:gcry-md-test-algo		gcry-md-test-algo)
-	    (primitive:gcry-md-get-asnoid		gcry-md-get-asnoid)
+;;; prime numbers
+gcry-prime-generate		gcry-prime-group-generator
+gcry-prime-release-factors	gcry-prime-check
 
-	    (primitive:gcry-randomize			gcry-randomize)
-	    (primitive:gcry-random-add-bytes		gcry-random-add-bytes)
-	    (primitive:gcry-random-bytes		gcry-random-bytes)
-	    (primitive:gcry-random-bytes-secure		gcry-random-bytes-secure)
-	    (primitive:gcry-random-bytes/secure		gcry-random-bytes/secure)
-	    (primitive:gcry-mpi-randomize		gcry-mpi-randomize)
-	    (primitive:gcry-create-nonce		gcry-create-nonce)
+;;; miscellaneous functions
+gcry-set-progress-handler	gcry-set-allocation-handler
+gcry-set-outofcore-handler	gcry-set-fatalerror-handler
+gcry-set-log-handler		gcry-set-gettext-handler
+gcry-fips-mode-active
 
-	    (primitive:gcry-fast-random-poll		gcry-fast-random-poll)
+;;; memory allocation
+gcry-malloc			gcry-calloc
+gcry-malloc-secure		gcry-calloc-secure
+gcry-realloc			gcry-strdup
+gcry-xmalloc			gcry-xcalloc
+gcry-xmalloc-secure		gcry-xcalloc-secure
+gcry-xrealloc			gcry-xstrdup
+gcry-free			gcry-is-secure
 
-	    (primitive:gcry-prime-generate		gcry-prime-generate)
-	    (primitive:gcry-prime-group-generator	gcry-prime-group-generator)
-	    (primitive:gcry-prime-release-factors	gcry-prime-release-factors)
-	    (primitive:gcry-prime-check			gcry-prime-check)
-	    (primitive:gcry-set-progress-handler	gcry-set-progress-handler)
-	    (primitive:gcry-set-allocation-handler	gcry-set-allocation-handler)
-	    (primitive:gcry-set-outofcore-handler	gcry-set-outofcore-handler)
-	    (primitive:gcry-set-fatalerror-handler	gcry-set-fatalerror-handler)
-	    (primitive:gcry-set-log-handler		gcry-set-log-handler)
-	    (primitive:gcry-set-gettext-handler		gcry-set-gettext-handler)
-	    (primitive:gcry-malloc			gcry-malloc)
-	    (primitive:gcry-calloc			gcry-calloc)
-	    (primitive:gcry-malloc-secure		gcry-malloc-secure)
-	    (primitive:gcry-calloc-secure		gcry-calloc-secure)
-	    (primitive:gcry-realloc			gcry-realloc)
-	    (primitive:gcry-strdup			gcry-strdup)
-	    (primitive:gcry-xmalloc			gcry-xmalloc)
-	    (primitive:gcry-xcalloc			gcry-xcalloc)
-	    (primitive:gcry-xmalloc-secure		gcry-xmalloc-secure)
-	    (primitive:gcry-xcalloc-secure		gcry-xcalloc-secure)
-	    (primitive:gcry-xrealloc			gcry-xrealloc)
-	    (primitive:gcry-xstrdup			gcry-xstrdup)
-	    (primitive:gcry-free			gcry-free)
-	    (primitive:gcry-is-secure			gcry-is-secure)
+)
 
-	    (primitive:gcry-fips-mode-active		gcry-fips-mode-active)))
-  (import (foreign crypto gcrypt sizeof)
-    (foreign crypto gcrypt typedefs)
-    (foreign crypto gcrypt enumerations)
-    (prefix (foreign crypto gcrypt primitives) primitive:)))
+
+(import (foreign crypto gcrypt sizeof)
+  (foreign crypto gcrypt typedefs)
+  (foreign crypto gcrypt enumerations)
+  (foreign crypto gcrypt primitives)))
 
 ;;; end of file

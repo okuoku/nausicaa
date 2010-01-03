@@ -125,6 +125,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{ISO}
 @end macro
 
+@macro mpi{}
+@acronym{MPI}
+@end macro
+
 @macro posix{}
 @acronym{POSIX}
 @end macro
@@ -525,6 +529,8 @@ entitled ``@gnu{} Free Documentation License''.
 * error::                       Error handling.
 * hash::                        Hash functions.
 * symmetric::                   Symmetric cryptography.
+* mpi::                         Multiple precision integers.
+* sexps::                       S--expressions.
 * pubkey::                      Public key cryptography.
 * random::                      Pseudo--random numbers generation.
 * compensations::               Compensated constructors.
@@ -584,9 +590,20 @@ Enumeration types
 * symmetric enums mode::        Symmetric cipher modes.
 * symmetric enums flags::       Symmetric cipher flags.
 
+Multiple precision integers
+
+* mpi pred::                    Predicates.
+* mpi format::                  String conversion.
+
 Public key cryptography
 
 * pubkey intro::                Introduction.
+
+Pseudo--random numbers generation
+
+* random quality::              Selecting pseudo--random numbers
+                                quality.
+* random api::                  Programming interface.
 
 @end detailmenu
 @end menu
@@ -1316,6 +1333,294 @@ Control the behaviour of @var{syhd}.
 @end defun
 
 @c page
+@node mpi
+@chapter Multiple precision integers
+
+
+The functions documented in this chapter manage multiple precision
+integer numbers (@mpi{}).  @gcryptref{MPI library, MPI library}.  The
+@mpi{} @api{} is mostly exported and reexported ``as is'' by the
+following libraries:
+
+@example
+(foreign crypto gcrypt)
+(foreign crypto gcrypt primitives)
+(foreign crypto gcrypt platform)
+@end example
+
+@noindent
+with the @mpi{} numbers represented by raw pointer objects.  Only the
+functions for number serialisation have versions with marshaling of
+arguments.
+
+@menu
+* mpi intro::                   Introduction.
+* mpi pred::                    Predicates.
+* mpi format::                  String conversion.
+@end menu
+
+@c page
+@node mpi intro
+@section Introduction
+
+
+Here we see some examples of @mpi{} usage for basic operations; the
+examples give us some hint about how to manage resources allocation.
+Every @mpi{} number must be allocated with @func{gcry-mpi-new} or
+@func{gcry-mpi-snew} and released with @func{gcry-mpi-release}.
+
+The following program will add two numbers, @math{100} and @math{50}:
+
+@example
+(import (rnrs)
+  (foreign crypto gcrypt)
+  (foreign crypto gcrypt compensated))
+
+(with-compensations
+  (let ((a (gcry-mpi-new/c 50))
+        (b (gcry-mpi-new/c 50))
+        (c (gcry-mpi-new/c 50)))
+    (gcry-mpi-set-ui a 100)
+    (gcry-mpi-set-ui b 50)
+    (gcry-mpi-add c a b)))
+@end example
+
+@noindent
+notice that there is no way to convert an @mpi{} number to a string in
+human readable form; the only way to make a number readable is to use
+@func{gcry-mpi->uint}, which will return an exact integer in the range
+allowed by the @code{unsigned int} C language type of the underlying
+platform.
+
+@c page
+@node mpi pred
+@section Predicates
+
+
+@defun gcry-mpi=? @var{n} ...
+Return @true{} if all the arguments are pointers to @mpi{} numbers and
+the numbers are equal; if the arguments to not reference @mpi{} numbers,
+the behaviour is undefined.
+
+When there is only one argument, the return value is @true{}.  When
+there are no arguments, the return value is @false{}.
+@end defun
+
+
+@defun gcry-mpi<? @var{n} ...
+Return @true{} if all the arguments are pointers to @mpi{} numbers and
+the numbers are sorted in strict increasing order; if the arguments to
+not reference @mpi{} numbers, the behaviour is undefined.
+
+When there is only one argument, the return value is @true{}.  When
+there are no arguments, the return value is @false{}.
+@end defun
+
+
+@defun gcry-mpi<=? @var{n} ...
+Return @true{} if all the arguments are pointers to @mpi{} numbers and
+the numbers are sorted in non--strict increasing order; if the arguments
+to not reference @mpi{} numbers, the behaviour is undefined.
+
+When there is only one argument, the return value is @true{}.  When
+there are no arguments, the return value is @false{}.
+@end defun
+
+
+@defun gcry-mpi>? @var{n} ...
+Return @true{} if all the arguments are pointers to @mpi{} numbers and
+the numbers are sorted in strict decreasing order; if the arguments to
+not reference @mpi{} numbers, the behaviour is undefined.
+
+When there is only one argument, the return value is @true{}.  When
+there are no arguments, the return value is @false{}.
+@end defun
+
+
+@defun gcry-mpi>=? @var{n} ...
+Return @true{} if all the arguments are pointers to @mpi{} numbers and
+the numbers are sorted in non--strict decreasing order; if the arguments
+to not reference @mpi{} numbers, the behaviour is undefined.
+
+When there is only one argument, the return value is @true{}.  When
+there are no arguments, the return value is @false{}.
+@end defun
+
+@c page
+@node mpi format
+@section String conversion
+
+
+@deftp {Enumeration Type} enum-gcry-mpi-format
+Used to select a string format for @mpi{} conversion.  It enumerates the
+following symbols:
+
+@example
+std  pgp  ssh  hex  usg
+@end example
+@end deftp
+
+
+@deffn Syntax gcry-mpi-format @ameta{symbol}
+Expand to an enumeration set of type @code{enum-gcry-mpi-format} holding
+the symbol @meta{symbol}.
+@end deffn
+
+
+@defun gcry-mpi-format->value @var{set}
+@defunx value->gcry-mpi-format @var{integer}
+Convert to and from an enumeration set of type @code{enum-gcry-mpi-format}
+holding a single element and the corresponding constant recognised by
+Gcrypt.
+@end defun
+
+
+In the following descriptions, the argument @var{fmt} must be an
+enumeration set of type @code{enum-gcry-mpi-format} holding a single
+argument.
+
+
+@defun gcry-mpi-scan @var{obj} @var{fmt}
+Convert @var{obj} to an @mpi{} number according to @var{fmt} and return
+the number.  @var{obj} can be a Scheme string, a Scheme bytevector or a
+@class{memblock} object.
+@end defun
+
+
+@defun gcry-mpi-print @var{mpi} @var{fmt}
+Convert the number @var{mpi} to an external representation according to
+@var{fmt} and return the number.  When the format is @code{hex} the
+return value is a Scheme string, else it is a Scheme bytevector.
+@end defun
+
+
+@defun gcry-mpi->uint @var{mpi}
+Convert the number @var{mpi} to an unsigned exact integer; return the
+integer.
+@end defun
+
+@c page
+@node sexps
+@chapter S--expressions
+
+
+The functions documented in this chapter manage allocation and
+processing of Gcrypt S--expressions.  @gcryptref{S-expressions,
+S--expressions}.
+
+Gcrypt sexps @api{} is not much user friendly towards high--level
+languages using a foreign functions interface; for this reason, the
+@api{} documented here focuses on using Scheme strings as input for
+sexps constructors and raw pointers objects as references to sexps.  All
+the functions not documented in this chapter are reexported ``as is'' by
+the high--level libraries.
+
+@menu
+* sexps intro::                 Introduction.
+* sexps enums::                 Enumeration types.
+* sexps conversion::            Converting sexps to and from strings.
+@end menu
+
+@c page
+@node sexps intro
+@section Introduction
+
+
+Gcrypt's sexps format is based on Ron Rivest's work; basically, we can
+think of a sexps as a string of characters with nested, matched,
+parentheses and strings prefixed with their own length:
+
+@example
+(4:ciao)
+@end example
+
+@noindent
+@code{4} is the number of characters in @code{ciao} and the @code{:}
+character acts as separator.  In the canonical format white spaces are
+@strong{not} used as separator; the following example is a sexp holding
+two elements, the strings @code{ciao} and @code{hello}:
+
+@example
+(4:ciao5:hello)
+@end example
+
+@mpi{} numbers are embedded in sexps in their serialised formats.
+
+@c page
+@node sexps enums
+@section Enumeration types
+
+
+The following bindings are exported by the @library{foreign crypto
+gcrypt enumerations} library and reexported by the @library{foreign
+crypto gcrypt} library.
+
+
+@deftp {Enumeration Type} enum-gcry-sexp-format
+Used to select a sexp serialisation format.  It enumerates the following
+symbols:
+
+@example
+default  canon  base64  advanced
+@end example
+@end deftp
+
+
+@deffn Syntax gcry-sexp-format @ameta{symbol}
+Expand to an enumeration set of type @code{enum-gcry-sexp-format}
+holding the symbol @meta{symbol}.
+@end deffn
+
+
+@defun gcry-sexp-format->value @var{set}
+@defunx value->gcry-sexp-format @var{integer}
+Convert to and from an enumeration set of type
+@code{enum-gcry-sexp-format} holding a single element and the
+corresponding constant recognised by Gcrypt.
+@end defun
+
+@c page
+@node sexps conversion
+@section Converting sexps to and from strings
+
+
+@defun string->gcry-sexp @var{str}
+Build a new sexp from its string representation in @var{str}, a Scheme
+string.  Return a pointer object referencing the sexp; the sexp must be
+released with a call to @func{gcry-sexp-release}.
+@end defun
+
+
+@defun gcry-sexp->string @var{sexp}
+@defunx gcry-sexp->string @var{sexp} @var{fmt}
+Convert a sexp referenced by the pointer @var{sexp} to its string
+representation in the format @var{fmt}, which must be an enumeration set
+of type @code{enum-gcry-sexp-format}.  When @var{fmt} is not used, the
+format is set to @code{default}.  Return a Scheme string.
+@end defun
+
+
+@defun gcry-sexp-find-token/str @var{sexp} @var{tag}
+Search the sexp referenced by the pointer object @var{sexp} for the
+first occurrence of the element whose tag is @var{tag}, a Scheme string
+or symbol, and return a pointer object referencing a new sexp holding
+that element.
+
+The new sexp must be released with a call to @func{gcry-sexp-release}.
+@end defun
+
+
+Usage examples:
+
+@example
+(define str "(a (b (c)))")
+
+(gcry-sexp->string (string->gcry-sexp str)
+                   (gcry-sexp-format canon))
+@result{} "(1:a(1:b(1:c)))"
+@end example
+
+@c page
 @node pubkey
 @chapter Public key cryptography
 
@@ -1434,11 +1739,17 @@ The following bindings are exported by the @library{foreign crypto
 gcrypt compensated} library.
 
 
+@subsubheading Symmetric cryptography
+
+
 @defun gcry-cipher-open/c @var{arg} ...
 Like @func{gcry-cipher-open}, but push the appropriate call to
 @func{gcry-cipher-close} to the current compensation stack.
 @end defun
 
+@c ------------------------------------------------------------
+
+@subsubheading Message digests
 
 @defun gcry-md-open/c @var{arg} ...
 Like @func{gcry-md-open}, but push the appropriate call to
@@ -1450,6 +1761,43 @@ Like @func{gcry-md-open}, but push the appropriate call to
 Like @func{gcry-md-copy}, but push the appropriate call to
 @func{gcry-md-close} to the current compensation stack.
 @end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Multiprecision integers
+
+@defun gcry-mpi-new/c @var{arg}
+Like @func{gcry-mpi-new}, but push the appropriate call to
+@func{gcry-mpi-release} to the current compensation stack.
+@end defun
+
+
+@defun gcry-mpi-snew/c @var{arg}
+Like @func{gcry-mpi-snew}, but push the appropriate call to
+@func{gcry-mpi-release} to the current compensation stack.
+@end defun
+
+
+@defun gcry-mpi-copy/c @var{arg}
+Like @func{gcry-mpi-copy}, but push the appropriate call to
+@func{gcry-mpi-release} to the current compensation stack.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading S--expressions
+
+@defun string->gcry-sexp/c @var{arg}
+Like @func{string->gcry-sexp}, but push the appropriate call to
+@func{gcry-sexp-release} to the current compensation stack.
+@end defun
+
+
+@defun list->gcry-sexp/c @var{arg}
+Like @func{list->gcry-sexp}, but push the appropriate call to
+@func{gcry-sexp-release} to the current compensation stack.
+@end defun
+
 
 @c page
 

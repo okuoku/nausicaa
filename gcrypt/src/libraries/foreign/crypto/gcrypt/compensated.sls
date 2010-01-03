@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,8 +27,9 @@
 
 (library (foreign crypto gcrypt compensated)
   (export
-    gcry-cipher-open/c
-    gcry-md-open/c		gcry-md-copy/c)
+    gcry-cipher-open/c		gcry-md-open/c		gcry-md-copy/c
+    gcry-mpi-new/c		gcry-mpi-snew/c		gcry-mpi-copy/c
+    string->gcry-sexp/c		list->gcry-sexp/c)
   (import (rnrs)
     (compensations)
     (foreign crypto gcrypt))
@@ -40,6 +41,8 @@
 		 (with
 		  (gcry-cipher-close hd)))))
     hd))
+
+;;; --------------------------------------------------------------------
 
 (define (gcry-md-open/c . args)
   (letrec ((hd (compensate
@@ -54,6 +57,45 @@
 		 (with
 		  (gcry-md-close hd)))))
     hd))
+
+;;; --------------------------------------------------------------------
+
+(define (gcry-mpi-new/c . args)
+  (letrec ((n (compensate
+		  (apply gcry-mpi-new args)
+		(with
+		 (gcry-mpi-release n)))))
+    n))
+
+(define (gcry-mpi-snew/c . args)
+  (letrec ((n (compensate
+		  (apply gcry-mpi-snew args)
+		(with
+		 (gcry-mpi-release n)))))
+    n))
+
+(define (gcry-mpi-copy/c . args)
+  (letrec ((n (compensate
+		  (apply gcry-mpi-copy args)
+		(with
+		 (gcry-mpi-release n)))))
+    n))
+
+;;; --------------------------------------------------------------------
+
+(define (string->gcry-sexp/c . args)
+  (letrec ((sexp (compensate
+		     (apply string->gcry-sexp args)
+		   (with
+		    (gcry-sexp-release sexp)))))
+    sexp))
+
+(define (list->gcry-sexp/c . args)
+  (letrec ((sexp (compensate
+		     (apply list->gcry-sexp args)
+		   (with
+		    (gcry-sexp-release sexp)))))
+    sexp))
 
 
 ;;;; done

@@ -262,8 +262,8 @@
 
 
 (define-c-functions gcrypt-shared-object
-  (gcry_mpi_new			(gcry_mpi_t gcry_mpi_new (unsigned int)))
-  (gcry_mpi_snew		(gcry_mpi_t gcry_mpi_snew (unsigned int)))
+  (gcry_mpi_new			(gcry_mpi_t gcry_mpi_new (unsigned-int)))
+  (gcry_mpi_snew		(gcry_mpi_t gcry_mpi_snew (unsigned-int)))
   (gcry_mpi_release		(void gcry_mpi_release (gcry_mpi_t)))
   (gcry_mpi_copy		(gcry_mpi_t gcry_mpi_copy (gcry_mpi_t)))
   (gcry_mpi_set			(gcry_mpi_t gcry_mpi_set (gcry_mpi_t gcry_mpi_t)))

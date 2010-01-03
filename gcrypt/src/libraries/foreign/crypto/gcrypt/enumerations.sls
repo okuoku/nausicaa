@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,11 +30,11 @@
     gcry-cipher-algo	gcry-cipher-algo->value		value->gcry-cipher-algo
     gcry-cipher-mode	gcry-cipher-mode->value		value->gcry-cipher-mode
     gcry-cipher-flags	gcry-cipher-flags->value	value->gcry-cipher-flags
-
     gcry-md-algo	gcry-md-algo->value		value->gcry-md-algo
     gcry-md-flags	gcry-md-flags->value		value->gcry-md-flags
-
     gcry-random-quality	gcry-random-quality->value	value->gcry-random-quality
+    gcry-mpi-format	gcry-mpi-format->value		value->gcry-mpi-format
+    gcry-sexp-format	gcry-sexp-format->value		value->gcry-sexp-format
 
     %gcry-md-algo
     )
@@ -119,6 +119,16 @@
    GCRY_VERY_STRONG_RANDOM)
   (weak strong very-strong))
 
+(define-c-flags gcry-mpi-format
+  (GCRYMPI_FMT_STD		GCRYMPI_FMT_PGP
+   GCRYMPI_FMT_SSH		GCRYMPI_FMT_HEX
+   GCRYMPI_FMT_USG)
+  (std pgp ssh hex usg))
+
+(define-c-flags gcry-sexp-format
+  (GCRYSEXP_FMT_DEFAULT		GCRYSEXP_FMT_CANON
+   GCRYSEXP_FMT_BASE64		GCRYSEXP_FMT_ADVANCED)
+  (default canon base64 advanced))
 
 
 ;;;; done
