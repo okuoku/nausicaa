@@ -1686,9 +1686,7 @@ The @mpi{} number is @math{456} and its hexadecimal representation is
 
   (define key-pair
     (gcry-pk-genkey/c '(genkey
-                        (rsa
-                         (nbits 1024)
-                         (transient-key)))))
+                        (rsa (nbits 1024)))))
 
   (define pub-key
     (gcry-sexp-find-token/str/c key-pair 'public-key))

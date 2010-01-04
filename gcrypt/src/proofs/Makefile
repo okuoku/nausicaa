@@ -9,7 +9,7 @@ RM		= rm -f
 CC		= gcc -std=c99
 CFLAGS		= -Wall
 
-TARGETS		= sexp-print sexp-tokens
+TARGETS		= sexp-print sexp-tokens pk-showoff
 
 .PHONY: all clean
 
