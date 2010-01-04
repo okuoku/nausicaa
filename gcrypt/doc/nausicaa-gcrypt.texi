@@ -592,12 +592,21 @@ Enumeration types
 
 Multiple precision integers
 
+* mpi intro::                   Introduction.
 * mpi pred::                    Predicates.
 * mpi format::                  String conversion.
+
+S--expressions
+
+* sexps intro::                 Introduction.
+* sexps enums::                 Enumeration types.
+* sexps string::                Converting sexps to and from strings.
+* sexps list::                  Converting sexps to lists.
 
 Public key cryptography
 
 * pubkey intro::                Introduction.
+* pubkey api::                  Programming interface.
 
 Pseudo--random numbers generation
 
@@ -721,7 +730,7 @@ performed by @library{foreign gcrypt primitives}.
 
 
 Unless otherwise specified, all the functions from the @code{primitives}
-libraries raise an exception in case of error.
+library raise an exception in case of error.
 
 @menu
 * error codes::                 Handling error codes.
@@ -1518,7 +1527,8 @@ the high--level libraries.
 @menu
 * sexps intro::                 Introduction.
 * sexps enums::                 Enumeration types.
-* sexps conversion::            Converting sexps to and from strings.
+* sexps string::                Converting sexps to and from strings.
+* sexps list::                  Converting sexps to lists.
 @end menu
 
 @c page
@@ -1580,7 +1590,7 @@ corresponding constant recognised by Gcrypt.
 @end defun
 
 @c page
-@node sexps conversion
+@node sexps string
 @section Converting sexps to and from strings
 
 
@@ -1621,6 +1631,22 @@ Usage examples:
 @end example
 
 @c page
+@node sexps list
+@section Converting sexps to lists
+
+
+Partial support to convert Scheme lists into Gcrypt sexps is
+implemented.
+
+
+@defun list->gcry-sexp @var{ell}
+Convert the list @var{ell} to a sexp.  Valid elements of the list are:
+sublists, Scheme symbols, non--negative exact integers, pointers to
+@mpi{} numbers.
+@end defun
+
+
+@c page
 @node pubkey
 @chapter Public key cryptography
 
@@ -1631,12 +1657,104 @@ decryption for streams of bytes using public key algorithms.
 
 @menu
 * pubkey intro::                Introduction.
+* pubkey api::                  Programming interface.
 @end menu
 
 @c page
 @node pubkey intro
 @section Introduction
 
+
+Here is an example which does: key pair generation, @mpi{} number
+encryption and decryption, @mpi{} number signature and verification.
+The @mpi{} number is @math{456} and its hexadecimal representation is
+@code{1c8}.
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign crypto gcrypt)
+  (foreign crypto gcrypt compensated))
+
+(with-compensations
+  (define data
+    `(data
+      (flags raw)
+      (value ,(let ((n (gcry-mpi-new/c 50)))
+                (gcry-mpi-set-ui n 456)
+                n))))
+
+  (define key-pair
+    (gcry-pk-genkey/c '(genkey
+                        (rsa
+                         (nbits 1024)
+                         (transient-key)))))
+
+  (define pub-key
+    (gcry-sexp-find-token/str/c key-pair 'public-key))
+
+  (define pri-key
+    (gcry-sexp-find-token/str/c key-pair 'private-key))
+
+  (define signature
+    (gcry-pk-sign/c data pri-key))
+
+  (define encrypted-data
+    (gcry-pk-encrypt/c data pub-key))
+
+  (define decrypted-data
+    (gcry-pk-decrypt/c encrypted-data pri-key))
+
+  (gcry-sexp->string decrypted-data
+                     (gcry-sexp-format canon))
+  @result{} "4:01c8"
+
+  (gcry-pk-verify signature data pub-key)
+  @result{} #t
+
+  )
+@end example
+
+@c page
+@node pubkey api
+@section Programming interface
+
+
+In the following descriptions, the Gcrypt sexp parameters can be:
+pointer objects to foreign sexp values, Scheme strings, Scheme lists; in
+the latter tow cases they are converted to Gcrypt internal sexp
+structures.
+
+
+@defun gcry-pk-genkey @var{parameters}
+Generate a new key pair using the @var{parameters}, a Gcrypt sexp, and
+return a sexp describing the pair.
+@end defun
+
+
+@defun gcry-pk-encrypt @var{data} @var{public-key}
+Encrypt @var{data}, a Gcrypt sexp, using @var{public-key}, a Gcrypt
+sexp, and return a Gcrypt sexp representing the encrypted data.
+@end defun
+
+
+@defun gcry-pk-decrypt @var{data} @var{private-key}
+Decrypt @var{data}, a Gcrypt sexp, using @var{private-key}, a Gcrypt
+sexp, and return a Gcrypt sexp representing the decrypted data.
+@end defun
+
+
+@defun gcry-pk-sign @var{data} @var{private-key}
+Sign @var{data}, a Gcrypt sexp, using @var{private-key}, a Gcrypt sexp,
+and return a Gcrypt sexp representing the signature data.
+@end defun
+
+
+@defun gcry-pk-verify @var{signature} @var{data} @var{public-key}
+Verify that @var{signature}, a Gcrypt sexp, is a valid signature for
+@var{data}, a Gcrypt sexp, according to @var{public-key}, a Gcrypt sexp.
+Return @true{} if the signature is valid, @false{} otherwise.
+@end defun
 
 @c page
 @node random
@@ -1798,6 +1916,42 @@ Like @func{list->gcry-sexp}, but push the appropriate call to
 @func{gcry-sexp-release} to the current compensation stack.
 @end defun
 
+@defun gcry-sexp-find-token/str/c @var{arg} ...
+Like @func{gcry-sexp-find-token/str}, but push the appropriate call to
+@func{gcry-sexp-release} to the current compensation stack.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Public key encryption
+
+
+@defun gcry-pk-genkey/c @var{arg} ...
+Like @func{gcry-pk-genkey} push the appropriate call to
+@func{gcry-sexp-release} to the current compensation stack to free the
+key pair sexp.
+@end defun
+
+
+@defun gcry-pk-encrypt/c @var{arg} ...
+Like @func{gcry-pk-encrypt} push the appropriate call to
+@func{gcry-sexp-release} to the current compensation stack to free the
+encrypted data sexp.
+@end defun
+
+
+@defun gcry-pk-decrypt/c @var{arg} ...
+Like @func{gcry-pk-decrypt} push the appropriate call to
+@func{gcry-sexp-release} to the current compensation stack to free the
+decrypted data sexp.
+@end defun
+
+
+@defun gcry-pk-sign/c @var{arg} ...
+Like @func{gcry-pk-sign} push the appropriate call to
+@func{gcry-sexp-release} to the current compensation stack to free the
+signature sexp.
+@end defun
 
 @c page
 

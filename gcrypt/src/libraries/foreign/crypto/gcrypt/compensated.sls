@@ -29,7 +29,9 @@
   (export
     gcry-cipher-open/c		gcry-md-open/c		gcry-md-copy/c
     gcry-mpi-new/c		gcry-mpi-snew/c		gcry-mpi-copy/c
-    string->gcry-sexp/c		list->gcry-sexp/c)
+    string->gcry-sexp/c		list->gcry-sexp/c	gcry-sexp-find-token/str/c
+    gcry-pk-genkey/c		gcry-pk-encrypt/c	gcry-pk-decrypt/c
+    gcry-pk-sign/c)
   (import (rnrs)
     (compensations)
     (foreign crypto gcrypt))
@@ -96,6 +98,43 @@
 		   (with
 		    (gcry-sexp-release sexp)))))
     sexp))
+
+(define (gcry-sexp-find-token/str/c . args)
+  (letrec ((sexp (compensate
+		     (apply gcry-sexp-find-token/str args)
+		   (with
+		    (gcry-sexp-release sexp)))))
+    sexp))
+
+;;; --------------------------------------------------------------------
+
+(define (gcry-pk-genkey/c . args)
+  (letrec ((obj (compensate
+		    (apply gcry-pk-genkey args)
+		  (with
+		   (gcry-sexp-release obj)))))
+    obj))
+
+(define (gcry-pk-encrypt/c . args)
+  (letrec ((obj (compensate
+		    (apply gcry-pk-encrypt args)
+		  (with
+		   (gcry-sexp-release obj)))))
+    obj))
+
+(define (gcry-pk-decrypt/c . args)
+  (letrec ((obj (compensate
+		    (apply gcry-pk-decrypt args)
+		  (with
+		   (gcry-sexp-release obj)))))
+    obj))
+
+(define (gcry-pk-sign/c . args)
+  (letrec ((obj (compensate
+		    (apply gcry-pk-sign args)
+		  (with
+		   (gcry-sexp-release obj)))))
+    obj))
 
 
 ;;;; done

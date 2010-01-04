@@ -41,6 +41,11 @@
 (gcry-control/int GCRYCTL_DISABLE_SECMEM 0)
 (gcry-control/int GCRYCTL_INITIALIZATION_FINISHED 0)
 
+(define (mpi u)
+  (let ((n (gcry-mpi-new/c 50)))
+    (gcry-mpi-set-ui n u)
+    n))
+
 
 (parametrise ((check-test-name	'enum))
 
@@ -483,6 +488,8 @@
 
 (parametrise ((check-test-name	'sexps))
 
+;;; string <-> sexps
+
   (let ((str "(a (b (c)))"))
 
     (check
@@ -509,6 +516,7 @@
     #t)
 
 ;;; --------------------------------------------------------------------
+;;; sexps -> lists
 
   (check
       (with-compensations
@@ -551,6 +559,7 @@
     => '(a 1024 12345))
 
 ;;; --------------------------------------------------------------------
+;;; list -> sexps
 
   (check
       (with-compensations
@@ -587,44 +596,115 @@
   	(gcry-sexp->string (list->gcry-sexp/c '(a 1024 12345)) (gcry-sexp-format canon)))
     => "(1:a4:10245:12345)")
 
+  (check
+      (gcry-sexp->string (list->gcry-sexp/c `(a ,(mpi 5))) (gcry-sexp-format canon))
+    => "(1:a2:05)")
+
+  (check
+      (gcry-sexp->string (list->gcry-sexp/c `(a ,(mpi 17))) (gcry-sexp-format canon))
+    => "(1:a2:11)")
+
   #t)
 
 
 (parametrise ((check-test-name	'pubkey))
 
-  (define (gcry-pk-genkey/c . args)
-    (letrec ((key-pair (compensate
-			   (apply gcry-pk-genkey args)
-			 (with
-			  (gcry-sexp-release key-pair)))))
-      key-pair))
-
   (check
       (with-compensations
 	(let ((key-pair (gcry-pk-genkey/c "(genkey (dsa (nbits 4:1024)(transient-key)))")))
 	  (letrec ((pub-key (compensate
-				(gcry-sexp-find-token/str key-pair "public-key")
+				(gcry-sexp-find-token/str key-pair 'public-key)
 			      (with
 			       (gcry-sexp-release pub-key))))
 		   (pri-key (compensate
-				(gcry-sexp-find-token/str key-pair "private-key")
+				(gcry-sexp-find-token/str key-pair 'private-key)
 			      (with
 			       (gcry-sexp-release pri-key)))))
-;;;(display (gcry-sexp->list pub-key))(newline)
-	    (let ((s (gcry-sexp->string key-pair (gcry-sexp-format canon))))
-	      (write (string-length s))(newline)
-	      (display s)
-	      (newline)
-	      ;; (display (gcry-sexp->string pub-key (gcry-sexp-format canon)))
-	      ;; (newline)
-	      )
-;; (display (gcry-sexp->string
-;; 	  (string->gcry-sexp
-;; 	   (gcry-sexp->string key-pair (gcry-sexp-format advanced)))
-;; 	  (gcry-sexp-format advanced)))
-
 	    #t)))
     => #t)
+
+  (check
+      (with-compensations
+	(letrec* ((data	`(data (flags raw) (value ,(mpi 456))))
+		  (key-pair (gcry-pk-genkey/c '(genkey (dsa (nbits 1024) (transient-key)))))
+		  (pub-key (compensate
+			       (gcry-sexp-find-token/str key-pair 'public-key)
+			     (with
+			      (gcry-sexp-release pub-key))))
+		  (pri-key (compensate
+			       (gcry-sexp-find-token/str key-pair 'private-key)
+			     (with
+			      (gcry-sexp-release pri-key))))
+		  (sig	(gcry-pk-sign/c data pri-key)))
+;;;	  (display (gcry-sexp->string sig (gcry-sexp-format advanced)))
+	  (gcry-pk-verify sig data pub-key)))
+    => #t)
+
+  (check
+      (with-compensations
+	(letrec* ((data	`(data (flags raw) (value ,(mpi 456))))
+		  (key-pair (gcry-pk-genkey/c '(genkey (rsa (nbits 1024) (transient-key)))))
+		  (pub-key (compensate
+			       (gcry-sexp-find-token/str key-pair 'public-key)
+			     (with
+			      (gcry-sexp-release pub-key))))
+		  (pri-key (compensate
+			       (gcry-sexp-find-token/str key-pair 'private-key)
+			     (with
+			      (gcry-sexp-release pri-key))))
+		  (enc	(gcry-pk-encrypt/c data pub-key))
+		  (dec	(gcry-pk-decrypt/c enc pri-key)))
+	  ;; (let ((a (gcry-sexp->string enc (gcry-sexp-format advanced)))
+	  ;; 	(b (gcry-sexp->string dec (gcry-sexp-format advanced)))
+	  ;; 	(c (gcry-sexp->string (list->gcry-sexp data) (gcry-sexp-format advanced))))
+	  ;;   (display a)
+	  ;;   (display b)
+	  ;;   (display c))
+	  (string=? (gcry-sexp->string dec (gcry-sexp-format canon)) "4:01c8")))
+		; (number->string 456 16) => "1c8"
+    => #t)
+
+;;; --------------------------------------------------------------------
+;;; example for the documentation
+
+  (let ()
+    (with-compensations
+      (define data
+	`(data
+	  (flags raw)
+	  (value ,(let ((n (gcry-mpi-new/c 50)))
+		    (gcry-mpi-set-ui n 456)
+		    n))))
+
+      (define key-pair
+	(gcry-pk-genkey/c '(genkey
+			    (rsa
+			     (nbits 1024)
+			     (transient-key)))))
+
+      (define pub-key
+	(gcry-sexp-find-token/str/c key-pair 'public-key))
+
+      (define pri-key
+	(gcry-sexp-find-token/str/c key-pair 'private-key))
+
+      (define signature
+	(gcry-pk-sign/c data pri-key))
+
+      (define valid-signature?
+	(gcry-pk-verify signature data pub-key))
+
+      (define encrypted-data
+	(gcry-pk-encrypt/c data pub-key))
+
+      (define decrypted-data
+	(gcry-pk-decrypt/c encrypted-data pri-key))
+
+      (check
+	  (gcry-sexp->string decrypted-data (gcry-sexp-format canon))
+	=> "4:01c8")
+
+      (check valid-signature? => #t)))
 
   #t)
 

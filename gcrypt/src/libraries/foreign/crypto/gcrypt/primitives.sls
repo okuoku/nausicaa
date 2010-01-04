@@ -75,7 +75,8 @@
 
     ;; public key cryptography
     gcry-pk-genkey
-
+    gcry-pk-encrypt		gcry-pk-decrypt
+    gcry-pk-sign		gcry-pk-verify
 
     (rename (platform:gcry_control/int			gcry-control/int)
 	    (platform:gcry_control/uint			gcry-control/uint)
@@ -163,10 +164,6 @@
 	    (platform:gcry_cipher_cts			gcry-cipher-cts)
 	    (platform:gcry_cipher_test_algo		gcry-cipher-test-algo)
 
-	    (platform:gcry_pk_encrypt			gcry-pk-encrypt)
-	    (platform:gcry_pk_decrypt			gcry-pk-decrypt)
-	    (platform:gcry_pk_sign			gcry-pk-sign)
-	    (platform:gcry_pk_verify			gcry-pk-verify)
 	    (platform:gcry_pk_testkey			gcry-pk-testkey)
 	    (platform:gcry_pk_ctl			gcry-pk-ctl)
 	    (platform:gcry_pk_algo_info			gcry-pk-algo-info)
@@ -226,7 +223,8 @@
     (foreign crypto gcrypt typedefs)
     (foreign crypto gcrypt enumerations)
     (prefix (foreign crypto gcrypt platform) platform:)
-    (foreign crypto gcrypt sizeof))
+    (foreign crypto gcrypt sizeof)
+    (only (foreign crypto gpg-error sizeof) GPG_ERR_BAD_SIGNATURE))
 
 
 ;;;; helpers
@@ -530,23 +528,17 @@
 	    (pointer-set-c-signed-char! cstr buf.len 0)
 	    (receive (uint errno)
 		(strtoul cstr tail** 0)
-	      (newline)
 	      (cond ((not (pointer=? cstr (pointer-ref-c-pointer tail** 0)))
 		     (if (= 0 errno)
-			 (begin
-			   (write (list 'number uint))(newline)
-			   uint)
+			 uint
 		       (error 'gcry-sexp->list "overflow in integer conversion" sexp)))
 		    ((= 0 (pointer-ref-c-unsigned-char buf.ptr 0))
-		     (let ((mpi (platform:gcry_sexp_nth_mpi sexp i GCRYMPI_FMT_USG)))
+		     (let ((mpi (platform:gcry_sexp_nth_mpi sexp i GCRYMPI_FMT_STD)))
 		       (if (not (pointer-null? mpi))
 			   mpi
 			 (error 'gcry-sexp->list "invalid MPI number in sexp" sexp))))
 		    (else
-		     (write (list 'symbol (cstring->string buf.ptr buf.len)))(newline)
-		     (string->symbol (cstring->string buf.ptr buf.len))
-		     ))
-	      )))))
+		     (string->symbol (cstring->string buf.ptr buf.len)))))))))
 
     (let ((len (platform:gcry_sexp_length sexp)))
       (let loop ((i 0) (ell '()))
@@ -576,6 +568,11 @@
 	     (display (string-length str) port)
 	     (display #\: port)
 	     (display str port)))
+	  ((pointer? obj)
+	   (let ((str (gcry-mpi-print obj (gcry-mpi-format hex))))
+	     (display (string-length str) port)
+	     (display #\: port)
+	     (display (string-downcase str) port)))
 	  (else
 	   (error 'list->gcry-sexp "invalid sexp element in list" obj))))
   (string->gcry-sexp (call-with-string-output-port
@@ -608,7 +605,7 @@
 
 (define (gcry-sexp-find-token/str sexp str)
   (assert (pointer? sexp))
-  (assert (string? str))
+  (assert (or (symbol? str) (string? str)))
   (with-compensations
     (let ((p (platform:gcry_sexp_find_token sexp (string->cstring/c str) 0)))
       (if (pointer-null? p)
@@ -618,23 +615,75 @@
 
 ;;;; public key cryptography
 
-(define (gcry-pk-genkey params)
-  (define (raise-error-maybe errcode)
-    (unless (= 0 errcode)
-      (raise-gpg-error 'gcry-pk-genkey errcode params)))
-  (assert (string? params))
-  (with-compensations
-    (letrec ((sexp (compensate
-		       (let ((sexp* (malloc-small/c)))
-			 (raise-error-maybe
-			  (platform:gcry_sexp_new sexp* (string->cstring/c params) 0 1))
-			 (pointer-ref-c-pointer sexp* 0))
-		     (with
-		      (platform:gcry_sexp_release sexp)))))
-      (let ((key* (malloc-small/c)))
-	(raise-error-maybe (platform:gcry_pk_genkey key* sexp))
-	(pointer-ref-c-pointer key* 0)))))
+(define (%obj->sexp/c obj procname)
+  (cond ((string? obj)
+	 (letrec ((sex (compensate
+			   (string->gcry-sexp obj)
+			 (with
+			  (platform:gcry_sexp_release sex)))))
+	   sex))
+	((list? obj)
+	 (letrec ((sex (compensate
+			   (list->gcry-sexp obj)
+			 (with
+			  (platform:gcry_sexp_release sex)))))
+	   sex))
+	((pointer? obj)
+	 obj)
+	(else
+	 (assertion-violation procname "expected Gcrypt sexp or string or list or pointer" obj))))
 
+(define (gcry-pk-genkey params)
+  (with-compensations
+    (let* ((params-s	(%obj->sexp/c params 'gcry-pk-genkey))
+	   (result*	(malloc-small/c))
+	   (errcode	(platform:gcry_pk_genkey result* params-s)))
+      (if (= 0 errcode)
+	  (pointer-ref-c-pointer result* 0)
+	(raise-gpg-error 'gcry-pk-genkey errcode params)))))
+
+(define (gcry-pk-encrypt data pub-key)
+  (with-compensations
+    (let* ((data-s	(%obj->sexp/c data 'gcry-pk-encrypt))
+	   (pub-key-s	(%obj->sexp/c pub-key 'gcry-pk-encrypt))
+	   (result*	(malloc-small/c))
+	   (errcode	(platform:gcry_pk_encrypt result* data-s pub-key-s)))
+      (if (= 0 errcode)
+	  (pointer-ref-c-pointer result* 0)
+	(raise-gpg-error 'gcry-pk-encrypt errcode data pub-key)))))
+
+(define (gcry-pk-decrypt data pri-key)
+  (with-compensations
+    (let* ((data-s	(%obj->sexp/c data 'gcry-pk-decrypt))
+	   (pri-key-s	(%obj->sexp/c pri-key 'gcry-pk-decrypt))
+	   (result*	(malloc-small/c))
+	   (errcode	(platform:gcry_pk_decrypt result* data-s pri-key-s)))
+      (if (= 0 errcode)
+	  (pointer-ref-c-pointer result* 0)
+	(raise-gpg-error 'gcry-pk-decrypt errcode data pri-key)))))
+
+(define (gcry-pk-sign data pri-key)
+  (with-compensations
+    (let* ((data-s	(%obj->sexp/c data 'gcry-pk-sign))
+	   (pri-key-s	(%obj->sexp/c pri-key 'gcry-pk-sign))
+	   (result*	(malloc-small/c))
+	   (errcode	(platform:gcry_pk_sign result* data-s pri-key-s)))
+      (if (= 0 errcode)
+	  (pointer-ref-c-pointer result* 0)
+	(raise-gpg-error 'gcry-pk-sign errcode data pri-key)))))
+
+(define (gcry-pk-verify signature data pub-key)
+  (with-compensations
+    (let* ((signature-s	(%obj->sexp/c signature 'gcry-pk-verify))
+	   (data-s	(%obj->sexp/c data 'gcry-pk-verify))
+	   (pub-key-s	(%obj->sexp/c pub-key 'gcry-pk-verify))
+	   (errcode	(platform:gcry_pk_verify signature-s data-s pub-key-s)))
+      (cond ((= 0 errcode)
+	     #t)
+	    ((= errcode GPG_ERR_BAD_SIGNATURE)
+	     #f)
+	    (else
+	     (raise-gpg-error 'gcry-pk-verify errcode signature data pub-key))))))
 
 
 ;;;; pseudo-random numbers

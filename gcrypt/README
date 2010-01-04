@@ -32,7 +32,7 @@ paragraph, he had tested Gcrypt version 1.4.5.
 2. License
 ----------
 
-Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+Copyright (c) 2009-10 Marco Maggi <marco.maggi-ipsu@poste.it>
 
 This  program  is free  software:  you  can redistribute  it
 and/or modify it  under the terms of the  GNU General Public
@@ -84,7 +84,9 @@ build binary distribution archives.
 A. Credits
 ----------
 
-The stuff was written by Marco Maggi.
+The   stuff  was  written   by  Marco   Maggi.   Libgcrypt's
+maintainer is Werner Koch, for  the full list of authors see
+the AUTHORS file in the original distribution.
 
 
 B. Bug reports
