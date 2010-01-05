@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,17 +27,18 @@
 
 (library (posix signals)
   (export
-    signal-bub-delivered?	signal-bub-all-delivered
+    signal-bub-delivered?		signal-bub-delivered*?
+    signal-bub-all-delivered
+    signal-raise			signal-raise*
+    kill				kill*
+    pause
+
     (rename (primitive:signal-bub-init		signal-bub-init)
 	    (primitive:signal-bub-final		signal-bub-final)
-	    (primitive:signal-bub-acquire	signal-bub-acquire))
-
-    signal-raise
-    kill
-    pause
-    )
+	    (primitive:signal-bub-acquire	signal-bub-acquire)))
   (import (rnrs)
     (posix helpers)
+    (posix typedefs)
     (prefix (posix signals primitives) primitive:))
 
   (define-parametrised signal-bub-delivered? signum)
@@ -46,6 +47,19 @@
   (define-parametrised kill pid signum)
   (define-parametrised pause)
 
-  )
+  (define-syntax signal-bub-delivered*?
+    (syntax-rules ()
+      ((_ ?sig-set)
+       (signal-bub-delivered? (unix-signal->value ?sig-set)))))
+
+  (define-syntax signal-raise*
+    (syntax-rules ()
+      ((_ ?sig-set)
+       (signal-raise (unix-signal->value ?sig-set)))))
+
+  (define-syntax kill*
+    (syntax-rules ()
+      ((_ ?pid ?sig-set)
+       (kill ?pid (unix-signal->value ?sig-set))))))
 
 ;;; end of file

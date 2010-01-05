@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -151,7 +151,7 @@
 
 (define (shutdown sock how)
   (receive (result errno)
-      (platform:shutdown (file-descriptor->integer sock) (socket-shutdown-mode->value how))
+      (platform:shutdown (file-descriptor->integer sock) (shutdown-mode->value how))
     (when (= -1 result)
       (raise-errno-error 'shutdown errno (list sock how)))))
 

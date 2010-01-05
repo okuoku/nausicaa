@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -40,21 +40,41 @@
 (parametrise ((check-test-name	'enum))
 
   (check
-      (interprocess-signal->symbol SIGSTOP)
+      (value->unix-signal-symbol SIGSTOP)
     => 'SIGSTOP)
 
   (check
-      (interprocess-signal->symbol SIGKILL)
+      (value->unix-signal-symbol SIGKILL)
     => 'SIGKILL)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (symbol->interprocess-signal 'SIGSTOP)
+      (unix-signal-symbol->value 'SIGSTOP)
     => SIGSTOP)
 
   (check
-      (symbol->interprocess-signal 'SIGKILL)
+      (unix-signal-symbol->value 'SIGKILL)
+    => SIGKILL)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (value->unix-signal SIGSTOP)
+    (=> enum-set=?) (unix-signal SIGSTOP))
+
+  (check
+      (value->unix-signal SIGKILL)
+    (=> enum-set=?) (unix-signal SIGKILL))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (unix-signal->value (unix-signal SIGSTOP))
+    => SIGSTOP)
+
+  (check
+      (unix-signal->value (unix-signal SIGKILL))
     => SIGKILL)
 
   #t)
@@ -70,10 +90,10 @@
 	    (posix:signal-bub-init)
 	  (with
 	   (posix:signal-bub-final)))
-	(posix:signal-raise SIGUSR1)
+	(posix:signal-raise* (unix-signal SIGUSR1))
 	(posix:signal-bub-acquire)
-	(list (posix:signal-bub-delivered? SIGUSR1)
-	      (posix:signal-bub-delivered? SIGUSR2)))
+	(list (posix:signal-bub-delivered*? (unix-signal SIGUSR1))
+	      (posix:signal-bub-delivered*? (unix-signal SIGUSR2))))
     => '(#t #f))
 
   (check
@@ -93,7 +113,7 @@
 	    (posix:signal-bub-init)
 	  (with
 	   (posix:signal-bub-final)))
-	(posix:signal-raise SIGUSR2)
+	(posix:signal-raise* (unix-signal SIGUSR2))
 	(posix:signal-bub-acquire)
 	(list (posix:signal-bub-delivered? SIGUSR1)
 	      (posix:signal-bub-delivered? SIGUSR2)))
@@ -121,7 +141,7 @@
 	    (posix:signal-bub-init)
 	  (with
 	   (posix:signal-bub-final)))
-	(posix:kill (posix:getpid) SIGUSR1)
+	(posix:kill* (posix:getpid) (unix-signal SIGUSR1))
 	(posix:signal-bub-acquire)
 	(list (posix:signal-bub-delivered? SIGUSR1)
 	      (posix:signal-bub-delivered? SIGUSR2)))
@@ -156,8 +176,8 @@
 	    (posix:signal-bub-init)
 	  (with
 	   (posix:signal-bub-final)))
-	(posix:kill (posix:getpid) SIGUSR1)
-	(posix:kill (posix:getpid) SIGUSR2)
+	(posix:kill* (posix:getpid) (unix-signal SIGUSR1))
+	(posix:kill* (posix:getpid) (unix-signal SIGUSR2))
 	(posix:signal-bub-acquire)
 	(list (posix:signal-bub-delivered? SIGUSR1)
 	      (posix:signal-bub-delivered? SIGUSR2)))
@@ -188,7 +208,7 @@
 	(posix:signal-raise SIGUSR1)
 	(posix:signal-bub-acquire)
 	(posix:signal-bub-all-delivered))
-    (=> enum-set=?) (interprocess-signals SIGUSR1))
+    (=> enum-set=?) (unix-signals SIGUSR1))
 
   (check
       (with-compensations
@@ -200,7 +220,7 @@
 	(posix:signal-raise SIGUSR2)
 	(posix:signal-bub-acquire)
 	(posix:signal-bub-all-delivered))
-    (=> enum-set=?) (interprocess-signals SIGUSR1 SIGUSR2))
+    (=> enum-set=?) (unix-signals SIGUSR1 SIGUSR2))
 
   #t)
 

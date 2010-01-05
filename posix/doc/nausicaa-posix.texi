@@ -3943,7 +3943,7 @@ Unless otherwise specified, the following bindings are exported by the
 @subsection Socket namespaces
 
 
-@deftp {Enumeration Type} enum-socket-namespaces
+@deftp {Enumeration Type} enum-socket-namespace
 Enumeration type for the symbols representing socket communication
 namespaces; it has the following members:
 
@@ -3958,7 +3958,7 @@ inet   inet6  unspec
 
 
 @deffn Syntax socket-namespace @ameta{symbol}
-Expand to an enumeration set of type @code{enum-socket-namespaces}
+Expand to an enumeration set of type @code{enum-socket-namespace}
 holding the given symbol argument.
 @end deffn
 
@@ -3966,7 +3966,7 @@ holding the given symbol argument.
 @defun socket-namespace->value @var{set}
 @defunx value->socket-namespace @var{value}
 Convert to and from an enumeration set of type
-@code{enum-socket-namespaces} holding a single element and the
+@code{enum-socket-namespace} holding a single element and the
 corresponding exact integer value, one among:
 
 @example
@@ -3983,7 +3983,7 @@ PF_INET   PF_INET6  PF_UNSPEC
 @subsection Socket styles
 
 
-@deftp {Enumeration Type} enum-socket-styles
+@deftp {Enumeration Type} enum-socket-style
 Enumeration type for the symbols representing socket communication
 styles; it has the following members:
 
@@ -3994,14 +3994,14 @@ stream  datagram  raw  seqpacket
 
 
 @deffn Syntax socket-style @ameta{symbol}
-Expand to an enumeration set of type @code{enum-socket-styles} holding
+Expand to an enumeration set of type @code{enum-socket-style} holding
 the given symbol argument.
 @end deffn
 
 
 @defun socket-style->value @var{set}
 @defunx value->socket-style @var{value}
-Convert to and from an enumeration set of type @code{enum-socket-styles}
+Convert to and from an enumeration set of type @code{enum-socket-style}
 holding a single element and the corresponding exact integer value, one
 among:
 
@@ -4015,7 +4015,7 @@ SOCK_STREAM  SOCK_DGRAM  SOCK_RAW  SOCK_SEQPACKET
 @subsection Socket protocols
 
 
-@deftp {Enumeration Type} enum-socket-protocols
+@deftp {Enumeration Type} enum-socket-protocol
 Enumeration type for the symbols representing socket communication
 protocols; it has the following members:
 
@@ -4026,7 +4026,7 @@ zero
 
 
 @deffn Syntax socket-protocol @ameta{symbol}
-Expand to an enumeration set of type @code{enum-socket-protocols} holding
+Expand to an enumeration set of type @code{enum-socket-protocol} holding
 the given symbol argument.
 @end deffn
 
@@ -4034,7 +4034,7 @@ the given symbol argument.
 @defun socket-protocol->value @var{set}
 @defunx value->socket-protocol @var{value}
 Convert to and from an enumeration set of type
-@code{enum-socket-protocols} holding a single element and the
+@code{enum-socket-protocol} holding a single element and the
 corresponding exact integer value, one among:
 
 @example
@@ -4047,7 +4047,7 @@ corresponding exact integer value, one among:
 @subsection Socket address formats
 
 
-@deftp {Enumeration Type} enum-socket-address-formats
+@deftp {Enumeration Type} enum-socket-address-format
 Enumeration type for the symbols representing socket address formats; it
 has the following members:
 
@@ -4059,7 +4059,7 @@ inet   inet6  unspec
 
 
 @deffn Syntax socket-address-format @ameta{symbol}
-Expand to an enumeration set of type @code{enum-socket-address-formats}
+Expand to an enumeration set of type @code{enum-socket-address-format}
 holding the given symbol argument.
 @end deffn
 
@@ -4067,7 +4067,7 @@ holding the given symbol argument.
 @defun socket-address-format->value @var{set}
 @defunx value->socket-address-format @var{value}
 Convert to and from an enumeration set of type
-@code{enum-socket-address-formats} holding a single element and the
+@code{enum-socket-address-format} holding a single element and the
 corresponding exact integer value, one among:
 
 @example
@@ -4081,7 +4081,7 @@ AF_INET   AF_INET6  AF_UNSPEC
 @subsection Socket shutdown modes
 
 
-@deftp {Enumeration Type} enum-socket-shutdown-modes
+@deftp {Enumeration Type} enum-shutdown-mode
 Enumeration type for the symbols representing socket shutdown modes; it
 has the following members:
 
@@ -4092,7 +4092,7 @@ read    write   both
 
 
 @deffn Syntax shutdown-mode @ameta{symbol}
-Expand to an enumeration set of type @code{enum-socket-shutdown-modes}
+Expand to an enumeration set of type @code{enum-shutdown-mode}
 holding the given symbol argument.
 @end deffn
 
@@ -4100,7 +4100,7 @@ holding the given symbol argument.
 @defun socket-shutdown-mode->value @var{set}
 @defunx value->socket-shutdown-mode @var{value}
 Convert to and from an enumeration set of type
-@code{enum-socket-shutdown-modes} holding a single element and the
+@code{enum-shutdown-mode} holding a single element and the
 corresponding exact integer value, one among:
 
 @example
@@ -4146,7 +4146,7 @@ MSG_OOB  MSG_PEEK  MSG_DONTROUTE
 @subsection Socket options
 
 
-@deftp {Enumeration Type} enum-socket-options
+@deftp {Enumeration Type} enum-socket-option
 Enumeration type for the symbols representing socket options; it has the
 following members:
 
@@ -4165,7 +4165,7 @@ type            error
 
 
 @deffn Syntax socket-option @ameta{symbol}
-Expand to an enumeration set of type @code{enum-socket-options} holding
+Expand to an enumeration set of type @code{enum-socket-option} holding
 the given symbol argument.
 @end deffn
 
@@ -4173,7 +4173,7 @@ the given symbol argument.
 @defun socket-option->value @var{set}
 @defunx value->socket-option @var{value}
 Convert to and from an enumeration set of type
-@code{enum-socket-options} holding a single element and the
+@code{enum-socket-option} holding a single element and the
 corresponding exact integer value, one among:
 
 @example
@@ -4191,7 +4191,7 @@ SO_TYPE         SO_ERROR
 
 
 @defun socket-option->symbol @var{set}
-Convert an enumeration set of type @code{enum-socket-options} holding a
+Convert an enumeration set of type @code{enum-socket-option} holding a
 single element to the element itself.
 @end defun
 
@@ -4477,11 +4477,11 @@ Record type used to wrap socket file descriptors; it is derived from
 
 @table @code
 @item namespace
-An enumeration set of type @code{enum-socket-namespaces} holding a single
+An enumeration set of type @code{enum-socket-namespace} holding a single
 element.
 
 @item style
-An enumeration set of type @code{enum-socket-styles} holding a single
+An enumeration set of type @code{enum-socket-style} holding a single
 element.
 
 @item protocol
@@ -4808,10 +4808,10 @@ The following functions manage opening and closing sockets.
 Create a new socket and return a @class{socket} record representing it.
 
 @var{namespace} must be an enumeration set of type
-@code{enum-socket-namespaces} holding a single element.  @var{style} must
-be an enumeration set of type @code{enum-socket-styles} holding a single
+@code{enum-socket-namespace} holding a single element.  @var{style} must
+be an enumeration set of type @code{enum-socket-style} holding a single
 element.  @var{protocol} must be an enumeration set of type
-@code{enum-socket-protocols} holding a single element; when not used, it
+@code{enum-socket-protocol} holding a single element; when not used, it
 defaults to protocol zero.
 @end deffn
 
@@ -4826,11 +4826,11 @@ Create a two interconnected sockets and return two values being
 @class{socket} records representing them.
 
 @var{namespace} must be an enumeration set of type
-@code{enum-socket-namespaces} holding a single element; the namespace
+@code{enum-socket-namespace} holding a single element; the namespace
 must be @code{local} (or @code{unix} or @code{file}).  @var{style} must
-be an enumeration set of type @code{enum-socket-styles} holding a single
+be an enumeration set of type @code{enum-socket-style} holding a single
 element.  @var{protocol} must be an enumeration set of type
-@code{enum-socket-protocols} holding a single element; when not used, it
+@code{enum-socket-protocol} holding a single element; when not used, it
 defaults to protocol zero.
 @end deffn
 
@@ -4842,7 +4842,7 @@ defaults to protocol zero.
 Shut down the connection socket @var{sock}, which must be a
 @class{socket} record, according to the mode selected by @var{how},
 which must be an enumeration set of type
-@code{enum-socket-shutdown-modes} holding a single element.
+@code{enum-shutdown-mode} holding a single element.
 
 This function is an alternative to @func{close}, which can be applied to
 @var{sock}, too, and which closes both the channels.
@@ -4944,7 +4944,7 @@ This is the address associated to @var{sock} by @func{connect} or
 
 
 @defun socket-namespace->socklen @var{set}
-Given an enumeration set of type @code{enum-socket-namespaces} holding a
+Given an enumeration set of type @code{enum-socket-namespace} holding a
 single element, return the size in bytes of the C language structure
 required to hold an address of the selected namespace.
 
@@ -5029,7 +5029,7 @@ The following functions manage configuration of sockets.
 @deffnx Function platform:getsockopt @var{sock-int} @var{level} @var{option} @var{optptr} @var{optlen}
 Retrieve the selected option from a socket and return its value.
 @var{sock} must be an object of type @class{socket}; @var{option} must
-be an enumeration set of type @code{enum-socket-options} holding a
+be an enumeration set of type @code{enum-socket-option} holding a
 single element.
 @end deffn
 
@@ -5040,11 +5040,11 @@ single element.
 @deffnx Function platform:setsockopt @var{sock-int} @var{level} @var{option} @var{optptr} @var{optlen}
 Set the selected option for a socket.  @var{sock} must be an object of
 type @class{socket}; @var{option} must be an enumeration set of type
-@code{enum-socket-options} holding a single element.
+@code{enum-socket-option} holding a single element.
 @end deffn
 
 
-The following symbols from @code{enum-socket-options} are supported for
+The following symbols from @code{enum-socket-option} are supported for
 @posix{} systems:
 
 @table @code
@@ -5073,7 +5073,7 @@ equivalent to zero.  Can be used with both @func{getsockopt} and
 @item style
 @itemx type
 The value is a socket style, an enumeration set of type
-@code{enum-socket-styles} holding a single element.  Can be used only
+@code{enum-socket-style} holding a single element.  Can be used only
 with @func{getsockopt}.
 
 @item error
@@ -8109,7 +8109,9 @@ libraries:
 
 
 The following bindings are exported by the @library{posix sizeof}
-library.  @glibcref{Standard Signals, Standard Signals}.
+library.  We have to remember that some of the signals listed below are
+@strong{not} defined on some platforms, in this case the binding is to
+@false{}.  @glibcref{Standard Signals, Standard Signals}.
 
 
 @defvr Constant NSIG
@@ -8188,21 +8190,34 @@ The following bindings are exported by the @library{posix typedefs}
 library.  @glibcref{Standard Signals, Standard Signals}.
 
 
-@deftp {Enumeration Type} enum-interprocess-signal
+@deftp {Enumeration Type} enum-unix-signals
 Enumeration type for the Scheme symbols of the known interprocess
-symbols.  All the symbols which appear as bindings in @ref{signals
+signals.  All the symbols which appear as bindings in @ref{signals
 constants, Constant values} are part of this enumeration.
 @end deftp
 
 
-@deffn Syntax interprocess-signals @ameta{symbol} ...
-Expand to an enumeration set of type @code{enum-interprocess-signal}
-with the @meta{symbol} arguments as elements.
+@deffn Syntax unix-signals @ameta{symbol} ...
+Expand to an enumeration set of type @code{enum-unix-signal} with the
+@meta{symbol} arguments as elements.
 @end deffn
 
 
-@defun interprocess-signal->symbol @var{signum}
-@defunx symbol->interprocess-signal @var{symbol}
+@deffn Syntax unix-signal @ameta{symbol}
+Expand to an enumeration set of type @code{enum-unix-signal} with the
+single @meta{symbol} argument as element.
+@end deffn
+
+
+@defun unix-signal->value @var{sig-set}
+@defunx value->unix-signal @var{signum}
+Convert to and from a signal number and its corresponding enumeration
+set of type @code{enum-unix-signals}.
+@end defun
+
+
+@defun unix-signal-symbol->value @var{symbol}
+@defunx value->unix-signal-symbol @var{signum}
 Convert to and from a signal number and its corresponding Scheme symbol.
 @end defun
 
@@ -8230,7 +8245,6 @@ Print a Scheme string representing a description of the signal
 @var{signum} to @code{stderr}.
 @end deffn
 
-
 @c page
 @node signals bub
 @section Block/unblock signals handling
@@ -8238,7 +8252,9 @@ Print a Scheme string representing a description of the signal
 
 The @bub{} @api{} is a simplified interface to detect the arrival of
 interprocess signals; if it does not suit the application's model, we
-should just ignore it.  Here is a meaningless usage example:
+should just ignore it.  It is impossible to use the @bub{} @api{} along
+with other interprocess signal @api{}s. Here is a meaningless usage
+example:
 
 @example
 (with-compensations
@@ -8256,7 +8272,7 @@ should just ignore it.  Here is a meaningless usage example:
 
 @defun signal-bub-init
 @defunx primitive:signal-bub-init
-Block for all the signals and initialise the @bub{} interface.
+Block all the signals and initialise the @bub{} interface.
 @end defun
 
 
@@ -8286,17 +8302,24 @@ This function interferes with @func{signal-bub-all-delivered}.
 @end defun
 
 
+@deffn Syntax signal-bub-delivered*? @ameta{sig-set}
+@deffnx Syntax primitive:signal-bub-delivered*? @ameta{sig-set}
+Wrapper for @func{signal-bub-delivered?} accepting as argument an
+enumeration set of type @code{enum-unix-signals} holding a single
+argument.
+@end deffn
+
+
 @defun signal-bub-all-delivered
 @defunx primitive:signal-bub-all-delivered
-Return an enumeration set of type @code{enum-interprocess-signals}
-representing the signals delivered before the last call to
-@func{signal-bub-acquire}.  Calling this function clears the internal
-flags for all the signals, so calling it again without acquiring new
-signals always returns null.
+Return an enumeration set of type @code{enum-unix-signals} representing
+the signals delivered before the last call to @func{signal-bub-acquire}.
+Calling this function clears the internal flags for all the signals, so
+calling it again without acquiring new signals always returns the empty
+enumeration set.
 
 This function interferes with @func{signal-bub-delivered?}.
 @end defun
-
 
 @c page
 @node signals sending
@@ -8319,12 +8342,26 @@ foreign function.
 @end deffn
 
 
+@deffn Syntax signal-raise* @ameta{sig-set}
+@deffnx Syntax primitive:signal-raise* @ameta{sig-set}
+Wrapper for @func{signal-raise} accepting as argument an enumeration set
+of type @code{enum-unix-signals} holding a single argument.
+@end deffn
+
+
 @deffn Function kill @var{pid} @var{signum}
 @deffnx Parameter kill-function
 @deffnx Function primitive:kill @var{pid} @var{signum}
 @deffnx Function platform:kill @var{pid-int} @var{signum}
 Send the signal @var{signum} to the process or process groups identified
 by @var{pid}, a @code{pid} object.
+@end deffn
+
+
+@deffn Syntax kill* @ameta{pid} @ameta{sig-set}
+@deffnx Syntax primitive:kill* @ameta{pid} @ameta{sig-set}
+Wrapper for @func{kill} accepting as argument an enumeration set of type
+@code{enum-unix-signals} holding a single argument.
 @end deffn
 
 @c page

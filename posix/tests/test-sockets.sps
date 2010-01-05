@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -65,13 +65,13 @@
 
 (parametrise ((check-test-name	'enumerations))
 
-  (check (socket-shutdown-mode->value (shutdown-mode read))	=> SHUT_RD)
-  (check (socket-shutdown-mode->value (shutdown-mode write))	=> SHUT_WR)
-  (check (socket-shutdown-mode->value (shutdown-mode both))	=> SHUT_RDWR)
+  (check (shutdown-mode->value (shutdown-mode read))	=> SHUT_RD)
+  (check (shutdown-mode->value (shutdown-mode write))	=> SHUT_WR)
+  (check (shutdown-mode->value (shutdown-mode both))	=> SHUT_RDWR)
 
-  (check (value->socket-shutdown-mode SHUT_RD)		(=> enum-set=?) (shutdown-mode read))
-  (check (value->socket-shutdown-mode SHUT_WR)		(=> enum-set=?) (shutdown-mode write))
-  (check (value->socket-shutdown-mode SHUT_RDWR)	(=> enum-set=?) (shutdown-mode both))
+  (check (value->shutdown-mode SHUT_RD)		(=> enum-set=?) (shutdown-mode read))
+  (check (value->shutdown-mode SHUT_WR)		(=> enum-set=?) (shutdown-mode write))
+  (check (value->shutdown-mode SHUT_RDWR)	(=> enum-set=?) (shutdown-mode both))
 
 ;;; --------------------------------------------------------------------
 
@@ -125,13 +125,13 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check (socket-shutdown-mode->value (shutdown-mode read))	=> SHUT_RD)
-  (check (socket-shutdown-mode->value (shutdown-mode write))	=> SHUT_WR)
-  (check (socket-shutdown-mode->value (shutdown-mode both))	=> SHUT_RDWR)
+  (check (shutdown-mode->value (shutdown-mode read))	=> SHUT_RD)
+  (check (shutdown-mode->value (shutdown-mode write))	=> SHUT_WR)
+  (check (shutdown-mode->value (shutdown-mode both))	=> SHUT_RDWR)
 
-  (check (value->socket-shutdown-mode SHUT_RD)		(=> enum-set=?) (shutdown-mode read))
-  (check (value->socket-shutdown-mode SHUT_WR)		(=> enum-set=?) (shutdown-mode write))
-  (check (value->socket-shutdown-mode SHUT_RDWR)	(=> enum-set=?) (shutdown-mode both))
+  (check (value->shutdown-mode SHUT_RD)		(=> enum-set=?) (shutdown-mode read))
+  (check (value->shutdown-mode SHUT_WR)		(=> enum-set=?) (shutdown-mode write))
+  (check (value->shutdown-mode SHUT_RDWR)	(=> enum-set=?) (shutdown-mode both))
 
 ;;; --------------------------------------------------------------------
 

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -243,34 +243,36 @@
 
 ;;; --------------------------------------------------------------------
 
-    enum-interprocess-signal		interprocess-signals
-    interprocess-signal->symbol		symbol->interprocess-signal
+    enum-unix-signals			unix-signals
+    unix-signal->value			value->unix-signal
+    unix-signal-symbol->value		value->unix-signal-symbol
+    unix-signal
 
 ;;; --------------------------------------------------------------------
 
-    enum-socket-namespaces		socket-namespace
+    enum-socket-namespace		socket-namespace
     socket-namespace->value		value->socket-namespace
     socket-namespace->socklen
 
 ;;; --------------------------------------------------------------------
 
-    enum-socket-address-formats		socket-address-format
+    enum-socket-address-format		socket-address-format
     socket-address-format->value	value->socket-address-format
 
 ;;; --------------------------------------------------------------------
 
-    enum-socket-styles			socket-style
+    enum-socket-style			socket-style
     socket-style->value			value->socket-style
 
 ;;; --------------------------------------------------------------------
 
-    enum-socket-protocols		socket-protocol
+    enum-socket-protocol		socket-protocol
     socket-protocol->value		value->socket-protocol
 
 ;;; --------------------------------------------------------------------
 
-    enum-socket-shutdown-modes		shutdown-mode
-    socket-shutdown-mode->value		value->socket-shutdown-mode
+    enum-shutdown-mode			shutdown-mode
+    shutdown-mode->value		value->shutdown-mode
 
 ;;; --------------------------------------------------------------------
 
@@ -279,12 +281,13 @@
 
 ;;; --------------------------------------------------------------------
 
-    enum-socket-options			socket-option
+    enum-socket-option			socket-option
     socket-option->symbol
     socket-option->value		value->socket-option
 
     )
   (import (rnrs)
+    (enumerations)
     (posix sizeof))
 
 
@@ -649,279 +652,134 @@
   (record-type-descriptor <socket>))
 
 
-(define-enumeration enum-interprocess-signal
-  (SIGABRT
-   SIGALRM
-   SIGBUS
-   SIGCHLD
-   SIGCLD
-   SIGCONT
-   SIGEMT
-   SIGFPE
-   SIGHUP
-   SIGILL
-   SIGINFO
-   SIGINT
-   SIGIO
-   SIGIOT
-   SIGKILL
-   SIGLOST
-   SIGPIPE
-   SIGPOLL
-   SIGPROF
-   SIGQUIT
-   SIGSEGV
-   SIGSTOP
-   SIGSYS
-   SIGTERM
-   SIGTRAP
-   SIGTSTP
-   SIGTTIN
-   SIGTTOU
-   SIGURG
-   SIGUSR1
-   SIGUSR2
-   SIGVRALRM
-   SIGWINCH
-   SIGXCPU
-   SIGXSFZ)
-  interprocess-signals)
+(define-enumeration enum-unix-signals
+  (SIGABRT	SIGALRM		SIGBUS		SIGCHLD
+   SIGCLD	SIGCONT		SIGEMT		SIGFPE
+   SIGHUP	SIGILL		SIGINFO		SIGINT
+   SIGIO	SIGIOT		SIGKILL		SIGLOST
+   SIGPIPE	SIGPOLL		SIGPROF		SIGQUIT
+   SIGSEGV	SIGSTOP		SIGSYS		SIGTERM
+   SIGTRAP	SIGTSTP		SIGTTIN		SIGTTOU
+   SIGURG	SIGUSR1		SIGUSR2		SIGVRALRM
+   SIGWINCH	SIGXCPU		SIGXSFZ)
+  unix-signals)
 
-(define (interprocess-signal->symbol signum)
-  (cond ((and SIGABRT (= signum SIGABRT))
-	 'SIGABRT)
-	((and SIGALRM (= signum SIGALRM))
-	 'SIGALRM)
-	((and SIGBUS (= signum SIGBUS))
-	 'SIGBUS)
-	((and SIGCHLD (= signum SIGCHLD))
-	 'SIGCHLD)
-	((and SIGCLD (= signum SIGCLD))
-	 'SIGCLD)
-	((and SIGCONT (= signum SIGCONT))
-	 'SIGCONT)
-	((and SIGEMT (= signum SIGEMT))
-	 'SIGEMT)
-	((and SIGFPE (= signum SIGFPE))
-	 'SIGFPE)
-	((and SIGHUP (= signum SIGHUP))
-	 'SIGHUP)
-	((and SIGILL (= signum SIGILL))
-	 'SIGILL)
-	((and SIGINFO (= signum SIGINFO))
-	 'SIGINFO)
-	((and SIGINT (= signum SIGINT))
-	 'SIGINT)
-	((and SIGIO (= signum SIGIO))
-	 'SIGIO)
-	((and SIGIOT (= signum SIGIOT))
-	 'SIGIOT)
-	((and SIGKILL (= signum SIGKILL))
-	 'SIGKILL)
-	((and SIGLOST (= signum SIGLOST))
-	 'SIGLOST)
-	((and SIGPIPE (= signum SIGPIPE))
-	 'SIGPIPE)
-	((and SIGPOLL (= signum SIGPOLL))
-	 'SIGPOLL)
-	((and SIGPROF (= signum SIGPROF))
-	 'SIGPROF)
-	((and SIGQUIT (= signum SIGQUIT))
-	 'SIGQUIT)
-	((and SIGSEGV (= signum SIGSEGV))
-	 'SIGSEGV)
-	((and SIGSTOP (= signum SIGSTOP))
-	 'SIGSTOP)
-	((and SIGSYS (= signum SIGSYS))
-	 'SIGSYS)
-	((and SIGTERM (= signum SIGTERM))
-	 'SIGTERM)
-	((and SIGTRAP (= signum SIGTRAP))
-	 'SIGTRAP)
-	((and SIGTSTP (= signum SIGTSTP))
-	 'SIGTSTP)
-	((and SIGTTIN (= signum SIGTTIN))
-	 'SIGTTIN)
-	((and SIGTTOU (= signum SIGTTOU))
-	 'SIGTTOU)
-	((and SIGURG (= signum SIGURG))
-	 'SIGURG)
-	((and SIGUSR1 (= signum SIGUSR1))
-	 'SIGUSR1)
-	((and SIGUSR2 (= signum SIGUSR2))
-	 'SIGUSR2)
-	((and SIGVRALRM (= signum SIGVRALRM))
-	 'SIGVRALRM)
-	((and SIGWINCH (= signum SIGWINCH))
-	 'SIGWINCH)
-	((and SIGXCPU (= signum SIGXCPU))
-	 'SIGXCPU)
-	((and SIGXSFZ (= signum SIGXSFZ))
-	 'SIGXSFZ)
-	(else
-	 (assertion-violation 'interprocess-signal->symbol
-	   "unknown interprocess signal number" signum))))
+(define %unix-signals-universe
+  (enum-set-universe (unix-signals)))
 
-(define (symbol->interprocess-signal symbol)
-  (case symbol
-    ((SIGABRT) SIGABRT)
-    ((SIGALRM) SIGALRM)
-    ((SIGBUS) SIGBUS)
-    ((SIGCHLD) SIGCHLD)
-    ((SIGCLD) SIGCLD)
-    ((SIGCONT) SIGCONT)
-    ((SIGEMT) SIGEMT)
-    ((SIGFPE) SIGFPE)
-    ((SIGHUP) SIGHUP)
-    ((SIGILL) SIGILL)
-    ((SIGINFO) SIGINFO)
-    ((SIGINT) SIGINT)
-    ((SIGIO) SIGIO)
-    ((SIGIOT) SIGIOT)
-    ((SIGKILL) SIGKILL)
-    ((SIGLOST) SIGLOST)
-    ((SIGPIPE) SIGPIPE)
-    ((SIGPOLL) SIGPOLL)
-    ((SIGPROF) SIGPROF)
-    ((SIGQUIT) SIGQUIT)
-    ((SIGSEGV) SIGSEGV)
-    ((SIGSTOP) SIGSTOP)
-    ((SIGSYS) SIGSYS)
-    ((SIGTERM) SIGTERM)
-    ((SIGTRAP) SIGTRAP)
-    ((SIGTSTP) SIGTSTP)
-    ((SIGTTIN) SIGTTIN)
-    ((SIGTTOU) SIGTTOU)
-    ((SIGURG) SIGURG)
-    ((SIGUSR1) SIGUSR1)
-    ((SIGUSR2) SIGUSR2)
-    ((SIGVRALRM) SIGVRALRM)
-    ((SIGWINCH) SIGWINCH)
-    ((SIGXCPU) SIGXCPU)
-    ((SIGXSFZ) SIGXSFZ)
-    (else
-     (assertion-violation 'symbol->interprocess-signal
-       "unknown interprocess signal symbol" symbol))))
-
-
-(define-enumeration enum-socket-styles
-  (stream datagram raw seqpacket)
-  %socket-style)
-
-(define-syntax socket-style
+(define-syntax unix-signal
   (syntax-rules ()
-    ((_ ?mode)
-     (%socket-style ?mode))))
+    ((_ ?name)
+     (unix-signals ?name))))
 
-(define %socket-style-universe
-  (enum-set-universe (%socket-style)))
+(define (value->unix-signal signum)
+  ((enum-set-constructor %unix-signals-universe) (list (value->unix-signal-symbol signum))))
 
-(define (socket-style->value set)
-  (assert (enum-set-subset? set %socket-style-universe))
-  (let ((ell (enum-set->list set)))
-    (assert (= 1 (length ell)))
-    (case (car ell)
-      ((stream)		SOCK_STREAM)
-      ((datagram)	SOCK_DGRAM)
-      ((raw)		SOCK_RAW)
-      ((seqpacket)	SOCK_SEQPACKET)
-      (else
-       (assertion-violation 'socket-style->value
-	 "invalid symbol in enumeration set of socket style"
-	 (car ell))))))
-
-(define (value->socket-style value)
-  (cond ((= value SOCK_STREAM)
-	 (socket-style stream))
-	((= value SOCK_DGRAM)
-	 (socket-style datagram))
-	((= value SOCK_RAW)
-	 (socket-style raw))
-	((= value SOCK_SEQPACKET)
-	 (socket-style seqpacket))
-	(else
-	 (assertion-violation 'value->socket-style
-	   "invalid value as socket style" value))))
-
-
-(define-enumeration enum-socket-protocols
-  (zero)
-  %socket-protocol)
-
-(define-syntax socket-protocol
-  (syntax-rules ()
-    ((_ ?mode)
-     (%socket-protocol ?mode))))
-
-(define %socket-protocol-universe
-  (enum-set-universe (%socket-protocol)))
-
-(define (socket-protocol->value set)
-  (assert (enum-set-subset? set %socket-protocol-universe))
-  (let ((ell (enum-set->list set)))
-    (assert (= 1 (length ell)))
-    (case (car ell)
-      ((zero)		0)
-      (else
-       (assertion-violation 'socket-protocol->value
-	 "invalid symbol in enumeration set of socket protocol"
-	 (car ell))))))
-
-(define (value->socket-protocol value)
-  (cond ((= value 0)
-	 (socket-protocol zero))
-	(else
-	 (assertion-violation 'value->socket-protocol
-	   "invalid value as socket protocol" value))))
-
-
-(define-enumeration enum-socket-namespaces
-  (local
-   unix
-   file
-   inet
-   inet6
-   unspec)
-  %socket-namespace)
-
-(define-syntax socket-namespace
-  (syntax-rules ()
-    ((_ ?mode)
-     (%socket-namespace ?mode))))
-
-(define %socket-namespace-universe
-  (enum-set-universe (%socket-namespace)))
-
-(define (socket-namespace->value set)
-  ;; PF_LOCAL, PF_UNIX and PF_FILE are synonims.
+(define (value->unix-signal-symbol signum)
+  ;;We have to remember that some of the signals are NOT defined on some
+  ;;platforms,  in this  case the  binding is  to #f  rather than  to an
+  ;;integer.
   ;;
-  (assert (enum-set-subset? set %socket-namespace-universe))
+  (cond ((and SIGABRT	(= signum SIGABRT))	'SIGABRT)
+	((and SIGALRM	(= signum SIGALRM))	'SIGALRM)
+	((and SIGBUS	(= signum SIGBUS))	'SIGBUS)
+  	((and SIGCHLD	(= signum SIGCHLD))	'SIGCHLD)
+	((and SIGCLD	(= signum SIGCLD))	'SIGCLD)
+	((and SIGCONT	(= signum SIGCONT))	'SIGCONT)
+	((and SIGEMT	(= signum SIGEMT))	'SIGEMT)
+	((and SIGFPE	(= signum SIGFPE))	'SIGFPE)
+	((and SIGHUP	(= signum SIGHUP))	'SIGHUP)
+	((and SIGILL	(= signum SIGILL))	'SIGILL)
+	((and SIGINFO	(= signum SIGINFO))	'SIGINFO)
+	((and SIGINT	(= signum SIGINT))	'SIGINT)
+	((and SIGIO	(= signum SIGIO))	'SIGIO)
+	((and SIGIOT	(= signum SIGIOT))	'SIGIOT)
+	((and SIGKILL	(= signum SIGKILL))	'SIGKILL)
+	((and SIGLOST	(= signum SIGLOST))	'SIGLOST)
+	((and SIGPIPE	(= signum SIGPIPE))	'SIGPIPE)
+	((and SIGPOLL	(= signum SIGPOLL))	'SIGPOLL)
+	((and SIGPROF	(= signum SIGPROF))	'SIGPROF)
+	((and SIGQUIT	(= signum SIGQUIT))	'SIGQUIT)
+	((and SIGSEGV	(= signum SIGSEGV))	'SIGSEGV)
+	((and SIGSTOP	(= signum SIGSTOP))	'SIGSTOP)
+	((and SIGSYS	(= signum SIGSYS))	'SIGSYS)
+	((and SIGTERM	(= signum SIGTERM))	'SIGTERM)
+	((and SIGTRAP	(= signum SIGTRAP))	'SIGTRAP)
+	((and SIGTSTP	(= signum SIGTSTP))	'SIGTSTP)
+	((and SIGTTIN	(= signum SIGTTIN))	'SIGTTIN)
+	((and SIGTTOU	(= signum SIGTTOU))	'SIGTTOU)
+	((and SIGURG	(= signum SIGURG))	'SIGURG)
+	((and SIGUSR1	(= signum SIGUSR1))	'SIGUSR1)
+	((and SIGUSR2	(= signum SIGUSR2))	'SIGUSR2)
+	((and SIGVRALRM	(= signum SIGVRALRM))	'SIGVRALRM)
+	((and SIGWINCH	(= signum SIGWINCH))	'SIGWINCH)
+	((and SIGXCPU	(= signum SIGXCPU))	'SIGXCPU)
+	((and SIGXSFZ	(= signum SIGXSFZ))	'SIGXSFZ)
+	(else
+	 (assertion-violation 'unix-signal->symbol "unknown unix signal number" signum))))
+
+(define (unix-signal->value set)
+  (assert (enum-set-subset? set %unix-signals-universe))
   (let ((ell (enum-set->list set)))
     (assert (= 1 (length ell)))
-    (case (car ell)
-      ((local unix file)	PF_LOCAL)
-      ((inet)			PF_INET)
-      ((inet6)			PF_INET6)
-      ((unspec)			PF_UNSPEC)
-      (else
-       (assertion-violation 'socket-namespace->value
-	 "invalid symbol in enumeration set of socket namespace"
-	 (car ell))))))
+    (unix-signal-symbol->value (car ell))))
 
-(define (value->socket-namespace value)
-  (cond ((or (= value PF_LOCAL)
-	     (= value PF_FILE)	;redundant
-	     (= value PF_UNIX))	;redundant
-	 (socket-namespace local))
-	((= value PF_INET)
-	 (socket-namespace inet))
-	((= value PF_INET6)
-	 (socket-namespace inet6))
-	((= value PF_UNSPEC)
-	 (socket-namespace unspec))
-	(else
-	 (assertion-violation 'value->socket-namespace
-	   "invalid value as socket style" value))))
+(define (unix-signal-symbol->value symbol)
+  ;;We have to remember that some of the signals are NOT defined on some
+  ;;platforms,  in this  case the  binding is  to #f  rather than  to an
+  ;;integer.
+  ;;
+  (case symbol
+    ((SIGABRT)		SIGABRT)
+    ((SIGALRM)		SIGALRM)
+    ((SIGBUS)		SIGBUS)
+    ((SIGCHLD)		SIGCHLD)
+    ((SIGCLD)		SIGCLD)
+    ((SIGCONT)		SIGCONT)
+    ((SIGEMT)		SIGEMT)
+    ((SIGFPE)		SIGFPE)
+    ((SIGHUP)		SIGHUP)
+    ((SIGILL)		SIGILL)
+    ((SIGINFO)		SIGINFO)
+    ((SIGINT)		SIGINT)
+    ((SIGIO)		SIGIO)
+    ((SIGIOT)		SIGIOT)
+    ((SIGKILL)		SIGKILL)
+    ((SIGLOST)		SIGLOST)
+    ((SIGPIPE)		SIGPIPE)
+    ((SIGPOLL)		SIGPOLL)
+    ((SIGPROF)		SIGPROF)
+    ((SIGQUIT)		SIGQUIT)
+    ((SIGSEGV)		SIGSEGV)
+    ((SIGSTOP)		SIGSTOP)
+    ((SIGSYS)		SIGSYS)
+    ((SIGTERM)		SIGTERM)
+    ((SIGTRAP)		SIGTRAP)
+    ((SIGTSTP)		SIGTSTP)
+    ((SIGTTIN)		SIGTTIN)
+    ((SIGTTOU)		SIGTTOU)
+    ((SIGURG)		SIGURG)
+    ((SIGUSR1)		SIGUSR1)
+    ((SIGUSR2)		SIGUSR2)
+    ((SIGVRALRM)	SIGVRALRM)
+    ((SIGWINCH)		SIGWINCH)
+    ((SIGXCPU)		SIGXCPU)
+    ((SIGXSFZ)		SIGXSFZ)
+    (else (assertion-violation 'unix-signal-symbol->value "unknown unix signal symbol" symbol))))
+
+
+(define-c-flags socket-style
+  (SOCK_STREAM SOCK_DGRAM SOCK_RAW SOCK_SEQPACKET)
+  (stream datagram raw seqpacket))
+
+(define-c-flags socket-protocol
+  (0)
+  (zero))
+
+(define-c-flags socket-namespace
+  ;; PF_LOCAL, PF_UNIX and PF_FILE are synonims.
+  (PF_LOCAL PF_UNIX PF_FILE PF_INET PF_INET6 PF_UNSPEC)
+  (local unix file inet inet6 unspec))
 
 (define (socket-namespace->socklen set)
   ;;Given a set built with  SOCKET-NAMESPACE return the size in bytes of
@@ -942,207 +800,34 @@
 	 (assertion-violation 'socket-namespace->socklen
 	   "invalid socket address namespace" set))))
 
-
-(define-enumeration enum-socket-address-formats
-  (local
-   unix
-   file
-   inet
-   inet6
-   unspec)
-  %socket-address-format)
+(define-c-flags socket-address-format
+  (AF_LOCAL AF_UNIX AF_FILE AF_INET AF_INET6 AF_UNSPEC)
+  (local unix file inet inet6 unspec))
 
-(define-syntax socket-address-format
-  (syntax-rules ()
-    ((_ ?mode)
-     (%socket-address-format ?mode))))
+(define-c-flags shutdown-mode
+  (SHUT_RD SHUT_WR SHUT_RDWR)
+  (read write both))
 
-(define %socket-address-format-universe
-  (enum-set-universe (%socket-address-format)))
+(define-c-ior-flags socket-data-options
+  (MSG_OOB MSG_PEEK MSG_DONTROUTE)
+  (oob peek dontroute))
 
-(define (socket-address-format->value set)
-  (assert (enum-set-subset? set %socket-address-format-universe))
-  (let ((ell (enum-set->list set)))
-    (assert (= 1 (length ell)))
-    (case (car ell)
-      ((local)		AF_LOCAL)
-      ((unix)		AF_UNIX)
-      ((file)		AF_FILE)
-      ((inet)		AF_INET)
-      ((inet6)		AF_INET6)
-      ((unspec)		AF_UNSPEC)
-      (else
-       (assertion-violation 'socket-address-format->value
-	 "invalid symbol in enumeration set of socket namespace"
-	 (car ell))))))
-
-(define (value->socket-address-format value)
-  (cond ((= value AF_LOCAL)
-	 (socket-address-format local))
-	((= value AF_UNIX)
-	 (socket-address-format unix))
-	((= value AF_FILE)
-	 (socket-address-format file))
-	((= value AF_INET)
-	 (socket-address-format inet))
-	((= value AF_INET6)
-	 (socket-address-format inet6))
-	((= value AF_UNSPEC)
-	 (socket-address-format unspec))
-	(else
-	 (assertion-violation 'value->socket-address-format
-	   "invalid value as socket style" value))))
-
-
-(define-enumeration enum-socket-shutdown-modes
-  (read write both)
-  %socket-shutdown-mode)
-
-(define-syntax shutdown-mode
-  (syntax-rules ()
-    ((_ ?mode)
-     (%socket-shutdown-mode ?mode))))
-
-(define %socket-shutdown-mode-universe
-  (enum-set-universe (%socket-shutdown-mode)))
-
-(define (socket-shutdown-mode->value set)
-  (assert (enum-set-subset? set %socket-shutdown-mode-universe))
-  (let ((ell (enum-set->list set)))
-    (assert (= 1 (length ell)))
-    (case (car ell)
-      ((read)	SHUT_RD)
-      ((write)	SHUT_WR)
-      ((both)	SHUT_RDWR)
-      (else
-       (assertion-violation 'socket-shutdown-mode->value
-	 "invalid symbol in enumeration set of socket shutdown mode"
-	 (car ell))))))
-
-(define (value->socket-shutdown-mode value)
-  (cond ((= value SHUT_RD)
-	 (shutdown-mode read))
-	((= value SHUT_WR)
-	 (shutdown-mode write))
-	((= value SHUT_RDWR)
-	 (shutdown-mode both))
-	(else
-	 (assertion-violation 'value->socket-shutdown-mode
-	   "invalid value as socket shutdown mode" value))))
-
-
-(define-enumeration enum-socket-data-options
-  (oob peek dontroute)
-  socket-data-options)
-
-(define %socket-data-options-universe
-  (enum-set-universe (socket-data-options)))
-
-(define %socket-data-options-constructor
-  (enum-set-constructor %socket-data-options-universe))
-
-(define (socket-data-options->value set)
-  (assert (enum-set-subset? set %socket-data-options-universe))
-  (fold-left (lambda (knil symbol)
-	       (bitwise-ior knil (case symbol
-				   ((oob)	MSG_OOB)
-				   ((peek)	MSG_PEEK)
-				   ((dontroute)	MSG_DONTROUTE))))
-	       0
-	       (enum-set->list set)))
-
-(define value->socket-data-options
-  (let ((alist `((,MSG_OOB		. oob)
-		 (,MSG_PEEK		. peek)
-		 (,MSG_DONTROUTE	. dontroute))))
-    (lambda (value)
-      (let loop ((alist alist)
-		 (ell	'()))
-	(cond ((null? alist)
-	       (%socket-data-options-constructor ell))
-	      ((not (= 0 (bitwise-and value (caar alist))))
-	       (loop (cdr alist) (cons (cdar alist) ell)))
-	      (else
-	       (loop (cdr alist) ell)))))))
-
-
-(define-enumeration enum-socket-options
-  (debug
-   reuseaddr
-   keepalive
-   dontroute
-   linger
-   broadcast
-   oobinline
-   sndbuf
-   rcvbuf
-   style
-   type
-   error)
-  %socket-option)
-
-(define %socket-options-universe
-  (enum-set-universe (%socket-option)))
-
-(define-syntax socket-option
-  (syntax-rules ()
-    ((_ ?opt)
-     (%socket-option ?opt))))
+(define-c-flags socket-option
+  (SO_DEBUG		SO_REUSEADDR
+   SO_KEEPALIVE		SO_DONTROUTE
+   SO_LINGER		SO_BROADCAST
+   SO_OOBINLINE		SO_SNDBUF
+   SO_RCVBUF		SO_STYLE
+   SO_TYPE		SO_ERROR)
+  (debug		reuseaddr
+   keepalive		dontroute
+   linger		broadcast
+   oobinline		sndbuf
+   rcvbuf		style
+   type			error))
 
 (define (socket-option->symbol set)
-  (assert (enum-set-subset? set %socket-options-universe))
-  (let ((ell (enum-set->list set)))
-    (assert (= 1 (length ell)))
-    (car ell)))
-
-(define (socket-option->value set)
-  (let ((symbol (socket-option->symbol set)))
-    (case symbol
-      ((debug)		SO_DEBUG)
-      ((reuseaddr)	SO_REUSEADDR)
-      ((keepalive)	SO_KEEPALIVE)
-      ((dontroute)	SO_DONTROUTE)
-      ((linger)		SO_LINGER)
-      ((broadcast)	SO_BROADCAST)
-      ((oobinline)	SO_OOBINLINE)
-      ((sndbuf)		SO_SNDBUF)
-      ((rcvbuf)		SO_RCVBUF)
-      ((style)		SO_STYLE)
-      ((type)		SO_TYPE)
-      ((error)		SO_ERROR)
-      (else
-       (assertion-violation 'socket-option->value
-	 "invalid symbol in enumeration set of socket option"
-	 symbol)))))
-
-(define (value->socket-option value)
-  (cond ((= value SO_DEBUG)
-	 (socket-option debug))
-	((= value SO_REUSEADDR)
-	 (socket-option reuseaddr))
-	((= value SO_KEEPALIVE)
-	 (socket-option keepalive))
-	((= value SO_DONTROUTE)
-	 (socket-option dontroute))
-	((= value SO_LINGER)
-	 (socket-option linger))
-	((= value SO_BROADCAST)
-	 (socket-option broadcast))
-	((= value SO_OOBINLINE)
-	 (socket-option oobinline))
-	((= value SO_SNDBUF)
-	 (socket-option sndbuf))
-	((= value SO_RCVBUF)
-	 (socket-option rcvbuf))
-	((= value SO_STYLE)
-	 (socket-option style))
-	((= value SO_TYPE)
-	 (socket-option type))
-	((= value SO_ERROR)
-	 (socket-option error))
-	(else
-	 (assertion-violation 'value->socket-option
-	   "invalid value as socket option" value))))
+  (car (enum-set->list set)))
 
 
 ;;;; done

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,13 +27,14 @@
 
 (library (posix signals primitives)
   (export
-    signal-bub-delivered?	signal-bub-all-delivered
+    signal-bub-delivered?		signal-bub-delivered*?
+    signal-bub-all-delivered
     (rename (platform:signal_bub_init		signal-bub-init)
 	    (platform:signal_bub_final		signal-bub-final)
 	    (platform:signal_bub_acquire	signal-bub-acquire))
 
-    signal-raise
-    kill
+    signal-raise	signal-raise*
+    kill		kill*
     pause)
   (import (rnrs)
     (receive)
@@ -49,18 +50,28 @@
 (define (signal-bub-delivered? signum)
   (not (= 0 (platform:signal_bub_delivered signum))))
 
+(define-syntax signal-bub-delivered*?
+  (syntax-rules ()
+    ((_ ?sig-set)
+     (signal-bub-delivered? (unix-signal->value ?sig-set)))))
+
 (define (signal-bub-all-delivered)
   (let loop ((i   0) (ell '()))
     (if (= i NSIG)
-	((enum-set-constructor (interprocess-signals)) ell)
+	((enum-set-constructor (unix-signals)) ell)
       (loop (+ 1 i)
 	    (if (signal-bub-delivered? i)
-		(cons (interprocess-signal->symbol i) ell)
+		(cons (value->unix-signal-symbol i) ell)
 	      ell)))))
 
 (define (signal-raise signum)
   (unless (= 0 (platform:signal_raise signum))
     (error 'signal-raise "attempt to send invalid signal number" signum)))
+
+(define-syntax signal-raise*
+  (syntax-rules ()
+    ((_ ?sig-set)
+     (signal-raise (unix-signal->value ?sig-set)))))
 
 (define (kill pid signum)
   (receive (result errno)
@@ -68,6 +79,11 @@
     (if (= -1 result)
 	(raise-errno-error 'kill errno (list pid signum))
       result)))
+
+(define-syntax kill*
+  (syntax-rules ()
+    ((_ ?pid ?sig-set)
+     (kill ?pid (unix-signal->value ?sig-set)))))
 
 (define (pause)
   (receive (result errno)
