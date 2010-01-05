@@ -12,8 +12,6 @@
 
 ** OOL
 
-** Gcrypt
-
 ** Nettle
 
 ** Libev
@@ -61,10 +59,6 @@
 *** ICU - International Components for Unicode
   <http://icu-project.org/>
 
-
-*** igraph (graph library, ,
-
-    <http://cneurocvs.rmki.kfki.hu/igraph/>)
 
 *** GAUL, genetic algorithm utility library
 
