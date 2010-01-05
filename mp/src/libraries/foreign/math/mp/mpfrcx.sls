@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,6 +26,9 @@
 
 (library (foreign math mp mpfrcx)
   (export
+    mpfrcx-precision
+    mpcx_init*			mpfrx_init*
+
     mpcx_init			mpfrx_init
     mpcx_set			mpfrx_set
     mpcx_init_set		mpfrx_init_set
@@ -52,6 +55,7 @@
 
     struct-mpfrx_t-coeff-ptr-ref	struct-mpcx_t-coeff-ptr-ref)
   (import (rnrs)
+    (parameters)
     (foreign ffi)
     (foreign ffi sizeof)
     (foreign math mp sizeof)
@@ -84,7 +88,43 @@
      (array-ref-c-mpcx_t (struct-mpcx_t-coeff-ref ?polynomial) ?index))))
 
 
-;;;; functions
+(define mpfrcx-precision
+  (make-parameter 50
+    (lambda (obj)
+      (if (and (integer? obj) (exact? obj) (<= 0 obj))
+	  obj
+	(assertion-violation 'mpfrcx-precision
+	  "invalid value for MPFRCX precision" obj)))))
+
+(define mpfrx_init*
+  (case-lambda
+   ((poly coeffs setter)
+    (mpfrx_init* poly coeffs setter (- (vector-length coeffs) 1)))
+   ((poly coeffs setter degree)
+    (mpfrx_init poly (+ 1 degree) (mpfrcx-precision))
+    (struct-mpfrx_t-deg-set! poly degree)
+    (do ((i 0 (+ 1 i)))
+	((= i degree))
+      (setter (struct-mpfrx_t-coeff-ptr-ref poly i)
+	      (vector-ref coeffs i)
+	      GMP_RNDN)))))
+
+(define mpcx_init*
+  (case-lambda
+   ((poly coeffs setter)
+    (mpcx_init* poly coeffs setter (- (vector-length coeffs) 1)))
+   ((poly coeffs setter degree)
+    (mpcx_init poly (+ 1 degree) (mpfrcx-precision))
+    (struct-mpcx_t-deg-set! poly degree)
+    (do ((i 0 (+ 1 i)))
+	((= i degree))
+      (setter (struct-mpcx_t-coeff-ptr-ref poly i)
+	      (vector-ref coeffs i)
+	      GMP_RNDN)))))
+
+
+
+;;;; callouts
 
 (define-c-functions mpfrcx-shared-object
   (mpcx_init

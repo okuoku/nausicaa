@@ -7,7 +7,7 @@ dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2008, 2009  Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2008, 2009, 2010  Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it  under the terms of the  GNU General Public
@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-mp],[0.1b3],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-mp],[0.1b4],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/math/mp/sizeof.sls.in])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN

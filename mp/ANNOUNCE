@@ -1,21 +1,22 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/MP --- tag 0.1b4
+Subject: [announce] Nausicaa/MP 2010-01-05 tag 0.1b4
 
 			Nausicaa/MP
 			===========
 
 Nausicaa/MP  is  a  distribution  of  Scheme  libraries;  it
 implements  an   interface  to  the   following  C  language
-libraries for multiple precision integers and floating-point
-numbers:
+libraries  for multiple  precision  integers, floating-point
+numbers and polynomials:
 
 GMP	GNU Multiple Precision arithmetic library.
 MPFR	Multiple Precision Floating-Point Reliable library.
 MPFI	Multiple Precision Floating-Point Interval library.
 MPC	Multiple Precision Complex library.
+MPFRCX	Multiple Precision Real and Complex Polynomial library.
 
   Nausicaa/MP is  built upon Nausicaa/Scheme,  making use of
-its  foreign functions interface;  so it  currently supports
+its  foreign-functions interface;  so it  currently supports
 only  GNU+Linux systems.   Supported  Scheme implementations
 are Ikarus, Mosh and Ypsilon.
 
@@ -37,9 +38,10 @@ the documentation is available on line:
     <http://marcomaggi.github.com/docs/nausicaa-mp.html>
 
 
-Notes for --- tag 0.1b4
+Notes for 2010-01-05 tag 0.1b4
 ------------------------------
 
+* Fixed and documented binding to MPFRCX version 0.2.
 
 
 Notes for 2009-12-02 tag 0.1b3

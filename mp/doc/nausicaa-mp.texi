@@ -420,7 +420,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2008, 2009
+@set COPYRIGHT_YEARS            2008, 2009, 2010
 
 @c page
 @c ------------------------------------------------------------
@@ -570,21 +570,36 @@ Multiple precision floats
 
 Multiple precision reliable floats
 
+* mpfr basic::                  Basic example.
+* mpfr dynwind::                Using dynamic wind.
 * mpfr compensations::          Compensating memory allocation.
 * mpfr factory::                Object factory.
 * mpfr string::                 Conversion to string.
 
 Multiple precision interval numbers
 
+* mpfi basic::                  Basic example.
+* mpfi dynwind::                Using dynamic wind.
 * mpfi compensations::          Compensating memory allocation.
 * mpfi factory::                Object factory.
 * mpfi string::                 Conversion to string.
 
 Multiple precision complex numbers
 
+* mpc basic::                  Basic example.
+* mpc dynwind::                Using dynamic wind.
 * mpc compensations::          Compensating memory allocation.
 * mpc factory::                Object factory.
 * mpc string::                 Conversion to string.
+
+Multiple precision polynomials
+
+* mpfrcx intro::                Introduction.
+* mpfrcx init::                 Initialisation functions.
+* mpfrcx basic::                Basic example.
+* mpfrcx dynwind::              Using dynamic wind.
+* mpfrcx compensations::        Compensating memory allocation.
+* mpfrcx string::               Conversion to string.
 
 @end detailmenu
 @end menu
@@ -598,8 +613,8 @@ Multiple precision complex numbers
 
 @value{PACKAGE} implements a binding to various multiple precision
 numbers C language libraries for the Scheme implementations supported by
-Nausicaa.  The bindings make use of the foreign functions interface from
-the Nausicaa/Scheme package.  The installed libraries are:
+Nausicaa.  The bindings make use of the foreign--functions interface
+from the Nausicaa/Scheme package.  The installed libraries are:
 
 @example
 (foreign math mp sizeof)
@@ -609,7 +624,7 @@ the Nausicaa/Scheme package.  The installed libraries are:
 (foreign math mp mpfr)
 (foreign math mp mpfi)
 (foreign math mp mpc)
-(foreign math mp mpfcx)
+(foreign math mp mpfrcx)
 (foreign math mp random)
 @end example
 
@@ -796,9 +811,11 @@ Rounding modes for @mpc{}.  These bindings are exported by the
 
 
 The following syntaxes allow us to access fields of the multiple
-precision numbers data structures; they are exported by @library{foreign
-math mp sizeof} library.  Notice that for normal usage of the libraries,
-we are @strong{not} meant to use these accessors.
+precision numbers data structures; unles otherwise specified, they are
+exported by @library{foreign math mp sizeof} library.
+
+Notice that, with the exception of @mpfrcx{}, for normal usage of the
+libraries, we are @strong{not} meant to use these accessors.
 
 
 @deffn Syntax struct-mpq-num-ref @var{struct-pointer}
@@ -868,6 +885,14 @@ Accessors and mutators for the fields of a @code{mpcx_t} type.
 @deffnx Syntax struct-mpfrx_t-coeff-set! @var{pointer} @var{value}
 @deffnx Syntax struct-mpfrx_t-coeff-ref @var{pointer}
 Accessors and mutators for the fields of a @code{mpfrx_t} type.
+@end deffn
+
+
+@deffn Syntax struct-mpfrx_t-coeff-ptr-ref @var{pointer} @var{index}
+@deffnx Syntax struct-mpcx_t-coeff-ptr-ref @var{pointer} @var{index}
+Given a @var{pointer} to the array of coefficients, return a pointer to
+the coefficient at @var{index}.  These bindings are exported by the
+@library{foreign math mp mpfrcx} library.
 @end deffn
 
 
@@ -969,7 +994,7 @@ allocation and release of @samp{mpz_t} numbers as follows:
         (do-something-with A))
       (lambda ()
         (mpz_clear A)
-        (primitive-free A)))))))
+        (primitive-free A))))
 @end example
 
 @noindent
@@ -1237,7 +1262,7 @@ allocation and release of @samp{mpq_t} numbers as follows:
         (do-something-with A))
       (lambda ()
         (mpq_clear A)
-        (primitive-free A)))))))
+        (primitive-free A))))
 @end example
 
 @noindent
@@ -1503,7 +1528,7 @@ allocation and release of @samp{mpf_t} numbers as follows:
         (do-something-with A))
       (lambda ()
         (mpf_clear A)
-        (primitive-free A)))))))
+        (primitive-free A))))
 @end example
 
 @noindent
@@ -1812,7 +1837,7 @@ allocation and release of @samp{mpfr_t} numbers as follows:
         (do-something-with A))
       (lambda ()
         (mpfr_clear A)
-        (primitive-free A)))))))
+        (primitive-free A))))
 @end example
 
 @noindent
@@ -2083,7 +2108,7 @@ allocation and release of @samp{mpfi_t} numbers as follows:
         (do-something-with A))
       (lambda ()
         (mpfi_clear A)
-        (primitive-free A)))))))
+        (primitive-free A))))
 @end example
 
 @noindent
@@ -2389,7 +2414,7 @@ allocation and release of @samp{mpc_t} numbers as follows:
         (do-something-with A))
       (lambda ()
         (mpc_clear A)
-        (primitive-free A)))))))
+        (primitive-free A))))
 @end example
 
 @noindent
@@ -2605,6 +2630,380 @@ will make it allocate memory using the @gmp{} allocation functions
 The polynomials @api{} is exported by the @library{foreign math mp
 mpfrcx} library.  We discuss multiple ways to handle memory allocation.
 
+@menu
+* mpfrcx intro::                Introduction.
+* mpfrcx init::                 Initialisation functions.
+* mpfrcx basic::                Basic example.
+* mpfrcx dynwind::              Using dynamic wind.
+* mpfrcx compensations::        Compensating memory allocation.
+* mpfrcx string::               Conversion to string.
+@end menu
+
+@c page
+@node mpfrcx intro
+@section Introduction
+
+
+As of version 0.2 of @mpfrcx{}, the @api{} and the documentation is
+still under development; here we discuss some details which is not
+documented but whose knowledge is mandatory to use the library at the C
+language level.
+
+The following program shows how to initialise three polynomials with
+real coefficients, set the coefficients of two of them and perform
+addition; using the @gnu{} C Compiler, we can produce an executable
+with:
+
+@example
+gcc -std=c99 -Wall                          \
+    -L/usr/local/lib -lmpfr -lmpc -lmpfrcx  \
+    -o poly-add poly-add.c
+@end example
+
+@noindent
+the program prints the resulting polynomial coefficients.
+
+@example
+#include <stdio.h>
+#include <stdlib.h>
+#include <mpfr.h>
+#include <mpc.h>
+#include <mpfrcx.h>
+
+int
+main (void)
+@{
+  mpfrx_t       a, b, c;
+  mpfrx_init(a, 5, 50); a->deg = 4;
+  mpfrx_init(b, 5, 50); b->deg = 4;
+  mpfrx_init(c, 5, 50); c->deg = 4;
+  @{
+    mpfr_set_d(a->coeff[0], 0.1, GMP_RNDN);
+    mpfr_set_d(a->coeff[1], 0.2, GMP_RNDN);
+    mpfr_set_d(a->coeff[2], 0.3, GMP_RNDN);
+    mpfr_set_d(a->coeff[3], 0.4, GMP_RNDN);
+    mpfr_set_d(a->coeff[4], 0.5, GMP_RNDN);
+
+    mpfr_set_d(b->coeff[0], 1., GMP_RNDN);
+    mpfr_set_d(b->coeff[1], 2., GMP_RNDN);
+    mpfr_set_d(b->coeff[2], 3., GMP_RNDN);
+    mpfr_set_d(b->coeff[3], 4., GMP_RNDN);
+    mpfr_set_d(b->coeff[4], 5., GMP_RNDN);
+
+    mpfrx_add(c, a, b);
+
+    for (int i=0; i<5; ++i)
+      mpfr_printf("%Rf\n", c->coeff[i]);
+  @}
+  mpfrx_clear(a);
+  mpfrx_clear(b);
+  mpfrx_clear(c);
+  exit(EXIT_SUCCESS);
+@}
+@end example
+
+We see that calling @cfunc{mpfrx_init} is not enough to initialise
+values of type @code{mpfrx_t}: we also have to explicitly set the degree
+of the polynomial be mutating the @code{deg} field.  Access to the
+coefficients is possible neither through C functions nor through C
+macros, we have to access directly the @code{coeff} field.
+
+In the @code{coeff} array: the item of index @math{0} is the coefficient
+of degree zero of the polynomial, the item of index @math{1} is the
+coefficient of degree @math{1} of the polynomial, etc.
+
+@c page
+@node mpfrcx init
+@section Initialisation functions
+
+
+We have to select the appropriate way to initialise the polynomials;
+among several possibilities, @value{PACKAGE} proposes the following
+functions.  They exist as templates to be customised.
+
+
+@deffn Parameter mpfrcx-precision
+Holds the ``current'' initialisation precision for @code{mpfrx_t} and
+@code{mpcx_t} polynomials.  It is initialised to @math{50}.
+@end deffn
+
+
+@defun mpfrx_init* @var{poly} @var{coeffs} @var{setter}
+@defunx mpfrx_init* @var{poly} @var{coeffs} @var{setter} @var{degree}
+Initialises an already allocated real polynomial and sets the
+coefficients from the real numbers in the Scheme vector @var{coeffs}.
+
+@example
+(define mpfrx_init*
+  (case-lambda
+
+   ((poly coeffs setter)
+    (mpfrx_init* poly coeffs setter
+                 (- (vector-length coeffs) 1)))
+
+   ((poly coeffs setter degree)
+    (mpfrx_init poly (+ 1 degree) (mpfrcx-precision))
+    (struct-mpfrx_t-deg-set! poly degree)
+    (do ((i 0 (+ 1 i)))
+        ((= i degree))
+      (setter (struct-mpfrx_t-coeff-ptr-ref poly i)
+              (vector-ref coeffs i)
+              GMP_RNDN)))))
+@end example
+@end defun
+
+
+@defun mpcx_init* @var{poly} @var{coeffs} @var{setter}
+@defunx mpcx_init* @var{poly} @var{coeffs} @var{setter} @var{degree}
+Initialises an already allocated complex polynomial and sets the
+coefficients from the real numbers in the Scheme vector @var{coeffs}.
+
+@example
+(define mpcx_init*
+  (case-lambda
+
+   ((poly coeffs setter)
+    (mpcx_init* poly coeffs setter
+                (- (vector-length coeffs) 1)))
+
+   ((poly coeffs setter degree)
+    (mpcx_init poly (+ 1 degree) (mpfrcx-precision))
+    (struct-mpcx_t-deg-set! poly degree)
+    (do ((i 0 (+ 1 i)))
+        ((= i degree))
+      (setter (struct-mpcx_t-coeff-ptr-ref poly i)
+              (vector-ref coeffs i)
+              GMP_RNDN)))))
+@end example
+@end defun
+
+@c page
+@node mpfrcx basic
+@section Basic example
+
+
+To use @samp{mpfrx_t} polynomials we basically have to do:
+
+@example
+(import (rnrs)
+  (foreign memory)
+  (foreign math mp mpfr)
+  (foreign math mp mpfrx)
+  (foreign math mp sizeof))
+
+(let ((a (malloc sizeof-mpfrx_t))
+      (b (malloc sizeof-mpfrx_t))
+      (c (malloc sizeof-mpfrx_t)))
+
+  (mpfrx_init* a '#( 1.2 3.4 5.6 7.8 9.0) mpfr_set_d)
+  (mpfrx_init* b '#(-1. -3. -5. -7. -9.)  mpfr_set_d)
+  (mpfrx_init c 5 50)
+
+  (mpfrx_add c a b)
+
+  (mpfrx_clear a)
+  (mpfrx_clear b)
+  (primitive-free a)
+  (primitive-free b)
+
+  (do-something-with c)
+
+  (mpfrx_clear c)
+  (primitive-free c))
+@end example
+
+@c page
+@node mpfrcx dynwind
+@section Using dynamic wind
+
+
+Scheme provides the @func{dynamic-wind} syntax to allow evaluation of
+@dfn{in guard} and @dfn{out guard} thunks for each evaluation of a third
+``body'' thunk.  We can leverage this mechanism to handle safe
+allocation and release of @samp{mpfrx_t} numbers as follows:
+
+@example
+(let ((A #f))
+  (dynamic-wind
+      (lambda ()
+        (set! A (malloc sizeof-mpfr_t))
+        (mpfrx_init A 5 50))
+      (lambda ()
+        (do-something-with A))
+      (lambda ()
+        (mpfrx_clear A)
+        (primitive-free A))))
+@end example
+
+@noindent
+of course we can wrap this mechanism into a more sophisticated macro:
+
+@example
+(define-syntax with-mpfrx
+  (syntax-rules ()
+
+    ((_ () ?form0 ?form ...)
+     (begin ?form0 ?form ...))
+
+    ((_ ((?id ?degree) ?init ...) ?form0 ?form ...)
+     (let ((?id #f))
+       (dynamic-wind
+           (lambda ()
+             (set! ?id (malloc sizeof-mpfrx_t))
+             (mpfrx_init ?id (+ 1 ?degree) (mpfrcx-precision)))
+           (lambda ()
+             (with-mpfrx (?init ...) ?form0 ?form ...))
+           (lambda ()
+             (mpfrx_clear ?id)
+             (primitive-free ?id)))))
+
+    ((_ ((?id ?coeffs ?setter) ?init ...) ?form0 ?form ...)
+     (let ((?id #f))
+       (dynamic-wind
+           (lambda ()
+             (set! ?id (malloc sizeof-mpfrx_t))
+             (mpfrx_init* ?id ?coeffs ?setter))
+           (lambda ()
+             (with-mpfrx (?init ...) ?form0 ?form ...))
+           (lambda ()
+             (mpfrx_clear ?id)
+             (primitive-free ?id)))))))
+@end example
+
+@noindent
+with which we can do:
+
+@example
+(with-mpfrx ((a '#(1.2 3.4 5.6 7.8 9.0) mpfr_set_d)
+             (b '#(-1. -3. -5. -7. -9.) mpfr_set_d)
+             (c 4))
+  (mpfrx_add c a b)
+  (do-something-with c))
+@end example
+
+@c page
+@node mpfrcx compensations
+@section Compensating memory allocation
+
+
+The @library{compensations} library from Nausicaa/Scheme exports the
+compensation stacks @api{} as a mean to automatically release
+synchronous resources, even in case of raised exceptions.
+@nauref{compensations, Compensation stacks}
+
+Let's start a program with:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign memory)
+  (foreign math mp mpfrx)
+  (foreign math mp sizeof))
+@end example
+
+@noindent
+to allocate a @samp{mpfrx_t} number with a compensation we can use the
+following functions:
+
+@example
+(define (mpfrx/c degree)
+  (letrec ((p (compensate
+                  (malloc sizeof-mpfrx_t)
+                (with
+                 (mpfrx_clear p)
+                 (primitive-free p)))))
+    (mpfrx_init p (+ 1 degree) (mpfrcx-precision))
+    p))
+
+(define (mpfrx*/c coeffs setter)
+  (letrec ((p (compensate
+                  (malloc sizeof-mpfrx_t)
+                (with
+                 (mpfrx_clear p)
+                 (primitive-free p)))))
+    (mpfrx_init* p coeffs setter)
+    p))
+@end example
+
+@noindent
+now to add two numbers we can use a compensated allocation and
+initialisation for the two operands:
+
+@example
+(with-compensations
+   (let ((c (mpfrx/c 4)))
+     (with-compensations
+       (let ((a (mpfrx*/c '#(1.2 3.4 5.6 7.8 9.0) mpfr_set_d))
+             (b (mpfrx*/c '#(-1. -3. -5. -7. -9.) mpfr_set_d)))
+         (mpfrx_add c a b)))
+     (do-something-with c)))
+@end example
+
+The advantage of compensations, over the @func{dynamic-wind} solution,
+is that we can nest at will allocation of numbers, without keeping track
+of them in an enclosing form.
+
+@c page
+@node mpfrcx string
+@section Conversion to string
+
+
+After having computed a result, we will probably desire to see it.  The
+easiest way is to convert the @samp{mpfrx_t} number to a string.  Let's
+start the program with:
+
+@example
+(import (rnrs)
+  (foreign memory)
+  (foreign cstrings)
+  (foreign math mp mpfr)
+  (foreign math mp mpfrcx))
+@end example
+
+@noindent
+the following functions do a basic conversion from an @samp{mpfrx_t} to
+a string:
+
+@example
+(define (mpfr->string o digits)
+  (with-compensations
+    (letrec*
+        ((l (malloc-small/c))
+         (str (compensate
+                  (mpfr_get_str pointer-null l 10 digits
+                                o GMP_RNDN)
+                (with
+                 (primitive-free str))))
+         (s (cstring->string str))
+         (x (let ((x (pointer-ref-c-signed-long l 0)))
+              (if (char=? #\- (string-ref s 0))
+                  (+ 1 x)
+                x)))
+         (i (substring s 0 x))
+         (f (substring s x (strlen str))))
+      (string-append i "." f))))
+
+(define (mpfrx->string poly digits)
+  (let-values (((port getter) (open-string-output-port)))
+    (let ((degree (struct-mpfrx_t-deg-ref poly)))
+      (display #\( port)
+      (display degree port)
+      (display #\; port)
+      (do ((i degree (- i 1)))
+          ((= i -1)
+           (display #\) port)
+           (getter))
+        (display #\space port)
+        (display (mpfr->string
+                    (struct-mpfrx_t-coeff-ptr-ref poly i)
+                    digits)
+                 port)))))
+@end example
+
+@noindent
+where using @samp{pointer-null} as first argument to @func{mpfr_get_str}
+will make it allocate memory using the @gmp{} allocation functions
+(which default to the standard C language functions).
 
 @c page
 

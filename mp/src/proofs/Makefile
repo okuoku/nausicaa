@@ -8,7 +8,7 @@ CPPFLAGS	= -I/usr/local/include
 LDFLAGS		= -L/usr/local/lib -lmpfr -lmpc -lmpfrcx
 CFLAGS		= -O2
 
-TARGETS		= add
+TARGETS		= poly-add
 
 .PHONY: all
 
