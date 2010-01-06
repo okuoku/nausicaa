@@ -7,7 +7,7 @@ dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it  under the terms of the  GNU General Public

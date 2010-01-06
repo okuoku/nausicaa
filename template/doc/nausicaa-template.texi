@@ -421,7 +421,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2009
+@set COPYRIGHT_YEARS            2010
 
 @c page
 @c ------------------------------------------------------------
