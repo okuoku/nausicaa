@@ -565,6 +565,11 @@ of the C functions, but with in lower case and with the underscores
 converted to dashes; so @cfunc{template_init} is available as
 @func{template-init}.
 
+This document describes the @code{primitives} @api{}; only the functions
+implementing marshaling of values are documented: if a function is not
+documented, it means that it is reexported ``as is'' from the
+@code{platform} library.
+
 @item foreign category template
 Compound library exporting the high--level @api{}; it reexports bindings
 from the @samp{primitives} library and the constant values from the
