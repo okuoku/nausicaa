@@ -1952,17 +1952,6 @@ See also @cfunc{XML_DefaultCurrent}.
 @end deftypefun
 
 
-@deftp {Function Pointer Typedef} XML_DefaultHandler
-Defined as:
-
-@example
-typedef void (* XML_DefaultHandler) (void * user_data,
-                                     const XML_Char *s,
-                                     int len);
-@end example
-@end deftp
-
-
 @deftypefun void XML_SetDefaultHandlerExpand (XML_Parser @var{p}, XML_DefaultHandler @var{h})
 Set a default handler, but doesn't inhibit the expansion of internal
 entity references.  The entity reference will not be passed to the
@@ -2294,7 +2283,7 @@ Values of the @code{XML_Content_Type} enumeration.
 
 
 @deftp Enumeration XML_Content_Quant
-Used to identifiy ???
+@strong{FIXME}  Currently undocumented.
 @end deftp
 
 

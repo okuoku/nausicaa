@@ -31,18 +31,21 @@
   (foreign memory)
   (foreign cstrings)
   (foreign xml expat)
-  (only (foreign ffi) make-c-callback*))
+  (foreign xml expat compensated))
 
 (check-set-mode! 'report-failed)
 (display "*** testing Expat high-level library\n")
 
 
-;;;; XML strings
+(parametrise ((check-test-name 'string)
+	      (debugging	#f))
 
-(define xml-1 "
+  (check
+      (with-compensations
+	(define document "
 <stuff>
  <thing>
-  <alpha>one</alpha>
+  <alpha a1=\"1\" a2=\"2\">one</alpha>
   <beta>two</beta>
  </thing>
  <thing>
@@ -51,42 +54,70 @@
  </thing>
 </stuff>")
 
+	(let ((parser (xml-parser-create/c pointer-null))
+	      (stack '()))
 
-
-(parametrise ((check-test-name 'simple)
-	      (debugging	#f))
+	  (define (start-callback element attributes)
+	    (debug "start ~s ~s" element attributes)
+	    (set! stack (cons (cons element attributes) stack)))
+
+	  (define (end-callback element)
+	    (debug "end ~s" element)
+	    (set! stack (cons element stack)))
+
+	  (xml-set-element-handler parser
+				   (make-xml-start-callback start-callback)
+				   (make-xml-end-callback   end-callback))
+	  (xml-parse/string parser document #t)
+	  (reverse stack)))
+    => '((stuff)
+	 (thing)
+	 (alpha (a1 . "1") (a2 . "2")) alpha
+	 (beta) beta
+	 thing
+	 (thing)
+	 (alpha) alpha
+	 (beta) beta
+	 thing
+	 stuff))
 
   (check
       (with-compensations
-	(letrec ((parser (compensate
-			     (begin0-let ((p (xml-parser-create pointer-null)))
-			       (when (pointer-null? p)
-				 (raise-out-of-memory 'xml-parser-create #f)))
-			   (with
-			    (xml-parser-free parser)))))
+	(define document-1 "<stuff><thing><alpha a1=\"1\" a2=\"2\">one</alpha><beta>tw")
+	(define document-2 "o</beta></thing><thing><alpha>123</alpha><beta>456</beta></thing></stuff>")
 
-	  (define (start-callback data element attributes)
-	    (let ((element    (cstring->string element))
-		  (attributes (argv->strings attributes)))
-	      (debug "start ~s ~s () - ~s" element attributes data)))
+	(let ((parser (xml-parser-create/c pointer-null))
+	      (stack '()))
 
-	  (define (end-callback data element)
-	    (let ((element	(cstring->string element)))
-	      (debug "end ~s - ~s" element data)))
+	  (define (start-callback element attributes)
+	    (debug "start ~s ~s" element attributes)
+	    (set! stack (cons (cons element attributes) stack)))
 
-	  (let ((start	(make-c-callback* void start-callback (pointer pointer pointer)))
-		(end	(make-c-callback* void end-callback   (pointer pointer))))
-	    (xml-set-element-handler parser start end)
-	    (let* ((buflen	(string-length xml-1))
-		   (bufptr	(string->cstring/c xml-1))
-		   (finished	1)
-		   (result	(xml-parse parser bufptr buflen finished)))
-	      (debug "here")
-	      (when (= result XML_STATUS_ERROR)
-		(error 'xml-parse
-		  (cstring->string (xml-error-string (xml-get-error-code parser))))))
-	    #f)))
-    => #f)
+	  (define (end-callback element)
+	    (debug "end ~s" element)
+	    (set! stack (cons element stack)))
+
+	  (define (data-callback data)
+	    (debug "data ~s" data)
+	    (set! stack (cons data stack)))
+
+	  (xml-set-element-handler parser
+				   (make-xml-start-callback start-callback)
+				   (make-xml-end-callback   end-callback))
+	  (xml-set-character-data-handler parser (make-xml-data-callback data-callback))
+	  (xml-parse/string parser document-1 #f)
+	  (xml-parse/string parser document-2 #t)
+	  (reverse stack)))
+    => '((stuff)
+	 (thing)
+	 (alpha (a1 . "1") (a2 . "2")) "one" alpha
+	 (beta) "tw" "o" beta
+	 thing
+	 (thing)
+	 (alpha) "123" alpha
+	 (beta) "456" beta
+	 thing
+	 stuff))
 
   #t)
 

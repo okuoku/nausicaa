@@ -1,14 +1,14 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Expat
-;;;Contents: compensated constructors
-;;;Date: Tue Dec  1, 2009
+;;;Contents: condition object types
+;;;Date: Wed Jan  6, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,30 +25,26 @@
 ;;;
 
 
-(library (foreign xml expat compensated)
+(library (foreign xml expat conditions)
   (export
-    xml-parser-create/c
+
+    &expat-error
+    make-expat-error-condition		expat-error-condition?
+
+    &expat-parser
+    make-expat-parser-condition		expat-parser-condition?
+    condition-expat-parser
     )
   (import (rnrs)
-    (begin0)
-    (compensations)
-    (only (foreign ffi pointers) pointer-null pointer-null?)
-    (only (foreign memory conditions) raise-out-of-memory)
-    (foreign xml expat))
+    (foreign xml expat platform))
 
-
-(define (xml-parser-create/c encoding)
-  (letrec ((parser (compensate
-		       (begin0-let ((p (xml-parser-create pointer-null)))
-			 (when (pointer-null? p)
-			   (raise-out-of-memory 'xml-parser-create #f)))
-		     (with
-		      (xml-parser-free parser)))))
-    parser))
+  (define-condition-type &expat-error &error
+    make-expat-error-condition expat-error-condition?)
 
-
-;;;; done
+  (define-condition-type &expat-parser &condition
+    make-expat-parser-condition expat-parser-condition?
+    (parser	condition-expat-parser))
 
-)
+  )
 
 ;;; end of file

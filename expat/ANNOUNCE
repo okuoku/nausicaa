@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Expat --- tag 0.1b1
+Subject: [announce] Nausicaa/Expat 2010-01-06 tag 0.1b1
 
 		       Nausicaa/Expat
 		       ==============
@@ -34,10 +34,12 @@ Expat is available at:
 	      <http://expat.sourceforge.net/>
 
 
-Notes for --- 0.1b1
+Notes for 2010-01-06 tag 0.1b1
 ------------------------------
 
 * Tested with Expat version 2.0.1.
+
+* A document describing the original Expat API is included.
 
 
 ### end of file

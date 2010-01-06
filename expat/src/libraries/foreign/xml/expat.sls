@@ -26,41 +26,76 @@
 
 (library (foreign xml expat)
   (export
-    xml-set-element-decl-handler			xml-set-attlist-decl-handler
-    xml-set-xml-decl-handler				xml-parser-create
-    xml-parser-create-ns				xml-parser-create-mm
-    xml-parser-reset					xml-set-entity-decl-handler
-    xml-set-element-handler				xml-set-start-element-handler
-    xml-set-end-element-handler				xml-set-character-data-handler
-    xml-set-processing-instruction-handler		xml-set-comment-handler
-    xml-set-cdata-section-handler			xml-set-start-cdata-section-handler
-    xml-set-end-cdata-section-handler			xml-set-default-handler
-    xml-set-default-handler-expand			xml-set-doctype-decl-handler
-    xml-set-start-doctype-decl-handler			xml-set-end-doctype-decl-handler
-    xml-set-unparsed-entity-decl-handler		xml-set-notation-decl-handler
-    xml-set-namespace-decl-handler			xml-set-start-namespace-decl-handler
-    xml-set-end-namespace-decl-handler			xml-set-not-standalone-handler
-    xml-set-external-entity-ref-handler			xml-set-external-entity-ref-handler-arg
-    xml-set-skipped-entity-handler			xml-set-unknown-encoding-handler
-    xml-default-current					xml-set-return-ns-triplet
-    xml-set-user-data					xml-set-encoding
-    xml-use-parser-as-handler-arg			xml-use-foreign-dtd
-    xml-set-base					xml-get-base
-    xml-get-specified-attribute-count			xml-get-id-attribute-index
-    xml-parse						xml-get-buffer
-    xml-parse-buffer					xml-stop-parser
-    xml-resume-parser					xml-get-parsing-status
-    xml-external-entity-parser-create			xml-set-param-entity-parsing
-    xml-get-error-code					xml-get-current-line-number
-    xml-get-current-column-number			xml-get-current-byte-index
-    xml-get-current-byte-count				xml-get-input-context
-    xml-free-content-model				xml-mem-malloc
-    xml-mem-realloc					xml-mem-free
-    xml-parser-free					xml-error-string
-    xml-expat-version					xml-get-feature-list
+    xml-parse/string
+    xml-attributes->alist
 
-    XML_TRUE						XML_FALSE
-    XML_STATUS_ERROR					XML_STATUS_OK
+    make-xml-start-callback
+    make-xml-end-callback
+    make-xml-data-callback
+    make-xml-comment-callback
+    make-xml-start-cdata-callback
+    make-xml-end-cdata-callback
+
+    make-xml-processing-instruction-callback
+    make-xml-default-callback
+    make-xml-external-entity-ref-callback
+    make-xml-skipped-entity-callback
+    make-xml-unknown-encoding-callback
+    make-xml-start-namespace-decl-callback
+    make-xml-end-namespace-decl-callback
+    make-xml-xml-decl-callback
+    make-xml-start-doctype-decl-callback
+    make-xml-end-doctype-decl-callback
+    make-xml-element-decl-callback
+    make-xml-attlist-decl-callback
+    make-xml-entity-decl-callback
+    make-xml-unparsed-entity-decl-callback
+    make-xml-notation-decl-callback
+    make-xml-not-standalone-callback
+
+
+    xml-set-element-decl-handler		xml-set-attlist-decl-handler
+    xml-set-xml-decl-handler			xml-parser-create
+    xml-parser-create-ns			xml-parser-create-mm
+    xml-parser-reset				xml-set-entity-decl-handler
+    xml-set-element-handler			xml-set-start-element-handler
+    xml-set-end-element-handler			xml-set-character-data-handler
+    xml-set-processing-instruction-handler	xml-set-comment-handler
+    xml-set-cdata-section-handler		xml-set-start-cdata-section-handler
+    xml-set-end-cdata-section-handler		xml-set-default-handler
+    xml-set-default-handler-expand		xml-set-doctype-decl-handler
+    xml-set-start-doctype-decl-handler		xml-set-end-doctype-decl-handler
+    xml-set-unparsed-entity-decl-handler	xml-set-notation-decl-handler
+    xml-set-namespace-decl-handler		xml-set-start-namespace-decl-handler
+    xml-set-end-namespace-decl-handler		xml-set-not-standalone-handler
+    xml-set-external-entity-ref-handler		xml-set-external-entity-ref-handler-arg
+    xml-set-skipped-entity-handler		xml-set-unknown-encoding-handler
+    xml-default-current				xml-set-return-ns-triplet
+    xml-set-user-data				xml-set-encoding
+    xml-use-parser-as-handler-arg		xml-use-foreign-dtd
+    xml-set-base				xml-get-base
+    xml-get-specified-attribute-count		xml-get-id-attribute-index
+    xml-parse					xml-get-buffer
+    xml-parse-buffer				xml-stop-parser
+    xml-resume-parser				xml-get-parsing-status
+    xml-external-entity-parser-create		xml-set-param-entity-parsing
+    xml-get-error-code				xml-get-current-line-number
+    xml-get-current-column-number		xml-get-current-byte-index
+    xml-get-current-byte-count			xml-get-input-context
+    xml-free-content-model			xml-mem-malloc
+    xml-mem-realloc				xml-mem-free
+    xml-parser-free				xml-error-string
+    xml-expat-version				xml-get-feature-list
+
+    &expat-error
+    make-expat-error-condition		expat-error-condition?
+
+    &expat-parser
+    make-expat-parser-condition		expat-parser-condition?
+    condition-expat-parser
+
+    XML_TRUE					XML_FALSE
+    XML_STATUS_ERROR				XML_STATUS_OK
     XML_STATUS_SUSPENDED
     XML_ERROR_NONE				XML_ERROR_NO_MEMORY
     XML_ERROR_SYNTAX				XML_ERROR_NO_ELEMENTS
@@ -100,6 +135,7 @@
     XML_FEATURE_LARGE_SIZE)
   (import (rnrs)
     (foreign ffi)
+    (foreign xml expat conditions)
     (foreign xml expat primitives)
     (foreign xml expat sizeof)))
 

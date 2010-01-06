@@ -43,6 +43,10 @@
 @c Scheme related macros.
 @c ------------------------------------------------------------
 
+@macro condition{NAME}
+@code{&\NAME\}
+@end macro
+
 @macro rnrs{VERSION}
 @acronym{R\VERSION\RS}
 @end macro
@@ -491,6 +495,10 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* conditions::                  Condition object types.
+* parsing::                     Parsing documents.
+* misc::                        Miscellaneous functions.
+* compensated::                 Compensated constructors.
 
 Appendices
 
@@ -505,7 +513,28 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Condition object types
+
+* conditions error::            Expat error condition.
+* conditions parser::           Expat parser condition.
+
+Parsing documents
+
+* parsing intro::               Introduction to simple parsing.
+* parsing callbacks::           Element callbacks.
+* parsing parsing::             Parsing functions.
+
+Miscellaneous functions
+
+* misc attrs::                  Attribute functions.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 @c page
@@ -519,6 +548,9 @@ an @pxml{} parser library.  It is built upon Nausicaa/Scheme, making use
 of its foreign--functions interface and it supports the Scheme
 implementations Ikarus, Mosh and Ypsilon.
 
+@value{PACKAGE} is meant to use Expat in its @acronym{UTF8} mode, using
+the characters type @code{XML_Char} defined as @code{char}.
+
 @table @library
 @item foreign xml expat shared-object
 Exports the single binding @code{expat-shared-object} which references
@@ -526,6 +558,9 @@ the foreign shared library.
 
 @item foreign xml expat sizeof
 Exports bindings to constant values and data structures accessors.
+
+@item foreign xml expat conditions
+Exports condition object type definitions.
 
 @item foreign xml expat platform
 Exports one binding for each foreign function; the Scheme functions have
@@ -547,8 +582,8 @@ documented, it means that it is reexported ``as is'' from the
 
 @item foreign xml expat
 Compound library exporting the high--level @api{}; it reexports bindings
-from the @code{primitives} and @code{sizeof} libraries and described in
-this document.
+from the @code{primitives}, @code{conditions} and @code{sizeof}
+libraries and described in this document.
 
 @item foreign xml expat compensated
 Exports bindings to constructor functions making use of the
@@ -556,6 +591,634 @@ Exports bindings to constructor functions making use of the
 @nauref{compensations, Compensation stacks}.
 @end table
 
+
+@c page
+@node conditions
+@chapter Condition object types
+
+
+Unless otherwise specified, all the functions from the @code{primitives}
+library which implement marshaling of values raise an exception in case
+of error.  The exception is described with a compound condition object,
+holding components described here.
+
+Unless otherwise specified, the bindings described in this chapter are
+exported by the @library{foreign xml expat conditions} library and
+reexported by the @library{foreign xml expat} library.
+
+@menu
+* conditions error::            Expat error condition.
+* conditions parser::           Expat parser condition.
+@end menu
+
+@c page
+@node conditions error
+@section Expat error condition
+
+
+@deftp {Condition Type} &expat-error
+Condition type used to tag a compound condition object as describing an
+exception in the use of the Expat library.  It is derived from
+@condition{error} and it has no fields.
+@end deftp
+
+
+@defun make-expat-error-condition
+@defunx expat-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{expat-error}.
+@end defun
+
+@c page
+@node conditions parser
+@section Expat parser condition
+
+
+@deftp {Condition Type} &expat-parser
+Condition type used to tag a compound condition object as describing an
+exception in the use of the Expat library.  It is derived from
+@condition{condition} and it has the following fields:
+
+@table @code
+@item parser
+A pointer object referencing an Expat parser.
+@end table
+@end deftp
+
+
+@defun make-expat-parser-condition
+@defunx expat-parser-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{expat-parser}.
+@end defun
+
+
+@defun condition-expat-parser @var{condition}
+Accessor for the @code{parser} field of condition objects of type
+@condition{expat-parser}.
+@end defun
+
+@c page
+@node parsing
+@chapter Parsing documents
+
+
+@menu
+* parsing intro::               Introduction to simple parsing.
+* parsing callbacks::           Element callbacks.
+* parsing parsing::             Parsing functions.
+@end menu
+
+@c page
+@node parsing intro
+@section Introduction to simple parsing
+
+
+Basically to parse a @pxml{} document contained in a Scheme string we
+can do:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign xml expat)
+  (foreign xml expat compensated))
+
+(define document ...)
+
+(with-compensations
+  (let ((parser (xml-parser-create/c pointer-null))
+        (stack '()))
+
+    (define (start-callback element attributes)
+      (set! stack (cons (cons element attributes) stack)))
+
+    (define (end-callback element)
+      (set! stack (cons element stack)))
+
+    (define (data-callback data)
+      (set! stack (cons data stack)))
+
+    (xml-set-element-handler parser
+      (make-xml-start-callback start-callback)
+      (make-xml-end-callback   end-callback))
+    (xml-set-character-data-handler parser
+      (make-xml-data-callback data-callback))
+
+    (xml-parse/string parser document #t)
+    (reverse stack)))
+@end example
+
+@noindent
+which, for example, will convert the following string:
+
+@example
+<stuff>
+ <thing>
+  <alpha a1="1" a2="2">one</alpha>
+  <beta>two</beta>
+ </thing>
+ <thing>
+  <alpha>123</alpha>
+  <beta>456</beta>
+ </thing>
+</stuff>
+@end example
+
+@noindent
+to the following Scheme list (bound to @code{stack} in the example):
+
+@example
+((stuff)
+   (thing)
+     (alpha (a1 . "1") (a2 . "2")) "one" alpha
+     (beta) "two" beta
+   thing
+   (thing)
+     (alpha) "123" alpha
+     (beta) "456" beta
+   thing
+ stuff)
+@end example
+
+
+@c page
+@node parsing callbacks
+@section Element callbacks
+
+
+This section documents Scheme functions used to create callback objects
+for use with Expat.  @expatref{api handlers, Setting the handlers}.
+
+In the descriptions and implementation examples: @func{make-c-callback*}
+is exported by @library{foreign ffi}; @func{cstring->string} is exported
+by @library{foreign cstrings}.
+
+@menu
+* parsing callbacks basic::     Basic callbacks.
+* parsing callbacks advanced::  Advanced callbacks.
+@end menu
+
+@c page
+@node parsing callbacks basic
+@subsection Basic callbacks
+
+
+@defun make-xml-start-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_StartElementHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-start-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data element attributes)
+     (scheme-function (string->symbol (cstring->string element))
+                      (xml-attributes->alist (argv->strings attributes))))
+   (pointer pointer pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-end-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_EndElementHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-end-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data element)
+     (scheme-function (string->symbol (cstring->string element))))
+   (pointer pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-data-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_CharacterDataHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-data-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data buf.ptr buf.len)
+     (scheme-function (cstring->string buf.ptr buf.len)))
+   (pointer pointer int)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-comment-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_CommentHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-comment-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data data)
+     (scheme-function (cstring->string data)))
+   (pointer pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-start-cdata-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_StartCdataSectionHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-start-cdata-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data)
+     (scheme-function))
+   (pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-end-cdata-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_EndCdataSectionHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-end-cdata-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data)
+     (scheme-function))
+   (pointer)))
+@end smallexample
+@end defun
+
+@c page
+@node parsing callbacks advanced
+@subsection Advanced callbacks
+
+
+@defun make-xml-processing-instruction-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_ProcessingInstructionHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-processing-instruction-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data target data)
+     (scheme-function (cstring->string target)
+                      (cstring->string data)))
+   (pointer pointer pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-default-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_DefaultHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-default-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data buf.ptr buf.len)
+     (scheme-function (cstring->string buf.ptr buf.len)))
+   (pointer pointer signed-int)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-external-entity-ref-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_ExternalEntityRefHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-external-entity-ref-callback scheme-function)
+  (make-c-callback*
+   int
+   (lambda (parser context base system-id public-id)
+     (let-syntax ((or-false (syntax-rules ()
+                              ((_ ?arg)
+                               (if (pointer-null? ?arg)
+                                   #f
+                                 (cstring->string ?arg))))))
+       (if (scheme-function parser (or-false context)
+                            (or-false base) (or-false public-id)
+                            (cstring->string system-id))
+           XML_STATUS_OK
+         XML_STATUS_ERROR)))
+   (pointer pointer pointer pointer pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-skipped-entity-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_SkippedEntityHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-skipped-entity-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data entity-name is-parameter-entity)
+     (scheme-function (cstring->string entity-name)
+                      (not (= 0 is-parameter-entity))))
+   (pointer pointer int)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-unknown-encoding-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_UnknownEncodingHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-unknown-encoding-callback scheme-function)
+  (make-c-callback*
+   int
+   (lambda (unused-encoding-handler-data name info)
+     (if (scheme-function (cstring->string name) info)
+         XML_STATUS_OK
+       XML_STATUS_ERROR))
+   (pointer pointer pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-start-namespace-decl-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_StartNamespaceDeclHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-start-namespace-decl-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data prefix uri)
+     (scheme-function (cstring->string prefix)
+                      (cstring->string uri)))
+   (pointer pointer pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-end-namespace-decl-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_EndNamespaceDeclHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-end-namespace-decl-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data prefix)
+     (scheme-function (cstring->string prefix)))
+   (pointer pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-xml-decl-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_XmlDeclHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-xml-decl-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data version encoding standalone)
+     (let-syntax ((or-false (syntax-rules ()
+                              ((_ ?arg)
+                               (if (pointer-null? ?arg)
+                                   #f
+                                 (cstring->string ?arg))))))
+       (scheme-function (or-false version)
+                        (or-false encoding)
+                        (case standalone
+                          ((-1)         'no-standalone)
+                          ((0)          'no)
+                          ((+1)         'yes)))))
+   (pointer pointer pointer signed-int)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-start-doctype-decl-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_StartDoctypeDeclHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-start-doctype-decl-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data doctype-name
+            sysid pubid has-internal-subset)
+     (let-syntax ((or-false (syntax-rules ()
+                              ((_ ?arg)
+                               (if (pointer-null? ?arg)
+                                   #f
+                                 (cstring->string ?arg))))))
+       (scheme-function (cstring->string doctype)
+                        (or-false sysid)
+                        (or-false pubid)
+                        (not (= 0 has-internal-subset)))))
+   (pointer pointer pointer pointer signed-int)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-end-doctype-decl-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_EndDoctypeDeclHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-end-doctype-decl-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data)
+     (scheme-function))
+   (pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-element-decl-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_ElementDeclHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-element-decl-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data name model)
+     (scheme-function (cstring->string name) model))
+   (pointer pointer pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-attlist-decl-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_AttlistDeclHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-attlist-decl-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data elname attname att-type default is-required)
+     (scheme-function (cstring->string elname)
+                      (cstring->string attname)
+                      (cstring->string att-type)
+                      (if (pointer-null? default)
+                          #f
+                        (cstring->string default))
+                      (not (= 0 is-required))))
+   (pointer pointer pointer pointer pointer signed-int)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-entity-decl-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_EntityDeclHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-entity-decl-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data entity-name is-parameter-entity
+            value.ptr value.len
+            base system-id public-id notation-name)
+     (let-syntax ((or-false (syntax-rules ()
+                              ((_ ?arg)
+                               (if (pointer-null? ?arg)
+                                   #f
+                                 (cstring->string ?arg))))))
+       (scheme-function (cstring->string entity-name)
+                        (not (= 0 is-parameter-entity))
+                        (if (pointer-null? value.ptr)
+                            #f
+                          (cstring->string value.ptr value.len))
+                        (or-false base)
+                        (or-false system-id)
+                        (or-false public-id)
+                        (or-false notation-name))))
+   (pointer pointer signed-int pointer signed-int
+    pointer pointer pointer pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-unparsed-entity-decl-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_UnparsedEntityDeclHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-unparsed-entity-decl-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data entity-name
+            base system-id public-id notation-name)
+     (let-syntax ((or-false (syntax-rules ()
+                              ((_ ?arg)
+                               (if (pointer-null? ?arg)
+                                   #f
+                                 (cstring->string ?arg))))))
+       (scheme-function (cstring->string entity-name)
+                        (or-false base)
+                        (or-false system-id)
+                        (or-false public-id)
+                        (or-false notation-name))))
+   (pointer pointer pointer pointer pointer pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-notation-decl-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_NotationDeclHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-notation-decl-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data notation-name
+            base system-id public-id)
+     (let-syntax ((or-false (syntax-rules ()
+                              ((_ ?arg)
+                               (if (pointer-null? ?arg)
+                                   #f
+                                 (cstring->string ?arg))))))
+       (scheme-function (cstring->string notation-name)
+                        (or-false base)
+                        (or-false system-id)
+                        (or-false public-id))))
+   (pointer pointer pointer pointer pointer)))
+@end smallexample
+@end defun
+
+
+@defun make-xml-not-standalone-callback @var{scheme-function}
+Build and return a Scheme callback object of type
+@code{XML_NotStandaloneHandler}.  It is implemented as follows:
+
+@smallexample
+(define (make-xml-not-standalone-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (unused-client-data)
+     (scheme-function))
+   (pointer)))
+@end smallexample
+@end defun
+
+@c page
+@node parsing parsing
+@section Parsing functions
+
+
+@defun xml-parse/string @var{parser} @var{string} @var{finished?}
+Parse a Scheme string in the context of @var{parser}; if @var{finished?}
+is true, consider finished the parsing.
+@end defun
+
+@c page
+@node misc
+@chapter Miscellaneous functions
+
+
+@menu
+* misc attrs::                  Attribute functions.
+@end menu
+
+@c page
+@node misc attrs
+@section Attribute functions
+
+
+@defun xml-attributes->alist @var{list-of-strings}
+Convert the @var{list-of-strings} to a symbol/string association list.
+Example:
+
+@example
+(xml-attributes->alist '("alpha" "1" "beta" "2"))
+@result{} ((alpha . "1") (beta . "2"))
+@end example
+@end defun
+
+
+@c page
+@node compensated
+@chapter Compensated constructors
+
+
+The following bindings are exported by the @library{foreign xml expat
+compensated} library.
+
+
+@defun xml-parser-create/c @var{arg} ...
+Like @func{xml-parser-create} but push on the current compensations
+stack a call to @func{xml-parser-free} to release the parser.
+@end defun
 
 
 @c page
