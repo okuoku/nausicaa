@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/Expat
-;;;Contents: expat platform functions tests
-;;;Date: Sun Jan  4, 2009
+;;;Contents: expat high-level API tests
+;;;Date: Wed Jan  6, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,12 +30,11 @@
   (compensations)
   (foreign memory)
   (foreign cstrings)
-  (foreign xml expat platform)
-  (foreign xml expat sizeof)
+  (foreign xml expat)
   (only (foreign ffi) make-c-callback*))
 
 (check-set-mode! 'report-failed)
-(display "*** testing Expat platform library\n")
+(display "*** testing Expat high-level library\n")
 
 
 ;;;; XML strings
@@ -60,11 +59,11 @@
   (check
       (with-compensations
 	(letrec ((parser (compensate
-			     (begin0-let ((p (XML_ParserCreate pointer-null)))
+			     (begin0-let ((p (xml-parser-create pointer-null)))
 			       (when (pointer-null? p)
-				 (raise-out-of-memory 'XML_ParserCreate #f)))
+				 (raise-out-of-memory 'xml-parser-create #f)))
 			   (with
-			    (XML_ParserFree parser)))))
+			    (xml-parser-free parser)))))
 
 	  (define (start-callback data element attributes)
 	    (let ((element    (cstring->string element))
@@ -77,15 +76,15 @@
 
 	  (let ((start	(make-c-callback* void start-callback (pointer pointer pointer)))
 		(end	(make-c-callback* void end-callback   (pointer pointer))))
-	    (XML_SetElementHandler parser start end)
+	    (xml-set-element-handler parser start end)
 	    (let* ((buflen	(string-length xml-1))
 		   (bufptr	(string->cstring/c xml-1))
 		   (finished	1)
-		   (result	(XML_Parse parser bufptr buflen finished)))
+		   (result	(xml-parse parser bufptr buflen finished)))
 	      (debug "here")
 	      (when (= result XML_STATUS_ERROR)
-		(error 'XML_Parse
-		  (cstring->string (XML_ErrorString (XML_GetErrorCode parser))))))
+		(error 'xml-parse
+		  (cstring->string (xml-error-string (xml-get-error-code parser))))))
 	    #f)))
     => #f)
 

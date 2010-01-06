@@ -241,6 +241,14 @@ Revised^6 Report on the algorithmic language Scheme
 @ref{\NODE\,\TITLE\,\TITLE\,autoconf}
 @end macro
 
+@macro nauref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nausicaa}
+@end macro
+
+@macro expatref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,expat}
+@end macro
+
 @c ------------------------------------------------------------
 @c RNRS document macros.
 @c ------------------------------------------------------------
@@ -392,11 +400,11 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
 @c email of the *single* author of this document.
-@set AUTHOR_EMAIL               @email{marcomaggi@@gna.org}
+@set AUTHOR_EMAIL               @email{marco.maggi-ipsu@@poste.it}
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2009
+@set COPYRIGHT_YEARS            2009, 2010
 
 @c page
 @c ------------------------------------------------------------
@@ -407,8 +415,8 @@ Revised^6 Report on the algorithmic language Scheme
 @noindent
 This document describes version @version{} of @value{PACKAGE}, an Expat
 interface for @rnrs{6} Scheme implementations supported by Nausicaa.  It
-is built upon the Nausicaa/Scheme package, making use of its foreign
-functions interface.
+is built upon the Nausicaa/Scheme package, making use of its
+foreign--functions interface.
 
 The package is distributed under the terms of the @gnu{} General Public
 License (@gpl{}) and can be downloaded from:
@@ -425,11 +433,16 @@ development of Nausicaa takes place at:
 @center @url{http://github.com/marcomaggi/nausicaa/tree/master}
 
 @noindent
+Expat can be downloaded from:
+
+@center @url{http://expat.sourceforge.net/}
+
+@noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the @gnu{} Free Documentation License, Version 1.2 or
+under the terms of the @gnu{} Free Documentation License, Version 1.3 or
 any later version published by the Free Software Foundation; with
 Invariant Sections being ``@gnu{} Free Documentation License'' and
 ``@gnu{} General Public License'', no Front--Cover Texts, and no
@@ -500,37 +513,50 @@ Indexes
 @chapter Overview of the package
 
 
-@value{PACKAGE} is a binding between the Expat library and the @rnrs{6}
-Scheme implementations supported by Nausicaa.  It is built upon
-Nausicaa/Scheme.
-
-Unfortunately, Expat makes heavy use of callback functions and currently
-the Nausicaa foreign functions interface does not support callbacks when
-running under Larceny Scheme; so the only supported Scheme
-implementations are Ikarus, Mosh and Ypsilon.
-
-Expat is a library, written in C, for parsing @pxml{} documents.  It's
-the underlying @pxml{} parser for the open source Mozilla project,
-Perl's @samp{XML::Parser}, Python's @samp{xml.parsers.expat}, and other
-open--source @pxml{} parsers.
-
-The package installs the following libraries:
+@value{PACKAGE} is a distribution of libraries for @rnrs{6} Scheme
+implementations; it provides bindings for the Expat C language library,
+an @pxml{} parser library.  It is built upon Nausicaa/Scheme, making use
+of its foreign--functions interface and it supports the Scheme
+implementations Ikarus, Mosh and Ypsilon.
 
 @table @library
-@item foreign expat
-It exports the high level @api{}.
+@item foreign xml expat shared-object
+Exports the single binding @code{expat-shared-object} which references
+the foreign shared library.
 
-@item foreign expat sizeof
-It exports bindings for constants and data type inspection, data
-structure accessors and mutators.
+@item foreign xml expat sizeof
+Exports bindings to constant values and data structures accessors.
 
-@item foreign expat platform
-It exports bindings to the foreign functions of Expat.  This library
-implements a map between the Expat foreign functions and Scheme
-functions; all these bindings are available with the same name of the
-Expat function, so @cfunc{XML_ParserCreate} is available as
-@func{XML_ParserCreate}.
+@item foreign xml expat platform
+Exports one binding for each foreign function; the Scheme functions have
+the same name of the C functions, so @cfunc{XML_ParserCreate} is
+available as @func{XML_ParserCreate}.  This library makes the original
+Expat documentation relevant for this package.  @expatref{Top, Expat}.
+
+@item foreign xml expat primitives
+Exports one binding for each foreign function, implementing marshaling
+of arguments and return values.  The Scheme functions have the same name
+of the C functions, but with: lower case, underscores converted to
+dashes, camel case words converted to dash--separated words; so
+@cfunc{XML_ParserCreate} is available as @func{xml-parser-create}.
+
+This document describes the @code{primitives} @api{}; only the functions
+implementing marshaling of values are documented: if a function is not
+documented, it means that it is reexported ``as is'' from the
+@code{platform} library.
+
+@item foreign xml expat
+Compound library exporting the high--level @api{}; it reexports bindings
+from the @code{primitives} and @code{sizeof} libraries and described in
+this document.
+
+@item foreign xml expat compensated
+Exports bindings to constructor functions making use of the
+@library{compensations} library from Nausicaa/Scheme.
+@nauref{compensations, Compensation stacks}.
 @end table
+
+
 
 @c page
 @node Package License

@@ -9,12 +9,11 @@ for  R6RS Scheme implementations;  it provides  bindings for
 the Expat XML parser library.
 
   It  is  built  upon  Nausicaa/Scheme, making  use  of  its
-foreign  functions interface; it  supports Ikarus,  Mosh and
-Ypsilon  Scheme  and it  currently  supports only  GNU+Linux
-systems.
+foreign-functions   interface.   It   supports   the  Scheme
+implementations  Ikarus, Mosh  and  Ypsilon.  The  packaging
+infrastructure currently supports only GNU+Linux systems.
 
-  The  latest  release  of  the  Nausicaa/Expat  package  is
-available at:
+  The latest release of Nausicaa/Expat is available at:
 
      <http://github.com/marcomaggi/nausicaa/downloads>
 
@@ -28,7 +27,7 @@ development takes place at:
 
 the documentation is available on line:
 
-    <http://marcomaggi.github.com/docs/nausicaa-expat.html>
+  <http://marcomaggi.github.com/docs/nausicaa-expat.html>
 
 Expat is available at:
 
@@ -39,9 +38,6 @@ Notes for --- 0.1b1
 ------------------------------
 
 * Tested with Expat version 2.0.1.
-
-* Does not work  on Mosh because of Mosh  bug with callbacks
-  (reported upstream).
 
 
 ### end of file

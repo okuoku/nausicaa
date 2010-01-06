@@ -18,13 +18,13 @@ Topics
 ---------------
 
 This package is a  distribution of libraries for R6RS Scheme
-implementations;  it  provides bindings  for  the Expat  XML
-parser library.
+implementations;  it  provides  bindings  for  the  Expat  C
+language library, an XML parser library.
 
   It  is  built  upon  Nausicaa/Scheme, making  use  of  its
-foreign  functions interface; it  supports Ikarus,  Mosh and
-Ypsilon  Scheme  and it  currently  supports only  GNU+Linux
-systems.
+foreign-functions interface.   It supports Ikarus,  Mosh and
+Ypsilon   Scheme;  the   package   infrastructure  currently
+supports only GNU+Linux systems.
 
   The  last   time  the  author  bothered   to  update  this
 paragraph, he had tested Expat version 2.0.1.
@@ -33,7 +33,7 @@ paragraph, he had tested Expat version 2.0.1.
 2. License
 ----------
 
-Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 
 This  program  is free  software:  you  can redistribute  it
 and/or modify it  under the terms of the  GNU General Public
