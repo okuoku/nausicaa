@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Nettle
-;;;Contents: compile script for Mosh Scheme
-;;;Date:
+;;;Contents: compensated constructors for Hogweed
+;;;Date: Thu Jan  7, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -23,11 +24,20 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-    (only (foreign crypto nettle))
-  (only (foreign crypto nettle compensated))
-  (only (foreign crypto hogweed))
-  (only (foreign crypto hogweed compensated))
-  )
+
+(library (foreign crypto hogweed compensated)
+  (export)
+  (import (rnrs)
+    (compensations)
+    (foreign crypto hogweed))
+
+
+;;;; code
+
+
+
+;;;; done
+
+)
 
 ;;; end of file

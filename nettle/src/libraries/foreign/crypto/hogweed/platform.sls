@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Nettle
-;;;Contents: compile script for Mosh Scheme
-;;;Date:
+;;;Contents: bindings to foreign functions for Hogweed
+;;;Date: Thu Jan  7, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -23,11 +24,22 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-    (only (foreign crypto nettle))
-  (only (foreign crypto nettle compensated))
-  (only (foreign crypto hogweed))
-  (only (foreign crypto hogweed compensated))
+
+(library (foreign crypto hogweed platform)
+  (export hogweed-shared-object)
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof)
+    (foreign crypto hogweed shared-object)
+    (foreign crypto nettle sizeof))
+
+
+(define-c-functions hogweed-shared-object
   )
+
+
+;;;; done
+
+)
 
 ;;; end of file

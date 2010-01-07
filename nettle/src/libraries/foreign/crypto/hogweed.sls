@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
-;;;Part of: Nausicaa/Nettle
-;;;Contents: compile script for Mosh Scheme
-;;;Date:
+;;;Part of: Nausicaa/Crypto
+;;;Contents: compound library, high-level API
+;;;Date: Thu Jan  7, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -23,11 +24,11 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-    (only (foreign crypto nettle))
-  (only (foreign crypto nettle compensated))
-  (only (foreign crypto hogweed))
-  (only (foreign crypto hogweed compensated))
-  )
+
+(library (foreign crypto hogweed)
+  (export)
+  (import (rnrs)
+    (foreign crypto hogweed primitives)
+    (foreign crypto nettle sizeof)))
 
 ;;; end of file

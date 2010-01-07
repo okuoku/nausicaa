@@ -1,7 +1,8 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Nettle
-;;;Contents: compile script for Mosh Scheme
-;;;Date:
+;;;Contents: tests for Hogweed platform libraries loading
+;;;Date: Thu Jan  7, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -23,11 +24,27 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-    (only (foreign crypto nettle))
-  (only (foreign crypto nettle compensated))
-  (only (foreign crypto hogweed))
-  (only (foreign crypto hogweed compensated))
-  )
+
+(import (nausicaa)
+  (foreign crypto hogweed platform)
+  (foreign crypto nettle sizeof)
+  (checks))
+
+(check-set-mode! 'report-failed)
+(display "*** testing Hogweed platform\n")
+
+
+(parametrise ((check-test-name	'basic))
+
+  (check
+      #f
+    => #f)
+
+  #t)
+
+
+;;;; done
+
+(check-report)
 
 ;;; end of file
