@@ -425,7 +425,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2009
+@set COPYRIGHT_YEARS            2009, 2010
 
 @c page
 @c ------------------------------------------------------------
@@ -434,7 +434,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @copying
 @noindent
-This document describes version @version{} of @value{PACKAGE}, is a
+This document describes version @version{} of @value{PACKAGE}, a
 distribution of libraries for @rnrs{6} Scheme implementations; it
 provides a binding to the Libxml2 C language library, the @axml{}
 toolkit for the @gnome{} project.  It is built upon Nausicaa/Scheme,
