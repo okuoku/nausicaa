@@ -4,9 +4,9 @@ Subject: [announce] Nausicaa/Expat 2010-01-06 tag 0.1b1
 		       Nausicaa/Expat
 		       ==============
 
-Nausicaa/Expat This  package is a  distribution of libraries
-for  R6RS Scheme implementations;  it provides  bindings for
-the Expat XML parser library.
+Nausicaa/Expat  is  a  distribution  of libraries  for  R6RS
+Scheme implementations;  it provides bindings  for the Expat
+XML parser library.
 
   It  is  built  upon  Nausicaa/Scheme, making  use  of  its
 foreign-functions   interface.   It   supports   the  Scheme
