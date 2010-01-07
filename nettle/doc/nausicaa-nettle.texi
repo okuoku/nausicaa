@@ -1,0 +1,624 @@
+\input texinfo.tex
+@c %**start of header
+@setfilename nausicaa-nettle.info
+@settitle Nettle for Nausicaa
+@c %**end of header
+
+@c page
+@c ------------------------------------------------------------
+@c Macros.
+@c ------------------------------------------------------------
+
+@include version.texiinc
+
+@c ------------------------------------------------------------
+@c License macros.
+@c ------------------------------------------------------------
+
+@macro gnu{}
+@acronym{GNU}
+@end macro
+
+@macro gpl{}
+@acronym{GPL}
+@end macro
+
+@macro fdl{}
+@acronym{FDL}
+@end macro
+
+@c ------------------------------------------------------------
+@c Special notes.
+@c ------------------------------------------------------------
+
+@macro forunix{}
+@strong{Unix:}
+@end macro
+
+@macro fixme{TEXT}
+@strong{FIXME: \TEXT\}
+@end macro
+
+@c ------------------------------------------------------------
+@c Scheme related macros.
+@c ------------------------------------------------------------
+
+@macro rnrs{VERSION}
+@acronym{R\VERSION\RS}
+@end macro
+
+@macro rsix{}
+Revised^6 Report on the algorithmic language Scheme
+@end macro
+
+@macro repl{}
+@acronym{REPL}
+@end macro
+
+@macro srfi{}
+@acronym{SRFI}
+@end macro
+
+@c Separating the @srfi{} macro from the number with a '--' rather than
+@c a '-'  makes the expansion look  ugly in menu entries  under the Info
+@c reader.  IMHO  this should not happen,  but it does; so  we live with
+@c this, because the main purpose of this document is to provide an Info
+@c version.
+@macro ansrfi{NUM}
+@srfi{}-\NUM\
+@end macro
+
+@macro clos{}
+@acronym{CLOS}
+@end macro
+
+@macro library{SPEC}
+@code{(\SPEC\)}
+@end macro
+
+@macro ffi{}
+@acronym{FFI}
+@end macro
+
+@macro class{NAME}
+@code{<\NAME\>}
+@end macro
+
+@macro condition{NAME}
+@code{&\NAME\}
+@end macro
+
+@c ------------------------------------------------------------
+@c Miscellaneous acronyms.
+@c ------------------------------------------------------------
+
+@macro ansi{}
+@acronym{ANSI}
+@end macro
+
+@macro api{}
+@acronym{API}
+@end macro
+
+@c Remember that @url is already used by Texinfo.
+@macro aurl{}
+@acronym{URL}
+@end macro
+
+@macro ascii{}
+@acronym{ASCII}
+@end macro
+
+@macro cpu{}
+@acronym{CPU}
+@end macro
+
+@macro csv{}
+@acronym{CSV}
+@end macro
+
+@macro ieee{}
+@acronym{IEEE}
+@end macro
+
+@macro iso{}
+@acronym{ISO}
+@end macro
+
+@macro posix{}
+@acronym{POSIX}
+@end macro
+
+@macro rfc{}
+@acronym{RFC}
+@end macro
+
+@macro sql{}
+@acronym{SQL}
+@end macro
+
+@macro utf{}
+@acronym{UTF}
+@end macro
+
+@macro utc{}
+@acronym{UTC}
+@end macro
+
+@macro tai{}
+@acronym{TAI}
+@end macro
+
+@macro axml{}
+@acronym{XML}
+@end macro
+
+@c ------------------------------------------------------------
+@c Software acronyms.
+@c ------------------------------------------------------------
+
+@macro gmp{}
+@acronym{GMP}
+@end macro
+
+@macro gcc{}
+@acronym{GCC}
+@end macro
+
+@c ------------------------------------------------------------
+@c Network related acronyms.
+@c ------------------------------------------------------------
+
+@macro http{}
+@acronym{HTTP}
+@end macro
+
+@macro ftp{}
+@acronym{FTP}
+@end macro
+
+@macro ip{}
+@acronym{IP}
+@end macro
+
+@macro ssh{}
+@acronym{SSH}
+@end macro
+
+@macro ssl{}
+@acronym{SSL}
+@end macro
+
+@macro tcp{}
+@acronym{TCP}
+@end macro
+
+@macro tls{}
+@acronym{TLS}
+@end macro
+
+@macro udp{}
+@acronym{UDP}
+@end macro
+
+@macro smtp{}
+@acronym{SMTP}
+@end macro
+
+@c ------------------------------------------------------------
+@c Scheme language macros.
+@c ------------------------------------------------------------
+
+@macro func{NAME}
+@code{\NAME\}
+@end macro
+
+@macro snull{}
+@code{()}
+@end macro
+
+@macro true{}
+@code{#t}
+@end macro
+
+@macro false{}
+@code{#f}
+@end macro
+
+@macro keyword{NAME}
+@code{#:\NAME\}
+@end macro
+
+@c ------------------------------------------------------------
+@c C language macros.
+@c ------------------------------------------------------------
+
+@macro cfunc{NAME}
+@code{\NAME\()}
+@end macro
+
+@macro cnull{}
+@code{NULL}
+@end macro
+
+@c ------------------------------------------------------------
+@c Macros for references to external documents.
+@c ------------------------------------------------------------
+
+@macro glibcref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,libc}
+@end macro
+
+@c @macro rsixref{NODE, TITLE}
+@c @ref{\NODE\,\TITLE\,\TITLE\,r6rs}
+@c @end macro
+
+@macro bibref{TAG}
+@code{[\TAG\]}
+@end macro
+
+@macro autoconfref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,autoconf}
+@end macro
+
+@macro nauref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nausicaa}
+@end macro
+
+@macro nettleref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nettle}
+@end macro
+
+@c ------------------------------------------------------------
+@c RNRS document macros.
+@c ------------------------------------------------------------
+
+@macro rsixlibrary{THING}
+@code{(rnrs \THING\ (6))}
+@end macro
+
+@macro arbno{THING}
+\THING\*
+@end macro
+
+@macro atleastone{THING}
+\THING\+
+@end macro
+
+@c ------------------------------------------------------------
+@c To be used in normal text.
+
+@macro meta{THING}
+<\THING\>
+@end macro
+
+@macro metai{THING}
+<\THING\1>
+@end macro
+
+@macro metaii{THING}
+<\THING\2>
+@end macro
+
+@macro metaiii{THING}
+<\THING\3>
+@end macro
+
+@c ------------------------------------------------------------
+@c To be used inside @example environment and @samp directives.
+
+@macro cmeta{THING}
+<\THING\>
+@end macro
+
+@macro cmetai{THING}
+<\THING\1>
+@end macro
+
+@macro cmetaii{THING}
+<\THING\2>
+@end macro
+
+@macro cmetaiii{THING}
+<\THING\3>
+@end macro
+
+@c ------------------------------------------------------------
+@c To be used inside argument lists.
+
+@macro ameta{THING}
+<\THING\>
+@end macro
+
+@macro ametai{THING}
+<\THING\1>
+@end macro
+
+@macro ametaii{THING}
+<\THING\2>
+@end macro
+
+@macro ametaiii{THING}
+<\THING\3>
+@end macro
+
+@c ------------------------------------------------------------
+
+@macro hyper{THING}
+<\THING\>
+@end macro
+
+@macro hyperi{THING}
+<\THING\1>
+@end macro
+
+@macro hyperii{THING}
+<\THING\2>
+@end macro
+
+@macro hyperiii{THING}
+<\THING\3>
+@end macro
+
+@macro hypern{THING}
+<\THING\n>
+@end macro
+
+@c ------------------------------------------------------------
+
+@macro varo{THING}
+@var{\THING\0}
+@end macro
+
+@macro vari{THING}
+@var{\THING\1}
+@end macro
+
+@macro varii{THING}
+@var{\THING\2}
+@end macro
+
+@macro variii{THING}
+@var{\THING\3}
+@end macro
+
+@macro variv{THING}
+@var{\THING\4}
+@end macro
+
+@macro varn{THING}
+@var{\THING\n}
+@end macro
+
+@macro vark{THING}
+@var{\THING\k}
+@end macro
+
+@macro varj{THING}
+@var{\THING\j}
+@end macro
+
+
+@c page
+@c ------------------------------------------------------------
+@c Values.
+@c ------------------------------------------------------------
+
+@set TITLE                      Nettle for Nausicaa
+
+@c To be used as @value{PACKAGE} whenever we need to include the full
+@c name of this package.
+@set PACKAGE                    Nausicaa/Nettle
+
+@c To be used as @value{PACKAGE_NICKNAME} whenever we need to include
+@c the nickname of the project: the name that is used to compose the
+@c distribution tarball or the web address.
+@set PACKAGE_NICKNAME           nausicaa-nettle
+
+@c To be used as @value{AUTHOR} whenever we need to include the list of
+@c authors of this document.
+@set AUTHOR                     Marco Maggi
+
+@c To be used as @value{AUTHOR_EMAIL} whenever we need to include the
+@c email of the *single* author of this document.
+@set AUTHOR_EMAIL               @email{marco.maggi-ipsu@@poste.it}
+
+@c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
+@c list of copyright years.
+@set COPYRIGHT_YEARS            2010
+
+@c page
+@c ------------------------------------------------------------
+@c Copyright notice.
+@c ------------------------------------------------------------
+
+@copying
+@noindent
+This document describes version @version{} of @value{PACKAGE}, a
+distribution of libraries for @rnrs{6} Scheme implementations; it
+provides a binding to the Nettle C language cryptographic library.  It
+is built upon Nausicaa/Scheme, making use of its foreign--functions
+interface.
+
+The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
+supports @gnu{}+Linux systems.
+
+The package is distributed under the terms of the @gnu{} General Public
+License (@gpl{}) and can be downloaded from:
+
+@center @url{http://github.com/marcomaggi/nausicaa/downloads}
+
+@noindent
+the project home page of Nausicaa is at:
+
+@center @url{http://marcomaggi.github.com/nausicaa.html}
+
+@noindent
+development of Nausicaa takes place at:
+
+@center @url{http://github.com/marcomaggi/nausicaa/tree/master}
+
+@noindent
+Nettle is available at:
+
+@center @url{http://www.lysator.liu.se/~nisse/nettle/}
+
+@noindent
+Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the @gnu{} Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with
+Invariant Sections being ``@gnu{} Free Documentation License'' and
+``@gnu{} General Public License'', no Front--Cover Texts, and no
+Back--Cover Texts.  A copy of the license is included in the section
+entitled ``@gnu{} Free Documentation License''.
+@end quotation
+@end copying
+
+@c page
+@c ------------------------------------------------------------
+@c Headers.
+@c ------------------------------------------------------------
+
+@titlepage
+@title @value{TITLE}
+@subtitle Revision @version{}
+@author @value{AUTHOR} @value{AUTHOR_EMAIL}
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@c ------------------------------------------------------------
+
+@ifinfo
+@dircategory Development
+@direntry
+* nausicaa-nettle: (nausicaa-nettle).   Nettle for Nausicaa.
+@end direntry
+@end ifinfo
+
+@c ------------------------------------------------------------
+
+@ignore
+@syncodeindex tp cp
+@syncodeindex vr cp
+@syncodeindex fn cp
+@end ignore
+
+@c page
+@ifnottex
+@node Top
+@top @value{TITLE}
+
+@insertcopying
+
+@menu
+* overview::                    Overview of the package.
+
+Appendices
+
+* Package License::             GNU General Public License.
+* Documentation License::       GNU Free Documentation License.
+* references::                  Bibliography and references.
+
+Indexes
+
+* concept index::               An entry for each concept.
+* function index::              An entry for each function.
+* variable index::              An entry for each variable.
+* type index::                  An entry for each type.
+@end menu
+@end ifnottex
+
+@c page
+@node overview
+@chapter Overview of the package
+
+
+This document describes version @version{} of @value{PACKAGE}, a
+distribution of libraries for @rnrs{6} Scheme implementations; it
+provides a binding to the Nettle C language cryptographic library.  It
+is built upon Nausicaa/Scheme, making use of its foreign--functions
+interface.
+
+The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
+supports @gnu{}+Linux systems.
+
+The installed libraries are:
+
+@table @library
+@item foreign crypto nettle shared-object
+Exports the single binding @code{nettle-shared-object} which references
+the foreign shared library.
+
+@item foreign crypto nettle sizeof
+Exports bindings to constant values and data structures accessors.
+
+@item foreign crypto nettle platform
+Exports one binding for each foreign function; the Scheme functions have
+the same name of the C functions, so @cfunc{nettle_init} is available as
+@func{nettle_init}.  This library makes the original Nettle
+documentation relevant for this package.  @nettleref{Top, Nettle}.
+
+@item foreign crypto nettle primitives
+Exports one binding for each foreign function, implementing marshaling
+of arguments and return values.  The Scheme functions have the same name
+of the C functions, but with in lower case and with the underscores
+converted to dashes; so @cfunc{nettle_init} is available as
+@func{nettle-init}.
+
+This document describes the @code{primitives} @api{}; only the functions
+implementing marshaling of values are documented: if a function is not
+documented, it means that it is reexported ``as is'' from the
+@code{platform} library.
+
+@item foreign crypto nettle
+Compound library exporting the high--level @api{}; it reexports bindings
+from the @samp{primitives} library and the constant values from the
+@samp{sizeof} library.
+
+@item foreign crypto nettle compensated
+Exports bindings to constructor functions making use of the
+@library{compensations} library from Nausicaa/Scheme.
+@nauref{compensations, Compensation stacks}.
+@end table
+
+@c page
+
+@include gpl-3.0.texiinc
+@include fdl-1.3.texiinc
+
+@c page
+@node references
+@appendix Bibliography and references
+
+
+
+@c page
+@node concept index
+@appendix An entry for each concept
+
+@printindex cp
+
+@node function index
+@appendix An entry for each function.
+
+@printindex fn
+
+@node variable index
+@appendix An entry for each variable.
+
+@printindex vr
+
+@node type index
+@appendix An entry for each type.
+
+@printindex tp
+
+@contents
+@bye
+
+@c end of file
