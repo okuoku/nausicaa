@@ -19,7 +19,6 @@ set -x
     --config-cache                              \
     --with-abi=local-slackware                  \
     --enable-use-sudo                           \
-    --enable-fasl                               \
     --enable-ikarus                             \
     --disable-larceny                           \
     --enable-mosh                               \

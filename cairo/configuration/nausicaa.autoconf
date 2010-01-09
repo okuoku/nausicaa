@@ -12,7 +12,7 @@ dnl
 dnl     Full  documentation  for the  macros  in  this  file is  in  the
 dnl   Nausicaa/Scheme texinfo  documentation.
 dnl
-dnl Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+dnl Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software: you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -165,25 +165,6 @@ AC_DEFUN([NAUSICAA_OPTIONS],
      [whether usage of Ypsilon Scheme is enabled],
      [disable usage of Ypsilon Scheme])
 
-   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_FASL],[fasl],[no],
-     [whether compiled files will be built and installed],
-     [enable installation of precompiled libraries])
-   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_FASL_LARCENY],[fasl-larceny],[yes],
-     [whether compiled files for Larceny will be built and installed],
-     [enable installation of Larceny precompiled libraries])
-   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_FASL_IKARUS],[fasl-ikarus],[yes],
-     [whether compiled files for Ikarus will be built and installed],
-     [enable installation of Ikarus precompiled libraries])
-   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_FASL_MOSH],[fasl-mosh],[yes],
-     [whether compiled files for Mosh will be built and installed],
-     [enable installation of Mosh precompiled libraries])
-   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_FASL_YPSILON],[fasl-ypsilon],[yes],
-     [whether compiled files for Ypsilon will be built and installed],
-     [enable installation of Ypsilon precompiled libraries])
-
-   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_SLS],[sls],[yes],
-     [whether source files will be installed],
-     [enable installation of source files])
    NAU_DS_ENABLE_OPTION([nausicaa_TIME_TESTS],[time-tests],[no],
      [whether tests will be timed],
      [enable timing of tests])])
