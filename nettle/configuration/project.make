@@ -30,6 +30,7 @@
 
 $(eval $(call nau-libraries,crypto,foreign/crypto))
 $(eval $(call nau-libraries,nettle,foreign/crypto/nettle))
+$(eval $(call nau-libraries,hodweed,foreign/crypto/hogweed))
 
 
 ### end of file

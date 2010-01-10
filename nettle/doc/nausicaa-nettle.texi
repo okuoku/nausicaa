@@ -517,6 +517,7 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* base16::                      Hexadecimal encoding.
 
 Appendices
 
@@ -547,44 +548,102 @@ interface.
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
 
+The Nettle package installs two libraries: @file{libnettle} for message
+digests, randomness and symmetric cipher cryptography; @file{libhogweed}
+for public key cryptography.  Consequently @value{PACKAGE} installs two
+sets of libraries, one under the @code{nettle} hierarchy and one under
+the @code{hogweed} hierarchy.
+
+In the spirit of Nettle, @value{PACKAGE} provides only the low level
+building blocks of the algorithms; this document focuses on proposing
+ways to handle resources and to implement higher--level @api{}s.
+
 The installed libraries are:
 
 @table @library
 @item foreign crypto nettle shared-object
-Exports the single binding @code{nettle-shared-object} which references
-the foreign shared library.
+@itemx foreign crypto hogweed shared-object
+Each library exports the single binding @code{nettle-shared-object} and
+@code{hogweed-shared-object}, respectively, which reference the foreign
+shared library.
 
 @item foreign crypto nettle sizeof
-Exports bindings to constant values and data structures accessors.
+Exports bindings to constant values and data structures accessors for
+both the @file{libnettle} and @file{libhogweed}.
 
 @item foreign crypto nettle platform
-Exports one binding for each foreign function; the Scheme functions have
-the same name of the C functions, so @cfunc{nettle_init} is available as
-@func{nettle_init}.  This library makes the original Nettle
-documentation relevant for this package.  @nettleref{Top, Nettle}.
+@itemx foreign crypto hogweed platform
+Each library exports one binding for each foreign function; the Scheme
+bindings to the callout functions have the same name of the C functions,
+so @cfunc{md5_init} is available as @func{md5_init}.  This library makes
+the original Nettle documentation relevant for this package.
+@nettleref{Top, Nettle}.
 
 @item foreign crypto nettle primitives
-Exports one binding for each foreign function, implementing marshaling
-of arguments and return values.  The Scheme functions have the same name
-of the C functions, but with in lower case and with the underscores
-converted to dashes; so @cfunc{nettle_init} is available as
-@func{nettle-init}.
-
-This document describes the @code{primitives} @api{}; only the functions
-implementing marshaling of values are documented: if a function is not
-documented, it means that it is reexported ``as is'' from the
-@code{platform} library.
+@itemx foreign crypto nettle primitives
+Exports one binding for each foreign function.  The Scheme functions
+have the same name of the C functions, but with the underscores
+converted to dashes; so @cfunc{md5_init} is available as
+@func{md5-init}.
 
 @item foreign crypto nettle
-Compound library exporting the high--level @api{}; it reexports bindings
-from the @samp{primitives} library and the constant values from the
-@samp{sizeof} library.
+@itemx foreign crypto hogweed
+Compound libraries: they reexport bindings from the @samp{primitives}
+libraries and the constant values from the @samp{sizeof} library.
 
 @item foreign crypto nettle compensated
-Exports bindings to constructor functions making use of the
+@itemx foreign crypto hogweed compensated
+Each library exports bindings to constructor functions making use of the
 @library{compensations} library from Nausicaa/Scheme.
 @nauref{compensations, Compensation stacks}.
 @end table
+
+@c page
+@node base16
+@chapter Hexadecimal encoding
+
+
+The following functions encode a Scheme string to a Scheme string in
+hexadecimal digits:
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign cstrings)
+  (foreign memory)
+  (foreign crypto nettle platform)
+  (foreign crypto nettle sizeof))
+
+(define (str->base16 str)
+  (with-compensations
+    (let* ((in.ptr          (string->cstring/c str))
+           (in.len          (strlen in.ptr))
+           (out.len         (BASE16_ENCODE_LENGTH in.len))
+           (out.ptr         (malloc-block/c out.len)))
+      (base16_encode_update out.ptr in.len in.ptr)
+      (cstring->string out.ptr out.len))))
+
+(define (base16->str str)
+  (let* ((in.ptr    (string->cstring/c str))
+         (in.len    (strlen in.ptr))
+         (b16*      (malloc-block/c sizeof-base16_decode_ctx))
+         (out.len   (BASE16_DECODE_LENGTH in.len))
+         (out.ptr   (malloc-block/c out.len))
+         (out.len*  (malloc-small/c)))
+    (pointer-set-c-unsigned-int! out.len* 0 out.len)
+    (base16_decode_init   b16*)
+    (base16_decode_update b16* out.len* out.ptr in.len in.ptr)
+    (assert (= 1 (base16_decode_final  b16*)))
+    (cstring->string out.ptr (pointer-ref-c-unsigned-int out.len* 0))))
+
+(str->base16 "ABC")
+@result{} "414243"
+
+(base16->str "41424344")
+@result{} "ABCD"
+@end example
+
+
 
 @c page
 
