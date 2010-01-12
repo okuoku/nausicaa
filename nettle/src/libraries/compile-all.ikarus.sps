@@ -24,10 +24,9 @@
 ;;;
 
 (import
-  (only (foreign crypto nettle))
-  (only (foreign crypto nettle compensated))
-  (only (foreign crypto hogweed))
-  (only (foreign crypto hogweed compensated))
+  (only (foreign crypto nettle sizeof))
+  (only (foreign crypto nettle platform))
+  (only (foreign crypto hogweed platform))
   )
 
 ;;; end of file
