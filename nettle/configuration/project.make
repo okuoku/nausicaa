@@ -25,6 +25,17 @@
 
 #page
 ## --------------------------------------------------------------------
+## Documentation.
+## --------------------------------------------------------------------
+
+$(ds_texi_BUILDDIR)/nausicaa-nettle.info: $(ds_texi_SRCDIR)/nettle.texiinc
+$(ds_texi_BUILDDIR)/nausicaa-nettle.html: $(ds_texi_SRCDIR)/nettle.texiinc
+$(ds_texi_BUILDDIR)/nausicaa-nettle.dvi:  $(ds_texi_SRCDIR)/nettle.texiinc
+$(ds_texi_BUILDDIR)/nausicaa-nettle.pdf:  $(ds_texi_SRCDIR)/nettle.texiinc
+
+
+#page
+## --------------------------------------------------------------------
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
