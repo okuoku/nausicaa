@@ -517,8 +517,10 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
-* ascii::                       @ascii{} encodings.
+* armor::                       @ascii{} armor encodings.
 * md::                          Computing message digests.
+* cipher::                      Symmetric cryptography.
+* random::                      Randomness generation.
 
 Appendices
 
@@ -537,9 +539,22 @@ Indexes
 @detailmenu
  --- The Detailed Node Listing ---
 
-@ascii{} encodings
+@ascii{} armor encodings
 
-* ascii base16::                Hexadecimal encoding.
+* armor base16::                Hexadecimal encoding.
+* armor base64::                Base64 encoding.
+
+Symmetric cryptography
+
+* cipher ecb::                  Example of @acronym{ECB} mode.
+* cipher cbc::                  Example of @acronym{CBC} mode.
+* cipher ctr::                  Example of @acronym{CTR} mode.
+* cipher arcfour::              Example using @acronym{ARCFOUR}.
+
+Randomness generation
+
+* random knuth::                Examples using Knuth's lagged
+                                Fibonacci sequence.
 
 @end detailmenu
 @end menu
@@ -566,9 +581,9 @@ for public key cryptography.  Consequently @value{PACKAGE} installs two
 sets of libraries, one under the @code{nettle} hierarchy and one under
 the @code{hogweed} hierarchy.
 
-In the spirit of Nettle, @value{PACKAGE} provides only the low level
-building blocks of the algorithms; this document focuses on proposing
-ways to handle resources and to implement higher--level @api{}s.
+In the spirit of Nettle, @value{PACKAGE} provides only the low--level
+building blocks of the algorithms; this document focuses on examples and
+on ways to handle resources.
 
 The installed libraries are:
 
@@ -589,43 +604,24 @@ Each library exports one binding for each foreign function; the Scheme
 bindings to the callout functions have the same name of the C functions,
 so @cfunc{md5_init} is available as @func{md5_init}.  This library makes
 the original Nettle documentation relevant for this package.
-@nettleref{Top, Nettle}.
-
-@item foreign crypto nettle primitives
-@itemx foreign crypto nettle primitives
-Exports one binding for each foreign function.  The Scheme functions
-have the same name of the C functions, but with the underscores
-converted to dashes; so @cfunc{md5_init} is available as
-@func{md5-init}.
-
-@item foreign crypto nettle
-@itemx foreign crypto hogweed
-Compound libraries: they reexport bindings from the @samp{primitives}
-libraries and the constant values from the @samp{sizeof} library.
-
-@item foreign crypto nettle compensated
-@itemx foreign crypto hogweed compensated
-Each library exports bindings to constructor functions making use of the
-@library{compensations} library from Nausicaa/Scheme.
-@nauref{compensations, Compensation stacks}.
+@ref{nettle} for the original documentation.
 @end table
 
 @c page
-@node ascii
-@chapter @ascii{} encodings
+@node armor
+@chapter @ascii{} armor encodings
 
 
 The examples proposed in this chapter are about encoding data buffers in
-@ascii{} strings.  @ref{nettle ascii}
+@ascii{} strings.  @ref{nettle armor} for the original @api{}.
 
 @menu
-* ascii base16::                Hexadecimal encoding.
-* ascii base64::                Base64 encoding.
+* armor base16::                Hexadecimal encoding.
+* armor base64::                Base64 encoding.
 @end menu
 
-
 @c page
-@node ascii base16
+@node armor base16
 @section Hexadecimal encoding
 
 
@@ -670,7 +666,7 @@ hexadecimal digits:
 @end smallexample
 
 @c page
-@node ascii base64
+@node armor base64
 @section Base64 encoding
 
 
@@ -726,21 +722,342 @@ base64 digits:
 
 
 The examples proposed in this chapter are about computing data buffer
-message digests.  @ref{nettle md}
+message digests; @ref{nettle md} for the original @api{}.
+
+The following functions compute the message digest and the @acronym{MAC}
+of a Scheme string using the @acronym{MD5} algorithm; other algorithms
+work in the same way.
 
 @example
-(with-compensations
-  (let* ((ctx*    (malloc-block/c sizeof-md5_ctx))
-         (buf.ptr (string->cstring "abc"))
-         (buf.len (strlen buf.ptr)))
-    (md5_init ctx*)
-    (md5_update ctx* buf.len buf.ptr)
-    (let* ((md.len MD5_DIGEST_SIZE)
-           (md.ptr (malloc-block/c md.len)))
-      (md5_digest ctx* md.len md.ptr)
-      (memblock->string-hex (make-<memblock> md.ptr md.len #f)))))
+(import (rnrs)
+  (compensations)
+  (foreign cstrings)
+  (foreign memory)
+  (foreign crypto nettle platform)
+  (foreign crypto nettle sizeof))
+
+(define (string->md5 str)
+  (with-compensations
+      (let* ((buf.ptr (string->cstring str))
+             (buf.len (strlen buf.ptr))
+             (ctx*    (malloc-block/c sizeof-md5_ctx)))
+        (md5_init ctx*)
+        (md5_update ctx* buf.len buf.ptr)
+        (let* ((md.len MD5_DIGEST_SIZE)
+               (md.ptr (malloc-block/c md.len)))
+          (md5_digest ctx* md.len md.ptr)
+          (memblock->string-hex
+             (make-<memblock> md.ptr md.len #f))))))
+
+(define (string->md5-hmac key str)
+  (with-compensations
+      (let* ((buf.ptr (string->cstring str))
+             (buf.len (strlen buf.ptr))
+             (key.ptr (string->cstring key))
+             (key.len (strlen key.ptr))
+             (ctx*    (malloc-block/c sizeof-hmac_md5_ctx)))
+        (hmac_md5_set_key ctx* key.len key.ptr)
+        (hmac_md5_update ctx* buf.len buf.ptr)
+        (let* ((mac.len MD5_DIGEST_SIZE)
+               (mac.ptr (malloc-block/c mac.len)))
+          (hmac_md5_digest ctx* mac.len mac.ptr)
+          (memblock->string-hex
+             (make-<memblock> mac.ptr mac.len #f))))))
+
+(string->md5 "abc")
 @result{} "900150983CD24FB0D6963F7D28E17F72"
+
+(string->md5-hmac "Jefe" "what do ya want for nothing?")
+@result{} "750C783E6AB0B503EAA86E310A5DB738"
 @end example
+
+@c page
+@node cipher
+@chapter Symmetric cryptography
+
+
+The examples proposed in this chapter are about encrypting and
+decrypting data using symmetric key cipher algorithms; @ref{nettle
+cipher} for the original @api{}.
+
+@menu
+* cipher ecb::                  Example of @acronym{ECB} mode.
+* cipher cbc::                  Example of @acronym{CBC} mode.
+* cipher ctr::                  Example of @acronym{CTR} mode.
+* cipher arcfour::              Example using @acronym{ARCFOUR}.
+@end menu
+
+@c page
+@node cipher ecb
+@section Example of @acronym{ECB} mode
+
+
+The following functions encrypt and decrypt a bytevector using the
+@acronym{AES} cipher and @acronym{ECB} mode; other block cipher
+algorithms work in the same way.  The bytevector has to have length
+equal to an exact multiple of the algorithm's block size.
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign cstrings)
+  (foreign memory)
+  (foreign crypto nettle platform)
+  (foreign crypto nettle sizeof))
+
+(define (aes-encrypt key bv)
+  (with-compensations
+    (let* ((in.ptr   (bytevector->pointer bv malloc-block/c))
+           (in.len   (bytevector-length bv))
+           (key.ptr  (string->cstring key))
+           (key.len  (strlen key.ptr))
+           (ou.len   AES_BLOCK_SIZE)
+           (ou.ptr   (malloc-block/c ou.len))
+           (aes*     (malloc-block/c sizeof-aes_ctx)))
+      (aes_set_encrypt_key aes* key.len key.ptr)
+      (aes_encrypt aes* in.len ou.ptr in.ptr)
+      (pointer->bytevector ou.ptr ou.len))))
+
+(define (aes-decrypt key bv)
+  (with-compensations
+    (let* ((in.ptr   (bytevector->pointer bv malloc-block/c))
+           (in.len   (bytevector-length bv))
+           (key.ptr  (string->cstring key))
+           (key.len  (strlen key.ptr))
+           (ou.len   AES_BLOCK_SIZE)
+           (ou.ptr   (malloc-block/c ou.len))
+           (aes*     (malloc-block/c sizeof-aes_ctx)))
+      (aes_set_decrypt_key aes* key.len key.ptr)
+      (aes_decrypt aes* in.len ou.ptr in.ptr)
+      (pointer->bytevector ou.ptr ou.len))))
+
+(define key
+  "abcdefghilmnopqr")
+
+(define data
+  '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+
+(define encrypted-data
+  '#vu8(219 250 97 26 40 100 248 163 58 250 12 50 207 131 251 234))
+
+(aes-encrypt keyword data)
+@result{} #vu8(219 250 97 26 40 100 248 163 58 250 12 50 207 131 251 234)
+
+(aes-decrypt keyword encrypted-data)
+@result{} #vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
+@end example
+
+@c page
+@node cipher cbc
+@section Example of @acronym{CBC} mode
+
+
+In the following example we encrypt and then decrypt two bytevectors
+using the @acronym{AES} cipher and @acronym{CBC} mode; other block
+cipher algorithms work in the same way.  The bytevectors have length
+equal to the cipher's block size.
+
+@example
+(import (nausicaa)
+  (compensations)
+  (only (foreign ffi) make-c-callback*)
+  (foreign cstrings)
+  (foreign memory)
+  (foreign crypto nettle platform)
+  (foreign crypto nettle sizeof))
+
+(with-compensations
+  (let* ((len        AES_BLOCK_SIZE)
+
+         (iv        '#vu8(10 11 12 13 14 15 16 17 18 19
+                          20 21 22 23 24 25))
+         (iv.ptr     (bytevector->pointer iv malloc-block/c))
+
+         (key       '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+         (key.ptr   (bytevector->pointer key malloc-block/c))
+
+         (data1     '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+         (data1.ptr (bytevector->pointer key malloc-block/c))
+
+         (data2     '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+         (data2.ptr (bytevector->pointer key malloc-block/c))
+
+         (aes*      (malloc-block/c sizeof-aes_ctx))
+
+         (enc1.ptr  (malloc-block/c len))
+         (enc2.ptr  (malloc-block/c len))
+
+         (encrypt   (make-c-callback* void aes_encrypt
+                       (void* unsigned void* void*))))
+
+    (aes_set_encrypt_key aes* len key.ptr)
+    (cbc_encrypt aes* encrypt len iv.ptr len enc1.ptr data1.ptr)
+    (cbc_encrypt aes* encrypt len iv.ptr len enc2.ptr data2.ptr)
+
+    (let ((iv.ptr   (bytevector->pointer iv malloc-block/c))
+          (ou1.ptr  (malloc-block/c len))
+          (ou2.ptr  (malloc-block/c len))
+          (decrypt  (make-c-callback* void aes_decrypt
+                       (void* unsigned void* void*))))
+
+      (aes_set_decrypt_key aes* len key.ptr)
+      (cbc_decrypt aes* decrypt len iv.ptr len ou1.ptr enc1.ptr)
+      (cbc_decrypt aes* decrypt len iv.ptr len ou2.ptr enc2.ptr)
+
+      ---))
+@end example
+
+@c page
+@node cipher ctr
+@section Example of @acronym{CTR} mode
+
+
+In the following example we encrypt and then decrypt two bytevectors
+using the @acronym{AES} cipher and @acronym{CTR} mode; other block
+cipher algorithms work in the same way.  The bytevectors have length
+equal to the cipher's block size.  Notice that we use the @acronym{AES}
+encryption functions for both encryption and decryption; @ref{nettle
+cipher modes ctr} for details.
+
+@example
+(import (nausicaa)
+  (compensations)
+  (only (foreign ffi) make-c-callback*)
+  (foreign cstrings)
+  (foreign memory)
+  (foreign crypto nettle platform)
+  (foreign crypto nettle sizeof))
+
+(with-compensations
+
+  (let* ((len       AES_BLOCK_SIZE)
+
+         (ic        '#vu8(10 11 12 13 14 15 16 17 18 19
+                          20 21 22 23 24 25))
+         (ic.ptr    (bytevector->pointer ic malloc-block/c))
+
+         (key       '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+         (key.ptr   (bytevector->pointer key malloc-block/c))
+
+         (data1     '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+         (data1.ptr (bytevector->pointer key malloc-block/c))
+
+         (data2     '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+         (data2.ptr (bytevector->pointer key malloc-block/c))
+
+         (aes*      (malloc-block/c sizeof-aes_ctx))
+
+         (enc1.ptr  (malloc-block/c len))
+         (enc2.ptr  (malloc-block/c len))
+
+         (encrypt   (make-c-callback* void aes_encrypt
+                       (void* unsigned void* void*))))
+
+    (aes_set_encrypt_key aes* len key.ptr)
+    (ctr_crypt aes* encrypt len ic.ptr len enc1.ptr data1.ptr)
+    (ctr_crypt aes* encrypt len ic.ptr len enc2.ptr data2.ptr)
+
+    (let ((ic.ptr   (bytevector->pointer ic malloc-block/c))
+          (ou1.ptr  (malloc-block/c len))
+          (ou2.ptr  (malloc-block/c len)))
+
+      (aes_set_encrypt_key aes* len key.ptr)
+      (ctr_crypt aes* encrypt len ic.ptr len ou1.ptr enc1.ptr)
+      (ctr_crypt aes* encrypt len ic.ptr len ou2.ptr enc2.ptr)
+
+      ---)))
+@end example
+
+@c page
+@node cipher arcfour
+@section Example using @acronym{ARCFOUR}
+
+
+In the following example we encrypt and then decrypt a bytevector using
+the @acronym{ARCFOUR} stream cipher algorithm.  It uses the key setup
+method outlined in the original Netttle documentation; @ref{nettle
+cipher arcfour} for details.
+
+@example
+(import (nausicaa)
+  (compensations)
+  (foreign cstrings)
+  (foreign memory)
+  (foreign crypto nettle platform)
+  (foreign crypto nettle sizeof))
+
+(define (arcfour-key-setup arcfour* key)
+  (with-compensations
+    (let* ((key.ptr   (string->cstring/c key))
+           (key.len   (strlen key.ptr))
+           (sha*      (malloc-block/c sizeof-sha256_ctx))
+           (md.len    SHA256_DIGEST_SIZE)
+           (md.ptr    (malloc-block/c md.len))
+           (dummy.len 512)
+           (dummy.ptr (malloc-block/c dummy.len)))
+        (sha256_init sha*)
+        (sha256_update sha* key.len key.ptr)
+        (sha256_digest sha* md.len  md.ptr)
+        (arcfour_set_key arcfour* md.len md.ptr)
+        (arcfour_crypt arcfour* dummy.len dummy.ptr dummy.ptr))))
+
+(define (arcfour-crypt key bv)
+  (with-compensations
+    (let* ((ctx*      (malloc-block/c sizeof-arcfour_ctx))
+           (in.ptr    (bytevector->pointer bv malloc-block/c))
+           (in.len    (bytevector-length bv))
+           (ou.ptr    (malloc-block/c in.len)))
+      (arcfour-key-setup ctx* key)
+      (arcfour_crypt ctx* in.len ou.ptr in.ptr)
+      (pointer->bytevector ou.ptr in.len))))
+
+(arcfour-crypt "ciao" '#vu8(0 1 2 3 4 5 6))
+@result{} #vu8(23 184 137 227 187 115 16)
+
+(arcfour-crypt "ciao" '#vu8(23 184 137 227 187 115 16))
+@result{} #vu8(0 1 2 3 4 5 6)
+@end example
+
+@c page
+@node random
+@chapter Randomness generation
+
+
+The examples proposed in this chapter are about pseudo--random numbers
+generation; @ref{nettle random} for the original @api{}.
+
+@menu
+* random knuth::                Examples using Knuth's lagged
+                                Fibonacci sequence.
+@end menu
+
+@c page
+@node random knuth
+@section Examples using Knuth's lagged Fibonacci sequence
+
+
+The following function generates a bytevector of random bytes using
+Knuth's lagged Fibonacci sequence algorithm.
+
+@example
+(import (nausicaa)
+  (compensations)
+  (foreign memory)
+  (foreign crypto nettle platform)
+  (foreign crypto nettle sizeof))
+
+(define (knuth-lfib->bv seed buf.len)
+  (with-compensations
+    (let* ((ctx*    (malloc-block/c sizeof-knuth_lfib_ctx))
+           (buf.ptr (malloc-block/c buf.len)))
+      (knuth_lfib_init ctx* seed)
+      (knuth_lfib_random ctx* buf.len buf.ptr)
+      (pointer->bytevector buf.ptr buf.len))))
+
+(knuth-lfib->bv 543 10)
+@result{} #vu8(45 152 161 103 136 56 111 161 39 246)
+@end example
+
 
 @c page
 

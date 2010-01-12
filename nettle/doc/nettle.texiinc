@@ -10,26 +10,207 @@ Maggi @email{mrc.mgg@@gmail.com}.
 @end quotation
 
 @menu
-* nettle ascii::                @ascii{} encodings.
+* nettle types::                Type definitions.
+* nettle armor::                @ascii{} armor algorithms.
 * nettle md::                   Computing message digests.
-* nettle symmetric::            Symmetric key cryptography.
+* nettle cipher::               Symmetric key cryptography.
 * nettle pubkey::               Public--key algorithms.
 * nettle random::               Randomness.
 * nettle misc::                 Miscellaneous functions.
 @end menu
 
 @c page
-@node nettle ascii
+@node nettle types
+@appendixsec Type definitions
+
+
+@menu
+* nettle types armor::          @ascii{} armor algorithms.
+* nettle types md::             Message digest computation.
+* nettle types cipher::         Symmetric key cryptography.
+* nettle types random::         Randomness generation.
+* nettle types misc::           Miscellaneous types.
+@end menu
+
+@c page
+@node nettle types armor
+@appendixsubsec @ascii{} armor algorithms
+
+
+@deftp {Function Prototype} nettle_armor_length_func
+Compute the output length for an @ascii{} armor encoding when the input
+is of @var{length} bytes.  It is defined as:
+
+@example
+typedef unsigned
+nettle_armor_length_func (unsigned length);
+@end example
+@end deftp
+
+
+@deftp {Function Prototype} nettle_armor_init_func
+Initialise the context for an @ascii{} armor algorithm.  It is defined
+as:
+
+@example
+typedef void
+nettle_armor_init_func (void *ctx);
+@end example
+@end deftp
+
+
+@deftp {Function Prototype} nettle_armor_encode_update_func
+Process input data with an encoding @ascii{} armor algorithm; produce
+output, update context.  It is defined as:
+
+@example
+typedef unsigned
+nettle_armor_encode_update_func (void *ctx,
+                                 uint8_t *dst,
+                                 unsigned src_length,
+                                 const uint8_t *src);
+@end example
+@end deftp
+
+
+@deftp {Function Prototype} nettle_armor_encode_final_func
+Finalise the context of an encoding @ascii{} armor algorithm.  It is
+defined as:
+
+@example
+typedef unsigned
+nettle_armor_encode_final_func (void *ctx, uint8_t *dst);
+@end example
+@end deftp
+
+
+@deftp {Function Prototype} nettle_armor_decode_update_func
+Process input data with a decoding @ascii{} armor algorithm; produce
+output, update context.  It is defined as:
+
+@example
+typedef int
+nettle_armor_decode_update_func (void *ctx,
+   unsigned *dst_length, uint8_t *dst,
+   unsigned src_length,  const uint8_t *src);
+@end example
+@end deftp
+
+
+@deftp {Function Prototype} nettle_armor_decode_final_func
+Finalise the context of an encoding @ascii{} armor algorithm.  It is
+defined as:
+
+@example
+typedef int
+nettle_armor_decode_final_func (void *ctx);
+@end example
+@end deftp
+
+@c page
+@node nettle types md
+@appendixsubsec Message digest computation
+
+
+@deftp {Function Prototype} nettle_hash_init_func
+Initialise the context for message digest computation.  It is defined
+as:
+
+@example
+typedef void
+nettle_hash_init_func (void *ctx);
+@end example
+@end deftp
+
+
+@deftp {Function Prototype} nettle_hash_update_func
+Update a message digest context with new data.  It is defined as:
+
+@example
+typedef void
+nettle_hash_update_func (void *ctx,
+                         unsigned length, const uint8_t *src);
+@end example
+@end deftp
+
+
+@deftp {Function Prototype} nettle_hash_digest_func
+Compute the message digest itself and store it in the supplied memory
+block.  It is defined as:
+
+@example
+typedef void
+nettle_hash_digest_func (void *ctx,
+                         unsigned length, uint8_t *dst);
+@end example
+@end deftp
+
+@c page
+@node nettle types cipher
+@appendixsubsec Symmetric key cryptography
+
+
+@deftp {Function Prototype} nettle_set_key_func
+Set key for cipher algorithms.  It is defined as:
+@example
+typedef void
+nettle_set_key_func (void *ctx, unsigned length, const uint8_t *key);
+@end example
+@end deftp
+
+
+@deftp {Function Prototype} nettle_crypt_func
+Encryption or decryption function for symmetric key cryptography.  It is
+defined as:
+
+@example
+typedef void
+nettle_crypt_func (void *ctx, unsigned length,
+                   uint8_t *dst, const uint8_t *src);
+@end example
+@end deftp
+
+@c page
+@node nettle types random
+@appendixsubsec Randomness generation
+
+
+@deftp {Function Prototype} nettle_random_func
+Used by key generation and @acronym{DSA} signature creation.  It is
+defined as:
+
+@example
+typedef void
+nettle_random_func (void *ctx, unsigned length, uint8_t *dst);
+@end example
+@end deftp
+
+@c page
+@node nettle types misc
+@appendixsubsec Miscellaneous types
+
+
+@deftp {Function Prototype} nettle_progress_func
+Progress report function, mainly for key generation.  It is defined as:
+
+@example
+typedef void
+nettle_progress_func (void *ctx, int c);
+@end example
+@end deftp
+
+@c page
+@node nettle armor
 @appendixsec @ascii{} encodings
 
 
 @menu
-* nettle ascii base16::         Base16 encoding.
-* nettle ascii base64::         Base64 encoding.
+* nettle armor base16::         Base16 encoding.
+* nettle armor base64::         Base64 encoding.
 @end menu
 
 @c page
-@node nettle ascii base16
+@node nettle armor base16
 @appendixsubsec Base16 encoding
 
 
@@ -99,7 +280,7 @@ Verify that the context holds no bits, returns @math{1} on success.
 @end deftypefun
 
 @c page
-@node nettle ascii base64
+@node nettle armor base64
 @appendixsubsec Base64 encoding
 
 
@@ -811,7 +992,7 @@ the same key.
 @end deftypefun
 
 @c page
-@node nettle symmetric
+@node nettle cipher
 @appendixsec Symmetric key cryptography
 
 
@@ -822,22 +1003,22 @@ plaintext.  Given matching pairs of plaintext and ciphertext, it should
 be hard to find the key.
 
 @menu
-* nettle symmetric intro::      Introduction to symmetric cryptography.
-* nettle symmetric aes::        The @acronym{AES} algorithm.
-* nettle symmetric arcfour::    The @acronym{ARCFOUR} algorithm.
-* nettle symmetric arctwo::     The @acronym{ARCTWO} algorithm.
-* nettle symmetric cast128::    The @acronym{CAST}-128 algorithm.
-* nettle symmetric blowfish::   The @acronym{BLOWFISH} algorithm.
-* nettle symmetric des::        The @acronym{DES} algorithm.
-* nettle symmetric des3::       The @acronym{DES3} algorithm.
-* nettle symmetric serpent::    The @acronym{SERPENT} algorithm.
-* nettle symmetric twofish::    The @acronym{TWOFISH} algorithm.
-* nettle symmetric meta::       Unified cipher interface.
-* nettle symmetric modes::      Cipher modes.
+* nettle cipher intro::         Introduction to symmetric cryptography.
+* nettle cipher aes::           The @acronym{AES} algorithm.
+* nettle cipher arcfour::       The @acronym{ARCFOUR} algorithm.
+* nettle cipher arctwo::        The @acronym{ARCTWO} algorithm.
+* nettle cipher cast128::       The @acronym{CAST}-128 algorithm.
+* nettle cipher blowfish::      The @acronym{BLOWFISH} algorithm.
+* nettle cipher des::           The @acronym{DES} algorithm.
+* nettle cipher des3::          The @acronym{DES3} algorithm.
+* nettle cipher serpent::       The @acronym{SERPENT} algorithm.
+* nettle cipher twofish::       The @acronym{TWOFISH} algorithm.
+* nettle cipher meta::          Unified cipher interface.
+* nettle cipher modes::         Cipher modes.
 @end menu
 
 @c page
-@node nettle symmetric intro
+@node nettle cipher intro
 @appendixsubsec Introduction to symmetric cryptography
 
 
@@ -914,7 +1095,7 @@ single key setup function that can be used for both encryption and
 decryption.
 
 @c page
-@node nettle symmetric aes
+@node nettle cipher aes
 @appendixsubsec The @acronym{AES} algorithm
 
 
@@ -959,7 +1140,7 @@ Initialize the cipher, for encryption or decryption, respectively.
 @end deftypefun
 
 
-@deftypefun void aes_encrypt (struct aes_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void aes_encrypt (struct aes_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Encryption function.  @var{length} must be an integral multiple of the
 block size.  If it is more than one block, the data is processed in
 @acronym{ECB} mode.  @var{src} and @var{dst} may be equal, but they must
@@ -972,7 +1153,7 @@ Analogous to @cfunc{aes_encrypt}.
 @end deftypefun
 
 @c page
-@node nettle symmetric arcfour
+@node nettle cipher arcfour
 @appendixsubsec The @acronym{ARCFOUR} algorithm
 
 
@@ -1031,7 +1212,7 @@ decryption.
 @end deftypefun
 
 
-@deftypefun void arcfour_crypt (struct arcfour_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t *@var{src})
+@deftypefun void arcfour_crypt (struct arcfour_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t *@var{src})
 Encrypt or decrypt some data; the same function is used for both
 encryption and decryption.  Unlike the block ciphers, this function
 modifies the context, so we can split the data into arbitrary chunks and
@@ -1040,11 +1221,11 @@ called @cfunc{arcfour_crypt} only once with all the data.
 @end deftypefun
 
 @c page
-@node nettle symmetric arctwo
+@node nettle cipher arctwo
 @appendixsubsec The @acronym{ARCTWO} algorithm
 
 
-@acronym{ARCTWO}, also known as the trade marked name @acronym{RC2}) is
+@acronym{ARCTWO}, also known as the trade marked name @acronym{RC2}, is
 a block cipher specified in @rfc{} 2268.  Nettle also include a
 variation of the @acronym{ARCTWO} set key operation that lacks one step,
 to be compatible with the reverse engineered @acronym{RC2} cipher
@@ -1103,7 +1284,7 @@ convenience, @math{ekb = 0} has the same effect as @math{ekb = 1024}.
 @end deftypefun
 
 
-@deftypefun void arctwo_encrypt (struct arctwo_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t *@var{src})
+@deftypefun void arctwo_encrypt (struct arctwo_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Encryption function.  @var{length} must be an integral multiple of the
 block size.  If it is more than one block, the data is processed in
 @acronym{ECB} mode.  @var{src} and @var{dst} may be equal, but they
@@ -1111,12 +1292,12 @@ must not overlap in any other way.
 @end deftypefun
 
 
-@deftypefun void arctwo_decrypt (struct arctwo_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void arctwo_decrypt (struct arctwo_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Analogous to @cfunc{arctwo_encrypt}.
 @end deftypefun
 
 @c page
-@node nettle symmetric cast128
+@node nettle cipher cast128
 @appendixsubsec The @acronym{CAST}-128 algorithm
 
 
@@ -1154,7 +1335,7 @@ decryption.
 @end deftypefun
 
 
-@deftypefun void cast128_encrypt (struct cast128_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void cast128_encrypt (struct cast128_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Encryption function.  @var{length} must be an integral multiple of the
 block size.  If it is more than one block, the data is processed in
 @acronym{ECB} mode.  @var{src} and @var{dst} may be equal, but they must
@@ -1162,12 +1343,12 @@ not overlap in any other way.
 @end deftypefun
 
 
-@deftypefun void cast128_decrypt (struct cast128_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void cast128_decrypt (struct cast128_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Analogous to @cfunc{cast128_encrypt}.
 @end deftypefun
 
 @c page
-@node nettle symmetric blowfish
+@node nettle cipher blowfish
 @appendixsubsec The @acronym{BLOWFISH} algorithm
 
 
@@ -1208,7 +1389,7 @@ a weak key will crash with an assert violation.
 @end deftypefun
 
 
-@deftypefun void blowfish_encrypt (struct blowfish_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void blowfish_encrypt (struct blowfish_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Encryption function.  @var{length} must be an integral multiple of the
 block size.  If it is more than one block, the data is processed in
 @acronym{ECB} mode.  @var{src} and @var{dst} may be equal, but they
@@ -1216,12 +1397,12 @@ must not overlap in any other way.
 @end deftypefun
 
 
-@deftypefun void blowfish_decrypt (struct blowfish_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void blowfish_decrypt (struct blowfish_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Analogous to @cfunc{blowfish_encrypt}.
 @end deftypefun
 
 @c page
-@node nettle symmetric des
+@node nettle cipher des
 @appendixsubsec The @acronym{DES} algorithm
 
 
@@ -1275,7 +1456,7 @@ not overlap in any other way.
 @end deftypefun
 
 
-@deftypefun void des_decrypt (struct des_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void des_decrypt (struct des_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Analogous to @cfunc{des_encrypt}.
 @end deftypefun
 
@@ -1288,7 +1469,7 @@ agreement protocol, and want to use it as a @acronym{DES} key.
 @end deftypefun
 
 @c page
-@node nettle symmetric des3
+@node nettle cipher des3
 @appendixsubsec The @acronym{DES3} algorithm
 
 
@@ -1358,7 +1539,7 @@ For random--looking strings, we can use @cfunc{des_fix_parity} to adjust
 the parity bits before calling @cfunc{des3_set_key}.
 
 
-@deftypefun void des3_encrypt (struct des3_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void des3_encrypt (struct des3_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Encryption function.  @var{length} must be an integral multiple of the
 block size.  If it is more than one block, the data is processed in
 @acronym{ECB} mode.  @var{src} and @var{dst} may be equal, but they must
@@ -1366,12 +1547,12 @@ not overlap in any other way.
 @end deftypefun
 
 
-@deftypefun void des3_decrypt (struct des3_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void des3_decrypt (struct des3_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Analogous to @cfunc{des_encrypt}.
 @end deftypefun
 
 @c page
-@node nettle symmetric serpent
+@node nettle cipher serpent
 @appendixsubsec The @acronym{SERPENT} algorithm
 
 
@@ -1412,7 +1593,7 @@ decryption.
 @end deftypefun
 
 
-@deftypefun void serpent_encrypt (struct serpent_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void serpent_encrypt (struct serpent_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Encryption function.  @var{length} must be an integral multiple of the
 block size.  If it is more than one block, the data is processed in
 @acronym{ECB} mode.  @var{src} and @var{dst} may be equal, but they must
@@ -1420,12 +1601,12 @@ not overlap in any other way.
 @end deftypefun
 
 
-@deftypefun void serpent_decrypt (struct serpent_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void serpent_decrypt (struct serpent_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Analogous to @cfunc{serpent_encrypt}.
 @end deftypefun
 
 @c page
-@node nettle symmetric twofish
+@node nettle cipher twofish
 @appendixsubsec The @acronym{TWOFISH} algorithm
 
 
@@ -1461,7 +1642,7 @@ decryption.
 @end deftypefun
 
 
-@deftypefun void twofish_encrypt (struct twofish_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void twofish_encrypt (struct twofish_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Encryption function.  @var{length} must be an integral multiple of the
 block size.  If it is more than one block, the data is processed in
 @acronym{ECB} mode.  @var{src} and @var{dst} may be equal, but they must
@@ -1469,12 +1650,12 @@ not overlap in any other way.
 @end deftypefun
 
 
-@deftypefun void twofish_decrypt (struct twofish_ctx * @var{ctx}, unsigned @var{length}, const uint8_t * @var{dst}, uint8_t * @var{src})
+@deftypefun void twofish_decrypt (struct twofish_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Analogous to @cfunc{twofish_encrypt}.
 @end deftypefun
 
 @c page
-@node nettle symmetric meta
+@node nettle cipher meta
 @appendixsubsec Unified cipher interface
 
 
@@ -1524,7 +1705,7 @@ ones without weak keys or other oddities.
 @end deftypevr
 
 @c page
-@node nettle symmetric modes
+@node nettle cipher modes
 @appendixsubsec Cipher modes
 
 
@@ -1539,12 +1720,12 @@ information leakage.  @acronym{CTR} was standardized more recently, and
 is believed to be more secure.
 
 @menu
-* nettle symmetric modes cbc::  Cipher block chaining mode.
-* nettle symmetric modes ctr::  Counter mode.
+* nettle cipher modes cbc::  Cipher block chaining mode.
+* nettle cipher modes ctr::  Counter mode.
 @end menu
 
 @c page
-@node nettle symmetric modes cbc
+@node nettle cipher modes cbc
 @appendixsubsubsec Cipher block chaining mode
 
 
@@ -1585,8 +1766,9 @@ functions use @code{void *} to pass cipher contexts around.
 @deftypefunx {void} cbc_decrypt (void * @var{ctx}, void (*@var{f})(), unsigned @var{block_size}, uint8_t * @var{iv}, unsigned @var{length}, uint8_t * @var{dst}, const uint8_t * @var{src})
 Apply the encryption or decryption function @var{f} in @acronym{CBC}
 mode.  The final ciphertext block processed is copied into @var{iv}
-before returning, so that large messages be processed be a sequence of
-calls to @cfunc{cbc_encrypt}.  The function @var{f} is of type:
+before returning, so that large messages can be processed with a
+sequence of calls to @cfunc{cbc_encrypt}.  The function @var{f} is of
+type:
 
 @example
 void f (void * @var{ctx}, unsigned @var{length},
@@ -1649,7 +1831,7 @@ the types of @var{f} and @var{ctx} don't match, e.g. if we try to use an
 @code{struct aes_ctx} context with the @cfunc{des_encrypt} function.
 
 @c page
-@node nettle symmetric modes ctr
+@node nettle cipher modes ctr
 @appendixsubsubsec Counter mode
 
 
