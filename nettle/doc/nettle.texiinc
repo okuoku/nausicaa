@@ -2472,8 +2472,8 @@ Create a signature from the given hash context or digest.
 
 @var{random_ctx} and @var{random} is a randomness generator.
 @code{random(random_ctx, length, dst)} should generate @code{length}
-random octets and store them at @code{dst}. For advice, see
-@ref{nettle random}.
+random octets and store them at @code{dst}.  For advice, see @ref{nettle
+random}.
 @end deftypefun
 
 

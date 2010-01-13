@@ -739,7 +739,7 @@ work in the same way.
 
 (define (string->md5 str)
   (with-compensations
-      (let* ((buf.ptr (string->cstring str))
+      (let* ((buf.ptr (string->cstring/c str))
              (buf.len (strlen buf.ptr))
              (ctx*    (malloc-block/c sizeof-md5_ctx)))
         (md5_init ctx*)
@@ -752,9 +752,9 @@ work in the same way.
 
 (define (string->md5-hmac key str)
   (with-compensations
-      (let* ((buf.ptr (string->cstring str))
+      (let* ((buf.ptr (string->cstring/c str))
              (buf.len (strlen buf.ptr))
-             (key.ptr (string->cstring key))
+             (key.ptr (string->cstring/c key))
              (key.len (strlen key.ptr))
              (ctx*    (malloc-block/c sizeof-hmac_md5_ctx)))
         (hmac_md5_set_key ctx* key.len key.ptr)
@@ -810,7 +810,7 @@ equal to an exact multiple of the algorithm's block size.
   (with-compensations
     (let* ((in.ptr   (bytevector->pointer bv malloc-block/c))
            (in.len   (bytevector-length bv))
-           (key.ptr  (string->cstring key))
+           (key.ptr  (string->cstring/c key))
            (key.len  (strlen key.ptr))
            (ou.len   AES_BLOCK_SIZE)
            (ou.ptr   (malloc-block/c ou.len))
@@ -823,7 +823,7 @@ equal to an exact multiple of the algorithm's block size.
   (with-compensations
     (let* ((in.ptr   (bytevector->pointer bv malloc-block/c))
            (in.len   (bytevector-length bv))
-           (key.ptr  (string->cstring key))
+           (key.ptr  (string->cstring/c key))
            (key.len  (strlen key.ptr))
            (ou.len   AES_BLOCK_SIZE)
            (ou.ptr   (malloc-block/c ou.len))
@@ -1029,6 +1029,7 @@ The examples proposed in this chapter are about public key cryptography;
 
 @menu
 * pubkey rsa::                  Usage examples for the @acronym{RSA} algorithm.
+* pubkey dsa::                  Usage examples for the @acronym{DSA} algorithm.
 @end menu
 
 @c page
@@ -1112,7 +1113,6 @@ is only suitable for debugging and examples:
     (rsa_private_key_clear pri*)))
 @end example
 
-
 The following function generates a new key pair:
 
 @example
@@ -1172,7 +1172,7 @@ string using the @acronym{RSA} and @acronym{MD5} algorithms:
 @example
 (define (rsa-md5-sign-string pri* str signature)
   (with-compensations
-    (let* ((buf.ptr   (string->cstring str))
+    (let* ((buf.ptr   (string->cstring/c str))
            (buf.len   (strlen buf.ptr))
            (md5*      (malloc-block/c sizeof-md5_ctx)))
       (md5_init md5*)
@@ -1181,7 +1181,7 @@ string using the @acronym{RSA} and @acronym{MD5} algorithms:
 
 (define (rsa-md5-verify-string pub* str signature)
   (with-compensations
-    (let* ((buf.ptr   (string->cstring str))
+    (let* ((buf.ptr   (string->cstring/c str))
            (buf.len   (strlen buf.ptr))
            (md5*      (malloc-block/c sizeof-md5_ctx)))
       (md5_init md5*)
@@ -1214,7 +1214,7 @@ only to pad input data:
 (with-compensations
   (let ((random*   (malloc-block/c sizeof-knuth_lfib_ctx))
         (cipher    (mpz/c))
-        (str.ptr   (string->cstring str))
+        (str.ptr   (string->cstring/c str))
         (str.len   (strlen str.ptr))
         (out.ptr   (malloc-block/c str.len))
         (out.len*  (malloc-small/c)))
@@ -1232,6 +1232,152 @@ only to pad input data:
     (cstring->string out.ptr
        (pointer-ref-c-unsigned-int out.len* 0))))
 @result{} "calm like a bomb"
+@end example
+
+@c page
+@node pubkey dsa
+@section Usage examples for the @acronym{DSA} algorithm
+
+
+The following examples show how to generate keys, sign and verify data
+using the @acronym{DSA} algorithm; all the examples are meant to have
+the following opening:
+
+@example
+(import (rnrs)
+  (receive)
+  (compensations)
+  (only (foreign ffi) make-c-callback*)
+  (foreign cstrings)
+  (foreign memory)
+  (foreign crypto nettle platform)
+  (foreign crypto hogweed platform)
+  (foreign crypto nettle sizeof))
+@end example
+
+@menu
+* pubkey dsa keygen::           Generating @acronym{DSA} key pairs.
+* pubkey dsa sign::             Signing and verifying data
+                                with @acronym{DSA}.
+@end menu
+
+@c page
+@node pubkey dsa keygen
+@subsection Generating @acronym{DSA} key pairs
+
+
+The following code generates a new key pair, then finalises it; it makes
+use of Knuth's lagged Fibonacci pseudo--random number generator, which
+is only suitable for debugging and examples:
+
+@example
+(with-compensations
+  (let* ((random* (malloc-block/c sizeof-knuth_lfib_ctx))
+         (pub*    (malloc-block/c sizeof-dsa_public_key))
+         (pri*    (malloc-block/c sizeof-dsa_private_key)))
+    (knuth_lfib_init random* 123)
+    (dsa_public_key_init  pub*)
+    (dsa_private_key_init pri*)
+    (unless (= 1 (dsa_generate_keypair
+                  pub* pri*
+                  random*
+                  (make-c-callback* void knuth_lfib_random
+                     (void* unsigned void*))
+                  pointer-null
+                  (make-c-callback* void
+                     (lambda (unused i)
+                       (display (integer->char i)))
+                     (void* int))
+                  1024))
+      (error #f "error generating DSA key pair"))
+
+    --- ;do something with the keys
+
+    (dsa_public_key_clear  pub*)
+    (dsa_private_key_clear pri*)))
+@end example
+
+The following function generates a new key pair:
+
+@example
+(define (dsa-make-keypair bits random-maker progress-printer)
+  (with-compensations
+    (let* ((pub*      (malloc sizeof-dsa_public_key))
+           (pri*      (malloc sizeof-dsa_private_key)))
+      (dsa_public_key_init  pub*)
+      (dsa_private_key_init pri*)
+      (unless (= 1 (dsa_generate_keypair
+                    pub* pri*
+                    pointer-null
+                    (make-c-callback* void random-maker
+                                      (void* unsigned void*))
+                    pointer-null
+                    (make-c-callback* void progress-printer
+                                      (void* int))
+                    bits))
+        (error 'dsa-make-keypair
+          "error generating DSA key pair"))
+      (values pub* pri*))))
+
+(with-compensations
+  (let ((random*  (malloc-block/c sizeof-knuth_lfib_ctx)))
+    (knuth_lfib_init random* 123)
+    (receive (pub* pri*)
+        (dsa-make-keypair 1024
+                          (lambda (unused buf.len buf.ptr)
+                            (knuth_lfib_random random*
+                               buf.len buf.ptr))
+                          (lambda (unused i)
+                            (display (integer->char i))))
+
+      --- ;do something with the keys
+
+      (dsa_public_key_clear  pub*)
+      (dsa_private_key_clear pri*))))
+@end example
+
+@c page
+@node pubkey dsa sign
+@subsection Signing and verifying data with @acronym{DSA}
+
+
+The following functions sign and verify the signature for a Scheme
+string using the @acronym{DSA} algorithm:
+
+@example
+(define (dsa-sign-string pub* pri* str signature*)
+  (with-compensations
+    (let* ((buf.ptr   (string->cstring/c str))
+           (buf.len   (strlen buf.ptr))
+           (sha1*     (malloc-block/c sizeof-sha1_ctx))
+           (random*   (malloc-block/c sizeof-knuth_lfib_ctx)))
+      (sha1_init sha1*)
+      (sha1_update sha1* buf.len buf.ptr)
+      (knuth_lfib_init random* 123)
+      (dsa_sign pub* pri* random*
+                (make-c-callback* void
+                   knuth_lfib_random (void* unsigned void*))
+                sha1* signature*))))
+
+(define (dsa-verify-string pub* str signature*)
+  (with-compensations
+    (let* ((buf.ptr   (string->cstring/c str))
+           (buf.len   (strlen buf.ptr))
+           (sha1*     (malloc-block/c sizeof-sha1_ctx)))
+      (sha1_init sha1*)
+      (sha1_update sha1* buf.len buf.ptr)
+      (dsa_verify pub* sha1* signature*))))
+
+(with-compensations
+  (let ((str        "calm like a bomb")
+        (signature* (malloc-block/c sizeof-dsa_signature)))
+    (compensate
+        (dsa_signature_init signature*)
+      (with
+       (dsa_signature_clear signature*)))
+    (dsa-sign-string pub* pri* str signature*)
+    (dsa-verify-string pub* str signature*)))
+@result{} 1
 @end example
 
 @c page

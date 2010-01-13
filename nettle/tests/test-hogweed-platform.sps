@@ -81,7 +81,7 @@
 
   (define (rsa-md5-sign-string pri* str signature)
     (with-compensations
-      (let* ((buf.ptr	(string->cstring str))
+      (let* ((buf.ptr	(string->cstring/c str))
 	     (buf.len	(strlen buf.ptr))
 	     (md5*	(malloc-block/c sizeof-md5_ctx)))
 	(md5_init md5*)
@@ -90,7 +90,7 @@
 
   (define (rsa-md5-verify-string pub* str signature)
     (with-compensations
-      (let* ((buf.ptr	(string->cstring str))
+      (let* ((buf.ptr	(string->cstring/c str))
 	     (buf.len	(strlen buf.ptr))
 	     (md5*	(malloc-block/c sizeof-md5_ctx)))
 	(md5_init md5*)
@@ -180,7 +180,7 @@
 
 	  (check
 	      (let* ((cipher	(mpz/c))
-		     (str.ptr	(string->cstring str))
+		     (str.ptr	(string->cstring/c str))
 		     (str.len	(strlen str.ptr))
 		     (out.ptr	(malloc-block/c str.len))
 		     (out.len*	(malloc-small/c)))
@@ -197,6 +197,121 @@
 
 
 	  #f))))
+
+  #t)
+
+
+(parametrise ((check-test-name	'dsa))
+
+  (define (dsa-make-keypair bits random-maker progress-printer)
+    (with-compensations
+      (let* ((pub*	(malloc sizeof-dsa_public_key))
+	     (pri*	(malloc sizeof-dsa_private_key)))
+	(dsa_public_key_init  pub*)
+	(dsa_private_key_init pri*)
+	(unless (= 1 (dsa_generate_keypair
+		      pub* pri*
+		      pointer-null
+		      (make-c-callback* void random-maker
+					(void* unsigned void*))
+		      pointer-null
+		      (make-c-callback* void progress-printer
+					(void* int))
+		      bits))
+	  (error 'dsa-make-keypair
+	    "error generating DSA key pair"))
+	(values pub* pri*))))
+
+  (define (dsa-sign-string pub* pri* str signature*)
+    (with-compensations
+      (let* ((buf.ptr	(string->cstring/c str))
+  	     (buf.len	(strlen buf.ptr))
+   	     (sha1*	(malloc-block/c sizeof-sha1_ctx))
+	     (random*	(malloc-block/c sizeof-knuth_lfib_ctx)))
+   	(sha1_init sha1*)
+   	(sha1_update sha1* buf.len buf.ptr)
+	(knuth_lfib_init random* 123)
+  	(dsa_sign pub* pri*
+		  random* (make-c-callback* void knuth_lfib_random (void* unsigned void*))
+		  sha1* signature*)
+	)))
+
+  (define (dsa-verify-string pub* str signature*)
+    (with-compensations
+      (let* ((buf.ptr	(string->cstring/c str))
+  	     (buf.len	(strlen buf.ptr))
+  	     (sha1*	(malloc-block/c sizeof-sha1_ctx)))
+  	(sha1_init sha1*)
+  	(sha1_update sha1* buf.len buf.ptr)
+  	(dsa_verify pub* sha1* signature*))))
+
+;;; --------------------------------------------------------------------
+;;; key generation
+
+  (check
+      (with-compensations
+	(let* ((random*	(malloc-block/c sizeof-knuth_lfib_ctx))
+	       (pub*	(malloc-block/c sizeof-dsa_public_key))
+	       (pri*	(malloc-block/c sizeof-dsa_private_key)))
+	  (knuth_lfib_init random* 123)
+	  (dsa_public_key_init  pub*)
+	  (dsa_private_key_init pri*)
+	  (unless (= 1 (dsa_generate_keypair
+			pub* pri*
+			random* (make-c-callback* void knuth_lfib_random (void* unsigned void*))
+			pointer-null (make-c-callback* void (lambda (unused i)
+							      (display (integer->char i)))
+						       (void* int))
+			1024))
+	    (error #f "error generating DSA key pair"))
+	  (dsa_public_key_clear  pub*)
+	  (dsa_private_key_clear pri*)
+	  #f))
+    => #f)
+
+  (check
+      (with-compensations
+	(let ((random*	(malloc-block/c sizeof-knuth_lfib_ctx)))
+	  (knuth_lfib_init random* 123)
+	  (receive (pub* pri*)
+	      (dsa-make-keypair 1024
+				(lambda (unused buf.len buf.ptr)
+				  (knuth_lfib_random random* buf.len buf.ptr))
+				(lambda (unused i)
+				  (display (integer->char i))))
+	    (dsa_public_key_clear  pub*)
+	    (dsa_private_key_clear pri*)
+	    #f)))
+    => #f)
+
+;;; --------------------------------------------------------------------
+;;; signing
+
+  (with-compensations
+    (let ((random* (malloc-block/c sizeof-knuth_lfib_ctx)))
+      (knuth_lfib_init random* 123)
+      (receive (pub* pri*)
+  	  (dsa-make-keypair 1024
+  			    (lambda (unused buf.len buf.ptr)
+  			      (knuth_lfib_random random* buf.len buf.ptr))
+  			    (lambda (unused i)
+  			      (display (integer->char i))))
+  	(push-compensation (dsa_public_key_clear  pub*))
+  	(push-compensation (dsa_private_key_clear pri*))
+
+  	(let ((str "calm like a bomb"))
+
+  	  (check
+  	      (let ((signature* (malloc-block/c sizeof-dsa_signature)))
+	  	(compensate
+	  	    (dsa_signature_init signature*)
+	  	  (with
+	  	   (dsa_signature_clear signature*)))
+  	  	(dsa-sign-string pub* pri* str signature*)
+  	  	(dsa-verify-string pub* str signature*))
+  	    => 1)
+
+  	  #f))))
 
   #t)
 
