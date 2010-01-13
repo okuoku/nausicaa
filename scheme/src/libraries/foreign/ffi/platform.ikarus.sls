@@ -62,7 +62,7 @@
 ;;;; dynamic loading
 
 (define (open-shared-object library-name)
-  (ikarus:dlopen (%normalise-foreign-symbol library-name)))
+  (ikarus:dlopen (%normalise-foreign-symbol library-name) #t #f))
 
 (define (lookup-shared-object lib-spec foreign-symbol)
   ;;This already returns #f when the symbol is not found.
