@@ -2159,17 +2159,6 @@ structs above, and temporaries, are allocated dynamically.  For
 information on how to customize allocation, see @xref{Custom
 Allocation,,GMP Allocation,gmp, GMP Manual}.
 
-When we have assigned values to the attributes of a key, we must call:
-
-
-@deftypefun int rsa_public_key_prepare (struct rsa_public_key * @var{pub})
-@deftypefunx int rsa_private_key_prepare (struct rsa_private_key * @var{key})
-Compute the octet size of the key (stored in the @code{size} attribute,
-and may also do other basic sanity checks.  Return one if successful, or
-zero if the key can't be used, for instance if the modulo is smaller
-than the minimum size specified by @acronym{PKCS#1}.
-@end deftypefun
-
 
 @deftypefun int rsa_generate_keypair (struct rsa_public_key * @var{pub}, struct rsa_private_key * @var{key}, void * @var{random_ctx}, nettle_random_func @var{random}, void * @var{progress_ctx}, nettle_progress_func @var{progress}, unsigned @var{n_size}, unsigned @var{e_size});
 Generate a key pair; return @code{1} on success, and @code{0} on
@@ -2198,6 +2187,17 @@ zero, it is assumed that the caller has already chosen a value for
 @code{e}, and stored it in @var{pub}.
 @end deftypefun
 
+
+When we have assigned values to the attributes of a key, we must call:
+
+
+@deftypefun int rsa_public_key_prepare (struct rsa_public_key * @var{pub})
+@deftypefunx int rsa_private_key_prepare (struct rsa_private_key * @var{key})
+Compute the octet size of the key (stored in the @code{size} attribute,
+and may also do other basic sanity checks.  Return one if successful, or
+zero if the key can't be used, for instance if the modulo is smaller
+than the minimum size specified by @acronym{PKCS#1}.
+@end deftypefun
 
 If we need to use the @acronym{RSA} trapdoor, the private key, in a way
 that isn't supported by the above functions Nettle also includes a

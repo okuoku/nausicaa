@@ -29,7 +29,8 @@
   (export hogweed-shared-object)
   (import (rnrs)
     (foreign ffi)
-    (foreign crypto nettle sizeof))
+    (foreign crypto nettle sizeof)
+    (foreign crypto nettle shared-object))
   (define-shared-object hogweed-shared-object
     HOGWEED_SHARED_OBJECT))
 

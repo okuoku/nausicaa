@@ -68,6 +68,9 @@ infrastructure.  Basically we should do:
    $ make test
    $ make install
 
+running the  tests for "libhogweed"  requires Nausicaa/MP to
+be installed.
+
   To test what a rule will do use the "-n" option; example:
 
     $ make install -n

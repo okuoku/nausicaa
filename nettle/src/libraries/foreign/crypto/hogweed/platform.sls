@@ -27,101 +27,101 @@
 
 (library (foreign crypto hogweed platform)
   (export
-    ;; nettle_mpz_sizeinbase_256_s
-    ;; nettle_mpz_sizeinbase_256_u
-    ;; nettle_mpz_get_str_256
-    ;; nettle_mpz_set_str_256_s
-    ;; nettle_mpz_init_set_str_256_s
-    ;; nettle_mpz_set_str_256_u
-    ;; nettle_mpz_init_set_str_256_u
-    ;; nettle_mpz_random_size
+    nettle_mpz_sizeinbase_256_s
+    nettle_mpz_sizeinbase_256_u
+    nettle_mpz_get_str_256
+    nettle_mpz_set_str_256_s
+    nettle_mpz_init_set_str_256_s
+    nettle_mpz_set_str_256_u
+    nettle_mpz_init_set_str_256_u
+    nettle_mpz_random_size
 
-    ;; nettle_mpz_random
-    ;; nettle_next_prime
+    nettle_mpz_random
+    nettle_next_prime
 
-    ;; nettle_mpz_set_sexp
-    ;; nettle_asn1_der_get_bignum
+    nettle_mpz_set_sexp
+    nettle_asn1_der_get_bignum
 
-    ;; dsa_public_key_init
-    ;; dsa_public_key_clear
-    ;; dsa_private_key_init
-    ;; dsa_private_key_clear
-    ;; dsa_signature_init
-    ;; dsa_signature_clear
-    ;; dsa_sign
-    ;; dsa_verify
-    ;; dsa_sign_digest
-    ;; dsa_verify_digest
-    ;; dsa_generate_keypair
-    ;; dsa_signature_from_sexp
-    ;; dsa_keypair_from_sexp_alist
-    ;; dsa_keypair_from_sexp
+    dsa_public_key_init
+    dsa_public_key_clear
+    dsa_private_key_init
+    dsa_private_key_clear
+    dsa_signature_init
+    dsa_signature_clear
+    dsa_sign
+    dsa_verify
+    dsa_sign_digest
+    dsa_verify_digest
+    dsa_generate_keypair
+    dsa_signature_from_sexp
+    dsa_keypair_from_sexp_alist
+    dsa_keypair_from_sexp
 
-    ;; pgp_put_uint32
-    ;; pgp_put_uint16
-    ;; pgp_put_mpi
-    ;; pgp_put_string
-    ;; pgp_put_length
-    ;; pgp_put_header
-    ;; pgp_put_header_length
-    ;; pgp_sub_packet_start
-    ;; pgp_put_sub_packet
-    ;; pgp_sub_packet_end
-    ;; pgp_put_public_rsa_key
-    ;; pgp_put_rsa_sha1_signature
-    ;; pgp_put_userid
-    ;; pgp_crc24
-    ;; pgp_armor
+    pgp_put_uint32
+    pgp_put_uint16
+    pgp_put_mpi
+    pgp_put_string
+    pgp_put_length
+    pgp_put_header
+    pgp_put_header_length
+    pgp_sub_packet_start
+    pgp_put_sub_packet
+    pgp_sub_packet_end
+    pgp_put_public_rsa_key
+    pgp_put_rsa_sha1_signature
+    pgp_put_userid
+    pgp_crc24
+    pgp_armor
 
-    ;; pkcs1_signature_prefix
-    ;; pkcs1_rsa_md5_encode
-    ;; pkcs1_rsa_md5_encode_digest
-    ;; pkcs1_rsa_sha1_encode
-    ;; pkcs1_rsa_sha1_encode_digest
-    ;; pkcs1_rsa_sha256_encode
-    ;; pkcs1_rsa_sha256_encode_digest
+    pkcs1_signature_prefix
+    pkcs1_rsa_md5_encode
+    pkcs1_rsa_md5_encode_digest
+    pkcs1_rsa_sha1_encode
+    pkcs1_rsa_sha1_encode_digest
+    pkcs1_rsa_sha256_encode
+    pkcs1_rsa_sha256_encode_digest
 
-    ;; rsa_public_key_init
-    ;; rsa_public_key_clear
-    ;; rsa_public_key_prepare
-    ;; rsa_private_key_init
-    ;; rsa_private_key_clear
-    ;; rsa_private_key_prepare
-    ;; rsa_md5_sign
-    ;; rsa_md5_verify
-    ;; rsa_sha1_sign
-    ;; rsa_sha1_verify
-    ;; rsa_sha256_sign
-    ;; rsa_sha256_verify
-    ;; rsa_md5_sign_digest
-    ;; rsa_md5_verify_digest
-    ;; rsa_sha1_sign_digest
-    ;; rsa_sha1_verify_digest
-    ;; rsa_sha256_sign_digest
-    ;; rsa_sha256_verify_digest
-    ;; rsa_encrypt
-    ;; rsa_decrypt
-    ;; rsa_compute_root
-    ;; rsa_generate_keypair
+    rsa_public_key_init
+    rsa_public_key_clear
+    rsa_public_key_prepare
+    rsa_private_key_init
+    rsa_private_key_clear
+    rsa_private_key_prepare
+    rsa_md5_sign
+    rsa_md5_verify
+    rsa_sha1_sign
+    rsa_sha1_verify
+    rsa_sha256_sign
+    rsa_sha256_verify
+    rsa_md5_sign_digest
+    rsa_md5_verify_digest
+    rsa_sha1_sign_digest
+    rsa_sha1_verify_digest
+    rsa_sha256_sign_digest
+    rsa_sha256_verify_digest
+    rsa_encrypt
+    rsa_decrypt
+    rsa_compute_root
+    rsa_generate_keypair
 
-    ;; rsa_keypair_to_sexp
-    ;; rsa_keypair_from_sexp_alist
-    ;; rsa_keypair_from_sexp
-    ;; rsa_public_key_from_der_iterator
-    ;; rsa_private_key_from_der_iterator
-    ;; rsa_keypair_from_der
-    ;; rsa_keypair_to_openpgp
+    rsa_keypair_to_sexp
+    rsa_keypair_from_sexp_alist
+    rsa_keypair_from_sexp
+    rsa_public_key_from_der_iterator
+    rsa_private_key_from_der_iterator
+    rsa_keypair_from_der
+    rsa_keypair_to_openpgp
 
-    ;; sexp_iterator_first
-    ;; sexp_transport_iterator_first
-    ;; sexp_iterator_next
-    ;; sexp_iterator_enter_list
-    ;; sexp_iterator_exit_list
-    ;; sexp_iterator_subexpr
-    ;; sexp_iterator_get_uint32
-    ;; sexp_iterator_check_type
-    ;; sexp_iterator_check_types
-    ;; sexp_iterator_assoc
+    sexp_iterator_first
+    sexp_transport_iterator_first
+    sexp_iterator_next
+    sexp_iterator_enter_list
+    sexp_iterator_exit_list
+    sexp_iterator_subexpr
+    sexp_iterator_get_uint32
+    sexp_iterator_check_type
+    sexp_iterator_check_types
+    sexp_iterator_assoc
     )
   (import (rnrs)
     (foreign ffi)
@@ -199,10 +199,10 @@
 (define-c-functions hogweed-shared-object
   (rsa_public_key_init		(void nettle_rsa_public_key_init (pointer)))
   (rsa_public_key_clear		(void nettle_rsa_public_key_clear (pointer)))
-  (rsa_public_key_prepare	(int nettle_rsa_public_key_prepare (pointer)))
+  (rsa_public_key_prepare	(int  nettle_rsa_public_key_prepare (pointer)))
   (rsa_private_key_init		(void nettle_rsa_private_key_init (pointer)))
   (rsa_private_key_clear	(void nettle_rsa_private_key_clear (pointer)))
-  (rsa_private_key_prepare	(int nettle_rsa_private_key_prepare (pointer)))
+  (rsa_private_key_prepare	(int  nettle_rsa_private_key_prepare (pointer)))
   (rsa_md5_sign			(void nettle_rsa_md5_sign (pointer pointer pointer)))
   (rsa_md5_verify		(int nettle_rsa_md5_verify (pointer pointer pointer)))
   (rsa_sha1_sign		(void nettle_rsa_sha1_sign (pointer pointer pointer)))
