@@ -16,6 +16,8 @@ Maggi @email{mrc.mgg@@gmail.com}.
 * nettle cipher::               Symmetric key cryptography.
 * nettle pubkey::               Public--key algorithms.
 * nettle random::               Randomness.
+* nettle buffer::               Memory buffers.
+* nettle sexp::                 S--expressions.
 * nettle misc::                 Miscellaneous functions.
 @end menu
 
@@ -2886,6 +2888,355 @@ Get an array of numbers.
 
 @deftypefun void knuth_lfib_random (struct knuth_lfib_ctx * @var{ctx}, unsigned @var{length}, uint8_t * @var{dst})
 Get an array of octets.
+@end deftypefun
+
+@c page
+@node nettle buffer
+@appendixsec Memory buffers
+
+
+Nettle implements a basic string stream data structure.  The @api{} is
+defined in @file{nettle/sexp.h}.
+
+@menu
+* nettle buffer types::         Memory buffer data type.
+* nettle buffer init::          Initialisation and finalisation
+                                of memory buffers.
+* nettle buffer write::         Writing data to memory buffers.
+@end menu
+
+@c page
+@node nettle buffer types
+@appendixsubsec Memory buffer data type
+
+
+@deftp {Data Structure} {struct nettle_buffer}
+It has the following fields:
+
+@table @code
+@item uint8_t * contents
+Pointer to the memory block.
+
+@item unsigned alloc
+Number of allocated bytes in the block referenced by @code{contents}.
+
+@item void * realloc_ctx
+@itemx nettle_realloc_func * realloc
+Function to be used to allocate memory and pointer to its custom context
+data.
+
+@item unsigned size
+Current data size in the block referenced by @code{contents}.  Used
+bytes start from the beginning of the block.
+@end table
+@end deftp
+
+@c page
+@node nettle buffer init
+@appendixsubsec Initialisation and finalisation of memory buffers
+
+
+@deftypefun void nettle_buffer_init (struct nettle_buffer * @var{B})
+Initialise an already allocated buffer structure, registering the
+standard @cfunc{realloc} function as memory allocator.
+@end deftypefun
+
+
+@deftypefun void nettle_buffer_init_realloc (struct nettle_buffer * @var{B}, void * @var{ctx}, nettle_realloc_func @var{realloc})
+Initialise an already allocated buffer structure, registering the
+@var{realloc} function as memory allocator with @var{ctx} as its custom
+context.
+@end deftypefun
+
+
+@deftypefun void nettle_buffer_init_size (struct nettle_buffer * @var{B}, unsigned @var{len}, uint8_t * @var{block})
+Initialise an already allocated buffer structure using the referenced
+memory block as internal buffer; this makes the buffer a ``view'' over
+the referenced block.
+
+The maximum size of the buffer will be @var{len} and the buffer cannot
+be reallocated; attempting to store more than @var{len} bytes in this
+buffer will cause an error code to be returned.
+
+The @code{size} field of @var{B} is set to zero, so, initially, the
+buffer is considered empty; we can override this by setting explicitly a
+value for @code{size}.
+@end deftypefun
+
+
+@deftypefun void nettle_buffer_clear (struct nettle_buffer * @var{B})
+Release the allocated memory (if any) and reset all the structure fields
+to zero.
+@end deftypefun
+
+
+@deftypefun void nettle_buffer_reset (struct nettle_buffer * @var{B})
+Reset the buffer to zero length (empty), without releasing the allocated
+memory.
+@end deftypefun
+
+
+@deftypefun int nettle_buffer_grow (struct nettle_buffer * @var{B}, unsigned @var{len})
+Make sure the buffer has room for @var{len} bytes, reallocating if
+needed.  Return true if successful, false otherwise.
+@end deftypefun
+
+@c page
+@node nettle buffer write
+@appendixsubsec Writing data to memory buffers
+
+
+@defmac NETTLE_BUFFER_PUTC (@var{buffer}, @var{ch})
+Append a single character to @var{buffer}, reallocating it if needed.
+Evaluate to true if successful, to false otherwise.
+@end defmac
+
+
+@deftypefun int nettle_buffer_write (struct nettle_buffer * @var{B}, unsigned @var{len}, const uint8_t * @var{ptr})
+Append the referenced block of memory to the buffer, copying data;
+return true if successful, false otherwise (for example, out of memory
+error).
+@end deftypefun
+
+
+@deftypefun {uint8_t *} nettle_buffer_space (struct nettle_buffer * @var{B}, unsigned @var{len})
+Make room for new data at the end.  Make sure that the buffer has room
+for @var{len} bytes more and mark those bytes as used (setting the
+@code{size} field of @var{B}); return a pointer to the first byte in the
+buffer in which we can copy the actual @var{len} new bytes of data.  The
+pointer is valid only until the next call that can reallocate the
+buffer.
+
+Return @code{NULL} if an error occurs (for example, out of memory
+error).
+@end deftypefun
+
+
+@deftypefun int nettle_buffer_copy (struct nettle_buffer * @var{dst}, const struct nettle_buffer * @var{src})
+Append the contents of @var{src} to the end of @var{dst}; return true if
+successful, false otherwise.
+@end deftypefun
+
+@c page
+@node nettle sexp
+@appendixsec S--expressions
+
+
+The functions documented in this section manage construction and parsing
+of S--expressions (sexp for short); the format of S--expressions is
+decribed by Ron Rivest in the following document:
+
+@center @url{http://theory.lcs.mit.edu/~rivest/sexp.html}
+
+@noindent
+Nettle defines the S--expressions @api{} in @file{nettle/sexp.h}.
+
+@menu
+* nettle sexp intro::           Introduction to S--expressions.
+* nettle sexp types::           Type definitions.
+* nettle sexp iter::            Parsing an S--expression with
+                                an iterator.
+* nettle sexp output::          Serialising an S--expression.
+@end menu
+
+@c page
+@node nettle sexp intro
+@appendixsubsec Introduction to S--expressions
+
+
+Nettle sexps format is based on Ron Rivest's work; basically, we can
+think of a sexp as a string of characters with nested, matched,
+parentheses and strings prefixed with their own length:
+
+@example
+(4:ciao)
+@end example
+
+@noindent
+@code{4} is the number of characters in @code{ciao} and the @code{:}
+character acts as separator.  In the canonical format white spaces are
+@strong{not} used as separator; the following example is a sexp holding
+two elements, the strings @code{ciao} and @code{hello}:
+
+@example
+(4:ciao5:hello)
+@end example
+
+Numbers are embedded in sexps in their serialised formats.
+
+@c page
+@node nettle sexp types
+@appendixsubsec Type definitions
+
+
+@deftp {Enumeration} sexp_type
+Tag values for sexp component types.
+@end deftp
+
+
+@defvr Constant SEXP_ATOM
+@defvrx Constant SEXP_LIST
+@defvrx Constant SEXP_END
+Values in the @code{enum sexp_type} enumeration.
+@end defvr
+
+
+@deftp {Data Structure} {struct sexp_iterator}
+Data type for the sexp iterator.
+@end deftp
+
+@c page
+@node nettle sexp iter
+@appendixsubsec Parsing an S--expression with an iterator
+
+
+
+@deftypefun int sexp_iterator_first (struct sexp_iterator * @var{I}, unsigned @var{len}, const uint8_t * @var{ptr})
+Initializes an already allocated iterator structure; return true if
+successful, false otherwise.  @var{len} and @var{ptr} reference a memory
+block holding the sexp to be parsed.
+@end deftypefun
+
+
+@deftypefun int sexp_transport_iterator_first (struct sexp_iterator * @var{I}, unsigned @var{len}, uint8_t * @var{ptr})
+; return true if successful, false otherwise.  NOTE: Decodes the input
+string in place.
+@end deftypefun
+
+
+@deftypefun int sexp_iterator_next (struct sexp_iterator * @var{I})
+; return true if successful, false otherwise.
+@end deftypefun
+
+
+@deftypefun int sexp_iterator_enter_list (struct sexp_iterator * @var{I})
+; return true if successful, false otherwise.
+
+Current element must be a list.
+@end deftypefun
+
+
+@deftypefun int sexp_iterator_exit_list (struct sexp_iterator * @var{I})
+; return true if successful, false otherwise.
+
+Skips the rest of the current list.
+@end deftypefun
+
+
+@deftypefun {const uint8_t *} sexp_iterator_subexpr (struct sexp_iterator * @var{I}, unsigned * @var{length})
+; return true if successful, false otherwise.
+
+Gets start and length of the current subexpression.  Implies
+@cfunc{sexp_iterator_next}.
+@end deftypefun
+
+
+@deftypefun int sexp_iterator_get_uint32 (struct sexp_iterator * @var{I}, uint32_t * @var{x})
+If the current expression is a number, store it in the variable
+referenced by @var{x}; return true if successful, false otherwise.
+@end deftypefun
+
+
+@deftypefun int sexp_iterator_check_type (struct sexp_iterator * @var{I}, const uint8_t * @var{type})
+Checks the type of the current expression, which should be a list;
+return true if successful, false otherwise.
+@end deftypefun
+
+
+@deftypefun {const uint8_t *} sexp_iterator_check_types (struct sexp_iterator * @var{I}, unsigned @var{ntypes}, const uint8_t * const * @var{types})
+
+@end deftypefun
+
+
+@deftypefun int sexp_iterator_assoc (struct sexp_iterator * @var{I}, unsigned @var{nkeys}, const uint8_t * const * @var{keys}, struct sexp_iterator * @var{values})
+; return true if successful, false otherwise.
+
+The current expression must be a list.  Look up element of type:
+
+@example
+(key rest...)
+@end example
+
+For a matching key, the corresponding iterator is initialized pointing
+at the start of REST.
+
+On success, exits the current list.
+@end deftypefun
+
+@c page
+@node nettle sexp output
+@appendixsubsec Serialising an S--expression
+
+
+The following functions accept a @var{fmt} argument similar to the
+template string argument to the @cfunc{printf} function.  Format strings
+can contain matched parentheses, tokens (@code{foo} in the format string
+is formatted as @code{3:foo}), whitespaces (which separate tokens but
+are otherwise ignored) and the following formatting specifiers:
+
+@table @code
+@item %s
+String represented as unsigned length, const uint8_t *data.
+
+@item %t
+Optional display type, represented as unsigned display_length, const
+uint8_t *display, display == NULL means no display type.
+
+@item %i
+Non-negative small integer, uint32_t.
+
+@item %b
+Non-negative bignum, mpz_t.
+
+@item %l
+Literal string (no length added), typically a balanced
+subexpression. Represented as unsigned length, const uint8_t *data.
+
+@item %(
+@itemx %)
+Allow insertion of unbalanced parenthesis.
+@end table
+
+@noindent
+with the following modifiers:
+
+@table @code
+@item %0
+For @code{%s}, @code{%t} and @code{%l}, says that there's no length
+argument, instead the string is zero--terminated, and there's only one
+@code{const uint8_t *} argument.
+@end table
+
+
+@deftypefun unsigned sexp_format (struct nettle_buffer * @var{B}, const char * @var{fmt}, ...)
+Serialise a sexp somewhat like @cfunc{fprintf} does, but store the
+expression in the supplied buffer; return the number of output
+characters, or zero if out of memory occurs.
+
+If @var{B} is @code{NULL}, return the number of bytes required to hold
+the seriealised sexp.
+@end deftypefun
+
+
+@deftypefun unsigned sexp_vformat (struct nettle_buffer * @var{B}, const char * @var{fmt}, va_list @var{args})
+Like @cfunc{sexp_format}, but accept arguments in a @code{va_list}
+container.
+@end deftypefun
+
+
+@deftypefun unsigned sexp_transport_format (struct nettle_buffer * @var{B}, const char * @var{fmt}, ...)
+Serialise a sexp somewhat like @cfunc{fprintf} does, but store the
+expression in the supplied buffer; return the number of output
+characters, or zero if out of memory occurs.
+
+If @var{B} is @code{NULL}, return the number of bytes required to hold
+the seriealised sexp.
+@end deftypefun
+
+
+@deftypefun unsigned sexp_transport_vformat (struct nettle_buffer * @var{B}, const char * @var{fmt}, va_list @var{args})
+Like @cfunc{sexp_transport_format}, but accept arguments in a
+@code{va_list} container.
 @end deftypefun
 
 @c page
