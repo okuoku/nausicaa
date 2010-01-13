@@ -41,6 +41,14 @@
 (check-set-mode! 'report-failed)
 (display "*** testing Hogweed platform\n")
 
+(define (mpz/c)
+  (letrec ((n (compensate
+		  (malloc-block/c sizeof-mpz_t)
+		(with
+		 (mpz_clear n)))))
+    (mpz_init n)
+    n))
+
 
 (parametrise ((check-test-name	'rsa))
 
@@ -107,11 +115,11 @@
 							      (display (integer->char i)))
 						       (void* int))
 			1024 50))
-	    (error 'rsa-make-keypair "error generating RSA key pair"))
+	    (error #f "error generating RSA key pair"))
 	  (unless (= 1 (rsa_public_key_prepare  pub*))
-	    (error 'rsa-make-keypair "error preparing generated RSA public key"))
+	    (error #f "error preparing generated RSA public key"))
 	  (unless (= 1 (rsa_private_key_prepare pri*))
-	    (error 'rsa-make-keypair "error preparing generated RSA private key"))
+	    (error #f "error preparing generated RSA private key"))
 	  (rsa_public_key_clear  pub*)
 	  (rsa_private_key_clear pri*)
 	  #f))
@@ -148,7 +156,7 @@
     => #f)
 
 ;;; --------------------------------------------------------------------
-;;; signing
+;;; signing and encryption
 
   (with-compensations
     (let ((random* (malloc-block/c sizeof-knuth_lfib_ctx)))
@@ -165,15 +173,28 @@
 	(let ((str "calm like a bomb"))
 
 	  (check
-	      (with-compensations
-		(letrec ((signature	(compensate
-					    (malloc-block/c sizeof-mpz_t)
-					  (with
-					   (mpz_clear signature)))))
-		  (mpz_init signature)
-		  (rsa-md5-sign-string   pri* str signature)
-		  (rsa-md5-verify-string pub* str signature)))
+	      (let ((signature (mpz/c)))
+		(rsa-md5-sign-string   pri* str signature)
+		(rsa-md5-verify-string pub* str signature))
 	    => 1)
+
+	  (check
+	      (let* ((cipher	(mpz/c))
+		     (str.ptr	(string->cstring str))
+		     (str.len	(strlen str.ptr))
+		     (out.ptr	(malloc-block/c str.len))
+		     (out.len*	(malloc-small/c)))
+		(pointer-set-c-unsigned-int! out.len* 0 str.len)
+		(unless (= 1 (rsa_encrypt pub* random*
+					  (make-c-callback* void knuth_lfib_random
+							    (void* unsigned void*))
+					  str.len str.ptr cipher))
+		  (error #f "error encrypting message with RSA"))
+		(unless (= 1 (rsa_decrypt pri* out.len* out.ptr cipher))
+		  (error #f "error decrypting message with RSA"))
+		(cstring->string out.ptr (pointer-ref-c-unsigned-int out.len* 0)))
+	    => str)
+
 
 	  #f))))
 

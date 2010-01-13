@@ -339,7 +339,7 @@
   (memxor			(pointer memxor (pointer pointer size_t)))
   (memxor3			(pointer memxor3 (pointer pointer pointer size_t))))
 
-;; (define-c-functions hogweed-shared-object
+;; (define-c-functions nettle-shared-object
 ;;   (nettle_realloc		())
 ;;   (nettle_xrealloc		()))
 

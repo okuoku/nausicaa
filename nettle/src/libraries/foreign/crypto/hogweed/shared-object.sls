@@ -29,8 +29,15 @@
   (export hogweed-shared-object)
   (import (rnrs)
     (foreign ffi)
-    (foreign crypto nettle sizeof)
-    (foreign crypto nettle shared-object))
+    (foreign crypto nettle sizeof))
+  ;;Explicitly loading nettle here prevents a "dl" problem with Hogweed:
+  ;;"libhogweed"  is not linked  to "libnettle"  in Nettle  version 2.0;
+  ;;notice that loading "(foreign crypto nettle shared-object)" does not
+  ;;solve the problem.  The problem may  be fixed in the next release of
+  ;;Nettle.
+  ;;
+  (define-shared-object nettle-shared-object
+    NETTLE_SHARED_OBJECT)
   (define-shared-object hogweed-shared-object
     HOGWEED_SHARED_OBJECT))
 

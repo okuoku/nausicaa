@@ -520,6 +520,7 @@ entitled ``@gnu{} Free Documentation License''.
 * armor::                       @ascii{} armor encodings.
 * md::                          Computing message digests.
 * cipher::                      Symmetric cryptography.
+* pubkey::                      Public key cryptography.
 * random::                      Randomness generation.
 
 Appendices
@@ -1016,6 +1017,221 @@ cipher arcfour} for details.
 
 (arcfour-crypt "ciao" '#vu8(23 184 137 227 187 115 16))
 @result{} #vu8(0 1 2 3 4 5 6)
+@end example
+
+@c page
+@node pubkey
+@chapter Public key cryptography
+
+
+The examples proposed in this chapter are about public key cryptography;
+@ref{nettle pubkey} for the original @api{}.
+
+@menu
+* pubkey rsa::                  Usage examples for the @acronym{RSA} algorithm.
+@end menu
+
+@c page
+@node pubkey rsa
+@section Usage examples for the @acronym{RSA} algorithm
+
+
+The following examples show how to generate keys, sign and verify data,
+encrypt and decrypt data using the @acronym{RSA} algorithm; all the
+examples make use of the Nausicaa/MP package to operate on @code{mpz_t}
+numbers; all the examples are meant to have the following opening:
+
+@example
+(import (rnrs)
+  (receive)
+  (compensations)
+  (only (foreign ffi) make-c-callback*)
+  (foreign cstrings)
+  (foreign memory)
+  (foreign math mp mpz)
+  (foreign math mp sizeof)
+  (foreign crypto nettle platform)
+  (foreign crypto hogweed platform)
+  (foreign crypto nettle sizeof))
+
+(define (mpz/c)
+  (letrec ((n (compensate
+                  (malloc-block/c sizeof-mpz_t)
+                (with
+                 (mpz_clear n)))))
+    (mpz_init n)
+    n))
+@end example
+
+@menu
+* pubkey rsa keygen::           Generating @acronym{RSA} key pairs.
+* pubkey rsa sign::             Signing and verifying data
+                                with @acronym{RSA}.
+* pubkey rsa crypt::            Encrypting and decrypting data
+                                with @acronym{RSA}.
+@end menu
+
+@c page
+@node pubkey rsa keygen
+@subsection Generating @acronym{RSA} key pairs
+
+
+The following code generates a new key pair, then finalises it; it makes
+use of Knuth's lagged Fibonacci pseudo--random number generator, which
+is only suitable for debugging and examples:
+
+@example
+(with-compensations
+  (let* ((random* (malloc-block/c sizeof-knuth_lfib_ctx))
+         (pub*    (malloc-block/c sizeof-rsa_public_key))
+         (pri*    (malloc-block/c sizeof-rsa_private_key)))
+    (knuth_lfib_init random* 123)
+    (rsa_public_key_init  pub*)
+    (rsa_private_key_init pri*)
+    (unless (= 1 (rsa_generate_keypair
+                  pub* pri*
+                  random*
+                  (make-c-callback* void
+                     knuth_lfib_random
+                     (void* unsigned void*))
+                  pointer-null
+                  (make-c-callback* void
+                     (lambda (unused i)
+                       (display (integer->char i)))
+                     (void* int))
+                  1024 50))
+      (error #f "error generating RSA key pair"))
+    (unless (= 1 (rsa_public_key_prepare  pub*))
+      (error #f "error preparing generated RSA public key"))
+    (unless (= 1 (rsa_private_key_prepare pri*))
+      (error #f "error preparing generated RSA private key"))
+
+    --- ;do something with the keys
+
+    (rsa_public_key_clear  pub*)
+    (rsa_private_key_clear pri*)))
+@end example
+
+
+The following function generates a new key pair:
+
+@example
+(define (rsa-make-keypair n-size e-size
+                          random-maker progress-printer)
+  (with-compensations
+    (let* ((pub*      (malloc sizeof-rsa_public_key))
+           (pri*      (malloc sizeof-rsa_private_key)))
+      (rsa_public_key_init  pub*)
+      (rsa_private_key_init pri*)
+      (when (= 0 e-size)
+        (mpz_set_ui (struct-rsa_public_key-e-ref pub*) 65537))
+      (unless (= 1 (rsa_generate_keypair
+                    pub* pri*
+                    pointer-null
+                    (make-c-callback* void random-maker
+                                      (void* unsigned void*))
+                    pointer-null
+                    (make-c-callback* void progress-printer
+                                      (void* int))
+                    n-size e-size))
+        (error 'rsa-make-keypair
+          "error generating RSA key pair"))
+      (unless (= 1 (rsa_public_key_prepare  pub*))
+        (error 'rsa-make-keypair
+          "error preparing generated RSA public key"))
+      (unless (= 1 (rsa_private_key_prepare pri*))
+        (error 'rsa-make-keypair
+          "error preparing generated RSA private key"))
+      (values pub* pri*))))
+
+(with-compensations
+  (let ((random*  (malloc-block/c sizeof-knuth_lfib_ctx)))
+    (knuth_lfib_init random* 123)
+    (receive (pub* pri*)
+        (rsa-make-keypair 1024 0
+                          (lambda (unused buf.len buf.ptr)
+                            (knuth_lfib_random random*
+                                buf.len buf.ptr))
+                          (lambda (unused i)
+                            (display (integer->char i))))
+
+      --- ;do something with the keys
+
+      (rsa_public_key_clear  pub*)
+      (rsa_private_key_clear pri*))))
+@end example
+
+@c page
+@node pubkey rsa sign
+@subsection Signing and verifying data with @acronym{RSA}
+
+
+The following functions sign and verify the signature for a Scheme
+string using the @acronym{RSA} and @acronym{MD5} algorithms:
+
+@example
+(define (rsa-md5-sign-string pri* str signature)
+  (with-compensations
+    (let* ((buf.ptr   (string->cstring str))
+           (buf.len   (strlen buf.ptr))
+           (md5*      (malloc-block/c sizeof-md5_ctx)))
+      (md5_init md5*)
+      (md5_update md5* buf.len buf.ptr)
+      (rsa_md5_sign pri* md5* signature))))
+
+(define (rsa-md5-verify-string pub* str signature)
+  (with-compensations
+    (let* ((buf.ptr   (string->cstring str))
+           (buf.len   (strlen buf.ptr))
+           (md5*      (malloc-block/c sizeof-md5_ctx)))
+      (md5_init md5*)
+      (md5_update md5* buf.len buf.ptr)
+      (rsa_md5_verify pub* md5* signature))))
+
+(define pub* ---) ;public key
+(define pri* ---) ;private key
+
+(with-compensations
+  (let ((str       "calm like a bomb")
+        (signature (mpz/c)))
+    (rsa-md5-sign-string   pri* str signature)
+    (rsa-md5-verify-string pub* str signature)))
+@result{} 1
+@end example
+
+@c page
+@node pubkey rsa crypt
+@subsection Encrypting and decrypting data with @acronym{RSA}
+
+
+The following code encrypts and decrypts a Scheme string using the
+@acronym{RSA} algorithm; the pseudo--random numbers generator is used
+only to pad input data:
+
+@example
+(define str "calm like a bomb")
+
+(with-compensations
+  (let ((random*   (malloc-block/c sizeof-knuth_lfib_ctx))
+        (cipher    (mpz/c))
+        (str.ptr   (string->cstring str))
+        (str.len   (strlen str.ptr))
+        (out.ptr   (malloc-block/c str.len))
+        (out.len*  (malloc-small/c)))
+    (knuth_lfib_init random* 123)
+    (unless (= 1 (rsa_encrypt pub* random*
+                     (make-c-callback* void knuth_lfib_random
+                                       (void* unsigned void*))
+                     str.len str.ptr cipher))
+      (error #f "error encrypting message with RSA"))
+
+    (pointer-set-c-unsigned-int! out.len* 0 str.len)
+    (unless (= 1 (rsa_decrypt pri* out.len* out.ptr cipher))
+      (error #f "error decrypting message with RSA"))
+
+    (cstring->string out.ptr
+       (pointer-ref-c-unsigned-int out.len* 0))))
+@result{} "calm like a bomb"
 @end example
 
 @c page
