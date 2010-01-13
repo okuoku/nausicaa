@@ -46,7 +46,7 @@ Notes for --- tag 0.1a9
 * Removed   from  the   infrastructure   rules  to   install
   precompiled files.
 
-* Added '#t  #f' optional  arguments to DLOPEN  in "(foreign
+* Added '#f  #t' optional  arguments to DLOPEN  in "(foreign
   ffi  platform)";   this  allows  loading   certain  shared
   libraries with dependencies on other shared libraries.
 
