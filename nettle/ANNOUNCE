@@ -39,6 +39,8 @@ Notes for 2010-01-14 tag 0.1b1
 
 * Tested with Nettle version 2.0.
 
+* Requires Nausicaa/Scheme version 0.1a9+.
+
 
 ### end of file
 # Local Variables:
