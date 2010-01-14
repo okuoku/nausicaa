@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Nettle --- tag 0.1b1
+Subject: [announce] Nausicaa/Nettle 2010-01-14 tag 0.1b1
 
 		     Nausicaa/Nettle
 		     =================
@@ -34,7 +34,7 @@ Nettle is available at:
 	 <http://www.lysator.liu.se/~nisse/nettle/>
 
 
-Notes for --- 0.1b1
+Notes for 2010-01-14 tag 0.1b1
 ------------------------------
 
 * Tested with Nettle version 2.0.

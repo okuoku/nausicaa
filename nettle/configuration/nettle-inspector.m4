@@ -2,7 +2,7 @@ dnl (foreign crypto nettle sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Fri Jan  8, 2010
+dnl Date: Thu Jan 14, 2010
 dnl
 dnl Abstract
 dnl
