@@ -1,3 +1,26 @@
+@c nettle.texiinc --
+
+@ignore
+
+@macro cfunc{NAME}
+@code{\NAME\()}
+@end macro
+
+@macro api{}
+@acronym{API}
+@end macro
+
+@macro gnu{}
+@acronym{GNU}
+@end macro
+
+@macro ascii{}
+@acronym{ASCII}
+@end macro
+
+@end ignore
+
+@c page
 @node nettle
 @appendix Nettle original documentation
 
@@ -6,7 +29,9 @@
 This appendix is a revision of the original documentation for Nettle
 version 2.0.  The author of the original document is Niels Möller, which
 placed it in the public domain; the author of this revision is Marco
-Maggi @email{mrc.mgg@@gmail.com}.
+Maggi @email{mrc.mgg@@gmail.com}.  This appendix is released in the
+public domain; you may freely copy it, in whole or in part, with or
+without modification.  Attribution is appreciated, but not required.
 @end quotation
 
 @menu
@@ -18,6 +43,7 @@ Maggi @email{mrc.mgg@@gmail.com}.
 * nettle random::               Randomness.
 * nettle buffer::               Memory buffers.
 * nettle sexp::                 S--expressions.
+* nettle asn1::                 Limited support for @acronym{ASN.1}.
 * nettle misc::                 Miscellaneous functions.
 @end menu
 
@@ -2019,6 +2045,11 @@ the @acronym{USA}.
 * nettle pubkey rsa intro::     Introduction to @acronym{RSA}.
 * nettle pubkey rsa keys::      Handling @acronym{RSA} keys.
 * nettle pubkey rsa sign::      Signing with @acronym{RSA}.
+* nettle pubkey rsa crypt::     Encrypting with @acronym{RSA}.
+* nettle pubkey rsa sexp::      Converting @acronym{RSA} keys to
+                                S--expressions.
+* nettle pubkey rsa der::       Converting @acronym{RSA} to @acronym{DER}
+                                representation.
 @end menu
 
 @c page
@@ -2265,6 +2296,104 @@ Return @code{1} if the signature is valid, or @code{0} if it is not.
 @end deftypefun
 
 @c page
+@node nettle pubkey rsa crypt
+@appendixsubsubsec Encrypting with @acronym{RSA}
+
+
+@deftypefun int rsa_encrypt (const struct rsa_public_key * @var{key}, void * @var{random_ctx}, nettle_random_func @var{random}, unsigned @var{length}, const uint8_t * @var{cleartext}, mpz_t @var{cipher})
+Encrypt @var{length} bytes of @var{cleartext} using the uspplied
+@var{key} and store the result in @var{cipher}.  Return true if
+successful, false otherwise (for example if the input is too long).
+
+The @var{random} function and its custom context @var{random_ctx} are
+used for padding the input data.
+@end deftypefun
+
+
+@deftypefun int rsa_decrypt (const struct rsa_private_key * @var{key}, unsigned * @var{length}, uint8_t * @var{cleartext}, const mpz_t @var{ciphertext})
+Decrypt @var{ciphertext} using @var{key} and store the result in the
+memory referenced by @var{cleartext}.
+
+@var{cleartext} must point to a buffer of size @code{*@var{length}}; the
+value stored in @code{@var{key}->size} is enough for all valid messages.
+On success, @code{*@var{length}} is updated to reflect the actual length
+of the message.
+
+Return true if successful, false otherwise which happens if decryption
+failed or if the message did not fit.
+@end deftypefun
+
+@c page
+@node nettle pubkey rsa sexp
+@appendixsubsubsec Converting @acronym{RSA} keys to S--expressions
+
+
+@deftypefun int rsa_keypair_to_sexp (struct nettle_buffer * @var{buffer}, const char * @var{algorithm_name}, const struct rsa_public_key * @var{pub}, const struct rsa_private_key * @var{priv})
+Generates a public key S--expression describing the public and private
+keys; return true if successful, false otherwise.
+
+If @var{priv} is @code{NULL}, generate an S--expression for the public
+key only.  If @var{algorithm_name} is @code{NULL}, it implicitly means
+@code{rsa}.
+@end deftypefun
+
+
+@deftypefun int rsa_keypair_from_sexp_alist (struct rsa_public_key * @var{pub}, struct rsa_private_key * @var{priv}, unsigned @var{limit}, struct sexp_iterator * @var{I})
+Fill the already allocated key structures with values from the
+S--expression iterator; return true if successful, false otherwise.
+
+@var{limit} is the maximum number of bytes to read from an
+S--expression's atom to compose a bignum; zero means no limit.
+@end deftypefun
+
+
+@deftypefun int rsa_keypair_from_sexp (struct rsa_public_key * @var{pub}, struct rsa_private_key * @var{priv}, unsigned @var{limit}, unsigned @var{length}, const uint8_t * @var{expr})
+Fill the already allocated and initialised key structures with values
+from the S--expression memory block; return true if successful, false
+otherwise.
+
+@var{limit} is the maximum number of bytes to read from an
+S--expression's atom to compose a bignum; zero means no limit.
+
+If @var{priv} is @code{NULL}, expect a public key only S--expression; if
+@var{pub} is @code{NULL}, expect a private key only S--expression and
+ignore the parts not needed for the public key.
+@end deftypefun
+
+@c page
+@node nettle pubkey rsa der
+@appendixsubsubsec Converting @acronym{RSA} to @acronym{DER} representation
+
+
+@deftypefun int rsa_public_key_from_der_iterator (struct rsa_public_key * @var{pub}, unsigned @var{limit}, struct asn1_der_iterator * @var{I})
+Fill the already allocated and initialised public key structure with
+values from the iterator; return true if successful, false otherwise.
+
+@var{limit} is the maximum number of bytes to read from an
+S--expression's atom to compose a bignum; zero means no limit.
+@end deftypefun
+
+
+@deftypefun int rsa_private_key_from_der_iterator (struct rsa_public_key * @var{pub}, struct rsa_private_key * @var{priv}, unsigned @var{limit}, struct asn1_der_iterator * @var{I})
+Fill the already allocated and initialised key structures with values
+from the iterator; return true if successful, false otherwise.
+
+@var{limit} is the maximum number of bytes to read from an
+S--expression's atom to compose a bignum; zero means no limit.
+@end deftypefun
+
+
+@deftypefun int rsa_keypair_from_der (struct rsa_public_key * @var{pub}, struct rsa_private_key * @var{priv}, unsigned @var{limit}, unsigned @var{length}, const uint8_t * @var{data})
+Fill the already allocated and initialised keys structures with values
+from the memory block; return true if successful, false otherwise.
+
+@var{limit} is the maximum number of bytes to read from an
+S--expression's atom to compose a bignum; zero means no limit.
+
+If @var{priv} is @code{NULL} read only the public key.
+@end deftypefun
+
+@c page
 @node nettle pubkey dsa
 @appendixsubsec The @acronym{DSA} digital signature algorithm
 
@@ -2279,6 +2408,8 @@ specification.  Sometimes @acronym{DSA} is referred to using the acronym
 * nettle pubkey dsa intro::     Introduction to @acronym{DSA}.
 * nettle pubkey dsa keys::      Handling @acronym{DSA} keys.
 * nettle pubkey dsa sign::      Signing with @acronym{DSA}.
+* nettle pubkey dsa sexp::      Converting @acronym{RSA} keys to
+                                S--expressions.
 @end menu
 
 @c page
@@ -2483,6 +2614,41 @@ random}.
 @deftypefunx int dsa_verify_digest (const struct dsa_public_key * @var{key}, const uint8_t * @var{digest}, const struct dsa_signature * @var{signature})
 Verify a signature; return @code{1} if the signature is valid, otherwise
 @code{0}.
+@end deftypefun
+
+@c page
+@node nettle pubkey dsa sexp
+@appendixsubsubsec Converting @acronym{RSA} keys to S--expressions
+
+
+@deftypefun int dsa_signature_from_sexp (struct dsa_signature * @var{sig}, struct sexp_iterator * @var{I})
+Fill the already allocated and initialised signature structure with
+values from the S--expression iterator; return true if successful, false
+otherwise.
+@end deftypefun
+
+
+@deftypefun int dsa_keypair_from_sexp_alist (struct dsa_public_key * @var{pub}, struct dsa_private_key * @var{priv}, unsigned @var{limit}, struct sexp_iterator * @var{I})
+Fill the already allocated and initialised key structures with values
+from the S--expression iterator; return true if successful, false
+otherwise.
+
+@var{limit} is the maximum number of bytes to read from an
+S--expression's atom to compose a bignum; zero means no limit.
+@end deftypefun
+
+
+@deftypefun int dsa_keypair_from_sexp (struct dsa_public_key * @var{pub}, struct dsa_private_key * @var{priv}, unsigned @var{limit}, unsigned @var{length}, const uint8_t * @var{expr})
+Fill the already allocated and initialised key structures with values
+from the S--expression's memory block; return true if successful, false
+otherwise.
+
+@var{limit} is the maximum number of bytes to read from an
+S--expression's atom to compose a bignum; zero means no limit.
+
+If @var{priv} is @code{null}, expect a public key only expression; if
+@var{pub} is @code{NULL}, expect a private key only expression and
+ignore the parts not needed for the public key.
 @end deftypefun
 
 @c page
@@ -3023,8 +3189,8 @@ successful, false otherwise.
 
 
 The functions documented in this section manage construction and parsing
-of S--expressions (sexp for short); the format of S--expressions is
-decribed by Ron Rivest in the following document:
+of S--expressions; the format of S--expressions is decribed by Ron
+Rivest in the following document:
 
 @center @url{http://theory.lcs.mit.edu/~rivest/sexp.html}
 
@@ -3037,6 +3203,8 @@ Nettle defines the S--expressions @api{} in @file{nettle/sexp.h}.
 * nettle sexp iter::            Parsing an S--expression with
                                 an iterator.
 * nettle sexp output::          Serialising an S--expression.
+* nettle sexp examples::        Examples of S--expressions parsing
+                                and serialisation.
 @end menu
 
 @c page
@@ -3062,7 +3230,8 @@ two elements, the strings @code{ciao} and @code{hello}:
 (4:ciao5:hello)
 @end example
 
-Numbers are embedded in sexps in their serialised formats.
+Numbers are embedded in sexps as atoms, sequences of bytes in network,
+big--endian, byte order.
 
 @c page
 @node nettle sexp types
@@ -3082,7 +3251,27 @@ Values in the @code{enum sexp_type} enumeration.
 
 
 @deftp {Data Structure} {struct sexp_iterator}
-Data type for the sexp iterator.
+Data type for the S--expression iterator.  It has the following public
+fields:
+
+@table @code
+@item const uint8_t * buffer
+Pointer to a block of memory holding the S--expression.
+
+@item unsigned length
+Number of bytes in the block of memory referenced by @code{buffer}.
+
+@item enum sexp_type type
+The type of the current element.
+
+@item const uint8_t * atom
+If the current element is an atom (@code{SEXP_ATOM} == type), this field
+points to the first byte of the atom's string.
+
+@item unsigned atom_length
+If the current element is an atom (@code{SEXP_ATOM} == type), this field
+holds the number of bytes in the atom's string.
+@end table
 @end deftp
 
 @c page
@@ -3090,77 +3279,158 @@ Data type for the sexp iterator.
 @appendixsubsec Parsing an S--expression with an iterator
 
 
+For a full understanding of the following functions we have to read the
+examples sections @ref{nettle sexp examples}.  The purpose of this
+@api{} is to extract informations from S--expression of known structure;
+it is not a tool to parse arbitrary S--expressions.
+
 
 @deftypefun int sexp_iterator_first (struct sexp_iterator * @var{I}, unsigned @var{len}, const uint8_t * @var{ptr})
-Initializes an already allocated iterator structure; return true if
-successful, false otherwise.  @var{len} and @var{ptr} reference a memory
-block holding the sexp to be parsed.
+Initialise an already allocated iterator structure; return true if
+successful, false otherwise.  @var{len} and @var{ptr} must reference a
+memory block holding the S--expression to be parsed in canonical format.
+
+This function does @strong{not} mutate the input buffer.
 @end deftypefun
 
 
 @deftypefun int sexp_transport_iterator_first (struct sexp_iterator * @var{I}, unsigned @var{len}, uint8_t * @var{ptr})
-; return true if successful, false otherwise.  NOTE: Decodes the input
-string in place.
+Initialise an already allocated iterator structure; return true if
+successful, false otherwise.  @var{len} and @var{ptr} must reference a
+memory block holding the S--expression to be parsed in transport format.
+
+This function mutates the input buffer, decoding in--place base64 strings.
 @end deftypefun
 
 
 @deftypefun int sexp_iterator_next (struct sexp_iterator * @var{I})
-; return true if successful, false otherwise.
+Advance the iterator to the next expression; return true if successful,
+false otherwise.  If the iterators advances past the last expression,
+the @code{type} field of @var{I} is set to @code{SEXP_END}; if the
+iterator is already at the end of the S--expression, nothing happens and
+the return value is true.
 @end deftypefun
 
 
 @deftypefun int sexp_iterator_enter_list (struct sexp_iterator * @var{I})
-; return true if successful, false otherwise.
-
-Current element must be a list.
+If the current expression is a list, make the iterator enter it and be
+ready to parse its subexpressions; return true if successful, false
+otherwise.
 @end deftypefun
 
 
 @deftypefun int sexp_iterator_exit_list (struct sexp_iterator * @var{I})
-; return true if successful, false otherwise.
-
-Skips the rest of the current list.
+If the iterator is parsing a list, exit it and be ready to parse the
+expression after it; return true if successful, false otherwise.  If
+there is no other subexpression after the list, the @code{type} field of
+the iterator is set to @code{SEXP_END}.
 @end deftypefun
 
 
-@deftypefun {const uint8_t *} sexp_iterator_subexpr (struct sexp_iterator * @var{I}, unsigned * @var{length})
-; return true if successful, false otherwise.
-
-Gets start and length of the current subexpression.  Implies
+@deftypefun {const uint8_t *} sexp_iterator_subexpr (struct sexp_iterator * @var{I}, unsigned * @var{lenp})
+Return a pointer to the first byte of the current subexpression and
+store its length in bytes in the variable referenced by @var{lenp}; then
+get ready to parse the next subexpression with a call to
 @cfunc{sexp_iterator_next}.
 @end deftypefun
 
 
-@deftypefun int sexp_iterator_get_uint32 (struct sexp_iterator * @var{I}, uint32_t * @var{x})
-If the current expression is a number, store it in the variable
-referenced by @var{x}; return true if successful, false otherwise.
+@deftypefun int sexp_iterator_get_uint32 (struct sexp_iterator * @var{I}, uint32_t * @var{nump})
+If the current subexpression is a number, store it in the variable
+referenced by @var{nump}; then get ready to parse the next subexpression
+with a call to @cfunc{sexp_iterator_next}.  Return true if successful,
+false otherwise.
 @end deftypefun
 
 
-@deftypefun int sexp_iterator_check_type (struct sexp_iterator * @var{I}, const uint8_t * @var{type})
-Checks the type of the current expression, which should be a list;
-return true if successful, false otherwise.
+@deftypefun int nettle_mpz_set_sexp (mpz_t @var{x}, unsigned @var{limit}, struct sexp_iterator * @var{I})
+If the current expression is a bignum, store it in the already
+initialised @var{x} number; return true if successful, false otherwise.
+
+@var{limit} is the maximum number of bytes to read from an
+S--expression's atom to compose a bignum; zero means no limit.
 @end deftypefun
 
 
-@deftypefun {const uint8_t *} sexp_iterator_check_types (struct sexp_iterator * @var{I}, unsigned @var{ntypes}, const uint8_t * const * @var{types})
+@deftypefun int sexp_iterator_check_type (struct sexp_iterator * @var{I}, const uint8_t * @var{key})
+Verify if the current expression is a list, whose first subexpression is
+an atom, matching the one referenced by @var{key}; finally get ready to
+parse the next subexpression with a call to @cfunc{sexp_iterator_next}.
+If all of this is successful return true, otherwise return false.
 
+The block of memory referenced by @var{key} must be zero--terminated.
+@end deftypefun
+
+
+@deftypefun {const uint8_t *} sexp_iterator_check_types (struct sexp_iterator * @var{I}, unsigned @var{nkeys}, const uint8_t * const * @var{keys})
+Verify if the current expression is a list, whose first subexpression is
+an atom, matching one of the @var{nkeys} elements of the array
+referenced by @var{keys}; finally get ready to parse the next
+subexpression with a call to @cfunc{sexp_iterator_next}.
+
+If all of this is successful return a pointer to the element of
+@var{keys} which matched, otherwise return @code{NULL}.
+
+All the elements in the array @var{keys} must be pointers to
+zero--terminated memory blocks.
 @end deftypefun
 
 
 @deftypefun int sexp_iterator_assoc (struct sexp_iterator * @var{I}, unsigned @var{nkeys}, const uint8_t * const * @var{keys}, struct sexp_iterator * @var{values})
-; return true if successful, false otherwise.
+Query the current expression as an association list; return true if
+successful, false otherwise.
 
-The current expression must be a list.  Look up element of type:
+@var{keys} must reference an array of @var{nkeys} strings representing
+the association list keys.  @var{values} must reference an array of at
+least @var{nkeys} iterator structures which are initialised to reference
+the first value expression for each found key; prior to this call, the
+iterators must be put into a recognisable ``uninitialised'' state, such
+as setting the @code{type} field to @code{SEXP_END}.
+
+For example, let's take the following S--expression:
 
 @example
-(key rest...)
+((alpha 1)
+ (beta  4 5)
+ (delta 6))
 @end example
 
-For a matching key, the corresponding iterator is initialized pointing
-at the start of REST.
+@noindent
+it is a list of three sublists, each starting with an atom and each
+having more than one subexpression.  To parse it as an association list,
+we have to:
 
-On success, exits the current list.
+@enumerate
+@item
+Enter the outer list with @cfunc{sexp_iterator_enter_list}, so that the
+iterator points to the first sublist @code{(alpha 1)}.
+
+@item
+Call @cfunc{sexp_iterator_assoc} looking for one or more of the keys
+@code{alpha}, @code{beta} and @code{delta}.
+
+@item
+Examine the iterators in @var{values}: the ones that have been mutated,
+with respect to their original state, reference the first expression in
+the value.
+
+If we search for the keys @code{alpha}, @code{beta} and @code{delta} in
+this order:
+
+@itemize -
+@item
+When the @code{alpha} key is found the first element in @var{keys} is
+set to reference the atom @code{1}.
+
+@item
+When the @code{beta} key is found the second element in @var{keys} is
+set to reference the atom @code{4}.
+
+@item
+When the @code{delta} key is found the third element in @var{keys} is
+set to reference the atom @code{6}.
+@end itemize
+@end enumerate
 @end deftypefun
 
 @c page
@@ -3176,21 +3446,27 @@ are otherwise ignored) and the following formatting specifiers:
 
 @table @code
 @item %s
-String represented as unsigned length, const uint8_t *data.
+String.  Consumes two arguments: the number of bytes as @code{unsigned}
+integer, the pointer to the data as @code{const uint8_t *}.
 
 @item %t
-Optional display type, represented as unsigned display_length, const
-uint8_t *display, display == NULL means no display type.
+Optional display hint (see the documentation by Ron Rivest for details).
+Consumes two arguments: the number of bytes as @code{unsigned} integer,
+the pointer to the data as @code{const uint8_t *}.  If the pointer is
+@code{NULL}, it means no display type.
 
 @item %i
-Non-negative small integer, uint32_t.
+Non--negative small integer.  Consumes a single argument as
+@code{uint32_t} integer.
 
 @item %b
-Non-negative bignum, mpz_t.
+Non--negative bignum.  Consumes a single argument as pointer of type
+@code{mpz_src}.
 
 @item %l
-Literal string (no length added), typically a balanced
-subexpression. Represented as unsigned length, const uint8_t *data.
+Literal string (no length added), typically a balanced subexpression.
+Consumes two arguments: the number of bytes as @code{unsigned} integer,
+the pointer to the data as @code{const uint8_t *}.
 
 @item %(
 @itemx %)
@@ -3201,20 +3477,21 @@ Allow insertion of unbalanced parenthesis.
 with the following modifiers:
 
 @table @code
-@item %0
-For @code{%s}, @code{%t} and @code{%l}, says that there's no length
-argument, instead the string is zero--terminated, and there's only one
-@code{const uint8_t *} argument.
+@item 0
+For @code{%s}, @code{%t} and @code{%l} it is used as @code{%0s},
+@code{%0t} and @code{%0l}; it says that there's no length argument,
+instead the string is zero--terminated, and there's only one @code{const
+uint8_t *} argument.
 @end table
 
 
 @deftypefun unsigned sexp_format (struct nettle_buffer * @var{B}, const char * @var{fmt}, ...)
-Serialise a sexp somewhat like @cfunc{fprintf} does, but store the
-expression in the supplied buffer; return the number of output
+Serialise an S--expression somewhat like @cfunc{fprintf} does, but store
+the expression in the supplied buffer; return the number of output
 characters, or zero if out of memory occurs.
 
 If @var{B} is @code{NULL}, return the number of bytes required to hold
-the seriealised sexp.
+the seriealised S--expression.
 @end deftypefun
 
 
@@ -3225,18 +3502,609 @@ container.
 
 
 @deftypefun unsigned sexp_transport_format (struct nettle_buffer * @var{B}, const char * @var{fmt}, ...)
-Serialise a sexp somewhat like @cfunc{fprintf} does, but store the
-expression in the supplied buffer; return the number of output
+Serialise an S--expression somewhat like @cfunc{fprintf} does, but store
+the expression in the supplied buffer; return the number of output
 characters, or zero if out of memory occurs.
 
 If @var{B} is @code{NULL}, return the number of bytes required to hold
-the seriealised sexp.
+the seriealised S--expression.
 @end deftypefun
 
 
 @deftypefun unsigned sexp_transport_vformat (struct nettle_buffer * @var{B}, const char * @var{fmt}, va_list @var{args})
 Like @cfunc{sexp_transport_format}, but accept arguments in a
 @code{va_list} container.
+@end deftypefun
+
+@c page
+@node nettle sexp examples
+@appendixsubsec Examples of S--expressions parsing and serialisation
+
+
+In this section we see some usage example of the sexp module; some of
+the examples are raw programs that parse specific S--expressions: they
+are meant only to show the mechanics of parsing.
+
+@menu
+* nettle sexp examples header:: Common header file.
+* nettle sexp examples atoms::  Parsing atoms.
+* nettle sexp examples lists::  Parsing multiple lists.
+* nettle sexp examples nested:: Parsing nested list.
+* nettle sexp examples assoc::  Parsing key/value S--expressions.
+* nettle sexp examples number:: Parsing S--expressions with numbers.
+@end menu
+
+@c page
+@node nettle sexp examples header
+@appendixsubsubsec Common header file
+
+
+All the examples make use of the following header file:
+
+@example
+/* sexp-tokens.h */
+
+#ifndef __SEXP_TOKENS_H
+#  define __SEXP_TOKENS_H 1
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <nettle/sexp.h>
+
+#define E(RESULT, MESSAGE)              \
+                                        \
+  do @{                                  \
+    if (! (RESULT)) @{                   \
+      error_message = (MESSAGE);        \
+      goto error;                       \
+    @}                                   \
+  @} while (0);
+
+#define newline()                       \
+                                        \
+  printf("\n")
+
+static void
+print_atom (struct sexp_iterator * I)
+@{
+  assert(SEXP_ATOM == I->type);
+  printf("atom: ");
+  fwrite(I->atom, I->atom_length,
+         sizeof(char), stdout);
+  newline();
+@}
+
+#endif
+
+/* end of file */
+@end example
+
+@c page
+@node nettle sexp examples atoms
+@appendixsubsubsec Parsing atoms
+
+
+The following example parses a sexp with three atoms as subsexps:
+
+@example
+(alpha beta gamma)
+@end example
+
+@noindent
+which in canonical format is:
+
+@example
+(5:alpha4:beta5:gamma)
+@end example
+
+@noindent
+the program prints:
+
+@example
+atom: alpha
+atom: beta
+atom: gamma
+@end example
+
+@noindent
+which are the token strings.
+
+@example
+#include "sexp-tokens.h"
+
+int
+main (void)
+@{
+  const char *          error_message;
+  struct sexp_iterator  I[1];
+  static const char *   sex = "(5:alpha4:beta5:gamma)";
+  E(sexp_iterator_first(I, strlen(sex),
+                        (const uint8_t *)sex),
+    "initialising the iterator");
+  E(sexp_iterator_enter_list(I), "entering list");
+  @{
+    print_atom(I);
+    E(sexp_iterator_next(I), "advance to 2nd atom");
+    print_atom(I);
+    E(sexp_iterator_next(I), "advance to 3rd atom");
+    print_atom(I);
+  @}
+  E(sexp_iterator_exit_list(I), "exiting list");
+  E(sexp_iterator_next(I), "advance to end");
+  assert(SEXP_END == I->type);
+  exit(EXIT_SUCCESS);
+ error:
+  fprintf(stderr, "parse error: %s\n", error_message);
+  exit(EXIT_FAILURE);
+@}
+@end example
+
+@c page
+@node nettle sexp examples lists
+@appendixsubsubsec Parsing multiple lists
+
+
+The following example parses a sexp with two lists as subsexps:
+
+@example
+(alpha beta gamma)
+(delta theta)
+@end example
+
+@noindent
+which in canonical format is:
+
+@example
+(5:alpha4:beta5:gamma)(5:delta5:theta)
+@end example
+
+@noindent
+the program prints:
+
+@example
+atom: alpha
+atom: beta
+atom: gamma
+atom: delta
+atom: theta
+@end example
+
+@noindent
+which are the token strings.
+
+@example
+#include "sexp-tokens.h"
+
+int
+main (void)
+@{
+  const char *          error_message;
+  struct sexp_iterator  I[1];
+  static const char *   sex =
+     "(5:alpha4:beta5:gamma)(5:delta5:theta)";
+
+  E(sexp_iterator_first(I, strlen(sex),
+                        (const uint8_t *)sex),
+    "initialising the iterator");
+  E(sexp_iterator_enter_list(I), "entering list");
+  @{
+    print_atom(I);
+    E(sexp_iterator_next(I), "advance to 2nd atom");
+    print_atom(I);
+    E(sexp_iterator_next(I), "advance to 3rd atom");
+    print_atom(I);
+  @}
+  E(sexp_iterator_exit_list(I), "exiting list");
+  E(sexp_iterator_enter_list(I), "entering list");
+  @{
+    print_atom(I);
+    E(sexp_iterator_next(I), "advance to 2nd atom");
+    print_atom(I);
+  @}
+  E(sexp_iterator_exit_list(I), "exiting list");
+  E(sexp_iterator_next(I), "advance to end");
+  assert(SEXP_END == I->type);
+
+  exit(EXIT_SUCCESS);
+ error:
+  fprintf(stderr, "parse error: %s\n", error_message);
+  exit(EXIT_FAILURE);
+@}
+@end example
+
+@c page
+@node nettle sexp examples nested
+@appendixsubsubsec Parsing nested list
+
+
+The following example parses a sexp with a nested list as subsexp:
+
+@example
+(alpha beta (delta theta) gamma)
+@end example
+
+@noindent
+which in canonical format is:
+
+@example
+(5:alpha4:beta(5:delta5:theta)5:gamma)
+@end example
+
+@noindent
+the program prints:
+
+@example
+atom: alpha
+atom: beta
+atom: delta
+atom: theta
+atom: gamma
+@end example
+
+@noindent
+which are the token strings.
+
+@example
+#include "sexp-tokens.h"
+
+int
+main (void)
+@{
+  const char *          error_message;
+  struct sexp_iterator  I[1];
+  static const char *   sex =
+    "(5:alpha4:beta(5:delta5:theta)5:gamma)";
+
+  E(sexp_iterator_first(I, strlen(sex),
+                        (const uint8_t *)sex),
+    "initialising the iterator");
+  E(sexp_iterator_enter_list(I), "entering list");
+  @{
+    print_atom(I);
+    E(sexp_iterator_next(I), "advance to 2nd atom");
+    print_atom(I);
+    E(sexp_iterator_next(I), "advance to 3rd atom");
+    E(sexp_iterator_enter_list(I), "entering list");
+    @{
+      print_atom(I);
+      E(sexp_iterator_next(I), "advance to 2nd atom");
+      print_atom(I);
+    @}
+    E(sexp_iterator_exit_list(I), "exiting list");
+    print_atom(I);
+  @}
+  E(sexp_iterator_exit_list(I), "exiting list");
+  E(sexp_iterator_next(I), "advance to end");
+  assert(SEXP_END == I->type);
+
+  exit(EXIT_SUCCESS);
+ error:
+  fprintf(stderr, "parse error: %s\n", error_message);
+  exit(EXIT_FAILURE);
+@}
+@end example
+
+@c page
+@node nettle sexp examples assoc
+@appendixsubsubsec Parsing key/value S--expressions
+
+
+The following example parses a sexp as a key/value association list:
+
+@example
+((alpha beta gamma))
+@end example
+
+@noindent
+in which @code{alpha} is interpreted as the ``key'', while @code{beta}
+and @code{gamma} are interpreted as the ``values''; in canonical format
+it is:
+
+@example
+((5:alpha4:beta5:gamma))
+@end example
+
+@noindent
+notice that we can interpret a sexp as an association list only if: it
+is a list of lists; each sublist starts with an atom; each sublist has
+more than one element.  The program prints:
+
+@example
+atom: beta
+atom: gamma
+@end example
+
+@noindent
+which are the values.
+
+@example
+#include "sexp-tokens.h"
+
+int
+main (void)
+@{
+  const char *                  error_message;
+  struct sexp_iterator          I[1], S[1];
+  static const char *           sex =
+     "((5:alpha4:beta5:gamma))";
+#define KEYNUM          1
+  static const char *const      keys[KEYNUM]
+     = @{ "alpha" @};
+
+  E(sexp_iterator_first(I, strlen(sex),
+                        (const uint8_t *)sex),
+    "initialising the iterator");
+
+  E(sexp_iterator_enter_list(I), "entering list");
+  for (int i=0; i<KEYNUM; ++i)
+    S[i].type = SEXP_END;
+  E(sexp_iterator_assoc(I, KEYNUM,
+                        (const uint8_t *const *)keys,
+                        S), "parsing keys/values");
+  if (SEXP_END != S[0].type) @{
+    print_atom(S);
+    E(sexp_iterator_next(S), "advance to 2rd atom");
+    print_atom(S);
+    E(sexp_iterator_next(S), "advance to subsexp end");
+    assert(SEXP_END == S->type);
+  @}
+  assert(SEXP_END == I->type);
+
+  exit(EXIT_SUCCESS);
+ error:
+  fprintf(stderr, "error: %s\n", error_message);
+  exit(EXIT_FAILURE);
+@}
+@end example
+
+The following example parses another sexp as a key/value association
+list:
+
+@example
+((alpha  beta gamma)
+ (delta  theta))
+@end example
+
+@noindent
+in which @code{alpha} and @code{delta} are interpreted as the ``keys'',
+while @code{beta}, @code{gamma} and @code{theta} are interpreted as the
+``values''; in canonical format it is:
+
+@example
+((5:alpha4:beta5:gamma)(5:delta5:theta))
+@end example
+
+@noindent
+the program prints:
+
+@example
+atom: beta
+atom: gamma
+atom: theta
+@end example
+
+@noindent
+which are the values.
+
+@example
+#include "sexp-tokens.h"
+
+int
+main (void)
+@{
+  const char *                  error_message;
+  struct sexp_iterator          I[1], S[2];
+  static const char *           sex = "((5:alpha4:beta5:gamma)(5:delta5:theta))";
+#define KEYNUM          2
+  static const char *const      keys[KEYNUM] = @{ "alpha", "delta" @};
+
+  E(sexp_iterator_first(I, strlen(sex), (const uint8_t *)sex),
+    "initialising the iterator");
+  E(sexp_iterator_enter_list(I), "entering list");
+
+  for (int i=0; i<KEYNUM; ++i)
+    S[i].type = SEXP_END;
+  E(sexp_iterator_assoc(I, KEYNUM, (const uint8_t *const *)keys,
+                        S), "parsing keys/values");
+  if (SEXP_END != S[0].type) @{
+    print_atom(&S[0]);
+    E(sexp_iterator_next(&S[0]), "advance to 2rd atom");
+    print_atom(&S[0]);
+    E(sexp_iterator_next(&S[0]), "advance to subsexp end");
+    assert(SEXP_END == S[0].type);
+  @}
+  if (SEXP_END != S[1].type) @{
+    print_atom(&S[1]);
+    E(sexp_iterator_next(&S[1]), "advance to subsexp end");
+    assert(SEXP_END == S[1].type);
+  @}
+  assert(SEXP_END == I->type);
+
+  exit(EXIT_SUCCESS);
+ error:
+  fprintf(stderr, "error: %s\n", error_message);
+  exit(EXIT_FAILURE);
+@}
+@end example
+
+@c page
+@node nettle sexp examples number
+@appendixsubsubsec Parsing S--expressions with numbers
+
+
+The following example parses a sexp with two numbers as subexpressions:
+
+@example
+(0 258)
+@end example
+
+@noindent
+the numbers are serialised in binary, network (big endian) byte order;
+in canonical format expressed as C language string it is:
+
+@example
+"(1:\x002:\x01\x02)"
+@end example
+
+@noindent
+notice that when the S--expression has numbers in it, there may be null
+bytes, so we cannot use @cfunc{strlen} to determine the length of the
+input data.  The program prints:
+
+@example
+number atom: 0
+number atom: 258
+@end example
+
+@noindent
+which are the values.
+
+@example
+#include "sexp-tokens.h"
+
+static void
+print_number (struct sexp_iterator * I)
+@{
+  const char *  error_message;
+  uint32_t      n;
+  assert(SEXP_ATOM == I->type);
+  E(sexp_iterator_get_uint32(I, &n), "parsing number");
+  printf("number atom: %d\n", n);fflush(stdout);
+  return;
+ error:
+  fprintf(stderr, "parse error: %s\n", error_message);
+  exit(EXIT_FAILURE);
+@}
+
+int
+main (void)
+@{
+  const char *          error_message;
+  struct sexp_iterator  I[1];
+#define SEXLEN          9
+  static const char     sex[1+SEXLEN] =
+     "(" "1:\x00" "2:\x01\x02" ")";
+
+  E(sexp_iterator_first(I, SEXLEN, (const uint8_t *)sex),
+    "initialising the iterator");
+  E(sexp_iterator_enter_list(I), "entering list");
+  @{
+    print_number(I);
+    print_number(I);
+    assert(SEXP_END == I->type);
+  @}
+  E(sexp_iterator_exit_list(I), "exiting list");
+  E(sexp_iterator_next(I), "advance to end");
+  assert(SEXP_END == I->type);
+
+  exit(EXIT_SUCCESS);
+ error:
+  fprintf(stderr, "parse error: %s\n", error_message);
+  exit(EXIT_FAILURE);
+@}
+
+/* end of file */
+@end example
+
+@c page
+@node nettle asn1
+@appendixsec Limited support for @acronym{ASN.1}
+
+
+@defvr Constant ASN1_TYPE_CONSTRUCTED
+@defvrx Constant ASN1_CLASS_UNIVERSAL
+@defvrx Constant ASN1_CLASS_APPLICATION
+@defvrx Constant ASN1_CLASS_CONTEXT_SPECIFIC
+@defvrx Constant ASN1_CLASS_PRIVATE
+@defvrx Constant ASN1_CLASS_MASK
+@defvrx Constant ASN1_CLASS_SHIFT
+Currently undocumented.
+@end defvr
+
+
+@deftp {Enumeration} {enum asn1_type}
+Keeps the class number and the constructive in bits 13-14, and the
+constructive flag in bit 12.  The remaining 14 bits are the tag
+(although currently, only tags in the range 0-30 are supported).
+@end deftp
+
+
+@defvr Constant ASN1_BOOLEAN
+@defvrx Constant ASN1_INTEGER
+@defvrx Constant ASN1_BITSTRING
+@defvrx Constant ASN1_OCTETSTRING
+@defvrx Constant ASN1_NULL
+@defvrx Constant ASN1_IDENTIFIER
+@defvrx Constant ASN1_REAL
+@defvrx Constant ASN1_ENUMERATED
+@defvrx Constant ASN1_UTF8STRING
+@defvrx Constant ASN1_SEQUENCE
+@defvrx Constant ASN1_SET
+@defvrx Constant ASN1_PRINTABLESTRING
+@defvrx Constant ASN1_TELETEXSTRING
+@defvrx Constant ASN1_IA5STRING
+@defvrx Constant ASN1_UTC
+@defvrx Constant ASN1_UNIVERSALSTRING
+@defvrx Constant ASN1_BMPSTRING
+Currently undocumented.
+@end defvr
+
+
+@deftp {Enumeration} {enum asn1_iterator_result}
+Currently undocumented.
+@end deftp
+
+
+@defvr Constant ASN1_ITERATOR_ERROR
+@defvrx Constant ASN1_ITERATOR_PRIMITIVE
+@defvrx Constant ASN1_ITERATOR_CONSTRUCTED
+@defvrx Constant ASN1_ITERATOR_END
+Currently undocumented.
+@end defvr
+
+
+@deftp {Data Structure} asn1_der_iterator
+Context structure to parse @acronym{DER} objects.
+@end deftp
+
+
+@deftypefun {enum asn1_iterator_result} asn1_der_iterator_first (struct asn1_der_iterator * @var{I}, unsigned @var{len}, const uint8_t * @var{input})
+Initialise the iterator.
+@end deftypefun
+
+
+@deftypefun {enum asn1_iterator_result} asn1_der_iterator_next (struct asn1_der_iterator * @var{I})
+Advance to the next element.
+@end deftypefun
+
+
+@deftypefun {enum asn1_iterator_result} asn1_der_decode_constructed (struct asn1_der_iterator * @var{I}, struct asn1_der_iterator * @var{contents})
+Starts parsing of a constructed object.
+@end deftypefun
+
+
+@deftypefun {enum asn1_iterator_result} asn1_der_decode_constructed_last (struct asn1_der_iterator * @var{I})
+Checks that the current object is the final one, and then reinitialise
+the iterator to parse its ontents.  For the common case in which we have
+a sequence at the end of the object.
+@end deftypefun
+
+
+@deftypefun {enum asn1_iterator_result} asn1_der_decode_bitstring (struct asn1_der_iterator * @var{I}, struct asn1_der_iterator * @var{contents})
+Currently undocumented.
+@end deftypefun
+
+
+@deftypefun {enum asn1_iterator_result} asn1_der_decode_bitstring_last (struct asn1_der_iterator * @var{I})
+Currently undocumented.
+@end deftypefun
+
+
+@deftypefun int asn1_der_get_uint32 (struct asn1_der_iterator * @var{I}, uint32_t * @var{x})
+Currently undocumented.
 @end deftypefun
 
 @c page
