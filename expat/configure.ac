@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-expat],[0.1b1],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-expat],[0.1b2],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/xml/expat.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
