@@ -40,6 +40,7 @@ DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
 DS_EXCLUDE_SECTION([AUTOCONF])
 DS_EXCLUDE_SECTION([PKGCONFIG])
 NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign crypto gpg-error)])
 NAUSICAA_C_LANGUAGE
 AC_CHECK_HEADERS([gpg-error.h],,[AC_MSG_FAILURE([cannot find GPG-Error header],[2])])
 AC_CHECK_LIB([gpg-error],[gpg_err_init],,[AC_MSG_FAILURE([cannot find GPG-Error library],[2])])
@@ -57,7 +58,6 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 ])
 
 m4_include([configuration/gcrypt-inspector.m4])
-m4_include([configuration/gpg-error-inspector.m4])
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -65,7 +65,6 @@ dnl Done.
 dnl --------------------------------------------------------------------
 
 AC_CONFIG_FILES([../src/libraries/foreign/crypto/gcrypt/sizeof.sls:src/libraries/foreign/crypto/gcrypt/sizeof.sls.in])
-AC_CONFIG_FILES([../src/libraries/foreign/crypto/gpg-error/sizeof.sls:src/libraries/foreign/crypto/gpg-error/sizeof.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END

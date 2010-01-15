@@ -7,7 +7,7 @@
 #
 #
 #
-# Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+# Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 #
 # This program is  free software: you can redistribute  it and/or modify
 # it under the  terms of the GNU General Public  License as published by
@@ -28,8 +28,9 @@
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
+$(eval $(call nau-libraries,crypto,foreign/crypto))
 $(eval $(call nau-libraries,gcrypt,foreign/crypto/gcrypt))
-$(eval $(call nau-libraries,gpgerror,foreign/crypto/gpg-error))
+
 
 
 ### end of file

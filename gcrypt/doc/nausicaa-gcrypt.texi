@@ -554,11 +554,6 @@ Indexes
 Error handling
 
 * error codes::                 Handling error codes.
-* error conditions::            Condition objects.
-
-Condition objects
-
-* error conditions gpg-error::  GPG-error error conditions.
 
 Hash functions
 
@@ -641,54 +636,39 @@ The installed libraries are:
 
 @table @library
 @item foreign crypto gcrypt shared-object
-@itemx foreign crypto gpg-error shared-object
-Each library exports a single binding, @code{gcrypt-shared-object} and
-@code{gpg-error-shared-object}, which references the foreign shared
-library.
+Exports the single binding @code{gcrypt-shared-object} which references
+the foreign shared library.
 
 @item foreign crypto gcrypt sizeof
-@itemx foreign crypto gpg-error sizeof
 Export bindings to constant values and data structures accessors.
-
-@item foreign crypto gpg-error conditions
-Defines condition types for errors raised by Gcrypt.
 
 @item foreign crypto gcrypt enumerations
 Defines enumeration types used to handle Gcrypt options and flags.
 
 @item foreign crypto gcrypt platform
-@itemx foreign crypto gpg-error platform
-Export one binding for each foreign function; the Scheme functions have
+Exports one binding for each foreign function; the Scheme functions have
 the same name of the C functions, so @cfunc{gcry_check_version} is
-available as @func{gcry_check_version}.
-
-This library makes the original Libgcrypt documentation relevant for
-this package; unfortunately there is no documentation for the GPG-Error
-library, we have to read the header file @file{gpg-error.h}.
-@gcryptref{Top, The Libgcrypt library}.
+available as @func{gcry_check_version}.  This library makes the original
+Libgcrypt documentation relevant for this package.  @gcryptref{Top, The
+Libgcrypt library}.
 
 @item foreign crypto gcrypt primitives
-@itemx foreign crypto gpg-error primitives
-Export one binding for each callout function in the @code{platform}
-libraries, implementing marshaling of arguments and return values.  The
-Scheme functions have the same name of the C functions, but with the
+Exports one binding for each callout function in the @code{platform}
+library, implementing marshaling of arguments and return values.  The
+Scheme functions have the same name of the C functions, but with
 underscores converted to dashes; so @cfunc{gcry_check_version} is
 available as @func{gcry-check-version}.
-
-All the Gcrypt functions are prefixed with @code{gcry-}, while the
-GPG-error functions are prefixed with @code{gpg-}.
 
 This documentation file describes the @api{} exported by this library;
 only functions implementing marshaling of values are described: if a
 function is not documented here it is exported ``as is'' from the
-@code{platform} libraries.
+@code{platform} library.
 
 @item foreign crypto gcrypt
-@itemx foreign crypto gpg-error
-Compound libraries exporting the high--level @api{}; they reexport
-bindings from the @samp{primitives} libraries and the constant values
-from the @samp{sizeof} libraries.  Additionally bindings from other
-libraries are rexported as described in this document.
+Compound library exporting the high--level @api{}; it reexports bindings
+from the @samp{primitives} library and the constant values from the
+@samp{sizeof} library.  Additionally bindings from @library{foreign
+crypto gpg-error conditions} are rexported.
 
 @item foreign crypto gcrypt compensated
 Exports bindings to constructor functions making use of the
@@ -734,7 +714,6 @@ library raise an exception in case of error.
 
 @menu
 * error codes::                 Handling error codes.
-* error conditions::            Condition objects.
 @end menu
 
 @c page
@@ -743,66 +722,14 @@ library raise an exception in case of error.
 
 
 @defun gcry-strerror @var{code}
-@defunx gpg-strerror @var{code}
-@defunx gpg-strerror-r @var{code}
 Return a Scheme string describing the error @var{code}.
 @end defun
 
 
 @defun gcry-strsource @var{code}
-@defunx gpg-strsource @var{code}
 Return a Scheme string describing the error source specified by
 @var{code}.
 @end defun
-
-@c page
-@node error conditions
-@section Condition objects
-
-
-@menu
-* error conditions gpg-error::  GPG-error error conditions.
-@end menu
-
-@c page
-@node error conditions gpg-error
-@subsection GPG-error error conditions
-
-
-The following bindings are exported by the library @library{foreign
-crypto gpg-error conditions} and reexported by the library
-@library{foreign crypto gpg-error}.
-
-
-@deftp {Condition Type} &gpg-error
-Used to signal an error involving a Gcrypt function; it is derived from
-@condition{error}.  It has the following fields:
-
-@table @code
-@item code
-The error code.
-@end table
-@end deftp
-
-
-@defun make-gpg-error-condition @var{errcode}
-@defunx gpg-error-condition? @var{obj}
-Constructor and predicate for condition objects of type
-@condition{gpg-error}.
-@end defun
-
-
-@defun condition-gpg-error-code @var{condition}
-Accessor for the field of condition objects of type
-@condition{gpg-error}.
-@end defun
-
-
-@deffn Syntax raise-gpg-error @ameta{who} @ameta{errcode} @ameta{irritant} ...
-Raise a non--continuable exception with compound condition object of
-types: @condition{who}, @condition{message}, @condition{gpg-error},
-@condition{irritants}.
-@end deffn
 
 @c page
 @node hash

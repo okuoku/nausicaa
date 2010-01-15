@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Gcrypt 2010-01-15 tag 0.1b2
+Subject: [announce] Nausicaa/Gcrypt --- tag 0.1b3
 
 		      Nausicaa/Gcrypt
 		      ===============
@@ -9,9 +9,9 @@ Scheme  implementations;  it   provides  a  binding  to  the
 Libgcrypt C language library.
 
   It  is  built  upon  Nausicaa/Scheme, making  use  of  its
-foreign  functions interface; it  supports Ikarus,  Mosh and
-Ypsilon  Scheme  and it  currently  supports only  GNU+Linux
-systems.
+foreign functions interface, and upon Nausicaa/GPG-Error; it
+supports Ikarus,  Mosh and  Ypsilon Scheme and  it currently
+supports only GNU+Linux systems.
 
   The  latest  release  of  the Nausicaa/Gcrypt  package  is
 available at:
@@ -33,6 +33,12 @@ the documentation is available on line:
 Gcrypt is available at:
 
 		  <http://www.gnupg.org/>
+
+
+Notes for --- tag 0.1b3
+------------------------------
+
+* Split gpg-error interface into separate package.
 
 
 Notes for 2010-01-15 tag 0.1b2
