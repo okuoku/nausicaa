@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Zlib 2009-12-02 tag 0.1b2
+Subject: [announce] Nausicaa/Zlib 2010-01-15 tag 0.1b3
 
 		       Nausicaa/Zlib
 		       =============
@@ -27,6 +27,12 @@ development takes place at:
 the documentation is available on line:
 
     <http://marcomaggi.github.com/docs/nausicaa-zlib.html>
+
+
+Notes for 2009-12-02 tag 0.1b3
+------------------------------
+
+* Fixed problem with building infrastructure.
 
 
 Notes for 2009-12-02 tag 0.1b2
