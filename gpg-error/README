@@ -1,0 +1,122 @@
+
+		     Nausicaa/GPG-Error
+		     ==================
+
+
+Topics
+------
+
+  1. Introduction
+  2. License
+  3. Install
+  A. Credits
+  B. Bug reports
+  C. Resources
+
+
+1. Introduction
+---------------
+
+This package is a  distribution of libraries for R6RS Scheme
+implementations; it  provides a  binding to the  GPG-Error C
+language library.  It  is built upon Nausicaa/Scheme, making
+use of its foreign-functions interface.
+
+  The libraries support Ikarus, Mosh and Ypsilon Scheme; the
+package supports GNU+Linux systems.
+
+  The  last time  the  author has  bothered  to update  this
+paragraph, he had tested GPG-Error version 1.7.
+
+
+2. License
+----------
+
+Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+
+This  program  is free  software:  you  can redistribute  it
+and/or modify it  under the terms of the  GNU General Public
+License as published by the Free Software Foundation, either
+version  3 of  the License,  or (at  your option)  any later
+version.
+
+This  program is  distributed in  the hope  that it  will be
+useful, but  WITHOUT ANY WARRANTY; without  even the implied
+warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
+PURPOSE.   See  the  GNU  General Public  License  for  more
+details.
+
+You should  have received a  copy of the GNU  General Public
+License   along   with    this   program.    If   not,   see
+<http://www.gnu.org/licenses/>.
+
+
+4. Install
+----------
+
+Be sure to have installed the Nausicaa/Scheme package first.
+Read the "README.build" file for details on the installation
+infrastructure.  Basically we should do:
+
+   $ cd <nausicaa top>
+   $ cd gpg-error
+   $ mkdir "=build"
+   $ cd "=build"
+   $ ../configure
+   $ make
+   $ make test
+   $ make install
+
+  To test what a rule will do use the "-n" option; example:
+
+    $ make install -n
+
+  The "Makefile" supports the "DESTDIR" environment variable
+to install the files under a temporary location; example:
+
+    $ make install DESTDIR=/tmp/marco/nausicaa-gpg-error
+
+  The   "Makefile"  supports  the   packages  infrastructure
+described  in the  Nausicaa documentation.   Refer to  it to
+build binary distribution archives.
+
+
+A. Credits
+----------
+
+The stuff was written by Marco Maggi.
+
+
+B. Bug reports
+--------------
+
+Bug reports  are appreciated, register them  using the issue
+tracker at Nausicaa's GitHub site.
+
+
+C. Resources
+------------
+
+The latest version of this package can be downloaded from:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+GPG-Error is available at:
+
+		  <http://www.gnupg.org/>
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:

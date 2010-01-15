@@ -1,0 +1,49 @@
+To: comp.lang.scheme
+Subject: [announce] Nausicaa/GPG-Error --- tag 0.1b1
+
+		     Nausicaa/GPG-Error
+		     ==================
+
+This package is a  distribution of libraries for R6RS Scheme
+implementations;  it provides bindings  for the  GPG-Error C
+languge  library, a  library  that defines  error codes  for
+various components of GnuPG.
+
+  It  is  built  upon  Nausicaa/Scheme, making  use  of  its
+foreign-functions   interface.   It   supports   the  Scheme
+implementations  Ikarus, Mosh  and  Ypsilon.  The  packaging
+infrastructure currently supports only GNU+Linux systems.
+
+  The latest release of Nausicaa/GPG-Error is available at:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+the documentation is available on line:
+
+<http://marcomaggi.github.com/docs/nausicaa-gpg-error.html>
+
+GPG-Error is available at:
+
+		  <http://www.gnupg.org/>
+
+
+Notes for --- 0.1b1
+------------------------------
+
+* Tested with GPG-Error version 1.7.
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:
