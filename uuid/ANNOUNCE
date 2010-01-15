@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/UUID 2009-12-02 tag 0.1b1
+Subject: [announce] Nausicaa/UUID 2010-01-15 tag 0.1b2
 
 		       Nausicaa/UUID
 		       =============
@@ -39,6 +39,12 @@ the documentation is available on line:
 
 	    <http://www.ossp.org/pkg/lib/uuid/>
 	     <ftp://ftp.ossp.org/pkg/lib/uuid/>
+
+
+Notes for 2010-01-15 tag 0.1b2
+------------------------------
+
+* Fixed problem in building infrastructure.
 
 
 Notes for 2009-12-02 tag 0.1b1
