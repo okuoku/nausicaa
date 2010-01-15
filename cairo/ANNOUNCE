@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Cairo 2009-12-02 tag 0.1b1
+Subject: [announce] Nausicaa/Cairo 2010-01-15 tag 0.1b2
 
 		       Nausicaa/Cairo
 		       ==============
@@ -33,6 +33,12 @@ the documentation is available on line:
 Cairo is available at:
 
 		<http://cairographics.org/>
+
+
+Notes for 2010-01-15 tag 0.1b2
+------------------------------
+
+* Fixed problem with building infrastructure.
 
 
 Notes for 2009-12-02 tag 0.1b1
