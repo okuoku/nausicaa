@@ -1,8 +1,8 @@
 To: comp.lang.scheme
 Subject: [announce] Nausicaa/Nettle 2010-01-14 tag 0.1b1
 
-		     Nausicaa/Nettle
-		     =================
+		      Nausicaa/Nettle
+		      ===============
 
 This package is a  distribution of libraries for R6RS Scheme
 implementations;  it  provides  bindings  for the  Nettle  C
@@ -41,6 +41,7 @@ Notes for 2010-01-14 tag 0.1b1
 
 * Requires Nausicaa/Scheme version 0.1a9+.
 
+* Requires Nausicaa/MP to run the test suite.
 
 ### end of file
 # Local Variables:
