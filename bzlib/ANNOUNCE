@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Bzlib 2009-12-06 tag 0.1b0
+Subject: [announce] Nausicaa/Bzlib 2010-01-15 tag 0.1b1
 
 		       Nausicaa/Bzlib
 		       ==============
@@ -31,6 +31,12 @@ the documentation is available on line:
 Libbzip2 is available at:
 
 		   <http://www.bzip.org>
+
+
+Notes for 2010-01-15 tag 0.1b1
+------------------------------
+
+* Fixed problem in building infrastructure.
 
 
 Notes for 2009-12-06 tag 0.1b0
