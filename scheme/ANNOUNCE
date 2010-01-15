@@ -51,6 +51,8 @@ Notes for 2010-01-14 tag 0.1a9
   shared  libraries   with  dependencies  on   other  shared
   libraries.
 
+* Fixed problem in the building infrastructure.
+
 
 Notes for 2010-01-05 tag 0.1a8
 ------------------------------

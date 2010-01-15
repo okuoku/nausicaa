@@ -125,7 +125,10 @@ libdist:
 ## Compilation files rules.
 ## --------------------------------------------------------------------
 
-.PHONY: fasl ifasl lfasl mfasl yfasl
+.PHONY: fasl \
+	ifasl ifasl-installed \
+	mfasl mfasl-installed \
+	yfasl yfasl-installed
 
 fasl: $(nau_FASL_IMPLEMENTATIONS)
 
@@ -148,10 +151,16 @@ fasl_ikarus_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
 fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) \
 					$(fasl_ikarus_COMPILE_COMMAND) \
 					$(fasl_ikarus_COMPILE_SCRIPT)
+fasl_ikarus_COMPILE_INST_RUN	= $(fasl_ikarus_COMPILE_COMMAND) \
+					$(fasl_ikarus_COMPILE_SCRIPT)
 
 ifasl: sls
 	@echo; echo "--- Compiling for Ikarus Scheme"
 	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_RUN)
+
+ifasl-installed:
+	@echo; echo "--- Compiling installed files for Ikarus Scheme"
+	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_INST_RUN)
 
 ## --------------------------------------------------------------------
 ## Mosh compilation.
@@ -168,10 +177,16 @@ fasl_mosh_COMPILE_COMMAND	= $(MOSH) --verbose
 fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_ENV)		\
 					$(fasl_mosh_COMPILE_COMMAND)	\
 					$(fasl_mosh_COMPILE_SCRIPT)
+fasl_mosh_COMPILE_INST_RUN	= $(fasl_mosh_COMPILE_COMMAND)	\
+					$(fasl_mosh_COMPILE_SCRIPT)
 
 mfasl: sls
 	@echo; echo "--- Compiling for Mosh Scheme"
 	test -f $(fasl_mosh_COMPILE_SCRIPT) && $(fasl_mosh_COMPILE_RUN)
+
+mfasl-installed:
+	@echo; echo "--- Compiling installed files for Mosh Scheme"
+	test -f $(fasl_mosh_COMPILE_SCRIPT) && $(fasl_mosh_COMPILE_INST_RUN)
 
 ## --------------------------------------------------------------------
 ## Larceny compilation.
@@ -211,10 +226,16 @@ fasl_ypsilon_COMPILE_COMMAND	= $(YPSILON) --verbose
 fasl_ypsilon_COMPILE_RUN	= $(fasl_ypsilon_COMPILE_ENV)		\
 					$(fasl_ypsilon_COMPILE_COMMAND)	\
 					$(fasl_ypsilon_COMPILE_SCRIPT)
+fasl_ypsilon_COMPILE_INST_RUN	= $(fasl_ypsilon_COMPILE_COMMAND)	\
+					$(fasl_ypsilon_COMPILE_SCRIPT)
 
 yfasl: sls
 	@echo; echo "--- Compiling for Ypsilon Scheme"
 	test -f $(fasl_ypsilon_COMPILE_SCRIPT) && $(fasl_ypsilon_COMPILE_RUN)
+
+yfasl-installed:
+	@echo; echo "--- Compiling installed files for Ypsilon Scheme"
+	test -f $(fasl_ypsilon_COMPILE_SCRIPT) && $(fasl_ypsilon_COMPILE_INST_RUN)
 
 #page
 ## ---------------------------------------------------------------------
