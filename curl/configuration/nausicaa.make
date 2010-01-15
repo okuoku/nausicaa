@@ -40,6 +40,16 @@ LARCENY		= @LARCENY@
 MOSH		= @MOSH@
 YPSILON		= @YPSILON@
 
+nau_sls_SRCDIR		= $(srcdir)/src/libraries
+nau_sls_BUILDDIR	= $(builddir)/fasl.d
+
+# Select the makefile rules to be prerequisite of the "fasl" rule.
+nau_FASL_IMPLEMENTATIONS	= \
+	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	ifasl) \
+	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	lfasl) \
+	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	mfasl) \
+	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	yfasl)
+
 #page
 ## ---------------------------------------------------------------------
 ## Building and installation of library source files.
@@ -47,29 +57,28 @@ YPSILON		= @YPSILON@
 
 .PHONY: sls sls-clean sls-install
 
-sls_SRCDIR	= $(srcdir)/src/libraries
-sls_BUILDDIR	= $(builddir)/fasl.d
-
 define nau-sls-libraries
 # $(1) - the identifier
 # $(2) - the subdirectory
 
-$$(eval $$(call ds-srcdir,nau_sls_$(1),$$(sls_SRCDIR)/$(2)))
-$$(eval $$(call ds-builddir,nau_sls_$(1),$$(sls_BUILDDIR)/$(2)))
+nau_sls_$(1)_DIR	= $(2)
+
+$$(eval $$(call ds-srcdir,nau_sls_$(1),$$(nau_sls_SRCDIR)/$(2)))
+$$(eval $$(call ds-builddir,nau_sls_$(1),$$(nau_sls_BUILDDIR)/$$(nau_sls_$(1)_DIR)))
 
 nau_sls_$(1)_SOURCES	= $$(call ds-glob,nau_sls_$(1),*.sls)
-nau_sls_$(1)_TARGETS	= $$(addprefix $$(sls_BUILDDIR),\
-				$$(subst $$(sls_SRCDIR),,$$(nau_sls_$(1)_SOURCES)))
+nau_sls_$(1)_TARGETS	= $$(addprefix $$(nau_sls_$(1)_BUILDDIR),\
+				$$(subst $$(nau_sls_$(1)_SRCDIR),,$$(nau_sls_$(1)_SOURCES)))
 nau_sls_$(1)_INSTLST	= $$(nau_sls_$(1)_TARGETS)
 nau_sls_$(1)_INSTDIR	= $$(pkglibdir)/$(2)
 
-nau_sls_$(1)_CLEANFILES	= $$(nau_sls_$(1)_TARGETS)
+nau_sls_$(1)_CLEANFILES		= $$(nau_sls_$(1)_TARGETS)
+nau_sls_$(1)_REALCLEANFILES	= $$(nau_sls_$(1)_CLEANFILES)
 
 $$(eval $$(call ds-module,nau_sls_$(1),bin))
 
-$$(nau_sls_$(1)_TARGETS): $$(nau_sls_$(1)_BUILDDIR)/%: $$(nau_sls_$(1)_SRCDIR)/%
-	@test -d $$(dir $$(@)) || $$(MKDIR) $$(dir $$(@))
-	@$$(CP) $$(<) $$(@)
+$$(nau_sls_$(1)_TARGETS): $$(nau_sls_$(1)_BUILDDIR)/% : $$(nau_sls_$(1)_SRCDIR)/%
+	$$(CP) $$(<) $$(@)
 
 sls:		nau_sls_$(1)-all
 sls-clean:	nau_sls_$(1)-clean
@@ -88,6 +97,9 @@ define nau-libraries
 $$(eval $$(call nau-sls-libraries,$(1),$(2)))
 endef
 
+#page
+## --------------------------------------------------------------------
+## Library distribution.
 ## --------------------------------------------------------------------
 
 libdist_TMPDIR	= $(TMPDIR)/$(PKG_ID)
@@ -115,13 +127,6 @@ libdist:
 
 .PHONY: fasl ifasl lfasl mfasl yfasl
 
-# Select the makefile rules to be prerequisite of the "fasl" rule.
-nau_FASL_IMPLEMENTATIONS	= \
-	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	ifasl) \
-	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	lfasl) \
-	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	mfasl) \
-	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	yfasl)
-
 fasl: $(nau_FASL_IMPLEMENTATIONS)
 
 ## --------------------------------------------------------------------
@@ -133,11 +138,11 @@ fasl: $(nau_FASL_IMPLEMENTATIONS)
 # directory of the  source files is not (more)  supported by Ikarus (Sat
 # Jan 9, 2010).
 
-fasl_ikarus_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.ikarus.sps
+fasl_ikarus_COMPILE_SCRIPT	= $(nau_sls_SRCDIR)/compile-all.ikarus.sps
 ifeq (,$(strip $(IKARUS_LIBRARY_PATH)))
-fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR)
+fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(nau_sls_BUILDDIR)
 else
-fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(sls_BUILDDIR):$(IKARUS_LIBRARY_PATH)
+fasl_ikarus_COMPILE_ENV		= IKARUS_LIBRARY_PATH=$(nau_sls_BUILDDIR):$(IKARUS_LIBRARY_PATH)
 endif
 fasl_ikarus_COMPILE_COMMAND	= $(IKARUS) --compile-dependencies
 fasl_ikarus_COMPILE_RUN		= $(fasl_ikarus_COMPILE_ENV) \
@@ -153,11 +158,11 @@ ifasl: sls
 
 # Compiled files will go in the user owned cache under "~/.mosh".
 
-fasl_mosh_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.mosh.sps
+fasl_mosh_COMPILE_SCRIPT	= $(nau_sls_SRCDIR)/compile-all.mosh.sps
 ifeq (,$(strip $(MOSH_LOADPATH)))
-fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(sls_BUILDDIR)
+fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(nau_sls_BUILDDIR)
 else
-fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(sls_BUILDDIR):$(MOSH_LOADPATH)
+fasl_mosh_COMPILE_ENV		= MOSH_LOADPATH=$(nau_sls_BUILDDIR):$(MOSH_LOADPATH)
 endif
 fasl_mosh_COMPILE_COMMAND	= $(MOSH) --verbose
 fasl_mosh_COMPILE_RUN		= $(fasl_mosh_COMPILE_ENV)		\
@@ -175,11 +180,11 @@ mfasl: sls
 
 # The  use of  ABSPATH  is needed  because  we change  directory in  the
 # compile commands below.
-fasl_larceny_COMPILE_SCRIPT	= $(abspath $(sls_SRCDIR)/compile-all.larceny.sps)
+fasl_larceny_COMPILE_SCRIPT	= $(abspath $(nau_sls_SRCDIR)/compile-all.larceny.sps)
 ifeq (,$(strip $(LARCENY_LIBPATH)))
-fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(sls_BUILDDIR)
+fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(nau_sls_BUILDDIR)
 else
-fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(sls_BUILDDIR):$(LARCENY_LIBPATH)
+fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(nau_sls_BUILDDIR):$(LARCENY_LIBPATH)
 endif
 fasl_larceny_COMPILE_COMMAND	= $(LARCENY) -r6rs -program
 fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) \
@@ -188,18 +193,18 @@ fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) \
 
 lfasl: sls
 	@echo; echo "--- Compiling for Larceny Scheme"
-	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(sls_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
+	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(nau_sls_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
 
 ## --------------------------------------------------------------------
 ## Ypsilon compilation.
 
 # Compiled files will go in the user owned cache under "~/.ypsilon".
 
-fasl_ypsilon_COMPILE_SCRIPT	= $(sls_SRCDIR)/compile-all.ypsilon.sps
+fasl_ypsilon_COMPILE_SCRIPT	= $(nau_sls_SRCDIR)/compile-all.ypsilon.sps
 ifeq (,$(strip $(YPSILON_SITELIB)))
-fasl_ypsilon_COMPILE_ENV	= YPSILON_SITELIB=$(sls_BUILDDIR)
+fasl_ypsilon_COMPILE_ENV	= YPSILON_SITELIB=$(nau_sls_BUILDDIR)
 else
-fasl_ypsilon_COMPILE_ENV	= YPSILON_SITELIB=$(sls_BUILDDIR):$(YPSILON_SITELIB)
+fasl_ypsilon_COMPILE_ENV	= YPSILON_SITELIB=$(nau_sls_BUILDDIR):$(YPSILON_SITELIB)
 endif
 fasl_ypsilon_COMPILE_ENV	+= $(nau_test_ENV)
 fasl_ypsilon_COMPILE_COMMAND	= $(YPSILON) --verbose
@@ -251,7 +256,7 @@ endif
 ifdef LIBPATH
 nau_test_custom_LIBPATH	= $(LIBPATH):
 endif
-nau_test_PATH		= $(nau_test_custom_LIBPATH)$(sls_BUILDDIR):$(nau_test_SRCDIR)
+nau_test_PATH		= $(nau_test_custom_LIBPATH)$(nau_sls_BUILDDIR):$(nau_test_SRCDIR)
 
 .PHONY: tests test check
 
@@ -406,7 +411,7 @@ endif
 ifdef LIBPATH
 nau_proof_custom_LIBPATH	= $(LIBPATH):
 endif
-nau_proof_PATH		= $(nau_proof_custom_LIBPATH)$(sls_BUILDDIR):$(srcdir)/proofs
+nau_proof_PATH		= $(nau_proof_custom_LIBPATH)$(nau_sls_BUILDDIR):$(srcdir)/proofs
 
 .PHONY: proofs proof
 

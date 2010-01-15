@@ -40,7 +40,7 @@ $(ds_texi_BUILDDIR)/nausicaa-nettle.pdf:  $(ds_texi_SRCDIR)/nettle.texiinc
 ## --------------------------------------------------------------------
 
 $(eval $(call nau-libraries,nettle,foreign/crypto/nettle))
-$(eval $(call nau-libraries,hodweed,foreign/crypto/hogweed))
+$(eval $(call nau-libraries,hogweed,foreign/crypto/hogweed))
 
 
 ### end of file

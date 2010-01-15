@@ -11,7 +11,7 @@
 #	have  received  a documentation  file  in  Texinfo format  named
 #	"infrastructure.texi".
 #
-# Copyright (c) 2007-2009 Marco Maggi <marcomaggi@gna.org>
+# Copyright (c) 2007-2010 Marco Maggi <marcomaggi@gna.org>
 #
 # This program is  free software: you can redistribute  it and/or modify
 # it under the  terms of the GNU General Public  License as published by
@@ -534,7 +534,8 @@ endef
 #page
 define ds-srcdir
 $(1)_SRCDIR	?= $$(if $(2),$(2),$$(srcdir)/$(1))
-# do not indenti this call
+# Do  not  indent this  call.   Notice that  the  check  for the  source
+# directory is performed every time this file is loaded.
 $$(call ds-assert-srcdir,$(1))
 endef
 
@@ -548,18 +549,12 @@ endef
 define ds-builddir
 $(1)_BUILDDIR	?= $$(if $(2),$(2),$$(builddir)/$(1).d)
 
-.PHONY: $(1)-make-builddir
+.PHONY: $(1)-all $(1)-make-builddir
 
 $(1)-make-builddir:
-# do not indenti this call
-$$(call ds-make-builddir,$(1))
-$(1)-all: $(1)-make-builddir
-endef
+	test -d "$$($(1)_BUILDDIR)" || $$(MKDIR) "$$($(1)_BUILDDIR)"
 
-define ds-make-builddir
-$(if $($(1)_BUILDDIR),\
-	$(shell test -d "$($(1)_BUILDDIR)" || $(MKDIR) "$($(1)_BUILDDIR)"),\
-	$(error null build directory variable "$(1)_BUILDDIR"))
+$(1)-all: $(1)-make-builddir
 endef
 
 #page
@@ -924,8 +919,6 @@ endef
 
 #page
 define ds-uninstall-scripts
-$$(eval $$(call ds-builddir,ds_uninstall,$$(builddir)/uninstall.d))
-
 ifeq ($$(ds_include_BIN_RULES),yes)
 $$(eval $$(call ds-private-uninstall-scripts,bin))
 endif
@@ -943,9 +936,11 @@ define ds-private-uninstall-scripts
 # 1 - the section identifier
 # 2 - the package name section
 
+$$(eval $$(call ds-builddir,ds_uninstall_$(1),$$(builddir)/uninstall.d))
+
 ds_uninstall_$(1)_PACKAGE	= $$(PACKAGE_NAME)-$(2)$$(PACKAGE_VERSION)
 ds_uninstall_$(1)_NAME		= uninstall-$$(ds_uninstall_$(1)_PACKAGE).sh
-ds_uninstall_$(1)_PATHNAME	= $$(ds_uninstall_BUILDDIR)/$$(ds_uninstall_$(1)_NAME)
+ds_uninstall_$(1)_PATHNAME	= $$(ds_uninstall_$(1)_BUILDDIR)/$$(ds_uninstall_$(1)_NAME)
 ds_uninstall_$(1)_TARGETS	= $$(ds_uninstall_$(1)_PATHNAME)
 
 $$(eval $$(call ds-default-install-variables,ds_uninstall_$(1),$$(pkglibexecdir)))
