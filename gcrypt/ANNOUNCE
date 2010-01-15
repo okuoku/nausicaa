@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Gcrypt 2010-01-05 tag 0.1b1
+Subject: [announce] Nausicaa/Gcrypt 2010-01-15 tag 0.1b2
 
 		      Nausicaa/Gcrypt
 		      ===============
@@ -33,6 +33,12 @@ the documentation is available on line:
 Gcrypt is available at:
 
 		  <http://www.gnupg.org/>
+
+
+Notes for 2010-01-15 tag 0.1b2
+------------------------------
+
+* Fixed problem with building infrastructure.
 
 
 Notes for 2010-01-05 tag 0.1b1
