@@ -1,0 +1,12 @@
+              |-----handy-ruler-----------------------------------------------|
+@PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: This package is a  distribution of libraries for R6RS Scheme
+@PACKAGE_NAME@: implementations; it provides a binding to the GPGME C language
+@PACKAGE_NAME@: library.  It is built upon Nausicaa/Scheme, making use of its
+@PACKAGE_NAME@: foreign-functions interface, and upon Nausicaa/GPG-Error.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@: The libraries support Ikarus, Mosh and Ypsilon Scheme; the
+@PACKAGE_NAME@: package supports GNU+Linux systems.
+@PACKAGE_NAME@:
+@PACKAGE_NAME@:
