@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Gcrypt --- tag 0.1b3
+Subject: [announce] Nausicaa/Gcrypt 2010-01-16 tag 0.1b3
 
 		      Nausicaa/Gcrypt
 		      ===============
@@ -35,10 +35,10 @@ Gcrypt is available at:
 		  <http://www.gnupg.org/>
 
 
-Notes for --- tag 0.1b3
+Notes for 2010-01-16 tag 0.1b3
 ------------------------------
 
-* Split gpg-error interface into separate package.
+* Split libgpg-error interface into a separate package.
 
 
 Notes for 2010-01-15 tag 0.1b2
