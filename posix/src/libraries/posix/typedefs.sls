@@ -213,27 +213,31 @@
     <socket>-style
     <socket>-protocol
 
-    <struct-sockaddr-in>		<struct-sockaddr-in-rtd>
-    make-<struct-sockaddr-in>		<struct-sockaddr-in>?
-    <struct-sockaddr-in>-family		<struct-sockaddr-in>-family-set!
-    <struct-sockaddr-in>-addr		<struct-sockaddr-in>-addr-set!
-    <struct-sockaddr-in>-port		<struct-sockaddr-in>-port-set!
+    <sockaddr>				<sockaddr-rtd>
+    make-<sockaddr>			<sockaddr>?
+    <sockaddr>-family
 
-    <struct-sockaddr-in6>		<struct-sockaddr-in6-rtd>
-    make-<struct-sockaddr-in6>		<struct-sockaddr-in6>?
-    <struct-sockaddr-in6>-family	<struct-sockaddr-in6>-family-set!
-    <struct-sockaddr-in6>-addr		<struct-sockaddr-in6>-addr-set!
-    <struct-sockaddr-in6>-port		<struct-sockaddr-in6>-port-set!
+    <sockaddr-in>			<sockaddr-in-rtd>
+    make-<sockaddr-in>			<sockaddr-in>?
+    <sockaddr-in>-family
+    <sockaddr-in>-addr			<sockaddr-in>-addr-set!
+    <sockaddr-in>-port			<sockaddr-in>-port-set!
 
-    <struct-sockaddr-un>		<struct-sockaddr-un-rtd>
-    make-<struct-sockaddr-un>		<struct-sockaddr-un>?
-    <struct-sockaddr-un>-family		<struct-sockaddr-un>-family-set!
-    <struct-sockaddr-un>-path		<struct-sockaddr-un>-path-set!
+    <sockaddr-in6>			<sockaddr-in6-rtd>
+    make-<sockaddr-in6>			<sockaddr-in6>?
+    <sockaddr-in6>-family
+    <sockaddr-in6>-addr			<sockaddr-in6>-addr-set!
+    <sockaddr-in6>-port			<sockaddr-in6>-port-set!
 
-    <struct-if-nameindex>		<struct-if-nameindex-rtd>
-    make-<struct-if-nameindex>		<struct-if-nameindex>?
-    <struct-if-nameindex>-index		<struct-if-nameindex>-index-set!
-    <struct-if-nameindex>-name		<struct-if-nameindex>-name-set!
+    <sockaddr-un>			<sockaddr-un-rtd>
+    make-<sockaddr-un>			<sockaddr-un>?
+    <sockaddr-un>-family
+    <sockaddr-un>-path			<sockaddr-un>-path-set!
+
+    <if-nameindex>			<if-nameindex-rtd>
+    make-<if-nameindex>			<if-nameindex>?
+    <if-nameindex>-index
+    <if-nameindex>-name
 
     <struct-netent>			<struct-netent>?
     <struct-netent>-name		<struct-netent>-name-set!
@@ -569,48 +573,69 @@
   (record-type-descriptor <struct-itimerval>))
 
 
-(define-record-type <struct-sockaddr-in>
-  (nongenerative nausicaa:posix:<struct-sockaddr-in>)
-  (fields (mutable family)
-	  (mutable addr)
+(define-record-type <sockaddr>
+  (nongenerative nausicaa:posix:<sockaddr>)
+  (fields (immutable family)))
+
+(define <sockaddr-rtd>
+  (record-type-descriptor <sockaddr>))
+
+;;; --------------------------------------------------------------------
+
+(define-record-type (<sockaddr-in> %make-<sockaddr-in> <sockaddr-in>?)
+  (nongenerative nausicaa:posix:<sockaddr-in>)
+  (parent <sockaddr>)
+  (fields (mutable addr)
 	  (mutable port)))
 
-(define <struct-sockaddr-in-rtd>
-  (record-type-descriptor <struct-sockaddr-in>))
+(define <sockaddr-in-rtd>
+  (record-type-descriptor <sockaddr-in>))
+
+(define (make-<sockaddr-in> addr port)
+  (%make-<sockaddr-in> AF_INET addr port))
+
+(define <sockaddr-in>-family		<sockaddr>-family)
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <struct-sockaddr-in6>
-  (nongenerative nausicaa:posix:<struct-sockaddr-in6>)
-  (fields (mutable family)
-	  (mutable addr)
+(define-record-type (<sockaddr-in6> %make-<sockaddr-in6> <sockaddr-in6>?)
+  (nongenerative nausicaa:posix:<sockaddr-in6>)
+  (parent <sockaddr>)
+  (fields (mutable addr)
 	  (mutable port)))
 
-(define <struct-sockaddr-in6-rtd>
-  (record-type-descriptor <struct-sockaddr-in6>))
+(define <sockaddr-in6-rtd>
+  (record-type-descriptor <sockaddr-in6>))
+
+(define (make-<sockaddr-in6> addr port)
+  (%make-<sockaddr-in6> AF_INET6 addr port))
+
+(define <sockaddr-in6>-family		<sockaddr>-family)
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type (<struct-sockaddr-un> %make-<struct-sockaddr-un> <struct-sockaddr-un>?)
-  (nongenerative nausicaa:posix:<struct-sockaddr-un>)
-  (fields (mutable family)
-	  (mutable path)))
+(define-record-type (<sockaddr-un> %make-<sockaddr-un> <sockaddr-un>?)
+  (nongenerative nausicaa:posix:<sockaddr-un>)
+  (parent <sockaddr>)
+  (fields (mutable path)))
 
-(define <struct-sockaddr-un-rtd>
-  (record-type-descriptor <struct-sockaddr-un>))
+(define <sockaddr-un-rtd>
+  (record-type-descriptor <sockaddr-un>))
 
-(define (make-<struct-sockaddr-un> pathname)
-  (%make-<struct-sockaddr-un> AF_LOCAL pathname))
+(define (make-<sockaddr-un> pathname)
+  (%make-<sockaddr-un> AF_LOCAL pathname))
+
+(define <sockaddr-un>-family		<sockaddr>-family)
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <struct-if-nameindex>
-  (nongenerative nausicaa:posix:<struct-if-nameindex>)
-  (fields (mutable index)
-	  (mutable name)))
+(define-record-type <if-nameindex>
+  (nongenerative nausicaa:posix:<if-nameindex>)
+  (fields (immutable index)
+	  (immutable name)))
 
-(define <struct-if-nameindex-rtd>
-  (record-type-descriptor <struct-if-nameindex>))
+(define <if-nameindex-rtd>
+  (record-type-descriptor <if-nameindex>))
 
 ;;; --------------------------------------------------------------------
 

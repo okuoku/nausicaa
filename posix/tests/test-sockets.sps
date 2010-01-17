@@ -57,7 +57,7 @@
   (check
       (let ((l (posix:if-nameindex)))
 ;;;	(pretty-print l)(newline)
-	(for-all <struct-if-nameindex>? l))
+	(for-all <if-nameindex>? l))
     => #t)
 
   #t)
@@ -218,8 +218,8 @@
 
   (define (make-sock/c)
     (letrec ((sock (compensate
-		       (posix:socket (socket-namespace local)
-				     (socket-style stream))
+		       (posix:socket* (namespace local)
+				      (style stream))
 		     (with
 		      (posix:close sock)))))
       sock))
@@ -400,24 +400,25 @@
       (with-result
        (with-compensations
 	 (let* ((pathname	(string-append (posix:getenv "TMPDIR") "/proof"))
-		(sockaddr	(make-<struct-sockaddr-un> pathname)))
+		(sockaddr	(make-<sockaddr-un> pathname)))
 	   (push-compensation (when (file-exists? pathname)
 				(posix:unlink pathname)))
 	   (letrec ((master-sock	(compensate
-					    (posix:socket (socket-namespace local) (socket-style stream))
+					    (posix:socket* (namespace local) (style stream))
 					  (with
 					   (posix:close master-sock))))
 		    (client-sock	(compensate
-					    (posix:socket (socket-namespace local) (socket-style stream))
+					    (posix:socket* (namespace local) (style stream))
 					  (with
 					   (posix:close client-sock)))))
+	     (posix:setsockopt master-sock (socket-option reuseaddr) #t)
 	     (posix:bind   master-sock sockaddr)
 	     (posix:listen master-sock 2)
 	     (posix:connect client-sock sockaddr)
 	     (receive (server-sock client-address)
 		 (posix:accept master-sock)
 	       (push-compensation (posix:close server-sock))
-	       (add-result (<struct-sockaddr-un>? sockaddr))
+	       (add-result (<sockaddr-un>? sockaddr))
 	       (posix:send/string server-sock "ciao client")
 	       (add-result (posix:recv/string client-sock 100))
 	       (posix:send/string client-sock "ciao server")
@@ -431,11 +432,11 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check	;bytevectors
+  (check 	;bytevectors
       (with-result
        (with-compensations
 	 (let* ((pathname	(string-append (posix:getenv "TMPDIR") "/proof"))
-		(sockaddr	(make-<struct-sockaddr-un> pathname)))
+		(sockaddr	(make-<sockaddr-un> pathname)))
 	   (push-compensation (when (file-exists? pathname)
 				(posix:unlink pathname)))
 	   (letrec ((master-sock	(compensate
@@ -446,13 +447,14 @@
 					    (posix:socket (socket-namespace local) (socket-style stream))
 					  (with
 					   (posix:close client-sock)))))
+	     (posix:setsockopt master-sock (socket-option reuseaddr) #t)
 	     (posix:bind   master-sock sockaddr)
 	     (posix:listen master-sock 2)
 	     (posix:connect client-sock sockaddr)
 	     (receive (server-sock client-address)
 		 (posix:accept master-sock)
 	       (push-compensation (posix:close server-sock))
-	       (add-result (<struct-sockaddr-un>? sockaddr))
+	       (add-result (<sockaddr-un>? sockaddr))
 	       (posix:send/bytevector server-sock (string->utf8 "ciao client"))
 	       (add-result (utf8->string (posix:recv/bytevector client-sock 100)))
 	       (posix:send/bytevector client-sock (string->utf8 "ciao server"))
@@ -470,7 +472,7 @@
       (with-result
        (with-compensations
 	 (let* ((pathname	(string-append (posix:getenv "TMPDIR") "/proof"))
-		(sockaddr	(make-<struct-sockaddr-un> pathname)))
+		(sockaddr	(make-<sockaddr-un> pathname)))
 	   (push-compensation (when (file-exists? pathname)
 				(posix:unlink pathname)))
 	   (letrec ((master-sock	(compensate
@@ -481,13 +483,14 @@
 					    (posix:socket (socket-namespace local) (socket-style stream))
 					  (with
 					   (posix:close client-sock)))))
+	     (posix:setsockopt master-sock (socket-option reuseaddr) #t)
 	     (posix:bind   master-sock sockaddr)
 	     (posix:listen master-sock 2)
 	     (posix:connect client-sock sockaddr)
 	     (receive (server-sock client-address)
 		 (posix:accept master-sock)
 	       (push-compensation (posix:close server-sock))
-	       (add-result (<struct-sockaddr-un>? sockaddr))
+	       (add-result (<sockaddr-un>? sockaddr))
 	       (posix:send/memblock server-sock (string->memblock "ciao client" malloc/c))
 	       (add-result (memblock->string (posix:recv/memblock client-sock 100 malloc/c)))
 	       (posix:send/memblock client-sock (string->memblock "ciao server" malloc/c))
@@ -501,47 +504,58 @@
 
 ;;; --------------------------------------------------------------------
 
+;;;If we do  not set the "reuseaddr" option for  the server socket, this
+;;;sleep is required  to make the sockaddr-un address  available for the
+;;;following  tests; without  it, we  get the  "address already  in use"
+;;;error.  It is cleaner to set the "reuseaddr" option.
+;;;
+;;;  (glibc:sleep 1)
+
   (check	;processes
        (with-compensations
 	 (let* ((pathname (string-append (posix:getenv "TMPDIR") "/proof"))
-		(sockaddr (make-<struct-sockaddr-un> pathname)))
+		(sockaddr (make-<sockaddr-un> pathname)))
 
-	   (if (posix:fork)
-	       (begin ;parent, server
-		 (push-compensation (when (file-exists? pathname)
-				      (posix:remove pathname)))
-		 (letrec ((server-sock (compensate
+	   (let ((pid (posix:fork)))
+	     (if pid
+		 (begin ;parent, server
+		   (push-compensation (when (file-exists? pathname)
+					(posix:remove pathname)))
+		   (letrec ((server-sock (compensate
+					     (posix:socket (socket-namespace local)
+							   (socket-style stream))
+					   (with
+					    (posix:close server-sock)))))
+		     (posix:setsockopt server-sock (socket-option reuseaddr) #t)
+		     (posix:bind   server-sock sockaddr)
+		     (posix:listen server-sock 2)
+		     (receive (client-sock client-address)
+			 (posix:accept server-sock)
+		       (push-compensation (posix:close client-sock))
+		       (with-result
+			(add-result (<sockaddr-un>? client-address))
+			(posix:send/string client-sock "ciao client")
+			(add-result (posix:recv/string client-sock 100))
+			(posix:send/string client-sock "quit client")
+			(add-result (posix:recv/string client-sock 100))
+			(receive (pid1 status)
+			    (posix:waitpid pid 0)
+			  (pid=? pid pid1))))))
+	       (begin ;child, client
+		 (letrec ((client-sock (compensate
 					   (posix:socket (socket-namespace local)
 							 (socket-style stream))
 					 (with
-					  (posix:close server-sock)))))
-		   (posix:bind   server-sock sockaddr)
-		   (posix:listen server-sock 2)
-		   (receive (client-sock client-address)
-		       (posix:accept server-sock)
-		     (push-compensation (posix:close client-sock))
-		     (with-result
-		      (add-result (<struct-sockaddr-un>? client-address))
-		      (posix:send/string client-sock "ciao client")
-		      (add-result (posix:recv/string client-sock 100))
-		      (posix:send/string client-sock "quit client")
-		      (add-result (posix:recv/string client-sock 100))
-		      #t))))
-	     (begin ;child, client
-	       (letrec ((client-sock (compensate
-					 (posix:socket (socket-namespace local)
-						       (socket-style stream))
-				       (with
-					(posix:close client-sock)))))
-		 ;;Give the  server some time to setup  itself and reach
-		 ;;the ACCEPT call.
-		 (glibc:sleep 1)
-		 (posix:connect client-sock sockaddr)
-		 (posix:recv/string client-sock 100)
-		 (posix:send/string client-sock "ciao server")
-		 (posix:recv/string client-sock 100)
-		 (posix:send/string client-sock "quit server")
-		 (exit))))))
+					  (posix:close client-sock)))))
+		   ;;Give the  server some time to setup  itself and reach
+		   ;;the ACCEPT call.
+		   (glibc:sleep 1)
+		   (posix:connect client-sock sockaddr)
+		   (posix:recv/string client-sock 100)
+		   (posix:send/string client-sock "ciao server")
+		   (posix:recv/string client-sock 100)
+		   (posix:send/string client-sock "quit server")
+		   (exit)))))))
     => '(#t (#t "ciao server" "quit server")))
 
   #t)
@@ -549,40 +563,91 @@
 
 (parametrise ((check-test-name	'local-datagram))
 
+  (define (make-sock/c)
+    (letrec ((sock (compensate
+		       (posix:socket* (namespace local)
+				      (style datagram))
+		     (with
+		      (posix:close sock)))))
+      sock))
+
   (check	;strings
       (with-result
        (with-compensations
-	 (let* ((TMPDIR		(posix:getenv "TMPDIR"))
-		(pathname1	(string-append TMPDIR "/proof1"))
-		(pathname2	(string-append TMPDIR "/proof2"))
-		(sockaddr1	(make-<struct-sockaddr-un> pathname1))
-		(sockaddr2	(make-<struct-sockaddr-un> pathname2)))
-	   (push-compensation (when (file-exists? pathname1)
-				(posix:unlink pathname1)))
-	   (push-compensation (when (file-exists? pathname2)
-				(posix:unlink pathname2)))
-	   (letrec ((sock1 (compensate
-				     (posix:socket (socket-namespace local) (socket-style datagram))
-				   (with
-				    (posix:close sock1))))
-		    (sock2 (compensate
-				     (posix:socket (socket-namespace local) (socket-style datagram))
-				   (with
-				    (posix:close sock2)))))
-	     (posix:bind sock1 sockaddr1)
-	     (posix:bind sock2 sockaddr2)
-	     (posix:system "ls -l /tmp/marco")
-	     (glibc:sleep 1)
-	     (posix:sendto/string sock1 "ciao client" sockaddr2)
-	     ;; (add-result (posix:recvfrom/string sock2 100))
-	     ;; (posix:sendto/string sock2 "ciao server" sockaddr1)
-	     ;; (add-result (posix:recvfrom/string sock1 100))
-	     ;; (posix:sendto/string sock1 "quit client" sockaddr2)
-	     ;; (add-result (posix:recvfrom/string sock2 100))
-	     ;; (posix:sendto/string sock2 "quit server" sockaddr1)
-	     ;; (add-result (posix:recvfrom/string sock1 100))
+	 (let* ((TMPDIR			(posix:getenv "TMPDIR"))
+		(server-pathname	(string-append TMPDIR "/proof-server"))
+		(client-pathname	(string-append TMPDIR "/proof-client"))
+		(server-addr		(make-<sockaddr-un> server-pathname))
+		(to-addr		(make-<sockaddr-un> server-pathname))
+		(client-addr		(make-<sockaddr-un> client-pathname)))
+	   (push-compensation (when (file-exists? server-pathname)
+				(posix:unlink server-pathname)))
+	   (push-compensation (when (file-exists? client-pathname)
+				(posix:unlink client-pathname)))
+	   (let ((server-sock (make-sock/c))
+		 (client-sock (make-sock/c)))
+	     ;; (posix:setsockopt server-sock (socket-option reuseaddr) #t)
+	     ;; (posix:setsockopt client-sock (socket-option reuseaddr) #t)
+	     (posix:bind server-sock server-addr)
+	     (posix:bind client-sock client-addr)
+ 	     (glibc:sleep 1)
+;;;	     (posix:system "ls -l /tmp/marco/proof*")
+	     (posix:sendto/string client-sock "ciao server" to-addr)
+	     (receive (result peer-address)
+	     	 (posix:recvfrom/string server-sock 100)
+	       (add-result result)
+ 	     (glibc:sleep 1)
+	       (posix:sendto/string server-sock "ciao client" peer-address))
+	     (receive (result peer-address)
+	     	 (posix:recvfrom/string client-sock 100)
+	       (add-result result))
+	     ;; (posix:sendto/string client-sock "quit client" to-addr)
+	     ;; (receive (result peer-address)
+	     ;; 	 (posix:recvfrom/string server-sock 100)
+	     ;;   (add-result result)
+	     ;;   (posix:sendto/string server-sock "quit server" peer-address))
+	     ;; (receive (result peer-address)
+	     ;; 	 (posix:recvfrom/string client-sock 100)
+	     ;;   (add-result result))
 	     #t))))
-    => '(#t (#t "ciao client" "ciao server" "quit client" "quit server")))
+    => '(#t (#t "ciao server" "ciao client" "quit server" "quit client")))
+
+;;   (check	;strings
+;;       (with-result
+;;        (with-compensations
+;; 	 (let* ((TMPDIR		(posix:getenv "TMPDIR"))
+;; 		(server-pathname	(string-append TMPDIR "/proof1"))
+;; 		(client-pathname	(string-append TMPDIR "/proof2"))
+;; 		(sockaddr1	(make-<sockaddr-un> server-pathname))
+;; 		(sockaddr2	(make-<sockaddr-un> client-pathname)))
+;; 	   (push-compensation (when (file-exists? server-pathname)
+;; 				(posix:unlink server-pathname)))
+;; 	   (push-compensation (when (file-exists? client-pathname)
+;; 				(posix:unlink client-pathname)))
+;; 	   (letrec ((sock1 (compensate
+;; 				     (posix:socket (socket-namespace local) (socket-style datagram))
+;; 				   (with
+;; 				    (posix:close sock1))))
+;; 		    (sock2 (compensate
+;; 				     (posix:socket (socket-namespace local) (socket-style datagram))
+;; 				   (with
+;; 				    (posix:close sock2)))))
+;; 	     (posix:setsockopt sock1 (socket-option reuseaddr) #t)
+;; 	     (posix:setsockopt sock2 (socket-option reuseaddr) #t)
+;; 	     (posix:bind sock1 sockaddr1)
+;; 	     (posix:bind sock2 sockaddr2)
+;; ;;;	     (posix:system "ls -l /tmp/marco")
+;; 	     (glibc:sleep 1)
+;; 	     (posix:sendto/string sock1 "ciao client" sockaddr2)
+;; 	     (add-result (posix:recvfrom/string sock2 100))
+;; 	     (posix:sendto/string sock2 "ciao server" sockaddr1)
+;; 	     (add-result (posix:recvfrom/string sock1 100))
+;; 	     (posix:sendto/string sock1 "quit client" sockaddr2)
+;; 	     (add-result (posix:recvfrom/string sock2 100))
+;; 	     (posix:sendto/string sock2 "quit server" sockaddr1)
+;; 	     (add-result (posix:recvfrom/string sock1 100))
+;; 	     #t))))
+;;     => '(#t (#t "ciao client" "ciao server" "quit client" "quit server")))
 
 ;;; --------------------------------------------------------------------
 
@@ -590,7 +655,7 @@
 ;;       (with-result
 ;;        (with-compensations
 ;; 	 (let* ((pathname	(string-append (posix:getenv "TMPDIR") "/proof"))
-;; 		(sockaddr	(make-<struct-sockaddr-un> pathname)))
+;; 		(sockaddr	(make-<sockaddr-un> pathname)))
 ;; 	   (push-compensation (when (file-exists? pathname)
 ;; 				(posix:unlink pathname)))
 ;; 	   (letrec ((master-sock	(compensate
@@ -607,7 +672,7 @@
 ;; 	     (receive (server-sock client-address)
 ;; 		 (posix:accept master-sock)
 ;; 	       (push-compensation (posix:close server-sock))
-;; 	       (add-result (<struct-sockaddr-un>? sockaddr))
+;; 	       (add-result (<sockaddr-un>? sockaddr))
 ;; 	       (posix:sendto/bytevector server-sock (string->utf8 "ciao client"))
 ;; 	       (add-result (utf8->string (posix:recvfrom/bytevector client-sock 100)))
 ;; 	       (posix:sendto/bytevector client-sock (string->utf8 "ciao server"))
@@ -625,7 +690,7 @@
 ;;       (with-result
 ;;        (with-compensations
 ;; 	 (let* ((pathname	(string-append (posix:getenv "TMPDIR") "/proof"))
-;; 		(sockaddr	(make-<struct-sockaddr-un> pathname)))
+;; 		(sockaddr	(make-<sockaddr-un> pathname)))
 ;; 	   (push-compensation (when (file-exists? pathname)
 ;; 				(posix:unlink pathname)))
 ;; 	   (letrec ((master-sock	(compensate
@@ -642,7 +707,7 @@
 ;; 	     (receive (server-sock client-address)
 ;; 		 (posix:accept master-sock)
 ;; 	       (push-compensation (posix:close server-sock))
-;; 	       (add-result (<struct-sockaddr-un>? sockaddr))
+;; 	       (add-result (<sockaddr-un>? sockaddr))
 ;; 	       (posix:sendto/memblock server-sock (string->memblock "ciao client" malloc/c))
 ;; 	       (add-result (memblock->string (posix:recvfrom/memblock client-sock 100 malloc/c)))
 ;; 	       (posix:sendto/memblock client-sock (string->memblock "ciao server" malloc/c))
@@ -659,7 +724,7 @@
 ;;   (check	;processes
 ;;        (with-compensations
 ;; 	 (let* ((pathname (string-append (posix:getenv "TMPDIR") "/proof"))
-;; 		(sockaddr (make-<struct-sockaddr-un> pathname)))
+;; 		(sockaddr (make-<sockaddr-un> pathname)))
 
 ;; 	   (if (posix:fork)
 ;; 	       (begin ;parent, server
@@ -676,7 +741,7 @@
 ;; 		       (posix:accept server-sock)
 ;; 		     (push-compensation (posix:close client-sock))
 ;; 		     (with-result
-;; 		      (add-result (<struct-sockaddr-un>? client-address))
+;; 		      (add-result (<sockaddr-un>? client-address))
 ;; 		      (posix:sendto/string client-sock "ciao client")
 ;; 		      (add-result (posix:recvfrom/string client-sock 100))
 ;; 		      (posix:sendto/string client-sock "quit client")

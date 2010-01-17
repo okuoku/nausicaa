@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -150,7 +150,7 @@
 	(if pid
 	    (receive (result status)
 		(posix:waitpid pid 0)
-	      (= (pid->integer pid) result))
+	      (pid=? pid result))
 	  (posix:execv '/bin/ls '(ls "-l" /bin/ls))))
     => #t)
 

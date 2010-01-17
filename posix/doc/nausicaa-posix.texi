@@ -409,7 +409,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2008, 2009
+@set COPYRIGHT_YEARS            2008, 2009, 2010
 
 @c page
 @c ------------------------------------------------------------
@@ -600,6 +600,7 @@ Constant values and structure accessors
 
 Sockets
 
+* sockets intro::               Introduction.
 * sockets constants::           Constant values.
 * sockets enumerations::        Enumeration type definitions.
 * sockets structs::             Accessing data structures.
@@ -610,6 +611,8 @@ Sockets
 * sockets ops::                 Operations on sockets.
 * sockets address::             Network addresses.
 * sockets transfer::            Transferring data.
+* sockets options::             Configuring sockets behaviour.
+* sockets examples::            Client and server examples.
 
 Enumeration type definitions
 
@@ -640,11 +643,16 @@ Object type definitions
 Record types mirroring data structures
 
 * sockets records socket::        Socket file descriptor.
+* sockets records sockaddr::      Socket address.
 * sockets records sockaddr-in::   Internet namespace socket address IPv4.
 * sockets records sockaddr-in6::  Internet namespace socket address IPv6.
 * sockets records sockaddr-un::   Local namespace socket address.
 * sockets records if-nameindex::  Interface name.
 * sockets records netent::        Network database entry.
+
+Client and server examples
+
+* sockets examples local::      Local namespace sockets.
 
 Stream functions
 
@@ -706,7 +714,7 @@ Record types
 
 Processes
 
-* process typedefs::            Object type definitions.
+* process typedefs::            Object type defintions.
 * process id::                  Process identification.
 * process fork::                Creating a process.
 * process exec::                Executing a file.
@@ -3978,6 +3986,15 @@ PF_INET   PF_INET6  PF_UNSPEC
 @code{PF_LOCAL}, @code{PF_UNIX} and @code{PF_FILE} are synonyms.
 @end defun
 
+
+@defun socket-namespace->socklen @var{set}
+Given an enumeration set of type @code{enum-socket-namespace} holding a
+single element, return the size in bytes of the C language structure
+required to hold an address of the selected namespace.
+
+The size may not be significant, see the original documentation.
+@end defun
+
 @c page
 @node sockets enumerations style
 @subsection Socket styles
@@ -4219,6 +4236,13 @@ Unless otherwise specified, the following bindings are exported by the
 @subsection Structure @code{struct sockaddr}
 
 
+The @code{struct sockaddr} type is used only as ``mask'', to access the
+address format field of structures of type @code{struct sockaddr_un},
+@code{struct sockaddr_in} and @code{struct sockaddr_in6}; it is not
+meant to be instantiated by the client code.  @glibcref{Address Formats,
+Address Formats}.
+
+
 @defvr Constant sizeof-sockaddr
 @defvrx Constant alignof-sockaddr
 @defvrx Constant strideof-sockaddr
@@ -4242,6 +4266,11 @@ of the @code{sa_data} array field, which is embedded in the structure.
 @subsection Structure @code{struct sockaddr_un}
 
 
+The @code{struct sockaddr_un} type describes a socket address in the
+@code{PF_LOCAL} namespace.  @glibcref{Local Namespace Details, Details
+of Local Namespace}.
+
+
 @defvr Constant sizeof-sockaddr_un
 @defvrx Constant alignof-sockaddr_un
 @defvrx Constant strideof-sockaddr_un
@@ -4261,6 +4290,11 @@ language data structure.
 @c page
 @node sockets structs sockaddr_in
 @subsection Structure @code{struct sockaddr_in}
+
+
+The @code{struct sockaddr_in} type describes a socket address in the
+@code{AF_INET} namespace.  @glibcref{Internet Address Formats, Internet
+Socket Address Formats}.
 
 
 @defvr Constant sizeof-sockaddr_in
@@ -4287,6 +4321,11 @@ pointer to its first byte.
 @c page
 @node sockets structs sockaddr_in6
 @subsection Structure @code{struct sockaddr_in6}
+
+
+The @code{struct sockaddr_in6} type describes a socket address in the
+@code{AF_INET6} namespace.  @glibcref{Internet Address Formats, Internet
+Socket Address Formats}.
 
 
 @defvr Constant sizeof-sockaddr_in6
@@ -4316,6 +4355,11 @@ a pointer to its first byte.
 @subsection Structure @code{struct in_addr}
 
 
+The @code{struct in_addr} type describes an IPv4 address; it is an
+opaque structure which is not meant to be instantiated by the client
+code.  @glibcref{Host Address Data Type, Host Address Data Type}.
+
+
 @defvr Constant sizeof-in_addr
 @defvrx Constant alignof-in_addr
 @defvrx Constant strideof-in_addr
@@ -4328,6 +4372,11 @@ data structures.
 @subsection Structure @code{struct in6_addr}
 
 
+The @code{struct in6_addr} type describes an IPv6 address; it is an
+opaque structure which is not meant to be instantiated by the client
+code.  @glibcref{Host Address Data Type, Host Address Data Type}.
+
+
 @defvr Constant sizeof-in6_addr
 @defvrx Constant alignof-in6_addr
 @defvrx Constant strideof-in6_addr
@@ -4338,6 +4387,11 @@ data structures.
 @c page
 @node sockets structs if_nameindex
 @subsection Structure @code{if_nameindex}
+
+
+The @code{struct if_nameindex} type describes the mapping between
+network interface names and indexes.  @glibcref{Interface Naming,
+Interface Naming}.
 
 
 @defvr Constant sizeof-if_nameindex
@@ -4359,6 +4413,10 @@ language data structure.
 @c page
 @node sockets structs netent
 @subsection Structure @code{netent}
+
+
+The @code{struct netent} type describes an entry in the system's
+networks database.  @glibcref{Networks Database, Networks Database}.
 
 
 @defvr Constant sizeof-netent
@@ -4404,10 +4462,12 @@ of type @code{struct-in-addr} as @var{in-addr} arguments.  Functions
 from the platform libraries accept pointer objects as @var{in-addr-ptr}
 arguments.
 
-
 @deftp {Object Type} struct-in-addr
 Object type used to reference @code{struct in_addr} C language data
 structures.  It is disjoint from all the other Scheme object types.
+
+Objects of this type do not ``own'' the structure memory, they are just
+references to it.
 @end deftp
 
 
@@ -4435,6 +4495,9 @@ arguments.
 @deftp {Object Type} struct-in6-addr
 Object type used to reference @code{struct in6_addr} C language data
 structures.  It is disjoint from all the other Scheme object types.
+
+Objects of this type do not ``own'' the structure memory, they are just
+references to it.
 @end deftp
 
 
@@ -4454,10 +4517,11 @@ Convert to and from objects of type @code{in6-addr} and pointer objects.
 
 
 Unless otherwise specified, the following bindings are exported by the
-@library{posix sizeof} library.
+@library{posix typedefs} library.
 
 @menu
 * sockets records socket::        Socket file descriptor.
+* sockets records sockaddr::      Socket address.
 * sockets records sockaddr-in::   Internet namespace socket address IPv4.
 * sockets records sockaddr-in6::  Internet namespace socket address IPv6.
 * sockets records sockaddr-un::   Local namespace socket address.
@@ -4485,7 +4549,7 @@ An enumeration set of type @code{enum-socket-style} holding a single
 element.
 
 @item protocol
-An enumeration set of type @code{enum-socket-protocl} holding a single
+An enumeration set of type @code{enum-socket-protocol} holding a single
 element.
 @end table
 @end deftp
@@ -4493,7 +4557,9 @@ element.
 
 @defun make-<socket> @var{fd} @var{namespace} @var{style} @var{protocol}
 @defunx <socket>? @var{obj}
-Constructor and predicate for records of type @class{socket}.
+Constructor and predicate for records of type @class{socket}.  The
+constructor does @strong{not} validate its arguments: it is not meant to
+be used by client code in normal operations.
 @end defun
 
 
@@ -4507,50 +4573,86 @@ Accessors and mutators for records of type @class{socket}.
 @end defun
 
 @c page
-@node sockets records sockaddr-in
-@subsection Internet namespace socket address IPv4
+@node sockets records sockaddr
+@subsection Socket address
 
 
-@deftp {Record Type Name} <struct-sockaddr-in>
-@deftpx {Record Type Descriptor} <struct-sockaddr-in-rtd>
-Record type used to mirror @code{struct sockaddr_in} C language data
-structures.  It has the following mutable fields:
+@deftp {Record Type Name} <sockaddr>
+@deftpx {Record Type Descriptor} <sockaddr-rtd>
+Record type used as base for the @class{sockaddr-in},
+@class{sockaddr-in6} and @class{sockaddr-un} types; it is @strong{not}
+meant to be instantiated directly.  It has the following immutable
+field:
 
 @table @code
 @item family
 An exact integer representing the code of the address format for this
-address.  It should be @code{AF_INET}.
+address.  It must be one of the @code{AF_*} constants, @pxref{sockets
+constants, Constant values}.
+@end table
+@end deftp
 
+
+@defun make-<sockaddr> @var{family}
+@defunx <sockaddr>? @var{obj}
+Constructor and predicate for records of type @class{sockaddr}.  The
+constructor is @strong{not} meant to be used by client code in normal
+operations.
+@end defun
+
+
+@defun <sockaddr>-family @var{sockaddr}
+Accessors for records of type @class{sockaddr}.
+@end defun
+
+@c page
+@node sockets records sockaddr-in
+@subsection Internet namespace socket address IPv4
+
+
+@deftp {Record Type Name} <sockaddr-in>
+@deftpx {Record Type Descriptor} <sockaddr-in-rtd>
+Record type used to mirror @code{struct sockaddr_in} C language data
+structures; it is derived from @class{sockaddr}.  It has the following
+mutable fields:
+
+@table @code
 @item addr
 A record of type @class{struct-in-addr}.
 
 @item port
 An exact integer representing the port number.
 @end table
+
+The field @code{family}, inherited from @class{sockaddr}, must be set to
+@code{AF_INET}.
 @end deftp
 
 
-@defun make-<struct-sockaddr-in> @var{family} @var{data}
-@defunx <struct-sockaddr-in>? @var{obj}
-Constructor and predicate for records of type
-@class{struct-sockaddr-in}.
+@defun make-<sockaddr-in> @var{addr} @var{port}
+@defunx <sockaddr-in>? @var{obj}
+Constructor and predicate for records of type @class{sockaddr-in}.  The
+constructor does @strong{not} check its arguments: it is @strong{not}
+meant to be used by client code in normal operations.
+
+@var{addr} and @var{port} are the values of the @code{addr} and
+@code{port} fields, the @code{family} field is set to @code{AF_INET}
+automatically.
 @end defun
 
 
-@defun <struct-sockaddr-in>-family @var{sockaddr-in}
-@defunx <struct-sockaddr-in>-family-set! @var{sockaddr-in} @var{value}
-@defunx <struct-sockaddr-in>-addr @var{sockaddr-in}
-@defunx <struct-sockaddr-in>-addr-set! @var{sockaddr-in} @var{value}
-@defunx <struct-sockaddr-in>-port @var{sockaddr-in}
-@defunx <struct-sockaddr-in>-port-set! @var{sockaddr-in} @var{value}
-Accessors and mutators for records of type @class{struct-sockaddr-in}.
+@defun <sockaddr-in>-family @var{sockaddr-in}
+@defunx <sockaddr-in>-addr @var{sockaddr-in}
+@defunx <sockaddr-in>-addr-set! @var{sockaddr-in} @var{value}
+@defunx <sockaddr-in>-port @var{sockaddr-in}
+@defunx <sockaddr-in>-port-set! @var{sockaddr-in} @var{value}
+Accessors and mutators for records of type @class{sockaddr-in}.
 @end defun
 
 
-@defun primitive:pointer-><struct-sockaddr-in> @var{pointer}
+@defun primitive:pointer-><sockaddr-in> @var{pointer}
 Given a pointer object to a @code{struct sockaddr_in} data structure,
-build and return a record of type @class{struct-sockaddr-in} which
-mirrors it.
+build and return a record of type @class{sockaddr-in} which mirrors it.
 
 This function is exported by the @library{posix sockets primitives}
 library.
@@ -4561,46 +4663,49 @@ library.
 @subsection Internet namespace socket address IPv6
 
 
-@deftp {Record Type Name} <struct-sockaddr-in6>
-@deftpx {Record Type Descriptor} <struct-sockaddr-in6-rtd>
+@deftp {Record Type Name} <sockaddr-in6>
+@deftpx {Record Type Descriptor} <sockaddr-in6-rtd>
 Record type used to mirror @code{struct sockaddr_in6} C language data
-structures.  It has the following mutable fields:
+structures; it is derived from @class{sockaddr}.  It has the following
+mutable fields:
 
 @table @code
-@item family
-An exact integer representing the code of the address format for this
-address.  It should be @code{AF_INET}.
-
 @item addr
 A record of type @class{struct-in6-addr}.
 
 @item port
 An exact integer representing the port number.
 @end table
+
+The field @code{family}, inherited from @class{sockaddr}, must be set to
+@code{AF_INET6}.
 @end deftp
 
 
-@defun make-<struct-sockaddr-in6> @var{family} @var{data}
-@defunx <struct-sockaddr-in6>? @var{obj}
-Constructor and predicate for records of type
-@class{struct-sockaddr-in6}.
+@defun make-<sockaddr-in6> @var{addr} @var{port}
+@defunx <sockaddr-in6>? @var{obj}
+Constructor and predicate for records of type @class{sockaddr-in6}.  The
+constructor does @strong{not} check its arguments: it is @strong{not}
+meant to be used by client code in normal operations.
+
+@var{addr} and @var{port} are the values of the @code{addr} and
+@code{port} fields, the @code{family} field is set to @code{AF_INET6}
+automatically.
 @end defun
 
 
-@defun <struct-sockaddr-in6>-family @var{sockaddr-in6}
-@defunx <struct-sockaddr-in6>-family-set! @var{sockaddr-in6} @var{value}
-@defunx <struct-sockaddr-in6>-addr @var{sockaddr-in6}
-@defunx <struct-sockaddr-in6>-addr-set! @var{sockaddr-in6} @var{value}
-@defunx <struct-sockaddr-in6>-port @var{sockaddr-in6}
-@defunx <struct-sockaddr-in6>-port-set! @var{sockaddr-in6} @var{value}
-Accessors and mutators for records of type @class{struct-sockaddr-in6}.
+@defun <sockaddr-in6>-family @var{sockaddr-in6}
+@defunx <sockaddr-in6>-addr @var{sockaddr-in6}
+@defunx <sockaddr-in6>-addr-set! @var{sockaddr-in6} @var{value}
+@defunx <sockaddr-in6>-port @var{sockaddr-in6}
+@defunx <sockaddr-in6>-port-set! @var{sockaddr-in6} @var{value}
+Accessors and mutators for records of type @class{sockaddr-in6}.
 @end defun
 
 
-@defun primitive:pointer-><struct-sockaddr-in6> @var{pointer}
+@defun primitive:pointer-><sockaddr-in6> @var{pointer}
 Given a pointer object to a @code{struct sockaddr_in6} data structure,
-build and return a record of type @class{struct-sockaddr-in6} which
-mirrors it.
+build and return a record of type @class{sockaddr-in6} which mirrors it.
 
 This function is exported by the @library{posix sockets primitives}
 library.
@@ -4611,44 +4716,43 @@ library.
 @subsection Local namespace socket address
 
 
-@deftp {Record Type Name} <struct-sockaddr-un>
-@deftpx {Record Type Descriptor} <struct-sockaddr-un-rtd>
+@deftp {Record Type Name} <sockaddr-un>
+@deftpx {Record Type Descriptor} <sockaddr-un-rtd>
 Record type used to mirror @code{struct sockaddr_un} C language data
-structures.  It has the following mutable fields:
+structures; it is derived from @class{sockaddr}.  It has the following
+mutable fields:
 
 @table @code
-@item family
-An exact integer representing the address family or format.  It should
-be @code{AF_LOCAL}.
-
 @item path
 A Scheme string representing the pathname of the file to use.
 @end table
+
+The field @code{family}, inherited from @class{sockaddr}, must be set to
+@code{AF_LOCAL}.
 @end deftp
 
 
-@defun make-<struct-sockaddr-un> @var{pathname}
-@defunx <struct-sockaddr-un>? @var{obj}
-Constructor and predicate for records of type
-@class{struct-sockaddr-un}.
+@defun make-<sockaddr-un> @var{pathname}
+@defunx <sockaddr-un>? @var{obj}
+Constructor and predicate for records of type @class{sockaddr-un}.  The
+constructor does @strong{not} check its arguments: it is @strong{not}
+meant to be used by client code in normal operations.
 
-For the constructor: @var{pathname} is the value of the @code{path}
-field, the @code{family} field is set to @code{AF_LOCAL} automatically.
+@var{pathname} is the value of the @code{path} field, the @code{family}
+field is set to @code{AF_LOCAL} automatically.
 @end defun
 
 
-@defun <struct-sockaddr-un>-family @var{sockaddr-un}
-@defunx <struct-sockaddr-un>-family-set! @var{sockaddr-un} @var{value}
-@defunx <struct-sockaddr-un>-path @var{sockaddr-un}
-@defunx <struct-sockaddr-un>-path-set! @var{sockaddr-un} @var{value}
-Accessors and mutators for records of type @class{struct-sockaddr-un}.
+@defun <sockaddr-un>-family @var{sockaddr-un}
+@defunx <sockaddr-un>-path @var{sockaddr-un}
+@defunx <sockaddr-un>-path-set! @var{sockaddr-un} @var{value}
+Accessors and mutators for records of type @class{sockaddr-un}.
 @end defun
 
 
-@defun primitive:pointer-><struct-sockaddr-un> @var{pointer}
+@defun primitive:pointer-><sockaddr-un> @var{pointer}
 Given a pointer object to a @code{struct sockaddr_un} data structure,
-build and return a record of type @class{struct-sockaddr-in} which
-mirrors it.
+build and return a record of type @class{sockaddr-un} which mirrors it.
 
 This function is exported by the @library{posix sockets primitives}
 library.
@@ -4659,10 +4763,10 @@ library.
 @subsection Interface name
 
 
-@deftp {Record Type Name} <struct-if-nameindex>
-@deftpx {Record Type Descriptor} <struct-if-nameindex-rtd>
+@deftp {Record Type Name} <if-nameindex>
+@deftpx {Record Type Descriptor} <if-nameindex-rtd>
 Record type used to mirror @code{struct if_nameindex} C language data
-structures.  It has the following mutable fields:
+structures.  It has the following immutable fields:
 
 @table @code
 @item index
@@ -4674,18 +4778,17 @@ A Scheme string representing the interface name.
 @end deftp
 
 
-@defun make-<struct-if-nameindex> @var{family} @var{data}
-@defunx <struct-if-nameindex>? @var{obj}
-Constructor and predicate for records of type
-@class{struct-if-nameindex}.
+@defun make-<if-nameindex> @var{family} @var{data}
+@defunx <if-nameindex>? @var{obj}
+Constructor and predicate for records of type @class{if-nameindex}.  The
+constructor does @strong{not} validate its arguments: it is @strong{not}
+meant to be used by client code in normal operations.
 @end defun
 
 
-@defun <struct-if-nameindex>-index @var{if-nameindex}
-@defunx <struct-if-nameindex>-index-set! @var{if-nameindex} @var{value}
-@defunx <struct-if-nameindex>-name @var{if-nameindex}
-@defunx <struct-if-nameindex>-name-set! @var{if-nameindex} @var{value}
-Accessors and mutators for records of type @class{struct-if-nameindex}.
+@defun <if-nameindex>-index @var{if-nameindex}
+@defunx <if-nameindex>-name @var{if-nameindex}
+Accessors and mutators for records of type @class{if-nameindex}.
 @end defun
 
 @c page
@@ -4693,8 +4796,8 @@ Accessors and mutators for records of type @class{struct-if-nameindex}.
 @subsection Network database entry
 
 
-@deftp {Record Type Name} <struct-netent>
-@deftpx {Record Type Descriptor} <struct-netent-rtd>
+@deftp {Record Type Name} <netent>
+@deftpx {Record Type Descriptor} <netent-rtd>
 Record type used to mirror @code{struct netent} C language data
 structures.  It has the following mutable fields:
 
@@ -4716,22 +4819,22 @@ An exact integer representing the network number in host byte order.
 @end deftp
 
 
-@defun make-<struct-netent> @var{family} @var{data}
-@defunx <struct-netent>? @var{obj}
-Constructor and predicate for records of type
-@class{struct-netent}.
+@defun make-<netent> @var{family} @var{data}
+@defunx <netent>? @var{obj}
+Constructor and predicate for records of type @class{netent}.  The
+constructor does @strong{not} validate its arguments.
 @end defun
 
 
-@defun <struct-netent>-name @var{netent}
-@defunx <struct-netent>-name-set! @var{netent} @var{value}
-@defunx <struct-netent>-aliases @var{netent}
-@defunx <struct-netent>-aliases-set! @var{netent} @var{value}
-@defunx <struct-netent>-addrtype @var{netent}
-@defunx <struct-netent>-addrtype-set! @var{netent} @var{value}
-@defunx <struct-netent>-net @var{netent}
-@defunx <struct-netent>-net-set! @var{netent} @var{value}
-Accessors and mutators for records of type @class{struct-netent}.
+@defun <netent>-name @var{netent}
+@defunx <netent>-name-set! @var{netent} @var{value}
+@defunx <netent>-aliases @var{netent}
+@defunx <netent>-aliases-set! @var{netent} @var{value}
+@defunx <netent>-addrtype @var{netent}
+@defunx <netent>-addrtype-set! @var{netent} @var{value}
+@defunx <netent>-net @var{netent}
+@defunx <netent>-net-set! @var{netent} @var{value}
+Accessors and mutators for records of type @class{netent}.
 @end defun
 
 
@@ -4786,8 +4889,8 @@ network interface name.  Correct indexes should start at @math{1}, with
 @deffnx Function primitive:if-nameindex
 @deffnx Function platform:if_nameindex
 @deffnx Function platform:if_freenameindex @var{nameindex-ptr}
-Return a list of @class{struct-if-nameindex} records representing the
-known network interfaces.
+Return a list of @class{if-nameindex} records representing the known
+network interfaces.
 @end deffn
 
 @c page
@@ -4806,13 +4909,31 @@ The following functions manage opening and closing sockets.
 @deffnx Function primitive:socket @var{namespace} @var{style} @var{protocol}
 @deffnx Function platform:socket @var{namespace-int} @var{style-int} @var{protocol-int}
 Create a new socket and return a @class{socket} record representing it.
+Arguments description:
 
-@var{namespace} must be an enumeration set of type
-@code{enum-socket-namespace} holding a single element.  @var{style} must
-be an enumeration set of type @code{enum-socket-style} holding a single
-element.  @var{protocol} must be an enumeration set of type
-@code{enum-socket-protocol} holding a single element; when not used, it
-defaults to protocol zero.
+@table @var
+@item namespace
+Must be an enumeration set of type @code{enum-socket-namespace} holding
+a single element.
+
+@item style
+Must be an enumeration set of type @code{enum-socket-style} holding a
+single element.
+
+@item protocol
+Must be an enumeration set of type @code{enum-socket-protocol} holding a
+single element; when not used, it defaults to protocol zero.
+@end table
+@end deffn
+
+
+@deffn Syntax socket* (namespace @ameta{ns}) (style @ameta{sty})
+@deffnx Syntax socket* (namespace @ameta{ns}) (style @ameta{sty}) (protocol @ameta{proto})
+@deffnx {Auxiliary Syntax} namespace
+@deffnx {Auxiliary Syntax} style
+@deffnx {Auxiliary Syntax} protocol
+Wrapper for @func{socket} which allows a more concise, S--expression
+like, usage.
 @end deffn
 
 
@@ -4825,13 +4946,30 @@ defaults to protocol zero.
 Create a two interconnected sockets and return two values being
 @class{socket} records representing them.
 
-@var{namespace} must be an enumeration set of type
-@code{enum-socket-namespace} holding a single element; the namespace
-must be @code{local} (or @code{unix} or @code{file}).  @var{style} must
-be an enumeration set of type @code{enum-socket-style} holding a single
-element.  @var{protocol} must be an enumeration set of type
-@code{enum-socket-protocol} holding a single element; when not used, it
-defaults to protocol zero.
+@table @var
+@item namespace
+Must be an enumeration set of type @code{enum-socket-namespace} holding
+a single element; the namespace must be @code{local} (or @code{unix} or
+@code{file}).
+
+@item style
+Must be an enumeration set of type @code{enum-socket-style} holding a
+single element.
+
+@item protocol
+Must be an enumeration set of type @code{enum-socket-protocol} holding a
+single element; when not used, it defaults to protocol zero.
+@end table
+@end deffn
+
+
+@deffn Syntax socketpair* (namespace @ameta{ns}) (style @ameta{sty})
+@deffnx Syntax socketpair* (namespace @ameta{ns}) (style @ameta{sty}) (protocol @ameta{proto})
+@deffnx {Auxiliary Syntax} namespace
+@deffnx {Auxiliary Syntax} style
+@deffnx {Auxiliary Syntax} protocol
+Wrapper for @func{socketpair} which allows a more concise, S--expression
+like, usage.
 @end deffn
 
 
@@ -4865,8 +5003,8 @@ Connections}.  @glibcref{Accepting Connections, Accepting Connections}.
 @deffnx Function platform:connect @var{sock-int} @var{sockaddr-ptr} @var{socklen}
 Initiate a connection from @var{sock} to the address described by
 @var{sockaddr}.  @var{sock} must be a @class{socket} record,
-@var{sockaddr} must be a record of type @class{struct-sockaddr-un},
-@class{struct-sockaddr-in} or @class{struct-sockaddr-in6}.
+@var{sockaddr} must be a record of type @class{sockaddr-un},
+@class{sockaddr-in} or @class{sockaddr-in6}.
 @end deffn
 
 
@@ -4876,8 +5014,8 @@ Initiate a connection from @var{sock} to the address described by
 @deffnx Function platform:bind @var{sock} @var{sockaddr-ptr} @var{socklen}
 Assign an address to a socket.  @var{sock} must be a record of type
 @class{socket}.  @var{sockaddr} must be a record of type
-@class{struct-sockaddr-un}, @class{struct-sockaddr-in} or
-@class{struct-sockaddr-in6}.
+@class{sockaddr-un}, @class{sockaddr-in} or
+@class{sockaddr-in6}.
 @end deffn
 
 
@@ -4885,7 +5023,7 @@ Assign an address to a socket.  @var{sock} must be a record of type
 @deffnx Parameter listen-function
 @deffnx Function primitive:listen @var{sock} @var{max-pending-connections}
 @deffnx Function platform:listen @var{sock-int} @var{max-pending-connections}
-Enable @var{sock} to accept connection, making it a server socket;
+Enable @var{sock} to accept connections, making it a server socket;
 @var{sock} must be a record of type @class{socket}.
 
 The exact positive integer @var{max-pending-connections} establishes the
@@ -4902,8 +5040,8 @@ Accept a connection to the server--socket @var{sock}, which must be a
 @class{socket} record.
 
 Return two values: a new @class{socket} record representing the socket
-connected to the client, a record of type @class{struct-sockaddr-un},
-@class{struct-sockaddr-in} or @class{struct-sockaddr-in6} describing the
+connected to the client, a record of type @class{sockaddr-un},
+@class{sockaddr-in} or @class{sockaddr-in6} describing the
 client's address.
 @end deffn
 
@@ -4921,8 +5059,8 @@ addresses.  @glibcref{Reading Address, Reading the Address of a Socket}.
 @deffnx Parameter getsockname-function
 @deffnx Function primitive:getsockname @var{sock}
 @deffnx Function platform:getsockname @var{sock-int} @var{sockaddr-ptr} @var{socklen-ptr}
-Return a record of type @class{struct-sockaddr-un},
-@class{struct-sockaddr-in} or @class{struct-sockaddr-in6} describing the
+Return a record of type @class{sockaddr-un},
+@class{sockaddr-in} or @class{sockaddr-in6} describing the
 address bound to @var{sock}, which must be a @class{socket} record.
 
 This is the address associated to @var{sock} by @func{bind}.
@@ -4933,25 +5071,14 @@ This is the address associated to @var{sock} by @func{bind}.
 @deffnx Parameter getpeername-function
 @deffnx Function primitive:getpeername @var{sock}
 @deffnx Function platform:getpeername @var{sock-int} @var{sockaddr-ptr} @var{socklen-ptr}
-Return a record of type @class{struct-sockaddr-un},
-@class{struct-sockaddr-in} or @class{struct-sockaddr-in6} describing the
+Return a record of type @class{sockaddr-un},
+@class{sockaddr-in} or @class{sockaddr-in6} describing the
 address to which @var{sock} is connected; @var{sock} must be a
 @class{socket} record.
 
 This is the address associated to @var{sock} by @func{connect} or
 @func{accept}.
 @end deffn
-
-
-@defun socket-namespace->socklen @var{set}
-Given an enumeration set of type @code{enum-socket-namespace} holding a
-single element, return the size in bytes of the C language structure
-required to hold an address of the selected namespace.
-
-The size may not be significant, see the original documentation.
-
-This binding is exported by the @library{posix typedefs} library.
-@end defun
 
 @c page
 @node sockets transfer
@@ -5115,7 +5242,7 @@ reason there is no error handling.
 (with-compensations
   (let* ((TMPDIR   (posix:getenv "TMPDIR"))
          (pathname (string-append TMPDIR "/proof"))
-         (sockaddr (make-<struct-sockaddr-un> pathname)))
+         (sockaddr (make-<sockaddr-un> pathname)))
 
     (if (posix:fork)
 
@@ -7420,9 +7547,12 @@ definitions}.
 @deffn Parameter waitpid-function
 @deffnx Function primitive:waitpid @var{pid} @var{options}
 @deffnx Function platform:waitpid @var{pid-int} @var{pointer} @var{options}
-Wait for a single process or a set of processes in a group.  For the
-full documentation we have to refer to the documentation of the foreign
-function @cfunc{waitpid}.
+Wait for a single process or a set of processes in a group; return two
+values: the return value from the foreign function embedded in a
+@code{pid} object; the process termination status.
+
+For the full documentation we have to refer to the documentation of the
+foreign function @cfunc{waitpid}.
 @end deffn
 
 

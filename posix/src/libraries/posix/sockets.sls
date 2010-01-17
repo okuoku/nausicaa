@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -56,9 +56,13 @@
     ;; getnetbyname	getnetbyaddr
     ;; setnetent		getnetent	endnetent
 
+    ;; syntaxes
+    socket*		socketpair*
+
     )
   (import (rnrs)
     (posix helpers)
+    (posix typedefs)
     (prefix (posix sockets primitives) primitive:))
 
 
@@ -101,6 +105,30 @@
 
 (define-parametrised getsockopt sock option)
 (define-parametrised setsockopt sock option optval)
+
+
+(define-syntax socket*
+  (syntax-rules (namespace style protocol)
+    ((_ (namespace ?namespace) (style ?style) (protocol ?protocol))
+     (socket (socket-namespace	?namespace)
+	     (socket-style	?style)
+	     (socket-protocol	?protocol)))
+    ((_ (namespace ?namespace) (style ?style))
+     (socket (socket-namespace	?namespace)
+	     (socket-style	?style)))
+    ))
+
+(define-syntax socketpair*
+  (syntax-rules (namespace style protocol)
+    ((_ (namespace ?namespace) (style ?style) (protocol ?protocol))
+     (socketpair (socket-namespace	?namespace)
+		 (socket-style		?style)
+		 (socket-protocol	?protocol)))
+    ((_ (namespace ?namespace) (style ?style))
+     (socketpair (socket-namespace	?namespace)
+		 (socket-style		?style)))
+    ))
+
 
 
 ;;;; done

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -76,7 +76,7 @@
     (send			(int send (int void* size_t int)))
     (recv			(int recv (int void* size_t int)))
     (sendto			(int sendto (int void* size_t int sockaddr* socklen_t)))
-    (recvfrom			(int recvfrom (int void* size_t int sockaddr* socklen_t)))
+    (recvfrom			(int recvfrom (int void* size_t int sockaddr* socklen_t*)))
     (getsockopt			(int getsockopt (int int int void* socklen_t*)))
     (setsockopt			(int setsockopt (int int int void* socklen_t)))
 
