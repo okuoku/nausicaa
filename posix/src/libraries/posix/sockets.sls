@@ -27,6 +27,10 @@
 
 (library (posix sockets)
   (export
+
+    ;; Internet address conversion
+    inet-aton		inet-pton
+    inet-ntoa		inet-ntop
     (rename (primitive:htons		htons)
 	    (primitive:htonl		htonl)
 	    (primitive:ntohs		ntohs)
@@ -66,6 +70,11 @@
     (prefix (posix sockets primitives) primitive:))
 
 
+(define-parametrised inet-aton address-name)
+(define-parametrised inet-pton namespace address-name)
+(define-parametrised inet-ntoa address-bytevector)
+(define-parametrised inet-ntop namespace address-bytevector)
+
 (define-parametrised if-nametoindex name)
 (define-parametrised if-indextoname index)
 (define-parametrised if-nameindex)

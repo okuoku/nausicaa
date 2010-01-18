@@ -7,7 +7,7 @@ dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it under the terms of the GNU General Public
@@ -48,6 +48,7 @@ AC_CHECK_FUNC([stat])
 AC_CHECK_FUNC([lstat])
 AC_CHECK_FUNC([fstat])
 
+AC_CHECK_HEADERS([arpa/inet.h])
 AC_CHECK_HEADERS([dirent.h])
 AC_CHECK_HEADERS([errno.h])
 AC_CHECK_HEADERS([fcntl.h])
@@ -93,6 +94,9 @@ dnl Inspection.
 dnl --------------------------------------------------------------------
 
 m4_define([NAUSICAA_CUSTOM_INCLUDES],[
+#ifdef HAVE_ARPA_INET_H
+#  include <arpa/inet.h>
+#endif
 #ifdef HAVE_DIRENT_H
 #  include <dirent.h>
 #endif

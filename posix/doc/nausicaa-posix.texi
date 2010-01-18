@@ -3811,6 +3811,7 @@ exported by the following libraries:
 * sockets typedefs::            Object type definitions.
 * sockets records::             Record types mirroring data structures.
 * sockets ifaces::              Network interfaces.
+* sockets inet::                Internet addresses.
 * sockets open close::          Opening and closing sockets.
 * sockets ops::                 Operations on sockets.
 * sockets address::             Network addresses.
@@ -3926,6 +3927,21 @@ Flag values for the @var{flags} argument to @func{send} and @func{recv}.
 @defvrx Constant SO_ERROR
 Constants for socket options and the @func{getsockopt} and
 @func{setsockopt} functions.
+@end defvr
+
+
+@defvr Constant INADDR_LOOPBACK
+@defvrx Constant INADDR_ANY
+@defvrx Constant INADDR_BROADCAST
+@defvrx Constant INADDR_NONE
+Predefined Internet IPv4 addresses.
+@end defvr
+
+
+@defvr Constant INET_ADDRSTRLEN
+@defvrx Constant INET6_ADDRSTRLEN
+Maximum length of strings required to hold Internet addresses in
+presentation format.
 @end defvr
 
 @c page
@@ -4892,6 +4908,58 @@ network interface name.  Correct indexes should start at @math{1}, with
 Return a list of @class{if-nameindex} records representing the known
 network interfaces.
 @end deffn
+
+@c page
+@node sockets inet
+@section Internet addresses
+
+
+The following functions manage conversion of Internet addresses between
+different formats.  @glibcref{Host Address Functions, Host Address
+Functions}.
+
+
+@deffn Function inet-aton @var{address-name}
+@deffnx Parameter inet-aton-function
+@deffnx Function primitive:inet-aton @var{address-name}
+@deffnx Function platform:inet_aton @var{name-ptr} @var{in-addr-ptr}
+Convert the Scheme string @var{address-name} representing an IPv4
+address, in presentation format, to a @code{struct in_addr} value stored
+in a Scheme bytevector.  If the address is valid, return the bytevector;
+else return @false{}.
+@end deffn
+
+
+@deffn Function inet-pton @var{address-name}
+@deffnx Parameter inet-pton-function
+@deffnx Function primitive:inet-pton @var{address-name}
+@deffnx Function platform:inet_pton @var{name-ptr} @var{in-addr-ptr}
+Convert the Scheme string @var{address-name} representing an IPv4 or
+IPv6 address, in presentation format, to a @code{struct in_addr} or
+@code{struct in6_addr} value stored in a Scheme bytevector.  If the
+address is valid, return the bytevector; else return @false{}.
+@end deffn
+
+
+@deffn Function inet-ntoa @var{address-bv}
+@deffnx Parameter inet-ntoa-function @var{address-bv}
+@deffnx Function primitive:inet-ntoa @var{address-bv}
+@deffnx Function platform:inet_ntoa @var{in-addr-ptr}
+Convert the Scheme bytevector @var{address-bv} holding a @code{struct
+in_addr} value to a Scheme string holding the address in presentation
+format; return the string.
+@end deffn
+
+
+@deffn Function inet-ntop @var{namespace} @var{address-bv}
+@deffnx Parameter inet-ntop-function
+@deffnx Function inet-ntop @var{namespace} @var{address-bv}
+@deffnx Function inet_ntop @var{family} @var{addr-ptr} @var{str-ptr} @var{str-len}
+Convert the Scheme bytevector @var{address-bv} holding a @code{struct
+in_addr} or @code{struct in6_addr} value to a Scheme string holding the
+address in presentation format; return the string.
+@end deffn
+
 
 @c page
 @node sockets open close

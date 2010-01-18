@@ -2,13 +2,13 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Fri Dec 25, 2009
+;;;Date: Mon Jan 18, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -364,10 +364,14 @@
     sizeof-in_addr
     alignof-in_addr
     strideof-in_addr
+    struct-in_addr-s_addr-set!
+    struct-in_addr-s_addr-ref
     in6_addr*
     sizeof-in6_addr
     alignof-in6_addr
     strideof-in6_addr
+    struct-in6_addr-s_addr-set!
+    struct-in6_addr-s_addr-ref
     if_nameindex*
     sizeof-if_nameindex
     alignof-if_nameindex
@@ -915,6 +919,12 @@
     SO_RCVBUF
     SO_TYPE
     SO_ERROR
+    INADDR_LOOPBACK
+    INADDR_ANY
+    INADDR_BROADCAST
+    INADDR_NONE
+    INET_ADDRSTRLEN
+    INET6_ADDRSTRLEN
     SO_STYLE)
   (import
     (rnrs)
@@ -1655,10 +1665,22 @@
   (define sizeof-in_addr @SIZEOF_IN_ADDR@)
   (define alignof-in_addr @ALIGNOF_IN_ADDR@)
   (define strideof-in_addr @STRIDEOF_IN_ADDR@)
+  (define-c-struct-accessor-and-mutator
+    struct-in_addr-s_addr-set!
+    struct-in_addr-s_addr-ref
+    @OFFSETOF_IN_ADDR_S_ADDR@
+    @SETTEROF_IN_ADDR_S_ADDR@
+    @GETTEROF_IN_ADDR_S_ADDR@)
   (define in6_addr* 'pointer)
   (define sizeof-in6_addr @SIZEOF_IN6_ADDR@)
   (define alignof-in6_addr @ALIGNOF_IN6_ADDR@)
   (define strideof-in6_addr @STRIDEOF_IN6_ADDR@)
+  (define-c-struct-accessor-and-mutator
+    struct-in6_addr-s_addr-set!
+    struct-in6_addr-s_addr-ref
+    @OFFSETOF_IN6_ADDR_S_ADDR@
+    @SETTEROF_IN6_ADDR_S_ADDR@
+    @GETTEROF_IN6_ADDR_S_ADDR@)
   (define if_nameindex* 'pointer)
   (define
     sizeof-if_nameindex
@@ -2584,6 +2606,20 @@
   (define SO_RCVBUF @VALUEOF_SO_RCVBUF@)
   (define SO_TYPE @VALUEOF_SO_TYPE@)
   (define SO_ERROR @VALUEOF_SO_ERROR@)
+  (define
+    INADDR_LOOPBACK
+    @VALUEOF_INADDR_LOOPBACK@)
+  (define INADDR_ANY @VALUEOF_INADDR_ANY@)
+  (define
+    INADDR_BROADCAST
+    @VALUEOF_INADDR_BROADCAST@)
+  (define INADDR_NONE @VALUEOF_INADDR_NONE@)
+  (define
+    INET_ADDRSTRLEN
+    @VALUEOF_INET_ADDRSTRLEN@)
+  (define
+    INET6_ADDRSTRLEN
+    @VALUEOF_INET6_ADDRSTRLEN@)
   (define SO_STYLE SO_TYPE))
 
 

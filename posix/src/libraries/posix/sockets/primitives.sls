@@ -27,6 +27,9 @@
 
 (library (posix sockets primitives)
   (export
+    ;; Internet address conversion
+    inet-aton		inet-pton
+    inet-ntoa		inet-ntop
     (rename (platform:htons		htons)
 	    (platform:htonl		htonl)
 	    (platform:ntohs		ntohs)
@@ -82,6 +85,69 @@
     (posix typedefs)
     (posix sizeof)
     (prefix (posix sockets platform) platform:))
+
+
+;;;; Internet address conversion
+
+;;Node "Host Names"
+
+
+(define (inet-aton address-name)
+  (with-compensations
+    (let* ((cstr*	(string->cstring/c address-name))
+	   (addr.ptr	(malloc-small/c))
+	   (result	(platform:inet_aton cstr* addr.ptr)))
+      (if (= 0 result)
+	  #f
+	(let ((bv (make-bytevector sizeof-in_addr)))
+	  (do ((i 0 (+ 1 i)))
+	      ((= i sizeof-in_addr)
+	       bv)
+	    (bytevector-u8-set! bv i (pointer-ref-c-uint8 addr.ptr i))))))))
+
+(define (inet-ntoa address-bytevector)
+  (with-compensations
+    (let ((addr.ptr (malloc-small/c)))
+      (do ((i 0 (+ 1 i)))
+	  ((= i sizeof-in_addr)
+	   (cstring->string (platform:inet_ntoa addr.ptr)))
+	(pointer-set-c-uint8! addr.ptr i (bytevector-u8-ref address-bytevector i))))))
+
+;;; --------------------------------------------------------------------
+
+(define (inet-pton namespace address-name)
+  (with-compensations
+    (let* ((cstr*	(string->cstring/c address-name))
+	   (family	(socket-namespace->value namespace))
+	   (addr.ptr	(if (= AF_INET family)
+			    (malloc-small/c)
+			  (malloc-block/c sizeof-in6_addr)))
+	   (result	(platform:inet_pton family cstr* addr.ptr)))
+      (if (= 0 result)
+	  #f
+	(let* ((addr.len	(if (= AF_INET family) sizeof-in_addr sizeof-in6_addr))
+	       (bv		(make-bytevector addr.len)))
+	  (do ((i 0 (+ 1 i)))
+	      ((= i addr.len)
+	       bv)
+	    (bytevector-u8-set! bv i (pointer-ref-c-uint8 addr.ptr i))))))))
+
+(define (inet-ntop namespace address-bytevector)
+  (with-compensations
+    (let ((family (socket-namespace->value namespace)))
+      (let-values (((addr.len addr.ptr str.len)
+		    (if (= AF_INET family)
+			(values sizeof-in_addr
+				(malloc-small/c)
+				INET_ADDRSTRLEN)
+		      (values sizeof-in6_addr
+			      (malloc-block/c sizeof-in6_addr)
+			      INET6_ADDRSTRLEN))))
+	(let ((str.ptr (malloc-block/c str.len)))
+	  (do ((i 0 (+ 1 i)))
+	      ((= i addr.len)
+	       (cstring->string (platform:inet_ntop family addr.ptr str.ptr str.len)))
+	    (pointer-set-c-uint8! addr.ptr i (bytevector-u8-ref address-bytevector i))))))))
 
 
 ;;;; interface naming
@@ -184,9 +250,14 @@
   (with-compensations
     (let* ((cstr.ptr	(string->cstring/c (<sockaddr-un>-path sockaddr)))
 	   (cstr.len	(strlen cstr.ptr))
-	   (sockaddr*	(malloc (+ 16 cstr.len))))
+	   ;;The  "sockaddr_un" structure has  two fields:  the pathname
+	   ;;and the socket family  integer.  The length of the pathname
+	   ;;field cannot  be trusted to be  enough, so, to  be safe, we
+	   ;;allocate more bytes.
+	   (sockaddr*	(malloc (+ sizeof-sockaddr_un cstr.len))))
       (struct-sockaddr_un-sun_family-set! sockaddr* (<sockaddr-un>-family sockaddr))
       (strncpy (struct-sockaddr_un-sun_path-ref sockaddr*) cstr.ptr cstr.len)
+      (pointer-set-c-signed-char! (struct-sockaddr_un-sun_path-ref sockaddr*) cstr.len 0)
       (values sockaddr* (platform:SUN_LEN sockaddr*)))))
 
 (define (<sockaddr-in>->pointer&length sockaddr malloc)
@@ -195,9 +266,11 @@
     (struct-sockaddr_in-sin_port-set!   sockaddr* (<sockaddr-in>-port sockaddr))
     (with-compensations
       (let ((in_addr*	(struct-sockaddr_in-sin_addr-ref sockaddr*))
-	    (ptr	(bytevector->pointer (<sockaddr-in>-addr sockaddr) malloc-block/c)))
-	(memcpy in_addr* ptr sizeof-in_addr)
-	(values sockaddr* sizeof-sockaddr_in)))))
+	    (bv		(<sockaddr-in>-addr sockaddr)))
+	(do ((i 0 (+ 1 i)))
+	    ((= i sizeof-in_addr)
+	     (values sockaddr* sizeof-sockaddr_in))
+	  (pointer-set-c-uint8! in_addr* i (bytevector-u8-ref bv i)))))))
 
 (define (<sockaddr-in6>->pointer&length sockaddr malloc)
   (begin0-let ((sockaddr* (malloc sizeof-sockaddr_in6)))
@@ -205,9 +278,11 @@
     (struct-sockaddr_in6-sin6_port-set!   sockaddr* (<sockaddr-in6>-port sockaddr))
     (with-compensations
       (let ((in6_addr*	(struct-sockaddr_in6-sin6_addr-ref sockaddr*))
-	    (ptr	(bytevector->pointer (<sockaddr-in6>-addr sockaddr) malloc-block/c)))
-	(memcpy in6_addr* ptr sizeof-in6_addr)
-	(values sockaddr* sizeof-sockaddr_in6)))))
+	    (bv		(<sockaddr-in>-addr sockaddr)))
+	(do ((i 0 (+ 1 i)))
+	    ((= i sizeof-in6_addr)
+	     (values sockaddr* sizeof-sockaddr_in6))
+	  (pointer-set-c-uint8! in6_addr* i (bytevector-u8-ref bv i)))))))
 
 ;;; --------------------------------------------------------------------
 

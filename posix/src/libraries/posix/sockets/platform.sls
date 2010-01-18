@@ -29,6 +29,8 @@
   (export
     htons		htonl
     ntohs		ntohl
+    inet_aton		inet_pton
+    inet_ntoa		inet_ntop
 
     socket		socketpair
     shutdown
@@ -56,6 +58,11 @@
     (htonl			(uint32_t htonl (uint32_t)))
     (ntohs			(uint16_t ntohs (uint16_t)))
     (ntohl			(uint32_t ntohl (uint32_t)))
+
+    (inet_aton			(int inet_aton (char* void*)))
+    (inet_pton			(int inet_pton (int char* void*)))
+    (inet_ntoa			(char* inet_ntoa (void*)))
+    (inet_ntop			(char* inet_ntop (int void* char* size_t)))
 
     (if_nametoindex		(unsigned if_nametoindex (char*)))
     (if_indextoname		(char* if_indextoname (unsigned char*)))
@@ -90,6 +97,7 @@
   (define-c-functions libnausicaa-posix
     (SUN_LEN			(int nausicaa_posix_SUN_LEN (pointer)))
     )
+
   )
 
 ;;; end of file

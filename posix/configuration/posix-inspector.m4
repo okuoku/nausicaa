@@ -2,13 +2,13 @@ dnl (posix sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Fri Dec 25, 2009
+dnl Date: Mon Jan 18, 2010
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software:  you can redistribute it and/or modify
 dnl it under the terms of the  GNU General Public License as published by
@@ -211,9 +211,11 @@ NAUSICAA_INSPECT_FIELD_TYPE_POINTER([SOCKADDR_UN_SUN_PATH],[struct sockaddr_un],
 
 dnl Struct inspection: in_addr
 NAUSICAA_INSPECT_STRUCT_TYPE([IN_ADDR],[struct in_addr],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([IN_ADDR_S_ADDR],[struct in_addr],[s_addr],[unsigned])
 
 dnl Struct inspection: in6_addr
 NAUSICAA_INSPECT_STRUCT_TYPE([IN6_ADDR],[struct in6_addr],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([IN6_ADDR_S_ADDR],[struct in6_addr],[s_addr],[unsigned])
 
 dnl Struct inspection: if_nameindex
 NAUSICAA_INSPECT_STRUCT_TYPE([IF_NAMEINDEX],[struct if_nameindex],[#f])
@@ -825,6 +827,12 @@ NAUSICAA_DEFINE_VALUE([SO_SNDBUF])
 NAUSICAA_DEFINE_VALUE([SO_RCVBUF])
 NAUSICAA_DEFINE_VALUE([SO_TYPE])
 NAUSICAA_DEFINE_VALUE([SO_ERROR])
+NAUSICAA_DEFINE_VALUE([INADDR_LOOPBACK])
+NAUSICAA_DEFINE_VALUE([INADDR_ANY])
+NAUSICAA_DEFINE_VALUE([INADDR_BROADCAST])
+NAUSICAA_DEFINE_VALUE([INADDR_NONE])
+NAUSICAA_DEFINE_VALUE([INET_ADDRSTRLEN])
+NAUSICAA_DEFINE_VALUE([INET6_ADDRSTRLEN])
 AC_CACHE_SAVE
 
 dnl end of file

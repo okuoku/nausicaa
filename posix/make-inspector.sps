@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -293,12 +293,14 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 (define-c-type-alias in_addr*		pointer)
 
 (define-c-struct in_addr
-  "struct in_addr")
+  "struct in_addr"
+  (unsigned		s_addr))
 
 (define-c-type-alias in6_addr*		pointer)
 
 (define-c-struct in6_addr
-  "struct in6_addr")
+  "struct in6_addr"
+  (unsigned		s_addr))
 
 (define-c-type-alias if_nameindex*	pointer)
 
@@ -915,6 +917,13 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
   SO_RCVBUF
   SO_TYPE	SO_ERROR
 
+  INADDR_LOOPBACK
+  INADDR_ANY
+  INADDR_BROADCAST
+  INADDR_NONE
+
+  INET_ADDRSTRLEN
+  INET6_ADDRSTRLEN
   )
 
 (sizeof-lib
