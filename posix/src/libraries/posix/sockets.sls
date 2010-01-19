@@ -38,35 +38,38 @@
 
     ;; host names
     gethostbyname		gethostbyaddr
+    sethostent			gethostent		endhostent
+
+    ;; networks database
+    getnetbyname		getnetbyaddr
+    setnetent			getnetent		endnetent
+
+    ;; protocols database
+    getprotobyname		getprotobynumber
+    setprotoent			getprotoent		endprotoent
 
     ;; interface name
     if-nametoindex		if-indextoname
     if-nameindex
 
     ;; socket operations
-    socket		socketpair
-    shutdown		connect
-    bind		listen
+    socket			socketpair
+    shutdown			connect
+    bind			listen
     accept
-    getsockname		getpeername
-    send		recv
-    send/string		recv/string
-    send/bytevector	recv/bytevector
-    send/memblock	recv/memblock
-    sendto		recvfrom
-    sendto/string	recvfrom/string
-    sendto/bytevector	recvfrom/bytevector
-    sendto/memblock	recvfrom/memblock
-    getsockopt		setsockopt
-
-    ;; networks database
-    ;; getnetbyname	getnetbyaddr
-    ;; setnetent		getnetent	endnetent
+    getsockname			getpeername
+    send			recv
+    send/string			recv/string
+    send/bytevector		recv/bytevector
+    send/memblock		recv/memblock
+    sendto			recvfrom
+    sendto/string		recvfrom/string
+    sendto/bytevector		recvfrom/bytevector
+    sendto/memblock		recvfrom/memblock
+    getsockopt			setsockopt
 
     ;; syntaxes
-    socket*		socketpair*
-
-    )
+    socket*			socketpair*)
   (import (rnrs)
     (posix helpers)
     (posix typedefs)
@@ -80,6 +83,21 @@
 
 (define-parametrised gethostbyname host-name)
 (define-parametrised gethostbyaddr address-bytevector)
+(define-parametrised sethostent (() (stay-open?)))
+(define-parametrised gethostent)
+(define-parametrised endhostent)
+
+(define-parametrised getnetbyname net-name)
+(define-parametrised getnetbyaddr ((address-number) (address-number address-format)))
+(define-parametrised setnetent (() (stay-open?)))
+(define-parametrised getnetent)
+(define-parametrised endnetent)
+
+(define-parametrised getprotobyname proto-name)
+(define-parametrised getprotobynumber number)
+(define-parametrised setprotoent (() (stay-open?)))
+(define-parametrised getprotoent)
+(define-parametrised endprotoent)
 
 (define-parametrised if-nametoindex name)
 (define-parametrised if-indextoname index)

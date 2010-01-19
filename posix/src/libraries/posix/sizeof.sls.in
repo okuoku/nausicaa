@@ -414,6 +414,15 @@
     struct-hostent-h_addr_list-ref
     struct-hostent-h_addr-set!
     struct-hostent-h_addr-ref
+    sizeof-protoent
+    alignof-protoent
+    strideof-protoent
+    struct-protoent-p_name-set!
+    struct-protoent-p_name-ref
+    struct-protoent-p_aliases-set!
+    struct-protoent-p_aliases-ref
+    struct-protoent-p_proto-set!
+    struct-protoent-p_proto-ref
     SEEK_SET
     SEEK_CUR
     SEEK_END
@@ -1804,6 +1813,27 @@
     @OFFSETOF_HOSTENT_H_ADDR@
     @SETTEROF_HOSTENT_H_ADDR@
     @GETTEROF_HOSTENT_H_ADDR@)
+  (define sizeof-protoent @SIZEOF_PROTOENT@)
+  (define alignof-protoent @ALIGNOF_PROTOENT@)
+  (define strideof-protoent @STRIDEOF_PROTOENT@)
+  (define-c-struct-accessor-and-mutator
+    struct-protoent-p_name-set!
+    struct-protoent-p_name-ref
+    @OFFSETOF_PROTOENT_P_NAME@
+    @SETTEROF_PROTOENT_P_NAME@
+    @GETTEROF_PROTOENT_P_NAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-protoent-p_aliases-set!
+    struct-protoent-p_aliases-ref
+    @OFFSETOF_PROTOENT_P_ALIASES@
+    @SETTEROF_PROTOENT_P_ALIASES@
+    @GETTEROF_PROTOENT_P_ALIASES@)
+  (define-c-struct-accessor-and-mutator
+    struct-protoent-p_proto-set!
+    struct-protoent-p_proto-ref
+    @OFFSETOF_PROTOENT_P_PROTO@
+    @SETTEROF_PROTOENT_P_PROTO@
+    @GETTEROF_PROTOENT_P_PROTO@)
   (define SEEK_SET @VALUEOF_SEEK_SET@)
   (define SEEK_CUR @VALUEOF_SEEK_CUR@)
   (define SEEK_END @VALUEOF_SEEK_END@)

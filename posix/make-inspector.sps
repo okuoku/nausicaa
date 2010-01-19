@@ -332,6 +332,12 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (pointer		h_addr_list)
   (pointer		h_addr))
 
+(define-c-struct protoent
+  "struct protoent"
+  (pointer		p_name)
+  (pointer		p_aliases)
+  (signed-int		p_proto))
+
 (autoconf-lib "AC_CACHE_SAVE")
 
 

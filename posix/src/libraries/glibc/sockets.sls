@@ -29,7 +29,8 @@
   (export
 
     ;; host names
-    gethostbyname2
+    gethostbyname2		gethostbyname2_r
+    gethostbyname_r		gethostbyaddr_r
 
     )
   (import (rnrs)
@@ -39,7 +40,9 @@
 
 
 (define-parametrised gethostbyname2 host-name address-format)
-
+(define-parametrised gethostbyname_r host-name)
+(define-parametrised gethostbyname2_r host-name address-format)
+(define-parametrised gethostbyaddr_r address-bytevector)
 
 
 ;;;; done

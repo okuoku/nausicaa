@@ -27,12 +27,9 @@
 
 (library (glibc sockets platform)
   (export
-
-    gethostbyname2
-
-    h_errno
-
-    )
+    gethostbyname2		gethostbyname2_r
+    gethostbyname_r		gethostbyaddr_r
+    h_errno)
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof)
@@ -46,8 +43,9 @@
 
   (define-c-functions libc-shared-object
     (gethostbyname2		(pointer gethostbyname2 (char* int)))
-    )
-
-  )
+    (gethostbyname_r		(int gethostbyname_r (char* void* char* size_t void* void*)))
+    (gethostbyname2_r		(int gethostbyname2_r (char* int void* char* size_t void* void*)))
+    (gethostbyaddr_r		(int gethostbyaddr_r
+				     (char* size_t int void* void* size_t void* void*)))))
 
 ;;; end of file

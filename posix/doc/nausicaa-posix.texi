@@ -647,6 +647,14 @@ Record types mirroring data structures
 * sockets records hostent::       Host database entry.
 * sockets records netent::        Network database entry.
 
+Internet addresses
+
+* sockets inet formats::        Converting addresses to and from
+                                presentation format.
+* sockets inet names::          Acquiring address from host names.
+* sockets inet hosts::          Reading the hosts database.
+* sockets inet nets::           Reading the networks database.
+
 Client and server examples
 
 * sockets examples local::      Local namespace sockets.
@@ -4233,20 +4241,21 @@ Unless otherwise specified, the following bindings are exported by the
 @library{posix sizeof} library.
 
 @menu
-* sockets structs sockaddr::      Structure @code{struct sockaddr}.
-* sockets structs sockaddr_un::   Structure @code{struct sockaddr_un}.
-* sockets structs sockaddr_in::   Structure @code{struct sockaddr_in}.
-* sockets structs sockaddr_in6::  Structure @code{struct sockaddr_in6}.
-* sockets structs in_addr::       Structure @code{struct in_addr}.
-* sockets structs in6_addr::      Structure @code{struct in6_addr}.
+* sockets structs sockaddr::      Structure @code{sockaddr}.
+* sockets structs sockaddr_un::   Structure @code{sockaddr_un}.
+* sockets structs sockaddr_in::   Structure @code{sockaddr_in}.
+* sockets structs sockaddr_in6::  Structure @code{sockaddr_in6}.
+* sockets structs in_addr::       Structure @code{in_addr}.
+* sockets structs in6_addr::      Structure @code{in6_addr}.
 * sockets structs if_nameindex::  Structure @code{if_nameindex}.
 * sockets structs hostent::       Structure @code{hostent}.
 * sockets structs netent::        Structure @code{netent}.
+* sockets structs protoent::      Structure @code{protoent}.
 @end menu
 
 @c page
 @node sockets structs sockaddr
-@subsection Structure @code{struct sockaddr}
+@subsection Structure @code{sockaddr}
 
 
 The @code{struct sockaddr} type is used only as ``mask'', to access the
@@ -4276,7 +4285,7 @@ of the @code{sa_data} array field, which is embedded in the structure.
 
 @c page
 @node sockets structs sockaddr_un
-@subsection Structure @code{struct sockaddr_un}
+@subsection Structure @code{sockaddr_un}
 
 
 The @code{struct sockaddr_un} type describes a socket address in the
@@ -4302,7 +4311,7 @@ language data structure.
 
 @c page
 @node sockets structs sockaddr_in
-@subsection Structure @code{struct sockaddr_in}
+@subsection Structure @code{sockaddr_in}
 
 
 The @code{struct sockaddr_in} type describes a socket address in the
@@ -4333,7 +4342,7 @@ pointer to its first byte.
 
 @c page
 @node sockets structs sockaddr_in6
-@subsection Structure @code{struct sockaddr_in6}
+@subsection Structure @code{sockaddr_in6}
 
 
 The @code{struct sockaddr_in6} type describes a socket address in the
@@ -4365,7 +4374,7 @@ a pointer to its first byte.
 
 @c page
 @node sockets structs in_addr
-@subsection Structure @code{struct in_addr}
+@subsection Structure @code{in_addr}
 
 
 The @code{struct in_addr} type describes an IPv4 address; it is an
@@ -4382,7 +4391,7 @@ language data structures.
 
 @c page
 @node sockets structs in6_addr
-@subsection Structure @code{struct in6_addr}
+@subsection Structure @code{in6_addr}
 
 
 The @code{struct in6_addr} type describes an IPv6 address; it is an
@@ -4486,6 +4495,33 @@ language data structure.
 @end deffn
 
 @c page
+@node sockets structs protoent
+@subsection Structure @code{protoent}
+
+
+The @code{struct protoent} type describes an entry in the system's
+protocols database.  @glibcref{Protocols Database, Protocols Database}.
+
+
+@defvr Constant sizeof-protoent
+@defvrx Constant alignof-protoent
+@defvrx Constant strideof-protoent
+Size, structure alignment and array stride of @code{struct protoent} C
+language data structures.
+@end defvr
+
+
+@deffn Syntax struct-protoent-n_name-ref @var{pointer}
+@deffnx Syntax struct-protoent-n_name-set! @var{pointer} @var{value}
+@deffnx Syntax struct-protoent-n_aliases-ref @var{pointer}
+@deffnx Syntax struct-protoent-n_aliases-set! @var{pointer} @var{value}
+@deffnx Syntax struct-protoent-n_proto-ref @var{pointer}
+@deffnx Syntax struct-protoent-n_proto-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct protoent} C
+language data structure.
+@end deffn
+
+@c page
 @node sockets records
 @section Record types mirroring data structures
 
@@ -4502,6 +4538,7 @@ Unless otherwise specified, the following bindings are exported by the
 * sockets records if-nameindex::  Interface name.
 * sockets records hostent::       Host database entry.
 * sockets records netent::        Network database entry.
+* sockets records protoent::      Protocols database entry.
 @end menu
 
 @c page
@@ -4800,6 +4837,13 @@ meant to be used by client code in normal operations.
 Accessors for records of type @class{hostent}.
 @end defun
 
+
+@defun primitive:pointer-><hostent> @var{pointer}
+Build and return a new record of type @class{hostent} representing the
+@code{struct hostent} value referenced by @var{pointer}.  This binding
+is exported by the @library{posix sockets primitives} library.
+@end defun
+
 @c page
 @node sockets records netent
 @subsection Network database entry
@@ -4819,16 +4863,18 @@ A list of Scheme strings representing the alternative names of the
 network.
 
 @item addrtype
-An exact integer representing the type of the network.  It should be
-@code{AF_INET} for Internet networks.
+An enumeration set of type @code{enum-socket-address-format}
+representing the type of the addresses.  The value in the set should be
+@code{inet} for Internet networks.
 
 @item net
-An exact integer representing the network number in host byte order.
+A Scheme bytevector holding the network address number in network byte
+order.
 @end table
 @end deftp
 
 
-@defun make-<netent> @var{family} @var{data}
+@defun make-<netent> @var{name} @var{aliases} @var{addrtype} @var{net}
 @defunx <netent>? @var{obj}
 Constructor and predicate for records of type @class{netent}.  The
 constructor does @strong{not} validate its arguments.
@@ -4836,16 +4882,62 @@ constructor does @strong{not} validate its arguments.
 
 
 @defun <netent>-name @var{netent}
-@defunx <netent>-name-set! @var{netent} @var{value}
 @defunx <netent>-aliases @var{netent}
-@defunx <netent>-aliases-set! @var{netent} @var{value}
 @defunx <netent>-addrtype @var{netent}
-@defunx <netent>-addrtype-set! @var{netent} @var{value}
 @defunx <netent>-net @var{netent}
-@defunx <netent>-net-set! @var{netent} @var{value}
-Accessors and mutators for records of type @class{netent}.
+Accessors for records of type @class{netent}.
 @end defun
 
+
+@defun primitive:pointer-><netent> @var{pointer}
+Build and return a new record of type @class{netent} representing the
+@code{struct netent} value referenced by @var{pointer}.  This binding is
+exported by the @library{posix sockets primitives} library.
+@end defun
+
+@c page
+@node sockets records protoent
+@subsection Protocols database entry
+
+
+@deftp {Record Type Name} <protoent>
+@deftpx {Record Type Descriptor} <protoent-rtd>
+Record type used to mirror @code{struct protoent} C language data
+structures.  It has the following mutable fields:
+
+@table @code
+@item name
+A Scheme string representing the official name of the protocol.
+
+@item aliases
+A list of Scheme strings representing the alternative names of the
+protocol.
+
+@item proto
+An integer number representing the protocol number.
+@end table
+@end deftp
+
+
+@defun make-<protoent> @var{name} @var{aliases} @var{proto}
+@defunx <protoent>? @var{obj}
+Constructor and predicate for records of type @class{protoent}.  The
+constructor does @strong{not} validate its arguments.
+@end defun
+
+
+@defun <protoent>-name @var{protoent}
+@defunx <protoent>-aliases @var{protoent}
+@defunx <protoent>-proto @var{protoent}
+Accessors for records of type @class{protoent}.
+@end defun
+
+
+@defun primitive:pointer-><protoent> @var{pointer}
+Build and return a new record of type @class{protoent} representing the
+@code{struct protoent} value referenced by @var{pointer}.  This binding
+is exported by the @library{posix sockets primitives} library.
+@end defun
 
 @c page
 @node sockets ifaces
@@ -4911,6 +5003,9 @@ network interfaces.
 * sockets inet formats::        Converting addresses to and from
                                 presentation format.
 * sockets inet names::          Acquiring address from host names.
+* sockets inet hosts::          Reading the hosts database.
+* sockets inet nets::           Reading the networks database.
+* sockets inet protos::         Reading the protocols database.
 @end menu
 
 @c page
@@ -5025,6 +5120,243 @@ type @code{enum-socket-address-format}.
 @end deffn
 
 
+The following functions are thread--safe.
+
+
+@deffn Function gethostbyname_r @var{host-name}
+@deffnx Parameter gethostbyname_r-function
+@deffnx Function primitive:gethostbyname_r @var{host-name}
+@deffnx Function platform:gethostbyname_r @var{name-ptr} @var{hostent-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr} @var{errno-ptr}
+Acquire the Internet addresses associated to @var{host-name}, a Scheme
+string, and return a record of type @class{hostent}.
+@end deffn
+
+
+@deffn Function gethostbyname2_r @var{host-name} @var{address-format}
+@deffnx Parameter gethostbyname2_r-function
+@deffnx Function primitive:gethostbyname2_r @var{host-name} @var{address-format}
+@deffnx Function platform:gethostbyname2_r @var{name-ptr} @var{address-format-int} @var{hostent-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr} @var{errno-ptr}
+Like @func{gethostbyname}, but allows the specification of the address
+format with the @var{address-format} enumeration set, which must be of
+type @code{enum-socket-address-format}.
+@end deffn
+
+
+@deffn Function gethostbyaddr_r @var{address-bv}
+@deffnx Parameter gethostbyaddr_r-function
+@deffnx Function primitive:gethostbyaddr_r @var{address-bv}
+@deffnx Function platform:gethostbyaddr_r @var{addr-ptr} @var{addr-len} @var{address-format-int} @var{hostent-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr} @var{errno-ptr}
+Acquire the Internet addresses associated to @var{address-bv}, a Scheme
+bytevector, and return a record of type @class{hostent}.
+@var{address-bv} must hold a @code{struct in_addr} or @code{struct
+in6_addr} address.
+@end deffn
+
+@c page
+@node sockets inet hosts
+@subsection Reading the hosts database
+
+
+The following functions manage scanning of the host database of Internet
+addresses.  @glibcref{Host Names, Host Names}.
+
+
+@deffn Function sethostent
+@deffnx Function sethostent @var{stay-open}
+@deffnx Parameter sethostent-function
+@deffnx Function primitive:sethostent
+@deffnx Function primitive:sethostent @var{stay-open}
+@deffnx Function platform:sethostent @var{stay-open-int}
+Start a scan operation on the host database file.  If the optional
+@var{stay-open} is true, it causes the database file to be kept open by
+the library; when not used, it defaults to @false{}.
+@end deffn
+
+
+@deffn Function gethostent
+@deffnx Parameter gethostent-function
+@deffnx Function primitive:gethostent
+@deffnx Function platform:gethostent
+Return a record of type @class{hostent} representing the next entry from
+the database, or @false{} if no more entry are available.
+@end deffn
+
+
+@deffn Function endhostent
+@deffnx Parameter endhostent-function
+@deffnx Function primitive:endhostent
+@deffnx Function platform:endhostent
+Close the host database file.
+@end deffn
+
+
+Example:
+
+@example
+(with-compensations
+  (compensate
+      (sethostent #t)
+    (with
+     (endhostent)))
+  (let loop ((ell     '())
+             (hostent (gethostent)))
+    (if hostent
+        (loop (cons hostent ell) (gethostent))
+      (do-something-with ell))))
+@end example
+
+@c page
+@node sockets inet nets
+@subsection Reading the networks database
+
+
+The following functions manage scanning of the networks database.
+@glibcref{Network Database, Networks Database}.
+
+
+@deffn Function getnetbyname @var{net-name}
+@deffnx Parameter getnetbyname-function
+@deffnx Function primitive:getnetbyname @var{net-name}
+@deffnx Function platform:getnetbyname @var{net-name-ptr}
+Return a record of type @class{netent} representing the address of the
+network @var{net-name}, which must be a Scheme string.  If the network
+is unknown, the return value is @false{}.
+@end deffn
+
+
+@deffn Function getnetbyaddr @var{address-bv}
+@deffnx Function getnetbyaddr @var{address-bv} @var{address-format}
+@deffnx Parameter getnetbyaddr-function
+@deffnx Function primitive:getnetbyaddr @var{address-bv}
+@deffnx Function primitive:getnetbyaddr @var{address-bv} @var{address-format}
+@deffnx Function platform:getnetbyaddr @var{address} @var{address-format-int}
+Return a record of type @class{netent} representing the address of the
+network selected by @var{address-bv}, which must be a Scheme bytevector
+holding the network number in network byte order.  If the network is
+unknown, the return value is @false{}.
+
+@var{address-format} must be an enumeration set of type
+@code{enum-socket-address-format} selecting the type of address format;
+when not used it defaults to @code{inet}.
+@end deffn
+
+
+@deffn Function setnetent
+@deffnx Function setnetent @var{stay-open}
+@deffnx Parameter setnetent-function
+@deffnx Function primitive:setnetent
+@deffnx Function primitive:setnetent @var{stay-open}
+@deffnx Function platform:setnetent @var{stay-open-int}
+Start a scan operation on the networks database file.  If the optional
+@var{stay-open} is true, it causes the database file to be kept open by
+the library; when not used, it defaults to @false{}.
+@end deffn
+
+
+@deffn Function getnetent
+@deffnx Parameter getnetent-function
+@deffnx Function primitive:getnetent
+@deffnx Function platform:getnetent
+Return a record of type @class{netent} representing the next entry from
+the database, or @false{} if no more entry are available.
+@end deffn
+
+
+@deffn Function endnetent
+@deffnx Parameter endnetent-function
+@deffnx Function primitive:endnetent
+@deffnx Function platform:endnetent
+Close the networks database file.
+@end deffn
+
+
+Example:
+
+@example
+(with-compensations
+  (compensate
+      (setnetent #t)
+    (with
+     (endnetent)))
+  (let loop ((ell     '())
+             (netent (getnetent)))
+    (if netent
+        (loop (cons netent ell) (getnetent))
+      (do-something-with ell))))
+@end example
+
+@c page
+@node sockets inet protos
+@subsection Reading the protocols database
+
+
+The following functions manage scanning of the protocols database.
+@glibcref{Protocols Database, Protocols Database}.
+
+
+@deffn Function getprotobyname @var{proto-name}
+@deffnx Parameter getprotobyname-function
+@deffnx Function primitive:getprotobyname @var{proto-name}
+@deffnx Function platform:getprotobyname @var{proto-name-ptr}
+Return a record of type @class{protoent} representing the informations
+on the protocol @var{proto-name}, which must be a Scheme string.  If the
+protocol is unknown, the return value is @false{}.
+@end deffn
+
+
+@deffn Function getprotobynumber @var{protocol-number}
+@deffnx Parameter getprotobynumber-function
+@deffnx Function primitive:getprotobynumber @var{protocol-number}
+@deffnx Function platform:getprotobynumber @var{protocol-number}
+Return a record of type @class{protoent} representing the informations
+on the protocol selected by @var{protocol-number}.  If the protocol is
+unknown, the return value is @false{}.
+@end deffn
+
+
+@deffn Function setprotoent
+@deffnx Function setprotoent @var{stay-open}
+@deffnx Parameter setprotoent-function
+@deffnx Function primitive:setprotoent
+@deffnx Function primitive:setprotoent @var{stay-open}
+@deffnx Function platform:setprotoent @var{stay-open-int}
+Start a scan operation on the protocols database file.  If the optional
+@var{stay-open} is true, it causes the database file to be kept open by
+the library; when not used, it defaults to @false{}.
+@end deffn
+
+
+@deffn Function getprotoent
+@deffnx Parameter getprotoent-function
+@deffnx Function primitive:getprotoent
+@deffnx Function platform:getprotoent
+Return a record of type @class{protoent} representing the next entry
+from the database, or @false{} if no more entry are available.
+@end deffn
+
+
+@deffn Function endprotoent
+@deffnx Parameter endprotoent-function
+@deffnx Function primitive:endprotoent
+@deffnx Function platform:endprotoent
+Close the protocols database file.
+@end deffn
+
+
+Example:
+
+@example
+(with-compensations
+  (compensate
+      (setprotoent #t)
+    (with
+     (endprotoent)))
+  (let loop ((ell     '())
+             (protoent (getprotoent)))
+    (if protoent
+        (loop (cons protoent ell) (getprotoent))
+      (do-something-with ell))))
+@end example
 
 
 @c page

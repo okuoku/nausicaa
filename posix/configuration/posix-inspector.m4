@@ -242,6 +242,12 @@ NAUSICAA_INSPECT_FIELD_TYPE([HOSTENT_H_ADDRTYPE],[struct hostent],[h_addrtype],[
 NAUSICAA_INSPECT_FIELD_TYPE([HOSTENT_H_LENGTH],[struct hostent],[h_length],[signed-int])
 NAUSICAA_INSPECT_FIELD_TYPE([HOSTENT_H_ADDR_LIST],[struct hostent],[h_addr_list],[pointer])
 NAUSICAA_INSPECT_FIELD_TYPE([HOSTENT_H_ADDR],[struct hostent],[h_addr],[pointer])
+
+dnl Struct inspection: protoent
+NAUSICAA_INSPECT_STRUCT_TYPE([PROTOENT],[struct protoent],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([PROTOENT_P_NAME],[struct protoent],[p_name],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([PROTOENT_P_ALIASES],[struct protoent],[p_aliases],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([PROTOENT_P_PROTO],[struct protoent],[p_proto],[signed-int])
 AC_CACHE_SAVE
 
 dnl Preprocessor symbols: seek whence arguments

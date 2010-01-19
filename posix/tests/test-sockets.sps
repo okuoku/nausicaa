@@ -108,6 +108,12 @@
 
 (parametrise ((check-test-name	'host-names))
 
+;;;We assume  that the system has  a "/etc/hosts" file with  at least an
+;;;entry like:
+;;;
+;;;	127.0.0.1	rapitore.luna rapitore localhost
+;;;
+
   (check
       (let ((hostent (posix:gethostbyname "localhost")))
 ;;;	(write hostent)(newline)
@@ -129,7 +135,140 @@
 					(<hostent>-aliases hostent)))))
     => #f)
 
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((hostent (glibc:gethostbyname_r "localhost")))
+;;;	(write hostent)(newline)
+	(not (member "localhost" (cons* (<hostent>-name hostent)
+					(<hostent>-aliases hostent)))))
+    => #f)
+
+  (check
+      (let ((hostent (glibc:gethostbyname2_r "localhost" (socket-address-format inet))))
+;;;	(write hostent)(newline)
+	(not (member "localhost" (cons* (<hostent>-name hostent)
+					(<hostent>-aliases hostent)))))
+    => #f)
+
+  (check
+      (let ((hostent (glibc:gethostbyaddr_r '#vu8(127 0 0 1))))
+;;;	(write hostent)(newline)
+	(not (member "localhost" (cons* (<hostent>-name hostent)
+					(<hostent>-aliases hostent)))))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	  (compensate
+	      (posix:sethostent)
+	    (with
+	     (posix:endhostent)))
+	(let ((ell '()))
+	  (do ((hostent (posix:gethostent) (posix:gethostent)))
+	      ((not hostent)
+	       (for-all <hostent>? ell))
+	    (set! ell (cons hostent ell)))))
+    => #t)
+
+  (check
+      (with-compensations
+	  (compensate
+	      (posix:sethostent #t)
+	    (with
+	     (posix:endhostent)))
+	(let loop ((ell		'())
+		   (hostent	(posix:gethostent)))
+	  (if hostent
+	      (loop (cons hostent ell) (posix:gethostent))
+	    (for-all <hostent>? ell))))
+    => #t)
+
   #t)
+
+
+(parametrise ((check-test-name	'net-names))
+
+;;;We assume that the system has a "/etc/networks" file with at least an
+;;;entry like:
+;;;
+;;;	loopback	127.0.0.0
+;;;
+
+  (check
+      (let ((netent (posix:getnetbyname "loopback")))
+;;;	(write netent)(newline)
+	(not (member "loopback" (cons* (<netent>-name netent)
+				       (<netent>-aliases netent)))))
+    => #f)
+
+  (check
+      (let ((netent (posix:getnetbyaddr '#vu8(127 0 0 0))))
+;;;	(write netent)(newline)
+	(not (member "loopback" (cons* (<netent>-name netent)
+				       (<netent>-aliases netent)))))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	  (compensate
+	      (posix:setnetent #t)
+	    (with
+	     (posix:endnetent)))
+	(let loop ((ell		'())
+		   (netent	(posix:getnetent)))
+	  (if netent
+	      (loop (cons netent ell) (posix:getnetent))
+	    (for-all <netent>? ell))))
+    => #t)
+
+  #f)
+
+
+(parametrise ((check-test-name	'proto-names))
+
+;;;We assume that  the system has a "/etc/protocols"  file with at least
+;;;an entry like:
+;;;
+;;;	tcp	6	TCP
+;;;
+
+  (check
+      (let ((protoent (posix:getprotobyname "tcp")))
+	(write protoent)(newline)
+	(not (member "tcp" (cons* (<protoent>-name protoent)
+				  (<protoent>-aliases protoent)))))
+    => #f)
+
+  (check
+      (let ((protoent (posix:getprotobynumber 6)))
+	(write protoent)(newline)
+	(not (member "tcp" (cons* (<protoent>-name protoent)
+				  (<protoent>-aliases protoent)))))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	  (compensate
+	      (posix:setprotoent #t)
+	    (with
+	     (posix:endprotoent)))
+	(let loop ((ell		'())
+		   (protoent	(posix:getprotoent)))
+	  (if protoent
+	      (loop (cons protoent ell) (posix:getprotoent))
+	    (begin
+;;;	      (pretty-print ell)(newline)
+	      (for-all <protoent>? ell)))))
+    => #t)
+
+  #f)
 
 
 (parametrise ((check-test-name	'if-name))

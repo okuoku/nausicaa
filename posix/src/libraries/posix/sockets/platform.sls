@@ -33,6 +33,10 @@
     inet_ntoa		inet_ntop
 
     gethostbyname	gethostbyaddr
+    sethostent		gethostent		endhostent
+
+    getprotobyname	getprotobynumber
+    setprotoent		getprotoent		endprotoent
 
     socket		socketpair
     shutdown
@@ -71,13 +75,26 @@
     (if_nametoindex		(unsigned if_nametoindex (char*)))
     (if_indextoname		(char* if_indextoname (unsigned char*)))
     (if_nameindex		(if_nameindex* if_nameindex (void)))
-    (if_freenameindex		(void if_freenameindex (if_nameindex*)))
-    )
+    (if_freenameindex		(void if_freenameindex (if_nameindex*))))
 
   (define-c-functions libc-shared-object
     (gethostbyname		(pointer gethostbyname (char*)))
     (gethostbyaddr		(pointer gethostbyaddr (char* size_t int)))
-    )
+    (sethostent			(void sethostent (int)))
+    (gethostent			(void* gethostent (void)))
+    (endhostent			(void endhostent (void)))
+
+    (getnetbyname		(netent* getnetbyname (char*)))
+    (getnetbyaddr		(netent* getnetbyaddr (unsigned-long int)))
+    (setnetent			(void setnetent (int)))
+    (getnetent			(netent* getnetent (void)))
+    (endnetent			(void endnetent (void)))
+
+    (getprotobyname		(void* getprotobyname (char*)))
+    (getprotobynumber		(void* getprotobynumber (int)))
+    (setprotoent		(void setprotoent (int)))
+    (getprotoent		(void* getprotoent (void)))
+    (endprotoent		(void endprotoent (void))))
 
   (define h_errno_pointer
     (lookup-shared-object* libc-shared-object "h_errno"))
@@ -99,19 +116,9 @@
     (sendto			(int sendto (int void* size_t int sockaddr* socklen_t)))
     (recvfrom			(int recvfrom (int void* size_t int sockaddr* socklen_t*)))
     (getsockopt			(int getsockopt (int int int void* socklen_t*)))
-    (setsockopt			(int setsockopt (int int int void* socklen_t)))
-
-    (getnetbyname		(netent* getnetbyname (char*)))
-    (getnetbyaddr		(netent* getnetbyaddr (unsigned-long int)))
-    (setnetent			(void setnetent (int)))
-    (getnetent			(netent* getnetent (void)))
-    (endnetent			(void endnetent (void)))
-    )
+    (setsockopt			(int setsockopt (int int int void* socklen_t))))
 
   (define-c-functions libnausicaa-posix
-    (SUN_LEN			(int nausicaa_posix_SUN_LEN (pointer)))
-    )
-
-  )
+    (SUN_LEN			(int nausicaa_posix_SUN_LEN (pointer)))))
 
 ;;; end of file

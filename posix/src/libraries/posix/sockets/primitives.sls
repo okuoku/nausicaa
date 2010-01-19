@@ -35,8 +35,20 @@
 	    (platform:ntohs		ntohs)
 	    (platform:ntohl		ntohl))
 
-    ;; Host names
+    ;; host names
     gethostbyname		gethostbyaddr
+    sethostent			gethostent
+    (rename (platform:endhostent endhostent))
+
+    ;; networks database
+    getnetbyname		getnetbyaddr
+    setnetent			getnetent
+    (rename (platform:endnetent endnetent))
+
+    ;; protocols database
+    getprotobyname		getprotobynumber
+    setprotoent			getprotoent
+    (rename (platform:endprotoent endprotoent))
 
     ;; interface names
     if-nametoindex		if-indextoname
@@ -62,15 +74,11 @@
     ;; cmsg
     ;; sendmsg		recvmsg
 
-    ;; networks database
-    ;; getnetbyname	getnetbyaddr
-    ;; setnetent		getnetent	endnetent
-
-    pointer-><sockaddr-in>
-    pointer-><sockaddr-in6>
+    ;; C language data structure -> record
+    pointer-><sockaddr-in>	pointer-><sockaddr-in6>
     pointer-><sockaddr-un>
-
-    )
+    pointer-><hostent>		pointer-><netent>
+    pointer-><protoent>)
   (import (rnrs)
     (begin0)
     (receive)
@@ -90,7 +98,7 @@
     (prefix (posix sockets platform) platform:))
 
 
-;;;; Internet address conversion
+;;;; internet address conversion
 
 (define (inet-aton address-name)
   (with-compensations
@@ -149,7 +157,7 @@
 	    (pointer-set-c-uint8! addr.ptr i (bytevector-u8-ref address-bytevector i))))))))
 
 
-;;;; Host names
+;;;; host names
 ;;
 ;;The helper  functions POINTER-><HOSTENT> and  %RAISE-H-ERRNO-ERROR are
 ;;duplicated in (glibc sockets primitives).
@@ -198,12 +206,120 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i addr.len))
 	(pointer-set-c-uint8! addr.ptr i (bytevector-u8-ref address-bytevector i)))
-      (let ((hostent* (platform:gethostbyaddr addr.ptr addr.len (if (= addr.len sizeof-in_addr)
-								    AF_INET
-								  AF_INET6))))
+      (let ((hostent* (platform:gethostbyaddr addr.ptr addr.len
+					      (cond ((= addr.len sizeof-in_addr)
+						     AF_INET)
+						    ((= addr.len sizeof-in6_addr)
+						     AF_INET6)
+						    (else
+						     (assertion-violation 'gethostbyaddr
+						       "wrong size for Internet address bytevector"
+						       address-bytevector))))))
 	(if (pointer-null? hostent*)
 	    (%raise-h-errno-error 'gethostbyaddr address-bytevector)
 	  (pointer-><hostent> hostent*))))))
+
+;;; --------------------------------------------------------------------
+
+(define sethostent
+  (case-lambda
+   (()
+    (sethostent #f))
+   ((stay-open?)
+    (platform:sethostent (if stay-open? 1 0)))))
+
+(define (gethostent)
+  (let ((hostent* (platform:gethostent)))
+    (if (pointer-null? hostent*)
+	#f
+      (pointer-><hostent> hostent*))))
+
+
+;;;; networks database
+
+(define (%network-number->bytevector number)
+  (let ((bv (make-bytevector 4)))
+    (bytevector-u32-set! bv 0 number (endianness big))
+    bv))
+
+(define (%bytevector->network-number bv)
+  (bytevector-u32-ref bv 0 (endianness big)))
+
+(define (pointer-><netent> netent*)
+  (make-<netent> (cstring->string	(struct-netent-n_name-ref netent*))
+		 (argv->strings		(struct-netent-n_aliases-ref netent*))
+		 (value->socket-address-format (struct-netent-n_addrtype-ref netent*))
+		 (%network-number->bytevector (struct-netent-n_net-ref netent*))))
+
+(define (getnetbyname net-name)
+  (with-compensations
+    (let ((netent* (platform:getnetbyname (string->cstring/c net-name))))
+      (if (pointer-null? netent*)
+	  #f
+	(pointer-><netent> netent*)))))
+
+(define getnetbyaddr
+  (case-lambda
+   ((address-bytevector)
+    (getnetbyaddr address-bytevector (socket-address-format inet)))
+   ((address-bytevector address-format)
+    (let ((netent* (platform:getnetbyaddr (%bytevector->network-number address-bytevector)
+					  (socket-address-format->value address-format))))
+      (if (pointer-null? netent*)
+	  #f
+	(pointer-><netent> netent*))))))
+
+(define setnetent
+  (case-lambda
+   (()
+    (setnetent #f))
+   ((stay-open?)
+    (platform:setnetent (if stay-open? 1 0)))))
+
+(define (getnetent)
+  (let ((netent* (platform:getnetent)))
+    (if (pointer-null? netent*)
+	#f
+      (pointer-><netent> netent*))))
+
+
+;;;; protocols database
+
+(define (pointer-><protoent> protoent*)
+  (make-<protoent> (cstring->string	(struct-protoent-p_name-ref protoent*))
+		   (argv->strings	(struct-protoent-p_aliases-ref protoent*))
+		   (struct-protoent-p_proto-ref protoent*)))
+
+(define (getprotobyname proto-name)
+  (with-compensations
+    (let ((protoent* (platform:getprotobyname (string->cstring/c proto-name))))
+      (if (pointer-null? protoent*)
+	  #f
+	(pointer-><protoent> protoent*)))))
+
+(define (getprotobynumber number)
+  (let ((protoent* (platform:getprotobynumber number)))
+    (if (pointer-null? protoent*)
+	#f
+      (pointer-><protoent> protoent*))))
+
+(define setprotoent
+  (case-lambda
+   (()
+    (setprotoent #f))
+   ((stay-open?)
+    (platform:setprotoent (if stay-open? 1 0)))))
+
+(define (getprotoent)
+  (let ((protoent* (platform:getprotoent)))
+    (if (pointer-null? protoent*)
+	#f
+      (pointer-><protoent> protoent*))))
+
+
+;;;; services database
+
+;;; Node "Internet Ports"
 
 
 ;;;; interface naming
