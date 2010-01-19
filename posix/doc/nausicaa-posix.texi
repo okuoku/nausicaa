@@ -604,9 +604,9 @@ Sockets
 * sockets constants::           Constant values.
 * sockets enumerations::        Enumeration type definitions.
 * sockets structs::             Accessing data structures.
-* sockets typedefs::            Object type definitions.
 * sockets records::             Record types mirroring data structures.
 * sockets ifaces::              Network interfaces.
+* sockets inet::                Internet addresses.
 * sockets open close::          Opening and closing sockets.
 * sockets ops::                 Operations on sockets.
 * sockets address::             Network addresses.
@@ -633,12 +633,8 @@ Accessing data structures
 * sockets structs in_addr::       Structure @code{struct in_addr}.
 * sockets structs in6_addr::      Structure @code{struct in6_addr}.
 * sockets structs if_nameindex::  Structure @code{if_nameindex}.
+* sockets structs hostent::       Structure @code{hostent}.
 * sockets structs netent::        Structure @code{netent}.
-
-Object type definitions
-
-* sockets typedefs in-addr::    IPv4 host address structure.
-* sockets typedefs in6-addr::   IPv6 host address structure.
 
 Record types mirroring data structures
 
@@ -648,6 +644,7 @@ Record types mirroring data structures
 * sockets records sockaddr-in6::  Internet namespace socket address IPv6.
 * sockets records sockaddr-un::   Local namespace socket address.
 * sockets records if-nameindex::  Interface name.
+* sockets records hostent::       Host database entry.
 * sockets records netent::        Network database entry.
 
 Client and server examples
@@ -1051,7 +1048,7 @@ The following bindings are exported from the @code{sizeof} library.
 @defvr Constant sizeof-dirent
 @defvrx Constant alignof-dirent
 @defvrx Constant strideof-dirent
-Size, alignment and array stride of @code{struct dirent} types.
+Size, structure alignment and array stride of @code{struct dirent} types.
 @end defvr
 
 
@@ -2873,7 +2870,7 @@ informations about.  It is meant to be used as @var{max-fd} argument to
 @defvr Constant sizeof-fdset
 @defvrx Constant alignof-fdset
 @defvrx Constant strideof-fdset
-Size, alignment and array stride of data structures of type
+Size, structure alignment and array stride of data structures of type
 @code{fd_set}.
 @end defvr
 
@@ -3344,7 +3341,7 @@ sizeof}.
 @defvr Constant sizeof-iovec
 @defvrx Constant alignof-iovec
 @defvrx Constant strideof-iovec
-Size, structure alignment and array stride of data structures of type
+Size, structure structure alignment and array stride of data structures of type
 @code{struct iovec}.
 @end defvr
 
@@ -3808,7 +3805,6 @@ exported by the following libraries:
 * sockets constants::           Constant values.
 * sockets enumerations::        Enumeration type definitions.
 * sockets structs::             Accessing data structures.
-* sockets typedefs::            Object type definitions.
 * sockets records::             Record types mirroring data structures.
 * sockets ifaces::              Network interfaces.
 * sockets inet::                Internet addresses.
@@ -4244,6 +4240,7 @@ Unless otherwise specified, the following bindings are exported by the
 * sockets structs in_addr::       Structure @code{struct in_addr}.
 * sockets structs in6_addr::      Structure @code{struct in6_addr}.
 * sockets structs if_nameindex::  Structure @code{if_nameindex}.
+* sockets structs hostent::       Structure @code{hostent}.
 * sockets structs netent::        Structure @code{netent}.
 @end menu
 
@@ -4262,8 +4259,8 @@ Address Formats}.
 @defvr Constant sizeof-sockaddr
 @defvrx Constant alignof-sockaddr
 @defvrx Constant strideof-sockaddr
-Size, array alignment and stride of @code{struct sockaddr} C language
-data structures.
+Size, structure alignment and array stride of @code{struct sockaddr} C
+language data structures.
 @end defvr
 
 
@@ -4290,8 +4287,8 @@ of Local Namespace}.
 @defvr Constant sizeof-sockaddr_un
 @defvrx Constant alignof-sockaddr_un
 @defvrx Constant strideof-sockaddr_un
-Size, array alignment and stride of @code{struct sockaddr_un} C language
-data structures.
+Size, structure alignment and array stride of @code{struct sockaddr_un}
+C language data structures.
 @end defvr
 
 
@@ -4316,8 +4313,8 @@ Socket Address Formats}.
 @defvr Constant sizeof-sockaddr_in
 @defvrx Constant alignof-sockaddr_in
 @defvrx Constant strideof-sockaddr_in
-Size, array alignment and stride of @code{struct sockaddr_in} C language
-data structures.
+Size, structure alignment and array stride of @code{struct sockaddr_in}
+C language data structures.
 @end defvr
 
 
@@ -4347,8 +4344,8 @@ Socket Address Formats}.
 @defvr Constant sizeof-sockaddr_in6
 @defvrx Constant alignof-sockaddr_in6
 @defvrx Constant strideof-sockaddr_in6
-Size, array alignment and stride of @code{struct sockaddr_in6} C language
-data structures.
+Size, structure alignment and array stride of @code{struct sockaddr_in6}
+C language data structures.
 @end defvr
 
 
@@ -4379,8 +4376,8 @@ code.  @glibcref{Host Address Data Type, Host Address Data Type}.
 @defvr Constant sizeof-in_addr
 @defvrx Constant alignof-in_addr
 @defvrx Constant strideof-in_addr
-Size, array alignment and stride of @code{struct in_addr} C language
-data structures.
+Size, structure alignment and array stride of @code{struct in_addr} C
+language data structures.
 @end defvr
 
 @c page
@@ -4396,8 +4393,8 @@ code.  @glibcref{Host Address Data Type, Host Address Data Type}.
 @defvr Constant sizeof-in6_addr
 @defvrx Constant alignof-in6_addr
 @defvrx Constant strideof-in6_addr
-Size, array alignment and stride of @code{struct in6_addr} C language
-data structures.
+Size, structure alignment and array stride of @code{struct in6_addr} C
+language data structures.
 @end defvr
 
 @c page
@@ -4413,8 +4410,8 @@ Interface Naming}.
 @defvr Constant sizeof-if_nameindex
 @defvrx Constant alignof-if_nameindex
 @defvrx Constant strideof-if_nameindex
-Size, array alignment and stride of @code{struct if_nameindex} C
-language data structures.
+Size, structure alignment and array stride of @code{struct if_nameindex}
+C language data structures.
 @end defvr
 
 
@@ -4423,6 +4420,39 @@ language data structures.
 @deffnx Syntax struct-if_nameindex-if_name-ref @var{pointer}
 @deffnx Syntax struct-if_nameindex-if_name-set! @var{pointer} @var{value}
 Accessors and mutators for the fields of a @code{struct if_nameindex} C
+language data structure.
+@end deffn
+
+@c page
+@node sockets structs hostent
+@subsection Structure @code{hostent}
+
+
+The @code{struct hostent} type describes an entry in the system's
+networks database.  @glibcref{Host Names, Host Names}.
+
+
+@defvr Constant sizeof-hostent
+@defvrx Constant alignof-hostent
+@defvrx Constant strideof-hostent
+Size, structure alignment and array stride of @code{struct hostent} C
+language data structures.
+@end defvr
+
+
+@deffn Syntax struct-hostent-h_name-ref @var{pointer}
+@deffnx Syntax struct-hostent-h_name-set! @var{pointer} @var{value}
+@deffnx Syntax struct-hostent-h_aliases-ref @var{pointer}
+@deffnx Syntax struct-hostent-h_aliases-set! @var{pointer} @var{value}
+@deffnx Syntax struct-hostent-h_addrtype-ref @var{pointer}
+@deffnx Syntax struct-hostent-h_addrtype-set! @var{pointer} @var{value}
+@deffnx Syntax struct-hostent-h_length-ref @var{pointer}
+@deffnx Syntax struct-hostent-h_length-set! @var{pointer} @var{value}
+@deffnx Syntax struct-hostent-h_addr_list-ref @var{pointer}
+@deffnx Syntax struct-hostent-h_addr_list-set! @var{pointer} @var{value}
+@deffnx Syntax struct-hostent-h_h_addr-ref @var{pointer}
+@deffnx Syntax struct-hostent-h_h_addr-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct hostent} C
 language data structure.
 @end deffn
 
@@ -4438,8 +4468,8 @@ networks database.  @glibcref{Networks Database, Networks Database}.
 @defvr Constant sizeof-netent
 @defvrx Constant alignof-netent
 @defvrx Constant strideof-netent
-Size, array alignment and stride of @code{struct netent} C language
-data structures.
+Size, structure alignment and array stride of @code{struct netent} C
+language data structures.
 @end defvr
 
 
@@ -4456,78 +4486,6 @@ language data structure.
 @end deffn
 
 @c page
-@node sockets typedefs
-@section Object type definitions
-
-
-Unless otherwise specified, the following bindings are exported by the
-@library{posix typedefs} library.
-
-@menu
-* sockets typedefs in-addr::    IPv4 host address structure.
-* sockets typedefs in6-addr::   IPv6 host address structure.
-@end menu
-
-@c page
-@node sockets typedefs in-addr
-@subsection IPv4 host address structure
-
-
-Functions from the parametrised and primitives libraries accept objects
-of type @code{struct-in-addr} as @var{in-addr} arguments.  Functions
-from the platform libraries accept pointer objects as @var{in-addr-ptr}
-arguments.
-
-@deftp {Object Type} struct-in-addr
-Object type used to reference @code{struct in_addr} C language data
-structures.  It is disjoint from all the other Scheme object types.
-
-Objects of this type do not ``own'' the structure memory, they are just
-references to it.
-@end deftp
-
-
-@defun struct-in-addr? @var{obj}
-Return @true{} if @var{obj} is of type @code{struct-in-addr}.
-@end defun
-
-
-@defun struct-in-addr->pointer @var{in-addr}
-@defunx pointer->struct-in-addr @var{pointer}
-Convert to and from objects of type @code{in-addr} and pointer objects.
-@end defun
-
-@c page
-@node sockets typedefs in6-addr
-@subsection IPv4 host address structure
-
-
-Functions from the parametrised and primitives libraries accept objects
-of type @code{struct-in6-addr} as @var{in6-addr} arguments.  Functions
-from the platform libraries accept pointer objects as @var{in6-addr-ptr}
-arguments.
-
-
-@deftp {Object Type} struct-in6-addr
-Object type used to reference @code{struct in6_addr} C language data
-structures.  It is disjoint from all the other Scheme object types.
-
-Objects of this type do not ``own'' the structure memory, they are just
-references to it.
-@end deftp
-
-
-@defun struct-in6-addr? @var{obj}
-Return @true{} if @var{obj} is of type @code{struct-in6-addr}.
-@end defun
-
-
-@defun struct-in6-addr->pointer @var{in6-addr}
-@defunx pointer->struct-in6-addr @var{pointer}
-Convert to and from objects of type @code{in6-addr} and pointer objects.
-@end defun
-
-@c page
 @node sockets records
 @section Record types mirroring data structures
 
@@ -4542,6 +4500,7 @@ Unless otherwise specified, the following bindings are exported by the
 * sockets records sockaddr-in6::  Internet namespace socket address IPv6.
 * sockets records sockaddr-un::   Local namespace socket address.
 * sockets records if-nameindex::  Interface name.
+* sockets records hostent::       Host database entry.
 * sockets records netent::        Network database entry.
 @end menu
 
@@ -4634,7 +4593,7 @@ mutable fields:
 
 @table @code
 @item addr
-A record of type @class{struct-in-addr}.
+A Scheme bytevector holding a @code{struct in_addr} structure.
 
 @item port
 An exact integer representing the port number.
@@ -4647,10 +4606,7 @@ The field @code{family}, inherited from @class{sockaddr}, must be set to
 
 @defun make-<sockaddr-in> @var{addr} @var{port}
 @defunx <sockaddr-in>? @var{obj}
-Constructor and predicate for records of type @class{sockaddr-in}.  The
-constructor does @strong{not} check its arguments: it is @strong{not}
-meant to be used by client code in normal operations.
-
+Constructor and predicate for records of type @class{sockaddr-in}.
 @var{addr} and @var{port} are the values of the @code{addr} and
 @code{port} fields, the @code{family} field is set to @code{AF_INET}
 automatically.
@@ -4687,7 +4643,7 @@ mutable fields:
 
 @table @code
 @item addr
-A record of type @class{struct-in6-addr}.
+A Scheme bytevector holding a @code{struct in6_addr} structure.
 
 @item port
 An exact integer representing the port number.
@@ -4700,10 +4656,7 @@ The field @code{family}, inherited from @class{sockaddr}, must be set to
 
 @defun make-<sockaddr-in6> @var{addr} @var{port}
 @defunx <sockaddr-in6>? @var{obj}
-Constructor and predicate for records of type @class{sockaddr-in6}.  The
-constructor does @strong{not} check its arguments: it is @strong{not}
-meant to be used by client code in normal operations.
-
+Constructor and predicate for records of type @class{sockaddr-in6}.
 @var{addr} and @var{port} are the values of the @code{addr} and
 @code{port} fields, the @code{family} field is set to @code{AF_INET6}
 automatically.
@@ -4750,10 +4703,7 @@ The field @code{family}, inherited from @class{sockaddr}, must be set to
 
 @defun make-<sockaddr-un> @var{pathname}
 @defunx <sockaddr-un>? @var{obj}
-Constructor and predicate for records of type @class{sockaddr-un}.  The
-constructor does @strong{not} check its arguments: it is @strong{not}
-meant to be used by client code in normal operations.
-
+Constructor and predicate for records of type @class{sockaddr-un}.
 @var{pathname} is the value of the @code{path} field, the @code{family}
 field is set to @code{AF_LOCAL} automatically.
 @end defun
@@ -4805,6 +4755,49 @@ meant to be used by client code in normal operations.
 @defun <if-nameindex>-index @var{if-nameindex}
 @defunx <if-nameindex>-name @var{if-nameindex}
 Accessors and mutators for records of type @class{if-nameindex}.
+@end defun
+
+@c page
+@node sockets records hostent
+@subsection Host database entry
+
+
+@deftp {Record Type Name} <hostent>
+@deftpx {Record Type Descriptor} <hostent-rtd>
+Record type used to mirror @code{struct hostent} C language data
+structures.  It has the following immutable fields:
+
+@table @code
+@item name
+A Scheme string representing the official host name.
+
+@item aliases
+A list of Scheme strings representing alternative names for the host.
+
+@item addrtype
+An enumeration set of type @code{enum-socket-address-format}
+representing the type of the addresses.
+
+@item addrlist
+A list of Scheme strings representing the host addresses in presentation
+format.
+@end table
+@end deftp
+
+
+@defun make-<hostent> @var{name} @var{aliases} @var{addrtype} @var{addrlist}
+@defunx <hostent>? @var{obj}
+Constructor and predicate for records of type @class{hostent}.  The
+constructor does @strong{not} validate its arguments: it is @strong{not}
+meant to be used by client code in normal operations.
+@end defun
+
+
+@defun <hostent>-name @var{record}
+@defunx <hostent>-aliases @var{record}
+@defunx <hostent>-addrtype @var{record}
+@defunx <hostent>-addrlist @var{record}
+Accessors for records of type @class{hostent}.
 @end defun
 
 @c page
@@ -4914,6 +4907,17 @@ network interfaces.
 @section Internet addresses
 
 
+@menu
+* sockets inet formats::        Converting addresses to and from
+                                presentation format.
+* sockets inet names::          Acquiring address from host names.
+@end menu
+
+@c page
+@node sockets inet formats
+@subsection Converting addresses to and from presentation format
+
+
 The following functions manage conversion of Internet addresses between
 different formats.  @glibcref{Host Address Functions, Host Address
 Functions}.
@@ -4927,6 +4931,11 @@ Convert the Scheme string @var{address-name} representing an IPv4
 address, in presentation format, to a @code{struct in_addr} value stored
 in a Scheme bytevector.  If the address is valid, return the bytevector;
 else return @false{}.
+
+@example
+(inet-aton "127.0.0.1")
+@result{} #vu8(127 0 0 1)
+@end example
 @end deffn
 
 
@@ -4948,6 +4957,11 @@ address is valid, return the bytevector; else return @false{}.
 Convert the Scheme bytevector @var{address-bv} holding a @code{struct
 in_addr} value to a Scheme string holding the address in presentation
 format; return the string.
+
+@example
+(inet-aton #vu8(127 0 0 1))
+@result{} "127.0.0.1"
+@end example
 @end deffn
 
 
@@ -4959,6 +4973,58 @@ Convert the Scheme bytevector @var{address-bv} holding a @code{struct
 in_addr} or @code{struct in6_addr} value to a Scheme string holding the
 address in presentation format; return the string.
 @end deffn
+
+@c page
+@node sockets inet names
+@subsection Acquiring address from host names
+
+
+The following functions manage acquisition of Internet addresses from
+the corresponding host names.  @glibcref{Host Names, Host Names}.
+
+
+@deffn Function gethostbyname @var{host-name}
+@deffnx Parameter gethostbyname-function
+@deffnx Function primitive:gethostbyname @var{host-name}
+@deffnx Function platform:gethostbyname @var{name-ptr}
+Acquire the Internet addresses associated to @var{host-name}, a Scheme
+string, and return a record of type @class{hostent}.
+@end deffn
+
+
+@deffn Function gethostbyaddr @var{address-bv}
+@deffnx Parameter gethostbyaddr-function
+@deffnx Function primitive:gethostbyaddr @var{address-bv}
+@deffnx Function platform:gethostbyaddr @var{addr-ptr} @var{addr-len} @var{address-format-int}
+Acquire the Internet addresses associated to @var{address-bv}, a Scheme
+bytevector, and return a record of type @class{hostent}.
+@var{address-bv} must hold a @code{struct in_addr} or @code{struct
+in6_addr} address.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading @gnu{} C Library extensions
+
+The following bindings are exported by the libraries:
+
+@example
+(glibc sockets)
+(glibc sockets primitives)
+(glibc sockets platform)
+@end example
+
+
+@deffn Function gethostbyname2 @var{host-name} @var{address-format}
+@deffnx Parameter gethostbyname2-function
+@deffnx Function primitive:gethostbyname2 @var{host-name} @var{address-format}
+@deffnx Function platform:gethostbyname2 @var{name-ptr} @var{address-format-int}
+Like @func{gethostbyname}, but allows the specification of the address
+format with the @var{address-format} enumeration set, which must be of
+type @code{enum-socket-address-format}.
+@end deffn
+
+
 
 
 @c page

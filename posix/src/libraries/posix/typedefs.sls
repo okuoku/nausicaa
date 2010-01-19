@@ -239,11 +239,19 @@
     <if-nameindex>-index
     <if-nameindex>-name
 
-    <struct-netent>			<struct-netent>?
-    <struct-netent>-name		<struct-netent>-name-set!
-    <struct-netent>-aliases		<struct-netent>-aliases-set!
-    <struct-netent>-addrtype		<struct-netent>-addrtype-set!
-    <struct-netent>-net			<struct-netent>-net-set!
+    <hostent>				<hostent-rtd>
+    make-<hostent>			<hostent>?
+    <hostent>-name
+    <hostent>-aliases
+    <hostent>-addrtype
+    <hostent>-addrlist
+
+    <struct-netent>			<struct-netent-rtd>
+    make-<struct-netent>		<struct-netent>?
+    <struct-netent>-name
+    <struct-netent>-aliases
+    <struct-netent>-addrtype
+    <struct-netent>-net
 
 ;;; --------------------------------------------------------------------
 
@@ -641,13 +649,23 @@
 
 (define-record-type <struct-netent>
   (nongenerative nausicaa:posix:<struct-netent>)
-  (fields (mutable name)
-	  (mutable aliases)
-	  (mutable addrtype)
-	  (mutable net)))
+  (fields (immutable name)
+	  (immutable aliases)
+	  (immutable addrtype)
+	  (immutable net)))
 
 (define <struct-netent-rtd>
   (record-type-descriptor <struct-netent>))
+
+(define-record-type <hostent>
+  (nongenerative nausicaa:posix:<hostent>)
+  (fields (immutable name)
+	  (immutable aliases)
+	  (immutable addrtype)
+	  (immutable addrlist)))
+
+(define <hostent-rtd>
+  (record-type-descriptor <hostent>))
 
 
 (define-record-type struct-in-addr

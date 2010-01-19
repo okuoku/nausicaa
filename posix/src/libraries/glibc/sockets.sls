@@ -1,13 +1,14 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: compile script for Ikarus Scheme
-;;;Date: Wed Dec 31, 2008
+;;;Contents: parametrised interface to sockets functions
+;;;Date: Tue Jan 19, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,21 +24,26 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (posix fd))
-  (only (posix file))
-  (only (posix process))
-  (only (posix signals))
-  (only (posix sockets))
-  (only (posix system))
-  (only (posix time))
+
+(library (glibc sockets)
+  (export
 
-  (only (glibc file))
-  (only (glibc signals))
-  (only (glibc sockets))
-  (only (glibc streams))
-  (only (glibc system))
-  (only (glibc time))
-  )
+    ;; host names
+    gethostbyname2
+
+    )
+  (import (rnrs)
+    (posix helpers)
+    (posix typedefs)
+    (prefix (glibc sockets primitives) primitive:))
+
+
+(define-parametrised gethostbyname2 host-name address-format)
+
+
+
+;;;; done
+
+)
 
 ;;; end of file

@@ -35,25 +35,28 @@
 	    (platform:ntohs		ntohs)
 	    (platform:ntohl		ntohl))
 
+    ;; Host names
+    gethostbyname		gethostbyaddr
+
     ;; interface names
-    if-nametoindex	if-indextoname
+    if-nametoindex		if-indextoname
     if-nameindex
 
     ;; socket operations
-    socket		socketpair
-    shutdown		connect
-    bind		listen
+    socket			socketpair
+    shutdown			connect
+    bind			listen
     accept
-    getsockname		getpeername
-    send		recv
-    send/string		recv/string
-    send/bytevector	recv/bytevector
-    send/memblock	recv/memblock
-    sendto		recvfrom
-    sendto/string	recvfrom/string
-    sendto/bytevector	recvfrom/bytevector
-    sendto/memblock	recvfrom/memblock
-    getsockopt		setsockopt
+    getsockname			getpeername
+    send			recv
+    send/string			recv/string
+    send/bytevector		recv/bytevector
+    send/memblock		recv/memblock
+    sendto			recvfrom
+    sendto/string		recvfrom/string
+    sendto/bytevector		recvfrom/bytevector
+    sendto/memblock		recvfrom/memblock
+    getsockopt			setsockopt
 
     ;; ancillary messages
     ;; cmsg
@@ -89,9 +92,6 @@
 
 ;;;; Internet address conversion
 
-;;Node "Host Names"
-
-
 (define (inet-aton address-name)
   (with-compensations
     (let* ((cstr*	(string->cstring/c address-name))
@@ -106,12 +106,13 @@
 	    (bytevector-u8-set! bv i (pointer-ref-c-uint8 addr.ptr i))))))))
 
 (define (inet-ntoa address-bytevector)
-  (with-compensations
-    (let ((addr.ptr (malloc-small/c)))
-      (do ((i 0 (+ 1 i)))
-	  ((= i sizeof-in_addr)
-	   (cstring->string (platform:inet_ntoa addr.ptr)))
-	(pointer-set-c-uint8! addr.ptr i (bytevector-u8-ref address-bytevector i))))))
+  (cstring->string (platform:inet_ntoa
+		    (bytevector-u32-ref (u8-list->bytevector
+					 (list (bytevector-u8-ref address-bytevector 3)
+					       (bytevector-u8-ref address-bytevector 2)
+					       (bytevector-u8-ref address-bytevector 1)
+					       (bytevector-u8-ref address-bytevector 0)))
+					0 (endianness big)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -119,9 +120,7 @@
   (with-compensations
     (let* ((cstr*	(string->cstring/c address-name))
 	   (family	(socket-namespace->value namespace))
-	   (addr.ptr	(if (= AF_INET family)
-			    (malloc-small/c)
-			  (malloc-block/c sizeof-in6_addr)))
+	   (addr.ptr	(malloc-small/c))
 	   (result	(platform:inet_pton family cstr* addr.ptr)))
       (if (= 0 result)
 	  #f
@@ -141,13 +140,70 @@
 				(malloc-small/c)
 				INET_ADDRSTRLEN)
 		      (values sizeof-in6_addr
-			      (malloc-block/c sizeof-in6_addr)
+			      (malloc-small/c)
 			      INET6_ADDRSTRLEN))))
 	(let ((str.ptr (malloc-block/c str.len)))
 	  (do ((i 0 (+ 1 i)))
 	      ((= i addr.len)
 	       (cstring->string (platform:inet_ntop family addr.ptr str.ptr str.len)))
 	    (pointer-set-c-uint8! addr.ptr i (bytevector-u8-ref address-bytevector i))))))))
+
+
+;;;; Host names
+;;
+;;The helper  functions POINTER-><HOSTENT> and  %RAISE-H-ERRNO-ERROR are
+;;duplicated in (glibc sockets primitives).
+
+(define (pointer-><hostent> hostent*)
+  (make-<hostent> (cstring->string	(struct-hostent-h_name-ref hostent*))
+		  (argv->strings	(struct-hostent-h_aliases-ref hostent*))
+		  (value->socket-address-format (struct-hostent-h_addrtype-ref hostent*))
+		  (let ((addr**		(struct-hostent-h_addr_list-ref hostent*))
+			(addr.len	(struct-hostent-h_length-ref hostent*)))
+		    (let loop ((i 0) (ell '()))
+		      (let ((addr.ptr (array-ref-c-pointer addr** i)))
+			(if (pointer-null? addr.ptr)
+			    ell
+			  (loop (+ 1 i) (cons (pointer->bytevector addr.ptr addr.len) ell))))))))
+
+(define (%raise-h-errno-error who . irritants)
+  (apply error who
+	 (let ((h_errno (platform:h_errno)))
+	   (cond ((= h_errno HOST_NOT_FOUND)
+		  "hostname resolution error, host not found")
+		 ((= h_errno TRY_AGAIN)
+		  "hostname resolution error, try again")
+		 ((= h_errno NO_RECOVERY)
+		  "hostname resolution non recoverable error")
+		 ((= h_errno NO_ADDRESS)
+		  "hostname resolution error, no Internet address associated to host name")
+		 (else
+		  (assertion-violation '%raise-h-errno-error "unknown h_errno value" h_errno))))
+	 irritants))
+
+;;; --------------------------------------------------------------------
+
+(define (gethostbyname host-name)
+  (with-compensations
+    (let ((hostent* (platform:gethostbyname (string->cstring/c host-name))))
+      (if (pointer-null? hostent*)
+	  (%raise-h-errno-error 'gethostbyname host-name)
+	(pointer-><hostent> hostent*)))))
+
+(define (gethostbyaddr address-bytevector)
+  (with-compensations
+    (let* ((addr.ptr	(malloc-small/c))
+	   (addr.len	(bytevector-length address-bytevector)))
+      (assert (or (= addr.len sizeof-in_addr) (= addr.len sizeof-in6_addr)))
+      (do ((i 0 (+ 1 i)))
+	  ((= i addr.len))
+	(pointer-set-c-uint8! addr.ptr i (bytevector-u8-ref address-bytevector i)))
+      (let ((hostent* (platform:gethostbyaddr addr.ptr addr.len (if (= addr.len sizeof-in_addr)
+								    AF_INET
+								  AF_INET6))))
+	(if (pointer-null? hostent*)
+	    (%raise-h-errno-error 'gethostbyaddr address-bytevector)
+	  (pointer-><hostent> hostent*))))))
 
 
 ;;;; interface naming

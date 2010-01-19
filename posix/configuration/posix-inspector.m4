@@ -2,7 +2,7 @@ dnl (posix sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Mon Jan 18, 2010
+dnl Date: Tue Jan 19, 2010
 dnl
 dnl Abstract
 dnl
@@ -233,6 +233,15 @@ dnl Struct inspection: linger
 NAUSICAA_INSPECT_STRUCT_TYPE([LINGER],[struct linger],[#f])
 NAUSICAA_INSPECT_FIELD_TYPE([LINGER_L_ONOFF],[struct linger],[l_onoff],[signed-int])
 NAUSICAA_INSPECT_FIELD_TYPE([LINGER_L_LINGER],[struct linger],[l_linger],[signed-int])
+
+dnl Struct inspection: hostent
+NAUSICAA_INSPECT_STRUCT_TYPE([HOSTENT],[struct hostent],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([HOSTENT_H_NAME],[struct hostent],[h_name],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([HOSTENT_H_ALIASES],[struct hostent],[h_aliases],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([HOSTENT_H_ADDRTYPE],[struct hostent],[h_addrtype],[signed-int])
+NAUSICAA_INSPECT_FIELD_TYPE([HOSTENT_H_LENGTH],[struct hostent],[h_length],[signed-int])
+NAUSICAA_INSPECT_FIELD_TYPE([HOSTENT_H_ADDR_LIST],[struct hostent],[h_addr_list],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([HOSTENT_H_ADDR],[struct hostent],[h_addr],[pointer])
 AC_CACHE_SAVE
 
 dnl Preprocessor symbols: seek whence arguments
@@ -833,6 +842,10 @@ NAUSICAA_DEFINE_VALUE([INADDR_BROADCAST])
 NAUSICAA_DEFINE_VALUE([INADDR_NONE])
 NAUSICAA_DEFINE_VALUE([INET_ADDRSTRLEN])
 NAUSICAA_DEFINE_VALUE([INET6_ADDRSTRLEN])
+NAUSICAA_DEFINE_VALUE([HOST_NOT_FOUND])
+NAUSICAA_DEFINE_VALUE([TRY_AGAIN])
+NAUSICAA_DEFINE_VALUE([NO_RECOVERY])
+NAUSICAA_DEFINE_VALUE([NO_ADDRESS])
 AC_CACHE_SAVE
 
 dnl end of file

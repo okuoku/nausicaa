@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Mon Jan 18, 2010
+;;;Date: Tue Jan 19, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -399,6 +399,21 @@
     struct-linger-l_onoff-ref
     struct-linger-l_linger-set!
     struct-linger-l_linger-ref
+    sizeof-hostent
+    alignof-hostent
+    strideof-hostent
+    struct-hostent-h_name-set!
+    struct-hostent-h_name-ref
+    struct-hostent-h_aliases-set!
+    struct-hostent-h_aliases-ref
+    struct-hostent-h_addrtype-set!
+    struct-hostent-h_addrtype-ref
+    struct-hostent-h_length-set!
+    struct-hostent-h_length-ref
+    struct-hostent-h_addr_list-set!
+    struct-hostent-h_addr_list-ref
+    struct-hostent-h_addr-set!
+    struct-hostent-h_addr-ref
     SEEK_SET
     SEEK_CUR
     SEEK_END
@@ -925,6 +940,10 @@
     INADDR_NONE
     INET_ADDRSTRLEN
     INET6_ADDRSTRLEN
+    HOST_NOT_FOUND
+    TRY_AGAIN
+    NO_RECOVERY
+    NO_ADDRESS
     SO_STYLE)
   (import
     (rnrs)
@@ -1746,6 +1765,45 @@
     @OFFSETOF_LINGER_L_LINGER@
     @SETTEROF_LINGER_L_LINGER@
     @GETTEROF_LINGER_L_LINGER@)
+  (define sizeof-hostent @SIZEOF_HOSTENT@)
+  (define alignof-hostent @ALIGNOF_HOSTENT@)
+  (define strideof-hostent @STRIDEOF_HOSTENT@)
+  (define-c-struct-accessor-and-mutator
+    struct-hostent-h_name-set!
+    struct-hostent-h_name-ref
+    @OFFSETOF_HOSTENT_H_NAME@
+    @SETTEROF_HOSTENT_H_NAME@
+    @GETTEROF_HOSTENT_H_NAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-hostent-h_aliases-set!
+    struct-hostent-h_aliases-ref
+    @OFFSETOF_HOSTENT_H_ALIASES@
+    @SETTEROF_HOSTENT_H_ALIASES@
+    @GETTEROF_HOSTENT_H_ALIASES@)
+  (define-c-struct-accessor-and-mutator
+    struct-hostent-h_addrtype-set!
+    struct-hostent-h_addrtype-ref
+    @OFFSETOF_HOSTENT_H_ADDRTYPE@
+    @SETTEROF_HOSTENT_H_ADDRTYPE@
+    @GETTEROF_HOSTENT_H_ADDRTYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-hostent-h_length-set!
+    struct-hostent-h_length-ref
+    @OFFSETOF_HOSTENT_H_LENGTH@
+    @SETTEROF_HOSTENT_H_LENGTH@
+    @GETTEROF_HOSTENT_H_LENGTH@)
+  (define-c-struct-accessor-and-mutator
+    struct-hostent-h_addr_list-set!
+    struct-hostent-h_addr_list-ref
+    @OFFSETOF_HOSTENT_H_ADDR_LIST@
+    @SETTEROF_HOSTENT_H_ADDR_LIST@
+    @GETTEROF_HOSTENT_H_ADDR_LIST@)
+  (define-c-struct-accessor-and-mutator
+    struct-hostent-h_addr-set!
+    struct-hostent-h_addr-ref
+    @OFFSETOF_HOSTENT_H_ADDR@
+    @SETTEROF_HOSTENT_H_ADDR@
+    @GETTEROF_HOSTENT_H_ADDR@)
   (define SEEK_SET @VALUEOF_SEEK_SET@)
   (define SEEK_CUR @VALUEOF_SEEK_CUR@)
   (define SEEK_END @VALUEOF_SEEK_END@)
@@ -2620,6 +2678,10 @@
   (define
     INET6_ADDRSTRLEN
     @VALUEOF_INET6_ADDRSTRLEN@)
+  (define HOST_NOT_FOUND @VALUEOF_HOST_NOT_FOUND@)
+  (define TRY_AGAIN @VALUEOF_TRY_AGAIN@)
+  (define NO_RECOVERY @VALUEOF_NO_RECOVERY@)
+  (define NO_ADDRESS @VALUEOF_NO_ADDRESS@)
   (define SO_STYLE SO_TYPE))
 
 

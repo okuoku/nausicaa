@@ -323,6 +323,15 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (signed-int		l_onoff)
   (signed-int		l_linger))
 
+(define-c-struct hostent
+  "struct hostent"
+  (pointer		h_name)
+  (pointer		h_aliases)
+  (signed-int		h_addrtype)
+  (signed-int		h_length)
+  (pointer		h_addr_list)
+  (pointer		h_addr))
+
 (autoconf-lib "AC_CACHE_SAVE")
 
 
@@ -924,6 +933,11 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 
   INET_ADDRSTRLEN
   INET6_ADDRSTRLEN
+
+  HOST_NOT_FOUND
+  TRY_AGAIN
+  NO_RECOVERY
+  NO_ADDRESS
   )
 
 (sizeof-lib

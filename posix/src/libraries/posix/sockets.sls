@@ -36,6 +36,9 @@
 	    (primitive:ntohs		ntohs)
 	    (primitive:ntohl		ntohl))
 
+    ;; host names
+    gethostbyname		gethostbyaddr
+
     ;; interface name
     if-nametoindex		if-indextoname
     if-nameindex
@@ -74,6 +77,9 @@
 (define-parametrised inet-pton namespace address-name)
 (define-parametrised inet-ntoa address-bytevector)
 (define-parametrised inet-ntop namespace address-bytevector)
+
+(define-parametrised gethostbyname host-name)
+(define-parametrised gethostbyaddr address-bytevector)
 
 (define-parametrised if-nametoindex name)
 (define-parametrised if-indextoname index)

@@ -32,6 +32,8 @@
     inet_aton		inet_pton
     inet_ntoa		inet_ntop
 
+    gethostbyname	gethostbyaddr
+
     socket		socketpair
     shutdown
     connect		bind
@@ -46,7 +48,9 @@
     if_nameindex	if_freenameindex
 
     getnetbyname	getnetbyaddr
-    setnetent		getnetent		endnetent)
+    setnetent		getnetent		endnetent
+
+    h_errno)
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof)
@@ -61,7 +65,7 @@
 
     (inet_aton			(int inet_aton (char* void*)))
     (inet_pton			(int inet_pton (int char* void*)))
-    (inet_ntoa			(char* inet_ntoa (void*)))
+    (inet_ntoa			(char* inet_ntoa (uint32_t)))
     (inet_ntop			(char* inet_ntop (int void* char* size_t)))
 
     (if_nametoindex		(unsigned if_nametoindex (char*)))
@@ -69,6 +73,16 @@
     (if_nameindex		(if_nameindex* if_nameindex (void)))
     (if_freenameindex		(void if_freenameindex (if_nameindex*)))
     )
+
+  (define-c-functions libc-shared-object
+    (gethostbyname		(pointer gethostbyname (char*)))
+    (gethostbyaddr		(pointer gethostbyaddr (char* size_t int)))
+    )
+
+  (define h_errno_pointer
+    (lookup-shared-object* libc-shared-object "h_errno"))
+  (define (h_errno)
+    (pointer-ref-c-signed-int h_errno_pointer 0))
 
   (define-c-functions/with-errno libc-shared-object
     (bind			(int bind (int sockaddr* socklen_t)))

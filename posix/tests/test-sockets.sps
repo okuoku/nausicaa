@@ -37,6 +37,7 @@
   (prefix (posix fd) posix:)
   (prefix (posix file) posix:)
   (prefix (posix process) posix:)
+  (prefix (glibc sockets) glibc:)
   (prefix (glibc time) glibc:)
   (checks))
 
@@ -48,8 +49,6 @@
 
 
 (parametrise ((check-test-name	'inet-addr))
-
-;;;Why in hell inet-ntoa fails?!?
 
   (let ((host "255.255.255.255"))
     (check
@@ -77,8 +76,12 @@
       => host)
 
     (check
-	(posix:inet-ntop (socket-namespace inet)
-			 (posix:inet-aton host))
+	(posix:inet-ntop (socket-namespace inet) (posix:inet-aton host))
+      => host))
+
+  (let ((host '#vu8(127 0 0 1)))
+    (check
+	(posix:inet-aton (posix:inet-ntoa host))
       => host))
 
   (let ((host "127.0.0.1"))
@@ -99,6 +102,32 @@
   			 (posix:inet-pton (socket-namespace inet6) host))
       => "::1"))
 
+
+  #t)
+
+
+(parametrise ((check-test-name	'host-names))
+
+  (check
+      (let ((hostent (posix:gethostbyname "localhost")))
+;;;	(write hostent)(newline)
+	(not (member "localhost" (cons* (<hostent>-name hostent)
+					(<hostent>-aliases hostent)))))
+    => #f)
+
+  (check
+      (let ((hostent (glibc:gethostbyname2 "localhost" (socket-address-format inet))))
+;;;	(write hostent)(newline)
+	(not (member "localhost" (cons* (<hostent>-name hostent)
+					(<hostent>-aliases hostent)))))
+    => #f)
+
+  (check
+      (let ((hostent (posix:gethostbyaddr '#vu8(127 0 0 1))))
+;;;	(write hostent)(newline)
+	(not (member "localhost" (cons* (<hostent>-name hostent)
+					(<hostent>-aliases hostent)))))
+    => #f)
 
   #t)
 
