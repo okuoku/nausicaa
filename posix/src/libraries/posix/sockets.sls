@@ -48,6 +48,10 @@
     getprotobyname		getprotobynumber
     setprotoent			getprotoent		endprotoent
 
+    ;; services database
+    getservbyname		getservbyport		getservbyport*
+    setservent			getservent		endservent
+
     ;; interface name
     if-nametoindex		if-indextoname
     if-nameindex
@@ -98,6 +102,13 @@
 (define-parametrised setprotoent (() (stay-open?)))
 (define-parametrised getprotoent)
 (define-parametrised endprotoent)
+
+(define-parametrised getservbyname service-name protocol-name)
+(define-parametrised getservbyport port-number protocol-name)
+(define-parametrised getservbyport* port-number protocol-name)
+(define-parametrised setservent (() (stay-open?)))
+(define-parametrised getservent)
+(define-parametrised endservent)
 
 (define-parametrised if-nametoindex name)
 (define-parametrised if-indextoname index)

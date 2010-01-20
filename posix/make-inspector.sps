@@ -338,6 +338,13 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   (pointer		p_aliases)
   (signed-int		p_proto))
 
+(define-c-struct servent
+  "struct servent"
+  (pointer		s_name)
+  (pointer		s_aliases)
+  (signed-int		s_port)
+  (pointer		s_proto))
+
 (autoconf-lib "AC_CACHE_SAVE")
 
 

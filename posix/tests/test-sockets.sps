@@ -271,6 +271,50 @@
   #f)
 
 
+(parametrise ((check-test-name	'serv-names))
+
+;;;We assume that the system has a "/etc/services" file with at least an
+;;;entry like:
+;;;
+;;;	smtp		 25/tcp	   mail		#Simple Mail Transfer
+;;;
+
+  (check
+      (let ((servent (posix:getservbyname 'smtp 'tcp)))
+	(write servent)(newline)
+	(and (<servent>? servent)
+	     (not (not (member "smtp" (cons* (<servent>-name servent)
+					     (<servent>-aliases servent)))))))
+    => #t)
+
+  (check
+      (let ((servent (posix:getservbyport* 25 'tcp)))
+	(write servent)(newline)
+	(and (<servent>? servent)
+	     (not (not (member "smtp" (cons* (<servent>-name servent)
+					     (<servent>-aliases servent)))))))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	  (compensate
+	      (posix:setservent #t)
+	    (with
+	     (posix:endservent)))
+	(let loop ((ell		'())
+		   (servent	(posix:getservent)))
+	  (if servent
+	      (loop (cons servent ell) (posix:getservent))
+	    (begin
+;;;	      (pretty-print ell)(newline)
+	      (for-all <servent>? ell)))))
+    => #t)
+
+  #f)
+
+
 (parametrise ((check-test-name	'if-name))
 
   (check

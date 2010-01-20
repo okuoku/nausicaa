@@ -626,15 +626,17 @@ Enumeration type definitions
 
 Accessing data structures
 
-* sockets structs sockaddr::      Structure @code{struct sockaddr}.
-* sockets structs sockaddr_un::   Structure @code{struct sockaddr_un}.
-* sockets structs sockaddr_in::   Structure @code{struct sockaddr_in}.
-* sockets structs sockaddr_in6::  Structure @code{struct sockaddr_in6}.
-* sockets structs in_addr::       Structure @code{struct in_addr}.
-* sockets structs in6_addr::      Structure @code{struct in6_addr}.
+* sockets structs sockaddr::      Structure @code{sockaddr}.
+* sockets structs sockaddr_un::   Structure @code{sockaddr_un}.
+* sockets structs sockaddr_in::   Structure @code{sockaddr_in}.
+* sockets structs sockaddr_in6::  Structure @code{sockaddr_in6}.
+* sockets structs in_addr::       Structure @code{in_addr}.
+* sockets structs in6_addr::      Structure @code{in6_addr}.
 * sockets structs if_nameindex::  Structure @code{if_nameindex}.
 * sockets structs hostent::       Structure @code{hostent}.
 * sockets structs netent::        Structure @code{netent}.
+* sockets structs protoent::      Structure @code{protoent}.
+* sockets structs servent::       Structure @code{servent}.
 
 Record types mirroring data structures
 
@@ -646,6 +648,8 @@ Record types mirroring data structures
 * sockets records if-nameindex::  Interface name.
 * sockets records hostent::       Host database entry.
 * sockets records netent::        Network database entry.
+* sockets records protoent::      Protocols database entry.
+* sockets records servent::       Services database entry.
 
 Internet addresses
 
@@ -654,6 +658,8 @@ Internet addresses
 * sockets inet names::          Acquiring address from host names.
 * sockets inet hosts::          Reading the hosts database.
 * sockets inet nets::           Reading the networks database.
+* sockets inet protos::         Reading the protocols database.
+* sockets inet servs::          Reading the services database.
 
 Client and server examples
 
@@ -4251,6 +4257,7 @@ Unless otherwise specified, the following bindings are exported by the
 * sockets structs hostent::       Structure @code{hostent}.
 * sockets structs netent::        Structure @code{netent}.
 * sockets structs protoent::      Structure @code{protoent}.
+* sockets structs servent::       Structure @code{servent}.
 @end menu
 
 @c page
@@ -4522,6 +4529,41 @@ language data structure.
 @end deffn
 
 @c page
+@node sockets structs servent
+@subsection Structure @code{servent}
+
+
+The @code{struct servent} type describes an entry in the system's
+services database.  @glibcref{Services Database, The Services Database}.
+
+
+@defvr Constant sizeof-servent
+@defvrx Constant alignof-servent
+@defvrx Constant strideof-servent
+Size, structure alignment and array stride of @code{struct servent} C
+language data structures.
+@end defvr
+
+
+@deffn Syntax struct-servent-s_name-ref @var{pointer}
+@deffnx Syntax struct-servent-s_name-set! @var{pointer} @var{value}
+@deffnx Syntax struct-servent-s_aliases-ref @var{pointer}
+@deffnx Syntax struct-servent-s_aliases-set! @var{pointer} @var{value}
+@deffnx Syntax struct-servent-s_port-ref @var{pointer}
+@deffnx Syntax struct-servent-s_port-set! @var{pointer} @var{value}
+@deffnx Syntax struct-servent-s_proto-ref @var{pointer}
+@deffnx Syntax struct-servent-s_proto-set! @var{pointer} @var{value}
+Accessors and mutators for the fields of a @code{struct servent} C
+language data structure.
+
+@strong{NOTE} The @code{s_port} field holds the port number in network
+byte order; we have to use the functions @func{htons} and @func{ntohs}
+to convert between that number and the host byte order number.  For
+example: the port number @code{25} in host byte order is equal to number
+@code{6400} in network byte order.
+@end deffn
+
+@c page
 @node sockets records
 @section Record types mirroring data structures
 
@@ -4539,6 +4581,7 @@ Unless otherwise specified, the following bindings are exported by the
 * sockets records hostent::       Host database entry.
 * sockets records netent::        Network database entry.
 * sockets records protoent::      Protocols database entry.
+* sockets records servent::       Services database entry.
 @end menu
 
 @c page
@@ -4852,7 +4895,7 @@ is exported by the @library{posix sockets primitives} library.
 @deftp {Record Type Name} <netent>
 @deftpx {Record Type Descriptor} <netent-rtd>
 Record type used to mirror @code{struct netent} C language data
-structures.  It has the following mutable fields:
+structures.  It has the following immutable fields:
 
 @table @code
 @item name
@@ -4903,7 +4946,7 @@ exported by the @library{posix sockets primitives} library.
 @deftp {Record Type Name} <protoent>
 @deftpx {Record Type Descriptor} <protoent-rtd>
 Record type used to mirror @code{struct protoent} C language data
-structures.  It has the following mutable fields:
+structures.  It has the following immutable fields:
 
 @table @code
 @item name
@@ -4937,6 +4980,59 @@ Accessors for records of type @class{protoent}.
 Build and return a new record of type @class{protoent} representing the
 @code{struct protoent} value referenced by @var{pointer}.  This binding
 is exported by the @library{posix sockets primitives} library.
+@end defun
+
+@c page
+@node sockets records servent
+@subsection Services database entry
+
+
+@deftp {Record Type Name} <servent>
+@deftpx {Record Type Descriptor} <servent-rtd>
+Record type used to mirror @code{struct servent} C language data
+structures.  It has the following immutable fields:
+
+@table @code
+@item name
+A Scheme string representing the official name of the service.
+
+@item aliases
+A list of Scheme strings representing the alternative names of the
+service.
+
+@item port
+An integer number representing the service port number in host byte
+order.
+
+@item protocol
+A Scheme string representing the service protocol (examples @samp{tcp}
+and @samp{udp}).
+@end table
+@end deftp
+
+
+@defun make-<servent> @var{name} @var{aliases} @var{port} @var{proto}
+@defunx <servent>? @var{obj}
+Constructor and predicate for records of type @class{servent}.  The
+constructor does @strong{not} validate its arguments.
+@end defun
+
+
+@defun <servent>-name @var{servent}
+@defunx <servent>-aliases @var{servent}
+@defunx <servent>-port @var{servent}
+@defunx <servent>-proto @var{servent}
+Accessors for records of type @class{servent}.
+@end defun
+
+
+@defun primitive:pointer-><servent> @var{pointer}
+Build and return a new record of type @class{servent} representing the
+@code{struct servent} value referenced by @var{pointer}.  This binding
+is exported by the @library{posix sockets primitives} library.
+
+This function takes care of converting the port number from network byte
+order to host byte order.
 @end defun
 
 @c page
@@ -5006,6 +5102,7 @@ network interfaces.
 * sockets inet hosts::          Reading the hosts database.
 * sockets inet nets::           Reading the networks database.
 * sockets inet protos::         Reading the protocols database.
+* sockets inet servs::          Reading the services database.
 @end menu
 
 @c page
@@ -5178,7 +5275,7 @@ the library; when not used, it defaults to @false{}.
 @deffnx Function primitive:gethostent
 @deffnx Function platform:gethostent
 Return a record of type @class{hostent} representing the next entry from
-the database, or @false{} if no more entry are available.
+the database, or @false{} if no more entries are available.
 @end deffn
 
 
@@ -5194,10 +5291,10 @@ Example:
 
 @example
 (with-compensations
-  (compensate
-      (sethostent #t)
-    (with
-     (endhostent)))
+    (compensate
+        (sethostent #t)
+      (with
+       (endhostent)))
   (let loop ((ell     '())
              (hostent (gethostent)))
     (if hostent
@@ -5258,7 +5355,7 @@ the library; when not used, it defaults to @false{}.
 @deffnx Function primitive:getnetent
 @deffnx Function platform:getnetent
 Return a record of type @class{netent} representing the next entry from
-the database, or @false{} if no more entry are available.
+the database, or @false{} if no more entries are available.
 @end deffn
 
 
@@ -5274,10 +5371,10 @@ Example:
 
 @example
 (with-compensations
-  (compensate
-      (setnetent #t)
-    (with
-     (endnetent)))
+    (compensate
+        (setnetent #t)
+      (with
+       (endnetent)))
   (let loop ((ell     '())
              (netent (getnetent)))
     (if netent
@@ -5331,7 +5428,7 @@ the library; when not used, it defaults to @false{}.
 @deffnx Function primitive:getprotoent
 @deffnx Function platform:getprotoent
 Return a record of type @class{protoent} representing the next entry
-from the database, or @false{} if no more entry are available.
+from the database, or @false{} if no more entries are available.
 @end deffn
 
 
@@ -5347,10 +5444,10 @@ Example:
 
 @example
 (with-compensations
-  (compensate
-      (setprotoent #t)
-    (with
-     (endprotoent)))
+    (compensate
+        (setprotoent #t)
+      (with
+       (endprotoent)))
   (let loop ((ell     '())
              (protoent (getprotoent)))
     (if protoent
@@ -5358,6 +5455,95 @@ Example:
       (do-something-with ell))))
 @end example
 
+@c page
+@node sockets inet servs
+@subsection Reading the services database
+
+
+The following functions manage scanning of the services database.
+@glibcref{Services Database, Services Database}.
+
+
+@deffn Function getservbyname @var{serv-name} @var{proto-name}
+@deffnx Parameter getservbyname-function
+@deffnx Function primitive:getservbyname @var{serv-name} @var{proto-name}
+@deffnx Function platform:getservbyname @var{serv-name-ptr} @var{proto-name-ptr}
+Return a record of type @class{servent} representing the informations on
+the service @var{serv-name}, which must be a Scheme string, under
+protocol @var{proto-name}, which must be a Scheme string.  If the
+service is unknown, the return value is @false{}.
+@end deffn
+
+
+@deffn Function getservbyport @var{network-port-number} @var{proto-name}
+@deffnx Parameter getservbyport-function
+@deffnx Function primitive:getservbyport @var{network-port-number} @var{proto-name}
+@deffnx Function platform:getservbyport @var{network-port-number} @var{proto-name-ptr}
+Return a record of type @class{servent} representing the informations on
+the service selected by @var{network-port-number}, which must be an
+exact non--negative integer, under @var{proto-name}, which must be a
+Scheme string.  If the service is unknown, the return value is @false{}.
+
+@strong{NOTE} @var{network-port-number} is the port number in network
+byte order; we have to use the functions @func{htons} and @func{ntohs}
+to convert between that number and the host byte order number.  For
+example: the port number @code{25} in host byte order is equal to number
+@code{6400} in network byte order.  @func{getservbyport*} does the
+conversion automatically, so we probably want to use that function.
+@end deffn
+
+
+@deffn Function getservbyport* @var{host-port-number} @var{proto-name}
+@deffnx Parameter getservbyport*-function
+@deffnx Function primitive:getservbyport* @var{host-port-number} @var{proto-name}
+Like @func{getservbyport*}, but accept the port number in host byte
+order.
+@end deffn
+
+
+@deffn Function setservent
+@deffnx Function setservent @var{stay-open}
+@deffnx Parameter setservent-function
+@deffnx Function primitive:setservent
+@deffnx Function primitive:setservent @var{stay-open}
+@deffnx Function platform:setservent @var{stay-open-int}
+Start a scan operation on the services database file.  If the optional
+@var{stay-open} is true, it causes the database file to be kept open by
+the library; when not used, it defaults to @false{}.
+@end deffn
+
+
+@deffn Function getservent
+@deffnx Parameter getservent-function
+@deffnx Function primitive:getservent
+@deffnx Function platform:getservent
+Return a record of type @class{servent} representing the next entry from
+the database, or @false{} if no more entries are available.
+@end deffn
+
+
+@deffn Function endservent
+@deffnx Parameter endservent-function
+@deffnx Function primitive:endservent
+@deffnx Function platform:endservent
+Close the services database file.
+@end deffn
+
+
+Example:
+
+@example
+(with-compensations
+    (compensate
+        (setservent #t)
+      (with
+       (endservent)))
+  (let loop ((ell     '())
+             (servent (getservent)))
+    (if servent
+        (loop (cons servent ell) (getservent))
+      (do-something-with ell))))
+@end example
 
 @c page
 @node sockets open close

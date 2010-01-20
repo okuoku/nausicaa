@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Tue Jan 19, 2010
+;;;Date: Wed Jan 20, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -423,6 +423,17 @@
     struct-protoent-p_aliases-ref
     struct-protoent-p_proto-set!
     struct-protoent-p_proto-ref
+    sizeof-servent
+    alignof-servent
+    strideof-servent
+    struct-servent-s_name-set!
+    struct-servent-s_name-ref
+    struct-servent-s_aliases-set!
+    struct-servent-s_aliases-ref
+    struct-servent-s_port-set!
+    struct-servent-s_port-ref
+    struct-servent-s_proto-set!
+    struct-servent-s_proto-ref
     SEEK_SET
     SEEK_CUR
     SEEK_END
@@ -1834,6 +1845,33 @@
     @OFFSETOF_PROTOENT_P_PROTO@
     @SETTEROF_PROTOENT_P_PROTO@
     @GETTEROF_PROTOENT_P_PROTO@)
+  (define sizeof-servent @SIZEOF_SERVENT@)
+  (define alignof-servent @ALIGNOF_SERVENT@)
+  (define strideof-servent @STRIDEOF_SERVENT@)
+  (define-c-struct-accessor-and-mutator
+    struct-servent-s_name-set!
+    struct-servent-s_name-ref
+    @OFFSETOF_SERVENT_S_NAME@
+    @SETTEROF_SERVENT_S_NAME@
+    @GETTEROF_SERVENT_S_NAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-servent-s_aliases-set!
+    struct-servent-s_aliases-ref
+    @OFFSETOF_SERVENT_S_ALIASES@
+    @SETTEROF_SERVENT_S_ALIASES@
+    @GETTEROF_SERVENT_S_ALIASES@)
+  (define-c-struct-accessor-and-mutator
+    struct-servent-s_port-set!
+    struct-servent-s_port-ref
+    @OFFSETOF_SERVENT_S_PORT@
+    @SETTEROF_SERVENT_S_PORT@
+    @GETTEROF_SERVENT_S_PORT@)
+  (define-c-struct-accessor-and-mutator
+    struct-servent-s_proto-set!
+    struct-servent-s_proto-ref
+    @OFFSETOF_SERVENT_S_PROTO@
+    @SETTEROF_SERVENT_S_PROTO@
+    @GETTEROF_SERVENT_S_PROTO@)
   (define SEEK_SET @VALUEOF_SEEK_SET@)
   (define SEEK_CUR @VALUEOF_SEEK_CUR@)
   (define SEEK_END @VALUEOF_SEEK_END@)

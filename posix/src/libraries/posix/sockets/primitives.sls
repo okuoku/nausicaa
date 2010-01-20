@@ -50,6 +50,12 @@
     setprotoent			getprotoent
     (rename (platform:endprotoent endprotoent))
 
+    ;; services database
+    getservbyname
+    getservbyport		getservbyport*
+    setservent			getservent
+    (rename (platform:endservent endservent))
+
     ;; interface names
     if-nametoindex		if-indextoname
     if-nameindex
@@ -78,7 +84,7 @@
     pointer-><sockaddr-in>	pointer-><sockaddr-in6>
     pointer-><sockaddr-un>
     pointer-><hostent>		pointer-><netent>
-    pointer-><protoent>)
+    pointer-><protoent>		pointer-><servent>)
   (import (rnrs)
     (begin0)
     (receive)
@@ -319,7 +325,43 @@
 
 ;;;; services database
 
-;;; Node "Internet Ports"
+(define (pointer-><servent> servent*)
+  (make-<servent> (cstring->string	(struct-servent-s_name-ref servent*))
+		  (argv->strings	(struct-servent-s_aliases-ref servent*))
+		  (platform:ntohs (struct-servent-s_port-ref servent*))
+		  (cstring->string	(struct-servent-s_proto-ref servent*))))
+
+(define (getservbyname service-name protocol-name)
+  (with-compensations
+    (let ((servent* (platform:getservbyname (string->cstring/c service-name)
+					    (string->cstring/c protocol-name))))
+      (if (pointer-null? servent*)
+	  #f
+	(pointer-><servent> servent*)))))
+
+(define (getservbyport port protocol-name)
+  (with-compensations
+    (let ((servent* (platform:getservbyport port (string->cstring/c protocol-name))))
+      (if (pointer-null? servent*)
+	  #f
+	(pointer-><servent> servent*)))))
+
+(define (getservbyport* port protocol-name)
+  (getservbyport (platform:htons port) protocol-name))
+
+(define setservent
+  (case-lambda
+   (()
+    (setservent #f))
+   ((stay-open?)
+    (platform:setservent (if stay-open? 1 0)))))
+
+(define (getservent)
+  (let ((servent* (platform:getservent)))
+    (if (pointer-null? servent*)
+	#f
+      (pointer-><servent> servent*))))
+
 
 
 ;;;; interface naming

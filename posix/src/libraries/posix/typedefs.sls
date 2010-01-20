@@ -261,6 +261,13 @@
     <protoent>-aliases
     <protoent>-proto
 
+    <servent>				<servent-rtd>
+    make-<servent>			<servent>?
+    <servent>-name
+    <servent>-aliases
+    <servent>-port
+    <servent>-proto
+
 ;;; --------------------------------------------------------------------
 
     enum-unix-signals			unix-signals
@@ -664,6 +671,8 @@
 (define <netent-rtd>
   (record-type-descriptor <netent>))
 
+;;; --------------------------------------------------------------------
+
 (define-record-type <hostent>
   (nongenerative nausicaa:posix:<hostent>)
   (fields (immutable name)
@@ -674,6 +683,8 @@
 (define <hostent-rtd>
   (record-type-descriptor <hostent>))
 
+;;; --------------------------------------------------------------------
+
 (define-record-type <protoent>
   (nongenerative nausicaa:posix:<protoent>)
   (fields (immutable name)
@@ -682,6 +693,18 @@
 
 (define <protoent-rtd>
   (record-type-descriptor <protoent>))
+
+;;; --------------------------------------------------------------------
+
+(define-record-type <servent>
+  (nongenerative nausicaa:posix:<servent>)
+  (fields (immutable name)
+	  (immutable aliases)
+	  (immutable port)
+	  (immutable proto)))
+
+(define <servent-rtd>
+  (record-type-descriptor <servent>))
 
 
 (define-record-type struct-in-addr

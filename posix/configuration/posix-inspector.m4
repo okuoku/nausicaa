@@ -2,7 +2,7 @@ dnl (posix sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Tue Jan 19, 2010
+dnl Date: Wed Jan 20, 2010
 dnl
 dnl Abstract
 dnl
@@ -248,6 +248,13 @@ NAUSICAA_INSPECT_STRUCT_TYPE([PROTOENT],[struct protoent],[#f])
 NAUSICAA_INSPECT_FIELD_TYPE([PROTOENT_P_NAME],[struct protoent],[p_name],[pointer])
 NAUSICAA_INSPECT_FIELD_TYPE([PROTOENT_P_ALIASES],[struct protoent],[p_aliases],[pointer])
 NAUSICAA_INSPECT_FIELD_TYPE([PROTOENT_P_PROTO],[struct protoent],[p_proto],[signed-int])
+
+dnl Struct inspection: servent
+NAUSICAA_INSPECT_STRUCT_TYPE([SERVENT],[struct servent],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([SERVENT_S_NAME],[struct servent],[s_name],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([SERVENT_S_ALIASES],[struct servent],[s_aliases],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([SERVENT_S_PORT],[struct servent],[s_port],[signed-int])
+NAUSICAA_INSPECT_FIELD_TYPE([SERVENT_S_PROTO],[struct servent],[s_proto],[pointer])
 AC_CACHE_SAVE
 
 dnl Preprocessor symbols: seek whence arguments
