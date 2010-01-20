@@ -196,13 +196,13 @@ dnl Struct inspection: sockaddr_in
 NAUSICAA_INSPECT_STRUCT_TYPE([SOCKADDR_IN],[struct sockaddr_in],[#f])
 NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_IN_SIN_FAMILY],[struct sockaddr_in],[sin_family],[signed-int])
 NAUSICAA_INSPECT_FIELD_TYPE_POINTER([SOCKADDR_IN_SIN_ADDR],[struct sockaddr_in],[sin_addr])
-NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_IN_SIN_PORT],[struct sockaddr_in],[sin_port],[signed-int])
+NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_IN_SIN_PORT],[struct sockaddr_in],[sin_port],[unsigned-int])
 
 dnl Struct inspection: sockaddr_in6
-NAUSICAA_INSPECT_STRUCT_TYPE([SOCKADDR_IN6],[struct sockaddr_in],[#f])
-NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_IN6_SIN6_FAMILY],[struct sockaddr_in],[sin6_family],[signed-int])
-NAUSICAA_INSPECT_FIELD_TYPE_POINTER([SOCKADDR_IN6_SIN6_ADDR],[struct sockaddr_in],[sin6_addr])
-NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_IN6_SIN6_PORT],[struct sockaddr_in],[sin6_port],[signed-int])
+NAUSICAA_INSPECT_STRUCT_TYPE([SOCKADDR_IN6],[struct sockaddr_in6],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_IN6_SIN6_FAMILY],[struct sockaddr_in6],[sin6_family],[signed-int])
+NAUSICAA_INSPECT_FIELD_TYPE_POINTER([SOCKADDR_IN6_SIN6_ADDR],[struct sockaddr_in6],[sin6_addr])
+NAUSICAA_INSPECT_FIELD_TYPE([SOCKADDR_IN6_SIN6_PORT],[struct sockaddr_in6],[sin6_port],[unsigned-int])
 
 dnl Struct inspection: sockaddr_un
 NAUSICAA_INSPECT_STRUCT_TYPE([SOCKADDR_UN],[struct sockaddr_un],[#f])

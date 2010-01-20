@@ -615,7 +615,7 @@
   (record-type-descriptor <sockaddr-in>))
 
 (define (make-<sockaddr-in> addr port)
-  (%make-<sockaddr-in> AF_INET addr port))
+  (%make-<sockaddr-in> (socket-address-format inet) addr port))
 
 (define <sockaddr-in>-family		<sockaddr>-family)
 
@@ -631,7 +631,7 @@
   (record-type-descriptor <sockaddr-in6>))
 
 (define (make-<sockaddr-in6> addr port)
-  (%make-<sockaddr-in6> AF_INET6 addr port))
+  (%make-<sockaddr-in6> (socket-address-format inet6) addr port))
 
 (define <sockaddr-in6>-family		<sockaddr>-family)
 
@@ -646,7 +646,7 @@
   (record-type-descriptor <sockaddr-un>))
 
 (define (make-<sockaddr-un> pathname)
-  (%make-<sockaddr-un> AF_LOCAL pathname))
+  (%make-<sockaddr-un> (socket-address-format local) pathname))
 
 (define <sockaddr-un>-family		<sockaddr>-family)
 

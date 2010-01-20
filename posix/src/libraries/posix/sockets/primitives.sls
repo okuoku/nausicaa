@@ -62,7 +62,8 @@
 
     ;; socket operations
     socket			socketpair
-    shutdown			connect
+    shutdown			shutdown*
+    connect
     bind			listen
     accept
     getsockname			getpeername
@@ -104,69 +105,70 @@
     (prefix (posix sockets platform) platform:))
 
 
-;;;; internet address conversion
+;;;; helpers
 
-(define (inet-aton address-name)
-  (with-compensations
-    (let* ((cstr*	(string->cstring/c address-name))
-	   (addr.ptr	(malloc-small/c))
-	   (result	(platform:inet_aton cstr* addr.ptr)))
-      (if (= 0 result)
-	  #f
-	(let ((bv (make-bytevector sizeof-in_addr)))
-	  (do ((i 0 (+ 1 i)))
-	      ((= i sizeof-in_addr)
-	       bv)
-	    (bytevector-u8-set! bv i (pointer-ref-c-uint8 addr.ptr i))))))))
+(define (%address-bytevector->address-struct! bv addr.ptr addr.len)
+  ;;Copy bytes from a bytevector to a block of raw memory.
+  ;;
+  (do ((i 0 (+ 1 i)))
+      ((= i addr.len))
+    (pointer-set-c-uint8! addr.ptr i (bytevector-u8-ref bv i))))
 
-(define (inet-ntoa address-bytevector)
-  (cstring->string (platform:inet_ntoa
-		    (bytevector-u32-ref (u8-list->bytevector
-					 (list (bytevector-u8-ref address-bytevector 3)
-					       (bytevector-u8-ref address-bytevector 2)
-					       (bytevector-u8-ref address-bytevector 1)
-					       (bytevector-u8-ref address-bytevector 0)))
-					0 (endianness big)))))
+(define (%address-struct->address-bytevector addr.ptr addr.len)
+  ;;Allocate a new bytevector and copy into it bytes from a block of raw
+  ;;memory; return the bytevector.
+  ;;
+  (let ((bv (make-bytevector addr.len)))
+    (do ((i 0 (+ 1 i)))
+	((= i addr.len)
+	 bv)
+      (bytevector-u8-set! bv i (pointer-ref-c-uint8 addr.ptr i)))))
+
+(define (%network-number->bytevector number)
+  ;;Given  an exact integer  representing a  network address  in network
+  ;;byte order (big endian), return a bytevector holding the same bytes.
+  ;;
+  (begin0-let ((bv (make-bytevector 4)))
+    (bytevector-u32-set! bv 0 number (endianness big))))
+
+(define (%bytevector->network-number bv)
+  ;;Given a bytevector  holding a network address in  network byte order
+  ;;(big endian), return an integer number representing it.
+  ;;
+  (bytevector-u32-ref bv 0 (endianness big)))
+
+(define (%strncpy* dst.ptr src.ptr len)
+  ;;STRNCPY does NOT set the terminating zero byte; this function does.
+  ;;
+  (strncpy dst.ptr src.ptr len)
+  (pointer-set-c-signed-char! dst.ptr len 0))
+
+(define-syntax %pointer->record
+  (syntax-rules ()
+    ((_ (?converter (?form0 ?form ...)))
+     (let ((pointer (?form0 ?form ...)))
+       (if (pointer-null? pointer)
+	   #f
+	 (?converter pointer))))))
+
+(define (%sockaddr-un-length pathname)
+  ;;Compute the number of bytes  required to hold a "struct sockaddr_un"
+  ;;value embedding the given pathname (as Scheme string).
+  ;;
+  ;;The  "sockaddr_un" structure has  two fields:  the pathname  and the
+  ;;socket family  integer; the length  of the pathname field  cannot be
+  ;;trusted to be  enough, so, to be safe, we  allocate more bytes (that
+  ;;is: we waste bytes with the current implementation).
+  ;;
+  ;;NOTE For  a correct  allocation we should  take the  UTF8 bytevector
+  ;;length, add one for the terminating zero, then add the offset of the
+  ;;pathname field in the structure.
+  ;;
+  (+ sizeof-sockaddr_un (bytevector-length (string->utf8 pathname))))
 
 ;;; --------------------------------------------------------------------
-
-(define (inet-pton namespace address-name)
-  (with-compensations
-    (let* ((cstr*	(string->cstring/c address-name))
-	   (family	(socket-namespace->value namespace))
-	   (addr.ptr	(malloc-small/c))
-	   (result	(platform:inet_pton family cstr* addr.ptr)))
-      (if (= 0 result)
-	  #f
-	(let* ((addr.len	(if (= AF_INET family) sizeof-in_addr sizeof-in6_addr))
-	       (bv		(make-bytevector addr.len)))
-	  (do ((i 0 (+ 1 i)))
-	      ((= i addr.len)
-	       bv)
-	    (bytevector-u8-set! bv i (pointer-ref-c-uint8 addr.ptr i))))))))
-
-(define (inet-ntop namespace address-bytevector)
-  (with-compensations
-    (let ((family (socket-namespace->value namespace)))
-      (let-values (((addr.len addr.ptr str.len)
-		    (if (= AF_INET family)
-			(values sizeof-in_addr
-				(malloc-small/c)
-				INET_ADDRSTRLEN)
-		      (values sizeof-in6_addr
-			      (malloc-small/c)
-			      INET6_ADDRSTRLEN))))
-	(let ((str.ptr (malloc-block/c str.len)))
-	  (do ((i 0 (+ 1 i)))
-	      ((= i addr.len)
-	       (cstring->string (platform:inet_ntop family addr.ptr str.ptr str.len)))
-	    (pointer-set-c-uint8! addr.ptr i (bytevector-u8-ref address-bytevector i))))))))
-
-
-;;;; host names
-;;
-;;The helper  functions POINTER-><HOSTENT> and  %RAISE-H-ERRNO-ERROR are
-;;duplicated in (glibc sockets primitives).
+;;;The  following  helper functions  are  duplicated  in (glibc  sockets
+;;;primitives).
 
 (define (pointer-><hostent> hostent*)
   (make-<hostent> (cstring->string	(struct-hostent-h_name-ref hostent*))
@@ -195,7 +197,46 @@
 		  (assertion-violation '%raise-h-errno-error "unknown h_errno value" h_errno))))
 	 irritants))
 
+
+;;;; internet address conversion
+
+(define (inet-aton address-name)
+  (with-compensations
+    (let* ((addr.ptr	(malloc-small/c))
+	   (result	(platform:inet_aton (string->cstring/c address-name) addr.ptr)))
+      (if (= 0 result)
+	  #f
+	(%address-struct->address-bytevector addr.ptr sizeof-in_addr)))))
+
+(define (inet-ntoa address-bytevector)
+  (cstring->string (platform:inet_ntoa (bytevector-u32-native-ref address-bytevector 0))))
+
 ;;; --------------------------------------------------------------------
+
+(define (inet-pton address-format address-name)
+  (with-compensations
+    (let* ((format	(socket-address-format->value address-format))
+	   (addr.ptr	(malloc-small/c))
+	   (result	(platform:inet_pton format (string->cstring/c address-name) addr.ptr)))
+      (if (= 0 result)
+	  #f
+	(%address-struct->address-bytevector addr.ptr (if (= AF_INET format)
+							  sizeof-in_addr
+							sizeof-in6_addr))))))
+
+(define (inet-ntop address-format address-bytevector)
+  (with-compensations
+    (let ((format (socket-address-format->value address-format)))
+      (receive (addr.len str.len)
+	  (if (= AF_INET format)
+	      (values sizeof-in_addr INET_ADDRSTRLEN)
+	    (values sizeof-in6_addr INET6_ADDRSTRLEN))
+	(let ((addr.ptr	(malloc-small/c)))
+	  (%address-bytevector->address-struct! address-bytevector addr.ptr addr.len)
+	  (cstring->string (platform:inet_ntop format addr.ptr (malloc-block/c str.len) str.len)))))))
+
+
+;;;; host names
 
 (define (gethostbyname host-name)
   (with-compensations
@@ -208,10 +249,7 @@
   (with-compensations
     (let* ((addr.ptr	(malloc-small/c))
 	   (addr.len	(bytevector-length address-bytevector)))
-      (assert (or (= addr.len sizeof-in_addr) (= addr.len sizeof-in6_addr)))
-      (do ((i 0 (+ 1 i)))
-	  ((= i addr.len))
-	(pointer-set-c-uint8! addr.ptr i (bytevector-u8-ref address-bytevector i)))
+      (%address-bytevector->address-struct! address-bytevector addr.ptr addr.len)
       (let ((hostent* (platform:gethostbyaddr addr.ptr addr.len
 					      (cond ((= addr.len sizeof-in_addr)
 						     AF_INET)
@@ -235,45 +273,29 @@
     (platform:sethostent (if stay-open? 1 0)))))
 
 (define (gethostent)
-  (let ((hostent* (platform:gethostent)))
-    (if (pointer-null? hostent*)
-	#f
-      (pointer-><hostent> hostent*))))
+  (%pointer->record (pointer-><hostent> (platform:gethostent))))
 
 
 ;;;; networks database
 
-(define (%network-number->bytevector number)
-  (let ((bv (make-bytevector 4)))
-    (bytevector-u32-set! bv 0 number (endianness big))
-    bv))
-
-(define (%bytevector->network-number bv)
-  (bytevector-u32-ref bv 0 (endianness big)))
-
 (define (pointer-><netent> netent*)
-  (make-<netent> (cstring->string	(struct-netent-n_name-ref netent*))
-		 (argv->strings		(struct-netent-n_aliases-ref netent*))
-		 (value->socket-address-format (struct-netent-n_addrtype-ref netent*))
-		 (%network-number->bytevector (struct-netent-n_net-ref netent*))))
+  (make-<netent> (cstring->string		(struct-netent-n_name-ref	netent*))
+		 (argv->strings			(struct-netent-n_aliases-ref	netent*))
+		 (value->socket-address-format	(struct-netent-n_addrtype-ref	netent*))
+		 (%network-number->bytevector	(struct-netent-n_net-ref	netent*))))
 
 (define (getnetbyname net-name)
   (with-compensations
-    (let ((netent* (platform:getnetbyname (string->cstring/c net-name))))
-      (if (pointer-null? netent*)
-	  #f
-	(pointer-><netent> netent*)))))
+    (%pointer->record (pointer-><netent> (platform:getnetbyname (string->cstring/c net-name))))))
 
 (define getnetbyaddr
   (case-lambda
    ((address-bytevector)
     (getnetbyaddr address-bytevector (socket-address-format inet)))
    ((address-bytevector address-format)
-    (let ((netent* (platform:getnetbyaddr (%bytevector->network-number address-bytevector)
-					  (socket-address-format->value address-format))))
-      (if (pointer-null? netent*)
-	  #f
-	(pointer-><netent> netent*))))))
+    (%pointer->record (pointer-><netent>
+		       (platform:getnetbyaddr (%bytevector->network-number address-bytevector)
+					      (socket-address-format->value address-format)))))))
 
 (define setnetent
   (case-lambda
@@ -283,31 +305,22 @@
     (platform:setnetent (if stay-open? 1 0)))))
 
 (define (getnetent)
-  (let ((netent* (platform:getnetent)))
-    (if (pointer-null? netent*)
-	#f
-      (pointer-><netent> netent*))))
+  (%pointer->record (pointer-><netent> (platform:getnetent))))
 
 
 ;;;; protocols database
 
 (define (pointer-><protoent> protoent*)
-  (make-<protoent> (cstring->string	(struct-protoent-p_name-ref protoent*))
-		   (argv->strings	(struct-protoent-p_aliases-ref protoent*))
+  (make-<protoent> (cstring->string	(struct-protoent-p_name-ref	protoent*))
+		   (argv->strings	(struct-protoent-p_aliases-ref	protoent*))
 		   (struct-protoent-p_proto-ref protoent*)))
 
 (define (getprotobyname proto-name)
   (with-compensations
-    (let ((protoent* (platform:getprotobyname (string->cstring/c proto-name))))
-      (if (pointer-null? protoent*)
-	  #f
-	(pointer-><protoent> protoent*)))))
+    (%pointer->record (pointer-><protoent> (platform:getprotobyname (string->cstring/c proto-name))))))
 
 (define (getprotobynumber number)
-  (let ((protoent* (platform:getprotobynumber number)))
-    (if (pointer-null? protoent*)
-	#f
-      (pointer-><protoent> protoent*))))
+  (%pointer->record (pointer-><protoent> (platform:getprotobynumber number))))
 
 (define setprotoent
   (case-lambda
@@ -317,19 +330,16 @@
     (platform:setprotoent (if stay-open? 1 0)))))
 
 (define (getprotoent)
-  (let ((protoent* (platform:getprotoent)))
-    (if (pointer-null? protoent*)
-	#f
-      (pointer-><protoent> protoent*))))
+  (%pointer->record (pointer-><protoent> (platform:getprotoent))))
 
 
 ;;;; services database
 
 (define (pointer-><servent> servent*)
-  (make-<servent> (cstring->string	(struct-servent-s_name-ref servent*))
-		  (argv->strings	(struct-servent-s_aliases-ref servent*))
-		  (platform:ntohs (struct-servent-s_port-ref servent*))
-		  (cstring->string	(struct-servent-s_proto-ref servent*))))
+  (make-<servent> (cstring->string	(struct-servent-s_name-ref	servent*))
+		  (argv->strings	(struct-servent-s_aliases-ref	servent*))
+		  (platform:ntohs	(struct-servent-s_port-ref	servent*))
+		  (cstring->string	(struct-servent-s_proto-ref	servent*))))
 
 (define (getservbyname service-name protocol-name)
   (with-compensations
@@ -357,11 +367,7 @@
     (platform:setservent (if stay-open? 1 0)))))
 
 (define (getservent)
-  (let ((servent* (platform:getservent)))
-    (if (pointer-null? servent*)
-	#f
-      (pointer-><servent> servent*))))
-
+  (%pointer->record (pointer-><servent> (platform:getservent))))
 
 
 ;;;; interface naming
@@ -383,7 +389,7 @@
     (letrec ((names* (compensate
 			 (begin0-let ((p (platform:if_nameindex)))
 			   (when (pointer-null? p)
-			     (error 'if-names "unable to acquire list of interface names")))
+			     (error 'if-nameindex "unable to acquire list of interface names")))
 		       (with
 			(platform:if_freenameindex names*)))))
       (let loop ((names* names*)
@@ -435,84 +441,65 @@
     (when (= -1 result)
       (raise-errno-error 'shutdown errno (list sock how)))))
 
+(define-syntax shutdown*
+  (syntax-rules ()
+    ((_ ?sock ?mode)
+     (shutdown ?sock (shutdown-mode ?mode)))))
+
 
-;;;; conversion between sockaddr structures and records
+;;;; conversion from sockaddr records to sockaddr structures
 
 (define (%socklen-from-sock sock)
   (let ((ns (<socket>-namespace sock)))
-    (cond ((= AF_UNIX ns)
-	   4096) ;let's play it safe
-	  ((= AF_INET ns)
-	   sizeof-sockaddr_in)
-	  ((= AF_INET6 ns)
-	   sizeof-sockaddr_in6)
-	  (else
-	   (assertion-violation '%socklen-from-sock "invalid socket namespace value" sock)))))
+    (cond ((= AF_UNIX  ns)	4096) ;let's play it safe
+	  ((= AF_INET  ns)	sizeof-sockaddr_in)
+	  ((= AF_INET6 ns)	sizeof-sockaddr_in6)
+	  (else (assertion-violation '%socklen-from-sock "invalid socket namespace value" sock)))))
 
 (define (%sockaddr->pointer&length sockaddr malloc)
-  (cond ((<sockaddr-un>? sockaddr)
-	 (<sockaddr-un>->pointer&length sockaddr malloc))
-	((<sockaddr-in>? sockaddr)
-	 (<sockaddr-in>->pointer&length sockaddr malloc))
-	((<sockaddr-in6>? sockaddr)
-	 (<sockaddr-in6>->pointer&length sockaddr malloc))
-	(else
-	 (assertion-violation '%sockaddr->pointer&length
-	   "invalid socket address object" sockaddr))))
+  (cond ((<sockaddr-un>?  sockaddr)	(<sockaddr-un>->pointer&length  sockaddr malloc))
+	((<sockaddr-in>?  sockaddr)	(<sockaddr-in>->pointer&length  sockaddr malloc))
+	((<sockaddr-in6>? sockaddr)	(<sockaddr-in6>->pointer&length sockaddr malloc))
+	(else (assertion-violation '%sockaddr->pointer&length "invalid socket address object" sockaddr))))
 
 (define (<sockaddr-un>->pointer&length sockaddr malloc)
-  (with-compensations
-    (let* ((cstr.ptr	(string->cstring/c (<sockaddr-un>-path sockaddr)))
-	   (cstr.len	(strlen cstr.ptr))
-	   ;;The  "sockaddr_un" structure has  two fields:  the pathname
-	   ;;and the socket family  integer.  The length of the pathname
-	   ;;field cannot  be trusted to be  enough, so, to  be safe, we
-	   ;;allocate more bytes.
-	   (sockaddr*	(malloc (+ sizeof-sockaddr_un cstr.len))))
-      (struct-sockaddr_un-sun_family-set! sockaddr* (<sockaddr-un>-family sockaddr))
-      (strncpy (struct-sockaddr_un-sun_path-ref sockaddr*) cstr.ptr cstr.len)
-      (pointer-set-c-signed-char! (struct-sockaddr_un-sun_path-ref sockaddr*) cstr.len 0)
-      (values sockaddr* (platform:SUN_LEN sockaddr*)))))
+  (let* ((pathname  (<sockaddr-un>-path sockaddr))
+	 (sockaddr* (malloc (%sockaddr-un-length pathname))))
+    (with-compensations
+      (let* ((cstr.ptr	(string->cstring/c pathname))
+	     (cstr.len	(strlen cstr.ptr)))
+	(struct-sockaddr_un-sun_family-set! sockaddr* AF_LOCAL)
+	(%strncpy* (struct-sockaddr_un-sun_path-ref sockaddr*) cstr.ptr cstr.len)
+	(values sockaddr* (platform:SUN_LEN sockaddr*))))))
 
 (define (<sockaddr-in>->pointer&length sockaddr malloc)
-  (begin0-let ((sockaddr* (malloc sizeof-sockaddr_in)))
-    (struct-sockaddr_in-sin_family-set! sockaddr* (<sockaddr-in>-family sockaddr))
-    (struct-sockaddr_in-sin_port-set!   sockaddr* (<sockaddr-in>-port sockaddr))
+  (let ((sockaddr* (malloc sizeof-sockaddr_in)))
+    (struct-sockaddr_in-sin_family-set! sockaddr* AF_INET)
+    (struct-sockaddr_in-sin_port-set!   sockaddr* (platform:htons (<sockaddr-in>-port sockaddr)))
     (with-compensations
-      (let ((in_addr*	(struct-sockaddr_in-sin_addr-ref sockaddr*))
-	    (bv		(<sockaddr-in>-addr sockaddr)))
-	(do ((i 0 (+ 1 i)))
-	    ((= i sizeof-in_addr)
-	     (values sockaddr* sizeof-sockaddr_in))
-	  (pointer-set-c-uint8! in_addr* i (bytevector-u8-ref bv i)))))))
+      (let ((in_addr* (struct-sockaddr_in-sin_addr-ref sockaddr*)))
+	(%address-bytevector->address-struct! (<sockaddr-in>-addr sockaddr) in_addr* sizeof-in_addr)
+	(values sockaddr* sizeof-sockaddr_in)))))
 
 (define (<sockaddr-in6>->pointer&length sockaddr malloc)
-  (begin0-let ((sockaddr* (malloc sizeof-sockaddr_in6)))
-    (struct-sockaddr_in6-sin6_family-set! sockaddr* (<sockaddr-in6>-family sockaddr))
-    (struct-sockaddr_in6-sin6_port-set!   sockaddr* (<sockaddr-in6>-port sockaddr))
+  (let ((sockaddr* (malloc sizeof-sockaddr_in6)))
+    (struct-sockaddr_in6-sin6_family-set! sockaddr* AF_INET6)
+    (struct-sockaddr_in6-sin6_port-set!   sockaddr* (platform:htons (<sockaddr-in6>-port sockaddr)))
     (with-compensations
-      (let ((in6_addr*	(struct-sockaddr_in6-sin6_addr-ref sockaddr*))
-	    (bv		(<sockaddr-in>-addr sockaddr)))
-	(do ((i 0 (+ 1 i)))
-	    ((= i sizeof-in6_addr)
-	     (values sockaddr* sizeof-sockaddr_in6))
-	  (pointer-set-c-uint8! in6_addr* i (bytevector-u8-ref bv i)))))))
+      (let ((in6_addr* (struct-sockaddr_in6-sin6_addr-ref sockaddr*)))
+	(%address-bytevector->address-struct! (<sockaddr-in6>-addr sockaddr) in6_addr* sizeof-in6_addr)
+	(values sockaddr* sizeof-sockaddr_in6)))))
 
-;;; --------------------------------------------------------------------
+
+;;;; conversion from sockaddr structures to sockaddr records
 
 (define (pointer->sockaddr sockaddr*)
-  (let ((namespace (struct-sockaddr-sa_family-ref sockaddr*)))
-    (cond ((or (= namespace AF_LOCAL)
-	       (= namespace AF_UNIX)  ;redundant
-	       (= namespace AF_FILE)) ;redundant
-	   (pointer-><sockaddr-un> sockaddr*))
-	  ((= namespace AF_INET)
-	   (pointer-><sockaddr-in> sockaddr*))
-	  ((= namespace AF_INET6)
-	   (pointer-><sockaddr-in6> sockaddr*))
-	  (else
-	   (assertion-violation 'pointer->sockaddr
-	     "invalid namespace in sockaddr structure" namespace)))))
+  (let ((address-format (struct-sockaddr-sa_family-ref sockaddr*)))
+    (cond ((= address-format AF_LOCAL)	(pointer-><sockaddr-un>  sockaddr*))
+	  ((= address-format AF_INET)	(pointer-><sockaddr-in>  sockaddr*))
+	  ((= address-format AF_INET6)	(pointer-><sockaddr-in6> sockaddr*))
+	  (else (assertion-violation 'pointer->sockaddr
+		  "unrecognised address format tag in sockaddr structure" address-format)))))
 
 (define (pointer-><sockaddr-un> sockaddr*)
   (make-<sockaddr-un> (cstring->string (struct-sockaddr_un-sun_path-ref sockaddr*))))
@@ -520,12 +507,12 @@
 (define (pointer-><sockaddr-in> sockaddr*)
   (make-<sockaddr-in>
    (pointer->bytevector (struct-sockaddr_in-sin_addr-ref sockaddr*) sizeof-in_addr)
-   (struct-sockaddr_in-sin_port-ref sockaddr*)))
+   (platform:ntohs (struct-sockaddr_in-sin_port-ref sockaddr*))))
 
 (define (pointer-><sockaddr-in6> sockaddr*)
   (make-<sockaddr-in6>
    (pointer->bytevector (struct-sockaddr_in6-sin6_addr-ref sockaddr*) sizeof-in6_addr)
-   (struct-sockaddr_in6-sin6_port-ref sockaddr*)))
+   (platform:ntohs (struct-sockaddr_in6-sin6_port-ref sockaddr*))))
 
 
 ;;;; addresses
@@ -533,8 +520,7 @@
 (define (bind sock sockaddr)
   (with-compensations
     (receive (sockaddr* socklen)
-	(%sockaddr->pointer&length sockaddr malloc)
-      (push-compensation (primitive-free sockaddr*))
+	(%sockaddr->pointer&length sockaddr malloc-block/c)
       (receive (result errno)
 	  (platform:bind (file-descriptor->integer sock) sockaddr* socklen)
 	(when (= -1 result)
@@ -543,8 +529,7 @@
 (define (connect sock sockaddr)
   (with-compensations
     (receive (sockaddr* socklen)
-	(%sockaddr->pointer&length sockaddr malloc)
-      (push-compensation (primitive-free sockaddr*))
+	(%sockaddr->pointer&length sockaddr malloc-block/c)
       (receive (result errno)
 	  (platform:connect (file-descriptor->integer sock) sockaddr* socklen)
 	(when (= -1 result)
@@ -567,52 +552,48 @@
 	(cond ((= -1 result)
 	       (raise-errno-error 'accept errno sock))
 	      ((< socklen (pointer-ref-c-socklen_t socklen* 0))
-	       (error 'accept
-		 "sockaddr structure of source address too big" socklen))
+	       (error 'accept "sockaddr structure of source address too big" socklen))
 	      (else
 	       (values (make-<socket> result
 				      (<socket>-namespace sock)
 				      (<socket>-style     sock)
 				      (<socket>-protocol  sock))
-		       ;;In truth  we know the namespace of  SOCK, so we
-		       ;;know also the type of sockaddr structure.
 		       (pointer->sockaddr sockaddr*))))))))
 
 
+(define (%sockaddr&socklen-pointers sock)
+  (let* ((socklen	(%socklen-from-sock sock))
+	 (sockaddr*	(malloc-block/c socklen))
+	 (socklen*	(malloc-small/c)))
+    (pointer-set-c-socklen_t! socklen* socklen)
+    (values sockaddr* socklen*)))
+
 (define (getsockname sock)
   (with-compensations
-    (let* ((socklen	(%socklen-from-sock sock))
-	   (sockaddr*	(malloc-block/c socklen))
-	   (socklen*	(malloc-small/c)))
-      (pointer-set-c-socklen_t! socklen* socklen)
+    (receive (sockaddr* socklen*)
+	(%sockaddr&socklen-pointers sock)
       (receive (result errno)
 	  (platform:getsockname (file-descriptor->integer sock) sockaddr* socklen*)
 	(cond ((= -1 result)
 	       (raise-errno-error 'getsockname errno sock))
-	      ((< socklen (pointer-ref-c-socklen_t socklen*))
-	       (error 'getsockname
-		 "sockaddr structure of source address too big" socklen))
+	      ((< (%socklen-from-sock sock) (pointer-ref-c-socklen_t socklen*))
+	       (error 'getsockname "sockaddr structure of source address too big"
+		      (%socklen-from-sock sock)))
 	      (else
-	       ;;In truth we know the namespace of SOCK, so we know also
-	       ;;the type of sockaddr structure.
 	       (pointer->sockaddr sockaddr*)))))))
 
 (define (getpeername sock)
   (with-compensations
-    (let* ((socklen	(%socklen-from-sock sock))
-	   (sockaddr*	(malloc-block/c socklen))
-	   (socklen*	(malloc-small/c)))
-      (pointer-set-c-socklen_t! socklen* socklen)
+    (receive (sockaddr* socklen*)
+	(%sockaddr&socklen-pointers sock)
       (receive (result errno)
 	  (platform:getpeername (file-descriptor->integer sock) sockaddr* socklen*)
 	(cond ((= -1 result)
 	       (raise-errno-error 'getpeername errno sock))
-	      ((< socklen (pointer-ref-c-socklen_t socklen*))
-	       (error 'getpeername
-		 "sockaddr structure of source address too big" socklen))
+	      ((< (%socklen-from-sock sock) (pointer-ref-c-socklen_t socklen*))
+	       (error 'getpeername "sockaddr structure of source address too big"
+		      (%socklen-from-sock sock)))
 	      (else
-	       ;;In truth we know the namespace of SOCK, so we know also
-	       ;;the type of sockaddr structure.
 	       (pointer->sockaddr sockaddr*)))))))
 
 
@@ -646,9 +627,7 @@
    ((sock bv flags)
     (assert (bytevector? bv))
     (with-compensations
-      (let ((buf.ptr (bytevector->pointer bv malloc-block/c))
-	    (buf.len (bytevector-length bv)))
-	(send sock buf.ptr (strlen buf.ptr) flags))))))
+      (send sock (bytevector->pointer bv malloc-block/c) (bytevector-length bv) flags)))))
 
 (define send/memblock
   (case-lambda
@@ -677,9 +656,8 @@
     (recv/string sock max-len (socket-data-options)))
    ((sock max-len flags)
     (with-compensations
-      (let* ((buf.ptr (malloc-block/c max-len))
-	     (buf.len (recv sock buf.ptr max-len flags)))
-	(cstring->string buf.ptr buf.len))))))
+      (let ((buf.ptr (malloc-block/c max-len)))
+	(cstring->string buf.ptr (recv sock buf.ptr max-len flags)))))))
 
 (define recv/bytevector
   (case-lambda
@@ -687,18 +665,16 @@
     (recv/bytevector sock max-len (socket-data-options)))
    ((sock max-len flags)
     (with-compensations
-      (let* ((buf.ptr (malloc-block/c max-len))
-	     (buf.len (recv sock buf.ptr max-len flags)))
-	(pointer->bytevector buf.ptr buf.len))))))
+      (let ((buf.ptr (malloc-block/c max-len)))
+	(pointer->bytevector buf.ptr (recv sock buf.ptr max-len flags)))))))
 
 (define recv/memblock
   (case-lambda
    ((sock max-len malloc)
     (recv/memblock sock max-len (socket-data-options) malloc))
    ((sock max-len flags malloc)
-    (let* ((buf.ptr (malloc max-len))
-	   (buf.len (recv sock buf.ptr max-len flags)))
-      (make-<memblock> buf.ptr buf.len max-len)))))
+    (let ((buf.ptr (malloc max-len)))
+      (make-<memblock> buf.ptr (recv sock buf.ptr max-len flags) max-len)))))
 
 
 (define sendto
@@ -708,8 +684,7 @@
    ((sock buf.ptr buf.len flags sockaddr)
     (with-compensations
       (receive (sockaddr* socklen)
-	  (%sockaddr->pointer&length sockaddr malloc)
-	(push-compensation (primitive-free sockaddr*))
+	  (%sockaddr->pointer&length sockaddr malloc-block/c)
 	(receive (result errno)
 	    (platform:sendto (file-descriptor->integer sock)
 			     buf.ptr buf.len
@@ -737,9 +712,7 @@
    ((sock bv flags sockaddr)
     (assert (bytevector? bv))
     (with-compensations
-      (let ((buf.ptr (pointer->bytevector bv malloc-block/c))
-	    (buf.len (bytevector-length bv)))
-	(sendto sock buf.ptr (strlen buf.ptr) flags sockaddr))))))
+      (sendto sock (pointer->bytevector bv malloc-block/c) (bytevector-length bv) flags sockaddr)))))
 
 (define sendto/memblock
   (case-lambda
@@ -768,8 +741,7 @@
 	  (cond ((= -1 result)
 		 (raise-errno-error 'recvfrom errno (list sock buf.ptr buf.len flags)))
 		((< socklen (pointer-ref-c-socklen_t socklen* 0))
-		 (error 'recvfrom
-		   "sockaddr structure of source address too big" socklen))
+		 (error 'recvfrom "sockaddr structure of source address too big" socklen))
 		(else
 		 (values result (pointer->sockaddr sockaddr*))))))))))
 
@@ -791,9 +763,9 @@
    ((sock max-len flags)
     (with-compensations
       (let ((buf.ptr (malloc-block/c max-len)))
-	(receive (buf.len sockaddr)
+	(receive (buf.len sockaddr-from-which)
 	    (recvfrom sock buf.ptr max-len flags)
-	  (values (pointer->bytevector buf.ptr buf.len) sockaddr)))))))
+	  (values (pointer->bytevector buf.ptr buf.len) sockaddr-from-which)))))))
 
 (define recvfrom/memblock
   (case-lambda
@@ -801,9 +773,9 @@
     (recvfrom/memblock sock max-len (socket-data-options) malloc))
    ((sock max-len flags malloc)
     (let ((buf.ptr (malloc max-len)))
-      (receive (buf.len sockaddr)
+      (receive (buf.len sockaddr-from-which)
 	  (recvfrom sock buf.ptr max-len flags)
-	(values (make-<memblock> buf.ptr buf.len max-len) sockaddr))))))
+	(values (make-<memblock> buf.ptr buf.len max-len) sockaddr-from-which))))))
 
 
 (define (getsockopt sock option)

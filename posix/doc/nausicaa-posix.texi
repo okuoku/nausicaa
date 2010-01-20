@@ -660,6 +660,8 @@ Internet addresses
 * sockets inet nets::           Reading the networks database.
 * sockets inet protos::         Reading the protocols database.
 * sockets inet servs::          Reading the services database.
+* sockets inet order::          Converting between network byte order
+                                and host byte order.
 
 Client and server examples
 
@@ -4345,6 +4347,12 @@ language data structure.
 The @code{sin_addr} field is an embedded data structure of type
 @code{struct in_addr}; @func{struct-sockaddr_in-sin_addr-ref} returns a
 pointer to its first byte.
+
+The @code{sin_port} field holds the port number in network byte order;
+we have to use the functions @func{htons} and @func{ntohs} to convert
+between that number and the host byte order number.  For example: the
+port number @code{25} in host byte order is equal to number @code{6400}
+in network byte order.
 @end deffn
 
 @c page
@@ -4376,8 +4384,13 @@ language data structure.
 The @code{sin6_addr} field is an embedded data structure of type
 @code{struct in6_addr}; @func{struct-sockaddr_in6-sin6_addr-ref} returns
 a pointer to its first byte.
-@end deffn
 
+The @code{sin6_port} field holds the port number in network byte order;
+we have to use the functions @func{htons} and @func{ntohs} to convert
+between that number and the host byte order number.  For example: the
+port number @code{25} in host byte order is equal to number @code{6400}
+in network byte order.
+@end deffn
 
 @c page
 @node sockets structs in_addr
@@ -4641,9 +4654,8 @@ field:
 
 @table @code
 @item family
-An exact integer representing the code of the address format for this
-address.  It must be one of the @code{AF_*} constants, @pxref{sockets
-constants, Constant values}.
+An enumeration set of type @code{enum-socket-address-format} holding a
+single symbol.
 @end table
 @end deftp
 
@@ -4676,11 +4688,12 @@ mutable fields:
 A Scheme bytevector holding a @code{struct in_addr} structure.
 
 @item port
-An exact integer representing the port number.
+An exact integer representing the port number in host byte order.
 @end table
 
 The field @code{family}, inherited from @class{sockaddr}, must be set to
-@code{AF_INET}.
+an enumeration set of type @code{enum-socket-address-format} holding the
+single symbol @code{inet}.
 @end deftp
 
 
@@ -4688,8 +4701,9 @@ The field @code{family}, inherited from @class{sockaddr}, must be set to
 @defunx <sockaddr-in>? @var{obj}
 Constructor and predicate for records of type @class{sockaddr-in}.
 @var{addr} and @var{port} are the values of the @code{addr} and
-@code{port} fields, the @code{family} field is set to @code{AF_INET}
-automatically.
+@code{port} fields; the @code{family} field is automatically set to an
+enumeration set of type @code{enum-socket-address-format} holding the
+single symbol @code{inet}.
 @end defun
 
 
@@ -4705,6 +4719,8 @@ Accessors and mutators for records of type @class{sockaddr-in}.
 @defun primitive:pointer-><sockaddr-in> @var{pointer}
 Given a pointer object to a @code{struct sockaddr_in} data structure,
 build and return a record of type @class{sockaddr-in} which mirrors it.
+This function takes care of converting the port number from network byte
+order to host byte order.
 
 This function is exported by the @library{posix sockets primitives}
 library.
@@ -4726,11 +4742,12 @@ mutable fields:
 A Scheme bytevector holding a @code{struct in6_addr} structure.
 
 @item port
-An exact integer representing the port number.
+An exact integer representing the port number in host byte order.
 @end table
 
 The field @code{family}, inherited from @class{sockaddr}, must be set to
-@code{AF_INET6}.
+an enumeration set of type @code{enum-socket-address-format} holding the
+single symbol @code{inet6}.
 @end deftp
 
 
@@ -4738,8 +4755,9 @@ The field @code{family}, inherited from @class{sockaddr}, must be set to
 @defunx <sockaddr-in6>? @var{obj}
 Constructor and predicate for records of type @class{sockaddr-in6}.
 @var{addr} and @var{port} are the values of the @code{addr} and
-@code{port} fields, the @code{family} field is set to @code{AF_INET6}
-automatically.
+@code{port} fields; the @code{family} field is automatically set to an
+enumeration set of type @code{enum-socket-address-format} holding the
+single symbol @code{inet}.
 @end defun
 
 
@@ -4755,6 +4773,8 @@ Accessors and mutators for records of type @class{sockaddr-in6}.
 @defun primitive:pointer-><sockaddr-in6> @var{pointer}
 Given a pointer object to a @code{struct sockaddr_in6} data structure,
 build and return a record of type @class{sockaddr-in6} which mirrors it.
+This function takes care of converting the port number from network byte
+order to host byte order.
 
 This function is exported by the @library{posix sockets primitives}
 library.
@@ -4777,15 +4797,18 @@ A Scheme string representing the pathname of the file to use.
 @end table
 
 The field @code{family}, inherited from @class{sockaddr}, must be set to
-@code{AF_LOCAL}.
+an enumeration set of type @code{enum-socket-address-format} holding the
+single symbol @code{local}.
 @end deftp
 
 
 @defun make-<sockaddr-un> @var{pathname}
 @defunx <sockaddr-un>? @var{obj}
 Constructor and predicate for records of type @class{sockaddr-un}.
-@var{pathname} is the value of the @code{path} field, the @code{family}
-field is set to @code{AF_LOCAL} automatically.
+@var{pathname} is the value of the @code{path} field the @code{family}
+field is automatically set to an enumeration set of type
+@code{enum-socket-address-format} holding the single symbol
+@code{local}.
 @end defun
 
 
@@ -4859,8 +4882,8 @@ An enumeration set of type @code{enum-socket-address-format}
 representing the type of the addresses.
 
 @item addrlist
-A list of Scheme strings representing the host addresses in presentation
-format.
+A list of Scheme bytevectors representing @code{struct in_addr} or
+@code{struct in6_addr} values in network byte order.
 @end table
 @end deftp
 
@@ -5103,6 +5126,8 @@ network interfaces.
 * sockets inet nets::           Reading the networks database.
 * sockets inet protos::         Reading the protocols database.
 * sockets inet servs::          Reading the services database.
+* sockets inet order::          Converting between network byte order
+                                and host byte order.
 @end menu
 
 @c page
@@ -5131,7 +5156,7 @@ else return @false{}.
 @end deffn
 
 
-@deffn Function inet-pton @var{address-name}
+@deffn Function inet-pton @var{address-format} @var{address-name}
 @deffnx Parameter inet-pton-function
 @deffnx Function primitive:inet-pton @var{address-name}
 @deffnx Function platform:inet_pton @var{name-ptr} @var{in-addr-ptr}
@@ -5139,6 +5164,10 @@ Convert the Scheme string @var{address-name} representing an IPv4 or
 IPv6 address, in presentation format, to a @code{struct in_addr} or
 @code{struct in6_addr} value stored in a Scheme bytevector.  If the
 address is valid, return the bytevector; else return @false{}.
+
+@var{address-format} must be an enumeration set of type
+@code{enum-socket-address-format} holding a single element representing
+the address format: @code{inet} or @code{inet6}.
 @end deffn
 
 
@@ -5157,13 +5186,17 @@ format; return the string.
 @end deffn
 
 
-@deffn Function inet-ntop @var{namespace} @var{address-bv}
+@deffn Function inet-ntop @var{address-format} @var{address-bv}
 @deffnx Parameter inet-ntop-function
-@deffnx Function inet-ntop @var{namespace} @var{address-bv}
+@deffnx Function inet-ntop @var{address-format} @var{address-bv}
 @deffnx Function inet_ntop @var{family} @var{addr-ptr} @var{str-ptr} @var{str-len}
 Convert the Scheme bytevector @var{address-bv} holding a @code{struct
 in_addr} or @code{struct in6_addr} value to a Scheme string holding the
 address in presentation format; return the string.
+
+@var{address-format} must be an enumeration set of type
+@code{enum-socket-address-format} holding a single element representing
+the address format: @code{inet} or @code{inet6}.
 @end deffn
 
 @c page
@@ -5333,8 +5366,8 @@ holding the network number in network byte order.  If the network is
 unknown, the return value is @false{}.
 
 @var{address-format} must be an enumeration set of type
-@code{enum-socket-address-format} selecting the type of address format;
-when not used it defaults to @code{inet}.
+@code{enum-socket-address-format} selecting the type of address format:
+@code{inet} or @code{inet6}; when not used it defaults to @code{inet}.
 @end deffn
 
 
@@ -5546,6 +5579,51 @@ Example:
 @end example
 
 @c page
+@node sockets inet order
+@subsection Converting between network byte order and host byte order
+
+
+The following functions manage converting non--negative, exact integers
+between network byte order (big endian) and host byte order.
+@glibcref{Byte Order, Byte Order Conversion}.
+
+
+@defun htons @var{host-uint16}
+@defunx primitive:htons @var{host-uint16}
+@defunx platform:htons @var{host-uint16}
+Host--to--network--short: convert a non--negative exact integer,
+representable with @math{16} bits, from host byte order to network byte
+order.
+@end defun
+
+
+@defun ntohs @var{network-uint16}
+@defunx primitive:ntohs @var{network-uint16}
+@defunx platform:ntohs @var{network-uint16}
+Network--to--host--short: convert a non--negative exact integer,
+representable with @math{16} bits, from network byte order to host byte
+order.
+@end defun
+
+
+@defun htonl @var{host-uint32}
+@defunx primitive:htonl @var{host-uint32}
+@defunx platform:htonl @var{host-uint32}
+Host--to--network--long: convert a non--negative exact integer,
+representable with @math{32} bits, from host byte order to network byte
+order.
+@end defun
+
+
+@defun ntohl @var{network-uint32}
+@defunx primitive:ntohl @var{network-uint32}
+@defunx platform:ntohl @var{network-uint32}
+Network--to--host--long: convert a non--negative exact integer,
+representable with @math{32} bits, from network byte order to host byte
+order.
+@end defun
+
+@c page
 @node sockets open close
 @section Opening and closing sockets
 
@@ -5574,7 +5652,7 @@ single element.
 
 @item protocol
 Must be an enumeration set of type @code{enum-socket-protocol} holding a
-single element; when not used, it defaults to protocol zero.
+single element; when not used, it defaults to protocol @code{zero}.
 @end table
 @end deffn
 
@@ -5637,6 +5715,18 @@ which must be an enumeration set of type
 This function is an alternative to @func{close}, which can be applied to
 @var{sock}, too, and which closes both the channels.
 @end deffn
+
+
+@deffn Syntax shutdown* @ameta{sock} @ameta{how}
+@deffnx Syntax primitive:shutdown* @ameta{sock} @ameta{how}
+Wrapper for @func{shutdown} which allows us not to embed the shutdown
+mode in the @func{shutdown-mode} syntax; it expands to:
+
+@example
+(shutdown @cmeta{sock} (shutdown-mode @cmeta{how}))
+@end example
+@end deffn
+
 
 @c page
 @node sockets ops

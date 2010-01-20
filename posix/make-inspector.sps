@@ -270,18 +270,18 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   "struct sockaddr_in"
   (signed-int		sin_family)
   (embedded		sin_addr)
-  (signed-int		sin_port))
+  (unsigned-int		sin_port))
 
 (define-c-type-alias sockaddr_in6*	pointer)
 
 (define-c-struct sockaddr_in6
-  "struct sockaddr_in"
+  "struct sockaddr_in6"
   (signed-int		sin6_family)
   (embedded		sin6_addr)
 ;;;This field is documented as unimplemented in Glibc.
 ;;;
 ;;;  (unsigned-int		sin6_flowinfo)
-  (signed-int		sin6_port))
+  (unsigned-int		sin6_port))
 
 (define-c-type-alias sockaddr_un*	pointer)
 

@@ -58,7 +58,8 @@
 
     ;; socket operations
     socket			socketpair
-    shutdown			connect
+    shutdown			shutdown*
+    connect
     bind			listen
     accept
     getsockname			getpeername
@@ -172,6 +173,11 @@
      (socketpair (socket-namespace	?namespace)
 		 (socket-style		?style)))
     ))
+
+(define-syntax shutdown*
+  (syntax-rules ()
+    ((_ ?sock ?mode)
+     (shutdown ?sock (shutdown-mode ?mode)))))
 
 
 
