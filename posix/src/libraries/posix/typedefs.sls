@@ -232,7 +232,7 @@
     <sockaddr-un>			<sockaddr-un-rtd>
     make-<sockaddr-un>			<sockaddr-un>?
     <sockaddr-un>-family
-    <sockaddr-un>-path			<sockaddr-un>-path-set!
+    <sockaddr-un>-pathname		<sockaddr-un>-pathname-set!
 
     <if-nameindex>			<if-nameindex-rtd>
     make-<if-nameindex>			<if-nameindex>?
@@ -293,8 +293,8 @@
 
 ;;; --------------------------------------------------------------------
 
-    enum-socket-protocol		socket-protocol
-    socket-protocol->value		value->socket-protocol
+    ;; enum-socket-protocol		socket-protocol
+    ;; socket-protocol->value		value->socket-protocol
 
 ;;; --------------------------------------------------------------------
 
@@ -640,7 +640,7 @@
 (define-record-type (<sockaddr-un> %make-<sockaddr-un> <sockaddr-un>?)
   (nongenerative nausicaa:posix:<sockaddr-un>)
   (parent <sockaddr>)
-  (fields (mutable path)))
+  (fields (mutable pathname)))
 
 (define <sockaddr-un-rtd>
   (record-type-descriptor <sockaddr-un>))
@@ -854,9 +854,9 @@
   (SOCK_STREAM SOCK_DGRAM SOCK_RAW SOCK_SEQPACKET)
   (stream datagram raw seqpacket))
 
-(define-c-flags socket-protocol
-  (0)
-  (zero))
+;; (define-c-flags socket-protocol
+;;   (0)
+;;   (zero))
 
 (define-c-flags socket-namespace
   ;; PF_LOCAL, PF_UNIX and PF_FILE are synonims.

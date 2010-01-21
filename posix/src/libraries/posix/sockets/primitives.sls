@@ -198,6 +198,94 @@
 	 irritants))
 
 
+;;;; some struct to record conversion
+
+(define (pointer-><netent> netent*)
+  (make-<netent> (cstring->string		(struct-netent-n_name-ref	netent*))
+		 (argv->strings			(struct-netent-n_aliases-ref	netent*))
+		 (value->socket-address-format	(struct-netent-n_addrtype-ref	netent*))
+		 (%network-number->bytevector	(struct-netent-n_net-ref	netent*))))
+
+(define (pointer-><protoent> protoent*)
+  (make-<protoent> (cstring->string	(struct-protoent-p_name-ref	protoent*))
+		   (argv->strings	(struct-protoent-p_aliases-ref	protoent*))
+		   (struct-protoent-p_proto-ref protoent*)))
+
+(define (pointer-><servent> servent*)
+  (make-<servent> (cstring->string	(struct-servent-s_name-ref	servent*))
+		  (argv->strings	(struct-servent-s_aliases-ref	servent*))
+		  (platform:ntohs	(struct-servent-s_port-ref	servent*))
+		  (cstring->string	(struct-servent-s_proto-ref	servent*))))
+
+
+;;;; conversion from sockaddr records to sockaddr structures
+
+(define (%sockaddr->pointer&length sockaddr malloc)
+  (cond ((<sockaddr-un>?  sockaddr)	(<sockaddr-un>->pointer&length  sockaddr malloc))
+	((<sockaddr-in>?  sockaddr)	(<sockaddr-in>->pointer&length  sockaddr malloc))
+	((<sockaddr-in6>? sockaddr)	(<sockaddr-in6>->pointer&length sockaddr malloc))
+	(else (assertion-violation '%sockaddr->pointer&length "invalid socket address object" sockaddr))))
+
+(define (<sockaddr-un>->pointer&length sockaddr malloc)
+  (let* ((pathname  (<sockaddr-un>-pathname sockaddr))
+	 (sockaddr* (malloc (%sockaddr-un-length pathname))))
+    (with-compensations
+      (let* ((cstr.ptr	(string->cstring/c pathname))
+	     (cstr.len	(strlen cstr.ptr)))
+	(struct-sockaddr_un-sun_family-set! sockaddr* AF_LOCAL)
+	(%strncpy* (struct-sockaddr_un-sun_path-ref sockaddr*) cstr.ptr cstr.len)
+	(values sockaddr* (platform:SUN_LEN sockaddr*))))))
+
+(define (<sockaddr-in>->pointer&length sockaddr malloc)
+  (let ((sockaddr* (malloc sizeof-sockaddr_in)))
+    (struct-sockaddr_in-sin_family-set! sockaddr* AF_INET)
+    (struct-sockaddr_in-sin_port-set!   sockaddr* (platform:htons (<sockaddr-in>-port sockaddr)))
+    (with-compensations
+      (let ((in_addr* (struct-sockaddr_in-sin_addr-ref sockaddr*)))
+	(%address-bytevector->address-struct! (<sockaddr-in>-addr sockaddr) in_addr* sizeof-in_addr)
+	(values sockaddr* sizeof-sockaddr_in)))))
+
+(define (<sockaddr-in6>->pointer&length sockaddr malloc)
+  (let ((sockaddr* (malloc sizeof-sockaddr_in6)))
+    (struct-sockaddr_in6-sin6_family-set! sockaddr* AF_INET6)
+    (struct-sockaddr_in6-sin6_port-set!   sockaddr* (platform:htons (<sockaddr-in6>-port sockaddr)))
+    (with-compensations
+      (let ((in6_addr* (struct-sockaddr_in6-sin6_addr-ref sockaddr*)))
+	(%address-bytevector->address-struct! (<sockaddr-in6>-addr sockaddr) in6_addr* sizeof-in6_addr)
+	(values sockaddr* sizeof-sockaddr_in6)))))
+
+(define (%socklen-from-sock sock)
+  (let ((ns (socket-namespace->value (<socket>-namespace sock))))
+    (cond ((= AF_UNIX  ns)	4096) ;let's play it safe
+	  ((= AF_INET  ns)	sizeof-sockaddr_in)
+	  ((= AF_INET6 ns)	sizeof-sockaddr_in6)
+	  (else (assertion-violation '%socklen-from-sock "invalid socket namespace value" sock)))))
+
+
+;;;; conversion from sockaddr structures to sockaddr records
+
+(define (pointer->sockaddr sockaddr*)
+  (let ((address-format (struct-sockaddr-sa_family-ref sockaddr*)))
+    (cond ((= address-format AF_LOCAL)	(pointer-><sockaddr-un>  sockaddr*))
+	  ((= address-format AF_INET)	(pointer-><sockaddr-in>  sockaddr*))
+	  ((= address-format AF_INET6)	(pointer-><sockaddr-in6> sockaddr*))
+	  (else (assertion-violation 'pointer->sockaddr
+		  "unrecognised address format tag in sockaddr structure" address-format)))))
+
+(define (pointer-><sockaddr-un> sockaddr*)
+  (make-<sockaddr-un> (cstring->string (struct-sockaddr_un-sun_path-ref sockaddr*))))
+
+(define (pointer-><sockaddr-in> sockaddr*)
+  (make-<sockaddr-in>
+   (pointer->bytevector (struct-sockaddr_in-sin_addr-ref sockaddr*) sizeof-in_addr)
+   (platform:ntohs (struct-sockaddr_in-sin_port-ref sockaddr*))))
+
+(define (pointer-><sockaddr-in6> sockaddr*)
+  (make-<sockaddr-in6>
+   (pointer->bytevector (struct-sockaddr_in6-sin6_addr-ref sockaddr*) sizeof-in6_addr)
+   (platform:ntohs (struct-sockaddr_in6-sin6_port-ref sockaddr*))))
+
+
 ;;;; internet address conversion
 
 (define (inet-aton address-name)
@@ -263,8 +351,6 @@
 	    (%raise-h-errno-error 'gethostbyaddr address-bytevector)
 	  (pointer-><hostent> hostent*))))))
 
-;;; --------------------------------------------------------------------
-
 (define sethostent
   (case-lambda
    (()
@@ -277,12 +363,6 @@
 
 
 ;;;; networks database
-
-(define (pointer-><netent> netent*)
-  (make-<netent> (cstring->string		(struct-netent-n_name-ref	netent*))
-		 (argv->strings			(struct-netent-n_aliases-ref	netent*))
-		 (value->socket-address-format	(struct-netent-n_addrtype-ref	netent*))
-		 (%network-number->bytevector	(struct-netent-n_net-ref	netent*))))
 
 (define (getnetbyname net-name)
   (with-compensations
@@ -310,11 +390,6 @@
 
 ;;;; protocols database
 
-(define (pointer-><protoent> protoent*)
-  (make-<protoent> (cstring->string	(struct-protoent-p_name-ref	protoent*))
-		   (argv->strings	(struct-protoent-p_aliases-ref	protoent*))
-		   (struct-protoent-p_proto-ref protoent*)))
-
 (define (getprotobyname proto-name)
   (with-compensations
     (%pointer->record (pointer-><protoent> (platform:getprotobyname (string->cstring/c proto-name))))))
@@ -334,12 +409,6 @@
 
 
 ;;;; services database
-
-(define (pointer-><servent> servent*)
-  (make-<servent> (cstring->string	(struct-servent-s_name-ref	servent*))
-		  (argv->strings	(struct-servent-s_aliases-ref	servent*))
-		  (platform:ntohs	(struct-servent-s_port-ref	servent*))
-		  (cstring->string	(struct-servent-s_proto-ref	servent*))))
 
 (define (getservbyname service-name protocol-name)
   (with-compensations
@@ -408,12 +477,12 @@
 (define socket
   (case-lambda
    ((namespace style)
-    (socket namespace style (socket-protocol zero)))
+    (socket namespace style 0))
    ((namespace style protocol)
     (receive (result errno)
 	(platform:socket (socket-namespace->value namespace)
 			 (socket-style->value style)
-			 (socket-protocol->value protocol))
+			 protocol)
       (if (= -1 result)
 	  (raise-errno-error 'socket errno (list namespace style protocol))
 	(make-<socket> result namespace style protocol))))))
@@ -421,19 +490,18 @@
 (define socketpair
   (case-lambda
    ((namespace style)
-    (socketpair namespace style (socket-protocol zero)))
+    (socketpair namespace style 0))
    ((namespace style protocol)
     (with-compensations
       (let ((fds* (malloc-small/c)))
 	(receive (result errno)
 	    (platform:socketpair (socket-namespace->value namespace)
 				 (socket-style->value style)
-				 (socket-protocol->value protocol)
-				 fds*)
+				 protocol fds*)
 	  (if (= -1 result)
 	      (raise-errno-error 'socketpair errno (list namespace style protocol))
-	    (values (make-<socket> (pointer-ref-c-signed-int fds* 0) namespace style protocol)
-		    (make-<socket> (pointer-ref-c-signed-int fds* 1) namespace style protocol)))))))))
+	    (values (make-<socket> (array-ref-c-signed-int fds* 0) namespace style protocol)
+		    (make-<socket> (array-ref-c-signed-int fds* 1) namespace style protocol)))))))))
 
 (define (shutdown sock how)
   (receive (result errno)
@@ -447,75 +515,7 @@
      (shutdown ?sock (shutdown-mode ?mode)))))
 
 
-;;;; conversion from sockaddr records to sockaddr structures
-
-(define (%socklen-from-sock sock)
-  (let ((ns (<socket>-namespace sock)))
-    (cond ((= AF_UNIX  ns)	4096) ;let's play it safe
-	  ((= AF_INET  ns)	sizeof-sockaddr_in)
-	  ((= AF_INET6 ns)	sizeof-sockaddr_in6)
-	  (else (assertion-violation '%socklen-from-sock "invalid socket namespace value" sock)))))
-
-(define (%sockaddr->pointer&length sockaddr malloc)
-  (cond ((<sockaddr-un>?  sockaddr)	(<sockaddr-un>->pointer&length  sockaddr malloc))
-	((<sockaddr-in>?  sockaddr)	(<sockaddr-in>->pointer&length  sockaddr malloc))
-	((<sockaddr-in6>? sockaddr)	(<sockaddr-in6>->pointer&length sockaddr malloc))
-	(else (assertion-violation '%sockaddr->pointer&length "invalid socket address object" sockaddr))))
-
-(define (<sockaddr-un>->pointer&length sockaddr malloc)
-  (let* ((pathname  (<sockaddr-un>-path sockaddr))
-	 (sockaddr* (malloc (%sockaddr-un-length pathname))))
-    (with-compensations
-      (let* ((cstr.ptr	(string->cstring/c pathname))
-	     (cstr.len	(strlen cstr.ptr)))
-	(struct-sockaddr_un-sun_family-set! sockaddr* AF_LOCAL)
-	(%strncpy* (struct-sockaddr_un-sun_path-ref sockaddr*) cstr.ptr cstr.len)
-	(values sockaddr* (platform:SUN_LEN sockaddr*))))))
-
-(define (<sockaddr-in>->pointer&length sockaddr malloc)
-  (let ((sockaddr* (malloc sizeof-sockaddr_in)))
-    (struct-sockaddr_in-sin_family-set! sockaddr* AF_INET)
-    (struct-sockaddr_in-sin_port-set!   sockaddr* (platform:htons (<sockaddr-in>-port sockaddr)))
-    (with-compensations
-      (let ((in_addr* (struct-sockaddr_in-sin_addr-ref sockaddr*)))
-	(%address-bytevector->address-struct! (<sockaddr-in>-addr sockaddr) in_addr* sizeof-in_addr)
-	(values sockaddr* sizeof-sockaddr_in)))))
-
-(define (<sockaddr-in6>->pointer&length sockaddr malloc)
-  (let ((sockaddr* (malloc sizeof-sockaddr_in6)))
-    (struct-sockaddr_in6-sin6_family-set! sockaddr* AF_INET6)
-    (struct-sockaddr_in6-sin6_port-set!   sockaddr* (platform:htons (<sockaddr-in6>-port sockaddr)))
-    (with-compensations
-      (let ((in6_addr* (struct-sockaddr_in6-sin6_addr-ref sockaddr*)))
-	(%address-bytevector->address-struct! (<sockaddr-in6>-addr sockaddr) in6_addr* sizeof-in6_addr)
-	(values sockaddr* sizeof-sockaddr_in6)))))
-
-
-;;;; conversion from sockaddr structures to sockaddr records
-
-(define (pointer->sockaddr sockaddr*)
-  (let ((address-format (struct-sockaddr-sa_family-ref sockaddr*)))
-    (cond ((= address-format AF_LOCAL)	(pointer-><sockaddr-un>  sockaddr*))
-	  ((= address-format AF_INET)	(pointer-><sockaddr-in>  sockaddr*))
-	  ((= address-format AF_INET6)	(pointer-><sockaddr-in6> sockaddr*))
-	  (else (assertion-violation 'pointer->sockaddr
-		  "unrecognised address format tag in sockaddr structure" address-format)))))
-
-(define (pointer-><sockaddr-un> sockaddr*)
-  (make-<sockaddr-un> (cstring->string (struct-sockaddr_un-sun_path-ref sockaddr*))))
-
-(define (pointer-><sockaddr-in> sockaddr*)
-  (make-<sockaddr-in>
-   (pointer->bytevector (struct-sockaddr_in-sin_addr-ref sockaddr*) sizeof-in_addr)
-   (platform:ntohs (struct-sockaddr_in-sin_port-ref sockaddr*))))
-
-(define (pointer-><sockaddr-in6> sockaddr*)
-  (make-<sockaddr-in6>
-   (pointer->bytevector (struct-sockaddr_in6-sin6_addr-ref sockaddr*) sizeof-in6_addr)
-   (platform:ntohs (struct-sockaddr_in6-sin6_port-ref sockaddr*))))
-
-
-;;;; addresses
+;;;; connection operations
 
 (define (bind sock sockaddr)
   (with-compensations
@@ -561,22 +561,22 @@
 		       (pointer->sockaddr sockaddr*))))))))
 
 
-(define (%sockaddr&socklen-pointers sock)
+(define (%sockaddr&socklen-pointers/c sock)
   (let* ((socklen	(%socklen-from-sock sock))
 	 (sockaddr*	(malloc-block/c socklen))
 	 (socklen*	(malloc-small/c)))
-    (pointer-set-c-socklen_t! socklen* socklen)
+    (pointer-set-c-socklen_t! socklen* 0 socklen)
     (values sockaddr* socklen*)))
 
 (define (getsockname sock)
   (with-compensations
     (receive (sockaddr* socklen*)
-	(%sockaddr&socklen-pointers sock)
+	(%sockaddr&socklen-pointers/c sock)
       (receive (result errno)
 	  (platform:getsockname (file-descriptor->integer sock) sockaddr* socklen*)
 	(cond ((= -1 result)
 	       (raise-errno-error 'getsockname errno sock))
-	      ((< (%socklen-from-sock sock) (pointer-ref-c-socklen_t socklen*))
+	      ((< (%socklen-from-sock sock) (pointer-ref-c-socklen_t socklen* 0))
 	       (error 'getsockname "sockaddr structure of source address too big"
 		      (%socklen-from-sock sock)))
 	      (else
@@ -585,12 +585,12 @@
 (define (getpeername sock)
   (with-compensations
     (receive (sockaddr* socklen*)
-	(%sockaddr&socklen-pointers sock)
+	(%sockaddr&socklen-pointers/c sock)
       (receive (result errno)
 	  (platform:getpeername (file-descriptor->integer sock) sockaddr* socklen*)
 	(cond ((= -1 result)
 	       (raise-errno-error 'getpeername errno sock))
-	      ((< (%socklen-from-sock sock) (pointer-ref-c-socklen_t socklen*))
+	      ((< (%socklen-from-sock sock) (pointer-ref-c-socklen_t socklen* 0))
 	       (error 'getpeername "sockaddr structure of source address too big"
 		      (%socklen-from-sock sock)))
 	      (else
@@ -601,133 +601,133 @@
   (case-lambda
    ((sock buf.ptr buf.len)
     (send sock buf.ptr buf.len (socket-data-options)))
-   ((sock buf.ptr buf.len flags)
+   ((sock buf.ptr buf.len options)
     (receive (result errno)
 	(platform:send (file-descriptor->integer sock) buf.ptr buf.len
-		       (socket-data-options->value flags))
+		       (socket-data-options->value options))
       (if (= -1 result)
-	  (raise-errno-error 'send errno (list sock buf.ptr buf.len flags))
+	  (raise-errno-error 'send errno (list sock buf.ptr buf.len options))
 	result)))))
 
 (define send/string
   (case-lambda
    ((sock str)
     (send/string sock str (socket-data-options)))
-   ((sock str flags)
+   ((sock str options)
     (assert (string? str))
     (with-compensations
       (let ((buf.ptr (string->cstring/c str)))
 	;;We do NOT want to send the terminating zero.
-	(send sock buf.ptr (strlen buf.ptr)) flags)))))
+	(send sock buf.ptr (strlen buf.ptr)) options)))))
 
 (define send/bytevector
   (case-lambda
    ((sock bv)
     (send/bytevector sock bv (socket-data-options)))
-   ((sock bv flags)
+   ((sock bv options)
     (assert (bytevector? bv))
     (with-compensations
-      (send sock (bytevector->pointer bv malloc-block/c) (bytevector-length bv) flags)))))
+      (send sock (bytevector->pointer bv malloc-block/c) (bytevector-length bv) options)))))
 
 (define send/memblock
   (case-lambda
    ((sock mb)
     (send/memblock sock mb (socket-data-options)))
-   ((sock mb flags)
+   ((sock mb options)
     (assert (<memblock>? mb))
-    (send sock (<memblock>-pointer mb) (<memblock>-size mb) flags))))
+    (send sock (<memblock>-pointer mb) (<memblock>-size mb) options))))
 
 
 (define recv
   (case-lambda
    ((sock buf.ptr buf.len)
     (recv sock buf.ptr buf.len (socket-data-options)))
-   ((sock buf.ptr buf.len flags)
+   ((sock buf.ptr buf.len options)
     (receive (result errno)
 	(platform:recv (file-descriptor->integer sock) buf.ptr buf.len
-		       (socket-data-options->value flags))
+		       (socket-data-options->value options))
       (if (= -1 result)
-	  (raise-errno-error 'recv errno (list sock buf.ptr buf.len flags))
+	  (raise-errno-error 'recv errno (list sock buf.ptr buf.len options))
 	result)))))
 
 (define recv/string
   (case-lambda
    ((sock max-len)
     (recv/string sock max-len (socket-data-options)))
-   ((sock max-len flags)
+   ((sock max-len options)
     (with-compensations
       (let ((buf.ptr (malloc-block/c max-len)))
-	(cstring->string buf.ptr (recv sock buf.ptr max-len flags)))))))
+	(cstring->string buf.ptr (recv sock buf.ptr max-len options)))))))
 
 (define recv/bytevector
   (case-lambda
    ((sock max-len)
     (recv/bytevector sock max-len (socket-data-options)))
-   ((sock max-len flags)
+   ((sock max-len options)
     (with-compensations
       (let ((buf.ptr (malloc-block/c max-len)))
-	(pointer->bytevector buf.ptr (recv sock buf.ptr max-len flags)))))))
+	(pointer->bytevector buf.ptr (recv sock buf.ptr max-len options)))))))
 
 (define recv/memblock
   (case-lambda
    ((sock max-len malloc)
     (recv/memblock sock max-len (socket-data-options) malloc))
-   ((sock max-len flags malloc)
+   ((sock max-len options malloc)
     (let ((buf.ptr (malloc max-len)))
-      (make-<memblock> buf.ptr (recv sock buf.ptr max-len flags) max-len)))))
+      (make-<memblock> buf.ptr (recv sock buf.ptr max-len options) max-len)))))
 
 
 (define sendto
   (case-lambda
    ((sock buf.ptr buf.len sockaddr)
     (sendto sock buf.ptr buf.len (socket-data-options) sockaddr))
-   ((sock buf.ptr buf.len flags sockaddr)
+   ((sock buf.ptr buf.len options sockaddr)
     (with-compensations
       (receive (sockaddr* socklen)
 	  (%sockaddr->pointer&length sockaddr malloc-block/c)
 	(receive (result errno)
 	    (platform:sendto (file-descriptor->integer sock)
 			     buf.ptr buf.len
-			     (socket-data-options->value flags)
+			     (socket-data-options->value options)
 			     sockaddr* socklen)
 	  (if (= -1 result)
-	      (raise-errno-error 'sendto errno (list sock buf.ptr buf.len flags))
+	      (raise-errno-error 'sendto errno (list sock buf.ptr buf.len options))
 	    result)))))))
 
 (define sendto/string
   (case-lambda
    ((sock str sockaddr)
     (sendto/string sock str (socket-data-options) sockaddr))
-   ((sock str flags sockaddr)
+   ((sock str options sockaddr)
     (assert (string? str))
     (with-compensations
       (let ((buf.ptr (string->cstring/c str)))
 	;;We do NOT want to send the terminating zero.
-	(sendto sock buf.ptr (strlen buf.ptr) flags sockaddr))))))
+	(sendto sock buf.ptr (strlen buf.ptr) options sockaddr))))))
 
 (define sendto/bytevector
   (case-lambda
    ((sock bv sockaddr)
     (sendto/bytevector sock bv (socket-data-options) sockaddr))
-   ((sock bv flags sockaddr)
+   ((sock bv options sockaddr)
     (assert (bytevector? bv))
     (with-compensations
-      (sendto sock (pointer->bytevector bv malloc-block/c) (bytevector-length bv) flags sockaddr)))))
+      (sendto sock (pointer->bytevector bv malloc-block/c) (bytevector-length bv) options sockaddr)))))
 
 (define sendto/memblock
   (case-lambda
    ((sock mb sockaddr)
     (sendto/memblock sock mb (socket-data-options) sockaddr))
-   ((sock mb flags sockaddr)
+   ((sock mb options sockaddr)
     (assert (<memblock>? mb))
-    (sendto sock (<memblock>-pointer mb) (<memblock>-size mb) flags sockaddr))))
+    (sendto sock (<memblock>-pointer mb) (<memblock>-size mb) options sockaddr))))
 
 
 (define recvfrom
   (case-lambda
    ((sock buf.ptr buf.len)
     (recvfrom sock buf.ptr buf.len (socket-data-options)))
-   ((sock buf.ptr buf.len flags)
+   ((sock buf.ptr buf.len options)
     (with-compensations
       (let* ((socklen	4096) ;let's play it safe
 	     (sockaddr*	(malloc-block/c socklen))
@@ -736,10 +736,10 @@
 	(receive (result errno)
 	    (platform:recvfrom (file-descriptor->integer sock)
 			       buf.ptr buf.len
-			       (socket-data-options->value flags)
+			       (socket-data-options->value options)
 			       sockaddr* socklen*)
 	  (cond ((= -1 result)
-		 (raise-errno-error 'recvfrom errno (list sock buf.ptr buf.len flags)))
+		 (raise-errno-error 'recvfrom errno (list sock buf.ptr buf.len options)))
 		((< socklen (pointer-ref-c-socklen_t socklen* 0))
 		 (error 'recvfrom "sockaddr structure of source address too big" socklen))
 		(else
@@ -749,32 +749,32 @@
   (case-lambda
    ((sock max-len)
     (recvfrom/string sock max-len (socket-data-options)))
-   ((sock max-len flags)
+   ((sock max-len options)
     (with-compensations
       (let ((buf.ptr (malloc-block/c max-len)))
 	(receive (buf.len sockaddr-from-which)
-	    (recvfrom sock buf.ptr max-len flags)
+	    (recvfrom sock buf.ptr max-len options)
 	  (values (cstring->string buf.ptr buf.len) sockaddr-from-which)))))))
 
 (define recvfrom/bytevector
   (case-lambda
    ((sock max-len)
     (recvfrom/bytevector sock max-len (socket-data-options)))
-   ((sock max-len flags)
+   ((sock max-len options)
     (with-compensations
       (let ((buf.ptr (malloc-block/c max-len)))
 	(receive (buf.len sockaddr-from-which)
-	    (recvfrom sock buf.ptr max-len flags)
+	    (recvfrom sock buf.ptr max-len options)
 	  (values (pointer->bytevector buf.ptr buf.len) sockaddr-from-which)))))))
 
 (define recvfrom/memblock
   (case-lambda
    ((sock max-len malloc)
     (recvfrom/memblock sock max-len (socket-data-options) malloc))
-   ((sock max-len flags malloc)
+   ((sock max-len options malloc)
     (let ((buf.ptr (malloc max-len)))
       (receive (buf.len sockaddr-from-which)
-	  (recvfrom sock buf.ptr max-len flags)
+	  (recvfrom sock buf.ptr max-len options)
 	(values (make-<memblock> buf.ptr buf.len max-len) sockaddr-from-which))))))
 
 

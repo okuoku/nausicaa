@@ -604,13 +604,20 @@ Sockets
 * sockets constants::           Constant values.
 * sockets enumerations::        Enumeration type definitions.
 * sockets structs::             Accessing data structures.
-* sockets records::             Record types mirroring data structures.
+* sockets records::             Record types mirroring data
+                                structures.
 * sockets ifaces::              Network interfaces.
 * sockets inet::                Internet addresses.
 * sockets open close::          Opening and closing sockets.
-* sockets ops::                 Operations on sockets.
+* sockets connect::             Connection operations on sockets.
 * sockets address::             Network addresses.
-* sockets transfer::            Transferring data.
+* sockets send::                Sending data through stream sockets.
+* sockets recv::                Receiving data from through stream
+                                sockets.
+* sockets sendto::              Sending data through datagram
+                                sockets.
+* sockets recvfrom::            Receiving data from through datagram
+                                sockets.
 * sockets options::             Configuring sockets behaviour.
 * sockets examples::            Client and server examples.
 
@@ -618,7 +625,7 @@ Enumeration type definitions
 
 * sockets enumerations namespace::      Socket namespace.
 * sockets enumerations style::          Socket styles.
-* sockets enumerations protocol::       Socket protocols.
+@c * sockets enumerations protocol::       Socket protocols.
 * sockets enumerations addrfrm::        Socket address formats.
 * sockets enumerations shutdown::       Socket shutdown modes.
 * sockets enumerations dataopts::       Socket data options.
@@ -3821,13 +3828,20 @@ exported by the following libraries:
 * sockets constants::           Constant values.
 * sockets enumerations::        Enumeration type definitions.
 * sockets structs::             Accessing data structures.
-* sockets records::             Record types mirroring data structures.
+* sockets records::             Record types mirroring data
+                                structures.
 * sockets ifaces::              Network interfaces.
 * sockets inet::                Internet addresses.
 * sockets open close::          Opening and closing sockets.
-* sockets ops::                 Operations on sockets.
+* sockets connect::             Connection operations on sockets.
 * sockets address::             Network addresses.
-* sockets transfer::            Transferring data.
+* sockets send::                Sending data through stream sockets.
+* sockets recv::                Receiving data from through stream
+                                sockets.
+* sockets sendto::              Sending data through datagram
+                                sockets.
+* sockets recvfrom::            Receiving data from through datagram
+                                sockets.
 * sockets options::             Configuring sockets behaviour.
 * sockets examples::            Client and server examples.
 @end menu
@@ -3967,7 +3981,7 @@ Unless otherwise specified, the following bindings are exported by the
 @menu
 * sockets enumerations namespace::      Socket namespace.
 * sockets enumerations style::          Socket styles.
-* sockets enumerations protocol::       Socket protocols.
+@c * sockets enumerations protocol::       Socket protocols.
 * sockets enumerations addrfrm::        Socket address formats.
 * sockets enumerations shutdown::       Socket shutdown modes.
 * sockets enumerations dataopts::       Socket data options.
@@ -4056,6 +4070,12 @@ SOCK_STREAM  SOCK_DGRAM  SOCK_RAW  SOCK_SEQPACKET
 @end defun
 
 @c page
+@ignore
+
+@c Commented out because, right now, only protocol zero is explicitly
+@c supported.  Other protocols are system-specific (like
+@c Linux-specific).
+
 @node sockets enumerations protocol
 @subsection Socket protocols
 
@@ -4086,6 +4106,8 @@ corresponding exact integer value, one among:
 0
 @end example
 @end defun
+
+@end ignore
 
 @c page
 @node sockets enumerations addrfrm
@@ -4617,8 +4639,8 @@ An enumeration set of type @code{enum-socket-style} holding a single
 element.
 
 @item protocol
-An enumeration set of type @code{enum-socket-protocol} holding a single
-element.
+An integer selecting the protocol.  @ref{socket inet protos, Reading the
+protocols database}.
 @end table
 @end deftp
 
@@ -4792,7 +4814,7 @@ structures; it is derived from @class{sockaddr}.  It has the following
 mutable fields:
 
 @table @code
-@item path
+@item pathname
 A Scheme string representing the pathname of the file to use.
 @end table
 
@@ -4813,8 +4835,8 @@ field is automatically set to an enumeration set of type
 
 
 @defun <sockaddr-un>-family @var{sockaddr-un}
-@defunx <sockaddr-un>-path @var{sockaddr-un}
-@defunx <sockaddr-un>-path-set! @var{sockaddr-un} @var{value}
+@defunx <sockaddr-un>-pathname @var{sockaddr-un}
+@defunx <sockaddr-un>-pathname-set! @var{sockaddr-un} @var{value}
 Accessors and mutators for records of type @class{sockaddr-un}.
 @end defun
 
@@ -5651,8 +5673,9 @@ Must be an enumeration set of type @code{enum-socket-style} holding a
 single element.
 
 @item protocol
-Must be an enumeration set of type @code{enum-socket-protocol} holding a
-single element; when not used, it defaults to protocol @code{zero}.
+Must be an integer selecting the protocol; when not used, it defaults to
+protocol @code{zero}.  @ref{sockets inet protos, Reading the protocols
+database}.
 @end table
 @end deffn
 
@@ -5687,8 +5710,9 @@ Must be an enumeration set of type @code{enum-socket-style} holding a
 single element.
 
 @item protocol
-Must be an enumeration set of type @code{enum-socket-protocol} holding a
-single element; when not used, it defaults to protocol zero.
+Must be an integer selecting the protocol; when not used, it defaults to
+protocol zero.  @ref{sockets inet protos, Reading the protocols
+database}.
 @end table
 @end deffn
 
@@ -5729,8 +5753,8 @@ mode in the @func{shutdown-mode} syntax; it expands to:
 
 
 @c page
-@node sockets ops
-@section Operations on sockets
+@node sockets connect
+@section Connection operations on sockets
 
 
 The following functions perform operations on sockets.
@@ -5823,65 +5847,297 @@ This is the address associated to @var{sock} by @func{connect} or
 @end deffn
 
 @c page
-@node sockets transfer
-@section Transferring data
+@node sockets send
+@section Sending data through stream sockets
 
 
-The following functions manage transferring data between sockets.
-@glibcref{Transferring Data, Transferring Data}.  @glibcref{Datagrams,
-Datagram Socket Operations}.
+The following functions manage sending data through stream sockets.
+@glibcref{Sending Data, Sending Data}.
 
 
 @deffn Function send @var{sock} @var{ptr} @var{len} @var{options}
 @deffnx Parameter send-function
 @deffnx Function primitive:send @var{sock} @var{ptr} @var{len} @var{options}
 @deffnx Function platform:send @var{sock-int} @var{ptr} @var{len} @var{options-int}
-Write at most @var{len} bytes from the buffer referenced by @var{ptr} to
-the socket @var{sock}, which must be a @class{socket} record.  Return
-the number of bytes actually sent.
+Write at most @var{len} bytes from the buffer referenced by @var{ptr}
+through the socket @var{sock}; return the number of bytes actually sent.
 
-@var{options} must be an enumeration set of type
-@code{enum-socket-data-options}.
+@table @var
+@item sock
+Must be a record of type @class{socket}.
+
+@item ptr
+Must be a pointer object.
+
+@item len
+Must be an exact, non--negative integer.
+
+@item options
+Must be an enumeration set of type @code{enum-socket-data-options}; when
+no options need to be set, it can be @code{(socket-data-options)}.
+@end table
 @end deffn
+
+
+For the following functions: when the optional @var{options} argument is
+not used, it defaults to @code{(socket-data-options)}.
+
+
+@deffn Function send/string @var{sock} @var{str}
+@deffnx Function send/string @var{sock} @var{str} @var{options}
+@deffnx Parameter send/string-function
+@deffnx Function primitive:send/string @var{sock} @var{str}
+@deffnx Function primitive:send/string @var{sock} @var{str} @var{options}
+Wrapper for @func{send} which sends the Scheme string @var{str}.  The
+Scheme string is converted to a memory block holding its @acronym{UTF8}
+representation; @strong{no} terminating zero byte is sent.
+@end deffn
+
+
+@deffn Function send/bytevector @var{sock} @var{bv}
+@deffnx Function send/bytevector @var{sock} @var{bv} @var{options}
+@deffnx Parameter send/bytevector-function
+@deffnx Function primitive:send/bytevector @var{sock} @var{bv}
+@deffnx Function primitive:send/bytevector @var{sock} @var{bv} @var{options}
+Wrapper for @func{send} which sends the Scheme bytevector @var{bv}.
+@end deffn
+
+
+@deffn Function send/memblock @var{sock} @var{mb}
+@deffnx Function send/memblock @var{sock} @var{mb} @var{options}
+@deffnx Parameter send/memblock-function
+@deffnx Function primitive:send/memblock @var{sock} @var{mb}
+@deffnx Function primitive:send/memblock @var{sock} @var{mb} @var{options}
+Wrapper for @func{send} which sends data from the memory block
+referenced by @var{mb}, which must be a @class{memblock} record.
+@nauref{memory blocks, Memory blocks}.
+@end deffn
+
+@c page
+@node sockets recv
+@section Receiving data from through stream sockets
+
+
+The following functions manage receiving data through stream sockets.
+@glibcref{Receiving Data, Receiving Data}.
 
 
 @deffn Function recv @var{sock} @var{ptr} @var{len} @var{options}
 @deffnx Parameter recv-function
 @deffnx Function primitive:recv @var{sock} @var{ptr} @var{len} @var{options}
 @deffnx Function platform:recv @var{sock-int} @var{ptr} @var{len} @var{options-int}
-Read at most @var{len} bytes to the buffer referenced by
-@var{ptr} reading them from the socket @var{sock}, which must be a
-@class{socket} record.  Return the number of bytes actually received.
+Read at most @var{len} bytes from the socket @var{sock} to the buffer
+referenced by @var{ptr}; return the number of bytes actually received.
 
-@var{options} must be an enumeration set of type
-@code{enum-socket-data-options}.
+@table @var
+@item sock
+Must be a record of type @class{socket}.
+
+@item ptr
+Must be a pointer object.
+
+@item len
+Must be an exact, non--negative integer.
+
+@item options
+Must be an enumeration set of type @code{enum-socket-data-options}; when
+no options need to be set, it can be @code{(socket-data-options)}.
+@end table
 @end deffn
+
+
+For the following functions: when the optional @var{options} argument is
+not used, it defaults to @code{(socket-data-options)}.
+
+
+@deffn Function recv/string @var{sock} @var{max-len}
+@deffnx Function recv/string @var{sock} @var{max-len} @var{options}
+@deffnx Parameter recv/string-function
+@deffnx Function primitive:recv/string @var{sock} @var{max-len}
+@deffnx Function primitive:recv/string @var{sock} @var{max-len} @var{options}
+Wrapper for @func{recv} which converts the bytes read, at most
+@var{max-len}, to a Scheme string and returns it.  The data read is
+interpreted as a string in @acronym{UTF8} representation; @strong{no}
+terminating zero byte is expected from the socket.
+@end deffn
+
+
+@deffn Function recv/bytevector @var{sock} @var{max-len}
+@deffnx Function recv/bytevector @var{sock} @var{max-len} @var{options}
+@deffnx Parameter recv/bytevector-function
+@deffnx Function primitive:recv/bytevector @var{sock} @var{max-len}
+@deffnx Function primitive:recv/bytevector @var{sock} @var{max-len} @var{options}
+Wrapper for @func{recv} which converts the bytes read, at most
+@var{max-len}, to a Scheme bytevector and returns it.
+@end deffn
+
+
+@deffn Function recv/memblock @var{sock} @var{max-len} @var{malloc}
+@deffnx Function recv/memblock @var{sock} @var{max-len} @var{options} @var{malloc}
+@deffnx Parameter recv/memblock-function
+@deffnx Function primitive:recv/memblock @var{sock} @var{max-len} @var{malloc}
+@deffnx Function primitive:recv/memblock @var{sock} @var{max-len} @var{options} @var{malloc}
+Wrapper for @func{recv} which stores the bytes read, at most
+@var{max-len}, into a newly allocated block of memory and returns a
+@class{memblock} record referencing it.  @nauref{memory blocks, Memory
+blocks}.
+
+Memory is allocated with the supplied @var{malloc} function, which must
+have an interface compatible with @func{malloc} from the
+@library{foreign memory} library.  @nauref{memory alloc high, Exception
+raising functions}.
+@end deffn
+
+@c page
+@node sockets sendto
+@section Sending data through datagram sockets
+
+
+The following functions manage sending data through datagram sockets.
+@glibcref{Sending Datagrams, Sending Datagrams}.
 
 
 @deffn Function sendto @var{sock} @var{ptr} @var{len} @var{options} @var{sockaddr}
 @deffnx Parameter sendto-function
 @deffnx Function primitive:sendto @var{sock} @var{ptr} @var{len} @var{options} @var{sockaddr}
 @deffnx Function platform:sendto @var{sock-int} @var{ptr} @var{len} @var{options-int}
-Write at most @var{len} bytes from the buffer referenced by
-@var{ptr} to the socket @var{sock}, which must be a @class{socket}
-record.  Return the number of bytes actually sent.
+Write at most @var{len} bytes from the buffer referenced by @var{ptr}
+through the socket @var{sock} to the address selected by @var{sockaddr};
+return the number of bytes actually sent.  Arguments description:
 
-@var{options} must be an enumeration set of type
-@code{enum-socket-data-options}.
+@table @var
+@item sock
+Must be a record of type @class{socket}.
+
+@item ptr
+Must be a pointer object.
+
+@item len
+Must be an exact, non--negative integer.
+
+@item options
+Must be an enumeration set of type @code{enum-socket-data-options}; when
+no options need to be set, it can be @code{(socket-data-options)}.
+
+@item sockaddr
+Must be a record of type @class{sockaddr-in}, @class{sockaddr-in6} or
+@class{sockaddr-un}.
+@end table
 @end deffn
+
+
+For the following functions: when the optional @var{options} argument is
+not used, it defaults to @code{(socket-data-options)}.
+
+
+@deffn Function sendto/string @var{sock} @var{str} @var{sockaddr}
+@deffnx Function sendto/string @var{sock} @var{str} @var{options} @var{sockaddr}
+@deffnx Parameter sendto/string-function
+@deffnx Function primitive:sendto/string @var{sock} @var{str} @var{sockaddr}
+@deffnx Function primitive:sendto/string @var{sock} @var{str} @var{options} @var{sockaddr}
+Wrapper for @func{sendto} which sends the Scheme string @var{str}.  The
+Scheme string is converted to a memory block holding its @acronym{UTF8}
+representation; @strong{no} terminating zero byte is sent.
+@end deffn
+
+
+@deffn Function sendto/bytevector @var{sock} @var{bv} @var{sockaddr}
+@deffnx Function sendto/bytevector @var{sock} @var{bv} @var{options} @var{sockaddr}
+@deffnx Parameter sendto/bytevector-function
+@deffnx Function primitive:sendto/bytevector @var{sock} @var{bv} @var{sockaddr}
+@deffnx Function primitive:sendto/bytevector @var{sock} @var{bv} @var{options} @var{sockaddr}
+Wrapper for @func{sendto} which sends the Scheme bytevector @var{bv}.
+@end deffn
+
+
+@deffn Function sendto/memblock @var{sock} @var{mb} @var{sockaddr}
+@deffnx Function sendto/memblock @var{sock} @var{mb} @var{options} @var{sockaddr}
+@deffnx Parameter sendto/memblock-function
+@deffnx Function primitive:sendto/memblock @var{sock} @var{mb} @var{sockaddr}
+@deffnx Function primitive:sendto/memblock @var{sock} @var{mb} @var{options} @var{sockaddr}
+Wrapper for @func{sendto} which sends data from the memory block
+referenced by @var{mb}, which must be a @class{memblock} record.
+@nauref{memory blocks, Memory blocks}.
+@end deffn
+
+@c page
+@node sockets recvfrom
+@section Receiving data from through datagram sockets
+
+
+The following functions manage receiving data through datagram sockets.
+@glibcref{Receiving Datagrams, Receiving Datagrams}.
 
 
 @deffn Function recvfrom @var{sock} @var{ptr} @var{len} @var{options}
 @deffnx Parameter recvfrom-function
 @deffnx Function primitive:recvfrom @var{sock} @var{ptr} @var{len} @var{options}
 @deffnx Function platform:recvfrom @var{sock-int} @var{ptr} @var{len} @var{options-int}
-Read at most @var{len} bytes to the buffer referenced by @var{ptr}
-reading them from the socket @var{sock}, which must be a @class{socket}
-record.  Return the number of bytes actually received.
+Read at most @var{len} bytes from the socket @var{sock} to the buffer
+referenced by @var{ptr}.  Return two values: the number of bytes
+actually received; a record of type @class{sockaddr-in},
+@class{sockaddr-in6} or @class{sockaddr-un} representing the address
+from which data is received.
 
-@var{options} must be an enumeration set of type
-@code{enum-socket-data-options}.
+@table @var
+@item sock
+Must be a record of type @class{socket}.
+
+@item ptr
+Must be a pointer object.
+
+@item len
+Must be an exact, non--negative integer.
+
+@item options
+Must be an enumeration set of type @code{enum-socket-data-options}; when
+no options need to be set, it can be @code{(socket-data-options)}.
+@end table
 @end deffn
+
+
+For the following functions: when the optional @var{options} argument is
+not used, it defaults to @code{(socket-data-options)}.
+
+
+@deffn Function recvfrom/string @var{sock} @var{max-len}
+@deffnx Function recvfrom/string @var{sock} @var{max-len} @var{options}
+@deffnx Parameter recvfrom/string-function
+@deffnx Function primitive:recvfrom/string @var{sock} @var{max-len}
+@deffnx Function primitive:recvfrom/string @var{sock} @var{max-len} @var{options}
+Wrapper for @func{recvfrom} which converts the bytes read, at most
+@var{max-len}, to a Scheme string and returns it.  The data read is
+interpreted as a string in @acronym{UTF8} representation; @strong{no}
+terminating zero byte is expected from the socket.
+@end deffn
+
+
+@deffn Function recvfrom/bytevector @var{sock} @var{max-len}
+@deffnx Function recvfrom/bytevector @var{sock} @var{max-len} @var{options}
+@deffnx Parameter recvfrom/bytevector-function
+@deffnx Function primitive:recvfrom/bytevector @var{sock} @var{max-len}
+@deffnx Function primitive:recvfrom/bytevector @var{sock} @var{max-len} @var{options}
+Wrapper for @func{recvfrom} which converts the bytes read, at most
+@var{max-len}, to a Scheme bytevector and returns it.
+@end deffn
+
+
+@deffn Function recvfrom/memblock @var{sock} @var{max-len} @var{malloc}
+@deffnx Function recvfrom/memblock @var{sock} @var{max-len} @var{options} @var{malloc}
+@deffnx Parameter recvfrom/memblock-function
+@deffnx Function primitive:recvfrom/memblock @var{sock} @var{max-len} @var{malloc}
+@deffnx Function primitive:recvfrom/memblock @var{sock} @var{max-len} @var{options} @var{malloc}
+Wrapper for @func{recvfrom} which stores the bytes read, at most
+@var{max-len}, into a newly allocated block of memory and returns a
+@class{memblock} record referencing it.  @nauref{memory blocks, Memory
+blocks}.
+
+Memory is allocated with the supplied @var{malloc} function, which must
+have an interface compatible with @func{malloc} from the
+@library{foreign memory} library.  @nauref{memory alloc high, Exception
+raising functions}.
+@end deffn
+
 
 @c page
 @node sockets options
@@ -5929,7 +6185,7 @@ and @func{setsockopt}.
 @item sndbuf
 @itemx rcvbuf
 The value is an exact non--negative integer, representing the size of
-input/output buffers; notice that this appears to be more a
+send/receive buffers; notice that this appears to be more a
 ``suggestion'' to the system, rather than a strict order.  Can be used
 with both @func{getsockopt} and @func{setsockopt}.
 
