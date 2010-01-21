@@ -38,11 +38,16 @@ the documentation is available on line:
 Notes for --- tag 0.1a3
 ------------------------------
 
-* Updated to work with Nausicaa/Scheme 0.1a7
+* Updated to work with Nausicaa/Scheme 0.1a9.
 
 * Recordificated structure pointers and other objects.
 
-* Added modules for system inspection, signal handling.
+* Added  modules  for  system inspection,  signal  handling,
+  sockets.
+
+* Renamed bindings.
+
+* Still alpha but more usable/useful.
 
 
 Notes for 2009-11-15 tag 0.1a2

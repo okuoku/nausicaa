@@ -12,7 +12,9 @@
 
 * posix
 
-  Implemente the fd AIO API?  It requires pthreads...
+  Implement: sendmsg, recvmsg, cmsg.  See the linux manual pages.
+
+  Implement the fd AIO API?  It requires pthreads...
 
 * linux
 

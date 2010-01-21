@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -82,12 +82,12 @@
 
       (check
 	  (let ((r (posix:uname)))
-	    (<struct-utsname>? r))
+	    (<utsname>? r))
 	=> #t)
 
       (check
 	  (let ((r (posix:uname)))
-	    (<struct-utsname>-sysname r))
+	    (<utsname>-sysname r))
 	=> "Linux")
 
       #t)))
@@ -112,7 +112,7 @@
 				(glibc:endfsent)
 				tabs))))))
 ;;;(pretty-print tabs)
-	      (for-all <struct-fstab>? tabs)))
+	      (for-all <fstab>? tabs)))
 	=> #t)
 
       (check
@@ -121,7 +121,7 @@
 	    (let ((tab (glibc:getfsspec "/dev/sda3")))
 	      (glibc:endfsent)
 ;;;(pretty-print tab)(newline)
-	      (<struct-fstab>? tab)))
+	      (<fstab>? tab)))
 	=> #t)
 
       (check
@@ -130,7 +130,7 @@
 	    (let ((tab (glibc:getfsfile "/")))
 	      (glibc:endfsent)
 ;;;(pretty-print tab)(newline)
-	      (<struct-fstab>? tab)))
+	      (<fstab>? tab)))
 	=> #t)
 
       #t)))
@@ -154,7 +154,7 @@
 			       (glibc:endmntent stream)
 			       tabs)))))
 ;;;(pretty-print tabs)
-	    (for-all <struct-mntent>? tabs))
+	    (for-all <mntent>? tabs))
 	=> #t)
 
       #t)))

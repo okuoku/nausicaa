@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -516,8 +516,8 @@ Ses ailes de geant l'empechent de marcher.")
 
 	  (check
 	      (let* ((record	(posix:stat the-file))
-		     (uid	(<struct-stat>-uid record))
-		     (gid	(<struct-stat>-gid record)))
+		     (uid	(<stat>-uid record))
+		     (gid	(<stat>-gid record)))
 		(posix:chown the-file uid gid))
 	    => 0)
 
@@ -528,8 +528,8 @@ Ses ailes de geant l'empechent de marcher.")
 			       (with
 				(posix:close fd)))))
 		  (let* ((record	(posix:fstat fd))
-			 (uid		(<struct-stat>-uid record))
-			 (gid		(<struct-stat>-gid record)))
+			 (uid		(<stat>-uid record))
+			 (gid		(<stat>-gid record)))
 		    (posix:fchown fd uid gid))))
 	    => 0)
 
@@ -669,8 +669,8 @@ Ses ailes de geant l'empechent de marcher.")
 
 	(define (get-times pathname)
 	  (let ((record (posix:stat the-file)))
-	    (list (<struct-stat>-atime record)
-		  (<struct-stat>-mtime record))))
+	    (list (<stat>-atime record)
+		  (<stat>-mtime record))))
 
 	(with-compensations
 	  (clean-test-hierarchy)

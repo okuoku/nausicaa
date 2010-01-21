@@ -55,55 +55,55 @@
 
 ;;; --------------------------------------------------------------------
 
-    <struct-passwd>		<struct-passwd-rtd>
-    make-<struct-passwd>	<struct-passwd>?
-    <struct-passwd>-name	<struct-passwd>-name-set!
-    <struct-passwd>-passwd	<struct-passwd>-passwd-set!
-    <struct-passwd>-uid		<struct-passwd>-uid-set!
-    <struct-passwd>-gid		<struct-passwd>-gid-set!
-    <struct-passwd>-gecos	<struct-passwd>-gecos-set!
-    <struct-passwd>-dir		<struct-passwd>-dir-set!
-    <struct-passwd>-shell	<struct-passwd>-shell-set!
+    <passwd>			<passwd-rtd>
+    make-<passwd>		<passwd>?
+    <passwd>-name		<passwd>-name-set!
+    <passwd>-passwd		<passwd>-passwd-set!
+    <passwd>-uid		<passwd>-uid-set!
+    <passwd>-gid		<passwd>-gid-set!
+    <passwd>-gecos		<passwd>-gecos-set!
+    <passwd>-dir		<passwd>-dir-set!
+    <passwd>-shell		<passwd>-shell-set!
 
 ;;; --------------------------------------------------------------------
 
-    <struct-group>		<struct-group-rtd>
-    make-<struct-group>		<struct-group>?
-    <struct-group>-name		<struct-group>-name-set!
-    <struct-group>-gid		<struct-group>-gid-set!
-    <struct-group>-mem		<struct-group>-mem-set!
+    <group>			<group-rtd>
+    make-<group>		<group>?
+    <group>-name		<group>-name-set!
+    <group>-gid			<group>-gid-set!
+    <group>-mem			<group>-mem-set!
 
 ;;; --------------------------------------------------------------------
 
-    <struct-utsname>		<struct-utsname-rtd>
-    make-<struct-utsname>	<struct-utsname>?
-    <struct-utsname>-sysname	<struct-utsname>-sysname-set!
-    <struct-utsname>-release	<struct-utsname>-release-set!
-    <struct-utsname>-version	<struct-utsname>-version-set!
-    <struct-utsname>-machine	<struct-utsname>-machine-set!
+    <utsname>			<utsname-rtd>
+    make-<utsname>		<utsname>?
+    <utsname>-sysname		<utsname>-sysname-set!
+    <utsname>-release		<utsname>-release-set!
+    <utsname>-version		<utsname>-version-set!
+    <utsname>-machine		<utsname>-machine-set!
 
 ;;; --------------------------------------------------------------------
 
-    <struct-fstab>		<struct-fstab-rtd>
-    make-<struct-fstab>		<struct-fstab>?
-    <struct-fstab>-spec		<struct-fstab>-spec-set!
-    <struct-fstab>-file		<struct-fstab>-file-set!
-    <struct-fstab>-vfstype	<struct-fstab>-vfstype-set!
-    <struct-fstab>-mntops	<struct-fstab>-mntops-set!
-    <struct-fstab>-type		<struct-fstab>-type-set!
-    <struct-fstab>-freq		<struct-fstab>-freq-set!
-    <struct-fstab>-passno	<struct-fstab>-passno-set!
+    <fstab>			<fstab-rtd>
+    make-<fstab>		<fstab>?
+    <fstab>-spec		<fstab>-spec-set!
+    <fstab>-file		<fstab>-file-set!
+    <fstab>-vfstype		<fstab>-vfstype-set!
+    <fstab>-mntops		<fstab>-mntops-set!
+    <fstab>-type		<fstab>-type-set!
+    <fstab>-freq		<fstab>-freq-set!
+    <fstab>-passno		<fstab>-passno-set!
 
 ;;; --------------------------------------------------------------------
 
-    <struct-mntent>		<struct-mntent-rtd>
-    make-<struct-mntent>	<struct-mntent>?
-    <struct-mntent>-fsname	<struct-mntent>-fsname-set!
-    <struct-mntent>-dir		<struct-mntent>-dir-set!
-    <struct-mntent>-type	<struct-mntent>-type-set!
-    <struct-mntent>-opts	<struct-mntent>-opts-set!
-    <struct-mntent>-freq	<struct-mntent>-freq-set!
-    <struct-mntent>-passno	<struct-mntent>-passno-set!
+    <mntent>			<mntent-rtd>
+    make-<mntent>		<mntent>?
+    <mntent>-fsname		<mntent>-fsname-set!
+    <mntent>-dir		<mntent>-dir-set!
+    <mntent>-type		<mntent>-type-set!
+    <mntent>-opts		<mntent>-opts-set!
+    <mntent>-freq		<mntent>-freq-set!
+    <mntent>-passno		<mntent>-passno-set!
 
 ;;; --------------------------------------------------------------------
 
@@ -116,153 +116,153 @@
 
 ;;; --------------------------------------------------------------------
 
-    <struct-stat>		<struct-stat-rtd>
-    make-<struct-stat>		<struct-stat>?
-    <struct-stat>-mode
-    <struct-stat>-ino
-    <struct-stat>-dev
-    <struct-stat>-nlink
-    <struct-stat>-uid
-    <struct-stat>-gid
-    <struct-stat>-size
-    <struct-stat>-atime
-    <struct-stat>-atime_usec
-    <struct-stat>-mtime
-    <struct-stat>-mtime_usec
-    <struct-stat>-ctime
-    <struct-stat>-ctime_usec
-    <struct-stat>-blocks
-    <struct-stat>-blksize
+    <stat>			<stat-rtd>
+    make-<stat>			<stat>?
+    <stat>-mode
+    <stat>-ino
+    <stat>-dev
+    <stat>-nlink
+    <stat>-uid
+    <stat>-gid
+    <stat>-size
+    <stat>-atime
+    <stat>-atime_usec
+    <stat>-mtime
+    <stat>-mtime_usec
+    <stat>-ctime
+    <stat>-ctime_usec
+    <stat>-blocks
+    <stat>-blksize
 
 ;;; --------------------------------------------------------------------
 
-    <struct-tms>			<struct-tms-rtd>
-    make-<struct-tms>			<struct-tms>?
-    <struct-tms>-utime			<struct-tms>-utime-set!
-    <struct-tms>-stime			<struct-tms>-stime-set!
-    <struct-tms>-cutime			<struct-tms>-cutime-set!
-    <struct-tms>-cstime			<struct-tms>-cstime-set!
+    <tms>			<tms-rtd>
+    make-<tms>			<tms>?
+    <tms>-utime			<tms>-utime-set!
+    <tms>-stime			<tms>-stime-set!
+    <tms>-cutime		<tms>-cutime-set!
+    <tms>-cstime		<tms>-cstime-set!
 
-    <struct-timeval>			<struct-timeval-rtd>
-    make-<struct-timeval>		<struct-timeval>?
-    <struct-timeval>-sec		<struct-timeval>-sec-set!
-    <struct-timeval>-usec		<struct-timeval>-usec-set!
+    <timeval>			<timeval-rtd>
+    make-<timeval>		<timeval>?
+    <timeval>-sec		<timeval>-sec-set!
+    <timeval>-usec		<timeval>-usec-set!
 
-    <struct-timespec>			<struct-timespec-rtd>
-    make-<struct-timespec>		<struct-timespec>?
-    <struct-timespec>-sec		<struct-timespec>-sec-set!
-    <struct-timespec>-nsec		<struct-timespec>-nsec-set!
+    <timespec>			<timespec-rtd>
+    make-<timespec>		<timespec>?
+    <timespec>-sec		<timespec>-sec-set!
+    <timespec>-nsec		<timespec>-nsec-set!
 
-    <struct-timezone>			<struct-timezone-rtd>
-    make-<struct-timezone>		<struct-timezone>?
-    <struct-timezone>-minuteswest	<struct-timezone>-minuteswest-set!
-    <struct-timezone>-dsttime		<struct-timezone>-dsttime-set!
+    <timezone>			<timezone-rtd>
+    make-<timezone>		<timezone>?
+    <timezone>-minuteswest	<timezone>-minuteswest-set!
+    <timezone>-dsttime		<timezone>-dsttime-set!
 
-    <struct-tm>				<struct-tm-rtd>
-    make-<struct-tm>			<struct-tm>?
-    <struct-tm>-sec			<struct-tm>-sec-set!
-    <struct-tm>-min			<struct-tm>-min-set!
-    <struct-tm>-hour			<struct-tm>-hour-set!
-    <struct-tm>-mday			<struct-tm>-mday-set!
-    <struct-tm>-mon			<struct-tm>-mon-set!
-    <struct-tm>-year			<struct-tm>-year-set!
-    <struct-tm>-wday			<struct-tm>-wday-set!
-    <struct-tm>-yday			<struct-tm>-yday-set!
-    <struct-tm>-isdst			<struct-tm>-isdst-set!
-    <struct-tm>-gmtoff			<struct-tm>-gmtoff-set!
-    <struct-tm>-zone			<struct-tm>-zone-set!
+    <tm>			<tm-rtd>
+    make-<tm>			<tm>?
+    <tm>-sec			<tm>-sec-set!
+    <tm>-min			<tm>-min-set!
+    <tm>-hour			<tm>-hour-set!
+    <tm>-mday			<tm>-mday-set!
+    <tm>-mon			<tm>-mon-set!
+    <tm>-year			<tm>-year-set!
+    <tm>-wday			<tm>-wday-set!
+    <tm>-yday			<tm>-yday-set!
+    <tm>-isdst			<tm>-isdst-set!
+    <tm>-gmtoff			<tm>-gmtoff-set!
+    <tm>-zone			<tm>-zone-set!
 
-    <struct-ntptimeval>			<struct-ntptimeval-rtd>
-    make-<struct-ntptimeval>		<struct-ntptimeval>?
-    <struct-ntptimeval>-time		<struct-ntptimeval>-time-set!
-    <struct-ntptimeval>-maxerror	<struct-ntptimeval>-maxerror-set!
-    <struct-ntptimeval>-esterror	<struct-ntptimeval>-esterror-set!
+    <ntptimeval>		<ntptimeval-rtd>
+    make-<ntptimeval>		<ntptimeval>?
+    <ntptimeval>-time		<ntptimeval>-time-set!
+    <ntptimeval>-maxerror	<ntptimeval>-maxerror-set!
+    <ntptimeval>-esterror	<ntptimeval>-esterror-set!
 
-    <struct-timex>			<struct-timex-rtd>
-    make-<struct-timex>			<struct-timex>?
-    <struct-timex>-modes		<struct-timex>-modes-set!
-    <struct-timex>-offset		<struct-timex>-offset-set!
-    <struct-timex>-freq			<struct-timex>-freq-set!
-    <struct-timex>-maxerror		<struct-timex>-maxerror-set!
-    <struct-timex>-esterror		<struct-timex>-esterror-set!
-    <struct-timex>-status		<struct-timex>-status-set!
-    <struct-timex>-constant		<struct-timex>-constant-set!
-    <struct-timex>-precision		<struct-timex>-precision-set!
-    <struct-timex>-tolerance		<struct-timex>-tolerance-set!
-    <struct-timex>-time			<struct-timex>-time-set!
-    <struct-timex>-tick			<struct-timex>-tick-set!
-    <struct-timex>-ppsfreq		<struct-timex>-ppsfreq-set!
-    <struct-timex>-jitter		<struct-timex>-jitter-set!
-    <struct-timex>-shift		<struct-timex>-shift-set!
-    <struct-timex>-stabil		<struct-timex>-stabil-set!
-    <struct-timex>-jitcnt		<struct-timex>-jitcnt-set!
-    <struct-timex>-calcnt		<struct-timex>-calcnt-set!
-    <struct-timex>-errcnt		<struct-timex>-errcnt-set!
-    <struct-timex>-stbcnt		<struct-timex>-stbcnt-set!
+    <timex>			<timex-rtd>
+    make-<timex>		<timex>?
+    <timex>-modes		<timex>-modes-set!
+    <timex>-offset		<timex>-offset-set!
+    <timex>-freq		<timex>-freq-set!
+    <timex>-maxerror		<timex>-maxerror-set!
+    <timex>-esterror		<timex>-esterror-set!
+    <timex>-status		<timex>-status-set!
+    <timex>-constant		<timex>-constant-set!
+    <timex>-precision		<timex>-precision-set!
+    <timex>-tolerance		<timex>-tolerance-set!
+    <timex>-time		<timex>-time-set!
+    <timex>-tick		<timex>-tick-set!
+    <timex>-ppsfreq		<timex>-ppsfreq-set!
+    <timex>-jitter		<timex>-jitter-set!
+    <timex>-shift		<timex>-shift-set!
+    <timex>-stabil		<timex>-stabil-set!
+    <timex>-jitcnt		<timex>-jitcnt-set!
+    <timex>-calcnt		<timex>-calcnt-set!
+    <timex>-errcnt		<timex>-errcnt-set!
+    <timex>-stbcnt		<timex>-stbcnt-set!
 
-    <struct-itimerval>			<struct-itimerval-rtd>
-    make-<struct-itimerval>		<struct-itimerval>?
-    <struct-itimerval>-interval		<struct-itimerval>-interval-set!
-    <struct-itimerval>-value		<struct-itimerval>-value-set!
+    <itimerval>			<itimerval-rtd>
+    make-<itimerval>		<itimerval>?
+    <itimerval>-interval	<itimerval>-interval-set!
+    <itimerval>-value		<itimerval>-value-set!
 
 ;;; --------------------------------------------------------------------
 
-    <socket>				<socket-rtd>
-    make-<socket>			<socket>?
+    <socket>			<socket-rtd>
+    make-<socket>		<socket>?
     <socket>-namespace
     <socket>-style
     <socket>-protocol
 
-    <sockaddr>				<sockaddr-rtd>
-    make-<sockaddr>			<sockaddr>?
+    <sockaddr>			<sockaddr-rtd>
+    make-<sockaddr>		<sockaddr>?
     <sockaddr>-family
 
-    <sockaddr-in>			<sockaddr-in-rtd>
-    make-<sockaddr-in>			<sockaddr-in>?
+    <sockaddr-in>		<sockaddr-in-rtd>
+    make-<sockaddr-in>		<sockaddr-in>?
     <sockaddr-in>-family
-    <sockaddr-in>-addr			<sockaddr-in>-addr-set!
-    <sockaddr-in>-port			<sockaddr-in>-port-set!
+    <sockaddr-in>-addr		<sockaddr-in>-addr-set!
+    <sockaddr-in>-port		<sockaddr-in>-port-set!
 
-    <sockaddr-in6>			<sockaddr-in6-rtd>
-    make-<sockaddr-in6>			<sockaddr-in6>?
+    <sockaddr-in6>		<sockaddr-in6-rtd>
+    make-<sockaddr-in6>		<sockaddr-in6>?
     <sockaddr-in6>-family
-    <sockaddr-in6>-addr			<sockaddr-in6>-addr-set!
-    <sockaddr-in6>-port			<sockaddr-in6>-port-set!
+    <sockaddr-in6>-addr		<sockaddr-in6>-addr-set!
+    <sockaddr-in6>-port		<sockaddr-in6>-port-set!
 
-    <sockaddr-un>			<sockaddr-un-rtd>
-    make-<sockaddr-un>			<sockaddr-un>?
+    <sockaddr-un>		<sockaddr-un-rtd>
+    make-<sockaddr-un>		<sockaddr-un>?
     <sockaddr-un>-family
-    <sockaddr-un>-pathname		<sockaddr-un>-pathname-set!
+    <sockaddr-un>-pathname	<sockaddr-un>-pathname-set!
 
-    <if-nameindex>			<if-nameindex-rtd>
-    make-<if-nameindex>			<if-nameindex>?
+    <if-nameindex>		<if-nameindex-rtd>
+    make-<if-nameindex>		<if-nameindex>?
     <if-nameindex>-index
     <if-nameindex>-name
 
 ;;; --------------------------------------------------------------------
 
-    <hostent>				<hostent-rtd>
-    make-<hostent>			<hostent>?
+    <hostent>			<hostent-rtd>
+    make-<hostent>		<hostent>?
     <hostent>-name
     <hostent>-aliases
     <hostent>-addrtype
     <hostent>-addrlist
 
-    <netent>				<netent-rtd>
-    make-<netent>			<netent>?
+    <netent>			<netent-rtd>
+    make-<netent>		<netent>?
     <netent>-name
     <netent>-aliases
     <netent>-addrtype
     <netent>-net
 
-    <protoent>				<protoent-rtd>
-    make-<protoent>			<protoent>?
+    <protoent>			<protoent-rtd>
+    make-<protoent>		<protoent>?
     <protoent>-name
     <protoent>-aliases
     <protoent>-proto
 
-    <servent>				<servent-rtd>
-    make-<servent>			<servent>?
+    <servent>			<servent-rtd>
+    make-<servent>		<servent>?
     <servent>-name
     <servent>-aliases
     <servent>-port
@@ -388,8 +388,8 @@
   (pointer->struct-timeval (malloc sizeof-timeval)))
 
 
-(define-record-type <struct-passwd>
-  (nongenerative nausicaa:posix:<struct-passwd>)
+(define-record-type <passwd>
+  (nongenerative nausicaa:posix:<passwd>)
   (fields (mutable name)
 	  (mutable passwd)
 	  (mutable uid)
@@ -398,34 +398,34 @@
 	  (mutable dir)
 	  (mutable shell)))
 
-(define <struct-passwd-rtd>
-  (record-type-descriptor <struct-passwd>))
+(define <passwd-rtd>
+  (record-type-descriptor <passwd>))
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <struct-group>
-  (nongenerative nausicaa:posix:<struct-group>)
+(define-record-type <group>
+  (nongenerative nausicaa:posix:<group>)
   (fields (mutable name)
 	  (mutable gid)
 	  (mutable mem)))
 
-(define <struct-group-rtd>
-  (record-type-descriptor <struct-group>))
+(define <group-rtd>
+  (record-type-descriptor <group>))
 
 
-(define-record-type <struct-utsname>
-  (nongenerative nausicaa:posix:<struct-utsname>)
+(define-record-type <utsname>
+  (nongenerative nausicaa:posix:<utsname>)
   (fields (mutable sysname)
 	  (mutable release)
 	  (mutable version)
 	  (mutable machine)))
 
-(define <struct-utsname-rtd>
-  (record-type-descriptor <struct-utsname>))
+(define <utsname-rtd>
+  (record-type-descriptor <utsname>))
 
 
-(define-record-type <struct-fstab>
-  (nongenerative nausicaa:posix:<struct-fstab>)
+(define-record-type <fstab>
+  (nongenerative nausicaa:posix:<fstab>)
   (fields (mutable spec)
 	  (mutable file)
 	  (mutable vfstype)
@@ -434,13 +434,13 @@
 	  (mutable freq)
 	  (mutable passno)))
 
-(define <struct-fstab-rtd>
-  (record-type-descriptor <struct-fstab>))
+(define <fstab-rtd>
+  (record-type-descriptor <fstab>))
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <struct-mntent>
-  (nongenerative nausicaa:posix:<struct-mntent>)
+(define-record-type <mntent>
+  (nongenerative nausicaa:posix:<mntent>)
   (fields (mutable fsname)
 	  (mutable dir)
 	  (mutable type)
@@ -448,8 +448,8 @@
 	  (mutable freq)
 	  (mutable passno)))
 
-(define <struct-mntent-rtd>
-  (record-type-descriptor <struct-mntent>))
+(define <mntent-rtd>
+  (record-type-descriptor <mntent>))
 
 
 (define-record-type <process-term-status>
@@ -466,8 +466,8 @@
   (record-type-descriptor <process-term-status>))
 
 
-(define-record-type <struct-stat>
-  (nongenerative nausicaa:posix:<struct-stat>)
+(define-record-type <stat>
+  (nongenerative nausicaa:posix:<stat>)
   (fields (immutable mode)
 	  (immutable ino)
 	  (immutable dev)
@@ -484,54 +484,54 @@
 	  (immutable blocks)
 	  (immutable blksize)))
 
-(define <struct-stat-rtd>
-  (record-type-descriptor <struct-stat>))
+(define <stat-rtd>
+  (record-type-descriptor <stat>))
 
 
-(define-record-type <struct-tms>
-  (nongenerative nausicaa:posix:<struct-tms>)
+(define-record-type <tms>
+  (nongenerative nausicaa:posix:<tms>)
   (fields (mutable utime)
 	  (mutable stime)
 	  (mutable cutime)
 	  (mutable cstime)))
 
-(define <struct-tms-rtd>
-  (record-type-descriptor <struct-tms>))
+(define <tms-rtd>
+  (record-type-descriptor <tms>))
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <struct-timeval>
-  (nongenerative nausicaa:posix:<struct-timeval>)
+(define-record-type <timeval>
+  (nongenerative nausicaa:posix:<timeval>)
   (fields (mutable sec)
 	  (mutable usec)))
 
-(define <struct-timeval-rtd>
-  (record-type-descriptor <struct-timeval>))
+(define <timeval-rtd>
+  (record-type-descriptor <timeval>))
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <struct-timespec>
-  (nongenerative nausicaa:posix:<struct-timespec>)
+(define-record-type <timespec>
+  (nongenerative nausicaa:posix:<timespec>)
   (fields (mutable sec)
 	  (mutable nsec)))
 
-(define <struct-timespec-rtd>
-  (record-type-descriptor <struct-timespec>))
+(define <timespec-rtd>
+  (record-type-descriptor <timespec>))
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <struct-timezone>
-  (nongenerative nausicaa:posix:<struct-timezone>)
+(define-record-type <timezone>
+  (nongenerative nausicaa:posix:<timezone>)
   (fields (mutable minuteswest)
 	  (mutable dsttime)))
 
-(define <struct-timezone-rtd>
-  (record-type-descriptor <struct-timezone>))
+(define <timezone-rtd>
+  (record-type-descriptor <timezone>))
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <struct-tm>
-  (nongenerative nausicaa:posix:<struct-tm>)
+(define-record-type <tm>
+  (nongenerative nausicaa:posix:<tm>)
   (fields (mutable sec)
 	  (mutable min)
 	  (mutable hour)
@@ -544,24 +544,24 @@
 	  (mutable gmtoff)
 	  (mutable zone)))
 
-(define <struct-tm-rtd>
-  (record-type-descriptor <struct-tm>))
+(define <tm-rtd>
+  (record-type-descriptor <tm>))
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <struct-ntptimeval>
-  (nongenerative nausicaa:posix:<struct-ntptimeval>)
+(define-record-type <ntptimeval>
+  (nongenerative nausicaa:posix:<ntptimeval>)
   (fields (mutable time)
 	  (mutable maxerror)
 	  (mutable esterror)))
 
-(define <struct-ntptimeval-rtd>
-  (record-type-descriptor <struct-ntptimeval>))
+(define <ntptimeval-rtd>
+  (record-type-descriptor <ntptimeval>))
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <struct-timex>
-  (nongenerative nausicaa:posix:<struct-timex>)
+(define-record-type <timex>
+  (nongenerative nausicaa:posix:<timex>)
   (fields (mutable modes)
 	  (mutable offset)
 	  (mutable freq)
@@ -582,18 +582,18 @@
 	  (mutable errcnt)
 	  (mutable stbcnt)))
 
-(define <struct-timex-rtd>
-  (record-type-descriptor <struct-timex>))
+(define <timex-rtd>
+  (record-type-descriptor <timex>))
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type <struct-itimerval>
-  (nongenerative nausicaa:posix:<struct-itimerval>)
+(define-record-type <itimerval>
+  (nongenerative nausicaa:posix:<itimerval>)
   (fields (mutable interval)
 	  (mutable value)))
 
-(define <struct-itimerval-rtd>
-  (record-type-descriptor <struct-itimerval>))
+(define <itimerval-rtd>
+  (record-type-descriptor <itimerval>))
 
 
 (define-record-type <sockaddr>

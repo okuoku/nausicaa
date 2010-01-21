@@ -48,7 +48,7 @@
 (define tcp/ip-port 8080)
 
 (define (wait-for-awhile)
-  (glibc:nanosleep* (make-<struct-timespec> 0 (* 2 (expt 10 6)))))
+  (glibc:nanosleep* (make-<timespec> 0 (* 2 (expt 10 6)))))
 
 
 (parametrise ((check-test-name	'inet-addr))

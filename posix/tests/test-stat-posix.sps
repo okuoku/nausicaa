@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -121,16 +121,16 @@ Ses ailes de geant l'empechent de marcher.")
 	     (delete-file the-other)))
 
 	  (check
-	      (<struct-stat>? (posix:stat the-file))
+	      (<stat>? (posix:stat the-file))
 	    => #t)
 
 	  (check
-	      (<struct-stat>? (posix:fstat fd))
+	      (<stat>? (posix:fstat fd))
 	    => #t)
 
 	  (check
 	      (with-compensations
-		(<struct-stat>? (posix:lstat the-other)))
+		(<stat>? (posix:lstat the-other)))
 	    => #t)
 
 ;;; --------------------------------------------------------------------
@@ -207,11 +207,11 @@ Ses ailes de geant l'empechent de marcher.")
 ;;; --------------------------------------------------------------------
 
 	  (check
-	      (= 0 (bitwise-ior S_IRUSR (<struct-stat>-mode (posix:stat the-file))))
+	      (= 0 (bitwise-ior S_IRUSR (<stat>-mode (posix:stat the-file))))
 	    => #f)
 
 	  (check
-	      (= 0 (bitwise-ior S_IROTH (<struct-stat>-mode (posix:stat the-file))))
+	      (= 0 (bitwise-ior S_IROTH (<stat>-mode (posix:stat the-file))))
 	    => #f)
 
 	  (check

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -32,12 +32,15 @@
     getcwd		chdir		fchdir
 
     ;; directory access
-    opendir		fdopendir	dirfd
+    opendir		fdopendir
+    opendir/c		fdopendir/c
+    dirfd
     closedir		readdir		readdir_r
     rewinddir		telldir		seekdir
     dirent-name->string
     ftw			nftw
     make-ftw-callback	make-nftw-callback
+    directory-entries	directory-entries/fd
 
     ;; links
     link		symlink		readlink
@@ -84,9 +87,44 @@
 	    (platform:S_TYPEISSEM	S_TYPEISSEM)
 	    (platform:S_TYPEISSHM	S_TYPEISSHM))
 
-    pointer-><struct-stat>
+    file-is-directory?
+    file-is-character-special?
+    file-is-block-special?
+    file-is-regular?
+    file-is-fifo?
+    file-is-socket?
+    file-is-symbolic-link?
+    file-is-message-queue?
+    file-is-semaphore?
+    file-is-shared-memory?
+    file-user-readable?
+    file-user-writable?
+    file-user-executable?
+    file-group-readable?
+    file-group-writable?
+    file-group-executable?
+    file-other-readable?
+    file-other-writable?
+    file-other-executable?
+    file-setuid?
+    file-setgid?
+    file-sticky?
+    lfile-user-readable?
+    lfile-user-writable?
+    lfile-user-executable?
+    lfile-group-readable?
+    lfile-group-writable?
+    lfile-group-executable?
+    lfile-other-readable?
+    lfile-other-writable?
+    lfile-other-executable?
+    lfile-setuid?
+    lfile-setgid?
+    lfile-sticky?
+    file-permissions
+    lfile-permissions
 
-    )
+    pointer-><stat>)
   (import (except (rnrs) remove truncate)
     (receive)
     (begin0)
@@ -152,6 +190,20 @@
     (when (pointer-null? result)
       (raise-errno-error 'fdopendir errno fd))
     result))
+
+(define (opendir/c pathname)
+  (letrec ((stream (compensate
+		       (opendir pathname)
+		     (with
+		      (closedir stream)))))
+    stream))
+
+(define (fdopendir/c fd)
+  (letrec ((stream (compensate
+		       (fdopendir fd)
+		     (with
+		      (closedir stream)))))
+    stream))
 
 (define (dirfd stream)
   (receive (result errno)
@@ -243,7 +295,7 @@
 			(scheme-function (cstring->string pathname-cstr)
 					 (if (= 0 (bitwise-and flag FTW_NS))
 					     #f
-					   (pointer-><struct-stat> struct-stat))
+					   (pointer-><stat> struct-stat))
 					 flag)))
 		    (char* void* int)))
 
@@ -254,11 +306,29 @@
 			(scheme-function (cstring->string pathname-cstr)
 					 (if (= 0 (bitwise-and flag FTW_NS))
 					     #f
-					   (pointer-><struct-stat> struct-stat))
+					   (pointer-><stat> struct-stat))
 					 flag
 					 (struct-FTW-base-ref  struct-ftw)
 					 (struct-FTW-level-ref struct-ftw))))
 		    (char* void* int void*)))
+
+;;; --------------------------------------------------------------------
+
+(define (%directory-entries dir)
+  (let loop ((entry  (readdir_r dir))
+	     (layout '()))
+    (if (pointer-null? entry)
+	layout
+      (loop (readdir_r dir)
+	    (cons (dirent-name->string entry) layout)))))
+
+(define (directory-entries pathname)
+  (with-compensations
+    (%directory-entries (opendir/c pathname))))
+
+(define (directory-entries/fd fd)
+  (with-compensations
+    (%directory-entries (fdopendir/c fd))))
 
 
 ;;;; links
@@ -561,14 +631,14 @@
 
 ;;; stat interface
 
-(define (pointer-><struct-stat> struct-stat*)
+(define (pointer-><stat> struct-stat*)
   ;;Some "struct  stat" field  may be unimplemented,  so we  default its
   ;;value to #f.
   (let-syntax ((get	(syntax-rules ()
 			  ((_ ?getter)
 			   (guard (exc (else #f))
 			     (?getter struct-stat*))))))
-    (make-<struct-stat>
+    (make-<stat>
      (get platform:struct-stat-st_mode-ref)
      (get platform:struct-stat-st_ino-ref)
      (get platform:struct-stat-st_dev-ref)
@@ -592,7 +662,7 @@
 	  (func (string->cstring/c pathname) struct-stat*)
 	(when (= -1 result)
 	  (raise-errno-error funcname errno pathname))
-	(pointer-><struct-stat> struct-stat*)))))
+	(pointer-><stat> struct-stat*)))))
 
 (define (stat pathname)
   (%real-stat platform:stat 'stat pathname))
@@ -607,7 +677,202 @@
 	  (platform:fstat (file-descriptor->integer fd) struct-stat*)
 	(when (= -1 result)
 	  (raise-errno-error 'fstat errno fd))
-	(pointer-><struct-stat> struct-stat*)))))
+	(pointer-><stat> struct-stat*)))))
+
+
+(define (%type-inspection funcname pred obj)
+  (cond ((file-descriptor? obj)
+	 (not (= 0 (pred (<stat>-mode (fstat obj))))))
+
+	((or (string? obj) (symbol? obj)) ;pathname
+	 (not (= 0 (pred (<stat>-mode (stat obj))))))
+
+	((and (integer? obj) (exact? obj)) ;"st_mode" field in "struct stat"
+	 (not (= 0 (pred obj))))
+
+	(else
+	 (error funcname "expected file descriptor, file pathname or st_mode integer" obj))))
+
+;;; --------------------------------------------------------------------
+
+(define (file-is-directory? obj)
+  (%type-inspection 'file-is-directory? platform:S_ISDIR obj))
+
+(define (file-is-character-special? obj)
+  (%type-inspection 'file-is-character-special? platform:S_ISCHR obj))
+
+(define (file-is-block-special? obj)
+  (%type-inspection 'file-is-block-special? platform:S_ISBLK obj))
+
+(define (file-is-regular? obj)
+  (%type-inspection 'file-is-regular? platform:S_ISREG obj))
+
+(define (file-is-fifo? obj)
+  (%type-inspection 'file-is-fifo? platform:S_ISFIFO obj))
+
+(define (file-is-socket? obj)
+  (%type-inspection 'file-is-socket? platform:S_ISSOCK obj))
+
+(define (file-is-symbolic-link? mode/pathname)
+  (cond ((and (integer? mode/pathname) (exact? mode/pathname))
+	 (not (= 0 (platform:S_ISLNK mode/pathname))))
+
+	((or (string? mode/pathname) (symbol? mode/pathname)) ;pathname
+	 (not (= 0 (platform:S_ISLNK (<stat>-mode (lstat mode/pathname))))))
+
+	(else
+	 (error 'file-is-symbolic-link?
+	   "file pathname or st_mode integer" mode/pathname))))
+
+
+(define (%pointer-type-inspection funcname getter obj)
+  (cond ((file-descriptor? obj)
+	 (with-compensations
+	   (let ((struct-stat* (malloc-block/c platform:sizeof-stat)))
+	     (receive (result errno)
+		 (platform:fstat (file-descriptor->integer obj) struct-stat*)
+	       (when (= -1 result)
+		 (raise-errno-error funcname errno obj))
+	       (not (= 0 (getter struct-stat*)))))))
+
+	((or (string? obj) (symbol? obj)) ;pathname
+	 (with-compensations
+	   (let ((struct-stat* (malloc-block/c platform:sizeof-stat)))
+	     (receive (result errno)
+		 (platform:stat (string->cstring/c obj) struct-stat*)
+	       (when (= -1 result)
+		 (raise-errno-error funcname errno obj))
+	       (not (= 0 (getter struct-stat*)))))))
+
+	(else
+	 (error funcname "expected file descriptor or file pathname" obj))))
+
+;;; --------------------------------------------------------------------
+
+(define (file-is-message-queue? obj)
+  (%pointer-type-inspection 'file-is-message-queue? platform:S_TYPEISMQ obj))
+
+(define (file-is-semaphore? obj)
+  (%pointer-type-inspection 'file-is-semaphore? platform:S_TYPEISSEM obj))
+
+(define (file-is-shared-memory? obj)
+  (%pointer-type-inspection 'file-is-semaphore? platform:S_TYPEISSHM obj))
+
+
+(define (%mode-inspection the-stat funcname mask obj)
+  (define (set? mode)
+    (not (= 0 (bitwise-and mask mode))))
+  (cond ((and (eq? the-stat 'stat) (file-descriptor? obj))
+	 (set? (<stat>-mode (fstat obj))))
+
+	((or (string? obj) (symbol? obj)) ;pathname
+	 (set? (<stat>-mode ((case the-stat
+				      ((stat)  stat)
+				      ((lstat) lstat)) obj))))
+
+	((and (integer? obj) (exact? obj)) ;"st_mode" field in "struct stat"
+	 (set? obj))
+
+	(else
+	 (error funcname "expected file descriptor, file pathname or st_mode integer" obj))))
+
+;;; --------------------------------------------------------------------
+
+(define (file-user-readable? obj)
+  (%mode-inspection 'stat 'file-user-readable? S_IRUSR obj))
+
+(define (file-user-writable? obj)
+  (%mode-inspection 'stat 'file-user-writable? S_IWUSR obj))
+
+(define (file-user-executable? obj)
+  (%mode-inspection 'stat 'file-user-executable? S_IXUSR obj))
+
+(define (file-group-readable? obj)
+  (%mode-inspection 'stat 'file-user-readable? S_IRGRP obj))
+
+(define (file-group-writable? obj)
+  (%mode-inspection 'stat 'file-group-writable? S_IWGRP obj))
+
+(define (file-group-executable? obj)
+  (%mode-inspection 'stat 'file-group-executable? S_IXGRP obj))
+
+(define (file-other-readable? obj)
+  (%mode-inspection 'stat 'file-other-readable? S_IROTH obj))
+
+(define (file-other-writable? obj)
+  (%mode-inspection 'stat 'file-other-writable? S_IWOTH obj))
+
+(define (file-other-executable? obj)
+  (%mode-inspection 'stat 'file-other-executable? S_IXOTH obj))
+
+(define (file-setuid? obj)
+  (%mode-inspection 'stat 'file-setuid? S_ISUID obj))
+
+(define (file-setgid? obj)
+  (%mode-inspection 'stat 'file-setgid? S_ISGID obj))
+
+(define (file-sticky? obj)
+  (%mode-inspection 'stat 'file-sticky? S_ISVTX obj))
+
+;;; --------------------------------------------------------------------
+
+(define (lfile-user-readable? obj)
+  (%mode-inspection 'lstat 'lfile-user-readable? S_IRUSR obj))
+
+(define (lfile-user-writable? obj)
+  (%mode-inspection 'lstat 'lfile-user-writable? S_IWUSR obj))
+
+(define (lfile-user-executable? obj)
+  (%mode-inspection 'lstat 'lfile-user-executable? S_IXUSR obj))
+
+(define (lfile-group-readable? obj)
+  (%mode-inspection 'lstat 'lfile-user-readable? S_IRGRP obj))
+
+(define (lfile-group-writable? obj)
+  (%mode-inspection 'lstat 'lfile-group-writable? S_IWGRP obj))
+
+(define (lfile-group-executable? obj)
+  (%mode-inspection 'lstat 'lfile-group-executable? S_IXGRP obj))
+
+(define (lfile-other-readable? obj)
+  (%mode-inspection 'lstat 'lfile-other-readable? S_IROTH obj))
+
+(define (lfile-other-writable? obj)
+  (%mode-inspection 'lstat 'lfile-other-writable? S_IWOTH obj))
+
+(define (lfile-other-executable? obj)
+  (%mode-inspection 'lstat 'lfile-other-executable? S_IXOTH obj))
+
+(define (lfile-setuid? obj)
+  (%mode-inspection 'lstat 'lfile-setuid? S_ISUID obj))
+
+(define (lfile-setgid? obj)
+  (%mode-inspection 'lstat 'lfile-setgid? S_ISGID obj))
+
+(define (lfile-sticky? obj)
+  (%mode-inspection 'lstat 'lfile-sticky? S_ISVTX obj))
+
+
+(define (file-permissions obj)
+
+  (define (get-mode record)
+    (let ((mode (<stat>-mode record)))
+      (bitwise-and
+       (bitwise-ior S_ISUID S_ISGID S_IRWXU S_IRWXG S_IRWXO)
+       mode)))
+
+  (cond ((file-descriptor? obj)
+	 (get-mode (fstat obj)))
+
+	((or (string? obj) (symbol? obj)) ;pathname
+	 (get-mode (stat obj)))
+
+	(else
+	 (error 'file-permissions "expected file descriptor or file pathname" obj))))
+
+(define (lfile-permissions obj)
+  (bitwise-and (bitwise-ior S_ISUID S_ISGID S_IRWXU S_IRWXG S_IRWXO)
+	       (<stat>-mode (lstat obj))))
 
 
 ;;;; done

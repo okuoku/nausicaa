@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -52,10 +52,10 @@
 	  (receive (result tms)
 	      (posix:times)
 	    (list (flonum? result)
-		  (flonum? (<struct-tms>-utime tms))
-		  (flonum? (<struct-tms>-stime tms))
-		  (flonum? (<struct-tms>-cutime tms))
-		  (flonum? (<struct-tms>-cstime tms))))
+		  (flonum? (<tms>-utime tms))
+		  (flonum? (<tms>-stime tms))
+		  (flonum? (<tms>-cutime tms))
+		  (flonum? (<tms>-cstime tms))))
 	=> '(#t #t #t #t #t))
 
       #t)))

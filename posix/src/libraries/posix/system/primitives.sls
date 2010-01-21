@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -45,9 +45,9 @@
     getgrgid		getgrnam
     fgetpwent		fgetgrent
 
-    pointer-><struct-passwd>
-    pointer-><struct-group>
-    pointer-><struct-utsname>
+    pointer-><passwd>
+    pointer-><group>
+    pointer-><utsname>
 
     setenv getenv environ)
   (import (rnrs)
@@ -161,8 +161,8 @@
 
 ;;;; platform types
 
-(define (pointer-><struct-utsname> utsname*)
-  (make-<struct-utsname> (cstring->string (struct-utsname-sysname-ref utsname*))
+(define (pointer-><utsname> utsname*)
+  (make-<utsname> (cstring->string (struct-utsname-sysname-ref utsname*))
 			 (cstring->string (struct-utsname-release-ref utsname*))
 			 (cstring->string (struct-utsname-version-ref utsname*))
 			 (cstring->string (struct-utsname-machine-ref utsname*))))
@@ -174,7 +174,7 @@
 	  (platform:uname utsname*)
 	(if (= -1 result)
 	    (raise-errno-error 'uname errno)
-	  (pointer-><struct-utsname> utsname*))))))
+	  (pointer-><utsname> utsname*))))))
 
 
 
@@ -340,8 +340,8 @@
 
 ;;;; users database
 
-(define (pointer-><struct-passwd> passwd*)
-  (make-<struct-passwd> (cstring->string (struct-passwd-pw_name-ref passwd*))
+(define (pointer-><passwd> passwd*)
+  (make-<passwd> (cstring->string (struct-passwd-pw_name-ref passwd*))
 			(cstring->string (struct-passwd-pw_passwd-ref passwd*))
 			(integer->uid (struct-passwd-pw_uid-ref passwd*))
 			(integer->gid (struct-passwd-pw_gid-ref passwd*))
@@ -373,7 +373,7 @@
 		((pointer-null? (pointer-ref-c-pointer output* 0))
 		 (raise-errno-error 'getpwuid errno uid))
 		(else
-		 (pointer-><struct-passwd> passwd*))))))))
+		 (pointer-><passwd> passwd*))))))))
 
 (define (getpwnam user-name)
   (with-compensations
@@ -393,7 +393,7 @@
 		((pointer-null? (pointer-ref-c-pointer output* 0))
 		 (raise-errno-error 'getpwnam errno user-name))
 		(else
-		 (pointer-><struct-passwd> passwd*))))))))
+		 (pointer-><passwd> passwd*))))))))
 
 (define (fgetpwent stream)
   (with-compensations
@@ -413,15 +413,15 @@
 		((= result ENOENT)
 		 #f)
 		((= 0 result)
-		 (pointer-><struct-passwd> (pointer-ref-c-pointer output* 0)))
+		 (pointer-><passwd> (pointer-ref-c-pointer output* 0)))
 		(else
 		 (raise-errno-error 'fgetpwent errno stream))))))))
 
 
 ;;;; groups database
 
-(define (pointer-><struct-group> group*)
-  (make-<struct-group> (cstring->string (struct-group-gr_name-ref group*))
+(define (pointer-><group> group*)
+  (make-<group> (cstring->string (struct-group-gr_name-ref group*))
 		       (integer->gid (struct-group-gr_gid-ref group*))
 		       (argv->strings (struct-group-gr_mem-ref group*))))
 
@@ -443,7 +443,7 @@
 		((pointer-null? (pointer-ref-c-pointer output* 0))
 		 (raise-errno-error 'getgrgid errno gid))
 		(else
-		 (pointer-><struct-group> group*))))))))
+		 (pointer-><group> group*))))))))
 
 (define (getgrnam group-name)
   (with-compensations
@@ -463,7 +463,7 @@
 		((pointer-null? (pointer-ref-c-pointer output* 0))
 		 (raise-errno-error 'getgrnam errno group-name))
 		(else
-		 (pointer-><struct-group> group*))))))))
+		 (pointer-><group> group*))))))))
 
 (define (fgetgrent stream)
   (with-compensations
@@ -483,7 +483,7 @@
 		((= result ENOENT)
 		 #f)
 		((= 0 result)
-		 (pointer-><struct-group> (pointer-ref-c-pointer output* 0)))
+		 (pointer-><group> (pointer-ref-c-pointer output* 0)))
 		(else
 		 (raise-errno-error 'fgetgrent errno stream))))))))
 

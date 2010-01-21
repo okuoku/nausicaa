@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -140,20 +140,20 @@
 
       (check
 	  (let ((record (posix:getpwuid (posix:getuid))))
-	    (<struct-passwd>? record))
+	    (<passwd>? record))
 	=> #t)
 
       (check
 	  (let ((pwd (posix:getpwuid (posix:getuid))))
-	    (with-fields* ((name <struct-passwd-rtd> pwd))
+	    (with-fields* ((name <passwd-rtd> pwd))
 	      pwd.name))
 	=> "marco")
 
       (check
 	  (let ((pwd (posix:getpwuid (posix:getuid))))
-	    (with-fields* ((name <struct-passwd-rtd> pwd))
+	    (with-fields* ((name <passwd-rtd> pwd))
 	      (let ((pwd (posix:getpwnam pwd.name)))
-		(with-fields* ((name <struct-passwd-rtd> pwd))
+		(with-fields* ((name <passwd-rtd> pwd))
 		  pwd.name))))
 	=> "marco")
 
@@ -168,8 +168,8 @@
 			      (if pwd
 				  (loop (cons pwd pwds))
 				pwds)))))))
-	    (<struct-passwd>-name (car (memp (lambda (pwd)
-					       (with-fields* (((name uid) <struct-passwd-rtd> pwd))
+	    (<passwd>-name (car (memp (lambda (pwd)
+					       (with-fields* (((name uid) <passwd-rtd> pwd))
 						 (= 0 (uid->integer pwd.uid))))
 					     pwds))))
 	=> "root")
@@ -187,20 +187,20 @@
 
       (check
 	  (let ((record (posix:getgrgid (posix:getgid))))
-	    (<struct-group>? record))
+	    (<group>? record))
 	=> #t)
 
       (check
 	  (let ((grp (posix:getgrgid (posix:getgid))))
-	    (with-fields* ((name <struct-group-rtd> grp))
+	    (with-fields* ((name <group-rtd> grp))
 	      grp.name))
 	=> "marco")
 
       (check
 	  (let ((grp (posix:getgrgid (posix:getgid))))
-	    (with-fields* ((name <struct-group-rtd> grp))
+	    (with-fields* ((name <group-rtd> grp))
 	      (let ((grp (posix:getgrnam grp.name)))
-		(with-fields* ((name <struct-group-rtd> grp))
+		(with-fields* ((name <group-rtd> grp))
 		  grp.name))))
 	=> "marco")
 
@@ -215,8 +215,8 @@
       			      (if grp
       				  (loop (cons grp grps))
       				grps)))))))
-      	    (<struct-group>-name (car (memp (lambda (grp)
-					      (with-fields* (((name gid) <struct-group-rtd> grp))
+      	    (<group>-name (car (memp (lambda (grp)
+					      (with-fields* (((name gid) <group-rtd> grp))
 						(= 0 (gid->integer grp.gid))))
 					    grps))))
       	=> "root")

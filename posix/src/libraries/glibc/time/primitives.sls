@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -62,12 +62,12 @@
     nanosleep		nanosleep*
 
     ;; structure/record conversion
-    <struct-timespec>->pointer		pointer-><struct-timespec>
-    <struct-timezone>->pointer		pointer-><struct-timezone>
-    <struct-tm>->pointer		pointer-><struct-tm>
-    <struct-ntptimeval>->pointer	pointer-><struct-ntptimeval>
-    <struct-timex>->pointer		pointer-><struct-timex>
-    <struct-itimerval>->pointer		pointer-><struct-itimerval>
+    <timespec>->pointer		pointer-><timespec>
+    <timezone>->pointer		pointer-><timezone>
+    <tm>->pointer		pointer-><tm>
+    <ntptimeval>->pointer	pointer-><ntptimeval>
+    <timex>->pointer		pointer-><timex>
+    <itimerval>->pointer		pointer-><itimerval>
     )
   (import (rnrs)
     (begin0)
@@ -82,34 +82,34 @@
     (posix typedefs)
     (prefix (glibc time platform) platform:)
     (only (posix time primitives)
-	  pointer-><struct-timeval>
-	  <struct-timeval>->pointer))
+	  pointer-><timeval>
+	  <timeval>->pointer))
 
 
-(define (pointer-><struct-timespec> pointer)
-  (make-<struct-timespec> (struct-timespec-tv_sec-ref  pointer)
+(define (pointer-><timespec> pointer)
+  (make-<timespec> (struct-timespec-tv_sec-ref  pointer)
 			  (struct-timespec-tv_nsec-ref pointer)))
 
-(define (<struct-timespec>->pointer record malloc)
+(define (<timespec>->pointer record malloc)
   (begin0-let ((pointer (malloc sizeof-timespec)))
-    (struct-timespec-tv_sec-set!  pointer (<struct-timespec>-sec  record))
-    (struct-timespec-tv_nsec-set! pointer (<struct-timespec>-nsec record))))
+    (struct-timespec-tv_sec-set!  pointer (<timespec>-sec  record))
+    (struct-timespec-tv_nsec-set! pointer (<timespec>-nsec record))))
 
 ;;; --------------------------------------------------------------------
 
-(define (pointer-><struct-timezone> pointer)
-  (make-<struct-timezone> (struct-timezone-tz_minuteswest-ref  pointer)
+(define (pointer-><timezone> pointer)
+  (make-<timezone> (struct-timezone-tz_minuteswest-ref  pointer)
 			  (struct-timezone-tz_dsttime-ref      pointer)))
 
-(define (<struct-timezone>->pointer record malloc)
+(define (<timezone>->pointer record malloc)
   (begin0-let ((pointer (malloc sizeof-timezone)))
-    (struct-timezone-tz_minuteswest-set! pointer (<struct-timezone>-minuteswest record))
-    (struct-timezone-tz_dsttime-set!     pointer (<struct-timezone>-dsttime     record))))
+    (struct-timezone-tz_minuteswest-set! pointer (<timezone>-minuteswest record))
+    (struct-timezone-tz_dsttime-set!     pointer (<timezone>-dsttime     record))))
 
 ;;; --------------------------------------------------------------------
 
-(define (pointer-><struct-tm> pointer)
-  (make-<struct-tm> (struct-tm-tm_sec-ref    pointer)
+(define (pointer-><tm> pointer)
+  (make-<tm> (struct-tm-tm_sec-ref    pointer)
 		    (struct-tm-tm_min-ref    pointer)
 		    (struct-tm-tm_hour-ref   pointer)
 		    (struct-tm-tm_mday-ref   pointer)
@@ -121,40 +121,40 @@
 		    (struct-tm-tm_gmtoff-ref pointer)
 		    (struct-tm-tm_zone-ref pointer)))
 
-(define (<struct-tm>->pointer record malloc)
+(define (<tm>->pointer record malloc)
   (begin0-let ((pointer (malloc sizeof-tm)))
-    (struct-tm-tm_sec-set!    pointer (<struct-tm>-sec    record))
-    (struct-tm-tm_min-set!    pointer (<struct-tm>-min    record))
-    (struct-tm-tm_hour-set!   pointer (<struct-tm>-hour   record))
-    (struct-tm-tm_mday-set!   pointer (<struct-tm>-mday   record))
-    (struct-tm-tm_mon-set!    pointer (<struct-tm>-mon    record))
-    (struct-tm-tm_year-set!   pointer (<struct-tm>-year   record))
-    (struct-tm-tm_wday-set!   pointer (<struct-tm>-wday   record))
-    (struct-tm-tm_yday-set!   pointer (<struct-tm>-yday   record))
-    (struct-tm-tm_isdst-set!  pointer (<struct-tm>-isdst  record))
-    (struct-tm-tm_gmtoff-set! pointer (<struct-tm>-gmtoff record))
-    (struct-tm-tm_zone-set!   pointer (<struct-tm>-zone   record))))
+    (struct-tm-tm_sec-set!    pointer (<tm>-sec    record))
+    (struct-tm-tm_min-set!    pointer (<tm>-min    record))
+    (struct-tm-tm_hour-set!   pointer (<tm>-hour   record))
+    (struct-tm-tm_mday-set!   pointer (<tm>-mday   record))
+    (struct-tm-tm_mon-set!    pointer (<tm>-mon    record))
+    (struct-tm-tm_year-set!   pointer (<tm>-year   record))
+    (struct-tm-tm_wday-set!   pointer (<tm>-wday   record))
+    (struct-tm-tm_yday-set!   pointer (<tm>-yday   record))
+    (struct-tm-tm_isdst-set!  pointer (<tm>-isdst  record))
+    (struct-tm-tm_gmtoff-set! pointer (<tm>-gmtoff record))
+    (struct-tm-tm_zone-set!   pointer (<tm>-zone   record))))
 
 ;;; --------------------------------------------------------------------
 
-(define (pointer-><struct-ntptimeval> pointer)
-  (make-<struct-ntptimeval> (pointer-><struct-timeval> (struct-ntptimeval-time-ref pointer))
+(define (pointer-><ntptimeval> pointer)
+  (make-<ntptimeval> (pointer-><timeval> (struct-ntptimeval-time-ref pointer))
 			    (struct-ntptimeval-maxerror-ref pointer)
 			    (struct-ntptimeval-esterror-ref pointer)))
 
-(define (<struct-ntptimeval>->pointer record malloc)
+(define (<ntptimeval>->pointer record malloc)
   (begin0-let ((pointer (malloc sizeof-ntptimeval)))
     (let ((time-pointer (struct-ntptimeval-time-ref pointer))
-	  (time-record  (<struct-ntptimeval>-time record)))
-      (struct-timeval-tv_sec-set!  time-pointer (<struct-timeval>-sec  time-record))
-      (struct-timeval-tv_usec-set! time-pointer (<struct-timeval>-usec time-record)))
-    (struct-ntptimeval-maxerror-set! pointer (<struct-ntptimeval>-maxerror record))
-    (struct-ntptimeval-esterror-set! pointer (<struct-ntptimeval>-esterror record))))
+	  (time-record  (<ntptimeval>-time record)))
+      (struct-timeval-tv_sec-set!  time-pointer (<timeval>-sec  time-record))
+      (struct-timeval-tv_usec-set! time-pointer (<timeval>-usec time-record)))
+    (struct-ntptimeval-maxerror-set! pointer (<ntptimeval>-maxerror record))
+    (struct-ntptimeval-esterror-set! pointer (<ntptimeval>-esterror record))))
 
 ;;; --------------------------------------------------------------------
 
-(define (pointer-><struct-timex> pointer)
-  (make-<struct-timex> (struct-timex-modes-ref pointer)
+(define (pointer-><timex> pointer)
+  (make-<timex> (struct-timex-modes-ref pointer)
 		       (struct-timex-offset-ref pointer)
 		       (struct-timex-freq-ref pointer)
 		       (struct-timex-maxerror-ref pointer)
@@ -163,7 +163,7 @@
 		       (struct-timex-constant-ref pointer)
 		       (struct-timex-precision-ref pointer)
 		       (struct-timex-tolerance-ref pointer)
-		       (pointer-><struct-timeval> (struct-timex-time-ref pointer))
+		       (pointer-><timeval> (struct-timex-time-ref pointer))
 		       (struct-timex-tick-ref pointer)
 		       (struct-timex-ppsfreq-ref pointer)
 		       (struct-timex-jitter-ref pointer)
@@ -174,51 +174,51 @@
 		       (struct-timex-errcnt-ref pointer)
 		       (struct-timex-stbcnt-ref pointer)))
 
-(define (<struct-timex>->pointer record malloc)
+(define (<timex>->pointer record malloc)
   (begin0-let ((pointer (malloc sizeof-timex)))
     (let ((time-pointer (struct-timex-time-ref pointer))
-	  (time-record  (<struct-timex>-time record)))
-      (struct-timeval-tv_sec-set!  time-pointer (<struct-timeval>-sec  time-record))
-      (struct-timeval-tv_usec-set! time-pointer (<struct-timeval>-usec time-record)))
-    (struct-timex-modes-set!	 pointer (<struct-timex>-modes     record))
-    (struct-timex-offset-set!    pointer (<struct-timex>-offset    record))
-    (struct-timex-freq-set!      pointer (<struct-timex>-freq record))
-    (struct-timex-maxerror-set!  pointer (<struct-timex>-maxerror  record))
-    (struct-timex-esterror-set!  pointer (<struct-timex>-esterror  record))
-    (struct-timex-status-set!    pointer (<struct-timex>-status    record))
-    (struct-timex-constant-set!  pointer (<struct-timex>-constant  record))
-    (struct-timex-precision-set! pointer (<struct-timex>-precision record))
-    (struct-timex-tolerance-set! pointer (<struct-timex>-tolerance record))
-    (struct-timex-tick-set!	 pointer (<struct-timex>-tick      record))
-    (struct-timex-ppsfreq-set!   pointer (<struct-timex>-ppsfreq   record))
-    (struct-timex-jitter-set!    pointer (<struct-timex>-jitter    record))
-    (struct-timex-shift-set!	 pointer (<struct-timex>-shift     record))
-    (struct-timex-stabil-set!	 pointer (<struct-timex>-stabil    record))
-    (struct-timex-jitcnt-set!	 pointer (<struct-timex>-jitcnt    record))
-    (struct-timex-calcnt-set!	 pointer (<struct-timex>-calcnt    record))
-    (struct-timex-errcnt-set!	 pointer (<struct-timex>-errcnt    record))
-    (struct-timex-stbcnt-set!	 pointer (<struct-timex>-stbcnt    record))))
+	  (time-record  (<timex>-time record)))
+      (struct-timeval-tv_sec-set!  time-pointer (<timeval>-sec  time-record))
+      (struct-timeval-tv_usec-set! time-pointer (<timeval>-usec time-record)))
+    (struct-timex-modes-set!	 pointer (<timex>-modes     record))
+    (struct-timex-offset-set!    pointer (<timex>-offset    record))
+    (struct-timex-freq-set!      pointer (<timex>-freq record))
+    (struct-timex-maxerror-set!  pointer (<timex>-maxerror  record))
+    (struct-timex-esterror-set!  pointer (<timex>-esterror  record))
+    (struct-timex-status-set!    pointer (<timex>-status    record))
+    (struct-timex-constant-set!  pointer (<timex>-constant  record))
+    (struct-timex-precision-set! pointer (<timex>-precision record))
+    (struct-timex-tolerance-set! pointer (<timex>-tolerance record))
+    (struct-timex-tick-set!	 pointer (<timex>-tick      record))
+    (struct-timex-ppsfreq-set!   pointer (<timex>-ppsfreq   record))
+    (struct-timex-jitter-set!    pointer (<timex>-jitter    record))
+    (struct-timex-shift-set!	 pointer (<timex>-shift     record))
+    (struct-timex-stabil-set!	 pointer (<timex>-stabil    record))
+    (struct-timex-jitcnt-set!	 pointer (<timex>-jitcnt    record))
+    (struct-timex-calcnt-set!	 pointer (<timex>-calcnt    record))
+    (struct-timex-errcnt-set!	 pointer (<timex>-errcnt    record))
+    (struct-timex-stbcnt-set!	 pointer (<timex>-stbcnt    record))))
 
 ;;; --------------------------------------------------------------------
 
-(define (pointer-><struct-itimerval> pointer)
+(define (pointer-><itimerval> pointer)
   (let ((interval-timeval*	(struct-itimerval-it_interval-ref pointer))
 	(value-timeval*		(struct-itimerval-it_value-ref    pointer)))
-    (make-<struct-itimerval> (make-<struct-timeval> (struct-timeval-tv_sec-ref  interval-timeval*)
+    (make-<itimerval> (make-<timeval> (struct-timeval-tv_sec-ref  interval-timeval*)
 						    (struct-timeval-tv_usec-ref interval-timeval*))
-			     (make-<struct-timeval> (struct-timeval-tv_sec-ref  value-timeval*)
+			     (make-<timeval> (struct-timeval-tv_sec-ref  value-timeval*)
 						    (struct-timeval-tv_usec-ref value-timeval*)))))
 
-(define (<struct-itimerval>->pointer record malloc)
+(define (<itimerval>->pointer record malloc)
   (begin0-let ((pointer (malloc sizeof-itimerval)))
     (let ((interval-timeval*	(struct-itimerval-it_interval-ref pointer))
 	  (value-timeval*	(struct-itimerval-it_value-ref    pointer))
-	  (interval-record	(<struct-itimerval>-interval record))
-	  (value-record		(<struct-itimerval>-value    record)))
-    (struct-timeval-tv_sec-set!  interval-timeval* (<struct-timeval>-sec  interval-record))
-    (struct-timeval-tv_usec-set! interval-timeval* (<struct-timeval>-usec interval-record))
-    (struct-timeval-tv_sec-set!  value-timeval* (<struct-timeval>-sec  value-record))
-    (struct-timeval-tv_usec-set! value-timeval* (<struct-timeval>-usec value-record))
+	  (interval-record	(<itimerval>-interval record))
+	  (value-record		(<itimerval>-value    record)))
+    (struct-timeval-tv_sec-set!  interval-timeval* (<timeval>-sec  interval-record))
+    (struct-timeval-tv_usec-set! interval-timeval* (<timeval>-usec interval-record))
+    (struct-timeval-tv_sec-set!  value-timeval* (<timeval>-sec  value-record))
+    (struct-timeval-tv_usec-set! value-timeval* (<timeval>-usec value-record))
     pointer)))
 
 
@@ -242,13 +242,13 @@
 	  (platform:gettimeofday timeval* timezone*)
 	(if (= -1 result)
 	    (raise-errno-error 'gettimeofday errno)
-	  (values (pointer-><struct-timeval>  timeval*)
-		  (pointer-><struct-timezone> timezone*)))))))
+	  (values (pointer-><timeval>  timeval*)
+		  (pointer-><timezone> timezone*)))))))
 
 (define (settimeofday timeval timezone)
   (with-compensations
-    (let ((timeval*	(<struct-timeval>->pointer   timeval  malloc-block/c))
-	  (timezone*	(<struct-timezone>->pointer timezone malloc-block/c)))
+    (let ((timeval*	(<timeval>->pointer   timeval  malloc-block/c))
+	  (timezone*	(<timezone>->pointer timezone malloc-block/c)))
       (receive (result errno)
 	  (platform:settimeofday timeval* timezone*)
 	(if (= -1 result)
@@ -257,13 +257,13 @@
 
 (define (adjtime timeval-delta)
   (with-compensations
-    (let ((timeval-delta*	(<struct-timeval>->pointer timeval-delta malloc-block/c))
+    (let ((timeval-delta*	(<timeval>->pointer timeval-delta malloc-block/c))
 	  (timeval-old-delta*	(malloc-block/c sizeof-timeval)))
       (receive (result errno)
 	  (platform:adjtime timeval-delta* timeval-old-delta*)
 	(if (= -1 result)
 	    (raise-errno-error 'adjtime errno timeval-delta)
-	  (values result (pointer-><struct-timeval> timeval-old-delta*)))))))
+	  (values result (pointer-><timeval> timeval-old-delta*)))))))
 
 
 ;;;; broken-down time
@@ -278,7 +278,7 @@
 
 (define (localtime* time)
   (with-compensations
-    (pointer-><struct-tm> (localtime time malloc-block/c))))
+    (pointer-><tm> (localtime time malloc-block/c))))
 
 (define (gmtime time malloc)
   (let ((tm* (malloc sizeof-tm)))
@@ -290,7 +290,7 @@
 
 (define (gmtime* time)
   (with-compensations
-    (pointer-><struct-tm> (gmtime time malloc-block/c))))
+    (pointer-><tm> (gmtime time malloc-block/c))))
 
 (define (timelocal tm*)
   (receive (result errno)
@@ -301,7 +301,7 @@
 
 (define (timelocal* tm-record)
   (with-compensations
-    (timelocal (<struct-tm>->pointer tm-record malloc-block/c))))
+    (timelocal (<tm>->pointer tm-record malloc-block/c))))
 
 (define (timegm tm*)
   (receive (result errno)
@@ -312,7 +312,7 @@
 
 (define (timegm* tm-record)
   (with-compensations
-    (timegm (<struct-tm>->pointer tm-record malloc-block/c))))
+    (timegm (<tm>->pointer tm-record malloc-block/c))))
 
 
 ;;;; high-accuracy time
@@ -328,7 +328,7 @@
   (with-compensations
     (let ((ntptimeval* (malloc-block/c sizeof-ntptimeval)))
       (platform:ntp_gettime ntptimeval*)
-      (pointer-><struct-ntptimeval> ntptimeval*))))
+      (pointer-><ntptimeval> ntptimeval*))))
 
 (define (ntp_adjtime timex*)
   (receive (result errno)
@@ -339,9 +339,9 @@
 
 (define (ntp_adjtime* record)
   (with-compensations
-    (let ((timex* (<struct-timex>->pointer record malloc-block/c)))
+    (let ((timex* (<timex>->pointer record malloc-block/c)))
       (platform:ntp_gettime timex*)
-      (pointer-><struct-timex> timex*))))
+      (pointer-><timex> timex*))))
 
 
 ;;;; formatting broken-down time
@@ -357,7 +357,7 @@
 
 (define (asctime* tm-record)
   (with-compensations
-    (asctime (<struct-tm>->pointer tm-record malloc-block/c))))
+    (asctime (<tm>->pointer tm-record malloc-block/c))))
 
 (define (ctime calendar-time)
   (with-compensations
@@ -385,7 +385,7 @@
 
 (define (strftime* template tm-record)
   (with-compensations
-    (strftime template (<struct-tm>->pointer tm-record malloc-block/c))))
+    (strftime template (<tm>->pointer tm-record malloc-block/c))))
 
 
 ;;;; parsing time strings
@@ -416,7 +416,7 @@
       (struct-tm-tm_gmtoff-set! struct-tm* valueof-int-max)
       (struct-tm-tm_zone-set!   struct-tm* pointer-null)
       (strptime input-string template-string struct-tm*)
-      (pointer-><struct-tm> struct-tm*))))
+      (pointer-><tm> struct-tm*))))
 
 
 ;;;; setting alarms
@@ -446,16 +446,16 @@
 
 (define (setitimer* which itimerval-record)
   (with-compensations
-    (let ((itimerval-new*	(<struct-itimerval>->pointer itimerval-record malloc-block/c))
+    (let ((itimerval-new*	(<itimerval>->pointer itimerval-record malloc-block/c))
 	  (itimerval-old*	(malloc-block/c sizeof-itimerval)))
       (setitimer which itimerval-new* itimerval-old*)
-      (pointer-><struct-itimerval> itimerval-old*))))
+      (pointer-><itimerval> itimerval-old*))))
 
 (define (getitimer* which)
   (with-compensations
     (let ((itimerval-old* (malloc-block/c sizeof-itimerval)))
       (getitimer which itimerval-old*)
-      (pointer-><struct-itimerval> itimerval-old*))))
+      (pointer-><itimerval> itimerval-old*))))
 
 
 ;;;; sleeping
@@ -469,10 +469,10 @@
 
 (define (nanosleep* requested-time)
   (with-compensations
-    (let ((requested-time*	(<struct-timespec>->pointer requested-time malloc-block/c))
+    (let ((requested-time*	(<timespec>->pointer requested-time malloc-block/c))
 	  (remaining-time*	(malloc-block/c sizeof-timespec)))
       (nanosleep requested-time* remaining-time*)
-      (pointer-><struct-timespec> remaining-time*))))
+      (pointer-><timespec> remaining-time*))))
 
 
 ;;;; done

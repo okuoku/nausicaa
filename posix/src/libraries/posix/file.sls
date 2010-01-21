@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -47,9 +47,10 @@
     seekdir			seekdir-function
 
     (rename (primitive:dirent-name->string	dirent-name->string))
-    opendir/compensated		(rename (opendir/compensated opendir/c))
-    fdopendir/compensated	(rename (fdopendir/compensated fdopendir/c))
-    directory-entries		directory-entries/fd
+    opendir/c			opendir/c-function
+    fdopendir/c			fdopendir/c-function
+    directory-entries		directory-entries-function
+    directory-entries/fd	directory-entries/fd-function
 
     ftw				ftw-function
     nftw			nftw-function
@@ -116,23 +117,45 @@
 	    (primitive:S_TYPEISSEM	S_TYPEISSEM)
 	    (primitive:S_TYPEISSHM	S_TYPEISSHM))
 
-    file-is-directory?		file-is-character-special?
-    file-is-block-special?	file-is-regular?
-    file-is-fifo?		file-is-symbolic-link?
-    file-is-socket?		file-is-message-queue?
-    file-is-semaphore?		file-is-shared-memory?
+    file-is-directory?			file-is-directory?-function
+    file-is-character-special?		file-is-character-special?-function
+    file-is-block-special?		file-is-block-special?-function
+    file-is-regular?			file-is-regular?-function
+    file-is-fifo?			file-is-fifo?-function
+    file-is-symbolic-link?		file-is-symbolic-link?-function
+    file-is-socket?			file-is-socket?-function
+    file-is-message-queue?		file-is-message-queue?-function
+    file-is-semaphore?			file-is-semaphore?-function
+    file-is-shared-memory?		file-is-shared-memory?-function
 
-    file-user-readable?		file-user-writable?	file-user-executable?
-    file-group-readable?	file-group-writable?	file-group-executable?
-    file-other-readable?	file-other-writable?	file-other-executable?
-    file-setuid?		file-setgid?		file-sticky?
+    file-user-readable?			file-user-readable?-function
+    file-user-writable?			file-user-writable?-function
+    file-user-executable?		file-user-executable?-function
+    file-group-readable?		file-group-readable?-function
+    file-group-writable?		file-group-writable?-function
+    file-group-executable?		file-group-executable?-function
+    file-other-readable?		file-other-readable?-function
+    file-other-writable?		file-other-writable?-function
+    file-other-executable?		file-other-executable?-function
+    file-setuid?			file-setuid?-function
+    file-setgid?			file-setgid?-function
+    file-sticky?			file-sticky?-function
 
-    lfile-user-readable?	lfile-user-writable?	lfile-user-executable?
-    lfile-group-readable?	lfile-group-writable?	lfile-group-executable?
-    lfile-other-readable?	lfile-other-writable?	lfile-other-executable?
-    lfile-setuid?		lfile-setgid?		lfile-sticky?
+    lfile-user-readable?		lfile-user-readable?-function
+    lfile-user-writable?		lfile-user-writable?-function
+    lfile-user-executable?		lfile-user-executable?-function
+    lfile-group-readable?		lfile-group-readable?-function
+    lfile-group-writable?		lfile-group-writable?-function
+    lfile-group-executable?		lfile-group-executable?-function
+    lfile-other-readable?		lfile-other-readable?-function
+    lfile-other-writable?		lfile-other-writable?-function
+    lfile-other-executable?		lfile-other-executable?-function
+    lfile-setuid?			lfile-setuid?-function
+    lfile-setgid?			lfile-setgid?-function
+    lfile-sticky?			lfile-sticky?-function
 
-    file-permissions		lfile-permissions
+    file-permissions			file-permissions-function
+    lfile-permissions			lfile-permissions-function
     )
   (import (except (rnrs) remove truncate)
     (receive)
@@ -159,6 +182,8 @@
 
 (define-parametrised opendir pathname)
 (define-parametrised fdopendir fd)
+(define-parametrised opendir/c pathname)
+(define-parametrised fdopendir/c fd)
 (define-parametrised dirfd stream)
 (define-parametrised closedir stream)
 (define-parametrised readdir stream)
@@ -169,6 +194,8 @@
 
 (define-parametrised ftw pathname selector-callback descriptors)
 (define-parametrised nftw pathname selector-callback descriptors flag)
+(define-parametrised directory-entries pathname)
+(define-parametrised directory-entries/fd fd)
 
 ;; links
 
@@ -194,24 +221,11 @@
 
 ;; file times
 
-(define-primitive-parameter utime-function		primitive:utime)
-(define-primitive-parameter utimes-function	primitive:utimes)
-
-(define utime
-  (case-lambda
-   ((pathname access-time modification-time)
-    ((utime-function) pathname access-time modification-time))
-   ((pathname)
-    ((utime-function) pathname))))
-
-(define utimes
-  (case-lambda
-   ((pathname access-time-sec access-time-usec modification-time-sec modification-time-usec)
-    ((utimes-function) pathname
-     access-time-sec access-time-usec
-     modification-time-sec modification-time-usec))
-   ((pathname)
-    ((utimes-function) pathname))))
+(define-parametrised utime	((pathname access-time modification-time)
+				 (pathname)))
+(define-parametrised utimes
+  ((pathname access-time-sec access-time-usec modification-time-sec modification-time-usec)
+   (pathname)))
 
 ;; file size
 
@@ -238,38 +252,6 @@
 (define-parametrised mkstemp template)
 (define-parametrised mkdtemp template)
 
-
-(define (opendir/compensated pathname)
-  (letrec ((stream (compensate
-		       (opendir pathname)
-		     (with
-		      (closedir stream)))))
-    stream))
-
-(define (fdopendir/compensated fd)
-  (letrec ((stream (compensate
-		       (fdopendir fd)
-		     (with
-		      (closedir stream)))))
-    stream))
-
-;;; --------------------------------------------------------------------
-
-(define (%directory-entries dir)
-  (let loop ((entry  (readdir_r dir))
-	     (layout '()))
-    (if (pointer-null? entry)
-	layout
-      (loop (readdir_r dir)
-	    (cons (primitive:dirent-name->string entry) layout)))))
-
-(define (directory-entries pathname)
-  (with-compensations
-    (%directory-entries (opendir/compensated pathname))))
-
-(define (directory-entries/fd fd)
-  (with-compensations
-    (%directory-entries (fdopendir/compensated fd))))
 
 
 ;;;; stat functions
@@ -278,200 +260,42 @@
 (define-parametrised lstat pathname)
 (define-parametrised fstat fd)
 
-
-(define (%type-inspection funcname pred obj)
-  (cond ((file-descriptor? obj)
-	 (not (= 0 (pred (<struct-stat>-mode (fstat obj))))))
-
-	((or (string? obj) (symbol? obj)) ;pathname
-	 (not (= 0 (pred (<struct-stat>-mode (stat obj))))))
-
-	((and (integer? obj) (exact? obj)) ;"st_mode" field in "struct stat"
-	 (not (= 0 (pred obj))))
-
-	(else
-	 (error funcname "expected file descriptor, file pathname or st_mode integer" obj))))
-
-;;; --------------------------------------------------------------------
-
-(define (file-is-directory? obj)
-  (%type-inspection 'file-is-directory? primitive:S_ISDIR obj))
-
-(define (file-is-character-special? obj)
-  (%type-inspection 'file-is-character-special? primitive:S_ISCHR obj))
-
-(define (file-is-block-special? obj)
-  (%type-inspection 'file-is-block-special? primitive:S_ISBLK obj))
-
-(define (file-is-regular? obj)
-  (%type-inspection 'file-is-regular? primitive:S_ISREG obj))
-
-(define (file-is-fifo? obj)
-  (%type-inspection 'file-is-fifo? primitive:S_ISFIFO obj))
-
-(define (file-is-socket? obj)
-  (%type-inspection 'file-is-socket? primitive:S_ISSOCK obj))
-
-(define (file-is-symbolic-link? mode/pathname)
-  (cond ((and (integer? mode/pathname) (exact? mode/pathname))
-	 (not (= 0 (primitive:S_ISLNK mode/pathname))))
-
-	((or (string? mode/pathname) (symbol? mode/pathname)) ;pathname
-	 (not (= 0 (primitive:S_ISLNK (<struct-stat>-mode (lstat mode/pathname))))))
-
-	(else
-	 (error 'file-is-symbolic-link?
-	   "file pathname or st_mode integer" mode/pathname))))
-
-
-(define (%pointer-type-inspection funcname getter obj)
-  (cond ((file-descriptor? obj)
-	 (with-compensations
-	   (let ((struct-stat* (malloc-block/c platform:sizeof-stat)))
-	     (receive (result errno)
-		 (platform:fstat (file-descriptor->integer obj) struct-stat*)
-	       (when (= -1 result)
-		 (raise-errno-error funcname errno obj))
-	       (not (= 0 (getter struct-stat*)))))))
-
-	((or (string? obj) (symbol? obj)) ;pathname
-	 (with-compensations
-	   (let ((struct-stat* (malloc-block/c platform:sizeof-stat)))
-	     (receive (result errno)
-		 (platform:stat (string->cstring/c obj) struct-stat*)
-	       (when (= -1 result)
-		 (raise-errno-error funcname errno obj))
-	       (not (= 0 (getter struct-stat*)))))))
-
-	(else
-	 (error funcname "expected file descriptor or file pathname" obj))))
-
-;;; --------------------------------------------------------------------
-
-(define (file-is-message-queue? obj)
-  (%pointer-type-inspection 'file-is-message-queue? primitive:S_TYPEISMQ obj))
-
-(define (file-is-semaphore? obj)
-  (%pointer-type-inspection 'file-is-semaphore? primitive:S_TYPEISSEM obj))
-
-(define (file-is-shared-memory? obj)
-  (%pointer-type-inspection 'file-is-semaphore? primitive:S_TYPEISSHM obj))
-
-
-(define (%mode-inspection the-stat funcname mask obj)
-  (define (set? mode)
-    (not (= 0 (bitwise-and mask mode))))
-  (cond ((and (eq? the-stat 'stat) (file-descriptor? obj))
-	 (set? (<struct-stat>-mode (fstat obj))))
-
-	((or (string? obj) (symbol? obj)) ;pathname
-	 (set? (<struct-stat>-mode ((case the-stat
-				      ((stat)  stat)
-				      ((lstat) lstat)) obj))))
-
-	((and (integer? obj) (exact? obj)) ;"st_mode" field in "struct stat"
-	 (set? obj))
-
-	(else
-	 (error funcname "expected file descriptor, file pathname or st_mode integer" obj))))
-
-;;; --------------------------------------------------------------------
-
-(define (file-user-readable? obj)
-  (%mode-inspection 'stat 'file-user-readable? S_IRUSR obj))
-
-(define (file-user-writable? obj)
-  (%mode-inspection 'stat 'file-user-writable? S_IWUSR obj))
-
-(define (file-user-executable? obj)
-  (%mode-inspection 'stat 'file-user-executable? S_IXUSR obj))
-
-(define (file-group-readable? obj)
-  (%mode-inspection 'stat 'file-user-readable? S_IRGRP obj))
-
-(define (file-group-writable? obj)
-  (%mode-inspection 'stat 'file-group-writable? S_IWGRP obj))
-
-(define (file-group-executable? obj)
-  (%mode-inspection 'stat 'file-group-executable? S_IXGRP obj))
-
-(define (file-other-readable? obj)
-  (%mode-inspection 'stat 'file-other-readable? S_IROTH obj))
-
-(define (file-other-writable? obj)
-  (%mode-inspection 'stat 'file-other-writable? S_IWOTH obj))
-
-(define (file-other-executable? obj)
-  (%mode-inspection 'stat 'file-other-executable? S_IXOTH obj))
-
-(define (file-setuid? obj)
-  (%mode-inspection 'stat 'file-setuid? S_ISUID obj))
-
-(define (file-setgid? obj)
-  (%mode-inspection 'stat 'file-setgid? S_ISGID obj))
-
-(define (file-sticky? obj)
-  (%mode-inspection 'stat 'file-sticky? S_ISVTX obj))
-
-;;; --------------------------------------------------------------------
-
-(define (lfile-user-readable? obj)
-  (%mode-inspection 'lstat 'lfile-user-readable? S_IRUSR obj))
-
-(define (lfile-user-writable? obj)
-  (%mode-inspection 'lstat 'lfile-user-writable? S_IWUSR obj))
-
-(define (lfile-user-executable? obj)
-  (%mode-inspection 'lstat 'lfile-user-executable? S_IXUSR obj))
-
-(define (lfile-group-readable? obj)
-  (%mode-inspection 'lstat 'lfile-user-readable? S_IRGRP obj))
-
-(define (lfile-group-writable? obj)
-  (%mode-inspection 'lstat 'lfile-group-writable? S_IWGRP obj))
-
-(define (lfile-group-executable? obj)
-  (%mode-inspection 'lstat 'lfile-group-executable? S_IXGRP obj))
-
-(define (lfile-other-readable? obj)
-  (%mode-inspection 'lstat 'lfile-other-readable? S_IROTH obj))
-
-(define (lfile-other-writable? obj)
-  (%mode-inspection 'lstat 'lfile-other-writable? S_IWOTH obj))
-
-(define (lfile-other-executable? obj)
-  (%mode-inspection 'lstat 'lfile-other-executable? S_IXOTH obj))
-
-(define (lfile-setuid? obj)
-  (%mode-inspection 'lstat 'lfile-setuid? S_ISUID obj))
-
-(define (lfile-setgid? obj)
-  (%mode-inspection 'lstat 'lfile-setgid? S_ISGID obj))
-
-(define (lfile-sticky? obj)
-  (%mode-inspection 'lstat 'lfile-sticky? S_ISVTX obj))
-
-
-(define (file-permissions obj)
-
-  (define (get-mode record)
-    (let ((mode (<struct-stat>-mode record)))
-      (bitwise-and
-       (bitwise-ior S_ISUID S_ISGID S_IRWXU S_IRWXG S_IRWXO)
-       mode)))
-
-  (cond ((file-descriptor? obj)
-	 (get-mode (fstat obj)))
-
-	((or (string? obj) (symbol? obj)) ;pathname
-	 (get-mode (stat obj)))
-
-	(else
-	 (error 'file-permissions "expected file descriptor or file pathname" obj))))
-
-(define (lfile-permissions obj)
-  (bitwise-and (bitwise-ior S_ISUID S_ISGID S_IRWXU S_IRWXG S_IRWXO)
-	       (<struct-stat>-mode (lstat obj))))
+(define-parametrised file-is-directory? obj)
+(define-parametrised file-is-character-special? obj)
+(define-parametrised file-is-block-special? obj)
+(define-parametrised file-is-regular? obj)
+(define-parametrised file-is-fifo? obj)
+(define-parametrised file-is-socket? obj)
+(define-parametrised file-is-symbolic-link? mode/pathname)
+(define-parametrised file-is-message-queue? obj)
+(define-parametrised file-is-semaphore? obj)
+(define-parametrised file-is-shared-memory? obj)
+(define-parametrised file-user-readable? obj)
+(define-parametrised file-user-writable? obj)
+(define-parametrised file-user-executable? obj)
+(define-parametrised file-group-readable? obj)
+(define-parametrised file-group-writable? obj)
+(define-parametrised file-group-executable? obj)
+(define-parametrised file-other-readable? obj)
+(define-parametrised file-other-writable? obj)
+(define-parametrised file-other-executable? obj)
+(define-parametrised file-setuid? obj)
+(define-parametrised file-setgid? obj)
+(define-parametrised file-sticky? obj)
+(define-parametrised lfile-user-readable? obj)
+(define-parametrised lfile-user-writable? obj)
+(define-parametrised lfile-user-executable? obj)
+(define-parametrised lfile-group-readable? obj)
+(define-parametrised lfile-group-writable? obj)
+(define-parametrised lfile-group-executable? obj)
+(define-parametrised lfile-other-readable? obj)
+(define-parametrised lfile-other-writable? obj)
+(define-parametrised lfile-other-executable? obj)
+(define-parametrised lfile-setuid? obj)
+(define-parametrised lfile-setgid? obj)
+(define-parametrised lfile-sticky? obj)
+(define-parametrised file-permissions obj)
+(define-parametrised lfile-permissions obj)
 
 
 ;;;; done

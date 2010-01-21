@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -35,8 +35,8 @@
     unsetenv		(rename (platform:clearenv clearenv))
     putenv		putenv*
 
-    pointer-><struct-fstab>
-    pointer-><struct-mntent>	<struct-mntent>->pointer
+    pointer-><fstab>
+    pointer-><mntent>	<mntent>->pointer
     )
   (import (rnrs)
     (receive)
@@ -54,8 +54,8 @@
 
 ;;;; reading fstab
 
-(define (pointer-><struct-fstab> fstab*)
-  (make-<struct-fstab> (cstring->string (struct-fstab-fs_spec-ref fstab*))
+(define (pointer-><fstab> fstab*)
+  (make-<fstab> (cstring->string (struct-fstab-fs_spec-ref fstab*))
 		       (cstring->string (struct-fstab-fs_file-ref fstab*))
 		       (cstring->string (struct-fstab-fs_vfstype-ref fstab*))
 		       (cstring->string (struct-fstab-fs_mntops-ref fstab*))
@@ -81,41 +81,41 @@
     (let ((fstab* (platform:getfsent)))
       (if (pointer-null? fstab*)
 	  #f
-	(pointer-><struct-fstab> fstab*)))))
+	(pointer-><fstab> fstab*)))))
 
 (define (getfsspec spec)
   (with-compensations
     (let ((fstab* (platform:getfsspec (string->cstring/c spec))))
       (if (pointer-null? fstab*)
 	  #f
-	(pointer-><struct-fstab> fstab*)))))
+	(pointer-><fstab> fstab*)))))
 
 (define (getfsfile file)
   (with-compensations
     (let ((fstab* (platform:getfsfile (string->cstring/c file))))
       (if (pointer-null? fstab*)
 	  #f
-	(pointer-><struct-fstab> fstab*)))))
+	(pointer-><fstab> fstab*)))))
 
 
 ;;;; reading mtab
 
-(define (pointer-><struct-mntent> mntent*)
-  (make-<struct-mntent> (cstring->string (struct-mntent-mnt_fsname-ref mntent*))
+(define (pointer-><mntent> mntent*)
+  (make-<mntent> (cstring->string (struct-mntent-mnt_fsname-ref mntent*))
 			(cstring->string (struct-mntent-mnt_dir-ref mntent*))
 			(cstring->string (struct-mntent-mnt_type-ref mntent*))
 			(cstring->string (struct-mntent-mnt_opts-ref mntent*))
 			(struct-mntent-mnt_freq-ref mntent*)
 			(struct-mntent-mnt_passno-ref mntent*)))
 
-(define (<struct-mntent>->pointer mntent malloc)
+(define (<mntent>->pointer mntent malloc)
   (let ((mntent* (malloc sizeof-mntent)))
-    (struct-mntent-mnt_fsname-set! mntent* (string->cstring (<struct-mntent>-fsname mntent) malloc))
-    (struct-mntent-mnt_dir-set!    mntent* (string->cstring (<struct-mntent>-dir mntent)    malloc))
-    (struct-mntent-mnt_type-set!   mntent* (string->cstring (<struct-mntent>-type mntent)   malloc))
-    (struct-mntent-mnt_opts-set!   mntent* (string->cstring (<struct-mntent>-opts mntent)   malloc))
-    (struct-mntent-mnt_freq-set!   mntent* (<struct-mntent>-freq mntent))
-    (struct-mntent-mnt_passno-set! mntent* (<struct-mntent>-passno mntent))
+    (struct-mntent-mnt_fsname-set! mntent* (string->cstring (<mntent>-fsname mntent) malloc))
+    (struct-mntent-mnt_dir-set!    mntent* (string->cstring (<mntent>-dir mntent)    malloc))
+    (struct-mntent-mnt_type-set!   mntent* (string->cstring (<mntent>-type mntent)   malloc))
+    (struct-mntent-mnt_opts-set!   mntent* (string->cstring (<mntent>-opts mntent)   malloc))
+    (struct-mntent-mnt_freq-set!   mntent* (<mntent>-freq mntent))
+    (struct-mntent-mnt_passno-set! mntent* (<mntent>-passno mntent))
     mntent*))
 
 
@@ -140,12 +140,12 @@
       (let ((result* (platform:getmntent_r (FILE*->pointer stream) mntent* buf.ptr buf.len)))
 	(if (pointer-null? result*)
 	    #f
-	  (pointer-><struct-mntent> mntent*))))))
+	  (pointer-><mntent> mntent*))))))
 
 (define (addmntent stream mntent)
   (with-compensations
     (receive (result errno)
-	(platform:addmntent (FILE*->pointer stream) (<struct-mntent>->pointer mntent malloc-block/c))
+	(platform:addmntent (FILE*->pointer stream) (<mntent>->pointer mntent malloc-block/c))
       (if (= 0 result)
 	  result
 	(raise-errno-error 'addmntent errno (list stream mntent))))))

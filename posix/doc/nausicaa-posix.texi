@@ -1172,14 +1172,22 @@ documentation).
 @end deffn
 
 
-@defun opendir/compensated @var{pathname}
-@defunx fdopendir/compensated @var{fd}
-@defunx opendir/c @var{pathname}
-@defunx fdopendir/c @var{fd}
-Like @func{opendir} and @func{fdopendir}, but push the appropriate call
-to @func{closedir} on the dynamic environment of the current
-compensation stack.  @nauref{compensations, Compensation stacks}
-@end defun
+@deffn Function opendir/c @var{pathname}
+@deffnx Parameter opendir/c-function
+@deffnx Function primitive:opendir/c @var{pathname}
+Like @func{opendir} but push the appropriate call to @func{closedir} on
+the current compensation stack.  @nauref{compensations, Compensation
+stacks}.
+@end deffn
+
+
+@deffn Function fdopendir/c @var{fd}
+@deffnx Parameter fdopendir/c-function
+@deffnx Function fdopendir/c @var{fd}
+Like @func{fdopendir} but push the appropriate call to @func{closedir}
+on the current compensation stack.  @nauref{compensations, Compensation
+stacks}.
+@end deffn
 
 
 @deffn Function dirfd @var{stream}
@@ -1264,14 +1272,22 @@ Like @func{readdir}, but operates in a reentrant manner.
 @end deffn
 
 
-@defun directory-entries @var{pathname}
-@defunx directory-entries/fd @var{fd}
+@deffn Function directory-entries @var{pathname}
+@deffnx Parameter directory-entries-function
+@deffnx Function primitive:directory-entries @var{pathname}
 High--level functions that open the directory selected by the Scheme
-string or symbol @var{pathname} or file descriptor @var{fd}, read all
-the entries and return a list of Scheme strings holding the entry names.
+string or symbol @var{pathname}, read all the entries and return a list
+of Scheme strings holding the entry names.
+@end deffn
 
-It makes use of @func{opendir}, @func{closedir} and @func{readdir_r}.
-@end defun
+
+@deffn Function directory-entries/fd @var{fd}
+@deffnx Parameter directory-entries/fd-function
+@deffnx Function directory-entries/fd @var{fd}
+High--level functions that open the directory selected by the file
+descriptor @var{fd}, read all the entries and return a list of Scheme
+strings holding the entry names.
+@end deffn
 
 
 @defun dirent-name->string @var{struct-dirent-pointer}
@@ -2097,8 +2113,8 @@ Scheme record which mirrors @code{struct stat}.  @glibcref{Attribute
 Meanings, The meaning of the File Attributes}.
 
 
-@deftp {Record Type Name} <struct-stat>
-@deftpx {Record Type Descriptor} <struct-stat-rtd>
+@deftp {Record Type Name} <stat>
+@deftpx {Record Type Descriptor} <stat-rtd>
 Type of record used to hold fields from a @code{struct stat}.  List of
 fields follows:
 
@@ -2119,34 +2135,34 @@ documentation of @code{struct stat} for their meaning.
 
 Some fields are not available on every platform in the foreign
 @code{struct stat} data structure; in this case the associated field in
-the @class{struct-stat} record should be set to @false{}.  For example
+the @class{stat} record should be set to @false{}.  For example
 @code{atime_usec}, @code{mtime_usec}, @code{ctime_usec} are not
 available on some common platforms.
 @end deftp
 
 
-@defun make-<struct-stat> @var{mode} @var{ino} @var{dev} @var{nlink} @var{uid} @var{gid} @var{size} @var{atime} @var{atime_usec} @var{mtime} @var{mtime_usec} @var{ctime} @var{ctime_usec} @var{blocks} @var{blksize}
-@defunx <struct-stat>? @var{obj}
-Constructor and predicate for records of type @class{struct-stat}.
+@defun make-<stat> @var{mode} @var{ino} @var{dev} @var{nlink} @var{uid} @var{gid} @var{size} @var{atime} @var{atime_usec} @var{mtime} @var{mtime_usec} @var{ctime} @var{ctime_usec} @var{blocks} @var{blksize}
+@defunx <stat>? @var{obj}
+Constructor and predicate for records of type @class{stat}.
 @end defun
 
 
-@defun <struct-stat>-mode @var{struct-stat}
-@defunx <struct-stat>-ino @var{struct-stat}
-@defunx <struct-stat>-dev @var{struct-stat}
-@defunx <struct-stat>-nlink @var{struct-stat}
-@defunx <struct-stat>-uid @var{struct-stat}
-@defunx <struct-stat>-gid @var{struct-stat}
-@defunx <struct-stat>-size @var{struct-stat}
-@defunx <struct-stat>-atime @var{struct-stat}
-@defunx <struct-stat>-atime_usec @var{struct-stat}
-@defunx <struct-stat>-mtime @var{struct-stat}
-@defunx <struct-stat>-mtime_usec @var{struct-stat}
-@defunx <struct-stat>-ctime @var{struct-stat}
-@defunx <struct-stat>-ctime_usec @var{struct-stat}
-@defunx <struct-stat>-blocks @var{struct-stat}
-@defunx <struct-stat>-blksize @var{struct-stat}
-Accessors for the fields of a @class{struct-stat} record.
+@defun <stat>-mode @var{struct-stat}
+@defunx <stat>-ino @var{struct-stat}
+@defunx <stat>-dev @var{struct-stat}
+@defunx <stat>-nlink @var{struct-stat}
+@defunx <stat>-uid @var{struct-stat}
+@defunx <stat>-gid @var{struct-stat}
+@defunx <stat>-size @var{struct-stat}
+@defunx <stat>-atime @var{struct-stat}
+@defunx <stat>-atime_usec @var{struct-stat}
+@defunx <stat>-mtime @var{struct-stat}
+@defunx <stat>-mtime_usec @var{struct-stat}
+@defunx <stat>-ctime @var{struct-stat}
+@defunx <stat>-ctime_usec @var{struct-stat}
+@defunx <stat>-blocks @var{struct-stat}
+@defunx <stat>-blksize @var{struct-stat}
+Accessors for the fields of a @class{stat} record.
 @end defun
 
 @c page
@@ -2158,9 +2174,9 @@ The following bindings manage file attributes inspection.
 @glibcref{Reading Attributes, Reading Attributes}.
 
 
-@defun primitive:pointer-><struct-stat> @var{pointer}
+@defun primitive:pointer-><stat> @var{pointer}
 Given a pointer to a block of memory holding a C language @code{struct
-stat}, build and return a @class{struct-stat} record mirroring it.  All
+stat}, build and return a @class{stat} record mirroring it.  All
 the fields that are not available in the foreign structure are set to
 zero.
 @end defun
@@ -2170,7 +2186,7 @@ zero.
 @deffnx Parameter stat-function
 @deffnx Function primitive:stat @var{pathname}
 @deffnx Function platform:stat @var{pathname-cstr} @var{pointer}
-Return a @class{struct-stat} record filled with attributes of the file or
+Return a @class{stat} record filled with attributes of the file or
 directory selected by the Scheme string or symbol @var{pathname}.
 @end deffn
 
@@ -2179,7 +2195,7 @@ directory selected by the Scheme string or symbol @var{pathname}.
 @deffnx Parameter fstat-function
 @deffnx Function primitive:fstat @var{fd}
 @deffnx Function platform:fstat @var{fd} @var{pointer}
-Return a @class{struct-stat} record filled with attributes of the file or
+Return a @class{stat} record filled with attributes of the file or
 directory selected by the file descriptor @var{fd}.
 @end deffn
 
@@ -2188,7 +2204,7 @@ directory selected by the file descriptor @var{fd}.
 @deffnx Parameter lstat-function
 @deffnx Function primitive:lstat @var{pathname}
 @deffnx Function platform:lstat @var{pathname-cstr} @var{pointer}
-Return a @class{struct-stat} record filled with attributes of the
+Return a @class{stat} record filled with attributes of the
 symbolic link selected by the Scheme string or symbol @var{pathname}.
 @end deffn
 
@@ -2197,7 +2213,7 @@ symbolic link selected by the Scheme string or symbol @var{pathname}.
 @subsection Type inspection
 
 
-The integer in the @code{mode} field of a @class{struct-stat} record can
+The integer in the @code{mode} field of a @class{stat} record can
 be inspected with the following functions.  Unless otherwise specified,
 the following bindings are exported by the @library{posix stat}
 library.
@@ -2304,7 +2320,7 @@ evaluates to @false{} if @file{/bin/ls} is readable by its owner:
 
 @example
 (= 0 (bitwise-and S_IRUSR
-                  (<struct-stat>-mode (stat "/bin/ls"))))
+                  (<stat>-mode (stat "/bin/ls"))))
 @end example
 
 @noindent
@@ -2313,7 +2329,7 @@ both by its owner and group:
 
 @example
 (= 0 (bitwise-and (bitwise-ior S_IRUSR S_IRGRP)
-                  (<struct-stat>-mode (stat "/bin/ls"))))
+                  (<stat>-mode (stat "/bin/ls"))))
 @end example
 
 The following bindings are exported by the @library{posix file} library.
@@ -4639,8 +4655,8 @@ An enumeration set of type @code{enum-socket-style} holding a single
 element.
 
 @item protocol
-An integer selecting the protocol.  @ref{socket inet protos, Reading the
-protocols database}.
+An integer selecting the protocol.  @ref{sockets inet protos, Reading
+the protocols database}.
 @end table
 @end deftp
 
@@ -7262,7 +7278,7 @@ exported by the @library{posix typedefs} library.
 @subsection Wrapper for @code{struct timeval}
 
 
-The following object type is different from the @class{struct-timeval}
+The following object type is different from the @class{timeval}
 record type.  @ref{time records timeval, @code{struct timeval} mirror}.
 
 
@@ -7324,32 +7340,32 @@ This record type is different from the @code{struct-timeval} object.
 @ref{time typedefs timeval, Wrapper for @code{struc timeval}}.
 
 
-@deftp {Record Type Name} <struct-timeval>
-@deftpx {Record Type Descriptor} <struct-timeval-rtd>
+@deftp {Record Type Name} <timeval>
+@deftpx {Record Type Descriptor} <timeval-rtd>
 Record type that mirrors the @code{struct timeval} type.  It has the
 following fields, one for each field of the @code{struct timeval} type:
 @code{sec}, @code{usec}.
 @end deftp
 
 
-@defun make-<struct-timeval> @var{tv_sec} @var{tv_usec}
-@defunx <struct-timeval>? @var{obj}
-Constructor and predicate for @class{struct-timeval} records.
+@defun make-<timeval> @var{tv_sec} @var{tv_usec}
+@defunx <timeval>? @var{obj}
+Constructor and predicate for @class{timeval} records.
 @end defun
 
 
-@defun <struct-timeval>-sec @var{timeval-record}
-@defunx <struct-timeval>-sec-set! @var{timeval-record} @var{value}
-@defunx <struct-timeval>-usec @var{timeval-record}
-@defunx <struct-timeval>-usec-set! @var{timeval-record} @var{value}
-Accessors and mutators @class{struct-timeval} records.
+@defun <timeval>-sec @var{timeval-record}
+@defunx <timeval>-sec-set! @var{timeval-record} @var{value}
+@defunx <timeval>-usec @var{timeval-record}
+@defunx <timeval>-usec-set! @var{timeval-record} @var{value}
+Accessors and mutators @class{timeval} records.
 @end defun
 
 
-@defun pointer-><struct-timeval> @var{struct-timeval-pointer}
-@defunx <struct-timeval>->pointer @var{timeval-record} @var{malloc}
+@defun pointer-><timeval> @var{struct-timeval-pointer}
+@defunx <timeval>->pointer @var{timeval-record} @var{malloc}
 Convert between a pointer to a @code{struct timeval} instance and a
-record of type @class{struct-timeval}.
+record of type @class{timeval}.
 
 Memory for the foreign structure is allocated with the @var{malloc}
 function, whose interface protocol must match the one of @func{malloc}
@@ -7369,32 +7385,32 @@ The record type described here is used to mirror the C language data
 type @code{struct timespec}.  @glibcref{Elapsed Time, Elapsed Time}.
 
 
-@deftp {Record Type Name} <struct-timespec>
-@deftpx {Record Type Descriptor} <struct-timespec-rtd>
+@deftp {Record Type Name} <timespec>
+@deftpx {Record Type Descriptor} <timespec-rtd>
 Record type that mirrors the @code{struct timespec} type.  It has the
 following fields, one for each field of the @code{struct timespec} type:
 @code{sec}, @code{nsec}.
 @end deftp
 
 
-@defun make-<struct-timespec> @var{tv_sec} @var{tv_nsec}
-@defunx <struct-timespec>? @var{obj}
-Constructor and predicate for @class{struct-timespec} records.
+@defun make-<timespec> @var{tv_sec} @var{tv_nsec}
+@defunx <timespec>? @var{obj}
+Constructor and predicate for @class{timespec} records.
 @end defun
 
 
-@defun <struct-timespec>-sec @var{timespec-record}
-@defunx <struct-timespec>-sec-set! @var{timespec-record} @var{value}
-@defunx <struct-timespec>-nsec @var{timespec-record}
-@defunx <struct-timespec>-nsec-set! @var{timespec-record} @var{value}
-Accessors and mutators @class{struct-timespec} records.
+@defun <timespec>-sec @var{timespec-record}
+@defunx <timespec>-sec-set! @var{timespec-record} @var{value}
+@defunx <timespec>-nsec @var{timespec-record}
+@defunx <timespec>-nsec-set! @var{timespec-record} @var{value}
+Accessors and mutators @class{timespec} records.
 @end defun
 
 
-@defun pointer-><struct-timespec> @var{struct-timespec-pointer}
-@defunx <struct-timespec>->pointer @var{timespec-record} @var{malloc}
+@defun pointer-><timespec> @var{struct-timespec-pointer}
+@defunx <timespec>->pointer @var{timespec-record} @var{malloc}
 Convert between a pointer to a @code{struct timespec} instance and a
-record of type @class{struct-timespec}.
+record of type @class{timespec}.
 
 Memory for the foreign structure is allocated with the @var{malloc}
 function, whose interface protocol must match the one of @func{malloc}
@@ -7415,8 +7431,8 @@ type @code{struct tms}.  @glibcref{Processor Time, Processor Time
 Inquiry}.
 
 
-@deftp {Record Type Name} <struct-tms>
-@deftpx {Record Type Descriptor} <struct-tms-rtd>
+@deftp {Record Type Name} <tms>
+@deftpx {Record Type Descriptor} <tms-rtd>
 A Scheme record used to hold normalised results of @func{times}
 invocations.  It has the following fields, one for each field of the
 @code{struct tms} type: @code{utime}, @code{stime}, @code{cutime},
@@ -7424,28 +7440,28 @@ invocations.  It has the following fields, one for each field of the
 @end deftp
 
 
-@defun make-<struct-tms> @var{utime} @var{stime} @var{cutime} @var{cstime}
-@defunx <struct-tms>? @var{obj}
-Constructor and predicate for records of type @class{struct-tms}.
+@defun make-<tms> @var{utime} @var{stime} @var{cutime} @var{cstime}
+@defunx <tms>? @var{obj}
+Constructor and predicate for records of type @class{tms}.
 @end defun
 
 
-@defun <struct-tms>-utime @var{tms}
-@defunx <struct-tms>-utime-set! @var{tms} @var{value}
-@defunx <struct-tms>-stime @var{tms}
-@defunx <struct-tms>-stime-set! @var{tms} @var{value}
-@defunx <struct-tms>-cutime @var{tms}
-@defunx <struct-tms>-cutime-set! @var{tms} @var{value}
-@defunx <struct-tms>-cstime @var{tms}
-@defunx <struct-tms>-cstime-set! @var{tms} @var{value}
-Accessors and mutators for @class{struct-tms} records.
+@defun <tms>-utime @var{tms}
+@defunx <tms>-utime-set! @var{tms} @var{value}
+@defunx <tms>-stime @var{tms}
+@defunx <tms>-stime-set! @var{tms} @var{value}
+@defunx <tms>-cutime @var{tms}
+@defunx <tms>-cutime-set! @var{tms} @var{value}
+@defunx <tms>-cstime @var{tms}
+@defunx <tms>-cstime-set! @var{tms} @var{value}
+Accessors and mutators for @class{tms} records.
 @end defun
 
 
-@defun pointer-><struct-tms> @var{pointer}
-@defunx <struct-tms>->pointer @var{record} @var{malloc}
+@defun pointer-><tms> @var{pointer}
+@defunx <tms>->pointer @var{record} @var{malloc}
 Convert between a pointer to a @code{struct tms} instance and a record
-of type @class{struct-tms}.
+of type @class{tms}.
 
 Memory for the foreign structure is allocated with the @var{malloc}
 function, whose interface protocol must match the one of @func{malloc}
@@ -7466,32 +7482,32 @@ type @code{struct timezone}.  @glibcref{High-Resolution Calendar,
 High--Resolution Calendar}.
 
 
-@deftp {Record Type Name} <struct-timezone>
-@deftpx {Record Type Descriptor} <struct-timezone-rtd>
+@deftp {Record Type Name} <timezone>
+@deftpx {Record Type Descriptor} <timezone-rtd>
 Record type that mirrors the @code{struct timezone} type.  It has the
 following fields, one for each field in the @code{struct timezone} type:
 @code{minuteswest}, @code{dsttime}.
 @end deftp
 
 
-@defun make-<struct-timezone> @var{tz_minuteswest} @var{tz_dsttime}
-@defunx <struct-timezone>? @var{obj}
-Constructor and predicate for @class{struct-timezone} records.
+@defun make-<timezone> @var{tz_minuteswest} @var{tz_dsttime}
+@defunx <timezone>? @var{obj}
+Constructor and predicate for @class{timezone} records.
 @end defun
 
 
-@defun <struct-timezone>-minuteswest @var{timezone-record}
-@defunx <struct-timezone>-minuteswest-set! @var{timezone-record} @var{value}
-@defunx <struct-timezone>-dsttime @var{timezone-record}
-@defunx <struct-timezone>-dsttime-set! @var{timezone-record} @var{value}
-Accessors and mutators @class{struct-timezone} records.
+@defun <timezone>-minuteswest @var{timezone-record}
+@defunx <timezone>-minuteswest-set! @var{timezone-record} @var{value}
+@defunx <timezone>-dsttime @var{timezone-record}
+@defunx <timezone>-dsttime-set! @var{timezone-record} @var{value}
+Accessors and mutators @class{timezone} records.
 @end defun
 
 
-@defun pointer-><struct-timezone> @var{struct-timezone-pointer}
-@defunx <struct-timezone>->pointer @var{timezone-record} @var{malloc}
+@defun pointer-><timezone> @var{struct-timezone-pointer}
+@defunx <timezone>->pointer @var{timezone-record} @var{malloc}
 Convert between a pointer to a @code{struct timezone} instance and a
-record of type @class{struct-timezone}.
+record of type @class{timezone}.
 
 Memory for the foreign structure is allocated with the @var{malloc}
 function, whose interface protocol must match the one of @func{malloc}
@@ -7511,8 +7527,8 @@ The record type described here is used to mirror the C language data
 type @code{struct tm}.  @glibcref{Broken-down Time, Broken--down Time}.
 
 
-@deftp {Record Type Name} <struct-tm>
-@deftpx {Record Type Descriptor} <struct-tm-rtd>
+@deftp {Record Type Name} <tm>
+@deftpx {Record Type Descriptor} <tm-rtd>
 Record type that mirrors the @code{struct tm} type.  It has the
 following fields, one for each field in the @code{struct tm} type:
 @code{sec}, @code{min}, @code{hour}, @code{mday}, @code{mon},
@@ -7524,42 +7540,42 @@ string.
 @end deftp
 
 
-@defun make-<struct-tm> @var{tm_sec} @var{tm_min} @var{tm_hour} @var{tm_mday} @var{tm_mon} @var{tm_year} @var{tm_wday} @var{tm_yday} @var{tm_isdst} @var{tm_gmtoff} @var{tm_zone}
-@defunx <struct-tm>? @var{obj}
-Constructor and predicate for @class{struct-tm} records.
+@defun make-<tm> @var{tm_sec} @var{tm_min} @var{tm_hour} @var{tm_mday} @var{tm_mon} @var{tm_year} @var{tm_wday} @var{tm_yday} @var{tm_isdst} @var{tm_gmtoff} @var{tm_zone}
+@defunx <tm>? @var{obj}
+Constructor and predicate for @class{tm} records.
 @end defun
 
 
-@defun <struct-tm>-sec @var{tm-record}
-@defunx <struct-tm>-sec-set! @var{tm-record} @var{value}
-@defunx <struct-tm>-min @var{tm-record}
-@defunx <struct-tm>-min-set! @var{tm-record} @var{value}
-@defunx <struct-tm>-hour @var{tm-record}
-@defunx <struct-tm>-hour-set! @var{tm-record} @var{value}
-@defunx <struct-tm>-mday @var{tm-record}
-@defunx <struct-tm>-mday-set! @var{tm-record} @var{value}
-@defunx <struct-tm>-mon @var{tm-record}
-@defunx <struct-tm>-mon-set! @var{tm-record} @var{value}
-@defunx <struct-tm>-year @var{tm-record}
-@defunx <struct-tm>-year-set! @var{tm-record} @var{value}
-@defunx <struct-tm>-wday @var{tm-record}
-@defunx <struct-tm>-wday-set! @var{tm-record} @var{value}
-@defunx <struct-tm>-yday @var{tm-record}
-@defunx <struct-tm>-yday-set! @var{tm-record} @var{value}
-@defunx <struct-tm>-isdst @var{tm-record}
-@defunx <struct-tm>-isdst-set! @var{tm-record} @var{value}
-@defunx <struct-tm>-gmtoff @var{tm-record}
-@defunx <struct-tm>-gmtoff-set! @var{tm-record} @var{value}
-@defunx <struct-tm>-zone @var{tm-record}
-@defunx <struct-tm>-zone-set! @var{tm-record} @var{value}
-Accessors and mutators @class{struct-tm} records.
+@defun <tm>-sec @var{tm-record}
+@defunx <tm>-sec-set! @var{tm-record} @var{value}
+@defunx <tm>-min @var{tm-record}
+@defunx <tm>-min-set! @var{tm-record} @var{value}
+@defunx <tm>-hour @var{tm-record}
+@defunx <tm>-hour-set! @var{tm-record} @var{value}
+@defunx <tm>-mday @var{tm-record}
+@defunx <tm>-mday-set! @var{tm-record} @var{value}
+@defunx <tm>-mon @var{tm-record}
+@defunx <tm>-mon-set! @var{tm-record} @var{value}
+@defunx <tm>-year @var{tm-record}
+@defunx <tm>-year-set! @var{tm-record} @var{value}
+@defunx <tm>-wday @var{tm-record}
+@defunx <tm>-wday-set! @var{tm-record} @var{value}
+@defunx <tm>-yday @var{tm-record}
+@defunx <tm>-yday-set! @var{tm-record} @var{value}
+@defunx <tm>-isdst @var{tm-record}
+@defunx <tm>-isdst-set! @var{tm-record} @var{value}
+@defunx <tm>-gmtoff @var{tm-record}
+@defunx <tm>-gmtoff-set! @var{tm-record} @var{value}
+@defunx <tm>-zone @var{tm-record}
+@defunx <tm>-zone-set! @var{tm-record} @var{value}
+Accessors and mutators @class{tm} records.
 @end defun
 
 
-@defun pointer-><struct-tm> @var{struct-tm-pointer}
-@defunx <struct-tm>->pointer @var{tm-record} @var{malloc}
+@defun pointer-><tm> @var{struct-tm-pointer}
+@defunx <tm>->pointer @var{tm-record} @var{malloc}
 Convert between a pointer to a @code{struct tm} instance and a
-record of type @class{struct-tm}.
+record of type @class{tm}.
 
 Memory for the foreign structure is allocated with the @var{malloc}
 function, whose interface protocol must match the one of @func{malloc}
@@ -7584,35 +7600,35 @@ type @code{struct ntptimeval}.  @glibcref{High Accuracy Clock, High
 Accuracy Clock}.
 
 
-@deftp {Record Type Name} <struct-ntptimeval>
-@deftpx {Record Type Descriptor} <struct-ntptimeval-rtd>
+@deftp {Record Type Name} <ntptimeval>
+@deftpx {Record Type Descriptor} <ntptimeval-rtd>
 Record type that mirrors the @code{struct ntptimeval} type.  It has the
 following fields, one for each field in the @code{struct ntptimeval} type:
 @code{time}, @code{maxerror}, @code{esterror}.  The @code{time} field
-contains a @class{struct-timeval} record.
+contains a @class{timeval} record.
 @end deftp
 
 
-@defun make-<struct-ntptimeval> @var{time}, @var{maxerror}, @var{esterror}
-@defunx <struct-ntptimeval>? @var{obj}
-Constructor and predicate for @class{struct-ntptimeval} records.
+@defun make-<ntptimeval> @var{time}, @var{maxerror}, @var{esterror}
+@defunx <ntptimeval>? @var{obj}
+Constructor and predicate for @class{ntptimeval} records.
 @end defun
 
 
-@defun <struct-ntptimeval>-time @var{pointer}
-@defunx <struct-ntptimeval>-time-set! @var{pointer} @var{value}
-@defunx <struct-ntptimeval>-maxerror @var{pointer}
-@defunx <struct-ntptimeval>-maxerror-set! @var{pointer} @var{value}
-@defunx <struct-ntptimeval>-esterror @var{pointer}
-@defunx <struct-ntptimeval>-esterror-set! @var{pointer} @var{value}
-Accessors and mutators @class{struct-ntptimeval} records.
+@defun <ntptimeval>-time @var{pointer}
+@defunx <ntptimeval>-time-set! @var{pointer} @var{value}
+@defunx <ntptimeval>-maxerror @var{pointer}
+@defunx <ntptimeval>-maxerror-set! @var{pointer} @var{value}
+@defunx <ntptimeval>-esterror @var{pointer}
+@defunx <ntptimeval>-esterror-set! @var{pointer} @var{value}
+Accessors and mutators @class{ntptimeval} records.
 @end defun
 
 
-@defun pointer-><struct-ntptimeval> @var{struct-ntptimeval-pointer}
-@defunx <struct-ntptimeval>->pointer @var{ntptimeval-record} @var{malloc}
+@defun pointer-><ntptimeval> @var{struct-ntptimeval-pointer}
+@defunx <ntptimeval>->pointer @var{ntptimeval-record} @var{malloc}
 Convert between a pointer to a @code{struct ntptimeval} instance and a
-record of type @class{struct-ntptimeval}.
+record of type @class{ntptimeval}.
 
 Memory for the foreign structure is allocated with the @var{malloc}
 function, whose interface protocol must match the one of @func{malloc}
@@ -7633,8 +7649,8 @@ type @code{struct timex}.  @glibcref{High Accuracy Clock, High Accuracy
 Clock}.
 
 
-@deftp {Record Type Name} <struct-timex>
-@deftpx {Record Type Descriptor} <struct-timex-rtd>
+@deftp {Record Type Name} <timex>
+@deftpx {Record Type Descriptor} <timex-rtd>
 Record type that mirrors the @code{struct timex} type.  It has the
 following fields, one for each field in the @code{struct timex} type:
 @code{modes}, @code{offset}, @code{freq}, @code{maxerror},
@@ -7642,65 +7658,65 @@ following fields, one for each field in the @code{struct timex} type:
 @code{tolerance}, @code{time}, @code{tick}, @code{ppsfreq},
 @code{jitter}, @code{shift}, @code{stabil}, @code{jitcnt},
 @code{calcnt}, @code{errcnt}, @code{stbcnt}.  The @code{time} field
-contains a @class{struct-timeval} record.
+contains a @class{timeval} record.
 @end deftp
 
 
-@defun <struct-timex>-modes @var{pointer}
-@defunx <struct-timex>-modes-set! @var{pointer} @var{value}
-@defunx <struct-timex>-offset @var{pointer}
-@defunx <struct-timex>-offset-set! @var{pointer} @var{value}
-@defunx <struct-timex>-freq @var{pointer}
-@defunx <struct-timex>-freq-set! @var{pointer} @var{value}
-@defunx <struct-timex>-maxerror @var{pointer}
-@defunx <struct-timex>-maxerror-set! @var{pointer} @var{value}
-@defunx <struct-timex>-esterror @var{pointer}
-@defunx <struct-timex>-esterror-set! @var{pointer} @var{value}
-@defunx <struct-timex>-status @var{pointer}
-@defunx <struct-timex>-status-set! @var{pointer} @var{value}
-@defunx <struct-timex>-constant @var{pointer}
-@defunx <struct-timex>-constant-set! @var{pointer} @var{value}
-@defunx <struct-timex>-precision @var{pointer}
-@defunx <struct-timex>-precision-set! @var{pointer} @var{value}
-@defunx <struct-timex>-tolerance @var{pointer}
-@defunx <struct-timex>-tolerance-set! @var{pointer} @var{value}
-@defunx <struct-timex>-time @var{pointer}
-@defunx <struct-timex>-time-set! @var{pointer} @var{value}
-@defunx <struct-timex>-tick @var{pointer}
-@defunx <struct-timex>-tick-set! @var{pointer} @var{value}
-@defunx <struct-timex>-ppsfreq @var{pointer}
-@defunx <struct-timex>-ppsfreq-set! @var{pointer} @var{value}
-@defunx <struct-timex>-jitter @var{pointer}
-@defunx <struct-timex>-jitter-set! @var{pointer} @var{value}
-@defunx <struct-timex>-shift @var{pointer}
-@defunx <struct-timex>-shift-set! @var{pointer} @var{value}
-@defunx <struct-timex>-stabil @var{pointer}
-@defunx <struct-timex>-stabil-set! @var{pointer} @var{value}
-@defunx <struct-timex>-jitcnt @var{pointer}
-@defunx <struct-timex>-jitcnt-set! @var{pointer} @var{value}
-@defunx <struct-timex>-calcnt @var{pointer}
-@defunx <struct-timex>-calcnt-set! @var{pointer} @var{value}
-@defunx <struct-timex>-errcnt @var{pointer}
-@defunx <struct-timex>-errcnt-set! @var{pointer} @var{value}
-@defunx <struct-timex>-stbcnt @var{pointer}
-@defunx <struct-timex>-stbcnt-set! @var{pointer} @var{value}
-Accessors and mutators @class{struct-timex} records.
+@defun <timex>-modes @var{pointer}
+@defunx <timex>-modes-set! @var{pointer} @var{value}
+@defunx <timex>-offset @var{pointer}
+@defunx <timex>-offset-set! @var{pointer} @var{value}
+@defunx <timex>-freq @var{pointer}
+@defunx <timex>-freq-set! @var{pointer} @var{value}
+@defunx <timex>-maxerror @var{pointer}
+@defunx <timex>-maxerror-set! @var{pointer} @var{value}
+@defunx <timex>-esterror @var{pointer}
+@defunx <timex>-esterror-set! @var{pointer} @var{value}
+@defunx <timex>-status @var{pointer}
+@defunx <timex>-status-set! @var{pointer} @var{value}
+@defunx <timex>-constant @var{pointer}
+@defunx <timex>-constant-set! @var{pointer} @var{value}
+@defunx <timex>-precision @var{pointer}
+@defunx <timex>-precision-set! @var{pointer} @var{value}
+@defunx <timex>-tolerance @var{pointer}
+@defunx <timex>-tolerance-set! @var{pointer} @var{value}
+@defunx <timex>-time @var{pointer}
+@defunx <timex>-time-set! @var{pointer} @var{value}
+@defunx <timex>-tick @var{pointer}
+@defunx <timex>-tick-set! @var{pointer} @var{value}
+@defunx <timex>-ppsfreq @var{pointer}
+@defunx <timex>-ppsfreq-set! @var{pointer} @var{value}
+@defunx <timex>-jitter @var{pointer}
+@defunx <timex>-jitter-set! @var{pointer} @var{value}
+@defunx <timex>-shift @var{pointer}
+@defunx <timex>-shift-set! @var{pointer} @var{value}
+@defunx <timex>-stabil @var{pointer}
+@defunx <timex>-stabil-set! @var{pointer} @var{value}
+@defunx <timex>-jitcnt @var{pointer}
+@defunx <timex>-jitcnt-set! @var{pointer} @var{value}
+@defunx <timex>-calcnt @var{pointer}
+@defunx <timex>-calcnt-set! @var{pointer} @var{value}
+@defunx <timex>-errcnt @var{pointer}
+@defunx <timex>-errcnt-set! @var{pointer} @var{value}
+@defunx <timex>-stbcnt @var{pointer}
+@defunx <timex>-stbcnt-set! @var{pointer} @var{value}
+Accessors and mutators @class{timex} records.
 @end defun
 
 
-@defun make-<struct-timex> @var{modes} @var{offset} @var{freq} @var{maxerror} @var{esterror} @var{status} @var{constant} @var{precision} @var{tolerance} @var{time} @var{tick} @var{ppsfreq} @var{jitter} @var{shift} @var{stabil} @var{jitcnt} @var{calcnt} @var{errcnt} @var{stbcnt}
-@defunx <struct-timex>? @var{obj}
-Constructor and predicate for @class{struct-timex} records.
+@defun make-<timex> @var{modes} @var{offset} @var{freq} @var{maxerror} @var{esterror} @var{status} @var{constant} @var{precision} @var{tolerance} @var{time} @var{tick} @var{ppsfreq} @var{jitter} @var{shift} @var{stabil} @var{jitcnt} @var{calcnt} @var{errcnt} @var{stbcnt}
+@defunx <timex>? @var{obj}
+Constructor and predicate for @class{timex} records.
 
 These bindings are exported by the @library{posix glibc primitives}
 library.
 @end defun
 
 
-@defun pointer-><struct-timex> @var{struct-timex-pointer}
-@defunx <struct-timex>->pointer @var{timex-record} @var{malloc}
+@defun pointer-><timex> @var{struct-timex-pointer}
+@defunx <timex>->pointer @var{timex-record} @var{malloc}
 Convert between a pointer to a @code{struct timex} instance and a record
-of type @class{struct-timex}.
+of type @class{timex}.
 
 Memory for the foreign structure is allocated with the @var{malloc}
 function, whose interface protocol must match the one of @func{malloc}
@@ -7721,33 +7737,33 @@ type @code{struct itimerval}.  @glibcref{Setting an Alarm, Setting an
 Alarm}.
 
 
-@deftp {Record Type Name} <struct-itimerval>
-@deftpx {Record Type Descriptor} <struct-itimerval-rtd>
+@deftp {Record Type Name} <itimerval>
+@deftpx {Record Type Descriptor} <itimerval-rtd>
 Record type that mirrors the @code{struct itimerval} type.  It has the
 following fields, one for each field in the @code{struct itimerval}
 type: @code{interval}, @code{value}.  Both the fields contain a
-@class{struct-timeval} record.
+@class{timeval} record.
 @end deftp
 
 
-@defun make-<struct-itimerval> @var{interval} @var{value}
-@defunx <struct-itimerval>? @var{obj}
-Constructor and predicate for @class{struct-itimerval} records.
+@defun make-<itimerval> @var{interval} @var{value}
+@defunx <itimerval>? @var{obj}
+Constructor and predicate for @class{itimerval} records.
 @end defun
 
 
-@defun <struct-itimerval>-interval @var{pointer}
-@defunx <struct-itimerval>-interval-set! @var{pointer} @var{value}
-@defunx <struct-itimerval>-value @var{pointer}
-@defunx <struct-itimerval>-value-set! @var{pointer} @var{value}
-Accessors and mutators @class{struct-itimerval} records.
+@defun <itimerval>-interval @var{pointer}
+@defunx <itimerval>-interval-set! @var{pointer} @var{value}
+@defunx <itimerval>-value @var{pointer}
+@defunx <itimerval>-value-set! @var{pointer} @var{value}
+Accessors and mutators @class{itimerval} records.
 @end defun
 
 
-@defun pointer-><struct-itimerval> @var{struct-itimerval-pointer}
-@defunx <struct-itimerval>->pointer @var{itimerval-record} @var{malloc}
+@defun pointer-><itimerval> @var{struct-itimerval-pointer}
+@defunx <itimerval>->pointer @var{itimerval-record} @var{malloc}
 Convert between a pointer to a @code{struct itimerval} instance and a
-record of type @class{struct-itimerval}.
+record of type @class{itimerval}.
 
 Memory for the foreign structure is allocated with the @var{malloc}
 function, whose interface protocol must match the one of @func{malloc}
@@ -7802,7 +7818,7 @@ Return the calling process' current @cpu{} time, casted to a native
 @deffnx Function platform:times @var{pointer}
 Return two values: the return value from the @cfunc{times} call casted
 to a native @code{double} number and then to a Scheme inexact real
-number; a record of type @class{struct-tms}.
+number; a record of type @class{tms}.
 @end deffn
 
 @c page
@@ -7855,8 +7871,8 @@ bindings are exported by the Glibc @code{time} libraries.
 @deffnx Parameter gettimeofday-function
 @deffnx Function primitive:gettimeofday
 @deffnx Function platform:gettimeofday @var{timeval-ptr} @var{timezone-ptr}
-Build and return two values: a record of type @class{struct-timeval}, a
-record of type @class{struct-timezone}; they represent the current time.
+Build and return two values: a record of type @class{timeval}, a
+record of type @class{timezone}; they represent the current time.
 @end deffn
 
 
@@ -7865,8 +7881,8 @@ record of type @class{struct-timezone}; they represent the current time.
 @deffnx Function primitive:settimeofday @var{timeval} @var{timezone}
 @deffnx Function platform:settimeofday @var{timeval-ptr} @var{timezone-ptr}
 Set the system clock to the calendar time specified by the @var{timeval}
-and @var{timezone} arguments, which must be a @class{struct-timeval}
-record and a @class{struct-timezone} record.
+and @var{timezone} arguments, which must be a @class{timeval}
+record and a @class{timezone} record.
 
 Super user privileges are needed to successfully call this function.
 @end deffn
@@ -7879,7 +7895,7 @@ Super user privileges are needed to successfully call this function.
 Speed up or slow down the system clock in order to make a gradual
 adjustment maintaining a monotonic clock value.  The time delta is
 described by @var{timeval-delta}, which must be a record of type
-@class{struct-timeval}.
+@class{timeval}.
 
 The @func{adjtime} and @func{primitive:adjtime} functions return two
 values: the return value from the foreign function and a record of type
@@ -7906,7 +7922,7 @@ specified, the bindings are exported by the Glibc @code{time} libraries.
 Allocate a new @code{struct tm} instance, then fill it with broken--down
 values from the calendar @var{time} (which can be the return value of
 @func{time}).  The return value is the pointer to the @code{struct tm}
-instance (see below about how to get a @class{struct-tm} record).
+instance (see below about how to get a @class{tm} record).
 
 Memory for the foreign structure is allocated with the @var{malloc}
 function, whose interface protocol must match the one of @func{malloc}
@@ -7931,14 +7947,14 @@ For example, to get the current year:
 @deffnx Parameter localtime*-parameter
 @deffnx Function primitive:localtime* @var{time}
 Wrapper for @func{primitive:localtime} which automatically converts the
-@code{struct tm} instance into a @class{struct-tm} record and returns
+@code{struct tm} instance into a @class{tm} record and returns
 it.  Memory is managed internally.
 
 For example, to get the current year:
 
 @example
 (define (gimme-year*)
-  (+ 1900 (<struct-tm>-year (localtime* (time)))))
+  (+ 1900 (<tm>-year (localtime* (time)))))
 @end example
 @end deffn
 
@@ -7956,7 +7972,7 @@ Universal Time (@acronym{UTC}).
 @deffnx Parameter gmtime*-parameter
 @deffnx Function primitive:gmtime* @var{time}
 Wrapper for @func{primitive:gmtime} which automatically converts the
-@code{struct tm} instance into a @class{struct-tm} record and returns
+@code{struct tm} instance into a @class{tm} record and returns
 it.  Memory is managed internally.
 @end deffn
 
@@ -7982,7 +7998,7 @@ is the inverse of @func{localtime}.
 @deffnx Parameter timelocal*-function
 @deffnx Function primitive:timelocal* @var{tm-record}
 Wrapper for @func{primitive:timelocal} which automatically converts
-@var{tm-record}, which must be a @class{struct-tm} record, into an
+@var{tm-record}, which must be a @class{tm} record, into an
 instance of @code{struct tm}.  Memory is managed internally.
 @end deffn
 
@@ -8002,7 +8018,7 @@ is the inverse of @func{gmtime}.
 @deffnx Parameter timegm*-function
 @deffnx Function primitive:timegm* @var{tm-record}
 Wrapper for @func{primitive:timegm} which automatically converts
-@var{tm-record}, which must be a @class{struct-tm} record, into an
+@var{tm-record}, which must be a @class{tm} record, into an
 instance of @code{struct tm}.  Memory is managed internally.
 @end deffn
 
@@ -8031,7 +8047,7 @@ Fill the @code{struct ntptimeval} instance referenced by
 @deffnx Function primitive:ntp_gettime*
 Wrappers for @func{primitive:ntp_gettime} which automatically allocate
 the @code{struct ntptimeval} instance and convert it into a
-@class{struct-ntptimeval} record; return the record.
+@class{ntptimeval} record; return the record.
 @end deffn
 
 
@@ -8051,9 +8067,9 @@ Superuser privileges are needed to successfully call this function.
 @deffnx Parameter ntp_adjtime-function
 @deffnx Function primitive:ntp_adjtime* @var{record}
 Wrappers for @func{primitive:ntp_adjtime} which automatically convert
-the @class{struct-timex} @var{record} into a @code{struct timex}
+the @class{timex} @var{record} into a @code{struct timex}
 instance, hand the structure to @func{primitive:ntp_adjtime}, finally
-convert the modified structure into a new @class{struct-timex} record
+convert the modified structure into a new @class{timex} record
 and return it.
 
 The original @var{record} is @strong{not} mutated.
@@ -8087,7 +8103,7 @@ reentrant.
 @deffnx Parameter asctime*-function
 @deffnx Function primitive:asctime* @var{tm-record}
 Wrappers for @func{primitive:asctime} which automatically convert the
-@class{struct-tm} @var{tm-record} into an instance of @code{struct tm}
+@class{tm} @var{tm-record} into an instance of @code{struct tm}
 and perform the conversion to string.
 @end deffn
 
@@ -8124,7 +8140,7 @@ than that number of bytes, an error is raised.
 @deffnx Parameter strftime*-function
 @deffnx Function primitive:strftime* @var{template} @var{tm-record}
 Wrappers for @func{primitive:strftime} which automatically convert the
-@class{struct-tm} @var{tm-record} into an instance of @code{struct tm},
+@class{tm} @var{tm-record} into an instance of @code{struct tm},
 then build and return the output string.
 @end deffn
 
@@ -8153,7 +8169,7 @@ referenced by @var{tm-pointer}.
 @deffnx Parameter strptime*-function
 @deffnx Function primitive:strptime* @var{input} @var{template}
 Wrappers for @func{primitive:strptime} which allocate a @code{struct tm}
-instance and convert it to a @class{struct-tm} record; return the
+instance and convert it to a @class{tm} record; return the
 record.
 
 Before calling @func{primitive:strptime} all the integer fields of
@@ -8190,9 +8206,9 @@ referenced by the pointer @var{itimerval-ptr-old}.
 @deffnx Parameter setitimer*-function
 @deffnx Function primitive:setitimer* @var{which} @var{new-record}
 Wrappers for @func{primitive:setitimer} which internally convert the
-@class{struct-itimerval} record @var{new-record} to a @code{struct
+@class{itimerval} record @var{new-record} to a @code{struct
 itimerval} instance and set the selected timer accordingly; the return
-value is a @class{struct-itimerval} record representing the old
+value is a @class{itimerval} record representing the old
 specification of the selected timer.
 @end deffn
 
@@ -8213,7 +8229,7 @@ selected type.  @var{which} can be one among the values bound to
 @deffnx Function primitive:getitimer* @var{which}
 Wrappers for @func{primitive:getitimer} which internally allocate a
 @code{struct itimerval} instance, query the timer status and return a
-@class{struct-itimerval} record.
+@class{itimerval} record.
 @end deffn
 
 
@@ -8260,9 +8276,9 @@ after the elapsed time or if a signal is received.  Store in the
 @deffnx Parameter nanosleep*-function
 @deffnx Function primitive:nanosleep* @var{requested}
 Wrappers for @func{primitive:nanosleep} which internally convert the
-@class{struct-timespec} record @var{requested} in a @code{struct
+@class{timespec} record @var{requested} in a @code{struct
 timespec} instance, halt the process and return the remaining time in a
-@class{struct-timespec} record.
+@class{timespec} record.
 @end deffn
 
 @c page
@@ -8819,8 +8835,8 @@ identifier.
 @subsection User informations
 
 
-@deftp {Record Type Name} <struct-passwd>
-@deftpx {Record Type Descriptor} <struct-passwd-rtd>
+@deftp {Record Type Name} <passwd>
+@deftpx {Record Type Descriptor} <passwd-rtd>
 Record type that mirrors @code{struct passwd} C language data
 structures.  It has the following mutable fields:
 
@@ -8852,32 +8868,32 @@ A Scheme string representing the user's default shell.  It can be
 @end deftp
 
 
-@defun make-<struct-passwd> @var{name} @var{passwd} @var{uid} @var{gid} @var{gecos} @var{dir} @var{shell}
-@defunx <struct-passwd>? @var{obj}
-Constructor and predicate for records of type @class{struct-passwd}.
+@defun make-<passwd> @var{name} @var{passwd} @var{uid} @var{gid} @var{gecos} @var{dir} @var{shell}
+@defunx <passwd>? @var{obj}
+Constructor and predicate for records of type @class{passwd}.
 @end defun
 
 
-@defun <struct-passwd>-name @var{record}
-@defunx <struct-passwd>-name-set! @var{record} @var{value}
-@defunx <struct-passwd>-passwd @var{record}
-@defunx <struct-passwd>-passwd-set! @var{record} @var{value}
-@defunx <struct-passwd>-uid @var{record}
-@defunx <struct-passwd>-uid-set! @var{record} @var{value}
-@defunx <struct-passwd>-gid @var{record}
-@defunx <struct-passwd>-gid-set! @var{record} @var{value}
-@defunx <struct-passwd>-gecos @var{record}
-@defunx <struct-passwd>-gecos-set! @var{record} @var{value}
-@defunx <struct-passwd>-dir @var{record}
-@defunx <struct-passwd>-dir-set! @var{record} @var{value}
-@defunx <struct-passwd>-shell @var{record}
-@defunx <struct-passwd>-shell-set! @var{record} @var{value}
-Accessors and mutators for records of type @class{struct-passwd}.
+@defun <passwd>-name @var{record}
+@defunx <passwd>-name-set! @var{record} @var{value}
+@defunx <passwd>-passwd @var{record}
+@defunx <passwd>-passwd-set! @var{record} @var{value}
+@defunx <passwd>-uid @var{record}
+@defunx <passwd>-uid-set! @var{record} @var{value}
+@defunx <passwd>-gid @var{record}
+@defunx <passwd>-gid-set! @var{record} @var{value}
+@defunx <passwd>-gecos @var{record}
+@defunx <passwd>-gecos-set! @var{record} @var{value}
+@defunx <passwd>-dir @var{record}
+@defunx <passwd>-dir-set! @var{record} @var{value}
+@defunx <passwd>-shell @var{record}
+@defunx <passwd>-shell-set! @var{record} @var{value}
+Accessors and mutators for records of type @class{passwd}.
 @end defun
 
 
-@defun primitive:pointer-><struct-passwd> @var{pointer}
-Build and return a new @class{struct-passwd} record mirroring the
+@defun primitive:pointer-><passwd> @var{pointer}
+Build and return a new @class{passwd} record mirroring the
 @code{struct passwd} C language data structure referenced by
 @var{pointer}.
 
@@ -8890,8 +8906,8 @@ primitives}.
 @subsection Groups informations
 
 
-@deftp {Record Type Name} <struct-group>
-@deftpx {Record Type Descriptor} <struct-group-rtd>
+@deftp {Record Type Name} <group>
+@deftpx {Record Type Descriptor} <group-rtd>
 Record type that mirrors @code{struct passwd} C language data
 structures.  It has the following mutable fields:
 
@@ -8909,24 +8925,24 @@ in this group.
 @end deftp
 
 
-@defun make-<struct-group> @var{name} @var{gid} @var{mem}
-@defunx <struct-group>? @var{obj}
-Constructor and predicate for records of type @class{struct-group}.
+@defun make-<group> @var{name} @var{gid} @var{mem}
+@defunx <group>? @var{obj}
+Constructor and predicate for records of type @class{group}.
 @end defun
 
 
-@defun <struct-group>-name @var{record}
-@defunx <struct-group>-name-set @var{record} @var{value}
-@defunx <struct-group>-gid @var{record}
-@defunx <struct-group>-gid-set @var{record} @var{value}
-@defunx <struct-group>-mem @var{record}
-@defunx <struct-group>-mem-set @var{record} @var{value}
-Accessors and mutators for records of type @class{struct-group}.
+@defun <group>-name @var{record}
+@defunx <group>-name-set @var{record} @var{value}
+@defunx <group>-gid @var{record}
+@defunx <group>-gid-set @var{record} @var{value}
+@defunx <group>-mem @var{record}
+@defunx <group>-mem-set @var{record} @var{value}
+Accessors and mutators for records of type @class{group}.
 @end defun
 
 
-@defun primitive:pointer-><struct-group> @var{pointer}
-Build and return a new @class{struct-group} record mirroring the
+@defun primitive:pointer-><group> @var{pointer}
+Build and return a new @class{group} record mirroring the
 @code{struct group} C language data structure referenced by
 @var{pointer}.
 
@@ -9114,7 +9130,7 @@ Users, Scanning the List of All Users}.
 @deffnx Function primitive:getpwuid @var{uid}
 @deffnx Function platform:getpwuid @var{uid-int}
 @deffnx Function platform:getpwuid_r @var{uid-int} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
-Return a record of type @class{struct-passwd} representing data about
+Return a record of type @class{passwd} representing data about
 the user identified by @var{uid}.  This function is reentrant.
 @end deffn
 
@@ -9124,7 +9140,7 @@ the user identified by @var{uid}.  This function is reentrant.
 @deffnx Function primitive:getpwnam @var{user-name}
 @deffnx Function platform:getpwnam @var{name-cstr}
 @deffnx Function platform:getpwnam_r @var{name-cstr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
-Return a record of type @class{struct-passwd} representing data about
+Return a record of type @class{passwd} representing data about
 the user whose name is @var{user-name}, a Scheme string or symbol.  This
 function is reentrant.
 @end deffn
@@ -9135,7 +9151,7 @@ function is reentrant.
 @deffnx Function primitive:fgetpwent @var{stream}
 @deffnx Function platform:fgetpwent @var{stream-ptr}
 @deffnx Function platform:fgetpwent_r @var{stream-ptr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
-Return a record of type @class{struct-passwd} representing data about
+Return a record of type @class{passwd} representing data about
 the next user from the database file referenced by @var{stream}, a
 @code{FILE*} object.  When the iteration over the database ends, the
 return value is @false{}.  This function is reentrant.
@@ -9171,7 +9187,7 @@ Groups, Scanning the List of All Groups}.
 @deffnx Function primitive:getgrgid @var{gid}
 @deffnx Function platform:getgrgid @var{gid-int}
 @deffnx Function platform:getgrgid_r @var{gid-int} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
-Return a record of type @class{struct-group} representing data about
+Return a record of type @class{group} representing data about
 the group identified by @var{gid}.  This function is reentrant.
 @end deffn
 
@@ -9181,7 +9197,7 @@ the group identified by @var{gid}.  This function is reentrant.
 @deffnx Function primitive:getgrnam @var{group-name}
 @deffnx Function platform:getgrnam @var{name-cstr}
 @deffnx Function platform:getgrnam_r @var{name-cstr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
-Return a record of type @class{struct-group} representing data about
+Return a record of type @class{group} representing data about
 the group whose name is @var{group-name}, a Scheme string or symbol.  This
 function is reentrant.
 @end deffn
@@ -9192,7 +9208,7 @@ function is reentrant.
 @deffnx Function primitive:fgetgrent @var{stream}
 @deffnx Function platform:fgetgrent @var{stream-ptr}
 @deffnx Function platform:fgetgrent_r @var{stream-ptr} @var{pwd-ptr} @var{buf-ptr} @var{buf-len} @var{result-ptr}
-Return a record of type @class{struct-group} representing data about the
+Return a record of type @class{group} representing data about the
 next group from the database file referenced by @var{stream}, a
 @code{FILE*} object.  When the iteration over the database ends, the
 return value is @false{}.  This function is reentrant.
@@ -9585,8 +9601,8 @@ The bindings documented in this section are exported by the
 @subsection Platform type informations
 
 
-@deftp {Record Type Name} <struct-utsname>
-@deftpx {Record Type Descriptor} <struct-utsname-rtd>
+@deftp {Record Type Name} <utsname>
+@deftpx {Record Type Descriptor} <utsname-rtd>
 Record type used to mirror C language structures of type @code{struct
 utsname}.  It has the following mutable fields:
 
@@ -9606,26 +9622,26 @@ A Scheme string representing the hardware.
 @end deftp
 
 
-@defun make-<struct-utsname> @var{sysname} @var{release} @var{version} @var{machine}
-@defunx <struct-utsname>? @var{obj}
-Constructor and predicate for records of type @class{struct-utsname}.
+@defun make-<utsname> @var{sysname} @var{release} @var{version} @var{machine}
+@defunx <utsname>? @var{obj}
+Constructor and predicate for records of type @class{utsname}.
 @end defun
 
 
-@defun <struct-utsname>-sysname @var{record}
-@defunx <struct-utsname>-sysname-set! @var{record} @var{value}
-@defunx <struct-utsname>-release @var{record}
-@defunx <struct-utsname>-release-set! @var{record} @var{value}
-@defunx <struct-utsname>-version @var{record}
-@defunx <struct-utsname>-version-set! @var{record} @var{value}
-@defunx <struct-utsname>-machine @var{record}
-@defunx <struct-utsname>-machine-set! @var{record} @var{value}
-Accessors and mutators for records of type @class{struct-utsname}.
+@defun <utsname>-sysname @var{record}
+@defunx <utsname>-sysname-set! @var{record} @var{value}
+@defunx <utsname>-release @var{record}
+@defunx <utsname>-release-set! @var{record} @var{value}
+@defunx <utsname>-version @var{record}
+@defunx <utsname>-version-set! @var{record} @var{value}
+@defunx <utsname>-machine @var{record}
+@defunx <utsname>-machine-set! @var{record} @var{value}
+Accessors and mutators for records of type @class{utsname}.
 @end defun
 
 
-@defun primitive:pointer-><struct-utsname> @var{pointer}
-Build and return a new record of type @class{struct-utsname} initialised
+@defun primitive:pointer-><utsname> @var{pointer}
+Build and return a new record of type @class{utsname} initialised
 with data from the C structure of type @code{struct utsname} referenced
 by @var{pointer}.
 
@@ -9638,8 +9654,8 @@ primitives}.
 @subsection Mountable file systems informations
 
 
-@deftp {Record Type Name} <struct-fstab>
-@deftpx {Record Type Descriptor} <struct-fstab-rtd>
+@deftp {Record Type Name} <fstab>
+@deftpx {Record Type Descriptor} <fstab-rtd>
 Record type used to mirror C language structures of type @code{struct
 fstab}.  It has the following mutable fields:
 
@@ -9671,34 +9687,34 @@ An exact integer representing the pass number on parallel dumps.
 @end deftp
 
 
-@defun make-<struct-fstab> @var{spec} @var{file} @var{vfstype} @var{mntops} @var{type} @var{freq} @var{passno}
-@defunx <struct-fstab>? @var{obj}
-Constructor and predicate for records of type @class{struct-fstab}.
+@defun make-<fstab> @var{spec} @var{file} @var{vfstype} @var{mntops} @var{type} @var{freq} @var{passno}
+@defunx <fstab>? @var{obj}
+Constructor and predicate for records of type @class{fstab}.
 @end defun
 
 
-@defun <struct-fstab>-spec @var{record}
-@defunx <struct-fstab>-spec-set! @var{record} @var{value}
-@defunx <struct-fstab>-file @var{record}
-@defunx <struct-fstab>-file-set! @var{record} @var{value}
-@defunx <struct-fstab>-vfstype @var{record}
-@defunx <struct-fstab>-vfstype-set! @var{record} @var{value}
-@defunx <struct-fstab>-mntops @var{record}
-@defunx <struct-fstab>-mntops-set! @var{record} @var{value}
-@defunx <struct-fstab>-type @var{record}
-@defunx <struct-fstab>-type-set! @var{record} @var{value}
-@defunx <struct-fstab>-type @var{record}
-@defunx <struct-fstab>-type-set! @var{record} @var{value}
-@defunx <struct-fstab>-freq @var{record}
-@defunx <struct-fstab>-freq-set! @var{record} @var{value}
-@defunx <struct-fstab>-passno @var{record}
-@defunx <struct-fstab>-passno-set! @var{record} @var{value}
-Accessors and mutators for records of type @class{struct-fstab}.
+@defun <fstab>-spec @var{record}
+@defunx <fstab>-spec-set! @var{record} @var{value}
+@defunx <fstab>-file @var{record}
+@defunx <fstab>-file-set! @var{record} @var{value}
+@defunx <fstab>-vfstype @var{record}
+@defunx <fstab>-vfstype-set! @var{record} @var{value}
+@defunx <fstab>-mntops @var{record}
+@defunx <fstab>-mntops-set! @var{record} @var{value}
+@defunx <fstab>-type @var{record}
+@defunx <fstab>-type-set! @var{record} @var{value}
+@defunx <fstab>-type @var{record}
+@defunx <fstab>-type-set! @var{record} @var{value}
+@defunx <fstab>-freq @var{record}
+@defunx <fstab>-freq-set! @var{record} @var{value}
+@defunx <fstab>-passno @var{record}
+@defunx <fstab>-passno-set! @var{record} @var{value}
+Accessors and mutators for records of type @class{fstab}.
 @end defun
 
 
-@defun primitive:pointer-><struct-fstab> @var{pointer}
-Build and return a new record of type @class{struct-fstab} initialised
+@defun primitive:pointer-><fstab> @var{pointer}
+Build and return a new record of type @class{fstab} initialised
 with data from the C structure of type @code{struct fstab} referenced by
 @var{pointer}.
 
@@ -9711,8 +9727,8 @@ primitives}.
 @subsection Mounted file systems informations
 
 
-@deftp {Record Type Name} <struct-mntent>
-@deftpx {Record Type Descriptor} <struct-mntent-rtd>
+@deftp {Record Type Name} <mntent>
+@deftpx {Record Type Descriptor} <mntent-rtd>
 Record type used to mirror C language structures of type @code{struct
 mntent}.  It has the following mutable fields:
 
@@ -9739,30 +9755,30 @@ An exact integer representing the pass number on parallel dumps.
 @end deftp
 
 
-@defun make-<struct-mntent> @var{fsname} @var{dir} @var{type} @var{opts} @var{freq} @var{passno}
-@defunx <struct-mntent>? @var{obj}
-Constructor and predicate for records of type @class{struct-mntent}.
+@defun make-<mntent> @var{fsname} @var{dir} @var{type} @var{opts} @var{freq} @var{passno}
+@defunx <mntent>? @var{obj}
+Constructor and predicate for records of type @class{mntent}.
 @end defun
 
 
-@defun <struct-mntent>-fsname @var{record}
-@defunx <struct-mntent>-fsname-set! @var{record} @var{value}
-@defunx <struct-mntent>-dir @var{record}
-@defunx <struct-mntent>-dir-set! @var{record} @var{value}
-@defunx <struct-mntent>-type @var{record}
-@defunx <struct-mntent>-type-set! @var{record} @var{value}
-@defunx <struct-mntent>-opts @var{record}
-@defunx <struct-mntent>-opts-set! @var{record} @var{value}
-@defunx <struct-mntent>-freq @var{record}
-@defunx <struct-mntent>-freq-set! @var{record} @var{value}
-@defunx <struct-mntent>-passno @var{record}
-@defunx <struct-mntent>-passno-set! @var{record} @var{value}
-Accessors and mutators for records of type @class{struct-mntent}.
+@defun <mntent>-fsname @var{record}
+@defunx <mntent>-fsname-set! @var{record} @var{value}
+@defunx <mntent>-dir @var{record}
+@defunx <mntent>-dir-set! @var{record} @var{value}
+@defunx <mntent>-type @var{record}
+@defunx <mntent>-type-set! @var{record} @var{value}
+@defunx <mntent>-opts @var{record}
+@defunx <mntent>-opts-set! @var{record} @var{value}
+@defunx <mntent>-freq @var{record}
+@defunx <mntent>-freq-set! @var{record} @var{value}
+@defunx <mntent>-passno @var{record}
+@defunx <mntent>-passno-set! @var{record} @var{value}
+Accessors and mutators for records of type @class{mntent}.
 @end defun
 
 
-@defun primitive:pointer-><struct-mntent> @var{pointer}
-Build and return a new record of type @class{struct-mntent} initialised
+@defun primitive:pointer-><mntent> @var{pointer}
+Build and return a new record of type @class{mntent} initialised
 with data from the C structure of type @code{struct mntent} referenced
 by @var{pointer}.
 
@@ -9771,10 +9787,10 @@ primitives}.
 @end defun
 
 
-@defun primitive:<struct-mntent>->pointer @var{mntent} @var{malloc}
+@defun primitive:<mntent>->pointer @var{mntent} @var{malloc}
 Allocate a new @code{struct mntent} C language data structure
 initialised with values from @var{mntent}, which must be a record of
-type @class{struct-mntent}.
+type @class{mntent}.
 
 All the needed memory is allocated with the function @var{malloc}, which
 must have the same protocol of @func{malloc} from @library{memory}.
@@ -10415,7 +10431,7 @@ The following functions manage platform identification.
 @deffnx Parameter uname-function
 @deffnx Function primitive:uname
 @deffnx Function platform:uname @var{struct-ptr}
-Return a record of type @class{struct-utsname} describing the underlying
+Return a record of type @class{utsname} describing the underlying
 platform.
 @end deffn
 
@@ -10466,7 +10482,7 @@ from the foreign function.
 @deffnx Parameter getfsent-function
 @deffnx Function primitive:getfsent
 @deffnx Function platform:getfsent
-Return a record of type @class{struct-fstab} describing the next entry
+Return a record of type @class{fstab} describing the next entry
 in the @file{fstab} file.  It is impossible to distinguish between
 errors and end of iteration, so when no more records can be returned:
 the return value is @false{}.
@@ -10494,7 +10510,7 @@ from the foreign function.
 @deffnx Parameter getfsspec-function
 @deffnx Function primitive:getfsspec @var{spec}
 @deffnx Function platform:getfsspec @var{spec}
-Return a record of type @class{struct-fstab} describing the next entry
+Return a record of type @class{fstab} describing the next entry
 in the @file{fstab} file having @var{spec}, a Scheme string or symbol,
 as content of the @code{fs_spec} field.  It is impossible to distinguish
 between errors and end of iteration, so when no more records can be
@@ -10512,7 +10528,7 @@ from the foreign function.
 @deffnx Parameter getfsfile-function
 @deffnx Function primitive:getfsfile @var{file}
 @deffnx Function platform:getfsfile @var{file}
-Return a record of type @class{struct-fstab} describing the next entry
+Return a record of type @class{fstab} describing the next entry
 in the @file{fstab} file having @var{file}, a Scheme string or symbol,
 as content of the @code{fs_file} field.  It is impossible to distinguish
 between errors and end of iteration, so when no more records can be
@@ -10572,7 +10588,7 @@ from the foreign function.
 @deffnx Function primitive:getmntent @var{stream}
 @deffnx Function platform:getmntent @var{file-ptr}
 @deffnx Function platform:getmntent_r @var{file-ptr} @var{mntent-ptr} @var{buf-ptr} @var{buf-len}
-Return a record of type @class{struct-mntent} representing the next
+Return a record of type @class{mntent} representing the next
 entry read from @var{stream}, a @code{FILE*} object.  This function is
 reentrant.
 
@@ -10605,7 +10621,7 @@ single argument: the return value from the foreign function.
 @deffnx Function primitive:addmntent @var{stream} @var{mntent}
 @deffnx Function platform:addmntent @var{file-ptr} @var{mntent-ptr}
 Append a new entry to the @file{mtab} file referenced by @var{stream}.
-@var{mntent} must be a record of type @class{struct-mntent}.
+@var{mntent} must be a record of type @class{mntent}.
 @end deffn
 
 @c page

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -35,8 +35,8 @@
     time
 
     ;; structure/record conversion
-    <struct-tms>->pointer		pointer-><struct-tms>
-    <struct-timeval>->pointer		pointer-><struct-timeval>
+    <tms>->pointer		pointer-><tms>
+    <timeval>->pointer		pointer-><timeval>
     )
   (import (rnrs)
     (begin0)
@@ -52,29 +52,29 @@
     (prefix (posix time platform) platform:))
 
 
-(define (pointer-><struct-tms> pointer)
-  (make-<struct-tms> (platform:struct-tms-tms_utime-ref  pointer)
+(define (pointer-><tms> pointer)
+  (make-<tms> (platform:struct-tms-tms_utime-ref  pointer)
 		     (platform:struct-tms-tms_stime-ref  pointer)
 		     (platform:struct-tms-tms_cutime-ref pointer)
 		     (platform:struct-tms-tms_cutime-ref pointer)))
 
-(define (<struct-tms>->pointer record malloc)
+(define (<tms>->pointer record malloc)
   (begin0-let ((pointer (malloc sizeof-tms)))
-    (platform:struct-tms-tms_utime-set!  pointer (<struct-tms>-utime  record))
-    (platform:struct-tms-tms_stime-set!  pointer (<struct-tms>-stime  record))
-    (platform:struct-tms-tms_cutime-set! pointer (<struct-tms>-cutime record))
-    (platform:struct-tms-tms_cstime-set! pointer (<struct-tms>-cstime record))))
+    (platform:struct-tms-tms_utime-set!  pointer (<tms>-utime  record))
+    (platform:struct-tms-tms_stime-set!  pointer (<tms>-stime  record))
+    (platform:struct-tms-tms_cutime-set! pointer (<tms>-cutime record))
+    (platform:struct-tms-tms_cstime-set! pointer (<tms>-cstime record))))
 
 ;;; --------------------------------------------------------------------
 
-(define (pointer-><struct-timeval> pointer)
-  (make-<struct-timeval> (struct-timeval-tv_sec-ref  pointer)
+(define (pointer-><timeval> pointer)
+  (make-<timeval> (struct-timeval-tv_sec-ref  pointer)
 			 (struct-timeval-tv_usec-ref pointer)))
 
-(define (<struct-timeval>->pointer record malloc)
+(define (<timeval>->pointer record malloc)
   (begin0-let ((pointer (malloc sizeof-timeval)))
-    (struct-timeval-tv_sec-set!  pointer (<struct-timeval>-sec  record))
-    (struct-timeval-tv_usec-set! pointer (<struct-timeval>-usec record))))
+    (struct-timeval-tv_sec-set!  pointer (<timeval>-sec  record))
+    (struct-timeval-tv_usec-set! pointer (<timeval>-usec record))))
 
 
 ;;;; clock ticks and CPU time
@@ -90,7 +90,7 @@
   (with-compensations
     (let* ((struct-tms*	(malloc-block/c sizeof-tms))
 	   (result	(platform:times struct-tms*)))
-      (values result (pointer-><struct-tms> struct-tms*)))))
+      (values result (pointer-><tms> struct-tms*)))))
 
 
 ;;;; calendar time

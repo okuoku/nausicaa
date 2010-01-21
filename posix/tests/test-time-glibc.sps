@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -44,29 +44,29 @@
 
 ;;;; helpers
 
-(define (equal-<struct-tm>? a b)
-  (and (equal? (<struct-tm>-sec a)
-	       (<struct-tm>-sec b))
-       (equal? (<struct-tm>-min a)
-	       (<struct-tm>-min b))
-       (equal? (<struct-tm>-hour a)
-	       (<struct-tm>-hour b))
-       (equal? (<struct-tm>-mday a)
-	       (<struct-tm>-mday b))
-       (equal? (<struct-tm>-mon a)
-	       (<struct-tm>-mon b))
-       (equal? (<struct-tm>-year a)
-	       (<struct-tm>-year b))
-       (equal? (<struct-tm>-wday a)
-	       (<struct-tm>-wday b))
-       (equal? (<struct-tm>-yday a)
-	       (<struct-tm>-yday b))
-       (equal? (<struct-tm>-isdst a)
-	       (<struct-tm>-isdst b))
-       (equal? (<struct-tm>-gmtoff a)
-	       (<struct-tm>-gmtoff b))
-       (pointer=? (<struct-tm>-zone a)
-		  (<struct-tm>-zone b))))
+(define (equal-<tm>? a b)
+  (and (equal? (<tm>-sec a)
+	       (<tm>-sec b))
+       (equal? (<tm>-min a)
+	       (<tm>-min b))
+       (equal? (<tm>-hour a)
+	       (<tm>-hour b))
+       (equal? (<tm>-mday a)
+	       (<tm>-mday b))
+       (equal? (<tm>-mon a)
+	       (<tm>-mon b))
+       (equal? (<tm>-year a)
+	       (<tm>-year b))
+       (equal? (<tm>-wday a)
+	       (<tm>-wday b))
+       (equal? (<tm>-yday a)
+	       (<tm>-yday b))
+       (equal? (<tm>-isdst a)
+	       (<tm>-isdst b))
+       (equal? (<tm>-gmtoff a)
+	       (<tm>-gmtoff b))
+       (pointer=? (<tm>-zone a)
+		  (<tm>-zone b))))
 
 
 (parametrise ((check-test-name 'simple-calendar))
@@ -114,7 +114,7 @@
       ;; 	  (guard (E ((errno-condition? E)
       ;; 		     (errno-symbolic-value E))
       ;; 		    (else #f))
-      ;; 	    (glibc:adjtime (make-<struct-timeval> 0 0)))
+      ;; 	    (glibc:adjtime (make-<timeval> 0 0)))
       ;; 	=> 'EPERM)
 
       #t)))
@@ -136,7 +136,7 @@
 	=> #t)
 
       (check
-	  (<struct-tm>? (glibc:localtime* (posix:time)))
+	  (<tm>? (glibc:localtime* (posix:time)))
 	=> #t)
 
 ;;; --------------------------------------------------------------------
@@ -148,7 +148,7 @@
 	=> #t)
 
       (check
-	  (<struct-tm>? (glibc:localtime* (posix:time)))
+	  (<tm>? (glibc:localtime* (posix:time)))
 	=> #t)
 
 ;;; --------------------------------------------------------------------
@@ -190,7 +190,7 @@
     (lambda ()
 
       (check
-	  (<struct-ntptimeval>? (glibc:ntp_gettime*))
+	  (<ntptimeval>? (glibc:ntp_gettime*))
       	=> #t)
 
       ;; (check
@@ -198,7 +198,7 @@
       ;; 	  (guard (E ((errno-condition? E)
       ;; 		     (errno-symbolic-value E))
       ;; 		    (else (write E) #f))
-      ;; 	    (glibc:ntp_adjtime* (make-<struct-timex>
+      ;; 	    (glibc:ntp_adjtime* (make-<timex>
       ;; 				 100 ;modes
       ;; 				 100 ;offset
       ;; 				 100 ;frequency
@@ -208,7 +208,7 @@
       ;; 				 100 ;constant
       ;; 				 100 ;precision
       ;; 				 100 ;tolerance
-      ;; 				 (make-<struct-timeval> 100 100) ;time
+      ;; 				 (make-<timeval> 100 100) ;time
       ;; 				 100 ;tick
       ;; 				 100 ;ppsfreq
       ;; 				 100 ;jitter
@@ -232,7 +232,7 @@
     (lambda ()
 
       (define broken
-	(make-<struct-tm> 0			;sec
+	(make-<tm> 0			;sec
 			  1			;min
 			  2			;hour
 			  3			;mday
@@ -273,7 +273,7 @@
     (lambda ()
 
       (define broken
-	(make-<struct-tm> 0			;sec
+	(make-<tm> 0			;sec
 			  1			;min
 			  2			;hour
 			  3			;mday
@@ -291,7 +291,7 @@
 
       (check
 	  (glibc:strptime* the-string template)
-	(=> equal-<struct-tm>?)
+	(=> equal-<tm>?)
 	broken)
 
       #t)))
@@ -305,30 +305,30 @@
     (lambda ()
 
       (check
-	  (<struct-itimerval>?
-	   (glibc:setitimer* ITIMER_REAL (make-<struct-itimerval>
-					  (make-<struct-timeval> 0 0)
-					  (make-<struct-timeval> 999999 1))))
+	  (<itimerval>?
+	   (glibc:setitimer* ITIMER_REAL (make-<itimerval>
+					  (make-<timeval> 0 0)
+					  (make-<timeval> 999999 1))))
 	=> #t)
 
       ;;The record returned by GETITIMER* has unpredictable values.
       ;;
       ;; (check
       ;; 	  (begin
-      ;; 	    (glibc:setitimer* ITIMER_REAL (make-<struct-itimerval>
-      ;; 					   (make-<struct-timeval> 0 0)
-      ;; 					   (make-<struct-timeval> 999999 1)))
+      ;; 	    (glibc:setitimer* ITIMER_REAL (make-<itimerval>
+      ;; 					   (make-<timeval> 0 0)
+      ;; 					   (make-<timeval> 999999 1)))
       ;; 	    (let* ((r (glibc:getitimer* ITIMER_REAL))
-      ;; 		   (i (<struct-itimerval>-interval r))
-      ;; 		   (v (<struct-itimerval>-value    r)))
-      ;; 	      (list (<struct-timeval>-sec  i)
-      ;; 		    (<struct-timeval>-usec i)
-      ;; 		    (<struct-timeval>-sec  v)
-      ;; 		    (<struct-timeval>-usec v))))
+      ;; 		   (i (<itimerval>-interval r))
+      ;; 		   (v (<itimerval>-value    r)))
+      ;; 	      (list (<timeval>-sec  i)
+      ;; 		    (<timeval>-usec i)
+      ;; 		    (<timeval>-sec  v)
+      ;; 		    (<timeval>-usec v))))
       ;; 	=> '(0 0 999999 1))
 
       (check
-	  (<struct-itimerval>? (glibc:getitimer* ITIMER_REAL))
+	  (<itimerval>? (glibc:getitimer* ITIMER_REAL))
 	=> #t)
 
       (check
@@ -350,9 +350,9 @@
 	=> 0)
 
       (check
-	  (let ((r (glibc:nanosleep* (make-<struct-timespec> 1 0))))
-	    (list (<struct-timespec>-sec  r)
-		  (<struct-timespec>-nsec r)))
+	  (let ((r (glibc:nanosleep* (make-<timespec> 1 0))))
+	    (list (<timespec>-sec  r)
+		  (<timespec>-nsec r)))
 	=> '(0 0))
 
       #t)))
