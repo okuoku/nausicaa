@@ -3820,7 +3820,7 @@ block.
 @end deftp
 
 
-@defun make-<memblock> @var{pointer} @var{number-of-bytes}
+@defun make-<memblock> @var{pointer} @var{number-of-bytes} @var{alloc-size}
 Build and return a new @class{memblock} record.
 @end defun
 
