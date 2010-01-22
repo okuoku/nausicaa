@@ -667,6 +667,18 @@ Ses ailes de geant l'empechent de marcher.")
 		(posix:access the-file X_OK))
 	    => #f)
 
+	  (check
+	      (begin
+		(posix:chmod the-file S_IRWXU)
+		(posix:access the-file (access-flags existence)))
+	    => #t)
+
+	  (check
+	      (begin
+		(posix:chmod the-file S_IRWXU)
+		(posix:access the-file (access-flags read)))
+	    => #t)
+
 	  #f)))))
 
 

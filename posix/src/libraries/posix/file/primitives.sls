@@ -441,7 +441,10 @@
 (define (access pathname mask)
   (with-compensations
     (receive (result errno)
-	(platform:access (string->cstring/c pathname) mask)
+	(platform:access (string->cstring/c pathname)
+			 (if (integer? mask)
+			     mask
+			   (access-flags->value mask)))
       (when (and (= -1 result)
 		 (not (= 0 errno))
 		 (not (= EACCES errno))

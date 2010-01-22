@@ -1100,6 +1100,8 @@ exported by the following libraries:
 @end example
 
 @menu
+* file constants::              Constant values.
+* file enumerations::           Enumeration sets.
 * file working directory::      The working directory.
 * file directory access::       Accessing directory entries.
 * file links::                  Hard and symbolic links.
@@ -1111,6 +1113,63 @@ exported by the following libraries:
 * file times::                  Setting file times.
 * file stat::                   Inspecting file attributes.
 @end menu
+
+@c page
+@node file constants
+@section Constant values
+
+
+@defvr Constant F_OK
+@defvrx Constant R_OK
+@defvrx Constant W_OK
+@defvrx Constant X_OK
+Constants representing requests for access permission testing with
+@func{access}.  These bindings are exported by @library{posix
+sizeof}.
+@end defvr
+
+@c page
+@node file enumerations
+@section Enumeration sets
+
+
+@menu
+* file enumerations access::    Access flags.
+@end menu
+
+@c page
+@node file enumerations access
+@subsection Access flags
+
+
+@deftp {Enumeration Type} enum-access-flags
+Enumeration type used to specify flags for @func{access}.  It contains
+the following symbols:
+
+@example
+existence
+read  write  exec
+@end example
+@end deftp
+
+
+@deffn Syntax access-flags @ameta{symbol} ...
+Expand to an enumeration set of type @code{enum-access-flags} holding
+the given @meta{symbol} symbols.
+@end deffn
+
+
+@defun access-flags->value @var{set}
+@defunx value->access-flags @var{integer}
+Convert to and from enumeration sets of type @code{enum-access-flags}
+and exact integer values being an inclusive OR combination of the
+following constant values:
+
+@example
+F_OK
+R_OK  W_OK  X_OK
+@end example
+@end defun
 
 @c page
 @node file working directory
@@ -1943,19 +2002,10 @@ Return @true{} if the process has permission to access the file selected
 by the Scheme string or symbol @var{pathname} as specified by
 @var{mask}; return @false{} otherwise.
 
-@var{mask} can be the bitwise combination of: @code{F_OK}, @code{R_OK},
-@code{W_OK}, @code{X_OK}.
+@var{mask} can be an exact integer or an enumeration set of type
+@code{enum-access-flags}; in the integer case, it can be the bitwise
+combination of: @code{F_OK}, @code{R_OK}, @code{W_OK}, @code{X_OK}.
 @end deffn
-
-
-@defvr Constant F_OK
-@defvrx Constant R_OK
-@defvrx Constant W_OK
-@defvrx Constant X_OK
-Constants representing requests for access permission testing with
-@func{access}.  These bindings are exported by @library{posix
-sizeof}.
-@end defvr
 
 @c page
 @node file attr size

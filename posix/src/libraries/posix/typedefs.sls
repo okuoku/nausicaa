@@ -286,6 +286,11 @@
 
 ;;; --------------------------------------------------------------------
 
+    enum-access-flags			access-flags
+    access-flags->value			value->access-flags
+
+;;; --------------------------------------------------------------------
+
     enum-unix-signals			unix-signals
     unix-signal->value			value->unix-signal
     unix-signal-symbol->value		value->unix-signal-symbol
@@ -790,6 +795,10 @@
 (define-c-ior-flags pipe2-flags
   (O_NONBLOCK	O_CLOEXEC)
   (nonblock	cloexec))
+
+(define-c-ior-flags access-flags
+  (F_OK R_OK W_OK X_OK)
+  (existence read write exec))
 
 
 (define-enumeration enum-unix-signals
