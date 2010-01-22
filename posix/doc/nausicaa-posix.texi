@@ -609,6 +609,7 @@ Enumeration sets
 
 * fd enumerations perms::       Access permissions.
 * fd enumerations open::        Open modes.
+* fd enumerations pipe2::       Flags for @func{pipe2}.
 
 Sockets
 
@@ -2941,6 +2942,14 @@ Open--time action flags to be used with @func{open}.
 @gnu{} only flag to be used with @func{open}.
 @end defvr
 
+
+@defvr Constant O_DIRECT
+@defvrx Constant O_DIRECTORY
+@defvrx Constant O_LARGEFILE
+@defvrx Constant O_NOFOLLOW
+Linux specific flags to be used with @func{open}.
+@end defvr
+
 @c page
 @node fd constants perms
 @subsection Permissions
@@ -3198,6 +3207,7 @@ Size, structure alignment and array stride of data structures of type
 @menu
 * fd enumerations perms::       Access permissions.
 * fd enumerations open::        Open modes.
+* fd enumerations pipe2::       Flags for @func{pipe2}.
 @end menu
 
 @c page
@@ -3248,14 +3258,18 @@ Enumeration type used to specify file open mode.  It contains the
 following symbols:
 
 @example
-accmode  append    async
-creat    excl      exec
-exlock   fsync     ignore_ctty
-ndelay   noatime   noctty
-nolink   nonblock  notrans
-rdonly   rdwr      read
-shlock   sync      trunc
-write    wronly
+accmode   append     async
+creat     excl       exec
+exlock    fsync      ignore_ctty
+ndelay    noatime    noctty
+nolink    nonblock   notrans
+rdonly    rdwr       read
+shlock    sync       trunc
+write     wronly
+
+;; Linux specific
+direct    directory  largefile
+nofollow
 @end example
 @end deftp
 
@@ -3273,14 +3287,50 @@ exact integer values being an inclusive OR combination of the following
 constant values:
 
 @example
-O_ACCMODE  O_APPEND    O_ASYNC
-O_CREAT    O_EXCL      O_EXEC
-O_EXLOCK   O_FSYNC     O_IGNORE_CTTY
-O_NDELAY   O_NOATIME   O_NOCTTY
-O_NOLINK   O_NONBLOCK  O_NOTRANS
-O_RDONLY   O_RDWR      O_READ
-O_SHLOCK   O_SYNC      O_TRUNC
-O_WRITE    O_WRONLY
+O_ACCMODE   O_APPEND     O_ASYNC
+O_CREAT     O_EXCL       O_EXEC
+O_EXLOCK    O_FSYNC      O_IGNORE_CTTY
+O_NDELAY    O_NOATIME    O_NOCTTY
+O_NOLINK    O_NONBLOCK   O_NOTRANS
+O_RDONLY    O_RDWR       O_READ
+O_SHLOCK    O_SYNC       O_TRUNC
+O_WRITE     O_WRONLY
+
+;; Linux specific
+O_DIRECT    O_DIRECTORY  O_LARGEFILE
+O_NOFOLLOW
+@end example
+@end defun
+
+@c page
+@node fd enumerations pipe2
+@subsection Flags for @func{pipe2}
+
+
+@deftp {Enumeration Type} enum-pipe2-flags
+Enumeration type used to specify flags for @func{pipe2}.  It contains
+the following symbols:
+
+@example
+nonblock  cloexec
+@end example
+@end deftp
+
+
+@deffn Syntax pipe2-flags @ameta{symbol} ...
+Expand to an enumeration set of type @code{enum-pipe2-flags} holding the
+given @meta{symbol} symbols.
+@end deffn
+
+
+@defun pipe2-flags->value @var{set}
+@defunx value->pipe2-flags @var{integer}
+Convert to and from enumeration sets of type @code{enum-pipe2-flags} and
+exact integer values being an inclusive OR combination of the following
+constant values:
+
+@example
+O_NONBLOCK  O_CLOEXEC
 @end example
 @end defun
 
@@ -3719,6 +3769,34 @@ Create a named pipe pseudofile: a special file that can be used for
 interprocess communication.  The Scheme string or symbol @var{pathname}
 selects the file pathname.  @var{mode} is a numeric access permissions
 mode like the one used by @func{open}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Linux--specific extensions
+
+
+The following functions are exported by the libraries:
+
+@example
+(linux fd)
+(linux fd primitives)
+(linux fd platform)
+@end example
+
+
+@deffn Function pipe2 @var{flags}
+@deffnx Parameter pipe2-function
+@deffnx Function primitive:pipe2 @var{flags}
+@deffnx Function platform:pipe2 @var{fd-ptr} @var{flags}
+Like @func{pipe} but accepts configuration @var{flags}.  @var{flags} can
+be an exact integer or an enumeration set of type @code{pipe2-flags}; in
+the integer case it can be an inclusive OR combination of the following
+constants:
+
+@example
+O_CLOEXEC  O_NONBLOCK
+@end example
 @end deffn
 
 @c page
@@ -10184,6 +10262,22 @@ Wrapper for @func{kill} accepting as argument an enumeration set of type
 @code{enum-unix-signals} holding a single argument.
 @end deffn
 
+
+@deffn Function killpg @var{pid} @var{signum}
+@deffnx Parameter killpg-function
+@deffnx Function primitive:killpg @var{pid} @var{signum}
+@deffnx Function platform:killpg @var{pid-int} @var{signum}
+Send the signal @var{signum} to the process group identified by
+@var{pid}, a @code{pid} object.
+@end deffn
+
+
+@deffn Syntax killpg* @ameta{pid} @ameta{sig-set}
+@deffnx Syntax primitive:killpg* @ameta{pid} @ameta{sig-set}
+Wrapper for @func{killpg} accepting as argument an enumeration set of
+type @code{enum-unix-signals} holding a single argument.
+@end deffn
+
 @c page
 @node signals waiting
 @section Waiting for signals
@@ -10224,6 +10318,7 @@ library we better prefix its identifiers to avoid collisions; example:
 
 @example
 (import (rnrs)
+  (foreign cstrings)
   (prefix (posix cstrings platform) cstr:))
 @end example
 

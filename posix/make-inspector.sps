@@ -384,6 +384,13 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
 ;;; This is GNU specific.
   O_NOATIME
 
+;;; These are Linux specific.
+  O_CLOEXEC
+  O_DIRECT
+  O_DIRECTORY
+  O_LARGEFILE
+  O_NOFOLLOW
+
   FD_CLOEXEC)
 
 (autoconf-lib "AC_CACHE_SAVE")

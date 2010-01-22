@@ -281,6 +281,11 @@
 
 ;;; --------------------------------------------------------------------
 
+    enum-pipe2-flags			pipe2-flags
+    pipe2-flags->value			value->pipe2-flags
+
+;;; --------------------------------------------------------------------
+
     enum-unix-signals			unix-signals
     unix-signal->value			value->unix-signal
     unix-signal-symbol->value		value->unix-signal-symbol
@@ -766,7 +771,10 @@
    O_NOLINK	O_NONBLOCK	O_NOTRANS
    O_RDONLY	O_RDWR		O_READ
    O_SHLOCK	O_SYNC		O_TRUNC
-   O_WRITE	O_WRONLY)
+   O_WRITE	O_WRONLY
+
+   O_DIRECT	O_DIRECTORY	O_LARGEFILE
+   O_NOFOLLOW)
   (accmode	append		async
    creat	excl		exec
    exlock	fsync		ignore_ctty
@@ -774,7 +782,14 @@
    nolink	nonblock	notrans
    rdonly	rdwr		read
    shlock	sync		trunc
-   write	wronly))
+   write	wronly
+
+   direct	directory	largefile
+   nofollow))
+
+(define-c-ior-flags pipe2-flags
+  (O_NONBLOCK	O_CLOEXEC)
+  (nonblock	cloexec))
 
 
 (define-enumeration enum-unix-signals

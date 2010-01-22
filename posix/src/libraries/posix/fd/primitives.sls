@@ -50,7 +50,8 @@
     (receive)
     (compensations)
     (only (foreign memory)
-	  malloc-block/c)
+	  malloc-block/c
+	  malloc-small/c)
     (only (foreign cstrings)
 	  string->cstring/c)
     (only (foreign ffi peekers-and-pokers)
@@ -224,7 +225,7 @@
 
 (define (pipe)
   (with-compensations
-    (let ((p (malloc-block/c (sizeof-int-array 2))))
+    (let ((p (malloc-small/c)))
       (receive (result errno)
 	  (platform:pipe p)
 	(if (= -1 result)

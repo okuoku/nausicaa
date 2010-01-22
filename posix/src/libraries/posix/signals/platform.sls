@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -31,7 +31,7 @@
     signal_bub_acquire		signal_bub_delivered
 
     signal_raise
-    kill
+    kill			killpg
     pause
     )
   (import (rnrs)
@@ -53,9 +53,7 @@
 
   (define-c-functions/with-errno libc-shared-object
     (kill			(int kill (pid_t int)))
-    (pause			(int pause (void)))
-    )
-
-  )
+    (killpg			(int killpg (int int)))
+    (pause			(int pause (void)))))
 
 ;;; end of file

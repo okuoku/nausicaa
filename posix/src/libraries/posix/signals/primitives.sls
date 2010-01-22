@@ -34,8 +34,9 @@
 	    (platform:signal_bub_acquire	signal-bub-acquire))
 
     signal-raise	signal-raise*
-    kill		kill*
-    pause)
+    kill		killpg
+    pause
+    kill*		killpg*)
   (import (rnrs)
     (receive)
     (compensations)
@@ -80,15 +81,30 @@
 	(raise-errno-error 'kill errno (list pid signum))
       result)))
 
-(define-syntax kill*
-  (syntax-rules ()
-    ((_ ?pid ?sig-set)
-     (kill ?pid (unix-signal->value ?sig-set)))))
+(define (killpg pid signum)
+  (receive (result errno)
+      (platform:killpg (pid->integer pid) signum)
+    (if (= -1 result)
+	(raise-errno-error 'killpg errno (list pid signum))
+      result)))
 
 (define (pause)
   (receive (result errno)
       (platform:pause)
     result))
+
+
+;;;; syntax helpers
+
+(define-syntax kill*
+  (syntax-rules ()
+    ((_ ?pid ?sig-set)
+     (kill ?pid (unix-signal->value ?sig-set)))))
+
+(define-syntax killpg*
+  (syntax-rules ()
+    ((_ ?pid ?sig-set)
+     (killpg ?pid (unix-signal->value ?sig-set)))))
 
 
 ;;;; done

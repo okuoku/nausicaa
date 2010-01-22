@@ -27,11 +27,15 @@
 
 (library (posix signals)
   (export
-    signal-bub-delivered?		signal-bub-delivered*?
-    signal-bub-all-delivered
-    signal-raise			signal-raise*
-    kill				kill*
-    pause
+    signal-bub-delivered?		signal-bub-delivered?-function
+    signal-bub-all-delivered		signal-bub-all-delivered-function
+    signal-raise			signal-raise-function
+    kill				kill-function
+    pause				pause-function
+
+    signal-raise*
+    signal-bub-delivered*?
+    kill*
 
     (rename (primitive:signal-bub-init		signal-bub-init)
 	    (primitive:signal-bub-final		signal-bub-final)

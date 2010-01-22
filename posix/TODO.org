@@ -20,9 +20,15 @@
 
 * linux
 
+  Linux  features  and  functions  to be  investigated:  credentials(7),
+  capabilities(7), futex(7)/futex(2).
+
   Add an interface  to the "waitid()" function described  in the waitpid
   manual page (linux specific).
 
   Decide  what to do  for the  "sysctl()" call,  glibc info  doc "System
   Parameters".
+
+  Linux functions that will  not be interfaced (temporarily or forever):
+  unshare(2), clone(2), tkill(2)/tgkill(2).
 

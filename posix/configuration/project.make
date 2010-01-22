@@ -46,6 +46,8 @@ $(eval $(call nau-libraries,glibc_streams,glibc/streams))
 $(eval $(call nau-libraries,glibc_system,glibc/system))
 $(eval $(call nau-libraries,glibc_time,glibc/time))
 
+$(eval $(call nau-libraries,linux,linux))
+$(eval $(call nau-libraries,linux_fd,linux/fd))
 
 ### end of file
 # Local Variables:

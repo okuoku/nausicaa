@@ -1,13 +1,13 @@
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: compile script for Mosh Scheme
-;;;Date: Tue Nov  3, 2009
+;;;Contents: interface to the Linux file descriptor libraries
+;;;Date: Fri Jan 22, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,23 +23,23 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (posix fd))
-  (only (posix file))
-  (only (posix process))
-  (only (posix signals))
-  (only (posix sockets))
-  (only (posix system))
-  (only (posix time))
+
+(library (linux fd)
+  (export
+    pipe2	pipe2-function
+    )
+  (import (rnrs)
+    (posix helpers)
+    (prefix (linux fd primitives) primitive:))
 
-  (only (glibc file))
-  (only (glibc signals))
-  (only (glibc sockets))
-  (only (glibc streams))
-  (only (glibc system))
-  (only (glibc time))
+
+(define-parametrised pipe2 flags)
 
-  (only (linux fd))
-  )
+
+
+
+;;;; done
+
+)
 
 ;;; end of file

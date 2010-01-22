@@ -38,6 +38,8 @@
   (only (glibc streams))
   (only (glibc system))
   (only (glibc time))
+
+  (only (linux fd))
   )
 
 ;;; end of file
