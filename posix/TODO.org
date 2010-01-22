@@ -20,11 +20,8 @@
 
 * linux
 
-  Linux  features  and  functions  to be  investigated:  credentials(7),
-  capabilities(7), futex(7)/futex(2).
-
-  Add an interface  to the "waitid()" function described  in the waitpid
-  manual page (linux specific).
+  Linux features  and functions to be  investigated: wait(2), waitid(2),
+  credentials(7), capabilities(7), futex(7)/futex(2).
 
   Decide  what to do  for the  "sysctl()" call,  glibc info  doc "System
   Parameters".
