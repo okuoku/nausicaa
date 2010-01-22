@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -59,23 +59,13 @@
 
 ;;;; file times
 
-(define-primitive-parameter lutimes-function	primitive:lutimes)
-(define-primitive-parameter futimes-function	primitive:futimes)
+(define-parametrised lutimes
+  ((pathname access-time-sec access-time-usec modification-time-sec modification-time-usec)
+   (pathname)))
 
-(define lutimes
-  (case-lambda
-   ((pathname access-time-sec access-time-usec modification-time-sec modification-time-usec)
-    ((lutimes-function) pathname access-time-sec access-time-usec
-     modification-time-sec modification-time-usec))
-   ((pathname)
-    ((lutimes-function) pathname))))
-
-(define futimes
-  (case-lambda
-   ((fd access-time-sec access-time-usec modification-time-sec modification-time-usec)
-    ((futimes-function) fd access-time-sec access-time-usec modification-time-sec modification-time-usec))
-   ((fd)
-    ((futimes-function) fd))))
+(define-parametrised futimes
+  ((fd access-time-sec access-time-usec modification-time-sec modification-time-usec)
+   (fd)))
 
 
 ;;;; done

@@ -49,9 +49,12 @@
     pointer-><group>
     pointer-><utsname>
 
-    setenv getenv environ)
+    setenv getenv environ environ-table
+    environ->table table->environ)
   (import (rnrs)
+    (begin0)
     (receive)
+    (only (strings) string-index)
     (compensations)
     (foreign ffi)
     (foreign memory)
@@ -509,6 +512,41 @@
 
 (define (environ)
   (argv->strings (platform:environ)))
+
+(define (environ-table)
+  (environ->table (environ)))
+
+(define (%string-index str ch)
+  (let ((past (string-length str)))
+    (let loop ((i 0))
+      (and (< i past)
+	   (if (char=? ch (string-ref str i))
+	       i
+	     (loop (+ i 1)))))))
+
+(define (environ->table environ)
+  (begin0-let ((table (make-eq-hashtable)))
+    (for-each (lambda (str)
+		(let ((idx (%string-index str #\=)))
+		  (hashtable-set! table
+				  (string->symbol (substring str 0 idx))
+				  (substring str (+ 1 idx) (string-length str)))))
+      environ)))
+
+(define (table->environ table)
+  (let-values (((names values) (hashtable-entries table)))
+    (let ((len (vector-length names))
+	  (environ '()))
+      (do ((i 0 (+ 1 i)))
+	  ((= i len)
+	   environ)
+	(set! environ (cons (string-append (let ((n (vector-ref names i)))
+					     (if (string? n)
+						 n
+					       (symbol->string n)))
+					   "="
+					   (vector-ref values i))
+			    environ))))))
 
 
 ;;;; done

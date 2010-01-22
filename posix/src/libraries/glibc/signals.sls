@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,25 +24,11 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 (library (glibc signals)
   (export
-
     ;; description messages
-    (rename (primitive:strsignal	strsignal)
-	    (primitive:psignal		psignal))
-
-    )
+    strsignal	psignal)
   (import (rnrs)
-    (prefix (glibc signals primitives) primitive:))
-
-
-;;;; code
-
-
-
-;;;; done
-
-)
+    (glibc signals primitives)))
 
 ;;; end of file

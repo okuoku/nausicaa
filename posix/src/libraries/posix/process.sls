@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -79,25 +79,10 @@
 
 ;; waiting
 
-(define-primitive-parameter waitpid-function		primitive:waitpid)
-
-(define (waitpid pid options)
-  (unless (< 0 (pid->integer pid))
-    (assertion-violation 'waitpid
-      "expected strictly positive process id" pid))
-  ((waitpid-function) pid options))
-
-(define (waitpid/any options)
-  ((waitpid-function) -1 options))
-
-(define (waitpid/any-my-group options)
-  ((waitpid-function) 0 options))
-
-(define (waitpid/group gpid options)
-  (unless (< 0 (pid->integer gpid))
-    (assertion-violation 'waitpid/group
-      "expected strictly positive process group id" gpid))
-  ((waitpid-function) (- gpid) options))
+(define-parametrised waitpid pid options)
+(define-parametrised waitpid/any options)
+(define-parametrised waitpid/any-my-group options)
+(define-parametrised waitpid/group gpid options)
 
 ;; terminal identification
 

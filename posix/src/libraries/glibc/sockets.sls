@@ -31,7 +31,6 @@
     ;; host names
     gethostbyname2		gethostbyname2_r
     gethostbyname_r		gethostbyaddr_r
-
     )
   (import (rnrs)
     (posix helpers)

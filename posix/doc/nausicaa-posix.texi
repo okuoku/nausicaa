@@ -8548,17 +8548,9 @@ Run @var{command} using the system shell.
 The following functions manage waiting for spawned processes.
 @glibcref{Process Completion, Process Completion}.
 
-The @var{options} argument can be zero or a @func{bitwise-ior} of
-@code{WNOHANG}, @code{WUNTRACED} and @code{WCONTINUED} which are
-exported by the library @library{posix sizeof}.
 
-The following @code{waitpid} functions return a process termination
-status in the form of an exact integer.  Such integer can be analysed
-with the functions described in @ref{process typedefs, Object type
-definitions}.
-
-
-@deffn Parameter waitpid-function
+@deffn Function waitpid @var{pid} @var{options}
+@deffnx Parameter waitpid-function
 @deffnx Function primitive:waitpid @var{pid} @var{options}
 @deffnx Function platform:waitpid @var{pid-int} @var{pointer} @var{options}
 Wait for a single process or a set of processes in a group; return two
@@ -8567,30 +8559,32 @@ values: the return value from the foreign function embedded in a
 
 For the full documentation we have to refer to the documentation of the
 foreign function @cfunc{waitpid}.
+
+The @var{options} argument can be zero or a @func{bitwise-ior} of
+@code{WNOHANG}, @code{WUNTRACED} and @code{WCONTINUED} which are
+exported by the library @library{posix sizeof}.
+
+The returned process--termination status is in the form of an exact
+integer; such integer can be analysed with the functions documented
+below and other functions described in @ref{process typedefs, Object
+type definitions}.
 @end deffn
 
 
-@defun waitpid @var{pid} @var{options}
-A wrapper for the function in the @func{watipid-function} parameter that
-tracks a specific child process.
-@end defun
-
-
 @defun waitpid/any @var{options}
-A wrapper for the function in the @func{watipid-function} parameter that
-tracks all the child processes.
+A wrapper for @func{watipid} that tracks all the child processes.
 @end defun
 
 
 @defun waitpid/any-my-group @var{options}
-A wrapper for the function in the @func{watipid-function} parameter that
-tracks all the child processes in the same group of the caller.
+A wrapper for @func{watipid} that tracks all the child processes in the
+same group of the caller.
 @end defun
 
 
 @defun waitpid/group @var{gpid} @var{options}
-A wrapper for the function in the @func{watipid-function} parameter that
-tracks all the child processes in the group with id @var{gpid}.
+A wrapper for @func{watipid} that tracks all the child processes in the
+group with id @var{gpid}.
 @end defun
 
 
@@ -8609,8 +8603,8 @@ status, build and return a record of type @class{process-term-status}.
 @defunx platform:WIFSTOPPED @var{status}
 @defunx platform:WSTOPSIG @var{status}
 These are wrappers for the macros that extract a value from the
-@var{status} integer returned by the waitpid functions.  They can be
-used to query the status without building a record.
+@var{status} integer returned by the @func{waitpid} functions.  They can
+be used to query the status without building a record.
 @end defun
 
 @c page
@@ -10265,16 +10259,20 @@ is suitable to be used as argument to @func{arg->strings}
 @end deffn
 
 
-@defun environ-table
+@deffn Function environ-table
+@deffnx Parameter environ-table
+@deffnx Function primitive:environ-table
 Internally invoke @func{environ} and convert the list of strings into a
 hashtable; return the hashtable.  The keys are Scheme symbols
 representing the defined environment variables, the values are Scheme
 symbols representing the environment variables' values.
-@end defun
+@end deffn
 
 
 @defun environ->table @var{environ}
 @defunx table->environ @var{table}
+@defunx primitive:environ->table @var{environ}
+@defunx primitive:table->environ @var{table}
 Convert between a list of strings in ``environ'' format and a hashtable.
 @end defun
 

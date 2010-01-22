@@ -151,7 +151,7 @@
 	    (receive (result status)
 		(posix:waitpid pid 0)
 	      (pid=? pid result))
-	  (posix:execv '/bin/ls '(ls "-l" /bin/ls))))
+	  (exit 0)))
     => #t)
 
   (check
@@ -161,8 +161,38 @@
 		(posix:waitpid pid 0)
 	      (let ((r (posix:integer-><process-term-status> status)))
 		(WIFEXITED? r)))
-	  (posix:execv '/bin/ls '(ls "-l" /bin/ls))))
+	  (exit 0)))
     => #t)
+
+  ;; (check
+  ;;     (let ((pid (posix:fork)))
+  ;; 	(if pid
+  ;; 	    (receive (result status)
+  ;; 		(posix:waitpid/any 0)
+  ;; 	      (write (list pid result))(newline)
+  ;; 	      (pid=? pid result))
+  ;; 	  (exit 0)))
+  ;;   => #t)
+
+  ;; (check
+  ;;     (let ((pid (posix:fork)))
+  ;; 	(if pid
+  ;; 	    (receive (result status)
+  ;; 		(posix:waitpid/any-my-group 0)
+  ;; 	      ;;(write (list pid result))(newline)
+  ;; 	      (pid=? pid result))
+  ;; 	  (exit 0)))
+  ;;   => #t)
+
+  ;; (check
+  ;;     (let ((pid (posix:fork)))
+  ;; 	(if pid
+  ;; 	    (receive (result status)
+  ;; 		(posix:waitpid/group (posix:getppid) 0)
+  ;; 	      ;;(write (list pid result))(newline)
+  ;; 	      (pid=? pid result))
+  ;; 	  (exit 0)))
+  ;;   => #t)
 
   #t)
 

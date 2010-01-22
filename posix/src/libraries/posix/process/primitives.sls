@@ -28,10 +28,14 @@
 (library (posix process primitives)
   (export
 
-    getpid		getppid
-    fork		execv
-    execve		execvp
-    system		waitpid
+    getpid			getppid
+    fork			execv
+    execve			execvp
+    system
+
+    waitpid			waitpid/any
+    waitpid/any-my-group	waitpid/group
+
 
     integer-><process-term-status>
 
@@ -120,18 +124,34 @@
      (bool (platform:WIFSTOPPED status))
      (bool (platform:WSTOPSIG status)))))
 
-(define (waitpid pid options)
+(define (%waitpid pid-int options)
   (with-compensations
     (let ((status* (malloc-small/c)))
       (let loop ()
 	(receive (result errno)
-	    (platform:waitpid (pid->integer pid) status* options)
+	    (platform:waitpid pid-int status* options)
 	  (when (= -1 result)
 	    (when (= EINTR errno)
 	      (loop))
-	    (raise-errno-error 'waitpid errno pid))
+	    (raise-errno-error 'waitpid errno (integer->pid pid-int)))
 	  (values (integer->pid result)
 		  (pointer-ref-c-uint8 status* 0)))))))
+
+(define (waitpid pid options)
+  (let ((pid-int (pid->integer pid)))
+    (if (< 0 pid-int)
+	(%waitpid pid-int options)
+      (assertion-violation 'waitpid
+	"expected strictly positive process id" pid))))
+
+(define (waitpid/any options)
+  (%waitpid -1 options))
+
+(define (waitpid/any-my-group options)
+  (%waitpid 0 options))
+
+(define (waitpid/group gpid options)
+  (%waitpid (- (pid->integer gpid)) options))
 
 
 ;;;; job control

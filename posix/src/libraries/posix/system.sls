@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -54,11 +54,10 @@
     getgrgid		getgrnam
     fgetpwent		fgetgrent
 
-    getenv setenv environ
-    environ-table environ->table table->environ)
+    getenv setenv environ environ-table
+    (rename (primitive:environ->table	environ->table)
+	    (primitive:table->environ	table->environ)))
   (import (rnrs)
-    (begin0)
-    (only (strings) string-index)
     (posix helpers)
     (prefix (posix system primitives) primitive:))
 
@@ -104,54 +103,15 @@
 (define-parametrised getgrnam user-name)
 (define-parametrised fgetgrent stream)
 
-
-(define-primitive-parameter setenv-function primitive:setenv)
-(define-primitive-parameter getenv-function primitive:getenv)
-(define-primitive-parameter environ-function primitive:environ)
-
-(define setenv
-  (case-lambda
-   ((varname newvalue)
-    (setenv varname newvalue #t))
-   ((varname newvalue replace)
-    ((setenv-function) varname newvalue replace))))
-
-(define (getenv varname)
-  ((getenv-function) varname))
-
-(define (environ)
-  ((environ-function)))
-
-(define (environ-table)
-  (environ->table (environ)))
-
-(define (environ->table environ)
-  (begin0-let ((table (make-eq-hashtable)))
-    (for-each (lambda (str)
-		(let ((idx (string-index str #\=)))
-		  (hashtable-set! table
-				  (string->symbol (substring str 0 idx))
-				  (substring str (+ 1 idx) (string-length str)))))
-      environ)))
-
-(define (table->environ table)
-  (let-values (((names values) (hashtable-entries table)))
-    (let ((len (vector-length names))
-	  (environ '()))
-      (do ((i 0 (+ 1 i)))
-	  ((= i len)
-	   environ)
-	(set! environ (cons (string-append (let ((n (vector-ref names i)))
-					     (if (string? n)
-						 n
-					       (symbol->string n)))
-					   "="
-					   (vector-ref values i))
-			    environ))))))
+;; environment variables
+(define-parametrised setenv ((varname newvalue) (varname newvalue replace)))
+(define-parametrised getenv varname)
+(define-parametrised environ)
+(define-parametrised environ-table)
 
 
 ;;; end of file
 
-  )
+)
 
 ;;; end of file
