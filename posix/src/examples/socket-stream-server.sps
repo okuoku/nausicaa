@@ -37,67 +37,67 @@
   (prefix (posix sockets) px:))
 
 (define addr '#vu8(127 0 0 1))
-(define port 8081)
+(define port 8080)
 (define max-input-len 4096)
 
 (define (main)
   (guard (E ((errno-condition? E)
-	     (%display (condition-message E))
-	     (%newline))
+	     (fatal (condition-message E)))
 	    (else
-	     (%pretty-print E)
-	     (%newline)))
+	     (%pretty-print E)))
+    (%display "server start\n")
     (with-compensations
-      (%display "server start\n")
-      (letrec
-	  ((master-sock (compensate
-			    (px:socket* (namespace inet)
-					(style stream))
-			  (with
-			   (px:close master-sock)))))
-	(px:setsockopt master-sock
-		       (px:socket-option reuseaddr) #t)
-	(let ((hostent (px:gethostbyaddr addr)))
-	  (unless hostent
-	    (error #f
-	      "unable to bind to socket address" addr))
-	  (px:bind master-sock
-		   (px:make-<sockaddr-in>
-		    (car (px:<hostent>-addrlist hostent))
-		    port))
-	  (%display (string-append
-		     "server listening to: "
-		     (px:<hostent>-name hostent)
-		     ":" (number->string port) "\n"))
-	  (px:listen master-sock 1))
-	(receive (client-sock client-addr)
-	    (px:accept master-sock)
-	  (push-compensation (px:close client-sock))
-	  (handle-connection client-sock client-addr)
-	  (exit 0))))))
+      (define hostent
+	(or (px:gethostbyaddr addr)
+	    (fatal "unable to bind to socket address")))
+      (define sockaddr
+	(px:make-<sockaddr-in>
+	 (px:<hostent>-addr hostent) port))
+      (define master-sock
+	(compensate
+	    (px:socket* (namespace inet) (style stream))
+	  (with
+	   (px:close master-sock))))
+      (px:setsockopt master-sock
+		     (px:socket-option reuseaddr) #t)
+      (px:bind master-sock sockaddr)
+      (%display (string-append
+		 "server listening to: "
+		 (px:<hostent>-name hostent)
+		 ":" (number->string port) "\n"))
+      (px:listen master-sock 1)
+      (receive (client-sock client-addr)
+	  (px:accept master-sock)
+	(handle-connection client-sock client-addr)
+	(exit 0)))))
 
 (define (handle-connection client-sock client-addr)
   (with-compensations
+    (define client-hostent
+      (px:gethostbyaddr
+       (px:<sockaddr-in>-addr client-addr)))
+    (define (get-string)
+      (px:recv/string client-sock max-input-len))
+    (push-compensation (px:close client-sock))
     (%display (string-append
 	       "server accepted connection from "
-	       (px:<hostent>-name
-		(px:gethostbyaddr
-		 (px:<sockaddr-in>-addr client-addr)))
+	       (px:<hostent>-name client-hostent)
 	       "\n"))
-    (let loop ((accu	"")
-	       (str	(px:recv/string client-sock
-					max-input-len)))
+    (let loop ((accu "")
+	       (str  (get-string)))
       (when (< max-input-len (string-length accu))
-	(%display "server: input too long\n")
-	(exit 1))
+	(fatal "server: input too long\n"))
       (%display (string-append "server received: " str))
       (let ((idx (string-index str #\newline)))
 	(if idx
 	    (px:send/string client-sock
 			    (substring str 0 idx))
-	  (loop (string-append accu str)
-		(px:recv/string client-sock
-				max-input-len)))))))
+	  (loop (string-append accu str) (get-string)))))))
+
+(define (fatal . strings)
+  (%display (apply string-append strings))
+  (%newline)
+  (exit 1))
 
 (define (%display thing)
   (display thing (current-error-port)))

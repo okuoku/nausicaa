@@ -2,7 +2,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: stream socket client example
+;;;Contents: datagram socket client example
 ;;;Date: Fri Jan 22, 2010
 ;;;
 ;;;Abstract
@@ -36,49 +36,64 @@
   (prefix (posix fd) px:)
   (prefix (posix sockets) px:))
 
-(define progname "telnet.sps")
+(define progname	"telnet.sps")
+(define local-addr	'#vu8(127 0 0 1))
+(define local-port	8081)
+(define max-input-len	4096)
 
 (define (main)
   (guard (E ((errno-condition? E)
 	     (fatal (condition-message E)))
 	    (else
 	     (%pretty-print E)))
-    (%display "client start (Ctrl-D to exit)\n")
     (with-compensations
-      (receive (hostname port)
+      (%display "client start (Ctrl-D to exit)\n")
+      (receive (hostname remote-port)
 	  (parse-command-line)
-	(define hostent
+	(define local-hostent
+	  (px:gethostbyaddr local-addr))
+	(define local-sockaddr
+	  (px:make-<sockaddr-in> local-addr local-port))
+	(define remote-hostent
 	  (or (px:gethostbyname hostname)
 	      (fatal "unable to bind to socket address")))
-	(define sockaddr
+	(define remote-sockaddr
 	  (px:make-<sockaddr-in>
-	   (px:<hostent>-addr hostent) port))
+	   (px:<hostent>-addr remote-hostent) remote-port))
 	(define sock
 	  (compensate
-	      (px:socket* (namespace inet) (style stream))
+	      (px:socket* (namespace inet) (style datagram))
 	    (with
 	     (px:close sock))))
 	(%display (string-append
+		   "client local address: "
+		   (px:<hostent>-name local-hostent)
+		   ":" (number->string local-port) "\n"))
+	(%display (string-append
 		   "client connecting to: "
-		   (px:<hostent>-name hostent)
-		   ":" (number->string port) "\n"))
-	(px:connect sock sockaddr)
+		   (px:<hostent>-name remote-hostent)
+		   ":" (number->string remote-port) "\n"))
+	(px:setsockopt sock (px:socket-option reuseaddr) #t)
+	(px:bind sock local-sockaddr)
 	(let loop ((line (get-line (current-input-port))))
 	  (when (eof-object? line)
 	    (exit 0))
-	  (px:send/string sock (string-append line "\n"))
-	  (display (string-append
-		    "reply: "
-		    (px:recv/string sock 4096)
-		    "\n"))
-	  (loop (get-line (current-input-port))))))))
+	  (px:sendto/string sock
+			    (string-append line "\n")
+			    remote-sockaddr)
+	  (receive (str addr)
+	      (px:recvfrom/string sock max-input-len)
+	    (display (string-append "reply: " str "\n"))
+	    (loop (get-line (current-input-port)))))))))
 
 (define (parse-command-line)
   (let ((args (command-line)))
     (unless (= 3 (length args))
-      (fatal "usage: " progname " <hostname> <port>\n"))
+      (fatal (string-append
+	      "usage: " progname " <hostname> <port>\n"))
+      (exit 1))
     (guard (E (else
-	       (fatal "wrong port specification\n")))
+	       (fatal "wrong port specification")))
       (values (cadr args) (string->number (caddr args))))))
 
 (define (fatal . strings)

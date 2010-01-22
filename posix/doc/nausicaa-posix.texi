@@ -5037,6 +5037,12 @@ Accessors for records of type @class{hostent}.
 @end defun
 
 
+@defun <hostent>-addr @var{record}
+Return the first element in the @code{addrlist} field value of
+@var{record}.
+@end defun
+
+
 @defun primitive:pointer-><hostent> @var{pointer}
 Build and return a new record of type @class{hostent} representing the
 @code{struct hostent} value referenced by @var{pointer}.  This binding
@@ -6217,9 +6223,12 @@ not used, it defaults to @code{(socket-data-options)}.
 @deffnx Function primitive:recvfrom/string @var{sock} @var{max-len}
 @deffnx Function primitive:recvfrom/string @var{sock} @var{max-len} @var{options}
 Wrapper for @func{recvfrom} which converts the bytes read, at most
-@var{max-len}, to a Scheme string and returns it.  The data read is
-interpreted as a string in @acronym{UTF8} representation; @strong{no}
-terminating zero byte is expected from the socket.
+@var{max-len}, to a Scheme string and returns it as first value; the
+second returned value is the same as the one of @func{recvfrom}.
+
+The data read is interpreted as a string in @acronym{UTF8}
+representation; @strong{no} terminating zero byte is expected from the
+socket.
 @end deffn
 
 
@@ -6229,7 +6238,8 @@ terminating zero byte is expected from the socket.
 @deffnx Function primitive:recvfrom/bytevector @var{sock} @var{max-len}
 @deffnx Function primitive:recvfrom/bytevector @var{sock} @var{max-len} @var{options}
 Wrapper for @func{recvfrom} which converts the bytes read, at most
-@var{max-len}, to a Scheme bytevector and returns it.
+@var{max-len}, to a Scheme bytevector and returns it as first value; the
+second returned value is the same as the one of @func{recvfrom}.
 @end deffn
 
 
@@ -6240,15 +6250,15 @@ Wrapper for @func{recvfrom} which converts the bytes read, at most
 @deffnx Function primitive:recvfrom/memblock @var{sock} @var{max-len} @var{options} @var{malloc}
 Wrapper for @func{recvfrom} which stores the bytes read, at most
 @var{max-len}, into a newly allocated block of memory and returns a
-@class{memblock} record referencing it.  @nauref{memory blocks, Memory
-blocks}.
+@class{memblock} record referencing it as first value; the second
+returned value is the same as the one of @func{recvfrom}.
+@nauref{memory blocks, Memory blocks}.
 
 Memory is allocated with the supplied @var{malloc} function, which must
 have an interface compatible with @func{malloc} from the
 @library{foreign memory} library.  @nauref{memory alloc high, Exception
 raising functions}.
 @end deffn
-
 
 @c page
 @node sockets options
@@ -6325,6 +6335,8 @@ Retrieve and clear the pending socket error.  Can be used only with
 @menu
 * sockets stream server::       A simple stream echo server.
 * sockets stream client::       A simple stream client.
+* sockets dgram server::        A simple datagram echo server.
+* sockets dgram client::        A simple datagram client.
 @end menu
 
 @c page
@@ -6337,7 +6349,7 @@ connection, reads a line, echo the line to the client, exits; using
 @command{telnet} we can have the following session after starting it:
 
 @example
-$ telnet localhost 8081
+$ telnet localhost 8080
 Trying 127.0.0.1...
 Connected to localhost.
 Escape character is '^]'.
@@ -6347,7 +6359,7 @@ Connection closed by foreign host.
 @end example
 
 @noindent
-remember to allow connections to port @math{8081} in your local firewall
+remember to allow connections to port @math{8080} in your local firewall
 rules.
 
 @smallexample
@@ -6362,67 +6374,67 @@ rules.
   (prefix (posix sockets) px:))
 
 (define addr '#vu8(127 0 0 1))
-(define port 8081)
+(define port 8080)
 (define max-input-len 4096)
 
 (define (main)
   (guard (E ((errno-condition? E)
-             (%display (condition-message E))
-             (%newline))
+             (fatal (condition-message E)))
             (else
-             (%pretty-print E)
-             (%newline)))
+             (%pretty-print E)))
+    (%display "server start\n")
     (with-compensations
-      (%display "server start\n")
-      (letrec
-          ((master-sock (compensate
-                            (px:socket* (namespace inet)
-                                        (style stream))
-                          (with
-                           (px:close master-sock)))))
-        (px:setsockopt master-sock
-                       (px:socket-option reuseaddr) #t)
-        (let ((hostent (px:gethostbyaddr addr)))
-          (unless hostent
-            (error #f
-              "unable to bind to socket address" addr))
-          (px:bind master-sock
-                   (px:make-<sockaddr-in>
-                    (car (px:<hostent>-addrlist hostent))
-                    port))
-          (%display (string-append
-                     "server listening to: "
-                     (px:<hostent>-name hostent)
-                     ":" (number->string port) "\n"))
-          (px:listen master-sock 1))
-        (receive (client-sock client-addr)
-            (px:accept master-sock)
-          (push-compensation (px:close client-sock))
-          (handle-connection client-sock client-addr)
-          (exit 0))))))
+      (define hostent
+        (or (px:gethostbyaddr addr)
+            (fatal "unable to bind to socket address")))
+      (define sockaddr
+        (px:make-<sockaddr-in>
+         (px:<hostent>-addr hostent) port))
+      (define master-sock
+        (compensate
+            (px:socket* (namespace inet) (style stream))
+          (with
+           (px:close master-sock))))
+      (px:setsockopt master-sock
+                     (px:socket-option reuseaddr) #t)
+      (px:bind master-sock sockaddr)
+      (%display (string-append
+                 "server listening to: "
+                 (px:<hostent>-name hostent)
+                 ":" (number->string port) "\n"))
+      (px:listen master-sock 1)
+      (receive (client-sock client-addr)
+          (px:accept master-sock)
+        (handle-connection client-sock client-addr)
+        (exit 0)))))
 
 (define (handle-connection client-sock client-addr)
   (with-compensations
+    (define client-hostent
+      (px:gethostbyaddr
+       (px:<sockaddr-in>-addr client-addr)))
+    (define (get-string)
+      (px:recv/string client-sock max-input-len))
+    (push-compensation (px:close client-sock))
     (%display (string-append
                "server accepted connection from "
-               (px:<hostent>-name
-                (px:gethostbyaddr
-                 (px:<sockaddr-in>-addr client-addr)))
+               (px:<hostent>-name client-hostent)
                "\n"))
-    (let loop ((accu    "")
-               (str     (px:recv/string client-sock
-                                        max-input-len)))
+    (let loop ((accu "")
+               (str  (get-string)))
       (when (< max-input-len (string-length accu))
-        (%display "server: input too long\n")
-        (exit 1))
+        (fatal "server: input too long\n"))
       (%display (string-append "server received: " str))
       (let ((idx (string-index str #\newline)))
         (if idx
             (px:send/string client-sock
                             (substring str 0 idx))
-          (loop (string-append accu str)
-                (px:recv/string client-sock
-                                max-input-len)))))))
+          (loop (string-append accu str) (get-string)))))))
+
+(define (fatal . strings)
+  (%display (apply string-append strings))
+  (%newline)
+  (exit 1))
 
 (define (%display thing)
   (display thing (current-error-port)))
@@ -6445,7 +6457,7 @@ The following is a stream--socket client: it connects to the hostname
 and port given on the command line, it works somewhat like
 @command{telnet}.
 
-@example
+@smallexample
 (import (rnrs)
   (receive)
   (compensations)
@@ -6460,55 +6472,51 @@ and port given on the command line, it works somewhat like
 
 (define (main)
   (guard (E ((errno-condition? E)
-             (%display (condition-message E))
-             (%newline))
+             (fatal (condition-message E)))
             (else
-             (%pretty-print E)
-             (%newline)))
+             (%pretty-print E)))
+    (%display "client start (Ctrl-D to exit)\n")
     (with-compensations
-      (%display "client start\n")
       (receive (hostname port)
           (parse-command-line)
-        (let ((hostent (px:gethostbyname hostname)))
-          (unless hostent
-            (%display "unable to bind to socket address"))
-          (letrec
-              ((sock (compensate
-                         (px:socket* (namespace inet)
-                                     (style stream))
-                       (with
-                        (px:close sock)))))
-            (%display (string-append
-                       "client connecting to: "
-                       (px:<hostent>-name hostent)
-                       ":" (number->string port) "\n"))
-            (px:connect sock
-                        (px:make-<sockaddr-in>
-                         (car (px:<hostent>-addrlist hostent))
-                         port))
-            (let loop ((line (get-line (current-input-port))))
-              (if (eof-object? line)
-                  (exit 0)
-                (begin
-                  (px:send/string sock
-                                  (string-append line "\n"))
-                  (display (string-append
-                            "reply: "
-                            (px:recv/string sock 4096)
-                            "\n"))
-                  (loop (get-line
-                         (current-input-port))))))))))))
+        (define hostent
+          (or (px:gethostbyname hostname)
+              (fatal "unable to bind to socket address")))
+        (define sockaddr
+          (px:make-<sockaddr-in>
+           (px:<hostent>-addr hostent) port))
+        (define sock
+          (compensate
+              (px:socket* (namespace inet) (style stream))
+            (with
+             (px:close sock))))
+        (%display (string-append
+                   "client connecting to: "
+                   (px:<hostent>-name hostent)
+                   ":" (number->string port) "\n"))
+        (px:connect sock sockaddr)
+        (let loop ((line (get-line (current-input-port))))
+          (when (eof-object? line)
+            (exit 0))
+          (px:send/string sock (string-append line "\n"))
+          (display (string-append
+                    "reply: "
+                    (px:recv/string sock 4096)
+                    "\n"))
+          (loop (get-line (current-input-port))))))))
 
 (define (parse-command-line)
   (let ((args (command-line)))
     (unless (= 3 (length args))
-      (%display (string-append
-                 "usage: " progname " <hostname> <port>")
-      (exit 1)))
+      (fatal "usage: " progname " <hostname> <port>\n"))
     (guard (E (else
-               (%display "wrong port specification\n")
-               (exit 1)))
+               (fatal "wrong port specification\n")))
       (values (cadr args) (string->number (caddr args))))))
+
+(define (fatal . strings)
+  (%display (apply string-append strings))
+  (%newline)
+  (exit 1))
 
 (define (%display thing)
   (display thing (current-error-port)))
@@ -6520,7 +6528,176 @@ and port given on the command line, it works somewhat like
   (newline (current-error-port)))
 
 (main)
-@end example
+@end smallexample
+
+@c page
+@node sockets dgram server
+@subsection A simple datagram echo server
+
+
+The following is a datagram--socket echo server: it accepts a single
+connection, reads a line, echo the line to the client, exits.  When
+trying it, remember to allow connections to port @math{8080} in your
+local firewall rules.
+
+@smallexample
+(import (rnrs)
+  (receive)
+  (compensations)
+  (only (strings) string-index)
+  (pretty-print)
+  (foreign errno)
+  (prefix (posix typedefs) px:)
+  (prefix (posix fd) px:)
+  (prefix (posix sockets) px:))
+
+(define server-addr     '#vu8(127 0 0 1))
+(define server-port     8080)
+(define max-input-len   4096)
+
+(define (main)
+  (guard (E ((errno-condition? E)
+             (fatal (condition-message E)))
+            (else
+             (%pretty-print E)))
+    (%display "server start\n")
+    (with-compensations
+      (define hostent
+        (or (px:gethostbyaddr server-addr)
+            (fatal "unable to bind to socket address")))
+      (define sockaddr
+        (px:make-<sockaddr-in>
+         (px:<hostent>-addr hostent) server-port))
+      (define sock
+        (compensate
+            (px:socket* (namespace inet) (style datagram))
+          (with
+           (px:close sock))))
+      (px:setsockopt sock (px:socket-option reuseaddr) #t)
+      (px:bind sock sockaddr)
+      (%display (string-append
+                 "server listening to: "
+                 (px:<hostent>-name hostent)
+                 ":" (number->string server-port) "\n"))
+      (receive (str client-addr)
+          (px:recvfrom/string sock max-input-len)
+        (%display (string-append "server received: " str))
+        (px:sendto/string sock str client-addr)
+        (exit 0)))))
+
+(define (fatal . strings)
+  (%display (apply string-append strings))
+  (%newline)
+  (exit 1))
+
+(define (%display thing)
+  (display thing (current-error-port)))
+
+(define (%pretty-print thing)
+  (pretty-print thing (current-error-port)))
+
+(define (%newline)
+  (newline (current-error-port)))
+
+(main)
+@end smallexample
+
+@c page
+@node sockets dgram client
+@subsection A simple datagram client
+
+
+The following is a datagram--socket client: it connects to the hostname
+and port given on the command line, it works somewhat like
+@command{telnet}.
+
+@smallexample
+(import (rnrs)
+  (receive)
+  (compensations)
+  (only (strings) string-index)
+  (pretty-print)
+  (foreign errno)
+  (prefix (posix typedefs) px:)
+  (prefix (posix fd) px:)
+  (prefix (posix sockets) px:))
+
+(define progname        "telnet.sps")
+(define local-addr      '#vu8(127 0 0 1))
+(define local-port      8081)
+(define max-input-len   4096)
+
+(define (main)
+  (guard (E ((errno-condition? E)
+             (fatal (condition-message E)))
+            (else
+             (%pretty-print E)))
+    (with-compensations
+      (%display "client start (Ctrl-D to exit)\n")
+      (receive (hostname remote-port)
+          (parse-command-line)
+        (define local-hostent
+          (px:gethostbyaddr local-addr))
+        (define local-sockaddr
+          (px:make-<sockaddr-in> local-addr local-port))
+        (define remote-hostent
+          (or (px:gethostbyname hostname)
+              (fatal "unable to bind to socket address")))
+        (define remote-sockaddr
+          (px:make-<sockaddr-in>
+           (px:<hostent>-addr remote-hostent) remote-port))
+        (define sock
+          (compensate
+              (px:socket* (namespace inet) (style datagram))
+            (with
+             (px:close sock))))
+        (%display (string-append
+                   "client local address: "
+                   (px:<hostent>-name local-hostent)
+                   ":" (number->string local-port) "\n"))
+        (%display (string-append
+                   "client connecting to: "
+                   (px:<hostent>-name remote-hostent)
+                   ":" (number->string remote-port) "\n"))
+        (px:setsockopt sock (px:socket-option reuseaddr) #t)
+        (px:bind sock local-sockaddr)
+        (let loop ((line (get-line (current-input-port))))
+          (when (eof-object? line)
+            (exit 0))
+          (px:sendto/string sock
+                            (string-append line "\n")
+                            remote-sockaddr)
+          (receive (str addr)
+              (px:recvfrom/string sock max-input-len)
+            (display (string-append "reply: " str "\n"))
+            (loop (get-line (current-input-port)))))))))
+
+(define (parse-command-line)
+  (let ((args (command-line)))
+    (unless (= 3 (length args))
+      (fatal (string-append
+              "usage: " progname " <hostname> <port>\n"))
+      (exit 1))
+    (guard (E (else
+               (fatal "wrong port specification")))
+      (values (cadr args) (string->number (caddr args))))))
+
+(define (fatal . strings)
+  (%display (apply string-append strings))
+  (%newline)
+  (exit 1))
+
+(define (%display thing)
+  (display thing (current-error-port)))
+
+(define (%pretty-print thing)
+  (pretty-print thing (current-error-port)))
+
+(define (%newline)
+  (newline (current-error-port)))
+
+(main)
+@end smallexample
 
 @c page
 @node streams

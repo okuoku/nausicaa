@@ -2,7 +2,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/POSIX
-;;;Contents: stream socket client example
+;;;Contents: example network server with datagram socket
 ;;;Date: Fri Jan 22, 2010
 ;;;
 ;;;Abstract
@@ -36,50 +36,39 @@
   (prefix (posix fd) px:)
   (prefix (posix sockets) px:))
 
-(define progname "telnet.sps")
+(define server-addr	'#vu8(127 0 0 1))
+(define server-port	8080)
+(define max-input-len	4096)
 
 (define (main)
   (guard (E ((errno-condition? E)
 	     (fatal (condition-message E)))
 	    (else
 	     (%pretty-print E)))
-    (%display "client start (Ctrl-D to exit)\n")
+    (%display "server start\n")
     (with-compensations
-      (receive (hostname port)
-	  (parse-command-line)
-	(define hostent
-	  (or (px:gethostbyname hostname)
-	      (fatal "unable to bind to socket address")))
-	(define sockaddr
-	  (px:make-<sockaddr-in>
-	   (px:<hostent>-addr hostent) port))
-	(define sock
-	  (compensate
-	      (px:socket* (namespace inet) (style stream))
-	    (with
-	     (px:close sock))))
-	(%display (string-append
-		   "client connecting to: "
-		   (px:<hostent>-name hostent)
-		   ":" (number->string port) "\n"))
-	(px:connect sock sockaddr)
-	(let loop ((line (get-line (current-input-port))))
-	  (when (eof-object? line)
-	    (exit 0))
-	  (px:send/string sock (string-append line "\n"))
-	  (display (string-append
-		    "reply: "
-		    (px:recv/string sock 4096)
-		    "\n"))
-	  (loop (get-line (current-input-port))))))))
-
-(define (parse-command-line)
-  (let ((args (command-line)))
-    (unless (= 3 (length args))
-      (fatal "usage: " progname " <hostname> <port>\n"))
-    (guard (E (else
-	       (fatal "wrong port specification\n")))
-      (values (cadr args) (string->number (caddr args))))))
+      (define hostent
+	(or (px:gethostbyaddr server-addr)
+	    (fatal "unable to bind to socket address")))
+      (define sockaddr
+	(px:make-<sockaddr-in>
+	 (px:<hostent>-addr hostent) server-port))
+      (define sock
+	(compensate
+	    (px:socket* (namespace inet) (style datagram))
+	  (with
+	   (px:close sock))))
+      (px:setsockopt sock (px:socket-option reuseaddr) #t)
+      (px:bind sock sockaddr)
+      (%display (string-append
+		 "server listening to: "
+		 (px:<hostent>-name hostent)
+		 ":" (number->string server-port) "\n"))
+      (receive (str client-addr)
+	  (px:recvfrom/string sock max-input-len)
+	(%display (string-append "server received: " str))
+	(px:sendto/string sock str client-addr)
+	(exit 0)))))
 
 (define (fatal . strings)
   (%display (apply string-append strings))

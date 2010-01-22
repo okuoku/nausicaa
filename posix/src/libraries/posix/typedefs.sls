@@ -247,6 +247,7 @@
     <hostent>-aliases
     <hostent>-addrtype
     <hostent>-addrlist
+    <hostent>-addr
 
     <netent>			<netent-rtd>
     make-<netent>		<netent>?
@@ -682,6 +683,9 @@
 
 (define <hostent-rtd>
   (record-type-descriptor <hostent>))
+
+(define (<hostent>-addr h)
+  (car (<hostent>-addrlist h)))
 
 ;;; --------------------------------------------------------------------
 
