@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/POSIX --- 0.1a3
+Subject: [announce] Nausicaa/POSIX 2010-01-22 tag 0.1a3
 
 		       Nausicaa/POSIX
 		       ==============
@@ -35,7 +35,7 @@ the documentation is available on line:
   <http://marcomaggi.github.com/docs/nausicaa-posix.html>
 
 
-Notes for --- tag 0.1a3
+Notes for 2010-01-22 tag 0.1a3
 ------------------------------
 
 * Updated to work with Nausicaa/Scheme 0.1a9.
@@ -47,7 +47,8 @@ Notes for --- tag 0.1a3
 
 * Renamed bindings.
 
-* Still alpha but more usable/useful.
+* Still alpha, some public  names may change before the beta
+  release.
 
 
 Notes for 2009-11-15 tag 0.1a2
