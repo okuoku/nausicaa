@@ -12,6 +12,8 @@
 
 * posix
 
+  Scan the Linux sockets manual pages for Linux-specific extensions.
+
   Implement: sendmsg, recvmsg, cmsg.  See the linux manual pages.
 
   Implement the fd AIO API?  It requires pthreads...
