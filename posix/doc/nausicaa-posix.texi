@@ -822,6 +822,7 @@ by this package.
 @menu
 * overview libraries::          Libraries organisation.
 * overview interface::          Interface organisation.
+* overview typedefs::           Type definitions.
 @end menu
 
 @c page
@@ -974,6 +975,99 @@ Example of usage of failing primitive fork function:
   (fork)
   ---)
 @end example
+
+@c page
+@node overview typedefs
+@section Type definitions
+
+
+All the new record types are defined in the library @library{posix
+typedefs}; all of them are @code{nongenerative} definitions.  For
+example:
+
+@example
+(define-record-type (<fd> integer-><fd> <fd>?)
+  (nongenerative nausicaa:posix:<fd>)
+  (fields (immutable object <fd>->integer)))
+@end example
+
+@noindent
+the @code{nongenerative} tag is always @code{nausicaa:posix:} with the
+record type name appended.
+
+So, when building a package which may need type definitions usable with
+@value{PACKAGE}, we just copy the definition from @library{posix
+typedefs} into a new library:
+
+@example
+(library (my-package typedefs)
+  (export <fd> <fd>? integer-><fd> <fd>->integer)
+  (import (rnrs)
+  (define-record-type (<fd> integer-><fd> <fd>?)
+    (nongenerative nausicaa:posix:<fd>)
+    (fields (immutable object <fd>->integer)))))
+@end example
+
+@noindent
+achieving compatibility for the type @class{fd} without forcing a
+dependency upon @value{PACKAGE} for the new package.
+
+@quotation
+The outlined mechanism works as shown in the following example:
+
+@example
+(library (one)
+  (export make-<T>)
+  (import (rnrs))
+  (define-record-type <T>
+    (nongenerative the-t)
+    (fields (mutable a))))
+
+(library (two)
+  (export <T>-a)
+  (import (rnrs))
+  (define-record-type <T>
+    (nongenerative the-t)
+    (fields (mutable a))))
+
+;;; the program
+(import (rnrs)
+  (prefix (one) one:)
+  (prefix (two) two:))
+(define o (one:make-<T> 123))
+(display (two:<T>-a o))
+(newline)
+@end example
+
+@noindent
+the two record type definitions are identical, having also the same
+@code{nongenerative} tag; the program will execute correctly recognising
+the types as equivalent.
+
+But if we remove one of the @code{nongenerative} forms:
+
+@example
+(library (two)
+  (export <T>-a)
+  (import (rnrs))
+  (define-record-type <T>
+    (fields (mutable a))))
+@end example
+
+@noindent
+the two type definitions are no more equivalent, so running the program
+will fail with (under Ikarus Scheme):
+
+@example
+Unhandled exception:
+ Condition components:
+   1. &assertion
+   2. &who: record-accessor
+   3. &message: "invalid type"
+   4. &irritants: (#[<T> 123] #<record-type-descriptor <T>>)
+@end example
+@end quotation
+
 
 @c page
 @node file
