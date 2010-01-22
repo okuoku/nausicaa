@@ -5,15 +5,16 @@ Subject: [announce] Nausicaa/POSIX 2010-01-22 tag 0.1a3
 		       ==============
 
 Nausicaa/POSIX  is  a  distribution  of libraries  for  R6RS
-Scheme exposing  the POSIX interface to  the Scheme language
-level; some  GNU C  Library extensions and  Linux extensions
-are also exposed.
+Scheme  implementations; it exposes  the POSIX  interface at
+Scheme  language  level.   Some  GNU  C  Library  and  Linux
+extensions are also exposed.
 
-  This package currently supports only GNU+Linux systems.
+  The package  is built upon Nausicaa/Scheme,  making use of
+its  foreign-functions interface.   It  supports the  Scheme
+implementations  Ikarus, Mosh  and  Ypsilon.  The  packaging
+infrastructure currently supports only GNU+Linux systems.
 
-  The  libraries are  built  on top  of the  Nausicaa/Scheme
-package, making use of its foreign-functions interface; some
-libraries    depend   upon    the    C   language    library
+  Some Scheme  libraries depend upon the  C language library
 "libnausicaa-posix",  which is built  and installed  by this
 package.
 
