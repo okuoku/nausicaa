@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -80,13 +80,33 @@ Ses ailes de geant l'empechent de marcher.")
 		  (cstring->string bufptr2 buflen2)))))
 	=> the-string)
 
+      (check	;with enumerations: open, close, write, read, lseek, fdatasync
+	  (with-compensations
+	    (let ((pathname the-pathname))
+	      (letrec ((fd (compensate
+			       (posix:open pathname
+					   (open-mode creat rdwr)
+					   (access-permissions user-read user-write))
+			     (with
+			      (posix:close fd)))))
+		(let* ((bufptr	(string->cstring/c the-string))
+		       (buflen	(strlen bufptr))
+		       (buflen2	buflen)
+		       (bufptr2	(malloc-block/c buflen2)))
+		  (posix:write fd bufptr buflen)
+		  (posix:fdatasync fd)
+		  (posix:lseek fd 0 SEEK_SET)
+		  (posix:read fd bufptr2 buflen2)
+		  (cstring->string bufptr2 buflen2)))))
+	=> the-string)
+
       (check 	;open, close, pwrite, pread, lseek, fsync
 	  (with-compensations
 	    (let ((pathname the-pathname))
 	      (letrec ((fd (compensate
 			       (posix:open pathname
-					   (bitwise-ior O_CREAT O_RDWR)
-					   (bitwise-ior S_IRUSR S_IWUSR))
+					   (open-mode creat rdwr)
+					   (access-permissions user-read user-write))
 			     (with
 			      (posix:close fd)))))
 		(let* ((bufptr	(string->cstring/c the-string))

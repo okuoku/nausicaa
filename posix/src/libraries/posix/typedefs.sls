@@ -271,6 +271,16 @@
 
 ;;; --------------------------------------------------------------------
 
+    enum-access-permissions		access-permissions
+    access-permissions->value		value->access-permissions
+
+;;; --------------------------------------------------------------------
+
+    enum-open-mode			open-mode
+    open-mode->value			value->open-mode
+
+;;; --------------------------------------------------------------------
+
     enum-unix-signals			unix-signals
     unix-signal->value			value->unix-signal
     unix-signal-symbol->value		value->unix-signal-symbol
@@ -736,6 +746,35 @@
 
 (define <socket-rtd>
   (record-type-descriptor <socket>))
+
+
+(define-c-ior-flags access-permissions
+  (S_IRUSR S_IWUSR S_IXUSR
+   S_IRGRP S_IWGRP S_IXGRP
+   S_IROTH S_IWOTH S_IXOTH
+   S_ISUID S_ISGID S_ISVTX)
+  (user-read user-write user-exec
+   group-read group-write group-exec
+   other-read other-write other-exec
+   setuid setgid sticky))
+
+(define-c-ior-flags open-mode
+  (O_ACCMODE	O_APPEND	O_ASYNC
+   O_CREAT	O_EXCL		O_EXEC
+   O_EXLOCK	O_FSYNC		O_IGNORE_CTTY
+   O_NDELAY	O_NOATIME	O_NOCTTY
+   O_NOLINK	O_NONBLOCK	O_NOTRANS
+   O_RDONLY	O_RDWR		O_READ
+   O_SHLOCK	O_SYNC		O_TRUNC
+   O_WRITE	O_WRONLY)
+  (accmode	append		async
+   creat	excl		exec
+   exlock	fsync		ignore_ctty
+   ndelay	noatime		noctty
+   nolink	nonblock	notrans
+   rdonly	rdwr		read
+   shlock	sync		trunc
+   write	wronly))
 
 
 (define-enumeration enum-unix-signals

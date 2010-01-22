@@ -569,6 +569,18 @@ Ses ailes de geant l'empechent de marcher.")
 			    S_IROTH S_IXOTH))
 
 	  (check
+	      (let ()
+		(posix:umask 0)
+		(posix:chmod the-file
+			     (access-permissions user-read user-exec
+						 group-read group-exec
+						 other-read other-exec))
+		(posix:file-permissions the-file))
+	    => (bitwise-ior S_IRUSR S_IXUSR
+			    S_IRGRP S_IXGRP
+			    S_IROTH S_IXOTH))
+
+	  (check
 	      (with-compensations
 		(letrec ((fd (compensate
 				 (posix:open the-file O_RDONLY 0)

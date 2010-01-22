@@ -565,10 +565,16 @@ Inspecting file attributes
 * file stat type::              Type inspection.
 * file stat perms::             Access permissions inspection.
 
+Access permissions inspection
+
+* file stat perms files::       Files status.
+* file stat perms links::       Symbolic links status.
+
 File descriptors
 
 * fd typedefs::                 File descriptor related data types.
 * fd constants::                Constant values and structure accessors.
+* fd enumerations::             Enumeration sets.
 * fd open close::               Opening and closing.
 * fd read write::               Reading and writing.
 * fd seek::                     Setting the file position.
@@ -598,6 +604,11 @@ Constant values and structure accessors
 * fd constants lock::           Locking.
 * fd constants mmap::           Memory--mapped files.
 * fd constants select::         Waiting for file descriptor events.
+
+Enumeration sets
+
+* fd enumerations perms::       Access permissions.
+* fd enumerations open::        Open modes.
 
 Sockets
 
@@ -674,6 +685,9 @@ Internet addresses
 Client and server examples
 
 * sockets stream server::       A simple stream echo server.
+* sockets stream client::       A simple stream client.
+* sockets dgram server::        A simple datagram echo server.
+* sockets dgram client::        A simple datagram client.
 
 Stream functions
 
@@ -1872,6 +1886,9 @@ current mask without changing it:
 
 @noindent
 or use @func{getumask}, which has exactly this implementation.
+
+@var{mask} can be an exact integer or an enumeration set of type
+@code{enum-access-permissions}.
 @end deffn
 
 
@@ -1887,7 +1904,8 @@ Return the current umask.
 @deffnx Function platform:chmod @var{pathname-cstr} @var{mask}
 Change the file access permissions bits to the given numeric mask.
 @var{pathname} must be a Scheme string or symbol representing a
-pathname.
+pathname.  @var{mask} can be an exact integer or an enumeration set of
+type @code{enum-access-permissions}.
 @end deffn
 
 
@@ -1896,7 +1914,8 @@ pathname.
 @deffnx Function primitive:fchmod @var{fd} @var{mask}
 @deffnx Function platform:fchmod @var{fd} @var{mask}
 Change the file access permissions bits to the given numeric mask.
-@var{fd} must be a file descriptor.
+@var{fd} must be a file descriptor.  @var{mask} can be an exact integer
+or an enumeration set of type @code{enum-access-permissions}.
 @end deffn
 
 @c page
@@ -2408,6 +2427,10 @@ otherwise return zero.
 @subsection Access permissions inspection
 
 
+The bindings described in this section are exported by the
+@library{posix file primitives} library in their raw version, and by the
+@library{posix file} library in their parametrised version.
+
 Access permissions can be inspected with a bitwise combination between
 the @code{st_mode} field of @code{struct stat} and the permissions
 constants, @ref{fd constants perms}.  For example, the following
@@ -2427,73 +2450,231 @@ both by its owner and group:
                   (<stat>-mode (stat "/bin/ls"))))
 @end example
 
-The following bindings are exported by the @library{posix file} library.
+@menu
+* file stat perms files::       Files status.
+* file stat perms links::       Symbolic links status.
+@end menu
+
+@c page
+@node file stat perms files
+@subsubsection Files status
 
 
-@defun file-user-readable? @var{fd/mode/pathname}
-@defunx file-user-writable? @var{fd/mode/pathname}
-@defunx file-user-executable? @var{fd/mode/pathname}
-@defunx file-group-readable? @var{fd/mode/pathname}
-@defunx file-group-writable? @var{fd/mode/pathname}
-@defunx file-group-executable? @var{fd/mode/pathname}
-@defunx file-other-readable? @var{fd/mode/pathname}
-@defunx file-other-writable? @var{fd/mode/pathname}
-@defunx file-other-executable? @var{fd/mode/pathname}
-@defunx file-setuid? @var{fd/mode/pathname}
-@defunx file-setgid? @var{fd/mode/pathname}
-@defunx file-sticky? @var{fd/mode/pathname}
+The @var{fd/mode/pathname} argument can be: a file descriptor, a Scheme
+string or symbol representing a pathname, an exact integer representing
+the @code{st_mode} field of a @code{struct stat}.  In the file
+descriptor and pathname cases: the @code{st_mode} field of @code{struct
+stat} is acquired with a call to @func{fstat} or @func{stat}.
+
+
+@deffn Function file-user-readable? @var{fd/mode/pathname}
+@deffnx Parameter file-user-readable?-function
+@deffnx Function primitive:file-user-readable? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
-
-@var{fd/mode/pathname} can be: a file descriptor, a Scheme string or
-symbol representing a pathname, an exact integer representing the
-@code{st_mode} field of a @code{struct stat}.
-
-In the file descriptor and pathname cases: the @code{st_mode} field of
-@code{struct stat} is acquired with a call to @func{fstat} or
-@func{stat}.
-@end defun
+@end deffn
 
 
-@defun lfile-user-readable? @var{mode/pathname}
-@defunx lfile-user-writable? @var{mode/pathname}
-@defunx lfile-user-executable? @var{mode/pathname}
-@defunx lfile-group-readable? @var{mode/pathname}
-@defunx lfile-group-writable? @var{mode/pathname}
-@defunx lfile-group-executable? @var{mode/pathname}
-@defunx lfile-other-readable? @var{mode/pathname}
-@defunx lfile-other-writable? @var{mode/pathname}
-@defunx lfile-other-executable? @var{mode/pathname}
-@defunx lfile-setuid? @var{mode/pathname}
-@defunx lfile-setgid? @var{mode/pathname}
-@defunx lfile-sticky? @var{mode/pathname}
+@deffn Function file-user-writable? @var{fd/mode/pathname}
+@deffnx Parameter file-user-writable?-function
+@deffnx Function primitive:file-user-writable? @var{fd/mode/pathname}
 Return @true{} if the named permission bit is set, @false{} otherwise.
-
-@var{mode/pathname} must be: a Scheme string or symbol representing a
-pathname, an exact integer representing the @code{st_mode} field of a
-@code{struct stat} acquired with @cfunc{lstat}.
-
-In the pathname case: the the @code{st_mode} field of @code{struct stat}
-is acquired with @func{lstat}.
-@end defun
+@end deffn
 
 
-@defun file-permissions @var{fd/pathname}
-@defunx lfile-permissions @var{pathname}
+@deffn Function file-user-executable? @var{fd/mode/pathname}
+@deffnx Parameter file-user-executable?-function
+@deffnx Function primitive:file-user-executable? @var{fd/mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function file-group-readable? @var{fd/mode/pathname}
+@deffnx Parameter file-group-readable?-function
+@deffnx Function primitive:file-group-readable? @var{fd/mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function file-group-writable? @var{fd/mode/pathname}
+@deffnx Parameter file-group-writable?-function
+@deffnx Function primitive:file-group-writable? @var{fd/mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function file-group-executable? @var{fd/mode/pathname}
+@deffnx Parameter file-group-executable?-function
+@deffnx Function primitive:file-group-executable? @var{fd/mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function file-other-readable? @var{fd/mode/pathname}
+@deffnx Parameter file-other-readable?-function
+@deffnx Function primitive:file-other-readable? @var{fd/mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function file-other-writable? @var{fd/mode/pathname}
+@deffnx Parameter file-other-writable?-function
+@deffnx Function primitive:file-other-writable? @var{fd/mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function file-other-executable? @var{fd/mode/pathname}
+@deffnx Parameter file-other-executable?-function
+@deffnx Function primitive:file-other-executable? @var{fd/mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function file-setuid? @var{fd/mode/pathname}
+@deffnx Parameter file-setuid?-function
+@deffnx Function primitive:file-setuid? @var{fd/mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function file-setgid? @var{fd/mode/pathname}
+@deffnx Parameter file-setgid?-function
+@deffnx Function primitive:file-setgid? @var{fd/mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function file-sticky? @var{fd/mode/pathname}
+@deffnx Parameter file-sticky?-function
+@deffnx Function primitive:file-sticky? @var{fd/mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function file-permissions @var{fd/pathname}
+@deffnx Parameter file-permissions-function
+@deffnx Function primitive:file-permissions @var{fd/pathname}
 Return an exact integer representing the access permissions bits from
 the @code{st_mode} field of a @code{struct stat}.
 
-For @func{file-permissions}: @var{fd/pathname} can be a file descriptor
-or a pathname in the form of a Scheme string or symbol; the mode is
-acquired with a call to @func{fstat} or @func{stat}.
-
-For @func{lfile-permissions}: @var{pathname} must be a pathname in the
-form of a Scheme string or symbol; the mode is acquired with a call to
-@func{lstat}.
+@var{fd/pathname} can be a file descriptor or a pathname in the form of
+a Scheme string or symbol; the mode is acquired with a call to
+@func{fstat} or @func{stat}.
 
 The returned value can be examined and manipulated using the @code{S_*}
 constants (@pxref{fd constants perms}) and also used as argument for a
 call to @func{chmod} or @func{fchmod}.
-@end defun
+@end deffn
+
+@c page
+@node file stat perms links
+@subsubsection Symbolic links status
+
+
+For the following functions, the @var{mode/pathname} argument must be: a
+Scheme string or symbol representing a pathname, an exact integer
+representing the @code{st_mode} field of a @code{struct stat} acquired
+with @cfunc{lstat}.  In the pathname case: the the @code{st_mode} field
+of @code{struct stat} is acquired with @func{lstat}.
+
+
+@deffn Function lfile-user-readable? @var{mode/pathname}
+@deffnx Parameter lfile-user-readable?-function
+@deffnx Function primitive:lfile-user-readable? @var{mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function lfile-user-writable? @var{mode/pathname}
+@deffnx Parameter lfile-user-writable?-function
+@deffnx Function primitive:lfile-user-writable? @var{mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function lfile-user-executable? @var{mode/pathname}
+@deffnx Parameter lfile-user-executable?-function
+@deffnx Function primitive:lfile-user-executable? @var{mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function lfile-group-readable? @var{mode/pathname}
+@deffnx Parameter lfile-group-readable?-function
+@deffnx Function primitive:lfile-group-readable? @var{mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function lfile-group-writable? @var{mode/pathname}
+@deffnx Parameter lfile-group-writable?-function
+@deffnx Function primitive:lfile-group-writable? @var{mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function lfile-group-executable? @var{mode/pathname}
+@deffnx Parameter lfile-group-executable?-function
+@deffnx Function primitive:lfile-group-executable? @var{mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function lfile-other-readable? @var{mode/pathname}
+@deffnx Parameter lfile-other-readable?-function
+@deffnx Function primitive:lfile-other-readable? @var{mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function lfile-other-writable? @var{mode/pathname}
+@deffnx Parameter lfile-other-writable?-function
+@deffnx Function primitive:lfile-other-writable? @var{mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function lfile-other-executable? @var{mode/pathname}
+@deffnx Parameter lfile-other-executable?-function
+@deffnx Function primitive:lfile-other-executable? @var{mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function lfile-setuid? @var{mode/pathname}
+@deffnx Parameter lfile-setuid?-function
+@deffnx Function primitive:lfile-setuid? @var{mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function lfile-setgid? @var{mode/pathname}
+@deffnx Parameter lfile-setgid?-function
+@deffnx Function primitive:lfile-setgid? @var{mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function lfile-sticky? @var{mode/pathname}
+@deffnx Parameter lfile-sticky?-function
+@deffnx Function primitive:lfile-sticky? @var{mode/pathname}
+Return @true{} if the named permission bit is set, @false{} otherwise.
+@end deffn
+
+
+@deffn Function lfile-permissions @var{pathname}
+@deffnx Parameter lfile-permissions-function
+@deffnx Function primitive:lfile-permissions @var{pathname}
+Return an exact integer representing the access permissions bits from
+the @code{st_mode} field of a @code{struct stat}.
+
+@var{pathname} must be a pathname in the form of a Scheme string or
+symbol; the mode is acquired with a call to @func{lstat}.
+
+The returned value can be examined and manipulated using the @code{S_*}
+constants (@pxref{fd constants perms}) and also used as argument for a
+call to @func{chmod} or @func{fchmod}.
+@end deffn
 
 @c page
 @node fd
@@ -2512,6 +2693,7 @@ exported by the following libraries:
 @menu
 * fd typedefs::                 File descriptor related data types.
 * fd constants::                Constant values and structure accessors.
+* fd enumerations::             Enumeration sets.
 * fd open close::               Opening and closing.
 * fd read write::               Reading and writing.
 * fd seek::                     Setting the file position.
@@ -3009,6 +3191,100 @@ Size, structure alignment and array stride of data structures of type
 @end defvr
 
 @c page
+@node fd enumerations
+@section Enumeration sets
+
+
+@menu
+* fd enumerations perms::       Access permissions.
+* fd enumerations open::        Open modes.
+@end menu
+
+@c page
+@node fd enumerations perms
+@subsection Access permissions
+
+
+@deftp {Enumeration Type} enum-access-permissions
+Enumeration type used to specify file access permissions.  It contains
+the following symbols:
+
+@example
+user-read   user-write   user-exec
+group-read  group-write  group-exec
+other-read  other-write  other-exec
+setuid      setgid       sticky
+@end example
+@end deftp
+
+
+@deffn Syntax access-permissions @ameta{symbol} ...
+Expand to an enumeration set of type @code{enum-access-permissions}
+holding the given @meta{symbol} symbols.
+@end deffn
+
+
+@defun access-permissions->value @var{set}
+@defunx value->access-permissions @var{integer}
+Convert to and from enumeration sets of type
+@code{enum-access-permissions} and exact integer values being an
+inclusive OR combination of the following constant values:
+
+@example
+S_IRUSR  S_IWUSR  S_IXUSR
+S_IRGRP  S_IWGRP  S_IXGRP
+S_IROTH  S_IWOTH  S_IXOTH
+S_ISUID  S_ISGID  S_ISVTX
+@end example
+@end defun
+
+@c page
+@node fd enumerations open
+@subsection Open modes
+
+
+@deftp {Enumeration Type} enum-open-mode
+Enumeration type used to specify file open mode.  It contains the
+following symbols:
+
+@example
+accmode  append    async
+creat    excl      exec
+exlock   fsync     ignore_ctty
+ndelay   noatime   noctty
+nolink   nonblock  notrans
+rdonly   rdwr      read
+shlock   sync      trunc
+write    wronly
+@end example
+@end deftp
+
+
+@deffn Syntax open-mode @ameta{symbol} ...
+Expand to an enumeration set of type @code{enum-open-mode} holding the
+given @meta{symbol} symbols.
+@end deffn
+
+
+@defun open-mode->value @var{set}
+@defunx value->open-mode @var{integer}
+Convert to and from enumeration sets of type @code{enum-open-mode} and
+exact integer values being an inclusive OR combination of the following
+constant values:
+
+@example
+O_ACCMODE  O_APPEND    O_ASYNC
+O_CREAT    O_EXCL      O_EXEC
+O_EXLOCK   O_FSYNC     O_IGNORE_CTTY
+O_NDELAY   O_NOATIME   O_NOCTTY
+O_NOLINK   O_NONBLOCK  O_NOTRANS
+O_RDONLY   O_RDWR      O_READ
+O_SHLOCK   O_SYNC      O_TRUNC
+O_WRITE    O_WRONLY
+@end example
+@end defun
+
+@c page
 @node fd open close
 @section Opening and closing
 
@@ -3044,15 +3320,18 @@ with symbolic permissions bits (more portable):
 @end example
 
 @noindent
-we should really create bindings for a selection of precomputed modes
-and permissions:
+using enumeration sets:
 
 @example
-(define open-mode-cew
-  (bitwise-ior O_CREAT O_EXCL O_WRONLY))
-
-(define open-perm-rw/w
-  (bitwise-ior S_IRUSR S_IWUSR S_IRGRP))
+(letrec
+    ((fd (compensate
+             (open "/tmp/marco/name.ext"
+                   (open-mode creat excl wronly)
+                   (access-permissions user-read user-write
+                                       group-read)))
+           (with
+            (close fd))))
+  ---)
 @end example
 
 
@@ -3103,15 +3382,17 @@ access @var{permissions}.
 
 @var{pathname} must be a Scheme string or symbol.
 
-@var{mode} must be an exact integer, and it can be built with
+@var{mode} must be an exact integer or an enumeration set of type
+@code{enum-open-mode}; when it is an integer, it can be built with
 @func{bitwise-ior} from the following constants: one among
 @code{O_RDWR}, @code{O_RDONLY} and @code{O_WRONLY} and optionally
 @code{O_TRUNC}, @code{O_EXCL}, @code{O_NONBLOCK}.
 
-@var{permissions} must be an exact integer and it is better given as an
-octal number or a bitwise combination of constants (@pxref{fd constants
-perms}).  It can be zero if we are not interested in creating a new
-file.
+@var{permissions} must be an exact integer or an enumeration set of type
+@code{enum-access-permissions}; when it is an integer, it is better
+given as an octal number or a bitwise combination of constants
+(@pxref{fd constants perms}).  It can be zero if we are not interested
+in creating a new file.
 @end deffn
 
 

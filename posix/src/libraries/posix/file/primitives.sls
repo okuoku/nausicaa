@@ -401,10 +401,15 @@
 
 ;;;; changing permissions
 
+(define (%mode->value mode)
+  (if (integer? mode)
+      mode
+    (access-permissions->value mode)))
+
 (define (umask mask)
   (with-compensations
     (receive (result errno)
-	(platform:umask mask)
+	(platform:umask (%mode->value mask))
       (when (= -1 result)
 	(raise-errno-error 'umask errno mask))
       result)))
@@ -417,7 +422,7 @@
 (define (chmod pathname mode)
   (with-compensations
     (receive (result errno)
-	(platform:chmod (string->cstring/c pathname) mode)
+	(platform:chmod (string->cstring/c pathname) (%mode->value mode))
       (when (= -1 result)
 	(raise-errno-error 'chmod errno (list pathname mode)))
       result)))
@@ -425,7 +430,7 @@
 (define (fchmod fd mode)
   (with-compensations
     (receive (result errno)
-	(platform:fchmod (<fd>->integer fd) mode)
+	(platform:fchmod (<fd>->integer fd) (%mode->value mode))
       (when (= -1 result)
 	(raise-errno-error 'fchmod errno (list fd mode)))
       result)))

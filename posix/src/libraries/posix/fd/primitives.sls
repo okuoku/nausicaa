@@ -108,11 +108,23 @@
 
 ;;;; opening and closing
 
+(define (%permissions->value permissions)
+  (if (integer? permissions)
+      permissions
+    (access-permissions->value permissions)))
+
+(define (%open-mode->value open-mode)
+  (if (integer? open-mode)
+      open-mode
+    (open-mode->value open-mode)))
+
 (define (open pathname open-mode permissions)
   (integer-><fd> (with-compensations
 			      (%temp-failure-retry-minus-one
 			       open
-			       (platform:open (string->cstring/c pathname) open-mode permissions)
+			       (platform:open (string->cstring/c pathname)
+					      (%open-mode->value open-mode)
+					      (%permissions->value permissions))
 			       (list pathname open-mode permissions)))))
 
 (define (close fd)
