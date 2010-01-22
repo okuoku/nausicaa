@@ -1,0 +1,117 @@
+
+		  Nausicaa Makefile rules
+		  =======================
+
+Topics
+------
+
+  1. Introduction
+  2. Compilation rules
+  3. Testing rules
+
+
+1. Introduction
+---------------
+
+This  file documents some  special Makefile  rules available
+through  the  Nausicaa  packaging infrastructure.   For  the
+build rules refer to the "README.build" files.
+
+  All the packages in  the Nausicaa suite should support the
+rules described here.
+
+
+2. Compilation rules
+--------------------
+
+The compile  rules will compile all the  libraries under the
+"<srcdir>/src/libraries" directory.  The following rules can
+be invoked before installing the package.
+
+ifasl - Compile the package libraries for Ikarus Scheme; the
+	compiled  files will end  in the  currently selected
+	Ikarus cache ("~/.ikarus" by default).
+
+mfasl - Compile the  package libraries for  Mosh Scheme; the
+        compiled  files will end  in the  currently selected
+        Mosh cache ("~/.mosh" by default).
+
+yfasl - Compile  the package  libraries for  Ypsilon Scheme;
+        the  compiled  files   will  end  in  the  currently
+        selected Mosh cache ("~/.mosh" by default).
+
+fasl -	Compile the package's  libraries for all the enabled
+	Scheme   implementations.   It   is   equivalent  to
+	executing all the rules above.
+
+  The following  rules must be invoked  after installing the
+package.
+
+ifasl-installed -
+	Compile the package's libraries for Ikarus Scheme in
+	their installation location; the compiled files will
+	end   in  the   currently   selected  Ikarus   cache
+	("~/.ikarus" by default).
+
+mfasl-installed -
+	Compile the  package's libraries for  Mosh Scheme in
+        their installation location; the compiled files will
+        end in the  currently selected Mosh cache ("~/.mosh"
+        by  default).
+
+yfasl-installed -
+	Compile the package  libraries for Ypsilon Scheme in
+        their installation location; the compiled files will
+        end in the  currently selected Mosh cache ("~/.mosh"
+        by default).
+
+fasl-installed -
+	Compile the package's  libraries for all the enabled
+	Scheme   implementations   in   their   installation
+	location.   It is  equivalent to  executing  all the
+	"-installed" rules above.
+
+
+3. Testing rules
+----------------
+
+The  test rules  will run  all the  test programs  under the
+"<srcdir>/tests"  directory.   The  following rules  can  be
+invoked before installing the package.
+
+itest - Test the package libraries for Ikarus Scheme.
+
+mtest - Test the package libraries for Mosh Scheme.
+
+ytest - Test the package libraries for Ypsilon Scheme.
+
+test  - Test  the package's  libraries for  all  the enabled
+	Scheme implementations.
+
+  The following  rules must be invoked  after installing the
+package.
+
+itest-installed -
+	Test  the package's libraries  for Ikarus  Scheme in
+	their  installation location.
+
+mtest-installed -
+	Test  the  package's libraries  for  Mosh Scheme  in
+	their installation location.
+
+ytest-installed -
+	Test  the package  libraries for  Ypsilon  Scheme in
+        their installation location.
+
+test-installed -
+	Test  the package's  libraries for  all  the enabled
+	Scheme   implementations   in   their   installation
+	location.
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:

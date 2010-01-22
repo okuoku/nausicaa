@@ -9,7 +9,7 @@ scheme_dir=${top_srcdir}/scheme
 ./print-projects-not-scheme.sh | while read
 do
     echo "processing $REPLY ..."
-    for item in README.nausicaa README.build
+    for item in README.nausicaa README.build README.rules
     do
         readme="$top_srcdir/$REPLY/$item"
         ln --force --verbose "$scheme_dir/$item" "$readme"

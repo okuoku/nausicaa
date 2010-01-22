@@ -2,7 +2,7 @@ dnl (posix sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Wed Jan 20, 2010
+dnl Date: Fri Jan 22, 2010
 dnl
 dnl Abstract
 dnl

@@ -44,11 +44,11 @@ nau_sls_SRCDIR		= $(srcdir)/src/libraries
 nau_sls_BUILDDIR	= $(builddir)/fasl.d
 
 # Select the makefile rules to be prerequisite of the "fasl" rule.
-nau_FASL_IMPLEMENTATIONS	= \
-	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	ifasl) \
-	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	lfasl) \
-	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	mfasl) \
-	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	yfasl)
+nau_IMPLEMENTATIONS	= \
+	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	i) \
+	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	l) \
+	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	m) \
+	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	y)
 
 #page
 ## ---------------------------------------------------------------------
@@ -130,7 +130,9 @@ libdist:
 	mfasl mfasl-installed \
 	yfasl yfasl-installed
 
-fasl: $(nau_FASL_IMPLEMENTATIONS)
+fasl: $(foreach i,$(nau_IMPLEMENTATIONS), $(i)fasl)
+
+fasl-installed: $(foreach i,$(nau_IMPLEMENTATIONS), $(i)fasl-installed)
 
 ## --------------------------------------------------------------------
 ## Ikarus compilation.
@@ -282,6 +284,8 @@ nau_test_PATH		= $(nau_test_custom_LIBPATH)$(nau_sls_BUILDDIR):$(nau_test_SRCDIR
 .PHONY: tests test check
 
 tests test check:
+
+test-installed: $(foreach i,$(nau_IMPLEMENTATIONS), $(i)test-installed)
 
 ## ---------------------------------------------------------------------
 ## Ikarus
