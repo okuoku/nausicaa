@@ -168,7 +168,7 @@
 
 (define (fchdir fd)
   (receive (result errno)
-      (platform:fchdir (file-descriptor->integer fd))
+      (platform:fchdir (<fd>->integer fd))
     (unless (= 0 result)
       (raise-errno-error 'fchdir errno fd))
     result))
@@ -186,7 +186,7 @@
 
 (define (fdopendir fd)
   (receive (result errno)
-      (platform:fdopendir (file-descriptor->integer fd))
+      (platform:fdopendir (<fd>->integer fd))
     (when (pointer-null? result)
       (raise-errno-error 'fdopendir errno fd))
     result))
@@ -393,7 +393,7 @@
 (define (fchown fd owner-id group-id)
   (with-compensations
     (receive (result errno)
-	(platform:fchown (file-descriptor->integer fd) owner-id group-id)
+	(platform:fchown (<fd>->integer fd) owner-id group-id)
       (when (= -1 result)
 	(raise-errno-error 'fchown errno (list fd owner-id group-id)))
       result)))
@@ -425,7 +425,7 @@
 (define (fchmod fd mode)
   (with-compensations
     (receive (result errno)
-	(platform:fchmod (file-descriptor->integer fd) mode)
+	(platform:fchmod (<fd>->integer fd) mode)
       (when (= -1 result)
 	(raise-errno-error 'fchmod errno (list fd mode)))
       result)))
@@ -520,7 +520,7 @@
 			  (with
 			   (posix:close fd)))))
 	     (file-size fd))))
-	((file-descriptor? obj)
+	((<fd>? obj)
 	 (with-compensations
 	   (letrec ((pos (compensate
 			     (posix:lseek obj 0 SEEK_CUR)
@@ -538,10 +538,10 @@
 			    (posix:open obj O_WRONLY 0)
 			  (with
 			   (posix:close fd)))))
-	     (platform:ftruncate (file-descriptor->integer fd) length))))
-	((file-descriptor? obj)
+	     (platform:ftruncate (<fd>->integer fd) length))))
+	((<fd>? obj)
 	 (receive (result errno)
-	     (platform:ftruncate (file-descriptor->integer obj) length)
+	     (platform:ftruncate (<fd>->integer obj) length)
 	   (when (= -1 result)
 	     (raise-errno-error 'ftruncate errno (list obj length)))
 	   result))
@@ -617,7 +617,7 @@
 	  (platform:mkstemp p)
 	(if (= -1 result)
 	    (raise-errno-error 'mktemp errno template)
-	  (values (integer->file-descriptor result) (cstring->string p)))))))
+	  (values (integer-><fd> result) (cstring->string p)))))))
 
 (define (mkdtemp template)
   (with-compensations
@@ -674,14 +674,14 @@
   (with-compensations
     (let ((struct-stat* (malloc-block/c platform:sizeof-stat)))
       (receive (result errno)
-	  (platform:fstat (file-descriptor->integer fd) struct-stat*)
+	  (platform:fstat (<fd>->integer fd) struct-stat*)
 	(when (= -1 result)
 	  (raise-errno-error 'fstat errno fd))
 	(pointer-><stat> struct-stat*)))))
 
 
 (define (%type-inspection funcname pred obj)
-  (cond ((file-descriptor? obj)
+  (cond ((<fd>? obj)
 	 (not (= 0 (pred (<stat>-mode (fstat obj))))))
 
 	((or (string? obj) (symbol? obj)) ;pathname
@@ -726,11 +726,11 @@
 
 
 (define (%pointer-type-inspection funcname getter obj)
-  (cond ((file-descriptor? obj)
+  (cond ((<fd>? obj)
 	 (with-compensations
 	   (let ((struct-stat* (malloc-block/c platform:sizeof-stat)))
 	     (receive (result errno)
-		 (platform:fstat (file-descriptor->integer obj) struct-stat*)
+		 (platform:fstat (<fd>->integer obj) struct-stat*)
 	       (when (= -1 result)
 		 (raise-errno-error funcname errno obj))
 	       (not (= 0 (getter struct-stat*)))))))
@@ -762,7 +762,7 @@
 (define (%mode-inspection the-stat funcname mask obj)
   (define (set? mode)
     (not (= 0 (bitwise-and mask mode))))
-  (cond ((and (eq? the-stat 'stat) (file-descriptor? obj))
+  (cond ((and (eq? the-stat 'stat) (<fd>? obj))
 	 (set? (<stat>-mode (fstat obj))))
 
 	((or (string? obj) (symbol? obj)) ;pathname
@@ -861,7 +861,7 @@
        (bitwise-ior S_ISUID S_ISGID S_IRWXU S_IRWXG S_IRWXO)
        mode)))
 
-  (cond ((file-descriptor? obj)
+  (cond ((<fd>? obj)
 	 (get-mode (fstat obj)))
 
 	((or (string? obj) (symbol? obj)) ;pathname

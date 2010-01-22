@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,9 +27,9 @@
 
 (library (posix fd primitives)
   (export
-    integer->file-descriptor
-    file-descriptor->integer
-    file-descriptor?
+    integer-><fd>
+    <fd>->integer
+    <fd>?
 
     open	close
     read	write
@@ -109,14 +109,14 @@
 ;;;; opening and closing
 
 (define (open pathname open-mode permissions)
-  (integer->file-descriptor (with-compensations
+  (integer-><fd> (with-compensations
 			      (%temp-failure-retry-minus-one
 			       open
 			       (platform:open (string->cstring/c pathname) open-mode permissions)
 			       (list pathname open-mode permissions)))))
 
 (define (close fd)
-  (%temp-failure-retry-minus-one close (platform:close (file-descriptor->integer fd)) fd))
+  (%temp-failure-retry-minus-one close (platform:close (<fd>->integer fd)) fd))
 
 
 ;;;; reading and writing
@@ -126,7 +126,7 @@
     ((_ ?funcname ?primitive ?fd ?pointer ?number-of-bytes)
      (%temp-failure-retry-minus-one
       ?funcname
-      (?primitive (file-descriptor->integer ?fd) ?pointer ?number-of-bytes)
+      (?primitive (<fd>->integer ?fd) ?pointer ?number-of-bytes)
       ?fd))))
 
 (define-syntax %do-pread-or-pwrite
@@ -134,7 +134,7 @@
     ((_ ?funcname ?primitive ?fd ?pointer ?number-of-bytes ?offset)
      (%temp-failure-retry-minus-one
       ?funcname
-      (?primitive (file-descriptor->integer ?fd) ?pointer ?number-of-bytes ?offset)
+      (?primitive (<fd>->integer ?fd) ?pointer ?number-of-bytes ?offset)
       ?fd))))
 
 (define (read fd pointer number-of-bytes)
@@ -155,7 +155,7 @@
 (define (lseek fd offset whence)
   ;;It seems  that EINTR  cannot happen with  "lseek()", but it  does no
   ;;harm to use the macro.
-  (%temp-failure-retry-minus-one lseek (platform:lseek (file-descriptor->integer fd) offset whence) fd))
+  (%temp-failure-retry-minus-one lseek (platform:lseek (<fd>->integer fd) offset whence) fd))
 
 
 ;;;; synchronisation
@@ -168,10 +168,10 @@
     result))
 
 (define (fsync fd)
-  (%call-for-minus-one fsync platform:fsync (file-descriptor->integer fd)))
+  (%call-for-minus-one fsync platform:fsync (<fd>->integer fd)))
 
 (define (fdatasync fd)
-  (%call-for-minus-one fdatasync platform:fdatasync (file-descriptor->integer fd)))
+  (%call-for-minus-one fdatasync platform:fdatasync (<fd>->integer fd)))
 
 
 ;;;; control operations
@@ -182,7 +182,7 @@
 			       (struct-flock? arg))
 			   platform:fcntl/ptr
 			 platform:fcntl)
-		       (file-descriptor->integer fd)
+		       (<fd>->integer fd)
 		       operation
 		       (cond ((pointer? arg)
 			      arg)
@@ -192,19 +192,19 @@
 			      arg))))
 
 (define (ioctl fd operation arg)
-  (%call-for-minus-one ioctl platform:ioctl (file-descriptor->integer fd) operation arg))
+  (%call-for-minus-one ioctl platform:ioctl (<fd>->integer fd) operation arg))
 
 
 ;;;; duplicating
 
 (define (dup fd)
-  (integer->file-descriptor (%call-for-minus-one dup platform:dup (file-descriptor->integer fd))))
+  (integer-><fd> (%call-for-minus-one dup platform:dup (<fd>->integer fd))))
 
 (define (dup2 old new)
-  (integer->file-descriptor (%call-for-minus-one dup2 platform:dup2
-						 (file-descriptor->integer old)
-						 (if (file-descriptor? new)
-						     (file-descriptor->integer new)
+  (integer-><fd> (%call-for-minus-one dup2 platform:dup2
+						 (<fd>->integer old)
+						 (if (<fd>? new)
+						     (<fd>->integer new)
 						   new))))
 
 
@@ -217,8 +217,8 @@
 	  (platform:pipe p)
 	(if (= -1 result)
 	    (raise-errno-error 'pipe errno)
-	  (values (integer->file-descriptor (array-ref-c-signed-int p 0))
-		  (integer->file-descriptor (array-ref-c-signed-int p 1))))))))
+	  (values (integer-><fd> (array-ref-c-signed-int p 0))
+		  (integer-><fd> (array-ref-c-signed-int p 1))))))))
 
 (define (mkfifo pathname mode)
   (with-compensations
@@ -235,14 +235,14 @@
 
 (define (readv fd buffers buffer-count)
   (receive (bytes-read errno)
-      (platform:readv (file-descriptor->integer fd) buffers buffer-count)
+      (platform:readv (<fd>->integer fd) buffers buffer-count)
     (if (= -1 bytes-read)
 	(raise-errno-error 'readv errno (list fd buffers buffer-count))
       bytes-read)))
 
 (define (writev fd buffers buffer-count)
   (receive (bytes-written errno)
-      (platform:writev (file-descriptor->integer fd) buffers buffer-count)
+      (platform:writev (<fd>->integer fd) buffers buffer-count)
     (if (= -1 bytes-written)
 	(raise-errno-error 'writev errno (list fd buffers buffer-count))
       bytes-written)))
@@ -252,7 +252,7 @@
 
 (define (mmap address length protect flags fd offset)
   (receive (effective-address errno)
-      (platform:mmap address length protect flags (file-descriptor->integer fd) offset)
+      (platform:mmap address length protect flags (<fd>->integer fd) offset)
     ;;;(pointer=? effective-address (integer->pointer -1)) ;ugly, but what can I do?
     (if (let ((i (pointer->integer effective-address)))
 	  (or (= -1 i) ;for ikarus and ypsilon
@@ -289,18 +289,18 @@
   (platform:FD_ZERO (fdset->pointer set)))
 
 (define (FD_ISSET fd set)
-  (not (= 0 (platform:FD_ISSET (file-descriptor->integer fd) (fdset->pointer set)))))
+  (not (= 0 (platform:FD_ISSET (<fd>->integer fd) (fdset->pointer set)))))
 
 (define (FD_SET fd set)
-  (platform:FD_SET (file-descriptor->integer fd) (fdset->pointer set)))
+  (platform:FD_SET (<fd>->integer fd) (fdset->pointer set)))
 
 (define (FD_CLR fd set)
-  (platform:FD_CLR (file-descriptor->integer fd) (fdset->pointer set)))
+  (platform:FD_CLR (<fd>->integer fd) (fdset->pointer set)))
 
 (define (select max-fd read-fdset write-fdset except-fdset timeval)
   (receive (total-number-of-ready-fds errno)
-      (platform:select (if (file-descriptor? max-fd)
-			   (file-descriptor->integer max-fd)
+      (platform:select (if (<fd>? max-fd)
+			   (<fd>->integer max-fd)
 			 max-fd)
 		       (fdset->pointer read-fdset)
 		       (fdset->pointer write-fdset)

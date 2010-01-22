@@ -29,7 +29,7 @@
   (export
 
     ;; simple wrappers
-    file-descriptor file-descriptor? integer->file-descriptor file-descriptor->integer
+    <fd> <fd>? integer-><fd> <fd>->integer
     FILE* FILE*? pointer->FILE* FILE*->pointer
     fdset fdset? make-fdset pointer->fdset fdset->pointer
     uid uid? integer->uid uid->integer
@@ -318,9 +318,9 @@
     (posix sizeof))
 
 
-(define-record-type (file-descriptor integer->file-descriptor file-descriptor?)
-  (nongenerative nausicaa:posix:file-descriptor)
-  (fields (immutable object file-descriptor->integer)))
+(define-record-type (<fd> integer-><fd> <fd>?)
+  (nongenerative nausicaa:posix:<fd>)
+  (fields (immutable object <fd>->integer)))
 
 (define-record-type (FILE* pointer->FILE* FILE*?)
   (nongenerative nausicaa:posix:FILE*)
@@ -725,7 +725,7 @@
 
 (define-record-type <socket>
   (nongenerative nausicaa:posix:<socket>)
-  (parent file-descriptor)
+  (parent <fd>)
   (fields (immutable namespace)
 	  (immutable style)
 	  (immutable protocol)))

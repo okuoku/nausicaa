@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -71,20 +71,20 @@
 (parametrise ((check-test-name 'access))
 
   (check
-      (pid? (posix:tcgetpgrp (integer->file-descriptor 1)))
+      (pid? (posix:tcgetpgrp (integer-><fd> 1)))
     => #t)
 
 ;;; Is there a way to test this without losing control of the terminal?
 ;;   (check
 ;;       (let ((pid (posix:fork)))
 ;; 	(unless pid
-;; 	  (posix:tcsetpgrp (integer->file-descriptor 1) (posix:getpgrp))
+;; 	  (posix:tcsetpgrp (integer-><fd> 1) (posix:getpgrp))
 ;; 	  (exit))
 ;; 	#t)
 ;;     => #t)
 
   (check
-      (pid? (posix:tcgetsid (integer->file-descriptor 1)))
+      (pid? (posix:tcgetsid (integer-><fd> 1)))
     => #t)
 
   #t)

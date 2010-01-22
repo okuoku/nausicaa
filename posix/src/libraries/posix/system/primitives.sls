@@ -90,7 +90,7 @@
 (define (fpathconf fd param)
   (with-compensations
     (receive (result errno)
-	(platform:pathconf (file-descriptor->integer) param)
+	(platform:pathconf (<fd>->integer) param)
       (if (= -1 result)
 	  (if (= 0 errno)
 	      #t

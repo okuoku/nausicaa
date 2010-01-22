@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -286,7 +286,7 @@
   (receive (result errno)
       (with-compensations
 	(let ((mode	(string->cstring/c open-mode)))
-	  (platform:fdopen (file-descriptor->integer fd) mode)))
+	  (platform:fdopen (<fd>->integer fd) mode)))
     (if (pointer-null? result)
 	(raise-errno-error 'fdopen errno (list fd open-mode))
       (pointer->FILE* result))))
@@ -296,7 +296,7 @@
       (platform:fileno (FILE*->pointer stream))
     (when (pointer-null? result)
       (raise-errno-error 'fileno errno stream))
-    (integer->file-descriptor result)))
+    (integer-><fd> result)))
 
 ;;; --------------------------------------------------------------------
 

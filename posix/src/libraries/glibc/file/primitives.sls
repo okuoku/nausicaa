@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -179,13 +179,13 @@
   (case-lambda
    ((fd access-time-sec access-time-usec modification-time-sec modification-time-usec)
     (%real-utimes (lambda (*arry)
-		    (platform:futimes (file-descriptor->integer fd) *arry))
+		    (platform:futimes (<fd>->integer fd) *arry))
 		  'futimes fd
 		  access-time-sec access-time-usec
 		  modification-time-sec modification-time-usec))
    ((fd)
     (%real-utimes (lambda (*arry)
-		    (platform:futimes (file-descriptor->integer fd) *arry))
+		    (platform:futimes (<fd>->integer fd) *arry))
 		  'futimes fd))))
 
 
