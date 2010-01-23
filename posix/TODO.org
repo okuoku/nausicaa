@@ -21,7 +21,7 @@
 * linux
 
   Linux features  and functions to be  investigated: wait(2), waitid(2),
-  credentials(7), capabilities(7), futex(7)/futex(2).
+  credentials(7), capabilities(7), futex(7)/futex(2), poll(2), epoll(7).
 
   Decide  what to do  for the  "sysctl()" call,  glibc info  doc "System
   Parameters".

@@ -28,6 +28,7 @@
   (checks)
   (strings)
   (records)
+  (pretty-print)
   (foreign ffi)
   (foreign memory)
   (foreign cstrings)
@@ -246,43 +247,48 @@ Ses ailes de geant l'empechent de marcher.")
 (parametrise ((check-test-name	'scatter/gather)
 	      (debugging	#f))
 
-  (check
-      (with-compensations
-	(let ((pathname the-pathname))
-	  (letrec ((fd		(compensate
-				    (posix:open pathname
-						(bitwise-ior O_CREAT O_RDWR)
-						(bitwise-ior S_IRUSR S_IWUSR))
-				  (with
-				   (posix:close fd)))))
-	    (let* ((iovec-count	3)
-		   (iovec**	(malloc-block/c (sizeof-iovec-array iovec-count))))
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in scatter/gather" E))
+    (lambda ()
 
-	      (let loop ((i	0)
-			 (ell	'("ciao" "salut" "hello")))
-		(unless (= i iovec-count)
-		  (let ((iovec*	(array-ref-c-iovec iovec** i))
-			(cstr	(string->cstring/c (car ell))))
-		    (struct-iovec-iov_base-set! iovec* cstr)
-		    (struct-iovec-iov_len-set!  iovec* (strlen cstr)))
-		  (loop (+ 1 i) (cdr ell))))
+      (check
+	  (with-compensations
+	    (let ((pathname the-pathname))
+	      (letrec ((fd		(compensate
+					    (posix:open pathname
+							(bitwise-ior O_CREAT O_RDWR)
+							(bitwise-ior S_IRUSR S_IWUSR))
+					  (with
+					   (posix:close fd)))))
+		(let* ((iovec-count	3)
+		       (iovec**	(malloc-block/c (sizeof-iovec-array iovec-count))))
 
-	      (posix:writev fd iovec** iovec-count)
-	      (posix:lseek  fd 0 SEEK_SET)
-	      (posix:readv  fd iovec** iovec-count)
+		  (let loop ((i	0)
+			     (ell	'("ciao" "salut" "hello")))
+		    (unless (= i iovec-count)
+		      (let ((iovec*	(array-ref-c-iovec iovec** i))
+			    (cstr	(string->cstring/c (car ell))))
+			(struct-iovec-iov_base-set! iovec* cstr)
+			(struct-iovec-iov_len-set!  iovec* (strlen cstr)))
+		      (loop (+ 1 i) (cdr ell))))
 
-	      (let loop ((i	0)
-			 (ell	'()))
-		(if (= i iovec-count)
-		    ell
-		  (let ((iovec*	(array-ref-c-iovec iovec** i)))
-		    (loop (+ 1 i)
-			  (cons (cstring->string (struct-iovec-iov_base-ref iovec*)
-						 (struct-iovec-iov_len-ref  iovec*))
-				ell)))))))))
-    => '("hello" "salut" "ciao"))
+		  (posix:writev fd iovec** iovec-count)
+		  (posix:lseek  fd 0 SEEK_SET)
+		  (posix:readv  fd iovec** iovec-count)
 
-  #t)
+		  (let loop ((i	0)
+			     (ell	'()))
+		    (if (= i iovec-count)
+			ell
+		      (let ((iovec*	(array-ref-c-iovec iovec** i)))
+			(loop (+ 1 i)
+			      (cons (cstring->string (struct-iovec-iov_base-ref iovec*)
+						     (struct-iovec-iov_len-ref  iovec*))
+				    ell)))))))))
+	=> '("hello" "salut" "ciao"))
+
+      #t)))
 
 
 (parametrise ((check-test-name	'pipe)
@@ -429,102 +435,207 @@ Ses ailes de geant l'empechent de marcher.")
 (parametrise ((check-test-name	'mmap)
 	      (debugging	#f))
 
-  (check
-      (with-compensations
-	(let ((pathname the-pathname))
-	  (letrec* ((fd		(compensate
-				    (posix:open pathname
-						(bitwise-ior O_CREAT O_RDWR)
-						(bitwise-ior S_IRUSR S_IWUSR))
-				  (with
-				   (posix:close fd))))
-		    (map-len	10)
-		    (address	(compensate
-				    (posix:mmap pointer-null map-len
-						(bitwise-ior PROT_READ PROT_WRITE)
-						MAP_SHARED fd 0)
-				  (with
-				   (posix:munmap address map-len)))))
-	    (posix:write fd (string->cstring/c "0123456789") 10)
-	    (posix:lseek fd 0 SEEK_SET)
-	    (pointer-set-c-signed-char! address 3 (char->integer #\A))
-	    (posix:msync address 5 MS_SYNC) ;just to verify that no error occurs
-	    (list (integer->char (pointer-ref-c-signed-char address 3))
-		  (integer->char (pointer-ref-c-signed-char address 5))))))
-    => '(#\A #\5))
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in mmap" E))
+    (lambda ()
 
-  #t)
+      (check
+	  (with-compensations
+	    (let ((pathname the-pathname))
+	      (letrec* ((fd		(compensate
+					    (posix:open pathname
+							(bitwise-ior O_CREAT O_RDWR)
+							(bitwise-ior S_IRUSR S_IWUSR))
+					  (with
+					   (posix:close fd))))
+			(map-len	10)
+			(address	(compensate
+					    (posix:mmap pointer-null map-len
+							(bitwise-ior PROT_READ PROT_WRITE)
+							MAP_SHARED fd 0)
+					  (with
+					   (posix:munmap address map-len)))))
+		(posix:write fd (string->cstring/c "0123456789") 10)
+		(posix:lseek fd 0 SEEK_SET)
+		(pointer-set-c-signed-char! address 3 (char->integer #\A))
+		(posix:msync address 5 MS_SYNC) ;just to verify that no error occurs
+		(list (integer->char (pointer-ref-c-signed-char address 3))
+		      (integer->char (pointer-ref-c-signed-char address 5))))))
+	=> '(#\A #\5))
+
+      #t)))
 
 
 (parametrise ((check-test-name	'select)
 	      (debugging	#f))
 
-  (check
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred condition in select" E))
+    (lambda ()
+
+      (check	;write to file descriptor
+	  (with-compensations
+	    (let ((pathname the-pathname))
+	      (letrec ((fd (compensate
+			       (posix:open pathname
+					   (bitwise-ior O_CREAT O_RDWR)
+					   (bitwise-ior S_IRUSR S_IWUSR))
+			     (with
+			      (posix:close fd)))))
+
+		(posix:write fd (string->cstring/c "0123456789") 10)
+
+		(let ((rd-fdset	(make-fdset malloc-block/c))
+		      (wr-fdset	(make-fdset malloc-block/c))
+		      (ex-fdset	(make-fdset malloc-block/c))
+		      (timeout	(make-struct-timeval malloc-block/c)))
+
+		  (posix:FD_ZERO rd-fdset)
+		  (posix:FD_ZERO wr-fdset)
+		  (posix:FD_ZERO ex-fdset)
+
+		  (posix:FD_SET fd rd-fdset)
+		  (posix:FD_SET fd wr-fdset)
+		  (posix:FD_SET fd ex-fdset)
+
+		  (with-fields* (((sec usec) struct-timeval* timeout))
+		    (set! timeout.sec  1)
+		    (set! timeout.usec 0))
+
+		  (posix:select fd rd-fdset wr-fdset ex-fdset timeout)
+
+		  (list (posix:FD_ISSET fd rd-fdset)
+			(posix:FD_ISSET fd wr-fdset)
+			(posix:FD_ISSET fd ex-fdset))))))
+	=> '(#f #f #f))
+
+      (check	;write to pipe
+	  (with-compensations
+	    (let-values (((in ou) (posix:pipe)))
+	      (push-compensation (posix:close in))
+	      (push-compensation (posix:close ou))
+
+	      (let ((rd-fdset	(make-fdset malloc-block/c))
+		    (wr-fdset	(make-fdset malloc-block/c))
+		    (ex-fdset	(make-fdset malloc-block/c))
+		    (timeout	(make-struct-timeval malloc-block/c)))
+
+		(with-fields* (((sec usec) struct-timeval* timeout))
+		  (set! timeout.sec  1)
+		  (set! timeout.usec 0)
+
+		  (posix:FD_ZERO rd-fdset)
+		  (posix:FD_ZERO wr-fdset)
+		  (posix:FD_ZERO ex-fdset)
+
+		  (posix:FD_SET in rd-fdset)
+
+		  (posix:write ou (string->cstring/c "ciao") 4)
+
+		  (posix:select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
+		  (posix:FD_ISSET in rd-fdset)
+		  ))))
+	=> #t)
+
+      (check	;write to pipe, /interruptible
+	  (with-compensations
+	    (let-values (((in ou) (posix:pipe)))
+	      (push-compensation (posix:close in))
+	      (push-compensation (posix:close ou))
+
+	      (let ((rd-fdset	(make-fdset malloc-block/c))
+		    (wr-fdset	(make-fdset malloc-block/c))
+		    (ex-fdset	(make-fdset malloc-block/c))
+		    (timeout	(make-struct-timeval malloc-block/c)))
+
+		(with-fields* (((sec usec) struct-timeval* timeout))
+		  (set! timeout.sec  1)
+		  (set! timeout.usec 0)
+
+		  (posix:FD_ZERO rd-fdset)
+		  (posix:FD_ZERO wr-fdset)
+		  (posix:FD_ZERO ex-fdset)
+
+		  (posix:FD_SET in rd-fdset)
+
+		  (posix:write ou (string->cstring/c "ciao") 4)
+
+		  (posix:select/interruptible FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
+		  (posix:FD_ISSET in rd-fdset)
+		  ))))
+	=> #t)
+
+;;; --------------------------------------------------------------------
+
+      (check	;write to pipe, <timeval>
+	  (with-compensations
+	    (let-values (((in ou) (posix:pipe)))
+	      (push-compensation (posix:close in))
+	      (push-compensation (posix:close ou))
+
+	      (let ((rd-fdset	(make-fdset malloc-block/c))
+		    (wr-fdset	(make-fdset malloc-block/c))
+		    (ex-fdset	(make-fdset malloc-block/c))
+		    (timeout	(make-<timeval> 1 0)))
+
+		(posix:FD_ZERO rd-fdset)
+		(posix:FD_ZERO wr-fdset)
+		(posix:FD_ZERO ex-fdset)
+
+		(posix:FD_SET in rd-fdset)
+
+		(posix:write ou (string->cstring/c "ciao") 4)
+
+		(posix:select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
+		(posix:FD_ISSET in rd-fdset)
+		)))
+	=> #t)
+
+      (check	;write to pipe, /interruptible, <timeval>
+	  (with-compensations
+	    (let-values (((in ou) (posix:pipe)))
+	      (push-compensation (posix:close in))
+	      (push-compensation (posix:close ou))
+
+	      (let ((rd-fdset	(make-fdset malloc-block/c))
+		    (wr-fdset	(make-fdset malloc-block/c))
+		    (ex-fdset	(make-fdset malloc-block/c))
+		    (timeout	(make-<timeval> 1 0)))
+
+		(posix:FD_ZERO rd-fdset)
+		(posix:FD_ZERO wr-fdset)
+		(posix:FD_ZERO ex-fdset)
+
+		(posix:FD_SET in rd-fdset)
+
+		(posix:write ou (string->cstring/c "ciao") 4)
+
+		(posix:select/interruptible FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
+		(posix:FD_ISSET in rd-fdset)
+		)))
+	=> #t)
+
+;;; --------------------------------------------------------------------
+
       (with-compensations
-	(let ((pathname the-pathname))
-	  (letrec ((fd (compensate
-			   (posix:open pathname
-				       (bitwise-ior O_CREAT O_RDWR)
-				       (bitwise-ior S_IRUSR S_IWUSR))
-			 (with
-			  (posix:close fd)))))
+      	(let-values (((in ou) (posix:pipe)))
+      	  (push-compensation (posix:close in))
+      	  (push-compensation (posix:close ou))
 
-	    (posix:write fd (string->cstring/c "0123456789") 10)
+      	  (check ;write to pipe, list fdsets
+	      (begin
+		(posix:write ou (string->cstring/c "ciao") 4)
+		(receive (readable writable excepted)
+		    (posix:select* FD_SETSIZE `(,in ,ou) `(,in ,ou) `(,in ,ou)
+				   (make-<timeval> 1 0))
+		  (list readable writable excepted)))
+      	    => `((,in) (,ou) ()))
 
-	    (let ((rd-fdset	(make-fdset malloc-block/c))
-		  (wr-fdset	(make-fdset malloc-block/c))
-		  (ex-fdset	(make-fdset malloc-block/c))
-		  (timeout	(make-struct-timeval malloc-block/c)))
+      	  #f))
 
-	      (posix:FD_ZERO rd-fdset)
-	      (posix:FD_ZERO wr-fdset)
-	      (posix:FD_ZERO ex-fdset)
-
-	      (posix:FD_SET fd rd-fdset)
-	      (posix:FD_SET fd wr-fdset)
-	      (posix:FD_SET fd ex-fdset)
-
-	      (with-fields* (((sec usec) struct-timeval* timeout))
-		(set! timeout.sec  1)
-		(set! timeout.usec 0))
-
-	      (posix:select fd rd-fdset wr-fdset ex-fdset timeout)
-
-	      (list (posix:FD_ISSET fd rd-fdset)
-		    (posix:FD_ISSET fd wr-fdset)
-		    (posix:FD_ISSET fd ex-fdset))))))
-    => '(#f #f #f))
-
-  (check
-      (with-compensations
-	(let-values (((in ou) (posix:pipe)))
-	  (push-compensation (posix:close in))
-	  (push-compensation (posix:close ou))
-
-	  (let ((rd-fdset	(make-fdset malloc-block/c))
-		(wr-fdset	(make-fdset malloc-block/c))
-		(ex-fdset	(make-fdset malloc-block/c))
-		(timeout	(make-struct-timeval malloc-block/c)))
-
-	    (with-fields* (((sec usec) struct-timeval* timeout))
-	      (set! timeout.sec  1)
-	      (set! timeout.usec 0)
-
-	      (posix:FD_ZERO rd-fdset)
-	      (posix:FD_ZERO wr-fdset)
-	      (posix:FD_ZERO ex-fdset)
-
-	      (posix:FD_SET in rd-fdset)
-
-	      (posix:write ou (string->cstring/c "ciao") 4)
-
-	      (posix:select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
-	      (posix:FD_ISSET in rd-fdset)
-	      ))))
-    => #t)
-
-  #t)
-
+      #t)))
 
 
 ;;;; done

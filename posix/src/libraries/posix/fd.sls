@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,38 +26,40 @@
 
 (library (posix fd)
   (export
-    open	open-function
-    close	close-function
+    open			open-function
+    close			close-function
 
-    read	read-function
-    write	write-function
-    pread	pread-function
-    pwrite	pwrite-function
+    read			read-function
+    write			write-function
+    pread			pread-function
+    pwrite			pwrite-function
 
-    lseek	lseek-function
+    lseek			lseek-function
 
-    sync	sync-function
-    fsync	fsync-function
-    fdatasync	fdatasync-function
+    sync			sync-function
+    fsync			fsync-function
+    fdatasync			fdatasync-function
 
-    fcntl	fcntl-function
-    ioctl	ioctl-function
+    fcntl			fcntl-function
+    ioctl			ioctl-function
 
-    dup		dup-function
-    dup2	dup2-function
+    dup				dup-function
+    dup2			dup2-function
 
-    pipe	pipe-function
-    mkfifo	mkfifo-function
+    pipe			pipe-function
+    mkfifo			mkfifo-function
 
-    readv	readv-function
-    writev	writev-function
+    readv			readv-function
+    writev			writev-function
 
-    mmap	mmap-function
-    munmap	munmap-function
-    msync	msync-function
-    mremap	mremap-function
+    mmap			mmap-function
+    munmap			munmap-function
+    msync			msync-function
+    mremap			mremap-function
 
-    select	select-function
+    select			select-function
+    select/interruptible	select/interruptible-function
+    select*			select*-function
     (rename (primitive:FD_ZERO		FD_ZERO)
 	    (primitive:FD_SET		FD_SET)
 	    (primitive:FD_CLR		FD_CLR)
@@ -133,7 +135,8 @@
 
 ;; select
 (define-parametrised select max-fd read-set write-set except-set timeout)
-
+(define-parametrised select/interruptible max-fd read-set write-set except-set timeout)
+(define-parametrised select* max-fd rd-ell wr-ell ex-ell timeval)
 
 
 ;;;; custom binary ports

@@ -27,47 +27,42 @@
 
 (library (posix fd primitives)
   (export
-    integer-><fd>
-    <fd>->integer
-    <fd>?
+    integer-><fd>	<fd>->integer	<fd>?
 
-    open	close
-    read	write
-    pread	pwrite
+    open		close
+    read		write
+    pread		pwrite
     lseek
-    sync	fsync
+    sync		fsync
     fdatasync
-    fcntl	ioctl
+    fcntl		ioctl
     dup	dup2
-    pipe	mkfifo
-    readv	writev
-    mmap	munmap		msync	mremap
+    pipe		mkfifo
+    readv		writev
 
-    select FD_ISSET FD_SET FD_CLR FD_ZERO
-;;;    aio-read aio-write aio-error aio-return aio-fsync aio-suspend aio-cancel lio-listio
+    mmap		munmap
+    msync		mremap
+
+    select		select/interruptible
+    select*
+    FD_ISSET		FD_SET
+    FD_CLR		FD_ZERO
+
+;;;aio-read aio-write aio-error aio-return aio-fsync aio-suspend aio-cancel lio-listio
     )
   (import (except (rnrs) read write)
+    (begin0)
     (receive)
     (compensations)
-    (only (foreign memory)
-	  malloc-block/c
-	  malloc-small/c)
-    (only (foreign cstrings)
-	  string->cstring/c)
-    (only (foreign ffi peekers-and-pokers)
-	  array-ref-c-signed-int)
-    (only (foreign errno)
-	  EINTR raise-errno-error)
-    (only (foreign ffi pointers)
-	  pointer?
-	  pointer=?
-	  integer->pointer
-	  pointer->integer)
-    (only (foreign ffi sizeof)
-	  sizeof-int-array)
-    (only (posix sizeof)
-	  sizeof-fdset)
+    (only (foreign memory)	malloc-block/c malloc-small/c)
+    (only (foreign cstrings)	string->cstring/c)
+    (only (foreign ffi peekers-and-pokers) array-ref-c-signed-int)
+    (only (foreign errno)	EINTR raise-errno-error)
+    (foreign ffi pointers)
+    (only (foreign ffi sizeof)	sizeof-int-array)
+    (only (posix sizeof)	sizeof-fdset FD_SETSIZE)
     (posix typedefs)
+    (only (posix time primitives) <timeval>->pointer)
     (prefix (posix fd platform) platform:))
 
 
@@ -105,6 +100,39 @@
        (when (= -1 result)
 	 (raise-errno-error (quote ?funcname) errno (list ?arg ...)))
        result))))
+
+(define-syntax %call-for-minus-one/irritants
+  ;;Invoke a "/with-errno" function; if  the return value is "-1", it is
+  ;;interpreted as an error, so an "&errno" exception is raised.
+  ;;
+  ;;This macro is  for platform functions that are  NOT interrupted by a
+  ;;EINTR.
+  ;;
+  (syntax-rules ()
+    ((_ ?funcname (?primitive ?arg ...) ?irritants ...)
+     (receive (result errno)
+	 (?primitive ?arg ...)
+       (when (= -1 result)
+	 (raise-errno-error (quote ?funcname) errno (list ?irritants ...)))
+       result))))
+
+(define-syntax %fd->integer
+  (syntax-rules ()
+    ((_ ?obj)
+     (let ((obj ?obj))
+       (if (<fd>? obj)
+	   (<fd>->integer obj)
+	 obj)))))
+
+(define (%timeval->pointer/c obj procname)
+  (cond ((<timeval>? obj)
+	 (<timeval>->pointer obj malloc-block/c))
+	((struct-timeval? obj)
+	 (struct-timeval->pointer obj))
+	((pointer? obj)
+	 obj)
+	(else
+	 (assertion-violation procname "expected struct timeval specification" obj))))
 
 
 ;;;; opening and closing
@@ -168,7 +196,9 @@
 (define (lseek fd offset whence)
   ;;It seems  that EINTR  cannot happen with  "lseek()", but it  does no
   ;;harm to use the macro.
-  (%temp-failure-retry-minus-one lseek (platform:lseek (<fd>->integer fd) offset whence) fd))
+  (%temp-failure-retry-minus-one lseek
+				 (platform:lseek (<fd>->integer fd) offset whence)
+				 (list fd offset whence)))
 
 
 ;;;; synchronisation
@@ -181,44 +211,52 @@
     result))
 
 (define (fsync fd)
-  (%call-for-minus-one fsync platform:fsync (<fd>->integer fd)))
+  (%call-for-minus-one/irritants fsync
+				 (platform:fsync (<fd>->integer fd))
+				 fd))
 
 (define (fdatasync fd)
-  (%call-for-minus-one fdatasync platform:fdatasync (<fd>->integer fd)))
+  (%call-for-minus-one/irritants fdatasync
+				 (platform:fdatasync (<fd>->integer fd))
+				 fd))
 
 
 ;;;; control operations
 
 (define (fcntl fd operation arg)
-  (%call-for-minus-one fcntl
-		       (if (or (pointer? arg)
-			       (struct-flock? arg))
-			   platform:fcntl/ptr
-			 platform:fcntl)
-		       (<fd>->integer fd)
-		       operation
-		       (cond ((pointer? arg)
-			      arg)
-			     ((struct-flock? arg)
-			      (struct-flock->pointer arg))
-			     (else
-			      arg))))
+  (%call-for-minus-one/irritants fcntl
+				 ((if (or (pointer? arg)
+					  (struct-flock? arg))
+				      platform:fcntl/ptr
+				    platform:fcntl)
+				  (<fd>->integer fd)
+				  operation
+				  (cond ((pointer? arg)
+					 arg)
+					((struct-flock? arg)
+					 (struct-flock->pointer arg))
+					(else
+					 arg)))
+				 fd operation arg))
 
 (define (ioctl fd operation arg)
-  (%call-for-minus-one ioctl platform:ioctl (<fd>->integer fd) operation arg))
+  (%call-for-minus-one/irritants ioctl
+				 (platform:ioctl (<fd>->integer fd) operation arg)
+				 fd operation arg))
 
 
 ;;;; duplicating
 
 (define (dup fd)
-  (integer-><fd> (%call-for-minus-one dup platform:dup (<fd>->integer fd))))
+  (integer-><fd> (%call-for-minus-one/irritants dup
+						(platform:dup (<fd>->integer fd))
+						fd)))
 
 (define (dup2 old new)
-  (integer-><fd> (%call-for-minus-one dup2 platform:dup2
-						 (<fd>->integer old)
-						 (if (<fd>? new)
-						     (<fd>->integer new)
-						   new))))
+  (integer-><fd> (%call-for-minus-one/irritants dup2
+						(platform:dup2 (<fd>->integer old)
+							       (%fd->integer new))
+						old new)))
 
 
 ;;;; making pipes
@@ -235,30 +273,22 @@
 
 (define (mkfifo pathname mode)
   (with-compensations
-    ;;Here we do not use  %CALL-FOR-MINUS-ONE because we have to marshal
-    ;;the first argument.
-    (receive (result errno)
-	(platform:mkfifo (string->cstring/c pathname) mode)
-      (if (= -1 result)
-	  (raise-errno-error 'mkfifo errno (list pathname mode))
-	result))))
+    (%call-for-minus-one/irritants mkfifo
+				   (platform:mkfifo (string->cstring/c pathname) mode)
+				   pathname mode)))
 
 
 ;;;; scatter/gather reading and writing
 
 (define (readv fd buffers buffer-count)
-  (receive (bytes-read errno)
-      (platform:readv (<fd>->integer fd) buffers buffer-count)
-    (if (= -1 bytes-read)
-	(raise-errno-error 'readv errno (list fd buffers buffer-count))
-      bytes-read)))
+  (%call-for-minus-one/irritants readv
+				 (platform:readv (<fd>->integer fd) buffers buffer-count)
+				 fd buffers buffer-count))
 
 (define (writev fd buffers buffer-count)
-  (receive (bytes-written errno)
-      (platform:writev (<fd>->integer fd) buffers buffer-count)
-    (if (= -1 bytes-written)
-	(raise-errno-error 'writev errno (list fd buffers buffer-count))
-      bytes-written)))
+  (%call-for-minus-one/irritants writev
+				 (platform:writev (<fd>->integer fd) buffers buffer-count)
+				 fd buffers buffer-count))
 
 
 ;;;; mmap
@@ -275,25 +305,13 @@
       effective-address)))
 
 (define (munmap address length)
-  (receive (result errno)
-      (platform:munmap address length)
-    (if (= -1 result)
-	(raise-errno-error 'munmap errno (list address length))
-      result)))
+  (%call-for-minus-one munmap platform:munmap address length))
 
 (define (msync address length flags)
-  (receive (result errno)
-      (platform:msync address length flags)
-    (if (= -1 result)
-	(raise-errno-error 'msync errno (list address length flags))
-      result)))
+  (%call-for-minus-one msync platform:msync address length flags))
 
 (define (mremap address length new-length flags)
-  (receive (result errno)
-      (platform:mremap address length new-length flags)
-    (if (= -1 result)
-	(raise-errno-error 'mremap errno (list address length new-length flags))
-      result)))
+  (%call-for-minus-one mremap platform:mremap address length new-length flags))
 
 
 ;;; select
@@ -310,18 +328,73 @@
 (define (FD_CLR fd set)
   (platform:FD_CLR (<fd>->integer fd) (fdset->pointer set)))
 
+(define-syntax %fdset-true-or-null
+  (syntax-rules ()
+    ((_ ?obj)
+     (let ((obj ?obj))
+       (if obj
+	   (fdset->pointer obj)
+	 pointer-null)))))
+
+(define (select/interruptible max-fd read-fdset write-fdset except-fdset timeval)
+  (with-compensations
+    (%call-for-minus-one select platform:select
+			 (if max-fd (%fd->integer max-fd) FD_SETSIZE)
+			 (%fdset-true-or-null read-fdset)
+			 (%fdset-true-or-null write-fdset)
+			 (%fdset-true-or-null except-fdset)
+			 (%timeval->pointer/c timeval 'select/interruptible))))
+
 (define (select max-fd read-fdset write-fdset except-fdset timeval)
-  (receive (total-number-of-ready-fds errno)
-      (platform:select (if (<fd>? max-fd)
-			   (<fd>->integer max-fd)
-			 max-fd)
-		       (fdset->pointer read-fdset)
-		       (fdset->pointer write-fdset)
-		       (fdset->pointer except-fdset)
-		       (struct-timeval->pointer timeval))
-    (if (= -1 total-number-of-ready-fds)
-	(raise-errno-error 'select errno (list max-fd read-fdset write-fdset except-fdset timeval))
-      total-number-of-ready-fds)))
+  (with-compensations
+    (%temp-failure-retry-minus-one
+     select
+     (platform:select (if max-fd (%fd->integer max-fd) FD_SETSIZE)
+		      (%fdset-true-or-null read-fdset)
+		      (%fdset-true-or-null write-fdset)
+		      (%fdset-true-or-null except-fdset)
+		      (%timeval->pointer/c timeval 'select))
+     (list max-fd read-fdset write-fdset except-fdset timeval))))
+
+;;; --------------------------------------------------------------------
+
+(define (select* max-fd rd-ell wr-ell ex-ell timeval)
+  (assert (list? rd-ell))
+  (assert (list? wr-ell))
+  (assert (list? ex-ell))
+  (with-compensations
+    (let* ((pool*	(malloc-block/c (* 3 sizeof-fdset)))
+	   (rd-set*	pool*)
+	   (wr-set*	(pointer-add rd-set* sizeof-fdset))
+	   (ex-set*	(pointer-add wr-set* sizeof-fdset)))
+      (platform:FD_ZERO rd-set*)
+      (platform:FD_ZERO wr-set*)
+      (platform:FD_ZERO ex-set*)
+      (for-each (lambda (fdset* fd-ell)
+		  (for-each (lambda (fd)
+			      (platform:FD_SET (<fd>->integer fd) fdset*))
+		    fd-ell))
+	(list rd-set* wr-set* ex-set*)
+	(list rd-ell wr-ell ex-ell))
+      (let ((total-number-of-fds
+	     (%temp-failure-retry-minus-one
+	      select
+	      (platform:select (%fd->integer max-fd)
+			       rd-set* wr-set* ex-set*
+			       (%timeval->pointer/c timeval 'select))
+	      (list max-fd rd-ell wr-ell ex-ell timeval))))
+	(if (= 0 total-number-of-fds)
+	    (values '() '() '())
+	  (let ((%fold-fds (lambda (fd-set* fd-ell)
+			     (fold-left (lambda (knil fd)
+					  (if (= 0 (platform:FD_ISSET (<fd>->integer fd) fd-set*))
+					      knil
+					    (cons fd knil)))
+					'()
+					fd-ell))))
+	    (values (%fold-fds rd-set* rd-ell)
+		    (%fold-fds wr-set* wr-ell)
+		    (%fold-fds ex-set* ex-ell))))))))
 
 
 ;;; asynchronous input/output

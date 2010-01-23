@@ -28,13 +28,23 @@
 (library (posix typedefs)
   (export
 
-    ;; simple wrappers
-    <fd> <fd>? integer-><fd> <fd>->integer
-    FILE* FILE*? pointer->FILE* FILE*->pointer
-    fdset fdset? make-fdset pointer->fdset fdset->pointer
-    uid uid? integer->uid uid->integer
-    gid gid? integer->gid gid->integer
-    pid pid? integer->pid pid->integer
+    <fd>			<fd>?
+    integer-><fd>		<fd>->integer
+
+    FILE*			FILE*?
+    pointer->FILE*		FILE*->pointer
+
+    fdset
+    make-fdset			fdset?
+    pointer->fdset		fdset->pointer
+
+    uid				uid?
+    integer->uid		uid->integer
+
+    gid				gid?
+    integer->gid		gid->integer
+    pid				pid?
+    integer->pid		pid->integer
 
     uid=? gid=?
     pid-zero? pid=? pid<? pid<=? pid>? pid>=? pid<>?

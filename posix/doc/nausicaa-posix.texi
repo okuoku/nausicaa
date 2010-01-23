@@ -4019,25 +4019,94 @@ Usage example:
 @section Waiting for input or output
 
 
-The following functions manage waiting for input and outut on file
+The following functions manage waiting for input and output on file
 descriptors.  @glibcref{Waiting for I/O, Waiting for Input and Output}.
+
+@menu
+* fd select intro::             Introduction to @func{select}.
+* fd select fdset::             Handling file descriptor sets.
+* fd select select::            Variants of @func{select} function.
+@end menu
+
+@c page
+@node fd select intro
+@subsection Introduction to @func{select}
+
+
+The following example sets up what is needed to wait for events on a
+file descriptor:
+
+@example
+(import (except (rnrs) read write)
+  (records)
+  (compensations)
+  (foreign memory)
+  (posix fd)
+  (posix sizeof)
+  (for (posix typedefs) expand run)
+  (for (posix extensions) expand))
+
+(with-compensations
+  (let ((fd        ---)
+        (rd-fdset  (make-fdset malloc-block/c))
+        (wr-fdset  (make-fdset malloc-block/c))
+        (ex-fdset  (make-fdset malloc-block/c))
+        (timeout   (make-struct-timeval malloc-block/c)))
+
+    (with-fields* (((sec usec) struct-timeval* timeout))
+      (set! timeout.sec  1)
+      (set! timeout.usec 0))
+
+    (FD_ZERO rd-fdset)
+    (FD_ZERO wr-fdset)
+    (FD_ZERO ex-fdset)
+
+    (FD_SET fd rd-fdset)
+
+    (select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
+    (when (FD_ISSET fd rd-fdset)
+      ---)))
+@end example
+
+@noindent
+the following example does the same using a @class{timeval} object for
+the timeout:
+
+@example
+(import (except (rnrs) read write)
+  (records)
+  (compensations)
+  (foreign memory)
+  (posix fd)
+  (posix sizeof)
+  (for (posix typedefs) expand run)
+  (for (posix extensions) expand))
+
+(with-compensations
+  (let ((fd        ---)
+        (rd-fdset  (make-fdset malloc-block/c))
+        (wr-fdset  (make-fdset malloc-block/c))
+        (ex-fdset  (make-fdset malloc-block/c))
+        (timeout   (make-<timeval> 1 0)))
+
+    (FD_ZERO rd-fdset)
+    (FD_ZERO wr-fdset)
+    (FD_ZERO ex-fdset)
+
+    (FD_SET fd rd-fdset)
+
+    (select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
+    (when (FD_ISSET fd rd-fdset)
+      ---)))
+@end example
+
+@c page
+@node fd select fdset
+@subsection Handling file descriptor sets
+
 
 In the following descriptions the @var{fdset} arguments are @code{fdset}
 objects.  @ref{fd typedefs, File descriptor related data types}.
-
-
-@deffn Function select @var{max-fd} @var{read-fdset} @var{write-fdset} @var{except-fdset} @var{timeout}
-@deffnx Parameter select-function
-@deffnx Function primitive:select @var{max-fd} @var{read-fdset} @var{write-fdset} @var{except-fdset} @var{timeout}
-@deffnx Function platform:select @var{max-fd} @var{read-fdset} @var{write-fdset} @var{except-fdset} @var{timeout}
-Wait for an event on the file descriptors in the sets referenced by the
-@var{fdset} arguments.  @var{timeout} must be a @code{struct-timeval}
-object.
-
-@strong{NOTE} This function can be interrupted and return with
-@code{errno} set to @code{EINTR}; the library does not automatically
-reinvoke it, rather it raises an error with @func{raise-errno-error}.
-@end deffn
 
 
 @deffn Function FD_ZERO @var{fdset}
@@ -4072,40 +4141,55 @@ referenced by @var{fdset}.  @func{platform:FD_ISSET} returns a single
 value, an integer with C language true/false meaning.
 @end deffn
 
+@c page
+@node fd select select
+@subsection Variants of @func{select} function
 
-Usage example:
 
-@example
-(import (except (rnrs) read write)
-  (records)
-  (compensations)
-  (foreign memory)
-  (posix fd)
-  (posix sizeof)
-  (for (posix typedefs) expand run)
-  (for (posix extensions) expand))
+@deffn Function select @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+@deffnx Parameter select-function
+@deffnx Function primitive:select @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+@deffnx Function platform:select @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+Halt the process until one or more events happen on the selected file
+descriptors; mutate the given file descriptor sets to report which file
+descriptor are affected.
 
-(with-compensations
-  (let ((fd        ---)
-        (rd-fdset  (make-fdset malloc-block/c))
-        (wr-fdset  (make-fdset malloc-block/c))
-        (ex-fdset  (make-fdset malloc-block/c))
-        (timeout   (make-struct-timeval malloc-block/c)))
+@var{max-fd} must be an integer or @class{fd} object.  @var{rdset},
+@var{wrset} and @var{exset} must be @code{fdset} objects selecting file
+descriptors to watch for specific events.  @var{timeout} must be a
+@code{struct-timeval} object.
 
-    (with-fields* (((sec usec) struct-timeval* timeout))
-      (set! timeout.sec  1)
-      (set! timeout.usec 0))
+@strong{NOTE} This function can be interrupted and return with
+@code{errno} set to @code{EINTR}; in this case the library automatically
+reinvokes it until a different return condition happens.
+@end deffn
 
-    (FD_ZERO rd-fdset)
-    (FD_ZERO wr-fdset)
-    (FD_ZERO ex-fdset)
 
-    (FD_SET fd rd-fdset)
+@deffn Function select/interruptible @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+@deffnx Parameter select/interruptible-function
+@deffnx Function primitive:select/interruptible @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+@deffnx Function platform:select/interruptible @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+Like @func{select}, but if the function call is interrupted and returns
+with @code{errno} set to @code{EINTR}, the library does not
+automatically reinvoke it, rather it raises an error with
+@func{raise-errno-error}.
+@end deffn
 
-    (select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
-    (when (FD_ISSET fd rd-fdset)
-      ---)))
-@end example
+
+@deffn Function select* @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+@deffnx Parameter select*-function
+@deffnx Function primitive:select* @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+Like @func{select} but accept a @class{timeval} object as @var{timeout}
+argument.
+@end deffn
+
+
+@deffn Function select*/interruptible @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+@deffnx Parameter select*/interruptible-function
+@deffnx Function primitive:select*/interruptible @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+Like @func{select} but accept a @class{timeval} object as @var{timeout}
+argument.
+@end deffn
 
 @c page
 @ignore
