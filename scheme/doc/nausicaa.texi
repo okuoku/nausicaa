@@ -542,6 +542,7 @@ More libraries
 * email::                       Email processing.
 * infix::                       Infix notation utilities.
 * getopts::                     Parsing command line arguments.
+* armor::                       @ascii{} armor encoding/decoding.
 * foreign::                     Foreign functions interface.
 
 Low level libraries
@@ -51611,6 +51612,133 @@ the raised object is a compound condition with components of the
 following types: @condition{who}, @condition{option},
 @condition{argument}, @condition{message}.
 @end defun
+
+@c page
+@node armor
+@chapter @ascii{} armor encoding/decoding
+
+
+@menu
+* armor base::                  Base type definitions.
+* armor base16::                Base 16 encoder/decoder.
+@end menu
+
+@c page
+@node armor base
+@section Base type definitions
+
+
+The following bindings are exported by the @library{armor base} library.
+
+
+@deftp {Record Type Name} <armor-ctx>
+Base type for all the encoding and decoding contexts; this record type
+is @strong{not} meant to be instantiated directly.  It has the following
+immutable fields:
+
+@table @code
+@item update
+The function used to process bytevectors.
+
+@item finished?
+The function used to inspect the context: it should return @true{} if
+all the internally stored data has been flushed to the output.
+@end table
+@end deftp
+
+
+@defun make-<armor-ctx> @var{update} @var{finished?}
+@defunx <armor-ctx>? @var{obj}
+Constructor and predicate for records of type @class{armor-ctx}.
+@end defun
+
+
+@defun <armor-ctx>-update-function @var{ctx}
+@defunx <armor-ctx>-finished-function @var{ctx}
+Accessors for the fields of records of type @class{armor-ctx}.
+@end defun
+
+@c page
+@node armor base16
+@section Base 16 encoder/decoder
+
+
+The following bindings are exported by the @library{armor base16}
+library.  Usage example:
+
+@example
+(let* ((ctx (make-<base16-encode-ctx> #t))
+       (src '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+       (dst (make-bytevector
+             (base16-encode-length (bytevector-length src)))))
+  (base16-encode-update! ctx dst 0 src 0 (bytevector-length src))
+  (utf8->string dst))
+@result{} "000102030405060708090A0B0C0D0E0F"
+
+(let* ((ctx (make-<base16-decode-ctx> #f))
+       (src (string->utf8 "000102030405060708090A0B0C0D0E0F"))
+       (dst (make-bytevector
+             (base16-decode-length (bytevector-length src)))))
+  (base16-decode-update! ctx dst 0 src 0 (bytevector-length src))
+  dst)
+@result{} #vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
+@end example
+
+
+@deftp {Record Type Name} <base16-encode-ctx>
+@deftpx {Record Type Name} <base16-decode-ctx>
+Encoding and decoding context values.
+@end deftp
+
+
+@defun make-<base16-encode-ctx> @var{upper-case?}
+@defunx make-<base16-decode-ctx> @var{allow-blanks?}
+@defunx <base16-encode-ctx>? @var{obj}
+@defunx <base16-decode-ctx>? @var{obj}
+Constructors and predicates for records of type
+@class{base16-encode-ctx} and @class{base16-decode-ctx}.
+
+If @var{upper-case?} is true, encoding produces output with upper case
+letters (@samp{#\A}, @samp{#\B}, @dots{}); else the output is with lower
+case letters (@samp{#\a}, @samp{#\b}, @dots{}).
+
+If @var{allow-blanks?} is true, decoding allows blank characters in the
+output: it will just discard them; else blanks are not allowed and an
+error is raised if they are found.
+@end defun
+
+
+@defun base16-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
+@defunx base16-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
+Process @var{src-len} bytes from the bytevector @var{src-bv} starting at
+offset @var{src-start}; store the output in the bytevector @var{dst-bv}
+starting at @var{dst-start}.  Return the number of bytes actually stored
+in @var{dst-bv}.
+
+@var{ctx} must be an appropriate context record.
+@end defun
+
+
+@defun base16-encode-finished? @var{ctx}
+@defunx base16-decode-finished? @var{ctx}
+Return true if all the data stored in @var{ctx} has been flushed to the
+output.
+@end defun
+
+
+@defun base16-encode-length @var{input-len}
+Return the minimum bytes required for the output bytevector in calls to
+@func{base16-encode-update!}.
+@end defun
+
+
+@defun base16-decode-length @var{input-len}
+Return the minimum bytes required for the output bytevector in calls to
+@func{base16-decode-update!}.  Notice that when blanks are allowed in
+the input, it is not possible to determine exactly the amount of output
+bytes required.
+@end defun
+
 
 @c page
 
