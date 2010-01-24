@@ -51,6 +51,7 @@ $(nau_texinfo_TARGETS) : $(ds_texi_SRCDIR)/foreign.texiinc
 $(eval $(call nau-libraries,core))
 
 # Lexicographic order please.
+$(eval $(call nau-libraries,armor,armor))
 $(eval $(call nau-libraries,char-sets,char-sets))
 $(eval $(call nau-libraries,csv,csv))
 $(eval $(call nau-libraries,email,email))

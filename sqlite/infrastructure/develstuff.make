@@ -552,7 +552,7 @@ $(1)_BUILDDIR	?= $$(if $(2),$(2),$$(builddir)/$(1).d)
 .PHONY: $(1)-all $(1)-make-builddir
 
 $(1)-make-builddir:
-	test -d "$$($(1)_BUILDDIR)" || $$(MKDIR) "$$($(1)_BUILDDIR)"
+	@test -d "$$($(1)_BUILDDIR)" || $$(MKDIR) "$$($(1)_BUILDDIR)"
 
 $(1)-all: $(1)-make-builddir
 endef
