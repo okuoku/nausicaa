@@ -36,8 +36,8 @@ What I did (VSM)
 
 * Fixed overfull boxes in the table in section 4.16.5.2.
 
-* Added discretionary line breaks in various places throughout the 
-  document to get rid of underfull/overfull boxes. 
+* Added discretionary line breaks in various places throughout the
+  document to get rid of underfull/overfull boxes.
 
 @end ignore
 
@@ -481,10 +481,15 @@ along with this program.  If not, see
 @url{http://www.gnu.org/licenses/}.
 @end quotation
 
+Trademarks used herein are the property of their respective owners.
+
 This document is version @texiversion{} of an unofficial assemblage of
 several documents reformatted in Texinfo; the reformatting author and
-maintainer is @value{AUTHOR} @value{AUTHOR_EMAIL}.  See the appendix
-``Credits'' for the list of original documents and their authors.
+maintainer is @value{AUTHOR} @value{AUTHOR_EMAIL} with contributions by
+Vincent Manis @email{vmanis@@telus.net} (from the @code{ikscheme-manual}
+project @url{http://@/github.com/@/vmanis/@/ikscheme-manual/}).  See the
+appendix ``Credits'' for the list of original documents and their
+authors.
 @end copying
 
 @c page
@@ -494,7 +499,7 @@ maintainer is @value{AUTHOR} @value{AUTHOR_EMAIL}.  See the appendix
 
 @titlepage
 @title @value{TITLE}
-@subtitle Texinfo reformating revision @version{}
+@subtitle Texinfo reformatting revision @version{}
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -530,8 +535,7 @@ maintainer is @value{AUTHOR} @value{AUTHOR_EMAIL}.  See the appendix
 
 @menu
 * overview::                    Overview of Ikarus Scheme.
-* invoking::                    Invoking Ikarus.
-* script::                      Using @command{scheme-script}.
+* using::                       Using Ikarus.
 * ikaruslib::                   Ikarus libraries.
 
 Appendices
@@ -540,7 +544,7 @@ Appendices
 * devel::                       Accessing development revisions.
 * missing::                     Missing Features.
 * credits::                     Credits for this document.
-* package license::             GNU General Public License.
+* package license::             @gnu{} General Public License.
 * references::                  Bibliography and references.
 
 Indexes
@@ -560,12 +564,35 @@ External documents
 Overview of Ikarus Scheme
 
 * overview tech::               Technology overview.
+* overview resources::          Resources.
 * overview system::             System requirements.
 * overview install::            Installation and uninstallation.
 
+System requirements
+
+* overview system hardware::    Hardware requirements.
+* overview system software::    Software requirements.
+
 Installation and uninstallation
 
-* overview install details::    Installation details.
+* overview install quick::              Quick installation guide.
+* overview install prerequisites::      Installing the prerequisites.
+* overview install details::            Installation details.
+* overview install uninstall::          Uninstalling Ikarus.
+
+Using Ikarus
+
+* using interactive::           Interactive sessions.
+* using invoking::              Command line arguments.
+* using script::                Using @command{scheme-script}.
+* using libraries::             Ikarus and @rnrs{6} libraries.
+
+Ikarus and @rnrs{6} libraries
+
+* using libraries intro::       Introduction to Ikarus libraries.
+* using libraries searching::   How Ikarus finds libraries.
+* using libraries summary::     Library search summary.
+* using libraries examples::    Examples of libraries usage.
 
 The Ikarus library
 
@@ -648,11 +675,6 @@ Calling out to foreign procedures
 * ikaruslib foreign call out types::    Type specifiers.
 * ikaruslib foreign call out example::  C language call out example.
 
-@c Contributed libraries
-
-@c * contrib gl::                  @code{(gl)} and @code{(glut)}.
-@c * contrib number theory::       @code{(math number-theory)}
-
 @end detailmenu
 @end menu
 
@@ -692,6 +714,7 @@ encourage the Scheme community to write and to share their most useful
 
 @menu
 * overview tech::               Technology overview.
+* overview resources::          Resources.
 * overview system::             System requirements.
 * overview install::            Installation and uninstallation.
 @end menu
@@ -729,19 +752,110 @@ to the operating system.
 @item Supports many operating systems
 Ikarus runs on the most popular and widely used operating systems for
 servers and personal computers.  The supported systems include Mac OS X,
-@gnu{}/Linux, FreeBSD, NetBSD, and Microsoft Windows.
+@gnu{}/Linux, FreeBSD, NetBSD, and Microsoft Windows (under Cygwin).
 @end table
 
+
+@c page
+@node overview resources
+@section Resources
+
+
+The Ikarus website is found at @url{http://@/ikarus-scheme.org}; a
+project page on Launchpad (@url{https://@/launchpad.net/@/ikarus})
+provides access to the bug tracker.
+
+Newcomers to Scheme should refer to @url{http://@/www.schemers.org},
+which contains listings of tutorials and books that are helpful in
+learning the language.
+
+This document is a supplement to the @emph{Revised^6 Report on the
+Algorithmic Language Scheme}, found at @url{http://@/www.r6rs.org}.
+Kent Dybvig's @emph{The Scheme Programming Language}, Fourth Edition, is
+an excellent tutorial and reference for @rnrs{6}.  Some extended
+features of Ikarus have been inspired by similar features in @emph{Chez
+Scheme}; the @emph{Chez Scheme User's Guide} can be found at the same
+site.
+
+Many common extensions to Scheme have been documented as @srfi{}s
+(``Scheme Requests for Implementation''); all of these documents can be
+found at @url{http://@/srfi.schemers.org}.
+
+Ikarus provides a core set of features, but a number of third--party
+libraries that work with Ikarus have been developed.  Some of these
+libraries include:
+
+@itemize
+@item SRFI libraries
+A port of the @srfi{} libraries to @rnrs{6} implementations.
+@url{https://@/code.launchpad.net/@/~scheme-libraries-team/@/scheme-libraries/@/srfi}.
+
+@item Agave
+A collection of libraries for @rnrs{6} implementations.
+@url{http://@/github.com/@/dharmatech/@/agave}.
+
+@item Box2D-Lite
+A graphical widget showing bidimensional physics.
+@url{http://@/github.com/@/dharmatech/@/box2d-lite}.
+
+@item Industria
+A collection of libraries for @rnrs{6} implementations.
+@url{https://@/code.launchpad.net/@/~weinholt/@/scheme-libraries/@/industria}.
+
+@item MPL
+A collection of libraries for @rnrs{6} implementations.
+@url{http://@/github.com/@/dharmatech/@/mpl}.
+
+@item Nausicaa
+A collection of Scheme libraries and bindings to C language libraries
+with support for Ikarus, Mosh, Ypsilon Schemes and partial support for
+Larceny Scheme.  @url{http://@/marcomaggi.github.com/@/nausicaa.html}.
+
+@item Numero
+A collection of libraries for @rnrs{6} implementations.
+@url{http://@/github.com/@/dharmatech/@/numero}.
+
+@item @rnrs{6}--@acronym{CLOS}
+A port of @acronym{CLOS} to @rnrs{6} implementations.
+@url{https://@/code.launchpad.net/@/~c-sloma/@/r6rs-clos/@/r6rs-clos-dev}.
+
+@item Sbank
+A binding to @code{gobject-introspection} making accessible the Gtk
+programming interface at the Scheme level.
+@url{http://@/rotty.yi.org/@/software/@/sbank/}.
+
+@item Spells
+A collection of libraries for @rnrs{6} implementations.
+@url{http://@/rotty.yi.org/@/software/@/spells/}.
+
+@item Xitomatl
+A collection of Scheme libraries with support for Ikarus, Larceny,
+@acronym{PLT} and Ypsilon Schemes.
+@url{https://@/code.launchpad.net/@/~derick-eddington/@/scheme-libraries/@/xitomatl}.
+@end itemize
+
+Developers of other extension libraries are encouraged to contact us to
+have their libraries listed here.
 
 @c page
 @node overview system
 @section System requirements
 
 
-@subsection Hardware
+To run Ikarus, you will need a system with a relatively recent Intel
+@emph{x86} processor; Ikarus requires a Unix/Linux operating system (or
+emulation), and some prerequisite libraries.
+
+@menu
+* overview system hardware::    Hardware requirements.
+* overview system software::    Software requirements.
+@end menu
+
+@c page
+@node overview system hardware
+@subsection Hardware requirements
 
 
-@noindent
 Ikarus Scheme runs on the IA-32 (@emph{x86}) architecture supporting
 SSE2 extensions.  This includes the Athlon 64, Sempron 64, and Turion 64
 processors from AMD and the Pentium 4, Xeon, Celeron, Pentium M, Core,
@@ -752,13 +866,10 @@ The Ikarus compiler generates SSE2 instructions to handle Scheme's IEEE
 floating point representation (@emph{flonums}) for inexact numbers.
 
 
-@c ------------------------------------------------------------
+@subsubheading Operating systems
 
-@subsection Operating systems
-
-
-@noindent
-Ikarus is tested under the following operating systems:
+Ikarus is tested under the following operating systems; in general, any
+later version of one of these systems should be usable:
 
 @itemize
 @item
@@ -774,13 +885,15 @@ FreeBSD version 6.2.
 NetBSD version 3.1.
 
 @item
-Microsoft Windows XP (using Cygwin 1.5.24).
+Microsoft Windows XP, using Cygwin 1.5.24 (@url{http://@/cygwin.org}).
 @end itemize
 
-@c ------------------------------------------------------------
+@c page
+@node overview system software
+@subsection Software requirements
 
-@subsection Additional software
 
+You will need some additional libraries and tools to build Ikarus.
 
 @table @strong
 @item GMP
@@ -789,8 +902,13 @@ for some bignum arithmetic operations.  To build Ikarus from scratch,
 @gmp{} version 4.2 or better must be installed along with the required
 header files.  Pre--built @gmp{} packages are available for most
 operating systems.  Alternatively, @gmp{} can be downloaded from
+@url{http://@/gmplib.org/}.
 
-@center @url{http://gmplib.org/}
+The @gmp{} web page points out that @gmp{} has revealed subtle bugs in
+many C compilers.  Although the @gmp{} build process includes a
+comprehensive self--test (which you absolutely must run if building it
+yourself), you may still prefer to obtain a prebuilt binary version for
+your system, if one is available.
 
 @quotation
 @emph{Note:} Ikarus runs in 32-bit mode only.  To run it in 64-bit
@@ -799,28 +917,54 @@ compile it yourself after adding @code{ABI=32} to its configuration
 options.
 @end quotation
 
+@item libffi
+You will probably need @code{libffi}, a C library that simplifies
+run--time calls to arbitrary C functions.  Ikarus will operate without
+@code{libffi}, but will not be able to call foreign procedures (those
+written in C).  @code{libffi} can be downloaded from
+@url{http://@/sourceware.org/@/libffi}.
+
 @item GCC
 The @gnu{} C Compiler is required to build the Ikarus executable
 (e.g. the garbage collector, loader, and OS--related runtime).  @gcc{}
-versions 4.1 and 4.2 were successfully used to build Ikarus.
+versions 4.1 and 4.2 were successfully used to build Ikarus.  It may be
+possible to build Ikarus using other C compilers
 
 @item Autoconf and Automake
 The @gnu{} Autoconf (version 2.61) and @gnu{} Automake (version 1.10)
 tools are required if one wishes to modify the Ikarus source base.  They
 are not required to build the official release of Ikarus.
 
+Prebuilt packages for these tools have been created for most Unix/Linux
+systems; if you prefer, you can download the source code from
+@url{http://@/www.gnu.org/@/software/@/autoconf} and
+@url{http://@/www.gnu.org/@/software/@/automake} respectively, and build
+them yourself.
+
 @item XeLaTeX
 The XeLaTeX typesetting system is required for building the
 documentation.  XeLaTeX (and XeTeX) is an implementation of the LaTeX
 (and TeX) typesetting system.  XeLaTeX can be obtained from
+@url{http://@/scripts.sil.org/@/xetex} and is included with TeX--Live
+(@url{http://@/tug.org/@/texlive/}) and and Mac--TeX
+(@url{http://@/tug.org/@/mactex/}) distributions.
 
-@center @url{http://scripts.sil.org/xetex}
+@item @TeX{} and Texinfo
+(Not needed for a routine install.)  This document is provided in PDF,
+Info, and HTML formats.  If you wish to rebuild the document from its
+Texinfo source, you will need @TeX{} (for creating the PDF version) and
+Texinfo (for creating the other versions).
 
-@noindent
-and is included with TeX--Live@footnote{@url{http://tug.org/texlive/}}
-and and Mac--TeX@footnote{@url{http://tug.org/mactex/}} distributions.
+Many Unix and Linux systems have installable @TeX{} packages; if you
+cannot find one for your system, you can install TeX@tie{}Live
+(@url{http://@/tug.org/@/texlive/}), for Unix/Linux and Windows; MacTeX
+(@url{http://@/tug.org/@/mactex/}) is a comparable system for Macintosh
+OS@tie{}X.
+
+Texinfo is also available as an installable package for most Unix/Linux
+systems.  Alternatively, you can download it from
+@url{http://@/www.gnu.org/@/software/@/texinfo} and build it yourself.
 @end table
-
 
 @c page
 @node overview install
@@ -835,7 +979,38 @@ and and Mac--TeX@footnote{@url{http://tug.org/mactex/}} distributions.
 @cindex Ikarus, disinstalling
 
 
-@noindent
+There are two ways to install Ikarus on your system: you can either
+install a prebuilt package, if one is available for your operating
+system, or you can build from source.  There are two reasons for
+preferring the ``build from source'' approach.  First, not all
+Unix/Linux package repositories have an Ikarus package at all.  Second,
+prebuilt packages often lag current revisions to the system by a
+considerable amount.  Therefore, the version you install from a package
+repository might not even have some of the features documented in this
+manual.
+
+We will assume in this section that you are building Ikarus yourself.
+Ikarus uses the standard installation method found in most other Unix
+software.  Thus you will follow the usual steps.
+
+@enumerate
+@item Download the software.
+@item Set configuration options.
+@item Build and install
+@end enumerate
+
+@menu
+* overview install quick::              Quick installation guide.
+* overview install prerequisites::      Installing the prerequisites.
+* overview install details::            Installation details.
+* overview install uninstall::          Uninstalling Ikarus.
+@end menu
+
+@c page
+@node overview install quick
+@subsection Quick installation guide
+
+
 If familiar with installing Unix software on our system, then all we
 need to know is that Ikarus uses the standard installation method found
 in most other Unix software.  Simply run the following commands from the
@@ -853,6 +1028,9 @@ $ make install
 @ref{overview install details} for how to enable the foreign functions
 interface.
 
+The rest of this section gives more detail on building, installing, and
+uninstalling Ikarus.
+
 To uninstall Ikarus, use the following steps:
 
 @example
@@ -860,47 +1038,61 @@ $ cd path/to/ikarus-n.n.n
 $ make uninstall
 @end example
 
+@c page
+@node overview install prerequisites
+@subsection Installing the prerequisites
 
-@menu
-* overview install details::    Installation details.
-@end menu
 
+The first step is to ensure that you have @gmp{} and @code{libffi}
+installed.  As mentioned earlier, you should generally use your system's
+package manager for these.  Note where the include (@code{.h}) and
+library (@code{.a}) files for each of these packages are installed.
+(Typically this will be in either @file{/usr/@/include} and
+@file{/usr/@/lib}, or @file{/usr/@/local/@/include} and
+@file{/usr/@/local/@/lib}.)
 
+If you choose to download these as source and build them yourselves,
+refer to the installation instructions found in each package.  If you
+are installing @gmp{} from source, it is @emph{essential} that you run
+the self--tests after building, and verify that no errors were detected.
+You do this by the command @command{make check}; see the documentation
+for details.
 
 @c page
 @node overview install details
 @subsection Installation details
 
 
-@noindent
-The rest of this section describes the build process in more details.
-It is targeted to users who are unfamiliar with steps mentioned above.
+You have two choices for downloading the Ikarus source: you can either
+download a distribution from @url{http://@/ikarus-scheme.org}, or you
+can refer to @ref{devel} for information on downloading a development
+(``bleeding edge'') version.
 
-@enumerate
+@itemize
 @item
-Download the Ikarus source distribution: a @command{gzip}--compressed
-@command{tar} file (@file{ikarus-@-n.n.n.tar.gz} where @code{n.n.n} is a
-3--digit number indicating the current revision).  The latest revision
-can be downloaded from
+Ikarus source distributions are tarballs named
+@file{ikarus-@-@var{@var{n.n.n}}.tar.gz}, where @file{@var{n.n.n}} is a
+3--component ID indicating the current revision.
 
-@center @url{http://www.cs.indiana.edu/~aghuloum/ikarus/}
-
-@item
-Unpack the source distribution package.  From the shell prompt:
+If you downloaded a distribution, unpack it.  From the shell prompt:
 
 @example
-$ tar -zxf ikarus-n.n.n.tar.gz
+$ tar -zxf ikarus-@var{n.n.n}.tar.gz
 @end example
 
 @noindent
-this creates the base directory @file{ikarus-n.n.n}.
+this creates the base directory @file{ikarus-@var{n.n.n}}.
 
 @item
+If you downloaded a bleeding--edge snapshot, you will have a directory
+called @code{ikarus.dev}.  No unpacking is needed.
+@end itemize
+
 Configure the build system by running the @command{configure} script
 located in the base directory.  To do this, type the following commands:
 
 @example
-$ cd ikarus-n.n.n
+$ cd ikarus-@var{n.n.n}
 $ ./configure
 checking build system type... i386-apple-darwin8.10.1
 checking host system type... i386-apple-darwin8.10.1
@@ -914,96 +1106,189 @@ config.status: executing depfiles commands
 @end example
 
 This configures the system to be built then installed in the
-system--wide location (binaries are installed in @file{/usr/local/bin}).
-If we wish to install it in another location (e.g. in our home
-directory), we can supply a @option{--prefix} location to the
-@command{configure} script as follows:
+system--wide location (binaries are normally installed in
+@file{/usr/@/local/@/bin}).  To install it in another location (e.g. in
+your home directory), provide a @option{--prefix} location to
+@command{configure} as follows.
 
 @example
-$ ./configure --prefix=/path/to/installation/location
-@end example
-
-The @command{configure} script will fail if it cannot locate the
-location where @gmp{} is installed.  If running @command{configure}
-fails to locate @gmp{}, we should supply the location in which the
-@gmp{} header file, @file{gmp.h}, and the @gmp{} library file,
-@file{libgmp.so}, are installed.  This is done by supplying the two
-paths in the @env{CFLAGS} and @env{LDFLAGS} arguments:
-
-@example
-./configure CFLAGS=-I/path/to/include LDFLAGS=-L/path/to/lib
-@end example
-
-Currently (Thu Oct 23, 2008) Ikarus uses Libffi (@ref{ikaruslib foreign
-overview} for details) to implement the foreign functions interface.  To
-enable it and to let Ikarus find the Libffi headers we have to do:
-
-@example
-$ ./configure [other-options] \
-      --enable-libffi \
-      CFLAGS='-I/usr/local/lib/libffi-3.0.6/include'
+$ ./configure --prefix=/opt/sw
 @end example
 
 @noindent
-assuming that the Libffi headers are under
-@file{/usr/local/lib/libffi-3.0.6/include}.
+This will install the executable in @file{/opt/@/sw/@/bin}, libraries in
+@file{/opt/@/sw/@/lib/@/ikarus}, and documentation in
+@file{/opt/@/sw/@/share/@/doc/@/ikarus}.
 
-@item
-Build the system by running:
+To install Ikarus for your own use (thus not requiring root permissions
+to install), specify @code{--prefix=$HOME/local}, which installs
+everything in a @file{local} directory of your home directory.
+
+@command{configure} allows you to fine--tune where things are installed,
+though this is rarely necessary or useful.  Do
+@code{./configure@tie{}--help} for a full list of options.
+
+The most common @command{configure} options are as follows.
+
+@table @asis
+@item @option{--prefix}
+Specify the location in the file system where Ikarus will be installed.
+
+@item @option{--enable-ffi}
+Include Ikarus's Foreign Function Interface, so that Ikarus code can
+invoke C code, and vice versa.  Requires @code{libffi}.
+
+@item @env{CFLAGS}
+Specify options to be used while compiling Ikarus's C code.
+
+@item @env{LDFLAGS}
+Specify options to be used while linking Ikarus.
+@end table
+
+@command{configure} will fail if it cannot find the location where
+@gmp{} is installed.  The script will also fail if you have specified
+@option{--enable-ffi} and it can't find @code{libffi}.  If running
+@command{configure} fails to locate either of these libraries, you will
+need to provide their locations.  Refer back to your notes on location
+of the @gmp{} and @code{libffi} files, and use the @env{CFLAGS} and
+@env{LDFLAGS} options to specify the locations of the header and library
+files accordingly.
+
+For example, assume that you have installed @gmp{} and @code{libffi} in
+subdirectories of @file{/opt/sw}, and you wish to support foreign
+functions.@footnote{The @command{configure} command shown here is very
+imposing, and anyone can easily make mistakes.  In general, it's a good
+idea to create a shell script that has the sequence of
+@command{configure} and @command{make} commands needed to configure,
+build, and install a package; this not only allows you to re--install
+easily, but also gives you a concrete indication of what options you
+used to build the software the last time.  Of course, you should put
+this script somewhere other than in the actual Ikarus software
+directory!}
 
 @example
-$ make
+./configure                                                \
+  --prefix=$HOME/local                                     \
+  --enable-ffi                                             \
+  CFLAGS="-I/opt/sw/gmp/include -I/opt/sw/libffi/include"  \
+  LDFLAGS="-L/opt/sw/gmp/lib -L/opt/sw/libffi/lib"
 @end example
 
-This performs two tasks: it builds the @command{ikarus} executable from
-the C files located in the @command{src} directory; it uses the
-@command{ikarus} executable and the pre--built @file{ikarus.boot.orig}
-boot file to rebuild the Scheme boot image file @file{ikarus.boot} from
-the Scheme sources located in the @file{scheme} directory.
+You can use the @env{CFLAGS} and @env{LDFLAGS} variables to select more
+specialized compilation and linking options; refer to your compiler
+documentation for more details.
+
+You can now build the system by running the command @command{make}, with
+no arguments.  This performs two tasks:
+
+@enumerate
+@item
+It builds the @command{ikarus} executable from the C files located in
+the @file{src} directory.
 
 @item
-Install Ikarus by typing:
+It uses the @command{ikarus} executable and the pre--built
+@file{ikarus.boot.orig} boot file to rebuild the Scheme boot image file
+@file{ikarus.boot} from the Scheme sources located in the @file{scheme}
+directory.
+@end enumerate
 
-@example
-$ make install
-@end example
+The final stage is to install Ikarus via the command @command{make
+install}.  If you're installing Ikarus in a system--wide location,
+you'll probably need to have administrator privileges (use the
+@command{sudo} or @command{su} commands).  If that's not feasible, then
+reconfigure to install within a directory tree under your home
+directory.
 
-If we are installing Ikarus in a system--wide location, we might need to
-have administrator privileges (use the @command{sudo} or @command{su}
-commands).
-
-@item
-Test that Ikarus runs from the command line.
+Finally, try a small session, to verify that everything installed
+properly.
 
 @example
 $ ikarus
-Ikarus Scheme version 0.0.3
-Copyright (c) 2006-2008 Abdulaziz Ghuloum
+Ikarus Scheme version 0.0.4-rc1+ (revision 1865, build 2009-11-17)
+Copyright (c) 2006-2009 Abdulaziz Ghuloum
 
->
+> (display "hello, world!\n")
+hello, world!
+> (define twice (lambda (f) (lambda (x) (f (f x)))))
+> ((twice add1) 3)
+5
 @end example
 
-If we get the prompt, then Ikarus was successfully installed on our
-system.  We may need to update the @env{PATH} variable in our
-environment to contain the directory in which the @command{ikarus}
+If you get the first @code{>} prompt, then Ikarus was successfully
+installed on the system.  You may need to update the @env{PATH} variable
+in environment to contain the directory in which the @command{ikarus}
 executable was installed.
 
-Do not delete the @file{ikarus-n.n.n} directory from which we
-configured, built, and installed Ikarus.  It will be needed if we decide
-at a later time to uninstall Ikarus.
-@end enumerate
-
+Finally, do @command{make clean} to get rid of executables, object
+files, and other build products in your @file{ikarus-@var{n.n.n}}
+directory.  Do not delete the directory itself: it will be needed if you
+ever want to uninstall Ikarus.
 
 @c page
-@node invoking
-@chapter Invoking Ikarus
+@node overview install uninstall
+@subsection Uninstalling Ikarus
 
+
+@cindex Ikarus, uninstalling
+@cindex Ikarus, disinstalling
+@cindex Disinstalling Ikarus
+@cindex Uninstalling Ikarus
+
+
+To uninstall Ikarus, go to the directory you built Ikarus in (not the
+directory where you installed it), and do @code{make uninstall}.
+
+@example
+$ cd path/to/ikarus-@var{n.n.n}
+$ make uninstall
+@end example
+
+@c page
+@node using
+@chapter Using Ikarus
+
+
+Once Ikarus is properly installed, you can invoke it either in an
+interactive terminal session or as the interpreter for invoking a
+script.
 
 @cindex Command line
 @cindex Invoking Ikarus
 
+@menu
+* using interactive::           Interactive sessions.
+* using invoking::              Command line arguments.
+* using script::                Using @command{scheme-script}.
+* using libraries::             Ikarus and @rnrs{6} libraries.
+@end menu
+
+@c page
+@node using interactive
+@section Interactive sessions
+
+
+If you want an interactive session, use a bare @command{ikarus} command,
+with no options.
+
+@example
+$ ikarus
+Ikarus Scheme version 0.0.4-rc1+ (revision 1865, build 2009-11-17)
+Copyright (c) 2006-2009 Abdulaziz Ghuloum
+
+> (+ 2 2)
+4
+@end example
 
 @noindent
+end--of--file (@key{Ctrl-D} in a typical terminal window) will terminate
+the session.
+
+@c page
+@node using invoking
+@section Command line arguments
+
+
 The @command{ikarus} executable recognizes a few command line switches
 that influence how Ikarus starts.
 
@@ -1014,11 +1299,11 @@ a help message then to exit.  The help message summarizes the command
 line switches.  No further action is performed.
 
 @item ikarus -b path/to/boot/file.boot
-The @code{-b} flag (which requires an extra argument) directs
+The @option{-b} flag (which requires an extra argument) directs
 @command{ikarus} to use the specified boot file as the initial system
 boot file.  The boot file is a binary file that contains all the code
 and data of the Scheme system.  In the absence of @option{-b} flag, the
-executable will use the default boot file.  Running @code{ikarus -h}
+executable will use the default boot file.  Running @command{ikarus -h}
 shows the location where the default boot file was installed.
 
 The rest of the command line arguments are recognized by the standard
@@ -1045,8 +1330,7 @@ $ ikarus --r6rs-script test.ss hi there
 The lack of an @option{--r6rs-script} argument causes Ikarus to start in
 interactive mode.  Each of the @code{files} is first loaded, in the
 interaction environment.  The interaction environment initially contains
-all the bindings exported from the @library{ikarus} library
-(@ref{ikaruslib} for details).
+all the bindings exported from the @library{ikarus} library.
 
 The optional @code{arguments} following the @code{--} marker can be
 obtained by calling the @func{command-line} procedure.  In interactive
@@ -1055,73 +1339,358 @@ mode, the first element of the returned list will be the string
 @rnrs{6}--script mode.
 
 @quotation
-@emph{Note:} The interactive mode is intended for quick experimenting
+@strong{NOTE} @rnrs{6} lives in a somewhat uneasy tension with a
+standard Scheme @acronym{REPL} (read-eval-print loop), which the Report
+effectively does not define.  In particular, the effect of re--importing
+a module, as you might do when reloading and rerunning a program, isn't
+well--defined by @rnrs{6}.
+
+This is a limitation caused by the particular design choices made in
+@rnrs{6}; it's hoped that a future revision to the language will repair
+this particular problem.  Even so, we hope to achieve better interaction
+between loading and libraries in the future.
+
+Accordingly, the interactive mode is intended for quick experimenting
 with the built--in features.  It is intended neither for developing
-applications nor for writing any substantial piece of code.  The main
-reason for this is that the interaction between @rnrs{6} libraries and
-the interactive environment is not well understood.  We hope to achieve
-better interaction between the two subsystems in the future.
+applications nor for writing any substantial piece of code.
 @end quotation
 @end table
 
+@c page
+@node using script
+@section Using @command{scheme-script}
+
+
+Scheme scripts can be executed using the following command:
+
+@example
+ikarus --r6rs-script @var{script-name}
+@end example
+
+@noindent
+as described in the previous section.  For convenience, Ikarus
+follows the @rnrs{6} recommendations and installs a wrapper program
+called @command{scheme-script}.
+
+Here is a sample script (Pig Latin---``Igpay Atinlay''---is a code that
+was at one time popular among very young North American children).
+
+@example
+(import (rnrs))
+
+;;; Convert a string to its Pig Latin equivalent.
+;;;
+;;; If the first character is a vowel, append "yay".
+;;; "egg" -> "eggyay"
+;;;
+;;; If the first character is a consonant, remove it,
+;;; and append it plus "ay" to the string.
+;;; "foo" -> "oofay"
+
+(define pig-latin
+  (lambda (str)
+    (let ((first (string-ref str 0)))
+      (if (memv first '(#\a #\e #\i #\o #\u))
+	  (string-append str "yay")
+	  (string-append
+ 	    (substring str 1 (string-length str))
+	    (string first) "ay")))))
+
+(display
+ (map pig-latin
+     (cdr (command-line))))
+(newline)
+@end example
+
+Assuming we have stored the script in the file @file{demo}, we can
+invoke this script via @command{scheme-script}.
+
+@example
+$ scheme-script demo ice cream after dinner
+(iceyay reamcay afteryay innerday)
+@end example
+
+On Unix/Linux systems, scripts generally start with a ``shebang'' line
+(@emph{sh}arp plus @emph{bang}) which names an interpreter for the
+script.  All modern systems have the @command{env} command which
+searches for a command in the user's path.
+
+@example
+#!/usr/bin/env scheme-script
+(import (rnrs))
+
+...
+@end example
+
+Now we can make the file executable, and use it directly.
+
+@example
+$ chmod +x demo
+$ ./demo ice cream after dinner
+(iceyay reamcay afteryay innerday)
+@end example
+
+There are a few fine points.
+
+@itemize
+@item
+@command{scheme-script} is recommended by @rnrs{6}, and therefore most
+@rnrs{6}--compliant implementations will provide such a command that
+invokes that particular system.  If you have several of these systems
+installed, you will need to make sure that the right system is invoked.
+Manipulating the @env{PATH} is a reasonable solution.
+
+@item
+Under Mac OS X, if a script name ends with the @code{.command}
+extension, then it can be executed from the Finder by double--clicking
+on it.  This brings up a terminal window in which the script is
+executed.  The @code{.command} extension can be hidden from the
+@emph{Get Info} item from the Finder's File menu.
+@end itemize
 
 @c page
-@node script
-@chapter Using @command{scheme-script}
+@node using libraries
+@section Ikarus and @rnrs{6} libraries
 
 
-@noindent
-Scheme scripts can be executed using the:
+One of the major features added in @rnrs{6} was a standardized concept
+of libraries: modules that export features that can be imported into
+programs.  A library is named by a list, e.g., @code{(yoyodyne
+block-transfer-computations)}; the core library of the language is
+provided in the library @code{(rnrs)}.
+
+Unfortunately, libraries have many quirks.  Partially, this comes from
+the way libraries are defined in @rnrs{6}; some fine--tuning in the
+future will probably tighten up the semantics.  Partially, this comes
+from the fact that no language standard can or should define how
+external code modules are stored and retrieved; there are many decisions
+that an implementer must be free to make (a hypothetical Scheme
+implementation might want to retrieve libraries from a database system,
+for example).
+
+This section discusses the Ikarus implementation of libraries.
+
+@menu
+* using libraries intro::       Introduction to Ikarus libraries.
+* using libraries searching::   How Ikarus finds libraries.
+* using libraries summary::     Library search summary.
+* using libraries examples::    Examples of libraries usage.
+@end menu
+
+@c page
+@node using libraries intro
+@subsection Introduction to libraries
+
+
+A library consists of a ``file'' (some assemblage of text) that contains
+a library form, which might look like this:
 
 @example
-ikarus --r6rs-script script-name
+(library (sample)
+  (export cube)
+  (import (rnrs))
+  (define cube
+    (lambda (x)
+      (* x x x))))
 @end example
 
 @noindent
-command as described in the previous section.  For convenience, Ikarus
-follows the @rnrs{6} recommendations and installs a wrapper program
-called @command{scheme-script}.  Typically, a script you write would
-start with a @code{#!} line that directs your operating system to the
-interpreter used to evaluate the script file.  The following example
-shows a very simple script that uses the @command{scheme-script}
-command.
+notice the @command{import} clause; libraries have no predefined
+namespace, and therefore at least @code{(rnrs)} must be imported.
+
+We can import @code{(sample)} into another library, a script, or an
+Ikarus top--level session:
 
 @example
-#!/usr/bin/env scheme-script
-
-(import (rnrs))
-(display "Hello World\n")
+> (import (sample))
+> (cube 3)
+27
 @end example
 
-If the above script was placed in a file called @file{hello-world}, then
-one can make it executable using the @command{chmod} Unix command.
+Library names are lists, thus allowing the writer of one or more
+libraries to group related libraries together.  For example, as well as
+@code{(yoyodyne block-transfer-computations)}, we might also have
+@code{(yoyodyne tardis navigation)} and @code{(yoyodyne tardis
+diagnostics)}.  Leaving the parentheses off a single--component library
+name is a common error.
+
+@c page
+@node using libraries searching
+@subsection How Ikarus finds libraries
+
+
+In Ikarus, a library is a file with the same name as the last component
+of the library name.  For example, the library @code{(sample)} will
+correspond to a file named @file{sample.sls} somewhere in the file
+system.  The file extension @code{sls} stands for ``Scheme library
+source''; although Ikarus will also accept the extensions @code{ss} and
+@code{scm}, these really indicate scripts, rather than libraries.
+
+Ikarus has a search algorithm for libraries that is similar to those
+used in other languages.  Its search path comprises a series of
+directories.  When you try to import a library whose name contains just
+one component, Ikarus will examine each directory in the search path for
+a file with a matching name.  Importing a library whose name is a list
+of components causes Ikarus to match to a series of subdirectories with
+matching names.
+
+Here is an example of each case:
+
+@itemize
+@item
+Importing @code{(sample)} causes Ikarus to look in each directory on the
+path for a file named @file{sample.sls}.
+
+@item
+Importing @code{(yoyodyne sample)} causes Ikarus to look in each
+directory on the path for a directory named @code{yoyodyne}, and within
+that a file named @file{sample.sls}.  (The @func{library} form for this
+library must still specify the library name as @code{(yoyodyne sample)},
+not @code{(sample)}.)
+@end itemize
+
+Ikarus always places its own libraries at the end of the search path.
+Other library directories can be added to the search path in two ways:
+by modifying an environment variable, or by setting Ikarus's
+@func{library-path} parameter.  Ikarus consults the environment variable
+@env{IKARUS_LIBRARY_PATH} at the beginning of execution, and places each
+of the directories there into its search path.  The search path is then
+set to the value of the parameter @func{library-path}, which can be
+updated as necessary.
 
 @example
-$ cat hello-world
-#!/usr/bin/env scheme-script
+$ export IKARUS_LIBRARY_PATH=$HOME/scheme:/tmp/library
+$ echo $IKARUS_LIBRARY_PATH
+/home/someuser/scheme:/tmp/library
+$ ikarus
+Ikarus Scheme version 0.0.4-rc1+ (revision 1865, build 2009-11-17)
+Copyright (c) 2006-2009 Abdulaziz Ghuloum
 
-(import (rnrs))
-(display "Hello World\n")
-
-$ chmod 755 hello-world
-$ ./hello-world
-Hello World
+> (library-path)
+("/home/someuser/scheme" "/tmp/library"
+  "/home/someuser/local/lib/ikarus")
+> (library-path (cons "/opt/sw/extra-libraries" (library-path)))
+> (library-path)
+("/opt/sw/extra-libraries" "/home/someuser/scheme"
+  "/tmp/library" "/home/someuser/local/lib/ikarus")
 @end example
 
-@quotation
-@emph{Note:} Under Mac OS X, if a script name ends with the
-@code{.command} extension, then it can be executed from the Finder by
-double--clicking on it.  This brings up a terminal window in which the
-script is executed.  The @code{.command} extension can be hidden from
-the @emph{Get Info} item from the Finder's File menu.
-@end quotation
+@noindent
+In this example, the user sets @env{IKARUS_LIBRARY_PATH} before the
+session; the settings are reflected in the value of
+@code{(library-path)}.  A further directory is then set during the
+session.
+
+In programs intended to be distributed, you should resist the urge to
+set @code{(library-path)}, as the user's file hierarchies might not
+match yours.  For most libraries, simply telling the user to install the
+library in one of the libraries on the search path is good enough.
+
+There are two refinements of the library search algorithm.
+
+@itemize
+@item
+A common pattern is to distribute a main library along with a number of
+additional extensions: we might have a main library named @code{(lib)},
+and additional optional extensions named @code{(lib extras)} and
+@code{(lib frills)}.  Although the previous packaging method can be
+used, Ikarus allows you to use a simpler technique where the main
+library is stored in @file{lib/main.sls}, and the extensions are stored
+in @file{lib/extras.sls} and @file{lib/frills.sls}, respectively.
+
+@item
+Ikarus will also look in @file{lib/main.ikarus.sls} before trying
+@file{lib/main.sls}.  This allows you to provide an Ikarus--specific
+implementation as well as a generic implementation.
+@end itemize
+
+@c page
+@node using libraries summary
+@subsection Library search algorithm summary
+
+
+Ikarus attempts to import the library @code{(a b c)} as follows, for
+each directory in the search path:
+
+@enumerate
+@item
+Build the rootname @file{a/b/c}.
+
+@item
+Append each of the following strings to the rootname, in order, until a
+matching file is found:
+
+@example
+/main.ikarus.sls
+/main.ikarus.ss
+/main.ikarus.scm
+/main.sls
+/main.ss
+/main.scm
+.ikarus.sls
+.ikarus.ss
+.ikarus.scm
+.sls
+.ss
+.scm
+@end example
+@end enumerate
+
+If there is no match, then the import is in error.
+
+@c page
+@node using libraries examples
+@subsection Examples of library usage
+
+
+Consider a program using @func{pretty-print} procedure to format some
+code, and suppose further that pretty printing is just a nice add--on
+(e.g. using @file{write} suffices, but pretty--printing is @emph{just
+prettier}).
+
+Ikarus exports a good pretty--printing facility in its @library{ikarus}
+library.  However, since @func{pretty-print} is not a standard
+procedure, a program that uses it would be rendered unportable to other
+@rnrs{6} Scheme implementations.
+
+The programmer can put the @code{.ikarus.*} extensions to use in this
+situation, by writing two versions of a @library{pretty-printing}
+library: one for use by Ikarus, and one portable for other
+implementations.
+
+@example
+;; pretty-printing.ikarus.ss --
+;;
+;; Can be used only by Ikarus Scheme.
+
+(library (pretty-printing)
+  (export pretty-print)
+  (import (only (ikarus) pretty-print)))
+
+;;; end of file
+@end example
+
+@example
+;; pretty-printing.sls --
+;;
+;; For any other Scheme implementation, portable though
+;; not very pretty.
+
+(library (pretty-printing)
+  (export pretty-print)
+  (import (rnrs))
+  (define (pretty-print x port)
+    (write x port)
+    (newline port)))
+
+;;; end of file
+@end example
 
 @c page
 @node ikaruslib
 @chapter The Ikarus library
 
 
-@noindent
 In addition to the libraries listed in the @rnrs{6} standard, Ikarus
 contains the @library{ikarus} library which provides additional useful
 features.  The @library{ikarus} library is a composite library---it
@@ -4513,83 +5082,80 @@ return a meaningful value.
 
 
 @c page
-@ignore
-@node contrib libraries
-@appendix Contributed libraries
+@c @node contrib libraries
+@c @appendix Contributed libraries
 
 
-@cindex Contributed libraries
-@cindex Libraries, contributed
+@c @cindex Contributed libraries
+@c @cindex Libraries, contributed
 
 
-@noindent
-Ikarus Scheme authors try to keep it small and manageable.  Libraries
-that are not an essential part of Ikarus are not included in the Ikarus
-proper, instead, they are distributed with Ikarus in source form.  Such
-libraries may be written specifically for Ikarus, or they may be
-portable libraries that can be used in Ikarus.  @acronym{SRFI} or other
-libraries contributed by members of the Scheme community belong to this
-section.
+@c @noindent
+@c Ikarus Scheme authors try to keep it small and manageable.  Libraries
+@c that are not an essential part of Ikarus are not included in the Ikarus
+@c proper, instead, they are distributed with Ikarus in source form.  Such
+@c libraries may be written specifically for Ikarus, or they may be
+@c portable libraries that can be used in Ikarus.  @acronym{SRFI} or other
+@c libraries contributed by members of the Scheme community belong to this
+@c section.
 
-Using contributed libraries is no different from using any of the
-built-in libraries---all one has to do is add the library name to the
-@func{import} clause and the rest is done by the system.
+@c Using contributed libraries is no different from using any of the
+@c built-in libraries---all one has to do is add the library name to the
+@c @func{import} clause and the rest is done by the system.
 
-Authors of useful @rnrs{6} libraries that wish for them to be available
-for a wider audience, can contact Ikarus authors to include information
-about them in the next release.
+@c Authors of useful @rnrs{6} libraries that wish for them to be available
+@c for a wider audience, can contact Ikarus authors to include information
+@c about them in the next release.
 
-High quality @ansrfi{} with @rnrs{6} reference implementations will be
-distributed with Ikarus as they become available.
+@c High quality @ansrfi{} with @rnrs{6} reference implementations will be
+@c distributed with Ikarus as they become available.
 
-@quotation
-@emph{Note:} Contributed libraries may have bugs on their own or may
-exhibit bugs in Ikarus itself.  If you have a problem using any of these
-libraries, please try to resolve the issue by contacting the library
-author first.  Do not hesitate to file a bug on Ikarus if you believe
-that Ikarus is at fault.
-@end quotation
+@c @quotation
+@c @emph{Note:} Contributed libraries may have bugs on their own or may
+@c exhibit bugs in Ikarus itself.  If you have a problem using any of these
+@c libraries, please try to resolve the issue by contacting the library
+@c author first.  Do not hesitate to file a bug on Ikarus if you believe
+@c that Ikarus is at fault.
+@c @end quotation
 
-@menu
-* contrib gl::                  @code{(gl)} and @code{(glut)}.
-* contrib number theory::       @code{(math number-theory)}
-@end menu
-
-
-@c page
-@node contrib gl
-@appendixsec @code{(gl)} and @code{(glut)}
+@c @menu
+@c * contrib gl::                  @code{(gl)} and @code{(glut)}.
+@c * contrib number theory::       @code{(math number-theory)}
+@c @end menu
 
 
+@c @c page
+@c @node contrib gl
+@c @appendixsec @code{(gl)} and @code{(glut)}
 
 
-@c page
-@node contrib number theory
-@appendixsec @code{(math number-theory)}
 
 
-@center Provided by: Jens Axel Soegaard
+@c @c page
+@c @node contrib number theory
+@c @appendixsec @code{(math number-theory)}
 
-@center @url{https://code.launchpad.net/~soegaard/ikarus-libraries/soegaard}
+
+@c @center Provided by: Jens Axel Soegaard
+
+@c @center @url{https://code.launchpad.net/~soegaard/ikarus-libraries/soegaard}
 
 
-@noindent
-This library contains number theory code that I have written over a long
-period.  The code began as an experiment.  I grabbed a book on number
-theory from the shelve (@emph{``Elementary Number Theory''} by Gareth
-A. Jones and J. Mary Jones) and began illustrating each definition and
-each theorem with Scheme code.  The first half of the surce code is thus
-a well commented mix of definitions, theorems and code.
+@c @noindent
+@c This library contains number theory code that I have written over a long
+@c period.  The code began as an experiment.  I grabbed a book on number
+@c theory from the shelve (@emph{``Elementary Number Theory''} by Gareth
+@c A. Jones and J. Mary Jones) and began illustrating each definition and
+@c each theorem with Scheme code.  The first half of the surce code is thus
+@c a well commented mix of definitions, theorems and code.
 
-The second half contains more sophisticated algorithms mostly of from
-the excellent book @emph{``Modern Computer Algebra''} by Joachim von zur
-Gathen and Joergen Gerhard.  The algorithms for factorizing large
-integers come from this book.
+@c The second half contains more sophisticated algorithms mostly of from
+@c the excellent book @emph{``Modern Computer Algebra''} by Joachim von zur
+@c Gathen and Joergen Gerhard.  The algorithms for factorizing large
+@c integers come from this book.
 
-Finally there are some definitions of special functions, mostly inspired
-by the problems of the Euler Project.
-
-@end ignore
+@c Finally there are some definitions of special functions, mostly inspired
+@c by the problems of the Euler Project.
 
 @c page
 @node devel
