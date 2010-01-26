@@ -437,7 +437,8 @@ Copyright @copyright{} 2004, 2005 Tony Garnock-Jones@*
 Copyright @copyright{} 2005 LShift Ltd.@*
 Copyright @copyright{} 2007, 2008 Philip L. Bewig.@*
 Copyright @copyright{} 2000 Will Fitzgerald.@*
-Copyright @copyright{} 2000 Neodesic Corporation.
+Copyright @copyright{} 2000 Neodesic Corporation.@*
+Copyright @copyright{} 2000-2006 Joachim Henke.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1495,6 +1496,8 @@ Parsing command line arguments
 
 * armor base16::                Base 16 encoder/decoder.
 * armor base64::                Base 64 encoder/decoder.
+* armor base91::                Base 91 encoder/decoder.
+* armor ascii85::               @ascii{} 85 encoder/decoder.
 
 Knuth-Morris-Pratt searching
 
@@ -51630,6 +51633,7 @@ following types: @condition{who}, @condition{option},
 @menu
 * armor base16::                Base 16 encoder/decoder.
 * armor base64::                Base 64 encoder/decoder.
+* armor base91::                Base 91 encoder/decoder.
 * armor ascii85::               @ascii{} 85 encoder/decoder.
 @end menu
 
@@ -51645,16 +51649,20 @@ library.  Usage example:
 (let* ((ctx (make-<base16-encode-ctx> #t))
        (src '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
        (dst (make-bytevector
-             (base16-encode-length (bytevector-length src)))))
-  (base16-encode-update! ctx dst 0 src 0 (bytevector-length src))
+             (base16-encode-length
+                (bytevector-length src)))))
+  (base16-encode-update! ctx dst 0 src 0
+     (bytevector-length src))
   (utf8->string dst))
 @result{} "000102030405060708090A0B0C0D0E0F"
 
 (let* ((ctx (make-<base16-decode-ctx> #f))
        (src (string->utf8 "000102030405060708090A0B0C0D0E0F"))
        (dst (make-bytevector
-             (base16-decode-length (bytevector-length src)))))
-  (base16-decode-update! ctx dst 0 src 0 (bytevector-length src))
+             (base16-decode-length
+                (bytevector-length src)))))
+  (base16-decode-update! ctx dst 0 src 0
+     (bytevector-length src))
   dst)
 @result{} #vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
 @end example
@@ -51733,14 +51741,16 @@ library.  Usage example:
          (j start (+ 1 j)))
         ((= j past)
          dst)
-      (bytevector-u8-set! dst i (bytevector-u8-ref src j)))))
+      (bytevector-u8-set! dst i
+         (bytevector-u8-ref src j)))))
 
 (let* ((ctx (make-<base64-encode-ctx>))
        (src (string->utf8 "Hello"))
        (dst (make-bytevector
-             (base64-encode-length (bytevector-length src)))))
+             (base64-encode-length
+                (bytevector-length src)))))
   (let* ((done (base64-encode-update! ctx dst 0 src 0
-                                      (bytevector-length src)))
+                  (bytevector-length src)))
          (end  (base64-encode-final! ctx dst done)))
     (utf8->string (subbytevector dst 0 (+ done end)))))
 @result{} "SGVsbG8="
@@ -51748,9 +51758,10 @@ library.  Usage example:
 (let* ((ctx (make-<base64-decode-ctx> #f))
        (src (string->utf8 "SGVsbG8="))
        (dst (make-bytevector
-             (base64-decode-length (bytevector-length src)))))
+             (base64-decode-length
+                (bytevector-length src)))))
   (let ((done (base64-decode-update! ctx dst 0 src 0
-                                     (bytevector-length src))))
+                 (bytevector-length src))))
     (utf8->string (subbytevector dst 0 done))))
 @result{} "Hello"
 @end example
@@ -51833,6 +51844,142 @@ possible to determine exactly the amount of output bytes required.
 @end defun
 
 @c page
+@node armor base91
+@section Base 91 encoder/decoder
+
+
+The overhead produced by base @math{91} depends on the input data; it
+amounts at most to @math{23%} (versus @math{33%} for base64) and can
+range down to @math{14%}, which typically occurs on zero--byte blocks.
+As the name suggests, base @math{91} needs @math{91} characters to
+represent the encoded binary data in @ascii{}; from the @math{94}
+printable @ascii{} characters (@samp{#x21}..@samp{#x7E}), the following
+three have been omitted to build the base @math{91} alphabet:
+
+@example
+#\-     dash, 0x2D
+#\'     apostrophe, 0x27
+#\\     backslash, 0x5C
+@end example
+
+@noindent
+the translation table is composed of the remaining characters as shown
+below:
+
+@example
+ 0 A    13 N    26 a    39 n    52 0    65 %    78 >
+ 1 B    14 O    27 b    40 o    53 1    66 &    79 ?
+ 2 C    15 P    28 c    41 p    54 2    67 (    80 @@
+ 3 D    16 Q    29 d    42 q    55 3    68 )    81 [
+ 4 E    17 R    30 e    43 r    56 4    69 *    82 ]
+ 5 F    18 S    31 f    44 s    57 5    70 +    83 ^
+ 6 G    19 T    32 g    45 t    58 6    71 ,    84 _
+ 7 H    20 U    33 h    46 u    59 7    72 .    85 `
+ 8 I    21 V    34 i    47 v    60 8    73 /    86 @{
+ 9 J    22 W    35 j    48 w    61 9    74 :    87 |
+10 K    23 X    36 k    49 x    62 !    75 ;    88 @}
+11 L    24 Y    37 l    50 y    63 #    76 <    89 ~
+12 M    25 Z    38 m    51 z    64 $    77 =    90 "
+@end example
+
+@noindent
+non--printable characters are ignored by default.
+
+The following bindings are exported by the @library{armor base91}
+library.  Usage example:
+
+@example
+(define (subbytevector src start past)
+  (let ((dst (make-bytevector (- past start))))
+    (do ((i 0     (+ 1 i))
+         (j start (+ 1 j)))
+        ((= j past)
+         dst)
+      (bytevector-u8-set! dst i
+         (bytevector-u8-ref src j)))))
+
+(let* ((ctx      (make-<base91-encode-ctx>))
+       (src      (string->utf8 "hello"))
+       (src-len  (bytevector-length src))
+       (dst      (make-bytevector
+                   (base91-encode-length src-len))))
+  (let* ((done (base91-encode-update! ctx
+                  dst 0 src 0 src-len))
+         (end  (base91-encode-final!  ctx dst done)))
+    (utf8->string (subbytevector dst 0 (+ done end)))))
+@result{} "TPwJh>A"
+
+(let* ((ctx      (make-<base91-decode-ctx>))
+       (src      (string->utf8 "TPwJh>A"))
+       (src-len  (bytevector-length src))
+       (dst      (make-bytevector
+                   (base91-decode-length src-len))))
+  (let* ((done (base91-decode-update! ctx
+                  dst 0 src 0 src-len))
+         (end  (base91-decode-final!  ctx dst done)))
+    (utf8->string (subbytevector dst 0 (+ done end)))))
+@result{} "hello"
+@end example
+
+
+@deftp {Record Type Name} <base91-encode-ctx>
+@deftpx {Record Type Name} <base91-decode-ctx>
+Encoding and decoding context values.
+@end deftp
+
+
+@defun make-<base91-encode-ctx>
+@defunx make-<base91-decode-ctx>
+@defunx <base91-encode-ctx>? @var{obj}
+@defunx <base91-decode-ctx>? @var{obj}
+Constructors and predicates for records of type
+@class{base91-encode-ctx} and @class{base91-decode-ctx}.
+@end defun
+
+
+@defun base91-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
+@defunx base91-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
+Process @var{src-len} bytes from the bytevector @var{src-bv} starting at
+offset @var{src-start}; store the output in the bytevector @var{dst-bv}
+starting at @var{dst-start}.  Return the number of bytes actually stored
+in @var{dst-bv}.
+
+The output bytevector must have enough free bytes to hold all the
+produced output bytes.
+
+@var{ctx} must be an appropriate context record; data bits may be stored
+in the context record.
+@end defun
+
+
+@defun base91-encode-final! @var{ctx} @var{dst-bv} @var{dst-start}
+@defunx base91-decode-final! @var{ctx} @var{dst-bv} @var{dst-start}
+Flush bits from the context @var{ctx} to the bytevector @var{dst-bv}
+starting at index @var{dst-start}; return the number of bytes actually
+stored in the output.
+
+The output bytevector must have enough free bytes to hold all the
+produced output bytes: at most two when encoding, at most one when
+decoding.
+@end defun
+
+
+@defun base91-encode-finished? @var{ctx}
+@defunx base91-decode-finished? @var{ctx}
+Return true if the bits in the context have been flushed.
+@end defun
+
+
+@defun base91-encode-length @var{input-len}
+@defunx base91-decode-length @var{input-len}
+Return the minimum number of bytes required in the output bytevector,
+when the input has @var{input-len} bytes, in calls to the calls to
+@func{base91-encode-update!} and @func{base91-encode-final!} or,
+respectively, @func{base91-decode-update!} and
+@func{base91-decode-final!}.
+@end defun
+
+@c page
 @node armor ascii85
 @section @ascii{} 85 encoder/decoder
 
@@ -51847,23 +51994,29 @@ library.  Usage example:
          (j start (+ 1 j)))
         ((= j past)
          dst)
-      (bytevector-u8-set! dst i (bytevector-u8-ref src j)))))
+      (bytevector-u8-set! dst i
+         (bytevector-u8-ref src j)))))
 
 (let* ((ctx      (make-<ascii85-encode-ctx>))
        (src      (string->utf8 "hello"))
        (src-len  (bytevector-length src))
-       (dst      (make-bytevector (ascii85-encode-length src-len))))
+       (dst      (make-bytevector
+                  (ascii85-encode-length src-len))))
   (let* ((init (ascii85-encode-init!   ctx dst 0))
-         (done (ascii85-encode-update! ctx dst init src 0 src-len))
-         (end  (ascii85-encode-final!  ctx dst (+ init done))))
+         (done (ascii85-encode-update! ctx
+                  dst init src 0 src-len))
+         (end  (ascii85-encode-final!  ctx
+                  dst (+ init done))))
     (utf8->string (subbytevector dst 0 (+ init done end)))))
 @result{} "<~BOu!rDZ~>"
 
 (let* ((ctx      (make-<ascii85-decode-ctx> #f))
        (src      (string->utf8 "<~BOu!rDZ~>"))
        (src-len  (bytevector-length src))
-       (dst      (make-bytevector (ascii85-decode-length src-len))))
-  (let ((done (ascii85-decode-update! ctx dst 0 src 0 src-len)))
+       (dst      (make-bytevector
+                  (ascii85-decode-length src-len))))
+  (let ((done (ascii85-decode-update! ctx
+                 dst 0 src 0 src-len)))
     (utf8->string (subbytevector dst 0 done))))
 @result{} "hello"
 @end example

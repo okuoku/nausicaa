@@ -174,7 +174,7 @@
      (vector-ref table ?idx))))
 
 (define blanks
-  (map char->integer '(#\newline #\return #\tab #\vtab #\space #\nul #\page)))
+  (map char->integer '(#\newline #\return #\tab #\vtab #\space #\page)))
 
 
 (define ascii85-encode-initial-length 2)

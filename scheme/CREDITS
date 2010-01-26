@@ -16,11 +16,26 @@ Written  by Marco  Maggi  converting  C language  code  from the  Nettle
 cryptographic library by Niels Moeller.
 
 
+(armor ascii85)
+--------------
+
+This  code is  a Scheme  swirling  of C  language code  from an  ASCII85
+distribution by Paul  Haahr which claims that the code  is in the public
+domain, although he did not write it (<http://www.webcom.com/~haahr/>).
+
+
+(armor base91)
+--------------
+
+This  code is  a Scheme  swirling  of C  language code  from the  basE91
+package by Joachim Henke (<http://base91.sourceforge.net/>).
+
+
 (arrays)
 --------
 
 Written by Marco Maggi  with inspiration from SRFI 25 "Multi-dimensional
-Array Primitives ", by Jussi Piitulainen.
+Array Primitives", by Jussi Piitulainen.
 
 
 (char-sets)
