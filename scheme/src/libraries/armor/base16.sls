@@ -38,26 +38,21 @@
     base16-encode-length		base16-decode-length
     base16-encode-update!		base16-decode-update!
     base16-encode-finished?		base16-decode-finished?)
-  (import (rnrs)
-    (armor base))
+  (import (rnrs))
 
 
 (define-record-type <base16-encode-ctx>
-  (parent <armor-ctx>)
   (fields (immutable upper-case?))
   (protocol (lambda (maker)
 	      (lambda (upper-case?)
-		(let ((p (maker base16-encode-update! base16-encode-finished?)))
-		  (p upper-case?))))))
+		(maker upper-case?)))))
 
 (define-record-type <base16-decode-ctx>
-  (parent <armor-ctx>)
   (fields (immutable allow-blanks?)
 	  (mutable bits)) ;leftover bits
   (protocol (lambda (maker)
 	      (lambda (allow-blanks?)
-		(let ((p (maker base16-decode-update! base16-decode-finished?)))
-		  (p allow-blanks? #f))))))
+		(maker allow-blanks? #f)))))
 
 
 (define HEX-DIGITS-UPPER

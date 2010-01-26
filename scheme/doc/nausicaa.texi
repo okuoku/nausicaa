@@ -893,6 +893,10 @@ Predefined condition types
 * conditions mismatch::         General mismatch error.
 * conditions num-args::         Wrong number of arguments error.
 
+Enumeration sets utilities
+
+* enumerations flags::          Flags and flags combinations.
+
 List library
 
 * lists intro::                 Introduction.
@@ -969,9 +973,9 @@ Comparison
 
 * strings compar lexi::         Lexicographic comparison.
 * strings compar dict::         String dictionary comparison.
-* strings compar number::       String and number parts lexicographic
+* strings compar number::       String and numeric parts lexicographic
                                 comparison.
-* strings compar dictnumber::   String and number parts dictionary
+* strings compar dictnumber::   String and numeric parts dictionary
                                 comparison.
 
 Vectors library
@@ -1486,6 +1490,11 @@ Parsing command line arguments
 * getopts config::              Parser configuration.
 * getopts parser::              Parsing arguments.
 * getopts conditions::          Exceptions and condition objects.
+
+@ascii{} armor encoding/decoding
+
+* armor base16::                Base 16 encoder/decoder.
+* armor base64::                Base 64 encoder/decoder.
 
 Knuth-Morris-Pratt searching
 
@@ -51619,44 +51628,9 @@ following types: @condition{who}, @condition{option},
 
 
 @menu
-* armor base::                  Base type definitions.
 * armor base16::                Base 16 encoder/decoder.
+* armor base64::                Base 64 encoder/decoder.
 @end menu
-
-@c page
-@node armor base
-@section Base type definitions
-
-
-The following bindings are exported by the @library{armor base} library.
-
-
-@deftp {Record Type Name} <armor-ctx>
-Base type for all the encoding and decoding contexts; this record type
-is @strong{not} meant to be instantiated directly.  It has the following
-immutable fields:
-
-@table @code
-@item update
-The function used to process bytevectors.
-
-@item finished?
-The function used to inspect the context: it should return @true{} if
-all the internally stored data has been flushed to the output.
-@end table
-@end deftp
-
-
-@defun make-<armor-ctx> @var{update} @var{finished?}
-@defunx <armor-ctx>? @var{obj}
-Constructor and predicate for records of type @class{armor-ctx}.
-@end defun
-
-
-@defun <armor-ctx>-update-function @var{ctx}
-@defunx <armor-ctx>-finished-function @var{ctx}
-Accessors for the fields of records of type @class{armor-ctx}.
-@end defun
 
 @c page
 @node armor base16
@@ -51703,7 +51677,7 @@ letters (@samp{#\A}, @samp{#\B}, @dots{}); else the output is with lower
 case letters (@samp{#\a}, @samp{#\b}, @dots{}).
 
 If @var{allow-blanks?} is true, decoding allows blank characters in the
-output: it will just discard them; else blanks are not allowed and an
+input: it will just discard them; else blanks are not allowed and an
 error is raised if they are found.
 @end defun
 
@@ -51714,6 +51688,9 @@ Process @var{src-len} bytes from the bytevector @var{src-bv} starting at
 offset @var{src-start}; store the output in the bytevector @var{dst-bv}
 starting at @var{dst-start}.  Return the number of bytes actually stored
 in @var{dst-bv}.
+
+The output bytevector must have enough free bytes to hold all the
+produced output bytes.
 
 @var{ctx} must be an appropriate context record.
 @end defun
@@ -51727,18 +51704,132 @@ output.
 
 
 @defun base16-encode-length @var{input-len}
-Return the minimum bytes required for the output bytevector in calls to
-@func{base16-encode-update!}.
+Return the minimum number of bytes required in the output bytevector in
+calls to @func{base16-encode-update!} when the input has @var{input-len}
+bytes.
 @end defun
 
 
 @defun base16-decode-length @var{input-len}
-Return the minimum bytes required for the output bytevector in calls to
-@func{base16-decode-update!}.  Notice that when blanks are allowed in
-the input, it is not possible to determine exactly the amount of output
-bytes required.
+Return the minimum numbe of bytes required in the output bytevector in
+calls to @func{base16-decode-update!} when the input has @var{input-len}
+bytes.  Notice that when blanks are allowed in the input, it is not
+possible to determine exactly the amount of output bytes required.
 @end defun
 
+@c page
+@node armor base64
+@section Base 64 encoder/decoder
+
+
+The following bindings are exported by the @library{armor base64}
+library.  Usage example:
+
+@example
+(define (subbytevector src start past)
+  (let ((dst (make-bytevector (- past start))))
+    (do ((i 0     (+ 1 i))
+         (j start (+ 1 j)))
+        ((= j past)
+         dst)
+      (bytevector-u8-set! dst i (bytevector-u8-ref src j)))))
+
+(let* ((ctx (make-<base64-encode-ctx>))
+       (src (string->utf8 "Hello"))
+       (dst (make-bytevector
+             (base64-encode-length (bytevector-length src)))))
+  (let* ((done (base64-encode-update! ctx dst 0 src 0
+                                      (bytevector-length src)))
+         (end  (base64-encode-final! ctx dst done)))
+    (utf8->string (subbytevector dst 0 (+ done end)))))
+@result{} "SGVsbG8="
+
+(let* ((ctx (make-<base64-decode-ctx> #f))
+       (src (string->utf8 "SGVsbG8="))
+       (dst (make-bytevector
+             (base64-decode-length (bytevector-length src)))))
+  (let ((done (base64-decode-update! ctx dst 0 src 0
+                                     (bytevector-length src))))
+    (utf8->string (subbytevector dst 0 done))))
+@result{} "Hello"
+@end example
+
+
+@deftp {Record Type Name} <base64-encode-ctx>
+@deftpx {Record Type Name} <base64-decode-ctx>
+Encoding and decoding context values.
+@end deftp
+
+
+@defun make-<base64-encode-ctx>
+@defunx make-<base64-decode-ctx> @var{allow-blanks?}
+@defunx <base64-encode-ctx>? @var{obj}
+@defunx <base64-decode-ctx>? @var{obj}
+Constructors and predicates for records of type
+@class{base64-encode-ctx} and @class{base64-decode-ctx}.
+
+If @var{allow-blanks?} is true, decoding allows blank characters in the
+input: it will just discard them; else blanks are not allowed and an
+error is raised if they are found.
+@end defun
+
+
+@defun base64-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
+@defunx base64-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
+Process @var{src-len} bytes from the bytevector @var{src-bv} starting at
+offset @var{src-start}; store the output in the bytevector @var{dst-bv}
+starting at @var{dst-start}.  Return the number of bytes actually stored
+in @var{dst-bv}.
+
+The output bytevector must have enough free bytes to hold all the
+produced output bytes.
+
+@var{ctx} must be an appropriate context record.  Data bits may be
+stored in the @strong{encode} context, while decoding always flushes all
+the bits to the output.
+@end defun
+
+
+@defun base64-encode-final! @var{ctx} @var{dst-bv} @var{dst-start}
+Flushes bits from the context @var{ctx} to the bytevector @var{dst-bv}
+starting at index @var{dst-start}; append padding @samp{=} characters as
+needed.  Return the number of bytes actually stored in the output.
+@end defun
+
+
+@defun base64-encode-finished? @var{ctx}
+Return true if all the data stored in @var{ctx} has been flushed to the
+output.
+@end defun
+
+
+@defun base64-encode-length @var{input-len}
+Return the minimum number of bytes required in the output bytevector in
+calls to @func{base64-encode-update!} and @func{base64-encode-final!}
+when the input has @var{input-len} bytes.  The returned value includes
+the padding bytes added by @func{base64-encode-final!}.
+@end defun
+
+
+@defvr Constant base64-encode-final-length
+Maximum number of bytes stored in the output bytevector by
+@func{base64-encode-final!}.
+@end defvr
+
+
+@defun base64-encode-partial-length @var{input-len}
+Return the minimum number of bytes required in the output bytevector in
+calls to @func{base64-encode-update!} when the input has @var{input-len}
+bytes.
+@end defun
+
+
+@defun base64-decode-length @var{input-len}
+Return the minimum number of bytes required in the output bytevector in
+calls to @func{base64-decode-update!} when the input has @var{input-len}
+bytes.  Notice that when blanks are allowed in the input, it is not
+possible to determine exactly the amount of output bytes required.
+@end defun
 
 @c page
 

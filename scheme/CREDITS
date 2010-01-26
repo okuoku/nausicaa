@@ -8,6 +8,14 @@ Additional credits for the  documentation, are in the "Credits" appendix
 of the documentation file in Texinfo format.
 
 
+(armor base16)
+(armor base64)
+--------------
+
+Written  by Marco  Maggi  converting  C language  code  from the  Nettle
+cryptographic library by Niels Moeller.
+
+
 (arrays)
 --------
 

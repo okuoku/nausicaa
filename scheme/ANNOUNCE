@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Scheme 2010-01-14 tag 0.1a9
+Subject: [announce] Nausicaa/Scheme --- tag 0.1a10
 
 		      Nausicaa/Scheme
 		      ===============
@@ -38,6 +38,15 @@ development takes place at:
 the documentation is available on line:
 
      <http://marcomaggi.github.com/docs/nausicaa.html>
+
+
+Notes for --- tag 0.1a10
+------------------------------
+
+* Updated    ikarus.texi   with   material    from   project
+  ikscheme-manual at GitHub.
+
+* Added ASCII armor libraries: base16, base64.
 
 
 Notes for 2010-01-14 tag 0.1a9

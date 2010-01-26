@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -323,6 +323,14 @@
 
 (compile-library "getopts.sls"
 		 "getopts.slfasl")
+
+;;; --------------------------------------------------------------------
+
+(compile-library "armor/base16.sls"
+		 "armor/base16.slfasl")
+
+(compile-library "armor/base64.sls"
+		 "armor/base64.slfasl")
 
 ;;; --------------------------------------------------------------------
 
