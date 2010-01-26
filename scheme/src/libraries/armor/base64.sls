@@ -6,7 +6,8 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;
+;;;	This library  is derived from the  code in Nettle,  a C language
+;;;	library of cryptographic building blocks.
 ;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (C) 2002 Niels Möller

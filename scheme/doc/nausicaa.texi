@@ -51630,6 +51630,7 @@ following types: @condition{who}, @condition{option},
 @menu
 * armor base16::                Base 16 encoder/decoder.
 * armor base64::                Base 64 encoder/decoder.
+* armor ascii85::               @ascii{} 85 encoder/decoder.
 @end menu
 
 @c page
@@ -51791,7 +51792,7 @@ the bits to the output.
 
 
 @defun base64-encode-final! @var{ctx} @var{dst-bv} @var{dst-start}
-Flushes bits from the context @var{ctx} to the bytevector @var{dst-bv}
+Flush bits from the context @var{ctx} to the bytevector @var{dst-bv}
 starting at index @var{dst-start}; append padding @samp{=} characters as
 needed.  Return the number of bytes actually stored in the output.
 @end defun
@@ -51827,6 +51828,141 @@ bytes.
 @defun base64-decode-length @var{input-len}
 Return the minimum number of bytes required in the output bytevector in
 calls to @func{base64-decode-update!} when the input has @var{input-len}
+bytes.  Notice that when blanks are allowed in the input, it is not
+possible to determine exactly the amount of output bytes required.
+@end defun
+
+@c page
+@node armor ascii85
+@section @ascii{} 85 encoder/decoder
+
+
+The following bindings are exported by the @library{armor ascii85}
+library.  Usage example:
+
+@example
+(define (subbytevector src start past)
+  (let ((dst (make-bytevector (- past start))))
+    (do ((i 0     (+ 1 i))
+         (j start (+ 1 j)))
+        ((= j past)
+         dst)
+      (bytevector-u8-set! dst i (bytevector-u8-ref src j)))))
+
+(let* ((ctx      (make-<ascii85-encode-ctx>))
+       (src      (string->utf8 "hello"))
+       (src-len  (bytevector-length src))
+       (dst      (make-bytevector (ascii85-encode-length src-len))))
+  (let* ((init (ascii85-encode-init!   ctx dst 0))
+         (done (ascii85-encode-update! ctx dst init src 0 src-len))
+         (end  (ascii85-encode-final!  ctx dst (+ init done))))
+    (utf8->string (subbytevector dst 0 (+ init done end)))))
+@result{} "<~BOu!rDZ~>"
+
+(let* ((ctx      (make-<ascii85-decode-ctx> #f))
+       (src      (string->utf8 "<~BOu!rDZ~>"))
+       (src-len  (bytevector-length src))
+       (dst      (make-bytevector (ascii85-decode-length src-len))))
+  (let ((done (ascii85-decode-update! ctx dst 0 src 0 src-len)))
+    (utf8->string (subbytevector dst 0 done))))
+@result{} "hello"
+@end example
+
+The supported format is the one that encloses encoded bytes in @code{<~}
+and @code{~>} characters without line--breaks inserted.
+
+
+@deftp {Record Type Name} <ascii85-encode-ctx>
+@deftpx {Record Type Name} <ascii85-decode-ctx>
+Encoding and decoding context values.
+@end deftp
+
+
+@defun make-<ascii85-encode-ctx>
+@defunx make-<ascii85-decode-ctx> @var{allow-blanks?}
+@defunx <ascii85-encode-ctx>? @var{obj}
+@defunx <ascii85-decode-ctx>? @var{obj}
+Constructors and predicates for records of type
+@class{ascii85-encode-ctx} and @class{ascii85-decode-ctx}.
+
+If @var{allow-blanks?} is true, decoding allows blank characters in the
+input: it will just discard them; else blanks are not allowed and an
+error is raised if they are found.
+@end defun
+
+
+@defun ascii85-encode-init! @var{ctx} @var{dst-bv} @var{dst-start}
+Begin encoding by pushing the sequence @code{<~} on the bytevector
+@var{dst-bv} starting at @var{dst-start}; return the number of
+characters stored in the output.  @var{dsb-bv} must have enough free
+bytes to hold the sequence.
+@end defun
+
+
+@defun ascii85-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
+@defunx ascii85-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
+Process @var{src-len} bytes from the bytevector @var{src-bv} starting at
+offset @var{src-start}; store the output in the bytevector @var{dst-bv}
+starting at @var{dst-start}.  Return the number of bytes actually stored
+in @var{dst-bv}.
+
+The output bytevector must have enough free bytes to hold all the
+produced output bytes.
+
+@var{ctx} must be an appropriate context record; data bits may be stored
+in the context record.
+@end defun
+
+
+@defun ascii85-encode-final! @var{ctx} @var{dst-bv} @var{dst-start}
+Flush bits from the context @var{ctx} to the bytevector @var{dst-bv}
+starting at index @var{dst-start}; append the final @samp{~>} sequence
+of characters.  Return the number of bytes actually stored in the
+output.
+
+The output bytevector must have enough free bytes to hold all the
+produced output bytes.
+@end defun
+
+
+@defun ascii85-encode-finished? @var{ctx}
+@defunx ascii85-decode-finished? @var{ctx}
+Return true if the stream of bytes associated to the context has been
+finalised.
+@end defun
+
+
+@defun ascii85-encode-length @var{input-len}
+Return the minimum number of bytes required in the output bytevector in
+calls to the whole sequence @func{ascii85-encode-init!},
+@func{ascii85-encode-update!} and @func{ascii85-encode-final!} when the
+input has @var{input-len} bytes.
+@end defun
+
+
+@defvr Constant ascii85-encode-initial-length
+Number of bytes stored in the output bytevector by
+@func{ascii85-encode-init!}.
+@end defvr
+
+
+@defun ascii85-encode-final-length @var{input-len}
+Return the minimum number of bytes required in the output bytevector in
+calls to @func{ascii85-encode-final!} when the input has @var{input-len}
+bytes.
+@end defun
+
+
+@defun ascii85-encode-partial-length @var{input-len}
+Return the minimum number of bytes required in the output bytevector in
+calls to @func{ascii85-encode-update!} when the input has @var{input-len}
+bytes.
+@end defun
+
+
+@defun ascii85-decode-length @var{input-len}
+Return the minimum number of bytes required in the output bytevector in
+calls to @func{ascii85-decode-update!} when the input has @var{input-len}
 bytes.  Notice that when blanks are allowed in the input, it is not
 possible to determine exactly the amount of output bytes required.
 @end defun

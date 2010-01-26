@@ -113,6 +113,7 @@
 
   (only (armor base16))
   (only (armor base64))
+  (only (armor ascii85))
 
   (only (foreign memory))
   (only (foreign memory mempool))

@@ -28,6 +28,7 @@
 (import (nausicaa)
   (armor base16)
   (armor base64)
+  (armor ascii85)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -179,6 +180,100 @@
     => #t)
 
   (check (decode-blanks "SG Vsb \tG\n8=") => "Hello")
+
+  #t)
+
+
+(parametrise ((check-test-name	'ascii85)
+	      (debugging	#t))
+
+  (define (encode plain)
+    (let* ((ctx		(make-<ascii85-encode-ctx>))
+	   (src		(string->utf8 plain))
+	   (src-len	(bytevector-length src))
+	   (dst		(make-bytevector (ascii85-encode-length src-len))))
+      (let* ((init (ascii85-encode-init!   ctx dst 0))
+	     (done (ascii85-encode-update! ctx dst init src 0 src-len))
+	     (end  (ascii85-encode-final!  ctx dst (+ init done))))
+	(utf8->string (subbytevector dst 0 (+ init done end))))))
+
+  (define (decode encoded)
+    (let* ((ctx		(make-<ascii85-decode-ctx> #f))
+	   (src		(string->utf8 encoded))
+	   (src-len	(bytevector-length src))
+	   (dst		(make-bytevector (ascii85-decode-length src-len))))
+      (let ((done (ascii85-decode-update! ctx dst 0 src 0 src-len)))
+	(utf8->string (subbytevector dst 0 done)))))
+
+  (define (decode-blank encoded)
+    (let* ((ctx		(make-<ascii85-decode-ctx> #t))
+	   (src		(string->utf8 encoded))
+	   (src-len	(bytevector-length src))
+	   (dst		(make-bytevector (ascii85-decode-length src-len))))
+      (let ((done (ascii85-decode-update! ctx dst 0 src 0 src-len)))
+	(utf8->string (subbytevector dst 0 done)))))
+
+;;; --------------------------------------------------------------------
+
+;;;Test vectors were generated with the web-utility at:
+;;;
+;;;  <http://www.webutils.pl/index.php?idx=ascii85>
+;;;
+
+  (let ((a "") (b "<~~>"))
+    (check (encode a)	=> b)
+    (check (decode b)	=> a))
+
+  (let ((a "\x0;") (b "<~!!~>"))
+    (check (encode a)	=> b)
+    (check (decode b)	=> a))
+
+  (let ((a "\x0;\x0;") (b "<~!!!~>"))
+    (check (encode a)	=> b)
+    (check (decode b)	=> a))
+
+  (let ((a "\x0;\x0;\x0;") (b "<~!!!!~>"))
+    (check (encode a)	=> b)
+    (check (decode b)	=> a))
+
+  (let ((a "\x0;\x0;\x0;\x0;") (b "<~z~>"))
+    (check (encode a)	=> b)
+    (check (decode b)	=> a)
+    )
+
+  (let ((a "h") (b "<~BE~>"))
+    (check (encode a)	=> b)
+    (check (decode b)	=> a))
+
+  (let ((a "he") (b "<~BOq~>"))
+    (check (encode a)	=> b)
+    (check (decode b)	=> a))
+
+  (let ((a "hel") (b "<~BOtu~>"))
+    (check (encode a)	=> b)
+    (check (decode b)	=> a))
+
+  (let ((a "hell") (b "<~BOu!r~>"))
+    (check (encode a)	=> b)
+    (check (decode b)	=> a))
+
+  (let ((a "hello") (b "<~BOu!rDZ~>"))
+    (check (encode a)	=> b)
+    (check (decode b)	=> a))
+
+  (let ((a "ciao") (b "<~@qf@i~>"))
+    (check (encode a)	=> b)
+    (check (decode b)	=> a))
+
+  (let ((a "Le Poete est semblable au prince des nuees Qui hante la tempete e se rit de l'archer; Exile sul le sol au milieu des huees, Ses ailes de geant l'empechent de marcher.")
+	(b "<~9P#>CDe4$%+D#V9+EM+2@VfI^Ch4_tFWbXDBl7El+Co&)+Du=5ATJtkF_Mt3@;^0u+DbI/FCf<.ATVK+AKZ&*+ED1<+Co%+CaWY3@q]Fo4!6t:Bl%?'F*2:ACh4`1DepP)FWbO8Ch[I'+Co&)+D>n/ATKCF;e:\"m@;0OhF!,\")+D57oDKI\";-Y7.6ARfCbDKI\"3AKYhuEarcoE\\7~>"))
+    (check (encode a)	=> b)
+    (check (decode b)	=> a))
+
+  (let ((a "Le Poete est semblable au prince des nuees Qui hante la tempete e se rit de l'archer; Exile sul le sol au milieu des huees, Ses ailes de geant l'empechent de marcher.")
+	(b "<~9P#>CDe4$%+D#V9+EM+2   @VfI^Ch4_t  FWbXDBl7El+Co\t&)+Du=5ATJtkF_Mt3@;^0u+DbI/FCf<.ATVK+AKZ&*+ED1<+Co%+CaWY3@q]Fo4!6t:Bl%?'F*2:ACh4`1DepP)FWbO8Ch[I'+Co&)+D>n/\nATK\rCF;e:\"m@;0OhF!,\")+D57oDKI\";-Y7.6ARfCbDKI\"3AKYhuEarcoE\\7~>"))
+
+    (check (decode-blank b) => a))
 
   #t)
 
