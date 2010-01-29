@@ -112,6 +112,7 @@
   (only (getopts))
 
   (only (armor base16))
+  (only (armor base32))
   (only (armor base64))
   (only (armor ascii85))
 

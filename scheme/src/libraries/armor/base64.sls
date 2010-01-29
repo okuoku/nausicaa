@@ -40,43 +40,12 @@
     base64-encode-final-length
     base64-encode-update!		base64-decode-update!
     base64-encode-final!
-    base64-encode-finished?
-    )
-  (import (rnrs))
+    base64-encode-finished?)
+  (import (rnrs)
+    (armor helpers))
 
 
 ;;;; helpers
-
-(define << bitwise-arithmetic-shift-left)
-(define >> bitwise-arithmetic-shift-right)
-
-(define-syntax incr!
-  (syntax-rules ()
-    ((_ ?id)
-     (set! ?id (+ ?id 1)))
-    ((_ ?id ?delta)
-     (set! ?id (+ ?id ?delta)))))
-
-(define-syntax decr!
-  (syntax-rules ()
-    ((_ ?id)
-     (set! ?id (- ?id 1)))
-    ((_ ?id ?delta)
-     (set! ?id (- ?id ?delta)))))
-
-(define-syntax while
-  (syntax-rules ()
-    ((_ ?test ?form0 ?form ...)
-     (let loop ()
-       (when ?test ?form0 ?form ... (loop))))))
-
-(define-syntax defmacro
-  (syntax-rules ()
-    ((_ (?name ?arg ...) ?form0 ?form ...)
-     (define-syntax ?name
-       (syntax-rules ()
-	 ((_ ?arg ...)
-	  (begin ?form0 ?form ...)))))))
 
 (define-syntax define-decode-accessor
   (lambda (stx)
@@ -241,9 +210,9 @@
   (let* ((done	(%encode-raw-length src-len))
 	 (i	done)
 	 (j	src-len))
-    (defmacro (*src ?offset)
+    (define-macro (*src ?offset)
       (bytevector-u8-ref src-bv (+ j src-start ?offset)))
-    (defmacro (*dst ?expr)
+    (define-macro (*dst ?expr)
       (decr! i)
       (bytevector-u8-set! dst-bv (+ i dst-start) ?expr))
     (while (> i 0)
@@ -257,7 +226,7 @@
 (define (base64-encode-final! ctx dst-bv dst-start)
   (let ((i    0) ;offset in DST-BV from DST-START
 	(bits (<base64-encode-ctx>-bits ctx)))
-    (defmacro (*dst ?expr)
+    (define-macro (*dst ?expr)
       (bytevector-u8-set! dst-bv (+ i dst-start) ?expr)
       (incr! i))
     (when (< 0 bits)
