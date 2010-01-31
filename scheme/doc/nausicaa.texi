@@ -19115,6 +19115,13 @@ Bind the result of @var{expr} to @var{var} as in @func{let} or
 return @varo{var} possibly as multiple values.
 @end deffn
 
+
+@deffn Syntax begin0-let* ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
+@deffnx Syntax begin0-letrec ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
+Like @func{begin0-let}, but bind the identifiers using @func{let*} and
+@func{letrec}.
+@end deffn
+
 @c ------------------------------------------------------------
 
 @deffn Syntax receive @var{formals} @var{expression} . @var{body}

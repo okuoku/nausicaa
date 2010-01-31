@@ -32,7 +32,7 @@
     make-<base32-encode-ctx>		make-<base32-decode-ctx>
     <base32-encode-ctx>?		<base32-decode-ctx>?
     <base32-encode-ctx>-encoding	<base32-decode-ctx>-encoding
-    <base32-encode-ctx>-upper-case?	<base32-decode-ctx>-allow-blanks?
+    <base32-encode-ctx>-encoding-case	<base32-decode-ctx>-encoding-case
     <base32-encode-ctx>-padding?	<base32-decode-ctx>-padding?
     <base32-encode-ctx>-pad-char	<base32-decode-ctx>-pad-char
     <base32-encode-ctx>-table		<base32-decode-ctx>-table
@@ -48,23 +48,24 @@
   (import (rnrs)
     (begin0)
     (receive)
+    (language-extensions)
     (armor helpers))
 
 
 (define-record-type <base32-encode-ctx>
   (fields (immutable encoding)
-	  (immutable upper-case?)
+	  (immutable encoding-case)
 	  (immutable padding?)
 	  (immutable pad-char)
 	  (immutable table))
   (protocol
    (lambda (maker)
-     (lambda (encoding padding? upper-case?)
+     (lambda (encoding padding? encoding-case)
        ;;ENCODING must  be a Scheme symbol selecting  the encoding type:
        ;;base32,  rfc4648, base32hex,  rfc2938.  The  argument  value is
        ;;normalised to one among: base32, base32hex.
        ;;
-       ;;If UPPER-CASE?  is true: an  upper case encoding table is used;
+       ;;If ENCODING-CASE  is true: an  upper case encoding table is used;
        ;;else  a  lower  case  one  is  used.   The  argument  value  is
        ;;normalised to #t or #f.
        ;;
@@ -78,37 +79,41 @@
 				  (else
 				   (assertion-violation 'make-<base32-encode-ctx>
 				     "invalid encoding selection for base32 encoder" encoding))))
-	      (upper-case?	(if upper-case? #t #f))
+	      (encoding-case	(case encoding-case
+				  ((lower)	'lower)
+				  ((upper)	'upper)
+				  (else
+				   (assertion-violation #f
+				     "invalid input case selection for base32 encoder"))))
 	      (padding?		(if padding? #t #f))
 	      (table		(case encoding
 				  ((base32)
-				   (if upper-case?
-				       encode-table-base32/upper-case
-				     encode-table-base32/lower-case))
+				   (case encoding-case
+				     ((upper)	encode-table-base32/upper-case)
+				     ((lower)	encode-table-base32/lower-case)))
 				  ((base32hex)
-				   (if upper-case?
-				       encode-table-base32hex/upper-case
-				     encode-table-base32hex/lower-case)))))
+				   (case encoding-case
+				     ((upper)	encode-table-base32hex/upper-case)
+				     ((lower)	encode-table-base32hex/lower-case))))))
 
-	 (maker encoding upper-case? padding? (char->integer #\=) table))))))
+	 (maker encoding encoding-case padding? (char->integer #\=) table))))))
 
 
 (define-record-type <base32-decode-ctx>
   (fields (immutable encoding)
-	  (immutable allow-blanks?)
+	  (immutable encoding-case)
 	  (immutable padding?)
 	  (immutable pad-char)
 	  (immutable table))
   (protocol
    (lambda (maker)
-     (lambda (encoding padding? allow-blanks?)
+     (lambda (encoding padding? encoding-case)
        ;;ENCODING must  be a Scheme symbol selecting  the encoding type:
        ;;base32,  rfc4648, base32hex,  rfc2938.  The  argument  value is
        ;;normalised to one among: base32, base32hex.
        ;;
-       ;;If ALLOW-BLANKS?   is true: blank  characters in the  input are
-       ;;just skipped, else  an error is raised.  The  argument value is
-       ;;normalised to #t or #f.
+       ;;ENCODING-CASE must be a  Scheme symbol selecting the expected case
+       ;;of the input string: lower, upper, mixed.
        ;;
        ;;If PADDING?  is  true: the input is expected  to be padded with
        ;;"=" characters  so that its length  is an exact  multiple of 8.
@@ -118,17 +123,35 @@
 				  ((base32 rfc4648)	'base32)
 				  ((base32hex rfc2938)	'base32hex)
 				  (else
-				   (assertion-violation 'make-<base32-decode-ctx>
+				   (assertion-violation #f
 				     "invalid encoding selection for base32 decoder" encoding))))
-	      (allow-blanks?	(if allow-blanks? #t #f))
 	      (padding?		(if padding? #t #f))
+	      (encoding-case	(case encoding-case
+				  ((lower)	'lower)
+				  ((upper)	'upper)
+				  ((mixed)	'mixed)
+				  (else
+				   (assertion-violation #f
+				     "invalid input case selection for base32 decoder"))))
 	      (table		(case encoding
 				  ((base32)
-				   decode-table-base32)
+				   (case encoding-case
+				     ((lower)
+				      decode-table-base32/lower-case)
+				     ((upper)
+				      decode-table-base32/upper-case)
+				     ((mixed)
+				      decode-table-base32/mixed-case)))
 				  ((base32hex)
-				   decode-table-base32hex))))
+				   (case encoding-case
+				     ((lower)
+				      decode-table-base32hex/lower-case)
+				     ((upper)
+				      decode-table-base32hex/upper-case)
+				     ((mixed)
+				      decode-table-base32hex/mixed-case))))))
 
-	 (maker encoding allow-blanks? padding? (char->integer #\=) table))))))
+	 (maker encoding encoding-case padding? (char->integer #\=) table))))))
 
 
 ;;;; encoding tables
@@ -181,65 +204,39 @@
 
 ;;;; decoding tables
 
-(define (alphabet->table alphabet)
-  (let ((table	(make-vector 128 #f))
-	(len	(vector-length alphabet)))
-    (do ((i 0 (+ 1 i)))
-	((= i len)
-	 table)
-      (vector-set! table (char->integer (vector-ref alphabet i)) i))))
+(define (alphabet->table alphabet table)
+  (dotimes (i (vector-length alphabet) table)
+    (vector-set! table (char->integer (vector-ref alphabet i)) i)))
 
-;;Decode table  for base 32 as  specified by RFC  4648: disallowed input
-;;characters have a value of #f;  upper and lower case is the same; only
-;;128 chars, as everything above 127 is #f.
+;;Decode tables for  base 32 as specified by  RFC 4648: disallowed input
+;;characters have a value of #f; only 128 chars, as everything above 127
+;;(#x80) is #f.
 
-(define decode-table-base32
-  (alphabet->table encode-alphabet-base32/upper-case))
+(define decode-table-base32/upper-case
+  (alphabet->table encode-alphabet-base32/upper-case (make-vector 128 #f)))
 
-#;(define decode-table-base32
-  (list->vector
-   (map (lambda (v) (if v (char->integer v) v))
-;;;      0   1   2      3   4   5     6   7   8     9
-     '( #f  #f  #f     #f  #f  #f    #f  #f  #f    #f	;;   0 -   9
+(define decode-table-base32/lower-case
+  (alphabet->table encode-alphabet-base32/lower-case (make-vector 128 #f)))
 
-;;;     10  11  12     13  14  15    16  17  18    19
-        #f  #f  #f     #f  #f  #f    #f  #f  #f    #f	;;  10 -  19
+(define decode-table-base32/mixed-case
+  (alphabet->table encode-alphabet-base32/upper-case
+		   (alphabet->table encode-alphabet-base32/lower-case
+				    (make-vector 128 #f))))
 
-;;;     20  21  22     23  24  25    26  27  28    29
-        #f  #f  #f     #f  #f  #f    #f  #f  #f    #f	;;  20 -  29
+;;Decode tables for  base 32 as specified by  RFC 2938: disallowed input
+;;characters have a value of #f; only 128 chars, as everything above 127
+;;(#x80) is #f.
 
-;;;     30  31  32     33  34  35    36  37  38    39
-        #f  #f  #f     #f  #f  #f    #f  #f  #f    #f	;;  30 -  39
+(define decode-table-base32hex/upper-case
+  (alphabet->table encode-alphabet-base32hex/upper-case (make-vector 128 #f)))
 
-;;;     40  41  42     43  44  45    46  47  48    49
-        #f  #f  #f     #f  #f  #f    #f  #f  #f    #f	;;  40 -  49
+(define decode-table-base32hex/lower-case
+  (alphabet->table encode-alphabet-base32hex/lower-case (make-vector 128 #f)))
 
-;;;     50  51  52     53  54  55    56  57  58    59
-       #\0 #\1 #\2    #\3 #\4 #\5    #f  #f  #f    #f	;;  50 -  59
-
-;;;     60  61  62     63  64  65    66  67  68    69
-        #f  #f  #f     #f  #f #\A   #\B #\C #\D   #\E	;;  60 -  69
-
-;;;     70  71  72     73  74  75    76  77  78    79
-       #\F #\G #\H    #\I #\J #\K   #\L #\M #\N   #\O	;;  70 -  79
-
-;;;     80  81  82     83  84  85    86  87  88    89
-       #\P #\Q #\R    #\S #\T #\U   #\V #\W #\X   #\Y	;;  80 -  89
-
-;;;     90  91  92     93  94  95    96  97  98    99
-       #\Z  #f  #f     #f  #f  #f    #f #\a #\b   #\c	;;  90 -  99
-
-;;;    100 101 102    103 104 105   106 107 108   109
-       #\d #\e #\f    #\g #\h #\i   #\j #\k #\l   #\m	;; 100 - 119
-
-;;;    110 111 112    113 114 115   116 117 118   119
-       #\n #\o #\p    #\q #\r #\s   #\t #\u #\v   #\w	;; 110 - 129
-
-;;;    120 121 122    123 124 125   126 127
-       #\x #\y #\z     #f  #f  #f    #f  #f))))		;; 120 - 127
-
-(define decode-table-base32hex
-  #f)
+(define decode-table-base32hex/mixed-case
+  (alphabet->table encode-alphabet-base32hex/upper-case
+		   (alphabet->table encode-alphabet-base32hex/lower-case
+				    (make-vector 128 #f))))
 
 
 ;;;; helpers

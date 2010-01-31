@@ -49,7 +49,7 @@
 (define padding?
   (make-parameter #t))
 
-(define upper-case?
+(define encoding-case
   (make-parameter #t))
 
 
@@ -335,7 +335,7 @@
 (parametrise ((check-test-name	'base32))
 
   (define (encode binary)
-    (let* ((ctx		(make-<base32-encode-ctx> 'base32 (padding?) (upper-case?)))
+    (let* ((ctx		(make-<base32-encode-ctx> 'base32 (padding?) (encoding-case)))
 	   (src		(if (string? binary) (string->utf8 binary) binary))
 	   (src-len	(bytevector-length src))
 	   (dst		(make-bytevector (base32-encode-length src-len (padding?)))))
@@ -351,8 +351,13 @@
 	(if string-result?
 	    (utf8->string by)
 	  by)))
-    (let* ((ctx		(make-<base32-decode-ctx> 'base32 (padding?) (upper-case?)))
-	   (src		(if (string? binary) (string->utf8 binary) binary))
+    (let* ((ctx		(make-<base32-decode-ctx> 'base32 (padding?) (encoding-case)))
+	   (src		(if (string? binary)
+			    (string->utf8 (case (encoding-case)
+					    ((upper)	(string-upcase binary))
+					    ((lower)	(string-downcase binary))
+					    (else	binary)))
+			  binary))
 	   (src-len	(bytevector-length src))
 	   (dst		(make-bytevector (base32-decode-length src-len (padding?)))))
       (receive (result dst-next src-next)
@@ -366,7 +371,7 @@
 ;;; --------------------------------------------------------------------
 
   (parametrise ((padding?	#t)
-		(upper-case?	#t))
+		(encoding-case	'upper))
 
     (check
 	(encode "foobar")
@@ -393,7 +398,7 @@
       test-vectors))
 
   (parametrise ((padding?	#f)
-		(upper-case?	#t))
+		(encoding-case	'upper))
 
     (check
 	(encode "foobar")
@@ -412,7 +417,7 @@
       test-vectors))
 
   (parametrise ((padding?	#f)
-		(upper-case?	#f))
+		(encoding-case	'lower))
 
     (check
 	(encode "foobar")
