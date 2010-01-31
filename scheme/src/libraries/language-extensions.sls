@@ -159,7 +159,8 @@
 
 (library (language-extensions)
   (export
-    and-let* begin0 begin0-let receive recursion cut cute do*
+    and-let* begin0 begin0-let begin0-let* begin0-letrec
+    receive recursion cut cute do*
     dotimes dolist loop-upon-list ensure
     set-cons!)
   (import (rnrs)

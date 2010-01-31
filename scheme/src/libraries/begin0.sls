@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 
 (library (begin0)
-  (export  begin0 begin0-let)
+  (export  begin0 begin0-let begin0-let* begin0-letrec)
   (import (rnrs))
 
   (define-syntax begin0
@@ -52,6 +52,24 @@
        (let ((?var0 ?expr0)
 	     (?var  ?expr)
 	     ...)
+	 ?form0 ?form ...
+	 ?var0))))
+
+  (define-syntax begin0-let*
+    (syntax-rules ()
+      ((_ ((?var0 ?expr0) (?var ?expr) ...) ?form0 ?form ...)
+       (let* ((?var0 ?expr0)
+	      (?var  ?expr)
+	      ...)
+	 ?form0 ?form ...
+	 ?var0))))
+
+  (define-syntax begin0-letrec
+    (syntax-rules ()
+      ((_ ((?var0 ?expr0) (?var ?expr) ...) ?form0 ?form ...)
+       (letrec ((?var0 ?expr0)
+		(?var  ?expr)
+		...)
 	 ?form0 ?form ...
 	 ?var0)))))
 
