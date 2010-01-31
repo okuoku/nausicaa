@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -281,10 +281,11 @@
     ((_ (?varname ?exclusive-count) ?form0 ?form ...)
      (dotimes (?varname ?exclusive-count #f) ?form0 ?form ...))
     ((_ (?varname ?exclusive-count ?result) ?form0 ?form ...)
-     (do ((?varname 0 (+ 1 ?varname)))
-	 ((>= ?varname ?exclusive-count)
-	  ?result)
-       ?form0 ?form ...))))
+     (let ((exclusive-count ?exclusive-count))
+       (do ((?varname 0 (+ 1 ?varname)))
+	   ((>= ?varname ?exclusive-count)
+	    ?result)
+	 ?form0 ?form ...)))))
 
 (define-syntax dolist
   (syntax-rules ()
