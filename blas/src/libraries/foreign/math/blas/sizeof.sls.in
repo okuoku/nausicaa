@@ -1,0 +1,167 @@
+;;; (foreign math blas sizeof) --
+;;;
+;;;Part of: Nausicaa
+;;;Contents: foreign library inspection generation
+;;;Date: Mon Feb  1, 2010
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+(library
+  (foreign math blas sizeof)
+  (export
+    CBLAS_INDEX
+    CBLAS_ORDER
+    sizeof-CBLAS_ORDER
+    alignof-CBLAS_ORDER
+    strideof-CBLAS_ORDER
+    pointer-ref-c-CBLAS_ORDER
+    pointer-set-c-CBLAS_ORDER!
+    CblasRowMajor
+    CblasColMajor
+    CBLAS_TRANSPOSE
+    sizeof-CBLAS_TRANSPOSE
+    alignof-CBLAS_TRANSPOSE
+    strideof-CBLAS_TRANSPOSE
+    pointer-ref-c-CBLAS_TRANSPOSE
+    pointer-set-c-CBLAS_TRANSPOSE!
+    CblasNoTrans
+    CblasTrans
+    CblasConjTrans
+    CBLAS_UPLO
+    sizeof-CBLAS_UPLO
+    alignof-CBLAS_UPLO
+    strideof-CBLAS_UPLO
+    pointer-ref-c-CBLAS_UPLO
+    pointer-set-c-CBLAS_UPLO!
+    CblasUpper
+    CblasLower
+    CBLAS_DIAG
+    sizeof-CBLAS_DIAG
+    alignof-CBLAS_DIAG
+    strideof-CBLAS_DIAG
+    pointer-ref-c-CBLAS_DIAG
+    pointer-set-c-CBLAS_DIAG!
+    CblasNonUnit
+    CblasUnit
+    CBLAS_SIDE
+    sizeof-CBLAS_SIDE
+    alignof-CBLAS_SIDE
+    strideof-CBLAS_SIDE
+    pointer-ref-c-CBLAS_SIDE
+    pointer-set-c-CBLAS_SIDE!
+    CblasLeft
+    CblasRight
+    BLAS_SHARED_OBJECT
+    CBLAS_SHARED_OBJECT)
+  (import
+    (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof))
+  (define CBLAS_INDEX 'size_t)
+  (define CBLAS_ORDER '@TYPEOF_CBLAS_ORDER@)
+  (define sizeof-CBLAS_ORDER @SIZEOF_CBLAS_ORDER@)
+  (define
+    alignof-CBLAS_ORDER
+    @ALIGNOF_CBLAS_ORDER@)
+  (define
+    strideof-CBLAS_ORDER
+    @STRIDEOF_CBLAS_ORDER@)
+  (define
+    pointer-ref-c-CBLAS_ORDER
+    @GETTEROF_CBLAS_ORDER@)
+  (define
+    pointer-set-c-CBLAS_ORDER!
+    @SETTEROF_CBLAS_ORDER@)
+  (define CblasRowMajor @VALUEOF_CblasRowMajor@)
+  (define CblasColMajor @VALUEOF_CblasColMajor@)
+  (define
+    CBLAS_TRANSPOSE
+    '@TYPEOF_CBLAS_TRANSPOSE@)
+  (define
+    sizeof-CBLAS_TRANSPOSE
+    @SIZEOF_CBLAS_TRANSPOSE@)
+  (define
+    alignof-CBLAS_TRANSPOSE
+    @ALIGNOF_CBLAS_TRANSPOSE@)
+  (define
+    strideof-CBLAS_TRANSPOSE
+    @STRIDEOF_CBLAS_TRANSPOSE@)
+  (define
+    pointer-ref-c-CBLAS_TRANSPOSE
+    @GETTEROF_CBLAS_TRANSPOSE@)
+  (define
+    pointer-set-c-CBLAS_TRANSPOSE!
+    @SETTEROF_CBLAS_TRANSPOSE@)
+  (define CblasNoTrans @VALUEOF_CblasNoTrans@)
+  (define CblasTrans @VALUEOF_CblasTrans@)
+  (define CblasConjTrans @VALUEOF_CblasConjTrans@)
+  (define CBLAS_UPLO '@TYPEOF_CBLAS_UPLO@)
+  (define sizeof-CBLAS_UPLO @SIZEOF_CBLAS_UPLO@)
+  (define alignof-CBLAS_UPLO @ALIGNOF_CBLAS_UPLO@)
+  (define
+    strideof-CBLAS_UPLO
+    @STRIDEOF_CBLAS_UPLO@)
+  (define
+    pointer-ref-c-CBLAS_UPLO
+    @GETTEROF_CBLAS_UPLO@)
+  (define
+    pointer-set-c-CBLAS_UPLO!
+    @SETTEROF_CBLAS_UPLO@)
+  (define CblasUpper @VALUEOF_CblasUpper@)
+  (define CblasLower @VALUEOF_CblasLower@)
+  (define CBLAS_DIAG '@TYPEOF_CBLAS_DIAG@)
+  (define sizeof-CBLAS_DIAG @SIZEOF_CBLAS_DIAG@)
+  (define alignof-CBLAS_DIAG @ALIGNOF_CBLAS_DIAG@)
+  (define
+    strideof-CBLAS_DIAG
+    @STRIDEOF_CBLAS_DIAG@)
+  (define
+    pointer-ref-c-CBLAS_DIAG
+    @GETTEROF_CBLAS_DIAG@)
+  (define
+    pointer-set-c-CBLAS_DIAG!
+    @SETTEROF_CBLAS_DIAG@)
+  (define CblasNonUnit @VALUEOF_CblasNonUnit@)
+  (define CblasUnit @VALUEOF_CblasUnit@)
+  (define CBLAS_SIDE '@TYPEOF_CBLAS_SIDE@)
+  (define sizeof-CBLAS_SIDE @SIZEOF_CBLAS_SIDE@)
+  (define alignof-CBLAS_SIDE @ALIGNOF_CBLAS_SIDE@)
+  (define
+    strideof-CBLAS_SIDE
+    @STRIDEOF_CBLAS_SIDE@)
+  (define
+    pointer-ref-c-CBLAS_SIDE
+    @GETTEROF_CBLAS_SIDE@)
+  (define
+    pointer-set-c-CBLAS_SIDE!
+    @SETTEROF_CBLAS_SIDE@)
+  (define CblasLeft @VALUEOF_CblasLeft@)
+  (define CblasRight @VALUEOF_CblasRight@)
+  (define
+    BLAS_SHARED_OBJECT
+    "@BLAS_SHARED_OBJECT@")
+  (define
+    CBLAS_SHARED_OBJECT
+    "@CBLAS_SHARED_OBJECT@"))
+
+
+;;; end of file

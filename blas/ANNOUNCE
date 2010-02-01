@@ -1,0 +1,49 @@
+To: comp.lang.scheme
+Subject: [announce] Nausicaa/Template --- tag 0.1b0
+
+		     Nausicaa/Template
+		     =================
+
+This package is a  distribution of libraries for R6RS Scheme
+implementations;  it provides  bindings for  the  Template C
+languge library, a library to do stuff.
+
+  It  is  built  upon  Nausicaa/Scheme, making  use  of  its
+foreign-functions   interface.   It   supports   the  Scheme
+implementations  Ikarus, Mosh  and  Ypsilon.  The  packaging
+infrastructure currently supports only GNU+Linux systems.
+
+  The latest release of Nausicaa/Template is available at:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+the documentation is available on line:
+
+ <http://marcomaggi.github.com/docs/nausicaa-template.html>
+
+Template is available at:
+
+	     <http://template.sourceforge.net/>
+
+
+Notes for --- tag 0.1b0
+------------------------------
+
+* Tested with Template version 1.2.3.
+
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:
