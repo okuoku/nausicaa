@@ -27,109 +27,109 @@
 
 (library (foreign math blas platform)
   (export
-  cblas_sdsdot			cblas_dsdot
-  cblas_sdot			cblas_ddot
+    cblas_sdsdot		cblas_dsdot
+    cblas_sdot			cblas_ddot
 
-  ;;Functions having prefixes Z and C only.
-  cblas_cdotu_sub		cblas_cdotc_sub
-  cblas_zdotu_sub		cblas_zdotc_sub
+    ;;Functions having prefixes Z and C only.
+    cblas_cdotu_sub		cblas_cdotc_sub
+    cblas_zdotu_sub		cblas_zdotc_sub
 
-  ;;Functions having prefixes S D SC DZ.
-  cblas_snrm2			cblas_sasum
-  cblas_dnrm2			cblas_dasum
-  cblas_scnrm2			cblas_scasum
-  cblas_dznrm2			cblas_dzasum
+    ;;Functions having prefixes S D SC DZ.
+    cblas_snrm2			cblas_sasum
+    cblas_dnrm2			cblas_dasum
+    cblas_scnrm2		cblas_scasum
+    cblas_dznrm2		cblas_dzasum
 
-  ;;Functions having standard 4 prefixes (S D C Z).
-  cblas_isamax			cblas_idamax
-  cblas_icamax			cblas_izamax
+    ;;Functions having standard 4 prefixes (S D C Z).
+    cblas_isamax		cblas_idamax
+    cblas_icamax		cblas_izamax
 
-;;; prototypes for level 1 BLAS routines
+;;;  level 1 BLAS routines
 
-  ;;Routines with standard 4 prefixes (s, d, c, z).
-  cblas_sswap			cblas_scopy
-  cblas_saxpy			cblas_dswap
-  cblas_dcopy			cblas_daxpy
-  cblas_cswap			cblas_ccopy
-  cblas_caxpy			cblas_zswap
-  cblas_zcopy			cblas_zaxpy
+    ;;Routines with standard 4 prefixes (s, d, c, z).
+    cblas_sswap			cblas_scopy
+    cblas_saxpy			cblas_dswap
+    cblas_dcopy			cblas_daxpy
+    cblas_cswap			cblas_ccopy
+    cblas_caxpy			cblas_zswap
+    cblas_zcopy			cblas_zaxpy
 
-  ;;Routines with S and D prefix only.
-  cblas_srotg			cblas_srotmg
-  cblas_srot			cblas_srotm
-  cblas_drotg			cblas_drotmg
-  cblas_drot			cblas_drotm
+    ;;Routines with S and D prefix only.
+    cblas_srotg			cblas_srotmg
+    cblas_srot			cblas_srotm
+    cblas_drotg			cblas_drotmg
+    cblas_drot			cblas_drotm
 
-  ;;Routines with S D C Z CS and ZD prefixes.
-  cblas_sscal			cblas_dscal
-  cblas_cscal			cblas_zscal
-  cblas_csscal			cblas_zdscal
+    ;;Routines with S D C Z CS and ZD prefixes.
+    cblas_sscal			cblas_dscal
+    cblas_cscal			cblas_zscal
+    cblas_csscal		cblas_zdscal
 
-;;;; prototypes for level 2 BLAS
+;;;;  level 2 BLAS
 
-  ;;Routines with standard 4 prefixes  (S, D, C, Z).
-  cblas_sgemv			cblas_sgbmv
-  cblas_strmv			cblas_stbmv
-  cblas_stpmv			cblas_strsv
-  cblas_stbsv			cblas_stpsv
-  cblas_dgemv			cblas_dgbmv
-  cblas_dtrmv			cblas_dtbmv
-  cblas_dtpmv			cblas_dtrsv
-  cblas_dtbsv			cblas_dtpsv
-  cblas_cgemv			cblas_cgbmv
-  cblas_ctrmv			cblas_ctbmv
-  cblas_ctpmv			cblas_ctrsv
-  cblas_ctbsv			cblas_ctpsv
-  cblas_zgemv			cblas_zgbmv
-  cblas_ztrmv			cblas_ztbmv
-  cblas_ztpmv			cblas_ztrsv
-  cblas_ztbsv			cblas_ztpsv
+    ;;Routines with standard 4 prefixes  (S, D, C, Z).
+    cblas_sgemv			cblas_sgbmv
+    cblas_strmv			cblas_stbmv
+    cblas_stpmv			cblas_strsv
+    cblas_stbsv			cblas_stpsv
+    cblas_dgemv			cblas_dgbmv
+    cblas_dtrmv			cblas_dtbmv
+    cblas_dtpmv			cblas_dtrsv
+    cblas_dtbsv			cblas_dtpsv
+    cblas_cgemv			cblas_cgbmv
+    cblas_ctrmv			cblas_ctbmv
+    cblas_ctpmv			cblas_ctrsv
+    cblas_ctbsv			cblas_ctpsv
+    cblas_zgemv			cblas_zgbmv
+    cblas_ztrmv			cblas_ztbmv
+    cblas_ztpmv			cblas_ztrsv
+    cblas_ztbsv			cblas_ztpsv
 
-  ;;Routines with S and D prefixes only.
-  cblas_ssymv			cblas_ssbmv
-  cblas_sspmv			cblas_sger
-  cblas_ssyr			cblas_sspr
-  cblas_ssyr2			cblas_sspr2
-  cblas_dsymv			cblas_dsbmv
-  cblas_dspmv			cblas_dger
-  cblas_dsyr			cblas_dspr
-  cblas_dsyr2			cblas_dspr2
+    ;;Routines with S and D prefixes only.
+    cblas_ssymv			cblas_ssbmv
+    cblas_sspmv			cblas_sger
+    cblas_ssyr			cblas_sspr
+    cblas_ssyr2			cblas_sspr2
+    cblas_dsymv			cblas_dsbmv
+    cblas_dspmv			cblas_dger
+    cblas_dsyr			cblas_dspr
+    cblas_dsyr2			cblas_dspr2
 
-  ;;Routines with C and Z prefixes only.
-  cblas_chemv			cblas_chbmv
-  cblas_chpmv			cblas_cgeru
-  cblas_cgerc			cblas_cher
-  cblas_chpr			cblas_cher2
-  cblas_chpr2			cblas_zhemv
-  cblas_zhbmv			cblas_zhpmv
-  cblas_zgeru			cblas_zgerc
-  cblas_zher			cblas_zhpr
-  cblas_zher2			cblas_zhpr2
+    ;;Routines with C and Z prefixes only.
+    cblas_chemv			cblas_chbmv
+    cblas_chpmv			cblas_cgeru
+    cblas_cgerc			cblas_cher
+    cblas_chpr			cblas_cher2
+    cblas_chpr2			cblas_zhemv
+    cblas_zhbmv			cblas_zhpmv
+    cblas_zgeru			cblas_zgerc
+    cblas_zher			cblas_zhpr
+    cblas_zher2			cblas_zhpr2
 
-;;;; prototypes for level 3 BLAS
+;;;;  level 3 BLAS
 
-  ;;Routines with standard 4 prefixes  (S, D, C, Z).
-  cblas_sgemm			cblas_ssymm
-  cblas_ssyrk			cblas_ssyr2k
-  cblas_strmm			cblas_strsm
-  cblas_dgemm			cblas_dsymm
-  cblas_dsyrk			cblas_dsyr2k
-  cblas_dtrmm			cblas_dtrsm
-  cblas_cgemm			cblas_csymm
-  cblas_csyrk			cblas_csyr2k
-  cblas_ctrmm			cblas_ctrsm
-  cblas_zgemm			cblas_zsymm
-  cblas_zsyrk			cblas_zsyr2k
-  cblas_ztrmm			cblas_ztrsm
+    ;;Routines with standard 4 prefixes  (S, D, C, Z).
+    cblas_sgemm			cblas_ssymm
+    cblas_ssyrk			cblas_ssyr2k
+    cblas_strmm			cblas_strsm
+    cblas_dgemm			cblas_dsymm
+    cblas_dsyrk			cblas_dsyr2k
+    cblas_dtrmm			cblas_dtrsm
+    cblas_cgemm			cblas_csymm
+    cblas_csyrk			cblas_csyr2k
+    cblas_ctrmm			cblas_ctrsm
+    cblas_zgemm			cblas_zsymm
+    cblas_zsyrk			cblas_zsyr2k
+    cblas_ztrmm			cblas_ztrsm
 
-  ;;Routines with prefixes C and Z only.
-  cblas_chemm			cblas_cherk
-  cblas_cher2k			cblas_zhemm
-  cblas_zherk			cblas_zher2k
+    ;;Routines with prefixes C and Z only.
+    cblas_chemm			cblas_cherk
+    cblas_cher2k		cblas_zhemm
+    cblas_zherk			cblas_zher2k
 
-  ;;Variadic!!!
-  ;;
-  ;; cblas_xerbla
+    ;;Variadic!!!
+    ;;
+    ;; cblas_xerbla
     )
   (import (rnrs)
     (foreign ffi)

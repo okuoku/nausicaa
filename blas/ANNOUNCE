@@ -1,19 +1,19 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Template --- tag 0.1b0
+Subject: [announce] Nausicaa/Blas 2010-02-01 tag 0.1b0
 
-		     Nausicaa/Template
-		     =================
+		       Nausicaa/BLAS
+		       =============
 
 This package is a  distribution of libraries for R6RS Scheme
-implementations;  it provides  bindings for  the  Template C
-languge library, a library to do stuff.
+implementations; it  provides bindings for  the BLAS/CBLAS C
+language library, a library to do stuff.
 
   It  is  built  upon  Nausicaa/Scheme, making  use  of  its
 foreign-functions   interface.   It   supports   the  Scheme
 implementations  Ikarus, Mosh  and  Ypsilon.  The  packaging
 infrastructure currently supports only GNU+Linux systems.
 
-  The latest release of Nausicaa/Template is available at:
+  The latest release of Nausicaa/Blas is available at:
 
      <http://github.com/marcomaggi/nausicaa/downloads>
 
@@ -27,18 +27,18 @@ development takes place at:
 
 the documentation is available on line:
 
- <http://marcomaggi.github.com/docs/nausicaa-template.html>
+ <http://marcomaggi.github.com/docs/nausicaa-blas.html>
 
-Template is available at:
+BLAS and CBLAS are available at:
 
-	     <http://template.sourceforge.net/>
+	       <http://www.netlib.org/blas/>
 
 
-Notes for --- tag 0.1b0
+Notes for 2010-02-01 tag 0.1b0
 ------------------------------
 
-* Tested with Template version 1.2.3.
-
+* It is  a very basic interface, with  neither marshaling of
+  values nor vector and matrix type definitions.
 
 
 ### end of file

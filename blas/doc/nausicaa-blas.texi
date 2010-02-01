@@ -169,6 +169,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{BLAS}
 @end macro
 
+@macro cblas{}
+@acronym{CBLAS}
+@end macro
+
 @c ------------------------------------------------------------
 @c Network related acronyms.
 @c ------------------------------------------------------------
@@ -436,8 +440,9 @@ Revised^6 Report on the algorithmic language Scheme
 @noindent
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of libraries for @rnrs{6} Scheme implementations; it
-provides a binding to the @blas{} C language library.  It is built upon
-Nausicaa/Scheme, making use of its foreign--functions interface.
+provides a binding to the @blas{}/@cblas{} C language library.  It is
+built upon Nausicaa/Scheme, making use of its foreign--functions
+interface.
 
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
@@ -516,6 +521,8 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* constants::                   Constant values.
+* examples::                    Examples.
 
 Appendices
 
@@ -539,8 +546,9 @@ Indexes
 
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of libraries for @rnrs{6} Scheme implementations; it
-provides a binding to the @blas{} C language library.  It is built upon
-Nausicaa/Scheme, making use of its foreign--functions interface.
+provides a binding to the @blas{}/@cblas{} C language library.  It is
+built upon Nausicaa/Scheme, making use of its foreign--functions
+interface.
 
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
@@ -549,40 +557,185 @@ The installed libraries are:
 
 @table @library
 @item foreign math blas shared-object
-Exports the single binding @code{blas-shared-object} which references
+Exports the single binding @code{cblas-shared-object} which references
 the foreign shared library.
 
 @item foreign math blas sizeof
-Exports bindings to constant values and data structures accessors.
+Exports bindings to constant values.
 
 @item foreign math blas platform
 Exports one binding for each foreign function; the bindings to the
 Scheme function callouts have the same name of the C functions, so
-@cfunc{blas_init} is available as @func{blas_init}.  This library makes
-the original @blas{} documentation relevant for this package.
+@cfunc{cblas_sdsdot} is available as @func{cblas_sdsdot}.  This library
+makes the original @blas{} documentation relevant for this package.
 
 @item foreign math blas primitives
-Exports one binding for each foreign function, implementing marshaling
-of arguments and return values.  The bindings to the Scheme functions
-have the same name of the C functions, but with lower case and
-underscores converted to dashes; so @cfunc{blas_init} is available as
-@func{blas-init}.
-
-This document describes the @code{primitives} @api{}; only the functions
-implementing marshaling of values are documented: if a function is not
-documented, it means that it is reexported ``as is'' from the
-@code{platform} library.
+Exports one binding for each foreign function, reexporting bindings from
+the platform library.  The bindings to the Scheme functions have the
+same name of the C functions, but the prefix @code{cblas_} stripped; so
+@cfunc{cblas_sdsdot} is available as @func{sdsdot}.
 
 @item foreign math blas
 Compound library exporting the high--level @api{}; it reexports bindings
 from the @samp{primitives} library and the constant values from the
 @samp{sizeof} library.
 
-@item foreign math blas compensated
-Exports bindings to constructor functions making use of the
-@library{compensations} library from Nausicaa/Scheme.
-@nauref{compensations, Compensation stacks}.
+The bindings to constant values are stripped of the prefix @code{Cblas},
+converted to lower case and with camel case replaced by dash separators.
+@ref{constants, Constant values}.
 @end table
+
+@c page
+@node constants
+@chapter Constant values
+
+
+The bindings with prefix @code{Cblas} are exported by the
+@library{foreign math blas sizeof} library; the bindings without such
+prefix are exported by the @library{foreign math blas} library.
+
+
+@defvr Constant CblasRowMajor
+@defvrx Constant row-major
+Indicates that elements of each row of a matrix are contiguous in
+memory.
+@end defvr
+
+
+@defvr Constant CblasColMajor
+@defvrx Constant col-major
+Indicates that elements of each column of a matrix are contiguous in
+memory.
+@end defvr
+
+
+@defvr Constant CblasNoTrans
+@defvrx Constant no-trans
+No transpose.
+@end defvr
+
+
+@defvr Constant CblasTrans
+@defvrx Constant trans
+Transpose.
+@end defvr
+
+
+@defvr Constant CblasConjTrans
+@defvrx Constant conj-trans
+Conjugate transpose.
+@end defvr
+
+
+@defvr Constant CblasUpper
+@defvrx Constant upper
+Upper triangular.
+@end defvr
+
+
+@defvr Constant CblasLower
+@defvrx Constant lower
+Lower triangular.
+@end defvr
+
+
+@defvr Constant CblasNonUnit
+@defvrx Constant non-unit
+Non--unit triangular.
+@end defvr
+
+
+@defvr Constant CblasUnit
+@defvrx Constant unit
+Unit triangular.
+@end defvr
+
+
+@defvr Constant CblasLeft
+@defvrx Constant left
+Left.
+@end defvr
+
+
+@defvr Constant CblasRight
+@defvrx Constant right
+Right.
+@end defvr
+
+@c page
+@node examples
+@chapter Examples
+
+
+The following is the example from the file @file{cblas_example1.c} in
+the @cblas{} distribution by Netwib.
+
+@example
+(import (nausicaa)
+  (compensations)
+  (only (foreign ffi sizeof) sizeof-double)
+  (only (foreign ffi)
+	array-set-c-double!
+	array-ref-c-double)
+  (only (foreign memory) malloc/c)
+  (prefix (foreign math blas) blas:))
+
+
+(with-compensations
+  (let* ((order   blas:col-major)
+         (transa  blas:no-trans)
+         (m       4) ;Size of Column (the number of rows)
+         (n       4) ;Size of Row (the number of columns)
+         (lda     4) ;Leading dimension of 5 * 4 matrix is 5
+         (incx    1)
+         (incy    1)
+         (alpha   1.)
+         (beta    0.)
+         (a       (malloc/c (* sizeof-double m n)))
+         (x       (malloc/c (* sizeof-double n)))
+         (y       (malloc/c (* sizeof-double n))))
+
+    ;; the elements of the first column
+    (array-set-c-double! a 0 1.)
+    (array-set-c-double! a 1 2.)
+    (array-set-c-double! a 2 3.)
+    (array-set-c-double! a 3 4.)
+
+    ;; the elements of the second column
+    (array-set-c-double! a m  1.)
+    (array-set-c-double! a (+ m 1) 1.)
+    (array-set-c-double! a (+ m 2) 1.)
+    (array-set-c-double! a (+ m 3) 1.)
+
+    ;; the elements of the third column
+    (array-set-c-double! a (* m 2)  3.)
+    (array-set-c-double! a (+ 1 (* m 2)) 4.)
+    (array-set-c-double! a (+ 2 (* m 2)) 5.)
+    (array-set-c-double! a (+ 3 (* m 2)) 6.)
+
+    ;; the elements of the fourth column
+    (array-set-c-double! a (* m 3)  5.)
+    (array-set-c-double! a (+ 1 (* m 3)) 6.)
+    (array-set-c-double! a (+ 2 (* m 3)) 7.)
+    (array-set-c-double! a (+ 3 (* m 3)) 8.)
+
+    ;; the elements of x and y
+    (array-set-c-double! x 0 1.)
+    (array-set-c-double! x 1 2.)
+    (array-set-c-double! x 2 1.)
+    (array-set-c-double! x 3 1.)
+    (array-set-c-double! y 0 0.)
+    (array-set-c-double! y 1 0.)
+    (array-set-c-double! y 2 0.)
+    (array-set-c-double! y 3 0.)
+
+    (blas:dgemv order transa m n alpha a lda x incx beta y incy)
+
+    (map (lambda (i)
+           (array-ref-c-double y i))
+      '(0 1 2 3))))
+@result{} (11. 14. 17. 20.)
+@end example
 
 @c page
 

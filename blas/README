@@ -18,7 +18,7 @@ Topics
 ---------------
 
 This package is a  distribution of libraries for R6RS Scheme
-implementations;  it  provides  a  binding  to  the  BLAS  C
+implementations; it  provides a binding to  the BLAS/CBLAS C
 language library.  It  is built upon Nausicaa/Scheme, making
 use of its foreign-functions interface.
 
@@ -155,7 +155,7 @@ development takes place at:
 
     <http://github.com/marcomaggi/nausicaa/tree/master>
 
-BLAS is available at:
+BLAS and CBLAS are available at:
 
 	       <http://www.netlib.org/blas/>
 
