@@ -13,7 +13,7 @@ foreign-functions   interface.   It   supports   the  Scheme
 implementations  Ikarus, Mosh  and  Ypsilon.  The  packaging
 infrastructure currently supports only GNU+Linux systems.
 
-  The latest release of Nausicaa/Blas is available at:
+  The latest release of Nausicaa/BLAS is available at:
 
      <http://github.com/marcomaggi/nausicaa/downloads>
 

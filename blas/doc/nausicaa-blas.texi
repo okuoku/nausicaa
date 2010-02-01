@@ -668,7 +668,7 @@ Right.
 
 
 The following is the example from the file @file{cblas_example1.c} in
-the @cblas{} distribution by Netwib.
+the @cblas{} distribution by Netlib.
 
 @example
 (import (nausicaa)
