@@ -6,7 +6,7 @@ Subject: [announce] Nausicaa/Template --- tag 0.1b0
 
 This package is a  distribution of libraries for R6RS Scheme
 implementations;  it provides  bindings for  the  Template C
-languge library, a library to do stuff.
+language library, a library to do stuff.
 
   It  is  built  upon  Nausicaa/Scheme, making  use  of  its
 foreign-functions   interface.   It   supports   the  Scheme
