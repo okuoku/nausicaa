@@ -6,7 +6,8 @@ Subject: [announce] Nausicaa/BLAS 2010-02-01 tag 0.1b0
 
 This package is a  distribution of libraries for R6RS Scheme
 implementations; it  provides bindings for  the BLAS/CBLAS C
-language library, a library to do stuff.
+language  library,   a  library  of   basic  linear  algebra
+algorithms.
 
   It  is  built  upon  Nausicaa/Scheme, making  use  of  its
 foreign-functions   interface.   It   supports   the  Scheme
