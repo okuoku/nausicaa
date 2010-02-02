@@ -54,32 +54,50 @@ License   along   with    this   program.    If   not,   see
 4.1 Install CLAPACK
 -------------------
 
-Download the source from the  Netlib site and unpack it.  We
-should follow the  instruction in the "README.install" file;
-build a  shared library  and install it  as "libclapack.so".
-This is what the author does on an i686-pc-linux-gnu:
+Download  the source archive  "clapack.tgz" from  the Netlib
+site and unpack it.  We should follow the instruction in the
+"README.install" file, build a shared library and install it
+as  "libclapack.so".  This  is what  the author  does  on an
+i686-pc-linux-gnu system:
 
    $ cd CLAPACK
    $ cp INSTALL/make.inc.LINUX make.inc
 
-   # edit make.inc
-   #   add '-march=i686 -mtune=i686' to CFLAGS
+   # edit the following files commenting out everything
+   #
+   #   F2CLIBS/libF77/main.c
+   #   F2CLIBS/libF77/iargc_.c
+   #   F2CLIBS/libF77/getarg_.c
 
-   $ make f2clib
-   $ make blaslib
-   $ cd SRC ; make ; cd ..
+   $ make f2clib \
+       CFLAGS='-fPIC -funroll-all-loops -O3 -march=i686 -mtune=i686'
+   $ make blaslib \
+       CFLAGS='-fPIC -funroll-all-loops -O3 -march=i686 -mtune=i686'
+   $ cd SRC
+   $ make \
+       CFLAGS='-fPIC -funroll-all-loops -O3 -march=i686 -mtune=i686'
+   $ cd ..
    $ ar -x F2CLIBS/libF77.a
    $ ar -x F2CLIBS/libI77.a
    $ ar -x blas_LINUX.a
    $ ar -x lapack_LINUX.a
-   $ gcc -shared -FPIC -o libclapack.so *.o -lm
 
-# $ gcc -shared -FPIC -o libclapack.so		\
-#     lapack_LINUX.a blas_LINUX.a		\
-#     F2CLIBS/libF77.a F2CLIBS/libI77.a	\
-#     -lm
+   $ gcc -fPIC -lm -shared *.o \
+        -Wl,-soname,libclapack.so -o libclapack.so
+   $ strip --strip-unneeded libclapack.so
 
-then install "libclapack.so", "clapack.h" and "f2c.h".
+install  the  library   "libclapack.so"  under,  let's  say,
+"/usr/local/lib"; install  the header files  "clapack.h" and
+"SRC/f2c.h" under, let's say, "/usr/local/include":
+
+    $ export DESTDIR=
+    $ export prefix=/usr/local
+    $ install -m 0755 -d "${DESTDIR}/$prefix/lib"
+    $ install -m 0755 -d "${DESTDIR}/$prefix/include"
+    $ install -m 0644 libclapack.so \
+        "${DESTDIR}/$prefix/lib"
+    $ install -m 0644 clapack.h SRC/f2c.h \
+      	"${DESTDIR}/$prefix/include"
 
 
 4.2 Install Nausicaa/LAPACK

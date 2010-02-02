@@ -1,7 +1,7 @@
 \input texinfo.tex
 @c %**start of header
-@setfilename nausicaa-template.info
-@settitle Template for Nausicaa
+@setfilename nausicaa-lapack.info
+@settitle LAPACK for Nausicaa
 @c %**end of header
 
 @c page
@@ -163,6 +163,14 @@ Revised^6 Report on the algorithmic language Scheme
 
 @macro gcc{}
 @acronym{GCC}
+@end macro
+
+@macro lapack{}
+@acronym{LAPACK}
+@end macro
+
+@macro clapack{}
+@acronym{CLAPACK}
 @end macro
 
 @c ------------------------------------------------------------
@@ -400,16 +408,16 @@ Revised^6 Report on the algorithmic language Scheme
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      Template for Nausicaa
+@set TITLE                      LAPACK for Nausicaa
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
-@set PACKAGE                    Nausicaa/Template
+@set PACKAGE                    Nausicaa/@lapack{}
 
 @c To be used as @value{PACKAGE_NICKNAME} whenever we need to include
 @c the nickname of the project: the name that is used to compose the
 @c distribution tarball or the web address.
-@set PACKAGE_NICKNAME           nausicaa-template
+@set PACKAGE_NICKNAME           nausicaa-lapack
 
 @c To be used as @value{AUTHOR} whenever we need to include the list of
 @c authors of this document.
@@ -432,8 +440,8 @@ Revised^6 Report on the algorithmic language Scheme
 @noindent
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of libraries for @rnrs{6} Scheme implementations; it
-provides a binding to the Template C language library.  It is built upon
-Nausicaa/Scheme, making use of its foreign--functions interface.
+provides a binding to the @clapack{} C language library.  It is built
+upon Nausicaa/Scheme, making use of its foreign--functions interface.
 
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
@@ -454,9 +462,9 @@ development of Nausicaa takes place at:
 @center @url{http://github.com/marcomaggi/nausicaa/tree/master}
 
 @noindent
-Template is available at:
+@clapack{} is available at:
 
-@center @url{http}
+@center @url{http://www.netlib.org/clapack/}
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
@@ -491,7 +499,7 @@ entitled ``@gnu{} Free Documentation License''.
 @ifinfo
 @dircategory Development
 @direntry
-* nausicaa-template: (nausicaa-template).       Template for Nausicaa.
+* nausicaa-lapack: (nausicaa-lapack).   @clapack{} for Nausicaa.
 @end direntry
 @end ifinfo
 
@@ -535,8 +543,8 @@ Indexes
 
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of libraries for @rnrs{6} Scheme implementations; it
-provides a binding to the Template C language library.  It is built upon
-Nausicaa/Scheme, making use of its foreign--functions interface.
+provides a binding to the @clapack{} C language library.  It is built
+upon Nausicaa/Scheme, making use of its foreign--functions interface.
 
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
@@ -544,42 +552,42 @@ supports @gnu{}+Linux systems.
 The installed libraries are:
 
 @table @library
-@item foreign category template shared-object
-Exports the single binding @code{template-shared-object} which
+@item foreign math lapack shared-object
+Exports the single binding @code{lapack-shared-object} which
 references the foreign shared library.
 
-@item foreign category template sizeof
+@item foreign math lapack sizeof
 Exports bindings to constant values and data structures accessors.
 
-@item foreign category template platform
+@item foreign math lapack platform
 Exports one binding for each foreign function; the bindings to the
 Scheme function callouts have the same name of the C functions, so
-@cfunc{template_init} is available as @func{template_init}.  This
-library makes the original @template{} documentation relevant for this
+@cfunc{lapack_init} is available as @func{lapack_init}.  This
+library makes the original @lapack{} documentation relevant for this
 package.
-@c @templateref{Top, The GNU Libmicrohttpd library}.
+@c @lapackref{Top, The GNU Libmicrohttpd library}.
 
-@item foreign category template primitives
+@item foreign math lapack primitives
 Exports one binding for each foreign function, implementing marshaling
 of arguments and return values.  The bindings to the Scheme functions
 have the same name of the C functions, but with lower case and
-underscores converted to dashes; so @cfunc{template_init} is available
-as @func{template-init}.
+underscores converted to dashes; so @cfunc{lapack_init} is available
+as @func{lapack-init}.
 
 This document describes the @code{primitives} @api{}; only the functions
 implementing marshaling of values are documented: if a function is not
 documented, it means that it is reexported ``as is'' from the
 @code{platform} library.
 
-@item foreign category template
+@item foreign math lapack
 Compound library exporting the high--level @api{}; it reexports bindings
 from the @samp{primitives} library and the constant values from the
 @samp{sizeof} library.
 
-@item foreign category template compensated
-Exports bindings to constructor functions making use of the
-@library{compensations} library from Nausicaa/Scheme.
-@nauref{compensations, Compensation stacks}.
+@c @item foreign math lapack compensated
+@c Exports bindings to constructor functions making use of the
+@c @library{compensations} library from Nausicaa/Scheme.
+@c @nauref{compensations, Compensation stacks}.
 @end table
 
 @c page

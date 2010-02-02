@@ -1,8 +1,8 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/LAPACK
-;;;Contents: load foreign shared library
-;;;Date: Mon Feb  1, 2010
+;;;Contents: test loading of platform library
+;;;Date: Tue Feb  2, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -25,12 +25,27 @@
 ;;;
 
 
-(library (foreign math lapack shared-object)
-  (export clapack-shared-object)
-  (import (rnrs)
-    (foreign ffi)
-    (foreign math lapack sizeof))
-  (define-shared-object clapack-shared-object
-    LAPACK_SHARED_OBJECT))
+(import (nausicaa)
+  (foreign math lapack platform)
+  (foreign math lapack sizeof)
+  (checks))
+
+(check-set-mode! 'report-failed)
+(display "*** testing lapack platform\n")
+
+
+(parametrise ((check-test-name	'base))
+
+  (check
+      (let ()
+	#f)
+    => #f)
+
+  #t)
+
+
+;;;; done
+
+(check-report)
 
 ;;; end of file

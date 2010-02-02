@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Mon Feb  1, 2010
+;;;Date: Tue Feb  2, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -27,12 +27,280 @@
 
 (library
   (foreign math lapack sizeof)
-  (export lapack_t LAPACK_SHARED_OBJECT)
+  (export
+    integer
+    sizeof-integer
+    alignof-integer
+    strideof-integer
+    pointer-ref-c-integer
+    pointer-set-c-integer!
+    uinteger
+    sizeof-uinteger
+    alignof-uinteger
+    strideof-uinteger
+    pointer-ref-c-uinteger
+    pointer-set-c-uinteger!
+    shortint
+    sizeof-shortint
+    alignof-shortint
+    strideof-shortint
+    pointer-ref-c-shortint
+    pointer-set-c-shortint!
+    real
+    sizeof-real
+    alignof-real
+    strideof-real
+    pointer-ref-c-real
+    pointer-set-c-real!
+    doublereal
+    sizeof-doublereal
+    alignof-doublereal
+    strideof-doublereal
+    pointer-ref-c-doublereal
+    pointer-set-c-doublereal!
+    logical
+    sizeof-logical
+    alignof-logical
+    strideof-logical
+    pointer-ref-c-logical
+    pointer-set-c-logical!
+    shortlogical
+    sizeof-shortlogical
+    alignof-shortlogical
+    strideof-shortlogical
+    pointer-ref-c-shortlogical
+    pointer-set-c-shortlogical!
+    logical1
+    sizeof-logical1
+    alignof-logical1
+    strideof-logical1
+    pointer-ref-c-logical1
+    pointer-set-c-logical1!
+    integer1
+    sizeof-integer1
+    alignof-integer1
+    strideof-integer1
+    pointer-ref-c-integer1
+    pointer-set-c-integer1!
+    ftnlen
+    sizeof-ftnlen
+    alignof-ftnlen
+    strideof-ftnlen
+    pointer-ref-c-ftnlen
+    pointer-set-c-ftnlen!
+    flag
+    sizeof-flag
+    alignof-flag
+    strideof-flag
+    pointer-ref-c-flag
+    pointer-set-c-flag!
+    ftnint
+    sizeof-ftnint
+    alignof-ftnint
+    strideof-ftnint
+    pointer-ref-c-ftnint
+    pointer-set-c-ftnint!
+    address
+    integer*
+    logical*
+    real*
+    doublereal*
+    complex*
+    doublecomplex*
+    C_fp
+    D_fp
+    E_fp
+    H_fp
+    I_fp
+    J_fp
+    K_fp
+    L_fp
+    R_fp
+    S_fp
+    U_fp
+    Z_fp
+    sizeof-complex
+    alignof-complex
+    strideof-complex
+    struct-complex-r-set!
+    struct-complex-r-ref
+    struct-complex-i-set!
+    struct-complex-i-ref
+    sizeof-doublecomplex
+    alignof-doublecomplex
+    strideof-doublecomplex
+    struct-doublecomplex-r-set!
+    struct-doublecomplex-r-ref
+    struct-doublecomplex-i-set!
+    struct-doublecomplex-i-ref
+    LAPACK_SHARED_OBJECT)
   (import
     (rnrs)
     (foreign ffi)
     (foreign ffi sizeof))
-  (define lapack_t 'pointer)
+  (define integer '@TYPEOF_INTEGER@)
+  (define sizeof-integer @SIZEOF_INTEGER@)
+  (define alignof-integer @ALIGNOF_INTEGER@)
+  (define strideof-integer @STRIDEOF_INTEGER@)
+  (define pointer-ref-c-integer @GETTEROF_INTEGER@)
+  (define
+    pointer-set-c-integer!
+    @SETTEROF_INTEGER@)
+  (define uinteger '@TYPEOF_UINTEGER@)
+  (define sizeof-uinteger @SIZEOF_UINTEGER@)
+  (define alignof-uinteger @ALIGNOF_UINTEGER@)
+  (define strideof-uinteger @STRIDEOF_UINTEGER@)
+  (define
+    pointer-ref-c-uinteger
+    @GETTEROF_UINTEGER@)
+  (define
+    pointer-set-c-uinteger!
+    @SETTEROF_UINTEGER@)
+  (define shortint '@TYPEOF_SHORTINT@)
+  (define sizeof-shortint @SIZEOF_SHORTINT@)
+  (define alignof-shortint @ALIGNOF_SHORTINT@)
+  (define strideof-shortint @STRIDEOF_SHORTINT@)
+  (define
+    pointer-ref-c-shortint
+    @GETTEROF_SHORTINT@)
+  (define
+    pointer-set-c-shortint!
+    @SETTEROF_SHORTINT@)
+  (define real '@TYPEOF_REAL@)
+  (define sizeof-real @SIZEOF_REAL@)
+  (define alignof-real @ALIGNOF_REAL@)
+  (define strideof-real @STRIDEOF_REAL@)
+  (define pointer-ref-c-real @GETTEROF_REAL@)
+  (define pointer-set-c-real! @SETTEROF_REAL@)
+  (define doublereal '@TYPEOF_DOUBLEREAL@)
+  (define sizeof-doublereal @SIZEOF_DOUBLEREAL@)
+  (define alignof-doublereal @ALIGNOF_DOUBLEREAL@)
+  (define
+    strideof-doublereal
+    @STRIDEOF_DOUBLEREAL@)
+  (define
+    pointer-ref-c-doublereal
+    @GETTEROF_DOUBLEREAL@)
+  (define
+    pointer-set-c-doublereal!
+    @SETTEROF_DOUBLEREAL@)
+  (define logical '@TYPEOF_LOGICAL@)
+  (define sizeof-logical @SIZEOF_LOGICAL@)
+  (define alignof-logical @ALIGNOF_LOGICAL@)
+  (define strideof-logical @STRIDEOF_LOGICAL@)
+  (define pointer-ref-c-logical @GETTEROF_LOGICAL@)
+  (define
+    pointer-set-c-logical!
+    @SETTEROF_LOGICAL@)
+  (define shortlogical '@TYPEOF_SHORTLOGICAL@)
+  (define
+    sizeof-shortlogical
+    @SIZEOF_SHORTLOGICAL@)
+  (define
+    alignof-shortlogical
+    @ALIGNOF_SHORTLOGICAL@)
+  (define
+    strideof-shortlogical
+    @STRIDEOF_SHORTLOGICAL@)
+  (define
+    pointer-ref-c-shortlogical
+    @GETTEROF_SHORTLOGICAL@)
+  (define
+    pointer-set-c-shortlogical!
+    @SETTEROF_SHORTLOGICAL@)
+  (define logical1 '@TYPEOF_LOGICAL1@)
+  (define sizeof-logical1 @SIZEOF_LOGICAL1@)
+  (define alignof-logical1 @ALIGNOF_LOGICAL1@)
+  (define strideof-logical1 @STRIDEOF_LOGICAL1@)
+  (define
+    pointer-ref-c-logical1
+    @GETTEROF_LOGICAL1@)
+  (define
+    pointer-set-c-logical1!
+    @SETTEROF_LOGICAL1@)
+  (define integer1 '@TYPEOF_INTEGER1@)
+  (define sizeof-integer1 @SIZEOF_INTEGER1@)
+  (define alignof-integer1 @ALIGNOF_INTEGER1@)
+  (define strideof-integer1 @STRIDEOF_INTEGER1@)
+  (define
+    pointer-ref-c-integer1
+    @GETTEROF_INTEGER1@)
+  (define
+    pointer-set-c-integer1!
+    @SETTEROF_INTEGER1@)
+  (define ftnlen '@TYPEOF_FTNLEN@)
+  (define sizeof-ftnlen @SIZEOF_FTNLEN@)
+  (define alignof-ftnlen @ALIGNOF_FTNLEN@)
+  (define strideof-ftnlen @STRIDEOF_FTNLEN@)
+  (define pointer-ref-c-ftnlen @GETTEROF_FTNLEN@)
+  (define pointer-set-c-ftnlen! @SETTEROF_FTNLEN@)
+  (define flag '@TYPEOF_FLAG@)
+  (define sizeof-flag @SIZEOF_FLAG@)
+  (define alignof-flag @ALIGNOF_FLAG@)
+  (define strideof-flag @STRIDEOF_FLAG@)
+  (define pointer-ref-c-flag @GETTEROF_FLAG@)
+  (define pointer-set-c-flag! @SETTEROF_FLAG@)
+  (define ftnint '@TYPEOF_FTNINT@)
+  (define sizeof-ftnint @SIZEOF_FTNINT@)
+  (define alignof-ftnint @ALIGNOF_FTNINT@)
+  (define strideof-ftnint @STRIDEOF_FTNINT@)
+  (define pointer-ref-c-ftnint @GETTEROF_FTNINT@)
+  (define pointer-set-c-ftnint! @SETTEROF_FTNINT@)
+  (define address 'void*)
+  (define integer* 'void*)
+  (define logical* 'void*)
+  (define real* 'void*)
+  (define doublereal* 'void*)
+  (define complex* 'void*)
+  (define doublecomplex* 'void*)
+  (define C_fp 'callback)
+  (define D_fp 'callback)
+  (define E_fp 'callback)
+  (define H_fp 'callback)
+  (define I_fp 'callback)
+  (define J_fp 'callback)
+  (define K_fp 'callback)
+  (define L_fp 'callback)
+  (define R_fp 'callback)
+  (define S_fp 'callback)
+  (define U_fp 'callback)
+  (define Z_fp 'callback)
+  (define sizeof-complex @SIZEOF_COMPLEX@)
+  (define alignof-complex @ALIGNOF_COMPLEX@)
+  (define strideof-complex @STRIDEOF_COMPLEX@)
+  (define-c-struct-accessor-and-mutator
+    struct-complex-r-set!
+    struct-complex-r-ref
+    @OFFSETOF_COMPLEX_R@
+    @SETTEROF_COMPLEX_R@
+    @GETTEROF_COMPLEX_R@)
+  (define-c-struct-accessor-and-mutator
+    struct-complex-i-set!
+    struct-complex-i-ref
+    @OFFSETOF_COMPLEX_I@
+    @SETTEROF_COMPLEX_I@
+    @GETTEROF_COMPLEX_I@)
+  (define
+    sizeof-doublecomplex
+    @SIZEOF_DOUBLECOMPLEX@)
+  (define
+    alignof-doublecomplex
+    @ALIGNOF_DOUBLECOMPLEX@)
+  (define
+    strideof-doublecomplex
+    @STRIDEOF_DOUBLECOMPLEX@)
+  (define-c-struct-accessor-and-mutator
+    struct-doublecomplex-r-set!
+    struct-doublecomplex-r-ref
+    @OFFSETOF_DOUBLECOMPLEX_R@
+    @SETTEROF_DOUBLECOMPLEX_R@
+    @GETTEROF_DOUBLECOMPLEX_R@)
+  (define-c-struct-accessor-and-mutator
+    struct-doublecomplex-i-set!
+    struct-doublecomplex-i-ref
+    @OFFSETOF_DOUBLECOMPLEX_I@
+    @SETTEROF_DOUBLECOMPLEX_I@
+    @GETTEROF_DOUBLECOMPLEX_I@)
   (define
     LAPACK_SHARED_OBJECT
     "@LAPACK_SHARED_OBJECT@"))
