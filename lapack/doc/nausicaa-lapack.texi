@@ -467,6 +467,22 @@ development of Nausicaa takes place at:
 @center @url{http://www.netlib.org/clapack/}
 
 @noindent
+original documentation for @lapack{} and @clapack{} can be found at:
+
+@center @url{http://www.netlib.org/lapack/lug/lapack_lug.html}
+
+@noindent
+and in printed form:
+
+@quotation
+``LAPACK Users' Guide''.  E. Anderson, Z. Bai, C. Bischof, S. Blackford,
+J. Demmel, J. Dongarra, J. Du Croz, A. Greenbaum, S. Hammarling,
+A. McKenney, D. and Sorensen.  Third Edition.  Society for Industrial
+and Applied Mathematics, 1999.  Philadelphia, PA.  @acronym{ISBN}
+0-89871-447-8 (paperback).
+@end quotation
+
+@noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
 
 @quotation
@@ -520,6 +536,8 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* typedefs::                    Type accessors and mutators.
+* constants::                   Constant values.
 
 Appendices
 
@@ -533,7 +551,26 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Overview of the package
+
+* overview intro::              Introduction to @lapack{}
+                                for end users.
+* overview libraries::          Installed libraries.
+* overview names::              Function naming conventions.
+
+Type accessors and mutators
+
+* typedefs common::             Common C language types.
+* typedefs callbacks::          Callback types.
+* typedefs structs::            Data structures.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 @c page
@@ -549,12 +586,64 @@ upon Nausicaa/Scheme, making use of its foreign--functions interface.
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
 
+@menu
+* overview intro::              Introduction to @lapack{}
+                                for end users.
+* overview libraries::          Installed libraries.
+* overview names::              Function naming conventions.
+@end menu
+
+@c page
+@node overview intro
+@section Introduction to @lapack{} for end users
+
+
+For end users only interested in solving math equations, @clapack{} can
+be intimidating with its 1200+ exported functions; but we do not really
+need to read the documentation of all of them.  Rather we should start
+by acknowledging that almost each algorithm comes in a version for
+@code{float} numbers and a version for @code{double} numbers; so the
+count of ``distinct'' algorithms is 600+.  Then we should acknowledge
+that almost each algorithm comes in a version for real numbers and a
+version for complex numbers; so the count of ``distinct'' algorithms is
+down to 300+.
+
+Finally we should acknowledge @clapack{}'s architecture:
+
+@example
+ -----------------------------------------------
+|                 driver functions              |
+|-----------------------------------------------|
+| computational functions | auxiliary functions |
+ -----------------------------------------------
+@end example
+
+@noindent
+as end users we are concerned only with the high--level ``driver''
+functions, which address the following basic math problems:
+
+@enumerate
+@item
+Solve a system of linear equations.
+
+@item
+Compute eigenvalues and eigenvectors.
+
+@item
+Compute the singular value decomposition.
+@end enumerate
+
+@c page
+@node overview libraries
+@section Installed libraries
+
+
 The installed libraries are:
 
 @table @library
 @item foreign math lapack shared-object
-Exports the single binding @code{lapack-shared-object} which
-references the foreign shared library.
+Exports the single binding @code{clapack-shared-object} which references
+the foreign shared library.
 
 @item foreign math lapack sizeof
 Exports bindings to constant values and data structures accessors.
@@ -562,17 +651,15 @@ Exports bindings to constant values and data structures accessors.
 @item foreign math lapack platform
 Exports one binding for each foreign function; the bindings to the
 Scheme function callouts have the same name of the C functions, so
-@cfunc{lapack_init} is available as @func{lapack_init}.  This
-library makes the original @lapack{} documentation relevant for this
-package.
-@c @lapackref{Top, The GNU Libmicrohttpd library}.
+@cfunc{dgesv_} is available as @func{dgesv_}.  This library makes the
+original @lapack{} documentation relevant for this package.
 
 @item foreign math lapack primitives
-Exports one binding for each foreign function, implementing marshaling
-of arguments and return values.  The bindings to the Scheme functions
-have the same name of the C functions, but with lower case and
-underscores converted to dashes; so @cfunc{lapack_init} is available
-as @func{lapack-init}.
+Exports one binding for each foreign function, implementing, for some
+functions, marshaling of arguments and return values.  The bindings to
+the Scheme functions have the same name of the C functions, but with the
+trailing underscore removed; so @cfunc{dgesv_} is available as
+@func{dgesv}.
 
 This document describes the @code{primitives} @api{}; only the functions
 implementing marshaling of values are documented: if a function is not
@@ -581,7 +668,7 @@ documented, it means that it is reexported ``as is'' from the
 
 @item foreign math lapack
 Compound library exporting the high--level @api{}; it reexports bindings
-from the @samp{primitives} library and the constant values from the
+from the @samp{primitives} library and some bindings from the
 @samp{sizeof} library.
 
 @c @item foreign math lapack compensated
@@ -589,6 +676,604 @@ from the @samp{primitives} library and the constant values from the
 @c @library{compensations} library from Nausicaa/Scheme.
 @c @nauref{compensations, Compensation stacks}.
 @end table
+
+@c page
+@node overview names
+@section Function naming conventions
+
+
+The following description comes from the @lapack{} user's guide and the
+@acronym{FAQ} web page
+(@url{http://@/www.netlib.org/@/lapack/@/faq.html}).
+
+The name of each @lapack{} routine is a coded specification of its
+function (within the very tight limits of standard Fortran 77
+6-character names).  All driver and computational routines have names of
+the form @samp{XYYZZZ}, where for some driver routines the 6th character
+is blank.
+
+@itemize
+@item
+The first letter, @samp{X}, indicates the data type as follows:
+
+@table @code
+@item S
+Real.
+
+@item D
+Double precision.
+
+@item C
+Complex.
+
+@item Z
+@code{COMPLEX*16} or double complex.
+@end table
+
+@item
+The next two letters, @samp{YY}, indicate the type of matrix (or of the
+most significant matrix).  Most of these two--letter codes apply to both
+real and complex matrices; a few apply specifically to one or the other.
+
+@table @code
+@item BD
+Bidiagonal.
+
+@item DI
+Diagonal.
+
+@item GB
+General band.
+
+@item GE
+General (i.e., unsymmetric, in some cases rectangular).
+
+@item GG
+General matrices, generalized problem (i.e., a pair of general
+matrices).
+
+@item GT
+General tridiagonal.
+
+@item HB
+(Complex) Hermitian band.
+
+@item HE
+(Complex) Hermitian.
+
+@item HG
+Upper Hessenberg matrix, generalized problem (i.e a Hessenberg and a
+triangular matrix).
+
+@item HP
+(Complex) Hermitian, packed storage.
+
+@item HS
+Upper Hessenberg.
+
+@item OP
+(Real) orthogonal, packed storage.
+
+@item OR
+(Real) orthogonal.
+
+@item PB
+Symmetric or Hermitian positive definite band.
+
+@item PO
+Symmetric or Hermitian positive definite.
+
+@item PP
+Symmetric or Hermitian positive definite, packed storage.
+
+@item PT
+Symmetric or Hermitian positive definite tridiagonal.
+
+@item SB
+(Real) symmetric band.
+
+@item SP
+Symmetric, packed storage.
+
+@item ST
+(Real) symmetric tridiagonal.
+
+@item SY
+Symmetric.
+
+@item TB
+Triangular band.
+
+@item TG
+Triangular matrices, generalized problem (i.e., a pair of triangular
+matrices).
+
+@item TP
+Triangular, packed storage.
+
+@item TR
+Triangular (or in some cases quasi--triangular).
+
+@item TZ
+Trapezoidal.
+
+@item UN
+Complex unitary.
+
+@item UP
+Complex unitary, packed storage.
+@end table
+
+@item
+The last three letters @samp{ZZZ} indicate the computation performed;
+for example, @samp{SGEBRD} is a single precision routine that performs a
+bidiagonal reduction (@acronym{BRD}) of a real general matrix.
+@end itemize
+
+@c page
+@node typedefs
+@chapter Type accessors and mutators
+
+
+The bindings described in this chapter are exported by the
+@library{foreign math lapack sizeof} library.
+
+@menu
+* typedefs common::             Common C language types.
+* typedefs callbacks::          Callback types.
+* typedefs structs::            Data structures.
+@end menu
+
+@c page
+@node typedefs common
+@section Common C language types
+
+
+@deftp {Type Alias} integer
+Usually bound to the Scheme symbol @code{signed-int}, it is used to
+specify the signed integer arguments to functions.
+@end deftp
+
+
+@defvr Constant sizeof-integer
+@defvrx Constant alignof-integer
+@defvrx Constant strideof-integer
+Size, structure alignment and array stride of @code{integer}.
+@end defvr
+
+
+@defun pointer-ref-c-integer @var{pointer} @var{offset}
+@defunx pointer-set-c-integer! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for memory locations holding an @code{integer}
+value.
+@end defun
+
+
+@deftp {Type Alias} uinteger
+Usually bound to the Scheme symbol @code{unsigned-int}, it is used to
+specify the unsigned integer arguments to functions.
+@end deftp
+
+
+@defvr Constant sizeof-uinteger
+@defvrx Constant alignof-uinteger
+@defvrx Constant strideof-uinteger
+Size, structure alignment and array stride of @code{uinteger}.
+@end defvr
+
+
+@defun pointer-ref-c-uinteger @var{pointer} @var{offset}
+@defunx pointer-set-c-uinteger! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for memory locations holding an @code{uinteger}
+value.
+@end defun
+
+
+@deftp {Type Alias} shortint
+Usually bound to the Scheme symbol @code{signed-short}, it is used to
+specify the small signed integer arguments to functions.
+@end deftp
+
+
+@defvr Constant sizeof-shortint
+@defvrx Constant alignof-shortint
+@defvrx Constant strideof-shortint
+Size, structure alignment and array stride of @code{shortint}.
+@end defvr
+
+
+@defun pointer-ref-c-shortint @var{pointer} @var{offset}
+@defunx pointer-set-c-shortint! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for memory locations holding an @code{shortint}
+value.
+@end defun
+
+
+@deftp {Type Alias} real
+Usually bound to the Scheme symbol @code{float}, it is used to specify
+the single--precision floating point arguments to functions.
+@end deftp
+
+
+@defvr Constant sizeof-real
+@defvrx Constant alignof-real
+@defvrx Constant strideof-real
+Size, structure alignment and array stride of @code{real}.
+@end defvr
+
+
+@defun pointer-ref-c-real @var{pointer} @var{offset}
+@defunx pointer-set-c-real! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for memory locations holding an @code{real} value.
+@end defun
+
+
+@deftp {Type Alias} doublereal
+Usually bound to the Scheme symbol @code{double}, it is used to specify
+the double--precision floating point arguments to functions.
+@end deftp
+
+
+@defvr Constant sizeof-doublereal
+@defvrx Constant alignof-doublereal
+@defvrx Constant strideof-doublereal
+Size, structure alignment and array stride of @code{doublereal}.
+@end defvr
+
+
+@defun pointer-ref-c-doublereal @var{pointer} @var{offset}
+@defunx pointer-set-c-doublereal! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for memory locations holding an @code{doublereal}
+value.
+@end defun
+
+
+@deftp {Type Alias} logical
+Usually bound to the Scheme symbol @code{signed-int}, it is used to
+specify some integer arguments to functions.
+@end deftp
+
+
+@defvr Constant sizeof-logical
+@defvrx Constant alignof-logical
+@defvrx Constant strideof-logical
+Size, structure alignment and array stride of @code{logical}.
+@end defvr
+
+
+@defun pointer-ref-c-logical @var{pointer} @var{offset}
+@defunx pointer-set-c-logical! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for memory locations holding an @code{logical}
+value.
+@end defun
+
+
+@deftp {Type Alias} shortlogical
+Usually bound to the Scheme symbol @code{signed-short}, it is used to
+specify some nteger arguments to functions.
+@end deftp
+
+
+@defvr Constant sizeof-shortlogical
+@defvrx Constant alignof-shortlogical
+@defvrx Constant strideof-shortlogical
+Size, structure alignment and array stride of @code{shortlogical}.
+@end defvr
+
+
+@defun pointer-ref-c-shortlogical @var{pointer} @var{offset}
+@defunx pointer-set-c-shortlogical! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for memory locations holding an @code{shortlogical}
+value.
+@end defun
+
+
+@deftp {Type Alias} logical1
+Usually bound to the Scheme symbol @code{signed-char}, it is used to
+specify some signed integer arguments to functions.
+@end deftp
+
+
+@defvr Constant sizeof-logical1
+@defvrx Constant alignof-logical1
+@defvrx Constant strideof-logical1
+Size, structure alignment and array stride of @code{logical1}.
+@end defvr
+
+
+@defun pointer-ref-c-logical1 @var{pointer} @var{offset}
+@defunx pointer-set-c-logical1! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for memory locations holding an @code{logical1}
+value.
+@end defun
+
+
+@deftp {Type Alias} integer1
+Usually bound to the Scheme symbol @code{signed-char}, it is used to
+specify some integer arguments to functions.
+@end deftp
+
+
+@defvr Constant sizeof-integer1
+@defvrx Constant alignof-integer1
+@defvrx Constant strideof-integer1
+Size, structure alignment and array stride of @code{integer1}.
+@end defvr
+
+
+@defun pointer-ref-c-integer1 @var{pointer} @var{offset}
+@defunx pointer-set-c-integer1! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for memory locations holding an @code{integer1}
+value.
+@end defun
+
+
+@deftp {Type Alias} ftnlen
+Usually bound to the Scheme symbol @code{signed-int}, it is used to
+specify some integer arguments to functions.
+@end deftp
+
+
+@defvr Constant sizeof-ftnlen
+@defvrx Constant alignof-ftnlen
+@defvrx Constant strideof-ftnlen
+Size, structure alignment and array stride of @code{ftnlen}.
+@end defvr
+
+
+@defun pointer-ref-c-ftnlen @var{pointer} @var{offset}
+@defunx pointer-set-c-ftnlen! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for memory locations holding an @code{ftnlen}
+value.
+@end defun
+
+
+@deftp {Type Alias} flag
+Usually bound to the Scheme symbol @code{signed-int}, it is used to
+specify some integer arguments to functions.
+@end deftp
+
+
+@defvr Constant sizeof-flag
+@defvrx Constant alignof-flag
+@defvrx Constant strideof-flag
+Size, structure alignment and array stride of @code{flag}.
+@end defvr
+
+
+@defun pointer-ref-c-flag @var{pointer} @var{offset}
+@defunx pointer-set-c-flag! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for memory locations holding an @code{flag} value.
+@end defun
+
+
+@deftp {Type Alias} ftnint
+Usually bound to the Scheme symbol @code{signed-int}, it is used to
+specify some integer arguments to functions.
+@end deftp
+
+
+@defvr Constant sizeof-ftnint
+@defvrx Constant alignof-ftnint
+@defvrx Constant strideof-ftnint
+Size, structure alignment and array stride of @code{ftnint}.
+@end defvr
+
+
+@defun pointer-ref-c-ftnint @var{pointer} @var{offset}
+@defunx pointer-set-c-ftnint! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for memory locations holding an @code{ftnint}
+value.
+@end defun
+
+
+@deftp {Type Alias} address
+Bound to the Scheme symbol @code{void*}.
+@end deftp
+
+@c page
+@node typedefs callbacks
+@section Callback types
+
+
+@defvr Constant C_fp
+Bound to the Scheme symbol @code{callback}, it represents a pointer to a
+function with prototype:
+
+@example
+void C_fp ()
+@end example
+@end defvr
+
+
+@defvr Constant D_fp
+Bound to the Scheme symbol @code{callback}, it represents a pointer to a
+function with prototype:
+
+@example
+doublereal D_fp ()
+@end example
+@end defvr
+
+
+@defvr Constant E_fp
+Bound to the Scheme symbol @code{callback}, it represents a pointer to a
+function with prototype:
+
+@example
+doublereal E_fp ()
+@end example
+@end defvr
+
+
+@defvr Constant H_fp
+Bound to the Scheme symbol @code{callback}, it represents a pointer to a
+functionwith prototype:
+
+@example
+void H_fp ()
+@end example
+@end defvr
+
+
+@defvr Constant I_fp
+Bound to the Scheme symbol @code{callback}, it represents a pointer to a
+function with prototype:
+
+@example
+integer I_fp ()
+@end example
+@end defvr
+
+
+@defvr Constant J_fp
+Bound to the Scheme symbol @code{callback}, it represents a pointer to a
+function with prototype:
+
+@example
+shortint J_fp ()
+@end example
+@end defvr
+
+
+@defvr Constant K_fp
+Bound to the Scheme symbol @code{callback}, it represents a pointer to a
+function with prototype:
+
+@example
+shortlogical K_fp ()
+@end example
+@end defvr
+
+
+@defvr Constant L_fp
+Bound to the Scheme symbol @code{callback}, it represents a pointer to a
+function with prototype:
+
+@example
+logical L_fp ()
+@end example
+@end defvr
+
+
+@defvr Constant R_fp
+Bound to the Scheme symbol @code{callback}, it represents a pointer to a
+function with prototype:
+
+@example
+
+@end example
+@end defvr
+
+
+@defvr Constant S_fp
+Bound to the Scheme symbol @code{callback}, it represents a pointer to a
+function with prototype:
+
+@example
+int S_fp ()
+@end example
+@end defvr
+
+@defvr Constant U_fp
+Bound to the Scheme symbol @code{callback}, it represents a pointer to a
+function with prototype:
+
+@example
+int U_fp ()
+@end example
+@end defvr
+
+@defvr Constant Z_fp
+Bound to the Scheme symbol @code{callback}, it represents a pointer to a
+function with prototype:
+
+@example
+void Z_fp ()
+@end example
+@end defvr
+
+@c page
+@node typedefs structs
+@section Data structures
+
+
+The C language data structure @code{complex} has the following
+definition:
+
+@example
+typedef struct @{
+  real r, i;
+@} complex;
+@end example
+
+
+@defvr Constant sizeof-complex
+@defvrx Constant alignof-complex
+@defvrx Constant strideof-complex
+Size, structure alignment and array stride of the @code{complex} C
+language data structure.
+@end defvr
+
+
+@deffn Syntax struct-complex-r-ref @var{pointer}
+@deffnx Syntax struct-complex-r-set! @var{pointer} @var{value}
+@deffnx Syntax struct-complex-i-ref @var{pointer}
+@deffnx Syntax struct-complex-i-set! @var{pointer} @var{value}
+Accessor and mutator for the fields of the @code{complex} C language
+data structure.
+@end deffn
+
+
+The C language data structure @code{doublecomplex} has the following
+definition:
+
+@example
+typedef struct @{
+   doublereal r, i;
+@} doublecomplex;
+@end example
+
+
+@defvr Constant sizeof-doublecomplex
+@defvrx Constant alignof-doublecomplex
+@defvrx Constant strideof-doublecomplex
+Size, structure alignment and array stride of the @code{doublecomplex} C
+language data structure.
+@end defvr
+
+
+@deffn Syntax struct-doublecomplex-r-ref @var{pointer}
+@deffnx Syntax struct-doublecomplex-r-set! @var{pointer} @var{value}
+@deffnx Syntax struct-doublecomplex-i-ref @var{pointer}
+@deffnx Syntax struct-doublecomplex-i-set! @var{pointer} @var{value}
+Accessor and mutator for the fields of the @code{doublecomplex} C
+language data structure.
+@end deffn
+
+@c page
+@node constants
+@chapter Constant values
+
+
+The following bindings are exported by the @library{foreign math lapack
+primitives} library and reexported by the @library{foreign math lapack}
+library.
+
+
+@defvr Constant lower*
+Pointer to a memory location holding the integer representation of the
+character @samp{L}; it is meant to be used as function argument to
+indicate a lower triangular matrix operand.
+@end defvr
+
+
+@defvr Constant upper*
+Pointer to a memory location holding the integer representation of the
+character @samp{U}; it is meant to be used as function argument to
+indicate a upper triangular matrix operand.
+@end defvr
+
 
 @c page
 

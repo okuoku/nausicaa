@@ -1949,14 +1949,13 @@
 				    integer* integer*)))
 
   (cpbsv_	(int cpbsv_ (char* integer* integer* integer*
-				   complex* integer* complex* integer* integer*
-				   )))
+				   complex* integer* complex* integer* integer*)))
 
   (cpbsvx_	(int cpbsvx_ (char* char* integer* integer*
-				    integer* complex* integer* complex* integer*
-				    char* real* complex* integer* complex*
-				    integer* real* real* real* complex*
-				    real* integer*)))
+  				    integer* complex* integer* complex* integer*
+  				    char* real* complex* integer* complex*
+  				    integer* real* real* real* complex*
+  				    real* integer*)))
 
   (cpbtf2_	(int cpbtf2_ (char* integer* integer* complex*
 				    integer* integer*)))
@@ -1965,8 +1964,7 @@
 				    integer* integer*)))
 
   (cpbtrs_	(int cpbtrs_ (char* integer* integer* integer*
-				    complex* integer* complex* integer* integer*
-				    )))
+				    complex* integer* complex* integer* integer*)))
 
   (cpocon_	(int cpocon_ (char* integer* complex* integer*
 				    real* real* complex* real* integer*)))

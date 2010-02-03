@@ -33,6 +33,19 @@ CLAPACK is available at:
 
 	      <http://www.netlib.org/clapack/>
 
+original documentation  for LAPACK and CLAPACK  can be found
+at:
+
+     <http://www.netlib.org/lapack/lug/lapack_lug.html>
+
+and in printed form:
+
+   "LAPACK   Users'   Guide".    Anderson,   Bai,   Bischof,
+   Blackford,   Demmel,   Dongarra,   Du  Croz,   Greenbaum,
+   Hammarling, McKenney,  Sorensen.  Third Edition.  Society
+   for    Industrial   and   Applied    Mathematics,   1999.
+   Philadelphia, PA.  ISBN 0-89871-447-8 (paperback).
+
 
 Notes for --- tag 0.1b0
 ------------------------------

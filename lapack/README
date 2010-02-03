@@ -133,7 +133,8 @@ build binary distribution archives.
 A. Credits
 ----------
 
-The stuff was written by Marco Maggi.
+The stuff  was written by  Marco Maggi.  The list  of LAPACK
+and CLAPACK authors can be found on the Netlib site.
 
 
 B. Bug reports
@@ -161,6 +162,19 @@ development takes place at:
 CLAPACK is available at:
 
 	      <http://www.netlib.org/clapack/>
+
+original documentation  for LAPACK and CLAPACK  can be found
+at:
+
+     <http://www.netlib.org/lapack/lug/lapack_lug.html>
+
+and in printed form:
+
+   "LAPACK   Users'   Guide".    Anderson,   Bai,   Bischof,
+   Blackford,   Demmel,   Dongarra,   Du  Croz,   Greenbaum,
+   Hammarling, McKenney,  Sorensen.  Third Edition.  Society
+   for    Industrial   and   Applied    Mathematics,   1999.
+   Philadelphia, PA.  ISBN 0-89871-447-8 (paperback).
 
 
 ### end of file
