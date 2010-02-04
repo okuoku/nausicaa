@@ -1,8 +1,8 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/LAPACK
-;;;Contents: test loading of platform library
-;;;Date: Tue Feb  2, 2010
+;;;Contents: test high-level API
+;;;Date: Thu Feb  4, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -34,13 +34,12 @@
   (only (foreign ffi sizeof)
 	strideof-double)
   (foreign memory)
-  (foreign math lapack platform)
-  (foreign math lapack sizeof)
+  (foreign math lapack)
   (foreign math lapack vm)
   (checks))
 
 (check-set-mode! 'report-failed)
-(display "*** testing lapack platform\n")
+(display "*** testing lapack\n")
 
 
 ;;;; helpers
@@ -75,8 +74,7 @@
 	       (vt		(rmx/c size size))
 	       (JOBU*		(&char #\A))
 	       (JOBVT*		(&char #\A))
-	       (LWORK*		(&int 201))
-	       (INFO*		(&int 0)))
+	       (LWORK*		(&int 201)))
 
 	  (rmx-fill! a 4 '((16.  5.  9.  4.)
 			   (2.  11.  7. 14.)
@@ -89,15 +87,15 @@
 	  ;;		 doublereal *s, doublereal *u, integer *ldu,
 	  ;;		 doublereal *vt, integer *ldvt,
 	  ;;		 doublereal *work, integer *lwork, integer *info)
-	  (dgesvd_ JOBU* JOBVT* (&int M) (&int N)
-		   a LDA* s u LDU* vt LDVT* wk LWORK* INFO*)
+	  (dgesvd JOBU* JOBVT* (&int M) (&int N)
+		  a LDA* s u LDU* vt LDVT* wk LWORK*)
 
 	  (do ((i 0 (+ 1 i)))
 	      ((= i size))
 	    (display (rvc-ref s i))
 	    (newline))
-	  (pointer-ref-c-integer INFO* 0)))
-    => 0)
+	  #t))
+    => #t)
 
   #t)
 

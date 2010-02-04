@@ -69,6 +69,9 @@ i686-pc-linux-gnu system:
    #   F2CLIBS/libF77/iargc_.c
    #   F2CLIBS/libF77/getarg_.c
 
+   # edit the file "SRC/xerbla.c" commenting out the
+   # "printf()" call
+
    $ make f2clib \
        CFLAGS='-fPIC -funroll-all-loops -O3 -march=i686 -mtune=i686'
    $ make blaslib \
@@ -83,7 +86,7 @@ i686-pc-linux-gnu system:
    $ ar -x lapack_LINUX.a
 
    $ gcc -fPIC -lm -shared *.o \
-        -Wl,-soname,libclapack.so -o libclapack.so
+       -Wl,-soname,libclapack.so -o libclapack.so
    $ strip --strip-unneeded libclapack.so
 
 install  the  library   "libclapack.so"  under,  let's  say,

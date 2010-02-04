@@ -600,19 +600,19 @@ supports @gnu{}+Linux systems.
 
 For end users only interested in solving math equations, @clapack{} can
 be intimidating with its 1200+ exported functions; but we do not really
-need to read the documentation of all of them.  Rather we should start
-by acknowledging that almost each algorithm comes in a version for
+need to read the documentation of all of them.  Rather let's start by
+acknowledging that almost each algorithm comes in a version for
 @code{float} numbers and a version for @code{double} numbers; so the
-count of ``distinct'' algorithms is 600+.  Then we should acknowledge
-that almost each algorithm comes in a version for real numbers and a
-version for complex numbers; so the count of ``distinct'' algorithms is
-down to 300+.
+count of ``distinct'' algorithms is ~600+.  Then let's acknowledge that
+almost each algorithm comes in a version for real numbers and a version
+for complex numbers; so the count of ``distinct'' algorithms is down to
+~300+.
 
-Finally we should acknowledge @clapack{}'s architecture:
+Finally let's acknowledge @clapack{}'s architecture:
 
 @example
  -----------------------------------------------
-|                 driver functions              |
+|               driver functions                |
 |-----------------------------------------------|
 | computational functions | auxiliary functions |
  -----------------------------------------------
@@ -632,6 +632,15 @@ Compute eigenvalues and eigenvectors.
 @item
 Compute the singular value decomposition.
 @end enumerate
+
+The original @lapack{} user's guide:
+
+@center @url{http://www.netlib.org/lapack/lug/lapack_lug.html}
+
+@noindent
+is a good introductory read, but unfortunately the documentation of the
+functions is in the source code itself; for example, the documentation
+of @cfunc{dgesvd_} is in the file @file{CLAPACK/SRC/dgesvd.c}.
 
 @c page
 @node overview libraries
@@ -661,15 +670,25 @@ the Scheme functions have the same name of the C functions, but with the
 trailing underscore removed; so @cfunc{dgesv_} is available as
 @func{dgesv}.
 
+For all the functions, the @var{info} argument@footnote{See
+@url{http://www.netlib.org/lapack/lug/node119.html}.} is handled
+internally by the library and must not be given in function calls; in
+case of error, detected inspecting the @var{info} value after a function
+call, an exception is raised.
+
 This document describes the @code{primitives} @api{}; only the functions
 implementing marshaling of values are documented: if a function is not
 documented, it means that it is reexported ``as is'' from the
-@code{platform} library.
+@code{platform} library (with the exception of the @var{info} argument).
 
 @item foreign math lapack
 Compound library exporting the high--level @api{}; it reexports bindings
 from the @samp{primitives} library and some bindings from the
 @samp{sizeof} library.
+
+@item foreign math lapack vm
+Exports a very basi vector and matrix @api{}, mostly intended for
+testing.
 
 @c @item foreign math lapack compensated
 @c Exports bindings to constructor functions making use of the
@@ -816,7 +835,8 @@ bidiagonal reduction (@acronym{BRD}) of a real general matrix.
 
 
 The bindings described in this chapter are exported by the
-@library{foreign math lapack sizeof} library.
+@library{foreign math lapack sizeof} library and reexported by the
+@library{foreign math lapack} library.
 
 @menu
 * typedefs common::             Common C language types.

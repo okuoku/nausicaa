@@ -27,7 +27,77 @@
 
 (library (foreign math lapack)
   (export
+
+    integer
+    sizeof-integer		alignof-integer		strideof-integer
+    pointer-ref-c-integer	pointer-set-c-integer!
+
+    uinteger
+    sizeof-uinteger		alignof-uinteger	strideof-uinteger
+    pointer-ref-c-uinteger	pointer-set-c-uinteger!
+
+    shortint
+    sizeof-shortint		alignof-shortint	strideof-shortint
+    pointer-ref-c-shortint	pointer-set-c-shortint!
+
+    real
+    sizeof-real			alignof-real		strideof-real
+    pointer-ref-c-real		pointer-set-c-real!
+
+    doublereal
+    sizeof-doublereal		alignof-doublereal	strideof-doublereal
+    pointer-ref-c-doublereal	pointer-set-c-doublereal!
+
+    sizeof-logical		alignof-logical		strideof-logical
+    pointer-ref-c-logical	pointer-set-c-logical!
+
+    logical
+    sizeof-shortlogical		alignof-shortlogical	strideof-shortlogical
+    pointer-ref-c-shortlogical	pointer-set-c-shortlogical!
+
+    logical1
+    sizeof-logical1		alignof-logical1	strideof-logical1
+    pointer-ref-c-logical1	pointer-set-c-logical1!
+
+    integer1
+    sizeof-integer1		alignof-integer1	strideof-integer1
+    pointer-ref-c-integer1	pointer-set-c-integer1!
+
+    ftnlen
+    sizeof-ftnlen		alignof-ftnlen		strideof-ftnlen
+    pointer-ref-c-ftnlen	pointer-set-c-ftnlen!
+
+    flag
+    sizeof-flag			alignof-flag		strideof-flag
+    pointer-ref-c-flag		pointer-set-c-flag!
+
+    ftnint
+    sizeof-ftnint		alignof-ftnint		strideof-ftnint
+    pointer-ref-c-ftnint	pointer-set-c-ftnint!
+
+    address
+
+    C_fp	D_fp
+    E_fp	H_fp
+    I_fp	J_fp
+    K_fp	L_fp
+    R_fp	S_fp
+    U_fp	Z_fp
+
+    sizeof-complex		alignof-complex		strideof-complex
+    struct-complex-r-set!	struct-complex-r-ref
+    struct-complex-i-set!	struct-complex-i-ref
+
+    sizeof-doublecomplex	alignof-doublecomplex	strideof-doublecomplex
+    struct-doublecomplex-r-set!	struct-doublecomplex-r-ref
+    struct-doublecomplex-i-set!	struct-doublecomplex-i-ref
+
+;;; --------------------------------------------------------------------
+
     upper*		lower*
+
+;;; --------------------------------------------------------------------
+
     cbdsqr
     cgbbrd
     cgbcon

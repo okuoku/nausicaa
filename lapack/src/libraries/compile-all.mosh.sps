@@ -25,6 +25,7 @@
 
 (import
     (only (foreign math lapack))
+  (only (foreign math lapack vm))
   )
 
 ;;; end of file
