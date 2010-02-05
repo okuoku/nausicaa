@@ -51638,11 +51638,104 @@ following types: @condition{who}, @condition{option},
 
 
 @menu
+* armor conditions::            Condition objects.
 * armor base16::                Base 16 encoder/decoder.
 * armor base64::                Base 64 encoder/decoder.
 * armor base91::                Base 91 encoder/decoder.
 * armor ascii85::               @ascii{} 85 encoder/decoder.
 @end menu
+
+@c page
+@node armor conditions
+@section Condition objects
+
+
+All the functions in the @ascii{} armor libraries raise exceptions when
+an error occurs; all the exception types are described here.  The
+bindings described in this section are exported by the @library{armor
+conditions} library.
+
+@menu
+* armor conditions error::      Base error condition.
+* armor conditions byte::       Invalid input byte error
+                                condition.
+* armor conditions length::     Invalid input length error
+                                condition.
+* armor conditions padding::    Invalid padded block error
+                                condition.
+@end menu
+
+@c page
+@node armor conditions error
+@subsection Base error condition
+
+
+@deftp {Condition Type} &armor-error
+Base type for all the @ascii{} armor errors; it is derived from
+@condition{error}.  It has no fields.
+@end deftp
+
+
+@defun make-armor-error-condition
+@defunx armor-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{armor-error}.
+@end defun
+
+@c page
+@node armor conditions input
+@subsection Invalid input byte error condition
+
+
+@deftp {Condition Type} &armor-invalid-input-byte
+Condition object used to tag ``invalid input byte'' @ascii{} armor
+errors; it is derived from @condition{error}.  It has no fields.
+@end deftp
+
+
+@defun make-armor-invalid-input-byte-condition
+@defunx armor-invalid-input-byte-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{armor-invalid-input-byte}.
+@end defun
+
+@c page
+@node armor conditions length
+@subsection Invalid input length error condition
+
+
+@deftp {Condition Type} &armor-invalid-input-length
+Condition object used to tag ``invalid input length'' @ascii{} armor
+errors; it is derived from @condition{error}.  It has no fields.
+@end deftp
+
+
+@defun make-armor-invalid-input-length-condition
+@defunx armor-invalid-input-length-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{armor-invalid-input-length}.
+@end defun
+
+@c page
+@node armor conditions padding
+@subsection Invalid padded block error condition
+
+
+@deftp {Condition Type} &armor-invalid-padding
+Condition object used to tag ``invalid padded block @ascii{} armor
+errors; it is derived from @condition{error}.  It has no fields.
+
+This condition indicates that the number of padding characters in an
+encoded padded input block is invalid.
+@end deftp
+
+
+@defun make-armor-invalid-padding-condition
+@defunx armor-invalid-padding-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{armor-invalid-padding}.
+@end defun
+
 
 @c page
 @node armor base16

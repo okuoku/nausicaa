@@ -27,16 +27,16 @@
 
 (import (nausicaa)
   (receive)
-  (armor base16)
   (armor base32)
-  (armor base64)
-  (armor base91)
-  (armor ascii85)
+  (armor conditions)
   (checks)
   (parameters))
 
 (check-set-mode! 'report-failed)
 (display "*** testing ASCII armor base32\n")
+
+
+;;;; helpers
 
 (define (subbytevector src start past)
   (let ((dst (make-bytevector (- past start))))
@@ -45,6 +45,12 @@
 	((= j past)
 	 dst)
       (bytevector-u8-set! dst i (bytevector-u8-ref src j)))))
+
+
+;;;; parameters
+
+(define encoding
+  (make-parameter #t))
 
 (define padding?
   (make-parameter #t))
@@ -332,92 +338,163 @@
      "JRSSAUDPMV2GKIDFON2CA43FNVRGYYLCNRSSAYLVEBYHE2LOMNSSAZDFOMQG45LFMVZSAULVNEQGQYLOORSSA3DBEB2GK3LQMV2GKIDFEBZWKIDSNF2CAZDFEBWCOYLSMNUGK4R3EBCXQ2LMMUQHG5LMEBWGKIDTN5WCAYLVEBWWS3DJMV2SAZDFOMQGQ5LFMVZSYICTMVZSAYLJNRSXGIDEMUQGOZLBNZ2CA3BHMVWXAZLDNBSW45BAMRSSA3LBOJRWQZLSFY")))
 
 
-(parametrise ((check-test-name	'base32))
+;;;; base32 encoding and decoding routines
 
-  (define (encode binary)
-    (let* ((ctx		(make-<base32-encode-ctx> 'base32 (padding?) (encoding-case)))
-	   (src		(if (string? binary) (string->utf8 binary) binary))
-	   (src-len	(bytevector-length src))
-	   (dst		(make-bytevector (base32-encode-length src-len (padding?)))))
-      (receive (dst-next src-next)
-	  (base32-encode-update! ctx dst 0 src 0 src-len)
-	(receive (result dst-next src-next)
-	    (base32-encode-final! ctx dst dst-next src src-next src-len)
-	  (list result (utf8->string (subbytevector dst 0 dst-next)))))))
+(define (encode binary)
+  ;;Encode BINARY which  must be a Scheme string  or bytevector.  Return
+  ;;tow values: the result boolean from the encoding functions, a string
+  ;;representing the encoded data.
+  ;;
+  ;;Make use of the ENCODING, PADDING? and ENCODING-CASE parameters.
+  ;;
+  (let* ((ctx		(make-<base32-encode-ctx> (encoding) (padding?) (encoding-case)))
+	 (src		(if (string? binary) (string->utf8 binary) binary))
+	 (src-len	(bytevector-length src))
+	 (dst		(make-bytevector (base32-encode-length src-len (padding?)))))
+    (receive (dst-next src-next)
+	(base32-encode-update! ctx dst 0 src 0 src-len)
+      (receive (result dst-next src-next)
+	  (base32-encode-final! ctx dst dst-next src src-next src-len)
+	(list result (utf8->string (subbytevector dst 0 dst-next)))))))
 
-  (define (decode binary string-result?)
-    (define (output dst dst-past)
-      (let ((by (subbytevector dst 0 dst-past)))
-	(if string-result?
-	    (utf8->string by)
-	  by)))
-    (let* ((ctx		(make-<base32-decode-ctx> 'base32 (padding?) (encoding-case)))
-	   (src		(if (string? binary)
+(define (decode binary string-result?)
+  ;;Decode BINARY which  must be a Scheme string  or bytevector.  Return
+  ;;two  values: the  boolean result  from the  decoding  functions, the
+  ;;decoded data.
+  ;;
+  ;;If STRING-RESULT?  is  true, the decoded data is  returned as Scheme
+  ;;string; else it is returned as Scheme bytevector.
+  ;;
+  ;;Make use of the ENCODING, PADDING? and ENCODING-CASE parameters.
+  ;;
+  (define (output dst dst-past)
+    (let ((by (subbytevector dst 0 dst-past)))
+      (if string-result?
+	  (utf8->string by)
+	by)))
+  (let* ((ctx		(make-<base32-decode-ctx> (encoding) (padding?) (encoding-case)))
+	 (src		(if (string? binary)
 			    (string->utf8 (case (encoding-case)
 					    ((upper)	(string-upcase binary))
 					    ((lower)	(string-downcase binary))
 					    (else	binary)))
 			  binary))
-	   (src-len	(bytevector-length src))
-	   (dst		(make-bytevector (base32-decode-length src-len (padding?)))))
-      (receive (result dst-next src-next)
-	  (base32-decode-update! ctx dst 0 src 0 src-len)
-	(if result
-	    (list result (output dst dst-next))
-	  (receive (result dst-next src-next)
-	      (base32-decode-final! ctx dst dst-next src src-next src-len)
-	    (list result (output dst dst-next)))))))
+	 (src-len	(bytevector-length src))
+	 (dst		(make-bytevector (base32-decode-length src-len (padding?)))))
+    (receive (result dst-next src-next)
+	(base32-decode-update! ctx dst 0 src 0 src-len)
+      (if result
+	  (list result (output dst dst-next))
+	(receive (result dst-next src-next)
+	    (base32-decode-final! ctx dst dst-next src src-next src-len)
+	  (list result (output dst dst-next)))))))
+
+
+(parametrise ((check-test-name	'one)
+	      (encoding		'base32)
+	      (padding?		#t)
+	      (encoding-case	'upper)
+	      (debugging	#t))
+
+
+  (check
+      (encode "foobar")
+    => '(#t "MZXW6YTBOI======"))
+
+  (check
+      (decode "MZXW6YTBOI======" #t)
+    => '(#t "foobar"))
+
+  (check
+      (decode "AA======" #f)
+    => '(#t #vu8(#o000)))
+
+  (for-each (lambda (triplet)
+	      (let ((binary	(car   triplet))
+		    (padded	(cadr  triplet)))
+		(check
+		    `(,binary -> ,(encode binary))
+		  => `(,binary -> (#t ,padded)))
+		(check
+		    `(,padded -> ,(decode padded (string? binary)))
+		  => `(,padded -> (#t ,binary)))
+		))
+    test-vectors)
 
 ;;; --------------------------------------------------------------------
 
-  (parametrise ((padding?	#t)
-		(encoding-case	'upper))
+  (check
+      (guard (E ((armor-invalid-input-byte-condition? E)
+;;;		   (display (condition-irritants E))(newline)
+		 #t)
+		(else
+		 #f))
+	(decode "ABCDE0AA" #f))
+    => #t)
 
-    (check
-	(encode "foobar")
-      => '(#t "MZXW6YTBOI======"))
+  (check
+      (guard (E ((armor-invalid-padding-condition? E)
+;;;		   (display (condition-irritants E))(newline)
+		 #t)
+		(else
+		 (debug-print-condition "invalid padding" E)
+		 #f))
+	(decode "A=======" #f))
+    => #t)
 
-    (check
-	(decode "MZXW6YTBOI======" #t)
-      => '(#t "foobar"))
+  (check
+      (guard (E ((armor-invalid-padding-condition? E)
+;;;		   (display (condition-irritants E))(newline)
+		 #t)
+		(else
+		 (debug-print-condition "invalid padding" E)
+		 #f))
+	(decode "ACA=====" #f))
+    => #t)
 
-    (check
-	(decode "AA======" #f)
-      => '(#t #vu8(#o000)))
+  (check
+      (guard (E ((armor-invalid-padding-condition? E)
+;;;		   (display (condition-irritants E))(newline)
+		 #t)
+		(else
+		 (debug-print-condition "invalid padding" E)
+		 #f))
+	(decode "A=CA====" #f))
+    => #t)
 
-    (for-each (lambda (triplet)
-		(let ((binary	(car   triplet))
-		      (padded	(cadr  triplet)))
-		  (check
-		      `(,binary -> ,(encode binary))
-		    => `(,binary -> (#t ,padded)))
-		  (check
-		      `(,padded -> ,(decode padded (string? binary)))
-		    => `(,padded -> (#t ,binary)))
-		  ))
-      test-vectors))
+  #f)
 
-  (parametrise ((padding?	#f)
-		(encoding-case	'upper))
+
+(parametrise ((check-test-name	'two)
+	      (encoding		'base32)
+	      (padding?		#f)
+	      (encoding-case	'upper)
+	      (debugging	#t))
 
-    (check
-	(encode "foobar")
-      => '(#t "MZXW6YTBOI"))
+  (check
+      (encode "foobar")
+    => '(#t "MZXW6YTBOI"))
 
-    (for-each (lambda (triplet)
-		(let ((binary	(car   triplet))
-		      (unpadded (caddr triplet)))
-		  (check
-		      `(,binary -> ,(encode binary))
-		    => `(,binary -> (#t ,unpadded)))
-		  (check
-		      `(,unpadded -> ,(decode unpadded (string? binary)))
-		    => `(,unpadded -> (#t ,binary)))
-		  ))
-      test-vectors))
+  (for-each (lambda (triplet)
+	      (let ((binary	(car   triplet))
+		    (unpadded (caddr triplet)))
+		(check
+		    `(,binary -> ,(encode binary))
+		  => `(,binary -> (#t ,unpadded)))
+		(check
+		    `(,unpadded -> ,(decode unpadded (string? binary)))
+		  => `(,unpadded -> (#t ,binary)))
+		))
+    test-vectors)
 
-  (parametrise ((padding?	#f)
-		(encoding-case	'lower))
+  #t)
+
+
+(parametrise ((check-test-name	'three)
+	      (encoding		'base32)
+	      (padding?		#f)
+	      (encoding-case	'lower)
+	      (debugging	#t))
 
     (check
 	(encode "foobar")
@@ -433,7 +510,7 @@
 		      `(,unpadded -> ,(decode unpadded (string? binary)))
 		    => `(,unpadded -> (#t ,binary)))
 		  ))
-      test-vectors))
+      test-vectors)
 
   #t)
 

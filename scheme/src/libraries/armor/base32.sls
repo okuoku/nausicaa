@@ -28,50 +28,51 @@
 (library (armor base32)
   (export
 
-    <base32-encode-ctx>			<base32-decode-ctx>
-    make-<base32-encode-ctx>		make-<base32-decode-ctx>
-    <base32-encode-ctx>?		<base32-decode-ctx>?
-    <base32-encode-ctx>-encoding	<base32-decode-ctx>-encoding
-    <base32-encode-ctx>-encoding-case	<base32-decode-ctx>-encoding-case
-    <base32-encode-ctx>-padding?	<base32-decode-ctx>-padding?
-    <base32-encode-ctx>-pad-char	<base32-decode-ctx>-pad-char
-    <base32-encode-ctx>-table		<base32-decode-ctx>-table
+    <base32-encode-ctx>				<base32-decode-ctx>
+    make-<base32-encode-ctx>			make-<base32-decode-ctx>
+    <base32-encode-ctx>?			<base32-decode-ctx>?
+    <base32-encode-ctx>-encoding		<base32-decode-ctx>-encoding
+    <base32-encode-ctx>-encoding-case		<base32-decode-ctx>-encoding-case
+    <base32-encode-ctx>-generate-padding?	<base32-decode-ctx>-expect-padding?
+    <base32-encode-ctx>-pad-char		<base32-decode-ctx>-pad-char
+    <base32-encode-ctx>-table			<base32-decode-ctx>-table
 
-    base32-encode-update!		base32-decode-update!
-    base32-encode-final!		base32-decode-final!
+    base32-encode-update!			base32-decode-update!
+    base32-encode-final!			base32-decode-final!
 
-    base32-encode-length		base32-decode-length
-    base32-encode-update-length		base32-decode-update-length
-    base32-encode-final-length		base32-decode-final-length
+    base32-encode-length			base32-decode-length
+    base32-encode-update-length			base32-decode-update-length
+    base32-encode-final-length			base32-decode-final-length
 
-    base32-encode-block-length		base32-decode-block-length)
+    base32-encode-block-length			base32-decode-block-length)
   (import (rnrs)
     (begin0)
     (receive)
     (language-extensions)
-    (armor helpers))
+    (armor helpers)
+    (armor conditions))
 
 
 (define-record-type <base32-encode-ctx>
   (fields (immutable encoding)
 	  (immutable encoding-case)
-	  (immutable padding?)
+	  (immutable generate-padding?)
 	  (immutable pad-char)
 	  (immutable table))
   (protocol
    (lambda (maker)
-     (lambda (encoding padding? encoding-case)
+     (lambda (encoding generate-padding? encoding-case)
        ;;ENCODING must  be a Scheme symbol selecting  the encoding type:
        ;;base32,  rfc4648, base32hex,  rfc2938.  The  argument  value is
        ;;normalised to one among: base32, base32hex.
        ;;
-       ;;If ENCODING-CASE  is true: an  upper case encoding table is used;
+       ;;If ENCODING-CASE is true: an upper case encoding table is used;
        ;;else  a  lower  case  one  is  used.   The  argument  value  is
        ;;normalised to #t or #f.
        ;;
-       ;;If PADDING?  is true: the  output is padded with "=" characters
-       ;;so that  its length  is an exact  multiple of 8.   The argument
-       ;;value is normalised to #t or #f.
+       ;;If GENERATE-PADDING?   is true: the  output is padded  with "="
+       ;;characters so that  its length is an exact  multiple of 8.  The
+       ;;argument value is normalised to #t or #f.
        ;;
        (let* ((encoding		(case encoding
 				  ((base32 rfc4648)	'base32)
@@ -85,7 +86,7 @@
 				  (else
 				   (assertion-violation #f
 				     "invalid input case selection for base32 encoder"))))
-	      (padding?		(if padding? #t #f))
+	      (generate-padding? (if generate-padding? #t #f))
 	      (table		(case encoding
 				  ((base32)
 				   (case encoding-case
@@ -96,28 +97,28 @@
 				     ((upper)	encode-table-base32hex/upper-case)
 				     ((lower)	encode-table-base32hex/lower-case))))))
 
-	 (maker encoding encoding-case padding? (char->integer #\=) table))))))
+	 (maker encoding encoding-case generate-padding? (char->integer #\=) table))))))
 
 
 (define-record-type <base32-decode-ctx>
   (fields (immutable encoding)
 	  (immutable encoding-case)
-	  (immutable padding?)
+	  (immutable expect-padding?)
 	  (immutable pad-char)
 	  (immutable table))
   (protocol
    (lambda (maker)
-     (lambda (encoding padding? encoding-case)
+     (lambda (encoding expect-padding? encoding-case)
        ;;ENCODING must  be a Scheme symbol selecting  the encoding type:
        ;;base32,  rfc4648, base32hex,  rfc2938.  The  argument  value is
        ;;normalised to one among: base32, base32hex.
        ;;
-       ;;ENCODING-CASE must be a  Scheme symbol selecting the expected case
-       ;;of the input string: lower, upper, mixed.
+       ;;ENCODING-CASE must  be a  Scheme symbol selecting  the expected
+       ;;case of the input string: lower, upper, mixed.
        ;;
-       ;;If PADDING?  is  true: the input is expected  to be padded with
-       ;;"=" characters  so that its length  is an exact  multiple of 8.
-       ;;The argument value is normalised to #t or #f.
+       ;;If EXPECT-PADDING?  is true: the input is expected to be padded
+       ;;with "=" characters so that  its length is an exact multiple of
+       ;;8.  The argument value is normalised to #t or #f.
        ;;
        (let* ((encoding		(case encoding
 				  ((base32 rfc4648)	'base32)
@@ -125,7 +126,7 @@
 				  (else
 				   (assertion-violation #f
 				     "invalid encoding selection for base32 decoder" encoding))))
-	      (padding?		(if padding? #t #f))
+	      (expect-padding?	(if expect-padding? #t #f))
 	      (encoding-case	(case encoding-case
 				  ((lower)	'lower)
 				  ((upper)	'upper)
@@ -151,7 +152,7 @@
 				     ((mixed)
 				      decode-table-base32hex/mixed-case))))))
 
-	 (maker encoding encoding-case padding? (char->integer #\=) table))))))
+	 (maker encoding encoding-case expect-padding? (char->integer #\=) table))))))
 
 
 ;;;; encoding tables
@@ -266,14 +267,6 @@
 	       (ACCESSOR ?record))
 	      ((set! ?id ?e)
 	       (MUTATOR ?record ?e)))))))))
-
-
-(define (%decode-error-invalid-input-byte byte who)
-  (error who "invalid input byte while decoding base32 bytevector" byte))
-
-(define (%decode-error-non-pad-char-in-padding byte who)
-  (error who
-    "invalid input byte while decoding padding area of base32 bytevector" byte))
 
 
 ;;;; encoded output length estimation
@@ -470,7 +463,7 @@
   ;;Return three values:
   ;;
   ;;(1) A boolean:  true if success, false if  the output bytevector was
-  ;;filled before flushing all the bytes.
+  ;;filled before flushing all the bytes or not enough room is left.
   ;;
   ;;(2) The index  of the next non-written byte in  DST-BV; if DST-BV is
   ;;left full, this value is the length of DST-BV.
@@ -486,8 +479,8 @@
 
   (define table
     (<base32-encode-ctx>-table ctx))
-  (define padding?
-    (<base32-encode-ctx>-padding? ctx))
+  (define generate-padding?
+    (<base32-encode-ctx>-generate-padding? ctx))
   (define pad-char
     (<base32-encode-ctx>-pad-char ctx))
 
@@ -554,7 +547,7 @@
 	   ;; |        |        |        | 43210  | dst5
 	   ;; |        |        |        |      43|210 dst6
 	   ;; |        |        |        |        |
-	   (if (< dst-len (if padding? 8 7))
+	   (if (< dst-len (if generate-padding? 8 7))
 	       (values #f i j)
 	     (let ((src0 (*src))
 		   (src1 (*src))
@@ -567,7 +560,7 @@
 	       (*dst 4 (bitwise-ior (<< src2 1) (>> src3 7)))
 	       (*dst 5              (>> src3 2))
 	       (*dst 6              (<< src3 3))
-	       (when padding?
+	       (when generate-padding?
 		 (*pad 7))
 	       (values #t i j))))
 
@@ -582,7 +575,7 @@
 	   ;; |        |       4|3210    | dst3
 	   ;; |        |        |    4321|0 dst4
 	   ;; |        |        |        |
-	   (if (< dst-len (if padding? 8 5))
+	   (if (< dst-len (if generate-padding? 8 5))
 	       (values #f i j)
 	     (let ((src0 (*src))
 		   (src1 (*src))
@@ -592,7 +585,7 @@
 	       (*dst 2              (>> src1 1))
 	       (*dst 3 (bitwise-ior (<< src1 4) (>> src2 4)))
 	       (*dst 4              (<< src2 1))
-	       (when padding?
+	       (when generate-padding?
 		 (*pad 5)
 		 (*pad 6)
 		 (*pad 7))
@@ -608,7 +601,7 @@
 	   ;; |        |  43210 | dst2
 	   ;; |        |       4|3210 dst3
 	   ;; |        |        |
-	   (if (< dst-len (if padding? 8 4))
+	   (if (< dst-len (if generate-padding? 8 4))
 	       (values i j)
 	     (let ((src0 (*src))
 		   (src1 (*src)))
@@ -616,7 +609,7 @@
 	       (*dst 1 (bitwise-ior (<< src0 2) (>> src1 6)))
 	       (*dst 2              (>> src1 1))
 	       (*dst 3              (<< src1 4))
-	       (when padding?
+	       (when generate-padding?
 		 (*pad 4)
 		 (*pad 5)
 		 (*pad 6)
@@ -631,12 +624,12 @@
 	   ;; |43210   | dst0
 	   ;; |     432|10 dst1
 	   ;; |        |
-	   (if (< dst-len (if padding? 8 2))
+	   (if (< dst-len (if generate-padding? 8 2))
 	       (values #f i j)
 	     (let ((src0 (*src)))
 	       (*dst 0              (>> src0 3))
 	       (*dst 1              (<< src0 2))
-	       (when padding?
+	       (when generate-padding?
 		 (*pad 2)
 		 (*pad 3)
 		 (*pad 4)
@@ -673,23 +666,30 @@
     (<base32-decode-ctx>-table ctx))
   (define pad-char
     (<base32-decode-ctx>-pad-char ctx))
-  (define padding?
-    (<base32-decode-ctx>-padding? ctx))
+  (define expect-padding?
+    (<base32-decode-ctx>-expect-padding? ctx))
 
-  (define (%invalid-input-byte byte)
-    (%decode-error-invalid-input-byte byte 'base32-decode-update!))
+  (define (%error-invalid-input-byte byte)
+    (raise
+     (condition (make-armor-invalid-input-byte-condition)
+		(make-who-condition 'base32-decode-update!)
+		(make-message-condition "invalid input byte while decoding base32 bytevector")
+		(make-irritants-condition byte))))
 
-  (define (%invalid-pad-area)
-    (error 'base32-decode-update!
-      "invalid padded block while decoding base32 bytevector"))
+  (define (%error-invalid-pad-area . chars)
+    (raise
+     (condition (make-armor-invalid-padding-condition)
+		(make-who-condition 'base32-decode-update!)
+		(make-message-condition "invalid padded block while decoding base32 bytevector")
+		(make-irritants-condition (apply string (map integer->char chars))))))
 
   (define (%decode char)
     (if (zero? (bitwise-and #x80 char))
 	(let ((byte (vector-ref table char)))
 	  (if byte
 	      byte
-	    (%invalid-input-byte char)))
-      (%invalid-input-byte char)))
+	    (%error-invalid-input-byte char)))
+      (%error-invalid-input-byte char)))
 
   (let loop ((i		dst-start)
 	     (j		src-start)
@@ -708,7 +708,7 @@
     (cond ((or (< src-len 8) (< dst-len 5))
 	   (values #f i j))
 
-	  (padding?
+	  (expect-padding?
 	   ;;    src0     src1     src2     src3     src4     src5     src6     src7
 	   ;;
 	   ;; |76543210|76543210|76543210|76543210|76543210|76543210|76543210|76543210|
@@ -737,27 +737,27 @@
 	       (when (or pad0? pad1?
 			 (and (not pad2?) pad3?)
 			 (and (not pad5?) pad6?))
-		 (%invalid-pad-area))
+		 (%error-invalid-pad-area char0 char1 char2 char3 char4 char5 char6 char7))
 	       (let ((src0 (%decode char0))
 		     (src1 (%decode char1)))
 		 (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
 		 (if pad2?
 		     (if (and pad4? pad5? pad7?)
 			 (values #t i j)
-		       (%invalid-pad-area))
+		       (%error-invalid-pad-area char0 char1 char2 char3 char4 char5 char6 char7))
 		   (let ((src2 (%decode char2))
 			 (src3 (%decode char3)))
 		     (*dst 1 (bitwise-ior (<< src1 6) (<< src2 1) (>> src3 4)))
 		     (if pad4?
 			 (if (and pad5? pad7?)
 			     (values #t i j)
-			   (%invalid-pad-area))
+			   (%error-invalid-pad-area char0 char1 char2 char3 char4 char5 char6 char7))
 		       (let ((src4 (%decode char4)))
 			 (*dst 2 (bitwise-ior (<< src3 4) (>> src4 1)))
 			 (if pad5?
 			     (if pad7?
 				 (values #t i j)
-			       (%invalid-pad-area))
+			       (%error-invalid-pad-area char0 char1 char2 char3 char4 char5 char6 char7))
 			   (let ((src5 (%decode char5))
 				 (src6 (%decode char6)))
 			     (*dst 3 (bitwise-ior (<< src4 7) (<< src5 2) (>> src6 3)))
@@ -818,14 +818,28 @@
   ;;unpadded characters as specified in CTX.
   ;;
 
-  (if (<base32-decode-ctx>-padding? ctx)
+  (if (<base32-decode-ctx>-expect-padding? ctx)
+
       (if (zero? (- src-past src-start))
 	  (values #t dst-start src-start)
 	(base32-decode-update! ctx dst-bv dst-start src-bv src-start src-past))
-    (let ((table	(<base32-decode-ctx>-table ctx)))
 
-      (define (%invalid-input-byte byte)
-	(%decode-error-invalid-input-byte byte 'base32-decode-final!))
+    (let ((table (<base32-decode-ctx>-table ctx)))
+
+      (define (%error-invalid-input-length)
+	(raise
+	 (condition (make-armor-invalid-input-length-condition)
+		    (make-who-condition 'base32-decode-final!)
+		    (make-message-condition
+		     "invalid input length while decoding base32 bytevector"))))
+
+      (define (%error-invalid-input-byte byte)
+	(raise
+	 (condition (make-armor-invalid-input-byte-condition)
+		    (make-who-condition 'base32-decode-final!)
+		    (make-message-condition
+		     "invalid input byte while decoding base32 bytevector")
+		    (make-irritants-condition byte))))
 
       (let loop ((i		dst-start)
 		 (j		src-start)
@@ -838,8 +852,8 @@
 		(begin0-let ((byte (vector-ref table char)))
 		  (if byte
 		      (incr! j)
-		    (%invalid-input-byte char)))
-	      (%invalid-input-byte char))))
+		    (%error-invalid-input-byte char)))
+	      (%error-invalid-input-byte char))))
 
 	(define-macro (*dst ?dummy ?expr)
 	  (bytevector-u8-set! dst-bv i (lower8 ?expr))
@@ -955,8 +969,7 @@
 		   (values #t i j))))
 
 	      (else
-	       (error 'base32-decode-final!
-		 "invalid input length while decoding base32 bytevector"))))))))
+	       (%error-invalid-input-length)))))))
 
 
 ;;;; done
