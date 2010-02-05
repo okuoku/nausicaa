@@ -1,6 +1,6 @@
 
-		      Nausicaa/LAPACK
-		      ===============
+                      Nausicaa/LAPACK
+                      ===============
 
 
 Topics
@@ -93,14 +93,31 @@ install  the  library   "libclapack.so"  under,  let's  say,
 "/usr/local/lib"; install  the header files  "clapack.h" and
 "SRC/f2c.h" under, let's say, "/usr/local/include":
 
-    $ export DESTDIR=
-    $ export prefix=/usr/local
-    $ install -m 0755 -d "${DESTDIR}/$prefix/lib"
-    $ install -m 0755 -d "${DESTDIR}/$prefix/include"
-    $ install -m 0644 libclapack.so \
-        "${DESTDIR}/$prefix/lib"
-    $ install -m 0644 clapack.h SRC/f2c.h \
-      	"${DESTDIR}/$prefix/include"
+   $ export DESTDIR=
+   $ export prefix=/usr/local
+   $ install -m 0755 -d "${DESTDIR}/$prefix/lib"
+   $ install -m 0755 -d "${DESTDIR}/$prefix/include"
+   $ install -m 0644 libclapack.so \
+       "${DESTDIR}/$prefix/lib"
+   $ install -m 0644 clapack.h SRC/f2c.h \
+       "${DESTDIR}/$prefix/include"
+
+  While  it is NOT  needed to  use Nausicaa/LAPACK,  just in
+case we need to install the original Fortran 77 LAPACK, too,
+this is what the  author does on an i686-pc-linux-gnu system
+with LAPACK 3.2.1:
+
+   $ cp make.inc.example make.inc
+   $ make blaslib   OPTS='-O3 -march=i686 -mtune=i686'
+   $ make lapacklib OPTS='-O3 -march=i686 -mtune=i686'
+   $ ar -x blas_LINUX.a
+   $ ar -x lapack_LINUX.a
+   $ gcc -fPIC -lgfortran -shared *.o   \
+        -Wl,-soname,liblapack.so        \
+        -o liblapack.so
+   $ strip --strip-unneeded liblapack.so
+
+then install the "liblapack.so" file.
 
 
 4.2 Install Nausicaa/LAPACK
@@ -156,7 +173,7 @@ The latest version of this package can be downloaded from:
 
 the home page of the Nausicaa project is at:
 
-	<http://marcomaggi.github.com/nausicaa.html>
+        <http://marcomaggi.github.com/nausicaa.html>
 
 development takes place at:
 
@@ -164,7 +181,7 @@ development takes place at:
 
 CLAPACK is available at:
 
-	      <http://www.netlib.org/clapack/>
+              <http://www.netlib.org/clapack/>
 
 original documentation  for LAPACK and CLAPACK  can be found
 at:

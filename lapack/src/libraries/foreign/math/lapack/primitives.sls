@@ -28,7 +28,12 @@
 (library (foreign math lapack primitives)
   (export
 
-    upper*		lower*
+    all*
+    lower*
+    none*
+    oscar*
+    sierra*
+    upper*
 
     cbdsqr
     cgbbrd
@@ -1259,21 +1264,25 @@
 
 
 (define constants-pool
-  (malloc (+ strideof-int strideof-int ;; UPPER* and LOWER*
-	     strideof-integer		;; INFO*
-	     )))
-
-(define upper*
-  (begin0-let ((p constants-pool))
-    (pointer-set-c-signed-char! p 0 (char->integer #\U))))
-
-(define lower*
-  (begin0-let ((p (pointer-add upper* strideof-int)))
-    (pointer-set-c-signed-char! p 0 (char->integer #\L))))
+  (malloc (+ strideof-integer (* 6 strideof-int))))
 
 (define info*
-  (begin0-let ((p (pointer-add lower* strideof-integer)))
+  (begin0-let ((p constants-pool))
     (pointer-set-c-integer! p 0 0)))
+
+(define-syntax define-char-pointer
+  (syntax-rules ()
+    ((_ ?name ?prev ?char)
+     (define ?name
+       (begin0-let ((p (pointer-add ?prev strideof-int)))
+	 (pointer-set-c-signed-char! p 0 (char->integer ?char)))))))
+
+(define-char-pointer all*	info*	#\A)
+(define-char-pointer lower*	all*	#\L)
+(define-char-pointer none*	lower*	#\N)
+(define-char-pointer oscar*	none*	#\O)
+(define-char-pointer sierra*	oscar*	#\S)
+(define-char-pointer upper*	sierra*	#\U)
 
 
 (define-syntax define-func
@@ -1286,23 +1295,23 @@
        (with-syntax ((PUBNAME (datum->syntax #'?name (name->pubname (syntax->datum #'?name)))))
 	 #'(define (PUBNAME ?arg ...)
 	     (pointer-set-c-integer! info* 0 0)
-	     (let* ((result (?name ?arg ... info*))
-		    (info   (pointer-ref-c-integer info* 0)))
-	       (cond ((< info 0)
-		      (let ((index (- info))
-			    (names '(?arg ...))
-			    (args  (list ?arg ...)))
-			(error (quote PUBNAME)
-			  (string-append "invalid argument '"
-					 (list-ref names index)"' (position "
-					 (number->string index)
-					 ")")
-			  (list-ref args index))))
-		     ((> info 0)
-		      (error (quote PUBNAME)
-			(string-append "error in the course of computation at step "
-				       (number->string info))))
-		     (else result)))))))))
+	     (let ((result (?name ?arg ... info*)))
+	       (%process-result (quote PUBNAME)
+				result (pointer-ref-c-integer info* 0)
+				'(?arg ...) (list ?arg ...)))))))))
+
+(define (%process-result who result info arg-names arg-values)
+  (cond ((< info 0)
+	 (let ((index (- info)))
+	   (error who
+	     (string-append "invalid argument '"
+			    (list-ref arg-names index)"' (position " (number->string index) ")")
+	     (list-ref arg-values index))))
+	((> info 0)
+	 (error who
+	   (string-append "error in the course of computation at step " (number->string info))
+	   info))
+	(else result)))
 
 
 (define-func cbdsqr_ uplo n ncvt nru ncc d__ e vt ldvt u ldu c__ ldc rwork)

@@ -537,7 +537,7 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package.
 * typedefs::                    Type accessors and mutators.
-* constants::                   Constant values.
+* arguments::                   Special arguments.
 
 Appendices
 
@@ -1272,8 +1272,8 @@ language data structure.
 @end deffn
 
 @c page
-@node constants
-@chapter Constant values
+@node arguments
+@chapter Special arguments
 
 
 The following bindings are exported by the @library{foreign math lapack
@@ -1294,6 +1294,28 @@ character @samp{U}; it is meant to be used as function argument to
 indicate a upper triangular matrix operand.
 @end defvr
 
+
+@defvr Constant all*
+Pointer to a memory location holding the integer representation of the
+character @samp{A}; it is meant to be used as function argument.
+@end defvr
+
+
+@defvr Constant none*
+Pointer to a memory location holding the integer representation of the
+character @samp{N}; it is meant to be used as function argument.
+@end defvr
+
+@defvr Constant oscar*
+Pointer to a memory location holding the integer representation of the
+character @samp{O}; it is meant to be used as function argument.
+@end defvr
+
+
+@defvr Constant sierra*
+Pointer to a memory location holding the integer representation of the
+character @samp{S}; it is meant to be used as function argument.
+@end defvr
 
 @c page
 
