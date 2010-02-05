@@ -67,7 +67,7 @@ slackbuilds.org).  For BLAS:
    $ make all OPTS='-O2 -march=i686 -mtune=i686'
    $ ar -x blas_LINUX.a
    $ gcc -fPIC -lgfortran -shared *.o	\
-        -W1,-soname,libblas.so		\
+        -Wl,-soname,libblas.so		\
         -o libblas.so
    $ strip --strip-unneeded libblas.so
 
@@ -93,8 +93,8 @@ assuming    the   BLAS   static    library   file    is   in
         -Wl,-soname,libcblas.so -o libcblas.so
    $ strip --strip-unneeded libcblas.so
 
-now   we   can    install   "libcblas.so",   "cblas.h"   and
-"cblas_f77.h" wherever we want.
+now  we  can  install "lib/libcblas.so",  "src/cblas.h"  and
+"src/cblas_f77.h" wherever we want.
 
 
 4.2 Install Nausicaa/BLAS
