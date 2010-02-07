@@ -2307,7 +2307,7 @@
 (define-callout zgerq2_ m n a lda tau work)
 (define-callout zgerqf_ m n a lda tau work lwork)
 (define-callout zgesc2_ n a lda rhs ipiv jpiv scale)
-(define-callout zgesv_ n nrhs a lda ipiv b ldb)
+(define-callout %zgesv_ n nrhs a lda ipiv b ldb)
 (define-callout zgesvx_ fact trans n nrhs a lda af ldaf ipiv equed r__ c__ b ldb x ldx rcond ferr berr work rwork)
 (define-callout zgetc2_ n a lda ipiv jpiv)
 (define-callout zgetf2_ m n a lda ipiv)
@@ -2589,6 +2589,18 @@
 	   (ldb*	ldb)
 	   (info*	0))
 	  (let ((result (dgesv_ n* nrhs* a lda* ipiv b ldb* info*)))
+	    (%process-result 'dgesv result
+			     (pointer-ref-c-integer info* 0)
+			     '(n nrhs a lda ipiv b ldb)
+			     (list n nrhs a lda ipiv b ldb)))))
+
+(define (zgesv n nrhs a lda ipiv b ldb)
+  (let-ip ((n*		n)
+	   (nrhs*	nrhs)
+	   (lda*	lda)
+	   (ldb*	ldb)
+	   (info*	0))
+	  (let ((result (zgesv_ n* nrhs* a lda* ipiv b ldb* info*)))
 	    (%process-result 'dgesv result
 			     (pointer-ref-c-integer info* 0)
 			     '(n nrhs a lda ipiv b ldb)

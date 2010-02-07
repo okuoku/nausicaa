@@ -53,11 +53,13 @@
     rmx/c
     rmx-set!		rmx-ref
     rmx-fill!
+    rmx->list
 
     ;; complex matrices of "double"
     cmx/c
     cmx-set!		cmx-ref
     cmx-fill!
+    cmx->list
 
     ;; real vectors of "double"
     rvc/c
@@ -68,7 +70,8 @@
     ;; complex vectors of "double"
     cvc/c
     cvc-set!		cvc-ref
-    cvc-fill!)
+    cvc-fill!
+    cvc->list)
   (import (rnrs)
     (begin0)
     (only (foreign ffi)
@@ -119,6 +122,15 @@
 	  (cols (cdr n) (+ 1 j))))
       (rows (cdr m) (+ 1 i)))))
 
+(define (rmx->list rmx rows-num cols-num col-len)
+  (let rows ((m '()) (i 0))
+    (if (= i cols-num)
+	(reverse m)
+      (let cols ((n '()) (j 0))
+	(if (= j rows-num)
+	    (rows (cons (reverse n) m) (+ 1 i))
+	  (cols (cons (rmx-ref rmx col-len i j) n) (+ 1 j)))))))
+
 
 ;;;; complex matrices of "double"
 
@@ -136,7 +148,7 @@
   ;;
   (let ((offset (* 2 (+ row (* col-len col))))
 	(val    (inexact val)))
-    (array-set-c-double! cmx offset (real-part val))
+    (array-set-c-double! cmx offset       (real-part val))
     (array-set-c-double! cmx (+ 1 offset) (imag-part val))))
 
 (define (cmx-ref cmx col-len row col)
@@ -163,6 +175,15 @@
 	  (cmx-set! cmx col-len i j (car n))
 	  (cols (cdr n) (+ 1 j))))
       (rows (cdr m) (+ 1 i)))))
+
+(define (cmx->list cmx rows-num cols-num col-len)
+  (let rows ((m '()) (i 0))
+    (if (= i cols-num)
+	(reverse m)
+      (let cols ((n '()) (j 0))
+	(if (= j rows-num)
+	    (rows (cons (reverse n) m) (+ 1 i))
+	  (cols (cons (cmx-ref cmx col-len i j) n) (+ 1 j)))))))
 
 
 ;;;; real vectors of "double"
@@ -216,16 +237,16 @@
   ;;referenced by the pointer object CVC.
   ;;
   (let ((offset (* 2 idx)))
-    (array-set-c-double! cvc offset val)
-    (array-set-c-double! cvc (+ 1 offset) val)))
+    (array-set-c-double! cvc offset (real-part val))
+    (array-set-c-double! cvc (+ 1 offset) (imag-part val))))
 
 (define (cvc-ref cvc idx)
   ;;Return  the complex  value at  location  IDX in  the complex  vector
   ;;referenced by the pointer object CVC.
   ;;
   (let ((offset (* 2 idx)))
-    (make-rectangular (array-set-c-double! cvc offset)
-		      (array-set-c-double! cvc (+ 1 offset)))))
+    (make-rectangular (array-ref-c-double cvc offset)
+		      (array-ref-c-double cvc (+ 1 offset)))))
 
 (define (cvc-fill! cvc m)
   ;;Fill the  complex vector referenced  by the pointer object  CVC with
@@ -235,6 +256,12 @@
     (unless (null? m)
       (cvc-set! cvc i (car m))
       (elms (cdr m) (+ 1 i)))))
+
+(define (cvc->list cvc len)
+  (let loop ((i 0) (ell '()))
+    (if (= i len)
+	(reverse ell)
+      (loop (+ 1 i) (cons (cvc-ref cvc i) ell)))))
 
 
 ;;;; done

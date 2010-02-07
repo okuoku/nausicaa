@@ -59,6 +59,11 @@
 	    (< (abs (- a b)) 1e-6))
 	  ell1 ell2))
 
+(define (complex=? ell1 ell2)
+  (list=? (lambda (a b)
+	    (< (magnitude (- a b)) 1e-6))
+	  ell1 ell2))
+
 
 (parametrise ((check-test-name	'linear-equations))
 
@@ -94,8 +99,39 @@
 	  (pivots->list pivots* n)
 	=> '(2 2 3 4))
 
-      ))
+      #f))
 
+;;; --------------------------------------------------------------------
+
+  (with-compensations
+    (let* ((n		4)
+	   (A		(cmx/c 4 4))
+	   (B		(cvc/c 4))
+	   (pivots*	(malloc-block/c (* 4 strideof-integer))))
+
+      (define (pivots-ref idx)
+	(array-ref-c-integer pivots* idx))
+
+      (cmx-fill! A n '((-1.34+2.55i  0.28+3.17i  -6.39-2.20i 0.72-0.92i)
+		       (-0.17-1.41i  3.31-0.15i  -0.15+1.34i 1.29+1.38i)
+		       (-3.29-2.39i  -1.91+4.42i -0.14-1.35i 1.72+1.35i)
+		       ( 2.41+0.39i  -0.56+1.47i -0.83-0.69i -1.96+0.67i)))
+      (cvc-fill! B '(26.26+51.78i 6.43-8.68i -5.75+25.31i 1.16+2.57i))
+
+      (zgesv n 1 A n pivots* B n)
+
+      (check
+	  (cvc->list B n)
+	(=> complex=?)
+	'(1.0000+1.0000i 2.0000-3.0000i -4.0000-5.0000i -0.0000+6.0000i))
+
+      (check
+	  (pivots->list pivots* n)
+	=> '(3 2 3 4))
+
+      #f))
+
+;;; --------------------------------------------------------------------
 
   #t)
 
