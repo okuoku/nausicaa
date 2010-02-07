@@ -538,6 +538,7 @@ entitled ``@gnu{} Free Documentation License''.
 * overview::                    Overview of the package.
 * typedefs::                    Type accessors and mutators.
 * arguments::                   Special arguments.
+* vm::                          Basic vector and matrix library.
 
 Appendices
 
@@ -689,7 +690,7 @@ from the @samp{primitives} library and some bindings from the
 @samp{sizeof} library.
 
 @item foreign math lapack vm
-Exports a very basi vector and matrix @api{}, mostly intended for
+Exports a very basic vector and matrix @api{}, mostly intended for
 testing.
 
 @c @item foreign math lapack compensated
@@ -1324,6 +1325,198 @@ character @samp{O}; it is meant to be used as function argument.
 Pointer to a memory location holding the integer representation of the
 character @samp{S}; it is meant to be used as function argument.
 @end defvr
+
+@c page
+@node vm
+@chapter Basic vector and matrix library.
+
+
+The bindings documented here are exported by the @library{foreign math
+lapack vm} library.  Vectors and matrices supported by this library are
+composed of real and complex numbers under @code{double} representation.
+
+@menu
+* vm real vectors::             Real vectors.
+* vm complex vectors::          Complex vectors.
+* vm real matrices::            Real matrices.
+* vm complex matrices::         Complex matrices.
+@end menu
+
+@c page
+@node vm real vectors
+@section Real vectors
+
+
+@defun rvc/c @var{len}
+Allocate an array capable of holding a real vector of @var{len}
+elements; return a pointer to it.  The appropriate free function is
+pushed to the current compensations stack.  @nauref{compensations,
+Compensation stacks}.
+@end defun
+
+
+@defun rvc-set! @var{rvc} @var{idx} @var{val}
+Store the real number @var{val} at location @var{IDX} in the real vector
+referenced by the pointer object @var{rvc}.
+@end defun
+
+
+@defun rvc-ref @var{rvc} @var{idx}
+Return the real number at location @var{idx} in the real vector
+referenced by the pointer object @var{rvc}.
+@end defun
+
+
+@defun rvc-fill! @var{rvc} @var{m}
+Fill the real vector referenced by the pointer object @var{rvc} with
+values from the list @var{m}.
+@end defun
+
+
+@defun rvc->list @var{rvc} @var{len}
+Build and return a list holding the values from the real vector
+referenced by the pointer @var{rvc} and length @var{len}.
+@end defun
+
+@c page
+@node vm complex vectors
+@section Complex vectors
+
+
+@defun rvc/c @var{len}
+Allocate an array capable of holding a complex vector of @var{len}
+elements; return a pointer to it.  The appropriate free function is
+pushed to the current compensations stack.  @nauref{compensations,
+Compensation stacks}.
+@end defun
+
+
+@defun rvc-set! @var{rvc} @var{idx} @var{val}
+Store the complex number @var{val} at location @var{IDX} in the complex
+vector referenced by the pointer object @var{rvc}.
+@end defun
+
+
+@defun rvc-ref @var{rvc} @var{idx}
+Return the complex number at location @var{idx} in the complex vector
+referenced by the pointer object @var{rvc}.
+@end defun
+
+
+@defun rvc-fill! @var{rvc} @var{m}
+Fill the complex vector referenced by the pointer object @var{rvc} with
+values from the list @var{m}.
+@end defun
+
+
+@defun rvc->list @var{rvc} @var{len}
+Build and return a list holding the values from the complex vector
+referenced by the pointer @var{rvc} and length @var{len}.
+@end defun
+
+@c page
+@node vm real matrices
+@section Real matrices
+
+
+For all the following descriptions: the @var{ld} argument is the
+``leading dimension'' of the matrix, in @lapack{} jargon, and the matrix
+is accessed in column--major order.
+
+
+@defun rmx/c @var{rows-num} @var{cols-num}
+Allocate an array capable of holding a real matrix of @var{rows-num}
+rows and @var{cols-num} columns; return a pointer to it.  The
+appropriate free function is pushed to the current compensations stack.
+@nauref{compensations, Compensation stacks}.
+@end defun
+
+
+@defun rmx-set! @var{rmx} @var{ldm} @var{row} @var{col} @var{val}
+Store the real value @var{val} at location @var{row}, @var{col} in the
+real matrix referenced by the pointer object @var{rmx} and column length
+@var{ldm}.
+@end defun
+
+
+@defun rmx-ref @var{rmx} @var{ldm} @var{row} @var{col}
+Return the real value at location @var{row}, @var{col} in the real
+matrix referenced by the pointer object @var{rmx} and column length
+@var{ldm}.
+@end defun
+
+
+@defun rmx-fill! @var{rmx} @var{ldm} @var{m}
+Fill the real matrix referenced by the pointer object @var{rmx} and
+column length @var{ldm}, with values from the list @var{m}.  @var{m} is
+a list of lists in row--major order:
+
+@example
+((a_11 a_12 a_13)
+ (a_21 a_22 a_23)
+ (a_31 a_32 a_33))
+@end example
+@end defun
+
+
+@defun rmx->list @var{rmx} @var{ldm} @var{rows-num} @var{cols-num}
+Build and return a list of lists holding the values, in row--major
+order, from the matrix referenced by the pointer @var{rmx}.  @var{ldm}
+is the length of a column.  @var{rows-num} and @var{cols-num} are the
+numbers of rows and columns.
+@end defun
+
+@c page
+@node vm complex matrices
+@section Complex matrices
+
+
+For all the following descriptions: the @var{ld} argument is the
+``leading dimension'' of the matrix, in @lapack{} jargon, and the matrix
+is accessed in column--major order.
+
+
+@defun cmx/c @var{rows-num} @var{cols-num}
+Allocate an array capable of holding a complex matrix of @var{rows-num}
+rows and @var{cols-num} columns; return a pointer to it.  The
+appropriate free function is pushed to the current compensations stack.
+@nauref{compensations, Compensation stacks}.
+@end defun
+
+
+@defun cmx-set! @var{cmx} @var{ldm} @var{row} @var{col} @var{val}
+Store the complex value @var{val} at location @var{row}, @var{col} in
+the complex matrix referenced by the pointer object @var{cmx} and column
+length @var{ldm}.
+@end defun
+
+
+@defun cmx-ref @var{cmx} @var{ldm} @var{row} @var{col}
+Return the complex value at location @var{row}, @var{col} in the complex
+matrix referenced by the pointer object @var{cmx} and column length
+@var{ldm}.
+@end defun
+
+
+@defun cmx-fill! @var{cmx} @var{ldm} @var{m}
+Fill the complex matrix referenced by the pointer object @var{cmx} and
+column length @var{ldm}, with values from the list @var{m}.  @var{m} is
+a list of lists in row--major order:
+
+@example
+((a_11 a_12 a_13)
+ (a_21 a_22 a_23)
+ (a_31 a_32 a_33))
+@end example
+@end defun
+
+
+@defun cmx->list @var{cmx} @var{ldm} @var{rows-num} @var{cols-num}
+Build and return a list of lists holding the values, in row--major
+order, from the matrix referenced by the pointer @var{cmx}.  @var{ldm}
+is the length of a column.  @var{rows-num} and @var{cols-num} are the
+numbers of rows and columns.
+@end defun
 
 @c page
 

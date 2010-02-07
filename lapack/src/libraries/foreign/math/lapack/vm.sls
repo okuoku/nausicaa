@@ -93,22 +93,22 @@
   ;;
   (malloc-block/c (* strideof-double rows cols)))
 
-(define (rmx-set! rmx col-len row col val)
+(define (rmx-set! rmx ldm row col val)
   ;;Store the  real value VAL  at location ROW,  COL in the  real matrix
-  ;;referenced by the pointer object RMX and column length COL-LEN.
+  ;;referenced by the pointer object RMX and column length LDM.
   ;;
-  (array-set-c-double! rmx (+ row (* col-len col)) (inexact val)))
+  (array-set-c-double! rmx (+ row (* ldm col)) (inexact val)))
 
-(define (rmx-ref rmx col-len row col)
+(define (rmx-ref rmx ldm row col)
   ;;Return  the real  value  at location  ROW,  COL in  the real  matrix
-  ;;referenced by the pointer object RMX and column length COL-LEN.
+  ;;referenced by the pointer object RMX and column length LDM.
   ;;
-  (array-ref-c-double rmx (+ row (* col-len col))))
+  (array-ref-c-double rmx (+ row (* ldm col))))
 
-(define (rmx-fill! rmx col-len m)
+(define (rmx-fill! rmx ldm m)
   ;;Fill the real matrix referenced by the pointer object RMX and column
-  ;;length COL-LEN, with  values from the list M.  M is  a list of lists
-  ;;in row-major order:
+  ;;length LDM, with  values from the list  M.  M is a list  of lists in
+  ;;row-major order:
   ;;
   ;;	((a_11 a_12 a_13)
   ;;	 (a_21 a_22 a_23)
@@ -118,18 +118,23 @@
     (unless (null? m)
       (let cols ((n (car m)) (j 0))
 	(unless (null? n)
-	  (rmx-set! rmx col-len i j (car n))
+	  (rmx-set! rmx ldm i j (car n))
 	  (cols (cdr n) (+ 1 j))))
       (rows (cdr m) (+ 1 i)))))
 
-(define (rmx->list rmx rows-num cols-num col-len)
+(define (rmx->list rmx ldm rows-num cols-num)
+  ;;Build and  return a list of  lists holding the  values, in row-major
+  ;;order, from  the matrix referenced by  the pointer RMX.   LDM is the
+  ;;length of a  column.  ROWS-NUM and COLS-NUM are  the numbers of rows
+  ;;and columns.
+  ;;
   (let rows ((m '()) (i 0))
-    (if (= i cols-num)
+    (if (= i rows-num)
 	(reverse m)
       (let cols ((n '()) (j 0))
-	(if (= j rows-num)
+	(if (= j cols-num)
 	    (rows (cons (reverse n) m) (+ 1 i))
-	  (cols (cons (rmx-ref rmx col-len i j) n) (+ 1 j)))))))
+	  (cols (cons (rmx-ref rmx ldm i j) n) (+ 1 j)))))))
 
 
 ;;;; complex matrices of "double"
@@ -141,27 +146,27 @@
   ;;
   (malloc-block/c (* 2 strideof-double rows cols)))
 
-(define (cmx-set! cmx col-len row col val)
+(define (cmx-set! cmx ldm row col val)
   ;;Store  the complex value  VAL at  location ROW,  COL in  the complex
   ;;matrix  referenced  by the  pointer  object  CMX  and column  length
-  ;;COL-LEN.
+  ;;LDM.
   ;;
-  (let ((offset (* 2 (+ row (* col-len col))))
+  (let ((offset (* 2 (+ row (* ldm col))))
 	(val    (inexact val)))
-    (array-set-c-double! cmx offset       (real-part val))
-    (array-set-c-double! cmx (+ 1 offset) (imag-part val))))
+    (array-set-c-double! cmx offset       (inexact (real-part val)))
+    (array-set-c-double! cmx (+ 1 offset) (inexact (imag-part val)))))
 
-(define (cmx-ref cmx col-len row col)
+(define (cmx-ref cmx ldm row col)
   ;;Return the complex value at  location ROW, COL in the complex matrix
-  ;;referenced by the pointer object CMX and column length COL-LEN.
+  ;;referenced by the pointer object CMX and column length LDM.
   ;;
-  (let ((offset (* 2 (+ row (* col-len col)))))
+  (let ((offset (* 2 (+ row (* ldm col)))))
     (make-rectangular (array-ref-c-double cmx offset)
 		      (array-ref-c-double cmx (+ 1 offset)))))
 
-(define (cmx-fill! cmx col-len m)
+(define (cmx-fill! cmx ldm m)
   ;;Fill the  complex matrix  referenced by the  pointer object  CMX and
-  ;;column length COL-LEN, with values from  the list M.  M is a list of
+  ;;column length  LDM, with  values from the  list M.   M is a  list of
   ;;lists in row-major order:
   ;;
   ;;	((a_11 a_12 a_13)
@@ -172,18 +177,23 @@
     (unless (null? m)
       (let cols ((n (car m)) (j 0))
 	(unless (null? n)
-	  (cmx-set! cmx col-len i j (car n))
+	  (cmx-set! cmx ldm i j (car n))
 	  (cols (cdr n) (+ 1 j))))
       (rows (cdr m) (+ 1 i)))))
 
-(define (cmx->list cmx rows-num cols-num col-len)
+(define (cmx->list cmx ldm rows-num cols-num)
+  ;;Build and  return a list of  lists holding the  values, in row-major
+  ;;order, from  the matrix referenced by  the pointer RMX.   LDM is the
+  ;;length of a  column.  ROWS-NUM and COLS-NUM are  the numbers of rows
+  ;;and columns.
+  ;;
   (let rows ((m '()) (i 0))
-    (if (= i cols-num)
+    (if (= i rows-num)
 	(reverse m)
       (let cols ((n '()) (j 0))
-	(if (= j rows-num)
+	(if (= j cols-num)
 	    (rows (cons (reverse n) m) (+ 1 i))
-	  (cols (cons (cmx-ref cmx col-len i j) n) (+ 1 j)))))))
+	  (cols (cons (cmx-ref cmx ldm i j) n) (+ 1 j)))))))
 
 
 ;;;; real vectors of "double"
@@ -217,6 +227,9 @@
       (elms (cdr m) (+ 1 i)))))
 
 (define (rvc->list rvc len)
+  ;;Build  and return a  list holding  the values  from the  real vector
+  ;;referenced by the pointer RVC and length LEN.
+  ;;
   (let loop ((i 0) (ell '()))
     (if (= i len)
 	(reverse ell)
@@ -237,8 +250,8 @@
   ;;referenced by the pointer object CVC.
   ;;
   (let ((offset (* 2 idx)))
-    (array-set-c-double! cvc offset (real-part val))
-    (array-set-c-double! cvc (+ 1 offset) (imag-part val))))
+    (array-set-c-double! cvc offset       (inexact (real-part val)))
+    (array-set-c-double! cvc (+ 1 offset) (inexact (imag-part val)))))
 
 (define (cvc-ref cvc idx)
   ;;Return  the complex  value at  location  IDX in  the complex  vector
@@ -258,6 +271,9 @@
       (elms (cdr m) (+ 1 i)))))
 
 (define (cvc->list cvc len)
+  ;;Build and return  a list holding the values  from the complex vector
+  ;;referenced by the pointer CVC and length LEN.
+  ;;
   (let loop ((i 0) (ell '()))
     (if (= i len)
 	(reverse ell)
