@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Tue Feb  2, 2010
+;;;Date: Sun Feb  7, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -100,6 +100,7 @@
     strideof-ftnint
     pointer-ref-c-ftnint
     pointer-set-c-ftnint!
+    array-ref-c-integer
     address
     integer*
     logical*
@@ -246,6 +247,11 @@
   (define strideof-ftnint @STRIDEOF_FTNINT@)
   (define pointer-ref-c-ftnint @GETTEROF_FTNINT@)
   (define pointer-set-c-ftnint! @SETTEROF_FTNINT@)
+  (define
+    (array-ref-c-integer array* idx)
+    (pointer-ref-c-integer
+      array*
+      (* idx strideof-integer)))
   (define address 'void*)
   (define integer* 'void*)
   (define logical* 'void*)

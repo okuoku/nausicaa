@@ -63,6 +63,7 @@
     rvc/c
     rvc-set!		rvc-ref
     rvc-fill!
+    rvc->list
 
     ;; complex vectors of "double"
     cvc/c
@@ -193,6 +194,12 @@
     (unless (null? m)
       (rvc-set! rvc i (car m))
       (elms (cdr m) (+ 1 i)))))
+
+(define (rvc->list rvc len)
+  (let loop ((i 0) (ell '()))
+    (if (= i len)
+	(reverse ell)
+      (loop (+ 1 i) (cons (rvc-ref rvc i) ell)))))
 
 
 ;;;; complex vectors of "double"

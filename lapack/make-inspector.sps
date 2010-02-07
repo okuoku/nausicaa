@@ -45,6 +45,13 @@
 (define-c-type flag		signed-int)
 (define-c-type ftnint		signed-int)
 
+(sizeof-lib
+  (define (array-ref-c-integer array* idx)
+    (pointer-ref-c-integer array* (* idx strideof-integer))))
+
+(sizeof-lib-exports
+ array-ref-c-integer)
+
 (define-c-type-alias address		void*)
 (define-c-type-alias integer*		void*)
 (define-c-type-alias logical*		void*)

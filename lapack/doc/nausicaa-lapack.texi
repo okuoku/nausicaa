@@ -681,6 +681,8 @@ implementing marshaling of values are documented: if a function is not
 documented, it means that it is reexported ``as is'' from the
 @code{platform} library (with the exception of the @var{info} argument).
 
+This library is @strong{not} thread--safe.
+
 @item foreign math lapack
 Compound library exporting the high--level @api{}; it reexports bindings
 from the @samp{primitives} library and some bindings from the
@@ -866,6 +868,12 @@ Size, structure alignment and array stride of @code{integer}.
 @defunx pointer-set-c-integer! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for memory locations holding an @code{integer}
 value.
+@end defun
+
+
+@defun array-ref-c-integer @var{pointer} @var{index}
+Accessor for the elements of an array of @code{integer} values; return
+the value at index @var{index}.
 @end defun
 
 

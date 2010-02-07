@@ -27,12 +27,14 @@
 
 (import (nausicaa)
   (begin0)
+  (lists)
   (compensations)
   (only (foreign ffi)
 	array-set-c-double!
 	array-ref-c-double)
   (only (foreign ffi sizeof)
-	strideof-double)
+	strideof-double
+	strideof-int)
   (foreign memory)
   (foreign math lapack)
   (foreign math lapack vm)
@@ -52,50 +54,48 @@
   (begin0-let ((p (malloc-small/c)))
     (pointer-set-c-integer! p 0 val)))
 
+(define (double=? ell1 ell2)
+  (list=? (lambda (a b)
+	    (< (abs (- a b)) 1e-6))
+	  ell1 ell2))
+
 
-(parametrise ((check-test-name	'base))
+(parametrise ((check-test-name	'linear-equations))
 
-  (check
-      (with-compensations
-	;;This is the example program from the FAQ at:
-	;;
-	;;   <http://www.netlib.org/clapack/faq.html>
-	;;
-	(let* ((size		4)
-	       (M		size)
-	       (N		size)
-	       (LDA*		(&int M))
-	       (LDU*		(&int M))
-	       (LDVT*		(&int N))
-	       (a		(rmx/c size size))
-	       (s		(rvc/c size))
-	       (wk		(rvc/c 201))
-	       (u		(rmx/c size size))
-	       (vt		(rmx/c size size))
-	       (JOBU*		(&char #\A))
-	       (JOBVT*		(&char #\A))
-	       (LWORK*		(&int 201)))
+  (define (pivots->list pivots* n)
+    (let loop ((i 0) (ell '()))
+      (if (= i n)
+	  (reverse ell)
+	(loop (+ 1 i) (cons (array-ref-c-integer pivots* i) ell)))))
 
-	  (rmx-fill! a 4 '((16.  5.  9.  4.)
-			   (2.  11.  7. 14.)
-			   (3.  10.  6. 15.)
-			   (13.  8. 12.  1.)))
+  (with-compensations
+    (let* ((n	4)
+	   (A	(rmx/c 4 4))
+	   (B	(rvc/c 4))
+	   (pivots*	(malloc-block/c (* 4 strideof-integer))))
 
+      (define (pivots-ref idx)
+	(array-ref-c-integer pivots* idx))
 
-	  ;; int dgesvd_(char *jobu, char *jobvt, integer *m, integer *n,
-	  ;;             doublereal *a, integer *lda,
-	  ;;		 doublereal *s, doublereal *u, integer *ldu,
-	  ;;		 doublereal *vt, integer *ldvt,
-	  ;;		 doublereal *work, integer *lwork, integer *info)
-	  (dgesvd JOBU* JOBVT* (&int M) (&int N)
-		  a LDA* s u LDU* vt LDVT* wk LWORK*)
+      (rmx-fill! A n '((1.80   2.88   2.05  -0.89)
+		       (5.25  -2.95  -0.95  -3.80)
+		       (1.58  -2.69  -2.90  -1.04)
+		       (-1.11  -0.66  -0.59   0.80)))
+      (rvc-fill! B '(9.52  24.35   0.77  -6.22))
 
-	  (do ((i 0 (+ 1 i)))
-	      ((= i size))
-	    (display (rvc-ref s i))
-	    (newline))
-	  #t))
-    => #t)
+      (dgesv n 1 A n pivots* B n)
+
+      (check
+	  (rvc->list B n)
+	(=> double=?)
+	'(1. -1. 3. -5.))
+
+      (check
+	  (pivots->list pivots* n)
+	=> '(2 2 3 4))
+
+      ))
+
 
   #t)
 

@@ -31,6 +31,7 @@
     integer
     sizeof-integer		alignof-integer		strideof-integer
     pointer-ref-c-integer	pointer-set-c-integer!
+    array-ref-c-integer
 
     uinteger
     sizeof-uinteger		alignof-uinteger	strideof-uinteger
