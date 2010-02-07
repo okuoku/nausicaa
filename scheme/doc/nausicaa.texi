@@ -1494,10 +1494,21 @@ Parsing command line arguments
 
 @ascii{} armor encoding/decoding
 
+* armor conditions::            Condition objects.
 * armor base16::                Base 16 encoder/decoder.
 * armor base64::                Base 64 encoder/decoder.
 * armor base91::                Base 91 encoder/decoder.
 * armor ascii85::               @ascii{} 85 encoder/decoder.
+
+Condition objects
+
+* armor conditions error::      Base error condition.
+* armor conditions byte::       Invalid input byte error
+                                condition.
+* armor conditions length::     Invalid input length error
+                                condition.
+* armor conditions padding::    Invalid padded block error
+                                condition.
 
 Knuth-Morris-Pratt searching
 
@@ -51683,7 +51694,7 @@ Constructor and predicate for condition objects of type
 @end defun
 
 @c page
-@node armor conditions input
+@node armor conditions byte
 @subsection Invalid input byte error condition
 
 
@@ -51949,8 +51960,8 @@ possible to determine exactly the amount of output bytes required.
 
 
 The overhead produced by base @math{91} depends on the input data; it
-amounts at most to @math{23%} (versus @math{33%} for base64) and can
-range down to @math{14%}, which typically occurs on zero--byte blocks.
+amounts at most to @math{23\%} (versus @math{33\%} for base64) and can
+range down to @math{14\%}, which typically occurs on zero--byte blocks.
 As the name suggests, base @math{91} needs @math{91} characters to
 represent the encoded binary data in @ascii{}; from the @math{94}
 printable @ascii{} characters (@samp{#x21}..@samp{#x7E}), the following

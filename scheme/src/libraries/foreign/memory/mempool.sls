@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -57,10 +57,10 @@
 					  (<mempool>-pointer-free-set! pool ?value))))
 		   (free-size		(identifier-syntax
 					 (%mempool-free-size pool))))
-	(and (< number-of-bytes free-size)
+	(and (<= number-of-bytes free-size)
 	     (begin0
 		 pointer-free
-	       (set! pointer-free (pointer-add pointer-free number-of-bytes)))))))
+	       (pointer-incr! pointer-free number-of-bytes))))))
 
   (define (malloc/mempool number-of-bytes)
     (or (primitive-malloc/mempool number-of-bytes)
