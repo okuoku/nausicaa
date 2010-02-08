@@ -49,29 +49,30 @@
 (library (foreign math lapack vm)
   (export
 
-    ;; real matrices of "double"
-    rmx/c
-    rmx-set!		rmx-ref
-    rmx-fill!
-    rmx->list
-
-    ;; complex matrices of "double"
-    cmx/c
-    cmx-set!		cmx-ref
-    cmx-fill!
-    cmx->list
-
     ;; real vectors of "double"
     rvc/c
     rvc-set!		rvc-ref
-    rvc-fill!
-    rvc->list
+    rvc-fill!		rvc->list
 
     ;; complex vectors of "double"
     cvc/c
     cvc-set!		cvc-ref
-    cvc-fill!
-    cvc->list)
+    cvc-fill!		cvc->list
+
+    ;; real matrices of "double"
+    rmx/c
+    rmx-set!		rmx-ref
+    rmx-fill!		rmx->list
+
+    ;; complex matrices of "double"
+    cmx/c
+    cmx-set!		cmx-ref
+    cmx-fill!		cmx->list
+
+    ;; vectors of "integer"
+    piv/c
+    piv-set!		piv-ref
+    piv-fill!		piv->list)
   (import (rnrs)
     (begin0)
     (only (foreign ffi)
@@ -81,7 +82,94 @@
 	  strideof-double)
     (only (foreign memory)
 	  malloc-block/c)
-    (foreign math lapack sizeof))
+    (only (foreign math lapack sizeof)
+	  strideof-integer
+	  array-set-c-integer!
+	  array-ref-c-integer))
+
+
+;;;; real vectors of "double"
+
+(define (rvc/c len)
+  ;;Allocate an array capable of  holding a real vector of LEN elements;
+  ;;return a pointer to it.   The appropriate free function is pushed to
+  ;;the current compensations stack.
+  ;;
+  (malloc-block/c (* strideof-double len)))
+
+(define (rvc-set! rvc idx val)
+  ;;Store  the  real  value VAL  at  location  IDX  in the  real  vector
+  ;;referenced by the pointer object RVC.
+  ;;
+  (array-set-c-double! rvc idx (inexact val)))
+
+(define (rvc-ref rvc idx)
+  ;;Return the real value at  location IDX in the real vector referenced
+  ;;by the pointer object RVC.
+  ;;
+  (array-ref-c-double rvc idx))
+
+(define (rvc-fill! rvc m)
+  ;;Fill  the real  vector referenced  by  the pointer  object RVC  with
+  ;;values from the list M.
+  ;;
+  (let elms ((m m) (i 0))
+    (unless (null? m)
+      (rvc-set! rvc i (car m))
+      (elms (cdr m) (+ 1 i)))))
+
+(define (rvc->list rvc len)
+  ;;Build  and return a  list holding  the values  from the  real vector
+  ;;referenced by the pointer RVC and length LEN.
+  ;;
+  (let loop ((i 0) (ell '()))
+    (if (= i len)
+	(reverse ell)
+      (loop (+ 1 i) (cons (rvc-ref rvc i) ell)))))
+
+
+;;;; complex vectors of "double"
+
+(define (cvc/c len)
+  ;;Allocate  an  array capable  of  holding  a  complex vector  of  LEN
+  ;;elements; return a pointer to  it.  The appropriate free function is
+  ;;pushed to the current compensations stack.
+  ;;
+  (malloc-block/c (* 2 strideof-double len)))
+
+(define (cvc-set! cvc idx val)
+  ;;Store the  complex value VAL at  location IDX in  the complex vector
+  ;;referenced by the pointer object CVC.
+  ;;
+  (let ((offset (* 2 idx)))
+    (array-set-c-double! cvc offset       (inexact (real-part val)))
+    (array-set-c-double! cvc (+ 1 offset) (inexact (imag-part val)))))
+
+(define (cvc-ref cvc idx)
+  ;;Return  the complex  value at  location  IDX in  the complex  vector
+  ;;referenced by the pointer object CVC.
+  ;;
+  (let ((offset (* 2 idx)))
+    (make-rectangular (array-ref-c-double cvc offset)
+		      (array-ref-c-double cvc (+ 1 offset)))))
+
+(define (cvc-fill! cvc m)
+  ;;Fill the  complex vector referenced  by the pointer object  CVC with
+  ;;values from the list M.
+  ;;
+  (let elms ((m m) (i 0))
+    (unless (null? m)
+      (cvc-set! cvc i (car m))
+      (elms (cdr m) (+ 1 i)))))
+
+(define (cvc->list cvc len)
+  ;;Build and return  a list holding the values  from the complex vector
+  ;;referenced by the pointer CVC and length LEN.
+  ;;
+  (let loop ((i 0) (ell '()))
+    (if (= i len)
+	(reverse ell)
+      (loop (+ 1 i) (cons (cvc-ref cvc i) ell)))))
 
 
 ;;;; real matrices of "double"
@@ -196,88 +284,44 @@
 	  (cols (cons (cmx-ref cmx ldm i j) n) (+ 1 j)))))))
 
 
-;;;; real vectors of "double"
+;;;; vectors of "integer"
 
-(define (rvc/c len)
-  ;;Allocate an array capable of  holding a real vector of LEN elements;
-  ;;return a pointer to it.   The appropriate free function is pushed to
-  ;;the current compensations stack.
-  ;;
-  (malloc-block/c (* strideof-double len)))
-
-(define (rvc-set! rvc idx val)
-  ;;Store  the  real  value VAL  at  location  IDX  in the  real  vector
-  ;;referenced by the pointer object RVC.
-  ;;
-  (array-set-c-double! rvc idx (inexact val)))
-
-(define (rvc-ref rvc idx)
-  ;;Return the real value at  location IDX in the real vector referenced
-  ;;by the pointer object RVC.
-  ;;
-  (array-ref-c-double rvc idx))
-
-(define (rvc-fill! rvc m)
-  ;;Fill  the real  vector referenced  by  the pointer  object RVC  with
-  ;;values from the list M.
-  ;;
-  (let elms ((m m) (i 0))
-    (unless (null? m)
-      (rvc-set! rvc i (car m))
-      (elms (cdr m) (+ 1 i)))))
-
-(define (rvc->list rvc len)
-  ;;Build  and return a  list holding  the values  from the  real vector
-  ;;referenced by the pointer RVC and length LEN.
-  ;;
-  (let loop ((i 0) (ell '()))
-    (if (= i len)
-	(reverse ell)
-      (loop (+ 1 i) (cons (rvc-ref rvc i) ell)))))
-
-
-;;;; complex vectors of "double"
-
-(define (cvc/c len)
-  ;;Allocate  an  array capable  of  holding  a  complex vector  of  LEN
+(define (piv/c len)
+  ;;Allocate  an array  capable of  holding an  "integer" vector  of LEN
   ;;elements; return a pointer to  it.  The appropriate free function is
   ;;pushed to the current compensations stack.
   ;;
-  (malloc-block/c (* 2 strideof-double len)))
+  (malloc-block/c (* strideof-integer len)))
 
-(define (cvc-set! cvc idx val)
-  ;;Store the  complex value VAL at  location IDX in  the complex vector
-  ;;referenced by the pointer object CVC.
-  ;;
-  (let ((offset (* 2 idx)))
-    (array-set-c-double! cvc offset       (inexact (real-part val)))
-    (array-set-c-double! cvc (+ 1 offset) (inexact (imag-part val)))))
+(define piv-set! array-set-c-integer!)
+		;(piv-set! piv idx val)
+		;
+		;Store the  exact integer value  VAL at location  IDX in
+		;the vector referenced by the pointer object PIV.
 
-(define (cvc-ref cvc idx)
-  ;;Return  the complex  value at  location  IDX in  the complex  vector
-  ;;referenced by the pointer object CVC.
-  ;;
-  (let ((offset (* 2 idx)))
-    (make-rectangular (array-ref-c-double cvc offset)
-		      (array-ref-c-double cvc (+ 1 offset)))))
+(define piv-ref array-ref-c-integer)
+		;(piv-ref piv idx)
+		;
+		;Return the  exact integer value at location  IDX in the
+		;vector referenced by the pointer object PIV.
 
-(define (cvc-fill! cvc m)
-  ;;Fill the  complex vector referenced  by the pointer object  CVC with
+(define (piv-fill! piv m)
+  ;;Fill the  integer vector referenced  by the pointer object  PIV with
   ;;values from the list M.
   ;;
   (let elms ((m m) (i 0))
     (unless (null? m)
-      (cvc-set! cvc i (car m))
+      (piv-set! piv i (car m))
       (elms (cdr m) (+ 1 i)))))
 
-(define (cvc->list cvc len)
-  ;;Build and return  a list holding the values  from the complex vector
-  ;;referenced by the pointer CVC and length LEN.
+(define (piv->list piv len)
+  ;;Build and return  a list holding the values  from the integer vector
+  ;;referenced by the pointer PIV and length LEN.
   ;;
   (let loop ((i 0) (ell '()))
     (if (= i len)
 	(reverse ell)
-      (loop (+ 1 i) (cons (cvc-ref cvc i) ell)))))
+      (loop (+ 1 i) (cons (piv-ref piv i) ell)))))
 
 
 ;;;; done

@@ -2,7 +2,7 @@ dnl (foreign math lapack sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Sun Feb  7, 2010
+dnl Date: Mon Feb  8, 2010
 dnl
 dnl Abstract
 dnl

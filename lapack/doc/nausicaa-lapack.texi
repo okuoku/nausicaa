@@ -538,7 +538,10 @@ entitled ``@gnu{} Free Documentation License''.
 * overview::                    Overview of the package.
 * typedefs::                    Type accessors and mutators.
 * arguments::                   Special arguments.
+* conditions::                  Condition objects.
 * vm::                          Basic vector and matrix library.
+* lineq::                       Linear equations.
+* perms::                       Permutations.
 
 Appendices
 
@@ -568,6 +571,26 @@ Type accessors and mutators
 * typedefs common::             Common C language types.
 * typedefs callbacks::          Callback types.
 * typedefs structs::            Data structures.
+
+Condition objects
+
+* conditions error::            Basic error condition.
+* conditions argument::         Invalid argument error condition.
+* conditions step::             Failed computation step error
+                                condition.
+
+Basic vector and matrix library.
+
+* vm real vectors::             Real vectors.
+* vm complex vectors::          Complex vectors.
+* vm real matrices::            Real matrices.
+* vm complex matrices::         Complex matrices.
+* vm pivots::                   Vectors of integers as permutation
+                                indices.
+
+Linear equations
+
+* lineq general::               General problem.
 
 @end detailmenu
 @end menu
@@ -657,6 +680,9 @@ the foreign shared library.
 
 @item foreign math lapack sizeof
 Exports bindings to constant values and data structures accessors.
+
+@item foreign math lapack conditions
+Exports definitions for condition objects used by this package.
 
 @item foreign math lapack platform
 Exports one binding for each foreign function; the bindings to the
@@ -1327,6 +1353,104 @@ character @samp{S}; it is meant to be used as function argument.
 @end defvr
 
 @c page
+@node conditions
+@chapter Condition objects
+
+
+The bindings documented here are exported by the @library{foreign math
+lapack conditions} library and reexported by the @library{foreign math
+lapack} library.
+
+@menu
+* conditions error::            Basic error condition.
+* conditions argument::         Invalid argument error condition.
+* conditions step::             Failed computation step error
+                                condition.
+@end menu
+
+@c page
+@node conditions error
+@section Basic error condition
+
+
+@deftp {Condition Type} &lapack-error
+Base condition type for all the conditions used by @value{PACKAGE}.  It
+is derived from @condition{error}.  It has no fields.
+@end deftp
+
+
+@defun make-lapack-error-condition
+@defunx lapack-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{lapack-error}.
+@end defun
+
+@c page
+@node conditions argument
+@section Invalid argument error condition
+
+
+@deftp {Condition Type} &lapack-invalid-argument
+Condition type used to represent ``invalid argument'' errors; it is
+derived from @condition{lapack-error}.  It has the following fields:
+
+@table @code
+@item argument-position
+The position of the invalid argument, starting from @math{1}.  This is
+the value of the @var{info} argument to @clapack{} callouts.
+
+@item argument-name
+A Scheme symbol representing the invalid argument name.
+
+@item argument-value
+The invalid argument value.
+@end table
+@end deftp
+
+
+@defun make-lapack-invalid-argument-condition @var{position} @var{name} @var{value}
+@defunx lapack-invalid-argument-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{lapack-invalid-argument}.
+@end defun
+
+
+@defun condition-lapack-argument-position @var{condition}
+@defunx condition-lapack-argument-name @var{condition}
+@defunx condition-lapack-argument-value @var{condition}
+Field accessors for the condition objects of type
+@condition{lapack-invalid-argument}.
+@end defun
+
+@c page
+@node conditions step
+@section Failed computation step error condition
+
+
+@deftp {Condition Type} &lapack-failed-step
+Condition type used to represent ``invalid argument'' errors; it is
+derived from @condition{lapack-error}.  It has the following fields:
+
+@table failed-step
+The failed step number.  This is the value of the @var{info} argument to
+@clapack{} callouts.
+@end table
+@end deftp
+
+
+@defun make-lapack-failed-step-condition @var{step}
+@defunx lapack-failed-step-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{lapack-failed-step}.
+@end defun
+
+
+@defun condition-lapack-failed-step @var{condition}
+Field accessor for condition objects of type
+@condition{lapack-failed-step}.
+@end defun
+
+@c page
 @node vm
 @chapter Basic vector and matrix library.
 
@@ -1340,6 +1464,8 @@ composed of real and complex numbers under @code{double} representation.
 * vm complex vectors::          Complex vectors.
 * vm real matrices::            Real matrices.
 * vm complex matrices::         Complex matrices.
+* vm pivots::                   Vectors of integers as permutation
+                                indices.
 @end menu
 
 @c page
@@ -1516,6 +1642,305 @@ Build and return a list of lists holding the values, in row--major
 order, from the matrix referenced by the pointer @var{cmx}.  @var{ldm}
 is the length of a column.  @var{rows-num} and @var{cols-num} are the
 numbers of rows and columns.
+@end defun
+
+@c page
+@node vm pivots
+@section Vectors of integers as permutation indices
+
+
+Vectors of @code{integer} numbers are used to store the pivot indices
+defining permutation matrices: when using vector @var{piv}, row @math{i}
+of the matrix is interchanged with row @math{@var{piv}(i)}.
+
+
+@defun piv/c @var{len}
+Allocate an array capable of holding a vector of @code{integer} values
+of @var{len} elements; return a pointer to it.  The appropriate free
+function is pushed to the current compensations stack.
+@nauref{compensations, Compensation stacks}.
+@end defun
+
+
+@defun piv-set! @var{piv} @var{idx} @var{val}
+Store the exact integer number @var{val} at location @var{IDX} in the
+integer vector referenced by the pointer object @var{piv}.
+@end defun
+
+
+@defun piv-ref @var{piv} @var{idx}
+Return the exact integer number at location @var{idx} in the integer
+vector referenced by the pointer object @var{piv}.
+@end defun
+
+
+@defun piv-fill! @var{piv} @var{m}
+Fill the integer vector referenced by the pointer object @var{piv} with
+values from the list @var{m}.
+@end defun
+
+
+@defun piv->list @var{piv} @var{len}
+Build and return a list holding the values from the integer vector
+referenced by the pointer @var{piv} and length @var{len}.
+@end defun
+
+@c page
+@node lineq
+@chapter Linear equations
+
+
+The functions documented in this chapter solve systems of linear
+equations.  The bindings are exported by the @library{foreign math
+lapack primitives} library and reexported by the @library{foreign math
+lapack} library.
+
+@menu
+* lineq general::               General problem.
+@end menu
+
+@c page
+@node lineq general
+@section General problem
+
+
+@defun dgesv @var{n} @var{nrhs} @var{a-mat} @var{lda} @var{ipiv} @var{b-mat} @var{ldb}
+Compute the solution to a real system of linear equations:
+
+@example
+A * X = B
+@end example
+
+@noindent
+where @math{A} is an @var{n}-by-@var{n} matrix and @math{X} and @math{B}
+are @var{n}-by-@var{nrhs} matrices; @math{A} is a generic matrix.
+
+The LU decomposition with partial pivoting and row interchanges is used
+to factor @math{A} as:
+
+@example
+A = P * L * U
+@end example
+
+@noindent
+where @math{P} is a permutation matrix, @math{L} is unit lower
+triangular, and @math{U} is upper triangular.  The factored form of
+@math{A} is then used to solve the system of equations @math{A * X = B}.
+
+@var{n} must be a non--negative exact integer representing is the number
+of linear equations: the order of the matrix @var{a-mat}.  @var{nrhs}
+(number of right--hand sides) must be a non--negative exact integer
+representing the number of right hand sides: the number of columns of
+the matrix @var{b-mat}.
+
+@var{a-mat} must be a pointer object referencing an array of
+@code{double} real numbers with dimension @var{lda}:@var{n}; on entry,
+the array must hold the coefficient matrix; on exit, the array holds the
+factors @math{L} and @math{U} from the factorization @math{A = P*L*U};
+the unit diagonal elements of @math{L} are not stored.
+
+@var{lda} must be a positive integer: the leading dimension of the array
+@var{a-mat}.  @math{@var{lda} >= max(1, @var{n})}.
+
+@var{ipiv} must be a pointer object referencing an array of
+@code{integer} values with dimension @var{n}; on exit, the array holds
+the pivot indices that define the permutation matrix @math{P}; row
+@math{i} of the matrix was interchanged with row @math{@var{ipiv}(i)}.
+To apply the permutation see the function @func{dlaswp}, @ref{perms,
+Permutations}.
+
+
+@var{b-mat} must be a pointer object referencing an array of
+@code{double} real numbers with dimension @var{ldb}:@var{nrhs}; on
+entry, the array must hold the right hand side matrix @math{B}; on exit,
+it holds the solution matrix @math{X}.
+
+@var{ldb} must be a positive exact integer representing the the leading
+dimension of the array @math{B}.  @math{@var{ldb} >= max(1, @var{n})}.
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign math lapack)
+  (foreign math lapack vm))
+
+(with-compensations
+  (let* ((n   4)
+         (A   (rmx/c n n))
+         (B   (rvc/c n))
+         (piv (piv/c n)))
+
+    (rmx-fill! A n '(( 1.80   2.88   2.05  -0.89)
+                     ( 5.25  -2.95  -0.95  -3.80)
+                     ( 1.58  -2.69  -2.90  -1.04)
+                     (-1.11  -0.66  -0.59   0.80)))
+
+    (rvc-fill! B '(9.52  24.35  0.77  -6.22))
+
+    (dgesv n 1 A n piv B n)
+
+    (rvc->list B n) @result{} (1. -1. 3. -5.)
+
+    (piv->list piv n))) @result{} (2 2 3 4)
+@end example
+@end defun
+
+
+@defun zgesv @var{n} @var{nrhs} @var{a-mat} @var{lda} @var{ipiv} @var{b-mat} @var{ldb}
+Compute the solution to a complex system of linear equations:
+
+@example
+A * X = B
+@end example
+
+@noindent
+where @math{A} is an @var{n}-by-@var{n} matrix and @math{X} and @math{B}
+are @var{n}-by-@var{nrhs} matrices; @math{A} is a generic matrix.
+
+The LU decomposition with partial pivoting and row interchanges is used
+to factor @math{A} as:
+
+@example
+A = P * L * U
+@end example
+
+@noindent
+where @math{P} is a permutation matrix, @math{L} is unit lower
+triangular, and @math{U} is upper triangular.  The factored form of
+@math{A} is then used to solve the system of equations @math{A * X = B}.
+
+@var{n} must be a non--negative exact integer representing is the number
+of linear equations: the order of the matrix @var{a-mat}.  @var{nrhs}
+(number of right--hand sides) must be a non--negative exact integer
+representing the number of right hand sides: the number of columns of
+the matrix @var{b-mat}.
+
+@var{a-mat} must be a pointer object referencing an array of
+@code{double} complex numbers with dimension @var{lda}:@var{n}; on
+entry, the array must hold the coefficient matrix; on exit, the array
+holds the factors @math{L} and @math{U} from the factorization @math{A =
+P*L*U}; the unit diagonal elements of @math{L} are not stored.
+
+@var{lda} must be a positive integer: the leading dimension of the array
+@var{a-mat}.  @math{@var{lda} >= max(1, @var{n})}.
+
+@var{ipiv} must be a pointer object referencing an array of
+@code{integer} values with dimension @var{n}; on exit, the array holds
+the pivot indices that define the permutation matrix @math{P}; row
+@math{i} of the matrix was interchanged with row @math{@var{ipiv}(i)}.
+To apply the permutation see the function @func{zlaswp}, @ref{perms,
+Permutations}.
+
+
+@var{b-mat} must be a pointer object referencing an array of
+@code{double} complex numbers with dimension @var{ldb}:@var{nrhs}; on
+entry, the array must hold the right hand side matrix @math{B}; on exit,
+it holds the solution matrix @math{X}.
+
+@var{ldb} must be a positive exact integer representing the the leading
+dimension of the array @math{B}.  @math{@var{ldb} >= max(1, @var{n})}.
+
+@example
+(import (rnrs)
+  (compensations)
+  (foreign math lapack)
+  (foreign math lapack vm))
+
+(with-compensations
+  (let* ((n   4)
+         (A   (cmx/c n n))
+         (B   (cvc/c n))
+         (piv (piv/c n)))
+
+    (cmx-fill! A n
+       '((-1.34+2.55i  0.28+3.17i -6.39-2.20i  0.72-0.92i)
+         (-0.17-1.41i  3.31-0.15i -0.15+1.34i  1.29+1.38i)
+         (-3.29-2.39i -1.91+4.42i -0.14-1.35i  1.72+1.35i)
+         ( 2.41+0.39i -0.56+1.47i -0.83-0.69i -1.96+0.67i)))
+
+    (cvc-fill! B
+        '(26.26+51.78i 6.43-8.68i -5.75+25.31i 1.16+2.57i))
+
+    (zgesv n 1 A n piv B n)
+
+    (cvc->list B n) @result{} (1.+1.i 2.-3.i -4.-5.i -0.+6.i)
+
+    (piv->list piv n))) @result{} (3 2 3 4)
+@end example
+@end defun
+
+@c page
+@node perms
+@chapter Permutations
+
+
+The functions documented in this chapter apply permutations to matrices.
+The bindings are exported by the @library{foreign math lapack
+primitives} library and reexported by the @library{foreign math lapack}
+library.
+
+
+@defun dlaswp @var{n} @var{a-mat} @var{lda} @vari{k} @varii{k} @var{ipiv} @var{incx}
+Perform a series of row interchanges on the matrix referenced by the
+pointer @var{a-mat}.  One row interchange is initiated for each of rows
+@vari{k} through @varii{K} of @var{a-mat}.
+
+@var{n} must be an exact integer representing the number of columns of
+the matrix @var{a-mat}.
+
+@var{a-mat} must be a pointer to an array of @code{double} real numbers
+with dimension @var{lda}:@var{n}.  On entry, the array must hold the
+matrix of column dimension @var{n} to which the row interchanges will be
+applied.  On exit, the array holds the permuted matrix.
+
+@var{lda} must be an exact integer representing the leading dimension of
+the array @var{a-mat}.
+
+@vari{k} and @varii{k} must be exact integers representing the first and
+last elements (inclusive) of @var{ipiv} for which a row interchange will
+be done.
+
+@var{ipiv} must be a pointer to an array of @code{integer} numbers, with
+dimension @math{@var{n} * abs(@var{incx})}; it must hold the vector of
+pivot indices.  Only the elements in positions @vari{k} through
+@varii{K} of @var{ipiv} are accessed.  @math{@var{ipiv}(K) = L} implies
+rows @math{K} and @math{L} are to be interchanged.
+
+@var{incx} must be an exact integer representing the stride between
+successive values of @var{ipiv}.  If @var{ipiv} is negative, the pivots
+are applied in reverse order.
+@end defun
+
+
+@defun zlaswp @var{n} @var{a-mat} @var{lda} @vari{k} @varii{k} @var{ipiv} @var{incx}
+Perform a series of row interchanges on the matrix referenced by the
+pointer @var{a-mat}.  One row interchange is initiated for each of rows
+@vari{k} through @varii{K} of @var{a-mat}.
+
+@var{n} must be an exact integer representing the number of columns of
+the matrix @var{a-mat}.
+
+@var{a-mat} must be a pointer to an array of @code{double} complex
+numbers with dimension @var{lda}:@var{n}.  On entry, the array must hold
+the matrix of column dimension @var{n} to which the row interchanges
+will be applied.  On exit, the array holds the permuted matrix.
+
+@var{lda} must be an exact integer representing the leading dimension of
+the array @var{a-mat}.
+
+@vari{k} and @varii{k} must be exact integers representing the first and
+last elements (inclusive) of @var{ipiv} for which a row interchange will
+be done.
+
+@var{ipiv} must be a pointer to an array of @code{integer} numbers, with
+dimension @math{@var{n} * abs(@var{incx})}; it must hold the vector of
+pivot indices.  Only the elements in positions @vari{k} through
+@varii{K} of @var{ipiv} are accessed.  @math{@var{ipiv}(K) = L} implies
+rows @math{K} and @math{L} are to be interchanged.
+
+@var{incx} must be an exact integer representing the stride between
+successive values of @var{ipiv}.  If @var{ipiv} is negative, the pivots
+are applied in reverse order.
 @end defun
 
 @c page

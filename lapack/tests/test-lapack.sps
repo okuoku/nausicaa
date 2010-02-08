@@ -28,6 +28,7 @@
 (import (nausicaa)
   (begin0)
   (lists)
+  (pretty-print)
   (compensations)
   (only (foreign ffi)
 	array-set-c-double!
@@ -38,6 +39,9 @@
   (foreign memory)
   (foreign math lapack)
   (foreign math lapack vm)
+
+  (foreign math blas)
+
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -67,28 +71,25 @@
 
 (parametrise ((check-test-name	'linear-equations))
 
-  (define (pivots->list pivots* n)
-    (let loop ((i 0) (ell '()))
-      (if (= i n)
-	  (reverse ell)
-	(loop (+ 1 i) (cons (array-ref-c-integer pivots* i) ell)))))
-
   (with-compensations
     (let* ((n	4)
-	   (A	(rmx/c 4 4))
-	   (B	(rvc/c 4))
-	   (pivots*	(malloc-block/c (* 4 strideof-integer))))
+	   (A	(rmx/c n n))
+	   (B	(rvc/c n))
+	   (piv	(piv/c n)))
 
-      (define (pivots-ref idx)
-	(array-ref-c-integer pivots* idx))
+      (define A-coeffs
+	'(( 1.80   2.88   2.05  -0.89)
+	  ( 5.25  -2.95  -0.95  -3.80)
+	  ( 1.58  -2.69  -2.90  -1.04)
+	  (-1.11  -0.66  -0.59   0.80)))
 
-      (rmx-fill! A n '((1.80   2.88   2.05  -0.89)
-		       (5.25  -2.95  -0.95  -3.80)
-		       (1.58  -2.69  -2.90  -1.04)
-		       (-1.11  -0.66  -0.59   0.80)))
-      (rvc-fill! B '(9.52  24.35   0.77  -6.22))
+      (define B-coeffs
+	'(9.52  24.35  0.77  -6.22))
 
-      (dgesv n 1 A n pivots* B n)
+      (rmx-fill! A n A-coeffs)
+      (rvc-fill! B B-coeffs)
+
+      (dgesv n 1 A n piv B n)
 
       (check
 	  (rvc->list B n)
@@ -96,29 +97,42 @@
 	'(1. -1. 3. -5.))
 
       (check
-	  (pivots->list pivots* n)
+	  (piv->list piv n)
 	=> '(2 2 3 4))
+
+;;;      (pretty-print (rmx->list A n n n))
+
+      (let ((Y (rvc/c n)))
+	(rmx-fill! A n A-coeffs)
+	(dgemv col-major no-trans n n 1. A n B 1 0. Y 1)
+	(check
+	    (rvc->list Y n)
+	  (=> double=?)
+	  B-coeffs))
 
       #f))
 
 ;;; --------------------------------------------------------------------
 
   (with-compensations
-    (let* ((n		4)
-	   (A		(cmx/c 4 4))
-	   (B		(cvc/c 4))
-	   (pivots*	(malloc-block/c (* 4 strideof-integer))))
+    (let* ((n	4)
+	   (A	(cmx/c n n))
+	   (B	(cvc/c n))
+	   (piv	(piv/c n)))
 
-      (define (pivots-ref idx)
-	(array-ref-c-integer pivots* idx))
+      (define A-coeffs
+	'((-1.34+2.55i   0.28+3.17i  -6.39-2.20i   0.72-0.92i)
+	  (-0.17-1.41i   3.31-0.15i  -0.15+1.34i   1.29+1.38i)
+	  (-3.29-2.39i  -1.91+4.42i  -0.14-1.35i   1.72+1.35i)
+	  ( 2.41+0.39i  -0.56+1.47i  -0.83-0.69i  -1.96+0.67i)))
 
-      (cmx-fill! A n '((-1.34+2.55i  0.28+3.17i  -6.39-2.20i 0.72-0.92i)
-		       (-0.17-1.41i  3.31-0.15i  -0.15+1.34i 1.29+1.38i)
-		       (-3.29-2.39i  -1.91+4.42i -0.14-1.35i 1.72+1.35i)
-		       ( 2.41+0.39i  -0.56+1.47i -0.83-0.69i -1.96+0.67i)))
-      (cvc-fill! B '(26.26+51.78i 6.43-8.68i -5.75+25.31i 1.16+2.57i))
+      (define B-coeffs
+	'(26.26+51.78i 6.43-8.68i -5.75+25.31i 1.16+2.57i))
 
-      (zgesv n 1 A n pivots* B n)
+      (cmx-fill! A n A-coeffs)
+      (cvc-fill! B B-coeffs)
+
+      (zgesv n 1 A n piv B n)
 
       (check
 	  (cvc->list B n)
@@ -126,8 +140,16 @@
 	'(1.0000+1.0000i 2.0000-3.0000i -4.0000-5.0000i -0.0000+6.0000i))
 
       (check
-	  (pivots->list pivots* n)
+	  (piv->list piv n)
 	=> '(3 2 3 4))
+
+      ;; (let ((Y (cvc/c n)))
+      ;; 	(cmx-fill! A n A-coeffs)
+      ;; 	(zgemv col-major no-trans n n 1.+0.i A n B 1 0. Y 1)
+      ;; 	(check
+      ;; 	    (rvc->list Y n)
+      ;; 	  (=> complex=?)
+      ;; 	  B-coeffs))
 
       #f))
 

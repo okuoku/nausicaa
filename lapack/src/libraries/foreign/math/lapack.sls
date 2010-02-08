@@ -104,6 +104,24 @@
 
 ;;; --------------------------------------------------------------------
 
+    &lapack-error
+    make-lapack-error-condition
+    lapack-error-condition?
+
+    &lapack-invalid-argument
+    make-lapack-invalid-argument-condition
+    lapack-invalid-argument-condition?
+    condition-lapack-argument-position
+    condition-lapack-argument-name
+    condition-lapack-argument-value
+
+    &lapack-failed-step
+    make-lapack-failed-step-condition
+    lapack-failed-step-condition?
+    condition-lapack-failed-step
+
+;;; --------------------------------------------------------------------
+
     cbdsqr
     cgbbrd
     cgbcon
@@ -1324,6 +1342,7 @@
     zupgtr
     zupmtr)
   (import (rnrs)
+    (foreign math lapack conditions)
     (foreign math lapack primitives)
     (foreign math lapack sizeof)))
 

@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Sun Feb  7, 2010
+;;;Date: Mon Feb  8, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -101,6 +101,7 @@
     pointer-ref-c-ftnint
     pointer-set-c-ftnint!
     array-ref-c-integer
+    array-set-c-integer!
     address
     integer*
     logical*
@@ -252,6 +253,12 @@
     (pointer-ref-c-integer
       array*
       (* idx strideof-integer)))
+  (define
+    (array-set-c-integer! array* idx val)
+    (pointer-ref-c-integer
+      array*
+      (* idx strideof-integer)
+      val))
   (define address 'void*)
   (define integer* 'void*)
   (define logical* 'void*)

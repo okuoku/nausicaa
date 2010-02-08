@@ -1262,26 +1262,28 @@
     (foreign memory mempool)
     (foreign cstrings)
     (foreign math lapack platform)
+    (foreign math lapack conditions)
     (foreign math lapack sizeof))
 
 
-(define constants-pool
-  (malloc (+ strideof-integer (* 6 strideof-int))))
+;;;; constant argument values
+;;
+;;The following  values are never mutated  and can be reused  at will in
+;;all the function calls.  Their usage is thread-safe.
+;;
 
-(define pool-cursor
-  constants-pool)
+(define %constants-pool
+  (malloc (* 6 strideof-int)))
 
-(define info*
-  (begin0-let ((p pool-cursor))
-    (pointer-set-c-integer! p 0 0)
-    (pointer-incr! pool-cursor strideof-integer)))
+(define %constants-cursor
+  %constants-pool)
 
 (define-syntax define-char-pointer
   (syntax-rules ()
     ((_ ?name ?char)
      (define ?name
-       (begin0-let ((p pool-cursor))
-	 (pointer-incr! pool-cursor strideof-int)
+       (begin0-let ((p %constants-cursor))
+	 (pointer-incr! %constants-cursor strideof-int)
 	 (pointer-set-c-signed-char! p 0 (char->integer ?char)))))))
 
 (define-char-pointer all*	#\A)
@@ -1292,8 +1294,56 @@
 (define-char-pointer upper*	#\U)
 
 
+;;;; pointer to integer arguments
+;;
+;;Preallocated  memory locations  meant to  be used  to  store "integer"
+;;values; pointers to those locations  can be used as function arguments
+;;for the  CLAPACK callouts.  Each use  mutate the stored  value, so the
+;;usage of these locations is NOT thread-safe.
+;;
+
+(define %number-of-preallocated-locations 16)
+
+(define %integer-pointers-pool
+  (malloc (* %number-of-preallocated-locations strideof-integer)))
+
+(define %integer-pointers-cursor
+  %integer-pointers-pool)
+
+(define-syntax define-integer-pointer
+  ;;Define a new named location and reserve the used memory.
+  ;;
+  (syntax-rules ()
+    ((_ ?name)
+     (define ?name
+       (begin0-let ((p %integer-pointers-cursor))
+	 (pointer-incr! %integer-pointers-cursor strideof-integer))))))
+
+(define-syntax let-ip
+  (syntax-rules ()
+    ((_ ((?ptr ?val) ...) ?form0 ?form ...)
+     (begin
+       (pointer-set-c-integer! ?ptr 0 ?val) ...
+       ?form0 ?form ...))))
+
+;;Predefined locations.  New locations can be defined by simply adding a
+;;definition; it  is useful to  select a name  matching the name  of the
+;;CLAPACK argument for which the location will be used.
+;;
+(define-integer-pointer info*)		;;  1
+(define-integer-pointer n*)		;;  2
+(define-integer-pointer nrhs*)		;;  3
+(define-integer-pointer lda*)		;;  4
+(define-integer-pointer ldb*)		;;  5
+(define-integer-pointer k1*)		;;  6
+(define-integer-pointer k2*)		;;  7
+(define-integer-pointer incx*)		;;  8
+(define-integer-pointer incy*)		;;  9
+
+
 (define-syntax define-callout
   (lambda (stx)
+
     (define (name->callout-name name)
       ;;Strip the leading #\% if there is one.
       ;;
@@ -1306,6 +1356,7 @@
       ;;
       (let ((n (symbol->string name)))
 	(string->symbol (substring n 0 (- (string-length n) 1)))))
+
     (syntax-case stx ()
       ((_ ?name ?arg ...)
        (with-syntax ((WRAPPER-NAME (datum->syntax #'?name (name->wrapper-name (syntax->datum #'?name))))
@@ -1318,18 +1369,36 @@
 				'(?arg ...) (list ?arg ...)))))))))
 
 (define (%process-result who return-value info arg-names arg-values)
+  ;;Examine the value  stored in the INFO argument  to CLAPACK routines;
+  ;;if an error is detected, raise an appropriate exception.
+  ;;
+  ;;WHO must be the value  for the &who condition.  RETURN-VALUE must be
+  ;;the return value from the CLAPACK routine.
+  ;;
+  ;;ARG-NAMES must be the list of  names of the arguments to the calling
+  ;;function.  ARG-VALUES must  be the list of arguments  to the calling
+  ;;function.
+  ;;
   (cond ((< info 0)
 	 (let* ((index  (- info))
-		(index1 (- index 1))) ;Fortran indexing starts at 1.
-	   (error who
-	     (string-append "invalid argument '"
-			    (symbol->string (list-ref arg-names index1))
-			    "' (position " (number->string index) ")")
-	     (list-ref arg-values index1))))
+		(index1 (- index 1)) ;Fortran indexing starts at 1.
+		(name	(list-ref arg-names  index1))
+		(value	(list-ref arg-values index1)))
+	   (raise
+	    (condition
+	     (make-who-condition who)
+	     (make-message-condition
+	      (string-append "invalid argument '"
+			     (symbol->string name)
+			     "' (position " (number->string index) ")"))
+	     (make-lapack-invalid-argument-condition index name value)))))
 	((> info 0)
-	 (error who
-	   (string-append "error in the course of computation at step " (number->string info))
-	   info))
+	 (raise
+	  (condition
+	   (make-who-condition who)
+	   (make-message-condition
+	    (string-append "error in the course of computation at step " (number->string info)))
+	   (make-lapack-failed-step-condition info))))
 	(else return-value)))
 
 
@@ -1787,7 +1856,7 @@
 (define-callout dlasrt_ id n d__)
 (define-callout dlassq_ n x incx scale sumsq)
 (define-callout dlasv2_ f g h__ ssmin ssmax snr csr snl csl)
-(define-callout dlaswp_ n a lda k1 k2 ipiv incx)
+(define-callout %dlaswp_ n a lda k1 k2 ipiv incx)
 (define-callout dlasy2_ ltranl ltranr isgn n1 n2 tl ldtl tr ldtr b ldb scale x ldx xnorm)
 (define-callout dlasyf_ uplo n nb kb a lda ipiv w ldw)
 (define-callout dlatbs_ uplo trans diag normin n kd ab ldab x scale cnorm)
@@ -2430,7 +2499,7 @@
 (define-callout zlaset_ uplo m n alpha beta a lda)
 (define-callout zlasr_ side pivot direct m n c__ s a lda)
 (define-callout zlassq_ n x incx scale sumsq)
-(define-callout zlaswp_ n a lda k1 k2 ipiv incx)
+(define-callout %zlaswp_ n a lda k1 k2 ipiv incx)
 (define-callout zlasyf_ uplo n nb kb a lda ipiv w ldw)
 (define-callout zlatbs_ uplo trans diag normin n kd ab ldab x scale cnorm)
 (define-callout zlatdf_ ijob n z__ ldz rhs rdsum rdscal ipiv jpiv)
@@ -2552,42 +2621,13 @@
 (define-callout zupmtr_ side uplo trans m n ap tau c__ ldc work)
 
 
-;;;; high-level functions helpers
-
-(define %memory-cache
-  (make-block-cache (* 10 strideof-integer) 5))
-
-(define-syntax define-integer-pointer
-  (syntax-rules ()
-    ((_ ?pointer-name ?cursor ?value)
-     (define ?pointer-name
-       (begin0-let ((p ?cursor))
-	 (pointer-incr! ?cursor strideof-integer)
-	 (pointer-set-c-integer! p 0 ?value))))))
-
-(define-syntax let-ip
-  (syntax-rules ()
-    ((_ ((?ptr ?val) ...) ?form0 ?form ...)
-     (let ((p (%memory-cache)))
-       (dynamic-wind	;we do not use continuations
-	   (lambda () #f)
-	   (lambda ()
-	     (let ((q p))
-	       (define-integer-pointer ?ptr q ?val)
-	       ...
-	       ?form0 ?form ...))
-	   (lambda ()
-	     (%memory-cache p)))))))
-
-
 ;;;; linear equations
 
 (define (dgesv n nrhs a lda ipiv b ldb)
   (let-ip ((n*		n)
 	   (nrhs*	nrhs)
 	   (lda*	lda)
-	   (ldb*	ldb)
-	   (info*	0))
+	   (ldb*	ldb))
 	  (let ((result (dgesv_ n* nrhs* a lda* ipiv b ldb* info*)))
 	    (%process-result 'dgesv result
 			     (pointer-ref-c-integer info* 0)
@@ -2598,13 +2638,31 @@
   (let-ip ((n*		n)
 	   (nrhs*	nrhs)
 	   (lda*	lda)
-	   (ldb*	ldb)
-	   (info*	0))
+	   (ldb*	ldb))
 	  (let ((result (zgesv_ n* nrhs* a lda* ipiv b ldb* info*)))
 	    (%process-result 'dgesv result
 			     (pointer-ref-c-integer info* 0)
 			     '(n nrhs a lda ipiv b ldb)
 			     (list n nrhs a lda ipiv b ldb)))))
+
+
+;;;; permutations
+
+(define (dlaswp n a lda k1 k2 ipiv incx)
+  (let-ip ((n*		n)
+	   (lda*	lda)
+	   (k1*		k1)
+	   (k2*		k2)
+	   (incx*	incx))
+	  (dlaswp_ n* a lda* k1* k2* ipiv incx*)))
+
+(define (zlaswp n a lda k1 k2 ipiv incx)
+  (let-ip ((n*		n)
+	   (lda*	lda)
+	   (k1*		k1)
+	   (k2*		k2)
+	   (incx*	incx))
+	  (zlaswp_ n* a lda* k1* k2* ipiv incx*)))
 
 
 ;;;; done
