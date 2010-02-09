@@ -1253,6 +1253,7 @@
     zupgtr
     zupmtr)
   (import (rnrs)
+;;;    (pretty-print)
     (begin0)
     (compensations)
     (parameters)
@@ -1296,16 +1297,19 @@
 
 ;;;; pointer to integer arguments
 ;;
-;;Preallocated  memory locations  meant to  be used  to  store "integer"
-;;values; pointers to those locations  can be used as function arguments
-;;for the  CLAPACK callouts.  Each use  mutate the stored  value, so the
-;;usage of these locations is NOT thread-safe.
+;;Preallocated  memory  locations  meant  to  be  used  to  store  boxed
+;;arguments to  CLAPACK callout functions.   Each use mutate  the stored
+;;value, so the usage of these locations is NOT thread-safe.
 ;;
 
-(define %number-of-preallocated-locations 16)
+(define %number-of-preallocated-locations 32)
 
 (define %integer-pointers-pool
-  (malloc (* %number-of-preallocated-locations strideof-integer)))
+  (malloc (* %number-of-preallocated-locations (max strideof-integer
+						    strideof-real
+						    strideof-doublereal
+						    strideof-complex
+						    strideof-doublecomplex))))
 
 (define %integer-pointers-cursor
   %integer-pointers-pool)
@@ -1319,55 +1323,27 @@
        (begin0-let ((p %integer-pointers-cursor))
 	 (pointer-incr! %integer-pointers-cursor strideof-integer))))))
 
-(define-syntax let-ip
-  (syntax-rules ()
-    ((_ ((?ptr ?val) ...) ?form0 ?form ...)
-     (begin
-       (pointer-set-c-integer! ?ptr 0 ?val) ...
-       ?form0 ?form ...))))
-
-;;Predefined locations.  New locations can be defined by simply adding a
-;;definition; it  is useful to  select a name  matching the name  of the
-;;CLAPACK argument for which the location will be used.
+;;Predefined locations for boxed arguments.
 ;;
-(define-integer-pointer info*)		;;  1
-(define-integer-pointer n*)		;;  2
-(define-integer-pointer nrhs*)		;;  3
-(define-integer-pointer lda*)		;;  4
-(define-integer-pointer ldb*)		;;  5
-(define-integer-pointer k1*)		;;  6
-(define-integer-pointer k2*)		;;  7
-(define-integer-pointer incx*)		;;  8
-(define-integer-pointer incy*)		;;  9
+(define-integer-pointer info*)
+(define-integer-pointer box0)
+(define-integer-pointer box1)
+(define-integer-pointer box2)
+(define-integer-pointer box3)
+(define-integer-pointer box4)
+(define-integer-pointer box5)
+(define-integer-pointer box6)
+(define-integer-pointer box7)
+(define-integer-pointer box8)
+(define-integer-pointer box9)
+(define-integer-pointer box10)
+(define-integer-pointer box11)
+(define-integer-pointer box12)
+(define-integer-pointer box13)
+(define-integer-pointer box14)
+(define-integer-pointer box15)
 
 
-(define-syntax define-callout
-  (lambda (stx)
-
-    (define (name->callout-name name)
-      ;;Strip the leading #\% if there is one.
-      ;;
-      (let ((n (symbol->string name)))
-	(string->symbol (if (char=? #\% (string-ref n 0))
-			    (substring n 1 (string-length n))
-			  n))))
-    (define (name->wrapper-name name)
-      ;;Strip the trailing #\_.
-      ;;
-      (let ((n (symbol->string name)))
-	(string->symbol (substring n 0 (- (string-length n) 1)))))
-
-    (syntax-case stx ()
-      ((_ ?name ?arg ...)
-       (with-syntax ((WRAPPER-NAME (datum->syntax #'?name (name->wrapper-name (syntax->datum #'?name))))
-		     (CALLOUT-NAME (datum->syntax #'?name (name->callout-name (syntax->datum #'?name)))))
-	 #'(define (WRAPPER-NAME ?arg ...)
-	     (pointer-set-c-integer! info* 0 0)
-	     (let ((result (CALLOUT-NAME ?arg ... info*)))
-	       (%process-result (quote WRAPPER-NAME)
-				result (pointer-ref-c-integer info* 0)
-				'(?arg ...) (list ?arg ...)))))))))
-
 (define (%process-result who return-value info arg-names arg-values)
   ;;Examine the value  stored in the INFO argument  to CLAPACK routines;
   ;;if an error is detected, raise an appropriate exception.
@@ -1402,1267 +1378,2687 @@
 	(else return-value)))
 
 
-(define-callout cbdsqr_ uplo n ncvt nru ncc d__ e vt ldvt u ldu c__ ldc rwork)
-(define-callout cgbbrd_ vect m n ncc kl ku ab ldab d__ e q ldq pt ldpt c__ ldc work rwork)
-(define-callout cgbcon_ norm n kl ku ab ldab ipiv anorm rcond work rwork)
-(define-callout cgbequ_ m n kl ku ab ldab r__ c__ rowcnd colcnd amax)
-(define-callout cgbrfs_ trans n kl ku nrhs ab ldab afb ldafb ipiv b ldb x ldx ferr berr work rwork)
-(define-callout cgbsv_ n kl ku nrhs ab ldab ipiv b ldb)
-(define-callout cgbsvx_ fact trans n kl ku nrhs ab ldab afb ldafb ipiv equed r__ c__ b ldb x ldx rcond ferr berr work rwork)
-(define-callout cgbtf2_ m n kl ku ab ldab ipiv)
-(define-callout cgbtrf_ m n kl ku ab ldab ipiv)
-(define-callout cgbtrs_ trans n kl ku nrhs ab ldab ipiv b ldb)
-(define-callout cgebak_ job side n ilo ihi scale m v ldv)
-(define-callout cgebal_ job n a lda ilo ihi scale)
-(define-callout cgebd2_ m n a lda d__ e tauq taup work)
-(define-callout cgebrd_ m n a lda d__ e tauq taup work lwork)
-(define-callout cgecon_ norm n a lda anorm rcond work rwork)
-(define-callout cgeequ_ m n a lda r__ c__ rowcnd colcnd amax)
-(define-callout cgees_ jobvs sort L_fp select n a lda sdim w vs ldvs work lwork rwork bwork)
-(define-callout cgeesx_ jobvs sort L_fp select sense n a lda sdim w vs ldvs rconde rcondv work lwork rwork bwork)
-(define-callout cgeev_ jobvl jobvr n a lda w vl ldvl vr ldvr work lwork rwork)
-(define-callout cgeevx_ balanc jobvl jobvr sense n a lda w vl ldvl vr ldvr ilo ihi scale abnrm rconde rcondv work lwork rwork)
-(define-callout cgegs_ jobvsl jobvsr n a lda b ldb alpha beta vsl ldvsl vsr ldvsr work lwork rwork)
-(define-callout cgegv_ jobvl jobvr n a lda b ldb alpha beta vl ldvl vr ldvr work lwork rwork)
-(define-callout cgehd2_ n ilo ihi a lda tau work)
-(define-callout cgehrd_ n ilo ihi a lda tau work lwork)
-(define-callout cgelq2_ m n a lda tau work)
-(define-callout cgelqf_ m n a lda tau work lwork)
-(define-callout cgels_ trans m n nrhs a lda b ldb work lwork)
-(define-callout cgelsx_ m n nrhs a lda b ldb jpvt rcond rank work rwork)
-(define-callout cgelsy_ m n nrhs a lda b ldb jpvt rcond rank work lwork rwork)
-(define-callout cgeql2_ m n a lda tau work)
-(define-callout cgeqlf_ m n a lda tau work lwork)
-(define-callout cgeqp3_ m n a lda jpvt tau work lwork rwork)
-(define-callout cgeqpf_ m n a lda jpvt tau work rwork)
-(define-callout cgeqr2_ m n a lda tau work)
-(define-callout cgeqrf_ m n a lda tau work lwork)
-(define-callout cgerfs_ trans n nrhs a lda af ldaf ipiv b ldb x ldx ferr berr work rwork)
-(define-callout cgerq2_ m n a lda tau work)
-(define-callout cgerqf_ m n a lda tau work lwork)
-(define-callout cgesc2_ n a lda rhs ipiv jpiv scale)
-(define-callout cgesv_ n nrhs a lda ipiv b ldb)
-(define-callout cgesvx_ fact trans n nrhs a lda af ldaf ipiv equed r__ c__ b ldb x ldx rcond ferr berr work rwork)
-(define-callout cgetc2_ n a lda ipiv jpiv)
-(define-callout cgetf2_ m n a lda ipiv)
-(define-callout cgetrf_ m n a lda ipiv)
-(define-callout cgetri_ n a lda ipiv work lwork)
-(define-callout cgetrs_ trans n nrhs a lda ipiv b ldb)
-(define-callout cggbak_ job side n ilo ihi lscale rscale m v ldv)
-(define-callout cggbal_ job n a lda b ldb ilo ihi lscale rscale work)
-(define-callout cgges_ jobvsl jobvsr sort L_fp selctg n a lda b ldb sdim alpha beta vsl ldvsl vsr ldvsr work lwork rwork bwork)
-(define-callout cggesx_ jobvsl jobvsr sort L_fp selctg sense n a lda b ldb sdim alpha beta vsl ldvsl vsr ldvsr rconde rcondv work lwork rwork iwork liwork bwork)
-(define-callout cggev_ jobvl jobvr n a lda b ldb alpha beta vl ldvl vr ldvr work lwork rwork)
-(define-callout cggevx_ balanc jobvl jobvr sense n a lda b ldb alpha beta vl ldvl vr ldvr ilo ihi lscale rscale abnrm bbnrm rconde rcondv work lwork rwork iwork bwork)
-(define-callout cggglm_ n m p a lda b ldb d__ x y work lwork)
-(define-callout cgghrd_ compq compz n ilo ihi a lda b ldb q ldq z__ ldz)
-(define-callout cgglse_ m n p a lda b ldb c__ d__ x work lwork)
-(define-callout cggqrf_ n m p a lda taua b ldb taub work lwork)
-(define-callout cggrqf_ m p n a lda taua b ldb taub work lwork)
-(define-callout cggsvd_ jobu jobv jobq m n p k l a lda b ldb alpha beta u ldu v ldv q ldq work rwork iwork)
-(define-callout cggsvp_ jobu jobv jobq m p n a lda b ldb tola tolb k l u ldu v ldv q ldq iwork rwork tau work)
-(define-callout cgtcon_ norm n dl d__ du du2 ipiv anorm rcond work)
-(define-callout cgtrfs_ trans n nrhs dl d__ du dlf df duf du2 ipiv b ldb x ldx ferr berr work rwork)
-(define-callout cgtsv_ n nrhs dl d__ du b ldb)
-(define-callout cgtsvx_ fact trans n nrhs dl d__ du dlf df duf du2 ipiv b ldb x ldx rcond ferr berr work rwork)
-(define-callout cgttrf_ n dl d__ du du2 ipiv)
-(define-callout cgttrs_ trans n nrhs dl d__ du du2 ipiv b ldb)
-(define-callout cgtts2_ itrans n nrhs dl d__ du du2 ipiv b ldb)
-(define-callout chbev_ jobz uplo n kd ab ldab w z__ ldz work rwork)
-(define-callout chbevd_ jobz uplo n kd ab ldab w z__ ldz work lwork rwork lrwork iwork liwork)
-(define-callout chbevx_ jobz range uplo n kd ab ldab q ldq vl vu il iu abstol m w z__ ldz work rwork iwork ifail)
-(define-callout chbgst_ vect uplo n ka kb ab ldab bb ldbb x ldx work rwork)
-(define-callout chbgv_ jobz uplo n ka kb ab ldab bb ldbb w z__ ldz work rwork)
-(define-callout chbgvx_ jobz range uplo n ka kb ab ldab bb ldbb q ldq vl vu il iu abstol m w z__ ldz work rwork iwork ifail)
-(define-callout chbtrd_ vect uplo n kd ab ldab d__ e q ldq work)
-(define-callout checon_ uplo n a lda ipiv anorm rcond work)
-(define-callout cheev_ jobz uplo n a lda w work lwork rwork)
-(define-callout cheevd_ jobz uplo n a lda w work lwork rwork lrwork iwork liwork)
-(define-callout cheevr_ jobz range uplo n a lda vl vu il iu abstol m w z__ ldz isuppz work lwork rwork lrwork iwork liwork)
-(define-callout cheevx_ jobz range uplo n a lda vl vu il iu abstol m w z__ ldz work lwork rwork iwork ifail)
-(define-callout chegs2_ itype uplo n a lda b ldb)
-(define-callout chegst_ itype uplo n a lda b ldb)
-(define-callout chegv_ itype jobz uplo n a lda b ldb w work lwork rwork)
-(define-callout chegvd_ itype jobz uplo n a lda b ldb w work lwork rwork lrwork iwork liwork)
-(define-callout chegvx_ itype jobz range uplo n a lda b ldb vl vu il iu abstol m w z__ ldz work lwork rwork iwork ifail)
-(define-callout cherfs_ uplo n nrhs a lda af ldaf ipiv b ldb x ldx ferr berr work rwork)
-(define-callout chesv_ uplo n nrhs a lda ipiv b ldb work lwork)
-(define-callout chesvx_ fact uplo n nrhs a lda af ldaf ipiv b ldb x ldx rcond ferr berr work lwork rwork)
-(define-callout chetf2_ uplo n a lda ipiv)
-(define-callout chetrd_ uplo n a lda d__ e tau work lwork)
-(define-callout chetrf_ uplo n a lda ipiv work lwork)
-(define-callout chetri_ uplo n a lda ipiv work)
-(define-callout chetrs_ uplo n nrhs a lda ipiv b ldb)
-(define-callout chgeqz_ job compq compz n ilo ihi a lda b ldb alpha beta q ldq z__ ldz work lwork rwork)
-(define-callout chpcon_ uplo n ap ipiv anorm rcond work)
-(define-callout chpev_ jobz uplo n ap w z__ ldz work rwork)
-(define-callout chpevd_ jobz uplo n ap w z__ ldz work lwork rwork lrwork iwork liwork)
-(define-callout chpevx_ jobz range uplo n ap vl vu il iu abstol m w z__ ldz work rwork iwork ifail)
-(define-callout chpgst_ itype uplo n ap bp)
-(define-callout chpgv_ itype jobz uplo n ap bp w z__ ldz work rwork)
-(define-callout chpgvd_ itype jobz uplo n ap bp w z__ ldz work lwork rwork lrwork iwork liwork)
-(define-callout chpgvx_ itype jobz range uplo n ap bp vl vu il iu abstol m w z__ ldz work rwork iwork ifail)
-(define-callout chprfs_ uplo n nrhs ap afp ipiv b ldb x ldx ferr berr work rwork)
-(define-callout chpsv_ uplo n nrhs ap ipiv b ldb)
-(define-callout chpsvx_ fact uplo n nrhs ap afp ipiv b ldb x ldx rcond ferr berr work rwork)
-(define-callout chptrd_ uplo n ap d__ e tau)
-(define-callout chptrf_ uplo n ap ipiv)
-(define-callout chptri_ uplo n ap ipiv work)
-(define-callout chptrs_ uplo n nrhs ap ipiv b ldb)
-(define-callout chsein_ side eigsrc initv select n h__ ldh w vl ldvl vr ldvr mm m work rwork ifaill ifailr)
-(define-callout chseqr_ job compz n ilo ihi h__ ldh w z__ ldz work lwork)
-(define-callout clabrd_ m n nb a lda d__ e tauq taup x ldx y ldy)
-(define-callout clacgv_ n x incx)
-(define-callout clacon_ n v x est kase)
-(define-callout clacp2_ uplo m n a lda b ldb)
-(define-callout clacpy_ uplo m n a lda b ldb)
-(define-callout clacrm_ m n a lda b ldb c__ ldc rwork)
-(define-callout clacrt_ n cx incx cy incy c__ s)
-(define-callout claed0_ qsiz n d__ e q ldq qstore ldqs rwork iwork)
-(define-callout claed7_ n cutpnt qsiz tlvls curlvl curpbm d__ q ldq rho indxq qstore qptr prmptr perm givptr givcol givnum work rwork iwork)
-(define-callout claed8_ k n qsiz q ldq d__ rho cutpnt z__ dlamda q2 ldq2 w indxp indx indxq perm givptr givcol givnum)
-(define-callout claein_ rightv noinit n h__ ldh w v b ldb rwork eps3 smlnum)
-(define-callout claesy_ a b c__ rt1 rt2 evscal cs1 sn1)
-(define-callout claev2_ a b c__ rt1 rt2 cs1 sn1)
-(define-callout clags2_ upper a1 a2 a3 b1 b2 b3 csu snu csv snv csq snq)
-(define-callout clagtm_ trans n nrhs alpha dl d__ du x ldx beta b ldb)
-(define-callout clahef_ uplo n nb kb a lda ipiv w ldw)
-(define-callout clahqr_ wantt wantz n ilo ihi h__ ldh w iloz ihiz z__ ldz)
-(define-callout clahrd_ n k nb a lda tau t ldt y ldy)
-(define-callout claic1_ job j x sest w gamma sestpr s c__)
-(define-callout clals0_ icompq nl nr sqre nrhs b ldb bx ldbx perm givptr givcol ldgcol givnum ldgnum poles difl difr z__ k c__ s rwork)
-(define-callout clalsa_ icompq smlsiz n nrhs b ldb bx ldbx u ldu vt k difl difr z__ poles givptr givcol ldgcol perm givnum c__ s rwork iwork)
-(define-callout clapll_ n x incx y incy ssmin)
-(define-callout clapmt_ forwrd m n x ldx k)
-(define-callout claqgb_ m n kl ku ab ldab r__ c__ rowcnd colcnd amax equed)
-(define-callout claqge_ m n a lda r__ c__ rowcnd colcnd amax equed)
-(define-callout claqhb_ uplo n kd ab ldab s scond amax equed)
-(define-callout claqhe_ uplo n a lda s scond amax equed)
-(define-callout claqhp_ uplo n ap s scond amax equed)
-(define-callout claqp2_ m n offset a lda jpvt tau vn1 vn2 work)
-(define-callout claqps_ m n offset nb kb a lda jpvt tau vn1 vn2 auxv f ldf)
-(define-callout claqsb_ uplo n kd ab ldab s scond amax equed)
-(define-callout claqsp_ uplo n ap s scond amax equed)
-(define-callout claqsy_ uplo n a lda s scond amax equed)
-(define-callout clar1v_ n b1 bn sigma d__ l ld lld gersch z__ ztz mingma r__ isuppz work)
-(define-callout clar2v_ n x y z__ incx c__ s incc)
-(define-callout clarcm_ m n a lda b ldb c__ ldc rwork)
-(define-callout clarf_ side m n v incv tau c__ ldc work)
-(define-callout clarfb_ side trans direct storev m n k v ldv t ldt c__ ldc work ldwork)
-(define-callout clarfg_ n alpha x incx tau)
-(define-callout clarft_ direct storev n k v ldv tau t ldt)
-(define-callout clarfx_ side m n v tau c__ ldc work)
-(define-callout clargv_ n x incx y incy c__ incc)
-(define-callout clarnv_ idist iseed n x)
-(define-callout clarrv_ n d__ l isplit m w iblock gersch tol z__ ldz isuppz work iwork)
-(define-callout clartg_ f g cs sn r__)
-(define-callout clartv_ n x incx y incy c__ s incc)
-(define-callout clarz_ side m n l v incv tau c__ ldc work)
-(define-callout clarzb_ side trans direct storev m n k l v ldv t ldt c__ ldc work ldwork)
-(define-callout clarzt_ direct storev n k v ldv tau t ldt)
-(define-callout clascl_ type__ kl ku cfrom cto m n a lda)
-(define-callout claset_ uplo m n alpha beta a lda)
-(define-callout clasr_ side pivot direct m n c__ s a lda)
-(define-callout classq_ n x incx scale sumsq)
-(define-callout claswp_ n a lda k1 k2 ipiv incx)
-(define-callout clasyf_ uplo n nb kb a lda ipiv w ldw)
-(define-callout clatbs_ uplo trans diag normin n kd ab ldab x scale cnorm)
-(define-callout clatdf_ ijob n z__ ldz rhs rdsum rdscal ipiv jpiv)
-(define-callout clatps_ uplo trans diag normin n ap x scale cnorm)
-(define-callout clatrd_ uplo n nb a lda e tau w ldw)
-(define-callout clatrs_ uplo trans diag normin n a lda x scale cnorm)
-(define-callout clatrz_ m n l a lda tau work)
-(define-callout clatzm_ side m n v incv tau c1 c2 ldc work)
-(define-callout clauu2_ uplo n a lda)
-(define-callout clauum_ uplo n a lda)
-(define-callout cpbcon_ uplo n kd ab ldab anorm rcond work rwork)
-(define-callout cpbequ_ uplo n kd ab ldab s scond amax)
-(define-callout cpbrfs_ uplo n kd nrhs ab ldab afb ldafb b ldb x ldx ferr berr work rwork)
-(define-callout cpbstf_ uplo n kd ab ldab)
-(define-callout cpbsv_ uplo n kd nrhs ab ldab b ldb)
-(define-callout cpbsvx_ fact uplo n kd nrhs ab ldab afb ldafb equed s b ldb x ldx rcond ferr berr work rwork)
-(define-callout cpbtf2_ uplo n kd ab ldab)
-(define-callout cpbtrf_ uplo n kd ab ldab)
-(define-callout cpbtrs_ uplo n kd nrhs ab ldab b ldb)
-(define-callout cpocon_ uplo n a lda anorm rcond work rwork)
-(define-callout cpoequ_ n a lda s scond amax)
-(define-callout cporfs_ uplo n nrhs a lda af ldaf b ldb x ldx ferr berr work rwork)
-(define-callout cposv_ uplo n nrhs a lda b ldb)
-(define-callout cposvx_ fact uplo n nrhs a lda af ldaf equed s b ldb x ldx rcond ferr berr work rwork)
-(define-callout cpotf2_ uplo n a lda)
-(define-callout cpotrf_ uplo n a lda)
-(define-callout cpotri_ uplo n a lda)
-(define-callout cpotrs_ uplo n nrhs a lda b ldb)
-(define-callout cppcon_ uplo n ap anorm rcond work rwork)
-(define-callout cppequ_ uplo n ap s scond amax)
-(define-callout cpprfs_ uplo n nrhs ap afp b ldb x ldx ferr berr work rwork)
-(define-callout cppsv_ uplo n nrhs ap b ldb)
-(define-callout cppsvx_ fact uplo n nrhs ap afp equed s b ldb x ldx rcond ferr berr work rwork)
-(define-callout cpptrf_ uplo n ap)
-(define-callout cpptri_ uplo n ap)
-(define-callout cpptrs_ uplo n nrhs ap b ldb)
-(define-callout cptcon_ n d__ e anorm rcond rwork)
-(define-callout cptrfs_ uplo n nrhs d__ e df ef b ldb x ldx ferr berr work rwork)
-(define-callout cptsv_ n nrhs d__ e b ldb)
-(define-callout cptsvx_ fact n nrhs d__ e df ef b ldb x ldx rcond ferr berr work rwork)
-(define-callout cpttrf_ n d__ e)
-(define-callout cpttrs_ uplo n nrhs d__ e b ldb)
-(define-callout cptts2_ iuplo n nrhs d__ e b ldb)
-(define-callout crot_ n cx incx cy incy c__ s)
-(define-callout cspcon_ uplo n ap ipiv anorm rcond work)
-(define-callout cspmv_ uplo n alpha ap x incx beta y incy)
-(define-callout cspr_ uplo n alpha x incx ap)
-(define-callout csprfs_ uplo n nrhs ap afp ipiv b ldb x ldx ferr berr work rwork)
-(define-callout cspsv_ uplo n nrhs ap ipiv b ldb)
-(define-callout cspsvx_ fact uplo n nrhs ap afp ipiv b ldb x ldx rcond ferr berr work rwork)
-(define-callout csptrf_ uplo n ap ipiv)
-(define-callout csptri_ uplo n ap ipiv work)
-(define-callout csptrs_ uplo n nrhs ap ipiv b ldb)
-(define-callout csrot_ n cx incx cy incy c__ s)
-(define-callout csrscl_ n sa sx incx)
-(define-callout cstedc_ compz n d__ e z__ ldz work lwork rwork lrwork iwork liwork)
-(define-callout cstein_ n d__ e m w iblock isplit z__ ldz work iwork ifail)
-(define-callout csteqr_ compz n d__ e z__ ldz work)
-(define-callout csycon_ uplo n a lda ipiv anorm rcond work)
-(define-callout csymv_ uplo n alpha a lda x incx beta y incy)
-(define-callout csyr_ uplo n alpha x incx a lda)
-(define-callout csyrfs_ uplo n nrhs a lda af ldaf ipiv b ldb x ldx ferr berr work rwork)
-(define-callout csysv_ uplo n nrhs a lda ipiv b ldb work lwork)
-(define-callout csysvx_ fact uplo n nrhs a lda af ldaf ipiv b ldb x ldx rcond ferr berr work lwork rwork)
-(define-callout csytf2_ uplo n a lda ipiv)
-(define-callout csytrf_ uplo n a lda ipiv work lwork)
-(define-callout csytri_ uplo n a lda ipiv work)
-(define-callout csytrs_ uplo n nrhs a lda ipiv b ldb)
-(define-callout ctbcon_ norm uplo diag n kd ab ldab rcond work rwork)
-(define-callout ctbrfs_ uplo trans diag n kd nrhs ab ldab b ldb x ldx ferr berr work rwork)
-(define-callout ctbtrs_ uplo trans diag n kd nrhs ab ldab b ldb)
-(define-callout ctgevc_ side howmny select n a lda b ldb vl ldvl vr ldvr mm m work rwork)
-(define-callout ctgex2_ wantq wantz n a lda b ldb q ldq z__ ldz j1)
-(define-callout ctgexc_ wantq wantz n a lda b ldb q ldq z__ ldz ifst ilst)
-(define-callout ctgsen_ ijob wantq wantz select n a lda b ldb alpha beta q ldq z__ ldz m pl pr dif work lwork iwork liwork)
-(define-callout ctgsja_ jobu jobv jobq m p n k l a lda b ldb tola tolb alpha beta u ldu v ldv q ldq work ncycle)
-(define-callout ctgsna_ job howmny select n a lda b ldb vl ldvl vr ldvr s dif mm m work lwork iwork)
-(define-callout ctgsy2_ trans ijob m n a lda b ldb c__ ldc d__ ldd e lde f ldf scale rdsum rdscal)
-(define-callout ctgsyl_ trans ijob m n a lda b ldb c__ ldc d__ ldd e lde f ldf scale dif work lwork iwork)
-(define-callout ctpcon_ norm uplo diag n ap rcond work rwork)
-(define-callout ctprfs_ uplo trans diag n nrhs ap b ldb x ldx ferr berr work rwork)
-(define-callout ctptri_ uplo diag n ap)
-(define-callout ctptrs_ uplo trans diag n nrhs ap b ldb)
-(define-callout ctrcon_ norm uplo diag n a lda rcond work rwork)
-(define-callout ctrevc_ side howmny select n t ldt vl ldvl vr ldvr mm m work rwork)
-(define-callout ctrexc_ compq n t ldt q ldq ifst ilst)
-(define-callout ctrrfs_ uplo trans diag n nrhs a lda b ldb x ldx ferr berr work rwork)
-(define-callout ctrsen_ job compq select n t ldt q ldq w m s sep work lwork)
-(define-callout ctrsna_ job howmny select n t ldt vl ldvl vr ldvr s sep mm m work ldwork rwork)
-(define-callout ctrsyl_ trana tranb isgn m n a lda b ldb c__ ldc scale)
-(define-callout ctrti2_ uplo diag n a lda)
-(define-callout ctrtri_ uplo diag n a lda)
-(define-callout ctrtrs_ uplo trans diag n nrhs a lda b ldb)
-(define-callout ctzrqf_ m n a lda tau)
-(define-callout ctzrzf_ m n a lda tau work lwork)
-(define-callout cung2l_ m n k a lda tau work)
-(define-callout cung2r_ m n k a lda tau work)
-(define-callout cungbr_ vect m n k a lda tau work lwork)
-(define-callout cunghr_ n ilo ihi a lda tau work lwork)
-(define-callout cungl2_ m n k a lda tau work)
-(define-callout cunglq_ m n k a lda tau work lwork)
-(define-callout cungql_ m n k a lda tau work lwork)
-(define-callout cungqr_ m n k a lda tau work lwork)
-(define-callout cungr2_ m n k a lda tau work)
-(define-callout cungrq_ m n k a lda tau work lwork)
-(define-callout cungtr_ uplo n a lda tau work lwork)
-(define-callout cunm2l_ side trans m n k a lda tau c__ ldc work)
-(define-callout cunm2r_ side trans m n k a lda tau c__ ldc work)
-(define-callout cunmbr_ vect side trans m n k a lda tau c__ ldc work lwork)
-(define-callout cunmhr_ side trans m n ilo ihi a lda tau c__ ldc work lwork)
-(define-callout cunml2_ side trans m n k a lda tau c__ ldc work)
-(define-callout cunmlq_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout cunmql_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout cunmqr_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout cunmr2_ side trans m n k a lda tau c__ ldc work)
-(define-callout cunmr3_ side trans m n k l a lda tau c__ ldc work)
-(define-callout cunmrq_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout cunmrz_ side trans m n k l a lda tau c__ ldc work lwork)
-(define-callout cunmtr_ side uplo trans m n a lda tau c__ ldc work lwork)
-(define-callout cupgtr_ uplo n ap tau q ldq work)
-(define-callout cupmtr_ side uplo trans m n ap tau c__ ldc work)
-(define-callout dbdsdc_ uplo compq n d__ e u ldu vt ldvt q iq work iwork)
-(define-callout dbdsqr_ uplo n ncvt nru ncc d__ e vt ldvt u ldu c__ ldc work)
-(define-callout ddisna_ job m n d__ sep)
-(define-callout dgbbrd_ vect m n ncc kl ku ab ldab d__ e q ldq pt ldpt c__ ldc work)
-(define-callout dgbcon_ norm n kl ku ab ldab ipiv anorm rcond work iwork)
-(define-callout dgbequ_ m n kl ku ab ldab r__ c__ rowcnd colcnd amax)
-(define-callout dgbrfs_ trans n kl ku nrhs ab ldab afb ldafb ipiv b ldb x ldx ferr berr work iwork)
-(define-callout dgbsv_ n kl ku nrhs ab ldab ipiv b ldb)
-(define-callout dgbsvx_ fact trans n kl ku nrhs ab ldab afb ldafb ipiv equed r__ c__ b ldb x ldx rcond ferr berr work iwork)
-(define-callout dgbtf2_ m n kl ku ab ldab ipiv)
-(define-callout dgbtrf_ m n kl ku ab ldab ipiv)
-(define-callout dgbtrs_ trans n kl ku nrhs ab ldab ipiv b ldb)
-(define-callout dgebak_ job side n ilo ihi scale m v ldv)
-(define-callout dgebal_ job n a lda ilo ihi scale)
-(define-callout dgebd2_ m n a lda d__ e tauq taup work)
-(define-callout dgebrd_ m n a lda d__ e tauq taup work lwork)
-(define-callout dgecon_ norm n a lda anorm rcond work iwork)
-(define-callout dgeequ_ m n a lda r__ c__ rowcnd colcnd amax)
-(define-callout dgees_ jobvs sort L_fp select n a lda sdim wr wi vs ldvs work lwork bwork)
-(define-callout dgeesx_ jobvs sort L_fp select sense n a lda sdim wr wi vs ldvs rconde rcondv work lwork iwork liwork bwork)
-(define-callout dgeev_ jobvl jobvr n a lda wr wi vl ldvl vr ldvr work lwork)
-(define-callout dgeevx_ balanc jobvl jobvr sense n a lda wr wi vl ldvl vr ldvr ilo ihi scale abnrm rconde rcondv work lwork iwork)
-(define-callout dgegs_ jobvsl jobvsr n a lda b ldb alphar alphai beta vsl ldvsl vsr ldvsr work lwork)
-(define-callout dgegv_ jobvl jobvr n a lda b ldb alphar alphai beta vl ldvl vr ldvr work lwork)
-(define-callout dgehd2_ n ilo ihi a lda tau work)
-(define-callout dgehrd_ n ilo ihi a lda tau work lwork)
-(define-callout dgelq2_ m n a lda tau work)
-(define-callout dgelqf_ m n a lda tau work lwork)
-(define-callout dgels_ trans m n nrhs a lda b ldb work lwork)
-(define-callout dgelsd_ m n nrhs a lda b ldb s rcond rank work lwork iwork)
-(define-callout dgelss_ m n nrhs a lda b ldb s rcond rank work lwork)
-(define-callout dgelsx_ m n nrhs a lda b ldb jpvt rcond rank work)
-(define-callout dgelsy_ m n nrhs a lda b ldb jpvt rcond rank work lwork)
-(define-callout dgeql2_ m n a lda tau work)
-(define-callout dgeqlf_ m n a lda tau work lwork)
-(define-callout dgeqp3_ m n a lda jpvt tau work lwork)
-(define-callout dgeqpf_ m n a lda jpvt tau work)
-(define-callout dgeqr2_ m n a lda tau work)
-(define-callout dgeqrf_ m n a lda tau work lwork)
-(define-callout dgerfs_ trans n nrhs a lda af ldaf ipiv b ldb x ldx ferr berr work iwork)
-(define-callout dgerq2_ m n a lda tau work)
-(define-callout dgerqf_ m n a lda tau work lwork)
-(define-callout dgesc2_ n a lda rhs ipiv jpiv scale)
-(define-callout dgesdd_ jobz m n a lda s u ldu vt ldvt work lwork iwork)
-(define-callout %dgesv_ n nrhs a lda ipiv b ldb)
-(define-callout dgesvd_ jobu jobvt m n a lda s u ldu vt ldvt work lwork)
-(define-callout dgesvx_ fact trans n nrhs a lda af ldaf ipiv equed r__ c__ b ldb x ldx rcond ferr berr work iwork)
-(define-callout dgetc2_ n a lda ipiv jpiv)
-(define-callout dgetf2_ m n a lda ipiv)
-(define-callout dgetrf_ m n a lda ipiv)
-(define-callout dgetri_ n a lda ipiv work lwork)
-(define-callout dgetrs_ trans n nrhs a lda ipiv b ldb)
-(define-callout dggbak_ job side n ilo ihi lscale rscale m v ldv)
-(define-callout dggbal_ job n a lda b ldb ilo ihi lscale rscale work)
-(define-callout dgges_ jobvsl jobvsr sort L_fp delctg n a lda b ldb sdim alphar alphai beta vsl ldvsl vsr ldvsr work lwork bwork)
-(define-callout dggesx_ jobvsl jobvsr sort L_fp delctg sense n a lda b ldb sdim alphar alphai beta vsl ldvsl vsr ldvsr rconde rcondv work lwork iwork liwork bwork)
-(define-callout dggev_ jobvl jobvr n a lda b ldb alphar alphai beta vl ldvl vr ldvr work lwork)
-(define-callout dggevx_ balanc jobvl jobvr sense n a lda b ldb alphar alphai beta vl ldvl vr ldvr ilo ihi lscale rscale abnrm bbnrm rconde rcondv work lwork iwork bwork)
-(define-callout dggglm_ n m p a lda b ldb d__ x y work lwork)
-(define-callout dgghrd_ compq compz n ilo ihi a lda b ldb q ldq z__ ldz)
-(define-callout dgglse_ m n p a lda b ldb c__ d__ x work lwork)
-(define-callout dggqrf_ n m p a lda taua b ldb taub work lwork)
-(define-callout dggrqf_ m p n a lda taua b ldb taub work lwork)
-(define-callout dggsvd_ jobu jobv jobq m n p k l a lda b ldb alpha beta u ldu v ldv q ldq work iwork)
-(define-callout dggsvp_ jobu jobv jobq m p n a lda b ldb tola tolb k l u ldu v ldv q ldq iwork tau work)
-(define-callout dgtcon_ norm n dl d__ du du2 ipiv anorm rcond work iwork)
-(define-callout dgtrfs_ trans n nrhs dl d__ du dlf df duf du2 ipiv b ldb x ldx ferr berr work iwork)
-(define-callout dgtsv_ n nrhs dl d__ du b ldb)
-(define-callout dgtsvx_ fact trans n nrhs dl d__ du dlf df duf du2 ipiv b ldb x ldx rcond ferr berr work iwork)
-(define-callout dgttrf_ n dl d__ du du2 ipiv)
-(define-callout dgttrs_ trans n nrhs dl d__ du du2 ipiv b ldb)
-(define-callout dgtts2_ itrans n nrhs dl d__ du du2 ipiv b ldb)
-(define-callout dhgeqz_ job compq compz n ilo ihi a lda b ldb alphar alphai beta q ldq z__ ldz work lwork)
-(define-callout dhsein_ side eigsrc initv select n h__ ldh wr wi vl ldvl vr ldvr mm m work ifaill ifailr)
-(define-callout dhseqr_ job compz n ilo ihi h__ ldh wr wi z__ ldz work lwork)
-(define-callout dlabad_ small large)
-(define-callout dlabrd_ m n nb a lda d__ e tauq taup x ldx y ldy)
-(define-callout dlacon_ n v x isgn est kase)
-(define-callout dlacpy_ uplo m n a lda b ldb)
-(define-callout dladiv_ a b c__ d__ p q)
-(define-callout dlae2_ a b c__ rt1 rt2)
-(define-callout dlaebz_ ijob nitmax n mmax minp nbmin abstol reltol pivmin d__ e e2 nval ab c__ mout nab work iwork)
-(define-callout dlaed0_ icompq qsiz n d__ e q ldq qstore ldqs work iwork)
-(define-callout dlaed1_ n d__ q ldq indxq rho cutpnt work iwork)
-(define-callout dlaed2_ k n n1 d__ q ldq indxq rho z__ dlamda w q2 indx indxc indxp coltyp)
-(define-callout dlaed3_ k n n1 d__ q ldq rho dlamda q2 indx ctot w s)
-(define-callout dlaed4_ n i__ d__ z__ delta rho dlam)
-(define-callout dlaed5_ i__ d__ z__ delta rho dlam)
-(define-callout dlaed6_ kniter orgati rho d__ z__ finit tau)
-(define-callout dlaed7_ icompq n qsiz tlvls curlvl curpbm d__ q ldq indxq rho cutpnt qstore qptr prmptr perm givptr givcol givnum work iwork)
-(define-callout dlaed8_ icompq k n qsiz d__ q ldq indxq rho cutpnt z__ dlamda q2 ldq2 w perm givptr givcol givnum indxp indx)
-(define-callout dlaed9_ k kstart kstop n d__ q ldq rho dlamda w s lds)
-(define-callout dlaeda_ n tlvls curlvl curpbm prmptr perm givptr givcol givnum q qptr z__ ztemp)
-(define-callout dlaein_ rightv noinit n h__ ldh wr wi vr vi b ldb work eps3 smlnum bignum)
-(define-callout dlaev2_ a b c__ rt1 rt2 cs1 sn1)
-(define-callout dlaexc_ wantq n t ldt q ldq j1 n1 n2 work)
-(define-callout dlag2_ a lda b ldb safmin scale1 scale2 wr1 wr2 wi)
-(define-callout dlags2_ upper a1 a2 a3 b1 b2 b3 csu snu csv snv csq snq)
-(define-callout dlagtf_ n a lambda b c__ tol d__ in)
-(define-callout dlagtm_ trans n nrhs alpha dl d__ du x ldx beta b ldb)
-(define-callout dlagts_ job n a b c__ d__ in y tol)
-(define-callout dlagv2_ a lda b ldb alphar alphai beta csl snl csr snr)
-(define-callout dlahqr_ wantt wantz n ilo ihi h__ ldh wr wi iloz ihiz z__ ldz)
-(define-callout dlahrd_ n k nb a lda tau t ldt y ldy)
-(define-callout dlaic1_ job j x sest w gamma sestpr s c__)
-(define-callout dlaln2_ ltrans na nw smin ca a lda d1 d2 b ldb wr wi x ldx scale xnorm)
-(define-callout dlals0_ icompq nl nr sqre nrhs b ldb bx ldbx perm givptr givcol ldgcol givnum ldgnum poles difl difr z__ k c__ s work)
-(define-callout dlalsa_ icompq smlsiz n nrhs b ldb bx ldbx u ldu vt k difl difr z__ poles givptr givcol ldgcol perm givnum c__ s work iwork)
-(define-callout dlalsd_ uplo smlsiz n nrhs d__ e b ldb rcond rank work iwork)
-(define-callout dlamc1_ beta t rnd ieee1)
-(define-callout dlamc2_ beta t rnd eps emin rmin emax rmax)
-(define-callout dlamc4_ emin start base)
-(define-callout dlamc5_ beta p emin ieee emax rmax)
-(define-callout dlamrg_ n1 n2 a dtrd1 dtrd2 index)
-(define-callout dlanv2_ a b c__ d__ rt1r rt1i rt2r rt2i cs sn)
-(define-callout dlapll_ n x incx y incy ssmin)
-(define-callout dlapmt_ forwrd m n x ldx k)
-(define-callout dlaqgb_ m n kl ku ab ldab r__ c__ rowcnd colcnd amax equed)
-(define-callout dlaqge_ m n a lda r__ c__ rowcnd colcnd amax equed)
-(define-callout dlaqp2_ m n offset a lda jpvt tau vn1 vn2 work)
-(define-callout dlaqps_ m n offset nb kb a lda jpvt tau vn1 vn2 auxv f ldf)
-(define-callout dlaqsb_ uplo n kd ab ldab s scond amax equed)
-(define-callout dlaqsp_ uplo n ap s scond amax equed)
-(define-callout dlaqsy_ uplo n a lda s scond amax equed)
-(define-callout dlaqtr_ ltran lreal n t ldt b w scale x work)
-(define-callout dlar1v_ n b1 bn sigma d__ l ld lld gersch z__ ztz mingma r__ isuppz work)
-(define-callout dlar2v_ n x y z__ incx c__ s incc)
-(define-callout dlarf_ side m n v incv tau c__ ldc work)
-(define-callout dlarfb_ side trans direct storev m n k v ldv t ldt c__ ldc work ldwork)
-(define-callout dlarfg_ n alpha x incx tau)
-(define-callout dlarft_ direct storev n k v ldv tau t ldt)
-(define-callout dlarfx_ side m n v tau c__ ldc work)
-(define-callout dlargv_ n x incx y incy c__ incc)
-(define-callout dlarnv_ idist iseed n x)
-(define-callout dlarrb_ n d__ l ld lld ifirst ilast sigma reltol w wgap werr work iwork)
-(define-callout dlarre_ n d__ e tol nsplit isplit m w woff gersch work)
-(define-callout dlarrf_ n d__ l ld lld ifirst ilast w dplus lplus work iwork)
-(define-callout dlarrv_ n d__ l isplit m w iblock gersch tol z__ ldz isuppz work iwork)
-(define-callout dlartg_ f g cs sn r__)
-(define-callout dlartv_ n x incx y incy c__ s incc)
-(define-callout dlaruv_ iseed n x)
-(define-callout dlarz_ side m n l v incv tau c__ ldc work)
-(define-callout dlarzb_ side trans direct storev m n k l v ldv t ldt c__ ldc work ldwork)
-(define-callout dlarzt_ direct storev n k v ldv tau t ldt)
-(define-callout dlas2_ f g h__ ssmin ssmax)
-(define-callout dlascl_ type__ kl ku cfrom cto m n a lda)
-(define-callout dlasd0_ n sqre d__ e u ldu vt ldvt smlsiz iwork work)
-(define-callout dlasd1_ nl nr sqre d__ alpha beta u ldu vt ldvt idxq iwork work)
-(define-callout dlasd2_ nl nr sqre k d__ z__ alpha beta u ldu vt ldvt dsigma u2 ldu2 vt2 ldvt2 idxp idx idxc idxq coltyp)
-(define-callout dlasd3_ nl nr sqre k d__ q ldq dsigma u ldu u2 ldu2 vt ldvt vt2 ldvt2 idxc ctot z__)
-(define-callout dlasd4_ n i__ d__ z__ delta rho sigma work)
-(define-callout dlasd5_ i__ d__ z__ delta rho dsigma work)
-(define-callout dlasd6_ icompq nl nr sqre d__ vf vl alpha beta idxq perm givptr givcol ldgcol givnum ldgnum poles difl difr z__ k c__ s work iwork)
-(define-callout dlasd7_ icompq nl nr sqre k d__ z__ zw vf vfw vl vlw alpha beta dsigma idx idxp idxq perm givptr givcol ldgcol givnum ldgnum c__ s)
-(define-callout dlasd8_ icompq k d__ z__ vf vl difl difr lddifr dsigma work)
-(define-callout dlasd9_ icompq ldu k d__ z__ vf vl difl difr dsigma work)
-(define-callout dlasda_ icompq smlsiz n sqre d__ e u ldu vt k difl difr z__ poles givptr givcol ldgcol perm givnum c__ s work iwork)
-(define-callout dlasdq_ uplo sqre n ncvt nru ncc d__ e vt ldvt u ldu c__ ldc work)
-(define-callout dlasdt_ n lvl nd inode ndiml ndimr msub)
-(define-callout dlaset_ uplo m n alpha beta a lda)
-(define-callout dlasq1_ n d__ e work)
-(define-callout dlasq2_ n z__)
-(define-callout dlasq3_ i0 n0 z__ pp dmin__ sigma desig qmax nfail iter ndiv ieee)
-(define-callout dlasq4_ i0 n0 z__ pp n0in dmin__ dmin1 dmin2 dn dn1 dn2 tau ttype)
-(define-callout dlasq5_ i0 n0 z__ pp tau dmin__ dmin1 dmin2 dn dnm1 dnm2 ieee)
-(define-callout dlasq6_ i0 n0 z__ pp dmin__ dmin1 dmin2 dn dnm1 dnm2)
-(define-callout dlasr_ side pivot direct m n c__ s a lda)
-(define-callout dlasrt_ id n d__)
-(define-callout dlassq_ n x incx scale sumsq)
-(define-callout dlasv2_ f g h__ ssmin ssmax snr csr snl csl)
-(define-callout %dlaswp_ n a lda k1 k2 ipiv incx)
-(define-callout dlasy2_ ltranl ltranr isgn n1 n2 tl ldtl tr ldtr b ldb scale x ldx xnorm)
-(define-callout dlasyf_ uplo n nb kb a lda ipiv w ldw)
-(define-callout dlatbs_ uplo trans diag normin n kd ab ldab x scale cnorm)
-(define-callout dlatdf_ ijob n z__ ldz rhs rdsum rdscal ipiv jpiv)
-(define-callout dlatps_ uplo trans diag normin n ap x scale cnorm)
-(define-callout dlatrd_ uplo n nb a lda e tau w ldw)
-(define-callout dlatrs_ uplo trans diag normin n a lda x scale cnorm)
-(define-callout dlatrz_ m n l a lda tau work)
-(define-callout dlatzm_ side m n v incv tau c1 c2 ldc work)
-(define-callout dlauu2_ uplo n a lda)
-(define-callout dlauum_ uplo n a lda)
-(define-callout dopgtr_ uplo n ap tau q ldq work)
-(define-callout dopmtr_ side uplo trans m n ap tau c__ ldc work)
-(define-callout dorg2l_ m n k a lda tau work)
-(define-callout dorg2r_ m n k a lda tau work)
-(define-callout dorgbr_ vect m n k a lda tau work lwork)
-(define-callout dorghr_ n ilo ihi a lda tau work lwork)
-(define-callout dorgl2_ m n k a lda tau work)
-(define-callout dorglq_ m n k a lda tau work lwork)
-(define-callout dorgql_ m n k a lda tau work lwork)
-(define-callout dorgqr_ m n k a lda tau work lwork)
-(define-callout dorgr2_ m n k a lda tau work)
-(define-callout dorgrq_ m n k a lda tau work lwork)
-(define-callout dorgtr_ uplo n a lda tau work lwork)
-(define-callout dorm2l_ side trans m n k a lda tau c__ ldc work)
-(define-callout dorm2r_ side trans m n k a lda tau c__ ldc work)
-(define-callout dormbr_ vect side trans m n k a lda tau c__ ldc work lwork)
-(define-callout dormhr_ side trans m n ilo ihi a lda tau c__ ldc work lwork)
-(define-callout dorml2_ side trans m n k a lda tau c__ ldc work)
-(define-callout dormlq_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout dormql_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout dormqr_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout dormr2_ side trans m n k a lda tau c__ ldc work)
-(define-callout dormr3_ side trans m n k l a lda tau c__ ldc work)
-(define-callout dormrq_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout dormrz_ side trans m n k l a lda tau c__ ldc work lwork)
-(define-callout dormtr_ side uplo trans m n a lda tau c__ ldc work lwork)
-(define-callout dpbcon_ uplo n kd ab ldab anorm rcond work iwork)
-(define-callout dpbequ_ uplo n kd ab ldab s scond amax)
-(define-callout dpbrfs_ uplo n kd nrhs ab ldab afb ldafb b ldb x ldx ferr berr work iwork)
-(define-callout dpbstf_ uplo n kd ab ldab)
-(define-callout dpbsv_ uplo n kd nrhs ab ldab b ldb)
-(define-callout dpbsvx_ fact uplo n kd nrhs ab ldab afb ldafb equed s b ldb x ldx rcond ferr berr work iwork)
-(define-callout dpbtf2_ uplo n kd ab ldab)
-(define-callout dpbtrf_ uplo n kd ab ldab)
-(define-callout dpbtrs_ uplo n kd nrhs ab ldab b ldb)
-(define-callout dpocon_ uplo n a lda anorm rcond work iwork)
-(define-callout dpoequ_ n a lda s scond amax)
-(define-callout dporfs_ uplo n nrhs a lda af ldaf b ldb x ldx ferr berr work iwork)
-(define-callout dposv_ uplo n nrhs a lda b ldb)
-(define-callout dposvx_ fact uplo n nrhs a lda af ldaf equed s b ldb x ldx rcond ferr berr work iwork)
-(define-callout dpotf2_ uplo n a lda)
-(define-callout dpotrf_ uplo n a lda)
-(define-callout dpotri_ uplo n a lda)
-(define-callout dpotrs_ uplo n nrhs a lda b ldb)
-(define-callout dppcon_ uplo n ap anorm rcond work iwork)
-(define-callout dppequ_ uplo n ap s scond amax)
-(define-callout dpprfs_ uplo n nrhs ap afp b ldb x ldx ferr berr work iwork)
-(define-callout dppsv_ uplo n nrhs ap b ldb)
-(define-callout dppsvx_ fact uplo n nrhs ap afp equed s b ldb x ldx rcond ferr berr work iwork)
-(define-callout dpptrf_ uplo n ap)
-(define-callout dpptri_ uplo n ap)
-(define-callout dpptrs_ uplo n nrhs ap b ldb)
-(define-callout dptcon_ n d__ e anorm rcond work)
-(define-callout dpteqr_ compz n d__ e z__ ldz work)
-(define-callout dptrfs_ n nrhs d__ e df ef b ldb x ldx ferr berr work)
-(define-callout dptsv_ n nrhs d__ e b ldb)
-(define-callout dptsvx_ fact n nrhs d__ e df ef b ldb x ldx rcond ferr berr work)
-(define-callout dpttrf_ n d__ e)
-(define-callout dpttrs_ n nrhs d__ e b ldb)
-(define-callout dptts2_ n nrhs d__ e b ldb)
-(define-callout drscl_ n sa sx incx)
-(define-callout dsbev_ jobz uplo n kd ab ldab w z__ ldz work)
-(define-callout dsbevd_ jobz uplo n kd ab ldab w z__ ldz work lwork iwork liwork)
-(define-callout dsbevx_ jobz range uplo n kd ab ldab q ldq vl vu il iu abstol m w z__ ldz work iwork ifail)
-(define-callout dsbgst_ vect uplo n ka kb ab ldab bb ldbb x ldx work)
-(define-callout dsbgv_ jobz uplo n ka kb ab ldab bb ldbb w z__ ldz work)
-(define-callout dsbgvd_ jobz uplo n ka kb ab ldab bb ldbb w z__ ldz work lwork iwork liwork)
-(define-callout dsbgvx_ jobz range uplo n ka kb ab ldab bb ldbb q ldq vl vu il iu abstol m w z__ ldz work iwork ifail)
-(define-callout dsbtrd_ vect uplo n kd ab ldab d__ e q ldq work)
-(define-callout dspcon_ uplo n ap ipiv anorm rcond work iwork)
-(define-callout dspev_ jobz uplo n ap w z__ ldz work)
-(define-callout dspevd_ jobz uplo n ap w z__ ldz work lwork iwork liwork)
-(define-callout dspevx_ jobz range uplo n ap vl vu il iu abstol m w z__ ldz work iwork ifail)
-(define-callout dspgst_ itype uplo n ap bp)
-(define-callout dspgv_ itype jobz uplo n ap bp w z__ ldz work)
-(define-callout dspgvd_ itype jobz uplo n ap bp w z__ ldz work lwork iwork liwork)
-(define-callout dspgvx_ itype jobz range uplo n ap bp vl vu il iu abstol m w z__ ldz work iwork ifail)
-(define-callout dsprfs_ uplo n nrhs ap afp ipiv b ldb x ldx ferr berr work iwork)
-(define-callout dspsv_ uplo n nrhs ap ipiv b ldb)
-(define-callout dspsvx_ fact uplo n nrhs ap afp ipiv b ldb x ldx rcond ferr berr work iwork)
-(define-callout dsptrd_ uplo n ap d__ e tau)
-(define-callout dsptrf_ uplo n ap ipiv)
-(define-callout dsptri_ uplo n ap ipiv work)
-(define-callout dsptrs_ uplo n nrhs ap ipiv b ldb)
-(define-callout dstebz_ range order n vl vu il iu abstol d__ e m nsplit w iblock isplit work iwork)
-(define-callout dstedc_ compz n d__ e z__ ldz work lwork iwork liwork)
-(define-callout dstegr_ jobz range n d__ e vl vu il iu abstol m w z__ ldz isuppz work lwork iwork liwork)
-(define-callout dstein_ n d__ e m w iblock isplit z__ ldz work iwork ifail)
-(define-callout dsteqr_ compz n d__ e z__ ldz work)
-(define-callout dsterf_ n d__ e)
-(define-callout dstev_ jobz n d__ e z__ ldz work)
-(define-callout dstevd_ jobz n d__ e z__ ldz work lwork iwork liwork)
-(define-callout dstevr_ jobz range n d__ e vl vu il iu abstol m w z__ ldz isuppz work lwork iwork liwork)
-(define-callout dstevx_ jobz range n d__ e vl vu il iu abstol m w z__ ldz work iwork ifail)
-(define-callout dsycon_ uplo n a lda ipiv anorm rcond work iwork)
-(define-callout dsyev_ jobz uplo n a lda w work lwork)
-(define-callout dsyevd_ jobz uplo n a lda w work lwork iwork liwork)
-(define-callout dsyevr_ jobz range uplo n a lda vl vu il iu abstol m w z__ ldz isuppz work lwork iwork liwork)
-(define-callout dsyevx_ jobz range uplo n a lda vl vu il iu abstol m w z__ ldz work lwork iwork ifail)
-(define-callout dsygs2_ itype uplo n a lda b ldb)
-(define-callout dsygst_ itype uplo n a lda b ldb)
-(define-callout dsygv_ itype jobz uplo n a lda b ldb w work lwork)
-(define-callout dsygvd_ itype jobz uplo n a lda b ldb w work lwork iwork liwork)
-(define-callout dsygvx_ itype jobz range uplo n a lda b ldb vl vu il iu abstol m w z__ ldz work lwork iwork ifail)
-(define-callout dsyrfs_ uplo n nrhs a lda af ldaf ipiv b ldb x ldx ferr berr work iwork)
-(define-callout dsysv_ uplo n nrhs a lda ipiv b ldb work lwork)
-(define-callout dsysvx_ fact uplo n nrhs a lda af ldaf ipiv b ldb x ldx rcond ferr berr work lwork iwork)
-(define-callout dsytd2_ uplo n a lda d__ e tau)
-(define-callout dsytf2_ uplo n a lda ipiv)
-(define-callout dsytrd_ uplo n a lda d__ e tau work lwork)
-(define-callout dsytrf_ uplo n a lda ipiv work lwork)
-(define-callout dsytri_ uplo n a lda ipiv work)
-(define-callout dsytrs_ uplo n nrhs a lda ipiv b ldb)
-(define-callout dtbcon_ norm uplo diag n kd ab ldab rcond work iwork)
-(define-callout dtbrfs_ uplo trans diag n kd nrhs ab ldab b ldb x ldx ferr berr work iwork)
-(define-callout dtbtrs_ uplo trans diag n kd nrhs ab ldab b ldb)
-(define-callout dtgevc_ side howmny select n a lda b ldb vl ldvl vr ldvr mm m work)
-(define-callout dtgex2_ wantq wantz n a lda b ldb q ldq z__ ldz j1 n1 n2 work lwork)
-(define-callout dtgexc_ wantq wantz n a lda b ldb q ldq z__ ldz ifst ilst work lwork)
-(define-callout dtgsen_ ijob wantq wantz select n a lda b ldb alphar alphai beta q ldq z__ ldz m pl pr dif work lwork iwork liwork)
-(define-callout dtgsja_ jobu jobv jobq m p n k l a lda b ldb tola tolb alpha beta u ldu v ldv q ldq work ncycle)
-(define-callout dtgsna_ job howmny select n a lda b ldb vl ldvl vr ldvr s dif mm m work lwork iwork)
-(define-callout dtgsy2_ trans ijob m n a lda b ldb c__ ldc d__ ldd e lde f ldf scale rdsum rdscal iwork pq)
-(define-callout dtgsyl_ trans ijob m n a lda b ldb c__ ldc d__ ldd e lde f ldf scale dif work lwork iwork)
-(define-callout dtpcon_ norm uplo diag n ap rcond work iwork)
-(define-callout dtprfs_ uplo trans diag n nrhs ap b ldb x ldx ferr berr work iwork)
-(define-callout dtptri_ uplo diag n ap)
-(define-callout dtptrs_ uplo trans diag n nrhs ap b ldb)
-(define-callout dtrcon_ norm uplo diag n a lda rcond work iwork)
-(define-callout dtrevc_ side howmny select n t ldt vl ldvl vr ldvr mm m work)
-(define-callout dtrexc_ compq n t ldt q ldq ifst ilst work)
-(define-callout dtrrfs_ uplo trans diag n nrhs a lda b ldb x ldx ferr berr work iwork)
-(define-callout dtrsen_ job compq select n t ldt q ldq wr wi m s sep work lwork iwork liwork)
-(define-callout dtrsna_ job howmny select n t ldt vl ldvl vr ldvr s sep mm m work ldwork iwork)
-(define-callout dtrsyl_ trana tranb isgn m n a lda b ldb c__ ldc scale)
-(define-callout dtrti2_ uplo diag n a lda)
-(define-callout dtrtri_ uplo diag n a lda)
-(define-callout dtrtrs_ uplo trans diag n nrhs a lda b ldb)
-(define-callout dtzrqf_ m n a lda tau)
-(define-callout dtzrzf_ m n a lda tau work lwork)
-(define-callout icmax1_ n cx incx)
-(define-callout ieeeck_ ispec zero one)
-(define-callout ilaenv_ ispec name__ opts n1 n2 n3 n4 name_len opts_len)
-(define-callout izmax1_ n cx incx)
-(define-callout sbdsdc_ uplo compq n d__ e u ldu vt ldvt q iq work iwork)
-(define-callout sbdsqr_ uplo n ncvt nru ncc d__ e vt ldvt u ldu c__ ldc work)
-(define-callout sdisna_ job m n d__ sep)
-(define-callout sgbbrd_ vect m n ncc kl ku ab ldab d__ e q ldq pt ldpt c__ ldc work)
-(define-callout sgbcon_ norm n kl ku ab ldab ipiv anorm rcond work iwork)
-(define-callout sgbequ_ m n kl ku ab ldab r__ c__ rowcnd colcnd amax)
-(define-callout sgbrfs_ trans n kl ku nrhs ab ldab afb ldafb ipiv b ldb x ldx ferr berr work iwork)
-(define-callout sgbsv_ n kl ku nrhs ab ldab ipiv b ldb)
-(define-callout sgbsvx_ fact trans n kl ku nrhs ab ldab afb ldafb ipiv equed r__ c__ b ldb x ldx rcond ferr berr work iwork)
-(define-callout sgbtf2_ m n kl ku ab ldab ipiv)
-(define-callout sgbtrf_ m n kl ku ab ldab ipiv)
-(define-callout sgbtrs_ trans n kl ku nrhs ab ldab ipiv b ldb)
-(define-callout sgebak_ job side n ilo ihi scale m v ldv)
-(define-callout sgebal_ job n a lda ilo ihi scale)
-(define-callout sgebd2_ m n a lda d__ e tauq taup work)
-(define-callout sgebrd_ m n a lda d__ e tauq taup work lwork)
-(define-callout sgecon_ norm n a lda anorm rcond work iwork)
-(define-callout sgeequ_ m n a lda r__ c__ rowcnd colcnd amax)
-(define-callout sgees_ jobvs sort L_fp select n a lda sdim wr wi vs ldvs work lwork bwork)
-(define-callout sgeesx_ jobvs sort L_fp select sense n a lda sdim wr wi vs ldvs rconde rcondv work lwork iwork liwork bwork)
-(define-callout sgeev_ jobvl jobvr n a lda wr wi vl ldvl vr ldvr work lwork)
-(define-callout sgeevx_ balanc jobvl jobvr sense n a lda wr wi vl ldvl vr ldvr ilo ihi scale abnrm rconde rcondv work lwork iwork)
-(define-callout sgegs_ jobvsl jobvsr n a lda b ldb alphar alphai beta vsl ldvsl vsr ldvsr work lwork)
-(define-callout sgegv_ jobvl jobvr n a lda b ldb alphar alphai beta vl ldvl vr ldvr work lwork)
-(define-callout sgehd2_ n ilo ihi a lda tau work)
-(define-callout sgehrd_ n ilo ihi a lda tau work lwork)
-(define-callout sgelq2_ m n a lda tau work)
-(define-callout sgelqf_ m n a lda tau work lwork)
-(define-callout sgels_ trans m n nrhs a lda b ldb work lwork)
-(define-callout sgelsd_ m n nrhs a lda b ldb s rcond rank work lwork iwork)
-(define-callout sgelss_ m n nrhs a lda b ldb s rcond rank work lwork)
-(define-callout sgelsx_ m n nrhs a lda b ldb jpvt rcond rank work)
-(define-callout sgelsy_ m n nrhs a lda b ldb jpvt rcond rank work lwork)
-(define-callout sgeql2_ m n a lda tau work)
-(define-callout sgeqlf_ m n a lda tau work lwork)
-(define-callout sgeqp3_ m n a lda jpvt tau work lwork)
-(define-callout sgeqpf_ m n a lda jpvt tau work)
-(define-callout sgeqr2_ m n a lda tau work)
-(define-callout sgeqrf_ m n a lda tau work lwork)
-(define-callout sgerfs_ trans n nrhs a lda af ldaf ipiv b ldb x ldx ferr berr work iwork)
-(define-callout sgerq2_ m n a lda tau work)
-(define-callout sgerqf_ m n a lda tau work lwork)
-(define-callout sgesc2_ n a lda rhs ipiv jpiv scale)
-(define-callout sgesdd_ jobz m n a lda s u ldu vt ldvt work lwork iwork)
-(define-callout sgesv_ n nrhs a lda ipiv b ldb)
-(define-callout sgesvd_ jobu jobvt m n a lda s u ldu vt ldvt work lwork)
-(define-callout sgesvx_ fact trans n nrhs a lda af ldaf ipiv equed r__ c__ b ldb x ldx rcond ferr berr work iwork)
-(define-callout sgetc2_ n a lda ipiv jpiv)
-(define-callout sgetf2_ m n a lda ipiv)
-(define-callout sgetrf_ m n a lda ipiv)
-(define-callout sgetri_ n a lda ipiv work lwork)
-(define-callout sgetrs_ trans n nrhs a lda ipiv b ldb)
-(define-callout sggbak_ job side n ilo ihi lscale rscale m v ldv)
-(define-callout sggbal_ job n a lda b ldb ilo ihi lscale rscale work)
-(define-callout sgges_ jobvsl jobvsr sort L_fp selctg n a lda b ldb sdim alphar alphai beta vsl ldvsl vsr ldvsr work lwork bwork)
-(define-callout sggesx_ jobvsl jobvsr sort L_fp selctg sense n a lda b ldb sdim alphar alphai beta vsl ldvsl vsr ldvsr rconde rcondv work lwork iwork liwork bwork)
-(define-callout sggev_ jobvl jobvr n a lda b ldb alphar alphai beta vl ldvl vr ldvr work lwork)
-(define-callout sggevx_ balanc jobvl jobvr sense n a lda b ldb alphar alphai beta vl ldvl vr ldvr ilo ihi lscale rscale abnrm bbnrm rconde rcondv work lwork iwork bwork)
-(define-callout sggglm_ n m p a lda b ldb d__ x y work lwork)
-(define-callout sgghrd_ compq compz n ilo ihi a lda b ldb q ldq z__ ldz)
-(define-callout sgglse_ m n p a lda b ldb c__ d__ x work lwork)
-(define-callout sggqrf_ n m p a lda taua b ldb taub work lwork)
-(define-callout sggrqf_ m p n a lda taua b ldb taub work lwork)
-(define-callout sggsvd_ jobu jobv jobq m n p k l a lda b ldb alpha beta u ldu v ldv q ldq work iwork)
-(define-callout sggsvp_ jobu jobv jobq m p n a lda b ldb tola tolb k l u ldu v ldv q ldq iwork tau work)
-(define-callout sgtcon_ norm n dl d__ du du2 ipiv anorm rcond work iwork)
-(define-callout sgtrfs_ trans n nrhs dl d__ du dlf df duf du2 ipiv b ldb x ldx ferr berr work iwork)
-(define-callout sgtsv_ n nrhs dl d__ du b ldb)
-(define-callout sgtsvx_ fact trans n nrhs dl d__ du dlf df duf du2 ipiv b ldb x ldx rcond ferr berr work iwork)
-(define-callout sgttrf_ n dl d__ du du2 ipiv)
-(define-callout sgttrs_ trans n nrhs dl d__ du du2 ipiv b ldb)
-(define-callout sgtts2_ itrans n nrhs dl d__ du du2 ipiv b ldb)
-(define-callout shgeqz_ job compq compz n ilo ihi a lda b ldb alphar alphai beta q ldq z__ ldz work lwork)
-(define-callout shsein_ side eigsrc initv select n h__ ldh wr wi vl ldvl vr ldvr mm m work ifaill ifailr)
-(define-callout shseqr_ job compz n ilo ihi h__ ldh wr wi z__ ldz work lwork)
-(define-callout slabad_ small large)
-(define-callout slabrd_ m n nb a lda d__ e tauq taup x ldx y ldy)
-(define-callout slacon_ n v x isgn est kase)
-(define-callout slacpy_ uplo m n a lda b ldb)
-(define-callout sladiv_ a b c__ d__ p q)
-(define-callout slae2_ a b c__ rt1 rt2)
-(define-callout slaebz_ ijob nitmax n mmax minp nbmin abstol reltol pivmin d__ e e2 nval ab c__ mout nab work iwork)
-(define-callout slaed0_ icompq qsiz n d__ e q ldq qstore ldqs work iwork)
-(define-callout slaed1_ n d__ q ldq indxq rho cutpnt work iwork)
-(define-callout slaed2_ k n n1 d__ q ldq indxq rho z__ dlamda w q2 indx indxc indxp coltyp)
-(define-callout slaed3_ k n n1 d__ q ldq rho dlamda q2 indx ctot w s)
-(define-callout slaed4_ n i__ d__ z__ delta rho dlam)
-(define-callout slaed5_ i__ d__ z__ delta rho dlam)
-(define-callout slaed6_ kniter orgati rho d__ z__ finit tau)
-(define-callout slaed7_ icompq n qsiz tlvls curlvl curpbm d__ q ldq indxq rho cutpnt qstore qptr prmptr perm givptr givcol givnum work iwork)
-(define-callout slaed8_ icompq k n qsiz d__ q ldq indxq rho cutpnt z__ dlamda q2 ldq2 w perm givptr givcol givnum indxp indx)
-(define-callout slaed9_ k kstart kstop n d__ q ldq rho dlamda w s lds)
-(define-callout slaeda_ n tlvls curlvl curpbm prmptr perm givptr givcol givnum q qptr z__ ztemp)
-(define-callout slaein_ rightv noinit n h__ ldh wr wi vr vi b ldb work eps3 smlnum bignum)
-(define-callout slaev2_ a b c__ rt1 rt2 cs1 sn1)
-(define-callout slaexc_ wantq n t ldt q ldq j1 n1 n2 work)
-(define-callout slag2_ a lda b ldb safmin scale1 scale2 wr1 wr2 wi)
-(define-callout slags2_ upper a1 a2 a3 b1 b2 b3 csu snu csv snv csq snq)
-(define-callout slagtf_ n a lambda b c__ tol d__ in)
-(define-callout slagtm_ trans n nrhs alpha dl d__ du x ldx beta b ldb)
-(define-callout slagts_ job n a b c__ d__ in y tol)
-(define-callout slagv2_ a lda b ldb alphar alphai beta csl snl csr snr)
-(define-callout slahqr_ wantt wantz n ilo ihi h__ ldh wr wi iloz ihiz z__ ldz)
-(define-callout slahrd_ n k nb a lda tau t ldt y ldy)
-(define-callout slaic1_ job j x sest w gamma sestpr s c__)
-(define-callout slaln2_ ltrans na nw smin ca a lda d1 d2 b ldb wr wi x ldx scale xnorm)
-(define-callout slals0_ icompq nl nr sqre nrhs b ldb bx ldbx perm givptr givcol ldgcol givnum ldgnum poles difl difr z__ k c__ s work)
-(define-callout slalsa_ icompq smlsiz n nrhs b ldb bx ldbx u ldu vt k difl difr z__ poles givptr givcol ldgcol perm givnum c__ s work iwork)
-(define-callout slalsd_ uplo smlsiz n nrhs d__ e b ldb rcond rank work iwork)
-(define-callout slamc1_ beta t rnd ieee1)
-(define-callout slamc2_ beta t rnd eps emin rmin emax rmax)
-(define-callout slamc4_ emin start base)
-(define-callout slamc5_ beta p emin ieee emax rmax)
-(define-callout slamrg_ n1 n2 a strd1 strd2 index)
-(define-callout slanv2_ a b c__ d__ rt1r rt1i rt2r rt2i cs sn)
-(define-callout slapll_ n x incx y incy ssmin)
-(define-callout slapmt_ forwrd m n x ldx k)
-(define-callout slaqgb_ m n kl ku ab ldab r__ c__ rowcnd colcnd amax equed)
-(define-callout slaqge_ m n a lda r__ c__ rowcnd colcnd amax equed)
-(define-callout slaqp2_ m n offset a lda jpvt tau vn1 vn2 work)
-(define-callout slaqps_ m n offset nb kb a lda jpvt tau vn1 vn2 auxv f ldf)
-(define-callout slaqsb_ uplo n kd ab ldab s scond amax equed)
-(define-callout slaqsp_ uplo n ap s scond amax equed)
-(define-callout slaqsy_ uplo n a lda s scond amax equed)
-(define-callout slaqtr_ ltran lreal n t ldt b w scale x work)
-(define-callout slar1v_ n b1 bn sigma d__ l ld lld gersch z__ ztz mingma r__ isuppz work)
-(define-callout slar2v_ n x y z__ incx c__ s incc)
-(define-callout slarf_ side m n v incv tau c__ ldc work)
-(define-callout slarfb_ side trans direct storev m n k v ldv t ldt c__ ldc work ldwork)
-(define-callout slarfg_ n alpha x incx tau)
-(define-callout slarft_ direct storev n k v ldv tau t ldt)
-(define-callout slarfx_ side m n v tau c__ ldc work)
-(define-callout slargv_ n x incx y incy c__ incc)
-(define-callout slarnv_ idist iseed n x)
-(define-callout slarrb_ n d__ l ld lld ifirst ilast sigma reltol w wgap werr work iwork)
-(define-callout slarre_ n d__ e tol nsplit isplit m w woff gersch work)
-(define-callout slarrf_ n d__ l ld lld ifirst ilast w dplus lplus work iwork)
-(define-callout slarrv_ n d__ l isplit m w iblock gersch tol z__ ldz isuppz work iwork)
-(define-callout slartg_ f g cs sn r__)
-(define-callout slartv_ n x incx y incy c__ s incc)
-(define-callout slaruv_ iseed n x)
-(define-callout slarz_ side m n l v incv tau c__ ldc work)
-(define-callout slarzb_ side trans direct storev m n k l v ldv t ldt c__ ldc work ldwork)
-(define-callout slarzt_ direct storev n k v ldv tau t ldt)
-(define-callout slas2_ f g h__ ssmin ssmax)
-(define-callout slascl_ type__ kl ku cfrom cto m n a lda)
-(define-callout slasd0_ n sqre d__ e u ldu vt ldvt smlsiz iwork work)
-(define-callout slasd1_ nl nr sqre d__ alpha beta u ldu vt ldvt idxq iwork work)
-(define-callout slasd2_ nl nr sqre k d__ z__ alpha beta u ldu vt ldvt dsigma u2 ldu2 vt2 ldvt2 idxp idx idxc idxq coltyp)
-(define-callout slasd3_ nl nr sqre k d__ q ldq dsigma u ldu u2 ldu2 vt ldvt vt2 ldvt2 idxc ctot z__)
-(define-callout slasd4_ n i__ d__ z__ delta rho sigma work)
-(define-callout slasd5_ i__ d__ z__ delta rho dsigma work)
-(define-callout slasd6_ icompq nl nr sqre d__ vf vl alpha beta idxq perm givptr givcol ldgcol givnum ldgnum poles difl difr z__ k c__ s work iwork)
-(define-callout slasd7_ icompq nl nr sqre k d__ z__ zw vf vfw vl vlw alpha beta dsigma idx idxp idxq perm givptr givcol ldgcol givnum ldgnum c__ s)
-(define-callout slasd8_ icompq k d__ z__ vf vl difl difr lddifr dsigma work)
-(define-callout slasd9_ icompq ldu k d__ z__ vf vl difl difr dsigma work)
-(define-callout slasda_ icompq smlsiz n sqre d__ e u ldu vt k difl difr z__ poles givptr givcol ldgcol perm givnum c__ s work iwork)
-(define-callout slasdq_ uplo sqre n ncvt nru ncc d__ e vt ldvt u ldu c__ ldc work)
-(define-callout slasdt_ n lvl nd inode ndiml ndimr msub)
-(define-callout slaset_ uplo m n alpha beta a lda)
-(define-callout slasq1_ n d__ e work)
-(define-callout slasq2_ n z__)
-(define-callout slasq3_ i0 n0 z__ pp dmin__ sigma desig qmax nfail iter ndiv ieee)
-(define-callout slasq4_ i0 n0 z__ pp n0in dmin__ dmin1 dmin2 dn dn1 dn2 tau ttype)
-(define-callout slasq5_ i0 n0 z__ pp tau dmin__ dmin1 dmin2 dn dnm1 dnm2 ieee)
-(define-callout slasq6_ i0 n0 z__ pp dmin__ dmin1 dmin2 dn dnm1 dnm2)
-(define-callout slasr_ side pivot direct m n c__ s a lda)
-(define-callout slasrt_ id n d__)
-(define-callout slassq_ n x incx scale sumsq)
-(define-callout slasv2_ f g h__ ssmin ssmax snr csr snl csl)
-(define-callout slaswp_ n a lda k1 k2 ipiv incx)
-(define-callout slasy2_ ltranl ltranr isgn n1 n2 tl ldtl tr ldtr b ldb scale x ldx xnorm)
-(define-callout slasyf_ uplo n nb kb a lda ipiv w ldw)
-(define-callout slatbs_ uplo trans diag normin n kd ab ldab x scale cnorm)
-(define-callout slatdf_ ijob n z__ ldz rhs rdsum rdscal ipiv jpiv)
-(define-callout slatps_ uplo trans diag normin n ap x scale cnorm)
-(define-callout slatrd_ uplo n nb a lda e tau w ldw)
-(define-callout slatrs_ uplo trans diag normin n a lda x scale cnorm)
-(define-callout slatrz_ m n l a lda tau work)
-(define-callout slatzm_ side m n v incv tau c1 c2 ldc work)
-(define-callout slauu2_ uplo n a lda)
-(define-callout slauum_ uplo n a lda)
-(define-callout sopgtr_ uplo n ap tau q ldq work)
-(define-callout sopmtr_ side uplo trans m n ap tau c__ ldc work)
-(define-callout sorg2l_ m n k a lda tau work)
-(define-callout sorg2r_ m n k a lda tau work)
-(define-callout sorgbr_ vect m n k a lda tau work lwork)
-(define-callout sorghr_ n ilo ihi a lda tau work lwork)
-(define-callout sorgl2_ m n k a lda tau work)
-(define-callout sorglq_ m n k a lda tau work lwork)
-(define-callout sorgql_ m n k a lda tau work lwork)
-(define-callout sorgqr_ m n k a lda tau work lwork)
-(define-callout sorgr2_ m n k a lda tau work)
-(define-callout sorgrq_ m n k a lda tau work lwork)
-(define-callout sorgtr_ uplo n a lda tau work lwork)
-(define-callout sorm2l_ side trans m n k a lda tau c__ ldc work)
-(define-callout sorm2r_ side trans m n k a lda tau c__ ldc work)
-(define-callout sormbr_ vect side trans m n k a lda tau c__ ldc work lwork)
-(define-callout sormhr_ side trans m n ilo ihi a lda tau c__ ldc work lwork)
-(define-callout sorml2_ side trans m n k a lda tau c__ ldc work)
-(define-callout sormlq_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout sormql_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout sormqr_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout sormr2_ side trans m n k a lda tau c__ ldc work)
-(define-callout sormr3_ side trans m n k l a lda tau c__ ldc work)
-(define-callout sormrq_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout sormrz_ side trans m n k l a lda tau c__ ldc work lwork)
-(define-callout sormtr_ side uplo trans m n a lda tau c__ ldc work lwork)
-(define-callout spbcon_ uplo n kd ab ldab anorm rcond work iwork)
-(define-callout spbequ_ uplo n kd ab ldab s scond amax)
-(define-callout spbrfs_ uplo n kd nrhs ab ldab afb ldafb b ldb x ldx ferr berr work iwork)
-(define-callout spbstf_ uplo n kd ab ldab)
-(define-callout spbsv_ uplo n kd nrhs ab ldab b ldb)
-(define-callout spbsvx_ fact uplo n kd nrhs ab ldab afb ldafb equed s b ldb x ldx rcond ferr berr work iwork)
-(define-callout spbtf2_ uplo n kd ab ldab)
-(define-callout spbtrf_ uplo n kd ab ldab)
-(define-callout spbtrs_ uplo n kd nrhs ab ldab b ldb)
-(define-callout spocon_ uplo n a lda anorm rcond work iwork)
-(define-callout spoequ_ n a lda s scond amax)
-(define-callout sporfs_ uplo n nrhs a lda af ldaf b ldb x ldx ferr berr work iwork)
-(define-callout sposv_ uplo n nrhs a lda b ldb)
-(define-callout sposvx_ fact uplo n nrhs a lda af ldaf equed s b ldb x ldx rcond ferr berr work iwork)
-(define-callout spotf2_ uplo n a lda)
-(define-callout spotrf_ uplo n a lda)
-(define-callout spotri_ uplo n a lda)
-(define-callout spotrs_ uplo n nrhs a lda b ldb)
-(define-callout sppcon_ uplo n ap anorm rcond work iwork)
-(define-callout sppequ_ uplo n ap s scond amax)
-(define-callout spprfs_ uplo n nrhs ap afp b ldb x ldx ferr berr work iwork)
-(define-callout sppsv_ uplo n nrhs ap b ldb)
-(define-callout sppsvx_ fact uplo n nrhs ap afp equed s b ldb x ldx rcond ferr berr work iwork)
-(define-callout spptrf_ uplo n ap)
-(define-callout spptri_ uplo n ap)
-(define-callout spptrs_ uplo n nrhs ap b ldb)
-(define-callout sptcon_ n d__ e anorm rcond work)
-(define-callout spteqr_ compz n d__ e z__ ldz work)
-(define-callout sptrfs_ n nrhs d__ e df ef b ldb x ldx ferr berr work)
-(define-callout sptsv_ n nrhs d__ e b ldb)
-(define-callout sptsvx_ fact n nrhs d__ e df ef b ldb x ldx rcond ferr berr work)
-(define-callout spttrf_ n d__ e)
-(define-callout spttrs_ n nrhs d__ e b ldb)
-(define-callout sptts2_ n nrhs d__ e b ldb)
-(define-callout srscl_ n sa sx incx)
-(define-callout ssbev_ jobz uplo n kd ab ldab w z__ ldz work)
-(define-callout ssbevd_ jobz uplo n kd ab ldab w z__ ldz work lwork iwork liwork)
-(define-callout ssbevx_ jobz range uplo n kd ab ldab q ldq vl vu il iu abstol m w z__ ldz work iwork ifail)
-(define-callout ssbgst_ vect uplo n ka kb ab ldab bb ldbb x ldx work)
-(define-callout ssbgv_ jobz uplo n ka kb ab ldab bb ldbb w z__ ldz work)
-(define-callout ssbgvd_ jobz uplo n ka kb ab ldab bb ldbb w z__ ldz work lwork iwork liwork)
-(define-callout ssbgvx_ jobz range uplo n ka kb ab ldab bb ldbb q ldq vl vu il iu abstol m w z__ ldz work iwork ifail)
-(define-callout ssbtrd_ vect uplo n kd ab ldab d__ e q ldq work)
-(define-callout sspcon_ uplo n ap ipiv anorm rcond work iwork)
-(define-callout sspev_ jobz uplo n ap w z__ ldz work)
-(define-callout sspevd_ jobz uplo n ap w z__ ldz work lwork iwork liwork)
-(define-callout sspevx_ jobz range uplo n ap vl vu il iu abstol m w z__ ldz work iwork ifail)
-(define-callout sspgst_ itype uplo n ap bp)
-(define-callout sspgv_ itype jobz uplo n ap bp w z__ ldz work)
-(define-callout sspgvd_ itype jobz uplo n ap bp w z__ ldz work lwork iwork liwork)
-(define-callout sspgvx_ itype jobz range uplo n ap bp vl vu il iu abstol m w z__ ldz work iwork ifail)
-(define-callout ssprfs_ uplo n nrhs ap afp ipiv b ldb x ldx ferr berr work iwork)
-(define-callout sspsv_ uplo n nrhs ap ipiv b ldb)
-(define-callout sspsvx_ fact uplo n nrhs ap afp ipiv b ldb x ldx rcond ferr berr work iwork)
-(define-callout ssptrd_ uplo n ap d__ e tau)
-(define-callout ssptrf_ uplo n ap ipiv)
-(define-callout ssptri_ uplo n ap ipiv work)
-(define-callout ssptrs_ uplo n nrhs ap ipiv b ldb)
-(define-callout sstebz_ range order n vl vu il iu abstol d__ e m nsplit w iblock isplit work iwork)
-(define-callout sstedc_ compz n d__ e z__ ldz work lwork iwork liwork)
-(define-callout sstegr_ jobz range n d__ e vl vu il iu abstol m w z__ ldz isuppz work lwork iwork liwork)
-(define-callout sstein_ n d__ e m w iblock isplit z__ ldz work iwork ifail)
-(define-callout ssteqr_ compz n d__ e z__ ldz work)
-(define-callout ssterf_ n d__ e)
-(define-callout sstev_ jobz n d__ e z__ ldz work)
-(define-callout sstevd_ jobz n d__ e z__ ldz work lwork iwork liwork)
-(define-callout sstevr_ jobz range n d__ e vl vu il iu abstol m w z__ ldz isuppz work lwork iwork liwork)
-(define-callout sstevx_ jobz range n d__ e vl vu il iu abstol m w z__ ldz work iwork ifail)
-(define-callout ssycon_ uplo n a lda ipiv anorm rcond work iwork)
-(define-callout ssyev_ jobz uplo n a lda w work lwork)
-(define-callout ssyevd_ jobz uplo n a lda w work lwork iwork liwork)
-(define-callout ssyevr_ jobz range uplo n a lda vl vu il iu abstol m w z__ ldz isuppz work lwork iwork liwork)
-(define-callout ssyevx_ jobz range uplo n a lda vl vu il iu abstol m w z__ ldz work lwork iwork ifail)
-(define-callout ssygs2_ itype uplo n a lda b ldb)
-(define-callout ssygst_ itype uplo n a lda b ldb)
-(define-callout ssygv_ itype jobz uplo n a lda b ldb w work lwork)
-(define-callout ssygvd_ itype jobz uplo n a lda b ldb w work lwork iwork liwork)
-(define-callout ssygvx_ itype jobz range uplo n a lda b ldb vl vu il iu abstol m w z__ ldz work lwork iwork ifail)
-(define-callout ssyrfs_ uplo n nrhs a lda af ldaf ipiv b ldb x ldx ferr berr work iwork)
-(define-callout ssysv_ uplo n nrhs a lda ipiv b ldb work lwork)
-(define-callout ssysvx_ fact uplo n nrhs a lda af ldaf ipiv b ldb x ldx rcond ferr berr work lwork iwork)
-(define-callout ssytd2_ uplo n a lda d__ e tau)
-(define-callout ssytf2_ uplo n a lda ipiv)
-(define-callout ssytrd_ uplo n a lda d__ e tau work lwork)
-(define-callout ssytrf_ uplo n a lda ipiv work lwork)
-(define-callout ssytri_ uplo n a lda ipiv work)
-(define-callout ssytrs_ uplo n nrhs a lda ipiv b ldb)
-(define-callout stbcon_ norm uplo diag n kd ab ldab rcond work iwork)
-(define-callout stbrfs_ uplo trans diag n kd nrhs ab ldab b ldb x ldx ferr berr work iwork)
-(define-callout stbtrs_ uplo trans diag n kd nrhs ab ldab b ldb)
-(define-callout stgevc_ side howmny select n a lda b ldb vl ldvl vr ldvr mm m work)
-(define-callout stgex2_ wantq wantz n a lda b ldb q ldq z__ ldz j1 n1 n2 work lwork)
-(define-callout stgexc_ wantq wantz n a lda b ldb q ldq z__ ldz ifst ilst work lwork)
-(define-callout stgsen_ ijob wantq wantz select n a lda b ldb alphar alphai beta q ldq z__ ldz m pl pr dif work lwork iwork liwork)
-(define-callout stgsja_ jobu jobv jobq m p n k l a lda b ldb tola tolb alpha beta u ldu v ldv q ldq work ncycle)
-(define-callout stgsna_ job howmny select n a lda b ldb vl ldvl vr ldvr s dif mm m work lwork iwork)
-(define-callout stgsy2_ trans ijob m n a lda b ldb c__ ldc d__ ldd e lde f ldf scale rdsum rdscal iwork pq)
-(define-callout stgsyl_ trans ijob m n a lda b ldb c__ ldc d__ ldd e lde f ldf scale dif work lwork iwork)
-(define-callout stpcon_ norm uplo diag n ap rcond work iwork)
-(define-callout stprfs_ uplo trans diag n nrhs ap b ldb x ldx ferr berr work iwork)
-(define-callout stptri_ uplo diag n ap)
-(define-callout stptrs_ uplo trans diag n nrhs ap b ldb)
-(define-callout strcon_ norm uplo diag n a lda rcond work iwork)
-(define-callout strevc_ side howmny select n t ldt vl ldvl vr ldvr mm m work)
-(define-callout strexc_ compq n t ldt q ldq ifst ilst work)
-(define-callout strrfs_ uplo trans diag n nrhs a lda b ldb x ldx ferr berr work iwork)
-(define-callout strsen_ job compq select n t ldt q ldq wr wi m s sep work lwork iwork liwork)
-(define-callout strsna_ job howmny select n t ldt vl ldvl vr ldvr s sep mm m work ldwork iwork)
-(define-callout strsyl_ trana tranb isgn m n a lda b ldb c__ ldc scale)
-(define-callout strti2_ uplo diag n a lda)
-(define-callout strtri_ uplo diag n a lda)
-(define-callout strtrs_ uplo trans diag n nrhs a lda b ldb)
-(define-callout stzrqf_ m n a lda tau)
-(define-callout stzrzf_ m n a lda tau work lwork)
-(define-callout xerbla_ srname)
-(define-callout zbdsqr_ uplo n ncvt nru ncc d__ e vt ldvt u ldu c__ ldc rwork)
-(define-callout zdrot_ n cx incx cy incy c__ s)
-(define-callout zdrscl_ n sa sx incx)
-(define-callout zgbbrd_ vect m n ncc kl ku ab ldab d__ e q ldq pt ldpt c__ ldc work rwork)
-(define-callout zgbcon_ norm n kl ku ab ldab ipiv anorm rcond work rwork)
-(define-callout zgbequ_ m n kl ku ab ldab r__ c__ rowcnd colcnd amax)
-(define-callout zgbrfs_ trans n kl ku nrhs ab ldab afb ldafb ipiv b ldb x ldx ferr berr work rwork)
-(define-callout zgbsv_ n kl ku nrhs ab ldab ipiv b ldb)
-(define-callout zgbsvx_ fact trans n kl ku nrhs ab ldab afb ldafb ipiv equed r__ c__ b ldb x ldx rcond ferr berr work rwork)
-(define-callout zgbtf2_ m n kl ku ab ldab ipiv)
-(define-callout zgbtrf_ m n kl ku ab ldab ipiv)
-(define-callout zgbtrs_ trans n kl ku nrhs ab ldab ipiv b ldb)
-(define-callout zgebak_ job side n ilo ihi scale m v ldv)
-(define-callout zgebal_ job n a lda ilo ihi scale)
-(define-callout zgebd2_ m n a lda d__ e tauq taup work)
-(define-callout zgebrd_ m n a lda d__ e tauq taup work lwork)
-(define-callout zgecon_ norm n a lda anorm rcond work rwork)
-(define-callout zgeequ_ m n a lda r__ c__ rowcnd colcnd amax)
-(define-callout zgees_ jobvs sort L_fp select n a lda sdim w vs ldvs work lwork rwork bwork)
-(define-callout zgeesx_ jobvs sort L_fp select sense n a lda sdim w vs ldvs rconde rcondv work lwork rwork bwork)
-(define-callout zgeev_ jobvl jobvr n a lda w vl ldvl vr ldvr work lwork rwork)
-(define-callout zgeevx_ balanc jobvl jobvr sense n a lda w vl ldvl vr ldvr ilo ihi scale abnrm rconde rcondv work lwork rwork)
-(define-callout zgegs_ jobvsl jobvsr n a lda b ldb alpha beta vsl ldvsl vsr ldvsr work lwork rwork)
-(define-callout zgegv_ jobvl jobvr n a lda b ldb alpha beta vl ldvl vr ldvr work lwork rwork)
-(define-callout zgehd2_ n ilo ihi a lda tau work)
-(define-callout zgehrd_ n ilo ihi a lda tau work lwork)
-(define-callout zgelq2_ m n a lda tau work)
-(define-callout zgelqf_ m n a lda tau work lwork)
-(define-callout zgels_ trans m n nrhs a lda b ldb work lwork)
-(define-callout zgelsx_ m n nrhs a lda b ldb jpvt rcond rank work rwork)
-(define-callout zgelsy_ m n nrhs a lda b ldb jpvt rcond rank work lwork rwork)
-(define-callout zgeql2_ m n a lda tau work)
-(define-callout zgeqlf_ m n a lda tau work lwork)
-(define-callout zgeqp3_ m n a lda jpvt tau work lwork rwork)
-(define-callout zgeqpf_ m n a lda jpvt tau work rwork)
-(define-callout zgeqr2_ m n a lda tau work)
-(define-callout zgeqrf_ m n a lda tau work lwork)
-(define-callout zgerfs_ trans n nrhs a lda af ldaf ipiv b ldb x ldx ferr berr work rwork)
-(define-callout zgerq2_ m n a lda tau work)
-(define-callout zgerqf_ m n a lda tau work lwork)
-(define-callout zgesc2_ n a lda rhs ipiv jpiv scale)
-(define-callout %zgesv_ n nrhs a lda ipiv b ldb)
-(define-callout zgesvx_ fact trans n nrhs a lda af ldaf ipiv equed r__ c__ b ldb x ldx rcond ferr berr work rwork)
-(define-callout zgetc2_ n a lda ipiv jpiv)
-(define-callout zgetf2_ m n a lda ipiv)
-(define-callout zgetrf_ m n a lda ipiv)
-(define-callout zgetri_ n a lda ipiv work lwork)
-(define-callout zgetrs_ trans n nrhs a lda ipiv b ldb)
-(define-callout zggbak_ job side n ilo ihi lscale rscale m v ldv)
-(define-callout zggbal_ job n a lda b ldb ilo ihi lscale rscale work)
-(define-callout zgges_ jobvsl jobvsr sort L_fp delctg n a lda b ldb sdim alpha beta vsl ldvsl vsr ldvsr work lwork rwork bwork)
-(define-callout zggesx_ jobvsl jobvsr sort L_fp delctg sense n a lda b ldb sdim alpha beta vsl ldvsl vsr ldvsr rconde rcondv work lwork rwork iwork liwork bwork)
-(define-callout zggev_ jobvl jobvr n a lda b ldb alpha beta vl ldvl vr ldvr work lwork rwork)
-(define-callout zggevx_ balanc jobvl jobvr sense n a lda b ldb alpha beta vl ldvl vr ldvr ilo ihi lscale rscale abnrm bbnrm rconde rcondv work lwork rwork iwork bwork)
-(define-callout zggglm_ n m p a lda b ldb d__ x y work lwork)
-(define-callout zgghrd_ compq compz n ilo ihi a lda b ldb q ldq z__ ldz)
-(define-callout zgglse_ m n p a lda b ldb c__ d__ x work lwork)
-(define-callout zggqrf_ n m p a lda taua b ldb taub work lwork)
-(define-callout zggrqf_ m p n a lda taua b ldb taub work lwork)
-(define-callout zggsvd_ jobu jobv jobq m n p k l a lda b ldb alpha beta u ldu v ldv q ldq work rwork iwork)
-(define-callout zggsvp_ jobu jobv jobq m p n a lda b ldb tola tolb k l u ldu v ldv q ldq iwork rwork tau work)
-(define-callout zgtcon_ norm n dl d__ du du2 ipiv anorm rcond work)
-(define-callout zgtrfs_ trans n nrhs dl d__ du dlf df duf du2 ipiv b ldb x ldx ferr berr work rwork)
-(define-callout zgtsv_ n nrhs dl d__ du b ldb)
-(define-callout zgtsvx_ fact trans n nrhs dl d__ du dlf df duf du2 ipiv b ldb x ldx rcond ferr berr work rwork)
-(define-callout zgttrf_ n dl d__ du du2 ipiv)
-(define-callout zgttrs_ trans n nrhs dl d__ du du2 ipiv b ldb)
-(define-callout zgtts2_ itrans n nrhs dl d__ du du2 ipiv b ldb)
-(define-callout zhbev_ jobz uplo n kd ab ldab w z__ ldz work rwork)
-(define-callout zhbevd_ jobz uplo n kd ab ldab w z__ ldz work lwork rwork lrwork iwork liwork)
-(define-callout zhbevx_ jobz range uplo n kd ab ldab q ldq vl vu il iu abstol m w z__ ldz work rwork iwork ifail)
-(define-callout zhbgst_ vect uplo n ka kb ab ldab bb ldbb x ldx work rwork)
-(define-callout zhbgv_ jobz uplo n ka kb ab ldab bb ldbb w z__ ldz work rwork)
-(define-callout zhbgvx_ jobz range uplo n ka kb ab ldab bb ldbb q ldq vl vu il iu abstol m w z__ ldz work rwork iwork ifail)
-(define-callout zhbtrd_ vect uplo n kd ab ldab d__ e q ldq work)
-(define-callout zhecon_ uplo n a lda ipiv anorm rcond work)
-(define-callout zheev_ jobz uplo n a lda w work lwork rwork)
-(define-callout zheevd_ jobz uplo n a lda w work lwork rwork lrwork iwork liwork)
-(define-callout zheevr_ jobz range uplo n a lda vl vu il iu abstol m w z__ ldz isuppz work lwork rwork lrwork iwork liwork)
-(define-callout zheevx_ jobz range uplo n a lda vl vu il iu abstol m w z__ ldz work lwork rwork iwork ifail)
-(define-callout zhegs2_ itype uplo n a lda b ldb)
-(define-callout zhegst_ itype uplo n a lda b ldb)
-(define-callout zhegv_ itype jobz uplo n a lda b ldb w work lwork rwork)
-(define-callout zhegvd_ itype jobz uplo n a lda b ldb w work lwork rwork lrwork iwork liwork)
-(define-callout zhegvx_ itype jobz range uplo n a lda b ldb vl vu il iu abstol m w z__ ldz work lwork rwork iwork ifail)
-(define-callout zherfs_ uplo n nrhs a lda af ldaf ipiv b ldb x ldx ferr berr work rwork)
-(define-callout zhesv_ uplo n nrhs a lda ipiv b ldb work lwork)
-(define-callout zhesvx_ fact uplo n nrhs a lda af ldaf ipiv b ldb x ldx rcond ferr berr work lwork rwork)
-(define-callout zhetf2_ uplo n a lda ipiv)
-(define-callout zhetrd_ uplo n a lda d__ e tau work lwork)
-(define-callout zhetrf_ uplo n a lda ipiv work lwork)
-(define-callout zhetri_ uplo n a lda ipiv work)
-(define-callout zhetrs_ uplo n nrhs a lda ipiv b ldb)
-(define-callout zhgeqz_ job compq compz n ilo ihi a lda b ldb alpha beta q ldq z__ ldz work lwork rwork)
-(define-callout zhpcon_ uplo n ap ipiv anorm rcond work)
-(define-callout zhpev_ jobz uplo n ap w z__ ldz work rwork)
-(define-callout zhpevd_ jobz uplo n ap w z__ ldz work lwork rwork lrwork iwork liwork)
-(define-callout zhpevx_ jobz range uplo n ap vl vu il iu abstol m w z__ ldz work rwork iwork ifail)
-(define-callout zhpgst_ itype uplo n ap bp)
-(define-callout zhpgv_ itype jobz uplo n ap bp w z__ ldz work rwork)
-(define-callout zhpgvd_ itype jobz uplo n ap bp w z__ ldz work lwork rwork lrwork iwork liwork)
-(define-callout zhpgvx_ itype jobz range uplo n ap bp vl vu il iu abstol m w z__ ldz work rwork iwork ifail)
-(define-callout zhprfs_ uplo n nrhs ap afp ipiv b ldb x ldx ferr berr work rwork)
-(define-callout zhpsv_ uplo n nrhs ap ipiv b ldb)
-(define-callout zhpsvx_ fact uplo n nrhs ap afp ipiv b ldb x ldx rcond ferr berr work rwork)
-(define-callout zhptrd_ uplo n ap d__ e tau)
-(define-callout zhptrf_ uplo n ap ipiv)
-(define-callout zhptri_ uplo n ap ipiv work)
-(define-callout zhptrs_ uplo n nrhs ap ipiv b ldb)
-(define-callout zhsein_ side eigsrc initv select n h__ ldh w vl ldvl vr ldvr mm m work rwork ifaill ifailr)
-(define-callout zhseqr_ job compz n ilo ihi h__ ldh w z__ ldz work lwork)
-(define-callout zlabrd_ m n nb a lda d__ e tauq taup x ldx y ldy)
-(define-callout zlacgv_ n x incx)
-(define-callout zlacon_ n v x est kase)
-(define-callout zlacp2_ uplo m n a lda b ldb)
-(define-callout zlacpy_ uplo m n a lda b ldb)
-(define-callout zlacrm_ m n a lda b ldb c__ ldc rwork)
-(define-callout zlacrt_ n cx incx cy incy c__ s)
-(define-callout zlaed0_ qsiz n d__ e q ldq qstore ldqs rwork iwork)
-(define-callout zlaed7_ n cutpnt qsiz tlvls curlvl curpbm d__ q ldq rho indxq qstore qptr prmptr perm givptr givcol givnum work rwork iwork)
-(define-callout zlaed8_ k n qsiz q ldq d__ rho cutpnt z__ dlamda q2 ldq2 w indxp indx indxq perm givptr givcol givnum)
-(define-callout zlaein_ rightv noinit n h__ ldh w v b ldb rwork eps3 smlnum)
-(define-callout zlaesy_ a b c__ rt1 rt2 evscal cs1 sn1)
-(define-callout zlaev2_ a b c__ rt1 rt2 cs1 sn1)
-(define-callout zlags2_ upper a1 a2 a3 b1 b2 b3 csu snu csv snv csq snq)
-(define-callout zlagtm_ trans n nrhs alpha dl d__ du x ldx beta b ldb)
-(define-callout zlahef_ uplo n nb kb a lda ipiv w ldw)
-(define-callout zlahqr_ wantt wantz n ilo ihi h__ ldh w iloz ihiz z__ ldz)
-(define-callout zlahrd_ n k nb a lda tau t ldt y ldy)
-(define-callout zlaic1_ job j x sest w gamma sestpr s c__)
-(define-callout zlals0_ icompq nl nr sqre nrhs b ldb bx ldbx perm givptr givcol ldgcol givnum ldgnum poles difl difr z__ k c__ s rwork)
-(define-callout zlalsa_ icompq smlsiz n nrhs b ldb bx ldbx u ldu vt k difl difr z__ poles givptr givcol ldgcol perm givnum c__ s rwork iwork)
-(define-callout zlapll_ n x incx y incy ssmin)
-(define-callout zlapmt_ forwrd m n x ldx k)
-(define-callout zlaqgb_ m n kl ku ab ldab r__ c__ rowcnd colcnd amax equed)
-(define-callout zlaqge_ m n a lda r__ c__ rowcnd colcnd amax equed)
-(define-callout zlaqhb_ uplo n kd ab ldab s scond amax equed)
-(define-callout zlaqhe_ uplo n a lda s scond amax equed)
-(define-callout zlaqhp_ uplo n ap s scond amax equed)
-(define-callout zlaqp2_ m n offset a lda jpvt tau vn1 vn2 work)
-(define-callout zlaqps_ m n offset nb kb a lda jpvt tau vn1 vn2 auxv f ldf)
-(define-callout zlaqsb_ uplo n kd ab ldab s scond amax equed)
-(define-callout zlaqsp_ uplo n ap s scond amax equed)
-(define-callout zlaqsy_ uplo n a lda s scond amax equed)
-(define-callout zlar1v_ n b1 bn sigma d__ l ld lld gersch z__ ztz mingma r__ isuppz work)
-(define-callout zlar2v_ n x y z__ incx c__ s incc)
-(define-callout zlarcm_ m n a lda b ldb c__ ldc rwork)
-(define-callout zlarf_ side m n v incv tau c__ ldc work)
-(define-callout zlarfb_ side trans direct storev m n k v ldv t ldt c__ ldc work ldwork)
-(define-callout zlarfg_ n alpha x incx tau)
-(define-callout zlarft_ direct storev n k v ldv tau t ldt)
-(define-callout zlarfx_ side m n v tau c__ ldc work)
-(define-callout zlargv_ n x incx y incy c__ incc)
-(define-callout zlarnv_ idist iseed n x)
-(define-callout zlarrv_ n d__ l isplit m w iblock gersch tol z__ ldz isuppz work iwork)
-(define-callout zlartg_ f g cs sn r__)
-(define-callout zlartv_ n x incx y incy c__ s incc)
-(define-callout zlarz_ side m n l v incv tau c__ ldc work)
-(define-callout zlarzb_ side trans direct storev m n k l v ldv t ldt c__ ldc work ldwork)
-(define-callout zlarzt_ direct storev n k v ldv tau t ldt)
-(define-callout zlascl_ type__ kl ku cfrom cto m n a lda)
-(define-callout zlaset_ uplo m n alpha beta a lda)
-(define-callout zlasr_ side pivot direct m n c__ s a lda)
-(define-callout zlassq_ n x incx scale sumsq)
-(define-callout %zlaswp_ n a lda k1 k2 ipiv incx)
-(define-callout zlasyf_ uplo n nb kb a lda ipiv w ldw)
-(define-callout zlatbs_ uplo trans diag normin n kd ab ldab x scale cnorm)
-(define-callout zlatdf_ ijob n z__ ldz rhs rdsum rdscal ipiv jpiv)
-(define-callout zlatps_ uplo trans diag normin n ap x scale cnorm)
-(define-callout zlatrd_ uplo n nb a lda e tau w ldw)
-(define-callout zlatrs_ uplo trans diag normin n a lda x scale cnorm)
-(define-callout zlatrz_ m n l a lda tau work)
-(define-callout zlatzm_ side m n v incv tau c1 c2 ldc work)
-(define-callout zlauu2_ uplo n a lda)
-(define-callout zlauum_ uplo n a lda)
-(define-callout zpbcon_ uplo n kd ab ldab anorm rcond work rwork)
-(define-callout zpbequ_ uplo n kd ab ldab s scond amax)
-(define-callout zpbrfs_ uplo n kd nrhs ab ldab afb ldafb b ldb x ldx ferr berr work rwork)
-(define-callout zpbstf_ uplo n kd ab ldab)
-(define-callout zpbsv_ uplo n kd nrhs ab ldab b ldb)
-(define-callout zpbsvx_ fact uplo n kd nrhs ab ldab afb ldafb equed s b ldb x ldx rcond ferr berr work rwork)
-(define-callout zpbtf2_ uplo n kd ab ldab)
-(define-callout zpbtrf_ uplo n kd ab ldab)
-(define-callout zpbtrs_ uplo n kd nrhs ab ldab b ldb)
-(define-callout zpocon_ uplo n a lda anorm rcond work rwork)
-(define-callout zpoequ_ n a lda s scond amax)
-(define-callout zporfs_ uplo n nrhs a lda af ldaf b ldb x ldx ferr berr work rwork)
-(define-callout zposv_ uplo n nrhs a lda b ldb)
-(define-callout zposvx_ fact uplo n nrhs a lda af ldaf equed s b ldb x ldx rcond ferr berr work rwork)
-(define-callout zpotf2_ uplo n a lda)
-(define-callout zpotrf_ uplo n a lda)
-(define-callout zpotri_ uplo n a lda)
-(define-callout zpotrs_ uplo n nrhs a lda b ldb)
-(define-callout zppcon_ uplo n ap anorm rcond work rwork)
-(define-callout zppequ_ uplo n ap s scond amax)
-(define-callout zpprfs_ uplo n nrhs ap afp b ldb x ldx ferr berr work rwork)
-(define-callout zppsv_ uplo n nrhs ap b ldb)
-(define-callout zppsvx_ fact uplo n nrhs ap afp equed s b ldb x ldx rcond ferr berr work rwork)
-(define-callout zpptrf_ uplo n ap)
-(define-callout zpptri_ uplo n ap)
-(define-callout zpptrs_ uplo n nrhs ap b ldb)
-(define-callout zptcon_ n d__ e anorm rcond rwork)
-(define-callout zptrfs_ uplo n nrhs d__ e df ef b ldb x ldx ferr berr work rwork)
-(define-callout zptsv_ n nrhs d__ e b ldb)
-(define-callout zptsvx_ fact n nrhs d__ e df ef b ldb x ldx rcond ferr berr work rwork)
-(define-callout zpttrf_ n d__ e)
-(define-callout zpttrs_ uplo n nrhs d__ e b ldb)
-(define-callout zptts2_ iuplo n nrhs d__ e b ldb)
-(define-callout zrot_ n cx incx cy incy c__ s)
-(define-callout zspcon_ uplo n ap ipiv anorm rcond work)
-(define-callout zspmv_ uplo n alpha ap x incx beta y incy)
-(define-callout zspr_ uplo n alpha x incx ap)
-(define-callout zsprfs_ uplo n nrhs ap afp ipiv b ldb x ldx ferr berr work rwork)
-(define-callout zspsv_ uplo n nrhs ap ipiv b ldb)
-(define-callout zspsvx_ fact uplo n nrhs ap afp ipiv b ldb x ldx rcond ferr berr work rwork)
-(define-callout zsptrf_ uplo n ap ipiv)
-(define-callout zsptri_ uplo n ap ipiv work)
-(define-callout zsptrs_ uplo n nrhs ap ipiv b ldb)
-(define-callout zstedc_ compz n d__ e z__ ldz work lwork rwork lrwork iwork liwork)
-(define-callout zstein_ n d__ e m w iblock isplit z__ ldz work iwork ifail)
-(define-callout zsteqr_ compz n d__ e z__ ldz work)
-(define-callout zsycon_ uplo n a lda ipiv anorm rcond work)
-(define-callout zsymv_ uplo n alpha a lda x incx beta y incy)
-(define-callout zsyr_ uplo n alpha x incx a lda)
-(define-callout zsyrfs_ uplo n nrhs a lda af ldaf ipiv b ldb x ldx ferr berr work rwork)
-(define-callout zsysv_ uplo n nrhs a lda ipiv b ldb work lwork)
-(define-callout zsysvx_ fact uplo n nrhs a lda af ldaf ipiv b ldb x ldx rcond ferr berr work lwork rwork)
-(define-callout zsytf2_ uplo n a lda ipiv)
-(define-callout zsytrf_ uplo n a lda ipiv work lwork)
-(define-callout zsytri_ uplo n a lda ipiv work)
-(define-callout zsytrs_ uplo n nrhs a lda ipiv b ldb)
-(define-callout ztbcon_ norm uplo diag n kd ab ldab rcond work rwork)
-(define-callout ztbrfs_ uplo trans diag n kd nrhs ab ldab b ldb x ldx ferr berr work rwork)
-(define-callout ztbtrs_ uplo trans diag n kd nrhs ab ldab b ldb)
-(define-callout ztgevc_ side howmny select n a lda b ldb vl ldvl vr ldvr mm m work rwork)
-(define-callout ztgex2_ wantq wantz n a lda b ldb q ldq z__ ldz j1)
-(define-callout ztgexc_ wantq wantz n a lda b ldb q ldq z__ ldz ifst ilst)
-(define-callout ztgsen_ ijob wantq wantz select n a lda b ldb alpha beta q ldq z__ ldz m pl pr dif work lwork iwork liwork)
-(define-callout ztgsja_ jobu jobv jobq m p n k l a lda b ldb tola tolb alpha beta u ldu v ldv q ldq work ncycle)
-(define-callout ztgsna_ job howmny select n a lda b ldb vl ldvl vr ldvr s dif mm m work lwork iwork)
-(define-callout ztgsy2_ trans ijob m n a lda b ldb c__ ldc d__ ldd e lde f ldf scale rdsum rdscal)
-(define-callout ztgsyl_ trans ijob m n a lda b ldb c__ ldc d__ ldd e lde f ldf scale dif work lwork iwork)
-(define-callout ztpcon_ norm uplo diag n ap rcond work rwork)
-(define-callout ztprfs_ uplo trans diag n nrhs ap b ldb x ldx ferr berr work rwork)
-(define-callout ztptri_ uplo diag n ap)
-(define-callout ztptrs_ uplo trans diag n nrhs ap b ldb)
-(define-callout ztrcon_ norm uplo diag n a lda rcond work rwork)
-(define-callout ztrevc_ side howmny select n t ldt vl ldvl vr ldvr mm m work rwork)
-(define-callout ztrexc_ compq n t ldt q ldq ifst ilst)
-(define-callout ztrrfs_ uplo trans diag n nrhs a lda b ldb x ldx ferr berr work rwork)
-(define-callout ztrsen_ job compq select n t ldt q ldq w m s sep work lwork)
-(define-callout ztrsna_ job howmny select n t ldt vl ldvl vr ldvr s sep mm m work ldwork rwork)
-(define-callout ztrsyl_ trana tranb isgn m n a lda b ldb c__ ldc scale)
-(define-callout ztrti2_ uplo diag n a lda)
-(define-callout ztrtri_ uplo diag n a lda)
-(define-callout ztrtrs_ uplo trans diag n nrhs a lda b ldb)
-(define-callout ztzrqf_ m n a lda tau)
-(define-callout ztzrzf_ m n a lda tau work lwork)
-(define-callout zung2l_ m n k a lda tau work)
-(define-callout zung2r_ m n k a lda tau work)
-(define-callout zungbr_ vect m n k a lda tau work lwork)
-(define-callout zunghr_ n ilo ihi a lda tau work lwork)
-(define-callout zungl2_ m n k a lda tau work)
-(define-callout zunglq_ m n k a lda tau work lwork)
-(define-callout zungql_ m n k a lda tau work lwork)
-(define-callout zungqr_ m n k a lda tau work lwork)
-(define-callout zungr2_ m n k a lda tau work)
-(define-callout zungrq_ m n k a lda tau work lwork)
-(define-callout zungtr_ uplo n a lda tau work lwork)
-(define-callout zunm2l_ side trans m n k a lda tau c__ ldc work)
-(define-callout zunm2r_ side trans m n k a lda tau c__ ldc work)
-(define-callout zunmbr_ vect side trans m n k a lda tau c__ ldc work lwork)
-(define-callout zunmhr_ side trans m n ilo ihi a lda tau c__ ldc work lwork)
-(define-callout zunml2_ side trans m n k a lda tau c__ ldc work)
-(define-callout zunmlq_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout zunmql_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout zunmqr_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout zunmr2_ side trans m n k a lda tau c__ ldc work)
-(define-callout zunmr3_ side trans m n k l a lda tau c__ ldc work)
-(define-callout zunmrq_ side trans m n k a lda tau c__ ldc work lwork)
-(define-callout zunmrz_ side trans m n k l a lda tau c__ ldc work lwork)
-(define-callout zunmtr_ side uplo trans m n a lda tau c__ ldc work lwork)
-(define-callout zupgtr_ uplo n ap tau q ldq work)
-(define-callout zupmtr_ side uplo trans m n ap tau c__ ldc work)
+(define-syntax define-wrapper
+  ;;Define a standard wrapper for each callout.
+  ;;
+  (lambda (stx)
+
+    (define (%name->callout-name name)
+      ;;Strip the leading #\% if there is one.
+      ;;
+      (let ((n (symbol->string name)))
+	(string->symbol (if (char=? #\% (string-ref n 0))
+			    (substring n 1 (string-length n))
+			  n))))
+    (define (%name->wrapper-name name)
+      ;;Strip the trailing #\_.
+      ;;
+      (let ((n (symbol->string name)))
+	(string->symbol (substring n 0 (- (string-length n) 1)))))
+
+    (define (%suffix-star name)
+      ;;Append #\* to NAME.
+      ;;
+      (string->symbol (string-append (symbol->string name) "*")))
+
+    (define (%arg-name-is-non-boxed? arg-name)
+      ;;Return true  if ARG-NAME is an  argument name which  is known to
+      ;;reference an array  of values; such arguments must  not be boxed
+      ;;even if their type is equal to the type of boxed arguments.
+      ;;
+      ;;Usually arguments with type "integer*" are boxed, so we need the
+      ;;list  of  argument names  with  type  "integer*"  which need  no
+      ;;boxing.
+      ;;
+      ;;For example:  "integer* lda" and "integer* ipiv"  both have type
+      ;;"integer*", but "lda" must be boxed while "ipiv" must not.
+      ;;
+      (memq arg-name '(ipiv jpiv)))
+
+    (define (%arg-name-is-boxed? arg-name)
+      ;;Return true  if ARG-NAME is an  argument name which  is known to
+      ;;reference a  non-array value; such arguments must  be boxed even
+      ;;if their type is equal to the type of non-boxed arguments.
+      ;;
+      ;;Usually arguments with  type "real*", "doublereal*", "complex*",
+      ;;"doublecomplex*" and  "logical*" are  non-boxed, so we  need the
+      ;;list of argument names with those types which need boxing.
+      ;;
+      ;;For example: "real* a" and "real* scale" both have type "real*",
+      ;;but "a" must be boxed while "scale" must not.
+      ;;
+      (memq arg-name '(scale lscale rscale c s
+			     rightv noinit)))
+
+    (define (%args->callout-arg-names arg-types arg-names)
+      ;;Return a list of symbols  representing the arguments names to be
+      ;;handed to  the callout function.   Argument names whose  type is
+      ;;"char*"  or "integer*"  are replaced  with names  having  a star
+      ;;suffix, unless they are known to be non-boxed arguments.
+      ;;
+      (reverse
+       (fold-left (lambda (knil type name)
+		    (case type
+		      ((char*)
+		       (cons (%suffix-star name) knil))
+		      ((integer*)
+		       (if (%arg-name-is-non-boxed? name)
+			   (cons name knil)
+			 (cons (%suffix-star name) knil)))
+		      ((real* doublereal* complex* doublecomplex* logical*)
+		       (if (%arg-name-is-boxed? name)
+			   (cons (%suffix-star name) knil)
+			 (cons name knil)))
+		      (else
+		       (cons name knil))))
+		  '() arg-types arg-names)))
+
+    (define (%args->boxed-arg-names arg-types arg-names)
+      ;;Return a list of symbols representing the names of the arguments
+      ;;to the callout functions  which are boxed.  Argument names whose
+      ;;type is "char*"  or "integer*" are replaced with  names having a
+      ;;star suffix,  unless they are  known to be non  boxed arguments;
+      ;;argument names having other types are discarded.
+      ;;
+      (reverse
+       (fold-left (lambda (knil type name)
+		    (case type
+		      ((char*)
+		       (cons (%suffix-star name) knil))
+		      ((integer*)
+		       (if (%arg-name-is-non-boxed? name)
+			   knil
+			 (cons (%suffix-star name) knil)))
+		      ((real* doublereal* complex* doublecomplex* logical*)
+		       (if (%arg-name-is-boxed? name)
+			   (cons (%suffix-star name) knil)
+			 knil))
+		      (else
+		       knil)))
+		  '() arg-types arg-names)))
+
+    (define (%args->box-names arg-types arg-names)
+      ;;Return  a  list of  symbols  representing  the  bindings of  the
+      ;;preallocated  boxes.   There  is  one  of them  for  each  boxed
+      ;;argument.
+      ;;
+      (let ((%index->box-name	(lambda (i) (string->symbol (string-append "box" (number->string i)))))
+	    (len		(length (%args->boxed-arg-names arg-types arg-names))))
+	(let loop ((i 0) (box-names '()))
+	  (if (= i len)
+	      (reverse box-names)
+	    (loop (+ 1 i) (cons (%index->box-name i) box-names))))))
+
+    (define (%args->boxing arg-types arg-names)
+      ;;Return a list of Scheme expressions being the boxing operations.
+      ;;Arguments whose type is  "char*" or "integer*" are boxed, unless
+      ;;they are known to  be non-boxed arguments; argument names having
+      ;;other types are discarded.
+      ;;
+      ;;Boxing the argument "char* uplo" means:
+      ;;
+      ;;   (pointer-set-c-signed-char uplo* 0 uplo)
+      ;;
+      ;;boxing the argument "integer* lda" means:
+      ;;
+      ;;   (pointer-set-c-integer! lda* 0 lda)
+      ;;
+      (reverse
+       (fold-left (lambda (knil type name)
+		    (case type
+		      ((char*)
+		       (cons `(pointer-set-c-signed-char! ,(%suffix-star name) 0 ,name) knil))
+		      ((integer*)
+		       (if (%arg-name-is-non-boxed? name)
+			   knil
+			 (cons `(pointer-set-c-integer! ,(%suffix-star name) 0 ,name) knil)))
+		      ((real* doublereal*)
+		       (if (%arg-name-is-non-boxed? name)
+			   (cons `(pointer-set-c-real! ,(%suffix-star name) 0 (inexact ,name)) knil)
+			 knil))
+		      ((complex* doublecomplex*)
+		       (if (%arg-name-is-non-boxed? name)
+			   (cons `(begin
+				    (array-set-c-real! ,(%suffix-star name) 0
+						       (inexact (real-part ,name)))
+				    (array-set-c-real! ,(%suffix-star name) 1
+						       (inexact (imag-part ,name))))
+				 knil)
+			 knil))
+		      ((logical*)
+		       (if (%arg-name-is-non-boxed? name)
+			   (cons `(pointer-set-c-logical! ,(%suffix-star name) 0 ,name) knil)
+			 knil))
+		      (else
+		       knil)))
+		  '() arg-types arg-names)))
+
+    (syntax-case stx (info)
+
+      ((_ ?ret-type ?name ((?arg-type ?arg-name) ... (?info-type info)))
+       ;;The  purpose  of this  rule  is  to  rewrite (notice  the  last
+       ;;argument INFO):
+       ;;
+       ;;   (define-wrapper int dgesv_ ((integer* n) (integer* nrhs)
+       ;;				(doublereal* a) (integer* lda)
+       ;;				(integer* ipiv)
+       ;;				(doublereal* b) (integer* ldb)
+       ;;				(integer* info)))
+       ;;
+       ;;to:
+       ;;
+       ;;   (define (dgesv n nrhs a lda ipiv b ldb)
+       ;;     (define n*	box0)
+       ;;     (define nrhs*	box1)
+       ;;     (define lda*	box2)
+       ;;     (define ldb*	box3)
+       ;;     (pointer-set-c-integer! n*    0 n)
+       ;;     (pointer-set-c-integer! nrhs* 0 nrhs)
+       ;;     (pointer-set-c-integer! lda*  0 lda)
+       ;;     (pointer-set-c-integer! ldb*  0 ldb)
+       ;;     (pointer-set-c-integer! info* 0 0)
+       ;;     (let ((result (dgesv_ n nrhs a lda ipiv b ldb info*)))
+       ;;       (%process-result (quote dgesv)
+       ;;                         result (pointer-ref-c-integer info* 0)
+       ;;                         '(n nrhs a lda ipiv b ldb)
+       ;;                         (list n nrhs a lda ipiv b ldb))))
+       ;;
+       (let ((name	(syntax->datum #'?name))
+	     (arg-types	(syntax->datum #'(?arg-type ...)))
+	     (arg-names	(syntax->datum #'(?arg-name ...))))
+	 (with-syntax
+	     ((WRAPPER-NAME		(datum->syntax #'?name (%name->wrapper-name name)))
+	      (CALLOUT-NAME		(datum->syntax #'?name (%name->callout-name name)))
+	      ((BOXING ...)		(datum->syntax #'?name (%args->boxing arg-types arg-names)))
+	      ((ARG-NAME ...)		(datum->syntax #'?name (%args->callout-arg-names arg-types arg-names)))
+	      ((BOX-NAME ...)		(datum->syntax #'?name (%args->box-names arg-types arg-names)))
+	      ((BOXED-ARG-NAME ...)	(datum->syntax #'?name (%args->boxed-arg-names arg-types
+										       arg-names))))
+	   (let ((output-stx #'(define (WRAPPER-NAME ?arg-name ...)
+				 (define BOXED-ARG-NAME BOX-NAME) ...
+				 BOXING ...
+				 (pointer-set-c-integer! info* 0 0)
+				 (let ((result (CALLOUT-NAME ARG-NAME ... info*)))
+				   (%process-result (quote WRAPPER-NAME)
+						    result (pointer-ref-c-integer info* 0)
+						    '(?arg-name ...) (list ?arg-name ...))))))
+	     ;; (when (eq? name 'dgesv_)
+	     ;;   (pretty-print (syntax->datum output-stx)))
+	     output-stx))))
+
+      ((_ ?ret-type ?name ((?arg-type ?arg-name) ...))
+       ;;The purpose of this rule is to rewrite:
+       ;;
+       ;;   (define-wrapper int cgesc2_ ((integer* n)
+       ;;                                (complex* a) (integer* lda)
+       ;;                                (complex* rhs) (integer* ipiv)
+       ;;                                (integer* jpiv) (real* scale)))
+       ;;
+       ;;to:
+       ;;
+       ;;   (define (cgesc2 n a lda rhs ipiv jpiv scale)
+       ;;     (define n*	box0)
+       ;;     (define lda*	box1)
+       ;;     (define scale*	box3)
+       ;;     (pointer-set-c-integer! n*     0 n)
+       ;;     (pointer-set-c-integer! lda*   0 lda)
+       ;;     (pointer-set-c-real!    scale* 0 scale)
+       ;;     (cgesc2 n* a lda* rhs ipiv jpiv scale*))
+       ;;
+       (let ((name	(syntax->datum #'?name))
+	     (arg-types	(syntax->datum #'(?arg-type ...)))
+	     (arg-names	(syntax->datum #'(?arg-name ...))))
+	 (with-syntax
+	     ((WRAPPER-NAME		(datum->syntax #'?name (%name->wrapper-name name)))
+	      (CALLOUT-NAME		(datum->syntax #'?name (%name->callout-name name)))
+	      ((BOXING ...)		(datum->syntax #'?name (%args->boxing arg-types arg-names)))
+	      ((ARG-NAME ...)		(datum->syntax #'?name (%args->callout-arg-names arg-types
+											 arg-names)))
+	      ((BOX-NAME ...)		(datum->syntax #'?name (%args->box-names arg-types arg-names)))
+	      ((BOXED-ARG-NAME ...)	(datum->syntax #'?name (%args->boxed-arg-names arg-types
+										       arg-names))))
+	   (let ((output-stx #'(define (WRAPPER-NAME ?arg-name ...)
+				 (define BOXED-ARG-NAME BOX-NAME) ...
+				 BOXING ...
+				 (CALLOUT-NAME ARG-NAME ...))))
+	     ;; (when (eq? name 'dgesv_)
+	     ;;   (pretty-print (syntax->datum output-stx)))
+	     output-stx)))))))
 
 
-;;;; linear equations
+(define-wrapper int cbdsqr_ ((char* uplo) (integer* n) (integer* ncvt) (integer* nru) (integer* ncc) (real* d__) (real* e) (complex* vt) (integer* ldvt) (complex* u) (integer* ldu) (complex* c__) (integer* ldc) (real* rwork) (integer* info)))
 
-(define (dgesv n nrhs a lda ipiv b ldb)
-  (let-ip ((n*		n)
-	   (nrhs*	nrhs)
-	   (lda*	lda)
-	   (ldb*	ldb))
-	  (let ((result (dgesv_ n* nrhs* a lda* ipiv b ldb* info*)))
-	    (%process-result 'dgesv result
-			     (pointer-ref-c-integer info* 0)
-			     '(n nrhs a lda ipiv b ldb)
-			     (list n nrhs a lda ipiv b ldb)))))
+(define-wrapper int cgbbrd_ ((char* vect) (integer* m) (integer* n) (integer* ncc) (integer* kl) (integer* ku) (complex* ab) (integer* ldab) (real* d__) (real* e) (complex* q) (integer* ldq) (complex* pt) (integer* ldpt) (complex* c__) (integer* ldc) (complex* work) (real* rwork) (integer* info)))
 
-(define (zgesv n nrhs a lda ipiv b ldb)
-  (let-ip ((n*		n)
-	   (nrhs*	nrhs)
-	   (lda*	lda)
-	   (ldb*	ldb))
-	  (let ((result (zgesv_ n* nrhs* a lda* ipiv b ldb* info*)))
-	    (%process-result 'dgesv result
-			     (pointer-ref-c-integer info* 0)
-			     '(n nrhs a lda ipiv b ldb)
-			     (list n nrhs a lda ipiv b ldb)))))
+(define-wrapper int cgbcon_ ((char* norm) (integer* n) (integer* kl) (integer* ku) (complex* ab) (integer* ldab) (integer* ipiv) (real* anorm) (real* rcond) (complex* work) (real* rwork) (integer* info)))
 
-
-;;;; permutations
+(define-wrapper int cgbequ_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (complex* ab) (integer* ldab) (real* r__) (real* c__) (real* rowcnd) (real* colcnd) (real* amax) (integer* info)))
 
-(define (dlaswp n a lda k1 k2 ipiv incx)
-  (let-ip ((n*		n)
-	   (lda*	lda)
-	   (k1*		k1)
-	   (k2*		k2)
-	   (incx*	incx))
-	  (dlaswp_ n* a lda* k1* k2* ipiv incx*)))
+(define-wrapper int cgbrfs_ ((char* trans) (integer* n) (integer* kl) (integer* ku) (integer* nrhs) (complex* ab) (integer* ldab) (complex* afb) (integer* ldafb) (integer* ipiv) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
 
-(define (zlaswp n a lda k1 k2 ipiv incx)
-  (let-ip ((n*		n)
-	   (lda*	lda)
-	   (k1*		k1)
-	   (k2*		k2)
-	   (incx*	incx))
-	  (zlaswp_ n* a lda* k1* k2* ipiv incx*)))
+(define-wrapper int cgbsv_ ((integer* n) (integer* kl) (integer* ku) (integer* nrhs) (complex* ab) (integer* ldab) (integer* ipiv) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cgbsvx_ ((char* fact) (char* trans) (integer* n) (integer* kl) (integer* ku) (integer* nrhs) (complex* ab) (integer* ldab) (complex* afb) (integer* ldafb) (integer* ipiv) (char* equed) (real* r__) (real* c__) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cgbtf2_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (complex* ab) (integer* ldab) (integer* ipiv) (integer* info)))
+
+(define-wrapper int cgbtrf_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (complex* ab) (integer* ldab) (integer* ipiv) (integer* info)))
+
+(define-wrapper int cgbtrs_ ((char* trans) (integer* n) (integer* kl) (integer* ku) (integer* nrhs) (complex* ab) (integer* ldab) (integer* ipiv) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cgebak_ ((char* job) (char* side) (integer* n) (integer* ilo) (integer* ihi) (real* scale) (integer* m) (complex* v) (integer* ldv) (integer* info)))
+
+(define-wrapper int cgebal_ ((char* job) (integer* n) (complex* a) (integer* lda) (integer* ilo) (integer* ihi) (real* scale) (integer* info)))
+
+(define-wrapper int cgebd2_ ((integer* m) (integer* n) (complex* a) (integer* lda) (real* d__) (real* e) (complex* tauq) (complex* taup) (complex* work) (integer* info)))
+
+(define-wrapper int cgebrd_ ((integer* m) (integer* n) (complex* a) (integer* lda) (real* d__) (real* e) (complex* tauq) (complex* taup) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cgecon_ ((char* norm) (integer* n) (complex* a) (integer* lda) (real* anorm) (real* rcond) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cgeequ_ ((integer* m) (integer* n) (complex* a) (integer* lda) (real* r__) (real* c__) (real* rowcnd) (real* colcnd) (real* amax) (integer* info)))
+
+(define-wrapper int cgees_ ((char* jobvs) (char* sort) (L_fp select) (integer* n) (complex* a) (integer* lda) (integer* sdim) (complex* w) (complex* vs) (integer* ldvs) (complex* work) (integer* lwork) (real* rwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int cgeesx_ ((char* jobvs) (char* sort) (L_fp select) (char* sense) (integer* n) (complex* a) (integer* lda) (integer* sdim) (complex* w) (complex* vs) (integer* ldvs) (real* rconde) (real* rcondv) (complex* work) (integer* lwork) (real* rwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int cgeev_ ((char* jobvl) (char* jobvr) (integer* n) (complex* a) (integer* lda) (complex* w) (complex* vl) (integer* ldvl) (complex* vr) (integer* ldvr) (complex* work) (integer* lwork) (real* rwork) (integer* info)))
+
+(define-wrapper int cgeevx_ ((char* balanc) (char* jobvl) (char* jobvr) (char* sense) (integer* n) (complex* a) (integer* lda) (complex* w) (complex* vl) (integer* ldvl) (complex* vr) (integer* ldvr) (integer* ilo) (integer* ihi) (real* scale) (real* abnrm) (real* rconde) (real* rcondv) (complex* work) (integer* lwork) (real* rwork) (integer* info)))
+
+(define-wrapper int cgegs_ ((char* jobvsl) (char* jobvsr) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* alpha) (complex* beta) (complex* vsl) (integer* ldvsl) (complex* vsr) (integer* ldvsr) (complex* work) (integer* lwork) (real* rwork) (integer* info)))
+
+(define-wrapper int cgegv_ ((char* jobvl) (char* jobvr) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* alpha) (complex* beta) (complex* vl) (integer* ldvl) (complex* vr) (integer* ldvr) (complex* work) (integer* lwork) (real* rwork) (integer* info)))
+
+(define-wrapper int cgehd2_ ((integer* n) (integer* ilo) (integer* ihi) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* info)))
+
+(define-wrapper int cgehrd_ ((integer* n) (integer* ilo) (integer* ihi) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cgelq2_ ((integer* m) (integer* n) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* info)))
+
+(define-wrapper int cgelqf_ ((integer* m) (integer* n) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cgels_ ((char* trans) (integer* m) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cgelsx_ ((integer* m) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* b) (integer* ldb) (integer* jpvt) (real* rcond) (integer* rank) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cgelsy_ ((integer* m) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* b) (integer* ldb) (integer* jpvt) (real* rcond) (integer* rank) (complex* work) (integer* lwork) (real* rwork) (integer* info)))
+
+(define-wrapper int cgeql2_ ((integer* m) (integer* n) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* info)))
+
+(define-wrapper int cgeqlf_ ((integer* m) (integer* n) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cgeqp3_ ((integer* m) (integer* n) (complex* a) (integer* lda) (integer* jpvt) (complex* tau) (complex* work) (integer* lwork) (real* rwork) (integer* info)))
+
+(define-wrapper int cgeqpf_ ((integer* m) (integer* n) (complex* a) (integer* lda) (integer* jpvt) (complex* tau) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cgeqr2_ ((integer* m) (integer* n) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* info)))
+
+(define-wrapper int cgeqrf_ ((integer* m) (integer* n) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cgerfs_ ((char* trans) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* af) (integer* ldaf) (integer* ipiv) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cgerq2_ ((integer* m) (integer* n) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* info)))
+
+(define-wrapper int cgerqf_ ((integer* m) (integer* n) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cgesc2_ ((integer* n) (complex* a) (integer* lda) (complex* rhs) (integer* ipiv) (integer* jpiv) (real* scale)))
+
+(define-wrapper int cgesv_ ((integer* n) (integer* nrhs) (complex* a) (integer* lda) (integer* ipiv) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cgesvx_ ((char* fact) (char* trans) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* af) (integer* ldaf) (integer* ipiv) (char* equed) (real* r__) (real* c__) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cgetc2_ ((integer* n) (complex* a) (integer* lda) (integer* ipiv) (integer* jpiv) (integer* info)))
+
+(define-wrapper int cgetf2_ ((integer* m) (integer* n) (complex* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int cgetrf_ ((integer* m) (integer* n) (complex* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int cgetri_ ((integer* n) (complex* a) (integer* lda) (integer* ipiv) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cgetrs_ ((char* trans) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (integer* ipiv) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cggbak_ ((char* job) (char* side) (integer* n) (integer* ilo) (integer* ihi) (real* lscale) (real* rscale) (integer* m) (complex* v) (integer* ldv) (integer* info)))
+
+(define-wrapper int cggbal_ ((char* job) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (integer* ilo) (integer* ihi) (real* lscale) (real* rscale) (real* work) (integer* info)))
+
+(define-wrapper int cgges_ ((char* jobvsl) (char* jobvsr) (char* sort) (L_fp selctg) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (integer* sdim) (complex* alpha) (complex* beta) (complex* vsl) (integer* ldvsl) (complex* vsr) (integer* ldvsr) (complex* work) (integer* lwork) (real* rwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int cggesx_ ((char* jobvsl) (char* jobvsr) (char* sort) (L_fp selctg) (char* sense) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (integer* sdim) (complex* alpha) (complex* beta) (complex* vsl) (integer* ldvsl) (complex* vsr) (integer* ldvsr) (real* rconde) (real* rcondv) (complex* work) (integer* lwork) (real* rwork) (integer* iwork) (integer* liwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int cggev_ ((char* jobvl) (char* jobvr) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* alpha) (complex* beta) (complex* vl) (integer* ldvl) (complex* vr) (integer* ldvr) (complex* work) (integer* lwork) (real* rwork) (integer* info)))
+
+(define-wrapper int cggevx_ ((char* balanc) (char* jobvl) (char* jobvr) (char* sense) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* alpha) (complex* beta) (complex* vl) (integer* ldvl) (complex* vr) (integer* ldvr) (integer* ilo) (integer* ihi) (real* lscale) (real* rscale) (real* abnrm) (real* bbnrm) (real* rconde) (real* rcondv) (complex* work) (integer* lwork) (real* rwork) (integer* iwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int cggglm_ ((integer* n) (integer* m) (integer* p) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* d__) (complex* x) (complex* y) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cgghrd_ ((char* compq) (char* compz) (integer* n) (integer* ilo) (integer* ihi) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* q) (integer* ldq) (complex* z__) (integer* ldz) (integer* info)))
+
+(define-wrapper int cgglse_ ((integer* m) (integer* n) (integer* p) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* c__) (complex* d__) (complex* x) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cggqrf_ ((integer* n) (integer* m) (integer* p) (complex* a) (integer* lda) (complex* taua) (complex* b) (integer* ldb) (complex* taub) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cggrqf_ ((integer* m) (integer* p) (integer* n) (complex* a) (integer* lda) (complex* taua) (complex* b) (integer* ldb) (complex* taub) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cggsvd_ ((char* jobu) (char* jobv) (char* jobq) (integer* m) (integer* n) (integer* p) (integer* k) (integer* l) (complex* a) (integer* lda) (complex* b) (integer* ldb) (real* alpha) (real* beta) (complex* u) (integer* ldu) (complex* v) (integer* ldv) (complex* q) (integer* ldq) (complex* work) (real* rwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int cggsvp_ ((char* jobu) (char* jobv) (char* jobq) (integer* m) (integer* p) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (real* tola) (real* tolb) (integer* k) (integer* l) (complex* u) (integer* ldu) (complex* v) (integer* ldv) (complex* q) (integer* ldq) (integer* iwork) (real* rwork) (complex* tau) (complex* work) (integer* info)))
+
+(define-wrapper int cgtcon_ ((char* norm) (integer* n) (complex* dl) (complex* d__) (complex* du) (complex* du2) (integer* ipiv) (real* anorm) (real* rcond) (complex* work) (integer* info)))
+
+(define-wrapper int cgtrfs_ ((char* trans) (integer* n) (integer* nrhs) (complex* dl) (complex* d__) (complex* du) (complex* dlf) (complex* df) (complex* duf) (complex* du2) (integer* ipiv) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cgtsv_ ((integer* n) (integer* nrhs) (complex* dl) (complex* d__) (complex* du) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cgtsvx_ ((char* fact) (char* trans) (integer* n) (integer* nrhs) (complex* dl) (complex* d__) (complex* du) (complex* dlf) (complex* df) (complex* duf) (complex* du2) (integer* ipiv) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cgttrf_ ((integer* n) (complex* dl) (complex* d__) (complex* du) (complex* du2) (integer* ipiv) (integer* info)))
+
+(define-wrapper int cgttrs_ ((char* trans) (integer* n) (integer* nrhs) (complex* dl) (complex* d__) (complex* du) (complex* du2) (integer* ipiv) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cgtts2_ ((integer* itrans) (integer* n) (integer* nrhs) (complex* dl) (complex* d__) (complex* du) (complex* du2) (integer* ipiv) (complex* b) (integer* ldb)))
+
+(define-wrapper int chbev_ ((char* jobz) (char* uplo) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (real* w) (complex* z__) (integer* ldz) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int chbevd_ ((char* jobz) (char* uplo) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (real* w) (complex* z__) (integer* ldz) (complex* work) (integer* lwork) (real* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int chbevx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (complex* q) (integer* ldq) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (complex* z__) (integer* ldz) (complex* work) (real* rwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int chbgst_ ((char* vect) (char* uplo) (integer* n) (integer* ka) (integer* kb) (complex* ab) (integer* ldab) (complex* bb) (integer* ldbb) (complex* x) (integer* ldx) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int chbgv_ ((char* jobz) (char* uplo) (integer* n) (integer* ka) (integer* kb) (complex* ab) (integer* ldab) (complex* bb) (integer* ldbb) (real* w) (complex* z__) (integer* ldz) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int chbgvx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (integer* ka) (integer* kb) (complex* ab) (integer* ldab) (complex* bb) (integer* ldbb) (complex* q) (integer* ldq) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (complex* z__) (integer* ldz) (complex* work) (real* rwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int chbtrd_ ((char* vect) (char* uplo) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (real* d__) (real* e) (complex* q) (integer* ldq) (complex* work) (integer* info)))
+
+(define-wrapper int checon_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* ipiv) (real* anorm) (real* rcond) (complex* work) (integer* info)))
+
+(define-wrapper int cheev_ ((char* jobz) (char* uplo) (integer* n) (complex* a) (integer* lda) (real* w) (complex* work) (integer* lwork) (real* rwork) (integer* info)))
+
+(define-wrapper int cheevd_ ((char* jobz) (char* uplo) (integer* n) (complex* a) (integer* lda) (real* w) (complex* work) (integer* lwork) (real* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int cheevr_ ((char* jobz) (char* range) (char* uplo) (integer* n) (complex* a) (integer* lda) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (complex* z__) (integer* ldz) (integer* isuppz) (complex* work) (integer* lwork) (real* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int cheevx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (complex* a) (integer* lda) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (complex* z__) (integer* ldz) (complex* work) (integer* lwork) (real* rwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int chegs2_ ((integer* itype) (char* uplo) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int chegst_ ((integer* itype) (char* uplo) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int chegv_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (real* w) (complex* work) (integer* lwork) (real* rwork) (integer* info)))
+
+(define-wrapper int chegvd_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (real* w) (complex* work) (integer* lwork) (real* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int chegvx_ ((integer* itype) (char* jobz) (char* range) (char* uplo) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (complex* z__) (integer* ldz) (complex* work) (integer* lwork) (real* rwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int cherfs_ ((char* uplo) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* af) (integer* ldaf) (integer* ipiv) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int chesv_ ((char* uplo) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (integer* ipiv) (complex* b) (integer* ldb) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int chesvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* af) (integer* ldaf) (integer* ipiv) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (integer* lwork) (real* rwork) (integer* info)))
+
+(define-wrapper int chetf2_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int chetrd_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (real* d__) (real* e) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int chetrf_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* ipiv) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int chetri_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* ipiv) (complex* work) (integer* info)))
+
+(define-wrapper int chetrs_ ((char* uplo) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (integer* ipiv) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int chgeqz_ ((char* job) (char* compq) (char* compz) (integer* n) (integer* ilo) (integer* ihi) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* alpha) (complex* beta) (complex* q) (integer* ldq) (complex* z__) (integer* ldz) (complex* work) (integer* lwork) (real* rwork) (integer* info)))
+
+(define-wrapper int chpcon_ ((char* uplo) (integer* n) (complex* ap) (integer* ipiv) (real* anorm) (real* rcond) (complex* work) (integer* info)))
+
+(define-wrapper int chpev_ ((char* jobz) (char* uplo) (integer* n) (complex* ap) (real* w) (complex* z__) (integer* ldz) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int chpevd_ ((char* jobz) (char* uplo) (integer* n) (complex* ap) (real* w) (complex* z__) (integer* ldz) (complex* work) (integer* lwork) (real* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int chpevx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (complex* ap) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (complex* z__) (integer* ldz) (complex* work) (real* rwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int chpgst_ ((integer* itype) (char* uplo) (integer* n) (complex* ap) (complex* bp) (integer* info)))
+
+(define-wrapper int chpgv_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (complex* ap) (complex* bp) (real* w) (complex* z__) (integer* ldz) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int chpgvd_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (complex* ap) (complex* bp) (real* w) (complex* z__) (integer* ldz) (complex* work) (integer* lwork) (real* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int chpgvx_ ((integer* itype) (char* jobz) (char* range) (char* uplo) (integer* n) (complex* ap) (complex* bp) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (complex* z__) (integer* ldz) (complex* work) (real* rwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int chprfs_ ((char* uplo) (integer* n) (integer* nrhs) (complex* ap) (complex* afp) (integer* ipiv) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int chpsv_ ((char* uplo) (integer* n) (integer* nrhs) (complex* ap) (integer* ipiv) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int chpsvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (complex* ap) (complex* afp) (integer* ipiv) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int chptrd_ ((char* uplo) (integer* n) (complex* ap) (real* d__) (real* e) (complex* tau) (integer* info)))
+
+(define-wrapper int chptrf_ ((char* uplo) (integer* n) (complex* ap) (integer* ipiv) (integer* info)))
+
+(define-wrapper int chptri_ ((char* uplo) (integer* n) (complex* ap) (integer* ipiv) (complex* work) (integer* info)))
+
+(define-wrapper int chptrs_ ((char* uplo) (integer* n) (integer* nrhs) (complex* ap) (integer* ipiv) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int chsein_ ((char* side) (char* eigsrc) (char* initv) (logical* select) (integer* n) (complex* h__) (integer* ldh) (complex* w) (complex* vl) (integer* ldvl) (complex* vr) (integer* ldvr) (integer* mm) (integer* m) (complex* work) (real* rwork) (integer* ifaill) (integer* ifailr) (integer* info)))
+
+(define-wrapper int chseqr_ ((char* job) (char* compz) (integer* n) (integer* ilo) (integer* ihi) (complex* h__) (integer* ldh) (complex* w) (complex* z__) (integer* ldz) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int clabrd_ ((integer* m) (integer* n) (integer* nb) (complex* a) (integer* lda) (real* d__) (real* e) (complex* tauq) (complex* taup) (complex* x) (integer* ldx) (complex* y) (integer* ldy)))
+
+(define-wrapper int clacgv_ ((integer* n) (complex* x) (integer* incx)))
+
+(define-wrapper int clacon_ ((integer* n) (complex* v) (complex* x) (real* est) (integer* kase)))
+
+(define-wrapper int clacp2_ ((char* uplo) (integer* m) (integer* n) (real* a) (integer* lda) (complex* b) (integer* ldb)))
+
+(define-wrapper int clacpy_ ((char* uplo) (integer* m) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb)))
+
+(define-wrapper int clacrm_ ((integer* m) (integer* n) (complex* a) (integer* lda) (real* b) (integer* ldb) (complex* c__) (integer* ldc) (real* rwork)))
+
+(define-wrapper int clacrt_ ((integer* n) (complex* cx) (integer* incx) (complex* cy) (integer* incy) (complex* c__) (complex* s)))
+
+(define-wrapper int claed0_ ((integer* qsiz) (integer* n) (real* d__) (real* e) (complex* q) (integer* ldq) (complex* qstore) (integer* ldqs) (real* rwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int claed7_ ((integer* n) (integer* cutpnt) (integer* qsiz) (integer* tlvls) (integer* curlvl) (integer* curpbm) (real* d__) (complex* q) (integer* ldq) (real* rho) (integer* indxq) (real* qstore) (integer* qptr) (integer* prmptr) (integer* perm) (integer* givptr) (integer* givcol) (real* givnum) (complex* work) (real* rwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int claed8_ ((integer* k) (integer* n) (integer* qsiz) (complex* q) (integer* ldq) (real* d__) (real* rho) (integer* cutpnt) (real* z__) (real* dlamda) (complex* q2) (integer* ldq2) (real* w) (integer* indxp) (integer* indx) (integer* indxq) (integer* perm) (integer* givptr) (integer* givcol) (real* givnum) (integer* info)))
+
+(define-wrapper int claein_ ((logical* rightv) (logical* noinit) (integer* n) (complex* h__) (integer* ldh) (complex* w) (complex* v) (complex* b) (integer* ldb) (real* rwork) (real* eps3) (real* smlnum) (integer* info)))
+
+(define-wrapper int claesy_ ((complex* a) (complex* b) (complex* c__) (complex* rt1) (complex* rt2) (complex* evscal) (complex* cs1) (complex* sn1)))
+
+(define-wrapper int claev2_ ((complex* a) (complex* b) (complex* c__) (real* rt1) (real* rt2) (real* cs1) (complex* sn1)))
+
+(define-wrapper int clags2_ ((logical* upper) (real* a1) (complex* a2) (real* a3) (real* b1) (complex* b2) (real* b3) (real* csu) (complex* snu) (real* csv) (complex* snv) (real* csq) (complex* snq)))
+
+(define-wrapper int clagtm_ ((char* trans) (integer* n) (integer* nrhs) (real* alpha) (complex* dl) (complex* d__) (complex* du) (complex* x) (integer* ldx) (real* beta) (complex* b) (integer* ldb)))
+
+(define-wrapper int clahef_ ((char* uplo) (integer* n) (integer* nb) (integer* kb) (complex* a) (integer* lda) (integer* ipiv) (complex* w) (integer* ldw) (integer* info)))
+
+(define-wrapper int clahqr_ ((logical* wantt) (logical* wantz) (integer* n) (integer* ilo) (integer* ihi) (complex* h__) (integer* ldh) (complex* w) (integer* iloz) (integer* ihiz) (complex* z__) (integer* ldz) (integer* info)))
+
+(define-wrapper int clahrd_ ((integer* n) (integer* k) (integer* nb) (complex* a) (integer* lda) (complex* tau) (complex* t) (integer* ldt) (complex* y) (integer* ldy)))
+
+(define-wrapper int claic1_ ((integer* job) (integer* j) (complex* x) (real* sest) (complex* w) (complex* gamma) (real* sestpr) (complex* s) (complex* c__)))
+
+(define-wrapper int clals0_ ((integer* icompq) (integer* nl) (integer* nr) (integer* sqre) (integer* nrhs) (complex* b) (integer* ldb) (complex* bx) (integer* ldbx) (integer* perm) (integer* givptr) (integer* givcol) (integer* ldgcol) (real* givnum) (integer* ldgnum) (real* poles) (real* difl) (real* difr) (real* z__) (integer* k) (real* c__) (real* s) (real* rwork) (integer* info)))
+
+(define-wrapper int clalsa_ ((integer* icompq) (integer* smlsiz) (integer* n) (integer* nrhs) (complex* b) (integer* ldb) (complex* bx) (integer* ldbx) (real* u) (integer* ldu) (real* vt) (integer* k) (real* difl) (real* difr) (real* z__) (real* poles) (integer* givptr) (integer* givcol) (integer* ldgcol) (integer* perm) (real* givnum) (real* c__) (real* s) (real* rwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int clapll_ ((integer* n) (complex* x) (integer* incx) (complex* y) (integer* incy) (real* ssmin)))
+
+(define-wrapper int clapmt_ ((logical* forwrd) (integer* m) (integer* n) (complex* x) (integer* ldx) (integer* k)))
+
+(define-wrapper int claqgb_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (complex* ab) (integer* ldab) (real* r__) (real* c__) (real* rowcnd) (real* colcnd) (real* amax) (char* equed)))
+
+(define-wrapper int claqge_ ((integer* m) (integer* n) (complex* a) (integer* lda) (real* r__) (real* c__) (real* rowcnd) (real* colcnd) (real* amax) (char* equed)))
+
+(define-wrapper int claqhb_ ((char* uplo) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (real* s) (real* scond) (real* amax) (char* equed)))
+
+(define-wrapper int claqhe_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (real* s) (real* scond) (real* amax) (char* equed)))
+
+(define-wrapper int claqhp_ ((char* uplo) (integer* n) (complex* ap) (real* s) (real* scond) (real* amax) (char* equed)))
+
+(define-wrapper int claqp2_ ((integer* m) (integer* n) (integer* offset) (complex* a) (integer* lda) (integer* jpvt) (complex* tau) (real* vn1) (real* vn2) (complex* work)))
+
+(define-wrapper int claqps_ ((integer* m) (integer* n) (integer* offset) (integer* nb) (integer* kb) (complex* a) (integer* lda) (integer* jpvt) (complex* tau) (real* vn1) (real* vn2) (complex* auxv) (complex* f) (integer* ldf)))
+
+(define-wrapper int claqsb_ ((char* uplo) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (real* s) (real* scond) (real* amax) (char* equed)))
+
+(define-wrapper int claqsp_ ((char* uplo) (integer* n) (complex* ap) (real* s) (real* scond) (real* amax) (char* equed)))
+
+(define-wrapper int claqsy_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (real* s) (real* scond) (real* amax) (char* equed)))
+
+(define-wrapper int clar1v_ ((integer* n) (integer* b1) (integer* bn) (real* sigma) (real* d__) (real* l) (real* ld) (real* lld) (real* gersch) (complex* z__) (real* ztz) (real* mingma) (integer* r__) (integer* isuppz) (real* work)))
+
+(define-wrapper int clar2v_ ((integer* n) (complex* x) (complex* y) (complex* z__) (integer* incx) (real* c__) (complex* s) (integer* incc)))
+
+(define-wrapper int clarcm_ ((integer* m) (integer* n) (real* a) (integer* lda) (complex* b) (integer* ldb) (complex* c__) (integer* ldc) (real* rwork)))
+
+(define-wrapper int clarf_ ((char* side) (integer* m) (integer* n) (complex* v) (integer* incv) (complex* tau) (complex* c__) (integer* ldc) (complex* work)))
+
+(define-wrapper int clarfb_ ((char* side) (char* trans) (char* direct) (char* storev) (integer* m) (integer* n) (integer* k) (complex* v) (integer* ldv) (complex* t) (integer* ldt) (complex* c__) (integer* ldc) (complex* work) (integer* ldwork)))
+
+(define-wrapper int clarfg_ ((integer* n) (complex* alpha) (complex* x) (integer* incx) (complex* tau)))
+
+(define-wrapper int clarft_ ((char* direct) (char* storev) (integer* n) (integer* k) (complex* v) (integer* ldv) (complex* tau) (complex* t) (integer* ldt)))
+
+(define-wrapper int clarfx_ ((char* side) (integer* m) (integer* n) (complex* v) (complex* tau) (complex* c__) (integer* ldc) (complex* work)))
+
+(define-wrapper int clargv_ ((integer* n) (complex* x) (integer* incx) (complex* y) (integer* incy) (real* c__) (integer* incc)))
+
+(define-wrapper int clarnv_ ((integer* idist) (integer* iseed) (integer* n) (complex* x)))
+
+(define-wrapper int clarrv_ ((integer* n) (real* d__) (real* l) (integer* isplit) (integer* m) (real* w) (integer* iblock) (real* gersch) (real* tol) (complex* z__) (integer* ldz) (integer* isuppz) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int clartg_ ((complex* f) (complex* g) (real* cs) (complex* sn) (complex* r__)))
+
+(define-wrapper int clartv_ ((integer* n) (complex* x) (integer* incx) (complex* y) (integer* incy) (real* c__) (complex* s) (integer* incc)))
+
+(define-wrapper int clarz_ ((char* side) (integer* m) (integer* n) (integer* l) (complex* v) (integer* incv) (complex* tau) (complex* c__) (integer* ldc) (complex* work)))
+
+(define-wrapper int clarzb_ ((char* side) (char* trans) (char* direct) (char* storev) (integer* m) (integer* n) (integer* k) (integer* l) (complex* v) (integer* ldv) (complex* t) (integer* ldt) (complex* c__) (integer* ldc) (complex* work) (integer* ldwork)))
+
+(define-wrapper int clarzt_ ((char* direct) (char* storev) (integer* n) (integer* k) (complex* v) (integer* ldv) (complex* tau) (complex* t) (integer* ldt)))
+
+(define-wrapper int clascl_ ((char* type__) (integer* kl) (integer* ku) (real* cfrom) (real* cto) (integer* m) (integer* n) (complex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int claset_ ((char* uplo) (integer* m) (integer* n) (complex* alpha) (complex* beta) (complex* a) (integer* lda)))
+
+(define-wrapper int clasr_ ((char* side) (char* pivot) (char* direct) (integer* m) (integer* n) (real* c__) (real* s) (complex* a) (integer* lda)))
+
+(define-wrapper int classq_ ((integer* n) (complex* x) (integer* incx) (real* scale) (real* sumsq)))
+
+(define-wrapper int claswp_ ((integer* n) (complex* a) (integer* lda) (integer* k1) (integer* k2) (integer* ipiv) (integer* incx)))
+
+(define-wrapper int clasyf_ ((char* uplo) (integer* n) (integer* nb) (integer* kb) (complex* a) (integer* lda) (integer* ipiv) (complex* w) (integer* ldw) (integer* info)))
+
+(define-wrapper int clatbs_ ((char* uplo) (char* trans) (char* diag) (char* normin) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (complex* x) (real* scale) (real* cnorm) (integer* info)))
+
+(define-wrapper int clatdf_ ((integer* ijob) (integer* n) (complex* z__) (integer* ldz) (complex* rhs) (real* rdsum) (real* rdscal) (integer* ipiv) (integer* jpiv)))
+
+(define-wrapper int clatps_ ((char* uplo) (char* trans) (char* diag) (char* normin) (integer* n) (complex* ap) (complex* x) (real* scale) (real* cnorm) (integer* info)))
+
+(define-wrapper int clatrd_ ((char* uplo) (integer* n) (integer* nb) (complex* a) (integer* lda) (real* e) (complex* tau) (complex* w) (integer* ldw)))
+
+(define-wrapper int clatrs_ ((char* uplo) (char* trans) (char* diag) (char* normin) (integer* n) (complex* a) (integer* lda) (complex* x) (real* scale) (real* cnorm) (integer* info)))
+
+(define-wrapper int clatrz_ ((integer* m) (integer* n) (integer* l) (complex* a) (integer* lda) (complex* tau) (complex* work)))
+
+(define-wrapper int clatzm_ ((char* side) (integer* m) (integer* n) (complex* v) (integer* incv) (complex* tau) (complex* c1) (complex* c2) (integer* ldc) (complex* work)))
+
+(define-wrapper int clauu2_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int clauum_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int cpbcon_ ((char* uplo) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (real* anorm) (real* rcond) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cpbequ_ ((char* uplo) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (real* s) (real* scond) (real* amax) (integer* info)))
+
+(define-wrapper int cpbrfs_ ((char* uplo) (integer* n) (integer* kd) (integer* nrhs) (complex* ab) (integer* ldab) (complex* afb) (integer* ldafb) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cpbstf_ ((char* uplo) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (integer* info)))
+
+(define-wrapper int cpbsv_ ((char* uplo) (integer* n) (integer* kd) (integer* nrhs) (complex* ab) (integer* ldab) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cpbsvx_ ((char* fact) (char* uplo) (integer* n) (integer* kd) (integer* nrhs) (complex* ab) (integer* ldab) (complex* afb) (integer* ldafb) (char* equed) (real* s) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cpbtf2_ ((char* uplo) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (integer* info)))
+
+(define-wrapper int cpbtrf_ ((char* uplo) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (integer* info)))
+
+(define-wrapper int cpbtrs_ ((char* uplo) (integer* n) (integer* kd) (integer* nrhs) (complex* ab) (integer* ldab) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cpocon_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (real* anorm) (real* rcond) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cpoequ_ ((integer* n) (complex* a) (integer* lda) (real* s) (real* scond) (real* amax) (integer* info)))
+
+(define-wrapper int cporfs_ ((char* uplo) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* af) (integer* ldaf) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cposv_ ((char* uplo) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cposvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* af) (integer* ldaf) (char* equed) (real* s) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cpotf2_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int cpotrf_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int cpotri_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int cpotrs_ ((char* uplo) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cppcon_ ((char* uplo) (integer* n) (complex* ap) (real* anorm) (real* rcond) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cppequ_ ((char* uplo) (integer* n) (complex* ap) (real* s) (real* scond) (real* amax) (integer* info)))
+
+(define-wrapper int cpprfs_ ((char* uplo) (integer* n) (integer* nrhs) (complex* ap) (complex* afp) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cppsv_ ((char* uplo) (integer* n) (integer* nrhs) (complex* ap) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cppsvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (complex* ap) (complex* afp) (char* equed) (real* s) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cpptrf_ ((char* uplo) (integer* n) (complex* ap) (integer* info)))
+
+(define-wrapper int cpptri_ ((char* uplo) (integer* n) (complex* ap) (integer* info)))
+
+(define-wrapper int cpptrs_ ((char* uplo) (integer* n) (integer* nrhs) (complex* ap) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cptcon_ ((integer* n) (real* d__) (complex* e) (real* anorm) (real* rcond) (real* rwork) (integer* info)))
+
+(define-wrapper int cptrfs_ ((char* uplo) (integer* n) (integer* nrhs) (real* d__) (complex* e) (real* df) (complex* ef) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cptsv_ ((integer* n) (integer* nrhs) (real* d__) (complex* e) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cptsvx_ ((char* fact) (integer* n) (integer* nrhs) (real* d__) (complex* e) (real* df) (complex* ef) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cpttrf_ ((integer* n) (real* d__) (complex* e) (integer* info)))
+
+(define-wrapper int cpttrs_ ((char* uplo) (integer* n) (integer* nrhs) (real* d__) (complex* e) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cptts2_ ((integer* iuplo) (integer* n) (integer* nrhs) (real* d__) (complex* e) (complex* b) (integer* ldb)))
+
+(define-wrapper int crot_ ((integer* n) (complex* cx) (integer* incx) (complex* cy) (integer* incy) (real* c__) (complex* s)))
+
+(define-wrapper int cspcon_ ((char* uplo) (integer* n) (complex* ap) (integer* ipiv) (real* anorm) (real* rcond) (complex* work) (integer* info)))
+
+(define-wrapper int cspmv_ ((char* uplo) (integer* n) (complex* alpha) (complex* ap) (complex* x) (integer* incx) (complex* beta) (complex* y) (integer* incy)))
+
+(define-wrapper int cspr_ ((char* uplo) (integer* n) (complex* alpha) (complex* x) (integer* incx) (complex* ap)))
+
+(define-wrapper int csprfs_ ((char* uplo) (integer* n) (integer* nrhs) (complex* ap) (complex* afp) (integer* ipiv) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int cspsv_ ((char* uplo) (integer* n) (integer* nrhs) (complex* ap) (integer* ipiv) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int cspsvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (complex* ap) (complex* afp) (integer* ipiv) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int csptrf_ ((char* uplo) (integer* n) (complex* ap) (integer* ipiv) (integer* info)))
+
+(define-wrapper int csptri_ ((char* uplo) (integer* n) (complex* ap) (integer* ipiv) (complex* work) (integer* info)))
+
+(define-wrapper int csptrs_ ((char* uplo) (integer* n) (integer* nrhs) (complex* ap) (integer* ipiv) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int csrot_ ((integer* n) (complex* cx) (integer* incx) (complex* cy) (integer* incy) (real* c__) (real* s)))
+
+(define-wrapper int csrscl_ ((integer* n) (real* sa) (complex* sx) (integer* incx)))
+
+(define-wrapper int cstedc_ ((char* compz) (integer* n) (real* d__) (real* e) (complex* z__) (integer* ldz) (complex* work) (integer* lwork) (real* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int cstein_ ((integer* n) (real* d__) (real* e) (integer* m) (real* w) (integer* iblock) (integer* isplit) (complex* z__) (integer* ldz) (real* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int csteqr_ ((char* compz) (integer* n) (real* d__) (real* e) (complex* z__) (integer* ldz) (real* work) (integer* info)))
+
+(define-wrapper int csycon_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* ipiv) (real* anorm) (real* rcond) (complex* work) (integer* info)))
+
+(define-wrapper int csymv_ ((char* uplo) (integer* n) (complex* alpha) (complex* a) (integer* lda) (complex* x) (integer* incx) (complex* beta) (complex* y) (integer* incy)))
+
+(define-wrapper int csyr_ ((char* uplo) (integer* n) (complex* alpha) (complex* x) (integer* incx) (complex* a) (integer* lda)))
+
+(define-wrapper int csyrfs_ ((char* uplo) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* af) (integer* ldaf) (integer* ipiv) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int csysv_ ((char* uplo) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (integer* ipiv) (complex* b) (integer* ldb) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int csysvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* af) (integer* ldaf) (integer* ipiv) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (integer* lwork) (real* rwork) (integer* info)))
+
+(define-wrapper int csytf2_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int csytrf_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* ipiv) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int csytri_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (integer* ipiv) (complex* work) (integer* info)))
+
+(define-wrapper int csytrs_ ((char* uplo) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (integer* ipiv) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int ctbcon_ ((char* norm) (char* uplo) (char* diag) (integer* n) (integer* kd) (complex* ab) (integer* ldab) (real* rcond) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int ctbrfs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* kd) (integer* nrhs) (complex* ab) (integer* ldab) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int ctbtrs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* kd) (integer* nrhs) (complex* ab) (integer* ldab) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int ctgevc_ ((char* side) (char* howmny) (logical* select) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* vl) (integer* ldvl) (complex* vr) (integer* ldvr) (integer* mm) (integer* m) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int ctgex2_ ((logical* wantq) (logical* wantz) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* q) (integer* ldq) (complex* z__) (integer* ldz) (integer* j1) (integer* info)))
+
+(define-wrapper int ctgexc_ ((logical* wantq) (logical* wantz) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* q) (integer* ldq) (complex* z__) (integer* ldz) (integer* ifst) (integer* ilst) (integer* info)))
+
+(define-wrapper int ctgsen_ ((integer* ijob) (logical* wantq) (logical* wantz) (logical* select) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* alpha) (complex* beta) (complex* q) (integer* ldq) (complex* z__) (integer* ldz) (integer* m) (real* pl) (real* pr) (real* dif) (complex* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int ctgsja_ ((char* jobu) (char* jobv) (char* jobq) (integer* m) (integer* p) (integer* n) (integer* k) (integer* l) (complex* a) (integer* lda) (complex* b) (integer* ldb) (real* tola) (real* tolb) (real* alpha) (real* beta) (complex* u) (integer* ldu) (complex* v) (integer* ldv) (complex* q) (integer* ldq) (complex* work) (integer* ncycle) (integer* info)))
+
+(define-wrapper int ctgsna_ ((char* job) (char* howmny) (logical* select) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* vl) (integer* ldvl) (complex* vr) (integer* ldvr) (real* s) (real* dif) (integer* mm) (integer* m) (complex* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int ctgsy2_ ((char* trans) (integer* ijob) (integer* m) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* c__) (integer* ldc) (complex* d__) (integer* ldd) (complex* e) (integer* lde) (complex* f) (integer* ldf) (real* scale) (real* rdsum) (real* rdscal) (integer* info)))
+
+(define-wrapper int ctgsyl_ ((char* trans) (integer* ijob) (integer* m) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* c__) (integer* ldc) (complex* d__) (integer* ldd) (complex* e) (integer* lde) (complex* f) (integer* ldf) (real* scale) (real* dif) (complex* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int ctpcon_ ((char* norm) (char* uplo) (char* diag) (integer* n) (complex* ap) (real* rcond) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int ctprfs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (complex* ap) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int ctptri_ ((char* uplo) (char* diag) (integer* n) (complex* ap) (integer* info)))
+
+(define-wrapper int ctptrs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (complex* ap) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int ctrcon_ ((char* norm) (char* uplo) (char* diag) (integer* n) (complex* a) (integer* lda) (real* rcond) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int ctrevc_ ((char* side) (char* howmny) (logical* select) (integer* n) (complex* t) (integer* ldt) (complex* vl) (integer* ldvl) (complex* vr) (integer* ldvr) (integer* mm) (integer* m) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int ctrexc_ ((char* compq) (integer* n) (complex* t) (integer* ldt) (complex* q) (integer* ldq) (integer* ifst) (integer* ilst) (integer* info)))
+
+(define-wrapper int ctrrfs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+
+(define-wrapper int ctrsen_ ((char* job) (char* compq) (logical* select) (integer* n) (complex* t) (integer* ldt) (complex* q) (integer* ldq) (complex* w) (integer* m) (real* s) (real* sep) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int ctrsna_ ((char* job) (char* howmny) (logical* select) (integer* n) (complex* t) (integer* ldt) (complex* vl) (integer* ldvl) (complex* vr) (integer* ldvr) (real* s) (real* sep) (integer* mm) (integer* m) (complex* work) (integer* ldwork) (real* rwork) (integer* info)))
+
+(define-wrapper int ctrsyl_ ((char* trana) (char* tranb) (integer* isgn) (integer* m) (integer* n) (complex* a) (integer* lda) (complex* b) (integer* ldb) (complex* c__) (integer* ldc) (real* scale) (integer* info)))
+
+(define-wrapper int ctrti2_ ((char* uplo) (char* diag) (integer* n) (complex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int ctrtri_ ((char* uplo) (char* diag) (integer* n) (complex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int ctrtrs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (complex* a) (integer* lda) (complex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int ctzrqf_ ((integer* m) (integer* n) (complex* a) (integer* lda) (complex* tau) (integer* info)))
+
+(define-wrapper int ctzrzf_ ((integer* m) (integer* n) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cung2l_ ((integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* info)))
+
+(define-wrapper int cung2r_ ((integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* info)))
+
+(define-wrapper int cungbr_ ((char* vect) (integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cunghr_ ((integer* n) (integer* ilo) (integer* ihi) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cungl2_ ((integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* info)))
+
+(define-wrapper int cunglq_ ((integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cungql_ ((integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cungqr_ ((integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cungr2_ ((integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* info)))
+
+(define-wrapper int cungrq_ ((integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cungtr_ ((char* uplo) (integer* n) (complex* a) (integer* lda) (complex* tau) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cunm2l_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* info)))
+
+(define-wrapper int cunm2r_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* info)))
+
+(define-wrapper int cunmbr_ ((char* vect) (char* side) (char* trans) (integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cunmhr_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* ilo) (integer* ihi) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cunml2_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* info)))
+
+(define-wrapper int cunmlq_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cunmql_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cunmqr_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cunmr2_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* info)))
+
+(define-wrapper int cunmr3_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (integer* l) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* info)))
+
+(define-wrapper int cunmrq_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cunmrz_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (integer* l) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cunmtr_ ((char* side) (char* uplo) (char* trans) (integer* m) (integer* n) (complex* a) (integer* lda) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int cupgtr_ ((char* uplo) (integer* n) (complex* ap) (complex* tau) (complex* q) (integer* ldq) (complex* work) (integer* info)))
+
+(define-wrapper int cupmtr_ ((char* side) (char* uplo) (char* trans) (integer* m) (integer* n) (complex* ap) (complex* tau) (complex* c__) (integer* ldc) (complex* work) (integer* info)))
+
+(define-wrapper int dbdsdc_ ((char* uplo) (char* compq) (integer* n) (doublereal* d__) (doublereal* e) (doublereal* u) (integer* ldu) (doublereal* vt) (integer* ldvt) (doublereal* q) (integer* iq) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dbdsqr_ ((char* uplo) (integer* n) (integer* ncvt) (integer* nru) (integer* ncc) (doublereal* d__) (doublereal* e) (doublereal* vt) (integer* ldvt) (doublereal* u) (integer* ldu) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* info)))
+
+(define-wrapper int ddisna_ ((char* job) (integer* m) (integer* n) (doublereal* d__) (doublereal* sep) (integer* info)))
+
+(define-wrapper int dgbbrd_ ((char* vect) (integer* m) (integer* n) (integer* ncc) (integer* kl) (integer* ku) (doublereal* ab) (integer* ldab) (doublereal* d__) (doublereal* e) (doublereal* q) (integer* ldq) (doublereal* pt) (integer* ldpt) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* info)))
+
+(define-wrapper int dgbcon_ ((char* norm) (integer* n) (integer* kl) (integer* ku) (doublereal* ab) (integer* ldab) (integer* ipiv) (doublereal* anorm) (doublereal* rcond) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dgbequ_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (doublereal* ab) (integer* ldab) (doublereal* r__) (doublereal* c__) (doublereal* rowcnd) (doublereal* colcnd) (doublereal* amax) (integer* info)))
+
+(define-wrapper int dgbrfs_ ((char* trans) (integer* n) (integer* kl) (integer* ku) (integer* nrhs) (doublereal* ab) (integer* ldab) (doublereal* afb) (integer* ldafb) (integer* ipiv) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dgbsv_ ((integer* n) (integer* kl) (integer* ku) (integer* nrhs) (doublereal* ab) (integer* ldab) (integer* ipiv) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dgbsvx_ ((char* fact) (char* trans) (integer* n) (integer* kl) (integer* ku) (integer* nrhs) (doublereal* ab) (integer* ldab) (doublereal* afb) (integer* ldafb) (integer* ipiv) (char* equed) (doublereal* r__) (doublereal* c__) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dgbtf2_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (doublereal* ab) (integer* ldab) (integer* ipiv) (integer* info)))
+
+(define-wrapper int dgbtrf_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (doublereal* ab) (integer* ldab) (integer* ipiv) (integer* info)))
+
+(define-wrapper int dgbtrs_ ((char* trans) (integer* n) (integer* kl) (integer* ku) (integer* nrhs) (doublereal* ab) (integer* ldab) (integer* ipiv) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dgebak_ ((char* job) (char* side) (integer* n) (integer* ilo) (integer* ihi) (doublereal* scale) (integer* m) (doublereal* v) (integer* ldv) (integer* info)))
+
+(define-wrapper int dgebal_ ((char* job) (integer* n) (doublereal* a) (integer* lda) (integer* ilo) (integer* ihi) (doublereal* scale) (integer* info)))
+
+(define-wrapper int dgebd2_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* d__) (doublereal* e) (doublereal* tauq) (doublereal* taup) (doublereal* work) (integer* info)))
+
+(define-wrapper int dgebrd_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* d__) (doublereal* e) (doublereal* tauq) (doublereal* taup) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgecon_ ((char* norm) (integer* n) (doublereal* a) (integer* lda) (doublereal* anorm) (doublereal* rcond) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dgeequ_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* r__) (doublereal* c__) (doublereal* rowcnd) (doublereal* colcnd) (doublereal* amax) (integer* info)))
+
+(define-wrapper int dgees_ ((char* jobvs) (char* sort) (L_fp select) (integer* n) (doublereal* a) (integer* lda) (integer* sdim) (doublereal* wr) (doublereal* wi) (doublereal* vs) (integer* ldvs) (doublereal* work) (integer* lwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int dgeesx_ ((char* jobvs) (char* sort) (L_fp select) (char* sense) (integer* n) (doublereal* a) (integer* lda) (integer* sdim) (doublereal* wr) (doublereal* wi) (doublereal* vs) (integer* ldvs) (doublereal* rconde) (doublereal* rcondv) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int dgeev_ ((char* jobvl) (char* jobvr) (integer* n) (doublereal* a) (integer* lda) (doublereal* wr) (doublereal* wi) (doublereal* vl) (integer* ldvl) (doublereal* vr) (integer* ldvr) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgeevx_ ((char* balanc) (char* jobvl) (char* jobvr) (char* sense) (integer* n) (doublereal* a) (integer* lda) (doublereal* wr) (doublereal* wi) (doublereal* vl) (integer* ldvl) (doublereal* vr) (integer* ldvr) (integer* ilo) (integer* ihi) (doublereal* scale) (doublereal* abnrm) (doublereal* rconde) (doublereal* rcondv) (doublereal* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int dgegs_ ((char* jobvsl) (char* jobvsr) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* alphar) (doublereal* alphai) (doublereal* beta) (doublereal* vsl) (integer* ldvsl) (doublereal* vsr) (integer* ldvsr) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgegv_ ((char* jobvl) (char* jobvr) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* alphar) (doublereal* alphai) (doublereal* beta) (doublereal* vl) (integer* ldvl) (doublereal* vr) (integer* ldvr) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgehd2_ ((integer* n) (integer* ilo) (integer* ihi) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* info)))
+
+(define-wrapper int dgehrd_ ((integer* n) (integer* ilo) (integer* ihi) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgelq2_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* info)))
+
+(define-wrapper int dgelqf_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgels_ ((char* trans) (integer* m) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgelsd_ ((integer* m) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* s) (doublereal* rcond) (integer* rank) (doublereal* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int dgelss_ ((integer* m) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* s) (doublereal* rcond) (integer* rank) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgelsx_ ((integer* m) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (integer* jpvt) (doublereal* rcond) (integer* rank) (doublereal* work) (integer* info)))
+
+(define-wrapper int dgelsy_ ((integer* m) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (integer* jpvt) (doublereal* rcond) (integer* rank) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgeql2_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* info)))
+
+(define-wrapper int dgeqlf_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgeqp3_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (integer* jpvt) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgeqpf_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (integer* jpvt) (doublereal* tau) (doublereal* work) (integer* info)))
+
+(define-wrapper int dgeqr2_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* info)))
+
+(define-wrapper int dgeqrf_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgerfs_ ((char* trans) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* af) (integer* ldaf) (integer* ipiv) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dgerq2_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* info)))
+
+(define-wrapper int dgerqf_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgesc2_ ((integer* n) (doublereal* a) (integer* lda) (doublereal* rhs) (integer* ipiv) (integer* jpiv) (doublereal* scale)))
+
+(define-wrapper int dgesdd_ ((char* jobz) (integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* s) (doublereal* u) (integer* ldu) (doublereal* vt) (integer* ldvt) (doublereal* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int dgesv_ ((integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (integer* ipiv) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dgesvd_ ((char* jobu) (char* jobvt) (integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* s) (doublereal* u) (integer* ldu) (doublereal* vt) (integer* ldvt) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgesvx_ ((char* fact) (char* trans) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* af) (integer* ldaf) (integer* ipiv) (char* equed) (doublereal* r__) (doublereal* c__) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dgetc2_ ((integer* n) (doublereal* a) (integer* lda) (integer* ipiv) (integer* jpiv) (integer* info)))
+
+(define-wrapper int dgetf2_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int dgetrf_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int dgetri_ ((integer* n) (doublereal* a) (integer* lda) (integer* ipiv) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgetrs_ ((char* trans) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (integer* ipiv) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dggbak_ ((char* job) (char* side) (integer* n) (integer* ilo) (integer* ihi) (doublereal* lscale) (doublereal* rscale) (integer* m) (doublereal* v) (integer* ldv) (integer* info)))
+
+(define-wrapper int dggbal_ ((char* job) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (integer* ilo) (integer* ihi) (doublereal* lscale) (doublereal* rscale) (doublereal* work) (integer* info)))
+
+(define-wrapper int dgges_ ((char* jobvsl) (char* jobvsr) (char* sort) (L_fp delctg) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (integer* sdim) (doublereal* alphar) (doublereal* alphai) (doublereal* beta) (doublereal* vsl) (integer* ldvsl) (doublereal* vsr) (integer* ldvsr) (doublereal* work) (integer* lwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int dggesx_ ((char* jobvsl) (char* jobvsr) (char* sort) (L_fp delctg) (char* sense) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (integer* sdim) (doublereal* alphar) (doublereal* alphai) (doublereal* beta) (doublereal* vsl) (integer* ldvsl) (doublereal* vsr) (integer* ldvsr) (doublereal* rconde) (doublereal* rcondv) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int dggev_ ((char* jobvl) (char* jobvr) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* alphar) (doublereal* alphai) (doublereal* beta) (doublereal* vl) (integer* ldvl) (doublereal* vr) (integer* ldvr) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dggevx_ ((char* balanc) (char* jobvl) (char* jobvr) (char* sense) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* alphar) (doublereal* alphai) (doublereal* beta) (doublereal* vl) (integer* ldvl) (doublereal* vr) (integer* ldvr) (integer* ilo) (integer* ihi) (doublereal* lscale) (doublereal* rscale) (doublereal* abnrm) (doublereal* bbnrm) (doublereal* rconde) (doublereal* rcondv) (doublereal* work) (integer* lwork) (integer* iwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int dggglm_ ((integer* n) (integer* m) (integer* p) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* d__) (doublereal* x) (doublereal* y) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dgghrd_ ((char* compq) (char* compz) (integer* n) (integer* ilo) (integer* ihi) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* q) (integer* ldq) (doublereal* z__) (integer* ldz) (integer* info)))
+
+(define-wrapper int dgglse_ ((integer* m) (integer* n) (integer* p) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* c__) (doublereal* d__) (doublereal* x) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dggqrf_ ((integer* n) (integer* m) (integer* p) (doublereal* a) (integer* lda) (doublereal* taua) (doublereal* b) (integer* ldb) (doublereal* taub) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dggrqf_ ((integer* m) (integer* p) (integer* n) (doublereal* a) (integer* lda) (doublereal* taua) (doublereal* b) (integer* ldb) (doublereal* taub) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dggsvd_ ((char* jobu) (char* jobv) (char* jobq) (integer* m) (integer* n) (integer* p) (integer* k) (integer* l) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* alpha) (doublereal* beta) (doublereal* u) (integer* ldu) (doublereal* v) (integer* ldv) (doublereal* q) (integer* ldq) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dggsvp_ ((char* jobu) (char* jobv) (char* jobq) (integer* m) (integer* p) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* tola) (doublereal* tolb) (integer* k) (integer* l) (doublereal* u) (integer* ldu) (doublereal* v) (integer* ldv) (doublereal* q) (integer* ldq) (integer* iwork) (doublereal* tau) (doublereal* work) (integer* info)))
+
+(define-wrapper int dgtcon_ ((char* norm) (integer* n) (doublereal* dl) (doublereal* d__) (doublereal* du) (doublereal* du2) (integer* ipiv) (doublereal* anorm) (doublereal* rcond) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dgtrfs_ ((char* trans) (integer* n) (integer* nrhs) (doublereal* dl) (doublereal* d__) (doublereal* du) (doublereal* dlf) (doublereal* df) (doublereal* duf) (doublereal* du2) (integer* ipiv) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dgtsv_ ((integer* n) (integer* nrhs) (doublereal* dl) (doublereal* d__) (doublereal* du) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dgtsvx_ ((char* fact) (char* trans) (integer* n) (integer* nrhs) (doublereal* dl) (doublereal* d__) (doublereal* du) (doublereal* dlf) (doublereal* df) (doublereal* duf) (doublereal* du2) (integer* ipiv) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dgttrf_ ((integer* n) (doublereal* dl) (doublereal* d__) (doublereal* du) (doublereal* du2) (integer* ipiv) (integer* info)))
+
+(define-wrapper int dgttrs_ ((char* trans) (integer* n) (integer* nrhs) (doublereal* dl) (doublereal* d__) (doublereal* du) (doublereal* du2) (integer* ipiv) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dgtts2_ ((integer* itrans) (integer* n) (integer* nrhs) (doublereal* dl) (doublereal* d__) (doublereal* du) (doublereal* du2) (integer* ipiv) (doublereal* b) (integer* ldb)))
+
+(define-wrapper int dhgeqz_ ((char* job) (char* compq) (char* compz) (integer* n) (integer* ilo) (integer* ihi) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* alphar) (doublereal* alphai) (doublereal* beta) (doublereal* q) (integer* ldq) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dhsein_ ((char* side) (char* eigsrc) (char* initv) (logical* select) (integer* n) (doublereal* h__) (integer* ldh) (doublereal* wr) (doublereal* wi) (doublereal* vl) (integer* ldvl) (doublereal* vr) (integer* ldvr) (integer* mm) (integer* m) (doublereal* work) (integer* ifaill) (integer* ifailr) (integer* info)))
+
+(define-wrapper int dhseqr_ ((char* job) (char* compz) (integer* n) (integer* ilo) (integer* ihi) (doublereal* h__) (integer* ldh) (doublereal* wr) (doublereal* wi) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dlabad_ ((doublereal* small) (doublereal* large)))
+
+(define-wrapper int dlabrd_ ((integer* m) (integer* n) (integer* nb) (doublereal* a) (integer* lda) (doublereal* d__) (doublereal* e) (doublereal* tauq) (doublereal* taup) (doublereal* x) (integer* ldx) (doublereal* y) (integer* ldy)))
+
+(define-wrapper int dlacon_ ((integer* n) (doublereal* v) (doublereal* x) (integer* isgn) (doublereal* est) (integer* kase)))
+
+(define-wrapper int dlacpy_ ((char* uplo) (integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb)))
+
+(define-wrapper int dladiv_ ((doublereal* a) (doublereal* b) (doublereal* c__) (doublereal* d__) (doublereal* p) (doublereal* q)))
+
+(define-wrapper int dlae2_ ((doublereal* a) (doublereal* b) (doublereal* c__) (doublereal* rt1) (doublereal* rt2)))
+
+(define-wrapper int dlaebz_ ((integer* ijob) (integer* nitmax) (integer* n) (integer* mmax) (integer* minp) (integer* nbmin) (doublereal* abstol) (doublereal* reltol) (doublereal* pivmin) (doublereal* d__) (doublereal* e) (doublereal* e2) (integer* nval) (doublereal* ab) (doublereal* c__) (integer* mout) (integer* nab) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dlaed0_ ((integer* icompq) (integer* qsiz) (integer* n) (doublereal* d__) (doublereal* e) (doublereal* q) (integer* ldq) (doublereal* qstore) (integer* ldqs) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dlaed1_ ((integer* n) (doublereal* d__) (doublereal* q) (integer* ldq) (integer* indxq) (doublereal* rho) (integer* cutpnt) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dlaed2_ ((integer* k) (integer* n) (integer* n1) (doublereal* d__) (doublereal* q) (integer* ldq) (integer* indxq) (doublereal* rho) (doublereal* z__) (doublereal* dlamda) (doublereal* w) (doublereal* q2) (integer* indx) (integer* indxc) (integer* indxp) (integer* coltyp) (integer* info)))
+
+(define-wrapper int dlaed3_ ((integer* k) (integer* n) (integer* n1) (doublereal* d__) (doublereal* q) (integer* ldq) (doublereal* rho) (doublereal* dlamda) (doublereal* q2) (integer* indx) (integer* ctot) (doublereal* w) (doublereal* s) (integer* info)))
+
+(define-wrapper int dlaed4_ ((integer* n) (integer* i__) (doublereal* d__) (doublereal* z__) (doublereal* delta) (doublereal* rho) (doublereal* dlam) (integer* info)))
+
+(define-wrapper int dlaed5_ ((integer* i__) (doublereal* d__) (doublereal* z__) (doublereal* delta) (doublereal* rho) (doublereal* dlam)))
+
+(define-wrapper int dlaed6_ ((integer* kniter) (logical* orgati) (doublereal* rho) (doublereal* d__) (doublereal* z__) (doublereal* finit) (doublereal* tau) (integer* info)))
+
+(define-wrapper int dlaed7_ ((integer* icompq) (integer* n) (integer* qsiz) (integer* tlvls) (integer* curlvl) (integer* curpbm) (doublereal* d__) (doublereal* q) (integer* ldq) (integer* indxq) (doublereal* rho) (integer* cutpnt) (doublereal* qstore) (integer* qptr) (integer* prmptr) (integer* perm) (integer* givptr) (integer* givcol) (doublereal* givnum) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dlaed8_ ((integer* icompq) (integer* k) (integer* n) (integer* qsiz) (doublereal* d__) (doublereal* q) (integer* ldq) (integer* indxq) (doublereal* rho) (integer* cutpnt) (doublereal* z__) (doublereal* dlamda) (doublereal* q2) (integer* ldq2) (doublereal* w) (integer* perm) (integer* givptr) (integer* givcol) (doublereal* givnum) (integer* indxp) (integer* indx) (integer* info)))
+
+(define-wrapper int dlaed9_ ((integer* k) (integer* kstart) (integer* kstop) (integer* n) (doublereal* d__) (doublereal* q) (integer* ldq) (doublereal* rho) (doublereal* dlamda) (doublereal* w) (doublereal* s) (integer* lds) (integer* info)))
+
+(define-wrapper int dlaeda_ ((integer* n) (integer* tlvls) (integer* curlvl) (integer* curpbm) (integer* prmptr) (integer* perm) (integer* givptr) (integer* givcol) (doublereal* givnum) (doublereal* q) (integer* qptr) (doublereal* z__) (doublereal* ztemp) (integer* info)))
+
+(define-wrapper int dlaein_ ((logical* rightv) (logical* noinit) (integer* n) (doublereal* h__) (integer* ldh) (doublereal* wr) (doublereal* wi) (doublereal* vr) (doublereal* vi) (doublereal* b) (integer* ldb) (doublereal* work) (doublereal* eps3) (doublereal* smlnum) (doublereal* bignum) (integer* info)))
+
+(define-wrapper int dlaev2_ ((doublereal* a) (doublereal* b) (doublereal* c__) (doublereal* rt1) (doublereal* rt2) (doublereal* cs1) (doublereal* sn1)))
+
+(define-wrapper int dlaexc_ ((logical* wantq) (integer* n) (doublereal* t) (integer* ldt) (doublereal* q) (integer* ldq) (integer* j1) (integer* n1) (integer* n2) (doublereal* work) (integer* info)))
+
+(define-wrapper int dlag2_ ((doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* safmin) (doublereal* scale1) (doublereal* scale2) (doublereal* wr1) (doublereal* wr2) (doublereal* wi)))
+
+(define-wrapper int dlags2_ ((logical* upper) (doublereal* a1) (doublereal* a2) (doublereal* a3) (doublereal* b1) (doublereal* b2) (doublereal* b3) (doublereal* csu) (doublereal* snu) (doublereal* csv) (doublereal* snv) (doublereal* csq) (doublereal* snq)))
+
+(define-wrapper int dlagtf_ ((integer* n) (doublereal* a) (doublereal* lambda) (doublereal* b) (doublereal* c__) (doublereal* tol) (doublereal* d__) (integer* in) (integer* info)))
+
+(define-wrapper int dlagtm_ ((char* trans) (integer* n) (integer* nrhs) (doublereal* alpha) (doublereal* dl) (doublereal* d__) (doublereal* du) (doublereal* x) (integer* ldx) (doublereal* beta) (doublereal* b) (integer* ldb)))
+
+(define-wrapper int dlagts_ ((integer* job) (integer* n) (doublereal* a) (doublereal* b) (doublereal* c__) (doublereal* d__) (integer* in) (doublereal* y) (doublereal* tol) (integer* info)))
+
+(define-wrapper int dlagv2_ ((doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* alphar) (doublereal* alphai) (doublereal* beta) (doublereal* csl) (doublereal* snl) (doublereal* csr) (doublereal* snr)))
+
+(define-wrapper int dlahqr_ ((logical* wantt) (logical* wantz) (integer* n) (integer* ilo) (integer* ihi) (doublereal* h__) (integer* ldh) (doublereal* wr) (doublereal* wi) (integer* iloz) (integer* ihiz) (doublereal* z__) (integer* ldz) (integer* info)))
+
+(define-wrapper int dlahrd_ ((integer* n) (integer* k) (integer* nb) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* t) (integer* ldt) (doublereal* y) (integer* ldy)))
+
+(define-wrapper int dlaic1_ ((integer* job) (integer* j) (doublereal* x) (doublereal* sest) (doublereal* w) (doublereal* gamma) (doublereal* sestpr) (doublereal* s) (doublereal* c__)))
+
+(define-wrapper int dlaln2_ ((logical* ltrans) (integer* na) (integer* nw) (doublereal* smin) (doublereal* ca) (doublereal* a) (integer* lda) (doublereal* d1) (doublereal* d2) (doublereal* b) (integer* ldb) (doublereal* wr) (doublereal* wi) (doublereal* x) (integer* ldx) (doublereal* scale) (doublereal* xnorm) (integer* info)))
+
+(define-wrapper int dlals0_ ((integer* icompq) (integer* nl) (integer* nr) (integer* sqre) (integer* nrhs) (doublereal* b) (integer* ldb) (doublereal* bx) (integer* ldbx) (integer* perm) (integer* givptr) (integer* givcol) (integer* ldgcol) (doublereal* givnum) (integer* ldgnum) (doublereal* poles) (doublereal* difl) (doublereal* difr) (doublereal* z__) (integer* k) (doublereal* c__) (doublereal* s) (doublereal* work) (integer* info)))
+
+(define-wrapper int dlalsa_ ((integer* icompq) (integer* smlsiz) (integer* n) (integer* nrhs) (doublereal* b) (integer* ldb) (doublereal* bx) (integer* ldbx) (doublereal* u) (integer* ldu) (doublereal* vt) (integer* k) (doublereal* difl) (doublereal* difr) (doublereal* z__) (doublereal* poles) (integer* givptr) (integer* givcol) (integer* ldgcol) (integer* perm) (doublereal* givnum) (doublereal* c__) (doublereal* s) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dlalsd_ ((char* uplo) (integer* smlsiz) (integer* n) (integer* nrhs) (doublereal* d__) (doublereal* e) (doublereal* b) (integer* ldb) (doublereal* rcond) (integer* rank) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dlamc1_ ((integer* beta) (integer* t) (logical* rnd) (logical* ieee1)))
+
+(define-wrapper int dlamc2_ ((integer* beta) (integer* t) (logical* rnd) (doublereal* eps) (integer* emin) (doublereal* rmin) (integer* emax) (doublereal* rmax)))
+
+(define-wrapper int dlamc4_ ((integer* emin) (doublereal* start) (integer* base)))
+
+(define-wrapper int dlamc5_ ((integer* beta) (integer* p) (integer* emin) (logical* ieee) (integer* emax) (doublereal* rmax)))
+
+(define-wrapper int dlamrg_ ((integer* n1) (integer* n2) (doublereal* a) (integer* dtrd1) (integer* dtrd2) (integer* index)))
+
+(define-wrapper int dlanv2_ ((doublereal* a) (doublereal* b) (doublereal* c__) (doublereal* d__) (doublereal* rt1r) (doublereal* rt1i) (doublereal* rt2r) (doublereal* rt2i) (doublereal* cs) (doublereal* sn)))
+
+(define-wrapper int dlapll_ ((integer* n) (doublereal* x) (integer* incx) (doublereal* y) (integer* incy) (doublereal* ssmin)))
+
+(define-wrapper int dlapmt_ ((logical* forwrd) (integer* m) (integer* n) (doublereal* x) (integer* ldx) (integer* k)))
+
+(define-wrapper int dlaqgb_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (doublereal* ab) (integer* ldab) (doublereal* r__) (doublereal* c__) (doublereal* rowcnd) (doublereal* colcnd) (doublereal* amax) (char* equed)))
+
+(define-wrapper int dlaqge_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* r__) (doublereal* c__) (doublereal* rowcnd) (doublereal* colcnd) (doublereal* amax) (char* equed)))
+
+(define-wrapper int dlaqp2_ ((integer* m) (integer* n) (integer* offset) (doublereal* a) (integer* lda) (integer* jpvt) (doublereal* tau) (doublereal* vn1) (doublereal* vn2) (doublereal* work)))
+
+(define-wrapper int dlaqps_ ((integer* m) (integer* n) (integer* offset) (integer* nb) (integer* kb) (doublereal* a) (integer* lda) (integer* jpvt) (doublereal* tau) (doublereal* vn1) (doublereal* vn2) (doublereal* auxv) (doublereal* f) (integer* ldf)))
+
+(define-wrapper int dlaqsb_ ((char* uplo) (integer* n) (integer* kd) (doublereal* ab) (integer* ldab) (doublereal* s) (doublereal* scond) (doublereal* amax) (char* equed)))
+
+(define-wrapper int dlaqsp_ ((char* uplo) (integer* n) (doublereal* ap) (doublereal* s) (doublereal* scond) (doublereal* amax) (char* equed)))
+
+(define-wrapper int dlaqsy_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* s) (doublereal* scond) (doublereal* amax) (char* equed)))
+
+(define-wrapper int dlaqtr_ ((logical* ltran) (logical* lreal) (integer* n) (doublereal* t) (integer* ldt) (doublereal* b) (doublereal* w) (doublereal* scale) (doublereal* x) (doublereal* work) (integer* info)))
+
+(define-wrapper int dlar1v_ ((integer* n) (integer* b1) (integer* bn) (doublereal* sigma) (doublereal* d__) (doublereal* l) (doublereal* ld) (doublereal* lld) (doublereal* gersch) (doublereal* z__) (doublereal* ztz) (doublereal* mingma) (integer* r__) (integer* isuppz) (doublereal* work)))
+
+(define-wrapper int dlar2v_ ((integer* n) (doublereal* x) (doublereal* y) (doublereal* z__) (integer* incx) (doublereal* c__) (doublereal* s) (integer* incc)))
+
+(define-wrapper int dlarf_ ((char* side) (integer* m) (integer* n) (doublereal* v) (integer* incv) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work)))
+
+(define-wrapper int dlarfb_ ((char* side) (char* trans) (char* direct) (char* storev) (integer* m) (integer* n) (integer* k) (doublereal* v) (integer* ldv) (doublereal* t) (integer* ldt) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* ldwork)))
+
+(define-wrapper int dlarfg_ ((integer* n) (doublereal* alpha) (doublereal* x) (integer* incx) (doublereal* tau)))
+
+(define-wrapper int dlarft_ ((char* direct) (char* storev) (integer* n) (integer* k) (doublereal* v) (integer* ldv) (doublereal* tau) (doublereal* t) (integer* ldt)))
+
+(define-wrapper int dlarfx_ ((char* side) (integer* m) (integer* n) (doublereal* v) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work)))
+
+(define-wrapper int dlargv_ ((integer* n) (doublereal* x) (integer* incx) (doublereal* y) (integer* incy) (doublereal* c__) (integer* incc)))
+
+(define-wrapper int dlarnv_ ((integer* idist) (integer* iseed) (integer* n) (doublereal* x)))
+
+(define-wrapper int dlarrb_ ((integer* n) (doublereal* d__) (doublereal* l) (doublereal* ld) (doublereal* lld) (integer* ifirst) (integer* ilast) (doublereal* sigma) (doublereal* reltol) (doublereal* w) (doublereal* wgap) (doublereal* werr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dlarre_ ((integer* n) (doublereal* d__) (doublereal* e) (doublereal* tol) (integer* nsplit) (integer* isplit) (integer* m) (doublereal* w) (doublereal* woff) (doublereal* gersch) (doublereal* work) (integer* info)))
+
+(define-wrapper int dlarrf_ ((integer* n) (doublereal* d__) (doublereal* l) (doublereal* ld) (doublereal* lld) (integer* ifirst) (integer* ilast) (doublereal* w) (doublereal* dplus) (doublereal* lplus) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dlarrv_ ((integer* n) (doublereal* d__) (doublereal* l) (integer* isplit) (integer* m) (doublereal* w) (integer* iblock) (doublereal* gersch) (doublereal* tol) (doublereal* z__) (integer* ldz) (integer* isuppz) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dlartg_ ((doublereal* f) (doublereal* g) (doublereal* cs) (doublereal* sn) (doublereal* r__)))
+
+(define-wrapper int dlartv_ ((integer* n) (doublereal* x) (integer* incx) (doublereal* y) (integer* incy) (doublereal* c__) (doublereal* s) (integer* incc)))
+
+(define-wrapper int dlaruv_ ((integer* iseed) (integer* n) (doublereal* x)))
+
+(define-wrapper int dlarz_ ((char* side) (integer* m) (integer* n) (integer* l) (doublereal* v) (integer* incv) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work)))
+
+(define-wrapper int dlarzb_ ((char* side) (char* trans) (char* direct) (char* storev) (integer* m) (integer* n) (integer* k) (integer* l) (doublereal* v) (integer* ldv) (doublereal* t) (integer* ldt) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* ldwork)))
+
+(define-wrapper int dlarzt_ ((char* direct) (char* storev) (integer* n) (integer* k) (doublereal* v) (integer* ldv) (doublereal* tau) (doublereal* t) (integer* ldt)))
+
+(define-wrapper int dlas2_ ((doublereal* f) (doublereal* g) (doublereal* h__) (doublereal* ssmin) (doublereal* ssmax)))
+
+(define-wrapper int dlascl_ ((char* type__) (integer* kl) (integer* ku) (doublereal* cfrom) (doublereal* cto) (integer* m) (integer* n) (doublereal* a) (integer* lda) (integer* info)))
+
+(define-wrapper int dlasd0_ ((integer* n) (integer* sqre) (doublereal* d__) (doublereal* e) (doublereal* u) (integer* ldu) (doublereal* vt) (integer* ldvt) (integer* smlsiz) (integer* iwork) (doublereal* work) (integer* info)))
+
+(define-wrapper int dlasd1_ ((integer* nl) (integer* nr) (integer* sqre) (doublereal* d__) (doublereal* alpha) (doublereal* beta) (doublereal* u) (integer* ldu) (doublereal* vt) (integer* ldvt) (integer* idxq) (integer* iwork) (doublereal* work) (integer* info)))
+
+(define-wrapper int dlasd2_ ((integer* nl) (integer* nr) (integer* sqre) (integer* k) (doublereal* d__) (doublereal* z__) (doublereal* alpha) (doublereal* beta) (doublereal* u) (integer* ldu) (doublereal* vt) (integer* ldvt) (doublereal* dsigma) (doublereal* u2) (integer* ldu2) (doublereal* vt2) (integer* ldvt2) (integer* idxp) (integer* idx) (integer* idxc) (integer* idxq) (integer* coltyp) (integer* info)))
+
+(define-wrapper int dlasd3_ ((integer* nl) (integer* nr) (integer* sqre) (integer* k) (doublereal* d__) (doublereal* q) (integer* ldq) (doublereal* dsigma) (doublereal* u) (integer* ldu) (doublereal* u2) (integer* ldu2) (doublereal* vt) (integer* ldvt) (doublereal* vt2) (integer* ldvt2) (integer* idxc) (integer* ctot) (doublereal* z__) (integer* info)))
+
+(define-wrapper int dlasd4_ ((integer* n) (integer* i__) (doublereal* d__) (doublereal* z__) (doublereal* delta) (doublereal* rho) (doublereal* sigma) (doublereal* work) (integer* info)))
+
+(define-wrapper int dlasd5_ ((integer* i__) (doublereal* d__) (doublereal* z__) (doublereal* delta) (doublereal* rho) (doublereal* dsigma) (doublereal* work)))
+
+(define-wrapper int dlasd6_ ((integer* icompq) (integer* nl) (integer* nr) (integer* sqre) (doublereal* d__) (doublereal* vf) (doublereal* vl) (doublereal* alpha) (doublereal* beta) (integer* idxq) (integer* perm) (integer* givptr) (integer* givcol) (integer* ldgcol) (doublereal* givnum) (integer* ldgnum) (doublereal* poles) (doublereal* difl) (doublereal* difr) (doublereal* z__) (integer* k) (doublereal* c__) (doublereal* s) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dlasd7_ ((integer* icompq) (integer* nl) (integer* nr) (integer* sqre) (integer* k) (doublereal* d__) (doublereal* z__) (doublereal* zw) (doublereal* vf) (doublereal* vfw) (doublereal* vl) (doublereal* vlw) (doublereal* alpha) (doublereal* beta) (doublereal* dsigma) (integer* idx) (integer* idxp) (integer* idxq) (integer* perm) (integer* givptr) (integer* givcol) (integer* ldgcol) (doublereal* givnum) (integer* ldgnum) (doublereal* c__) (doublereal* s) (integer* info)))
+
+(define-wrapper int dlasd8_ ((integer* icompq) (integer* k) (doublereal* d__) (doublereal* z__) (doublereal* vf) (doublereal* vl) (doublereal* difl) (doublereal* difr) (integer* lddifr) (doublereal* dsigma) (doublereal* work) (integer* info)))
+
+(define-wrapper int dlasd9_ ((integer* icompq) (integer* ldu) (integer* k) (doublereal* d__) (doublereal* z__) (doublereal* vf) (doublereal* vl) (doublereal* difl) (doublereal* difr) (doublereal* dsigma) (doublereal* work) (integer* info)))
+
+(define-wrapper int dlasda_ ((integer* icompq) (integer* smlsiz) (integer* n) (integer* sqre) (doublereal* d__) (doublereal* e) (doublereal* u) (integer* ldu) (doublereal* vt) (integer* k) (doublereal* difl) (doublereal* difr) (doublereal* z__) (doublereal* poles) (integer* givptr) (integer* givcol) (integer* ldgcol) (integer* perm) (doublereal* givnum) (doublereal* c__) (doublereal* s) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dlasdq_ ((char* uplo) (integer* sqre) (integer* n) (integer* ncvt) (integer* nru) (integer* ncc) (doublereal* d__) (doublereal* e) (doublereal* vt) (integer* ldvt) (doublereal* u) (integer* ldu) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* info)))
+
+(define-wrapper int dlasdt_ ((integer* n) (integer* lvl) (integer* nd) (integer* inode) (integer* ndiml) (integer* ndimr) (integer* msub)))
+
+(define-wrapper int dlaset_ ((char* uplo) (integer* m) (integer* n) (doublereal* alpha) (doublereal* beta) (doublereal* a) (integer* lda)))
+
+(define-wrapper int dlasq1_ ((integer* n) (doublereal* d__) (doublereal* e) (doublereal* work) (integer* info)))
+
+(define-wrapper int dlasq2_ ((integer* n) (doublereal* z__) (integer* info)))
+
+(define-wrapper int dlasq3_ ((integer* i0) (integer* n0) (doublereal* z__) (integer* pp) (doublereal* dmin__) (doublereal* sigma) (doublereal* desig) (doublereal* qmax) (integer* nfail) (integer* iter) (integer* ndiv) (logical* ieee)))
+
+(define-wrapper int dlasq4_ ((integer* i0) (integer* n0) (doublereal* z__) (integer* pp) (integer* n0in) (doublereal* dmin__) (doublereal* dmin1) (doublereal* dmin2) (doublereal* dn) (doublereal* dn1) (doublereal* dn2) (doublereal* tau) (integer* ttype)))
+
+(define-wrapper int dlasq5_ ((integer* i0) (integer* n0) (doublereal* z__) (integer* pp) (doublereal* tau) (doublereal* dmin__) (doublereal* dmin1) (doublereal* dmin2) (doublereal* dn) (doublereal* dnm1) (doublereal* dnm2) (logical* ieee)))
+
+(define-wrapper int dlasq6_ ((integer* i0) (integer* n0) (doublereal* z__) (integer* pp) (doublereal* dmin__) (doublereal* dmin1) (doublereal* dmin2) (doublereal* dn) (doublereal* dnm1) (doublereal* dnm2)))
+
+(define-wrapper int dlasr_ ((char* side) (char* pivot) (char* direct) (integer* m) (integer* n) (doublereal* c__) (doublereal* s) (doublereal* a) (integer* lda)))
+
+(define-wrapper int dlasrt_ ((char* id) (integer* n) (doublereal* d__) (integer* info)))
+
+(define-wrapper int dlassq_ ((integer* n) (doublereal* x) (integer* incx) (doublereal* scale) (doublereal* sumsq)))
+
+(define-wrapper int dlasv2_ ((doublereal* f) (doublereal* g) (doublereal* h__) (doublereal* ssmin) (doublereal* ssmax) (doublereal* snr) (doublereal* csr) (doublereal* snl) (doublereal* csl)))
+
+(define-wrapper int dlaswp_ ((integer* n) (doublereal* a) (integer* lda) (integer* k1) (integer* k2) (integer* ipiv) (integer* incx)))
+
+(define-wrapper int dlasy2_ ((logical* ltranl) (logical* ltranr) (integer* isgn) (integer* n1) (integer* n2) (doublereal* tl) (integer* ldtl) (doublereal* tr) (integer* ldtr) (doublereal* b) (integer* ldb) (doublereal* scale) (doublereal* x) (integer* ldx) (doublereal* xnorm) (integer* info)))
+
+(define-wrapper int dlasyf_ ((char* uplo) (integer* n) (integer* nb) (integer* kb) (doublereal* a) (integer* lda) (integer* ipiv) (doublereal* w) (integer* ldw) (integer* info)))
+
+(define-wrapper int dlatbs_ ((char* uplo) (char* trans) (char* diag) (char* normin) (integer* n) (integer* kd) (doublereal* ab) (integer* ldab) (doublereal* x) (doublereal* scale) (doublereal* cnorm) (integer* info)))
+
+(define-wrapper int dlatdf_ ((integer* ijob) (integer* n) (doublereal* z__) (integer* ldz) (doublereal* rhs) (doublereal* rdsum) (doublereal* rdscal) (integer* ipiv) (integer* jpiv)))
+
+(define-wrapper int dlatps_ ((char* uplo) (char* trans) (char* diag) (char* normin) (integer* n) (doublereal* ap) (doublereal* x) (doublereal* scale) (doublereal* cnorm) (integer* info)))
+
+(define-wrapper int dlatrd_ ((char* uplo) (integer* n) (integer* nb) (doublereal* a) (integer* lda) (doublereal* e) (doublereal* tau) (doublereal* w) (integer* ldw)))
+
+(define-wrapper int dlatrs_ ((char* uplo) (char* trans) (char* diag) (char* normin) (integer* n) (doublereal* a) (integer* lda) (doublereal* x) (doublereal* scale) (doublereal* cnorm) (integer* info)))
+
+(define-wrapper int dlatrz_ ((integer* m) (integer* n) (integer* l) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work)))
+
+(define-wrapper int dlatzm_ ((char* side) (integer* m) (integer* n) (doublereal* v) (integer* incv) (doublereal* tau) (doublereal* c1) (doublereal* c2) (integer* ldc) (doublereal* work)))
+
+(define-wrapper int dlauu2_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (integer* info)))
+
+(define-wrapper int dlauum_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (integer* info)))
+
+(define-wrapper int dopgtr_ ((char* uplo) (integer* n) (doublereal* ap) (doublereal* tau) (doublereal* q) (integer* ldq) (doublereal* work) (integer* info)))
+
+(define-wrapper int dopmtr_ ((char* side) (char* uplo) (char* trans) (integer* m) (integer* n) (doublereal* ap) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* info)))
+
+(define-wrapper int dorg2l_ ((integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* info)))
+
+(define-wrapper int dorg2r_ ((integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* info)))
+
+(define-wrapper int dorgbr_ ((char* vect) (integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dorghr_ ((integer* n) (integer* ilo) (integer* ihi) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dorgl2_ ((integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* info)))
+
+(define-wrapper int dorglq_ ((integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dorgql_ ((integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dorgqr_ ((integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dorgr2_ ((integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* info)))
+
+(define-wrapper int dorgrq_ ((integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dorgtr_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dorm2l_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* info)))
+
+(define-wrapper int dorm2r_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* info)))
+
+(define-wrapper int dormbr_ ((char* vect) (char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dormhr_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* ilo) (integer* ihi) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dorml2_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* info)))
+
+(define-wrapper int dormlq_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dormql_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dormqr_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dormr2_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* info)))
+
+(define-wrapper int dormr3_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (integer* l) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* info)))
+
+(define-wrapper int dormrq_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dormrz_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (integer* l) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dormtr_ ((char* side) (char* uplo) (char* trans) (integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* c__) (integer* ldc) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dpbcon_ ((char* uplo) (integer* n) (integer* kd) (doublereal* ab) (integer* ldab) (doublereal* anorm) (doublereal* rcond) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dpbequ_ ((char* uplo) (integer* n) (integer* kd) (doublereal* ab) (integer* ldab) (doublereal* s) (doublereal* scond) (doublereal* amax) (integer* info)))
+
+(define-wrapper int dpbrfs_ ((char* uplo) (integer* n) (integer* kd) (integer* nrhs) (doublereal* ab) (integer* ldab) (doublereal* afb) (integer* ldafb) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dpbstf_ ((char* uplo) (integer* n) (integer* kd) (doublereal* ab) (integer* ldab) (integer* info)))
+
+(define-wrapper int dpbsv_ ((char* uplo) (integer* n) (integer* kd) (integer* nrhs) (doublereal* ab) (integer* ldab) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dpbsvx_ ((char* fact) (char* uplo) (integer* n) (integer* kd) (integer* nrhs) (doublereal* ab) (integer* ldab) (doublereal* afb) (integer* ldafb) (char* equed) (doublereal* s) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dpbtf2_ ((char* uplo) (integer* n) (integer* kd) (doublereal* ab) (integer* ldab) (integer* info)))
+
+(define-wrapper int dpbtrf_ ((char* uplo) (integer* n) (integer* kd) (doublereal* ab) (integer* ldab) (integer* info)))
+
+(define-wrapper int dpbtrs_ ((char* uplo) (integer* n) (integer* kd) (integer* nrhs) (doublereal* ab) (integer* ldab) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dpocon_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* anorm) (doublereal* rcond) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dpoequ_ ((integer* n) (doublereal* a) (integer* lda) (doublereal* s) (doublereal* scond) (doublereal* amax) (integer* info)))
+
+(define-wrapper int dporfs_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* af) (integer* ldaf) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dposv_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dposvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* af) (integer* ldaf) (char* equed) (doublereal* s) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dpotf2_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (integer* info)))
+
+(define-wrapper int dpotrf_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (integer* info)))
+
+(define-wrapper int dpotri_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (integer* info)))
+
+(define-wrapper int dpotrs_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dppcon_ ((char* uplo) (integer* n) (doublereal* ap) (doublereal* anorm) (doublereal* rcond) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dppequ_ ((char* uplo) (integer* n) (doublereal* ap) (doublereal* s) (doublereal* scond) (doublereal* amax) (integer* info)))
+
+(define-wrapper int dpprfs_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* ap) (doublereal* afp) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dppsv_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* ap) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dppsvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (doublereal* ap) (doublereal* afp) (char* equed) (doublereal* s) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dpptrf_ ((char* uplo) (integer* n) (doublereal* ap) (integer* info)))
+
+(define-wrapper int dpptri_ ((char* uplo) (integer* n) (doublereal* ap) (integer* info)))
+
+(define-wrapper int dpptrs_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* ap) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dptcon_ ((integer* n) (doublereal* d__) (doublereal* e) (doublereal* anorm) (doublereal* rcond) (doublereal* work) (integer* info)))
+
+(define-wrapper int dpteqr_ ((char* compz) (integer* n) (doublereal* d__) (doublereal* e) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* info)))
+
+(define-wrapper int dptrfs_ ((integer* n) (integer* nrhs) (doublereal* d__) (doublereal* e) (doublereal* df) (doublereal* ef) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* info)))
+
+(define-wrapper int dptsv_ ((integer* n) (integer* nrhs) (doublereal* d__) (doublereal* e) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dptsvx_ ((char* fact) (integer* n) (integer* nrhs) (doublereal* d__) (doublereal* e) (doublereal* df) (doublereal* ef) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* info)))
+
+(define-wrapper int dpttrf_ ((integer* n) (doublereal* d__) (doublereal* e) (integer* info)))
+
+(define-wrapper int dpttrs_ ((integer* n) (integer* nrhs) (doublereal* d__) (doublereal* e) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dptts2_ ((integer* n) (integer* nrhs) (doublereal* d__) (doublereal* e) (doublereal* b) (integer* ldb)))
+
+(define-wrapper int drscl_ ((integer* n) (doublereal* sa) (doublereal* sx) (integer* incx)))
+
+(define-wrapper int dsbev_ ((char* jobz) (char* uplo) (integer* n) (integer* kd) (doublereal* ab) (integer* ldab) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* info)))
+
+(define-wrapper int dsbevd_ ((char* jobz) (char* uplo) (integer* n) (integer* kd) (doublereal* ab) (integer* ldab) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dsbevx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (integer* kd) (doublereal* ab) (integer* ldab) (doublereal* q) (integer* ldq) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int dsbgst_ ((char* vect) (char* uplo) (integer* n) (integer* ka) (integer* kb) (doublereal* ab) (integer* ldab) (doublereal* bb) (integer* ldbb) (doublereal* x) (integer* ldx) (doublereal* work) (integer* info)))
+
+(define-wrapper int dsbgv_ ((char* jobz) (char* uplo) (integer* n) (integer* ka) (integer* kb) (doublereal* ab) (integer* ldab) (doublereal* bb) (integer* ldbb) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* info)))
+
+(define-wrapper int dsbgvd_ ((char* jobz) (char* uplo) (integer* n) (integer* ka) (integer* kb) (doublereal* ab) (integer* ldab) (doublereal* bb) (integer* ldbb) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dsbgvx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (integer* ka) (integer* kb) (doublereal* ab) (integer* ldab) (doublereal* bb) (integer* ldbb) (doublereal* q) (integer* ldq) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int dsbtrd_ ((char* vect) (char* uplo) (integer* n) (integer* kd) (doublereal* ab) (integer* ldab) (doublereal* d__) (doublereal* e) (doublereal* q) (integer* ldq) (doublereal* work) (integer* info)))
+
+(define-wrapper int dspcon_ ((char* uplo) (integer* n) (doublereal* ap) (integer* ipiv) (doublereal* anorm) (doublereal* rcond) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dspev_ ((char* jobz) (char* uplo) (integer* n) (doublereal* ap) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* info)))
+
+(define-wrapper int dspevd_ ((char* jobz) (char* uplo) (integer* n) (doublereal* ap) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dspevx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (doublereal* ap) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int dspgst_ ((integer* itype) (char* uplo) (integer* n) (doublereal* ap) (doublereal* bp) (integer* info)))
+
+(define-wrapper int dspgv_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (doublereal* ap) (doublereal* bp) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* info)))
+
+(define-wrapper int dspgvd_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (doublereal* ap) (doublereal* bp) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dspgvx_ ((integer* itype) (char* jobz) (char* range) (char* uplo) (integer* n) (doublereal* ap) (doublereal* bp) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int dsprfs_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* ap) (doublereal* afp) (integer* ipiv) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dspsv_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* ap) (integer* ipiv) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dspsvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (doublereal* ap) (doublereal* afp) (integer* ipiv) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dsptrd_ ((char* uplo) (integer* n) (doublereal* ap) (doublereal* d__) (doublereal* e) (doublereal* tau) (integer* info)))
+
+(define-wrapper int dsptrf_ ((char* uplo) (integer* n) (doublereal* ap) (integer* ipiv) (integer* info)))
+
+(define-wrapper int dsptri_ ((char* uplo) (integer* n) (doublereal* ap) (integer* ipiv) (doublereal* work) (integer* info)))
+
+(define-wrapper int dsptrs_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* ap) (integer* ipiv) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dstebz_ ((char* range) (char* order) (integer* n) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (doublereal* d__) (doublereal* e) (integer* m) (integer* nsplit) (doublereal* w) (integer* iblock) (integer* isplit) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dstedc_ ((char* compz) (integer* n) (doublereal* d__) (doublereal* e) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dstegr_ ((char* jobz) (char* range) (integer* n) (doublereal* d__) (doublereal* e) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublereal* z__) (integer* ldz) (integer* isuppz) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dstein_ ((integer* n) (doublereal* d__) (doublereal* e) (integer* m) (doublereal* w) (integer* iblock) (integer* isplit) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int dsteqr_ ((char* compz) (integer* n) (doublereal* d__) (doublereal* e) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* info)))
+
+(define-wrapper int dsterf_ ((integer* n) (doublereal* d__) (doublereal* e) (integer* info)))
+
+(define-wrapper int dstev_ ((char* jobz) (integer* n) (doublereal* d__) (doublereal* e) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* info)))
+
+(define-wrapper int dstevd_ ((char* jobz) (integer* n) (doublereal* d__) (doublereal* e) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dstevr_ ((char* jobz) (char* range) (integer* n) (doublereal* d__) (doublereal* e) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublereal* z__) (integer* ldz) (integer* isuppz) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dstevx_ ((char* jobz) (char* range) (integer* n) (doublereal* d__) (doublereal* e) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int dsycon_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (integer* ipiv) (doublereal* anorm) (doublereal* rcond) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dsyev_ ((char* jobz) (char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* w) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dsyevd_ ((char* jobz) (char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* w) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dsyevr_ ((char* jobz) (char* range) (char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublereal* z__) (integer* ldz) (integer* isuppz) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dsyevx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* lwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int dsygs2_ ((integer* itype) (char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dsygst_ ((integer* itype) (char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dsygv_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* w) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dsygvd_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* w) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dsygvx_ ((integer* itype) (char* jobz) (char* range) (char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublereal* z__) (integer* ldz) (doublereal* work) (integer* lwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int dsyrfs_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* af) (integer* ldaf) (integer* ipiv) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dsysv_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (integer* ipiv) (doublereal* b) (integer* ldb) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dsysvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* af) (integer* ldaf) (integer* ipiv) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int dsytd2_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* d__) (doublereal* e) (doublereal* tau) (integer* info)))
+
+(define-wrapper int dsytf2_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int dsytrd_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (doublereal* d__) (doublereal* e) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dsytrf_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (integer* ipiv) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dsytri_ ((char* uplo) (integer* n) (doublereal* a) (integer* lda) (integer* ipiv) (doublereal* work) (integer* info)))
+
+(define-wrapper int dsytrs_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (integer* ipiv) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dtbcon_ ((char* norm) (char* uplo) (char* diag) (integer* n) (integer* kd) (doublereal* ab) (integer* ldab) (doublereal* rcond) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dtbrfs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* kd) (integer* nrhs) (doublereal* ab) (integer* ldab) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dtbtrs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* kd) (integer* nrhs) (doublereal* ab) (integer* ldab) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dtgevc_ ((char* side) (char* howmny) (logical* select) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* vl) (integer* ldvl) (doublereal* vr) (integer* ldvr) (integer* mm) (integer* m) (doublereal* work) (integer* info)))
+
+(define-wrapper int dtgex2_ ((logical* wantq) (logical* wantz) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* q) (integer* ldq) (doublereal* z__) (integer* ldz) (integer* j1) (integer* n1) (integer* n2) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dtgexc_ ((logical* wantq) (logical* wantz) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* q) (integer* ldq) (doublereal* z__) (integer* ldz) (integer* ifst) (integer* ilst) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int dtgsen_ ((integer* ijob) (logical* wantq) (logical* wantz) (logical* select) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* alphar) (doublereal* alphai) (doublereal* beta) (doublereal* q) (integer* ldq) (doublereal* z__) (integer* ldz) (integer* m) (doublereal* pl) (doublereal* pr) (doublereal* dif) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dtgsja_ ((char* jobu) (char* jobv) (char* jobq) (integer* m) (integer* p) (integer* n) (integer* k) (integer* l) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* tola) (doublereal* tolb) (doublereal* alpha) (doublereal* beta) (doublereal* u) (integer* ldu) (doublereal* v) (integer* ldv) (doublereal* q) (integer* ldq) (doublereal* work) (integer* ncycle) (integer* info)))
+
+(define-wrapper int dtgsna_ ((char* job) (char* howmny) (logical* select) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* vl) (integer* ldvl) (doublereal* vr) (integer* ldvr) (doublereal* s) (doublereal* dif) (integer* mm) (integer* m) (doublereal* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int dtgsy2_ ((char* trans) (integer* ijob) (integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* c__) (integer* ldc) (doublereal* d__) (integer* ldd) (doublereal* e) (integer* lde) (doublereal* f) (integer* ldf) (doublereal* scale) (doublereal* rdsum) (doublereal* rdscal) (integer* iwork) (integer* pq) (integer* info)))
+
+(define-wrapper int dtgsyl_ ((char* trans) (integer* ijob) (integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* c__) (integer* ldc) (doublereal* d__) (integer* ldd) (doublereal* e) (integer* lde) (doublereal* f) (integer* ldf) (doublereal* scale) (doublereal* dif) (doublereal* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int dtpcon_ ((char* norm) (char* uplo) (char* diag) (integer* n) (doublereal* ap) (doublereal* rcond) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dtprfs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (doublereal* ap) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dtptri_ ((char* uplo) (char* diag) (integer* n) (doublereal* ap) (integer* info)))
+
+(define-wrapper int dtptrs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (doublereal* ap) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dtrcon_ ((char* norm) (char* uplo) (char* diag) (integer* n) (doublereal* a) (integer* lda) (doublereal* rcond) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dtrevc_ ((char* side) (char* howmny) (logical* select) (integer* n) (doublereal* t) (integer* ldt) (doublereal* vl) (integer* ldvl) (doublereal* vr) (integer* ldvr) (integer* mm) (integer* m) (doublereal* work) (integer* info)))
+
+(define-wrapper int dtrexc_ ((char* compq) (integer* n) (doublereal* t) (integer* ldt) (doublereal* q) (integer* ldq) (integer* ifst) (integer* ilst) (doublereal* work) (integer* info)))
+
+(define-wrapper int dtrrfs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int dtrsen_ ((char* job) (char* compq) (logical* select) (integer* n) (doublereal* t) (integer* ldt) (doublereal* q) (integer* ldq) (doublereal* wr) (doublereal* wi) (integer* m) (doublereal* s) (doublereal* sep) (doublereal* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int dtrsna_ ((char* job) (char* howmny) (logical* select) (integer* n) (doublereal* t) (integer* ldt) (doublereal* vl) (integer* ldvl) (doublereal* vr) (integer* ldvr) (doublereal* s) (doublereal* sep) (integer* mm) (integer* m) (doublereal* work) (integer* ldwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int dtrsyl_ ((char* trana) (char* tranb) (integer* isgn) (integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (doublereal* c__) (integer* ldc) (doublereal* scale) (integer* info)))
+
+(define-wrapper int dtrti2_ ((char* uplo) (char* diag) (integer* n) (doublereal* a) (integer* lda) (integer* info)))
+
+(define-wrapper int dtrtri_ ((char* uplo) (char* diag) (integer* n) (doublereal* a) (integer* lda) (integer* info)))
+
+(define-wrapper int dtrtrs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int dtzrqf_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* tau) (integer* info)))
+
+(define-wrapper int dtzrzf_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* tau) (doublereal* work) (integer* lwork) (integer* info)))
+
+(define-wrapper integer icmax1_ ((integer* n) (complex* cx) (integer* incx)))
+
+(define-wrapper integer ieeeck_ ((integer* ispec) (real* zero) (real* one)))
+
+(define-wrapper integer ilaenv_ ((integer* ispec) (char* name__) (char* opts) (integer* n1) (integer* n2) (integer* n3) (integer* n4) (ftnlen name_len) (ftnlen opts_len)))
+
+(define-wrapper integer izmax1_ ((integer* n) (doublecomplex* cx) (integer* incx)))
+
+(define-wrapper int sbdsdc_ ((char* uplo) (char* compq) (integer* n) (real* d__) (real* e) (real* u) (integer* ldu) (real* vt) (integer* ldvt) (real* q) (integer* iq) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sbdsqr_ ((char* uplo) (integer* n) (integer* ncvt) (integer* nru) (integer* ncc) (real* d__) (real* e) (real* vt) (integer* ldvt) (real* u) (integer* ldu) (real* c__) (integer* ldc) (real* work) (integer* info)))
+
+(define-wrapper int sdisna_ ((char* job) (integer* m) (integer* n) (real* d__) (real* sep) (integer* info)))
+
+(define-wrapper int sgbbrd_ ((char* vect) (integer* m) (integer* n) (integer* ncc) (integer* kl) (integer* ku) (real* ab) (integer* ldab) (real* d__) (real* e) (real* q) (integer* ldq) (real* pt) (integer* ldpt) (real* c__) (integer* ldc) (real* work) (integer* info)))
+
+(define-wrapper int sgbcon_ ((char* norm) (integer* n) (integer* kl) (integer* ku) (real* ab) (integer* ldab) (integer* ipiv) (real* anorm) (real* rcond) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sgbequ_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (real* ab) (integer* ldab) (real* r__) (real* c__) (real* rowcnd) (real* colcnd) (real* amax) (integer* info)))
+
+(define-wrapper int sgbrfs_ ((char* trans) (integer* n) (integer* kl) (integer* ku) (integer* nrhs) (real* ab) (integer* ldab) (real* afb) (integer* ldafb) (integer* ipiv) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sgbsv_ ((integer* n) (integer* kl) (integer* ku) (integer* nrhs) (real* ab) (integer* ldab) (integer* ipiv) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sgbsvx_ ((char* fact) (char* trans) (integer* n) (integer* kl) (integer* ku) (integer* nrhs) (real* ab) (integer* ldab) (real* afb) (integer* ldafb) (integer* ipiv) (char* equed) (real* r__) (real* c__) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sgbtf2_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (real* ab) (integer* ldab) (integer* ipiv) (integer* info)))
+
+(define-wrapper int sgbtrf_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (real* ab) (integer* ldab) (integer* ipiv) (integer* info)))
+
+(define-wrapper int sgbtrs_ ((char* trans) (integer* n) (integer* kl) (integer* ku) (integer* nrhs) (real* ab) (integer* ldab) (integer* ipiv) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sgebak_ ((char* job) (char* side) (integer* n) (integer* ilo) (integer* ihi) (real* scale) (integer* m) (real* v) (integer* ldv) (integer* info)))
+
+(define-wrapper int sgebal_ ((char* job) (integer* n) (real* a) (integer* lda) (integer* ilo) (integer* ihi) (real* scale) (integer* info)))
+
+(define-wrapper int sgebd2_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* d__) (real* e) (real* tauq) (real* taup) (real* work) (integer* info)))
+
+(define-wrapper int sgebrd_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* d__) (real* e) (real* tauq) (real* taup) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgecon_ ((char* norm) (integer* n) (real* a) (integer* lda) (real* anorm) (real* rcond) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sgeequ_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* r__) (real* c__) (real* rowcnd) (real* colcnd) (real* amax) (integer* info)))
+
+(define-wrapper int sgees_ ((char* jobvs) (char* sort) (L_fp select) (integer* n) (real* a) (integer* lda) (integer* sdim) (real* wr) (real* wi) (real* vs) (integer* ldvs) (real* work) (integer* lwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int sgeesx_ ((char* jobvs) (char* sort) (L_fp select) (char* sense) (integer* n) (real* a) (integer* lda) (integer* sdim) (real* wr) (real* wi) (real* vs) (integer* ldvs) (real* rconde) (real* rcondv) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int sgeev_ ((char* jobvl) (char* jobvr) (integer* n) (real* a) (integer* lda) (real* wr) (real* wi) (real* vl) (integer* ldvl) (real* vr) (integer* ldvr) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgeevx_ ((char* balanc) (char* jobvl) (char* jobvr) (char* sense) (integer* n) (real* a) (integer* lda) (real* wr) (real* wi) (real* vl) (integer* ldvl) (real* vr) (integer* ldvr) (integer* ilo) (integer* ihi) (real* scale) (real* abnrm) (real* rconde) (real* rcondv) (real* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int sgegs_ ((char* jobvsl) (char* jobvsr) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* alphar) (real* alphai) (real* beta) (real* vsl) (integer* ldvsl) (real* vsr) (integer* ldvsr) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgegv_ ((char* jobvl) (char* jobvr) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* alphar) (real* alphai) (real* beta) (real* vl) (integer* ldvl) (real* vr) (integer* ldvr) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgehd2_ ((integer* n) (integer* ilo) (integer* ihi) (real* a) (integer* lda) (real* tau) (real* work) (integer* info)))
+
+(define-wrapper int sgehrd_ ((integer* n) (integer* ilo) (integer* ihi) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgelq2_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* tau) (real* work) (integer* info)))
+
+(define-wrapper int sgelqf_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgels_ ((char* trans) (integer* m) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* b) (integer* ldb) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgelsd_ ((integer* m) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* b) (integer* ldb) (real* s) (real* rcond) (integer* rank) (real* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int sgelss_ ((integer* m) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* b) (integer* ldb) (real* s) (real* rcond) (integer* rank) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgelsx_ ((integer* m) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* b) (integer* ldb) (integer* jpvt) (real* rcond) (integer* rank) (real* work) (integer* info)))
+
+(define-wrapper int sgelsy_ ((integer* m) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* b) (integer* ldb) (integer* jpvt) (real* rcond) (integer* rank) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgeql2_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* tau) (real* work) (integer* info)))
+
+(define-wrapper int sgeqlf_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgeqp3_ ((integer* m) (integer* n) (real* a) (integer* lda) (integer* jpvt) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgeqpf_ ((integer* m) (integer* n) (real* a) (integer* lda) (integer* jpvt) (real* tau) (real* work) (integer* info)))
+
+(define-wrapper int sgeqr2_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* tau) (real* work) (integer* info)))
+
+(define-wrapper int sgeqrf_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgerfs_ ((char* trans) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* af) (integer* ldaf) (integer* ipiv) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sgerq2_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* tau) (real* work) (integer* info)))
+
+(define-wrapper int sgerqf_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgesc2_ ((integer* n) (real* a) (integer* lda) (real* rhs) (integer* ipiv) (integer* jpiv) (real* scale)))
+
+(define-wrapper int sgesdd_ ((char* jobz) (integer* m) (integer* n) (real* a) (integer* lda) (real* s) (real* u) (integer* ldu) (real* vt) (integer* ldvt) (real* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int sgesv_ ((integer* n) (integer* nrhs) (real* a) (integer* lda) (integer* ipiv) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sgesvd_ ((char* jobu) (char* jobvt) (integer* m) (integer* n) (real* a) (integer* lda) (real* s) (real* u) (integer* ldu) (real* vt) (integer* ldvt) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgesvx_ ((char* fact) (char* trans) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* af) (integer* ldaf) (integer* ipiv) (char* equed) (real* r__) (real* c__) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sgetc2_ ((integer* n) (real* a) (integer* lda) (integer* ipiv) (integer* jpiv) (integer* info)))
+
+(define-wrapper int sgetf2_ ((integer* m) (integer* n) (real* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int sgetrf_ ((integer* m) (integer* n) (real* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int sgetri_ ((integer* n) (real* a) (integer* lda) (integer* ipiv) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgetrs_ ((char* trans) (integer* n) (integer* nrhs) (real* a) (integer* lda) (integer* ipiv) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sggbak_ ((char* job) (char* side) (integer* n) (integer* ilo) (integer* ihi) (real* lscale) (real* rscale) (integer* m) (real* v) (integer* ldv) (integer* info)))
+
+(define-wrapper int sggbal_ ((char* job) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (integer* ilo) (integer* ihi) (real* lscale) (real* rscale) (real* work) (integer* info)))
+
+(define-wrapper int sgges_ ((char* jobvsl) (char* jobvsr) (char* sort) (L_fp selctg) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (integer* sdim) (real* alphar) (real* alphai) (real* beta) (real* vsl) (integer* ldvsl) (real* vsr) (integer* ldvsr) (real* work) (integer* lwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int sggesx_ ((char* jobvsl) (char* jobvsr) (char* sort) (L_fp selctg) (char* sense) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (integer* sdim) (real* alphar) (real* alphai) (real* beta) (real* vsl) (integer* ldvsl) (real* vsr) (integer* ldvsr) (real* rconde) (real* rcondv) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int sggev_ ((char* jobvl) (char* jobvr) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* alphar) (real* alphai) (real* beta) (real* vl) (integer* ldvl) (real* vr) (integer* ldvr) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sggevx_ ((char* balanc) (char* jobvl) (char* jobvr) (char* sense) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* alphar) (real* alphai) (real* beta) (real* vl) (integer* ldvl) (real* vr) (integer* ldvr) (integer* ilo) (integer* ihi) (real* lscale) (real* rscale) (real* abnrm) (real* bbnrm) (real* rconde) (real* rcondv) (real* work) (integer* lwork) (integer* iwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int sggglm_ ((integer* n) (integer* m) (integer* p) (real* a) (integer* lda) (real* b) (integer* ldb) (real* d__) (real* x) (real* y) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sgghrd_ ((char* compq) (char* compz) (integer* n) (integer* ilo) (integer* ihi) (real* a) (integer* lda) (real* b) (integer* ldb) (real* q) (integer* ldq) (real* z__) (integer* ldz) (integer* info)))
+
+(define-wrapper int sgglse_ ((integer* m) (integer* n) (integer* p) (real* a) (integer* lda) (real* b) (integer* ldb) (real* c__) (real* d__) (real* x) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sggqrf_ ((integer* n) (integer* m) (integer* p) (real* a) (integer* lda) (real* taua) (real* b) (integer* ldb) (real* taub) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sggrqf_ ((integer* m) (integer* p) (integer* n) (real* a) (integer* lda) (real* taua) (real* b) (integer* ldb) (real* taub) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sggsvd_ ((char* jobu) (char* jobv) (char* jobq) (integer* m) (integer* n) (integer* p) (integer* k) (integer* l) (real* a) (integer* lda) (real* b) (integer* ldb) (real* alpha) (real* beta) (real* u) (integer* ldu) (real* v) (integer* ldv) (real* q) (integer* ldq) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sggsvp_ ((char* jobu) (char* jobv) (char* jobq) (integer* m) (integer* p) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* tola) (real* tolb) (integer* k) (integer* l) (real* u) (integer* ldu) (real* v) (integer* ldv) (real* q) (integer* ldq) (integer* iwork) (real* tau) (real* work) (integer* info)))
+
+(define-wrapper int sgtcon_ ((char* norm) (integer* n) (real* dl) (real* d__) (real* du) (real* du2) (integer* ipiv) (real* anorm) (real* rcond) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sgtrfs_ ((char* trans) (integer* n) (integer* nrhs) (real* dl) (real* d__) (real* du) (real* dlf) (real* df) (real* duf) (real* du2) (integer* ipiv) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sgtsv_ ((integer* n) (integer* nrhs) (real* dl) (real* d__) (real* du) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sgtsvx_ ((char* fact) (char* trans) (integer* n) (integer* nrhs) (real* dl) (real* d__) (real* du) (real* dlf) (real* df) (real* duf) (real* du2) (integer* ipiv) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sgttrf_ ((integer* n) (real* dl) (real* d__) (real* du) (real* du2) (integer* ipiv) (integer* info)))
+
+(define-wrapper int sgttrs_ ((char* trans) (integer* n) (integer* nrhs) (real* dl) (real* d__) (real* du) (real* du2) (integer* ipiv) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sgtts2_ ((integer* itrans) (integer* n) (integer* nrhs) (real* dl) (real* d__) (real* du) (real* du2) (integer* ipiv) (real* b) (integer* ldb)))
+
+(define-wrapper int shgeqz_ ((char* job) (char* compq) (char* compz) (integer* n) (integer* ilo) (integer* ihi) (real* a) (integer* lda) (real* b) (integer* ldb) (real* alphar) (real* alphai) (real* beta) (real* q) (integer* ldq) (real* z__) (integer* ldz) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int shsein_ ((char* side) (char* eigsrc) (char* initv) (logical* select) (integer* n) (real* h__) (integer* ldh) (real* wr) (real* wi) (real* vl) (integer* ldvl) (real* vr) (integer* ldvr) (integer* mm) (integer* m) (real* work) (integer* ifaill) (integer* ifailr) (integer* info)))
+
+(define-wrapper int shseqr_ ((char* job) (char* compz) (integer* n) (integer* ilo) (integer* ihi) (real* h__) (integer* ldh) (real* wr) (real* wi) (real* z__) (integer* ldz) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int slabad_ ((real* small) (real* large)))
+
+(define-wrapper int slabrd_ ((integer* m) (integer* n) (integer* nb) (real* a) (integer* lda) (real* d__) (real* e) (real* tauq) (real* taup) (real* x) (integer* ldx) (real* y) (integer* ldy)))
+
+(define-wrapper int slacon_ ((integer* n) (real* v) (real* x) (integer* isgn) (real* est) (integer* kase)))
+
+(define-wrapper int slacpy_ ((char* uplo) (integer* m) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb)))
+
+(define-wrapper int sladiv_ ((real* a) (real* b) (real* c__) (real* d__) (real* p) (real* q)))
+
+(define-wrapper int slae2_ ((real* a) (real* b) (real* c__) (real* rt1) (real* rt2)))
+
+(define-wrapper int slaebz_ ((integer* ijob) (integer* nitmax) (integer* n) (integer* mmax) (integer* minp) (integer* nbmin) (real* abstol) (real* reltol) (real* pivmin) (real* d__) (real* e) (real* e2) (integer* nval) (real* ab) (real* c__) (integer* mout) (integer* nab) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int slaed0_ ((integer* icompq) (integer* qsiz) (integer* n) (real* d__) (real* e) (real* q) (integer* ldq) (real* qstore) (integer* ldqs) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int slaed1_ ((integer* n) (real* d__) (real* q) (integer* ldq) (integer* indxq) (real* rho) (integer* cutpnt) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int slaed2_ ((integer* k) (integer* n) (integer* n1) (real* d__) (real* q) (integer* ldq) (integer* indxq) (real* rho) (real* z__) (real* dlamda) (real* w) (real* q2) (integer* indx) (integer* indxc) (integer* indxp) (integer* coltyp) (integer* info)))
+
+(define-wrapper int slaed3_ ((integer* k) (integer* n) (integer* n1) (real* d__) (real* q) (integer* ldq) (real* rho) (real* dlamda) (real* q2) (integer* indx) (integer* ctot) (real* w) (real* s) (integer* info)))
+
+(define-wrapper int slaed4_ ((integer* n) (integer* i__) (real* d__) (real* z__) (real* delta) (real* rho) (real* dlam) (integer* info)))
+
+(define-wrapper int slaed5_ ((integer* i__) (real* d__) (real* z__) (real* delta) (real* rho) (real* dlam)))
+
+(define-wrapper int slaed6_ ((integer* kniter) (logical* orgati) (real* rho) (real* d__) (real* z__) (real* finit) (real* tau) (integer* info)))
+
+(define-wrapper int slaed7_ ((integer* icompq) (integer* n) (integer* qsiz) (integer* tlvls) (integer* curlvl) (integer* curpbm) (real* d__) (real* q) (integer* ldq) (integer* indxq) (real* rho) (integer* cutpnt) (real* qstore) (integer* qptr) (integer* prmptr) (integer* perm) (integer* givptr) (integer* givcol) (real* givnum) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int slaed8_ ((integer* icompq) (integer* k) (integer* n) (integer* qsiz) (real* d__) (real* q) (integer* ldq) (integer* indxq) (real* rho) (integer* cutpnt) (real* z__) (real* dlamda) (real* q2) (integer* ldq2) (real* w) (integer* perm) (integer* givptr) (integer* givcol) (real* givnum) (integer* indxp) (integer* indx) (integer* info)))
+
+(define-wrapper int slaed9_ ((integer* k) (integer* kstart) (integer* kstop) (integer* n) (real* d__) (real* q) (integer* ldq) (real* rho) (real* dlamda) (real* w) (real* s) (integer* lds) (integer* info)))
+
+(define-wrapper int slaeda_ ((integer* n) (integer* tlvls) (integer* curlvl) (integer* curpbm) (integer* prmptr) (integer* perm) (integer* givptr) (integer* givcol) (real* givnum) (real* q) (integer* qptr) (real* z__) (real* ztemp) (integer* info)))
+
+(define-wrapper int slaein_ ((logical* rightv) (logical* noinit) (integer* n) (real* h__) (integer* ldh) (real* wr) (real* wi) (real* vr) (real* vi) (real* b) (integer* ldb) (real* work) (real* eps3) (real* smlnum) (real* bignum) (integer* info)))
+
+(define-wrapper int slaev2_ ((real* a) (real* b) (real* c__) (real* rt1) (real* rt2) (real* cs1) (real* sn1)))
+
+(define-wrapper int slaexc_ ((logical* wantq) (integer* n) (real* t) (integer* ldt) (real* q) (integer* ldq) (integer* j1) (integer* n1) (integer* n2) (real* work) (integer* info)))
+
+(define-wrapper int slag2_ ((real* a) (integer* lda) (real* b) (integer* ldb) (real* safmin) (real* scale1) (real* scale2) (real* wr1) (real* wr2) (real* wi)))
+
+(define-wrapper int slags2_ ((logical* upper) (real* a1) (real* a2) (real* a3) (real* b1) (real* b2) (real* b3) (real* csu) (real* snu) (real* csv) (real* snv) (real* csq) (real* snq)))
+
+(define-wrapper int slagtf_ ((integer* n) (real* a) (real* lambda) (real* b) (real* c__) (real* tol) (real* d__) (integer* in) (integer* info)))
+
+(define-wrapper int slagtm_ ((char* trans) (integer* n) (integer* nrhs) (real* alpha) (real* dl) (real* d__) (real* du) (real* x) (integer* ldx) (real* beta) (real* b) (integer* ldb)))
+
+(define-wrapper int slagts_ ((integer* job) (integer* n) (real* a) (real* b) (real* c__) (real* d__) (integer* in) (real* y) (real* tol) (integer* info)))
+
+(define-wrapper int slagv2_ ((real* a) (integer* lda) (real* b) (integer* ldb) (real* alphar) (real* alphai) (real* beta) (real* csl) (real* snl) (real* csr) (real* snr)))
+
+(define-wrapper int slahqr_ ((logical* wantt) (logical* wantz) (integer* n) (integer* ilo) (integer* ihi) (real* h__) (integer* ldh) (real* wr) (real* wi) (integer* iloz) (integer* ihiz) (real* z__) (integer* ldz) (integer* info)))
+
+(define-wrapper int slahrd_ ((integer* n) (integer* k) (integer* nb) (real* a) (integer* lda) (real* tau) (real* t) (integer* ldt) (real* y) (integer* ldy)))
+
+(define-wrapper int slaic1_ ((integer* job) (integer* j) (real* x) (real* sest) (real* w) (real* gamma) (real* sestpr) (real* s) (real* c__)))
+
+(define-wrapper int slaln2_ ((logical* ltrans) (integer* na) (integer* nw) (real* smin) (real* ca) (real* a) (integer* lda) (real* d1) (real* d2) (real* b) (integer* ldb) (real* wr) (real* wi) (real* x) (integer* ldx) (real* scale) (real* xnorm) (integer* info)))
+
+(define-wrapper int slals0_ ((integer* icompq) (integer* nl) (integer* nr) (integer* sqre) (integer* nrhs) (real* b) (integer* ldb) (real* bx) (integer* ldbx) (integer* perm) (integer* givptr) (integer* givcol) (integer* ldgcol) (real* givnum) (integer* ldgnum) (real* poles) (real* difl) (real* difr) (real* z__) (integer* k) (real* c__) (real* s) (real* work) (integer* info)))
+
+(define-wrapper int slalsa_ ((integer* icompq) (integer* smlsiz) (integer* n) (integer* nrhs) (real* b) (integer* ldb) (real* bx) (integer* ldbx) (real* u) (integer* ldu) (real* vt) (integer* k) (real* difl) (real* difr) (real* z__) (real* poles) (integer* givptr) (integer* givcol) (integer* ldgcol) (integer* perm) (real* givnum) (real* c__) (real* s) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int slalsd_ ((char* uplo) (integer* smlsiz) (integer* n) (integer* nrhs) (real* d__) (real* e) (real* b) (integer* ldb) (real* rcond) (integer* rank) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int slamc1_ ((integer* beta) (integer* t) (logical* rnd) (logical* ieee1)))
+
+(define-wrapper int slamc2_ ((integer* beta) (integer* t) (logical* rnd) (real* eps) (integer* emin) (real* rmin) (integer* emax) (real* rmax)))
+
+(define-wrapper int slamc4_ ((integer* emin) (real* start) (integer* base)))
+
+(define-wrapper int slamc5_ ((integer* beta) (integer* p) (integer* emin) (logical* ieee) (integer* emax) (real* rmax)))
+
+(define-wrapper int slamrg_ ((integer* n1) (integer* n2) (real* a) (integer* strd1) (integer* strd2) (integer* index)))
+
+(define-wrapper int slanv2_ ((real* a) (real* b) (real* c__) (real* d__) (real* rt1r) (real* rt1i) (real* rt2r) (real* rt2i) (real* cs) (real* sn)))
+
+(define-wrapper int slapll_ ((integer* n) (real* x) (integer* incx) (real* y) (integer* incy) (real* ssmin)))
+
+(define-wrapper int slapmt_ ((logical* forwrd) (integer* m) (integer* n) (real* x) (integer* ldx) (integer* k)))
+
+(define-wrapper int slaqgb_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (real* ab) (integer* ldab) (real* r__) (real* c__) (real* rowcnd) (real* colcnd) (real* amax) (char* equed)))
+
+(define-wrapper int slaqge_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* r__) (real* c__) (real* rowcnd) (real* colcnd) (real* amax) (char* equed)))
+
+(define-wrapper int slaqp2_ ((integer* m) (integer* n) (integer* offset) (real* a) (integer* lda) (integer* jpvt) (real* tau) (real* vn1) (real* vn2) (real* work)))
+
+(define-wrapper int slaqps_ ((integer* m) (integer* n) (integer* offset) (integer* nb) (integer* kb) (real* a) (integer* lda) (integer* jpvt) (real* tau) (real* vn1) (real* vn2) (real* auxv) (real* f) (integer* ldf)))
+
+(define-wrapper int slaqsb_ ((char* uplo) (integer* n) (integer* kd) (real* ab) (integer* ldab) (real* s) (real* scond) (real* amax) (char* equed)))
+
+(define-wrapper int slaqsp_ ((char* uplo) (integer* n) (real* ap) (real* s) (real* scond) (real* amax) (char* equed)))
+
+(define-wrapper int slaqsy_ ((char* uplo) (integer* n) (real* a) (integer* lda) (real* s) (real* scond) (real* amax) (char* equed)))
+
+(define-wrapper int slaqtr_ ((logical* ltran) (logical* lreal) (integer* n) (real* t) (integer* ldt) (real* b) (real* w) (real* scale) (real* x) (real* work) (integer* info)))
+
+(define-wrapper int slar1v_ ((integer* n) (integer* b1) (integer* bn) (real* sigma) (real* d__) (real* l) (real* ld) (real* lld) (real* gersch) (real* z__) (real* ztz) (real* mingma) (integer* r__) (integer* isuppz) (real* work)))
+
+(define-wrapper int slar2v_ ((integer* n) (real* x) (real* y) (real* z__) (integer* incx) (real* c__) (real* s) (integer* incc)))
+
+(define-wrapper int slarf_ ((char* side) (integer* m) (integer* n) (real* v) (integer* incv) (real* tau) (real* c__) (integer* ldc) (real* work)))
+
+(define-wrapper int slarfb_ ((char* side) (char* trans) (char* direct) (char* storev) (integer* m) (integer* n) (integer* k) (real* v) (integer* ldv) (real* t) (integer* ldt) (real* c__) (integer* ldc) (real* work) (integer* ldwork)))
+
+(define-wrapper int slarfg_ ((integer* n) (real* alpha) (real* x) (integer* incx) (real* tau)))
+
+(define-wrapper int slarft_ ((char* direct) (char* storev) (integer* n) (integer* k) (real* v) (integer* ldv) (real* tau) (real* t) (integer* ldt)))
+
+(define-wrapper int slarfx_ ((char* side) (integer* m) (integer* n) (real* v) (real* tau) (real* c__) (integer* ldc) (real* work)))
+
+(define-wrapper int slargv_ ((integer* n) (real* x) (integer* incx) (real* y) (integer* incy) (real* c__) (integer* incc)))
+
+(define-wrapper int slarnv_ ((integer* idist) (integer* iseed) (integer* n) (real* x)))
+
+(define-wrapper int slarrb_ ((integer* n) (real* d__) (real* l) (real* ld) (real* lld) (integer* ifirst) (integer* ilast) (real* sigma) (real* reltol) (real* w) (real* wgap) (real* werr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int slarre_ ((integer* n) (real* d__) (real* e) (real* tol) (integer* nsplit) (integer* isplit) (integer* m) (real* w) (real* woff) (real* gersch) (real* work) (integer* info)))
+
+(define-wrapper int slarrf_ ((integer* n) (real* d__) (real* l) (real* ld) (real* lld) (integer* ifirst) (integer* ilast) (real* w) (real* dplus) (real* lplus) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int slarrv_ ((integer* n) (real* d__) (real* l) (integer* isplit) (integer* m) (real* w) (integer* iblock) (real* gersch) (real* tol) (real* z__) (integer* ldz) (integer* isuppz) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int slartg_ ((real* f) (real* g) (real* cs) (real* sn) (real* r__)))
+
+(define-wrapper int slartv_ ((integer* n) (real* x) (integer* incx) (real* y) (integer* incy) (real* c__) (real* s) (integer* incc)))
+
+(define-wrapper int slaruv_ ((integer* iseed) (integer* n) (real* x)))
+
+(define-wrapper int slarz_ ((char* side) (integer* m) (integer* n) (integer* l) (real* v) (integer* incv) (real* tau) (real* c__) (integer* ldc) (real* work)))
+
+(define-wrapper int slarzb_ ((char* side) (char* trans) (char* direct) (char* storev) (integer* m) (integer* n) (integer* k) (integer* l) (real* v) (integer* ldv) (real* t) (integer* ldt) (real* c__) (integer* ldc) (real* work) (integer* ldwork)))
+
+(define-wrapper int slarzt_ ((char* direct) (char* storev) (integer* n) (integer* k) (real* v) (integer* ldv) (real* tau) (real* t) (integer* ldt)))
+
+(define-wrapper int slas2_ ((real* f) (real* g) (real* h__) (real* ssmin) (real* ssmax)))
+
+(define-wrapper int slascl_ ((char* type__) (integer* kl) (integer* ku) (real* cfrom) (real* cto) (integer* m) (integer* n) (real* a) (integer* lda) (integer* info)))
+
+(define-wrapper int slasd0_ ((integer* n) (integer* sqre) (real* d__) (real* e) (real* u) (integer* ldu) (real* vt) (integer* ldvt) (integer* smlsiz) (integer* iwork) (real* work) (integer* info)))
+
+(define-wrapper int slasd1_ ((integer* nl) (integer* nr) (integer* sqre) (real* d__) (real* alpha) (real* beta) (real* u) (integer* ldu) (real* vt) (integer* ldvt) (integer* idxq) (integer* iwork) (real* work) (integer* info)))
+
+(define-wrapper int slasd2_ ((integer* nl) (integer* nr) (integer* sqre) (integer* k) (real* d__) (real* z__) (real* alpha) (real* beta) (real* u) (integer* ldu) (real* vt) (integer* ldvt) (real* dsigma) (real* u2) (integer* ldu2) (real* vt2) (integer* ldvt2) (integer* idxp) (integer* idx) (integer* idxc) (integer* idxq) (integer* coltyp) (integer* info)))
+
+(define-wrapper int slasd3_ ((integer* nl) (integer* nr) (integer* sqre) (integer* k) (real* d__) (real* q) (integer* ldq) (real* dsigma) (real* u) (integer* ldu) (real* u2) (integer* ldu2) (real* vt) (integer* ldvt) (real* vt2) (integer* ldvt2) (integer* idxc) (integer* ctot) (real* z__) (integer* info)))
+
+(define-wrapper int slasd4_ ((integer* n) (integer* i__) (real* d__) (real* z__) (real* delta) (real* rho) (real* sigma) (real* work) (integer* info)))
+
+(define-wrapper int slasd5_ ((integer* i__) (real* d__) (real* z__) (real* delta) (real* rho) (real* dsigma) (real* work)))
+
+(define-wrapper int slasd6_ ((integer* icompq) (integer* nl) (integer* nr) (integer* sqre) (real* d__) (real* vf) (real* vl) (real* alpha) (real* beta) (integer* idxq) (integer* perm) (integer* givptr) (integer* givcol) (integer* ldgcol) (real* givnum) (integer* ldgnum) (real* poles) (real* difl) (real* difr) (real* z__) (integer* k) (real* c__) (real* s) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int slasd7_ ((integer* icompq) (integer* nl) (integer* nr) (integer* sqre) (integer* k) (real* d__) (real* z__) (real* zw) (real* vf) (real* vfw) (real* vl) (real* vlw) (real* alpha) (real* beta) (real* dsigma) (integer* idx) (integer* idxp) (integer* idxq) (integer* perm) (integer* givptr) (integer* givcol) (integer* ldgcol) (real* givnum) (integer* ldgnum) (real* c__) (real* s) (integer* info)))
+
+(define-wrapper int slasd8_ ((integer* icompq) (integer* k) (real* d__) (real* z__) (real* vf) (real* vl) (real* difl) (real* difr) (integer* lddifr) (real* dsigma) (real* work) (integer* info)))
+
+(define-wrapper int slasd9_ ((integer* icompq) (integer* ldu) (integer* k) (real* d__) (real* z__) (real* vf) (real* vl) (real* difl) (real* difr) (real* dsigma) (real* work) (integer* info)))
+
+(define-wrapper int slasda_ ((integer* icompq) (integer* smlsiz) (integer* n) (integer* sqre) (real* d__) (real* e) (real* u) (integer* ldu) (real* vt) (integer* k) (real* difl) (real* difr) (real* z__) (real* poles) (integer* givptr) (integer* givcol) (integer* ldgcol) (integer* perm) (real* givnum) (real* c__) (real* s) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int slasdq_ ((char* uplo) (integer* sqre) (integer* n) (integer* ncvt) (integer* nru) (integer* ncc) (real* d__) (real* e) (real* vt) (integer* ldvt) (real* u) (integer* ldu) (real* c__) (integer* ldc) (real* work) (integer* info)))
+
+(define-wrapper int slasdt_ ((integer* n) (integer* lvl) (integer* nd) (integer* inode) (integer* ndiml) (integer* ndimr) (integer* msub)))
+
+(define-wrapper int slaset_ ((char* uplo) (integer* m) (integer* n) (real* alpha) (real* beta) (real* a) (integer* lda)))
+
+(define-wrapper int slasq1_ ((integer* n) (real* d__) (real* e) (real* work) (integer* info)))
+
+(define-wrapper int slasq2_ ((integer* n) (real* z__) (integer* info)))
+
+(define-wrapper int slasq3_ ((integer* i0) (integer* n0) (real* z__) (integer* pp) (real* dmin__) (real* sigma) (real* desig) (real* qmax) (integer* nfail) (integer* iter) (integer* ndiv) (logical* ieee)))
+
+(define-wrapper int slasq4_ ((integer* i0) (integer* n0) (real* z__) (integer* pp) (integer* n0in) (real* dmin__) (real* dmin1) (real* dmin2) (real* dn) (real* dn1) (real* dn2) (real* tau) (integer* ttype)))
+
+(define-wrapper int slasq5_ ((integer* i0) (integer* n0) (real* z__) (integer* pp) (real* tau) (real* dmin__) (real* dmin1) (real* dmin2) (real* dn) (real* dnm1) (real* dnm2) (logical* ieee)))
+
+(define-wrapper int slasq6_ ((integer* i0) (integer* n0) (real* z__) (integer* pp) (real* dmin__) (real* dmin1) (real* dmin2) (real* dn) (real* dnm1) (real* dnm2)))
+
+(define-wrapper int slasr_ ((char* side) (char* pivot) (char* direct) (integer* m) (integer* n) (real* c__) (real* s) (real* a) (integer* lda)))
+
+(define-wrapper int slasrt_ ((char* id) (integer* n) (real* d__) (integer* info)))
+
+(define-wrapper int slassq_ ((integer* n) (real* x) (integer* incx) (real* scale) (real* sumsq)))
+
+(define-wrapper int slasv2_ ((real* f) (real* g) (real* h__) (real* ssmin) (real* ssmax) (real* snr) (real* csr) (real* snl) (real* csl)))
+
+(define-wrapper int slaswp_ ((integer* n) (real* a) (integer* lda) (integer* k1) (integer* k2) (integer* ipiv) (integer* incx)))
+
+(define-wrapper int slasy2_ ((logical* ltranl) (logical* ltranr) (integer* isgn) (integer* n1) (integer* n2) (real* tl) (integer* ldtl) (real* tr) (integer* ldtr) (real* b) (integer* ldb) (real* scale) (real* x) (integer* ldx) (real* xnorm) (integer* info)))
+
+(define-wrapper int slasyf_ ((char* uplo) (integer* n) (integer* nb) (integer* kb) (real* a) (integer* lda) (integer* ipiv) (real* w) (integer* ldw) (integer* info)))
+
+(define-wrapper int slatbs_ ((char* uplo) (char* trans) (char* diag) (char* normin) (integer* n) (integer* kd) (real* ab) (integer* ldab) (real* x) (real* scale) (real* cnorm) (integer* info)))
+
+(define-wrapper int slatdf_ ((integer* ijob) (integer* n) (real* z__) (integer* ldz) (real* rhs) (real* rdsum) (real* rdscal) (integer* ipiv) (integer* jpiv)))
+
+(define-wrapper int slatps_ ((char* uplo) (char* trans) (char* diag) (char* normin) (integer* n) (real* ap) (real* x) (real* scale) (real* cnorm) (integer* info)))
+
+(define-wrapper int slatrd_ ((char* uplo) (integer* n) (integer* nb) (real* a) (integer* lda) (real* e) (real* tau) (real* w) (integer* ldw)))
+
+(define-wrapper int slatrs_ ((char* uplo) (char* trans) (char* diag) (char* normin) (integer* n) (real* a) (integer* lda) (real* x) (real* scale) (real* cnorm) (integer* info)))
+
+(define-wrapper int slatrz_ ((integer* m) (integer* n) (integer* l) (real* a) (integer* lda) (real* tau) (real* work)))
+
+(define-wrapper int slatzm_ ((char* side) (integer* m) (integer* n) (real* v) (integer* incv) (real* tau) (real* c1) (real* c2) (integer* ldc) (real* work)))
+
+(define-wrapper int slauu2_ ((char* uplo) (integer* n) (real* a) (integer* lda) (integer* info)))
+
+(define-wrapper int slauum_ ((char* uplo) (integer* n) (real* a) (integer* lda) (integer* info)))
+
+(define-wrapper int sopgtr_ ((char* uplo) (integer* n) (real* ap) (real* tau) (real* q) (integer* ldq) (real* work) (integer* info)))
+
+(define-wrapper int sopmtr_ ((char* side) (char* uplo) (char* trans) (integer* m) (integer* n) (real* ap) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* info)))
+
+(define-wrapper int sorg2l_ ((integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* work) (integer* info)))
+
+(define-wrapper int sorg2r_ ((integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* work) (integer* info)))
+
+(define-wrapper int sorgbr_ ((char* vect) (integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sorghr_ ((integer* n) (integer* ilo) (integer* ihi) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sorgl2_ ((integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* work) (integer* info)))
+
+(define-wrapper int sorglq_ ((integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sorgql_ ((integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sorgqr_ ((integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sorgr2_ ((integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* work) (integer* info)))
+
+(define-wrapper int sorgrq_ ((integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sorgtr_ ((char* uplo) (integer* n) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sorm2l_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* info)))
+
+(define-wrapper int sorm2r_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* info)))
+
+(define-wrapper int sormbr_ ((char* vect) (char* side) (char* trans) (integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sormhr_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* ilo) (integer* ihi) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sorml2_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* info)))
+
+(define-wrapper int sormlq_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sormql_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sormqr_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sormr2_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* info)))
+
+(define-wrapper int sormr3_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (integer* l) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* info)))
+
+(define-wrapper int sormrq_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sormrz_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (integer* l) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int sormtr_ ((char* side) (char* uplo) (char* trans) (integer* m) (integer* n) (real* a) (integer* lda) (real* tau) (real* c__) (integer* ldc) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int spbcon_ ((char* uplo) (integer* n) (integer* kd) (real* ab) (integer* ldab) (real* anorm) (real* rcond) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int spbequ_ ((char* uplo) (integer* n) (integer* kd) (real* ab) (integer* ldab) (real* s) (real* scond) (real* amax) (integer* info)))
+
+(define-wrapper int spbrfs_ ((char* uplo) (integer* n) (integer* kd) (integer* nrhs) (real* ab) (integer* ldab) (real* afb) (integer* ldafb) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int spbstf_ ((char* uplo) (integer* n) (integer* kd) (real* ab) (integer* ldab) (integer* info)))
+
+(define-wrapper int spbsv_ ((char* uplo) (integer* n) (integer* kd) (integer* nrhs) (real* ab) (integer* ldab) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int spbsvx_ ((char* fact) (char* uplo) (integer* n) (integer* kd) (integer* nrhs) (real* ab) (integer* ldab) (real* afb) (integer* ldafb) (char* equed) (real* s) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int spbtf2_ ((char* uplo) (integer* n) (integer* kd) (real* ab) (integer* ldab) (integer* info)))
+
+(define-wrapper int spbtrf_ ((char* uplo) (integer* n) (integer* kd) (real* ab) (integer* ldab) (integer* info)))
+
+(define-wrapper int spbtrs_ ((char* uplo) (integer* n) (integer* kd) (integer* nrhs) (real* ab) (integer* ldab) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int spocon_ ((char* uplo) (integer* n) (real* a) (integer* lda) (real* anorm) (real* rcond) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int spoequ_ ((integer* n) (real* a) (integer* lda) (real* s) (real* scond) (real* amax) (integer* info)))
+
+(define-wrapper int sporfs_ ((char* uplo) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* af) (integer* ldaf) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sposv_ ((char* uplo) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sposvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* af) (integer* ldaf) (char* equed) (real* s) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int spotf2_ ((char* uplo) (integer* n) (real* a) (integer* lda) (integer* info)))
+
+(define-wrapper int spotrf_ ((char* uplo) (integer* n) (real* a) (integer* lda) (integer* info)))
+
+(define-wrapper int spotri_ ((char* uplo) (integer* n) (real* a) (integer* lda) (integer* info)))
+
+(define-wrapper int spotrs_ ((char* uplo) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sppcon_ ((char* uplo) (integer* n) (real* ap) (real* anorm) (real* rcond) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sppequ_ ((char* uplo) (integer* n) (real* ap) (real* s) (real* scond) (real* amax) (integer* info)))
+
+(define-wrapper int spprfs_ ((char* uplo) (integer* n) (integer* nrhs) (real* ap) (real* afp) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sppsv_ ((char* uplo) (integer* n) (integer* nrhs) (real* ap) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sppsvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (real* ap) (real* afp) (char* equed) (real* s) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int spptrf_ ((char* uplo) (integer* n) (real* ap) (integer* info)))
+
+(define-wrapper int spptri_ ((char* uplo) (integer* n) (real* ap) (integer* info)))
+
+(define-wrapper int spptrs_ ((char* uplo) (integer* n) (integer* nrhs) (real* ap) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sptcon_ ((integer* n) (real* d__) (real* e) (real* anorm) (real* rcond) (real* work) (integer* info)))
+
+(define-wrapper int spteqr_ ((char* compz) (integer* n) (real* d__) (real* e) (real* z__) (integer* ldz) (real* work) (integer* info)))
+
+(define-wrapper int sptrfs_ ((integer* n) (integer* nrhs) (real* d__) (real* e) (real* df) (real* ef) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* ferr) (real* berr) (real* work) (integer* info)))
+
+(define-wrapper int sptsv_ ((integer* n) (integer* nrhs) (real* d__) (real* e) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sptsvx_ ((char* fact) (integer* n) (integer* nrhs) (real* d__) (real* e) (real* df) (real* ef) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (real* work) (integer* info)))
+
+(define-wrapper int spttrf_ ((integer* n) (real* d__) (real* e) (integer* info)))
+
+(define-wrapper int spttrs_ ((integer* n) (integer* nrhs) (real* d__) (real* e) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sptts2_ ((integer* n) (integer* nrhs) (real* d__) (real* e) (real* b) (integer* ldb)))
+
+(define-wrapper int srscl_ ((integer* n) (real* sa) (real* sx) (integer* incx)))
+
+(define-wrapper int ssbev_ ((char* jobz) (char* uplo) (integer* n) (integer* kd) (real* ab) (integer* ldab) (real* w) (real* z__) (integer* ldz) (real* work) (integer* info)))
+
+(define-wrapper int ssbevd_ ((char* jobz) (char* uplo) (integer* n) (integer* kd) (real* ab) (integer* ldab) (real* w) (real* z__) (integer* ldz) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int ssbevx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (integer* kd) (real* ab) (integer* ldab) (real* q) (integer* ldq) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (real* z__) (integer* ldz) (real* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int ssbgst_ ((char* vect) (char* uplo) (integer* n) (integer* ka) (integer* kb) (real* ab) (integer* ldab) (real* bb) (integer* ldbb) (real* x) (integer* ldx) (real* work) (integer* info)))
+
+(define-wrapper int ssbgv_ ((char* jobz) (char* uplo) (integer* n) (integer* ka) (integer* kb) (real* ab) (integer* ldab) (real* bb) (integer* ldbb) (real* w) (real* z__) (integer* ldz) (real* work) (integer* info)))
+
+(define-wrapper int ssbgvd_ ((char* jobz) (char* uplo) (integer* n) (integer* ka) (integer* kb) (real* ab) (integer* ldab) (real* bb) (integer* ldbb) (real* w) (real* z__) (integer* ldz) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int ssbgvx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (integer* ka) (integer* kb) (real* ab) (integer* ldab) (real* bb) (integer* ldbb) (real* q) (integer* ldq) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (real* z__) (integer* ldz) (real* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int ssbtrd_ ((char* vect) (char* uplo) (integer* n) (integer* kd) (real* ab) (integer* ldab) (real* d__) (real* e) (real* q) (integer* ldq) (real* work) (integer* info)))
+
+(define-wrapper int sspcon_ ((char* uplo) (integer* n) (real* ap) (integer* ipiv) (real* anorm) (real* rcond) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sspev_ ((char* jobz) (char* uplo) (integer* n) (real* ap) (real* w) (real* z__) (integer* ldz) (real* work) (integer* info)))
+
+(define-wrapper int sspevd_ ((char* jobz) (char* uplo) (integer* n) (real* ap) (real* w) (real* z__) (integer* ldz) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int sspevx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (real* ap) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (real* z__) (integer* ldz) (real* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int sspgst_ ((integer* itype) (char* uplo) (integer* n) (real* ap) (real* bp) (integer* info)))
+
+(define-wrapper int sspgv_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (real* ap) (real* bp) (real* w) (real* z__) (integer* ldz) (real* work) (integer* info)))
+
+(define-wrapper int sspgvd_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (real* ap) (real* bp) (real* w) (real* z__) (integer* ldz) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int sspgvx_ ((integer* itype) (char* jobz) (char* range) (char* uplo) (integer* n) (real* ap) (real* bp) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (real* z__) (integer* ldz) (real* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int ssprfs_ ((char* uplo) (integer* n) (integer* nrhs) (real* ap) (real* afp) (integer* ipiv) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sspsv_ ((char* uplo) (integer* n) (integer* nrhs) (real* ap) (integer* ipiv) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sspsvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (real* ap) (real* afp) (integer* ipiv) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int ssptrd_ ((char* uplo) (integer* n) (real* ap) (real* d__) (real* e) (real* tau) (integer* info)))
+
+(define-wrapper int ssptrf_ ((char* uplo) (integer* n) (real* ap) (integer* ipiv) (integer* info)))
+
+(define-wrapper int ssptri_ ((char* uplo) (integer* n) (real* ap) (integer* ipiv) (real* work) (integer* info)))
+
+(define-wrapper int ssptrs_ ((char* uplo) (integer* n) (integer* nrhs) (real* ap) (integer* ipiv) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int sstebz_ ((char* range) (char* order) (integer* n) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (real* d__) (real* e) (integer* m) (integer* nsplit) (real* w) (integer* iblock) (integer* isplit) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int sstedc_ ((char* compz) (integer* n) (real* d__) (real* e) (real* z__) (integer* ldz) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int sstegr_ ((char* jobz) (char* range) (integer* n) (real* d__) (real* e) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (real* z__) (integer* ldz) (integer* isuppz) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int sstein_ ((integer* n) (real* d__) (real* e) (integer* m) (real* w) (integer* iblock) (integer* isplit) (real* z__) (integer* ldz) (real* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int ssteqr_ ((char* compz) (integer* n) (real* d__) (real* e) (real* z__) (integer* ldz) (real* work) (integer* info)))
+
+(define-wrapper int ssterf_ ((integer* n) (real* d__) (real* e) (integer* info)))
+
+(define-wrapper int sstev_ ((char* jobz) (integer* n) (real* d__) (real* e) (real* z__) (integer* ldz) (real* work) (integer* info)))
+
+(define-wrapper int sstevd_ ((char* jobz) (integer* n) (real* d__) (real* e) (real* z__) (integer* ldz) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int sstevr_ ((char* jobz) (char* range) (integer* n) (real* d__) (real* e) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (real* z__) (integer* ldz) (integer* isuppz) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int sstevx_ ((char* jobz) (char* range) (integer* n) (real* d__) (real* e) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (real* z__) (integer* ldz) (real* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int ssycon_ ((char* uplo) (integer* n) (real* a) (integer* lda) (integer* ipiv) (real* anorm) (real* rcond) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int ssyev_ ((char* jobz) (char* uplo) (integer* n) (real* a) (integer* lda) (real* w) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int ssyevd_ ((char* jobz) (char* uplo) (integer* n) (real* a) (integer* lda) (real* w) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int ssyevr_ ((char* jobz) (char* range) (char* uplo) (integer* n) (real* a) (integer* lda) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (real* z__) (integer* ldz) (integer* isuppz) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int ssyevx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (real* a) (integer* lda) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (real* z__) (integer* ldz) (real* work) (integer* lwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int ssygs2_ ((integer* itype) (char* uplo) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int ssygst_ ((integer* itype) (char* uplo) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int ssygv_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* w) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int ssygvd_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* w) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int ssygvx_ ((integer* itype) (char* jobz) (char* range) (char* uplo) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* vl) (real* vu) (integer* il) (integer* iu) (real* abstol) (integer* m) (real* w) (real* z__) (integer* ldz) (real* work) (integer* lwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int ssyrfs_ ((char* uplo) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* af) (integer* ldaf) (integer* ipiv) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int ssysv_ ((char* uplo) (integer* n) (integer* nrhs) (real* a) (integer* lda) (integer* ipiv) (real* b) (integer* ldb) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int ssysvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* af) (integer* ldaf) (integer* ipiv) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (real* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int ssytd2_ ((char* uplo) (integer* n) (real* a) (integer* lda) (real* d__) (real* e) (real* tau) (integer* info)))
+
+(define-wrapper int ssytf2_ ((char* uplo) (integer* n) (real* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int ssytrd_ ((char* uplo) (integer* n) (real* a) (integer* lda) (real* d__) (real* e) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int ssytrf_ ((char* uplo) (integer* n) (real* a) (integer* lda) (integer* ipiv) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int ssytri_ ((char* uplo) (integer* n) (real* a) (integer* lda) (integer* ipiv) (real* work) (integer* info)))
+
+(define-wrapper int ssytrs_ ((char* uplo) (integer* n) (integer* nrhs) (real* a) (integer* lda) (integer* ipiv) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int stbcon_ ((char* norm) (char* uplo) (char* diag) (integer* n) (integer* kd) (real* ab) (integer* ldab) (real* rcond) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int stbrfs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* kd) (integer* nrhs) (real* ab) (integer* ldab) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int stbtrs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* kd) (integer* nrhs) (real* ab) (integer* ldab) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int stgevc_ ((char* side) (char* howmny) (logical* select) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* vl) (integer* ldvl) (real* vr) (integer* ldvr) (integer* mm) (integer* m) (real* work) (integer* info)))
+
+(define-wrapper int stgex2_ ((logical* wantq) (logical* wantz) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* q) (integer* ldq) (real* z__) (integer* ldz) (integer* j1) (integer* n1) (integer* n2) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int stgexc_ ((logical* wantq) (logical* wantz) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* q) (integer* ldq) (real* z__) (integer* ldz) (integer* ifst) (integer* ilst) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int stgsen_ ((integer* ijob) (logical* wantq) (logical* wantz) (logical* select) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* alphar) (real* alphai) (real* beta) (real* q) (integer* ldq) (real* z__) (integer* ldz) (integer* m) (real* pl) (real* pr) (real* dif) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int stgsja_ ((char* jobu) (char* jobv) (char* jobq) (integer* m) (integer* p) (integer* n) (integer* k) (integer* l) (real* a) (integer* lda) (real* b) (integer* ldb) (real* tola) (real* tolb) (real* alpha) (real* beta) (real* u) (integer* ldu) (real* v) (integer* ldv) (real* q) (integer* ldq) (real* work) (integer* ncycle) (integer* info)))
+
+(define-wrapper int stgsna_ ((char* job) (char* howmny) (logical* select) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* vl) (integer* ldvl) (real* vr) (integer* ldvr) (real* s) (real* dif) (integer* mm) (integer* m) (real* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int stgsy2_ ((char* trans) (integer* ijob) (integer* m) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* c__) (integer* ldc) (real* d__) (integer* ldd) (real* e) (integer* lde) (real* f) (integer* ldf) (real* scale) (real* rdsum) (real* rdscal) (integer* iwork) (integer* pq) (integer* info)))
+
+(define-wrapper int stgsyl_ ((char* trans) (integer* ijob) (integer* m) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* c__) (integer* ldc) (real* d__) (integer* ldd) (real* e) (integer* lde) (real* f) (integer* ldf) (real* scale) (real* dif) (real* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int stpcon_ ((char* norm) (char* uplo) (char* diag) (integer* n) (real* ap) (real* rcond) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int stprfs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (real* ap) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int stptri_ ((char* uplo) (char* diag) (integer* n) (real* ap) (integer* info)))
+
+(define-wrapper int stptrs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (real* ap) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int strcon_ ((char* norm) (char* uplo) (char* diag) (integer* n) (real* a) (integer* lda) (real* rcond) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int strevc_ ((char* side) (char* howmny) (logical* select) (integer* n) (real* t) (integer* ldt) (real* vl) (integer* ldvl) (real* vr) (integer* ldvr) (integer* mm) (integer* m) (real* work) (integer* info)))
+
+(define-wrapper int strexc_ ((char* compq) (integer* n) (real* t) (integer* ldt) (real* q) (integer* ldq) (integer* ifst) (integer* ilst) (real* work) (integer* info)))
+
+(define-wrapper int strrfs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* b) (integer* ldb) (real* x) (integer* ldx) (real* ferr) (real* berr) (real* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int strsen_ ((char* job) (char* compq) (logical* select) (integer* n) (real* t) (integer* ldt) (real* q) (integer* ldq) (real* wr) (real* wi) (integer* m) (real* s) (real* sep) (real* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int strsna_ ((char* job) (char* howmny) (logical* select) (integer* n) (real* t) (integer* ldt) (real* vl) (integer* ldvl) (real* vr) (integer* ldvr) (real* s) (real* sep) (integer* mm) (integer* m) (real* work) (integer* ldwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int strsyl_ ((char* trana) (char* tranb) (integer* isgn) (integer* m) (integer* n) (real* a) (integer* lda) (real* b) (integer* ldb) (real* c__) (integer* ldc) (real* scale) (integer* info)))
+
+(define-wrapper int strti2_ ((char* uplo) (char* diag) (integer* n) (real* a) (integer* lda) (integer* info)))
+
+(define-wrapper int strtri_ ((char* uplo) (char* diag) (integer* n) (real* a) (integer* lda) (integer* info)))
+
+(define-wrapper int strtrs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (real* a) (integer* lda) (real* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int stzrqf_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* tau) (integer* info)))
+
+(define-wrapper int stzrzf_ ((integer* m) (integer* n) (real* a) (integer* lda) (real* tau) (real* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int xerbla_ ((char* srname) (integer* info)))
+
+(define-wrapper int zbdsqr_ ((char* uplo) (integer* n) (integer* ncvt) (integer* nru) (integer* ncc) (doublereal* d__) (doublereal* e) (doublecomplex* vt) (integer* ldvt) (doublecomplex* u) (integer* ldu) (doublecomplex* c__) (integer* ldc) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zdrot_ ((integer* n) (doublecomplex* cx) (integer* incx) (doublecomplex* cy) (integer* incy) (doublereal* c__) (doublereal* s)))
+
+(define-wrapper int zdrscl_ ((integer* n) (doublereal* sa) (doublecomplex* sx) (integer* incx)))
+
+(define-wrapper int zgbbrd_ ((char* vect) (integer* m) (integer* n) (integer* ncc) (integer* kl) (integer* ku) (doublecomplex* ab) (integer* ldab) (doublereal* d__) (doublereal* e) (doublecomplex* q) (integer* ldq) (doublecomplex* pt) (integer* ldpt) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgbcon_ ((char* norm) (integer* n) (integer* kl) (integer* ku) (doublecomplex* ab) (integer* ldab) (integer* ipiv) (doublereal* anorm) (doublereal* rcond) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgbequ_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (doublecomplex* ab) (integer* ldab) (doublereal* r__) (doublereal* c__) (doublereal* rowcnd) (doublereal* colcnd) (doublereal* amax) (integer* info)))
+
+(define-wrapper int zgbrfs_ ((char* trans) (integer* n) (integer* kl) (integer* ku) (integer* nrhs) (doublecomplex* ab) (integer* ldab) (doublecomplex* afb) (integer* ldafb) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgbsv_ ((integer* n) (integer* kl) (integer* ku) (integer* nrhs) (doublecomplex* ab) (integer* ldab) (integer* ipiv) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zgbsvx_ ((char* fact) (char* trans) (integer* n) (integer* kl) (integer* ku) (integer* nrhs) (doublecomplex* ab) (integer* ldab) (doublecomplex* afb) (integer* ldafb) (integer* ipiv) (char* equed) (doublereal* r__) (doublereal* c__) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgbtf2_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (doublecomplex* ab) (integer* ldab) (integer* ipiv) (integer* info)))
+
+(define-wrapper int zgbtrf_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (doublecomplex* ab) (integer* ldab) (integer* ipiv) (integer* info)))
+
+(define-wrapper int zgbtrs_ ((char* trans) (integer* n) (integer* kl) (integer* ku) (integer* nrhs) (doublecomplex* ab) (integer* ldab) (integer* ipiv) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zgebak_ ((char* job) (char* side) (integer* n) (integer* ilo) (integer* ihi) (doublereal* scale) (integer* m) (doublecomplex* v) (integer* ldv) (integer* info)))
+
+(define-wrapper int zgebal_ ((char* job) (integer* n) (doublecomplex* a) (integer* lda) (integer* ilo) (integer* ihi) (doublereal* scale) (integer* info)))
+
+(define-wrapper int zgebd2_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* d__) (doublereal* e) (doublecomplex* tauq) (doublecomplex* taup) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zgebrd_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* d__) (doublereal* e) (doublecomplex* tauq) (doublecomplex* taup) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zgecon_ ((char* norm) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* anorm) (doublereal* rcond) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgeequ_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* r__) (doublereal* c__) (doublereal* rowcnd) (doublereal* colcnd) (doublereal* amax) (integer* info)))
+
+(define-wrapper int zgees_ ((char* jobvs) (char* sort) (L_fp select) (integer* n) (doublecomplex* a) (integer* lda) (integer* sdim) (doublecomplex* w) (doublecomplex* vs) (integer* ldvs) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int zgeesx_ ((char* jobvs) (char* sort) (L_fp select) (char* sense) (integer* n) (doublecomplex* a) (integer* lda) (integer* sdim) (doublecomplex* w) (doublecomplex* vs) (integer* ldvs) (doublereal* rconde) (doublereal* rcondv) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int zgeev_ ((char* jobvl) (char* jobvr) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* w) (doublecomplex* vl) (integer* ldvl) (doublecomplex* vr) (integer* ldvr) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgeevx_ ((char* balanc) (char* jobvl) (char* jobvr) (char* sense) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* w) (doublecomplex* vl) (integer* ldvl) (doublecomplex* vr) (integer* ldvr) (integer* ilo) (integer* ihi) (doublereal* scale) (doublereal* abnrm) (doublereal* rconde) (doublereal* rcondv) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgegs_ ((char* jobvsl) (char* jobvsr) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* alpha) (doublecomplex* beta) (doublecomplex* vsl) (integer* ldvsl) (doublecomplex* vsr) (integer* ldvsr) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgegv_ ((char* jobvl) (char* jobvr) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* alpha) (doublecomplex* beta) (doublecomplex* vl) (integer* ldvl) (doublecomplex* vr) (integer* ldvr) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgehd2_ ((integer* n) (integer* ilo) (integer* ihi) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zgehrd_ ((integer* n) (integer* ilo) (integer* ihi) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zgelq2_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zgelqf_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zgels_ ((char* trans) (integer* m) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zgelsx_ ((integer* m) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (integer* jpvt) (doublereal* rcond) (integer* rank) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgelsy_ ((integer* m) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (integer* jpvt) (doublereal* rcond) (integer* rank) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgeql2_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zgeqlf_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zgeqp3_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (integer* jpvt) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgeqpf_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (integer* jpvt) (doublecomplex* tau) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgeqr2_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zgeqrf_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zgerfs_ ((char* trans) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* af) (integer* ldaf) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgerq2_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zgerqf_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zgesc2_ ((integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* rhs) (integer* ipiv) (integer* jpiv) (doublereal* scale)))
+
+(define-wrapper int zgesv_ ((integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zgesvx_ ((char* fact) (char* trans) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* af) (integer* ldaf) (integer* ipiv) (char* equed) (doublereal* r__) (doublereal* c__) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgetc2_ ((integer* n) (doublecomplex* a) (integer* lda) (integer* ipiv) (integer* jpiv) (integer* info)))
+
+(define-wrapper int zgetf2_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int zgetrf_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int zgetri_ ((integer* n) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zgetrs_ ((char* trans) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zggbak_ ((char* job) (char* side) (integer* n) (integer* ilo) (integer* ihi) (doublereal* lscale) (doublereal* rscale) (integer* m) (doublecomplex* v) (integer* ldv) (integer* info)))
+
+(define-wrapper int zggbal_ ((char* job) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (integer* ilo) (integer* ihi) (doublereal* lscale) (doublereal* rscale) (doublereal* work) (integer* info)))
+
+(define-wrapper int zgges_ ((char* jobvsl) (char* jobvsr) (char* sort) (L_fp delctg) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (integer* sdim) (doublecomplex* alpha) (doublecomplex* beta) (doublecomplex* vsl) (integer* ldvsl) (doublecomplex* vsr) (integer* ldvsr) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int zggesx_ ((char* jobvsl) (char* jobvsr) (char* sort) (L_fp delctg) (char* sense) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (integer* sdim) (doublecomplex* alpha) (doublecomplex* beta) (doublecomplex* vsl) (integer* ldvsl) (doublecomplex* vsr) (integer* ldvsr) (doublereal* rconde) (doublereal* rcondv) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* iwork) (integer* liwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int zggev_ ((char* jobvl) (char* jobvr) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* alpha) (doublecomplex* beta) (doublecomplex* vl) (integer* ldvl) (doublecomplex* vr) (integer* ldvr) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zggevx_ ((char* balanc) (char* jobvl) (char* jobvr) (char* sense) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* alpha) (doublecomplex* beta) (doublecomplex* vl) (integer* ldvl) (doublecomplex* vr) (integer* ldvr) (integer* ilo) (integer* ihi) (doublereal* lscale) (doublereal* rscale) (doublereal* abnrm) (doublereal* bbnrm) (doublereal* rconde) (doublereal* rcondv) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* iwork) (logical* bwork) (integer* info)))
+
+(define-wrapper int zggglm_ ((integer* n) (integer* m) (integer* p) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* d__) (doublecomplex* x) (doublecomplex* y) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zgghrd_ ((char* compq) (char* compz) (integer* n) (integer* ilo) (integer* ihi) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* q) (integer* ldq) (doublecomplex* z__) (integer* ldz) (integer* info)))
+
+(define-wrapper int zgglse_ ((integer* m) (integer* n) (integer* p) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* c__) (doublecomplex* d__) (doublecomplex* x) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zggqrf_ ((integer* n) (integer* m) (integer* p) (doublecomplex* a) (integer* lda) (doublecomplex* taua) (doublecomplex* b) (integer* ldb) (doublecomplex* taub) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zggrqf_ ((integer* m) (integer* p) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* taua) (doublecomplex* b) (integer* ldb) (doublecomplex* taub) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zggsvd_ ((char* jobu) (char* jobv) (char* jobq) (integer* m) (integer* n) (integer* p) (integer* k) (integer* l) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublereal* alpha) (doublereal* beta) (doublecomplex* u) (integer* ldu) (doublecomplex* v) (integer* ldv) (doublecomplex* q) (integer* ldq) (doublecomplex* work) (doublereal* rwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int zggsvp_ ((char* jobu) (char* jobv) (char* jobq) (integer* m) (integer* p) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublereal* tola) (doublereal* tolb) (integer* k) (integer* l) (doublecomplex* u) (integer* ldu) (doublecomplex* v) (integer* ldv) (doublecomplex* q) (integer* ldq) (integer* iwork) (doublereal* rwork) (doublecomplex* tau) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zgtcon_ ((char* norm) (integer* n) (doublecomplex* dl) (doublecomplex* d__) (doublecomplex* du) (doublecomplex* du2) (integer* ipiv) (doublereal* anorm) (doublereal* rcond) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zgtrfs_ ((char* trans) (integer* n) (integer* nrhs) (doublecomplex* dl) (doublecomplex* d__) (doublecomplex* du) (doublecomplex* dlf) (doublecomplex* df) (doublecomplex* duf) (doublecomplex* du2) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgtsv_ ((integer* n) (integer* nrhs) (doublecomplex* dl) (doublecomplex* d__) (doublecomplex* du) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zgtsvx_ ((char* fact) (char* trans) (integer* n) (integer* nrhs) (doublecomplex* dl) (doublecomplex* d__) (doublecomplex* du) (doublecomplex* dlf) (doublecomplex* df) (doublecomplex* duf) (doublecomplex* du2) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zgttrf_ ((integer* n) (doublecomplex* dl) (doublecomplex* d__) (doublecomplex* du) (doublecomplex* du2) (integer* ipiv) (integer* info)))
+
+(define-wrapper int zgttrs_ ((char* trans) (integer* n) (integer* nrhs) (doublecomplex* dl) (doublecomplex* d__) (doublecomplex* du) (doublecomplex* du2) (integer* ipiv) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zgtts2_ ((integer* itrans) (integer* n) (integer* nrhs) (doublecomplex* dl) (doublecomplex* d__) (doublecomplex* du) (doublecomplex* du2) (integer* ipiv) (doublecomplex* b) (integer* ldb)))
+
+(define-wrapper int zhbev_ ((char* jobz) (char* uplo) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zhbevd_ ((char* jobz) (char* uplo) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int zhbevx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (doublecomplex* q) (integer* ldq) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (doublereal* rwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int zhbgst_ ((char* vect) (char* uplo) (integer* n) (integer* ka) (integer* kb) (doublecomplex* ab) (integer* ldab) (doublecomplex* bb) (integer* ldbb) (doublecomplex* x) (integer* ldx) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zhbgv_ ((char* jobz) (char* uplo) (integer* n) (integer* ka) (integer* kb) (doublecomplex* ab) (integer* ldab) (doublecomplex* bb) (integer* ldbb) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zhbgvx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (integer* ka) (integer* kb) (doublecomplex* ab) (integer* ldab) (doublecomplex* bb) (integer* ldbb) (doublecomplex* q) (integer* ldq) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (doublereal* rwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int zhbtrd_ ((char* vect) (char* uplo) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (doublereal* d__) (doublereal* e) (doublecomplex* q) (integer* ldq) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zhecon_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublereal* anorm) (doublereal* rcond) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zheev_ ((char* jobz) (char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* w) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zheevd_ ((char* jobz) (char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* w) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int zheevr_ ((char* jobz) (char* range) (char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublecomplex* z__) (integer* ldz) (integer* isuppz) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int zheevx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int zhegs2_ ((integer* itype) (char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zhegst_ ((integer* itype) (char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zhegv_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublereal* w) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zhegvd_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublereal* w) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int zhegvx_ ((integer* itype) (char* jobz) (char* range) (char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int zherfs_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* af) (integer* ldaf) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zhesv_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zhesvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* af) (integer* ldaf) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zhetf2_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int zhetrd_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* d__) (doublereal* e) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zhetrf_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zhetri_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zhetrs_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zhgeqz_ ((char* job) (char* compq) (char* compz) (integer* n) (integer* ilo) (integer* ihi) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* alpha) (doublecomplex* beta) (doublecomplex* q) (integer* ldq) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zhpcon_ ((char* uplo) (integer* n) (doublecomplex* ap) (integer* ipiv) (doublereal* anorm) (doublereal* rcond) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zhpev_ ((char* jobz) (char* uplo) (integer* n) (doublecomplex* ap) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zhpevd_ ((char* jobz) (char* uplo) (integer* n) (doublecomplex* ap) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int zhpevx_ ((char* jobz) (char* range) (char* uplo) (integer* n) (doublecomplex* ap) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (doublereal* rwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int zhpgst_ ((integer* itype) (char* uplo) (integer* n) (doublecomplex* ap) (doublecomplex* bp) (integer* info)))
+
+(define-wrapper int zhpgv_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (doublecomplex* ap) (doublecomplex* bp) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zhpgvd_ ((integer* itype) (char* jobz) (char* uplo) (integer* n) (doublecomplex* ap) (doublecomplex* bp) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int zhpgvx_ ((integer* itype) (char* jobz) (char* range) (char* uplo) (integer* n) (doublecomplex* ap) (doublecomplex* bp) (doublereal* vl) (doublereal* vu) (integer* il) (integer* iu) (doublereal* abstol) (integer* m) (doublereal* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (doublereal* rwork) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int zhprfs_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* ap) (doublecomplex* afp) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zhpsv_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* ap) (integer* ipiv) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zhpsvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (doublecomplex* ap) (doublecomplex* afp) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zhptrd_ ((char* uplo) (integer* n) (doublecomplex* ap) (doublereal* d__) (doublereal* e) (doublecomplex* tau) (integer* info)))
+
+(define-wrapper int zhptrf_ ((char* uplo) (integer* n) (doublecomplex* ap) (integer* ipiv) (integer* info)))
+
+(define-wrapper int zhptri_ ((char* uplo) (integer* n) (doublecomplex* ap) (integer* ipiv) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zhptrs_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* ap) (integer* ipiv) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zhsein_ ((char* side) (char* eigsrc) (char* initv) (logical* select) (integer* n) (doublecomplex* h__) (integer* ldh) (doublecomplex* w) (doublecomplex* vl) (integer* ldvl) (doublecomplex* vr) (integer* ldvr) (integer* mm) (integer* m) (doublecomplex* work) (doublereal* rwork) (integer* ifaill) (integer* ifailr) (integer* info)))
+
+(define-wrapper int zhseqr_ ((char* job) (char* compz) (integer* n) (integer* ilo) (integer* ihi) (doublecomplex* h__) (integer* ldh) (doublecomplex* w) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zlabrd_ ((integer* m) (integer* n) (integer* nb) (doublecomplex* a) (integer* lda) (doublereal* d__) (doublereal* e) (doublecomplex* tauq) (doublecomplex* taup) (doublecomplex* x) (integer* ldx) (doublecomplex* y) (integer* ldy)))
+
+(define-wrapper int zlacgv_ ((integer* n) (doublecomplex* x) (integer* incx)))
+
+(define-wrapper int zlacon_ ((integer* n) (doublecomplex* v) (doublecomplex* x) (doublereal* est) (integer* kase)))
+
+(define-wrapper int zlacp2_ ((char* uplo) (integer* m) (integer* n) (doublereal* a) (integer* lda) (doublecomplex* b) (integer* ldb)))
+
+(define-wrapper int zlacpy_ ((char* uplo) (integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb)))
+
+(define-wrapper int zlacrm_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* b) (integer* ldb) (doublecomplex* c__) (integer* ldc) (doublereal* rwork)))
+
+(define-wrapper int zlacrt_ ((integer* n) (doublecomplex* cx) (integer* incx) (doublecomplex* cy) (integer* incy) (doublecomplex* c__) (doublecomplex* s)))
+
+(define-wrapper int zlaed0_ ((integer* qsiz) (integer* n) (doublereal* d__) (doublereal* e) (doublecomplex* q) (integer* ldq) (doublecomplex* qstore) (integer* ldqs) (doublereal* rwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int zlaed7_ ((integer* n) (integer* cutpnt) (integer* qsiz) (integer* tlvls) (integer* curlvl) (integer* curpbm) (doublereal* d__) (doublecomplex* q) (integer* ldq) (doublereal* rho) (integer* indxq) (doublereal* qstore) (integer* qptr) (integer* prmptr) (integer* perm) (integer* givptr) (integer* givcol) (doublereal* givnum) (doublecomplex* work) (doublereal* rwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int zlaed8_ ((integer* k) (integer* n) (integer* qsiz) (doublecomplex* q) (integer* ldq) (doublereal* d__) (doublereal* rho) (integer* cutpnt) (doublereal* z__) (doublereal* dlamda) (doublecomplex* q2) (integer* ldq2) (doublereal* w) (integer* indxp) (integer* indx) (integer* indxq) (integer* perm) (integer* givptr) (integer* givcol) (doublereal* givnum) (integer* info)))
+
+(define-wrapper int zlaein_ ((logical* rightv) (logical* noinit) (integer* n) (doublecomplex* h__) (integer* ldh) (doublecomplex* w) (doublecomplex* v) (doublecomplex* b) (integer* ldb) (doublereal* rwork) (doublereal* eps3) (doublereal* smlnum) (integer* info)))
+
+(define-wrapper int zlaesy_ ((doublecomplex* a) (doublecomplex* b) (doublecomplex* c__) (doublecomplex* rt1) (doublecomplex* rt2) (doublecomplex* evscal) (doublecomplex* cs1) (doublecomplex* sn1)))
+
+(define-wrapper int zlaev2_ ((doublecomplex* a) (doublecomplex* b) (doublecomplex* c__) (doublereal* rt1) (doublereal* rt2) (doublereal* cs1) (doublecomplex* sn1)))
+
+(define-wrapper int zlags2_ ((logical* upper) (doublereal* a1) (doublecomplex* a2) (doublereal* a3) (doublereal* b1) (doublecomplex* b2) (doublereal* b3) (doublereal* csu) (doublecomplex* snu) (doublereal* csv) (doublecomplex* snv) (doublereal* csq) (doublecomplex* snq)))
+
+(define-wrapper int zlagtm_ ((char* trans) (integer* n) (integer* nrhs) (doublereal* alpha) (doublecomplex* dl) (doublecomplex* d__) (doublecomplex* du) (doublecomplex* x) (integer* ldx) (doublereal* beta) (doublecomplex* b) (integer* ldb)))
+
+(define-wrapper int zlahef_ ((char* uplo) (integer* n) (integer* nb) (integer* kb) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* w) (integer* ldw) (integer* info)))
+
+(define-wrapper int zlahqr_ ((logical* wantt) (logical* wantz) (integer* n) (integer* ilo) (integer* ihi) (doublecomplex* h__) (integer* ldh) (doublecomplex* w) (integer* iloz) (integer* ihiz) (doublecomplex* z__) (integer* ldz) (integer* info)))
+
+(define-wrapper int zlahrd_ ((integer* n) (integer* k) (integer* nb) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* t) (integer* ldt) (doublecomplex* y) (integer* ldy)))
+
+(define-wrapper int zlaic1_ ((integer* job) (integer* j) (doublecomplex* x) (doublereal* sest) (doublecomplex* w) (doublecomplex* gamma) (doublereal* sestpr) (doublecomplex* s) (doublecomplex* c__)))
+
+(define-wrapper int zlals0_ ((integer* icompq) (integer* nl) (integer* nr) (integer* sqre) (integer* nrhs) (doublecomplex* b) (integer* ldb) (doublecomplex* bx) (integer* ldbx) (integer* perm) (integer* givptr) (integer* givcol) (integer* ldgcol) (doublereal* givnum) (integer* ldgnum) (doublereal* poles) (doublereal* difl) (doublereal* difr) (doublereal* z__) (integer* k) (doublereal* c__) (doublereal* s) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zlalsa_ ((integer* icompq) (integer* smlsiz) (integer* n) (integer* nrhs) (doublecomplex* b) (integer* ldb) (doublecomplex* bx) (integer* ldbx) (doublereal* u) (integer* ldu) (doublereal* vt) (integer* k) (doublereal* difl) (doublereal* difr) (doublereal* z__) (doublereal* poles) (integer* givptr) (integer* givcol) (integer* ldgcol) (integer* perm) (doublereal* givnum) (doublereal* c__) (doublereal* s) (doublereal* rwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int zlapll_ ((integer* n) (doublecomplex* x) (integer* incx) (doublecomplex* y) (integer* incy) (doublereal* ssmin)))
+
+(define-wrapper int zlapmt_ ((logical* forwrd) (integer* m) (integer* n) (doublecomplex* x) (integer* ldx) (integer* k)))
+
+(define-wrapper int zlaqgb_ ((integer* m) (integer* n) (integer* kl) (integer* ku) (doublecomplex* ab) (integer* ldab) (doublereal* r__) (doublereal* c__) (doublereal* rowcnd) (doublereal* colcnd) (doublereal* amax) (char* equed)))
+
+(define-wrapper int zlaqge_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* r__) (doublereal* c__) (doublereal* rowcnd) (doublereal* colcnd) (doublereal* amax) (char* equed)))
+
+(define-wrapper int zlaqhb_ ((char* uplo) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (doublereal* s) (doublereal* scond) (doublereal* amax) (char* equed)))
+
+(define-wrapper int zlaqhe_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* s) (doublereal* scond) (doublereal* amax) (char* equed)))
+
+(define-wrapper int zlaqhp_ ((char* uplo) (integer* n) (doublecomplex* ap) (doublereal* s) (doublereal* scond) (doublereal* amax) (char* equed)))
+
+(define-wrapper int zlaqp2_ ((integer* m) (integer* n) (integer* offset) (doublecomplex* a) (integer* lda) (integer* jpvt) (doublecomplex* tau) (doublereal* vn1) (doublereal* vn2) (doublecomplex* work)))
+
+(define-wrapper int zlaqps_ ((integer* m) (integer* n) (integer* offset) (integer* nb) (integer* kb) (doublecomplex* a) (integer* lda) (integer* jpvt) (doublecomplex* tau) (doublereal* vn1) (doublereal* vn2) (doublecomplex* auxv) (doublecomplex* f) (integer* ldf)))
+
+(define-wrapper int zlaqsb_ ((char* uplo) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (doublereal* s) (doublereal* scond) (doublereal* amax) (char* equed)))
+
+(define-wrapper int zlaqsp_ ((char* uplo) (integer* n) (doublecomplex* ap) (doublereal* s) (doublereal* scond) (doublereal* amax) (char* equed)))
+
+(define-wrapper int zlaqsy_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* s) (doublereal* scond) (doublereal* amax) (char* equed)))
+
+(define-wrapper int zlar1v_ ((integer* n) (integer* b1) (integer* bn) (doublereal* sigma) (doublereal* d__) (doublereal* l) (doublereal* ld) (doublereal* lld) (doublereal* gersch) (doublecomplex* z__) (doublereal* ztz) (doublereal* mingma) (integer* r__) (integer* isuppz) (doublereal* work)))
+
+(define-wrapper int zlar2v_ ((integer* n) (doublecomplex* x) (doublecomplex* y) (doublecomplex* z__) (integer* incx) (doublereal* c__) (doublecomplex* s) (integer* incc)))
+
+(define-wrapper int zlarcm_ ((integer* m) (integer* n) (doublereal* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* c__) (integer* ldc) (doublereal* rwork)))
+
+(define-wrapper int zlarf_ ((char* side) (integer* m) (integer* n) (doublecomplex* v) (integer* incv) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work)))
+
+(define-wrapper int zlarfb_ ((char* side) (char* trans) (char* direct) (char* storev) (integer* m) (integer* n) (integer* k) (doublecomplex* v) (integer* ldv) (doublecomplex* t) (integer* ldt) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* ldwork)))
+
+(define-wrapper int zlarfg_ ((integer* n) (doublecomplex* alpha) (doublecomplex* x) (integer* incx) (doublecomplex* tau)))
+
+(define-wrapper int zlarft_ ((char* direct) (char* storev) (integer* n) (integer* k) (doublecomplex* v) (integer* ldv) (doublecomplex* tau) (doublecomplex* t) (integer* ldt)))
+
+(define-wrapper int zlarfx_ ((char* side) (integer* m) (integer* n) (doublecomplex* v) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work)))
+
+(define-wrapper int zlargv_ ((integer* n) (doublecomplex* x) (integer* incx) (doublecomplex* y) (integer* incy) (doublereal* c__) (integer* incc)))
+
+(define-wrapper int zlarnv_ ((integer* idist) (integer* iseed) (integer* n) (doublecomplex* x)))
+
+(define-wrapper int zlarrv_ ((integer* n) (doublereal* d__) (doublereal* l) (integer* isplit) (integer* m) (doublereal* w) (integer* iblock) (doublereal* gersch) (doublereal* tol) (doublecomplex* z__) (integer* ldz) (integer* isuppz) (doublereal* work) (integer* iwork) (integer* info)))
+
+(define-wrapper int zlartg_ ((doublecomplex* f) (doublecomplex* g) (doublereal* cs) (doublecomplex* sn) (doublecomplex* r__)))
+
+(define-wrapper int zlartv_ ((integer* n) (doublecomplex* x) (integer* incx) (doublecomplex* y) (integer* incy) (doublereal* c__) (doublecomplex* s) (integer* incc)))
+
+(define-wrapper int zlarz_ ((char* side) (integer* m) (integer* n) (integer* l) (doublecomplex* v) (integer* incv) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work)))
+
+(define-wrapper int zlarzb_ ((char* side) (char* trans) (char* direct) (char* storev) (integer* m) (integer* n) (integer* k) (integer* l) (doublecomplex* v) (integer* ldv) (doublecomplex* t) (integer* ldt) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* ldwork)))
+
+(define-wrapper int zlarzt_ ((char* direct) (char* storev) (integer* n) (integer* k) (doublecomplex* v) (integer* ldv) (doublecomplex* tau) (doublecomplex* t) (integer* ldt)))
+
+(define-wrapper int zlascl_ ((char* type__) (integer* kl) (integer* ku) (doublereal* cfrom) (doublereal* cto) (integer* m) (integer* n) (doublecomplex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int zlaset_ ((char* uplo) (integer* m) (integer* n) (doublecomplex* alpha) (doublecomplex* beta) (doublecomplex* a) (integer* lda)))
+
+(define-wrapper int zlasr_ ((char* side) (char* pivot) (char* direct) (integer* m) (integer* n) (doublereal* c__) (doublereal* s) (doublecomplex* a) (integer* lda)))
+
+(define-wrapper int zlassq_ ((integer* n) (doublecomplex* x) (integer* incx) (doublereal* scale) (doublereal* sumsq)))
+
+(define-wrapper int zlaswp_ ((integer* n) (doublecomplex* a) (integer* lda) (integer* k1) (integer* k2) (integer* ipiv) (integer* incx)))
+
+(define-wrapper int zlasyf_ ((char* uplo) (integer* n) (integer* nb) (integer* kb) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* w) (integer* ldw) (integer* info)))
+
+(define-wrapper int zlatbs_ ((char* uplo) (char* trans) (char* diag) (char* normin) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (doublecomplex* x) (doublereal* scale) (doublereal* cnorm) (integer* info)))
+
+(define-wrapper int zlatdf_ ((integer* ijob) (integer* n) (doublecomplex* z__) (integer* ldz) (doublecomplex* rhs) (doublereal* rdsum) (doublereal* rdscal) (integer* ipiv) (integer* jpiv)))
+
+(define-wrapper int zlatps_ ((char* uplo) (char* trans) (char* diag) (char* normin) (integer* n) (doublecomplex* ap) (doublecomplex* x) (doublereal* scale) (doublereal* cnorm) (integer* info)))
+
+(define-wrapper int zlatrd_ ((char* uplo) (integer* n) (integer* nb) (doublecomplex* a) (integer* lda) (doublereal* e) (doublecomplex* tau) (doublecomplex* w) (integer* ldw)))
+
+(define-wrapper int zlatrs_ ((char* uplo) (char* trans) (char* diag) (char* normin) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* x) (doublereal* scale) (doublereal* cnorm) (integer* info)))
+
+(define-wrapper int zlatrz_ ((integer* m) (integer* n) (integer* l) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work)))
+
+(define-wrapper int zlatzm_ ((char* side) (integer* m) (integer* n) (doublecomplex* v) (integer* incv) (doublecomplex* tau) (doublecomplex* c1) (doublecomplex* c2) (integer* ldc) (doublecomplex* work)))
+
+(define-wrapper int zlauu2_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int zlauum_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int zpbcon_ ((char* uplo) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (doublereal* anorm) (doublereal* rcond) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zpbequ_ ((char* uplo) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (doublereal* s) (doublereal* scond) (doublereal* amax) (integer* info)))
+
+(define-wrapper int zpbrfs_ ((char* uplo) (integer* n) (integer* kd) (integer* nrhs) (doublecomplex* ab) (integer* ldab) (doublecomplex* afb) (integer* ldafb) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zpbstf_ ((char* uplo) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (integer* info)))
+
+(define-wrapper int zpbsv_ ((char* uplo) (integer* n) (integer* kd) (integer* nrhs) (doublecomplex* ab) (integer* ldab) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zpbsvx_ ((char* fact) (char* uplo) (integer* n) (integer* kd) (integer* nrhs) (doublecomplex* ab) (integer* ldab) (doublecomplex* afb) (integer* ldafb) (char* equed) (doublereal* s) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zpbtf2_ ((char* uplo) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (integer* info)))
+
+(define-wrapper int zpbtrf_ ((char* uplo) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (integer* info)))
+
+(define-wrapper int zpbtrs_ ((char* uplo) (integer* n) (integer* kd) (integer* nrhs) (doublecomplex* ab) (integer* ldab) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zpocon_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* anorm) (doublereal* rcond) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zpoequ_ ((integer* n) (doublecomplex* a) (integer* lda) (doublereal* s) (doublereal* scond) (doublereal* amax) (integer* info)))
+
+(define-wrapper int zporfs_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* af) (integer* ldaf) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zposv_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zposvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* af) (integer* ldaf) (char* equed) (doublereal* s) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zpotf2_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int zpotrf_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int zpotri_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int zpotrs_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zppcon_ ((char* uplo) (integer* n) (doublecomplex* ap) (doublereal* anorm) (doublereal* rcond) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zppequ_ ((char* uplo) (integer* n) (doublecomplex* ap) (doublereal* s) (doublereal* scond) (doublereal* amax) (integer* info)))
+
+(define-wrapper int zpprfs_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* ap) (doublecomplex* afp) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zppsv_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* ap) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zppsvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (doublecomplex* ap) (doublecomplex* afp) (char* equed) (doublereal* s) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zpptrf_ ((char* uplo) (integer* n) (doublecomplex* ap) (integer* info)))
+
+(define-wrapper int zpptri_ ((char* uplo) (integer* n) (doublecomplex* ap) (integer* info)))
+
+(define-wrapper int zpptrs_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* ap) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zptcon_ ((integer* n) (doublereal* d__) (doublecomplex* e) (doublereal* anorm) (doublereal* rcond) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zptrfs_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* d__) (doublecomplex* e) (doublereal* df) (doublecomplex* ef) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zptsv_ ((integer* n) (integer* nrhs) (doublereal* d__) (doublecomplex* e) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zptsvx_ ((char* fact) (integer* n) (integer* nrhs) (doublereal* d__) (doublecomplex* e) (doublereal* df) (doublecomplex* ef) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zpttrf_ ((integer* n) (doublereal* d__) (doublecomplex* e) (integer* info)))
+
+(define-wrapper int zpttrs_ ((char* uplo) (integer* n) (integer* nrhs) (doublereal* d__) (doublecomplex* e) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zptts2_ ((integer* iuplo) (integer* n) (integer* nrhs) (doublereal* d__) (doublecomplex* e) (doublecomplex* b) (integer* ldb)))
+
+(define-wrapper int zrot_ ((integer* n) (doublecomplex* cx) (integer* incx) (doublecomplex* cy) (integer* incy) (doublereal* c__) (doublecomplex* s)))
+
+(define-wrapper int zspcon_ ((char* uplo) (integer* n) (doublecomplex* ap) (integer* ipiv) (doublereal* anorm) (doublereal* rcond) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zspmv_ ((char* uplo) (integer* n) (doublecomplex* alpha) (doublecomplex* ap) (doublecomplex* x) (integer* incx) (doublecomplex* beta) (doublecomplex* y) (integer* incy)))
+
+(define-wrapper int zspr_ ((char* uplo) (integer* n) (doublecomplex* alpha) (doublecomplex* x) (integer* incx) (doublecomplex* ap)))
+
+(define-wrapper int zsprfs_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* ap) (doublecomplex* afp) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zspsv_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* ap) (integer* ipiv) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zspsvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (doublecomplex* ap) (doublecomplex* afp) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zsptrf_ ((char* uplo) (integer* n) (doublecomplex* ap) (integer* ipiv) (integer* info)))
+
+(define-wrapper int zsptri_ ((char* uplo) (integer* n) (doublecomplex* ap) (integer* ipiv) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zsptrs_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* ap) (integer* ipiv) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int zstedc_ ((char* compz) (integer* n) (doublereal* d__) (doublereal* e) (doublecomplex* z__) (integer* ldz) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* lrwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int zstein_ ((integer* n) (doublereal* d__) (doublereal* e) (integer* m) (doublereal* w) (integer* iblock) (integer* isplit) (doublecomplex* z__) (integer* ldz) (doublereal* work) (integer* iwork) (integer* ifail) (integer* info)))
+
+(define-wrapper int zsteqr_ ((char* compz) (integer* n) (doublereal* d__) (doublereal* e) (doublecomplex* z__) (integer* ldz) (doublereal* work) (integer* info)))
+
+(define-wrapper int zsycon_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublereal* anorm) (doublereal* rcond) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zsymv_ ((char* uplo) (integer* n) (doublecomplex* alpha) (doublecomplex* a) (integer* lda) (doublecomplex* x) (integer* incx) (doublecomplex* beta) (doublecomplex* y) (integer* incy)))
+
+(define-wrapper int zsyr_ ((char* uplo) (integer* n) (doublecomplex* alpha) (doublecomplex* x) (integer* incx) (doublecomplex* a) (integer* lda)))
+
+(define-wrapper int zsyrfs_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* af) (integer* ldaf) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zsysv_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zsysvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* af) (integer* ldaf) (integer* ipiv) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (integer* lwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int zsytf2_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* ipiv) (integer* info)))
+
+(define-wrapper int zsytrf_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zsytri_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zsytrs_ ((char* uplo) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (integer* ipiv) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int ztbcon_ ((char* norm) (char* uplo) (char* diag) (integer* n) (integer* kd) (doublecomplex* ab) (integer* ldab) (doublereal* rcond) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int ztbrfs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* kd) (integer* nrhs) (doublecomplex* ab) (integer* ldab) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int ztbtrs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* kd) (integer* nrhs) (doublecomplex* ab) (integer* ldab) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int ztgevc_ ((char* side) (char* howmny) (logical* select) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* vl) (integer* ldvl) (doublecomplex* vr) (integer* ldvr) (integer* mm) (integer* m) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int ztgex2_ ((logical* wantq) (logical* wantz) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* q) (integer* ldq) (doublecomplex* z__) (integer* ldz) (integer* j1) (integer* info)))
+
+(define-wrapper int ztgexc_ ((logical* wantq) (logical* wantz) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* q) (integer* ldq) (doublecomplex* z__) (integer* ldz) (integer* ifst) (integer* ilst) (integer* info)))
+
+(define-wrapper int ztgsen_ ((integer* ijob) (logical* wantq) (logical* wantz) (logical* select) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* alpha) (doublecomplex* beta) (doublecomplex* q) (integer* ldq) (doublecomplex* z__) (integer* ldz) (integer* m) (doublereal* pl) (doublereal* pr) (doublereal* dif) (doublecomplex* work) (integer* lwork) (integer* iwork) (integer* liwork) (integer* info)))
+
+(define-wrapper int ztgsja_ ((char* jobu) (char* jobv) (char* jobq) (integer* m) (integer* p) (integer* n) (integer* k) (integer* l) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublereal* tola) (doublereal* tolb) (doublereal* alpha) (doublereal* beta) (doublecomplex* u) (integer* ldu) (doublecomplex* v) (integer* ldv) (doublecomplex* q) (integer* ldq) (doublecomplex* work) (integer* ncycle) (integer* info)))
+
+(define-wrapper int ztgsna_ ((char* job) (char* howmny) (logical* select) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* vl) (integer* ldvl) (doublecomplex* vr) (integer* ldvr) (doublereal* s) (doublereal* dif) (integer* mm) (integer* m) (doublecomplex* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int ztgsy2_ ((char* trans) (integer* ijob) (integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* c__) (integer* ldc) (doublecomplex* d__) (integer* ldd) (doublecomplex* e) (integer* lde) (doublecomplex* f) (integer* ldf) (doublereal* scale) (doublereal* rdsum) (doublereal* rdscal) (integer* info)))
+
+(define-wrapper int ztgsyl_ ((char* trans) (integer* ijob) (integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* c__) (integer* ldc) (doublecomplex* d__) (integer* ldd) (doublecomplex* e) (integer* lde) (doublecomplex* f) (integer* ldf) (doublereal* scale) (doublereal* dif) (doublecomplex* work) (integer* lwork) (integer* iwork) (integer* info)))
+
+(define-wrapper int ztpcon_ ((char* norm) (char* uplo) (char* diag) (integer* n) (doublecomplex* ap) (doublereal* rcond) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int ztprfs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (doublecomplex* ap) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int ztptri_ ((char* uplo) (char* diag) (integer* n) (doublecomplex* ap) (integer* info)))
+
+(define-wrapper int ztptrs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (doublecomplex* ap) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int ztrcon_ ((char* norm) (char* uplo) (char* diag) (integer* n) (doublecomplex* a) (integer* lda) (doublereal* rcond) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int ztrevc_ ((char* side) (char* howmny) (logical* select) (integer* n) (doublecomplex* t) (integer* ldt) (doublecomplex* vl) (integer* ldvl) (doublecomplex* vr) (integer* ldvr) (integer* mm) (integer* m) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int ztrexc_ ((char* compq) (integer* n) (doublecomplex* t) (integer* ldt) (doublecomplex* q) (integer* ldq) (integer* ifst) (integer* ilst) (integer* info)))
+
+(define-wrapper int ztrrfs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* x) (integer* ldx) (doublereal* ferr) (doublereal* berr) (doublecomplex* work) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int ztrsen_ ((char* job) (char* compq) (logical* select) (integer* n) (doublecomplex* t) (integer* ldt) (doublecomplex* q) (integer* ldq) (doublecomplex* w) (integer* m) (doublereal* s) (doublereal* sep) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int ztrsna_ ((char* job) (char* howmny) (logical* select) (integer* n) (doublecomplex* t) (integer* ldt) (doublecomplex* vl) (integer* ldvl) (doublecomplex* vr) (integer* ldvr) (doublereal* s) (doublereal* sep) (integer* mm) (integer* m) (doublecomplex* work) (integer* ldwork) (doublereal* rwork) (integer* info)))
+
+(define-wrapper int ztrsyl_ ((char* trana) (char* tranb) (integer* isgn) (integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (doublecomplex* c__) (integer* ldc) (doublereal* scale) (integer* info)))
+
+(define-wrapper int ztrti2_ ((char* uplo) (char* diag) (integer* n) (doublecomplex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int ztrtri_ ((char* uplo) (char* diag) (integer* n) (doublecomplex* a) (integer* lda) (integer* info)))
+
+(define-wrapper int ztrtrs_ ((char* uplo) (char* trans) (char* diag) (integer* n) (integer* nrhs) (doublecomplex* a) (integer* lda) (doublecomplex* b) (integer* ldb) (integer* info)))
+
+(define-wrapper int ztzrqf_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (integer* info)))
+
+(define-wrapper int ztzrzf_ ((integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zung2l_ ((integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zung2r_ ((integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zungbr_ ((char* vect) (integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zunghr_ ((integer* n) (integer* ilo) (integer* ihi) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zungl2_ ((integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zunglq_ ((integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zungql_ ((integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zungqr_ ((integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zungr2_ ((integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zungrq_ ((integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zungtr_ ((char* uplo) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zunm2l_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zunm2r_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zunmbr_ ((char* vect) (char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zunmhr_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* ilo) (integer* ihi) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zunml2_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zunmlq_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zunmql_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zunmqr_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zunmr2_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zunmr3_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (integer* l) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zunmrq_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zunmrz_ ((char* side) (char* trans) (integer* m) (integer* n) (integer* k) (integer* l) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zunmtr_ ((char* side) (char* uplo) (char* trans) (integer* m) (integer* n) (doublecomplex* a) (integer* lda) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* lwork) (integer* info)))
+
+(define-wrapper int zupgtr_ ((char* uplo) (integer* n) (doublecomplex* ap) (doublecomplex* tau) (doublecomplex* q) (integer* ldq) (doublecomplex* work) (integer* info)))
+
+(define-wrapper int zupmtr_ ((char* side) (char* uplo) (char* trans) (integer* m) (integer* n) (doublecomplex* ap) (doublecomplex* tau) (doublecomplex* c__) (integer* ldc) (doublecomplex* work) (integer* info)))
 
 
 ;;;; done

@@ -49,11 +49,17 @@
   (define (array-ref-c-integer array* idx)
     (pointer-ref-c-integer array* (* idx strideof-integer)))
   (define (array-set-c-integer! array* idx val)
-    (pointer-ref-c-integer array* (* idx strideof-integer) val)))
+    (pointer-ref-c-integer array* (* idx strideof-integer) val))
+  (define (array-ref-c-real array* idx)
+    (pointer-ref-c-real array* (* idx strideof-real)))
+  (define (array-set-c-real! array* idx val)
+    (pointer-ref-c-real array* (* idx strideof-real) val))
+  )
 
 (sizeof-lib-exports
- array-ref-c-integer
- array-set-c-integer!)
+ array-ref-c-integer	array-set-c-integer!
+ array-ref-c-real	array-set-c-real!
+ )
 
 (define-c-type-alias address		void*)
 (define-c-type-alias integer*		void*)

@@ -39,9 +39,7 @@
   (foreign memory)
   (foreign math lapack)
   (foreign math lapack vm)
-
-  (foreign math blas)
-
+;;;  (foreign math blas)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -100,15 +98,15 @@
 	  (piv->list piv n)
 	=> '(2 2 3 4))
 
-;;;      (pretty-print (rmx->list A n n n))
-
-      (let ((Y (rvc/c n)))
-	(rmx-fill! A n A-coeffs)
-	(dgemv col-major no-trans n n 1. A n B 1 0. Y 1)
-	(check
-	    (rvc->list Y n)
-	  (=> double=?)
-	  B-coeffs))
+      ;;To use this load the BLAS library.
+      ;;
+      ;; (let ((Y (rvc/c n)))
+      ;; 	(rmx-fill! A n A-coeffs)
+      ;; 	(dgemv col-major no-trans n n 1. A n B 1 0. Y 1)
+      ;; 	(check
+      ;; 	    (rvc->list Y n)
+      ;; 	  (=> double=?)
+      ;; 	  B-coeffs))
 
       #f))
 
