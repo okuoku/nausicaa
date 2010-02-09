@@ -1431,7 +1431,8 @@ Field accessors for the condition objects of type
 Condition type used to represent ``invalid argument'' errors; it is
 derived from @condition{lapack-error}.  It has the following fields:
 
-@table failed-step
+@table @code
+@item failed-step
 The failed step number.  This is the value of the @var{info} argument to
 @clapack{} callouts.
 @end table

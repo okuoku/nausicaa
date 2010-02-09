@@ -1253,7 +1253,7 @@
     zupgtr
     zupmtr)
   (import (rnrs)
-;;;    (pretty-print)
+    (pretty-print)
     (begin0)
     (compensations)
     (parameters)
@@ -1507,7 +1507,8 @@
        (fold-left (lambda (knil type name)
 		    (case type
 		      ((char*)
-		       (cons `(pointer-set-c-signed-char! ,(%suffix-star name) 0 ,name) knil))
+		       (cons `(pointer-set-c-signed-char! ,(%suffix-star name) 0 (char->integer ,name))
+			     knil))
 		      ((integer*)
 		       (if (%arg-name-is-non-boxed? name)
 			   knil
@@ -1582,8 +1583,8 @@
 				   (%process-result (quote WRAPPER-NAME)
 						    result (pointer-ref-c-integer info* 0)
 						    '(?arg-name ...) (list ?arg-name ...))))))
-	     ;; (when (eq? name 'dgesv_)
-	     ;;   (pretty-print (syntax->datum output-stx)))
+	     (when (eq? name 'dgesvd_)
+	       (pretty-print (syntax->datum output-stx)))
 	     output-stx))))
 
       ((_ ?ret-type ?name ((?arg-type ?arg-name) ...))
@@ -2016,7 +2017,7 @@
 
 (define-wrapper int cppsv_ ((char* uplo) (integer* n) (integer* nrhs) (complex* ap) (complex* b) (integer* ldb) (integer* info)))
 
-(define-wrapper int cppsvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (complex* ap) (complex* afp) (char* equed) (real* s) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
+(define-wrapper int cppsvx_ ((char* fact) (char* uplo) (integer* n) (integer* nrhs) (complex* ap) (complex* afp) (char* equed) (real* s-arry) (complex* b) (integer* ldb) (complex* x) (integer* ldx) (real* rcond) (real* ferr) (real* berr) (complex* work) (real* rwork) (integer* info)))
 
 (define-wrapper int cpptrf_ ((char* uplo) (integer* n) (complex* ap) (integer* info)))
 
@@ -2284,7 +2285,7 @@
 
 (define-wrapper int dgesv_ ((integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (integer* ipiv) (doublereal* b) (integer* ldb) (integer* info)))
 
-(define-wrapper int dgesvd_ ((char* jobu) (char* jobvt) (integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* s) (doublereal* u) (integer* ldu) (doublereal* vt) (integer* ldvt) (doublereal* work) (integer* lwork) (integer* info)))
+(define-wrapper int dgesvd_ ((char* jobu) (char* jobvt) (integer* m) (integer* n) (doublereal* a) (integer* lda) (doublereal* s-arry) (doublereal* u) (integer* ldu) (doublereal* vt) (integer* ldvt) (doublereal* work) (integer* lwork) (integer* info)))
 
 (define-wrapper int dgesvx_ ((char* fact) (char* trans) (integer* n) (integer* nrhs) (doublereal* a) (integer* lda) (doublereal* af) (integer* ldaf) (integer* ipiv) (char* equed) (doublereal* r__) (doublereal* c__) (doublereal* b) (integer* ldb) (doublereal* x) (integer* ldx) (doublereal* rcond) (doublereal* ferr) (doublereal* berr) (doublereal* work) (integer* iwork) (integer* info)))
 
