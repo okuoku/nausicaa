@@ -6,7 +6,9 @@
 ;;;
 ;;;Abstract
 ;;;
+;;;	The test values are from:
 ;;;
+;;;		<http://www.nag.co.uk/lapack-ex/lapack-ex.html>
 ;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;

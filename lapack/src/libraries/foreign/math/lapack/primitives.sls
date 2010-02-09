@@ -1253,7 +1253,7 @@
     zupgtr
     zupmtr)
   (import (rnrs)
-    (pretty-print)
+;;;    (pretty-print)
     (begin0)
     (compensations)
     (parameters)
@@ -1583,8 +1583,8 @@
 				   (%process-result (quote WRAPPER-NAME)
 						    result (pointer-ref-c-integer info* 0)
 						    '(?arg-name ...) (list ?arg-name ...))))))
-	     (when (eq? name 'dgesvd_)
-	       (pretty-print (syntax->datum output-stx)))
+	     ;; (when (eq? name 'dgesvd_)
+	     ;;   (pretty-print (syntax->datum output-stx)))
 	     output-stx))))
 
       ((_ ?ret-type ?name ((?arg-type ?arg-name) ...))
