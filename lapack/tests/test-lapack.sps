@@ -35,12 +35,8 @@
   (pretty-print)
   (compensations)
   (only (foreign ffi)
-	array-set-c-double!
-	array-ref-c-double)
-  (only (foreign ffi sizeof)
-	strideof-double
-	strideof-int)
-  (foreign memory)
+	pointer-null
+	pointer-ref-c-double)
   (foreign math lapack)
   (foreign math lapack vm)
 ;;;  (foreign math blas)
@@ -51,14 +47,6 @@
 
 
 ;;;; helpers
-
-(define (&char val)
-  (begin0-let ((p (malloc-small/c)))
-    (pointer-set-c-signed-char! p 0 (char->integer val))))
-
-(define (&int val)
-  (begin0-let ((p (malloc-small/c)))
-    (pointer-set-c-integer! p 0 val)))
 
 (define (double=? ell1 ell2)
   (list=? (lambda (a b)
@@ -261,7 +249,7 @@
 
       (zgetrf M N A M piv)
 
-      (check
+      (check 'this
 	  (cmx->list A M M N)
 	(=> double=?)
 	'((-3.29-2.39i	     -1.91+4.42i       -0.14-1.35i         1.72+1.35i)
@@ -345,13 +333,6 @@
 
 
 (parametrise ((check-test-name	'eigenproblem))
-
-  (define (cvc-make-rectangular! w wr wi N)
-    (do ((i 0 (+ 1 i)))
-	((= i N))
-      (let ((i2 (* 2 i)))
-	(array-set-c-double! w i2       (array-ref-c-double wr i))
-	(array-set-c-double! w (+ 1 i2) (array-ref-c-double wi i)))))
 
   (with-compensations
     (let* ((N	4)

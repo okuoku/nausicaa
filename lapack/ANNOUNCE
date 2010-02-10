@@ -1,12 +1,12 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/LAPACK --- tag 0.1b0
+Subject: [announce] Nausicaa/LAPACK 2010-02-10 tag 0.1b0
 
 		      Nausicaa/LAPACK
 		      ===============
 
 This package is a  distribution of libraries for R6RS Scheme
 implementations;  it  provides bindings  for  the CLAPACK  C
-language library, a library of linear algebra algorithms.
+language library, a library of linear Algebra algorithms.
 
   It  is  built  upon  Nausicaa/Scheme, making  use  of  its
 foreign-functions   interface.   It   supports   the  Scheme
@@ -47,7 +47,7 @@ and in printed form:
    Philadelphia, PA.  ISBN 0-89871-447-8 (paperback).
 
 
-Notes for --- tag 0.1b0
+Notes for 2010-02-10 tag 0.1b0
 ------------------------------
 
 * Marshaling of  arguments for the  1200+ functions exported
@@ -65,6 +65,13 @@ Notes for --- tag 0.1b0
   functions  until all  the  errors are  catched and  fixed;
   fixing these errors  is easy and can be  done quickly.  If
   you stumble on such problem please file a bug report.
+
+* With Ypsilon, one test in the test suite will fail because
+  (for reasons I do not want to know):
+
+  $ ypsilon
+  > (magnitude 0.0i)
+  +nan.0
 
 
 ### end of file

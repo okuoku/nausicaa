@@ -58,6 +58,7 @@
     cvc/c
     cvc-set!		cvc-ref
     cvc-fill!		cvc->list
+    cvc-make-rectangular!
 
     ;; real matrices of "double"
     rmx/c
@@ -170,6 +171,17 @@
     (if (= i len)
 	(reverse ell)
       (loop (+ 1 i) (cons (cvc-ref cvc i) ell)))))
+
+(define (cvc-make-rectangular! w wr wi N)
+  ;;Store  in W,  a vector  of complex  nubmers, the  vectors WR  and WI
+  ;;holding, respectively, the real parts and the imaginary parts.  N is
+  ;;the length of the vectors.
+  ;;
+  (do ((i 0 (+ 1 i)))
+      ((= i N))
+    (let ((i2 (* 2 i)))
+      (array-set-c-double! w i2       (array-ref-c-double wr i))
+      (array-set-c-double! w (+ 1 i2) (array-ref-c-double wi i)))))
 
 
 ;;;; real matrices of "double"

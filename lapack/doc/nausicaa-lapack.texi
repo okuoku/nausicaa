@@ -440,8 +440,9 @@ Revised^6 Report on the algorithmic language Scheme
 @noindent
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of libraries for @rnrs{6} Scheme implementations; it
-provides a binding to the @clapack{} C language library.  It is built
-upon Nausicaa/Scheme, making use of its foreign--functions interface.
+provides a binding to the @clapack{} C language library, a library of
+linear Algebra algorithms.  It is built upon Nausicaa/Scheme, making use
+of its foreign--functions interface.
 
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
@@ -625,8 +626,9 @@ Computing eigenvalues and eigenvectors
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of libraries for @rnrs{6} Scheme implementations; it
 provides bindings to the @clapack{} C language library, the @ansi{} C
-translation of the @lapack{} library.  It is built upon Nausicaa/Scheme,
-making use of its foreign--functions interface.
+translation of the @lapack{} library, a library of linear Algebra
+algorithms.  It is built upon Nausicaa/Scheme, making use of its
+foreign--functions interface.
 
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
@@ -1578,6 +1580,16 @@ Build and return a list holding the values from the complex vector
 referenced by the pointer @var{rvc} and length @var{len}.
 @end defun
 
+
+@defun cvc-make-rectangular! @var{w} @var{wr} @var{wi} @var{len}
+Store in @var{w}, a vector of complex nubmers, the vectors @var{wr} and
+@var{wi} holding, respectively, the real parts and the imaginary parts.
+@var{len} is the length of the vectors.
+
+This function is useful to build the vector of eigenvalues returned, for
+example, by @func{dgeev}.
+@end defun
+
 @c page
 @node vm real matrices
 @section Real matrices
@@ -2017,6 +2029,8 @@ error message related to @var{lwork} is issued by @func{xerbla}.
 @example
 (import (rnrs)
   (compensations)
+  (only (foreign ffi)
+        pointer-ref-c-double)
   (foreign math lapack)
   (foreign math lapack vm))
 
@@ -2235,7 +2249,9 @@ error message related to @var{lwork} is issued by @func{xerbla}.
 @smallexample
 (import (rnrs)
   (compensations)
-  (only (ffi pointers) pointer-null)
+  (only (foreign ffi)
+        pointer-null
+        pointer-ref-c-double)
   (foreign math lapack)
   (foreign math lapack vm))
 
@@ -2389,7 +2405,9 @@ used as workspace.
 @smallexample
 (import (rnrs)
   (compensations)
-  (only (ffi pointers) pointer-null)
+  (only (foreign ffi)
+        pointer-null
+        pointer-ref-c-double)
   (foreign math lapack)
   (foreign math lapack vm))
 
