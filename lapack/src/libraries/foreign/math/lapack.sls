@@ -95,15 +95,6 @@
 
 ;;; --------------------------------------------------------------------
 
-    all*
-    lower*
-    none*
-    oscar*
-    sierra*
-    upper*
-
-;;; --------------------------------------------------------------------
-
     &lapack-error
     make-lapack-error-condition
     lapack-error-condition?

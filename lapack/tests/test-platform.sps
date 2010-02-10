@@ -10,6 +10,8 @@
 ;;;
 ;;;		<http://www.nag.co.uk/lapack-ex/lapack-ex.html>
 ;;;
+;;;	or generated with GNU Octave.
+;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify

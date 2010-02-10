@@ -537,18 +537,21 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package.
 * typedefs::                    Type accessors and mutators.
-* arguments::                   Special arguments.
 * conditions::                  Condition objects.
 * vm::                          Basic vector and matrix library.
 * lineq::                       Linear equations.
 * factor::                      Factorisations.
 * inverse::                     Inverse computation.
+* eigenproblem::                Computing eigenvalues and
+                                eigenvectors.
 * perms::                       Permutations.
 
 Appendices
 
 * Package License::             GNU General Public License.
 * Documentation License::       GNU Free Documentation License.
+* ipiv::                        On the meaning of the pivot indices
+                                and the permutation matrix.
 * references::                  Bibliography and references.
 
 Indexes
@@ -566,6 +569,7 @@ Overview of the package
 * overview intro::              Introduction to @lapack{}
                                 for end users.
 * overview libraries::          Installed libraries.
+* overview primitives::         The primitives @api{}.
 * overview names::              Function naming conventions.
 
 Type accessors and mutators
@@ -581,7 +585,7 @@ Condition objects
 * conditions step::             Failed computation step error
                                 condition.
 
-Basic vector and matrix library.
+Basic vector and matrix library
 
 * vm real vectors::             Real vectors.
 * vm complex vectors::          Complex vectors.
@@ -593,6 +597,20 @@ Basic vector and matrix library.
 Linear equations
 
 * lineq general::               General problem.
+
+Factorisations
+
+* factor lu::                   @math{LU} matrix factorisation.
+
+Inverse computation
+
+* inverse lu::                  Inverse matrix computation using
+                                @math{LU} factorisation.
+
+Computing eigenvalues and eigenvectors
+
+* eigenproblem general::        Eigenvalues and eigenvectors
+                                of general matrices.
 
 @end detailmenu
 @end menu
@@ -606,8 +624,9 @@ Linear equations
 
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of libraries for @rnrs{6} Scheme implementations; it
-provides a binding to the @clapack{} C language library.  It is built
-upon Nausicaa/Scheme, making use of its foreign--functions interface.
+provides bindings to the @clapack{} C language library, the @ansi{} C
+translation of the @lapack{} library.  It is built upon Nausicaa/Scheme,
+making use of its foreign--functions interface.
 
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
@@ -616,6 +635,7 @@ supports @gnu{}+Linux systems.
 * overview intro::              Introduction to @lapack{}
                                 for end users.
 * overview libraries::          Installed libraries.
+* overview primitives::         The primitives @api{}.
 * overview names::              Function naming conventions.
 @end menu
 
@@ -693,22 +713,12 @@ Scheme function callouts have the same name of the C functions, so
 original @lapack{} documentation relevant for this package.
 
 @item foreign math lapack primitives
-Exports one binding for each foreign function, implementing, for some
-functions, marshaling of arguments and return values.  The bindings to
+Exports one binding for each foreign function, implementing, marshaling
+of arguments and return values where it makes sense.  The bindings to
 the Scheme functions have the same name of the C functions, but with the
 trailing underscore removed; so @cfunc{dgesv_} is available as
-@func{dgesv}.
-
-For all the functions, the @var{info} argument@footnote{See
-@url{http://www.netlib.org/lapack/lug/node119.html}.} is handled
-internally by the library and must not be given in function calls; in
-case of error, detected inspecting the @var{info} value after a function
-call, an exception is raised.
-
-This document describes the @code{primitives} @api{}; only the functions
-implementing marshaling of values are documented: if a function is not
-documented, it means that it is reexported ``as is'' from the
-@code{platform} library (with the exception of the @var{info} argument).
+@func{dgesv}.  @ref{overview primitives} for details on the primitives
+@api{}.
 
 This library is @strong{not} thread--safe.
 
@@ -719,13 +729,82 @@ from the @samp{primitives} library and some bindings from the
 
 @item foreign math lapack vm
 Exports a very basic vector and matrix @api{}, mostly intended for
-testing.
-
-@c @item foreign math lapack compensated
-@c Exports bindings to constructor functions making use of the
-@c @library{compensations} library from Nausicaa/Scheme.
-@c @nauref{compensations, Compensation stacks}.
+testing.  @ref{vm, Basic vector and matrix library}.
 @end table
+
+@c page
+@node overview primitives
+@section The primitives @api{}
+
+
+The primitives @api{} is exported by the @library{foreign math lapack
+primitives} library and reexported by the @library{foreign math lapack}
+library.  The original documentation of @lapack{} is valid as
+documentation of this @api{}, when we take into accounts the following
+notes.
+
+It was decided that @value{PACKAGE} must impose to the client code
+neither a format for vectors and matrices, nor a model for the
+associated data structures, nor a model for raw memory handling.  So
+whenever a @clapack{} function accepts a pointer to an array of integer
+or floating--point numbers, the associated Scheme wrapper function
+accepts a pointer object referencing a raw memory array.  @nauref{ffi
+pointers, Pointer objects}.
+
+The original @lapack{} library is coded in Fortran 77, which means the
+arguments to functions are passed by reference; this convention is
+maintained in the @clapack{} translation to @ansi{} C, so whenever a
+function needs a value of type @code{char}, @code{integer} or
+@code{logical}, the associated argument is a pointer of type @code{char
+*}, @code{integer *} or @code{logical *}.  This inconvenience is handled
+by the primitives @api{}: non--array arguments must be handed as simple
+values.
+
+Many functions (but not all) report error conditions through an argument
+called @var{info}@footnote{See
+@url{http://www.netlib.org/lapack/lug/node119.html}.}; this argument is
+handled internally by the library and must not be given in function
+calls; in case of error, detected by inspecting the @var{info} value
+after a function call, an exception is raised using an appropriate
+condition object.  @ref{conditions, Condition objects}.
+
+For example, the @cfunc{dgesv_} function has prototype:
+
+@example
+int dgesv_ (integer *n, integer *nrhs,
+            doublereal *a, integer *lda,
+            integer *ipiv,
+            doublereal *b, integer *ldb,
+            integer *info);
+@end example
+
+@noindent
+but with marshaling of arguments and automatic handling of @var{info},
+we call the primitive Scheme function @func{dgesv} as if the prototype
+is:
+
+@example
+int dgesv_ (integer n, integer nrhs,
+            doublereal *a, integer lda,
+            integer *ipiv,
+            doublereal *b, integer ldb);
+@end example
+
+@quotation
+@strong{NOTE} Marshaling of arguments for the 1200+ functions exported
+by the primitives @api{} is automatically generated, using as
+informations the argument type name and its proper name; unfortunately
+some couples type/name do not identify how the argument is used.
+
+For example, we know that the argument @code{real* scale} is always a
+single real value, while the argument @code{real* s} some times is a
+single real value and other times is an array of real values.
+
+This will cause incorrect handling of arguments for some functions until
+all the errors are catched and fixed; fixing these errors is easy and
+can be done quickly.  If you stumble on such problem please file a bug
+report.
+@end quotation
 
 @c page
 @node overview names
@@ -867,7 +946,9 @@ bidiagonal reduction (@acronym{BRD}) of a real general matrix.
 
 The bindings described in this chapter are exported by the
 @library{foreign math lapack sizeof} library and reexported by the
-@library{foreign math lapack} library.
+@library{foreign math lapack} library.  The types for which the @api{}
+documented here provides handling are defined in the C language header
+file @file{f2c.h}, which comes with @clapack{}.
 
 @menu
 * typedefs common::             Common C language types.
@@ -1309,52 +1390,6 @@ language data structure.
 @end deffn
 
 @c page
-@node arguments
-@chapter Special arguments
-
-
-The following bindings are exported by the @library{foreign math lapack
-primitives} library and reexported by the @library{foreign math lapack}
-library.
-
-
-@defvr Constant lower*
-Pointer to a memory location holding the integer representation of the
-character @samp{L}; it is meant to be used as function argument to
-indicate a lower triangular matrix operand.
-@end defvr
-
-
-@defvr Constant upper*
-Pointer to a memory location holding the integer representation of the
-character @samp{U}; it is meant to be used as function argument to
-indicate a upper triangular matrix operand.
-@end defvr
-
-
-@defvr Constant all*
-Pointer to a memory location holding the integer representation of the
-character @samp{A}; it is meant to be used as function argument.
-@end defvr
-
-
-@defvr Constant none*
-Pointer to a memory location holding the integer representation of the
-character @samp{N}; it is meant to be used as function argument.
-@end defvr
-
-@defvr Constant oscar*
-Pointer to a memory location holding the integer representation of the
-character @samp{O}; it is meant to be used as function argument.
-@end defvr
-
-
-@defvr Constant sierra*
-Pointer to a memory location holding the integer representation of the
-character @samp{S}; it is meant to be used as function argument.
-@end defvr
-
-@c page
 @node conditions
 @chapter Condition objects
 
@@ -1455,7 +1490,7 @@ Field accessor for condition objects of type
 
 @c page
 @node vm
-@chapter Basic vector and matrix library.
+@chapter Basic vector and matrix library
 
 
 The bindings documented here are exported by the @library{foreign math
@@ -1653,8 +1688,8 @@ numbers of rows and columns.
 
 
 Vectors of @code{integer} numbers are used to store the pivot indices
-defining permutation matrices: when using vector @var{piv}, row @math{i}
-of the matrix is interchanged with row @math{@var{piv}(i)}.
+defining permutation matrices.  @ref{ipiv, On the meaning of the pivot
+indices and the permutation matrix}.
 
 
 @defun piv/c @var{len}
@@ -1748,13 +1783,14 @@ P*L*U}; the unit diagonal elements of @math{L} are not stored.
 
 @var{ipiv} must be a pointer object referencing an array of
 @code{integer} values with dimension @var{n}; on exit, the array holds
-the pivot indices that define the permutation matrix @math{P}; row
-@math{i} of the matrix was interchanged with row @math{@var{ipiv}(i)}.
+the pivot indices that define the permutation matrix @math{P}.
+@ref{ipiv, On the meaning of the pivot indices and the permutation
+matrix}.
 
 To apply the permutation defined by @var{ipiv} see the functions
 @func{dlaswp} and @func{zlaswp}, @ref{perms, Permutations}.  Notice that
 the permutation is associated only to the factorisation of @math{A} and
-@strong{not} to the right--hand side matrix.
+@strong{not} to the solution matrix @var{X}.
 
 @var{b-mat} must be a pointer object referencing an array of
 @code{double} real or complex numbers with dimension
@@ -1858,9 +1894,9 @@ dimension of the array @var{a-mat}.  @math{@var{lda} >= max(1,
 
 @var{ipiv} must be a pointer object referencing an array of
 @code{integer} numbers with dimension @math{min(@var{m}, @var{n})}.  On
-exit, the array holds the pivot indices describing the permutation; for
-@math{1 <= i <= min(@var{m}, @var{n})}, row @math{i} of the matrix was
-interchanged with row @math{@var{ipiv}(i)}.
+exit, the array holds the pivot indices describing the permutation.
+@ref{ipiv, On the meaning of the pivot indices and the permutation
+matrix}.
 
 @example
 (import (rnrs)
@@ -2045,6 +2081,159 @@ error message related to @var{lwork} is issued by @func{xerbla}.
 @end defun
 
 @c page
+@node eigenproblem
+@chapter Computing eigenvalues and eigenvectors
+
+
+@menu
+* eigenproblem general::        Eigenvalues and eigenvectors
+                                of general matrices.
+@end menu
+
+@c page
+@node eigenproblem general
+@section Eigenvalues and eigenvectors of general matrices
+
+
+@defun dgeev @var{jobvl} @var{jobvr} @var{n} @var{a-mat} @var{lda} @var{wr} @var{wi} @var{vl} @var{ldvl} @var{vr} @var{ldvr} @var{work} @var{lwork}
+Compute for an @var{n}--by--@var{n} real nonsymmetric matrix @math{A},
+the eigenvalues and, optionally, the left and/or right eigenvectors.
+
+The right eigenvector @math{v(j)} of @math{A} satisfies:
+
+@example
+A * v(j) = lambda(j) * v(j)
+@end example
+
+@noindent
+where @math{lambda(j)} is its eigenvalue.  The left eigenvector
+@math{u(j)} of @math{A} satisfies:
+
+@example
+u(j)^H * A = lambda(j) * u(j)^H
+@end example
+
+@noindent
+where @math{u(j)^H} denotes the conjugate transpose of @math{u(j)}.
+
+The computed eigenvectors are normalized to have Euclidean norm equal to
+@math{1} and largest component real.
+
+@var{jobvl} must be a Scheme character.  @samp{#\N} means that left
+eigenvectors of @math{A} are not computed; @samp{#\V} means that left
+eigenvectors of @math{A} are computed.
+
+@var{jobvr} must be a Scheme character.  @samp{#\N} means that right
+eigenvectors of @math{A} are not computed; @samp{#\V} means that right
+eigenvectors of @math{A} are computed.
+
+@var{n} must be a non--negative exact integer: the order of the matrix
+@math{A}.
+
+@var{a-mat} must be a pointer object referencing an array of
+@code{double} real numbers with dimension @var{lda}:@var{n}.  On entry,
+the array must hold the @var{n}--by--@var{n} matrix @math{A}.  On exit,
+the array has been overwritten.
+
+@var{lda} must be an exact integer: the leading dimension of the array
+@var{a-mat}.  @math{@var{lda} >= max(1, @var{n})}.
+
+@var{wr} and @var{wi} must be pointer objects to arrays of @code{double}
+real numbers with dimension @var{n}.  On exit, the arrays contain the
+real and imaginary parts, respectively, of the computed eigenvalues.
+Complex conjugate pairs of eigenvalues appear consecutively with the
+eigenvalue having the positive imaginary part first.
+
+@var{vl} must be a pointer object referencing an array of @code{double}
+real numbers with dimension @var{ldvl}:@var{n}.  On exit:
+
+@itemize
+@item
+If @var{jobvl} is @samp{#\V}, the left eigenvectors @math{u(j)} are
+stored one after another in the columns of @var{vl}, in the same order
+as their eigenvalues.
+
+@item
+If @var{jobvl} is @samp{#\N}, @var{vl} is not referenced.
+
+@item
+If the @math{j}-th eigenvalue is real, then @math{u(j) = @var{vl}(:,j)},
+the @math{j}-th column of @math{vl}.
+
+@item
+If the @math{j}-th and @math{(j+1)}-st eigenvalues form a complex
+conjugate pair, then:
+
+@example
+u(j) = @var{vl}(:,j) + i * @var{vl}(:,j+1)
+@end example
+
+@noindent
+and:
+
+@example
+u(j+1) = @var{vl}(:,j) - i * @var{vl}(:,j+1)
+@end example
+@end itemize
+
+@var{ldvl} must be an exact integer: the leading dimension of the array
+@var{vl}.  @math{@var{ldvl} >= 1}; if @var{jobvl} is @samp{#\V},
+@math{@var{ldvl} >= @var{n}}.
+
+@var{vr} must be a pointer to an array of @code{double} real values with
+dimension @var{ldvr}:@var{n}.  On exit:
+
+@itemize
+@item
+If @var{jobvr} is @samp{#\V}, the right eigenvectors @math{v(j)} are
+stored one after another in the columns of @var{vr}, in the same order
+as their eigenvalues.
+
+@item
+If @var{jobvr} is @samp{#\N}, @var{vr} is not referenced.
+
+@item
+If the @math{j}-th eigenvalue is real, then @math{v(j) = @var{vr}(:,j)},
+the @math{j}-th column of @var{vr}.
+
+@item
+If the @math{j}-th and @math{(j+1)}-st eigenvalues form a complex
+conjugate pair, then:
+
+@example
+v(j) = @var{vr}(:,j) + i * @var{vr}(:,j+1)
+@end example
+
+@noindent
+and:
+
+@example
+v(j+1) = @var{vr}(:,j) - i * @var{vr}(:,j+1)
+@end example
+@end itemize
+
+@var{ldvr} must be an exact integer: the leading dimension of the array
+@var{vr}.  @math{@var{ldvr} >= 1}; if @var{jobvr} is @samp{#\V},
+@math{@var{ldvr} >= @var{n}}.
+
+@var{work} must be a pointer object referencing an array of
+@code{double} real numbers with dimension @var{lwork}; it is used as
+workspace.  On exit, its first element is the optimal value for
+@var{lwork}.
+
+@var{lwork} must be an exact integer: the dimension of the array
+@var{work}.  @math{@var{lwork} >= max(1, 3 * @var{n})}, and if
+@var{jobvl} is @samp{#\V} or @var{jobvr} is @samp{#\V},
+@math{@var{LWORK} >= 4 * @var{n}}.  For good performance, @var{lwork}
+must generally be larger.
+
+If @var{lwork} is @math{-1}, then a workspace query is assumed; the
+routine only calculates the optimal size of the @var{work} array,
+returns this value as the first entry of the @var{work} array, and no
+error message related to @var{lwork} is issued by @func{xerbla}.
+@end defun
+
+@c page
 @node perms
 @chapter Permutations
 
@@ -2092,6 +2281,268 @@ are applied in reverse order.
 
 @include gpl-3.0.texiinc
 @include fdl-1.3.texiinc
+
+@c page
+@node ipiv
+@appendix On the meaning of the pivot indices and the permutation matrix
+
+@cindex @var{ipiv}
+@cindex Pivot indices
+@cindex Permutation matrix
+@cindex Indices, pivot
+
+In this appendix we try to understand the meaning of the @var{ipiv}
+vector we get, for example, out of @func{dgetrf}.  The ``pivot indices''
+stored in the vector represent the sequence of row--permutations to be
+applied to a matrix.
+
+Let's say we have factored a matrix @math{A}, with @math{6} rows and
+@math{4} columns, using the @math{LU} decomposition; we have @math{A =
+PLU}, where @math{P} is the permutation matrix.  Let's say the
+permutations are represented by the following array of pivot indices:
+
+@example
+(5 6 3 4)               ;; Fortran convention
+@end example
+
+@noindent
+we have to understand that rows and columns are indexed starting from
+@math{1}, following the Fortran convention: the pivot index @math{5} is
+associated to row @math{1}, the pivot index @math{6} is associated to
+row @math{2}, the pivot index @math{3} is associated to row @math{3},
+@dots{}
+
+The meaning of the array is that the following sequence of operations
+must be applied to the matrix:
+
+@enumerate
+@item
+Swap row @math{1} with row @math{5}.
+
+@item
+Swap row @math{2} with row @math{6}.
+
+@item
+Swap row @math{3} with row @math{3}, that is: leave it untouched.
+
+@item
+Swap row @math{4} with row @math{4}, that is: leave it untouched.
+@end enumerate
+
+Let's say instead that the matrix @math{A} is square with dimension
+@math{4} and we got the following array of pivot indices:
+
+@example
+(3 2 3 4)               ;; Fortran convention
+@end example
+
+@noindent
+notice that @math{3} appears twice; its meaning is that the following
+sequence of operations must be applied to the matrix:
+
+@enumerate
+@item
+Swap row @math{1} with row @math{3}.
+
+@item
+Swap row @math{2} with row @math{2}, that is: leave it untouched.
+
+@item
+Swap row @math{3} with row @math{3}, that is: leave it untouched; we
+have already swapped the third row with the first, so we need to do
+nothing now.
+
+@item
+Swap row @math{4} with row @math{4}, that is: leave it untouched.
+@end enumerate
+
+Now given the pivots for the @math{6}--by--@math{4} matrix:
+
+@example
+(5 6 3 4)               ;; Fortran convention
+@end example
+
+@noindent
+to obtain the permutation matrix @math{P} which left--multiplies
+@math{LU} using the zero--based C language indexing:
+
+@enumerate
+@item
+Subtract @math{1} from all the indices in @var{ipiv}:
+
+@example
+(4 5 2 3)               ;; C convention
+@end example
+
+@item
+Reallocate @var{ipiv} so that it has a number of elements equal to the
+number of rows in the original @math{A} matrix:
+
+@example
+(4 5 2 3 x x)           ;; C convention
+@end example
+
+@item
+Initialise the added positions with the position index itself:
+
+@example
+(4 5 2 3 4 5)           ;; C convention
+@end example
+
+@item
+Scan the whole @var{ipiv} using @math{i} as counter, if @math{i =
+ipiv(i)} enter the following subloop:
+
+@enumerate a
+@item
+Scan @var{ipiv} using the counter @math{j = 0, ..., i-1}.
+
+@item
+If @math{i = ipiv(j)} set @math{ipiv(i) <- j}.
+@end enumerate
+
+@noindent
+we understand that the array is mutated to:
+
+@example
+(4 5 2 3 0 1)           ;; C convention
+@end example
+
+@item
+Build a zero--filled matrix @math{6}-by-@math{6} (the dimension must be
+equal to the number of rows of the original matrix @math{A}), and poke
+@math{1} to the positions:
+
+@example
+(0, 4)  (1, 5)  (2, 2)   ;; C convention
+(3, 3)  (4, 0)  (5, 1)
+@end example
+
+@noindent
+obtaining:
+
+@example
+    0 1 2 3 4 5
+   ------------
+0 | 0 0 0 0 1 0
+1 | 0 0 0 0 0 1
+2 | 0 0 1 0 0 0
+3 | 0 0 0 1 0 0
+4 | 1 0 0 0 0 0
+5 | 0 1 0 0 0 0
+@end example
+@end enumerate
+
+Following the same procedure for the @math{4}--by--@math{4} matrix
+having pivots array:
+
+@example
+(3 2 3 4)               ;; Fortran convention
+@end example
+
+@noindent
+decrementing by @math{1}:
+
+@example
+(2 1 2 3)               ;; C convention
+@end example
+
+@noindent
+mutating it:
+
+@example
+(2 1 0 3)               ;; C convention
+@end example
+
+@noindent
+we get the following permutation matrix:
+
+@example
+    0 1 2 3
+   --------
+0 | 0 0 1 0
+1 | 0 1 0 0
+2 | 1 0 0 0
+3 | 0 0 0 1
+@end example
+
+The following is a C program printing the permutation matrix from a
+given @var{ipiv}:
+
+@example
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static void print_perm (const int * ipiv,
+                        size_t number_of_indices,
+                        int number_of_rows);
+
+int
+main (void)
+@{
+  @{
+    static const int ipiv[4] = @{ 5, 6, 3, 4 @};
+    print_perm(ipiv, 4, 6);
+  @}
+  @{
+    static const int ipiv[4] = @{ 3, 2, 3, 4 @};
+    print_perm(ipiv, 4, 4);
+  @}
+  exit(EXIT_SUCCESS);
+@}
+
+void
+print_perm (const int * ipiv,
+            size_t number_of_indices, int number_of_rows)
+@{
+  int           full_ipiv[number_of_rows];
+  int           P[number_of_rows][number_of_rows];
+  size_t        i, j;
+
+  for (i=0; i<number_of_indices; ++i)
+    @{
+      full_ipiv[i] = ipiv[i] - 1;
+      if (full_ipiv[i] == i) @{
+        for (j=0; j<i; ++j)
+          if (i == full_ipiv[j])
+            @{
+              full_ipiv[i] = j;
+              break;
+            @}
+      @}
+    @}
+
+  for (; i<number_of_rows; ++i)
+    @{
+      full_ipiv[i] = i;
+      for (j=0; j<number_of_indices; ++j)
+        if (i == full_ipiv[j])
+          @{
+            full_ipiv[i] = j;
+            break;
+          @}
+    @}
+
+  memset(&P, '\0', number_of_rows * number_of_rows * sizeof(int));
+
+  for (i=0; i<number_of_rows; ++i)
+    P[i][full_ipiv[i]] = 1;
+
+  printf("\nFull ipiv: ");
+  for (i=0; i<number_of_rows; ++i)
+    printf("%d ", full_ipiv[i]);
+  printf("\n\n");
+
+  printf("Permutation matrix:\n");
+  for (i=0; i<number_of_rows; ++i)
+    @{
+      for (j=0; j<number_of_rows; ++j)
+        printf("%d ", P[i][j]);
+      printf("\n");
+    @}
+@}
+@end example
 
 @c page
 @node references

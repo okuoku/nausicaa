@@ -50,8 +50,21 @@ and in printed form:
 Notes for --- tag 0.1b0
 ------------------------------
 
-* It is  a very basic interface, with  neither marshaling of
-  values nor vector and matrix type definitions.
+* Marshaling of  arguments for the  1200+ functions exported
+  by the primitives API is automatically generated, using as
+  informations the  argument type name and  its proper name;
+  unfortunately some  couples type/name do  not identify how
+  the argument is used.
+
+  For example,  we know that  the argument "real*  scale" is
+  always a  single real value, while the  argument "real* s"
+  some times  is a single real  value and other  times is an
+  array of real values.
+
+  This will  cause incorrect handling of  arguments for some
+  functions  until all  the  errors are  catched and  fixed;
+  fixing these errors  is easy and can be  done quickly.  If
+  you stumble on such problem please file a bug report.
 
 
 ### end of file

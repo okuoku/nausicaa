@@ -34482,7 +34482,7 @@ implementation accompanying the document does what is described above.
 @end defun
 
 
-@defun string->date @func{input-string} @func{template-string}
+@defun string->date @var{input-string} @var{template-string}
 Convert an input string to a date, using the template string.
 
 The input string must match the template string as is; except escape

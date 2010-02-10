@@ -28,13 +28,6 @@
 (library (foreign math lapack primitives)
   (export
 
-    all*
-    lower*
-    none*
-    oscar*
-    sierra*
-    upper*
-
     cbdsqr
     cgbbrd
     cgbcon
@@ -1265,34 +1258,6 @@
     (foreign math lapack platform)
     (foreign math lapack conditions)
     (foreign math lapack sizeof))
-
-
-;;;; constant argument values
-;;
-;;The following  values are never mutated  and can be reused  at will in
-;;all the function calls.  Their usage is thread-safe.
-;;
-
-(define %constants-pool
-  (malloc (* 6 strideof-int)))
-
-(define %constants-cursor
-  %constants-pool)
-
-(define-syntax define-char-pointer
-  (syntax-rules ()
-    ((_ ?name ?char)
-     (define ?name
-       (begin0-let ((p %constants-cursor))
-	 (pointer-incr! %constants-cursor strideof-int)
-	 (pointer-set-c-signed-char! p 0 (char->integer ?char)))))))
-
-(define-char-pointer all*	#\A)
-(define-char-pointer lower*	#\L)
-(define-char-pointer none*	#\N)
-(define-char-pointer oscar*	#\O)
-(define-char-pointer sierra*	#\S)
-(define-char-pointer upper*	#\U)
 
 
 ;;;; pointer to integer arguments

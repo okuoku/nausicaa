@@ -19,8 +19,9 @@ Topics
 
 This package is a  distribution of libraries for R6RS Scheme
 implementations;  it provides  a  binding to  the CLAPACK  C
-language library.  It  is built upon Nausicaa/Scheme, making
-use of its foreign-functions interface.
+language  library,  the ANSI  C  translation  of the  LAPACK
+library.  It  is built  upon Nausicaa/Scheme, making  use of
+its foreign-functions interface.
 
   The libraries support Ikarus, Mosh and Ypsilon Scheme; the
 package supports GNU+Linux systems.

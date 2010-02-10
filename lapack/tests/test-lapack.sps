@@ -344,6 +344,62 @@
   #t)
 
 
+(parametrise ((check-test-name	'eigenproblem))
+
+  (define (cvc-make-rectangular! w wr wi N)
+    (do ((i 0 (+ 1 i)))
+	((= i N))
+      (let ((i2 (* 2 i)))
+	(array-set-c-double! w i2       (array-ref-c-double wr i))
+	(array-set-c-double! w (+ 1 i2) (array-ref-c-double wi i)))))
+
+  (with-compensations
+    (let* ((N	4)
+	   (A	(rmx/c N N))
+	   (wr	(rvc/c N))
+	   (wi	(rvc/c N))
+	   (vl	(rmx/c N N)))
+
+      (rmx-fill! A N '(( 2.27  -1.54   1.15  -1.94)
+		       ( 0.28  -1.67   0.94  -0.78)
+		       (-0.48  -3.09   0.99  -0.21)
+		       ( 1.07   1.22   0.79   0.63)))
+
+      (let* ((lwork	(let ((work (rvc/c 1)))
+			  (dgeev #\V #\N N A N wr wi
+				 vl N pointer-null 1
+				 work -1)
+			  (exact (pointer-ref-c-double work 0))))
+	     (work	(rvc/c lwork)))
+
+	(dgeev #\V #\N N A N wr wi
+	       vl N pointer-null 1
+	       work lwork)
+
+	(let ((w (cvc/c N)))
+	  (cvc-make-rectangular! w wr wi N)
+
+	  (check
+	      (cvc->list w N)
+	    (=> double=?)
+	    '(0.06096+1.8083i
+	      0.06096-1.8083i
+	      1.049+0.50586i
+	      1.049-0.50586i))
+
+	  (check
+	      (rmx->list vl N N N)
+            (=> double=?)
+            '((-0.19304-0.46924i -0.19304+0.46924i  0.75676+0i         0.75676-0i)
+              ( 0.24056-0.26082i  0.24056+0.26082i -0.14714+0.089966i -0.14714-0.089966i)
+              ( 0.58735+0i        0.58735-0i       -0.40803-0.082558i -0.40803+0.082558i)
+              (-0.49998-0.14733i -0.49998+0.14733i  0.3512-0.31768i    0.3512+0.31768i)))
+
+	  #f))))
+
+  #t)
+
+
 ;;;; done
 
 (check-report)
