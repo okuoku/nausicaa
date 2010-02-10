@@ -2099,22 +2099,22 @@ error message related to @var{lwork} is issued by @func{xerbla}.
 Compute for an @var{n}--by--@var{n} real nonsymmetric matrix @math{A},
 the eigenvalues and, optionally, the left and/or right eigenvectors.
 
-The right eigenvector @math{v(j)} of @math{A} satisfies:
+The right eigenvector @math{v_j} of @math{A} satisfies:
 
 @example
-A * v(j) = lambda(j) * v(j)
+A * v_j = \lambda_j * v_j
 @end example
 
 @noindent
-where @math{lambda(j)} is its eigenvalue.  The left eigenvector
-@math{u(j)} of @math{A} satisfies:
+where @math{\lambda_j} is its eigenvalue.  The left eigenvector
+@math{u_j} of @math{A} satisfies:
 
 @example
-u(j)^H * A = lambda(j) * u(j)^H
+u_j^H * A = \lambda_j * u_j^H
 @end example
 
 @noindent
-where @math{u(j)^H} denotes the conjugate transpose of @math{u(j)}.
+where @math{u_j^H} denotes the conjugate transpose of @math{u_j}.
 
 The computed eigenvectors are normalized to have Euclidean norm equal to
 @math{1} and largest component real.
@@ -2149,7 +2149,7 @@ real numbers with dimension @var{ldvl}:@var{n}.  On exit:
 
 @itemize
 @item
-If @var{jobvl} is @samp{#\V}, the left eigenvectors @math{u(j)} are
+If @var{jobvl} is @samp{#\V}, the left eigenvectors @math{u_j} are
 stored one after another in the columns of @var{vl}, in the same order
 as their eigenvalues.
 
@@ -2157,7 +2157,7 @@ as their eigenvalues.
 If @var{jobvl} is @samp{#\N}, @var{vl} is not referenced.
 
 @item
-If the @math{j}-th eigenvalue is real, then @math{u(j) = @var{vl}(:,j)},
+If the @math{j}-th eigenvalue is real, then @math{u_j = @var{vl}(:,j)},
 the @math{j}-th column of @math{vl}.
 
 @item
@@ -2165,7 +2165,7 @@ If the @math{j}-th and @math{(j+1)}-st eigenvalues form a complex
 conjugate pair, then:
 
 @example
-u(j) = @var{vl}(:,j) + i * @var{vl}(:,j+1)
+u_j = @var{vl}(:,j) + i * @var{vl}(:,j+1)
 @end example
 
 @noindent
@@ -2185,7 +2185,7 @@ dimension @var{ldvr}:@var{n}.  On exit:
 
 @itemize
 @item
-If @var{jobvr} is @samp{#\V}, the right eigenvectors @math{v(j)} are
+If @var{jobvr} is @samp{#\V}, the right eigenvectors @math{v_j} are
 stored one after another in the columns of @var{vr}, in the same order
 as their eigenvalues.
 
@@ -2193,7 +2193,7 @@ as their eigenvalues.
 If @var{jobvr} is @samp{#\N}, @var{vr} is not referenced.
 
 @item
-If the @math{j}-th eigenvalue is real, then @math{v(j) = @var{vr}(:,j)},
+If the @math{j}-th eigenvalue is real, then @math{v_j = @var{vr}(:,j)},
 the @math{j}-th column of @var{vr}.
 
 @item
@@ -2201,7 +2201,7 @@ If the @math{j}-th and @math{(j+1)}-st eigenvalues form a complex
 conjugate pair, then:
 
 @example
-v(j) = @var{vr}(:,j) + i * @var{vr}(:,j+1)
+v_j = @var{vr}(:,j) + i * @var{vr}(:,j+1)
 @end example
 
 @noindent
@@ -2231,6 +2231,200 @@ If @var{lwork} is @math{-1}, then a workspace query is assumed; the
 routine only calculates the optimal size of the @var{work} array,
 returns this value as the first entry of the @var{work} array, and no
 error message related to @var{lwork} is issued by @func{xerbla}.
+
+@smallexample
+(import (rnrs)
+  (compensations)
+  (only (ffi pointers) pointer-null)
+  (foreign math lapack)
+  (foreign math lapack vm))
+
+(with-compensations
+  (let* ((N   4)
+         (A   (rmx/c N N))
+         (wr  (rvc/c N))
+         (wi  (rvc/c N))
+         (vr  (rmx/c N N)))
+
+    (rmx-fill! A N '((0.35   0.45  -0.14  -0.17)
+                     (0.09   0.07  -0.54   0.35)
+                     (-0.44 -0.33  -0.03   0.17)
+                     (0.25  -0.32  -0.13   0.11)))
+
+    (let* ((lwork  (let ((work (rvc/c 1)))
+                     (dgeev #\N #\V N A N wr wi
+                            pointer-null 1 vr N
+                            work -1)
+                     (exact (pointer-ref-c-double work 0))))
+           (work   (rvc/c lwork)))
+
+      (dgeev #\N #\V N A N wr wi
+             pointer-null 1 vr N
+             work lwork)
+
+      (let ((w (cvc/c N)))
+        (cvc-make-rectangular! w wr wi N)
+
+        (cvc->list w N)
+        @result{} ( 7.9948E-01
+            -9.9412E-02+4.0079E-01i
+            -9.9412E-02-4.0079E-01i
+            -1.0066E-01)
+
+        (rmx->list vr N N N)))))
+        @result{}    '((-0.65509  -0.19330  +0.25463  0.12533)
+              (-0.52363   0.25186  -0.52240  0.33202)
+              ( 0.53622   0.097182 -0.30838  0.59384)
+              (-0.095607  0.67595   0.0      0.72209))
+
+;;The following is the unpacked matrix of right eigenvectors.
+;;
+;;  ((-0.65509  -0.19330+0.25463i  -0.19330-0.25463i   0.12533)
+;;   (-0.52363   0.25186-0.52240i   0.25186+0.52240i   0.33202)
+;;   ( 0.53622   0.097182-0.30838i  0.097182+0.30838i  0.59384)
+;;   (-0.095607  0.67595            0.67595            0.72209))
+@end smallexample
+@end defun
+
+
+@defun zgeev @var{jobvl} @var{jobvr} @var{n} @var{a-mat} @var{lda} @var{w} var{vl} @var{ldvl} @var{vr} @var{ldvr} @var{work} @var{lwork} @var{rwork}
+Compute for an @var{n}--by--@var{n} complex nonsymmetric matrix
+@math{A}, the eigenvalues and, optionally, the left and/or right
+eigenvectors.
+
+The right eigenvector @math{v_j} of @math{A} satisfies
+
+@example
+A * v_j = \lambda_j * v_j
+@end example
+
+where @math{\lambda_j} is its eigenvalue.  The left eigenvector
+@math{u_j} of @math{A} satisfies @math{u_j^H * A = \lambda_j * u_j^H}
+where @math{u_j^H} denotes the conjugate transpose of @math{u_j}.
+
+The computed eigenvectors are normalized to have Euclidean norm equal to
+@math{1} and largest component real.
+
+@var{jobvl} must be a Scheme character.  @samp{#\N} means that left
+eigenvectors of @math{A} are not computed; @samp{#\V} means that left
+eigenvectors of are computed.
+
+@var{jobvr} must be a Scheme character.  @samp{#\N} means that right
+eigenvectors of @math{A} are not computed; @samp{#\V} means that right
+eigenvectors of @math{A} are computed.
+
+@var{n} must be a non--negative exact integer: the order of the matrix
+@math{A}.
+
+@var{a-mat} must be a pointer object referencing an array of
+@code{double} complex numbers with dimension @var{lda}:@var{n}.  On
+entry, the array must hold the @var{n}-by-@var{n} matrix @math{A}.  On
+exit, the array has been overwritten.
+
+@var{lda} must be an exact integer: the leading dimension of the array
+@math{A}.  @math{@var{lda} >= max(1, @var{n})}.
+
+@var{w} must be a pointer object referencing an array of @code{double}
+complex numbers with dimension @var{n}.  On exit, @var{w} contains the
+computed eigenvalues.
+
+@var{vl} must be a pointer object referencing an array of @code{double}
+complex numbers with dimension @var{ldvl}:@var{n}.  On exit:
+
+@itemize
+@item
+If @var{jobvl} is @samp{#\V}, the left eigenvectors @math{u_j} are
+stored one after another in the columns of @var{vl}, in the same order
+as their eigenvalues.
+
+@item
+If @var{jobvl} is @samp{#\N}, @var{vl} is not referenced.
+
+@item
+@math{u_j = @var{vl}(:,j)}, the @math{j}-th column of @var{vl}.
+@end itemize
+
+@var{ldvl} must be an exact integer: the leading dimension of the array
+@var{vl}.  @math{@var{ldvl} >= 1}; if @var{jobvl} is @samp{#\V},
+@math{@var{ldvl} >= @var{n}}.
+
+@var{vr} must be a pointer object referencing an array of @code{double}
+complex numbers with dimension @var{ldvr}:@var{n}.  On exit:
+
+@itemize
+@item
+If @var{jobvr} is @samp{#\V}, the right eigenvectors @math{v_j} are
+stored one after another in the columns of @var{vr}, in the same order
+as their eigenvalues.
+
+@item
+If @var{jobvr} is @samp{#\N}, @var{vr} is not referenced.
+
+@item
+@math{v_j = @var{vr}(:,j)}, the @math{j}-th column of @var{vr}.
+@end itemize
+
+@var{ldvr} must be an exact integer: the leading dimension of the array
+@var{vr}.  @math{@var{ldvr} >= 1}; if @var{jobvr} is @samp{#\V},
+@math{@var{ldvr} >= @var{n}}.
+
+@var{work} must be a pointer object referencing an array of
+@code{double} complex numbers with dimension @var{lwork}; it is used as
+workspace.  On exit, the first element of the array is the optimal
+@var{lwork}.
+
+@var{lwork} must be an exact integer: the dimension of the array
+@var{work}.  @math{@var{lwork} >= max(1, 2 * @var{n})}.  For good
+performance, @var{lwork} must generally be larger.
+
+If @var{lwork} is @math{-1}, then a workspace query is assumed; the
+routine only calculates the optimal size of the @var{work} array,
+returns this value as the first entry of the @var{work} array, and no
+error message related to @var{lwork} is issued by @func{xerbla}.
+
+@var{rwork} must be a pointer object referencing an array of
+@code{double} complex numbers with dimension @math{2 * @var{n}}; it is
+used as workspace.
+
+@smallexample
+(import (rnrs)
+  (compensations)
+  (only (ffi pointers) pointer-null)
+  (foreign math lapack)
+  (foreign math lapack vm))
+
+(with-compensations
+  (let* ((N           4)
+         (A           (cmx/c N N))
+         (w           (cvc/c N))
+         (vr          (cmx/c N N))
+         (rwork       (cvc/c (+ N N))))
+
+    (cmx-fill! A N '((-3.97-5.04i  -4.11+3.70i  -0.34+1.01i   1.29-0.86i)
+                     ( 0.34-1.50i   1.52-0.43i   1.88-5.38i   3.36+0.65i)
+                     ( 3.31-3.85i   2.50+3.45i   0.88-1.08i   0.64-1.48i)
+                     (-1.10+0.82i   1.81-1.59i   3.25+1.33i   1.57-3.44i)))
+
+    (let* ((lwork     (let ((work (rvc/c 1)))
+                        (zgeev #\N #\V N A N w
+                               pointer-null 1 vr N
+                               work -1 rwork)
+                        (exact (pointer-ref-c-double work 0))))
+           (work      (rvc/c lwork)))
+
+      (zgeev #\N #\V N A N w
+             pointer-null 1 vr N
+             work lwork rwork)
+
+      (cvc->list w N)
+      @result{} (-6.0004-6.9998i -5.0000+2.0060i  7.9982-0.9964i  3.0023-3.9998i)
+
+      (cmx->list vr N N N))))
+      @result{} (( 0.8457         -0.3865+0.1732i -0.1730+0.2669i -0.0356-0.1782i)
+          (-0.0177+0.3036i -0.3539+0.4529i  0.6924          0.1264+0.2666i)
+          (0.0875+0.3115i   0.6124          0.3324+0.4960i  0.0129-0.2966i)
+          (-0.0561-0.2906i -0.0859-0.3284i  0.2504-0.0147i  0.8898))
+@end smallexample
 @end defun
 
 @c page
