@@ -25,6 +25,7 @@
 
 (import
   (only (foreign math blas))
+  (only (foreign math blas vm))
   )
 
 ;;; end of file

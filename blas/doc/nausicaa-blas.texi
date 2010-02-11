@@ -408,7 +408,7 @@ Revised^6 Report on the algorithmic language Scheme
 @c Values.
 @c ------------------------------------------------------------
 
-@set TITLE                      BLAS for Nausicaa
+@set TITLE                      @blas{} for Nausicaa
 
 @c To be used as @value{PACKAGE} whenever we need to include the full
 @c name of this package.
@@ -469,6 +469,7 @@ development of Nausicaa takes place at:
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
+Copyright @copyright{} 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 The @acronym{GSL} Team.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -479,6 +480,10 @@ Invariant Sections being ``@gnu{} Free Documentation License'' and
 Back--Cover Texts.  A copy of the license is included in the section
 entitled ``@gnu{} Free Documentation License''.
 @end quotation
+
+The portion of this document describing the @blas{} interface is derived
+from the documentation of the @gnu{} Scientific library; the material
+has been modified by Marco Maggi.
 @end copying
 
 @c page
@@ -523,6 +528,10 @@ entitled ``@gnu{} Free Documentation License''.
 * overview::                    Overview of the package.
 * constants::                   Constant values.
 * examples::                    Examples.
+* level1::                      @blas{} interface level 1.
+* level2::                      @blas{} interface level 2.
+* level3::                      @blas{} interface level 3.
+* vm::                          Basic vector and matrix library.
 
 Appendices
 
@@ -536,7 +545,19 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Overview of the package
+
+* overview intro::              Introduction to @blas{}.
+* overview libraries::          Installed libraries.
+* overview naming::             Naming conventions.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 @c page
@@ -552,6 +573,47 @@ interface.
 
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
+
+@menu
+* overview intro::              Introduction to @blas{}.
+* overview libraries::          Installed libraries.
+* overview naming::             Naming conventions.
+@end menu
+
+@c page
+@node overview intro
+@section Introduction to @blas{}
+
+
+There are three levels of @blas{} operations:
+
+@table @strong
+@item Level 1
+Vector operations:
+
+@example
+y = alpha x + y
+@end example
+
+@item Level 2
+Matrix--vector operations:
+
+@example
+y = alpha A x + beta y
+@end example
+
+@item Level 3
+Matrix--matrix operations:
+
+@example
+C = alpha A B + C
+@end example
+@end table
+
+@c page
+@node overview libraries
+@section Installed libraries
+
 
 The installed libraries are:
 
@@ -583,7 +645,63 @@ from the @samp{primitives} library and the constant values from the
 The bindings to constant values are stripped of the prefix @code{Cblas},
 converted to lower case and with camel case replaced by dash separators.
 @ref{constants, Constant values}.
+
+@item foreign math blas vm
+Exports a very basic vector and matrix @api{}, mostly intended for
+testing.  @ref{vm, Basic vector and matrix library}.
 @end table
+
+@c page
+@node overview naming
+@section Naming conventions
+
+
+Each @blas{} routine has a name which specifies the operation, the type
+of matrices involved and their precisions.  Some of the most common
+operations and their names are given below:
+
+@multitable {AXPY} {Matrix--vector product} {Basic formula}
+@headitem Name @tab Description @tab Basic formula
+@item DOT @tab scalar product @tab @math{x^T y}
+@item AXPY @tab vector sum @tab @math{\alpha x + y}
+@item MV @tab matrix--vector product @tab @math{A x}
+@item SV @tab matrix--vector solve @tab @math{inv(A) x}
+@item MM @tab matrix--matrix product @tab @math{A B}
+@item SM @tab matrix--matrix solve @tab @math{inv(A) B}
+@end multitable
+
+@noindent
+The types of matrices are,
+
+@multitable {GE} {triangular packed}
+@headitem Name @tab Description
+@item GE @tab general
+@item GB @tab general band
+@item SY @tab symmetric
+@item SB @tab symmetric band
+@item SP @tab symmetric packed
+@item HE @tab hermitian
+@item HB @tab hermitian band
+@item HP @tab hermitian packed
+@item TR @tab triangular
+@item TB @tab triangular band
+@item TP @tab triangular packed
+@end multitable
+
+@noindent
+Each operation is defined for four precisions:
+
+@multitable {Name} {double complex}
+@headitem Name @tab Description
+@item S @tab single real
+@item D @tab double real
+@item C @tab single complex
+@item Z @tab double complex
+@end multitable
+
+For example, the name @func{sgemm} stands for ``single--precision
+general matrix--matrix multiply'' and @func{zgemm} stands for
+``double-precision complex matrix--matrix multiply''.
 
 @c page
 @node constants
@@ -736,6 +854,595 @@ the @cblas{} distribution by Netlib.
       '(0 1 2 3))))
 @result{} (11. 14. 17. 20.)
 @end example
+
+@c page
+@node level1
+@chapter @blas{} interface level 1
+
+
+@defun sdsdot @var{n} @var{alpha} @var{x} @var{inc-x} @var{y} @var{inc-y}
+Compute the sum @math{\alpha + x^T y} for the vectors @var{x} and
+@var{y}; return the result.
+@end defun
+
+
+@defun sdot @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defunx dsdot @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defunx ddot @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+Compute the scalar product @math{x^T y} for the vectors @var{x} and
+@var{y}; return the result.
+@end defun
+
+
+@defun cdotu @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y} @var{dotu}
+@defunx zdotu @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y} @var{dotu}
+These functions compute the complex scalar product @math{x^T y} for the
+vectors @var{x} and @var{y}, returning the result in @var{dotu}.
+@end defun
+
+
+@defun cdotc @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y} @var{dotc}
+@defunx zdotc @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y} @var{dotc}
+These functions compute the complex conjugate scalar product @math{x^H
+y} for the vectors @var{x} and @var{y}, returning the result in
+@var{dotc}.
+@end defun
+
+
+@defun snrm2 @var{n} @var{x} @var{inc-x}
+@defunx dnrm2 @var{n} @var{x} @var{inc-x}
+These functions compute the Euclidean norm @math{||x||_2 = \sqrt @{\sum
+x_i^2@}} of the vector @var{x}.
+@end defun
+
+
+@defun scnrm2 @var{n} @var{x} @var{inc-x}
+@defunx dznrm2 @var{n} @var{x} @var{inc-x}
+These functions compute the Euclidean norm of the complex vector
+@var{x}:
+
+@example
+||x||_2 = \sqrt @{\sum (\Re(x_i)^2 + \Im(x_i)^2)@}.
+@end example
+@end defun
+
+
+@defun sasum @var{n} @var{x} @var{inc-x}
+@defunx dasum @var{n} @var{x} @var{inc-x}
+These functions compute the absolute sum @math{\sum |x_i|} of the
+elements of the vector @var{x}.
+@end defun
+
+
+@defun scasum @var{n} @var{x} @var{inc-x}
+@defunx dzasum @var{n} @var{x} @var{inc-x}
+These functions compute the sum of the magnitudes of the real and
+imaginary parts of the complex vector @var{x}:
+
+@example
+\sum |\Re(x_i)| + |\Im(x_i)|
+@end example
+@end defun
+
+
+@defun isamax @var{n} @var{x} @var{inc-x}
+@defunx idamax @var{n} @var{x} @var{inc-x}
+@defunx icamax @var{n} @var{x} @var{inc-x}
+@defunx izamax @var{n} @var{x} @var{inc-x}
+These functions return the index of the largest element of the vector
+@var{x}.  If the largest value occurs several times then the index of
+the first occurrence is returned.
+
+The largest element is determined by its absolute magnitude for real
+vectors and by the sum of the magnitudes of the real and imaginary parts
+@math{|\Re(x_i)| + |\Im(x_i)|} for complex vectors.
+@end defun
+
+
+@defun sswap @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defunx dswap @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defunx cswap @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defunx zswap @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+These functions exchange the elements of the vectors @var{x} and
+@var{y}.
+@end defun
+
+
+@defun scopy @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defunx dcopy @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defunx ccopy @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defunx zcopy @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+These functions copy the elements of the vector @var{x} into the vector
+@var{y}.
+@end defun
+
+
+@defun saxpy @var{n} @var{alpha} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defunx daxpy @var{n} @var{alpha} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defunx caxpy @var{n} @var{alpha} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defunx zaxpy @var{n} @var{alpha} @var{x} @var{inc-x} @var{y} @var{inc-y}
+These functions compute the sum @math{y = \alpha x + y} for the vectors
+@var{x} and @var{y}.
+@end defun
+
+
+@defun srotg (float @var{a}[], float @var{b}[], float @var{c}[], float @var{s}[])
+@defunx drotg (double @var{a}[], double @var{b}[], double @var{c}[], double @var{s}[])
+These functions compute a Givens rotation @math{(c,s)} which zeroes the
+vector @math{(a,b)}:
+
+@example
+[  c  s ] [ a ] = [ r ]
+[ -s  c ] [ b ]   [ 0 ]
+@end example
+
+@noindent
+the variables @var{a} and @var{b} are overwritten by the routine.
+@end defun
+
+
+@defun srot @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y} @var{c} @var{s}
+@defunx drot @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y} @var{c} @var{s}
+These functions apply a Givens rotation:
+
+@example
+x' =  c x + s y
+y' = -s x + c y
+@end example
+
+@noindent
+to the vectors @var{x}, @var{y}.
+@end defun
+
+
+@defun srotmg (float @var{d1}[], float @var{d2}[], float @var{b1}[], float @var{b2}, float @var{P}[])
+@defunx drotmg (double @var{d1}[], double @var{d2}[], double @var{b1}[], double @var{b2}, double @var{P}[])
+These functions compute a modified Givens transformation.  The modified
+Givens transformation is defined in the original Level-1 @sc{blas}
+specification, given in the references.
+@end defun
+
+
+@defun srotm @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y} @var{p}
+@defunx drotm @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y} @var{p}
+These functions apply a modified Givens transformation.
+@end defun
+
+
+@defun sscal @var{n} @var{alpha} @var{x} @var{inc-x}
+@defunx dscal @var{n} @var{alpha} @var{x} @var{inc-x}
+@defunx cscal @var{n} @var{alpha} @var{x} @var{inc-x}
+@defunx zscal @var{n} @var{alpha} @var{x} @var{inc-x}
+@defunx csscal @var{n} @var{alpha} @var{x} @var{inc-x}
+@defunx zdscal @var{n} @var{alpha} @var{x} @var{inc-x}
+These functions rescale the vector @var{x} by the multiplicative factor
+@var{alpha}.
+@end defun
+
+@c page
+@node level2
+@chapter @blas{} interface level 2
+
+
+@subsubheading Routines with standard 4 prefixes (S, D, C, Z)
+
+
+@defun sgemv @var{order} @var{tr-a} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@defunx dgemv @var{order} @var{tr-a} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@defunx cgemv @var{order} @var{tr-a} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@defunx zgemv @var{order} @var{tr-a} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@end defun
+
+
+@defun sgbmv @var{order} @var{tr-a} @var{M} @var{N} @var{KL} @var{KU} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@defunx dgbmv @var{order} @var{tr-a} @var{M} @var{N} @var{KL} @var{KU} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@defunx cgbmv @var{order} @var{tr-a} @var{M} @var{N} @var{KL} @var{KU} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@defunx zgbmv @var{order} @var{tr-a} @var{M} @var{N} @var{KL} @var{KU} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@end defun
+
+
+@defun strmv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{lda} @var{X} @var{inc-X}
+@defunx dtrmv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{lda} @var{X} @var{inc-X}
+@defunx ctrmv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{lda} @var{X} @var{inc-X}
+@defunx ztrmv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{lda} @var{X} @var{inc-X}
+@end defun
+
+
+@defun stbmv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{K} @var{A} @var{lda} @var{X} @var{inc-X}
+@defunx dtbmv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{K} @var{A} @var{lda} @var{X} @var{inc-X}
+@defunx ctbmv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{K} @var{A} @var{lda} @var{X} @var{inc-X}
+@defunx ztbmv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{K} @var{A} @var{lda} @var{X} @var{inc-X}
+@end defun
+
+
+@defun stpmv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{X} @var{inc-X}
+@defunx dtpmv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{X} @var{inc-X}
+@defunx ctpmv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{X} @var{inc-X}
+@defunx ztpmv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{X} @var{inc-X}
+@end defun
+
+
+
+@defun strsv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{lda} @var{X} @var{inc-X}
+@defunx dtrsv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{lda} @var{X} @var{inc-X}
+@defunx ctrsv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{lda} @var{X} @var{inc-X}
+@defunx ztrsv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{lda} @var{X} @var{inc-X}
+@end defun
+
+
+@defun stbsv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{K} @var{A} @var{lda} @var{X} @var{inc-X}
+@defunx dtbsv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{K} @var{A} @var{lda} @var{X} @var{inc-X}
+@defunx ctbsv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{K} @var{A} @var{lda} @var{X} @var{inc-X}
+@defunx ztbsv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{K} @var{A} @var{lda} @var{X} @var{inc-X}
+@end defun
+
+
+@defun stpsv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{X} @var{inc-X}
+@defunx dtpsv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{X} @var{inc-X}
+@defunx ctpsv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{X} @var{inc-X}
+@defunx ztpsv @var{order} @var{uplo} @var{tr-a} @var{diag} @var{N} @var{A} @var{X} @var{inc-X}
+
+@end defun
+
+
+@subsubheading Routines with S and D prefixes only
+
+
+@defun ssymv @var{order} @var{uplo} @var{N} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@defunx dsymv @var{order} @var{uplo} @var{N} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@end defun
+
+
+@defun ssbmv @var{order} @var{uplo} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@defunx dsbmv @var{order} @var{uplo} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@end defun
+
+
+@defun sspmv @var{order} @var{uplo} @var{N} @var{alpha} @var{A} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@defunx dspmv @var{order} @var{uplo} @var{N} @var{alpha} @var{A} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@end defun
+
+
+@defun sger @var{order} @var{M} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A} @var{lda}
+@defunx dger @var{order} @var{M} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A} @var{lda}
+@end defun
+
+
+@defun ssyr @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{A} @var{lda}
+@defunx dsyr @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{A} @var{lda}
+@end defun
+
+
+@defun sspr @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{A}
+@defunx dspr @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{A}
+@end defun
+
+
+@defun ssyr2 @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A} @var{lda}
+@defunx dsyr2 @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A} @var{lda}
+@end defun
+
+
+@defun sspr2 @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A}
+@defunx dspr2 @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A}
+@end defun
+
+
+@subsubheading Routines with C and Z prefixes only
+
+
+@defun chemv @var{order} @var{uplo} @var{N} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@defunx zhemv @var{order} @var{uplo} @var{N} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@end defun
+
+
+@defun chbmv @var{order} @var{uplo} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@defunx zhbmv @var{order} @var{uplo} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@end defun
+
+
+@defun chpmv @var{order} @var{uplo} @var{N} @var{alpha} @var{A} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@defunx zhpmv @var{order} @var{uplo} @var{N} @var{alpha} @var{A} @var{X} @var{inc-X} @var{beta} @var{Y} @var{inc-Y}
+@end defun
+
+
+@defun cgeru @var{order} @var{M} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A} @var{lda}
+@defunx zgeru @var{order} @var{M} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A} @var{lda}
+@end defun
+
+
+@defun cgerc @var{order} @var{M} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A} @var{lda}
+@defunx zgerc @var{order} @var{M} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A} @var{lda}
+@end defun
+
+
+@defun cher @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{A} @var{lda}
+@defunx zher @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{A} @var{lda}
+@end defun
+
+
+@defun chpr @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{A}
+@defunx zhpr @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{A}
+@end defun
+
+
+@defun cher2 @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A} @var{lda}
+@defunx zher2 @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A} @var{lda}
+@end defun
+
+
+@defun chpr2 @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A}
+@defunx zhpr2 @var{order} @var{uplo} @var{N} @var{alpha} @var{X} @var{inc-X} @var{Y} @var{inc-Y} @var{A}
+@end defun
+
+@c page
+@node level3
+@chapter @blas{} interface level 3
+
+
+@subsubheading Routines with standard 4 prefixes (S D C Z)
+
+
+@defun sgemm @var{order} @var{tr-A} @var{tr-B} @var{M} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@defunx dgemm @var{order} @var{tr-A} @var{tr-B} @var{M} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@defunx cgemm @var{order} @var{tr-A} @var{tr-B} @var{M} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@defunx zgemm @var{order} @var{tr-A} @var{tr-B} @var{M} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@end defun
+
+
+@defun ssymm @var{order} @var{side} @var{uplo} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@defunx dsymm @var{order} @var{side} @var{uplo} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@defunx csymm @var{order} @var{side} @var{uplo} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@defunx zsymm @var{order} @var{side} @var{uplo} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@end defun
+
+
+@defun ssyrk @var{order} @var{uplo} @var{trans} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{beta} @var{C} @var{ldc}
+@defunx dsyrk @var{order} @var{uplo} @var{trans} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{beta} @var{C} @var{ldc}
+@defunx csyrk @var{order} @var{uplo} @var{trans} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{beta} @var{C} @var{ldc}
+@defunx zsyrk @var{order} @var{uplo} @var{trans} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{beta} @var{C} @var{ldc}
+@end defun
+
+
+@defun ssyr2k @var{order} @var{uplo} @var{trans} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@defunx dsyr2k @var{order} @var{uplo} @var{trans} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@defunx csyr2k @var{order} @var{uplo} @var{trans} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@defunx zsyr2k @var{order} @var{uplo} @var{trans} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@end defun
+
+
+@defun strmm @var{order} @var{side} @var{uplo} @var{tr-A} @var{diag} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb}
+@defunx dtrmm @var{order} @var{side} @var{uplo} @var{tr-A} @var{diag} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb}
+@defunx ctrmm @var{order} @var{side} @var{uplo} @var{tr-A} @var{diag} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb}
+@defunx ztrmm @var{order} @var{side} @var{uplo} @var{tr-A} @var{diag} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb}
+@end defun
+
+
+@defun strsm @var{order} @var{side} @var{uplo} @var{tr-A} @var{diag} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb}
+@defunx dtrsm @var{order} @var{side} @var{uplo} @var{tr-A} @var{diag} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb}
+@defunx ctrsm @var{order} @var{side} @var{uplo} @var{tr-A} @var{diag} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb}
+@defunx ztrsm @var{order} @var{side} @var{uplo} @var{tr-A} @var{diag} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb}
+@end defun
+
+
+@subsubheading Routines with prefixes C and Z only
+
+
+@defun chemm @var{order} @var{side} @var{uplo} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@defunx zhemm @var{order} @var{side} @var{uplo} @var{M} @var{N} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@end defun
+
+
+@defun cherk @var{order} @var{uplo} @var{trans} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{beta} @var{C} @var{ldc}
+@defunx zherk @var{order} @var{uplo} @var{trans} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{beta} @var{C} @var{ldc}
+@end defun
+
+
+@defun cher2k @var{order} @var{uplo} @var{trans} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@defunx zher2k @var{order} @var{uplo} @var{trans} @var{N} @var{K} @var{alpha} @var{A} @var{lda} @var{B} @var{ldb} @var{beta} @var{C} @var{ldc}
+@end defun
+
+@c page
+@node vm
+@chapter Basic vector and matrix library
+
+
+The bindings documented here are exported by the @library{foreign math
+blas vm} library.  Vectors and matrices supported by this library are
+composed of real and complex numbers under @code{double} representation.
+
+@menu
+* vm real vectors::             Real vectors.
+* vm complex vectors::          Complex vectors.
+* vm real matrices::            Real matrices.
+* vm complex matrices::         Complex matrices.
+@end menu
+
+@c page
+@node vm real vectors
+@section Real vectors
+
+
+@defun rvc/c @var{len}
+Allocate an array capable of holding a real vector of @var{len}
+elements; return a pointer to it.  The appropriate free function is
+pushed to the current compensations stack.  @nauref{compensations,
+Compensation stacks}.
+@end defun
+
+
+@defun rvc-set! @var{rvc} @var{idx} @var{val}
+Store the real number @var{val} at location @var{IDX} in the real vector
+referenced by the pointer object @var{rvc}.
+@end defun
+
+
+@defun rvc-ref @var{rvc} @var{idx}
+Return the real number at location @var{idx} in the real vector
+referenced by the pointer object @var{rvc}.
+@end defun
+
+
+@defun rvc-fill! @var{rvc} @var{m}
+Fill the real vector referenced by the pointer object @var{rvc} with
+values from the list @var{m}.
+@end defun
+
+
+@defun rvc->list @var{rvc} @var{len}
+Build and return a list holding the values from the real vector
+referenced by the pointer @var{rvc} and length @var{len}.
+@end defun
+
+@c page
+@node vm complex vectors
+@section Complex vectors
+
+
+@defun rvc/c @var{len}
+Allocate an array capable of holding a complex vector of @var{len}
+elements; return a pointer to it.  The appropriate free function is
+pushed to the current compensations stack.  @nauref{compensations,
+Compensation stacks}.
+@end defun
+
+
+@defun rvc-set! @var{rvc} @var{idx} @var{val}
+Store the complex number @var{val} at location @var{IDX} in the complex
+vector referenced by the pointer object @var{rvc}.
+@end defun
+
+
+@defun rvc-ref @var{rvc} @var{idx}
+Return the complex number at location @var{idx} in the complex vector
+referenced by the pointer object @var{rvc}.
+@end defun
+
+
+@defun rvc-fill! @var{rvc} @var{m}
+Fill the complex vector referenced by the pointer object @var{rvc} with
+values from the list @var{m}.
+@end defun
+
+
+@defun rvc->list @var{rvc} @var{len}
+Build and return a list holding the values from the complex vector
+referenced by the pointer @var{rvc} and length @var{len}.
+@end defun
+
+
+@defun cvc-make-rectangular! @var{w} @var{wr} @var{wi} @var{len}
+Store in @var{w}, a vector of complex nubmers, the vectors @var{wr} and
+@var{wi} holding, respectively, the real parts and the imaginary parts.
+@var{len} is the length of the vectors.
+
+This function is useful to build the vector of eigenvalues returned, for
+example, by @func{dgeev}.
+@end defun
+
+@c page
+@node vm real matrices
+@section Real matrices
+
+
+For all the following descriptions: the @var{ld} argument is the
+``leading dimension'' of the matrix, in @blas{} jargon, and the matrix
+is accessed in column--major order.
+
+
+@defun rmx/c @var{rows-num} @var{cols-num}
+Allocate an array capable of holding a real matrix of @var{rows-num}
+rows and @var{cols-num} columns; return a pointer to it.  The
+appropriate free function is pushed to the current compensations stack.
+@nauref{compensations, Compensation stacks}.
+@end defun
+
+
+@defun rmx-set! @var{rmx} @var{ldm} @var{row} @var{col} @var{val}
+Store the real value @var{val} at location @var{row}, @var{col} in the
+real matrix referenced by the pointer object @var{rmx} and column length
+@var{ldm}.
+@end defun
+
+
+@defun rmx-ref @var{rmx} @var{ldm} @var{row} @var{col}
+Return the real value at location @var{row}, @var{col} in the real
+matrix referenced by the pointer object @var{rmx} and column length
+@var{ldm}.
+@end defun
+
+
+@defun rmx-fill! @var{rmx} @var{ldm} @var{m}
+Fill the real matrix referenced by the pointer object @var{rmx} and
+column length @var{ldm}, with values from the list @var{m}.  @var{m} is
+a list of lists in row--major order:
+
+@example
+((a_11 a_12 a_13)
+ (a_21 a_22 a_23)
+ (a_31 a_32 a_33))
+@end example
+@end defun
+
+
+@defun rmx->list @var{rmx} @var{ldm} @var{rows-num} @var{cols-num}
+Build and return a list of lists holding the values, in row--major
+order, from the matrix referenced by the pointer @var{rmx}.  @var{ldm}
+is the length of a column.  @var{rows-num} and @var{cols-num} are the
+numbers of rows and columns.
+@end defun
+
+@c page
+@node vm complex matrices
+@section Complex matrices
+
+
+For all the following descriptions: the @var{ld} argument is the
+``leading dimension'' of the matrix, in @blas{} jargon, and the matrix
+is accessed in column--major order.
+
+
+@defun cmx/c @var{rows-num} @var{cols-num}
+Allocate an array capable of holding a complex matrix of @var{rows-num}
+rows and @var{cols-num} columns; return a pointer to it.  The
+appropriate free function is pushed to the current compensations stack.
+@nauref{compensations, Compensation stacks}.
+@end defun
+
+
+@defun cmx-set! @var{cmx} @var{ldm} @var{row} @var{col} @var{val}
+Store the complex value @var{val} at location @var{row}, @var{col} in
+the complex matrix referenced by the pointer object @var{cmx} and column
+length @var{ldm}.
+@end defun
+
+
+@defun cmx-ref @var{cmx} @var{ldm} @var{row} @var{col}
+Return the complex value at location @var{row}, @var{col} in the complex
+matrix referenced by the pointer object @var{cmx} and column length
+@var{ldm}.
+@end defun
+
+
+@defun cmx-fill! @var{cmx} @var{ldm} @var{m}
+Fill the complex matrix referenced by the pointer object @var{cmx} and
+column length @var{ldm}, with values from the list @var{m}.  @var{m} is
+a list of lists in row--major order:
+
+@example
+((a_11 a_12 a_13)
+ (a_21 a_22 a_23)
+ (a_31 a_32 a_33))
+@end example
+@end defun
+
+
+@defun cmx->list @var{cmx} @var{ldm} @var{rows-num} @var{cols-num}
+Build and return a list of lists holding the values, in row--major
+order, from the matrix referenced by the pointer @var{cmx}.  @var{ldm}
+is the length of a column.  @var{rows-num} and @var{cols-num} are the
+numbers of rows and columns.
+@end defun
 
 @c page
 
