@@ -1,0 +1,50 @@
+To: comp.lang.scheme
+Subject: [announce] Nausicaa/PostgreSQL --- tag 0.1b0
+
+		    Nausicaa/PostgreSQL
+		    ===================
+
+This package is a  distribution of libraries for R6RS Scheme
+implementations; it  provides bindings for  the PostgreSQL C
+language  library,  a   library  to  connect  to  PostgreSQL
+databases.
+
+  It  is  built  upon  Nausicaa/Scheme, making  use  of  its
+foreign-functions   interface.   It   supports   the  Scheme
+implementations  Ikarus, Mosh  and  Ypsilon.  The  packaging
+infrastructure currently supports only GNU+Linux systems.
+
+  The latest release of Nausicaa/PostgreSQL is available at:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+the documentation is available on line:
+
+<http://marcomaggi.github.com/docs/nausicaa-postgresql.html>
+
+Postgresql is available at:
+
+		<http://www.postgresql.org/>
+
+
+Notes for --- tag 0.1b0
+------------------------------
+
+* Tested with PostgreSQL version 8.4.1.
+
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:

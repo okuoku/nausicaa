@@ -1,0 +1,683 @@
+;;; (foreign databases postgresql sizeof) --
+;;;
+;;;Part of: Nausicaa
+;;;Contents: foreign library inspection generation
+;;;Date: Sun Feb 14, 2010
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+(library
+  (foreign databases postgresql sizeof)
+  (export
+    Oid
+    sizeof-Oid
+    alignof-Oid
+    strideof-Oid
+    pointer-ref-c-Oid
+    pointer-set-c-Oid!
+    Oid*
+    pgthreadlock_t
+    PGconn*
+    sizeof-PGconn
+    alignof-PGconn
+    strideof-PGconn
+    PGresult*
+    sizeof-PGresult
+    alignof-PGresult
+    strideof-PGresult
+    PGcancel*
+    sizeof-PGcancel
+    alignof-PGcancel
+    strideof-PGcancel
+    PGnotify*
+    sizeof-PGnotify
+    alignof-PGnotify
+    strideof-PGnotify
+    struct-PGnotify-relname-set!
+    struct-PGnotify-relname-ref
+    struct-PGnotify-be_pid-set!
+    struct-PGnotify-be_pid-ref
+    struct-PGnotify-extra-set!
+    struct-PGnotify-extra-ref
+    struct-PGnotify-next-set!
+    struct-PGnotify-next-ref
+    PQnoticeReceiver
+    PQnoticeProcessor
+    pqbool
+    PQprintOpt*
+    sizeof-PQprintOpt
+    alignof-PQprintOpt
+    strideof-PQprintOpt
+    struct-PQprintOpt-header-set!
+    struct-PQprintOpt-header-ref
+    struct-PQprintOpt-align-set!
+    struct-PQprintOpt-align-ref
+    struct-PQprintOpt-standard-set!
+    struct-PQprintOpt-standard-ref
+    struct-PQprintOpt-html3-set!
+    struct-PQprintOpt-html3-ref
+    struct-PQprintOpt-expanded-set!
+    struct-PQprintOpt-expanded-ref
+    struct-PQprintOpt-pager-set!
+    struct-PQprintOpt-pager-ref
+    struct-PQprintOpt-fieldSep-set!
+    struct-PQprintOpt-fieldSep-ref
+    struct-PQprintOpt-tableOpt-set!
+    struct-PQprintOpt-tableOpt-ref
+    struct-PQprintOpt-caption-set!
+    struct-PQprintOpt-caption-ref
+    struct-PQprintOpt-fieldName-set!
+    struct-PQprintOpt-fieldName-ref
+    PQconninfoOption*
+    sizeof-PQconninfoOption
+    alignof-PQconninfoOption
+    strideof-PQconninfoOption
+    struct-PQconninfoOption-keyword-set!
+    struct-PQconninfoOption-keyword-ref
+    struct-PQconninfoOption-envvar-set!
+    struct-PQconninfoOption-envvar-ref
+    struct-PQconninfoOption-compiled-set!
+    struct-PQconninfoOption-compiled-ref
+    struct-PQconninfoOption-val-set!
+    struct-PQconninfoOption-val-ref
+    struct-PQconninfoOption-label-set!
+    struct-PQconninfoOption-label-ref
+    struct-PQconninfoOption-dispchar-set!
+    struct-PQconninfoOption-dispchar-ref
+    struct-PQconninfoOption-dispsize-set!
+    struct-PQconninfoOption-dispsize-ref
+    PQArgBlock*
+    sizeof-PQArgBlock
+    alignof-PQArgBlock
+    strideof-PQArgBlock
+    struct-PQArgBlock-len-set!
+    struct-PQArgBlock-len-ref
+    struct-PQArgBlock-isint-set!
+    struct-PQArgBlock-isint-ref
+    struct-PQArgBlock-ptr-set!
+    struct-PQArgBlock-ptr-ref
+    struct-PQArgBlock-integer-set!
+    struct-PQArgBlock-integer-ref
+    PGresAttDesc*
+    sizeof-PGresAttDesc
+    alignof-PGresAttDesc
+    strideof-PGresAttDesc
+    struct-PGresAttDesc-name-set!
+    struct-PGresAttDesc-name-ref
+    struct-PGresAttDesc-tableid-set!
+    struct-PGresAttDesc-tableid-ref
+    struct-PGresAttDesc-columnid-set!
+    struct-PGresAttDesc-columnid-ref
+    struct-PGresAttDesc-format-set!
+    struct-PGresAttDesc-format-ref
+    struct-PGresAttDesc-typid-set!
+    struct-PGresAttDesc-typid-ref
+    struct-PGresAttDesc-typlen-set!
+    struct-PGresAttDesc-typlen-ref
+    struct-PGresAttDesc-atttypmod-set!
+    struct-PGresAttDesc-atttypmod-ref
+    OID_MAX
+    PG_DIAG_SEVERITY
+    PG_DIAG_SQLSTATE
+    PG_DIAG_MESSAGE_PRIMARY
+    PG_DIAG_MESSAGE_DETAIL
+    PG_DIAG_MESSAGE_HINT
+    PG_DIAG_STATEMENT_POSITION
+    PG_DIAG_INTERNAL_POSITION
+    PG_DIAG_INTERNAL_QUERY
+    PG_DIAG_CONTEXT
+    PG_DIAG_SOURCE_FILE
+    PG_DIAG_SOURCE_LINE
+    PG_DIAG_SOURCE_FUNCTION
+    PG_COPYRES_ATTRS
+    PG_COPYRES_TUPLES
+    PG_COPYRES_EVENTS
+    PG_COPYRES_NOTICEHOOKS
+    ConnStatusType
+    sizeof-ConnStatusType
+    alignof-ConnStatusType
+    strideof-ConnStatusType
+    pointer-ref-c-ConnStatusType
+    pointer-set-c-ConnStatusType!
+    CONNECTION_OK
+    CONNECTION_BAD
+    CONNECTION_STARTED
+    CONNECTION_MADE
+    CONNECTION_AWAITING_RESPONSE
+    CONNECTION_AUTH_OK
+    CONNECTION_SETENV
+    CONNECTION_SSL_STARTUP
+    CONNECTION_NEEDED
+    PostgresPollingStatusType
+    sizeof-PostgresPollingStatusType
+    alignof-PostgresPollingStatusType
+    strideof-PostgresPollingStatusType
+    pointer-ref-c-PostgresPollingStatusType
+    pointer-set-c-PostgresPollingStatusType!
+    PGRES_POLLING_FAILED
+    PGRES_POLLING_READING
+    PGRES_POLLING_WRITING
+    PGRES_POLLING_OK
+    PGRES_POLLING_ACTIVE
+    ExecStatusType
+    sizeof-ExecStatusType
+    alignof-ExecStatusType
+    strideof-ExecStatusType
+    pointer-ref-c-ExecStatusType
+    pointer-set-c-ExecStatusType!
+    PGRES_EMPTY_QUERY
+    PGRES_COMMAND_OK
+    PGRES_TUPLES_OK
+    PGRES_COPY_OUT
+    PGRES_COPY_IN
+    PGRES_BAD_RESPONSE
+    PGRES_NONFATAL_ERROR
+    PGRES_FATAL_ERROR
+    PGTransactionStatusType
+    sizeof-PGTransactionStatusType
+    alignof-PGTransactionStatusType
+    strideof-PGTransactionStatusType
+    pointer-ref-c-PGTransactionStatusType
+    pointer-set-c-PGTransactionStatusType!
+    PQTRANS_IDLE
+    PQTRANS_ACTIVE
+    PQTRANS_INTRANS
+    PQTRANS_INERROR
+    PQTRANS_UNKNOWN
+    PGVerbosity
+    sizeof-PGVerbosity
+    alignof-PGVerbosity
+    strideof-PGVerbosity
+    pointer-ref-c-PGVerbosity
+    pointer-set-c-PGVerbosity!
+    PQERRORS_TERSE
+    PQERRORS_DEFAULT
+    PQERRORS_VERBOSE
+    POSTGRESQL_SHARED_OBJECT)
+  (import
+    (rnrs)
+    (foreign ffi)
+    (foreign ffi sizeof))
+  (define Oid '@TYPEOF_OID@)
+  (define sizeof-Oid @SIZEOF_OID@)
+  (define alignof-Oid @ALIGNOF_OID@)
+  (define strideof-Oid @STRIDEOF_OID@)
+  (define pointer-ref-c-Oid @GETTEROF_OID@)
+  (define pointer-set-c-Oid! @SETTEROF_OID@)
+  (define Oid* 'pointer)
+  (define pgthreadlock_t 'callback)
+  (define PGconn* 'pointer)
+  (define sizeof-PGconn @SIZEOF_PGCONN@)
+  (define alignof-PGconn @ALIGNOF_PGCONN@)
+  (define strideof-PGconn @STRIDEOF_PGCONN@)
+  (define PGresult* 'pointer)
+  (define sizeof-PGresult @SIZEOF_PGRESULT@)
+  (define alignof-PGresult @ALIGNOF_PGRESULT@)
+  (define strideof-PGresult @STRIDEOF_PGRESULT@)
+  (define PGcancel* 'pointer)
+  (define sizeof-PGcancel @SIZEOF_PGCANCEL@)
+  (define alignof-PGcancel @ALIGNOF_PGCANCEL@)
+  (define strideof-PGcancel @STRIDEOF_PGCANCEL@)
+  (define PGnotify* 'pointer)
+  (define sizeof-PGnotify @SIZEOF_PGNOTIFY@)
+  (define alignof-PGnotify @ALIGNOF_PGNOTIFY@)
+  (define strideof-PGnotify @STRIDEOF_PGNOTIFY@)
+  (define-c-struct-accessor-and-mutator
+    struct-PGnotify-relname-set!
+    struct-PGnotify-relname-ref
+    @OFFSETOF_PGNOTIFY_RELNAME@
+    @SETTEROF_PGNOTIFY_RELNAME@
+    @GETTEROF_PGNOTIFY_RELNAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-PGnotify-be_pid-set!
+    struct-PGnotify-be_pid-ref
+    @OFFSETOF_PGNOTIFY_BE_PID@
+    @SETTEROF_PGNOTIFY_BE_PID@
+    @GETTEROF_PGNOTIFY_BE_PID@)
+  (define-c-struct-accessor-and-mutator
+    struct-PGnotify-extra-set!
+    struct-PGnotify-extra-ref
+    @OFFSETOF_PGNOTIFY_EXTRA@
+    @SETTEROF_PGNOTIFY_EXTRA@
+    @GETTEROF_PGNOTIFY_EXTRA@)
+  (define-c-struct-accessor-and-mutator
+    struct-PGnotify-next-set!
+    struct-PGnotify-next-ref
+    @OFFSETOF_PGNOTIFY_NEXT@
+    @SETTEROF_PGNOTIFY_NEXT@
+    @GETTEROF_PGNOTIFY_NEXT@)
+  (define PQnoticeReceiver 'callback)
+  (define PQnoticeProcessor 'callback)
+  (define pqbool 'signed-int)
+  (define PQprintOpt* 'pointer)
+  (define sizeof-PQprintOpt @SIZEOF_PQPRINTOPT@)
+  (define alignof-PQprintOpt @ALIGNOF_PQPRINTOPT@)
+  (define
+    strideof-PQprintOpt
+    @STRIDEOF_PQPRINTOPT@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQprintOpt-header-set!
+    struct-PQprintOpt-header-ref
+    @OFFSETOF_PQPRINTOPT_HEADER@
+    @SETTEROF_PQPRINTOPT_HEADER@
+    @GETTEROF_PQPRINTOPT_HEADER@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQprintOpt-align-set!
+    struct-PQprintOpt-align-ref
+    @OFFSETOF_PQPRINTOPT_ALIGN@
+    @SETTEROF_PQPRINTOPT_ALIGN@
+    @GETTEROF_PQPRINTOPT_ALIGN@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQprintOpt-standard-set!
+    struct-PQprintOpt-standard-ref
+    @OFFSETOF_PQPRINTOPT_STANDARD@
+    @SETTEROF_PQPRINTOPT_STANDARD@
+    @GETTEROF_PQPRINTOPT_STANDARD@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQprintOpt-html3-set!
+    struct-PQprintOpt-html3-ref
+    @OFFSETOF_PQPRINTOPT_HTML3@
+    @SETTEROF_PQPRINTOPT_HTML3@
+    @GETTEROF_PQPRINTOPT_HTML3@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQprintOpt-expanded-set!
+    struct-PQprintOpt-expanded-ref
+    @OFFSETOF_PQPRINTOPT_EXPANDED@
+    @SETTEROF_PQPRINTOPT_EXPANDED@
+    @GETTEROF_PQPRINTOPT_EXPANDED@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQprintOpt-pager-set!
+    struct-PQprintOpt-pager-ref
+    @OFFSETOF_PQPRINTOPT_PAGER@
+    @SETTEROF_PQPRINTOPT_PAGER@
+    @GETTEROF_PQPRINTOPT_PAGER@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQprintOpt-fieldSep-set!
+    struct-PQprintOpt-fieldSep-ref
+    @OFFSETOF_PQPRINTOPT_FIELDSEP@
+    @SETTEROF_PQPRINTOPT_FIELDSEP@
+    @GETTEROF_PQPRINTOPT_FIELDSEP@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQprintOpt-tableOpt-set!
+    struct-PQprintOpt-tableOpt-ref
+    @OFFSETOF_PQPRINTOPT_TABLEOPT@
+    @SETTEROF_PQPRINTOPT_TABLEOPT@
+    @GETTEROF_PQPRINTOPT_TABLEOPT@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQprintOpt-caption-set!
+    struct-PQprintOpt-caption-ref
+    @OFFSETOF_PQPRINTOPT_CAPTION@
+    @SETTEROF_PQPRINTOPT_CAPTION@
+    @GETTEROF_PQPRINTOPT_CAPTION@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQprintOpt-fieldName-set!
+    struct-PQprintOpt-fieldName-ref
+    @OFFSETOF_PQPRINTOPT_FIELDNAME@
+    @SETTEROF_PQPRINTOPT_FIELDNAME@
+    @GETTEROF_PQPRINTOPT_FIELDNAME@)
+  (define PQconninfoOption* 'pointer)
+  (define
+    sizeof-PQconninfoOption
+    @SIZEOF_PQCONNINFOOPTION@)
+  (define
+    alignof-PQconninfoOption
+    @ALIGNOF_PQCONNINFOOPTION@)
+  (define
+    strideof-PQconninfoOption
+    @STRIDEOF_PQCONNINFOOPTION@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQconninfoOption-keyword-set!
+    struct-PQconninfoOption-keyword-ref
+    @OFFSETOF_PQCONNINFOOPTION_KEYWORD@
+    @SETTEROF_PQCONNINFOOPTION_KEYWORD@
+    @GETTEROF_PQCONNINFOOPTION_KEYWORD@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQconninfoOption-envvar-set!
+    struct-PQconninfoOption-envvar-ref
+    @OFFSETOF_PQCONNINFOOPTION_ENVVAR@
+    @SETTEROF_PQCONNINFOOPTION_ENVVAR@
+    @GETTEROF_PQCONNINFOOPTION_ENVVAR@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQconninfoOption-compiled-set!
+    struct-PQconninfoOption-compiled-ref
+    @OFFSETOF_PQCONNINFOOPTION_COMPILED@
+    @SETTEROF_PQCONNINFOOPTION_COMPILED@
+    @GETTEROF_PQCONNINFOOPTION_COMPILED@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQconninfoOption-val-set!
+    struct-PQconninfoOption-val-ref
+    @OFFSETOF_PQCONNINFOOPTION_VAL@
+    @SETTEROF_PQCONNINFOOPTION_VAL@
+    @GETTEROF_PQCONNINFOOPTION_VAL@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQconninfoOption-label-set!
+    struct-PQconninfoOption-label-ref
+    @OFFSETOF_PQCONNINFOOPTION_LABEL@
+    @SETTEROF_PQCONNINFOOPTION_LABEL@
+    @GETTEROF_PQCONNINFOOPTION_LABEL@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQconninfoOption-dispchar-set!
+    struct-PQconninfoOption-dispchar-ref
+    @OFFSETOF_PQCONNINFOOPTION_DISPCHAR@
+    @SETTEROF_PQCONNINFOOPTION_DISPCHAR@
+    @GETTEROF_PQCONNINFOOPTION_DISPCHAR@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQconninfoOption-dispsize-set!
+    struct-PQconninfoOption-dispsize-ref
+    @OFFSETOF_PQCONNINFOOPTION_DISPSIZE@
+    @SETTEROF_PQCONNINFOOPTION_DISPSIZE@
+    @GETTEROF_PQCONNINFOOPTION_DISPSIZE@)
+  (define PQArgBlock* 'pointer)
+  (define sizeof-PQArgBlock @SIZEOF_PQARGBLOCK@)
+  (define alignof-PQArgBlock @ALIGNOF_PQARGBLOCK@)
+  (define
+    strideof-PQArgBlock
+    @STRIDEOF_PQARGBLOCK@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQArgBlock-len-set!
+    struct-PQArgBlock-len-ref
+    @OFFSETOF_PQARGBLOCK_LEN@
+    @SETTEROF_PQARGBLOCK_LEN@
+    @GETTEROF_PQARGBLOCK_LEN@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQArgBlock-isint-set!
+    struct-PQArgBlock-isint-ref
+    @OFFSETOF_PQARGBLOCK_ISINT@
+    @SETTEROF_PQARGBLOCK_ISINT@
+    @GETTEROF_PQARGBLOCK_ISINT@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQArgBlock-ptr-set!
+    struct-PQArgBlock-ptr-ref
+    @OFFSETOF_PQARGBLOCK_PTR@
+    @SETTEROF_PQARGBLOCK_PTR@
+    @GETTEROF_PQARGBLOCK_PTR@)
+  (define-c-struct-accessor-and-mutator
+    struct-PQArgBlock-integer-set!
+    struct-PQArgBlock-integer-ref
+    @OFFSETOF_PQARGBLOCK_INTEGER@
+    @SETTEROF_PQARGBLOCK_INTEGER@
+    @GETTEROF_PQARGBLOCK_INTEGER@)
+  (define PGresAttDesc* 'pointer)
+  (define
+    sizeof-PGresAttDesc
+    @SIZEOF_PGRESATTDESC@)
+  (define
+    alignof-PGresAttDesc
+    @ALIGNOF_PGRESATTDESC@)
+  (define
+    strideof-PGresAttDesc
+    @STRIDEOF_PGRESATTDESC@)
+  (define-c-struct-accessor-and-mutator
+    struct-PGresAttDesc-name-set!
+    struct-PGresAttDesc-name-ref
+    @OFFSETOF_PGRESATTDESC_NAME@
+    @SETTEROF_PGRESATTDESC_NAME@
+    @GETTEROF_PGRESATTDESC_NAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-PGresAttDesc-tableid-set!
+    struct-PGresAttDesc-tableid-ref
+    @OFFSETOF_PGRESATTDESC_TABLEID@
+    @SETTEROF_PGRESATTDESC_TABLEID@
+    @GETTEROF_PGRESATTDESC_TABLEID@)
+  (define-c-struct-accessor-and-mutator
+    struct-PGresAttDesc-columnid-set!
+    struct-PGresAttDesc-columnid-ref
+    @OFFSETOF_PGRESATTDESC_COLUMNID@
+    @SETTEROF_PGRESATTDESC_COLUMNID@
+    @GETTEROF_PGRESATTDESC_COLUMNID@)
+  (define-c-struct-accessor-and-mutator
+    struct-PGresAttDesc-format-set!
+    struct-PGresAttDesc-format-ref
+    @OFFSETOF_PGRESATTDESC_FORMAT@
+    @SETTEROF_PGRESATTDESC_FORMAT@
+    @GETTEROF_PGRESATTDESC_FORMAT@)
+  (define-c-struct-accessor-and-mutator
+    struct-PGresAttDesc-typid-set!
+    struct-PGresAttDesc-typid-ref
+    @OFFSETOF_PGRESATTDESC_TYPID@
+    @SETTEROF_PGRESATTDESC_TYPID@
+    @GETTEROF_PGRESATTDESC_TYPID@)
+  (define-c-struct-accessor-and-mutator
+    struct-PGresAttDesc-typlen-set!
+    struct-PGresAttDesc-typlen-ref
+    @OFFSETOF_PGRESATTDESC_TYPLEN@
+    @SETTEROF_PGRESATTDESC_TYPLEN@
+    @GETTEROF_PGRESATTDESC_TYPLEN@)
+  (define-c-struct-accessor-and-mutator
+    struct-PGresAttDesc-atttypmod-set!
+    struct-PGresAttDesc-atttypmod-ref
+    @OFFSETOF_PGRESATTDESC_ATTTYPMOD@
+    @SETTEROF_PGRESATTDESC_ATTTYPMOD@
+    @GETTEROF_PGRESATTDESC_ATTTYPMOD@)
+  (define OID_MAX @VALUEOF_OID_MAX@)
+  (define
+    PG_DIAG_SEVERITY
+    @VALUEOF_PG_DIAG_SEVERITY@)
+  (define
+    PG_DIAG_SQLSTATE
+    @VALUEOF_PG_DIAG_SQLSTATE@)
+  (define
+    PG_DIAG_MESSAGE_PRIMARY
+    @VALUEOF_PG_DIAG_MESSAGE_PRIMARY@)
+  (define
+    PG_DIAG_MESSAGE_DETAIL
+    @VALUEOF_PG_DIAG_MESSAGE_DETAIL@)
+  (define
+    PG_DIAG_MESSAGE_HINT
+    @VALUEOF_PG_DIAG_MESSAGE_HINT@)
+  (define
+    PG_DIAG_STATEMENT_POSITION
+    @VALUEOF_PG_DIAG_STATEMENT_POSITION@)
+  (define
+    PG_DIAG_INTERNAL_POSITION
+    @VALUEOF_PG_DIAG_INTERNAL_POSITION@)
+  (define
+    PG_DIAG_INTERNAL_QUERY
+    @VALUEOF_PG_DIAG_INTERNAL_QUERY@)
+  (define
+    PG_DIAG_CONTEXT
+    @VALUEOF_PG_DIAG_CONTEXT@)
+  (define
+    PG_DIAG_SOURCE_FILE
+    @VALUEOF_PG_DIAG_SOURCE_FILE@)
+  (define
+    PG_DIAG_SOURCE_LINE
+    @VALUEOF_PG_DIAG_SOURCE_LINE@)
+  (define
+    PG_DIAG_SOURCE_FUNCTION
+    @VALUEOF_PG_DIAG_SOURCE_FUNCTION@)
+  (define
+    PG_COPYRES_ATTRS
+    @VALUEOF_PG_COPYRES_ATTRS@)
+  (define
+    PG_COPYRES_TUPLES
+    @VALUEOF_PG_COPYRES_TUPLES@)
+  (define
+    PG_COPYRES_EVENTS
+    @VALUEOF_PG_COPYRES_EVENTS@)
+  (define
+    PG_COPYRES_NOTICEHOOKS
+    @VALUEOF_PG_COPYRES_NOTICEHOOKS@)
+  (define ConnStatusType '@TYPEOF_CONNSTATUSTYPE@)
+  (define
+    sizeof-ConnStatusType
+    @SIZEOF_CONNSTATUSTYPE@)
+  (define
+    alignof-ConnStatusType
+    @ALIGNOF_CONNSTATUSTYPE@)
+  (define
+    strideof-ConnStatusType
+    @STRIDEOF_CONNSTATUSTYPE@)
+  (define
+    pointer-ref-c-ConnStatusType
+    @GETTEROF_CONNSTATUSTYPE@)
+  (define
+    pointer-set-c-ConnStatusType!
+    @SETTEROF_CONNSTATUSTYPE@)
+  (define CONNECTION_OK @VALUEOF_CONNECTION_OK@)
+  (define CONNECTION_BAD @VALUEOF_CONNECTION_BAD@)
+  (define
+    CONNECTION_STARTED
+    @VALUEOF_CONNECTION_STARTED@)
+  (define
+    CONNECTION_MADE
+    @VALUEOF_CONNECTION_MADE@)
+  (define
+    CONNECTION_AWAITING_RESPONSE
+    @VALUEOF_CONNECTION_AWAITING_RESPONSE@)
+  (define
+    CONNECTION_AUTH_OK
+    @VALUEOF_CONNECTION_AUTH_OK@)
+  (define
+    CONNECTION_SETENV
+    @VALUEOF_CONNECTION_SETENV@)
+  (define
+    CONNECTION_SSL_STARTUP
+    @VALUEOF_CONNECTION_SSL_STARTUP@)
+  (define
+    CONNECTION_NEEDED
+    @VALUEOF_CONNECTION_NEEDED@)
+  (define
+    PostgresPollingStatusType
+    '@TYPEOF_POSTGRESPOLLINGSTATUSTYPE@)
+  (define
+    sizeof-PostgresPollingStatusType
+    @SIZEOF_POSTGRESPOLLINGSTATUSTYPE@)
+  (define
+    alignof-PostgresPollingStatusType
+    @ALIGNOF_POSTGRESPOLLINGSTATUSTYPE@)
+  (define
+    strideof-PostgresPollingStatusType
+    @STRIDEOF_POSTGRESPOLLINGSTATUSTYPE@)
+  (define
+    pointer-ref-c-PostgresPollingStatusType
+    @GETTEROF_POSTGRESPOLLINGSTATUSTYPE@)
+  (define
+    pointer-set-c-PostgresPollingStatusType!
+    @SETTEROF_POSTGRESPOLLINGSTATUSTYPE@)
+  (define
+    PGRES_POLLING_FAILED
+    @VALUEOF_PGRES_POLLING_FAILED@)
+  (define
+    PGRES_POLLING_READING
+    @VALUEOF_PGRES_POLLING_READING@)
+  (define
+    PGRES_POLLING_WRITING
+    @VALUEOF_PGRES_POLLING_WRITING@)
+  (define
+    PGRES_POLLING_OK
+    @VALUEOF_PGRES_POLLING_OK@)
+  (define
+    PGRES_POLLING_ACTIVE
+    @VALUEOF_PGRES_POLLING_ACTIVE@)
+  (define ExecStatusType '@TYPEOF_EXECSTATUSTYPE@)
+  (define
+    sizeof-ExecStatusType
+    @SIZEOF_EXECSTATUSTYPE@)
+  (define
+    alignof-ExecStatusType
+    @ALIGNOF_EXECSTATUSTYPE@)
+  (define
+    strideof-ExecStatusType
+    @STRIDEOF_EXECSTATUSTYPE@)
+  (define
+    pointer-ref-c-ExecStatusType
+    @GETTEROF_EXECSTATUSTYPE@)
+  (define
+    pointer-set-c-ExecStatusType!
+    @SETTEROF_EXECSTATUSTYPE@)
+  (define
+    PGRES_EMPTY_QUERY
+    @VALUEOF_PGRES_EMPTY_QUERY@)
+  (define
+    PGRES_COMMAND_OK
+    @VALUEOF_PGRES_COMMAND_OK@)
+  (define
+    PGRES_TUPLES_OK
+    @VALUEOF_PGRES_TUPLES_OK@)
+  (define PGRES_COPY_OUT @VALUEOF_PGRES_COPY_OUT@)
+  (define PGRES_COPY_IN @VALUEOF_PGRES_COPY_IN@)
+  (define
+    PGRES_BAD_RESPONSE
+    @VALUEOF_PGRES_BAD_RESPONSE@)
+  (define
+    PGRES_NONFATAL_ERROR
+    @VALUEOF_PGRES_NONFATAL_ERROR@)
+  (define
+    PGRES_FATAL_ERROR
+    @VALUEOF_PGRES_FATAL_ERROR@)
+  (define
+    PGTransactionStatusType
+    '@TYPEOF_PGTRANSACTIONSTATUSTYPE@)
+  (define
+    sizeof-PGTransactionStatusType
+    @SIZEOF_PGTRANSACTIONSTATUSTYPE@)
+  (define
+    alignof-PGTransactionStatusType
+    @ALIGNOF_PGTRANSACTIONSTATUSTYPE@)
+  (define
+    strideof-PGTransactionStatusType
+    @STRIDEOF_PGTRANSACTIONSTATUSTYPE@)
+  (define
+    pointer-ref-c-PGTransactionStatusType
+    @GETTEROF_PGTRANSACTIONSTATUSTYPE@)
+  (define
+    pointer-set-c-PGTransactionStatusType!
+    @SETTEROF_PGTRANSACTIONSTATUSTYPE@)
+  (define PQTRANS_IDLE @VALUEOF_PQTRANS_IDLE@)
+  (define PQTRANS_ACTIVE @VALUEOF_PQTRANS_ACTIVE@)
+  (define
+    PQTRANS_INTRANS
+    @VALUEOF_PQTRANS_INTRANS@)
+  (define
+    PQTRANS_INERROR
+    @VALUEOF_PQTRANS_INERROR@)
+  (define
+    PQTRANS_UNKNOWN
+    @VALUEOF_PQTRANS_UNKNOWN@)
+  (define PGVerbosity '@TYPEOF_PGVERBOSITY@)
+  (define sizeof-PGVerbosity @SIZEOF_PGVERBOSITY@)
+  (define
+    alignof-PGVerbosity
+    @ALIGNOF_PGVERBOSITY@)
+  (define
+    strideof-PGVerbosity
+    @STRIDEOF_PGVERBOSITY@)
+  (define
+    pointer-ref-c-PGVerbosity
+    @GETTEROF_PGVERBOSITY@)
+  (define
+    pointer-set-c-PGVerbosity!
+    @SETTEROF_PGVERBOSITY@)
+  (define PQERRORS_TERSE @VALUEOF_PQERRORS_TERSE@)
+  (define
+    PQERRORS_DEFAULT
+    @VALUEOF_PQERRORS_DEFAULT@)
+  (define
+    PQERRORS_VERBOSE
+    @VALUEOF_PQERRORS_VERBOSE@)
+  (define
+    POSTGRESQL_SHARED_OBJECT
+    "@POSTGRESQL_SHARED_OBJECT@"))
+
+
+;;; end of file
