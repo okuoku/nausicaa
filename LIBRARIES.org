@@ -12,8 +12,6 @@
 
 ** OOL
 
-** Nettle
-
 ** Libev
 
 ** Unac?
