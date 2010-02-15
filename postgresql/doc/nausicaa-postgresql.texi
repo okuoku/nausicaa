@@ -436,8 +436,9 @@ PostgreSQL
 @noindent
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of libraries for @rnrs{6} Scheme implementations; it
-provides a binding to the @pg{} C language library.  It is built upon
-Nausicaa/Scheme, making use of its foreign--functions interface.
+provides a binding to the Libpq C language library, a client @api{} for
+@pg{} databases.  It is built upon Nausicaa/Scheme, making use of its
+foreign--functions interface.
 
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
@@ -516,6 +517,11 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* typedefs::                    Object type definitions.
+* enumerations::                Enumeration type definitions.
+* conditions::                  Condition object definitions.
+* connect::                     Connecting to a database.
+* primitives::                  Miscellaneous primitive bindings.
 
 Appendices
 
@@ -529,7 +535,27 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Object type definitions
+
+* typedefs connection::         Database connection object.
+* typedefs fd::                 File descriptor object.
+
+Enumeration type definitions
+
+* enumerations polling::        Polling status.
+
+Condition object definitions
+
+* conditions connect::          Database connection object.
+* conditions error::            Error condition object.
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 @c page
@@ -539,8 +565,9 @@ Indexes
 
 This document describes version @version{} of @value{PACKAGE}, a
 distribution of libraries for @rnrs{6} Scheme implementations; it
-provides a binding to the @pg{} C language library.  It is built upon
-Nausicaa/Scheme, making use of its foreign--functions interface.
+provides a binding to the Libpq C language library, a client @api{} for
+@pg{} databases.  It is built upon Nausicaa/Scheme, making use of its
+foreign--functions interface.
 
 The libraries support Ikarus, Mosh and Ypsilon Scheme; the package
 supports @gnu{}+Linux systems.
@@ -555,28 +582,42 @@ references the foreign shared library.
 @item foreign databases postgresql sizeof
 Exports bindings to constant values and data structures accessors.
 
+@item foreign databases postgresql typedefs
+Exports bindings for record type definitions.
+
+@item foreign databases postgresql conditions
+Exports bindings for condition object type definitions.
+
+@item foreign databases postgresql enumerations
+Exports bindings for enumeration type definitions.
+
 @item foreign databases postgresql platform
 Exports one binding for each foreign function; the bindings to the
 Scheme function callouts have the same name of the C functions, so
-@cfunc{postgresql_init} is available as @func{postgresql_init}.  This
+@cfunc{PQconnectStart} is available as @func{PQconnectStart}.  This
 library makes the original @pg{} documentation relevant for this
 package.
 
 @item foreign databases postgresql primitives
-Exports one binding for each foreign function, implementing marshaling
-of arguments and return values.  The bindings to the Scheme functions
-have the same name of the C functions, but with lower case and
-underscores converted to dashes; so @cfunc{postgresql_init} is available
-as @func{postgresql-init}.
+Exports one binding for each foreign function, implementing, for some
+functions, marshaling of arguments and return values.  The bindings to
+the Scheme functions have heavily modified names, for example
+@cfunc{PQconnectStart} is available as @func{connect-start}; the
+@samp{PQ} and @samp{pg} prefixes are always stripped, so it is suggested
+to import this library with the @samp{pg:} prefix.
 
-This document describes the @code{primitives} @api{}; only the functions
-implementing marshaling of values are documented: if a function is not
-documented, it means that it is reexported ``as is'' from the
-@code{platform} library.
+This document describes the @code{primitives} @api{} giving a brief
+description for each function, we have to refer to the original
+documentation for the true description; only the functions implementing
+marshaling of values are documented: if a function is not documented, it
+means that it is reexported ``as is'' from the @code{platform} library.
+@ref{primitives} for the list of undocumented functions and the name
+change.
 
 @item foreign databases postgresql
 Compound library exporting the high--level @api{}; it reexports bindings
-from the @samp{primitives} library and the constant values from the
+from the @samp{primitives}, @samp{typedefs}, @samp{enumeration} and
+@samp{conditions} libraries and the constant values from the
 @samp{sizeof} library.
 
 @item foreign databases postgresql compensated
@@ -584,6 +625,1080 @@ Exports bindings to constructor functions making use of the
 @library{compensations} library from Nausicaa/Scheme.
 @nauref{compensations, Compensation stacks}.
 @end table
+
+@c page
+@node typedefs
+@chapter Object type definitions
+
+
+The bindings documented in this chapter are exported by the
+@library{foreign databases postgresql typedefs} library and reexported
+by the @library{foreign databases postgresql} library.  It is suggested
+to import these libraries by prefixing the bindings, for example with
+@code{pg:}.
+
+@menu
+* typedefs connection::         Database connection object.
+* typedefs fd::                 File descriptor object.
+@end menu
+
+@c page
+@node typedefs connection
+@section Database connection object
+
+
+@deftp {Record Type Name} <connection>
+@deftpx {Record Type Descriptor} <connection-rtd>
+Record type used to tag pointer objects referencing database
+connections.  @nauref{ffi pointers, Pointer objects}.
+@end deftp
+
+
+@defun <connection>? @var{obj}
+Return @true{} if @var{obj} is a record of type @class{connection}.
+@end defun
+
+
+@defun pointer-><connection> @var{pointer}
+@defunx <connection>->pointer @var{conn}
+Convert to and from a pointer object and a record of type
+@class{connection}.
+@end defun
+
+@c page
+@node typedefs fd
+@section File descriptor object
+
+
+@deftp {Record Type Name} <fd>
+Record type used to tag exact integers representing file descriptors.
+This type is compatible with the same defined by the Nausicaa/@posix{}
+package.
+@end deftp
+
+
+@defun <fd>? @var{obj}
+Return @true{} if @var{obj} is an object of type @class{fd}.
+@end defun
+
+
+@defun integer-><fd> @var{integer}
+@defunx <fd>->integer @var{fd}
+Convert to and from objects of type @class{fd} and the associated exact
+integers.
+@end defun
+
+@c page
+@node enumerations
+@chapter Enumeration type definitions
+
+
+The bindings documented in this chapter are exported by the
+@library{foreign databases postgresql enumerations} library and
+reexported by the @library{foreign databases postgresql} library.  It is
+suggested to import these libraries by prefixing the bindings, for
+example with @code{pg:}.
+
+@menu
+* enumerations connect::        Connection status.
+* enumerations polling::        Polling status.
+@end menu
+
+@c page
+@node enumerations connect
+@section Connection status
+
+
+@deftp {Enumeration Type} enum-connection-status
+Enumeration type representing the current status of a @class{connection}
+object.  It holds the following symbols:
+
+@example
+ok                      bad
+started                 made
+awaiting-response       auth-ok
+setenv                  ssl-startup
+needed
+@end example
+@end deftp
+
+
+@deffn Syntax connection-status @ameta{symbol}
+Expand in an enumeration set of type @code{enum-connection-status}
+holding the argument symbol.
+@end deffn
+
+
+@defun value->connection-status @var{integer}
+@defunx connection-status->value @var{enum-set}
+Convert to and from exact integers and enumeration sets of type
+@code{enum-connection-status}.
+@end defun
+
+@c page
+@node enumerations polling
+@section Polling status
+
+
+@deftp {Enumeration Type} enum-polling-status
+Enumeration type representing the result of polling operations performed
+with @func{connect-poll}.  It holds the following symbols:
+
+@example
+ok      failed
+reading writing active
+@end example
+@end deftp
+
+
+@deffn Syntax polling-status @ameta{symbol}
+Expand in an enumeration set of type @code{enum-polling-status} holding
+the argument symbol.
+@end deffn
+
+
+@defun value->polling-status @var{integer}
+@defunx polling-status->value @var{enum-set}
+Convert to and from exact integers and enumeration sets of type
+@code{enum-polling-status}.
+@end defun
+
+@c page
+@node conditions
+@chapter Condition object definitions
+
+
+The bindings documented in this chapter are exported by the
+@library{foreign databases postgresql conditions} library and reexported
+by the @library{foreign databases postgresql} library.  It is suggested
+to import these libraries by prefixing the bindings, for example with
+@code{pg:}.
+
+@menu
+* conditions connect::          Database connection object.
+* conditions error::            Error condition object.
+@end menu
+
+@c page
+@node conditions connect
+@section Database connection object
+
+
+@deftp {Condition Type} &connection
+Condition object type used to hold objects of type @class{connection}
+which were involved in an exception; it is derived from
+@condition{condition}.  It has the following fields:
+
+@table @code
+@item connection
+The @class{connection} object.
+@end table
+@end deftp
+
+
+@defun make-connection-condition @var{conn}
+@defunx connection-condition? @var{obj}.
+Constructor and predicate for condition objects of type
+@condition{connection}.
+@end defun
+
+
+@defun connection-condition @var{condition}
+Accessor for the field of condition objects of type
+@condition{connection}.
+@end defun
+
+@c page
+@node conditions error
+@section Error condition object
+
+
+@deftp {Condition Type} &postgresql-error
+Base condition type used to tag compound condition objects associated to
+@value{PACKAGE}; it is derived from @condition{error}.  It has the
+following fields:
+
+@table @code
+@item code
+A numeric code representing the error.
+@end table
+@end deftp
+
+
+@defun make-postgresql-error-condition @var{code}
+@defunx postgresql-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-error}.
+@end defun
+
+
+@defun condition-postgresql-error-code @var{condition}
+Accessor for the field of condition objects of type
+@condition{postgresql-error}.
+@end defun
+
+@c page
+@node connect
+@chapter Connecting to a database
+
+
+The following bindings are exported by the @library{foreign databases
+postgresql primitives} library and reexported by the @library{foreign
+databases postgresql} library.  It is suggested to import these
+libraries by prefixing the bindings, for example with @code{pg:}.
+
+
+@defun connect-db
+@defunx connect-db @var{connect-info}
+@findex @func{PQconnectdb}
+Wrapper for @func{PQconnectdb}.  Connect to a database according to the
+parameters in the Scheme string @var{connect-info}, or the default
+parameters when the string is not given; it is the simpler method to
+open a connection.  Return an object of type @class{connection}.
+
+@example
+(import (rnrs)
+  (compensations)
+  (prefix (foreign databases postgresql) pg:))
+
+(with-compensations
+  (letrec
+      ((conn (compensate
+                 (pg:connect-db "dbname=nausicaa-test")
+               (with
+                (pg:finish conn)))))
+    (if (enum-set=? (pg:connection-status ok)
+                    (pg:status conn))
+         ---)))
+@end example
+@end defun
+
+
+@defun finish @var{conn}
+@findex @func{PQfinish}
+Wrapper for @func{PQfinish}.  Finalise the @class{connection} object
+@var{conn}.
+@end defun
+
+
+@defun connect-start
+@defunx connect-start @var{connect-info}
+@findex @func{PQconnectStart}
+Wrapper for @func{PQconnectStart}.  Begin connecting to a database
+without blocking; the argument is the same as the one to
+@func{connect-db}.
+@end defun
+
+
+@defun connect-poll @var{conn}
+@findex @func{PQconnectPoll}
+Wrapper for @func{PQconnectPoll}.  Query the @class{connection} object
+@var{conn} for the next action to perform in a non--blocking connection
+operation; return an enumeration set of type @code{enum-polling-status}.
+@end defun
+
+
+@defun set-db-login @var{pghost} @var{pgport} @var{pgoptions} @var{pgtty} @var{dbname} @var{login} @var{pwd}
+@findex @func{PQsetdbLogin}
+Wrapper for @func{PQsetdbLogin}.  Connect to a database according to the
+given arguments, which must be Scheme strings @var{connect-info} or
+@false{} when the default value is desired; this function is deprecated
+in favor of the above ones.  Return an object of type
+@class{connection}.
+@end defun
+
+
+@defun set-db @var{pghost} @var{pgport} @var{pgoptions} @var{pgtty} @var{dbname}
+@findex @func{PQsetdb}
+Call @func{set-db-login} with @var{login} and @var{pwd} set to @false{}.
+@end defun
+
+
+@c page
+@node primitives
+@chapter Miscellaneous primitive bindings
+
+
+The following bindings are exported by the @library{foreign databases
+postgresql primitives} library and reexported by the @library{foreign
+databases postgresql} library.  The functions are reexported ``as is''
+from the @library{foreign databases postgresql platform} library.  It is
+suggested to import these libraries by prefixing the bindings, for
+example with @code{pg:}.
+
+
+@defun conndefaults
+@findex @func{PQconndefaults}
+Alias for @func{PQconndefaults}.
+@end defun
+
+
+@defun conninfo-parse
+@findex @func{PQconninfoParse}
+Alias for @func{PQconninfoParse}.
+@end defun
+
+
+@defun conninfo-free
+@findex @func{PQconninfoFree}
+Alias for @func{PQconninfoFree}.
+@end defun
+
+
+@defun reset-start
+@findex @func{PQresetStart}
+Alias for @func{PQresetStart}.
+@end defun
+
+
+@defun reset-poll
+@findex @func{PQresetPoll}
+Alias for @func{PQresetPoll}.
+@end defun
+
+
+@defun reset
+@findex @func{PQreset}
+Alias for @func{PQreset}.
+@end defun
+
+
+@defun get-cancel
+@findex @func{PQgetCancel}
+Alias for @func{PQgetCancel}.
+@end defun
+
+
+@defun free-cancel
+@findex @func{PQfreeCancel}
+Alias for @func{PQfreeCancel}.
+@end defun
+
+
+@defun cancel
+@findex @func{PQcancel}
+Alias for @func{PQcancel}.
+@end defun
+
+
+@defun request-cancel
+@findex @func{PQrequestCancel}
+Alias for @func{PQrequestCancel}.
+@end defun
+
+
+@defun db
+@findex @func{PQdb}
+Alias for @func{PQdb}.
+@end defun
+
+
+@defun user
+@findex @func{PQuser}
+Alias for @func{PQuser}.
+@end defun
+
+
+@defun pass
+@findex @func{PQpass}
+Alias for @func{PQpass}.
+@end defun
+
+
+@defun host
+@findex @func{PQhost}
+Alias for @func{PQhost}.
+@end defun
+
+
+@defun port
+@findex @func{PQport}
+Alias for @func{PQport}.
+@end defun
+
+
+@defun tty
+@findex @func{PQtty}
+Alias for @func{PQtty}.
+@end defun
+
+
+@defun options
+@findex @func{PQoptions}
+Alias for @func{PQoptions}.
+@end defun
+
+
+@defun status
+@findex @func{PQstatus}
+Alias for @func{PQstatus}.
+@end defun
+
+
+@defun transaction-status
+@findex @func{PQtransactionStatus}
+Alias for @func{PQtransactionStatus}.
+@end defun
+
+
+@defun parameter-status
+@findex @func{PQparameterStatus}
+Alias for @func{PQparameterStatus}.
+@end defun
+
+
+@defun protocol-version
+@findex @func{PQprotocolVersion}
+Alias for @func{PQprotocolVersion}.
+@end defun
+
+
+@defun server-version
+@findex @func{PQserverVersion}
+Alias for @func{PQserverVersion}.
+@end defun
+
+
+@defun error-message
+@findex @func{PQerrorMessage}
+Alias for @func{PQerrorMessage}.
+@end defun
+
+
+@defun socket
+@findex @func{PQsocket}
+Alias for @func{PQsocket}.
+@end defun
+
+
+@defun backend-pid
+@findex @func{PQbackendPID}
+Alias for @func{PQbackendPID}.
+@end defun
+
+
+@defun connection-needs-password
+@findex @func{PQconnectionNeedsPassword}
+Alias for @func{PQconnectionNeedsPassword}.
+@end defun
+
+
+@defun connection-used-password
+@findex @func{PQconnectionUsedPassword}
+Alias for @func{PQconnectionUsedPassword}.
+@end defun
+
+
+@defun client-encoding
+@findex @func{PQclientEncoding}
+Alias for @func{PQclientEncoding}.
+@end defun
+
+
+@defun set-client-encoding
+@findex @func{PQsetClientEncoding}
+Alias for @func{PQsetClientEncoding}.
+@end defun
+
+
+@defun getssl
+@findex @func{PQgetssl}
+Alias for @func{PQgetssl}.
+@end defun
+
+
+@defun init-ssl
+@findex @func{PQinitSSL}
+Alias for @func{PQinitSSL}.
+@end defun
+
+
+@defun init-open-ssl
+@findex @func{PQinitOpenSSL}
+Alias for @func{PQinitOpenSSL}.
+@end defun
+
+
+@defun set-error-verbosity
+@findex @func{PQsetErrorVerbosity}
+Alias for @func{PQsetErrorVerbosity}.
+@end defun
+
+
+@defun trace
+@findex @func{PQtrace}
+Alias for @func{PQtrace}.
+@end defun
+
+
+@defun untrace
+@findex @func{PQuntrace}
+Alias for @func{PQuntrace}.
+@end defun
+
+
+@defun set-notice-receiver
+@findex @func{PQsetNoticeReceiver}
+Alias for @func{PQsetNoticeReceiver}.
+@end defun
+
+
+@defun set-notice-processor
+@findex @func{PQsetNoticeProcessor}
+Alias for @func{PQsetNoticeProcessor}.
+@end defun
+
+
+@defun register-thread-lock
+@findex @func{PQregisterThreadLock}
+Alias for @func{PQregisterThreadLock}.
+@end defun
+
+
+@defun exec
+@findex @func{PQexec}
+Alias for @func{PQexec}.
+@end defun
+
+
+@defun exec-params
+@findex @func{PQexecParams}
+Alias for @func{PQexecParams}.
+@end defun
+
+
+@defun prepare
+@findex @func{PQprepare}
+Alias for @func{PQprepare}.
+@end defun
+
+
+@defun exec-prepared
+@findex @func{PQexecPrepared}
+Alias for @func{PQexecPrepared}.
+@end defun
+
+
+@defun send-query
+@findex @func{PQsendQuery}
+Alias for @func{PQsendQuery}.
+@end defun
+
+
+@defun send-query-params
+@findex @func{PQsendQueryParams}
+Alias for @func{PQsendQueryParams}.
+@end defun
+
+
+@defun send-prepare
+@findex @func{PQsendPrepare}
+Alias for @func{PQsendPrepare}.
+@end defun
+
+
+@defun send-query-prepared
+@findex @func{PQsendQueryPrepared}
+Alias for @func{PQsendQueryPrepared}.
+@end defun
+
+
+@defun get-result
+@findex @func{PQgetResult}
+Alias for @func{PQgetResult}.
+@end defun
+
+
+@defun is-busy
+@findex @func{PQisBusy}
+Alias for @func{PQisBusy}.
+@end defun
+
+
+@defun consume-input
+@findex @func{PQconsumeInput}
+Alias for @func{PQconsumeInput}.
+@end defun
+
+
+@defun notifies
+@findex @func{PQnotifies}
+Alias for @func{PQnotifies}.
+@end defun
+
+
+@defun put-copy-data
+@findex @func{PQputCopyData}
+Alias for @func{PQputCopyData}.
+@end defun
+
+
+@defun put-copy-end
+@findex @func{PQputCopyEnd}
+Alias for @func{PQputCopyEnd}.
+@end defun
+
+
+@defun get-copy-data
+@findex @func{PQgetCopyData}
+Alias for @func{PQgetCopyData}.
+@end defun
+
+
+@defun getline
+@findex @func{PQgetline}
+Alias for @func{PQgetline}.
+@end defun
+
+
+@defun putline
+@findex @func{PQputline}
+Alias for @func{PQputline}.
+@end defun
+
+
+@defun getline-async
+@findex @func{PQgetlineAsync}
+Alias for @func{PQgetlineAsync}.
+@end defun
+
+
+@defun putnbytes
+@findex @func{PQputnbytes}
+Alias for @func{PQputnbytes}.
+@end defun
+
+
+@defun endcopy
+@findex @func{PQendcopy}
+Alias for @func{PQendcopy}.
+@end defun
+
+
+@defun setnonblocking
+@findex @func{PQsetnonblocking}
+Alias for @func{PQsetnonblocking}.
+@end defun
+
+
+@defun isnonblocking
+@findex @func{PQisnonblocking}
+Alias for @func{PQisnonblocking}.
+@end defun
+
+
+@defun isthreadsafe
+@findex @func{PQisthreadsafe}
+Alias for @func{PQisthreadsafe}.
+@end defun
+
+
+@defun flush
+@findex @func{PQflush}
+Alias for @func{PQflush}.
+@end defun
+
+
+@defun fn
+@findex @func{PQfn}
+Alias for @func{PQfn}.
+@end defun
+
+
+@defun result-status
+@findex @func{PQresultStatus}
+Alias for @func{PQresultStatus}.
+@end defun
+
+
+@defun res-status
+@findex @func{PQresStatus}
+Alias for @func{PQresStatus}.
+@end defun
+
+
+@defun result-error-message
+@findex @func{PQresultErrorMessage}
+Alias for @func{PQresultErrorMessage}.
+@end defun
+
+
+@defun result-error-field
+@findex @func{PQresultErrorField}
+Alias for @func{PQresultErrorField}.
+@end defun
+
+
+@defun ntuples
+@findex @func{PQntuples}
+Alias for @func{PQntuples}.
+@end defun
+
+
+@defun nfields
+@findex @func{PQnfields}
+Alias for @func{PQnfields}.
+@end defun
+
+
+@defun binary-tuples
+@findex @func{PQbinaryTuples}
+Alias for @func{PQbinaryTuples}.
+@end defun
+
+
+@defun fname
+@findex @func{PQfname}
+Alias for @func{PQfname}.
+@end defun
+
+
+@defun fnumber
+@findex @func{PQfnumber}
+Alias for @func{PQfnumber}.
+@end defun
+
+
+@defun ftable
+@findex @func{PQftable}
+Alias for @func{PQftable}.
+@end defun
+
+
+@defun ftablecol
+@findex @func{PQftablecol}
+Alias for @func{PQftablecol}.
+@end defun
+
+
+@defun fformat
+@findex @func{PQfformat}
+Alias for @func{PQfformat}.
+@end defun
+
+
+@defun ftype
+@findex @func{PQftype}
+Alias for @func{PQftype}.
+@end defun
+
+
+@defun fsize
+@findex @func{PQfsize}
+Alias for @func{PQfsize}.
+@end defun
+
+
+@defun fmod
+@findex @func{PQfmod}
+Alias for @func{PQfmod}.
+@end defun
+
+
+@defun cmd-status
+@findex @func{PQcmdStatus}
+Alias for @func{PQcmdStatus}.
+@end defun
+
+
+@defun oid-status
+@findex @func{PQoidStatus}
+Alias for @func{PQoidStatus}.
+@end defun
+
+
+@defun oid-value
+@findex @func{PQoidValue}
+Alias for @func{PQoidValue}.
+@end defun
+
+
+@defun cmd-tuples
+@findex @func{PQcmdTuples}
+Alias for @func{PQcmdTuples}.
+@end defun
+
+
+@defun getvalue
+@findex @func{PQgetvalue}
+Alias for @func{PQgetvalue}.
+@end defun
+
+
+@defun getlength
+@findex @func{PQgetlength}
+Alias for @func{PQgetlength}.
+@end defun
+
+
+@defun getisnull
+@findex @func{PQgetisnull}
+Alias for @func{PQgetisnull}.
+@end defun
+
+
+@defun nparams
+@findex @func{PQnparams}
+Alias for @func{PQnparams}.
+@end defun
+
+
+@defun paramtype
+@findex @func{PQparamtype}
+Alias for @func{PQparamtype}.
+@end defun
+
+
+@defun describe-prepared
+@findex @func{PQdescribePrepared}
+Alias for @func{PQdescribePrepared}.
+@end defun
+
+
+@defun describe-portal
+@findex @func{PQdescribePortal}
+Alias for @func{PQdescribePortal}.
+@end defun
+
+
+@defun send-describe-prepared
+@findex @func{PQsendDescribePrepared}
+Alias for @func{PQsendDescribePrepared}.
+@end defun
+
+
+@defun send-describe-portal
+@findex @func{PQsendDescribePortal}
+Alias for @func{PQsendDescribePortal}.
+@end defun
+
+
+@defun clear
+@findex @func{PQclear}
+Alias for @func{PQclear}.
+@end defun
+
+
+@defun freemem
+@findex @func{PQfreemem}
+Alias for @func{PQfreemem}.
+@end defun
+
+
+@defun make-empty-pg-result
+@findex @func{PQmakeEmptyPGresult}
+Alias for @func{PQmakeEmptyPGresult}.
+@end defun
+
+
+@defun copy-result
+@findex @func{PQcopyResult}
+Alias for @func{PQcopyResult}.
+@end defun
+
+
+@defun set-result-attrs
+@findex @func{PQsetResultAttrs}
+Alias for @func{PQsetResultAttrs}.
+@end defun
+
+
+@defun result-alloc
+@findex @func{PQresultAlloc}
+Alias for @func{PQresultAlloc}.
+@end defun
+
+
+@defun setvalue
+@findex @func{PQsetvalue}
+Alias for @func{PQsetvalue}.
+@end defun
+
+
+@defun escape-string-conn
+@findex @func{PQescapeStringConn}
+Alias for @func{PQescapeStringConn}.
+@end defun
+
+
+@defun escape-bytea-conn
+@findex @func{PQescapeByteaConn}
+Alias for @func{PQescapeByteaConn}.
+@end defun
+
+
+@defun unescape-bytea
+@findex @func{PQunescapeBytea}
+Alias for @func{PQunescapeBytea}.
+@end defun
+
+
+@defun escape-string
+@findex @func{PQescapeString}
+Alias for @func{PQescapeString}.
+@end defun
+
+
+@defun escape-bytea
+@findex @func{PQescapeBytea}
+Alias for @func{PQescapeBytea}.
+@end defun
+
+
+@defun print
+@findex @func{PQprint}
+Alias for @func{PQprint}.
+@end defun
+
+
+@defun display-tuples
+@findex @func{PQdisplayTuples}
+Alias for @func{PQdisplayTuples}.
+@end defun
+
+
+@defun print-tuples
+@findex @func{PQprintTuples}
+Alias for @func{PQprintTuples}.
+@end defun
+
+
+@defun lo-open
+@findex @func{lo_open}
+Alias for @func{lo_open}.
+@end defun
+
+
+@defun lo-close
+@findex @func{lo_close}
+Alias for @func{lo_close}.
+@end defun
+
+
+@defun lo-read
+@findex @func{lo_read}
+Alias for @func{lo_read}.
+@end defun
+
+
+@defun lo-write
+@findex @func{lo_write}
+Alias for @func{lo_write}.
+@end defun
+
+
+@defun lo-lseek
+@findex @func{lo_lseek}
+Alias for @func{lo_lseek}.
+@end defun
+
+
+@defun lo-creat
+@findex @func{lo_creat}
+Alias for @func{lo_creat}.
+@end defun
+
+
+@defun lo-create
+@findex @func{lo_create}
+Alias for @func{lo_create}.
+@end defun
+
+
+@defun lo-tell
+@findex @func{lo_tell}
+Alias for @func{lo_tell}.
+@end defun
+
+
+@defun lo-truncate
+@findex @func{lo_truncate}
+Alias for @func{lo_truncate}.
+@end defun
+
+
+@defun lo-unlink
+@findex @func{lo_unlink}
+Alias for @func{lo_unlink}.
+@end defun
+
+
+@defun lo-import
+@findex @func{lo_import}
+Alias for @func{lo_import}.
+@end defun
+
+
+@defun lo-import-with-oid
+@findex @func{lo_import_with_oid}
+Alias for @func{lo_import_with_oid}.
+@end defun
+
+
+@defun lo-export
+@findex @func{lo_export}
+Alias for @func{lo_export}.
+@end defun
+
+
+@defun mblen
+@findex @func{PQmblen}
+Alias for @func{PQmblen}.
+@end defun
+
+
+@defun dsplen
+@findex @func{PQdsplen}
+Alias for @func{PQdsplen}.
+@end defun
+
+
+@defun env2encoding
+@findex @func{PQenv2encoding}
+Alias for @func{PQenv2encoding}.
+@end defun
+
+
+@defun encrypt-password
+@findex @func{PQencryptPassword}
+Alias for @func{PQencryptPassword}.
+@end defun
+
+
+@defun char-to-encoding
+@findex @func{pg_char_to_encoding}
+Alias for @func{pg_char_to_encoding}.
+@end defun
+
+
+@defun encoding-to-char
+@findex @func{pg_encoding_to_char}
+Alias for @func{pg_encoding_to_char}.
+@end defun
+
+
+@defun valid-server-encoding-id
+@findex @func{pg_valid_server_encoding_id
+Alias for @func{pg_valid_server_encoding_id}
+@end defun
+
+
+@defun free-notify
+@findex @func{PQfreeNotify}
+Alias for @func{PQfreeNotify}.
+@end defun
+
+
+@defvr Constant invalid-oid
+@vindex @func{InvalidOid}
+Alias for @func{InvalidOid}.
+@end defvr
+
+
+@defvr Constant no-password-supplied
+@vindex @func{PQnoPasswordSupplied}
+Alias for @func{PQnoPasswordSupplied}.
+@end defvr
 
 @c page
 

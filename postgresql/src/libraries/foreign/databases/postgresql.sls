@@ -26,8 +26,94 @@
 
 
 (library (foreign databases postgresql)
-  (export)
+  (export
+
+    OID_MAX
+    PG_DIAG_SEVERITY
+    PG_DIAG_SQLSTATE
+    PG_DIAG_MESSAGE_PRIMARY
+    PG_DIAG_MESSAGE_DETAIL
+    PG_DIAG_MESSAGE_HINT
+    PG_DIAG_STATEMENT_POSITION
+    PG_DIAG_INTERNAL_POSITION
+    PG_DIAG_INTERNAL_QUERY
+    PG_DIAG_CONTEXT
+    PG_DIAG_SOURCE_FILE
+    PG_DIAG_SOURCE_LINE
+    PG_DIAG_SOURCE_FUNCTION
+    PG_COPYRES_ATTRS
+    PG_COPYRES_TUPLES
+    PG_COPYRES_EVENTS
+    PG_COPYRES_NOTICEHOOKS
+
+    CONNECTION_OK
+    CONNECTION_BAD
+    CONNECTION_STARTED
+    CONNECTION_MADE
+    CONNECTION_AWAITING_RESPONSE
+    CONNECTION_AUTH_OK
+    CONNECTION_SETENV
+    CONNECTION_SSL_STARTUP
+    CONNECTION_NEEDED
+
+    PGRES_POLLING_FAILED
+    PGRES_POLLING_READING
+    PGRES_POLLING_WRITING
+    PGRES_POLLING_OK
+    PGRES_POLLING_ACTIVE
+
+    PGRES_EMPTY_QUERY
+    PGRES_COMMAND_OK
+    PGRES_TUPLES_OK
+    PGRES_COPY_OUT
+    PGRES_COPY_IN
+    PGRES_BAD_RESPONSE
+    PGRES_NONFATAL_ERROR
+    PGRES_FATAL_ERROR
+
+    PQTRANS_IDLE
+    PQTRANS_ACTIVE
+    PQTRANS_INTRANS
+    PQTRANS_INERROR
+    PQTRANS_UNKNOWN
+
+    PQERRORS_TERSE
+    PQERRORS_DEFAULT
+    PQERRORS_VERBOSE
+
+;;; --------------------------------------------------------------------
+
+    <connection>		<connection-rtd>
+    <connection>?
+    pointer-><connection>	<connection>->pointer
+
+    <fd>			<fd>?
+    integer-><fd>		<fd>->integer
+
+;;; --------------------------------------------------------------------
+
+    enum-polling-status		polling-status
+    polling-status->value	value->polling-status
+
+    enum-connection-status	connection-status
+    connection-status->value	value->connection-status
+
+;;; --------------------------------------------------------------------
+
+    connect-start		;; PQconnectStart
+    connect-poll		;; PQconnectPoll
+    connect-db			;; PQconnectdb
+    set-db-login		;; PQsetdbLogin
+    finish			;; PQfinish
+    status			;; PQstatus
+    set-db			;; PQsetdb
+
+
+    )
   (import (rnrs)
+    (foreign databases postgresql typedefs)
+    (foreign databases postgresql enumerations)
+    (foreign databases postgresql conditions)
     (foreign databases postgresql primitives)
     (foreign databases postgresql sizeof)))
 

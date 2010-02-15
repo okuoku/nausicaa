@@ -19,9 +19,10 @@ Topics
 ---------------
 
 This package is a  distribution of libraries for R6RS Scheme
-implementations; it  provides a binding to  the PostgreSQL C
-language library.  It  is built upon Nausicaa/Scheme, making
-use of its foreign-functions interface.
+implementations;  it  provides  a  binding to  the  Libpq  C
+language  library,  a  client  library  for  the  PostgreSQL
+database.  It  is built upon Nausicaa/Scheme,  making use of
+its foreign-functions interface.
 
   The libraries support Ikarus, Mosh and Ypsilon Scheme; the
 package supports GNU+Linux systems.
@@ -86,8 +87,10 @@ build binary distribution archives.
 ----------
 
 To run  the test suite in  this package we have  to create a
-test   database  called   "nausicaa-test"   and  start   the
-PostgreSQL server for it.
+test database called  "nausicaa-test" (with "createdb"), add
+the user  that will run  the test command (for  example with
+"createuser") and  make it such  that it can  create tables;
+finally start the PostgreSQL server.
 
 
 A. Credits

@@ -158,7 +158,11 @@
     pg_char_to_encoding
     pg_encoding_to_char
     pg_valid_server_encoding_id
-    PQfreeNotify)
+
+    PQfreeNotify
+    PQsetdb
+    InvalidOid
+    PQnoPasswordSupplied)
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof)

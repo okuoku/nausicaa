@@ -5,8 +5,8 @@ Subject: [announce] Nausicaa/PostgreSQL --- tag 0.1b0
 		    ===================
 
 This package is a  distribution of libraries for R6RS Scheme
-implementations; it  provides bindings for  the PostgreSQL C
-language  library,  a   library  to  connect  to  PostgreSQL
+implementations;  it  provides  bindings  for  the  Libpq  C
+language library, a client  library to connect to PostgreSQL
 databases.
 
   It  is  built  upon  Nausicaa/Scheme, making  use  of  its
