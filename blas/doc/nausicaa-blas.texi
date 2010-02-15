@@ -555,6 +555,11 @@ Overview of the package
 * overview libraries::          Installed libraries.
 * overview naming::             Naming conventions.
 
+Basic vector and matrix library
+
+* vm vectors::                  Real and complex vectors.
+* vm matrices::                 Real and complex matrices.
+
 @end detailmenu
 @end menu
 
@@ -1249,100 +1254,134 @@ These functions rescale the vector @var{x} by the multiplicative factor
 
 The bindings documented here are exported by the @library{foreign math
 blas vm} library.  Vectors and matrices supported by this library are
-composed of real and complex numbers under @code{double} representation.
+composed of real and complex numbers under @code{float} and
+@code{double} representation, following @blas{}' conventions of
+prefixing function names with @samp{s}, @samp{d}, @samp{c} and @samp{z}.
 
 @menu
-* vm real vectors::             Real vectors.
-* vm complex vectors::          Complex vectors.
-* vm real matrices::            Real matrices.
-* vm complex matrices::         Complex matrices.
+* vm conventions::              Arguments naming conventions.
+* vm vectors::                  Real and complex vectors.
+* vm matrices::                 Real and complex matrices.
 @end menu
 
 @c page
-@node vm real vectors
-@section Real vectors
+@node vm conventions
+@section Arguments naming conventions
 
 
-@defun rvc/c @var{len}
-Allocate an array capable of holding a real vector of @var{len}
-elements; return a pointer to it.  The appropriate free function is
-pushed to the current compensations stack.  @nauref{compensations,
-Compensation stacks}.
+Arguments names follow the @blas{} conventions.  The arguments @var{M}
+and @var{N} come first; the arguments @var{X} and @var{inc-X} come
+together in this order; the arguments @var{A} and @var{lda} come
+together in this order.
+
+@table @var
+@item M
+The number of rows in the matrix arguments.
+
+@item N
+The number of columns in the matrix arguments; or the number of rows and
+columns in the square matrix arguments; or the number of elements in a
+vector.
+
+@item X
+@itemx Y
+@itemx R
+@itemx I
+Pointer objects to array of numbers to be interpreted as vectors.  They
+must come together with an array stride argument.
+
+@item inc-X
+@itemx inc-Y
+@itemx inc-R
+@itemx inc-I
+Exact integers representing the array strides for the arrays referenced
+by the associated @var{X}, @var{Y}, @var{R} and @var{I} arguments.
+
+@item A
+Pointer object referencing an array of numbers to be interpreted as
+matrix.  It must come together with a leading dimension argument
+@var{lda}.  It is implied that the layout is column--major and the
+elements of a column are laid out as a contiguous array with stride
+@math{1}.
+
+@item lda
+Exact integer representing the leading dimension of the associated
+argument @var{A}.  It is the number of steps, in units of number size,
+between the beginning of a column and the beginning of the subsequent
+column.
+
+@item val
+A generic single number argument.
+
+@item idx
+Exact integer representing an element's index in a vector.
+
+@item row
+@itemx col
+Exact integers representing the row and column indices used to identify
+a value in a matrix.
+@end table
+
+@c page
+@node vm vectors
+@section Real and complex vectors
+
+
+@defun svec/c @var{N}
+@defunx dvec/c @var{N}
+@defunx cvec/c @var{N}
+@defunx zvec/c @var{N}
+Allocate an array capable of holding a vector of @var{N} elements;
+return a pointer to it.  The appropriate free function is pushed to the
+current compensations stack.  @nauref{compensations, Compensation
+stacks}.
 @end defun
 
 
-@defun rvc-set! @var{rvc} @var{idx} @var{val}
-Store the real number @var{val} at location @var{IDX} in the real vector
-referenced by the pointer object @var{rvc}.
+@defun svec-set! @var{X} @var{inc-X} @var{idx} @var{val}
+@defunx dvec-set! @var{X} @var{inc-X} @var{idx} @var{val}
+@defunx cvec-set! @var{X} @var{inc-X} @var{idx} @var{val}
+@defunx zvec-set! @var{X} @var{inc-X} @var{idx} @var{val}
+Store the number @var{val} at location @var{IDX} in the vector
+referenced by the pointer object @var{X}.
 @end defun
 
 
-@defun rvc-ref @var{rvc} @var{idx}
-Return the real number at location @var{idx} in the real vector
-referenced by the pointer object @var{rvc}.
+@defun svec-ref @var{X} @var{inc-X} @var{idx}
+@defunx dvec-ref @var{X} @var{inc-X} @var{idx}
+Return the number at location @var{idx} in the vector referenced by the
+pointer object @var{X}.
 @end defun
 
 
-@defun rvc-fill! @var{rvc} @var{m}
-Fill the real vector referenced by the pointer object @var{rvc} with
-values from the list @var{m}.
+@defun svec-fill! @var{X} @var{inc-X} @var{ell}
+@defunx dvec-fill! @var{X} @var{inc-X} @var{ell}
+@defunx cvec-fill! @var{X} @var{inc-X} @var{ell}
+@defunx zvec-fill! @var{X} @var{inc-X} @var{ell}
+Fill the vector referenced by the pointer object @var{X} with values
+from the list @var{ell}.
 @end defun
 
 
-@defun rvc->list @var{rvc} @var{len}
-Build and return a list holding the values from the real vector
-referenced by the pointer @var{rvc} and length @var{len}.
+@defun svec->list @var{N} @var{X} @var{inc-X}
+@defunx dvec->list @var{N} @var{X} @var{inc-X}
+@defunx cvec->list @var{N} @var{X} @var{inc-X}
+@defunx zvec->list @var{N} @var{X} @var{inc-X}
+Build and return a list holding the values from the vector referenced by
+the pointer @var{X} and length @var{N}.
+@end defun
+
+
+@defun cvec-make-rectangular! @var{N} @var{X} @var{inc-X} @var{R} @var{inc-R} @var{I} @var{inc-I}
+@defunx zvec-make-rectangular! @var{N} @var{X} @var{inc-X} @var{R} @var{inc-R} @var{I} @var{inc-I}
+Store in @var{X}, a vector of complex numbers, the vectors of real
+numbers @var{R} and @var{I} holding, respectively, the real parts and
+the imaginary parts.  @var{N} is the length of the vectors.
 @end defun
 
 @c page
-@node vm complex vectors
-@section Complex vectors
-
-
-@defun rvc/c @var{len}
-Allocate an array capable of holding a complex vector of @var{len}
-elements; return a pointer to it.  The appropriate free function is
-pushed to the current compensations stack.  @nauref{compensations,
-Compensation stacks}.
-@end defun
-
-
-@defun rvc-set! @var{rvc} @var{idx} @var{val}
-Store the complex number @var{val} at location @var{IDX} in the complex
-vector referenced by the pointer object @var{rvc}.
-@end defun
-
-
-@defun rvc-ref @var{rvc} @var{idx}
-Return the complex number at location @var{idx} in the complex vector
-referenced by the pointer object @var{rvc}.
-@end defun
-
-
-@defun rvc-fill! @var{rvc} @var{m}
-Fill the complex vector referenced by the pointer object @var{rvc} with
-values from the list @var{m}.
-@end defun
-
-
-@defun rvc->list @var{rvc} @var{len}
-Build and return a list holding the values from the complex vector
-referenced by the pointer @var{rvc} and length @var{len}.
-@end defun
-
-
-@defun cvc-make-rectangular! @var{w} @var{wr} @var{wi} @var{len}
-Store in @var{w}, a vector of complex nubmers, the vectors @var{wr} and
-@var{wi} holding, respectively, the real parts and the imaginary parts.
-@var{len} is the length of the vectors.
-
-This function is useful to build the vector of eigenvalues returned, for
-example, by @func{dgeev}.
-@end defun
-
-@c page
-@node vm real matrices
-@section Real matrices
+@node vm matrices
+@section Real and complex matrices
 
 
 For all the following descriptions: the @var{ld} argument is the
@@ -1350,32 +1389,42 @@ For all the following descriptions: the @var{ld} argument is the
 is accessed in column--major order.
 
 
-@defun rmx/c @var{rows-num} @var{cols-num}
-Allocate an array capable of holding a real matrix of @var{rows-num}
-rows and @var{cols-num} columns; return a pointer to it.  The
-appropriate free function is pushed to the current compensations stack.
+@defun smat/c @var{M} @var{N}
+@defunx dmat/c @var{M} @var{N}
+@defunx cmat/c @var{M} @var{N}
+@defunx zmat/c @var{M} @var{N}
+Allocate an array capable of holding a matrix of @var{M} rows and
+@var{N} columns; return a pointer to it.  The appropriate free
+function is pushed to the current compensations stack.
 @nauref{compensations, Compensation stacks}.
 @end defun
 
 
-@defun rmx-set! @var{rmx} @var{ldm} @var{row} @var{col} @var{val}
-Store the real value @var{val} at location @var{row}, @var{col} in the
-real matrix referenced by the pointer object @var{rmx} and column length
-@var{ldm}.
+@defun smat-set! @var{A} @var{lda} @var{row} @var{col} @var{val}
+@defunx dmat-set! @var{A} @var{lda} @var{row} @var{col} @var{val}
+@defunx cmat-set! @var{A} @var{lda} @var{row} @var{col} @var{val}
+@defunx zmat-set! @var{A} @var{lda} @var{row} @var{col} @var{val}
+Store the value @var{val} at location @var{row}, @var{col} in the matrix
+referenced by the pointer object @var{A} and column length @var{lda}.
 @end defun
 
 
-@defun rmx-ref @var{rmx} @var{ldm} @var{row} @var{col}
-Return the real value at location @var{row}, @var{col} in the real
-matrix referenced by the pointer object @var{rmx} and column length
-@var{ldm}.
+@defun smat-ref @var{A} @var{lda} @var{row} @var{col}
+@defunx dmat-ref @var{A} @var{lda} @var{row} @var{col}
+@defunx cmat-ref @var{A} @var{lda} @var{row} @var{col}
+@defunx zmat-ref @var{A} @var{lda} @var{row} @var{col}
+Return the value at location @var{row}, @var{col} in the matrix
+referenced by the pointer object @var{A} and column length @var{lda}.
 @end defun
 
 
-@defun rmx-fill! @var{rmx} @var{ldm} @var{m}
-Fill the real matrix referenced by the pointer object @var{rmx} and
-column length @var{ldm}, with values from the list @var{m}.  @var{m} is
-a list of lists in row--major order:
+@defun smat-fill! @var{A} @var{lda} @var{ell}
+@defunx dmat-fill! @var{A} @var{lda} @var{ell}
+@defunx cmat-fill! @var{A} @var{lda} @var{ell}
+@defunx zmat-fill! @var{A} @var{lda} @var{ell}
+Fill the matrix referenced by the pointer object @var{A} and column
+length @var{lda}, with values from the list @var{ell}.  @var{ell} is a
+list of lists in row--major order:
 
 @example
 ((a_11 a_12 a_13)
@@ -1385,63 +1434,14 @@ a list of lists in row--major order:
 @end defun
 
 
-@defun rmx->list @var{rmx} @var{ldm} @var{rows-num} @var{cols-num}
+@defun smat->list @var{M} @var{N} @var{A} @var{lda}
+@defunx dmat->list @var{M} @var{N} @var{A} @var{lda}
+@defunx cmat->list @var{M} @var{N} @var{A} @var{lda}
+@defunx zmat->list @var{M} @var{N} @var{A} @var{lda}
 Build and return a list of lists holding the values, in row--major
-order, from the matrix referenced by the pointer @var{rmx}.  @var{ldm}
-is the length of a column.  @var{rows-num} and @var{cols-num} are the
-numbers of rows and columns.
-@end defun
-
-@c page
-@node vm complex matrices
-@section Complex matrices
-
-
-For all the following descriptions: the @var{ld} argument is the
-``leading dimension'' of the matrix, in @blas{} jargon, and the matrix
-is accessed in column--major order.
-
-
-@defun cmx/c @var{rows-num} @var{cols-num}
-Allocate an array capable of holding a complex matrix of @var{rows-num}
-rows and @var{cols-num} columns; return a pointer to it.  The
-appropriate free function is pushed to the current compensations stack.
-@nauref{compensations, Compensation stacks}.
-@end defun
-
-
-@defun cmx-set! @var{cmx} @var{ldm} @var{row} @var{col} @var{val}
-Store the complex value @var{val} at location @var{row}, @var{col} in
-the complex matrix referenced by the pointer object @var{cmx} and column
-length @var{ldm}.
-@end defun
-
-
-@defun cmx-ref @var{cmx} @var{ldm} @var{row} @var{col}
-Return the complex value at location @var{row}, @var{col} in the complex
-matrix referenced by the pointer object @var{cmx} and column length
-@var{ldm}.
-@end defun
-
-
-@defun cmx-fill! @var{cmx} @var{ldm} @var{m}
-Fill the complex matrix referenced by the pointer object @var{cmx} and
-column length @var{ldm}, with values from the list @var{m}.  @var{m} is
-a list of lists in row--major order:
-
-@example
-((a_11 a_12 a_13)
- (a_21 a_22 a_23)
- (a_31 a_32 a_33))
-@end example
-@end defun
-
-
-@defun cmx->list @var{cmx} @var{ldm} @var{rows-num} @var{cols-num}
-Build and return a list of lists holding the values, in row--major
-order, from the matrix referenced by the pointer @var{cmx}.  @var{ldm}
-is the length of a column.  @var{rows-num} and @var{cols-num} are the
-numbers of rows and columns.
+order, from the matrix referenced by the pointer @var{A}.  @var{lda} is
+the length of a column.  @var{M} and @var{N} are the numbers of rows and
+columns.
 @end defun
 
 @c page

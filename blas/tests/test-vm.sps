@@ -35,97 +35,165 @@
 (display "*** testing VM\n")
 
 
-(parametrise ((check-test-name	'rv))
+(parametrise ((check-test-name	'real-vectors))
 
   (check
       (with-compensations
-	(let* ((len	5)
-	       (vec	(rvc/c len)))
-	  (rvc-fill! vec '(1 2 3 4 5))
-	  (rvc->list vec len)))
+	(let* ((N 5) (X (svec/c N)))
+	  (svec-fill! X 1 '(1 2 3 4 5))
+	  (svec->list N X 1)))
     => '(1. 2. 3. 4. 5.))
 
   (check
       (with-compensations
-	(let* ((len	5)
-	       (vec	(rvc/c len)))
-	  (rvc-set! vec 2 5)
-	  (rvc-ref vec 2)))
+	(let* ((N 5) (X (svec/c N)))
+	  (svec-set! X 1 2 5)
+	  (svec-ref  X 1 2)))
+    => 5.)
+
+  (check
+      (with-compensations
+	(let* ((N 5) (X (dvec/c N)))
+	  (dvec-fill! X 1 '(1 2 3 4 5))
+	  (dvec->list N X 1)))
+    => '(1. 2. 3. 4. 5.))
+
+  (check
+      (with-compensations
+	(let* ((N 5) (X (dvec/c N)))
+	  (dvec-set! X 1 2 5)
+	  (dvec-ref  X 1 2)))
     => 5.)
 
   #t)
 
 
-(parametrise ((check-test-name	'cv))
+(parametrise ((check-test-name	'complex-vectors))
 
   (check
       (with-compensations
-	(let* ((len	5)
-	       (vec	(cvc/c len)))
-	  (cvc-fill! vec '(1+2i 3+4i 5+6i 7+8i 9))
-	  (cvc->list vec len)))
+	(let* ((N 5) (X (cvec/c N)))
+	  (cvec-fill! X 1 '(1+2i 3+4i 5+6i 7+8i 9))
+	  (cvec->list N X 1)))
     => '(1.+2.i 3.+4.i 5.+6.i 7.+8.i 9.+0.i))
 
   (check
       (with-compensations
-	(let* ((len	5)
-	       (vec	(cvc/c len)))
-	  (cvc-set! vec 2 5+4i)
-	  (cvc-ref vec 2)))
+	(let* ((N 5) (X (cvec/c N)))
+	  (cvec-set! X 1 2 5+4i)
+	  (cvec-ref  X 1 2)))
+    => 5.+4.i)
+
+  (check
+      (with-compensations
+	(let* ((N 5) (X (zvec/c N)))
+	  (zvec-fill! X 1 '(1+2i 3+4i 5+6i 7+8i 9))
+	  (zvec->list N X 1)))
+    => '(1.+2.i 3.+4.i 5.+6.i 7.+8.i 9.+0.i))
+
+  (check
+      (with-compensations
+	(let* ((N 5) (X (zvec/c N)))
+	  (zvec-set! X 1 2 5+4i)
+	  (zvec-ref  X 1 2)))
     => 5.+4.i)
 
   #t)
 
 
-(parametrise ((check-test-name	'rm))
+(parametrise ((check-test-name	'real-matrices))
 
   (check
       (with-compensations
-	(let* ((row-num	2)
-	       (col-num 3)
-	       (ldm	row-num)
-	       (mat	(rmx/c row-num col-num)))
-	  (rmx-fill! mat ldm '((1 2 3)
+	(let* ((M	2)
+	       (N	3)
+	       (lda	M)
+	       (A	(smat/c M N)))
+	  (smat-fill! A lda '((1 2 3)
 			   (4 5 6)))
-	  (rmx->list mat ldm row-num col-num)))
+	  (smat->list M N A lda)))
     => '((1. 2. 3.)
 	 (4. 5. 6.)))
 
   (check
       (with-compensations
-	(let* ((row-num	2)
-	       (col-num 3)
-	       (ldm	row-num)
-	       (mat	(rmx/c row-num col-num)))
-	  (rmx-set! mat ldm 1 2 5)
-	  (rmx-ref mat ldm 1 2)))
+	(let* ((M	2)
+	       (N	3)
+	       (lda	M)
+	       (A	(smat/c M N)))
+	  (smat-set! A lda 1 2 5)
+	  (smat-ref A lda 1 2)))
+    => 5.)
+
+  (check
+      (with-compensations
+	(let* ((M	2)
+	       (N	3)
+	       (lda	M)
+	       (A	(dmat/c M N)))
+	  (dmat-fill! A lda '((1 2 3)
+			   (4 5 6)))
+	  (dmat->list M N A lda)))
+    => '((1. 2. 3.)
+	 (4. 5. 6.)))
+
+  (check
+      (with-compensations
+	(let* ((M	2)
+	       (N 3)
+	       (lda	M)
+	       (A	(dmat/c M N)))
+	  (dmat-set! A lda 1 2 5)
+	  (dmat-ref A lda 1 2)))
     => 5.)
 
   #t)
 
 
-(parametrise ((check-test-name	'cm))
+(parametrise ((check-test-name	'complex-matrices))
 
   (check
       (with-compensations
-	(let* ((row-num	2)
-	       (col-num 3)
-	       (ldm	row-num)
-	       (mat	(cmx/c row-num col-num)))
-	  (cmx-fill! mat ldm '((1+2i 3+4i 5+6i)
-			       (7+8i 9 10)))
-	  (cmx->list mat ldm row-num col-num)))
+	(let* ((M	2)
+	       (N	3)
+	       (lda	M)
+	       (A	(cmat/c M N)))
+	  (cmat-fill! A lda '((1+2i 3+4i 5+6i)
+			      (7+8i 9    10)))
+	  (cmat->list M N A lda)))
     => '((1.+2.i 3.+4.i 5.+6.i)
 	 (7.+8.i 9.+0.i 10.+0.i)))
 
   (check
       (with-compensations
-	(let* ((row-num	2)
-	       (col-num 3)
-	       (ldm	row-num)
-	       (mat	(cmx/c row-num col-num)))
-	  (cmx-set! mat ldm 1 2 5)
-	  (cmx-ref mat ldm 1 2)))
+	(let* ((M	2)
+	       (N	3)
+	       (lda	M)
+	       (A	(cmat/c M N)))
+	  (cmat-set! A lda 1 2 5)
+	  (cmat-ref  A lda 1 2)))
+    => 5.+0.i)
+
+  (check
+      (with-compensations
+	(let* ((M	2)
+	       (N	3)
+	       (lda	M)
+	       (A	(zmat/c M N)))
+	  (zmat-fill! A lda '((1+2i 3+4i 5+6i)
+			      (7+8i 9    10)))
+	  (zmat->list M N A lda)))
+    => '((1.+2.i 3.+4.i 5.+6.i)
+	 (7.+8.i 9.+0.i 10.+0.i)))
+
+  (check
+      (with-compensations
+	(let* ((M	2)
+	       (N	3)
+	       (lda	M)
+	       (A	(zmat/c M N)))
+	  (zmat-set! A lda 1 2 5)
+	  (zmat-ref  A lda 1 2)))
     => 5.+0.i)
 
   #t)

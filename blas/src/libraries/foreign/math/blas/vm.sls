@@ -9,8 +9,8 @@
 ;;;	This  library supports  only  vectors and  matrices of  "double"
 ;;;	numbers.
 ;;;
-;;;	  We have to acknowledge that CLAPACK follows the conventions of
-;;;	LAPACK, which is  written in Fortran 77: matrices  are stored in
+;;;	  We have  to acknowledge that CBLAS follows  the conventions of
+;;;	BLAS, which  is written  in Fortran 77:  matrices are  stored in
 ;;;	column-major order.  So the matrix:
 ;;;
 ;;;		 -              -
@@ -49,242 +49,324 @@
 (library (foreign math blas vm)
   (export
 
-    ;; real vectors of "double"
-    rvc/c
-    rvc-set!		rvc-ref
-    rvc-fill!		rvc->list
-
-    ;; complex vectors of "double"
-    cvc/c
-    cvc-set!		cvc-ref
-    cvc-fill!		cvc->list
-    cvc-make-rectangular!
+    ;; vectors
+    svec/c svec-set! svec-ref svec-fill! svec->list
+    dvec/c dvec-set! dvec-ref dvec-fill! dvec->list
+    cvec/c cvec-set! cvec-ref cvec-fill! cvec->list cvec-make-rectangular!
+    zvec/c zvec-set! zvec-ref zvec-fill! zvec->list zvec-make-rectangular!
 
     ;; real matrices of "double"
-    rmx/c
-    rmx-set!		rmx-ref
-    rmx-fill!		rmx->list
-
-    ;; complex matrices of "double"
-    cmx/c
-    cmx-set!		cmx-ref
-    cmx-fill!		cmx->list)
+    smat/c smat-set! smat-ref smat-fill! smat->list
+    dmat/c dmat-set! dmat-ref dmat-fill! dmat->list
+    cmat/c cmat-set! cmat-ref cmat-fill! cmat->list
+    zmat/c zmat-set! zmat-ref zmat-fill! zmat->list)
   (import (rnrs)
     (begin0)
     (only (foreign ffi)
+	  array-set-c-float!
+	  array-ref-c-float
 	  array-set-c-double!
 	  array-ref-c-double)
     (only (foreign ffi sizeof)
+	  strideof-float
 	  strideof-double)
     (only (foreign memory)
 	  malloc-block/c))
 
 
-;;;; real vectors of "double"
+;;;; real vectors
 
-(define (rvc/c len)
-  ;;Allocate an array capable of  holding a real vector of LEN elements;
-  ;;return a pointer to it.   The appropriate free function is pushed to
-  ;;the current compensations stack.
-  ;;
-  (malloc-block/c (* strideof-double len)))
+;;Allocate  an array capable  of holding  a real  vector of  N elements;
+;;return a  pointer to it.  The  appropriate free function  is pushed to
+;;the current compensations stack.
+(define (svec/c N)
+  (malloc-block/c (* strideof-float N)))
 
-(define (rvc-set! rvc idx val)
-  ;;Store  the  real  value VAL  at  location  IDX  in the  real  vector
-  ;;referenced by the pointer object RVC.
-  ;;
-  (array-set-c-double! rvc idx (inexact val)))
+(define (dvec/c N)
+  (malloc-block/c (* strideof-double N)))
 
-(define (rvc-ref rvc idx)
-  ;;Return the real value at  location IDX in the real vector referenced
-  ;;by the pointer object RVC.
-  ;;
-  (array-ref-c-double rvc idx))
+;;Store the real value VAL at location IDX in the real vector referenced
+;;by the pointer object X.
+(define (svec-set! X incX idx val)
+  (array-set-c-float! X (* incX idx) (inexact val)))
 
-(define (rvc-fill! rvc m)
-  ;;Fill  the real  vector referenced  by  the pointer  object RVC  with
-  ;;values from the list M.
-  ;;
-  (let elms ((m m) (i 0))
-    (unless (null? m)
-      (rvc-set! rvc i (car m))
-      (elms (cdr m) (+ 1 i)))))
+(define (dvec-set! X incX idx val)
+  (array-set-c-double! X (* incX idx) (inexact val)))
 
-(define (rvc->list rvc len)
-  ;;Build  and return a  list holding  the values  from the  real vector
-  ;;referenced by the pointer RVC and length LEN.
-  ;;
+;;Return the real value at location IDX in the real vector referenced by
+;;the pointer object X.
+(define (svec-ref X incX idx)
+  (array-ref-c-float X (* incX idx)))
+
+(define (dvec-ref X incX idx)
+  (array-ref-c-double X (* incX idx)))
+
+;;Fill the  real vector referenced by  the pointer object  X with values
+;;from the list ELL.
+(define (svec-fill! X incX ell)
+  (let elms ((ell ell) (i 0))
+    (unless (null? ell)
+      (svec-set! X incX i (car ell))
+      (elms (cdr ell) (+ 1 i)))))
+
+(define (dvec-fill! X incX ell)
+  (let elms ((ell ell) (i 0))
+    (unless (null? ell)
+      (dvec-set! X incX i (car ell))
+      (elms (cdr ell) (+ 1 i)))))
+
+;;Build  and return  a  list holding  the  values from  the real  vector
+;;referenced by the pointer X and Ngth N.
+(define (svec->list N X incX)
   (let loop ((i 0) (ell '()))
-    (if (= i len)
+    (if (= i N)
 	(reverse ell)
-      (loop (+ 1 i) (cons (rvc-ref rvc i) ell)))))
+      (loop (+ 1 i) (cons (svec-ref X incX i) ell)))))
+
+(define (dvec->list N X incX)
+  (let loop ((i 0) (ell '()))
+    (if (= i N)
+	(reverse ell)
+      (loop (+ 1 i) (cons (dvec-ref X incX i) ell)))))
 
 
-;;;; complex vectors of "double"
+;;;; complex vectors
 
-(define (cvc/c len)
-  ;;Allocate  an  array capable  of  holding  a  complex vector  of  LEN
-  ;;elements; return a pointer to  it.  The appropriate free function is
-  ;;pushed to the current compensations stack.
-  ;;
-  (malloc-block/c (* 2 strideof-double len)))
+;;Allocate an array  capable of holding a complex  vector of N elements;
+;;return a  pointer to it.  The  appropriate free function  is pushed to
+;;the current compensations stack.
+(define (cvec/c N)
+  (malloc-block/c (* 2 strideof-float N)))
 
-(define (cvc-set! cvc idx val)
-  ;;Store the  complex value VAL at  location IDX in  the complex vector
-  ;;referenced by the pointer object CVC.
-  ;;
-  (let ((offset (* 2 idx)))
-    (array-set-c-double! cvc offset       (inexact (real-part val)))
-    (array-set-c-double! cvc (+ 1 offset) (inexact (imag-part val)))))
+(define (zvec/c N)
+  (malloc-block/c (* 2 strideof-double N)))
 
-(define (cvc-ref cvc idx)
-  ;;Return  the complex  value at  location  IDX in  the complex  vector
-  ;;referenced by the pointer object CVC.
-  ;;
-  (let ((offset (* 2 idx)))
-    (make-rectangular (array-ref-c-double cvc offset)
-		      (array-ref-c-double cvc (+ 1 offset)))))
+;;Store  the complex value  VAL at  location IDX  in the  complex vector
+;;referenced by the pointer object X.
+(define (cvec-set! X incX idx val)
+  (let ((offset (* 2 incX idx)))
+    (array-set-c-float! X offset       (inexact (real-part val)))
+    (array-set-c-float! X (+ 1 offset) (inexact (imag-part val)))))
 
-(define (cvc-fill! cvc m)
-  ;;Fill the  complex vector referenced  by the pointer object  CVC with
-  ;;values from the list M.
-  ;;
+(define (zvec-set! X incX idx val)
+  (let ((offset (* 2 incX idx)))
+    (array-set-c-double! X offset       (inexact (real-part val)))
+    (array-set-c-double! X (+ 1 offset) (inexact (imag-part val)))))
+
+;;Return  the  complex value  at  location  IDX  in the  complex  vector
+;;referenced by the pointer object X.
+(define (cvec-ref X incX idx)
+  (let ((offset (* 2 incX idx)))
+    (make-rectangular (array-ref-c-float X offset)
+		      (array-ref-c-float X (+ 1 offset)))))
+
+(define (zvec-ref X incX idx)
+  (let ((offset (* 2 incX idx)))
+    (make-rectangular (array-ref-c-double X offset)
+		      (array-ref-c-double X (+ 1 offset)))))
+
+;;Fill the  complex vector referenced  by the pointer object  X with
+;;values from the list M.
+(define (cvec-fill! X incX m)
   (let elms ((m m) (i 0))
     (unless (null? m)
-      (cvc-set! cvc i (car m))
+      (cvec-set! X incX i (car m))
       (elms (cdr m) (+ 1 i)))))
 
-(define (cvc->list cvc len)
-  ;;Build and return  a list holding the values  from the complex vector
-  ;;referenced by the pointer CVC and length LEN.
-  ;;
-  (let loop ((i 0) (ell '()))
-    (if (= i len)
-	(reverse ell)
-      (loop (+ 1 i) (cons (cvc-ref cvc i) ell)))))
+(define (zvec-fill! X incX m)
+  (let elms ((m m) (i 0))
+    (unless (null? m)
+      (zvec-set! X incX i (car m))
+      (elms (cdr m) (+ 1 i)))))
 
-(define (cvc-make-rectangular! w wr wi N)
-  ;;Store  in W,  a vector  of complex  nubmers, the  vectors WR  and WI
-  ;;holding, respectively, the real parts and the imaginary parts.  N is
-  ;;the length of the vectors.
-  ;;
+;;Build and  return a  list holding the  values from the  complex vector
+;;referenced by the pointer X and length N.
+(define (cvec->list N X incX)
+  (let loop ((i 0) (ell '()))
+    (if (= i N)
+	(reverse ell)
+      (loop (+ 1 i) (cons (cvec-ref X incX i) ell)))))
+
+(define (zvec->list N X incX)
+  (let loop ((i 0) (ell '()))
+    (if (= i N)
+	(reverse ell)
+      (loop (+ 1 i) (cons (zvec-ref X incX i) ell)))))
+
+;;Store in X, a vector of  complex nubmers, the vectors R and I holding,
+;;respectively, the real parts and the imaginary parts.  N is the length
+;;of the vectors.
+(define (cvec-make-rectangular! N X incX R incR I incI)
   (do ((i 0 (+ 1 i)))
       ((= i N))
-    (let ((i2 (* 2 i)))
-      (array-set-c-double! w i2       (array-ref-c-double wr i))
-      (array-set-c-double! w (+ 1 i2) (array-ref-c-double wi i)))))
+    (cvec-set! X incX i (svec-ref R incR i))
+    (cvec-set! X incX i (svec-ref I incI i))))
+
+(define (zvec-make-rectangular! N X incX R incR I incI)
+  (do ((i 0 (+ 1 i)))
+      ((= i N))
+    (zvec-set! X incX i (dvec-ref R incR i))
+    (zvec-set! X incX i (dvec-ref I incI i))))
 
 
-;;;; real matrices of "double"
+;;;; real matrices
 
-(define (rmx/c rows cols)
-  ;;Allocate an array capable of holding  a real matrix of ROWS rows and
-  ;;COLS columns; return a pointer to it.  The appropriate free function
-  ;;is pushed to the current compensations stack.
-  ;;
-  (malloc-block/c (* strideof-double rows cols)))
+;;Allocate an  array capable of  holding a real  matrix of M rows  and N
+;;columns; return  a pointer  to it.  The  appropriate free  function is
+;;pushed to the current compensations stack.
+(define (smat/c M N)
+  (malloc-block/c (* strideof-float M N)))
 
-(define (rmx-set! rmx ldm row col val)
-  ;;Store the  real value VAL  at location ROW,  COL in the  real matrix
-  ;;referenced by the pointer object RMX and column length LDM.
-  ;;
-  (array-set-c-double! rmx (+ row (* ldm col)) (inexact val)))
+(define (dmat/c M N)
+  (malloc-block/c (* strideof-double M N)))
 
-(define (rmx-ref rmx ldm row col)
-  ;;Return  the real  value  at location  ROW,  COL in  the real  matrix
-  ;;referenced by the pointer object RMX and column length LDM.
-  ;;
-  (array-ref-c-double rmx (+ row (* ldm col))))
+;;Store  the real  value VAL  at location  ROW, COL  in the  real matrix
+;;referenced by the pointer object A and column length LDA.
+(define (smat-set! A lda row col val)
+  (array-set-c-float! A (+ row (* lda col)) (inexact val)))
 
-(define (rmx-fill! rmx ldm m)
-  ;;Fill the real matrix referenced by the pointer object RMX and column
-  ;;length LDM, with  values from the list  M.  M is a list  of lists in
-  ;;row-major order:
-  ;;
-  ;;	((a_11 a_12 a_13)
-  ;;	 (a_21 a_22 a_23)
-  ;;	 (a_31 a_32 a_33))
-  ;;
-  (let rows ((m m) (i 0))
-    (unless (null? m)
-      (let cols ((n (car m)) (j 0))
+(define (dmat-set! A lda row col val)
+  (array-set-c-double! A (+ row (* lda col)) (inexact val)))
+
+;;Return  the  real  value at  location  ROW,  COL  in the  real  matrix
+;;referenced by the pointer object A and column length LDA.
+(define (smat-ref A lda row col)
+  (array-ref-c-float A (+ row (* lda col))))
+
+(define (dmat-ref A lda row col)
+  (array-ref-c-double A (+ row (* lda col))))
+
+;;Fill the  real matrix  referenced by the  pointer object A  and column
+;;length LDA, with values from the list  ELL.  ELL is a list of lists in
+;;row-major order:
+;;
+;;	((a_11 a_12 a_13)
+;;	 (a_21 a_22 a_23)
+;;	 (a_31 a_32 a_33))
+;;
+(define (smat-fill! A lda ell)
+  (let rows ((ell ell) (i 0))
+    (unless (null? ell)
+      (let cols ((n (car ell)) (j 0))
 	(unless (null? n)
-	  (rmx-set! rmx ldm i j (car n))
+	  (smat-set! A lda i j (car n))
 	  (cols (cdr n) (+ 1 j))))
-      (rows (cdr m) (+ 1 i)))))
+      (rows (cdr ell) (+ 1 i)))))
 
-(define (rmx->list rmx ldm rows-num cols-num)
-  ;;Build and  return a list of  lists holding the  values, in row-major
-  ;;order, from  the matrix referenced by  the pointer RMX.   LDM is the
-  ;;length of a  column.  ROWS-NUM and COLS-NUM are  the numbers of rows
-  ;;and columns.
-  ;;
-  (let rows ((m '()) (i 0))
-    (if (= i rows-num)
-	(reverse m)
-      (let cols ((n '()) (j 0))
-	(if (= j cols-num)
-	    (rows (cons (reverse n) m) (+ 1 i))
-	  (cols (cons (rmx-ref rmx ldm i j) n) (+ 1 j)))))))
+(define (dmat-fill! A lda ell)
+  (let rows ((ell ell) (i 0))
+    (unless (null? ell)
+      (let cols ((n (car ell)) (j 0))
+	(unless (null? n)
+	  (dmat-set! A lda i j (car n))
+	  (cols (cdr n) (+ 1 j))))
+      (rows (cdr ell) (+ 1 i)))))
+
+;;Build  and return a  list of  lists holding  the values,  in row-major
+;;order, from the matrix referenced by the pointer A.  LDA is the length
+;;of a column.  M and N are the numbers of rows and columns.
+(define (smat->list M N A lda)
+  (let loop-rows ((rows '()) (i 0))
+    (if (= i M)
+	(reverse rows)
+      (let loop-cols ((cols '()) (j 0))
+	(if (= j N)
+	    (loop-rows (cons (reverse cols) rows) (+ 1 i))
+	  (loop-cols (cons (smat-ref A lda i j) cols) (+ 1 j)))))))
+
+(define (dmat->list M N A lda)
+  (let loop-rows ((rows '()) (i 0))
+    (if (= i M)
+	(reverse rows)
+      (let loop-cols ((cols '()) (j 0))
+	(if (= j N)
+	    (loop-rows (cons (reverse cols) rows) (+ 1 i))
+	  (loop-cols (cons (dmat-ref A lda i j) cols) (+ 1 j)))))))
 
 
-;;;; complex matrices of "double"
+;;;; complex matrices
 
-(define (cmx/c rows cols)
-  ;;Allocate an array  capable of holding a complex  matrix of ROWS rows
-  ;;and  COLS columns;  return a  pointer to  it.  The  appropriate free
-  ;;function is pushed to the current compensations stack.
-  ;;
-  (malloc-block/c (* 2 strideof-double rows cols)))
+;;Allocate an array capable of holding  a complex matrix of M rows and N
+;;columns; return  a pointer  to it.  The  appropriate free  function is
+;;pushed to the current compensations stack.
+(define (cmat/c M N)
+  (malloc-block/c (* 2 strideof-float M N)))
 
-(define (cmx-set! cmx ldm row col val)
-  ;;Store  the complex value  VAL at  location ROW,  COL in  the complex
-  ;;matrix  referenced  by the  pointer  object  CMX  and column  length
-  ;;LDM.
-  ;;
-  (let ((offset (* 2 (+ row (* ldm col))))
+(define (zmat/c M N)
+  (malloc-block/c (* 2 strideof-double M N)))
+
+;;Store the complex value VAL at location ROW, COL in the complex matrix
+;;referenced by the pointer object A and column length LDA.
+(define (cmat-set! A lda row col val)
+  (let ((offset (* 2 (+ row (* lda col))))
 	(val    (inexact val)))
-    (array-set-c-double! cmx offset       (inexact (real-part val)))
-    (array-set-c-double! cmx (+ 1 offset) (inexact (imag-part val)))))
+    (array-set-c-float! A offset       (inexact (real-part val)))
+    (array-set-c-float! A (+ 1 offset) (inexact (imag-part val)))))
 
-(define (cmx-ref cmx ldm row col)
-  ;;Return the complex value at  location ROW, COL in the complex matrix
-  ;;referenced by the pointer object CMX and column length LDM.
-  ;;
-  (let ((offset (* 2 (+ row (* ldm col)))))
-    (make-rectangular (array-ref-c-double cmx offset)
-		      (array-ref-c-double cmx (+ 1 offset)))))
+(define (zmat-set! A lda row col val)
+  (let ((offset (* 2 (+ row (* lda col))))
+	(val    (inexact val)))
+    (array-set-c-double! A offset       (inexact (real-part val)))
+    (array-set-c-double! A (+ 1 offset) (inexact (imag-part val)))))
 
-(define (cmx-fill! cmx ldm m)
-  ;;Fill the  complex matrix  referenced by the  pointer object  CMX and
-  ;;column length  LDM, with  values from the  list M.   M is a  list of
-  ;;lists in row-major order:
-  ;;
-  ;;	((a_11 a_12 a_13)
-  ;;	 (a_21 a_22 a_23)
-  ;;	 (a_31 a_32 a_33))
-  ;;
-  (let rows ((m m) (i 0))
-    (unless (null? m)
-      (let cols ((n (car m)) (j 0))
+;;Return the  complex value at location  ROW, COL in  the complex matrix
+;;referenced by the pointer object A and column length LDA.
+(define (cmat-ref A lda row col)
+  (let ((offset (* 2 (+ row (* lda col)))))
+    (make-rectangular (array-ref-c-float A offset)
+		      (array-ref-c-float A (+ 1 offset)))))
+
+(define (zmat-ref A lda row col)
+  (let ((offset (* 2 (+ row (* lda col)))))
+    (make-rectangular (array-ref-c-double A offset)
+		      (array-ref-c-double A (+ 1 offset)))))
+
+;;Fill the complex matrix referenced  by the pointer object A and column
+;;length LDA, with values from the list  ELL.  ELL is a list of lists in
+;;row-major order:
+;;
+;;	((a_11 a_12 a_13)
+;;	 (a_21 a_22 a_23)
+;;	 (a_31 a_32 a_33))
+;;
+(define (cmat-fill! A lda ell)
+  (let rows ((ell ell) (i 0))
+    (unless (null? ell)
+      (let cols ((n (car ell)) (j 0))
 	(unless (null? n)
-	  (cmx-set! cmx ldm i j (car n))
+	  (cmat-set! A lda i j (car n))
 	  (cols (cdr n) (+ 1 j))))
-      (rows (cdr m) (+ 1 i)))))
+      (rows (cdr ell) (+ 1 i)))))
 
-(define (cmx->list cmx ldm rows-num cols-num)
-  ;;Build and  return a list of  lists holding the  values, in row-major
-  ;;order, from  the matrix referenced by  the pointer RMX.   LDM is the
-  ;;length of a  column.  ROWS-NUM and COLS-NUM are  the numbers of rows
-  ;;and columns.
-  ;;
-  (let rows ((m '()) (i 0))
-    (if (= i rows-num)
-	(reverse m)
-      (let cols ((n '()) (j 0))
-	(if (= j cols-num)
-	    (rows (cons (reverse n) m) (+ 1 i))
-	  (cols (cons (cmx-ref cmx ldm i j) n) (+ 1 j)))))))
+(define (zmat-fill! A lda ell)
+  (let rows ((ell ell) (i 0))
+    (unless (null? ell)
+      (let cols ((n (car ell)) (j 0))
+	(unless (null? n)
+	  (zmat-set! A lda i j (car n))
+	  (cols (cdr n) (+ 1 j))))
+      (rows (cdr ell) (+ 1 i)))))
+
+;;Build  and return a  list of  lists holding  the values,  in row-major
+;;order,  from the matrix  referenced by  the pointer  RMX.  LDA  is the
+;;length of a column.  M and N are the numbers of rows and columns.
+(define (cmat->list M N A lda)
+  (let loop-rows ((rows '()) (i 0))
+    (if (= i M)
+	(reverse rows)
+      (let loop-cols ((cols '()) (j 0))
+	(if (= j N)
+	    (loop-rows (cons (reverse cols) rows) (+ 1 i))
+	  (loop-cols (cons (cmat-ref A lda i j) cols) (+ 1 j)))))))
+
+(define (zmat->list M N A lda)
+  (let loop-rows ((rows '()) (i 0))
+    (if (= i M)
+	(reverse rows)
+      (let loop-cols ((cols '()) (j 0))
+	(if (= j N)
+	    (loop-rows (cons (reverse cols) rows) (+ 1 i))
+	  (loop-cols (cons (zmat-ref A lda i j) cols) (+ 1 j)))))))
 
 
 ;;;; done
