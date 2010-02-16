@@ -521,7 +521,9 @@ entitled ``@gnu{} Free Documentation License''.
 * enumerations::                Enumeration type definitions.
 * conditions::                  Condition object definitions.
 * connect::                     Connecting to a database.
+* inspect::                     Inspection.
 * primitives::                  Miscellaneous primitive bindings.
+* compensations::               Compensated constructors.
 
 Appendices
 
@@ -543,15 +545,23 @@ Object type definitions
 
 * typedefs connection::         Database connection object.
 * typedefs fd::                 File descriptor object.
+* typedefs option::             Connection option object.
 
 Enumeration type definitions
 
+* enumerations connect::        Connection status.
 * enumerations polling::        Polling status.
 
 Condition object definitions
 
 * conditions connect::          Database connection object.
 * conditions error::            Error condition object.
+
+Connecting to a database
+
+* connect sync::                Connecting synchronously.
+* connect async::               Connecting asynchronously.
+* connect misc::                Other connect--related functions.
 
 @end detailmenu
 @end menu
@@ -640,6 +650,7 @@ to import these libraries by prefixing the bindings, for example with
 @menu
 * typedefs connection::         Database connection object.
 * typedefs fd::                 File descriptor object.
+* typedefs option::             Connection option object.
 @end menu
 
 @c page
@@ -686,6 +697,67 @@ Return @true{} if @var{obj} is an object of type @class{fd}.
 @defunx <fd>->integer @var{fd}
 Convert to and from objects of type @class{fd} and the associated exact
 integers.
+@end defun
+
+@c page
+@node typedefs option
+@section Connection option object
+
+
+@deftp {Record Type Name} <connect-option>
+@deftpx {Record Type Descriptor} <connect-option-rtd>
+Record type used to mirror structures of type @code{PQconninfoOption}.
+It has the following immutable fields:
+
+@table @code
+@item keyword
+The keyword of the option.  A Scheme string.
+
+@item envvar
+Fallback environment variable name.  A Scheme string.
+
+@item compiled
+Fallback compiled--in default value.  A Scheme string or @false{} if the
+value is not set.
+
+@item val
+Option's current value.  A Scheme string or @false{} if the value is not
+set.
+
+@item label
+Label for field in connect dialog.  A Scheme string.
+
+@item dispchar
+Indicates how to display this field in a connect dialog.  A Scheme
+string.
+
+@item dispsize
+Field size in characters for dialog.  An exact intger.
+@end table
+@end deftp
+
+
+@defun make-<connect-option>
+@defunx <connect-option>? @var{obj}
+Constructor and predicate for records of type @class{connect-option}.
+@end defun
+
+
+@defun <connect-option>-keyword @var{option}
+@defunx <connect-option>-envvar @var{option}
+@defunx <connect-option>-compiled @var{option}
+@defunx <connect-option>-val @var{option}
+@defunx <connect-option>-label @var{option}
+@defunx <connect-option>-dispchar @var{option}
+@defunx <connect-option>-dispsize @var{option}
+Accessors for the fields of records of type @class{connect-option}.
+@end defun
+
+
+@defun pointer-><connect-option> @var{pointer}
+Given a pointer object to a structure of type @code{PQconninfoOption}
+build and return a record of type @class{connect-option} initialised
+with values from the structure.
 @end defun
 
 @c page
@@ -842,10 +914,25 @@ Accessor for the field of condition objects of type
 @chapter Connecting to a database
 
 
-The following bindings are exported by the @library{foreign databases
-postgresql primitives} library and reexported by the @library{foreign
-databases postgresql} library.  It is suggested to import these
-libraries by prefixing the bindings, for example with @code{pg:}.
+The bindings documented in this chapter are exported by the
+@library{foreign databases postgresql primitives} library and reexported
+by the @library{foreign databases postgresql} library.  It is suggested
+to import these libraries by prefixing the bindings, for example with
+@code{pg:}.
+
+@menu
+* connect sync::                Connecting synchronously.
+* connect async::               Connecting asynchronously.
+* connect misc::                Other connect--related functions.
+@end menu
+
+@c page
+@node connect sync
+@section Connecting synchronously
+
+
+In the following descriptions, the @var{conn} argument is always a
+Scheme object of type @class{connection}.
 
 
 @defun connect-db
@@ -876,25 +963,16 @@ open a connection.  Return an object of type @class{connection}.
 
 @defun finish @var{conn}
 @findex @func{PQfinish}
-Wrapper for @func{PQfinish}.  Finalise the @class{connection} object
-@var{conn}.
+Wrapper for @func{PQfinish}.  Finalise the database connection
+referenced by @var{conn}.
 @end defun
 
 
-@defun connect-start
-@defunx connect-start @var{connect-info}
-@findex @func{PQconnectStart}
-Wrapper for @func{PQconnectStart}.  Begin connecting to a database
-without blocking; the argument is the same as the one to
-@func{connect-db}.
-@end defun
-
-
-@defun connect-poll @var{conn}
-@findex @func{PQconnectPoll}
-Wrapper for @func{PQconnectPoll}.  Query the @class{connection} object
-@var{conn} for the next action to perform in a non--blocking connection
-operation; return an enumeration set of type @code{enum-polling-status}.
+@defun reset @var{conn}
+@findex @func{PQreset}
+Wrapper for @func{PQreset}.  Reset the database connection referenced by
+@var{conn}: close the connection and try to open it again with the same
+parameters.
 @end defun
 
 
@@ -913,6 +991,162 @@ in favor of the above ones.  Return an object of type
 Call @func{set-db-login} with @var{login} and @var{pwd} set to @false{}.
 @end defun
 
+@c page
+@node connect async
+@section Connecting asynchronously
+
+
+In the following descriptions, the @var{conn} argument is always a
+Scheme object of type @class{connection}.
+
+
+@defun connect-start
+@defunx connect-start @var{connect-info}
+@findex @func{PQconnectStart}
+Wrapper for @func{PQconnectStart}.  Begin connecting to a database
+without blocking; the argument is the same as the one to
+@func{connect-db}.
+@end defun
+
+
+@defun connect-poll @var{conn}
+@findex @func{PQconnectPoll}
+Wrapper for @func{PQconnectPoll}.  Query the connection object
+@var{conn} for the next action to perform in a non--blocking connection
+operation; return an enumeration set of type @code{enum-polling-status}.
+
+@smallexample
+(import (nausicaa)
+  (compensations)
+  (foreign memory)
+  (records)
+  (prefix (foreign databases postgresql) pg:)
+  (prefix (posix sizeof) posix:)
+  (prefix (posix fd) posix:)
+  (for (prefix (posix typedefs) posix:) expand run)
+  (for (prefix (posix extensions) posix:) expand))
+
+(with-compensations
+  (letrec ((conn (compensate
+                     (pg:connect-start "dbname=nausicaa-test")
+                   (with
+                    (pg:finish conn)))))
+    (let ((fd       (pg:socket conn))
+          (rd-fdset (posix:make-fdset malloc-block/c))
+          (wr-fdset (posix:make-fdset malloc-block/c))
+          (ex-fdset (posix:make-fdset malloc-block/c))
+          (timeout  (posix:make-struct-timeval malloc-block/c)))
+
+      (define (%poll set)
+        (let loop ()
+          (posix:FD_ZERO rd-fdset)
+          (posix:FD_ZERO wr-fdset)
+          (posix:FD_ZERO ex-fdset)
+          (posix:FD_SET fd set)
+          (posix:select posix:FD_SETSIZE
+                        rd-fdset wr-fdset ex-fdset timeout)
+          (unless (posix:FD_ISSET fd set)
+            (loop))))
+
+      (with-fields* (((sec usec) posix:struct-timeval* timeout))
+        (set! timeout.sec  2)
+        (set! timeout.usec 0))
+
+      (let loop ((status (pg:polling-status writing)))
+        (cond ((enum-set=? status (pg:polling-status ok))
+               #t)
+              ((enum-set=? status (pg:polling-status reading))
+               (%poll rd-fdset)
+               (loop (pg:connect-poll conn)))
+              ((enum-set=? status (pg:polling-status writing))
+               (%poll wr-fdset)
+               (loop (pg:connect-poll conn)))
+              (else
+               (error ---)))))
+      ---))
+@end smallexample
+@end defun
+
+
+@defun reset-start @var{conn}
+@findex @func{PQresetStart}
+Wrapper for @func{PQresetStart}.  Start an asynchronous reset of the
+connection referenced by @var{conn}; return @true{} if the operation
+succeeds and we can go on by calling @func{reset-poll}.
+@end defun
+
+
+@defun reset-poll @var{conn}
+@findex @func{PQresetPoll}
+Wrapper for @func{PQresetPoll}.  Query the connection object @var{conn}
+for the next action to perform in a non--blocking reset operation;
+return an enumeration set of type @code{enum-polling-status}.
+
+Usage of this function if equal to the usage of @func{connect-poll}.
+@end defun
+
+@c page
+@node connect misc
+@section Other connect--related functions
+
+
+@defun connection-defaults
+@findex @func{PQconndefaults}
+Wrapper for @func{PQconndefaults}.  Return a list of records of type
+@class{connect-option} representing the default connection options.
+@end defun
+
+
+@defun connection-info-parse @var{connect-info}
+@findex @func{PQconninfoParse}
+Wrapper for @func{PQconninfoParse}.  Parse the Scheme string
+@var{connect-info} as a list of connection options; return a list of
+records of type @class{connect-option}.  If the string is invalid, raise
+an exception.
+@end defun
+
+@c page
+@node inspect
+@chapter Inspection
+
+
+The following bindings are exported by the @library{foreign databases
+postgresql primitives} library and reexported by the @library{foreign
+databases postgresql} library.  It is suggested to import these
+libraries by prefixing the bindings, for example with @code{pg:}.
+
+
+@defun status @var{conn}
+Wrapper for @func{PQstatus}.  Return an enumeration set of type
+@code{enum-connection-status} describing the current state of the
+@class{connection} object @var{conn}.
+@end defun
+
+
+@defun status/ok? @var{conn}
+@defunx status/bad? @var{conn}
+@defunx status/started? @var{conn}
+@defunx status/made? @var{conn}
+@defunx status/awaiting-response? @var{conn}
+@defunx status/auth-ok? @var{conn}
+@defunx status/setenv? @var{conn}
+@defunx status/ssl-startup? @var{conn}
+@defunx status/needed? @var{conn}
+Return @true{} if the state of the @class{connection} object @var{conn}
+is the name one.
+@end defun
+
+
+@defun socket @var{conn}
+@findex @func{PQsocket}
+Wrapper for @func{PQsocket}.  Return a @class{fd} object representing
+the socket used by the @class{connection} object @var{conn}.
+@end defun
+
+
+
+
+
 
 @c page
 @node primitives
@@ -927,39 +1161,9 @@ suggested to import these libraries by prefixing the bindings, for
 example with @code{pg:}.
 
 
-@defun conndefaults
-@findex @func{PQconndefaults}
-Alias for @func{PQconndefaults}.
-@end defun
-
-
-@defun conninfo-parse
-@findex @func{PQconninfoParse}
-Alias for @func{PQconninfoParse}.
-@end defun
-
-
 @defun conninfo-free
 @findex @func{PQconninfoFree}
 Alias for @func{PQconninfoFree}.
-@end defun
-
-
-@defun reset-start
-@findex @func{PQresetStart}
-Alias for @func{PQresetStart}.
-@end defun
-
-
-@defun reset-poll
-@findex @func{PQresetPoll}
-Alias for @func{PQresetPoll}.
-@end defun
-
-
-@defun reset
-@findex @func{PQreset}
-Alias for @func{PQreset}.
 @end defun
 
 
@@ -1062,12 +1266,6 @@ Alias for @func{PQserverVersion}.
 @defun error-message
 @findex @func{PQerrorMessage}
 Alias for @func{PQerrorMessage}.
-@end defun
-
-
-@defun socket
-@findex @func{PQsocket}
-Alias for @func{PQsocket}.
 @end defun
 
 
@@ -1699,6 +1897,23 @@ Alias for @func{InvalidOid}.
 @vindex @func{PQnoPasswordSupplied}
 Alias for @func{PQnoPasswordSupplied}.
 @end defvr
+
+@c page
+@node compensations
+@chapter Compensated constructors
+
+
+The following bindings are exported by the @library{foreign databases
+postgresql compensated} library.  This @api{} makes use of the
+@library{compensations} library, @nauref{compensations, Compensation
+stacks}.
+
+
+@defun connect-db/c @var{connect-info}
+Wrapper for @func{connect-db} which pushes, on the current compensation
+stack, the appropriate call to @func{finish} to close the database
+connection.
+@end defun
 
 @c page
 

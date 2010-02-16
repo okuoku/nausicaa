@@ -31,16 +31,31 @@
     connect-poll		;; PQconnectPoll
     connect-db			;; PQconnectdb
     set-db-login		;; PQsetdbLogin
-    finish			;; PQfinish
-    status			;; PQstatus
     set-db			;; PQsetdb
+    finish			;; PQfinish
+    socket			;; PQsocket
 
-    (rename (PQconndefaults			conndefaults)
-	    (PQconninfoParse			conninfo-parse)
-	    (PQconninfoFree			conninfo-free)
-	    (PQresetStart			reset-start)
-	    (PQresetPoll			reset-poll)
-	    (PQreset				reset)
+    reset-start			;; PQresetStart
+    reset-poll			;; PQresetPoll
+    reset			;; PQreset
+
+    status			;; PQstatus
+    status/ok?
+    status/bad?
+    status/started?
+    status/made?
+    status/awaiting-response?
+    status/auth-ok?
+    status/setenv?
+    status/ssl-startup?
+    status/needed?
+
+    connection-defaults		;; PQconndefaults
+    connection-info-parse	;; PQconninfoParse
+
+    set-non-blocking		;; PQsetnonblocking
+
+    (rename (PQconninfoFree			conninfo-free)
 	    (PQgetCancel			get-cancel)
 	    (PQfreeCancel			free-cancel)
 	    (PQcancel				cancel)
@@ -57,7 +72,6 @@
 	    (PQprotocolVersion			protocol-version)
 	    (PQserverVersion			server-version)
 	    (PQerrorMessage			error-message)
-	    (PQsocket				socket)
 	    (PQbackendPID			backend-pid)
 	    (PQconnectionNeedsPassword		connection-needs-password)
 	    (PQconnectionUsedPassword		connection-used-password)
@@ -92,7 +106,6 @@
 	    (PQgetlineAsync			getline-async)
 	    (PQputnbytes			putnbytes)
 	    (PQendcopy				endcopy)
-	    (PQsetnonblocking			setnonblocking)
 	    (PQisnonblocking			isnonblocking)
 	    (PQisthreadsafe			isthreadsafe)
 	    (PQflush				flush)
@@ -225,11 +238,94 @@
 (define (finish conn)
   (PQfinish (<connection>->pointer conn)))
 
+(define (reset conn)
+  (PQreset (<connection>->pointer conn)))
+
+(define (reset-start conn)
+  (if (PQconnectStart (<connection>->pointer conn)) #t #f))
+
+(define (reset-poll conn)
+  (value->polling-status (PQresetPoll (<connection>->pointer conn))))
+
+(define (%connect-options-array->list arry*)
+  (let loop ((arry* arry*) (ell '()))
+    (if (pointer-null? (struct-PQconninfoOption-keyword-ref arry*))
+	ell
+      (loop (pointer-add arry* strideof-PQconninfoOption)
+	    (cons (pointer-><connect-option> arry*) ell)))))
+
+(define (connection-defaults)
+  (with-compensations
+    (letrec ((arry* (compensate
+			(PQconndefaults)
+		      (with
+		       (unless (pointer-null? arry*)
+			 (PQconninfoFree arry*))))))
+      (if (pointer-null? arry*)
+	  (raise-out-of-memory 'connection-defaults #f)
+	(%connect-options-array->list arry*)))))
+
+(define (connection-info-parse info)
+  (with-compensations
+    (let ((errmsg* (malloc-small/c)))
+      (letrec ((arry* (compensate
+			  (PQconninfoParse (string->cstring/c info) errmsg*)
+			(with
+			 (unless (pointer-null? arry*)
+			   (PQconninfoFree arry*))))))
+	(if (pointer-null? arry*)
+	    (let ((msg* (pointer-ref-c-pointer errmsg* 0)))
+	      (if (pointer-null? msg*)
+		  (raise-out-of-memory 'connection-info-parse #f)
+		(begin
+		  (push-compensation (primitive-free msg*))
+		  (error 'connection-info-parse (cstring->string msg*) info))))
+	  (%connect-options-array->list arry*))))))
+
 
 ;;;; inspection
 
 (define (status conn)
   (value->connection-status (PQstatus (<connection>->pointer conn))))
+
+(define (%status? status conn)
+  (= status (PQstatus (<connection>->pointer conn))))
+
+(define (status/ok? conn)
+  (%status? CONNECTION_OK conn))
+
+(define (status/bad? conn)
+  (%status? CONNECTION_BAD conn))
+
+(define (status/started? conn)
+  (%status? CONNECTION_STARTED conn))
+
+(define (status/made? conn)
+  (%status? CONNECTION_MADE conn))
+
+(define (status/awaiting-response? conn)
+  (%status? CONNECTION_AWAITING_RESPONSE conn))
+
+(define (status/auth-ok? conn)
+  (%status? CONNECTION_AUTH_OK conn))
+
+(define (status/setenv? conn)
+  (%status? CONNECTION_SETENV conn))
+
+(define (status/ssl-startup? conn)
+  (%status? CONNECTION_SSL_STARTUP conn))
+
+(define (status/needed? conn)
+  (%status? CONNECTION_NEEDED conn))
+
+(define (socket conn)
+  (integer-><fd> (PQsocket (<connection>->pointer conn))))
+
+
+
+
+(define (set-non-blocking conn)
+  (PQsetnonblocking (<connection>->pointer conn) 1))
 
 
 ;; typedef void (*PQnoticeReceiver) (void *arg, const PGresult *res);

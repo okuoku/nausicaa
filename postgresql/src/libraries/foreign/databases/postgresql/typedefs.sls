@@ -31,11 +31,30 @@
     <connection>?
     pointer-><connection>	<connection>->pointer
 
+;;; --------------------------------------------------------------------
+
     <fd>			<fd>?
     integer-><fd>		<fd>->integer
 
+;;; --------------------------------------------------------------------
+
+    <connect-option>		<connect-option-rtd>
+    make-<connect-option>	<connect-option>?
+    <connect-option>-keyword
+    <connect-option>-envvar
+    <connect-option>-compiled
+    <connect-option>-val
+    <connect-option>-label
+    <connect-option>-dispchar
+    <connect-option>-dispsize
+
+    pointer-><connect-option>
+
     )
-  (import (rnrs))
+  (import (rnrs)
+    (only (foreign cstrings) cstring->string)
+    (only (foreign memory) pointer-null?)
+    (foreign databases postgresql sizeof))
 
 
 (define-record-type (<connection> pointer-><connection> <connection>?)
@@ -49,6 +68,35 @@
 (define-record-type (<fd> integer-><fd> <fd>?)
   (nongenerative nausicaa:posix:<fd>)
   (fields (immutable object <fd>->integer)))
+
+
+(define-record-type <connect-option>
+  (fields (immutable keyword)
+	  (immutable envvar)
+	  (immutable compiled)
+	  (immutable val)
+	  (immutable label)
+	  (immutable dispchar)
+	  (immutable dispsize)))
+
+(define <connect-option-rtd>
+  (record-type-descriptor <connect-option>))
+
+(define (pointer-><connect-option> pointer)
+  (make-<connect-option>
+   (cstring->string (struct-PQconninfoOption-keyword-ref pointer))
+   (cstring->string (struct-PQconninfoOption-envvar-ref pointer))
+   (let ((p (struct-PQconninfoOption-compiled-ref pointer)))
+     (if (pointer-null? p)
+	 #f
+       (cstring->string p)))
+   (let ((p (struct-PQconninfoOption-val-ref pointer)))
+     (if (pointer-null? p)
+	 #f
+       (cstring->string p)))
+   (cstring->string (struct-PQconninfoOption-label-ref pointer))
+   (cstring->string (struct-PQconninfoOption-dispchar-ref pointer))
+   (struct-PQconninfoOption-dispsize-ref pointer)))
 
 
 ;;;; done

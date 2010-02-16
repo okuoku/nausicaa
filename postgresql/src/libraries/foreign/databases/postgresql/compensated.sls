@@ -26,13 +26,19 @@
 
 
 (library (foreign databases postgresql compensated)
-  (export)
+  (export
+    connect-db/c)
   (import (rnrs)
     (compensations)
-    (foreign databases postgresql))
+    (prefix (foreign databases postgresql) pg:))
 
 
-;;;; code
+(define (connect-db/c info)
+  (letrec ((conn (compensate
+		     (pg:connect-db "dbname=nausicaa-test")
+		   (with
+		    (pg:finish conn)))))
+    conn))
 
 
 

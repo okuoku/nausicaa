@@ -39,10 +39,10 @@
 
 
 (define-c-flags polling-status
-  (PGRES_POLLING_FAILED
+  (PGRES_POLLING_OK
+   PGRES_POLLING_FAILED
    PGRES_POLLING_READING
    PGRES_POLLING_WRITING
-   PGRES_POLLING_OK
    PGRES_POLLING_ACTIVE)
   (ok failed
    reading writing active))

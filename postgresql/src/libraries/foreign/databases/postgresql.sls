@@ -90,6 +90,18 @@
     <fd>			<fd>?
     integer-><fd>		<fd>->integer
 
+    <connect-option>		<connect-option-rtd>
+    make-<connect-option>	<connect-option>?
+    <connect-option>-keyword
+    <connect-option>-envvar
+    <connect-option>-compiled
+    <connect-option>-val
+    <connect-option>-label
+    <connect-option>-dispchar
+    <connect-option>-dispsize
+
+    pointer-><connect-option>
+
 ;;; --------------------------------------------------------------------
 
     enum-polling-status		polling-status
@@ -104,10 +116,29 @@
     connect-poll		;; PQconnectPoll
     connect-db			;; PQconnectdb
     set-db-login		;; PQsetdbLogin
-    finish			;; PQfinish
-    status			;; PQstatus
     set-db			;; PQsetdb
+    finish			;; PQfinish
+    socket			;; PQsocket
 
+    reset-start			;; PQresetStart
+    reset-poll			;; PQresetPoll
+    reset			;; PQreset
+
+    status			;; PQstatus
+    status/ok?
+    status/bad?
+    status/started?
+    status/made?
+    status/awaiting-response?
+    status/auth-ok?
+    status/setenv?
+    status/ssl-startup?
+    status/needed?
+
+    connection-defaults		;; PQconndefaults
+    connection-info-parse	;; PQconninfoParse
+
+    set-non-blocking		;; PQsetnonblocking
 
     )
   (import (rnrs)

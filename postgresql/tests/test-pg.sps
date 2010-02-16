@@ -28,13 +28,16 @@
 (import (nausicaa)
   (compensations)
   (prefix (foreign databases postgresql) pg:)
+  (prefix (foreign databases postgresql compensated) pg:)
+  (pretty-print)
+  (debugging)
   (checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing PostgreSQL library\n")
 
 
-(parametrise ((check-test-name	'opening))
+(parametrise ((check-test-name	'connecting))
 
   (check
       (with-compensations
@@ -47,6 +50,24 @@
 	    (begin
 	      #t))))
     => #t)
+
+  (check		;compensated
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+	  (pg:status/ok? conn)))
+    => #t)
+
+  (check		;reset
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+	  (if (not (pg:status/ok? conn))
+	      #f
+	    (begin
+	      (pg:reset conn)
+	      (pg:status/ok? conn)))))
+    => #t)
+
+;;; --------------------------------------------------------------------
 
   (check
       (with-compensations
@@ -70,6 +91,31 @@
 	      #f
 	    (begin
 	      #t))))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'misc)
+	      (debugging	#t))
+
+  (check
+      (let ((ops (pg:connection-defaults)))
+	;;(pretty-print ops)
+	(for-all pg:<connect-option>? ops))
+    => #t)
+
+  (check
+      (let ((ops (pg:connection-info-parse "dbname=nausicaa-test")))
+	;;(pretty-print ops)
+	(for-all pg:<connect-option>? ops))
+    => #t)
+
+  (check
+      (guard (E (else
+      		 ;;(debug-print-condition "connect-parse" E)
+      		 #t))
+	(pg:connection-info-parse "ciao"))
     => #t)
 
   #t)
