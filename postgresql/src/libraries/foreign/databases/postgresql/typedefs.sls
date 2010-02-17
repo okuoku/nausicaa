@@ -27,9 +27,14 @@
 
 (library (foreign databases postgresql typedefs)
   (export
+
     <connection>		<connection-rtd>
     <connection>?
     pointer-><connection>	<connection>->pointer
+
+    <result>			<result-rtd>
+    <result>?
+    pointer-><result>		<result>->pointer
 
 ;;; --------------------------------------------------------------------
 
@@ -68,6 +73,12 @@
 
 (define <connection-rtd>
   (record-type-descriptor <connection>))
+
+(define-record-type (<result> pointer-><result> <result>?)
+  (fields (immutable pointer <result>->pointer)))
+
+(define <result-rtd>
+  (record-type-descriptor <result>))
 
 ;;; --------------------------------------------------------------------
 

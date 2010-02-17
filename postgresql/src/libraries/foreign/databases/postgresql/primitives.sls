@@ -69,6 +69,9 @@
     connection-used-password		;; PQconnectionUsedPassword
     connection-get-ssl			;; PQgetssl
 
+    exec				;; PQexec
+    exec-params				;; PQexecParams
+
     set-non-blocking			;; PQsetnonblocking
 
     (rename (PQconninfoFree			conninfo-free)
@@ -86,8 +89,6 @@
 	    (PQsetNoticeReceiver		set-notice-receiver)
 	    (PQsetNoticeProcessor		set-notice-processor)
 	    (PQregisterThreadLock		register-thread-lock)
-	    (PQexec				exec)
-	    (PQexecParams			exec-params)
 	    (PQprepare				prepare)
 	    (PQexecPrepared			exec-prepared)
 	    (PQsendQuery			send-query)
@@ -408,7 +409,39 @@
     (if (pointer-null? p) #f (pointer->ssl p))))
 
 
+;;;; executing queries
 
+(define (exec conn query)
+  (with-compensations
+    (let ((p (PQexec (<connection>->pointer conn) (string->cstring/c query))))
+      (if (pointer-null? p)
+	  (raise
+	   (condition (make-postgresql-error-condition)
+		      (make-connection-condition conn)
+		      (make-query-condition query)
+		      (make-who-condition 'exec)
+		      (make-message-condition (connection-error-message))))
+	(pointer-><result> p)))))
+
+(define (exec-params conn query parms param-format)
+  #f)
+;; (define (exec-params conn query parms param-format)
+;;   (with-compensations
+;;     (let ((p (PQexecParams (<connection>->pointer conn)
+;; 			   (string->cstring/c query)
+;; 			   number-of-params param-types* param-values* param-lengths* param-formats*
+;; 			   (if result-format 1 0))))
+;;       (if (pointer-null? p)
+;; 	  (raise
+;; 	   (condition (make-postgresql-error-condition)
+;; 		      (make-connection-condition conn)
+;; 		      (make-query-condition query)
+;; 		      (make-who-condition 'exec-params)
+;; 		      (make-message-condition (connection-error-message))))
+;; 	(pointer-><result> p)))))
+
+
+
 
 (define (set-non-blocking conn)
   (PQsetnonblocking (<connection>->pointer conn) 1))

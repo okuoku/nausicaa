@@ -522,6 +522,8 @@ entitled ``@gnu{} Free Documentation License''.
 * conditions::                  Condition object definitions.
 * connect::                     Connecting to a database.
 * inspect::                     Inspection.
+* exec::                        Performing a database query.
+* query::                       Handling query results.
 * primitives::                  Miscellaneous primitive bindings.
 * compensations::               Compensated constructors.
 
@@ -544,6 +546,7 @@ Indexes
 Object type definitions
 
 * typedefs connection::         Database connection object.
+* typedefs result::             Query result object.
 * typedefs option::             Connection option object.
 * typedefs fd::                 File descriptor object.
 * typedefs pid::                Process identifier object.
@@ -558,6 +561,7 @@ Enumeration type definitions
 Condition object definitions
 
 * conditions connect::          Database connection object.
+* conditions query::            @sql{} query object.
 * conditions error::            Error condition object.
 
 Connecting to a database
@@ -652,6 +656,7 @@ to import these libraries by prefixing the bindings, for example with
 
 @menu
 * typedefs connection::         Database connection object.
+* typedefs result::             Query result object.
 * typedefs option::             Connection option object.
 * typedefs fd::                 File descriptor object.
 * typedefs pid::                Process identifier object.
@@ -666,7 +671,8 @@ to import these libraries by prefixing the bindings, for example with
 @deftp {Record Type Name} <connection>
 @deftpx {Record Type Descriptor} <connection-rtd>
 Record type used to tag pointer objects referencing database
-connections.  @nauref{ffi pointers, Pointer objects}.
+connections, structures of type @code{PGconn}.  @nauref{ffi pointers,
+Pointer objects}.
 @end deftp
 
 
@@ -679,6 +685,30 @@ Return @true{} if @var{obj} is a record of type @class{connection}.
 @defunx <connection>->pointer @var{conn}
 Convert to and from a pointer object and a record of type
 @class{connection}.
+@end defun
+
+@c page
+@node typedefs result
+@section Query result object
+
+
+@deftp {Record Type Name} <result>
+@deftpx {Record Type Descriptor} <result-rtd>
+Record type used to tag pointer objects referencing query results,
+structures of type @code{PGresult}.  @nauref{ffi pointers, Pointer
+objects}.
+@end deftp
+
+
+@defun <result>? @var{obj}
+Return @true{} if @var{obj} is a record of type @class{result}.
+@end defun
+
+
+@defun pointer-><result> @var{pointer}
+@defunx <result>->pointer @var{conn}
+Convert to and from a pointer object and a record of type
+@class{result}.
 @end defun
 
 @c page
@@ -934,6 +964,7 @@ to import these libraries by prefixing the bindings, for example with
 
 @menu
 * conditions connect::          Database connection object.
+* conditions query::            @sql{} query object.
 * conditions error::            Error condition object.
 @end menu
 
@@ -964,6 +995,33 @@ Constructor and predicate for condition objects of type
 @defun connection-condition @var{condition}
 Accessor for the field of condition objects of type
 @condition{connection}.
+@end defun
+
+@c page
+@node conditions query
+@section @sql{} query object
+
+
+@deftp {Condition Type} &query
+Condition object type used to hold @sql{} queries as Scheme strings; it
+is derived from @condition{condition}.  It has the following fields:
+
+@table @code
+@item query
+Scheme string representing the @sql{} query.
+@end table
+@end deftp
+
+
+@defun make-query-condition @var{query-string}
+@defunx query-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{query}.
+@end defun
+
+
+@defun query-condition @var{condition}
+Accessor for the field of condition objects of type @condition{query}.
 @end defun
 
 @c page
@@ -1216,6 +1274,9 @@ postgresql primitives} library and reexported by the @library{foreign
 databases postgresql} library.  It is suggested to import these
 libraries by prefixing the bindings, for example with @code{pg:}.
 
+In the following descriptions, the @var{conn} argument is always a
+Scheme object of type @class{connection}.
+
 
 @defun status @var{conn}
 Wrapper for @func{PQstatus}.  Return an enumeration set of type
@@ -1377,8 +1438,49 @@ referencing an OpenSSL structure of type @code{SSL}; return @false{} is
 @ssl{} is not in use.
 @end defun
 
+@c page
+@node exec
+@chapter Performing a database query
 
 
+The following bindings are exported by the @library{foreign databases
+postgresql primitives} library and reexported by the @library{foreign
+databases postgresql} library.  It is suggested to import these
+libraries by prefixing the bindings, for example with @code{pg:}.
+
+In the following descriptions: the @var{conn} argument is always a
+Scheme object of type @class{connection}, the @var{result} argument is
+always a Scheme object of type @class{result}.
+
+
+@defun exec @var{conn} @var{query-string}
+@findex @func{PQexec}
+Wrapper for @func{PQexec}.  Submit the query to the server and wait for
+the result, return a @class{result} object.  In case of error raise an
+exception.
+@end defun
+
+
+@c @defun exec-params
+@c @findex @func{PQexecParams}
+@c Wrapper for @func{PQexecParams}.
+@c @end defun
+
+
+
+@c page
+@node query
+@chapter Handling query results
+
+
+The following bindings are exported by the @library{foreign databases
+postgresql primitives} library and reexported by the @library{foreign
+databases postgresql} library.  It is suggested to import these
+libraries by prefixing the bindings, for example with @code{pg:}.
+
+In the following descriptions: the @var{conn} argument is always a
+Scheme object of type @class{connection}, the @var{result} argument is
+always a Scheme object of type @class{result}.
 
 @c page
 @node primitives
@@ -1480,18 +1582,6 @@ Alias for @func{PQsetNoticeProcessor}.
 @defun register-thread-lock
 @findex @func{PQregisterThreadLock}
 Alias for @func{PQregisterThreadLock}.
-@end defun
-
-
-@defun exec
-@findex @func{PQexec}
-Alias for @func{PQexec}.
-@end defun
-
-
-@defun exec-params
-@findex @func{PQexecParams}
-Alias for @func{PQexecParams}.
 @end defun
 
 

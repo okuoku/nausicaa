@@ -87,6 +87,10 @@
     <connection>?
     pointer-><connection>	<connection>->pointer
 
+    <result>			<result-rtd>
+    <result>?
+    pointer-><result>		<result>->pointer
+
     <fd>			<fd>?
     integer-><fd>		<fd>->integer
 
@@ -161,7 +165,11 @@
     connection-used-password		;; PQconnectionUsedPassword
     connection-get-ssl			;; PQgetssl
 
+    exec				;; PQexec
+    exec-params				;; PQexecParams
+
     set-non-blocking			;; PQsetnonblocking
+
 
     )
   (import (rnrs)
