@@ -36,6 +36,12 @@
     <fd>			<fd>?
     integer-><fd>		<fd>->integer
 
+    pid				pid?
+    integer->pid		pid->integer
+
+    ssl				ssl?
+    pointer->ssl		ssl->pointer
+
 ;;; --------------------------------------------------------------------
 
     <connect-option>		<connect-option-rtd>
@@ -68,6 +74,14 @@
 (define-record-type (<fd> integer-><fd> <fd>?)
   (nongenerative nausicaa:posix:<fd>)
   (fields (immutable object <fd>->integer)))
+
+(define-record-type (pid integer->pid pid?)
+  (nongenerative nausicaa:posix:pid)
+  (fields (immutable object pid->integer)))
+
+(define-record-type (ssl pointer->ssl ssl?)
+  (nongenerative nausicaa:openssl:ssl)
+  (fields (immutable object ssl->pointer)))
 
 
 (define-record-type <connect-option>

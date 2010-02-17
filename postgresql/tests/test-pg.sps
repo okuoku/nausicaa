@@ -96,6 +96,65 @@
   #t)
 
 
+(parametrise ((check-test-name	'inspection))
+
+  (check
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+	  (list (pg:connection-password conn)
+		(pg:connection-database conn)
+		)))
+    => '("" "nausicaa-test"))
+
+  (check
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+	  (pg:connection-transaction-status conn)))
+    (=> enum-set=?)
+    (pg:transaction-status idle))
+
+  (check
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+	  (pg:connection-parameter-status conn 'server_version)))
+    => "8.4.2")
+
+  (check
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+	  (pg:connection-protocol-version conn)))
+    => 3)
+
+  (check
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+	  (pg:connection-server-version conn)))
+    => 80402)
+
+  (check
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+	  (pg:pid? (pg:connection-backend-pid conn))))
+    => #t)
+
+  (check
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+	  (list (pg:connection-needs-password conn)
+		(pg:connection-used-password conn))))
+    => '(#f #f))
+
+  (check
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+	  (pg:connection-get-ssl conn)))
+    => #f)
+
+
+
+  #t)
+
+
 (parametrise ((check-test-name	'misc)
 	      (debugging	#t))
 

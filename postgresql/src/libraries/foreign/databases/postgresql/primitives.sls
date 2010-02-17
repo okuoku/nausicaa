@@ -27,19 +27,17 @@
 
 (library (foreign databases postgresql primitives)
   (export
-    connect-start		;; PQconnectStart
-    connect-poll		;; PQconnectPoll
-    connect-db			;; PQconnectdb
-    set-db-login		;; PQsetdbLogin
-    set-db			;; PQsetdb
-    finish			;; PQfinish
-    socket			;; PQsocket
+    connect-start			;; PQconnectStart
+    connect-poll			;; PQconnectPoll
+    connect-db				;; PQconnectdb
+    set-db-login			;; PQsetdbLogin
+    set-db				;; PQsetdb
+    finish				;; PQfinish
+    reset-start				;; PQresetStart
+    reset-poll				;; PQresetPoll
+    reset				;; PQreset
 
-    reset-start			;; PQresetStart
-    reset-poll			;; PQresetPoll
-    reset			;; PQreset
-
-    status			;; PQstatus
+    status				;; PQstatus
     status/ok?
     status/bad?
     status/started?
@@ -50,34 +48,36 @@
     status/ssl-startup?
     status/needed?
 
-    connection-defaults		;; PQconndefaults
-    connection-info-parse	;; PQconninfoParse
+    connection-defaults			;; PQconndefaults
+    connection-info-parse		;; PQconninfoParse
 
-    set-non-blocking		;; PQsetnonblocking
+    connection-database			;; PQdb
+    connection-user			;; PQuser
+    connection-password			;; PQpass
+    connection-host			;; PQhost
+    connection-port			;; PQport
+    connection-tty			;; PQtty
+    connection-options			;; PQoptions
+    connection-socket			;; PQsocket
+    connection-transaction-status	;; PQtransactionStatus
+    connection-parameter-status		;; PQparameterStatus
+    connection-protocol-version		;; PQprotocolVersion
+    connection-server-version		;; PQserverVersion
+    connection-error-message		;; PQerrorMessage
+    connection-backend-pid		;; PQbackendPID
+    connection-needs-password		;; PQconnectionNeedsPassword
+    connection-used-password		;; PQconnectionUsedPassword
+    connection-get-ssl			;; PQgetssl
+
+    set-non-blocking			;; PQsetnonblocking
 
     (rename (PQconninfoFree			conninfo-free)
 	    (PQgetCancel			get-cancel)
 	    (PQfreeCancel			free-cancel)
 	    (PQcancel				cancel)
 	    (PQrequestCancel			request-cancel)
-	    (PQdb				db)
-	    (PQuser				user)
-	    (PQpass				pass)
-	    (PQhost				host)
-	    (PQport				port)
-	    (PQtty				tty)
-	    (PQoptions				options)
-	    (PQtransactionStatus		transaction-status)
-	    (PQparameterStatus			parameter-status)
-	    (PQprotocolVersion			protocol-version)
-	    (PQserverVersion			server-version)
-	    (PQerrorMessage			error-message)
-	    (PQbackendPID			backend-pid)
-	    (PQconnectionNeedsPassword		connection-needs-password)
-	    (PQconnectionUsedPassword		connection-used-password)
 	    (PQclientEncoding			client-encoding)
 	    (PQsetClientEncoding		set-client-encoding)
-	    (PQgetssl				getssl)
 	    (PQinitSSL				init-ssl)
 	    (PQinitOpenSSL			init-open-ssl)
 	    (PQsetErrorVerbosity		set-error-verbosity)
@@ -214,6 +214,16 @@
     (%do-connect 'connect-start PQconnectStart info))))
 
 (define (connect-poll conn)
+  (let ((v (PQconnectPoll (<connection>->pointer conn))))
+    (if (= v PGRES_POLLING_FAILED)
+	(raise
+	 (condition (make-postgresql-error-condition)
+		    (make-connection-condition conn)
+		    (make-who-condition 'connect-poll)
+		    (make-message-condition (connection-error-message))))
+      (value->polling-status v))))
+
+(define (connect-poll* conn)
   (value->polling-status (PQconnectPoll (<connection>->pointer conn))))
 
 (define (set-db-login pghost pgport pgoptions pgtty dbname login pwd)
@@ -245,6 +255,16 @@
   (if (PQconnectStart (<connection>->pointer conn)) #t #f))
 
 (define (reset-poll conn)
+  (let ((v (PQresetPoll (<connection>->pointer conn))))
+    (if (= v PGRES_POLLING_FAILED)
+	(raise
+	 (condition (make-postgresql-error-condition)
+		    (make-connection-condition conn)
+		    (make-who-condition 'connect-poll)
+		    (make-message-condition (connection-error-message))))
+      (value->polling-status v))))
+
+(define (reset-poll* conn)
   (value->polling-status (PQresetPoll (<connection>->pointer conn))))
 
 (define (%connect-options-array->list arry*)
@@ -318,8 +338,74 @@
 (define (status/needed? conn)
   (%status? CONNECTION_NEEDED conn))
 
-(define (socket conn)
+;;; --------------------------------------------------------------------
+
+;;;I have  verified by  inspecting the source  code of Libpq  in release
+;;;8.4.2  that  the  pointers   returned  by  the  following  inspection
+;;;functions, reference a string in the state of CONN; we do NOT have to
+;;;release it (Marco Maggi.  Wed Feb 17, 2010).
+
+(define (connection-database conn)
+  (let ((p (PQdb (<connection>->pointer conn))))
+    (if (pointer-null? p) #f  (cstring->string p))))
+
+(define (connection-user conn)
+  (let ((p (PQuser (<connection>->pointer conn))))
+    (if (pointer-null? p) #f  (cstring->string p))))
+
+(define (connection-password conn)
+  (let ((p (PQpass (<connection>->pointer conn))))
+    (if (pointer-null? p) #f  (cstring->string p))))
+
+(define (connection-host conn)
+  (let ((p (PQhost (<connection>->pointer conn))))
+    (if (pointer-null? p) #f  (cstring->string p))))
+
+(define (connection-port conn)
+  (let ((p (PQport (<connection>->pointer conn))))
+    (if (pointer-null? p) #f  (cstring->string p))))
+
+(define (connection-tty conn)
+  (let ((p (PQtty (<connection>->pointer conn))))
+    (if (pointer-null? p) #f  (cstring->string p))))
+
+(define (connection-options conn)
+  (let ((p (PQoptions (<connection>->pointer conn))))
+    (if (pointer-null? p) #f  (cstring->string p))))
+
+(define (connection-socket conn)
   (integer-><fd> (PQsocket (<connection>->pointer conn))))
+
+(define (connection-transaction-status conn)
+  (value->transaction-status (PQtransactionStatus (<connection>->pointer conn))))
+
+(define (connection-parameter-status conn parm-name)
+  (with-compensations
+    (let ((p (PQparameterStatus (<connection>->pointer conn) (string->cstring/c parm-name))))
+      (if (pointer-null? p) #f (cstring->string p)))))
+
+(define (connection-protocol-version conn)
+  (PQprotocolVersion (<connection>->pointer conn)))
+
+(define (connection-server-version conn)
+  (PQserverVersion (<connection>->pointer conn)))
+
+(define (connection-error-message conn)
+  (let ((p (PQerrorMessage (<connection>->pointer conn))))
+    (if (pointer-null? p) #f (cstring->string p))))
+
+(define (connection-backend-pid conn)
+  (integer->pid (PQbackendPID (<connection>->pointer conn))))
+
+(define (connection-needs-password conn)
+  (not (zero? (PQconnectionNeedsPassword (<connection>->pointer conn)))))
+
+(define (connection-used-password conn)
+  (not (zero? (PQconnectionUsedPassword (<connection>->pointer conn)))))
+
+(define (connection-get-ssl conn)
+  (let ((p (PQgetssl (<connection>->pointer conn))))
+    (if (pointer-null? p) #f (pointer->ssl p))))
 
 
 

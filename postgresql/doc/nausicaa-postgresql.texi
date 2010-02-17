@@ -544,13 +544,16 @@ Indexes
 Object type definitions
 
 * typedefs connection::         Database connection object.
-* typedefs fd::                 File descriptor object.
 * typedefs option::             Connection option object.
+* typedefs fd::                 File descriptor object.
+* typedefs pid::                Process identifier object.
+* typedefs ssl::                Reference to OpenSSL structure.
 
 Enumeration type definitions
 
 * enumerations connect::        Connection status.
 * enumerations polling::        Polling status.
+* enumerations trans::          Transaction status.
 
 Condition object definitions
 
@@ -649,8 +652,10 @@ to import these libraries by prefixing the bindings, for example with
 
 @menu
 * typedefs connection::         Database connection object.
-* typedefs fd::                 File descriptor object.
 * typedefs option::             Connection option object.
+* typedefs fd::                 File descriptor object.
+* typedefs pid::                Process identifier object.
+* typedefs ssl::                Reference to OpenSSL structure.
 @end menu
 
 @c page
@@ -674,29 +679,6 @@ Return @true{} if @var{obj} is a record of type @class{connection}.
 @defunx <connection>->pointer @var{conn}
 Convert to and from a pointer object and a record of type
 @class{connection}.
-@end defun
-
-@c page
-@node typedefs fd
-@section File descriptor object
-
-
-@deftp {Record Type Name} <fd>
-Record type used to tag exact integers representing file descriptors.
-This type is compatible with the same defined by the Nausicaa/@posix{}
-package.
-@end deftp
-
-
-@defun <fd>? @var{obj}
-Return @true{} if @var{obj} is an object of type @class{fd}.
-@end defun
-
-
-@defun integer-><fd> @var{integer}
-@defunx <fd>->integer @var{fd}
-Convert to and from objects of type @class{fd} and the associated exact
-integers.
 @end defun
 
 @c page
@@ -761,6 +743,80 @@ with values from the structure.
 @end defun
 
 @c page
+@node typedefs fd
+@section File descriptor object
+
+
+@deftp {Record Type Name} <fd>
+Record type used to tag exact integers representing file descriptors.
+This type is compatible with the same defined by the Nausicaa/@posix{}
+package.
+@end deftp
+
+
+@defun <fd>? @var{obj}
+Return @true{} if @var{obj} is an object of type @class{fd}.
+@end defun
+
+
+@defun integer-><fd> @var{integer}
+@defunx <fd>->integer @var{fd}
+Convert to and from objects of type @class{fd} and the associated exact
+integers.
+@end defun
+
+@c page
+@node typedefs pid
+@section Process identifier object
+
+
+@deftp {Record Type Name} pid
+Record type used to tag exact integers representing process identifiers.
+This type is compatible with the same defined by the Nausicaa/@posix{}
+package.
+@end deftp
+
+
+@defun pid? @var{obj}
+Return @true{} if @var{obj} is an object of type @code{pid}.
+@end defun
+
+
+@defun integer->pid @var{integer}
+@defunx pid->integer @var{fd}
+Convert to and from objects of type @code{pid} and the associated exact
+integers.
+@end defun
+
+@c page
+@node typedefs ssl
+@section Process identifier object
+
+
+@deftp {Record Type Name} ssl
+Record type used to tag pointers referencing OpenSSL structures of type
+@code{SSL}.
+
+@quotation
+@strong{NOTE} Whenever an interface to OpenSSL is added to Nausicaa,
+this type will be made compatible with the same defined in that package
+(Wed Feb 17, 2010).
+@end quotation
+@end deftp
+
+
+@defun ssl? @var{obj}
+Return @true{} if @var{obj} is an object of type @code{ssl}.
+@end defun
+
+
+@defun pointer->ssl @var{pointer}
+@defunx ssl->pointer @var{ssl}
+Convert to and from objects of type @code{ssl} and the associated
+pointers.
+@end defun
+
+@c page
 @node enumerations
 @chapter Enumeration type definitions
 
@@ -774,6 +830,7 @@ example with @code{pg:}.
 @menu
 * enumerations connect::        Connection status.
 * enumerations polling::        Polling status.
+* enumerations trans::          Transaction status.
 @end menu
 
 @c page
@@ -833,6 +890,35 @@ the argument symbol.
 @defunx polling-status->value @var{enum-set}
 Convert to and from exact integers and enumeration sets of type
 @code{enum-polling-status}.
+@end defun
+
+@c page
+@node enumerations trans
+@section Transaction status
+
+
+@deftp {Enumeration Type} enum-transaction-status
+Enumeration type representing the result of transaction status of a
+connection.  It holds the following symbols:
+
+@example
+idle            active
+intrans         inerror
+unknown
+@end example
+@end deftp
+
+
+@deffn Syntax transaction-status @ameta{symbol}
+Expand in an enumeration set of type @code{enum-transaction-status} holding
+the argument symbol.
+@end deffn
+
+
+@defun value->transaction-status @var{integer}
+@defunx transaction-status->value @var{enum-set}
+Convert to and from exact integers and enumeration sets of type
+@code{enum-transaction-status}.
 @end defun
 
 @c page
@@ -1014,6 +1100,7 @@ without blocking; the argument is the same as the one to
 Wrapper for @func{PQconnectPoll}.  Query the connection object
 @var{conn} for the next action to perform in a non--blocking connection
 operation; return an enumeration set of type @code{enum-polling-status}.
+Raise an exception if the polling status is @code{PGRES_POLLING_FAILED}.
 
 @smallexample
 (import (nausicaa)
@@ -1060,11 +1147,17 @@ operation; return an enumeration set of type @code{enum-polling-status}.
                (loop (pg:connect-poll conn)))
               ((enum-set=? status (pg:polling-status writing))
                (%poll wr-fdset)
-               (loop (pg:connect-poll conn)))
-              (else
-               (error ---)))))
+               (loop (pg:connect-poll conn))))))
+
       ---))
 @end smallexample
+@end defun
+
+
+@defun connect-poll* @var{conn}
+Like @func{connect-poll} but do @strong{not} raise an exception if the
+polling status is @code{PGRES_POLLING_FAILED}: just return an
+enumeration set holding the symbol @code{failed}.
 @end defun
 
 
@@ -1080,9 +1173,17 @@ succeeds and we can go on by calling @func{reset-poll}.
 @findex @func{PQresetPoll}
 Wrapper for @func{PQresetPoll}.  Query the connection object @var{conn}
 for the next action to perform in a non--blocking reset operation;
-return an enumeration set of type @code{enum-polling-status}.
+return an enumeration set of type @code{enum-polling-status}.  Raise an
+exception if the polling status is @code{PGRES_POLLING_FAILED}.
 
 Usage of this function if equal to the usage of @func{connect-poll}.
+@end defun
+
+
+@defun reset-poll* @var{conn}
+Like @func{reset-poll} but do @strong{not} raise an exception if the
+polling status is @code{PGRES_POLLING_FAILED}: just return an
+enumeration set holding the symbol @code{failed}.
 @end defun
 
 @c page
@@ -1137,13 +1238,144 @@ is the name one.
 @end defun
 
 
-@defun socket @var{conn}
+@defun connection-database @var{conn}
+@findex @func{PQdb}
+Wrapper for @func{PQdb}.  Return a Scheme string representing the
+database name associated to the connection @var{conn}, or @false{} if
+the value is not set.
+@end defun
+
+
+@defun connection-user @var{conn}
+@findex @func{PQuser}
+Wrapper for @func{PQuser}.  Return a Scheme string representing the user
+name associated to the connection @var{conn}, or @false{} if the value
+is not set.
+@end defun
+
+
+@defun connection-password @var{conn}
+@findex @func{PQpass}
+Wrapper for @func{PQpass}.  Return a Scheme string representing the
+user's password associated to the connection @var{conn}, or @false{} if
+the value is not set.
+@end defun
+
+
+@defun connection-host @var{conn}
+@findex @func{PQhost}
+Wrapper for @func{PQhost}.  Return a Scheme string representing the host
+name associated to the connection @var{conn}, or @false{} if the value
+is not set.
+@end defun
+
+
+@defun connection-port @var{conn}
+@findex @func{PQport}
+Wrapper for @func{PQport}.  Return a Scheme string representing the port
+associated to the connection @var{conn}, or @false{} if the value is not
+set.
+@end defun
+
+
+@defun connection-tty
+@findex @func{PQtty}
+Wrapper for @func{PQtty}.  Return a Scheme string representing the tty
+associated to the connection @var{conn}, or @false{} if the value is not
+set.
+@end defun
+
+
+@defun connection-options
+@findex @func{PQoptions}
+Wrapper for @func{PQoptions}.  Return a Scheme string representing the
+command line options associated to the connection @var{conn}, or
+@false{} if the value is not set.
+@end defun
+
+
+@defun connection-socket @var{conn}
 @findex @func{PQsocket}
 Wrapper for @func{PQsocket}.  Return a @class{fd} object representing
 the socket used by the @class{connection} object @var{conn}.
 @end defun
 
 
+@defun connection-transaction-status @var{conn}
+@findex @func{PQtransactionStatus}
+Wrapper for @func{PQtransactionStatus}.  Return an enumeration set of
+type @code{enum-transaction-status} representing the current transaction
+status of the connection @var{conn}.
+@end defun
+
+
+@defun connection-parameter-status @var{conn} @var{parameter-name}
+@findex @func{PQparameterStatus}
+Wrapper for @func{PQparameterStatus}.  Return a Scheme string
+representing the value of @var{parameter-name} for the connection
+@var{conn}; @var{parameter-name} must be a Scheme string or symbol.
+Return @false{} if parameter's value is not known.
+
+@example
+(with-compensations
+  (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+    (pg:connection-parameter-status conn 'server_version)))
+@result{} "8.4.2"
+@end example
+@end defun
+
+
+@defun connection-protocol-version @var{conn}
+@findex @func{PQprotocolVersion}
+Wrapper for @func{PQprotocolVersion}.  Return an exact integer
+representing the frontend/backend protocol version.
+@end defun
+
+
+@defun connection-server-version @var{conn}
+@findex @func{PQserverVersion}
+Wrapper for @func{PQserverVersion}.  Return an exact integer
+representing the server version.
+@end defun
+
+
+@defun connection-error-message @var{conn}
+@findex @func{PQerrorMessage}
+Wrapper for @func{PQerrorMessage}.  Return a Scheme string representing
+the error message from the most recent failed operation; return @false{}
+if no message is set.
+@end defun
+
+
+@defun connection-backend-pid @var{conn}
+@findex @func{PQbackendPID}
+Wrapper for @func{PQbackendPID}.  Return an object of type @code{pid}
+representing the @acronym{PID} of the backend process (on the backend
+host).
+@end defun
+
+
+@defun connection-needs-password @var{conn}
+@findex @func{PQconnectionNeedsPassword}
+Wrapper for @func{PQconnectionNeedsPassword}.  Return @true{} if the
+connection authentication method required a password, but none was
+available.
+@end defun
+
+
+@defun connection-used-password @var{conn}
+@findex @func{PQconnectionUsedPassword}
+Wrapper for @func{PQconnectionUsedPassword}.  Return @true{} if the
+connection authentication method used a password.
+@end defun
+
+
+@defun connectin-get-ssl @var{conn}
+@findex @func{PQgetssl}
+Wrapper for @func{PQgetssl}.  Return an object of type @code{ssl}
+referencing an OpenSSL structure of type @code{SSL}; return @false{} is
+@ssl{} is not in use.
+@end defun
 
 
 
@@ -1191,102 +1423,6 @@ Alias for @func{PQrequestCancel}.
 @end defun
 
 
-@defun db
-@findex @func{PQdb}
-Alias for @func{PQdb}.
-@end defun
-
-
-@defun user
-@findex @func{PQuser}
-Alias for @func{PQuser}.
-@end defun
-
-
-@defun pass
-@findex @func{PQpass}
-Alias for @func{PQpass}.
-@end defun
-
-
-@defun host
-@findex @func{PQhost}
-Alias for @func{PQhost}.
-@end defun
-
-
-@defun port
-@findex @func{PQport}
-Alias for @func{PQport}.
-@end defun
-
-
-@defun tty
-@findex @func{PQtty}
-Alias for @func{PQtty}.
-@end defun
-
-
-@defun options
-@findex @func{PQoptions}
-Alias for @func{PQoptions}.
-@end defun
-
-
-@defun status
-@findex @func{PQstatus}
-Alias for @func{PQstatus}.
-@end defun
-
-
-@defun transaction-status
-@findex @func{PQtransactionStatus}
-Alias for @func{PQtransactionStatus}.
-@end defun
-
-
-@defun parameter-status
-@findex @func{PQparameterStatus}
-Alias for @func{PQparameterStatus}.
-@end defun
-
-
-@defun protocol-version
-@findex @func{PQprotocolVersion}
-Alias for @func{PQprotocolVersion}.
-@end defun
-
-
-@defun server-version
-@findex @func{PQserverVersion}
-Alias for @func{PQserverVersion}.
-@end defun
-
-
-@defun error-message
-@findex @func{PQerrorMessage}
-Alias for @func{PQerrorMessage}.
-@end defun
-
-
-@defun backend-pid
-@findex @func{PQbackendPID}
-Alias for @func{PQbackendPID}.
-@end defun
-
-
-@defun connection-needs-password
-@findex @func{PQconnectionNeedsPassword}
-Alias for @func{PQconnectionNeedsPassword}.
-@end defun
-
-
-@defun connection-used-password
-@findex @func{PQconnectionUsedPassword}
-Alias for @func{PQconnectionUsedPassword}.
-@end defun
-
-
 @defun client-encoding
 @findex @func{PQclientEncoding}
 Alias for @func{PQclientEncoding}.
@@ -1296,12 +1432,6 @@ Alias for @func{PQclientEncoding}.
 @defun set-client-encoding
 @findex @func{PQsetClientEncoding}
 Alias for @func{PQsetClientEncoding}.
-@end defun
-
-
-@defun getssl
-@findex @func{PQgetssl}
-Alias for @func{PQgetssl}.
 @end defun
 
 

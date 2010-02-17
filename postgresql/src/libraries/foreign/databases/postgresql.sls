@@ -90,6 +90,9 @@
     <fd>			<fd>?
     integer-><fd>		<fd>->integer
 
+    pid				pid?
+    integer->pid		pid->integer
+
     <connect-option>		<connect-option-rtd>
     make-<connect-option>	<connect-option>?
     <connect-option>-keyword
@@ -110,21 +113,23 @@
     enum-connection-status	connection-status
     connection-status->value	value->connection-status
 
+    enum-transaction-status		transaction-status
+    transaction-status->value		value->transaction-status
+
 ;;; --------------------------------------------------------------------
 
-    connect-start		;; PQconnectStart
-    connect-poll		;; PQconnectPoll
-    connect-db			;; PQconnectdb
-    set-db-login		;; PQsetdbLogin
-    set-db			;; PQsetdb
-    finish			;; PQfinish
-    socket			;; PQsocket
+    connect-start			;; PQconnectStart
+    connect-poll			;; PQconnectPoll
+    connect-db				;; PQconnectdb
+    set-db-login			;; PQsetdbLogin
+    set-db				;; PQsetdb
+    finish				;; PQfinish
 
-    reset-start			;; PQresetStart
-    reset-poll			;; PQresetPoll
-    reset			;; PQreset
+    reset-start				;; PQresetStart
+    reset-poll				;; PQresetPoll
+    reset				;; PQreset
 
-    status			;; PQstatus
+    status				;; PQstatus
     status/ok?
     status/bad?
     status/started?
@@ -135,10 +140,28 @@
     status/ssl-startup?
     status/needed?
 
-    connection-defaults		;; PQconndefaults
-    connection-info-parse	;; PQconninfoParse
+    connection-defaults			;; PQconndefaults
+    connection-info-parse		;; PQconninfoParse
 
-    set-non-blocking		;; PQsetnonblocking
+    connection-database			;; PQdb
+    connection-user			;; PQuser
+    connection-password			;; PQpass
+    connection-host			;; PQhost
+    connection-port			;; PQport
+    connection-tty			;; PQtty
+    connection-options			;; PQoptions
+    connection-socket			;; PQsocket
+    connection-transaction-status	;; PQtransactionStatus
+    connection-parameter-status		;; PQparameterStatus
+    connection-protocol-version		;; PQprotocolVersion
+    connection-server-version		;; PQserverVersion
+    connection-error-message		;; PQerrorMessage
+    connection-backend-pid		;; PQbackendPID
+    connection-needs-password		;; PQconnectionNeedsPassword
+    connection-used-password		;; PQconnectionUsedPassword
+    connection-get-ssl			;; PQgetssl
+
+    set-non-blocking			;; PQsetnonblocking
 
     )
   (import (rnrs)

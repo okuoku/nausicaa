@@ -32,6 +32,9 @@
 
     enum-connection-status		connection-status
     connection-status->value		value->connection-status
+
+    enum-transaction-status		transaction-status
+    transaction-status->value		value->transaction-status
     )
   (import (rnrs)
     (enumerations)
@@ -66,6 +69,18 @@
    setenv
    ssl-startup
    needed))
+
+(define-c-flags transaction-status
+  (PQTRANS_IDLE
+   PQTRANS_ACTIVE
+   PQTRANS_INTRANS
+   PQTRANS_INERROR
+   PQTRANS_UNKNOWN)
+  (idle
+   active
+   intrans
+   inerror
+   unknown))
 
 
 ;;;; done

@@ -43,7 +43,7 @@
 (parametrise ((check-test-name	'opening))
 
   (define (%connect-asynchronously conn)
-    (let ((fd		(pg:socket conn))
+    (let ((fd		(pg:connection-socket conn))
 	  (rd-fdset	(posix:make-fdset malloc-block/c))
 	  (wr-fdset	(posix:make-fdset malloc-block/c))
 	  (ex-fdset	(posix:make-fdset malloc-block/c))
@@ -76,7 +76,7 @@
 	       #f)))))
 
   (define (%reset-asynchronously conn)
-    (let ((fd		(pg:socket conn))
+    (let ((fd		(pg:connection-socket conn))
 	  (rd-fdset	(posix:make-fdset malloc-block/c))
 	  (wr-fdset	(posix:make-fdset malloc-block/c))
 	  (ex-fdset	(posix:make-fdset malloc-block/c))
