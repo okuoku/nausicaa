@@ -44,7 +44,7 @@
 	(letrec ((conn (compensate
 			   (pg:connect-db "dbname=nausicaa-test")
 			 (with
-			  (pg:finish conn)))))
+			  (pg:connect-finish conn)))))
 	  (if (not (enum-set=? (pg:connection-status ok) (pg:status conn)))
 	      #f
 	    (begin
@@ -74,7 +74,7 @@
 	(letrec ((conn (compensate
 			   (pg:set-db-login #f #f #f #f "nausicaa-test" #f #f)
 			 (with
-			  (pg:finish conn)))))
+			  (pg:connect-finish conn)))))
 	  (if (not (enum-set=? (pg:connection-status ok) (pg:status conn)))
 	      #f
 	    (begin
@@ -86,7 +86,7 @@
 	(letrec ((conn (compensate
 			   (pg:set-db #f #f #f #f "nausicaa-test")
 			 (with
-			  (pg:finish conn)))))
+			  (pg:connect-finish conn)))))
 	  (if (not (enum-set=? (pg:connection-status ok) (pg:status conn)))
 	      #f
 	    (begin
@@ -152,6 +152,175 @@
 
 
 
+  #t)
+
+
+(parametrise ((check-test-name	'result-inspection))
+
+  (with-compensations		;successful
+    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+
+      (check
+	  (pg:status/ok? conn)
+	=> #t)
+
+      (when (pg:status/ok? conn)
+	(letrec ((result (compensate
+			     (pg:exec conn "create table mine (enn int); drop table mine;")
+			   (with
+			    (pg:clear-result result)))))
+
+	  (check
+	      (pg:result-status result)
+	    (=> enum-set=?)
+	    (pg:exec-status command-ok))
+
+	  (check
+	      (pg:status->string (pg:result-status result))
+	    => "PGRES_COMMAND_OK")
+
+	  (check
+	      (pg:result-error-message result)
+	    => #f)
+
+	  (check
+	      (pg:result-error-field result (pg:error-field severity))
+	    => #f)
+
+	  #f))))
+
+  (with-compensations		;erroneous
+    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+
+      (check
+	  (pg:status/ok? conn)
+	=> #t)
+
+      (when (pg:status/ok? conn)
+	(let ((result (pg:exec/c conn "create")))
+
+	  (check
+	      (pg:result-status result)
+	    (=> enum-set=?)
+	    (pg:exec-status fatal-error))
+
+	  (check
+	      (pg:status->string (pg:result-status result))
+	    => "PGRES_FATAL_ERROR")
+
+	  (check
+	      (let ((s (pg:result-error-message result)))
+		;;;(display s)
+		(substring s 0 5))
+	    => "ERROR")
+
+	  (check
+	      (pg:result-error-field result (pg:error-field severity))
+	    => "ERROR")
+
+	  #f))))
+
+  #t)
+
+
+(parametrise ((check-test-name	'queries))
+
+  (with-compensations
+    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+
+      (check
+	  (pg:status/ok? conn)
+	=> #t)
+
+      (when (pg:status/ok? conn)
+
+	;;;(pg:exec/c conn "drop table accounts")
+
+	(let ((result (pg:exec/c conn "
+create table accounts (nickname TEXT, password TEXT);
+insert into accounts (nickname, password) values ('ichigo', 'abcde');
+insert into accounts (nickname, password) values ('rukia', '12345');
+insert into accounts (nickname, password) values ('chad', 'fist');
+select * from accounts;
+")))
+	  (push-compensation (pg:exec/c conn "drop table accounts"))
+
+	  (check
+	      (pg:result-status result)
+	    (=> enum-set=?)
+	    (pg:exec-status tuples-ok))
+
+	  (check
+	      (pg:status->string (pg:result-status result))
+	    => "PGRES_TUPLES_OK")
+
+	  (when (enum-set=? (pg:exec-status tuples-ok) (pg:result-status result))
+
+	    (check
+		(pg:number-of-tuples result)
+	      => 3)
+
+	    (check
+		(pg:number-of-fields result)
+	      => 2)
+
+	    (check
+		(pg:field-name result 0)
+	      => "nickname")
+
+	    (check
+		(pg:field-name result 1)
+	      => "password")
+
+	    (check
+		(guard (E (else
+;;;			   (display (condition-message E))(newline)
+			   (condition-who E)))
+		  (pg:field-name* result 2))
+	      => 'field-name*)
+
+	    (check
+		(pg:field-number result 'nickname)
+	      => 0)
+
+	    (check
+		(pg:field-number result 'password)
+	      => 1)
+
+	    (check
+		(guard (E (else
+;;;			   (display (condition-message E))(newline)
+			   (condition-who E)))
+		  (pg:field-number* result 'ciao))
+	      => 'field-number*)
+
+	    (check
+		(integer? (pg:result-column-index->table-oid result 0))
+	      => #t)
+
+	    (check
+		(pg:result-column-index->table-column-number result 0)
+	      => 1)
+
+	    (check
+		(pg:result-column-index->format-code result 0)
+	      (=> enum-set=?)
+	      (pg:format-code text))
+
+	    (check
+		(guard (E (else (condition-who E)))
+		  (pg:result-column-index->format-code result 9))
+	      => 'result-column-index->format-code)
+
+	    (check
+		(integer? (pg:result-column-index->type-oid result 1))
+	      => #t)
+
+	    (check
+		(pg:result-column-index->type-oid result 9)
+	      => #f)
+
+	    #f)))))
   #t)
 
 

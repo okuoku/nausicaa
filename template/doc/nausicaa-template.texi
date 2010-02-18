@@ -84,6 +84,14 @@ Revised^6 Report on the algorithmic language Scheme
 @code{<\NAME\>}
 @end macro
 
+@macro objtype{NAME}
+@code{\NAME\}
+@end macro
+
+@macro enum{NAME}
+@code{enum-\NAME\}
+@end macro
+
 @macro condition{NAME}
 @code{&\NAME\}
 @end macro

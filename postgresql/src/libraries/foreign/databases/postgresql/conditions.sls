@@ -32,10 +32,15 @@
     connection-condition?
     connection-condition
 
-    &query
-    make-query-condition
-    query-condition?
-    query-condition
+    &query-string
+    make-query-string-condition
+    query-string-condition?
+    query-string-condition
+
+    &query-result
+    make-query-result-condition
+    query-result-condition?
+    query-result-condition
 
     ;; &statement
     ;; make-statement-condition
@@ -92,13 +97,19 @@
   &condition
   make-connection-condition
   connection-condition?
-  (connection	connection-condition))
+  (connection		connection-condition))
 
-(define-condition-type &query
+(define-condition-type &query-string
   &condition
-  make-query-condition
-  query-condition?
-  (query	query-condition))
+  make-query-string-condition
+  query-string-condition?
+  (string		query-string-condition))
+
+(define-condition-type &query-result
+  &condition
+  make-query-result-condition
+  query-result-condition?
+  (result		query-result-condition))
 
 ;; (define-condition-type &statement
 ;;   &condition

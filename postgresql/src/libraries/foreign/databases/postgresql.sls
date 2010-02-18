@@ -87,9 +87,8 @@
     <connection>?
     pointer-><connection>	<connection>->pointer
 
-    <result>			<result-rtd>
-    <result>?
-    pointer-><result>		<result>->pointer
+    query-result		query-result?
+    pointer->query-result	query-result->pointer
 
     <fd>			<fd>?
     integer-><fd>		<fd>->integer
@@ -111,28 +110,61 @@
 
 ;;; --------------------------------------------------------------------
 
-    enum-polling-status		polling-status
-    polling-status->value	value->polling-status
+    enum-polling-status			polling-status
+    polling-status->value		value->polling-status
 
-    enum-connection-status	connection-status
-    connection-status->value	value->connection-status
+    enum-connection-status		connection-status
+    connection-status->value		value->connection-status
 
     enum-transaction-status		transaction-status
     transaction-status->value		value->transaction-status
 
+    enum-exec-status			exec-status
+    exec-status->value			value->exec-status
+
+    enum-error-field			error-field
+    error-field->value			value->error-field
+
+    enum-format-code			format-code
+    format-code->value			value->format-code
+
 ;;; --------------------------------------------------------------------
 
+    &connection
+    make-connection-condition
+    connection-condition?
+    connection-condition
+
+    &query-string
+    make-query-string-condition
+    query-string-condition?
+    query-string-condition
+
+    &query-result
+    make-query-result-condition
+    query-result-condition?
+    query-result-condition
+
+    &postgresql-error
+    make-postgresql-error-condition
+    postgresql-error-condition?
+    condition-postgresql-error-code
+
+;;; --------------------------------------------------------------------
+
+    ;; connection handling
     connect-start			;; PQconnectStart
     connect-poll			;; PQconnectPoll
     connect-db				;; PQconnectdb
     set-db-login			;; PQsetdbLogin
     set-db				;; PQsetdb
-    finish				;; PQfinish
+    connect-finish			;; PQfinish
 
     reset-start				;; PQresetStart
     reset-poll				;; PQresetPoll
     reset				;; PQreset
 
+    ;; connection inspection
     status				;; PQstatus
     status/ok?
     status/bad?
@@ -165,8 +197,28 @@
     connection-used-password		;; PQconnectionUsedPassword
     connection-get-ssl			;; PQgetssl
 
+    ;; executing queries
+    clear-result			;; PQclear
     exec				;; PQexec
     exec-params				;; PQexecParams
+
+    ;; inspecting query results
+    result-status			;; PQresultStatus
+    status->string			;; PQresStatus
+    result-error-message		;; PQresultErrorMessage
+    result-error-field			;; PQresultErrorField
+
+    ;; extracting informations from query results
+    number-of-tuples			;; PQntuples
+    number-of-fields			;; PQnfields
+    field-name				;; PQfname
+    field-name*
+    field-number			;; PQfnumber
+    field-number*
+    result-column-index->table-oid		;; PQftable
+    result-column-index->table-column-number	;; PQftablecol
+    result-column-index->format-code	;; PQfformat
+    result-column-index->type-oid	;; PQftype
 
     set-non-blocking			;; PQsetnonblocking
 

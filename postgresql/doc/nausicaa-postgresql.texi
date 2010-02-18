@@ -84,6 +84,14 @@ Revised^6 Report on the algorithmic language Scheme
 @code{<\NAME\>}
 @end macro
 
+@macro objtype{NAME}
+@code{\NAME\}
+@end macro
+
+@macro enum{NAME}
+@code{enum-\NAME\}
+@end macro
+
 @macro condition{NAME}
 @code{&\NAME\}
 @end macro
@@ -557,11 +565,15 @@ Enumeration type definitions
 * enumerations connect::        Connection status.
 * enumerations polling::        Polling status.
 * enumerations trans::          Transaction status.
+* enumerations exec::           Query execution status.
+* enumerations errfield::       Error fields.
+* enumerations format::         Format codes.
 
 Condition object definitions
 
 * conditions connect::          Database connection object.
-* conditions query::            @sql{} query object.
+* conditions query::            @sql{} query string object.
+* conditions result::           @sql{} query result object.
 * conditions error::            Error condition object.
 
 Connecting to a database
@@ -569,6 +581,11 @@ Connecting to a database
 * connect sync::                Connecting synchronously.
 * connect async::               Connecting asynchronously.
 * connect misc::                Other connect--related functions.
+
+Handling query results
+
+* query inspect::               Inspecting query results.
+* query result::                Retrieving query results.
 
 @end detailmenu
 @end menu
@@ -692,23 +709,22 @@ Convert to and from a pointer object and a record of type
 @section Query result object
 
 
-@deftp {Record Type Name} <result>
-@deftpx {Record Type Descriptor} <result-rtd>
+@deftp {Record Type Name} query-result
 Record type used to tag pointer objects referencing query results,
 structures of type @code{PGresult}.  @nauref{ffi pointers, Pointer
 objects}.
 @end deftp
 
 
-@defun <result>? @var{obj}
-Return @true{} if @var{obj} is a record of type @class{result}.
+@defun query-result? @var{obj}
+Return @true{} if @var{obj} is a record of type @objtype{query-result}.
 @end defun
 
 
-@defun pointer-><result> @var{pointer}
-@defunx <result>->pointer @var{conn}
+@defun pointer->query-result @var{pointer}
+@defunx query-result->pointer @var{conn}
 Convert to and from a pointer object and a record of type
-@class{result}.
+@objtype{query-result}.
 @end defun
 
 @c page
@@ -861,6 +877,9 @@ example with @code{pg:}.
 * enumerations connect::        Connection status.
 * enumerations polling::        Polling status.
 * enumerations trans::          Transaction status.
+* enumerations exec::           Query execution status.
+* enumerations errfield::       Error fields.
+* enumerations format::         Format codes.
 @end menu
 
 @c page
@@ -883,7 +902,7 @@ needed
 
 
 @deffn Syntax connection-status @ameta{symbol}
-Expand in an enumeration set of type @code{enum-connection-status}
+Expand in an enumeration set of type @enum{connection-status}
 holding the argument symbol.
 @end deffn
 
@@ -891,7 +910,7 @@ holding the argument symbol.
 @defun value->connection-status @var{integer}
 @defunx connection-status->value @var{enum-set}
 Convert to and from exact integers and enumeration sets of type
-@code{enum-connection-status}.
+@enum{connection-status}.
 @end defun
 
 @c page
@@ -911,7 +930,7 @@ reading writing active
 
 
 @deffn Syntax polling-status @ameta{symbol}
-Expand in an enumeration set of type @code{enum-polling-status} holding
+Expand in an enumeration set of type @enum{polling-status} holding
 the argument symbol.
 @end deffn
 
@@ -919,7 +938,7 @@ the argument symbol.
 @defun value->polling-status @var{integer}
 @defunx polling-status->value @var{enum-set}
 Convert to and from exact integers and enumeration sets of type
-@code{enum-polling-status}.
+@enum{polling-status}.
 @end defun
 
 @c page
@@ -940,7 +959,7 @@ unknown
 
 
 @deffn Syntax transaction-status @ameta{symbol}
-Expand in an enumeration set of type @code{enum-transaction-status} holding
+Expand in an enumeration set of type @enum{transaction-status} holding
 the argument symbol.
 @end deffn
 
@@ -948,7 +967,96 @@ the argument symbol.
 @defun value->transaction-status @var{integer}
 @defunx transaction-status->value @var{enum-set}
 Convert to and from exact integers and enumeration sets of type
-@code{enum-transaction-status}.
+@enum{transaction-status}.
+@end defun
+
+@c page
+@node enumerations exec
+@section Query execution status
+
+
+@deftp {Enumeration Type} enum-exec-status
+Enumeration type representing the result of queries execution.  It holds
+the following symbols:
+
+@example
+empty-query     command-ok
+tuples-ok       copy-out
+copy-in         bad-response
+nonfatal-error  fatal-error
+@end example
+@end deftp
+
+
+@deffn Syntax exec-status @ameta{symbol}
+Expand in an enumeration set of type @enum{exec-status} holding
+the argument symbol.
+@end deffn
+
+
+@defun value->exec-status @var{integer}
+@defunx exec-status->value @var{enum-set}
+Convert to and from exact integers and enumeration sets of type
+@enum{exec-status}.
+@end defun
+
+@c page
+@node enumerations errfield
+@section Error fields
+
+
+@deftp {Enumeration Type} enum-error-field
+Enumeration type representing error field in a @objtype{query-result}.
+It holds the following symbols:
+
+@example
+severity                sqlstate
+message-primary         message-detail
+message-hint            statement-position
+internal-position       internal-query
+context                 source-file
+source-line             source-function
+@end example
+@end deftp
+
+
+@deffn Syntax error-field @ameta{symbol}
+Expand in an enumeration set of type @enum{error-field} holding
+the argument symbol.
+@end deffn
+
+
+@defun value->error-field @var{integer}
+@defunx error-field->value @var{enum-set}
+Convert to and from exact integers and enumeration sets of type
+@enum{error-field}.
+@end defun
+
+@c page
+@node enumerations format
+@section Format codes
+
+
+@deftp {Enumeration Type} enum-format-code
+Enumeration type representing the format of a column in a table.  It
+holds the following symbols:
+
+@example
+text    binary
+@end example
+@end deftp
+
+
+@deffn Syntax format-code @ameta{symbol}
+Expand in an enumeration set of type @enum{format-code} holding
+the argument symbol.
+@end deffn
+
+
+@defun value->format-code @var{integer}
+@defunx format-code->value @var{enum-set}
+Convert to and from exact integers and enumeration sets of type
+@enum{format-code}.
 @end defun
 
 @c page
@@ -964,7 +1072,8 @@ to import these libraries by prefixing the bindings, for example with
 
 @menu
 * conditions connect::          Database connection object.
-* conditions query::            @sql{} query object.
+* conditions query::            @sql{} query string object.
+* conditions result::           @sql{} query result object.
 * conditions error::            Error condition object.
 @end menu
 
@@ -999,29 +1108,58 @@ Accessor for the field of condition objects of type
 
 @c page
 @node conditions query
-@section @sql{} query object
+@section @sql{} query string object
 
 
-@deftp {Condition Type} &query
+@deftp {Condition Type} &query-string
 Condition object type used to hold @sql{} queries as Scheme strings; it
 is derived from @condition{condition}.  It has the following fields:
 
 @table @code
-@item query
+@item string
 Scheme string representing the @sql{} query.
 @end table
 @end deftp
 
 
-@defun make-query-condition @var{query-string}
-@defunx query-condition? @var{obj}
+@defun make-query-string-condition @var{query-string}
+@defunx query-string-condition? @var{obj}
 Constructor and predicate for condition objects of type
-@condition{query}.
+@condition{query-string}.
 @end defun
 
 
-@defun query-condition @var{condition}
-Accessor for the field of condition objects of type @condition{query}.
+@defun query-string-condition @var{condition}
+Accessor for the field of condition objects of type
+@condition{query-string}.
+@end defun
+
+@c page
+@node conditions result
+@section @sql{} query result object
+
+
+@deftp {Condition Type} &query-result
+Condition object type used to hold @objtype{query-result} objects; it is
+derived from @condition{condition}.  It has the following fields:
+
+@table @code
+@item result
+Scheme object of type @objtype{query-result}.
+@end table
+@end deftp
+
+
+@defun make-query-result-condition @var{query-result}
+@defunx query-result-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{query-result}.
+@end defun
+
+
+@defun query-result-condition @var{condition}
+Accessor for the field of condition objects of type
+@condition{query-result}.
 @end defun
 
 @c page
@@ -1085,7 +1223,8 @@ Scheme object of type @class{connection}.
 Wrapper for @func{PQconnectdb}.  Connect to a database according to the
 parameters in the Scheme string @var{connect-info}, or the default
 parameters when the string is not given; it is the simpler method to
-open a connection.  Return an object of type @class{connection}.
+open a connection.  Return an object of type @class{connection}, which
+must be finalised with @func{connect-finish}.
 
 @example
 (import (rnrs)
@@ -1097,18 +1236,11 @@ open a connection.  Return an object of type @class{connection}.
       ((conn (compensate
                  (pg:connect-db "dbname=nausicaa-test")
                (with
-                (pg:finish conn)))))
+                (pg:connect-finish conn)))))
     (if (enum-set=? (pg:connection-status ok)
                     (pg:status conn))
          ---)))
 @end example
-@end defun
-
-
-@defun finish @var{conn}
-@findex @func{PQfinish}
-Wrapper for @func{PQfinish}.  Finalise the database connection
-referenced by @var{conn}.
 @end defun
 
 
@@ -1149,7 +1281,8 @@ Scheme object of type @class{connection}.
 @findex @func{PQconnectStart}
 Wrapper for @func{PQconnectStart}.  Begin connecting to a database
 without blocking; the argument is the same as the one to
-@func{connect-db}.
+@func{connect-db}.  Return an object of type @class{connection}, which
+must be finalised with @func{connect-finish}.
 @end defun
 
 
@@ -1157,7 +1290,7 @@ without blocking; the argument is the same as the one to
 @findex @func{PQconnectPoll}
 Wrapper for @func{PQconnectPoll}.  Query the connection object
 @var{conn} for the next action to perform in a non--blocking connection
-operation; return an enumeration set of type @code{enum-polling-status}.
+operation; return an enumeration set of type @enum{polling-status}.
 Raise an exception if the polling status is @code{PGRES_POLLING_FAILED}.
 
 @smallexample
@@ -1175,7 +1308,7 @@ Raise an exception if the polling status is @code{PGRES_POLLING_FAILED}.
   (letrec ((conn (compensate
                      (pg:connect-start "dbname=nausicaa-test")
                    (with
-                    (pg:finish conn)))))
+                    (pg:connect-finish conn)))))
     (let ((fd       (pg:socket conn))
           (rd-fdset (posix:make-fdset malloc-block/c))
           (wr-fdset (posix:make-fdset malloc-block/c))
@@ -1231,7 +1364,7 @@ succeeds and we can go on by calling @func{reset-poll}.
 @findex @func{PQresetPoll}
 Wrapper for @func{PQresetPoll}.  Query the connection object @var{conn}
 for the next action to perform in a non--blocking reset operation;
-return an enumeration set of type @code{enum-polling-status}.  Raise an
+return an enumeration set of type @enum{polling-status}.  Raise an
 exception if the polling status is @code{PGRES_POLLING_FAILED}.
 
 Usage of this function if equal to the usage of @func{connect-poll}.
@@ -1247,6 +1380,13 @@ enumeration set holding the symbol @code{failed}.
 @c page
 @node connect misc
 @section Other connect--related functions
+
+
+@defun connect-finish @var{conn}
+@findex @func{PQfinish}
+Wrapper for @func{PQfinish}.  Finalise the database connection
+referenced by @var{conn}.
+@end defun
 
 
 @defun connection-defaults
@@ -1280,7 +1420,7 @@ Scheme object of type @class{connection}.
 
 @defun status @var{conn}
 Wrapper for @func{PQstatus}.  Return an enumeration set of type
-@code{enum-connection-status} describing the current state of the
+@enum{connection-status} describing the current state of the
 @class{connection} object @var{conn}.
 @end defun
 
@@ -1365,7 +1505,7 @@ the socket used by the @class{connection} object @var{conn}.
 @defun connection-transaction-status @var{conn}
 @findex @func{PQtransactionStatus}
 Wrapper for @func{PQtransactionStatus}.  Return an enumeration set of
-type @code{enum-transaction-status} representing the current transaction
+type @enum{transaction-status} representing the current transaction
 status of the connection @var{conn}.
 @end defun
 
@@ -1450,14 +1590,30 @@ libraries by prefixing the bindings, for example with @code{pg:}.
 
 In the following descriptions: the @var{conn} argument is always a
 Scheme object of type @class{connection}, the @var{result} argument is
-always a Scheme object of type @class{result}.
+always a Scheme object of type @objtype{query-result}.
+
+For an explanation of @acronym{OID} numbers in @pg{}, see the ``Objects
+Identifier Types'' in the original documentation (@aurl{} last verified
+Thu Feb 18, 2010):
+
+@center @url{<http://www.postgresql.org/docs/8.4/static/datatype-oid.html}
+
+@noindent
+and notice that @acronym{OID} numbers are of type @code{uint32_t}.
+
+
+@defun clear-result @var{result}
+@findex @func{PQclear}
+Wrapper for @func{PQclear}.  Fialines the @var{result}, releasing all
+its resources.
+@end defun
 
 
 @defun exec @var{conn} @var{query-string}
 @findex @func{PQexec}
 Wrapper for @func{PQexec}.  Submit the query to the server and wait for
-the result, return a @class{result} object.  In case of error raise an
-exception.
+the result, return a @objtype{query-result} object; in case of error
+raise an exception.
 @end defun
 
 
@@ -1473,14 +1629,141 @@ exception.
 @chapter Handling query results
 
 
-The following bindings are exported by the @library{foreign databases
-postgresql primitives} library and reexported by the @library{foreign
-databases postgresql} library.  It is suggested to import these
-libraries by prefixing the bindings, for example with @code{pg:}.
+The bindings documented in this chapter are exported by the
+@library{foreign databases postgresql primitives} library and reexported
+by the @library{foreign databases postgresql} library.  It is suggested
+to import these libraries by prefixing the bindings, for example with
+@code{pg:}.
 
-In the following descriptions: the @var{conn} argument is always a
-Scheme object of type @class{connection}, the @var{result} argument is
-always a Scheme object of type @class{result}.
+@menu
+* query inspect::               Inspecting query results.
+* query result::                Retrieving query results.
+@end menu
+
+@c page
+@node query inspect
+@section Inspecting query results
+
+
+In the following descriptions: the @var{result} argument is always a
+Scheme object of type @objtype{query-result}.
+
+
+@defun result-status @var{result}
+@findex @func{PQresultStatus}
+Wrapper for @func{PQresultStatus}.  Inspect the result object
+@var{result} and return its status: an enumeration set of type
+@enum{exec-status}.
+@end defun
+
+
+@defun status->string @var{result/code}
+@findex @func{PQresStatus}
+Wrappre for @func{PQresStatus}.  Convert an enumeration set of type
+@enum{exec-status} or a @pg{} result code into a Scheme string
+describing the result; the string is the identifier of the @pg{}
+constant, for example @samp{PGRES_COMMAND_OK}.
+@end defun
+
+
+@defun result-error-message @var{result}
+@findex @func{PQresultErrorMessage}
+Wrapper for @func{PQresultErrorMessage}.  Return a Scheme string
+describing the error in the @var{result}; return @false{} if no error
+occurred.
+@end defun
+
+
+@defun result-error-field @var{result} @var{field-set}
+@findex @func{PQresultErrorField}
+Wrapper for @func{PQresultErrorField}.  Return a Scheme string
+representing an error field in @var{result}; return @false{} is the
+field is not set.  @var{field-set} must be an enumeration set of type
+@enum{error-field}.
+@end defun
+
+@c page
+@node query result
+@section Retrieving query results
+
+
+In the following descriptions: the @var{result} argument is always a
+Scheme object of type @objtype{query-result}.
+
+
+@defun number-of-tuples @var{result}
+@findex @func{PQntuples}
+Wrapper for @func{PQntuples}.  Return the number of tuples in
+@var{result}.
+@end defun
+
+
+@defun number-of-fields @var{result}
+@findex @func{PQnfields}
+Wrapper for @func{PQnfields}.  Return the number of columns in each
+tuple in @var{result}.
+@end defun
+
+
+@defun field-name @var{result} @var{field-index}
+@findex @func{PQfname}
+Wrapper for @func{PQfname}.  Return a Scheme string representing the
+name of the column at @var{field-index} in @var{result}; return @false{}
+if the field index is out of range.
+@end defun
+
+
+@defun field-name* @var{result} @var{field-index}
+Like @func{field-name} but raise an exception if the field index is out
+of range.
+@end defun
+
+
+@defun field-number @var{result} @var{field-name}
+@findex @func{PQfnumber}
+Wrapper for @func{PQfnumber}.  Return an exact integer representing the
+index of the column having @var{field-name}, which must be a Scheme
+string or symbol.  Return @false{} if @var{field-name} is not a column
+name in @var{result}.
+@end defun
+
+
+@defun field-number* @var{result} @var{field-name}
+Like @func{field-number} but raise an exception if the field index is
+out of range.
+@end defun
+
+
+@defun result-column-index->table-oid @var{result} @var{field-index}
+@findex @func{PQftable}
+Wrapper for @func{PQftable}.  Return the @acronym{OID} of the table from
+which the column at @var{field-index} in @var{result} was extracted.
+Return @false{} if @var{field-index} is out of range.
+@end defun
+
+
+@defun result-column-index->table-column-number @var{result} @var{field-index}
+@findex @func{PQftablecol}
+Wrapper for @func{PQftablecol}.  Return the column number (within its
+table) of the column making up the specified query result column.
+@end defun
+
+
+@defun result-column-index->format-code @var{result} @var{field-index}
+@findex @func{PQfformat}
+Wrapper for @func{PQfformat}.  Return an enumeration set of type
+@enum{format-code} representing the format of the column at
+@var{field-index} in @var{result}.
+@end defun
+
+
+@defun result-column-index->type-oid @var{result} @var{field-index}
+@findex @func{PQftype}
+Wrapper for @func{PQftype}.  Return the @acronym{OID} of the type
+associated with the column at @var{field-index} in @var{result}; return
+@false{} if @var{field-index} is out of range.
+@end defun
+
 
 @c page
 @node primitives
@@ -1723,81 +2006,9 @@ Alias for @func{PQfn}.
 @end defun
 
 
-@defun result-status
-@findex @func{PQresultStatus}
-Alias for @func{PQresultStatus}.
-@end defun
-
-
-@defun res-status
-@findex @func{PQresStatus}
-Alias for @func{PQresStatus}.
-@end defun
-
-
-@defun result-error-message
-@findex @func{PQresultErrorMessage}
-Alias for @func{PQresultErrorMessage}.
-@end defun
-
-
-@defun result-error-field
-@findex @func{PQresultErrorField}
-Alias for @func{PQresultErrorField}.
-@end defun
-
-
-@defun ntuples
-@findex @func{PQntuples}
-Alias for @func{PQntuples}.
-@end defun
-
-
-@defun nfields
-@findex @func{PQnfields}
-Alias for @func{PQnfields}.
-@end defun
-
-
 @defun binary-tuples
 @findex @func{PQbinaryTuples}
 Alias for @func{PQbinaryTuples}.
-@end defun
-
-
-@defun fname
-@findex @func{PQfname}
-Alias for @func{PQfname}.
-@end defun
-
-
-@defun fnumber
-@findex @func{PQfnumber}
-Alias for @func{PQfnumber}.
-@end defun
-
-
-@defun ftable
-@findex @func{PQftable}
-Alias for @func{PQftable}.
-@end defun
-
-
-@defun ftablecol
-@findex @func{PQftablecol}
-Alias for @func{PQftablecol}.
-@end defun
-
-
-@defun fformat
-@findex @func{PQfformat}
-Alias for @func{PQfformat}.
-@end defun
-
-
-@defun ftype
-@findex @func{PQftype}
-Alias for @func{PQftype}.
 @end defun
 
 
@@ -1888,12 +2099,6 @@ Alias for @func{PQsendDescribePrepared}.
 @defun send-describe-portal
 @findex @func{PQsendDescribePortal}
 Alias for @func{PQsendDescribePortal}.
-@end defun
-
-
-@defun clear
-@findex @func{PQclear}
-Alias for @func{PQclear}.
 @end defun
 
 
@@ -2131,8 +2336,14 @@ stacks}.
 
 @defun connect-db/c @var{connect-info}
 Wrapper for @func{connect-db} which pushes, on the current compensation
-stack, the appropriate call to @func{finish} to close the database
-connection.
+stack, the appropriate call to @func{connect-finish} to close the
+database connection.
+@end defun
+
+
+@defun exec/c @var{conn} @var{query-string}
+Wrapper for @func{exec} which pushes, on the current compensation stack,
+the appropriate call to @func{clear-result}.
 @end defun
 
 @c page

@@ -32,9 +32,8 @@
     <connection>?
     pointer-><connection>	<connection>->pointer
 
-    <result>			<result-rtd>
-    <result>?
-    pointer-><result>		<result>->pointer
+    query-result		query-result?
+    pointer->query-result	query-result->pointer
 
 ;;; --------------------------------------------------------------------
 
@@ -74,11 +73,8 @@
 (define <connection-rtd>
   (record-type-descriptor <connection>))
 
-(define-record-type (<result> pointer-><result> <result>?)
-  (fields (immutable pointer <result>->pointer)))
-
-(define <result-rtd>
-  (record-type-descriptor <result>))
+(define-record-type (query-result pointer->query-result query-result?)
+  (fields (immutable pointer query-result->pointer)))
 
 ;;; --------------------------------------------------------------------
 

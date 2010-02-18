@@ -115,7 +115,7 @@
 	(letrec ((conn (compensate
 			   (pg:connect-start "dbname=nausicaa-test")
 			 (with
-			  (pg:finish conn)))))
+			  (pg:connect-finish conn)))))
 	  (if (pg:status/bad? conn)
 	      #f
 	    (%connect-asynchronously conn))))
@@ -126,7 +126,7 @@
 	(letrec ((conn (compensate
 			   (pg:connect-start "dbname=nausicaa-test")
 			 (with
-			  (pg:finish conn)))))
+			  (pg:connect-finish conn)))))
 	  (if (pg:status/bad? conn)
 	      #f
 	    (begin

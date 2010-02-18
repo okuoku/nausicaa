@@ -35,6 +35,15 @@
 
     enum-transaction-status		transaction-status
     transaction-status->value		value->transaction-status
+
+    enum-exec-status			exec-status
+    exec-status->value			value->exec-status
+
+    enum-error-field			error-field
+    error-field->value			value->error-field
+
+    enum-format-code			format-code
+    format-code->value			value->format-code
     )
   (import (rnrs)
     (enumerations)
@@ -81,6 +90,54 @@
    intrans
    inerror
    unknown))
+
+(define-c-flags exec-status
+  (PGRES_EMPTY_QUERY
+   PGRES_COMMAND_OK
+   PGRES_TUPLES_OK
+   PGRES_COPY_OUT
+   PGRES_COPY_IN
+   PGRES_BAD_RESPONSE
+   PGRES_NONFATAL_ERROR
+   PGRES_FATAL_ERROR)
+  (empty-query
+   command-ok
+   tuples-ok
+   copy-out
+   copy-in
+   bad-response
+   nonfatal-error
+   fatal-error))
+
+(define-c-flags error-field
+  (PG_DIAG_SEVERITY
+   PG_DIAG_SQLSTATE
+   PG_DIAG_MESSAGE_PRIMARY
+   PG_DIAG_MESSAGE_DETAIL
+   PG_DIAG_MESSAGE_HINT
+   PG_DIAG_STATEMENT_POSITION
+   PG_DIAG_INTERNAL_POSITION
+   PG_DIAG_INTERNAL_QUERY
+   PG_DIAG_CONTEXT
+   PG_DIAG_SOURCE_FILE
+   PG_DIAG_SOURCE_LINE
+   PG_DIAG_SOURCE_FUNCTION)
+  (severity
+   sqlstate
+   message-primary
+   message-detail
+   message-hint
+   statement-position
+   internal-position
+   internal-query
+   context
+   source-file
+   source-line
+   source-function))
+
+(define-c-flags format-code
+  (0 1)
+  (text binary))
 
 
 ;;;; done

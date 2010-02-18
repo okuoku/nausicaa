@@ -27,16 +27,19 @@
 
 (library (foreign databases postgresql primitives)
   (export
+
+    ;; connection handling
     connect-start			;; PQconnectStart
     connect-poll			;; PQconnectPoll
     connect-db				;; PQconnectdb
     set-db-login			;; PQsetdbLogin
     set-db				;; PQsetdb
-    finish				;; PQfinish
+    connect-finish			;; PQfinish
     reset-start				;; PQresetStart
     reset-poll				;; PQresetPoll
     reset				;; PQreset
 
+    ;; connection inspection
     status				;; PQstatus
     status/ok?
     status/bad?
@@ -69,8 +72,28 @@
     connection-used-password		;; PQconnectionUsedPassword
     connection-get-ssl			;; PQgetssl
 
+    ;; executing queries
+    clear-result			;; PQclear
     exec				;; PQexec
     exec-params				;; PQexecParams
+
+    ;; inspecting query results
+    result-status			;; PQresultStatus
+    status->string			;; PQresStatus
+    result-error-message		;; PQresultErrorMessage
+    result-error-field			;; PQresultErrorField
+
+    ;; extracting informations from query results
+    number-of-tuples			;; PQntuples
+    number-of-fields			;; PQnfields
+    field-name				;; PQfname
+    field-name*
+    field-number			;; PQfnumber
+    field-number*
+    result-column-index->table-oid		;; PQftable
+    result-column-index->table-column-number	;; PQftablecol
+    result-column-index->format-code	;; PQfformat
+    result-column-index->type-oid	;; PQftype
 
     set-non-blocking			;; PQsetnonblocking
 
@@ -111,19 +134,7 @@
 	    (PQisthreadsafe			isthreadsafe)
 	    (PQflush				flush)
 	    (PQfn				fn)
-	    (PQresultStatus			result-status)
-	    (PQresStatus			res-status)
-	    (PQresultErrorMessage		result-error-message)
-	    (PQresultErrorField			result-error-field)
-	    (PQntuples				ntuples)
-	    (PQnfields				nfields)
 	    (PQbinaryTuples			binary-tuples)
-	    (PQfname				fname)
-	    (PQfnumber				fnumber)
-	    (PQftable				ftable)
-	    (PQftablecol			ftablecol)
-	    (PQfformat				fformat)
-	    (PQftype				ftype)
 	    (PQfsize				fsize)
 	    (PQfmod				fmod)
 	    (PQcmdStatus			cmd-status)
@@ -139,7 +150,6 @@
 	    (PQdescribePortal			describe-portal)
 	    (PQsendDescribePrepared		send-describe-prepared)
 	    (PQsendDescribePortal		send-describe-portal)
-	    (PQclear				clear)
 	    (PQfreemem				freemem)
 	    (PQmakeEmptyPGresult		make-empty-pg-result)
 	    (PQcopyResult			copy-result)
@@ -246,7 +256,7 @@
   ;;
   (set-db-login pghost pgport pgoptions pgtty dbname #f #f))
 
-(define (finish conn)
+(define (connect-finish conn)
   (PQfinish (<connection>->pointer conn)))
 
 (define (reset conn)
@@ -411,6 +421,9 @@
 
 ;;;; executing queries
 
+(define (clear-result result)
+  (PQclear (query-result->pointer result)))
+
 (define (exec conn query)
   (with-compensations
     (let ((p (PQexec (<connection>->pointer conn) (string->cstring/c query))))
@@ -418,10 +431,10 @@
 	  (raise
 	   (condition (make-postgresql-error-condition)
 		      (make-connection-condition conn)
-		      (make-query-condition query)
+		      (make-query-string-condition query)
 		      (make-who-condition 'exec)
 		      (make-message-condition (connection-error-message))))
-	(pointer-><result> p)))))
+	(pointer->query-result p)))))
 
 (define (exec-params conn query parms param-format)
   #f)
@@ -438,8 +451,92 @@
 ;; 		      (make-query-condition query)
 ;; 		      (make-who-condition 'exec-params)
 ;; 		      (make-message-condition (connection-error-message))))
-;; 	(pointer-><result> p)))))
+;; 	(pointer->query-result p)))))
 
+
+
+;;;; inspecting query results
+
+(define (result-status result)
+  (value->exec-status (PQresultStatus (query-result->pointer result))))
+
+(define (status->string exec-status)
+  (cstring->string (PQresStatus (if (integer? exec-status)
+				    exec-status
+				  (exec-status->value exec-status)))))
+
+(define (result-error-message result)
+  (let ((p (PQresultErrorMessage (query-result->pointer result))))
+    (if (or (pointer-null? p) (zero? (strlen p)))
+	#f
+      (cstring->string p))))
+
+(define (result-error-field result field)
+  (let ((p (PQresultErrorField (query-result->pointer result) (error-field->value field))))
+    (if (pointer-null? p)
+	#f
+      (cstring->string p))))
+
+
+;; extracting informations from query results
+
+(define (number-of-tuples result)
+  (PQntuples (query-result->pointer result)))
+
+(define (number-of-fields result)
+  (PQnfields (query-result->pointer result)))
+
+(define (field-name result field-index)
+  (let ((p (PQfname (query-result->pointer result) field-index)))
+    (if (pointer-null? p)
+	#f
+      (cstring->string p))))
+
+(define (field-name* result field-index)
+  (or (field-name result field-index)
+      (error 'field-name*
+	(string-append "field index "
+		       (number->string field-index)
+		       " out of range, must be in [0.."
+		       (number->string (- (number-of-fields result) 1))
+		       "]")
+	field-index)))
+
+(define (field-number result field-name)
+  (with-compensations
+    (let ((n (PQfnumber (query-result->pointer result) (string->cstring/c field-name))))
+      (if (= -1 n)
+	  #f
+	n))))
+
+(define (field-number* result field-name)
+  (or (field-number result field-name)
+      (error 'field-number* (string-append "invalid field name '"
+					   (if (symbol? field-name)
+					       (symbol->string field-name)
+					     field-name) "'")
+	     field-name)))
+
+(define (result-column-index->table-oid result field-index)
+  (let ((oid (PQftable (query-result->pointer result) field-index)))
+    (if (= InvalidOid oid)
+	#f
+      oid)))
+
+(define (result-column-index->table-column-number result field-index)
+  (let ((n (PQftablecol (query-result->pointer result) field-index)))
+    (if (zero? n)
+	#f
+      n)))
+
+(define (result-column-index->format-code result field-index)
+  (value->format-code (PQfformat (query-result->pointer result) field-index)))
+
+(define (result-column-index->type-oid result field-index)
+  (let ((oid (PQftype (query-result->pointer result) field-index)))
+    (if (= InvalidOid oid)
+	#f
+      oid)))
 
 
 
