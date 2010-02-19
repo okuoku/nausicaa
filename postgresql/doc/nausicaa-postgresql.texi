@@ -532,6 +532,7 @@ entitled ``@gnu{} Free Documentation License''.
 * inspect::                     Inspection.
 * exec::                        Performing a database query.
 * query::                       Handling query results.
+* escapes::                     Escaping strings.
 * primitives::                  Miscellaneous primitive bindings.
 * compensations::               Compensated constructors.
 
@@ -557,6 +558,7 @@ Object type definitions
 * typedefs result::             Query result object.
 * typedefs option::             Connection option object.
 * typedefs fd::                 File descriptor object.
+* typedefs file::               Stream descriptor object.
 * typedefs pid::                Process identifier object.
 * typedefs ssl::                Reference to OpenSSL structure.
 
@@ -676,6 +678,7 @@ to import these libraries by prefixing the bindings, for example with
 * typedefs result::             Query result object.
 * typedefs option::             Connection option object.
 * typedefs fd::                 File descriptor object.
+* typedefs file::               Stream descriptor object.
 * typedefs pid::                Process identifier object.
 * typedefs ssl::                Reference to OpenSSL structure.
 @end menu
@@ -685,23 +688,22 @@ to import these libraries by prefixing the bindings, for example with
 @section Database connection object
 
 
-@deftp {Record Type Name} <connection>
-@deftpx {Record Type Descriptor} <connection-rtd>
+@deftp {Record Type Name} connection
 Record type used to tag pointer objects referencing database
 connections, structures of type @code{PGconn}.  @nauref{ffi pointers,
 Pointer objects}.
 @end deftp
 
 
-@defun <connection>? @var{obj}
-Return @true{} if @var{obj} is a record of type @class{connection}.
+@defun connection? @var{obj}
+Return @true{} if @var{obj} is a record of type @objtype{connection}.
 @end defun
 
 
-@defun pointer-><connection> @var{pointer}
-@defunx <connection>->pointer @var{conn}
+@defun pointer->connection @var{pointer}
+@defunx connection->pointer @var{conn}
 Convert to and from a pointer object and a record of type
-@class{connection}.
+@objtype{connection}.
 @end defun
 
 @c page
@@ -812,6 +814,29 @@ integers.
 @end defun
 
 @c page
+@node typedefs file
+@section Stream descriptor object
+
+
+@deftp {Record Type Name} FILE*
+Record type used to tag pointer objects of type @code{FILE *}.  This
+type is compatible with the same defined by the Nausicaa/@posix{}
+package.
+@end deftp
+
+
+@defun FILE*? @var{obj}
+Return @true{} if @var{obj} is an object of type @objtype{FILE*}.
+@end defun
+
+
+@defun pointer->FILE* @var{integer}
+@defunx FILE*->pointer @var{fd}
+Convert to and from objects of type @objtype{FILE*} and the associated
+pointer objects.
+@end defun
+
+@c page
 @node typedefs pid
 @section Process identifier object
 
@@ -888,7 +913,7 @@ example with @code{pg:}.
 
 
 @deftp {Enumeration Type} enum-connection-status
-Enumeration type representing the current status of a @class{connection}
+Enumeration type representing the current status of a @objtype{connection}
 object.  It holds the following symbols:
 
 @example
@@ -1083,13 +1108,13 @@ to import these libraries by prefixing the bindings, for example with
 
 
 @deftp {Condition Type} &connection
-Condition object type used to hold objects of type @class{connection}
+Condition object type used to hold objects of type @objtype{connection}
 which were involved in an exception; it is derived from
 @condition{condition}.  It has the following fields:
 
 @table @code
 @item connection
-The @class{connection} object.
+The @objtype{connection} object.
 @end table
 @end deftp
 
@@ -1214,7 +1239,7 @@ to import these libraries by prefixing the bindings, for example with
 
 
 In the following descriptions, the @var{conn} argument is always a
-Scheme object of type @class{connection}.
+Scheme object of type @objtype{connection}.
 
 
 @defun connect-db
@@ -1223,7 +1248,7 @@ Scheme object of type @class{connection}.
 Wrapper for @func{PQconnectdb}.  Connect to a database according to the
 parameters in the Scheme string @var{connect-info}, or the default
 parameters when the string is not given; it is the simpler method to
-open a connection.  Return an object of type @class{connection}, which
+open a connection.  Return an object of type @objtype{connection}, which
 must be finalised with @func{connect-finish}.
 
 @example
@@ -1258,7 +1283,7 @@ Wrapper for @func{PQsetdbLogin}.  Connect to a database according to the
 given arguments, which must be Scheme strings @var{connect-info} or
 @false{} when the default value is desired; this function is deprecated
 in favor of the above ones.  Return an object of type
-@class{connection}.
+@objtype{connection}.
 @end defun
 
 
@@ -1273,7 +1298,7 @@ Call @func{set-db-login} with @var{login} and @var{pwd} set to @false{}.
 
 
 In the following descriptions, the @var{conn} argument is always a
-Scheme object of type @class{connection}.
+Scheme object of type @objtype{connection}.
 
 
 @defun connect-start
@@ -1281,7 +1306,7 @@ Scheme object of type @class{connection}.
 @findex @func{PQconnectStart}
 Wrapper for @func{PQconnectStart}.  Begin connecting to a database
 without blocking; the argument is the same as the one to
-@func{connect-db}.  Return an object of type @class{connection}, which
+@func{connect-db}.  Return an object of type @objtype{connection}, which
 must be finalised with @func{connect-finish}.
 @end defun
 
@@ -1415,13 +1440,13 @@ databases postgresql} library.  It is suggested to import these
 libraries by prefixing the bindings, for example with @code{pg:}.
 
 In the following descriptions, the @var{conn} argument is always a
-Scheme object of type @class{connection}.
+Scheme object of type @objtype{connection}.
 
 
 @defun status @var{conn}
 Wrapper for @func{PQstatus}.  Return an enumeration set of type
 @enum{connection-status} describing the current state of the
-@class{connection} object @var{conn}.
+@objtype{connection} object @var{conn}.
 @end defun
 
 
@@ -1434,7 +1459,7 @@ Wrapper for @func{PQstatus}.  Return an enumeration set of type
 @defunx status/setenv? @var{conn}
 @defunx status/ssl-startup? @var{conn}
 @defunx status/needed? @var{conn}
-Return @true{} if the state of the @class{connection} object @var{conn}
+Return @true{} if the state of the @objtype{connection} object @var{conn}
 is the name one.
 @end defun
 
@@ -1498,7 +1523,7 @@ command line options associated to the connection @var{conn}, or
 @defun connection-socket @var{conn}
 @findex @func{PQsocket}
 Wrapper for @func{PQsocket}.  Return a @class{fd} object representing
-the socket used by the @class{connection} object @var{conn}.
+the socket used by the @objtype{connection} object @var{conn}.
 @end defun
 
 
@@ -1589,7 +1614,7 @@ databases postgresql} library.  It is suggested to import these
 libraries by prefixing the bindings, for example with @code{pg:}.
 
 In the following descriptions: the @var{conn} argument is always a
-Scheme object of type @class{connection}, the @var{result} argument is
+Scheme object of type @objtype{connection}, the @var{result} argument is
 always a Scheme object of type @objtype{query-result}.
 
 For an explanation of @acronym{OID} numbers in @pg{}, see the ``Objects
@@ -1687,39 +1712,159 @@ field is not set.  @var{field-set} must be an enumeration set of type
 @section Retrieving query results
 
 
-In the following descriptions: the @var{result} argument is always a
-Scheme object of type @objtype{query-result}.
+The elements of a database table are called @dfn{rows} and
+@dfn{columns}; the elements of a @objtype{query-result} object are
+called @dfn{tuples} and @dfn{fields}.  Rows and columns are indexed with
+base @math{1}, while tuples and fields are indexed with base @math{0};
+prepared statements parameters are indexed with base @math{0}.  In the
+following descriptions:
+
+@itemize
+@item
+The @var{result} argument is always a Scheme object of type
+@objtype{query-result}.
+
+@item
+If the @var{field-index}, @var{tuple-index} or @var{parm-index} argument
+is out of range, an assertion violation is raised.
+
+@item
+If the @var{field-name} is invalid, an assertion violation is raised.
+@end itemize
 
 
-@defun number-of-tuples @var{result}
+@c ------------------------------------------------------------
+
+@subsubheading Result size
+
+
+@defun result-number-of-tuples @var{result}
 @findex @func{PQntuples}
 Wrapper for @func{PQntuples}.  Return the number of tuples in
 @var{result}.
 @end defun
 
 
-@defun number-of-fields @var{result}
+@defun result-tuple-index? @var{result} @var{tuple-index}
+Return @true{} if @var{tuple-index} is a valid tuple index for
+@var{result}.
+@end defun
+
+
+@defun assert-result-tuple-index @var{who} @var{result} @var{tuple-index}
+Raise an assertion violation if @var{tuple-index} is not a valid tuple
+index for @var{result}.  @var{who} is used for the @condition{who}
+condition object.
+@end defun
+
+
+@defun result-number-of-fields @var{result}
 @findex @func{PQnfields}
 Wrapper for @func{PQnfields}.  Return the number of columns in each
 tuple in @var{result}.
 @end defun
 
 
-@defun field-name @var{result} @var{field-index}
+@defun result-field-index? @var{result} @var{field-index}
+Return @true{} if @var{field-index} is a valid field index for
+@var{result}.
+@end defun
+
+
+@defun assert-result-field-index @var{who} @var{result} @var{field-index}
+Raise an assertion violation if @var{field-index} is not a valid field
+index for @var{result}.  @var{who} is used for the @condition{who}
+condition object.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Result values
+
+
+@defun result-null-value? @var{result} @var{tuple-index} @var{field-index}
+@findex @func{PQgetisnull}
+Wrapper for @func{PQgetisnull}.  Return @true{} if the selected value is
+null.
+@end defun
+
+
+@defun result-value-length @var{result} @var{tuple-index} @var{field-index}
+@findex @func{PQgetlength}
+Wrapper for @func{PQgetlength}.  Return the length in bytes of the
+selected element.
+@end defun
+
+
+@defun result-get-value @var{result} @var{tuple-index} @var{field-index}
+@defunx result-get-value/text @var{result} @var{tuple-index} @var{field-index}
+@defunx result-get-value/binary @var{result} @var{tuple-index} @var{field-index}
+@findex @func{PQgetvalue}
+Wrappers for @func{PQgetvalue}.  Return the value of the selected
+element; the plain variant returns a pointer object referencing the
+first byte of the result, the @code{/text} variant returns a Scheme
+string, the @code{/binary} variant returns a Scheme bytevector.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Results of prepared statements
+
+
+@defun result-number-of-parameters @var{result}
+@findex @func{PQnparams}
+Wrapper for @func{PQnparams}.  Return the number of parameters of a
+prepared statement; this function is only useful when inspecting the
+result of @func{PQdescribePrepared}, for other types of queries it will
+return zero.
+@end defun
+
+
+@defun result-parameter-index? @var{result} @var{parm-index}
+Return @true{} if @var{parm-index} is a valid parameter index for the
+query that generated @var{result}.
+@end defun
+
+
+@defun assert-result-parameter-index @var{who} @var{result} @var{parm-index}
+Raise an assertion violation if @var{parm-name} is not a valid parameter
+index for the query that generated @var{result}.  @var{who} is used for
+the @condition{who} condition object.
+@end defun
+
+
+@defun result-parameter-type-oid @var{result} @var{parm-index}
+@findex @func{PQparamtype}
+Wrapper for @func{PQparamtype}.  Returns the data type of the indicated
+statement parameter; return @false{} if the information is unavailable.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Other functions
+
+
+@defun result-field-name @var{result} @var{field-index}
 @findex @func{PQfname}
 Wrapper for @func{PQfname}.  Return a Scheme string representing the
-name of the column at @var{field-index} in @var{result}; return @false{}
-if the field index is out of range.
+name of the column at @var{field-index} in @var{result}.
 @end defun
 
 
-@defun field-name* @var{result} @var{field-index}
-Like @func{field-name} but raise an exception if the field index is out
-of range.
+@defun result-field-name? @var{result} @var{field-name}
+Return @true{} if the Scheme string or symbol @var{field-name} is a
+column name in @var{result}.
 @end defun
 
 
-@defun field-number @var{result} @var{field-name}
+@defun assert-result-field-name @var{who} @var{result} @var{field-name}
+Raise an assertion violation if @var{field-name} is not a valid field
+name in @var{result}.  @var{who} is used for the @condition{who}
+condition object.
+@end defun
+
+
+@defun result-field-number @var{result} @var{field-name}
 @findex @func{PQfnumber}
 Wrapper for @func{PQfnumber}.  Return an exact integer representing the
 index of the column having @var{field-name}, which must be a Scheme
@@ -1728,13 +1873,7 @@ name in @var{result}.
 @end defun
 
 
-@defun field-number* @var{result} @var{field-name}
-Like @func{field-number} but raise an exception if the field index is
-out of range.
-@end defun
-
-
-@defun result-column-index->table-oid @var{result} @var{field-index}
+@defun result-column-table-oid @var{result} @var{field-index}
 @findex @func{PQftable}
 Wrapper for @func{PQftable}.  Return the @acronym{OID} of the table from
 which the column at @var{field-index} in @var{result} was extracted.
@@ -1742,14 +1881,14 @@ Return @false{} if @var{field-index} is out of range.
 @end defun
 
 
-@defun result-column-index->table-column-number @var{result} @var{field-index}
+@defun result-table-column-number @var{result} @var{field-index}
 @findex @func{PQftablecol}
 Wrapper for @func{PQftablecol}.  Return the column number (within its
 table) of the column making up the specified query result column.
 @end defun
 
 
-@defun result-column-index->format-code @var{result} @var{field-index}
+@defun result-column-format-code @var{result} @var{field-index}
 @findex @func{PQfformat}
 Wrapper for @func{PQfformat}.  Return an enumeration set of type
 @enum{format-code} representing the format of the column at
@@ -1757,13 +1896,114 @@ Wrapper for @func{PQfformat}.  Return an enumeration set of type
 @end defun
 
 
-@defun result-column-index->type-oid @var{result} @var{field-index}
+@defun result-column-type-oid @var{result} @var{field-index}
 @findex @func{PQftype}
 Wrapper for @func{PQftype}.  Return the @acronym{OID} of the type
 associated with the column at @var{field-index} in @var{result}; return
 @false{} if @var{field-index} is out of range.
 @end defun
 
+
+@defun result-type-modifier @var{result} @var{field-index}
+@findex @func{PQfmod}
+Wrapper for @func{PQfmod}.  Return an exact integer representing the
+type modifier for the column at @var{field-index} in @var{result};
+return @false{} if no information is available.
+@end defun
+
+
+@defun result-column-size @var{result} @var{field-index}
+@findex @func{PQfsize}
+Wrapper for @func{PQfsize}.  Return an exact integer representing the
+amount of space in byte allocated by the server to hold values in the
+column at @var{field-index} in @var{result}; return @false{} if the
+storage is variable in size.
+@end defun
+
+
+@defun result-command-status @var{result}
+@findex @func{PQcmdStatus}
+Wrapper for @func{PQcmdStatus}.  Return the command status tag from the
+@sql{} command which generated @var{result}.
+@end defun
+
+
+@defun result-affected-rows @var{result}
+@findex @func{PQcmdTuples}
+Wrapper for @func{PQcmdTuples}.  Return an exact integer representing
+the number of rows affected by the @sql{} command which generated
+@var{result}; return @false{} if the command could not affect any row.
+@end defun
+
+
+@defun result-new-row-oid @var{result}
+@findex @func{PQoidValue}
+Wrapper for @func{PQoidValue}.  Return the @acronym{OID} of the inserted
+row, if the @sql{} command was an @code{INSERT} that inserted exactly
+one row into a table that has @acronym{OID}s, or a @code{EXECUTE} of a
+prepared query containing a suitable @code{INSERT} statement.  Return
+@false{} if the command was not suitable.
+@end defun
+
+@c page
+@node escapes
+@chapter Escaping strings
+
+
+The bindings documented in this chapter are exported by the
+@library{foreign databases postgresql primitives} library and reexported
+by the @library{foreign databases postgresql} library.  It is suggested
+to import these libraries by prefixing the bindings, for example with
+@code{pg:}.
+
+In the following description: the @var{conn} argument is always an
+object of type @objtype{connection}.  As an easy mnemonic rule,
+@samp{bytea} in the @pg{} documentation stands for ``bytes array''.
+
+
+@defun escape-string-conn @var{conn} @var{string}
+@findex @func{PQescapeStringConn}
+Wrapper for @func{PQescapeStringConn}.  Escape @var{string} so that it
+can be safely inserted in a @sql{} command; return the escaped string.
+If @var{string} is invalid, raise an error.
+
+The @var{conn} argument is required to adjust the conversion attributes,
+like the string encoding.
+@end defun
+
+
+@defun escape-bytes-conn @var{conn} @var{ptr} @var{len}
+@findex @func{PQescapeByteaConn}
+Wrapper for @func{PQescapeByteaConn}.  Escape @var{len} bytes of binary
+data starting at the byte referenced by the pointer object @var{ptr}, so
+that it can be safely inserted in a @sql{} command.  Return two values:
+a pointer object referencing the first byte of the escaped string, the
+number of bytes in the escaped string.  The returned memory must be
+released with call to @func{PQfreemem}.
+@end defun
+
+
+@defun escape-bytes-conn/bv @var{conn} @var{bv}
+Wrapper for @func{escape-bytes-conn} which escapes the Scheme bytevector
+@var{bv} and return an escaped Scheme string.
+@end defun
+
+
+@defun unescape-bytes @var{ptr}
+@findex @func{PQunescapeBytea}
+Wrapper for @func{PQunescapeBytea}.  Unescape a zero--terminated string
+whose first byte is referenced by the pointer object @var{ptr}.  Return
+two values: a pointer object to the first byte of the unescaped string,
+the number of bytes in the unescaped string.  The returned memory must
+be released with @func{primitive-free} from the @library{foreign memory}
+library.  @nauref{memory alloc primitive, Primitive functions}.
+@end defun
+
+
+@defun unescape-bytes/bv @var{str}
+Unescape the Scheme string @var{str} and return the unescaped data as a
+Scheme bytevector.
+@end defun
 
 @c page
 @node primitives
@@ -2012,69 +2252,9 @@ Alias for @func{PQbinaryTuples}.
 @end defun
 
 
-@defun fsize
-@findex @func{PQfsize}
-Alias for @func{PQfsize}.
-@end defun
-
-
-@defun fmod
-@findex @func{PQfmod}
-Alias for @func{PQfmod}.
-@end defun
-
-
-@defun cmd-status
-@findex @func{PQcmdStatus}
-Alias for @func{PQcmdStatus}.
-@end defun
-
-
 @defun oid-status
 @findex @func{PQoidStatus}
 Alias for @func{PQoidStatus}.
-@end defun
-
-
-@defun oid-value
-@findex @func{PQoidValue}
-Alias for @func{PQoidValue}.
-@end defun
-
-
-@defun cmd-tuples
-@findex @func{PQcmdTuples}
-Alias for @func{PQcmdTuples}.
-@end defun
-
-
-@defun getvalue
-@findex @func{PQgetvalue}
-Alias for @func{PQgetvalue}.
-@end defun
-
-
-@defun getlength
-@findex @func{PQgetlength}
-Alias for @func{PQgetlength}.
-@end defun
-
-
-@defun getisnull
-@findex @func{PQgetisnull}
-Alias for @func{PQgetisnull}.
-@end defun
-
-
-@defun nparams
-@findex @func{PQnparams}
-Alias for @func{PQnparams}.
-@end defun
-
-
-@defun paramtype
-@findex @func{PQparamtype}
-Alias for @func{PQparamtype}.
 @end defun
 
 
@@ -2135,36 +2315,6 @@ Alias for @func{PQresultAlloc}.
 @defun setvalue
 @findex @func{PQsetvalue}
 Alias for @func{PQsetvalue}.
-@end defun
-
-
-@defun escape-string-conn
-@findex @func{PQescapeStringConn}
-Alias for @func{PQescapeStringConn}.
-@end defun
-
-
-@defun escape-bytea-conn
-@findex @func{PQescapeByteaConn}
-Alias for @func{PQescapeByteaConn}.
-@end defun
-
-
-@defun unescape-bytea
-@findex @func{PQunescapeBytea}
-Alias for @func{PQunescapeBytea}.
-@end defun
-
-
-@defun escape-string
-@findex @func{PQescapeString}
-Alias for @func{PQescapeString}.
-@end defun
-
-
-@defun escape-bytea
-@findex @func{PQescapeBytea}
-Alias for @func{PQescapeBytea}.
 @end defun
 
 
@@ -2322,6 +2472,18 @@ Alias for @func{InvalidOid}.
 @vindex @func{PQnoPasswordSupplied}
 Alias for @func{PQnoPasswordSupplied}.
 @end defvr
+
+
+@defun escape-string
+@findex @func{PQescapeString}
+Alias for @func{PQescapeString}.
+@end defun
+
+
+@defun escape-bytea
+@findex @func{PQescapeBytea}
+Alias for @func{PQescapeBytea}.
+@end defun
 
 @c page
 @node compensations

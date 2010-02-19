@@ -83,9 +83,8 @@
 
 ;;; --------------------------------------------------------------------
 
-    <connection>		<connection-rtd>
-    <connection>?
-    pointer-><connection>	<connection>->pointer
+    connection			connection?
+    pointer->connection		connection->pointer
 
     query-result		query-result?
     pointer->query-result	query-result->pointer
@@ -209,19 +208,43 @@
     result-error-field			;; PQresultErrorField
 
     ;; extracting informations from query results
-    number-of-tuples			;; PQntuples
-    number-of-fields			;; PQnfields
-    field-name				;; PQfname
-    field-name*
-    field-number			;; PQfnumber
-    field-number*
-    result-column-index->table-oid		;; PQftable
-    result-column-index->table-column-number	;; PQftablecol
-    result-column-index->format-code	;; PQfformat
-    result-column-index->type-oid	;; PQftype
+    result-number-of-tuples		;; PQntuples
+    result-tuple-index?
+    assert-result-tuple-index
+    result-number-of-fields		;; PQnfields
+    result-field-index?
+    assert-result-field-index
+    result-field-name			;; PQfname
+    result-field-name?
+    assert-result-field-name
+    result-field-number			;; PQfnumber
+    result-column-table-oid		;; PQftable
+    result-table-column-number		;; PQftablecol
+    result-column-format-code		;; PQfformat
+    result-column-type-oid		;; PQftype
+    result-type-modifier		;; PQfmod
+    result-column-size			;; PQfsize
+    result-null-value?			;; PQgetisnull
+    result-value-length			;; PQgetlength
+    result-get-value			;; PQgetvalue
+    result-get-value/text		;; PQgetvalue
+    result-get-value/binary		;; PQgetvalue
+    result-number-of-parameters		;; PQnparams
+    result-parameter-index?
+    assert-result-parameter-index
+    result-parameter-type-oid		;; PQparamtype
+    result-command-status		;; PQcmdStatus
+    result-affected-rows		;; PQcmdTuples
+    result-new-row-oid			;; PQoidValue
+
+    ;; escaping
+    escape-string-conn			;; PQescapeStringConn
+    escape-bytes-conn			;; PQescapeByteaConn
+    escape-bytes-conn/bv
+    unescape-bytes			;; PQunescapeBytea
+    unescape-bytes/bv
 
     set-non-blocking			;; PQsetnonblocking
-
 
     )
   (import (rnrs)

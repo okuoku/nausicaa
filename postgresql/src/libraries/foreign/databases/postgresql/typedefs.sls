@@ -28,9 +28,8 @@
 (library (foreign databases postgresql typedefs)
   (export
 
-    <connection>		<connection-rtd>
-    <connection>?
-    pointer-><connection>	<connection>->pointer
+    connection			connection?
+    pointer->connection	connection->pointer
 
     query-result		query-result?
     pointer->query-result	query-result->pointer
@@ -45,6 +44,9 @@
 
     ssl				ssl?
     pointer->ssl		ssl->pointer
+
+    FILE*			FILE*?
+    pointer->FILE*		FILE*->pointer
 
 ;;; --------------------------------------------------------------------
 
@@ -67,11 +69,8 @@
     (foreign databases postgresql sizeof))
 
 
-(define-record-type (<connection> pointer-><connection> <connection>?)
-  (fields (immutable pointer <connection>->pointer)))
-
-(define <connection-rtd>
-  (record-type-descriptor <connection>))
+(define-record-type (connection pointer->connection connection?)
+  (fields (immutable pointer connection->pointer)))
 
 (define-record-type (query-result pointer->query-result query-result?)
   (fields (immutable pointer query-result->pointer)))
@@ -89,6 +88,10 @@
 (define-record-type (ssl pointer->ssl ssl?)
   (nongenerative nausicaa:openssl:ssl)
   (fields (immutable object ssl->pointer)))
+
+(define-record-type (FILE* pointer->FILE* FILE*?)
+  (nongenerative nausicaa:posix:FILE*)
+  (fields (immutable object FILE*->pointer)))
 
 
 (define-record-type <connect-option>

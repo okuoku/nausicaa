@@ -257,70 +257,147 @@ select * from accounts;
 	  (when (enum-set=? (pg:exec-status tuples-ok) (pg:result-status result))
 
 	    (check
-		(pg:number-of-tuples result)
+		(pg:result-number-of-tuples result)
 	      => 3)
 
 	    (check
-		(pg:number-of-fields result)
+		(pg:result-number-of-fields result)
 	      => 2)
 
 	    (check
-		(pg:field-name result 0)
+		(pg:result-field-name result 0)
 	      => "nickname")
 
 	    (check
-		(pg:field-name result 1)
+		(pg:result-field-name result 1)
 	      => "password")
 
 	    (check
-		(guard (E (else
-;;;			   (display (condition-message E))(newline)
-			   (condition-who E)))
-		  (pg:field-name* result 2))
-	      => 'field-name*)
-
-	    (check
-		(pg:field-number result 'nickname)
-	      => 0)
-
-	    (check
-		(pg:field-number result 'password)
-	      => 1)
-
-	    (check
-		(guard (E (else
-;;;			   (display (condition-message E))(newline)
-			   (condition-who E)))
-		  (pg:field-number* result 'ciao))
-	      => 'field-number*)
-
-	    (check
-		(integer? (pg:result-column-index->table-oid result 0))
+		(pg:result-field-name? result 'password)
 	      => #t)
 
 	    (check
-		(pg:result-column-index->table-column-number result 0)
+		(pg:result-field-name? result 'ciao)
+	      => #f)
+
+	    (check
+		(guard (E (else
+;;;			   (display (condition-message E))(newline)
+			   (condition-who E)))
+		  (pg:result-field-name result 2))
+	      => 'result-field-name)
+
+	    (check
+		(pg:result-field-number result 'nickname)
+	      => 0)
+
+	    (check
+		(pg:result-field-number result 'password)
 	      => 1)
 
 	    (check
-		(pg:result-column-index->format-code result 0)
+		(guard (E (else
+;;;			   (display (condition-message E))(newline)
+			   (condition-who E)))
+		  (pg:result-field-number result 'ciao))
+	      => 'result-field-number)
+
+	    (check
+		(integer? (pg:result-column-table-oid result 0))
+	      => #t)
+
+	    (check
+		(pg:result-table-column-number result 0)
+	      => 1)
+
+	    (check
+		(pg:result-column-format-code result 0)
 	      (=> enum-set=?)
 	      (pg:format-code text))
 
 	    (check
 		(guard (E (else (condition-who E)))
-		  (pg:result-column-index->format-code result 9))
-	      => 'result-column-index->format-code)
+		  (pg:result-column-format-code result 9))
+	      => 'result-column-format-code)
 
 	    (check
-		(integer? (pg:result-column-index->type-oid result 1))
+		(integer? (pg:result-column-type-oid result 1))
 	      => #t)
 
 	    (check
-		(pg:result-column-index->type-oid result 9)
+		(guard (E (else
+;;;			   (display (condition-message E))(newline)
+			   (condition-who E)))
+		  (pg:result-column-type-oid result 9))
+	      => 'result-column-type-oid)
+
+	    (check
+		(pg:result-type-modifier result 1)
+	      => #f)
+
+	    (check
+		(pg:result-column-size result 1)
+	      => #f)
+
+	    (check
+		(pg:result-null-value? result 0 1)
+	      => #f)
+
+	    (check
+		(pg:result-get-value/text result 0 0)
+	      => "ichigo")
+
+	    (check
+		(pg:result-get-value/text result 1 0)
+	      => "rukia")
+
+	    (check
+		(pg:result-get-value/text result 2 1)
+	      => "fist")
+
+	    (check
+		(pg:result-get-value/binary result 2 1)
+	      => (string->utf8 "fist"))
+
+	    (check
+		(pg:result-command-status result)
+	      => "SELECT")
+
+	    (check
+		(pg:result-affected-rows result)
+	      => #f)
+
+	    (check
+		(pg:result-new-row-oid result)
 	      => #f)
 
 	    #f)))))
+  #t)
+
+
+(parametrise ((check-test-name	'escapes))
+
+  (with-compensations
+    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+
+      (check
+	  (pg:escape-string-conn conn "select")
+	=> "select")
+
+      (check
+	  (pg:escape-string-conn conn "'")
+	=> "''")
+
+      (check
+	  (pg:escape-bytes-conn/bv conn '#vu8(0))
+	=> "\\\\000")
+
+      (check
+	  (pg:unescape-bytes/bv "ciao")
+	=> '#vu8(99 105  97 111))
+
+      #f))
+
   #t)
 
 

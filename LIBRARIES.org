@@ -89,7 +89,15 @@
 
    (http://savannah.gnu.org/projects/glpk/)
 
+
 * Libraries to be evaluated
+
+** Graphics and plotting libraries
+
+*** pgplot
+
+    Written in Fortran 77.  It is free only for non-commercial use.
+    http://www.astro.caltech.edu/~tjp/pgplot/
 
 ** LDNS, DNS library
 

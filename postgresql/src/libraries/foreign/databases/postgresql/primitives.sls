@@ -84,16 +84,42 @@
     result-error-field			;; PQresultErrorField
 
     ;; extracting informations from query results
-    number-of-tuples			;; PQntuples
-    number-of-fields			;; PQnfields
-    field-name				;; PQfname
-    field-name*
-    field-number			;; PQfnumber
-    field-number*
-    result-column-index->table-oid		;; PQftable
-    result-column-index->table-column-number	;; PQftablecol
-    result-column-index->format-code	;; PQfformat
-    result-column-index->type-oid	;; PQftype
+    result-number-of-tuples		;; PQntuples
+    result-tuple-index?
+    assert-result-tuple-index
+    result-number-of-fields		;; PQnfields
+    result-field-index?
+    assert-result-field-index
+    result-field-name			;; PQfname
+    result-field-name?
+    assert-result-field-name
+    result-field-number			;; PQfnumber
+    result-column-table-oid		;; PQftable
+    result-table-column-number		;; PQftablecol
+    result-column-format-code		;; PQfformat
+    result-column-type-oid		;; PQftype
+    result-type-modifier		;; PQfmod
+    result-column-size			;; PQfsize
+    result-null-value?			;; PQgetisnull
+    result-value-length			;; PQgetlength
+    result-get-value			;; PQgetvalue
+    result-get-value/text		;; PQgetvalue
+    result-get-value/binary		;; PQgetvalue
+    result-number-of-parameters		;; PQnparams
+    result-parameter-index?
+    assert-result-parameter-index
+    result-parameter-type-oid		;; PQparamtype
+    result-command-status		;; PQcmdStatus
+    result-affected-rows		;; PQcmdTuples
+    result-new-row-oid			;; PQoidValue
+
+    ;; escaping
+    escape-string-conn			;; PQescapeStringConn
+    escape-bytes-conn			;; PQescapeByteaConn
+    escape-bytes-conn/bv
+    unescape-bytes			;; PQunescapeBytea
+    unescape-bytes/bv
+
 
     set-non-blocking			;; PQsetnonblocking
 
@@ -135,17 +161,7 @@
 	    (PQflush				flush)
 	    (PQfn				fn)
 	    (PQbinaryTuples			binary-tuples)
-	    (PQfsize				fsize)
-	    (PQfmod				fmod)
-	    (PQcmdStatus			cmd-status)
 	    (PQoidStatus			oid-status)
-	    (PQoidValue				oid-value)
-	    (PQcmdTuples			cmd-tuples)
-	    (PQgetvalue				getvalue)
-	    (PQgetlength			getlength)
-	    (PQgetisnull			getisnull)
-	    (PQnparams				nparams)
-	    (PQparamtype			paramtype)
 	    (PQdescribePrepared			describe-prepared)
 	    (PQdescribePortal			describe-portal)
 	    (PQsendDescribePrepared		send-describe-prepared)
@@ -156,11 +172,6 @@
 	    (PQsetResultAttrs			set-result-attrs)
 	    (PQresultAlloc			result-alloc)
 	    (PQsetvalue				setvalue)
-	    (PQescapeStringConn			escape-string-conn)
-	    (PQescapeByteaConn			escape-bytea-conn)
-	    (PQunescapeBytea			unescape-bytea)
-	    (PQescapeString			escape-string)
-	    (PQescapeBytea			escape-bytea)
 	    (PQprint				print)
 	    (PQdisplayTuples			display-tuples)
 	    (PQprintTuples			print-tuples)
@@ -184,12 +195,15 @@
 	    (pg_char_to_encoding		char-to-encoding)
 	    (pg_encoding_to_char		encoding-to-char)
 	    (pg_valid_server_encoding_id	valid-server-encoding-id)
+	    (PQescapeString			escape-string)
+	    (PQescapeBytea			escape-bytea)
 
 	    (PQfreeNotify			free-notify)
 	    (InvalidOid				invalid-oid)
 	    (PQnoPasswordSupplied		no-password-supplied)))
   (import (rnrs)
     (begin0)
+    (receive)
     (compensations)
     (foreign ffi)
     (foreign memory)
@@ -208,7 +222,7 @@
     (let ((p (func (string->cstring/c info))))
       (if (pointer-null? p)
 	  (raise-out-of-memory who #f)
-	(pointer-><connection> p)))))
+	(pointer->connection p)))))
 
 (define connect-db
   (case-lambda
@@ -225,7 +239,7 @@
     (%do-connect 'connect-start PQconnectStart info))))
 
 (define (connect-poll conn)
-  (let ((v (PQconnectPoll (<connection>->pointer conn))))
+  (let ((v (PQconnectPoll (connection->pointer conn))))
     (if (= v PGRES_POLLING_FAILED)
 	(raise
 	 (condition (make-postgresql-error-condition)
@@ -235,7 +249,7 @@
       (value->polling-status v))))
 
 (define (connect-poll* conn)
-  (value->polling-status (PQconnectPoll (<connection>->pointer conn))))
+  (value->polling-status (PQconnectPoll (connection->pointer conn))))
 
 (define (set-db-login pghost pgport pgoptions pgtty dbname login pwd)
   ;;Deprecated.
@@ -249,7 +263,7 @@
 			   (%arg dbname) (%arg login) (%arg pwd))))
       (if (pointer-null? p)
 	  (raise-out-of-memory 'set-db-login #f)
-	(pointer-><connection> p)))))
+	(pointer->connection p)))))
 
 (define (set-db pghost pgport pgoptions pgtty dbname)
   ;;Deprecated.
@@ -257,16 +271,16 @@
   (set-db-login pghost pgport pgoptions pgtty dbname #f #f))
 
 (define (connect-finish conn)
-  (PQfinish (<connection>->pointer conn)))
+  (PQfinish (connection->pointer conn)))
 
 (define (reset conn)
-  (PQreset (<connection>->pointer conn)))
+  (PQreset (connection->pointer conn)))
 
 (define (reset-start conn)
-  (if (PQconnectStart (<connection>->pointer conn)) #t #f))
+  (if (PQconnectStart (connection->pointer conn)) #t #f))
 
 (define (reset-poll conn)
-  (let ((v (PQresetPoll (<connection>->pointer conn))))
+  (let ((v (PQresetPoll (connection->pointer conn))))
     (if (= v PGRES_POLLING_FAILED)
 	(raise
 	 (condition (make-postgresql-error-condition)
@@ -276,7 +290,7 @@
       (value->polling-status v))))
 
 (define (reset-poll* conn)
-  (value->polling-status (PQresetPoll (<connection>->pointer conn))))
+  (value->polling-status (PQresetPoll (connection->pointer conn))))
 
 (define (%connect-options-array->list arry*)
   (let loop ((arry* arry*) (ell '()))
@@ -317,10 +331,10 @@
 ;;;; inspection
 
 (define (status conn)
-  (value->connection-status (PQstatus (<connection>->pointer conn))))
+  (value->connection-status (PQstatus (connection->pointer conn))))
 
 (define (%status? status conn)
-  (= status (PQstatus (<connection>->pointer conn))))
+  (= status (PQstatus (connection->pointer conn))))
 
 (define (status/ok? conn)
   (%status? CONNECTION_OK conn))
@@ -357,65 +371,65 @@
 ;;;release it (Marco Maggi.  Wed Feb 17, 2010).
 
 (define (connection-database conn)
-  (let ((p (PQdb (<connection>->pointer conn))))
+  (let ((p (PQdb (connection->pointer conn))))
     (if (pointer-null? p) #f  (cstring->string p))))
 
 (define (connection-user conn)
-  (let ((p (PQuser (<connection>->pointer conn))))
+  (let ((p (PQuser (connection->pointer conn))))
     (if (pointer-null? p) #f  (cstring->string p))))
 
 (define (connection-password conn)
-  (let ((p (PQpass (<connection>->pointer conn))))
+  (let ((p (PQpass (connection->pointer conn))))
     (if (pointer-null? p) #f  (cstring->string p))))
 
 (define (connection-host conn)
-  (let ((p (PQhost (<connection>->pointer conn))))
+  (let ((p (PQhost (connection->pointer conn))))
     (if (pointer-null? p) #f  (cstring->string p))))
 
 (define (connection-port conn)
-  (let ((p (PQport (<connection>->pointer conn))))
+  (let ((p (PQport (connection->pointer conn))))
     (if (pointer-null? p) #f  (cstring->string p))))
 
 (define (connection-tty conn)
-  (let ((p (PQtty (<connection>->pointer conn))))
+  (let ((p (PQtty (connection->pointer conn))))
     (if (pointer-null? p) #f  (cstring->string p))))
 
 (define (connection-options conn)
-  (let ((p (PQoptions (<connection>->pointer conn))))
+  (let ((p (PQoptions (connection->pointer conn))))
     (if (pointer-null? p) #f  (cstring->string p))))
 
 (define (connection-socket conn)
-  (integer-><fd> (PQsocket (<connection>->pointer conn))))
+  (integer-><fd> (PQsocket (connection->pointer conn))))
 
 (define (connection-transaction-status conn)
-  (value->transaction-status (PQtransactionStatus (<connection>->pointer conn))))
+  (value->transaction-status (PQtransactionStatus (connection->pointer conn))))
 
 (define (connection-parameter-status conn parm-name)
   (with-compensations
-    (let ((p (PQparameterStatus (<connection>->pointer conn) (string->cstring/c parm-name))))
+    (let ((p (PQparameterStatus (connection->pointer conn) (string->cstring/c parm-name))))
       (if (pointer-null? p) #f (cstring->string p)))))
 
 (define (connection-protocol-version conn)
-  (PQprotocolVersion (<connection>->pointer conn)))
+  (PQprotocolVersion (connection->pointer conn)))
 
 (define (connection-server-version conn)
-  (PQserverVersion (<connection>->pointer conn)))
+  (PQserverVersion (connection->pointer conn)))
 
 (define (connection-error-message conn)
-  (let ((p (PQerrorMessage (<connection>->pointer conn))))
+  (let ((p (PQerrorMessage (connection->pointer conn))))
     (if (pointer-null? p) #f (cstring->string p))))
 
 (define (connection-backend-pid conn)
-  (integer->pid (PQbackendPID (<connection>->pointer conn))))
+  (integer->pid (PQbackendPID (connection->pointer conn))))
 
 (define (connection-needs-password conn)
-  (not (zero? (PQconnectionNeedsPassword (<connection>->pointer conn)))))
+  (not (zero? (PQconnectionNeedsPassword (connection->pointer conn)))))
 
 (define (connection-used-password conn)
-  (not (zero? (PQconnectionUsedPassword (<connection>->pointer conn)))))
+  (not (zero? (PQconnectionUsedPassword (connection->pointer conn)))))
 
 (define (connection-get-ssl conn)
-  (let ((p (PQgetssl (<connection>->pointer conn))))
+  (let ((p (PQgetssl (connection->pointer conn))))
     (if (pointer-null? p) #f (pointer->ssl p))))
 
 
@@ -426,7 +440,7 @@
 
 (define (exec conn query)
   (with-compensations
-    (let ((p (PQexec (<connection>->pointer conn) (string->cstring/c query))))
+    (let ((p (PQexec (connection->pointer conn) (string->cstring/c query))))
       (if (pointer-null? p)
 	  (raise
 	   (condition (make-postgresql-error-condition)
@@ -440,7 +454,7 @@
   #f)
 ;; (define (exec-params conn query parms param-format)
 ;;   (with-compensations
-;;     (let ((p (PQexecParams (<connection>->pointer conn)
+;;     (let ((p (PQexecParams (connection->pointer conn)
 ;; 			   (string->cstring/c query)
 ;; 			   number-of-params param-types* param-values* param-lengths* param-formats*
 ;; 			   (if result-format 1 0))))
@@ -477,71 +491,238 @@
 	#f
       (cstring->string p))))
 
+(define (result-command-status result)
+  (cstring->string (PQcmdStatus (query-result->pointer result))))
+
+(define (result-new-row-oid result)
+  (let ((oid (PQoidValue (query-result->pointer result))))
+    (if (= oid InvalidOid)
+	#f
+      oid)))
+
 
 ;; extracting informations from query results
 
-(define (number-of-tuples result)
+(define (result-number-of-tuples result)
   (PQntuples (query-result->pointer result)))
 
-(define (number-of-fields result)
+(define (result-tuple-index? result tuple-index)
+  (< -1 tuple-index (result-number-of-tuples result)))
+
+(define (assert-result-tuple-index who result tuple-index)
+  (or (result-tuple-index? result tuple-index)
+      (assertion-violation who
+	(string-append "tuple index "
+		       (number->string tuple-index)
+		       " out of range, must be in [0.."
+		       (number->string (- (result-number-of-tuples result) 1))
+		       "]")
+	(list result tuple-index))))
+
+;;; --------------------------------------------------------------------
+
+(define (result-number-of-fields result)
   (PQnfields (query-result->pointer result)))
 
-(define (field-name result field-index)
-  (let ((p (PQfname (query-result->pointer result) field-index)))
-    (if (pointer-null? p)
-	#f
-      (cstring->string p))))
+(define (result-field-index? result field-index)
+  (< -1 field-index (result-number-of-fields result)))
 
-(define (field-name* result field-index)
-  (or (field-name result field-index)
-      (error 'field-name*
+(define (assert-result-field-index who result field-index)
+  (or (result-field-index? result field-index)
+      (assertion-violation who
 	(string-append "field index "
 		       (number->string field-index)
 		       " out of range, must be in [0.."
-		       (number->string (- (number-of-fields result) 1))
+		       (number->string (- (result-number-of-fields result) 1))
 		       "]")
-	field-index)))
+	(list result field-index))))
 
-(define (field-number result field-name)
+;;; --------------------------------------------------------------------
+
+(define (result-field-name result field-index)
+  (assert-result-field-index 'result-field-name result field-index)
+  (let ((p (PQfname (query-result->pointer result) field-index)))
+    (assert (not (pointer-null? p)))
+    (cstring->string p)))
+
+(define (result-field-name? result field-name)
+  (with-compensations
+    (not (= -1 (PQfnumber (query-result->pointer result) (string->cstring/c field-name))))))
+
+(define (assert-result-field-name who result field-name)
+  (or (result-field-name? result field-name)
+      (assertion-violation who
+	(string-append "invalid field name '" (if (symbol? field-name)
+						  (symbol->string field-name)
+						field-name) "'")
+	(list result field-name))))
+
+;;; --------------------------------------------------------------------
+
+(define (result-field-number result field-name)
   (with-compensations
     (let ((n (PQfnumber (query-result->pointer result) (string->cstring/c field-name))))
       (if (= -1 n)
-	  #f
+	  (assertion-violation 'result-field-number
+	    (string-append "invalid field name '" (if (symbol? field-name)
+						      (symbol->string field-name)
+						    field-name) "'")
+	    (list result field-name))
 	n))))
 
-(define (field-number* result field-name)
-  (or (field-number result field-name)
-      (error 'field-number* (string-append "invalid field name '"
-					   (if (symbol? field-name)
-					       (symbol->string field-name)
-					     field-name) "'")
-	     field-name)))
+;;; --------------------------------------------------------------------
 
-(define (result-column-index->table-oid result field-index)
-  (let ((oid (PQftable (query-result->pointer result) field-index)))
-    (if (= InvalidOid oid)
+(define (result-null-value? result tuple-index field-index)
+  (assert-result-tuple-index 'result-null-value? result tuple-index)
+  (assert-result-field-index 'result-null-value? result field-index)
+  (not (zero? (PQgetisnull (query-result->pointer result) tuple-index field-index))))
+
+(define (result-value-length result tuple-index field-index)
+  (assert-result-tuple-index 'result-value-length result tuple-index)
+  (assert-result-field-index 'result-value-length result field-index)
+  (PQgetlength (query-result->pointer result) tuple-index field-index))
+
+(define (result-get-value result tuple-index field-index)
+  (assert-result-tuple-index 'result-get-value result tuple-index)
+  (assert-result-field-index 'result-get-value result field-index)
+  (PQgetvalue (query-result->pointer result) tuple-index field-index))
+
+(define (result-get-value/text result tuple-index field-index)
+  (assert-result-tuple-index 'result-get-value/text result tuple-index)
+  (assert-result-field-index 'result-get-value/text result field-index)
+  (let ((res (query-result->pointer result)))
+    (cstring->string (PQgetvalue  res tuple-index field-index)
+		     (PQgetlength res tuple-index field-index))))
+
+(define (result-get-value/binary result tuple-index field-index)
+  (assert-result-tuple-index 'result-get-value/binary result tuple-index)
+  (assert-result-field-index 'result-get-value/binary result field-index)
+  (let ((res (query-result->pointer result)))
+    (pointer->bytevector (PQgetvalue  res tuple-index field-index)
+			 (PQgetlength res tuple-index field-index))))
+
+;;; --------------------------------------------------------------------
+
+(define (result-number-of-parameters result)
+  (PQnparams (query-result->pointer result)))
+
+(define (result-parameter-index? result parm-index)
+  (and (<= 0 parm-index) (< parm-index (result-number-of-parameters result))))
+
+(define (assert-result-parameter-index who result parm-index)
+  (or (result-parameter-index? result parm-index)
+      (assertion-violation who
+	(let ((n (result-number-of-parameters result)))
+	  (if (zero? n)
+	      "result has no parameters"
+	    (string-append "parameter index "
+			   (number->string parm-index)
+			   " out of range, must be in [0.."
+			   (number->string (- n 1))
+			   "]")))
+	(list result parm-index))))
+
+(define (result-parameter-type-oid result parm-index)
+  (assert-result-parameter-index 'result-parameter-type-oid result parm-index)
+  (let ((oid (PQparamtype (query-result->pointer result) parm-index)))
+    (if (= oid InvalidOid)
 	#f
       oid)))
 
-(define (result-column-index->table-column-number result field-index)
-  (let ((n (PQftablecol (query-result->pointer result) field-index)))
-    (if (zero? n)
+;;; --------------------------------------------------------------------
+
+(define (result-column-table-oid result field-index)
+  (assert-result-field-index 'result-column-table-oid result field-index)
+  (begin0-let ((oid (PQftable (query-result->pointer result) field-index)))
+    (assert (not (= InvalidOid oid)))))
+
+(define (result-table-column-number result field-index)
+  (assert-result-field-index 'result-table-column-number result field-index)
+  (begin0-let ((n (PQftablecol (query-result->pointer result) field-index)))
+    (assert (not (zero? n)))))
+
+(define (result-column-format-code result field-index)
+  (assert-result-field-index 'result-column-format-code result field-index)
+  (value->format-code (PQfformat (query-result->pointer result) field-index)))
+
+(define (result-column-type-oid result field-index)
+  (assert-result-field-index 'result-column-type-oid result field-index)
+  (begin0-let ((oid (PQftype (query-result->pointer result) field-index)))
+    (assert (not (= InvalidOid oid)))))
+
+(define (result-type-modifier result field-index)
+  (assert-result-field-index 'result-type-modifier result field-index)
+  (let ((n (PQfmod (query-result->pointer result) field-index)))
+    (if (= -1 n)
 	#f
       n)))
 
-(define (result-column-index->format-code result field-index)
-  (value->format-code (PQfformat (query-result->pointer result) field-index)))
-
-(define (result-column-index->type-oid result field-index)
-  (let ((oid (PQftype (query-result->pointer result) field-index)))
-    (if (= InvalidOid oid)
+(define (result-column-size result field-index)
+  (assert-result-field-index 'result-column-size result field-index)
+  (let ((n (PQfsize (query-result->pointer result) field-index)))
+    (if (negative? n)
 	#f
-      oid)))
+      n)))
+
+(define (result-affected-rows result)
+  (let ((p (PQcmdTuples (query-result->pointer result))))
+    (if (zero? (strlen p))
+	#f
+      (string->number (cstring->string p)))))
+
+
+;;;; escaping
+
+(define (escape-string-conn conn src-string)
+  (with-compensations
+    (let* ((src.ptr	(string->cstring/c src-string))
+	   (src.len	(strlen src.ptr))
+	   (err.ptr	(malloc-small/c))
+	   (dst.ptr	(malloc-block/c (+ 1 (* 2 src.len))))
+	   (dst.len	(PQescapeStringConn (connection->pointer conn) dst.ptr src.ptr src.len err.ptr)))
+      (if (zero? (pointer-ref-c-signed-int err.ptr 0))
+	  (cstring->string dst.ptr dst.len)
+	(error 'escape-string-conn (connection-error-message conn) (list conn src-string))))))
+
+(define (escape-bytes-conn conn src.ptr src.len)
+  (with-compensations
+    (let* ((dst.len*	(malloc-small/c))
+	   (dst.ptr	(PQescapeByteaConn (connection->pointer conn) src.ptr src.len dst.len*)))
+      (if (pointer-null? dst.ptr)
+	  (error 'escape-bytes-conn (connection-error-message conn) (list conn src.ptr src.len))
+	(values dst.ptr (pointer-ref-c-size_t dst.len* 0))))))
+
+(define (escape-bytes-conn/bv conn bv)
+  (with-compensations
+    (let* ((dst.len*	(malloc-small/c))
+	   (dst.ptr	(PQescapeByteaConn (connection->pointer conn)
+					   (bytevector->pointer bv malloc-block/c)
+					   (bytevector-length bv)
+					   dst.len*)))
+      (if (pointer-null? dst.ptr)
+	  (error 'escape-bytes-conn/bv (connection-error-message conn) (list conn bv))
+	(begin0-let ((dst (cstring->string dst.ptr (- (pointer-ref-c-size_t dst.len* 0) 1))))
+	  (PQfreemem dst.ptr))))))
+
+(define (unescape-bytes src.ptr)
+  (with-compensations
+    (let* ((dst.len*	(malloc-small/c))
+	   (dst.ptr	(PQunescapeBytea src.ptr dst.len*)))
+      (if (pointer-null? dst.ptr)
+	  (error 'unescape-bytes "error unescaping string" src.ptr)
+	(values dst.ptr (pointer-ref-c-size_t dst.len* 0))))))
+
+(define (unescape-bytes/bv str)
+  (with-compensations
+    (receive (dst.ptr dst.len)
+	(unescape-bytes (string->cstring/c str))
+      (begin0-let ((bv (pointer->bytevector dst.ptr dst.len)))
+	(primitive-free dst.ptr)))))
 
 
 
 (define (set-non-blocking conn)
-  (PQsetnonblocking (<connection>->pointer conn) 1))
+  (PQsetnonblocking (connection->pointer conn) 1))
 
 
 ;; typedef void (*PQnoticeReceiver) (void *arg, const PGresult *res);
