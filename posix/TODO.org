@@ -12,6 +12,8 @@
 
 * posix
 
+  Add "getaddrinfo()", see the manual page.
+
   Scan the Linux sockets manual pages for Linux-specific extensions.
 
   Implement: sendmsg, recvmsg, cmsg.  See the linux manual pages.
