@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Sun Feb 14, 2010
+;;;Date: Sat Feb 20, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -35,6 +35,9 @@
     pointer-ref-c-Oid
     pointer-set-c-Oid!
     Oid*
+    sizeof-Oid-array
+    array-set-c-Oid!
+    array-ref-c-Oid
     pgthreadlock_t
     PGconn*
     sizeof-PGconn
@@ -224,6 +227,29 @@
   (define pointer-ref-c-Oid @GETTEROF_OID@)
   (define pointer-set-c-Oid! @SETTEROF_OID@)
   (define Oid* 'pointer)
+  (define-syntax
+    sizeof-Oid-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-Oid ?number-of-elements))))
+  (define-syntax
+    array-set-c-Oid!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-Oid!
+         ?pointer
+         (* strideof-Oid ?index)
+         ?value))))
+  (define-syntax
+    array-ref-c-Oid
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-Oid
+         ?pointer
+         (* strideof-Oid ?index)))))
   (define pgthreadlock_t 'callback)
   (define PGconn* 'pointer)
   (define sizeof-PGconn @SIZEOF_PGCONN@)

@@ -107,6 +107,15 @@
 
     pointer-><connect-option>
 
+    <parameter>				<parameter-rtd>
+    make-<parameter>			<parameter>?
+    <parameter>-value
+    <parameter>-size
+    <parameter>-text?
+    <parameter>-oid
+
+    parameter
+
 ;;; --------------------------------------------------------------------
 
     enum-polling-status			polling-status
@@ -144,10 +153,25 @@
     query-result-condition?
     query-result-condition
 
+    &parameters
+    make-parameters-condition
+    parameters-condition?
+    parameters-condition
+
     &postgresql-error
     make-postgresql-error-condition
     postgresql-error-condition?
     condition-postgresql-error-code
+
+    &statement-name
+    make-statement-name-condition
+    statement-name-condition?
+    statement-name-condition
+
+    &portal-name
+    make-portal-name-condition
+    portal-name-condition?
+    portal-name-condition
 
 ;;; --------------------------------------------------------------------
 
@@ -199,7 +223,10 @@
     ;; executing queries
     clear-result			;; PQclear
     exec				;; PQexec
-    exec-params				;; PQexecParams
+    exec-parametrised-query		;; PQexecParams
+    prepare-statement			;; PQprepare
+    describe-prepared-statement		;; PQdescribePrepared
+    exec-prepared-statement		;; PQexecPrepared
 
     ;; inspecting query results
     result-status			;; PQresultStatus
@@ -244,7 +271,11 @@
     unescape-bytes			;; PQunescapeBytea
     unescape-bytes/bv
 
+    ;;
     set-non-blocking			;; PQsetnonblocking
+
+    ;; miscellaneous
+    describe-portal			;; PQdescribePortal
 
     )
   (import (rnrs)

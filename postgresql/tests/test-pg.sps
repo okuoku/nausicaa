@@ -375,6 +375,156 @@ select * from accounts;
   #t)
 
 
+(parametrise ((check-test-name	'parametrised-queries))
+
+  (with-compensations
+    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+
+      (check
+	  (pg:status/ok? conn)
+	=> #t)
+
+      (when (pg:status/ok? conn)
+
+	;;;(pg:exec/c conn "drop table accounts")
+
+	(compensate
+	    (pg:exec/c conn "
+create table accounts (nickname TEXT, password TEXT);
+insert into accounts (nickname, password) values ('ichigo', 'abcde');
+insert into accounts (nickname, password) values ('rukia', '12345');
+insert into accounts (nickname, password) values ('chad', 'fist');
+")
+	    (with
+	     (pg:exec/c conn "drop table accounts")))
+
+	(let ((result (pg:exec-parametrised-query/c
+		       conn
+		       "select * from accounts where nickname = $1;"
+		       (list (pg:parameter "rukia"))
+		       #t)))
+
+	  (check
+	      (pg:result-status result)
+	    (=> enum-set=?)
+	    (pg:exec-status tuples-ok))
+
+	  (check
+	      (pg:status->string (pg:result-status result))
+	    => "PGRES_TUPLES_OK")
+
+	  (when (enum-set=? (pg:exec-status tuples-ok) (pg:result-status result))
+
+	    (check
+		(pg:result-number-of-tuples result)
+	      => 1)
+
+	    (check
+		(pg:result-number-of-fields result)
+	      => 2)
+
+	    (check
+		(pg:result-field-name result 0)
+	      => "nickname")
+
+
+	    #f)))))
+
+  #t)
+
+
+(parametrise ((check-test-name	'prepared-statements))
+
+  (with-compensations
+    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+
+      (check
+	  (pg:status/ok? conn)
+	=> #t)
+
+      (when (pg:status/ok? conn)
+
+	;;;(pg:exec/c conn "drop table accounts")
+
+	(compensate
+	    (pg:exec/c conn "
+create table accounts (nickname TEXT, password TEXT);
+insert into accounts (nickname, password) values ('ichigo', 'abcde');
+insert into accounts (nickname, password) values ('rukia', '12345');
+insert into accounts (nickname, password) values ('chad', 'fist');
+")
+	    (with
+	     (pg:exec/c conn "drop table accounts")))
+
+	(let ((result (pg:prepare-statement/c conn 'the-row
+					      "select * from accounts where nickname = $1;" 1)))
+
+	  (check
+	      (pg:result-status result)
+	    (=> enum-set=?)
+	    (pg:exec-status command-ok))
+
+	  (check
+	      (pg:status->string (pg:result-status result))
+	    => "PGRES_COMMAND_OK")
+
+	  #f)
+
+	(let ((result (pg:describe-prepared-statement/c conn 'the-row)))
+
+	  (check
+	      (pg:result-status result)
+	    (=> enum-set=?)
+	    (pg:exec-status command-ok))
+
+	  (check
+	      (pg:status->string (pg:result-status result))
+	    => "PGRES_COMMAND_OK")
+
+	  #f)
+
+	(let ((result (pg:exec-prepared-statement/c conn 'the-row
+						    (list (pg:parameter "rukia"))
+						    #t)))
+
+	  (check
+	      (pg:result-status result)
+	    (=> enum-set=?)
+	    (pg:exec-status tuples-ok))
+
+	  (check
+	      (pg:status->string (pg:result-status result))
+	    => "PGRES_TUPLES_OK")
+
+	  (when (enum-set=? (pg:exec-status tuples-ok) (pg:result-status result))
+
+	    (check
+		(pg:result-number-of-tuples result)
+	      => 1)
+
+	    (check
+		(pg:result-number-of-fields result)
+	      => 2)
+
+	    (check
+		(pg:result-field-name result 0)
+	      => "nickname")
+
+	    (check
+		(pg:result-get-value/text result 0 0)
+	      => "rukia")
+
+	    (check
+		(pg:result-get-value/text result 0 1)
+	      => "12345")
+
+	    #f))
+
+	#f)))
+
+  #t)
+
+
 (parametrise ((check-test-name	'escapes))
 
   (with-compensations

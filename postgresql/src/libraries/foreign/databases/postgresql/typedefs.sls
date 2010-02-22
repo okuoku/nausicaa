@@ -62,6 +62,16 @@
 
     pointer-><connect-option>
 
+;;; --------------------------------------------------------------------
+
+    <parameter>				<parameter-rtd>
+    make-<parameter>			<parameter>?
+    <parameter>-value
+    <parameter>-size
+    <parameter>-text?
+    <parameter>-oid
+
+    parameter
     )
   (import (rnrs)
     (only (foreign cstrings) cstring->string)
@@ -121,6 +131,44 @@
    (cstring->string (struct-PQconninfoOption-label-ref pointer))
    (cstring->string (struct-PQconninfoOption-dispchar-ref pointer))
    (struct-PQconninfoOption-dispsize-ref pointer)))
+
+
+(define-record-type <parameter>
+  (fields (immutable value)
+	  (immutable size)
+	  (immutable text?)
+	  (immutable oid)))
+
+(define <parameter-rtd>
+  (record-type-descriptor <parameter>))
+
+(define %invalid-oid    0)
+(define %default-size #f)
+(define %default-text   #t)
+
+(define-syntax parameter
+  (syntax-rules (value size text? oid)
+
+    ((_ (value ?value) (size ?size) (text? ?text) (oid ?oid))
+     (make-<parameter> ?value ?size ?text ?oid))
+
+    ((_ (value ?value) (size ?size) (text? ?text))
+     (parameter (value ?value) (size ?size) (text? ?text) (oid %invalid-oid)))
+
+    ((_ (value ?value) (text? ?text) (oid ?oid))
+     (parameter (value ?value) (size %default-size) (text? ?text) (oid ?oid)))
+
+    ((_ (value ?value) (text? ?text))
+     (parameter (value ?value) (size %default-size) (text? ?text) (oid %invalid-oid)))
+
+    ((_ (value ?value) (oid ?oid))
+     (parameter (value ?value) (size %default-size) (text? %default-text) (oid ?oid)))
+
+    ((_ (value ?value))
+     (parameter (value ?value) (size %default-size) (text? %default-text) (oid %invalid-oid)))
+
+    ((_ ?value)
+     (parameter (value ?value) (size %default-size) (text? %default-text) (oid %invalid-oid)))))
 
 
 ;;;; done

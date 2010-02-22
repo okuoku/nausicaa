@@ -28,7 +28,12 @@
 (library (foreign databases postgresql compensated)
   (export
     connect-db/c
-    exec/c)
+    exec/c
+    exec-parametrised-query/c
+    prepare-statement/c
+    describe-prepared-statement/c
+    describe-portal/c
+    exec-prepared-statement/c)
   (import (rnrs)
     (compensations)
     (prefix (foreign databases postgresql) pg:))
@@ -48,6 +53,44 @@
 		      (pg:clear-result result)))))
     result))
 
+(define (exec-parametrised-query/c conn query parms textual-result?)
+  (letrec ((result (compensate
+		       (pg:exec-parametrised-query conn query parms textual-result?)
+		     (with
+		      (pg:clear-result result)))))
+    result))
+
+(define prepare-statement/c
+  (case-lambda
+   ((conn stmt-name query-string number-of-parms)
+    (prepare-statement/c conn stmt-name query-string number-of-parms #f))
+   ((conn stmt-name query-string number-of-parms parms-oid)
+    (letrec ((result (compensate
+			 (pg:prepare-statement conn stmt-name query-string number-of-parms parms-oid)
+		       (with
+			(pg:clear-result result)))))
+      result))))
+
+(define (describe-prepared-statement/c conn stmt-name)
+  (letrec ((result (compensate
+		       (pg:describe-prepared-statement conn stmt-name)
+		     (with
+		      (pg:clear-result result)))))
+    result))
+
+(define (describe-portal/c conn portal-name)
+  (letrec ((result (compensate
+		       (pg:describe-portal conn portal-name)
+		     (with
+		      (pg:clear-result result)))))
+    result))
+
+(define (exec-prepared-statement/c conn stmt-name parms textual-result?)
+  (letrec ((result (compensate
+		       (pg:exec-prepared-statement conn stmt-name parms textual-result?)
+		     (with
+		      (pg:clear-result result)))))
+    result))
 
 
 ;;;; done

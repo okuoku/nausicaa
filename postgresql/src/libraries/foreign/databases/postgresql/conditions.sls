@@ -42,10 +42,20 @@
     query-result-condition?
     query-result-condition
 
-    ;; &statement
-    ;; make-statement-condition
-    ;; statement-condition?
-    ;; statement-condition
+    &parameters
+    make-parameters-condition
+    parameters-condition?
+    parameters-condition
+
+    &statement-name
+    make-statement-name-condition
+    statement-name-condition?
+    statement-name-condition
+
+    &portal-name
+    make-portal-name-condition
+    portal-name-condition?
+    portal-name-condition
 
 ;;; --------------------------------------------------------------------
 
@@ -111,11 +121,23 @@
   query-result-condition?
   (result		query-result-condition))
 
-;; (define-condition-type &statement
-;;   &condition
-;;   make-statement-condition
-;;   statement-condition?
-;;   (statement	statement-condition))
+(define-condition-type &parameters
+  &condition
+  make-parameters-condition
+  parameters-condition?
+  (parameters		parameters-condition))
+
+(define-condition-type &statement-name
+  &condition
+  make-statement-name-condition
+  statement-name-condition?
+  (statement-name	statement-name-condition))
+
+(define-condition-type &portal-name
+  &condition
+  make-portal-name-condition
+  portal-name-condition?
+  (portal-name		portal-name-condition))
 
 
 (define-condition-type &postgresql-error

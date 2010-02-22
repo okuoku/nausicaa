@@ -533,6 +533,7 @@ entitled ``@gnu{} Free Documentation License''.
 * exec::                        Performing a database query.
 * query::                       Handling query results.
 * escapes::                     Escaping strings.
+* misc::                        Miscellaneous functions.
 * primitives::                  Miscellaneous primitive bindings.
 * compensations::               Compensated constructors.
 
@@ -557,6 +558,7 @@ Object type definitions
 * typedefs connection::         Database connection object.
 * typedefs result::             Query result object.
 * typedefs option::             Connection option object.
+* typedefs parameter::          Parameters for prepared queries.
 * typedefs fd::                 File descriptor object.
 * typedefs file::               Stream descriptor object.
 * typedefs pid::                Process identifier object.
@@ -575,6 +577,9 @@ Condition object definitions
 
 * conditions connect::          Database connection object.
 * conditions query::            @sql{} query string object.
+* conditions parameters::       @sql{} query parameters.
+* conditions statement::        Prepared statement name object.
+* conditions portal::           Portal name object.
 * conditions result::           @sql{} query result object.
 * conditions error::            Error condition object.
 
@@ -677,6 +682,7 @@ to import these libraries by prefixing the bindings, for example with
 * typedefs connection::         Database connection object.
 * typedefs result::             Query result object.
 * typedefs option::             Connection option object.
+* typedefs parameter::          Parameters for prepared queries.
 * typedefs fd::                 File descriptor object.
 * typedefs file::               Stream descriptor object.
 * typedefs pid::                Process identifier object.
@@ -789,6 +795,69 @@ Given a pointer object to a structure of type @code{PQconninfoOption}
 build and return a record of type @class{connect-option} initialised
 with values from the structure.
 @end defun
+
+@c page
+@node typedefs parameter
+@section Parameters for prepared queries
+
+
+@deftp {Record Type Name} <parameter>
+@deftpx {Record Type Descriptor} <parameter-rtd>
+Record type used as descriptor for prepared @sql{} statements
+parameters.  It has the following immutable fields:
+
+@table @code
+@item value
+The parameter's value; can be a Scheme string or byte vector, or a
+pointer object.
+
+@item size
+The number of bytes in the raw memory block referenced by the value;
+used only in case the value is a pointer object.
+
+@item text?
+Set to @true{} if the value is to be interpresed as textual data; else
+it is to be interpreted as binary data.
+
+@item oid
+An exact integer representing the type @acronym{OID} of the value.
+@end table
+@end deftp
+
+
+@defun make-<parameter> @var{value} @var{size} @var{text?} @var{oid}
+@defunx <parameter>? @var{obj}
+Constructor and predicate for records of type @class{parameter}.
+@end defun
+
+
+@defun <parameter>-value @var{obj}
+@defunx <parameter>-size @var{obj}
+@defunx <parameter>-text? @var{obj}
+@defunx <parameter>-oid @var{obj}
+Accessors for the fields of records of type @class{parameter}.
+@end defun
+
+
+@deffn Syntax parameter (value @ameta{val}) (size @ameta{len}) (text? @ameta{text}) (oid @ameta{oid})
+@deffnx Syntax parameter (value @ameta{val}) (size @ameta{len}) (text? @ameta{text})
+@deffnx Syntax parameter (value @ameta{val}) (text? @ameta{text}) (oid @ameta{oid})
+@deffnx Syntax parameter (value @ameta{val}) (text? @ameta{text})
+@deffnx Syntax parameter (value @ameta{val}) (oid @ameta{oid})
+@deffnx Syntax parameter (value @ameta{val})
+@deffnx Syntax parameter @ameta{val}
+@deffnx {Auxiliary Syntax} value
+@deffnx {Auxiliary Syntax} size
+@deffnx {Auxiliary Syntax} text?
+@deffnx {Auxiliary Syntax} oid
+Wrapper for @func{make-<parameter>} which allows the specification of a
+@class{parameter} as a human readable S--expression.
+
+@ameta{val} is stored in the @code{value} field; @ameta{len} is stored
+in the @code{size} fields and defaults to @false{}; @ameta{text} is
+stored in the @code{text?} fields and defaults to @true{}; @ameta{oid}
+is stored in the @code{oid} fields and defaults to @code{InvalidOid}.
+@end deffn
 
 @c page
 @node typedefs fd
@@ -1098,6 +1167,9 @@ to import these libraries by prefixing the bindings, for example with
 @menu
 * conditions connect::          Database connection object.
 * conditions query::            @sql{} query string object.
+* conditions parameters::       @sql{} query parameters.
+* conditions statement::        Prepared statement name object.
+* conditions portal::           Portal name object.
 * conditions result::           @sql{} query result object.
 * conditions error::            Error condition object.
 @end menu
@@ -1157,6 +1229,93 @@ Constructor and predicate for condition objects of type
 @defun query-string-condition @var{condition}
 Accessor for the field of condition objects of type
 @condition{query-string}.
+@end defun
+
+@c page
+@node conditions parameters
+@section @sql{} query parameters
+
+
+@deftp {Condition Type} &parameters
+Condition object type used to hold a list of @class{parameter} objects
+involved in a prepared @sql{} statement; it is derived from
+@condition{condition}.  It has the following fields:
+
+@table @code
+@item parameters
+A list of @class{parameter} records.
+@end table
+@end deftp
+
+
+@defun make-parameters-condition @var{parameters}
+@defunx parameters-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{parameters}.
+@end defun
+
+
+@defun parameters-condition @var{condition}
+Accessor for the field of condition objects of type
+@condition{parameters}.
+@end defun
+
+@c page
+@node conditions statement
+@section Prepared statement name object
+
+
+@deftp {Condition Type} &statement-name
+Condition object type used to hold a the name of a prepared statement;
+it is derived from @condition{condition}.  It has the following fields:
+
+@table @code
+@item statement-name
+A Scheme string or symbol representing the name; if set to @false{} the
+statement is unnamed.
+@end table
+@end deftp
+
+
+@defun make-statement-name-condition @var{stmt-name}
+@defunx statement-name-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{statement-name}.
+@end defun
+
+
+@defun statement-name-condition @var{condition}
+Accessor for the field of condition objects of type
+@condition{statement-name}.
+@end defun
+
+@c page
+@node conditions portal
+@section Portal name object
+
+
+@deftp {Condition Type} &portal-name
+Condition object type used to hold a the name of a portal; it is derived
+from @condition{condition}.  It has the following fields:
+
+@table @code
+@item portal-name
+A Scheme string or symbol representing the name; if set to @false{} the
+portal is unnamed.
+@end table
+@end deftp
+
+
+@defun make-portal-name-condition @var{portal-name}
+@defunx portal-name-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{portal-name}.
+@end defun
+
+
+@defun portal-name-condition @var{condition}
+Accessor for the field of condition objects of type
+@condition{portal-name}.
 @end defun
 
 @c page
@@ -1642,12 +1801,68 @@ raise an exception.
 @end defun
 
 
-@c @defun exec-params
-@c @findex @func{PQexecParams}
-@c Wrapper for @func{PQexecParams}.
-@c @end defun
+@defun exec-parametrised-query @var{conn} @var{query-string} @var{query-parms} @var{textual-result?}
+@findex @func{PQexecParams}
+Wrapper for @func{PQexecParams}.  Execute the parametrised
+@var{query-string} in the context of the connection @var{conn}; wait for
+the query to complete and return a @objtype{query-result} object.
+
+@var{query-string} must be the template for a query embedding place
+holders like @samp{$1}, @samp{$2}, @dots{} which are substituted by the
+parameters in @var{query-parms}.  @var{query-parms} must be a list of
+@class{parameter} records.
+
+If @var{textual-result?} is true, the result holds textual data; else it
+holds binary data.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Prepared statements
 
 
+@defun prepare-statement @var{conn} @var{stmt-name} @var{query-string} @var{number-of-parms}
+@defunx prepare-statement @var{conn} @var{stmt-name} @var{query-string} @var{number-of-parms} @var{parms-oid}
+@findex @func{PQprepare}
+Wrapper for @func{PQprepare}.  Build a new prepared statement in the
+context of the connection @var{conn} and wait for completion of the
+operation; return a @objtype{query-result} object.
+
+@var{stmt-name} must be a Scheme string or symbol representing the name
+of the statement; if it is @false{}, the statement is unnamed.
+@var{query-string} must be a Scheme string representing the @sql{}
+command.  @var{number-of-parms} is the number of parameters in the
+@sql{} command.  The optional @var{parms-oid} must be a list of exact
+integers representing the @acronym{OID}s of the parameter's types; if
+@false{} or not given, types are left unspecified.
+@end defun
+
+
+@defun describe-prepared-statement @var{conn} @var{stmt-name}
+@findex @func{PQdescribePrepared}
+Wrapper for @func{PQdescribePrepared}.  Submits a request to obtain
+information about the specified prepared statement in the context of the
+connection @var{conn}, and waits for completion; return a
+@objtype{query-result} object.
+
+@var{stmt-name} must be a Scheme string or symbol representing the name
+of the statement; if it is @false{}, it the statement is unnamed.
+@end defun
+
+
+@defun exec-prepared-statement @var{conn} @var{stmt-name} @var{query-parms} @var{textual-result?}
+@findex @func{PQexecPrepared}
+Wrapper for @func{PQexecPrepared}.  Execute the prepared statement named
+@var{stmt-name} in the context of the connection @var{conn}; wait for
+the query to complete and return a @objtype{query-result} object.
+
+@var{stmt-name} must be a Scheme string or symbol representing the name
+of the statement; if it is @false{}, the statement is unnamed.
+@var{query-parms} must be a list of @class{parameter} records.
+
+If @var{textual-result?} is true, the result holds textual data; else it
+holds binary data.
+@end defun
 
 @c page
 @node query
@@ -2006,6 +2221,28 @@ Scheme bytevector.
 @end defun
 
 @c page
+@node misc
+@chapter Miscellaneous functions
+
+
+The following bindings are exported by the @library{foreign databases
+postgresql primitives} library and reexported by the @library{foreign
+databases postgresql} library.  It is suggested to import these
+libraries by prefixing the bindings, for example with @code{pg:}.
+
+
+@defun describe-portal @var{conn} @var{portal-name}
+@findex @func{PQdescribePortal}
+Wrapper for @func{PQdescribePortal}.  Submits a request to obtain
+information about the specified prepared portal in the context of the
+connection @var{conn}, and waits for completion; return a
+@objtype{query-result} object.
+
+@var{stmt-name} must be a Scheme string or symbol representing the name
+of the portal; if it is @false{}, it the portal is unnamed.
+@end defun
+
+@c page
 @node primitives
 @chapter Miscellaneous primitive bindings
 
@@ -2105,18 +2342,6 @@ Alias for @func{PQsetNoticeProcessor}.
 @defun register-thread-lock
 @findex @func{PQregisterThreadLock}
 Alias for @func{PQregisterThreadLock}.
-@end defun
-
-
-@defun prepare
-@findex @func{PQprepare}
-Alias for @func{PQprepare}.
-@end defun
-
-
-@defun exec-prepared
-@findex @func{PQexecPrepared}
-Alias for @func{PQexecPrepared}.
 @end defun
 
 
@@ -2255,18 +2480,6 @@ Alias for @func{PQbinaryTuples}.
 @defun oid-status
 @findex @func{PQoidStatus}
 Alias for @func{PQoidStatus}.
-@end defun
-
-
-@defun describe-prepared
-@findex @func{PQdescribePrepared}
-Alias for @func{PQdescribePrepared}.
-@end defun
-
-
-@defun describe-portal
-@findex @func{PQdescribePortal}
-Alias for @func{PQdescribePortal}.
 @end defun
 
 
@@ -2506,6 +2719,37 @@ database connection.
 @defun exec/c @var{conn} @var{query-string}
 Wrapper for @func{exec} which pushes, on the current compensation stack,
 the appropriate call to @func{clear-result}.
+@end defun
+
+
+@defun exec-parametrised-query/c @var{conn} @var{query-string} @var{query-parms} @var{textual-result?}
+Wrapper for @func{exec-parametrised-query} which pushes, on the current
+compensation stack, the appropriate call to @func{clear-result}.
+@end defun
+
+
+@defun prepare-statement/c @var{conn} @var{stmt-name} @var{query-string} @var{number-of-parms}
+@defunx prepare-statement/c @var{conn} @var{stmt-name} @var{query-string} @var{number-of-parms} @var{parms-oid}
+Wrapper for @func{prepare-statement} which pushes, on the current
+compensation stack, the appropriate call to @func{clear-result}.
+@end defun
+
+
+@defun describe-prepared-statement/c @var{conn} @var{stmt-name}
+Wrapper for @func{describe-prepared-statement} which pushes, on the
+current compensation stack, the appropriate call to @func{clear-result}.
+@end defun
+
+
+@defun exec-prepared-statement/c @var{conn} @var{stmt-name} @var{parms} @var{textual-result?}
+Wrapper for @func{exec-prepared-statement/c} which pushes, on the
+current compensation stack, the appropriate call to @func{clear-result}.
+@end defun
+
+
+@defun describe-portal/c @var{conn} @var{portal-name}
+Wrapper for @func{describe-portal} which pushes, on the current
+compensation stack, the appropriate call to @func{clear-result}.
 @end defun
 
 @c page

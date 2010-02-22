@@ -2,7 +2,7 @@ dnl (foreign databases postgresql sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Sun Feb 14, 2010
+dnl Date: Sat Feb 20, 2010
 dnl
 dnl Abstract
 dnl
