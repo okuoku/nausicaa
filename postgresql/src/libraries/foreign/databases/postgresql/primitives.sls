@@ -74,7 +74,7 @@
 
     ;; executing queries
     clear-result			;; PQclear
-    exec				;; PQexec
+    exec-script				;; PQexec
     exec-parametrised-query		;; PQexecParams
     prepare-statement			;; PQprepare
     describe-prepared-statement		;; PQdescribePrepared
@@ -443,7 +443,7 @@
 (define (clear-result result)
   (PQclear (query-result->pointer result)))
 
-(define (exec conn query)
+(define (exec-script conn query)
   (with-compensations
     (let ((p (PQexec (connection->pointer conn) (string->cstring/c query))))
       (if (pointer-null? p)
@@ -451,7 +451,7 @@
 	   (condition (make-postgresql-error-condition)
 		      (make-connection-condition conn)
 		      (make-query-string-condition query)
-		      (make-who-condition 'exec)
+		      (make-who-condition 'exec-script)
 		      (make-message-condition (connection-error-message))))
 	(pointer->query-result p)))))
 

@@ -575,13 +575,21 @@ Enumeration type definitions
 
 Condition object definitions
 
-* conditions connect::          Database connection object.
-* conditions query::            @sql{} query string object.
-* conditions parameters::       @sql{} query parameters.
-* conditions statement::        Prepared statement name object.
-* conditions portal::           Portal name object.
-* conditions result::           @sql{} query result object.
-* conditions error::            Error condition object.
+* conditions data::             Data condition objects.
+* conditions error::            Error condition objects.
+
+Data condition objects
+
+* conditions data connect::     Database connection object.
+* conditions data query::       @sql{} query string object.
+* conditions data parameters::  @sql{} query parameters.
+* conditions data statement::   Prepared statement name object.
+* conditions data portal::      Portal name object.
+* conditions data result::      @sql{} query result object.
+
+Error condition objects
+
+* conditions error error::      Error condition object.
 
 Connecting to a database
 
@@ -589,10 +597,16 @@ Connecting to a database
 * connect async::               Connecting asynchronously.
 * connect misc::                Other connect--related functions.
 
+Performing a database query
+
+* exec sync::                   Synchronous functions.
+* exec async::                  Asynchronous functions.
+
 Handling query results
 
 * query inspect::               Inspecting query results.
 * query result::                Retrieving query results.
+* query misc::                  Miscellaneous functions.
 
 @end detailmenu
 @end menu
@@ -1165,18 +1179,27 @@ to import these libraries by prefixing the bindings, for example with
 @code{pg:}.
 
 @menu
-* conditions connect::          Database connection object.
-* conditions query::            @sql{} query string object.
-* conditions parameters::       @sql{} query parameters.
-* conditions statement::        Prepared statement name object.
-* conditions portal::           Portal name object.
-* conditions result::           @sql{} query result object.
-* conditions error::            Error condition object.
+* conditions data::             Data condition objects.
+* conditions error::            Error condition objects.
 @end menu
 
 @c page
-@node conditions connect
-@section Database connection object
+@node conditions data
+@section Data condition objects
+
+
+@menu
+* conditions data connect::     Database connection object.
+* conditions data query::       @sql{} query string object.
+* conditions data parameters::  @sql{} query parameters.
+* conditions data statement::   Prepared statement name object.
+* conditions data portal::      Portal name object.
+* conditions data result::      @sql{} query result object.
+@end menu
+
+@c page
+@node conditions data connect
+@subsection Database connection object
 
 
 @deftp {Condition Type} &connection
@@ -1204,8 +1227,8 @@ Accessor for the field of condition objects of type
 @end defun
 
 @c page
-@node conditions query
-@section @sql{} query string object
+@node conditions data query
+@subsection @sql{} query string object
 
 
 @deftp {Condition Type} &query-string
@@ -1232,8 +1255,8 @@ Accessor for the field of condition objects of type
 @end defun
 
 @c page
-@node conditions parameters
-@section @sql{} query parameters
+@node conditions data parameters
+@subsection @sql{} query parameters
 
 
 @deftp {Condition Type} &parameters
@@ -1261,8 +1284,8 @@ Accessor for the field of condition objects of type
 @end defun
 
 @c page
-@node conditions statement
-@section Prepared statement name object
+@node conditions data statement
+@subsection Prepared statement name object
 
 
 @deftp {Condition Type} &statement-name
@@ -1290,8 +1313,8 @@ Accessor for the field of condition objects of type
 @end defun
 
 @c page
-@node conditions portal
-@section Portal name object
+@node conditions data portal
+@subsection Portal name object
 
 
 @deftp {Condition Type} &portal-name
@@ -1319,8 +1342,8 @@ Accessor for the field of condition objects of type
 @end defun
 
 @c page
-@node conditions result
-@section @sql{} query result object
+@node conditions data result
+@subsection @sql{} query result object
 
 
 @deftp {Condition Type} &query-result
@@ -1348,7 +1371,16 @@ Accessor for the field of condition objects of type
 
 @c page
 @node conditions error
-@section Error condition object
+@section Error condition objects
+
+
+@menu
+* conditions error error::      Error condition object.
+@end menu
+
+@c page
+@node conditions error error
+@subsection Error condition object
 
 
 @deftp {Condition Type} &postgresql-error
@@ -1767,15 +1799,13 @@ referencing an OpenSSL structure of type @code{SSL}; return @false{} is
 @chapter Performing a database query
 
 
-The following bindings are exported by the @library{foreign databases
-postgresql primitives} library and reexported by the @library{foreign
-databases postgresql} library.  It is suggested to import these
-libraries by prefixing the bindings, for example with @code{pg:}.
+The bindings documented in this chapter are exported by the
+@library{foreign databases postgresql primitives} library and reexported
+by the @library{foreign databases postgresql} library.  It is suggested
+to import these libraries by prefixing the bindings, for example with
+@code{pg:}.
 
-In the following descriptions: the @var{conn} argument is always a
-Scheme object of type @objtype{connection}, the @var{result} argument is
-always a Scheme object of type @objtype{query-result}.
-
+@quotation
 For an explanation of @acronym{OID} numbers in @pg{}, see the ``Objects
 Identifier Types'' in the original documentation (@aurl{} last verified
 Thu Feb 18, 2010):
@@ -1784,16 +1814,28 @@ Thu Feb 18, 2010):
 
 @noindent
 and notice that @acronym{OID} numbers are of type @code{uint32_t}.
+@end quotation
+
+@menu
+* exec sync::                   Synchronous functions.
+* exec async::                  Asynchronous functions.
+@end menu
+
+@c page
+@node exec sync
+@section Synchronous functions
 
 
-@defun clear-result @var{result}
-@findex @func{PQclear}
-Wrapper for @func{PQclear}.  Fialines the @var{result}, releasing all
-its resources.
-@end defun
+In the descriptions: the @var{conn} argument is always a Scheme object
+of type @objtype{connection}, the @var{result} argument is always a
+Scheme object of type @objtype{query-result}.
+
+The functions raise an exception in case a non--result error is
+detected; the client code should test the returned
+@objtype{query-result} object for errors by itself.
 
 
-@defun exec @var{conn} @var{query-string}
+@defun exec-script @var{conn} @var{query-string}
 @findex @func{PQexec}
 Wrapper for @func{PQexec}.  Submit the query to the server and wait for
 the result, return a @objtype{query-result} object; in case of error
@@ -1865,6 +1907,19 @@ holds binary data.
 @end defun
 
 @c page
+@node exec async
+@section Asynchronous functions
+
+
+In the descriptions: the @var{conn} argument is always a Scheme object
+of type @objtype{connection}, the @var{result} argument is always a
+Scheme object of type @objtype{query-result}.
+
+The functions raise an exception in case a non--result error is
+detected; the client code should test the returned
+@objtype{query-result} object for errors by itself.
+
+@c page
 @node query
 @chapter Handling query results
 
@@ -1878,6 +1933,7 @@ to import these libraries by prefixing the bindings, for example with
 @menu
 * query inspect::               Inspecting query results.
 * query result::                Retrieving query results.
+* query misc::                  Miscellaneous functions.
 @end menu
 
 @c page
@@ -2158,6 +2214,21 @@ row, if the @sql{} command was an @code{INSERT} that inserted exactly
 one row into a table that has @acronym{OID}s, or a @code{EXECUTE} of a
 prepared query containing a suitable @code{INSERT} statement.  Return
 @false{} if the command was not suitable.
+@end defun
+
+@c page
+@node query misc
+@section Miscellaneous functions
+
+
+In the following descriptions: the @var{result} argument is always a
+Scheme object of type @objtype{query-result}.
+
+
+@defun clear-result @var{result}
+@findex @func{PQclear}
+Wrapper for @func{PQclear}.  Finalises @var{result}, releasing all
+its resources.
 @end defun
 
 @c page
@@ -2716,8 +2787,8 @@ database connection.
 @end defun
 
 
-@defun exec/c @var{conn} @var{query-string}
-Wrapper for @func{exec} which pushes, on the current compensation stack,
+@defun exec-script/c @var{conn} @var{query-string}
+Wrapper for @func{exec-script} which pushes, on the current compensation stack,
 the appropriate call to @func{clear-result}.
 @end defun
 

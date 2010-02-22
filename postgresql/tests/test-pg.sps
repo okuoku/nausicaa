@@ -166,7 +166,7 @@
 
       (when (pg:status/ok? conn)
 	(letrec ((result (compensate
-			     (pg:exec conn "create table mine (enn int); drop table mine;")
+			     (pg:exec-script conn "create table mine (enn int); drop table mine;")
 			   (with
 			    (pg:clear-result result)))))
 
@@ -197,7 +197,7 @@
 	=> #t)
 
       (when (pg:status/ok? conn)
-	(let ((result (pg:exec/c conn "create")))
+	(let ((result (pg:exec-script/c conn "create")))
 
 	  (check
 	      (pg:result-status result)
@@ -234,16 +234,16 @@
 
       (when (pg:status/ok? conn)
 
-	;;;(pg:exec/c conn "drop table accounts")
+	;;;(pg:exec-script/c conn "drop table accounts")
 
-	(let ((result (pg:exec/c conn "
+	(let ((result (pg:exec-script/c conn "
 create table accounts (nickname TEXT, password TEXT);
 insert into accounts (nickname, password) values ('ichigo', 'abcde');
 insert into accounts (nickname, password) values ('rukia', '12345');
 insert into accounts (nickname, password) values ('chad', 'fist');
 select * from accounts;
 ")))
-	  (push-compensation (pg:exec/c conn "drop table accounts"))
+	  (push-compensation (pg:exec-script/c conn "drop table accounts"))
 
 	  (check
 	      (pg:result-status result)
@@ -386,17 +386,17 @@ select * from accounts;
 
       (when (pg:status/ok? conn)
 
-	;;;(pg:exec/c conn "drop table accounts")
+	;;;(pg:exec-script/c conn "drop table accounts")
 
 	(compensate
-	    (pg:exec/c conn "
+	    (pg:exec-script/c conn "
 create table accounts (nickname TEXT, password TEXT);
 insert into accounts (nickname, password) values ('ichigo', 'abcde');
 insert into accounts (nickname, password) values ('rukia', '12345');
 insert into accounts (nickname, password) values ('chad', 'fist');
 ")
 	    (with
-	     (pg:exec/c conn "drop table accounts")))
+	     (pg:exec-script/c conn "drop table accounts")))
 
 	(let ((result (pg:exec-parametrised-query/c
 		       conn
@@ -444,17 +444,17 @@ insert into accounts (nickname, password) values ('chad', 'fist');
 
       (when (pg:status/ok? conn)
 
-	;;;(pg:exec/c conn "drop table accounts")
+	;;;(pg:exec-script/c conn "drop table accounts")
 
 	(compensate
-	    (pg:exec/c conn "
+	    (pg:exec-script/c conn "
 create table accounts (nickname TEXT, password TEXT);
 insert into accounts (nickname, password) values ('ichigo', 'abcde');
 insert into accounts (nickname, password) values ('rukia', '12345');
 insert into accounts (nickname, password) values ('chad', 'fist');
 ")
 	    (with
-	     (pg:exec/c conn "drop table accounts")))
+	     (pg:exec-script/c conn "drop table accounts")))
 
 	(let ((result (pg:prepare-statement/c conn 'the-row
 					      "select * from accounts where nickname = $1;" 1)))

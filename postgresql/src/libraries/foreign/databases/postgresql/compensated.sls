@@ -28,7 +28,7 @@
 (library (foreign databases postgresql compensated)
   (export
     connect-db/c
-    exec/c
+    exec-script/c
     exec-parametrised-query/c
     prepare-statement/c
     describe-prepared-statement/c
@@ -46,9 +46,9 @@
 		    (pg:connect-finish conn)))))
     conn))
 
-(define (exec/c conn query)
+(define (exec-script/c conn query)
   (letrec ((result (compensate
-		       (pg:exec conn query)
+		       (pg:exec-script conn query)
 		     (with
 		      (pg:clear-result result)))))
     result))

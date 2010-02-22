@@ -222,7 +222,7 @@
 
     ;; executing queries
     clear-result			;; PQclear
-    exec				;; PQexec
+    exec-script				;; PQexec
     exec-parametrised-query		;; PQexecParams
     prepare-statement			;; PQprepare
     describe-prepared-statement		;; PQdescribePrepared
