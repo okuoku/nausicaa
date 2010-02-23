@@ -220,13 +220,30 @@
     connection-used-password		;; PQconnectionUsedPassword
     connection-get-ssl			;; PQgetssl
 
-    ;; executing queries
     clear-result			;; PQclear
+
+    ;; executing queries
     exec-script				;; PQexec
     exec-parametrised-query		;; PQexecParams
     prepare-statement			;; PQprepare
     describe-prepared-statement		;; PQdescribePrepared
     exec-prepared-statement		;; PQexecPrepared
+
+    ;; executing asynchronous queries
+    exec-script/send			;; PQsendQuery
+    exec-parametrised-query/send	;; PQsendQueryParams
+    prepare-statement/send		;; PQsendPrepare
+    describe-prepared-statement/send	;; PQsendDescribePrepared
+    exec-prepared-statement/send	;; PQsendQueryPrepared
+
+    connection-get-result		;; PQgetResult
+    connection-consume-input		;; PQconsumeInput
+    connection-is-busy			;; PQisBusy
+
+    connection-set-blocking		;; PQsetnonblocking
+    connection-set-non-blocking		;; PQsetnonblocking
+    connection-is-non-blocking?		;; PQisnonblocking
+    connection-flush			;; PQflush
 
     ;; inspecting query results
     result-status			;; PQresultStatus
@@ -271,11 +288,9 @@
     unescape-bytes			;; PQunescapeBytea
     unescape-bytes/bv
 
-    ;;
-    set-non-blocking			;; PQsetnonblocking
-
     ;; miscellaneous
     describe-portal			;; PQdescribePortal
+    describe-portal/send		;; PQsendDescribePortal
 
     )
   (import (rnrs)

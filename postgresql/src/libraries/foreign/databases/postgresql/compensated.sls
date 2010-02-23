@@ -28,13 +28,17 @@
 (library (foreign databases postgresql compensated)
   (export
     connect-db/c
-    exec-script/c
-    exec-parametrised-query/c
-    prepare-statement/c
-    describe-prepared-statement/c
-    describe-portal/c
-    exec-prepared-statement/c)
+
+    exec-script/c			exec-parametrised-query/c
+    prepare-statement/c			describe-prepared-statement/c
+    exec-prepared-statement/c
+
+    connection-get-result/c
+
+    describe-portal/c			describe-portal/send/c
+    )
   (import (rnrs)
+    (begin0)
     (compensations)
     (prefix (foreign databases postgresql) pg:))
 
@@ -45,6 +49,9 @@
 		   (with
 		    (pg:connect-finish conn)))))
     conn))
+
+
+;;;; synchronous query execution
 
 (define (exec-script/c conn query)
   (letrec ((result (compensate
@@ -78,6 +85,23 @@
 		      (pg:clear-result result)))))
     result))
 
+(define (exec-prepared-statement/c conn stmt-name parms textual-result?)
+  (letrec ((result (compensate
+		       (pg:exec-prepared-statement conn stmt-name parms textual-result?)
+		     (with
+		      (pg:clear-result result)))))
+    result))
+
+
+;;;; asynchronous query execution
+
+(define (connection-get-result/c conn)
+  (begin0-let ((result (pg:connection-get-result conn)))
+    (when result
+      (push-compensation
+       (pg:clear-result result)))))
+
+
 (define (describe-portal/c conn portal-name)
   (letrec ((result (compensate
 		       (pg:describe-portal conn portal-name)
@@ -85,12 +109,13 @@
 		      (pg:clear-result result)))))
     result))
 
-(define (exec-prepared-statement/c conn stmt-name parms textual-result?)
+(define (describe-portal/send/c conn portal-name)
   (letrec ((result (compensate
-		       (pg:exec-prepared-statement conn stmt-name parms textual-result?)
+		       (pg:describe-portal/send conn portal-name)
 		     (with
 		      (pg:clear-result result)))))
     result))
+
 
 
 ;;;; done

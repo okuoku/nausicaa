@@ -1819,6 +1819,7 @@ and notice that @acronym{OID} numbers are of type @code{uint32_t}.
 @menu
 * exec sync::                   Synchronous functions.
 * exec async::                  Asynchronous functions.
+* exec blocking::               Blocking/non--blocking configuration.
 @end menu
 
 @c page
@@ -1882,10 +1883,10 @@ integers representing the @acronym{OID}s of the parameter's types; if
 
 @defun describe-prepared-statement @var{conn} @var{stmt-name}
 @findex @func{PQdescribePrepared}
-Wrapper for @func{PQdescribePrepared}.  Submits a request to obtain
-information about the specified prepared statement in the context of the
-connection @var{conn}, and waits for completion; return a
-@objtype{query-result} object.
+Wrapper for @func{PQdescribePrepared}.  Obtain informations about the
+specified prepared statement in the context of the connection
+@var{conn}, and waits for completion; return a @objtype{query-result}
+object.
 
 @var{stmt-name} must be a Scheme string or symbol representing the name
 of the statement; if it is @false{}, it the statement is unnamed.
@@ -1918,6 +1919,148 @@ Scheme object of type @objtype{query-result}.
 The functions raise an exception in case a non--result error is
 detected; the client code should test the returned
 @objtype{query-result} object for errors by itself.
+
+
+@defun exec-script/send @var{conn} @var{query-string}
+@findex @func{PQsendQuery}
+Wrapper for @func{PQsendQuery}.  Send @var{query-string} to be executed
+asynchronously in the context of @var{conn}; return @true{} is
+successful, raise an exception if failure.
+@end defun
+
+
+@defun exec-parametrised-query/send @var{conn} @var{query-string} @var{query-parms} @var{textual-result?}
+@findex @func{PQsendQueryParams}
+Wrapper for @func{PQsendQueryParams}.  Send the request to execute the
+parametrised @var{query-string} in the context of the connection
+@var{conn}; return @true{} if successful, raise an exception if failure.
+
+@var{query-string} must be the template for a query embedding place
+holders like @samp{$1}, @samp{$2}, @dots{} which are substituted by the
+parameters in @var{query-parms}.  @var{query-parms} must be a list of
+@class{parameter} records.
+
+If @var{textual-result?} is true, the result holds textual data; else it
+holds binary data.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Prepared statements
+
+
+@defun prepare-statement/send @var{conn} @var{stmt-name} @var{query-string} @var{number-of-parms}
+@defunx prepare-statement/send @var{conn} @var{stmt-name} @var{query-string} @var{number-of-parms} @var{parms-oid}
+@findex @func{PQsendPrepare}
+Wrapper for @func{PQsendPrepare}.  Send the request to build a new
+prepared statement in the context of the connection @var{conn} and wait
+for completion of the operation; return @true{} if successful, raise an
+exception if failure.
+
+@var{stmt-name} must be a Scheme string or symbol representing the name
+of the statement; if it is @false{}, the statement is unnamed.
+@var{query-string} must be a Scheme string representing the @sql{}
+command.  @var{number-of-parms} is the number of parameters in the
+@sql{} command.  The optional @var{parms-oid} must be a list of exact
+integers representing the @acronym{OID}s of the parameter's types; if
+@false{} or not given, types are left unspecified.
+@end defun
+
+
+@defun describe-prepared-statement/send @var{conn} @var{stmt-name}
+@findex @func{PQsendDescribePrepared}
+Wrapper for @func{PQsendDescribePrepared}.  Send the request to obtain
+information about the specified prepared statement in the context of the
+connection @var{conn}, and waits for completion; return @true{} is
+successful, raise an exception if failure.
+
+@var{stmt-name} must be a Scheme string or symbol representing the name
+of the statement; if it is @false{}, it the statement is unnamed.
+@end defun
+
+
+@defun exec-prepared-statement/send @var{conn} @var{stmt-name} @var{query-parms} @var{textual-result?}
+@findex @func{PQsendQueryPrepared}
+Wrapper for @func{PQsendQueryPrepared}.  Send the request to execute the
+prepared statement named @var{stmt-name} in the context of the
+connection @var{conn}; return @true{} if successful, raise an exception
+if failure.
+
+@var{stmt-name} must be a Scheme string or symbol representing the name
+of the statement; if it is @false{}, the statement is unnamed.
+@var{query-parms} must be a list of @class{parameter} records.
+
+If @var{textual-result?} is true, the result holds textual data; else it
+holds binary data.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Acquiring result of asynchronous operations
+
+
+@defun connection-get-result @var{conn}
+@findex @func{PQgetResult}
+Wrapper for @func{PQgetResult}.  Return a @objtype{query-result} object
+representing the current status of the last asynchronous operation in
+the context of @var{conn}; return @false{} if the last operation is
+complete.  Block until the result is available.
+@end defun
+
+
+@defun connection-consume-input @var{conn}
+@findex @func{PQconsumeInput}
+Wrapper for @func{PQconsumeInput}.  Consume incoming input from
+@var{conn} and store it internally, to be retrieved later with
+@func{get-result}.
+@end defun
+
+
+@defun connection-is-busy? @var{conn}
+@findex @func{PQisBusy}
+Wrapper for @func{PQisBusy}.  Return @true{} if calling
+@func{connection-get-result} would block; @false{} otherwise.  It makes
+sense to call this function only after a call to
+@func{connection-consume-input}.
+@end defun
+
+@c page
+@node exec blocking
+@section Blocking/non--blocking configuration
+
+
+In the descriptions: the @var{conn} argument is always a Scheme object
+of type @objtype{connection}.
+
+
+@defun connection-set-non-blocking @var{conn}
+@findex @func{PQsetnonblocking}
+Wrapper for @func{PQsetnonblocking}.  Set the non--blocking mode for
+@var{conn}.  Raise an exception in case of error.
+@end defun
+
+
+@defun connection-set-blocking @var{conn}
+@findex @func{PQsetnonblocking}
+Wrapper for @func{PQsetnonblocking}.  Set the blocking mode for
+@var{conn}.  Raise an exception in case of error.
+@end defun
+
+
+@defun connection-is-non-blocking? @var{conn}
+@findex @func{PQisnonblocking}
+Wrapper for @func{PQisnonblocking}.  Return @true{} if @var{conn} is in
+non--blocking mode, @false{} otherwise.
+@end defun
+
+
+@defun connection-flush @var{conn}
+@findex @func{PQflush}
+Wrapper for @func{PQflush}.  Attempt to flush to the server pending data
+in @var{conn}; return @true{} if more data is pending and needs to be
+flushed, return @false{} if all the data has been flushed.  Raise an
+exception if an error occurs.
+@end defun
 
 @c page
 @node query
@@ -2304,10 +2447,21 @@ libraries by prefixing the bindings, for example with @code{pg:}.
 
 @defun describe-portal @var{conn} @var{portal-name}
 @findex @func{PQdescribePortal}
-Wrapper for @func{PQdescribePortal}.  Submits a request to obtain
-information about the specified prepared portal in the context of the
-connection @var{conn}, and waits for completion; return a
-@objtype{query-result} object.
+Wrapper for @func{PQdescribePortal}.  Obtain informations about the
+specified prepared portal in the context of the connection @var{conn},
+and waits for completion; return a @objtype{query-result} object.
+
+@var{stmt-name} must be a Scheme string or symbol representing the name
+of the portal; if it is @false{}, it the portal is unnamed.
+@end defun
+
+
+@defun describe-portal/send @var{conn} @var{portal-name}
+@findex @func{PQsendDescribePortal}
+Wrapper for @func{PQsendDescribePortal}.  Send a request to obtain
+informations about the specified prepared portal in the context of the
+connection @var{conn}; return @true{} if successful, raise an exception
+if failure.
 
 @var{stmt-name} must be a Scheme string or symbol representing the name
 of the portal; if it is @false{}, it the portal is unnamed.
@@ -2416,48 +2570,6 @@ Alias for @func{PQregisterThreadLock}.
 @end defun
 
 
-@defun send-query
-@findex @func{PQsendQuery}
-Alias for @func{PQsendQuery}.
-@end defun
-
-
-@defun send-query-params
-@findex @func{PQsendQueryParams}
-Alias for @func{PQsendQueryParams}.
-@end defun
-
-
-@defun send-prepare
-@findex @func{PQsendPrepare}
-Alias for @func{PQsendPrepare}.
-@end defun
-
-
-@defun send-query-prepared
-@findex @func{PQsendQueryPrepared}
-Alias for @func{PQsendQueryPrepared}.
-@end defun
-
-
-@defun get-result
-@findex @func{PQgetResult}
-Alias for @func{PQgetResult}.
-@end defun
-
-
-@defun is-busy
-@findex @func{PQisBusy}
-Alias for @func{PQisBusy}.
-@end defun
-
-
-@defun consume-input
-@findex @func{PQconsumeInput}
-Alias for @func{PQconsumeInput}.
-@end defun
-
-
 @defun notifies
 @findex @func{PQnotifies}
 Alias for @func{PQnotifies}.
@@ -2512,27 +2624,9 @@ Alias for @func{PQendcopy}.
 @end defun
 
 
-@defun setnonblocking
-@findex @func{PQsetnonblocking}
-Alias for @func{PQsetnonblocking}.
-@end defun
-
-
-@defun isnonblocking
-@findex @func{PQisnonblocking}
-Alias for @func{PQisnonblocking}.
-@end defun
-
-
 @defun isthreadsafe
 @findex @func{PQisthreadsafe}
 Alias for @func{PQisthreadsafe}.
-@end defun
-
-
-@defun flush
-@findex @func{PQflush}
-Alias for @func{PQflush}.
 @end defun
 
 
@@ -2551,18 +2645,6 @@ Alias for @func{PQbinaryTuples}.
 @defun oid-status
 @findex @func{PQoidStatus}
 Alias for @func{PQoidStatus}.
-@end defun
-
-
-@defun send-describe-prepared
-@findex @func{PQsendDescribePrepared}
-Alias for @func{PQsendDescribePrepared}.
-@end defun
-
-
-@defun send-describe-portal
-@findex @func{PQsendDescribePortal}
-Alias for @func{PQsendDescribePortal}.
 @end defun
 
 
@@ -2815,6 +2897,13 @@ current compensation stack, the appropriate call to @func{clear-result}.
 @defun exec-prepared-statement/c @var{conn} @var{stmt-name} @var{parms} @var{textual-result?}
 Wrapper for @func{exec-prepared-statement/c} which pushes, on the
 current compensation stack, the appropriate call to @func{clear-result}.
+@end defun
+
+
+@defun connection-get-result/c @var{conn}
+Wrapper for @func{get-result} which pushes, on the current compensation
+stack, the appropriate call to @func{clear-result}; if @func{get-result}
+returns @false{}, nothing is pushed on the stack.
 @end defun
 
 

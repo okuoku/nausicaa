@@ -72,13 +72,30 @@
     connection-used-password		;; PQconnectionUsedPassword
     connection-get-ssl			;; PQgetssl
 
-    ;; executing queries
     clear-result			;; PQclear
+
+    ;; executing synchronous queries
     exec-script				;; PQexec
     exec-parametrised-query		;; PQexecParams
     prepare-statement			;; PQprepare
     describe-prepared-statement		;; PQdescribePrepared
     exec-prepared-statement		;; PQexecPrepared
+
+    ;; executing Asynchronous queries
+    exec-script/send			;; PQsendQuery
+    exec-parametrised-query/send	;; PQsendQueryParams
+    prepare-statement/send		;; PQsendPrepare
+    describe-prepared-statement/send	;; PQsendDescribePrepared
+    exec-prepared-statement/send	;; PQsendQueryPrepared
+
+    connection-get-result		;; PQgetResult
+    connection-consume-input		;; PQconsumeInput
+    connection-is-busy			;; PQisBusy
+
+    connection-set-blocking		;; PQsetnonblocking
+    connection-set-non-blocking		;; PQsetnonblocking
+    connection-is-non-blocking?		;; PQisnonblocking
+    connection-flush			;; PQflush
 
     ;; inspecting query results
     result-status			;; PQresultStatus
@@ -123,11 +140,9 @@
     unescape-bytes			;; PQunescapeBytea
     unescape-bytes/bv
 
-    ;;
-    set-non-blocking			;; PQsetnonblocking
-
     ;; miscellaneous
     describe-portal			;; PQdescribePortal
+    describe-portal/send		;; PQsendDescribePortal
 
     (rename (PQconninfoFree			conninfo-free)
 	    (PQgetCancel			get-cancel)
@@ -144,13 +159,6 @@
 	    (PQsetNoticeReceiver		set-notice-receiver)
 	    (PQsetNoticeProcessor		set-notice-processor)
 	    (PQregisterThreadLock		register-thread-lock)
-	    (PQsendQuery			send-query)
-	    (PQsendQueryParams			send-query-params)
-	    (PQsendPrepare			send-prepare)
-	    (PQsendQueryPrepared		send-query-prepared)
-	    (PQgetResult			get-result)
-	    (PQisBusy				is-busy)
-	    (PQconsumeInput			consume-input)
 	    (PQnotifies				notifies)
 	    (PQputCopyData			put-copy-data)
 	    (PQputCopyEnd			put-copy-end)
@@ -160,14 +168,10 @@
 	    (PQgetlineAsync			getline-async)
 	    (PQputnbytes			putnbytes)
 	    (PQendcopy				endcopy)
-	    (PQisnonblocking			isnonblocking)
 	    (PQisthreadsafe			isthreadsafe)
-	    (PQflush				flush)
 	    (PQfn				fn)
 	    (PQbinaryTuples			binary-tuples)
 	    (PQoidStatus			oid-status)
-	    (PQsendDescribePrepared		send-describe-prepared)
-	    (PQsendDescribePortal		send-describe-portal)
 	    (PQfreemem				freemem)
 	    (PQmakeEmptyPGresult		make-empty-pg-result)
 	    (PQcopyResult			copy-result)
@@ -438,10 +442,7 @@
     (if (pointer-null? p) #f (pointer->ssl p))))
 
 
-;;;; executing queries
-
-(define (clear-result result)
-  (PQclear (query-result->pointer result)))
+;;;; executing synchronous queries
 
 (define (exec-script conn query)
   (with-compensations
@@ -501,7 +502,67 @@
 	  (pointer->query-result p))))))
 
 
-;;;; prepared statements
+;;;; executing Asynchronous queries
+
+(define (exec-script/send conn query)
+  (with-compensations
+    (let ((code (PQsendQuery (connection->pointer conn) (string->cstring/c query))))
+      (if (zero? code)
+	  (raise
+	   (condition (make-postgresql-error-condition)
+		      (make-connection-condition conn)
+		      (make-query-string-condition query)
+		      (make-who-condition 'exec-script/send)
+		      (make-message-condition (connection-error-message))))
+	#t))))
+
+(define (exec-parametrised-query/send conn query parms textual-result?)
+  (with-compensations
+    (let* ((number-of-parms	(length parms))
+	   (param-types*	(malloc-block/c (sizeof-Oid-array number-of-parms)))
+	   (param-values*	(malloc-block/c (sizeof-pointer-array number-of-parms)))
+	   (param-lengths*	(malloc-block/c (sizeof-int-array number-of-parms)))
+	   (param-formats*	(malloc-block/c (sizeof-int-array number-of-parms))))
+
+      (do ((i 0 (+ 1 i))
+	   (parms parms (cdr parms)))
+	  ((= i number-of-parms))
+	(let* ((par	(car parms))
+	       (text?	(<parameter>-text? par))
+	       (val	(<parameter>-value par)))
+	  (receive (val.ptr val.len)
+	      (cond ((string? val)
+		     (let ((p (string->cstring/c val)))
+		       (values p (strlen p))))
+		    ((bytevector? val)
+		     (values (bytevector->pointer val malloc-block/c) (bytevector-length val)))
+		    ((pointer? val)
+		     (values val (<parameter>-size par)))
+		    (else
+		     (assertion-violation 'exec-parametrised-query/send
+		       "invalid value type in <parameter> field" par)))
+	    (array-set-c-signed-int!	param-formats* i (if text? 0 1))
+	    (array-set-c-Oid!		param-types*   i (<parameter>-oid par))
+	    (array-set-c-pointer!	param-values*  i val.ptr)
+	    (array-set-c-signed-int!	param-lengths* i val.len))))
+
+      (let ((code (PQsendQueryParams (connection->pointer conn)
+				     (string->cstring/c query)
+				     number-of-parms
+				     param-types* param-values* param-lengths* param-formats*
+				     (if textual-result? 0 1))))
+	(if (zero? code)
+	    (raise
+	     (condition (make-postgresql-error-condition)
+			(make-connection-condition conn)
+			(make-query-string-condition query)
+			(make-parameters-condition parms)
+			(make-who-condition 'exec-parametrised-query/send)
+			(make-message-condition (connection-error-message conn))))
+	  #t)))))
+
+
+;;;; prepared statements, synchronous execution
 
 (define prepare-statement
   (case-lambda
@@ -592,6 +653,155 @@
 	  (pointer->query-result p))))))
 
 
+;;;; prepared statements, Asynchronous execution
+
+(define prepare-statement/send
+  (case-lambda
+   ((conn stmt-name query-string number-of-parms)
+    (prepare-statement/send conn stmt-name query-string number-of-parms #f))
+   ((conn stmt-name query-string number-of-parms parms-oid)
+    (with-compensations
+      (let* ((parms-types*	(if parms-oid
+				    (begin
+				      (assert (= number-of-parms (length parms-oid)))
+				      (let ((p (malloc-block/c (sizeof-Oid-array number-of-parms))))
+					(do ((i 0         (+ 1 i))
+					     (l parms-oid (cdr l)))
+					    ((= i number-of-parms)
+					     p)
+					  (array-set-c-Oid! p i (car l)))))
+				  pointer-null))
+	     (code		(PQsendPrepare (connection->pointer conn)
+					       (if stmt-name (string->cstring/c stmt-name) empty-string)
+					       (string->cstring/c query-string)
+					       number-of-parms
+					       parms-types*)))
+	(if (zero? code)
+	    (raise
+	     (condition (make-postgresql-error-condition)
+			(make-connection-condition conn)
+			(make-statement-name-condition stmt-name)
+			(make-query-string-condition query-string)
+			(make-who-condition 'prepare-statement/send)
+			(make-message-condition (connection-error-message conn))))
+	  #t))))))
+
+(define (exec-prepared-statement/send conn stmt-name parms textual-result?)
+  (with-compensations
+    (let* ((number-of-parms	(length parms))
+	   (param-values*	(malloc-block/c (sizeof-pointer-array number-of-parms)))
+	   (param-lengths*	(malloc-block/c (sizeof-int-array number-of-parms)))
+	   (param-formats*	(malloc-block/c (sizeof-int-array number-of-parms))))
+
+      (do ((i 0 (+ 1 i))
+	   (parms parms (cdr parms)))
+	  ((= i number-of-parms))
+	(let* ((par	(car parms))
+	       (text?	(<parameter>-text? par))
+	       (val	(<parameter>-value par)))
+	  (receive (val.ptr val.len)
+	      (cond ((string? val)
+		     (let ((p (string->cstring/c val)))
+		       (values p (strlen p))))
+		    ((bytevector? val)
+		     (values (bytevector->pointer val malloc-block/c) (bytevector-length val)))
+		    ((pointer? val)
+		     (values val (<parameter>-size par)))
+		    (else
+		     (assertion-violation 'exec-prepared-statement/send
+		       "invalid value type in <parameter> field" par)))
+	    (array-set-c-signed-int!	param-formats* i (if text? 0 1))
+	    (array-set-c-pointer!	param-values*  i val.ptr)
+	    (array-set-c-signed-int!	param-lengths* i val.len))))
+
+      (let ((code (PQsendQueryPrepared (connection->pointer conn)
+				       (if stmt-name (string->cstring/c stmt-name) empty-string)
+				       number-of-parms
+				       param-values* param-lengths* param-formats*
+				       (if textual-result? 0 1))))
+	(if (zero? code)
+	    (raise
+	     (condition (make-postgresql-error-condition)
+			(make-connection-condition conn)
+			(make-statement-name-condition stmt-name)
+			(make-parameters-condition parms)
+			(make-who-condition 'exec-prepared-statement/send)
+			(make-message-condition (connection-error-message conn))))
+	  code)))))
+
+(define (describe-prepared-statement/send conn stmt-name)
+  (let ((code (if stmt-name
+		  (with-compensations
+		    (PQsendDescribePrepared (connection->pointer conn) (string->cstring/c stmt-name)))
+		(PQsendDescribePrepared (connection->pointer conn) empty-string))))
+    (if (zero? code)
+	(raise
+	 (condition (make-postgresql-error-condition)
+		    (make-connection-condition conn)
+		    (make-statement-name-condition stmt-name)
+		    (make-who-condition 'describe-prepared-statement/send)
+		    (make-message-condition (connection-error-message conn))))
+      code)))
+
+
+;;;; acquiring result of Asynchronous operations
+
+(define (connection-get-result conn)
+  (let ((p (PQgetResult (connection->pointer conn))))
+    (if (pointer-null? p)
+	#f
+      (pointer->query-result p))))
+
+(define (connection-consume-input conn)
+  (when (zero? (PQconsumeInput (connection->pointer conn)))
+    (raise
+     (condition (make-postgresql-error-condition)
+		(make-connection-condition conn)
+		(make-who-condition 'connection-consume-input)
+		(make-message-condition (connection-error-message conn))))))
+
+(define (connection-is-busy conn)
+  (not (zero? (PQisBusy (connection->pointer conn)))))
+
+
+;;;; blocking/non-blocking connections
+
+(define (connection-set-non-blocking conn)
+  (unless (zero? (PQsetnonblocking (connection->pointer conn) 1))
+    (raise
+     (condition (make-postgresql-error-condition)
+		(make-connection-condition conn)
+		(make-who-condition 'connection-set-non-blocking)
+		(make-message-condition (connection-error-message conn))))))
+
+(define (connection-set-blocking conn)
+  (unless (zero? (PQsetnonblocking (connection->pointer conn) 0))
+    (raise
+     (condition (make-postgresql-error-condition)
+		(make-connection-condition conn)
+		(make-who-condition 'connection-set-blocking)
+		(make-message-condition (connection-error-message conn))))))
+
+(define (connection-is-non-blocking? conn)
+  (not (zero? (PQisnonblocking (connection->pointer conn)))))
+
+(define (connection-flush conn)
+  (let ((code (PQflush (connection->pointer conn))))
+    (case code
+      ((0)
+       #f)
+      ((1)
+       #t)
+      ((-1)
+       (raise
+	(condition (make-postgresql-error-condition)
+		   (make-connection-condition conn)
+		   (make-who-condition 'connection-flush)
+		   (make-message-condition (connection-error-message conn)))))
+      (else
+       (assertion-violation 'connection-flush "invalid return value from PQflush" code)))))
+
+
 ;;;; inspecting query results
 
 (define (result-status result)
@@ -624,7 +834,7 @@
       oid)))
 
 
-;; extracting informations from query results
+;;;; extracting informations from query results
 
 (define (result-number-of-tuples result)
   (PQntuples (query-result->pointer result)))
@@ -843,12 +1053,6 @@
 	(primitive-free dst.ptr)))))
 
 
-;;;;
-
-(define (set-non-blocking conn)
-  (PQsetnonblocking (connection->pointer conn) 1))
-
-
 (define (make-notice-receiver-callback scheme-function)
   (make-c-callback* void
 		    (lambda (result)
@@ -866,6 +1070,9 @@
 
 ;;;; miscellaneous
 
+(define (clear-result result)
+  (PQclear (query-result->pointer result)))
+
 (define (describe-portal conn portal-name)
   (let ((p (if portal-name
 	       (with-compensations
@@ -879,6 +1086,20 @@
 		    (make-who-condition 'describe-portal)
 		    (make-message-condition (connection-error-message conn))))
       (pointer->query-result p))))
+
+(define (describe-portal/send conn portal-name)
+  (let ((code (if portal-name
+		  (with-compensations
+		    (PQsendDescribePortal (connection->pointer conn) (string->cstring/c portal-name)))
+		(PQsendDescribePortal (connection->pointer conn) empty-string))))
+    (if (zero? code)
+	(raise
+	 (condition (make-postgresql-error-condition)
+		    (make-connection-condition conn)
+		    (make-portal-name-condition portal-name)
+		    (make-who-condition 'describe-portal)
+		    (make-message-condition (connection-error-message conn))))
+      #t)))
 
 
 ;;;; done
