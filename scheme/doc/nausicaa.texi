@@ -36584,6 +36584,11 @@ the @var{form}s have been evaluated.
 @func{with-compensations/on-error} invokes @func{run-compensations}
 after the @var{form}s have been evaluated only if an exception was
 raised.
+
+If the @var{form}s raise an exception: the exception is intercepted, the
+compensations are run, the exception is raised again as
+@strong{non--continuable} exception.  It is @strong{not} possible to
+return to the @var{form}s with a continuable exception.
 @end deffn
 
 

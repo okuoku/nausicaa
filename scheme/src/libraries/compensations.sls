@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -52,33 +52,19 @@
     ((_ ?form0 ?form ...)
      (parametrise ((compensations '()))
        (with-exception-handler
-	   (lambda (exc)
+	   (lambda (E)
 	     (run-compensations)
-	     (raise-continuable exc))
+	     (raise E))
 	 (lambda ()
 	   ?form0 ?form ...))))))
 
 (define-syntax with-compensations
   (syntax-rules ()
     ((_ ?form0 ?form ...)
-     (parametrise ((compensations '()))
-       (with-exception-handler
-	   (lambda (exc)
-	     (run-compensations)
-	     (raise-continuable exc))
-	 (lambda ()
-	   (begin0
-	       (begin ?form0 ?form ...)
-	     (run-compensations))))))))
-
-;; (define-syntax with-compensations
-;;   (syntax-rules ()
-;;     ((_ ?form0 ?form ...)
-;;      (parametrise ((compensations '()))
-;;        (dynamic-wind
-;; 	   (lambda () #f)
-;; 	   (lambda () ?form0 ?form ...)
-;; 	   (lambda () (run-compensations)))))))
+     (with-compensations/on-error
+       (begin0
+	   (begin ?form0 ?form ...)
+	 (run-compensations))))))
 
 (define-syntax push-compensation
   (syntax-rules ()
