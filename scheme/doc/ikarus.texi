@@ -278,7 +278,7 @@ Revised^6 Report on the algorithmic language Scheme
 @c @end macro
 
 @macro bibref{TAG}
-@code{[\TAG\]}
+[\TAG\]
 @end macro
 
 @macro autoconfref{NODE, TITLE}
@@ -441,7 +441,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2007, 2008, 2009
+@set COPYRIGHT_YEARS            2007, 2008, 2009, 2010
 
 
 @c page
@@ -1700,7 +1700,8 @@ chapter attempts to describe a few of these useful extensions.
 Extensions to Scheme's lexical syntax are also documented.
 
 @menu
-* ikaruslib cross::             Writing cross--implementation libraries.
+* ikaruslib cross::             Writing cross--implementation
+                                libraries.
 * ikaruslib reader::            Reader.
 * ikaruslib cafe::              Cafe.
 * ikaruslib environment::       Environments.
@@ -1712,14 +1713,12 @@ Extensions to Scheme's lexical syntax are also documented.
 * ikaruslib printing::          Printing.
 * ikaruslib tracing::           Tracing.
 * ikaruslib timing::            Timing.
-* ikaruslib guardians::         Guardians.
+* ikaruslib guardians::         Guardians and garbage collection.
 * ikaruslib io::                Input/output library.
 * ikaruslib posix::             @posix{} functions.
 * ikaruslib foreign::           Foreign interface library.
 * ikaruslib misc::              Miscellaneous functions.
 @end menu
-
-
 
 @c page
 @node ikaruslib cross
@@ -3207,10 +3206,11 @@ running stats:
 
 @c page
 @node ikaruslib guardians
-@section Guardians
+@section Guardians and garbage collection
 
 
-Quoting @bibref{DYBGUA}:
+Guardians are available in the @library{ikarus} library; quoting
+@bibref{DYBGUA}:
 
 @quotation
 Guardians provide a means to protect objects from destruction by the
@@ -3220,7 +3220,13 @@ destruction can be retrieved, one at a time, at the convenience of the
 program.
 @end quotation
 
-Guardians are available in the @library{ikarus} library.
+
+@defun collect
+Run the garbage collector.  If post--garbage collection hooks are
+registered, they are run.  This binding is exported by the
+@library{ikarus} library.
+@end defun
+
 
 @menu
 * ikaruslib guardians examples::        Usage examples for guardians.
@@ -3239,22 +3245,24 @@ allocated with @func{malloc} are not released by the Ikarus garbage
 collector: we have to explicitly apply @func{free} to the pointer value
 referencing them.
 
-If we use the blocks synchronously with the evaluation of forms, we do:
+If we use the blocks synchronously with the evaluation of forms, we do
+(assuming we do not use continuations, so this use of
+@func{dynamic-wind} is fine):
 
 @example
 (import (ikarus)
-        (ikarus foreign))
+  (ikarus foreign))
 
 (define (do-something-with . args)
   (display args)
   (newline))
 
-(let ([p        #f]
-      [size     4096])
+(let ((p        #f)
+      (size     4096))
   (dynamic-wind
       (lambda ()
         (set! p (malloc size))
-        (unless p (error "memory allocation")))
+        (unless p (error #f "memory allocation")))
       (lambda ()
         (do-something-with p))
       (lambda ()
@@ -3266,7 +3274,7 @@ and we can define a syntax for it:
 
 @example
 (import (ikarus)
-        (ikarus foreign))
+  (ikarus foreign))
 
 (define (do-something-with . args)
   (display args)
@@ -3274,16 +3282,16 @@ and we can define a syntax for it:
 
 (define-syntax with-block
   (syntax-rules ()
-    [(_ ?pointer ?size ?body ...)
-     (let ([?pointer    #f])
+    ((_ ?pointer ?size ?body ...)
+     (let ((?pointer    #f))
        (dynamic-wind
            (lambda ()
              (set! ?pointer (malloc ?size))
-             (unless ?pointer (error "memory allocation")))
+             (unless ?pointer (error #f "memory allocation")))
            (lambda ()
              ?body ...)
            (lambda ()
-             (free ?pointer))))]))
+             (free ?pointer)))))))
 
 (with-block p 2048
   (do-something-with p))
@@ -3302,19 +3310,18 @@ that takes no arguments):
 
 @example
 (import (ikarus)
-        (ikarus foreign))
+  (ikarus foreign))
 
-;; This queue does not scale.
 (define *event-source* '())
 
 (define (enqueue-event event)
   (set! *event-source*
-        [reverse (cons event (reverse *event-source*))]))
+        (reverse (cons event (reverse *event-source*)))))
 
 (define (pop-event)
   (if (null? *event-source*)
       #f
-    (let ([event (car *event-source*)])
+    (let ((event (car *event-source*)))
       (set! *event-source* (cdr *event-source*))
       event)))
 
@@ -3324,8 +3331,8 @@ that takes no arguments):
   (display args)
   (newline))
 
-(let ([p (malloc 4096)])
-  (unless p (error "memory allocation"))
+(let ((p (malloc 4096)))
+  (unless p (error #f "memory allocation"))
   (enqueue-event (lambda ()
                    (do-something-with p)))
   (enqueue-event (lambda ()
@@ -3333,8 +3340,8 @@ that takes no arguments):
   (enqueue-event (lambda ()
                    (do-something-with p))))
 
-(do ([event (pop-event) (pop-event)])
-    ([not event])
+(do ((event (pop-event) (pop-event)))
+    ((not event))
   (event))
 @end example
 
@@ -3349,21 +3356,21 @@ block:
 
 @example
 (import (ikarus)
-        (ikarus foreign))
+  (ikarus foreign))
 
 (define g (make-guardian))
 
-(let ([a (malloc (expt 2 20))])
-  (unless p (error "memory allocation"))
+(let ((a (malloc (expt 2 20))))
+  (unless p (error #f "memory allocation"))
   (g a)
   (printf "value ~s~%" a))
 
 (printf "value from guardian ~s~%" (g))
 
-;; This triggers a garbage collection (do not ask).
-(foreign-call "ik_collect" 5)
+;; This triggers a garbage collection.
+(collect)
 
-(let ([p (g)])
+(let ((p (g)))
   (printf "value from guardian ~s~%" p)
   (free p))
 @end example
@@ -3374,7 +3381,7 @@ guardian:
 
 @example
 (import (ikarus)
-  	(ikarus foreign))
+  (ikarus foreign))
 
 ;; Event source handling.
 
@@ -3382,12 +3389,12 @@ guardian:
 
 (define (enqueue-event event)
   (set! *event-source*
-        [reverse (cons event (reverse *event-source*))]))
+        (reverse (cons event (reverse *event-source*)))))
 
 (define (pop-event)
   (if (null? *event-source*)
       #f
-    (let ([event (car *event-source*)])
+    (let ((event (car *event-source*)))
       (set! *event-source* (cdr *event-source*))
       event)))
 
@@ -3396,13 +3403,10 @@ guardian:
 (define block-guardian (make-guardian))
 
 (define (run-block-guardian)
-  (do ([p (block-guardian) (block-guardian)])
-       [not p])
+  (do ((p (block-guardian) (block-guardian)))
+      ((not p))
     (printf "collecting ~s~%" p)
     (free p)))
-
-(define (run-garbage-collection)
-  (foreign-call "ik_collect" 5))
 
 ;; Application follows.
 
@@ -3410,25 +3414,23 @@ guardian:
   (display args)
   (newline))
 
-(let ([p (malloc (expt 2 20))])
-  (unless p (error "memory allocation"))
+(let ((p (malloc (expt 2 20))))
+  (unless p (error #f "memory allocation"))
   (block-guardian p)
   (enqueue-event (lambda () (do-something-with p)))
   (enqueue-event (lambda () (do-something-with 123)))
   (enqueue-event (lambda () (do-something-with p)))
   (enqueue-event (lambda () (do-something-with 456))))
 
-(do ([event (pop-event) (pop-event)]
-     [i 1 (+ i 1)])
-    ([= i 20])
+(do ((event (pop-event) (pop-event))
+     (i 1 (+ i 1)))
+    ((= i 20))
   (when event
     (event))
   (when (= 0 (modulo i 10))
-    (run-garbage-collection)
+    (collect)
     (enqueue-event run-block-guardian)))
 @end example
-
-
 
 @c page
 @node ikaruslib guardians api
@@ -3480,6 +3482,22 @@ the programmer to avoid this.
 @end defun
 
 
+@deffn Parameter post-gc-hooks
+Hold a list of thunks evaluated after each garbage collection run.  It
+can be used to run a guardian cleanup function like this (using the
+example in the previous section):
+
+@example
+(define (run-block-guardian)
+  (do ((p (block-guardian) (block-guardian)))
+      ((not p))
+    (free p)))
+
+(post-gc-hooks
+ (cons run-block-guardian
+  (post-gc-hooks)))
+@end example
+@end deffn
 
 @c page
 @node ikaruslib io
