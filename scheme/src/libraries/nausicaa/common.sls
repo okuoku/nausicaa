@@ -3,7 +3,7 @@
 ;;;Contents: common stuff for the nausicaa language
 ;;;Date: Thu Jun 18, 2009
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -71,7 +71,7 @@
 
     ;; syntactic abstractions
     and-let* begin0 begin0-let receive recursion cut cute do*
-    set-cons!
+    set-cons! while
 
     ;; shared structures
     read-with-shared-structure

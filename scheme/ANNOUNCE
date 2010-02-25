@@ -44,10 +44,13 @@ Notes for --- tag 0.1a10
 ------------------------------
 
 * Updated    ikarus.texi   with   material    from   project
-  ikscheme-manual at GitHub.
+  ikscheme-manual at  GitHub.  Added documentation  for post
+  GC hooks.
 
-* Added  ASCII  armor  libraries:  base16,  base64,  base91,
-  ASCII85.
+* Added  ASCII  armor  libraries:  base16,  base32,  base64,
+  base91, ASCII85.
+
+* Added WHILE syntax to (language-extensions).
 
 
 Notes for 2010-01-14 tag 0.1a9

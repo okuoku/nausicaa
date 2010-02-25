@@ -27,10 +27,11 @@
 
 (library (armor helpers)
   (export
-    << >> incr! decr! while define-macro
+    << >> incr! decr! define-macro while receive
     ;;define-accessor-maker
     )
-  (import (rnrs))
+  (import (rnrs)
+    (language-extensions))
 
 
 (define << bitwise-arithmetic-shift-left)
@@ -49,12 +50,6 @@
      (set! ?id (- ?id 1)))
     ((_ ?id ?delta)
      (set! ?id (- ?id ?delta)))))
-
-(define-syntax while
-  (syntax-rules ()
-    ((_ ?test ?form0 ?form ...)
-     (let loop ()
-       (when ?test ?form0 ?form ... (loop))))))
 
 (define-syntax define-macro
   (syntax-rules ()

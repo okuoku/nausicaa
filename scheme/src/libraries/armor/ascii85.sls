@@ -46,41 +46,35 @@
 
     ascii85-encode-finished?		ascii85-decode-finished?)
   (import (rnrs)
-    (receive))
+    (armor helpers))
 
 
 ;;;; helpers
 
-(define << bitwise-arithmetic-shift-left)
-(define >> bitwise-arithmetic-shift-right)
+;; (define << bitwise-arithmetic-shift-left)
+;; (define >> bitwise-arithmetic-shift-right)
 
-(define-syntax incr!
-  (syntax-rules ()
-    ((_ ?id)
-     (set! ?id (+ ?id 1)))
-    ((_ ?id ?delta)
-     (set! ?id (+ ?id ?delta)))))
+;; (define-syntax incr!
+;;   (syntax-rules ()
+;;     ((_ ?id)
+;;      (set! ?id (+ ?id 1)))
+;;     ((_ ?id ?delta)
+;;      (set! ?id (+ ?id ?delta)))))
 
-(define-syntax decr!
-  (syntax-rules ()
-    ((_ ?id)
-     (set! ?id (- ?id 1)))
-    ((_ ?id ?delta)
-     (set! ?id (- ?id ?delta)))))
+;; (define-syntax decr!
+;;   (syntax-rules ()
+;;     ((_ ?id)
+;;      (set! ?id (- ?id 1)))
+;;     ((_ ?id ?delta)
+;;      (set! ?id (- ?id ?delta)))))
 
-(define-syntax while
-  (syntax-rules ()
-    ((_ ?test ?form0 ?form ...)
-     (let loop ()
-       (when ?test ?form0 ?form ... (loop))))))
-
-(define-syntax defmacro
-  (syntax-rules ()
-    ((_ (?name ?arg ...) ?form0 ?form ...)
-     (define-syntax ?name
-       (syntax-rules ()
-	 ((_ ?arg ...)
-	  (begin ?form0 ?form ...)))))))
+;; (define-syntax defmacro
+;;   (syntax-rules ()
+;;     ((_ (?name ?arg ...) ?form0 ?form ...)
+;;      (define-syntax ?name
+;;        (syntax-rules ()
+;; 	 ((_ ?arg ...)
+;; 	  (begin ?form0 ?form ...)))))))
 
 (define-syntax define-encode-accessor
   (lambda (stx)

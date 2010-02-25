@@ -160,7 +160,7 @@
 (library (language-extensions)
   (export
     and-let* begin0 begin0-let begin0-let* begin0-letrec
-    receive recursion cut cute do*
+    receive recursion cut cute do* while
     dotimes dolist loop-upon-list ensure
     set-cons!)
   (import (rnrs)
@@ -273,6 +273,13 @@
 	     (begin
 	       ?form ...
 	       (loop (the-step ?var ?step ...) ...)))))))))
+
+
+(define-syntax while
+  (syntax-rules ()
+    ((_ ?pred ?body0 ?body ...)
+     (let loop ()
+       (when ?pred ?body0 ?body ... (loop))))))
 
 
 ;;;; simple language extensions
