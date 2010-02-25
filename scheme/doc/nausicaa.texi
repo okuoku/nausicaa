@@ -19301,9 +19301,16 @@ Like @func{do}, but bind the variables as in @func{let*} rather than as
 in @func{let}.  The @meta{step} form is optional.
 @end deffn
 
+
 @deffn Syntax while @ameta{test} @ametai{expression} @ametaii{expression} ...
 If @meta{test} is true evaluate the @meta{expression} forms; then loop,
 if @meta{test} is true@dots{}
+@end deffn
+
+
+@deffn Syntax do-while @ameta{test} @ametai{expression} @ametaii{expression} ...
+Evaluate the @meta{expression} forms; then if @meta{test} is true loop:
+evaluate the @meta{expressions} @dots{}
 @end deffn
 
 @c ------------------------------------------------------------

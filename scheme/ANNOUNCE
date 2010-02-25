@@ -50,7 +50,7 @@ Notes for --- tag 0.1a10
 * Added  ASCII  armor  libraries:  base16,  base32,  base64,
   base91, ASCII85.
 
-* Added WHILE syntax to (language-extensions).
+* Added WHILE, DO-WHILE syntaxes to (language-extensions).
 
 
 Notes for 2010-01-14 tag 0.1a9
