@@ -89,8 +89,8 @@
     query-result		query-result?
     pointer->query-result	query-result->pointer
 
-    <fd>			<fd>?
-    integer-><fd>		<fd>->integer
+    fd				fd?
+    integer->fd			fd->integer
 
     pid				pid?
     integer->pid		pid->integer
@@ -238,7 +238,7 @@
 
     connection-get-result		;; PQgetResult
     connection-consume-input		;; PQconsumeInput
-    connection-is-busy			;; PQisBusy
+    connection-is-busy?			;; PQisBusy
 
     connection-set-blocking		;; PQsetnonblocking
     connection-set-non-blocking		;; PQsetnonblocking

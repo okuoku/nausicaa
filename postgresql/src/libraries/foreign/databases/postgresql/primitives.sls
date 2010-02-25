@@ -90,7 +90,7 @@
 
     connection-get-result		;; PQgetResult
     connection-consume-input		;; PQconsumeInput
-    connection-is-busy			;; PQisBusy
+    connection-is-busy?			;; PQisBusy
 
     connection-set-blocking		;; PQsetnonblocking
     connection-set-non-blocking		;; PQsetnonblocking
@@ -408,7 +408,7 @@
     (if (pointer-null? p) #f  (cstring->string p))))
 
 (define (connection-socket conn)
-  (integer-><fd> (PQsocket (connection->pointer conn))))
+  (integer->fd (PQsocket (connection->pointer conn))))
 
 (define (connection-transaction-status conn)
   (value->transaction-status (PQtransactionStatus (connection->pointer conn))))
@@ -727,7 +727,7 @@
 			(make-parameters-condition parms)
 			(make-who-condition 'exec-prepared-statement/send)
 			(make-message-condition (connection-error-message conn))))
-	  code)))))
+	  #t)))))
 
 (define (describe-prepared-statement/send conn stmt-name)
   (let ((code (if stmt-name
@@ -741,7 +741,7 @@
 		    (make-statement-name-condition stmt-name)
 		    (make-who-condition 'describe-prepared-statement/send)
 		    (make-message-condition (connection-error-message conn))))
-      code)))
+      #t)))
 
 
 ;;;; acquiring result of Asynchronous operations
@@ -760,7 +760,7 @@
 		(make-who-condition 'connection-consume-input)
 		(make-message-condition (connection-error-message conn))))))
 
-(define (connection-is-busy conn)
+(define (connection-is-busy? conn)
   (not (zero? (PQisBusy (connection->pointer conn)))))
 
 

@@ -36,8 +36,8 @@
 
 ;;; --------------------------------------------------------------------
 
-    <fd>			<fd>?
-    integer-><fd>		<fd>->integer
+    fd				fd?
+    integer->fd			fd->integer
 
     pid				pid?
     integer->pid		pid->integer
@@ -87,9 +87,9 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-record-type (<fd> integer-><fd> <fd>?)
-  (nongenerative nausicaa:posix:<fd>)
-  (fields (immutable object <fd>->integer)))
+(define-record-type (fd integer->fd fd?)
+  (nongenerative nausicaa:posix:fd)
+  (fields (immutable object fd->integer)))
 
 (define-record-type (pid integer->pid pid?)
   (nongenerative nausicaa:posix:pid)

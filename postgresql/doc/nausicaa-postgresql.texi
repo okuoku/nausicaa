@@ -599,8 +599,16 @@ Connecting to a database
 
 Performing a database query
 
-* exec sync::                   Synchronous functions.
-* exec async::                  Asynchronous functions.
+* exec sync commands::          Synchronous commands execution.
+* exec sync prepared::          Synchronous prepared statements
+                                execution.
+* exec async commands::         Asynchronous commands execution.
+* exec async prepared::         Asynchronous prepared statements
+                                execution.
+* exec async result::           Acquiring the result of
+                                asynchronous operations.
+* exec async writes::           Handling asynchronous write
+                                operations.
 
 Handling query results
 
@@ -878,21 +886,21 @@ is stored in the @code{oid} fields and defaults to @code{InvalidOid}.
 @section File descriptor object
 
 
-@deftp {Record Type Name} <fd>
+@deftp {Record Type Name} fd
 Record type used to tag exact integers representing file descriptors.
 This type is compatible with the same defined by the Nausicaa/@posix{}
 package.
 @end deftp
 
 
-@defun <fd>? @var{obj}
-Return @true{} if @var{obj} is an object of type @class{fd}.
+@defun fd? @var{obj}
+Return @true{} if @var{obj} is an object of type @objtype{fd}.
 @end defun
 
 
-@defun integer-><fd> @var{integer}
-@defunx <fd>->integer @var{fd}
-Convert to and from objects of type @class{fd} and the associated exact
+@defun integer->fd @var{integer}
+@defunx fd->integer @var{fd}
+Convert to and from objects of type @objtype{fd} and the associated exact
 integers.
 @end defun
 
@@ -1713,7 +1721,7 @@ command line options associated to the connection @var{conn}, or
 
 @defun connection-socket @var{conn}
 @findex @func{PQsocket}
-Wrapper for @func{PQsocket}.  Return a @class{fd} object representing
+Wrapper for @func{PQsocket}.  Return a @objtype{fd} object representing
 the socket used by the @objtype{connection} object @var{conn}.
 @end defun
 
@@ -1801,35 +1809,44 @@ referencing an OpenSSL structure of type @code{SSL}; return @false{} is
 
 The bindings documented in this chapter are exported by the
 @library{foreign databases postgresql primitives} library and reexported
-by the @library{foreign databases postgresql} library.  It is suggested
+by the @library{foreign databases postgresql} library; it is suggested
 to import these libraries by prefixing the bindings, for example with
 @code{pg:}.
 
-@quotation
-For an explanation of @acronym{OID} numbers in @pg{}, see the ``Objects
-Identifier Types'' in the original documentation (@aurl{} last verified
-Thu Feb 18, 2010):
+In the descriptions: the @var{conn} argument is always a Scheme object
+of type @objtype{connection}; the @var{result} argument is always a
+Scheme object of type @objtype{query-result}.
 
-@center @url{<http://www.postgresql.org/docs/8.4/static/datatype-oid.html}
+@quotation
+@strong{NOTE} For an explanation of @acronym{OID} numbers in @pg{}, see
+the ``Objects Identifier Types'' in the original documentation (@aurl{}
+last verified Thu Feb 18, 2010):
+
+@center @url{http://www.postgresql.org/docs/8.4/static/datatype-oid.html}
 
 @noindent
-and notice that @acronym{OID} numbers are of type @code{uint32_t}.
+and notice that @acronym{OID} numbers are by definition of type
+@code{uint32_t}.
 @end quotation
 
 @menu
-* exec sync::                   Synchronous functions.
-* exec async::                  Asynchronous functions.
-* exec blocking::               Blocking/non--blocking configuration.
+* exec sync commands::          Synchronous commands execution.
+* exec sync prepared::          Synchronous prepared statements
+                                execution.
+* exec async commands::         Asynchronous commands execution.
+* exec async prepared::         Asynchronous prepared statements
+                                execution.
+* exec async result::           Acquiring the result of
+                                asynchronous operations.
+* exec async writes::           Handling asynchronous write
+                                operations.
+* exec async example::          Example program.
 @end menu
 
 @c page
-@node exec sync
-@section Synchronous functions
+@node exec sync commands
+@section Synchronous commands execution
 
-
-In the descriptions: the @var{conn} argument is always a Scheme object
-of type @objtype{connection}, the @var{result} argument is always a
-Scheme object of type @objtype{query-result}.
 
 The functions raise an exception in case a non--result error is
 detected; the client code should test the returned
@@ -1859,9 +1876,9 @@ If @var{textual-result?} is true, the result holds textual data; else it
 holds binary data.
 @end defun
 
-@c ------------------------------------------------------------
-
-@subsubheading Prepared statements
+@c page
+@node exec sync prepared
+@section Synchronous prepared statements execution
 
 
 @defun prepare-statement @var{conn} @var{stmt-name} @var{query-string} @var{number-of-parms}
@@ -1908,13 +1925,9 @@ holds binary data.
 @end defun
 
 @c page
-@node exec async
-@section Asynchronous functions
+@node exec async commands
+@section Asynchronous commands execution
 
-
-In the descriptions: the @var{conn} argument is always a Scheme object
-of type @objtype{connection}, the @var{result} argument is always a
-Scheme object of type @objtype{query-result}.
 
 The functions raise an exception in case a non--result error is
 detected; the client code should test the returned
@@ -1944,9 +1957,9 @@ If @var{textual-result?} is true, the result holds textual data; else it
 holds binary data.
 @end defun
 
-@c ------------------------------------------------------------
-
-@subsubheading Prepared statements
+@c page
+@node exec async prepared
+@section Asynchronous prepared statements execution
 
 
 @defun prepare-statement/send @var{conn} @var{stmt-name} @var{query-string} @var{number-of-parms}
@@ -1994,9 +2007,9 @@ If @var{textual-result?} is true, the result holds textual data; else it
 holds binary data.
 @end defun
 
-@c ------------------------------------------------------------
-
-@subsubheading Acquiring result of asynchronous operations
+@c page
+@node exec async result
+@section Acquiring the result of asynchronous operations
 
 
 @defun connection-get-result @var{conn}
@@ -2005,6 +2018,9 @@ Wrapper for @func{PQgetResult}.  Return a @objtype{query-result} object
 representing the current status of the last asynchronous operation in
 the context of @var{conn}; return @false{} if the last operation is
 complete.  Block until the result is available.
+
+Notice that when the operation is the execution of more @sql{}
+statements, a result for each statement is produced.
 @end defun
 
 
@@ -2012,7 +2028,12 @@ complete.  Block until the result is available.
 @findex @func{PQconsumeInput}
 Wrapper for @func{PQconsumeInput}.  Consume incoming input from
 @var{conn} and store it internally, to be retrieved later with
-@func{get-result}.
+@func{connection-get-result}.  Raise an exception if an error occurs.
+
+Notice that a single call to this function can make available data for
+more @objtype{query-result} objects; so more calls to
+@func{connection-get-result} may be needed to consume all the received
+data.
 @end defun
 
 
@@ -2025,12 +2046,8 @@ sense to call this function only after a call to
 @end defun
 
 @c page
-@node exec blocking
-@section Blocking/non--blocking configuration
-
-
-In the descriptions: the @var{conn} argument is always a Scheme object
-of type @objtype{connection}.
+@node exec async writes
+@section Handling asynchronous write operations
 
 
 @defun connection-set-non-blocking @var{conn}
@@ -2061,6 +2078,177 @@ in @var{conn}; return @true{} if more data is pending and needs to be
 flushed, return @false{} if all the data has been flushed.  Raise an
 exception if an error occurs.
 @end defun
+
+@c page
+@node exec async example
+@section Example program
+
+
+The following example program shows the mechanics of database access
+through a non--blocking connection for both reading and writing.
+
+@smallexample
+(import (nausicaa)
+  (formations)
+  (records)
+  (compensations)
+  (deferred-exceptions)
+  (foreign memory)
+  (prefix (foreign databases postgresql) pg:)
+  (prefix (foreign databases postgresql compensated) pg:)
+  (prefix (posix sizeof) px:)
+  (prefix (posix fd) px:)
+  (for (prefix (posix typedefs) px:) expand run)
+  (for (prefix (posix extensions) px:) expand))
+
+(define (main)
+  (with-deferred-exceptions-handler
+      (lambda (E)
+        (exception-handler "deferred exception" E))
+    (lambda ()
+      (with-exception-handler
+          (lambda (E)
+            (exception-handler "error" E))
+        (lambda ()
+          (with-compensations
+
+            (define $sql-create-table
+              "create table accounts (nickname TEXT,
+                                      password TEXT);")
+
+            (define $sql-insert-data "
+               insert into accounts (nickname, password)
+                 values ('ichigo', 'abcde');
+               insert into accounts (nickname, password)
+                 values ('rukia', '12345');
+               insert into accounts (nickname, password)
+                 values ('chad', 'fist');")
+
+            (define $sql-query
+              "select * from accounts where nickname = $1;")
+
+            (let ((conn (database-connect/c "dbname=nausicaa-test")))
+
+              (database-send/c
+               conn (pg:exec-status command-ok)
+               (lambda (conn)
+                 (pg:exec-script/send conn $sql-create-table)))
+
+              (database-send/c
+               conn (pg:exec-status command-ok)
+               (lambda (conn)
+                 (pg:exec-script/send conn $sql-insert-data)))
+
+              (database-send/c
+               conn (pg:exec-status command-ok)
+               (lambda (conn)
+                 (pg:prepare-statement/send conn
+                    'the-row $sql-query 1)))
+
+              (let ((result (database-send/c
+                             conn (pg:exec-status tuples-ok)
+                             (lambda (conn)
+                               (pg:exec-prepared-statement/send
+                                conn 'the-row
+                                (list (pg:parameter "rukia"))
+                                #t)))))
+
+                (format #t
+                  "number of tuples: ~a~%password: ~a~%"
+                  (pg:result-number-of-tuples result)
+                  (pg:result-get-value/text result 0 1)))))
+          (exit))))))
+
+(define (database-connect/c connect-info)
+  (let ((conn (pg:connect-start/c connect-info)))
+    (if (pg:status/bad? conn)
+        (error 'database-conenct
+          "unable to start connection")
+      (let loop ((status (pg:polling-status writing)))
+        (case (enum->symbol status)
+          ((ok)
+           (pg:connection-set-non-blocking conn)
+           conn)
+          ((reading)
+           (connection-wait-for-read-ready conn)
+           (loop (pg:connect-poll conn)))
+          ((writing)
+           (connection-wait-for-write-ready conn)
+           (loop (pg:connect-poll conn)))
+          (else
+           (error 'database-connect/c
+             "unable to complete connection")))))))
+
+(define (database-send/c conn expected-status action)
+  (action conn)
+  (do-while (pg:connection-flush conn)
+    (connection-wait-for-write-ready conn))
+  (let next-result ((last-result #f))
+    (while (pg:connection-is-busy? conn)
+      (connection-wait-for-read-ready conn)
+      (pg:connection-consume-input conn))
+    (let ((result (pg:connection-get-result/c conn)))
+      (if result
+          (if (enum-set=? expected-status
+                          (pg:result-status result))
+              (next-result result)
+            (error 'database-exec-command/c
+              "unexpected result status"))
+        last-result))))
+
+(define-enumeration socket-event
+  (read-ready write-ready exception)
+  socket-events)
+
+(define-syntax connection-wait-for-read-ready
+  (syntax-rules ()
+    ((_ ?conn)
+     (connection-wait-for-event ?conn
+        (socket-event read-ready)))))
+
+(define-syntax connection-wait-for-write-ready
+  (syntax-rules ()
+    ((_ ?conn)
+     (connection-wait-for-event ?conn
+        (socket-event write-ready)))))
+
+(define (connection-wait-for-event conn which)
+  (with-compensations
+    (let ((fd       (pg:connection-socket conn))
+          (rd-fdset (px:make-fdset malloc-block/c))
+          (wr-fdset (px:make-fdset malloc-block/c))
+          (ex-fdset (px:make-fdset malloc-block/c))
+          (timeout  (px:make-struct-timeval malloc-block/c)))
+      (with-fields* (((sec usec) px:struct-timeval* timeout))
+        (set! timeout.sec  10)
+        (set! timeout.usec 0))
+      (px:FD_ZERO rd-fdset)
+      (px:FD_ZERO wr-fdset)
+      (px:FD_ZERO ex-fdset)
+      (let ((set (case which
+                   ((read-ready)   rd-fdset)
+                   ((write-ready)  wr-fdset)
+                   ((exception)    ex-fdset))))
+        (px:FD_SET fd set)
+        (px:select px:FD_SETSIZE
+           rd-fdset wr-fdset ex-fdset timeout)
+        (unless (px:FD_ISSET fd set)
+          (error 'connection-wait-for-event
+            "timeout expired while polling socket"))))))
+
+(define (enum->symbol set)
+  (car (enum-set->list set)))
+
+(define (exception-handler prefix E)
+  (cond ((message-condition? E)
+         (format (current-error-port)
+           "~a: ~a: ~a\n" prefix
+           (condition-who E) (condition-message E))
+         (exit 1))
+        (else (raise E))))
+
+(main)
+@end smallexample
 
 @c page
 @node query
@@ -2866,6 +3054,13 @@ stacks}.
 Wrapper for @func{connect-db} which pushes, on the current compensation
 stack, the appropriate call to @func{connect-finish} to close the
 database connection.
+@end defun
+
+
+@defun connect-start/c @var{connect-info}
+Wrapper for @func{connect-start} which pushes, on the current
+compensation stack, the appropriate call to @func{connect-finish} to
+close the database connection.
 @end defun
 
 

@@ -28,6 +28,7 @@
 (library (foreign databases postgresql compensated)
   (export
     connect-db/c
+    connect-start/c
 
     exec-script/c			exec-parametrised-query/c
     prepare-statement/c			describe-prepared-statement/c
@@ -46,6 +47,13 @@
 (define (connect-db/c info)
   (letrec ((conn (compensate
 		     (pg:connect-db info)
+		   (with
+		    (pg:connect-finish conn)))))
+    conn))
+
+(define (connect-start/c info)
+  (letrec ((conn (compensate
+		     (pg:connect-start info)
 		   (with
 		    (pg:connect-finish conn)))))
     conn))
