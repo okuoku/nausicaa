@@ -71,20 +71,20 @@
 (parametrise ((check-test-name 'access))
 
   (check
-      (pid? (posix:tcgetpgrp (integer-><fd> 1)))
+      (pid? (posix:tcgetpgrp (integer->fd 1)))
     => #t)
 
 ;;; Is there a way to test this without losing control of the terminal?
 ;;   (check
 ;;       (let ((pid (posix:fork)))
 ;; 	(unless pid
-;; 	  (posix:tcsetpgrp (integer-><fd> 1) (posix:getpgrp))
+;; 	  (posix:tcsetpgrp (integer->fd 1) (posix:getpgrp))
 ;; 	  (exit))
 ;; 	#t)
 ;;     => #t)
 
   (check
-      (pid? (posix:tcgetsid (integer-><fd> 1)))
+      (pid? (posix:tcgetsid (integer->fd 1)))
     => #t)
 
   #t)

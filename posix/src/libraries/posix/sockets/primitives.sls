@@ -505,7 +505,7 @@
 
 (define (shutdown sock how)
   (receive (result errno)
-      (platform:shutdown (<fd>->integer sock) (shutdown-mode->value how))
+      (platform:shutdown (fd->integer sock) (shutdown-mode->value how))
     (when (= -1 result)
       (raise-errno-error 'shutdown errno (list sock how)))))
 
@@ -522,7 +522,7 @@
     (receive (sockaddr* socklen)
 	(%sockaddr->pointer&length sockaddr malloc-block/c)
       (receive (result errno)
-	  (platform:bind (<fd>->integer sock) sockaddr* socklen)
+	  (platform:bind (fd->integer sock) sockaddr* socklen)
 	(when (= -1 result)
 	  (raise-errno-error 'bind errno (list sock sockaddr)))))))
 
@@ -531,13 +531,13 @@
     (receive (sockaddr* socklen)
 	(%sockaddr->pointer&length sockaddr malloc-block/c)
       (receive (result errno)
-	  (platform:connect (<fd>->integer sock) sockaddr* socklen)
+	  (platform:connect (fd->integer sock) sockaddr* socklen)
 	(when (= -1 result)
 	  (raise-errno-error 'connect errno (list sock sockaddr)))))))
 
 (define (listen sock max-pending-connections)
   (receive (result errno)
-      (platform:listen (<fd>->integer sock) max-pending-connections)
+      (platform:listen (fd->integer sock) max-pending-connections)
     (when (= -1 result)
       (raise-errno-error 'listen errno (list sock max-pending-connections)))))
 
@@ -548,7 +548,7 @@
 	   (socklen*	(malloc-small/c)))
       (pointer-set-c-socklen_t! socklen* 0 socklen)
       (receive (result errno)
-	  (platform:accept (<fd>->integer sock) sockaddr* socklen*)
+	  (platform:accept (fd->integer sock) sockaddr* socklen*)
 	(cond ((= -1 result)
 	       (raise-errno-error 'accept errno sock))
 	      ((< socklen (pointer-ref-c-socklen_t socklen* 0))
@@ -573,7 +573,7 @@
     (receive (sockaddr* socklen*)
 	(%sockaddr&socklen-pointers/c sock)
       (receive (result errno)
-	  (platform:getsockname (<fd>->integer sock) sockaddr* socklen*)
+	  (platform:getsockname (fd->integer sock) sockaddr* socklen*)
 	(cond ((= -1 result)
 	       (raise-errno-error 'getsockname errno sock))
 	      ((< (%socklen-from-sock sock) (pointer-ref-c-socklen_t socklen* 0))
@@ -587,7 +587,7 @@
     (receive (sockaddr* socklen*)
 	(%sockaddr&socklen-pointers/c sock)
       (receive (result errno)
-	  (platform:getpeername (<fd>->integer sock) sockaddr* socklen*)
+	  (platform:getpeername (fd->integer sock) sockaddr* socklen*)
 	(cond ((= -1 result)
 	       (raise-errno-error 'getpeername errno sock))
 	      ((< (%socklen-from-sock sock) (pointer-ref-c-socklen_t socklen* 0))
@@ -603,7 +603,7 @@
     (send sock buf.ptr buf.len (socket-data-options)))
    ((sock buf.ptr buf.len options)
     (receive (result errno)
-	(platform:send (<fd>->integer sock) buf.ptr buf.len
+	(platform:send (fd->integer sock) buf.ptr buf.len
 		       (socket-data-options->value options))
       (if (= -1 result)
 	  (raise-errno-error 'send errno (list sock buf.ptr buf.len options))
@@ -644,7 +644,7 @@
     (recv sock buf.ptr buf.len (socket-data-options)))
    ((sock buf.ptr buf.len options)
     (receive (result errno)
-	(platform:recv (<fd>->integer sock) buf.ptr buf.len
+	(platform:recv (fd->integer sock) buf.ptr buf.len
 		       (socket-data-options->value options))
       (if (= -1 result)
 	  (raise-errno-error 'recv errno (list sock buf.ptr buf.len options))
@@ -686,7 +686,7 @@
       (receive (sockaddr* socklen)
 	  (%sockaddr->pointer&length sockaddr malloc-block/c)
 	(receive (result errno)
-	    (platform:sendto (<fd>->integer sock)
+	    (platform:sendto (fd->integer sock)
 			     buf.ptr buf.len
 			     (socket-data-options->value options)
 			     sockaddr* socklen)
@@ -734,7 +734,7 @@
 	     (socklen*	(malloc-small/c)))
 	(pointer-set-c-socklen_t! socklen* 0 socklen)
 	(receive (result errno)
-	    (platform:recvfrom (<fd>->integer sock)
+	    (platform:recvfrom (fd->integer sock)
 			       buf.ptr buf.len
 			       (socket-data-options->value options)
 			       sockaddr* socklen*)
@@ -792,7 +792,7 @@
 	   (optlen*	(malloc-small/c)))
       (pointer-set-c-socklen_t! optlen* 0 optlen)
       (receive (result errno)
-	  (platform:getsockopt (<fd>->integer sock) SOL_SOCKET
+	  (platform:getsockopt (fd->integer sock) SOL_SOCKET
 			       (socket-option->value option) optval* optlen*)
 	(if (= -1 result)
 	    (raise-errno-error 'getsockopt errno (list sock))
@@ -834,7 +834,7 @@
 	(else
 	 (assertion-violation 'setsockopt "invalid socket option" option)))
       (receive (result errno)
-	  (platform:setsockopt (<fd>->integer sock) SOL_SOCKET
+	  (platform:setsockopt (fd->integer sock) SOL_SOCKET
 			       (socket-option->value option) optval* optlen)
 	(if (= -1 result)
 	    (raise-errno-error 'setsockopt errno (list sock))

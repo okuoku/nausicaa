@@ -286,7 +286,7 @@
   (receive (result errno)
       (with-compensations
 	(let ((mode	(string->cstring/c open-mode)))
-	  (platform:fdopen (<fd>->integer fd) mode)))
+	  (platform:fdopen (fd->integer fd) mode)))
     (if (pointer-null? result)
 	(raise-errno-error 'fdopen errno (list fd open-mode))
       (pointer->FILE* result))))
@@ -296,7 +296,7 @@
       (platform:fileno (FILE*->pointer stream))
     (when (pointer-null? result)
       (raise-errno-error 'fileno errno stream))
-    (integer-><fd> result)))
+    (integer->fd result)))
 
 ;;; --------------------------------------------------------------------
 

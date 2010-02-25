@@ -27,7 +27,7 @@
 
 (library (posix fd primitives)
   (export
-    integer-><fd>	<fd>->integer	<fd>?
+    integer->fd	fd->integer	fd?
 
     open		close
     read		write
@@ -120,8 +120,8 @@
   (syntax-rules ()
     ((_ ?obj)
      (let ((obj ?obj))
-       (if (<fd>? obj)
-	   (<fd>->integer obj)
+       (if (fd? obj)
+	   (fd->integer obj)
 	 obj)))))
 
 (define (%timeval->pointer/c obj procname)
@@ -148,7 +148,7 @@
     (open-mode->value open-mode)))
 
 (define (open pathname open-mode permissions)
-  (integer-><fd> (with-compensations
+  (integer->fd (with-compensations
 			      (%temp-failure-retry-minus-one
 			       open
 			       (platform:open (string->cstring/c pathname)
@@ -157,7 +157,7 @@
 			       (list pathname open-mode permissions)))))
 
 (define (close fd)
-  (%temp-failure-retry-minus-one close (platform:close (<fd>->integer fd)) fd))
+  (%temp-failure-retry-minus-one close (platform:close (fd->integer fd)) fd))
 
 
 ;;;; reading and writing
@@ -167,7 +167,7 @@
     ((_ ?funcname ?primitive ?fd ?pointer ?number-of-bytes)
      (%temp-failure-retry-minus-one
       ?funcname
-      (?primitive (<fd>->integer ?fd) ?pointer ?number-of-bytes)
+      (?primitive (fd->integer ?fd) ?pointer ?number-of-bytes)
       ?fd))))
 
 (define-syntax %do-pread-or-pwrite
@@ -175,7 +175,7 @@
     ((_ ?funcname ?primitive ?fd ?pointer ?number-of-bytes ?offset)
      (%temp-failure-retry-minus-one
       ?funcname
-      (?primitive (<fd>->integer ?fd) ?pointer ?number-of-bytes ?offset)
+      (?primitive (fd->integer ?fd) ?pointer ?number-of-bytes ?offset)
       ?fd))))
 
 (define (read fd pointer number-of-bytes)
@@ -197,7 +197,7 @@
   ;;It seems  that EINTR  cannot happen with  "lseek()", but it  does no
   ;;harm to use the macro.
   (%temp-failure-retry-minus-one lseek
-				 (platform:lseek (<fd>->integer fd) offset whence)
+				 (platform:lseek (fd->integer fd) offset whence)
 				 (list fd offset whence)))
 
 
@@ -212,12 +212,12 @@
 
 (define (fsync fd)
   (%call-for-minus-one/irritants fsync
-				 (platform:fsync (<fd>->integer fd))
+				 (platform:fsync (fd->integer fd))
 				 fd))
 
 (define (fdatasync fd)
   (%call-for-minus-one/irritants fdatasync
-				 (platform:fdatasync (<fd>->integer fd))
+				 (platform:fdatasync (fd->integer fd))
 				 fd))
 
 
@@ -229,7 +229,7 @@
 					  (struct-flock? arg))
 				      platform:fcntl/ptr
 				    platform:fcntl)
-				  (<fd>->integer fd)
+				  (fd->integer fd)
 				  operation
 				  (cond ((pointer? arg)
 					 arg)
@@ -241,20 +241,20 @@
 
 (define (ioctl fd operation arg)
   (%call-for-minus-one/irritants ioctl
-				 (platform:ioctl (<fd>->integer fd) operation arg)
+				 (platform:ioctl (fd->integer fd) operation arg)
 				 fd operation arg))
 
 
 ;;;; duplicating
 
 (define (dup fd)
-  (integer-><fd> (%call-for-minus-one/irritants dup
-						(platform:dup (<fd>->integer fd))
+  (integer->fd (%call-for-minus-one/irritants dup
+						(platform:dup (fd->integer fd))
 						fd)))
 
 (define (dup2 old new)
-  (integer-><fd> (%call-for-minus-one/irritants dup2
-						(platform:dup2 (<fd>->integer old)
+  (integer->fd (%call-for-minus-one/irritants dup2
+						(platform:dup2 (fd->integer old)
 							       (%fd->integer new))
 						old new)))
 
@@ -268,8 +268,8 @@
 	  (platform:pipe p)
 	(if (= -1 result)
 	    (raise-errno-error 'pipe errno)
-	  (values (integer-><fd> (array-ref-c-signed-int p 0))
-		  (integer-><fd> (array-ref-c-signed-int p 1))))))))
+	  (values (integer->fd (array-ref-c-signed-int p 0))
+		  (integer->fd (array-ref-c-signed-int p 1))))))))
 
 (define (mkfifo pathname mode)
   (with-compensations
@@ -282,12 +282,12 @@
 
 (define (readv fd buffers buffer-count)
   (%call-for-minus-one/irritants readv
-				 (platform:readv (<fd>->integer fd) buffers buffer-count)
+				 (platform:readv (fd->integer fd) buffers buffer-count)
 				 fd buffers buffer-count))
 
 (define (writev fd buffers buffer-count)
   (%call-for-minus-one/irritants writev
-				 (platform:writev (<fd>->integer fd) buffers buffer-count)
+				 (platform:writev (fd->integer fd) buffers buffer-count)
 				 fd buffers buffer-count))
 
 
@@ -295,7 +295,7 @@
 
 (define (mmap address length protect flags fd offset)
   (receive (effective-address errno)
-      (platform:mmap address length protect flags (<fd>->integer fd) offset)
+      (platform:mmap address length protect flags (fd->integer fd) offset)
     ;;;(pointer=? effective-address (integer->pointer -1)) ;ugly, but what can I do?
     (if (let ((i (pointer->integer effective-address)))
 	  (or (= -1 i) ;for ikarus and ypsilon
@@ -320,13 +320,13 @@
   (platform:FD_ZERO (fdset->pointer set)))
 
 (define (FD_ISSET fd set)
-  (not (= 0 (platform:FD_ISSET (<fd>->integer fd) (fdset->pointer set)))))
+  (not (= 0 (platform:FD_ISSET (fd->integer fd) (fdset->pointer set)))))
 
 (define (FD_SET fd set)
-  (platform:FD_SET (<fd>->integer fd) (fdset->pointer set)))
+  (platform:FD_SET (fd->integer fd) (fdset->pointer set)))
 
 (define (FD_CLR fd set)
-  (platform:FD_CLR (<fd>->integer fd) (fdset->pointer set)))
+  (platform:FD_CLR (fd->integer fd) (fdset->pointer set)))
 
 (define-syntax %fdset-true-or-null
   (syntax-rules ()
@@ -372,7 +372,7 @@
       (platform:FD_ZERO ex-set*)
       (for-each (lambda (fdset* fd-ell)
 		  (for-each (lambda (fd)
-			      (platform:FD_SET (<fd>->integer fd) fdset*))
+			      (platform:FD_SET (fd->integer fd) fdset*))
 		    fd-ell))
 	(list rd-set* wr-set* ex-set*)
 	(list rd-ell wr-ell ex-ell))
@@ -387,7 +387,7 @@
 	    (values '() '() '())
 	  (let ((%fold-fds (lambda (fd-set* fd-ell)
 			     (fold-left (lambda (knil fd)
-					  (if (= 0 (platform:FD_ISSET (<fd>->integer fd) fd-set*))
+					  (if (= 0 (platform:FD_ISSET (fd->integer fd) fd-set*))
 					      knil
 					    (cons fd knil)))
 					'()

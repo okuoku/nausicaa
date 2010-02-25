@@ -28,8 +28,8 @@
 (library (posix typedefs)
   (export
 
-    <fd>			<fd>?
-    integer-><fd>		<fd>->integer
+    fd				fd?
+    integer->fd			fd->integer
 
     FILE*			FILE*?
     pointer->FILE*		FILE*->pointer
@@ -349,9 +349,9 @@
     (posix sizeof))
 
 
-(define-record-type (<fd> integer-><fd> <fd>?)
-  (nongenerative nausicaa:posix:<fd>)
-  (fields (immutable object <fd>->integer)))
+(define-record-type (fd integer->fd fd?)
+  (nongenerative nausicaa:posix:fd)
+  (fields (immutable object fd->integer)))
 
 (define-record-type (FILE* pointer->FILE* FILE*?)
   (nongenerative nausicaa:posix:FILE*)
@@ -759,7 +759,7 @@
 
 (define-record-type <socket>
   (nongenerative nausicaa:posix:<socket>)
-  (parent <fd>)
+  (parent fd)
   (fields (immutable namespace)
 	  (immutable style)
 	  (immutable protocol)))

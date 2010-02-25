@@ -179,13 +179,13 @@
   (case-lambda
    ((fd access-time-sec access-time-usec modification-time-sec modification-time-usec)
     (%real-utimes (lambda (*arry)
-		    (platform:futimes (<fd>->integer fd) *arry))
+		    (platform:futimes (fd->integer fd) *arry))
 		  'futimes fd
 		  access-time-sec access-time-usec
 		  modification-time-sec modification-time-usec))
    ((fd)
     (%real-utimes (lambda (*arry)
-		    (platform:futimes (<fd>->integer fd) *arry))
+		    (platform:futimes (fd->integer fd) *arry))
 		  'futimes fd))))
 
 

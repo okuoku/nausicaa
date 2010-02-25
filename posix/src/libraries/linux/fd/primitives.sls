@@ -50,8 +50,8 @@
 			      (pipe2-flags->value flags)))
 	(if (= -1 result)
 	    (raise-errno-error 'pipe2 errno (list flags))
-	  (values (integer-><fd> (array-ref-c-signed-int p 0))
-		  (integer-><fd> (array-ref-c-signed-int p 1))))))))
+	  (values (integer->fd (array-ref-c-signed-int p 0))
+		  (integer->fd (array-ref-c-signed-int p 1))))))))
 
 
 ;;;; done

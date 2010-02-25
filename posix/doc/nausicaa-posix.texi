@@ -84,6 +84,10 @@ Revised^6 Report on the algorithmic language Scheme
 @code{<\NAME\>}
 @end macro
 
+@macro objtype{NAME}
+@code{\NAME\}
+@end macro
+
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
 @c ------------------------------------------------------------
@@ -1002,9 +1006,9 @@ typedefs}; all of them are @code{nongenerative} definitions.  For
 example:
 
 @example
-(define-record-type (<fd> integer-><fd> <fd>?)
-  (nongenerative nausicaa:posix:<fd>)
-  (fields (immutable object <fd>->integer)))
+(define-record-type (fd integer->fd fd?)
+  (nongenerative nausicaa:posix:fd)
+  (fields (immutable object fd->integer)))
 @end example
 
 @noindent
@@ -1017,15 +1021,15 @@ typedefs} into a new library:
 
 @example
 (library (my-package typedefs)
-  (export <fd> <fd>? integer-><fd> <fd>->integer)
+  (export fd fd? integer->fd fd->integer)
   (import (rnrs)
-  (define-record-type (<fd> integer-><fd> <fd>?)
-    (nongenerative nausicaa:posix:<fd>)
-    (fields (immutable object <fd>->integer)))))
+  (define-record-type (fd integer->fd fd?)
+    (nongenerative nausicaa:posix:fd)
+    (fields (immutable object fd->integer)))))
 @end example
 
 @noindent
-achieving compatibility for the type @class{fd} without forcing a
+achieving compatibility for the type @objtype{fd} without forcing a
 dependency upon @value{PACKAGE} for the new package.
 
 @quotation
@@ -2780,24 +2784,24 @@ exported by the @library{posix typedefs} library.
 
 
 Functions from the primitives and high--level file descriptor libraries
-accept objects of type @class{fd} as @var{fd} arguments.  Functions from
+accept objects of type @objtype{fd} as @var{fd} arguments.  Functions from
 the platform libraries accept exact integers as representing file
 descriptors.
 
 
-@deftp {Object Type} <fd>
+@deftp {Object Type} fd
 Object type representing a file descriptor integer; it is disjoint from
 all the other Scheme object types.
 @end deftp
 
 
-@defun <fd>? @var{obj}
+@defun fd? @var{obj}
 Return true if @var{obj} is a file descriptor object.
 @end defun
 
 
-@defun <fd>->integer @var{fd}
-@defunx integer-><fd> @var{integer}
+@defun fd->integer @var{fd}
+@defunx integer->fd @var{integer}
 Convert between a file descriptor object and an integer object.
 @end defun
 
@@ -4154,7 +4158,7 @@ Halt the process until one or more events happen on the selected file
 descriptors; mutate the given file descriptor sets to report which file
 descriptor are affected.
 
-@var{max-fd} must be an integer or @class{fd} object.  @var{rdset},
+@var{max-fd} must be an integer or @objtype{fd} object.  @var{rdset},
 @var{wrset} and @var{exset} must be @code{fdset} objects selecting file
 descriptors to watch for specific events.  @var{timeout} must be a
 @code{struct-timeval} object.
@@ -5231,7 +5235,7 @@ Unless otherwise specified, the following bindings are exported by the
 @deftp {Record Type Name} <socket>
 @deftpx {Record Type Descriptor} <socket-rtd>
 Record type used to wrap socket file descriptors; it is derived from
-@class{fd} and it adds the following immutable fields:
+@objtype{fd} and it adds the following immutable fields:
 
 @table @code
 @item namespace
@@ -7517,7 +7521,7 @@ accepted by @func{fopen}.
 @deffnx Parameter fileno-function
 @deffnx Function primitive:fileno @var{stream}
 @deffnx Function platform:fileno @var{stream-ptr}
-Return a @class{fd} object representing the file descriptor wrapped by
+Return a @objtype{fd} object representing the file descriptor wrapped by
 @var{stream}.
 @end deffn
 
