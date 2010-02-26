@@ -35,6 +35,7 @@
     exec-prepared-statement/c
 
     connection-get-result/c
+    connection-get-cancel-handler/c
 
     describe-portal/c			describe-portal/send/c
     )
@@ -108,6 +109,16 @@
     (when result
       (push-compensation
        (pg:clear-result result)))))
+
+
+;;;; SQL command cancellation
+
+(define (connection-get-cancel-handler/c conn)
+  (letrec ((cancel (compensate
+		       (pg:connection-get-cancel-handler conn)
+		     (with
+		      (pg:free-cancel-handler cancel)))))
+    cancel))
 
 
 (define (describe-portal/c conn portal-name)

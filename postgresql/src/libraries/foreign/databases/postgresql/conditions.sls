@@ -27,10 +27,16 @@
 
 (library (foreign databases postgresql conditions)
   (export
+
     &connection
     make-connection-condition
     connection-condition?
     connection-condition
+
+    &cancel-handler
+    make-cancel-handler-condition
+    cancel-handler-condition?
+    cancel-handler-condition
 
     &query-string
     make-query-string-condition
@@ -62,7 +68,10 @@
     &postgresql-error
     make-postgresql-error-condition
     postgresql-error-condition?
-    condition-postgresql-error-code
+
+    &postgresql-cancel-error
+    make-postgresql-cancel-error-condition
+    postgresql-cancel-error-condition?
 
     ;; &postgresql-opening-error
     ;; make-postgresql-opening-error-condition
@@ -109,6 +118,12 @@
   connection-condition?
   (connection		connection-condition))
 
+(define-condition-type &cancel-handler
+  &condition
+  make-cancel-handler-condition
+  cancel-handler-condition?
+  (cancel-handler	cancel-handler-condition))
+
 (define-condition-type &query-string
   &condition
   make-query-string-condition
@@ -143,8 +158,14 @@
 (define-condition-type &postgresql-error
   &error
   make-postgresql-error-condition
-  postgresql-error-condition?
-  (code		condition-postgresql-error-code))
+  postgresql-error-condition?)
+
+;;; --------------------------------------------------------------------
+
+(define-condition-type &postgresql-cancel-error
+  &postgresql-error
+  make-postgresql-cancel-error-condition
+  postgresql-cancel-error-condition?)
 
 ;;; --------------------------------------------------------------------
 

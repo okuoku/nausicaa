@@ -394,8 +394,43 @@ select * from accounts;
 		    (pg:result-new-row-oid result)
 		  => #f)
 
-		#f)))))
-      #t)))
+		#f)))
+
+;;; --------------------------------------------------------------------
+;;; notify
+
+	  (let ((result (pg:exec-script/c conn "listen accounts")))
+
+	    (check
+		(pg:result-status result)
+	      (=> enum-set=?)
+	      (pg:exec-status command-ok)))
+
+	  (let ((result (pg:exec-script/c conn
+					  "create rule R1 as on insert to accounts do
+                                             (notify accounts);
+                                           insert into accounts (nickname, password)
+					     values ('hollow', 'cero');")))
+
+	    (check
+		(pg:result-status result)
+	      (=> enum-set=?)
+	      (pg:exec-status command-ok))
+
+	    (when (enum-set=? (pg:exec-status command-ok) (pg:result-status result))
+
+	      (check
+		  (let ((n (pg:connection-notification conn)))
+		    (and (pg:<notification>? n)
+			 (pg:<notification>-relname n)))
+		=> "accounts")
+
+	      (check
+		  (pg:connection-notification conn)
+		=> #f)
+
+	      #f)))
+      #t))))
 
 
 (parametrise ((check-test-name	'parametrised-queries)

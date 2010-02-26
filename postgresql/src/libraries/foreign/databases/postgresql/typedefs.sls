@@ -29,7 +29,10 @@
   (export
 
     connection			connection?
-    pointer->connection	connection->pointer
+    pointer->connection		connection->pointer
+
+    cancel-handler		cancel-handler?
+    pointer->cancel-handler	cancel-handler->pointer
 
     query-result		query-result?
     pointer->query-result	query-result->pointer
@@ -72,6 +75,15 @@
     <parameter>-oid
 
     parameter
+
+;;; --------------------------------------------------------------------
+
+    <notification>			<notification-rtd>
+    make-<notification>			<notification>?
+    <notification>-relname
+    <notification>-pid
+    <notification>-extra
+
     )
   (import (rnrs)
     (only (foreign cstrings) cstring->string)
@@ -81,6 +93,9 @@
 
 (define-record-type (connection pointer->connection connection?)
   (fields (immutable pointer connection->pointer)))
+
+(define-record-type (cancel-handler pointer->cancel-handler cancel-handler?)
+  (fields (immutable pointer cancel-handler->pointer)))
 
 (define-record-type (query-result pointer->query-result query-result?)
   (fields (immutable pointer query-result->pointer)))
@@ -169,6 +184,15 @@
 
     ((_ ?value)
      (parameter (value ?value) (size %default-size) (text? %default-text) (oid %invalid-oid)))))
+
+
+(define-record-type <notification>
+  (fields (immutable relname)
+	  (immutable pid)
+	  (immutable extra)))
+
+(define <notification-rtd>
+  (record-type-descriptor <notification>))
 
 
 ;;;; done

@@ -97,6 +97,13 @@
     connection-is-non-blocking?		;; PQisnonblocking
     connection-flush			;; PQflush
 
+    connection-notification		;; PQnotifies
+
+    ;; cancelling a command
+    connection-get-cancel-handler	;; PQgetCancel
+    free-cancel-handler			;; PQfreeCancel
+    cancel-command			;; PQcancel
+
     ;; inspecting query results
     result-status			;; PQresultStatus
     status->string			;; PQresStatus
@@ -145,9 +152,6 @@
     describe-portal/send		;; PQsendDescribePortal
 
     (rename (PQconninfoFree			conninfo-free)
-	    (PQgetCancel			get-cancel)
-	    (PQfreeCancel			free-cancel)
-	    (PQcancel				cancel)
 	    (PQrequestCancel			request-cancel)
 	    (PQclientEncoding			client-encoding)
 	    (PQsetClientEncoding		set-client-encoding)
@@ -159,7 +163,6 @@
 	    (PQsetNoticeReceiver		set-notice-receiver)
 	    (PQsetNoticeProcessor		set-notice-processor)
 	    (PQregisterThreadLock		register-thread-lock)
-	    (PQnotifies				notifies)
 	    (PQputCopyData			put-copy-data)
 	    (PQputCopyEnd			put-copy-end)
 	    (PQgetCopyData			get-copy-data)
@@ -763,6 +766,16 @@
 (define (connection-is-busy? conn)
   (not (zero? (PQisBusy (connection->pointer conn)))))
 
+(define (connection-notification conn)
+  (let ((p (PQnotifies (connection->pointer conn))))
+    (if (pointer-null? p)
+	#f
+      (with-compensations
+	(push-compensation (PQfreemem p))
+	(make-<notification> (cstring->string	(struct-PGnotify-relname-ref p))
+			     (integer->pid	(struct-PGnotify-be_pid-ref p))
+			     (cstring->string	(struct-PGnotify-extra-ref p)))))))
+
 
 ;;;; blocking/non-blocking connections
 
@@ -800,6 +813,34 @@
 		   (make-message-condition (connection-error-message conn)))))
       (else
        (assertion-violation 'connection-flush "invalid return value from PQflush" code)))))
+
+
+;;;; cancelling a SQL command
+
+(define (connection-get-cancel-handler conn)
+  (let ((p (PQgetCancel (connection->pointer conn))))
+    (if (pointer-null? p)
+	(raise
+	 (condition (make-postgresql-error-condition)
+		    (make-connection-condition conn)
+		    (make-who-condition 'connection-get-cancel-handler)
+		    (make-message-condition "unable to acquire SQL command cancellation handler")))
+      (pointer->cancel-handler p))))
+
+(define (free-cancel-handler cancel)
+  (PQfreeCancel (cancel-handler->pointer cancel)))
+
+(define (cancel-command cancel)
+  (with-compensations
+    (let* ((msg.len	256)
+	   (msg.ptr	(malloc-block/c msg.len)))
+      (if (zero? (PQcancel (cancel-handler->pointer cancel) msg.ptr msg.len))
+	  (raise
+	   (condition (make-postgresql-cancel-error-condition)
+		      (make-cancel-handler-condition cancel)
+		      (make-who-condition 'cancel-command)
+		      (make-message-condition (connection-error-message (cstring->string msg.ptr)))))
+	#t))))
 
 
 ;;;; inspecting query results

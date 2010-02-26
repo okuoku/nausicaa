@@ -116,6 +116,12 @@
 
     parameter
 
+    <notification>			<notification-rtd>
+    make-<notification>			<notification>?
+    <notification>-relname
+    <notification>-pid
+    <notification>-extra
+
 ;;; --------------------------------------------------------------------
 
     enum-polling-status			polling-status
@@ -143,6 +149,11 @@
     connection-condition?
     connection-condition
 
+    &cancel-handler
+    make-cancel-handler-condition
+    cancel-handler-condition?
+    cancel-handler-condition
+
     &query-string
     make-query-string-condition
     query-string-condition?
@@ -158,11 +169,6 @@
     parameters-condition?
     parameters-condition
 
-    &postgresql-error
-    make-postgresql-error-condition
-    postgresql-error-condition?
-    condition-postgresql-error-code
-
     &statement-name
     make-statement-name-condition
     statement-name-condition?
@@ -172,6 +178,14 @@
     make-portal-name-condition
     portal-name-condition?
     portal-name-condition
+
+    &postgresql-error
+    make-postgresql-error-condition
+    postgresql-error-condition?
+
+    &postgresql-cancel-error
+    make-postgresql-cancel-error-condition
+    postgresql-cancel-error-condition?
 
 ;;; --------------------------------------------------------------------
 
@@ -244,6 +258,13 @@
     connection-set-non-blocking		;; PQsetnonblocking
     connection-is-non-blocking?		;; PQisnonblocking
     connection-flush			;; PQflush
+
+    connection-notification		;; PQnotifies
+
+    ;; cancelling a command
+    connection-get-cancel-handler	;; PQgetCancel
+    free-cancel-handler			;; PQfreeCancel
+    cancel-command			;; PQcancel
 
     ;; inspecting query results
     result-status			;; PQresultStatus

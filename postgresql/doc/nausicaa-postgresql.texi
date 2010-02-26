@@ -556,9 +556,11 @@ Indexes
 Object type definitions
 
 * typedefs connection::         Database connection object.
+* typedefs cancel::             Command cancellation handler.
 * typedefs result::             Query result object.
 * typedefs option::             Connection option object.
 * typedefs parameter::          Parameters for prepared queries.
+* typedefs notification::       Asynchronous notification object.
 * typedefs fd::                 File descriptor object.
 * typedefs file::               Stream descriptor object.
 * typedefs pid::                Process identifier object.
@@ -581,6 +583,7 @@ Condition object definitions
 Data condition objects
 
 * conditions data connect::     Database connection object.
+* conditions data cancel::      Command cancellation handler.
 * conditions data query::       @sql{} query string object.
 * conditions data parameters::  @sql{} query parameters.
 * conditions data statement::   Prepared statement name object.
@@ -590,6 +593,7 @@ Data condition objects
 Error condition objects
 
 * conditions error error::      Error condition object.
+* conditions error cancel::     @sql{} command cancel error.
 
 Connecting to a database
 
@@ -609,6 +613,9 @@ Performing a database query
                                 asynchronous operations.
 * exec async writes::           Handling asynchronous write
                                 operations.
+* exec async example::          Example program.
+* exec cancel::                 Cancelling queries in progress.
+* exec notify::                 Asynchronous notifications.
 
 Handling query results
 
@@ -702,9 +709,11 @@ to import these libraries by prefixing the bindings, for example with
 
 @menu
 * typedefs connection::         Database connection object.
+* typedefs cancel::             Command cancellation handler.
 * typedefs result::             Query result object.
 * typedefs option::             Connection option object.
 * typedefs parameter::          Parameters for prepared queries.
+* typedefs notification::       Asynchronous notification object.
 * typedefs fd::                 File descriptor object.
 * typedefs file::               Stream descriptor object.
 * typedefs pid::                Process identifier object.
@@ -732,6 +741,30 @@ Return @true{} if @var{obj} is a record of type @objtype{connection}.
 @defunx connection->pointer @var{conn}
 Convert to and from a pointer object and a record of type
 @objtype{connection}.
+@end defun
+
+@c page
+@node typedefs cancel
+@section Command cancellation handler
+
+
+@deftp {Record Type Name} cancel-handler
+Record type used to tag pointer objects referencing database
+cancel-handlers, structures of type @code{PGcancel}.  @nauref{ffi
+pointers, Pointer objects}.
+@end deftp
+
+
+@defun cancel-handler? @var{obj}
+Return @true{} if @var{obj} is a record of type
+@objtype{cancel-handler}.
+@end defun
+
+
+@defun pointer->cancel-handler @var{pointer}
+@defunx cancel-handler->pointer @var{conn}
+Convert to and from a pointer object and a record of type
+@objtype{cancel-handler}.
 @end defun
 
 @c page
@@ -880,6 +913,42 @@ in the @code{size} fields and defaults to @false{}; @ameta{text} is
 stored in the @code{text?} fields and defaults to @true{}; @ameta{oid}
 is stored in the @code{oid} fields and defaults to @code{InvalidOid}.
 @end deffn
+
+@c page
+@node typedefs notification
+@section Asynchronous notification object
+
+
+@deftp {Record Type Name} <notification>
+@deftpx {Record Type Descriptor} <notification-rtd>
+Record type used to mirror C language structures of type
+@code{PGnotify}.  It has the following fields:
+
+@table @code
+@item relname
+Scheme string representing the notification condition name.
+
+@item pid
+Scheme object of type @objtype{pid} representing the process
+@acronym{ID} of notifying server process.
+
+@item extra
+Scheme string representing an extra notification parameter.
+@end table
+@end deftp
+
+
+@defun make-<notification> @var{relname} @var{pid} @var{extra}
+@defunx <notification>? @var{obj}
+Constructor and predicate for records of type @class{notification}.
+@end defun
+
+
+@defun <notification>-relname @var{notify}
+@defunx <notification>-pid @var{notify}
+@defunx <notification>-extra @var{notify}
+Accessors for records of type @class{notification}.
+@end defun
 
 @c page
 @node typedefs fd
@@ -1198,6 +1267,7 @@ to import these libraries by prefixing the bindings, for example with
 
 @menu
 * conditions data connect::     Database connection object.
+* conditions data cancel::      Command cancellation handler.
 * conditions data query::       @sql{} query string object.
 * conditions data parameters::  @sql{} query parameters.
 * conditions data statement::   Prepared statement name object.
@@ -1232,6 +1302,35 @@ Constructor and predicate for condition objects of type
 @defun connection-condition @var{condition}
 Accessor for the field of condition objects of type
 @condition{connection}.
+@end defun
+
+@c page
+@node conditions data cancel
+@subsection Command cancellation handler
+
+
+@deftp {Condition Type} &cancel-handler
+Condition object type used to hold objects of type
+@objtype{cancel-handler} which were involved in an exception; it is
+derived from @condition{condition}.  It has the following fields:
+
+@table @code
+@item cancel-handler
+The @objtype{cancel-handler} object.
+@end table
+@end deftp
+
+
+@defun make-cancel-handler-condition @var{cancel}
+@defunx cancel-handler-condition? @var{obj}.
+Constructor and predicate for condition objects of type
+@condition{cancel-handler}.
+@end defun
+
+
+@defun cancel-handler-condition @var{condition}
+Accessor for the field of condition objects of type
+@condition{cancel-handler}.
 @end defun
 
 @c page
@@ -1384,6 +1483,7 @@ Accessor for the field of condition objects of type
 
 @menu
 * conditions error error::      Error condition object.
+* conditions error cancel::     @sql{} command cancel error.
 @end menu
 
 @c page
@@ -1393,26 +1493,33 @@ Accessor for the field of condition objects of type
 
 @deftp {Condition Type} &postgresql-error
 Base condition type used to tag compound condition objects associated to
-@value{PACKAGE}; it is derived from @condition{error}.  It has the
-following fields:
-
-@table @code
-@item code
-A numeric code representing the error.
-@end table
+@value{PACKAGE}; it is derived from @condition{error}.  It has no
+fields.
 @end deftp
 
 
-@defun make-postgresql-error-condition @var{code}
+@defun make-postgresql-error-condition
 @defunx postgresql-error-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{postgresql-error}.
 @end defun
 
+@c page
+@node conditions error cancel
+@subsection @sql{} command cancel error
 
-@defun condition-postgresql-error-code @var{condition}
-Accessor for the field of condition objects of type
-@condition{postgresql-error}.
+
+@deftp {Condition Type} &postgresql-cancel-error
+Condition type used to tag compound condition objects used to signal a
+@sql{} command cancellation error; it is derived from
+@condition{postgresql-error}.  It has no fields.
+@end deftp
+
+
+@defun make-postgresql-cancel-error-condition
+@defunx postgresql-cancel-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-cancel-error}.
 @end defun
 
 @c page
@@ -1814,8 +1921,9 @@ to import these libraries by prefixing the bindings, for example with
 @code{pg:}.
 
 In the descriptions: the @var{conn} argument is always a Scheme object
-of type @objtype{connection}; the @var{result} argument is always a
-Scheme object of type @objtype{query-result}.
+of type @objtype{connection}; the @var{cancel} argument is always a
+Scheme object of type @objtype{cancel-handler}; the @var{result}
+argument is always a Scheme object of type @objtype{query-result}.
 
 @quotation
 @strong{NOTE} For an explanation of @acronym{OID} numbers in @pg{}, see
@@ -1841,6 +1949,8 @@ and notice that @acronym{OID} numbers are by definition of type
 * exec async writes::           Handling asynchronous write
                                 operations.
 * exec async example::          Example program.
+* exec cancel::                 Cancelling queries in progress.
+* exec notify::                 Asynchronous notifications.
 @end menu
 
 @c page
@@ -2249,6 +2359,46 @@ through a non--blocking connection for both reading and writing.
 
 (main)
 @end smallexample
+
+@c page
+@node exec cancel
+@section Cancelling queries in progress
+
+
+@defun connection-get-cancel-handler @var{conn}
+@findex @func{PQgetCancel}
+Wrapper for @func{PQgetCancel}.  Return an object of type
+@objtype{cancel-handler} which can be used to request the cancellation
+of the current @sql{} command.
+@end defun
+
+
+@defun free-cancel-handler @var{cancel}
+@findex @func{PQfreeCancel}
+Wrapper for @func{PQfreeCancel}.  Release all the resources associated
+to the cancellation handler @var{cancel}.
+@end defun
+
+
+@defun cancel-command @var{cancel}
+@findex @func{PQcancel}
+Wrapper for @func{PQcancel}.  Submit a request to cancel the current
+@sql{} command; raise an exception if an error occurs dispatching the
+request.
+@end defun
+
+@c page
+@node exec notify
+@section Asynchronous notifications
+
+
+@defun connection-notification @var{conn}
+@findex @func{PQnotifies}
+Wrapper for @func{PQnotifies}.  Return an object of type
+@class{notification} representing the next notification object from a
+list of unhandled notification messages received from the server; return
+@false{} if there are no pending notifications.
+@end defun
 
 @c page
 @node query
@@ -2674,24 +2824,6 @@ Alias for @func{PQconninfoFree}.
 @end defun
 
 
-@defun get-cancel
-@findex @func{PQgetCancel}
-Alias for @func{PQgetCancel}.
-@end defun
-
-
-@defun free-cancel
-@findex @func{PQfreeCancel}
-Alias for @func{PQfreeCancel}.
-@end defun
-
-
-@defun cancel
-@findex @func{PQcancel}
-Alias for @func{PQcancel}.
-@end defun
-
-
 @defun request-cancel
 @findex @func{PQrequestCancel}
 Alias for @func{PQrequestCancel}.
@@ -2755,12 +2887,6 @@ Alias for @func{PQsetNoticeProcessor}.
 @defun register-thread-lock
 @findex @func{PQregisterThreadLock}
 Alias for @func{PQregisterThreadLock}.
-@end defun
-
-
-@defun notifies
-@findex @func{PQnotifies}
-Alias for @func{PQnotifies}.
 @end defun
 
 
@@ -3099,6 +3225,13 @@ current compensation stack, the appropriate call to @func{clear-result}.
 Wrapper for @func{get-result} which pushes, on the current compensation
 stack, the appropriate call to @func{clear-result}; if @func{get-result}
 returns @false{}, nothing is pushed on the stack.
+@end defun
+
+
+@defun connection-get-cancel-handler/c @var{conn}
+Wrapper for @func{connection-get-cancel-handler} which pushes, on the
+current compensation stack, the appropriate call to
+@func{free-cancel-handler}.
 @end defun
 
 

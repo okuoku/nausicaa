@@ -208,6 +208,8 @@
 
 	    (pg:connection-set-non-blocking conn)
 
+;;; --------------------------------------------------------------------
+
 	    (check
 		(pg:exec-script/send conn "
 create table accounts (nickname TEXT,
@@ -228,6 +230,8 @@ insert into accounts (nickname, password)
 
 	    (%consume-events conn (pg:exec-status command-ok))
 
+;;; --------------------------------------------------------------------
+
 	    (check
 		(pg:prepare-statement/send conn 'the-row
 					   "select * from accounts where nickname = $1;" 1)
@@ -240,6 +244,8 @@ insert into accounts (nickname, password)
 
 	    (%consume-events conn (pg:exec-status command-ok))
 
+;;; --------------------------------------------------------------------
+
 	    (check
 		(pg:describe-prepared-statement/send conn 'the-row)
 	      => #t)
@@ -250,6 +256,8 @@ insert into accounts (nickname, password)
 		(flush)))
 
 	    (%consume-events conn (pg:exec-status command-ok))
+
+;;; --------------------------------------------------------------------
 
 	    (check
 		(pg:exec-prepared-statement/send conn 'the-row
@@ -284,9 +292,36 @@ insert into accounts (nickname, password)
 		  (pg:result-get-value/text result 0 1)
 		=> "12345")
 
-	      #f))))
+	      #f))
 
-      #t)))
+;;; --------------------------------------------------------------------
+
+	  (check
+	      (pg:exec-prepared-statement/send conn 'the-row
+					       (list (pg:parameter "rukia"))
+					       #t)
+	    => #t)
+
+	  (let ((cancel (pg:connection-get-cancel-handler/c conn)))
+
+	    (check
+		(pg:cancel-command cancel)
+  	      => #t)
+
+	    (let flush ()
+	      (%poll conn 'write)
+	      (when (pg:connection-flush conn)
+		(flush)))
+
+	    (let ((result (%consume-events conn (pg:exec-status tuples-ok))))
+
+	      (check
+		  (pg:result-number-of-tuples result)
+		=> 1)
+
+	      #f))
+
+	  #t)))))
 
 
 ;;;; done
