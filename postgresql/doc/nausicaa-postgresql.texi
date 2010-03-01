@@ -3169,8 +3169,7 @@ is defined as:
 
 
 The following bindings are exported by the @library{foreign databases
-postgresql primitives} library and reexported by the @library{foreign
-databases postgresql} library.  The functions are reexported ``as is''
+postgresql primitives} library.  The functions are reexported ``as is''
 from the @library{foreign databases postgresql platform} library.  It is
 suggested to import these libraries by prefixing the bindings, for
 example with @code{pg:}.
