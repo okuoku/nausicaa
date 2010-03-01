@@ -73,6 +73,23 @@
     make-postgresql-cancel-error-condition
     postgresql-cancel-error-condition?
 
+    &postgresql-copy-error
+    make-postgresql-copy-error-condition
+    postgresql-copy-error-condition?
+
+    &postgresql-copy-in-error
+    make-postgresql-copy-in-error-condition
+    postgresql-copy-in-error-condition?
+
+    &postgresql-copy-out-error
+    make-postgresql-copy-out-error-condition
+    postgresql-copy-out-error-condition?
+
+    &postgresql-copy-end-error
+    make-postgresql-copy-end-error-condition
+    postgresql-copy-end-error-condition?
+
+
     ;; &postgresql-opening-error
     ;; make-postgresql-opening-error-condition
     ;; postgresql-opening-error-condition?
@@ -166,6 +183,28 @@
   &postgresql-error
   make-postgresql-cancel-error-condition
   postgresql-cancel-error-condition?)
+
+;;; --------------------------------------------------------------------
+
+(define-condition-type &postgresql-copy-error
+  &postgresql-error
+  make-postgresql-copy-error-condition
+  postgresql-copy-error-condition?)
+
+(define-condition-type &postgresql-copy-in-error
+  &postgresql-copy-error
+  make-postgresql-copy-in-error-condition
+  postgresql-copy-in-error-condition?)
+
+(define-condition-type &postgresql-copy-out-error
+  &postgresql-copy-error
+  make-postgresql-copy-out-error-condition
+  postgresql-copy-out-error-condition?)
+
+(define-condition-type &postgresql-copy-end-error
+  &postgresql-copy-error
+  make-postgresql-copy-end-error-condition
+  postgresql-copy-end-error-condition?)
 
 ;;; --------------------------------------------------------------------
 

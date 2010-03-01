@@ -28,58 +28,58 @@
 (library (foreign databases postgresql)
   (export
 
-    OID_MAX
-    PG_DIAG_SEVERITY
-    PG_DIAG_SQLSTATE
-    PG_DIAG_MESSAGE_PRIMARY
-    PG_DIAG_MESSAGE_DETAIL
-    PG_DIAG_MESSAGE_HINT
-    PG_DIAG_STATEMENT_POSITION
-    PG_DIAG_INTERNAL_POSITION
-    PG_DIAG_INTERNAL_QUERY
-    PG_DIAG_CONTEXT
-    PG_DIAG_SOURCE_FILE
-    PG_DIAG_SOURCE_LINE
-    PG_DIAG_SOURCE_FUNCTION
-    PG_COPYRES_ATTRS
-    PG_COPYRES_TUPLES
-    PG_COPYRES_EVENTS
-    PG_COPYRES_NOTICEHOOKS
+    ;; OID_MAX
+    ;; PG_DIAG_SEVERITY
+    ;; PG_DIAG_SQLSTATE
+    ;; PG_DIAG_MESSAGE_PRIMARY
+    ;; PG_DIAG_MESSAGE_DETAIL
+    ;; PG_DIAG_MESSAGE_HINT
+    ;; PG_DIAG_STATEMENT_POSITION
+    ;; PG_DIAG_INTERNAL_POSITION
+    ;; PG_DIAG_INTERNAL_QUERY
+    ;; PG_DIAG_CONTEXT
+    ;; PG_DIAG_SOURCE_FILE
+    ;; PG_DIAG_SOURCE_LINE
+    ;; PG_DIAG_SOURCE_FUNCTION
+    ;; PG_COPYRES_ATTRS
+    ;; PG_COPYRES_TUPLES
+    ;; PG_COPYRES_EVENTS
+    ;; PG_COPYRES_NOTICEHOOKS
 
-    CONNECTION_OK
-    CONNECTION_BAD
-    CONNECTION_STARTED
-    CONNECTION_MADE
-    CONNECTION_AWAITING_RESPONSE
-    CONNECTION_AUTH_OK
-    CONNECTION_SETENV
-    CONNECTION_SSL_STARTUP
-    CONNECTION_NEEDED
+    ;; CONNECTION_OK
+    ;; CONNECTION_BAD
+    ;; CONNECTION_STARTED
+    ;; CONNECTION_MADE
+    ;; CONNECTION_AWAITING_RESPONSE
+    ;; CONNECTION_AUTH_OK
+    ;; CONNECTION_SETENV
+    ;; CONNECTION_SSL_STARTUP
+    ;; CONNECTION_NEEDED
 
-    PGRES_POLLING_FAILED
-    PGRES_POLLING_READING
-    PGRES_POLLING_WRITING
-    PGRES_POLLING_OK
-    PGRES_POLLING_ACTIVE
+    ;; PGRES_POLLING_FAILED
+    ;; PGRES_POLLING_READING
+    ;; PGRES_POLLING_WRITING
+    ;; PGRES_POLLING_OK
+    ;; PGRES_POLLING_ACTIVE
 
-    PGRES_EMPTY_QUERY
-    PGRES_COMMAND_OK
-    PGRES_TUPLES_OK
-    PGRES_COPY_OUT
-    PGRES_COPY_IN
-    PGRES_BAD_RESPONSE
-    PGRES_NONFATAL_ERROR
-    PGRES_FATAL_ERROR
+    ;; PGRES_EMPTY_QUERY
+    ;; PGRES_COMMAND_OK
+    ;; PGRES_TUPLES_OK
+    ;; PGRES_COPY_OUT
+    ;; PGRES_COPY_IN
+    ;; PGRES_BAD_RESPONSE
+    ;; PGRES_NONFATAL_ERROR
+    ;; PGRES_FATAL_ERROR
 
-    PQTRANS_IDLE
-    PQTRANS_ACTIVE
-    PQTRANS_INTRANS
-    PQTRANS_INERROR
-    PQTRANS_UNKNOWN
+    ;; PQTRANS_IDLE
+    ;; PQTRANS_ACTIVE
+    ;; PQTRANS_INTRANS
+    ;; PQTRANS_INERROR
+    ;; PQTRANS_UNKNOWN
 
-    PQERRORS_TERSE
-    PQERRORS_DEFAULT
-    PQERRORS_VERBOSE
+    ;; PQERRORS_TERSE
+    ;; PQERRORS_DEFAULT
+    ;; PQERRORS_VERBOSE
 
 ;;; --------------------------------------------------------------------
 
@@ -142,6 +142,9 @@
     enum-format-code			format-code
     format-code->value			value->format-code
 
+    enum-error-verbosity		error-verbosity
+    error-verbosity->value		value->error-verbosity
+
 ;;; --------------------------------------------------------------------
 
     &connection
@@ -186,6 +189,22 @@
     &postgresql-cancel-error
     make-postgresql-cancel-error-condition
     postgresql-cancel-error-condition?
+
+    &postgresql-copy-error
+    make-postgresql-copy-error-condition
+    postgresql-copy-error-condition?
+
+    &postgresql-copy-in-error
+    make-postgresql-copy-in-error-condition
+    postgresql-copy-in-error-condition?
+
+    &postgresql-copy-out-error
+    make-postgresql-copy-out-error-condition
+    postgresql-copy-out-error-condition?
+
+    &postgresql-copy-end-error
+    make-postgresql-copy-end-error-condition
+    postgresql-copy-end-error-condition?
 
 ;;; --------------------------------------------------------------------
 
@@ -266,11 +285,32 @@
     free-cancel-handler			;; PQfreeCancel
     cancel-command			;; PQcancel
 
+    ;; COPY stuff
+    result-binary-tuples?		;; PQbinaryTuples
+    connection-put-copy-data		;; PQputCopyData
+    connection-put-copy-data/string
+    connection-put-copy-data/bytevector
+    connection-put-copy-end		;; PQputCopyEnd
+    connection-put-copy-fail
+    connection-get-copy-data		;; PQgetCopyData
+    connection-get-copy-data/string
+    connection-get-copy-data/bytevector
+
     ;; inspecting query results
     result-status			;; PQresultStatus
     status->string			;; PQresStatus
     result-error-message		;; PQresultErrorMessage
     result-error-field			;; PQresultErrorField
+
+    result-status/empty-query?
+    result-status/command-ok?
+    result-status/tuples-ok?
+    result-status/copy-out?
+    result-status/copy-in?
+    result-status/bad-response?
+    result-status/nonfatal-error?
+    result-status/fatal-error?
+    result-status/bad?
 
     ;; extracting informations from query results
     result-number-of-tuples		;; PQntuples
@@ -312,6 +352,13 @@
     ;; miscellaneous
     describe-portal			;; PQdescribePortal
     describe-portal/send		;; PQsendDescribePortal
+    connection-client-encoding		;; PQclientEncoding
+    connection-client-encoding-set!	;; PQsetClientEncoding
+    connection-error-verbosity-set!	;; PQsetErrorVerbosity
+    connection-set-notice-receiver	;; PQsetNoticeReceiver
+    connection-set-notice-processor	;; PQsetNoticeProcessor
+    make-notice-receiver-callback
+    make-notice-processor-callback
 
     )
   (import (rnrs)

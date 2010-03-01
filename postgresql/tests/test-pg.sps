@@ -46,7 +46,7 @@
 	(debug-print-condition "deferred exception in connecting" E))
     (lambda ()
 
-      (check
+      (check	;simple connection
 	  (with-compensations
 	    (letrec ((conn (compensate
 			       (pg:connect-db "dbname=nausicaa-test")
@@ -64,7 +64,7 @@
 	      (pg:status/ok? conn)))
 	=> #t)
 
-      (check	;reset
+      (check	;connect and reset
 	  (with-compensations
 	    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
 	      (if (not (pg:status/ok? conn))
@@ -75,6 +75,7 @@
 	=> #t)
 
 ;;; --------------------------------------------------------------------
+;;; other connection functions
 
       (check
 	  (with-compensations
@@ -111,53 +112,47 @@
 	(debug-print-condition "deferred exception in inspection" E))
     (lambda ()
 
-      (check
+      (check	;connection informations
 	  (with-compensations
 	    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
-	      (list (pg:connection-password conn)
-		    (pg:connection-database conn)
-		    )))
-	=> '("" "nausicaa-test"))
+	      (list (pg:connection-database conn)
+		    (pg:connection-password conn)
+		    (pg:connection-needs-password conn)
+		    (pg:connection-used-password conn))))
+	=> '("nausicaa-test" "" #f #f))
 
-      (check
+      (check	;connection status
 	  (with-compensations
 	    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
 	      (pg:connection-transaction-status conn)))
 	(=> enum-set=?)
 	(pg:transaction-status idle))
 
-      (check
+      (check	;connection parameter status
 	  (with-compensations
 	    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
 	      (pg:connection-parameter-status conn 'server_version)))
 	=> "8.4.2")
 
-      (check
+      (check	;connection protocol
 	  (with-compensations
 	    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
 	      (pg:connection-protocol-version conn)))
 	=> 3)
 
-      (check
+      (check	;connection server version
 	  (with-compensations
 	    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
 	      (pg:connection-server-version conn)))
 	=> 80402)
 
-      (check
+      (check	;connection server pid
 	  (with-compensations
 	    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
 	      (pg:pid? (pg:connection-backend-pid conn))))
 	=> #t)
 
-      (check
-	  (with-compensations
-	    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
-	      (list (pg:connection-needs-password conn)
-		    (pg:connection-used-password conn))))
-	=> '(#f #f))
-
-      (check
+      (check	;connection ssl info
 	  (with-compensations
 	    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
 	      (pg:connection-get-ssl conn)))
@@ -182,10 +177,7 @@
 	    => #t)
 
 	  (when (pg:status/ok? conn)
-	    (letrec ((result (compensate
-				 (pg:exec-script conn "create table mine (enn int); drop table mine;")
-			       (with
-				(pg:clear-result result)))))
+	    (let ((result (pg:exec-script/c conn "create table mine (enn int); drop table mine;")))
 
 	      (check
 		  (pg:result-status result)
@@ -205,6 +197,8 @@
 		=> #f)
 
 	      #f))))
+
+;;; --------------------------------------------------------------------
 
       (with-compensations ;erroneous
 	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
@@ -227,7 +221,6 @@
 
 	      (check
 		  (let ((s (pg:result-error-message result)))
-;;;(display s)
 		    (substring s 0 5))
 		=> "ERROR")
 
@@ -595,6 +588,134 @@ insert into accounts (nickname, password) values ('chad', 'fist');
       #t)))
 
 
+(parametrise ((check-test-name	'copy)
+	      (debugging	#t))
+
+  (with-deferred-exceptions-handler
+      (lambda (E)
+	(debug-print-condition "deferred exception in copy" E))
+    (lambda ()
+
+;;; --------------------------------------------------------------------
+;;; COPY FROM
+
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+
+	  (check
+	      (pg:status/ok? conn)
+	    => #t)
+
+	  (when (pg:status/ok? conn)
+
+	    (compensate
+		(pg:exec-script/c conn "create table accounts (nickname TEXT, password TEXT);")
+	      (with
+	       (pg:exec-script/c conn "drop table accounts")))
+
+	    (let ((result (pg:exec-script/c conn "COPY accounts FROM STDIN WITH DELIMITER '|';")))
+
+	      (check
+		  (pg:result-status/copy-in? result)
+		=> #t)
+
+	      (when (pg:result-status/copy-in? result)
+
+		(check
+		    (pg:connection-put-copy-data/string conn "ichigo|abcde\nrukia|12345\nchad|fist\n")
+		  => #t)
+
+		(check
+		    (pg:connection-put-copy-end conn)
+		  => #t)
+
+		;;Check the COPY FROM result.
+		(let ((result (pg:exec-script/c conn
+						"select * from accounts where nickname = 'rukia';")))
+
+		  (check
+		      (pg:result-status result)
+		    (=> enum-set=?)
+		    (pg:exec-status tuples-ok))
+
+		  (check
+		      (pg:result-number-of-tuples result)
+		    => 1)
+
+		  (check
+		      (pg:result-get-value/text result 0 0)
+		    => "rukia")
+
+		  #f))
+
+	      #f))))
+
+;;; --------------------------------------------------------------------
+;;; COPY TO
+
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+
+	  (check
+	      (pg:status/ok? conn)
+	    => #t)
+
+	  (when (pg:status/ok? conn)
+
+	    (compensate
+		(pg:exec-script/c conn "create table accounts (nickname TEXT, password TEXT);
+insert into accounts (nickname, password) values ('ichigo', 'abcde');
+insert into accounts (nickname, password) values ('rukia', '12345');
+insert into accounts (nickname, password) values ('chad', 'fist');
+")
+	      (with
+	       (pg:exec-script/c conn "drop table accounts")))
+
+	    (let ((result (pg:exec-script/c conn "COPY accounts TO STDOUT WITH DELIMITER '|';")))
+
+	      (check
+		  (pg:result-status/copy-out? result)
+		=> #t)
+
+	      (when (pg:result-status/copy-out? result)
+
+		(check
+		    (receive (more? str)
+			(pg:connection-get-copy-data/string conn)
+		      (list more? str))
+		  => '(#t "ichigo|abcde\n"))
+
+		(check
+		    (receive (more? str)
+			(pg:connection-get-copy-data/string conn)
+		      (list more? str))
+		  => '(#t "rukia|12345\n"))
+
+		(check
+		    (receive (more? str)
+			(pg:connection-get-copy-data/string conn)
+		      (list more? str))
+		  => '(#t "chad|fist\n"))
+
+		(check
+		    (receive (more? str)
+			(pg:connection-get-copy-data/string conn)
+		      (list more? str))
+		  => '(#f #f))
+
+		(let ((result (pg:connection-get-result conn)))
+
+		  (check
+		      (pg:result-status/command-ok? result)
+		    => #t)
+
+		  #f)))
+
+	    #f)))
+
+      #t)))
+
+
 (parametrise ((check-test-name	'escapes)
 	      (debugging	#t))
 
@@ -653,6 +774,32 @@ insert into accounts (nickname, password) values ('chad', 'fist');
 		     #t))
 	    (pg:connection-info-parse "ciao"))
 	=> #t)
+
+      (with-compensations
+	(let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+
+	  (check
+	      (pg:status/ok? conn)
+	    => #t)
+
+	  (when (pg:status/ok? conn)
+
+	    (check
+		(pg:connection-client-encoding conn)
+	      => "LATIN9")
+
+	    (check
+		(begin
+		  (pg:connection-client-encoding-set! conn "UTF8")
+		  (pg:connection-client-encoding conn))
+	      => "UTF8")
+
+	    (check
+		(pg:connection-error-verbosity-set! conn (pg:error-verbosity terse))
+	      (=> enum-set=?)
+	      (pg:error-verbosity default))
+
+	    #f)))
 
       #t)))
 

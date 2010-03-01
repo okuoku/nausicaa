@@ -44,6 +44,9 @@
 
     enum-format-code			format-code
     format-code->value			value->format-code
+
+    enum-error-verbosity		error-verbosity
+    error-verbosity->value		value->error-verbosity
     )
   (import (rnrs)
     (enumerations)
@@ -138,6 +141,12 @@
 (define-c-flags format-code
   (0 1)
   (text binary))
+
+(define-c-flags error-verbosity
+  (PQERRORS_TERSE
+   PQERRORS_DEFAULT
+   PQERRORS_VERBOSE)
+  (terse default verbose))
 
 
 ;;;; done

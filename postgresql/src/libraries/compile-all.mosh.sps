@@ -26,7 +26,6 @@
 (import
     (only (foreign databases postgresql))
     (only (foreign databases postgresql compensated))
-    (only (foreign databases postgresql utilities))
   )
 
 ;;; end of file

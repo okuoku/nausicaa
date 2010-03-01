@@ -574,6 +574,7 @@ Enumeration type definitions
 * enumerations exec::           Query execution status.
 * enumerations errfield::       Error fields.
 * enumerations format::         Format codes.
+* enumerations verbosity::      Error verbosity.
 
 Condition object definitions
 
@@ -594,6 +595,7 @@ Error condition objects
 
 * conditions error error::      Error condition object.
 * conditions error cancel::     @sql{} command cancel error.
+* conditions error copy::       @code{COPY} command errors.
 
 Connecting to a database
 
@@ -616,6 +618,7 @@ Performing a database query
 * exec async example::          Example program.
 * exec cancel::                 Cancelling queries in progress.
 * exec notify::                 Asynchronous notifications.
+* exec copy::                   Executing @code{COPY} commands.
 
 Handling query results
 
@@ -1065,6 +1068,7 @@ example with @code{pg:}.
 * enumerations exec::           Query execution status.
 * enumerations errfield::       Error fields.
 * enumerations format::         Format codes.
+* enumerations verbosity::      Error verbosity.
 @end menu
 
 @c page
@@ -1242,6 +1246,33 @@ the argument symbol.
 @defunx format-code->value @var{enum-set}
 Convert to and from exact integers and enumeration sets of type
 @enum{format-code}.
+@end defun
+
+@c page
+@node enumerations verbosity
+@section Error verbosity
+
+
+@deftp {Enumeration Type} enum-error-verbosity
+Enumeration type representing the error verbosity level.  It holds the
+following symbols:
+
+@example
+terse   default   verbose
+@end example
+@end deftp
+
+
+@deffn Syntax error-verbosity @ameta{symbol}
+Expand in an enumeration set of type @enum{error-verbosity} holding
+the argument symbol.
+@end deffn
+
+
+@defun value->error-verbosity @var{integer}
+@defunx error-verbosity->value @var{enum-set}
+Convert to and from exact integers and enumeration sets of type
+@enum{error-verbosity}.
 @end defun
 
 @c page
@@ -1484,6 +1515,7 @@ Accessor for the field of condition objects of type
 @menu
 * conditions error error::      Error condition object.
 * conditions error cancel::     @sql{} command cancel error.
+* conditions error copy::       @code{COPY} command errors.
 @end menu
 
 @c page
@@ -1520,6 +1552,69 @@ Condition type used to tag compound condition objects used to signal a
 @defunx postgresql-cancel-error-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{postgresql-cancel-error}.
+@end defun
+
+@c page
+@node conditions error copy
+@subsection @code{COPY} command errors
+
+
+@deftp {Condition Type} &postgresql-copy-error
+Condition type used to tag compound condition objects used to signal a
+@code{COPY} command error; it is derived from
+@condition{postgresql-error}.  It has no fields.
+@end deftp
+
+
+@defun make-postgresql-copy-error-condition
+@defunx postgresql-copy-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-copy-error}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@deftp {Condition Type} &postgresql-copy-in-error
+Condition type used to tag compound condition objects used to signal a
+@code{COPY} input command error; it is derived from
+@condition{postgresql-copy-error}.  It has no fields.
+@end deftp
+
+
+@defun make-postgresql-copy-in-error-condition
+@defunx postgresql-copy-in-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-copy-in-error}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@deftp {Condition Type} &postgresql-copy-out-error
+Condition type used to tag compound condition objects used to signal a
+@code{COPY} output command error; it is derived from
+@condition{postgresql-copy-error}.  It has no fields.
+@end deftp
+
+
+@defun make-postgresql-copy-out-error-condition
+@defunx postgresql-copy-out-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-copy-out-error}.
+@end defun
+
+@c ------------------------------------------------------------
+
+@deftp {Condition Type} &postgresql-copy-end-error
+Condition type used to tag compound condition objects used to signal a
+@code{COPY} end command error; it is derived from
+@condition{postgresql-copy-error}.  It has no fields.
+@end deftp
+
+
+@defun make-postgresql-copy-end-error-condition
+@defunx postgresql-copy-end-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-copy-end-error}.
 @end defun
 
 @c page
@@ -1951,6 +2046,7 @@ and notice that @acronym{OID} numbers are by definition of type
 * exec async example::          Example program.
 * exec cancel::                 Cancelling queries in progress.
 * exec notify::                 Asynchronous notifications.
+* exec copy::                   Executing @code{COPY} commands.
 @end menu
 
 @c page
@@ -2401,6 +2497,169 @@ list of unhandled notification messages received from the server; return
 @end defun
 
 @c page
+@node exec copy
+@section Executing @code{COPY} commands
+
+
+To execute a @code{COPY} command, we have to use one of the functions
+described above: @func{exec-script}, @func{exec-parametrised-query},
+@func{exec-prepared-statement}, or one of their asynchronous
+equivalents; then we have to obtain a result object with status
+@code{copy-in} or @code{copy-out}.
+
+@c ------------------------------------------------------------
+
+@subsubheading Sending data to the server
+
+
+Here is a @code{COPY FROM} example without error checking:
+
+@example
+(import (nausicaa)
+  (compensations)
+  (prefix (foreign databases postgresql) pg:)
+  (prefix (foreign databases postgresql compensated) pg:))
+
+(with-compensations
+  (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+
+    (pg:exec-script/c conn
+       "create table accounts (nickname TEXT,
+                               password TEXT);")
+
+    (pg:exec-script/c conn
+       "COPY accounts FROM STDIN WITH DELIMITER '|';")
+
+    (pg:connection-put-copy-data/string conn
+       "ichigo|abcde\nrukia|12345\nchad|fist\n")))
+@end example
+
+@noindent
+table columns are delimited by @samp{#\|}, table rows are delimited by
+@samp{#\newline}.
+
+
+@defun connection-put-copy-data @var{conn} @var{mb}
+@findex @func{PQputCopyData}
+Wrapper for @func{PQputCopyData}.  Send data to the server during
+@code{copy-in} state; @var{mb} must be a @class{memblock} object
+referencing the raw data to send.  @nauref{memory blocks, Memory
+blocks}.
+
+Return @true{} if the data was sent; return @false{} if the data was not
+sent because the connection would block (this case is only possible if
+the connection is in non--blocking mode, we must wait for the
+write--ready socket state and try again).  Raise a
+@condition{postgresql-copy-in-error} object if an error occurs.
+@end defun
+
+
+@defun connection-put-copy-data/string @var{conn} @var{str}
+@defunx connection-put-copy-data/bytevector @var{conn} @var{bv}
+Wrappers for @func{connection-put-copy-data} which send data from the
+Scheme string @var{str} or the Scheme bytevector @var{bv}.
+@end defun
+
+
+@defun connection-put-copy-end @var{conn}
+@defunx connection-put-copy-fail @var{conn} @var{error-message}
+@findex @func{PQputCopyEnd}
+Wrappers for @func{PQputCopyEnd}.  @func{connection-put-copy-end}
+requests the successful termination of a @code{COPY} command.
+@func{connection-put-copy-fail} forces a failed termination of a
+@code{COPY} command and instructs the server to fail with the Scheme
+string @var{error-message} as error description.
+
+Return @true{} if the termination data was sent; return @false{} if the
+data was not sent because the connection would block (this case is only
+possible if the connection is in non--blocking mode, we must wait for
+the write--ready socket state and try again).  Raise a
+@condition{postgresql-copy-end-error} object if an error occurs.
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Receiving data from the server
+
+
+Here is a @code{COPY TO} example without error checking:
+
+@example
+(import (nausicaa)
+  (compensations)
+  (prefix (foreign databases postgresql) pg:)
+  (prefix (foreign databases postgresql compensated) pg:))
+
+(with-compensations
+  (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
+
+    (pg:exec-script/c conn "
+       create table accounts (nickname TEXT, password TEXT);
+       insert into accounts (nickname, password)
+          values ('ichigo', 'abcde');
+       insert into accounts (nickname, password)
+          values ('rukia', '12345');
+       insert into accounts (nickname, password)
+          values ('chad', 'fist');")
+
+    (pg:exec-script/c conn
+       "COPY accounts TO STDOUT WITH DELIMITER '|';")
+
+    (let-values (((more? str)
+                  (pg:connection-get-copy-data/string conn)))
+      str) @result{} "ichigo|abcde\n"
+
+    (let-values (((more? str)
+                  (pg:connection-get-copy-data/string conn)))
+      str) @result{} "rukia|12345\n"
+
+    (let-values (((more? str)
+                  (pg:connection-get-copy-data/string conn)))
+      str) @result{} "chad|fist\n"
+
+    (let-values (((more? str)
+                  (pg:connection-get-copy-data/string conn)))
+      more?) @result{} #f
+
+    (let ((result (pg:connection-get-result conn)))
+      (pg:result-status/command-ok? result)))) @result{} #t
+@end example
+
+
+@defun connection-get-copy-data @var{conn}
+@findex @func{PQgetCopyData}
+Wrapper for @func{PQgetCopyData}.  Receive a row of data from the server
+during @code{copy-out} state; return two values:
+
+@enumerate
+@item
+@true{} if more rows are to be received; @false{} if the copy is
+finished.
+
+@item
+This value is meaningful only when the first returned value is @true{}.
+If a row was available: it is a @class{memblock} object referencing the
+data; memory must be freed with @func{PQfreemem}.  If no row was
+available: it is @false{}, which means that the copy of the next row is
+still in progress.
+@end enumerate
+
+If an error occurs: raise an exception with condition object
+@condition{postgresql-copy-out-error}.  The function acts in synchronous
+mode if @var{conn} is in synchronous mode, otherwise asynchronous mode
+is selected.
+@end defun
+
+
+@defun connection-get-copy-data/string @var{conn}
+@defunx connection-get-copy-data/bytevector @var{conn}
+Wrappers for @func{connection-get-copy-data}.
+@func{connection-get-copy-data/string} returns a Scheme string to
+represent the row of data.  @func{connection-get-copy-data/bytevector}
+returns a Scheme bytevector to represent the row of data.
+@end defun
+
+@c page
 @node query
 @chapter Handling query results
 
@@ -2431,6 +2690,24 @@ Scheme object of type @objtype{query-result}.
 Wrapper for @func{PQresultStatus}.  Inspect the result object
 @var{result} and return its status: an enumeration set of type
 @enum{exec-status}.
+@end defun
+
+
+@defun result-status/empty-query? @var{result}
+@defunx result-status/command-ok? @var{result}
+@defunx result-status/tuples-ok? @var{result}
+@defunx result-status/copy-out? @var{result}
+@defunx result-status/copy-in? @var{result}
+@defunx result-status/bad-response? @var{result}
+@defunx result-status/nonfatal-error? @var{result}
+@defunx result-status/fatal-error? @var{result}
+Return @true{} if the status of @var{result} is the named one.
+@end defun
+
+
+@defun result-status/bad? @var{result}
+Return @true{} if the status of @var{result} is one among:
+@code{bad-response}, @code{nonfatal-error}, @code{fatal-error}.
 @end defun
 
 
@@ -2492,8 +2769,10 @@ If the @var{field-name} is invalid, an assertion violation is raised.
 
 @defun result-number-of-tuples @var{result}
 @findex @func{PQntuples}
-Wrapper for @func{PQntuples}.  Return the number of tuples in
-@var{result}.
+Wrapper for @func{PQntuples}.  When applied to the result of a query
+command: return the number of tuples in @var{result}; when applied to
+the result of a @code{COPY} command: return the number of columns to be
+copied.
 @end defun
 
 
@@ -2640,11 +2919,21 @@ table) of the column making up the specified query result column.
 @end defun
 
 
+@defun result-binary-tuples? @var{result}
+@findex @func{PQbinaryTuples}
+Wrapper for @func{PQbinaryTuples}.  When applied to the result of a
+@code{COPY} command: return @true{} if the @code{COPY} command has
+binary format.
+@end defun
+
+
 @defun result-column-format-code @var{result} @var{field-index}
 @findex @func{PQfformat}
 Wrapper for @func{PQfformat}.  Return an enumeration set of type
-@enum{format-code} representing the format of the column at
-@var{field-index} in @var{result}.
+@enum{format-code}; when applied to the result of a query command: it
+represents the format of the column at @var{field-index} in
+@var{result}; when applied to the result of a @code{COPY} command: it
+represents the format of the columns to be copied.
 @end defun
 
 
@@ -2782,6 +3071,9 @@ postgresql primitives} library and reexported by the @library{foreign
 databases postgresql} library.  It is suggested to import these
 libraries by prefixing the bindings, for example with @code{pg:}.
 
+In the descriptions: the @var{conn} argument is always a Scheme object
+of type @objtype{connection}.
+
 
 @defun describe-portal @var{conn} @var{portal-name}
 @findex @func{PQdescribePortal}
@@ -2803,6 +3095,72 @@ if failure.
 
 @var{stmt-name} must be a Scheme string or symbol representing the name
 of the portal; if it is @false{}, it the portal is unnamed.
+@end defun
+
+
+@defun connection-client-encoding @var{conn}
+@findex @func{PQclientEncoding}
+Wrapper for @func{PQclientEncoding}.  Return a Scheme string
+representing the current encoding for the connection @var{conn}.
+@end defun
+
+
+@defun connection-client-encoding-set! @var{conn} @var{encoding-string}
+@findex @func{PQsetClientEncoding}
+Wrapper for @func{PQsetClientEncoding}.  Set the encoding for the
+connection @var{conn} to the one specified by the Scheme string
+@var{encoding-string}.
+@end defun
+
+
+@defun connection-error-verbosity-set! @var{conn} @var{verb}
+@findex @func{PQsetErrorVerbosity}
+Wrapper for @func{PQsetErrorVerbosity}.  Set the connection verbosity
+level, return the previous level.  Both @var{verb} and the returned
+value are enumeration sets of type @enum{error-verbosity}.
+@end defun
+
+
+@defun connection-set-notice-receiver @var{conn} @var{callback}
+@findex @func{PQsetNoticeReceiver}
+Wrapper for @func{PQsetNoticeReceiver}.  Set the notice receiver callback.
+@end defun
+
+
+@defun make-notice-receiver-callback @var{scheme-function}
+Build and return a callback object wrapping @var{scheme-function}.  It
+is defined as:
+
+@example
+(define (make-notice-receiver-callback scheme-function)
+  (make-c-callback*
+   void
+   (lambda (result)
+     (scheme-function pointer-null (query-result->pointer result)))
+   (void* void*)))
+@end example
+@end defun
+
+
+@defun connection-set-notice-processor
+@findex @func{PQsetNoticeProcessor}
+Wrapper for @func{PQsetNoticeProcessor}.  Set the notice processor
+callback.
+@end defun
+
+
+@defun make-notice-processor-callback @var{scheme-function}
+Build and return a callback object wrapping @var{scheme-function}.  It
+is defined as:
+
+@example
+(define (make-notice-processor-callback scheme-function)
+  (make-c-callback*
+   (lambda (message-pointer)
+     (scheme-function pointer-null
+                      (cstring->string message-pointer)))
+   (void* char*)))
+@end example
 @end defun
 
 @c page
@@ -2830,18 +3188,6 @@ Alias for @func{PQrequestCancel}.
 @end defun
 
 
-@defun client-encoding
-@findex @func{PQclientEncoding}
-Alias for @func{PQclientEncoding}.
-@end defun
-
-
-@defun set-client-encoding
-@findex @func{PQsetClientEncoding}
-Alias for @func{PQsetClientEncoding}.
-@end defun
-
-
 @defun init-ssl
 @findex @func{PQinitSSL}
 Alias for @func{PQinitSSL}.
@@ -2851,12 +3197,6 @@ Alias for @func{PQinitSSL}.
 @defun init-open-ssl
 @findex @func{PQinitOpenSSL}
 Alias for @func{PQinitOpenSSL}.
-@end defun
-
-
-@defun set-error-verbosity
-@findex @func{PQsetErrorVerbosity}
-Alias for @func{PQsetErrorVerbosity}.
 @end defun
 
 
@@ -2872,39 +3212,9 @@ Alias for @func{PQuntrace}.
 @end defun
 
 
-@defun set-notice-receiver
-@findex @func{PQsetNoticeReceiver}
-Alias for @func{PQsetNoticeReceiver}.
-@end defun
-
-
-@defun set-notice-processor
-@findex @func{PQsetNoticeProcessor}
-Alias for @func{PQsetNoticeProcessor}.
-@end defun
-
-
 @defun register-thread-lock
 @findex @func{PQregisterThreadLock}
 Alias for @func{PQregisterThreadLock}.
-@end defun
-
-
-@defun put-copy-data
-@findex @func{PQputCopyData}
-Alias for @func{PQputCopyData}.
-@end defun
-
-
-@defun put-copy-end
-@findex @func{PQputCopyEnd}
-Alias for @func{PQputCopyEnd}.
-@end defun
-
-
-@defun get-copy-data
-@findex @func{PQgetCopyData}
-Alias for @func{PQgetCopyData}.
 @end defun
 
 
@@ -2947,12 +3257,6 @@ Alias for @func{PQisthreadsafe}.
 @defun fn
 @findex @func{PQfn}
 Alias for @func{PQfn}.
-@end defun
-
-
-@defun binary-tuples
-@findex @func{PQbinaryTuples}
-Alias for @func{PQbinaryTuples}.
 @end defun
 
 

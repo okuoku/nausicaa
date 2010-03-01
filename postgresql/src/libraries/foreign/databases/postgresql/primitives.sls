@@ -104,11 +104,32 @@
     free-cancel-handler			;; PQfreeCancel
     cancel-command			;; PQcancel
 
+    ;; COPY stuff
+    result-binary-tuples?		;; PQbinaryTuples
+    connection-put-copy-data		;; PQputCopyData
+    connection-put-copy-data/string
+    connection-put-copy-data/bytevector
+    connection-put-copy-end		;; PQputCopyEnd
+    connection-put-copy-fail
+    connection-get-copy-data		;; PQgetCopyData
+    connection-get-copy-data/string
+    connection-get-copy-data/bytevector
+
     ;; inspecting query results
     result-status			;; PQresultStatus
     status->string			;; PQresStatus
     result-error-message		;; PQresultErrorMessage
     result-error-field			;; PQresultErrorField
+
+    result-status/empty-query?
+    result-status/command-ok?
+    result-status/tuples-ok?
+    result-status/copy-out?
+    result-status/copy-in?
+    result-status/bad-response?
+    result-status/nonfatal-error?
+    result-status/fatal-error?
+    result-status/bad?
 
     ;; extracting informations from query results
     result-number-of-tuples		;; PQntuples
@@ -150,22 +171,21 @@
     ;; miscellaneous
     describe-portal			;; PQdescribePortal
     describe-portal/send		;; PQsendDescribePortal
+    connection-client-encoding		;; PQclientEncoding
+    connection-client-encoding-set!	;; PQsetClientEncoding
+    connection-error-verbosity-set!	;; PQsetErrorVerbosity
+    connection-set-notice-receiver	;; PQsetNoticeReceiver
+    connection-set-notice-processor	;; PQsetNoticeProcessor
+    make-notice-receiver-callback
+    make-notice-processor-callback
 
     (rename (PQconninfoFree			conninfo-free)
 	    (PQrequestCancel			request-cancel)
-	    (PQclientEncoding			client-encoding)
-	    (PQsetClientEncoding		set-client-encoding)
 	    (PQinitSSL				init-ssl)
 	    (PQinitOpenSSL			init-open-ssl)
-	    (PQsetErrorVerbosity		set-error-verbosity)
 	    (PQtrace				trace)
 	    (PQuntrace				untrace)
-	    (PQsetNoticeReceiver		set-notice-receiver)
-	    (PQsetNoticeProcessor		set-notice-processor)
 	    (PQregisterThreadLock		register-thread-lock)
-	    (PQputCopyData			put-copy-data)
-	    (PQputCopyEnd			put-copy-end)
-	    (PQgetCopyData			get-copy-data)
 	    (PQgetline				getline)
 	    (PQputline				putline)
 	    (PQgetlineAsync			getline-async)
@@ -173,7 +193,6 @@
 	    (PQendcopy				endcopy)
 	    (PQisthreadsafe			isthreadsafe)
 	    (PQfn				fn)
-	    (PQbinaryTuples			binary-tuples)
 	    (PQoidStatus			oid-status)
 	    (PQfreemem				freemem)
 	    (PQmakeEmptyPGresult		make-empty-pg-result)
@@ -839,14 +858,143 @@
 	   (condition (make-postgresql-cancel-error-condition)
 		      (make-cancel-handler-condition cancel)
 		      (make-who-condition 'cancel-command)
-		      (make-message-condition (connection-error-message (cstring->string msg.ptr)))))
+		      (make-message-condition (cstring->string msg.ptr))))
 	#t))))
+
+
+;;;; COPY FROM command related stuff
+
+(define (connection-put-copy-data conn mb)
+  (let ((code (PQputCopyData (connection->pointer conn) (<memblock>-pointer mb) (<memblock>-size mb))))
+    (case code
+      ((-1)
+       (raise
+	(condition (make-postgresql-copy-in-error-condition)
+		   (make-connection-condition conn)
+		   (make-who-condition 'connection-put-copy-data)
+		   (make-message-condition (connection-error-message conn)))))
+      ((0)
+       #f)
+      ((+1)
+       #t)
+      (else
+       (assertion-violation 'connection-put-copy-data
+	 (string-append "internal error: unexpected return code from PQputCopyData: "
+			(number->string code)))))))
+
+(define (connection-put-copy-data/string conn str)
+  (with-compensations
+    (let ((str.ptr (string->cstring/c str)))
+      (connection-put-copy-data conn (make-<memblock> str.ptr (strlen str.ptr) #f)))))
+
+(define (connection-put-copy-data/bytevector conn bv)
+  (with-compensations
+    (connection-put-copy-data conn (bytevector->memblock bv malloc-block/c))))
+
+;;; --------------------------------------------------------------------
+
+(define (%connection-put-copy-end who conn errmsg)
+  (let ((code (PQputCopyEnd (connection->pointer conn) (or errmsg pointer-null))))
+    (case code
+      ((-1)
+       (raise
+	(condition (make-postgresql-copy-end-error-condition)
+		   (make-connection-condition conn)
+		   (make-who-condition who)
+		   (make-message-condition (connection-error-message conn)))))
+      ((0)
+       #f)
+      ((+1)
+       #t)
+      (else
+       (assertion-violation who
+	 (string-append "internal error: unexpected return code from PQputCopyEnd: "
+			(number->string code)))))))
+
+(define (connection-put-copy-end conn)
+  (%connection-put-copy-end 'connection-put-copy-end conn #f))
+
+(define (connection-put-copy-fail conn error-message)
+  (with-compensations
+    (%connection-put-copy-end 'connection-put-copy-fail conn (string->cstring/c error-message))))
+
+
+;;;; COPY TO command related stuff
+
+(define (connection-get-copy-data conn)
+  (with-compensations
+    (let* ((row**	(malloc-small/c))
+	   (buf.len	(PQgetCopyData (connection->pointer conn) row**
+				       (if (connection-is-non-blocking? conn) 1 0))))
+      (if (< 0 buf.len)
+	  (values #t (make-<memblock> (pointer-ref-c-pointer row** 0) buf.len buf.len))
+	(case buf.len
+	  ((0)
+	   (values #t #f))
+	  ((-1)
+	   (values #f #f))
+	  ((-2)
+	   (raise
+	    (condition (make-postgresql-copy-out-error-condition)
+		       (make-connection-condition conn)
+		       (make-who-condition 'connection-get-copy-data)
+		       (make-message-condition (connection-error-message conn)))))
+	  (else
+	   (assertion-violation 'connection-get-copy-data
+	     (string-append "internal error: unexpected return code from PQgetCopyData: "
+			    (number->string buf.len)))))))))
+
+(define (connection-get-copy-data/string conn)
+  (let-values (((more? mb) (connection-get-copy-data conn)))
+    (values more? (if (and more? mb)
+		      (begin0-let ((str (memblock->string mb)))
+			(PQfreemem (<memblock>-pointer mb)))
+		    mb))))
+
+(define (connection-get-copy-data/bytevector conn)
+  (let-values (((more? mb) (connection-get-copy-data conn)))
+    (values more? (if (and more? mb)
+		      (begin0-let ((str (memblock->bytevector mb)))
+			(PQfreemem (<memblock>-pointer mb)))
+		    mb))))
 
 
 ;;;; inspecting query results
 
 (define (result-status result)
   (value->exec-status (PQresultStatus (query-result->pointer result))))
+
+(define (result-status/empty-query? result)
+  (enum-set=? (result-status result) (exec-status empty-query)))
+
+(define (result-status/command-ok? result)
+  (enum-set=? (result-status result) (exec-status command-ok)))
+
+(define (result-status/tuples-ok? result)
+  (enum-set=? (result-status result) (exec-status tuples-ok)))
+
+(define (result-status/copy-out? result)
+  (enum-set=? (result-status result) (exec-status copy-out)))
+
+(define (result-status/copy-in? result)
+  (enum-set=? (result-status result) (exec-status copy-in)))
+
+(define (result-status/bad-response? result)
+  (enum-set=? (result-status result) (exec-status bad-response)))
+
+(define (result-status/nonfatal-error? result)
+  (enum-set=? (result-status result) (exec-status nonfatal-error)))
+
+(define (result-status/fatal-error? result)
+  (enum-set=? (result-status result) (exec-status fatal-error)))
+
+(define result-status/bad?
+  (let* ((maker (enum-set-constructor (enum-set-universe (exec-status bad-response))))
+	 (set   (maker '(bad-response nonfatal-error fatal-error))))
+    (lambda (result)
+      (enum-set-subset? (result-status result) set))))
+
+;;; --------------------------------------------------------------------
 
 (define (status->string exec-status)
   (cstring->string (PQresStatus (if (integer? exec-status)
@@ -892,6 +1040,9 @@
 		       (number->string (- (result-number-of-tuples result) 1))
 		       "]")
 	(list result tuple-index))))
+
+(define (result-binary-tuples? result)
+  (not (zero? (PQbinaryTuples (query-result->pointer result)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -1094,6 +1245,8 @@
 	(primitive-free dst.ptr)))))
 
 
+;;;; notices callbacks
+
 (define (make-notice-receiver-callback scheme-function)
   (make-c-callback* void
 		    (lambda (result)
@@ -1103,10 +1256,26 @@
 (define (make-notice-processor-callback scheme-function)
   (make-c-callback* void
 		    (lambda (message-pointer)
-		      (scheme-function pointer-null message-pointer))
+		      (scheme-function pointer-null (cstring->string message-pointer)))
 		    (void* char*)))
 
+(define (connection-set-notice-receiver conn callback)
+  (PQsetNoticeReceiver (connection->pointer conn) callback pointer-null))
+
+(define (connection-set-notice-processor conn callback)
+  (PQsetNoticeProcessor (connection->pointer conn) callback pointer-null))
+
 ;;  typedef void  (*pgthreadlock_t)  (int acquire)))
+
+
+;;;; encoding
+
+(define (connection-client-encoding conn)
+  (cstring->string (pg_encoding_to_char (PQclientEncoding (connection->pointer conn)))))
+
+(define (connection-client-encoding-set! conn encoding)
+  (with-compensations
+    (PQsetClientEncoding (connection->pointer conn) (string->cstring/c encoding))))
 
 
 ;;;; miscellaneous
@@ -1141,6 +1310,10 @@
 		    (make-who-condition 'describe-portal)
 		    (make-message-condition (connection-error-message conn))))
       #t)))
+
+(define (connection-error-verbosity-set! conn verb)
+  (value->error-verbosity (PQsetErrorVerbosity (connection->pointer conn)
+					       (error-verbosity->value verb))))
 
 
 ;;;; done
