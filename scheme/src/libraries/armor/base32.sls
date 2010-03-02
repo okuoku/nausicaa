@@ -46,8 +46,6 @@
 
     base32-encode-block-length			base32-decode-block-length)
   (import (rnrs)
-    (begin0)
-    (receive)
     (language-extensions)
     (armor helpers)
     (armor conditions))

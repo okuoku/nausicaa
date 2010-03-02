@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,7 +30,7 @@
     with-compensations with-compensations/on-error
     compensate run-compensations push-compensation)
   (import (rnrs)
-    (begin0)
+    (only (language-extensions) begin0)
     (parameters)
     (deferred-exceptions))
 

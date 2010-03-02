@@ -36,7 +36,7 @@
     primitive-malloc/mempool	malloc/mempool)
   (import (rnrs)
     (parameters)
-    (begin0)
+    (only (language-extensions) begin0)
     (foreign memory conditions)
     (foreign ffi pointers)
     (for (foreign memory mempool types) expand run)

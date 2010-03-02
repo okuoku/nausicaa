@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -319,6 +319,16 @@
 	  (add-result 8)))))
   => '(999 (1 2)))
 
+
+;;;; stuff
+
+(check
+    ((recursion (loop n)
+       (if (zero? n)
+	   1
+	 (* n (loop (- n 1)))))
+     5)
+  => 120)
 
 
 

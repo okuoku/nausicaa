@@ -26,7 +26,6 @@
 
 
 (import (nausicaa)
-  (receive)
   (armor base32)
   (armor conditions)
   (checks)

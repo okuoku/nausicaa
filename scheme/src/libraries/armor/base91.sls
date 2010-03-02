@@ -65,7 +65,7 @@
 
     base91-encode-finished?		base91-decode-finished?)
   (import (rnrs)
-    (receive))
+    (only (language-extensions) receive))
 
 
 (define-record-type <base91-encode-ctx>

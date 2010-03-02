@@ -26,7 +26,6 @@
 
 
 (import (nausicaa)
-  (receive)
   (armor base16)
   (armor base32)
   (armor base64)

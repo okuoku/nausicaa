@@ -37,20 +37,6 @@
 (define << bitwise-arithmetic-shift-left)
 (define >> bitwise-arithmetic-shift-right)
 
-(define-syntax incr!
-  (syntax-rules ()
-    ((_ ?id)
-     (set! ?id (+ ?id 1)))
-    ((_ ?id ?delta)
-     (set! ?id (+ ?id ?delta)))))
-
-(define-syntax decr!
-  (syntax-rules ()
-    ((_ ?id)
-     (set! ?id (- ?id 1)))
-    ((_ ?id ?delta)
-     (set! ?id (- ?id ?delta)))))
-
 (define-syntax define-macro
   (syntax-rules ()
     ((_ (?name ?arg ...) ?form0 ?form ...)

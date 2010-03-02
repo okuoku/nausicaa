@@ -24,7 +24,6 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 ;;;; copyright notice for some SRFI implementations
 ;;;
 ;;;Copyright (c) 2008 Derick Eddington
@@ -54,7 +53,6 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
-
 ;;;; copyright notice for the REC definition, renamed to RECURSIION
 ;;;
 ;;;Copyright (c) 2002 Dr. Mirko Luedde <Mirko.Luedde@SAP.com>
@@ -82,7 +80,6 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
-
 ;;;; copyright notice for the CUT and CUTE definitions
 ;;;
 ;;;Reference implementation for SRFI-26 "cut"
@@ -116,7 +113,6 @@
 ;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
 ;;;SOFTWARE.
 
-
 ;;;; copyright notice for the shared structures SRFI
 ;;;
 ;;;Copyright (C) Ray Dillinger 2003.  All Rights Reserved.
@@ -156,17 +152,38 @@
 ;;;This   library  is  a   last  resort   fall-back  because   the  R6RS
 ;;;implementation should supply this functionality.
 
+;;;;copyright notice for RECEIVE
+;;;
+;;;Copyright (C) John David Stone (1999). All Rights Reserved.
+;;;
+;;;Permission is hereby granted, free of charge, to any person obtaining
+;;;a  copy of  this  software and  associated  documentation files  (the
+;;;"Software"), to  deal in the Software  without restriction, including
+;;;without limitation  the rights to use, copy,  modify, merge, publish,
+;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
+;;;permit persons to whom the Software is furnished to do so, subject to
+;;;the following conditions:
+;;;
+;;;The  above  copyright notice  and  this  permission  notice shall  be
+;;;included in all copies or substantial portions of the Software.
+;;;
+;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
+;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
+;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
+;;;NONINFRINGEMENT. IN  NO EVENT SHALL THE AUTHORS  OR COPYRIGHT HOLDERS
+;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
+;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
+;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
+;;;SOFTWARE.
+
 
 (library (language-extensions)
   (export
     and-let* begin0 begin0-let begin0-let* begin0-letrec
     receive recursion cut cute do* while do-while
     dotimes dolist loop-upon-list ensure
-    set-cons!)
-  (import (rnrs)
-    (begin0)
-    (receive)
-    (set-cons))
+    set-cons! incr! decr!)
+  (import (rnrs))
 
 
 (define-syntax and-let*
@@ -201,6 +218,13 @@
        (if (positive? (length #'(body* ...)))
            #'(begin body* ...)
 	 #'last)])))
+
+(define-syntax receive
+  (syntax-rules ()
+    ((_ ?formals ?expression ?form0 ?form ...)
+     (call-with-values
+	 (lambda () ?expression)
+       (lambda ?formals ?form0 ?form ...)))))
 
 
 (define-syntax recursion
@@ -332,6 +356,27 @@
 		 (exit)
 	       (loop (cdr ell) (car ell))))))))))
 
+
+(define-syntax incr!
+  (syntax-rules ()
+    ((_ ?id)
+     (set! ?id (+ ?id 1)))
+    ((_ ?id ?delta)
+     (set! ?id (+ ?id ?delta)))))
+
+(define-syntax decr!
+  (syntax-rules ()
+    ((_ ?id)
+     (set! ?id (- ?id 1)))
+    ((_ ?id ?delta)
+     (set! ?id (- ?id ?delta)))))
+
+(define-syntax set-cons!
+  (syntax-rules ()
+    ((_ ?name ?form)
+     (set! ?name (cons ?form ?name)))))
+
+
 (define-syntax ensure
   (syntax-rules (by else else-by)
     ((_ ?condition
@@ -347,6 +392,51 @@
 		 retval)
 	   (break-when ?condition)
 	 (set! retval (expr)))))))
+
+
+(define-syntax begin0
+  ;;This  syntax  comes from  the  R6RS  original  document, Appendix  A
+  ;;``Formal semantics''.
+  (syntax-rules ()
+    ((_ ?expr0 ?expr ...)
+     (call-with-values
+	 (lambda () ?expr0)
+       (lambda args
+	 ?expr ...
+	 (apply values args))))))
+
+(define-syntax begin0-let
+  (syntax-rules ()
+    ((_ (((?var0 ...) ?expr0) ((?var ...) ?expr) ...) ?form0 ?form ...)
+     (let-values (((?var0 ...) ?expr0)
+		  ((?var  ...) ?expr)
+		  ...)
+       ?form0 ?form ...
+       (values ?var0 ...)))
+    ((_ ((?var0 ?expr0) (?var ?expr) ...) ?form0 ?form ...)
+     (let ((?var0 ?expr0)
+	   (?var  ?expr)
+	   ...)
+       ?form0 ?form ...
+       ?var0))))
+
+(define-syntax begin0-let*
+  (syntax-rules ()
+    ((_ ((?var0 ?expr0) (?var ?expr) ...) ?form0 ?form ...)
+     (let* ((?var0 ?expr0)
+	    (?var  ?expr)
+	    ...)
+       ?form0 ?form ...
+       ?var0))))
+
+(define-syntax begin0-letrec
+  (syntax-rules ()
+    ((_ ((?var0 ?expr0) (?var ?expr) ...) ?form0 ?form ...)
+     (letrec ((?var0 ?expr0)
+	      (?var  ?expr)
+	      ...)
+       ?form0 ?form ...
+       ?var0))))
 
 
 ;;;; done

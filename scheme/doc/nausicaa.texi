@@ -80,6 +80,10 @@ Revised^6 Report on the algorithmic language Scheme
 @code{<\NAME\>}
 @end macro
 
+@macro objtype{NAME}
+@code{\NAME\}
+@end macro
+
 @macro condition{NAME}
 @code{&\NAME\}
 @end macro
@@ -392,7 +396,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2008, 2009
+@set COPYRIGHT_YEARS            2008, 2009, 2010
 
 
 @c page
@@ -888,6 +892,13 @@ The @library{nausicaa} language
                                 with shared structure.
 * naulib environment::          Accessing environment variables.
 * naulib unimplemented::        Unimplemented error condition.
+
+Syntactic abstractions
+
+* naulib macros lang::          Language constructs.
+* naulib macros let::           Bindings constructs.
+* naulib macros loop::          Loop constructs.
+* naulib macros id::            Bindings mutations.
 
 Predefined condition types
 
@@ -1496,6 +1507,7 @@ Parsing command line arguments
 
 * armor conditions::            Condition objects.
 * armor base16::                Base 16 encoder/decoder.
+* armor base32::                Base 32 encoder/decoder.
 * armor base64::                Base 64 encoder/decoder.
 * armor base91::                Base 91 encoder/decoder.
 * armor ascii85::               @ascii{} 85 encoder/decoder.
@@ -19061,43 +19073,21 @@ return value of @func{current-output-port}.
 @section Syntactic abstractions
 
 
-The following bindings are exported by the @library{language-extensions}
-library and re--exported by the @library{nausicaa} library.
+The bindings documented in this section are exported by the
+@library{language-extensions} library and re--exported by the
+@library{nausicaa} library.
 
+@menu
+* naulib macros lang::          Language constructs.
+* naulib macros let::           Bindings constructs.
+* naulib macros loop::          Loop constructs.
+* naulib macros id::            Bindings mutations.
+@end menu
 
-@deffn Syntax and-let* @var{formals} . @var{body}
-Like an ordinary @func{and}, an @func{and-let*} special form evaluates
-the expressions in @var{formals} in order until the first one that
-yields @false{}.  Unlike @func{and}, however, a non--@false{} result of
-one expression can be bound to a fresh variable and used in the
-subsequent expressions.  @func{and-let*} is a cross--breed between
-@func{let*} and @func{and}.
+@c page
+@node naulib macros lang
+@subsection Language constructs
 
-@var{formals} can be the empty list, or a list of the following
-elements:
-
-@table @code
-@item (@var{varname} @var{expression})
-evaluate @var{expression}; if the result is @false{}: return @false{}
-immediately, else bind the result to @var{varname}; @var{varname} is
-available to the rest of the @var{expressions}, and the @code{BODY};
-
-@item @var{expression}
-evaluate @var{expression}; if the result is @false{}: return @false{}
-immediately;
-
-@item @var{bound-variable}
-look up @var{bound-variable}; if the value is @false{}; return @false{}
-immediately; @var{bound-varname} is available to the rest of the
-@var{expressions}, and the @var{body}.
-@end table
-
-If all the @var{expression}s and @var{bound-variable}s in @var{formals}
-evaluate to true, the forms in @var{body} are evaluated and the result
-of the last one returned.
-@end deffn
-
-@c ------------------------------------------------------------
 
 @deffn Syntax begin0 @var{form0} @var{form} ...
 Evaluate all the @var{form}s like the standard @func{begin}, but return
@@ -19118,63 +19108,6 @@ original document, Appendix A ``Formal semantics''.
 This syntax is called @func{prog1} in Common Lisp and Emacs Lisp.
 @end deffn
 
-
-@deffn Syntax begin0-let ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
-@deffnx Syntax begin0-let (((@varo{var} ...) @varo{expr}) ((@var{var} ...) @var{expr}) ...) @varo{form} @var{form} ...
-Bind the result of @var{expr} to @var{var} as in @func{let} or
-@func{let-values}, evaluate the forms in the resulting environment, then
-return @varo{var} possibly as multiple values.
-@end deffn
-
-
-@deffn Syntax begin0-let* ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
-@deffnx Syntax begin0-letrec ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
-Like @func{begin0-let}, but bind the identifiers using @func{let*} and
-@func{letrec}.
-@end deffn
-
-@c ------------------------------------------------------------
-
-@deffn Syntax receive @var{formals} @var{expression} . @var{body}
-The mechanism provided for binding identifiers to the values of a
-multiple--valued expression are @func{call-with-values},
-@func{let-values}, @func{let*-values}.  @func{receive} is another
-concise and readable syntax for creating such bindings.
-
-@var{formals} can have any of 3 forms:
-
-@table @code
-@item (variable1 ... variablen)
-The environment in which the @func{receive}--expression is evaluated is
-extended by binding @var{variable1}, ..., @var{variablen} to fresh
-locations.  The @var{expression} is evaluated, and its values are stored
-into those locations (it is an error if @var{expression} does not have
-exactly @var{n} values).
-
-@item variable
-The environment in which the @func{receive}--expression is evaluated is
-extended by binding @var{variable} to a fresh location.  The
-@var{expression} is evaluated, its values are converted into a newly
-allocated list, and the list is stored in the location bound to
-@var{variable}.
-
-@item (variable1 ... variablen . variablen+1)
-The environment in which the @func{receive}--expression is evaluated is
-extended by binding @var{variable1}, ..., @var{variablen+1} to fresh
-locations.  The @var{expression} is evaluated.  Its first @var{n} values
-are stored into the locations bound to @var{variable1}, ...,
-@var{variablen}.  Any remaining values are converted into a newly
-allocated list, which is stored into the location bound to
-@var{variablen+1} (it is an error if @var{expression} does not have at
-least @var{n} values.
-@end table
-
-In any case, the expressions in @var{body} are evaluated sequentially in
-the extended environment.  The results of the last expression in the
-body are the values of the @var{receive}--expression.
-@end deffn
-
-@c ------------------------------------------------------------
 
 @deffn Syntax cut @var{slot-or-expr} ...
 @deffnx Syntax cute @var{slot-or-expr} ...
@@ -19237,64 +19170,162 @@ The formal syntax of a specialized expression is:
 @end example
 @end deffn
 
-@c ------------------------------------------------------------
 
-@deffn Syntax recursion @var{formals} @var{body}
-Allow the simple and non--imperative construction of self--referential
-expressions.  The implementation is:
+@deffn Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else @var{form0} @var{form} ...)
+@deffnx Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else-by @var{form0} @var{form} ...) ... (else @var{form0} @var{form} ...)
+Evaluate the @var{form}s in the @code{by} and @code{else-by} clauses, in
+sequence, until @var{test} evaluates to true.  If the first evaluation
+of @var{test} gives true: no @var{form}s are evaluated.  If neither the
+@code{by} nor the @code{else-by} forms succeed in making @var{test}
+true: the @var{form}s in the @code{else} clause are evaluated.
 
-@example
-(define-syntax recursion
-  (syntax-rules ()
-    ((_ (?name . ?variables) . ?body)
-     (letrec ((?name (lambda ?variables . ?body))) ?name))
-    ((_ ?name ?expr)
-     (letrec ((?name ?expr)) ?name))))
-@end example
+Return the value of the last @var{form} in the clause that made
+@var{test} true, or the value in the last @var{form} in the @code{else}
+clause, or @false{} if the first evaluation of @var{test} was true and
+no @var{form}s were evaluated.
 
-@func{recursion} generates an inner lambda using @var{formals} and
-@var{body}; the first identifier in @var{formals} is meant to be bound
-to the inner lambda itself.  The return value is a function that invokes
-the inner lambda with the inner lambda and the given arguments.
-
-For example the following:
+Examples:
 
 @example
-(define (dummy n)
-  (let loop ((n n))
-    (if (zero? n)
-        1
-      (* n (loop (- n 1))))))
+(let ((i #f))
+  (ensure (= i 1)
+      (by
+        (set! i 1)
+        123)
+    (else-by
+      (set! i 2)
+      456)
+    (else
+      (set! i 3)
+      789)))
+@result{} 123
 
-(dummy 5)
-@end example
+(let ((i #f))
+  (ensure (= i 2)
+      (by
+        (set! i 1)
+        123)
+    (else-by
+      (set! i 2)
+      456)
+    (else
+      (set! i 3)
+      789)))
+@result{} 456
 
-@noindent
-can be rewritten:
-
-@example
-(letrec ((dummy (lambda (loop n)
-                  (if (zero? n)
-                      1
-                    (* n (loop (- n 1)))))))
-  (dummy 5))
-@result{} 120
-@end example
-
-@noindent
-which can be written:
-
-@example
-((recursion (loop n)
-   (if (zero? n)
-       1
-     (* n (loop (- n 1)))))
- 5)
-@result{} 120
+(let ((i #f))
+  (ensure (= i 3)
+      (by
+        (set! i 1)
+        123)
+    (else-by
+      (set! i 2)
+      456)
+    (else
+      (set! i 3)
+      789)))
+@result{} 789
 @end example
 @end deffn
 
+@c page
+@node naulib macros let
+@subsection Bindings constructs
+
+
+@deffn Syntax and-let* @var{formals} . @var{body}
+Like an ordinary @func{and}, an @func{and-let*} special form evaluates
+the expressions in @var{formals} in order until the first one that
+yields @false{}.  Unlike @func{and}, however, a non--@false{} result of
+one expression can be bound to a fresh variable and used in the
+subsequent expressions.  @func{and-let*} is a cross--breed between
+@func{let*} and @func{and}.
+
+@var{formals} can be the empty list, or a list of the following
+elements:
+
+@table @code
+@item (@var{varname} @var{expression})
+evaluate @var{expression}; if the result is @false{}: return @false{}
+immediately, else bind the result to @var{varname}; @var{varname} is
+available to the rest of the @var{expressions}, and the @code{BODY};
+
+@item @var{expression}
+evaluate @var{expression}; if the result is @false{}: return @false{}
+immediately;
+
+@item @var{bound-variable}
+look up @var{bound-variable}; if the value is @false{}; return @false{}
+immediately; @var{bound-varname} is available to the rest of the
+@var{expressions}, and the @var{body}.
+@end table
+
+If all the @var{expression}s and @var{bound-variable}s in @var{formals}
+evaluate to true, the forms in @var{body} are evaluated and the result
+of the last one returned.
+@end deffn
+
 @c ------------------------------------------------------------
+
+@deffn Syntax begin0-let ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
+@deffnx Syntax begin0-let (((@varo{var} ...) @varo{expr}) ((@var{var} ...) @var{expr}) ...) @varo{form} @var{form} ...
+Bind the result of @var{expr} to @var{var} as in @func{let} or
+@func{let-values}, evaluate the forms in the resulting environment, then
+return @varo{var} possibly as multiple values.
+@end deffn
+
+
+@deffn Syntax begin0-let* ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
+@deffnx Syntax begin0-letrec ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
+Like @func{begin0-let}, but bind the identifiers using @func{let*} and
+@func{letrec}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Syntax receive @var{formals} @var{expression} . @var{body}
+The mechanism provided for binding identifiers to the values of a
+multiple--valued expression are @func{call-with-values},
+@func{let-values}, @func{let*-values}.  @func{receive} is another
+concise and readable syntax for creating such bindings.
+
+@var{formals} can have any of 3 forms:
+
+@table @code
+@item (variable1 ... variablen)
+The environment in which the @func{receive}--expression is evaluated is
+extended by binding @var{variable1}, ..., @var{variablen} to fresh
+locations.  The @var{expression} is evaluated, and its values are stored
+into those locations (it is an error if @var{expression} does not have
+exactly @var{n} values).
+
+@item variable
+The environment in which the @func{receive}--expression is evaluated is
+extended by binding @var{variable} to a fresh location.  The
+@var{expression} is evaluated, its values are converted into a newly
+allocated list, and the list is stored in the location bound to
+@var{variable}.
+
+@item (variable1 ... variablen . variablen+1)
+The environment in which the @func{receive}--expression is evaluated is
+extended by binding @var{variable1}, ..., @var{variablen+1} to fresh
+locations.  The @var{expression} is evaluated.  Its first @var{n} values
+are stored into the locations bound to @var{variable1}, ...,
+@var{variablen}.  Any remaining values are converted into a newly
+allocated list, which is stored into the location bound to
+@var{variablen+1} (it is an error if @var{expression} does not have at
+least @var{n} values.
+@end table
+
+In any case, the expressions in @var{body} are evaluated sequentially in
+the extended environment.  The results of the last expression in the
+body are the values of the @var{receive}--expression.
+@end deffn
+
+@c page
+@node naulib macros loop
+@subsection Loop constructs
+
 
 @deffn Syntax do* ((@meta{variable1} @meta{init1} @meta{step1}) ...) (@meta{test} @meta{expr} ...) @meta{command} ...
 Like @func{do}, but bind the variables as in @func{let*} rather than as
@@ -19374,60 +19405,93 @@ prints @code{1} and @code{2}, then returns @code{retval}.
 @end deffn
 
 
-@deffn Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else @var{form0} @var{form} ...)
-@deffnx Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else-by @var{form0} @var{form} ...) ... (else @var{form0} @var{form} ...)
-Evaluate the @var{form}s in the @code{by} and @code{else-by} clauses, in
-sequence, until @var{test} evaluates to true.  If the first evaluation
-of @var{test} gives true: no @var{form}s are evaluated.  If neither the
-@code{by} nor the @code{else-by} forms succeed in making @var{test}
-true: the @var{form}s in the @code{else} clause are evaluated.
-
-Return the value of the last @var{form} in the clause that made
-@var{test} true, or the value in the last @var{form} in the @code{else}
-clause, or @false{} if the first evaluation of @var{test} was true and
-no @var{form}s were evaluated.
-
-Examples:
+@deffn Syntax recursion @var{formals} @var{body}
+Allow the simple and non--imperative construction of self--referential
+expressions.  The implementation is:
 
 @example
-(let ((i #f))
-  (ensure (= i 1)
-      (by
-        (set! i 1)
-        123)
-    (else-by
-      (set! i 2)
-      456)
-    (else
-      (set! i 3)
-      789)))
-@result{} 123
+(define-syntax recursion
+  (syntax-rules ()
+    ((_ (?name . ?variables) . ?body)
+     (letrec ((?name (lambda ?variables . ?body))) ?name))
+    ((_ ?name ?expr)
+     (letrec ((?name ?expr)) ?name))))
+@end example
 
-(let ((i #f))
-  (ensure (= i 2)
-      (by
-        (set! i 1)
-        123)
-    (else-by
-      (set! i 2)
-      456)
-    (else
-      (set! i 3)
-      789)))
-@result{} 456
+@func{recursion} generates an inner lambda using @var{formals} and
+@var{body}; the first identifier in @var{formals} is meant to be bound
+to the inner lambda itself.  The return value is a function that invokes
+the inner lambda with the inner lambda and the given arguments.
 
-(let ((i #f))
-  (ensure (= i 3)
-      (by
-        (set! i 1)
-        123)
-    (else-by
-      (set! i 2)
-      456)
-    (else
-      (set! i 3)
-      789)))
-@result{} 789
+For example the following:
+
+@example
+(define (dummy n)
+  (let loop ((n n))
+    (if (zero? n)
+        1
+      (* n (loop (- n 1))))))
+
+(dummy 5)
+@end example
+
+@noindent
+can be rewritten:
+
+@example
+(letrec ((dummy (lambda (n)
+                  (if (zero? n)
+                      1
+                    (* n (dummy (- n 1)))))))
+  (dummy 5))
+@result{} 120
+@end example
+
+@noindent
+which can be written:
+
+@example
+((recursion (loop n)
+   (if (zero? n)
+       1
+     (* n (loop (- n 1)))))
+ 5)
+@result{} 120
+@end example
+@end deffn
+
+@c page
+@node naulib macros id
+@subsection Bindings mutations
+
+
+@deffn Syntax incr! @ameta{id}
+@deffnx Syntax incr! @ameta{id} @ameta{expr}
+Increment the value bound to the identifier @meta{id} by @meta{expr};
+when @meta{expr} is not given, it defaults to @samp{+1}.
+@end deffn
+
+
+@deffn Syntax decr! @ameta{id}
+@deffnx Syntax decr! @ameta{id} @ameta{expr}
+Decrement the value bound to the identifier @meta{id} by @meta{expr};
+when @meta{expr} is not given, it defaults to @samp{+1}.
+@end deffn
+
+
+@deffn Syntax set-cons! @ameta{id} @ameta{expr}
+Bind to the identifier @meta{id} the result of @func{cons} applied to
+@meta{expr} and the old value bound to @meta{id}.  The following:
+
+@example
+(set-cons! ell 123)
+@end example
+
+@noindent
+expands to:
+
+@example
+(set! ell (cons 123 ell))
 @end example
 @end deffn
 
@@ -51668,6 +51732,7 @@ following types: @condition{who}, @condition{option},
 @menu
 * armor conditions::            Condition objects.
 * armor base16::                Base 16 encoder/decoder.
+* armor base32::                Base 32 encoder/decoder.
 * armor base64::                Base 64 encoder/decoder.
 * armor base91::                Base 91 encoder/decoder.
 * armor ascii85::               @ascii{} 85 encoder/decoder.
@@ -51853,6 +51918,11 @@ calls to @func{base16-decode-update!} when the input has @var{input-len}
 bytes.  Notice that when blanks are allowed in the input, it is not
 possible to determine exactly the amount of output bytes required.
 @end defun
+
+@c page
+@node armor base32
+@section Base 32 encoder/decoder
+
 
 @c page
 @node armor base64

@@ -790,7 +790,7 @@
 
     ;; stuff from the SRFIs
     cond-expand and-let* receive recursion cut cute begin0 begin0-let
-    set-cons! while do-while
+    set-cons! incr! decr! while do-while
 
     ;; shared structures
     write-with-shared-structure
