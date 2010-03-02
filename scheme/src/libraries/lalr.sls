@@ -45,14 +45,7 @@
 (library (lalr)
   (export
     lalr-parser
-    (rename (lalr-parser make-lalr-parser))
-
-    :library-spec		:library-imports
-    :parser-type		:parser-name
-    :output-value		:output-port
-    :output-file		:dump-table
-    :expect			:terminals
-    :rules)
+    (rename (lalr-parser make-lalr-parser)))
   (import (rename (rnrs)
 		  (error rnrs:error))
 ;;;    (debugging)
@@ -66,21 +59,22 @@
 
 ;;;; Keyword options for the LALR-PARSER function.
 
-(define-keyword :terminals)
-(define-keyword :rules)
-(define-keyword :expect)
+(define-keywords
+  :terminals
+  :rules
+  :expect
 
-(define-keyword :output-value)
-(define-keyword :output-port)
-(define-keyword :output-file)
+  :output-value
+  :output-port
+  :output-file
 
-(define-keyword :dump-table)
+  :dump-table
 
-(define-keyword :library-spec)
-(define-keyword :library-imports)
-(define-keyword :parser-type)
+  :library-spec
+  :library-imports
+  :parser-type
 
-(define-keyword :parser-name)
+  :parser-name)
 
 
 ;;;; helpers

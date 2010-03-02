@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,6 +26,7 @@
 
 (import (nausicaa)
   (checks)
+  (keywords)
   (sentinel)
   (silex lexer)
   (silex-test)
@@ -35,6 +36,8 @@
 
 (check-set-mode! 'report-failed)
 (display "*** testing silex from file\n")
+
+(define-keywords :string :counters)
 
 (test-calc calc-lexer-table/code)
 (test-calc calc-lexer-table/portable)

@@ -209,7 +209,7 @@ endif
 ## --------------------------------------------------------------------
 
 SILEX_TEST_PROGRAMS	= $(wildcard $(srcdir)/tests/make-silex-*.sps)
-SILEX_LIBPATH		= $(abspath $(srcdir)/tests):$(abspath $(fasl_BUILDDIR))
+SILEX_LIBPATH		= $(abspath $(srcdir)/tests):$(abspath $(nau_sls_BUILDDIR))
 
 ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 SILEX_ENV	= YPSILON_SITELIB=$(SILEX_LIBPATH):$(YPSILON_SITELIB)
@@ -239,7 +239,7 @@ silex-test:
 ## --------------------------------------------------------------------
 
 LALR_PROGRAMS	= $(wildcard $(srcdir)/tests/make-lalr-*.sps)
-LALR_LIBPATH	= $(abspath $(srcdir)/tests):$(abspath $(fasl_BUILDDIR))
+LALR_LIBPATH	= $(abspath $(srcdir)/tests):$(abspath $(nau_sls_BUILDDIR))
 
 ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 LALR_ENV	= YPSILON_SITELIB=$(LALR_LIBPATH):$(YPSILON_SITELIB)
@@ -266,7 +266,7 @@ lalr:
 ## --------------------------------------------------------------------
 
 CSV_PROGRAM	= make-tables.sps
-CSV_LIBPATH	= $(abspath $(fasl_BUILDDIR))
+CSV_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
 
 ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 CSV_ENV		= YPSILON_SITELIB=$(CSV_LIBPATH):$(YPSILON_SITELIB)
@@ -292,7 +292,7 @@ csv:
 ## Special rules: Infix lexer and parser building.
 ## --------------------------------------------------------------------
 
-INFIX_LIBPATH	= $(abspath $(fasl_BUILDDIR))
+INFIX_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
 
 ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 INFIX_ENV	= YPSILON_SITELIB=$(INFIX_LIBPATH):$(YPSILON_SITELIB)
@@ -319,7 +319,7 @@ infix:
 ## --------------------------------------------------------------------
 
 EMAIL_PROGRAM	= make-tables.sps
-EMAIL_LIBPATH	= $(abspath $(fasl_BUILDDIR))
+EMAIL_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
 
 ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 EMAIL_ENV		= YPSILON_SITELIB=$(EMAIL_LIBPATH):$(YPSILON_SITELIB)

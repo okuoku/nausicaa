@@ -7,8 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
-;;;
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,6 +25,7 @@
 
 
 (import (nausicaa)
+  (keywords)
   (checks)
   (silex)
   (silex lexer)
@@ -97,6 +97,8 @@ cparen		\\)
 ")
 
 
+
+(define-keywords :input-string :output-value :lexer-format)
 
 (test-calc (lex :input-string l :output-value #t
 		:lexer-format 'decision-tree))

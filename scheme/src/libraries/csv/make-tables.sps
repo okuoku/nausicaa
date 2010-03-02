@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,7 +24,15 @@
 ;;;
 
 (import (rnrs)
+  (keywords)
   (silex))
+
+(define-keywords
+  :input-file
+  :output-file
+  :library-spec
+  :table-name
+  :counters)
 
 (lex :input-file "unquoted-data.l"
      :output-file "unquoted-data-lexer.sls"

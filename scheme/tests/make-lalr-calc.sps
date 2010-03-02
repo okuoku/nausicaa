@@ -12,7 +12,7 @@
 ;;;	with the  wrong number of  arguments may generate an  error that
 ;;;	will cause the calculator to crash.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2004 Dominique Boucher
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -32,19 +32,33 @@
 
 #!r6rs
 (import (rnrs)
+  (keywords)
   (lalr)
-  (prefix (silex) silex:))
+  (silex))
+
+(define-keywords
+  :counters
+  :dump-table
+  :input-string
+  :library-imports
+  :library-spec
+  :output-file
+  :parser-name
+  :rules
+  :table-name
+  :terminals
+  )
 
 
 ;;;; lexer
 
-(silex:lex silex::output-file "calc-parser-lexer.sls"
-	   silex::counters 'all
-	   silex::library-spec "(calc-parser-lexer)"
-	   silex::library-imports '((parser-tools lexical-token)
-				    (parser-tools source-location))
-	   silex::table-name 'calc-parser-lexer-table
-	   silex::input-string "
+(lex :output-file "calc-parser-lexer.sls"
+     :counters 'all
+     :library-spec "(calc-parser-lexer)"
+     :library-imports '((parser-tools lexical-token)
+			(parser-tools source-location))
+     :table-name 'calc-parser-lexer-table
+     :input-string "
 blanks		[ \\9]+
 newline		[\\10\\13]+
 

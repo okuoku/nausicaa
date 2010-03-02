@@ -7,7 +7,7 @@
 ;;;
 ;;;	Miscellaneous tests for (lalr), GLR driver.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,6 +25,7 @@
 
 
 (import (nausicaa)
+  (keywords)
   (lalr)
   (sentinel)
   (parser-tools lexical-token)
@@ -32,6 +33,15 @@
 
 (check-set-mode! 'report-failed)
 (display "*** testing lalr GLR driver \n")
+
+(define-keywords
+  :output-value
+  :output-port
+  :expect
+  :parser-type
+  :terminals
+  :rules
+  )
 
 
 ;;;; helpers

@@ -47,13 +47,9 @@
 
 #!r6rs
 (library (silex)
-  (export
-    lex
-    :input-file		:input-port	:input-string
-    :output-file	:output-port	:output-value
-    :table-name		:library-spec	:library-imports
-    :counters		:pretty-print	:lexer-format)
+  (export lex)
   (import (rnrs)
+    (only (language-extensions) begin0)
     (parameters)
     (keywords)
     (silex lexer)
@@ -64,17 +60,6 @@
 
 ;;;; helpers
 
-(define-syntax begin0
-  ;;This  syntax  comes from  the  R6RS  original  document, Appendix  A
-  ;;``Formal semantics''.
-  (syntax-rules ()
-    ((_ ?expr0 ?expr ...)
-     (call-with-values
-	 (lambda () ?expr0)
-       (lambda x
-	 ?expr ...
-	 (apply values x))))))
-
 (define (lex-error who line column . message-strings)
   (assertion-violation who
     (apply string-append "lex error: "
@@ -82,20 +67,22 @@
 	   "column " (if column (number->string column) "?")
 	   ": " message-strings)))
 
-(define-keyword :input-file)
-(define-keyword :input-port)
-(define-keyword :input-string)
-(define-keyword :output-file)
-(define-keyword :output-port)
-(define-keyword :output-value)
-(define-keyword :table-name)
-(define-keyword :library-spec)
-(define-keyword :library-imports)
-(define-keyword :pretty-print)
-(define-keyword :lexer-format)
-
-;;Already defined in (silex multilex)
-;;(define-keyword :counters)
+(define-keywords
+  :input-file
+  :input-port
+  :input-string
+  :output-file
+  :output-port
+  :output-value
+  :table-name
+  :library-spec
+  :library-imports
+  :pretty-print
+  :lexer-format
+  :counters
+  :port
+  :procedure
+  :string)
 
 
 ;;;; module main.scm

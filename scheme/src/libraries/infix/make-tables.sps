@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,18 +26,35 @@
 
 
 (import (nausicaa)
-  (prefix (silex) sil:)
+  (keywords)
+  (silex)
   (lalr))
 
-(sil:lex sil::input-file	"string-lexer.l"
-	 sil::output-file	"string-lexer.sls"
-	 sil::library-spec	"(infix string-lexer)"
-	 sil::library-imports	'((lalr lr-driver)
-				  (parser-tools lexical-token)
-				  (parser-tools source-location))
-	 sil::table-name	'infix-string-lexer-table
-	 sil::lexer-format	'code
-	 sil::counters		'all)
+(define-keywords
+  :counters
+  :dump-table
+  :input-file
+  :input-string
+  :lexer-format
+  :library-imports
+  :library-spec
+  :output-file
+  :parser-name
+  :rules
+  :table-name
+  :terminals
+  )
+
+
+(lex :input-file	"string-lexer.l"
+     :output-file	"string-lexer.sls"
+     :library-spec	"(infix string-lexer)"
+     :library-imports	'((lalr lr-driver)
+			  (parser-tools lexical-token)
+			  (parser-tools source-location))
+     :table-name	'infix-string-lexer-table
+     :lexer-format	'code
+     :counters		'all)
 
 (lalr-parser
 

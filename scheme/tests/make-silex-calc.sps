@@ -11,7 +11,7 @@
 ;;;
 ;;;	it will produce the "calc-test.l.sls" output file.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,6 +28,7 @@
 ;;;
 
 (import (rnrs)
+  (keywords)
   (silex))
 
 
@@ -93,6 +94,9 @@ cparen		\\)
 ")
 
 
+(define-keywords :input-port :input-file :input-string
+  :output-file :lexer-format :library-spec :table-name)
+
 (define lexer-file	"calc.l")
 (define tree-file	"calc-tree-lexer.sls")
 (define code-file	"calc-code-lexer.sls")

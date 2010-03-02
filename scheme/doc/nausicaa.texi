@@ -36808,18 +36808,19 @@ silently ignored.
 
 The @library{keywords} library implements a type of value,
 @dfn{keywords}, disjoint from all the other types.  Keywords can be
-treated much like symbols.
+treated much like symbols, but they must be compared with
+@func{keyword=?} not @func{eq?}.
 
 
-@deffn Syntax make-keyword @var{symbol}
-@deffnx Function %make-keyword @var{symbol}
-Build the macro and the function return a new keyword value associated
-to the @var{symbol}.  The macro is a wrapper for the function, so the
-following two forms are equivalent (notice the quoting):
+@deffn Syntax keyword @ameta{symbol}
+@deffnx Function %keyword @var{symbol}
+Both the macro and the function return a new keyword value associated to
+the Scheme @var{symbol}.  The macro is a wrapper for the function, so
+the following two forms are equivalent (notice the quoting):
 
 @example
-(make-keyword   alpha)
-(%make-keyword 'alpha)
+(keyword   alpha)
+(%keyword 'alpha)
 @end example
 
 When this function is applied to the same symbol multiple times, it
@@ -36828,16 +36829,23 @@ other.
 @end deffn
 
 
-@deffn Syntax define-keyword @var{symbol}
-Build a new keyword value using @func{make-keyword} upon @var{symbol},
-then bind it to @var{symbol}.  Keyword values defined by
-@func{define-keyword} can be, and are meant to be, exported by a library
-if there is the need.
+@deffn Syntax define-keywords @ameta{symbol} ...
+Build new keyword values using @func{keyword} upon @meta{symbol}
+arguments, then bind them to @meta{symbol}.  Keyword values defined by
+@func{define-keywords} can be, and are meant to be, exported by a
+library if there is the need.
 @end deffn
 
 
 @defun keyword? @var{obj}
 Return true if @var{obj} is a keyword value.
+@end defun
+
+
+@defun keyword=? @vari{obj} @varii{obj}
+Return true if the arguments are equal keywords; two keywords are equal
+if @func{keyword->symbol} applied to them returns the same symbol
+according to @func{eq?}.
 @end defun
 
 
@@ -36865,40 +36873,40 @@ Define a set of keywords while the forms are evaluated.  The following:
 expands to:
 
 @example
-(let ((:a (make-keyword :a))
-      (:b (make-keyword :b))
-      (:c (make-keyword :c))
-      (:d (make-keyword :d)))
+(let ((:a (keyword :a))
+      (:b (keyword :b))
+      (:c (keyword :c))
+      (:d (keyword :d)))
   ---)
 @end example
 @end deffn
 
 
-@deffn Syntax let-keywords @var{options} @var{allow-unknown} ((@var{name} @var{key} @var{default}) ...) @var{form0} @var{form} ...
-@deffnx Syntax let-keywords* @var{options} @var{allow-unknown} ((@var{name} @var{key} @var{default}) ...) @var{form0} @var{form} ...
+@deffn Syntax let-keywords @ameta{options} @ameta{allow-unknown} ((@ameta{name} @ameta{key} @ameta{default}) ...) @ameta{form0} @ameta{form} ...
+@deffnx Syntax let-keywords* @ameta{options} @ameta{allow-unknown} ((@ameta{name} @ameta{key} @ameta{default}) ...) @ameta{form0} @ameta{form} ...
 These are @func{let} and @func{let*} like macros that allow parsing a
-list of keyword/value couples in @var{options}.  All the @var{key}
+list of keyword/value couples in @meta{options}.  All the @meta{key}
 arguments must be keywords already defined.
 
 @enumerate
 @item
-First all the @var{default} expressions are evaluated and their results
-bound to the @var{name} identifiers, like with @func{let} or
+First all the @meta{default} expressions are evaluated and their results
+bound to the @meta{name} identifiers, like with @func{let} or
 @func{let*}.
 
 @item
-Then @var{options} is parsed and the values associated to the @var{key}
-keywords are assigned to the @var{name} variables.
+Then @meta{options} is parsed and the values associated to the @meta{key}
+keywords are assigned to the @meta{name} variables.
 
 @item
-Finally the @var{form} arguments are evaluated like in a @func{begin}
-form.  The @var{form} arguments are the region of the @var{name}
+Finally the @meta{form} arguments are evaluated like in a @func{begin}
+form.  The @meta{form} arguments are the region of the @meta{name}
 bindings.
 @end enumerate
 
-If @var{allow-unknown} is true: @var{options} can contain keywords not
-included in the @var{key} list; else an error is raised.  Each keyword
-in @var{options} must be followed by a value, else an error is raised.
+If @meta{allow-unknown} is true: @meta{options} can contain keywords not
+included in the @meta{key} list; else an error is raised.  Each keyword
+in @meta{options} must be followed by a value, else an error is raised.
 
 Example:
 
@@ -36916,7 +36924,6 @@ Example:
 @result{} (1 2 #\c 4)
 @end example
 @end deffn
-
 
 @c page
 @node sentinel
@@ -45475,7 +45482,7 @@ fact that: When the input reaches the end, the lexer closure returns the
 @section Creating lexer tables
 
 
-The following bindings, keywords included, are exported by the
+The following bindings (keywords excluded) are exported by the
 @library{silex} library.
 
 
@@ -47319,7 +47326,7 @@ We can use any number of non--terminals to describe a grammar.
 @section Creating parser tables
 
 
-The following bindings, keywords included, are exported by the
+The following bindings (keywords excluded) are exported by the
 @library{lalr} library.
 
 
@@ -49562,8 +49569,6 @@ This table can be rebuilt from the source @file{strings.l} in the
 @end example
 @end deffn
 
-
-
 @menu
 * csv lexer strings::           Tokenising strings.
 * csv lexer unquoted-data::     Tokenising unquoted data.
@@ -49591,8 +49596,11 @@ tokenise strings as follows:
 
 @example
 (import (rnrs)
+  (only (keywords) define-keywords)
   (silex lexer)
   (csv strings-lexer))
+
+(define-keywords :string :counters)
 
 (define (tokenise string)
   (let* ((IS    (lexer-make-IS :string string :counters 'all))
@@ -49631,8 +49639,11 @@ notice that the input system has to be created with @samp{:counters
 
 @example
 (import (rnrs)
+  (only (keywords) define-keywords)
   (silex lexer)
   (csv strings-lexer))
+
+(define-keywords :string)
 
 (define (tokenise string)
   (let* ((IS    (lexer-make-IS :string string))
@@ -49701,8 +49712,11 @@ We can take advantage of this to tokenise unquoted data as follows:
 
 @example
 (import (rnrs)
+  (only (keywords) define-keywords)
   (silex lexer)
   (csv unquoted-data-lexer))
+
+(define-keywords :string :counters)
 
 (define (tokenise string)
   (let* ((IS    (lexer-make-IS :string string :counters 'all))
@@ -49745,6 +49759,8 @@ representing a record.  The function @func{csv->list/comma} does no
 check for the number of fields on each line.
 
 @smallexample
+(define-keywords :port :counters)
+
 (define csv->list/comma
   (case-lambda
    ((port)
@@ -49826,6 +49842,8 @@ The following is a variant that allows to specify, via the
 @var{separators} argument, custom characters as field separators.
 
 @smallexample
+(define-keywords :port :counters)
+
 (define csv->list
   (case-lambda
    ((port separators)

@@ -26,8 +26,6 @@
     lexer-get-func-line		lexer-get-func-column
     lexer-get-func-offset
 
-    :port :procedure :string :counters
-
     ;;Low level getters for the ":input-system" record fields.  They are
     ;;needed in the output tables with the "code" format.
     :input-system-start-go-to-end
@@ -50,11 +48,11 @@
     (rnrs mutable-strings))
 
 
-(define-keyword :port)
-(define-keyword :procedure)
-(define-keyword :string)
+(define-keywords :port
+  :procedure
+  :string
 		;input methods
-(define-keyword :counters)
+  :counters)
 
 (define lexer-init-buffer-len 1024)
 (define lexer-integer-newline (char->integer #\newline))

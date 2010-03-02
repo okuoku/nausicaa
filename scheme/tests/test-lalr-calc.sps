@@ -11,7 +11,7 @@
 ;;;	  The lexer and parser libraries used in this file are generated
 ;;;	by the script "make-lalr-calc.sps".
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2004 Dominique Boucher
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -30,6 +30,7 @@
 
 
 (import (nausicaa)
+  (keywords)
   (silex lexer)
   (calc-parser)
   (calc-parser-helper)
@@ -53,11 +54,14 @@
 		       " column " (if column (number->string column) "unknown"))))
     token))
 
+(define-keywords :string :counters)
+
 
 (parameterise ((check-test-name	'expressions))
 
   (define (doit string)
-    (let* ((IS		(lexer-make-IS :string string :counters 'all))
+    (let* ((IS		(lexer-make-IS (keyword :string) string
+				       (keyword :counters) 'all))
 	   (lexer	(lexer-make-lexer calc-parser-lexer-table IS))
 	   (parser	(make-calc-parser)))
       (parameterise ((table-of-variables    (make-eq-hashtable))

@@ -7,28 +7,23 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
-;;;This  program  is free  software:  you  can redistribute  it
-;;;and/or modify it  under the terms of the  GNU General Public
-;;;License as published by the Free Software Foundation, either
-;;;version  3 of  the License,  or (at  your option)  any later
-;;;version.
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
 ;;;
-;;;This  program is  distributed in  the hope  that it  will be
-;;;useful, but  WITHOUT ANY WARRANTY; without  even the implied
-;;;warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
-;;;PURPOSE.   See  the  GNU  General Public  License  for  more
-;;;details.
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
 ;;;
-;;;You should  have received a  copy of the GNU  General Public
-;;;License   along   with    this   program.    If   not,   see
-;;;<http://www.gnu.org/licenses/>.
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
-
 
 
-
 (import (nausicaa)
   (checks)
   (keywords))
@@ -38,9 +33,9 @@
 
 
 
-(define :alpha   (make-keyword alpha))
-(define :alpha1  (make-keyword alpha))
-(define-keyword :beta)
+(define :alpha   (keyword alpha))
+(define :alpha1  (keyword alpha))
+(define-keywords :beta :delta)
 
 (check (keyword? :alpha) => #t)
 (check (keyword->symbol :alpha) => 'alpha)
@@ -109,14 +104,15 @@
     => "unrecognised option")
 
   (check
-      (guard (exc (else (condition-message exc)))
-	(let-keywords (list :a 1 2 :k 999 :d 4) #f
+      (guard (exc (else (list (condition-message exc)
+			      (condition-irritants exc))))
+	(let-keywords (list :a 1 2 :d 4) #f
 		      ((a :a #\a)
 		       (b :b #\b)
 		       (c :c #\c)
 		       (d :d #\d))
 	  (list a b c d)))
-    => "expected keyword option")
+    => '("expected keyword option" (2)))
 
   (check
       (guard (exc (else (condition-message exc)))
