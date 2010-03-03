@@ -8,8 +8,6 @@
 
 * nausicaa
 
-  Fix the precompilation problems with Ikarus.
-
   Fix the precompilation problems with Larceny.
 
   Why I cannot install only the FASL files under ikarus?
@@ -24,8 +22,7 @@
 
 * char-set
 
-  Merge the one-dimension  library into char-sets to make  it faster (it
-  is too slow now).
+  Done.
 
 * email
 
@@ -42,8 +39,6 @@
    Scan RFC 2822 and implement (email date) accordingly.
 
 * foreign
-
-  Implement type aliases for functions for "int8_t", ...
 
   Solve the callbacks problem for Larceny?
 
@@ -86,10 +81,6 @@
 * random
 
   Implement the r250/521 PRGN from the C sources.
-
-  Fix the generator of sequences with given sum (notice that the test in
-  the  test   suite  is   commented  out).   Update   the  documentation
-  accordingly.
 
   Add a randomness source reading bytes from a given port?
 
