@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -24,8 +24,6 @@
 ;;;
 
 
-;;;; setup
-
 (import (nausicaa)
   (rnrs eval (6))
   (checks))
@@ -43,24 +41,6 @@
 	 (cond-expand (?feature	#t)
 		      (else	#f))
        => #t))))
-
-(check-feature and-let*)
-(check-feature char-set)
-(check-feature checks)
-(check-feature compare)
-(check-feature cut)
-(check-feature format)
-(check-feature lists)
-(check-feature loops)
-(check-feature parameters)
-(check-feature random)
-(check-feature receive)
-(check-feature recursion)
-(check-feature sharing)
-(check-feature streams)
-(check-feature strings)
-(check-feature time)
-(check-feature vectors)
 
 (check
     (cond-expand
@@ -87,35 +67,35 @@
 
 (check
     (cond-expand
-     ((or lists woppa)	123)
+     ((or r6rs woppa)	123)
      (wippa		456)
      (else		#t))
   => 123)
 
 (check
     (cond-expand
-     ((or woppa lists)	123)
+     ((or woppa r6rs)	123)
      (wippa		456)
      (else		#t))
   => 123)
 
 (check
     (cond-expand
-     ((and woppa lists)	123)
+     ((and woppa r6rs)	123)
      (wippa		456)
      (else		#t))
   => #t)
 
 (check
     (cond-expand
-     ((and lists woppa)	123)
+     ((and r6rs woppa)	123)
      (wippa		456)
      (else		#t))
   => #t)
 
 (check
     (cond-expand
-     ((and strings lists)
+     ((and r6rs r6rs)
       123)
      (wippa		456)
      (else		#t))
