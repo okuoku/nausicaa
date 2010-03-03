@@ -67,22 +67,7 @@
 	   "column " (if column (number->string column) "?")
 	   ": " message-strings)))
 
-(define-keywords
-  :input-file
-  :input-port
-  :input-string
-  :output-file
-  :output-port
-  :output-value
-  :table-name
-  :library-spec
-  :library-imports
-  :pretty-print
-  :lexer-format
-  :counters
-  :port
-  :procedure
-  :string)
+(define-keywords :port :counters)
 
 
 ;;;; module main.scm

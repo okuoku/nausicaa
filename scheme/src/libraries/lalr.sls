@@ -57,26 +57,6 @@
     (pretty-print))
 
 
-;;;; Keyword options for the LALR-PARSER function.
-
-(define-keywords
-  :terminals
-  :rules
-  :expect
-
-  :output-value
-  :output-port
-  :output-file
-
-  :dump-table
-
-  :library-spec
-  :library-imports
-  :parser-type
-
-  :parser-name)
-
-
 ;;;; helpers
 
 (define (with-output-to-new-file pathname proc)

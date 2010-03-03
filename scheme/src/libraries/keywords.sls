@@ -109,17 +109,24 @@
   (define-syntax let-keywords
     (syntax-rules ()
       ((_ ?options ?allow-unknown ((?name ?key ?default) ...) ?form0 ?form ...)
-       (let ((?name ?default) ...)
-	 (%parse-keywords ?options ?allow-unknown
-			  `((,?key . ,(lambda (v) (set! ?name v))) ...))
-	 ?form0 ?form ...))))
+       (with-keywords (?key ...)
+	 (let ((?name ?default) ...)
+	   (%parse-keywords ?options ?allow-unknown
+			    `((,?key . ,(lambda (v) (set! ?name v))) ...))
+	   ?form0 ?form ...)))))
 
   (define-syntax let-keywords*
     (syntax-rules ()
       ((_ ?options ?allow-unknown ((?name ?key ?default) ...) ?form0 ?form ...)
-       (let* ((?name ?default) ...)
-	 (%parse-keywords ?options ?allow-unknown
-			  `((,?key . ,(lambda (v) (set! ?name v))) ...))
-	 ?form0 ?form ...)))))
+       (with-keywords (?key ...)
+	 (let* ((?name ?default) ...)
+	   (%parse-keywords ?options ?allow-unknown
+			    `((,?key . ,(lambda (v) (set! ?name v))) ...))
+	   ?form0 ?form ...)))))
+
+
+;;;; done
+
+)
 
 ;;; end of file

@@ -36832,7 +36832,8 @@ expands to:
 @deffnx Syntax let-keywords* @ameta{options} @ameta{allow-unknown} ((@ameta{name} @ameta{key} @ameta{default}) ...) @ameta{form0} @ameta{form} ...
 These are @func{let} and @func{let*} like macros that allow parsing a
 list of keyword/value couples in @meta{options}.  All the @meta{key}
-arguments must be keywords already defined.
+arguments must be keywords identifier; they are created by this form to
+be available in the context of the @meta{form}.
 
 @enumerate
 @item
@@ -36857,15 +36858,15 @@ in @meta{options} must be followed by a value, else an error is raised.
 Example:
 
 @example
-(with-keywords (:a :b :c :d)
-  (define (doit . options)
-    (let-keywords options #f
-                  ((a :a #\a)
-                   (b :b #\b)
-                   (c :c #\c)
-                   (d :d #\d))
-      (list a b c d)))
+(define (doit . options)
+  (let-keywords options #f
+       ((a :a #\a)
+        (b :b #\b)
+        (c :c #\c)
+        (d :d #\d))
+    (list a b c d)))
 
+(with-keywords (:a :b :c :d)
   (doit :a 1 :b 2 :d 4))
 @result{} (1 2 #\c 4)
 @end example
