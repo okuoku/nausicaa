@@ -59,6 +59,9 @@ Notes for --- tag 0.1a10
   libraries.  This  will cause  a waterfall update  of other
   packages.
 
+* Removed  the COND-EXPAND features  with the  exception of:
+  linux-gnu, r6rs and the implementation identifiers.
+
 
 Notes for 2010-01-14 tag 0.1a9
 ------------------------------

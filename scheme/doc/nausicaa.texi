@@ -18928,60 +18928,6 @@ Canonical System Type, autoconf, @gnu{} Autoconf}.
 
 @item r6rs
 The @rnrs{6} Scheme language.
-
-@item and-let*
-The @func{and-let*} syntax.
-
-@item begin0
-The @func{begin0} syntax.
-
-@item char-sets
-The @library{char-sets} library.
-
-@item checks
-The @library{checks} library.
-
-@item compare
-The @library{compare} library.
-
-@item cut
-The @func{cut} and @func{cute} syntaxes.
-
-@item loops
-The @library{loops} library.
-
-@item format
-The @library{formations} library.
-
-@item lists
-The @library{lists} library.
-
-@item parameters
-The parameter objects feature.
-
-@item random
-The @library{randomisations} library.
-
-@item recursion
-The @func{recursion} syntax.
-
-@item receive
-The @func{receive} syntax.
-
-@item sharing
-The shared structures reading/writing @srfi{} functions.
-
-@item streams
-The @library{streams} library.
-
-@item strings
-The @library{strings} library.
-
-@item time
-The @library{time} library.
-
-@item vectors
-The @library{vectors} library.
 @end table
 
 @c page
