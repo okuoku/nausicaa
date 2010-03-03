@@ -43043,9 +43043,9 @@ purpose.
 @defun make-irregex-chunker @var{get-next} @var{get-string}
 @defunx make-irregex-chunker @var{get-next} @var{get-string} @var{get-start}
 @defunx make-irregex-chunker @var{get-next} @var{get-string} @var{get-start} @var{get-end}
-@defunx make-irregex-chunker @var{get-next} @var{get-string} @var{get-start} @var{get-end} @var{get-next}
-@defunx make-irregex-chunker @var{get-next} @var{get-string} @var{get-start} @var{get-end} @var{get-next} @var{get-substring}
-@defunx make-irregex-chunker @var{get-next} @var{get-string} @var{get-start} @var{get-end} @var{get-next} @var{get-substring} @var{get-subchunk}
+@defunx make-irregex-chunker @var{get-next} @var{get-string} @var{get-start} @var{get-end}
+@defunx make-irregex-chunker @var{get-next} @var{get-string} @var{get-start} @var{get-end} @var{get-substring}
+@defunx make-irregex-chunker @var{get-next} @var{get-string} @var{get-start} @var{get-end} @var{get-substring} @var{get-subchunk}
 Define a chunking @api{}.
 
 @table @code
@@ -43097,7 +43097,9 @@ specifies the @func{get-subchunk} @api{}, otherwise an error is raised.
 
 
 @defun {irregex-search/chunked} @var{irx} @var{chunker} @var{chunk}
+@defunx {irregex-search/chunked} @var{irx} @var{chunker} @var{chunk} @var{start}
 @defunx {irregex-match/chunked} @var{irx} @var{chunker} @var{chunk}
+@defunx {irregex-match/chunked} @var{irx} @var{chunker} @var{chunk} @var{start}
 These return normal match--data objects.
 
 Example: To match against a simple, flat list of strings use:
@@ -43148,6 +43150,17 @@ Chunked version of @func{irregex-fold}.
 @c page
 @node irregex misc
 @section Miscellaneous functions
+
+
+@defun irregex-split @var{irx} @var{str}
+@defunx irregex-split @var{irx} @var{str} @var{start} @var{end}
+@defunx irregex-extract @var{irx} @var{str}
+@defunx irregex-extract @var{irx} @var{str} @var{start} @var{end}
+@func{irregex-split} splits the string @var{str} into substrings divided
+by the pattern in @var{irx}.  @func{irregex-extract} does the opposite,
+returning a list of each instance of the pattern matched disregarding
+the substrings in between.
+@end defun
 
 
 @defun irregex-fold @var{irx} @var{kons} @var{knil} @var{str} [@var{finish} @var{start} @var{past}]
@@ -43205,9 +43218,9 @@ expressions.
 
 
 @defun irregex-opt @var{list-of-strings}
-Return an optimized @posix{} string matching any of the literal strings
-in the list, like Emacs' @func{regexp-opt}.  Note this optimization
-doesn't help when @func{irregex} is able to build a @acronym{DFA}.
+Return an optimized @acronym{SRE} matching any of the literal strings in
+the list, like Emacs' @func{regexp-opt}.  Note this optimization does
+not help when @func{irregex} is able to build a @acronym{DFA}.
 @end defun
 
 
@@ -43249,6 +43262,26 @@ zero--width assertions, conditional patterns, etc.
 
 In addition, @code{\<} and @code{\>} act as beginning--of--word and
 end--of--word marks, respectively, as in Emacs regular expressions.
+
+Also, two escapes are provided to embed @acronym{SRE} patterns inside
+@acronym{PCRE} strings, @code{"\'<sre>"} and @code{"(*'<sre>)"}.  For
+example, to match a comma--delimited list of integers we could use:
+
+@example
+"\\'integer(,\\'integer)*"
+@end example
+
+@noindent
+and to match a @aurl{} in angle brackets we could use:
+
+@example
+"<('*http-url)>"
+@end example
+
+@noindent
+note in the second example the enclosing @code{"('*...)"} syntax is
+needed because the Scheme reader would consider the closing @samp{>} as
+part of the @acronym{SRE} symbol.
 
 The following chart gives a quick reference from @acronym{PCRE} form to
 the @acronym{SRE} equivalent:
@@ -43726,6 +43759,9 @@ A real number (including scientific).
 
 @item string
 A ``quoted'' string.
+
+@item symbol
+An @rnrs{6} Scheme symbol.
 
 @item ipv4-address
 A numeric decimal IPv4 address.

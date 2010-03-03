@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marcomaggi@gna.org>
 ;;;Copyright (c) 2005-2009 Alex Shinn.  All rights reserved.
 ;;;Sometests adapted from SCSH SRE tests by Christoph Hetz.
 ;;;
@@ -55,6 +55,27 @@
 
 (define test-string
   "Dieser Test-String wurde am 29.07.2004 um 5:23PM erstellt.\na aa aaa aaaa\nab aabb aaabbb\naba abba abbba\n1 12 123 1234\nyyyyyyyyyy\n")
+
+
+;;;; helpers
+
+(define rope-chunker
+  (make-irregex-chunker
+   (lambda (x) (and (pair? (cdr x)) (cdr x)))
+   caar
+   cadar
+   caddar
+   (lambda (src1 i src2 j)
+     (if (eq? src1 src2)
+         (substring (caar src1) i j)
+       (let lp ((src (cdr src1))
+		(res (list (substring (caar src1) i (caddar src1)))))
+	 (if (eq? src src2)
+	     (string-append
+	      (reverse (cons (substring (caar src2) (cadar src2) j) res)))
+	   (lp (cdr src)
+	       (cons (substring (caar src) (cadar src) (caddar src))
+		     res))))))))
 
 
 
@@ -299,7 +320,6 @@
     (check (irregex-match-substring match 3) => "o")
 
     (check (irregex-match-start-index match 0) => 6)
-    (check (irregex-match-past-index match 0)  => 10)
     )
 
   ;;Non-grouping parentheses.
@@ -498,8 +518,54 @@
       (irregex-match-substring (irregex-search (rx "abc") "abcdefg"))
     => "abc")
 
+  ;; unmatchable patterns
+  (check
+      (irregex-search '(or) "abc")
+    => #f)
+  (check
+      (irregex-search '(: "ab" (or)) "abc")
+    => #f)
+  (check
+      (irregex-search '(submatch "ab" (or)) "abc")
+    => #f)
+  (check
+      (irregex-search '(: "ab" (submatch (or))) "abc")
+    => #f)
+  (check
+      (irregex-search '(/) "abc")
+    => #f)
+  (check
+      (irregex-search '(: "ab" (/)) "abc")
+    => #f)
+  (check
+      (irregex-search '(~ any) "abc")
+    => #f)
+  (check
+      (irregex-search '(: "ab" (~ any)) "abc")
+    => #f)
+  (check
+      (irregex-search '("") "abc")
+    => #f)
+  (check
+      (irregex-search '(: "ab" ("")) "abc")
+    => #f)
 
-  )
+  ;; beginning/end of chunks
+  (check-for-true
+      (irregex-search/chunked '(: bos "foo") rope-chunker '((" foo" 0 4)) 1))
+  (check-for-true
+      (irregex-search/chunked '(: bos "foo") rope-chunker '(("  foo" 1 5)) 2))
+  (check-for-true
+      (irregex-search/chunked '(: bos "foo" eos) rope-chunker '((" foo" 1 4)) 1))
+  (check-for-true
+      (irregex-search/chunked '(: bos "foo" eos) rope-chunker '(("  foo" 2 5)) 2))
+  (check-for-true
+      (irregex-search/chunked '(: bos "foo" eos) rope-chunker '((" foo" 0 4)) 1))
+  (check-for-true
+      (irregex-search/chunked '(: bos "foo" eos) rope-chunker '(("  foo" 1 5)) 2))
+
+
+  #t)
 
 
 (parameterise ((check-test-name 'replace))

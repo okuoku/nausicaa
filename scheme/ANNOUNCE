@@ -62,6 +62,10 @@ Notes for --- tag 0.1a10
 * Removed  the COND-EXPAND features  with the  exception of:
   linux-gnu, r6rs and the implementation identifiers.
 
+* Updated  (irregex)  to IrRegex  version  0.8.0.  This  has
+  minor  incompatibilities  (example:  the return  value  of
+  IRREGEX-OPT).
+
 
 Notes for 2010-01-14 tag 0.1a9
 ------------------------------
