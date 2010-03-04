@@ -233,10 +233,14 @@
       ((_ (?var ... ?var0) ?form0 ?form ...)
        (with-syntax (((VAR ... VAR0) (generate-temporaries #'(?var ... ?var0))))
 	 #'(begin
+	     ;;We  must make  sure that  the ?FORMs  do not  capture the
+	     ;;?VARs.
+	     (define (dummy)
+	       ?form0 ?form ...)
 	     (define ?var  #f)
 	     ...
 	     (define ?var0
-	       (let-values (((VAR ... VAR0) (begin ?form0 ?form ...)))
+	       (let-values (((VAR ... VAR0) (dummy)))
 		 (set! ?var  VAR)
 		 ...
 		 VAR0))))))))
