@@ -47,7 +47,6 @@
     base32-encode-block-length			base32-decode-block-length)
   (import (rnrs)
     (language-extensions)
-    (armor helpers)
     (armor conditions))
 
 
@@ -64,13 +63,11 @@
        ;;base32,  rfc4648, base32hex,  rfc2938.  The  argument  value is
        ;;normalised to one among: base32, base32hex.
        ;;
-       ;;If ENCODING-CASE is true: an upper case encoding table is used;
-       ;;else  a  lower  case  one  is  used.   The  argument  value  is
-       ;;normalised to #t or #f.
-       ;;
        ;;If GENERATE-PADDING?   is true: the  output is padded  with "="
        ;;characters so that  its length is an exact  multiple of 8.  The
        ;;argument value is normalised to #t or #f.
+       ;;
+       ;;ENCODING-CASE must be a Scheme symbol among: upper, lower.
        ;;
        (let* ((encoding		(case encoding
 				  ((base32 rfc4648)	'base32)
@@ -203,39 +200,39 @@
 
 ;;;; decoding tables
 
-(define (alphabet->table alphabet table)
+(define (alphabet->table! alphabet table)
   (dotimes (i (vector-length alphabet) table)
     (vector-set! table (char->integer (vector-ref alphabet i)) i)))
 
-;;Decode tables for  base 32 as specified by  RFC 4648: disallowed input
+;;Decoding tables for base 32 as specified by RFC 4648: disallowed input
 ;;characters have a value of #f; only 128 chars, as everything above 127
 ;;(#x80) is #f.
 
 (define decode-table-base32/upper-case
-  (alphabet->table encode-alphabet-base32/upper-case (make-vector 128 #f)))
+  (alphabet->table! encode-alphabet-base32/upper-case (make-vector 128 #f)))
 
 (define decode-table-base32/lower-case
-  (alphabet->table encode-alphabet-base32/lower-case (make-vector 128 #f)))
+  (alphabet->table! encode-alphabet-base32/lower-case (make-vector 128 #f)))
 
 (define decode-table-base32/mixed-case
-  (alphabet->table encode-alphabet-base32/upper-case
-		   (alphabet->table encode-alphabet-base32/lower-case
-				    (make-vector 128 #f))))
+  (alphabet->table! encode-alphabet-base32/upper-case
+		    (alphabet->table! encode-alphabet-base32/lower-case
+				      (make-vector 128 #f))))
 
-;;Decode tables for  base 32 as specified by  RFC 2938: disallowed input
+;;Decoding tables for base 32 as specified by RFC 2938: disallowed input
 ;;characters have a value of #f; only 128 chars, as everything above 127
 ;;(#x80) is #f.
 
 (define decode-table-base32hex/upper-case
-  (alphabet->table encode-alphabet-base32hex/upper-case (make-vector 128 #f)))
+  (alphabet->table! encode-alphabet-base32hex/upper-case (make-vector 128 #f)))
 
 (define decode-table-base32hex/lower-case
-  (alphabet->table encode-alphabet-base32hex/lower-case (make-vector 128 #f)))
+  (alphabet->table! encode-alphabet-base32hex/lower-case (make-vector 128 #f)))
 
 (define decode-table-base32hex/mixed-case
-  (alphabet->table encode-alphabet-base32hex/upper-case
-		   (alphabet->table encode-alphabet-base32hex/lower-case
-				    (make-vector 128 #f))))
+  (alphabet->table! encode-alphabet-base32hex/upper-case
+		    (alphabet->table! encode-alphabet-base32hex/lower-case
+				      (make-vector 128 #f))))
 
 
 ;;;; helpers
@@ -246,25 +243,8 @@
 (define-macro (lower8 ?number)
   (bitwise-and #xFF ?number))
 
-(define-syntax define-encoder-field-accessor
-  (lambda (stx)
-    (define (%field->accessor field-stx)
-      (string->symbol (string-append "<base32-encode-ctx>-"
-				     (symbol->string (syntax->datum field-stx)))))
-    (define (%field->mutator field-stx)
-      (string->symbol (string-append "<base32-encode-ctx>-"
-				     (symbol->string (syntax->datum field-stx))
-				     "-set!")))
-    (syntax-case stx ()
-      ((_ ?record ?field)
-       (with-syntax ((ACCESSOR	(datum->syntax #'field (%field->accessor #'?field)))
-		     (MUTATOR	(datum->syntax #'field (%field->mutator  #'?field))))
-	 #'(define-syntax ?field
-	     (identifier-syntax
-	      (?id
-	       (ACCESSOR ?record))
-	      ((set! ?id ?e)
-	       (MUTATOR ?record ?e)))))))))
+(define << bitwise-arithmetic-shift-left)
+(define >> bitwise-arithmetic-shift-right)
 
 
 ;;;; encoded output length estimation
@@ -300,6 +280,7 @@
    ((len)
     (base32-encode-final-length len #f))
    ((len padding?)
+    (assert (< len 5))
     (if padding?
 	8
       (case len
@@ -350,7 +331,7 @@
   ;;input.
   ;;
   ;;Not all  the values between  0 and  7 are valid;  if a value  is not
-  ;;valid the  return value is zero.   If padding is on,  the only valid
+  ;;valid the  return value  is #f.   If padding is  on, the  only valid
   ;;value is LEN=0.
   ;;
   ;;To verify if a generic length is valid, we can do:
@@ -362,6 +343,7 @@
    ((len)
     (base32-decode-final-length len #f))
    ((len padding?)
+    (assert (< len 8))
     (if padding?
 	(if (zero? len) 0 #f)
       (case len
@@ -374,8 +356,8 @@
 
 (define base32-decode-length
   ;;Return the  minimum number  of bytes required  in the  output vector
-  ;;when BASE32-DECODE-FINAL!   is applied to LEN bytes  of binary input
-  ;;data.    This    is   also    the   number   required    when   both
+  ;;when  BASE32-DECODE-FINAL!  is  applied to  LEN ASCII  characters of
+  ;;input.    This    is   also   the   number    required   when   both
   ;;BASE32-DECODE-UPDATE! and BASE32-DECODE-FINAL! are used.
   ;;
   (case-lambda
@@ -399,7 +381,7 @@
   ;;left full, this value is the length of DST-BV.
   ;;
   ;;(2) The index of the next  non-read byte in SRC-BV; if all the bytes
-  ;;from SRC-BV are consumed, this value is the length of SRC-BV.
+  ;;from SRC-BV are consumed, this value is SRC-PAST.
   ;;
   ;;Binary data bytes  are read from SRC-BV in chunks  of 5 bytes; ASCII
   ;;characters are written to DST-BV in chunks of 8 bytes.
@@ -425,7 +407,7 @@
 	(values i j)
       ;;    src0     src1     src2     src3     src4
       ;;
-      ;; |01234567|01234567|01234567|01234567|01234567|
+      ;; |76543210|76543210|76543210|76543210|76543210|
       ;; |--------+--------+--------+--------+--------|
       ;; |43210   |        |        |        |        | dst0
       ;; |     432|10      |        |        |        | dst1
@@ -461,13 +443,13 @@
   ;;Return three values:
   ;;
   ;;(1) A boolean:  true if success, false if  the output bytevector was
-  ;;filled before flushing all the bytes or not enough room is left.
+  ;;filled before flushing all the bytes.
   ;;
   ;;(2) The index  of the next non-written byte in  DST-BV; if DST-BV is
   ;;left full, this value is the length of DST-BV.
   ;;
   ;;(3) The index of the next  non-read byte in SRC-BV; if all the bytes
-  ;;from SRC-BV are consumed, this value is the length of SRC-BV.
+  ;;from SRC-BV are consumed, this value is SRC-PAST.
   ;;
   ;;Binary data bytes  are read from SRC-BV in chunks  of 5 bytes; ASCII
   ;;characters are written to DST-BV  in chunks of 8 bytes.  After that,
@@ -653,8 +635,7 @@
   ;;filled to the end, this value is the length of DST-BV.
   ;;
   ;;(3)  The index  of the  next  non-read byte  in SRC-BV;  if all  the
-  ;;characters from  SRC-BV are  consumed, this value  is the  length of
-  ;;SRC-BV.
+  ;;characters from SRC-BV are consumed, this value is SRC-PAST.
   ;;
   ;;ASCII characters are  read from SRC-BV in chunks  of 8 bytes; binary
   ;;data bytes are written to DST-BV in chunks of 5 bytes.
@@ -684,9 +665,7 @@
   (define (%decode char)
     (if (zero? (bitwise-and #x80 char))
 	(let ((byte (vector-ref table char)))
-	  (if byte
-	      byte
-	    (%error-invalid-input-byte char)))
+	  (or byte (%error-invalid-input-byte char)))
       (%error-invalid-input-byte char)))
 
   (let loop ((i		dst-start)
@@ -808,7 +787,7 @@
   ;;filled to the end, this value is the length of DST-BV.
   ;;
   ;;(3) The index of the next  non-read byte in SRC-BV; if all the bytes
-  ;;from SRC-BV are consumed, this value is the length of SRC-BV.
+  ;;from SRC-BV are consumed, this value is SRC-PAST.
   ;;
   ;;ASCII characters are  read from SRC-BV in chunks  of 8 bytes; binary
   ;;data bytes are written to DST-BV  in chunks of 8 bytes.  If the last

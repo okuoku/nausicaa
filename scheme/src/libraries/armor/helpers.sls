@@ -28,7 +28,6 @@
 (library (armor helpers)
   (export
     << >> incr! decr! define-macro while receive
-    ;;define-accessor-maker
     )
   (import (rnrs)
     (language-extensions))
@@ -36,39 +35,6 @@
 
 (define << bitwise-arithmetic-shift-left)
 (define >> bitwise-arithmetic-shift-right)
-
-(define-syntax define-macro
-  (syntax-rules ()
-    ((_ (?name ?arg ...) ?form0 ?form ...)
-     (define-syntax ?name
-       (syntax-rules ()
-	 ((_ ?arg ...)
-	  (begin ?form0 ?form ...)))))))
-
-
-;; (define-syntax define-accessor-maker
-;;   (syntax-rules ()
-;;     ((_ ?record-string)
-;;      (define-syntax define-field-accessor
-;;        (lambda (stx)
-;; 	 (define (%field->accessor field-stx)
-;; 	   (string->symbol (string-append ?record-string
-;; 					  (symbol->string (syntax->datum field-stx)))))
-;; 	 (define (%field->mutator field-stx)
-;; 	   (string->symbol (string-append ?record-string
-;; 					  (symbol->string (syntax->datum field-stx))
-;; 					  "-set!")))
-;; 	 (syntax-case stx ()
-;; 	   ((_ ?record ?field)
-;; 	    (with-syntax ((ACCESSOR	(datum->syntax #'field (%field->accessor #'?field)))
-;; 			  (MUTATOR	(datum->syntax #'field (%field->mutator  #'?field))))
-;; 	      #'(define-syntax ?field
-;; 		  (identifier-syntax
-;; 		   (?id
-;; 		    (ACCESSOR ?record))
-;; 		   ((set! ?id ?e)
-;; 		    (MUTATOR ?record ?e))))))))))))
-
 
 
 ;;;; done

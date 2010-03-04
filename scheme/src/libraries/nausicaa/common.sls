@@ -72,6 +72,10 @@
     ;; syntactic abstractions
     and-let* begin0 begin0-let receive recursion cut cute do*
     set-cons! incr! decr! while do-while
+    define-values
+
+    ;; macro definition helpers
+    define-identifier-macro define-macro
 
     ;; shared structures
     read-with-shared-structure

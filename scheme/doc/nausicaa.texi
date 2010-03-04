@@ -898,6 +898,7 @@ Syntactic abstractions
 * naulib macros let::           Bindings constructs.
 * naulib macros loop::          Loop constructs.
 * naulib macros id::            Bindings mutations.
+* naulib macros define::        Macro definition helpers.
 
 Predefined condition types
 
@@ -1458,7 +1459,7 @@ Combinators
 * packrat comb grammar::        The grammar combinator.
 * packrat comb left::           Left recursion problem.
 
-Comma--separated value (@acronym{CSV}) utilities
+Comma--separated values (@acronym{CSV}) utilities
 
 * csv lexer::                   Low level tokenisation.
 * csv parser::                  High level parsing.
@@ -1520,6 +1521,12 @@ Condition objects
                                 condition.
 * armor conditions padding::    Invalid padded block error
                                 condition.
+
+Base 32 encoder/decoder
+
+* armor base32 intro::          Introduction to base32 encoding.
+* armor base32 encode::         Encoding byte streams with base32.
+* armor base32 decode::         Decoding byte streams with base32.
 
 Knuth-Morris-Pratt searching
 
@@ -19024,9 +19031,10 @@ The bindings documented in this section are exported by the
 
 @menu
 * naulib macros lang::          Language constructs.
-* naulib macros let::           Bindings constructs.
+* naulib macros let::           Binding constructs.
 * naulib macros loop::          Loop constructs.
 * naulib macros id::            Bindings mutations.
+* naulib macros define::        Macro definition helpers.
 @end menu
 
 @c page
@@ -19175,7 +19183,7 @@ Examples:
 
 @c page
 @node naulib macros let
-@subsection Bindings constructs
+@subsection Binding constructs
 
 
 @deffn Syntax and-let* @var{formals} . @var{body}
@@ -19265,6 +19273,13 @@ least @var{n} values.
 In any case, the expressions in @var{body} are evaluated sequentially in
 the extended environment.  The results of the last expression in the
 body are the values of the @var{receive}--expression.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Syntax define-values (@ameta{var0} @ameta{var} ...) @ameta{form0} @ameta{form} ...
+Evaluate the given forms and bind the, possibly multiple, result of the
+last one to the given @meta{var} identifiers.
 @end deffn
 
 @c page
@@ -19437,6 +19452,41 @@ expands to:
 
 @example
 (set! ell (cons 123 ell))
+@end example
+@end deffn
+
+@c page
+@node naulib macros define
+@subsection Macro definition helpers
+
+
+@deffn Syntax define-macro (@ameta{name} @ameta{arg} ...) @ameta{form0} @ameta{form} ...
+Define a macro with with a definition resembling a function.  It is
+defined as:
+
+@example
+(define-syntax define-macro
+  (syntax-rules ()
+    ((_ (?name ?arg ...) ?form0 ?form ...)
+     (define-syntax ?name
+       (syntax-rules ()
+         ((_ ?arg ...)
+          (begin ?form0 ?form ...)))))))
+@end example
+@end deffn
+
+
+@deffn Syntax define-identifier-macro @ameta{thing} @ameta{accessor} @ameta{mutator}
+Helper for the definition of an identifier syntax.  It is defined as:
+
+@example
+(define-syntax define-identifier-macro
+  (syntax-rules ()
+    ((_ ?thing ?accessor ?mutator)
+     (define-syntax ?field
+       (identifier-syntax
+        (id             (?accessor ?thing))
+        ((set! id expr) (?mutator  ?thing expr)))))))
 @end example
 @end deffn
 
@@ -51337,6 +51387,470 @@ possible to determine exactly the amount of output bytes required.
 @node armor base32
 @section Base 32 encoder/decoder
 
+
+Base32 encoding produces @math{8} bits of output every @math{5} bits of
+input, @math{8} bytes of @ascii{} characters every @math{5} bytes of
+binary data.
+
+@menu
+* armor base32 intro::          Introduction to base32 encoding.
+* armor base32 encode::         Encoding byte streams with base32.
+* armor base32 decode::         Decoding byte streams with base32.
+@end menu
+
+@c page
+@node armor base32 intro
+@subsection Introduction to base32 encoding
+
+
+The following are the encoding alphabets (upper case and lower case) for
+base32 as specified by @rfc{} 4648, also known as @code{base32}:
+@samp{#\0} and @samp{#\1} (numbers zero and one) are skipped because
+they are similar to @samp{#\O} and @samp{#\l} (upper case oh and lower
+case ell):
+
+@example
+A B C   D E F   G H I   J    ;;  0 -  9
+K L M   N O P   Q R S   T    ;; 10 - 19
+U V W   X Y Z   2 3 4   5    ;; 20 - 29
+6 7                          ;; 30 - 31
+
+
+a b c   d e f   g h i   j    ;;  0 -  9
+k l m   n o p   q r s   t    ;; 10 - 19
+u v w   x y z   2 3 4   5    ;; 20 - 29
+6 7                          ;; 30 - 31
+@end example
+
+The following are the encoding alphabets (upper case and lower case) for
+base32 as specified by @rfc{} 2938, also known as @code{base32hex}: it
+uses all the digits first and excludes the characters @samp{#\W},
+@samp{#\X}, @samp{#\Y} and @samp{#\Z}:
+
+@example
+0 1 2   3 4 5   6 7 8   9    ;;  0 -  9
+A B C   D E F   G H I   J    ;; 10 - 19
+K L M   N O P   Q R S   T    ;; 20 - 29
+U V                          ;; 30 - 31
+
+
+0 1 2   3 4 5   6 7 8   9    ;;  0 -  9
+a b c   d e f   g h i   j    ;; 10 - 19
+k l m   n o p   q r s   t    ;; 20 - 29
+u v                          ;; 30 - 31
+@end example
+
+A block of @math{5} bytes of binary input data is encoded to @math{8}
+bytes of @ascii{} characters from the alphabet by splitting the input
+bits as follows:
+
+@example
+|76543210|76543210|76543210|76543210|76543210|
+|--------+--------+--------+--------+--------|
+|43210   |        |        |        |        |
+|     432|10      |        |        |        |
+|        |  43210 |        |        |        |
+|        |       4|3210    |        |        |
+|        |        |    4321|0       |        |
+|        |        |        | 43210  |        |
+|        |        |        |      43|210     |
+|        |        |        |        |   43210|
+@end example
+
+@noindent
+then interpreting each @math{5}-bits tuple as an index in the alphabet
+vector (zero--based).  When less than @math{5} bytes are available as
+input data, splitting is done as follows, with zero bits used to pad the
+last @math{5}-bits tuple:
+
+@example
+|76543210|76543210|76543210|76543210|
+|--------+--------+--------+--------+
+|43210   |        |        |        |
+|     432|10      |        |        |
+|        |  43210 |        |        |
+|        |       4|3210    |        |
+|        |        |    4321|0       |
+|        |        |        | 43210  |
+|        |        |        |      43|210
+
+|76543210|76543210|76543210|
+|--------+--------+--------+
+|43210   |        |        |
+|     432|10      |        |
+|        |  43210 |        |
+|        |       4|3210    |
+|        |        |    4321|0
+
+|76543210|76543210|
+|--------+--------+
+|43210   |        |
+|     432|10      |
+|        |  43210 |
+|        |       4|3210
+
+|76543210|
+|--------|
+|43210   |
+|     432|10
+@end example
+
+When padding of @ascii{} encoded bytes is on: padding characters are
+appended to the last bytes to make the last block @math{8} bytes long;
+when padding is off: the last block can have the lengths: @math{2},
+@math{4}, @math{5}, @math{7}, @math{8}.
+
+
+@c page
+@node armor base32 encode
+@subsection Encoding byte streams with base32
+
+
+@deftp {Record Type Name} <base32-encode-ctx>
+Context descriptor for base32 encoding.  It has the following immutable
+fields:
+
+@table @code
+@item encoding
+A Scheme symbol among: @code{base32}, @code{base32hex}.  It is the
+``name'' of the table used for encoding.
+
+@item encoding-case
+A Scheme symbol among: @code{lower}, @code{upper}.  Select the case of
+the alphabetic characters in the encoded output data.
+
+@item generate-padding?
+A Scheme boolean value; @true{} if the output data is padded so that its
+total length in bytes is a multiple of @math{8}.
+
+@item pad-char
+An exact integer representing (as defined by @func{char->integer}) the
+pad character.  It is set to the integer representation of @samp{#\=}.
+
+@item table
+A Scheme vector of exact integers representing the selected encoding
+alphabet.
+@end table
+
+Nothing in this record depends on the input or output data: records of
+this type can be reused for different streams, both in sequence and in
+parallel.
+@end deftp
+
+
+@defun make-<base32-encode-ctx> @var{encoding} @var{generate-padding?} @var{encoding-case}
+Build and return a new record of type @class{base32-encode-ctx}.
+
+@var{encoding} must be a Scheme symbol selecting the encoding type:
+@code{base32} or @code{rfc4648}, @code{base32hex} or @code{rfc2938}.
+The argument's value is normalised to one among: @code{base32},
+@code{base32hex}.
+
+If @var{generate-padding?}  is true: the output is padded so that its
+length is an exact multiple of @math{8}.  The argument's value is
+normalised to @true{} or @false{}.
+
+@var{encoding-case} must be a Scheme symbol among: @code{upper},
+@code{lower}; it selects the case of the encoding table.
+@end defun
+
+
+@defun <base32-encode-ctx>? @var{obj}
+Return true if @var{obj} is a record of type @class{base32-encode-ctx}.
+@end defun
+
+
+@defun <base32-encode-ctx>-encoding @var{ctx}
+@defunx <base32-encode-ctx>-encoding-case @var{ctx}
+@defunx <base32-encode-ctx>-generate-padding? @var{ctx}
+@defunx <base32-encode-ctx>-pad-char @var{ctx}
+@defunx <base32-encode-ctx>-table @var{ctx}
+Field accessors for records of type @class{base32-encode-ctx}.
+@end defun
+
+
+@defun base32-encode-update-length @var{number-of-bytes}
+Return the minimum number of bytes required in the output bytevector
+when @func{base32-encode-update!}  is applied to @var{number-of-bytes}
+of binary input data.  Notice that the function will consume input bytes
+in @math{5}-bytes blocks only and will produce output bytes in
+@math{8}-bytes blocks only.
+@end defun
+
+
+@defun base32-encode-final-length @var{number-of-bytes}
+@defunx base32-encode-final-length @var{number-of-bytes} @var{padding?}
+Return the minimum number of bytes required in the output bytevector
+when @func{base32-encode-final!} is applied to @var{number-of-bytes}
+@math{< 5} bytes of binary input data.
+
+If @var{padding?} is true: the returned count includes padding bytes,
+which means that the returned value is always @math{8}; when not used,
+@var{padding?} defaults to @false{}.
+@end defun
+
+
+@defun base32-encode-length @var{number-of-bytes}
+@defunx base32-encode-length @var{number-of-bytes} @var{padding?}
+Return the minimum number of bytes required in the output bytevector
+when @func{base32-encode-final!}  is applied to @var{number-of-bytes} of
+binary input data.  This is also the number required when both
+@func{base32-encode-update!}  and @func{base32-encode-final!} are used.
+
+If @var{padding?} is true: the returned count includes padding bytes,
+which means that the returned value is always a multiple of @math{8};
+when not used, @var{padding?} defaults to @false{}.
+@end defun
+
+
+@defvr Constant base32-encode-block-length
+The length of the input block: @math{5}.
+@end defvr
+
+
+@defun base32-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Encode binary data from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+@ascii{} characters in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); encoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{base32-encode-ctx}.
+
+This function is meant to encode bytes from the input stream when we
+know that more input bytes will be available in the future.
+
+Return two values:
+
+@enumerate
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+Binary data bytes are read from @var{src-bv} in chunks of @math{5}
+bytes; @ascii{} characters are written to @var{dst-bv} in chunks of
+@math{8} bytes.  If not enough room exists in @var{dst-bv} to store a
+block, available input data is no more consumed.
+@end defun
+
+
+@defun base32-encode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Encode binary data from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+@ascii{} characters in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); encoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{base32-encode-ctx}.
+
+This function is meant to encode the last bytes from the input stream
+and produce the last bytes to the output stream.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if success, false if the output bytevector was filled
+before flushing all the bytes.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+Binary data bytes are read from @var{src-bv} in chunks of @math{5}
+bytes; @ascii{} characters are written to @var{dst-bv} in chunks of
+@math{8} bytes.  After that, trailing bytes from @var{src-bv} are
+encoded and optionally padded as specified in @var{ctx}.  If not enough
+room exists in @var{dst-bv} to store a block, available input data is no
+more consumed.
+@end defun
+
+@c page
+@node armor base32 decode
+@subsection Decoding byte streams with base32
+
+
+@deftp {Record Type Name} <base32-decode-ctx>
+Context descriptor for base32 decoding.  It has the following immutable
+fields:
+
+@table @code
+@item encoding
+A Scheme symbol among: @code{base32}, @code{base32hex}.  It is the
+``name'' of the table used for decoding.
+
+@item encoding-case
+A Scheme symbol among: @code{lower}, @code{mixed}, @code{upper}.  Select
+the case of the alphabetic characters in the encoded input data.
+
+@item expect-padding?
+A Scheme boolean; @true{} if we expect the encoded input to be padded in
+length to a multiple of @math{8}.
+
+@item pad-char
+An exact integer representing (as defined by @func{char->integer}) the
+expected pad character.  It is set to the integer representation of
+@samp{#\=}.
+
+@item table
+A Scheme vector of exact integers representing the selected decoding
+table.
+@end table
+
+Nothing in this record depends on the input or output data: records of
+this type can be reused for different streams, both in sequence and in
+parallel.
+@end deftp
+
+
+@defun make-<base32-decode-ctx> @var{encoding} @var{expect-padding?} @var{encoding-case}
+Build and return a new record of type @class{base32-decode-ctx}.
+
+@var{encoding} must be a Scheme symbol selecting the decoding table:
+@code{base32} or @code{rfc4648}, @code{base32hex} or @code{rfc2938}.
+The argument's value is normalised to one among: @code{base32},
+@code{base32hex}.
+
+If @var{expect-padding?}  is true: the input is expected to be padded in
+length to an exact multiple of @math{8}.  The argument's value is
+normalised to @true{} or @false{}.
+
+@var{encoding-case} must be a Scheme symbol selecting the expected case
+of the input string: @code{lower}, @code{upper}, @code{mixed}.
+@end defun
+
+
+@defun <base32-decode-ctx>? @var{obj}
+Return true if @var{obj} is a record of type @class{base32-decode-ctx}.
+@end defun
+
+
+@defun <base32-decode-ctx>-encoding @var{ctx}
+@defunx <base32-decode-ctx>-encoding-case @var{ctx}
+@defunx <base32-decode-ctx>-expect-padding? @var{ctx}
+@defunx <base32-decode-ctx>-pad-char @var{ctx}
+@defunx <base32-decode-ctx>-table @var{ctx}
+Field accessors for records of type @class{base32-decode-ctx}
+@end defun
+
+
+@defun base32-decode-update-length @var{number-of-chars}
+Return the minimum number of bytes required in the output bytevector
+when @func{base32-decode-update!}  is applied to @var{number-of-chars}
+@ascii{} characters of input.  Notice that the function will process
+input data in @math{8}-chars blocks only, so if @var{number-of-chars} is
+less than @math{8} the return value is zero.
+@end defun
+
+
+@defun base32-decode-final-length @var{number-of-chars}
+@defunx base32-decode-final-length @var{number-of-chars} @var{padding?}
+Return the minimum number of bytes required in the output bytevector
+when @func{base32-decode-final!} is applied to @var{number-of-chars}
+@math{< 8} @ascii{} characters of input.  Not all the values between
+@math{0} and @math{7} are valid; if a value is not valid the return
+value is @false{}.
+
+If @var{padding?} is true, the input is expected to be padded; in this
+case the only valid value for @var{number-of-chars} is zero and the
+return value is zero.  If @var{padding?} is true and
+@var{number-of-chars} is non--zero, the return value is @false{}.  When
+not given, @var{padding?} defaults to @false{}.
+@end defun
+
+
+@defun base32-decode-length @var{number-of-chars}
+@defunx base32-decode-length @var{number-of-chars} @var{padding?}
+Return the minimum number of bytes required in the output bytevector
+when @func{base32-decode-final!}  is applied to @var{number-of-chars}
+@ascii{} characters of input.  This is also the number required when
+both @func{base32-decode-update!}  and @func{base32-decode-final!} are
+used.
+
+If @var{padding?} is true, the input is expected to be padded; in this
+case the only valid value for @var{number-of-chars} is zero and the
+return value is zero.  If @var{padding?} is true and
+@var{number-of-chars} is non--zero, the return value is @false{}.  When
+not given, @var{padding?} defaults to @false{}.
+@end defun
+
+
+@defvr Constant base32-decode-block-length
+The length of the input block: @math{8}.
+@end defvr
+
+
+@defun base32-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Decode @ascii{} characters from the bytevector @var{src-bv} starting at
+index @var{src-start} (included) up to index @var{src-past} (excluded);
+store binary data bytes in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); decoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{base32-decode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if padding is turned on and a full padded block was
+successfully decoded; false otherwise.  If this is true: the end of
+input has been reached and fully processed.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is filled to the end, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the
+characters from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+@ascii{} characters are read from @var{src-bv} in chunks of @math{8}
+bytes; binary data bytes are written to @var{dst-bv} in chunks of
+@math{5} bytes.  If not enough room exists in @var{dst-bv} to store a
+block, available input data is no more consumed.
+@end defun
+
+
+@defun base32-decode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Decode @ascii{} characters from the bytevector @var{src-bv} starting at
+index @var{src-start} (included) up to index @var{src-past} (excluded);
+store binary data bytes in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); decoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{base32-decode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if success, false if the output bytevector was filled
+before flushing all the bytes.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is filled to the end, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+@ascii{} characters are read from @var{src-bv} in chunks of @math{8}
+bytes; binary data bytes are written to @var{dst-bv} in chunks of
+@math{8} bytes.  If the last characters are in a chunk of less than
+@math{8}, they are interpreted as unpadded characters as specified in
+@var{ctx}.  If not enough room exists in @var{dst-bv} to store a block,
+available input data is no more consumed.
+@end defun
 
 @c page
 @node armor base64

@@ -792,6 +792,9 @@
     cond-expand and-let* receive recursion cut cute begin0 begin0-let
     set-cons! incr! decr! while do-while
 
+    ;; macro definition helpers
+    define-identifier-macro define-macro
+
     ;; shared structures
     write-with-shared-structure
     read-with-shared-structure
@@ -810,6 +813,7 @@
 
     ;; simple syntaxes
     dotimes dolist loop-upon-list ensure
+    define-values
 
     ;; miscellaneous
     symbol*->string symbol->string/maybe do*

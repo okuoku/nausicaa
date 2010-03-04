@@ -182,7 +182,8 @@
     and-let* begin0 begin0-let begin0-let* begin0-letrec
     receive recursion cut cute do* while do-while
     dotimes dolist loop-upon-list ensure
-    set-cons! incr! decr!)
+    set-cons! incr! decr!
+    define-identifier-macro define-macro define-values)
   (import (rnrs))
 
 
@@ -225,6 +226,20 @@
      (call-with-values
 	 (lambda () ?expression)
        (lambda ?formals ?form0 ?form ...)))))
+
+(define-syntax define-values
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ (?var ... ?var0) ?form0 ?form ...)
+       (with-syntax (((VAR ... VAR0) (generate-temporaries #'(?var ... ?var0))))
+	 #'(begin
+	     (define ?var  #f)
+	     ...
+	     (define ?var0
+	       (let-values (((VAR ... VAR0) (begin ?form0 ?form ...)))
+		 (set! ?var  VAR)
+		 ...
+		 VAR0))))))))
 
 
 (define-syntax recursion
@@ -313,7 +328,7 @@
        (when ?test (loop))))))
 
 
-;;;; simple language extensions
+;;;; loop syntaxes
 
 (define-syntax dotimes
   (syntax-rules ()
@@ -437,6 +452,26 @@
 	      ...)
        ?form0 ?form ...
        ?var0))))
+
+
+;;;; macro definition helpers
+
+(define-syntax define-macro
+  (syntax-rules ()
+    ((_ (?name ?arg ...) ?form0 ?form ...)
+     (define-syntax ?name
+       (syntax-rules ()
+	 ((_ ?arg ...)
+	  (begin ?form0 ?form ...)))))))
+
+
+(define-syntax define-identifier-macro
+  (syntax-rules ()
+    ((_ ?thing ?accessor ?mutator)
+     (define-syntax ?field
+       (identifier-syntax
+	(id		(?accessor ?thing))
+	((set! id expr)	(?mutator  ?thing expr)))))))
 
 
 ;;;; done

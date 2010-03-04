@@ -50,9 +50,10 @@ Notes for --- tag 0.1a10
 * Added  ASCII  armor  libraries:  base16,  base32,  base64,
   base91, ASCII85.
 
-* Added   WHILE,   DO-WHILE,   INCR!,  DECR!   syntaxes   to
-  (language-extensions).   Merged  in  (language-extensions)
-  the libraries: (begin0), (set-cons), (receive).
+* Added   WHILE,  DO-WHILE,   INCR!,   DECR!,  DEFINE-VALUES
+  syntaxes    to     (language-extensions).     Merged    in
+  (language-extensions) the libraries: (begin0), (set-cons),
+  (receive).
 
 * Changed the  (keywords) library so that  it uses KEYWORD=?
   to compare  objects.  Propagated the changes  to the other

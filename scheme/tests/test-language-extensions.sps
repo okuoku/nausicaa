@@ -330,6 +330,31 @@
      5)
   => 120)
 
+
+(check
+    (let ()
+      (define-values (a b c)
+	#t
+	(values 1 2 3))
+      (list a b c))
+  => '(1 2 3))
+
+(check
+    (let ()
+      (define-values (a)
+	#t
+	(values 1))
+      a)
+  => 1)
+
+(check
+    (let ()
+      (define-values (a)
+	#t
+	1)
+      a)
+  => 1)
+
 
 
 ;;;; done
