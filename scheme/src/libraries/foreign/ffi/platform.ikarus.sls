@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -62,11 +62,24 @@
 ;;;; dynamic loading
 
 (define (open-shared-object library-name)
-  (ikarus:dlopen (%normalise-foreign-symbol library-name) #f #t))
+  ;;DLOPEN returns a  pointer to the external library  descriptor, or #f
+  ;;if an error occurred.
+  (or (ikarus:dlopen (%normalise-foreign-symbol library-name) #f #t)
+      (raise-shared-object-opening-error 'open-shared-object
+					 (ikarus:dlerror)
+					 library-name)))
 
-(define (lookup-shared-object lib-spec foreign-symbol)
-  ;;This already returns #f when the symbol is not found.
-  (ikarus:dlsym lib-spec (%normalise-foreign-symbol foreign-symbol)))
+(define (lookup-shared-object library-pointer foreign-symbol)
+  ;;DLSYM return a pointer to the external entity, or #f when the symbol
+  ;;is not found.
+  ;;
+  (or (ikarus:dlsym library-pointer (%normalise-foreign-symbol foreign-symbol))
+      (raise
+       (condition (make-shared-object-lookup-error-condition)
+		  (make-who-condition 'lookup-shared-object)
+		  (make-message-condition (ikarus:dlerror))
+		  (make-irritants-condition (list library-pointer))
+		  (make-foreign-symbol-condition foreign-symbol)))))
 
 
 ;;;; errno interface

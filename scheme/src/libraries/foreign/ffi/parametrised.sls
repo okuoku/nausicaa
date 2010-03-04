@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,11 +30,12 @@
     current-shared-object
     define-c-function		define-c-function/with-errno)
   (import (rnrs)
-    (foreign ffi))
+    (foreign ffi)
+    (parameters))
 
 
 (define current-shared-object
-  (make-parameter primitive:libc-shared-object))
+  (make-parameter libc-shared-object))
 
 (define-syntax define-c-function
   (syntax-rules ()

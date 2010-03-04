@@ -112,8 +112,8 @@ cause of the exception.
 * ffi conditions library-name::         Foreign library names.
 * ffi conditions shared-object::        Shared objects.
 * ffi conditions foreign-symbol::       Foreign symbols.
-* ffi conditions unknown-shared::       Unknown shared objects.
-* ffi conditions unknown-foreign::      Unknown foreign symbols.
+* ffi conditions opening::              Shared objects opening error.
+* ffi conditions lookup::               Shared objects lookup error.
 @end menu
 
 @c page
@@ -203,29 +203,29 @@ Accessor for the field of condition objects of type
 @end defun
 
 @c page
-@node ffi conditions unknown-shared
-@subsubsection Unknown shared objects
+@node ffi conditions opening
+@subsubsection Shared objects opening error
 
 
-@deftp {Condition Type} &unknown-shared-object-error
+@deftp {Condition Type} &shared-object-opening-error
 Tags a compound condition object as describing a failed attempt to open
 a shared library; it is derived from @condition{error}.  It has no
 fields.
 @end deftp
 
 
-@defun make-unknown-shared-object-error-condition
-@defunx unknown-shared-object-error-condition? @var{obj}
+@defun make-shared-object-opening-error-condition
+@defunx shared-object-opening-error-condition? @var{obj}
 Constructor and predicate for condition objects of type
-@condition{unknown-shared-object-error}.
+@condition{shared-object-opening-error}.
 @end defun
 
 
-@deffn Syntax raise-unknown-shared-object @ameta{who} @ameta{message} @ameta{library-name}
+@deffn Syntax raise-shared-object-opening-error @ameta{who} @ameta{message} @ameta{library-name}
 Raise a continuable exception using as exception value a composite
 condition object with components of type: @condition{who},
 @condition{message}, @condition{library-name},
-@condition{unknown-shared-object-error}
+@condition{shared-object-opening-error}
 
 It is meant to be used when opening a shared object fails; when
 returning to the continuation, the returned value must be a valid,
@@ -233,25 +233,25 @@ initialised, shared object.
 @end deffn
 
 @c page
-@node ffi conditions unknown-foreign
-@subsubsection Unknown foreign symbols
+@node ffi conditions lookup
+@subsubsection Shared objects lookup error
 
 
-@deftp {Condition Type} &unknown-foreign-symbol-error
+@deftp {Condition Type} &shared-object-lookup-error
 Tags a compound condition object as describing a failed attempt to
 retrieve the address of an exported entity from a shared library; it is
-derived from @condition{error}.
+derived from @condition{error}.  It has no fields.
 @end deftp
 
 
-@defun make-unknown-foreign-symbol-error-condition
-@defunx unknown-foreign-symbol-error-condition? @var{obj}
+@defun make-shared-object-lookup-error-condition
+@defunx shared-object-lookup-error-condition? @var{obj}
 Constructor and predicate for condition objects of type
-@condition{unknown-foreign-symbol-error}.
+@condition{shared-object-lookup-error}.
 @end defun
 
 
-@deffn Syntax raise-unknown-foreign-symbol-error @ameta{who} @ameta{message} @ameta{shared-object} @ameta{foreign-symbol}
+@deffn Syntax raise-shared-object-lookup-error @ameta{who} @ameta{message} @ameta{shared-object} @ameta{foreign-symbol}
 Raise a continuable exception using as exception value a composite
 condition object with components of type: @condition{who},
 @condition{message}, @condition{shared-object},
@@ -1539,18 +1539,16 @@ library.
 
 
 @defun open-shared-object @var{library-name}
-@defunx open-shared-object* @var{library-name}
-Open a foreign shared library on the host system and return shared
+Open a foreign shared library on the host system and return a shared
 object; shared objects are disjoint from the other Scheme object types.
 
-If opening the shared library fails: @func{open-shared-object} returns
-@false{}, while @func{open-shared-object*} raises a continuable
-exception with @func{raise-unknown-shared-object}.  @ref{ffi conditions
-unknown-shared, Unknown shared objects}
+If opening the shared library fails: throw a continuable exception with
+@func{raise-shared-object-opening-error}.  @ref{ffi conditions opening,
+Shared objects opening error}.
 
 @var{library-name} must be a Scheme string or symbol representing the
 file name or pathname to be opened; examples: @samp{zlib.so},
-@samp{zlib.dylib}, @samp{zlib.dll}.  In the case of a name (wihtout
+@samp{zlib.dylib}, @samp{zlib.dll}.  In the case of a name (without
 directory part) the search path for shared objects is implemenation
 dependent.
 
@@ -1567,21 +1565,22 @@ Return true if @var{obj} is a shared object.
 
 
 @defun lookup-shared-object @var{shared} @var{foreign-symbol}
-@defunx lookup-shared-object* @var{shared} @var{foreign-symbol}
 Search the shared object referenced by @var{shared} for an exported
 symbol matching @var{foreign-symbol}, which must be a Scheme symbol or
-string, and return its address as a pointer object.
+string, and return its address as a pointer object.  @ref{ffi pointers,
+Pointer objects}.
 
-If the foreign symbol is not found: @func{lookup-shared-object} returns
-@false{}, while @func{lookup-shared-object*} raises a continuable
-exception with @func{raise-unknown-foreign-symbol}.  @ref{ffi conditions
-unknown-foreign, Unknown foreign symbols}
+If the foreign symbol is not found: raise a continuable exception with
+@func{raise-shared-object-lookup-error}.  @ref{ffi conditions lookup,
+Shared objects lookup error}.
 @end defun
 
 
 @defvr Constant libc-shared-object
 Bound to the shared object value identifying the C language runtime
-library.
+library.  Notice that we can configure this value at installation time,
+with the @option{--with-libc-shared-object} option to the
+@command{configure} script.
 @end defvr
 
 @c page
@@ -1892,9 +1891,9 @@ address of the function by looking for the @var{funcname} symbol in the
 Beware that, sometimes, the exported symbols are different from the ones
 we write in C language code to call a function.  If the foreign symbol
 is not found, a continuable exception is raised with
-@func{raise-unknown-foreign-symbol}; returning with the continuation
-must return the address of the function.  @ref{ffi conditions
-unknown-foreign, Unknown foreign symbols}.
+@func{raise-shared-object-lookup-error}; returning to the continuation
+must return the address of the function.  @ref{ffi conditions lookup,
+Shared objects lookup error}.
 
 @quotation
 @strong{For Unix} One way to discover the names of symbols exported by a
@@ -2187,16 +2186,18 @@ platform} library.  This interface adapts the Scheme implementation
 @defun open-shared-object @var{library-name}
 Open a shared library and return its reference object.
 @var{library-name} must be a Scheme string representing the file name or
-pathname to be opened.  If the operation fails, the return value is
-@false{}.
+pathname to be opened.  If the foreign symbol is not found: raise a
+continuable exception with @func{raise-shared-object-opening-error}.
 @end defun
 
 
 @defun lookup-shared-object @var{library-reference} @var{foreign-symbol}
 Search the shared object referenced by @var{library-reference} for an
 exported symbol matching @var{foreign-symbol}, which must be a Scheme
-string, and return its address as pointer object.  If the foreign symbol
-is not found, the return value is @false{}.
+string, and return its address as pointer object.  If the operation
+fails: raise a continuable exception with components @condition{who},
+@condition{message}, @condition{shared-object-lookup-error},
+@condition{foreign-symbol}.
 @end defun
 
 

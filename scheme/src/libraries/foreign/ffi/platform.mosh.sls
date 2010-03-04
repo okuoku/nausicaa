@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -32,6 +32,7 @@
   (import (rnrs)
     (unimplemented)
     (foreign ffi conditions)
+    (only (foreign ffi sizeof) LIBC_SHARED_OBJECT_SPEC)
     (prefix (only (mosh ffi)
 		  open-shared-library	lookup-shared-library
 		  make-c-function	pointer->c-function
@@ -62,16 +63,43 @@
   ;;error message,  which is  no more accessible  with further  calls to
   ;;"dlerror()".   The  message  is  accessible  only  in  the  &MESSAGE
   ;;condition raised here.
-  (guard (E (else #f))
+  ;;
+  ;;In the  raised condition  object: the first  element in the  list of
+  ;;&irritants is the original "dlerror()" string.
+  ;;
+  (guard (E (else
+	     (raise-shared-object-opening-error 'open-shared-object
+						(car (condition-irritants E))
+						library-name)))
     (mosh:open-shared-library (%normalise-foreign-symbol library-name))))
 
-(define (lookup-shared-object lib-spec foreign-symbol)
-  ;;This   already  returns   #f   when  the   symbol   is  not   found.
-  ;;MOSH:LOOKUP-SHARED-LIBRARY does NOT  call "dlerror()" (Mosh revision
-  ;;2190), so the error message would be avaiable here.
-  (mosh:lookup-shared-library lib-spec (if (string? foreign-symbol)
-					   (string->symbol foreign-symbol)
-					 foreign-symbol)))
+(define libc-pointer
+  (open-shared-object LIBC_SHARED_OBJECT_SPEC))
+
+(define dlerror
+  (mosh:pointer->c-function (mosh:lookup-shared-library libc-pointer 'dlerror)
+			    'char* 'dlerror '()))
+
+(define (lookup-shared-object library-pointer foreign-symbol)
+  ;;MOSH:LOOKUP-SHARED-LIBRARY returns  #f when the symbol  is not found
+  ;;and it does NOT call  "dlerror()" (Mosh revision 2190), so the error
+  ;;message would be avaiable here.
+  ;;
+  (let ((foreign-symbol (cond ((string? foreign-symbol)
+			       (string->symbol foreign-symbol))
+			      ((symbol? foreign-symbol)
+			       foreign-symbol)
+			      (else
+			       (assertion-violation 'lookup-shared-object
+				 "expected string or symbol as foreign symbol"
+				 foreign-symbol)))))
+    (or (mosh:lookup-shared-library library-pointer foreign-symbol)
+	(raise
+	 (condition (make-shared-object-lookup-error-condition)
+		    (make-who-condition 'lookup-shared-object)
+		    (make-message-condition (dlerror))
+		    (make-irritants-condition (list library-pointer))
+		    (make-foreign-symbol-condition (symbol->string foreign-symbol)))))))
 
 
 ;;;; interface functions

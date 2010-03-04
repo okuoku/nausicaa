@@ -66,6 +66,11 @@ Notes for --- tag 0.1a10
   minor  incompatibilities  (example:  the return  value  of
   IRREGEX-OPT).
 
+* Removed   OPEN-SHARED-OBJECT*  and  LOOKUP-SHARED-OBJECT*;
+  changed  OPEN-SHARED-OBJECT  and  LOOKUP-SHARED-OBJECT  to
+  raise  exceptions; improved  their error  message; changed
+  types or related condition objects.
+
 
 Notes for 2010-01-14 tag 0.1a9
 ------------------------------

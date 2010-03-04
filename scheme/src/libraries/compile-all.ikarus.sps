@@ -125,6 +125,8 @@
   (only (foreign memory guarded-malloc))
 
   (only (foreign ffi))
+  (only (foreign ffi utilities))
+  (only (foreign ffi parametrised))
   (only (foreign cstrings))
   (only (foreign errno))
 

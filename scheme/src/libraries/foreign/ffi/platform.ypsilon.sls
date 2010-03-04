@@ -1,4 +1,4 @@
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2004-2008 Yoshikatsu Fujita. All rights reserved.
 ;;;Copyright (c) 2004-2008 LittleWing Company Limited. All rights reserved.
 ;;;
@@ -44,6 +44,7 @@
     make-c-callback		free-c-callback)
   (import (rnrs)
     (conditions)
+    (only (foreign ffi sizeof) LIBC_SHARED_OBJECT_SPEC)
     (foreign ffi conditions)
     (prefix (only (ypsilon ffi)
 		  load-shared-object lookup-shared-object
@@ -90,16 +91,48 @@
   ;;
   ;;In case of error YPSILON:LOAD-SHARED-OBJECT raises an exception.
   ;;
-  (guard (E (else #f))
-    (ypsilon:load-shared-object (%normalise-foreign-symbol library-name))))
+  (let ((library-name (cond ((symbol? library-name)
+			     (symbol->string library-name))
+			    ((string? library-name)
+			     library-name)
+			    (else
+			     (assertion-violation 'open-shared-object
+			       "expected string or symbol as shared object library name"
+			       library-name)))))
+    (guard (E (else
+	       (raise-shared-object-opening-error 'open-shared-object
+						  (condition-message E)
+						  library-name)))
+      (ypsilon:load-shared-object library-name))))
+
+(define libc-reference
+  (open-shared-object LIBC_SHARED_OBJECT_SPEC))
+
+(define dlerror
+  (ypsilon:make-cdecl-callout 'char* '()
+			      (ypsilon:lookup-shared-object libc-reference "dlerror")))
 
 (define (lookup-shared-object library-reference foreign-symbol)
-  ;;YPSILON:LOOKUP-SHARED-OBJECT already  returns #f when  the symbol is
-  ;;not found.
+  ;;YPSILON:LOOKUP-SHARED-OBJECT  returns  #f  when  the symbol  is  not
+  ;;found.
   ;;
-  (let* ((foreign-symbol	(%normalise-foreign-symbol foreign-symbol))
-	 (address		(ypsilon:lookup-shared-object library-reference foreign-symbol)))
-    (and address (integer->pointer address))))
+  (let* ((foreign-symbol (cond ((symbol? foreign-symbol)
+				(symbol->string foreign-symbol))
+			       ((string? foreign-symbol)
+				foreign-symbol)
+			       (else
+				(assertion-violation 'lookup-shared-object
+				  "expected string or symbol as foreign symbol"
+				  foreign-symbol))))
+	 (address (ypsilon:lookup-shared-object library-reference foreign-symbol)))
+    (if address
+	(integer->pointer address)
+      (raise
+       (condition (make-shared-object-lookup-error-condition)
+		  (make-who-condition 'lookup-shared-object)
+		  (make-message-condition (dlerror))
+		  (make-irritants-condition (list library-reference))
+		  (make-foreign-symbol-condition foreign-symbol))))))
 
 
 (define make-c-callout

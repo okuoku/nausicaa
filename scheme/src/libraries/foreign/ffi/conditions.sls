@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -42,16 +42,16 @@
     foreign-symbol-condition?
     condition-foreign-symbol
 
-    &unknown-shared-object-error
-    make-unknown-shared-object-error-condition
-    unknown-shared-object-error-condition?
+    &shared-object-opening-error
+    make-shared-object-opening-error-condition
+    shared-object-opening-error-condition?
 
-    &unknown-foreign-symbol-error
-    make-unknown-foreign-symbol-error-condition
-    unknown-foreign-symbol-error-condition?
+    &shared-object-lookup-error
+    make-shared-object-lookup-error-condition
+    shared-object-lookup-error-condition?
 
-    raise-unknown-shared-object
-    raise-unknown-foreign-symbol)
+    raise-shared-object-opening-error
+    raise-shared-object-lookup-error)
   (import (rnrs))
 
 
@@ -68,28 +68,28 @@
   (symbol condition-foreign-symbol))
 
 
-(define-condition-type &unknown-shared-object-error &error
-  make-unknown-shared-object-error-condition
-  unknown-shared-object-error-condition?)
+(define-condition-type &shared-object-opening-error &error
+  make-shared-object-opening-error-condition
+  shared-object-opening-error-condition?)
 
-(define-condition-type &unknown-foreign-symbol-error &error
-  make-unknown-foreign-symbol-error-condition
-  unknown-foreign-symbol-error-condition?)
+(define-condition-type &shared-object-lookup-error &error
+  make-shared-object-lookup-error-condition
+  shared-object-lookup-error-condition?)
 
-(define-syntax raise-unknown-shared-object
+(define-syntax raise-shared-object-opening-error
   (syntax-rules ()
     ((_ ?who ?message ?library-name)
      (raise-continuable
-      (condition (make-unknown-shared-object-error-condition)
+      (condition (make-shared-object-opening-error-condition)
 		 (make-who-condition ?who)
 		 (make-message-condition ?message)
 		 (make-library-name-condition ?library-name))))))
 
-(define-syntax raise-unknown-foreign-symbol
+(define-syntax raise-shared-object-lookup-error
   (syntax-rules ()
     ((_ ?who ?message ?shared-object ?foreign-symbol)
      (raise-continuable
-      (condition (make-unknown-foreign-symbol-error-condition)
+      (condition (make-shared-object-lookup-error-condition)
 		 (make-who-condition ?who)
 		 (make-message-condition ?message)
 		 (make-shared-object-condition ?shared-object)

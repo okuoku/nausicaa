@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -43,24 +43,16 @@
 (parametrise ((check-test-name	'open-shared))
 
   (check
-      (and (open-shared-object 'libc.so.6) #t)
+      (shared-object? (open-shared-object 'libc.so.6))
     => #t)
 
   (check
-    (and (open-shared-object* 'libc.so.6) #t)
-    => #t)
-
-  (check
-      (open-shared-object 'ciao)
-    => #f)
-
-  (check
-      (guard (E ((unknown-shared-object-error-condition? E)
+      (guard (E ((shared-object-opening-error-condition? E)
+;;;		 (write (condition-message E))(newline)
 		 (list (condition-library-name E)
-		       (condition-message E)
 		       (condition-who E))))
-	(open-shared-object* 'ciao))
-    => '("ciao" "unable to open shared object" open-shared-object*))
+	(open-shared-object 'ciao))
+    => '("ciao" open-shared-object))
 
   #t)
 
@@ -72,23 +64,13 @@
     => #t)
 
   (check
-      (pointer? (lookup-shared-object libc-shared-object 'ciao))
-    => #f)
-
-  (check
-      (pointer? (lookup-shared-object* libc-shared-object 'printf))
-    => #t)
-
-  (check
-      (guard (E ((unknown-foreign-symbol-error-condition? E)
+      (guard (E ((shared-object-lookup-error-condition? E)
+;;;		 (write (condition-message E))(newline)
 		 (list (condition-shared-object E)
 		       (condition-foreign-symbol E)
-		       (condition-message E)
 		       (condition-who E))))
-	(lookup-shared-object* libc-shared-object 'ciao))
-    => `( ;;
-	 ,libc-shared-object "ciao"
-	 "could not find foreign symbol in foreign library" lookup-shared-object*))
+	(lookup-shared-object libc-shared-object 'ciao))
+    => `(,libc-shared-object "ciao" lookup-shared-object))
 
   #t)
 

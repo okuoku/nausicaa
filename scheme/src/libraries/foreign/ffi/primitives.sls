@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,8 +28,7 @@
 (library (foreign ffi primitives)
   (export
     shared-object?			libc-shared-object
-    open-shared-object			open-shared-object*
-    lookup-shared-object		lookup-shared-object*
+    open-shared-object			lookup-shared-object
     make-c-function			make-c-function/with-errno
     make-c-callout			make-c-callout/with-errno
     make-c-callback
@@ -55,53 +54,54 @@
     foreign-symbol))
 
 
-(define-record-type (<shared-object> make-<shared-object> shared-object?)
+(define-record-type (<shared-object> open-shared-object shared-object?)
   (fields (immutable library-name)
-	  (immutable reference)))
-
-(define (open-shared-object library-name)
-  (let* ((library-name	(cond ((symbol? library-name)
-			       (symbol->string library-name))
-			      ((string? library-name)
-			       library-name)
-			      (else
-			       (assertion-violation 'make-shared-object
-				 "expected Scheme string or symbol as shared object library name"
-				 library-name))))
-	 (reference	(platform:open-shared-object library-name)))
-    (if reference
-	(make-<shared-object> library-name reference)
-      #f)))
-
-(define (open-shared-object* library-name)
-  (let* ((library-name	(%normalise-foreign-symbol library-name))
-	 (reference	(open-shared-object library-name)))
-    (or reference
-	(raise-unknown-shared-object 'open-shared-object* "unable to open shared object" library-name))))
+	  (immutable reference))
+  (protocol (lambda (maker)
+	      (lambda (library-name)
+		(let ((library-name (cond
+				     ((symbol? library-name)
+				      (symbol->string library-name))
+				     ((string? library-name)
+				      library-name)
+				     (else
+				      (assertion-violation 'open-shared-object
+					"expected Scheme string or symbol as shared object library name"
+					library-name)))))
+		  (maker library-name (platform:open-shared-object library-name)))))))
 
 (define libc-shared-object
-  (open-shared-object* LIBC_SHARED_OBJECT_SPEC))
+  (open-shared-object LIBC_SHARED_OBJECT_SPEC))
 
 (define (lookup-shared-object shared-object foreign-symbol)
-  (platform:lookup-shared-object (<shared-object>-reference shared-object) foreign-symbol))
-
-(define (lookup-shared-object* shared-object foreign-symbol)
-  (let* ((foreign-symbol	(%normalise-foreign-symbol foreign-symbol))
-	 (pointer		(lookup-shared-object shared-object foreign-symbol)))
-    (or pointer
-	(raise-unknown-foreign-symbol 'lookup-shared-object*
-				      "could not find foreign symbol in foreign library"
-				      shared-object foreign-symbol))))
+  ;;Catch and reraise &shared-object-lookup-error  so that we can put in
+  ;;the <shared-object> record.
+  ;;
+  (guard (E ((shared-object-lookup-error-condition? E)
+	     (raise-shared-object-lookup-error (condition-who E) (condition-message E)
+					       shared-object
+					       (condition-foreign-symbol E)))
+	    (else
+	     (raise-continuable E)))
+    (platform:lookup-shared-object (<shared-object>-reference shared-object)
+				   (cond ((symbol? foreign-symbol)
+					  (symbol->string foreign-symbol))
+					 ((string? foreign-symbol)
+					  foreign-symbol)
+					 (else
+					  (assertion-violation 'lookup-shared-object
+					    "expected string or symbol as foreign symbol"
+					    foreign-symbol))))))
 
 
 (define (make-c-function shared-object ret-type funcname arg-types)
   (make-c-callout ret-type
-		  (lookup-shared-object* shared-object (%normalise-foreign-symbol funcname))
+		  (lookup-shared-object shared-object (%normalise-foreign-symbol funcname))
 		  arg-types))
 
 (define (make-c-function/with-errno shared-object ret-type funcname arg-types)
   (make-c-callout/with-errno ret-type
-			     (lookup-shared-object* shared-object (%normalise-foreign-symbol funcname))
+			     (lookup-shared-object shared-object (%normalise-foreign-symbol funcname))
 			     arg-types))
 
 (define (make-c-callout ret-type address arg-types)

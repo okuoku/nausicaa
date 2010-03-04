@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -43,7 +43,7 @@
   (syntax-rules ()
     ((_ ?name ?library-name)
      (define ?name
-       (open-shared-object* ?library-name)))))
+       (open-shared-object ?library-name)))))
 
 (define-syntax define-c-functions
   (syntax-rules ()

@@ -12185,7 +12185,7 @@ a record object, and return that record object.
 
 For example, the following protocol expression for a record--type
 definition with three fields creates a constructor that accepts values
-for all fields, and initialized them in the reverse order of the
+for all fields, and initializes them in the reverse order of the
 arguments:
 
 @example
