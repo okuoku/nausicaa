@@ -542,7 +542,7 @@ More libraries
 * silex::                       A lexical analyser generator.
 * lalr::                        A LALR(1) parser generator.
 * packrat::                     Packrat parser.
-* csv::                         Comma--separated value (@acronym{CSV}) utilities.
+* csv::                         Comma--separated values (@acronym{CSV}) utilities.
 * email::                       Email processing.
 * infix::                       Infix notation utilities.
 * getopts::                     Parsing command line arguments.
@@ -49477,7 +49477,7 @@ indirect:
 
 @c page
 @node csv
-@chapter Comma--separated value (@acronym{CSV}) utilities
+@chapter Comma--separated values (@acronym{CSV}) utilities
 
 
 The @library{csv} library provides lexers and parsers to read data from
