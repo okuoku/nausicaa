@@ -257,12 +257,13 @@
 
 (define (base32-encode-update-length len)
   ;;Return the  minimum number  of bytes required  in the  output vector
-  ;;when BASE32-ENCODE-UPDATE!  is applied to LEN bytes  of binary input
-  ;;data.  Notice that the function will process bytes in 5 bytes blocks
-  ;;only.
+  ;;when BASE32-ENCODE-UPDATE!  is applied  to LEN bytes of binary input
+  ;;data.  Notice that the function will consume input in 5-bytes blocks
+  ;;only and produce output in  8-bytes blocks only, so the return value
+  ;;is always zero or an exact multiple of 8.
   ;;
   (if (<= 5 len)
-      (div (* 8 len) 5)
+      (* 8 (div len 5))
     0))
 
 (define base32-encode-final-length
@@ -303,8 +304,10 @@
    ((len)
     (base32-encode-length len #f))
    ((len padding?)
-    (+ (base32-encode-update-length len)
-       (base32-encode-final-length  (mod len 5) padding?)))))
+    (let ((final-len (base32-encode-final-length (mod len 5) padding?)))
+      (if final-len
+	  (+ final-len (base32-encode-update-length len))
+	#f)))))
 
 
 ;;;; decoded output length estimation
@@ -318,8 +321,9 @@
 (define (base32-decode-update-length len)
   ;;Return the  minimum number  of bytes required  in the  output vector
   ;;when BASE32-DECODE-UPDATE!   is applied  to LEN ASCII  characters of
-  ;;input.   Notice that  the function  will  process bytes  in 8  bytes
-  ;;blocks only.
+  ;;input.   Notice that  the  function will  consume  input in  8-bytes
+  ;;blocks only and produce output in 5-bytes blocks only, so the return
+  ;;value is always zero or an exact multiple of 5.
   ;;
   (if (<= 8 len)
       (* 5 (div len 8))
@@ -364,8 +368,10 @@
    ((len)
     (base32-decode-length len #f))
    ((len padding?)
-    (+ (base32-decode-update-length len)
-       (base32-decode-final-length  (mod len 8) padding?)))))
+    (let ((final-len (base32-decode-final-length (mod len 8) padding?)))
+      (if final-len
+	  (+ final-len (base32-decode-update-length len))
+	#f)))))
 
 
 (define (base32-encode-update! ctx dst-bv dst-start src-bv src-start src-past)
@@ -795,27 +801,31 @@
   ;;unpadded characters as specified in CTX.
   ;;
 
+  (define who 'base32-decode-final!)
+
+  (define (%error-invalid-input-length)
+    (raise
+     (condition (make-armor-invalid-input-length-condition)
+		(make-who-condition who)
+		(make-message-condition "invalid input length while decoding base32 bytevector"))))
+
   (if (<base32-decode-ctx>-expect-padding? ctx)
 
-      (if (zero? (- src-past src-start))
-	  (values #t dst-start src-start)
-	(base32-decode-update! ctx dst-bv dst-start src-bv src-start src-past))
+      (let ((src-len (- src-past src-start)))
+	(cond ((zero? src-len)
+	       (values #t dst-start src-start))
+	      ((zero? (mod src-len 8))
+	       (base32-decode-update! ctx dst-bv dst-start src-bv src-start src-past))
+	      (else
+	       (%error-invalid-input-length))))
 
     (let ((table (<base32-decode-ctx>-table ctx)))
-
-      (define (%error-invalid-input-length)
-	(raise
-	 (condition (make-armor-invalid-input-length-condition)
-		    (make-who-condition 'base32-decode-final!)
-		    (make-message-condition
-		     "invalid input length while decoding base32 bytevector"))))
 
       (define (%error-invalid-input-byte byte)
 	(raise
 	 (condition (make-armor-invalid-input-byte-condition)
-		    (make-who-condition 'base32-decode-final!)
-		    (make-message-condition
-		     "invalid input byte while decoding base32 bytevector")
+		    (make-who-condition who)
+		    (make-message-condition "invalid input byte while decoding base32 bytevector")
 		    (make-irritants-condition byte))))
 
       (let loop ((i		dst-start)

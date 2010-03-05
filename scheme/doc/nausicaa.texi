@@ -51407,6 +51407,7 @@ binary data.
 * armor base32 intro::          Introduction to base32 encoding.
 * armor base32 encode::         Encoding byte streams with base32.
 * armor base32 decode::         Decoding byte streams with base32.
+* armor base32 examples::       Examples of encoding and decoding.
 @end menu
 
 @c page
@@ -51511,7 +51512,6 @@ appended to the last bytes to make the last block @math{8} bytes long;
 when padding is off: the last block can have the lengths: @math{2},
 @math{4}, @math{5}, @math{7}, @math{8}.
 
-
 @c page
 @node armor base32 encode
 @subsection Encoding byte streams with base32
@@ -51583,9 +51583,10 @@ Field accessors for records of type @class{base32-encode-ctx}.
 @defun base32-encode-update-length @var{number-of-bytes}
 Return the minimum number of bytes required in the output bytevector
 when @func{base32-encode-update!}  is applied to @var{number-of-bytes}
-of binary input data.  Notice that the function will consume input bytes
-in @math{5}-bytes blocks only and will produce output bytes in
-@math{8}-bytes blocks only.
+of binary input data.  Notice that that function will consume input in
+@math{5}-bytes blocks only and produce output in @math{8}-bytes blocks
+only, so the return value is always zero or an exact multiple of
+@math{8}.
 @end defun
 
 
@@ -51609,8 +51610,8 @@ binary input data.  This is also the number required when both
 @func{base32-encode-update!}  and @func{base32-encode-final!} are used.
 
 If @var{padding?} is true: the returned count includes padding bytes,
-which means that the returned value is always a multiple of @math{8};
-when not used, @var{padding?} defaults to @false{}.
+which means that the returned value is always zero or a multiple of
+@math{8}; when not used, @var{padding?} defaults to @false{}.
 @end defun
 
 
@@ -51756,9 +51757,10 @@ Field accessors for records of type @class{base32-decode-ctx}
 @defun base32-decode-update-length @var{number-of-chars}
 Return the minimum number of bytes required in the output bytevector
 when @func{base32-decode-update!}  is applied to @var{number-of-chars}
-@ascii{} characters of input.  Notice that the function will process
-input data in @math{8}-chars blocks only, so if @var{number-of-chars} is
-less than @math{8} the return value is zero.
+@ascii{} characters of input.  Notice that the function will consume
+input in @math{8}-bytes blocks only and produce output in @math{5}-bytes
+blocks only, so the return value is always zero or an exact multiple of
+@math{5}.
 @end defun
 
 
@@ -51862,6 +51864,338 @@ bytes; binary data bytes are written to @var{dst-bv} in chunks of
 @var{ctx}.  If not enough room exists in @var{dst-bv} to store a block,
 available input data is no more consumed.
 @end defun
+
+@c page
+@node armor base32 examples
+@subsection Examples of encoding and decoding
+
+
+@menu
+* armor base32 ex encode::      Encoding example.
+* armor base32 ex decode::      Decoding example.
+@end menu
+
+@c page
+@node armor base32 ex encode
+@subsubsection Encoding example
+
+
+Let's say we want to encode a byte stream which comes in three chunks;
+we want the output to be padded and in upper case:
+
+@example
+(import (nausicaa)
+  (armor base32))
+
+(define ctx
+  (make-<base32-encode-ctx> 'base32 #t 'upper))
+@end example
+
+@noindent
+we will need this helper function:
+
+@example
+(define (subbytevector src start past)
+  (let ((dst (make-bytevector (- past start))))
+    (do ((i 0     (+ 1 i))
+         (j start (+ 1 j)))
+        ((= j past)
+         dst)
+      (bytevector-u8-set! dst i
+          (bytevector-u8-ref src j)))))
+@end example
+
+@noindent
+the first chunk is @samp{bin-1}, we notice that its length is exactly
+@math{5} bytes so the output will be exactly @math{8} characters:
+
+@example
+(define bin-1.bv
+  '#vu8(0 1 2 3 4))
+
+(define bin-1.len
+  (bytevector-length bin-1.bv)) @result{} 5
+@end example
+
+@noindent
+we allocate the output bytevector:
+
+@example
+(define asc-1.len
+  (base32-encode-update-length bin-1.len)) @result{} 8
+
+(define asc-1.bv
+  (make-bytevector asc-1.len))
+@end example
+
+@noindent
+and process the data:
+
+@example
+(define-values (dst-next-1 src-next-1)
+  (base32-encode-update! ctx
+                         asc-1.bv 0
+                         bin-1.bv 0 bin-1.len))
+
+;; (utf8->string asc-1.bv) @result{} "AAAQEAYE"
+;; dst-next-1 @result{} 8
+;; src-next-1 @result{} 5
+@end example
+
+@noindent
+all the input has been consumed and the output bytevector is full.
+
+The second chunk is @samp{bin-2} and we notice that its length is not an
+exact multiple of @math{5}:
+
+@example
+(define bin-2.bv
+  '#vu8(0 1 2 3 4 5 6))
+
+(define bin-2.len
+  (bytevector-length bin-2.bv)) @result{} 7
+
+(define asc-2.len
+  (base32-encode-update-length bin-2.len)) @result{} 8
+
+(define asc-2.bv
+  (make-bytevector asc-2.len))
+
+(define-values (dst-next-2 src-next-2)
+  (base32-encode-update! ctx
+                         asc-2.bv 0
+                         bin-2.bv 0 bin-2.len))
+
+;; (utf8->string (subbytevector asc-2.bv 0 dst-next-2))
+;; @result{} "AAAQEAYE"
+;; dst-next-2 @result{} 8
+;; src-next-2 @result{} 5
+@end example
+
+@noindent
+the last bytes from the input are still to be consumed; the output
+bytevector is full.
+
+The last chunk is @samp{bin-3}, but we have to append it to the leftover
+from @samp{bin-2}:
+
+@example
+(define bin-3.bv
+  '#vu8(0 1 2 3 4 5 6))
+
+(define bin-3.len
+  (bytevector-length bin-3.bv)) @result{} 7
+
+(define delta
+  (- bin-2.len src-next-2)) @result{} 2
+
+(define bin-23.len
+  (+ bin-3.len delta)) @result{} 9
+
+(define bin-23.bv
+  (let ((bv (make-bytevector bin-23.len)))
+    (do ((i 0          (+ 1 i))
+         (j src-next-2 (+ 1 j)))
+        ((= i delta))
+      (bytevector-u8-set! bv i
+          (bytevector-u8-ref bin-2.bv j)))
+    (do ((i delta (+ 1 i))
+         (j 0     (+ 1 j)))
+        ((= j bin-3.len)
+         bv)
+      (bytevector-u8-set! bv i
+          (bytevector-u8-ref bin-3.bv j)))))
+
+(define asc-3.len
+  (base32-encode-length bin-23.len #t)) @result{} 16
+
+(define asc-3.bv
+  (make-bytevector asc-3.len))
+
+(define-values (result dst-next-3 src-next-3)
+  (base32-encode-final! ctx
+                        asc-3.bv 0
+                        bin-23.bv 0 bin-23.len))
+
+;; (utf8->string asc-3.bv) @result{} "AUDAAAICAMCAKBQ="
+;; result     @result{} #t
+;; dst-next-3 @result{} 16
+;; src-next-3 @result{} 9
+@end example
+
+@noindent
+all the input has been consumed and the output bytevector is full.  At
+the end of it the sequence of bytes:
+
+@example
+|0 1 2 3 4|0 1 2 3 4 5 6|0 1 2 3 4 5 6|
+|  bin-1  |    bin-2    |    bin-3    |
+                    |    bin-23       |
+@end example
+
+@noindent
+is encoded in the string:
+
+@example
+AAAQEAYEAAAQEAYEAUDAAAICAMCAKBQ=
+@end example
+
+@c page
+@node armor base32 ex decode
+@subsubsection Decoding example
+
+
+Let's say we want to decode a character stream which comes in three
+chunks; the stream is padded and in upper case:
+
+@example
+(import (nausicaa)
+  (armor base32))
+
+(define ctx
+  (make-<base32-decode-ctx> 'base32 #t 'upper))
+@end example
+
+@noindent
+we will need this helper function:
+
+@example
+(define (subbytevector src start past)
+  (let ((dst (make-bytevector (- past start))))
+    (do ((i 0     (+ 1 i))
+         (j start (+ 1 j)))
+        ((= j past)
+         dst)
+      (bytevector-u8-set! dst i
+          (bytevector-u8-ref src j)))))
+@end example
+
+@noindent
+the first chunk is @samp{asc-1}, we notice that its length is exactly
+@math{8} characters so the output will be exactly @math{5} bytes:
+
+@example
+(define asc-1.bv
+  (string->utf8 "AAAQEAYE"))
+
+(define asc-1.len
+  (bytevector-length asc-1.bv)) @result{} 8
+
+(define bin-1.len
+  (base32-decode-update-length asc-1.len)) @result{} 5
+
+(define bin-1.bv
+  (make-bytevector bin-1.len))
+
+(define-values (finished-1? dst-next-1 src-next-1)
+  (base32-decode-update! ctx
+                         bin-1.bv 0
+                         asc-1.bv 0 asc-1.len))
+
+;; bin-1.bv    @result{} #vu8(0 1 2 3 4)
+;; finished-1? @result{} #f
+;; dst-next-1  @result{} 5
+;; src-next-1  @result{} 8
+@end example
+
+@noindent
+all the input has been consumed and the output bytevector is full.
+
+The second chunk is @samp{asc-2} and we notice that its length is not an
+exact multiple of @math{8}:
+
+@example
+(define asc-2.bv
+  (string->utf8 "AAAQEAYEAU"))
+
+(define asc-2.len
+  (bytevector-length asc-2.bv)) @result{} 10
+
+(define bin-2.len
+  (base32-decode-update-length asc-2.len)) @result{} 5
+
+(define bin-2.bv
+  (make-bytevector bin-2.len))
+
+(define-values (finished-2? dst-next-2 src-next-2)
+  (base32-decode-update! ctx
+                         bin-2.bv 0
+                         asc-2.bv 0 asc-2.len))
+
+;; bin-2.bv    @result{} #vu8(0 1 2 3 4)
+;; finished-2? @result{} #f
+;; dst-next-2  @result{} 5
+;; src-next-2  @result{} 8
+@end example
+
+@noindent
+the last bytes from the input are still to be consumed; the output
+bytevector is full.
+
+The last chunk is @samp{asc-3}, but we have to append it to the leftover
+from @samp{asc-2}:
+
+@example
+(define asc-3.bv
+  (string->utf8 "DAAAICAMCAKBQ="))
+
+(define asc-3.len
+  (bytevector-length asc-3.bv)) @result{} 14
+
+(define delta
+  (- asc-2.len src-next-2)) @result{} 2
+
+(define asc-23.len
+  (+ asc-3.len delta)) @result{} 16
+
+(define asc-23.bv
+  (let ((bv (make-bytevector asc-23.len)))
+    (do ((i 0          (+ 1 i))
+         (j src-next-2 (+ 1 j)))
+        ((= i delta))
+      (bytevector-u8-set! bv i (bytevector-u8-ref asc-2.bv j)))
+    (do ((i delta (+ 1 i))
+         (j 0     (+ 1 j)))
+        ((= j asc-3.len)
+         bv)
+      (bytevector-u8-set! bv i (bytevector-u8-ref asc-3.bv j)))))
+
+(define bin-3.len
+  (base32-decode-length asc-23.len #t)) @result{} 10
+
+(define bin-3.bv
+  (make-bytevector bin-3.len))
+
+(define-values (result dst-next-3 src-next-3)
+  (base32-decode-final! ctx
+                        bin-3.bv 0
+                        asc-23.bv 0 asc-23.len))
+
+;; (subbytevector bin-3.bv 0 dst-next-3)
+;; @result{} #vu8(5 6 0 1 2 3 4 5 6)
+;; result     @result{} #t
+;; dst-next-3 @result{}  9
+;; src-next-3 @result{} 16
+@end example
+
+@noindent
+all the input has been consumed and the output bytevector is a bit
+oversized, this is because before decoding we do not know if and how
+many padding characters are there.  At the end of it the sequence of
+characters:
+
+@example
+|AAAQEAYE|AAAQEAYEAU|DAAAICAMCAKBQ=|
+| asc-1  |  asc-2   |    asc-3     |
+                 |     asc-23      |
+@end example
+
+@noindent
+is decoded in the sequence of bytes:
+
+@example
+0 1 2 3 4 0 1 2 3 4 5 6 0 1 2 3 4 5 6
+@end example
 
 @c page
 @node armor base64
