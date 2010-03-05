@@ -17626,6 +17626,17 @@ The @func{with-syntax} form may be defined in terms of
                  ((p ...) (let () e1 e2 ...))))))))
 @end example
 
+As example of deconstructing a syntax object:
+
+@example
+(define stx
+  (datum->syntax #'display '(1 2 3)))
+
+(with-syntax (((a b ...) stx))
+  (syntax->datum #'a))
+@result{} 1
+@end example
+
 The following definition of @func{cond} demonstrates the use of
 @func{with-syntax} to support transformers that employ recursion
 internally to construct their output.  It handles all @func{cond} clause
