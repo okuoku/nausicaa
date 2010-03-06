@@ -79,7 +79,7 @@
 				  ((lower)	'lower)
 				  ((upper)	'upper)
 				  (else
-				   (assertion-violation #f
+				   (assertion-violation 'make-<base32-encode-ctx>
 				     "invalid input case selection for base32 encoder"))))
 	      (generate-padding? (if generate-padding? #t #f))
 	      (table		(case encoding
@@ -119,7 +119,7 @@
 				  ((base32 rfc4648)	'base32)
 				  ((base32hex rfc2938)	'base32hex)
 				  (else
-				   (assertion-violation #f
+				   (assertion-violation 'make-<base32-decode-ctx>
 				     "invalid encoding selection for base32 decoder" encoding))))
 	      (expect-padding?	(if expect-padding? #t #f))
 	      (encoding-case	(case encoding-case
@@ -127,7 +127,7 @@
 				  ((upper)	'upper)
 				  ((mixed)	'mixed)
 				  (else
-				   (assertion-violation #f
+				   (assertion-violation 'make-<base32-decode-ctx>
 				     "invalid input case selection for base32 decoder"))))
 	      (table		(case encoding
 				  ((base32)
@@ -275,24 +275,22 @@
   ;;   (+ (div nbits 5)
   ;;      (if (zero? (mod nbits 5)) 0 1)))
   ;;
-  ;;but we use precomputed results.
+  ;;but we  use precomputed  results.  If the  argument is  invalid: the
+  ;;return value is #f.
   ;;
   (case-lambda
    ((len)
     (base32-encode-final-length len #f))
    ((len padding?)
-    (assert (< len 5))
     (if padding?
-	8
+	(if (<= 0 len 4) 8 #f)
       (case len
 	((0)	0)
 	((1)	2)
 	((2)	4)
 	((3)	5)
 	((4)	7)
-	(else
-	 (assertion-violation 'base32-encode-final-length
-	   "invalid input length for base32 encoding final length estimation" len)))))))
+	(else	#f))))))
 
 (define base32-encode-length
   ;;Return the  minimum number  of bytes required  in the  output vector
@@ -347,7 +345,6 @@
    ((len)
     (base32-decode-final-length len #f))
    ((len padding?)
-    (assert (< len 8))
     (if padding?
 	(if (zero? len) 0 #f)
       (case len

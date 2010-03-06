@@ -51599,6 +51599,9 @@ when @func{base32-encode-final!} is applied to @var{number-of-bytes}
 If @var{padding?} is true: the returned count includes padding bytes,
 which means that the returned value is always @math{8}; when not used,
 @var{padding?} defaults to @false{}.
+
+If @var{number-of-bytes} is invalid (out of range): the return value is
+@false{}.
 @end defun
 
 
@@ -51768,14 +51771,14 @@ blocks only, so the return value is always zero or an exact multiple of
 @defunx base32-decode-final-length @var{number-of-chars} @var{padding?}
 Return the minimum number of bytes required in the output bytevector
 when @func{base32-decode-final!} is applied to @var{number-of-chars}
-@math{< 8} @ascii{} characters of input.  Not all the values between
-@math{0} and @math{7} are valid; if a value is not valid the return
-value is @false{}.
+@math{< 8} @ascii{} characters of input.  Not all the arguments between
+@math{0} and @math{7} are valid; if @var{number-of-chars} is not valid:
+the return value is @false{}.
 
-If @var{padding?} is true, the input is expected to be padded; in this
+If @var{padding?} is true: the input is expected to be padded; in this
 case the only valid value for @var{number-of-chars} is zero and the
 return value is zero.  If @var{padding?} is true and
-@var{number-of-chars} is non--zero, the return value is @false{}.  When
+@var{number-of-chars} is non--zero: the return value is @false{}.  When
 not given, @var{padding?} defaults to @false{}.
 @end defun
 

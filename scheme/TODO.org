@@ -154,3 +154,7 @@
 
   Implement the :one and :any combinators, like the ones in (sexps).
 
+* armor
+
+  Add quoted-printable. http://tools.ietf.org/html/rfc2045
+
