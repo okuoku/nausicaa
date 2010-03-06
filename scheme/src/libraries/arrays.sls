@@ -13,7 +13,7 @@
 ;;;	collected in Scheme's built-in lists and vectors, "elements" are
 ;;;	the values collected in the arrays.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -152,7 +152,7 @@
 
 (define (array-shape starts pasts)
   (let ((len (vector-length starts)))
-    (when (or (= 0 len) (not (= len (vector-length pasts))))
+    (when (or (zero? len) (not (= len (vector-length pasts))))
       (assertion-violation 'array-shape
 	"invalid number of elements in shape specification"
 	starts pasts))

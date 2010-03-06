@@ -4,7 +4,7 @@
 ;;;(<1.4) were Ken Dickey and Aubrey Jaffer.  Assimilated into Guile May
 ;;;1999.  Ported to R6RS Scheme and Nausicaa by Marco Maggi.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 1992-1994 Dirk Lutzebaeck <lutzeb@cs.tu-berlin.de>
 ;;;
 ;;;Permission is hereby granted, free of charge, to any person obtaining
@@ -988,7 +988,7 @@
       (when (eq? modifier 'at)
 	(format:print-char #\+))
     (format:print-char #\-))
-  (if (= 0 mantissa-dot-index)
+  (if (zero? mantissa-dot-index)
       (when add-leading-zero?
 	(format:print-char #\0))
     (format:print-substring mantissa-buffer 0 mantissa-dot-index));integer part
@@ -1137,8 +1137,8 @@
     ;;    ^
     ;;   dot index = 1      mantissa-length = 1
     ;;
-    (when (and (= 0 mantissa-dot-index)
-	       (= 0 number-of-digits))
+    (when (and (zero? mantissa-dot-index)
+	       (zero? number-of-digits))
       (mantissa-prepend-zeros 1)
       (increment! mantissa-dot-index)))
 
@@ -1250,7 +1250,7 @@
 	number-string))
 
     (define (parse-string-fill-buffers)
-      (when (= 0 number-len)
+      (when (zero? number-len)
 	(error 'format:parse-flonum
 	  "invalid empty string as number string representation"))
       (initialise-flonum-variables)
@@ -1372,7 +1372,7 @@
 	       (set! mantissa-dot-index 0))))
 
       ;;Normalise buffers to have zero exponent.
-      (unless (and (= 0 scale) (= 0 exponent-length))
+      (unless (and (zero? scale) (zero? exponent-length))
 	;;SHIFT  is the number  of positions  we have  to shift  the dot
 	;;index to have zero exponent.   It may happen that shifting the
 	;;dot index moves it outside  the mantissa buffer, in which case
@@ -1436,7 +1436,7 @@
 	   ;;                          ^
 	   ;;                      dot index
 	   ;;
-	   ((= 0 left-zeros)
+	   ((zero? left-zeros)
 	    (increment! mantissa-dot-index shift))
 
 	   ;;This is for cases like:

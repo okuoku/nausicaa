@@ -1,6 +1,6 @@
 ;;;Derived from SRFI-1 list-processing library, reference implementation
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 1998, 1999 by Olin Shivers <shivers@ai.mit.edu>.
 ;;;Modified by Abdulaziz Ghuloum to port to Ikarus.
 ;;;Modified by Derick Eddington to port to R6RS.
@@ -369,7 +369,7 @@
   (let loop ((ret '())
 	     (dotted dotted)
 	     (k k))
-    (if (= 0 k)
+    (if (zero? k)
 	(reverse ret)
       (loop (cons (car dotted) ret)
 	    (cdr dotted)

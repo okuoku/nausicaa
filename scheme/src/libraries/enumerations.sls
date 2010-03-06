@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -116,7 +116,7 @@
 			      (ell	'()))
 		     (cond ((null? alist)
 			    (list->set ell))
-			   ((not (= 0 (bitwise-and value (caar alist))))
+			   ((not (zero? (bitwise-and value (caar alist))))
 			    (loop (cdr alist) (cons (cdar alist) ell)))
 			   (else
 			    (loop (cdr alist) ell)))))))

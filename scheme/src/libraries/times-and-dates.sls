@@ -1119,7 +1119,7 @@
   (if (> hr 11) tm:locale-pm tm:locale-am))
 
 (define (tm:tz-printer offset port)
-  (cond ((= 0 offset)		(display "Z" port))
+  (cond ((zero? offset)		(display "Z" port))
 	((negative? offset)	(display "-" port))
 	(else			(display "+" port)))
   (if (not (= offset 0))

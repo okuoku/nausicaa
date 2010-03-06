@@ -1,6 +1,6 @@
 ;;;Lightweight testing (reference implementation)
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2005-2006 Sebastian Egner <Sebastian.Egner@philips.com>
 ;;;Modified by Derick Eddington for R6RS Scheme.
 ;;;
@@ -373,7 +373,7 @@
 
 (define (eval-this-test?)
   (or (not selected-test)
-      (= 0 (string-length selected-test))
+      (zero? (string-length selected-test))
       (let ((name (check-test-name)))
 	(if name
 	    (or (string-prefix? selected-test name)

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -87,7 +87,7 @@
   (integer->pointer 0))
 
 (define (pointer-null? pointer)
-  (= 0 (pointer->integer pointer)))
+  (zero? (pointer->integer pointer)))
 
 (define (pointer-diff pointer-1 pointer-2)
   (- (pointer->integer pointer-1)

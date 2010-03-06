@@ -1,6 +1,6 @@
 ;;; low level strings library --
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2009 Derick Eddington
 ;;;
 ;;;Derived from the SRFI 13 reference implementation.
@@ -1566,7 +1566,7 @@
     (string-set! str i fill-char)))
 
 (define (string-swap! str i j)
-  (when (= 0 (string-length str))
+  (when (zero? (string-length str))
     (assertion-violation 'string-swap!
       "attempt to swap elements in an empty string"))
   (when (not (= i j))

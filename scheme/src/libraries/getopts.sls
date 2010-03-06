@@ -255,7 +255,7 @@
 		   (%deal-with-non-option arg.ptr))
 		 (parse-next-argument (cdr command-line) marked-end-of-options?))
 
-		((= 0 arg.len)
+		((zero? arg.len)
 		 ;;In truth, this should never happen.
 		 (parse-next-argument (cdr command-line) marked-end-of-options?))
 

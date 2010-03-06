@@ -1178,7 +1178,7 @@
 	    (let loop ((rp2 rp))
 	      (if (pair? rp2)
 		  (let ((j (car rp2)))
-		    (if (= 0 (vector-ref INDEX j))
+		    (if (zero? (vector-ref INDEX j))
 			(traverse j))
 		    (if (> (vector-ref INDEX i)
 			   (vector-ref INDEX j))
@@ -1202,7 +1202,7 @@
   (let loop ((i 0))
     (if (< i ngotos)
 	(begin
-	  (if (and (= 0 (vector-ref INDEX i))
+	  (if (and (zero? (vector-ref INDEX i))
 		   (pair? (vector-ref R i)))
 	      (traverse i))
 	  (loop (+ i 1)))))) ; end of DIGRAPH
@@ -1641,7 +1641,7 @@
 						  (cons (string->symbol
 							 (string-append "$" (number->string i)))
 							v)))))
-			 (body	(if (= 0 goto-keyword)
+			 (body	(if (zero? goto-keyword)
 				    '$1
 				  `(yy-reduce-pop-and-push ,val-num ,goto-keyword ,semantic-action
 							   yy-stack-states yy-stack-values))))

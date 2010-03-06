@@ -1,5 +1,5 @@
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2008 Derick Eddington
 ;;;
 ;;;Taylor Campbell wrote this code; he places it in the public domain.
@@ -332,7 +332,7 @@
 ;;;; predicates
 
 (define (%vector-null? vec start past)
-  (or (= 0 past)
+  (or (zero? past)
       (= start past)))
 
 (define (%subvector-every pred vec start past)
@@ -1547,7 +1547,7 @@
     (vector-set! str i fill-value)))
 
 (define (vector-swap! vec i j)
-  (when (= 0 (vector-length vec))
+  (when (zero? (vector-length vec))
     (assertion-violation 'vector-swap!
       "attempt to swap elements in an empty vector"))
   (when (not (= i j))

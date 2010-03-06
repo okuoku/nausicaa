@@ -114,7 +114,7 @@
      (let loop ((ret    '())
 		(dotted ?dotted)
 		(k      ?k))
-       (if (= 0 k)
+       (if (zero? k)
 	   (reverse ret)
 	 (loop (cons (car dotted) ret)
 	       (cdr dotted)

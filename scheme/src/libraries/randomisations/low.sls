@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2008 Derick Eddington
 ;;;Copyright (c) 2002 Sebastian Egner
 ;;;
@@ -83,7 +83,7 @@
 ;;;; random numbers generation
 
 (define (make-random-integer U M make-random-bits)
-  (cond ((= 0 U)
+  (cond ((zero? U)
 	 0)
 	((<= U M)
 	 (%make-random-integer/small U M make-random-bits))
