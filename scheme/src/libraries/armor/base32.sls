@@ -812,7 +812,14 @@
 	(cond ((zero? src-len)
 	       (values #t dst-start src-start))
 	      ((zero? (mod src-len 8))
-	       (base32-decode-update! ctx dst-bv dst-start src-bv src-start src-past))
+	       (receive (finished? src-next dst-next)
+		   (base32-decode-update! ctx dst-bv dst-start src-bv src-start src-past)
+		 (cond (finished?		;;a padded block was successfully processed
+			(values finished? src-next dst-next))
+		       ((= src-next src-past)	;;all the input was successfully processed
+			(values #t src-next dst-next))
+		       (else			;;output bytevector full
+			(values finished? src-next dst-next)))))
 	      (else
 	       (%error-invalid-input-length))))
 

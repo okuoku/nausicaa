@@ -895,7 +895,7 @@ The @library{nausicaa} language
 Syntactic abstractions
 
 * naulib macros lang::          Language constructs.
-* naulib macros let::           Bindings constructs.
+* naulib macros let::           Binding constructs.
 * naulib macros loop::          Loop constructs.
 * naulib macros id::            Bindings mutations.
 * naulib macros define::        Macro definition helpers.
@@ -1527,6 +1527,12 @@ Base 32 encoder/decoder
 * armor base32 intro::          Introduction to base32 encoding.
 * armor base32 encode::         Encoding byte streams with base32.
 * armor base32 decode::         Decoding byte streams with base32.
+* armor base32 examples::       Examples of encoding and decoding.
+
+Examples of encoding and decoding
+
+* armor base32 ex encode::      Encoding example.
+* armor base32 ex decode::      Decoding example.
 
 Knuth-Morris-Pratt searching
 

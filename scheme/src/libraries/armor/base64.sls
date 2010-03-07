@@ -85,7 +85,7 @@
 	  (immutable table))
   (protocol
    (lambda (maker)
-     (lambda (encoding expect-padding? encoding-case)
+     (lambda (encoding expect-padding?)
        ;;ENCODING must  be a Scheme symbol selecting  the encoding type:
        ;;base64, base64/url.
        ;;
@@ -189,8 +189,8 @@
   ;;only and produce output in  4-bytes blocks only, so the return value
   ;;is always zero or an exact multiple of 4.
   ;;
-  (if (<= 3 len)
-      (* 4 (div len 3))
+  (if (<= base64-encode-block-length len)
+      (* base64-decode-block-length (div len base64-encode-block-length))
     0))
 
 (define base64-encode-final-length
@@ -211,8 +211,8 @@
    ((len padding?)
     (case len
       ((0)	0)
-      ((1)	(if padding? 4 2))
-      ((2)	(if padding? 4 3))
+      ((1)	(if padding? base64-decode-block-length 2))
+      ((2)	(if padding? base64-decode-block-length 3))
       (else	#f)))))
 
 (define base64-encode-length
@@ -225,7 +225,7 @@
    ((len)
     (base64-encode-length len #f))
    ((len padding?)
-    (let ((final-len (base64-encode-final-length (mod len 3) padding?)))
+    (let ((final-len (base64-encode-final-length (mod len base64-encode-block-length) padding?)))
       (if final-len
 	  (+ final-len (base64-encode-update-length len))
 	#f)))))
@@ -246,14 +246,14 @@
   ;;blocks only and produce output in 3-bytes blocks only, so the return
   ;;value is always zero or an exact multiple of 3.
   ;;
-  (if (<= 4 len)
-      (* 3 (div len 4))
+  (if (<= base64-decode-block-length len)
+      (* base64-encode-block-length (div len base64-decode-block-length))
     0))
 
 (define base64-decode-final-length
   ;;Return the  minimum number  of bytes required  in the  output vector
-  ;;when BASE64-DECODE-FINAL! is applied to  LEN < 4 ASCII characters of
-  ;;input.
+  ;;when     BASE64-DECODE-FINAL!     is     applied    to     LEN     <
+  ;;BASE64-DECODE-BLOCK-LENGTH ASCII characters of input.
   ;;
   ;;When  padding is  off: not  all the  arguments between  0 and  3 are
   ;;valid; if  the argument is not  valid the return value  is #f.  When
@@ -281,7 +281,7 @@
    ((len)
     (base64-decode-length len #f))
    ((len padding?)
-    (let ((final-len (base64-decode-final-length (mod len 8) padding?)))
+    (let ((final-len (base64-decode-final-length (mod len base64-decode-block-length) padding?)))
       (if final-len
 	  (+ final-len (base64-decode-update-length len))
 	#f)))))
@@ -302,8 +302,9 @@
   ;;(2) The index of the next  non-read byte in SRC-BV; if all the bytes
   ;;from SRC-BV are consumed, this value is SRC-PAST.
   ;;
-  ;;Binary data bytes  are read from SRC-BV in chunks  of 6 bytes; ASCII
-  ;;characters are written to DST-BV in chunks of 8 bytes.
+  ;;Binary   data   bytes   are   read   from  SRC-BV   in   chunks   of
+  ;;BASE64-ENCODE-BLOCK-LENGTH  bytes; ASCII  characters are  written to
+  ;;DST-BV in chunks of BASE64-DECODE-BLOCK-LENGTH bytes.
   ;;
 
   (define table
@@ -322,30 +323,27 @@
       (bytevector-u8-set! dst-bv i (vector-ref table (lower6 ?expr)))
       (incr! i))
 
-    (if (or (< src-len 6) (< dst-len 8))
+    (if (or (< src-len base64-encode-block-length)
+	    (< dst-len base64-decode-block-length))
 	(values i j)
       ;;    src0     src1     src2
       ;;
       ;; |76543210|76543210|76543210|
       ;; |--------+--------+--------|
-      ;; |543210  |        |        |
-      ;; |      54|3210    |        |
-      ;; |        |    5432|10      |
-      ;; |        |        |  543210|
+      ;; |543210  |        |        | dst0
+      ;; |      54|3210    |        | dst1
+      ;; |        |    5432|10      | dst2
+      ;; |        |        |  543210| dst3
       (let ((src0 (*src))
 	    (src1 (*src))
-	    (src2 (*src))
-	    (src3 (*src))
-	    (src4 (*src)))
-	(*dst 0              (>> src0 3))
-	(*dst 1 (bitwise-ior (<< src0 2) (>> src1 6)))
-	(*dst 2              (>> src1 1))
-	(*dst 3 (bitwise-ior (<< src1 4) (>> src2 4)))
-	(*dst 4 (bitwise-ior (<< src2 1) (>> src3 7)))
-	(*dst 5              (>> src3 2))
-	(*dst 6 (bitwise-ior (<< src3 3) (>> src4 5)))
-	(*dst 7              src4)
-	(loop i j (- src-len 5) (- dst-len 8))))))
+	    (src2 (*src)))
+	(*dst 0                          (>> src0 2))
+	(*dst 1 (bitwise-ior (<< src0 4) (>> src1 4)))
+	(*dst 2 (bitwise-ior (<< src1 2) (>> src2 6)))
+	(*dst 3 (bitwise-ior (<< src1 6)     src2))
+	(loop i j
+	      (- src-len base64-encode-block-length)
+	      (- dst-len base64-decode-block-length))))))
 
 
 (define (base64-encode-final! ctx dst-bv dst-start src-bv src-start src-past)
@@ -366,8 +364,9 @@
   ;;(3) The index of the next  non-read byte in SRC-BV; if all the bytes
   ;;from SRC-BV are consumed, this value is SRC-PAST.
   ;;
-  ;;Binary data bytes  are read from SRC-BV in chunks  of 6 bytes; ASCII
-  ;;characters are written to DST-BV  in chunks of 8 bytes.  After that,
+  ;;Binary   data   bytes   are   read   from  SRC-BV   in   chunks   of
+  ;;BASE64-ENCODE-BLOCK-LENGTH  bytes; ASCII  characters are  written to
+  ;;DST-BV in  chunks of BASE64-DECODE-BLOCK-LENGTH  bytes.  After that,
   ;;trailing  bytes from  SRC-BV are  encoded and  optionally  padded as
   ;;specified in CTX.
   ;;
@@ -399,138 +398,62 @@
     (cond ((zero? src-len)
 	   (values #t i j))
 
-	  ((<= 6 src-len)
-	   ;;    src0     src1     src2     src3     src4
-	   ;;
-	   ;; |76543210|76543210|76543210|76543210|76543210|
-	   ;; |--------+--------+--------+--------+--------|
-	   ;; |43210   |        |        |        |        | dst0
-	   ;; |     432|10      |        |        |        | dst1
-	   ;; |        |  43210 |        |        |        | dst2
-	   ;; |        |       4|3210    |        |        | dst3
-	   ;; |        |        |    4321|0       |        | dst4
-	   ;; |        |        |        | 43210  |        | dst5
-	   ;; |        |        |        |      43|210     | dst6
-	   ;; |        |        |        |        |   43210| dst7
-	   (if (< dst-len 8)
-	       (values #f i j)
-	     (let ((src0 (*src))
-		   (src1 (*src))
-		   (src2 (*src))
-		   (src3 (*src))
-		   (src4 (*src)))
-	       (*dst 0              (>> src0 3))
-	       (*dst 1 (bitwise-ior (<< src0 2) (>> src1 6)))
-	       (*dst 2              (>> src1 1))
-	       (*dst 3 (bitwise-ior (<< src1 4) (>> src2 4)))
-	       (*dst 4 (bitwise-ior (<< src2 1) (>> src3 7)))
-	       (*dst 5              (>> src3 2))
-	       (*dst 6 (bitwise-ior (<< src3 3) (>> src4 5)))
-	       (*dst 7              src4)
-	       (loop i j (- src-len 5) (- dst-len 8)))))
-
-	  ((= 4 src-len)
-	   ;;    src0     src1     src2     src3
-	   ;;
-	   ;; |76543210|76543210|76543210|76543210|
-	   ;; |--------+--------+--------+--------+
-	   ;; |43210   |        |        |        | dst0
-	   ;; |     432|10      |        |        | dst1
-	   ;; |        |  43210 |        |        | dst2
-	   ;; |        |       4|3210    |        | dst3
-	   ;; |        |        |    4321|0       | dst4
-	   ;; |        |        |        | 43210  | dst5
-	   ;; |        |        |        |      43|210 dst6
-	   ;; |        |        |        |        |
-	   (if (< dst-len (if generate-padding? 8 7))
-	       (values #f i j)
-	     (let ((src0 (*src))
-		   (src1 (*src))
-		   (src2 (*src))
-		   (src3 (*src)))
-	       (*dst 0              (>> src0 3))
-	       (*dst 1 (bitwise-ior (<< src0 2) (>> src1 6)))
-	       (*dst 2              (>> src1 1))
-	       (*dst 3 (bitwise-ior (<< src1 4) (>> src2 4)))
-	       (*dst 4 (bitwise-ior (<< src2 1) (>> src3 7)))
-	       (*dst 5              (>> src3 2))
-	       (*dst 6              (<< src3 3))
-	       (when generate-padding?
-		 (*pad 7))
-	       (values #t i j))))
-
-	  ((= 3 src-len)
+	  ((<= base64-encode-block-length src-len)
 	   ;;    src0     src1     src2
 	   ;;
 	   ;; |76543210|76543210|76543210|
-	   ;; |--------+--------+--------+
-	   ;; |43210   |        |        | dst0
-	   ;; |     432|10      |        | dst1
-	   ;; |        |  43210 |        | dst2
-	   ;; |        |       4|3210    | dst3
-	   ;; |        |        |    4321|0 dst4
-	   ;; |        |        |        |
-	   (if (< dst-len (if generate-padding? 8 5))
+	   ;; |--------+--------+--------|
+	   ;; |543210  |        |        | dst0
+	   ;; |      54|3210    |        | dst1
+	   ;; |        |    5432|10      | dst2
+	   ;; |        |        |  543210| dst3
+	   (if (< dst-len base64-decode-block-length)
 	       (values #f i j)
 	     (let ((src0 (*src))
 		   (src1 (*src))
 		   (src2 (*src)))
-	       (*dst 0              (>> src0 3))
-	       (*dst 1 (bitwise-ior (<< src0 2) (>> src1 6)))
-	       (*dst 2              (>> src1 1))
-	       (*dst 3 (bitwise-ior (<< src1 4) (>> src2 4)))
-	       (*dst 4              (<< src2 1))
-	       (when generate-padding?
-		 (*pad 5)
-		 (*pad 6)
-		 (*pad 7))
-	       (values #t i j))))
+	       (*dst 0              (>> src0 2))
+	       (*dst 1 (bitwise-ior (<< src0 4) (>> src1 4)))
+	       (*dst 2 (bitwise-ior (<< src1 2) (>> src2 6)))
+	       (*dst 3 (bitwise-ior (<< src1 6)     src2))
+	       (loop i j
+		     (- src-len base64-encode-block-length)
+		     (- dst-len base64-decode-block-length)))))
 
 	  ((= 2 src-len)
 	   ;;    src0     src1
 	   ;;
 	   ;; |76543210|76543210|
-	   ;; |--------+--------+
-	   ;; |43210   |        | dst0
-	   ;; |     432|10      | dst1
-	   ;; |        |  43210 | dst2
-	   ;; |        |       4|3210 dst3
-	   ;; |        |        |
-	   (if (< dst-len (if generate-padding? 8 4))
-	       (values i j)
+	   ;; |--------+--------|
+	   ;; |543210  |        |   dst0
+	   ;; |      54|3210    |   dst1
+	   ;; |        |    5432|10 dst2
+	   (if (< dst-len (if generate-padding? base64-decode-block-length 3))
+	       (values #f i j)
 	     (let ((src0 (*src))
 		   (src1 (*src)))
-	       (*dst 0              (>> src0 3))
-	       (*dst 1 (bitwise-ior (<< src0 2) (>> src1 6)))
-	       (*dst 2              (>> src1 1))
-	       (*dst 3              (<< src1 4))
+	       (*dst 0              (>> src0 2))
+	       (*dst 1 (bitwise-ior (<< src0 4) (>> src1 4)))
+	       (*dst 2 (bitwise-ior (<< src1 2)))
 	       (when generate-padding?
-		 (*pad 4)
-		 (*pad 5)
-		 (*pad 6)
-		 (*pad 7))
+		 (*pad 3))
 	       (values #t i j))))
 
 	  ((= 1 src-len)
-	   ;;   src0
+	   ;;    src0
 	   ;;
 	   ;; |76543210|
 	   ;; |--------|
-	   ;; |43210   | dst0
-	   ;; |     432|10 dst1
-	   ;; |        |
-	   (if (< dst-len (if generate-padding? 8 2))
+	   ;; |543210  |     dst0
+	   ;; |      54|3210 dst1
+	   (if (< dst-len (if generate-padding? base64-decode-block-length 2))
 	       (values #f i j)
 	     (let ((src0 (*src)))
-	       (*dst 0              (>> src0 3))
-	       (*dst 1              (<< src0 2))
+	       (*dst 0              (>> src0 2))
+	       (*dst 1 (bitwise-ior (<< src0 4)))
 	       (when generate-padding?
 		 (*pad 2)
-		 (*pad 3)
-		 (*pad 4)
-		 (*pad 5)
-		 (*pad 6)
-		 (*pad 7))
+		 (*pad 3))
 	       (values #t i j)))))))
 
 
@@ -552,8 +475,9 @@
   ;;(3)  The index  of the  next  non-read byte  in SRC-BV;  if all  the
   ;;characters from SRC-BV are consumed, this value is SRC-PAST.
   ;;
-  ;;ASCII characters are  read from SRC-BV in chunks  of 8 bytes; binary
-  ;;data bytes are written to DST-BV in chunks of 6 bytes.
+  ;;ASCII   characters    are   read   from   SRC-BV    in   chunks   of
+  ;;BASE64-DECODE-BLOCK-LENGTH bytes;  binary data bytes  are written to
+  ;;DST-BV in chunks of BASE64-ENCODE-BLOCK-LENGTH bytes.
   ;;
 
   (define table
@@ -597,93 +521,65 @@
       (bytevector-u8-set! dst-bv i (lower8 ?expr))
       (incr! i))
 
-    (cond ((or (< src-len 8) (< dst-len 5))
+    (cond ((or (< src-len base64-decode-block-length)
+	       (< dst-len base64-encode-block-length))
 	   (values #f i j))
 
 	  (expect-padding?
-	   ;;    src0     src1     src2     src3     src4     src5     src6     src7
+	   ;;When  padding   is  on,   there  are  only   the  following
+	   ;;possibilities for a 4-bytes block:
 	   ;;
-	   ;; |76543210|76543210|76543210|76543210|76543210|76543210|76543210|76543210|
-	   ;; |--------+--------+--------+--------+--------+--------+--------+--------|
-	   ;; |   76543|   210  |        |        |        |        |        |        | dst0
-	   ;; |        |      76|   54321|   0    |        |        |        |        | dst1
-	   ;; |        |        |        |    7654|   3210 |        |        |        | dst2
-	   ;; |        |        |        |        |       7|   65432|   10   |        | dst3
-	   ;; |        |        |        |        |        |        |     765|   43210| dst4
-	   (let ((char0 (*src))
-		 (char1 (*src))
-		 (char2 (*src))
-		 (char3 (*src))
-		 (char4 (*src))
-		 (char5 (*src))
-		 (char6 (*src))
-		 (char7 (*src)))
-	     (let ((pad0? (= char0 pad-char))
-		   (pad1? (= char1 pad-char))
-		   (pad2? (= char2 pad-char))
-		   (pad3? (= char3 pad-char))
-		   (pad4? (= char4 pad-char))
-		   (pad5? (= char5 pad-char))
-		   (pad6? (= char6 pad-char))
-		   (pad7? (= char7 pad-char)))
-	       (when (or pad0? pad1?
-			 (and (not pad2?) pad3?)
-			 (and (not pad5?) pad6?))
-		 (%error-invalid-pad-area char0 char1 char2 char3 char4 char5 char6 char7))
-	       (let ((src0 (%decode char0))
-		     (src1 (%decode char1)))
-		 (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
-		 (if pad2?
-		     (if (and pad4? pad5? pad7?)
-			 (values #t i j)
-		       (%error-invalid-pad-area char0 char1 char2 char3 char4 char5 char6 char7))
-		   (let ((src2 (%decode char2))
-			 (src3 (%decode char3)))
-		     (*dst 1 (bitwise-ior (<< src1 6) (<< src2 1) (>> src3 4)))
-		     (if pad4?
-			 (if (and pad5? pad7?)
-			     (values #t i j)
-			   (%error-invalid-pad-area char0 char1 char2 char3 char4 char5 char6 char7))
-		       (let ((src4 (%decode char4)))
-			 (*dst 2 (bitwise-ior (<< src3 4) (>> src4 1)))
-			 (if pad5?
-			     (if pad7?
-				 (values #t i j)
-			       (%error-invalid-pad-area char0 char1 char2 char3 char4 char5 char6 char7))
-			   (let ((src5 (%decode char5))
-				 (src6 (%decode char6)))
-			     (*dst 3 (bitwise-ior (<< src4 7) (<< src5 2) (>> src6 3)))
-			     (if pad7?
-				 (values #t i j)
-			       (let ((src7 (%decode char7)))
-				 (*dst 4 (bitwise-ior (<< src6 5) src7))
-				 (loop i j (- src-len 8) (- dst-len 5))))))))))))))
+	   ;;	XX==
+	   ;;	XXX=
+	   ;;	XXXX
+	   ;;
+	   ;;    src0     src1     src2     src3
+	   ;;
+	   ;; |76543210|76543210|76543210|76543210|
+	   ;; |--------+--------+--------+--------|
+	   ;; |  765432|  10    |        |        | dst0
+	   ;; |        |    7654|  3210  |        | dst1
+	   ;; |        |        |      76|  543210| dst2
+	   ;;
+	   (let* ((char0 (*src))
+		  (char1 (*src))
+		  (char2 (*src))
+		  (char3 (*src))
+		  (src0  (%decode char0))
+		  (src1  (%decode char1)))
+	     (*dst 0 (bitwise-ior (<< src0 2) (>> src1 4)))
+	     (if (= char2 pad-char)
+		 (if (= char3 pad-char)
+		     (values #t i j)
+		   (%error-invalid-pad-area char0 char1 char2 char3))
+	       (let ((src2 (%decode char2)))
+		 (*dst 1 (bitwise-ior (<< src1 4) (>> src2 2)))
+		 (if (= char3 pad-char)
+		     (values #t i j)
+		   (let ((src3 (%decode char3)))
+		     (*dst 2 (bitwise-ior (<< src2 6) src3))
+		     (loop i j
+			   (- src-len base64-decode-block-length)
+			   (- dst-len base64-encode-block-length))))))))
 
 	  (else
-	   ;;    src0     src1     src2     src3     src4     src5     src6     src7
+	   ;;    src0     src1     src2     src3
 	   ;;
-	   ;; |76543210|76543210|76543210|76543210|76543210|76543210|76543210|76543210|
-	   ;; |--------+--------+--------+--------+--------+--------+--------+--------|
-	   ;; |   76543|   210  |        |        |        |        |        |        | dst0
-	   ;; |        |      76|   54321|   0    |        |        |        |        | dst1
-	   ;; |        |        |        |    7654|   3210 |        |        |        | dst2
-	   ;; |        |        |        |        |       7|   65432|   10   |        | dst3
-	   ;; |        |        |        |        |        |        |     765|   43210| dst4
+	   ;; |76543210|76543210|76543210|76543210|
+	   ;; |--------+--------+--------+--------|
+	   ;; |  765432|  10    |        |        | dst0
+	   ;; |        |    7654|  3210  |        | dst1
+	   ;; |        |        |      76|  543210| dst2
 	   (let ((src0 (%decode (*src)))
 		 (src1 (%decode (*src)))
 		 (src2 (%decode (*src)))
-		 (src3 (%decode (*src)))
-		 (src4 (%decode (*src)))
-		 (src5 (%decode (*src)))
-		 (src6 (%decode (*src)))
-		 (src7 (%decode (*src))))
-
-	     (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
-	     (*dst 1 (bitwise-ior (<< src1 6) (<< src2 1) (>> src3 4)))
-	     (*dst 2 (bitwise-ior (<< src3 4) (>> src4 1)))
-	     (*dst 3 (bitwise-ior (<< src4 7) (<< src5 2) (>> src6 3)))
-	     (*dst 4 (bitwise-ior (<< src6 5) src7))
-	     (loop i j (- src-len 8) (- dst-len 5)))))))
+		 (src3 (%decode (*src))))
+	     (*dst 0 (bitwise-ior (<< src0 2) (>> src1 4)))
+	     (*dst 1 (bitwise-ior (<< src1 4) (>> src2 2)))
+	     (*dst 2 (bitwise-ior (<< src2 6)     src3))
+	     (loop i j
+		   (- src-len base64-decode-block-length)
+		   (- dst-len base64-encode-block-length)))))))
 
 
 (define (base64-decode-final! ctx dst-bv dst-start src-bv src-start src-past)
@@ -704,10 +600,11 @@
   ;;(3) The index of the next  non-read byte in SRC-BV; if all the bytes
   ;;from SRC-BV are consumed, this value is SRC-PAST.
   ;;
-  ;;ASCII characters are  read from SRC-BV in chunks  of 8 bytes; binary
-  ;;data bytes are written to DST-BV  in chunks of 8 bytes.  If the last
-  ;;characters are  in a chunk of  less than 8, they  are interpreted as
-  ;;unpadded characters as specified in CTX.
+  ;;ASCII   characters    are   read   from   SRC-BV    in   chunks   of
+  ;;BASE64-DECODE-BLOCK-LENGTH bytes;  binary data bytes  are written to
+  ;;DST-BV in  chunks of BASE64-ENCODE-BLOCK-LENGTH bytes.   If the last
+  ;;characters are  in a chunk of  less than BASE64-DECODE-BLOCK-LENGTH,
+  ;;they are interpreted as unpadded characters as specified in CTX.
   ;;
 
   (define who 'base64-decode-final!)
@@ -723,8 +620,15 @@
       (let ((src-len (- src-past src-start)))
 	(cond ((zero? src-len)
 	       (values #t dst-start src-start))
-	      ((zero? (mod src-len 8))
-	       (base64-decode-update! ctx dst-bv dst-start src-bv src-start src-past))
+	      ((zero? (mod src-len base64-decode-block-length))
+	       (receive (finished? src-next dst-next)
+		   (base64-decode-update! ctx dst-bv dst-start src-bv src-start src-past)
+		 (cond (finished?		;;a padded block was successfully processed
+			(values finished? src-next dst-next))
+		       ((= src-next src-past)	;;all the input was successfully processed
+			(values #t src-next dst-next))
+		       (else			;;output bytevector full
+			(values finished? src-next dst-next)))))
 	      (else
 	       (%error-invalid-input-length))))
 
@@ -762,107 +666,43 @@
 	(cond ((zero? src-len)
 	       (values #t i j))
 
-	      ((<= 8 src-len)
-	       ;;    src0     src1     src2     src3     src4     src5     src6     src7
-	       ;;
-	       ;; |76543210|76543210|76543210|76543210|76543210|76543210|76543210|76543210|
-	       ;; |--------+--------+--------+--------+--------+--------+--------+--------|
-	       ;; |   76543|   210  |        |        |        |        |        |        | dst0
-	       ;; |        |      76|   54321|   0    |        |        |        |        | dst1
-	       ;; |        |        |        |    7654|   3210 |        |        |        | dst2
-	       ;; |        |        |        |        |       7|   65432|   10   |        | dst3
-	       ;; |        |        |        |        |        |        |     765|   43210| dst4
-	       (if (< dst-len 5)
-		   (values #f i j)
-		 (let ((src0 (*src))
-		       (src1 (*src))
-		       (src2 (*src))
-		       (src3 (*src))
-		       (src4 (*src))
-		       (src5 (*src))
-		       (src6 (*src))
-		       (src7 (*src)))
-		   (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
-		   (*dst 1 (bitwise-ior (<< src1 6) (<< src2 1) (>> src3 4)))
-		   (*dst 2 (bitwise-ior (<< src3 4) (>> src4 1)))
-		   (*dst 3 (bitwise-ior (<< src4 7) (<< src5 2) (>> src6 3)))
-		   (*dst 4 (bitwise-ior (<< src6 5) src7))
-		   (loop i j (- src-len 8) (- dst-len 5)))))
-
-	      ((= 7 src-len)
-	       ;;    src0     src1     src2     src3     src4     src5     src6
-	       ;;
-	       ;; |76543210|76543210|76543210|76543210|76543210|76543210|76543210|
-	       ;; |--------+--------+--------+--------+--------+--------+--------|
-	       ;; |   76543|   210  |        |        |        |        |        | dst0
-	       ;; |        |      76|   54321|   0    |        |        |        | dst1
-	       ;; |        |        |        |    7654|   3210 |        |        | dst2
-	       ;; |        |        |        |        |       7|   65432|   10   | dst3
-	       (if (< dst-len 4)
-		   (values #f i j)
-		 (let ((src0 (*src))
-		       (src1 (*src))
-		       (src2 (*src))
-		       (src3 (*src))
-		       (src4 (*src))
-		       (src5 (*src))
-		       (src6 (*src)))
-		   (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
-		   (*dst 1 (bitwise-ior (<< src1 6) (<< src2 1) (>> src3 4)))
-		   (*dst 2 (bitwise-ior (<< src3 4) (>> src4 1)))
-		   (*dst 3 (bitwise-ior (<< src4 7) (<< src5 2) (>> src6 3)))
-		   (values #t i j))))
-
-	      ((= 5 src-len)
-	       ;;    src0     src1     src2     src3     src4
-	       ;;
-	       ;; |76543210|76543210|76543210|76543210|76543210|
-	       ;; |--------+--------+--------+--------+--------|
-	       ;; |   76543|   210  |        |        |        | dst0
-	       ;; |        |      76|   54321|   0    |        | dst1
-	       ;; |        |        |        |    7654|   3210 | dst2
-	       (if (< dst-len 3)
-		   (values #f i j)
-		 (let ((src0 (*src))
-		       (src1 (*src))
-		       (src2 (*src))
-		       (src3 (*src))
-		       (src4 (*src)))
-		   (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
-		   (*dst 1 (bitwise-ior (<< src1 6) (<< src2 1) (>> src3 4)))
-		   (*dst 2 (bitwise-ior (<< src3 4) (>> src4 1)))
-		   (values #t i j))))
-
-	      ((= 4 src-len)
-	       ;;    src0     src1     src2     src3
-	       ;;
+	      ((<= base64-decode-block-length src-len)
 	       ;; |76543210|76543210|76543210|76543210|
 	       ;; |--------+--------+--------+--------|
-	       ;; |   76543|   210  |        |        | dst0
-	       ;; |        |      76|   54321|   0    | dst1
-	       (if (< dst-len 2)
-		   (values #f i j)
-		 (let ((src0 (*src))
-		       (src1 (*src))
-		       (src2 (*src))
-		       (src3 (*src)))
-		   (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
-		   (*dst 1 (bitwise-ior (<< src1 6) (<< src2 1) (>> src3 4)))
-		   (values #t i j))))
+	       ;; |  765432|  10    |        |        | dst0
+	       ;; |        |    7654|  3210  |        | dst1
+	       ;; |        |        |      76|  543210| dst2
+	       (let ((src0 (*src))
+		     (src1 (*src))
+		     (src2 (*src))
+		     (src3 (*src)))
+		 (*dst 0 (bitwise-ior (<< src0 2) (>> src1 4)))
+		 (*dst 1 (bitwise-ior (<< src1 4) (>> src2 2)))
+		 (*dst 2 (bitwise-ior (<< src2 6)     src3))
+		 (loop i j
+		       (- src-len base64-decode-block-length)
+		       (- dst-len base64-encode-block-length))))
+
+	      ((= 3 src-len)
+	       ;; |76543210|76543210|76543210|
+	       ;; |--------+--------+--------|
+	       ;; |  765432|  10    |        | dst0
+	       ;; |        |    7654|  3210  | dst1
+	       (let ((src0 (*src))
+		     (src1 (*src))
+		     (src2 (*src)))
+		 (*dst 0 (bitwise-ior (<< src0 2) (>> src1 4)))
+		 (*dst 1 (bitwise-ior (<< src1 4) (>> src2 2)))
+		 (values #t i j)))
 
 	      ((= 2 src-len)
-	       ;;    src0     src1
-	       ;;
 	       ;; |76543210|76543210|
-	       ;; |--------+--------+
-	       ;; |   76543|   210  | dst0
-	       ;;
-	       (if (< dst-len 1)
-		   (values #f i j)
-		 (let ((src0 (*src))
-		       (src1 (*src)))
-		   (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
-		   (values #t i j))))
+	       ;; |--------+--------|
+	       ;; |  765432|  10    |      dst0
+	       (let ((src0 (*src))
+		     (src1 (*src)))
+		 (*dst 0 (bitwise-ior (<< src0 2) (>> src1 4)))
+		 (values #t i j)))
 
 	      (else
 	       (%error-invalid-input-length)))))))

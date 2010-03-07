@@ -126,71 +126,43 @@
   #t)
 
 
-(parametrise ((check-test-name	'base64)
-	      (debugging	#t))
+;; (parametrise ((check-test-name	'base64)
+;; 	      (debugging	#t))
 
-  (define (encode plain)
-    (let* ((ctx (make-<base64-encode-ctx>))
-	   (src (string->utf8 plain))
-	   (dst (make-bytevector (base64-encode-length (bytevector-length src)))))
-      (let* ((done (base64-encode-update! ctx dst 0 src 0 (bytevector-length src)))
-	     (end  (base64-encode-final! ctx dst done)))
-	(utf8->string (subbytevector dst 0 (+ done end))))))
+;;   (define (encode plain)
+;;     (let* ((ctx (make-<base64-encode-ctx>))
+;; 	   (src (string->utf8 plain))
+;; 	   (dst (make-bytevector (base64-encode-length (bytevector-length src)))))
+;;       (let* ((done (base64-encode-update! ctx dst 0 src 0 (bytevector-length src)))
+;; 	     (end  (base64-encode-final! ctx dst done)))
+;; 	(utf8->string (subbytevector dst 0 (+ done end))))))
 
-  (define (decode encoded)
-    (let* ((ctx (make-<base64-decode-ctx> #f))
-	   (src (string->utf8 encoded))
-	   (dst (make-bytevector (base64-decode-length (bytevector-length src)))))
-      (let ((done (base64-decode-update! ctx dst 0 src 0 (bytevector-length src))))
-	(utf8->string (subbytevector dst 0 done)))))
+;;   (define (decode encoded)
+;;     (let* ((ctx (make-<base64-decode-ctx> #f))
+;; 	   (src (string->utf8 encoded))
+;; 	   (dst (make-bytevector (base64-decode-length (bytevector-length src)))))
+;;       (let ((done (base64-decode-update! ctx dst 0 src 0 (bytevector-length src))))
+;; 	(utf8->string (subbytevector dst 0 done)))))
 
-  (define (decode-blanks encoded)
-    (let* ((ctx (make-<base64-decode-ctx> #t))
-	   (src (string->utf8 encoded))
-	   (dst (make-bytevector (base64-decode-length (bytevector-length src)))))
-      (let ((done (base64-decode-update! ctx dst 0 src 0 (bytevector-length src))))
-	(utf8->string (subbytevector dst 0 done)))))
+;;   (define (decode-blanks encoded)
+;;     (let* ((ctx (make-<base64-decode-ctx> #t))
+;; 	   (src (string->utf8 encoded))
+;; 	   (dst (make-bytevector (base64-decode-length (bytevector-length src)))))
+;;       (let ((done (base64-decode-update! ctx dst 0 src 0 (bytevector-length src))))
+;; 	(utf8->string (subbytevector dst 0 done)))))
 
-;;; --------------------------------------------------------------------
+;; ;;; --------------------------------------------------------------------
 
-  (let ((plain "ABC") (encoded "QUJD"))
-    (check (encode plain) => encoded)
-    (check (decode encoded) => plain))
+;;   (check
+;;       (guard (E (else
+;; 		 ;;;(debug-print-condition "blanks: " E)
+;; 		 #t))
+;; 	(decode "SG Vsb \tG\n8="))
+;;     => #t)
 
-  (let ((plain "") (encoded ""))
-    (check (encode plain)	=> encoded)
-    (check (decode encoded)	=> plain))
+;;   (check (decode-blanks "SG Vsb \tG\n8=") => "Hello")
 
-  (let ((plain "H") (encoded "SA=="))
-    (check (encode plain)	=> encoded)
-    (check (decode encoded)	=> plain))
-
-  (let ((plain "He") (encoded "SGU="))
-    (check (encode plain)	=> encoded)
-    (check (decode encoded)	=> plain))
-
-  (let ((plain "Hel") (encoded "SGVs"))
-    (check (encode plain)	=> encoded)
-    (check (decode encoded)	=> plain))
-
-  (let ((plain "Hell")  (encoded "SGVsbA=="))
-    (check (encode plain)	=> encoded)
-    (check (decode encoded)	=> plain))
-
-  (let ((plain "Hello") (encoded "SGVsbG8="))
-    (check (encode plain)	=> encoded)
-    (check (decode encoded)	=> plain))
-
-  (check
-      (guard (E (else
-		 ;;;(debug-print-condition "blanks: " E)
-		 #t))
-	(decode "SG Vsb \tG\n8="))
-    => #t)
-
-  (check (decode-blanks "SG Vsb \tG\n8=") => "Hello")
-
-  #t)
+;;   #t)
 
 
 (parametrise ((check-test-name	'ascii85)
