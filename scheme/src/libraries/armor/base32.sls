@@ -262,8 +262,8 @@
   ;;only and produce output in  8-bytes blocks only, so the return value
   ;;is always zero or an exact multiple of 8.
   ;;
-  (if (<= 5 len)
-      (* 8 (div len 5))
+  (if (<= base32-encode-block-length len)
+      (* base32-decode-block-length (div len base32-encode-block-length))
     0))
 
 (define base32-encode-final-length
@@ -283,7 +283,7 @@
     (base32-encode-final-length len #f))
    ((len padding?)
     (if padding?
-	(if (<= 0 len 4) 8 #f)
+	(if (<= 0 len 4) base32-decode-block-length #f)
       (case len
 	((0)	0)
 	((1)	2)
@@ -302,7 +302,7 @@
    ((len)
     (base32-encode-length len #f))
    ((len padding?)
-    (let ((final-len (base32-encode-final-length (mod len 5) padding?)))
+    (let ((final-len (base32-encode-final-length (mod len base32-encode-block-length) padding?)))
       (if final-len
 	  (+ final-len (base32-encode-update-length len))
 	#f)))))
@@ -323,8 +323,8 @@
   ;;blocks only and produce output in 5-bytes blocks only, so the return
   ;;value is always zero or an exact multiple of 5.
   ;;
-  (if (<= 8 len)
-      (* 5 (div len 8))
+  (if (<= base32-decode-block-length len)
+      (* base32-encode-block-length (div len base32-decode-block-length))
     0))
 
 (define base32-decode-final-length
@@ -365,7 +365,7 @@
    ((len)
     (base32-decode-length len #f))
    ((len padding?)
-    (let ((final-len (base32-decode-final-length (mod len 8) padding?)))
+    (let ((final-len (base32-decode-final-length (mod len base32-decode-block-length) padding?)))
       (if final-len
 	  (+ final-len (base32-decode-update-length len))
 	#f)))))
