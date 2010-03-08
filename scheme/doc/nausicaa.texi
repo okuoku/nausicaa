@@ -1539,6 +1539,10 @@ Base 64 encoder/decoder
 * armor base64 utils::          Utilities for base64 encoders and
                                 decoders.
 
+Base 91 encoder/decoder
+
+* armor base91 intro::          Introduction to base91 encoding.
+
 Examples of encoding and decoding
 
 * armor examples encode::       Encoding example.
@@ -52360,13 +52364,42 @@ according to @func{char->integer}, of an @ascii{} character in the
 @section Base 91 encoder/decoder
 
 
-The overhead produced by base @math{91} depends on the input data; it
-amounts at most to @math{23\%} (versus @math{33\%} for base64) and can
-range down to @math{14\%}, which typically occurs on zero--byte blocks.
-As the name suggests, base @math{91} needs @math{91} characters to
-represent the encoded binary data in @ascii{}; from the @math{94}
-printable @ascii{} characters (@samp{#x21}..@samp{#x7E}), the following
-three have been omitted to build the base @math{91} alphabet:
+@menu
+* armor base91 intro::          Introduction to base91 encoding.
+* armor base91 encode::         Encoding byte streams with base91.
+* armor base91 decode::         Decoding byte streams with base91.
+* armor base91 utils::          Utilities for base91 encoders and
+                                decoders.
+@end menu
+
+@c page
+@node armor base91 intro
+@subsection Introduction to base91 encoding
+
+
+This encoding differs from @code{base32} and @code{base64} in that:
+
+@itemize
+@item
+The output length depends upon the input data.
+
+@item
+There is no padding.
+
+@item
+The encoder/decoder context buffers input data.
+@end itemize
+
+The overhead produced by base91 depends on the input data: the encoder
+outputs @math{16} bits of @ascii{} characters every @math{13} or
+@math{14} bits of binary input.  The overhead amounts at most to
+@math{23\%} (versus @math{33\%} for base64) and can range down to
+@math{14\%}, which typically occurs on zero--byte blocks.
+
+As the name suggests, base91 needs @math{91} characters to represent the
+encoded binary data in @ascii{}; from the @math{94} printable @ascii{}
+characters (@samp{#x21}..@samp{#x7E}), the following three have been
+omitted to build the base @math{91} alphabet:
 
 @example
 #\-     dash, 0x2D
@@ -52375,120 +52408,223 @@ three have been omitted to build the base @math{91} alphabet:
 @end example
 
 @noindent
-the translation table is composed of the remaining characters as shown
-below:
+the alphabet is composed of the remaining characters:
 
 @example
- 0 A    13 N    26 a    39 n    52 0    65 %    78 >
- 1 B    14 O    27 b    40 o    53 1    66 &    79 ?
- 2 C    15 P    28 c    41 p    54 2    67 (    80 @@
- 3 D    16 Q    29 d    42 q    55 3    68 )    81 [
- 4 E    17 R    30 e    43 r    56 4    69 *    82 ]
- 5 F    18 S    31 f    44 s    57 5    70 +    83 ^
- 6 G    19 T    32 g    45 t    58 6    71 ,    84 _
- 7 H    20 U    33 h    46 u    59 7    72 .    85 `
- 8 I    21 V    34 i    47 v    60 8    73 /    86 @{
- 9 J    22 W    35 j    48 w    61 9    74 :    87 |
-10 K    23 X    36 k    49 x    62 !    75 ;    88 @}
-11 L    24 Y    37 l    50 y    63 #    76 <    89 ~
-12 M    25 Z    38 m    51 z    64 $    77 =    90 "
+A B C   D E F   G H I   J    ;;  0 -  9
+K L M   N O P   Q R S   T    ;; 10 - 19
+U V W   X Y Z   a b c   d    ;; 20 - 29
+e f g   h i j   k l m   n    ;; 30 - 39
+o p q   r s t   u v w   x    ;; 40 - 49
+y z 0   1 2 3   4 5 6   7    ;; 50 - 59
+8 9 !   # $ %   & ( )   *    ;; 60 - 69
++ , .   / : ;   < = >   ?    ;; 70 - 79
+@@ [ ]   ^ _ `   @{ | @}   ~    ;; 80 - 89
+"                            ;; 90
 @end example
 
-@noindent
-non--printable characters are ignored by default.
-
-The following bindings are exported by the @library{armor base91}
-library.  Usage example:
-
-@example
-(define (subbytevector src start past)
-  (let ((dst (make-bytevector (- past start))))
-    (do ((i 0     (+ 1 i))
-         (j start (+ 1 j)))
-        ((= j past)
-         dst)
-      (bytevector-u8-set! dst i
-         (bytevector-u8-ref src j)))))
-
-(let* ((ctx      (make-<base91-encode-ctx>))
-       (src      (string->utf8 "hello"))
-       (src-len  (bytevector-length src))
-       (dst      (make-bytevector
-                   (base91-encode-length src-len))))
-  (let* ((done (base91-encode-update! ctx
-                  dst 0 src 0 src-len))
-         (end  (base91-encode-final!  ctx dst done)))
-    (utf8->string (subbytevector dst 0 (+ done end)))))
-@result{} "TPwJh>A"
-
-(let* ((ctx      (make-<base91-decode-ctx>))
-       (src      (string->utf8 "TPwJh>A"))
-       (src-len  (bytevector-length src))
-       (dst      (make-bytevector
-                   (base91-decode-length src-len))))
-  (let* ((done (base91-decode-update! ctx
-                  dst 0 src 0 src-len))
-         (end  (base91-decode-final!  ctx dst done)))
-    (utf8->string (subbytevector dst 0 (+ done end)))))
-@result{} "hello"
-@end example
+@c page
+@node armor base91 encode
+@subsection Encoding byte streams with base91
 
 
 @deftp {Record Type Name} <base91-encode-ctx>
-@deftpx {Record Type Name} <base91-decode-ctx>
-Encoding and decoding context values.
+Context descriptor for base91 encoding.  The fields of this record
+depend on the input data: records of this type @strong{cannot} be reused
+for different streams.
 @end deftp
 
 
 @defun make-<base91-encode-ctx>
-@defunx make-<base91-decode-ctx>
 @defunx <base91-encode-ctx>? @var{obj}
+Constructor and predicate for records of type @class{base91-encode-ctx}.
+@end defun
+
+
+@defun base91-encode-update-length @var{number-of-bytes}
+Return the minimum number of bytes required in the output bytevector
+when @func{base91-encode-update!}  is applied to @var{number-of-bytes}
+of binary input data.
+@end defun
+
+
+@defun base91-encode-final-length @var{unused}
+Return the minimum number of bytes required in the output vector when
+@func{base91-encode-final!} is applied to an encoding context to flush
+the buffered bits.  @var{unused} is ignored: it is here only to provide
+an @api{} equal to the one of the base64 encoder.
+@end defun
+
+
+@defun base91-encode-length @var{number-of-bytes}
+Return the minimum number of bytes required in the output bytevector
+when @func{base91-encode-final!}  is applied to @var{number-of-bytes} of
+binary input data.  This is also the number required when both
+@func{base91-encode-update!}  and @func{base91-encode-final!} are used.
+@end defun
+
+
+@defun base91-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Encode binary data from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+@ascii{} characters in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); encoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{base91-encode-ctx}.
+
+This function is meant to encode bytes from the input stream when we
+know that more input bytes will be available in the future.
+
+Return two values:
+
+@enumerate
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+@end defun
+
+
+@defun base91-encode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Encode binary data from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+@ascii{} characters in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); encoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{base91-encode-ctx}.
+
+This function is meant to encode the last bytes from the input stream
+and produce the last bytes to the output stream.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if success, false if the output bytevector was filled
+before flushing all the bytes.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+@end defun
+
+@c page
+@node armor base91 decode
+@subsection Decoding byte streams with base91
+
+
+@deftp {Record Type Name} <base91-decode-ctx>
+Context descriptor for base91 decoding.  The fields of this record
+depend on the input data: records of this type @strong{cannot} be reused
+for different streams.
+@end deftp
+
+
+@defun make-<base91-decode-ctx>
 @defunx <base91-decode-ctx>? @var{obj}
-Constructors and predicates for records of type
-@class{base91-encode-ctx} and @class{base91-decode-ctx}.
+Constructor and predicate for records of type @class{base91-decode-ctx}.
 @end defun
 
 
-@defun base91-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
-@defunx base91-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
-Process @var{src-len} bytes from the bytevector @var{src-bv} starting at
-offset @var{src-start}; store the output in the bytevector @var{dst-bv}
-starting at @var{dst-start}.  Return the number of bytes actually stored
-in @var{dst-bv}.
-
-The output bytevector must have enough free bytes to hold all the
-produced output bytes.
-
-@var{ctx} must be an appropriate context record; data bits may be stored
-in the context record.
+@defun base91-decode-update-length @var{number-of-chars}
+Return the minimum number of bytes required in the output bytevector
+when @func{base91-decode-update!}  is applied to @var{number-of-chars}
+@ascii{} characters of input.
 @end defun
 
 
-@defun base91-encode-final! @var{ctx} @var{dst-bv} @var{dst-start}
-@defunx base91-decode-final! @var{ctx} @var{dst-bv} @var{dst-start}
-Flush bits from the context @var{ctx} to the bytevector @var{dst-bv}
-starting at index @var{dst-start}; return the number of bytes actually
-stored in the output.
-
-The output bytevector must have enough free bytes to hold all the
-produced output bytes: at most two when encoding, at most one when
-decoding.
+@defun base91-decode-final-length @var{unused}
+Return the minimum number of bytes required in the output vector when
+@func{base91-decode-final!} is applied to a decoding context to flush
+the buffered bits.  @var{unused} is ignored: it is here only to provide
+an @api{} equal to the one of base64.
 @end defun
+
+
+@defun base91-decode-length @var{number-of-chars}
+Return the minimum number of bytes required in the output bytevector
+when @func{base91-decode-final!}  is applied to @var{number-of-chars}
+@ascii{} characters of input.  This is also the number required when
+both @func{base91-decode-update!}  and @func{base91-decode-final!} are
+used.
+@end defun
+
+
+@defun base91-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Decode @ascii{} characters from the bytevector @var{src-bv} starting at
+index @var{src-start} (included) up to index @var{src-past} (excluded);
+store binary data bytes in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); decoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{base91-decode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean always false.  It is here to provide an @api{} equal to the
+one of the base64 decoder.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is filled to the end, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the
+characters from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+@end defun
+
+
+@defun base91-decode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Decode @ascii{} characters from the bytevector @var{src-bv} starting at
+index @var{src-start} (included) up to index @var{src-past} (excluded);
+store binary data bytes in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); decoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{base91-decode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if success, false if the output bytevector was filled
+before flushing all the bytes.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is filled to the end, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+@end defun
+
+@c page
+@node armor base91 utils
+@subsection Utilities for base91 encoders and decoders
 
 
 @defun base91-encode-finished? @var{ctx}
 @defunx base91-decode-finished? @var{ctx}
-Return true if the bits in the context have been flushed.
+Return true if the bits buffered in the context have been flushed.
 @end defun
 
 
-@defun base91-encode-length @var{input-len}
-@defunx base91-decode-length @var{input-len}
-Return the minimum number of bytes required in the output bytevector,
-when the input has @var{input-len} bytes, in calls to the calls to
-@func{base91-encode-update!} and @func{base91-encode-final!} or,
-respectively, @func{base91-decode-update!} and
-@func{base91-decode-final!}.
+@defun armored-byte-of-base91? @var{byte-integer}
+Return true if @var{byte-integer} is an exact integer representation,
+according to @func{char->integer}, of an @ascii{} character in the
+@code{base91} encoding's alphabet.
 @end defun
 
 @c page
