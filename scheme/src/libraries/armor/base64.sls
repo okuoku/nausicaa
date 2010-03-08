@@ -149,7 +149,7 @@
   (dotimes (i (vector-length alphabet) table)
     (vector-set! table (char->integer (vector-ref alphabet i)) i)))
 
-;;Decoding tables for base 32 as specified by RFC 4648: disallowed input
+;;Decoding tables for base 64 as specified by RFC 4648: disallowed input
 ;;characters have a value of #f; only 128 chars, as everything above 127
 ;;(#x80) is #f.
 
@@ -162,7 +162,7 @@
        (<= 0 byte 127)
        (vector-ref decode-table-base64 byte)))
 
-;;Decoding tables for base 32 as specified by RFC 2938: disallowed input
+;;Decoding tables for base 64 as specified by RFC 4648: disallowed input
 ;;characters have a value of #f; only 128 chars, as everything above 127
 ;;(#x80) is #f.
 

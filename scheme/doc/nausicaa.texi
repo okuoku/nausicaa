@@ -1523,6 +1523,14 @@ Condition objects
 * armor conditions padding::    Invalid padded block error
                                 condition.
 
+Base 16 encoder/decoder
+
+* armor base16 intro::          Introduction to base16 encoding.
+* armor base16 encode::         Encoding byte streams with base16.
+* armor base16 decode::         Decoding byte streams with base16.
+* armor base16 utils::          Utilities for base16 encoders and
+                                decoders.
+
 Base 32 encoder/decoder
 
 * armor base32 intro::          Introduction to base32 encoding.
@@ -51341,88 +51349,324 @@ Constructor and predicate for condition objects of type
 @section Base 16 encoder/decoder
 
 
-The following bindings are exported by the @library{armor base16}
-library.  Usage example:
+The bindings documented in this section are exported by the
+@library{armor base16} library.  Base16 encoding produces @math{16} bits
+of output every @math{8} bits of input, @math{2} bytes of @ascii{}
+characters every byte of binary data.
+
+@menu
+* armor base16 intro::          Introduction to base16 encoding.
+* armor base16 encode::         Encoding byte streams with base16.
+* armor base16 decode::         Decoding byte streams with base16.
+* armor base16 utils::          Utilities for base16 encoders and
+                                decoders.
+@end menu
+
+@c page
+@node armor base16 intro
+@subsection Introduction to base16 encoding
+
+
+The following is the alphabet for upper case encoding:
 
 @example
-(let* ((ctx (make-<base16-encode-ctx> #t))
-       (src '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
-       (dst (make-bytevector
-             (base16-encode-length
-                (bytevector-length src)))))
-  (base16-encode-update! ctx dst 0 src 0
-     (bytevector-length src))
-  (utf8->string dst))
-@result{} "000102030405060708090A0B0C0D0E0F"
-
-(let* ((ctx (make-<base16-decode-ctx> #f))
-       (src (string->utf8 "000102030405060708090A0B0C0D0E0F"))
-       (dst (make-bytevector
-             (base16-decode-length
-                (bytevector-length src)))))
-  (base16-decode-update! ctx dst 0 src 0
-     (bytevector-length src))
-  dst)
-@result{} #vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
+0 1 2   3 4 5   6 7 8   9    ;;  0 -  9
+A B C   D E F                ;; 10 - 15
 @end example
+
+@noindent
+and the following is the alphabet for lower case encoding:
+
+@example
+0 1 2   3 4 5   6 7 8   9    ;;  0 -  9
+a b c   d e f                ;; 10 - 15
+@end example
+
+Binary input is consumed in single--byte blocks; @ascii{} output is
+produced in @math{2}-bytes blocks.
+
+@c page
+@node armor base16 encode
+@subsection Encoding byte streams with base16
 
 
 @deftp {Record Type Name} <base16-encode-ctx>
-@deftpx {Record Type Name} <base16-decode-ctx>
-Encoding and decoding context values.
+Context descriptor for base16 encoding.  It has the following immutable
+fields:
+
+@table @code
+@item encoding-case
+A Scheme symbol among: @code{lower}, @code{upper}.  Select the case of
+the alphabetic characters in the encoded output data.
+
+@item table
+A Scheme vector of exact integers representing the selected encoding's
+alphabet.
+@end table
+
+Nothing in this record depends on the input or output data: records of
+this type can be reused for different streams, both in sequence and in
+parallel.
 @end deftp
 
 
-@defun make-<base16-encode-ctx> @var{upper-case?}
-@defunx make-<base16-decode-ctx> @var{allow-blanks?}
-@defunx <base16-encode-ctx>? @var{obj}
-@defunx <base16-decode-ctx>? @var{obj}
-Constructors and predicates for records of type
-@class{base16-encode-ctx} and @class{base16-decode-ctx}.
+@defun make-<base16-encode-ctx> @var{encoding-case}
+Build and return a new record of type @class{base16-encode-ctx}.
 
-If @var{upper-case?} is true, encoding produces output with upper case
-letters (@samp{#\A}, @samp{#\B}, @dots{}); else the output is with lower
-case letters (@samp{#\a}, @samp{#\b}, @dots{}).
-
-If @var{allow-blanks?} is true, decoding allows blank characters in the
-input: it will just discard them; else blanks are not allowed and an
-error is raised if they are found.
+@var{encoding-case} must be a Scheme symbol among: @code{upper},
+@code{lower}; it selects the case of the encoding table.
 @end defun
 
 
-@defun base16-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
-@defunx base16-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
-Process @var{src-len} bytes from the bytevector @var{src-bv} starting at
-offset @var{src-start}; store the output in the bytevector @var{dst-bv}
-starting at @var{dst-start}.  Return the number of bytes actually stored
-in @var{dst-bv}.
-
-The output bytevector must have enough free bytes to hold all the
-produced output bytes.
-
-@var{ctx} must be an appropriate context record.
+@defun <base16-encode-ctx>? @var{obj}
+Return true if @var{obj} is a record of type @class{base16-encode-ctx}.
 @end defun
 
 
-@defun base16-encode-finished? @var{ctx}
-@defunx base16-decode-finished? @var{ctx}
-Return true if all the data stored in @var{ctx} has been flushed to the
-output.
+@defun <base16-encode-ctx>-encoding-case @var{ctx}
+@defunx <base16-encode-ctx>-table @var{ctx}
+Field accessors for records of type @class{base16-encode-ctx}.
 @end defun
 
 
-@defun base16-encode-length @var{input-len}
-Return the minimum number of bytes required in the output bytevector in
-calls to @func{base16-encode-update!} when the input has @var{input-len}
-bytes.
+@defun base16-encode-update-length @var{number-of-bytes}
+Return the minimum number of bytes required in the output bytevector
+when @func{base16-encode-update!}  is applied to @var{number-of-bytes}
+of binary input data.  Notice that that function will consume input in
+single--byte blocks and produce output in @math{2}-bytes blocks only, so
+the return value is always zero or an exact multiple of @math{2}.
 @end defun
 
 
-@defun base16-decode-length @var{input-len}
-Return the minimum numbe of bytes required in the output bytevector in
-calls to @func{base16-decode-update!} when the input has @var{input-len}
-bytes.  Notice that when blanks are allowed in the input, it is not
-possible to determine exactly the amount of output bytes required.
+@defun base16-encode-final-length @var{number-of-bytes}
+Return the minimum number of bytes required in the output bytevector
+when @func{base16-encode-final!} is applied to @var{number-of-bytes}
+bytes of binary input data.
+@end defun
+
+
+@defun base16-encode-length @var{number-of-bytes}
+Return the minimum number of bytes required in the output bytevector
+when @func{base16-encode-final!}  is applied to @var{number-of-bytes} of
+binary input data.  This is also the number required when both
+@func{base16-encode-update!}  and @func{base16-encode-final!} are used.
+@end defun
+
+
+@defun base16-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Encode binary data from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+@ascii{} characters in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); encoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{base16-encode-ctx}.
+
+This function is meant to encode bytes from the input stream when we
+know that more input bytes will be available in the future.
+
+Return two values:
+
+@enumerate
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+Binary data bytes are read from @var{src-bv} in single--byte blocks;
+@ascii{} characters are written to @var{dst-bv} in chunks of @math{2}
+bytes.  If not enough room exists in @var{dst-bv} to store a block,
+available input data is not consumed.
+@end defun
+
+
+@defun base16-encode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Encode binary data from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+@ascii{} characters in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); encoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{base16-encode-ctx}.
+
+This function is meant to encode the last bytes from the input stream
+and produce the last bytes to the output stream.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if success, false if the output bytevector was filled
+before flushing all the bytes.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+Binary data bytes are read from @var{src-bv} in single--byte blocks;
+@ascii{} characters are written to @var{dst-bv} in chunks of @math{2}
+bytes.  If not enough room exists in @var{dst-bv} to store a block,
+available input data is not consumed.
+@end defun
+
+@c page
+@node armor base16 decode
+@subsection Decoding byte streams with base16
+
+
+@deftp {Record Type Name} <base16-decode-ctx>
+Context descriptor for base16 decoding.  It has the following immutable
+fields:
+
+@table @code
+@item encoding-case
+A Scheme symbol among: @code{lower}, @code{mixed}, @code{upper}.  Select
+the case of the alphabetic characters in the encoded input data.
+
+@item table
+A Scheme vector of exact integers representing the selected decoding's
+table.
+@end table
+
+Nothing in this record depends on the input or output data: records of
+this type can be reused for different streams, both in sequence and in
+parallel.
+@end deftp
+
+
+@defun make-<base16-decode-ctx> @var{encoding-case}
+Build and return a new record of type @class{base16-decode-ctx}.
+
+@var{encoding-case} must be a Scheme symbol selecting the expected case
+of the input string: @code{lower}, @code{upper}, @code{mixed}.
+@end defun
+
+
+@defun <base16-decode-ctx>? @var{obj}
+Return true if @var{obj} is a record of type @class{base16-decode-ctx}.
+@end defun
+
+
+@defun <base16-decode-ctx>-encoding-case @var{ctx}
+@defunx <base16-decode-ctx>-table @var{ctx}
+Field accessors for records of type @class{base16-decode-ctx}.
+@end defun
+
+
+@defun base16-decode-update-length @var{number-of-chars}
+Return the minimum number of bytes required in the output bytevector
+when @func{base16-decode-update!}  is applied to @var{number-of-chars}
+@ascii{} characters of input.  Notice that the function will consume
+input in @math{2}-bytes blocks only and produce output in single--byte
+blocks.
+@end defun
+
+
+@defun base16-decode-final-length @var{number-of-chars}
+@defunx base16-decode-final-length @var{number-of-chars} @var{padding?}
+Return the minimum number of bytes required in the output bytevector
+when @func{base16-decode-final!} is applied to @var{number-of-chars}
+@ascii{} characters of input.  @var{number-of-chars} must be a multiple
+of @math{2}, else the return value is @false{}.
+@end defun
+
+
+@defun base16-decode-length @var{number-of-chars}
+@defunx base16-decode-length @var{number-of-chars} @var{padding?}
+Return the minimum number of bytes required in the output bytevector
+when @func{base16-decode-final!}  is applied to @var{number-of-chars}
+@ascii{} characters of input.  This is also the number required when
+both @func{base16-decode-update!}  and @func{base16-decode-final!} are
+used.  @var{number-of-chars} must be a multiple of @math{2}, else the
+return value is @false{}.
+@end defun
+
+
+@defvr Constant base16-decode-block-length
+The length of the input block: @math{2}.
+@end defvr
+
+
+@defun base16-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Decode @ascii{} characters from the bytevector @var{src-bv} starting at
+index @var{src-start} (included) up to index @var{src-past} (excluded);
+store binary data bytes in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); decoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{base16-decode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if padding is turned on and a full padded block was
+successfully decoded; false otherwise.  If this is true: the end of
+input has been reached and fully processed.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is filled to the end, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the
+characters from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+@ascii{} characters are read from @var{src-bv} in chunks of @math{2}
+bytes; binary data bytes are written to @var{dst-bv} in single-byte
+blocks.  If not enough room exists in @var{dst-bv} to store a block,
+available input data is not consumed.
+@end defun
+
+
+@defun base16-decode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Decode @ascii{} characters from the bytevector @var{src-bv} starting at
+index @var{src-start} (included) up to index @var{src-past} (excluded);
+store binary data bytes in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); decoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{base16-decode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if success, false if the output bytevector was filled
+before flushing all the bytes.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is filled to the end, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+@ascii{} characters are read from @var{src-bv} in chunks of @math{2}
+bytes; binary data bytes are written to @var{dst-bv} in single--byte
+blocks.  If not enough room exists in @var{dst-bv} to store a block,
+available input data is not consumed.
+@end defun
+
+@c page
+@node armor base16 utils
+@subsection Utilities for base16 encoders and decoders
+
+
+@defun armored-byte-of-base16/upper-case? @var{byte-integer}
+@defunx armored-byte-of-base16/lower-case? @var{byte-integer}
+@defunx armored-byte-of-base16/mixed-case? @var{byte-integer}
+Return true if @var{byte-integer} is an exact integer representation,
+according to @func{char->integer}, of an @ascii{} character in the
+@code{base16} encoding's alphabet.
 @end defun
 
 @c page
@@ -51430,9 +51674,10 @@ possible to determine exactly the amount of output bytes required.
 @section Base 32 encoder/decoder
 
 
-Base32 encoding produces @math{8} bits of output every @math{5} bits of
-input, @math{8} bytes of @ascii{} characters every @math{5} bytes of
-binary data.
+The bindings documented in this section are exported by the
+@library{armor base32} library.  Base32 encoding produces @math{8} bits
+of output every @math{5} bits of input, @math{8} bytes of @ascii{}
+characters every @math{5} bytes of binary data.
 
 @menu
 * armor base32 intro::          Introduction to base32 encoding.
@@ -51785,7 +52030,7 @@ Return true if @var{obj} is a record of type @class{base32-decode-ctx}.
 @defunx <base32-decode-ctx>-expect-padding? @var{ctx}
 @defunx <base32-decode-ctx>-pad-char @var{ctx}
 @defunx <base32-decode-ctx>-table @var{ctx}
-Field accessors for records of type @class{base32-decode-ctx}
+Field accessors for records of type @class{base32-decode-ctx}.
 @end defun
 
 
@@ -51927,9 +52172,10 @@ according to @func{char->integer}, of an @ascii{} character in the
 @section Base 64 encoder/decoder
 
 
-Base64 encoding produces @math{8} bits of output every @math{6} bits of
-input, @math{4} bytes of @ascii{} characters every @math{3} bytes of
-binary data.
+The bindings documented in this section are exported by the
+@library{armor base64} library.  Base64 encoding produces @math{8} bits
+of output every @math{6} bits of input, @math{4} bytes of @ascii{}
+characters every @math{3} bytes of binary data.
 
 @menu
 * armor base64 intro::          Introduction to base64 encoding.
@@ -52230,7 +52476,7 @@ Return true if @var{obj} is a record of type @class{base64-decode-ctx}.
 @defunx <base64-decode-ctx>-expect-padding? @var{ctx}
 @defunx <base64-decode-ctx>-pad-char @var{ctx}
 @defunx <base64-decode-ctx>-table @var{ctx}
-Field accessors for records of type @class{base64-decode-ctx}
+Field accessors for records of type @class{base64-decode-ctx}.
 @end defun
 
 
@@ -52368,6 +52614,10 @@ according to @func{char->integer}, of an @ascii{} character in the
 @section Base 91 encoder/decoder
 
 
+The bindings documented in this section are exported by the
+@library{armor base91} library.  The base91 encoding specification is by
+Joachim Henke, published in the basE91 C language software package.
+
 @menu
 * armor base91 intro::          Introduction to base91 encoding.
 * armor base91 encode::         Encoding byte streams with base91.
@@ -52381,9 +52631,7 @@ according to @func{char->integer}, of an @ascii{} character in the
 @subsection Introduction to base91 encoding
 
 
-The base91 encoding specification is by Joachim Henke, published in the
-basE91 C language software package.  This encoding differs from
-@code{base32} and @code{base64} in that:
+This encoding differs from @code{base32} and @code{base64} in that:
 
 @itemize
 @item
@@ -52644,8 +52892,8 @@ according to @func{char->integer}, of an @ascii{} character in the
 @section @ascii{} 85 encoder/decoder
 
 
-The following bindings are exported by the @library{armor ascii85}
-library.  Usage example:
+The bindings documented in this section are exported by the
+@library{armor ascii85} library.  Usage example:
 
 @example
 (define (subbytevector src start past)

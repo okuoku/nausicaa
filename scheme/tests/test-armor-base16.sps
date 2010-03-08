@@ -33,7 +33,10 @@
   (parameters))
 
 (check-set-mode! 'report-failed)
-(display "*** testing ASCII armor\n")
+(display "*** testing ASCII armor base16\n")
+
+
+;;;; helpers
 
 (define (subbytevector src start past)
   (let ((dst (make-bytevector (- past start))))
@@ -43,88 +46,97 @@
 	 dst)
       (bytevector-u8-set! dst i (bytevector-u8-ref src j)))))
 
-(define padding?
-  (make-parameter #t))
+
+;;;; parameters
 
-(define upper-case?
+(define encoding-case
   (make-parameter #t))
 
 
-(parametrise ((check-test-name	'base16))
+;;;; base16 encoding and decoding routines
 
-  (check	;upper case
-      (let* ((ctx (make-<base16-encode-ctx> #t))
-	     (src '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
-	     (dst (make-bytevector (base16-encode-length (bytevector-length src)))))
-	(base16-encode-update! ctx dst 0 src 0 (bytevector-length src))
-	(utf8->string dst))
-    => "000102030405060708090A0B0C0D0E0F")
+(define (encode binary)
+  ;;Encode BINARY which  must be a Scheme string  or bytevector.  Return
+  ;;two values:  (1) the resulting boolean from  the encoding functions,
+  ;;(2) a string representing the encoded data.
+  ;;
+  ;;Make use of the ENCODING-CASE parameter.
+  ;;
+  (let* ((ctx		(make-<base16-encode-ctx> (encoding-case)))
+	 (src		(if (string? binary) (string->utf8 binary) binary))
+	 (src-len	(bytevector-length src))
+	 (dst		(make-bytevector (base16-encode-length src-len) 0)))
+    (receive (dst-next src-next)
+	(base16-encode-update! ctx dst 0 src 0 src-len)
+      (receive (result dst-next src-next)
+	  (base16-encode-final! ctx dst dst-next src src-next src-len)
+	(list result (utf8->string (subbytevector dst 0 dst-next)))))))
 
-  (check	;lower case
-      (let* ((ctx (make-<base16-encode-ctx> #f))
-	     (src '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
-	     (dst (make-bytevector (base16-encode-length (bytevector-length src)))))
-	(base16-encode-update! ctx dst 0 src 0 (bytevector-length src))
-	(utf8->string dst))
-    => "000102030405060708090a0b0c0d0e0f")
+(define (decode binary string-result?)
+  ;;Decode BINARY which  must be a Scheme string  or bytevector.  Return
+  ;;two  values: the  boolean result  from the  decoding  functions, the
+  ;;decoded data.
+  ;;
+  ;;If STRING-RESULT?  is  true, the decoded data is  returned as Scheme
+  ;;string; else it is returned as Scheme bytevector.
+  ;;
+  ;;Make use of the ENCODING-CASE parameter.
+  ;;
+  (define (%output dst dst-past)
+    (let ((bv (subbytevector dst 0 dst-past)))
+      (if string-result?
+	  (utf8->string bv)
+	bv)))
+  (let* ((ctx		(make-<base16-decode-ctx> (encoding-case)))
+	 (src		(if (string? binary)
+			    (string->utf8 (case (encoding-case)
+					    ((upper)	(string-upcase binary))
+					    ((lower)	(string-downcase binary))
+					    (else	binary)))
+			  binary))
+	 (src-len	(bytevector-length src))
+	 (dst		(make-bytevector (base16-decode-length src-len) 0)))
+    (receive (result dst-next src-next)
+	(base16-decode-update! ctx dst 0 src 0 src-len)
+      (if result
+	  (list result (%output dst dst-next))
+	(receive (result dst-next src-next)
+	    (base16-decode-final! ctx dst dst-next src src-next src-len)
+	  (list result (%output dst dst-next)))))))
 
-  (check
-      (let* ((ctx (make-<base16-encode-ctx> #t))
-	     (src '#vu8(16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31))
-	     (dst (make-bytevector (base16-encode-length (bytevector-length src)))))
-	(base16-encode-update! ctx dst 0 src 0 (bytevector-length src))
-	(utf8->string dst))
-    => "101112131415161718191A1B1C1D1E1F")
+
+(parametrise ((check-test-name	'upper)
+	      (encoding-case	'upper))
 
-;;; --------------------------------------------------------------------
+  (let ((plain	'#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+	(ascii	"000102030405060708090A0B0C0D0E0F"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
 
-  (check	;upper case
-      (let* ((ctx (make-<base16-decode-ctx> #f))
-	     (src (string->utf8 "000102030405060708090A0B0C0D0E0F"))
-	     (dst (make-bytevector (base16-decode-length (bytevector-length src)))))
-	(let ((result (base16-decode-update! ctx dst 0 src 0 (bytevector-length src))))
-	  (list result dst)))
-    => '(16 #vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+  (let ((plain	'#vu8(16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31))
+	(ascii	"101112131415161718191A1B1C1D1E1F"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
 
-  (check	;lower case
-      (let* ((ctx (make-<base16-decode-ctx> #f))
-	     (src (string->utf8 "000102030405060708090a0b0c0d0e0f"))
-	     (dst (make-bytevector (base16-decode-length (bytevector-length src)))))
-	(base16-decode-update! ctx dst 0 src 0 (bytevector-length src))
-	dst)
-    => '#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+  #t)
 
-  (check
-      (let* ((ctx (make-<base16-decode-ctx> #f))
-	     (src (string->utf8 "101112131415161718191A1B1C1D1E1F"))
-	     (dst (make-bytevector (base16-decode-length (bytevector-length src)))))
-	(base16-decode-update! ctx dst 0 src 0 (bytevector-length src))
-	dst)
-    => '#vu8(16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31))
+(parametrise ((check-test-name	'lower)
+	      (encoding-case	'lower))
 
-  (check	;allow blanks
-      (let* ((ctx (make-<base16-decode-ctx> #t))
-	     (src (string->utf8 "101 11213141  516171819\n1A\t1B1C\r\r1D1E1F"))
-	     (dst (make-bytevector (base16-decode-length (bytevector-length src)) 0)))
-	(let ((result (base16-decode-update! ctx dst 0 src 0 (bytevector-length src))))
-	  (list result dst)))
-    => '(16 #vu8(16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
-		;overallocated for blanks
-		    0 0 0 0)))
+  (let ((plain	'#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
+	(ascii	"000102030405060708090a0b0c0d0e0f"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
 
-  (check	;disallow blanks
-      (guard (E (else #f))
-	(let* ((ctx (make-<base16-decode-ctx> #f))
-	       (src (string->utf8 "101 11213141  516171819\n1A\t1B1C\r\r1D1E1F"))
-	       (dst (make-bytevector (base16-decode-length (bytevector-length src)) 0)))
-	  (base16-decode-update! ctx dst 0 src 0 (bytevector-length src))
-	  dst))
-    => #f)
+  (let ((plain	'#vu8(16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31))
+	(ascii	"101112131415161718191a1b1c1d1e1f"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
 
   #t)
 
 
-(parametrise ((check-test-name	'ascii85)
+#;(parametrise ((check-test-name	'ascii85)
 	      (debugging	#t))
 
   (define (encode plain)
