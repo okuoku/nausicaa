@@ -199,16 +199,16 @@ Derick Eddington.  Reorganisation and integration into Nausicaa by Marco
 Maggi.
 
 
-loops.sls
----------
+(loops)
+-------
 
 Derived   by   the   reference   implementatio   of   SRFI   42   "Eager
 Comprehensions",  by  Sebastian Egner.   Port  to  R6RS  by 2008  Derick
 Eddington.  Nausicaa integration by Marco Maggi.
 
 
-matches.sls
------------
+(matches)
+---------
 
 The library is derived from "match.scm" by Alex Shinn, who placed it in
 the Public Domain.
@@ -344,8 +344,8 @@ Written by Marco Maggi.  The generic functions infrastructure is derived
 from ScmObj, by Dorai Sitaram.
 
 
-scmobj.sls
-----------
+(scmobj)
+--------
 
 This is a port to R6RS and LIMY Schemes of ScmObj by Dorai Sitaram.  The
 original code is available at:
