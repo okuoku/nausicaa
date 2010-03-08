@@ -1542,6 +1542,10 @@ Base 64 encoder/decoder
 Base 91 encoder/decoder
 
 * armor base91 intro::          Introduction to base91 encoding.
+* armor base91 encode::         Encoding byte streams with base91.
+* armor base91 decode::         Decoding byte streams with base91.
+* armor base91 utils::          Utilities for base91 encoders and
+                                decoders.
 
 Examples of encoding and decoding
 
@@ -52377,7 +52381,9 @@ according to @func{char->integer}, of an @ascii{} character in the
 @subsection Introduction to base91 encoding
 
 
-This encoding differs from @code{base32} and @code{base64} in that:
+The base91 encoding specification is by Joachim Henke, published in the
+basE91 C language software package.  This encoding differs from
+@code{base32} and @code{base64} in that:
 
 @itemize
 @item
@@ -52449,10 +52455,10 @@ of binary input data.
 
 
 @defun base91-encode-final-length @var{unused}
-Return the minimum number of bytes required in the output vector when
-@func{base91-encode-final!} is applied to an encoding context to flush
-the buffered bits.  @var{unused} is ignored: it is here only to provide
-an @api{} equal to the one of the base64 encoder.
+Return the minimum number of bytes required in the output bytevector
+when @func{base91-encode-final!} is applied to an encoding context to
+flush the buffered bits.  @var{unused} is ignored: it is here only to
+provide an @api{} equal to the one of the base64 encoder.
 @end defun
 
 
@@ -52500,6 +52506,9 @@ specification in the context @var{ctx}, which must be a record of type
 This function is meant to encode the last bytes from the input stream
 and produce the last bytes to the output stream.
 
+After all the bytes from the source bytevector have been consumed, the
+bits buffered in the context are flushed to the output buffer.
+
 Return three values:
 
 @enumerate
@@ -52543,10 +52552,10 @@ when @func{base91-decode-update!}  is applied to @var{number-of-chars}
 
 
 @defun base91-decode-final-length @var{unused}
-Return the minimum number of bytes required in the output vector when
-@func{base91-decode-final!} is applied to a decoding context to flush
-the buffered bits.  @var{unused} is ignored: it is here only to provide
-an @api{} equal to the one of base64.
+Return the minimum number of bytes required in the output bytevector
+when @func{base91-decode-final!} is applied to a decoding context to
+flush the buffered bits.  @var{unused} is ignored: it is here only to
+provide an @api{} equal to the one of base64.
 @end defun
 
 
@@ -52593,6 +52602,9 @@ store binary data bytes in the bytevector @var{dst-bv} starting at
 specification in the context @var{ctx}, which must be a record of type
 @class{base91-decode-ctx}.
 
+After all the bytes from the source bytevector have been consumed, the
+bits buffered in the context are flushed to the output buffer.
+
 Return three values:
 
 @enumerate
@@ -52615,8 +52627,8 @@ from @var{src-bv} are consumed, this value is @var{src-past}.
 @subsection Utilities for base91 encoders and decoders
 
 
-@defun base91-encode-finished? @var{ctx}
-@defunx base91-decode-finished? @var{ctx}
+@defun base91-encode-flushed? @var{ctx}
+@defunx base91-decode-flushed? @var{ctx}
 Return true if the bits buffered in the context have been flushed.
 @end defun
 

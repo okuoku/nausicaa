@@ -8,7 +8,8 @@
 ;;;
 ;;;	This  is an  implementation  of base91  encoding.  The  encoding
 ;;;	specification  is by Joachim  Henke <j-o@users.sourceforge.net>,
-;;;	published in the basE91 C language software package
+;;;	published in the basE91 C language software package; the code in
+;;;	this library is derived from the one in basE91.
 ;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
@@ -26,6 +27,30 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+;;;Original C language license terms
+;;;---------------------------------
+;;;
+;;;Copyright (c) 2000-2005 Joachim Henke <j-o@users.sourceforge.net>
+;;;
+;;;This  software is provided  'as-is', without  any express  or implied
+;;;warranty. In no event will the authors be held liable for any damages
+;;;arising from the use of this software.
+;;;
+;;;Permission is granted to anyone to use this software for any purpose,
+;;;including commercial  applications, and to alter  it and redistribute
+;;;it freely, subject to the following restrictions:
+;;;
+;;;1. The origin  of this software must not  be misrepresented; you must
+;;;   not claim  that you wrote the  original software. If  you use this
+;;;   software  in   a  product,   an  acknowledgment  in   the  product
+;;;   documentation would be appreciated but is not required.
+;;;
+;;;2. Altered source  versions must be plainly marked  as such, and must
+;;;   not be misrepresented as being the original software.
+;;;
+;;;3. This  notice  may not  be  removed  or  altered from  any  source
+;;;   distribution.
+
 
 (library (armor base91)
   (export
@@ -36,7 +61,7 @@
 
     base91-encode-update!			base91-decode-update!
     base91-encode-final!			base91-decode-final!
-    base91-encode-finished?			base91-decode-finished?
+    base91-encode-flushed?			base91-decode-flushed?
 
     base91-encode-length			base91-decode-length
     base91-encode-update-length			base91-decode-update-length
@@ -245,10 +270,10 @@
      (+ 3 (base91-decode-final-length #f))))
 
 
-(define (base91-encode-finished? ctx)
+(define (base91-encode-flushed? ctx)
   (zero? (<base91-encode-ctx>-queue-length ctx)))
 
-(define (base91-decode-finished? ctx)
+(define (base91-decode-flushed? ctx)
   (not (<base91-decode-ctx>-val ctx)))
 
 
