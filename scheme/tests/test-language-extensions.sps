@@ -23,338 +23,626 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
+;;;Copyright (c) 2008-2010 Derick Eddington
+;;;
+;;;Permission is hereby granted, free of charge, to any person obtaining
+;;;a  copy of  this  software and  associated  documentation files  (the
+;;;"Software"), to  deal in the Software  without restriction, including
+;;;without limitation  the rights to use, copy,  modify, merge, publish,
+;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
+;;;permit persons to whom the Software is furnished to do so, subject to
+;;;the following conditions:
+;;;
+;;;The  above  copyright notice  and  this  permission  notice shall  be
+;;;included in all copies or substantial portions of the Software.
+;;;
+;;;Except  as  contained  in  this  notice, the  name(s)  of  the  above
+;;;copyright holders  shall not be  used in advertising or  otherwise to
+;;;promote  the sale,  use or  other dealings  in this  Software without
+;;;prior written authorization.
+;;;
+;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
+;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
+;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
+;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
+;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
+;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
+;;;SOFTWARE.
+
 
 (import (nausicaa)
+  (rnrs eval (6))
   (checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing simple language extensions\n")
 
+;; Here we use  EVAL because a syntax violation  error cannot be catched
+;; by GUARD, and so it causes the program termination.
+(define-syntax check-syntax-violation
+  (syntax-rules ()
+    ((_ ?form)
+     (check
+	 (guard (exc (else
+;; 		      (write exc)(newline)
+;; 		      (write (syntax-violation? exc))(newline)
+		      (syntax-violation? exc)))
+	   (eval '?form (environment '(nausicaa))))
+       => #t))))
+
 
-;;;; tests for: BEGIN0.
+(parametrise ((check-test-name	'begin0))
 
-(check
-    (begin0
-	(list 1 2)
-      (list 3 4))
-  => '(1 2))
+  (check
+      (begin0
+	  (list 1 2)
+	(list 3 4))
+    => '(1 2))
 
-(check
-    (call-with-values
-	(lambda ()
-	  (begin0
-	      (values 1 2)
-	    (values 3 4)))
-      (lambda (a b)
-	(list a b)))
-  => '(1 2))
+  (check
+      (call-with-values
+	  (lambda ()
+	    (begin0
+		(values 1 2)
+	      (values 3 4)))
+	(lambda (a b)
+	  (list a b)))
+    => '(1 2))
 
 ;;; --------------------------------------------------------------------
 
-(check
-    (begin0-let ((a 123))
-      (list 1 2 3))
-  => 123)
+  (check
+      (begin0-let ((a 123))
+	(list 1 2 3))
+    => 123)
 
-(check
-    (begin0-let ((a 123))
-      (set! a 456))
-  => 456)
+  (check
+      (begin0-let ((a 123))
+	(set! a 456))
+    => 456)
 
-(check
-    (let-values (((d e f) (begin0-let (((a b c) (values 1 2 3)))
-			    (list 'a 'b 'c))))
-      (list d e f))
-  => '(1 2 3))
+  (check
+      (let-values (((d e f) (begin0-let (((a b c) (values 1 2 3)))
+			      (list 'a 'b 'c))))
+	(list d e f))
+    => '(1 2 3))
 
-
-;;;; tests for iterators
-
-(check
-    (with-result
-     (dotimes (i 3)
-       1	; shooting the breeze
-       2	; shooting the breeze
-       (add-result i)))
-  => '(#f (0 1 2)))
-
-(check
-    (with-result
-     (dotimes (i 3 (+ 2 4))
-       1	; shooting the breeze
-       2	; shooting the breeze
-       (add-result i)))
-  => '(6 (0 1 2)))
-
-; ------------------------------------------------------------
-
-(check
-    (with-result
-     (dolist (i '(1 2 3) (+ 2 4))
-       1	; shooting the breeze
-       2	; shooting the breeze
-       (add-result i)))
-  => '(6 (1 2 3)))
-
-(check
-    (with-result
-     (dolist (i '(1 2 3))
-       1	; shooting the breeze
-       2	; shooting the breeze
-       (add-result i)))
-  => '(#f (1 2 3)))
-
-; ------------------------------------------------------------
-
-(check
-    (with-result
-     (loop-upon-list (item '(1 2 3 4))
-	 (break-when #f)
-       (+ 1 2)	; shooting the breeze
-       (+ 3 4)	; shooting the breeze
-       (add-result item)))
-  => '(#f (1 2 3 4)))
-
-(check
-    (with-result
-     (loop-upon-list (item '(1 2 3 4) (+ 2 4))
-	 (break-when #f)
-       (+ 1 2)	; shooting the breeze
-       (+ 3 4)	; shooting the breeze
-       (add-result item)))
-  => '(6 (1 2 3 4)))
-
-(check
-    (with-result
-     (loop-upon-list (item '(1 2 3 4))
-	 (break-when (= item 3))
-       (+ 1 2)	; shooting the breeze
-       (+ 3 4)	; shooting the breeze
-       (add-result item)))
-  => '(#f (1 2)))
+  #t)
 
 
-;;;; ensure
+(parametrise ((check-test-name	'loops))
 
-(check
-    (with-result
-     (let ((flag 0))
-       (ensure (= flag 1)
-	   (by
-	    (add-result 1)
-	    (add-result 2))
-	 (else
-	  (add-result 3)
-	  999))))
-  => '(999 (1 2 3)))
+  (check
+      (with-result
+       (dotimes (i 3)
+	 1	; shooting the breeze
+	 2	; shooting the breeze
+	 (add-result i)))
+    => '(#f (0 1 2)))
 
-(check
-    (with-result
-     (let ((flag 0))
-       (ensure (= flag 1)
-	   (by
-	    (add-result 1)
-	    (add-result 2))
-	 (else
-	  (add-result 3)
-	  999))))
-  => '(999 (1 2 3)))
+  (check
+      (with-result
+       (dotimes (i 3 (+ 2 4))
+	 1	; shooting the breeze
+	 2	; shooting the breeze
+	 (add-result i)))
+    => '(6 (0 1 2)))
 
-(check
-    (with-result
-     (let ((flag 0))
-       (ensure (= flag 1)
-	   (by
-	    (add-result 1)
-	    (add-result 2)
+		; ------------------------------------------------------------
+
+  (check
+      (with-result
+       (dolist (i '(1 2 3) (+ 2 4))
+	 1	; shooting the breeze
+	 2	; shooting the breeze
+	 (add-result i)))
+    => '(6 (1 2 3)))
+
+  (check
+      (with-result
+       (dolist (i '(1 2 3))
+	 1	; shooting the breeze
+	 2	; shooting the breeze
+	 (add-result i)))
+    => '(#f (1 2 3)))
+
+		; ------------------------------------------------------------
+
+  (check
+      (with-result
+       (loop-upon-list (item '(1 2 3 4))
+	   (break-when #f)
+	 (+ 1 2) ; shooting the breeze
+	 (+ 3 4) ; shooting the breeze
+	 (add-result item)))
+    => '(#f (1 2 3 4)))
+
+  (check
+      (with-result
+       (loop-upon-list (item '(1 2 3 4) (+ 2 4))
+	   (break-when #f)
+	 (+ 1 2) ; shooting the breeze
+	 (+ 3 4) ; shooting the breeze
+	 (add-result item)))
+    => '(6 (1 2 3 4)))
+
+  (check
+      (with-result
+       (loop-upon-list (item '(1 2 3 4))
+	   (break-when (= item 3))
+	 (+ 1 2) ; shooting the breeze
+	 (+ 3 4) ; shooting the breeze
+	 (add-result item)))
+    => '(#f (1 2)))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      ((recursion (loop n)
+	 (if (zero? n)
+	     1
+	   (* n (loop (- n 1)))))
+       5)
+    => 120)
+
+  #t)
+
+
+(parametrise ((check-test-name	'ensure))
+
+  (check
+      (with-result
+       (let ((flag 0))
+	 (ensure (= flag 1)
+	     (by
+	      (add-result 1)
+	      (add-result 2))
+	   (else
+	    (add-result 3)
+	    999))))
+    => '(999 (1 2 3)))
+
+  (check
+      (with-result
+       (let ((flag 0))
+	 (ensure (= flag 1)
+	     (by
+	      (add-result 1)
+	      (add-result 2))
+	   (else
+	    (add-result 3)
+	    999))))
+    => '(999 (1 2 3)))
+
+  (check
+      (with-result
+       (let ((flag 0))
+	 (ensure (= flag 1)
+	     (by
+	      (add-result 1)
+	      (add-result 2)
+	      (set! flag 1)
+	      999)
+	   (else
+	    (add-result 3)
+	    (add-result 4)))))
+    => '(999 (1 2)))
+
+  (check
+      (with-result
+       (let ((flag 0))
+	 (ensure (= flag 1)
+	     (by
+	      (add-result 1)
+	      (add-result 2)
+	      (set! flag 1)
+	      123)
+	   (else
+	    (add-result 3)
+	    (add-result 4)))))
+    => '(123 (1 2)))
+
+  (check
+      (with-result
+       (let ((flag 0))
+	 (ensure (= flag 1)
+	     (by
+	      (add-result 1)
+	      (add-result 2))
+	   (else-by
+	    (add-result 3)
+	    (add-result 4))
+	   (else
+	    (add-result 5)
+	    (add-result 6)
+	    (set! flag 1)
+	    999))))
+    => '(999 (1 2 3 4 5 6)))
+
+  (check
+      (with-result
+       (let ((flag 0))
+	 (ensure (= flag 1)
+	     (by
+	      (add-result 1)
+	      (add-result 2))
+	   (else-by
+	    (add-result 3)
+	    (add-result 4)
 	    (set! flag 1)
 	    999)
-	 (else
-	  (add-result 3)
-	  (add-result 4)))))
-  => '(999 (1 2)))
+	   (else
+	    (add-result 5)
+	    (add-result 6)))))
+    => '(999 (1 2 3 4)))
 
-(check
-    (with-result
-     (let ((flag 0))
-       (ensure (= flag 1)
-	   (by
-	    (add-result 1)
-	    (add-result 2)
+  (check
+      (with-result
+       (let ((flag 0))
+	 (ensure (= flag 1)
+	     (by
+	      (add-result 1)
+	      (add-result 2)
+	      (set! flag 1)
+	      999)
+	   (else-by
+	    (add-result 3)
+	    (add-result 4))
+	   (else
+	    (add-result 5)
+	    (add-result 6)))))
+    => '(999 (1 2)))
+
+  (check
+      (with-result
+       (let ((flag 0))
+	 (ensure (= flag 1)
+	     (by
+	      (add-result 1)
+	      (add-result 2))
+	   (else-by
+	    (add-result 3)
+	    (add-result 4))
+	   (else-by
+	    (add-result 5)
+	    (add-result 6))
+	   (else
+	    (add-result 7)
+	    (add-result 8)
 	    (set! flag 1)
-	    123)
-	 (else
-	  (add-result 3)
-	  (add-result 4)))))
-  => '(123 (1 2)))
+	    999))))
+    => '(999 (1 2 3 4 5 6 7 8)))
 
-(check
-    (with-result
-     (let ((flag 0))
-       (ensure (= flag 1)
-	   (by
-	    (add-result 1)
-	    (add-result 2))
-	 (else-by
-	  (add-result 3)
-	  (add-result 4))
-	 (else
-	  (add-result 5)
-	  (add-result 6)
-	  (set! flag 1)
-	  999))))
-  => '(999 (1 2 3 4 5 6)))
-
-(check
-    (with-result
-     (let ((flag 0))
-       (ensure (= flag 1)
-	   (by
-	    (add-result 1)
-	    (add-result 2))
-	 (else-by
-	  (add-result 3)
-	  (add-result 4)
-	  (set! flag 1)
-	  999)
-	 (else
-	  (add-result 5)
-	  (add-result 6)))))
-  => '(999 (1 2 3 4)))
-
-(check
-    (with-result
-     (let ((flag 0))
-       (ensure (= flag 1)
-	   (by
-	    (add-result 1)
-	    (add-result 2)
+  (check
+      (with-result
+       (let ((flag 0))
+	 (ensure (= flag 1)
+	     (by
+	      (add-result 1)
+	      (add-result 2))
+	   (else-by
+	    (add-result 3)
+	    (add-result 4))
+	   (else-by
+	    (add-result 5)
+	    (add-result 6)
 	    (set! flag 1)
 	    999)
-	 (else-by
-	  (add-result 3)
-	  (add-result 4))
-	 (else
-	  (add-result 5)
-	  (add-result 6)))))
-  => '(999 (1 2)))
+	   (else
+	    (add-result 7)
+	    (add-result 8)))))
+    => '(999 (1 2 3 4 5 6)))
 
-(check
-    (with-result
-     (let ((flag 0))
-       (ensure (= flag 1)
-	   (by
-	    (add-result 1)
-	    (add-result 2))
-	 (else-by
-	  (add-result 3)
-	  (add-result 4))
-	 (else-by
-	  (add-result 5)
-	  (add-result 6))
-	 (else
-	  (add-result 7)
-	  (add-result 8)
-	  (set! flag 1)
-	  999))))
-  => '(999 (1 2 3 4 5 6 7 8)))
-
-(check
-    (with-result
-     (let ((flag 0))
-       (ensure (= flag 1)
-	   (by
-	    (add-result 1)
-	    (add-result 2))
-	 (else-by
-	  (add-result 3)
-	  (add-result 4))
-	 (else-by
-	  (add-result 5)
-	  (add-result 6)
-	  (set! flag 1)
-	  999)
-	 (else
-	  (add-result 7)
-	  (add-result 8)))))
-  => '(999 (1 2 3 4 5 6)))
-
-(check
-    (with-result
-     (let ((flag 0))
-       (ensure (= flag 1)
-	   (by
-	    (add-result 1)
-	    (add-result 2))
-	 (else-by
-	  (add-result 3)
-	  (add-result 4)
-	  (set! flag 1)
-	  999)
-	 (else-by
-	  (add-result 5)
-	  (add-result 6))
-	 (else
-	  (add-result 7)
-	  (add-result 8)))))
-  => '(999 (1 2 3 4)))
-
-(check
-    (with-result
-     (let ((flag 0))
-       (ensure (= flag 1)
-	   (by
-	    (add-result 1)
-	    (add-result 2)
+  (check
+      (with-result
+       (let ((flag 0))
+	 (ensure (= flag 1)
+	     (by
+	      (add-result 1)
+	      (add-result 2))
+	   (else-by
+	    (add-result 3)
+	    (add-result 4)
 	    (set! flag 1)
 	    999)
-	 (else-by
-	  (add-result 3)
-	  (add-result 4))
-	 (else-by
-	  (add-result 5)
-	  (add-result 6))
-	 (else
-	  (add-result 7)
-	  (add-result 8)))))
-  => '(999 (1 2)))
+	   (else-by
+	    (add-result 5)
+	    (add-result 6))
+	   (else
+	    (add-result 7)
+	    (add-result 8)))))
+    => '(999 (1 2 3 4)))
+
+  (check
+      (with-result
+       (let ((flag 0))
+	 (ensure (= flag 1)
+	     (by
+	      (add-result 1)
+	      (add-result 2)
+	      (set! flag 1)
+	      999)
+	   (else-by
+	    (add-result 3)
+	    (add-result 4))
+	   (else-by
+	    (add-result 5)
+	    (add-result 6))
+	   (else
+	    (add-result 7)
+	    (add-result 8)))))
+    => '(999 (1 2)))
+
+  #t)
 
 
-;;;; stuff
+(parametrise ((check-test-name	'bindings))
 
-(check
-    ((recursion (loop n)
-       (if (zero? n)
-	   1
-	 (* n (loop (- n 1)))))
-     5)
-  => 120)
+  (check
+      (let ()
+	(define-values (a b c)
+	  #t
+	  (values 1 2 3))
+	(list a b c))
+    => '(1 2 3))
+
+  (check
+      (let ()
+	(define-values (a)
+	  #t
+	  (values 1))
+	a)
+    => 1)
+
+  (check
+      (let ()
+	(define-values (a)
+	  #t
+	  1)
+	a)
+    => 1)
+
+  #t)
 
 
-(check
-    (let ()
-      (define-values (a b c)
-	#t
-	(values 1 2 3))
-      (list a b c))
-  => '(1 2 3))
+(parametrise ((check-test-name	'and-let))
 
-(check
-    (let ()
-      (define-values (a)
-	#t
-	(values 1))
-      a)
-  => 1)
+  (check
+      (and-let* ((a	#t)
+		 (b	#t))
+	#t)
+    => #t)
 
-(check
-    (let ()
-      (define-values (a)
-	#t
-	1)
-      a)
-  => 1)
+  (check
+      (and-let* ((a	#t)
+		 (b	#f))
+	#t)
+    => #f)
 
+  (check
+      (and-let* ((a	#t)
+		 (	#t))
+	#t)
+    => #t)
+
+  (check
+      (and-let* ((a	#f)
+		 (	#t))
+	#t)
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (and-let* () 1)
+    => 1)
+
+  (check
+      (and-let* () 1 2)
+    => 2)
+
+  (check
+      (and-let* () )
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((x #f))
+	(and-let* (x)))
+    => #f)
+
+  (check
+      (let ((x 1))
+	(and-let* (x)))
+    => 1)
+
+  (check
+      (and-let* ((x #f)) )
+    => #f)
+
+  (check
+      (and-let* ((x 1)) )
+    => 1)
+
+  (check-syntax-violation
+   (and-let* (#f
+	      (x 1))))
+
+  (check
+      (and-let* ( (#f) (x 1)) )
+    => #f)
+
+  (check-syntax-violation
+   (and-let* (2 (x 1))))
+
+  (check
+      (and-let* ( (2) (x 1)) )
+    => 1)
+
+  (check
+      (and-let* ( (x 1) (2)) )
+    => 2)
+
+  (check
+      (let ((x #f))
+	(and-let* (x) x))
+    => #f)
+
+  (check
+      (let ((x ""))
+	(and-let* (x) x))
+    => "")
+
+  (check
+      (let ((x ""))
+	(and-let* (x)))
+    => "")
+
+  (check
+      (let ((x 1))
+	(and-let* (x)
+	  (+ x 1)))
+    => 2)
+
+  (check
+      (let ((x #f))
+	(and-let* (x)
+	  (+ x 1)))
+    => #f)
+
+  (check
+      (let ((x 1))
+	(and-let* (((positive? x)))
+	  (+ x 1)))
+    => 2)
+
+  (check
+      (let ((x 1))
+	(and-let* (((positive? x)))
+	  ))
+    => #t)
+
+  (check
+      (let ((x 0))
+	(and-let* (((positive? x)))
+	  (+ x 1)))
+    => #f)
+
+  (check
+      (let ((x 1))
+	(and-let* ((  (positive? x))
+		   (x (+ x 1)))
+	  (+ x 1)))
+    => 3)
+
+;;; This next one is from the reference implementation tests but I can't
+;;; see how it "must be a syntax-error" (Derick Eddington).
+  ;; (check-syntax-violation
+  ;;  (let ((x 1))
+  ;;    (and-let* ((  (positive? x))
+  ;; 	      (x (+ x 1))
+  ;; 	      (x (+ x 1)))
+  ;;      (+ x 1))))
+
+  (check
+      (let ((x 1))
+	(and-let* (x
+		   ((positive? x)))
+	  (+ x 1)))
+    => 2)
+
+  (check
+      (let ((x 1))
+	(and-let* (((begin x))
+		   ((positive? x)))
+	  (+ x 1)))
+    => 2)
+
+  (check
+      (let ((x 0))
+	(and-let* (x
+		   ((positive? x)))
+	  (+ x 1)))
+    => #f)
+
+  (check
+      (let ((x #f))
+	(and-let* (x
+		   ((positive? x)))
+	  (+ x 1)))
+    => #f)
+
+  (check
+      (let ((x #f))
+	(and-let* (((begin x))
+		   ((positive? x)))
+	  (+ x 1)))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((x 1))
+	(and-let* (x
+		   (y (- x 1))
+		   (  (positive? y)))
+	  (/ x y)))
+    => #f)
+
+  (check
+      (let ((x 0))
+	(and-let* (x
+		   (y (- x 1))
+		   (  (positive? y)))
+	  (/ x y)))
+    => #f)
+
+  (check
+      (let ((x #f))
+	(and-let* (x
+		   (y (- x 1))
+		   (  (positive? y)))
+	  (/ x y)))
+    => #f)
+
+  (check
+      (let ((x 3))
+	(and-let* (x
+		   (y (- x 1))
+		   (  (positive? y)))
+	  (/ x y)))
+    => 3/2)
+
+;;; --------------------------------------------------------------------
+
+  (check-syntax-violation (and-let* (("oops" 1))))
+  (check-syntax-violation (and-let* ((x 1 2))))
+  (check-syntax-violation (and-let* ((x 1) . oops)))
+
+  (check
+      (let ((x 1))
+	(and-let* ((x (+ x 1))
+		   (x (+ x 1))
+		   (x (+ x 1)))
+	  (+ x 1)))
+    => 5)
+
+  (check
+      (and-let* ()
+	(define x 1)
+	(- x))
+    => -1)
+
+  (check
+      (and-let* ((x 2)
+		 (y (+ 1 x)))
+	(define z (* x y))
+	(/ z))
+    => 1/6)
+
+  #t)
 
 
 ;;;; done

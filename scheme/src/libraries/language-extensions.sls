@@ -187,38 +187,62 @@
   (import (rnrs))
 
 
-(define-syntax and-let*
-  (lambda (stx)
-    (define (get-id c)
-      (syntax-case c () [(var expr) #'var] [_ #f]))
-    (syntax-case stx ()
-      [(_ (clause* ...) body* ...)
-       (for-all identifier? (filter values (map get-id #'(clause* ...))))
-       #'(and-let*-core #t (clause* ...) body* ...)])))
+  (define-syntax and-let*
+    (syntax-rules ()
+      ((_ . r)
+       (and-let*-core #T . r))))
 
-(define-syntax and-let*-core
-  (lambda (stx)
-    (syntax-case stx ()
-      [(kw _ ([var expr] clause* ...) body* ...)
-       #'(let ([var expr])
-	   (if var
-               (kw var (clause* ...) body* ...)
-	     #f))]
-      [(kw _ ([expr] clause* ...) body* ...)
-       #'(let ([t expr])
-	   (if t
-               (kw t (clause* ...) body* ...)
-	     #f))]
-      [(kw _ (id clause* ...) body* ...)
-       (or (identifier? #'id)
-	   (syntax-violation #f "invalid clause" stx #'id))
-       #'(if id
-             (kw id (clause* ...) body* ...)
-	   #f)]
-      [(kw last () body* ...)
-       (if (positive? (length #'(body* ...)))
-           #'(begin body* ...)
-	 #'last)])))
+  (define-syntax and-let*-core
+    (lambda (stx)
+      (syntax-case stx ()
+        ((kw _ ((var expr) . c) . b)
+         #'(let ((var expr))
+             (and var
+                  (kw var c . b))))
+        ((kw last ((expr) . c) . b)
+         #'(kw last ((t expr) . c) . b))
+        ((kw _ (id . c) . b)
+         (identifier? #'id)
+         #'(and id
+                (kw id c . b)))
+        ((_ last ())
+         #'last)
+        ((_ _ () . b)
+         #'(let () . b)))))
+
+
+;; (define-syntax and-let*
+;;   (lambda (stx)
+;;     (define (get-id c)
+;;       (syntax-case c () ((var expr) #'var) (_ #f)))
+;;     (syntax-case stx ()
+;;       ((_ (clause* ...) body* ...)
+;;        (for-all identifier? (filter values (map get-id #'(clause* ...))))
+;;        #'(and-let*-core #t (clause* ...) body* ...)))))
+
+;; (define-syntax and-let*-core
+;;   (lambda (stx)
+;;     (syntax-case stx ()
+;;       ((kw _ ((var expr) clause* ...) body* ...)
+;;        #'(let ((var expr))
+;; 	   (if var
+;;                (kw var (clause* ...) body* ...)
+;; 	     #f)))
+;;       ((kw _ ((expr) clause* ...) body* ...)
+;;        #'(let ((t expr))
+;; 	   (if t
+;;                (kw t (clause* ...) body* ...)
+;; 	     #f)))
+;;       ((kw _ (id clause* ...) body* ...)
+;;        (or (identifier? #'id)
+;; 	   (syntax-violation #f "invalid clause" stx #'id))
+;;        #'(if id
+;;              (kw id (clause* ...) body* ...)
+;; 	   #f))
+;;       ((kw last () body* ...)
+;;        (if (positive? (length #'(body* ...)))
+;;            #'(begin body* ...)
+;; 	 #'last)))))
 
 (define-syntax receive
   (syntax-rules ()
