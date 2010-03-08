@@ -337,9 +337,9 @@
      "JRSSAUDPMV2GKIDFON2CA43FNVRGYYLCNRSSAYLVEBYHE2LOMNSSAZDFOMQG45LFMVZSAULVNEQGQYLOORSSA3DBEB2GK3LQMV2GKIDFEBZWKIDSNF2CAZDFEBWCOYLSMNUGK4R3EBCXQ2LMMUQHG5LMEBWGKIDTN5WCAYLVEBWWS3DJMV2SAZDFOMQGQ5LFMVZSYICTMVZSAYLJNRSXGIDEMUQGOZLBNZ2CA3BHMVWXAZLDNBSW45BAMRSSA3LBOJRWQZLSFY")))
 
 
-;;;; base32hex test vectors
+;;;; base32/hex test vectors
 
-(define test-vectors-hex
+(define test-vectors-/hex
   ;; binary			encoded padded		encoded non-padded
   '((""				""			"")
     ("f"			"CO======"		"CO")
@@ -1021,7 +1021,7 @@
 
 
 (parametrise ((check-test-name	'four)
-	      (encoding		'base32hex)
+	      (encoding		'base32/hex)
 	      (padding?		#t)
 	      (encoding-case	'upper)
 	      (debugging	#t))
@@ -1036,13 +1036,13 @@
 		    `(,padded -> ,(decode padded (string? binary)))
 		  => `(,padded -> (#t ,binary)))
 		))
-    test-vectors-hex)
+    test-vectors-/hex)
 
   #t)
 
 
 (parametrise ((check-test-name	'five)
-	      (encoding		'base32hex)
+	      (encoding		'base32/hex)
 	      (padding?		#f)
 	      (encoding-case	'upper)
 	      (debugging	#t))
@@ -1057,13 +1057,13 @@
 		    `(,unpadded -> ,(decode unpadded (string? binary)))
 		  => `(,unpadded -> (#t ,binary)))
 		))
-    test-vectors-hex)
+    test-vectors-/hex)
 
   #t)
 
 
 (parametrise ((check-test-name	'six)
-	      (encoding		'base32hex)
+	      (encoding		'base32/hex)
 	      (padding?		#f)
 	      (encoding-case	'lower)
 	      (debugging	#t))
@@ -1078,7 +1078,7 @@
 		    `(,unpadded -> ,(decode unpadded (string? binary)))
 		  => `(,unpadded -> (#t ,binary)))
 		))
-    test-vectors-hex)
+    test-vectors-/hex)
 
   #t)
 

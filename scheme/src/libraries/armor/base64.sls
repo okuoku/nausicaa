@@ -43,7 +43,9 @@
     base64-encode-update-length			base64-decode-update-length
     base64-encode-final-length			base64-decode-final-length
 
-    base64-encode-block-length			base64-decode-block-length)
+    base64-encode-block-length			base64-decode-block-length
+
+    armored-byte-of-base64?			armored-byte-of-base64/url?)
   (import (rnrs)
     (language-extensions)
     (armor conditions))
@@ -154,12 +156,24 @@
 (define decode-table-base64
   (alphabet->table! encode-alphabet-base64 (make-vector 128 #f)))
 
+(define (armored-byte-of-base64? byte)
+  (and (integer? byte)
+       (exact? byte)
+       (<= 0 byte 127)
+       (vector-ref decode-table-base64 byte)))
+
 ;;Decoding tables for base 32 as specified by RFC 2938: disallowed input
 ;;characters have a value of #f; only 128 chars, as everything above 127
 ;;(#x80) is #f.
 
 (define decode-table-base64/url
   (alphabet->table! encode-alphabet-base64/url (make-vector 128 #f)))
+
+(define (armored-byte-of-base64/url? byte)
+  (and (integer? byte)
+       (exact? byte)
+       (<= 0 byte 127)
+       (vector-ref decode-table-base64/url byte)))
 
 
 ;;;; helpers
