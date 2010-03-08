@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
 ;;;Contents: tests for ascii armor of bytevectors
-;;;Date: Sun Jan 24, 2010
+;;;Date: Mon Mar  8, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -26,12 +26,11 @@
 
 
 (import (nausicaa)
-  (armor base16)
-  (checks)
-  (parameters))
+  (armor ascii85)
+  (checks))
 
 (check-set-mode! 'report-failed)
-(display "*** testing ASCII armor base16\n")
+(display "*** testing ASCII armor ascii85\n")
 
 
 ;;;; helpers
@@ -45,29 +44,21 @@
       (bytevector-u8-set! dst i (bytevector-u8-ref src j)))))
 
 
-;;;; parameters
-
-(define encoding-case
-  (make-parameter #t))
-
-
-;;;; base16 encoding and decoding routines
+;;;; ascii85 encoding and decoding routines
 
 (define (encode binary)
   ;;Encode BINARY which  must be a Scheme string  or bytevector.  Return
   ;;two values:  (1) the resulting boolean from  the encoding functions,
   ;;(2) a string representing the encoded data.
   ;;
-  ;;Make use of the ENCODING-CASE parameter.
-  ;;
-  (let* ((ctx		(make-<base16-encode-ctx> (encoding-case)))
+  (let* ((ctx		(make-<ascii85-encode-ctx>))
 	 (src		(if (string? binary) (string->utf8 binary) binary))
 	 (src-len	(bytevector-length src))
-	 (dst		(make-bytevector (base16-encode-length src-len) 0)))
+	 (dst		(make-bytevector (ascii85-encode-length src-len) 0)))
     (receive (dst-next src-next)
-	(base16-encode-update! ctx dst 0 src 0 src-len)
+	(ascii85-encode-update! ctx dst 0 src 0 src-len)
       (receive (result dst-next src-next)
-	  (base16-encode-final! ctx dst dst-next src src-next src-len)
+	  (ascii85-encode-final! ctx dst dst-next src src-next src-len)
 	(list result (utf8->string (subbytevector dst 0 dst-next)))))))
 
 (define (decode binary string-result?)
@@ -78,92 +69,28 @@
   ;;If STRING-RESULT?  is  true, the decoded data is  returned as Scheme
   ;;string; else it is returned as Scheme bytevector.
   ;;
-  ;;Make use of the ENCODING-CASE parameter.
-  ;;
   (define (%output dst dst-past)
     (let ((bv (subbytevector dst 0 dst-past)))
       (if string-result?
 	  (utf8->string bv)
 	bv)))
-  (let* ((ctx		(make-<base16-decode-ctx> (encoding-case)))
+  (let* ((ctx		(make-<ascii85-decode-ctx>))
 	 (src		(if (string? binary)
-			    (string->utf8 (case (encoding-case)
-					    ((upper)	(string-upcase binary))
-					    ((lower)	(string-downcase binary))
-					    (else	binary)))
+			    (string->utf8 binary)
 			  binary))
 	 (src-len	(bytevector-length src))
-	 (dst		(make-bytevector (base16-decode-length src-len) 0)))
+	 (dst		(make-bytevector (ascii85-decode-length src-len) 0)))
     (receive (result dst-next src-next)
-	(base16-decode-update! ctx dst 0 src 0 src-len)
+	(ascii85-decode-update! ctx dst 0 src 0 src-len)
       (if result
 	  (list result (%output dst dst-next))
 	(receive (result dst-next src-next)
-	    (base16-decode-final! ctx dst dst-next src src-next src-len)
+	    (ascii85-decode-final! ctx dst dst-next src src-next src-len)
 	  (list result (%output dst dst-next)))))))
 
 
-(parametrise ((check-test-name	'upper)
-	      (encoding-case	'upper))
-
-  (let ((plain	'#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
-	(ascii	"000102030405060708090A0B0C0D0E0F"))
-    (check (encode plain)	=> `(#t ,ascii))
-    (check (decode ascii #f)	=> `(#t ,plain)))
-
-  (let ((plain	'#vu8(16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31))
-	(ascii	"101112131415161718191A1B1C1D1E1F"))
-    (check (encode plain)	=> `(#t ,ascii))
-    (check (decode ascii #f)	=> `(#t ,plain)))
-
-  #t)
-
-(parametrise ((check-test-name	'lower)
-	      (encoding-case	'lower))
-
-  (let ((plain	'#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
-	(ascii	"000102030405060708090a0b0c0d0e0f"))
-    (check (encode plain)	=> `(#t ,ascii))
-    (check (decode ascii #f)	=> `(#t ,plain)))
-
-  (let ((plain	'#vu8(16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31))
-	(ascii	"101112131415161718191a1b1c1d1e1f"))
-    (check (encode plain)	=> `(#t ,ascii))
-    (check (decode ascii #f)	=> `(#t ,plain)))
-
-  #t)
-
-
-#;(parametrise ((check-test-name	'ascii85)
+(parametrise ((check-test-name	'ascii85)
 	      (debugging	#t))
-
-  (define (encode plain)
-    (let* ((ctx		(make-<ascii85-encode-ctx>))
-	   (src		(string->utf8 plain))
-	   (src-len	(bytevector-length src))
-	   (dst		(make-bytevector (ascii85-encode-length src-len))))
-      (let* ((init (ascii85-encode-init!   ctx dst 0))
-	     (done (ascii85-encode-update! ctx dst init src 0 src-len))
-	     (end  (ascii85-encode-final!  ctx dst (+ init done))))
-	(utf8->string (subbytevector dst 0 (+ init done end))))))
-
-  (define (decode encoded)
-    (let* ((ctx		(make-<ascii85-decode-ctx> #f))
-	   (src		(string->utf8 encoded))
-	   (src-len	(bytevector-length src))
-	   (dst		(make-bytevector (ascii85-decode-length src-len))))
-      (let ((done (ascii85-decode-update! ctx dst 0 src 0 src-len)))
-	(utf8->string (subbytevector dst 0 done)))))
-
-  (define (decode-blank encoded)
-    (let* ((ctx		(make-<ascii85-decode-ctx> #t))
-	   (src		(string->utf8 encoded))
-	   (src-len	(bytevector-length src))
-	   (dst		(make-bytevector (ascii85-decode-length src-len))))
-      (let ((done (ascii85-decode-update! ctx dst 0 src 0 src-len)))
-	(utf8->string (subbytevector dst 0 done)))))
-
-;;; --------------------------------------------------------------------
 
 ;;;Test vectors were generated with the web-utility at:
 ;;;

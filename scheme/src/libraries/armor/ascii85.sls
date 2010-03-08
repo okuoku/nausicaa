@@ -44,37 +44,12 @@
     ascii85-encode-partial-length
     ascii85-encode-final-length
 
-    ascii85-encode-finished?		ascii85-decode-finished?)
+    ascii85-encode-flushed?		ascii85-decode-flushed?)
   (import (rnrs)
     (armor helpers))
 
 
 ;;;; helpers
-
-;; (define << bitwise-arithmetic-shift-left)
-;; (define >> bitwise-arithmetic-shift-right)
-
-;; (define-syntax incr!
-;;   (syntax-rules ()
-;;     ((_ ?id)
-;;      (set! ?id (+ ?id 1)))
-;;     ((_ ?id ?delta)
-;;      (set! ?id (+ ?id ?delta)))))
-
-;; (define-syntax decr!
-;;   (syntax-rules ()
-;;     ((_ ?id)
-;;      (set! ?id (- ?id 1)))
-;;     ((_ ?id ?delta)
-;;      (set! ?id (- ?id ?delta)))))
-
-;; (define-syntax defmacro
-;;   (syntax-rules ()
-;;     ((_ (?name ?arg ...) ?form0 ?form ...)
-;;      (define-syntax ?name
-;;        (syntax-rules ()
-;; 	 ((_ ?arg ...)
-;; 	  (begin ?form0 ?form ...)))))))
 
 (define-syntax define-encode-accessor
   (lambda (stx)
@@ -125,7 +100,7 @@
 	  (mutable status))
 		;current encoder status:
 		;
-		;not-initialised, processing-data, finished
+		;not-initialised, processing-data, flushed
   (protocol (lambda (maker)
 	      (lambda ()
 		(maker 0 0 'not-initialised)))))
@@ -140,7 +115,7 @@
 		;
 		;expecting-less-than	expecting-opening-tilde
 		;processing-data
-		;found-closing-tilde	finished
+		;found-closing-tilde	flushed
 	  (mutable allow-blanks?))
   (protocol (lambda (maker)
 	      (lambda (allow-blanks?)
@@ -197,30 +172,30 @@
 
 
 (define (ascii85-encode-init! ctx dst-bv dst-start)
-  (define-encode-accessor ctx status)
-  (if (eq? status 'not-initialised)
+  ;;Writes  the opening sequence  to the  bytevector DST-BV  starting at
+  ;;index  DST-START   (included).   Return   the  index  of   the  next
+  ;;non-written byte  in DST-BV, or  #f if there  is not enough  room in
+  ;;DST-BV.
+  ;;
+  (let ((dst-len (- (bytevector-length dst-bv) dst-start)))
+    (if (< dst-len 2)
+	#f
       (begin
-	(set! status 'processing-data)
 	(bytevector-u8-set! dst-bv dst-start       less-than-char)
 	(bytevector-u8-set! dst-bv (+ 1 dst-start) tilde-char)
-	2)
-    (error 'ascii85-encode-init!
-      "attempt to initialise output sequence with invalid status in ASCII85 context" ctx)))
+	(+ 2 dst-start)))))
 
 (define (ascii85-encode-final! ctx dst-bv dst-start)
   (define-encode-accessor ctx status)
   (define-encode-accessor ctx count)
   (define-encode-accessor ctx tuple)
-  (if (eq? status 'processing-data)
-      (let ((i 0))
-	(set! status 'finished)
-	(when (< 0 count)
-	  (incr! i (%encode tuple count dst-bv dst-start)))
-	(bytevector-u8-set! dst-bv (+   i dst-start) tilde-char)
-	(bytevector-u8-set! dst-bv (+ 1 i dst-start) greater-than-char)
-	(+ 2 i))
-    (error 'ascii85-encode-final!
-      "attempt to finalise output sequence with invalid status in ASCII85 context" ctx)))
+  (let ((i 0))
+    (set! status 'flushed)
+    (when (< 0 count)
+      (incr! i (%encode tuple count dst-bv dst-start)))
+    (bytevector-u8-set! dst-bv (+   i dst-start) tilde-char)
+    (bytevector-u8-set! dst-bv (+ 1 i dst-start) greater-than-char)
+    (+ 2 i)))
 
 (define (ascii85-encode-update! ctx dst-bv dst-start src-bv src-start src-len)
   (define-encode-accessor ctx status)
@@ -272,8 +247,8 @@
 	(bytevector-u8-set! dst-bv (+ i dst-start) (+ bang-char (car rest-list)))
 	(loop (+ 1 i) (cdr rest-list))))))
 
-(define (ascii85-encode-finished? ctx)
-  (eq? 'finished (<ascii85-encode-ctx>-status ctx)))
+(define (ascii85-encode-flushed? ctx)
+  (eq? 'flushed (<ascii85-encode-ctx>-status ctx)))
 
 
 (define (ascii85-decode-update! ctx dst-bv dst-start src-bv src-start src-len)
@@ -300,7 +275,7 @@
 	      ((= byte greater-than-char)
 	       (case status
 		 ((found-closing-tilde)
-		  (set! status 'finished)
+		  (set! status 'flushed)
 		  i)
 		 ((processing-data)
 		  (incr! i (%decode-byte ctx dst-bv (+ i dst-start) byte))
@@ -396,8 +371,8 @@
      (bytevector-u8-set! dst-bv dst-start       (bitwise-and #xFF (>> tuple 24)))
      1)))
 
-(define (ascii85-decode-finished? ctx)
-  (eq? 'finished (<ascii85-decode-ctx>-status ctx)))
+(define (ascii85-decode-flushed? ctx)
+  (eq? 'flushed (<ascii85-decode-ctx>-status ctx)))
 
 
 ;;;; done
