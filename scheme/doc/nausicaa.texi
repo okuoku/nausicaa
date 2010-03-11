@@ -52586,7 +52586,7 @@ from @var{src-bv} are consumed, this value is @var{src-past}.
 
 @ascii{} characters are read from @var{src-bv} in chunks of @math{4}
 bytes; binary data bytes are written to @var{dst-bv} in chunks of
-@math{4} bytes.  If the last characters are in a chunk of less than
+@math{3} bytes.  If the last characters are in a chunk of less than
 @math{4}, they are interpreted as unpadded characters as specified in
 @var{ctx}.  If not enough room exists in @var{dst-bv} to store a block,
 available input data is not consumed.
@@ -52894,139 +52894,489 @@ according to @func{char->integer}, of an @ascii{} character in the
 
 
 The bindings documented in this section are exported by the
-@library{armor ascii85} library.  Usage example:
+@library{armor ascii85} library.  @ascii{}85 encoding produces @math{5}
+bytes of @ascii{} characters every @math{4} bytes of binary data.
+
+@menu
+* armor ascii85 intro::         Introduction to @ascii{}85 encoding.
+* armor ascii85 encode::        Encoding byte streams with @ascii{}85.
+* armor ascii85 decode::        Decoding byte streams with @ascii{}85.
+* armor ascii85 utils::         Utilities for @ascii{}85 encoders and
+                                decoders.
+@end menu
+
+@c page
+@node armor ascii85 intro
+@subsection Introduction to @ascii{}85 encoding
+
+
+This encoding differs from @code{base32} and @code{base64} in that:
+
+@itemize
+@item
+The output length depends upon the input data.
+
+@item
+There is no padding.
+@end itemize
+
+@c ------------------------------------------------------------
+
+@subsubheading The encoder algorithm
+
+The encoder is meant to prefix the encoded data with the sequence
+@samp{<~} and to append after the last byte the sequence @samp{~>}.
+
+A string of @math{4} bytes @math{Bn} of binary input are encoded as
+follows:
+
+@enumerate
+@item
+A tuple bytevector is formed as in:
 
 @example
-(define (subbytevector src start past)
-  (let ((dst (make-bytevector (- past start))))
-    (do ((i 0     (+ 1 i))
-         (j start (+ 1 j)))
-        ((= j past)
-         dst)
-      (bytevector-u8-set! dst i
-         (bytevector-u8-ref src j)))))
-
-(let* ((ctx      (make-<ascii85-encode-ctx>))
-       (src      (string->utf8 "hello"))
-       (src-len  (bytevector-length src))
-       (dst      (make-bytevector
-                  (ascii85-encode-length src-len))))
-  (let* ((init (ascii85-encode-init!   ctx dst 0))
-         (done (ascii85-encode-update! ctx
-                  dst init src 0 src-len))
-         (end  (ascii85-encode-final!  ctx
-                  dst (+ init done))))
-    (utf8->string (subbytevector dst 0 (+ init done end)))))
-@result{} "<~BOu!rDZ~>"
-
-(let* ((ctx      (make-<ascii85-decode-ctx> #f))
-       (src      (string->utf8 "<~BOu!rDZ~>"))
-       (src-len  (bytevector-length src))
-       (dst      (make-bytevector
-                  (ascii85-decode-length src-len))))
-  (let ((done (ascii85-decode-update! ctx
-                 dst 0 src 0 src-len)))
-    (utf8->string (subbytevector dst 0 done))))
-@result{} "hello"
+(define tuple-bv '#vu8(B0 B1 B2 B3))
 @end example
 
-The supported format is the one that encloses encoded bytes in @code{<~}
-and @code{~>} characters without line--breaks inserted.
+@noindent
+and a tuple number is formed as in:
+
+@example
+(define tuple
+  (bytevector-u32-ref tuple-bv 0 (endianness big)))
+@end example
+
+@item
+@math{5} moduli @math{Mn} resulting from division by @math{85} are
+computed:
+
+@example
+(define D0 (div tuple 85))
+(define D1 (div D0 85))
+(define D2 (div D1 85))
+(define D3 (div D2 85))
+
+(define M0 (mod tuple 85))
+(define M1 (mod D0 85))
+(define M2 (mod D1 85))
+(define M3 (mod D2 85))
+(define M4 (mod D3 85))
+@end example
+
+@item
+Character integers @math{Cn} are computed:
+
+@example
+(define bang-char (char->integer #\!))
+
+(define C0 (+ bang-char M0))
+(define C1 (+ bang-char M1))
+(define C2 (+ bang-char M2))
+(define C3 (+ bang-char M3))
+(define C4 (+ bang-char M4))
+@end example
+
+@item
+The output bytevector is filled with the integers in ``reverse'' order:
+
+@example
+(define ascii-bv
+  '#vu8(C4 C3 C2 C1 C0))
+@end example
+@end enumerate
+
+The integers in the output bytevector are associated (according to
+@func{integer->char}) to the characters between @samp{#\!} (included)
+and @samp{#\u} (included).  As a special exception: when there are
+@math{4} input bytes and the corresponding tuple number is zero, a
+single output byte is encoded, the one corresponding to the @ascii{}
+character @samp{#\z}.
+
+Binary input is encoded in blocks of length @math{4}, producing blocks
+of length @math{5}; the trailing bytes (less than @math{4}) are encoded
+in a similar way, starting with tuple bytevectors like:
+
+@example
+(define tuple-bv-3 '#vu8(B0 B1 B2  0))
+(define tuple-bv-2 '#vu8(B0 B1  0  0))
+(define tuple-bv-1 '#vu8(B0  0  0  0))
+@end example
+
+@noindent
+computing the character integers @math{Cn} exaclty as above; finally
+storing the characters as follows:
+
+@example
+(define ascii-out-3 '#vu8(C4 C3 C2 C1))
+(define ascii-out-2 '#vu8(C4 C3 C2))
+(define ascii-out-1 '#vu8(C4 C3))
+@end example
+
+@noindent
+we see that: whichever the number of input bytes, we always have to
+compute @math{5} moduli @math{Mn}.
+
+@c ------------------------------------------------------------
+
+@subsubheading The decoder algorithm
+
+The decoder is meant to detect the opening sequence @samp{<~} at the
+beginning of the encoded stream and the closing sequence @samp{~>} at
+the end of the decoded stream.
+
+A string of @math{5} bytes @math{Cn} of @ascii{} input characters is
+decoded as follows:
+
+@enumerate
+@item
+@math{5} moduli @math{Mn} are computed:
+
+@example
+(define encoded-input
+  '#vu8(C4 C3 C2 C1 C0))
+
+(define M4 (- C4 bang-char))
+(define M3 (- C3 bang-char))
+(define M2 (- C2 bang-char))
+(define M1 (- C1 bang-char))
+(define M0 (- C0 bang-char))
+@end example
+
+@item
+A tuple number is computed:
+
+@example
+(define bang-char (char->integer #\!))
+
+(define tuple
+  (+ (* M4 85 85 85 85)
+     (* M3 85 85 85)
+     (* M2 85 85)
+     (* M1 85)
+        M0))
+@end example
+
+@item
+@math{4} bytes @math{Bn} of binary output are extracted:
+
+@example
+(define >> bitwise-arithmetic-shift-right)
+
+(define B0 (bitwise-and #xFF (>> tuple 24)))
+(define B1 (bitwise-and #xFF (>> tuple 16)))
+(define B2 (bitwise-and #xFF (>> tuple  8)))
+(define B3 (bitwise-and #xFF     tuple))
+@end example
+
+@item
+The output bytevector is formed:
+
+@example
+(define binary-output
+  '#vu8(B0 B1 B2 B3))
+@end example
+@end enumerate
+
+@ascii{} input is decoded in blocks of length @math{5}, producing blocks
+of length @math{4}; the trailing bytes (less than @math{5} more than
+@math{1}) are decoded in a similar way, starting with tuple numbers
+like:
+
+@example
+(define tuple-4
+  (+ (* M4 85 85 85 85)
+     (* M3 85 85 85)
+     (* M2 85 85)
+     (* M1 85)
+           85))
+
+(define tuple-3
+  (+ (* M4 85 85 85 85)
+     (* M3 85 85 85)
+     (* M2 85 85)
+     (*    85 85)))
+
+(define tuple-2
+  (+ (* M4 85 85 85 85)
+     (* M3 85 85 85)
+     (*    85 85 85)))
+@end example
+
+@noindent
+and forming output bytevectors like:
+
+@example
+(define binary-output-4 '#vu8(B0 B1 B2))
+(define binary-output-3 '#vu8(B0 B1))
+(define binary-output-2 '#vu8(B0))
+@end example
+
+As a special exception: when an input byte associated to the character
+@samp{#\z} is found in the @ascii{} input, @math{4} zero bytes are
+appended to the binary output.  The @samp{#\z} character is legal only
+at the @strong{beginning} of an input block of @math{5} characters and
+at the @strong{beginning} of the last block of trailing characters.
+Trailing characters must come in blocks of at least @math{2} bytes.
+
+@c page
+@node armor ascii85 encode
+@subsection Encoding byte streams with @ascii{}85
 
 
 @deftp {Record Type Name} <ascii85-encode-ctx>
-@deftpx {Record Type Name} <ascii85-decode-ctx>
-Encoding and decoding context values.
+Context descriptor for @ascii{}85 encoding.
 @end deftp
 
 
 @defun make-<ascii85-encode-ctx>
-@defunx make-<ascii85-decode-ctx> @var{allow-blanks?}
 @defunx <ascii85-encode-ctx>? @var{obj}
-@defunx <ascii85-decode-ctx>? @var{obj}
-Constructors and predicates for records of type
-@class{ascii85-encode-ctx} and @class{ascii85-decode-ctx}.
-
-If @var{allow-blanks?} is true, decoding allows blank characters in the
-input: it will just discard them; else blanks are not allowed and an
-error is raised if they are found.
+Constructor and predicate for records of type
+@class{ascii85-encode-ctx}.
 @end defun
 
 
-@defun ascii85-encode-init! @var{ctx} @var{dst-bv} @var{dst-start}
-Begin encoding by pushing the sequence @code{<~} on the bytevector
-@var{dst-bv} starting at @var{dst-start}; return the number of
-characters stored in the output.  @var{dsb-bv} must have enough free
-bytes to hold the sequence.
+@defun ascii85-encode-update-length @var{number-of-bytes}
+Return the minimum number of bytes required in the output bytevector
+when @func{ascii85-encode-update!}  is applied to @var{number-of-bytes}
+bytes of binary input data.  Notice that the function will consume input
+in @math{4}-bytes blocks only and produce output in @math{5}-bytes
+blocks only, so the return value is always zero or an exact multiple of
+@math{5}.
 @end defun
 
 
-@defun ascii85-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
-@defunx ascii85-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-len}
-Process @var{src-len} bytes from the bytevector @var{src-bv} starting at
-offset @var{src-start}; store the output in the bytevector @var{dst-bv}
-starting at @var{dst-start}.  Return the number of bytes actually stored
-in @var{dst-bv}.
-
-The output bytevector must have enough free bytes to hold all the
-produced output bytes.
-
-@var{ctx} must be an appropriate context record; data bits may be stored
-in the context record.
+@defun ascii85-encode-final-length @var{number-of-bytes}
+Return the minimum number of bytes required in the output vector when
+@func{ascii85-encode-final!}  is applied to @var{number-of-bytes}
+@math{< 4} bytes of binary input data.  The returned value does
+@strong{not} take into account the ending @samp{~>} sequence.  If
+@var{number-of-bytes} is invalid: the return value is @false{}.
 @end defun
 
 
-@defun ascii85-encode-final! @var{ctx} @var{dst-bv} @var{dst-start}
-Flush bits from the context @var{ctx} to the bytevector @var{dst-bv}
-starting at index @var{dst-start}; append the final @samp{~>} sequence
-of characters.  Return the number of bytes actually stored in the
-output.
-
-The output bytevector must have enough free bytes to hold all the
-produced output bytes.
+@defun ascii85-encode-length @var{number-of-bytes}
+Return the minimum number of bytes required in the output vector when
+@func{ascii85-encode-final!}  is applied to @var{number-of-bytes} bytes
+of binary input data.  This is also the number required when both
+@func{ascii85-encode-update!}  and @func{ascii85-encode-final!} are
+used.
 @end defun
 
 
-@defun ascii85-encode-finished? @var{ctx}
-@defunx ascii85-decode-finished? @var{ctx}
-Return true if the stream of bytes associated to the context has been
-finalised.
-@end defun
-
-
-@defun ascii85-encode-length @var{input-len}
-Return the minimum number of bytes required in the output bytevector in
-calls to the whole sequence @func{ascii85-encode-init!},
-@func{ascii85-encode-update!} and @func{ascii85-encode-final!} when the
-input has @var{input-len} bytes.
-@end defun
-
-
-@defvr Constant ascii85-encode-initial-length
-Number of bytes stored in the output bytevector by
-@func{ascii85-encode-init!}.
+@defvr Constant ascii85-encode-block-length
+The length of the input block: @math{4}.
 @end defvr
 
 
-@defun ascii85-encode-final-length @var{input-len}
-Return the minimum number of bytes required in the output bytevector in
-calls to @func{ascii85-encode-final!} when the input has @var{input-len}
-bytes.
+@defun ascii85-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Encode binary data from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+@ascii{} characters in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); encoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{ascii85-encode-ctx}.
+
+This function is meant to encode bytes from the input stream when we
+know that more input bytes will be available in the future.
+
+Return two values:
+
+@enumerate
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
 @end defun
 
 
-@defun ascii85-encode-partial-length @var{input-len}
-Return the minimum number of bytes required in the output bytevector in
-calls to @func{ascii85-encode-update!} when the input has @var{input-len}
-bytes.
+@defun ascii85-encode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Encode binary data from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+@ascii{} characters in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); encoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{ascii85-encode-ctx}.
+
+This function is meant to encode the last bytes from the input stream
+and produce the last bytes to the output stream.  This function does
+@strong{not} output the trailing @samp{~>} sequence.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if success, false if the output bytevector was filled
+before flushing all the bytes.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+@end defun
+
+@c page
+@node armor ascii85 decode
+@subsection Decoding byte streams with @ascii{}85
+
+
+None of the following functions will take care to recognise and parse
+the opening @samp{<~} or closing @samp{~>} sequences of the @ascii{}85
+encoding.
+
+
+@deftp {Record Type Name} <ascii85-decode-ctx>
+Context descriptor for @ascii{}85 decoding.
+@end deftp
+
+
+@defun make-<ascii85-decode-ctx>
+@defunx <ascii85-decode-ctx>? @var{obj}
+Constructor and predicate for records of type
+@class{ascii85-decode-ctx}.
 @end defun
 
 
-@defun ascii85-decode-length @var{input-len}
-Return the minimum number of bytes required in the output bytevector in
-calls to @func{ascii85-decode-update!} when the input has @var{input-len}
-bytes.  Notice that when blanks are allowed in the input, it is not
-possible to determine exactly the amount of output bytes required.
+@defun ascii85-decode-update-length @var{number-of-chars}
+Return the minimum number of bytes required in the output vector when
+@func{ascii85-decode-update!}  is applied to @var{number-of-chars}
+@ascii{} characters of input.  Notice that the function will consume
+input in @math{5}-bytes blocks only and produce output in @math{4}-bytes
+blocks only, so the return value is always zero or an exact multiple of
+@math{4}.
+
+This function does @strong{not} take into account that an input
+character could be @samp{#\z}, corresponding to @math{4} output bytes.
+@end defun
+
+
+@defun ascii85-decode-final-length @var{number-of-chars}
+Return the minimum number of bytes required in the output vector when
+@func{ascii85-decode-final!}  is applied to @var{number-of-chars}
+@math{< 5} @ascii{} characters of input.  All the arguments between
+@math{0} and @math{4} are valid; if the argument is not valid the return
+value is @false{}.  If the argument is @math{1}, the return value is
+@math{4}: this is to allow a single @samp{#\z} character to be
+processed.
+@end defun
+
+
+@defun ascii85-decode-length @var{number-of-chars}
+@defunx ascii85-decode-length @var{number-of-chars} @var{padding?}
+Return the minimum number of bytes required in the output vector when
+@func{ascii85-decode-final!}  is applied to @var{number-of-chars}
+@ascii{} characters of input.  This is also the number required when
+both @func{ascii85-decode-update!} and @func{ascii85-decode-final!} are
+used.
+
+This function does @strong{not} take into account that an input
+character could be @samp{#\z}, corresponding to @math{4} output bytes.
+@end defun
+
+
+@defvr Constant ascii85-decode-block-length
+The length of the input block: @math{5}.
+@end defvr
+
+
+@defun ascii85-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Decode @ascii{} characters from the bytevector @var{src-bv} starting at
+index @var{src-start} (included) up to index @var{src-past} (excluded);
+store binary data bytes in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); decoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{ascii85-decode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean always false.  This return value is used to make the
+@ascii{}85 @api{} equal to the one of the base64 decoder.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is filled to the end, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the
+characters from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+@ascii{} characters are read from @var{src-bv} in chunks of @math{5}
+bytes; binary data bytes are written to @var{dst-bv} in chunks of
+@math{4} bytes.  If not enough room exists in @var{dst-bv} to store a
+block, available input data is not consumed.  As a special exception: if
+the first character to be read in a chunk is @samp{#\z}, it is decoded
+to a sequence of @math{4} zero bytes.
+@end defun
+
+
+@defun ascii85-decode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Decode @ascii{} characters from the bytevector @var{src-bv} starting at
+index @var{src-start} (included) up to index @var{src-past} (excluded);
+store binary data bytes in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); decoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{ascii85-decode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if success, false if the output bytevector was filled
+before flushing all the bytes.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is filled to the end, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+@ascii{} characters are read from @var{src-bv} in chunks of @math{5}
+bytes; binary data bytes are written to @var{dst-bv} in chunks of
+@math{4} bytes.  After that the trailing characters are decoded.  If not
+enough room exists in @var{dst-bv} to store a block, available input
+data is not consumed.  As a special exception: if the first character to
+be read in a chunk is @samp{#\z}, it is decoded to a sequence of
+@math{4} zero bytes.
+@end defun
+
+@c page
+@node armor ascii85 utils
+@subsection Utilities for @ascii{}85 encoders and decoders
+
+
+@defun armored-byte-of-ascii85? @var{byte-integer}
+Return true if @var{byte-integer} is an exact integer representation,
+according to @func{char->integer}, of an @ascii{} character in the
+@ascii{}85 encoding's alphabet.
+@end defun
+
+
+@defun ascii85-encode-opening! @var{ctx} @var{dst-bv} @var{dst-start}
+Writes the opening sequence @samp{<~} to the bytevector @var{dst-bv}
+starting at index @var{dst-start} (included).  Return the index of the
+next non--written byte in @var{dst-bv}, or @false{} if there is not
+enough room in @var{dst-bv}.
+@end defun
+
+
+@defun ascii85-encode-closing! @var{ctx} @var{dst-bv} @var{dst-start}
+Writes the closing sequence @samp{~>} to the bytevector @var{dst-bv}
+starting at index @var{dst-start} (included).  Return the index of the
+next non--written byte in @var{dst-bv}, or @false{} if there is not
+enough room in @var{dst-bv}.
 @end defun
 
 @c page

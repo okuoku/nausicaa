@@ -89,7 +89,7 @@
 	  (list result (%output dst dst-next)))))))
 
 
-(parametrise ((check-test-name	'ascii85)
+(parametrise ((check-test-name	'notilde-ascii85)
 	      (debugging	#t))
 
 ;;;Test vectors were generated with the web-utility at:
@@ -150,7 +150,7 @@
   #t)
 
 
-(parametrise ((check-test-name	'notilde-ascii85)
+(parametrise ((check-test-name	'ascii85)
 	      (debugging	#t))
 
 ;;;Test vectors were generated with the web-utility at:
@@ -207,6 +207,35 @@
   ;; 	(b "<~9P#>CDe4$%+D#V9+EM+2@VfI^Ch4_tFWbXDBl7El+Co&)+Du=5ATJtkF_Mt3@;^0u+DbI/FCf<.ATVK+AKZ&*+ED1<+Co%+CaWY3@q]Fo4!6t:Bl%?'F*2:ACh4`1DepP)FWbO8Ch[I'+Co&)+D>n/ATKCF;e:\"m@;0OhF!,\")+D57oDKI\";-Y7.6ARfCbDKI\"3AKYhuEarcoE\\7~>"))
   ;;   (check (encode a)	=> b)
   ;;   (check (decode b #t)	=> a))
+
+  #t)
+
+
+(parametrise ((check-test-name	'misc))
+
+  (check
+      (let ((bv (make-bytevector 4 0)))
+	(list (ascii85-encode-opening! (make-<ascii85-encode-ctx>) bv 1)
+	      bv))
+    => '(3 #vu8(0 60 126 0)))
+
+  (check
+      (let ((bv (make-bytevector 4 0)))
+	(ascii85-encode-opening! (make-<ascii85-encode-ctx>) bv 3))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((bv (make-bytevector 4 0)))
+	(list (ascii85-encode-closing! (make-<ascii85-encode-ctx>) bv 1)
+	      bv))
+    => '(3 #vu8(0 126 62 0)))
+
+  (check
+      (let ((bv (make-bytevector 4 0)))
+	(ascii85-encode-closing! (make-<ascii85-encode-ctx>) bv 3))
+    => #f)
 
   #t)
 

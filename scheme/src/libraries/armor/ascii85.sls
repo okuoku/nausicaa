@@ -42,11 +42,10 @@
     ascii85-encode-update-length	ascii85-decode-update-length
     ascii85-encode-final-length		ascii85-decode-final-length
 
-					ascii85-decode-length*
-					ascii85-decode-final-length*
-
     ascii85-encode-block-length		ascii85-decode-block-length
 
+    ascii85-encode-opening!
+    ascii85-encode-closing!
     armored-byte-of-ascii85?)
   (import (rnrs)
     (armor conditions)
@@ -76,8 +75,8 @@
     ((_ ?idx)
      (vector-ref table ?idx))))
 
-(define blanks
-  (map char->integer '(#\newline #\return #\tab #\vtab #\space #\page)))
+;; (define blanks
+;;   (map char->integer '(#\newline #\return #\tab #\vtab #\space #\page)))
 
 (define << bitwise-arithmetic-shift-left)
 (define >> bitwise-arithmetic-shift-right)
@@ -153,7 +152,7 @@
 (define (ascii85-decode-final-length len)
   ;;Return the  minimum number  of bytes required  in the  output vector
   ;;when ASCII85-DECODE-FINAL!   is applied to LEN <  5 ASCII characters
-  ;;of input.  Not  all the arguments between 0 and 4  are valid; if the
+  ;;of  input.  All  the arguments  between 0  and 4  are valid;  if the
   ;;argument is not valid the return value is #f.
   ;;
   (case len
@@ -166,39 +165,7 @@
 
 (define (ascii85-decode-length len)
   ;;Return the  minimum number  of bytes required  in the  output vector
-  ;;when  ASCII85-DECODE-FINAL!  is  applied to  LEN ASCII  characters of
-  ;;input.    This    is   also   the   number    required   when   both
-  ;;ASCII85-DECODE-UPDATE! and ASCII85-DECODE-FINAL! are used.
-  ;;
-  ;;This function  does NOT  take into account  that an  input character
-  ;;could be #\z, corresponding to 4 output bytes.
-  ;;
-  (let ((final-len (ascii85-decode-final-length (mod len ascii85-decode-block-length))))
-    (if final-len
-	(+ final-len (ascii85-decode-update-length len))
-      #f)))
-
-;;; --------------------------------------------------------------------
-
-(define (ascii85-decode-final-length* len)
-  ;;Return the  minimum number  of bytes required  in the  output vector
-  ;;when ASCII85-DECODE-FINAL!   is applied to LEN <  5 ASCII characters
-  ;;of input.  Not  all the arguments between 0 and 4  are valid; if the
-  ;;argument is not valid the return value is #f.
-  ;;
-  ;;This function  does NOT  take into account  that an  input character
-  ;;could be #\z, corresponding to 4 output bytes.
-  ;;
-  (case len
-    ((0)	0)
-    ((2)	1)
-    ((3)	2)
-    ((4)	3)
-    (else	#f)))
-
-(define (ascii85-decode-length* len)
-  ;;Return the  minimum number  of bytes required  in the  output vector
-  ;;when  ASCII85-DECODE-FINAL!  is  applied to  LEN ASCII  characters of
+  ;;when ASCII85-DECODE-FINAL!   is applied  to LEN ASCII  characters of
   ;;input.    This    is   also   the   number    required   when   both
   ;;ASCII85-DECODE-UPDATE! and ASCII85-DECODE-FINAL! are used.
   ;;
@@ -226,13 +193,20 @@
   ;;	  D2 = D0 / 85		M3 = D2 mod 85
   ;;	  D3 = D0 / 85		M4 = D3 mod 85
   ;;
-  ;;(2) Store the moduli in reverse order:
+  ;;(2) Character integers are computed:
   ;;
-  ;;      COUNT = 5	=>	#vu8(... M4 M3 M2 M1 M0 ...)
-  ;;      COUNT = 4	=>	#vu8(... M4 M3 M2 M1 ...)
-  ;;      COUNT = 3	=>	#vu8(... M4 M3 M2 ...)
-  ;;      COUNT = 2	=>	#vu8(... M4 M3 ...)
-  ;;      COUNT = 1	=>	#vu8(... M4 ...)
+  ;;      C0 = 33 + M0
+  ;;      C1 = 33 + M1
+  ;;      C2 = 33 + M2
+  ;;      C3 = 33 + M3
+  ;;      C4 = 33 + M4
+  ;;
+  ;;(3) Store the moduli in reverse order:
+  ;;
+  ;;      COUNT = 4	=>	#vu8(... C4 C3 C2 C1 C0 ...)
+  ;;      COUNT = 3	=>	#vu8(... C4 C3 C2 C1 ...)
+  ;;      COUNT = 2	=>	#vu8(... C4 C3 C2 ...)
+  ;;      COUNT = 1	=>	#vu8(... C4 C3 ...)
   ;;                                     ^
   ;;                                 DST-START
   ;;
@@ -244,13 +218,12 @@
 	(begin
 	  (bytevector-u8-set! dst-bv dst-start z-char)
 	  1)
-      (let ((rests (let ((rests (make-vector 5)))
-		     ;;Fill RESTS with moduli.
-		     (do ((k 0 (+ 1 k))
-			  (tuple tuple (div tuple 85)))
-			 ((= k 5)
-			  rests)
-		       (vector-set! rests k (mod tuple 85))))))
+      (let ((moduli (let ((moduli (make-vector 5)))
+		      (do ((k 0 (+ 1 k))
+			   (tuple tuple (div tuple 85)))
+			  ((= k 5)
+			   moduli)
+			(vector-set! moduli k (mod tuple 85))))))
 	(do ((k 0 (+ 1 k))
 	     (j 4 (- j 1))
 	     (i dst-start (+ 1 i)))
@@ -258,7 +231,7 @@
 	     k)
 	  (bytevector-u8-set! dst-bv i
 			      ;; store moduli in reverse order
-			      (+ bang-char (vector-ref rests j))))))))
+			      (+ bang-char (vector-ref moduli j))))))))
 
 
 (define (ascii85-encode-opening! ctx dst-bv dst-start)
@@ -290,7 +263,8 @@
 	(+ 2 dst-start)))))
 
 (define (armored-byte-of-ascii85? int)
-  (<= bang-char int u-char))
+  (or (= int z-char)
+      (<= bang-char int u-char)))
 
 
 (define (ascii85-encode-update! ctx dst-bv dst-start src-bv src-start src-past)
@@ -497,10 +471,12 @@
 				 (* (- src2 bang-char) (pow85 2))
 				 (* (- src3 bang-char) (pow85 3))
 				 (- src4 bang-char))))
-		   (*dst 0 (>> tuple 24))
-		   (*dst 1 (>> tuple 16))
-		   (*dst 2 (>> tuple  8))
-		   (*dst 3     tuple)
+		   (bytevector-u32-set! dst-bv i tuple (endianness big))
+		   (incr! i 4)
+		   ;; (*dst 0 (>> tuple 24))
+		   ;; (*dst 1 (>> tuple 16))
+		   ;; (*dst 2 (>> tuple  8))
+		   ;; (*dst 3     tuple)
 		   (loop i j (- src-len 5) (- dst-len 4))))))))))
 
 
