@@ -51237,10 +51237,11 @@ following types: @condition{who}, @condition{option},
 
 
 The encoders and decoders documented in this chapter convert a stream of
-bytes into a stream of @ascii{} characters, according to a selection of
-encoding alphabets.  None of the encoders and decoders will process
-line--oriented input or output; to split a stream of @ascii{} characters
-into lines, we have to apply a specific filter.
+bytes into a stream of @ascii{} characters, and back, according to a
+selection of encoding alphabets.  None of the encoders and decoders will
+process line--oriented input or output; to split a stream of @ascii{}
+characters into lines, we have to apply a specific filter; to process a
+sequence of lines we have to remove the newlines first.
 
 @menu
 * armor conditions::            Condition objects.

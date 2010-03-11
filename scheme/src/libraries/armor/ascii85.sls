@@ -35,100 +35,34 @@
     make-<ascii85-encode-ctx>		make-<ascii85-decode-ctx>
     <ascii85-encode-ctx>?		<ascii85-decode-ctx>?
 
-    ascii85-encode-init!
     ascii85-encode-update!		ascii85-decode-update!
-    ascii85-encode-final!
+    ascii85-encode-final!		ascii85-decode-final!
 
-    ascii85-encode-initial-length
     ascii85-encode-length		ascii85-decode-length
-    ascii85-encode-partial-length
-    ascii85-encode-final-length
+    ascii85-encode-update-length	ascii85-decode-update-length
+    ascii85-encode-final-length		ascii85-decode-final-length
 
-    ascii85-encode-flushed?		ascii85-decode-flushed?)
+					ascii85-decode-length*
+					ascii85-decode-final-length*
+
+    ascii85-encode-block-length		ascii85-decode-block-length
+
+    armored-byte-of-ascii85?)
   (import (rnrs)
-    (armor helpers))
+    (armor conditions)
+    (language-extensions))
 
 
-;;;; helpers
-
-(define-syntax define-encode-accessor
-  (lambda (stx)
-    (define (%field->accessor field-stx)
-      (string->symbol (string-append "<ascii85-encode-ctx>-"
-				     (symbol->string (syntax->datum field-stx)))))
-    (define (%field->mutator field-stx)
-      (string->symbol (string-append "<ascii85-encode-ctx>-"
-				     (symbol->string (syntax->datum field-stx))
-				     "-set!")))
-    (syntax-case stx ()
-      ((_ ?record ?field)
-       (with-syntax ((ACCESSOR	(datum->syntax #'field (%field->accessor #'?field)))
-		     (MUTATOR	(datum->syntax #'field (%field->mutator  #'?field))))
-       #'(define-syntax ?field
-	   (identifier-syntax
-	    (?id
-	     (ACCESSOR ?record))
-	    ((set! ?id ?e)
-	     (MUTATOR ?record ?e)))))))))
-
-(define-syntax define-decode-accessor
-  (lambda (stx)
-    (define (%field->accessor field-stx)
-      (string->symbol (string-append "<ascii85-decode-ctx>-"
-				     (symbol->string (syntax->datum field-stx)))))
-    (define (%field->mutator field-stx)
-      (string->symbol (string-append "<ascii85-decode-ctx>-"
-				     (symbol->string (syntax->datum field-stx))
-				     "-set!")))
-    (syntax-case stx ()
-      ((_ ?record ?field)
-       (with-syntax ((ACCESSOR	(datum->syntax #'field (%field->accessor #'?field)))
-		     (MUTATOR	(datum->syntax #'field (%field->mutator  #'?field))))
-       #'(define-syntax ?field
-	   (identifier-syntax
-	    (?id
-	     (ACCESSOR ?record))
-	    ((set! ?id ?e)
-	     (MUTATOR ?record ?e)))))))))
-
-
-(define-record-type <ascii85-encode-ctx>
-  (fields (mutable tuple)
-		;tuple to be encoded, at most 4 bytes
-	  (mutable count)
-		;number of bytes in the tuple
-	  (mutable status))
-		;current encoder status:
-		;
-		;not-initialised, processing-data, flushed
-  (protocol (lambda (maker)
-	      (lambda ()
-		(maker 0 0 'not-initialised)))))
-
-(define-record-type <ascii85-decode-ctx>
-  (fields (mutable tuple)
-		;tuple to be decode, at most 4 bytes
-	  (mutable count)
-		;number of bytes in the tuple
-	  (mutable status)
-		;current decoder state:
-		;
-		;expecting-less-than	expecting-opening-tilde
-		;processing-data
-		;found-closing-tilde	flushed
-	  (mutable allow-blanks?))
-  (protocol (lambda (maker)
-	      (lambda (allow-blanks?)
-		(maker 0 0 'expecting-less-than allow-blanks?)))))
-
+(define-record-type <ascii85-encode-ctx>)
+(define-record-type <ascii85-decode-ctx>)
 
 
 (define less-than-char		(char->integer #\<))
 (define greater-than-char	(char->integer #\>))
 (define tilde-char		(char->integer #\~))
-(define bang-char		(char->integer #\!))
-(define z-char			(char->integer #\z))
-(define u-char			(char->integer #\u))
+(define bang-char		(char->integer #\!))	;the smallest char in the alphabet
+(define u-char			(char->integer #\u))	;the greatest char in the alphabet
+(define z-char			(char->integer #\z))	;used to encode 4 zero bytes
 
 (define table
   (vector (* 85 85 85 85)
@@ -145,33 +79,189 @@
 (define blanks
   (map char->integer '(#\newline #\return #\tab #\vtab #\space #\page)))
 
+(define << bitwise-arithmetic-shift-left)
+(define >> bitwise-arithmetic-shift-right)
+
+(define-macro (lower8 ?number)
+  (bitwise-and #xFF ?number))
+
 
-(define ascii85-encode-initial-length 2)
+;;;; encoded output length estimation
+;;
+;;Every 4 bytes of binary data, 5 bytes of ASCII characters.
+;;
+
+(define ascii85-encode-block-length 4)
+
+(define (ascii85-encode-update-length len)
+  ;;Return the minimum number of bytes required in the output bytevector
+  ;;when ASCII85-ENCODE-UPDATE!  is applied to LEN bytes of binary input
+  ;;data.  Notice that the function will consume input in 4-bytes blocks
+  ;;only and produce output in  5-bytes blocks only, so the return value
+  ;;is always zero or an exact multiple of 5.
+  ;;
+  ;; (* 5 (div len 4))
+  ;;
+  (if (<= ascii85-encode-block-length len)
+      (* ascii85-decode-block-length (>> len 2))
+    0))
 
 (define (ascii85-encode-final-length len)
-  (+ 2 (ascii85-encode-partial-length len)))
-
-(define (ascii85-encode-partial-length len)
-  (if (< 4 len)
-      (receive (ratio rest)
-	  (div-and-mod len 4)
-	(+ 1 rest (* 5 ratio)))
-    (+ 1 len)))
+  ;;Return the  minimum number  of bytes required  in the  output vector
+  ;;when ASCII85-ENCODE-FINAL!   is applied to  LEN < 4 bytes  of binary
+  ;;input  data.  The  returned value  does  NOT take  into account  the
+  ;;ending "~>" sequence.  If LEN is invalid: the return value is #f.
+  ;;
+  (case len
+    ((0)	0)
+    ((1)	2)
+    ((2)	3)
+    ((3)	4)
+    (else	#f)))
 
 (define (ascii85-encode-length len)
-  (+ 2 (ascii85-encode-final-length len)))
-
-(define (ascii85-decode-length len)
-  (assert (<= 4 len))
-  (let ((len (- len 4)))
-    (if (<= 5 len)
-	(receive (ratio rest)
-	    (div-and-mod len 5)
-	  (+ 1 rest (* 4 (div len 5))))
-      4)))	;remember that a single char could be #\z !!!
+  ;;Return the  minimum number  of bytes required  in the  output vector
+  ;;when ASCII85-ENCODE-FINAL!   is applied to LEN bytes  of binary input
+  ;;data.    This    is   also    the   number   required    when   both
+  ;;ASCII85-ENCODE-UPDATE! and ASCII85-ENCODE-FINAL! are used.
+  ;;
+  (+ (ascii85-encode-update-length len)
+     (ascii85-encode-final-length (mod len ascii85-encode-block-length))))
 
 
-(define (ascii85-encode-init! ctx dst-bv dst-start)
+;;;; decoded output length estimation
+;;
+;;Every 4 bytes of binary data, 5 bytes of ASCII characters.
+;;
+
+(define ascii85-decode-block-length 5)
+
+(define (ascii85-decode-update-length len)
+  ;;Return the  minimum number  of bytes required  in the  output vector
+  ;;when ASCII85-DECODE-UPDATE!   is applied to LEN  ASCII characters of
+  ;;input.   Notice that  the  function will  consume  input in  5-bytes
+  ;;blocks only and produce output in 4-bytes blocks only, so the return
+  ;;value is always zero or an exact multiple of 4.
+  ;;
+  ;;This function  does NOT  take into account  that an  input character
+  ;;could be #\z, corresponding to 4 output bytes.
+  ;;
+  (if (<= ascii85-decode-block-length len)
+      (* ascii85-encode-block-length (div len ascii85-decode-block-length))
+    0))
+
+(define (ascii85-decode-final-length len)
+  ;;Return the  minimum number  of bytes required  in the  output vector
+  ;;when ASCII85-DECODE-FINAL!   is applied to LEN <  5 ASCII characters
+  ;;of input.  Not  all the arguments between 0 and 4  are valid; if the
+  ;;argument is not valid the return value is #f.
+  ;;
+  (case len
+    ((0)	0)
+    ((1)	ascii85-encode-block-length)
+    ((2)	1)
+    ((3)	2)
+    ((4)	3)
+    (else	#f)))
+
+(define (ascii85-decode-length len)
+  ;;Return the  minimum number  of bytes required  in the  output vector
+  ;;when  ASCII85-DECODE-FINAL!  is  applied to  LEN ASCII  characters of
+  ;;input.    This    is   also   the   number    required   when   both
+  ;;ASCII85-DECODE-UPDATE! and ASCII85-DECODE-FINAL! are used.
+  ;;
+  ;;This function  does NOT  take into account  that an  input character
+  ;;could be #\z, corresponding to 4 output bytes.
+  ;;
+  (let ((final-len (ascii85-decode-final-length (mod len ascii85-decode-block-length))))
+    (if final-len
+	(+ final-len (ascii85-decode-update-length len))
+      #f)))
+
+;;; --------------------------------------------------------------------
+
+(define (ascii85-decode-final-length* len)
+  ;;Return the  minimum number  of bytes required  in the  output vector
+  ;;when ASCII85-DECODE-FINAL!   is applied to LEN <  5 ASCII characters
+  ;;of input.  Not  all the arguments between 0 and 4  are valid; if the
+  ;;argument is not valid the return value is #f.
+  ;;
+  ;;This function  does NOT  take into account  that an  input character
+  ;;could be #\z, corresponding to 4 output bytes.
+  ;;
+  (case len
+    ((0)	0)
+    ((2)	1)
+    ((3)	2)
+    ((4)	3)
+    (else	#f)))
+
+(define (ascii85-decode-length* len)
+  ;;Return the  minimum number  of bytes required  in the  output vector
+  ;;when  ASCII85-DECODE-FINAL!  is  applied to  LEN ASCII  characters of
+  ;;input.    This    is   also   the   number    required   when   both
+  ;;ASCII85-DECODE-UPDATE! and ASCII85-DECODE-FINAL! are used.
+  ;;
+  ;;This function  does NOT  take into account  that an  input character
+  ;;could be #\z, corresponding to 4 output bytes.
+  ;;
+  (let ((final-len (ascii85-decode-final-length (mod len ascii85-decode-block-length))))
+    (if final-len
+	(+ final-len (ascii85-decode-update-length len))
+      #f)))
+
+
+(define (%encode dst-bv dst-start tuple count)
+  ;;Encode the  bit-tuple TUPLE of COUNT bytes  storing ASCII characters
+  ;;in  the bytevector  DST-BV starting  at index  DST-START (included).
+  ;;DST-BV must have at least 5 bytes of room starting at DST-START.
+  ;;
+  ;;Return the number of characters written to DST-BV.
+  ;;
+  ;;(1) Compute the moduli:
+  ;;
+  ;;      TUPLE			M0 = TUPLE mod 85
+  ;;	  D0 = TUPLE / 85	M1 = D0 mod 85
+  ;;	  D1 = D0 / 85		M2 = D1 mod 85
+  ;;	  D2 = D0 / 85		M3 = D2 mod 85
+  ;;	  D3 = D0 / 85		M4 = D3 mod 85
+  ;;
+  ;;(2) Store the moduli in reverse order:
+  ;;
+  ;;      COUNT = 5	=>	#vu8(... M4 M3 M2 M1 M0 ...)
+  ;;      COUNT = 4	=>	#vu8(... M4 M3 M2 M1 ...)
+  ;;      COUNT = 3	=>	#vu8(... M4 M3 M2 ...)
+  ;;      COUNT = 2	=>	#vu8(... M4 M3 ...)
+  ;;      COUNT = 1	=>	#vu8(... M4 ...)
+  ;;                                     ^
+  ;;                                 DST-START
+  ;;
+  ;;    notice that we MUST compute all the 5 moduli before storing them
+  ;;    in DST-BV.
+  ;;
+  (let ((tuple (bytevector-u32-ref tuple 0 (endianness big))))
+    (if (and (= ascii85-encode-block-length count) (zero? tuple))
+	(begin
+	  (bytevector-u8-set! dst-bv dst-start z-char)
+	  1)
+      (let ((rests (let ((rests (make-vector 5)))
+		     ;;Fill RESTS with moduli.
+		     (do ((k 0 (+ 1 k))
+			  (tuple tuple (div tuple 85)))
+			 ((= k 5)
+			  rests)
+		       (vector-set! rests k (mod tuple 85))))))
+	(do ((k 0 (+ 1 k))
+	     (j 4 (- j 1))
+	     (i dst-start (+ 1 i)))
+	    ((< count k)
+	     k)
+	  (bytevector-u8-set! dst-bv i
+			      ;; store moduli in reverse order
+			      (+ bang-char (vector-ref rests j))))))))
+
+
+(define (ascii85-encode-opening! ctx dst-bv dst-start)
   ;;Writes  the opening sequence  to the  bytevector DST-BV  starting at
   ;;index  DST-START   (included).   Return   the  index  of   the  next
   ;;non-written byte  in DST-BV, or  #f if there  is not enough  room in
@@ -185,194 +275,431 @@
 	(bytevector-u8-set! dst-bv (+ 1 dst-start) tilde-char)
 	(+ 2 dst-start)))))
 
-(define (ascii85-encode-final! ctx dst-bv dst-start)
-  (define-encode-accessor ctx status)
-  (define-encode-accessor ctx count)
-  (define-encode-accessor ctx tuple)
-  (let ((i 0))
-    (set! status 'flushed)
-    (when (< 0 count)
-      (incr! i (%encode tuple count dst-bv dst-start)))
-    (bytevector-u8-set! dst-bv (+   i dst-start) tilde-char)
-    (bytevector-u8-set! dst-bv (+ 1 i dst-start) greater-than-char)
-    (+ 2 i)))
-
-(define (ascii85-encode-update! ctx dst-bv dst-start src-bv src-start src-len)
-  (define-encode-accessor ctx status)
-  (define-encode-accessor ctx count)
-  (define-encode-accessor ctx tuple)
-  (if (eq? status 'processing-data)
-      (let loop ((i 0) (j 0))
-	(if (= j src-len)
-	    i
-	  (let ((byte (bytevector-u8-ref src-bv (+ j src-start))))
-	    (case count
-	      ((0)
-	       (set! tuple (bitwise-ior tuple (<< byte 24)))
-	       (incr! count)
-	       (loop i (+ 1 j)))
-	      ((1)
-	       (set! tuple (bitwise-ior tuple (<< byte 16)))
-	       (incr! count)
-	       (loop i (+ 1 j)))
-	      ((2)
-	       (set! tuple (bitwise-ior tuple (<< byte 8)))
-	       (incr! count)
-	       (loop i (+ 1 j)))
-	      ((3)
-	       (set! tuple (bitwise-ior tuple byte))
-	       (incr! count)
-	       (if (= 0 tuple)
-		   (begin
-		     (bytevector-u8-set! dst-bv (+ i dst-start) z-char)
-		     (incr! i))
-		 (incr! i (%encode tuple count dst-bv (+ i dst-start))))
-	       (set! tuple 0)
-	       (set! count 0)
-	       (loop i (+ 1 j)))))))
-    (error 'ascii85-encode-update!
-      "attempt to process data with invalid status in ASCII85 context" ctx)))
-
-(define (%encode tuple count dst-bv dst-start)
-  (let loop ((i 0)
-	     (rest-list (let loop ((k 0) (tuple tuple) (rest-list '()))
-			  (if (<= 5 k)
-			      rest-list
-			    (receive (ratio rest)
-				(div-and-mod tuple 85)
-			      (loop (+ 1 k) ratio (cons rest rest-list)))))))
-    (if (< count i)
-	i
+(define (ascii85-encode-closing! ctx dst-bv dst-start)
+  ;;Writes  the closing sequence  to the  bytevector DST-BV  starting at
+  ;;index  DST-START   (included).   Return   the  index  of   the  next
+  ;;non-written byte  in DST-BV, or  #f if there  is not enough  room in
+  ;;DST-BV.
+  ;;
+  (let ((dst-len (- (bytevector-length dst-bv) dst-start)))
+    (if (< dst-len 2)
+	#f
       (begin
-	(bytevector-u8-set! dst-bv (+ i dst-start) (+ bang-char (car rest-list)))
-	(loop (+ 1 i) (cdr rest-list))))))
+	(bytevector-u8-set! dst-bv dst-start       tilde-char)
+	(bytevector-u8-set! dst-bv (+ 1 dst-start) greater-than-char)
+	(+ 2 dst-start)))))
 
-(define (ascii85-encode-flushed? ctx)
-  (eq? 'flushed (<ascii85-encode-ctx>-status ctx)))
+(define (armored-byte-of-ascii85? int)
+  (<= bang-char int u-char))
 
 
-(define (ascii85-decode-update! ctx dst-bv dst-start src-bv src-start src-len)
-  (define-decode-accessor ctx count)
-  (define-decode-accessor ctx tuple)
-  (define-decode-accessor ctx status)
-  (define-decode-accessor ctx allow-blanks?)
-  (let loop ((i 0) (j 0))
-    (if (= j src-len)
-	i
-      (let ((byte (bytevector-u8-ref src-bv (+ j src-start))))
-	(cond ((= byte less-than-char)
-	       (case status
-		 ((expecting-less-than)
-		  (set! status 'expecting-opening-tilde)
-		  (loop i (+ 1 j)))
-		 ((processing-data)
-		  (incr! i (%decode-byte ctx dst-bv (+ i dst-start) byte))
-		  (loop i (+ 1 j)))
-		 (else
-		  (error 'ascii85-decode-update!
-		    "invalid < character inside ASCII85 stream"))))
+(define (ascii85-encode-update! ctx dst-bv dst-start src-bv src-start src-past)
+  ;;Encode  binary data  from the  bytevector SRC-BV  starting  at index
+  ;;SRC-START (included)  up to  index SRC-PAST (excluded);  store ASCII
+  ;;characters   in  the   bytevector  DST-BV   starting   at  DST-START
+  ;;(included); encoding is performed  according to the specification in
+  ;;the context CTX.
+  ;;
+  ;;Return two values:
+  ;;
+  ;;(1) The index  of the next non-written byte in  DST-BV; if DST-BV is
+  ;;left full, this value is the length of DST-BV.
+  ;;
+  ;;(2) The index of the next  non-read byte in SRC-BV; if all the bytes
+  ;;from SRC-BV are consumed, this value is SRC-PAST.
+  ;;
+  ;;Binary   data   bytes   are   read   from  SRC-BV   in   chunks   of
+  ;;ASCII85-ENCODE-BLOCK-LENGTH  bytes; ASCII  characters are  written to
+  ;;DST-BV in chunks of ASCII85-DECODE-BLOCK-LENGTH bytes.
+  ;;
 
-	      ((= byte greater-than-char)
-	       (case status
-		 ((found-closing-tilde)
-		  (set! status 'flushed)
-		  i)
-		 ((processing-data)
-		  (incr! i (%decode-byte ctx dst-bv (+ i dst-start) byte))
-		  (loop i (+ 1 j)))
-		 (else
-		  (error 'ascii85-decode-update!
-		    "invalid > character in ASCII85 data"))))
+  (let loop ((i		dst-start)
+	     (j		src-start)
+	     (src-len	(- src-past src-start))
+	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
+    (if (or (< src-len ascii85-encode-block-length)
+	    (< dst-len ascii85-decode-block-length))
+	(values i j)
+      (let ((tuple (make-bytevector 4)))
 
-	      ((= byte tilde-char)
-	       (case status
-		 ((expecting-opening-tilde)
-		  (set! status 'processing-data)
-		  (loop i (+ 1 j)))
-		 ((processing-data)
-		  (set! status 'found-closing-tilde)
-		  (unless (= 0 count)
-		    (decr! count)
-		    (incr! tuple (pow85 count))
-		    (incr! i (wput tuple count dst-bv (+ i dst-start))))
-		  (loop i (+ 1 j)))
-		 (else
-		  (error 'ascii85-decode-update!
-		    "invalid ~ character in ASCII85 data"))))
+	(define-macro (*src ?idx)
+	  (bytevector-u8-ref src-bv ?idx))
 
-	      ((= byte z-char)
-	       (cond ((not (eq? status 'processing-data))
-		      (error 'ascii85-decode-update!
-			"invalid character in ASCII85 stream"))
-		     ((not (= 0 count))
-		      (error 'ascii85-decode-update!
-			"invalid z character inside ASCII85 5-tuple"))
-		     (else
-		      (bytevector-u8-set! dst-bv (+ i dst-start) 0)
-		      (incr! i)
-		      (bytevector-u8-set! dst-bv (+ i dst-start) 0)
-		      (incr! i)
-		      (bytevector-u8-set! dst-bv (+ i dst-start) 0)
-		      (incr! i)
-		      (bytevector-u8-set! dst-bv (+ i dst-start) 0)
-		      (loop (+ 1 i) (+ 1 j)))))
+	(define-macro (*tuple ?idx ?expr)
+	  (bytevector-u8-set! tuple ?idx ?expr))
 
-	      ((memv byte blanks)
-	       (cond ((not (eq? status 'processing-data))
-		      (error 'ascii85-decode-update!
-			"invalid character in ASCII85 stream"))
-		     (allow-blanks?
-		      (loop i (+ 1 j)))
-		     (else
-		      (error 'ascii85-decode-update!
-			"invalid blank character in ASCII85 data" byte))))
+	(*tuple 0 (*src j))
+	(let ((j (+ 1 j)))
+	  (*tuple 1 (*src j))
+	  (let ((j (+ 1 j)))
+	    (*tuple 2 (*src j))
+	    (let ((j (+ 1 j)))
+	      (*tuple 3 (*src j))
+	      (let ((delta (%encode dst-bv i tuple 4)))
+		(loop (+ i delta) (+ 1 j)
+		      (- src-len 4) (- dst-len delta))))))))))
 
-	      (else
-	       (cond ((not (eq? status 'processing-data))
-		      (error 'ascii85-decode-update!
-			"invalid character in ASCII85 stream"))
-		     ((or (< u-char byte) (< byte bang-char))
-		      (error 'ascii65-decode-update!
-			"invalid character in ASCII85 data" byte))
-		     (else
-		      (incr! i (%decode-byte ctx dst-bv (+ i dst-start) byte))
-		      (loop i (+ 1 j))))))))))
+
+(define (ascii85-encode-final! ctx dst-bv dst-start src-bv src-start src-past)
+  ;;Encode  binary data  from the  bytevector SRC-BV  starting  at index
+  ;;SRC-START (included)  up to  index SRC-PAST (excluded);  store ASCII
+  ;;characters   in  the   bytevector  DST-BV   starting   at  DST-START
+  ;;(included); encoding is performed  according to the specification in
+  ;;the context CTX.
+  ;;
+  ;;Return three values:
+  ;;
+  ;;(1) A boolean:  true if success, false if  the output bytevector was
+  ;;filled before flushing all the bytes.
+  ;;
+  ;;(2) The index  of the next non-written byte in  DST-BV; if DST-BV is
+  ;;left full, this value is the length of DST-BV.
+  ;;
+  ;;(3) The index of the next  non-read byte in SRC-BV; if all the bytes
+  ;;from SRC-BV are consumed, this value is SRC-PAST.
+  ;;
+  ;;Binary   data   bytes   are   read   from  SRC-BV   in   chunks   of
+  ;;ASCII85-ENCODE-BLOCK-LENGTH  bytes; ASCII  characters are  written to
+  ;;DST-BV in  chunks of ASCII85-DECODE-BLOCK-LENGTH  bytes.  After that,
+  ;;the  leftover binary  data bytes  are read  from SRC-BV  and encoded
+  ;;ASCII characters are written to DST-BV.
+  ;;
 
-(define (%decode-byte ctx dst-bv dst-start byte)
-  (define-decode-accessor ctx count)
-  (define-decode-accessor ctx tuple)
-  (let ((i 0))
-    (incr! tuple (* (- byte bang-char) (pow85 count)))
-    (incr! count)
-    (when (= 5 count)
-      (incr! i (wput tuple 4 dst-bv (+ i dst-start)))
-      (set! count 0)
-      (set! tuple 0))
-    i))
+  (let loop ((i		dst-start)
+	     (j		src-start)
+	     (src-len	(- src-past src-start))
+	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
-(define (wput tuple bytes dst-bv dst-start)
-  (case bytes
-    ((4)
-     (bytevector-u8-set! dst-bv dst-start       (bitwise-and #xFF (>> tuple 24)))
-     (bytevector-u8-set! dst-bv (+ 1 dst-start) (bitwise-and #xFF (>> tuple 16)))
-     (bytevector-u8-set! dst-bv (+ 2 dst-start) (bitwise-and #xFF (>> tuple 8)))
-     (bytevector-u8-set! dst-bv (+ 3 dst-start) (bitwise-and #xFF tuple))
-     4)
-    ((3)
-     (bytevector-u8-set! dst-bv dst-start       (bitwise-and #xFF (>> tuple 24)))
-     (bytevector-u8-set! dst-bv (+ 1 dst-start) (bitwise-and #xFF (>> tuple 16)))
-     (bytevector-u8-set! dst-bv (+ 2 dst-start) (bitwise-and #xFF (>> tuple 8)))
-     3)
-    ((2)
-     (bytevector-u8-set! dst-bv dst-start       (bitwise-and #xFF (>> tuple 24)))
-     (bytevector-u8-set! dst-bv (+ 1 dst-start) (bitwise-and #xFF (>> tuple 16)))
-     2)
-    ((1)
-     (bytevector-u8-set! dst-bv dst-start       (bitwise-and #xFF (>> tuple 24)))
-     1)))
+    (define-macro (*src)
+      (begin0
+	  (bytevector-u8-ref src-bv j)
+	(incr! j)))
 
-(define (ascii85-decode-flushed? ctx)
-  (eq? 'flushed (<ascii85-decode-ctx>-status ctx)))
+    (cond ((zero? src-len)
+	   (values #t i j))
+
+	  ((<= ascii85-encode-block-length src-len)
+	   (when (< dst-len ascii85-decode-block-length)
+	     (values #f i j))
+	   (let ((tuple (make-bytevector 4)))
+
+	     (define-macro (*tuple ?idx ?expr)
+	       (bytevector-u8-set! tuple ?idx ?expr))
+
+	     (*tuple 0 (*src))
+	     (*tuple 1 (*src))
+	     (*tuple 2 (*src))
+	     (*tuple 3 (*src))
+	     (let ((delta (%encode dst-bv i tuple 4)))
+	       (loop (+ i delta) j
+		     (- src-len 4) (- dst-len delta)))))
+
+	  (else
+	   (when (< dst-len (ascii85-encode-final-length src-len))
+	     (values #f i j))
+	   (let ((tuple (make-bytevector 4 0)))
+
+	     (define-macro (*tuple ?idx ?expr)
+	       (bytevector-u8-set! tuple ?idx ?expr))
+
+	     (do ((k 0 (+ 1 k)))
+		 ((= k src-len)
+		  (values #t (+ i (%encode dst-bv i tuple k)) j))
+	       (*tuple k (*src)))
+	     )))))
+
+
+(define (ascii85-decode-update! ctx dst-bv dst-start src-bv src-start src-past)
+  ;;Decode ASCII characters from the bytevector SRC-BV starting at index
+  ;;SRC-START (included)  up to index SRC-PAST  (excluded); store binary
+  ;;data  bytes   in  the   bytevector  DST-BV  starting   at  DST-START
+  ;;(included); decoding is performed  according to the specification in
+  ;;the context CTX.
+  ;;
+  ;;Return three values:
+  ;;
+  ;;(1) A boolean  always false.  It is here only to  make the API equal
+  ;;to the one of base64.
+  ;;
+  ;;(2) The index  of the next non-written byte in  DST-BV; if DST-BV is
+  ;;filled to the end, this value is the length of DST-BV.
+  ;;
+  ;;(3)  The index  of the  next  non-read byte  in SRC-BV;  if all  the
+  ;;characters from SRC-BV are consumed, this value is SRC-PAST.
+  ;;
+  ;;ASCII   characters    are   read   from   SRC-BV    in   chunks   of
+  ;;ASCII85-DECODE-BLOCK-LENGTH bytes;  binary data bytes  are written to
+  ;;DST-BV in chunks of ASCII85-ENCODE-BLOCK-LENGTH bytes.
+  ;;
+
+  (define who 'ascii85-decode-update!)
+
+  (define (%error-invalid-input-byte byte)
+    (raise
+     (condition (make-armor-invalid-input-byte-condition)
+		(make-who-condition who)
+		(make-message-condition "invalid input byte while decoding ascii85 bytevector")
+		(make-irritants-condition byte))))
+
+  (define (%error-invalid-z-char . src-list)
+    (raise
+     (condition (make-armor-invalid-input-byte-condition)
+		(make-who-condition who)
+		(make-message-condition
+		 "invalid z character inside 5-tuple while decoding ascii85 bytevector")
+		(make-irritants-condition (string (map integer->char src-list))))))
+
+  (define (%validate-byte byte)
+    (when (or (< byte bang-char) (< u-char byte))
+      (%error-invalid-input-byte byte)))
+
+  (let loop ((i		dst-start)
+	     (j		src-start)
+	     (src-len	(- src-past src-start))
+	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
+
+    (define-macro (*src)
+      (begin0
+	  (bytevector-u8-ref src-bv j)
+	(incr! j)))
+
+    (define-macro (*dst ?dummy ?expr)
+      (bytevector-u8-set! dst-bv i (lower8 ?expr))
+      (incr! i))
+
+    (cond ((or (< src-len ascii85-decode-block-length)
+	       (< dst-len ascii85-encode-block-length))
+	   (values #f i j))
+
+	  (else
+	   (let ((src0 (*src)))
+	     (if (= src0 z-char)
+		 (begin
+		   (*dst 0 0)
+		   (*dst 1 0)
+		   (*dst 2 0)
+		   (*dst 3 0)
+		   (loop i j (- src-len 1) (- dst-len 4)))
+	       (let ((src1 (*src))
+		     (src2 (*src))
+		     (src3 (*src))
+		     (src4 (*src)))
+		 (when (or (= src1 z-char) (= src2 z-char)
+			   (= src3 z-char) (= src4 z-char))
+		   (%error-invalid-z-char src0 src1 src2 src3 src4))
+		 (%validate-byte src0)
+		 (%validate-byte src1)
+		 (%validate-byte src2)
+		 (%validate-byte src3)
+		 (%validate-byte src4)
+		 (let ((tuple (+ (* (- src0 bang-char) (pow85 0))
+				 (* (- src1 bang-char) (pow85 1))
+				 (* (- src2 bang-char) (pow85 2))
+				 (* (- src3 bang-char) (pow85 3))
+				 (- src4 bang-char))))
+		   (*dst 0 (>> tuple 24))
+		   (*dst 1 (>> tuple 16))
+		   (*dst 2 (>> tuple  8))
+		   (*dst 3     tuple)
+		   (loop i j (- src-len 5) (- dst-len 4))))))))))
+
+
+(define (ascii85-decode-final! ctx dst-bv dst-start src-bv src-start src-past)
+  ;;Decode ASCII characters from the bytevector SRC-BV starting at index
+  ;;SRC-START (included)  up to index SRC-PAST  (excluded); store binary
+  ;;data  bytes   in  the   bytevector  DST-BV  starting   at  DST-START
+  ;;(included); decoding is performed  according to the specification in
+  ;;the context CTX.
+  ;;
+  ;;Return three values:
+  ;;
+  ;;(1) A boolean:  true if success, false if  the output bytevector was
+  ;;filled before flushing all the bytes.
+  ;;
+  ;;(2) The index  of the next non-written byte in  DST-BV; if DST-BV is
+  ;;filled to the end, this value is the length of DST-BV.
+  ;;
+  ;;(3)  The index  of the  next  non-read byte  in SRC-BV;  if all  the
+  ;;characters from SRC-BV are consumed, this value is SRC-PAST.
+  ;;
+  ;;ASCII   characters    are   read   from   SRC-BV    in   chunks   of
+  ;;ASCII85-DECODE-BLOCK-LENGTH bytes; binary  data bytes are written to
+  ;;DST-BV in chunks  of ASCII85-ENCODE-BLOCK-LENGTH bytes.  After that,
+  ;;the leftover input bytes are encoded.
+  ;;
+
+  (define who 'ascii85-decode-final!)
+
+  (define (%error-invalid-input-length)
+    (raise
+     (condition (make-armor-invalid-input-length-condition)
+		(make-who-condition who)
+		(make-message-condition "invalid input length while decoding ascii85 bytevector"))))
+
+  (define (%error-invalid-input-byte byte)
+    (raise
+     (condition (make-armor-invalid-input-byte-condition)
+		(make-who-condition who)
+		(make-message-condition "invalid input byte while decoding ascii85 bytevector")
+		(make-irritants-condition byte))))
+
+  (define (%error-invalid-z-char . src-list)
+    (raise
+     (condition (make-armor-invalid-input-byte-condition)
+		(make-who-condition who)
+		(make-message-condition
+		 "invalid z character inside 5-tuple while decoding ascii85 bytevector")
+		(make-irritants-condition (string (map integer->char src-list))))))
+
+  (define (%validate-byte byte)
+    (when (or (< byte bang-char) (< u-char byte))
+      (%error-invalid-input-byte byte)))
+
+  (let loop ((i		dst-start)
+	     (j		src-start)
+	     (src-len	(- src-past src-start))
+	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
+
+    (define-macro (*src)
+      (begin0
+	  (bytevector-u8-ref src-bv j)
+	(incr! j)))
+
+    (define-macro (*dst ?dummy ?expr)
+      (bytevector-u8-set! dst-bv i (lower8 ?expr))
+      (incr! i))
+
+    (cond ((zero? src-len)
+	   (values #t i j))
+
+	  ((>= src-len ascii85-decode-block-length)
+	   (when (< dst-len ascii85-encode-block-length)
+	     (values #f i j))
+	   (let ((src0 (*src)))
+	     (if (= src0 z-char)
+		 (begin
+		   (*dst 0 0)
+		   (*dst 1 0)
+		   (*dst 2 0)
+		   (*dst 3 0)
+		   (loop i j (- src-len 1) (- dst-len 4)))
+	       (let ((src1 (*src))
+		     (src2 (*src))
+		     (src3 (*src))
+		     (src4 (*src)))
+		 (when (or (= src1 z-char) (= src2 z-char)
+			   (= src3 z-char) (= src4 z-char))
+		   (%error-invalid-z-char src0 src1 src2 src3 src4))
+		 (%validate-byte src0)
+		 (%validate-byte src1)
+		 (%validate-byte src2)
+		 (%validate-byte src3)
+		 (%validate-byte src4)
+		 (let ((tuple (+ (* (- src0 bang-char) (pow85 0))
+				 (* (- src1 bang-char) (pow85 1))
+				 (* (- src2 bang-char) (pow85 2))
+				 (* (- src3 bang-char) (pow85 3))
+				 (- src4 bang-char))))
+		   (*dst 0 (>> tuple 24))
+		   (*dst 1 (>> tuple 16))
+		   (*dst 2 (>> tuple  8))
+		   (*dst 3     tuple)
+		   (loop i j (- src-len 5) (- dst-len 4)))))))
+
+	  ((= src-len 4)
+	   (when (< dst-len 3)
+	    (values #f i j))
+	   (let ((src0 (*src)))
+	     (if (= src0 z-char)
+		 (begin
+		   (*dst 0 0)
+		   (*dst 1 0)
+		   (*dst 2 0)
+		   (*dst 3 0)
+		   (loop i j (- src-len 1) (- dst-len 4)))
+	       (let ((src1 (*src))
+		     (src2 (*src))
+		     (src3 (*src)))
+		 (when (or (= src1 z-char) (= src2 z-char)
+			   (= src3 z-char))
+		   (%error-invalid-z-char src0 src1 src2 src3))
+		 (%validate-byte src0)
+		 (%validate-byte src1)
+		 (%validate-byte src2)
+		 (%validate-byte src3)
+		 (let ((tuple (+ (* (- src0 bang-char) (pow85 0))
+				 (* (- src1 bang-char) (pow85 1))
+				 (* (- src2 bang-char) (pow85 2))
+				 (* (- src3 bang-char) (pow85 3))
+				 (pow85 3))))
+		   (*dst 0 (>> tuple 24))
+		   (*dst 1 (>> tuple 16))
+		   (*dst 2 (>> tuple  8))
+		   (loop i j (- src-len 4) (- dst-len 3)))))))
+
+	  ((= src-len 3)
+	   (when (< dst-len 2)
+	    (values #f i j))
+	   (let ((src0 (*src)))
+	     (if (= src0 z-char)
+		 (begin
+		   (*dst 0 0)
+		   (*dst 1 0)
+		   (*dst 2 0)
+		   (*dst 3 0)
+		   (loop i j (- src-len 1) (- dst-len 4)))
+	       (let ((src1 (*src))
+		     (src2 (*src)))
+		 (when (or (= src1 z-char) (= src2 z-char))
+		   (%error-invalid-z-char src0 src1 src2))
+		 (%validate-byte src0)
+		 (%validate-byte src1)
+		 (%validate-byte src2)
+		 (let ((tuple (+ (* (- src0 bang-char) (pow85 0))
+				 (* (- src1 bang-char) (pow85 1))
+				 (* (- src2 bang-char) (pow85 2))
+				 (pow85 2))))
+		   (*dst 0 (>> tuple 24))
+		   (*dst 1 (>> tuple 16))
+		   (loop i j (- src-len 3) (- dst-len 2)))))))
+
+	  ((= src-len 2)
+	   (when (< dst-len 1)
+	    (values #f i j))
+	   (let ((src0 (*src)))
+	     (if (= src0 z-char)
+		 (begin
+		   (*dst 0 0)
+		   (*dst 1 0)
+		   (*dst 2 0)
+		   (*dst 3 0)
+		   (loop i j (- src-len 1) (- dst-len 4)))
+	       (let ((src1 (*src)))
+		 (when (= src1 z-char)
+		   (%error-invalid-z-char src0 src1))
+		 (%validate-byte src0)
+		 (%validate-byte src1)
+		 (let ((tuple (+ (* (- src0 bang-char) (pow85 0))
+				 (* (- src1 bang-char) (pow85 1))
+				 (pow85 1))))
+		   (*dst 0 (>> tuple 24))
+		   (loop i j (- src-len 2) (- dst-len 1)))))))
+
+	  ((= src-len 1)
+	   (let ((src0 (*src)))
+	     (if (= src0 z-char)
+		 (if (< dst-len ascii85-encode-block-length)
+		     (values #f i j)
+		   (begin
+		     (*dst 0 0)
+		     (*dst 1 0)
+		     (*dst 2 0)
+		     (*dst 3 0)
+		     (values #t i j)))
+	       (%error-invalid-input-length))))
+
+	  (else
+	   (%error-invalid-input-length)))))
 
 
 ;;;; done
