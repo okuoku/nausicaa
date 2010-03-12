@@ -1511,6 +1511,8 @@ Parsing command line arguments
 * armor base64::                Base 64 encoder/decoder.
 * armor base91::                Base 91 encoder/decoder.
 * armor ascii85::               @ascii{} 85 encoder/decoder.
+* armor qprint::                Quoted--printable encoder/decoder.
+* armor newlines::              Newline insertion/removal.
 * armor examples::              Examples of encoding and decoding.
 
 Condition objects
@@ -1554,6 +1556,30 @@ Base 91 encoder/decoder
 * armor base91 decode::         Decoding byte streams with base91.
 * armor base91 utils::          Utilities for base91 encoders and
                                 decoders.
+
+@ascii{} 85 encoder/decoder
+
+* armor ascii85 intro::         Introduction to @ascii{}85 encoding.
+* armor ascii85 encode::        Encoding byte streams with @ascii{}85.
+* armor ascii85 decode::        Decoding byte streams with @ascii{}85.
+* armor ascii85 utils::         Utilities for @ascii{}85 encoders and
+                                decoders.
+
+Quoted--printable encoder/decoder
+
+* armor qprint intro::          Introduction to quoted--printable
+                                encoding.
+* armor qprint encode::         Encoding byte streams with
+                                quoted--printable.
+* armor qprint decode::         Decoding byte streams with
+                                quoted--printable.
+* armor qprint utils::          Utilities for quoted--printable
+                                encoders and decoders.
+
+Newline insertion/removal
+
+* armor newline insertion::     Inserting sequences of bytes.
+* armor newline removal::       Removing sequences of bytes.
 
 Examples of encoding and decoding
 
@@ -51253,6 +51279,7 @@ remove the newlines first.
 * armor base64::                Base 64 encoder/decoder.
 * armor base91::                Base 91 encoder/decoder.
 * armor ascii85::               @ascii{} 85 encoder/decoder.
+* armor qprint::                Quoted--printable encoder/decoder.
 * armor newlines::              Newline insertion/removal.
 * armor examples::              Examples of encoding and decoding.
 @end menu
@@ -51611,9 +51638,8 @@ Return three values:
 
 @enumerate
 @item
-A boolean: true if padding is turned on and a full padded block was
-successfully decoded; false otherwise.  If this is true: the end of
-input has been reached and fully processed.
+A boolean always false.  This value exists to make this @api{} equal to
+the one of base64.
 
 @item
 The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
@@ -53381,6 +53407,281 @@ Writes the closing sequence @samp{~>} to the bytevector @var{dst-bv}
 starting at index @var{dst-start} (included).  Return the index of the
 next non--written byte in @var{dst-bv}, or @false{} if there is not
 enough room in @var{dst-bv}.
+@end defun
+
+@c page
+@node armor qprint
+@section Quoted--printable encoder/decoder
+
+
+The bindings documented in this section are exported by the
+@library{armor quoted-printable} library.
+
+@menu
+* armor qprint intro::          Introduction to quoted--printable
+                                encoding.
+* armor qprint encode::         Encoding byte streams with
+                                quoted--printable.
+* armor qprint decode::         Decoding byte streams with
+                                quoted--printable.
+* armor qprint utils::          Utilities for quoted--printable
+                                encoders and decoders.
+@end menu
+
+@c page
+@node armor qprint intro
+@subsection Introduction to quoted--printable encoding
+
+
+The encoding algorithm implemented by @library{armor quoted-printable}
+has two variants; the @code{default} encoder implements the following
+rules:
+
+@itemize
+@item
+Every input byte whose character representation (according to
+@func{integer->char}) is between @samp{#\!} (included) and @samp{#\<}
+(included) or between @samp{#\>} (included) and @samp{#\~} (included) is
+duplicated ``as is'' to the output.  That is the following characters
+may appear in the output as one--on--one representation of input bytes:
+
+@example
+! " #   $ % &   ' ( )
+* + ,   - . /   0 1 2
+3 4 5   6 7 8   9 : ;
+<
+
+> ? @@   A B C   D E F
+G H I   J K L   M N O
+P Q R   S T U   V W X
+Y Z [   \ ] ^   _ ` a
+b c d   e f g   h i j
+k l m   n o p   q r s
+t u v   w x y   z @{ |
+@} ~
+@end example
+
+@item
+All the other input bytes are encoded as in upper--case base16 and the
+result is appended to the output with a @samp{#\=} character prepended.
+So the input byte @math{31} is encoded to the sequence @samp{=1F}.
+@end itemize
+
+@noindent
+the @code{strong} encoder implements the following rules:
+
+@itemize
+@item
+Every input byte whose character representation (according to
+@func{integer->char}) is between @samp{#\0} (included) and @samp{#\9}
+(included) or between @samp{#\A} (included) and @samp{#\Z} (included) or
+between @samp{#\a} (included) and @samp{#\z} (included) is duplicated
+``as is'' to the output.  That is the following characters may appear in
+the output as one--on--one representation of input bytes:
+
+@example
+0 1 2   3 4 5   6 7 8
+9
+
+A B C   D E F   G H I
+J K L   M N O   P Q R
+S T U   V W X   Y Z
+
+a b c   d e f   g h i
+j l m   n o p   q r s
+t u v   w x y   z
+@end example
+
+@item
+All the other input bytes are encoded as in upper--case base16 and the
+result is appended to the output with a @samp{#\=} character prepended.
+So the input byte @math{31} is encoded to the sequence @samp{=1F}.
+@end itemize
+
+Notice the @code{default} encoder and the @code{strong} encoder produce
+strings which can be correctly processed by the same decoder.
+
+@c page
+@node armor qprint encode
+@subsection Encoding byte streams with quoted--printable
+
+
+@deftp {Record Type Descriptor} <qprint-encode-ctx>
+Context descriptor for quoted--printable encoding.  It has the following
+fields:
+
+@table @code
+@item encoding
+A Scheme symbol among: @code{default}, @code{strong}.
+@end table
+
+Nothing in records of this type depends upon the input or output data,
+so they can be reused for multiple streams.
+@end deftp
+
+
+@defun make-<qprint-encode-ctx> @var{encoding}
+Build and return a new record of type @class{qprint-encode-ctx}.
+@var{encoding} must be a Scheme symbol among: @code{default},
+@code{strong}.
+@end defun
+
+
+@defun <qprint-encode-ctx>? @var{obj}
+Return true if @var{obj} is a record of type @class{qprint-encode-ctx}.
+@end defun
+
+
+@defun <qprint-encode-ctx>-encoding @var{ctx}
+Accessor for the field of records of type @class{qprint-encode-ctx}.
+@end defun
+
+
+@defun qprint-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Encode binary data from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+@ascii{} characters in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); encoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{qprint-encode-ctx}.
+
+Return two values:
+
+@enumerate
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+Binary data bytes are read from @var{src-bv} in single--byte blocks;
+@ascii{} characters are written to @var{dst-bv} as single bytes or as
+triplets of bytes.
+@end defun
+
+
+@defun qprint-encode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Encode binary data from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+@ascii{} characters in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); encoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{qprint-encode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if success, false if the output bytevector was filled
+before flushing all the bytes.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+Binary data bytes are read from @var{src-bv} in single--byte blocks;
+@ascii{} characters are written to @var{dst-bv} as single bytes or as
+triplets of bytes.
+@end defun
+
+@c page
+@node armor qprint decode
+@subsection Decoding byte streams with quoted--printable
+
+
+@deftp {Record Type Descriptor} <qprint-decode-ctx>
+Context descriptor for quoted--printable decoding.  Nothing in records
+of this type depends upon the input or output data, so they can be
+reused for multiple streams.
+@end deftp
+
+
+@defun make-<qprint-decode-ctx>
+@defunx <qprint-decode-ctx>? @var{obj}
+Constructor and predicate for records of type @class{qprint-decode-ctx}.
+@end defun
+
+
+@defun qprint-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Decode @ascii{} characters from the bytevector @var{src-bv} starting at
+index @var{src-start} (included) up to index @var{src-past} (excluded);
+store binary data bytes in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); decoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{qprint-decode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean always false.  This value exists to make this @api{} equal to
+the one of base64.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is filled to the end, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the
+characters from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+@ascii{} characters are read from @var{src-bv} in @math{3}-byte blocks;
+binary data bytes are written to @var{dst-bv} in single--byte blocks.
+@end defun
+
+
+@defun qprint-decode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past})
+Decode @ascii{} characters from the bytevector @var{src-bv} starting at
+index @var{src-start} (included) up to index @var{src-past} (excluded);
+store binary data bytes in the bytevector @var{dst-bv} starting at
+@var{dst-start} (included); decoding is performed according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{qprint-decode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if success, false if the output bytevector was filled
+before flushing all the bytes.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is filled to the end, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+@ascii{} characters are read from @var{src-bv} in single--byte blocks or
+in chunks of @math{3} bytes; binary data bytes are written to
+@var{dst-bv} in single--byte blocks.
+@end defun
+
+@c page
+@node armor qprint utils
+@subsection Utilities for quoted--printable encoders and decoders
+
+
+@defun armored-byte-of-qprint? @var{byte-integer}
+Return true if @var{byte-integer} would be encoded as is by the
+@code{default} quoted--printable encoder.
+@end defun
+
+
+@defun armored-byte-of-qprint?/strong @var{byte-integer}
+Return true if @var{byte-integer} would be encoded as is by the
+@code{strong} quoted--printable encoder.
 @end defun
 
 @c page

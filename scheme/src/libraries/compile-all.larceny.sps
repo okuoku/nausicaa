@@ -338,6 +338,9 @@
 (compile-library "armor/newlines.sls"
 		 "armor/newlines.slfasl")
 
+(compile-library "armor/quoted-printable.sls"
+		 "armor/quoted-printable.slfasl")
+
 ;;; --------------------------------------------------------------------
 
 ;; (compile-library "foreign/ffi/sizeof.sls"

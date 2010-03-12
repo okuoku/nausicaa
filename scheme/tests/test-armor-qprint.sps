@@ -26,12 +26,12 @@
 
 
 (import (nausicaa)
-  (armor base16)
+  (armor quoted-printable)
   (checks)
   (parameters))
 
 (check-set-mode! 'report-failed)
-(display "*** testing ASCII armor base16\n")
+(display "*** testing ASCII armor quoted-printable\n")
 
 
 ;;;; helpers
@@ -44,30 +44,25 @@
 	 dst)
       (bytevector-u8-set! dst i (bytevector-u8-ref src j)))))
 
-
-;;;; parameters
-
-(define encoding-case
-  (make-parameter #t))
+(define encoding
+  (make-parameter #f))
 
 
-;;;; base16 encoding and decoding routines
+;;;; qprint encoding and decoding routines
 
 (define (encode binary)
   ;;Encode BINARY which  must be a Scheme string  or bytevector.  Return
   ;;two values:  (1) the resulting boolean from  the encoding functions,
   ;;(2) a string representing the encoded data.
   ;;
-  ;;Make use of the ENCODING-CASE parameter.
-  ;;
-  (let* ((ctx		(make-<base16-encode-ctx> (encoding-case)))
+  (let* ((ctx		(make-<qprint-encode-ctx> (encoding)))
 	 (src		(if (string? binary) (string->utf8 binary) binary))
 	 (src-len	(bytevector-length src))
-	 (dst		(make-bytevector (base16-encode-length src-len) 0)))
+	 (dst		(make-bytevector (* 3 src-len) 0)))
     (receive (dst-next src-next)
-	(base16-encode-update! ctx dst 0 src 0 src-len)
+	(qprint-encode-update! ctx dst 0 src 0 src-len)
       (receive (result dst-next src-next)
-	  (base16-encode-final! ctx dst dst-next src src-next src-len)
+	  (qprint-encode-final! ctx dst dst-next src src-next src-len)
 	(list result (utf8->string (subbytevector dst 0 dst-next)))))))
 
 (define (decode binary string-result?)
@@ -78,56 +73,102 @@
   ;;If STRING-RESULT?  is  true, the decoded data is  returned as Scheme
   ;;string; else it is returned as Scheme bytevector.
   ;;
-  ;;Make use of the ENCODING-CASE parameter.
-  ;;
   (define (%output dst dst-past)
     (let ((bv (subbytevector dst 0 dst-past)))
       (if string-result?
 	  (utf8->string bv)
 	bv)))
-  (let* ((ctx		(make-<base16-decode-ctx> (encoding-case)))
+  (let* ((ctx		(make-<qprint-decode-ctx>))
 	 (src		(if (string? binary)
-			    (string->utf8 (case (encoding-case)
-					    ((upper)	(string-upcase binary))
-					    ((lower)	(string-downcase binary))
-					    (else	binary)))
+			    (string->utf8 binary)
 			  binary))
 	 (src-len	(bytevector-length src))
-	 (dst		(make-bytevector (base16-decode-length src-len) 0)))
+	 (dst		(make-bytevector (* 3 src-len) 0)))
     (receive (result dst-next src-next)
-	(base16-decode-update! ctx dst 0 src 0 src-len)
+	(qprint-decode-update! ctx dst 0 src 0 src-len)
       (if result
 	  (list result (%output dst dst-next))
 	(receive (result dst-next src-next)
-	    (base16-decode-final! ctx dst dst-next src src-next src-len)
+	    (qprint-decode-final! ctx dst dst-next src src-next src-len)
 	  (list result (%output dst dst-next)))))))
 
 
 (parametrise ((check-test-name	'upper)
-	      (encoding-case	'upper))
+	      (encoding		'default))
 
   (let ((plain	'#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
-	(ascii	"000102030405060708090A0B0C0D0E0F"))
+	(ascii	"=00=01=02=03=04=05=06=07=08=09=0A=0B=0C=0D=0E=0F"))
     (check (encode plain)	=> `(#t ,ascii))
     (check (decode ascii #f)	=> `(#t ,plain)))
 
   (let ((plain	'#vu8(16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31))
-	(ascii	"101112131415161718191A1B1C1D1E1F"))
+	(ascii	"=10=11=12=13=14=15=16=17=18=19=1A=1B=1C=1D=1E=1F"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
+
+  (let ((plain	(string->utf8 "ciao"))
+	(ascii	"ciao"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
+
+  (let ((plain	(string->utf8 "ciao\x1;"))
+	(ascii	"ciao=01"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
+
+  (let ((plain	(string->utf8 "c"))
+	(ascii	"c"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
+
+  (let ((plain	(string->utf8 "c\x1;"))
+	(ascii	"c=01"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
+
+  (let ((plain	(string->utf8 "!\"#$@[\\]^`{|}~"))
+	(ascii	"!\"#$@[\\]^`{|}~"))
     (check (encode plain)	=> `(#t ,ascii))
     (check (decode ascii #f)	=> `(#t ,plain)))
 
   #t)
 
-(parametrise ((check-test-name	'lower)
-	      (encoding-case	'lower))
+
+(parametrise ((check-test-name	'upper)
+	      (encoding		'strong))
 
   (let ((plain	'#vu8(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
-	(ascii	"000102030405060708090a0b0c0d0e0f"))
+	(ascii	"=00=01=02=03=04=05=06=07=08=09=0A=0B=0C=0D=0E=0F"))
     (check (encode plain)	=> `(#t ,ascii))
     (check (decode ascii #f)	=> `(#t ,plain)))
 
   (let ((plain	'#vu8(16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31))
-	(ascii	"101112131415161718191a1b1c1d1e1f"))
+	(ascii	"=10=11=12=13=14=15=16=17=18=19=1A=1B=1C=1D=1E=1F"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
+
+  (let ((plain	(string->utf8 "ciao"))
+	(ascii	"ciao"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
+
+  (let ((plain	(string->utf8 "ciao\x1;"))
+	(ascii	"ciao=01"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
+
+  (let ((plain	(string->utf8 "c"))
+	(ascii	"c"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
+
+  (let ((plain	(string->utf8 "c\x1;"))
+	(ascii	"c=01"))
+    (check (encode plain)	=> `(#t ,ascii))
+    (check (decode ascii #f)	=> `(#t ,plain)))
+
+  (let ((plain	(string->utf8 "!\"#$@[\\]^`{|}~"))
+	(ascii	"=21=22=23=24=40=5B=5C=5D=5E=60=7B=7C=7D=7E"))
     (check (encode plain)	=> `(#t ,ascii))
     (check (decode ascii #f)	=> `(#t ,plain)))
 

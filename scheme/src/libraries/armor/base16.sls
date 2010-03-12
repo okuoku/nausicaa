@@ -248,7 +248,8 @@
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
     (define-inline (*src)
-      (begin0-let ((byte (bytevector-u8-ref src-bv j)))
+      (begin0
+	  (bytevector-u8-ref src-bv j)
 	(incr! j)))
 
     (define-inline (*dst ?dummy ?expr)
@@ -337,8 +338,8 @@
   ;;
   ;;Return three values:
   ;;
-  ;;(1) A boolean: true if padding  is turned on and a full padded block
-  ;;was successfully decoded; false otherwise.
+  ;;(1)  A boolean always  false.  This  value exists  to make  this API
+  ;;equal to the one of base64.
   ;;
   ;;(2) The index  of the next non-written byte in  DST-BV; if DST-BV is
   ;;filled to the end, this value is the length of DST-BV.
@@ -454,10 +455,6 @@
 
     (define-inline (*dst ?dummy ?expr)
       (bytevector-u8-set! dst-bv i (lower8 ?expr))
-      (incr! i))
-
-    (define-inline (*pad ?dummy)
-      (bytevector-u8-set! dst-bv i pad-char)
       (incr! i))
 
     (cond ((zero? src-len)

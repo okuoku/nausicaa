@@ -116,6 +116,7 @@
   (only (armor base91))
   (only (armor ascii85))
   (only (armor newlines))
+  (only (armor quoted-printable))
 
   (only (foreign memory))
   (only (foreign memory mempool))

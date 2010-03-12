@@ -48,7 +48,7 @@ Notes for --- tag 0.1a10
   GC hooks.
 
 * Added  ASCII  armor  libraries:  base16,  base32,  base64,
-  base91, ASCII85.
+  base91, ASCII85, quoted-printable.
 
 * Added   WHILE,  DO-WHILE,  INCR!,   DECR!,  DEFINE-VALUES,
   DEFINE-INLINE  syntaxes to  (language-extensions).  Merged
