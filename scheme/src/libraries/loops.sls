@@ -464,9 +464,9 @@
      (:do cc
           (let ((b arg2))
             (if (not (and (integer? b) (exact? b)))
-                (error
-                   "arguments of :range are not exact integer "
-                   "(use :real-range?)" 0 b 1 )))
+                (error #f
+		  "arguments of :range are not exact integer (use :real-range?)"
+		  0 b 1)))
           ((var 0))
           (< var b)
           (let ())
@@ -477,9 +477,9 @@
      (:do cc
           (let ((b arg2))
             (if (not (and (integer? b) (exact? b)))
-                (error
-                   "arguments of :range are not exact integer "
-                   "(use :real-range?)" 0 b 1 )))
+                (error #f
+                   "arguments of :range are not exact integer (use :real-range?)"
+		   0 b 1)))
           ((var 0))
           (> var b)
           (let ())
@@ -491,9 +491,9 @@
           (let ((a arg1) (b arg2))
             (if (not (and (integer? a) (exact? a)
                           (integer? b) (exact? b) ))
-                (error
-                   "arguments of :range are not exact integer "
-                   "(use :real-range?)" a b 1 )) )
+                (error #f
+                   "arguments of :range are not exact integer (use :real-range?)"
+		   a b 1)) )
           ((var a))
           (< var b)
           (let ())
@@ -505,9 +505,9 @@
           (let ((a arg1) (b arg2) (s -1) (stop 0))
             (if (not (and (integer? a) (exact? a)
                           (integer? b) (exact? b) ))
-                (error
-                   "arguments of :range are not exact integer "
-                   "(use :real-range?)" a b -1 )) )
+                (error #f
+                   "arguments of :range are not exact integer (use :real-range?)"
+		   a b -1 )) )
           ((var a))
           (> var b)
           (let ())
@@ -522,11 +522,11 @@
             (if (not (and (integer? a) (exact? a)
                           (integer? b) (exact? b)
                           (integer? s) (exact? s) ))
-                (error
-                   "arguments of :range are not exact integer "
-                   "(use :real-range?)" a b s ))
+                (error #f
+		  "arguments of :range are not exact integer (use :real-range?)"
+		  a b s ))
             (if (zero? s)
-                (error "step size must not be zero in :range") )
+                (error #f "step size must not be zero in :range") )
             (set! stop (+ a (* (max 0 (ceiling (/ (- b a) s))) s))) )
           ((var a))
           (not (= var stop))
@@ -559,7 +559,7 @@
      (:do cc
           (let ((a arg1) (b arg2) (s arg3) (istop 0))
             (if (not (and (real? a) (real? b) (real? s)))
-                (error "arguments of :real-range are not real" a b s) )
+                (error #f "arguments of :real-range are not real" a b s) )
             (if (and (exact? a) (or (not (exact? b)) (not (exact? s))))
                 (set! a (inexact a)) )
             (set! istop (/ (- b a) s)) )
@@ -626,7 +626,7 @@
                 (empty (list #f)) )
             (set! g (d args))
             (if (not (procedure? g))
-                (error "unrecognized arguments in dispatching"
+                (error #f "unrecognized arguments in dispatching"
                        args
                        (d '()) )))
           ((var (g empty)))
@@ -679,7 +679,7 @@
 
     ; silence warnings of some macro expanders
     ((:generator-proc var)
-     (error "illegal macro call") )))
+     (error #f "illegal macro call") )))
 
 
 (define (dispatch-union d1 d2)
@@ -690,7 +690,7 @@
               (if (null? args)
                   (append (if (list? g1) g1 (list g1))
                           (if (list? g2) g2 (list g2)) )
-                  (error "dispatching conflict" args (d1 '()) (d2 '())) )
+                  (error #f "dispatching conflict" args (d1 '()) (d2 '())) )
               g1 )
           (if g2 g2 #f) ))))
 
@@ -772,7 +772,7 @@
 
 (define :-dispatch
   (make-parameter (make-initial-:-dispatch)
-                  (lambda (x) (if (procedure? x) x (error "not a procedure" x)))))
+                  (lambda (x) (if (procedure? x) x (error #f "not a procedure" x)))))
 
 (define (:-dispatch-ref)
   (:-dispatch))
@@ -891,10 +891,10 @@
                 (if (< i len)
                     (begin (vector-set! vec i expression)
                            (set! i (+ i 1)) )
-                    (error "vector is too short for the comprehension") ))
+                    (error #f "vector is too short for the comprehension") ))
          (if (= i len)
              vec
-             (error "vector is too long for the comprehension") ))))))
+             (error #f "vector is too long for the comprehension") ))))))
 
 
 (define-syntax sum-ec
@@ -926,7 +926,7 @@
     ((last-ec default expression)
      (last-ec default (nested) expression) )
 
-    ((last-ec default qualifier expression)
+    ((last-ec default qualifierexpression)
      (let ((result default))
        (do-ec qualifier (set! result expression))
        result ))))
