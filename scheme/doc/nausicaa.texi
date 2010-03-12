@@ -53639,7 +53639,7 @@ binary data bytes are written to @var{dst-bv} in single--byte blocks.
 @end defun
 
 
-@defun qprint-decode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past})
+@defun qprint-decode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
 Decode @ascii{} characters from the bytevector @var{src-bv} starting at
 index @var{src-start} (included) up to index @var{src-past} (excluded);
 store binary data bytes in the bytevector @var{dst-bv} starting at
