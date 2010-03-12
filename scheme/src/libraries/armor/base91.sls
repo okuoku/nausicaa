@@ -304,7 +304,8 @@
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
     (define-inline (*src)
-      (begin0-let ((byte (bytevector-u8-ref src-bv j)))
+      (begin0
+	  (bytevector-u8-ref src-bv j)
 	(incr! j)))
 
     (define-inline (*dst ?dummy ?expr)
@@ -361,7 +362,8 @@
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
     (define-inline (*src)
-      (begin0-let ((byte (bytevector-u8-ref src-bv j)))
+      (begin0
+	  (bytevector-u8-ref src-bv j)
 	(incr! j)))
 
     (define-inline (*dst ?dummy ?expr)

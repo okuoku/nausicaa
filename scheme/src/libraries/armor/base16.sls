@@ -390,8 +390,8 @@
       ;; |--------+--------|
       ;; |    7654|        | dst0
       ;; |        |    3210| dst1
-      (let ((src0 (*src))
-	    (src1 (*src)))
+      (let* ((src0 (*src))	;we need LET* to enforce the order
+	     (src1 (*src)))
 	(*dst 0 (bitwise-ior (<< src0 4) src1))
 	(loop i j
 	      (- src-len base16-decode-block-length)
@@ -473,8 +473,8 @@
 	   ;; |--------+--------|
 	   ;; |    7654|        | dst0
 	   ;; |        |    3210| dst1
-	   (let ((src0 (*src))
-		 (src1 (*src)))
+	   (let* ((src0 (*src))	;we need LET* to enforce the order
+		  (src1 (*src)))
 	     (*dst 0 (bitwise-ior (<< src0 4) src1))
 	     (loop i j
 		   (- src-len base16-decode-block-length)

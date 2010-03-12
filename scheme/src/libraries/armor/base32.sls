@@ -461,11 +461,11 @@
       ;; |        |        |        | 43210  |        | dst5
       ;; |        |        |        |      43|210     | dst6
       ;; |        |        |        |        |   43210| dst7
-      (let ((src0 (*src))
-	    (src1 (*src))
-	    (src2 (*src))
-	    (src3 (*src))
-	    (src4 (*src)))
+      (let* ((src0 (*src))	;we need LET* to enforce the order
+	     (src1 (*src))
+	     (src2 (*src))
+	     (src3 (*src))
+	     (src4 (*src)))
 	(*dst 0              (>> src0 3))
 	(*dst 1 (bitwise-ior (<< src0 2) (>> src1 6)))
 	(*dst 2              (>> src1 1))
@@ -543,11 +543,11 @@
 	   ;; |        |        |        |        |   43210| dst7
 	   (if (< dst-len 8)
 	       (values #f i j)
-	     (let ((src0 (*src))
-		   (src1 (*src))
-		   (src2 (*src))
-		   (src3 (*src))
-		   (src4 (*src)))
+	     (let* ((src0 (*src))	;we need LET* to enforce the order
+		    (src1 (*src))
+		    (src2 (*src))
+		    (src3 (*src))
+		    (src4 (*src)))
 	       (*dst 0              (>> src0 3))
 	       (*dst 1 (bitwise-ior (<< src0 2) (>> src1 6)))
 	       (*dst 2              (>> src1 1))
@@ -573,10 +573,10 @@
 	   ;; |        |        |        |        |
 	   (if (< dst-len (if generate-padding? 8 7))
 	       (values #f i j)
-	     (let ((src0 (*src))
-		   (src1 (*src))
-		   (src2 (*src))
-		   (src3 (*src)))
+	     (let* ((src0 (*src))	;we need LET* to enforce the order
+		    (src1 (*src))
+		    (src2 (*src))
+		    (src3 (*src)))
 	       (*dst 0              (>> src0 3))
 	       (*dst 1 (bitwise-ior (<< src0 2) (>> src1 6)))
 	       (*dst 2              (>> src1 1))
@@ -601,9 +601,9 @@
 	   ;; |        |        |        |
 	   (if (< dst-len (if generate-padding? 8 5))
 	       (values #f i j)
-	     (let ((src0 (*src))
-		   (src1 (*src))
-		   (src2 (*src)))
+	     (let* ((src0 (*src))	;we need LET* to enforce the order
+		    (src1 (*src))
+		    (src2 (*src)))
 	       (*dst 0              (>> src0 3))
 	       (*dst 1 (bitwise-ior (<< src0 2) (>> src1 6)))
 	       (*dst 2              (>> src1 1))
@@ -627,8 +627,8 @@
 	   ;; |        |        |
 	   (if (< dst-len (if generate-padding? 8 4))
 	       (values i j)
-	     (let ((src0 (*src))
-		   (src1 (*src)))
+	     (let* ((src0 (*src))	;we need LET* to enforce the order
+		    (src1 (*src)))
 	       (*dst 0              (>> src0 3))
 	       (*dst 1 (bitwise-ior (<< src0 2) (>> src1 6)))
 	       (*dst 2              (>> src1 1))
@@ -739,14 +739,14 @@
 	   ;; |        |        |        |    7654|   3210 |        |        |        | dst2
 	   ;; |        |        |        |        |       7|   65432|   10   |        | dst3
 	   ;; |        |        |        |        |        |        |     765|   43210| dst4
-	   (let ((char0 (*src))
-		 (char1 (*src))
-		 (char2 (*src))
-		 (char3 (*src))
-		 (char4 (*src))
-		 (char5 (*src))
-		 (char6 (*src))
-		 (char7 (*src)))
+	   (let* ((char0 (*src))	;we need LET* to enforce the order
+		  (char1 (*src))
+		  (char2 (*src))
+		  (char3 (*src))
+		  (char4 (*src))
+		  (char5 (*src))
+		  (char6 (*src))
+		  (char7 (*src)))
 	     (let ((pad0? (= char0 pad-char))
 		   (pad1? (= char1 pad-char))
 		   (pad2? (= char2 pad-char))
@@ -798,14 +798,14 @@
 	   ;; |        |        |        |    7654|   3210 |        |        |        | dst2
 	   ;; |        |        |        |        |       7|   65432|   10   |        | dst3
 	   ;; |        |        |        |        |        |        |     765|   43210| dst4
-	   (let ((src0 (%decode (*src)))
-		 (src1 (%decode (*src)))
-		 (src2 (%decode (*src)))
-		 (src3 (%decode (*src)))
-		 (src4 (%decode (*src)))
-		 (src5 (%decode (*src)))
-		 (src6 (%decode (*src)))
-		 (src7 (%decode (*src))))
+	   (let* ((src0 (%decode (*src)))	;we need LET* to enforce the order
+		  (src1 (%decode (*src)))
+		  (src2 (%decode (*src)))
+		  (src3 (%decode (*src)))
+		  (src4 (%decode (*src)))
+		  (src5 (%decode (*src)))
+		  (src6 (%decode (*src)))
+		  (src7 (%decode (*src))))
 
 	     (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
 	     (*dst 1 (bitwise-ior (<< src1 6) (<< src2 1) (>> src3 4)))
@@ -910,14 +910,14 @@
 	       ;; |        |        |        |        |        |        |     765|   43210| dst4
 	       (if (< dst-len 5)
 		   (values #f i j)
-		 (let ((src0 (*src))
-		       (src1 (*src))
-		       (src2 (*src))
-		       (src3 (*src))
-		       (src4 (*src))
-		       (src5 (*src))
-		       (src6 (*src))
-		       (src7 (*src)))
+		 (let* ((src0 (*src))	;we need LET* to enforce the order
+			(src1 (*src))
+			(src2 (*src))
+			(src3 (*src))
+			(src4 (*src))
+			(src5 (*src))
+			(src6 (*src))
+			(src7 (*src)))
 		   (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
 		   (*dst 1 (bitwise-ior (<< src1 6) (<< src2 1) (>> src3 4)))
 		   (*dst 2 (bitwise-ior (<< src3 4) (>> src4 1)))
@@ -936,13 +936,13 @@
 	       ;; |        |        |        |        |       7|   65432|   10   | dst3
 	       (if (< dst-len 4)
 		   (values #f i j)
-		 (let ((src0 (*src))
-		       (src1 (*src))
-		       (src2 (*src))
-		       (src3 (*src))
-		       (src4 (*src))
-		       (src5 (*src))
-		       (src6 (*src)))
+		 (let* ((src0 (*src))	;we need LET* to enforce the order
+			(src1 (*src))
+			(src2 (*src))
+			(src3 (*src))
+			(src4 (*src))
+			(src5 (*src))
+			(src6 (*src)))
 		   (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
 		   (*dst 1 (bitwise-ior (<< src1 6) (<< src2 1) (>> src3 4)))
 		   (*dst 2 (bitwise-ior (<< src3 4) (>> src4 1)))
@@ -959,11 +959,11 @@
 	       ;; |        |        |        |    7654|   3210 | dst2
 	       (if (< dst-len 3)
 		   (values #f i j)
-		 (let ((src0 (*src))
-		       (src1 (*src))
-		       (src2 (*src))
-		       (src3 (*src))
-		       (src4 (*src)))
+		 (let* ((src0 (*src))	;we need LET* to enforce the order
+			(src1 (*src))
+			(src2 (*src))
+			(src3 (*src))
+			(src4 (*src)))
 		   (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
 		   (*dst 1 (bitwise-ior (<< src1 6) (<< src2 1) (>> src3 4)))
 		   (*dst 2 (bitwise-ior (<< src3 4) (>> src4 1)))
@@ -978,10 +978,10 @@
 	       ;; |        |      76|   54321|   0    | dst1
 	       (if (< dst-len 2)
 		   (values #f i j)
-		 (let ((src0 (*src))
-		       (src1 (*src))
-		       (src2 (*src))
-		       (src3 (*src)))
+		 (let* ((src0 (*src))	;we need LET* to enforce the order
+			(src1 (*src))
+			(src2 (*src))
+			(src3 (*src)))
 		   (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
 		   (*dst 1 (bitwise-ior (<< src1 6) (<< src2 1) (>> src3 4)))
 		   (values #t i j))))
@@ -995,8 +995,8 @@
 	       ;;
 	       (if (< dst-len 1)
 		   (values #f i j)
-		 (let ((src0 (*src))
-		       (src1 (*src)))
+		 (let* ((src0 (*src))	;we need LET* to enforce the order
+			(src1 (*src)))
 		   (*dst 0 (bitwise-ior (<< src0 3) (>> src1 2)))
 		   (values #t i j))))
 

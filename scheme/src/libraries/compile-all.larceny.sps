@@ -50,15 +50,6 @@
 (compile-library "pretty-print.larceny.sls"
 		 "pretty-print.larceny.slfasl")
 
-(compile-library "begin0.sls"
-		 "begin0.slfasl")
-
-(compile-library "set-cons.sls"
-		 "set-cons.slfasl")
-
-(compile-library "receive.sls"
-		 "receive.slfasl")
-
 (compile-library "language-extensions.sls"
 		 "language-extensions.slfasl")
 
