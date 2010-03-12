@@ -19503,12 +19503,12 @@ expands to:
 @subsection Macro definition helpers
 
 
-@deffn Syntax define-macro (@ameta{name} @ameta{arg} ...) @ameta{form0} @ameta{form} ...
+@deffn Syntax define-inline (@ameta{name} @ameta{arg} ...) @ameta{form0} @ameta{form} ...
 Define a macro with with a definition resembling a function.  It is
 defined as:
 
 @example
-(define-syntax define-macro
+(define-syntax define-inline
   (syntax-rules ()
     ((_ (?name ?arg ...) ?form0 ?form ...)
      (define-syntax ?name
@@ -51237,11 +51237,14 @@ following types: @condition{who}, @condition{option},
 
 
 The encoders and decoders documented in this chapter convert a stream of
-bytes into a stream of @ascii{} characters, and back, according to a
-selection of encoding alphabets.  None of the encoders and decoders will
-process line--oriented input or output; to split a stream of @ascii{}
-characters into lines, we have to apply a specific filter; to process a
-sequence of lines we have to remove the newlines first.
+bytes into another stream of bytes which can be interpreted as @ascii{}
+characters, according to a selection of encoding alphabets.  Both the
+encoders and the decoders are available.
+
+None of the encoders and decoders will process line--oriented input or
+output; to split a stream of @ascii{} characters into lines, we have to
+apply a specific filter; to process a sequence of lines we have to
+remove the newlines first.
 
 @menu
 * armor conditions::            Condition objects.
@@ -51250,6 +51253,7 @@ sequence of lines we have to remove the newlines first.
 * armor base64::                Base 64 encoder/decoder.
 * armor base91::                Base 91 encoder/decoder.
 * armor ascii85::               @ascii{} 85 encoder/decoder.
+* armor newlines::              Newline insertion/removal.
 * armor examples::              Examples of encoding and decoding.
 @end menu
 
@@ -53377,6 +53381,172 @@ Writes the closing sequence @samp{~>} to the bytevector @var{dst-bv}
 starting at index @var{dst-start} (included).  Return the index of the
 next non--written byte in @var{dst-bv}, or @false{} if there is not
 enough room in @var{dst-bv}.
+@end defun
+
+@c page
+@node armor newlines
+@section Newline insertion/removal
+
+
+The bindings documented in this section are exported by the
+@library{armor newlines} library.
+
+@menu
+* armor newline insertion::     Inserting sequences of bytes.
+* armor newline removal::       Removing sequences of bytes.
+@end menu
+
+@c page
+@node armor newline insertion
+@subsection Inserting sequences of bytes
+
+
+@deftp {Record Type Name} <newlines-encode-ctx>
+Context record for newline insertion.  It has the following fields:
+
+@table @code
+@item width
+The line width in bytes.  This field is immutable.
+
+@item sequence
+A bytevector representing the newline sequence of characters.  This
+field is immutable.
+
+@item column
+The current colum number.
+@end table
+@end deftp
+
+
+@defun make-<newlines-encode-ctx> @var{width} @var{sequence} @var{column}
+@defunx <newlines-encode-ctx>? @var{obj}
+Constructor and predicate for records of type
+@class{newlines-encode-ctx}.
+@end defun
+
+
+@defun newlines-encode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Copy bytes from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+the output in the bytevector @var{dst-bv} starting at @var{dst-start}
+(included); newline sequences are inserted according to the
+specification in the context @var{ctx}, which must be a record of type
+@class{newlines-encode-ctx}.
+
+Return two values:
+
+@enumerate
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+@end defun
+
+
+@defun newlines-encode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Copy bytes from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+the output in the bytevector @var{dst-bv} starting at @var{DST-START}
+(included); newline sequences are inserted according to the the
+specification in the context @var{ctx}, which must be a record of type
+@class{newlines-encode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if all the data from @var{src-bv} has been processed,
+false otherwise.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+@end defun
+
+@c page
+@node armor newline removal
+@subsection Removing sequences of bytes
+
+
+@deftp {Record Type Name} <newlines-decode-ctx>
+Context record for newline removal.  It has the following fields:
+
+@table @code
+@item sequence
+A bytevector representing the newline sequence of characters.  This
+field is immutable.
+@end table
+@end deftp
+
+
+@defun make-<newlines-decode-ctx> @var{sequence}
+@defunx <newlines-decode-ctx>? @var{obj}
+Constructor and predicate for records of type
+@class{newlines-decode-ctx}.
+@end defun
+
+
+@defun newlines-decode-update! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Copy bytes from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+the output in the bytevector @var{dst-bv} starting at @var{dst-start}
+(included); newline sequences are removed according to the specification
+in the context @var{ctx}, which must be a record of type
+@class{newlines-decode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean always false.  This value is here to make this @api{} equal to
+the one of the base64 decoder.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
+
+Bytes are read from @var{src-bv} until their number is less than the
+sequence length.
+@end defun
+
+
+@defun newlines-decode-final! @var{ctx} @var{dst-bv} @var{dst-start} @var{src-bv} @var{src-start} @var{src-past}
+Copy bytes from the bytevector @var{src-bv} starting at index
+@var{src-start} (included) up to index @var{src-past} (excluded); store
+the output in the bytevector @var{dst-bv} starting at @var{DST-START}
+(included); newline sequences are removed according to the the
+specification in the context @var{ctx}, which must be a record of type
+@class{newlines-decode-ctx}.
+
+Return three values:
+
+@enumerate
+@item
+A boolean: true if all the data from @var{src-bv} has been processed,
+false otherwise.
+
+@item
+The index of the next non--written byte in @var{dst-bv}; if @var{dst-bv}
+is left full, this value is the length of @var{dst-bv}.
+
+@item
+The index of the next non--read byte in @var{src-bv}; if all the bytes
+from @var{src-bv} are consumed, this value is @var{src-past}.
+@end enumerate
 @end defun
 
 @c page

@@ -160,31 +160,31 @@
 
 ;;;; helpers
 
-(define-macro (lower8 ?number)
+(define-inline (lower8 ?number)
   (bitwise-and #xFF ?number))
 
-(define-macro (lower13 ?number)
+(define-inline (lower13 ?number)
   (bitwise-and #x1FFF ?number))
 
-(define-macro (lower14 ?number)
+(define-inline (lower14 ?number)
   (bitwise-and #x3FFF ?number))
 
-(define-macro (lower24 ?number)
+(define-inline (lower24 ?number)
   (bitwise-and #xFFFFFF ?number))
 
-(define-macro (enqueue-byte! bit-queue queue-length byte)
+(define-inline (enqueue-byte! bit-queue queue-length byte)
   (set! bit-queue (bitwise-ior bit-queue (<< byte queue-length)))
   (incr! queue-length 8))
 
-(define-macro (dequeue-8-bits! bit-queue queue-length)
+(define-inline (dequeue-8-bits! bit-queue queue-length)
   (set! bit-queue (>> bit-queue 8))
   (decr! queue-length 8))
 
-(define-macro (dequeue-13-bits! bit-queue queue-length)
+(define-inline (dequeue-13-bits! bit-queue queue-length)
   (set! bit-queue (>> bit-queue 13))
   (decr! queue-length 13))
 
-(define-macro (dequeue-14-bits! bit-queue queue-length)
+(define-inline (dequeue-14-bits! bit-queue queue-length)
   (set! bit-queue (>> bit-queue 14))
   (decr! queue-length 14))
 
@@ -303,11 +303,11 @@
 	     (src-len	(- src-past src-start))
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
-    (define-macro (*src)
+    (define-inline (*src)
       (begin0-let ((byte (bytevector-u8-ref src-bv j)))
 	(incr! j)))
 
-    (define-macro (*dst ?dummy ?expr)
+    (define-inline (*dst ?dummy ?expr)
       (bytevector-u8-set! dst-bv i (vector-ref encode-table-base91 ?expr))
       (incr! i))
 
@@ -360,11 +360,11 @@
 	     (src-len	(- src-past src-start))
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
-    (define-macro (*src)
+    (define-inline (*src)
       (begin0-let ((byte (bytevector-u8-ref src-bv j)))
 	(incr! j)))
 
-    (define-macro (*dst ?dummy ?expr)
+    (define-inline (*dst ?dummy ?expr)
       (bytevector-u8-set! dst-bv i (vector-ref encode-table-base91 ?expr))
       (incr! i))
 
@@ -456,12 +456,12 @@
 	     (src-len	(- src-past src-start))
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
-    (define-macro (*src)
+    (define-inline (*src)
       (begin0
 	  (bytevector-u8-ref src-bv j)
 	(incr! j)))
 
-    (define-macro (*dst ?expr)
+    (define-inline (*dst ?expr)
       (bytevector-u8-set! dst-bv i (lower8 ?expr))
       (incr! i))
 
@@ -538,7 +538,7 @@
 	     (src-len	(- src-past src-start))
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
-    (define-macro (*src)
+    (define-inline (*src)
       (let ((char (bytevector-u8-ref src-bv j)))
 	(if (zero? (bitwise-and #x80 char))
 	    (begin0-let ((byte (vector-ref decode-table-base91 char)))
@@ -547,7 +547,7 @@
 		(%error-invalid-input-byte char)))
 	  (%error-invalid-input-byte char))))
 
-    (define-macro (*dst ?expr)
+    (define-inline (*dst ?expr)
       (bytevector-u8-set! dst-bv i (lower8 ?expr))
       (incr! i))
 

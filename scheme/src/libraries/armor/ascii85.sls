@@ -81,7 +81,7 @@
 (define << bitwise-arithmetic-shift-left)
 (define >> bitwise-arithmetic-shift-right)
 
-(define-macro (lower8 ?number)
+(define-inline (lower8 ?number)
   (bitwise-and #xFF ?number))
 
 
@@ -296,10 +296,10 @@
 	(values i j)
       (let ((tuple (make-bytevector 4)))
 
-	(define-macro (*src ?idx)
+	(define-inline (*src ?idx)
 	  (bytevector-u8-ref src-bv ?idx))
 
-	(define-macro (*tuple ?idx ?expr)
+	(define-inline (*tuple ?idx ?expr)
 	  (bytevector-u8-set! tuple ?idx ?expr))
 
 	(*tuple 0 (*src j))
@@ -344,7 +344,7 @@
 	     (src-len	(- src-past src-start))
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
-    (define-macro (*src)
+    (define-inline (*src)
       (begin0
 	  (bytevector-u8-ref src-bv j)
 	(incr! j)))
@@ -357,7 +357,7 @@
 	     (values #f i j))
 	   (let ((tuple (make-bytevector 4)))
 
-	     (define-macro (*tuple ?idx ?expr)
+	     (define-inline (*tuple ?idx ?expr)
 	       (bytevector-u8-set! tuple ?idx ?expr))
 
 	     (*tuple 0 (*src))
@@ -373,7 +373,7 @@
 	     (values #f i j))
 	   (let ((tuple (make-bytevector 4 0)))
 
-	     (define-macro (*tuple ?idx ?expr)
+	     (define-inline (*tuple ?idx ?expr)
 	       (bytevector-u8-set! tuple ?idx ?expr))
 
 	     (do ((k 0 (+ 1 k)))
@@ -432,12 +432,12 @@
 	     (src-len	(- src-past src-start))
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
-    (define-macro (*src)
+    (define-inline (*src)
       (begin0
 	  (bytevector-u8-ref src-bv j)
 	(incr! j)))
 
-    (define-macro (*dst ?dummy ?expr)
+    (define-inline (*dst ?dummy ?expr)
       (bytevector-u8-set! dst-bv i (lower8 ?expr))
       (incr! i))
 
@@ -536,12 +536,12 @@
 	     (src-len	(- src-past src-start))
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
-    (define-macro (*src)
+    (define-inline (*src)
       (begin0
 	  (bytevector-u8-ref src-bv j)
 	(incr! j)))
 
-    (define-macro (*dst ?dummy ?expr)
+    (define-inline (*dst ?dummy ?expr)
       (bytevector-u8-set! dst-bv i (lower8 ?expr))
       (incr! i))
 

@@ -793,7 +793,7 @@
     set-cons! incr! decr! while do-while
 
     ;; macro definition helpers
-    define-identifier-macro define-macro
+    define-identifier-macro define-inline
 
     ;; shared structures
     write-with-shared-structure

@@ -115,8 +115,9 @@
   (only (armor base16))
   (only (armor base32))
   (only (armor base64))
-  (only (armor ascii85))
   (only (armor base91))
+  (only (armor ascii85))
+  (only (armor newlines))
 
   (only (foreign memory))
   (only (foreign memory mempool))

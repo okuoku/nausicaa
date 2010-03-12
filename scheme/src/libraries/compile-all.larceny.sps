@@ -326,11 +326,26 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "armor/conditions.sls"
+		 "armor/conditions.slfasl")
+
 (compile-library "armor/base16.sls"
 		 "armor/base16.slfasl")
 
+(compile-library "armor/base32.sls"
+		 "armor/base32.slfasl")
+
 (compile-library "armor/base64.sls"
 		 "armor/base64.slfasl")
+
+(compile-library "armor/base91.sls"
+		 "armor/base91.slfasl")
+
+(compile-library "armor/ascii85.sls"
+		 "armor/ascii85.slfasl")
+
+(compile-library "armor/newlines.sls"
+		 "armor/newlines.slfasl")
 
 ;;; --------------------------------------------------------------------
 

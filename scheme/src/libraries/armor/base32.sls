@@ -278,10 +278,10 @@
 
 ;;;; helpers
 
-(define-macro (lower5 ?number)
+(define-inline (lower5 ?number)
   (bitwise-and #b00011111 ?number))
 
-(define-macro (lower8 ?number)
+(define-inline (lower8 ?number)
   (bitwise-and #xFF ?number))
 
 (define << bitwise-arithmetic-shift-left)
@@ -439,11 +439,11 @@
 	     (src-len	(- src-past src-start))
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
-    (define-macro (*src)
+    (define-inline (*src)
       (begin0-let ((byte (bytevector-u8-ref src-bv j)))
 	(incr! j)))
 
-    (define-macro (*dst ?dummy ?expr)
+    (define-inline (*dst ?dummy ?expr)
       (bytevector-u8-set! dst-bv i (vector-ref table (lower5 ?expr)))
       (incr! i))
 
@@ -513,15 +513,15 @@
 	     (src-len	(- src-past src-start))
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
-    (define-macro (*src)
+    (define-inline (*src)
       (begin0-let ((byte (bytevector-u8-ref src-bv j)))
 	(incr! j)))
 
-    (define-macro (*dst ?dummy ?expr)
+    (define-inline (*dst ?dummy ?expr)
       (bytevector-u8-set! dst-bv i (vector-ref table (lower5 ?expr)))
       (incr! i))
 
-    (define-macro (*pad ?dummy)
+    (define-inline (*pad ?dummy)
       (bytevector-u8-set! dst-bv i pad-char)
       (incr! i))
 
@@ -717,12 +717,12 @@
 	     (src-len	(- src-past src-start))
 	     (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
-    (define-macro (*src)
+    (define-inline (*src)
       (begin0
 	  (bytevector-u8-ref src-bv j)
 	(incr! j)))
 
-    (define-macro (*dst ?dummy ?expr)
+    (define-inline (*dst ?dummy ?expr)
       (bytevector-u8-set! dst-bv i (lower8 ?expr))
       (incr! i))
 
@@ -878,7 +878,7 @@
 		 (src-len	(- src-past src-start))
 		 (dst-len	(- (bytevector-length dst-bv) dst-start)))
 
-	(define-macro (*src)
+	(define-inline (*src)
 	  (let ((char (bytevector-u8-ref src-bv j)))
 	    (if (zero? (bitwise-and #x80 char))
 		(begin0-let ((byte (vector-ref table char)))
@@ -887,11 +887,11 @@
 		    (%error-invalid-input-byte char)))
 	      (%error-invalid-input-byte char))))
 
-	(define-macro (*dst ?dummy ?expr)
+	(define-inline (*dst ?dummy ?expr)
 	  (bytevector-u8-set! dst-bv i (lower8 ?expr))
 	  (incr! i))
 
-	(define-macro (*pad ?dummy)
+	(define-inline (*pad ?dummy)
 	  (bytevector-u8-set! dst-bv i pad-char)
 	  (incr! i))
 

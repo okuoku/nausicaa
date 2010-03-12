@@ -183,7 +183,7 @@
     receive recursion cut cute do* while do-while
     dotimes dolist loop-upon-list ensure
     set-cons! incr! decr!
-    define-identifier-macro define-macro define-values)
+    define-identifier-macro define-inline define-values)
   (import (rnrs))
 
 
@@ -450,7 +450,7 @@
 
 ;;;; macro definition helpers
 
-(define-syntax define-macro
+(define-syntax define-inline
   (syntax-rules ()
     ((_ (?name ?arg ...) ?form0 ?form ...)
      (define-syntax ?name
