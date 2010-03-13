@@ -61,7 +61,7 @@
     cmat/c cmat-set! cmat-ref cmat-fill! cmat->list
     zmat/c zmat-set! zmat-ref zmat-fill! zmat->list)
   (import (rnrs)
-    (begin0)
+    (only (language-extensions) begin0)
     (only (foreign ffi)
 	  array-set-c-float!
 	  array-ref-c-float
