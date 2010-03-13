@@ -2,7 +2,7 @@
                           Nausicaa
                           ========
 
-             Your library will be assimilated,
+	     Your library will be assimilated,
                  syntax errors are futile.
 
 
@@ -23,8 +23,8 @@ Topics
 
 This is a distribution of Scheme language libraries for R6RS
 Scheme  implementations.  Currently  it attempts  to support
-Larceny, Ikarus, Mosh and  Ypsilon; when referring to all of
-these we can use the LIMY abbreviation.
+Larceny,  Ikarus,  Mosh,   Petite  Chez  and  Ypsilon;  when
+referring to all of these we can use the LIMPY abbreviation.
 
 
 1.1 About 'Nausicaa'
@@ -52,7 +52,7 @@ and copyright assignment.
 
   Only Software Libre libraries are included.  Used licenses
 are the  GNU General Public License, the  GNU Lesser General
-Public License, the BSD  licenses, the BSD like license, the
+Public License, the BSD  licenses, the BSD-like license, the
 GNU Free Documentation License.
 
 
@@ -64,10 +64,10 @@ systems.   This   means  Unix-like  systems   in  which  the
 following common tools and packages are installed: GNU Bash,
 GNU Make, GNU coreutils, GNU Find, GNU tar, Gzip, Bzip2.
 
-  There are 2 sources of informations about the installation
+  There are 4 sources of informations about the installation
 of  a Nausicaa  project: the  individual,  project specific,
-README files; the  Nausicaa overall documentation in Texinfo
-format, which is available in the "doc" subdirectory.
+README files;  this README file; the  README.build file; the
+README.rules file.
 
   To use the Nausicaa libraries you must install the package
 of the Nausicaa/Scheme project.
@@ -108,8 +108,7 @@ resources).
 
   Notice that:
 
-* Both the  library source files (.sls)  and the precompiled
-  files  (for  example .ikarus-fasl)  are  installed in  the
+* The  library  source files  (.sls)  are  installed in  the
   directory selected  by the "pkglibdir"  Makefile variable;
   by default  this variable is  set to "$(libdir)/nausicaa",
   which  means that without  touching the  configuration the
@@ -121,16 +120,12 @@ resources).
   the Scheme implementation you are using.
 
 * Currently,  among  the  supported Scheme  implementations,
-  only  Larceny   and  Ikarus  Scheme   can  optionally  use
-  precompiled  Scheme  files;  enabling precompilation  when
-  using other Scheme implementations will not work.
-
-* By default  the libraries  are NOT precompiled;  to enable
-  precompilation you must pass the "--enable-fasl" option to
-  the "configure" scripts.
+  Ikarus,  Larceny,  Mosh  and  Ypsilon can  optionally  use
+  precompiled Scheme  libraries.  See the  README.rules file
+  for details about precompilation.
 
 * The Larceny compiler is slow (really); when using Larceny,
-  enabling precompilation is strongly recommended.
+  precompilation is strongly recommended.
 
 * When  precompiling a  library for  Ikarus Scheme  with the
   command:
@@ -140,7 +135,7 @@ resources).
   Ikarus  traverses  the graph  of  libraries attempting  to
   precompile all  the uncompiled ones; this  means that also
   libraries that are installed  along with Ikarus have to be
-  precompiled;  at present  (Wed  Dec 31,  2008) the  Ikarus
+  precompiled;  at present  (Sat  Mar 13,  2010) the  Ikarus
   distribution does not  precompile libraries, you will have
   to do it by hand.
 
@@ -148,10 +143,6 @@ resources).
   installed,  documentation  in HTML  format  is pruned;  to
   change  this pass  the '--enable-doc-html'  option  to the
   "configure" scripts.
-
-  There is  basic support  for Linux packages  creation, for
-example for  Slackware; read the  Nausicaa documentation for
-details.
 
 
 A. Credits
@@ -188,14 +179,17 @@ Incorporated, with contributions by other people.
 programming  language.  It  is the  creation of  Taro Minowa
 (higepon), kokosabu, herumi and .mjt.
 
+  Petite   Chez   Scheme   is   an   also   R6RS   compliant
+implementation  of the Scheme  programming language.   It is
+produced by Cadence Research Systems.
+
   Ypsilon is an R6RS  compliant implementation of the Scheme
 programming  language.   It is  the  creation of  Yoshikatsu
 Fujita at LittleWing Company.
 
   The Nausicaa  distribution and installation infrastructure
-is the  creation of Marco  Maggi (<marcomaggi@gna.org>).  If
-this work exists, it is because of the GNU Software tools he
-uses all the time.
+is the creation of Marco  Maggi.  If this work exists, it is
+because of the GNU Software tools he uses all the time.
 
   For other  credits notes  look in the  individual, project
 specific, REAME files.
@@ -241,9 +235,22 @@ Mosh Scheme can be downloaded from:
 
 	  <http://code.google.com/p/mosh-scheme/>
 
+Petite Chez Scheme can be downloaded from:
+
+		  <http://www.scheme.com/>
+
 the GNU Software tools can be downloaded from:
 
 		    <http://www.gnu.org>
+
+  The  latest  version  of  the  Nausicaa  packages  can  be
+downloaded from:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
 
 the latest revision of Nausicaa can be downloaded from:
 
