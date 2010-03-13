@@ -11,10 +11,13 @@ of the documentation file in Texinfo format.
 (armor base16)
 (armor base32)
 (armor base64)
+(armor base91)
 --------------
 
 Written by Marco Maggi taking basic code organisation from Tcllib, whose
-author is probably Andreas Kupries.
+author is probably Andreas Kupries.   The base91 library is also derived
+from  the C  language  code from  the  basE91 package  by Joachim  Henke
+(<http://base91.sourceforge.net/>).
 
 
 (armor ascii85)
@@ -25,11 +28,12 @@ distribution by Paul  Haahr which claims that the code  is in the public
 domain, although he did not write it (<http://www.webcom.com/~haahr/>).
 
 
-(armor base91)
---------------
+(armor newlines)
+(armor conditions)
+(armor quoted-printable)
+------------------------
 
-This  code is  a Scheme  swirling  of C  language code  from the  basE91
-package by Joachim Henke (<http://base91.sourceforge.net/>).
+Written by Marco Maggi.
 
 
 (arrays)
