@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -43,17 +43,16 @@
 ;;;; no deferred exceptions
 
 ;;;No error.  No DEFER-EXCEPTIONS.
-(parameterize ((check-test-name "this"))
-  (check
-      (with-result
-       (with-deferred-exceptions-handler
-	   (lambda (exc)
-	     (add-result -4))
-	 (lambda ()
-	   (add-result 1)
-	   (add-result 2)
-	   3)))
-    => '(3 (1 2))))
+(check
+  (with-result
+   (with-deferred-exceptions-handler
+       (lambda (exc)
+	 (add-result -4))
+     (lambda ()
+       (add-result 1)
+       (add-result 2)
+       3)))
+  => '(3 (1 2)))
 
 ;;;No error.  With DEFER-EXCEPTIONS.
 (check
@@ -103,7 +102,6 @@
 	   (add-result 3)
 	   4))))
   => '(woppa (1 2)))
-
 
 
 ;;;; deferred exception
@@ -200,7 +198,6 @@
 
 
 ;;;; done
-
 
 (check-report)
 

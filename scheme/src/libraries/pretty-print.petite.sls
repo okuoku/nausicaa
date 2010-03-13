@@ -1,12 +1,14 @@
+;;; -*- coding: utf-8-unix -*-
+;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: proofs about custom ports
-;;;Date: Fri Jul 31, 2009
+;;;Contents: pretty-print
+;;;Date: Fri Mar 12, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -22,31 +24,8 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
-(import (rnrs)
-  (rnrs mutable-strings))
-
-
-(define (make-custom-string-input-port string)
-  ;;This is a clone of "open-string-input-port".
-  ;;
-  (let ((offset 0)
-	(len   (string-length string)))
-    (make-custom-textual-input-port
-     "email address string input port"
-     (lambda (output-string start count)
-       (do ((past (+ start count))
-	    (i offset (+ 1 i))
-	    (j start  (+ 1 j)))
-	   ((or (= i len) (= j past))
-	    (set! offset i)
-	    (- j start))
-	 (string-set! output-string j (string-ref string i))))
-     (lambda ()
-       offset)
-     #f		;set-position!
-     #f)))	;close
-
-
+(library (pretty-print)
+  (export pretty-print)
+  (import (chezscheme)))
 
 ;;; end of file

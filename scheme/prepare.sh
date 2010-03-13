@@ -20,6 +20,7 @@ set -x
     --enable-ikarus                             \
     --disable-larceny                           \
     --enable-mosh                               \
+    --enable-petite                             \
     --enable-ypsilon                            \
     --enable-binfmt                             \
     --enable-doc-ps                             \

@@ -76,15 +76,6 @@
 ;; 	(set-cdr! s r)
 ;; 	(loop d s))))))
 
-(define (pregexp-error whatever)
-		;R5RS won't give me  a portable error procedure.  modify
-		;this as needed
-  (display "Error:")
-  (for-each (lambda (x) (display #\space) (write x))
-    whatever)
-  (newline)
-  (error "pregexp-error"))
-
 (define (pregexp-read-pattern s i n)
   (if (>= i n)
       (list
@@ -135,7 +126,7 @@
 	      ((pregexp-read-escaped-char s i n) =>
 	       (lambda (char-i)
 		 (list (car char-i) (cadr char-i))))
-	      (else (pregexp-error 'pregexp-read-piece 'backslash)))
+	      (else (error 'pregexp-read-piece "backslash")))
 	s n))
       (else
        (if (or *pregexp-space-sensitive?*
@@ -194,7 +185,7 @@
   (let ((neg? #f))
     (let loop ((i i) (r (list #\:)))
       (if (>= i n)
-	  (pregexp-error 'pregexp-read-posix-char-class)
+	  (error 'pregexp-read-posix-char-class "internal error")
 	(let ((c (string-ref s i)))
 	  (cond ((char=? c #\^)
 		 (set! neg? #t)
@@ -204,7 +195,7 @@
 		((char=? c #\:)
 		 (if (or (>= (+ i 1) n)
 			 (not (char=? (string-ref s (+ i 1)) #\])))
-		     (pregexp-error 'pregexp-read-posix-char-class)
+		     (error 'pregexp-read-posix-char-class "internal error")
 		   (let ((posix-class
 			  (string->symbol
 			   (list->string (reverse! r)))))
@@ -212,7 +203,7 @@
 			     posix-class)
 			   (+ i 2)))))
 		(else
-		 (pregexp-error 'pregexp-read-posix-char-class))))))))
+		 (error 'pregexp-read-posix-char-class "internal error"))))))))
 
 (define (pregexp-read-cluster-type s i n)
 		; s[i-1] = left-paren
@@ -229,7 +220,7 @@
 	    (list (case (string-ref s (+ i 1))
 		    ((#\=) '(:lookbehind))
 		    ((#\!) '(:neg-lookbehind))
-		    (else (pregexp-error 'pregexp-read-cluster-type)))
+		    (else (error 'pregexp-read-cluster-type "internal error")))
 		  (+ i 2)))
 	   (else (let loop ((i i) (r '()) (inv? #f))
 		   (let ((c (string-ref s i)))
@@ -242,8 +233,7 @@
 			(set! *pregexp-space-sensitive?* inv?)
 			(loop (+ i 1) r #f))
 		       ((#\:) (list r (+ i 1)))
-		       (else (pregexp-error
-			      'pregexp-read-cluster-type)))))))))
+		       (else (error 'pregexp-read-cluster-type "internal error")))))))))
       (else (list '(:sub) i)))))
 
 (define (pregexp-read-subpattern s i n)
@@ -264,7 +254,7 @@
 	       (loop (cdr ctyp)
 		     (list (car ctyp) re))))
 	   (+ vv-i 1))
-	(pregexp-error 'pregexp-read-subpattern)))))
+	(error 'pregexp-read-subpattern "internal error")))))
 
 (define (pregexp-wrap-quantifier-if-any vv s n)
   (let ((re (car vv)))
@@ -287,9 +277,8 @@
 		    (set-car! (cdddr new-re) 1))
 		   ((#\{) (let ((pq (pregexp-read-nums s (+ i 1) n)))
 			    (if (not pq)
-				(pregexp-error
-				 'pregexp-wrap-quantifier-if-any
-				 'left-brace-must-be-followed-by-number))
+				(error 'pregexp-wrap-quantifier-if-any
+				  "left brace must be followed by number"))
 			    (set-car! (cddr new-re) (car pq))
 			    (set-car! (cdddr new-re) (cadr pq))
 			    (set! i (caddr pq)))))
@@ -313,7 +302,7 @@
 		; s[i-1] = {
 		; returns (p q k) where s[k] = }
   (let loop ((p '()) (q '()) (k i) (reading 1))
-    (if (>= k n) (pregexp-error 'pregexp-read-nums))
+    (if (>= k n) (error 'pregexp-read-nums "internal error"))
     (let ((c (string-ref s k)))
       (cond ((char-numeric? c)
 	     (if (= reading 1)
@@ -338,8 +327,8 @@
 (define (pregexp-read-char-list s i n)
   (let loop ((r '()) (i i))
     (if (>= i n)
-	(pregexp-error 'pregexp-read-char-list
-		       'character-class-ended-too-soon)
+	(error 'pregexp-read-char-list
+	  "character class ended too soon")
       (let ((c (string-ref s i)))
 	(case c
 	  ((#\]) (if (null? r)
@@ -349,7 +338,7 @@
 	  ((#\\ )
 	   (let ((char-i (pregexp-read-escaped-char s i n)))
 	     (if char-i (loop (cons (car char-i) r) (cadr char-i))
-	       (pregexp-error 'pregexp-read-char-list 'backslash))))
+	       (error 'pregexp-read-char-list "backslash"))))
 	  ((#\-) (if (or (null? r)
 			 (let ((i+1 (+ i 1)))
 			   (and (< i+1 n)
@@ -424,7 +413,7 @@
 		   (char-ci=? c #\a) (char-ci=? c #\b)
 		   (char-ci=? c #\c) (char-ci=? c #\d)
 		   (char-ci=? c #\e) (char-ci=? c #\f)))
-    (else (pregexp-error 'pregexp-check-if-in-char-class?))))
+    (else (error 'pregexp-check-if-in-char-class? "internal error"))))
 
 (define (pregexp-list-ref s i)
 		;like list-ref but returns #f if index is out of bounds
@@ -494,7 +483,7 @@
 	     (case (car re)
 	       ((:char-range)
 		(if (>= i n) (fk)
-		  (pregexp-error 'pregexp-match-positions-aux)))
+		  (error 'pregexp-match-positions-aux "internal error")))
 	       ((:one-of-chars)
 		(if (>= i n) (fk)
 		  (let loup-one-of-chars ((chars (cdr re)))
@@ -527,8 +516,8 @@
 		       (backref
 			(cond (c => cdr)
 			      (else
-			       (pregexp-error 'pregexp-match-positions-aux
-					      'non-existent-backref re)
+			       (error 'pregexp-match-positions-aux
+				 "non existent backref" re)
 			       #f))))
 		  (if backref
 		      (pregexp-string-match
@@ -597,9 +586,8 @@
 			     (lambda (i1 )
 			       (if (and could-loop-infinitely?
 					(= i1 i))
-				   (pregexp-error
-				    'pregexp-match-positions-aux
-				    'greedy-quantifier-operand-could-be-empty))
+				   (error 'pregexp-match-positions-aux
+				     "greedy quantifier operand could be empty"))
 			       (loup-p (+ k 1) i1 ))
 			     fk)
 		      (let ((q (and q (- q p))))
@@ -612,9 +600,8 @@
 				       (lambda (i1)
 					 (if (and could-loop-infinitely?
 						  (= i1 i))
-					     (pregexp-error
-					      'pregexp-match-positions-aux
-					      'greedy-quantifier-operand-could-be-empty))
+					     (error 'pregexp-match-positions-aux
+					       "greedy quantifier operand could be empty"))
 					 (or (loup-q (+ k 1) i1)
 					     (fk)))
 				       fk)
@@ -623,9 +610,9 @@
 					 (lambda (i1)
 					   (loup-q (+ k 1) i1))
 					 fk)))))))))))
-	       (else (pregexp-error 'pregexp-match-positions-aux))))
+	       (else (error 'pregexp-match-positions-aux "internal error"))))
 	    ((>= i n) (fk))
-	    (else (pregexp-error 'pregexp-match-positions-aux))))
+	    (else (error 'pregexp-match-positions-aux 0 "internal error"))))
 		;(printf "done\n")
     (let ((backrefs (map cdr backrefs)))
       (and (car backrefs) backrefs))))
@@ -662,9 +649,9 @@
 (define (pregexp-match-positions pat str . opt-args)
   (cond ((string? pat) (set! pat (pregexp pat)))
 	((pair? pat) #t)
-	(else (pregexp-error 'pregexp-match-positions
-			     'pattern-must-be-compiled-or-string-regexp
-			     pat)))
+	(else (error 'pregexp-match-positions
+		"pattern must be compiled or string regexp"
+		pat)))
   (let* ((str-len (string-length str))
 	 (start (if (null? opt-args) 0
 		  (let ((start (car opt-args)))

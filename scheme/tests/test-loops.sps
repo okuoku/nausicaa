@@ -192,7 +192,7 @@
 (check
     (let ((minus-1 (lambda (x) (- x 1)))
 	  (sum-sqr (lambda (x result) (+ result (* x x)))))
-      (fold3-ec (error "wrong") (:range i 10) i minus-1 sum-sqr) )
+      (fold3-ec (error #f "wrong") (:range i 10) i minus-1 sum-sqr) )
   => 284 )
 
 (check

@@ -25,7 +25,6 @@
 ;;;SOFTWARE.
 
 
-
 #!r6rs
 (library (checks)
   (export
@@ -326,7 +325,11 @@
   (syntax-rules ()
     ((_ ?form ... ?last-form)
      (parameterize ((result '()))
-       ?form ... (list ?last-form (get-result))))))
+       ?form ...
+       (let ((last-result ?last-form))
+		;We  need  to make  sure  that  ?LAST-FORM is  evaluated
+		;before (GET-RESULT).
+	 (list last-result (get-result)))))))
 
 (define (add-result value)
   (result (cons value (result))))

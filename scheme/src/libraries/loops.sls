@@ -493,7 +493,7 @@
                           (integer? b) (exact? b) ))
                 (error #f
                    "arguments of :range are not exact integer (use :real-range?)"
-		   a b 1)) )
+		   a b 1)))
           ((var a))
           (< var b)
           (let ())
@@ -506,8 +506,8 @@
             (if (not (and (integer? a) (exact? a)
                           (integer? b) (exact? b) ))
                 (error #f
-                   "arguments of :range are not exact integer (use :real-range?)"
-		   a b -1 )) )
+		  "arguments of :range are not exact integer (use :real-range?)"
+		  a b -1)))
           ((var a))
           (> var b)
           (let ())
@@ -524,7 +524,7 @@
                           (integer? s) (exact? s) ))
                 (error #f
 		  "arguments of :range are not exact integer (use :real-range?)"
-		  a b s ))
+		  a b s))
             (if (zero? s)
                 (error #f "step size must not be zero in :range") )
             (set! stop (+ a (* (max 0 (ceiling (/ (- b a) s))) s))) )
@@ -559,7 +559,7 @@
      (:do cc
           (let ((a arg1) (b arg2) (s arg3) (istop 0))
             (if (not (and (real? a) (real? b) (real? s)))
-                (error #f "arguments of :real-range are not real" a b s) )
+                (error #f "arguments of :real-range are not real" a b s))
             (if (and (exact? a) (or (not (exact? b)) (not (exact? s))))
                 (set! a (inexact a)) )
             (set! istop (/ (- b a) s)) )
@@ -628,7 +628,7 @@
             (if (not (procedure? g))
                 (error #f "unrecognized arguments in dispatching"
                        args
-                       (d '()) )))
+                       (d '()))))
           ((var (g empty)))
           (not (eq? var empty))
           (let ())
@@ -679,7 +679,7 @@
 
     ; silence warnings of some macro expanders
     ((:generator-proc var)
-     (error #f "illegal macro call") )))
+     (error #f "illegal macro call"))))
 
 
 (define (dispatch-union d1 d2)
@@ -690,7 +690,7 @@
               (if (null? args)
                   (append (if (list? g1) g1 (list g1))
                           (if (list? g2) g2 (list g2)) )
-                  (error #f "dispatching conflict" args (d1 '()) (d2 '())) )
+                  (error #f "dispatching conflict" args (d1 '()) (d2 '())))
               g1 )
           (if g2 g2 #f) ))))
 
@@ -891,10 +891,10 @@
                 (if (< i len)
                     (begin (vector-set! vec i expression)
                            (set! i (+ i 1)) )
-                    (error #f "vector is too short for the comprehension") ))
+                    (error #f "vector is too short for the comprehension")))
          (if (= i len)
              vec
-             (error #f "vector is too long for the comprehension") ))))))
+             (error #f "vector is too long for the comprehension")))))))
 
 
 (define-syntax sum-ec
@@ -926,7 +926,7 @@
     ((last-ec default expression)
      (last-ec default (nested) expression) )
 
-    ((last-ec default qualifierexpression)
+    ((last-ec default qualifier expression)
      (let ((result default))
        (do-ec qualifier (set! result expression))
        result ))))

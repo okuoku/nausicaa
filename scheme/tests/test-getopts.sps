@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -38,70 +38,70 @@
 (parametrise ((check-test-name	'non-options))
 
   (check
-      (let ((args '()))
-	(list (getopts '()
-		       '()
-		       (lambda (non-option)
-			 (set-cons! args non-option)))
-	      args))
+      (let* ((args '())
+	     (retval (getopts '()
+			      '()
+			      (lambda (non-option)
+				(set-cons! args non-option)))))
+	(list retval args))
     => '(#t ()))
 
   (check
-      (let ((args '()))
-	(list (getopts '("alpha" "beta")
-		       '()
-		       (lambda (non-option)
-			 (set-cons! args non-option)))
-	      args))
+      (let* ((args '())
+	     (retval (getopts '("alpha" "beta")
+			      '()
+			      (lambda (non-option)
+				(set-cons! args non-option)))))
+	(list retval args))
     => '(#t ("beta" "alpha")))
 
   (check
-      (let ((args '()))
-	(list (getopts '("alpha" "beta" "-")
-		       '()
-		       (lambda (non-option)
-			 (set-cons! args non-option)))
-	      args))
+      (let* ((args '())
+	     (retval (getopts '("alpha" "beta" "-")
+			      '()
+			      (lambda (non-option)
+				(set-cons! args non-option)))))
+	(list retval args))
     => '(#t ("-" "beta" "alpha")))
 
 ;;; --------------------------------------------------------------------
 ;;; Double-dash and multiple double-dash handling.
 
   (check
-      (let ((args '()))
-	(list (getopts '("--")
-		       '()
-		       (lambda (non-option)
-			 (set-cons! args non-option)))
-	      args))
+      (let* ((args '())
+	     (retval (getopts '("--")
+			      '()
+			      (lambda (non-option)
+				(set-cons! args non-option)))))
+	(list retval args))
     => '(#t ()))
 
   (check
-      (let ((args '()))
-	(list (getopts '("alpha" "beta" "--" "delta")
-		       '()
-		       (lambda (non-option)
-			 (set-cons! args non-option)))
-	      args))
+      (let* ((args '())
+	     (retval (getopts '("alpha" "beta" "--" "delta")
+			      '()
+			      (lambda (non-option)
+				(set-cons! args non-option)))))
+	(list retval args))
     => '(#t ("delta" "beta" "alpha")))
 
   (check
-      (let ((args '()))
-	(list (getopts '("alpha" "beta" "--" "--")
-		       '()
-		       (lambda (non-option)
-			 (set-cons! args non-option)))
-	      args))
+      (let* ((args '())
+	     (retval (getopts '("alpha" "beta" "--" "--")
+			      '()
+			      (lambda (non-option)
+				(set-cons! args non-option)))))
+	(list retval args))
     => '(#t ("--" "beta" "alpha")))
 
   (check
-      (let ((args '()))
-	(list (getopts '("alpha" "beta" "--" "--")
-		       '()
-		       (lambda (non-option)
-			 (set-cons! args non-option))
-		       (getopts-options ignore-multiple-double-dashes))
-	      args))
+      (let* ((args '())
+	     (retval (getopts '("alpha" "beta" "--" "--")
+			      '()
+			      (lambda (non-option)
+				(set-cons! args non-option))
+			      (getopts-options ignore-multiple-double-dashes))))
+	(list retval args))
     => '(#t ("beta" "alpha")))
 
 ;;; --------------------------------------------------------------------
@@ -111,36 +111,36 @@
       (with-exception-handler
 	  (lambda (e) #t)
 	(lambda ()
-	  (let ((args '()))
-	    (list (getopts '("alpha" "beta" "--wow" "delta")
-			   '()
-			   (lambda (non-option)
-			     (set-cons! args non-option)))
-		  args))))
+	  (let* ((args '())
+		 (retval (getopts '("alpha" "beta" "--wow" "delta")
+				  '()
+				  (lambda (non-option)
+				    (set-cons! args non-option)))))
+	    (list retval args))))
     => '(#t ("delta" "beta" "alpha")))
 
   (check		;returning after brief
       (with-exception-handler
 	  (lambda (e) #t)
 	(lambda ()
-	  (let ((args '()))
-	    (list (getopts '("alpha" "beta" "-I" "delta")
-			   '()
-			   (lambda (non-option)
-			     (set-cons! args non-option)))
-		  args))))
+	  (let* ((args '())
+		 (retval (getopts '("alpha" "beta" "-I" "delta")
+				  '()
+				  (lambda (non-option)
+				    (set-cons! args non-option)))))
+	    (list retval args))))
     => '(#t ("delta" "beta" "alpha")))
 
   (check		;multiple returning
       (with-exception-handler
 	  (lambda (e) #t)
 	(lambda ()
-	  (let ((args '()))
-	    (list (getopts '("alpha" "beta" "--wow" "delta" "-I" "gamma")
-			   '()
-			   (lambda (non-option)
-			     (set-cons! args non-option)))
-		  args))))
+	  (let* ((args '())
+		 (retval (getopts '("alpha" "beta" "--wow" "delta" "-I" "gamma")
+				  '()
+				  (lambda (non-option)
+				    (set-cons! args non-option)))))
+	    (list retval args))))
     => '(#t ("gamma" "delta" "beta" "alpha")))
 
   #t)
@@ -158,9 +158,9 @@
       (let* ((result		'())
 	     (register-without	(lambda (opt)
 				  (set-cons! result (<option>-long opt))))
-	     (alpha		(make-<option> #\a "alpha" #f "the option alpha" register-without)))
-	(list (getopts '("--alpha") (list alpha) noop)
-	      result))
+	     (alpha		(make-<option> #\a "alpha" #f "the option alpha" register-without))
+	     (retval (getopts '("--alpha") (list alpha) noop)))
+	(list retval result))
     => '(#t ("alpha")))
 
   (check
@@ -168,9 +168,9 @@
 	     (register-without	(lambda (opt)
 				  (set-cons! result (<option>-long opt))))
 	     (alpha		(make-<option> #\a "alpha" #f "the option alpha" register-without))
-	     (beta		(make-<option> #\b "beta" #f "the option alpha"  register-without)))
-	(list (getopts '("--alpha" "--beta") (list alpha beta) noop)
-	      result))
+	     (beta		(make-<option> #\b "beta" #f "the option alpha"  register-without))
+	     (retval (getopts '("--alpha" "--beta") (list alpha beta) noop)))
+	(list retval result))
     => '(#t ("beta" "alpha")))
 
 ;;; --------------------------------------------------------------------
@@ -180,18 +180,18 @@
       (let* ((result		'())
 	     (register-with	(lambda (opt val)
 				  (set-cons! result (list (<option>-long opt) val))))
-	     (alpha		(make-<option> #\a "alpha" #t "the option alpha" register-with)))
-	(list (getopts '("--alpha=123") (list alpha) noop)
-	      result))
+	     (alpha		(make-<option> #\a "alpha" #t "the option alpha" register-with))
+	     (retval (getopts '("--alpha=123") (list alpha) noop)))
+	(list retval result))
     => '(#t (("alpha" "123"))))
 
   (check		;empty value
       (let* ((result		'())
 	     (register-with	(lambda (opt val)
 				  (set-cons! result (list (<option>-long opt) val))))
-	     (alpha		(make-<option> #\a "alpha" #t "the option alpha" register-with)))
-	(list (getopts '("--alpha=") (list alpha) noop)
-	      result))
+	     (alpha		(make-<option> #\a "alpha" #t "the option alpha" register-with))
+	     (retval (getopts '("--alpha=") (list alpha) noop)))
+	(list retval result))
     => '(#t (("alpha" ""))))
 
   (check
@@ -199,9 +199,9 @@
 	     (register-with	(lambda (opt val)
 				  (set-cons! result (list (<option>-long opt) val))))
 	     (alpha		(make-<option> #\a "alpha" #t "the option alpha" register-with))
-	     (beta		(make-<option> #\b "beta"  #t "the option beta"  register-with)))
-	(list (getopts '("--alpha=123" "--beta=456") (list alpha beta) noop)
-	      result))
+	     (beta		(make-<option> #\b "beta"  #t "the option beta"  register-with))
+	     (retval (getopts '("--alpha=123" "--beta=456") (list alpha beta) noop)))
+	(list retval result))
     => '(#t (("beta" "456")
 	     ("alpha" "123"))))
 
@@ -210,9 +210,9 @@
 	     (register-with	(lambda (opt val)
 				  (set-cons! result (list (<option>-long opt) val))))
 	     (alpha		(make-<option> #\a "alpha" #t "the option alpha" register-with))
-	     (beta		(make-<option> #\b "beta"  #t "the option beta"  register-with)))
-	(list (getopts '("--alpha" "123" "--beta" "456") (list alpha beta) noop)
-	      result))
+	     (beta		(make-<option> #\b "beta"  #t "the option beta"  register-with))
+	     (retval (getopts '("--alpha" "123" "--beta" "456") (list alpha beta) noop)))
+	(list retval result))
     => '(#t (("beta" "456")
 	     ("alpha" "123"))))
 
@@ -308,9 +308,9 @@
       (let* ((result		'())
 	     (register-without	(lambda (opt)
 				  (set-cons! result (<option>-long opt))))
-	     (alpha		(make-<option> #\a "alpha" #f "the option alpha" register-without)))
-	(list (getopts '("-a") (list alpha) noop)
-	      result))
+	     (alpha		(make-<option> #\a "alpha" #f "the option alpha" register-without))
+	     (retval (getopts '("-a") (list alpha) noop)))
+	(list retval result))
     => '(#t ("alpha")))
 
   (check
@@ -318,9 +318,9 @@
 	     (register-without	(lambda (opt)
 				  (set-cons! result (<option>-long opt))))
 	     (alpha		(make-<option> #\a "alpha" #f "the option alpha" register-without))
-	     (beta		(make-<option> #\b "beta" #f "the option beta"  register-without)))
-	(list (getopts '("-a" "-b") (list alpha beta) noop)
-	      result))
+	     (beta		(make-<option> #\b "beta" #f "the option beta"  register-without))
+	     (retval (getopts '("-a" "-b") (list alpha beta) noop)))
+	(list retval result))
     => '(#t ("beta" "alpha")))
 
   (check	;train
@@ -329,9 +329,9 @@
 				  (set-cons! result (<option>-long opt))))
 	     (alpha		(make-<option> #\a "alpha" #f "the option alpha" register-without))
 	     (beta		(make-<option> #\b "beta" #f "the option beta"  register-without))
-	     (delta		(make-<option> #\d "delta" #f "the option delta" register-without)))
-	(list (getopts '("-abd") (list alpha beta delta) noop)
-	      result))
+	     (delta		(make-<option> #\d "delta" #f "the option delta" register-without))
+	     (retval (getopts '("-abd") (list alpha beta delta) noop)))
+	(list retval result))
     => '(#t ("delta" "beta" "alpha")))
 
 ;;; --------------------------------------------------------------------
@@ -341,9 +341,9 @@
       (let* ((result		'())
 	     (register-with	(lambda (opt val)
 				  (set-cons! result (list (<option>-long opt) val))))
-	     (alpha		(make-<option> #\a "alpha" #t "the option alpha" register-with)))
-	(list (getopts '("-a123") (list alpha) noop)
-	      result))
+	     (alpha		(make-<option> #\a "alpha" #t "the option alpha" register-with))
+	     (retval (getopts '("-a123") (list alpha) noop)))
+	(list retval result))
     => '(#t (("alpha" "123"))))
 
   (check
@@ -351,9 +351,9 @@
 	     (register-with	(lambda (opt val)
 				  (set-cons! result (list (<option>-long opt) val))))
 	     (alpha		(make-<option> #\a "alpha" #t "the option alpha" register-with))
-	     (beta		(make-<option> #\b "beta"  #t "the option beta"  register-with)))
-	(list (getopts '("-a" "123" "-b" "456") (list alpha beta) noop)
-	      result))
+	     (beta		(make-<option> #\b "beta"  #t "the option beta"  register-with))
+	     (retval (getopts '("-a" "123" "-b" "456") (list alpha beta) noop)))
+	(list retval result))
     => '(#t (("beta" "456")
 	     ("alpha" "123"))))
 
@@ -365,9 +365,9 @@
 				  (set-cons! result (<option>-long opt))))
 	     (alpha		(make-<option> #\a "alpha" #f "the option alpha" register-without))
 	     (beta		(make-<option> #\b "beta"  #f "the option beta"  register-without))
-	     (delta		(make-<option> #\d "delta" #t "the option delta" register-with)))
-	(list (getopts '("-abd" "123") (list alpha beta delta) noop)
-	      result))
+	     (delta		(make-<option> #\d "delta" #t "the option delta" register-with))
+	     (retval (getopts '("-abd" "123") (list alpha beta delta) noop)))
+	(list retval result))
     => '(#t (("delta" "123") "beta" "alpha")))
 
 ;;; --------------------------------------------------------------------

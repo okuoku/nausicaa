@@ -32,9 +32,16 @@ ifasl - Compile the package libraries for Ikarus Scheme; the
 	compiled  files will end  in the  currently selected
 	Ikarus cache ("~/.ikarus" by default).
 
+lfasl - Compile  the  package  libraries for Larceny Scheme;
+	the compiled  files will end in  the build directory
+	of the package.
+
 mfasl - Compile the  package libraries for  Mosh Scheme; the
         compiled  files will end  in the  currently selected
         Mosh cache ("~/.mosh" by default).
+
+pfasl - Does nothing  because Petite  Chez Scheme  does  not
+        compile the libraries.
 
 yfasl - Compile  the package  libraries for  Ypsilon Scheme;
         the  compiled  files   will  end  in  the  currently
@@ -81,7 +88,11 @@ invoked before installing the package.
 
 itest - Test the package libraries for Ikarus Scheme.
 
+ltest - Test the package libraries for Larceny Scheme.
+
 mtest - Test the package libraries for Mosh Scheme.
+
+ptest - Test the package libraries for Petite Chez Scheme.
 
 ytest - Test the package libraries for Ypsilon Scheme.
 
@@ -98,6 +109,10 @@ itest-installed -
 mtest-installed -
 	Test  the  package's libraries  for  Mosh Scheme  in
 	their installation location.
+
+ptest-installed -
+	Test the package's  libraries for Petite Chez Scheme
+	in their installation location.
 
 ytest-installed -
 	Test  the package  libraries for  Ypsilon  Scheme in

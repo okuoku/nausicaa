@@ -45335,8 +45335,8 @@ zero.
 
 
 @defun <lexical-token>-category @var{tok}
-@defunx <lexical-token>-source @var{tok}
 @defunx <lexical-token>-location @var{tok}
+@defunx <lexical-token>-value @var{tok}
 @defunx <lexical-token>-length @var{tok}
 Accessors for the fields of @class{lexical-token} records.
 @end defun

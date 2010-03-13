@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,7 +26,9 @@
 
 
 (import (nausicaa)
+  (keywords)
   (lalr)
+  (parser-tools lexical-token)
   (checks))
 
 (define (display-result v)
@@ -37,10 +39,16 @@
         (newline))))
 
 (define eoi-token
-  (make-lexical-token '*eoi* #f #f))
+  (make-<lexical-token> '*eoi* #f #f 0))
 
 (check-set-mode! 'report-failed)
 
+(define-keywords
+  :output-value
+  :output-port
+  :expect
+  :terminals
+  :rules)
 
 
 ;;;; LR driver, associativity
@@ -69,7 +77,7 @@
 				    t)))
 	     (error-handler	(lambda (message token)
 				  ;;(display message)(newline)
-                                  `(error-token . ,(lexical-token-value token))))
+                                  `(error-token . ,(<lexical-token>-value token))))
 	     (parser		(make-parser)))
 	(parameterise ((debugging	#f))
 	  (parser lexer error-handler))))
@@ -84,53 +92,53 @@
       (newline))
 
     (check
-	(doit (list (make-lexical-token 'N #f 1)
+	(doit (list (make-<lexical-token> 'N #f 1 0)
 		    eoi-token))
       => 1)
 
     (check
-	(doit (list (make-lexical-token 'A #f '-)
-		    (make-lexical-token 'N #f 1)
+	(doit (list (make-<lexical-token> 'A #f '- 0)
+		    (make-<lexical-token> 'N #f 1 0)
 		    eoi-token))
       => '(- 1))
 
     (check
-	(doit (list (make-lexical-token 'A #f '+)
-		    (make-lexical-token 'N #f 1)
+	(doit (list (make-<lexical-token> 'A #f '+ 0)
+		    (make-<lexical-token> 'N #f 1 0)
 		    eoi-token))
       => '(+ 1))
 
     (check
-	(doit (list (make-lexical-token 'N #f 1)
-		    (make-lexical-token 'A #f '+)
-		    (make-lexical-token 'N #f 2)
+	(doit (list (make-<lexical-token> 'N #f 1 0)
+		    (make-<lexical-token> 'A #f '+ 0)
+		    (make-<lexical-token> 'N #f 2 0)
 		    eoi-token))
       => '(1 + 2))
 
     (check
-	(doit (list (make-lexical-token 'N #f 1)
-		    (make-lexical-token 'A #f '+)
-		    (make-lexical-token 'N #f 2)
-		    (make-lexical-token 'M #f '*)
-		    (make-lexical-token 'N #f 3)
+	(doit (list (make-<lexical-token> 'N #f 1 0)
+		    (make-<lexical-token> 'A #f '+ 0)
+		    (make-<lexical-token> 'N #f 2 0)
+		    (make-<lexical-token> 'M #f '* 0)
+		    (make-<lexical-token> 'N #f 3 0)
 		    eoi-token))
       => '(1 + (2 * 3)))
 
     (check	;left associative
-	(doit (list (make-lexical-token 'N #f 1)
-		    (make-lexical-token 'A #f '+)
-		    (make-lexical-token 'N #f 2)
-		    (make-lexical-token 'A #f '+)
-		    (make-lexical-token 'N #f 3)
+	(doit (list (make-<lexical-token> 'N #f 1 0)
+		    (make-<lexical-token> 'A #f '+ 0)
+		    (make-<lexical-token> 'N #f 2 0)
+		    (make-<lexical-token> 'A #f '+ 0)
+		    (make-<lexical-token> 'N #f 3 0)
 		    eoi-token))
       => '((1 + 2) + 3))
 
     (check 'this 	;right associative
-	(doit (list (make-lexical-token 'N #f 1)
-		    (make-lexical-token 'M #f '*)
-		    (make-lexical-token 'N #f 2)
-		    (make-lexical-token 'M #f '*)
-		    (make-lexical-token 'N #f 3)
+	(doit (list (make-<lexical-token> 'N #f 1 0)
+		    (make-<lexical-token> 'M #f '* 0)
+		    (make-<lexical-token> 'N #f 2 0)
+		    (make-<lexical-token> 'M #f '* 0)
+		    (make-<lexical-token> 'N #f 3 0)
 		    eoi-token))
       => '(1 * (2 * 3)))
 

@@ -32,7 +32,7 @@
   (checks)
   (compensations))
 
-(cond-expand (larceny (exit)) (else #f))
+(cond-expand ((or larceny petite) (exit)) (else #f))
 
 (check-set-mode! 'report-failed)
 (display "*** testing FFI core\n")

@@ -38,6 +38,8 @@
   (only (foreign memory bytevectors)
 	bytevector->memblock))
 
+(cond-expand (petite (exit)) (else #f))
+
 (check-set-mode! 'report-failed)
 (display "*** testing memory buffers\n")
 

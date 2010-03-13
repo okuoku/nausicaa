@@ -72,6 +72,9 @@ Notes for --- tag 0.1a10
   raise  exceptions; improved  their error  message; changed
   types or related condition objects.
 
+* Added non-FFI support for  Petite Chez Scheme (tested with
+  version 7.9.4).
+
 
 Notes for 2010-01-14 tag 0.1a9
 ------------------------------

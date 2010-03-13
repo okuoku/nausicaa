@@ -149,6 +149,9 @@ AC_DEFUN([NAUSICAA_SCHEME_PROGRAMS],
   if test "$nausicaa_ENABLE_MOSH" = yes ; then
     NAU_DS_PROGRAM([MOSH],[mosh],[the Mosh Scheme executable])
   fi
+  if test "$nausicaa_ENABLE_PETITE" = yes ; then
+    NAU_DS_PROGRAM([PETITE],[petite],[the Petite Chez Scheme executable])
+  fi
   AC_CACHE_SAVE])
 
 AC_DEFUN([NAUSICAA_OPTIONS],
@@ -161,6 +164,9 @@ AC_DEFUN([NAUSICAA_OPTIONS],
    NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_MOSH],[mosh],[no],
      [whether usage of Mosh Scheme is enabled],
      [disable usage of Mosh Scheme])
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_PETITE],[petite],[no],
+     [whether usage of Petite Chez Scheme is enabled],
+     [disable usage of Petite Chez Scheme])
    NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_YPSILON],[ypsilon],[yes],
      [whether usage of Ypsilon Scheme is enabled],
      [disable usage of Ypsilon Scheme])
@@ -347,6 +353,46 @@ AC_DEFUN([NAUSICAA_MOSH_CHECK_LIBRARY],
 
 dnl page
 dnl --------------------------------------------------------------------
+dnl Macros for Petite Scheme.
+dnl --------------------------------------------------------------------
+
+dnl 1 SCHEME_CODE
+dnl 2 ADDITIONAL_PETITE_OPTIONS
+dnl 3 AFTER_SHELL_CODE
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_PETITE_SCRIPT],
+  [NAU_DS_WITH_TMPFILE([
+    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+    "${PETITE}" "${ds_TMPFILE}" $2`],[$3])])
+
+dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
+dnl 2 LIBRARY_IMPORT_SPEC
+dnl 3 OPTIONAL_ACTION_IF_FOUND
+dnl 4 OPTIONAL_ACTION_IF_FOUND
+AC_DEFUN([NAUSICAA_PETITE_CHECK_LIBRARY],
+  [AC_MSG_CHECKING([availability of Petite Chez library $2])
+   NAUSICAA_WITH_OUTPUT_FROM_PETITE_SCRIPT([(import (rnrs) (rnrs eval (6)))
+     (with-exception-handler
+       (lambda (ex)
+         (display "no\n")
+         (exit))
+       (lambda ()
+         (environment (quote $2))
+         (display "yes\n")))],,
+     [AC_MSG_RESULT([$nausicaa_ANSWER])
+      AC_SUBST([HAS_PETITE_LIB_$1],[$nausicaa_ANSWER])
+      if test "$nausicaa_ANSWER" = yes ; then
+        dnl action if found.
+        :
+        $3
+      else
+        dnl action if not found.
+        :
+        AC_MSG_WARN([Petite Chez Scheme could not find library '$2'])
+        $4
+      fi])])
+
+dnl page
+dnl --------------------------------------------------------------------
 dnl Macros for Scheme.
 dnl --------------------------------------------------------------------
 
@@ -362,6 +408,9 @@ AC_DEFUN([NAUSICAA_SCHEME_CHECK_LIBRARY],
    fi
    if test "$nausicaa_ENABLE_MOSH" = yes ; then
      NAUSICAA_MOSH_CHECK_LIBRARY([$1],[$2],[$3],[$4])
+   fi
+   if test "$nausicaa_ENABLE_PETITE" = yes ; then
+     NAUSICAA_PETITE_CHECK_LIBRARY([$1],[$2],[$3],[$4])
    fi
 ])
 
