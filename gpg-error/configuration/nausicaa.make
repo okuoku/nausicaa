@@ -416,7 +416,7 @@ nau_ptest_PROGRAM	= $(PETITE) --libdirs $${PETITE_LIBPATH} --program
 nau_ptest_RUN		= $(nau_ptest_ENV) ; $(nau_TIME_TESTS) $(nau_ptest_PROGRAM)
 
 nau_ptest_installed_ENV	= PETITE_LIBPATH=$(nau_test_SRCDIR):$(PETITE_LIBPATH)
-nau_ptest_installed_RUN	= $(nau_ptest_installed_ENV) $(nau_TIME_TESTS) $(nau_ptest_PROGRAM)
+nau_ptest_installed_RUN	= $(nau_ptest_installed_ENV) ; $(nau_TIME_TESTS) $(nau_ptest_PROGRAM)
 
 .PHONY: ptest ptests pcheck ptest-installed
 
