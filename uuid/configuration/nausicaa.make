@@ -39,7 +39,7 @@ FIND		= @FIND@
 IKARUS		= @IKARUS@
 LARCENY		= @LARCENY@
 MOSH		= @MOSH@
-PETITE		= @PETITE@ --libexts .petite.sls:.sls
+PETITE		= @PETITE@
 YPSILON		= @YPSILON@
 
 nau_sls_SRCDIR		= $(srcdir)/src/libraries
@@ -226,7 +226,7 @@ mfasl-installed:
 #else
 #fasl_petite_COMPILE_ENV		= PETITE_LOADPATH=$(nau_sls_BUILDDIR):$(PETITE_LOADPATH)
 #endif
-#fasl_petite_COMPILE_COMMAND	= $(PETITE)
+#fasl_petite_COMPILE_COMMAND	= $(PETITE) --libexts .petite.sls:.sls
 #fasl_petite_COMPILE_RUN		= $(fasl_petite_COMPILE_ENV)		\
 #					$(fasl_petite_COMPILE_COMMAND)	\
 #					$(fasl_petite_COMPILE_SCRIPT)
@@ -412,7 +412,7 @@ else
 nau_ptest_ENV		= PETITE_LIBPATH=$(nau_test_PATH):$(PETITE_LIBPATH)
 endif
 nau_ptest_ENV		+= $(nau_test_ENV)
-nau_ptest_PROGRAM	= $(PETITE) --libdirs $${PETITE_LIBPATH} --program
+nau_ptest_PROGRAM	= $(PETITE) --libexts .petite.sls:.sls --libdirs $${PETITE_LIBPATH} --program
 nau_ptest_RUN		= $(nau_ptest_ENV) ; $(nau_TIME_TESTS) $(nau_ptest_PROGRAM)
 
 nau_ptest_installed_ENV	= PETITE_LIBPATH=$(nau_test_SRCDIR):$(PETITE_LIBPATH)
@@ -579,7 +579,7 @@ endif
 # endif
 nau_pproof_ENV		= PETITE_LIBPATH=$(nau_proof_PATH):$(PETITE_LIBPATH)
 nau_pproof_ENV		+= $(nau_proof_ENV)
-nau_pproof_PROGRAM	= $(PETITE) --libdirs $${PETITE_LIBPATH} --program
+nau_pproof_PROGRAM	= $(PETITE) --libexts .petite.sls:.sls --libdirs $${PETITE_LIBPATH} --program
 nau_pproof_RUN		= $(nau_pproof_ENV) ; $(nau_pproof_PROGRAM)
 
 .PHONY: pproof pproofs

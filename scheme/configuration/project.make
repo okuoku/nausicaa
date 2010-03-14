@@ -65,7 +65,6 @@ $(eval $(call nau-libraries,foreign_memory,foreign/memory))
 $(eval $(call nau-libraries,foreign_memory_alloc,foreign/memory/alloc))
 $(eval $(call nau-libraries,foreign_memory_membuffers,foreign/memory/membuffers))
 $(eval $(call nau-libraries,foreign_memory_mempool,foreign/memory/mempool))
-$(eval $(call nau-libraries,foreign_memory_operations,foreign/memory/operations))
 $(eval $(call nau-libraries,getopts,getopts))
 $(eval $(call nau-libraries,infix,infix))
 $(eval $(call nau-libraries,lalr,lalr))
@@ -98,7 +97,8 @@ binfmt_scripts_SOURCES	= $(addprefix $(binfmt_scripts_SRCDIR)/,		\
 	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	ikarus-scheme-script)	\
 	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	ypsilon-scheme-script)	\
 	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	larceny-scheme-script)	\
-	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	mosh-scheme-script))
+	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	mosh-scheme-script)	\
+	$(call ds-if-yes,$(nausicaa_ENABLE_PETITE),	petite-scheme-script))
 binfmt_scripts_TARGETS	= $(call ds-replace-dir,$(binfmt_scripts_BUILDDIR),$(binfmt_scripts_SOURCES))
 binfmt_scripts_INSTLST	= $(binfmt_scripts_TARGETS)
 binfmt_scripts_INSTDIR	= $(pkglibexecdir)
@@ -111,6 +111,7 @@ $(binfmt_scripts_TARGETS): $(binfmt_scripts_BUILDDIR)/% : $(binfmt_scripts_SRCDI
 		-e 's%__IKARUS__%$(IKARUS)%g'		\
 		-e 's%__LARCENY__%$(LARCENY)%g'		\
 		-e 's%__MOSH__%$(MOSH)%g'		\
+		-e 's%__PETITE__%$(PETITE)%g'		\
 		-e 's%__YPSILON__%$(YPSILON)%g'		\
 		<$(<) >$(@)
 
@@ -140,6 +141,7 @@ $(binfmt_config_TARGETS): $(binfmt_config_SOURCES)
 	-e 's%OPT_ENABLE_IKARUS%$(nausicaa_ENABLE_IKARUS)%g'	\
 	-e 's%OPT_ENABLE_LARCENY%$(nausicaa_ENABLE_LARCENY)%g'	\
 	-e 's%OPT_ENABLE_MOSH%$(nausicaa_ENABLE_MOSH)%g'	\
+	-e 's%OPT_ENABLE_PETITE%$(nausicaa_ENABLE_PETITE)%g'	\
 	-e 's%OPT_ENABLE_YPSILON%$(nausicaa_ENABLE_YPSILON)%g'	\
 	<$(binfmt_config_SRCDIR)/rc.scheme			\
 	>$(binfmt_config_BUILDDIR)/rc.scheme
@@ -193,6 +195,18 @@ endif
 
 ## ------------------------------------------------------------
 
+ifeq ($(strip $(nausicaa_ENABLE_PETITE)),yes)
+.PHONY: test-petite-compat
+
+test-petite-compat:
+	PETITE_LIBPATH=$(srcdir):$(PETITE_LIBPATH) \
+	$(PETITE) --libdirs $${PETITE_LIBPATH} --program $(test_compat_SCRIPT)
+
+test-compat: test-petite-compat
+endif
+
+## ------------------------------------------------------------
+
 ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
 .PHONY: test-ypsilon-compat
 
@@ -220,6 +234,9 @@ SILEX_RUNNER	= $(SILEX_ENV) $(IKARUS) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_MOSH))
 SILEX_ENV	= MOSH_LOADPATH=$(SILEX_LIBPATH):$(MOSH_LOADPATH)
 SILEX_RUNNER	= $(SILEX_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_PETITE))
+SILEX_ENV	= PETITE_LIBPATH=$(SILEX_LIBPATH):$(PETITE_LIBPATH)
+SILEX_RUNNER	= $(SILEX_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
 else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
 SILEX_ENV	= LARCENY_LIBPATH=$(SILEX_LIBPATH):$(LARCENY_LIBPATH)
 SILEX_RUNNER	= $(SILEX_ENV) $(LARCENY) -r6rs -program
@@ -250,6 +267,9 @@ LALR_RUNNER	= $(LALR_ENV) $(IKARUS) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_MOSH))
 LALR_ENV	= MOSH_LOADPATH=$(LALR_LIBPATH):$(MOSH_LOADPATH)
 LALR_RUNNER	= $(LALR_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_PETITE))
+LALR_ENV	= PETITE_LIBPATH=$(LALR_LIBPATH):$(PETITE_LIBPATH)
+LALR_RUNNER	= $(LALR_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
 else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
 LALR_ENV	= LARCENY_LIBPATH=$(LALR_LIBPATH):$(LARCENY_LIBPATH)
 LALR_RUNNER	= $(LALR_ENV) $(LARCENY) -r6rs -program
@@ -277,6 +297,9 @@ CSV_RUNNER	= $(CSV_ENV) $(IKARUS) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_MOSH))
 CSV_ENV		= MOSH_LOADPATH=$(CSV_LIBPATH):$(MOSH_LOADPATH)
 CSV_RUNNER	= $(CSV_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_PETITE))
+CSV_ENV		= PETITE_LIBPATH=$(CSV_LIBPATH):$(PETITE_LIBPATH)
+CSV_RUNNER	= $(CSV_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
 else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
 CSV_ENV		= LARCENY_LIBPATH=$(CSV_LIBPATH):$(LARCENY_LIBPATH)
 CSV_RUNNER	= $(CSV_ENV) $(LARCENY) -r6rs -program
@@ -303,6 +326,9 @@ INFIX_RUNNER	= $(INFIX_ENV) $(IKARUS) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_MOSH))
 INFIX_ENV	= MOSH_LOADPATH=$(INFIX_LIBPATH):$(MOSH_LOADPATH)
 INFIX_RUNNER	= $(INFIX_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_PETITE))
+INFIX_ENV	= PETITE_LIBPATH=$(INFIX_LIBPATH):$(PETITE_LIBPATH)
+INFIX_RUNNER	= $(INFIX_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
 else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
 INFIX_ENV	= LARCENY_LIBPATH=$(INFIX_LIBPATH):$(LARCENY_LIBPATH)
 INFIX_RUNNER	= $(INFIX_ENV) $(LARCENY) -r6rs -program
@@ -330,6 +356,9 @@ EMAIL_RUNNER	= $(EMAIL_ENV) $(IKARUS) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_MOSH))
 EMAIL_ENV		= MOSH_LOADPATH=$(EMAIL_LIBPATH):$(MOSH_LOADPATH)
 EMAIL_RUNNER	= $(EMAIL_ENV) $(MOSH)
+else ifeq (yes,$(nausicaa_ENABLE_PETITE))
+EMAIL_ENV		= PETITE_LIBPATH=$(EMAIL_LIBPATH):$(PETITE_LIBPATH)
+EMAIL_RUNNER	= $(EMAIL_ENV) $(PETITE) --libdirs $${PETITE_LIBPATH} --program
 else ifeq (yes,$(nausicaa_ENABLE_LARCENY))
 EMAIL_ENV		= LARCENY_LIBPATH=$(EMAIL_LIBPATH):$(LARCENY_LIBPATH)
 EMAIL_RUNNER	= $(EMAIL_ENV) $(LARCENY) -r6rs -program
