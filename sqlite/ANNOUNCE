@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/SQLite 2010-01-15 tag 0.1b2
+Subject: [announce] Nausicaa/SQLite --- tag 0.1b3
 
 		      Nausicaa/SQLite
 		      ===============
@@ -33,6 +33,12 @@ the documentation is available on line:
 SQLite is available at:
 
 		  <http://www.sqlite.org/>
+
+
+Notes for 2010-01-15 tag 0.1b2
+------------------------------
+
+* Updated to Nausicaa/Scheme 0.1a10.
 
 
 Notes for 2010-01-15 tag 0.1b2
