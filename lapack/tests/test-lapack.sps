@@ -30,7 +30,6 @@
 
 
 (import (nausicaa)
-  (begin0)
   (lists)
   (pretty-print)
   (compensations)

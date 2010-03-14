@@ -30,7 +30,6 @@
 
 
 (import (nausicaa)
-  (begin0)
   (lists)
   (compensations)
   (only (foreign ffi)

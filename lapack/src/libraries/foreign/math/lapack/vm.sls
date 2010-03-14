@@ -75,7 +75,8 @@
     piv-set!		piv-ref
     piv-fill!		piv->list)
   (import (rnrs)
-    (begin0)
+    (only (language-extensions)
+	  begin0)
     (only (foreign ffi)
 	  array-set-c-double!
 	  array-ref-c-double)
