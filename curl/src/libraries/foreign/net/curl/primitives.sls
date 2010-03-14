@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -91,7 +91,8 @@
 	    (curl_getdate		curl-getdate)))
   (import (rnrs)
 ;;;    (debugging)
-    (begin0)
+    (only (language-extensions)
+	  begin0 begin0-let)
     (compensations)
     (foreign ffi)
     (foreign memory)
