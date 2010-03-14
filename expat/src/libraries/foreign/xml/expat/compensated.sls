@@ -30,7 +30,8 @@
     xml-parser-create/c
     )
   (import (rnrs)
-    (begin0)
+    (only (language-extensions)
+	  begin0-let)
     (compensations)
     (only (foreign ffi pointers) pointer-null pointer-null?)
     (only (foreign memory conditions) raise-out-of-memory)
