@@ -26,7 +26,6 @@
 
 
 (import (nausicaa)
-  (receive)
   (compensations)
   (only (foreign ffi) make-c-callback*)
   (foreign cstrings)
