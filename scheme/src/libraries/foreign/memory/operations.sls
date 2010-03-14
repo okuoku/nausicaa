@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,6 +26,12 @@
 
 (library (foreign memory operations)
   (export memset memmove memcpy memcmp)
-  (import (foreign memory operations compat)))
+  (import (rnrs)
+    (foreign ffi))
+  (define-c-functions libc-shared-object
+    (memset		(void* memset  (void* int   size_t)))
+    (memmove		(void* memmove (void* void* size_t)))
+    (memcpy		(void* memcpy  (void* void* size_t)))
+    (memcmp		(int   memcmp  (void* void* size_t)))))
 
 ;;; end of file
