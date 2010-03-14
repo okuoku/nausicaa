@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -1530,7 +1530,7 @@
       (<= #xf8 c)))
 
 (define xmlIsBaseCharGroup
-  (lookup-shared-object* libxml2-shared-object 'xmlIsBaseCharGroup))
+  (lookup-shared-object libxml2-shared-object 'xmlIsBaseCharGroup))
 
 (define (xmlIsBaseCharQ c)
   (if (< c #x100)
@@ -1560,7 +1560,7 @@
 	(<= #x10000 c #x10ffff))))
 
 (define xmlIsCharGroup
-  (lookup-shared-object* libxml2-shared-object 'xmlIsCharGroup))
+  (lookup-shared-object libxml2-shared-object 'xmlIsCharGroup))
 
 (define (xmlIsCombiningQ c)
   (if (< c #x100)
@@ -1568,7 +1568,7 @@
     (xmlCharInRange c xmlIsCombiningGroup)))
 
 (define xmlIsCombiningGroup
-  (lookup-shared-object* libxml2-shared-object 'xmlIsCombiningGroup))
+  (lookup-shared-object libxml2-shared-object 'xmlIsCombiningGroup))
 
 (define (xmlIsDigit_ch c)
   (<= #x30 c #x39))
@@ -1579,7 +1579,7 @@
     (xmlCharInRange c xmlIsDigitGroup)))
 
 (define xmlIsDigitGroup
-  (lookup-shared-object* libxml2-shared-object 'xmlIsDigitGroup))
+  (lookup-shared-object libxml2-shared-object 'xmlIsDigitGroup))
 
 (define (xmlIsExtender_ch c)
   (= c #xb7))
@@ -1590,7 +1590,7 @@
     (xmlCharInRange c xmlIsExtenderGroup)))
 
 (define xmlIsExtenderGroup
-  (lookup-shared-object* libxml2-shared-object 'xmlIsExtenderGroup))
+  (lookup-shared-object libxml2-shared-object 'xmlIsExtenderGroup))
 
 (define (xmlIsIdeographicQ c)
   (if (< c #x100)
@@ -1600,10 +1600,10 @@
 	(<= #x3021 c #x3029))))
 
 (define xmlIsIdeographicGroup
-  (lookup-shared-object* libxml2-shared-object 'xmlIsIdeographicGroup))
+  (lookup-shared-object libxml2-shared-object 'xmlIsIdeographicGroup))
 
 (define xmlIsPubidChar_tab
-  (lookup-shared-object* libxml2-shared-object 'xmlIsPubidChar_tab))
+  (lookup-shared-object libxml2-shared-object 'xmlIsPubidChar_tab))
 
 (define (xmlIsPubidChar_ch c)
   (pointer-ref-c-unsigned-char xmlIsPubidChar_tab c))
