@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Iconv 2010-01-15 tag 0.1b1
+Subject: [announce] Nausicaa/Iconv --- tag 0.1b2
 
 		       Nausicaa/Iconv
 		       ==============
@@ -36,6 +36,12 @@ the documentation is available on line:
 GNU Libiconv is available here:
 
 	  <http://www.gnu.org/software/libiconv/>
+
+
+Notes for --- tag 0.1b2
+------------------------------
+
+* Updated to Nausicaa/Scheme 0.1a10.
 
 
 Notes for 2010-01-15 tag 0.1b1
