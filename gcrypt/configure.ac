@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-gcrypt],[0.1b3],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-gcrypt],[0.1b4],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/crypto/gcrypt.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
