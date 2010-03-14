@@ -39,7 +39,7 @@
     pointer-><mntent>	<mntent>->pointer
     )
   (import (rnrs)
-    (receive)
+    (language-extensions)
     (compensations)
     (only (strings) string-index)
     (foreign memory)

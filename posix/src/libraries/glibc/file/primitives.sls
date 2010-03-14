@@ -39,8 +39,7 @@
     ;; times
     lutimes		futimes)
   (import (rnrs)
-    (receive)
-    (begin0)
+    (language-extensions)
     (compensations)
     (only (foreign ffi sizeof) sizeof-pointer)
     (foreign ffi)

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -58,9 +58,9 @@
     (mknod		(int nausicaa_posix_mknod (char* int int))))
 
   (define alphasort
-    (lookup-shared-object* libnausicaa-posix 'nausicaa_posix_alphasort))
+    (lookup-shared-object libnausicaa-posix 'nausicaa_posix_alphasort))
 
   (define versionsort
-    (lookup-shared-object* libnausicaa-posix 'nausicaa_posix_versionsort)))
+    (lookup-shared-object libnausicaa-posix 'nausicaa_posix_versionsort)))
 
 ;;; end of file

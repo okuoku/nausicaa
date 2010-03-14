@@ -38,7 +38,7 @@
     pause
     kill*		killpg*)
   (import (rnrs)
-    (receive)
+    (language-extensions)
     (compensations)
     (foreign memory)
     (foreign cstrings)

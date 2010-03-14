@@ -39,8 +39,7 @@
     <timeval>->pointer		pointer-><timeval>
     )
   (import (rnrs)
-    (begin0)
-    (receive)
+    (language-extensions)
     (compensations)
     (only (foreign ffi sizeof) sizeof-double-array)
     (only (foreign ffi peekers-and-pokers) array-ref-c-double)

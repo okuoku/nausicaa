@@ -54,7 +54,7 @@
     tcsetpgrp	tcsetpgrp-function
     tcgetsid	tcgetsid-function)
   (import (rnrs)
-    (receive)
+    (language-extensions)
     (compensations)
     (posix helpers)
     (posix typedefs)

@@ -30,7 +30,7 @@
     pipe2
     )
   (import (rnrs)
-    (receive)
+    (language-extensions)
     (compensations)
     (only (foreign memory) malloc-small/c)
     (only (foreign cstrings)

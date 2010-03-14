@@ -70,8 +70,7 @@
     <itimerval>->pointer		pointer-><itimerval>
     )
   (import (rnrs)
-    (begin0)
-    (receive)
+    (language-extensions)
     (compensations)
     (foreign ffi)
     (only (foreign ffi sizeof) valueof-int-max)

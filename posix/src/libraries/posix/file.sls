@@ -158,7 +158,7 @@
     lfile-permissions			lfile-permissions-function
     )
   (import (except (rnrs) remove truncate)
-    (receive)
+    (language-extensions)
     (compensations)
     (only (foreign ffi pointers) pointer-null?)
     (foreign memory)

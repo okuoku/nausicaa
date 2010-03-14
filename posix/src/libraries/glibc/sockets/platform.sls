@@ -37,7 +37,7 @@
     (posix sizeof))
 
   (define h_errno_pointer
-    (lookup-shared-object* libc-shared-object "h_errno"))
+    (lookup-shared-object libc-shared-object "h_errno"))
   (define (h_errno)
     (pointer-ref-c-signed-int h_errno_pointer 0))
 

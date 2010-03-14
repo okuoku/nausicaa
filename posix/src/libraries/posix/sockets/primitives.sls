@@ -87,8 +87,7 @@
     pointer-><hostent>		pointer-><netent>
     pointer-><protoent>		pointer-><servent>)
   (import (rnrs)
-    (begin0)
-    (receive)
+    (language-extensions)
     (compensations)
     (only (foreign ffi)
 	  pointer-ref-c-size_t

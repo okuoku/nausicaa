@@ -126,8 +126,7 @@
 
     pointer-><stat>)
   (import (except (rnrs) remove truncate)
-    (receive)
-    (begin0)
+    (language-extensions)
     (compensations)
     (foreign ffi)
     (foreign ffi sizeof)

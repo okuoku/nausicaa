@@ -43,7 +43,7 @@
     getpgrp		setpgid
     tcgetpgrp		tcsetpgrp	tcgetsid)
   (import (rnrs)
-    (receive)
+    (language-extensions)
     (compensations)
     (only (foreign ffi pointers) pointer-null?)
     (only (foreign ffi peekers-and-pokers) pointer-ref-c-uint8)

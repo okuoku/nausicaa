@@ -51,8 +51,7 @@
 ;;;aio-read aio-write aio-error aio-return aio-fsync aio-suspend aio-cancel lio-listio
     )
   (import (except (rnrs) read write)
-    (begin0)
-    (receive)
+    (language-extensions)
     (compensations)
     (only (foreign memory)	malloc-block/c malloc-small/c)
     (only (foreign cstrings)	string->cstring/c)

@@ -52,8 +52,7 @@
     setenv getenv environ environ-table
     environ->table table->environ)
   (import (rnrs)
-    (begin0)
-    (receive)
+    (language-extensions)
     (only (strings) string-index)
     (compensations)
     (foreign ffi)
