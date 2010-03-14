@@ -3434,7 +3434,7 @@ Alias for @func{pg_encoding_to_char}.
 
 
 @defun valid-server-encoding-id
-@findex @func{pg_valid_server_encoding_id
+@findex @func{pg_valid_server_encoding_id}
 Alias for @func{pg_valid_server_encoding_id}
 @end defun
 

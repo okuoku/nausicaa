@@ -40,7 +40,7 @@
     describe-portal/c			describe-portal/send/c
     )
   (import (rnrs)
-    (begin0)
+    (language-extensions)
     (compensations)
     (prefix (foreign databases postgresql) pg:))
 

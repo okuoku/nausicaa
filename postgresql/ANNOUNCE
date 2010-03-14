@@ -40,6 +40,7 @@ Notes for --- tag 0.1b0
 
 * Tested with PostgreSQL version 8.4.1.
 
+* Updated to Nausicaa/Scheme 0.1a10.
 
 
 ### end of file
