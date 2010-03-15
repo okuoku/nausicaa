@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/POSIX --- tag 0.1a4
+Subject: [announce] Nausicaa/POSIX 2010-03-15 tag 0.1a4
 
 		       Nausicaa/POSIX
 		       ==============
@@ -36,7 +36,7 @@ the documentation is available on line:
   <http://marcomaggi.github.com/docs/nausicaa-posix.html>
 
 
-Notes for --- tag 0.1a4
+Notes for 2010-03-15 tag 0.1a4
 ------------------------------
 
 * Renamed "<fd>" to "fd".

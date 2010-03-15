@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-posix],[0.1a3],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-posix],[0.1a4],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/posix/fd.sls])
 NAUSICAA_BEGIN
 NAUSICAA_SYSTEM_SETUP
