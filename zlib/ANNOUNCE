@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Zlib --- tag 0.1b4
+Subject: [announce] Nausicaa/Zlib 2010-03-15 tag 0.1b4
 
 		       Nausicaa/Zlib
 		       =============
@@ -29,7 +29,7 @@ the documentation is available on line:
     <http://marcomaggi.github.com/docs/nausicaa-zlib.html>
 
 
-Notes for --- tag 0.1b4
+Notes for 2010-03-15 tag 0.1b4
 ------------------------------
 
 * Updated to Nausicaa/Scheme 0.1a10.
