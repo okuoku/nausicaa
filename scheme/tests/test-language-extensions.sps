@@ -221,21 +221,21 @@
   (check
       (let ((i 0))
 	(while* (< i 3)
-	  (return 4)))
+	  (break 4)))
     => 4)
 
   (check
       (let ((i 0))
 	(receive (a b)
 	    (while* (< i 3)
-	      (return 4 5))
+	      (break 4 5))
 	  (list a b)))
     => '(4 5))
 
   (check
       (let ((i 0))
 	(while* (< i 3)
-	  (return))
+	  (break))
 	#f)
     => #f)
 
@@ -274,21 +274,21 @@
   (check
       (let ((i 0))
 	(do-while* (< i 3)
-	  (return 4)))
+	  (break 4)))
     => 4)
 
   (check
       (let ((i 0))
 	(receive (a b)
 	    (do-while* (< i 3)
-	      (return 4 5))
+	      (break 4 5))
 	  (list a b)))
     => '(4 5))
 
   (check
       (let ((i 0))
 	(do-while* (< i 3)
-	  (return))
+	  (break))
 	#f)
     => #f)
 

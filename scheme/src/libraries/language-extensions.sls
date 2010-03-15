@@ -326,9 +326,9 @@
   (lambda (stx)
     (syntax-case stx ()
       ((?use ?test ?body0 ?body ...)
-       (with-syntax ((RETURN (datum->syntax #'?use 'return)))
+       (with-syntax ((BREAK (datum->syntax #'?use 'break)))
 	 #'(call-with-current-continuation
-	       (lambda (RETURN)
+	       (lambda (BREAK)
 		 (let loop ()
 		   (when ?test ?body0 ?body ... (loop))))))))))
 
@@ -336,9 +336,9 @@
   (lambda (stx)
     (syntax-case stx ()
       ((?use ?test ?body0 ?body ...)
-       (with-syntax ((RETURN (datum->syntax #'?use 'return)))
+       (with-syntax ((BREAK (datum->syntax #'?use 'break)))
 	 #'(call-with-current-continuation
-	       (lambda (RETURN)
+	       (lambda (BREAK)
 		 (let loop ()
 		   ?body0 ?body ...
 		   (when ?test (loop))))))))))
