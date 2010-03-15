@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -31,6 +31,7 @@
     platform-free			platform-malloc
     platform-calloc			platform-realloc)
   (import (rnrs)
+    (foreign ffi sizeof)
     (mosh ffi))
 
 
@@ -43,7 +44,7 @@
 ;;Mosh deals with foreign values of type "void*" as "pointer" values.
 ;;
 
-(define self (open-shared-library ""))
+(define self (open-shared-library LIBC_SHARED_OBJECT_SPEC))
 
 (define platform-free
   (make-c-function self 'void 'free '(void*)))

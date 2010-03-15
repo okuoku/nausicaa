@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -32,6 +32,7 @@
     platform-calloc	platform-realloc)
   (import (rnrs)
     (primitives foreign-procedure)
+    (foreign ffi sizeof)
     (foreign ffi pointers)
     (only (foreign ffi pointers compat) retval->pointer))
 

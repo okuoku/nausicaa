@@ -78,7 +78,9 @@
     pointer-set-c-pointer!)
   (import (rnrs)
     (except (ikarus foreign) memcpy)
-    (only (foreign ffi sizeof) on-32-bits-system))
+    (only (foreign ffi sizeof)
+	  LIBC_SHARED_OBJECT_SPEC
+	  on-32-bits-system))
 
 
 ;;;; pointers
@@ -135,7 +137,7 @@
 ;;Ikarus deals with foreign values of type "pointer" as "pointer" values.
 ;;
 
-(define self (dlopen ""))
+(define self (dlopen LIBC_SHARED_OBJECT_SPEC))
 
 (define platform-free
   ((make-c-callout 'void '(pointer))
