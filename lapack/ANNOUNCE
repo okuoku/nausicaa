@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/LAPACK --- tag 0.1b1
+Subject: [announce] Nausicaa/LAPACK 2010-03-15 tag 0.1b1
 
 		      Nausicaa/LAPACK
 		      ===============
@@ -47,7 +47,7 @@ and in printed form:
    Philadelphia, PA.  ISBN 0-89871-447-8 (paperback).
 
 
-Notes for --- tag 0.1b1
+Notes for 2010-03-15 tag 0.1b1
 ------------------------------
 
 * Updated to Nausicaa/Scheme 0.1a10.
