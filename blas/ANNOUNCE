@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/BLAS --- tag 0.1b2
+Subject: [announce] Nausicaa/BLAS 2010-03-15 tag 0.1b2
 
 		       Nausicaa/BLAS
 		       =============
@@ -35,7 +35,7 @@ BLAS and CBLAS are available at:
 	       <http://www.netlib.org/blas/>
 
 
-Notes for 2010-02-01 tag 0.1b2
+Notes for 2010-03-15 tag 0.1b2
 ------------------------------
 
 * Updated to Nausicaa/Scheme 0.1a10.
