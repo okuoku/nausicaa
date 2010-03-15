@@ -2,13 +2,13 @@ dnl (foreign compression zlib sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Wed Dec  2, 2009
+dnl Date: Mon Mar 15, 2010
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software:  you can redistribute it and/or modify
 dnl it under the terms of the  GNU General Public License as published by
@@ -63,6 +63,9 @@ NAUSICAA_INSPECT_FIELD_TYPE([GZ_HEADER_DONE],[gz_header],[done],[signed-int])
 dnl Preprocessor symbols: version number
 NAUSICAA_DEFINE_VALUE([ZLIB_VERNUM])
 
+dnl String preprocessor symbols: version number
+NAUSICAA_STRING_TEST([ZLIB_VERSION],[ZLIB_VERSION])
+
 dnl Preprocessor symbols: stream control
 NAUSICAA_DEFINE_VALUE([Z_NO_FLUSH])
 NAUSICAA_DEFINE_VALUE([Z_PARTIAL_FLUSH])
@@ -70,6 +73,7 @@ NAUSICAA_DEFINE_VALUE([Z_SYNC_FLUSH])
 NAUSICAA_DEFINE_VALUE([Z_FULL_FLUSH])
 NAUSICAA_DEFINE_VALUE([Z_FINISH])
 NAUSICAA_DEFINE_VALUE([Z_BLOCK])
+NAUSICAA_DEFINE_VALUE([Z_TREES])
 
 dnl Preprocessor symbols: return values
 NAUSICAA_DEFINE_VALUE([Z_OK])

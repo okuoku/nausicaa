@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -39,7 +39,7 @@
 
     inflateInit2	inflateSetDictionary
     inflateSync		inflateCopy	inflateReset
-    inflatePrime
+    inflatePrime	inflateMark	inflateUndermine
 
     inflateBackInit	inflateBack	inflateBackEnd
 
@@ -50,7 +50,7 @@
     ;; file input/output
     gzopen		gzopen*
     gzdopen		gzdopen*
-    gzclose
+    gzclose		gzclose_r	gzclose_w
 
     gzwrite		gzputc
     gzputs		gzputs*
@@ -109,7 +109,7 @@
     ;; constants
     sizeof-z_stream		sizeof-gz_header
 
-    ZLIB_VERNUM
+    ZLIB_VERNUM		ZLIB_VERSION
 
     Z_NO_FLUSH		Z_PARTIAL_FLUSH		Z_SYNC_FLUSH
     Z_FULL_FLUSH	Z_FINISH		Z_BLOCK

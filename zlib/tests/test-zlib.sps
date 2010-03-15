@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -119,7 +119,7 @@ total_out:\t~s\n"
 
   (check
       (cstring->string (zlibVersion))
-    => "1.2.3")
+    => ZLIB_VERSION)
 
   #t)
 
@@ -361,8 +361,18 @@ total_out:\t~s\n"
 		 (= 0 (string-length message))))))
     => #t)
 
-  (check
-      (begin
+  (if (string=? "1.2.4" (cstring->string (zlibVersion)))
+      (check
+	(with-compensations
+	  (let-values (((F errno)	(gzopen* "scrappydappydoo.gz" "rb"))
+		       ((ptr)		(malloc-block/c original.len)))
+	    (gzread F ptr original.len)
+	    (let-values (((code message) (gzerror* F)))
+	      (gzclose F)
+	      (list code message))))
+	=> `(0 ""))
+    (check
+      (with-compensations
 	(guard (E (else #f)) (delete-file "scrappydappydoo.gz"))
 	(let-values (((F errno)	(gzopen* "scrappydappydoo.gz" "rb"))
 		     ((ptr)	(malloc-block/c original.len)))
@@ -370,7 +380,7 @@ total_out:\t~s\n"
 	  (let-values (((code message) (gzerror* F)))
 	    (gzclose F)
 	    (list code message))))
-    => `(,Z_STREAM_ERROR "stream error"))
+      => `(,Z_STREAM_ERROR "stream error")))
 
   #t)
 

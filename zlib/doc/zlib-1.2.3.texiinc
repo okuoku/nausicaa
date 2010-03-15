@@ -12,6 +12,13 @@ was written by Marco Maggi @email{marcomaggi@@gna.org}, formatting text
 in the @file{zlib.h} header file.  Any conversion error his to be
 considered his fault.
 
+@quotation
+@strong{NOTE} This documentation is a bit outdated since Zlib version
+1.2.4 was published on Mon Mar 15, 2010.  See the original
+documentatation on the Zlib site, @url{http://zlib.net/}.
+@end quotation
+
+
 @noindent
 Copyright @copyright{} 1995-2005 Mark Adler @email{madler@@alumni.caltech.edu} @*
 Copyright @copyright{} 1995-2005 Jean-loup Gailly @email{jloup@@gzip.org}
@@ -67,11 +74,10 @@ data.  This version of the library supports only one compression method
 (deflation) but other algorithms will be added later and will have the
 same stream interface.
 
-Compression can be done in a single step if the buffers are large enough
-(for example if an input file is mmap'ed), or can be done by repeated
-calls of the compression function.  In the latter case, the application
-must provide more input and/or consume the output (providing more output
-space) before each call.
+Compression can be done in a single step if the buffers are large
+enough, or can be done by repeated calls of the compression function.
+In the latter case, the application must provide more input and/or
+consume the output (providing more output space) before each call.
 
 The compressed data format used by default by the in--memory functions
 is the zlib format, which is a zlib wrapper documented in @acronym{RFC}
@@ -279,6 +285,7 @@ True when done reading gzip header (not used when writing a gzip file).
 
 
 @defmac Z_NO_FLUSH
+@defmacx Z_PARTIAL_FLUSH
 @defmacx Z_SYNC_FLUSH
 @defmacx Z_FULL_FLUSH
 @defmacx Z_FINISH
@@ -351,6 +358,13 @@ format.  For example @code{0x1230} means version @code{1.2.3}.
 @end defmac
 
 
+@defmac ZLIB_VER_MAJOR
+@defmacx ZLIB_VER_MINOR
+@defmacx ZLIB_VER_REVISION
+@defmacx ZLIB_VER_SUBREVISION
+Version number components as numbers.
+@end defmac
+
 @c page
 @node zlib basic
 @appendixsec Basic functions
@@ -404,6 +418,8 @@ if (Z_OK != e) ... /* handle the error */
 @deftypefun int deflateInit (z_streamp @var{strm}, int @var{level})
 Initializes the internal stream state for compression.  This function
 does not perform any compression: That will be done by @cfunc{deflate}.
+The current implementation of @cfunc{inflateInit} does not process any
+header information: that is deferred until @cfunc{inflate} is called.
 
 The fields @samp{zalloc}, @samp{zfree} and @samp{opaque} must be
 initialized before by the caller.  If @samp{zalloc} and @samp{zfree}
@@ -431,7 +447,8 @@ If @var{level} is not a valid compression level.
 @item Z_VERSION_ERROR
 If the Zlib library version (return value of @cfunc{zlibVersion}) is
 incompatible with the version assumed by the caller (value of
-@samp{ZLIB_VERSION}).
+@samp{ZLIB_VERSION}), or @samp{Z_STREAM_ERROR} if the parameters are
+invalid, such as a @cnull{} pointer to the structure.
 @end table
 
 The field @samp{msg} is set to @cnull{} if there is no error message.
@@ -490,6 +507,29 @@ data available so far (in particular @samp{avail_in} is zero after the
 call if enough output space has been provided before the call).
 Flushing may degrade compression for some compression algorithms and so
 it should be used only when necessary.
+
+This completes the current deflate block and follows it with an empty
+stored block that is three bits plus filler bits to the next byte,
+followed by four bytes (@code{00 00 ff ff}).
+
+@item Z_PARTIAL_FLUSH
+All pending output is flushed to the output buffer, but the output is
+not aligned to a byte boundary.  All of the input data so far will be
+available to the decompressor, as for @samp{Z_SYNC_FLUSH}.  This
+completes the current deflate block and follows it with an empty fixed
+codes block that is @math{10} bits long.  This assures that enough bytes
+are output in order for the decompressor to finish the block before the
+empty fixed code block.
+
+@item Z_BLOCK
+A deflate block is completed and emitted, as for @samp{Z_SYNC_FLUSH},
+but the output is not aligned on a byte boundary, and up to seven bits
+of the current block are held to be written as the next byte after the
+next deflate block is completed.  In this case, the decompressor may not
+have provided enough bits at this point in order to complete
+decompression of the data provided so far to the compressor.  It may
+need to wait for the next block to be emitted.  This is for advanced
+applications that need to control the emission of deflate blocks.
 
 @item Z_FULL_FLUSH
 All output is flushed as with @samp{Z_SYNC_FLUSH}, and the compression
@@ -691,6 +731,47 @@ each call to this function.  If the return value is @samp{Z_OK} and
 @samp{0 == avail_out}: this function must be called again after making
 room in the output buffer because there might be more output pending.
 
+The @var{flush} parameter of @cfunc{inflate} can be @samp{Z_NO_FLUSH},
+@samp{Z_SYNC_FLUSH}, @samp{Z_FINISH}, @samp{Z_BLOCK}, or @samp{Z_TREES}.
+
+@table @samp
+@item Z_SYNC_FLUSH
+Requests to flush as much output as possible to the output buffer.
+
+@item Z_BLOCK
+Requests to stop if and when it gets to the next deflate block boundary.
+When decoding the zlib or gzip format, this will cause @cfunc{inflate}
+to return immediately after the header and before the first block.  When
+doing a raw inflate, @cfunc{inflate} will go ahead and process the first
+block, and will return when it gets to the end of that block, or when it
+runs out of data.
+
+The @samp{Z_BLOCK} option assists in appending to or combining deflate
+streams.  Also to assist in this, on return @cfunc{inflate} will set
+@code{strm->data_type} to the number of unused bits in the last byte
+taken from @code{strm->next_in}, plus @math{64} if @cfunc{inflate} is
+currently decoding the last block in the deflate stream, plus @math{128}
+if @cfunc{inflate} returned immediately after decoding an end--of--block
+code or decoding the complete header up to just before the first byte of
+the deflate stream.  The end--of--block will not be indicated until all
+of the uncompressed data from that block has been written to
+@code{strm->next_out}.  The number of unused bits may in general be
+greater than seven, except when bit @math{7} of @code{data_type} is set,
+in which case the number of unused bits will be less than eight.
+@code{data_type} is set as noted here every time @cfunc{inflate} returns
+for all flush options, and so can be used to determine the amount of
+currently consumed input in bits.
+
+@item Z_TREES
+Behaves as @samp{Z_BLOCK} does, but it also returns when the end of each
+deflate block header is reached, before any actual data in that block is
+decoded.  This allows the caller to determine the length of the deflate
+block header for later use in random access within a deflate block.
+@math{256} is added to the value of @code{strm->data_type} when
+@cfunc{inflate} returns immediately after reaching the end of the
+deflate block header.
+@end table
+
 When decompressing incoming chunks of data, this function should
 normally be called with @var{flush} set to @samp{Z_NO_FLUSH} until it
 returns @samp{Z_STREAM_END} or an error.
@@ -707,46 +788,11 @@ faster approach may be used for the single call.
 When the return value is @samp{Z_STREAM_END}: the next operation on this
 stream must be @cfunc{inflateEnd} to deallocate the decompression state.
 
-The other values of the @var{flush} parameter have the following
-meaning:
-
-@table @samp
-@item Z_SYNC_FLUSH
-Requests to flush as much output as possible to the output buffer.
-
-@item Z_BLOCK
-Requests to stop if and when the next deflate block boundary is reached:
-
-@itemize
-@item
-when decoding the Zlib or Gzip format, this will cause an immediate
-return after the header and before the first block;
-@item
-when doing a raw inflate, this function will go ahead and process the
-first block, and will return when it gets to the end of that block, or
-when it runs out of data.
-@end itemize
-
-@samp{Z_BLOCK} assists in appending to or combining deflate streams.
-Also to assist in this, on return this function will set
-@samp{data_type} to the number of unused bits in the last byte taken
-from @samp{next_in}, plus 64 if this function is currently decoding the
-last block in the deflate stream, plus 128 if @cfunc{inflate} returned
-immediately after decoding an end--of--block code or decoding the
-complete header up to just before the first byte of the deflate stream.
-The end--of--block will not be indicated until all of the uncompressed
-data from that block has been written to @samp{next_out}.
-
-The number of unused bits may in general be greater than seven, except
-when bit 7 of @samp{data_type} is set, in which case the number of
-unused bits will be less than eight.
-@end table
-
 In this implementation, Zlib always flushes as much data as possible to
 the output buffer, and always uses the faster approach on the first
 call.  So the only effect of the flush parameter in this implementation
 is on the return value of @cfunc{inflate}, as noted below, or when it
-returns early because @samp{Z_BLOCK} is used.
+returns early because @samp{Z_BLOCK} or @samp{Z_TREES} is used.
 
 If a preset dictionary is needed after this call (see
 @cfunc{inflateSetDictionary}), @samp{adler} is set to the Adler32

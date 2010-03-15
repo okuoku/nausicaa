@@ -2,13 +2,13 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Wed Dec  2, 2009
+;;;Date: Mon Mar 15, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -32,20 +32,20 @@
     sizeof-uInt
     alignof-uInt
     strideof-uInt
-    pointer-set-c-uInt!
     pointer-ref-c-uInt
+    pointer-set-c-uInt!
     uLong
     sizeof-uLong
     alignof-uLong
     strideof-uLong
-    pointer-set-c-uLong!
     pointer-ref-c-uLong
+    pointer-set-c-uLong!
     z_off_t
     sizeof-z_off_t
     alignof-z_off_t
     strideof-z_off_t
-    pointer-set-c-z_off_t!
     pointer-ref-c-z_off_t
+    pointer-set-c-z_off_t!
     sizeof-z_stream
     alignof-z_stream
     strideof-z_stream
@@ -103,12 +103,14 @@
     struct-gz_header-done-set!
     struct-gz_header-done-ref
     ZLIB_VERNUM
+    ZLIB_VERSION
     Z_NO_FLUSH
     Z_PARTIAL_FLUSH
     Z_SYNC_FLUSH
     Z_FULL_FLUSH
     Z_FINISH
     Z_BLOCK
+    Z_TREES
     Z_OK
     Z_STREAM_END
     Z_NEED_DICT
@@ -142,22 +144,22 @@
   (define sizeof-uInt @SIZEOF_UINT@)
   (define alignof-uInt @ALIGNOF_UINT@)
   (define strideof-uInt @STRIDEOF_UINT@)
-  (define pointer-set-c-uInt! @GETTEROF_UINT@)
-  (define pointer-ref-c-uInt @SETTEROF_UINT@)
+  (define pointer-ref-c-uInt @GETTEROF_UINT@)
+  (define pointer-set-c-uInt! @SETTEROF_UINT@)
   (define uLong '@TYPEOF_ULONG@)
   (define sizeof-uLong @SIZEOF_ULONG@)
   (define alignof-uLong @ALIGNOF_ULONG@)
   (define strideof-uLong @STRIDEOF_ULONG@)
-  (define pointer-set-c-uLong! @GETTEROF_ULONG@)
-  (define pointer-ref-c-uLong @SETTEROF_ULONG@)
+  (define pointer-ref-c-uLong @GETTEROF_ULONG@)
+  (define pointer-set-c-uLong! @SETTEROF_ULONG@)
   (define z_off_t '@TYPEOF_Z_OFF_T@)
   (define sizeof-z_off_t @SIZEOF_Z_OFF_T@)
   (define alignof-z_off_t @ALIGNOF_Z_OFF_T@)
   (define strideof-z_off_t @STRIDEOF_Z_OFF_T@)
+  (define pointer-ref-c-z_off_t @GETTEROF_Z_OFF_T@)
   (define
     pointer-set-c-z_off_t!
-    @GETTEROF_Z_OFF_T@)
-  (define pointer-ref-c-z_off_t @SETTEROF_Z_OFF_T@)
+    @SETTEROF_Z_OFF_T@)
   (define sizeof-z_stream @SIZEOF_Z_STREAM@)
   (define alignof-z_stream @ALIGNOF_Z_STREAM@)
   (define strideof-z_stream @STRIDEOF_Z_STREAM@)
@@ -315,6 +317,7 @@
     @SETTEROF_GZ_HEADER_DONE@
     @GETTEROF_GZ_HEADER_DONE@)
   (define ZLIB_VERNUM @VALUEOF_ZLIB_VERNUM@)
+  (define ZLIB_VERSION "@STRINGOF_ZLIB_VERSION@")
   (define Z_NO_FLUSH @VALUEOF_Z_NO_FLUSH@)
   (define
     Z_PARTIAL_FLUSH
@@ -323,6 +326,7 @@
   (define Z_FULL_FLUSH @VALUEOF_Z_FULL_FLUSH@)
   (define Z_FINISH @VALUEOF_Z_FINISH@)
   (define Z_BLOCK @VALUEOF_Z_BLOCK@)
+  (define Z_TREES @VALUEOF_Z_TREES@)
   (define Z_OK @VALUEOF_Z_OK@)
   (define Z_STREAM_END @VALUEOF_Z_STREAM_END@)
   (define Z_NEED_DICT @VALUEOF_Z_NEED_DICT@)

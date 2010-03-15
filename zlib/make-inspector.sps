@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -75,13 +75,17 @@
 (define-c-defines "version number"
   ZLIB_VERNUM)
 
+(define-c-string-defines "version number"
+  ZLIB_VERSION)
+
 (define-c-defines "stream control"
   Z_NO_FLUSH
   Z_PARTIAL_FLUSH
   Z_SYNC_FLUSH
   Z_FULL_FLUSH
   Z_FINISH
-  Z_BLOCK)
+  Z_BLOCK
+  Z_TREES)
 
 (define-c-defines "return values"
   Z_OK

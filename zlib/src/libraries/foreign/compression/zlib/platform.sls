@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -39,7 +39,7 @@
 
     inflateInit2_	inflateSetDictionary
     inflateSync		inflateCopy	inflateReset
-    inflatePrime
+    inflatePrime	inflateMark	inflateUndermine
 
     inflateBackInit_	inflateBack	inflateBackEnd
 
@@ -50,7 +50,7 @@
     ;; file input/output
     gzopen
     gzdopen
-    gzclose
+    gzclose		gzclose_r	gzclose_w
 
     gzwrite
     gzputs		gzputc
@@ -74,9 +74,9 @@
     ;; auxiliary functions
     zlibVersion		zlibCompileFlags
     zError
-
-    ZLIB_VERSION)
+    )
   (import (rnrs)
+    (unimplemented)
     (foreign ffi)
     (foreign ffi sizeof)
     (only (foreign cstrings)
@@ -90,8 +90,6 @@
 (define z_streamp	'pointer)
 (define gz_headerp	'pointer)
 (define gzFile		'pointer)
-
-(define ZLIB_VERSION	(string->cstring "1.2.3"))
 
 (define-c-functions zlib-shared-object
   (zlibVersion
@@ -183,6 +181,20 @@
   (inflatePrime
    (int inflatePrime (z_streamp int int))))
 
+(define inflateMark
+  (if (<= #x1240 ZLIB_VERNUM)
+      (make-c-function* zlib-shared-object
+			long inflateMark (z_streamp))
+    (lambda args
+      (raise-unimplemented-error 'inflateMark "function not implemented in this version of Zlib"))))
+
+(define inflateUndermine
+  (if (<= #x1240 ZLIB_VERNUM)
+      (make-c-function* zlib-shared-object
+			int inflateUndermine (z_streamp int))
+    (lambda args
+      (raise-unimplemented-error 'inflateUndermine "function not implemented in this version of Zlib"))))
+
 
 ;;;; utility functions
 
@@ -260,6 +272,18 @@
 
   (gzclearerr
    (void gzclearerr (gzFile))))
+
+(define gzclose_r
+  (if (<= #x1240 ZLIB_VERNUM)
+      (make-c-function* zlib-shared-object int gzclose_r (gzFile))
+    (lambda args
+      (raise-unimplemented-error 'gzclose_r "function not implemented in this version of Zlib"))))
+
+(define gzclose_w
+  (if (<= #x1240 ZLIB_VERNUM)
+      (make-c-function* zlib-shared-object int gzclose_w (gzFile))
+    (lambda args
+      (raise-unimplemented-error 'gzclose_w "function not implemented in this version of Zlib"))))
 
 
 ;;;; checksum functions

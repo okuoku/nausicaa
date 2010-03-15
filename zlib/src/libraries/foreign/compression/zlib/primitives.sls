@@ -39,7 +39,7 @@
 
     inflateInit2	inflateSetDictionary
     inflateSync		inflateCopy	inflateReset
-    inflatePrime
+    inflatePrime	inflateMark	inflateUndermine
 
     inflateBackInit	inflateBack	inflateBackEnd
 
@@ -50,7 +50,7 @@
     ;; file input/output
     gzopen		gzopen*
     gzdopen		gzdopen*
-    gzclose
+    gzclose		gzclose_r	gzclose_w
 
     gzwrite		gzputc
     gzputs		gzputs*
@@ -85,28 +85,30 @@
     (foreign compression zlib sizeof))
 
 
+(define zlib_version* (string->cstring ZLIB_VERSION))
+
 (define (zError* errcode)
   (cstring->string (zError errcode)))
 
 ;;; --------------------------------------------------------------------
 
 (define (deflateInit zstream compression-level)
-  (deflateInit_ zstream compression-level ZLIB_VERSION sizeof-z_stream))
+  (deflateInit_ zstream compression-level zlib_version* sizeof-z_stream))
 
 (define (inflateInit zstream)
-  (inflateInit_ zstream ZLIB_VERSION sizeof-z_stream))
+  (inflateInit_ zstream zlib_version* sizeof-z_stream))
 
 ;;; --------------------------------------------------------------------
 
 (define (deflateInit2 stream level method window-bits mem-level strategy)
   (deflateInit2_ stream level method window-bits mem-level strategy
-    ZLIB_VERSION sizeof-z_stream))
+    zlib_version* sizeof-z_stream))
 
 (define (inflateInit2 stream window-bits)
-  (inflateInit2_ stream window-bits ZLIB_VERSION sizeof-z_stream))
+  (inflateInit2_ stream window-bits zlib_version* sizeof-z_stream))
 
 (define (inflateBackInit stream window-bits window)
-  (inflateBackInit_ stream window-bits window ZLIB_VERSION sizeof-z_stream))
+  (inflateBackInit_ stream window-bits window zlib_version* sizeof-z_stream))
 
 ;;; --------------------------------------------------------------------
 
@@ -128,7 +130,9 @@
     (let* ((*errcode	(malloc-small/c))
 	   (cstr	(gzerror file *errcode)))
       (values (pointer-ref-c-signed-int *errcode 0)
-	      (cstring->string cstr)))))
+	      (if (pointer-null? cstr)
+		  ""
+		(cstring->string cstr))))))
 
 
 ;;;; done
