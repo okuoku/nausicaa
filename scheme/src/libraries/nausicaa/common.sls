@@ -71,7 +71,7 @@
 
     ;; syntactic abstractions
     and-let* begin0 begin0-let receive recursion cut cute do*
-    set-cons! incr! decr! while do-while
+    set-cons! incr! decr! while while* do-while do-while*
     define-values
 
     ;; macro definition helpers

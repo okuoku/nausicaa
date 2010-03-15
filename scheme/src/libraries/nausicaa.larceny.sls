@@ -794,7 +794,7 @@
 
     ;; stuff from the SRFIs
     cond-expand and-let* receive recursion cut cute begin0 begin0-let
-    set-cons! incr! decr! while do-while
+    set-cons! incr! decr! while while* do-while do-while*
 
     ;; macro definition helpers
     define-identifier-macro define-inline

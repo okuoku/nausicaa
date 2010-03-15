@@ -180,7 +180,8 @@
 (library (language-extensions)
   (export
     and-let* begin0 begin0-let begin0-let* begin0-letrec
-    receive recursion cut cute do* while do-while
+    receive recursion cut cute
+    do* while while* do-while do-while*
     dotimes dolist loop-upon-list ensure
     set-cons! incr! decr!
     define-identifier-macro define-inline define-values)
@@ -310,16 +311,37 @@
 
 (define-syntax while
   (syntax-rules ()
-    ((_ ?pred ?body0 ?body ...)
+    ((_ ?test ?body0 ?body ...)
      (let loop ()
-       (when ?pred ?body0 ?body ... (loop))))))
+       (when ?test ?body0 ?body ... (loop))))))
 
 (define-syntax do-while
   (syntax-rules ()
-    ((_ ?test ?form0 ?form ...)
+    ((_ ?test ?body0 ?body ...)
      (let loop ()
-       ?form0 ?form ...
+       ?body0 ?body ...
        (when ?test (loop))))))
+
+(define-syntax while*
+  (lambda (stx)
+    (syntax-case stx ()
+      ((?use ?test ?body0 ?body ...)
+       (with-syntax ((RETURN (datum->syntax #'?use 'return)))
+	 #'(call-with-current-continuation
+	       (lambda (RETURN)
+		 (let loop ()
+		   (when ?test ?body0 ?body ... (loop))))))))))
+
+(define-syntax do-while*
+  (lambda (stx)
+    (syntax-case stx ()
+      ((?use ?test ?body0 ?body ...)
+       (with-syntax ((RETURN (datum->syntax #'?use 'return)))
+	 #'(call-with-current-continuation
+	       (lambda (RETURN)
+		 (let loop ()
+		   ?body0 ?body ...
+		   (when ?test (loop))))))))))
 
 
 ;;;; loop syntaxes

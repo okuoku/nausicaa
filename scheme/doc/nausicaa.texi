@@ -19368,9 +19368,31 @@ if @meta{test} is true@dots{}
 @end deffn
 
 
+@deffn Syntax while* @ameta{test} @ametai{expression} @ametaii{expression} ...
+@deffnx {Auxiliary Syntax} return
+If @meta{test} is true evaluate the @meta{expression} forms; then loop,
+if @meta{test} is true@dots{}
+
+In the body of the form we can use the auxiliary syntax @func{return} to
+return zero, one or more values to the @func{while*} continuation,
+breaking out of the loop.
+@end deffn
+
+
 @deffn Syntax do-while @ameta{test} @ametai{expression} @ametaii{expression} ...
 Evaluate the @meta{expression} forms; then if @meta{test} is true loop:
 evaluate the @meta{expressions} @dots{}
+@end deffn
+
+
+@deffn Syntax do-while* @ameta{test} @ametai{expression} @ametaii{expression} ...
+@deffnx {Auxiliary Syntax} return
+Evaluate the @meta{expression} forms; then if @meta{test} is true loop:
+evaluate the @meta{expressions} @dots{}
+
+In the body of the form we can use the auxiliary syntax @func{return} to
+return zero, one or more values to the @func{while*} continuation,
+breaking out of the loop.
 @end deffn
 
 @c ------------------------------------------------------------
