@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Scheme --- tag 0.1a10
+Subject: [announce] Nausicaa/Scheme 2010-03-15 tag 0.1a10
 
 		      Nausicaa/Scheme
 		      ===============
@@ -40,8 +40,8 @@ the documentation is available on line:
      <http://marcomaggi.github.com/docs/nausicaa.html>
 
 
-Notes for --- tag 0.1a10
-------------------------------
+Notes for 2010-03-15 tag 0.1a10
+-------------------------------
 
 * Updated    ikarus.texi   with   material    from   project
   ikscheme-manual at  GitHub.  Added documentation  for post
