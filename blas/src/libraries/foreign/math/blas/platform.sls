@@ -147,10 +147,10 @@
 ;;
 
 (define-c-functions cblas-shared-object
-  (cblas_sdsdot		(float cblas_sdsdot (int float float* int float* int)))
-  (cblas_dsdot		(double cblas_dsdot(int float* int float* int)))
-  (cblas_sdot		(float cblas_sdot (int float* int float* int)))
-  (cblas_ddot		(double cblas_ddot (int double* int double* int)))
+  (cblas_sdsdot		(float  cblas_sdsdot (int float float* int float* int)))
+  (cblas_dsdot		(double cblas_dsdot  (int float* int float* int)))
+  (cblas_sdot		(float  cblas_sdot   (int float* int float* int)))
+  (cblas_ddot		(double cblas_ddot   (int double* int double* int)))
 
   ;;Functions having prefixes Z and C only.
   (cblas_cdotu_sub	(void cblas_cdotu_sub (int void* int void* int void*)))

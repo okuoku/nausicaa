@@ -469,7 +469,6 @@ development of Nausicaa takes place at:
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
-Copyright @copyright{} 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 The @acronym{GSL} Team.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -553,10 +552,23 @@ Overview of the package
 
 * overview intro::              Introduction to @blas{}.
 * overview libraries::          Installed libraries.
-* overview naming::             Naming conventions.
+* overview funcs::              Function naming conventions.
+* overview args::               Argument naming conventions.
+
+@blas{} interface level 1
+
+* level1 single real::          Level 1 single--precision real
+                                numbers.
+* level1 double real::          Level 1 double--precision real
+                                numbers.
+* level1 single complex::       Level 1 single--precision complex
+                                numbers.
+* level1 double complex::       Level 1 double--precision complex
+                                numbers.
 
 Basic vector and matrix library
 
+* vm conventions::              Arguments naming conventions.
 * vm vectors::                  Real and complex vectors.
 * vm matrices::                 Real and complex matrices.
 
@@ -582,7 +594,8 @@ supports @gnu{}+Linux systems.
 @menu
 * overview intro::              Introduction to @blas{}.
 * overview libraries::          Installed libraries.
-* overview naming::             Naming conventions.
+* overview funcs::              Function naming conventions.
+* overview args::               Argument naming conventions.
 @end menu
 
 @c page
@@ -639,8 +652,8 @@ makes the original @blas{} documentation relevant for this package.
 @item foreign math blas primitives
 Exports one binding for each foreign function, reexporting bindings from
 the platform library.  The bindings to the Scheme functions have the
-same name of the C functions, but the prefix @code{cblas_} stripped; so
-@cfunc{cblas_sdsdot} is available as @func{sdsdot}.
+same name of the C functions, but the prefix @code{cblas_} is stripped;
+so @cfunc{cblas_sdsdot} is available as @func{sdsdot}.
 
 @item foreign math blas
 Compound library exporting the high--level @api{}; it reexports bindings
@@ -657,8 +670,8 @@ testing.  @ref{vm, Basic vector and matrix library}.
 @end table
 
 @c page
-@node overview naming
-@section Naming conventions
+@node overview funcs
+@section Function naming conventions
 
 
 Each @blas{} routine has a name which specifies the operation, the type
@@ -676,7 +689,7 @@ operations and their names are given below:
 @end multitable
 
 @noindent
-The types of matrices are,
+the types of matrices are:
 
 @multitable {GE} {triangular packed}
 @headitem Name @tab Description
@@ -694,7 +707,7 @@ The types of matrices are,
 @end multitable
 
 @noindent
-Each operation is defined for four precisions:
+each operation is defined for four precisions:
 
 @multitable {Name} {double complex}
 @headitem Name @tab Description
@@ -707,6 +720,86 @@ Each operation is defined for four precisions:
 For example, the name @func{sgemm} stands for ``single--precision
 general matrix--matrix multiply'' and @func{zgemm} stands for
 ``double-precision complex matrix--matrix multiply''.
+
+@c page
+@node overview args
+@section Argument naming conventions
+
+
+In this document the meaning of the function arguments is as follows.
+
+@table @asis
+@item @var{N}
+An exact non--negative integer representing the dimension of the
+problem; for example the number of elements in vector arguments.
+
+@item @var{SB}
+Single--precision floating point number.
+
+@item @var{SX} @var{SY}
+Pointers to storage arrays of single--precision floating point numbers
+which are meant to hold the elements of logical vectors.  The arrays can
+be used both as input values and as storage areas for output values.
+
+An argument @var{SX} is always followed by an argument @var{INC-X}
+associated to it.  When these arguments appear, they are always preceded
+by an argument @var{N} representing the number of elements to be
+accessed.
+
+@item @var{INC-X} @var{INC-Y}
+Exact integers representing array strides; an argument @var{INC-X} is
+always preceded by an argument @var{SX} associated to it.  The elements
+of an array @var{SX} with stride @var{INC-X} are visited as follows
+using the counter @math{I} under the Fortran convention of indexing with
+base @math{1}:
+
+@example
+I = 0 ... (N-1)       SX(LX + I * INC-X)
+@end example
+
+@noindent
+where:
+
+@example
+      -
+     | 1                   if INC-X >= 0
+LX = |
+     | 1 + (1-N) * INC-X   if INC-X < 0
+      -
+@end example
+
+@noindent
+Notice that when @math{INC-X = 0}: a logical vector of @var{N} elements
+collapses to an array with a single element; the logical vector has all
+the elements equal to the single array element.
+
+@quotation
+@strong{EXAMPLE} When @math{INC-X = 2} and @math{N = 5}, the elements
+are accessed at array indexes:
+
+@example
+1  3  5  7  9
+@end example
+
+@noindent
+while when @math{INC-X = -2} and @math{N = 5}, it is:
+
+@example
+LX = 1+(1-5)*(-2) = 1+(-4)*(-2) = 1+8 = 9
+@end example
+
+and the elements are accessed at array indexes:
+
+@example
+9  7  5  3  1
+@end example
+
+So the array can be accessed forwards or backwards, but the offset with
+respect to @var{SX} is always positive.
+@end quotation
+@end table
+
+
 
 @c page
 @node constants
@@ -798,8 +891,8 @@ the @cblas{} distribution by Netlib.
   (compensations)
   (only (foreign ffi sizeof) sizeof-double)
   (only (foreign ffi)
-	array-set-c-double!
-	array-ref-c-double)
+        array-set-c-double!
+        array-ref-c-double)
   (only (foreign memory) malloc/c)
   (prefix (foreign math blas) blas:))
 
@@ -865,14 +958,66 @@ the @cblas{} distribution by Netlib.
 @chapter @blas{} interface level 1
 
 
-@defun sdsdot @var{n} @var{alpha} @var{x} @var{inc-x} @var{y} @var{inc-y}
-Compute the sum @math{\alpha + x^T y} for the vectors @var{x} and
-@var{y}; return the result.
+@menu
+* level1 single real::          Level 1 single--precision real
+                                numbers.
+* level1 double real::          Level 1 double--precision real
+                                numbers.
+* level1 single complex::       Level 1 single--precision complex
+                                numbers.
+* level1 double complex::       Level 1 double--precision complex
+                                numbers.
+@end menu
+
+@c page
+@node level1 single real
+@section Level 1 single--precision real numbers
+
+
+@defun sdot @var{N} @var{SX} @var{INC-X} @var{SY} @var{INC-Y}
+Compute the inner (dot) product of two vectors with single--precision
+accumulation; return a single--precision result.
+
+@example
+SDOT = SX * SY^T
+@end example
 @end defun
 
 
-@defun sdot @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
-@defunx dsdot @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defun sdsdot @var{N} @var{SB} @var{SX} @var{INC-X} @var{SY} @var{INC-Y}
+Compute the inner (dot) product of two vectors with extended--precision
+accumulation; return a single--precision result.  The return value is
+equal to @var{SB} if @code{N <= 0}.
+
+@example
+SDSDOT = SB + SX * SY^T
+@end example
+@end defun
+
+
+@defun snrm2 @var{N} @var{SX} @var{INC-X}
+Return the euclidean norm of a vector via the function name, so that:
+
+@example
+SNRM2 = sqrt( SX * SX^T )
+@end example
+@end defun
+
+@c page
+@node level1 double real
+@section Level 1 double--precision real numbers
+
+@c page
+@node level1 single complex
+@section Level 1 single--precision complex numbers
+
+@c page
+@node level1 double complex
+@section Level 1 double--precision complex numbers
+
+
+
+@defun dsdot @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
 @defunx ddot @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
 Compute the scalar product @math{x^T y} for the vectors @var{x} and
 @var{y}; return the result.
@@ -894,8 +1039,7 @@ y} for the vectors @var{x} and @var{y}, returning the result in
 @end defun
 
 
-@defun snrm2 @var{n} @var{x} @var{inc-x}
-@defunx dnrm2 @var{n} @var{x} @var{inc-x}
+@defun dnrm2 @var{n} @var{x} @var{inc-x}
 These functions compute the Euclidean norm @math{||x||_2 = \sqrt @{\sum
 x_i^2@}} of the vector @var{x}.
 @end defun

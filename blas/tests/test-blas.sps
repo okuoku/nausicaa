@@ -27,71 +27,74 @@
 
 (import (nausicaa)
   (compensations)
-  (only (foreign ffi sizeof) sizeof-double)
-  (only (foreign ffi)
-	array-set-c-double!
-	array-ref-c-double)
-  (only (foreign memory) malloc/c)
   (prefix (foreign math blas) blas:)
+  (prefix (foreign math blas vm) vm:)
+  (lists)
   (checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing BLAS platform\n")
 
+(define (eqf? a b)
+  (< (magnitude (- a b)) 1e-3))
+
+(define (eql? ell1 ell2)
+  (list=? (lambda (a b)
+	    (if (list? a)
+		(eql? a b)
+	      (eqf? a b)))
+	  ell1 ell2))
+
 
-(parametrise ((check-test-name	'base))
+(parametrise ((check-test-name	'single-level1))
 
   (check
       (with-compensations
-	(let* ((order	blas:col-major)
-	       (transa	blas:no-trans)
-	       (m	4) ;Size of Column (the number of rows)
-	       (n	4) ;Size of Row (the number of columns)
-	       (lda	4) ;Leading dimension of 5 * 4 matrix is 5
-	       (incx	1)
-	       (incy	1)
-	       (alpha	1.)
-	       (beta	0.)
-	       (a	(malloc/c (* sizeof-double m n)))
-	       (x	(malloc/c (* sizeof-double n)))
-	       (y	(malloc/c (* sizeof-double n))))
+	(let* ((N	3)
+	       (SX	(vm:svec/c N))
+	       (SY	(vm:svec/c N)))
+	  (vm:svec-fill! SX 1 '(1. 2. 3.))
+	  (vm:svec-fill! SY 1 '(4. 5. 6.))
+	  (blas:sdot N SX 1 SY 1)))
+    (=> eqf?)
+    32.)
 
-	  ;; the elements of the first column
-	  (array-set-c-double! a 0 1.)
-	  (array-set-c-double! a 1 2.)
-	  (array-set-c-double! a 2 3.)
-	  (array-set-c-double! a 3 4.)
-	  ;; the elements of the second column
-	  (array-set-c-double! a m  1.)
-	  (array-set-c-double! a (+ m 1) 1.)
-	  (array-set-c-double! a (+ m 2) 1.)
-	  (array-set-c-double! a (+ m 3) 1.)
-	  ;; the elements of the third column
-	  (array-set-c-double! a (* m 2)  3.)
-	  (array-set-c-double! a (+ 1 (* m 2)) 4.)
-	  (array-set-c-double! a (+ 2 (* m 2)) 5.)
-	  (array-set-c-double! a (+ 3 (* m 2)) 6.)
-	  ;; the elements of the fourth column
-	  (array-set-c-double! a (* m 3)  5.)
-	  (array-set-c-double! a (+ 1 (* m 3)) 6.)
-	  (array-set-c-double! a (+ 2 (* m 3)) 7.)
-	  (array-set-c-double! a (+ 3 (* m 3)) 8.)
-	  ;; the elements of x and y
-	  (array-set-c-double! x 0 1.)
-	  (array-set-c-double! x 1 2.)
-	  (array-set-c-double! x 2 1.)
-	  (array-set-c-double! x 3 1.)
-	  (array-set-c-double! y 0 0.)
-	  (array-set-c-double! y 1 0.)
-	  (array-set-c-double! y 2 0.)
-	  (array-set-c-double! y 3 0.)
+  (check
+      (with-compensations
+	(let* ((N	3)
+	       (SX	(vm:svec/c N))
+	       (SY	(vm:svec/c N)))
+	  (vm:svec-fill! SX 1 '(1. 2. 3.))
+	  (vm:svec-fill! SY 1 '(4. 5. 6.))
+	  (blas:sdot N SX 1 SY -1)))
+    (=> eqf?)
+    28.)
 
-	  (blas:dgemv order transa m n alpha a lda x incx beta y incy)
+;;; --------------------------------------------------------------------
 
-	  (map (lambda (i)
-		 (array-ref-c-double y i))
-	    '(0 1 2 3))))
-    => '(11. 14. 17. 20.))
+  (check
+      (with-compensations
+	(let* ((N	3)
+	       (SB	1000.)
+	       (SX	(vm:svec/c N))
+	       (SY	(vm:svec/c N)))
+	  (vm:svec-fill! SX 1 '(1. 2. 3.))
+	  (vm:svec-fill! SY 1 '(4. 5. 6.))
+	  (blas:sdsdot 1 SB SX 1 SY 1)))
+    (=> eqf?)
+    1032.)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (with-compensations
+	(let* ((N	3)
+	       (SX	(vm:svec/c N)))
+	  (vm:svec-fill! SX 1 '(1. 2. 3.))
+	  (blas:snrm2 N SX 1)))
+    (=> eqf?)
+    (sqrt 14.))
+
 
   #t)
 
