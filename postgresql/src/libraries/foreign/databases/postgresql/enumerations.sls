@@ -29,6 +29,7 @@
   (export
     enum-polling-status			polling-status
     polling-status->value		value->polling-status
+    polling-status->symbol
 
     enum-connection-status		connection-status
     connection-status->value		value->connection-status
@@ -61,6 +62,9 @@
    PGRES_POLLING_ACTIVE)
   (ok failed
    reading writing active))
+
+(define (polling-status->symbol set)
+  (car (enum-set->list set)))
 
 (define-c-flags connection-status
   (CONNECTION_OK

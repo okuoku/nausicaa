@@ -126,6 +126,7 @@
 
     enum-polling-status			polling-status
     polling-status->value		value->polling-status
+    polling-status->symbol
 
     enum-connection-status		connection-status
     connection-status->value		value->connection-status
@@ -151,6 +152,11 @@
     make-connection-condition
     connection-condition?
     connection-condition
+
+    &connect-info
+    make-connect-info-condition
+    connect-info-condition?
+    connect-info-condition
 
     &cancel-handler
     make-cancel-handler-condition
@@ -185,6 +191,14 @@
     &postgresql-error
     make-postgresql-error-condition
     postgresql-error-condition?
+
+    &postgresql-info-error
+    make-postgresql-info-error-condition
+    postgresql-info-error-condition?
+
+    &postgresql-poll-error
+    make-postgresql-poll-error-condition
+    postgresql-poll-error-condition?
 
     &postgresql-cancel-error
     make-postgresql-cancel-error-condition
@@ -249,8 +263,8 @@
     connection-server-version		;; PQserverVersion
     connection-error-message		;; PQerrorMessage
     connection-backend-pid		;; PQbackendPID
-    connection-needs-password		;; PQconnectionNeedsPassword
-    connection-used-password		;; PQconnectionUsedPassword
+    connection-needs-password?		;; PQconnectionNeedsPassword
+    connection-used-password?		;; PQconnectionUsedPassword
     connection-get-ssl			;; PQgetssl
 
     clear-result			;; PQclear

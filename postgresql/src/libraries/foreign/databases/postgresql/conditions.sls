@@ -33,6 +33,11 @@
     connection-condition?
     connection-condition
 
+    &connect-info
+    make-connect-info-condition
+    connect-info-condition?
+    connect-info-condition
+
     &cancel-handler
     make-cancel-handler-condition
     cancel-handler-condition?
@@ -68,6 +73,14 @@
     &postgresql-error
     make-postgresql-error-condition
     postgresql-error-condition?
+
+    &postgresql-poll-error
+    make-postgresql-poll-error-condition
+    postgresql-poll-error-condition?
+
+    &postgresql-info-error
+    make-postgresql-info-error-condition
+    postgresql-info-error-condition?
 
     &postgresql-cancel-error
     make-postgresql-cancel-error-condition
@@ -135,6 +148,12 @@
   connection-condition?
   (connection		connection-condition))
 
+(define-condition-type &connect-info
+  &condition
+  make-connect-info-condition
+  connect-info-condition?
+  (connect-info		connect-info-condition))
+
 (define-condition-type &cancel-handler
   &condition
   make-cancel-handler-condition
@@ -176,6 +195,20 @@
   &error
   make-postgresql-error-condition
   postgresql-error-condition?)
+
+;;; --------------------------------------------------------------------
+
+(define-condition-type &postgresql-info-error
+  &postgresql-error
+  make-postgresql-info-error-condition
+  postgresql-info-error-condition?)
+
+;;; --------------------------------------------------------------------
+
+(define-condition-type &postgresql-poll-error
+  &postgresql-error
+  make-postgresql-poll-error-condition
+  postgresql-poll-error-condition?)
 
 ;;; --------------------------------------------------------------------
 

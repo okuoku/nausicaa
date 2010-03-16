@@ -117,8 +117,8 @@
 	    (let ((conn (pg:connect-db/c "dbname=nausicaa-test")))
 	      (list (pg:connection-database conn)
 		    (pg:connection-password conn)
-		    (pg:connection-needs-password conn)
-		    (pg:connection-used-password conn))))
+		    (pg:connection-needs-password? conn)
+		    (pg:connection-used-password? conn))))
 	=> '("nausicaa-test" "" #f #f))
 
       (check	;connection status

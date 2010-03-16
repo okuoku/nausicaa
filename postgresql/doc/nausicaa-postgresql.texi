@@ -861,13 +861,13 @@ with values from the structure.
 
 @deftp {Record Type Name} <parameter>
 @deftpx {Record Type Descriptor} <parameter-rtd>
-Record type used as descriptor for prepared @sql{} statements
+Record type used as descriptor for prepared @sql{} statements'
 parameters.  It has the following immutable fields:
 
 @table @code
 @item value
 The parameter's value; can be a Scheme string or byte vector, or a
-pointer object.
+pointer object.  @nauref{ffi pointers, Pointer objects}.
 
 @item size
 The number of bytes in the raw memory block referenced by the value;
@@ -912,9 +912,9 @@ Wrapper for @func{make-<parameter>} which allows the specification of a
 @class{parameter} as a human readable S--expression.
 
 @ameta{val} is stored in the @code{value} field; @ameta{len} is stored
-in the @code{size} fields and defaults to @false{}; @ameta{text} is
-stored in the @code{text?} fields and defaults to @true{}; @ameta{oid}
-is stored in the @code{oid} fields and defaults to @code{InvalidOid}.
+in the @code{size} field and defaults to @false{}; @ameta{text} is
+stored in the @code{text?} field and defaults to @true{}; @ameta{oid} is
+stored in the @code{oid} field and defaults to @code{InvalidOid}.
 @end deffn
 
 @c page
@@ -1081,17 +1081,17 @@ Enumeration type representing the current status of a @objtype{connection}
 object.  It holds the following symbols:
 
 @example
-ok                      bad
-started                 made
-awaiting-response       auth-ok
-setenv                  ssl-startup
+ok                 bad
+started            made
+awaiting-response  auth-ok
+setenv             ssl-startup
 needed
 @end example
 @end deftp
 
 
 @deffn Syntax connection-status @ameta{symbol}
-Expand in an enumeration set of type @enum{connection-status}
+Expand to an enumeration set of type @enum{connection-status}
 holding the argument symbol.
 @end deffn
 
@@ -1112,14 +1112,14 @@ Enumeration type representing the result of polling operations performed
 with @func{connect-poll}.  It holds the following symbols:
 
 @example
-ok      failed
-reading writing active
+ok       failed
+reading  writing  active
 @end example
 @end deftp
 
 
 @deffn Syntax polling-status @ameta{symbol}
-Expand in an enumeration set of type @enum{polling-status} holding
+Expand to an enumeration set of type @enum{polling-status} holding
 the argument symbol.
 @end deffn
 
@@ -1130,25 +1130,31 @@ Convert to and from exact integers and enumeration sets of type
 @enum{polling-status}.
 @end defun
 
+
+@defun polling-status->symbol @var{enum-set}
+Given the result of an expansion of the syntax @func{polling-status},
+return the symbol in it.
+@end defun
+
 @c page
 @node enumerations trans
 @section Transaction status
 
 
 @deftp {Enumeration Type} enum-transaction-status
-Enumeration type representing the result of transaction status of a
-connection.  It holds the following symbols:
+Enumeration type representing the transaction status of a connection.
+It holds the following symbols:
 
 @example
-idle            active
-intrans         inerror
+idle     active
+intrans  inerror
 unknown
 @end example
 @end deftp
 
 
 @deffn Syntax transaction-status @ameta{symbol}
-Expand in an enumeration set of type @enum{transaction-status} holding
+Expand to an enumeration set of type @enum{transaction-status} holding
 the argument symbol.
 @end deffn
 
@@ -1178,7 +1184,7 @@ nonfatal-error  fatal-error
 
 
 @deffn Syntax exec-status @ameta{symbol}
-Expand in an enumeration set of type @enum{exec-status} holding
+Expand to an enumeration set of type @enum{exec-status} holding
 the argument symbol.
 @end deffn
 
@@ -1195,22 +1201,23 @@ Convert to and from exact integers and enumeration sets of type
 
 
 @deftp {Enumeration Type} enum-error-field
-Enumeration type representing error field in a @objtype{query-result}.
-It holds the following symbols:
+Enumeration type used to select an error field in a
+@objtype{query-result} structure; it is used by
+@func{result-error-field}.  It holds the following symbols:
 
 @example
-severity                sqlstate
-message-primary         message-detail
-message-hint            statement-position
-internal-position       internal-query
-context                 source-file
-source-line             source-function
+severity           sqlstate
+message-primary    message-detail
+message-hint       statement-position
+internal-position  internal-query
+context            source-file
+source-line        source-function
 @end example
 @end deftp
 
 
 @deffn Syntax error-field @ameta{symbol}
-Expand in an enumeration set of type @enum{error-field} holding
+Expand to an enumeration set of type @enum{error-field} holding
 the argument symbol.
 @end deffn
 
@@ -1231,13 +1238,13 @@ Enumeration type representing the format of a column in a table.  It
 holds the following symbols:
 
 @example
-text    binary
+text  binary
 @end example
 @end deftp
 
 
 @deffn Syntax format-code @ameta{symbol}
-Expand in an enumeration set of type @enum{format-code} holding
+Expand to an enumeration set of type @enum{format-code} holding
 the argument symbol.
 @end deffn
 
@@ -1254,17 +1261,17 @@ Convert to and from exact integers and enumeration sets of type
 
 
 @deftp {Enumeration Type} enum-error-verbosity
-Enumeration type representing the error verbosity level.  It holds the
-following symbols:
+Enumeration type representing the error verbosity level; it is used by
+@func{connection-error-verbosity-set!}.  It holds the following symbols:
 
 @example
-terse   default   verbose
+terse  default  verbose
 @end example
 @end deftp
 
 
 @deffn Syntax error-verbosity @ameta{symbol}
-Expand in an enumeration set of type @enum{error-verbosity} holding
+Expand to an enumeration set of type @enum{error-verbosity} holding
 the argument symbol.
 @end deffn
 
@@ -1298,6 +1305,7 @@ to import these libraries by prefixing the bindings, for example with
 
 @menu
 * conditions data connect::     Database connection object.
+* conditions data into::        Connection info object.
 * conditions data cancel::      Command cancellation handler.
 * conditions data query::       @sql{} query string object.
 * conditions data parameters::  @sql{} query parameters.
@@ -1324,7 +1332,7 @@ The @objtype{connection} object.
 
 
 @defun make-connection-condition @var{conn}
-@defunx connection-condition? @var{obj}.
+@defunx connection-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{connection}.
 @end defun
@@ -1333,6 +1341,35 @@ Constructor and predicate for condition objects of type
 @defun connection-condition @var{condition}
 Accessor for the field of condition objects of type
 @condition{connection}.
+@end defun
+
+@c page
+@node conditions data into
+@subsection Connection info object
+
+
+@deftp {Condition Type} &connect-info
+Condition object type used to hold the Scheme string representing
+connection informations handed to @func{connect-db}; it is derived from
+@condition{condition}.  It has the following fields:
+
+@table @code
+@item connect-info
+Scheme string.
+@end table
+@end deftp
+
+
+@defun make-connect-info-condition @var{info-string}
+@defunx connect-info-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{connect-info}.
+@end defun
+
+
+@defun connect-info-condition @var{condition}
+Accessor for the field of condition objects of type
+@condition{connect-info}.
 @end defun
 
 @c page
@@ -1353,7 +1390,7 @@ The @objtype{cancel-handler} object.
 
 
 @defun make-cancel-handler-condition @var{cancel}
-@defunx cancel-handler-condition? @var{obj}.
+@defunx cancel-handler-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{cancel-handler}.
 @end defun
@@ -1514,6 +1551,8 @@ Accessor for the field of condition objects of type
 
 @menu
 * conditions error error::      Error condition object.
+* conditions error info::       Connection info error.
+* conditions error poll::       Connection polling error.
 * conditions error cancel::     @sql{} command cancel error.
 * conditions error copy::       @code{COPY} command errors.
 @end menu
@@ -1524,7 +1563,7 @@ Accessor for the field of condition objects of type
 
 
 @deftp {Condition Type} &postgresql-error
-Base condition type used to tag compound condition objects associated to
+Base condition type which tags compound condition objects associated to
 @value{PACKAGE}; it is derived from @condition{error}.  It has no
 fields.
 @end deftp
@@ -1537,14 +1576,54 @@ Constructor and predicate for condition objects of type
 @end defun
 
 @c page
+@node conditions error info
+@subsection Connection info error
+
+
+@deftp {Condition Type} &postgresql-info-error
+Condition type which tags compound condition objects used to signal an
+invalid connection info string; it is derived from
+@condition{postgresql-error}.  It has no fields.
+@end deftp
+
+
+@defun make-postgresql-info-error-condition
+@defunx postgresql-info-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-info-error}.
+@end defun
+
+@c page
+@node conditions error poll
+@subsection Connection polling error
+
+
+@deftp {Condition Type} &postgresql-poll-error
+Condition type which tags compound condition objects used to signal a
+connection polling error; it is derived from
+@condition{postgresql-error}.  It has no fields.
+@end deftp
+
+
+@defun make-postgresql-poll-error-condition
+@defunx postgresql-poll-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-poll-error}.
+@end defun
+
+@c page
 @node conditions error cancel
 @subsection @sql{} command cancel error
 
 
 @deftp {Condition Type} &postgresql-cancel-error
-Condition type used to tag compound condition objects used to signal a
+Condition type which tags compound condition objects used to signal a
 @sql{} command cancellation error; it is derived from
 @condition{postgresql-error}.  It has no fields.
+
+This condition type indicates that: there was an error in submitting the
+request to cancel a @sql{} command; it is not related to the success or
+failure in actually canceling the command.
 @end deftp
 
 
@@ -1560,7 +1639,7 @@ Constructor and predicate for condition objects of type
 
 
 @deftp {Condition Type} &postgresql-copy-error
-Condition type used to tag compound condition objects used to signal a
+Condition type which tags compound condition objects used to signal a
 @code{COPY} command error; it is derived from
 @condition{postgresql-error}.  It has no fields.
 @end deftp
@@ -1575,7 +1654,7 @@ Constructor and predicate for condition objects of type
 @c ------------------------------------------------------------
 
 @deftp {Condition Type} &postgresql-copy-in-error
-Condition type used to tag compound condition objects used to signal a
+Condition type which tags compound condition objects used to signal a
 @code{COPY} input command error; it is derived from
 @condition{postgresql-copy-error}.  It has no fields.
 @end deftp
@@ -1590,7 +1669,7 @@ Constructor and predicate for condition objects of type
 @c ------------------------------------------------------------
 
 @deftp {Condition Type} &postgresql-copy-out-error
-Condition type used to tag compound condition objects used to signal a
+Condition type which tags compound condition objects used to signal a
 @code{COPY} output command error; it is derived from
 @condition{postgresql-copy-error}.  It has no fields.
 @end deftp
@@ -1605,7 +1684,7 @@ Constructor and predicate for condition objects of type
 @c ------------------------------------------------------------
 
 @deftp {Condition Type} &postgresql-copy-end-error
-Condition type used to tag compound condition objects used to signal a
+Condition type which tags compound condition objects used to signal a
 @code{COPY} end command error; it is derived from
 @condition{postgresql-copy-error}.  It has no fields.
 @end deftp
@@ -1639,18 +1718,23 @@ to import these libraries by prefixing the bindings, for example with
 @section Connecting synchronously
 
 
-In the following descriptions, the @var{conn} argument is always a
+The following operations are executed synchronously: when a function
+returns from a call, the operation is complete either successfully or
+not.  In the following descriptions, the @var{conn} argument is always a
 Scheme object of type @objtype{connection}.
 
 
 @defun connect-db
-@defunx connect-db @var{connect-info}
+@defunx connect-db @var{info-string}
 @findex @func{PQconnectdb}
 Wrapper for @func{PQconnectdb}.  Connect to a database according to the
-parameters in the Scheme string @var{connect-info}, or the default
+parameters in the Scheme string @var{info-string}, or the default
 parameters when the string is not given; it is the simpler method to
-open a connection.  Return an object of type @objtype{connection}, which
-must be finalised with @func{connect-finish}.
+open a connection.
+
+Return an object of type @objtype{connection} (which must be finalised
+with @func{connect-finish}) or raise an @condition{out-of-memory}
+exception if not enough memory was available to allocate it.
 
 @example
 (import (rnrs)
@@ -1674,17 +1758,25 @@ must be finalised with @func{connect-finish}.
 @findex @func{PQreset}
 Wrapper for @func{PQreset}.  Reset the database connection referenced by
 @var{conn}: close the connection and try to open it again with the same
-parameters.
+parameters.  Notice that this function does @strong{not} directly report
+success or failure; however we can inspect the status of the connection
+with @func{status}.  @ref{inspect, Inspection}.
 @end defun
 
+@c ------------------------------------------------------------
+
+@subsubheading Deprecated functions
 
 @defun set-db-login @var{pghost} @var{pgport} @var{pgoptions} @var{pgtty} @var{dbname} @var{login} @var{pwd}
 @findex @func{PQsetdbLogin}
 Wrapper for @func{PQsetdbLogin}.  Connect to a database according to the
-given arguments, which must be Scheme strings @var{connect-info} or
-@false{} when the default value is desired; this function is deprecated
-in favor of the above ones.  Return an object of type
-@objtype{connection}.
+given arguments, which must be Scheme strings (like in the
+@var{info-string} argument to @func{connect-db}) or @false{} when the
+default value is desired.
+
+Return an object of type @objtype{connection} (which must be finalised
+with @func{connect-finish}) or raise an @condition{out-of-memory}
+exception if not enough memory was available to allocate it.
 @end defun
 
 
@@ -1698,17 +1790,23 @@ Call @func{set-db-login} with @var{login} and @var{pwd} set to @false{}.
 @section Connecting asynchronously
 
 
-In the following descriptions, the @var{conn} argument is always a
-Scheme object of type @objtype{connection}.
+We can use the following functions to execute the connection operations
+asynchronously; lengthy connection operations can be interleaved with
+other tasks by means of an event loop.  In the following descriptions,
+the @var{conn} argument is always a Scheme object of type
+@objtype{connection}.
 
 
 @defun connect-start
-@defunx connect-start @var{connect-info}
+@defunx connect-start @var{info-string}
 @findex @func{PQconnectStart}
 Wrapper for @func{PQconnectStart}.  Begin connecting to a database
 without blocking; the argument is the same as the one to
-@func{connect-db}.  Return an object of type @objtype{connection}, which
-must be finalised with @func{connect-finish}.
+@func{connect-db}.
+
+Return an object of type @objtype{connection} (which must be finalised
+with @func{connect-finish}) or raise an @condition{out-of-memory}
+exception if not enough memory was available to allocate it.
 @end defun
 
 
@@ -1716,8 +1814,15 @@ must be finalised with @func{connect-finish}.
 @findex @func{PQconnectPoll}
 Wrapper for @func{PQconnectPoll}.  Query the connection object
 @var{conn} for the next action to perform in a non--blocking connection
-operation; return an enumeration set of type @enum{polling-status}.
-Raise an exception if the polling status is @code{PGRES_POLLING_FAILED}.
+operation.  If successful: return an enumeration set of type
+@enum{polling-status}.
+
+If the polling status is @code{PGRES_POLLING_FAILED}: raise an exception
+with compound condition object of types
+@condition{postgresql-poll-error}, @condition{connection},
+@condition{who}, @condition{message}.
+
+The following example shows the mechanics of @func{connect-poll} usage:
 
 @smallexample
 (import (nausicaa)
@@ -1757,14 +1862,19 @@ Raise an exception if the polling status is @code{PGRES_POLLING_FAILED}.
         (set! timeout.usec 0))
 
       (let loop ((status (pg:polling-status writing)))
-        (cond ((enum-set=? status (pg:polling-status ok))
-               #t)
-              ((enum-set=? status (pg:polling-status reading))
-               (%poll rd-fdset)
-               (loop (pg:connect-poll conn)))
-              ((enum-set=? status (pg:polling-status writing))
-               (%poll wr-fdset)
-               (loop (pg:connect-poll conn))))))
+        (case (pg:polling-status->symbol status)
+
+          ((ok)  #t)
+
+          ((reading)
+           (%poll rd-fdset)
+           (loop (pg:connect-poll conn)))
+
+          ((writing)
+           (%poll wr-fdset)
+           (loop (pg:connect-poll conn)))
+
+          (else  #f))))
 
       ---))
 @end smallexample
@@ -1790,10 +1900,14 @@ succeeds and we can go on by calling @func{reset-poll}.
 @findex @func{PQresetPoll}
 Wrapper for @func{PQresetPoll}.  Query the connection object @var{conn}
 for the next action to perform in a non--blocking reset operation;
-return an enumeration set of type @enum{polling-status}.  Raise an
-exception if the polling status is @code{PGRES_POLLING_FAILED}.
+return an enumeration set of type @enum{polling-status}.
 
-Usage of this function if equal to the usage of @func{connect-poll}.
+If the polling status is @code{PGRES_POLLING_FAILED}: raise an exception
+with compound condition object of types
+@condition{postgresql-poll-error}, @condition{connection},
+@condition{who}, @condition{message}.
+
+Usage of this function is equal to the usage of @func{connect-poll}.
 @end defun
 
 
@@ -1819,15 +1933,23 @@ referenced by @var{conn}.
 @findex @func{PQconndefaults}
 Wrapper for @func{PQconndefaults}.  Return a list of records of type
 @class{connect-option} representing the default connection options.
+
+Raise an @condition{out-of-memory} exception if not enough memory is
+available.
 @end defun
 
 
-@defun connection-info-parse @var{connect-info}
+@defun connection-info-parse @var{info-string}
 @findex @func{PQconninfoParse}
 Wrapper for @func{PQconninfoParse}.  Parse the Scheme string
-@var{connect-info} as a list of connection options; return a list of
-records of type @class{connect-option}.  If the string is invalid, raise
-an exception.
+@var{info-string} as a list of connection options; return a list of
+records of type @class{connect-option}.
+
+If the string is invalid, raise an exception with compound condition
+object of types: @condition{postgresql-info-error},
+@condition{connect-info}, @condition{who}, @condition{message}.  Raise
+an @condition{out-of-memory} exception if not enough memory is
+available.
 @end defun
 
 @c page
@@ -1837,11 +1959,10 @@ an exception.
 
 The following bindings are exported by the @library{foreign databases
 postgresql primitives} library and reexported by the @library{foreign
-databases postgresql} library.  It is suggested to import these
-libraries by prefixing the bindings, for example with @code{pg:}.
-
-In the following descriptions, the @var{conn} argument is always a
-Scheme object of type @objtype{connection}.
+databases postgresql} library; it is suggested to import these libraries
+by prefixing the bindings, for example with @code{pg:}.  In the
+following descriptions, the @var{conn} argument is always a Scheme
+object of type @objtype{connection}.
 
 
 @defun status @var{conn}
@@ -1860,8 +1981,8 @@ Wrapper for @func{PQstatus}.  Return an enumeration set of type
 @defunx status/setenv? @var{conn}
 @defunx status/ssl-startup? @var{conn}
 @defunx status/needed? @var{conn}
-Return @true{} if the state of the @objtype{connection} object @var{conn}
-is the name one.
+Return @true{} if the state of the @objtype{connection} object
+@var{conn} is the named one.
 @end defun
 
 
@@ -1982,7 +2103,7 @@ host).
 @end defun
 
 
-@defun connection-needs-password @var{conn}
+@defun connection-needs-password? @var{conn}
 @findex @func{PQconnectionNeedsPassword}
 Wrapper for @func{PQconnectionNeedsPassword}.  Return @true{} if the
 connection authentication method required a password, but none was
@@ -1990,7 +2111,7 @@ available.
 @end defun
 
 
-@defun connection-used-password @var{conn}
+@defun connection-used-password? @var{conn}
 @findex @func{PQconnectionUsedPassword}
 Wrapper for @func{PQconnectionUsedPassword}.  Return @true{} if the
 connection authentication method used a password.

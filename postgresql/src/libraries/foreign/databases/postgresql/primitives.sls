@@ -68,8 +68,8 @@
     connection-server-version		;; PQserverVersion
     connection-error-message		;; PQerrorMessage
     connection-backend-pid		;; PQbackendPID
-    connection-needs-password		;; PQconnectionNeedsPassword
-    connection-used-password		;; PQconnectionUsedPassword
+    connection-needs-password?		;; PQconnectionNeedsPassword
+    connection-used-password?		;; PQconnectionUsedPassword
     connection-get-ssl			;; PQgetssl
 
     clear-result			;; PQclear
@@ -272,10 +272,10 @@
   (let ((v (PQconnectPoll (connection->pointer conn))))
     (if (= v PGRES_POLLING_FAILED)
 	(raise
-	 (condition (make-postgresql-error-condition)
+	 (condition (make-postgresql-poll-error-condition)
 		    (make-connection-condition conn)
 		    (make-who-condition 'connect-poll)
-		    (make-message-condition (connection-error-message))))
+		    (make-message-condition (connection-error-message conn))))
       (value->polling-status v))))
 
 (define (connect-poll* conn)
@@ -307,16 +307,16 @@
   (PQreset (connection->pointer conn)))
 
 (define (reset-start conn)
-  (if (PQconnectStart (connection->pointer conn)) #t #f))
+  (if (zero? (PQresetStart (connection->pointer conn))) #f #t))
 
 (define (reset-poll conn)
   (let ((v (PQresetPoll (connection->pointer conn))))
     (if (= v PGRES_POLLING_FAILED)
 	(raise
-	 (condition (make-postgresql-error-condition)
+	 (condition (make-postgresql-poll-error-condition)
 		    (make-connection-condition conn)
-		    (make-who-condition 'connect-poll)
-		    (make-message-condition (connection-error-message))))
+		    (make-who-condition 'reset-poll)
+		    (make-message-condition (connection-error-message conn))))
       (value->polling-status v))))
 
 (define (reset-poll* conn)
@@ -354,7 +354,11 @@
 		  (raise-out-of-memory 'connection-info-parse #f)
 		(begin
 		  (push-compensation (primitive-free msg*))
-		  (error 'connection-info-parse (cstring->string msg*) info))))
+		  (raise
+		   (condition (make-postgresql-info-error-condition)
+			      (make-connect-info-condition info)
+			      (make-who-condition 'connection-info-parse)
+			      (make-message-condition (cstring->string msg*)))))))
 	  (%connect-options-array->list arry*))))))
 
 
@@ -452,10 +456,10 @@
 (define (connection-backend-pid conn)
   (integer->pid (PQbackendPID (connection->pointer conn))))
 
-(define (connection-needs-password conn)
+(define (connection-needs-password? conn)
   (not (zero? (PQconnectionNeedsPassword (connection->pointer conn)))))
 
-(define (connection-used-password conn)
+(define (connection-used-password? conn)
   (not (zero? (PQconnectionUsedPassword (connection->pointer conn)))))
 
 (define (connection-get-ssl conn)
@@ -474,7 +478,7 @@
 		      (make-connection-condition conn)
 		      (make-query-string-condition query)
 		      (make-who-condition 'exec-script)
-		      (make-message-condition (connection-error-message))))
+		      (make-message-condition (connection-error-message conn))))
 	(pointer->query-result p)))))
 
 (define (exec-parametrised-query conn query parms textual-result?)
@@ -534,7 +538,7 @@
 		      (make-connection-condition conn)
 		      (make-query-string-condition query)
 		      (make-who-condition 'exec-script/send)
-		      (make-message-condition (connection-error-message))))
+		      (make-message-condition (connection-error-message conn))))
 	#t))))
 
 (define (exec-parametrised-query/send conn query parms textual-result?)
