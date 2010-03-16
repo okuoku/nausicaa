@@ -27,14 +27,14 @@ Ypsilon  Scheme  and it  currently  supports only  GNU+Linux
 systems.
 
   The  last   time  the  author  bothered   to  update  this
-paragraph,  he had  tested  Cairo version  1.8.8 and  Pixman
-version 0.16.2.
+paragraph,  he had tested  Cairo version  1.8.10 (previously
+1.8.8) and Pixman version 0.17.10 (previously 0.16.2).
 
 
 2. License
 ----------
 
-Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 
 This  program  is free  software:  you  can redistribute  it
 and/or modify it  under the terms of the  GNU General Public
