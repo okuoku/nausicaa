@@ -655,6 +655,10 @@ the platform library.  The bindings to the Scheme functions have the
 same name of the C functions, but the prefix @code{cblas_} is stripped;
 so @cfunc{cblas_sdsdot} is available as @func{sdsdot}.
 
+Some platform functions are wrapped by a primitive function which
+implements marshaling of arguments; these functions are @strong{not}
+reentrant.
+
 @item foreign math blas
 Compound library exporting the high--level @api{}; it reexports bindings
 from the @samp{primitives} library and the constant values from the
@@ -733,7 +737,7 @@ In this document the meaning of the function arguments is as follows.
 An exact non--negative integer representing the dimension of the
 problem; for example the number of elements in vector arguments.
 
-@item @var{SB}
+@item @var{SA} @var{SB} @var{SC} @var{SS} @var{SD}
 Single--precision floating point number.
 
 @item @var{SX} @var{SY}
@@ -996,11 +1000,178 @@ SDSDOT = SB + SX * SY^T
 
 
 @defun snrm2 @var{N} @var{SX} @var{INC-X}
-Return the euclidean norm of a vector via the function name, so that:
+Return the euclidean norm of a vector.
 
 @example
 SNRM2 = sqrt( SX * SX^T )
 @end example
+@end defun
+
+
+@defun sasum @var{N} @var{SX} @var{INC-X}
+Return the sum of the absolute values of the elements of a vector.
+
+@example
+SASUM = sum_i abs( SX(i) )
+@end example
+@end defun
+
+
+@defun isamax @var{N} @var{SX} @var{INC-X}
+Return the index of a vector element having maximum absolute value.
+@end defun
+
+
+@defun sswap @var{N} @var{SX} @var{INC-X} @var{SY} @var{INC-Y}
+Interchange the elements of two vectors.
+
+@example
+(import (rnrs)
+  (prefix (foreign math blas vm) vm:)
+  (prefix (foreign math blas) blas:))
+
+(with-compensations
+  (let* ((N       3)
+         (SX      (vm:svec/c N))
+         (SY      (vm:svec/c N)))
+    (vm:svec-fill! SX 1 '(1. 2. 3.))
+    (vm:svec-fill! SY 1 '(4. 5. 6.))
+    (blas:sswap N SX 1 SY 1)
+
+    (vm:svec->list N SX 1) @result{} (4. 5. 6.)
+    (vm:svec->list N SY 1) @result{} (1. 2. 3.)
+    ))
+@end example
+@end defun
+
+
+@defun scopy @var{N} @var{SX} @var{INC-X} @var{SY} @var{INC-Y}
+Copy elements from @var{SX} to @var{SY}.
+@end defun
+
+
+@defun saxpy @var{N} @var{SA} @var{SX} @var{INC-X} @var{SY} @var{INC-Y}
+Mutate the elements of @var{SY} as follows:
+
+@example
+SY(i) = SA * SX(i) + SY(i)
+@end example
+@end defun
+
+
+@defun srotg @var{SA} @var{SB}
+Compute a Givens rotation@footnote{For an introduction see (@aurl{} last
+verified Wed Mar 17, 2010):
+
+@center @url{http://en.wikipedia.org/wiki/Givens_rotation}}
+which zeroes the second component of the vector of elements @var{SA} and
+@var{SB}; that is, compute @math{SC} and @math{SS} such that:
+
+@example
+ SC * SA + SS * SB = SR      SR = sqrt( SA^2 + SB^2 )
+-SS * SA + SC * SB = 0
+@end example
+
+@noindent
+return two values being @var{SC} and @var{SS}.
+
+@example
+(receive (SC SS)
+    (blas:srotg 2. 3.)
+  ---)
+@end example
+@end defun
+
+
+@defun srot @var{N} @var{SX} @var{INC-X} @var{SY} @var{INC-Y} @var{SC} @var{SS}
+Apply a Givens rotation to the vectors @var{SX} and @var{SY}; the
+vectors are mutated to the result.  The mutated elements are computed
+as:
+
+@example
+SX(i) =  SC * SX(i) + SS * SY(i)
+SY(i) = -SS * SX(i) + SC * SY(i)
+@end example
+
+@noindent
+and the vectors can be of any length.
+
+@example
+(import (rnrs)
+  (prefix (foreign math blas vm) vm:)
+  (prefix (foreign math blas) blas:))
+
+(let* ((SA    2.)
+       (SB    3.)
+       (SR    (sqrt (+ (sqr SA) (sqr SB)))))
+  (receive (SC SS)
+      (blas:srotg SA SB)
+    (with-compensations
+      (let* ((N   2)
+             (SX  (vm:svec/c N))
+             (SY  (vm:svec/c N)))
+        (vm:svec-fill! SX 1 (list SA SA))
+        (vm:svec-fill! SY 1 (list SB SB))
+        (blas:srot N SX 1 SY 1 SC SS)
+
+        (vm:svec->list N SX 1) @result{} `(,SR ,SR)
+        (vm:svec->list N SY 1) @result{} (0. 0.)
+        ))))
+@end example
+@end defun
+
+
+@defun srotmg @var{SD1} @var{SD2} @var{SX1} @var{SY1} @var{SPARAM}
+Construct the modified Givens transformation matrix @math{SH} which
+zeros the second component of the vector with elements @math{SA} and
+@math{SB}:
+
+@example
+SA = sqrt(SD1) * SX1
+SB = sqrt(SD2) * SY2
+@end example
+
+@noindent
+that is:
+
+@example
+SH(1,1) * SA + SH(1,2) * SB = SR
+SH(2,1) * SA + SH(2,2) * SB = 0
+@end example
+
+
+with sparam(1)=SFLAG, @math{H} has one of the following forms:
+
+@example
+SFLAG=-1     SFLAG=0        SFLAG=1     SFLAG=-2
+
+  (SH11  SH12)    (1  SH12)    (SH11  1)    (1  0)
+H=(          )    (       )    (       )    (    )
+  (SH21  SH22),   (SH21  1),   (-1 SH22),   (0  1).
+@end example
+
+locations 2-4 of sparam contain SH11,SH21,SH12, AND SH22 respectively.
+(values of 1, -1, or 0 implied by the value of SPARAM(1) are
+not stored in SPARAM.)
+
+Arguments
+=========
+
+SD1    (input/output) REAL
+
+SD2    (input/output) REAL
+
+SX1    (input/output) REAL
+
+SY1    (input) REAL
+
+
+SPARAM (input/output)  REAL array, dimension 5
+SPARAM(1)=SFLAG
+SPARAM(2)=SH11
+SPARAM(3)=SH21
+SPARAM(4)=SH12
+SPARAM(5)=SH22
 @end defun
 
 @c page
@@ -1010,6 +1181,18 @@ SNRM2 = sqrt( SX * SX^T )
 @c page
 @node level1 single complex
 @section Level 1 single--precision complex numbers
+
+
+
+@defun scnrm2 @var{N} @var{CX} @var{INC-X}
+Return the euclidean norm of a vector.
+
+@example
+SCNRM2 = sqrt( conjg( CX^T ) * CX )
+@end example
+@end defun
+
+
 
 @c page
 @node level1 double complex
@@ -1045,8 +1228,7 @@ x_i^2@}} of the vector @var{x}.
 @end defun
 
 
-@defun scnrm2 @var{n} @var{x} @var{inc-x}
-@defunx dznrm2 @var{n} @var{x} @var{inc-x}
+@defun dznrm2 @var{n} @var{x} @var{inc-x}
 These functions compute the Euclidean norm of the complex vector
 @var{x}:
 
@@ -1056,8 +1238,7 @@ These functions compute the Euclidean norm of the complex vector
 @end defun
 
 
-@defun sasum @var{n} @var{x} @var{inc-x}
-@defunx dasum @var{n} @var{x} @var{inc-x}
+@defun dasum @var{n} @var{x} @var{inc-x}
 These functions compute the absolute sum @math{\sum |x_i|} of the
 elements of the vector @var{x}.
 @end defun
@@ -1074,8 +1255,7 @@ imaginary parts of the complex vector @var{x}:
 @end defun
 
 
-@defun isamax @var{n} @var{x} @var{inc-x}
-@defunx idamax @var{n} @var{x} @var{inc-x}
+@defun idamax @var{n} @var{x} @var{inc-x}
 @defunx icamax @var{n} @var{x} @var{inc-x}
 @defunx izamax @var{n} @var{x} @var{inc-x}
 These functions return the index of the largest element of the vector
@@ -1088,8 +1268,7 @@ vectors and by the sum of the magnitudes of the real and imaginary parts
 @end defun
 
 
-@defun sswap @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
-@defunx dswap @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defun dswap @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
 @defunx cswap @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
 @defunx zswap @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
 These functions exchange the elements of the vectors @var{x} and
@@ -1097,8 +1276,7 @@ These functions exchange the elements of the vectors @var{x} and
 @end defun
 
 
-@defun scopy @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
-@defunx dcopy @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defun dcopy @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
 @defunx ccopy @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
 @defunx zcopy @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y}
 These functions copy the elements of the vector @var{x} into the vector
@@ -1106,8 +1284,7 @@ These functions copy the elements of the vector @var{x} into the vector
 @end defun
 
 
-@defun saxpy @var{n} @var{alpha} @var{x} @var{inc-x} @var{y} @var{inc-y}
-@defunx daxpy @var{n} @var{alpha} @var{x} @var{inc-x} @var{y} @var{inc-y}
+@defun daxpy @var{n} @var{alpha} @var{x} @var{inc-x} @var{y} @var{inc-y}
 @defunx caxpy @var{n} @var{alpha} @var{x} @var{inc-x} @var{y} @var{inc-y}
 @defunx zaxpy @var{n} @var{alpha} @var{x} @var{inc-x} @var{y} @var{inc-y}
 These functions compute the sum @math{y = \alpha x + y} for the vectors
@@ -1115,8 +1292,7 @@ These functions compute the sum @math{y = \alpha x + y} for the vectors
 @end defun
 
 
-@defun srotg (float @var{a}[], float @var{b}[], float @var{c}[], float @var{s}[])
-@defunx drotg (double @var{a}[], double @var{b}[], double @var{c}[], double @var{s}[])
+@defun drotg (double @var{a}[], double @var{b}[], double @var{c}[], double @var{s}[])
 These functions compute a Givens rotation @math{(c,s)} which zeroes the
 vector @math{(a,b)}:
 
@@ -1130,8 +1306,7 @@ the variables @var{a} and @var{b} are overwritten by the routine.
 @end defun
 
 
-@defun srot @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y} @var{c} @var{s}
-@defunx drot @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y} @var{c} @var{s}
+@defun drot @var{n} @var{x} @var{inc-x} @var{y} @var{inc-y} @var{c} @var{s}
 These functions apply a Givens rotation:
 
 @example
@@ -1144,8 +1319,7 @@ to the vectors @var{x}, @var{y}.
 @end defun
 
 
-@defun srotmg (float @var{d1}[], float @var{d2}[], float @var{b1}[], float @var{b2}, float @var{P}[])
-@defunx drotmg (double @var{d1}[], double @var{d2}[], double @var{b1}[], double @var{b2}, double @var{P}[])
+@defun drotmg (double @var{d1}[], double @var{d2}[], double @var{b1}[], double @var{b2}, double @var{P}[])
 These functions compute a modified Givens transformation.  The modified
 Givens transformation is defined in the original Level-1 @sc{blas}
 specification, given in the references.

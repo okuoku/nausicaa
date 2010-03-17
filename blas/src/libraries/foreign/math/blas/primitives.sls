@@ -27,6 +27,9 @@
 
 (library (foreign math blas primitives)
   (export
+
+    srotg	srotmg
+
     (rename (cblas_sdsdot		sdsdot)
 	    (cblas_dsdot		dsdot)
 	    (cblas_sdot			sdot)
@@ -69,8 +72,8 @@
 	    (cblas_zaxpy		zaxpy)
 
 	     ;;Routines with S and D prefix only.
-	    (cblas_srotg		srotg)
-	    (cblas_srotmg		srotmg)
+;;;	    (cblas_srotg		srotg)
+;;;	    (cblas_srotmg		srotmg)
 	    (cblas_srot			srot)
 	    (cblas_srotm		srotm)
 	    (cblas_drotg		drotg)
@@ -194,10 +197,21 @@
   (import (rnrs)
     (compensations)
     (foreign ffi)
+    (only (foreign ffi sizeof) strideof-double)
     (foreign memory)
     (foreign cstrings)
     (foreign math blas platform)
     (foreign math blas sizeof))
+
+
+;;;; boxes
+
+(define box-length (* 2 strideof-double))
+(define box1 (malloc box-length))
+(define box2 (malloc box-length))
+(define box3 (malloc box-length))
+(define box4 (malloc box-length))
+
 
 
 ;;;; level 1 BLAS functions
@@ -255,6 +269,42 @@
 ;; (define-prim void zaxpy (int N) (void* alpha) (void* X) (int incX) (void* Y) (int incY))
 
 ;; ;;; Routines with S and D prefix only
+
+(define (srotg sa sb)
+  (let ((sa*	box1)
+	(sb*	box2)
+	(c*	box3)
+	(s*	box4))
+    (pointer-set-c-float! sa* 0 sa)
+    (pointer-set-c-float! sb* 0 sb)
+    (cblas_srotg sa* sb* c* s*)
+    (values (pointer-ref-c-float c* 0)
+	    (pointer-ref-c-float s* 0))))
+
+(define (srotmg sa sb sc sd flag sh)
+  (if (= -2 flag)
+      (begin
+	(pointer-set-c-float! sh 0 1.)  ;SH(1,1)
+	(pointer-set-c-float! sh 1 0.)  ;SH(2,1)
+	(pointer-set-c-float! sh 2 0.)  ;SH(1,2)
+	(pointer-set-c-float! sh 3 1.))	;SH(2,2)
+    (let ((sa*	box1)
+	  (sb*	box2)
+	  (sc*	box3))
+      (pointer-set-c-float! sa* 0 sa)
+      (pointer-set-c-float! sb* 0 sb)
+      (pointer-set-c-float! sc* 0 sc)
+      (cblas_srotmg sa* sb* sc* sd sh)
+      (case flag
+	((1) (values))
+	((0)
+	 (pointer-set-c-float! sh 0 1.)  ;SH(1,1)
+	 (pointer-set-c-float! sh 3 1.)) ;SH(2,2)
+	((-1)
+	 (pointer-set-c-float! sh 1 -1.)  ;SH(2,1)
+	 (pointer-set-c-float! sh 2 -1.)) ;SH(1,2)
+	(else
+	 (assertion-violation 'srotmg "invalid flag value, must be: 1, 0, -1 or -2" flag))))))
 
 ;; (define-prim void srotg (float* a) (float* b) (float* c) (float* s))
 ;; (define-prim void srotmg (float* d1) (float* d2) (float* b1) (float b2) (float* P))
