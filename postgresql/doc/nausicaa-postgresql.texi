@@ -1553,6 +1553,9 @@ Accessor for the field of condition objects of type
 * conditions error error::      Error condition object.
 * conditions error info::       Connection info error.
 * conditions error poll::       Connection polling error.
+* conditions error exec::       Query execution error.
+* conditions error prepare::    Statement preparation error.
+* conditions error config::     Connection configuration error.
 * conditions error cancel::     @sql{} command cancel error.
 * conditions error copy::       @code{COPY} command errors.
 @end menu
@@ -1609,6 +1612,60 @@ connection polling error; it is derived from
 @defunx postgresql-poll-error-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{postgresql-poll-error}.
+@end defun
+
+@c page
+@node conditions error exec
+@subsection Query execution error
+
+
+@deftp {Condition Type} &postgresql-exec-error
+Condition type which tags compound condition objects used to signal a
+@sql{} command execution error; it is derived from
+@condition{postgresql-error}.  It has no fields.
+@end deftp
+
+
+@defun make-postgresql-exec-error-condition
+@defunx postgresql-exec-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-exec-error}.
+@end defun
+
+@c page
+@node conditions error prepare
+@subsection Statement preparation error
+
+
+@deftp {Condition Type} &postgresql-prepare-error
+Condition type which tags compound condition objects used to signal a
+@sql{} statement preparation error; it is derived from
+@condition{postgresql-error}.  It has no fields.
+@end deftp
+
+
+@defun make-postgresql-prepare-error-condition
+@defunx postgresql-prepare-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-prepare-error}.
+@end defun
+
+@c page
+@node conditions error config
+@subsection Connection configuration error
+
+
+@deftp {Condition Type} &postgresql-config-error
+Condition type which tags compound condition objects used to signal a
+database connection configuration error; it is derived from
+@condition{postgresql-error}.  It has no fields.
+@end deftp
+
+
+@defun make-postgresql-config-error-condition
+@defunx postgresql-config-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-config-error}.
 @end defun
 
 @c page
@@ -2143,8 +2200,8 @@ argument is always a Scheme object of type @objtype{query-result}.
 
 @quotation
 @strong{NOTE} For an explanation of @acronym{OID} numbers in @pg{}, see
-the ``Objects Identifier Types'' in the original documentation (@aurl{}
-last verified Thu Feb 18, 2010):
+the section ``Objects Identifier Types'' in the original documentation
+(@aurl{} last verified Thu Feb 18, 2010):
 
 @center @url{http://www.postgresql.org/docs/8.4/static/datatype-oid.html}
 
@@ -2175,24 +2232,33 @@ and notice that @acronym{OID} numbers are by definition of type
 @section Synchronous commands execution
 
 
-The functions raise an exception in case a non--result error is
-detected; the client code should test the returned
+The following functions raise an exception in case a non--result error
+is detected; the client code should test the returned
 @objtype{query-result} object for errors by itself.
 
 
 @defun exec-script @var{conn} @var{query-string}
 @findex @func{PQexec}
-Wrapper for @func{PQexec}.  Submit the query to the server and wait for
-the result, return a @objtype{query-result} object; in case of error
-raise an exception.
+Wrapper for @func{PQexec}.  Submit the @var{query-string} to the server;
+wait for the result and return a @objtype{query-result} object.
+
+In case of error, raise an exception with compound condition object of
+types: @condition{postgresql-exec-error}, @condition{connection},
+@condition{query-string}, @condition{who}, @condition{message}.
 @end defun
 
 
-@defun exec-parametrised-query @var{conn} @var{query-string} @var{query-parms} @var{textual-result?}
+@defun exec-parametrised-query @var{conn} @var{query-string} @var{query-parms}
+@defunx exec-parametrised-query @var{conn} @var{query-string} @var{query-parms} @var{textual-result?}
 @findex @func{PQexecParams}
 Wrapper for @func{PQexecParams}.  Execute the parametrised
 @var{query-string} in the context of the connection @var{conn}; wait for
 the query to complete and return a @objtype{query-result} object.
+
+In case of error raise an exception with compound condition object of
+types: @condition{postgresql-exec-error}, @condition{connection},
+@condition{query-string}, @condition{parameters}, @condition{who},
+@condition{message}.
 
 @var{query-string} must be the template for a query embedding place
 holders like @samp{$1}, @samp{$2}, @dots{} which are substituted by the
@@ -2200,12 +2266,18 @@ parameters in @var{query-parms}.  @var{query-parms} must be a list of
 @class{parameter} records.
 
 If @var{textual-result?} is true, the result holds textual data; else it
-holds binary data.
+holds binary data.  When not used, @var{textual-result?} defaults to
+true.
 @end defun
 
 @c page
 @node exec sync prepared
 @section Synchronous prepared statements execution
+
+
+The following functions raise an exception in case a non--result error
+is detected; the client code should test the returned
+@objtype{query-result} object for errors by itself.
 
 
 @defun prepare-statement @var{conn} @var{stmt-name} @var{query-string} @var{number-of-parms}
@@ -2215,40 +2287,60 @@ Wrapper for @func{PQprepare}.  Build a new prepared statement in the
 context of the connection @var{conn} and wait for completion of the
 operation; return a @objtype{query-result} object.
 
+In case of error, raise an exception with compound condition object of
+types: @condition{postgresql-prepare-error}, @condition{connection},
+@condition{statement-name}, @condition{query-string}, @condition{who},
+@condition{message}.
+
 @var{stmt-name} must be a Scheme string or symbol representing the name
 of the statement; if it is @false{}, the statement is unnamed.
 @var{query-string} must be a Scheme string representing the @sql{}
 command.  @var{number-of-parms} is the number of parameters in the
-@sql{} command.  The optional @var{parms-oid} must be a list of exact
-integers representing the @acronym{OID}s of the parameter's types; if
-@false{} or not given, types are left unspecified.
+@sql{} command.
+
+The optional @var{parms-oid} must be a list of exact integers
+representing the @acronym{OID}s of the parameter's types; if it is
+@false{} or not given, the types are left unspecified.
 @end defun
 
 
-@defun describe-prepared-statement @var{conn} @var{stmt-name}
+@defun describe-prepared-statement @var{conn}
+@defunx describe-prepared-statement @var{conn} @var{stmt-name}
 @findex @func{PQdescribePrepared}
 Wrapper for @func{PQdescribePrepared}.  Obtain informations about the
 specified prepared statement in the context of the connection
 @var{conn}, and waits for completion; return a @objtype{query-result}
 object.
 
+In case of error, raise an exception with compound condition object of
+types: @condition{postgresql-error}, @condition{connection},
+@condition{statement-name}, @condition{who}, @condition{message}.
+
 @var{stmt-name} must be a Scheme string or symbol representing the name
-of the statement; if it is @false{}, it the statement is unnamed.
+of the statement; if it is @false{}, the statement is unnamed.  When not
+used @var{stmt-name} defaults to false.
 @end defun
 
 
-@defun exec-prepared-statement @var{conn} @var{stmt-name} @var{query-parms} @var{textual-result?}
+@defun exec-prepared-statement @var{conn} @var{stmt-name} @var{query-parms}
+@defunx exec-prepared-statement @var{conn} @var{stmt-name} @var{query-parms} @var{textual-result?}
 @findex @func{PQexecPrepared}
 Wrapper for @func{PQexecPrepared}.  Execute the prepared statement named
 @var{stmt-name} in the context of the connection @var{conn}; wait for
 the query to complete and return a @objtype{query-result} object.
+
+In case of error, raise an exception with compound condition object of
+types: @condition{postgresql-exec-error}, @condition{connection},
+@condition{statement-name}, @condition{parameters}, @condition{who},
+@condition{message}.
 
 @var{stmt-name} must be a Scheme string or symbol representing the name
 of the statement; if it is @false{}, the statement is unnamed.
 @var{query-parms} must be a list of @class{parameter} records.
 
 If @var{textual-result?} is true, the result holds textual data; else it
-holds binary data.
+holds binary data.  When not used, @var{textual-result?} defaults to
+@true{}.
 @end defun
 
 @c page
@@ -2256,24 +2348,32 @@ holds binary data.
 @section Asynchronous commands execution
 
 
-The functions raise an exception in case a non--result error is
-detected; the client code should test the returned
-@objtype{query-result} object for errors by itself.
+The following functions do not return the result of the operation;
+@ref{exec async result} for the functions used to do so.
 
 
 @defun exec-script/send @var{conn} @var{query-string}
 @findex @func{PQsendQuery}
 Wrapper for @func{PQsendQuery}.  Send @var{query-string} to be executed
-asynchronously in the context of @var{conn}; return @true{} is
-successful, raise an exception if failure.
+asynchronously in the context of @var{conn}.
+
+In case of error raise an exception with compound condition object of
+types: @condition{postgresql-exec-error}, @condition{connection},
+@condition{query-string}, @condition{who}, @condition{message}.
 @end defun
 
 
-@defun exec-parametrised-query/send @var{conn} @var{query-string} @var{query-parms} @var{textual-result?}
+@defun exec-parametrised-query/send @var{conn} @var{query-string} @var{query-parms}
+@defunx exec-parametrised-query/send @var{conn} @var{query-string} @var{query-parms} @var{textual-result?}
 @findex @func{PQsendQueryParams}
 Wrapper for @func{PQsendQueryParams}.  Send the request to execute the
 parametrised @var{query-string} in the context of the connection
-@var{conn}; return @true{} if successful, raise an exception if failure.
+@var{conn}.
+
+In case of error raise an exception with compound condition object of
+types: @condition{postgresql-exec-error}, @condition{connection},
+@condition{query-string}, @condition{parameters}, @condition{who},
+@condition{message}.
 
 @var{query-string} must be the template for a query embedding place
 holders like @samp{$1}, @samp{$2}, @dots{} which are substituted by the
@@ -2281,7 +2381,8 @@ parameters in @var{query-parms}.  @var{query-parms} must be a list of
 @class{parameter} records.
 
 If @var{textual-result?} is true, the result holds textual data; else it
-holds binary data.
+holds binary data.  When not used, @var{textual-result?} defaults to
+true.
 @end defun
 
 @c page
@@ -2289,20 +2390,30 @@ holds binary data.
 @section Asynchronous prepared statements execution
 
 
+The following functions do not return the result of the operation;
+@ref{exec async result} for the functions used to do so.
+
+
 @defun prepare-statement/send @var{conn} @var{stmt-name} @var{query-string} @var{number-of-parms}
 @defunx prepare-statement/send @var{conn} @var{stmt-name} @var{query-string} @var{number-of-parms} @var{parms-oid}
 @findex @func{PQsendPrepare}
 Wrapper for @func{PQsendPrepare}.  Send the request to build a new
-prepared statement in the context of the connection @var{conn} and wait
-for completion of the operation; return @true{} if successful, raise an
-exception if failure.
+prepared statement in the context of the connection @var{conn},
+@strong{without} waiting for completion.
+
+In case of error, raise an exception with compound condition object of
+types: @condition{postgresql-prepare-error}, @condition{connection},
+@condition{statement-name}, @condition{query-string}, @condition{who},
+@condition{message}.
 
 @var{stmt-name} must be a Scheme string or symbol representing the name
 of the statement; if it is @false{}, the statement is unnamed.
 @var{query-string} must be a Scheme string representing the @sql{}
 command.  @var{number-of-parms} is the number of parameters in the
-@sql{} command.  The optional @var{parms-oid} must be a list of exact
-integers representing the @acronym{OID}s of the parameter's types; if
+@sql{} command.
+
+The optional @var{parms-oid} must be a list of exact integers
+representing the @acronym{OID}s of the parameter's types; if it is
 @false{} or not given, types are left unspecified.
 @end defun
 
@@ -2311,27 +2422,37 @@ integers representing the @acronym{OID}s of the parameter's types; if
 @findex @func{PQsendDescribePrepared}
 Wrapper for @func{PQsendDescribePrepared}.  Send the request to obtain
 information about the specified prepared statement in the context of the
-connection @var{conn}, and waits for completion; return @true{} is
-successful, raise an exception if failure.
+connection @var{conn}, @strong{without} waiting for completion.
+
+In case of error, raise an exception with compound condition object of
+types: @condition{postgresql-error}, @condition{connection},
+@condition{statement-name}, @condition{who}, @condition{message}.
 
 @var{stmt-name} must be a Scheme string or symbol representing the name
-of the statement; if it is @false{}, it the statement is unnamed.
+of the statement; if it is @false{}, it the statement is unnamed.  When
+not used @var{stmt-name} defaults to false.
 @end defun
 
 
-@defun exec-prepared-statement/send @var{conn} @var{stmt-name} @var{query-parms} @var{textual-result?}
+@defun exec-prepared-statement/send @var{conn} @var{stmt-name} @var{query-parms}
+@defunx exec-prepared-statement/send @var{conn} @var{stmt-name} @var{query-parms} @var{textual-result?}
 @findex @func{PQsendQueryPrepared}
 Wrapper for @func{PQsendQueryPrepared}.  Send the request to execute the
 prepared statement named @var{stmt-name} in the context of the
-connection @var{conn}; return @true{} if successful, raise an exception
-if failure.
+connection @var{conn}, @strong{without} waiting for completion.
+
+In case of error, raise an exception with compound condition object of
+types: @condition{postgresql-exec-error}, @condition{connection},
+@condition{statement-name}, @condition{parameters}, @condition{who},
+@condition{message}.
 
 @var{stmt-name} must be a Scheme string or symbol representing the name
 of the statement; if it is @false{}, the statement is unnamed.
 @var{query-parms} must be a list of @class{parameter} records.
 
 If @var{textual-result?} is true, the result holds textual data; else it
-holds binary data.
+holds binary data.  When not used @var{textual-result?} defaults to
+true.
 @end defun
 
 @c page
@@ -2355,7 +2476,11 @@ statements, a result for each statement is produced.
 @findex @func{PQconsumeInput}
 Wrapper for @func{PQconsumeInput}.  Consume incoming input from
 @var{conn} and store it internally, to be retrieved later with
-@func{connection-get-result}.  Raise an exception if an error occurs.
+@func{connection-get-result}.
+
+If an error occurs, raise an exception with compound condition object of
+types: @condition{postgresql-exec-error}, @condition{connection},
+@condition{who}, @condition{message}.
 
 Notice that a single call to this function can make available data for
 more @objtype{query-result} objects; so more calls to
@@ -2377,17 +2502,23 @@ sense to call this function only after a call to
 @section Handling asynchronous write operations
 
 
-@defun connection-set-non-blocking @var{conn}
+@defun connection-set-blocking @var{conn}
+@defunx connection-set-non-blocking @var{conn}
 @findex @func{PQsetnonblocking}
-Wrapper for @func{PQsetnonblocking}.  Set the non--blocking mode for
-@var{conn}.  Raise an exception in case of error.
+@findex @func{PQsetnonblocking}
+Wrapper for @func{PQsetnonblocking}.  Set the blocking or non--blocking
+mode for @var{conn}.
+
+In case of error, raise an exception with compound condition object of
+types: @condition{postgresql-config-error}, @condition{connection},
+@condition{who}, @condition{message}.
 @end defun
 
 
-@defun connection-set-blocking @var{conn}
-@findex @func{PQsetnonblocking}
-Wrapper for @func{PQsetnonblocking}.  Set the blocking mode for
-@var{conn}.  Raise an exception in case of error.
+@defun connection-is-blocking? @var{conn}
+@findex @func{PQisnonblocking}
+Wrapper for @func{PQisnonblocking}.  Return @true{} if @var{conn} is in
+blocking mode, @false{} otherwise.
 @end defun
 
 
@@ -2402,8 +2533,11 @@ non--blocking mode, @false{} otherwise.
 @findex @func{PQflush}
 Wrapper for @func{PQflush}.  Attempt to flush to the server pending data
 in @var{conn}; return @true{} if more data is pending and needs to be
-flushed, return @false{} if all the data has been flushed.  Raise an
-exception if an error occurs.
+flushed, return @false{} if all the data has been flushed.
+
+If an error occurs, raise an exception with compound condition object of
+types: @condition{postgresql-exec-error}, @condition{connection},
+@condition{who}, @condition{message}.
 @end defun
 
 @c page
@@ -2412,7 +2546,8 @@ exception if an error occurs.
 
 
 The following example program shows the mechanics of database access
-through a non--blocking connection for both reading and writing.
+through a non--blocking connection, for both reading and writing; it
+requires the Nausicaa/@posix{} package.
 
 @smallexample
 (import (nausicaa)
@@ -2586,7 +2721,12 @@ through a non--blocking connection for both reading and writing.
 @findex @func{PQgetCancel}
 Wrapper for @func{PQgetCancel}.  Return an object of type
 @objtype{cancel-handler} which can be used to request the cancellation
-of the current @sql{} command.
+of the @sql{} command currently in execution in the context of
+@var{conn}.
+
+If @var{conn} is invalid, raise an exception with compound condition
+object of types: @condition{postgresql-error}, @condition{connection},
+@condition{who}, @condition{message}.
 @end defun
 
 
@@ -2599,9 +2739,12 @@ to the cancellation handler @var{cancel}.
 
 @defun cancel-command @var{cancel}
 @findex @func{PQcancel}
-Wrapper for @func{PQcancel}.  Submit a request to cancel the current
-@sql{} command; raise an exception if an error occurs dispatching the
-request.
+Wrapper for @func{PQcancel}.  Submit a request to cancel the @sql{}
+command associated to @var{cancel}.
+
+If an error occurs dispatching the request, raise an exception with
+compound condition object of types: @condition{postgresql-cancel-error},
+@condition{cancel-handler}, @condition{who}, @condition{message}.
 @end defun
 
 @c page

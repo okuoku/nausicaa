@@ -210,7 +210,8 @@
 ;;; --------------------------------------------------------------------
 
 	    (check
-		(pg:exec-script/send conn "
+		(begin
+		  (pg:exec-script/send conn "
 create table accounts (nickname TEXT,
                        password TEXT);
 insert into accounts (nickname, password)
@@ -220,6 +221,7 @@ insert into accounts (nickname, password)
 insert into accounts (nickname, password)
    values ('chad', 'fist');
 ")
+		  #t)
 	      => #t)
 
 	    (let flush ()
@@ -232,8 +234,10 @@ insert into accounts (nickname, password)
 ;;; --------------------------------------------------------------------
 
 	    (check
-		(pg:prepare-statement/send conn 'the-row
-					   "select * from accounts where nickname = $1;" 1)
+		(begin
+		  (pg:prepare-statement/send conn 'the-row
+					     "select * from accounts where nickname = $1;" 1)
+		  #t)
 	      => #t)
 
 	    (let flush ()
@@ -246,7 +250,9 @@ insert into accounts (nickname, password)
 ;;; --------------------------------------------------------------------
 
 	    (check
-		(pg:describe-prepared-statement/send conn 'the-row)
+		(begin
+		  (pg:describe-prepared-statement/send conn 'the-row)
+		  #t)
 	      => #t)
 
 	    (let flush ()
@@ -259,9 +265,11 @@ insert into accounts (nickname, password)
 ;;; --------------------------------------------------------------------
 
 	    (check
-		(pg:exec-prepared-statement/send conn 'the-row
-						 (list (pg:parameter "rukia"))
-						 #t)
+		(begin
+		  (pg:exec-prepared-statement/send conn 'the-row
+						   (list (pg:parameter "rukia"))
+						   #t)
+		  #t)
 	      => #t)
 
 	    (let flush ()
@@ -296,9 +304,11 @@ insert into accounts (nickname, password)
 ;;; --------------------------------------------------------------------
 
 	  (check
-	      (pg:exec-prepared-statement/send conn 'the-row
-					       (list (pg:parameter "rukia"))
-					       #t)
+	      (begin
+		(pg:exec-prepared-statement/send conn 'the-row
+						 (list (pg:parameter "rukia"))
+						 #t)
+		#t)
 	    => #t)
 
 	  (let ((cancel (pg:connection-get-cancel-handler/c conn)))

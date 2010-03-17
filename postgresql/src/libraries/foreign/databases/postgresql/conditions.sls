@@ -82,9 +82,21 @@
     make-postgresql-info-error-condition
     postgresql-info-error-condition?
 
+    &postgresql-exec-error
+    make-postgresql-exec-error-condition
+    postgresql-exec-error-condition?
+
+    &postgresql-prepare-error
+    make-postgresql-prepare-error-condition
+    postgresql-prepare-error-condition?
+
     &postgresql-cancel-error
     make-postgresql-cancel-error-condition
     postgresql-cancel-error-condition?
+
+    &postgresql-config-error
+    make-postgresql-config-error-condition
+    postgresql-config-error-condition?
 
     &postgresql-copy-error
     make-postgresql-copy-error-condition
@@ -196,28 +208,35 @@
   make-postgresql-error-condition
   postgresql-error-condition?)
 
-;;; --------------------------------------------------------------------
-
 (define-condition-type &postgresql-info-error
   &postgresql-error
   make-postgresql-info-error-condition
   postgresql-info-error-condition?)
 
-;;; --------------------------------------------------------------------
+(define-condition-type &postgresql-exec-error
+  &postgresql-error
+  make-postgresql-exec-error-condition
+  postgresql-exec-error-condition?)
+
+(define-condition-type &postgresql-prepare-error
+  &postgresql-error
+  make-postgresql-prepare-error-condition
+  postgresql-prepare-error-condition?)
 
 (define-condition-type &postgresql-poll-error
   &postgresql-error
   make-postgresql-poll-error-condition
   postgresql-poll-error-condition?)
 
-;;; --------------------------------------------------------------------
-
 (define-condition-type &postgresql-cancel-error
   &postgresql-error
   make-postgresql-cancel-error-condition
   postgresql-cancel-error-condition?)
 
-;;; --------------------------------------------------------------------
+(define-condition-type &postgresql-config-error
+  &postgresql-error
+  make-postgresql-config-error-condition
+  postgresql-config-error-condition?)
 
 (define-condition-type &postgresql-copy-error
   &postgresql-error
@@ -238,107 +257,6 @@
   &postgresql-copy-error
   make-postgresql-copy-end-error-condition
   postgresql-copy-end-error-condition?)
-
-;;; --------------------------------------------------------------------
-
-;; (define-condition-type &postgresql-opening-error
-;;   &postgresql-error
-;;   make-postgresql-opening-error-condition
-;;   postgresql-opening-error-condition?)
-
-;; (define-syntax raise-postgresql-opening-error
-;;   (syntax-rules ()
-;;     ((_ ?who ?message ?code ?database)
-;;      (raise-continuable
-;;       (condition (make-postgresql-opening-error-condition ?code)
-;; 		 (make-postgresql-database-condition ?database)
-;; 		 (make-who-condition ?who)
-;; 		 (make-message-condition ?message))))))
-
-;;; --------------------------------------------------------------------
-
-;; (define-condition-type &postgresql-querying-error
-;;   &postgresql-error
-;;   make-postgresql-querying-error-condition
-;;   postgresql-querying-error-condition?)
-
-;; (define-syntax raise-postgresql-querying-error
-;;   (syntax-rules ()
-;;     ((_ ?who ?message ?code ?session ?query)
-;;      (raise-continuable
-;;       (condition (make-postgresql-querying-error-condition ?code)
-;; 		 (make-postgresql-session-condition ?session)
-;; 		 (make-postgresql-query-condition ?query)
-;; 		 (make-who-condition ?who)
-;; 		 (make-message-condition ?message))))))
-
-;;; --------------------------------------------------------------------
-
-;; (define-condition-type &postgresql-preparing-error
-;;   &postgresql-error
-;;   make-postgresql-preparing-error-condition
-;;   postgresql-preparing-error-condition?)
-
-;; (define-syntax raise-postgresql-preparing-error
-;;   (syntax-rules ()
-;;     ((_ ?who ?message ?code ?session ?query)
-;;      (raise
-;;       (condition (make-postgresql-preparing-error-condition ?code)
-;; 		 (make-postgresql-session-condition ?session)
-;; 		 (make-postgresql-query-condition ?query)
-;; 		 (make-who-condition ?who)
-;; 		 (make-message-condition ?message))))))
-
-;;; --------------------------------------------------------------------
-
-;; (define-condition-type &postgresql-finalizing-error
-;;   &postgresql-error
-;;   make-postgresql-finalizing-error-condition
-;;   postgresql-finalizing-error-condition?)
-
-;; (define-syntax raise-postgresql-finalizing-error
-;;   (syntax-rules ()
-;;     ((_ ?who ?message ?code ?session ?statement)
-;;      (raise
-;;       (condition (make-postgresql-finalizing-error-condition ?code)
-;; 		 (make-postgresql-session-condition ?session)
-;; 		 (make-postgresql-statement-condition ?statement)
-;; 		 (make-who-condition ?who)
-;; 		 (make-message-condition ?message))))))
-
-;;; --------------------------------------------------------------------
-
-;; (define-condition-type &postgresql-resetting-error
-;;   &postgresql-error
-;;   make-postgresql-resetting-error-condition
-;;   postgresql-resetting-error-condition?)
-
-;; (define-syntax raise-postgresql-resetting-error
-;;   (syntax-rules ()
-;;     ((_ ?who ?message ?code ?session ?statement)
-;;      (raise
-;;       (condition (make-postgresql-resetting-error-condition ?code)
-;; 		 (make-postgresql-session-condition ?session)
-;; 		 (make-postgresql-statement-condition ?statement)
-;; 		 (make-who-condition ?who)
-;; 		 (make-message-condition ?message))))))
-
-;;; --------------------------------------------------------------------
-
-;; (define-condition-type &postgresql-stepping-error
-;;   &postgresql-error
-;;   make-postgresql-stepping-error-condition
-;;   postgresql-stepping-error-condition?)
-
-;; (define-syntax raise-postgresql-stepping-error
-;;   (syntax-rules ()
-;;     ((_ ?who ?message ?code ?session ?statement)
-;;      (raise
-;;       (condition (make-postgresql-stepping-error-condition ?code)
-;; 		 (make-postgresql-session-condition ?session)
-;; 		 (make-postgresql-statement-condition ?statement)
-;; 		 (make-who-condition ?who)
-;; 		 (make-message-condition ?message))))))
 
 
 ;;;; done

@@ -94,6 +94,7 @@
 
     connection-set-blocking		;; PQsetnonblocking
     connection-set-non-blocking		;; PQsetnonblocking
+    connection-is-blocking?		;; PQisnonblocking
     connection-is-non-blocking?		;; PQisnonblocking
     connection-flush			;; PQflush
 
@@ -474,57 +475,61 @@
     (let ((p (PQexec (connection->pointer conn) (string->cstring/c query))))
       (if (pointer-null? p)
 	  (raise
-	   (condition (make-postgresql-error-condition)
+	   (condition (make-postgresql-exec-error-condition)
 		      (make-connection-condition conn)
 		      (make-query-string-condition query)
 		      (make-who-condition 'exec-script)
 		      (make-message-condition (connection-error-message conn))))
 	(pointer->query-result p)))))
 
-(define (exec-parametrised-query conn query parms textual-result?)
-  (with-compensations
-    (let* ((number-of-parms	(length parms))
-	   (param-types*	(malloc-block/c (sizeof-Oid-array number-of-parms)))
-	   (param-values*	(malloc-block/c (sizeof-pointer-array number-of-parms)))
-	   (param-lengths*	(malloc-block/c (sizeof-int-array number-of-parms)))
-	   (param-formats*	(malloc-block/c (sizeof-int-array number-of-parms))))
+(define exec-parametrised-query
+  (case-lambda
+   ((conn query parms)
+    (exec-parametrised-query conn query parms #t))
+   ((conn query parms textual-result?)
+    (with-compensations
+      (let* ((number-of-parms	(length parms))
+	     (param-types*	(malloc-block/c (sizeof-Oid-array number-of-parms)))
+	     (param-values*	(malloc-block/c (sizeof-pointer-array number-of-parms)))
+	     (param-lengths*	(malloc-block/c (sizeof-int-array number-of-parms)))
+	     (param-formats*	(malloc-block/c (sizeof-int-array number-of-parms))))
 
-      (do ((i 0 (+ 1 i))
-	   (parms parms (cdr parms)))
-	  ((= i number-of-parms))
-	(let* ((par	(car parms))
-	       (text?	(<parameter>-text? par))
-	       (val	(<parameter>-value par)))
-	  (receive (val.ptr val.len)
-	      (cond ((string? val)
-		     (let ((p (string->cstring/c val)))
-		       (values p (strlen p))))
-		    ((bytevector? val)
-		     (values (bytevector->pointer val malloc-block/c) (bytevector-length val)))
-		    ((pointer? val)
-		     (values val (<parameter>-size par)))
-		    (else
-		     (assertion-violation 'exec-parametrised-query
-		       "invalid value type in <parameter> field" par)))
-	    (array-set-c-signed-int!	param-formats* i (if text? 0 1))
-	    (array-set-c-Oid!		param-types*   i (<parameter>-oid par))
-	    (array-set-c-pointer!	param-values*  i val.ptr)
-	    (array-set-c-signed-int!	param-lengths* i val.len))))
+	(do ((i 0 (+ 1 i))
+	     (parms parms (cdr parms)))
+	    ((= i number-of-parms))
+	  (let* ((par	(car parms))
+		 (text?	(<parameter>-text? par))
+		 (val	(<parameter>-value par)))
+	    (receive (val.ptr val.len)
+		(cond ((string? val)
+		       (let ((p (string->cstring/c val)))
+			 (values p (strlen p))))
+		      ((bytevector? val)
+		       (values (bytevector->pointer val malloc-block/c) (bytevector-length val)))
+		      ((pointer? val)
+		       (values val (<parameter>-size par)))
+		      (else
+		       (assertion-violation 'exec-parametrised-query
+			 "invalid value type in <parameter> field" par)))
+	      (array-set-c-signed-int!	param-formats* i (if text? 0 1))
+	      (array-set-c-Oid!		param-types*   i (<parameter>-oid par))
+	      (array-set-c-pointer!	param-values*  i val.ptr)
+	      (array-set-c-signed-int!	param-lengths* i val.len))))
 
-      (let ((p (PQexecParams (connection->pointer conn)
-			     (string->cstring/c query)
-			     number-of-parms
-			     param-types* param-values* param-lengths* param-formats*
-			     (if textual-result? 0 1))))
-	(if (pointer-null? p)
-	    (raise
-	     (condition (make-postgresql-error-condition)
-			(make-connection-condition conn)
-			(make-query-string-condition query)
-			(make-parameters-condition parms)
-			(make-who-condition 'exec-parametrised-query)
-			(make-message-condition (connection-error-message conn))))
-	  (pointer->query-result p))))))
+	(let ((p (PQexecParams (connection->pointer conn)
+			       (string->cstring/c query)
+			       number-of-parms
+			       param-types* param-values* param-lengths* param-formats*
+			       (if textual-result? 0 1))))
+	  (if (pointer-null? p)
+	      (raise
+	       (condition (make-postgresql-exec-error-condition)
+			  (make-connection-condition conn)
+			  (make-query-string-condition query)
+			  (make-parameters-condition parms)
+			  (make-who-condition 'exec-parametrised-query)
+			  (make-message-condition (connection-error-message conn))))
+	    (pointer->query-result p))))))))
 
 
 ;;;; executing Asynchronous queries
@@ -532,59 +537,60 @@
 (define (exec-script/send conn query)
   (with-compensations
     (let ((code (PQsendQuery (connection->pointer conn) (string->cstring/c query))))
-      (if (zero? code)
-	  (raise
-	   (condition (make-postgresql-error-condition)
-		      (make-connection-condition conn)
-		      (make-query-string-condition query)
-		      (make-who-condition 'exec-script/send)
-		      (make-message-condition (connection-error-message conn))))
-	#t))))
+      (when (zero? code)
+	(raise
+	 (condition (make-postgresql-exec-error-condition)
+		    (make-connection-condition conn)
+		    (make-query-string-condition query)
+		    (make-who-condition 'exec-script/send)
+		    (make-message-condition (connection-error-message conn))))))))
 
-(define (exec-parametrised-query/send conn query parms textual-result?)
-  (with-compensations
-    (let* ((number-of-parms	(length parms))
-	   (param-types*	(malloc-block/c (sizeof-Oid-array number-of-parms)))
-	   (param-values*	(malloc-block/c (sizeof-pointer-array number-of-parms)))
-	   (param-lengths*	(malloc-block/c (sizeof-int-array number-of-parms)))
-	   (param-formats*	(malloc-block/c (sizeof-int-array number-of-parms))))
+(define exec-parametrised-query/send
+  (case-lambda
+   ((conn query parms)
+    (exec-parametrised-query/send conn query parms #t))
+   ((conn query parms textual-result?)
+    (with-compensations
+      (let* ((number-of-parms	(length parms))
+	     (param-types*	(malloc-block/c (sizeof-Oid-array number-of-parms)))
+	     (param-values*	(malloc-block/c (sizeof-pointer-array number-of-parms)))
+	     (param-lengths*	(malloc-block/c (sizeof-int-array number-of-parms)))
+	     (param-formats*	(malloc-block/c (sizeof-int-array number-of-parms))))
 
-      (do ((i 0 (+ 1 i))
-	   (parms parms (cdr parms)))
-	  ((= i number-of-parms))
-	(let* ((par	(car parms))
-	       (text?	(<parameter>-text? par))
-	       (val	(<parameter>-value par)))
-	  (receive (val.ptr val.len)
-	      (cond ((string? val)
-		     (let ((p (string->cstring/c val)))
-		       (values p (strlen p))))
-		    ((bytevector? val)
-		     (values (bytevector->pointer val malloc-block/c) (bytevector-length val)))
-		    ((pointer? val)
-		     (values val (<parameter>-size par)))
-		    (else
-		     (assertion-violation 'exec-parametrised-query/send
-		       "invalid value type in <parameter> field" par)))
-	    (array-set-c-signed-int!	param-formats* i (if text? 0 1))
-	    (array-set-c-Oid!		param-types*   i (<parameter>-oid par))
-	    (array-set-c-pointer!	param-values*  i val.ptr)
-	    (array-set-c-signed-int!	param-lengths* i val.len))))
+	(do ((i 0 (+ 1 i))
+	     (parms parms (cdr parms)))
+	    ((= i number-of-parms))
+	  (let* ((par	(car parms))
+		 (val	(<parameter>-value par)))
+	    (receive (val.ptr val.len)
+		(cond ((string? val)
+		       (let ((p (string->cstring/c val)))
+			 (values p (strlen p))))
+		      ((bytevector? val)
+		       (values (bytevector->pointer val malloc-block/c) (bytevector-length val)))
+		      ((pointer? val)
+		       (values val (<parameter>-size par)))
+		      (else
+		       (assertion-violation 'exec-parametrised-query/send
+			 "invalid value type in <parameter> field" par)))
+	      (array-set-c-signed-int!	param-formats* i (if (<parameter>-text? par) 0 1))
+	      (array-set-c-Oid!		param-types*   i (<parameter>-oid par))
+	      (array-set-c-pointer!	param-values*  i val.ptr)
+	      (array-set-c-signed-int!	param-lengths* i val.len))))
 
-      (let ((code (PQsendQueryParams (connection->pointer conn)
-				     (string->cstring/c query)
-				     number-of-parms
-				     param-types* param-values* param-lengths* param-formats*
-				     (if textual-result? 0 1))))
-	(if (zero? code)
+	(let ((code (PQsendQueryParams (connection->pointer conn)
+				       (string->cstring/c query)
+				       number-of-parms
+				       param-types* param-values* param-lengths* param-formats*
+				       (if textual-result? 0 1))))
+	  (when (zero? code)
 	    (raise
-	     (condition (make-postgresql-error-condition)
+	     (condition (make-postgresql-exec-error-condition)
 			(make-connection-condition conn)
 			(make-query-string-condition query)
 			(make-parameters-condition parms)
 			(make-who-condition 'exec-parametrised-query/send)
-			(make-message-condition (connection-error-message conn))))
-	  #t)))))
+			(make-message-condition (connection-error-message conn)))))))))))
 
 
 ;;;; prepared statements, synchronous execution
@@ -612,7 +618,7 @@
 					   parms-types*)))
 	(if (pointer-null? p)
 	    (raise
-	     (condition (make-postgresql-error-condition)
+	     (condition (make-postgresql-prepare-error-condition)
 			(make-connection-condition conn)
 			(make-statement-name-condition stmt-name)
 			(make-query-string-condition query-string)
@@ -620,62 +626,69 @@
 			(make-message-condition (connection-error-message conn))))
 	  (pointer->query-result p)))))))
 
-(define (describe-prepared-statement conn stmt-name)
-  (let ((p (if stmt-name
-	       (with-compensations
-		 (PQdescribePrepared (connection->pointer conn) (string->cstring/c stmt-name)))
-	     (PQdescribePrepared (connection->pointer conn) empty-string))))
-    (if (pointer-null? p)
-	(raise
-	 (condition (make-postgresql-error-condition)
-		    (make-connection-condition conn)
-		    (make-statement-name-condition stmt-name)
-		    (make-who-condition 'describe-prepared-statement)
-		    (make-message-condition (connection-error-message conn))))
-      (pointer->query-result p))))
+(define describe-prepared-statement
+  (case-lambda
+   ((conn)
+    (describe-prepared-statement conn #f))
+   ((conn stmt-name)
+    (let ((p (if stmt-name
+		 (with-compensations
+		   (PQdescribePrepared (connection->pointer conn) (string->cstring/c stmt-name)))
+	       (PQdescribePrepared (connection->pointer conn) empty-string))))
+      (if (pointer-null? p)
+	  (raise
+	   (condition (make-postgresql-error-condition)
+		      (make-connection-condition conn)
+		      (make-statement-name-condition stmt-name)
+		      (make-who-condition 'describe-prepared-statement)
+		      (make-message-condition (connection-error-message conn))))
+	(pointer->query-result p))))))
 
-(define (exec-prepared-statement conn stmt-name parms textual-result?)
-  (with-compensations
-    (let* ((number-of-parms	(length parms))
-	   (param-values*	(malloc-block/c (sizeof-pointer-array number-of-parms)))
-	   (param-lengths*	(malloc-block/c (sizeof-int-array number-of-parms)))
-	   (param-formats*	(malloc-block/c (sizeof-int-array number-of-parms))))
+(define exec-prepared-statement
+  (case-lambda
+   ((conn stmt-name parms)
+    (exec-prepared-statement conn stmt-name parms #t))
+   ((conn stmt-name parms textual-result?)
+    (with-compensations
+      (let* ((number-of-parms	(length parms))
+	     (param-values*	(malloc-block/c (sizeof-pointer-array number-of-parms)))
+	     (param-lengths*	(malloc-block/c (sizeof-int-array number-of-parms)))
+	     (param-formats*	(malloc-block/c (sizeof-int-array number-of-parms))))
 
-      (do ((i 0 (+ 1 i))
-	   (parms parms (cdr parms)))
-	  ((= i number-of-parms))
-	(let* ((par	(car parms))
-	       (text?	(<parameter>-text? par))
-	       (val	(<parameter>-value par)))
-	  (receive (val.ptr val.len)
-	      (cond ((string? val)
-		     (let ((p (string->cstring/c val)))
-		       (values p (strlen p))))
-		    ((bytevector? val)
-		     (values (bytevector->pointer val malloc-block/c) (bytevector-length val)))
-		    ((pointer? val)
-		     (values val (<parameter>-size par)))
-		    (else
-		     (assertion-violation 'exec-prepared-statement
-		       "invalid value type in <parameter> field" par)))
-	    (array-set-c-signed-int!	param-formats* i (if text? 0 1))
-	    (array-set-c-pointer!	param-values*  i val.ptr)
-	    (array-set-c-signed-int!	param-lengths* i val.len))))
+	(do ((i 0 (+ 1 i))
+	     (parms parms (cdr parms)))
+	    ((= i number-of-parms))
+	  (let* ((par	(car parms))
+		 (val	(<parameter>-value par)))
+	    (receive (val.ptr val.len)
+		(cond ((string? val)
+		       (let ((p (string->cstring/c val)))
+			 (values p (strlen p))))
+		      ((bytevector? val)
+		       (values (bytevector->pointer val malloc-block/c) (bytevector-length val)))
+		      ((pointer? val)
+		       (values val (<parameter>-size par)))
+		      (else
+		       (assertion-violation 'exec-prepared-statement
+			 "invalid value type in <parameter> field" par)))
+	      (array-set-c-signed-int!	param-formats* i (if (<parameter>-text? par) 0 1))
+	      (array-set-c-pointer!	param-values*  i val.ptr)
+	      (array-set-c-signed-int!	param-lengths* i val.len))))
 
-      (let ((p (PQexecPrepared (connection->pointer conn)
-			       (if stmt-name (string->cstring/c stmt-name) empty-string)
-			       number-of-parms
-			       param-values* param-lengths* param-formats*
-			       (if textual-result? 0 1))))
-	(if (pointer-null? p)
-	    (raise
-	     (condition (make-postgresql-error-condition)
-			(make-connection-condition conn)
-			(make-statement-name-condition stmt-name)
-			(make-parameters-condition parms)
-			(make-who-condition 'exec-prepared-statement)
-			(make-message-condition (connection-error-message conn))))
-	  (pointer->query-result p))))))
+	(let ((p (PQexecPrepared (connection->pointer conn)
+				 (if stmt-name (string->cstring/c stmt-name) empty-string)
+				 number-of-parms
+				 param-values* param-lengths* param-formats*
+				 (if textual-result? 0 1))))
+	  (if (pointer-null? p)
+	      (raise
+	       (condition (make-postgresql-exec-error-condition)
+			  (make-connection-condition conn)
+			  (make-statement-name-condition stmt-name)
+			  (make-parameters-condition parms)
+			  (make-who-condition 'exec-prepared-statement)
+			  (make-message-condition (connection-error-message conn))))
+	    (pointer->query-result p))))))))
 
 
 ;;;; prepared statements, Asynchronous execution
@@ -701,15 +714,31 @@
 					       (string->cstring/c query-string)
 					       number-of-parms
 					       parms-types*)))
-	(if (zero? code)
-	    (raise
-	     (condition (make-postgresql-error-condition)
-			(make-connection-condition conn)
-			(make-statement-name-condition stmt-name)
-			(make-query-string-condition query-string)
-			(make-who-condition 'prepare-statement/send)
-			(make-message-condition (connection-error-message conn))))
-	  #t))))))
+	(when (zero? code)
+	  (raise
+	   (condition (make-postgresql-prepare-error-condition)
+		      (make-connection-condition conn)
+		      (make-statement-name-condition stmt-name)
+		      (make-query-string-condition query-string)
+		      (make-who-condition 'prepare-statement/send)
+		      (make-message-condition (connection-error-message conn))))))))))
+
+(define describe-prepared-statement/send
+  (case-lambda
+   ((conn)
+    (describe-prepared-statement/send conn #f))
+   ((conn stmt-name)
+    (let ((code (if stmt-name
+		    (with-compensations
+		      (PQsendDescribePrepared (connection->pointer conn) (string->cstring/c stmt-name)))
+		  (PQsendDescribePrepared (connection->pointer conn) empty-string))))
+      (when (zero? code)
+	(raise
+	 (condition (make-postgresql-error-condition)
+		    (make-connection-condition conn)
+		    (make-statement-name-condition stmt-name)
+		    (make-who-condition 'describe-prepared-statement/send)
+		    (make-message-condition (connection-error-message conn)))))))))
 
 (define (exec-prepared-statement/send conn stmt-name parms textual-result?)
   (with-compensations
@@ -722,7 +751,6 @@
 	   (parms parms (cdr parms)))
 	  ((= i number-of-parms))
 	(let* ((par	(car parms))
-	       (text?	(<parameter>-text? par))
 	       (val	(<parameter>-value par)))
 	  (receive (val.ptr val.len)
 	      (cond ((string? val)
@@ -735,7 +763,7 @@
 		    (else
 		     (assertion-violation 'exec-prepared-statement/send
 		       "invalid value type in <parameter> field" par)))
-	    (array-set-c-signed-int!	param-formats* i (if text? 0 1))
+	    (array-set-c-signed-int!	param-formats* i (if (<parameter>-text? par) 0 1))
 	    (array-set-c-pointer!	param-values*  i val.ptr)
 	    (array-set-c-signed-int!	param-lengths* i val.len))))
 
@@ -744,29 +772,14 @@
 				       number-of-parms
 				       param-values* param-lengths* param-formats*
 				       (if textual-result? 0 1))))
-	(if (zero? code)
-	    (raise
-	     (condition (make-postgresql-error-condition)
-			(make-connection-condition conn)
-			(make-statement-name-condition stmt-name)
-			(make-parameters-condition parms)
-			(make-who-condition 'exec-prepared-statement/send)
-			(make-message-condition (connection-error-message conn))))
-	  #t)))))
-
-(define (describe-prepared-statement/send conn stmt-name)
-  (let ((code (if stmt-name
-		  (with-compensations
-		    (PQsendDescribePrepared (connection->pointer conn) (string->cstring/c stmt-name)))
-		(PQsendDescribePrepared (connection->pointer conn) empty-string))))
-    (if (zero? code)
-	(raise
-	 (condition (make-postgresql-error-condition)
-		    (make-connection-condition conn)
-		    (make-statement-name-condition stmt-name)
-		    (make-who-condition 'describe-prepared-statement/send)
-		    (make-message-condition (connection-error-message conn))))
-      #t)))
+	(when (zero? code)
+	  (raise
+	   (condition (make-postgresql-exec-error-condition)
+		      (make-connection-condition conn)
+		      (make-statement-name-condition stmt-name)
+		      (make-parameters-condition parms)
+		      (make-who-condition 'exec-prepared-statement/send)
+		      (make-message-condition (connection-error-message conn)))))))))
 
 
 ;;;; acquiring result of Asynchronous operations
@@ -780,7 +793,7 @@
 (define (connection-consume-input conn)
   (when (zero? (PQconsumeInput (connection->pointer conn)))
     (raise
-     (condition (make-postgresql-error-condition)
+     (condition (make-postgresql-exec-error-condition)
 		(make-connection-condition conn)
 		(make-who-condition 'connection-consume-input)
 		(make-message-condition (connection-error-message conn))))))
@@ -804,7 +817,7 @@
 (define (connection-set-non-blocking conn)
   (unless (zero? (PQsetnonblocking (connection->pointer conn) 1))
     (raise
-     (condition (make-postgresql-error-condition)
+     (condition (make-postgresql-config-error-condition)
 		(make-connection-condition conn)
 		(make-who-condition 'connection-set-non-blocking)
 		(make-message-condition (connection-error-message conn))))))
@@ -812,10 +825,13 @@
 (define (connection-set-blocking conn)
   (unless (zero? (PQsetnonblocking (connection->pointer conn) 0))
     (raise
-     (condition (make-postgresql-error-condition)
+     (condition (make-postgresql-config-error-condition)
 		(make-connection-condition conn)
 		(make-who-condition 'connection-set-blocking)
 		(make-message-condition (connection-error-message conn))))))
+
+(define (connection-is-blocking? conn)
+  (zero? (PQisnonblocking (connection->pointer conn))))
 
 (define (connection-is-non-blocking? conn)
   (not (zero? (PQisnonblocking (connection->pointer conn)))))
@@ -829,7 +845,7 @@
        #t)
       ((-1)
        (raise
-	(condition (make-postgresql-error-condition)
+	(condition (make-postgresql-exec-error-condition)
 		   (make-connection-condition conn)
 		   (make-who-condition 'connection-flush)
 		   (make-message-condition (connection-error-message conn)))))

@@ -196,6 +196,14 @@
     make-postgresql-info-error-condition
     postgresql-info-error-condition?
 
+    &postgresql-exec-error
+    make-postgresql-exec-error-condition
+    postgresql-exec-error-condition?
+
+    &postgresql-prepare-error
+    make-postgresql-prepare-error-condition
+    postgresql-prepare-error-condition?
+
     &postgresql-poll-error
     make-postgresql-poll-error-condition
     postgresql-poll-error-condition?
@@ -203,6 +211,10 @@
     &postgresql-cancel-error
     make-postgresql-cancel-error-condition
     postgresql-cancel-error-condition?
+
+    &postgresql-config-error
+    make-postgresql-config-error-condition
+    postgresql-config-error-condition?
 
     &postgresql-copy-error
     make-postgresql-copy-error-condition
@@ -289,6 +301,7 @@
 
     connection-set-blocking		;; PQsetnonblocking
     connection-set-non-blocking		;; PQsetnonblocking
+    connection-is-blocking?		;; PQisnonblocking
     connection-is-non-blocking?		;; PQisnonblocking
     connection-flush			;; PQflush
 
