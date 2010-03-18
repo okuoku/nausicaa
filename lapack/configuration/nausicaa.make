@@ -32,12 +32,14 @@
 nausicaa_ENABLE_IKARUS		= @nausicaa_ENABLE_IKARUS@
 nausicaa_ENABLE_LARCENY		= @nausicaa_ENABLE_LARCENY@
 nausicaa_ENABLE_MOSH		= @nausicaa_ENABLE_MOSH@
+nausicaa_ENABLE_PETITE		= @nausicaa_ENABLE_PETITE@
 nausicaa_ENABLE_YPSILON		= @nausicaa_ENABLE_YPSILON@
 
 FIND		= @FIND@
 IKARUS		= @IKARUS@
 LARCENY		= @LARCENY@
 MOSH		= @MOSH@
+PETITE		= @PETITE@
 YPSILON		= @YPSILON@
 
 nau_sls_SRCDIR		= $(srcdir)/src/libraries
@@ -48,6 +50,7 @@ nau_IMPLEMENTATIONS	= \
 	$(call ds-if-yes,$(nausicaa_ENABLE_IKARUS),	i) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	l) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	m) \
+	$(call ds-if-yes,$(nausicaa_ENABLE_PETITE),	p) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	y)
 
 #page
@@ -165,6 +168,28 @@ ifasl-installed:
 	test -f $(fasl_ikarus_COMPILE_SCRIPT) && $(fasl_ikarus_COMPILE_INST_RUN)
 
 ## --------------------------------------------------------------------
+## Larceny compilation.
+
+# Compiled files will go in the same directory of the source files.
+
+# The  use of  ABSPATH  is needed  because  we change  directory in  the
+# compile commands below.
+fasl_larceny_COMPILE_SCRIPT	= $(abspath $(nau_sls_SRCDIR)/compile-all.larceny.sps)
+ifeq (,$(strip $(LARCENY_LIBPATH)))
+fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(nau_sls_BUILDDIR)
+else
+fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(nau_sls_BUILDDIR):$(LARCENY_LIBPATH)
+endif
+fasl_larceny_COMPILE_COMMAND	= $(LARCENY) -r6rs -program
+fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) \
+					$(fasl_larceny_COMPILE_COMMAND) \
+					$(fasl_larceny_COMPILE_SCRIPT)
+
+lfasl: sls
+	@echo; echo "--- Compiling for Larceny Scheme"
+	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(nau_sls_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
+
+## --------------------------------------------------------------------
 ## Mosh compilation.
 
 # Compiled files will go in the user owned cache under "~/.mosh".
@@ -191,26 +216,32 @@ mfasl-installed:
 	test -f $(fasl_mosh_COMPILE_SCRIPT) && $(fasl_mosh_COMPILE_INST_RUN)
 
 ## --------------------------------------------------------------------
-## Larceny compilation.
+## Petite Chez compilation.
 
-# Compiled files will go in the same directory of the source files.
+# Petite does not precompile.
 
-# The  use of  ABSPATH  is needed  because  we change  directory in  the
-# compile commands below.
-fasl_larceny_COMPILE_SCRIPT	= $(abspath $(nau_sls_SRCDIR)/compile-all.larceny.sps)
-ifeq (,$(strip $(LARCENY_LIBPATH)))
-fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(nau_sls_BUILDDIR)
-else
-fasl_larceny_COMPILE_ENV	= LARCENY_LIBPATH=$(PWD)/$(nau_sls_BUILDDIR):$(LARCENY_LIBPATH)
-endif
-fasl_larceny_COMPILE_COMMAND	= $(LARCENY) -r6rs -program
-fasl_larceny_COMPILE_RUN	= $(fasl_larceny_COMPILE_ENV) \
-					$(fasl_larceny_COMPILE_COMMAND) \
-					$(fasl_larceny_COMPILE_SCRIPT)
+#fasl_petite_COMPILE_SCRIPT	= $(nau_sls_SRCDIR)/compile-all.petite.sps
+#ifeq (,$(strip $(PETITE_LOADPATH)))
+#fasl_petite_COMPILE_ENV		= PETITE_LOADPATH=$(nau_sls_BUILDDIR)
+#else
+#fasl_petite_COMPILE_ENV		= PETITE_LOADPATH=$(nau_sls_BUILDDIR):$(PETITE_LOADPATH)
+#endif
+#fasl_petite_COMPILE_COMMAND	= $(PETITE) --libexts .petite.sls:.sls
+#fasl_petite_COMPILE_RUN		= $(fasl_petite_COMPILE_ENV)		\
+#					$(fasl_petite_COMPILE_COMMAND)	\
+#					$(fasl_petite_COMPILE_SCRIPT)
+#fasl_petite_COMPILE_INST_RUN	= $(fasl_petite_COMPILE_COMMAND)	\
+#					$(fasl_petite_COMPILE_SCRIPT)
 
-lfasl: sls
-	@echo; echo "--- Compiling for Larceny Scheme"
-	test -f $(fasl_larceny_COMPILE_SCRIPT) && (cd $(nau_sls_BUILDDIR) && $(fasl_larceny_COMPILE_RUN))
+pfasl: sls
+	@echo; echo "--- Petite Chez Scheme does not precompile libraries"
+#	@echo; echo "--- Compiling for Petite Scheme"
+#	test -f $(fasl_petite_COMPILE_SCRIPT) && $(fasl_petite_COMPILE_RUN)
+
+pfasl-installed:
+	@echo; echo "--- Petite Chez Scheme does not precompile libraries"
+#	@echo; echo "--- Compiling installed files for Petite Scheme"
+#	test -f $(fasl_petite_COMPILE_SCRIPT) && $(fasl_petite_COMPILE_INST_RUN)
 
 ## --------------------------------------------------------------------
 ## Ypsilon compilation.
@@ -372,6 +403,37 @@ ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 test tests check: mtest
 endif
 
+## ------------------------------------------------------------
+## Petite Chez
+
+ifeq (,$(strip $(PETITE_LIBPATH)))
+nau_ptest_ENV		= PETITE_LIBPATH=$(nau_test_PATH)
+else
+nau_ptest_ENV		= PETITE_LIBPATH=$(nau_test_PATH):$(PETITE_LIBPATH)
+endif
+nau_ptest_ENV		+= $(nau_test_ENV)
+nau_ptest_PROGRAM	= $(PETITE) --libexts .petite.sls:.sls --libdirs $${PETITE_LIBPATH} --program
+nau_ptest_RUN		= $(nau_ptest_ENV) ; $(nau_TIME_TESTS) $(nau_ptest_PROGRAM)
+
+nau_ptest_installed_ENV	= PETITE_LIBPATH=$(nau_test_SRCDIR):$(PETITE_LIBPATH)
+nau_ptest_installed_RUN	= $(nau_ptest_installed_ENV) ; $(nau_TIME_TESTS) $(nau_ptest_PROGRAM)
+
+.PHONY: ptest ptests pcheck ptest-installed
+
+ptest ptests pcheck:
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Petite Chez,$(f)) $(nau_ptest_RUN) $(f);)
+
+ptest-installed:
+	@echo Running tests with installed Petite Chez libraries
+	@echo $(nau_ptest_installed_ENV)
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Petite Chez,$(f)) $(nau_ptest_installed_RUN) $(f);)
+
+ifeq ($(strip $(nausicaa_ENABLE_PETITE)),yes)
+test tests check: ptest
+endif
+
 ## ---------------------------------------------------------------------
 ## Ypsilon
 
@@ -505,6 +567,31 @@ mproof mproofs:
 
 ifeq ($(strip $(nausicaa_ENABLE_MOSH)),yes)
 proof proofs: mproof
+endif
+
+## ------------------------------------------------------------
+## Petite
+
+# ifeq (,$(strip $(PETITE_LIBPATH)))
+# nau_pproof_ENV		= PETITE_LIBPATH=$(nau_proof_PATH)
+# else
+# nau_pproof_ENV		= PETITE_LIBPATH=$(nau_proof_PATH):$(PETITE_LIBPATH)
+# endif
+nau_pproof_ENV		= PETITE_LIBPATH=$(nau_proof_PATH):$(PETITE_LIBPATH)
+nau_pproof_ENV		+= $(nau_proof_ENV)
+nau_pproof_PROGRAM	= $(PETITE) --libexts .petite.sls:.sls --libdirs $${PETITE_LIBPATH} --program
+nau_pproof_RUN		= $(nau_pproof_ENV) ; $(nau_pproof_PROGRAM)
+
+.PHONY: pproof pproofs
+
+pproof pproofs:
+#ifeq ($(strip $(nausicaa_ENABLE_PETITE)),yes)
+	@$(foreach f,$(nau_proof_FILES),\
+		$(call nau_proof_SEPARATOR,Petite Chez,$(f)) $(nau_pproof_RUN) $(f);)
+#endif
+
+ifeq ($(strip $(nausicaa_ENABLE_PETITE)),yes)
+proof proofs: pproof
 endif
 
 ## ---------------------------------------------------------------------
