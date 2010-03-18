@@ -188,6 +188,13 @@
     portal-name-condition?
     portal-name-condition
 
+    &escape-string
+    make-escape-string-condition
+    escape-string-condition?
+    escape-string-condition
+
+;;; --------------------------------------------------------------------
+
     &postgresql-error
     make-postgresql-error-condition
     postgresql-error-condition?
@@ -231,6 +238,14 @@
     &postgresql-copy-end-error
     make-postgresql-copy-end-error-condition
     postgresql-copy-end-error-condition?
+
+    &postgresql-escape-encode-error
+    make-postgresql-escape-encode-error-condition
+    postgresql-escape-encode-error-condition?
+
+    &postgresql-escape-decode-error
+    make-postgresql-escape-decode-error-condition
+    postgresql-escape-decode-error-condition?
 
 ;;; --------------------------------------------------------------------
 
@@ -280,6 +295,7 @@
     connection-get-ssl			;; PQgetssl
 
     clear-result			;; PQclear
+    result-clear			;; PQclear
 
     ;; executing queries
     exec-script				;; PQexec
@@ -314,6 +330,7 @@
 
     ;; COPY stuff
     result-binary-tuples?		;; PQbinaryTuples
+    result-textual-tuples?		;; PQbinaryTuples
     connection-put-copy-data		;; PQputCopyData
     connection-put-copy-data/string
     connection-put-copy-data/bytevector
@@ -359,6 +376,7 @@
     result-null-value?			;; PQgetisnull
     result-value-length			;; PQgetlength
     result-get-value			;; PQgetvalue
+    result-get-value/memblock		;; PQgetvalue
     result-get-value/text		;; PQgetvalue
     result-get-value/binary		;; PQgetvalue
     result-number-of-parameters		;; PQnparams

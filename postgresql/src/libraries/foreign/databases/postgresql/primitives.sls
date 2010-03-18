@@ -73,6 +73,7 @@
     connection-get-ssl			;; PQgetssl
 
     clear-result			;; PQclear
+    (rename (clear-result result-clear))
 
     ;; executing synchronous queries
     exec-script				;; PQexec
@@ -107,6 +108,7 @@
 
     ;; COPY stuff
     result-binary-tuples?		;; PQbinaryTuples
+    result-textual-tuples?		;; PQbinaryTuples
     connection-put-copy-data		;; PQputCopyData
     connection-put-copy-data/string
     connection-put-copy-data/bytevector
@@ -152,6 +154,7 @@
     result-null-value?			;; PQgetisnull
     result-value-length			;; PQgetlength
     result-get-value			;; PQgetvalue
+    result-get-value/memblock		;; PQgetvalue
     result-get-value/text		;; PQgetvalue
     result-get-value/binary		;; PQgetvalue
     result-number-of-parameters		;; PQnparams
@@ -1044,6 +1047,9 @@
 
 ;;;; extracting informations from query results
 
+(define (clear-result result)
+  (PQclear (query-result->pointer result)))
+
 (define (result-number-of-tuples result)
   (PQntuples (query-result->pointer result)))
 
@@ -1062,6 +1068,9 @@
 
 (define (result-binary-tuples? result)
   (not (zero? (PQbinaryTuples (query-result->pointer result)))))
+
+(define (result-textual-tuples? result)
+  (zero? (PQbinaryTuples (query-result->pointer result))))
 
 ;;; --------------------------------------------------------------------
 
@@ -1130,6 +1139,14 @@
   (assert-result-tuple-index 'result-get-value result tuple-index)
   (assert-result-field-index 'result-get-value result field-index)
   (PQgetvalue (query-result->pointer result) tuple-index field-index))
+
+(define (result-get-value/memblock result tuple-index field-index)
+  (assert-result-tuple-index 'result-get-value/memblock result tuple-index)
+  (assert-result-field-index 'result-get-value/memblock result field-index)
+  (let ((res (query-result->pointer result)))
+    (make-<memblock> (PQgetvalue  res tuple-index field-index)
+		     (PQgetlength res tuple-index field-index)
+		     #f)))
 
 (define (result-get-value/text result tuple-index field-index)
   (assert-result-tuple-index 'result-get-value/text result tuple-index)
@@ -1226,14 +1243,24 @@
 	   (dst.len	(PQescapeStringConn (connection->pointer conn) dst.ptr src.ptr src.len err.ptr)))
       (if (zero? (pointer-ref-c-signed-int err.ptr 0))
 	  (cstring->string dst.ptr dst.len)
-	(error 'escape-string-conn (connection-error-message conn) (list conn src-string))))))
+	(raise
+	 (condition (make-postgresql-escape-encode-error-condition)
+		    (make-connection-condition conn)
+		    (make-who-condition 'escape-string-conn)
+		    (connection-error-message conn)
+		    (make-escape-string-condition src-string)))))))
 
 (define (escape-bytes-conn conn src.ptr src.len)
   (with-compensations
     (let* ((dst.len*	(malloc-small/c))
 	   (dst.ptr	(PQescapeByteaConn (connection->pointer conn) src.ptr src.len dst.len*)))
       (if (pointer-null? dst.ptr)
-	  (error 'escape-bytes-conn (connection-error-message conn) (list conn src.ptr src.len))
+	  (raise
+	   (condition (make-postgresql-escape-encode-error-condition)
+		      (make-connection-condition conn)
+		      (make-who-condition 'escape-bytes-conn)
+		      (connection-error-message conn)
+		      (make-escape-string-condition (cstring->string src.ptr src.len))))
 	(values dst.ptr (pointer-ref-c-size_t dst.len* 0))))))
 
 (define (escape-bytes-conn/bv conn bv)
@@ -1244,7 +1271,12 @@
 					   (bytevector-length bv)
 					   dst.len*)))
       (if (pointer-null? dst.ptr)
-	  (error 'escape-bytes-conn/bv (connection-error-message conn) (list conn bv))
+	  (raise
+	   (condition (make-postgresql-escape-encode-error-condition)
+		      (make-connection-condition conn)
+		      (make-who-condition 'escape-bytes-conn/bv)
+		      (connection-error-message conn)
+		      (make-escape-string-condition (utf8->string bv))))
 	(begin0-let ((dst (cstring->string dst.ptr (- (pointer-ref-c-size_t dst.len* 0) 1))))
 	  (PQfreemem dst.ptr))))))
 
@@ -1253,7 +1285,11 @@
     (let* ((dst.len*	(malloc-small/c))
 	   (dst.ptr	(PQunescapeBytea src.ptr dst.len*)))
       (if (pointer-null? dst.ptr)
-	  (error 'unescape-bytes "error unescaping string" src.ptr)
+	  (raise
+	   (condition (make-postgresql-escape-decode-error-condition)
+		      (make-escape-string-condition (cstring->string src.ptr))
+		      (make-who-condition 'unescape-bytes)
+		      (make-message-condition "error unescaping string")))
 	(values dst.ptr (pointer-ref-c-size_t dst.len* 0))))))
 
 (define (unescape-bytes/bv str)
@@ -1298,9 +1334,6 @@
 
 
 ;;;; miscellaneous
-
-(define (clear-result result)
-  (PQclear (query-result->pointer result)))
 
 (define (describe-portal conn portal-name)
   (let ((p (if portal-name

@@ -68,6 +68,11 @@
     portal-name-condition?
     portal-name-condition
 
+    &escape-string
+    make-escape-string-condition
+    escape-string-condition?
+    escape-string-condition
+
 ;;; --------------------------------------------------------------------
 
     &postgresql-error
@@ -114,42 +119,13 @@
     make-postgresql-copy-end-error-condition
     postgresql-copy-end-error-condition?
 
+    &postgresql-escape-encode-error
+    make-postgresql-escape-encode-error-condition
+    postgresql-escape-encode-error-condition?
 
-    ;; &postgresql-opening-error
-    ;; make-postgresql-opening-error-condition
-    ;; postgresql-opening-error-condition?
-    ;; raise-postgresql-opening-error
-
-    ;; &postgresql-querying-error
-    ;; make-postgresql-querying-error-condition
-    ;; postgresql-querying-error-condition?
-    ;; raise-postgresql-querying-error
-
-    ;; &postgresql-preparing-error
-    ;; make-postgresql-preparing-error-condition
-    ;; postgresql-preparing-error-condition?
-    ;; raise-postgresql-preparing-error
-
-    ;; &postgresql-finalizing-error
-    ;; make-postgresql-finalizing-error-condition
-    ;; postgresql-finalizing-error-condition?
-    ;; raise-postgresql-finalizing-error
-
-    ;; &postgresql-resetting-error
-    ;; make-postgresql-resetting-error-condition
-    ;; postgresql-resetting-error-condition?
-    ;; raise-postgresql-resetting-error
-
-    ;; &postgresql-stepping-error
-    ;; make-postgresql-stepping-error-condition
-    ;; postgresql-stepping-error-condition?
-    ;; raise-postgresql-stepping-error
-
-    ;; (rename (&postgresql-finalizing-error			&postgresql-finalising-error)
-    ;; 	    (make-postgresql-finalizing-error-condition	make-postgresql-finalising-error-condition)
-    ;; 	    (postgresql-finalizing-error-condition?		postgresql-finalising-error-condition?)
-    ;; 	    (raise-postgresql-finalizing-error		raise-postgresql-finalising-error))
-
+    &postgresql-escape-decode-error
+    make-postgresql-escape-decode-error-condition
+    postgresql-escape-decode-error-condition?
     )
   (import (rnrs))
 
@@ -201,6 +177,12 @@
   make-portal-name-condition
   portal-name-condition?
   (portal-name		portal-name-condition))
+
+(define-condition-type &escape-string
+  &condition
+  make-escape-string-condition
+  escape-string-condition?
+  (escape-string	escape-string-condition))
 
 
 (define-condition-type &postgresql-error
@@ -257,6 +239,16 @@
   &postgresql-copy-error
   make-postgresql-copy-end-error-condition
   postgresql-copy-end-error-condition?)
+
+(define-condition-type &postgresql-escape-encode-error
+  &postgresql-copy-error
+  make-postgresql-escape-encode-error-condition
+  postgresql-escape-encode-error-condition?)
+
+(define-condition-type &postgresql-escape-decode-error
+  &postgresql-copy-error
+  make-postgresql-escape-decode-error-condition
+  postgresql-escape-decode-error-condition?)
 
 
 ;;;; done

@@ -584,18 +584,26 @@ Condition object definitions
 Data condition objects
 
 * conditions data connect::     Database connection object.
+* conditions data into::        Connection info object.
 * conditions data cancel::      Command cancellation handler.
 * conditions data query::       @sql{} query string object.
 * conditions data parameters::  @sql{} query parameters.
 * conditions data statement::   Prepared statement name object.
 * conditions data portal::      Portal name object.
 * conditions data result::      @sql{} query result object.
+* conditions data escape::      Escape string object.
 
 Error condition objects
 
 * conditions error error::      Error condition object.
+* conditions error info::       Connection info error.
+* conditions error poll::       Connection polling error.
+* conditions error exec::       Query execution error.
+* conditions error prepare::    Statement preparation error.
+* conditions error config::     Connection configuration error.
 * conditions error cancel::     @sql{} command cancel error.
 * conditions error copy::       @code{COPY} command errors.
+* conditions error escape::     String escaping error.
 
 Connecting to a database
 
@@ -619,6 +627,11 @@ Performing a database query
 * exec cancel::                 Cancelling queries in progress.
 * exec notify::                 Asynchronous notifications.
 * exec copy::                   Executing @code{COPY} commands.
+
+Executing @code{COPY} commands
+
+* exec copy in::                Sending data to the server.
+* exec copy out::               Receiving data from the server
 
 Handling query results
 
@@ -1312,6 +1325,7 @@ to import these libraries by prefixing the bindings, for example with
 * conditions data statement::   Prepared statement name object.
 * conditions data portal::      Portal name object.
 * conditions data result::      @sql{} query result object.
+* conditions data escape::      Escape string object.
 @end menu
 
 @c page
@@ -1545,6 +1559,35 @@ Accessor for the field of condition objects of type
 @end defun
 
 @c page
+@node conditions data escape
+@subsection Escape string object
+
+
+@deftp {Condition Type} &escape-string
+Condition object type used to hold a Scheme string involved in a string
+escaping operation; it is derived from @condition{condition}.  It has
+the following fields:
+
+@table @code
+@item escape-string
+A Scheme string.
+@end table
+@end deftp
+
+
+@defun make-escape-string-condition @var{escape-string}
+@defunx escape-string-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{escape-string}.
+@end defun
+
+
+@defun escape-string-condition @var{condition}
+Accessor for the field of condition objects of type
+@condition{escape-string}.
+@end defun
+
+@c page
 @node conditions error
 @section Error condition objects
 
@@ -1558,6 +1601,7 @@ Accessor for the field of condition objects of type
 * conditions error config::     Connection configuration error.
 * conditions error cancel::     @sql{} command cancel error.
 * conditions error copy::       @code{COPY} command errors.
+* conditions error escape::     String escaping errors.
 @end menu
 
 @c page
@@ -1751,6 +1795,38 @@ Condition type which tags compound condition objects used to signal a
 @defunx postgresql-copy-end-error-condition? @var{obj}
 Constructor and predicate for condition objects of type
 @condition{postgresql-copy-end-error}.
+@end defun
+
+@c page
+@node conditions error escape
+@subsection String escaping error
+
+
+@deftp {Condition Type} &postgresql-escape-encode-error
+Condition type which tags compound condition objects used to signal a
+string escape encoding error; it is derived from
+@condition{postgresql-error}.  It has no fields.
+@end deftp
+
+
+@defun make-postgresql-escape-encode-error-condition
+@defunx postgresql-escape-encode-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-escape-encode-error}.
+@end defun
+
+
+@deftp {Condition Type} &postgresql-escape-decode-error
+Condition type which tags compound condition objects used to signal a
+string escape decoding error; it is derived from
+@condition{postgresql-error}.  It has no fields.
+@end deftp
+
+
+@defun make-postgresql-escape-decode-error-condition
+@defunx postgresql-escape-decode-error-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{postgresql-escape-decode-error}.
 @end defun
 
 @c page
@@ -2768,12 +2844,18 @@ list of unhandled notification messages received from the server; return
 To execute a @code{COPY} command, we have to use one of the functions
 described above: @func{exec-script}, @func{exec-parametrised-query},
 @func{exec-prepared-statement}, or one of their asynchronous
-equivalents; then we have to obtain a result object with status
-@code{copy-in} or @code{copy-out}.
+equivalents.  If the operation is successful, we obtain a result object
+with status @code{copy-in} or @code{copy-out} and we can use the
+following function.
 
-@c ------------------------------------------------------------
+@menu
+* exec copy in::                Sending data to the server.
+* exec copy out::               Receiving data from the server
+@end menu
 
-@subsubheading Sending data to the server
+@c page
+@node exec copy in
+@subsection Sending data to the server
 
 
 Here is a @code{COPY FROM} example without error checking:
@@ -2812,9 +2894,12 @@ blocks}.
 
 Return @true{} if the data was sent; return @false{} if the data was not
 sent because the connection would block (this case is only possible if
-the connection is in non--blocking mode, we must wait for the
-write--ready socket state and try again).  Raise a
-@condition{postgresql-copy-in-error} object if an error occurs.
+the connection is in non--blocking mode, we must wait for the socket to
+switch to write--ready state and try again).
+
+If an error occurs, raise an exception with compound condition object of
+types: @condition{postgresql-copy-in-error}, @condition{connection},
+@condition{who}, @condition{message}.
 @end defun
 
 
@@ -2837,13 +2922,16 @@ string @var{error-message} as error description.
 Return @true{} if the termination data was sent; return @false{} if the
 data was not sent because the connection would block (this case is only
 possible if the connection is in non--blocking mode, we must wait for
-the write--ready socket state and try again).  Raise a
-@condition{postgresql-copy-end-error} object if an error occurs.
+the socket to switch to write--ready state and try again).
+
+If an error occurs, raise an exception with compound condition object of
+types: @condition{postgresql-copy-end-error}, @condition{connection},
+@condition{who}, @condition{message}.
 @end defun
 
-@c ------------------------------------------------------------
-
-@subsubheading Receiving data from the server
+@c page
+@node exec copy out
+@subsection Receiving data from the server
 
 
 Here is a @code{COPY TO} example without error checking:
@@ -2908,19 +2996,19 @@ available: it is @false{}, which means that the copy of the next row is
 still in progress.
 @end enumerate
 
-If an error occurs: raise an exception with condition object
-@condition{postgresql-copy-out-error}.  The function acts in synchronous
-mode if @var{conn} is in synchronous mode, otherwise asynchronous mode
-is selected.
+The function acts in synchronous mode if @var{conn} is in synchronous
+mode, otherwise asynchronous mode is selected.
+
+If an error occurs: raise an exception with compound condition object of
+types: @condition{postgresql-copy-out-error}, @condition{connection},
+@condition{who}, @condition{message}.
 @end defun
 
 
 @defun connection-get-copy-data/string @var{conn}
 @defunx connection-get-copy-data/bytevector @var{conn}
-Wrappers for @func{connection-get-copy-data}.
-@func{connection-get-copy-data/string} returns a Scheme string to
-represent the row of data.  @func{connection-get-copy-data/bytevector}
-returns a Scheme bytevector to represent the row of data.
+Wrappers for @func{connection-get-copy-data}.  Return a Scheme string or
+bytevector to represent the row of data.
 @end defun
 
 @c page
@@ -2933,6 +3021,9 @@ The bindings documented in this chapter are exported by the
 by the @library{foreign databases postgresql} library.  It is suggested
 to import these libraries by prefixing the bindings, for example with
 @code{pg:}.
+
+Notice that objects of type @objtype{query-result} must be finalised
+with a call to @func{clear-result}.
 
 @menu
 * query inspect::               Inspecting query results.
@@ -2977,7 +3068,7 @@ Return @true{} if the status of @var{result} is one among:
 
 @defun status->string @var{result/code}
 @findex @func{PQresStatus}
-Wrappre for @func{PQresStatus}.  Convert an enumeration set of type
+Wrapper for @func{PQresStatus}.  Convert an enumeration set of type
 @enum{exec-status} or a @pg{} result code into a Scheme string
 describing the result; the string is the identifier of the @pg{}
 constant, for example @samp{PGRES_COMMAND_OK}.
@@ -2987,8 +3078,8 @@ constant, for example @samp{PGRES_COMMAND_OK}.
 @defun result-error-message @var{result}
 @findex @func{PQresultErrorMessage}
 Wrapper for @func{PQresultErrorMessage}.  Return a Scheme string
-describing the error in the @var{result}; return @false{} if no error
-occurred.
+describing the error in the @var{result}; return @false{} if no such
+string is available.
 @end defun
 
 
@@ -3092,13 +3183,16 @@ selected element.
 
 
 @defun result-get-value @var{result} @var{tuple-index} @var{field-index}
+@defunx result-get-value/memblock @var{result} @var{tuple-index} @var{field-index}
 @defunx result-get-value/text @var{result} @var{tuple-index} @var{field-index}
 @defunx result-get-value/binary @var{result} @var{tuple-index} @var{field-index}
 @findex @func{PQgetvalue}
 Wrappers for @func{PQgetvalue}.  Return the value of the selected
-element; the plain variant returns a pointer object referencing the
-first byte of the result, the @code{/text} variant returns a Scheme
-string, the @code{/binary} variant returns a Scheme bytevector.
+element.  The plain variant returns a pointer object referencing the
+first byte of the result; the @code{/text} variant returns a Scheme
+string; the @code{/binary} variant returns a Scheme bytevector; the
+@code{/memblock} variant returns a @class{memblock} record.
+@nauref{memory blocks, Memory blocks}.
 @end defun
 
 @c ------------------------------------------------------------
@@ -3117,20 +3211,20 @@ return zero.
 
 @defun result-parameter-index? @var{result} @var{parm-index}
 Return @true{} if @var{parm-index} is a valid parameter index for the
-query that generated @var{result}.
+operation that generated @var{result}.
 @end defun
 
 
 @defun assert-result-parameter-index @var{who} @var{result} @var{parm-index}
 Raise an assertion violation if @var{parm-name} is not a valid parameter
-index for the query that generated @var{result}.  @var{who} is used for
-the @condition{who} condition object.
+index for the operation that generated @var{result}.  @var{who} is used
+for the @condition{who} condition object.
 @end defun
 
 
 @defun result-parameter-type-oid @var{result} @var{parm-index}
 @findex @func{PQparamtype}
-Wrapper for @func{PQparamtype}.  Returns the data type of the indicated
+Wrapper for @func{PQparamtype}.  Return the data type of the indicated
 statement parameter; return @false{} if the information is unavailable.
 @end defun
 
@@ -3179,7 +3273,7 @@ Return @false{} if @var{field-index} is out of range.
 @defun result-table-column-number @var{result} @var{field-index}
 @findex @func{PQftablecol}
 Wrapper for @func{PQftablecol}.  Return the column number (within its
-table) of the column making up the specified query result column.
+table) of the column making up the specified query result field.
 @end defun
 
 
@@ -3188,6 +3282,14 @@ table) of the column making up the specified query result column.
 Wrapper for @func{PQbinaryTuples}.  When applied to the result of a
 @code{COPY} command: return @true{} if the @code{COPY} command has
 binary format.
+@end defun
+
+
+@defun result-textual-tuples? @var{result}
+@findex @func{PQbinaryTuples}
+Wrapper for @func{PQbinaryTuples}.  When applied to the result of a
+@code{COPY} command: return @true{} if the @code{COPY} command has
+textual format.
 @end defun
 
 
@@ -3220,7 +3322,7 @@ return @false{} if no information is available.
 @defun result-column-size @var{result} @var{field-index}
 @findex @func{PQfsize}
 Wrapper for @func{PQfsize}.  Return an exact integer representing the
-amount of space in byte allocated by the server to hold values in the
+amount of space (in bytes) allocated by the server to hold values in the
 column at @var{field-index} in @var{result}; return @false{} if the
 storage is variable in size.
 @end defun
@@ -3245,7 +3347,7 @@ the number of rows affected by the @sql{} command which generated
 @findex @func{PQoidValue}
 Wrapper for @func{PQoidValue}.  Return the @acronym{OID} of the inserted
 row, if the @sql{} command was an @code{INSERT} that inserted exactly
-one row into a table that has @acronym{OID}s, or a @code{EXECUTE} of a
+one row into a table that has @acronym{OID}s, or an @code{EXECUTE} of a
 prepared query containing a suitable @code{INSERT} statement.  Return
 @false{} if the command was not suitable.
 @end defun
@@ -3260,6 +3362,7 @@ Scheme object of type @objtype{query-result}.
 
 
 @defun clear-result @var{result}
+@defunx result-clear @var{result}
 @findex @func{PQclear}
 Wrapper for @func{PQclear}.  Finalises @var{result}, releasing all
 its resources.
@@ -3285,7 +3388,11 @@ object of type @objtype{connection}.  As an easy mnemonic rule,
 @findex @func{PQescapeStringConn}
 Wrapper for @func{PQescapeStringConn}.  Escape @var{string} so that it
 can be safely inserted in a @sql{} command; return the escaped string.
-If @var{string} is invalid, raise an error.
+
+If @var{string} is invalid, raise an exception with compound condition
+object of types: @condition{postgresql-escape-encode-error},
+@condition{connection}, @condition{escape-string}, @condition{who},
+@condition{message}.
 
 The @var{conn} argument is required to adjust the conversion attributes,
 like the string encoding.
@@ -3299,13 +3406,27 @@ data starting at the byte referenced by the pointer object @var{ptr}, so
 that it can be safely inserted in a @sql{} command.  Return two values:
 a pointer object referencing the first byte of the escaped string, the
 number of bytes in the escaped string.  The returned memory must be
-released with call to @func{PQfreemem}.
+released with a call to @func{PQfreemem}.
+
+If the input is invalid, raise an exception with compound condition
+object of types: @condition{postgresql-escape-encode-error},
+@condition{connection}, @condition{escape-string}, @condition{who},
+@condition{message}.  The input is converted to a string with
+@func{cstring->string} and stored into the @condition{escape-string}
+object.
 @end defun
 
 
 @defun escape-bytes-conn/bv @var{conn} @var{bv}
 Wrapper for @func{escape-bytes-conn} which escapes the Scheme bytevector
 @var{bv} and return an escaped Scheme string.
+
+If the input is invalid, raise an exception with compound condition
+object of types: @condition{postgresql-escape-encode-error},
+@condition{connection}, @condition{escape-string}, @condition{who},
+@condition{message}.  The input is converted to a string with
+@func{utf8->string} and stored into the @condition{escape-string}
+object.
 @end defun
 
 
@@ -3317,12 +3438,18 @@ two values: a pointer object to the first byte of the unescaped string,
 the number of bytes in the unescaped string.  The returned memory must
 be released with @func{primitive-free} from the @library{foreign memory}
 library.  @nauref{memory alloc primitive, Primitive functions}.
+
+If the input is invalid, raise an exception with compound condition
+object of types: @condition{postgresql-escape-decode-error},
+@condition{escape-string}, @condition{who}, @condition{message}.  The
+input is converted to a string with @func{cstring->string} and stored
+into the @condition{escape-string} object.
 @end defun
 
 
 @defun unescape-bytes/bv @var{str}
-Unescape the Scheme string @var{str} and return the unescaped data as a
-Scheme bytevector.
+Wrapper for @func{unescape-bytes}.  Unescape the Scheme string @var{str}
+and return the unescaped data as a Scheme bytevector.
 @end defun
 
 @c page
@@ -3346,7 +3473,11 @@ specified prepared portal in the context of the connection @var{conn},
 and waits for completion; return a @objtype{query-result} object.
 
 @var{stmt-name} must be a Scheme string or symbol representing the name
-of the portal; if it is @false{}, it the portal is unnamed.
+of the portal; if it is @false{}, the portal is unnamed.
+
+If an error occurs, raise an exception with compound condition object of
+types: @condition{postgresql-error}, @condition{connection},
+@condition{portal-name}, @condition{who}, @condition{message}.
 @end defun
 
 
@@ -3354,11 +3485,15 @@ of the portal; if it is @false{}, it the portal is unnamed.
 @findex @func{PQsendDescribePortal}
 Wrapper for @func{PQsendDescribePortal}.  Send a request to obtain
 informations about the specified prepared portal in the context of the
-connection @var{conn}; return @true{} if successful, raise an exception
-if failure.
+connection @var{conn}, @strong{without} waiting for completion; return
+@true{} if successful, raise an exception if failure.
 
 @var{stmt-name} must be a Scheme string or symbol representing the name
-of the portal; if it is @false{}, it the portal is unnamed.
+of the portal; if it is @false{}, the portal is unnamed.
+
+If an error occurs, raise an exception with compound condition object of
+types: @condition{postgresql-error}, @condition{connection},
+@condition{portal-name}, @condition{who}, @condition{message}.
 @end defun
 
 
