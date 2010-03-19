@@ -40,6 +40,7 @@
   (check
       (begin
 	(xmlCheckVersion LIBXML_VERSION)
+	(xmlCleanupParser)
 	#t)
     => #t)
 

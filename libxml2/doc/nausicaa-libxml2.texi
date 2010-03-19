@@ -559,16 +559,16 @@ Exports bindings to constant values and data structures accessors.
 
 @item xml libxml2 platform
 Exports one binding for each foreign function; the Scheme functions have
-the same name of the C functions, so @cfunc{libxml2_init} is availale as
-@func{libxml2_init}.  This library makes the original Libxml2
+the same name of the C functions, so @cfunc{xmlCheckVersion} is availale
+as @func{xmlCheckVersion}.  This library makes the original Libxml2
 documentation relevant for this package.
 
 @item xml libxml2 primitives
 Exports one binding for each foreign function, implementing marshaling
 of arguments and return values.  The Scheme functions have the same name
-of the C functions, buth with in lower case and with the underscores
-converted to dashes; so @cfunc{libxml2_init} is availale as
-@func{libxml2-init}.
+of the C functions, buth with lower case, underscores converted to
+dashes and words separated by dashes; so @cfunc{xmlCheckVersion} is
+availale as @func{xml-check-version}.
 
 @item xml libxml2
 Compound library exporting the high--level @api{}; it reexports bindings
@@ -580,6 +580,19 @@ Exports bindings to constructor functions making use of the
 @library{compensations} library from Nausicaa/Scheme.
 @nauref{compensations, Compensation stacks}.
 @end table
+
+The following program: initialises the library checking the revision
+number; does nothing; finalises the library internals; exits.
+
+@example
+(import (rnrs)
+  (xml libxml2))
+
+(xml-check-version LIBXML_VERSION)
+(xml-cleanup-parser)
+(exit)
+@end example
+
 
 @c page
 
