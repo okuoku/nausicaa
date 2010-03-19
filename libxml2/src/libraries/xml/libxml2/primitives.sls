@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,7 +25,7 @@
 ;;;
 
 
-(library (foreign xml libxml2 primitives)
+(library (xml libxml2 primitives)
   (export)
   (import (rnrs)
     (compensations)
@@ -33,8 +33,8 @@
     (foreign ffi sizeof)
     (foreign memory)
     (foreign cstrings)
-    (foreign xml libxml2 platform)
-    (foreign xml libxml2 sizeof))
+    (xml libxml2 platform)
+    (xml libxml2 sizeof))
 
 
 ;;;; callback makers

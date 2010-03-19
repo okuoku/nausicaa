@@ -11,7 +11,7 @@
 ;;;	appeared  to export  unfinished or  private APIs.   If  you find
 ;;;	something missing, email the Nausicaa/Libxml2 maintainer.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -3120,11 +3120,11 @@
 ;;;; done
 
 (define libxml2-library-spec
-  '(foreign xml libxml2 sizeof))
+  '(xml libxml2 sizeof))
 
 (define-shared-object libxml2 libxml2.so)
 
 (autoconf-lib-write "configuration/libxml2-inspector.m4" libxml2-library-spec)
-(sizeof-lib-write   "src/libraries/foreign/xml/libxml2/sizeof.sls.in" libxml2-library-spec)
+(sizeof-lib-write   "src/libraries/xml/libxml2/sizeof.sls.in" libxml2-library-spec)
 
 ;;; end of file

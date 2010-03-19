@@ -1,14 +1,14 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Libxml2
-;;;Contents: load foreign shared library
-;;;Date:
+;;;Contents: compensated constructors
+;;;Date: Thu Dec 10, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,12 +25,19 @@
 ;;;
 
 
-(library (foreign xml libxml2 shared-object)
-  (export libxml2-shared-object)
+(library (xml libxml2 compensated)
+  (export)
   (import (rnrs)
-    (foreign ffi)
-    (foreign xml libxml2 sizeof))
-  (define-shared-object libxml2-shared-object
-    LIBXML2_SHARED_OBJECT))
+    (compensations)
+    (xml libxml2))
+
+
+;;;; code
+
+
+
+;;;; done
+
+)
 
 ;;; end of file

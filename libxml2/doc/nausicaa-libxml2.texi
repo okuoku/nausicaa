@@ -550,32 +550,32 @@ supports @gnu{}+Linux systems.
 The installed libraries are:
 
 @table @library
-@item foreign category libxml2 shared-object
+@item xml libxml2 shared-object
 Exports the single binding @code{libxml2-shared-object} which
 references the foreign shared library.
 
-@item foreign category libxml2 sizeof
+@item xml libxml2 sizeof
 Exports bindings to constant values and data structures accessors.
 
-@item foreign category libxml2 platform
+@item xml libxml2 platform
 Exports one binding for each foreign function; the Scheme functions have
 the same name of the C functions, so @cfunc{libxml2_init} is availale as
 @func{libxml2_init}.  This library makes the original Libxml2
 documentation relevant for this package.
 
-@item foreign category libxml2 primitives
+@item xml libxml2 primitives
 Exports one binding for each foreign function, implementing marshaling
 of arguments and return values.  The Scheme functions have the same name
 of the C functions, buth with in lower case and with the underscores
 converted to dashes; so @cfunc{libxml2_init} is availale as
 @func{libxml2-init}.
 
-@item foreign category libxml2
+@item xml libxml2
 Compound library exporting the high--level @api{}; it reexports bindings
 from the @samp{primitives} library and the constant values from the
 @samp{sizeof} library.
 
-@item foreign category libxml2 compensated
+@item xml libxml2 compensated
 Exports bindings to constructor functions making use of the
 @library{compensations} library from Nausicaa/Scheme.
 @nauref{compensations, Compensation stacks}.

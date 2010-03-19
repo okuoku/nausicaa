@@ -7,7 +7,7 @@ dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it  under the terms of the  GNU General Public
@@ -32,7 +32,7 @@ dnl Setup.
 dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-libxml2],[0.1d0],[marco.maggi-ipsu@poste.it])
-DS_BEGIN([./src/libraries/foreign/xml/libxml2.sls])
+DS_BEGIN([./src/libraries/xml/libxml2.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
 NAUSICAA_SYSTEM_SETUP
@@ -113,7 +113,7 @@ dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../src/libraries/foreign/xml/libxml2/sizeof.sls:src/libraries/foreign/xml/libxml2/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/xml/libxml2/sizeof.sls:src/libraries/xml/libxml2/sizeof.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END

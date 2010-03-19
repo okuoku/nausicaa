@@ -1,14 +1,14 @@
-dnl (foreign xml libxml2 sizeof) --
+dnl (xml libxml2 sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Mon Dec 14, 2009
+dnl Date: Fri Mar 19, 2010
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software:  you can redistribute it and/or modify
 dnl it under the terms of the  GNU General Public License as published by

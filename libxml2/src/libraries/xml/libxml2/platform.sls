@@ -25,9 +25,8 @@
 ;;;
 
 
-(library (foreign xml libxml2 platform)
+(library (xml libxml2 platform)
   (export
-    libxml2-shared-object
 
     ;; Canonical XML and Exclusive XML Canonicalization
     xmlC14NDocSaveTo
@@ -136,7 +135,7 @@
     xmlShellPwd
     xmlShell
 
-    ;; string dictionnary
+    ;; string dictionary
     xmlDictCreate
     xmlDictCreateSub
     xmlDictReference
@@ -1452,8 +1451,8 @@
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof)
-    (foreign xml libxml2 shared-object)
-    (foreign xml libxml2 sizeof))
+    (xml libxml2 shared-object)
+    (xml libxml2 sizeof))
 
 
 (define char**		'pointer)

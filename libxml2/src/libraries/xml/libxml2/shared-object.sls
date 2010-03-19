@@ -1,14 +1,14 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Libxml2
-;;;Contents: compound library, high-level API
-;;;Date: Thu Dec 10, 2009
+;;;Contents: load foreign shared library
+;;;Date:
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,10 +25,12 @@
 ;;;
 
 
-(library (foreign xml libxml2)
-  (export)
+(library (xml libxml2 shared-object)
+  (export libxml2-shared-object)
   (import (rnrs)
-    (foreign xml libxml2 primitives)
-    (foreign xml libxml2 sizeof)))
+    (foreign ffi)
+    (xml libxml2 sizeof))
+  (define-shared-object libxml2-shared-object
+    LIBXML2_SHARED_OBJECT))
 
 ;;; end of file

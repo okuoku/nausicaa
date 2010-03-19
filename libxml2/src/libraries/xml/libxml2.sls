@@ -1,14 +1,14 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Libxml2
-;;;Contents: compensated constructors
+;;;Contents: compound library, high-level API
 ;;;Date: Thu Dec 10, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,19 +25,10 @@
 ;;;
 
 
-(library (foreign xml libxml2 compensated)
+(library (xml libxml2)
   (export)
   (import (rnrs)
-    (compensations)
-    (foreign xml libxml2))
-
-
-;;;; code
-
-
-
-;;;; done
-
-)
+    (xml libxml2 primitives)
+    (xml libxml2 sizeof)))
 
 ;;; end of file
