@@ -28,6 +28,8 @@
 (library (xml libxml2)
   (export
 
+;;;; constants
+
     XML_C14N_1_0
     XML_C14N_EXCLUSIVE_1_0
     XML_C14N_1_1
@@ -1451,6 +1453,7 @@
     XML_XPATH_NOVAR
 
 
+;;;; accessors and mutators
 
     pointer-ref-c-xmlC14NMode
     pointer-set-c-xmlC14NMode!
@@ -2641,6 +2644,8 @@
     struct-xmlLocationSet-locTab-ref
 
 
+;;;; primitives
+
     ;; Canonical XML and Exclusive XML Canonicalization
     xml-c14n-doc-save-to
     xml-c14n-doc-dump-memory
@@ -4062,6 +4067,92 @@
     xml-xptr-eval-range-predicate
 
 
+;;;; callback makers
+
+    make-xml-c14n-is-visible-callback
+    make-xml-shell-readline-func
+    make-xml-shell-cmd
+    make-xml-char-encoding-input-func
+    make-xml-char-encoding-output-func
+    make-xml-parser-input-buffer-create-filename-func
+    make-xml-output-buffer-create-filename-func
+    make-xml-register-node-func
+    make-xml-deregister-node-func
+    make-xml-hash-deallocator
+    make-xml-hash-copier
+    make-xml-hash-scanner
+    make-xml-hash-scanner-full
+    make-xml-list-deallocator
+    make-xml-list-data-compare
+    make-xml-list-walker
+    make-ftp-list-callback
+    make-ftp-data-callback
+    make-xml-parser-input-deallocate
+    make-resolve-entity-sax-func
+    make-internal-subset-sax-func
+    make-external-subset-sax-func
+    make-get-entity-sax-func
+    make-get-parameter-entity-sax-func
+    make-entity-decl-sax-func
+    make-notation-decl-sax-func
+    make-attribute-decl-sax-func
+    make-element-decl-sax-func
+    make-unparsed-entity-decl-sax-func
+    make-set-document-locator-sax-func
+    make-start-document-sax-func
+    make-end-document-sax-func
+    make-start-element-sax-func
+    make-end-element-sax-func
+    make-attribute-sax-func
+    make-reference-sax-func
+    make-characters-sax-func
+    make-ignorable-whitespace-sax-func
+    make-comment-sax-func
+    make-cdata-block-sax-func
+;;;make-warning-sax-func		;;Variadic!!!
+;;;make-error-sax-func			;;Variadic!!!
+;;;make-fatal-error-sax-func		;;Variadic!!!
+    make-is-standalone-sax-func
+    make-has-internal-subset-sax-func
+    make-has-external-subset-sax-func
+    make-start-element-ns-sax2-func
+    make-end-element-ns-sax2-func
+    make-xml-external-entity-loader
+;;;make-xml-relax-ng-validity-error-func	;;Variadic!!!
+;;;make-xml-relax-ng-validity-warning-func	;;Variadic!!!
+;;;make-xml-schematron-validity-error-func	;;Variadic!!!
+;;;make-xml-schematron-validity-warning-func 	;;Variadic!!!
+    make-xml-dom-wrap-acquire-ns-function
+;;;make-xml-validity-error-func			;;Variadic!!!
+;;;make-xml-validity-warning-func		;;Variadic!!!
+;;;make-xml-generic-error-func			;;Variadic!!!
+    make-xml-structured-error-func
+    make-xml-input-match-callback
+    make-xml-input-open-callback
+    make-xml-input-read-callback
+    make-xml-input-close-callback
+    make-xml-output-match-callback
+    make-xml-output-open-callback
+    make-xml-output-write-callback
+    make-xml-output-close-callback
+    make-xml-free-func
+    make-xml-malloc-func
+    make-xml-realloc-func
+    make-xml-strdup-func
+    make-xml-text-reader-error-func
+    make-xml-reg-exec-callbacks
+;;;make-xml-schema-validity-error-func 		;;Variadic!!!
+;;;make-xml-schema-validity-warning-func 	;;Variadic!!!
+    make-xml-xpath-convert-func
+    make-xml-xpath-eval-func
+    make-xml-xpath-axis-func
+    make-xml-xpath-function
+    make-xml-xpath-variable-lookup-func
+    make-xml-xpath-func-lookup-func
+
+
+;;;; done
+
     )
   (import (rnrs)
     (xml libxml2 primitives)

@@ -520,6 +520,8 @@ entitled ``@gnu{} Free Documentation License''.
 * constants::                   Constant values.
 * access::                      Accessors and mutators.
 * primitives::                  Primitive functions.
+* callbacks::                   Callback makers.
+* examples::                    Usage examples.
 
 Appendices
 
@@ -2396,44 +2398,47 @@ Accessor and mutator for values of type @code{xmlEntityType}.
 @end defun
 
 
-@c @deffn Syntax struct-_xmlEntity-_private-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-_private-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-type-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-type-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-name-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-name-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-children-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-children-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-last-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-last-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-parent-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-parent-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-next-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-next-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-prev-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-prev-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-doc-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-doc-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-orig-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-orig-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-content-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-content-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-length-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-length-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-etype-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-etype-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-ExternalID-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-ExternalID-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-SystemID-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-SystemID-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-nexte-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-nexte-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-URI-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-URI-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-owner-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-owner-ref @var{pointer}
-@c @deffnx Syntax struct-_xmlEntity-checked-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlEntity-checked-ref @var{pointer}
+@deffn Syntax struct-_xmlEntity-_private-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-_private-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-type-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-type-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-name-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-name-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-children-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-children-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-last-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-last-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-parent-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-parent-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-next-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-next-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-prev-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-prev-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-doc-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-doc-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-orig-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-orig-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-content-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-content-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-length-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-length-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-etype-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-etype-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-ExternalID-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-ExternalID-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-SystemID-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-SystemID-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-nexte-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-nexte-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-URI-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-URI-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-owner-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-owner-ref @var{pointer}
+@deffnx Syntax struct-_xmlEntity-checked-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlEntity-checked-ref @var{pointer}
+Accessors and mutators for the fields of @code{struct _xmlEntity} memory
+blocks.
+@end deffn
 
 
 @deffn Syntax struct-htmlElemDesc-name-set! @ameta{pointer} @ameta{value}
@@ -2492,36 +2497,40 @@ Accessor and mutator for values of type @code{htmlStatus}.
 @end defun
 
 
-@c @deffnx Syntax struct-_xmlParserInput-buf-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-buf-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-filename-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-filename-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-directory-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-directory-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-base-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-base-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-cur-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-cur-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-end-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-end-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-length-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-length-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-line-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-line-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-col-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-col-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-consumed-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-consumed-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-free-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-free-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-encoding-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-encoding-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-version-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-version-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-standalone-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-standalone-ref @ameta{pointer}
-@c @deffnx Syntax struct-_xmlParserInput-id-set! @ameta{pointer} @ameta{value}
-@c @deffnx Syntax struct-_xmlParserInput-id-ref @ameta{pointer}
+@deffn Syntax struct-_xmlParserInput-buf-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-buf-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-filename-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-filename-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-directory-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-directory-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-base-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-base-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-cur-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-cur-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-end-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-end-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-length-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-length-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-line-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-line-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-col-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-col-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-consumed-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-consumed-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-free-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-free-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-encoding-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-encoding-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-version-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-version-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-standalone-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-standalone-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInput-id-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInput-id-ref @ameta{pointer}
+Accessors and mutators for the fields of @code{struct _xmlParserInput}
+memory blocks.
+@end deffn
+
 
 @deffn Syntax struct-xmlParserNodeInfo-node-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlParserNodeInfo-node-ref @ameta{pointer}
@@ -2561,176 +2570,184 @@ Accessor and mutator for values of type @code{xmlParserMode}.
 @end defun
 
 
-    @c struct-_xmlParserCtxt-sax-set!
-    @c struct-_xmlParserCtxt-sax-ref
-    @c struct-_xmlParserCtxt-userData-set!
-    @c struct-_xmlParserCtxt-userData-ref
-    @c struct-_xmlParserCtxt-myDoc-set!
-    @c struct-_xmlParserCtxt-myDoc-ref
-    @c struct-_xmlParserCtxt-wellFormed-set!
-    @c struct-_xmlParserCtxt-wellFormed-ref
-    @c struct-_xmlParserCtxt-replaceEntities-set!
-    @c struct-_xmlParserCtxt-replaceEntities-ref
-    @c struct-_xmlParserCtxt-version-set!
-    @c struct-_xmlParserCtxt-version-ref
-    @c struct-_xmlParserCtxt-encoding-set!
-    @c struct-_xmlParserCtxt-encoding-ref
-    @c struct-_xmlParserCtxt-standalone-set!
-    @c struct-_xmlParserCtxt-standalone-ref
-    @c struct-_xmlParserCtxt-html-set!
-    @c struct-_xmlParserCtxt-html-ref
-    @c struct-_xmlParserCtxt-input-set!
-    @c struct-_xmlParserCtxt-input-ref
-    @c struct-_xmlParserCtxt-inputNr-set!
-    @c struct-_xmlParserCtxt-inputNr-ref
-    @c struct-_xmlParserCtxt-inputMax-set!
-    @c struct-_xmlParserCtxt-inputMax-ref
-    @c struct-_xmlParserCtxt-inputTab-set!
-    @c struct-_xmlParserCtxt-inputTab-ref
-    @c struct-_xmlParserCtxt-node-set!
-    @c struct-_xmlParserCtxt-node-ref
-    @c struct-_xmlParserCtxt-nodeNr-set!
-    @c struct-_xmlParserCtxt-nodeNr-ref
-    @c struct-_xmlParserCtxt-nodeMax-set!
-    @c struct-_xmlParserCtxt-nodeMax-ref
-    @c struct-_xmlParserCtxt-nodeTab-set!
-    @c struct-_xmlParserCtxt-nodeTab-ref
-    @c struct-_xmlParserCtxt-record_info-set!
-    @c struct-_xmlParserCtxt-record_info-ref
-    @c struct-_xmlParserCtxt-node_seq-ref
-    @c struct-_xmlParserCtxt-errNo-set!
-    @c struct-_xmlParserCtxt-errNo-ref
-    @c struct-_xmlParserCtxt-hasExternalSubset-set!
-    @c struct-_xmlParserCtxt-hasExternalSubset-ref
-    @c struct-_xmlParserCtxt-hasPErefs-set!
-    @c struct-_xmlParserCtxt-hasPErefs-ref
-    @c struct-_xmlParserCtxt-external-set!
-    @c struct-_xmlParserCtxt-external-ref
-    @c struct-_xmlParserCtxt-valid-set!
-    @c struct-_xmlParserCtxt-valid-ref
-    @c struct-_xmlParserCtxt-validate-set!
-    @c struct-_xmlParserCtxt-validate-ref
-    @c struct-_xmlParserCtxt-vctxt-ref
-    @c struct-_xmlParserCtxt-instate-ref
-    @c struct-_xmlParserCtxt-token-set!
-    @c struct-_xmlParserCtxt-token-ref
-    @c struct-_xmlParserCtxt-directory-set!
-    @c struct-_xmlParserCtxt-directory-ref
-    @c struct-_xmlParserCtxt-name-set!
-    @c struct-_xmlParserCtxt-name-ref
-    @c struct-_xmlParserCtxt-nameNr-set!
-    @c struct-_xmlParserCtxt-nameNr-ref
-    @c struct-_xmlParserCtxt-nameMax-set!
-    @c struct-_xmlParserCtxt-nameMax-ref
-    @c struct-_xmlParserCtxt-nameTab-set!
-    @c struct-_xmlParserCtxt-nameTab-ref
-    @c struct-_xmlParserCtxt-nbChars-set!
-    @c struct-_xmlParserCtxt-nbChars-ref
-    @c struct-_xmlParserCtxt-checkIndex-set!
-    @c struct-_xmlParserCtxt-checkIndex-ref
-    @c struct-_xmlParserCtxt-keepBlanks-set!
-    @c struct-_xmlParserCtxt-keepBlanks-ref
-    @c struct-_xmlParserCtxt-disableSAX-set!
-    @c struct-_xmlParserCtxt-disableSAX-ref
-    @c struct-_xmlParserCtxt-inSubset-set!
-    @c struct-_xmlParserCtxt-inSubset-ref
-    @c struct-_xmlParserCtxt-intSubName-set!
-    @c struct-_xmlParserCtxt-intSubName-ref
-    @c struct-_xmlParserCtxt-extSubURI-set!
-    @c struct-_xmlParserCtxt-extSubURI-ref
-    @c struct-_xmlParserCtxt-extSubSystem-set!
-    @c struct-_xmlParserCtxt-extSubSystem-ref
-    @c struct-_xmlParserCtxt-space-set!
-    @c struct-_xmlParserCtxt-space-ref
-    @c struct-_xmlParserCtxt-spaceNr-set!
-    @c struct-_xmlParserCtxt-spaceNr-ref
-    @c struct-_xmlParserCtxt-spaceMax-set!
-    @c struct-_xmlParserCtxt-spaceMax-ref
-    @c struct-_xmlParserCtxt-spaceTab-set!
-    @c struct-_xmlParserCtxt-spaceTab-ref
-    @c struct-_xmlParserCtxt-depth-set!
-    @c struct-_xmlParserCtxt-depth-ref
-    @c struct-_xmlParserCtxt-entity-set!
-    @c struct-_xmlParserCtxt-entity-ref
-    @c struct-_xmlParserCtxt-charset-set!
-    @c struct-_xmlParserCtxt-charset-ref
-    @c struct-_xmlParserCtxt-nodelen-set!
-    @c struct-_xmlParserCtxt-nodelen-ref
-    @c struct-_xmlParserCtxt-nodemem-set!
-    @c struct-_xmlParserCtxt-nodemem-ref
-    @c struct-_xmlParserCtxt-pedantic-set!
-    @c struct-_xmlParserCtxt-pedantic-ref
-    @c struct-_xmlParserCtxt-_private-set!
-    @c struct-_xmlParserCtxt-_private-ref
-    @c struct-_xmlParserCtxt-loadsubset-set!
-    @c struct-_xmlParserCtxt-loadsubset-ref
-    @c struct-_xmlParserCtxt-linenumbers-set!
-    @c struct-_xmlParserCtxt-linenumbers-ref
-    @c struct-_xmlParserCtxt-catalogs-set!
-    @c struct-_xmlParserCtxt-catalogs-ref
-    @c struct-_xmlParserCtxt-recovery-set!
-    @c struct-_xmlParserCtxt-recovery-ref
-    @c struct-_xmlParserCtxt-progressive-set!
-    @c struct-_xmlParserCtxt-progressive-ref
-    @c struct-_xmlParserCtxt-dict-set!
-    @c struct-_xmlParserCtxt-dict-ref
-    @c struct-_xmlParserCtxt-atts-set!
-    @c struct-_xmlParserCtxt-atts-ref
-    @c struct-_xmlParserCtxt-maxatts-set!
-    @c struct-_xmlParserCtxt-maxatts-ref
-    @c struct-_xmlParserCtxt-docdict-set!
-    @c struct-_xmlParserCtxt-docdict-ref
-    @c struct-_xmlParserCtxt-str_xml-set!
-    @c struct-_xmlParserCtxt-str_xml-ref
-    @c struct-_xmlParserCtxt-str_xmlns-set!
-    @c struct-_xmlParserCtxt-str_xmlns-ref
-    @c struct-_xmlParserCtxt-str_xml_ns-set!
-    @c struct-_xmlParserCtxt-str_xml_ns-ref
-    @c struct-_xmlParserCtxt-sax2-set!
-    @c struct-_xmlParserCtxt-sax2-ref
-    @c struct-_xmlParserCtxt-nsNr-set!
-    @c struct-_xmlParserCtxt-nsNr-ref
-    @c struct-_xmlParserCtxt-nsMax-set!
-    @c struct-_xmlParserCtxt-nsMax-ref
-    @c struct-_xmlParserCtxt-nsTab-set!
-    @c struct-_xmlParserCtxt-nsTab-ref
-    @c struct-_xmlParserCtxt-attallocs-set!
-    @c struct-_xmlParserCtxt-attallocs-ref
-    @c struct-_xmlParserCtxt-pushTab-set!
-    @c struct-_xmlParserCtxt-pushTab-ref
-    @c struct-_xmlParserCtxt-attsDefault-set!
-    @c struct-_xmlParserCtxt-attsDefault-ref
-    @c struct-_xmlParserCtxt-attsSpecial-set!
-    @c struct-_xmlParserCtxt-attsSpecial-ref
-    @c struct-_xmlParserCtxt-nsWellFormed-set!
-    @c struct-_xmlParserCtxt-nsWellFormed-ref
-    @c struct-_xmlParserCtxt-options-set!
-    @c struct-_xmlParserCtxt-options-ref
-    @c struct-_xmlParserCtxt-dictNames-set!
-    @c struct-_xmlParserCtxt-dictNames-ref
-    @c struct-_xmlParserCtxt-freeElemsNr-set!
-    @c struct-_xmlParserCtxt-freeElemsNr-ref
-    @c struct-_xmlParserCtxt-freeElems-set!
-    @c struct-_xmlParserCtxt-freeElems-ref
-    @c struct-_xmlParserCtxt-freeAttrsNr-set!
-    @c struct-_xmlParserCtxt-freeAttrsNr-ref
-    @c struct-_xmlParserCtxt-freeAttrs-set!
-    @c struct-_xmlParserCtxt-freeAttrs-ref
-    @c struct-_xmlParserCtxt-lastError-ref
-    @c struct-_xmlParserCtxt-xmlParserMode-ref
-    @c struct-_xmlParserCtxt-nbentities-set!
-    @c struct-_xmlParserCtxt-nbentities-ref
-    @c struct-_xmlParserCtxt-sizeentities-set!
-    @c struct-_xmlParserCtxt-sizeentities-ref
+@deffn Syntax struct-_xmlParserCtxt-sax-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-sax-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-userData-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-userData-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-myDoc-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-myDoc-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-wellFormed-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-wellFormed-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-replaceEntities-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-replaceEntities-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-version-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-version-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-encoding-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-encoding-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-standalone-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-standalone-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-html-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-html-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-input-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-input-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-inputNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-inputNr-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-inputMax-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-inputMax-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-inputTab-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-inputTab-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-node-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-node-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nodeNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nodeNr-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nodeMax-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nodeMax-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nodeTab-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nodeTab-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-record_info-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-record_info-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-node_seq-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-errNo-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-errNo-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-hasExternalSubset-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-hasExternalSubset-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-hasPErefs-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-hasPErefs-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-external-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-external-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-valid-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-valid-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-validate-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-validate-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-vctxt-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-instate-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-token-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-token-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-directory-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-directory-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-name-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-name-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nameNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nameNr-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nameMax-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nameMax-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nameTab-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nameTab-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nbChars-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nbChars-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-checkIndex-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-checkIndex-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-keepBlanks-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-keepBlanks-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-disableSAX-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-disableSAX-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-inSubset-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-inSubset-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-intSubName-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-intSubName-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-extSubURI-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-extSubURI-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-extSubSystem-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-extSubSystem-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-space-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-space-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-spaceNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-spaceNr-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-spaceMax-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-spaceMax-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-spaceTab-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-spaceTab-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-depth-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-depth-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-entity-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-entity-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-charset-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-charset-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nodelen-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nodelen-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nodemem-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nodemem-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-pedantic-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-pedantic-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-_private-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-_private-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-loadsubset-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-loadsubset-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-linenumbers-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-linenumbers-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-catalogs-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-catalogs-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-recovery-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-recovery-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-progressive-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-progressive-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-dict-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-dict-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-atts-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-atts-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-maxatts-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-maxatts-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-docdict-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-docdict-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-str_xml-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-str_xml-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-str_xmlns-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-str_xmlns-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-str_xml_ns-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-str_xml_ns-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-sax2-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-sax2-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nsNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nsNr-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nsMax-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nsMax-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nsTab-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nsTab-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-attallocs-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-attallocs-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-pushTab-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-pushTab-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-attsDefault-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-attsDefault-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-attsSpecial-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-attsSpecial-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nsWellFormed-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-nsWellFormed-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-options-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-options-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-dictNames-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-dictNames-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-freeElemsNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-freeElemsNr-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-freeElems-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-freeElems-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-freeAttrsNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-freeAttrsNr-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-freeAttrs-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-freeAttrs-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-lastError-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-xmlParserMode-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-nbentities-set! @ameta{pointer} @var{value}
+@deffnx Syntax struct-_xmlParserCtxt-nbentities-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserCtxt-sizeentities-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserCtxt-sizeentities-ref @ameta{pointer}
+Accessors and mutators for the fields of @code{struct _xmlParserCtxt}
+memory blocks.
+@end deffn
 
-    @c struct-_xmlSAXLocator-getPublicId-set!
-    @c struct-_xmlSAXLocator-getPublicId-ref
-    @c struct-_xmlSAXLocator-getSystemId-set!
-    @c struct-_xmlSAXLocator-getSystemId-ref
-    @c struct-_xmlSAXLocator-getLineNumber-set!
-    @c struct-_xmlSAXLocator-getLineNumber-ref
-    @c struct-_xmlSAXLocator-getColumnNumber-set!
-    @c struct-_xmlSAXLocator-getColumnNumber-ref
+
+@deffn Syntax struct-_xmlSAXLocator-getPublicId-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlSAXLocator-getPublicId-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlSAXLocator-getSystemId-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlSAXLocator-getSystemId-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlSAXLocator-getLineNumber-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlSAXLocator-getLineNumber-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlSAXLocator-getColumnNumber-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlSAXLocator-getColumnNumber-ref @ameta{pointer}
+Accessors and mutators for the fields of @code{struct _xmlSAXLocator}
+memory blocks.
+@end deffn
+
 
 @defun pointer-ref-c-xmlParserOption @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlParserOption! @var{pointer} @var{offset} @var{value}
@@ -3257,41 +3274,48 @@ Accessor and mutator for values of type @code{xmlParserErrors}.
 @end defun
 
 
-    @c struct-_xmlParserInputBuffer-context-set!
-    @c struct-_xmlParserInputBuffer-context-ref
-    @c struct-_xmlParserInputBuffer-readcallback-set!
-    @c struct-_xmlParserInputBuffer-readcallback-ref
-    @c struct-_xmlParserInputBuffer-closecallback-set!
-    @c struct-_xmlParserInputBuffer-closecallback-ref
-    @c struct-_xmlParserInputBuffer-encoder-set!
-    @c struct-_xmlParserInputBuffer-encoder-ref
-    @c struct-_xmlParserInputBuffer-buffer-set!
-    @c struct-_xmlParserInputBuffer-buffer-ref
-    @c struct-_xmlParserInputBuffer-raw-set!
-    @c struct-_xmlParserInputBuffer-raw-ref
-    @c struct-_xmlParserInputBuffer-compressed-set!
-    @c struct-_xmlParserInputBuffer-compressed-ref
-    @c struct-_xmlParserInputBuffer-error-set!
-    @c struct-_xmlParserInputBuffer-error-ref
-    @c struct-_xmlParserInputBuffer-rawconsumed-set!
-    @c struct-_xmlParserInputBuffer-rawconsumed-ref
+@deffn Syntax struct-_xmlParserInputBuffer-context-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInputBuffer-context-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInputBuffer-readcallback-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInputBuffer-readcallback-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInputBuffer-closecallback-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInputBuffer-closecallback-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInputBuffer-encoder-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInputBuffer-encoder-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInputBuffer-buffer-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInputBuffer-buffer-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInputBuffer-raw-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInputBuffer-raw-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInputBuffer-compressed-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInputBuffer-compressed-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInputBuffer-error-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInputBuffer-error-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlParserInputBuffer-rawconsumed-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlParserInputBuffer-rawconsumed-ref @ameta{pointer}
+Accessors and mutators for the fields of @code{struct
+_xmlParserInputBuffer} memory blocks.
+@end deffn
 
-    @c struct-_xmlOutputBuffer-context-set!
-    @c struct-_xmlOutputBuffer-context-ref
-    @c struct-_xmlOutputBuffer-writecallback-set!
-    @c struct-_xmlOutputBuffer-writecallback-ref
-    @c struct-_xmlOutputBuffer-closecallback-set!
-    @c struct-_xmlOutputBuffer-closecallback-ref
-    @c struct-_xmlOutputBuffer-encoder-set!
-    @c struct-_xmlOutputBuffer-encoder-ref
-    @c struct-_xmlOutputBuffer-buffer-set!
-    @c struct-_xmlOutputBuffer-buffer-ref
-    @c struct-_xmlOutputBuffer-conv-set!
-    @c struct-_xmlOutputBuffer-conv-ref
-    @c struct-_xmlOutputBuffer-written-set!
-    @c struct-_xmlOutputBuffer-written-ref
-    @c struct-_xmlOutputBuffer-error-set!
-    @c struct-_xmlOutputBuffer-error-ref
+
+@deffn Syntax struct-_xmlOutputBuffer-context-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlOutputBuffer-context-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlOutputBuffer-writecallback-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlOutputBuffer-writecallback-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlOutputBuffer-closecallback-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlOutputBuffer-closecallback-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlOutputBuffer-encoder-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlOutputBuffer-encoder-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlOutputBuffer-buffer-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlOutputBuffer-buffer-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlOutputBuffer-conv-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlOutputBuffer-conv-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlOutputBuffer-written-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlOutputBuffer-written-ref @ameta{pointer}
+@deffnx Syntax struct-_xmlOutputBuffer-error-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-_xmlOutputBuffer-error-ref @ameta{pointer}
+Accessors and mutators for the fields of @code{struct _xmlOutputBuffer}
+memory blocks.
+@end deffn
 
 @defun pointer-ref-c-xmlModuleOption @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlModuleOption! @var{pointer} @var{offset} @var{value}
@@ -11905,6 +11929,537 @@ Alias for @func{xmlXPtrBuildNodeList}.
 @findex xmlXPtrEvalRangePredicate
 Alias for @func{xmlXPtrEvalRangePredicate}.
 @end defun
+
+@c page
+@node callbacks
+@chapter Callback makers
+
+
+The bindings described in this chapter are exported by the @library{xml
+libxml2 primitives} library and reexported by the @library{xml libxml2}
+library.  Notice that variadic callback makers are not interfaced.
+
+Unless otherwise specified, the following makers are plain builders
+like:
+
+@example
+(define (make-xml-c14n-is-visible-callback scheme-function)
+  (make-c-callback* int
+                    scheme-function
+                    (void* xmlNodePtr xmlNodePtr)))
+@end example
+
+@noindent
+for correct callback usage it is usually required to wrap the body of
+the Scheme function in a @func{guard} form, to prevent exception stack
+unwinding to traverse a call to a foreign function.
+
+
+@defun make-xml-c14n-is-visible-callback @var{scheme-function}
+@tindex xmlC14NIsVisibleCallback
+Build and return a callback of type @code{xmlC14NIsVisibleCallback}.
+@end defun
+
+
+@defun make-xml-shell-readline-func @var{scheme-function}
+@tindex xmlShellReadlineFunc
+Build and return a callback of type @code{xmlShellReadlineFunc}.
+@end defun
+
+
+@defun make-xml-shell-cmd @var{scheme-function}
+@tindex xmlShellCmd
+Build and return a callback of type @code{xmlShellCmd}.
+@end defun
+
+
+@defun make-xml-char-encoding-input-func @var{scheme-function}
+@tindex xmlCharEncodingInputFunc
+Build and return a callback of type @code{xmlCharEncodingInputFunc}.
+@end defun
+
+
+@defun make-xml-char-encoding-output-func @var{scheme-function}
+@tindex xmlCharEncodingOutputFunc
+Build and return a callback of type @code{xmlCharEncodingOutputFunc}.
+@end defun
+
+
+@defun make-xml-parser-input-buffer-create-filename-func @var{scheme-function}
+@tindex xmlParserInputBufferCreateFilenameFunc
+Build and return a callback of type @code{xmlParserInputBufferCreateFilenameFunc}.
+@end defun
+
+
+@defun make-xml-output-buffer-create-filename-func @var{scheme-function}
+@tindex xmlOutputBufferCreateFilenameFunc
+Build and return a callback of type @code{xmlOutputBufferCreateFilenameFunc}.
+@end defun
+
+
+@defun make-xml-register-node-func @var{scheme-function}
+@tindex xmlRegisterNodeFunc
+Build and return a callback of type @code{xmlRegisterNodeFunc}.
+@end defun
+
+
+@defun make-xml-deregister-node-func @var{scheme-function}
+@tindex xmlDeregisterNodeFunc
+Build and return a callback of type @code{xmlDeregisterNodeFunc}.
+@end defun
+
+
+@defun make-xml-hash-deallocator @var{scheme-function}
+@tindex xmlHashDeallocator
+Build and return a callback of type @code{xmlHashDeallocator}.
+@end defun
+
+
+@defun make-xml-hash-copier @var{scheme-function}
+@tindex xmlHashCopier
+Build and return a callback of type @code{xmlHashCopier}.
+@end defun
+
+
+@defun make-xml-hash-scanner @var{scheme-function}
+@tindex xmlHashScanner
+Build and return a callback of type @code{xmlHashScanner}.
+@end defun
+
+
+@defun make-xml-hash-scanner-full @var{scheme-function}
+@tindex xmlHashScannerFull
+Build and return a callback of type @code{xmlHashScannerFull}.
+@end defun
+
+
+@defun make-xml-list-deallocator @var{scheme-function}
+@tindex xmlListDeallocator
+Build and return a callback of type @code{xmlListDeallocator}.
+@end defun
+
+
+@defun make-xml-list-data-compare @var{scheme-function}
+@tindex xmlListDataCompare
+Build and return a callback of type @code{xmlListDataCompare}.
+@end defun
+
+
+@defun make-xml-list-walker @var{scheme-function}
+@tindex xmlListWalker
+Build and return a callback of type @code{xmlListWalker}.
+@end defun
+
+
+@defun make-ftp-list-callback @var{scheme-function}
+@tindex ftpListCallback
+Build and return a callback of type @code{ftpListCallback}.
+@end defun
+
+
+@defun make-ftp-data-callback @var{scheme-function}
+@tindex ftpDataCallback
+Build and return a callback of type @code{ftpDataCallback}.
+@end defun
+
+
+@defun make-xml-parser-input-deallocate @var{scheme-function}
+@tindex xmlParserInputDeallocate
+Build and return a callback of type @code{xmlParserInputDeallocate}.
+@end defun
+
+
+@defun make-resolve-entity-sax-func @var{scheme-function}
+@tindex resolveEntitySAXFunc
+Build and return a callback of type @code{resolveEntitySAXFunc}.
+@end defun
+
+
+@defun make-internal-subset-sax-func @var{scheme-function}
+@tindex internalSubsetSAXFunc
+Build and return a callback of type @code{internalSubsetSAXFunc}.
+@end defun
+
+
+@defun make-external-subset-sax-func @var{scheme-function}
+@tindex externalSubsetSAXFunc
+Build and return a callback of type @code{externalSubsetSAXFunc}.
+@end defun
+
+
+@defun make-get-entity-sax-func @var{scheme-function}
+@tindex getEntitySAXFunc
+Build and return a callback of type @code{getEntitySAXFunc}.
+@end defun
+
+
+@defun make-get-parameter-entity-sax-func @var{scheme-function}
+@tindex getParameterEntitySAXFunc
+Build and return a callback of type @code{getParameterEntitySAXFunc}.
+@end defun
+
+
+@defun make-entity-decl-sax-func @var{scheme-function}
+@tindex entityDeclSAXFunc
+Build and return a callback of type @code{entityDeclSAXFunc}.
+@end defun
+
+
+@defun make-notation-decl-sax-func @var{scheme-function}
+@tindex notationDeclSAXFunc
+Build and return a callback of type @code{notationDeclSAXFunc}.
+@end defun
+
+
+@defun make-attribute-decl-sax-func @var{scheme-function}
+@tindex attributeDeclSAXFunc
+Build and return a callback of type @code{attributeDeclSAXFunc}.
+@end defun
+
+
+@defun make-element-decl-sax-func @var{scheme-function}
+@tindex elementDeclSAXFunc
+Build and return a callback of type @code{elementDeclSAXFunc}.
+@end defun
+
+
+@defun make-unparsed-entity-decl-sax-func @var{scheme-function}
+@tindex unparsedEntityDeclSAXFunc
+Build and return a callback of type @code{unparsedEntityDeclSAXFunc}.
+@end defun
+
+
+@defun make-set-document-locator-sax-func @var{scheme-function}
+@tindex setDocumentLocatorSAXFunc
+Build and return a callback of type @code{setDocumentLocatorSAXFunc}.
+@end defun
+
+
+@defun make-start-document-sax-func @var{scheme-function}
+@tindex startDocumentSAXFunc
+Build and return a callback of type @code{startDocumentSAXFunc}.
+@end defun
+
+
+@defun make-end-document-sax-func @var{scheme-function}
+@tindex endDocumentSAXFunc
+Build and return a callback of type @code{endDocumentSAXFunc}.
+@end defun
+
+
+@defun make-start-element-sax-func @var{scheme-function}
+@tindex startElementSAXFunc
+Build and return a callback of type @code{startElementSAXFunc}.
+@end defun
+
+
+@defun make-end-element-sax-func @var{scheme-function}
+@tindex endElementSAXFunc
+Build and return a callback of type @code{endElementSAXFunc}.
+@end defun
+
+
+@defun make-attribute-sax-func @var{scheme-function}
+@tindex attributeSAXFunc
+Build and return a callback of type @code{attributeSAXFunc}.
+@end defun
+
+
+@defun make-reference-sax-func @var{scheme-function}
+@tindex referenceSAXFunc
+Build and return a callback of type @code{referenceSAXFunc}.
+@end defun
+
+
+@defun make-characters-sax-func @var{scheme-function}
+@tindex charactersSAXFunc
+Build and return a callback of type @code{charactersSAXFunc}.
+@end defun
+
+
+@defun make-ignorable-whitespace-sax-func @var{scheme-function}
+@tindex ignorableWhitespaceSAXFunc
+Build and return a callback of type @code{ignorableWhitespaceSAXFunc}.
+@end defun
+
+
+@defun make-comment-sax-func @var{scheme-function}
+@tindex commentSAXFunc
+Build and return a callback of type @code{commentSAXFunc}.
+@end defun
+
+
+@defun make-cdata-block-sax-func @var{scheme-function}
+@tindex cdataBlockSAXFunc
+Build and return a callback of type @code{cdataBlockSAXFunc}.
+@end defun
+
+@c make-warning-sax-func		;;Variadic!!!
+@c make-error-sax-func			;;Variadic!!!
+@c make-fatal-error-sax-func		;;Variadic!!!
+
+@defun make-is-standalone-sax-func @var{scheme-function}
+@tindex isStandaloneSAXFunc
+Build and return a callback of type @code{isStandaloneSAXFunc}.
+@end defun
+
+
+@defun make-has-internal-subset-sax-func @var{scheme-function}
+@tindex hasInternalSubsetSAXFunc
+Build and return a callback of type @code{hasInternalSubsetSAXFunc}.
+@end defun
+
+
+@defun make-has-external-subset-sax-func @var{scheme-function}
+@tindex hasExternalSubsetSAXFunc
+Build and return a callback of type @code{hasExternalSubsetSAXFunc}.
+@end defun
+
+
+@defun make-start-element-ns-sax2-func @var{scheme-function}
+@tindex startElementNsSAX2Func
+Build and return a callback of type @code{startElementNsSAX2Func}.
+@end defun
+
+
+@defun make-end-element-ns-sax2-func @var{scheme-function}
+@tindex endElementNsSAX2Func
+Build and return a callback of type @code{endElementNsSAX2Func}.
+@end defun
+
+
+@defun make-xml-external-entity-loader @var{scheme-function}
+@tindex xmlExternalEntityLoader
+Build and return a callback of type @code{xmlExternalEntityLoader}.
+@end defun
+
+
+@c make-xml-relax-ng-validity-error-func	;;Variadic!!!
+@c make-xml-relax-ng-validity-warning-func	;;Variadic!!!
+@c make-xml-schematron-validity-error-func	;;Variadic!!!
+@c make-xml-schematron-validity-warning-func 	;;Variadic!!!
+
+
+@defun make-xml-dom-wrap-acquire-ns-function @var{scheme-function}
+@tindex xmlDOMWrapAcquireNsFunction
+Build and return a callback of type @code{xmlDOMWrapAcquireNsFunction}.
+@end defun
+
+
+@c make-xml-validity-error-func			;;Variadic!!!
+@c make-xml-validity-warning-func		;;Variadic!!!
+@c make-xml-generic-error-func			;;Variadic!!!
+
+
+@defun make-xml-structured-error-func @var{scheme-function}
+@tindex xmlStructuredErrorFunc
+Build and return a callback of type @code{xmlStructuredErrorFunc}.
+@end defun
+
+
+@defun make-xml-input-match-callback @var{scheme-function}
+@tindex xmlInputMatchCallback
+Build and return a callback of type @code{xmlInputMatchCallback}.
+@end defun
+
+
+@defun make-xml-input-open-callback @var{scheme-function}
+@tindex xmlInputOpenCallback
+Build and return a callback of type @code{xmlInputOpenCallback}.
+@end defun
+
+
+@defun make-xml-input-read-callback @var{scheme-function}
+@tindex xmlInputReadCallback
+Build and return a callback of type @code{xmlInputReadCallback}.
+@end defun
+
+
+@defun make-xml-input-close-callback @var{scheme-function}
+@tindex xmlInputCloseCallback
+Build and return a callback of type @code{xmlInputCloseCallback}.
+@end defun
+
+
+@defun make-xml-output-match-callback @var{scheme-function}
+@tindex xmlOutputMatchCallback
+Build and return a callback of type @code{xmlOutputMatchCallback}.
+@end defun
+
+
+@defun make-xml-output-open-callback @var{scheme-function}
+@tindex xmlOutputOpenCallback
+Build and return a callback of type @code{xmlOutputOpenCallback}.
+@end defun
+
+
+@defun make-xml-output-write-callback @var{scheme-function}
+@tindex xmlOutputWriteCallback
+Build and return a callback of type @code{xmlOutputWriteCallback}.
+@end defun
+
+
+@defun make-xml-output-close-callback @var{scheme-function}
+@tindex xmlOutputCloseCallback
+Build and return a callback of type @code{xmlOutputCloseCallback}.
+@end defun
+
+
+@defun make-xml-free-func @var{scheme-function}
+@tindex xmlFreeFunc
+Build and return a callback of type @code{xmlFreeFunc}.
+@end defun
+
+
+@defun make-xml-malloc-func @var{scheme-function}
+@tindex xmlMallocFunc
+Build and return a callback of type @code{xmlMallocFunc}.
+@end defun
+
+
+@defun make-xml-realloc-func @var{scheme-function}
+@tindex xmlReallocFunc
+Build and return a callback of type @code{xmlReallocFunc}.
+@end defun
+
+
+@defun make-xml-strdup-func @var{scheme-function}
+@tindex xmlStrdupFunc
+Build and return a callback of type @code{xmlStrdupFunc}.
+@end defun
+
+
+@defun make-xml-text-reader-error-func @var{scheme-function}
+@tindex xmlTextReaderErrorFunc
+Build and return a callback of type @code{xmlTextReaderErrorFunc}.
+@end defun
+
+
+@defun make-xml-reg-exec-callbacks @var{scheme-function}
+@tindex xmlRegExecCallbacks
+Build and return a callback of type @code{xmlRegExecCallbacks}.
+@end defun
+
+
+@c make-xml-schema-validity-error-func 		;;Variadic!!!
+@c make-xml-schema-validity-warning-func 	;;Variadic!!!
+
+
+@defun make-xml-xpath-convert-func @var{scheme-function}
+@tindex xmlXPathConvertFunc
+Build and return a callback of type @code{xmlXPathConvertFunc}.
+@end defun
+
+
+@defun make-xml-xpath-eval-func @var{scheme-function}
+@tindex xmlXPathEvalFunc
+Build and return a callback of type @code{xmlXPathEvalFunc}.
+@end defun
+
+
+@defun make-xml-xpath-axis-func @var{scheme-function}
+@tindex xmlXPathAxisFunc
+Build and return a callback of type @code{xmlXPathAxisFunc}.
+@end defun
+
+
+@defun make-xml-xpath-function @var{scheme-function}
+@tindex xmlXPathFunction
+Build and return a callback of type @code{xmlXPathFunction}.
+@end defun
+
+
+@defun make-xml-xpath-variable-lookup-func @var{scheme-function}
+@tindex xmlXPathVariableLookupFunc
+Build and return a callback of type @code{xmlXPathVariableLookupFunc}.
+@end defun
+
+
+@defun make-xml-xpath-func-lookup-func @var{scheme-function}
+@tindex xmlXPathFuncLookupFunc
+Build and return a callback of type @code{xmlXPathFuncLookupFunc}.
+@end defun
+
+@c page
+@node examples
+@chapter Usage examples
+
+
+@menu
+* examples html::               Parsing @acronym{HTML}.
+@end menu
+
+@c page
+@node examples html
+@section Parsing @acronym{HTML}
+
+
+The following example shows how to parse a simple @acronym{HTML} page
+and walk its tree.
+
+@smallexample
+(import (nausicaa)
+  (compensations)
+  (foreign ffi)
+  (foreign cstrings)
+  (xml libxml2))
+
+(define html-page "
+<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\">
+<html>
+  <head>
+    <title>Marco Maggi Vanity Pages</title>
+    <link href=\"webpage.css\"
+          rel=\"stylesheet\" type=\"text/css\">
+   </head>
+  <body>
+  <p>This is the body</p>
+  </body>
+</html>
+<!-- end of page -->")
+
+(with-compensations
+    (compensate
+        (xml-check-version LIBXML_VERSION)
+      (with
+       (xml-cleanup-parser)))
+  (letrec
+      ((parser (compensate
+                   (html-create-push-parser-ctxt pointer-null pointer-null
+                                                 pointer-null 0
+                                                 pointer-null 0)
+                 (with
+                  (xml-free-doc (struct-_xmlParserCtxt-myDoc-ref parser))
+                  (html-free-parser-ctxt parser)))))
+
+    (html-ctxt-use-options parser
+                           (bitwise-ior HTML_PARSE_NOBLANKS
+                                        HTML_PARSE_NOERROR
+                                        HTML_PARSE_NOWARNING
+                                        HTML_PARSE_NONET))
+
+    (let* ((page.ptr (string->cstring/c html-page))
+           (page.len (strlen page.ptr)))
+      (html-parse-chunk parser page.ptr page.len 1))
+
+    ((recursion (walk-tree root-node)
+      (let ((tree '()))
+        (do ((node root-node (struct-xmlNode-next-ref node)))
+            ((pointer-null? node)
+             (reverse tree))
+          (set-cons! tree
+            (cons (cstring->string (struct-xmlNode-name-ref node))
+                  (walk-tree (struct-xmlNode-children-ref node)))))))
+     (xml-doc-get-root-element
+        (struct-_xmlParserCtxt-myDoc-ref parser)))))
+@result{} (("html"
+      ("head"
+        ("title" ("text"))
+        ("link"))
+      ("body"
+        ("p" ("text")))))
+@end smallexample
+
 
 @c page
 
