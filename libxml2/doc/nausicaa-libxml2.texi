@@ -518,7 +518,7 @@ entitled ``@gnu{} Free Documentation License''.
 @menu
 * overview::                    Overview of the package.
 * constants::                   Constant values.
-* access::                      Accessors and mutators.
+* structs::                     Accessing data structures.
 * primitives::                  Primitive functions.
 * callbacks::                   Callback makers.
 * examples::                    Usage examples.
@@ -2295,8 +2295,18 @@ Constants.
 @end defvr
 
 @c page
-@node access
-@chapter Accessors and mutators
+@node structs
+@chapter Accessing data structures
+
+
+@menu
+* structs access::              Accessors and mutators.
+* structs identifiers::         Identifier syntaxes.
+@end menu
+
+@c page
+@node structs access
+@section Accessors and mutators
 
 
 The following bindings are exported by the @library{xml libxml2 sizeof}
@@ -2398,44 +2408,44 @@ Accessor and mutator for values of type @code{xmlEntityType}.
 @end defun
 
 
-@deffn Syntax struct-_xmlEntity-_private-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-_private-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-type-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-type-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-name-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-name-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-children-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-children-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-last-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-last-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-parent-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-parent-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-next-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-next-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-prev-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-prev-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-doc-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-doc-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-orig-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-orig-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-content-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-content-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-length-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-length-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-etype-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-etype-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-ExternalID-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-ExternalID-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-SystemID-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-SystemID-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-nexte-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-nexte-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-URI-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-URI-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-owner-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-owner-ref @var{pointer}
-@deffnx Syntax struct-_xmlEntity-checked-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlEntity-checked-ref @var{pointer}
+@deffn Syntax struct-xmlEntity-_private-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-_private-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-type-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-type-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-name-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-name-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-children-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-children-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-last-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-last-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-parent-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-parent-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-next-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-next-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-prev-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-prev-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-doc-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-doc-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-orig-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-orig-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-content-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-content-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-length-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-length-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-etype-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-etype-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-ExternalID-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-ExternalID-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-SystemID-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-SystemID-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-nexte-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-nexte-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-URI-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-URI-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-owner-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-owner-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-checked-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlEntity-checked-ref @var{pointer}
 Accessors and mutators for the fields of @code{struct _xmlEntity} memory
 blocks.
 @end deffn
@@ -2497,36 +2507,36 @@ Accessor and mutator for values of type @code{htmlStatus}.
 @end defun
 
 
-@deffn Syntax struct-_xmlParserInput-buf-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-buf-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-filename-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-filename-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-directory-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-directory-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-base-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-base-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-cur-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-cur-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-end-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-end-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-length-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-length-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-line-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-line-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-col-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-col-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-consumed-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-consumed-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-free-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-free-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-encoding-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-encoding-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-version-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-version-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-standalone-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-standalone-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInput-id-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInput-id-ref @ameta{pointer}
+@deffn Syntax struct-xmlParserInput-buf-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-buf-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-filename-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-filename-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-directory-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-directory-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-base-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-base-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-cur-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-cur-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-end-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-end-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-length-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-length-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-line-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-line-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-col-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-col-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-consumed-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-consumed-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-free-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-free-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-encoding-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-encoding-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-version-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-version-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-standalone-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-standalone-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInput-id-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInput-id-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct _xmlParserInput}
 memory blocks.
 @end deffn
@@ -2570,180 +2580,180 @@ Accessor and mutator for values of type @code{xmlParserMode}.
 @end defun
 
 
-@deffn Syntax struct-_xmlParserCtxt-sax-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-sax-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-userData-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-userData-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-myDoc-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-myDoc-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-wellFormed-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-wellFormed-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-replaceEntities-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-replaceEntities-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-version-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-version-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-encoding-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-encoding-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-standalone-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-standalone-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-html-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-html-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-input-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-input-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-inputNr-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-inputNr-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-inputMax-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-inputMax-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-inputTab-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-inputTab-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-node-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-node-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nodeNr-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nodeNr-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nodeMax-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nodeMax-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nodeTab-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nodeTab-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-record_info-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-record_info-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-node_seq-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-errNo-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-errNo-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-hasExternalSubset-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-hasExternalSubset-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-hasPErefs-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-hasPErefs-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-external-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-external-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-valid-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-valid-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-validate-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-validate-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-vctxt-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-instate-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-token-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-token-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-directory-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-directory-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-name-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-name-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nameNr-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nameNr-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nameMax-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nameMax-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nameTab-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nameTab-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nbChars-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nbChars-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-checkIndex-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-checkIndex-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-keepBlanks-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-keepBlanks-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-disableSAX-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-disableSAX-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-inSubset-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-inSubset-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-intSubName-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-intSubName-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-extSubURI-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-extSubURI-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-extSubSystem-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-extSubSystem-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-space-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-space-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-spaceNr-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-spaceNr-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-spaceMax-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-spaceMax-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-spaceTab-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-spaceTab-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-depth-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-depth-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-entity-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-entity-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-charset-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-charset-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nodelen-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nodelen-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nodemem-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nodemem-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-pedantic-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-pedantic-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-_private-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-_private-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-loadsubset-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-loadsubset-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-linenumbers-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-linenumbers-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-catalogs-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-catalogs-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-recovery-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-recovery-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-progressive-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-progressive-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-dict-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-dict-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-atts-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-atts-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-maxatts-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-maxatts-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-docdict-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-docdict-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-str_xml-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-str_xml-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-str_xmlns-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-str_xmlns-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-str_xml_ns-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-str_xml_ns-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-sax2-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-sax2-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nsNr-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nsNr-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nsMax-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nsMax-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nsTab-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nsTab-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-attallocs-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-attallocs-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-pushTab-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-pushTab-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-attsDefault-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-attsDefault-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-attsSpecial-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-attsSpecial-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nsWellFormed-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-nsWellFormed-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-options-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-options-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-dictNames-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-dictNames-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-freeElemsNr-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-freeElemsNr-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-freeElems-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-freeElems-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-freeAttrsNr-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-freeAttrsNr-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-freeAttrs-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-freeAttrs-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-lastError-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-xmlParserMode-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-nbentities-set! @ameta{pointer} @var{value}
-@deffnx Syntax struct-_xmlParserCtxt-nbentities-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserCtxt-sizeentities-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserCtxt-sizeentities-ref @ameta{pointer}
+@deffn Syntax struct-xmlParserCtxt-sax-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-sax-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-userData-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-userData-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-myDoc-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-myDoc-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-wellFormed-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-wellFormed-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-replaceEntities-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-replaceEntities-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-version-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-version-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-encoding-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-encoding-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-standalone-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-standalone-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-html-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-html-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-input-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-input-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-inputNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-inputNr-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-inputMax-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-inputMax-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-inputTab-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-inputTab-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-node-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-node-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nodeNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nodeNr-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nodeMax-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nodeMax-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nodeTab-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nodeTab-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-record_info-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-record_info-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-node_seq-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-errNo-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-errNo-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-hasExternalSubset-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-hasExternalSubset-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-hasPErefs-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-hasPErefs-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-external-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-external-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-valid-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-valid-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-validate-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-validate-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-vctxt-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-instate-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-token-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-token-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-directory-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-directory-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-name-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-name-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nameNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nameNr-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nameMax-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nameMax-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nameTab-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nameTab-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nbChars-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nbChars-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-checkIndex-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-checkIndex-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-keepBlanks-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-keepBlanks-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-disableSAX-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-disableSAX-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-inSubset-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-inSubset-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-intSubName-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-intSubName-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-extSubURI-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-extSubURI-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-extSubSystem-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-extSubSystem-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-space-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-space-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-spaceNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-spaceNr-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-spaceMax-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-spaceMax-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-spaceTab-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-spaceTab-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-depth-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-depth-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-entity-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-entity-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-charset-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-charset-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nodelen-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nodelen-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nodemem-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nodemem-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-pedantic-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-pedantic-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-_private-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-_private-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-loadsubset-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-loadsubset-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-linenumbers-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-linenumbers-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-catalogs-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-catalogs-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-recovery-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-recovery-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-progressive-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-progressive-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-dict-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-dict-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-atts-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-atts-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-maxatts-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-maxatts-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-docdict-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-docdict-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-str_xml-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-str_xml-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-str_xmlns-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-str_xmlns-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-str_xml_ns-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-str_xml_ns-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-sax2-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-sax2-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nsNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nsNr-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nsMax-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nsMax-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nsTab-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nsTab-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-attallocs-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-attallocs-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-pushTab-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-pushTab-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-attsDefault-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-attsDefault-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-attsSpecial-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-attsSpecial-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nsWellFormed-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-nsWellFormed-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-options-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-options-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-dictNames-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-dictNames-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-freeElemsNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-freeElemsNr-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-freeElems-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-freeElems-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-freeAttrsNr-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-freeAttrsNr-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-freeAttrs-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-freeAttrs-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-lastError-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-xmlParserMode-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-nbentities-set! @ameta{pointer} @var{value}
+@deffnx Syntax struct-xmlParserCtxt-nbentities-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserCtxt-sizeentities-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserCtxt-sizeentities-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct _xmlParserCtxt}
 memory blocks.
 @end deffn
 
 
-@deffn Syntax struct-_xmlSAXLocator-getPublicId-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlSAXLocator-getPublicId-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlSAXLocator-getSystemId-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlSAXLocator-getSystemId-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlSAXLocator-getLineNumber-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlSAXLocator-getLineNumber-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlSAXLocator-getColumnNumber-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlSAXLocator-getColumnNumber-ref @ameta{pointer}
+@deffn Syntax struct-xmlSAXLocator-getPublicId-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlSAXLocator-getPublicId-ref @ameta{pointer}
+@deffnx Syntax struct-xmlSAXLocator-getSystemId-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlSAXLocator-getSystemId-ref @ameta{pointer}
+@deffnx Syntax struct-xmlSAXLocator-getLineNumber-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlSAXLocator-getLineNumber-ref @ameta{pointer}
+@deffnx Syntax struct-xmlSAXLocator-getColumnNumber-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlSAXLocator-getColumnNumber-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct _xmlSAXLocator}
 memory blocks.
 @end deffn
@@ -3274,45 +3284,45 @@ Accessor and mutator for values of type @code{xmlParserErrors}.
 @end defun
 
 
-@deffn Syntax struct-_xmlParserInputBuffer-context-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInputBuffer-context-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInputBuffer-readcallback-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInputBuffer-readcallback-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInputBuffer-closecallback-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInputBuffer-closecallback-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInputBuffer-encoder-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInputBuffer-encoder-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInputBuffer-buffer-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInputBuffer-buffer-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInputBuffer-raw-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInputBuffer-raw-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInputBuffer-compressed-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInputBuffer-compressed-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInputBuffer-error-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInputBuffer-error-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlParserInputBuffer-rawconsumed-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlParserInputBuffer-rawconsumed-ref @ameta{pointer}
+@deffn Syntax struct-xmlParserInputBuffer-context-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInputBuffer-context-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInputBuffer-readcallback-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInputBuffer-readcallback-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInputBuffer-closecallback-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInputBuffer-closecallback-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInputBuffer-encoder-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInputBuffer-encoder-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInputBuffer-buffer-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInputBuffer-buffer-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInputBuffer-raw-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInputBuffer-raw-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInputBuffer-compressed-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInputBuffer-compressed-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInputBuffer-error-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInputBuffer-error-ref @ameta{pointer}
+@deffnx Syntax struct-xmlParserInputBuffer-rawconsumed-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlParserInputBuffer-rawconsumed-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct
 _xmlParserInputBuffer} memory blocks.
 @end deffn
 
 
-@deffn Syntax struct-_xmlOutputBuffer-context-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlOutputBuffer-context-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlOutputBuffer-writecallback-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlOutputBuffer-writecallback-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlOutputBuffer-closecallback-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlOutputBuffer-closecallback-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlOutputBuffer-encoder-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlOutputBuffer-encoder-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlOutputBuffer-buffer-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlOutputBuffer-buffer-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlOutputBuffer-conv-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlOutputBuffer-conv-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlOutputBuffer-written-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlOutputBuffer-written-ref @ameta{pointer}
-@deffnx Syntax struct-_xmlOutputBuffer-error-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-_xmlOutputBuffer-error-ref @ameta{pointer}
+@deffn Syntax struct-xmlOutputBuffer-context-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlOutputBuffer-context-ref @ameta{pointer}
+@deffnx Syntax struct-xmlOutputBuffer-writecallback-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlOutputBuffer-writecallback-ref @ameta{pointer}
+@deffnx Syntax struct-xmlOutputBuffer-closecallback-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlOutputBuffer-closecallback-ref @ameta{pointer}
+@deffnx Syntax struct-xmlOutputBuffer-encoder-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlOutputBuffer-encoder-ref @ameta{pointer}
+@deffnx Syntax struct-xmlOutputBuffer-buffer-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlOutputBuffer-buffer-ref @ameta{pointer}
+@deffnx Syntax struct-xmlOutputBuffer-conv-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlOutputBuffer-conv-ref @ameta{pointer}
+@deffnx Syntax struct-xmlOutputBuffer-written-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlOutputBuffer-written-ref @ameta{pointer}
+@deffnx Syntax struct-xmlOutputBuffer-error-set! @ameta{pointer} @ameta{value}
+@deffnx Syntax struct-xmlOutputBuffer-error-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct _xmlOutputBuffer}
 memory blocks.
 @end deffn
@@ -3817,6 +3827,430 @@ xmlXPathParserContext} memory blocks.
 @deffnx Syntax struct-xmlLocationSet-locTab-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlLocationSet}
 memory blocks.
+@end deffn
+
+@c page
+@node structs identifiers
+@section Identifier syntaxes
+
+
+The following bindings are exported by the @library{xml libxml2 sizeof}
+library and reexported by the @library{xml libxml2} library.
+
+The syntaxes named @func{define-X}, where @samp{X} is a structure name,
+use @func{define-syntax} to define a set of identifiers syntaxes which
+can be used to access and mutate fields of foreign data structures.  For
+example:
+
+@example
+(define-xmlNode node)
+@end example
+
+@noindent
+will define one identifier syntax for each field of @code{xmlNode}:
+
+@example
+node.name  node.type node.doc  node.ns  ...
+@end example
+
+@noindent
+which can be used as:
+
+@example
+(define-xmlNode node)
+(display node.name)
+(set! node.name ---)
+@end example
+
+@noindent
+and notice that @func{define-xmlNode} is a definition.
+
+The syntaxes named @func{with-struct-X}, where @samp{X} is a structure
+name, use @func{let-syntax} to define a set of identifiers syntaxes
+which can be used to access and mutate fields of foreign data
+structures.  For example:
+
+@example
+(with-struct-xmlNode node
+  @cmeta{body} ...)
+@end example
+
+@noindent
+will define one identifier syntax for each field of @code{xmlNode}:
+
+@example
+node.name  node.type node.doc  node.ns  ...
+@end example
+
+@noindent
+the @meta{body} forms are expanded in the syntactic environment obtained
+by extending the syntactic environment of the @func{with-struct-xmlNode}
+form with the generated identifiers.  So we can do:
+
+@example
+(with-struct-xmlNode node
+  (display node.name)
+  (set! node.name ---))
+@end example
+
+@noindent
+and notice that @func{with-struct-xmlNode} is not a definition.
+
+
+@deffn Syntax define-xmlChSRange @ameta{name}
+@deffnx Syntax with-struct-xmlChSRange @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlChSRange}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlChLRange @ameta{name}
+@deffnx Syntax with-struct-xmlChLRange @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlChLRange}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlChRangeGroup @ameta{name}
+@deffnx Syntax with-struct-xmlChRangeGroup @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlChRangeGroup}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlShellCtxt @ameta{name}
+@deffnx Syntax with-struct-xmlShellCtxt @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlShellCtxt}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlCharEncodingHandler @ameta{name}
+@deffnx Syntax with-struct-xmlCharEncodingHandler @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlCharEncodingHandler}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlEntity @ameta{name}
+@deffnx Syntax with-struct-xmlEntity @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlEntity}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-htmlElemDesc @ameta{name}
+@deffnx Syntax with-struct-htmlElemDesc @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{htmlElemDesc}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-htmlEntityDesc @ameta{name}
+@deffnx Syntax with-struct-htmlEntityDesc @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{htmlEntityDesc}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlParserInput @ameta{name}
+@deffnx Syntax with-struct-xmlParserInput @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlParserInput}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlParserNodeInfo @ameta{name}
+@deffnx Syntax with-struct-xmlParserNodeInfo @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlParserNodeInfo}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlParserNodeInfoSeq @ameta{name}
+@deffnx Syntax with-struct-xmlParserNodeInfoSeq @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlParserNodeInfoSeq}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlParserCtxt @ameta{name}
+@deffnx Syntax with-struct-xmlParserCtxt @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlParserCtxt}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlSAXLocator @ameta{name}
+@deffnx Syntax with-struct-xmlSAXLocator @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlSAXLocator}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlBuffer @ameta{name}
+@deffnx Syntax with-struct-xmlBuffer @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlBuffer}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlNotation @ameta{name}
+@deffnx Syntax with-struct-xmlNotation @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlNotation}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlEnumeration @ameta{name}
+@deffnx Syntax with-struct-xmlEnumeration @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlEnumeration}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlAttribute @ameta{name}
+@deffnx Syntax with-struct-xmlAttribute @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlAttribute}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlElementContent @ameta{name}
+@deffnx Syntax with-struct-xmlElementContent @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlElementContent}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlElement @ameta{name}
+@deffnx Syntax with-struct-xmlElement @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlElement}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlNs @ameta{name}
+@deffnx Syntax with-struct-xmlNs @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlNs}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlDtd @ameta{name}
+@deffnx Syntax with-struct-xmlDtd @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlDtd}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlAttr @ameta{name}
+@deffnx Syntax with-struct-xmlAttr @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlAttr}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlID @ameta{name}
+@deffnx Syntax with-struct-xmlID @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlID}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlRef @ameta{name}
+@deffnx Syntax with-struct-xmlRef @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlRef}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlNode @ameta{name}
+@deffnx Syntax with-struct-xmlNode @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlNode}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlDoc @ameta{name}
+@deffnx Syntax with-struct-xmlDoc @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlDoc}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlDOMWrapCtxt @ameta{name}
+@deffnx Syntax with-struct-xmlDOMWrapCtxt @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlDOMWrapCtxt}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlURI @ameta{name}
+@deffnx Syntax with-struct-xmlURI @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlURI}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlValidCtxt @ameta{name}
+@deffnx Syntax with-struct-xmlValidCtxt @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlValidCtxt}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlError @ameta{name}
+@deffnx Syntax with-struct-xmlError @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlError}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlParserInputBuffer @ameta{name}
+@deffnx Syntax with-struct-xmlParserInputBuffer @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlParserInputBuffer}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlOutputBuffer @ameta{name}
+@deffnx Syntax with-struct-xmlOutputBuffer @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlOutputBuffer}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlSchemaAnnot @ameta{name}
+@deffnx Syntax with-struct-xmlSchemaAnnot @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlSchemaAnnot}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlSchemaAttribute @ameta{name}
+@deffnx Syntax with-struct-xmlSchemaAttribute @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlSchemaAttribute}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlSchemaAttributeLink @ameta{name}
+@deffnx Syntax with-struct-xmlSchemaAttributeLink @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlSchemaAttributeLink}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlSchemaWildcardNs @ameta{name}
+@deffnx Syntax with-struct-xmlSchemaWildcardNs @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlSchemaWildcardNs}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlSchemaWildcard @ameta{name}
+@deffnx Syntax with-struct-xmlSchemaWildcard @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlSchemaWildcard}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlSchemaAttributeGroup @ameta{name}
+@deffnx Syntax with-struct-xmlSchemaAttributeGroup @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlSchemaAttributeGroup}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlSchemaTypeLink @ameta{name}
+@deffnx Syntax with-struct-xmlSchemaTypeLink @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlSchemaTypeLink}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlSchemaFacetLink @ameta{name}
+@deffnx Syntax with-struct-xmlSchemaFacetLink @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlSchemaFacetLink}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlSchemaElement @ameta{name}
+@deffnx Syntax with-struct-xmlSchemaElement @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlSchemaElement}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlSchemaNotation @ameta{name}
+@deffnx Syntax with-struct-xmlSchemaNotation @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlSchemaNotation}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlNodeSet @ameta{name}
+@deffnx Syntax with-struct-xmlNodeSet @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlNodeSet}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlXPathObject @ameta{name}
+@deffnx Syntax with-struct-xmlXPathObject @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlXPathObject}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlXPathType @ameta{name}
+@deffnx Syntax with-struct-xmlXPathType @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlXPathType}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlXPathVariable @ameta{name}
+@deffnx Syntax with-struct-xmlXPathVariable @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlXPathVariable}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlXPathFunct @ameta{name}
+@deffnx Syntax with-struct-xmlXPathFunct @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlXPathFunct}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlXPathAxis @ameta{name}
+@deffnx Syntax with-struct-xmlXPathAxis @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlXPathAxis}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlXPathContext @ameta{name}
+@deffnx Syntax with-struct-xmlXPathContext @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlXPathContext}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlXPathParserContext @ameta{name}
+@deffnx Syntax with-struct-xmlXPathParserContext @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlXPathParserContext}
+data structures.
+@end deffn
+
+
+@deffn Syntax define-xmlLocationSet @ameta{name}
+@deffnx Syntax with-struct-xmlLocationSet @ameta{name} @ameta{body0} @ameta{body} ...
+Build identifier syntaxes to access the fields of @code{xmlLocationSet}
+data structures.
 @end deffn
 
 @c page
@@ -12429,7 +12863,7 @@ and walk its tree.
                                                  pointer-null 0
                                                  pointer-null 0)
                  (with
-                  (xml-free-doc (struct-_xmlParserCtxt-myDoc-ref parser))
+                  (xml-free-doc (struct-xmlParserCtxt-myDoc-ref parser))
                   (html-free-parser-ctxt parser)))))
 
     (html-ctxt-use-options parser
@@ -12451,7 +12885,7 @@ and walk its tree.
             (cons (cstring->string (struct-xmlNode-name-ref node))
                   (walk-tree (struct-xmlNode-children-ref node)))))))
      (xml-doc-get-root-element
-        (struct-_xmlParserCtxt-myDoc-ref parser)))))
+        (struct-xmlParserCtxt-myDoc-ref parser)))))
 @result{} (("html"
       ("head"
         ("title" ("text"))

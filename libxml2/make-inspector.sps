@@ -266,7 +266,7 @@
   XML_EXTERNAL_PARAMETER_ENTITY
   XML_INTERNAL_PREDEFINED_ENTITY)
 
-(define-c-struct _xmlEntity
+(define-c-struct xmlEntity
   "struct _xmlEntity"
   (pointer		_private)
   (signed-int		type)
@@ -425,7 +425,7 @@
 (define-c-string-defines "XML version"
   XML_DEFAULT_VERSION)
 
-(define-c-struct _xmlParserInput
+(define-c-struct xmlParserInput
   "struct _xmlParserInput"
   (pointer		buf)
   (pointer		filename)
@@ -498,7 +498,7 @@
   XML_PARSE_PUSH_SAX
   XML_PARSE_READER)
 
-(define-c-struct _xmlParserCtxt
+(define-c-struct xmlParserCtxt
   "struct _xmlParserCtxt"
   (pointer		sax)
   (pointer		userData)
@@ -584,7 +584,7 @@
   (unsigned-int		nbentities)
   (unsigned-int		sizeentities))
 
-(define-c-struct _xmlSAXLocator
+(define-c-struct xmlSAXLocator
   "struct _xmlSAXLocator"
   (pointer			getPublicId)
   (pointer			getSystemId)
@@ -2160,7 +2160,7 @@
 ;;Header file "XMLio.h".
 ;;
 
-(define-c-struct _xmlParserInputBuffer
+(define-c-struct xmlParserInputBuffer
   "struct _xmlParserInputBuffer"
   (pointer			context)
   (pointer			readcallback)
@@ -2172,7 +2172,7 @@
   (signed-int			error)
   (unsigned-int		rawconsumed))
 
-(define-c-struct _xmlOutputBuffer
+(define-c-struct xmlOutputBuffer
   "struct _xmlOutputBuffer"
   (pointer			context)
   (pointer			writecallback)
@@ -3126,5 +3126,8 @@
 
 (autoconf-lib-write "configuration/libxml2-inspector.m4" libxml2-library-spec)
 (sizeof-lib-write   "src/libraries/xml/libxml2/sizeof.sls.in" libxml2-library-spec)
+(structs-lib-write  "src/libraries/xml/libxml2/structs.sls"
+		    '(xml libxml2 structs)
+		    libxml2-library-spec)
 
 ;;; end of file

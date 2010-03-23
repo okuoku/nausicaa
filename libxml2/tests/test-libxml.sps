@@ -104,8 +104,9 @@
 							   pointer-null 0
 							   pointer-null 0)
 			   (with
-			    (xml-free-doc (struct-_xmlParserCtxt-myDoc-ref parser))
+			    (xml-free-doc (struct-xmlParserCtxt-myDoc-ref parser))
 			    (html-free-parser-ctxt parser)))))
+	  (define-xmlParserCtxt parser)
 
 	  (html-ctxt-use-options parser
 				 (bitwise-ior HTML_PARSE_NOBLANKS
@@ -122,9 +123,11 @@
 	      (do ((node root-node (struct-xmlNode-next-ref node)))
 		  ((pointer-null? node)
 		   (reverse tree))
-		(set-cons! tree (cons (cstring->string (struct-xmlNode-name-ref node))
-				      (walk-tree (struct-xmlNode-children-ref node)))))))
-	   (xml-doc-get-root-element (struct-_xmlParserCtxt-myDoc-ref parser)))
+		(with-struct-xmlNode node
+				     (set-cons! tree (cons (cstring->string node.name)
+							   (walk-tree node.children))))
+		)))
+	   (xml-doc-get-root-element parser.myDoc))
 	  ))
     => '(("html"
 	  ("head"

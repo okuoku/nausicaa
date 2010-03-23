@@ -41,7 +41,7 @@ Notes for --- tag 0.1b0
 
 * It has been tested with Libxml2 version 2.7.6.
 
-* Requires Nausicaa/Scheme version 0.1a8+.
+* Requires Nausicaa/Scheme version 0.1a11+.
 
 * It was really boring to interface this. :-D
 
