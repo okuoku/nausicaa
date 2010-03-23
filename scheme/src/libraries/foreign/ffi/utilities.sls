@@ -32,7 +32,9 @@
     make-c-callout*		make-c-callout/with-errno*
     make-c-callback*
     define-c-functions		define-c-functions/with-errno
-    define-c-callouts		define-c-callouts/with-errno)
+    define-c-callouts		define-c-callouts/with-errno
+    define-struct-fields
+    define-with-struct		with-struct-fields)
   (import (rnrs)
     (parameters)
     (foreign ffi primitives)
@@ -117,6 +119,158 @@
        (with-syntax ((RET	(clang-quote-type-stx-if-external #'?ret-type))
 		     ((ARG ...)	(map clang-quote-type-stx-if-external #'(?arg-type0 ?arg-type ...))))
 	 #'(make-c-callback RET ?scheme-function (list ARG ...)))))))
+
+
+(define-syntax %define-struct-field-identifier-syntaxes
+  (syntax-rules ()
+    ((_ ?name ?name.field ?accessor)
+     (define-syntax ?name.field
+       (identifier-syntax
+     	(_		(?accessor ?name)))))
+    ((_ ?name ?name.field ?accessor ?mutator)
+     (define-syntax ?name.field
+       (identifier-syntax
+     	(_		(?accessor ?name))
+     	((set! _ ?expr)	(?mutator ?name ?expr)))))))
+
+(define-syntax %define-struct-field-identifier
+  (lambda (stx)
+    (define (%name.field name field)
+      (string->symbol (string-append (symbol->string name) "." (symbol->string field))))
+    (define (%accessor-name struct field)
+      (string->symbol (string-append "struct-" (symbol->string struct)
+				     "-" (symbol->string field) "-ref")))
+    (define (%mutator-name struct field)
+      (string->symbol (string-append "struct-" (symbol->string struct)
+				     "-" (symbol->string field) "-set!")))
+    (syntax-case stx ()
+      ((_ ?name ?struct ?accessible-field)
+       (let ((name	(syntax->datum #'?name))
+	     (struct	(syntax->datum #'?struct))
+	     (field	(syntax->datum #'?accessible-field)))
+	 (with-syntax ((NAME.FIELD (datum->syntax #'?name (%name.field name field)))
+		       (ACCESSOR   (datum->syntax #'?struct (%accessor-name struct field))))
+	   #'(%define-struct-field-identifier-syntaxes ?name NAME.FIELD ACCESSOR))))
+      ((_ ?name ?struct ?accessible-field ?mutable-field)
+       (let ((name	(syntax->datum #'?name))
+	     (struct	(syntax->datum #'?struct))
+	     (afield	(syntax->datum #'?accessible-field))
+	     (mfield	(syntax->datum #'?mutable-field)))
+	 (with-syntax ((NAME.FIELD (datum->syntax #'?name (%name.field name afield)))
+		       (ACCESSOR   (datum->syntax #'?struct (%accessor-name struct afield)))
+		       (MUTATOR    (datum->syntax #'?struct (%mutator-name  struct mfield))))
+	   #'(%define-struct-field-identifier-syntaxes ?name NAME.FIELD ACCESSOR MUTATOR)))))))
+
+(define-syntax %define-struct-field-identifiers
+  (syntax-rules ()
+    ((_ ?name ?struct (?accessible-field ?mutable-field) ?field-spec ...)
+     (begin
+       (%define-struct-field-identifier ?name ?struct ?accessible-field ?mutable-field)
+       (%define-struct-field-identifiers ?name ?struct ?field-spec ...)))
+    ((_ ?name ?struct (?accessible-field) ?field-spec ...)
+     (begin
+       (%define-struct-field-identifier ?name ?struct ?accessible-field)
+       (%define-struct-field-identifiers ?name ?struct ?field-spec ...)))
+    ((_ ?name ?struct)
+     (values))))
+
+(define-syntax define-struct-fields
+  (lambda (stx)
+    (define (%define-name struct)
+      (string->symbol (string-append "define-" (symbol->string struct))))
+    (syntax-case stx ()
+      ((_ ?struct ?field-spec ...)
+       (with-syntax ((DEFINED (datum->syntax #'?struct (%define-name (syntax->datum #'?struct)))))
+	 #'(define-syntax DEFINED
+	     (syntax-rules ()
+	       ((_ ??name)
+		(%define-struct-field-identifiers ??name ?struct ?field-spec ...)))))))))
+
+
+(define-syntax %struct-field-identifier-syntax
+  (syntax-rules ()
+    ((_ ?name ?accessor)
+     (identifier-syntax
+      (_		(?accessor ?name))))
+    ((_ ?name ?accessor ?mutator)
+     (identifier-syntax
+      (_		(?accessor ?name))
+      ((set! _ ?expr)	(?mutator ?name ?expr))))))
+
+(define-syntax %with-struct-field-identifier
+  (lambda (stx)
+    (define (%name.field name field)
+      (string->symbol (string-append (symbol->string name) "." (symbol->string field))))
+    (define (%accessor-name struct field)
+      (string->symbol (string-append "struct-" (symbol->string struct)
+				     "-" (symbol->string field) "-ref")))
+    (define (%mutator-name struct field)
+      (string->symbol (string-append "struct-" (symbol->string struct)
+				     "-" (symbol->string field) "-set!")))
+    (syntax-case stx ()
+      ((_ ?name ?struct (?accessible-field) ?body0 ?body ...)
+       (let ((name	(syntax->datum #'?name))
+	     (struct	(syntax->datum #'?struct))
+	     (field	(syntax->datum #'?accessible-field)))
+	 (with-syntax ((NAME.FIELD (datum->syntax #'?name (%name.field name field)))
+		       (ACCESSOR   (datum->syntax #'?struct (%accessor-name struct field))))
+	   #'(let-syntax ((NAME.FIELD (%struct-field-identifier-syntax ?name ACCESSOR)))
+	       ?body0 ?body ...))))
+      ((_ ?name ?struct (?accessible-field ?mutable-field) ?body0 ?body ...)
+       (let ((name	(syntax->datum #'?name))
+	     (struct	(syntax->datum #'?struct))
+	     (afield	(syntax->datum #'?accessible-field))
+	     (mfield	(syntax->datum #'?mutable-field)))
+	 (with-syntax ((NAME.FIELD (datum->syntax #'?name (%name.field name afield)))
+		       (ACCESSOR   (datum->syntax #'?struct (%accessor-name struct afield)))
+		       (MUTATOR    (datum->syntax #'?struct (%mutator-name  struct mfield))))
+	   #'(let-syntax ((NAME.FIELD (%struct-field-identifier-syntax ?name ACCESSOR MUTATOR)))
+	       ?body0 ?body ...)))))))
+
+(define-syntax %with-struct-field-identifiers
+  (syntax-rules ()
+    ((_ ?name ?struct ((?accessible-field ?mutable-field) ?field-spec ...) ?body0 ?body ...)
+     (%with-struct-field-identifier
+      ?name ?struct (?accessible-field ?mutable-field)
+      (%with-struct-field-identifiers ?name ?struct (?field-spec ...) ?body0 ?body ...)))
+    ((_ ?name ?struct ((?accessible-field) ?field-spec ...) ?body0 ?body ...)
+     (%with-struct-field-identifier
+      ?name ?struct (?accessible-field)
+      (%with-struct-field-identifiers ?name ?struct (?field-spec ...) ?body0 ?body ...)))
+    ((_ ?name ?struct () ?body0 ?body ...)
+     (begin ?body0 ?body ...))))
+
+(define-syntax define-with-struct
+  (lambda (stx)
+    (define (%with-name struct)
+      (string->symbol (string-append "with-struct-" (symbol->string struct))))
+    (syntax-case stx ()
+      ((_ ?struct ?field-spec ...)
+       (with-syntax ((WITH (datum->syntax #'?struct (%with-name (syntax->datum #'?struct)))))
+	 #'(define-syntax WITH
+	     (syntax-rules ()
+	       ((_ (?name0 ?name (... ...)) ?body0 ?body (... ...))
+		(%with-struct-field-identifiers
+		 ?name0 ?struct (?field-spec ...)
+		 (%with-struct-field-identifiers (?name (... ...)) ?struct (?field-spec ...)
+						 ?body0 ?body (... ...))))
+	       ((_ () ?body0 ?body (... ...))
+		(begin ?body0 ?body (... ...)))
+	       ((_ ?name ?body0 ?body (... ...))
+		(%with-struct-field-identifiers ?name ?struct (?field-spec ...)
+						?body0 ?body (... ...)))
+	       )))))))
+
+(define-syntax with-struct-fields
+  (lambda (stx)
+    (define (%with-name struct)
+      (string->symbol (string-append "with-struct-" (symbol->string struct))))
+    (syntax-case stx ()
+      ((_ ((?struct ?name) ?struct-spec ...) ?body0 ?body ...)
+       (with-syntax ((WITH (datum->syntax #'?struct (%with-name (syntax->datum #'?struct)))))
+	 #'(WITH ?name (with-struct-fields (?struct-spec ...) ?body0 ?body ...))))
+      ((_ () ?body0 ?body ...)
+       #'(begin ?body0 ?body ...)))))
 
 
 ;;;; done

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -33,6 +33,7 @@
     sizeof-lib-exports
     autoconf-lib		autoconf-lib-write
     define-shared-object
+    structs-lib-write
 
     ;; inspection
     define-c-defines		define-c-string-defines
@@ -73,6 +74,8 @@
 (define $autoconf-library	"")
 (define $sizeof-library		'())
 (define $sizeof-lib-exports	'())
+(define $structs-library	'())
+(define $structs-lib-exports	'())
 
 (define (autoconf-lib str)
   ;;Append STR  to the current Autoconf  library; add a new  line at the
@@ -90,6 +93,11 @@
   ;;
   (set! $sizeof-library (append $sizeof-library sexp)))
 
+(define (%structs-lib sexp)
+  ;;Append an S-expression to the end of the current structs library.
+  ;;
+  (set! $structs-library (append $structs-library sexp)))
+
 (define-syntax sizeof-lib-exports
   (syntax-rules ()
     ((_ ?symbol0 ?symbol ...)
@@ -99,6 +107,11 @@
   ;;Add a list of symbols to the list of exports in the sizeof library.
   ;;
   (set! $sizeof-lib-exports (append $sizeof-lib-exports ell)))
+
+(define (%structs-lib-exports . ell)
+  ;;Add a list of symbols to the list of exports in the structs library.
+  ;;
+  (set! $structs-lib-exports (append $structs-lib-exports ell)))
 
 (define (autoconf-lib-write filename libname)
   ;;Write  to  the  specified  FILENAME  the contents  of  the  Autoconf
@@ -133,6 +146,31 @@
 
 	(format port ";;; ~s --\n" libname)
 	(display $sizeof-license port)
+	(display "\n\n" port)
+	(display strout port)
+	(display "\n\n;;; end of file\n" port)
+	(close-port port)))))
+
+(define (structs-lib-write filename structs-libname sizeof-libname)
+  ;;Write to the  specified FILENAME the contents of  the structs Scheme
+  ;;library.  LIBNAME must be the library specification.
+  ;;
+  (let ((libout `(library ,structs-libname
+		   (export ,@$structs-lib-exports)
+		   (import (rnrs)
+		     (foreign ffi)
+		     (foreign ffi utilities)
+		     ,sizeof-libname)
+		   ,@$structs-library)))
+    (let ((strout (call-with-string-output-port
+		      (lambda (port)
+			(pretty-print libout port)))))
+      (set! strout (hat->dot strout))
+      (let ((port (transcoded-port (open-file-output-port filename (file-options no-fail))
+				   (make-transcoder (utf-8-codec)))))
+
+	(format port ";;; ~s --\n" structs-libname)
+	(display $structs-license port)
 	(display "\n\n" port)
 	(display strout port)
 	(display "\n\n;;; end of file\n" port)
@@ -307,40 +345,49 @@
       (%sizeof-lib `((define ,name-sizeof	,symbol-sizeof)
 		     (define ,name-alignof	,symbol-alignof)
 		     (define ,name-strideof	,symbol-strideof)))
-      (%sizeof-lib-exports name-sizeof name-alignof name-strideof))
+      (%sizeof-lib-exports name-sizeof name-alignof name-strideof)
+      (%structs-lib-exports (string->symbol (format "define-~a" struct-name))
+			    (string->symbol (format "with-struct-~s" struct-name))))
 
     ;;Output the field inspection stuff.
     ;;
-    (for-each
-	(lambda (field-name field-type-category)
-	  (let* ((field-keyword		(dot->underscore (string-upcase (symbol->string field-name))))
-		 (name-field-accessor	(string->symbol
+    (let ((struct-fields '()))
+      (for-each
+	  (lambda (field-name field-type-category)
+	    (let* ((field-keyword	(dot->underscore (string-upcase (symbol->string field-name))))
+		   (name-field-accessor	(string->symbol
 					 (format "struct-~a-~a-ref"  struct-name field-name)))
-		 (name-field-mutator	(string->symbol
+		   (name-field-mutator	(string->symbol
 					 (format "struct-~a-~a-set!" struct-name field-name)))
-		 (symbol-field-offset	(string->symbol
+		   (symbol-field-offset	(string->symbol
 					 (format "^OFFSETOF_~a_~a^" struct-keyword field-keyword)))
-		 (symbol-field-accessor	(string->symbol
-					 (format "^GETTEROF_~a_~a^" struct-keyword field-keyword)))
-		 (symbol-field-mutator	(string->symbol
-					 (format "^SETTEROF_~a_~a^" struct-keyword field-keyword))))
-	    (if (eq? 'embedded field-type-category)
+		   (symbol-field-accessor (string->symbol
+					   (format "^GETTEROF_~a_~a^" struct-keyword field-keyword)))
+		   (symbol-field-mutator (string->symbol
+					  (format "^SETTEROF_~a_~a^" struct-keyword field-keyword))))
+	      (if (eq? 'embedded field-type-category)
+		  (begin
+		    (autoconf-lib (format "NAUSICAA_INSPECT_FIELD_TYPE_POINTER([~a],[~a],[~a])"
+				    (format "~a_~a" struct-keyword field-keyword)
+				    struct-string-typedef field-name))
+		    (%sizeof-lib `((define-c-struct-field-pointer-accessor
+				     ,name-field-accessor ,symbol-field-offset)))
+		    (%sizeof-lib-exports name-field-accessor)
+		    (set-cons! struct-fields (list field-name)))
 		(begin
-		  (autoconf-lib (format "NAUSICAA_INSPECT_FIELD_TYPE_POINTER([~a],[~a],[~a])"
+		  (autoconf-lib (format "NAUSICAA_INSPECT_FIELD_TYPE([~a],[~a],[~a],[~a])"
 				  (format "~a_~a" struct-keyword field-keyword)
-				  struct-string-typedef field-name))
-		  (%sizeof-lib `((define-c-struct-field-pointer-accessor
-				   ,name-field-accessor ,symbol-field-offset)))
-		  (%sizeof-lib-exports name-field-accessor))
-	      (begin
-		(autoconf-lib (format "NAUSICAA_INSPECT_FIELD_TYPE([~a],[~a],[~a],[~a])"
-				(format "~a_~a" struct-keyword field-keyword)
-				struct-string-typedef field-name field-type-category))
-		(%sizeof-lib `((define-c-struct-accessor-and-mutator
-				 ,name-field-mutator ,name-field-accessor
-				 ,symbol-field-offset ,symbol-field-mutator ,symbol-field-accessor)))
-		(%sizeof-lib-exports name-field-mutator name-field-accessor)))))
-      field-names field-type-categories)))
+				  struct-string-typedef field-name field-type-category))
+		  (%sizeof-lib `((define-c-struct-accessor-and-mutator
+				   ,name-field-mutator ,name-field-accessor
+				   ,symbol-field-offset ,symbol-field-mutator ,symbol-field-accessor)))
+		  (%sizeof-lib-exports name-field-mutator name-field-accessor)
+		  (set-cons! struct-fields (list field-name field-name))))))
+	field-names field-type-categories)
+      (%structs-lib `((define-struct-fields ,struct-name
+			,@struct-fields)
+		      (define-with-struct ,struct-name
+			,@struct-fields))))))
 
 
 ;;;; license notices
@@ -352,6 +399,33 @@
   (string-append ";;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
+;;;Date: " (date->string $date "~a ~b ~e, ~Y") "
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) " (date->string $date "~Y") " Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+"))
+
+(define $structs-license
+  (string-append ";;;
+;;;Part of: Nausicaa
+;;;Contents: foreign library structs fields identifier accessors
 ;;;Date: " (date->string $date "~a ~b ~e, ~Y") "
 ;;;
 ;;;Abstract
