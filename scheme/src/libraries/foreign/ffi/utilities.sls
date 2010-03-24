@@ -34,7 +34,8 @@
     define-c-functions		define-c-functions/with-errno
     define-c-callouts		define-c-callouts/with-errno
     define-struct-fields
-    define-with-struct		with-struct-fields)
+    define-with-struct		;;with-struct-fields
+    )
   (import (rnrs)
     (only (language-extensions)
 	  define-identifier-accessor-mutator)
@@ -251,16 +252,16 @@
 						?body0 ?body (... ...)))
 	       )))))))
 
-(define-syntax with-struct-fields
-  (lambda (stx)
-    (define (%with-name struct)
-      (string->symbol (string-append "with-struct-" (symbol->string struct))))
-    (syntax-case stx ()
-      ((_ ((?struct ?name) ?struct-spec ...) ?body0 ?body ...)
-       (with-syntax ((WITH (datum->syntax #'?struct (%with-name (syntax->datum #'?struct)))))
-	 #'(WITH ?name (with-struct-fields (?struct-spec ...) ?body0 ?body ...))))
-      ((_ () ?body0 ?body ...)
-       #'(begin ?body0 ?body ...)))))
+;; (define-syntax with-struct-fields
+;;   (lambda (stx)
+;;     (define (%with-name struct)
+;;       (string->symbol (string-append "with-struct-" (symbol->string struct))))
+;;     (syntax-case stx ()
+;;       ((_ ((?struct ?name) ?struct-spec ...) ?body0 ?body ...)
+;;        (with-syntax ((WITH (datum->syntax #'?struct (%with-name (syntax->datum #'?struct)))))
+;; 	 #'(WITH ?name (with-struct-fields (?struct-spec ...) ?body0 ?body ...))))
+;;       ((_ () ?body0 ?body ...)
+;;        #'(begin ?body0 ?body ...)))))
 
 
 ;;;; done
