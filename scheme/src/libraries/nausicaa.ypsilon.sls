@@ -793,7 +793,7 @@
     set-cons! incr! decr! while while* do-while do-while*
 
     ;; macro definition helpers
-    define-identifier-macro define-inline
+    define-identifier-accessor-mutator define-inline
 
     ;; shared structures
     write-with-shared-structure
@@ -813,7 +813,7 @@
 
     ;; simple syntaxes
     dotimes dolist loop-upon-list ensure
-    define-values
+    define-values define-constant
 
     ;; miscellaneous
     symbol*->string symbol->string/maybe do*

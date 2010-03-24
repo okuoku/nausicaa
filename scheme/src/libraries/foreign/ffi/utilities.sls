@@ -121,18 +121,6 @@
 	 #'(make-c-callback RET ?scheme-function (list ARG ...)))))))
 
 
-(define-syntax %define-struct-field-identifier-syntaxes
-  (syntax-rules ()
-    ((_ ?name ?name.field ?accessor)
-     (define-syntax ?name.field
-       (identifier-syntax
-     	(_		(?accessor ?name)))))
-    ((_ ?name ?name.field ?accessor ?mutator)
-     (define-syntax ?name.field
-       (identifier-syntax
-     	(_		(?accessor ?name))
-     	((set! _ ?expr)	(?mutator ?name ?expr)))))))
-
 (define-syntax %define-struct-field-identifier
   (lambda (stx)
     (define (%name.field name field)
@@ -150,7 +138,7 @@
 	     (field	(syntax->datum #'?accessible-field)))
 	 (with-syntax ((NAME.FIELD (datum->syntax #'?name (%name.field name field)))
 		       (ACCESSOR   (datum->syntax #'?struct (%accessor-name struct field))))
-	   #'(%define-struct-field-identifier-syntaxes ?name NAME.FIELD ACCESSOR))))
+	   #'(define-identifier-accessor-mutator ?name NAME.FIELD ACCESSOR))))
       ((_ ?name ?struct ?accessible-field ?mutable-field)
        (let ((name	(syntax->datum #'?name))
 	     (struct	(syntax->datum #'?struct))
@@ -159,7 +147,7 @@
 	 (with-syntax ((NAME.FIELD (datum->syntax #'?name (%name.field name afield)))
 		       (ACCESSOR   (datum->syntax #'?struct (%accessor-name struct afield)))
 		       (MUTATOR    (datum->syntax #'?struct (%mutator-name  struct mfield))))
-	   #'(%define-struct-field-identifier-syntaxes ?name NAME.FIELD ACCESSOR MUTATOR)))))))
+	   #'(define-identifier-accessor-mutator ?name NAME.FIELD ACCESSOR MUTATOR)))))))
 
 (define-syntax %define-struct-field-identifiers
   (syntax-rules ()

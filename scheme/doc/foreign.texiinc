@@ -14,18 +14,13 @@ implementations.  The @api{} is exported by the following libraries:
 (foreign errno)
 @end example
 
-At present it supports only @gnu{}+Linux systems.
-
-@quotation
-@strong{FOR LARCENY} Unfortunately, interfacing with the @ffi{} of
-Larceny Scheme has miscellaneous problems; for this reason, the
-@library{foreign ---} hierarchy of libraries officially does not support
-Larceny.
-
-When a Nausicaa package making use of the @ffi{} is released, we are
-authorised to try it with Larceny Scheme, too: if it works, we are all
-happy; if it does not work, that is life for us.
-@end quotation
+Not all the Scheme implementations provide an @ffi{} usable by Nausicaa;
+only Ikarus, Mosh and Ypsilon are supported.  At present, Nausicaa's
+@ffi{} is tested only @gnu{}+Linux systems, which means that it expects
+to access some function in the @gnu{} C Library; on other platforms, we
+can try, at installation time, to select a C library pathname with the
+@option{--with-libc-shared-object} command line option of the
+@command{configure} script.
 
 @menu
 * ffi::                         Foreign--functions interface.
@@ -473,12 +468,22 @@ Expands to:
 @end deffn
 
 
-@defun pointer=? @var{pointer0} @var{pointer} ...
-@defunx pointer<? @var{pointer0} @var{pointer} ...
-@defunx pointer>? @var{pointer0} @var{pointer} ...
-@defunx pointer<=? @var{pointer0} @var{pointer} ...
-@defunx pointer>=? @var{pointer0} @var{pointer} ...
-@defunx pointer<>? @var{pointer0} @var{pointer} ...
+@deffn Syntax pointer-decr! @ameta{pointer-var} @ameta{expr}
+Expands to:
+
+@example
+(set! @cmeta{pointer-var}
+  (pointer-add @cmeta{pointer-var} (- @cmeta{expr})))
+@end example
+@end deffn
+
+
+@defun pointer=? @varo{pointer} @var{pointer} ...
+@defunx pointer<? @varo{pointer} @var{pointer} ...
+@defunx pointer>? @varo{pointer} @var{pointer} ...
+@defunx pointer<=? @varo{pointer} @var{pointer} ...
+@defunx pointer>=? @varo{pointer} @var{pointer} ...
+@defunx pointer<>? @varo{pointer} @var{pointer} ...
 All the arguments must be pointer values and are internally converted to
 integers.  Return @true{} if the integers satisfy the selected predicate
 (@code{=}, @code{<}, @code{>}, @code{<=}, @code{>=}), otherwise return
@@ -1788,6 +1793,37 @@ revision 6404 (last updated Tue Nov 17, 2009).}
 @end float
 
 
+@float Table
+@multitable {012345678901234567} {0123456789012345678}
+@headitem Internal type @tab Petite type
+@item @code{int8_t}             @tab @code{integer-8}
+@item @code{int16_t}            @tab @code{integer-16}
+@item @code{int32_t}            @tab @code{integer-32}
+@item @code{int64_t}            @tab @code{integer-64}
+@item @code{uint8_t}            @tab @code{unsigned-8}
+@item @code{uint16_t}           @tab @code{unsigned-16}
+@item @code{uint32_t}           @tab @code{unsigned-32}
+@item @code{uint64_t}           @tab @code{unsigned-64}
+@item @code{signed-char}        @tab @code{integer-8}
+@item @code{unsigned-char}      @tab @code{unsigned-8}
+@item @code{signed-short}       @tab @code{short}
+@item @code{unsigned-short}     @tab @code{unsigned-short}
+@item @code{signed-int}         @tab @code{int}
+@item @code{unsigned-int}       @tab @code{unsigned-int}
+@item @code{signed-long}        @tab @code{long}
+@item @code{unsigned-long}      @tab @code{unsigned-long}
+@item @code{signed-long-long}   @tab @code{long-lonog}
+@item @code{unsigned-long-long} @tab @code{unsigned-long-long}
+@item @code{float}              @tab @code{fixed-float}
+@item @code{double}             @tab @code{fixed-double}
+@item @code{pointer}            @tab @code{void*}
+@item @code{callback}           @tab @code{void*}
+@item @code{void}               @tab @code{void}
+@end multitable
+@caption{Mapping from Nausicaa's internal types to Petite Chez's types.}
+@end float
+
+
 The following bindings are exported by the @library{foreign ffi
 clang-data-types} library.
 
@@ -1811,7 +1847,7 @@ type symbols.
 @defun clang-external-type->clang-internal-type @var{type-symbol}
 @defunx clang-internal-type->clang-type @var{type-symbol}
 @defunx clang-external-type->clang-type @var{type-symbol}
-Convert between a type symbols.
+Convert between type symbols.
 @end defun
 
 
@@ -2248,8 +2284,8 @@ other ones; in the latter case, calling this function does nothing.
 
 
 The following macros allow us to define accessors and mutators for
-fields in a C language data structure for which we know a pointer to; to
-use them, for each field we want to access, we need to know:
+fields in a C language data structure for which we know a pointer to.
+To use them: for each field we want to access, we need to know:
 
 @itemize
 @item
@@ -2262,16 +2298,23 @@ equivalent to knowing the required peeker and poker.  @ref{ffi access,
 Direct access to memory blocks}
 @end itemize
 
-The following bindings are exported by the @library{foreign ffi
-primitives} library and reexported by the compound library
-@library{foreign ffi}.
+Unless otherwise specified, the following bindings are exported by the
+@library{foreign ffi primitives} library and reexported by the compound
+library @library{foreign ffi}.
 
 
 @deffn Syntax define-c-struct-accessor @ameta{accessor-name} @ameta{field-offset} @ameta{foreign-type-accessor}
 Define a macro named @meta{accessor-name} accepting as single argument a
 pointer to a foreign data structure; it wraps the peeker
 @meta{foreign-type-accessor} to access the field at @meta{field-offset}
-in the structure.
+in the structure.  Example:
+
+@example
+(define-c-struct-accessor
+  struct-z_stream-next_in-set!
+  0
+  pointer-ref-c-pointer)
+@end example
 
 @meta{accessor-name} must be a Scheme symbol.
 @meta{foreign-type-accessor} must be a peeker among the ones defined in
@@ -2283,16 +2326,24 @@ As a special case, if @meta{field-offset} is @false{}: The defined macro
 expands into an invocation of @func{raise-unimplemented-error}, which
 signals that the accessor for the field is not implemented; in this case
 @meta{foreign-type-accessor} is ignored.  This is useful in cases where
-it is not possible to determine the offset of a field.  @ref{naulib
-unimplemented, Unimplemented error condition}
+it is not possible to determine the offset of a field (for example
+because two versions of the same foreign library have different fields).
+@ref{naulib unimplemented, Unimplemented error condition}
 @end deffn
 
 
 @deffn Syntax define-c-struct-mutator @ameta{mutator-name} @ameta{field-offset} @ameta{foreign-type-mutator}
-Define a macro named @meta{mutator-name} accepting as single argument a
-pointer to a foreign data structure; it wraps the poker
-@meta{foreign-type-mutator} to mutate the field at @meta{field-offset}
-in the structure.
+Define a macro named @meta{mutator-name} accepting two arguments: a
+pointer to a foreign data structure and the new value of a field; it
+wraps the poker @meta{foreign-type-mutator} to mutate the field at
+@meta{field-offset} in the structure.
+
+@example
+(define-c-struct-mutator
+  struct-z_stream-next_in-set!
+  0
+  pointer-set-c-pointer!)
+@end example
 
 @meta{mutator-name} must be a Scheme symbol.
 @meta{foreign-type-mutator} must be a poker among the ones defined in
@@ -2304,8 +2355,9 @@ As a special case, if @meta{field-offset} is @false{}: The defined macro
 expands into an invocation of @func{raise-unimplemented-error}, which
 signals that the mutator for the field is not implemented; in this case
 @meta{foreign-type-mutator} is ignored.  This is useful in cases where
-it is not possible to determine the offset of a field.  @ref{naulib
-unimplemented, Unimplemented error condition}
+it is not possible to determine the offset of a field (for example
+because two versions of the same foreign library have different fields).
+@ref{naulib unimplemented, Unimplemented error condition}
 @end deffn
 
 
@@ -2330,6 +2382,17 @@ is equivalent to:
 (define-c-struct-mutator  @cmeta{mutator-name}
                           @cmeta{field-offset}
                           @cmeta{foreign-type-mutator})
+@end example
+
+Example:
+
+@example
+(define-c-struct-accessor-and-mutator
+  struct-z_stream-next_in-set!
+  struct-z_stream-next_in-ref
+  0
+  pointer-set-c-pointer!
+  pointer-ref-c-pointer)
 @end example
 @end deffn
 
@@ -2453,6 +2516,183 @@ and then use code like the following:
 (define directory-name  ;pointer to a C string
   (struct-dirent-d_name-ref entry))
 @end example
+
+It is often tedious to accees foreign data structure fields with the
+accessors and mutators defined by the previous macros, so the library
+@library{foreign ffi utilities} exports the following bindings.
+
+
+@deffn Syntax define-struct-fields @ameta{struct} @ameta{field-spec} ...
+The @meta{struct} argument must be a Scheme symbol representing the name
+of a foreign data structure; this macro defines a new macro named
+@code{define-@meta{struct}} which in turn defines identifier macros to
+access and mutate the fields of a data structure.
+
+@meta{field-spec} must be a list of Scheme symbols representing field
+names.  If the list holds a single symbol, an identifier macro is
+created to access that field.  If the list holds two equal symbols, an
+identifier macro is created to access and mutate that field.
+
+For example, let's take the following structure from Libxml2:
+
+@example
+struct _xmlChSRange @{
+    unsigned short      low;
+    unsigned short      high;
+@};
+@end example
+
+@noindent
+we prepare accessors and mutators in an appropriate library:
+
+@example
+(library (xml libxml2 sizeof)
+  (export
+    struct-xmlChSRange-low-set!
+    struct-xmlChSRange-low-ref
+    struct-xmlChSRange-high-set!
+    struct-xmlChSRange-high-ref)
+  (import (rnrs)
+    (foreign ffi))
+  (define-c-struct-accessor-and-mutator
+    struct-xmlChSRange-low-set!
+    struct-xmlChSRange-low-ref
+    0
+    pointer-set-c-unsigned-short!
+    pointer-ref-c-unsigned-short)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlChSRange-high-set!
+    struct-xmlChSRange-high-ref
+    2
+    pointer-set-c-unsigned-short!
+    pointer-ref-c-unsigned-short))
+@end example
+
+@noindent
+then we define identifier macro builders in another library:
+
+@example
+(library (xml libxml2 structs)
+  (export define-xmlChSRange)
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi utilities)
+    (xml libxml2 sizeof))
+  (define-struct-fields xmlChSRange
+    (high high)
+    (low low)))
+@end example
+
+@noindent
+finally we can use the libraries:
+
+@example
+(import (rnrs)
+  (xml libxml2 structs))
+
+(define ptr ---)
+(define-xmlChSRange ptr)
+(set! ptr.high 10)
+(display ptr.low)
+@end example
+
+@func{define-struct-fields} expects the appropriate accessor and mutator
+bindings to be visible in the syntactic context of @ameta{struct}; a
+field mutator and accessor names are built as:
+
+@example
+struct-@cmeta{struct}-@cmeta{field}-set!
+struct-@cmeta{struct}-@cmeta{field}-ref
+@end example
+@end deffn
+
+
+@deffn Syntax define-with-struct @ameta{struct} @ameta{field-spec} ...
+The @meta{struct} argument must be a Scheme symbol representing the name
+of a foreign data structure; this macro defines a new macro named
+@code{with-struct-@meta{struct}} which in turn defines identifier macros
+to access and mutate the fields of a data structure.  The generated
+macro works like @func{let-syntax}.
+
+@meta{field-spec} must be a list of Scheme symbols representing field
+names.  If the list holds a single symbol, an identifier macro is
+created to access that field.  If the list holds two equal symbols, an
+identifier macro is created to access and mutate that field.
+
+For example, let's take the following structure from Libxml2:
+
+@example
+struct _xmlChSRange @{
+    unsigned short      low;
+    unsigned short      high;
+@};
+@end example
+
+@noindent
+we prepare accessors and mutators in an appropriate library:
+
+@example
+(library (xml libxml2 sizeof)
+  (export
+    struct-xmlChSRange-low-set!
+    struct-xmlChSRange-low-ref
+    struct-xmlChSRange-high-set!
+    struct-xmlChSRange-high-ref)
+  (import (rnrs)
+    (foreign ffi))
+  (define-c-struct-accessor-and-mutator
+    struct-xmlChSRange-low-set!
+    struct-xmlChSRange-low-ref
+    0
+    pointer-set-c-unsigned-short!
+    pointer-ref-c-unsigned-short)
+  (define-c-struct-accessor-and-mutator
+    struct-xmlChSRange-high-set!
+    struct-xmlChSRange-high-ref
+    2
+    pointer-set-c-unsigned-short!
+    pointer-ref-c-unsigned-short))
+@end example
+
+@noindent
+then we define identifier macro builders in another library:
+
+@example
+(library (xml libxml2 structs)
+  (export with-struct-xmlChSRange)
+  (import (rnrs)
+    (foreign ffi)
+    (foreign ffi utilities)
+    (xml libxml2 sizeof))
+  (define-with-struct xmlChSRange
+    (high high)
+    (low low)))
+@end example
+
+@noindent
+finally we can use the libraries:
+
+@example
+(import (rnrs)
+  (xml libxml2 structs))
+
+(define ptr ---)
+(with-struct-xmlChSRange ptr
+  (set! ptr.high 10)
+  (display ptr.low))
+@end example
+
+@func{define-with-struct} expects the appropriate accessor and mutator
+bindings to be visible in the syntactic context of @ameta{struct}; a
+field mutator and accessor names are built as:
+
+@example
+struct-@cmeta{struct}-@cmeta{field}-set!
+struct-@cmeta{struct}-@cmeta{field}-ref
+@end example
+@end deffn
+
+
 
 @c page
 @node ffi headers

@@ -19569,17 +19569,22 @@ defined as:
 @end deffn
 
 
-@deffn Syntax define-identifier-macro @ameta{thing} @ameta{accessor} @ameta{mutator}
+@deffn Syntax define-identifier-accessor-mutator @ameta{thing} @ameta{accessor}
+@deffnx Syntax define-identifier-accessor-mutator @ameta{thing} @ameta{accessor} @ameta{mutator}
 Helper for the definition of an identifier syntax.  It is defined as:
 
 @example
-(define-syntax define-identifier-macro
+(define-syntax define-identifier-accessor-mutator
   (syntax-rules ()
-    ((_ ?thing ?accessor ?mutator)
-     (define-syntax ?field
+    ((_ ?name ?thing ?accessor ?mutator)
+     (define-syntax ?name
        (identifier-syntax
-        (id             (?accessor ?thing))
-        ((set! id expr) (?mutator  ?thing expr)))))))
+        (_              (?accessor ?thing))
+        ((set! _ expr)  (?mutator  ?thing expr)))))
+    ((_ ?name ?thing ?accessor)
+     (define-syntax ?name
+       (identifier-syntax
+        (_              (?accessor ?thing)))))))
 @end example
 @end deffn
 

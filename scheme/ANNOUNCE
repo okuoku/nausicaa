@@ -45,6 +45,19 @@ Notes for --- tag 0.1a11
 
 * Updated to IrRegex version 0.8.1.
 
+* Added POINTER-DECR! to (foreign ffi pointers).
+
+* Added bits  of FFI support for Petite  Chez, not involving
+  FOREIGN-PROCEDURE and FOREIGN-CALLABLE.
+
+* Renamed  DEFINE-IDENTIFIER-MACRO  in (language-extensions)
+  to DEFINE-IDENTIFIER-ACCESSOR-MUTATOR.
+
+* Added DEFINE-CONSTANT to (language-extensions).
+
+* Added   DEFINE-WITH-STRUCT  and   DEFINE-STRUCT-FIELDS  to
+  (foreign ffi utilities).
+
 
 Notes for 2010-03-15 tag 0.1a10
 -------------------------------

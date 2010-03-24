@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -31,7 +31,7 @@
     pointer-null		pointer-null?
     integer->pointer		pointer->integer
     pointer-diff		pointer-add
-    pointer-incr!
+    pointer-incr!		pointer-decr!
     pointer=?			pointer<>?
     pointer<?			pointer>?
     pointer<=?			pointer>=?)
@@ -41,6 +41,13 @@
   (define-syntax pointer-incr!
     (syntax-rules ()
       ((_ ?pointer ?expr)
-       (set! ?pointer (pointer-add ?pointer ?expr))))))
+       (set! ?pointer (pointer-add ?pointer ?expr)))))
+
+  (define-syntax pointer-decr!
+    (syntax-rules ()
+      ((_ ?pointer ?expr)
+       (set! ?pointer (pointer-add ?pointer (- ?expr))))))
+
+  )
 
 ;;; end of file

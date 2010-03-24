@@ -184,32 +184,33 @@
     do* while while* do-while do-while*
     dotimes dolist loop-upon-list ensure
     set-cons! incr! decr!
-    define-identifier-macro define-inline define-values)
+    define-identifier-accessor-mutator define-inline define-values
+    define-constant)
   (import (rnrs))
 
 
-  (define-syntax and-let*
-    (syntax-rules ()
-      ((_ . r)
-       (and-let*-core #T . r))))
+(define-syntax and-let*
+  (syntax-rules ()
+    ((_ . r)
+     (and-let*-core #t . r))))
 
-  (define-syntax and-let*-core
-    (lambda (stx)
-      (syntax-case stx ()
-        ((kw _ ((var expr) . c) . b)
-         #'(let ((var expr))
-             (and var
-                  (kw var c . b))))
-        ((kw last ((expr) . c) . b)
-         #'(kw last ((t expr) . c) . b))
-        ((kw _ (id . c) . b)
-         (identifier? #'id)
-         #'(and id
-                (kw id c . b)))
-        ((_ last ())
-         #'last)
-        ((_ _ () . b)
-         #'(let () . b)))))
+(define-syntax and-let*-core
+  (lambda (stx)
+    (syntax-case stx ()
+      ((kw _ ((var expr) . c) . b)
+       #'(let ((var expr))
+	   (and var
+		(kw var c . b))))
+      ((kw last ((expr) . c) . b)
+       #'(kw last ((t expr) . c) . b))
+      ((kw _ (id . c) . b)
+       (identifier? #'id)
+       #'(and id
+	      (kw id c . b)))
+      ((_ last ())
+       #'last)
+      ((_ _ () . b)
+       #'(let () . b)))))
 
 (define-syntax receive
   (syntax-rules ()
@@ -481,13 +482,26 @@
 	  (begin ?form0 ?form ...)))))))
 
 
-(define-syntax define-identifier-macro
+(define-syntax define-identifier-accessor-mutator
   (syntax-rules ()
-    ((_ ?thing ?accessor ?mutator)
-     (define-syntax ?field
+    ((_ ?name ?thing ?accessor ?mutator)
+     (define-syntax ?name
        (identifier-syntax
-	(id		(?accessor ?thing))
-	((set! id expr)	(?mutator  ?thing expr)))))))
+	(_		(?accessor ?thing))
+	((set! _ expr)	(?mutator  ?thing expr)))))
+    ((_ ?name ?thing ?accessor)
+     (define-syntax ?name
+       (identifier-syntax
+	(_		(?accessor ?thing)))))
+    ))
+
+(define-syntax define-constant
+  (syntax-rules ()
+    ((_ ?name ?expr)
+     (begin
+       (define ghost ?expr)
+       (define-syntax ?name
+	 (identifier-syntax ghost))))))
 
 
 ;;;; done
