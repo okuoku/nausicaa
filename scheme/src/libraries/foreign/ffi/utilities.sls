@@ -36,6 +36,8 @@
     define-struct-fields
     define-with-struct		with-struct-fields)
   (import (rnrs)
+    (only (language-extensions)
+	  define-identifier-accessor-mutator)
     (parameters)
     (foreign ffi primitives)
     (for (foreign ffi clang-data-types) expand run))
@@ -138,7 +140,7 @@
 	     (field	(syntax->datum #'?accessible-field)))
 	 (with-syntax ((NAME.FIELD (datum->syntax #'?name (%name.field name field)))
 		       (ACCESSOR   (datum->syntax #'?struct (%accessor-name struct field))))
-	   #'(define-identifier-accessor-mutator ?name NAME.FIELD ACCESSOR))))
+	   #'(define-identifier-accessor-mutator NAME.FIELD ?name ACCESSOR))))
       ((_ ?name ?struct ?accessible-field ?mutable-field)
        (let ((name	(syntax->datum #'?name))
 	     (struct	(syntax->datum #'?struct))
@@ -147,7 +149,7 @@
 	 (with-syntax ((NAME.FIELD (datum->syntax #'?name (%name.field name afield)))
 		       (ACCESSOR   (datum->syntax #'?struct (%accessor-name struct afield)))
 		       (MUTATOR    (datum->syntax #'?struct (%mutator-name  struct mfield))))
-	   #'(define-identifier-accessor-mutator ?name NAME.FIELD ACCESSOR MUTATOR)))))))
+	   #'(define-identifier-accessor-mutator NAME.FIELD ?name ACCESSOR MUTATOR)))))))
 
 (define-syntax %define-struct-field-identifiers
   (syntax-rules ()
