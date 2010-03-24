@@ -163,7 +163,8 @@
        (%define-struct-field-identifier ?name ?struct ?accessible-field)
        (%define-struct-field-identifiers ?name ?struct ?field-spec ...)))
     ((_ ?name ?struct)
-     (values))))
+     ;;This is here so that the expansion is a definition.
+     (define dummy #f))))
 
 (define-syntax define-struct-fields
   (lambda (stx)
