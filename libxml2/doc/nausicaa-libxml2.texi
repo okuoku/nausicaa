@@ -153,6 +153,10 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{XML}
 @end macro
 
+@macro ahtml{}
+@acronym{HTML}
+@end macro
+
 @c ------------------------------------------------------------
 @c Software acronyms.
 @c ------------------------------------------------------------
@@ -12820,12 +12824,72 @@ Build and return a callback of type @code{xmlXPathFuncLookupFunc}.
 
 
 @menu
-* examples html::               Parsing @acronym{HTML}.
+* examples file::               Parsing an @axml{} file.
+* examples html::               Parsing @ahtml{}.
 @end menu
 
 @c page
+@node examples file
+@section Parsing an @axml{} file
+
+
+The following example shows how to parse a simple @axml{} file and walk
+its tree.
+
+@smallexample
+(import (nausicaa)
+  (compensations)
+  (foreign ffi)
+  (foreign cstrings)
+  (xml libxml2))
+
+(define pathname "proof.xml")
+(define xml
+  "<?xml version=\"1.0\"?>
+   <alpha>
+     <beta>
+       ciao
+     </beta>
+   </alpha>")
+
+(with-compensations
+    (compensate
+        (xml-check-version LIBXML_VERSION)
+      (with
+       (xml-cleanup-parser)))
+
+    (compensate
+      (with-output-to-file pathname
+        (lambda ()
+          (display xml)))
+      (with
+       (delete-file pathname)))
+
+  (letrec ((doc (compensate
+                    (xml-parse-file
+                       (string->cstring/c pathname))
+                  (with
+                   (xml-free-doc doc)))))
+    (assert (not (pointer-null? doc)))
+
+    ((recursion (walk-tree root-node)
+      (let loop ((tree '())
+                 (node root-node))
+        (with-struct-xmlNode node
+           (if (pointer-null? node)
+               (reverse tree)
+             (loop (cons (cons (cstring->string node.name)
+                               (walk-tree node.children))
+                         tree)
+                   node.next)))))
+     (xml-doc-get-root-element doc))))
+@result{} (("alpha" ("beta" ("text"))))
+
+@end smallexample
+
+@c page
 @node examples html
-@section Parsing @acronym{HTML}
+@section Parsing @ahtml{}
 
 
 The following example shows how to parse a simple @acronym{HTML} page
@@ -12857,14 +12921,16 @@ and walk its tree.
         (xml-check-version LIBXML_VERSION)
       (with
        (xml-cleanup-parser)))
-  (letrec
-      ((parser (compensate
-                   (html-create-push-parser-ctxt pointer-null pointer-null
-                                                 pointer-null 0
-                                                 pointer-null 0)
-                 (with
-                  (xml-free-doc (struct-xmlParserCtxt-myDoc-ref parser))
-                  (html-free-parser-ctxt parser)))))
+  (letrec ((parser (compensate
+                       (html-create-push-parser-ctxt
+                           pointer-null pointer-null
+                           pointer-null 0
+                           pointer-null 0)
+                     (with
+                      (xml-free-doc
+                         (struct-xmlParserCtxt-myDoc-ref parser))
+                      (html-free-parser-ctxt parser)))))
+    (define-xmlParserCtxt parser)
 
     (html-ctxt-use-options parser
                            (bitwise-ior HTML_PARSE_NOBLANKS
@@ -12877,15 +12943,16 @@ and walk its tree.
       (html-parse-chunk parser page.ptr page.len 1))
 
     ((recursion (walk-tree root-node)
-      (let ((tree '()))
-        (do ((node root-node (struct-xmlNode-next-ref node)))
-            ((pointer-null? node)
-             (reverse tree))
-          (set-cons! tree
-            (cons (cstring->string (struct-xmlNode-name-ref node))
-                  (walk-tree (struct-xmlNode-children-ref node)))))))
-     (xml-doc-get-root-element
-        (struct-xmlParserCtxt-myDoc-ref parser)))))
+      (let loop ((tree '())
+                 (node root-node))
+        (with-struct-xmlNode node
+           (if (pointer-null? node)
+               (reverse tree)
+             (loop (cons (cons (cstring->string node.name)
+                               (walk-tree node.children))
+                         tree)
+                   node.next)))))
+     (xml-doc-get-root-element parser.myDoc))))
 @result{} (("html"
       ("head"
         ("title" ("text"))
@@ -12893,7 +12960,6 @@ and walk its tree.
       ("body"
         ("p" ("text")))))
 @end smallexample
-
 
 @c page
 

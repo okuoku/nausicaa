@@ -43,6 +43,9 @@ Notes for --- tag 0.1b0
 
 * Requires Nausicaa/Scheme version 0.1a11+.
 
+* The macros  of (xml libxml2  structs) cannot be  used with
+  Ypsilon because of Ypsilon's hygiene problems.
+
 * It was really boring to interface this. :-D
 
 

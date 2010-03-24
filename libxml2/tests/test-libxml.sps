@@ -29,6 +29,7 @@
   (compensations)
   (foreign ffi)
   (foreign cstrings)
+  (foreign memory)
   (xml libxml2)
   (checks))
 
@@ -70,11 +71,23 @@
 	    (with
 	     (delete-file pathname)))
 	(letrec ((doc (compensate
-			  (xml-read-file (string->cstring/c pathname) pointer-null 0)
+			  (xml-parse-file (string->cstring/c pathname))
 			(with
 			 (xml-free-doc doc)))))
-	  #t))
-    => #t)
+	  (assert (not (pointer-null? doc)))
+
+	  ((recursion (walk-tree root-node)
+	    (let loop ((tree '())
+		       (node root-node))
+              (with-struct-xmlNode node
+		 (if (pointer-null? node)
+		     (reverse tree)
+		   (loop (cons (cons (cstring->string node.name)
+				     (walk-tree node.children))
+			       tree)
+			 node.next)))))
+	   (xml-doc-get-root-element doc))))
+    => '(("alpha" ("beta" ("text")))))
 
   #t)
 
@@ -119,16 +132,16 @@
 	    (html-parse-chunk parser page.ptr page.len 1))
 
 	  ((recursion (walk-tree root-node)
-	    (let ((tree '()))
-	      (do ((node root-node (struct-xmlNode-next-ref node)))
-		  ((pointer-null? node)
-		   (reverse tree))
-		(with-struct-xmlNode node
-				     (set-cons! tree (cons (cstring->string node.name)
-							   (walk-tree node.children))))
-		)))
-	   (xml-doc-get-root-element parser.myDoc))
-	  ))
+	    (let loop ((tree '())
+		       (node root-node))
+              (with-struct-xmlNode node
+		 (if (pointer-null? node)
+		     (reverse tree)
+		   (loop (cons (cons (cstring->string node.name)
+				     (walk-tree node.children))
+			       tree)
+			 node.next)))))
+	   (xml-doc-get-root-element parser.myDoc))))
     => '(("html"
 	  ("head"
 	   ("title" ("text"))
@@ -137,6 +150,69 @@
 	   ("p" ("text"))))))
 
   #t)
+
+
+(parametrise ((check-test-name	'xpath))
+
+  (define pathname "proof.xml")
+  (define xml-1
+    "<?xml version=\"1.0\"?><alpha><beta>ciao</beta></alpha>")
+
+  (when (file-exists? pathname)
+    (delete-file pathname))
+
+  (check
+      (with-compensations
+	  (compensate
+	      (xml-check-version LIBXML_VERSION)
+	    (with
+	     (xml-cleanup-parser)))
+
+	  (compensate
+	    (with-output-to-file pathname
+	      (lambda ()
+		(display xml-1)))
+	    (with
+	     (delete-file pathname)))
+
+	(letrec ((doc (compensate
+			  (xml-parse-file (string->cstring/c pathname))
+			(with
+			 (xml-free-doc doc)))))
+	  (assert (not (pointer-null? doc)))
+
+	  (let* ((ctx	 (begin0-let ((ctx (xml-xpath-new-context doc)))
+			   (if (pointer-null? ctx)
+			       (raise-out-of-memory #f #f)
+			     (push-compensation
+			      (xml-xpath-free-context ctx)))))
+		 (result (begin0-let
+			     ((result (xml-xpath-eval-expression
+				       (string->cstring/c "//alpha/beta") ctx)))
+			   (if (pointer-null? result)
+			       (raise-out-of-memory #f #f)
+			     (push-compensation
+			      (xml-xpath-free-object result))))))
+	    (define-xmlXPathObject result)
+	    (define nodeset result.nodesetval)
+	    (define-xmlNodeSet nodeset)
+	    (define nodetab nodeset.nodeTab)
+	    ;; (let loop ((i    0)
+	    ;; 	       (keys '()))
+	    ;;   (if (= i nodeset.nodeNr)
+	    ;; 	  keys
+	    ;; 	)
+	    ;; (define-xmlNode nodetab)
+	    ;; (display nodeset.nodeNr)(newline)
+
+
+	    #f)))
+
+    => #f)
+
+  #t)
+
+
 
 
 ;;;; done

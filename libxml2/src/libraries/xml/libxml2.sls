@@ -2646,10 +2646,109 @@
 
 ;;;; struct identifier definitions
 
+    define-xmlChSRange
+    with-struct-xmlChSRange
+    define-xmlChLRange
+    with-struct-xmlChLRange
+    define-xmlChRangeGroup
+    with-struct-xmlChRangeGroup
+    define-xmlShellCtxt
+    with-struct-xmlShellCtxt
+    define-xmlCharEncodingHandler
+    with-struct-xmlCharEncodingHandler
+    define-xmlEntity
+    with-struct-xmlEntity
+    define-htmlElemDesc
+    with-struct-htmlElemDesc
+    define-htmlEntityDesc
+    with-struct-htmlEntityDesc
+    define-xmlParserInput
+    with-struct-xmlParserInput
+    define-xmlParserNodeInfo
+    with-struct-xmlParserNodeInfo
+    define-xmlParserNodeInfoSeq
+    with-struct-xmlParserNodeInfoSeq
     define-xmlParserCtxt
+    with-struct-xmlParserCtxt
+    define-xmlSAXLocator
+    with-struct-xmlSAXLocator
+    define-xmlBuffer
+    with-struct-xmlBuffer
+    define-xmlNotation
+    with-struct-xmlNotation
+    define-xmlEnumeration
+    with-struct-xmlEnumeration
+    define-xmlAttribute
+    with-struct-xmlAttribute
+    define-xmlElementContent
+    with-struct-xmlElementContent
+    define-xmlElement
+    with-struct-xmlElement
+    define-xmlNs
+    with-struct-xmlNs
+    define-xmlDtd
+    with-struct-xmlDtd
+    define-xmlAttr
+    with-struct-xmlAttr
+    define-xmlID
+    with-struct-xmlID
+    define-xmlRef
+    with-struct-xmlRef
     define-xmlNode
-
     with-struct-xmlNode
+    define-xmlDoc
+    with-struct-xmlDoc
+    define-xmlDOMWrapCtxt
+    with-struct-xmlDOMWrapCtxt
+    define-xmlURI
+    with-struct-xmlURI
+    define-xmlValidCtxt
+    with-struct-xmlValidCtxt
+    define-xmlError
+    with-struct-xmlError
+    define-xmlParserInputBuffer
+    with-struct-xmlParserInputBuffer
+    define-xmlOutputBuffer
+    with-struct-xmlOutputBuffer
+    define-xmlSchemaAnnot
+    with-struct-xmlSchemaAnnot
+    define-xmlSchemaAttribute
+    with-struct-xmlSchemaAttribute
+    define-xmlSchemaAttributeLink
+    with-struct-xmlSchemaAttributeLink
+    define-xmlSchemaWildcardNs
+    with-struct-xmlSchemaWildcardNs
+    define-xmlSchemaWildcard
+    with-struct-xmlSchemaWildcard
+    define-xmlSchemaAttributeGroup
+    with-struct-xmlSchemaAttributeGroup
+    define-xmlSchemaTypeLink
+    with-struct-xmlSchemaTypeLink
+    define-xmlSchemaFacetLink
+    with-struct-xmlSchemaFacetLink
+    define-xmlSchemaElement
+    with-struct-xmlSchemaElement
+    define-xmlSchemaNotation
+    with-struct-xmlSchemaNotation
+    define-xmlNodeSet
+    with-struct-xmlNodeSet
+    define-xmlXPathObject
+    with-struct-xmlXPathObject
+    define-xmlXPathType
+    with-struct-xmlXPathType
+    define-xmlXPathVariable
+    with-struct-xmlXPathVariable
+    define-xmlXPathFunct
+    with-struct-xmlXPathFunct
+    define-xmlXPathAxis
+    with-struct-xmlXPathAxis
+    define-xmlXPathContext
+    with-struct-xmlXPathContext
+    define-xmlXPathParserContext
+    with-struct-xmlXPathParserContext
+    define-xmlLocationSet
+    with-struct-xmlLocationSet
+
 
 
 ;;;; primitives
