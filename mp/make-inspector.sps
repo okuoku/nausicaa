@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -244,76 +244,6 @@ fi
 (autoconf-lib "NAUSICAA_ENABLE_TESTS")
 
 
-;;;; arrays
-
-(sizeof-lib
- (define (sizeof-mpz_t-array n)
-   (* n sizeof-mpz_t))
-
- (define (sizeof-mpq_t-array n)
-   (* n sizeof-mpq_t))
-
- (define (sizeof-mpf_t-array n)
-   (* n sizeof-mpf_t))
-
- (define (sizeof-mpfr_t-array n)
-   (* n sizeof-mpfr_t))
-
- (define (sizeof-mpfi_t-array n)
-   (* n sizeof-mpfi_t))
-
- (define (sizeof-mpc_t-array n)
-   (* n sizeof-mpc_t))
-
- (define (sizeof-mpfrx_t-array n)
-   (* n sizeof-mpfrx_t))
-
- (define (sizeof-mpcx_t-array n)
-   (* n sizeof-mpcx_t))
-
- (define (array-ref-c-mpz_t pointer index)
-   (pointer-add pointer (* index strideof-mpz_t)))
-
- (define (array-ref-c-mpq_t pointer index)
-   (pointer-add pointer (* index strideof-mpq_t)))
-
- (define (array-ref-c-mpf_t pointer index)
-   (pointer-add pointer (* index strideof-mpf_t)))
-
- (define (array-ref-c-mpfr_t pointer index)
-   (pointer-add pointer (* index strideof-mpfr_t)))
-
- (define (array-ref-c-mpc_t pointer index)
-   (pointer-add pointer (* index strideof-mpc_t)))
-
- (define (array-ref-c-mpfi_t pointer index)
-   (pointer-add pointer (* index strideof-mpfi_t)))
-
- (define (array-ref-c-mpfrx_t pointer index)
-   (pointer-add pointer (* index strideof-mpfrx_t)))
-
- (define (array-ref-c-mpcx_t pointer index)
-   (pointer-add pointer (* index strideof-mpcx_t))))
-
-(sizeof-lib-exports sizeof-mpz_t-array
-		    sizeof-mpq_t-array
-		    sizeof-mpf_t-array
-		    sizeof-mpfr_t-array
-		    sizeof-mpfi_t-array
-		    sizeof-mpc_t-array
-		    sizeof-mpfrx_t-array
-		    sizeof-mpcx_t-array
-
-		    array-ref-c-mpz_t
-		    array-ref-c-mpq_t
-		    array-ref-c-mpf_t
-		    array-ref-c-mpfr_t
-		    array-ref-c-mpc_t
-		    array-ref-c-mpfi_t
-		    array-ref-c-mpfrx_t
-		    array-ref-c-mpcx_t)
-
-
 ;;;; done
 
 (define mp-library-spec
@@ -325,7 +255,8 @@ fi
 (define-shared-object mpc	libmpc.so)
 (define-shared-object mpfrcx	libmpfrcx.so)
 
-(autoconf-lib-write "configuration/mp-inspector.m4" mp-library-spec)
+(autoconf-lib-write "configuration/mp-inspector.m4" mp-library-spec
+		    "NAUSICAA_MP")
 (sizeof-lib-write   "src/libraries/foreign/math/mp/sizeof.sls.in" mp-library-spec)
 
 ;;; end of file

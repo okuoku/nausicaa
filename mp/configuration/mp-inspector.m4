@@ -2,13 +2,13 @@ dnl (foreign math mp sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Tue Dec  1, 2009
+dnl Date: Thu Mar 25, 2010
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software:  you can redistribute it and/or modify
 dnl it under the terms of the  GNU General Public License as published by
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_MP],[
 
 NAUSICAA_INSPECT_TYPE([GMP_RANDALG_T],[gmp_randalg_t],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([MP_EXP_T],[mp_exp_t],[signed-int],[#f])
@@ -153,5 +154,9 @@ NAU_DS_WITH_OPTION([MPC_SHARED_OBJECT],[mpc-shared-object],[libmpc.so],
   [Mpc shared library file],[select Mpc shared library file])
 NAU_DS_WITH_OPTION([MPFRCX_SHARED_OBJECT],[mpfrcx-shared-object],[libmpfrcx.so],
   [Mpfrcx shared library file],[select Mpfrcx shared library file])
+
+
+])
+
 
 dnl end of file

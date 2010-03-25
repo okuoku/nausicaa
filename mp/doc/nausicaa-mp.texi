@@ -896,17 +896,30 @@ the coefficient at @var{index}.  These bindings are exported by the
 @end deffn
 
 
-@defun array-ref-c-mpz_t @var{pointer} @var{index}
-@defunx array-ref-c-mpq_t @var{pointer} @var{index}
-@defunx array-ref-c-mpf_t @var{pointer} @var{index}
-@defunx array-ref-c-mpfr_t @var{pointer} @var{index}
-@defunx array-ref-c-mpc_t @var{pointer} @var{index}
-@defunx array-ref-c-mpfi_t @var{pointer} @var{index}
-@defunx array-ref-c-mpfrx_t @var{pointer} @var{index}
-@defunx array-ref-c-mpcx_t @var{pointer} @var{index}
-Return pointer to the element at @var{index} in the array referenced by
-@var{pointer}.
-@end defun
+@deffn Syntax array-ref-c-mpz_t @ameta{pointer} @ameta{index}
+@deffnx Syntax array-ref-c-mpq_t @ameta{pointer} @ameta{index}
+@deffnx Syntax array-ref-c-mpf_t @ameta{pointer} @ameta{index}
+@deffnx Syntax array-ref-c-mpfr_t @ameta{pointer} @ameta{index}
+@deffnx Syntax array-ref-c-mpc_t @ameta{pointer} @ameta{index}
+@deffnx Syntax array-ref-c-mpfi_t @ameta{pointer} @ameta{index}
+@deffnx Syntax array-ref-c-mpfrx_t @ameta{pointer} @ameta{index}
+@deffnx Syntax array-ref-c-mpcx_t @ameta{pointer} @ameta{index}
+Return pointer to the element at @meta{index} in the array referenced by
+@meta{pointer}.
+@end deffn
+
+
+@deffn Syntax sizeof-mpz_t-array @ameta{number-of-elements}
+@deffnx Syntax sizeof-mpq_t-array @ameta{number-of-elements}
+@deffnx Syntax sizeof-mpf_t-array @ameta{number-of-elements}
+@deffnx Syntax sizeof-mpfr_t-array @ameta{number-of-elements}
+@deffnx Syntax sizeof-mpc_t-array @ameta{number-of-elements}
+@deffnx Syntax sizeof-mpfi_t-array @ameta{number-of-elements}
+@deffnx Syntax sizeof-mpfrx_t-array @ameta{number-of-elements}
+@deffnx Syntax sizeof-mpcx_t-array @ameta{number-of-elements}
+Return the number of bytes required to hold an array of
+@meta{number-of-elements} of the specified structures.
+@end deffn
 
 @c page
 @node gmp
