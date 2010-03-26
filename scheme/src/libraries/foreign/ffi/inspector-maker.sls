@@ -47,7 +47,14 @@
 
 ;;;; helpers
 
-(define (hat->dot str)
+(define (hat->at str)
+  ;;GNU Autoconf  wants symbols enclosed  in "@...@", but we  cannot use
+  ;;#\@  in R6RS symbols.   So, to  be able  to use  quasiquotation when
+  ;;composing the body of Scheme libraries: we build Scheme symbols with
+  ;;#\^  characters in place  of #\@;  convert the  S-expression library
+  ;;body into  a string; use  this function to  map #\^ to  #\@; finally
+  ;;write the body to a file.
+  ;;
   (string-map (lambda (idx ch)
 		(if (char=? #\^ ch)
 		    #\@
@@ -113,18 +120,18 @@
   ;;
   (set! $structs-lib-exports (append $structs-lib-exports ell)))
 
-(define (autoconf-lib-write filename libname)
+(define (autoconf-lib-write filename libname macro-name)
   ;;Write  to  the  specified  FILENAME  the contents  of  the  Autoconf
   ;;library.  LIBNAME must  be the library specification and  it is used
   ;;only as a comment.
   ;;
-  (autoconf-lib "\ndnl end of file")
   (let ((port (transcoded-port (open-file-output-port filename (file-options no-fail))
 			       (make-transcoder (utf-8-codec)))))
     (format port "dnl ~a --\n" libname)
     (display $autoconf-license port)
-    (display "\n\n" port)
+    (display (string-append "\nAC_DEFUN([" (symbol->string/maybe macro-name) "],[\n\n") port)
     (display $autoconf-library port)
+    (display "\n\n])\n\n\ndnl end of file\n" port)
     (close-port port)))
 
 (define (sizeof-lib-write filename libname)
@@ -140,7 +147,7 @@
     (let ((strout (call-with-string-output-port
 		      (lambda (port)
 			(pretty-print libout port)))))
-      (set! strout (hat->dot strout))
+      (set! strout (hat->at strout))
       (let ((port (transcoded-port (open-file-output-port filename (file-options no-fail))
 				   (make-transcoder (utf-8-codec)))))
 
@@ -153,7 +160,9 @@
 
 (define (structs-lib-write filename structs-libname sizeof-libname)
   ;;Write to the  specified FILENAME the contents of  the structs Scheme
-  ;;library.  LIBNAME must be the library specification.
+  ;;library.   STRUCTS-LIBNAME   must  be  the   library  specification.
+  ;;SIZEOF-LIBNAME  must be  the  specification of  the sizeof  library,
+  ;;which is imported.
   ;;
   (let ((libout `(library ,structs-libname
 		   (export ,@$structs-lib-exports)
@@ -165,7 +174,7 @@
     (let ((strout (call-with-string-output-port
 		      (lambda (port)
 			(pretty-print libout port)))))
-      (set! strout (hat->dot strout))
+      (set! strout (hat->at strout))
       (let ((port (transcoded-port (open-file-output-port filename (file-options no-fail))
 				   (make-transcoder (utf-8-codec)))))
 
@@ -194,6 +203,7 @@
     (autoconf-lib (format "NAU_DS_WITH_OPTION([~a],[~a-shared-object],[~a],
   [~a shared library file],[select ~a shared library file])"
 		    varname dnname default-library-name tiname tiname))
+    ;;FIXME This will fail with Ikarus up to revision 1870.  Use Mosh!.
     (let ((at-symbol (string->symbol (format "\"^~a^\"" varname))))
       (%sizeof-lib `((define ,varname-sym ,at-symbol)))
       (%sizeof-lib-exports varname-sym))))
@@ -291,29 +301,45 @@
 
 (define (%register-type name type-category string-typedef)
   (let* ((keyword		(string-upcase (symbol->string name)))
-	 (symbol-typeof		(string->symbol (format "^TYPEOF_~a^"		keyword)))
-	 (symbol-sizeof		(string->symbol (format "^SIZEOF_~a^"		keyword)))
-	 (symbol-alignof	(string->symbol (format "^ALIGNOF_~a^"		keyword)))
-	 (symbol-strideof	(string->symbol (format "^STRIDEOF_~a^"		keyword)))
-	 (symbol-accessor	(string->symbol (format "^GETTEROF_~a^"		keyword)))
-	 (symbol-mutator	(string->symbol (format "^SETTEROF_~a^"		keyword)))
+	 (ac-symbol-typeof		(string->symbol (format "^TYPEOF_~a^"		keyword)))
+	 (ac-symbol-sizeof		(string->symbol (format "^SIZEOF_~a^"		keyword)))
+	 (ac-symbol-alignof	(string->symbol (format "^ALIGNOF_~a^"		keyword)))
+	 (ac-symbol-strideof	(string->symbol (format "^STRIDEOF_~a^"		keyword)))
+	 (ac-symbol-accessor	(string->symbol (format "^GETTEROF_~a^"		keyword)))
+	 (ac-symbol-mutator	(string->symbol (format "^SETTEROF_~a^"		keyword)))
 	 (name-typeof		name)
 	 (name-sizeof		(string->symbol (format "sizeof-~s"		name)))
 	 (name-alignof		(string->symbol (format "alignof-~s"		name)))
 	 (name-strideof		(string->symbol (format "strideof-~s"		name)))
-	 (name-accessor		(string->symbol (format "pointer-ref-c-~s"	name)))
-	 (name-mutator		(string->symbol (format "pointer-set-c-~s!"	name))))
+	 (pointer-accessor	(string->symbol (format "pointer-ref-c-~s"	name)))
+	 (pointer-mutator	(string->symbol (format "pointer-set-c-~s!"	name)))
+	 (array-sizeof		(string->symbol (format "sizeof-~a-array"	name)))
+	 (array-accessor	(string->symbol (format "array-ref-c-~s"	name)))
+	 (array-mutator		(string->symbol (format "array-set-c-~s!"	name))))
     (autoconf-lib (format "NAUSICAA_INSPECT_TYPE([~a],[~a],[~a],[#f])"
 		    keyword string-typedef type-category))
-    (%sizeof-lib `((define ,name-typeof	(quote ,symbol-typeof))
-		   (define ,name-sizeof	,symbol-sizeof)
-		   (define ,name-alignof	,symbol-alignof)
-		   (define ,name-strideof	,symbol-strideof)
-		   (define ,name-accessor	,symbol-accessor)
-		   (define ,name-mutator	,symbol-mutator)))
+    (%sizeof-lib `((define ,name-typeof		(quote ,ac-symbol-typeof))
+		   (define ,name-sizeof		,ac-symbol-sizeof)
+		   (define ,name-alignof	,ac-symbol-alignof)
+		   (define ,name-strideof	,ac-symbol-strideof)
+		   (define ,pointer-accessor	,ac-symbol-accessor)
+		   (define ,pointer-mutator	,ac-symbol-mutator)
+		   (define-syntax ,array-sizeof
+		     (syntax-rules ()
+		       ((_ ?number-of-elements)
+			(* ,name-sizeof ?number-of-elements))))
+		   (define-syntax ,array-accessor
+		     (syntax-rules ()
+		       ((_ ?pointer ?index)
+			(,pointer-accessor (pointer-add ?pointer (* ?index ,name-strideof))))))
+		   (define-syntax ,array-mutator
+		     (syntax-rules ()
+		       ((_ ?pointer ?index ?value)
+			(,pointer-mutator  (pointer-add ?pointer (* ?index ,name-strideof)) ?value))))))
     (%sizeof-lib-exports name-typeof
 			 name-sizeof name-alignof name-strideof
-			 name-accessor name-mutator)))
+			 pointer-accessor pointer-mutator
+			 array-accessor array-mutator)))
 
 
 ;;;; C struct type inspection
@@ -333,19 +359,30 @@
 
     ;;Output the data structure inspection stuff.
     ;;
-    (let ((symbol-sizeof	(string->symbol (format "^SIZEOF_~a^"	struct-keyword)))
-	  (symbol-alignof	(string->symbol (format "^ALIGNOF_~a^"	struct-keyword)))
-	  (symbol-strideof	(string->symbol (format "^STRIDEOF_~a^"	struct-keyword)))
+    (let ((ac-symbol-sizeof	(string->symbol (format "^SIZEOF_~a^"	struct-keyword)))
+	  (ac-symbol-alignof	(string->symbol (format "^ALIGNOF_~a^"	struct-keyword)))
+	  (ac-symbol-strideof	(string->symbol (format "^STRIDEOF_~a^"	struct-keyword)))
 	  (name-typeof		struct-name)
 	  (name-sizeof		(string->symbol (format "sizeof-~s"	struct-name)))
 	  (name-alignof		(string->symbol (format "alignof-~s"	struct-name)))
-	  (name-strideof	(string->symbol (format "strideof-~s"	struct-name))))
+	  (name-strideof	(string->symbol (format "strideof-~s"	struct-name)))
+	  (array-struct-sizeof	 (string->symbol (format "sizeof-~a-array" struct-name)))
+	  (array-struct-accessor (string->symbol (format "array-ref-c-~a" struct-name))))
       (autoconf-lib (format "NAUSICAA_INSPECT_STRUCT_TYPE([~a],[~a],[#f])"
 		      struct-keyword struct-string-typedef))
-      (%sizeof-lib `((define ,name-sizeof	,symbol-sizeof)
-		     (define ,name-alignof	,symbol-alignof)
-		     (define ,name-strideof	,symbol-strideof)))
-      (%sizeof-lib-exports name-sizeof name-alignof name-strideof)
+      (%sizeof-lib `((define ,name-sizeof	,ac-symbol-sizeof)
+		     (define ,name-alignof	,ac-symbol-alignof)
+		     (define ,name-strideof	,ac-symbol-strideof)
+		     (define-syntax ,array-struct-sizeof
+		       (syntax-rules ()
+			 ((_ ?number-of-elements)
+			  (* ,name-strideof ?number-of-elements))))
+		     (define-syntax ,array-struct-accessor
+		       (syntax-rules ()
+			 ((_ ?pointer ?index)
+			  (pointer-add ?pointer (* ?index ,name-strideof)))))))
+      (%sizeof-lib-exports name-sizeof name-alignof name-strideof
+			   array-struct-accessor)
       (%structs-lib-exports (string->symbol (format "define-~a" struct-name))
 			    (string->symbol (format "with-struct-~s" struct-name))))
 
@@ -359,11 +396,11 @@
 					 (format "struct-~a-~a-ref"  struct-name field-name)))
 		   (name-field-mutator	(string->symbol
 					 (format "struct-~a-~a-set!" struct-name field-name)))
-		   (symbol-field-offset	(string->symbol
+		   (ac-symbol-field-offset	(string->symbol
 					 (format "^OFFSETOF_~a_~a^" struct-keyword field-keyword)))
-		   (symbol-field-accessor (string->symbol
+		   (ac-symbol-field-accessor (string->symbol
 					   (format "^GETTEROF_~a_~a^" struct-keyword field-keyword)))
-		   (symbol-field-mutator (string->symbol
+		   (ac-symbol-field-mutator (string->symbol
 					  (format "^SETTEROF_~a_~a^" struct-keyword field-keyword))))
 	      (if (eq? 'embedded field-type-category)
 		  (begin
@@ -371,7 +408,7 @@
 				    (format "~a_~a" struct-keyword field-keyword)
 				    struct-string-typedef field-name))
 		    (%sizeof-lib `((define-c-struct-field-pointer-accessor
-				     ,name-field-accessor ,symbol-field-offset)))
+				     ,name-field-accessor ,ac-symbol-field-offset)))
 		    (%sizeof-lib-exports name-field-accessor)
 		    (set-cons! struct-fields (list field-name)))
 		(begin
@@ -380,7 +417,8 @@
 				  struct-string-typedef field-name field-type-category))
 		  (%sizeof-lib `((define-c-struct-accessor-and-mutator
 				   ,name-field-mutator ,name-field-accessor
-				   ,symbol-field-offset ,symbol-field-mutator ,symbol-field-accessor)))
+				   ,ac-symbol-field-offset
+				   ,ac-symbol-field-mutator ,ac-symbol-field-accessor)))
 		  (%sizeof-lib-exports name-field-mutator name-field-accessor)
 		  (set-cons! struct-fields (list field-name field-name))))))
 	field-names field-type-categories)

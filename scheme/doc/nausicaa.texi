@@ -302,6 +302,10 @@ Revised^6 Report on the algorithmic language Scheme
 <\THING\>
 @end macro
 
+@macro ametao{THING}
+<\THING\0>
+@end macro
+
 @macro ametai{THING}
 <\THING\1>
 @end macro

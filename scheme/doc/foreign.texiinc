@@ -48,6 +48,7 @@ implementations.
 * ffi call::                    Callouts and callbacks.
 * ffi struct::                  Accessing data structures.
 * ffi headers::                 Inspecting foreign header files.
+* ffi generator::               Generating an interface.
 @end menu
 
 @c page
@@ -3627,6 +3628,440 @@ EUCLEAN         ENOTNAM         ENAVAIL         EISNAM
 EREMOTEIO       EDQUOT          ENOMEDIUM       EMEDIUMTYPE
 ECANCELED       ENOKEY          EKEYEXPIRED     EKEYREVOKED
 EKEYREJECTED    EOWNERDEAD      ENOTRECOVERABLE
+@end example
+@end deffn
+
+@c page
+@node ffi generator
+@subsection Generating an interface
+
+
+This section documents the @library{foreign ffi inspector-maker}
+library, which provides some automation in the generation of the
+infrastructure required by interfaces to foreign, C language, libraries.
+At present this library is for internal use, so Nausicaa's end users can
+just ignore it.
+
+The library is meant to be loaded by a Scheme program, which generates a
+set of files required by the interface; the program's file should be in
+the top directory of the Nausicaa project.  For an interface to Libxml2
+using the @code{xml libxml2} prefix for libraries, in a typical Nausicaa
+project source tree, the files are:
+
+@table @file
+@item configuration/libxml2-inspector.m4
+A @gnu{} Autoconf script defining a single @command{m4} macro to be used
+by the @file{configure.ac} template to inspect the foreign library.  The
+@file{aclocal.m4} file must include the line:
+
+@example
+m4_include(configuration/libxml2-inspector.m4)
+@end example
+
+@noindent
+and the @file{configure.ac} template must include the macro call:
+
+@example
+NAUSICAA_LIBXML
+@end example
+
+@noindent
+where @code{NAUSICAA_LIBXML} is the name of the macro.
+
+@item src/libraries/xml/libxml2/sizeof.sls.in
+A template for the @library{xml libxml2 sizeof} library holding foreign
+data types inspection definitions and constants definitions.  It is
+meant  to be processed by the @command{configure} script to insert
+values for the @code{@@...@@} symbols.
+
+@item src/libraries/xml/libxml2/structs.sls
+A library defining macros which in turn define identifier syntaxes to
+access foreign data structure fields.  @ref{ffi struct} for details on
+@func{define-struct-fields} and @func{define-with-struct}.
+@end table
+
+@c ------------------------------------------------------------
+
+@subsubheading Global definitions
+
+
+@deffn Syntax define-shared-object @var{name} @var{default-library-name}
+Define global identifier for the identifiers associated to the foreign
+library and select the name of the shared object file.  Add to the
+Autoconf macro what is needed to define the
+@option{--with-@var{name}-shared-object} option for the
+@command{configure} script: this option allows the selectio of an
+alternative shared object file name.  Example:
+
+@example
+(define-shared-object libxml2 libxml2.so)
+@end example
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Writing the files
+
+
+@defun autoconf-lib-write @var{filename} @var{libname} @var{macro-name}
+Write to the specified @var{filename} the contents of the Autoconf
+library; @var{libname} must be the library specification and it is used
+only as a comment; @var{macro-name} must be the name of the generated
+@command{m4} macro as a Scheme string.  Example:
+
+@example
+(define libxml2-library-spec
+  '(xml libxml2 sizeof))
+
+(autoconf-lib-write
+   "configuration/libxml2-inspector.m4"
+   libxml2-library-spec
+   "NAUSICAA_LIBXML")
+@end example
+@end defun
+
+
+@defun sizeof-lib-write @var{filename} @var{libname}
+Write to the specified @var{filename} the contents of the sizeof Scheme
+library; @var{libname} must be the library specification.  Example:
+
+@example
+(define libxml2-library-spec
+  '(xml libxml2 sizeof))
+
+(sizeof-lib-write
+   "src/libraries/xml/libxml2/sizeof.sls.in"
+   libxml2-library-spec)
+@end example
+@end defun
+
+
+@defun structs-lib-write @var{filename} @var{structs-libname} @var{sizeof-libname}
+Write to the specified @var{filename} the contents of the @code{structs}
+library; @var{structs-libname} must be the @code{structs} library
+specification; @var{sizeof-libname} must be the specification of the
+sizeof library, which is imported.  Example:
+
+@example
+(define libxml2-library-spec
+  '(xml libxml2 sizeof))
+
+(structs-lib-write
+   "src/libraries/xml/libxml2/structs.sls"
+   '(xml libxml2 structs)
+   libxml2-library-spec)
+@end example
+@end defun
+
+@c ------------------------------------------------------------
+
+@subsubheading Foreign library inspection
+
+
+@deffn Syntax define-c-defines @ameta{description-string} @ameta{symbol} ...
+Register in the output libraries a set of C preprocessor constants.
+Example:
+
+@example
+(define-c-defines "seek whence values"
+  SEEK_SET SEEK_CUR SEEK_END)
+@end example
+
+@noindent
+appends the following to the Autoconf macro:
+
+@example
+dnl Preprocessor symbols: seek whence values
+NAUSICAA_DEFINE_VALUE([SEEK_SET])
+NAUSICAA_DEFINE_VALUE([SEEK_CUR])
+NAUSICAA_DEFINE_VALUE([SEEK_END])
+@end example
+
+@noindent
+and the following to the @code{sizeof} library:
+
+@example
+(define SEEK_SET @@VALUEOF_SEEK_SET@@)
+(define SEEK_CUR @@VALUEOF_SEEK_CUR@@)
+(define SEEK_END @@VALUEOF_SEEK_END@@)
+@end example
+
+@noindent
+adding the defined symbols to the exports list.
+@end deffn
+
+
+@deffn Syntax define-c-string-defines @ameta{description} @ameta{symbol} ...
+Register in the output libraries a set of C preprocessor string
+literals.  Example:
+
+@example
+(define-c-string-defines "mount options"
+  FSTAB_RW
+  FSTAB_RQ
+  FSTAB_RO)
+@end example
+
+@noindent
+appends the following to the Autoconf macro:
+
+@example
+dnl String preprocessor symbols: mount options
+NAUSICAA_STRING_TEST([FSTAB_RW],[FSTAB_RW])
+NAUSICAA_STRING_TEST([FSTAB_RW],[FSTAB_RQ])
+NAUSICAA_STRING_TEST([FSTAB_RW],[FSTAB_RO])
+@end example
+
+@noindent
+and the following to the @code{sizeof} library:
+
+@example
+(define FSTAB_RW @@STRINGOF_FSTAB_RW@@)
+(define FSTAB_RQ @@STRINGOF_FSTAB_RQ@@)
+(define FSTAB_RO @@STRINGOF_FSTAB_RO@@)
+@end example
+
+@noindent
+adding the defined symbols to the exports list.
+@end deffn
+
+
+@deffn Syntax define-c-enumeration @ameta{enum-name} @ameta{string-typedef} @ametao{symbol-name} @ameta{symbol-name} ...
+Register in the output libraries a set of enumerated C constants.
+Example:
+
+@example
+(define-c-enumeration xmlC14NMode
+  "xmlC14NMode"
+  XML_C14N_1_0
+  XML_C14N_EXCLUSIVE_1_0
+  XML_C14N_1_1)
+@end example
+
+@noindent
+appends the following to the Autoconf macro:
+
+@example
+dnl enum xmlC14NMode
+NAUSICAA_ENUM_VALUE([XML_C14N_1_0])
+NAUSICAA_ENUM_VALUE([XML_C14N_EXCLUSIVE_1_0])
+NAUSICAA_ENUM_VALUE([XML_C14N_1_1])
+@end example
+
+@noindent
+and the following to the @code{sizeof} library:
+
+@example
+(define XML_C14N_1_0            @@VALUEOF_XML_C14N_1_0@@)
+(define XML_C14N_EXCLUSIVE_1_0  @@VALUEOF_XML_C14N_EXCLUSIVE_1_0@@)
+(define XML_C14N_1_1            @@VALUEOF_XML_C14N_1_1@@)
+@end example
+
+@noindent
+adding the defined symbols to the exports list; finally it also calls:
+
+@example
+(define-c-type xmlC14NMode signed-int "xmlC14NMode")
+@end example
+@end deffn
+
+
+@deffn Syntax define-c-type-alias @ameta{alias} @ameta{type}
+Define a type symbol to be used in the specification of C function
+callouts.  Example:
+
+@example
+(define-c-type-alias xmlChar* pointer)
+@end example
+
+@noindent
+adds the following to the @code{sizeof} library:
+
+@example
+(define xmlChar* (quote pointer))
+@end example
+
+@noindent
+and adds @code{xmlChar*} to the exports list.
+@end deffn
+
+
+@deffn Syntax define-c-type @ameta{name} @ameta{type-category}
+@deffnx Syntax define-c-type @ameta{name} @ameta{type-category} @ameta{type-string}
+Define the inspection infrastructure for a C type.  Example:
+
+@example
+(define-c-type pid_t signed-int)
+(define-c-type pid_t signed-int "pid_t") ;equivalent
+@end example
+
+@noindent
+adds the following to the Autoconf macro:
+
+@example
+NAUSICAA_INSPECT_TYPE([PID_T],["pid_t"],[signed-int],[#f])
+@end example
+
+@noindent
+and the following to the @code{sizeof} library:
+
+@smallexample
+(define pid_t                   (quote @@TYPEOF_PID_T@@))
+(define sizeof-pid_t            @@SIZEOF_PID_T@@)
+(define alignof-pid_t           @@ALIGNOF_PID_T@@)
+(define strideof-pid_t          @@STRIDEOF_PID_T@@)
+(define pointer-ref-c-pid_t     @@GETTEROF_PID_T@@)
+(define pointer-set-c-pid_t!    @@SETTEROF_PID_T@@)
+(define-syntax sizeof-pid_t-array
+  (syntax-rules ()
+    ((_ ?number-of-elements)
+     (* sizeof-pid_t ?number-of-elements))))
+(define-syntax array-ref-c-pid_t
+  (syntax-rules ()
+    ((_ ?pointer ?index)
+     (pointer-ref-c-pid_t
+       (pointer-add ?pointer (* ?index strideof-pid_t))))))
+(define-syntax array-set-c-pid_t!
+  (syntax-rules ()
+    ((_ ?pointer ?index ?value)
+     (pointer-set-c-pid_t!
+       (pointer-add ?pointer (* ?index strideof-pid_t))
+                    ?value))))
+@end smallexample
+
+@noindent
+adding the defined symbols to the exports list.
+@end deffn
+
+
+@deffn Syntax define-c-struct @ameta{name} @ameta{type-string} (@ameta{field-type-category} @ameta{field-name}) ...
+Define the inspection infrastructure for a C data structure.  Example:
+
+@example
+(define-c-struct xmlChSRange
+  "xmlChSRange"
+  (unsigned-int         low)
+  (unsigned-int         high))
+@end example
+
+@noindent
+adds the following to the Autoconf macro:
+
+@example
+dnl Struct inspection: xmlChSRange
+NAUSICAA_INSPECT_STRUCT_TYPE([XMLCHSRANGE],[xmlChSRange],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([XMLCHSRANGE_LOW],[xmlChSRange],[low],[unsigned-int])
+NAUSICAA_INSPECT_FIELD_TYPE([XMLCHSRANGE_HIGH],[xmlChSRange],[high],[unsigned-int])
+@end example
+
+@noindent
+and the following to the @code{sizeof} library:
+
+@smallexample
+(define sizeof-xmlChSRange      @@SIZEOF_XMLCHSRANGE@@)
+(define alignof-xmlChSRange     @@ALIGNOF_XMLCHSRANGE@@)
+(define strideof-xmlChSRange    @@STRIDEOF_XMLCHSRANGE@@)
+(define-c-struct-accessor-and-mutator
+  struct-xmlChSRange-low-set!
+  struct-xmlChSRange-low-ref
+  @@OFFSETOF_XMLCHSRANGE_LOW@@
+  @@SETTEROF_XMLCHSRANGE_LOW@@
+  @@GETTEROF_XMLCHSRANGE_LOW@@)
+(define-c-struct-accessor-and-mutator
+  struct-xmlChSRange-high-set!
+  struct-xmlChSRange-high-ref
+  @@OFFSETOF_XMLCHSRANGE_HIGH@@
+  @@SETTEROF_XMLCHSRANGE_HIGH@@
+  @@GETTEROF_XMLCHSRANGE_HIGH@@)
+@end smallexample
+
+@noindent
+exporting the defined symbols, and the following to the @code{structs}
+library:
+
+@example
+(define-struct-fields xmlChSRange
+  (high high)
+  (low low))
+(define-with-struct xmlChSRange
+  (high high)
+  (low low))
+@end example
+
+@noindent
+exporting the defined symbols.  If a field is an array embedded in the
+structure, we must declare it as of type @code{embedded}; for example,
+the @code{d_name} field:
+
+@example
+(define-c-struct dirent
+  "struct dirent"
+  (signed-int           d_ino)
+  (signed-int           d_off)
+  (unsigned-int         d_reclen)
+  (unsigned-int         d_type)
+  (embedded             d_name))
+@end example
+
+@noindent
+generates the following in the Autoconf macro:
+
+@example
+NAUSICAA_INSPECT_FIELD_TYPE_POINTER([DIRENT_D_NAME],
+  [struct dirent],[d_name])
+@end example
+
+@noindent
+and the following in the @code{sizeof} library:
+
+@example
+(define-c-struct-field-pointer-accessor
+  struct-dirent-d_name-ref
+  @@OFFSETOF_DIRENT_D_NAME@@)
+@end example
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Raw body additions
+
+
+@defun Syntax autoconf-lib @var{string}
+Append the given string to the internal body of the generated Autoconf
+macro.  This function is rarely needed.  It can be  used to introduce a
+conditional section in the macro expansion:
+
+@example
+(autoconf-lib "
+if test \"$nau_ENABLE_MPFR\" = no
+then
+")
+
+---     ;; stuff here
+
+(autoconf-lib "
+fi
+")
+@end example
+@end defun
+
+
+@deffn Syntax sizeof-lib @ameta{expr} ...
+Append the given expressions to the internal body of the @code{sizeof}
+library.  This syntax is rarely needed.
+@end deffn
+
+
+@deffn Syntax sizeof-lib-exports @ameta{symbol} ...
+Append the given symbols to the list of bindings exported by the
+@code{sizeof} library.  Usually this is needed to export definitions
+introduced with @func{sizeof-lib}.  Example:
+
+@example
+(sizeof-lib
+  (define alpha 123))
+
+(sizeof-lib-exports alpha)
 @end example
 @end deffn
 
