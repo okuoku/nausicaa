@@ -406,16 +406,16 @@ endif
 ## ------------------------------------------------------------
 ## Petite Chez
 
-ifeq (,$(strip $(PETITE_LIBPATH)))
-nau_ptest_ENV		= PETITE_LIBPATH=$(nau_test_PATH)
+ifeq (,$(strip $(CHEZSCHEMELIBDIRS)))
+nau_ptest_ENV		= CHEZSCHEMELIBDIRS=$(nau_test_PATH)
 else
-nau_ptest_ENV		= PETITE_LIBPATH=$(nau_test_PATH):$(PETITE_LIBPATH)
+nau_ptest_ENV		= CHEZSCHEMELIBDIRS=$(nau_test_PATH):$(CHEZSCHEMELIBDIRS)
 endif
 nau_ptest_ENV		+= $(nau_test_ENV)
-nau_ptest_PROGRAM	= $(PETITE) --libexts .petite.sls:.sls --libdirs $${PETITE_LIBPATH} --program
+nau_ptest_PROGRAM	= $(PETITE) --libexts .petite.sls:.sls --libdirs $${CHEZSCHEMELIBDIRS} --program
 nau_ptest_RUN		= $(nau_ptest_ENV) ; $(nau_TIME_TESTS) $(nau_ptest_PROGRAM)
 
-nau_ptest_installed_ENV	= PETITE_LIBPATH=$(nau_test_SRCDIR):$(PETITE_LIBPATH)
+nau_ptest_installed_ENV	= CHEZSCHEMELIBDIRS=$(nau_test_SRCDIR):$(CHEZSCHEMELIBDIRS)
 nau_ptest_installed_RUN	= $(nau_ptest_installed_ENV) ; $(nau_TIME_TESTS) $(nau_ptest_PROGRAM)
 
 .PHONY: ptest ptests pcheck ptest-installed
@@ -572,14 +572,14 @@ endif
 ## ------------------------------------------------------------
 ## Petite
 
-# ifeq (,$(strip $(PETITE_LIBPATH)))
-# nau_pproof_ENV		= PETITE_LIBPATH=$(nau_proof_PATH)
+# ifeq (,$(strip $(CHEZSCHEMELIBDIRS)))
+# nau_pproof_ENV		= CHEZSCHEMELIBDIRS=$(nau_proof_PATH)
 # else
-# nau_pproof_ENV		= PETITE_LIBPATH=$(nau_proof_PATH):$(PETITE_LIBPATH)
+# nau_pproof_ENV		= CHEZSCHEMELIBDIRS=$(nau_proof_PATH):$(CHEZSCHEMELIBDIRS)
 # endif
-nau_pproof_ENV		= PETITE_LIBPATH=$(nau_proof_PATH):$(PETITE_LIBPATH)
+nau_pproof_ENV		= CHEZSCHEMELIBDIRS=$(nau_proof_PATH):$(CHEZSCHEMELIBDIRS)
 nau_pproof_ENV		+= $(nau_proof_ENV)
-nau_pproof_PROGRAM	= $(PETITE) --libexts .petite.sls:.sls --libdirs $${PETITE_LIBPATH} --program
+nau_pproof_PROGRAM	= $(PETITE) --libexts .petite.sls:.sls --libdirs $${CHEZSCHEMELIBDIRS} --program
 nau_pproof_RUN		= $(nau_pproof_ENV) ; $(nau_pproof_PROGRAM)
 
 .PHONY: pproof pproofs
