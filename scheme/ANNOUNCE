@@ -58,6 +58,9 @@ Notes for --- tag 0.1a11
 * Added   DEFINE-WITH-STRUCT  and   DEFINE-STRUCT-FIELDS  to
   (foreign ffi utilities).
 
+* Improved  (foreign  ffi  inspector-maker)  infrastructure.
+  This will cause waterfall update of all the packages.
+
 
 Notes for 2010-03-15 tag 0.1a10
 -------------------------------
