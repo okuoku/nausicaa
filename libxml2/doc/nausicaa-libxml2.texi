@@ -2323,16 +2323,34 @@ Accessor and mutator for values of type @code{xmlC14NMode}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlC14NMode @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlC14NMode! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlC14NMode}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlCatalogPrefer @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlCatalogPrefer! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlCatalogPrefer}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlCatalogPrefer @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlCatalogPrefer! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlCatalogPrefer}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlCatalogAllow @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlCatalogAllow! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlCatalogAllow}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlCatalogAllow @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlCatalogAllow! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlCatalogAllow}.
+@end deffn
 
 
 @deffn Syntax struct-xmlChSRange-low-set! @ameta{pointer} @ameta{value}
@@ -2344,12 +2362,22 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlChSRange @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlChSRange}.
+@end deffn
+
+
 @deffn Syntax struct-xmlChLRange-low-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlChLRange-low-ref @ameta{pointer}
 @deffnx Syntax struct-xmlChLRange-high-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlChLRange-high-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlChLRange}
 memory blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlChLRange @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlChLRange}.
 @end deffn
 
 
@@ -2363,6 +2391,11 @@ memory blocks.
 @deffnx Syntax struct-xmlChRangeGroup-longRange-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlChRangeGroup}
 memory blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlChRangeGroup @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlChRangeGroup}.
 @end deffn
 
 
@@ -2385,10 +2418,21 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlShellCtxt @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlShellCtxt}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlCharEncoding @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlCharEncoding! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlCharEncoding}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlCharEncoding @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlCharEncoding! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlCharEncoding}.
+@end deffn
 
 
 @deffn Syntax struct-xmlCharEncodingHandler-name-set! @ameta{pointer} @ameta{value}
@@ -2406,52 +2450,68 @@ xmlCharEncodingHandler} memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlCharEncodingHandler-ref @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlCharEncodingHandler}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlEntityType @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlEntityType! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlEntityType}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlEntityType @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlEntityType! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlEntityType}.
+@end deffn
+
+
 @deffn Syntax struct-xmlEntity-_private-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-_private-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-_private-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-type-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-type-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-type-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-name-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-name-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-name-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-children-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-children-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-children-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-last-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-last-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-last-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-parent-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-parent-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-parent-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-next-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-next-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-next-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-prev-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-prev-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-prev-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-doc-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-doc-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-doc-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-orig-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-orig-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-orig-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-content-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-content-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-content-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-length-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-length-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-length-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-etype-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-etype-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-etype-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-ExternalID-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-ExternalID-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-ExternalID-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-SystemID-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-SystemID-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-SystemID-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-nexte-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-nexte-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-nexte-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-URI-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-URI-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-URI-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-owner-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-owner-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-owner-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEntity-checked-set! @ameta{pointer} @ameta{value}
-@deffnx Syntax struct-xmlEntity-checked-ref @var{pointer}
+@deffnx Syntax struct-xmlEntity-checked-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct _xmlEntity} memory
 blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlEntity @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct _xmlEntity} memory.
 @end deffn
 
 
@@ -2488,6 +2548,11 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-htmlElemDesc-ref @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct htmlElemDesc}.
+@end deffn
+
+
 @deffn Syntax struct-htmlEntityDesc-value-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-htmlEntityDesc-value-ref @ameta{pointer}
 @deffnx Syntax struct-htmlEntityDesc-name-set! @ameta{pointer} @ameta{value}
@@ -2499,16 +2564,33 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-htmlEntityDesc @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct htmlEntityDesc}.
+@end deffn
+
+
 @defun pointer-ref-c-htmlParserOption @var{pointer} @var{offset}
 @defunx pointer-set-c-htmlParserOption! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{htmlParserOption}.
 @end defun
 
 
+@deffn Syntax array-ref-c-htmlParserOption @var{pointer} @var{index}
+@deffnx Syntax array-set-c-htmlParserOption! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{htmlParserOption}.
+@end deffn
+
+
 @defun pointer-ref-c-htmlStatus @var{pointer} @var{offset}
 @defunx pointer-set-c-htmlStatus! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{htmlStatus}.
 @end defun
+
+
+@deffn Syntax array-ref-c-htmlStatus @var{pointer} @var{index}
+@deffnx Syntax array-set-c-htmlStatus! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{htmlStatus}.
+@end deffn
 
 
 @deffn Syntax struct-xmlParserInput-buf-set! @ameta{pointer} @ameta{value}
@@ -2546,6 +2628,11 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlParserInput @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct _xmlParserInput}.
+@end deffn
+
+
 @deffn Syntax struct-xmlParserNodeInfo-node-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlParserNodeInfo-node-ref @ameta{pointer}
 @deffnx Syntax struct-xmlParserNodeInfo-begin_pos-set! @ameta{pointer} @ameta{value}
@@ -2561,6 +2648,11 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlParserNodeInfo-ref @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlParserNodeInfo}.
+@end deffn
+
+
 @deffn Syntax struct-xmlParserNodeInfoSeq-maximum-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlParserNodeInfoSeq-maximum-ref @ameta{pointer}
 @deffnx Syntax struct-xmlParserNodeInfoSeq-length-set! @ameta{pointer} @ameta{value}
@@ -2572,16 +2664,33 @@ xmlParserNodeInfoSeq} memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlParserNodeInfoSeq @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlParserNodeInfoSeq}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlParserInputState @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlParserInputState! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlParserInputState}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlParserInputState @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlParserInputState! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlParserInputState}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlParserMode @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlParserMode! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlParserMode}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlParserMode @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlParserMode! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlParserMode}.
+@end deffn
 
 
 @deffn Syntax struct-xmlParserCtxt-sax-set! @ameta{pointer} @ameta{value}
@@ -2750,6 +2859,11 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlParserCtxt @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct _xmlParserCtxt}.
+@end deffn
+
+
 @deffn Syntax struct-xmlSAXLocator-getPublicId-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlSAXLocator-getPublicId-ref @ameta{pointer}
 @deffnx Syntax struct-xmlSAXLocator-getSystemId-set! @ameta{pointer} @ameta{value}
@@ -2763,16 +2877,33 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlSAXLocator @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct _xmlSAXLocator}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlParserOption @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlParserOption! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlParserOption}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlParserOption @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlParserOption! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlParserOption}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlFeature @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlFeature! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlFeature}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlFeature @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlFeature! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlFeature}.
+@end deffn
 
 
 @defun pointer-ref-c-xmlPatternFlags @var{pointer} @var{offset}
@@ -2787,24 +2918,46 @@ Accessor and mutator for values of type @code{xmlRelaxNGValidErr}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlRelaxNGValidErr @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlRelaxNGValidErr! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlRelaxNGValidErr}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlRelaxNGParserFlag @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlRelaxNGParserFlag! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlRelaxNGParserFlag}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlRelaxNGParserFlag @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlRelaxNGParserFlag! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlRelaxNGParserFlag}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlSchematronValidOptions @var{pointer} @var{offset}
-@defunx pointer-set-c-xmlSchematronValidOptions! @var{pointer}
-@var{offset} @var{value}
+@defunx pointer-set-c-xmlSchematronValidOptions! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlSchematronValidOptions}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlSchematronValidOptions @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlSchematronValidOptions! @var{pointer} @var{offset} @var{value}
+Accessor and mutator for values of type @code{xmlSchematronValidOptions}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlBufferAllocationScheme @var{pointer} @var{offset}
-@defunx pointer-set-c-xmlBufferAllocationScheme! @var{pointer}
-@var{offset} @var{value}
+@defunx pointer-set-c-xmlBufferAllocationScheme! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlBufferAllocationScheme}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlBufferAllocationScheme @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlBufferAllocationScheme! {pointer} @var{offset} @var{value}
+Accessor and mutator for values of type @code{xmlBufferAllocationScheme}.
+@end deffn
 
 
 @deffn Syntax struct-xmlBuffer-content-set! @ameta{pointer} @ameta{value}
@@ -2821,10 +2974,21 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlBuffer @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlBuffer}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlElementType @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlElementType! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlElementType}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlElementType @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlElementType! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlElementType}.
+@end deffn
 
 
 @deffn Syntax struct-xmlNotation-name-set! @ameta{pointer} @ameta{value}
@@ -2838,10 +3002,21 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlNotation @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlNotation}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlAttributeType @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlAttributeType! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlAttributeType}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlAttributeType @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlAttributeType! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlAttributeType}.
+@end deffn
 
 
 @defun pointer-ref-c-xmlAttributeDefault @var{pointer} @var{offset}
@@ -2850,12 +3025,23 @@ Accessor and mutator for values of type @code{xmlAttributeDefault}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlAttributeDefault @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlAttributeDefault! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlAttributeDefault}.
+@end deffn
+
+
 @deffn Syntax struct-xmlEnumeration-next-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlEnumeration-next-ref @ameta{pointer}
 @deffnx Syntax struct-xmlEnumeration-name-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlEnumeration-name-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlEnumeration}
 memory blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlEnumeration @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlEnumeration}.
 @end deffn
 
 
@@ -2893,16 +3079,33 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlAttribute @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlAttribute}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlElementContentType @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlElementContentType! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlElementContentType}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlElementContentType @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlElementContentType! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlElementContentType}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlElementContentOccur @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlElementContentOccur! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlElementContentOccur}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlElementContentOccur @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlElementContentOccur! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlElementContentOccur}.
+@end deffn
 
 
 @deffn Syntax struct-xmlElementContent-type-ref @ameta{pointer}
@@ -2922,10 +3125,21 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlElementContent @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlElementContent}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlElementTypeVal @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlElementTypeVal! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlElementTypeVal}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlElementTypeVal @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlElementTypeVal! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlElementTypeVal}.
+@end deffn
 
 
 @deffn Syntax struct-xmlElement-_private-set! @ameta{pointer} @ameta{value}
@@ -2959,6 +3173,11 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlElement @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlElement}.
+@end deffn
+
+
 @deffn Syntax struct-xmlNs-next-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlNs-next-ref @ameta{pointer}
 @deffnx Syntax struct-xmlNs-type-ref @ameta{pointer}
@@ -2972,6 +3191,11 @@ memory blocks.
 @deffnx Syntax struct-xmlNs-context-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlNs}
 memory blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlNs @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlNs}.
 @end deffn
 
 
@@ -3011,6 +3235,11 @@ blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlDtd @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlDtd} memory.
+@end deffn
+
+
 @deffn Syntax struct-xmlAttr-_private-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlAttr-_private-ref @ameta{pointer}
 @deffnx Syntax struct-xmlAttr-type-ref @ameta{pointer}
@@ -3038,6 +3267,11 @@ blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlAttr @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlAttr} memory.
+@end deffn
+
+
 @deffn Syntax struct-xmlID-next-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlID-next-ref @ameta{pointer}
 @deffnx Syntax struct-xmlID-value-set! @ameta{pointer} @ameta{value}
@@ -3054,6 +3288,11 @@ blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlID @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlID} memory.
+@end deffn
+
+
 @deffn Syntax struct-xmlRef-next-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlRef-next-ref @ameta{pointer}
 @deffnx Syntax struct-xmlRef-value-set! @ameta{pointer} @ameta{value}
@@ -3065,6 +3304,11 @@ blocks.
 @deffnx Syntax struct-xmlRef-lineno-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlRef} memory
 blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlRef @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlRef} memory.
 @end deffn
 
 
@@ -3104,10 +3348,21 @@ blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlNode @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlNode} memory.
+@end deffn
+
+
 @defun pointer-ref-c-xmlDocProperties @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlDocProperties! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlDocProperties}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlDocProperties @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlDocProperties! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlDocProperties}.
+@end deffn
 
 
 @deffn Syntax struct-xmlDoc-_private-set! @ameta{pointer} @ameta{value}
@@ -3162,6 +3417,11 @@ blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlDoc @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlDoc} memory.
+@end deffn
+
+
 @deffn Syntax struct-xmlDOMWrapCtxt-_private-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlDOMWrapCtxt-_private-ref @ameta{pointer}
 @deffnx Syntax struct-xmlDOMWrapCtxt-type-set! @ameta{pointer} @ameta{value}
@@ -3172,6 +3432,11 @@ blocks.
 @deffnx Syntax struct-xmlDOMWrapCtxt-getNsForNodeFunc-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlDOMWrapCtxt}
 memory blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlDOMWrapCtxt @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlDOMWrapCtxt}.
 @end deffn
 
 
@@ -3199,6 +3464,11 @@ memory blocks.
 @deffnx Syntax struct-xmlURI-query_raw-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlURI} memory
 blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlURI-ref @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlURI} memory.
 @end deffn
 
 
@@ -3239,16 +3509,33 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlValidCtxt @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlValidCtxt}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlErrorLevel @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlErrorLevel! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlErrorLevel}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlErrorLevel @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlErrorLevel! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlErrorLevel}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlErrorDomain @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlErrorDomain! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlErrorDomain}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlErrorDomain @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlErrorDomain! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlErrorDomain}.
+@end deffn
 
 
 @deffn Syntax struct-xmlError-domain-set! @ameta{pointer} @ameta{value}
@@ -3282,10 +3569,21 @@ blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlError @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlError} memory.
+@end deffn
+
+
 @defun pointer-ref-c-xmlParserErrors @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlParserErrors! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlParserErrors}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlParserErrors @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlParserErrors! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlParserErrors}.
+@end deffn
 
 
 @deffn Syntax struct-xmlParserInputBuffer-context-set! @ameta{pointer} @ameta{value}
@@ -3311,6 +3609,11 @@ _xmlParserInputBuffer} memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlParserInputBuffer @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlParserInputBuffer}.
+@end deffn
+
+
 @deffn Syntax struct-xmlOutputBuffer-context-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlOutputBuffer-context-ref @ameta{pointer}
 @deffnx Syntax struct-xmlOutputBuffer-writecallback-set! @ameta{pointer} @ameta{value}
@@ -3331,10 +3634,21 @@ Accessors and mutators for the fields of @code{struct _xmlOutputBuffer}
 memory blocks.
 @end deffn
 
+
+@deffn Syntax array-ref-c-xmlOutputBuffer @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct _xmlOutputBuffer}.
+@end deffn
+
 @defun pointer-ref-c-xmlModuleOption @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlModuleOption! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlModuleOption}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlModuleOption @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlModuleOption! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlModuleOption}.
+@end deffn
 
 
 @defun pointer-ref-c-xmlParserSeverities @var{pointer} @var{offset}
@@ -3343,10 +3657,22 @@ Accessor and mutator for values of type @code{xmlParserSeverities}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlParserSeverities @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlParserSeverities! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlParserSeverities}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlTextReaderMode @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlTextReaderMode! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlTextReaderMode}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlTextReaderMode @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlTextReaderMode! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlTextReaderMode}.
+@end deffn
 
 
 @defun pointer-ref-c-xmlParserProperties @var{pointer} @var{offset}
@@ -3355,10 +3681,22 @@ Accessor and mutator for values of type @code{xmlParserProperties}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlParserProperties @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlParserProperties! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlParserProperties}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlReaderTypes @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlReaderTypes! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlReaderTypes}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlReaderTypes @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlReaderTypes! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlReaderTypes}.
+@end deffn
 
 
 @defun pointer-ref-c-xmlExpNodeType @var{pointer} @var{offset}
@@ -3367,10 +3705,22 @@ Accessor and mutator for values of type @code{xmlExpNodeType}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlExpNodeType @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlExpNodeType! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlExpNodeType}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlSaveOption @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlSaveOption! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlSaveOption}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlSaveOption @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlSaveOption! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlSaveOption}.
+@end deffn
 
 
 @defun pointer-ref-c-xmlSchemaValType @var{pointer} @var{offset}
@@ -3379,10 +3729,22 @@ Accessor and mutator for values of type @code{xmlSchemaValType}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlSchemaValType @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlSchemaValType! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlSchemaValType}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlSchemaTypeType @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlSchemaTypeType! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlSchemaTypeType}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlSchemaTypeType @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlSchemaTypeType! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlSchemaTypeType}.
+@end deffn
 
 
 @defun pointer-ref-c-xmlSchemaContentType @var{pointer} @var{offset}
@@ -3391,12 +3753,23 @@ Accessor and mutator for values of type @code{xmlSchemaContentType}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlSchemaContentType @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlSchemaContentType! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlSchemaContentType}.
+@end deffn
+
+
 @deffn Syntax struct-xmlSchemaAnnot-next-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlSchemaAnnot-next-ref @ameta{pointer}
 @deffnx Syntax struct-xmlSchemaAnnot-content-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlSchemaAnnot-content-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlSchemaAnnot}
 memory blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlSchemaAnnot @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlSchemaAnnot}.
 @end deffn
 
 
@@ -3443,12 +3816,22 @@ xmlSchemaAttribute} memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlSchemaAttribute @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlSchemaAttribute}.
+@end deffn
+
+
 @deffn Syntax struct-xmlSchemaAttributeLink-next-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlSchemaAttributeLink-next-ref @ameta{pointer}
 @deffnx Syntax struct-xmlSchemaAttributeLink-attr-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlSchemaAttributeLink-attr-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct
-xmlSchemaAttributeLink} memory blocks.
+xmlSchemaAttributeLink}.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlSchemaAttributeLink @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlSchemaAttributeLink}.
 @end deffn
 
 
@@ -3458,6 +3841,11 @@ xmlSchemaAttributeLink} memory blocks.
 @deffnx Syntax struct-xmlSchemaWildcardNs-value-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct
 xmlSchemaWildcardNs} memory blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlSchemaWildcardNs @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlSchemaWildcardNs}.
 @end deffn
 
 
@@ -3485,6 +3873,11 @@ xmlSchemaWildcardNs} memory blocks.
 @deffnx Syntax struct-xmlSchemaWildcard-flags-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlSchemaWildcard}
 memory blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlSchemaWildcard @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlSchemaWildcard}.
 @end deffn
 
 
@@ -3523,6 +3916,11 @@ xmlSchemaAttributeGroup} memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlSchemaAttributeGroup @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlSchemaAttributeGroup}.
+@end deffn
+
+
 @deffn Syntax struct-xmlSchemaTypeLink-next-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlSchemaTypeLink-next-ref @ameta{pointer}
 @deffnx Syntax struct-xmlSchemaTypeLink-type-set! @ameta{pointer} @ameta{value}
@@ -3532,12 +3930,22 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlSchemaTypeLink @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlSchemaTypeLink}.
+@end deffn
+
+
 @deffn Syntax struct-xmlSchemaFacetLink-next-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlSchemaFacetLink-next-ref @ameta{pointer}
 @deffnx Syntax struct-xmlSchemaFacetLink-facet-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlSchemaFacetLink-facet-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct
 xmlSchemaFacetLink} memory blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlSchemaFacetLink @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlSchemaFacetLink}.
 @end deffn
 
 
@@ -3598,6 +4006,11 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlSchemaElement @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlSchemaElement}.
+@end deffn
+
+
 @deffn Syntax struct-xmlSchemaNotation-type-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlSchemaNotation-type-ref @ameta{pointer}
 @deffnx Syntax struct-xmlSchemaNotation-name-set! @ameta{pointer} @ameta{value}
@@ -3613,16 +4026,33 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlSchemaNotation @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlSchemaNotation}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlSchemaValidError @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlSchemaValidError! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlSchemaValidError}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlSchemaValidError @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlSchemaValidError! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlSchemaValidError}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlSchemaValidOption @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlSchemaValidOption! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlSchemaValidOption}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlSchemaValidOption @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlSchemaValidOption! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlSchemaValidOption}.
+@end deffn
 
 
 @defun pointer-ref-c-xmlSchemaWhitespaceValueType @var{pointer} @var{offset}
@@ -3632,10 +4062,22 @@ Accessor and mutator for values of type @code{xmlSchemaWhitespaceValueType}.
 @end defun
 
 
+@deffn Syntax array-ref-c-xmlSchemaWhitespaceValueType @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlSchemaWhitespaceValueType! {pointer} @var{offset} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlSchemaWhitespaceValueType}.
+@end deffn
+
+
 @defun pointer-ref-c-xmlXPathError @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlXPathError! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlXPathError}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlXPathError @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlXPathError! @var{pointer} @var{index} @var{value}
+Accessor and mutator for arrays of values of type @code{xmlXPathError}.
+@end deffn
 
 
 @deffn Syntax struct-xmlNodeSet-nodeNr-set! @ameta{pointer} @ameta{value}
@@ -3649,10 +4091,21 @@ blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlNodeSet @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlNodeSet} memory.
+@end deffn
+
+
 @defun pointer-ref-c-xmlXPathObjectType @var{pointer} @var{offset}
 @defunx pointer-set-c-xmlXPathObjectType! @var{pointer} @var{offset} @var{value}
 Accessor and mutator for values of type @code{xmlXPathObjectType}.
 @end defun
+
+
+@deffn Syntax array-ref-c-xmlXPathObjectType @var{pointer} @var{index}
+@deffnx Syntax array-set-c-xmlXPathObjectType! @var{pointer} @var{index} @var{value}
+Accessor and mutator for values of type @code{xmlXPathObjectType}.
+@end deffn
 
 
 @deffn Syntax struct-xmlXPathObject-type-set! @ameta{pointer} @ameta{value}
@@ -3678,12 +4131,22 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlXPathObject @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlXPathObject}.
+@end deffn
+
+
 @deffn Syntax struct-xmlXPathType-name-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlXPathType-name-ref @ameta{pointer}
 @deffnx Syntax struct-xmlXPathType-func-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlXPathType-func-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlXPathType}
 memory blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlXPathType @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlXPathType}.
 @end deffn
 
 
@@ -3696,6 +4159,11 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlXPathVariable @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlXPathVariable}.
+@end deffn
+
+
 @deffn Syntax struct-xmlXPathFunct-name-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlXPathFunct-name-ref @ameta{pointer}
 @deffnx Syntax struct-xmlXPathFunct-func-set! @ameta{pointer} @ameta{value}
@@ -3705,12 +4173,22 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlXPathFunct @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlXPathFunct}.
+@end deffn
+
+
 @deffn Syntax struct-xmlXPathAxis-name-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlXPathAxis-name-ref @ameta{pointer}
 @deffnx Syntax struct-xmlXPathAxis-func-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlXPathAxis-func-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlXPathAxis}
 memory blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlXPathAxis @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlXPathAxis}.
 @end deffn
 
 
@@ -3796,6 +4274,11 @@ memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlXPathContext @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlXPathContext}.
+@end deffn
+
+
 @deffn Syntax struct-xmlXPathParserContext-cur-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlXPathParserContext-cur-ref @ameta{pointer}
 @deffnx Syntax struct-xmlXPathParserContext-base-set! @ameta{pointer} @ameta{value}
@@ -3823,6 +4306,11 @@ xmlXPathParserContext} memory blocks.
 @end deffn
 
 
+@deffn Syntax array-ref-c-xmlXPathParserContext @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlXPathParserContext}.
+@end deffn
+
+
 @deffn Syntax struct-xmlLocationSet-locNr-set! @ameta{pointer} @ameta{value}
 @deffnx Syntax struct-xmlLocationSet-locNr-ref @ameta{pointer}
 @deffnx Syntax struct-xmlLocationSet-locMax-set! @ameta{pointer} @ameta{value}
@@ -3831,6 +4319,11 @@ xmlXPathParserContext} memory blocks.
 @deffnx Syntax struct-xmlLocationSet-locTab-ref @ameta{pointer}
 Accessors and mutators for the fields of @code{struct xmlLocationSet}
 memory blocks.
+@end deffn
+
+
+@deffn Syntax array-ref-c-xmlLocationSet @ameta{pointer} @ameta{index}
+Accessors and mutators for arrays of @code{struct xmlLocationSet}.
 @end deffn
 
 @c page

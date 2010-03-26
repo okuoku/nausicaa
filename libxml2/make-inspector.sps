@@ -3124,8 +3124,11 @@
 
 (define-shared-object libxml2 libxml2.so)
 
-(autoconf-lib-write "configuration/libxml2-inspector.m4" libxml2-library-spec)
-(sizeof-lib-write   "src/libraries/xml/libxml2/sizeof.sls.in" libxml2-library-spec)
+(autoconf-lib-write "configuration/libxml2-inspector.m4"
+		    libxml2-library-spec
+		    "NAUSICAA_LIBXML")
+(sizeof-lib-write   "src/libraries/xml/libxml2/sizeof.sls.in"
+		    libxml2-library-spec)
 (structs-lib-write  "src/libraries/xml/libxml2/structs.sls"
 		    '(xml libxml2 structs)
 		    libxml2-library-spec)

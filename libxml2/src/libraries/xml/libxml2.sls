@@ -1457,22 +1457,30 @@
 
     pointer-ref-c-xmlC14NMode
     pointer-set-c-xmlC14NMode!
+    array-ref-c-xmlC14NMode
+    array-set-c-xmlC14NMode!
 
     pointer-ref-c-xmlCatalogPrefer
     pointer-set-c-xmlCatalogPrefer!
+    array-ref-c-xmlCatalogPrefer
+    array-set-c-xmlCatalogPrefer!
 
     pointer-ref-c-xmlCatalogAllow
     pointer-set-c-xmlCatalogAllow!
+    array-ref-c-xmlCatalogAllow
+    array-set-c-xmlCatalogAllow!
 
     struct-xmlChSRange-low-set!
     struct-xmlChSRange-low-ref
     struct-xmlChSRange-high-set!
     struct-xmlChSRange-high-ref
+    array-ref-c-xmlChSRange
 
     struct-xmlChLRange-low-set!
     struct-xmlChLRange-low-ref
     struct-xmlChLRange-high-set!
     struct-xmlChLRange-high-ref
+    array-ref-c-xmlChLRange
 
     struct-xmlChRangeGroup-nbShortRange-set!
     struct-xmlChRangeGroup-nbShortRange-ref
@@ -1482,6 +1490,7 @@
     struct-xmlChRangeGroup-shortRange-ref
     struct-xmlChRangeGroup-longRange-set!
     struct-xmlChRangeGroup-longRange-ref
+    array-ref-c-xmlChRangeGroup
 
     struct-xmlShellCtxt-filename-set!
     struct-xmlShellCtxt-filename-ref
@@ -1497,9 +1506,12 @@
     struct-xmlShellCtxt-output-ref
     struct-xmlShellCtxt-input-set!
     struct-xmlShellCtxt-input-ref
+    array-ref-c-xmlShellCtxt
 
     pointer-ref-c-xmlCharEncoding
     pointer-set-c-xmlCharEncoding!
+    array-ref-c-xmlCharEncoding
+    array-set-c-xmlCharEncoding!
 
     struct-xmlCharEncodingHandler-name-set!
     struct-xmlCharEncodingHandler-name-ref
@@ -1511,9 +1523,12 @@
     struct-xmlCharEncodingHandler-iconv_in-ref
     struct-xmlCharEncodingHandler-iconv_out-set!
     struct-xmlCharEncodingHandler-iconv_out-ref
+    array-ref-c-xmlCharEncodingHandler
 
     pointer-ref-c-xmlEntityType
     pointer-set-c-xmlEntityType!
+    array-ref-c-xmlEntityType
+    array-set-c-xmlEntityType!
 
     struct-xmlEntity-_private-set!
     struct-xmlEntity-_private-ref
@@ -1553,6 +1568,7 @@
     struct-xmlEntity-owner-ref
     struct-xmlEntity-checked-set!
     struct-xmlEntity-checked-ref
+    array-ref-c-xmlEntity
 
     struct-htmlElemDesc-name-set!
     struct-htmlElemDesc-name-ref
@@ -1582,6 +1598,7 @@
     struct-htmlElemDesc-attrs_depr-ref
     struct-htmlElemDesc-attrs_req-set!
     struct-htmlElemDesc-attrs_req-ref
+    array-ref-c-htmlElemDesc
 
     struct-htmlEntityDesc-value-set!
     struct-htmlEntityDesc-value-ref
@@ -1589,12 +1606,17 @@
     struct-htmlEntityDesc-name-ref
     struct-htmlEntityDesc-desc-set!
     struct-htmlEntityDesc-desc-ref
+    array-ref-c-htmlEntityDesc
 
     pointer-ref-c-htmlParserOption
     pointer-set-c-htmlParserOption!
+    array-ref-c-htmlParserOption
+    array-set-c-htmlParserOption!
 
     pointer-ref-c-htmlStatus
     pointer-set-c-htmlStatus!
+    array-ref-c-htmlStatus
+    array-set-c-htmlStatus!
 
     struct-xmlParserInput-buf-set!
     struct-xmlParserInput-buf-ref
@@ -1626,6 +1648,7 @@
     struct-xmlParserInput-standalone-ref
     struct-xmlParserInput-id-set!
     struct-xmlParserInput-id-ref
+    array-ref-c-xmlParserInput
 
     struct-xmlParserNodeInfo-node-set!
     struct-xmlParserNodeInfo-node-ref
@@ -1637,6 +1660,7 @@
     struct-xmlParserNodeInfo-end_pos-ref
     struct-xmlParserNodeInfo-end_line-set!
     struct-xmlParserNodeInfo-end_line-ref
+    array-ref-c-xmlParserNodeInfo
 
     struct-xmlParserNodeInfoSeq-maximum-set!
     struct-xmlParserNodeInfoSeq-maximum-ref
@@ -1644,12 +1668,17 @@
     struct-xmlParserNodeInfoSeq-length-ref
     struct-xmlParserNodeInfoSeq-buffer-set!
     struct-xmlParserNodeInfoSeq-buffer-ref
+    array-ref-c-xmlParserNodeInfoSeq
 
     pointer-ref-c-xmlParserInputState
     pointer-set-c-xmlParserInputState!
+    array-ref-c-xmlParserInputState
+    array-set-c-xmlParserInputState!
 
     pointer-ref-c-xmlParserMode
     pointer-set-c-xmlParserMode!
+    array-ref-c-xmlParserMode
+    array-set-c-xmlParserMode!
 
     struct-xmlParserCtxt-sax-set!
     struct-xmlParserCtxt-sax-ref
@@ -1812,6 +1841,7 @@
     struct-xmlParserCtxt-nbentities-ref
     struct-xmlParserCtxt-sizeentities-set!
     struct-xmlParserCtxt-sizeentities-ref
+    array-ref-c-xmlParserCtxt
 
     struct-xmlSAXLocator-getPublicId-set!
     struct-xmlSAXLocator-getPublicId-ref
@@ -1821,27 +1851,42 @@
     struct-xmlSAXLocator-getLineNumber-ref
     struct-xmlSAXLocator-getColumnNumber-set!
     struct-xmlSAXLocator-getColumnNumber-ref
+    array-ref-c-xmlSAXLocator
 
     pointer-ref-c-xmlParserOption
     pointer-set-c-xmlParserOption!
+    array-ref-c-xmlParserOption
+    array-set-c-xmlParserOption!
 
     pointer-ref-c-xmlFeature
     pointer-set-c-xmlFeature!
+    array-ref-c-xmlFeature
+    array-set-c-xmlFeature!
 
     pointer-ref-c-xmlPatternFlags
     pointer-set-c-xmlPatternFlags!
+    array-ref-c-xmlPatternFlags
+    array-set-c-xmlPatternFlags!
 
     pointer-ref-c-xmlRelaxNGValidErr
     pointer-set-c-xmlRelaxNGValidErr!
+    array-ref-c-xmlRelaxNGValidErr
+    array-set-c-xmlRelaxNGValidErr!
 
     pointer-ref-c-xmlRelaxNGParserFlag
     pointer-set-c-xmlRelaxNGParserFlag!
+    array-ref-c-xmlRelaxNGParserFlag
+    array-set-c-xmlRelaxNGParserFlag!
 
     pointer-ref-c-xmlSchematronValidOptions
     pointer-set-c-xmlSchematronValidOptions!
+    array-ref-c-xmlSchematronValidOptions
+    array-set-c-xmlSchematronValidOptions!
 
     pointer-ref-c-xmlBufferAllocationScheme
     pointer-set-c-xmlBufferAllocationScheme!
+    array-ref-c-xmlBufferAllocationScheme
+    array-set-c-xmlBufferAllocationScheme!
 
     struct-xmlBuffer-content-set!
     struct-xmlBuffer-content-ref
@@ -1852,9 +1897,12 @@
     struct-xmlBuffer-alloc-ref
     struct-xmlBuffer-contentIO-set!
     struct-xmlBuffer-contentIO-ref
+    array-ref-c-xmlBuffer
 
     pointer-ref-c-xmlElementType
     pointer-set-c-xmlElementType!
+    array-ref-c-xmlElementType
+    array-set-c-xmlElementType!
 
     struct-xmlNotation-name-set!
     struct-xmlNotation-name-ref
@@ -1862,17 +1910,23 @@
     struct-xmlNotation-PublicID-ref
     struct-xmlNotation-SystemID-set!
     struct-xmlNotation-SystemID-ref
+    array-ref-c-xmlNotation
 
     pointer-ref-c-xmlAttributeType
     pointer-set-c-xmlAttributeType!
+    array-ref-c-xmlAttributeType
+    array-set-c-xmlAttributeType!
 
     pointer-ref-c-xmlAttributeDefault
     pointer-set-c-xmlAttributeDefault!
+    array-ref-c-xmlAttributeDefault
+    array-set-c-xmlAttributeDefault!
 
     struct-xmlEnumeration-next-set!
     struct-xmlEnumeration-next-ref
     struct-xmlEnumeration-name-set!
     struct-xmlEnumeration-name-ref
+    array-ref-c-xmlEnumeration
 
     struct-xmlAttribute-_private-set!
     struct-xmlAttribute-_private-ref
@@ -1903,12 +1957,17 @@
     struct-xmlAttribute-prefix-ref
     struct-xmlAttribute-elem-set!
     struct-xmlAttribute-elem-ref
+    array-ref-c-xmlAttribute
 
     pointer-ref-c-xmlElementContentType
     pointer-set-c-xmlElementContentType!
+    array-ref-c-xmlElementContentType
+    array-set-c-xmlElementContentType!
 
     pointer-ref-c-xmlElementContentOccur
     pointer-set-c-xmlElementContentOccur!
+    array-ref-c-xmlElementContentOccur
+    array-set-c-xmlElementContentOccur!
 
     struct-xmlElementContent-type-ref
     struct-xmlElementContent-ocur-ref
@@ -1922,9 +1981,12 @@
     struct-xmlElementContent-parent-ref
     struct-xmlElementContent-prefix-set!
     struct-xmlElementContent-prefix-ref
+    array-ref-c-xmlElementContent
 
     pointer-ref-c-xmlElementTypeVal
     pointer-set-c-xmlElementTypeVal!
+    array-ref-c-xmlElementTypeVal
+    array-set-c-xmlElementTypeVal!
 
     struct-xmlElement-_private-set!
     struct-xmlElement-_private-ref
@@ -1952,6 +2014,7 @@
     struct-xmlElement-prefix-ref
     struct-xmlElement-contModel-set!
     struct-xmlElement-contModel-ref
+    array-ref-c-xmlElement
 
     struct-xmlNs-next-set!
     struct-xmlNs-next-ref
@@ -1964,6 +2027,7 @@
     struct-xmlNs-_private-ref
     struct-xmlNs-context-set!
     struct-xmlNs-context-ref
+    array-ref-c-xmlNs
 
     struct-xmlDtd-_private-set!
     struct-xmlDtd-_private-ref
@@ -1996,6 +2060,7 @@
     struct-xmlDtd-SystemID-ref
     struct-xmlDtd-pentities-set!
     struct-xmlDtd-pentities-ref
+    array-ref-c-xmlDtd
 
     struct-xmlAttr-_private-set!
     struct-xmlAttr-_private-ref
@@ -2019,6 +2084,7 @@
     struct-xmlAttr-atype-ref
     struct-xmlAttr-psvi-set!
     struct-xmlAttr-psvi-ref
+    array-ref-c-xmlAttr
 
     struct-xmlID-next-set!
     struct-xmlID-next-ref
@@ -2031,6 +2097,7 @@
     struct-xmlID-lineno-ref
     struct-xmlID-doc-set!
     struct-xmlID-doc-ref
+    array-ref-c-xmlID
 
     struct-xmlRef-next-set!
     struct-xmlRef-next-ref
@@ -2041,6 +2108,7 @@
     struct-xmlRef-name-ref
     struct-xmlRef-lineno-set!
     struct-xmlRef-lineno-ref
+    array-ref-c-xmlRef
 
     struct-xmlNode-_private-set!
     struct-xmlNode-_private-ref
@@ -2073,9 +2141,12 @@
     struct-xmlNode-line-ref
     struct-xmlNode-extra-set!
     struct-xmlNode-extra-ref
+    array-ref-c-xmlNode
 
     pointer-ref-c-xmlDocProperties
     pointer-set-c-xmlDocProperties!
+    array-ref-c-xmlDocProperties
+    array-set-c-xmlDocProperties!
 
     struct-xmlDoc-_private-set!
     struct-xmlDoc-_private-ref
@@ -2124,6 +2195,7 @@
     struct-xmlDoc-parseFlags-ref
     struct-xmlDoc-properties-set!
     struct-xmlDoc-properties-ref
+    array-ref-c-xmlDoc
 
     struct-xmlDOMWrapCtxt-_private-set!
     struct-xmlDOMWrapCtxt-_private-ref
@@ -2133,6 +2205,7 @@
     struct-xmlDOMWrapCtxt-namespaceMap-ref
     struct-xmlDOMWrapCtxt-getNsForNodeFunc-set!
     struct-xmlDOMWrapCtxt-getNsForNodeFunc-ref
+    array-ref-c-xmlDOMWrapCtxt
 
     struct-xmlURI-scheme-set!
     struct-xmlURI-scheme-ref
@@ -2156,6 +2229,7 @@
     struct-xmlURI-cleanup-ref
     struct-xmlURI-query_raw-set!
     struct-xmlURI-query_raw-ref
+    array-ref-c-xmlURI
 
     struct-xmlValidCtxt-userData-set!
     struct-xmlValidCtxt-userData-ref
@@ -2189,12 +2263,17 @@
     struct-xmlValidCtxt-am-ref
     struct-xmlValidCtxt-state-set!
     struct-xmlValidCtxt-state-ref
+    array-ref-c-xmlValidCtxt
 
     pointer-ref-c-xmlErrorLevel
     pointer-set-c-xmlErrorLevel!
+    array-ref-c-xmlErrorLevel
+    array-set-c-xmlErrorLevel!
 
     pointer-ref-c-xmlErrorDomain
     pointer-set-c-xmlErrorDomain!
+    array-ref-c-xmlErrorDomain
+    array-set-c-xmlErrorDomain!
 
     struct-xmlError-domain-set!
     struct-xmlError-domain-ref
@@ -2222,9 +2301,12 @@
     struct-xmlError-ctxt-ref
     struct-xmlError-node-set!
     struct-xmlError-node-ref
+    array-ref-c-xmlError
 
     pointer-ref-c-xmlParserErrors
     pointer-set-c-xmlParserErrors!
+    array-ref-c-xmlParserErrors
+    array-set-c-xmlParserErrors!
 
     struct-xmlParserInputBuffer-context-set!
     struct-xmlParserInputBuffer-context-ref
@@ -2244,6 +2326,7 @@
     struct-xmlParserInputBuffer-error-ref
     struct-xmlParserInputBuffer-rawconsumed-set!
     struct-xmlParserInputBuffer-rawconsumed-ref
+    array-ref-c-xmlParserInputBuffer
 
     struct-xmlOutputBuffer-context-set!
     struct-xmlOutputBuffer-context-ref
@@ -2261,41 +2344,63 @@
     struct-xmlOutputBuffer-written-ref
     struct-xmlOutputBuffer-error-set!
     struct-xmlOutputBuffer-error-ref
+    array-ref-c-xmlOutputBuffer
 
     pointer-ref-c-xmlModuleOption
     pointer-set-c-xmlModuleOption!
+    array-ref-c-xmlModuleOption
+    array-set-c-xmlModuleOption!
 
     pointer-ref-c-xmlParserSeverities
     pointer-set-c-xmlParserSeverities!
+    array-ref-c-xmlParserSeverities
+    array-set-c-xmlParserSeverities!
 
     pointer-ref-c-xmlTextReaderMode
     pointer-set-c-xmlTextReaderMode!
+    array-ref-c-xmlTextReaderMode
+    array-set-c-xmlTextReaderMode!
 
     pointer-ref-c-xmlParserProperties
     pointer-set-c-xmlParserProperties!
+    array-ref-c-xmlParserProperties
+    array-set-c-xmlParserProperties!
 
     pointer-ref-c-xmlReaderTypes
     pointer-set-c-xmlReaderTypes!
+    array-ref-c-xmlReaderTypes
+    array-set-c-xmlReaderTypes!
 
     pointer-ref-c-xmlExpNodeType
     pointer-set-c-xmlExpNodeType!
+    array-ref-c-xmlExpNodeType
+    array-set-c-xmlExpNodeType!
 
     pointer-ref-c-xmlSaveOption
     pointer-set-c-xmlSaveOption!
+    array-ref-c-xmlSaveOption
+    array-set-c-xmlSaveOption!
 
     pointer-ref-c-xmlSchemaValType
     pointer-set-c-xmlSchemaValType!
+    array-ref-c-xmlSchemaValType
+    array-set-c-xmlSchemaValType!
 
     pointer-ref-c-xmlSchemaTypeType
     pointer-set-c-xmlSchemaTypeType!
+    array-ref-c-xmlSchemaTypeType
+    array-set-c-xmlSchemaTypeType!
 
     pointer-ref-c-xmlSchemaContentType
     pointer-set-c-xmlSchemaContentType!
+    array-ref-c-xmlSchemaContentType
+    array-set-c-xmlSchemaContentType!
 
     struct-xmlSchemaAnnot-next-set!
     struct-xmlSchemaAnnot-next-ref
     struct-xmlSchemaAnnot-content-set!
     struct-xmlSchemaAnnot-content-ref
+    array-ref-c-xmlSchemaAnnot
 
     struct-xmlSchemaAttribute-type-set!
     struct-xmlSchemaAttribute-type-ref
@@ -2335,16 +2440,19 @@
     struct-xmlSchemaAttribute-defVal-ref
     struct-xmlSchemaAttribute-refDecl-set!
     struct-xmlSchemaAttribute-refDecl-ref
+    array-ref-c-xmlSchemaAttribute
 
     struct-xmlSchemaAttributeLink-next-set!
     struct-xmlSchemaAttributeLink-next-ref
     struct-xmlSchemaAttributeLink-attr-set!
     struct-xmlSchemaAttributeLink-attr-ref
+    array-ref-c-xmlSchemaAttributeLink
 
     struct-xmlSchemaWildcardNs-next-set!
     struct-xmlSchemaWildcardNs-next-ref
     struct-xmlSchemaWildcardNs-value-set!
     struct-xmlSchemaWildcardNs-value-ref
+    array-ref-c-xmlSchemaWildcardNs
 
     struct-xmlSchemaWildcard-type-set!
     struct-xmlSchemaWildcard-type-ref
@@ -2368,6 +2476,7 @@
     struct-xmlSchemaWildcard-negNsSet-ref
     struct-xmlSchemaWildcard-flags-set!
     struct-xmlSchemaWildcard-flags-ref
+    array-ref-c-xmlSchemaWildcard
 
     struct-xmlSchemaAttributeGroup-type-set!
     struct-xmlSchemaAttributeGroup-type-ref
@@ -2399,16 +2508,19 @@
     struct-xmlSchemaAttributeGroup-targetNamespace-ref
     struct-xmlSchemaAttributeGroup-attrUses-set!
     struct-xmlSchemaAttributeGroup-attrUses-ref
+    array-ref-c-xmlSchemaAttributeGroup
 
     struct-xmlSchemaTypeLink-next-set!
     struct-xmlSchemaTypeLink-next-ref
     struct-xmlSchemaTypeLink-type-set!
     struct-xmlSchemaTypeLink-type-ref
+    array-ref-c-xmlSchemaTypeLink
 
     struct-xmlSchemaFacetLink-next-set!
     struct-xmlSchemaFacetLink-next-ref
     struct-xmlSchemaFacetLink-facet-set!
     struct-xmlSchemaFacetLink-facet-ref
+    array-ref-c-xmlSchemaFacetLink
 
     struct-xmlSchemaElement-type-set!
     struct-xmlSchemaElement-type-ref
@@ -2462,6 +2574,7 @@
     struct-xmlSchemaElement-defVal-ref
     struct-xmlSchemaElement-idcs-set!
     struct-xmlSchemaElement-idcs-ref
+    array-ref-c-xmlSchemaElement
 
     struct-xmlSchemaNotation-type-set!
     struct-xmlSchemaNotation-type-ref
@@ -2473,18 +2586,27 @@
     struct-xmlSchemaNotation-identifier-ref
     struct-xmlSchemaNotation-targetNamespace-set!
     struct-xmlSchemaNotation-targetNamespace-ref
+    array-ref-c-xmlSchemaNotation
 
     pointer-ref-c-xmlSchemaValidError
     pointer-set-c-xmlSchemaValidError!
+    array-ref-c-xmlSchemaValidError
+    array-set-c-xmlSchemaValidError!
 
     pointer-ref-c-xmlSchemaValidOption
     pointer-set-c-xmlSchemaValidOption!
+    array-ref-c-xmlSchemaValidOption
+    array-set-c-xmlSchemaValidOption!
 
     pointer-ref-c-xmlSchemaWhitespaceValueType
     pointer-set-c-xmlSchemaWhitespaceValueType!
+    array-ref-c-xmlSchemaWhitespaceValueType
+    array-set-c-xmlSchemaWhitespaceValueType!
 
     pointer-ref-c-xmlXPathError
     pointer-set-c-xmlXPathError!
+    array-ref-c-xmlXPathError
+    array-set-c-xmlXPathError!
 
     struct-xmlNodeSet-nodeNr-set!
     struct-xmlNodeSet-nodeNr-ref
@@ -2492,9 +2614,12 @@
     struct-xmlNodeSet-nodeMax-ref
     struct-xmlNodeSet-nodeTab-set!
     struct-xmlNodeSet-nodeTab-ref
+    array-ref-c-xmlNodeSet
 
     pointer-ref-c-xmlXPathObjectType
     pointer-set-c-xmlXPathObjectType!
+    array-ref-c-xmlXPathObjectType
+    array-set-c-xmlXPathObjectType!
 
     struct-xmlXPathObject-type-set!
     struct-xmlXPathObject-type-ref
@@ -2514,26 +2639,31 @@
     struct-xmlXPathObject-user2-ref
     struct-xmlXPathObject-index2-set!
     struct-xmlXPathObject-index2-ref
+    array-ref-c-xmlXPathObject
 
     struct-xmlXPathType-name-set!
     struct-xmlXPathType-name-ref
     struct-xmlXPathType-func-set!
     struct-xmlXPathType-func-ref
+    array-ref-c-xmlXPathType
 
     struct-xmlXPathVariable-name-set!
     struct-xmlXPathVariable-name-ref
     struct-xmlXPathVariable-value-set!
     struct-xmlXPathVariable-value-ref
+    array-ref-c-xmlXPathVariable
 
     struct-xmlXPathFunct-name-set!
     struct-xmlXPathFunct-name-ref
     struct-xmlXPathFunct-func-set!
     struct-xmlXPathFunct-func-ref
+    array-ref-c-xmlXPathFunct
 
     struct-xmlXPathAxis-name-set!
     struct-xmlXPathAxis-name-ref
     struct-xmlXPathAxis-func-set!
     struct-xmlXPathAxis-func-ref
+    array-ref-c-xmlXPathAxis
 
     struct-xmlXPathContext-doc-set!
     struct-xmlXPathContext-doc-ref
@@ -2612,6 +2742,7 @@
     struct-xmlXPathContext-flags-ref
     struct-xmlXPathContext-cache-set!
     struct-xmlXPathContext-cache-ref
+    array-ref-c-xmlXPathContext
 
     struct-xmlXPathParserContext-cur-set!
     struct-xmlXPathParserContext-cur-ref
@@ -2635,6 +2766,7 @@
     struct-xmlXPathParserContext-xptr-ref
     struct-xmlXPathParserContext-ancestor-set!
     struct-xmlXPathParserContext-ancestor-ref
+    array-ref-c-xmlXPathParserContext
 
     struct-xmlLocationSet-locNr-set!
     struct-xmlLocationSet-locNr-ref
@@ -2642,6 +2774,7 @@
     struct-xmlLocationSet-locMax-ref
     struct-xmlLocationSet-locTab-set!
     struct-xmlLocationSet-locTab-ref
+    array-ref-c-xmlLocationSet
 
 
 ;;;; struct identifier definitions

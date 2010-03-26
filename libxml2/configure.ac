@@ -106,7 +106,7 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #include <libxml2/libxml/xmlschemastypes.h>
 ])
 
-m4_include([configuration/libxml2-inspector.m4])
+NAUSICAA_LIBXML
 
 dnl page
 dnl --------------------------------------------------------------------

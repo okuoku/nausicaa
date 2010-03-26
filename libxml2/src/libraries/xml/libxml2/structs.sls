@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library structs fields identifier accessors
-;;;Date: Tue Mar 23, 2010
+;;;Date: Fri Mar 26, 2010
 ;;;
 ;;;Abstract
 ;;;

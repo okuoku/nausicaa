@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Tue Mar 23, 2010
+;;;Date: Fri Mar 26, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -42,6 +42,8 @@
     strideof-xmlC14NMode
     pointer-ref-c-xmlC14NMode
     pointer-set-c-xmlC14NMode!
+    array-ref-c-xmlC14NMode
+    array-set-c-xmlC14NMode!
     XML_C14N_1_0
     XML_C14N_EXCLUSIVE_1_0
     XML_C14N_1_1
@@ -54,6 +56,8 @@
     strideof-xmlCatalogPrefer
     pointer-ref-c-xmlCatalogPrefer
     pointer-set-c-xmlCatalogPrefer!
+    array-ref-c-xmlCatalogPrefer
+    array-set-c-xmlCatalogPrefer!
     XML_CATA_PREFER_NONE
     XML_CATA_PREFER_PUBLIC
     XML_CATA_PREFER_SYSTEM
@@ -63,6 +67,8 @@
     strideof-xmlCatalogAllow
     pointer-ref-c-xmlCatalogAllow
     pointer-set-c-xmlCatalogAllow!
+    array-ref-c-xmlCatalogAllow
+    array-set-c-xmlCatalogAllow!
     XML_CATA_ALLOW_NONE
     XML_CATA_ALLOW_GLOBAL
     XML_CATA_ALLOW_DOCUMENT
@@ -74,6 +80,7 @@
     sizeof-xmlChSRange
     alignof-xmlChSRange
     strideof-xmlChSRange
+    array-ref-c-xmlChSRange
     struct-xmlChSRange-low-set!
     struct-xmlChSRange-low-ref
     struct-xmlChSRange-high-set!
@@ -83,6 +90,7 @@
     sizeof-xmlChLRange
     alignof-xmlChLRange
     strideof-xmlChLRange
+    array-ref-c-xmlChLRange
     struct-xmlChLRange-low-set!
     struct-xmlChLRange-low-ref
     struct-xmlChLRange-high-set!
@@ -92,6 +100,7 @@
     sizeof-xmlChRangeGroup
     alignof-xmlChRangeGroup
     strideof-xmlChRangeGroup
+    array-ref-c-xmlChRangeGroup
     struct-xmlChRangeGroup-nbShortRange-set!
     struct-xmlChRangeGroup-nbShortRange-ref
     struct-xmlChRangeGroup-nbLongRange-set!
@@ -106,6 +115,7 @@
     sizeof-xmlShellCtxt
     alignof-xmlShellCtxt
     strideof-xmlShellCtxt
+    array-ref-c-xmlShellCtxt
     struct-xmlShellCtxt-filename-set!
     struct-xmlShellCtxt-filename-ref
     struct-xmlShellCtxt-doc-set!
@@ -131,6 +141,8 @@
     strideof-xmlCharEncoding
     pointer-ref-c-xmlCharEncoding
     pointer-set-c-xmlCharEncoding!
+    array-ref-c-xmlCharEncoding
+    array-set-c-xmlCharEncoding!
     XML_CHAR_ENCODING_ERROR
     XML_CHAR_ENCODING_NONE
     XML_CHAR_ENCODING_UTF8
@@ -160,6 +172,7 @@
     sizeof-xmlCharEncodingHandler
     alignof-xmlCharEncodingHandler
     strideof-xmlCharEncodingHandler
+    array-ref-c-xmlCharEncodingHandler
     struct-xmlCharEncodingHandler-name-set!
     struct-xmlCharEncodingHandler-name-ref
     struct-xmlCharEncodingHandler-input-set!
@@ -176,6 +189,8 @@
     strideof-xmlEntityType
     pointer-ref-c-xmlEntityType
     pointer-set-c-xmlEntityType!
+    array-ref-c-xmlEntityType
+    array-set-c-xmlEntityType!
     XML_INTERNAL_GENERAL_ENTITY
     XML_EXTERNAL_GENERAL_PARSED_ENTITY
     XML_EXTERNAL_GENERAL_UNPARSED_ENTITY
@@ -185,6 +200,7 @@
     sizeof-xmlEntity
     alignof-xmlEntity
     strideof-xmlEntity
+    array-ref-c-xmlEntity
     struct-xmlEntity-_private-set!
     struct-xmlEntity-_private-ref
     struct-xmlEntity-type-set!
@@ -248,6 +264,7 @@
     sizeof-htmlElemDesc
     alignof-htmlElemDesc
     strideof-htmlElemDesc
+    array-ref-c-htmlElemDesc
     struct-htmlElemDesc-name-set!
     struct-htmlElemDesc-name-ref
     struct-htmlElemDesc-startTag-set!
@@ -279,6 +296,7 @@
     sizeof-htmlEntityDesc
     alignof-htmlEntityDesc
     strideof-htmlEntityDesc
+    array-ref-c-htmlEntityDesc
     struct-htmlEntityDesc-value-set!
     struct-htmlEntityDesc-value-ref
     struct-htmlEntityDesc-name-set!
@@ -291,6 +309,8 @@
     strideof-htmlParserOption
     pointer-ref-c-htmlParserOption
     pointer-set-c-htmlParserOption!
+    array-ref-c-htmlParserOption
+    array-set-c-htmlParserOption!
     HTML_PARSE_RECOVER
     HTML_PARSE_NOERROR
     HTML_PARSE_NOWARNING
@@ -304,6 +324,8 @@
     strideof-htmlStatus
     pointer-ref-c-htmlStatus
     pointer-set-c-htmlStatus!
+    array-ref-c-htmlStatus
+    array-set-c-htmlStatus!
     HTML_NA
     HTML_INVALID
     HTML_DEPRECATED
@@ -322,6 +344,7 @@
     sizeof-xmlParserInput
     alignof-xmlParserInput
     strideof-xmlParserInput
+    array-ref-c-xmlParserInput
     struct-xmlParserInput-buf-set!
     struct-xmlParserInput-buf-ref
     struct-xmlParserInput-filename-set!
@@ -357,6 +380,7 @@
     sizeof-xmlParserNodeInfo
     alignof-xmlParserNodeInfo
     strideof-xmlParserNodeInfo
+    array-ref-c-xmlParserNodeInfo
     struct-xmlParserNodeInfo-node-set!
     struct-xmlParserNodeInfo-node-ref
     struct-xmlParserNodeInfo-begin_pos-set!
@@ -372,6 +396,7 @@
     sizeof-xmlParserNodeInfoSeq
     alignof-xmlParserNodeInfoSeq
     strideof-xmlParserNodeInfoSeq
+    array-ref-c-xmlParserNodeInfoSeq
     struct-xmlParserNodeInfoSeq-maximum-set!
     struct-xmlParserNodeInfoSeq-maximum-ref
     struct-xmlParserNodeInfoSeq-length-set!
@@ -384,6 +409,8 @@
     strideof-xmlParserInputState
     pointer-ref-c-xmlParserInputState
     pointer-set-c-xmlParserInputState!
+    array-ref-c-xmlParserInputState
+    array-set-c-xmlParserInputState!
     XML_PARSER_EOF
     XML_PARSER_START
     XML_PARSER_MISC
@@ -411,6 +438,8 @@
     strideof-xmlParserMode
     pointer-ref-c-xmlParserMode
     pointer-set-c-xmlParserMode!
+    array-ref-c-xmlParserMode
+    array-set-c-xmlParserMode!
     XML_PARSE_UNKNOWN
     XML_PARSE_DOM
     XML_PARSE_SAX
@@ -420,6 +449,7 @@
     sizeof-xmlParserCtxt
     alignof-xmlParserCtxt
     strideof-xmlParserCtxt
+    array-ref-c-xmlParserCtxt
     struct-xmlParserCtxt-sax-set!
     struct-xmlParserCtxt-sax-ref
     struct-xmlParserCtxt-userData-set!
@@ -584,6 +614,7 @@
     sizeof-xmlSAXLocator
     alignof-xmlSAXLocator
     strideof-xmlSAXLocator
+    array-ref-c-xmlSAXLocator
     struct-xmlSAXLocator-getPublicId-set!
     struct-xmlSAXLocator-getPublicId-ref
     struct-xmlSAXLocator-getSystemId-set!
@@ -601,6 +632,8 @@
     strideof-xmlParserOption
     pointer-ref-c-xmlParserOption
     pointer-set-c-xmlParserOption!
+    array-ref-c-xmlParserOption
+    array-set-c-xmlParserOption!
     XML_PARSE_RECOVER
     XML_PARSE_NOENT
     XML_PARSE_DTDLOAD
@@ -628,6 +661,8 @@
     strideof-xmlFeature
     pointer-ref-c-xmlFeature
     pointer-set-c-xmlFeature!
+    array-ref-c-xmlFeature
+    array-set-c-xmlFeature!
     XML_WITH_THREAD
     XML_WITH_TREE
     XML_WITH_OUTPUT
@@ -701,6 +736,8 @@
     strideof-xmlPatternFlags
     pointer-ref-c-xmlPatternFlags
     pointer-set-c-xmlPatternFlags!
+    array-ref-c-xmlPatternFlags
+    array-set-c-xmlPatternFlags!
     XML_PATTERN_DEFAULT
     XML_PATTERN_XPATH
     XML_PATTERN_XSSEL
@@ -721,6 +758,8 @@
     strideof-xmlRelaxNGValidErr
     pointer-ref-c-xmlRelaxNGValidErr
     pointer-set-c-xmlRelaxNGValidErr!
+    array-ref-c-xmlRelaxNGValidErr
+    array-set-c-xmlRelaxNGValidErr!
     XML_RELAXNG_OK
     XML_RELAXNG_ERR_MEMORY
     XML_RELAXNG_ERR_TYPE
@@ -767,6 +806,8 @@
     strideof-xmlRelaxNGParserFlag
     pointer-ref-c-xmlRelaxNGParserFlag
     pointer-set-c-xmlRelaxNGParserFlag!
+    array-ref-c-xmlRelaxNGParserFlag
+    array-set-c-xmlRelaxNGParserFlag!
     XML_RELAXNGP_NONE
     XML_RELAXNGP_FREE_DOC
     XML_RELAXNGP_CRNG
@@ -776,6 +817,8 @@
     strideof-xmlSchematronValidOptions
     pointer-ref-c-xmlSchematronValidOptions
     pointer-set-c-xmlSchematronValidOptions!
+    array-ref-c-xmlSchematronValidOptions
+    array-set-c-xmlSchematronValidOptions!
     XML_SCHEMATRON_OUT_QUIET
     XML_SCHEMATRON_OUT_TEXT
     XML_SCHEMATRON_OUT_XML
@@ -817,6 +860,8 @@
     strideof-xmlBufferAllocationScheme
     pointer-ref-c-xmlBufferAllocationScheme
     pointer-set-c-xmlBufferAllocationScheme!
+    array-ref-c-xmlBufferAllocationScheme
+    array-set-c-xmlBufferAllocationScheme!
     XML_BUFFER_ALLOC_DOUBLEIT
     XML_BUFFER_ALLOC_EXACT
     XML_BUFFER_ALLOC_IMMUTABLE
@@ -826,6 +871,7 @@
     sizeof-xmlBuffer
     alignof-xmlBuffer
     strideof-xmlBuffer
+    array-ref-c-xmlBuffer
     struct-xmlBuffer-content-set!
     struct-xmlBuffer-content-ref
     struct-xmlBuffer-use-set!
@@ -843,6 +889,8 @@
     strideof-xmlElementType
     pointer-ref-c-xmlElementType
     pointer-set-c-xmlElementType!
+    array-ref-c-xmlElementType
+    array-set-c-xmlElementType!
     XML_ELEMENT_NODE
     XML_ATTRIBUTE_NODE
     XML_TEXT_NODE
@@ -869,6 +917,7 @@
     sizeof-xmlNotation
     alignof-xmlNotation
     strideof-xmlNotation
+    array-ref-c-xmlNotation
     struct-xmlNotation-name-set!
     struct-xmlNotation-name-ref
     struct-xmlNotation-PublicID-set!
@@ -881,6 +930,8 @@
     strideof-xmlAttributeType
     pointer-ref-c-xmlAttributeType
     pointer-set-c-xmlAttributeType!
+    array-ref-c-xmlAttributeType
+    array-set-c-xmlAttributeType!
     XML_ATTRIBUTE_CDATA
     XML_ATTRIBUTE_ID
     XML_ATTRIBUTE_IDREF
@@ -897,6 +948,8 @@
     strideof-xmlAttributeDefault
     pointer-ref-c-xmlAttributeDefault
     pointer-set-c-xmlAttributeDefault!
+    array-ref-c-xmlAttributeDefault
+    array-set-c-xmlAttributeDefault!
     XML_ATTRIBUTE_NONE
     XML_ATTRIBUTE_REQUIRED
     XML_ATTRIBUTE_IMPLIED
@@ -906,6 +959,7 @@
     sizeof-xmlEnumeration
     alignof-xmlEnumeration
     strideof-xmlEnumeration
+    array-ref-c-xmlEnumeration
     struct-xmlEnumeration-next-set!
     struct-xmlEnumeration-next-ref
     struct-xmlEnumeration-name-set!
@@ -915,6 +969,7 @@
     sizeof-xmlAttribute
     alignof-xmlAttribute
     strideof-xmlAttribute
+    array-ref-c-xmlAttribute
     struct-xmlAttribute-_private-set!
     struct-xmlAttribute-_private-ref
     struct-xmlAttribute-type-ref
@@ -950,6 +1005,8 @@
     strideof-xmlElementContentType
     pointer-ref-c-xmlElementContentType
     pointer-set-c-xmlElementContentType!
+    array-ref-c-xmlElementContentType
+    array-set-c-xmlElementContentType!
     XML_ELEMENT_CONTENT_PCDATA
     XML_ELEMENT_CONTENT_ELEMENT
     XML_ELEMENT_CONTENT_SEQ
@@ -960,6 +1017,8 @@
     strideof-xmlElementContentOccur
     pointer-ref-c-xmlElementContentOccur
     pointer-set-c-xmlElementContentOccur!
+    array-ref-c-xmlElementContentOccur
+    array-set-c-xmlElementContentOccur!
     XML_ELEMENT_CONTENT_ONCE
     XML_ELEMENT_CONTENT_OP
     XML_ELEMENT_CONTENT_MULT
@@ -969,6 +1028,7 @@
     sizeof-xmlElementContent
     alignof-xmlElementContent
     strideof-xmlElementContent
+    array-ref-c-xmlElementContent
     struct-xmlElementContent-type-ref
     struct-xmlElementContent-ocur-ref
     struct-xmlElementContent-name-set!
@@ -987,6 +1047,8 @@
     strideof-xmlElementTypeVal
     pointer-ref-c-xmlElementTypeVal
     pointer-set-c-xmlElementTypeVal!
+    array-ref-c-xmlElementTypeVal
+    array-set-c-xmlElementTypeVal!
     XML_ELEMENT_TYPE_UNDEFINED
     XML_ELEMENT_TYPE_EMPTY
     XML_ELEMENT_TYPE_ANY
@@ -997,6 +1059,7 @@
     sizeof-xmlElement
     alignof-xmlElement
     strideof-xmlElement
+    array-ref-c-xmlElement
     struct-xmlElement-_private-set!
     struct-xmlElement-_private-ref
     struct-xmlElement-type-ref
@@ -1030,6 +1093,7 @@
     sizeof-xmlNs
     alignof-xmlNs
     strideof-xmlNs
+    array-ref-c-xmlNs
     struct-xmlNs-next-set!
     struct-xmlNs-next-ref
     struct-xmlNs-type-ref
@@ -1046,6 +1110,7 @@
     sizeof-xmlDtd
     alignof-xmlDtd
     strideof-xmlDtd
+    array-ref-c-xmlDtd
     struct-xmlDtd-_private-set!
     struct-xmlDtd-_private-ref
     struct-xmlDtd-type-ref
@@ -1082,6 +1147,7 @@
     sizeof-xmlAttr
     alignof-xmlAttr
     strideof-xmlAttr
+    array-ref-c-xmlAttr
     struct-xmlAttr-_private-set!
     struct-xmlAttr-_private-ref
     struct-xmlAttr-type-ref
@@ -1109,6 +1175,7 @@
     sizeof-xmlID
     alignof-xmlID
     strideof-xmlID
+    array-ref-c-xmlID
     struct-xmlID-next-set!
     struct-xmlID-next-ref
     struct-xmlID-value-set!
@@ -1125,6 +1192,7 @@
     sizeof-xmlRef
     alignof-xmlRef
     strideof-xmlRef
+    array-ref-c-xmlRef
     struct-xmlRef-next-set!
     struct-xmlRef-next-ref
     struct-xmlRef-value-set!
@@ -1140,6 +1208,7 @@
     sizeof-xmlNode
     alignof-xmlNode
     strideof-xmlNode
+    array-ref-c-xmlNode
     struct-xmlNode-_private-set!
     struct-xmlNode-_private-ref
     struct-xmlNode-type-ref
@@ -1177,6 +1246,8 @@
     strideof-xmlDocProperties
     pointer-ref-c-xmlDocProperties
     pointer-set-c-xmlDocProperties!
+    array-ref-c-xmlDocProperties
+    array-set-c-xmlDocProperties!
     XML_DOC_WELLFORMED
     XML_DOC_NSVALID
     XML_DOC_OLD10
@@ -1191,6 +1262,7 @@
     sizeof-xmlDoc
     alignof-xmlDoc
     strideof-xmlDoc
+    array-ref-c-xmlDoc
     struct-xmlDoc-_private-set!
     struct-xmlDoc-_private-ref
     struct-xmlDoc-type-ref
@@ -1243,6 +1315,7 @@
     sizeof-xmlDOMWrapCtxt
     alignof-xmlDOMWrapCtxt
     strideof-xmlDOMWrapCtxt
+    array-ref-c-xmlDOMWrapCtxt
     struct-xmlDOMWrapCtxt-_private-set!
     struct-xmlDOMWrapCtxt-_private-ref
     struct-xmlDOMWrapCtxt-type-set!
@@ -1256,6 +1329,7 @@
     sizeof-xmlURI
     alignof-xmlURI
     strideof-xmlURI
+    array-ref-c-xmlURI
     struct-xmlURI-scheme-set!
     struct-xmlURI-scheme-ref
     struct-xmlURI-opaque-set!
@@ -1289,6 +1363,7 @@
     sizeof-xmlValidCtxt
     alignof-xmlValidCtxt
     strideof-xmlValidCtxt
+    array-ref-c-xmlValidCtxt
     struct-xmlValidCtxt-userData-set!
     struct-xmlValidCtxt-userData-ref
     struct-xmlValidCtxt-error-set!
@@ -1353,6 +1428,8 @@
     strideof-xmlErrorLevel
     pointer-ref-c-xmlErrorLevel
     pointer-set-c-xmlErrorLevel!
+    array-ref-c-xmlErrorLevel
+    array-set-c-xmlErrorLevel!
     XML_ERR_NONE
     XML_ERR_WARNING
     XML_ERR_ERROR
@@ -1363,6 +1440,8 @@
     strideof-xmlErrorDomain
     pointer-ref-c-xmlErrorDomain
     pointer-set-c-xmlErrorDomain!
+    array-ref-c-xmlErrorDomain
+    array-set-c-xmlErrorDomain!
     XML_FROM_NONE
     XML_FROM_PARSER
     XML_FROM_TREE
@@ -1397,6 +1476,7 @@
     sizeof-xmlError
     alignof-xmlError
     strideof-xmlError
+    array-ref-c-xmlError
     struct-xmlError-domain-set!
     struct-xmlError-domain-ref
     struct-xmlError-code-set!
@@ -1429,6 +1509,8 @@
     strideof-xmlParserErrors
     pointer-ref-c-xmlParserErrors
     pointer-set-c-xmlParserErrors!
+    array-ref-c-xmlParserErrors
+    array-set-c-xmlParserErrors!
     XML_ERR_OK
     XML_ERR_INTERNAL_ERROR
     XML_ERR_NO_MEMORY
@@ -2167,6 +2249,7 @@
     sizeof-xmlParserInputBuffer
     alignof-xmlParserInputBuffer
     strideof-xmlParserInputBuffer
+    array-ref-c-xmlParserInputBuffer
     struct-xmlParserInputBuffer-context-set!
     struct-xmlParserInputBuffer-context-ref
     struct-xmlParserInputBuffer-readcallback-set!
@@ -2188,6 +2271,7 @@
     sizeof-xmlOutputBuffer
     alignof-xmlOutputBuffer
     strideof-xmlOutputBuffer
+    array-ref-c-xmlOutputBuffer
     struct-xmlOutputBuffer-context-set!
     struct-xmlOutputBuffer-context-ref
     struct-xmlOutputBuffer-writecallback-set!
@@ -2224,6 +2308,8 @@
     strideof-xmlModuleOption
     pointer-ref-c-xmlModuleOption
     pointer-set-c-xmlModuleOption!
+    array-ref-c-xmlModuleOption
+    array-set-c-xmlModuleOption!
     XML_MODULE_LAZY
     XML_MODULE_LOCAL
     xmlParserSeverities
@@ -2232,6 +2318,8 @@
     strideof-xmlParserSeverities
     pointer-ref-c-xmlParserSeverities
     pointer-set-c-xmlParserSeverities!
+    array-ref-c-xmlParserSeverities
+    array-set-c-xmlParserSeverities!
     XML_PARSER_SEVERITY_VALIDITY_WARNING
     XML_PARSER_SEVERITY_VALIDITY_ERROR
     XML_PARSER_SEVERITY_WARNING
@@ -2242,6 +2330,8 @@
     strideof-xmlTextReaderMode
     pointer-ref-c-xmlTextReaderMode
     pointer-set-c-xmlTextReaderMode!
+    array-ref-c-xmlTextReaderMode
+    array-set-c-xmlTextReaderMode!
     XML_TEXTREADER_MODE_INITIAL
     XML_TEXTREADER_MODE_INTERACTIVE
     XML_TEXTREADER_MODE_ERROR
@@ -2254,6 +2344,8 @@
     strideof-xmlParserProperties
     pointer-ref-c-xmlParserProperties
     pointer-set-c-xmlParserProperties!
+    array-ref-c-xmlParserProperties
+    array-set-c-xmlParserProperties!
     XML_PARSER_LOADDTD
     XML_PARSER_DEFAULTATTRS
     XML_PARSER_VALIDATE
@@ -2264,6 +2356,8 @@
     strideof-xmlReaderTypes
     pointer-ref-c-xmlReaderTypes
     pointer-set-c-xmlReaderTypes!
+    array-ref-c-xmlReaderTypes
+    array-set-c-xmlReaderTypes!
     XML_READER_TYPE_NONE
     XML_READER_TYPE_ELEMENT
     XML_READER_TYPE_ATTRIBUTE
@@ -2300,6 +2394,8 @@
     strideof-xmlExpNodeType
     pointer-ref-c-xmlExpNodeType
     pointer-set-c-xmlExpNodeType!
+    array-ref-c-xmlExpNodeType
+    array-set-c-xmlExpNodeType!
     XML_EXP_EMPTY
     XML_EXP_FORBID
     XML_EXP_ATOM
@@ -2313,6 +2409,8 @@
     strideof-xmlSaveOption
     pointer-ref-c-xmlSaveOption
     pointer-set-c-xmlSaveOption!
+    array-ref-c-xmlSaveOption
+    array-set-c-xmlSaveOption!
     XML_SAVE_FORMAT
     XML_SAVE_NO_DECL
     XML_SAVE_NO_EMPTY
@@ -2328,6 +2426,8 @@
     strideof-xmlSchemaValType
     pointer-ref-c-xmlSchemaValType
     pointer-set-c-xmlSchemaValType!
+    array-ref-c-xmlSchemaValType
+    array-set-c-xmlSchemaValType!
     XML_SCHEMAS_UNKNOWN
     XML_SCHEMAS_STRING
     XML_SCHEMAS_NORMSTRING
@@ -2381,6 +2481,8 @@
     strideof-xmlSchemaTypeType
     pointer-ref-c-xmlSchemaTypeType
     pointer-set-c-xmlSchemaTypeType!
+    array-ref-c-xmlSchemaTypeType
+    array-set-c-xmlSchemaTypeType!
     XML_SCHEMA_TYPE_BASIC
     XML_SCHEMA_TYPE_ANY
     XML_SCHEMA_TYPE_FACET
@@ -2427,6 +2529,8 @@
     strideof-xmlSchemaContentType
     pointer-ref-c-xmlSchemaContentType
     pointer-set-c-xmlSchemaContentType!
+    array-ref-c-xmlSchemaContentType
+    array-set-c-xmlSchemaContentType!
     XML_SCHEMA_CONTENT_UNKNOWN
     XML_SCHEMA_CONTENT_EMPTY
     XML_SCHEMA_CONTENT_ELEMENTS
@@ -2450,6 +2554,7 @@
     sizeof-xmlSchemaAnnot
     alignof-xmlSchemaAnnot
     strideof-xmlSchemaAnnot
+    array-ref-c-xmlSchemaAnnot
     struct-xmlSchemaAnnot-next-set!
     struct-xmlSchemaAnnot-next-ref
     struct-xmlSchemaAnnot-content-set!
@@ -2472,6 +2577,7 @@
     sizeof-xmlSchemaAttribute
     alignof-xmlSchemaAttribute
     strideof-xmlSchemaAttribute
+    array-ref-c-xmlSchemaAttribute
     struct-xmlSchemaAttribute-type-set!
     struct-xmlSchemaAttribute-type-ref
     struct-xmlSchemaAttribute-next-set!
@@ -2516,6 +2622,7 @@
     sizeof-xmlSchemaAttributeLink
     alignof-xmlSchemaAttributeLink
     strideof-xmlSchemaAttributeLink
+    array-ref-c-xmlSchemaAttributeLink
     struct-xmlSchemaAttributeLink-next-set!
     struct-xmlSchemaAttributeLink-next-ref
     struct-xmlSchemaAttributeLink-attr-set!
@@ -2525,6 +2632,7 @@
     sizeof-xmlSchemaWildcardNs
     alignof-xmlSchemaWildcardNs
     strideof-xmlSchemaWildcardNs
+    array-ref-c-xmlSchemaWildcardNs
     struct-xmlSchemaWildcardNs-next-set!
     struct-xmlSchemaWildcardNs-next-ref
     struct-xmlSchemaWildcardNs-value-set!
@@ -2535,6 +2643,7 @@
     sizeof-xmlSchemaWildcard
     alignof-xmlSchemaWildcard
     strideof-xmlSchemaWildcard
+    array-ref-c-xmlSchemaWildcard
     struct-xmlSchemaWildcard-type-set!
     struct-xmlSchemaWildcard-type-ref
     struct-xmlSchemaWildcard-id-set!
@@ -2632,6 +2741,7 @@
     sizeof-xmlSchemaAttributeGroup
     alignof-xmlSchemaAttributeGroup
     strideof-xmlSchemaAttributeGroup
+    array-ref-c-xmlSchemaAttributeGroup
     struct-xmlSchemaAttributeGroup-type-set!
     struct-xmlSchemaAttributeGroup-type-ref
     struct-xmlSchemaAttributeGroup-next-set!
@@ -2668,6 +2778,7 @@
     sizeof-xmlSchemaTypeLink
     alignof-xmlSchemaTypeLink
     strideof-xmlSchemaTypeLink
+    array-ref-c-xmlSchemaTypeLink
     struct-xmlSchemaTypeLink-next-set!
     struct-xmlSchemaTypeLink-next-ref
     struct-xmlSchemaTypeLink-type-set!
@@ -2678,6 +2789,7 @@
     sizeof-xmlSchemaFacetLink
     alignof-xmlSchemaFacetLink
     strideof-xmlSchemaFacetLink
+    array-ref-c-xmlSchemaFacetLink
     struct-xmlSchemaFacetLink-next-set!
     struct-xmlSchemaFacetLink-next-ref
     struct-xmlSchemaFacetLink-facet-set!
@@ -2688,6 +2800,7 @@
     sizeof-xmlSchemaElement
     alignof-xmlSchemaElement
     strideof-xmlSchemaElement
+    array-ref-c-xmlSchemaElement
     struct-xmlSchemaElement-type-set!
     struct-xmlSchemaElement-type-ref
     struct-xmlSchemaElement-next-set!
@@ -2746,6 +2859,7 @@
     sizeof-xmlSchemaNotation
     alignof-xmlSchemaNotation
     strideof-xmlSchemaNotation
+    array-ref-c-xmlSchemaNotation
     struct-xmlSchemaNotation-type-set!
     struct-xmlSchemaNotation-type-ref
     struct-xmlSchemaNotation-name-set!
@@ -2762,6 +2876,8 @@
     strideof-xmlSchemaValidError
     pointer-ref-c-xmlSchemaValidError
     pointer-set-c-xmlSchemaValidError!
+    array-ref-c-xmlSchemaValidError
+    array-set-c-xmlSchemaValidError!
     XML_SCHEMAS_ERR_OK
     XML_SCHEMAS_ERR_NOROOT
     XML_SCHEMAS_ERR_UNDECLAREDELEM
@@ -2794,6 +2910,8 @@
     strideof-xmlSchemaValidOption
     pointer-ref-c-xmlSchemaValidOption
     pointer-set-c-xmlSchemaValidOption!
+    array-ref-c-xmlSchemaValidOption
+    array-set-c-xmlSchemaValidOption!
     XML_SCHEMA_VAL_VC_I_CREATE
     xmlSchema*
     xmlSchemaPtr
@@ -2811,6 +2929,8 @@
     strideof-xmlSchemaWhitespaceValueType
     pointer-ref-c-xmlSchemaWhitespaceValueType
     pointer-set-c-xmlSchemaWhitespaceValueType!
+    array-ref-c-xmlSchemaWhitespaceValueType
+    array-set-c-xmlSchemaWhitespaceValueType!
     XML_SCHEMA_WHITESPACE_UNKNOWN
     XML_SCHEMA_WHITESPACE_PRESERVE
     XML_SCHEMA_WHITESPACE_REPLACE
@@ -2867,6 +2987,8 @@
     strideof-xmlXPathError
     pointer-ref-c-xmlXPathError
     pointer-set-c-xmlXPathError!
+    array-ref-c-xmlXPathError
+    array-set-c-xmlXPathError!
     XPATH_EXPRESSION_OK
     XPATH_NUMBER_ERROR
     XPATH_UNFINISHED_LITERAL_ERROR
@@ -2895,6 +3017,7 @@
     sizeof-xmlNodeSet
     alignof-xmlNodeSet
     strideof-xmlNodeSet
+    array-ref-c-xmlNodeSet
     struct-xmlNodeSet-nodeNr-set!
     struct-xmlNodeSet-nodeNr-ref
     struct-xmlNodeSet-nodeMax-set!
@@ -2907,6 +3030,8 @@
     strideof-xmlXPathObjectType
     pointer-ref-c-xmlXPathObjectType
     pointer-set-c-xmlXPathObjectType!
+    array-ref-c-xmlXPathObjectType
+    array-set-c-xmlXPathObjectType!
     XPATH_UNDEFINED
     XPATH_NODESET
     XPATH_BOOLEAN
@@ -2922,6 +3047,7 @@
     sizeof-xmlXPathObject
     alignof-xmlXPathObject
     strideof-xmlXPathObject
+    array-ref-c-xmlXPathObject
     struct-xmlXPathObject-type-set!
     struct-xmlXPathObject-type-ref
     struct-xmlXPathObject-nodesetval-set!
@@ -2945,6 +3071,7 @@
     sizeof-xmlXPathType
     alignof-xmlXPathType
     strideof-xmlXPathType
+    array-ref-c-xmlXPathType
     struct-xmlXPathType-name-set!
     struct-xmlXPathType-name-ref
     struct-xmlXPathType-func-set!
@@ -2954,6 +3081,7 @@
     sizeof-xmlXPathVariable
     alignof-xmlXPathVariable
     strideof-xmlXPathVariable
+    array-ref-c-xmlXPathVariable
     struct-xmlXPathVariable-name-set!
     struct-xmlXPathVariable-name-ref
     struct-xmlXPathVariable-value-set!
@@ -2963,6 +3091,7 @@
     sizeof-xmlXPathFunct
     alignof-xmlXPathFunct
     strideof-xmlXPathFunct
+    array-ref-c-xmlXPathFunct
     struct-xmlXPathFunct-name-set!
     struct-xmlXPathFunct-name-ref
     struct-xmlXPathFunct-func-set!
@@ -2972,6 +3101,7 @@
     sizeof-xmlXPathAxis
     alignof-xmlXPathAxis
     strideof-xmlXPathAxis
+    array-ref-c-xmlXPathAxis
     struct-xmlXPathAxis-name-set!
     struct-xmlXPathAxis-name-ref
     struct-xmlXPathAxis-func-set!
@@ -2981,6 +3111,7 @@
     sizeof-xmlXPathContext
     alignof-xmlXPathContext
     strideof-xmlXPathContext
+    array-ref-c-xmlXPathContext
     struct-xmlXPathContext-doc-set!
     struct-xmlXPathContext-doc-ref
     struct-xmlXPathContext-node-set!
@@ -3063,6 +3194,7 @@
     sizeof-xmlXPathParserContext
     alignof-xmlXPathParserContext
     strideof-xmlXPathParserContext
+    array-ref-c-xmlXPathParserContext
     struct-xmlXPathParserContext-cur-set!
     struct-xmlXPathParserContext-cur-ref
     struct-xmlXPathParserContext-base-set!
@@ -3096,6 +3228,7 @@
     sizeof-xmlLocationSet
     alignof-xmlLocationSet
     strideof-xmlLocationSet
+    array-ref-c-xmlLocationSet
     struct-xmlLocationSet-locNr-set!
     struct-xmlLocationSet-locNr-ref
     struct-xmlLocationSet-locMax-set!
@@ -3133,6 +3266,31 @@
   (define
     pointer-set-c-xmlC14NMode!
     @SETTEROF_XMLC14NMODE@)
+  (define-syntax
+    sizeof-xmlC14NMode-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlC14NMode ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlC14NMode
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlC14NMode
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlC14NMode))))))
+  (define-syntax
+    array-set-c-xmlC14NMode!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlC14NMode!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlC14NMode))
+         ?value))))
   (define XML_C14N_1_0 @VALUEOF_XML_C14N_1_0@)
   (define
     XML_C14N_EXCLUSIVE_1_0
@@ -3163,6 +3321,31 @@
   (define
     pointer-set-c-xmlCatalogPrefer!
     @SETTEROF_XMLCATALOGPREFER@)
+  (define-syntax
+    sizeof-xmlCatalogPrefer-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlCatalogPrefer ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlCatalogPrefer
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlCatalogPrefer
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlCatalogPrefer))))))
+  (define-syntax
+    array-set-c-xmlCatalogPrefer!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlCatalogPrefer!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlCatalogPrefer))
+         ?value))))
   (define
     XML_CATA_PREFER_NONE
     @VALUEOF_XML_CATA_PREFER_NONE@)
@@ -3190,6 +3373,31 @@
   (define
     pointer-set-c-xmlCatalogAllow!
     @SETTEROF_XMLCATALOGALLOW@)
+  (define-syntax
+    sizeof-xmlCatalogAllow-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlCatalogAllow ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlCatalogAllow
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlCatalogAllow
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlCatalogAllow))))))
+  (define-syntax
+    array-set-c-xmlCatalogAllow!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlCatalogAllow!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlCatalogAllow))
+         ?value))))
   (define
     XML_CATA_ALLOW_NONE
     @VALUEOF_XML_CATA_ALLOW_NONE@)
@@ -3213,6 +3421,20 @@
   (define
     strideof-xmlChSRange
     @STRIDEOF_XMLCHSRANGE@)
+  (define-syntax
+    sizeof-xmlChSRange-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlChSRange ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlChSRange
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlChSRange)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlChSRange-low-set!
     struct-xmlChSRange-low-ref
@@ -3234,6 +3456,20 @@
   (define
     strideof-xmlChLRange
     @STRIDEOF_XMLCHLRANGE@)
+  (define-syntax
+    sizeof-xmlChLRange-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlChLRange ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlChLRange
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlChLRange)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlChLRange-low-set!
     struct-xmlChLRange-low-ref
@@ -3257,6 +3493,20 @@
   (define
     strideof-xmlChRangeGroup
     @STRIDEOF_XMLCHRANGEGROUP@)
+  (define-syntax
+    sizeof-xmlChRangeGroup-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlChRangeGroup ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlChRangeGroup
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlChRangeGroup)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlChRangeGroup-nbShortRange-set!
     struct-xmlChRangeGroup-nbShortRange-ref
@@ -3293,6 +3543,20 @@
   (define
     strideof-xmlShellCtxt
     @STRIDEOF_XMLSHELLCTXT@)
+  (define-syntax
+    sizeof-xmlShellCtxt-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlShellCtxt ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlShellCtxt
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlShellCtxt)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlShellCtxt-filename-set!
     struct-xmlShellCtxt-filename-ref
@@ -3358,6 +3622,31 @@
   (define
     pointer-set-c-xmlCharEncoding!
     @SETTEROF_XMLCHARENCODING@)
+  (define-syntax
+    sizeof-xmlCharEncoding-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlCharEncoding ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlCharEncoding
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlCharEncoding
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlCharEncoding))))))
+  (define-syntax
+    array-set-c-xmlCharEncoding!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlCharEncoding!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlCharEncoding))
+         ?value))))
   (define
     XML_CHAR_ENCODING_ERROR
     @VALUEOF_XML_CHAR_ENCODING_ERROR@)
@@ -3441,6 +3730,21 @@
   (define
     strideof-xmlCharEncodingHandler
     @STRIDEOF_XMLCHARENCODINGHANDLER@)
+  (define-syntax
+    sizeof-xmlCharEncodingHandler-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlCharEncodingHandler
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlCharEncodingHandler
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlCharEncodingHandler)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlCharEncodingHandler-name-set!
     struct-xmlCharEncodingHandler-name-ref
@@ -3487,6 +3791,31 @@
   (define
     pointer-set-c-xmlEntityType!
     @SETTEROF_XMLENTITYTYPE@)
+  (define-syntax
+    sizeof-xmlEntityType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlEntityType ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlEntityType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlEntityType
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlEntityType))))))
+  (define-syntax
+    array-set-c-xmlEntityType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlEntityType!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlEntityType))
+         ?value))))
   (define
     XML_INTERNAL_GENERAL_ENTITY
     @VALUEOF_XML_INTERNAL_GENERAL_ENTITY@)
@@ -3508,6 +3837,20 @@
   (define sizeof-xmlEntity @SIZEOF_XMLENTITY@)
   (define alignof-xmlEntity @ALIGNOF_XMLENTITY@)
   (define strideof-xmlEntity @STRIDEOF_XMLENTITY@)
+  (define-syntax
+    sizeof-xmlEntity-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlEntity ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlEntity
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlEntity)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlEntity-_private-set!
     struct-xmlEntity-_private-ref
@@ -3659,6 +4002,20 @@
   (define
     strideof-htmlElemDesc
     @STRIDEOF_HTMLELEMDESC@)
+  (define-syntax
+    sizeof-htmlElemDesc-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-htmlElemDesc ?number-of-elements))))
+  (define-syntax
+    array-ref-c-htmlElemDesc
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-htmlElemDesc)))))
   (define-c-struct-accessor-and-mutator
     struct-htmlElemDesc-name-set!
     struct-htmlElemDesc-name-ref
@@ -3752,6 +4109,20 @@
   (define
     strideof-htmlEntityDesc
     @STRIDEOF_HTMLENTITYDESC@)
+  (define-syntax
+    sizeof-htmlEntityDesc-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-htmlEntityDesc ?number-of-elements))))
+  (define-syntax
+    array-ref-c-htmlEntityDesc
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-htmlEntityDesc)))))
   (define-c-struct-accessor-and-mutator
     struct-htmlEntityDesc-value-set!
     struct-htmlEntityDesc-value-ref
@@ -3788,6 +4159,31 @@
   (define
     pointer-set-c-htmlParserOption!
     @SETTEROF_HTMLPARSEROPTION@)
+  (define-syntax
+    sizeof-htmlParserOption-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-htmlParserOption ?number-of-elements))))
+  (define-syntax
+    array-ref-c-htmlParserOption
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-htmlParserOption
+         (pointer-add
+           ?pointer
+           (* ?index strideof-htmlParserOption))))))
+  (define-syntax
+    array-set-c-htmlParserOption!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-htmlParserOption!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-htmlParserOption))
+         ?value))))
   (define
     HTML_PARSE_RECOVER
     @VALUEOF_HTML_PARSE_RECOVER@)
@@ -3821,6 +4217,31 @@
   (define
     pointer-set-c-htmlStatus!
     @SETTEROF_HTMLSTATUS@)
+  (define-syntax
+    sizeof-htmlStatus-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-htmlStatus ?number-of-elements))))
+  (define-syntax
+    array-ref-c-htmlStatus
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-htmlStatus
+         (pointer-add
+           ?pointer
+           (* ?index strideof-htmlStatus))))))
+  (define-syntax
+    array-set-c-htmlStatus!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-htmlStatus!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-htmlStatus))
+         ?value))))
   (define HTML_NA @VALUEOF_HTML_NA@)
   (define HTML_INVALID @VALUEOF_HTML_INVALID@)
   (define
@@ -3849,6 +4270,20 @@
   (define
     strideof-xmlParserInput
     @STRIDEOF_XMLPARSERINPUT@)
+  (define-syntax
+    sizeof-xmlParserInput-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlParserInput ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlParserInput
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlParserInput)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlParserInput-buf-set!
     struct-xmlParserInput-buf-ref
@@ -3950,6 +4385,21 @@
   (define
     strideof-xmlParserNodeInfo
     @STRIDEOF_XMLPARSERNODEINFO@)
+  (define-syntax
+    sizeof-xmlParserNodeInfo-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlParserNodeInfo
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlParserNodeInfo
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlParserNodeInfo)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlParserNodeInfo-node-set!
     struct-xmlParserNodeInfo-node-ref
@@ -3991,6 +4441,21 @@
   (define
     strideof-xmlParserNodeInfoSeq
     @STRIDEOF_XMLPARSERNODEINFOSEQ@)
+  (define-syntax
+    sizeof-xmlParserNodeInfoSeq-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlParserNodeInfoSeq
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlParserNodeInfoSeq
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlParserNodeInfoSeq)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlParserNodeInfoSeq-maximum-set!
     struct-xmlParserNodeInfoSeq-maximum-ref
@@ -4027,6 +4492,32 @@
   (define
     pointer-set-c-xmlParserInputState!
     @SETTEROF_XMLPARSERINPUTSTATE@)
+  (define-syntax
+    sizeof-xmlParserInputState-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlParserInputState
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlParserInputState
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlParserInputState
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlParserInputState))))))
+  (define-syntax
+    array-set-c-xmlParserInputState!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlParserInputState!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlParserInputState))
+         ?value))))
   (define XML_PARSER_EOF @VALUEOF_XML_PARSER_EOF@)
   (define
     XML_PARSER_START
@@ -4096,6 +4587,31 @@
   (define
     pointer-set-c-xmlParserMode!
     @SETTEROF_XMLPARSERMODE@)
+  (define-syntax
+    sizeof-xmlParserMode-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlParserMode ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlParserMode
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlParserMode
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlParserMode))))))
+  (define-syntax
+    array-set-c-xmlParserMode!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlParserMode!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlParserMode))
+         ?value))))
   (define
     XML_PARSE_UNKNOWN
     @VALUEOF_XML_PARSE_UNKNOWN@)
@@ -4119,6 +4635,20 @@
   (define
     strideof-xmlParserCtxt
     @STRIDEOF_XMLPARSERCTXT@)
+  (define-syntax
+    sizeof-xmlParserCtxt-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlParserCtxt ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlParserCtxt
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlParserCtxt)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlParserCtxt-sax-set!
     struct-xmlParserCtxt-sax-ref
@@ -4611,6 +5141,20 @@
   (define
     strideof-xmlSAXLocator
     @STRIDEOF_XMLSAXLOCATOR@)
+  (define-syntax
+    sizeof-xmlSAXLocator-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlSAXLocator ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSAXLocator
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlSAXLocator)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlSAXLocator-getPublicId-set!
     struct-xmlSAXLocator-getPublicId-ref
@@ -4656,6 +5200,31 @@
   (define
     pointer-set-c-xmlParserOption!
     @SETTEROF_XMLPARSEROPTION@)
+  (define-syntax
+    sizeof-xmlParserOption-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlParserOption ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlParserOption
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlParserOption
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlParserOption))))))
+  (define-syntax
+    array-set-c-xmlParserOption!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlParserOption!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlParserOption))
+         ?value))))
   (define
     XML_PARSE_RECOVER
     @VALUEOF_XML_PARSE_RECOVER@)
@@ -4727,6 +5296,31 @@
   (define
     pointer-set-c-xmlFeature!
     @SETTEROF_XMLFEATURE@)
+  (define-syntax
+    sizeof-xmlFeature-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlFeature ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlFeature
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlFeature
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlFeature))))))
+  (define-syntax
+    array-set-c-xmlFeature!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlFeature!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlFeature))
+         ?value))))
   (define
     XML_WITH_THREAD
     @VALUEOF_XML_WITH_THREAD@)
@@ -4846,6 +5440,31 @@
   (define
     pointer-set-c-xmlPatternFlags!
     @SETTEROF_XMLPATTERNFLAGS@)
+  (define-syntax
+    sizeof-xmlPatternFlags-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlPatternFlags ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlPatternFlags
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlPatternFlags
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlPatternFlags))))))
+  (define-syntax
+    array-set-c-xmlPatternFlags!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlPatternFlags!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlPatternFlags))
+         ?value))))
   (define
     XML_PATTERN_DEFAULT
     @VALUEOF_XML_PATTERN_DEFAULT@)
@@ -4886,6 +5505,31 @@
   (define
     pointer-set-c-xmlRelaxNGValidErr!
     @SETTEROF_XMLRELAXNGVALIDERR@)
+  (define-syntax
+    sizeof-xmlRelaxNGValidErr-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlRelaxNGValidErr ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlRelaxNGValidErr
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlRelaxNGValidErr
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlRelaxNGValidErr))))))
+  (define-syntax
+    array-set-c-xmlRelaxNGValidErr!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlRelaxNGValidErr!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlRelaxNGValidErr))
+         ?value))))
   (define XML_RELAXNG_OK @VALUEOF_XML_RELAXNG_OK@)
   (define
     XML_RELAXNG_ERR_MEMORY
@@ -5022,6 +5666,32 @@
   (define
     pointer-set-c-xmlRelaxNGParserFlag!
     @SETTEROF_XMLRELAXNGPARSERFLAG@)
+  (define-syntax
+    sizeof-xmlRelaxNGParserFlag-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlRelaxNGParserFlag
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlRelaxNGParserFlag
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlRelaxNGParserFlag
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlRelaxNGParserFlag))))))
+  (define-syntax
+    array-set-c-xmlRelaxNGParserFlag!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlRelaxNGParserFlag!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlRelaxNGParserFlag))
+         ?value))))
   (define
     XML_RELAXNGP_NONE
     @VALUEOF_XML_RELAXNGP_NONE@)
@@ -5049,6 +5719,32 @@
   (define
     pointer-set-c-xmlSchematronValidOptions!
     @SETTEROF_XMLSCHEMATRONVALIDOPTIONS@)
+  (define-syntax
+    sizeof-xmlSchematronValidOptions-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlSchematronValidOptions
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchematronValidOptions
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlSchematronValidOptions
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchematronValidOptions))))))
+  (define-syntax
+    array-set-c-xmlSchematronValidOptions!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlSchematronValidOptions!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchematronValidOptions))
+         ?value))))
   (define
     XML_SCHEMATRON_OUT_QUIET
     @VALUEOF_XML_SCHEMATRON_OUT_QUIET@)
@@ -5120,6 +5816,32 @@
   (define
     pointer-set-c-xmlBufferAllocationScheme!
     @SETTEROF_XMLBUFFERALLOCATIONSCHEME@)
+  (define-syntax
+    sizeof-xmlBufferAllocationScheme-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlBufferAllocationScheme
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlBufferAllocationScheme
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlBufferAllocationScheme
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlBufferAllocationScheme))))))
+  (define-syntax
+    array-set-c-xmlBufferAllocationScheme!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlBufferAllocationScheme!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlBufferAllocationScheme))
+         ?value))))
   (define
     XML_BUFFER_ALLOC_DOUBLEIT
     @VALUEOF_XML_BUFFER_ALLOC_DOUBLEIT@)
@@ -5137,6 +5859,20 @@
   (define sizeof-xmlBuffer @SIZEOF_XMLBUFFER@)
   (define alignof-xmlBuffer @ALIGNOF_XMLBUFFER@)
   (define strideof-xmlBuffer @STRIDEOF_XMLBUFFER@)
+  (define-syntax
+    sizeof-xmlBuffer-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlBuffer ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlBuffer
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlBuffer)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlBuffer-content-set!
     struct-xmlBuffer-content-ref
@@ -5184,6 +5920,31 @@
   (define
     pointer-set-c-xmlElementType!
     @SETTEROF_XMLELEMENTTYPE@)
+  (define-syntax
+    sizeof-xmlElementType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlElementType ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlElementType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlElementType
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlElementType))))))
+  (define-syntax
+    array-set-c-xmlElementType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlElementType!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlElementType))
+         ?value))))
   (define
     XML_ELEMENT_NODE
     @VALUEOF_XML_ELEMENT_NODE@)
@@ -5250,6 +6011,20 @@
   (define
     strideof-xmlNotation
     @STRIDEOF_XMLNOTATION@)
+  (define-syntax
+    sizeof-xmlNotation-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlNotation ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlNotation
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlNotation)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlNotation-name-set!
     struct-xmlNotation-name-ref
@@ -5286,6 +6061,31 @@
   (define
     pointer-set-c-xmlAttributeType!
     @SETTEROF_XMLATTRIBUTETYPE@)
+  (define-syntax
+    sizeof-xmlAttributeType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlAttributeType ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlAttributeType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlAttributeType
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlAttributeType))))))
+  (define-syntax
+    array-set-c-xmlAttributeType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlAttributeType!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlAttributeType))
+         ?value))))
   (define
     XML_ATTRIBUTE_CDATA
     @VALUEOF_XML_ATTRIBUTE_CDATA@)
@@ -5334,6 +6134,32 @@
   (define
     pointer-set-c-xmlAttributeDefault!
     @SETTEROF_XMLATTRIBUTEDEFAULT@)
+  (define-syntax
+    sizeof-xmlAttributeDefault-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlAttributeDefault
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlAttributeDefault
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlAttributeDefault
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlAttributeDefault))))))
+  (define-syntax
+    array-set-c-xmlAttributeDefault!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlAttributeDefault!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlAttributeDefault))
+         ?value))))
   (define
     XML_ATTRIBUTE_NONE
     @VALUEOF_XML_ATTRIBUTE_NONE@)
@@ -5357,6 +6183,20 @@
   (define
     strideof-xmlEnumeration
     @STRIDEOF_XMLENUMERATION@)
+  (define-syntax
+    sizeof-xmlEnumeration-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlEnumeration ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlEnumeration
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlEnumeration)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlEnumeration-next-set!
     struct-xmlEnumeration-next-ref
@@ -5380,6 +6220,20 @@
   (define
     strideof-xmlAttribute
     @STRIDEOF_XMLATTRIBUTE@)
+  (define-syntax
+    sizeof-xmlAttribute-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlAttribute ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlAttribute
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlAttribute)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlAttribute-_private-set!
     struct-xmlAttribute-_private-ref
@@ -5485,6 +6339,32 @@
   (define
     pointer-set-c-xmlElementContentType!
     @SETTEROF_XMLELEMENTCONTENTTYPE@)
+  (define-syntax
+    sizeof-xmlElementContentType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlElementContentType
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlElementContentType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlElementContentType
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlElementContentType))))))
+  (define-syntax
+    array-set-c-xmlElementContentType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlElementContentType!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlElementContentType))
+         ?value))))
   (define
     XML_ELEMENT_CONTENT_PCDATA
     @VALUEOF_XML_ELEMENT_CONTENT_PCDATA@)
@@ -5515,6 +6395,32 @@
   (define
     pointer-set-c-xmlElementContentOccur!
     @SETTEROF_XMLELEMENTCONTENTOCCUR@)
+  (define-syntax
+    sizeof-xmlElementContentOccur-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlElementContentOccur
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlElementContentOccur
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlElementContentOccur
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlElementContentOccur))))))
+  (define-syntax
+    array-set-c-xmlElementContentOccur!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlElementContentOccur!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlElementContentOccur))
+         ?value))))
   (define
     XML_ELEMENT_CONTENT_ONCE
     @VALUEOF_XML_ELEMENT_CONTENT_ONCE@)
@@ -5538,6 +6444,21 @@
   (define
     strideof-xmlElementContent
     @STRIDEOF_XMLELEMENTCONTENT@)
+  (define-syntax
+    sizeof-xmlElementContent-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlElementContent
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlElementContent
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlElementContent)))))
   (define-c-struct-field-pointer-accessor
     struct-xmlElementContent-type-ref
     @OFFSETOF_XMLELEMENTCONTENT_TYPE@)
@@ -5592,6 +6513,31 @@
   (define
     pointer-set-c-xmlElementTypeVal!
     @SETTEROF_XMLELEMENTTYPEVAL@)
+  (define-syntax
+    sizeof-xmlElementTypeVal-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlElementTypeVal ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlElementTypeVal
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlElementTypeVal
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlElementTypeVal))))))
+  (define-syntax
+    array-set-c-xmlElementTypeVal!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlElementTypeVal!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlElementTypeVal))
+         ?value))))
   (define
     XML_ELEMENT_TYPE_UNDEFINED
     @VALUEOF_XML_ELEMENT_TYPE_UNDEFINED@)
@@ -5614,6 +6560,20 @@
   (define
     strideof-xmlElement
     @STRIDEOF_XMLELEMENT@)
+  (define-syntax
+    sizeof-xmlElement-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlElement ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlElement
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlElement)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlElement-_private-set!
     struct-xmlElement-_private-ref
@@ -5701,6 +6661,18 @@
   (define sizeof-xmlNs @SIZEOF_XMLNS@)
   (define alignof-xmlNs @ALIGNOF_XMLNS@)
   (define strideof-xmlNs @STRIDEOF_XMLNS@)
+  (define-syntax
+    sizeof-xmlNs-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlNs ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlNs
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-xmlNs)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlNs-next-set!
     struct-xmlNs-next-ref
@@ -5739,6 +6711,18 @@
   (define sizeof-xmlDtd @SIZEOF_XMLDTD@)
   (define alignof-xmlDtd @ALIGNOF_XMLDTD@)
   (define strideof-xmlDtd @STRIDEOF_XMLDTD@)
+  (define-syntax
+    sizeof-xmlDtd-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlDtd ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlDtd
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-xmlDtd)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlDtd-_private-set!
     struct-xmlDtd-_private-ref
@@ -5837,6 +6821,20 @@
   (define sizeof-xmlAttr @SIZEOF_XMLATTR@)
   (define alignof-xmlAttr @ALIGNOF_XMLATTR@)
   (define strideof-xmlAttr @STRIDEOF_XMLATTR@)
+  (define-syntax
+    sizeof-xmlAttr-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlAttr ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlAttr
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlAttr)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlAttr-_private-set!
     struct-xmlAttr-_private-ref
@@ -5908,6 +6906,18 @@
   (define sizeof-xmlID @SIZEOF_XMLID@)
   (define alignof-xmlID @ALIGNOF_XMLID@)
   (define strideof-xmlID @STRIDEOF_XMLID@)
+  (define-syntax
+    sizeof-xmlID-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlID ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlID
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-xmlID)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlID-next-set!
     struct-xmlID-next-ref
@@ -5946,6 +6956,18 @@
   (define sizeof-xmlRef @SIZEOF_XMLREF@)
   (define alignof-xmlRef @ALIGNOF_XMLREF@)
   (define strideof-xmlRef @STRIDEOF_XMLREF@)
+  (define-syntax
+    sizeof-xmlRef-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlRef ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlRef
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-xmlRef)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlRef-next-set!
     struct-xmlRef-next-ref
@@ -5979,6 +7001,20 @@
   (define sizeof-xmlNode @SIZEOF_XMLNODE@)
   (define alignof-xmlNode @ALIGNOF_XMLNODE@)
   (define strideof-xmlNode @STRIDEOF_XMLNODE@)
+  (define-syntax
+    sizeof-xmlNode-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlNode ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlNode
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlNode)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlNode-_private-set!
     struct-xmlNode-_private-ref
@@ -6090,6 +7126,31 @@
   (define
     pointer-set-c-xmlDocProperties!
     @SETTEROF_XMLDOCPROPERTIES@)
+  (define-syntax
+    sizeof-xmlDocProperties-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlDocProperties ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlDocProperties
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlDocProperties
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlDocProperties))))))
+  (define-syntax
+    array-set-c-xmlDocProperties!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlDocProperties!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlDocProperties))
+         ?value))))
   (define
     XML_DOC_WELLFORMED
     @VALUEOF_XML_DOC_WELLFORMED@)
@@ -6116,6 +7177,18 @@
   (define sizeof-xmlDoc @SIZEOF_XMLDOC@)
   (define alignof-xmlDoc @ALIGNOF_XMLDOC@)
   (define strideof-xmlDoc @STRIDEOF_XMLDOC@)
+  (define-syntax
+    sizeof-xmlDoc-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlDoc ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlDoc
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-xmlDoc)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlDoc-_private-set!
     struct-xmlDoc-_private-ref
@@ -6268,6 +7341,20 @@
   (define
     strideof-xmlDOMWrapCtxt
     @STRIDEOF_XMLDOMWRAPCTXT@)
+  (define-syntax
+    sizeof-xmlDOMWrapCtxt-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlDOMWrapCtxt ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlDOMWrapCtxt
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlDOMWrapCtxt)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlDOMWrapCtxt-_private-set!
     struct-xmlDOMWrapCtxt-_private-ref
@@ -6297,6 +7384,18 @@
   (define sizeof-xmlURI @SIZEOF_XMLURI@)
   (define alignof-xmlURI @ALIGNOF_XMLURI@)
   (define strideof-xmlURI @STRIDEOF_XMLURI@)
+  (define-syntax
+    sizeof-xmlURI-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlURI ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlURI
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-xmlURI)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlURI-scheme-set!
     struct-xmlURI-scheme-ref
@@ -6384,6 +7483,20 @@
   (define
     strideof-xmlValidCtxt
     @STRIDEOF_XMLVALIDCTXT@)
+  (define-syntax
+    sizeof-xmlValidCtxt-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlValidCtxt ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlValidCtxt
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlValidCtxt)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlValidCtxt-userData-set!
     struct-xmlValidCtxt-userData-ref
@@ -6536,6 +7649,31 @@
   (define
     pointer-set-c-xmlErrorLevel!
     @SETTEROF_XMLERRORLEVEL@)
+  (define-syntax
+    sizeof-xmlErrorLevel-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlErrorLevel ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlErrorLevel
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlErrorLevel
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlErrorLevel))))))
+  (define-syntax
+    array-set-c-xmlErrorLevel!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlErrorLevel!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlErrorLevel))
+         ?value))))
   (define XML_ERR_NONE @VALUEOF_XML_ERR_NONE@)
   (define
     XML_ERR_WARNING
@@ -6558,6 +7696,31 @@
   (define
     pointer-set-c-xmlErrorDomain!
     @SETTEROF_XMLERRORDOMAIN@)
+  (define-syntax
+    sizeof-xmlErrorDomain-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlErrorDomain ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlErrorDomain
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlErrorDomain
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlErrorDomain))))))
+  (define-syntax
+    array-set-c-xmlErrorDomain!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlErrorDomain!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlErrorDomain))
+         ?value))))
   (define XML_FROM_NONE @VALUEOF_XML_FROM_NONE@)
   (define
     XML_FROM_PARSER
@@ -6624,6 +7787,20 @@
   (define sizeof-xmlError @SIZEOF_XMLERROR@)
   (define alignof-xmlError @ALIGNOF_XMLERROR@)
   (define strideof-xmlError @STRIDEOF_XMLERROR@)
+  (define-syntax
+    sizeof-xmlError-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlError ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlError
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlError)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlError-domain-set!
     struct-xmlError-domain-ref
@@ -6720,6 +7897,31 @@
   (define
     pointer-set-c-xmlParserErrors!
     @SETTEROF_XMLPARSERERRORS@)
+  (define-syntax
+    sizeof-xmlParserErrors-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlParserErrors ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlParserErrors
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlParserErrors
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlParserErrors))))))
+  (define-syntax
+    array-set-c-xmlParserErrors!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlParserErrors!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlParserErrors))
+         ?value))))
   (define XML_ERR_OK @VALUEOF_XML_ERR_OK@)
   (define
     XML_ERR_INTERNAL_ERROR
@@ -8830,6 +10032,21 @@
   (define
     strideof-xmlParserInputBuffer
     @STRIDEOF_XMLPARSERINPUTBUFFER@)
+  (define-syntax
+    sizeof-xmlParserInputBuffer-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlParserInputBuffer
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlParserInputBuffer
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlParserInputBuffer)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlParserInputBuffer-context-set!
     struct-xmlParserInputBuffer-context-ref
@@ -8893,6 +10110,20 @@
   (define
     strideof-xmlOutputBuffer
     @STRIDEOF_XMLOUTPUTBUFFER@)
+  (define-syntax
+    sizeof-xmlOutputBuffer-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlOutputBuffer ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlOutputBuffer
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlOutputBuffer)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlOutputBuffer-context-set!
     struct-xmlOutputBuffer-context-ref
@@ -8973,6 +10204,31 @@
   (define
     pointer-set-c-xmlModuleOption!
     @SETTEROF_XMLMODULEOPTION@)
+  (define-syntax
+    sizeof-xmlModuleOption-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlModuleOption ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlModuleOption
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlModuleOption
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlModuleOption))))))
+  (define-syntax
+    array-set-c-xmlModuleOption!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlModuleOption!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlModuleOption))
+         ?value))))
   (define
     XML_MODULE_LAZY
     @VALUEOF_XML_MODULE_LAZY@)
@@ -8997,6 +10253,32 @@
   (define
     pointer-set-c-xmlParserSeverities!
     @SETTEROF_XMLPARSERSEVERITIES@)
+  (define-syntax
+    sizeof-xmlParserSeverities-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlParserSeverities
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlParserSeverities
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlParserSeverities
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlParserSeverities))))))
+  (define-syntax
+    array-set-c-xmlParserSeverities!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlParserSeverities!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlParserSeverities))
+         ?value))))
   (define
     XML_PARSER_SEVERITY_VALIDITY_WARNING
     @VALUEOF_XML_PARSER_SEVERITY_VALIDITY_WARNING@)
@@ -9027,6 +10309,31 @@
   (define
     pointer-set-c-xmlTextReaderMode!
     @SETTEROF_XMLTEXTREADERMODE@)
+  (define-syntax
+    sizeof-xmlTextReaderMode-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlTextReaderMode ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlTextReaderMode
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlTextReaderMode
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlTextReaderMode))))))
+  (define-syntax
+    array-set-c-xmlTextReaderMode!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlTextReaderMode!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlTextReaderMode))
+         ?value))))
   (define
     XML_TEXTREADER_MODE_INITIAL
     @VALUEOF_XML_TEXTREADER_MODE_INITIAL@)
@@ -9063,6 +10370,32 @@
   (define
     pointer-set-c-xmlParserProperties!
     @SETTEROF_XMLPARSERPROPERTIES@)
+  (define-syntax
+    sizeof-xmlParserProperties-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlParserProperties
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlParserProperties
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlParserProperties
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlParserProperties))))))
+  (define-syntax
+    array-set-c-xmlParserProperties!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlParserProperties!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlParserProperties))
+         ?value))))
   (define
     XML_PARSER_LOADDTD
     @VALUEOF_XML_PARSER_LOADDTD@)
@@ -9091,6 +10424,31 @@
   (define
     pointer-set-c-xmlReaderTypes!
     @SETTEROF_XMLREADERTYPES@)
+  (define-syntax
+    sizeof-xmlReaderTypes-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlReaderTypes ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlReaderTypes
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlReaderTypes
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlReaderTypes))))))
+  (define-syntax
+    array-set-c-xmlReaderTypes!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlReaderTypes!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlReaderTypes))
+         ?value))))
   (define
     XML_READER_TYPE_NONE
     @VALUEOF_XML_READER_TYPE_NONE@)
@@ -9173,6 +10531,31 @@
   (define
     pointer-set-c-xmlExpNodeType!
     @SETTEROF_XMLEXPNODETYPE@)
+  (define-syntax
+    sizeof-xmlExpNodeType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlExpNodeType ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlExpNodeType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlExpNodeType
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlExpNodeType))))))
+  (define-syntax
+    array-set-c-xmlExpNodeType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlExpNodeType!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlExpNodeType))
+         ?value))))
   (define XML_EXP_EMPTY @VALUEOF_XML_EXP_EMPTY@)
   (define XML_EXP_FORBID @VALUEOF_XML_EXP_FORBID@)
   (define XML_EXP_ATOM @VALUEOF_XML_EXP_ATOM@)
@@ -9196,6 +10579,31 @@
   (define
     pointer-set-c-xmlSaveOption!
     @SETTEROF_XMLSAVEOPTION@)
+  (define-syntax
+    sizeof-xmlSaveOption-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlSaveOption ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSaveOption
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlSaveOption
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSaveOption))))))
+  (define-syntax
+    array-set-c-xmlSaveOption!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlSaveOption!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSaveOption))
+         ?value))))
   (define
     XML_SAVE_FORMAT
     @VALUEOF_XML_SAVE_FORMAT@)
@@ -9235,6 +10643,31 @@
   (define
     pointer-set-c-xmlSchemaValType!
     @SETTEROF_XMLSCHEMAVALTYPE@)
+  (define-syntax
+    sizeof-xmlSchemaValType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlSchemaValType ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaValType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlSchemaValType
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchemaValType))))))
+  (define-syntax
+    array-set-c-xmlSchemaValType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlSchemaValType!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchemaValType))
+         ?value))))
   (define
     XML_SCHEMAS_UNKNOWN
     @VALUEOF_XML_SCHEMAS_UNKNOWN@)
@@ -9392,6 +10825,31 @@
   (define
     pointer-set-c-xmlSchemaTypeType!
     @SETTEROF_XMLSCHEMATYPETYPE@)
+  (define-syntax
+    sizeof-xmlSchemaTypeType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlSchemaTypeType ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaTypeType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlSchemaTypeType
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchemaTypeType))))))
+  (define-syntax
+    array-set-c-xmlSchemaTypeType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlSchemaTypeType!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchemaTypeType))
+         ?value))))
   (define
     XML_SCHEMA_TYPE_BASIC
     @VALUEOF_XML_SCHEMA_TYPE_BASIC@)
@@ -9530,6 +10988,32 @@
   (define
     pointer-set-c-xmlSchemaContentType!
     @SETTEROF_XMLSCHEMACONTENTTYPE@)
+  (define-syntax
+    sizeof-xmlSchemaContentType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlSchemaContentType
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaContentType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlSchemaContentType
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchemaContentType))))))
+  (define-syntax
+    array-set-c-xmlSchemaContentType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlSchemaContentType!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchemaContentType))
+         ?value))))
   (define
     XML_SCHEMA_CONTENT_UNKNOWN
     @VALUEOF_XML_SCHEMA_CONTENT_UNKNOWN@)
@@ -9575,6 +11059,20 @@
   (define
     strideof-xmlSchemaAnnot
     @STRIDEOF_XMLSCHEMAANNOT@)
+  (define-syntax
+    sizeof-xmlSchemaAnnot-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlSchemaAnnot ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaAnnot
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlSchemaAnnot)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlSchemaAnnot-next-set!
     struct-xmlSchemaAnnot-next-ref
@@ -9637,6 +11135,21 @@
   (define
     strideof-xmlSchemaAttribute
     @STRIDEOF_XMLSCHEMAATTRIBUTE@)
+  (define-syntax
+    sizeof-xmlSchemaAttribute-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlSchemaAttribute
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaAttribute
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlSchemaAttribute)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlSchemaAttribute-type-set!
     struct-xmlSchemaAttribute-type-ref
@@ -9763,6 +11276,21 @@
   (define
     strideof-xmlSchemaAttributeLink
     @STRIDEOF_XMLSCHEMAATTRIBUTELINK@)
+  (define-syntax
+    sizeof-xmlSchemaAttributeLink-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlSchemaAttributeLink
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaAttributeLink
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlSchemaAttributeLink)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlSchemaAttributeLink-next-set!
     struct-xmlSchemaAttributeLink-next-ref
@@ -9786,6 +11314,21 @@
   (define
     strideof-xmlSchemaWildcardNs
     @STRIDEOF_XMLSCHEMAWILDCARDNS@)
+  (define-syntax
+    sizeof-xmlSchemaWildcardNs-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlSchemaWildcardNs
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaWildcardNs
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlSchemaWildcardNs)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlSchemaWildcardNs-next-set!
     struct-xmlSchemaWildcardNs-next-ref
@@ -9810,6 +11353,21 @@
   (define
     strideof-xmlSchemaWildcard
     @STRIDEOF_XMLSCHEMAWILDCARD@)
+  (define-syntax
+    sizeof-xmlSchemaWildcard-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlSchemaWildcard
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaWildcard
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlSchemaWildcard)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlSchemaWildcard-type-set!
     struct-xmlSchemaWildcard-type-ref
@@ -10095,6 +11653,21 @@
   (define
     strideof-xmlSchemaAttributeGroup
     @STRIDEOF_XMLSCHEMAATTRIBUTEGROUP@)
+  (define-syntax
+    sizeof-xmlSchemaAttributeGroup-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlSchemaAttributeGroup
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaAttributeGroup
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlSchemaAttributeGroup)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlSchemaAttributeGroup-type-set!
     struct-xmlSchemaAttributeGroup-type-ref
@@ -10197,6 +11770,21 @@
   (define
     strideof-xmlSchemaTypeLink
     @STRIDEOF_XMLSCHEMATYPELINK@)
+  (define-syntax
+    sizeof-xmlSchemaTypeLink-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlSchemaTypeLink
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaTypeLink
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlSchemaTypeLink)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlSchemaTypeLink-next-set!
     struct-xmlSchemaTypeLink-next-ref
@@ -10221,6 +11809,21 @@
   (define
     strideof-xmlSchemaFacetLink
     @STRIDEOF_XMLSCHEMAFACETLINK@)
+  (define-syntax
+    sizeof-xmlSchemaFacetLink-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlSchemaFacetLink
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaFacetLink
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlSchemaFacetLink)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlSchemaFacetLink-next-set!
     struct-xmlSchemaFacetLink-next-ref
@@ -10245,6 +11848,20 @@
   (define
     strideof-xmlSchemaElement
     @STRIDEOF_XMLSCHEMAELEMENT@)
+  (define-syntax
+    sizeof-xmlSchemaElement-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlSchemaElement ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaElement
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlSchemaElement)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlSchemaElement-type-set!
     struct-xmlSchemaElement-type-ref
@@ -10413,6 +12030,21 @@
   (define
     strideof-xmlSchemaNotation
     @STRIDEOF_XMLSCHEMANOTATION@)
+  (define-syntax
+    sizeof-xmlSchemaNotation-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlSchemaNotation
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaNotation
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlSchemaNotation)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlSchemaNotation-type-set!
     struct-xmlSchemaNotation-type-ref
@@ -10461,6 +12093,32 @@
   (define
     pointer-set-c-xmlSchemaValidError!
     @SETTEROF_XMLSCHEMAVALIDERROR@)
+  (define-syntax
+    sizeof-xmlSchemaValidError-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlSchemaValidError
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaValidError
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlSchemaValidError
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchemaValidError))))))
+  (define-syntax
+    array-set-c-xmlSchemaValidError!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlSchemaValidError!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchemaValidError))
+         ?value))))
   (define
     XML_SCHEMAS_ERR_OK
     @VALUEOF_XML_SCHEMAS_ERR_OK@)
@@ -10557,6 +12215,32 @@
   (define
     pointer-set-c-xmlSchemaValidOption!
     @SETTEROF_XMLSCHEMAVALIDOPTION@)
+  (define-syntax
+    sizeof-xmlSchemaValidOption-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlSchemaValidOption
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaValidOption
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlSchemaValidOption
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchemaValidOption))))))
+  (define-syntax
+    array-set-c-xmlSchemaValidOption!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlSchemaValidOption!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchemaValidOption))
+         ?value))))
   (define
     XML_SCHEMA_VAL_VC_I_CREATE
     @VALUEOF_XML_SCHEMA_VAL_VC_I_CREATE@)
@@ -10588,6 +12272,32 @@
   (define
     pointer-set-c-xmlSchemaWhitespaceValueType!
     @SETTEROF_XMLSCHEMAWHITESPACEVALUETYPE@)
+  (define-syntax
+    sizeof-xmlSchemaWhitespaceValueType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlSchemaWhitespaceValueType
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlSchemaWhitespaceValueType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlSchemaWhitespaceValueType
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchemaWhitespaceValueType))))))
+  (define-syntax
+    array-set-c-xmlSchemaWhitespaceValueType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlSchemaWhitespaceValueType!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlSchemaWhitespaceValueType))
+         ?value))))
   (define
     XML_SCHEMA_WHITESPACE_UNKNOWN
     @VALUEOF_XML_SCHEMA_WHITESPACE_UNKNOWN@)
@@ -10734,6 +12444,31 @@
   (define
     pointer-set-c-xmlXPathError!
     @SETTEROF_XMLXPATHERROR@)
+  (define-syntax
+    sizeof-xmlXPathError-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlXPathError ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlXPathError
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlXPathError
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlXPathError))))))
+  (define-syntax
+    array-set-c-xmlXPathError!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlXPathError!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlXPathError))
+         ?value))))
   (define
     XPATH_EXPRESSION_OK
     @VALUEOF_XPATH_EXPRESSION_OK@)
@@ -10810,6 +12545,20 @@
   (define
     strideof-xmlNodeSet
     @STRIDEOF_XMLNODESET@)
+  (define-syntax
+    sizeof-xmlNodeSet-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlNodeSet ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlNodeSet
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlNodeSet)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlNodeSet-nodeNr-set!
     struct-xmlNodeSet-nodeNr-ref
@@ -10846,6 +12595,31 @@
   (define
     pointer-set-c-xmlXPathObjectType!
     @SETTEROF_XMLXPATHOBJECTTYPE@)
+  (define-syntax
+    sizeof-xmlXPathObjectType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-xmlXPathObjectType ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlXPathObjectType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-xmlXPathObjectType
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlXPathObjectType))))))
+  (define-syntax
+    array-set-c-xmlXPathObjectType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-xmlXPathObjectType!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-xmlXPathObjectType))
+         ?value))))
   (define
     XPATH_UNDEFINED
     @VALUEOF_XPATH_UNDEFINED@)
@@ -10873,6 +12647,20 @@
   (define
     strideof-xmlXPathObject
     @STRIDEOF_XMLXPATHOBJECT@)
+  (define-syntax
+    sizeof-xmlXPathObject-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlXPathObject ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlXPathObject
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlXPathObject)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlXPathObject-type-set!
     struct-xmlXPathObject-type-ref
@@ -10938,6 +12726,20 @@
   (define
     strideof-xmlXPathType
     @STRIDEOF_XMLXPATHTYPE@)
+  (define-syntax
+    sizeof-xmlXPathType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlXPathType ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlXPathType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlXPathType)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlXPathType-name-set!
     struct-xmlXPathType-name-ref
@@ -10961,6 +12763,20 @@
   (define
     strideof-xmlXPathVariable
     @STRIDEOF_XMLXPATHVARIABLE@)
+  (define-syntax
+    sizeof-xmlXPathVariable-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlXPathVariable ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlXPathVariable
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlXPathVariable)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlXPathVariable-name-set!
     struct-xmlXPathVariable-name-ref
@@ -10984,6 +12800,20 @@
   (define
     strideof-xmlXPathFunct
     @STRIDEOF_XMLXPATHFUNCT@)
+  (define-syntax
+    sizeof-xmlXPathFunct-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlXPathFunct ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlXPathFunct
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlXPathFunct)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlXPathFunct-name-set!
     struct-xmlXPathFunct-name-ref
@@ -11007,6 +12837,20 @@
   (define
     strideof-xmlXPathAxis
     @STRIDEOF_XMLXPATHAXIS@)
+  (define-syntax
+    sizeof-xmlXPathAxis-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlXPathAxis ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlXPathAxis
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlXPathAxis)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlXPathAxis-name-set!
     struct-xmlXPathAxis-name-ref
@@ -11034,6 +12878,20 @@
   (define
     strideof-xmlXPathContext
     @STRIDEOF_XMLXPATHCONTEXT@)
+  (define-syntax
+    sizeof-xmlXPathContext-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlXPathContext ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlXPathContext
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlXPathContext)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlXPathContext-doc-set!
     struct-xmlXPathContext-doc-ref
@@ -11276,6 +13134,21 @@
   (define
     strideof-xmlXPathParserContext
     @STRIDEOF_XMLXPATHPARSERCONTEXT@)
+  (define-syntax
+    sizeof-xmlXPathParserContext-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlXPathParserContext
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlXPathParserContext
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlXPathParserContext)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlXPathParserContext-cur-set!
     struct-xmlXPathParserContext-cur-ref
@@ -11359,6 +13232,20 @@
   (define
     strideof-xmlLocationSet
     @STRIDEOF_XMLLOCATIONSET@)
+  (define-syntax
+    sizeof-xmlLocationSet-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-xmlLocationSet ?number-of-elements))))
+  (define-syntax
+    array-ref-c-xmlLocationSet
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-xmlLocationSet)))))
   (define-c-struct-accessor-and-mutator
     struct-xmlLocationSet-locNr-set!
     struct-xmlLocationSet-locNr-ref

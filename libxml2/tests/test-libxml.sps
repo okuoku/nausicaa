@@ -197,18 +197,17 @@
 	    (define nodeset result.nodesetval)
 	    (define-xmlNodeSet nodeset)
 	    (define nodetab nodeset.nodeTab)
-	    ;; (let loop ((i    0)
-	    ;; 	       (keys '()))
-	    ;;   (if (= i nodeset.nodeNr)
-	    ;; 	  keys
-	    ;; 	)
-	    ;; (define-xmlNode nodetab)
-	    ;; (display nodeset.nodeNr)(newline)
-
-
-	    #f)))
-
-    => #f)
+	    (let loop ((i    0)
+	    	       (keys '()))
+	      (if (= i nodeset.nodeNr)
+	    	  keys
+		(let ((node (array-ref-c-pointer nodeset.nodeTab i)))
+		  (define-xmlNode node)
+		  (loop (+ 1 i) (cons
+				 (cstring->string node.name)
+				 keys)))))
+	    )))
+    => '("beta"))
 
   #t)
 

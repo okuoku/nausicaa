@@ -2,7 +2,7 @@ dnl (xml libxml2 sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Tue Mar 23, 2010
+dnl Date: Fri Mar 26, 2010
 dnl
 dnl Abstract
 dnl
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_LIBXML],[
 
 NAUSICAA_INSPECT_TYPE([XMLC14NMODE],[xmlC14NMode],[signed-int],[#f])
 
@@ -2217,5 +2218,9 @@ NAUSICAA_INSPECT_FIELD_TYPE([XMLLOCATIONSET_LOCMAX],[xmlLocationSet],[locMax],[s
 NAUSICAA_INSPECT_FIELD_TYPE([XMLLOCATIONSET_LOCTAB],[xmlLocationSet],[locTab],[pointer])
 NAU_DS_WITH_OPTION([LIBXML2_SHARED_OBJECT],[libxml2-shared-object],[libxml2.so],
   [Libxml2 shared library file],[select Libxml2 shared library file])
+
+
+])
+
 
 dnl end of file
