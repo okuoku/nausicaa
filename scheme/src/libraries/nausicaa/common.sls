@@ -75,7 +75,8 @@
     define-values define-constant
 
     ;; macro definition helpers
-    define-identifier-accessor-mutator define-inline
+    define-identifier-accessor-mutator identifier-syntax-accessor-mutator
+    define-inline
 
     ;; shared structures
     read-with-shared-structure

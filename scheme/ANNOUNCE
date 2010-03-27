@@ -53,7 +53,8 @@ Notes for --- tag 0.1a11
 * Renamed  DEFINE-IDENTIFIER-MACRO  in (language-extensions)
   to DEFINE-IDENTIFIER-ACCESSOR-MUTATOR.
 
-* Added DEFINE-CONSTANT to (language-extensions).
+* Added  DEFINE-CONSTANT, IDENTIFIER-SYNTAX-ACCESSOR-MUTATOR
+  to (language-extensions).
 
 * Added   DEFINE-WITH-STRUCT  and   DEFINE-STRUCT-FIELDS  to
   (foreign ffi utilities).

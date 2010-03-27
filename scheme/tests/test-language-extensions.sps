@@ -517,6 +517,17 @@
 	a)
     => 123)
 
+  (check
+      (guard (E ((syntax-violation? E)
+		 #t)
+		(else #f))
+	(eval '(letrec ()
+		 (define-constant a 123)
+		 (set! a 4)
+		 a)
+	      (environment '(nausicaa))))
+    => #t)
+
   #t)
 
 
@@ -755,6 +766,33 @@
 	(define z (* x y))
 	(/ z))
     => 1/6)
+
+  #t)
+
+
+(parametrise ((check-test-name	'identifier-syntax))
+
+  (check
+      (let ((a 1))
+	(define-identifier-accessor-mutator alpha a
+	  (lambda (x) x) set!)
+	alpha)
+    => 1)
+
+  (check
+      (let ((a 1))
+	(define-identifier-accessor-mutator alpha a
+	  (lambda (x) x))
+	alpha)
+    => 1)
+
+  (check
+      (let ((a 1))
+	(define-identifier-accessor-mutator alpha a
+	  (lambda (x) x) set!)
+	(set! alpha 2)
+	alpha)
+    => 2)
 
   #t)
 

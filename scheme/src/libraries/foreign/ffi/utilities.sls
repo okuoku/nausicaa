@@ -89,7 +89,12 @@
       ((_ ?shared-object ?ret-type ?funcname (?arg-type0 ?arg-type ...))
        (with-syntax ((RET	(clang-quote-type-stx-if-external #'?ret-type))
 		     ((ARG ...)	(map clang-quote-type-stx-if-external #'(?arg-type0 ?arg-type ...))))
-	 #'(make-c-function ?shared-object RET '?funcname (list ARG ...)))))))
+	 #'(make-c-function ?shared-object RET '?funcname (list ARG ...))))
+      ((_ ?shared-object ?ret-type ?funcname ((?arg-type0 ?arg-name0) (?arg-type ?arg-name) ...))
+       (with-syntax ((RET	(clang-quote-type-stx-if-external #'?ret-type))
+		     ((ARG ...)	(map clang-quote-type-stx-if-external #'(?arg-type0 ?arg-type ...))))
+	 #'(make-c-function ?shared-object RET '?funcname (list ARG ...))))
+      )))
 
 (define-syntax make-c-function/with-errno*
   (lambda (stx)
@@ -97,7 +102,12 @@
       ((_ ?shared-object ?ret-type ?funcname (?arg-type0 ?arg-type ...))
        (with-syntax ((RET	(clang-quote-type-stx-if-external #'?ret-type))
 		     ((ARG ...)	(map clang-quote-type-stx-if-external #'(?arg-type0 ?arg-type ...))))
-	 #'(make-c-function/with-errno ?shared-object RET '?funcname (list ARG ...)))))))
+	 #'(make-c-function/with-errno ?shared-object RET '?funcname (list ARG ...))))
+      ((_ ?shared-object ?ret-type ?funcname ((?arg-type0 ?arg-name0) (?arg-type ?arg-name) ...))
+       (with-syntax ((RET	(clang-quote-type-stx-if-external #'?ret-type))
+		     ((ARG ...)	(map clang-quote-type-stx-if-external #'(?arg-type0 ?arg-type ...))))
+	 #'(make-c-function/with-errno ?shared-object RET '?funcname (list ARG ...))))
+      )))
 
 (define-syntax make-c-callout*
   (lambda (stx)
@@ -105,7 +115,12 @@
       ((_ ?ret-type ?address (?arg-type0 ?arg-type ...))
        (with-syntax ((RET	(clang-quote-type-stx-if-external #'?ret-type))
 		     ((ARG ...)	(map clang-quote-type-stx-if-external #'(?arg-type0 ?arg-type ...))))
-	 #'(make-c-callout RET ?address (list ARG ...)))))))
+	 #'(make-c-callout RET ?address (list ARG ...))))
+      ((_ ?ret-type ?address ((?arg-type0 ?arg-name0) (?arg-type ?arg-name) ...))
+       (with-syntax ((RET	(clang-quote-type-stx-if-external #'?ret-type))
+		     ((ARG ...)	(map clang-quote-type-stx-if-external #'(?arg-type0 ?arg-type ...))))
+	 #'(make-c-callout RET ?address (list ARG ...))))
+      )))
 
 (define-syntax make-c-callout/with-errno*
   (lambda (stx)
@@ -113,7 +128,12 @@
       ((_ ?ret-type ?address (?arg-type0 ?arg-type ...))
        (with-syntax ((RET	(clang-quote-type-stx-if-external #'?ret-type))
 		     ((ARG ...)	(map clang-quote-type-stx-if-external #'(?arg-type0 ?arg-type ...))))
-	 #'(make-c-callout/with-errno RET ?address (list ARG ...)))))))
+	 #'(make-c-callout/with-errno RET ?address (list ARG ...))))
+      ((_ ?ret-type ?address ((?arg-type0 ?arg-name0) (?arg-type ?arg-name) ...))
+       (with-syntax ((RET	(clang-quote-type-stx-if-external #'?ret-type))
+		     ((ARG ...)	(map clang-quote-type-stx-if-external #'(?arg-type0 ?arg-type ...))))
+	 #'(make-c-callout/with-errno RET ?address (list ARG ...))))
+      )))
 
 (define-syntax make-c-callback*
   (lambda (stx)
@@ -121,7 +141,12 @@
       ((_ ?ret-type ?scheme-function (?arg-type0 ?arg-type ...))
        (with-syntax ((RET	(clang-quote-type-stx-if-external #'?ret-type))
 		     ((ARG ...)	(map clang-quote-type-stx-if-external #'(?arg-type0 ?arg-type ...))))
-	 #'(make-c-callback RET ?scheme-function (list ARG ...)))))))
+	 #'(make-c-callback RET ?scheme-function (list ARG ...))))
+      ((_ ?ret-type ?scheme-function ((?arg-type0 ?arg-name0) (?arg-type ?arg-name) ...))
+       (with-syntax ((RET	(clang-quote-type-stx-if-external #'?ret-type))
+		     ((ARG ...)	(map clang-quote-type-stx-if-external #'(?arg-type0 ?arg-type ...))))
+	 #'(make-c-callback RET ?scheme-function (list ARG ...))))
+      )))
 
 
 (define-syntax %define-struct-field-identifier

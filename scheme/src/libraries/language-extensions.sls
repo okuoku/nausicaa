@@ -184,8 +184,8 @@
     do* while while* do-while do-while*
     dotimes dolist loop-upon-list ensure
     set-cons! incr! decr!
-    define-identifier-accessor-mutator define-inline define-values
-    define-constant)
+    define-identifier-accessor-mutator identifier-syntax-accessor-mutator
+    define-inline define-values define-constant)
   (import (rnrs))
 
 
@@ -486,14 +486,20 @@
   (syntax-rules ()
     ((_ ?name ?thing ?accessor ?mutator)
      (define-syntax ?name
-       (identifier-syntax
-	(_		(?accessor ?thing))
-	((set! _ expr)	(?mutator  ?thing expr)))))
+       (identifier-syntax-accessor-mutator ?thing ?accessor ?mutator)))
     ((_ ?name ?thing ?accessor)
      (define-syntax ?name
-       (identifier-syntax
-	(_		(?accessor ?thing)))))
+       (identifier-syntax-accessor-mutator ?thing ?accessor)))
     ))
+
+(define-syntax identifier-syntax-accessor-mutator
+  (syntax-rules ()
+    ((_ ?thing ?accessor ?mutator)
+     (identifier-syntax
+      (_		(?accessor ?thing))
+      ((set! _ expr)	(?mutator  ?thing expr))))
+    ((_ ?thing ?accessor)
+     (identifier-syntax (?accessor ?thing)))))
 
 (define-syntax define-constant
   (syntax-rules ()

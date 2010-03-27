@@ -19573,23 +19573,37 @@ defined as:
 @end deffn
 
 
-@deffn Syntax define-identifier-accessor-mutator @ameta{thing} @ameta{accessor}
-@deffnx Syntax define-identifier-accessor-mutator @ameta{thing} @ameta{accessor} @ameta{mutator}
+@deffn Syntax define-identifier-accessor-mutator @ameta{name} @ameta{thing} @ameta{accessor}
+@deffnx Syntax define-identifier-accessor-mutator @ameta{name} @ameta{thing} @ameta{accessor} @ameta{mutator}
 Helper for the definition of an identifier syntax.  It is defined as:
 
-@example
+@smallexample
 (define-syntax define-identifier-accessor-mutator
   (syntax-rules ()
     ((_ ?name ?thing ?accessor ?mutator)
      (define-syntax ?name
-       (identifier-syntax
-        (_              (?accessor ?thing))
-        ((set! _ expr)  (?mutator  ?thing expr)))))
+       (identifier-syntax-accessor-mutator ?thing ?accessor ?mutator)))
     ((_ ?name ?thing ?accessor)
      (define-syntax ?name
-       (identifier-syntax
-        (_              (?accessor ?thing)))))))
-@end example
+       (identifier-syntax-accessor-mutator ?thing ?accessor)))))
+@end smallexample
+@end deffn
+
+
+@deffn Syntax identifier-syntax-accessor-mutator @ameta{thing} @ameta{accessor}
+@deffnx Syntax identifier-syntax-accessor-mutator @ameta{thing} @ameta{accessor} @ameta{mutator}
+Helper for the definition of an identifier syntax.  It is defined as:
+
+@smallexample
+(define-syntax identifier-syntax-accessor-mutator
+  (syntax-rules ()
+    ((_ ?thing ?accessor ?mutator)
+     (identifier-syntax
+      (_                (?accessor ?thing))
+      ((set! _ expr)    (?mutator  ?thing expr))))
+    ((_ ?thing ?accessor)
+     (identifier-syntax (?accessor ?thing)))))
+@end smallexample
 @end deffn
 
 @c page
