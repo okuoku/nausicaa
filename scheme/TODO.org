@@ -8,8 +8,6 @@
 
 * nausicaa
 
-  Fix the precompilation problems with Larceny.
-
   Why I cannot install only the FASL files under ikarus?
 
 * records

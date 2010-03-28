@@ -486,11 +486,12 @@
   (syntax-rules ()
     ((_ ?name ?thing ?accessor ?mutator)
      (define-syntax ?name
-       (identifier-syntax-accessor-mutator ?thing ?accessor ?mutator)))
+       (identifier-syntax
+	(_		(?accessor ?thing))
+	((set! _ expr)	(?mutator  ?thing expr)))))
     ((_ ?name ?thing ?accessor)
      (define-syntax ?name
-       (identifier-syntax-accessor-mutator ?thing ?accessor)))
-    ))
+       (identifier-syntax (?accessor ?thing))))))
 
 (define-syntax identifier-syntax-accessor-mutator
   (syntax-rules ()
