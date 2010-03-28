@@ -69,7 +69,9 @@
 (define-shared-object blas  libblas.so)
 (define-shared-object cblas libcblas.so)
 
-(autoconf-lib-write "configuration/blas-inspector.m4" blas-library-spec)
+(autoconf-lib-write "configuration/blas-inspector.m4"
+		    blas-library-spec
+		    "NAUSICAA_BLAS")
 (sizeof-lib-write   "src/libraries/foreign/math/blas/sizeof.sls.in" blas-library-spec)
 
 ;;; end of file

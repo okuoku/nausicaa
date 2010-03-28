@@ -76,17 +76,17 @@
 
 ;;; --------------------------------------------------------------------
 
-  (check
-      (with-compensations
-	(let* ((N	3)
-	       (SB	1000.)
-	       (SX	(vm:svec/c N))
-	       (SY	(vm:svec/c N)))
-	  (vm:svec-fill! SX 1 '(1. 2. 3.))
-	  (vm:svec-fill! SY 1 '(4. 5. 6.))
-	  (blas:sdsdot 1 SB SX 1 SY 1)))
-    (=> eqf?)
-    1032.)
+  ;; (check
+  ;;     (with-compensations
+  ;; 	(let* ((N	3)
+  ;; 	       (SB	1000.)
+  ;; 	       (SX	(vm:svec/c N))
+  ;; 	       (SY	(vm:svec/c N)))
+  ;; 	  (vm:svec-fill! SX 1 '(1. 2. 3.))
+  ;; 	  (vm:svec-fill! SY 1 '(4. 5. 6.))
+  ;; 	  (blas:sdsdot 1 SB SX 1 SY 1)))
+  ;;   (=> eqf?)
+  ;;   1032.)
 
 ;;; --------------------------------------------------------------------
 

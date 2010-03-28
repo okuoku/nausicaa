@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Mon Feb  1, 2010
+;;;Date: Sun Mar 28, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -35,6 +35,8 @@
     strideof-CBLAS_ORDER
     pointer-ref-c-CBLAS_ORDER
     pointer-set-c-CBLAS_ORDER!
+    array-ref-c-CBLAS_ORDER
+    array-set-c-CBLAS_ORDER!
     CblasRowMajor
     CblasColMajor
     CBLAS_TRANSPOSE
@@ -43,6 +45,8 @@
     strideof-CBLAS_TRANSPOSE
     pointer-ref-c-CBLAS_TRANSPOSE
     pointer-set-c-CBLAS_TRANSPOSE!
+    array-ref-c-CBLAS_TRANSPOSE
+    array-set-c-CBLAS_TRANSPOSE!
     CblasNoTrans
     CblasTrans
     CblasConjTrans
@@ -52,6 +56,8 @@
     strideof-CBLAS_UPLO
     pointer-ref-c-CBLAS_UPLO
     pointer-set-c-CBLAS_UPLO!
+    array-ref-c-CBLAS_UPLO
+    array-set-c-CBLAS_UPLO!
     CblasUpper
     CblasLower
     CBLAS_DIAG
@@ -60,6 +66,8 @@
     strideof-CBLAS_DIAG
     pointer-ref-c-CBLAS_DIAG
     pointer-set-c-CBLAS_DIAG!
+    array-ref-c-CBLAS_DIAG
+    array-set-c-CBLAS_DIAG!
     CblasNonUnit
     CblasUnit
     CBLAS_SIDE
@@ -68,6 +76,8 @@
     strideof-CBLAS_SIDE
     pointer-ref-c-CBLAS_SIDE
     pointer-set-c-CBLAS_SIDE!
+    array-ref-c-CBLAS_SIDE
+    array-set-c-CBLAS_SIDE!
     CblasLeft
     CblasRight
     BLAS_SHARED_OBJECT
@@ -91,6 +101,31 @@
   (define
     pointer-set-c-CBLAS_ORDER!
     @SETTEROF_CBLAS_ORDER@)
+  (define-syntax
+    sizeof-CBLAS_ORDER-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CBLAS_ORDER ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CBLAS_ORDER
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CBLAS_ORDER
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CBLAS_ORDER))))))
+  (define-syntax
+    array-set-c-CBLAS_ORDER!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CBLAS_ORDER!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CBLAS_ORDER))
+         ?value))))
   (define CblasRowMajor @VALUEOF_CblasRowMajor@)
   (define CblasColMajor @VALUEOF_CblasColMajor@)
   (define
@@ -111,6 +146,31 @@
   (define
     pointer-set-c-CBLAS_TRANSPOSE!
     @SETTEROF_CBLAS_TRANSPOSE@)
+  (define-syntax
+    sizeof-CBLAS_TRANSPOSE-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CBLAS_TRANSPOSE ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CBLAS_TRANSPOSE
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CBLAS_TRANSPOSE
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CBLAS_TRANSPOSE))))))
+  (define-syntax
+    array-set-c-CBLAS_TRANSPOSE!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CBLAS_TRANSPOSE!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CBLAS_TRANSPOSE))
+         ?value))))
   (define CblasNoTrans @VALUEOF_CblasNoTrans@)
   (define CblasTrans @VALUEOF_CblasTrans@)
   (define CblasConjTrans @VALUEOF_CblasConjTrans@)
@@ -126,6 +186,31 @@
   (define
     pointer-set-c-CBLAS_UPLO!
     @SETTEROF_CBLAS_UPLO@)
+  (define-syntax
+    sizeof-CBLAS_UPLO-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CBLAS_UPLO ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CBLAS_UPLO
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CBLAS_UPLO
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CBLAS_UPLO))))))
+  (define-syntax
+    array-set-c-CBLAS_UPLO!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CBLAS_UPLO!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CBLAS_UPLO))
+         ?value))))
   (define CblasUpper @VALUEOF_CblasUpper@)
   (define CblasLower @VALUEOF_CblasLower@)
   (define CBLAS_DIAG '@TYPEOF_CBLAS_DIAG@)
@@ -140,6 +225,31 @@
   (define
     pointer-set-c-CBLAS_DIAG!
     @SETTEROF_CBLAS_DIAG@)
+  (define-syntax
+    sizeof-CBLAS_DIAG-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CBLAS_DIAG ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CBLAS_DIAG
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CBLAS_DIAG
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CBLAS_DIAG))))))
+  (define-syntax
+    array-set-c-CBLAS_DIAG!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CBLAS_DIAG!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CBLAS_DIAG))
+         ?value))))
   (define CblasNonUnit @VALUEOF_CblasNonUnit@)
   (define CblasUnit @VALUEOF_CblasUnit@)
   (define CBLAS_SIDE '@TYPEOF_CBLAS_SIDE@)
@@ -154,6 +264,31 @@
   (define
     pointer-set-c-CBLAS_SIDE!
     @SETTEROF_CBLAS_SIDE@)
+  (define-syntax
+    sizeof-CBLAS_SIDE-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CBLAS_SIDE ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CBLAS_SIDE
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CBLAS_SIDE
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CBLAS_SIDE))))))
+  (define-syntax
+    array-set-c-CBLAS_SIDE!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CBLAS_SIDE!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CBLAS_SIDE))
+         ?value))))
   (define CblasLeft @VALUEOF_CblasLeft@)
   (define CblasRight @VALUEOF_CblasRight@)
   (define

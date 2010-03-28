@@ -1063,7 +1063,8 @@ SY(i) = SA * SX(i) + SY(i)
 Compute a Givens rotation@footnote{For an introduction see (@aurl{} last
 verified Wed Mar 17, 2010):
 
-@center @url{http://en.wikipedia.org/wiki/Givens_rotation}}
+@center @url{http://en.wikipedia.org/wiki/Givens_rotation}
+}
 which zeroes the second component of the vector of elements @var{SA} and
 @var{SB}; that is, compute @math{SC} and @math{SS} such that:
 

@@ -2,7 +2,7 @@ dnl (foreign math blas sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Mon Feb  1, 2010
+dnl Date: Sun Mar 28, 2010
 dnl
 dnl Abstract
 dnl
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_BLAS],[
 
 NAUSICAA_INSPECT_TYPE([CBLAS_ORDER],[enum CBLAS_ORDER],[signed-int],[#f])
 
@@ -55,5 +56,9 @@ NAU_DS_WITH_OPTION([BLAS_SHARED_OBJECT],[blas-shared-object],[libblas.so],
   [Blas shared library file],[select Blas shared library file])
 NAU_DS_WITH_OPTION([CBLAS_SHARED_OBJECT],[cblas-shared-object],[libcblas.so],
   [Cblas shared library file],[select Cblas shared library file])
+
+
+])
+
 
 dnl end of file
