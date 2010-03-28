@@ -2,13 +2,13 @@ dnl (foreign compression bzlib sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Fri Dec  4, 2009
+dnl Date: Sun Mar 28, 2010
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software:  you can redistribute it and/or modify
 dnl it under the terms of the  GNU General Public License as published by
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_BZLIB],[
 
 
 dnl Preprocessor symbols: control codes
@@ -66,5 +67,9 @@ NAUSICAA_INSPECT_FIELD_TYPE([BZ_STREAM_BZFREE],[bz_stream],[bzfree],[pointer])
 NAUSICAA_INSPECT_FIELD_TYPE([BZ_STREAM_OPAQUE],[bz_stream],[opaque],[pointer])
 NAU_DS_WITH_OPTION([BZLIB_SHARED_OBJECT],[bzlib-shared-object],[libbz2.so],
   [Bzlib shared library file],[select Bzlib shared library file])
+
+
+])
+
 
 dnl end of file

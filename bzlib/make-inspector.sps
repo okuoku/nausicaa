@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -85,7 +85,8 @@
 
 (define-shared-object bzlib libbz2.so)
 
-(autoconf-lib-write "configuration/bzlib-inspector.m4" bzlib-library-spec)
+(autoconf-lib-write "configuration/bzlib-inspector.m4" bzlib-library-spec
+		    "NAUSICAA_BZLIB")
 (sizeof-lib-write   "src/libraries/foreign/compression/bzlib/sizeof.sls.in" bzlib-library-spec)
 
 ;;; end of file

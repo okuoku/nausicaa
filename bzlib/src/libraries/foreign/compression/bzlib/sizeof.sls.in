@@ -2,13 +2,13 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Fri Dec  4, 2009
+;;;Date: Sun Mar 28, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -51,6 +51,7 @@
     sizeof-bz_stream
     alignof-bz_stream
     strideof-bz_stream
+    array-ref-c-bz_stream
     struct-bz_stream-next_in-set!
     struct-bz_stream-next_in-ref
     struct-bz_stream-avail_in-set!
@@ -113,6 +114,20 @@
   (define sizeof-bz_stream @SIZEOF_BZ_STREAM@)
   (define alignof-bz_stream @ALIGNOF_BZ_STREAM@)
   (define strideof-bz_stream @STRIDEOF_BZ_STREAM@)
+  (define-syntax
+    sizeof-bz_stream-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-bz_stream ?number-of-elements))))
+  (define-syntax
+    array-ref-c-bz_stream
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-bz_stream)))))
   (define-c-struct-accessor-and-mutator
     struct-bz_stream-next_in-set!
     struct-bz_stream-next_in-ref

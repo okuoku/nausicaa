@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-bzlib],[0.1b1],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-bzlib],[0.1b2],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/compression/bzlib.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
@@ -54,7 +54,7 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #include <bzlib.h>
 ])
 
-m4_include([configuration/bzlib-inspector.m4])
+NAUSICAA_BZLIB
 
 dnl page
 dnl --------------------------------------------------------------------
