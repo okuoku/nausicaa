@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -38,28 +38,6 @@
 ;;;; C types
 
 (define-c-type cairo_bool_t			unsigned-int)
-(define-c-type cairo_status_t			unsigned-int)
-(define-c-type cairo_content_t			unsigned-int)
-(define-c-type cairo_operator_t			unsigned-int)
-(define-c-type cairo_antialias_t		unsigned-int)
-(define-c-type cairo_fill_rule_t		unsigned-int)
-(define-c-type cairo_line_cap_t			unsigned-int)
-(define-c-type cairo_line_join_t		unsigned-int)
-(define-c-type cairo_text_cluster_flags_t	unsigned-int)
-(define-c-type cairo_font_slant_t		unsigned-int)
-(define-c-type cairo_font_weight_t		unsigned-int)
-(define-c-type cairo_subpixel_order_t		unsigned-int)
-(define-c-type cairo_hint_style_t		unsigned-int)
-(define-c-type cairo_hint_metrics_t		unsigned-int)
-(define-c-type cairo_font_type_t		unsigned-int)
-(define-c-type cairo_path_data_type_t		unsigned-int)
-(define-c-type cairo_surface_type_t		unsigned-int)
-(define-c-type cairo_format_t			unsigned-int)
-(define-c-type cairo_pattern_type_t		unsigned-int)
-(define-c-type cairo_extend_t			unsigned-int)
-(define-c-type cairo_filter_t			unsigned-int)
-(define-c-type cairo_svg_version_t		unsigned-int)
-(define-c-type cairo_ps_level_t			unsigned-int)
 
 
 ;;;; data structures
@@ -146,6 +124,7 @@
   CAIRO_HAS_XLIB_XRENDER_SURFACE)
 
 (define-c-enumeration cairo_status_t
+  "cairo_status_t"
   CAIRO_STATUS_SUCCESS
   CAIRO_STATUS_NO_MEMORY
   CAIRO_STATUS_INVALID_RESTORE
@@ -180,11 +159,13 @@
   CAIRO_STATUS_INVALID_WEIGHT)
 
 (define-c-enumeration cairo_content_t
+  "cairo_content_t"
   CAIRO_CONTENT_COLOR
   CAIRO_CONTENT_ALPHA
   CAIRO_CONTENT_COLOR_ALPHA)
 
 (define-c-enumeration cairo_operator_t
+  "cairo_operator_t"
   CAIRO_OPERATOR_CLEAR
   CAIRO_OPERATOR_SOURCE
   CAIRO_OPERATOR_OVER
@@ -201,38 +182,46 @@
   CAIRO_OPERATOR_SATURATE)
 
 (define-c-enumeration cairo_antialias_t
+  "cairo_antialias_t"
   CAIRO_ANTIALIAS_DEFAULT
   CAIRO_ANTIALIAS_NONE
   CAIRO_ANTIALIAS_GRAY
   CAIRO_ANTIALIAS_SUBPIXEL)
 
 (define-c-enumeration cairo_fill_rule_t
+  "cairo_fill_rule_t"
   CAIRO_FILL_RULE_WINDING
   CAIRO_FILL_RULE_EVEN_ODD)
 
 (define-c-enumeration cairo_line_cap_t
+  "cairo_line_cap_t"
   CAIRO_LINE_CAP_BUTT
   CAIRO_LINE_CAP_ROUND
   CAIRO_LINE_CAP_SQUARE)
 
 (define-c-enumeration cairo_line_join_t
+  "cairo_line_join_t"
   CAIRO_LINE_JOIN_MITER
   CAIRO_LINE_JOIN_ROUND
   CAIRO_LINE_JOIN_BEVEL)
 
 (define-c-enumeration cairo_text_cluster_flags_t
+  "cairo_text_cluster_flags_t"
   CAIRO_TEXT_CLUSTER_FLAG_BACKWARD)
 
 (define-c-enumeration cairo_font_slant_t
+  "cairo_font_slant_t"
   CAIRO_FONT_SLANT_NORMAL
   CAIRO_FONT_SLANT_ITALIC
   CAIRO_FONT_SLANT_OBLIQUE)
 
 (define-c-enumeration cairo_font_weight_t
+  "cairo_font_weight_t"
   CAIRO_FONT_WEIGHT_NORMAL
   CAIRO_FONT_WEIGHT_BOLD)
 
 (define-c-enumeration cairo_subpixel_order_t
+  "cairo_subpixel_order_t"
   CAIRO_SUBPIXEL_ORDER_DEFAULT
   CAIRO_SUBPIXEL_ORDER_RGB
   CAIRO_SUBPIXEL_ORDER_BGR
@@ -240,6 +229,7 @@
   CAIRO_SUBPIXEL_ORDER_VBGR)
 
 (define-c-enumeration cairo_hint_style_t
+  "cairo_hint_style_t"
   CAIRO_HINT_STYLE_DEFAULT
   CAIRO_HINT_STYLE_NONE
   CAIRO_HINT_STYLE_SLIGHT
@@ -247,11 +237,13 @@
   CAIRO_HINT_STYLE_FULL)
 
 (define-c-enumeration cairo_hint_metrics_t
+  "cairo_hint_metrics_t"
   CAIRO_HINT_METRICS_DEFAULT
   CAIRO_HINT_METRICS_OFF
   CAIRO_HINT_METRICS_ON)
 
 (define-c-enumeration cairo_font_type_t
+  "cairo_font_type_t"
   CAIRO_FONT_TYPE_TOY
   CAIRO_FONT_TYPE_FT
   CAIRO_FONT_TYPE_WIN32
@@ -259,12 +251,14 @@
   CAIRO_FONT_TYPE_USER)
 
 (define-c-enumeration cairo_path_data_type_t
+  "cairo_path_data_type_t"
   CAIRO_PATH_MOVE_TO
   CAIRO_PATH_LINE_TO
   CAIRO_PATH_CURVE_TO
   CAIRO_PATH_CLOSE_PATH)
 
 (define-c-enumeration cairo_surface_type_t
+  "cairo_surface_type_t"
   CAIRO_SURFACE_TYPE_IMAGE
   CAIRO_SURFACE_TYPE_PDF
   CAIRO_SURFACE_TYPE_PS
@@ -281,24 +275,28 @@
   CAIRO_SURFACE_TYPE_QUARTZ_IMAGE)
 
 (define-c-enumeration cairo_format_t
+  "cairo_format_t"
   CAIRO_FORMAT_ARGB32
   CAIRO_FORMAT_RGB24
   CAIRO_FORMAT_A8
   CAIRO_FORMAT_A1)
 
 (define-c-enumeration cairo_pattern_type_t
+  "cairo_pattern_type_t"
   CAIRO_PATTERN_TYPE_SOLID
   CAIRO_PATTERN_TYPE_SURFACE
   CAIRO_PATTERN_TYPE_LINEAR
   CAIRO_PATTERN_TYPE_RADIAL)
 
 (define-c-enumeration cairo_extend_t
+  "cairo_extend_t"
   CAIRO_EXTEND_NONE
   CAIRO_EXTEND_REPEAT
   CAIRO_EXTEND_REFLECT
   CAIRO_EXTEND_PAD)
 
-(define-c-enumeration cairo_extend_t
+(define-c-enumeration cairo_filter_t
+  "cairo_filter_t"
   CAIRO_FILTER_FAST
   CAIRO_FILTER_GOOD
   CAIRO_FILTER_BEST
@@ -307,17 +305,20 @@
   CAIRO_FILTER_GAUSSIAN)
 
 (define-c-enumeration cairo_svg_version_t
+  "cairo_svg_version_t"
   CAIRO_SVG_VERSION_1_1
   CAIRO_SVG_VERSION_1_2)
 
 (define-c-enumeration cairo_ps_level_t
+  "cairo_ps_level_t"
   CAIRO_PS_LEVEL_2
   CAIRO_PS_LEVEL_3)
 
 
 ;;;; done
 
-(autoconf-lib-write "configuration/cairo-inspector.m4" cairo-library-spec)
+(autoconf-lib-write "configuration/cairo-inspector.m4" cairo-library-spec
+		    "NAUSICAA_CAIRO")
 (sizeof-lib-write   "src/libraries/foreign/graphics/cairo/sizeof.sls.in" cairo-library-spec)
 
 ;;; end of file

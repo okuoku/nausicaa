@@ -2,13 +2,13 @@ dnl (foreign graphics cairo sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Tue Dec  1, 2009
+dnl Date: Sun Mar 28, 2010
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software:  you can redistribute it and/or modify
 dnl it under the terms of the  GNU General Public License as published by
@@ -24,32 +24,11 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_CAIRO],[
 
 NAU_DS_WITH_OPTION([CAIRO_SHARED_OBJECT],[cairo-shared-object],[libcairo.so],
   [Cairo shared library file],[select Cairo shared library file])
 NAUSICAA_INSPECT_TYPE([CAIRO_BOOL_T],[cairo_bool_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_STATUS_T],[cairo_status_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_CONTENT_T],[cairo_content_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_OPERATOR_T],[cairo_operator_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_ANTIALIAS_T],[cairo_antialias_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_FILL_RULE_T],[cairo_fill_rule_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_LINE_CAP_T],[cairo_line_cap_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_LINE_JOIN_T],[cairo_line_join_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_TEXT_CLUSTER_FLAGS_T],[cairo_text_cluster_flags_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_FONT_SLANT_T],[cairo_font_slant_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_FONT_WEIGHT_T],[cairo_font_weight_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_SUBPIXEL_ORDER_T],[cairo_subpixel_order_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_HINT_STYLE_T],[cairo_hint_style_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_HINT_METRICS_T],[cairo_hint_metrics_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_FONT_TYPE_T],[cairo_font_type_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_PATH_DATA_TYPE_T],[cairo_path_data_type_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_SURFACE_TYPE_T],[cairo_surface_type_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_FORMAT_T],[cairo_format_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_PATTERN_TYPE_T],[cairo_pattern_type_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_EXTEND_T],[cairo_extend_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_FILTER_T],[cairo_filter_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_SVG_VERSION_T],[cairo_svg_version_t],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([CAIRO_PS_LEVEL_T],[cairo_ps_level_t],[unsigned-int],[#f])
 
 dnl Struct inspection: cairo_matrix_t
 NAUSICAA_INSPECT_STRUCT_TYPE([CAIRO_MATRIX_T],[cairo_matrix_t],[#f])
@@ -133,6 +112,7 @@ NAUSICAA_DEFINE_VALUE([CAIRO_HAS_WIN32_FONT])
 NAUSICAA_DEFINE_VALUE([CAIRO_HAS_WIN32_SURFACE])
 NAUSICAA_DEFINE_VALUE([CAIRO_HAS_XLIB_SURFACE])
 NAUSICAA_DEFINE_VALUE([CAIRO_HAS_XLIB_XRENDER_SURFACE])
+NAUSICAA_INSPECT_TYPE([CAIRO_STATUS_T],[cairo_status_t],[signed-int],[#f])
 
 dnl enum cairo_status_t
 NAUSICAA_ENUM_VALUE([CAIRO_STATUS_SUCCESS])
@@ -167,11 +147,13 @@ NAUSICAA_ENUM_VALUE([CAIRO_STATUS_NEGATIVE_COUNT])
 NAUSICAA_ENUM_VALUE([CAIRO_STATUS_INVALID_CLUSTERS])
 NAUSICAA_ENUM_VALUE([CAIRO_STATUS_INVALID_SLANT])
 NAUSICAA_ENUM_VALUE([CAIRO_STATUS_INVALID_WEIGHT])
+NAUSICAA_INSPECT_TYPE([CAIRO_CONTENT_T],[cairo_content_t],[signed-int],[#f])
 
 dnl enum cairo_content_t
 NAUSICAA_ENUM_VALUE([CAIRO_CONTENT_COLOR])
 NAUSICAA_ENUM_VALUE([CAIRO_CONTENT_ALPHA])
 NAUSICAA_ENUM_VALUE([CAIRO_CONTENT_COLOR_ALPHA])
+NAUSICAA_INSPECT_TYPE([CAIRO_OPERATOR_T],[cairo_operator_t],[signed-int],[#f])
 
 dnl enum cairo_operator_t
 NAUSICAA_ENUM_VALUE([CAIRO_OPERATOR_CLEAR])
@@ -188,38 +170,46 @@ NAUSICAA_ENUM_VALUE([CAIRO_OPERATOR_DEST_ATOP])
 NAUSICAA_ENUM_VALUE([CAIRO_OPERATOR_XOR])
 NAUSICAA_ENUM_VALUE([CAIRO_OPERATOR_ADD])
 NAUSICAA_ENUM_VALUE([CAIRO_OPERATOR_SATURATE])
+NAUSICAA_INSPECT_TYPE([CAIRO_ANTIALIAS_T],[cairo_antialias_t],[signed-int],[#f])
 
 dnl enum cairo_antialias_t
 NAUSICAA_ENUM_VALUE([CAIRO_ANTIALIAS_DEFAULT])
 NAUSICAA_ENUM_VALUE([CAIRO_ANTIALIAS_NONE])
 NAUSICAA_ENUM_VALUE([CAIRO_ANTIALIAS_GRAY])
 NAUSICAA_ENUM_VALUE([CAIRO_ANTIALIAS_SUBPIXEL])
+NAUSICAA_INSPECT_TYPE([CAIRO_FILL_RULE_T],[cairo_fill_rule_t],[signed-int],[#f])
 
 dnl enum cairo_fill_rule_t
 NAUSICAA_ENUM_VALUE([CAIRO_FILL_RULE_WINDING])
 NAUSICAA_ENUM_VALUE([CAIRO_FILL_RULE_EVEN_ODD])
+NAUSICAA_INSPECT_TYPE([CAIRO_LINE_CAP_T],[cairo_line_cap_t],[signed-int],[#f])
 
 dnl enum cairo_line_cap_t
 NAUSICAA_ENUM_VALUE([CAIRO_LINE_CAP_BUTT])
 NAUSICAA_ENUM_VALUE([CAIRO_LINE_CAP_ROUND])
 NAUSICAA_ENUM_VALUE([CAIRO_LINE_CAP_SQUARE])
+NAUSICAA_INSPECT_TYPE([CAIRO_LINE_JOIN_T],[cairo_line_join_t],[signed-int],[#f])
 
 dnl enum cairo_line_join_t
 NAUSICAA_ENUM_VALUE([CAIRO_LINE_JOIN_MITER])
 NAUSICAA_ENUM_VALUE([CAIRO_LINE_JOIN_ROUND])
 NAUSICAA_ENUM_VALUE([CAIRO_LINE_JOIN_BEVEL])
+NAUSICAA_INSPECT_TYPE([CAIRO_TEXT_CLUSTER_FLAGS_T],[cairo_text_cluster_flags_t],[signed-int],[#f])
 
 dnl enum cairo_text_cluster_flags_t
 NAUSICAA_ENUM_VALUE([CAIRO_TEXT_CLUSTER_FLAG_BACKWARD])
+NAUSICAA_INSPECT_TYPE([CAIRO_FONT_SLANT_T],[cairo_font_slant_t],[signed-int],[#f])
 
 dnl enum cairo_font_slant_t
 NAUSICAA_ENUM_VALUE([CAIRO_FONT_SLANT_NORMAL])
 NAUSICAA_ENUM_VALUE([CAIRO_FONT_SLANT_ITALIC])
 NAUSICAA_ENUM_VALUE([CAIRO_FONT_SLANT_OBLIQUE])
+NAUSICAA_INSPECT_TYPE([CAIRO_FONT_WEIGHT_T],[cairo_font_weight_t],[signed-int],[#f])
 
 dnl enum cairo_font_weight_t
 NAUSICAA_ENUM_VALUE([CAIRO_FONT_WEIGHT_NORMAL])
 NAUSICAA_ENUM_VALUE([CAIRO_FONT_WEIGHT_BOLD])
+NAUSICAA_INSPECT_TYPE([CAIRO_SUBPIXEL_ORDER_T],[cairo_subpixel_order_t],[signed-int],[#f])
 
 dnl enum cairo_subpixel_order_t
 NAUSICAA_ENUM_VALUE([CAIRO_SUBPIXEL_ORDER_DEFAULT])
@@ -227,6 +217,7 @@ NAUSICAA_ENUM_VALUE([CAIRO_SUBPIXEL_ORDER_RGB])
 NAUSICAA_ENUM_VALUE([CAIRO_SUBPIXEL_ORDER_BGR])
 NAUSICAA_ENUM_VALUE([CAIRO_SUBPIXEL_ORDER_VRGB])
 NAUSICAA_ENUM_VALUE([CAIRO_SUBPIXEL_ORDER_VBGR])
+NAUSICAA_INSPECT_TYPE([CAIRO_HINT_STYLE_T],[cairo_hint_style_t],[signed-int],[#f])
 
 dnl enum cairo_hint_style_t
 NAUSICAA_ENUM_VALUE([CAIRO_HINT_STYLE_DEFAULT])
@@ -234,11 +225,13 @@ NAUSICAA_ENUM_VALUE([CAIRO_HINT_STYLE_NONE])
 NAUSICAA_ENUM_VALUE([CAIRO_HINT_STYLE_SLIGHT])
 NAUSICAA_ENUM_VALUE([CAIRO_HINT_STYLE_MEDIUM])
 NAUSICAA_ENUM_VALUE([CAIRO_HINT_STYLE_FULL])
+NAUSICAA_INSPECT_TYPE([CAIRO_HINT_METRICS_T],[cairo_hint_metrics_t],[signed-int],[#f])
 
 dnl enum cairo_hint_metrics_t
 NAUSICAA_ENUM_VALUE([CAIRO_HINT_METRICS_DEFAULT])
 NAUSICAA_ENUM_VALUE([CAIRO_HINT_METRICS_OFF])
 NAUSICAA_ENUM_VALUE([CAIRO_HINT_METRICS_ON])
+NAUSICAA_INSPECT_TYPE([CAIRO_FONT_TYPE_T],[cairo_font_type_t],[signed-int],[#f])
 
 dnl enum cairo_font_type_t
 NAUSICAA_ENUM_VALUE([CAIRO_FONT_TYPE_TOY])
@@ -246,12 +239,14 @@ NAUSICAA_ENUM_VALUE([CAIRO_FONT_TYPE_FT])
 NAUSICAA_ENUM_VALUE([CAIRO_FONT_TYPE_WIN32])
 NAUSICAA_ENUM_VALUE([CAIRO_FONT_TYPE_QUARTZ])
 NAUSICAA_ENUM_VALUE([CAIRO_FONT_TYPE_USER])
+NAUSICAA_INSPECT_TYPE([CAIRO_PATH_DATA_TYPE_T],[cairo_path_data_type_t],[signed-int],[#f])
 
 dnl enum cairo_path_data_type_t
 NAUSICAA_ENUM_VALUE([CAIRO_PATH_MOVE_TO])
 NAUSICAA_ENUM_VALUE([CAIRO_PATH_LINE_TO])
 NAUSICAA_ENUM_VALUE([CAIRO_PATH_CURVE_TO])
 NAUSICAA_ENUM_VALUE([CAIRO_PATH_CLOSE_PATH])
+NAUSICAA_INSPECT_TYPE([CAIRO_SURFACE_TYPE_T],[cairo_surface_type_t],[signed-int],[#f])
 
 dnl enum cairo_surface_type_t
 NAUSICAA_ENUM_VALUE([CAIRO_SURFACE_TYPE_IMAGE])
@@ -268,39 +263,49 @@ NAUSICAA_ENUM_VALUE([CAIRO_SURFACE_TYPE_SVG])
 NAUSICAA_ENUM_VALUE([CAIRO_SURFACE_TYPE_OS2])
 NAUSICAA_ENUM_VALUE([CAIRO_SURFACE_TYPE_WIN32_PRINTING])
 NAUSICAA_ENUM_VALUE([CAIRO_SURFACE_TYPE_QUARTZ_IMAGE])
+NAUSICAA_INSPECT_TYPE([CAIRO_FORMAT_T],[cairo_format_t],[signed-int],[#f])
 
 dnl enum cairo_format_t
 NAUSICAA_ENUM_VALUE([CAIRO_FORMAT_ARGB32])
 NAUSICAA_ENUM_VALUE([CAIRO_FORMAT_RGB24])
 NAUSICAA_ENUM_VALUE([CAIRO_FORMAT_A8])
 NAUSICAA_ENUM_VALUE([CAIRO_FORMAT_A1])
+NAUSICAA_INSPECT_TYPE([CAIRO_PATTERN_TYPE_T],[cairo_pattern_type_t],[signed-int],[#f])
 
 dnl enum cairo_pattern_type_t
 NAUSICAA_ENUM_VALUE([CAIRO_PATTERN_TYPE_SOLID])
 NAUSICAA_ENUM_VALUE([CAIRO_PATTERN_TYPE_SURFACE])
 NAUSICAA_ENUM_VALUE([CAIRO_PATTERN_TYPE_LINEAR])
 NAUSICAA_ENUM_VALUE([CAIRO_PATTERN_TYPE_RADIAL])
+NAUSICAA_INSPECT_TYPE([CAIRO_EXTEND_T],[cairo_extend_t],[signed-int],[#f])
 
 dnl enum cairo_extend_t
 NAUSICAA_ENUM_VALUE([CAIRO_EXTEND_NONE])
 NAUSICAA_ENUM_VALUE([CAIRO_EXTEND_REPEAT])
 NAUSICAA_ENUM_VALUE([CAIRO_EXTEND_REFLECT])
 NAUSICAA_ENUM_VALUE([CAIRO_EXTEND_PAD])
+NAUSICAA_INSPECT_TYPE([CAIRO_FILTER_T],[cairo_filter_t],[signed-int],[#f])
 
-dnl enum cairo_extend_t
+dnl enum cairo_filter_t
 NAUSICAA_ENUM_VALUE([CAIRO_FILTER_FAST])
 NAUSICAA_ENUM_VALUE([CAIRO_FILTER_GOOD])
 NAUSICAA_ENUM_VALUE([CAIRO_FILTER_BEST])
 NAUSICAA_ENUM_VALUE([CAIRO_FILTER_NEAREST])
 NAUSICAA_ENUM_VALUE([CAIRO_FILTER_BILINEAR])
 NAUSICAA_ENUM_VALUE([CAIRO_FILTER_GAUSSIAN])
+NAUSICAA_INSPECT_TYPE([CAIRO_SVG_VERSION_T],[cairo_svg_version_t],[signed-int],[#f])
 
 dnl enum cairo_svg_version_t
 NAUSICAA_ENUM_VALUE([CAIRO_SVG_VERSION_1_1])
 NAUSICAA_ENUM_VALUE([CAIRO_SVG_VERSION_1_2])
+NAUSICAA_INSPECT_TYPE([CAIRO_PS_LEVEL_T],[cairo_ps_level_t],[signed-int],[#f])
 
 dnl enum cairo_ps_level_t
 NAUSICAA_ENUM_VALUE([CAIRO_PS_LEVEL_2])
 NAUSICAA_ENUM_VALUE([CAIRO_PS_LEVEL_3])
+
+
+])
+
 
 dnl end of file

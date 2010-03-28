@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-cairo],[0.1b2],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-cairo],[0.1b3],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/graphics/cairo.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
@@ -88,7 +88,7 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #endif
 ])
 
-m4_include(configuration/cairo-inspector.m4)
+NAUSICAA_CAIRO
 
 
 dnl page
