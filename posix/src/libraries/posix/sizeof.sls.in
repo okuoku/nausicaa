@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Fri Jan 22, 2010
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -34,83 +34,123 @@
     strideof-blkcnt_t
     pointer-ref-c-blkcnt_t
     pointer-set-c-blkcnt_t!
+    sizeof-blkcnt_t-array
+    array-ref-c-blkcnt_t
+    array-set-c-blkcnt_t!
     clock_t
     sizeof-clock_t
     alignof-clock_t
     strideof-clock_t
     pointer-ref-c-clock_t
     pointer-set-c-clock_t!
+    sizeof-clock_t-array
+    array-ref-c-clock_t
+    array-set-c-clock_t!
     dev_t
     sizeof-dev_t
     alignof-dev_t
     strideof-dev_t
     pointer-ref-c-dev_t
     pointer-set-c-dev_t!
+    sizeof-dev_t-array
+    array-ref-c-dev_t
+    array-set-c-dev_t!
     gid_t
     sizeof-gid_t
     alignof-gid_t
     strideof-gid_t
     pointer-ref-c-gid_t
     pointer-set-c-gid_t!
+    sizeof-gid_t-array
+    array-ref-c-gid_t
+    array-set-c-gid_t!
     ino_t
     sizeof-ino_t
     alignof-ino_t
     strideof-ino_t
     pointer-ref-c-ino_t
     pointer-set-c-ino_t!
+    sizeof-ino_t-array
+    array-ref-c-ino_t
+    array-set-c-ino_t!
     mode_t
     sizeof-mode_t
     alignof-mode_t
     strideof-mode_t
     pointer-ref-c-mode_t
     pointer-set-c-mode_t!
+    sizeof-mode_t-array
+    array-ref-c-mode_t
+    array-set-c-mode_t!
     nlink_t
     sizeof-nlink_t
     alignof-nlink_t
     strideof-nlink_t
     pointer-ref-c-nlink_t
     pointer-set-c-nlink_t!
+    sizeof-nlink_t-array
+    array-ref-c-nlink_t
+    array-set-c-nlink_t!
     off_t
     sizeof-off_t
     alignof-off_t
     strideof-off_t
     pointer-ref-c-off_t
     pointer-set-c-off_t!
+    sizeof-off_t-array
+    array-ref-c-off_t
+    array-set-c-off_t!
     pid_t
     sizeof-pid_t
     alignof-pid_t
     strideof-pid_t
     pointer-ref-c-pid_t
     pointer-set-c-pid_t!
+    sizeof-pid_t-array
+    array-ref-c-pid_t
+    array-set-c-pid_t!
     time_t
     sizeof-time_t
     alignof-time_t
     strideof-time_t
     pointer-ref-c-time_t
     pointer-set-c-time_t!
+    sizeof-time_t-array
+    array-ref-c-time_t
+    array-set-c-time_t!
     uid_t
     sizeof-uid_t
     alignof-uid_t
     strideof-uid_t
     pointer-ref-c-uid_t
     pointer-set-c-uid_t!
+    sizeof-uid_t-array
+    array-ref-c-uid_t
+    array-set-c-uid_t!
     wchar_t
     sizeof-wchar_t
     alignof-wchar_t
     strideof-wchar_t
     pointer-ref-c-wchar_t
     pointer-set-c-wchar_t!
+    sizeof-wchar_t-array
+    array-ref-c-wchar_t
+    array-set-c-wchar_t!
     socklen_t
     sizeof-socklen_t
     alignof-socklen_t
     strideof-socklen_t
     pointer-ref-c-socklen_t
     pointer-set-c-socklen_t!
+    sizeof-socklen_t-array
+    array-ref-c-socklen_t
+    array-set-c-socklen_t!
     socklen_t*
-    sizeof-gid_t-array
     sizeof-flock
     alignof-flock
     strideof-flock
+    sizeof-flock-array
+    array-ref-c-flock
     struct-flock-l_type-set!
     struct-flock-l_type-ref
     struct-flock-l_whence-set!
@@ -124,6 +164,8 @@
     sizeof-timeval
     alignof-timeval
     strideof-timeval
+    sizeof-timeval-array
+    array-ref-c-timeval
     struct-timeval-tv_sec-set!
     struct-timeval-tv_sec-ref
     struct-timeval-tv_usec-set!
@@ -131,6 +173,8 @@
     sizeof-timespec
     alignof-timespec
     strideof-timespec
+    sizeof-timespec-array
+    array-ref-c-timespec
     struct-timespec-tv_sec-set!
     struct-timespec-tv_sec-ref
     struct-timespec-tv_nsec-set!
@@ -138,9 +182,13 @@
     sizeof-tms
     alignof-tms
     strideof-tms
+    sizeof-tms-array
+    array-ref-c-tms
     sizeof-dirent
     alignof-dirent
     strideof-dirent
+    sizeof-dirent-array
+    array-ref-c-dirent
     struct-dirent-d_ino-set!
     struct-dirent-d_ino-ref
     struct-dirent-d_off-set!
@@ -153,6 +201,8 @@
     sizeof-utimbuf
     alignof-utimbuf
     strideof-utimbuf
+    sizeof-utimbuf-array
+    array-ref-c-utimbuf
     struct-utimbuf-actime-set!
     struct-utimbuf-actime-ref
     struct-utimbuf-modtime-set!
@@ -160,6 +210,8 @@
     sizeof-timezone
     alignof-timezone
     strideof-timezone
+    sizeof-timezone-array
+    array-ref-c-timezone
     struct-timezone-tz_minuteswest-set!
     struct-timezone-tz_minuteswest-ref
     struct-timezone-tz_dsttime-set!
@@ -167,6 +219,8 @@
     sizeof-tm
     alignof-tm
     strideof-tm
+    sizeof-tm-array
+    array-ref-c-tm
     struct-tm-tm_sec-set!
     struct-tm-tm_sec-ref
     struct-tm-tm_min-set!
@@ -192,6 +246,8 @@
     sizeof-ntptimeval
     alignof-ntptimeval
     strideof-ntptimeval
+    sizeof-ntptimeval-array
+    array-ref-c-ntptimeval
     struct-ntptimeval-time-ref
     struct-ntptimeval-maxerror-set!
     struct-ntptimeval-maxerror-ref
@@ -200,6 +256,8 @@
     sizeof-timex
     alignof-timex
     strideof-timex
+    sizeof-timex-array
+    array-ref-c-timex
     struct-timex-modes-set!
     struct-timex-modes-ref
     struct-timex-offset-set!
@@ -240,11 +298,15 @@
     sizeof-itimerval
     alignof-itimerval
     strideof-itimerval
+    sizeof-itimerval-array
+    array-ref-c-itimerval
     struct-itimerval-it_interval-ref
     struct-itimerval-it_value-ref
     sizeof-FTW
     alignof-FTW
     strideof-FTW
+    sizeof-FTW-array
+    array-ref-c-FTW
     struct-FTW-base-set!
     struct-FTW-base-ref
     struct-FTW-level-set!
@@ -252,18 +314,22 @@
     sizeof-iovec
     alignof-iovec
     strideof-iovec
+    sizeof-iovec-array
+    array-ref-c-iovec
     struct-iovec-iov_base-set!
     struct-iovec-iov_base-ref
     struct-iovec-iov_len-set!
     struct-iovec-iov_len-ref
-    sizeof-iovec-array
-    array-ref-c-iovec
     sizeof-fdset
     alignof-fdset
     strideof-fdset
+    sizeof-fdset-array
+    array-ref-c-fdset
     sizeof-passwd
     alignof-passwd
     strideof-passwd
+    sizeof-passwd-array
+    array-ref-c-passwd
     struct-passwd-pw_name-set!
     struct-passwd-pw_name-ref
     struct-passwd-pw_passwd-set!
@@ -281,6 +347,8 @@
     sizeof-group
     alignof-group
     strideof-group
+    sizeof-group-array
+    array-ref-c-group
     struct-group-gr_name-set!
     struct-group-gr_name-ref
     struct-group-gr_gid-set!
@@ -290,6 +358,8 @@
     sizeof-utsname
     alignof-utsname
     strideof-utsname
+    sizeof-utsname-array
+    array-ref-c-utsname
     struct-utsname-sysname-ref
     struct-utsname-release-ref
     struct-utsname-version-ref
@@ -299,6 +369,8 @@
     sizeof-fstab
     alignof-fstab
     strideof-fstab
+    sizeof-fstab-array
+    array-ref-c-fstab
     struct-fstab-fs_spec-set!
     struct-fstab-fs_spec-ref
     struct-fstab-fs_file-set!
@@ -316,6 +388,8 @@
     sizeof-mntent
     alignof-mntent
     strideof-mntent
+    sizeof-mntent-array
+    array-ref-c-mntent
     struct-mntent-mnt_fsname-set!
     struct-mntent-mnt_fsname-ref
     struct-mntent-mnt_dir-set!
@@ -332,6 +406,8 @@
     sizeof-sockaddr
     alignof-sockaddr
     strideof-sockaddr
+    sizeof-sockaddr-array
+    array-ref-c-sockaddr
     struct-sockaddr-sa_family-set!
     struct-sockaddr-sa_family-ref
     struct-sockaddr-sa_data-ref
@@ -339,6 +415,8 @@
     sizeof-sockaddr_in
     alignof-sockaddr_in
     strideof-sockaddr_in
+    sizeof-sockaddr_in-array
+    array-ref-c-sockaddr_in
     struct-sockaddr_in-sin_family-set!
     struct-sockaddr_in-sin_family-ref
     struct-sockaddr_in-sin_addr-ref
@@ -348,6 +426,8 @@
     sizeof-sockaddr_in6
     alignof-sockaddr_in6
     strideof-sockaddr_in6
+    sizeof-sockaddr_in6-array
+    array-ref-c-sockaddr_in6
     struct-sockaddr_in6-sin6_family-set!
     struct-sockaddr_in6-sin6_family-ref
     struct-sockaddr_in6-sin6_addr-ref
@@ -357,6 +437,8 @@
     sizeof-sockaddr_un
     alignof-sockaddr_un
     strideof-sockaddr_un
+    sizeof-sockaddr_un-array
+    array-ref-c-sockaddr_un
     struct-sockaddr_un-sun_family-set!
     struct-sockaddr_un-sun_family-ref
     struct-sockaddr_un-sun_path-ref
@@ -364,18 +446,24 @@
     sizeof-in_addr
     alignof-in_addr
     strideof-in_addr
+    sizeof-in_addr-array
+    array-ref-c-in_addr
     struct-in_addr-s_addr-set!
     struct-in_addr-s_addr-ref
     in6_addr*
     sizeof-in6_addr
     alignof-in6_addr
     strideof-in6_addr
+    sizeof-in6_addr-array
+    array-ref-c-in6_addr
     struct-in6_addr-s_addr-set!
     struct-in6_addr-s_addr-ref
     if_nameindex*
     sizeof-if_nameindex
     alignof-if_nameindex
     strideof-if_nameindex
+    sizeof-if_nameindex-array
+    array-ref-c-if_nameindex
     struct-if_nameindex-if_index-set!
     struct-if_nameindex-if_index-ref
     struct-if_nameindex-if_name-set!
@@ -384,6 +472,8 @@
     sizeof-netent
     alignof-netent
     strideof-netent
+    sizeof-netent-array
+    array-ref-c-netent
     struct-netent-n_name-set!
     struct-netent-n_name-ref
     struct-netent-n_aliases-set!
@@ -395,6 +485,8 @@
     sizeof-linger
     alignof-linger
     strideof-linger
+    sizeof-linger-array
+    array-ref-c-linger
     struct-linger-l_onoff-set!
     struct-linger-l_onoff-ref
     struct-linger-l_linger-set!
@@ -402,6 +494,8 @@
     sizeof-hostent
     alignof-hostent
     strideof-hostent
+    sizeof-hostent-array
+    array-ref-c-hostent
     struct-hostent-h_name-set!
     struct-hostent-h_name-ref
     struct-hostent-h_aliases-set!
@@ -417,6 +511,8 @@
     sizeof-protoent
     alignof-protoent
     strideof-protoent
+    sizeof-protoent-array
+    array-ref-c-protoent
     struct-protoent-p_name-set!
     struct-protoent-p_name-ref
     struct-protoent-p_aliases-set!
@@ -426,6 +522,8 @@
     sizeof-servent
     alignof-servent
     strideof-servent
+    sizeof-servent-array
+    array-ref-c-servent
     struct-servent-s_name-set!
     struct-servent-s_name-ref
     struct-servent-s_aliases-set!
@@ -984,6 +1082,31 @@
   (define
     pointer-set-c-blkcnt_t!
     @SETTEROF_BLKCNT_T@)
+  (define-syntax
+    sizeof-blkcnt_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-blkcnt_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-blkcnt_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-blkcnt_t
+         (pointer-add
+           ?pointer
+           (* ?index strideof-blkcnt_t))))))
+  (define-syntax
+    array-set-c-blkcnt_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-blkcnt_t!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-blkcnt_t))
+         ?value))))
   (define clock_t '@TYPEOF_CLOCK_T@)
   (define sizeof-clock_t @SIZEOF_CLOCK_T@)
   (define alignof-clock_t @ALIGNOF_CLOCK_T@)
@@ -992,30 +1115,139 @@
   (define
     pointer-set-c-clock_t!
     @SETTEROF_CLOCK_T@)
+  (define-syntax
+    sizeof-clock_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-clock_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-clock_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-clock_t
+         (pointer-add
+           ?pointer
+           (* ?index strideof-clock_t))))))
+  (define-syntax
+    array-set-c-clock_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-clock_t!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-clock_t))
+         ?value))))
   (define dev_t '@TYPEOF_DEV_T@)
   (define sizeof-dev_t @SIZEOF_DEV_T@)
   (define alignof-dev_t @ALIGNOF_DEV_T@)
   (define strideof-dev_t @STRIDEOF_DEV_T@)
   (define pointer-ref-c-dev_t @GETTEROF_DEV_T@)
   (define pointer-set-c-dev_t! @SETTEROF_DEV_T@)
+  (define-syntax
+    sizeof-dev_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-dev_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-dev_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-dev_t
+         (pointer-add ?pointer (* ?index strideof-dev_t))))))
+  (define-syntax
+    array-set-c-dev_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-dev_t!
+         (pointer-add ?pointer (* ?index strideof-dev_t))
+         ?value))))
   (define gid_t '@TYPEOF_GID_T@)
   (define sizeof-gid_t @SIZEOF_GID_T@)
   (define alignof-gid_t @ALIGNOF_GID_T@)
   (define strideof-gid_t @STRIDEOF_GID_T@)
   (define pointer-ref-c-gid_t @GETTEROF_GID_T@)
   (define pointer-set-c-gid_t! @SETTEROF_GID_T@)
+  (define-syntax
+    sizeof-gid_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gid_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gid_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gid_t
+         (pointer-add ?pointer (* ?index strideof-gid_t))))))
+  (define-syntax
+    array-set-c-gid_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gid_t!
+         (pointer-add ?pointer (* ?index strideof-gid_t))
+         ?value))))
   (define ino_t '@TYPEOF_INO_T@)
   (define sizeof-ino_t @SIZEOF_INO_T@)
   (define alignof-ino_t @ALIGNOF_INO_T@)
   (define strideof-ino_t @STRIDEOF_INO_T@)
   (define pointer-ref-c-ino_t @GETTEROF_INO_T@)
   (define pointer-set-c-ino_t! @SETTEROF_INO_T@)
+  (define-syntax
+    sizeof-ino_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-ino_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-ino_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-ino_t
+         (pointer-add ?pointer (* ?index strideof-ino_t))))))
+  (define-syntax
+    array-set-c-ino_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-ino_t!
+         (pointer-add ?pointer (* ?index strideof-ino_t))
+         ?value))))
   (define mode_t '@TYPEOF_MODE_T@)
   (define sizeof-mode_t @SIZEOF_MODE_T@)
   (define alignof-mode_t @ALIGNOF_MODE_T@)
   (define strideof-mode_t @STRIDEOF_MODE_T@)
   (define pointer-ref-c-mode_t @GETTEROF_MODE_T@)
   (define pointer-set-c-mode_t! @SETTEROF_MODE_T@)
+  (define-syntax
+    sizeof-mode_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-mode_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-mode_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-mode_t
+         (pointer-add ?pointer (* ?index strideof-mode_t))))))
+  (define-syntax
+    array-set-c-mode_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-mode_t!
+         (pointer-add ?pointer (* ?index strideof-mode_t))
+         ?value))))
   (define nlink_t '@TYPEOF_NLINK_T@)
   (define sizeof-nlink_t @SIZEOF_NLINK_T@)
   (define alignof-nlink_t @ALIGNOF_NLINK_T@)
@@ -1024,30 +1256,139 @@
   (define
     pointer-set-c-nlink_t!
     @SETTEROF_NLINK_T@)
+  (define-syntax
+    sizeof-nlink_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-nlink_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-nlink_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-nlink_t
+         (pointer-add
+           ?pointer
+           (* ?index strideof-nlink_t))))))
+  (define-syntax
+    array-set-c-nlink_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-nlink_t!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-nlink_t))
+         ?value))))
   (define off_t '@TYPEOF_OFF_T@)
   (define sizeof-off_t @SIZEOF_OFF_T@)
   (define alignof-off_t @ALIGNOF_OFF_T@)
   (define strideof-off_t @STRIDEOF_OFF_T@)
   (define pointer-ref-c-off_t @GETTEROF_OFF_T@)
   (define pointer-set-c-off_t! @SETTEROF_OFF_T@)
+  (define-syntax
+    sizeof-off_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-off_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-off_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-off_t
+         (pointer-add ?pointer (* ?index strideof-off_t))))))
+  (define-syntax
+    array-set-c-off_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-off_t!
+         (pointer-add ?pointer (* ?index strideof-off_t))
+         ?value))))
   (define pid_t '@TYPEOF_PID_T@)
   (define sizeof-pid_t @SIZEOF_PID_T@)
   (define alignof-pid_t @ALIGNOF_PID_T@)
   (define strideof-pid_t @STRIDEOF_PID_T@)
   (define pointer-ref-c-pid_t @GETTEROF_PID_T@)
   (define pointer-set-c-pid_t! @SETTEROF_PID_T@)
+  (define-syntax
+    sizeof-pid_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-pid_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-pid_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-pid_t
+         (pointer-add ?pointer (* ?index strideof-pid_t))))))
+  (define-syntax
+    array-set-c-pid_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-pid_t!
+         (pointer-add ?pointer (* ?index strideof-pid_t))
+         ?value))))
   (define time_t '@TYPEOF_TIME_T@)
   (define sizeof-time_t @SIZEOF_TIME_T@)
   (define alignof-time_t @ALIGNOF_TIME_T@)
   (define strideof-time_t @STRIDEOF_TIME_T@)
   (define pointer-ref-c-time_t @GETTEROF_TIME_T@)
   (define pointer-set-c-time_t! @SETTEROF_TIME_T@)
+  (define-syntax
+    sizeof-time_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-time_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-time_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-time_t
+         (pointer-add ?pointer (* ?index strideof-time_t))))))
+  (define-syntax
+    array-set-c-time_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-time_t!
+         (pointer-add ?pointer (* ?index strideof-time_t))
+         ?value))))
   (define uid_t '@TYPEOF_UID_T@)
   (define sizeof-uid_t @SIZEOF_UID_T@)
   (define alignof-uid_t @ALIGNOF_UID_T@)
   (define strideof-uid_t @STRIDEOF_UID_T@)
   (define pointer-ref-c-uid_t @GETTEROF_UID_T@)
   (define pointer-set-c-uid_t! @SETTEROF_UID_T@)
+  (define-syntax
+    sizeof-uid_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-uid_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-uid_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-uid_t
+         (pointer-add ?pointer (* ?index strideof-uid_t))))))
+  (define-syntax
+    array-set-c-uid_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-uid_t!
+         (pointer-add ?pointer (* ?index strideof-uid_t))
+         ?value))))
   (define wchar_t '@TYPEOF_WCHAR_T@)
   (define sizeof-wchar_t @SIZEOF_WCHAR_T@)
   (define alignof-wchar_t @ALIGNOF_WCHAR_T@)
@@ -1056,6 +1397,31 @@
   (define
     pointer-set-c-wchar_t!
     @SETTEROF_WCHAR_T@)
+  (define-syntax
+    sizeof-wchar_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-wchar_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-wchar_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-wchar_t
+         (pointer-add
+           ?pointer
+           (* ?index strideof-wchar_t))))))
+  (define-syntax
+    array-set-c-wchar_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-wchar_t!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-wchar_t))
+         ?value))))
   (define socklen_t '@TYPEOF_SOCKLEN_T@)
   (define sizeof-socklen_t @SIZEOF_SOCKLEN_T@)
   (define alignof-socklen_t @ALIGNOF_SOCKLEN_T@)
@@ -1066,16 +1432,47 @@
   (define
     pointer-set-c-socklen_t!
     @SETTEROF_SOCKLEN_T@)
-  (define socklen_t* 'pointer)
   (define-syntax
-    sizeof-gid_t-array
+    sizeof-socklen_t-array
     (syntax-rules
       ()
       ((_ ?number-of-elements)
-       (* ?number-of-elements strideof-gid_t))))
+       (* sizeof-socklen_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-socklen_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-socklen_t
+         (pointer-add
+           ?pointer
+           (* ?index strideof-socklen_t))))))
+  (define-syntax
+    array-set-c-socklen_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-socklen_t!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-socklen_t))
+         ?value))))
+  (define socklen_t* 'pointer)
   (define sizeof-flock @SIZEOF_FLOCK@)
   (define alignof-flock @ALIGNOF_FLOCK@)
   (define strideof-flock @STRIDEOF_FLOCK@)
+  (define-syntax
+    sizeof-flock-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-flock ?number-of-elements))))
+  (define-syntax
+    array-ref-c-flock
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-flock)))))
   (define-c-struct-accessor-and-mutator
     struct-flock-l_type-set!
     struct-flock-l_type-ref
@@ -1109,6 +1506,20 @@
   (define sizeof-timeval @SIZEOF_TIMEVAL@)
   (define alignof-timeval @ALIGNOF_TIMEVAL@)
   (define strideof-timeval @STRIDEOF_TIMEVAL@)
+  (define-syntax
+    sizeof-timeval-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-timeval ?number-of-elements))))
+  (define-syntax
+    array-ref-c-timeval
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-timeval)))))
   (define-c-struct-accessor-and-mutator
     struct-timeval-tv_sec-set!
     struct-timeval-tv_sec-ref
@@ -1124,6 +1535,20 @@
   (define sizeof-timespec @SIZEOF_TIMESPEC@)
   (define alignof-timespec @ALIGNOF_TIMESPEC@)
   (define strideof-timespec @STRIDEOF_TIMESPEC@)
+  (define-syntax
+    sizeof-timespec-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-timespec ?number-of-elements))))
+  (define-syntax
+    array-ref-c-timespec
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-timespec)))))
   (define-c-struct-accessor-and-mutator
     struct-timespec-tv_sec-set!
     struct-timespec-tv_sec-ref
@@ -1139,9 +1564,33 @@
   (define sizeof-tms @SIZEOF_TMS@)
   (define alignof-tms @ALIGNOF_TMS@)
   (define strideof-tms @STRIDEOF_TMS@)
+  (define-syntax
+    sizeof-tms-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-tms ?number-of-elements))))
+  (define-syntax
+    array-ref-c-tms
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-tms)))))
   (define sizeof-dirent @SIZEOF_DIRENT@)
   (define alignof-dirent @ALIGNOF_DIRENT@)
   (define strideof-dirent @STRIDEOF_DIRENT@)
+  (define-syntax
+    sizeof-dirent-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-dirent ?number-of-elements))))
+  (define-syntax
+    array-ref-c-dirent
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-dirent)))))
   (define-c-struct-accessor-and-mutator
     struct-dirent-d_ino-set!
     struct-dirent-d_ino-ref
@@ -1172,6 +1621,20 @@
   (define sizeof-utimbuf @SIZEOF_UTIMBUF@)
   (define alignof-utimbuf @ALIGNOF_UTIMBUF@)
   (define strideof-utimbuf @STRIDEOF_UTIMBUF@)
+  (define-syntax
+    sizeof-utimbuf-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-utimbuf ?number-of-elements))))
+  (define-syntax
+    array-ref-c-utimbuf
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-utimbuf)))))
   (define-c-struct-accessor-and-mutator
     struct-utimbuf-actime-set!
     struct-utimbuf-actime-ref
@@ -1187,6 +1650,20 @@
   (define sizeof-timezone @SIZEOF_TIMEZONE@)
   (define alignof-timezone @ALIGNOF_TIMEZONE@)
   (define strideof-timezone @STRIDEOF_TIMEZONE@)
+  (define-syntax
+    sizeof-timezone-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-timezone ?number-of-elements))))
+  (define-syntax
+    array-ref-c-timezone
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-timezone)))))
   (define-c-struct-accessor-and-mutator
     struct-timezone-tz_minuteswest-set!
     struct-timezone-tz_minuteswest-ref
@@ -1202,6 +1679,18 @@
   (define sizeof-tm @SIZEOF_TM@)
   (define alignof-tm @ALIGNOF_TM@)
   (define strideof-tm @STRIDEOF_TM@)
+  (define-syntax
+    sizeof-tm-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-tm ?number-of-elements))))
+  (define-syntax
+    array-ref-c-tm
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-tm)))))
   (define-c-struct-accessor-and-mutator
     struct-tm-tm_sec-set!
     struct-tm-tm_sec-ref
@@ -1273,6 +1762,20 @@
   (define
     strideof-ntptimeval
     @STRIDEOF_NTPTIMEVAL@)
+  (define-syntax
+    sizeof-ntptimeval-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-ntptimeval ?number-of-elements))))
+  (define-syntax
+    array-ref-c-ntptimeval
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-ntptimeval)))))
   (define-c-struct-field-pointer-accessor
     struct-ntptimeval-time-ref
     @OFFSETOF_NTPTIMEVAL_TIME@)
@@ -1291,6 +1794,18 @@
   (define sizeof-timex @SIZEOF_TIMEX@)
   (define alignof-timex @ALIGNOF_TIMEX@)
   (define strideof-timex @STRIDEOF_TIMEX@)
+  (define-syntax
+    sizeof-timex-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-timex ?number-of-elements))))
+  (define-syntax
+    array-ref-c-timex
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-timex)))))
   (define-c-struct-accessor-and-mutator
     struct-timex-modes-set!
     struct-timex-modes-ref
@@ -1405,6 +1920,20 @@
   (define sizeof-itimerval @SIZEOF_ITIMERVAL@)
   (define alignof-itimerval @ALIGNOF_ITIMERVAL@)
   (define strideof-itimerval @STRIDEOF_ITIMERVAL@)
+  (define-syntax
+    sizeof-itimerval-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-itimerval ?number-of-elements))))
+  (define-syntax
+    array-ref-c-itimerval
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-itimerval)))))
   (define-c-struct-field-pointer-accessor
     struct-itimerval-it_interval-ref
     @OFFSETOF_ITIMERVAL_IT_INTERVAL@)
@@ -1414,6 +1943,18 @@
   (define sizeof-FTW @SIZEOF_FTW@)
   (define alignof-FTW @ALIGNOF_FTW@)
   (define strideof-FTW @STRIDEOF_FTW@)
+  (define-syntax
+    sizeof-FTW-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-FTW ?number-of-elements))))
+  (define-syntax
+    array-ref-c-FTW
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-FTW)))))
   (define-c-struct-accessor-and-mutator
     struct-FTW-base-set!
     struct-FTW-base-ref
@@ -1429,18 +1970,6 @@
   (define sizeof-iovec @SIZEOF_IOVEC@)
   (define alignof-iovec @ALIGNOF_IOVEC@)
   (define strideof-iovec @STRIDEOF_IOVEC@)
-  (define-c-struct-accessor-and-mutator
-    struct-iovec-iov_base-set!
-    struct-iovec-iov_base-ref
-    @OFFSETOF_IOVEC_IOV_BASE@
-    @SETTEROF_IOVEC_IOV_BASE@
-    @GETTEROF_IOVEC_IOV_BASE@)
-  (define-c-struct-accessor-and-mutator
-    struct-iovec-iov_len-set!
-    struct-iovec-iov_len-ref
-    @OFFSETOF_IOVEC_IOV_LEN@
-    @SETTEROF_IOVEC_IOV_LEN@
-    @GETTEROF_IOVEC_IOV_LEN@)
   (define-syntax
     sizeof-iovec-array
     (syntax-rules
@@ -1453,12 +1982,48 @@
       ()
       ((_ ?pointer ?index)
        (pointer-add ?pointer (* ?index strideof-iovec)))))
+  (define-c-struct-accessor-and-mutator
+    struct-iovec-iov_base-set!
+    struct-iovec-iov_base-ref
+    @OFFSETOF_IOVEC_IOV_BASE@
+    @SETTEROF_IOVEC_IOV_BASE@
+    @GETTEROF_IOVEC_IOV_BASE@)
+  (define-c-struct-accessor-and-mutator
+    struct-iovec-iov_len-set!
+    struct-iovec-iov_len-ref
+    @OFFSETOF_IOVEC_IOV_LEN@
+    @SETTEROF_IOVEC_IOV_LEN@
+    @GETTEROF_IOVEC_IOV_LEN@)
   (define sizeof-fdset @SIZEOF_FDSET@)
   (define alignof-fdset @ALIGNOF_FDSET@)
   (define strideof-fdset @STRIDEOF_FDSET@)
+  (define-syntax
+    sizeof-fdset-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-fdset ?number-of-elements))))
+  (define-syntax
+    array-ref-c-fdset
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-fdset)))))
   (define sizeof-passwd @SIZEOF_PASSWD@)
   (define alignof-passwd @ALIGNOF_PASSWD@)
   (define strideof-passwd @STRIDEOF_PASSWD@)
+  (define-syntax
+    sizeof-passwd-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-passwd ?number-of-elements))))
+  (define-syntax
+    array-ref-c-passwd
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-passwd)))))
   (define-c-struct-accessor-and-mutator
     struct-passwd-pw_name-set!
     struct-passwd-pw_name-ref
@@ -1504,6 +2069,18 @@
   (define sizeof-group @SIZEOF_GROUP@)
   (define alignof-group @ALIGNOF_GROUP@)
   (define strideof-group @STRIDEOF_GROUP@)
+  (define-syntax
+    sizeof-group-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-group ?number-of-elements))))
+  (define-syntax
+    array-ref-c-group
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-group)))))
   (define-c-struct-accessor-and-mutator
     struct-group-gr_name-set!
     struct-group-gr_name-ref
@@ -1525,6 +2102,20 @@
   (define sizeof-utsname @SIZEOF_UTSNAME@)
   (define alignof-utsname @ALIGNOF_UTSNAME@)
   (define strideof-utsname @STRIDEOF_UTSNAME@)
+  (define-syntax
+    sizeof-utsname-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-utsname ?number-of-elements))))
+  (define-syntax
+    array-ref-c-utsname
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-utsname)))))
   (define-c-struct-field-pointer-accessor
     struct-utsname-sysname-ref
     @OFFSETOF_UTSNAME_SYSNAME@)
@@ -1546,6 +2137,18 @@
   (define sizeof-fstab @SIZEOF_FSTAB@)
   (define alignof-fstab @ALIGNOF_FSTAB@)
   (define strideof-fstab @STRIDEOF_FSTAB@)
+  (define-syntax
+    sizeof-fstab-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-fstab ?number-of-elements))))
+  (define-syntax
+    array-ref-c-fstab
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-fstab)))))
   (define-c-struct-accessor-and-mutator
     struct-fstab-fs_spec-set!
     struct-fstab-fs_spec-ref
@@ -1591,6 +2194,18 @@
   (define sizeof-mntent @SIZEOF_MNTENT@)
   (define alignof-mntent @ALIGNOF_MNTENT@)
   (define strideof-mntent @STRIDEOF_MNTENT@)
+  (define-syntax
+    sizeof-mntent-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-mntent ?number-of-elements))))
+  (define-syntax
+    array-ref-c-mntent
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-mntent)))))
   (define-c-struct-accessor-and-mutator
     struct-mntent-mnt_fsname-set!
     struct-mntent-mnt_fsname-ref
@@ -1631,6 +2246,20 @@
   (define sizeof-sockaddr @SIZEOF_SOCKADDR@)
   (define alignof-sockaddr @ALIGNOF_SOCKADDR@)
   (define strideof-sockaddr @STRIDEOF_SOCKADDR@)
+  (define-syntax
+    sizeof-sockaddr-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sockaddr ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sockaddr
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sockaddr)))))
   (define-c-struct-accessor-and-mutator
     struct-sockaddr-sa_family-set!
     struct-sockaddr-sa_family-ref
@@ -1648,6 +2277,20 @@
   (define
     strideof-sockaddr_in
     @STRIDEOF_SOCKADDR_IN@)
+  (define-syntax
+    sizeof-sockaddr_in-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sockaddr_in ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sockaddr_in
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sockaddr_in)))))
   (define-c-struct-accessor-and-mutator
     struct-sockaddr_in-sin_family-set!
     struct-sockaddr_in-sin_family-ref
@@ -1673,6 +2316,20 @@
   (define
     strideof-sockaddr_in6
     @STRIDEOF_SOCKADDR_IN6@)
+  (define-syntax
+    sizeof-sockaddr_in6-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sockaddr_in6 ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sockaddr_in6
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sockaddr_in6)))))
   (define-c-struct-accessor-and-mutator
     struct-sockaddr_in6-sin6_family-set!
     struct-sockaddr_in6-sin6_family-ref
@@ -1696,6 +2353,20 @@
   (define
     strideof-sockaddr_un
     @STRIDEOF_SOCKADDR_UN@)
+  (define-syntax
+    sizeof-sockaddr_un-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sockaddr_un ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sockaddr_un
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sockaddr_un)))))
   (define-c-struct-accessor-and-mutator
     struct-sockaddr_un-sun_family-set!
     struct-sockaddr_un-sun_family-ref
@@ -1709,6 +2380,20 @@
   (define sizeof-in_addr @SIZEOF_IN_ADDR@)
   (define alignof-in_addr @ALIGNOF_IN_ADDR@)
   (define strideof-in_addr @STRIDEOF_IN_ADDR@)
+  (define-syntax
+    sizeof-in_addr-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-in_addr ?number-of-elements))))
+  (define-syntax
+    array-ref-c-in_addr
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-in_addr)))))
   (define-c-struct-accessor-and-mutator
     struct-in_addr-s_addr-set!
     struct-in_addr-s_addr-ref
@@ -1719,6 +2404,20 @@
   (define sizeof-in6_addr @SIZEOF_IN6_ADDR@)
   (define alignof-in6_addr @ALIGNOF_IN6_ADDR@)
   (define strideof-in6_addr @STRIDEOF_IN6_ADDR@)
+  (define-syntax
+    sizeof-in6_addr-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-in6_addr ?number-of-elements))))
+  (define-syntax
+    array-ref-c-in6_addr
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-in6_addr)))))
   (define-c-struct-accessor-and-mutator
     struct-in6_addr-s_addr-set!
     struct-in6_addr-s_addr-ref
@@ -1735,6 +2434,20 @@
   (define
     strideof-if_nameindex
     @STRIDEOF_IF_NAMEINDEX@)
+  (define-syntax
+    sizeof-if_nameindex-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-if_nameindex ?number-of-elements))))
+  (define-syntax
+    array-ref-c-if_nameindex
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-if_nameindex)))))
   (define-c-struct-accessor-and-mutator
     struct-if_nameindex-if_index-set!
     struct-if_nameindex-if_index-ref
@@ -1751,6 +2464,18 @@
   (define sizeof-netent @SIZEOF_NETENT@)
   (define alignof-netent @ALIGNOF_NETENT@)
   (define strideof-netent @STRIDEOF_NETENT@)
+  (define-syntax
+    sizeof-netent-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-netent ?number-of-elements))))
+  (define-syntax
+    array-ref-c-netent
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-netent)))))
   (define-c-struct-accessor-and-mutator
     struct-netent-n_name-set!
     struct-netent-n_name-ref
@@ -1778,6 +2503,18 @@
   (define sizeof-linger @SIZEOF_LINGER@)
   (define alignof-linger @ALIGNOF_LINGER@)
   (define strideof-linger @STRIDEOF_LINGER@)
+  (define-syntax
+    sizeof-linger-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-linger ?number-of-elements))))
+  (define-syntax
+    array-ref-c-linger
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-linger)))))
   (define-c-struct-accessor-and-mutator
     struct-linger-l_onoff-set!
     struct-linger-l_onoff-ref
@@ -1793,6 +2530,20 @@
   (define sizeof-hostent @SIZEOF_HOSTENT@)
   (define alignof-hostent @ALIGNOF_HOSTENT@)
   (define strideof-hostent @STRIDEOF_HOSTENT@)
+  (define-syntax
+    sizeof-hostent-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-hostent ?number-of-elements))))
+  (define-syntax
+    array-ref-c-hostent
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-hostent)))))
   (define-c-struct-accessor-and-mutator
     struct-hostent-h_name-set!
     struct-hostent-h_name-ref
@@ -1832,6 +2583,20 @@
   (define sizeof-protoent @SIZEOF_PROTOENT@)
   (define alignof-protoent @ALIGNOF_PROTOENT@)
   (define strideof-protoent @STRIDEOF_PROTOENT@)
+  (define-syntax
+    sizeof-protoent-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-protoent ?number-of-elements))))
+  (define-syntax
+    array-ref-c-protoent
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-protoent)))))
   (define-c-struct-accessor-and-mutator
     struct-protoent-p_name-set!
     struct-protoent-p_name-ref
@@ -1853,6 +2618,20 @@
   (define sizeof-servent @SIZEOF_SERVENT@)
   (define alignof-servent @ALIGNOF_SERVENT@)
   (define strideof-servent @STRIDEOF_SERVENT@)
+  (define-syntax
+    sizeof-servent-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-servent ?number-of-elements))))
+  (define-syntax
+    array-ref-c-servent
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-servent)))))
   (define-c-struct-accessor-and-mutator
     struct-servent-s_name-set!
     struct-servent-s_name-ref

@@ -2,7 +2,7 @@ dnl (posix sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Fri Jan 22, 2010
+dnl Date: Mon Mar 29, 2010
 dnl
 dnl Abstract
 dnl
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_POSIX],[
 
 NAUSICAA_INSPECT_TYPE([BLKCNT_T],[blkcnt_t],[unsigned-int],[#f])
 NAUSICAA_INSPECT_TYPE([CLOCK_T],[clock_t],[signed-int],[#f])
@@ -865,5 +866,9 @@ NAUSICAA_DEFINE_VALUE([TRY_AGAIN])
 NAUSICAA_DEFINE_VALUE([NO_RECOVERY])
 NAUSICAA_DEFINE_VALUE([NO_ADDRESS])
 AC_CACHE_SAVE
+
+
+])
+
 
 dnl end of file

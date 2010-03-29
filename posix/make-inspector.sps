@@ -50,15 +50,6 @@
 
 (define-c-type-alias socklen_t*	pointer)
 
-(sizeof-lib
- (define-syntax sizeof-gid_t-array
-   (syntax-rules ()
-     ((_ ?number-of-elements)
-      (* ?number-of-elements strideof-gid_t)))))
-
-(sizeof-lib-exports
- sizeof-gid_t-array)
-
 
 ;;; --------------------------------------------------------------------
 ;;; Struct types inspection.
@@ -195,20 +186,6 @@ AC_CHECK_MEMBERS([struct stat.st_ctime_usec])
   "struct iovec"
   (pointer		iov_base)
   (unsigned-int		iov_len))
-
-(sizeof-lib
- (define-syntax sizeof-iovec-array
-   (syntax-rules ()
-     ((_ ?number-of-elements)
-      (* strideof-iovec ?number-of-elements))))
- (define-syntax array-ref-c-iovec
-   (syntax-rules ()
-     ((_ ?pointer ?index)
-      (pointer-add ?pointer (* ?index strideof-iovec))))))
-
-(sizeof-lib-exports
- sizeof-iovec-array
- array-ref-c-iovec)
 
 (define-c-struct fdset
   "fd_set")
@@ -974,7 +951,8 @@ AC_SUBST([NAU_DIRENT_HAVE_D_TYPE])
 (define posix-library-spec
   '(posix sizeof))
 
-(autoconf-lib-write "configuration/posix-inspector.m4" posix-library-spec)
+(autoconf-lib-write "configuration/posix-inspector.m4" posix-library-spec
+		    "NAUSICAA_POSIX")
 (sizeof-lib-write   "src/libraries/posix/sizeof.sls.in" posix-library-spec)
 
 ;;; end of file
