@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Sun Mar 28, 2010
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -35,6 +35,7 @@
     strideof-CBLAS_ORDER
     pointer-ref-c-CBLAS_ORDER
     pointer-set-c-CBLAS_ORDER!
+    sizeof-CBLAS_ORDER-array
     array-ref-c-CBLAS_ORDER
     array-set-c-CBLAS_ORDER!
     CblasRowMajor
@@ -45,6 +46,7 @@
     strideof-CBLAS_TRANSPOSE
     pointer-ref-c-CBLAS_TRANSPOSE
     pointer-set-c-CBLAS_TRANSPOSE!
+    sizeof-CBLAS_TRANSPOSE-array
     array-ref-c-CBLAS_TRANSPOSE
     array-set-c-CBLAS_TRANSPOSE!
     CblasNoTrans
@@ -56,6 +58,7 @@
     strideof-CBLAS_UPLO
     pointer-ref-c-CBLAS_UPLO
     pointer-set-c-CBLAS_UPLO!
+    sizeof-CBLAS_UPLO-array
     array-ref-c-CBLAS_UPLO
     array-set-c-CBLAS_UPLO!
     CblasUpper
@@ -66,6 +69,7 @@
     strideof-CBLAS_DIAG
     pointer-ref-c-CBLAS_DIAG
     pointer-set-c-CBLAS_DIAG!
+    sizeof-CBLAS_DIAG-array
     array-ref-c-CBLAS_DIAG
     array-set-c-CBLAS_DIAG!
     CblasNonUnit
@@ -76,6 +80,7 @@
     strideof-CBLAS_SIDE
     pointer-ref-c-CBLAS_SIDE
     pointer-set-c-CBLAS_SIDE!
+    sizeof-CBLAS_SIDE-array
     array-ref-c-CBLAS_SIDE
     array-set-c-CBLAS_SIDE!
     CblasLeft
