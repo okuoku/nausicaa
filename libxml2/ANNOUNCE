@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Libxml2 --- tag 0.1b0
+Subject: [announce] Nausicaa/Libxml2 2010-03-29 tag 0.1b0
 
 		      Nausicaa/Libxml2
 		      ================
@@ -36,7 +36,7 @@ Libxml2 is available here:
 		   <http://xmlsoft.org/>
 
 
-Notes for --- tag 0.1b0
+Notes for 2010-03-29 tag 0.1b0
 ------------------------------
 
 * It has been tested with Libxml2 version 2.7.6.
