@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Sun Mar 28, 2010
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -35,11 +35,13 @@
     strideof-cairo_bool_t
     pointer-ref-c-cairo_bool_t
     pointer-set-c-cairo_bool_t!
+    sizeof-cairo_bool_t-array
     array-ref-c-cairo_bool_t
     array-set-c-cairo_bool_t!
     sizeof-cairo_matrix_t
     alignof-cairo_matrix_t
     strideof-cairo_matrix_t
+    sizeof-cairo_matrix_t-array
     array-ref-c-cairo_matrix_t
     struct-cairo_matrix_t-xx-set!
     struct-cairo_matrix_t-xx-ref
@@ -56,6 +58,7 @@
     sizeof-cairo_rectangle_t
     alignof-cairo_rectangle_t
     strideof-cairo_rectangle_t
+    sizeof-cairo_rectangle_t-array
     array-ref-c-cairo_rectangle_t
     struct-cairo_rectangle_t-x-set!
     struct-cairo_rectangle_t-x-ref
@@ -68,6 +71,7 @@
     sizeof-cairo_rectangle_list_t
     alignof-cairo_rectangle_list_t
     strideof-cairo_rectangle_list_t
+    sizeof-cairo_rectangle_list_t-array
     array-ref-c-cairo_rectangle_list_t
     struct-cairo_rectangle_list_t-status-set!
     struct-cairo_rectangle_list_t-status-ref
@@ -78,6 +82,7 @@
     sizeof-cairo_glyph_t
     alignof-cairo_glyph_t
     strideof-cairo_glyph_t
+    sizeof-cairo_glyph_t-array
     array-ref-c-cairo_glyph_t
     struct-cairo_glyph_t-index-set!
     struct-cairo_glyph_t-index-ref
@@ -88,6 +93,7 @@
     sizeof-cairo_text_cluster_t
     alignof-cairo_text_cluster_t
     strideof-cairo_text_cluster_t
+    sizeof-cairo_text_cluster_t-array
     array-ref-c-cairo_text_cluster_t
     struct-cairo_text_cluster_t-num_bytes-set!
     struct-cairo_text_cluster_t-num_bytes-ref
@@ -96,6 +102,7 @@
     sizeof-cairo_text_extents_t
     alignof-cairo_text_extents_t
     strideof-cairo_text_extents_t
+    sizeof-cairo_text_extents_t-array
     array-ref-c-cairo_text_extents_t
     struct-cairo_text_extents_t-x_bearing-set!
     struct-cairo_text_extents_t-x_bearing-ref
@@ -112,6 +119,7 @@
     sizeof-cairo_font_extents_t
     alignof-cairo_font_extents_t
     strideof-cairo_font_extents_t
+    sizeof-cairo_font_extents_t-array
     array-ref-c-cairo_font_extents_t
     struct-cairo_font_extents_t-ascent-set!
     struct-cairo_font_extents_t-ascent-ref
@@ -126,6 +134,7 @@
     sizeof-cairo_path_data_t
     alignof-cairo_path_data_t
     strideof-cairo_path_data_t
+    sizeof-cairo_path_data_t-array
     array-ref-c-cairo_path_data_t
     struct-cairo_path_data_t-header.type-set!
     struct-cairo_path_data_t-header.type-ref
@@ -138,6 +147,7 @@
     sizeof-cairo_path_t
     alignof-cairo_path_t
     strideof-cairo_path_t
+    sizeof-cairo_path_t-array
     array-ref-c-cairo_path_t
     struct-cairo_path_t-status-set!
     struct-cairo_path_t-status-ref
@@ -167,6 +177,7 @@
     strideof-cairo_status_t
     pointer-ref-c-cairo_status_t
     pointer-set-c-cairo_status_t!
+    sizeof-cairo_status_t-array
     array-ref-c-cairo_status_t
     array-set-c-cairo_status_t!
     CAIRO_STATUS_SUCCESS
@@ -207,6 +218,7 @@
     strideof-cairo_content_t
     pointer-ref-c-cairo_content_t
     pointer-set-c-cairo_content_t!
+    sizeof-cairo_content_t-array
     array-ref-c-cairo_content_t
     array-set-c-cairo_content_t!
     CAIRO_CONTENT_COLOR
@@ -218,6 +230,7 @@
     strideof-cairo_operator_t
     pointer-ref-c-cairo_operator_t
     pointer-set-c-cairo_operator_t!
+    sizeof-cairo_operator_t-array
     array-ref-c-cairo_operator_t
     array-set-c-cairo_operator_t!
     CAIRO_OPERATOR_CLEAR
@@ -240,6 +253,7 @@
     strideof-cairo_antialias_t
     pointer-ref-c-cairo_antialias_t
     pointer-set-c-cairo_antialias_t!
+    sizeof-cairo_antialias_t-array
     array-ref-c-cairo_antialias_t
     array-set-c-cairo_antialias_t!
     CAIRO_ANTIALIAS_DEFAULT
@@ -252,6 +266,7 @@
     strideof-cairo_fill_rule_t
     pointer-ref-c-cairo_fill_rule_t
     pointer-set-c-cairo_fill_rule_t!
+    sizeof-cairo_fill_rule_t-array
     array-ref-c-cairo_fill_rule_t
     array-set-c-cairo_fill_rule_t!
     CAIRO_FILL_RULE_WINDING
@@ -262,6 +277,7 @@
     strideof-cairo_line_cap_t
     pointer-ref-c-cairo_line_cap_t
     pointer-set-c-cairo_line_cap_t!
+    sizeof-cairo_line_cap_t-array
     array-ref-c-cairo_line_cap_t
     array-set-c-cairo_line_cap_t!
     CAIRO_LINE_CAP_BUTT
@@ -273,6 +289,7 @@
     strideof-cairo_line_join_t
     pointer-ref-c-cairo_line_join_t
     pointer-set-c-cairo_line_join_t!
+    sizeof-cairo_line_join_t-array
     array-ref-c-cairo_line_join_t
     array-set-c-cairo_line_join_t!
     CAIRO_LINE_JOIN_MITER
@@ -284,6 +301,7 @@
     strideof-cairo_text_cluster_flags_t
     pointer-ref-c-cairo_text_cluster_flags_t
     pointer-set-c-cairo_text_cluster_flags_t!
+    sizeof-cairo_text_cluster_flags_t-array
     array-ref-c-cairo_text_cluster_flags_t
     array-set-c-cairo_text_cluster_flags_t!
     CAIRO_TEXT_CLUSTER_FLAG_BACKWARD
@@ -293,6 +311,7 @@
     strideof-cairo_font_slant_t
     pointer-ref-c-cairo_font_slant_t
     pointer-set-c-cairo_font_slant_t!
+    sizeof-cairo_font_slant_t-array
     array-ref-c-cairo_font_slant_t
     array-set-c-cairo_font_slant_t!
     CAIRO_FONT_SLANT_NORMAL
@@ -304,6 +323,7 @@
     strideof-cairo_font_weight_t
     pointer-ref-c-cairo_font_weight_t
     pointer-set-c-cairo_font_weight_t!
+    sizeof-cairo_font_weight_t-array
     array-ref-c-cairo_font_weight_t
     array-set-c-cairo_font_weight_t!
     CAIRO_FONT_WEIGHT_NORMAL
@@ -314,6 +334,7 @@
     strideof-cairo_subpixel_order_t
     pointer-ref-c-cairo_subpixel_order_t
     pointer-set-c-cairo_subpixel_order_t!
+    sizeof-cairo_subpixel_order_t-array
     array-ref-c-cairo_subpixel_order_t
     array-set-c-cairo_subpixel_order_t!
     CAIRO_SUBPIXEL_ORDER_DEFAULT
@@ -327,6 +348,7 @@
     strideof-cairo_hint_style_t
     pointer-ref-c-cairo_hint_style_t
     pointer-set-c-cairo_hint_style_t!
+    sizeof-cairo_hint_style_t-array
     array-ref-c-cairo_hint_style_t
     array-set-c-cairo_hint_style_t!
     CAIRO_HINT_STYLE_DEFAULT
@@ -340,6 +362,7 @@
     strideof-cairo_hint_metrics_t
     pointer-ref-c-cairo_hint_metrics_t
     pointer-set-c-cairo_hint_metrics_t!
+    sizeof-cairo_hint_metrics_t-array
     array-ref-c-cairo_hint_metrics_t
     array-set-c-cairo_hint_metrics_t!
     CAIRO_HINT_METRICS_DEFAULT
@@ -351,6 +374,7 @@
     strideof-cairo_font_type_t
     pointer-ref-c-cairo_font_type_t
     pointer-set-c-cairo_font_type_t!
+    sizeof-cairo_font_type_t-array
     array-ref-c-cairo_font_type_t
     array-set-c-cairo_font_type_t!
     CAIRO_FONT_TYPE_TOY
@@ -364,6 +388,7 @@
     strideof-cairo_path_data_type_t
     pointer-ref-c-cairo_path_data_type_t
     pointer-set-c-cairo_path_data_type_t!
+    sizeof-cairo_path_data_type_t-array
     array-ref-c-cairo_path_data_type_t
     array-set-c-cairo_path_data_type_t!
     CAIRO_PATH_MOVE_TO
@@ -376,6 +401,7 @@
     strideof-cairo_surface_type_t
     pointer-ref-c-cairo_surface_type_t
     pointer-set-c-cairo_surface_type_t!
+    sizeof-cairo_surface_type_t-array
     array-ref-c-cairo_surface_type_t
     array-set-c-cairo_surface_type_t!
     CAIRO_SURFACE_TYPE_IMAGE
@@ -398,6 +424,7 @@
     strideof-cairo_format_t
     pointer-ref-c-cairo_format_t
     pointer-set-c-cairo_format_t!
+    sizeof-cairo_format_t-array
     array-ref-c-cairo_format_t
     array-set-c-cairo_format_t!
     CAIRO_FORMAT_ARGB32
@@ -410,6 +437,7 @@
     strideof-cairo_pattern_type_t
     pointer-ref-c-cairo_pattern_type_t
     pointer-set-c-cairo_pattern_type_t!
+    sizeof-cairo_pattern_type_t-array
     array-ref-c-cairo_pattern_type_t
     array-set-c-cairo_pattern_type_t!
     CAIRO_PATTERN_TYPE_SOLID
@@ -422,6 +450,7 @@
     strideof-cairo_extend_t
     pointer-ref-c-cairo_extend_t
     pointer-set-c-cairo_extend_t!
+    sizeof-cairo_extend_t-array
     array-ref-c-cairo_extend_t
     array-set-c-cairo_extend_t!
     CAIRO_EXTEND_NONE
@@ -434,6 +463,7 @@
     strideof-cairo_filter_t
     pointer-ref-c-cairo_filter_t
     pointer-set-c-cairo_filter_t!
+    sizeof-cairo_filter_t-array
     array-ref-c-cairo_filter_t
     array-set-c-cairo_filter_t!
     CAIRO_FILTER_FAST
@@ -448,6 +478,7 @@
     strideof-cairo_svg_version_t
     pointer-ref-c-cairo_svg_version_t
     pointer-set-c-cairo_svg_version_t!
+    sizeof-cairo_svg_version_t-array
     array-ref-c-cairo_svg_version_t
     array-set-c-cairo_svg_version_t!
     CAIRO_SVG_VERSION_1_1
@@ -458,6 +489,7 @@
     strideof-cairo_ps_level_t
     pointer-ref-c-cairo_ps_level_t
     pointer-set-c-cairo_ps_level_t!
+    sizeof-cairo_ps_level_t-array
     array-ref-c-cairo_ps_level_t
     array-set-c-cairo_ps_level_t!
     CAIRO_PS_LEVEL_2
