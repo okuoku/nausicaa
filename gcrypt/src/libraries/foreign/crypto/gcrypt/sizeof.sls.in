@@ -449,18 +449,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gcry_ctl_cmds
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_ctl_cmds))))))
+         ?pointer
+         (* ?index strideof-gcry_ctl_cmds)))))
   (define-syntax
     array-set-c-gcry_ctl_cmds!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gcry_ctl_cmds!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_ctl_cmds))
+         ?pointer
+         (* ?index strideof-gcry_ctl_cmds)
          ?value))))
   (define
     GCRYCTL_SET_KEY
@@ -656,18 +654,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gcry_sexp_format
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_sexp_format))))))
+         ?pointer
+         (* ?index strideof-gcry_sexp_format)))))
   (define-syntax
     array-set-c-gcry_sexp_format!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gcry_sexp_format!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_sexp_format))
+         ?pointer
+         (* ?index strideof-gcry_sexp_format)
          ?value))))
   (define
     GCRYSEXP_FMT_DEFAULT
@@ -711,18 +707,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gcry_mpi_format
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_mpi_format))))))
+         ?pointer
+         (* ?index strideof-gcry_mpi_format)))))
   (define-syntax
     array-set-c-gcry_mpi_format!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gcry_mpi_format!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_mpi_format))
+         ?pointer
+         (* ?index strideof-gcry_mpi_format)
          ?value))))
   (define
     GCRYMPI_FMT_NONE
@@ -770,18 +764,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gcry_mpi_flag
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_mpi_flag))))))
+         ?pointer
+         (* ?index strideof-gcry_mpi_flag)))))
   (define-syntax
     array-set-c-gcry_mpi_flag!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gcry_mpi_flag!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_mpi_flag))
+         ?pointer
+         (* ?index strideof-gcry_mpi_flag)
          ?value))))
   (define
     GCRYMPI_FLAG_SECURE
@@ -819,18 +811,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gcry_cipher_algos
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_cipher_algos))))))
+         ?pointer
+         (* ?index strideof-gcry_cipher_algos)))))
   (define-syntax
     array-set-c-gcry_cipher_algos!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gcry_cipher_algos!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_cipher_algos))
+         ?pointer
+         (* ?index strideof-gcry_cipher_algos)
          ?value))))
   (define
     GCRY_CIPHER_NONE
@@ -946,18 +936,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gcry_cipher_modes
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_cipher_modes))))))
+         ?pointer
+         (* ?index strideof-gcry_cipher_modes)))))
   (define-syntax
     array-set-c-gcry_cipher_modes!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gcry_cipher_modes!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_cipher_modes))
+         ?pointer
+         (* ?index strideof-gcry_cipher_modes)
          ?value))))
   (define
     GCRY_CIPHER_MODE_NONE
@@ -1010,18 +998,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gcry_cipher_flags
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_cipher_flags))))))
+         ?pointer
+         (* ?index strideof-gcry_cipher_flags)))))
   (define-syntax
     array-set-c-gcry_cipher_flags!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gcry_cipher_flags!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_cipher_flags))
+         ?pointer
+         (* ?index strideof-gcry_cipher_flags)
          ?value))))
   (define
     GCRY_CIPHER_SECURE
@@ -1063,18 +1049,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gcry_pk_algos
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_pk_algos))))))
+         ?pointer
+         (* ?index strideof-gcry_pk_algos)))))
   (define-syntax
     array-set-c-gcry_pk_algos!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gcry_pk_algos!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_pk_algos))
+         ?pointer
+         (* ?index strideof-gcry_pk_algos)
          ?value))))
   (define GCRY_PK_RSA @VALUEOF_GCRY_PK_RSA@)
   (define GCRY_PK_RSA_E @VALUEOF_GCRY_PK_RSA_E@)
@@ -1126,18 +1110,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gcry_md_algos
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_md_algos))))))
+         ?pointer
+         (* ?index strideof-gcry_md_algos)))))
   (define-syntax
     array-set-c-gcry_md_algos!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gcry_md_algos!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_md_algos))
+         ?pointer
+         (* ?index strideof-gcry_md_algos)
          ?value))))
   (define GCRY_MD_NONE @VALUEOF_GCRY_MD_NONE@)
   (define GCRY_MD_MD5 @VALUEOF_GCRY_MD_MD5@)
@@ -1189,18 +1171,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gcry_md_flags
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_md_flags))))))
+         ?pointer
+         (* ?index strideof-gcry_md_flags)))))
   (define-syntax
     array-set-c-gcry_md_flags!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gcry_md_flags!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_md_flags))
+         ?pointer
+         (* ?index strideof-gcry_md_flags)
          ?value))))
   (define
     GCRY_MD_FLAG_SECURE
@@ -1239,18 +1219,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gcry_random_level_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_random_level_t))))))
+         ?pointer
+         (* ?index strideof-gcry_random_level_t)))))
   (define-syntax
     array-set-c-gcry_random_level_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gcry_random_level_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_random_level_t))
+         ?pointer
+         (* ?index strideof-gcry_random_level_t)
          ?value))))
   (define
     GCRY_WEAK_RANDOM
@@ -1306,18 +1284,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gcry_log_levels
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_log_levels))))))
+         ?pointer
+         (* ?index strideof-gcry_log_levels)))))
   (define-syntax
     array-set-c-gcry_log_levels!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gcry_log_levels!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gcry_log_levels))
+         ?pointer
+         (* ?index strideof-gcry_log_levels)
          ?value))))
   (define GCRY_LOG_CONT @VALUEOF_GCRY_LOG_CONT@)
   (define GCRY_LOG_INFO @VALUEOF_GCRY_LOG_INFO@)
