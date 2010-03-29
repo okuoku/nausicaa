@@ -2,7 +2,7 @@ dnl (foreign compression zlib sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Mon Mar 15, 2010
+dnl Date: Mon Mar 29, 2010
 dnl
 dnl Abstract
 dnl
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_ZLIB],[
 
 NAUSICAA_INSPECT_TYPE([UINT],[uInt],[unsigned-int],[#f])
 NAUSICAA_INSPECT_TYPE([ULONG],[uLong],[unsigned-int],[#f])
@@ -110,5 +111,9 @@ NAUSICAA_DEFINE_VALUE([Z_DEFLATED])
 NAUSICAA_DEFINE_VALUE([Z_NULL])
 NAU_DS_WITH_OPTION([ZLIB_SHARED_OBJECT],[zlib-shared-object],[libz.so],
   [Zlib shared library file],[select Zlib shared library file])
+
+
+])
+
 
 dnl end of file

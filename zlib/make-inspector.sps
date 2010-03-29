@@ -130,7 +130,8 @@
 (define zlib-library-spec
   '(foreign compression zlib sizeof))
 
-(autoconf-lib-write "configuration/zlib-inspector.m4" zlib-library-spec)
+(autoconf-lib-write "configuration/zlib-inspector.m4" zlib-library-spec
+		    "NAUSICAA_ZLIB")
 (sizeof-lib-write   "src/libraries/foreign/compression/zlib/sizeof.sls.in" zlib-library-spec)
 
 ;;; end of file

@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Mon Mar 15, 2010
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -34,21 +34,32 @@
     strideof-uInt
     pointer-ref-c-uInt
     pointer-set-c-uInt!
+    sizeof-uInt-array
+    array-ref-c-uInt
+    array-set-c-uInt!
     uLong
     sizeof-uLong
     alignof-uLong
     strideof-uLong
     pointer-ref-c-uLong
     pointer-set-c-uLong!
+    sizeof-uLong-array
+    array-ref-c-uLong
+    array-set-c-uLong!
     z_off_t
     sizeof-z_off_t
     alignof-z_off_t
     strideof-z_off_t
     pointer-ref-c-z_off_t
     pointer-set-c-z_off_t!
+    sizeof-z_off_t-array
+    array-ref-c-z_off_t
+    array-set-c-z_off_t!
     sizeof-z_stream
     alignof-z_stream
     strideof-z_stream
+    sizeof-z_stream-array
+    array-ref-c-z_stream
     struct-z_stream-next_in-set!
     struct-z_stream-next_in-ref
     struct-z_stream-avail_in-set!
@@ -76,6 +87,8 @@
     sizeof-gz_header
     alignof-gz_header
     strideof-gz_header
+    sizeof-gz_header-array
+    array-ref-c-gz_header
     struct-gz_header-text-set!
     struct-gz_header-text-ref
     struct-gz_header-time-set!
@@ -146,12 +159,58 @@
   (define strideof-uInt @STRIDEOF_UINT@)
   (define pointer-ref-c-uInt @GETTEROF_UINT@)
   (define pointer-set-c-uInt! @SETTEROF_UINT@)
+  (define-syntax
+    sizeof-uInt-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-uInt ?number-of-elements))))
+  (define-syntax
+    array-ref-c-uInt
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-uInt
+         ?pointer
+         (* ?index strideof-uInt)))))
+  (define-syntax
+    array-set-c-uInt!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-uInt!
+         ?pointer
+         (* ?index strideof-uInt)
+         ?value))))
   (define uLong '@TYPEOF_ULONG@)
   (define sizeof-uLong @SIZEOF_ULONG@)
   (define alignof-uLong @ALIGNOF_ULONG@)
   (define strideof-uLong @STRIDEOF_ULONG@)
   (define pointer-ref-c-uLong @GETTEROF_ULONG@)
   (define pointer-set-c-uLong! @SETTEROF_ULONG@)
+  (define-syntax
+    sizeof-uLong-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-uLong ?number-of-elements))))
+  (define-syntax
+    array-ref-c-uLong
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-uLong
+         ?pointer
+         (* ?index strideof-uLong)))))
+  (define-syntax
+    array-set-c-uLong!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-uLong!
+         ?pointer
+         (* ?index strideof-uLong)
+         ?value))))
   (define z_off_t '@TYPEOF_Z_OFF_T@)
   (define sizeof-z_off_t @SIZEOF_Z_OFF_T@)
   (define alignof-z_off_t @ALIGNOF_Z_OFF_T@)
@@ -160,9 +219,46 @@
   (define
     pointer-set-c-z_off_t!
     @SETTEROF_Z_OFF_T@)
+  (define-syntax
+    sizeof-z_off_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-z_off_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-z_off_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-z_off_t
+         ?pointer
+         (* ?index strideof-z_off_t)))))
+  (define-syntax
+    array-set-c-z_off_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-z_off_t!
+         ?pointer
+         (* ?index strideof-z_off_t)
+         ?value))))
   (define sizeof-z_stream @SIZEOF_Z_STREAM@)
   (define alignof-z_stream @ALIGNOF_Z_STREAM@)
   (define strideof-z_stream @STRIDEOF_Z_STREAM@)
+  (define-syntax
+    sizeof-z_stream-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-z_stream ?number-of-elements))))
+  (define-syntax
+    array-ref-c-z_stream
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-z_stream)))))
   (define-c-struct-accessor-and-mutator
     struct-z_stream-next_in-set!
     struct-z_stream-next_in-ref
@@ -238,6 +334,20 @@
   (define sizeof-gz_header @SIZEOF_GZ_HEADER@)
   (define alignof-gz_header @ALIGNOF_GZ_HEADER@)
   (define strideof-gz_header @STRIDEOF_GZ_HEADER@)
+  (define-syntax
+    sizeof-gz_header-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-gz_header ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gz_header
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-gz_header)))))
   (define-c-struct-accessor-and-mutator
     struct-gz_header-text-set!
     struct-gz_header-text-ref
