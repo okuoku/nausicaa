@@ -339,6 +339,7 @@
     (%sizeof-lib-exports name-typeof
 			 name-sizeof name-alignof name-strideof
 			 pointer-accessor pointer-mutator
+			 array-sizeof
 			 array-accessor array-mutator)))
 
 
@@ -382,7 +383,7 @@
 			 ((_ ?pointer ?index)
 			  (pointer-add ?pointer (* ?index ,name-strideof)))))))
       (%sizeof-lib-exports name-sizeof name-alignof name-strideof
-			   array-struct-accessor)
+			   array-struct-sizeof array-struct-accessor)
       (%structs-lib-exports (string->symbol (format "define-~a" struct-name))
 			    (string->symbol (format "with-struct-~s" struct-name))))
 
