@@ -490,18 +490,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gpg_error_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gpg_error_t))))))
+         ?pointer
+         (* ?index strideof-gpg_error_t)))))
   (define-syntax
     array-set-c-gpg_error_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gpg_error_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gpg_error_t))
+         ?pointer
+         (* ?index strideof-gpg_error_t)
          ?value))))
   (define
     gpg_err_source_t
@@ -533,18 +531,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gpg_err_source_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gpg_err_source_t))))))
+         ?pointer
+         (* ?index strideof-gpg_err_source_t)))))
   (define-syntax
     array-set-c-gpg_err_source_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gpg_err_source_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gpg_err_source_t))
+         ?pointer
+         (* ?index strideof-gpg_err_source_t)
          ?value))))
   (define
     GPG_ERR_SOURCE_UNKNOWN
@@ -634,18 +630,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gpg_err_code_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gpg_err_code_t))))))
+         ?pointer
+         (* ?index strideof-gpg_err_code_t)))))
   (define-syntax
     array-set-c-gpg_err_code_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gpg_err_code_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gpg_err_code_t))
+         ?pointer
+         (* ?index strideof-gpg_err_code_t)
          ?value))))
   (define
     GPG_ERR_NO_ERROR
