@@ -7,7 +7,7 @@ Subject: [announce] Nausicaa/Scheme 2010-03-28 tag 0.1a11
 
 Nausicaa is a distribution  of Scheme language libraries for
 R6RS  Scheme  implementations.   Currently  it  attempts  to
-support Ikarus, Larceny, Mosh and Ypsilon.
+support Ikarus, Larceny, Mosh, Petite Chez and Ypsilon.
 
   Nausicaa/Scheme   is  the   core   package;  it   provides
 foundation  libraries and  implements the  infrastructure of
