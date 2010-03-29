@@ -30,9 +30,10 @@ then
         DESTDIR=$(make echo-variable VARIABLE=ds_dist_DESTDIR)
         ARCHIVE=$(make echo-variable VARIABLE=ds_dist_ARCHIVE)
         test -d ~/var/build/nausicaa || mkdir -p ~/var/build/nausicaa
-        cp "$DESTDIR/$ARCHIVE" ~/var/build/nausicaa
+        cp --force "$DESTDIR/$ARCHIVE" ~/var/build/nausicaa
         (set -e
             cd ~/var/build/nausicaa
+            test -d "$PKG_ID" && rm -fr "$PKG_ID"
             tar --extract --bzip2 --file="$ARCHIVE"
             cd "$PKG_ID"
             mkdir "=build"
