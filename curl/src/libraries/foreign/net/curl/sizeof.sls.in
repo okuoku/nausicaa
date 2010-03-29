@@ -1050,18 +1050,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_socket_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_socket_t))))))
+         ?pointer
+         (* ?index strideof-curl_socket_t)))))
   (define-syntax
     array-set-c-curl_socket_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_socket_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_socket_t))
+         ?pointer
+         (* ?index strideof-curl_socket_t)
          ?value))))
   (define curl_off_t '@TYPEOF_CURL_OFF_T@)
   (define sizeof-curl_off_t @SIZEOF_CURL_OFF_T@)
@@ -1087,18 +1085,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_off_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_off_t))))))
+         ?pointer
+         (* ?index strideof-curl_off_t)))))
   (define-syntax
     array-set-c-curl_off_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_off_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_off_t))
+         ?pointer
+         (* ?index strideof-curl_off_t)
          ?value))))
   (define curlsocktype '@TYPEOF_CURLSOCKTYPE@)
   (define
@@ -1128,18 +1124,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curlsocktype
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curlsocktype))))))
+         ?pointer
+         (* ?index strideof-curlsocktype)))))
   (define-syntax
     array-set-c-curlsocktype!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curlsocktype!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curlsocktype))
+         ?pointer
+         (* ?index strideof-curlsocktype)
          ?value))))
   (define curlioerr '@TYPEOF_CURLIOERR@)
   (define sizeof-curlioerr @SIZEOF_CURLIOERR@)
@@ -1163,18 +1157,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curlioerr
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curlioerr))))))
+         ?pointer
+         (* ?index strideof-curlioerr)))))
   (define-syntax
     array-set-c-curlioerr!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curlioerr!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curlioerr))
+         ?pointer
+         (* ?index strideof-curlioerr)
          ?value))))
   (define curliocmd '@TYPEOF_CURLIOCMD@)
   (define sizeof-curliocmd @SIZEOF_CURLIOCMD@)
@@ -1198,18 +1190,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curliocmd
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curliocmd))))))
+         ?pointer
+         (* ?index strideof-curliocmd)))))
   (define-syntax
     array-set-c-curliocmd!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curliocmd!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curliocmd))
+         ?pointer
+         (* ?index strideof-curliocmd)
          ?value))))
   (define curl_infotype '@TYPEOF_CURL_INFOTYPE@)
   (define
@@ -1239,18 +1229,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_infotype
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_infotype))))))
+         ?pointer
+         (* ?index strideof-curl_infotype)))))
   (define-syntax
     array-set-c-curl_infotype!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_infotype!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_infotype))
+         ?pointer
+         (* ?index strideof-curl_infotype)
          ?value))))
   (define CURLcode '@TYPEOF_CURLCODE@)
   (define sizeof-CURLcode @SIZEOF_CURLCODE@)
@@ -1274,18 +1262,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-CURLcode
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLcode))))))
+         ?pointer
+         (* ?index strideof-CURLcode)))))
   (define-syntax
     array-set-c-CURLcode!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-CURLcode!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLcode))
+         ?pointer
+         (* ?index strideof-CURLcode)
          ?value))))
   (define curl_proxytype '@TYPEOF_CURL_PROXYTYPE@)
   (define
@@ -1315,18 +1301,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_proxytype
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_proxytype))))))
+         ?pointer
+         (* ?index strideof-curl_proxytype)))))
   (define-syntax
     array-set-c-curl_proxytype!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_proxytype!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_proxytype))
+         ?pointer
+         (* ?index strideof-curl_proxytype)
          ?value))))
   (define curl_khstat '@TYPEOF_CURL_KHSTAT@)
   (define sizeof-curl_khstat @SIZEOF_CURL_KHSTAT@)
@@ -1354,18 +1338,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_khstat
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_khstat))))))
+         ?pointer
+         (* ?index strideof-curl_khstat)))))
   (define-syntax
     array-set-c-curl_khstat!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_khstat!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_khstat))
+         ?pointer
+         (* ?index strideof-curl_khstat)
          ?value))))
   (define curl_khmatch '@TYPEOF_CURL_KHMATCH@)
   (define
@@ -1395,18 +1377,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_khmatch
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_khmatch))))))
+         ?pointer
+         (* ?index strideof-curl_khmatch)))))
   (define-syntax
     array-set-c-curl_khmatch!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_khmatch!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_khmatch))
+         ?pointer
+         (* ?index strideof-curl_khmatch)
          ?value))))
   (define curl_usessl '@TYPEOF_CURL_USESSL@)
   (define sizeof-curl_usessl @SIZEOF_CURL_USESSL@)
@@ -1434,18 +1414,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_usessl
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_usessl))))))
+         ?pointer
+         (* ?index strideof-curl_usessl)))))
   (define-syntax
     array-set-c-curl_usessl!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_usessl!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_usessl))
+         ?pointer
+         (* ?index strideof-curl_usessl)
          ?value))))
   (define curl_ftpccc '@TYPEOF_CURL_FTPCCC@)
   (define sizeof-curl_ftpccc @SIZEOF_CURL_FTPCCC@)
@@ -1473,18 +1451,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_ftpccc
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_ftpccc))))))
+         ?pointer
+         (* ?index strideof-curl_ftpccc)))))
   (define-syntax
     array-set-c-curl_ftpccc!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_ftpccc!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_ftpccc))
+         ?pointer
+         (* ?index strideof-curl_ftpccc)
          ?value))))
   (define curl_ftpauth '@TYPEOF_CURL_FTPAUTH@)
   (define
@@ -1514,18 +1490,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_ftpauth
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_ftpauth))))))
+         ?pointer
+         (* ?index strideof-curl_ftpauth)))))
   (define-syntax
     array-set-c-curl_ftpauth!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_ftpauth!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_ftpauth))
+         ?pointer
+         (* ?index strideof-curl_ftpauth)
          ?value))))
   (define
     curl_ftpcreatedir
@@ -1557,18 +1531,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_ftpcreatedir
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_ftpcreatedir))))))
+         ?pointer
+         (* ?index strideof-curl_ftpcreatedir)))))
   (define-syntax
     array-set-c-curl_ftpcreatedir!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_ftpcreatedir!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_ftpcreatedir))
+         ?pointer
+         (* ?index strideof-curl_ftpcreatedir)
          ?value))))
   (define curl_ftpmethod '@TYPEOF_CURL_FTPMETHOD@)
   (define
@@ -1598,18 +1570,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_ftpmethod
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_ftpmethod))))))
+         ?pointer
+         (* ?index strideof-curl_ftpmethod)))))
   (define-syntax
     array-set-c-curl_ftpmethod!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_ftpmethod!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_ftpmethod))
+         ?pointer
+         (* ?index strideof-curl_ftpmethod)
          ?value))))
   (define CURLoption '@TYPEOF_CURLOPTION@)
   (define sizeof-CURLoption @SIZEOF_CURLOPTION@)
@@ -1635,18 +1605,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-CURLoption
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLoption))))))
+         ?pointer
+         (* ?index strideof-CURLoption)))))
   (define-syntax
     array-set-c-CURLoption!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-CURLoption!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLoption))
+         ?pointer
+         (* ?index strideof-CURLoption)
          ?value))))
   (define
     curl_netrc_option
@@ -1678,18 +1646,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_netrc_option
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_netrc_option))))))
+         ?pointer
+         (* ?index strideof-curl_netrc_option)))))
   (define-syntax
     array-set-c-curl_netrc_option!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_netrc_option!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_netrc_option))
+         ?pointer
+         (* ?index strideof-curl_netrc_option)
          ?value))))
   (define curl_TimeCond '@TYPEOF_CURL_TIMECOND@)
   (define
@@ -1719,18 +1685,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_TimeCond
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_TimeCond))))))
+         ?pointer
+         (* ?index strideof-curl_TimeCond)))))
   (define-syntax
     array-set-c-curl_TimeCond!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_TimeCond!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_TimeCond))
+         ?pointer
+         (* ?index strideof-curl_TimeCond)
          ?value))))
   (define CURLformoption '@TYPEOF_CURLFORMOPTION@)
   (define
@@ -1760,18 +1724,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-CURLformoption
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLformoption))))))
+         ?pointer
+         (* ?index strideof-CURLformoption)))))
   (define-syntax
     array-set-c-CURLformoption!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-CURLformoption!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLformoption))
+         ?pointer
+         (* ?index strideof-CURLformoption)
          ?value))))
   (define CURLFORMcode '@TYPEOF_CURLFORMCODE@)
   (define
@@ -1801,18 +1763,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-CURLFORMcode
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLFORMcode))))))
+         ?pointer
+         (* ?index strideof-CURLFORMcode)))))
   (define-syntax
     array-set-c-CURLFORMcode!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-CURLFORMcode!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLFORMcode))
+         ?pointer
+         (* ?index strideof-CURLFORMcode)
          ?value))))
   (define CURLINFO '@TYPEOF_CURLINFO@)
   (define sizeof-CURLINFO @SIZEOF_CURLINFO@)
@@ -1836,18 +1796,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-CURLINFO
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLINFO))))))
+         ?pointer
+         (* ?index strideof-CURLINFO)))))
   (define-syntax
     array-set-c-CURLINFO!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-CURLINFO!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLINFO))
+         ?pointer
+         (* ?index strideof-CURLINFO)
          ?value))))
   (define
     curl_closepolicy
@@ -1879,18 +1837,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_closepolicy
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_closepolicy))))))
+         ?pointer
+         (* ?index strideof-curl_closepolicy)))))
   (define-syntax
     array-set-c-curl_closepolicy!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_closepolicy!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_closepolicy))
+         ?pointer
+         (* ?index strideof-curl_closepolicy)
          ?value))))
   (define curl_lock_data '@TYPEOF_CURL_LOCK_DATA@)
   (define
@@ -1920,18 +1876,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_lock_data
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_lock_data))))))
+         ?pointer
+         (* ?index strideof-curl_lock_data)))))
   (define-syntax
     array-set-c-curl_lock_data!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_lock_data!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_lock_data))
+         ?pointer
+         (* ?index strideof-curl_lock_data)
          ?value))))
   (define
     curl_lock_access
@@ -1963,18 +1917,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-curl_lock_access
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_lock_access))))))
+         ?pointer
+         (* ?index strideof-curl_lock_access)))))
   (define-syntax
     array-set-c-curl_lock_access!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-curl_lock_access!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-curl_lock_access))
+         ?pointer
+         (* ?index strideof-curl_lock_access)
          ?value))))
   (define CURLSHcode '@TYPEOF_CURLSHCODE@)
   (define sizeof-CURLSHcode @SIZEOF_CURLSHCODE@)
@@ -2000,18 +1952,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-CURLSHcode
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLSHcode))))))
+         ?pointer
+         (* ?index strideof-CURLSHcode)))))
   (define-syntax
     array-set-c-CURLSHcode!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-CURLSHcode!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLSHcode))
+         ?pointer
+         (* ?index strideof-CURLSHcode)
          ?value))))
   (define CURLSHoption '@TYPEOF_CURLSHOPTION@)
   (define
@@ -2041,18 +1991,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-CURLSHoption
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLSHoption))))))
+         ?pointer
+         (* ?index strideof-CURLSHoption)))))
   (define-syntax
     array-set-c-CURLSHoption!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-CURLSHoption!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLSHoption))
+         ?pointer
+         (* ?index strideof-CURLSHoption)
          ?value))))
   (define CURLversion '@TYPEOF_CURLVERSION@)
   (define sizeof-CURLversion @SIZEOF_CURLVERSION@)
@@ -2080,18 +2028,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-CURLversion
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLversion))))))
+         ?pointer
+         (* ?index strideof-CURLversion)))))
   (define-syntax
     array-set-c-CURLversion!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-CURLversion!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLversion))
+         ?pointer
+         (* ?index strideof-CURLversion)
          ?value))))
   (define CURLMcode '@TYPEOF_CURLMCODE@)
   (define sizeof-CURLMcode @SIZEOF_CURLMCODE@)
@@ -2115,18 +2061,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-CURLMcode
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLMcode))))))
+         ?pointer
+         (* ?index strideof-CURLMcode)))))
   (define-syntax
     array-set-c-CURLMcode!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-CURLMcode!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLMcode))
+         ?pointer
+         (* ?index strideof-CURLMcode)
          ?value))))
   (define CURLMSG '@TYPEOF_CURLMSG@)
   (define sizeof-CURLMSG @SIZEOF_CURLMSG@)
@@ -2148,18 +2092,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-CURLMSG
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLMSG))))))
+         ?pointer
+         (* ?index strideof-CURLMSG)))))
   (define-syntax
     array-set-c-CURLMSG!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-CURLMSG!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLMSG))
+         ?pointer
+         (* ?index strideof-CURLMSG)
          ?value))))
   (define CURLMoption '@TYPEOF_CURLMOPTION@)
   (define sizeof-CURLMoption @SIZEOF_CURLMOPTION@)
@@ -2187,18 +2129,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-CURLMoption
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLMoption))))))
+         ?pointer
+         (* ?index strideof-CURLMoption)))))
   (define-syntax
     array-set-c-CURLMoption!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-CURLMoption!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-CURLMoption))
+         ?pointer
+         (* ?index strideof-CURLMoption)
          ?value))))
   (define time_t '@TYPEOF_TIME_T@)
   (define sizeof-time_t @SIZEOF_TIME_T@)
@@ -2218,14 +2158,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-time_t
-         (pointer-add ?pointer (* ?index strideof-time_t))))))
+         ?pointer
+         (* ?index strideof-time_t)))))
   (define-syntax
     array-set-c-time_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-time_t!
-         (pointer-add ?pointer (* ?index strideof-time_t))
+         ?pointer
+         (* ?index strideof-time_t)
          ?value))))
   (define curl_conv_callback 'callback)
   (define curl_debug_callback 'callback)
