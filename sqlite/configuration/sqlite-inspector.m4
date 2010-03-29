@@ -2,13 +2,13 @@ dnl (foreign databases sqlite sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Wed Dec  2, 2009
+dnl Date: Mon Mar 29, 2010
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software:  you can redistribute it and/or modify
 dnl it under the terms of the  GNU General Public License as published by
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_SQLITE],[
 
 NAUSICAA_INSPECT_TYPE([SQLITE3_INT64],[sqlite3_int64],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([SQLITE3_UINT64],[sqlite3_uint64],[unsigned-int],[#f])
@@ -348,5 +349,9 @@ NAUSICAA_DEFINE_VALUE([SQLITE_STMTSTATUS_FULLSCAN_STEP])
 NAUSICAA_DEFINE_VALUE([SQLITE_STMTSTATUS_SORT])
 NAU_DS_WITH_OPTION([SQLITE_SHARED_OBJECT],[sqlite-shared-object],[libsqlite3.so],
   [Sqlite shared library file],[select Sqlite shared library file])
+
+
+])
+
 
 dnl end of file

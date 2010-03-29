@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-sqlite],[0.1b3],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-sqlite],[0.1b4],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/databases/sqlite.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
@@ -62,7 +62,7 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #include <sqlite3ext.h>
 ])
 
-m4_include([configuration/sqlite-inspector.m4])
+NAUSICAA_SQLITE
 
 dnl page
 dnl --------------------------------------------------------------------

@@ -2,13 +2,13 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Wed Dec  2, 2009
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -32,22 +32,32 @@
     sizeof-sqlite3_int64
     alignof-sqlite3_int64
     strideof-sqlite3_int64
-    pointer-set-c-sqlite3_int64!
     pointer-ref-c-sqlite3_int64
+    pointer-set-c-sqlite3_int64!
+    sizeof-sqlite3_int64-array
+    array-ref-c-sqlite3_int64
+    array-set-c-sqlite3_int64!
     sqlite3_uint64
     sizeof-sqlite3_uint64
     alignof-sqlite3_uint64
     strideof-sqlite3_uint64
-    pointer-set-c-sqlite3_uint64!
     pointer-ref-c-sqlite3_uint64
+    pointer-set-c-sqlite3_uint64!
+    sizeof-sqlite3_uint64-array
+    array-ref-c-sqlite3_uint64
+    array-set-c-sqlite3_uint64!
     sizeof-sqlite3_file
     alignof-sqlite3_file
     strideof-sqlite3_file
+    sizeof-sqlite3_file-array
+    array-ref-c-sqlite3_file
     struct-sqlite3_file-pMethods-set!
     struct-sqlite3_file-pMethods-ref
     sizeof-sqlite3_io_methods
     alignof-sqlite3_io_methods
     strideof-sqlite3_io_methods
+    sizeof-sqlite3_io_methods-array
+    array-ref-c-sqlite3_io_methods
     struct-sqlite3_io_methods-iVersion-set!
     struct-sqlite3_io_methods-iVersion-ref
     struct-sqlite3_io_methods-xClose-set!
@@ -77,6 +87,8 @@
     sizeof-sqlite3_vfs
     alignof-sqlite3_vfs
     strideof-sqlite3_vfs
+    sizeof-sqlite3_vfs-array
+    array-ref-c-sqlite3_vfs
     struct-sqlite3_vfs-iVersion-set!
     struct-sqlite3_vfs-iVersion-ref
     struct-sqlite3_vfs-szOsFile-set!
@@ -116,6 +128,8 @@
     sizeof-sqlite3_mem_methods
     alignof-sqlite3_mem_methods
     strideof-sqlite3_mem_methods
+    sizeof-sqlite3_mem_methods-array
+    array-ref-c-sqlite3_mem_methods
     struct-sqlite3_mem_methods-xMalloc-set!
     struct-sqlite3_mem_methods-xMalloc-ref
     struct-sqlite3_mem_methods-xFree-set!
@@ -135,6 +149,8 @@
     sizeof-sqlite3_mutex_methods
     alignof-sqlite3_mutex_methods
     strideof-sqlite3_mutex_methods
+    sizeof-sqlite3_mutex_methods-array
+    array-ref-c-sqlite3_mutex_methods
     struct-sqlite3_mutex_methods-xMutexInit-set!
     struct-sqlite3_mutex_methods-xMutexInit-ref
     struct-sqlite3_mutex_methods-xMutexEnd-set!
@@ -156,6 +172,8 @@
     sizeof-sqlite3_pcache_methods
     alignof-sqlite3_pcache_methods
     strideof-sqlite3_pcache_methods
+    sizeof-sqlite3_pcache_methods-array
+    array-ref-c-sqlite3_pcache_methods
     struct-sqlite3_pcache_methods-pArg-set!
     struct-sqlite3_pcache_methods-pArg-ref
     struct-sqlite3_pcache_methods-xInit-set!
@@ -396,11 +414,34 @@
     strideof-sqlite3_int64
     @STRIDEOF_SQLITE3_INT64@)
   (define
-    pointer-set-c-sqlite3_int64!
+    pointer-ref-c-sqlite3_int64
     @GETTEROF_SQLITE3_INT64@)
   (define
-    pointer-ref-c-sqlite3_int64
+    pointer-set-c-sqlite3_int64!
     @SETTEROF_SQLITE3_INT64@)
+  (define-syntax
+    sizeof-sqlite3_int64-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-sqlite3_int64 ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sqlite3_int64
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-sqlite3_int64
+         ?pointer
+         (* ?index strideof-sqlite3_int64)))))
+  (define-syntax
+    array-set-c-sqlite3_int64!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-sqlite3_int64!
+         ?pointer
+         (* ?index strideof-sqlite3_int64)
+         ?value))))
   (define sqlite3_uint64 '@TYPEOF_SQLITE3_UINT64@)
   (define
     sizeof-sqlite3_uint64
@@ -412,11 +453,34 @@
     strideof-sqlite3_uint64
     @STRIDEOF_SQLITE3_UINT64@)
   (define
-    pointer-set-c-sqlite3_uint64!
+    pointer-ref-c-sqlite3_uint64
     @GETTEROF_SQLITE3_UINT64@)
   (define
-    pointer-ref-c-sqlite3_uint64
+    pointer-set-c-sqlite3_uint64!
     @SETTEROF_SQLITE3_UINT64@)
+  (define-syntax
+    sizeof-sqlite3_uint64-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-sqlite3_uint64 ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sqlite3_uint64
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-sqlite3_uint64
+         ?pointer
+         (* ?index strideof-sqlite3_uint64)))))
+  (define-syntax
+    array-set-c-sqlite3_uint64!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-sqlite3_uint64!
+         ?pointer
+         (* ?index strideof-sqlite3_uint64)
+         ?value))))
   (define
     sizeof-sqlite3_file
     @SIZEOF_SQLITE3_FILE@)
@@ -426,6 +490,20 @@
   (define
     strideof-sqlite3_file
     @STRIDEOF_SQLITE3_FILE@)
+  (define-syntax
+    sizeof-sqlite3_file-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sqlite3_file ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sqlite3_file
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sqlite3_file)))))
   (define-c-struct-accessor-and-mutator
     struct-sqlite3_file-pMethods-set!
     struct-sqlite3_file-pMethods-ref
@@ -441,6 +519,21 @@
   (define
     strideof-sqlite3_io_methods
     @STRIDEOF_SQLITE3_IO_METHODS@)
+  (define-syntax
+    sizeof-sqlite3_io_methods-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sqlite3_io_methods
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sqlite3_io_methods
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sqlite3_io_methods)))))
   (define-c-struct-accessor-and-mutator
     struct-sqlite3_io_methods-iVersion-set!
     struct-sqlite3_io_methods-iVersion-ref
@@ -526,6 +619,20 @@
   (define
     strideof-sqlite3_vfs
     @STRIDEOF_SQLITE3_VFS@)
+  (define-syntax
+    sizeof-sqlite3_vfs-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sqlite3_vfs ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sqlite3_vfs
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sqlite3_vfs)))))
   (define-c-struct-accessor-and-mutator
     struct-sqlite3_vfs-iVersion-set!
     struct-sqlite3_vfs-iVersion-ref
@@ -643,6 +750,21 @@
   (define
     strideof-sqlite3_mem_methods
     @STRIDEOF_SQLITE3_MEM_METHODS@)
+  (define-syntax
+    sizeof-sqlite3_mem_methods-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sqlite3_mem_methods
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sqlite3_mem_methods
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sqlite3_mem_methods)))))
   (define-c-struct-accessor-and-mutator
     struct-sqlite3_mem_methods-xMalloc-set!
     struct-sqlite3_mem_methods-xMalloc-ref
@@ -700,6 +822,21 @@
   (define
     strideof-sqlite3_mutex_methods
     @STRIDEOF_SQLITE3_MUTEX_METHODS@)
+  (define-syntax
+    sizeof-sqlite3_mutex_methods-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sqlite3_mutex_methods
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sqlite3_mutex_methods
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sqlite3_mutex_methods)))))
   (define-c-struct-accessor-and-mutator
     struct-sqlite3_mutex_methods-xMutexInit-set!
     struct-sqlite3_mutex_methods-xMutexInit-ref
@@ -763,6 +900,21 @@
   (define
     strideof-sqlite3_pcache_methods
     @STRIDEOF_SQLITE3_PCACHE_METHODS@)
+  (define-syntax
+    sizeof-sqlite3_pcache_methods-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sqlite3_pcache_methods
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sqlite3_pcache_methods
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sqlite3_pcache_methods)))))
   (define-c-struct-accessor-and-mutator
     struct-sqlite3_pcache_methods-pArg-set!
     struct-sqlite3_pcache_methods-pArg-ref

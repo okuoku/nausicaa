@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -381,7 +381,8 @@
 (define sqlite-library-spec
   '(foreign databases sqlite sizeof))
 
-(autoconf-lib-write "configuration/sqlite-inspector.m4" sqlite-library-spec)
+(autoconf-lib-write "configuration/sqlite-inspector.m4" sqlite-library-spec
+		    "NAUSICAA_SQLITE")
 (sizeof-lib-write   "src/libraries/foreign/databases/sqlite/sizeof.sls.in" sqlite-library-spec)
 
 ;;; end of file
