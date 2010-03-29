@@ -2,13 +2,13 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Wed Dec  2, 2009
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,23 +28,20 @@
 (library
   (foreign uuid sizeof)
   (export
-    uuid_rc_t
-    sizeof-uuid_rc_t
-    alignof-uuid_rc_t
-    strideof-uuid_rc_t
-    pointer-set-c-uuid_rc_t!
-    pointer-ref-c-uuid_rc_t
-    uuid_fmt_t
-    sizeof-uuid_fmt_t
-    alignof-uuid_fmt_t
-    strideof-uuid_fmt_t
-    pointer-set-c-uuid_fmt_t!
-    pointer-ref-c-uuid_fmt_t
     uuid_t
     UUID_VERSION
     UUID_LEN_BIN
     UUID_LEN_STR
     UUID_LEN_SIV
+    uuid_rc_t
+    sizeof-uuid_rc_t
+    alignof-uuid_rc_t
+    strideof-uuid_rc_t
+    pointer-ref-c-uuid_rc_t
+    pointer-set-c-uuid_rc_t!
+    sizeof-uuid_rc_t-array
+    array-ref-c-uuid_rc_t
+    array-set-c-uuid_rc_t!
     UUID_RC_OK
     UUID_RC_ARG
     UUID_RC_MEM
@@ -56,6 +53,15 @@
     UUID_MAKE_V4
     UUID_MAKE_V5
     UUID_MAKE_MC
+    uuid_fmt_t
+    sizeof-uuid_fmt_t
+    alignof-uuid_fmt_t
+    strideof-uuid_fmt_t
+    pointer-ref-c-uuid_fmt_t
+    pointer-set-c-uuid_fmt_t!
+    sizeof-uuid_fmt_t-array
+    array-ref-c-uuid_fmt_t
+    array-set-c-uuid_fmt_t!
     UUID_FMT_BIN
     UUID_FMT_STR
     UUID_FMT_SIV
@@ -65,33 +71,44 @@
     (rnrs)
     (foreign ffi)
     (foreign ffi sizeof))
-  (define uuid_rc_t '@TYPEOF_UUID_RC_T@)
-  (define sizeof-uuid_rc_t @SIZEOF_UUID_RC_T@)
-  (define alignof-uuid_rc_t @ALIGNOF_UUID_RC_T@)
-  (define strideof-uuid_rc_t @STRIDEOF_UUID_RC_T@)
-  (define
-    pointer-set-c-uuid_rc_t!
-    @GETTEROF_UUID_RC_T@)
-  (define
-    pointer-ref-c-uuid_rc_t
-    @SETTEROF_UUID_RC_T@)
-  (define uuid_fmt_t '@TYPEOF_UUID_FMT_T@)
-  (define sizeof-uuid_fmt_t @SIZEOF_UUID_FMT_T@)
-  (define alignof-uuid_fmt_t @ALIGNOF_UUID_FMT_T@)
-  (define
-    strideof-uuid_fmt_t
-    @STRIDEOF_UUID_FMT_T@)
-  (define
-    pointer-set-c-uuid_fmt_t!
-    @GETTEROF_UUID_FMT_T@)
-  (define
-    pointer-ref-c-uuid_fmt_t
-    @SETTEROF_UUID_FMT_T@)
   (define uuid_t 'pointer)
   (define UUID_VERSION @VALUEOF_UUID_VERSION@)
   (define UUID_LEN_BIN @VALUEOF_UUID_LEN_BIN@)
   (define UUID_LEN_STR @VALUEOF_UUID_LEN_STR@)
   (define UUID_LEN_SIV @VALUEOF_UUID_LEN_SIV@)
+  (define uuid_rc_t '@TYPEOF_UUID_RC_T@)
+  (define sizeof-uuid_rc_t @SIZEOF_UUID_RC_T@)
+  (define alignof-uuid_rc_t @ALIGNOF_UUID_RC_T@)
+  (define strideof-uuid_rc_t @STRIDEOF_UUID_RC_T@)
+  (define
+    pointer-ref-c-uuid_rc_t
+    @GETTEROF_UUID_RC_T@)
+  (define
+    pointer-set-c-uuid_rc_t!
+    @SETTEROF_UUID_RC_T@)
+  (define-syntax
+    sizeof-uuid_rc_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-uuid_rc_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-uuid_rc_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-uuid_rc_t
+         ?pointer
+         (* ?index strideof-uuid_rc_t)))))
+  (define-syntax
+    array-set-c-uuid_rc_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-uuid_rc_t!
+         ?pointer
+         (* ?index strideof-uuid_rc_t)
+         ?value))))
   (define UUID_RC_OK @VALUEOF_UUID_RC_OK@)
   (define UUID_RC_ARG @VALUEOF_UUID_RC_ARG@)
   (define UUID_RC_MEM @VALUEOF_UUID_RC_MEM@)
@@ -103,6 +120,41 @@
   (define UUID_MAKE_V4 @VALUEOF_UUID_MAKE_V4@)
   (define UUID_MAKE_V5 @VALUEOF_UUID_MAKE_V5@)
   (define UUID_MAKE_MC @VALUEOF_UUID_MAKE_MC@)
+  (define uuid_fmt_t '@TYPEOF_UUID_FMT_T@)
+  (define sizeof-uuid_fmt_t @SIZEOF_UUID_FMT_T@)
+  (define alignof-uuid_fmt_t @ALIGNOF_UUID_FMT_T@)
+  (define
+    strideof-uuid_fmt_t
+    @STRIDEOF_UUID_FMT_T@)
+  (define
+    pointer-ref-c-uuid_fmt_t
+    @GETTEROF_UUID_FMT_T@)
+  (define
+    pointer-set-c-uuid_fmt_t!
+    @SETTEROF_UUID_FMT_T@)
+  (define-syntax
+    sizeof-uuid_fmt_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-uuid_fmt_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-uuid_fmt_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-uuid_fmt_t
+         ?pointer
+         (* ?index strideof-uuid_fmt_t)))))
+  (define-syntax
+    array-set-c-uuid_fmt_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-uuid_fmt_t!
+         ?pointer
+         (* ?index strideof-uuid_fmt_t)
+         ?value))))
   (define UUID_FMT_BIN @VALUEOF_UUID_FMT_BIN@)
   (define UUID_FMT_STR @VALUEOF_UUID_FMT_STR@)
   (define UUID_FMT_SIV @VALUEOF_UUID_FMT_SIV@)

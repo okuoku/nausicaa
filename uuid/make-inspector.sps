@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -29,8 +29,6 @@
 (import (nausicaa)
   (foreign ffi inspector-maker))
 
-(define-c-type uuid_rc_t		unsigned-int)
-(define-c-type uuid_fmt_t		unsigned-int)
 (define-c-type-alias uuid_t		pointer)
 
 (define-c-defines "version"
@@ -41,7 +39,8 @@
   UUID_LEN_STR
   UUID_LEN_SIV)
 
-(define-c-enumeration "enum uuid_rc_t"
+(define-c-enumeration uuid_rc_t
+  "uuid_rc_t"
   UUID_RC_OK
   UUID_RC_ARG
   UUID_RC_MEM
@@ -49,14 +48,15 @@
   UUID_RC_INT
   UUID_RC_IMP)
 
-(define-c-enumeration "UUID make modes"
+(define-c-defines "UUID make modes"
   UUID_MAKE_V1
   UUID_MAKE_V3
   UUID_MAKE_V4
   UUID_MAKE_V5
   UUID_MAKE_MC)
 
-(define-c-enumeration "enum uuid_fmt_t"
+(define-c-enumeration uuid_fmt_t
+  "uuid_fmt_t"
   UUID_FMT_BIN
   UUID_FMT_STR
   UUID_FMT_SIV
@@ -70,7 +70,8 @@
 (define uuid-library-spec
   '(foreign uuid sizeof))
 
-(autoconf-lib-write "configuration/uuid-inspector.m4" uuid-library-spec)
+(autoconf-lib-write "configuration/uuid-inspector.m4" uuid-library-spec
+		    "NAUSICAA_UUID")
 (sizeof-lib-write   "src/libraries/foreign/uuid/sizeof.sls.in" uuid-library-spec)
 
 ;;; end of file
