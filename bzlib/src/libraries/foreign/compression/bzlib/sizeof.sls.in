@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Sun Mar 28, 2010
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -51,6 +51,7 @@
     sizeof-bz_stream
     alignof-bz_stream
     strideof-bz_stream
+    sizeof-bz_stream-array
     array-ref-c-bz_stream
     struct-bz_stream-next_in-set!
     struct-bz_stream-next_in-ref
