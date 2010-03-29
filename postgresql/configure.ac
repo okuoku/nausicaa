@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-postgresql],[0.1b0],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-postgresql],[0.1b1],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/databases/postgresql.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
@@ -54,7 +54,7 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #include <libpq-fe.h>
 ])
 
-m4_include([configuration/postgresql-inspector.m4])
+NAUSICAA_POSTGRESQL
 
 dnl page
 dnl --------------------------------------------------------------------

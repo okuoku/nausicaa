@@ -35,27 +35,6 @@
 (define-c-type Oid			unsigned-int)
 (define-c-type-alias Oid*		pointer)
 
-(sizeof-lib
- (define-syntax sizeof-Oid-array
-   (syntax-rules ()
-     ((_ ?number-of-elements)
-      (* strideof-Oid ?number-of-elements))))
- (define-syntax array-set-c-Oid!
-   (syntax-rules ()
-     ((_ ?pointer ?index ?value)
-      (pointer-set-c-Oid! ?pointer (* strideof-Oid ?index) ?value))))
- (define-syntax array-ref-c-Oid
-   (syntax-rules ()
-     ((_ ?pointer ?index)
-      (pointer-ref-c-Oid ?pointer (* strideof-Oid ?index)))))
- )
-
-(sizeof-lib-exports
- sizeof-Oid-array
- array-set-c-Oid!
- array-ref-c-Oid
- )
-
 (define-c-type-alias pgthreadlock_t	callback)
 
 (define-c-type-alias PGconn*		pointer)
@@ -206,7 +185,8 @@
 
 (define-shared-object postgresql libpq.so)
 
-(autoconf-lib-write "configuration/postgresql-inspector.m4" postgresql-library-spec)
+(autoconf-lib-write "configuration/postgresql-inspector.m4" postgresql-library-spec
+		    "NAUSICAA_POSTGRESQL")
 (sizeof-lib-write   "src/libraries/foreign/databases/postgresql/sizeof.sls.in" postgresql-library-spec)
 
 ;;; end of file

@@ -2,7 +2,7 @@ dnl (foreign databases postgresql sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Sat Feb 20, 2010
+dnl Date: Mon Mar 29, 2010
 dnl
 dnl Abstract
 dnl
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_POSTGRESQL],[
 
 NAUSICAA_INSPECT_TYPE([OID],[Oid],[unsigned-int],[#f])
 
@@ -152,5 +153,9 @@ NAUSICAA_ENUM_VALUE([PQERRORS_DEFAULT])
 NAUSICAA_ENUM_VALUE([PQERRORS_VERBOSE])
 NAU_DS_WITH_OPTION([POSTGRESQL_SHARED_OBJECT],[postgresql-shared-object],[libpq.so],
   [Postgresql shared library file],[select Postgresql shared library file])
+
+
+])
+
 
 dnl end of file

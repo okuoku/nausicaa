@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Sat Feb 20, 2010
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -34,27 +34,35 @@
     strideof-Oid
     pointer-ref-c-Oid
     pointer-set-c-Oid!
-    Oid*
     sizeof-Oid-array
-    array-set-c-Oid!
     array-ref-c-Oid
+    array-set-c-Oid!
+    Oid*
     pgthreadlock_t
     PGconn*
     sizeof-PGconn
     alignof-PGconn
     strideof-PGconn
+    sizeof-PGconn-array
+    array-ref-c-PGconn
     PGresult*
     sizeof-PGresult
     alignof-PGresult
     strideof-PGresult
+    sizeof-PGresult-array
+    array-ref-c-PGresult
     PGcancel*
     sizeof-PGcancel
     alignof-PGcancel
     strideof-PGcancel
+    sizeof-PGcancel-array
+    array-ref-c-PGcancel
     PGnotify*
     sizeof-PGnotify
     alignof-PGnotify
     strideof-PGnotify
+    sizeof-PGnotify-array
+    array-ref-c-PGnotify
     struct-PGnotify-relname-set!
     struct-PGnotify-relname-ref
     struct-PGnotify-be_pid-set!
@@ -70,6 +78,8 @@
     sizeof-PQprintOpt
     alignof-PQprintOpt
     strideof-PQprintOpt
+    sizeof-PQprintOpt-array
+    array-ref-c-PQprintOpt
     struct-PQprintOpt-header-set!
     struct-PQprintOpt-header-ref
     struct-PQprintOpt-align-set!
@@ -94,6 +104,8 @@
     sizeof-PQconninfoOption
     alignof-PQconninfoOption
     strideof-PQconninfoOption
+    sizeof-PQconninfoOption-array
+    array-ref-c-PQconninfoOption
     struct-PQconninfoOption-keyword-set!
     struct-PQconninfoOption-keyword-ref
     struct-PQconninfoOption-envvar-set!
@@ -112,6 +124,8 @@
     sizeof-PQArgBlock
     alignof-PQArgBlock
     strideof-PQArgBlock
+    sizeof-PQArgBlock-array
+    array-ref-c-PQArgBlock
     struct-PQArgBlock-len-set!
     struct-PQArgBlock-len-ref
     struct-PQArgBlock-isint-set!
@@ -124,6 +138,8 @@
     sizeof-PGresAttDesc
     alignof-PGresAttDesc
     strideof-PGresAttDesc
+    sizeof-PGresAttDesc-array
+    array-ref-c-PGresAttDesc
     struct-PGresAttDesc-name-set!
     struct-PGresAttDesc-name-ref
     struct-PGresAttDesc-tableid-set!
@@ -161,6 +177,9 @@
     strideof-ConnStatusType
     pointer-ref-c-ConnStatusType
     pointer-set-c-ConnStatusType!
+    sizeof-ConnStatusType-array
+    array-ref-c-ConnStatusType
+    array-set-c-ConnStatusType!
     CONNECTION_OK
     CONNECTION_BAD
     CONNECTION_STARTED
@@ -176,6 +195,9 @@
     strideof-PostgresPollingStatusType
     pointer-ref-c-PostgresPollingStatusType
     pointer-set-c-PostgresPollingStatusType!
+    sizeof-PostgresPollingStatusType-array
+    array-ref-c-PostgresPollingStatusType
+    array-set-c-PostgresPollingStatusType!
     PGRES_POLLING_FAILED
     PGRES_POLLING_READING
     PGRES_POLLING_WRITING
@@ -187,6 +209,9 @@
     strideof-ExecStatusType
     pointer-ref-c-ExecStatusType
     pointer-set-c-ExecStatusType!
+    sizeof-ExecStatusType-array
+    array-ref-c-ExecStatusType
+    array-set-c-ExecStatusType!
     PGRES_EMPTY_QUERY
     PGRES_COMMAND_OK
     PGRES_TUPLES_OK
@@ -201,6 +226,9 @@
     strideof-PGTransactionStatusType
     pointer-ref-c-PGTransactionStatusType
     pointer-set-c-PGTransactionStatusType!
+    sizeof-PGTransactionStatusType-array
+    array-ref-c-PGTransactionStatusType
+    array-set-c-PGTransactionStatusType!
     PQTRANS_IDLE
     PQTRANS_ACTIVE
     PQTRANS_INTRANS
@@ -212,6 +240,9 @@
     strideof-PGVerbosity
     pointer-ref-c-PGVerbosity
     pointer-set-c-PGVerbosity!
+    sizeof-PGVerbosity-array
+    array-ref-c-PGVerbosity
+    array-set-c-PGVerbosity!
     PQERRORS_TERSE
     PQERRORS_DEFAULT
     PQERRORS_VERBOSE
@@ -226,22 +257,12 @@
   (define strideof-Oid @STRIDEOF_OID@)
   (define pointer-ref-c-Oid @GETTEROF_OID@)
   (define pointer-set-c-Oid! @SETTEROF_OID@)
-  (define Oid* 'pointer)
   (define-syntax
     sizeof-Oid-array
     (syntax-rules
       ()
       ((_ ?number-of-elements)
-       (* strideof-Oid ?number-of-elements))))
-  (define-syntax
-    array-set-c-Oid!
-    (syntax-rules
-      ()
-      ((_ ?pointer ?index ?value)
-       (pointer-set-c-Oid!
-         ?pointer
-         (* strideof-Oid ?index)
-         ?value))))
+       (* sizeof-Oid ?number-of-elements))))
   (define-syntax
     array-ref-c-Oid
     (syntax-rules
@@ -249,24 +270,88 @@
       ((_ ?pointer ?index)
        (pointer-ref-c-Oid
          ?pointer
-         (* strideof-Oid ?index)))))
+         (* ?index strideof-Oid)))))
+  (define-syntax
+    array-set-c-Oid!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-Oid!
+         ?pointer
+         (* ?index strideof-Oid)
+         ?value))))
+  (define Oid* 'pointer)
   (define pgthreadlock_t 'callback)
   (define PGconn* 'pointer)
   (define sizeof-PGconn @SIZEOF_PGCONN@)
   (define alignof-PGconn @ALIGNOF_PGCONN@)
   (define strideof-PGconn @STRIDEOF_PGCONN@)
+  (define-syntax
+    sizeof-PGconn-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-PGconn ?number-of-elements))))
+  (define-syntax
+    array-ref-c-PGconn
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add ?pointer (* ?index strideof-PGconn)))))
   (define PGresult* 'pointer)
   (define sizeof-PGresult @SIZEOF_PGRESULT@)
   (define alignof-PGresult @ALIGNOF_PGRESULT@)
   (define strideof-PGresult @STRIDEOF_PGRESULT@)
+  (define-syntax
+    sizeof-PGresult-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-PGresult ?number-of-elements))))
+  (define-syntax
+    array-ref-c-PGresult
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-PGresult)))))
   (define PGcancel* 'pointer)
   (define sizeof-PGcancel @SIZEOF_PGCANCEL@)
   (define alignof-PGcancel @ALIGNOF_PGCANCEL@)
   (define strideof-PGcancel @STRIDEOF_PGCANCEL@)
+  (define-syntax
+    sizeof-PGcancel-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-PGcancel ?number-of-elements))))
+  (define-syntax
+    array-ref-c-PGcancel
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-PGcancel)))))
   (define PGnotify* 'pointer)
   (define sizeof-PGnotify @SIZEOF_PGNOTIFY@)
   (define alignof-PGnotify @ALIGNOF_PGNOTIFY@)
   (define strideof-PGnotify @STRIDEOF_PGNOTIFY@)
+  (define-syntax
+    sizeof-PGnotify-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-PGnotify ?number-of-elements))))
+  (define-syntax
+    array-ref-c-PGnotify
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-PGnotify)))))
   (define-c-struct-accessor-and-mutator
     struct-PGnotify-relname-set!
     struct-PGnotify-relname-ref
@@ -300,6 +385,20 @@
   (define
     strideof-PQprintOpt
     @STRIDEOF_PQPRINTOPT@)
+  (define-syntax
+    sizeof-PQprintOpt-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-PQprintOpt ?number-of-elements))))
+  (define-syntax
+    array-ref-c-PQprintOpt
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-PQprintOpt)))))
   (define-c-struct-accessor-and-mutator
     struct-PQprintOpt-header-set!
     struct-PQprintOpt-header-ref
@@ -370,6 +469,20 @@
   (define
     strideof-PQconninfoOption
     @STRIDEOF_PQCONNINFOOPTION@)
+  (define-syntax
+    sizeof-PQconninfoOption-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-PQconninfoOption ?number-of-elements))))
+  (define-syntax
+    array-ref-c-PQconninfoOption
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-PQconninfoOption)))))
   (define-c-struct-accessor-and-mutator
     struct-PQconninfoOption-keyword-set!
     struct-PQconninfoOption-keyword-ref
@@ -418,6 +531,20 @@
   (define
     strideof-PQArgBlock
     @STRIDEOF_PQARGBLOCK@)
+  (define-syntax
+    sizeof-PQArgBlock-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-PQArgBlock ?number-of-elements))))
+  (define-syntax
+    array-ref-c-PQArgBlock
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-PQArgBlock)))))
   (define-c-struct-accessor-and-mutator
     struct-PQArgBlock-len-set!
     struct-PQArgBlock-len-ref
@@ -452,6 +579,20 @@
   (define
     strideof-PGresAttDesc
     @STRIDEOF_PGRESATTDESC@)
+  (define-syntax
+    sizeof-PGresAttDesc-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-PGresAttDesc ?number-of-elements))))
+  (define-syntax
+    array-ref-c-PGresAttDesc
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-PGresAttDesc)))))
   (define-c-struct-accessor-and-mutator
     struct-PGresAttDesc-name-set!
     struct-PGresAttDesc-name-ref
@@ -559,6 +700,29 @@
   (define
     pointer-set-c-ConnStatusType!
     @SETTEROF_CONNSTATUSTYPE@)
+  (define-syntax
+    sizeof-ConnStatusType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-ConnStatusType ?number-of-elements))))
+  (define-syntax
+    array-ref-c-ConnStatusType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-ConnStatusType
+         ?pointer
+         (* ?index strideof-ConnStatusType)))))
+  (define-syntax
+    array-set-c-ConnStatusType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-ConnStatusType!
+         ?pointer
+         (* ?index strideof-ConnStatusType)
+         ?value))))
   (define CONNECTION_OK @VALUEOF_CONNECTION_OK@)
   (define CONNECTION_BAD @VALUEOF_CONNECTION_BAD@)
   (define
@@ -600,6 +764,30 @@
   (define
     pointer-set-c-PostgresPollingStatusType!
     @SETTEROF_POSTGRESPOLLINGSTATUSTYPE@)
+  (define-syntax
+    sizeof-PostgresPollingStatusType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-PostgresPollingStatusType
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-PostgresPollingStatusType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-PostgresPollingStatusType
+         ?pointer
+         (* ?index strideof-PostgresPollingStatusType)))))
+  (define-syntax
+    array-set-c-PostgresPollingStatusType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-PostgresPollingStatusType!
+         ?pointer
+         (* ?index strideof-PostgresPollingStatusType)
+         ?value))))
   (define
     PGRES_POLLING_FAILED
     @VALUEOF_PGRES_POLLING_FAILED@)
@@ -631,6 +819,29 @@
   (define
     pointer-set-c-ExecStatusType!
     @SETTEROF_EXECSTATUSTYPE@)
+  (define-syntax
+    sizeof-ExecStatusType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-ExecStatusType ?number-of-elements))))
+  (define-syntax
+    array-ref-c-ExecStatusType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-ExecStatusType
+         ?pointer
+         (* ?index strideof-ExecStatusType)))))
+  (define-syntax
+    array-set-c-ExecStatusType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-ExecStatusType!
+         ?pointer
+         (* ?index strideof-ExecStatusType)
+         ?value))))
   (define
     PGRES_EMPTY_QUERY
     @VALUEOF_PGRES_EMPTY_QUERY@)
@@ -669,6 +880,30 @@
   (define
     pointer-set-c-PGTransactionStatusType!
     @SETTEROF_PGTRANSACTIONSTATUSTYPE@)
+  (define-syntax
+    sizeof-PGTransactionStatusType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-PGTransactionStatusType
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-PGTransactionStatusType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-PGTransactionStatusType
+         ?pointer
+         (* ?index strideof-PGTransactionStatusType)))))
+  (define-syntax
+    array-set-c-PGTransactionStatusType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-PGTransactionStatusType!
+         ?pointer
+         (* ?index strideof-PGTransactionStatusType)
+         ?value))))
   (define PQTRANS_IDLE @VALUEOF_PQTRANS_IDLE@)
   (define PQTRANS_ACTIVE @VALUEOF_PQTRANS_ACTIVE@)
   (define
@@ -694,6 +929,29 @@
   (define
     pointer-set-c-PGVerbosity!
     @SETTEROF_PGVERBOSITY@)
+  (define-syntax
+    sizeof-PGVerbosity-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-PGVerbosity ?number-of-elements))))
+  (define-syntax
+    array-ref-c-PGVerbosity
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-PGVerbosity
+         ?pointer
+         (* ?index strideof-PGVerbosity)))))
+  (define-syntax
+    array-set-c-PGVerbosity!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-PGVerbosity!
+         ?pointer
+         (* ?index strideof-PGVerbosity)
+         ?value))))
   (define PQERRORS_TERSE @VALUEOF_PQERRORS_TERSE@)
   (define
     PQERRORS_DEFAULT

@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/PostgreSQL 2010-03-18 tag 0.1b0
+Subject: [announce] Nausicaa/PostgreSQL 2010-03-29 tag 0.1b1
 
 		    Nausicaa/PostgreSQL
 		    ===================
@@ -33,6 +33,12 @@ the documentation is available on line:
 Postgresql is available at:
 
 		<http://www.postgresql.org/>
+
+
+Notes for 2010-03-29 tag 0.1b1
+------------------------------
+
+* Updated to Nausicaa/Scheme 0.1a11.
 
 
 Notes for 2010-03-18 tag 0.1b0
