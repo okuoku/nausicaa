@@ -331,11 +331,11 @@
 		   (define-syntax ,array-accessor
 		     (syntax-rules ()
 		       ((_ ?pointer ?index)
-			(,pointer-accessor (pointer-add ?pointer (* ?index ,name-strideof))))))
+			(,pointer-accessor ?pointer (* ?index ,name-strideof)))))
 		   (define-syntax ,array-mutator
 		     (syntax-rules ()
 		       ((_ ?pointer ?index ?value)
-			(,pointer-mutator  (pointer-add ?pointer (* ?index ,name-strideof)) ?value))))))
+			(,pointer-mutator  ?pointer (* ?index ,name-strideof) ?value))))))
     (%sizeof-lib-exports name-typeof
 			 name-sizeof name-alignof name-strideof
 			 pointer-accessor pointer-mutator
