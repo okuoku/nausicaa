@@ -10,9 +10,8 @@ Libxml2 C  language library, the  XML toolkit for  the GNOME
 project.   It  is built  upon  the Nausicaa/Scheme  package,
 making use of its foreign-functions interface.
 
-  The package  works with  Ikarus, Mosh and  Ypsilon Scheme;
-Larceny Scheme is not  supported.  The package supports only
-GNU+Linux systems.
+  The package  works with  Ikarus, Mosh and  Ypsilon Scheme.
+The package supports only GNU+Linux systems.
 
   The  latest  release  of  the  Nausicaa/Libxml2  package  is
 available at:
