@@ -2,7 +2,7 @@ dnl (foreign crypto gpg-error sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Fri Jan 15, 2010
+dnl Date: Mon Mar 29, 2010
 dnl
 dnl Abstract
 dnl
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_GPG_ERROR],[
 
 NAUSICAA_INSPECT_TYPE([GPG_ERROR_T],[gpg_error_t],[unsigned-int],[#f])
 NAUSICAA_INSPECT_TYPE([GPG_ERR_SOURCE_T],[gpg_err_source_t],[signed-int],[#f])
@@ -440,5 +441,9 @@ NAUSICAA_DEFINE_VALUE([GPG_ERR_INITIALIZED])
 NAUSICAA_DEFINE_VALUE([GPG_ERR_SOURCE_DEFAULT])
 NAU_DS_WITH_OPTION([GPG_ERROR_SHARED_OBJECT],[gpg-error-shared-object],[libgpg-error.so],
   [Gpg-Error shared library file],[select Gpg-Error shared library file])
+
+
+])
+
 
 dnl end of file

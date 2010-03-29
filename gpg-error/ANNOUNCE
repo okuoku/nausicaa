@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/GPG-Error 2010-01-16 tag 0.1b0
+Subject: [announce] Nausicaa/GPG-Error 2010-03-29 tag 0.1b1
 
 		     Nausicaa/GPG-Error
 		     ==================
@@ -33,6 +33,12 @@ the documentation is available on line:
 GPG-Error is available at:
 
 		  <http://www.gnupg.org/>
+
+
+Notes for 2010-03-29 tag 0.1b1
+------------------------------
+
+* Updated to Nausicaa/Scheme 0.1a11.
 
 
 Notes for 2010-01-16 tag 0.1b0

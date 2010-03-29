@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Fri Jan 15, 2010
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -34,12 +34,18 @@
     strideof-gpg_error_t
     pointer-ref-c-gpg_error_t
     pointer-set-c-gpg_error_t!
+    sizeof-gpg_error_t-array
+    array-ref-c-gpg_error_t
+    array-set-c-gpg_error_t!
     gpg_err_source_t
     sizeof-gpg_err_source_t
     alignof-gpg_err_source_t
     strideof-gpg_err_source_t
     pointer-ref-c-gpg_err_source_t
     pointer-set-c-gpg_err_source_t!
+    sizeof-gpg_err_source_t-array
+    array-ref-c-gpg_err_source_t
+    array-set-c-gpg_err_source_t!
     GPG_ERR_SOURCE_UNKNOWN
     GPG_ERR_SOURCE_GCRYPT
     GPG_ERR_SOURCE_GPG
@@ -66,6 +72,9 @@
     strideof-gpg_err_code_t
     pointer-ref-c-gpg_err_code_t
     pointer-set-c-gpg_err_code_t!
+    sizeof-gpg_err_code_t-array
+    array-ref-c-gpg_err_code_t
+    array-set-c-gpg_err_code_t!
     GPG_ERR_NO_ERROR
     GPG_ERR_GENERAL
     GPG_ERR_UNKNOWN_PACKET
@@ -469,6 +478,31 @@
   (define
     pointer-set-c-gpg_error_t!
     @SETTEROF_GPG_ERROR_T@)
+  (define-syntax
+    sizeof-gpg_error_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gpg_error_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gpg_error_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gpg_error_t
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gpg_error_t))))))
+  (define-syntax
+    array-set-c-gpg_error_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gpg_error_t!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gpg_error_t))
+         ?value))))
   (define
     gpg_err_source_t
     '@TYPEOF_GPG_ERR_SOURCE_T@)
@@ -487,6 +521,31 @@
   (define
     pointer-set-c-gpg_err_source_t!
     @SETTEROF_GPG_ERR_SOURCE_T@)
+  (define-syntax
+    sizeof-gpg_err_source_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gpg_err_source_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gpg_err_source_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gpg_err_source_t
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gpg_err_source_t))))))
+  (define-syntax
+    array-set-c-gpg_err_source_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gpg_err_source_t!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gpg_err_source_t))
+         ?value))))
   (define
     GPG_ERR_SOURCE_UNKNOWN
     @VALUEOF_GPG_ERR_SOURCE_UNKNOWN@)
@@ -563,6 +622,31 @@
   (define
     pointer-set-c-gpg_err_code_t!
     @SETTEROF_GPG_ERR_CODE_T@)
+  (define-syntax
+    sizeof-gpg_err_code_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gpg_err_code_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gpg_err_code_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gpg_err_code_t
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gpg_err_code_t))))))
+  (define-syntax
+    array-set-c-gpg_err_code_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gpg_err_code_t!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gpg_err_code_t))
+         ?value))))
   (define
     GPG_ERR_NO_ERROR
     @VALUEOF_GPG_ERR_NO_ERROR@)

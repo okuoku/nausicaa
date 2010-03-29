@@ -457,7 +457,8 @@
 
 (define-shared-object gpg-error libgpg-error.so)
 
-(autoconf-lib-write "configuration/gpg-error-inspector.m4" gpg-error-library-spec)
+(autoconf-lib-write "configuration/gpg-error-inspector.m4" gpg-error-library-spec
+		    "NAUSICAA_GPG_ERROR")
 (sizeof-lib-write   "src/libraries/foreign/crypto/gpg-error/sizeof.sls.in" gpg-error-library-spec)
 
 ;;; end of file
