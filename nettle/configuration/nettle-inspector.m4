@@ -2,7 +2,7 @@ dnl (foreign crypto nettle sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Thu Jan 14, 2010
+dnl Date: Mon Mar 29, 2010
 dnl
 dnl Abstract
 dnl
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_NETTLE],[
 
 
 dnl Preprocessor symbols: AES symmetric cipher
@@ -477,5 +478,9 @@ NAU_DS_WITH_OPTION([NETTLE_SHARED_OBJECT],[nettle-shared-object],[libnettle.so],
   [Nettle shared library file],[select Nettle shared library file])
 NAU_DS_WITH_OPTION([HOGWEED_SHARED_OBJECT],[hogweed-shared-object],[libhogweed.so],
   [Hogweed shared library file],[select Hogweed shared library file])
+
+
+])
+
 
 dnl end of file

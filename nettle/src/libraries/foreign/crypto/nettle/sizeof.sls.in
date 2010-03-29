@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Thu Jan 14, 2010
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -35,6 +35,8 @@
     sizeof-aes_ctx
     alignof-aes_ctx
     strideof-aes_ctx
+    sizeof-aes_ctx-array
+    array-ref-c-aes_ctx
     struct-aes_ctx-keys-ref
     struct-aes_ctx-nrounds-set!
     struct-aes_ctx-nrounds-ref
@@ -44,6 +46,8 @@
     sizeof-arcfour_ctx
     alignof-arcfour_ctx
     strideof-arcfour_ctx
+    sizeof-arcfour_ctx-array
+    array-ref-c-arcfour_ctx
     struct-arcfour_ctx-S-ref
     struct-arcfour_ctx-i-set!
     struct-arcfour_ctx-i-ref
@@ -56,6 +60,8 @@
     sizeof-arctwo_ctx
     alignof-arctwo_ctx
     strideof-arctwo_ctx
+    sizeof-arctwo_ctx-array
+    array-ref-c-arctwo_ctx
     struct-arctwo_ctx-S-ref
     ASN1_TYPE_CONSTRUCTED
     ASN1_CLASS_UNIVERSAL
@@ -70,6 +76,9 @@
     strideof-asn1_type
     pointer-ref-c-asn1_type
     pointer-set-c-asn1_type!
+    sizeof-asn1_type-array
+    array-ref-c-asn1_type
+    array-set-c-asn1_type!
     ASN1_BOOLEAN
     ASN1_INTEGER
     ASN1_BITSTRING
@@ -93,6 +102,9 @@
     strideof-asn1_iterator_result
     pointer-ref-c-asn1_iterator_result
     pointer-set-c-asn1_iterator_result!
+    sizeof-asn1_iterator_result-array
+    array-ref-c-asn1_iterator_result
+    array-set-c-asn1_iterator_result!
     ASN1_ITERATOR_ERROR
     ASN1_ITERATOR_PRIMITIVE
     ASN1_ITERATOR_CONSTRUCTED
@@ -100,6 +112,8 @@
     sizeof-asn1_der_iterator
     alignof-asn1_der_iterator
     strideof-asn1_der_iterator
+    sizeof-asn1_der_iterator-array
+    array-ref-c-asn1_der_iterator
     struct-asn1_der_iterator-buffer_length-set!
     struct-asn1_der_iterator-buffer_length-ref
     struct-asn1_der_iterator-buffer-set!
@@ -115,6 +129,8 @@
     sizeof-base16_decode_ctx
     alignof-base16_decode_ctx
     strideof-base16_decode_ctx
+    sizeof-base16_decode_ctx-array
+    array-ref-c-base16_decode_ctx
     struct-base16_decode_ctx-word-set!
     struct-base16_decode_ctx-word-ref
     struct-base16_decode_ctx-bits-set!
@@ -125,6 +141,8 @@
     sizeof-base64_encode_ctx
     alignof-base64_encode_ctx
     strideof-base64_encode_ctx
+    sizeof-base64_encode_ctx-array
+    array-ref-c-base64_encode_ctx
     struct-base64_encode_ctx-word-set!
     struct-base64_encode_ctx-word-ref
     struct-base64_encode_ctx-bits-set!
@@ -132,6 +150,8 @@
     sizeof-base64_decode_ctx
     alignof-base64_decode_ctx
     strideof-base64_decode_ctx
+    sizeof-base64_decode_ctx-array
+    array-ref-c-base64_decode_ctx
     struct-base64_decode_ctx-word-set!
     struct-base64_decode_ctx-word-ref
     struct-base64_decode_ctx-bits-set!
@@ -151,11 +171,16 @@
     strideof-blowfish_error
     pointer-ref-c-blowfish_error
     pointer-set-c-blowfish_error!
+    sizeof-blowfish_error-array
+    array-ref-c-blowfish_error
+    array-set-c-blowfish_error!
     BLOWFISH_OK
     BLOWFISH_WEAK_KEY
     sizeof-blowfish_ctx
     alignof-blowfish_ctx
     strideof-blowfish_ctx
+    sizeof-blowfish_ctx-array
+    array-ref-c-blowfish_ctx
     struct-blowfish_ctx-s-ref
     struct-blowfish_ctx-p-ref
     struct-blowfish_ctx-status-set!
@@ -163,6 +188,8 @@
     sizeof-nettle_buffer
     alignof-nettle_buffer
     strideof-nettle_buffer
+    sizeof-nettle_buffer-array
+    array-ref-c-nettle_buffer
     struct-nettle_buffer-contents-set!
     struct-nettle_buffer-contents-ref
     struct-nettle_buffer-alloc-set!
@@ -180,6 +207,8 @@
     sizeof-cast128_ctx
     alignof-cast128_ctx
     strideof-cast128_ctx
+    sizeof-cast128_ctx-array
+    array-ref-c-cast128_ctx
     struct-cast128_ctx-keys-ref
     struct-cast128_ctx-rounds-set!
     struct-cast128_ctx-rounds-ref
@@ -192,12 +221,17 @@
     strideof-des_error
     pointer-ref-c-des_error
     pointer-set-c-des_error!
+    sizeof-des_error-array
+    array-ref-c-des_error
+    array-set-c-des_error!
     DES_OK
     DES_BAD_PARITY
     DES_WEAK_KEY
     sizeof-des_ctx
     alignof-des_ctx
     strideof-des_ctx
+    sizeof-des_ctx-array
+    array-ref-c-des_ctx
     struct-des_ctx-key-ref
     struct-des_ctx-status-set!
     struct-des_ctx-status-ref
@@ -206,6 +240,8 @@
     sizeof-des3_ctx
     alignof-des3_ctx
     strideof-des3_ctx
+    sizeof-des3_ctx-array
+    array-ref-c-des3_ctx
     struct-des3_ctx-des-ref
     struct-des3_ctx-status-set!
     struct-des3_ctx-status-ref
@@ -215,6 +251,8 @@
     sizeof-dsa_public_key
     alignof-dsa_public_key
     strideof-dsa_public_key
+    sizeof-dsa_public_key-array
+    array-ref-c-dsa_public_key
     struct-dsa_public_key-p-ref
     struct-dsa_public_key-q-ref
     struct-dsa_public_key-g-ref
@@ -222,25 +260,37 @@
     sizeof-dsa_private_key
     alignof-dsa_private_key
     strideof-dsa_private_key
+    sizeof-dsa_private_key-array
+    array-ref-c-dsa_private_key
     struct-dsa_private_key-x-ref
     sizeof-dsa_signature
     alignof-dsa_signature
     strideof-dsa_signature
+    sizeof-dsa_signature-array
+    array-ref-c-dsa_signature
     struct-dsa_signature-r-ref
     struct-dsa_signature-s-ref
     sizeof-hmac_md5_ctx
     alignof-hmac_md5_ctx
     strideof-hmac_md5_ctx
+    sizeof-hmac_md5_ctx-array
+    array-ref-c-hmac_md5_ctx
     sizeof-hmac_sha1_ctx
     alignof-hmac_sha1_ctx
     strideof-hmac_sha1_ctx
+    sizeof-hmac_sha1_ctx-array
+    array-ref-c-hmac_sha1_ctx
     sizeof-hmac_sha256_ctx
     alignof-hmac_sha256_ctx
     strideof-hmac_sha256_ctx
+    sizeof-hmac_sha256_ctx-array
+    array-ref-c-hmac_sha256_ctx
     _KNUTH_LFIB_KK
     sizeof-knuth_lfib_ctx
     alignof-knuth_lfib_ctx
     strideof-knuth_lfib_ctx
+    sizeof-knuth_lfib_ctx-array
+    array-ref-c-knuth_lfib_ctx
     struct-knuth_lfib_ctx-x-ref
     struct-knuth_lfib_ctx-index-set!
     struct-knuth_lfib_ctx-index-ref
@@ -249,6 +299,8 @@
     sizeof-md2_ctx
     alignof-md2_ctx
     strideof-md2_ctx
+    sizeof-md2_ctx-array
+    array-ref-c-md2_ctx
     struct-md2_ctx-C-ref
     struct-md2_ctx-X-ref
     struct-md2_ctx-block-ref
@@ -260,6 +312,8 @@
     sizeof-md4_ctx
     alignof-md4_ctx
     strideof-md4_ctx
+    sizeof-md4_ctx-array
+    array-ref-c-md4_ctx
     struct-md4_ctx-digest-ref
     struct-md4_ctx-count_l-set!
     struct-md4_ctx-count_l-ref
@@ -274,6 +328,8 @@
     sizeof-md5_ctx
     alignof-md5_ctx
     strideof-md5_ctx
+    sizeof-md5_ctx-array
+    array-ref-c-md5_ctx
     struct-md5_ctx-digest-ref
     struct-md5_ctx-count_l-set!
     struct-md5_ctx-count_l-ref
@@ -301,12 +357,18 @@
     strideof-time_t
     pointer-ref-c-time_t
     pointer-set-c-time_t!
+    sizeof-time_t-array
+    array-ref-c-time_t
+    array-set-c-time_t!
     pgp_lengths
     sizeof-pgp_lengths
     alignof-pgp_lengths
     strideof-pgp_lengths
     pointer-ref-c-pgp_lengths
     pointer-set-c-pgp_lengths!
+    sizeof-pgp_lengths-array
+    array-ref-c-pgp_lengths
+    array-set-c-pgp_lengths!
     PGP_LENGTH_ONE_OCTET
     PGP_LENGTH_TWO_OCTETS
     PGP_LENGTH_FOUR_OCTETS
@@ -316,6 +378,9 @@
     strideof-pgp_public_key_algorithm
     pointer-ref-c-pgp_public_key_algorithm
     pointer-set-c-pgp_public_key_algorithm!
+    sizeof-pgp_public_key_algorithm-array
+    array-ref-c-pgp_public_key_algorithm
+    array-set-c-pgp_public_key_algorithm!
     PGP_RSA
     PGP_RSA_ENCRYPT
     PGP_RSA_SIGN
@@ -328,6 +393,9 @@
     strideof-pgp_symmetric_algorithm
     pointer-ref-c-pgp_symmetric_algorithm
     pointer-set-c-pgp_symmetric_algorithm!
+    sizeof-pgp_symmetric_algorithm-array
+    array-ref-c-pgp_symmetric_algorithm
+    array-set-c-pgp_symmetric_algorithm!
     PGP_PLAINTEXT
     PGP_IDEA
     PGP_3DES
@@ -343,6 +411,9 @@
     strideof-pgp_compression_algorithm
     pointer-ref-c-pgp_compression_algorithm
     pointer-set-c-pgp_compression_algorithm!
+    sizeof-pgp_compression_algorithm-array
+    array-ref-c-pgp_compression_algorithm
+    array-set-c-pgp_compression_algorithm!
     PGP_UNCOMPRESSED
     PGP_ZIP
     PGP_ZLIB
@@ -352,6 +423,9 @@
     strideof-pgp_hash_algorithm
     pointer-ref-c-pgp_hash_algorithm
     pointer-set-c-pgp_hash_algorithm!
+    sizeof-pgp_hash_algorithm-array
+    array-ref-c-pgp_hash_algorithm
+    array-set-c-pgp_hash_algorithm!
     PGP_MD5
     PGP_SHA1
     PGP_RIPEMD
@@ -364,6 +438,9 @@
     strideof-pgp_tag
     pointer-ref-c-pgp_tag
     pointer-set-c-pgp_tag!
+    sizeof-pgp_tag-array
+    array-ref-c-pgp_tag
+    array-set-c-pgp_tag!
     PGP_TAG_PUBLIC_SESSION_KEY
     PGP_TAG_SIGNATURE
     PGP_TAG_SYMMETRIC_SESSION_KEY
@@ -384,6 +461,9 @@
     strideof-pgp_signature_type
     pointer-ref-c-pgp_signature_type
     pointer-set-c-pgp_signature_type!
+    sizeof-pgp_signature_type-array
+    array-ref-c-pgp_signature_type
+    array-set-c-pgp_signature_type!
     PGP_SIGN_BINARY
     PGP_SIGN_TEXT
     PGP_SIGN_STANDALONE
@@ -403,6 +483,9 @@
     strideof-pgp_subpacket_tag
     pointer-ref-c-pgp_subpacket_tag
     pointer-set-c-pgp_subpacket_tag!
+    sizeof-pgp_subpacket_tag-array
+    array-ref-c-pgp_subpacket_tag
+    array-set-c-pgp_subpacket_tag!
     PGP_SUBPACKET_CREATION_TIME
     PGP_SUBPACKET_SIGNATURE_EXPIRATION_TIME
     PGP_SUBPACKET_EXPORTABLE_CERTIFICATION
@@ -430,6 +513,8 @@
     sizeof-rsa_public_key
     alignof-rsa_public_key
     strideof-rsa_public_key
+    sizeof-rsa_public_key-array
+    array-ref-c-rsa_public_key
     struct-rsa_public_key-size-set!
     struct-rsa_public_key-size-ref
     struct-rsa_public_key-n-ref
@@ -437,6 +522,8 @@
     sizeof-rsa_private_key
     alignof-rsa_private_key
     strideof-rsa_private_key
+    sizeof-rsa_private_key-array
+    array-ref-c-rsa_private_key
     struct-rsa_private_key-size-set!
     struct-rsa_private_key-size-ref
     struct-rsa_private_key-d-ref
@@ -452,6 +539,8 @@
     sizeof-serpent_ctx
     alignof-serpent_ctx
     strideof-serpent_ctx
+    sizeof-serpent_ctx-array
+    array-ref-c-serpent_ctx
     struct-serpent_ctx-keys-ref
     sexp_type
     sizeof-sexp_type
@@ -459,12 +548,17 @@
     strideof-sexp_type
     pointer-ref-c-sexp_type
     pointer-set-c-sexp_type!
+    sizeof-sexp_type-array
+    array-ref-c-sexp_type
+    array-set-c-sexp_type!
     SEXP_ATOM
     SEXP_LIST
     SEXP_END
     sizeof-sexp_iterator
     alignof-sexp_iterator
     strideof-sexp_iterator
+    sizeof-sexp_iterator-array
+    array-ref-c-sexp_iterator
     struct-sexp_iterator-length-set!
     struct-sexp_iterator-length-ref
     struct-sexp_iterator-buffer-set!
@@ -491,6 +585,8 @@
     sizeof-sha1_ctx
     alignof-sha1_ctx
     strideof-sha1_ctx
+    sizeof-sha1_ctx-array
+    array-ref-c-sha1_ctx
     struct-sha1_ctx-digest-ref
     struct-sha1_ctx-count_low-set!
     struct-sha1_ctx-count_low-ref
@@ -505,6 +601,8 @@
     sizeof-sha256_ctx
     alignof-sha256_ctx
     strideof-sha256_ctx
+    sizeof-sha256_ctx-array
+    array-ref-c-sha256_ctx
     struct-sha256_ctx-state-ref
     struct-sha256_ctx-count_low-set!
     struct-sha256_ctx-count_low-ref
@@ -520,6 +618,8 @@
     sizeof-twofish_ctx
     alignof-twofish_ctx
     strideof-twofish_ctx
+    sizeof-twofish_ctx-array
+    array-ref-c-twofish_ctx
     struct-twofish_ctx-keys-ref
     struct-twofish_ctx-s_box-ref
     yarrow_pool_id
@@ -528,6 +628,9 @@
     strideof-yarrow_pool_id
     pointer-ref-c-yarrow_pool_id
     pointer-set-c-yarrow_pool_id!
+    sizeof-yarrow_pool_id-array
+    array-ref-c-yarrow_pool_id
+    array-set-c-yarrow_pool_id!
     YARROW_FAST
     YARROW_SLOW
     YARROW256_SEED_FILE_SIZE
@@ -535,12 +638,16 @@
     sizeof-yarrow_source
     alignof-yarrow_source
     strideof-yarrow_source
+    sizeof-yarrow_source-array
+    array-ref-c-yarrow_source
     struct-yarrow_source-estimate-ref
     struct-yarrow_source-next-set!
     struct-yarrow_source-next-ref
     sizeof-yarrow256_ctx
     alignof-yarrow256_ctx
     strideof-yarrow256_ctx
+    sizeof-yarrow256_ctx-array
+    array-ref-c-yarrow256_ctx
     struct-yarrow256_ctx-pools-ref
     struct-yarrow256_ctx-seeded-set!
     struct-yarrow256_ctx-seeded-ref
@@ -553,6 +660,8 @@
     sizeof-yarrow_key_event_ctx
     alignof-yarrow_key_event_ctx
     strideof-yarrow_key_event_ctx
+    sizeof-yarrow_key_event_ctx-array
+    array-ref-c-yarrow_key_event_ctx
     struct-yarrow_key_event_ctx-index-set!
     struct-yarrow_key_event_ctx-index-ref
     struct-yarrow_key_event_ctx-chars-ref
@@ -575,6 +684,20 @@
   (define sizeof-aes_ctx @SIZEOF_AES_CTX@)
   (define alignof-aes_ctx @ALIGNOF_AES_CTX@)
   (define strideof-aes_ctx @STRIDEOF_AES_CTX@)
+  (define-syntax
+    sizeof-aes_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-aes_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-aes_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-aes_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-aes_ctx-keys-ref
     @OFFSETOF_AES_CTX_KEYS@)
@@ -600,6 +723,20 @@
   (define
     strideof-arcfour_ctx
     @STRIDEOF_ARCFOUR_CTX@)
+  (define-syntax
+    sizeof-arcfour_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-arcfour_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-arcfour_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-arcfour_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-arcfour_ctx-S-ref
     @OFFSETOF_ARCFOUR_CTX_S@)
@@ -632,6 +769,20 @@
   (define
     strideof-arctwo_ctx
     @STRIDEOF_ARCTWO_CTX@)
+  (define-syntax
+    sizeof-arctwo_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-arctwo_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-arctwo_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-arctwo_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-arctwo_ctx-S-ref
     @OFFSETOF_ARCTWO_CTX_S@)
@@ -666,6 +817,29 @@
   (define
     pointer-set-c-asn1_type!
     @SETTEROF_ASN1_TYPE@)
+  (define-syntax
+    sizeof-asn1_type-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-asn1_type ?number-of-elements))))
+  (define-syntax
+    array-ref-c-asn1_type
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-asn1_type
+         ?pointer
+         (* ?index strideof-asn1_type)))))
+  (define-syntax
+    array-set-c-asn1_type!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-asn1_type!
+         ?pointer
+         (* ?index strideof-asn1_type)
+         ?value))))
   (define ASN1_BOOLEAN @VALUEOF_ASN1_BOOLEAN@)
   (define ASN1_INTEGER @VALUEOF_ASN1_INTEGER@)
   (define ASN1_BITSTRING @VALUEOF_ASN1_BITSTRING@)
@@ -715,6 +889,30 @@
   (define
     pointer-set-c-asn1_iterator_result!
     @SETTEROF_ASN1_ITERATOR_RESULT@)
+  (define-syntax
+    sizeof-asn1_iterator_result-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-asn1_iterator_result
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-asn1_iterator_result
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-asn1_iterator_result
+         ?pointer
+         (* ?index strideof-asn1_iterator_result)))))
+  (define-syntax
+    array-set-c-asn1_iterator_result!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-asn1_iterator_result!
+         ?pointer
+         (* ?index strideof-asn1_iterator_result)
+         ?value))))
   (define
     ASN1_ITERATOR_ERROR
     @VALUEOF_ASN1_ITERATOR_ERROR@)
@@ -736,6 +934,21 @@
   (define
     strideof-asn1_der_iterator
     @STRIDEOF_ASN1_DER_ITERATOR@)
+  (define-syntax
+    sizeof-asn1_der_iterator-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-asn1_der_iterator
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-asn1_der_iterator
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-asn1_der_iterator)))))
   (define-c-struct-accessor-and-mutator
     struct-asn1_der_iterator-buffer_length-set!
     struct-asn1_der_iterator-buffer_length-ref
@@ -781,6 +994,21 @@
   (define
     strideof-base16_decode_ctx
     @STRIDEOF_BASE16_DECODE_CTX@)
+  (define-syntax
+    sizeof-base16_decode_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-base16_decode_ctx
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-base16_decode_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-base16_decode_ctx)))))
   (define-c-struct-accessor-and-mutator
     struct-base16_decode_ctx-word-set!
     struct-base16_decode_ctx-word-ref
@@ -811,6 +1039,21 @@
   (define
     strideof-base64_encode_ctx
     @STRIDEOF_BASE64_ENCODE_CTX@)
+  (define-syntax
+    sizeof-base64_encode_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-base64_encode_ctx
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-base64_encode_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-base64_encode_ctx)))))
   (define-c-struct-accessor-and-mutator
     struct-base64_encode_ctx-word-set!
     struct-base64_encode_ctx-word-ref
@@ -832,6 +1075,21 @@
   (define
     strideof-base64_decode_ctx
     @STRIDEOF_BASE64_DECODE_CTX@)
+  (define-syntax
+    sizeof-base64_decode_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-base64_decode_ctx
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-base64_decode_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-base64_decode_ctx)))))
   (define-c-struct-accessor-and-mutator
     struct-base64_decode_ctx-word-set!
     struct-base64_decode_ctx-word-ref
@@ -883,6 +1141,29 @@
   (define
     pointer-set-c-blowfish_error!
     @SETTEROF_BLOWFISH_ERROR@)
+  (define-syntax
+    sizeof-blowfish_error-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-blowfish_error ?number-of-elements))))
+  (define-syntax
+    array-ref-c-blowfish_error
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-blowfish_error
+         ?pointer
+         (* ?index strideof-blowfish_error)))))
+  (define-syntax
+    array-set-c-blowfish_error!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-blowfish_error!
+         ?pointer
+         (* ?index strideof-blowfish_error)
+         ?value))))
   (define BLOWFISH_OK @VALUEOF_BLOWFISH_OK@)
   (define
     BLOWFISH_WEAK_KEY
@@ -896,6 +1177,20 @@
   (define
     strideof-blowfish_ctx
     @STRIDEOF_BLOWFISH_CTX@)
+  (define-syntax
+    sizeof-blowfish_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-blowfish_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-blowfish_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-blowfish_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-blowfish_ctx-s-ref
     @OFFSETOF_BLOWFISH_CTX_S@)
@@ -917,6 +1212,20 @@
   (define
     strideof-nettle_buffer
     @STRIDEOF_NETTLE_BUFFER@)
+  (define-syntax
+    sizeof-nettle_buffer-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-nettle_buffer ?number-of-elements))))
+  (define-syntax
+    array-ref-c-nettle_buffer
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-nettle_buffer)))))
   (define-c-struct-accessor-and-mutator
     struct-nettle_buffer-contents-set!
     struct-nettle_buffer-contents-ref
@@ -966,6 +1275,20 @@
   (define
     strideof-cast128_ctx
     @STRIDEOF_CAST128_CTX@)
+  (define-syntax
+    sizeof-cast128_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-cast128_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-cast128_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-cast128_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-cast128_ctx-keys-ref
     @OFFSETOF_CAST128_CTX_KEYS@)
@@ -990,12 +1313,49 @@
   (define
     pointer-set-c-des_error!
     @SETTEROF_DES_ERROR@)
+  (define-syntax
+    sizeof-des_error-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-des_error ?number-of-elements))))
+  (define-syntax
+    array-ref-c-des_error
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-des_error
+         ?pointer
+         (* ?index strideof-des_error)))))
+  (define-syntax
+    array-set-c-des_error!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-des_error!
+         ?pointer
+         (* ?index strideof-des_error)
+         ?value))))
   (define DES_OK @VALUEOF_DES_OK@)
   (define DES_BAD_PARITY @VALUEOF_DES_BAD_PARITY@)
   (define DES_WEAK_KEY @VALUEOF_DES_WEAK_KEY@)
   (define sizeof-des_ctx @SIZEOF_DES_CTX@)
   (define alignof-des_ctx @ALIGNOF_DES_CTX@)
   (define strideof-des_ctx @STRIDEOF_DES_CTX@)
+  (define-syntax
+    sizeof-des_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-des_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-des_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-des_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-des_ctx-key-ref
     @OFFSETOF_DES_CTX_KEY@)
@@ -1012,6 +1372,20 @@
   (define sizeof-des3_ctx @SIZEOF_DES3_CTX@)
   (define alignof-des3_ctx @ALIGNOF_DES3_CTX@)
   (define strideof-des3_ctx @STRIDEOF_DES3_CTX@)
+  (define-syntax
+    sizeof-des3_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-des3_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-des3_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-des3_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-des3_ctx-des-ref
     @OFFSETOF_DES3_CTX_DES@)
@@ -1033,6 +1407,20 @@
   (define
     strideof-dsa_public_key
     @STRIDEOF_DSA_PUBLIC_KEY@)
+  (define-syntax
+    sizeof-dsa_public_key-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-dsa_public_key ?number-of-elements))))
+  (define-syntax
+    array-ref-c-dsa_public_key
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-dsa_public_key)))))
   (define-c-struct-field-pointer-accessor
     struct-dsa_public_key-p-ref
     @OFFSETOF_DSA_PUBLIC_KEY_P@)
@@ -1054,6 +1442,20 @@
   (define
     strideof-dsa_private_key
     @STRIDEOF_DSA_PRIVATE_KEY@)
+  (define-syntax
+    sizeof-dsa_private_key-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-dsa_private_key ?number-of-elements))))
+  (define-syntax
+    array-ref-c-dsa_private_key
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-dsa_private_key)))))
   (define-c-struct-field-pointer-accessor
     struct-dsa_private_key-x-ref
     @OFFSETOF_DSA_PRIVATE_KEY_X@)
@@ -1066,6 +1468,20 @@
   (define
     strideof-dsa_signature
     @STRIDEOF_DSA_SIGNATURE@)
+  (define-syntax
+    sizeof-dsa_signature-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-dsa_signature ?number-of-elements))))
+  (define-syntax
+    array-ref-c-dsa_signature
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-dsa_signature)))))
   (define-c-struct-field-pointer-accessor
     struct-dsa_signature-r-ref
     @OFFSETOF_DSA_SIGNATURE_R@)
@@ -1081,6 +1497,20 @@
   (define
     strideof-hmac_md5_ctx
     @STRIDEOF_HMAC_MD5_CTX@)
+  (define-syntax
+    sizeof-hmac_md5_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-hmac_md5_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-hmac_md5_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-hmac_md5_ctx)))))
   (define
     sizeof-hmac_sha1_ctx
     @SIZEOF_HMAC_SHA1_CTX@)
@@ -1090,6 +1520,20 @@
   (define
     strideof-hmac_sha1_ctx
     @STRIDEOF_HMAC_SHA1_CTX@)
+  (define-syntax
+    sizeof-hmac_sha1_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-hmac_sha1_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-hmac_sha1_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-hmac_sha1_ctx)))))
   (define
     sizeof-hmac_sha256_ctx
     @SIZEOF_HMAC_SHA256_CTX@)
@@ -1099,6 +1543,20 @@
   (define
     strideof-hmac_sha256_ctx
     @STRIDEOF_HMAC_SHA256_CTX@)
+  (define-syntax
+    sizeof-hmac_sha256_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-hmac_sha256_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-hmac_sha256_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-hmac_sha256_ctx)))))
   (define _KNUTH_LFIB_KK @VALUEOF__KNUTH_LFIB_KK@)
   (define
     sizeof-knuth_lfib_ctx
@@ -1109,6 +1567,20 @@
   (define
     strideof-knuth_lfib_ctx
     @STRIDEOF_KNUTH_LFIB_CTX@)
+  (define-syntax
+    sizeof-knuth_lfib_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-knuth_lfib_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-knuth_lfib_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-knuth_lfib_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-knuth_lfib_ctx-x-ref
     @OFFSETOF_KNUTH_LFIB_CTX_X@)
@@ -1125,6 +1597,20 @@
   (define sizeof-md2_ctx @SIZEOF_MD2_CTX@)
   (define alignof-md2_ctx @ALIGNOF_MD2_CTX@)
   (define strideof-md2_ctx @STRIDEOF_MD2_CTX@)
+  (define-syntax
+    sizeof-md2_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-md2_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-md2_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-md2_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-md2_ctx-C-ref
     @OFFSETOF_MD2_CTX_C@)
@@ -1150,6 +1636,20 @@
   (define sizeof-md4_ctx @SIZEOF_MD4_CTX@)
   (define alignof-md4_ctx @ALIGNOF_MD4_CTX@)
   (define strideof-md4_ctx @STRIDEOF_MD4_CTX@)
+  (define-syntax
+    sizeof-md4_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-md4_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-md4_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-md4_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-md4_ctx-digest-ref
     @OFFSETOF_MD4_CTX_DIGEST@)
@@ -1184,6 +1684,20 @@
   (define sizeof-md5_ctx @SIZEOF_MD5_CTX@)
   (define alignof-md5_ctx @ALIGNOF_MD5_CTX@)
   (define strideof-md5_ctx @STRIDEOF_MD5_CTX@)
+  (define-syntax
+    sizeof-md5_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-md5_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-md5_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-md5_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-md5_ctx-digest-ref
     @OFFSETOF_MD5_CTX_DIGEST@)
@@ -1231,6 +1745,29 @@
   (define strideof-time_t @STRIDEOF_TIME_T@)
   (define pointer-ref-c-time_t @GETTEROF_TIME_T@)
   (define pointer-set-c-time_t! @SETTEROF_TIME_T@)
+  (define-syntax
+    sizeof-time_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-time_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-time_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-time_t
+         ?pointer
+         (* ?index strideof-time_t)))))
+  (define-syntax
+    array-set-c-time_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-time_t!
+         ?pointer
+         (* ?index strideof-time_t)
+         ?value))))
   (define pgp_lengths '@TYPEOF_PGP_LENGTHS@)
   (define sizeof-pgp_lengths @SIZEOF_PGP_LENGTHS@)
   (define
@@ -1245,6 +1782,29 @@
   (define
     pointer-set-c-pgp_lengths!
     @SETTEROF_PGP_LENGTHS@)
+  (define-syntax
+    sizeof-pgp_lengths-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-pgp_lengths ?number-of-elements))))
+  (define-syntax
+    array-ref-c-pgp_lengths
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-pgp_lengths
+         ?pointer
+         (* ?index strideof-pgp_lengths)))))
+  (define-syntax
+    array-set-c-pgp_lengths!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-pgp_lengths!
+         ?pointer
+         (* ?index strideof-pgp_lengths)
+         ?value))))
   (define
     PGP_LENGTH_ONE_OCTET
     @VALUEOF_PGP_LENGTH_ONE_OCTET@)
@@ -1272,6 +1832,30 @@
   (define
     pointer-set-c-pgp_public_key_algorithm!
     @SETTEROF_PGP_PUBLIC_KEY_ALGORITHM@)
+  (define-syntax
+    sizeof-pgp_public_key_algorithm-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-pgp_public_key_algorithm
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-pgp_public_key_algorithm
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-pgp_public_key_algorithm
+         ?pointer
+         (* ?index strideof-pgp_public_key_algorithm)))))
+  (define-syntax
+    array-set-c-pgp_public_key_algorithm!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-pgp_public_key_algorithm!
+         ?pointer
+         (* ?index strideof-pgp_public_key_algorithm)
+         ?value))))
   (define PGP_RSA @VALUEOF_PGP_RSA@)
   (define
     PGP_RSA_ENCRYPT
@@ -1300,6 +1884,30 @@
   (define
     pointer-set-c-pgp_symmetric_algorithm!
     @SETTEROF_PGP_SYMMETRIC_ALGORITHM@)
+  (define-syntax
+    sizeof-pgp_symmetric_algorithm-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-pgp_symmetric_algorithm
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-pgp_symmetric_algorithm
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-pgp_symmetric_algorithm
+         ?pointer
+         (* ?index strideof-pgp_symmetric_algorithm)))))
+  (define-syntax
+    array-set-c-pgp_symmetric_algorithm!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-pgp_symmetric_algorithm!
+         ?pointer
+         (* ?index strideof-pgp_symmetric_algorithm)
+         ?value))))
   (define PGP_PLAINTEXT @VALUEOF_PGP_PLAINTEXT@)
   (define PGP_IDEA @VALUEOF_PGP_IDEA@)
   (define PGP_3DES @VALUEOF_PGP_3DES@)
@@ -1327,6 +1935,30 @@
   (define
     pointer-set-c-pgp_compression_algorithm!
     @SETTEROF_PGP_COMPRESSION_ALGORITHM@)
+  (define-syntax
+    sizeof-pgp_compression_algorithm-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-pgp_compression_algorithm
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-pgp_compression_algorithm
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-pgp_compression_algorithm
+         ?pointer
+         (* ?index strideof-pgp_compression_algorithm)))))
+  (define-syntax
+    array-set-c-pgp_compression_algorithm!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-pgp_compression_algorithm!
+         ?pointer
+         (* ?index strideof-pgp_compression_algorithm)
+         ?value))))
   (define
     PGP_UNCOMPRESSED
     @VALUEOF_PGP_UNCOMPRESSED@)
@@ -1350,6 +1982,29 @@
   (define
     pointer-set-c-pgp_hash_algorithm!
     @SETTEROF_PGP_HASH_ALGORITHM@)
+  (define-syntax
+    sizeof-pgp_hash_algorithm-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-pgp_hash_algorithm ?number-of-elements))))
+  (define-syntax
+    array-ref-c-pgp_hash_algorithm
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-pgp_hash_algorithm
+         ?pointer
+         (* ?index strideof-pgp_hash_algorithm)))))
+  (define-syntax
+    array-set-c-pgp_hash_algorithm!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-pgp_hash_algorithm!
+         ?pointer
+         (* ?index strideof-pgp_hash_algorithm)
+         ?value))))
   (define PGP_MD5 @VALUEOF_PGP_MD5@)
   (define PGP_SHA1 @VALUEOF_PGP_SHA1@)
   (define PGP_RIPEMD @VALUEOF_PGP_RIPEMD@)
@@ -1364,6 +2019,29 @@
   (define
     pointer-set-c-pgp_tag!
     @SETTEROF_PGP_TAG@)
+  (define-syntax
+    sizeof-pgp_tag-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-pgp_tag ?number-of-elements))))
+  (define-syntax
+    array-ref-c-pgp_tag
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-pgp_tag
+         ?pointer
+         (* ?index strideof-pgp_tag)))))
+  (define-syntax
+    array-set-c-pgp_tag!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-pgp_tag!
+         ?pointer
+         (* ?index strideof-pgp_tag)
+         ?value))))
   (define
     PGP_TAG_PUBLIC_SESSION_KEY
     @VALUEOF_PGP_TAG_PUBLIC_SESSION_KEY@)
@@ -1418,6 +2096,29 @@
   (define
     pointer-set-c-pgp_signature_type!
     @SETTEROF_PGP_SIGNATURE_TYPE@)
+  (define-syntax
+    sizeof-pgp_signature_type-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-pgp_signature_type ?number-of-elements))))
+  (define-syntax
+    array-ref-c-pgp_signature_type
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-pgp_signature_type
+         ?pointer
+         (* ?index strideof-pgp_signature_type)))))
+  (define-syntax
+    array-set-c-pgp_signature_type!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-pgp_signature_type!
+         ?pointer
+         (* ?index strideof-pgp_signature_type)
+         ?value))))
   (define
     PGP_SIGN_BINARY
     @VALUEOF_PGP_SIGN_BINARY@)
@@ -1471,6 +2172,29 @@
   (define
     pointer-set-c-pgp_subpacket_tag!
     @SETTEROF_PGP_SUBPACKET_TAG@)
+  (define-syntax
+    sizeof-pgp_subpacket_tag-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-pgp_subpacket_tag ?number-of-elements))))
+  (define-syntax
+    array-ref-c-pgp_subpacket_tag
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-pgp_subpacket_tag
+         ?pointer
+         (* ?index strideof-pgp_subpacket_tag)))))
+  (define-syntax
+    array-set-c-pgp_subpacket_tag!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-pgp_subpacket_tag!
+         ?pointer
+         (* ?index strideof-pgp_subpacket_tag)
+         ?value))))
   (define
     PGP_SUBPACKET_CREATION_TIME
     @VALUEOF_PGP_SUBPACKET_CREATION_TIME@)
@@ -1550,6 +2274,20 @@
   (define
     strideof-rsa_public_key
     @STRIDEOF_RSA_PUBLIC_KEY@)
+  (define-syntax
+    sizeof-rsa_public_key-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-rsa_public_key ?number-of-elements))))
+  (define-syntax
+    array-ref-c-rsa_public_key
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-rsa_public_key)))))
   (define-c-struct-accessor-and-mutator
     struct-rsa_public_key-size-set!
     struct-rsa_public_key-size-ref
@@ -1571,6 +2309,20 @@
   (define
     strideof-rsa_private_key
     @STRIDEOF_RSA_PRIVATE_KEY@)
+  (define-syntax
+    sizeof-rsa_private_key-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-rsa_private_key ?number-of-elements))))
+  (define-syntax
+    array-ref-c-rsa_private_key
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-rsa_private_key)))))
   (define-c-struct-accessor-and-mutator
     struct-rsa_private_key-size-set!
     struct-rsa_private_key-size-ref
@@ -1614,6 +2366,20 @@
   (define
     strideof-serpent_ctx
     @STRIDEOF_SERPENT_CTX@)
+  (define-syntax
+    sizeof-serpent_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-serpent_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-serpent_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-serpent_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-serpent_ctx-keys-ref
     @OFFSETOF_SERPENT_CTX_KEYS@)
@@ -1627,6 +2393,29 @@
   (define
     pointer-set-c-sexp_type!
     @SETTEROF_SEXP_TYPE@)
+  (define-syntax
+    sizeof-sexp_type-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-sexp_type ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sexp_type
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-sexp_type
+         ?pointer
+         (* ?index strideof-sexp_type)))))
+  (define-syntax
+    array-set-c-sexp_type!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-sexp_type!
+         ?pointer
+         (* ?index strideof-sexp_type)
+         ?value))))
   (define SEXP_ATOM @VALUEOF_SEXP_ATOM@)
   (define SEXP_LIST @VALUEOF_SEXP_LIST@)
   (define SEXP_END @VALUEOF_SEXP_END@)
@@ -1639,6 +2428,20 @@
   (define
     strideof-sexp_iterator
     @STRIDEOF_SEXP_ITERATOR@)
+  (define-syntax
+    sizeof-sexp_iterator-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sexp_iterator ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sexp_iterator
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sexp_iterator)))))
   (define-c-struct-accessor-and-mutator
     struct-sexp_iterator-length-set!
     struct-sexp_iterator-length-ref
@@ -1709,6 +2512,20 @@
   (define sizeof-sha1_ctx @SIZEOF_SHA1_CTX@)
   (define alignof-sha1_ctx @ALIGNOF_SHA1_CTX@)
   (define strideof-sha1_ctx @STRIDEOF_SHA1_CTX@)
+  (define-syntax
+    sizeof-sha1_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sha1_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sha1_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sha1_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-sha1_ctx-digest-ref
     @OFFSETOF_SHA1_CTX_DIGEST@)
@@ -1747,6 +2564,20 @@
   (define
     strideof-sha256_ctx
     @STRIDEOF_SHA256_CTX@)
+  (define-syntax
+    sizeof-sha256_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-sha256_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-sha256_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-sha256_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-sha256_ctx-state-ref
     @OFFSETOF_SHA256_CTX_STATE@)
@@ -1790,6 +2621,20 @@
   (define
     strideof-twofish_ctx
     @STRIDEOF_TWOFISH_CTX@)
+  (define-syntax
+    sizeof-twofish_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-twofish_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-twofish_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-twofish_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-twofish_ctx-keys-ref
     @OFFSETOF_TWOFISH_CTX_KEYS@)
@@ -1812,6 +2657,29 @@
   (define
     pointer-set-c-yarrow_pool_id!
     @SETTEROF_YARROW_POOL_ID@)
+  (define-syntax
+    sizeof-yarrow_pool_id-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-yarrow_pool_id ?number-of-elements))))
+  (define-syntax
+    array-ref-c-yarrow_pool_id
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-yarrow_pool_id
+         ?pointer
+         (* ?index strideof-yarrow_pool_id)))))
+  (define-syntax
+    array-set-c-yarrow_pool_id!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-yarrow_pool_id!
+         ?pointer
+         (* ?index strideof-yarrow_pool_id)
+         ?value))))
   (define YARROW_FAST @VALUEOF_YARROW_FAST@)
   (define YARROW_SLOW @VALUEOF_YARROW_SLOW@)
   (define
@@ -1829,6 +2697,20 @@
   (define
     strideof-yarrow_source
     @STRIDEOF_YARROW_SOURCE@)
+  (define-syntax
+    sizeof-yarrow_source-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-yarrow_source ?number-of-elements))))
+  (define-syntax
+    array-ref-c-yarrow_source
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-yarrow_source)))))
   (define-c-struct-field-pointer-accessor
     struct-yarrow_source-estimate-ref
     @OFFSETOF_YARROW_SOURCE_ESTIMATE@)
@@ -1847,6 +2729,20 @@
   (define
     strideof-yarrow256_ctx
     @STRIDEOF_YARROW256_CTX@)
+  (define-syntax
+    sizeof-yarrow256_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-yarrow256_ctx ?number-of-elements))))
+  (define-syntax
+    array-ref-c-yarrow256_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-yarrow256_ctx)))))
   (define-c-struct-field-pointer-accessor
     struct-yarrow256_ctx-pools-ref
     @OFFSETOF_YARROW256_CTX_POOLS@)
@@ -1883,6 +2779,21 @@
   (define
     strideof-yarrow_key_event_ctx
     @STRIDEOF_YARROW_KEY_EVENT_CTX@)
+  (define-syntax
+    sizeof-yarrow_key_event_ctx-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-yarrow_key_event_ctx
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-yarrow_key_event_ctx
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-yarrow_key_event_ctx)))))
   (define-c-struct-accessor-and-mutator
     struct-yarrow_key_event_ctx-index-set!
     struct-yarrow_key_event_ctx-index-ref

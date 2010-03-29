@@ -611,7 +611,8 @@
 (define-shared-object nettle libnettle.so)
 (define-shared-object hogweed libhogweed.so)
 
-(autoconf-lib-write "configuration/nettle-inspector.m4" nettle-library-spec)
+(autoconf-lib-write "configuration/nettle-inspector.m4" nettle-library-spec
+		    "NAUSICAA_NETTLE")
 (sizeof-lib-write   "src/libraries/foreign/crypto/nettle/sizeof.sls.in" nettle-library-spec)
 
 ;;; end of file
