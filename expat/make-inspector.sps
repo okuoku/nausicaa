@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -39,19 +39,10 @@
 
 (define-c-type-alias XML_Parser		pointer)
 
-
+(define-c-type XML_Bool			signed-int)
 (define-c-type XML_Char			signed-int)
 (define-c-type XML_LChar		signed-int)
-
-(define-c-type XML_Bool			signed-int)
-(define-c-type XML_Status		signed-int	"enum XML_Status")
-(define-c-type XML_Error		signed-int	"enum XML_Error")
-(define-c-type XML_Content_Type		signed-int	"enum XML_Content_Type")
-(define-c-type XML_Content_Quant	signed-int	"enum XML_Content_Quant")
-(define-c-type XML_FeatureEnum		signed-int	"enum XML_FeatureEnum")
 (define-c-type XML_Index		signed-int)
-(define-c-type XML_Parsing		signed-int	"enum XML_Parsing")
-(define-c-type XML_ParamEntityParsing	signed-int	"enum XML_ParamEntityParsing")
 (define-c-type XML_Size			unsigned-int)
 
 
@@ -87,16 +78,18 @@
 
 ;;;; constants
 
-(define-c-enumeration "XML_Bool"
+(define-c-defines "XML_Bool"
   XML_TRUE
   XML_FALSE)
 
-(define-c-enumeration "XML_Status"
+(define-c-enumeration XML_Status
+  "enum XML_Status"
   XML_STATUS_ERROR
   XML_STATUS_OK
   XML_STATUS_SUSPENDED)
 
-(define-c-enumeration "XML_Error"
+(define-c-enumeration XML_Error
+  "enum XML_Error"
   XML_ERROR_NONE
   XML_ERROR_NO_MEMORY
   XML_ERROR_SYNTAX
@@ -139,7 +132,8 @@
   XML_ERROR_RESERVED_PREFIX_XMLNS
   XML_ERROR_RESERVED_NAMESPACE_URI)
 
-(define-c-enumeration "XML_Content_Type"
+(define-c-enumeration XML_Content_Type
+  "enum XML_Content_Type"
   XML_CTYPE_EMPTY
   XML_CTYPE_ANY
   XML_CTYPE_MIXED
@@ -147,19 +141,22 @@
   XML_CTYPE_CHOICE
   XML_CTYPE_SEQ)
 
-(define-c-enumeration "XML_Content_Quant"
+(define-c-enumeration XML_Content_Quant
+  "enum XML_Content_Quant"
   XML_CQUANT_NONE
   XML_CQUANT_OPT
   XML_CQUANT_REP
   XML_CQUANT_PLUS)
 
-(define-c-enumeration "XML_Parsing"
+(define-c-enumeration XML_Parsing
+  "enum XML_Parsing"
   XML_INITIALIZED
   XML_PARSING
   XML_FINISHED
   XML_SUSPENDED)
 
-(define-c-enumeration "XML_ParamEntityParsing"
+(define-c-enumeration XML_ParamEntityParsing
+  "enum XML_ParamEntityParsing"
   XML_PARAM_ENTITY_PARSING_NEVER
   XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE
   XML_PARAM_ENTITY_PARSING_ALWAYS)
@@ -169,7 +166,8 @@
   XML_MINOR_VERSION
   XML_MICRO_VERSION)
 
-(define-c-enumeration "XML_FeatureEnum"
+(define-c-enumeration XML_FeatureEnum
+  "enum XML_FeatureEnum"
   XML_FEATURE_END
   XML_FEATURE_UNICODE
   XML_FEATURE_UNICODE_WCHAR_T
@@ -184,18 +182,8 @@
 
 ;;;; done
 
-(autoconf-lib-write "configuration/expat-inspector.m4" expat-library-spec)
+(autoconf-lib-write "configuration/expat-inspector.m4" expat-library-spec
+		    "NAUSICAA_EXPAT")
 (sizeof-lib-write   "src/libraries/foreign/xml/expat/sizeof.sls.in" expat-library-spec)
-
-;;; end of file
-
-
-
-;;;; code
-
-
-
-;;;; done
-
 
 ;;; end of file

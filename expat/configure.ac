@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-expat],[0.1b3],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-expat],[0.1b4],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/xml/expat.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
@@ -58,7 +58,7 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #include <expat.h>
 ])
 
-m4_include(configuration/expat-inspector.m4)
+NAUSICAA_EXPAT
 
 dnl page
 dnl --------------------------------------------------------------------

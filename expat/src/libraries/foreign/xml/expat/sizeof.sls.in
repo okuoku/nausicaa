@@ -2,13 +2,13 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Tue Dec  1, 2009
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,81 +30,56 @@
   (export
     EXPAT_SHARED_OBJECT
     XML_Parser
-    XML_Char
-    sizeof-XML_Char
-    alignof-XML_Char
-    strideof-XML_Char
-    pointer-set-c-XML_Char!
-    pointer-ref-c-XML_Char
-    XML_LChar
-    sizeof-XML_LChar
-    alignof-XML_LChar
-    strideof-XML_LChar
-    pointer-set-c-XML_LChar!
-    pointer-ref-c-XML_LChar
     XML_Bool
     sizeof-XML_Bool
     alignof-XML_Bool
     strideof-XML_Bool
-    pointer-set-c-XML_Bool!
     pointer-ref-c-XML_Bool
-    XML_Status
-    sizeof-XML_Status
-    alignof-XML_Status
-    strideof-XML_Status
-    pointer-set-c-XML_Status!
-    pointer-ref-c-XML_Status
-    XML_Error
-    sizeof-XML_Error
-    alignof-XML_Error
-    strideof-XML_Error
-    pointer-set-c-XML_Error!
-    pointer-ref-c-XML_Error
-    XML_Content_Type
-    sizeof-XML_Content_Type
-    alignof-XML_Content_Type
-    strideof-XML_Content_Type
-    pointer-set-c-XML_Content_Type!
-    pointer-ref-c-XML_Content_Type
-    XML_Content_Quant
-    sizeof-XML_Content_Quant
-    alignof-XML_Content_Quant
-    strideof-XML_Content_Quant
-    pointer-set-c-XML_Content_Quant!
-    pointer-ref-c-XML_Content_Quant
-    XML_FeatureEnum
-    sizeof-XML_FeatureEnum
-    alignof-XML_FeatureEnum
-    strideof-XML_FeatureEnum
-    pointer-set-c-XML_FeatureEnum!
-    pointer-ref-c-XML_FeatureEnum
+    pointer-set-c-XML_Bool!
+    sizeof-XML_Bool-array
+    array-ref-c-XML_Bool
+    array-set-c-XML_Bool!
+    XML_Char
+    sizeof-XML_Char
+    alignof-XML_Char
+    strideof-XML_Char
+    pointer-ref-c-XML_Char
+    pointer-set-c-XML_Char!
+    sizeof-XML_Char-array
+    array-ref-c-XML_Char
+    array-set-c-XML_Char!
+    XML_LChar
+    sizeof-XML_LChar
+    alignof-XML_LChar
+    strideof-XML_LChar
+    pointer-ref-c-XML_LChar
+    pointer-set-c-XML_LChar!
+    sizeof-XML_LChar-array
+    array-ref-c-XML_LChar
+    array-set-c-XML_LChar!
     XML_Index
     sizeof-XML_Index
     alignof-XML_Index
     strideof-XML_Index
-    pointer-set-c-XML_Index!
     pointer-ref-c-XML_Index
-    XML_Parsing
-    sizeof-XML_Parsing
-    alignof-XML_Parsing
-    strideof-XML_Parsing
-    pointer-set-c-XML_Parsing!
-    pointer-ref-c-XML_Parsing
-    XML_ParamEntityParsing
-    sizeof-XML_ParamEntityParsing
-    alignof-XML_ParamEntityParsing
-    strideof-XML_ParamEntityParsing
-    pointer-set-c-XML_ParamEntityParsing!
-    pointer-ref-c-XML_ParamEntityParsing
+    pointer-set-c-XML_Index!
+    sizeof-XML_Index-array
+    array-ref-c-XML_Index
+    array-set-c-XML_Index!
     XML_Size
     sizeof-XML_Size
     alignof-XML_Size
     strideof-XML_Size
-    pointer-set-c-XML_Size!
     pointer-ref-c-XML_Size
+    pointer-set-c-XML_Size!
+    sizeof-XML_Size-array
+    array-ref-c-XML_Size
+    array-set-c-XML_Size!
     sizeof-XML_Content
     alignof-XML_Content
     strideof-XML_Content
+    sizeof-XML_Content-array
+    array-ref-c-XML_Content
     struct-XML_Content-type-set!
     struct-XML_Content-type-ref
     struct-XML_Content-quant-set!
@@ -118,6 +93,8 @@
     sizeof-XML_Encoding
     alignof-XML_Encoding
     strideof-XML_Encoding
+    sizeof-XML_Encoding-array
+    array-ref-c-XML_Encoding
     struct-XML_Encoding-map-ref
     struct-XML_Encoding-data-set!
     struct-XML_Encoding-data-ref
@@ -128,6 +105,8 @@
     sizeof-XML_ParsingStatus
     alignof-XML_ParsingStatus
     strideof-XML_ParsingStatus
+    sizeof-XML_ParsingStatus-array
+    array-ref-c-XML_ParsingStatus
     struct-XML_ParsingStatus-parsing-set!
     struct-XML_ParsingStatus-parsing-ref
     struct-XML_ParsingStatus-finalBuffer-set!
@@ -135,6 +114,8 @@
     sizeof-XML_Expat_Version
     alignof-XML_Expat_Version
     strideof-XML_Expat_Version
+    sizeof-XML_Expat_Version-array
+    array-ref-c-XML_Expat_Version
     struct-XML_Expat_Version-major-set!
     struct-XML_Expat_Version-major-ref
     struct-XML_Expat_Version-minor-set!
@@ -144,6 +125,8 @@
     sizeof-XML_Feature
     alignof-XML_Feature
     strideof-XML_Feature
+    sizeof-XML_Feature-array
+    array-ref-c-XML_Feature
     struct-XML_Feature-feature-set!
     struct-XML_Feature-feature-ref
     struct-XML_Feature-name-set!
@@ -152,9 +135,27 @@
     struct-XML_Feature-value-ref
     XML_TRUE
     XML_FALSE
+    XML_Status
+    sizeof-XML_Status
+    alignof-XML_Status
+    strideof-XML_Status
+    pointer-ref-c-XML_Status
+    pointer-set-c-XML_Status!
+    sizeof-XML_Status-array
+    array-ref-c-XML_Status
+    array-set-c-XML_Status!
     XML_STATUS_ERROR
     XML_STATUS_OK
     XML_STATUS_SUSPENDED
+    XML_Error
+    sizeof-XML_Error
+    alignof-XML_Error
+    strideof-XML_Error
+    pointer-ref-c-XML_Error
+    pointer-set-c-XML_Error!
+    sizeof-XML_Error-array
+    array-ref-c-XML_Error
+    array-set-c-XML_Error!
     XML_ERROR_NONE
     XML_ERROR_NO_MEMORY
     XML_ERROR_SYNTAX
@@ -196,26 +197,71 @@
     XML_ERROR_RESERVED_PREFIX_XML
     XML_ERROR_RESERVED_PREFIX_XMLNS
     XML_ERROR_RESERVED_NAMESPACE_URI
+    XML_Content_Type
+    sizeof-XML_Content_Type
+    alignof-XML_Content_Type
+    strideof-XML_Content_Type
+    pointer-ref-c-XML_Content_Type
+    pointer-set-c-XML_Content_Type!
+    sizeof-XML_Content_Type-array
+    array-ref-c-XML_Content_Type
+    array-set-c-XML_Content_Type!
     XML_CTYPE_EMPTY
     XML_CTYPE_ANY
     XML_CTYPE_MIXED
     XML_CTYPE_NAME
     XML_CTYPE_CHOICE
     XML_CTYPE_SEQ
+    XML_Content_Quant
+    sizeof-XML_Content_Quant
+    alignof-XML_Content_Quant
+    strideof-XML_Content_Quant
+    pointer-ref-c-XML_Content_Quant
+    pointer-set-c-XML_Content_Quant!
+    sizeof-XML_Content_Quant-array
+    array-ref-c-XML_Content_Quant
+    array-set-c-XML_Content_Quant!
     XML_CQUANT_NONE
     XML_CQUANT_OPT
     XML_CQUANT_REP
     XML_CQUANT_PLUS
+    XML_Parsing
+    sizeof-XML_Parsing
+    alignof-XML_Parsing
+    strideof-XML_Parsing
+    pointer-ref-c-XML_Parsing
+    pointer-set-c-XML_Parsing!
+    sizeof-XML_Parsing-array
+    array-ref-c-XML_Parsing
+    array-set-c-XML_Parsing!
     XML_INITIALIZED
     XML_PARSING
     XML_FINISHED
     XML_SUSPENDED
+    XML_ParamEntityParsing
+    sizeof-XML_ParamEntityParsing
+    alignof-XML_ParamEntityParsing
+    strideof-XML_ParamEntityParsing
+    pointer-ref-c-XML_ParamEntityParsing
+    pointer-set-c-XML_ParamEntityParsing!
+    sizeof-XML_ParamEntityParsing-array
+    array-ref-c-XML_ParamEntityParsing
+    array-set-c-XML_ParamEntityParsing!
     XML_PARAM_ENTITY_PARSING_NEVER
     XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE
     XML_PARAM_ENTITY_PARSING_ALWAYS
     XML_MAJOR_VERSION
     XML_MINOR_VERSION
     XML_MICRO_VERSION
+    XML_FeatureEnum
+    sizeof-XML_FeatureEnum
+    alignof-XML_FeatureEnum
+    strideof-XML_FeatureEnum
+    pointer-ref-c-XML_FeatureEnum
+    pointer-set-c-XML_FeatureEnum!
+    sizeof-XML_FeatureEnum-array
+    array-ref-c-XML_FeatureEnum
+    array-set-c-XML_FeatureEnum!
     XML_FEATURE_END
     XML_FEATURE_UNICODE
     XML_FEATURE_UNICODE_WCHAR_T
@@ -234,164 +280,181 @@
     EXPAT_SHARED_OBJECT
     "@EXPAT_SHARED_OBJECT@")
   (define XML_Parser 'pointer)
-  (define XML_Char '@TYPEOF_XML_CHAR@)
-  (define sizeof-XML_Char @SIZEOF_XML_CHAR@)
-  (define alignof-XML_Char @ALIGNOF_XML_CHAR@)
-  (define strideof-XML_Char @STRIDEOF_XML_CHAR@)
-  (define
-    pointer-set-c-XML_Char!
-    @GETTEROF_XML_CHAR@)
-  (define
-    pointer-ref-c-XML_Char
-    @SETTEROF_XML_CHAR@)
-  (define XML_LChar '@TYPEOF_XML_LCHAR@)
-  (define sizeof-XML_LChar @SIZEOF_XML_LCHAR@)
-  (define alignof-XML_LChar @ALIGNOF_XML_LCHAR@)
-  (define strideof-XML_LChar @STRIDEOF_XML_LCHAR@)
-  (define
-    pointer-set-c-XML_LChar!
-    @GETTEROF_XML_LCHAR@)
-  (define
-    pointer-ref-c-XML_LChar
-    @SETTEROF_XML_LCHAR@)
   (define XML_Bool '@TYPEOF_XML_BOOL@)
   (define sizeof-XML_Bool @SIZEOF_XML_BOOL@)
   (define alignof-XML_Bool @ALIGNOF_XML_BOOL@)
   (define strideof-XML_Bool @STRIDEOF_XML_BOOL@)
   (define
-    pointer-set-c-XML_Bool!
+    pointer-ref-c-XML_Bool
     @GETTEROF_XML_BOOL@)
   (define
-    pointer-ref-c-XML_Bool
+    pointer-set-c-XML_Bool!
     @SETTEROF_XML_BOOL@)
-  (define XML_Status '@TYPEOF_XML_STATUS@)
-  (define sizeof-XML_Status @SIZEOF_XML_STATUS@)
-  (define alignof-XML_Status @ALIGNOF_XML_STATUS@)
+  (define-syntax
+    sizeof-XML_Bool-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-XML_Bool ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Bool
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-XML_Bool
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Bool))))))
+  (define-syntax
+    array-set-c-XML_Bool!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-XML_Bool!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Bool))
+         ?value))))
+  (define XML_Char '@TYPEOF_XML_CHAR@)
+  (define sizeof-XML_Char @SIZEOF_XML_CHAR@)
+  (define alignof-XML_Char @ALIGNOF_XML_CHAR@)
+  (define strideof-XML_Char @STRIDEOF_XML_CHAR@)
   (define
-    strideof-XML_Status
-    @STRIDEOF_XML_STATUS@)
+    pointer-ref-c-XML_Char
+    @GETTEROF_XML_CHAR@)
   (define
-    pointer-set-c-XML_Status!
-    @GETTEROF_XML_STATUS@)
+    pointer-set-c-XML_Char!
+    @SETTEROF_XML_CHAR@)
+  (define-syntax
+    sizeof-XML_Char-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-XML_Char ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Char
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-XML_Char
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Char))))))
+  (define-syntax
+    array-set-c-XML_Char!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-XML_Char!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Char))
+         ?value))))
+  (define XML_LChar '@TYPEOF_XML_LCHAR@)
+  (define sizeof-XML_LChar @SIZEOF_XML_LCHAR@)
+  (define alignof-XML_LChar @ALIGNOF_XML_LCHAR@)
+  (define strideof-XML_LChar @STRIDEOF_XML_LCHAR@)
   (define
-    pointer-ref-c-XML_Status
-    @SETTEROF_XML_STATUS@)
-  (define XML_Error '@TYPEOF_XML_ERROR@)
-  (define sizeof-XML_Error @SIZEOF_XML_ERROR@)
-  (define alignof-XML_Error @ALIGNOF_XML_ERROR@)
-  (define strideof-XML_Error @STRIDEOF_XML_ERROR@)
+    pointer-ref-c-XML_LChar
+    @GETTEROF_XML_LCHAR@)
   (define
-    pointer-set-c-XML_Error!
-    @GETTEROF_XML_ERROR@)
-  (define
-    pointer-ref-c-XML_Error
-    @SETTEROF_XML_ERROR@)
-  (define
-    XML_Content_Type
-    '@TYPEOF_XML_CONTENT_TYPE@)
-  (define
-    sizeof-XML_Content_Type
-    @SIZEOF_XML_CONTENT_TYPE@)
-  (define
-    alignof-XML_Content_Type
-    @ALIGNOF_XML_CONTENT_TYPE@)
-  (define
-    strideof-XML_Content_Type
-    @STRIDEOF_XML_CONTENT_TYPE@)
-  (define
-    pointer-set-c-XML_Content_Type!
-    @GETTEROF_XML_CONTENT_TYPE@)
-  (define
-    pointer-ref-c-XML_Content_Type
-    @SETTEROF_XML_CONTENT_TYPE@)
-  (define
-    XML_Content_Quant
-    '@TYPEOF_XML_CONTENT_QUANT@)
-  (define
-    sizeof-XML_Content_Quant
-    @SIZEOF_XML_CONTENT_QUANT@)
-  (define
-    alignof-XML_Content_Quant
-    @ALIGNOF_XML_CONTENT_QUANT@)
-  (define
-    strideof-XML_Content_Quant
-    @STRIDEOF_XML_CONTENT_QUANT@)
-  (define
-    pointer-set-c-XML_Content_Quant!
-    @GETTEROF_XML_CONTENT_QUANT@)
-  (define
-    pointer-ref-c-XML_Content_Quant
-    @SETTEROF_XML_CONTENT_QUANT@)
-  (define
-    XML_FeatureEnum
-    '@TYPEOF_XML_FEATUREENUM@)
-  (define
-    sizeof-XML_FeatureEnum
-    @SIZEOF_XML_FEATUREENUM@)
-  (define
-    alignof-XML_FeatureEnum
-    @ALIGNOF_XML_FEATUREENUM@)
-  (define
-    strideof-XML_FeatureEnum
-    @STRIDEOF_XML_FEATUREENUM@)
-  (define
-    pointer-set-c-XML_FeatureEnum!
-    @GETTEROF_XML_FEATUREENUM@)
-  (define
-    pointer-ref-c-XML_FeatureEnum
-    @SETTEROF_XML_FEATUREENUM@)
+    pointer-set-c-XML_LChar!
+    @SETTEROF_XML_LCHAR@)
+  (define-syntax
+    sizeof-XML_LChar-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-XML_LChar ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_LChar
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-XML_LChar
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_LChar))))))
+  (define-syntax
+    array-set-c-XML_LChar!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-XML_LChar!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_LChar))
+         ?value))))
   (define XML_Index '@TYPEOF_XML_INDEX@)
   (define sizeof-XML_Index @SIZEOF_XML_INDEX@)
   (define alignof-XML_Index @ALIGNOF_XML_INDEX@)
   (define strideof-XML_Index @STRIDEOF_XML_INDEX@)
   (define
-    pointer-set-c-XML_Index!
+    pointer-ref-c-XML_Index
     @GETTEROF_XML_INDEX@)
   (define
-    pointer-ref-c-XML_Index
+    pointer-set-c-XML_Index!
     @SETTEROF_XML_INDEX@)
-  (define XML_Parsing '@TYPEOF_XML_PARSING@)
-  (define sizeof-XML_Parsing @SIZEOF_XML_PARSING@)
-  (define
-    alignof-XML_Parsing
-    @ALIGNOF_XML_PARSING@)
-  (define
-    strideof-XML_Parsing
-    @STRIDEOF_XML_PARSING@)
-  (define
-    pointer-set-c-XML_Parsing!
-    @GETTEROF_XML_PARSING@)
-  (define
-    pointer-ref-c-XML_Parsing
-    @SETTEROF_XML_PARSING@)
-  (define
-    XML_ParamEntityParsing
-    '@TYPEOF_XML_PARAMENTITYPARSING@)
-  (define
-    sizeof-XML_ParamEntityParsing
-    @SIZEOF_XML_PARAMENTITYPARSING@)
-  (define
-    alignof-XML_ParamEntityParsing
-    @ALIGNOF_XML_PARAMENTITYPARSING@)
-  (define
-    strideof-XML_ParamEntityParsing
-    @STRIDEOF_XML_PARAMENTITYPARSING@)
-  (define
-    pointer-set-c-XML_ParamEntityParsing!
-    @GETTEROF_XML_PARAMENTITYPARSING@)
-  (define
-    pointer-ref-c-XML_ParamEntityParsing
-    @SETTEROF_XML_PARAMENTITYPARSING@)
+  (define-syntax
+    sizeof-XML_Index-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-XML_Index ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Index
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-XML_Index
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Index))))))
+  (define-syntax
+    array-set-c-XML_Index!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-XML_Index!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Index))
+         ?value))))
   (define XML_Size '@TYPEOF_XML_SIZE@)
   (define sizeof-XML_Size @SIZEOF_XML_SIZE@)
   (define alignof-XML_Size @ALIGNOF_XML_SIZE@)
   (define strideof-XML_Size @STRIDEOF_XML_SIZE@)
   (define
-    pointer-set-c-XML_Size!
+    pointer-ref-c-XML_Size
     @GETTEROF_XML_SIZE@)
   (define
-    pointer-ref-c-XML_Size
+    pointer-set-c-XML_Size!
     @SETTEROF_XML_SIZE@)
+  (define-syntax
+    sizeof-XML_Size-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-XML_Size ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Size
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-XML_Size
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Size))))))
+  (define-syntax
+    array-set-c-XML_Size!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-XML_Size!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Size))
+         ?value))))
   (define sizeof-XML_Content @SIZEOF_XML_CONTENT@)
   (define
     alignof-XML_Content
@@ -399,6 +462,20 @@
   (define
     strideof-XML_Content
     @STRIDEOF_XML_CONTENT@)
+  (define-syntax
+    sizeof-XML_Content-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-XML_Content ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Content
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-XML_Content)))))
   (define-c-struct-accessor-and-mutator
     struct-XML_Content-type-set!
     struct-XML_Content-type-ref
@@ -438,6 +515,20 @@
   (define
     strideof-XML_Encoding
     @STRIDEOF_XML_ENCODING@)
+  (define-syntax
+    sizeof-XML_Encoding-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-XML_Encoding ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Encoding
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-XML_Encoding)))))
   (define-c-struct-field-pointer-accessor
     struct-XML_Encoding-map-ref
     @OFFSETOF_XML_ENCODING_MAP@)
@@ -468,6 +559,21 @@
   (define
     strideof-XML_ParsingStatus
     @STRIDEOF_XML_PARSINGSTATUS@)
+  (define-syntax
+    sizeof-XML_ParsingStatus-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-XML_ParsingStatus
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_ParsingStatus
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-XML_ParsingStatus)))))
   (define-c-struct-accessor-and-mutator
     struct-XML_ParsingStatus-parsing-set!
     struct-XML_ParsingStatus-parsing-ref
@@ -489,6 +595,21 @@
   (define
     strideof-XML_Expat_Version
     @STRIDEOF_XML_EXPAT_VERSION@)
+  (define-syntax
+    sizeof-XML_Expat_Version-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-XML_Expat_Version
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Expat_Version
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-XML_Expat_Version)))))
   (define-c-struct-accessor-and-mutator
     struct-XML_Expat_Version-major-set!
     struct-XML_Expat_Version-major-ref
@@ -514,6 +635,20 @@
   (define
     strideof-XML_Feature
     @STRIDEOF_XML_FEATURE@)
+  (define-syntax
+    sizeof-XML_Feature-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-XML_Feature ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Feature
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-XML_Feature)))))
   (define-c-struct-accessor-and-mutator
     struct-XML_Feature-feature-set!
     struct-XML_Feature-feature-ref
@@ -534,6 +669,43 @@
     @GETTEROF_XML_FEATURE_VALUE@)
   (define XML_TRUE @VALUEOF_XML_TRUE@)
   (define XML_FALSE @VALUEOF_XML_FALSE@)
+  (define XML_Status '@TYPEOF_XML_STATUS@)
+  (define sizeof-XML_Status @SIZEOF_XML_STATUS@)
+  (define alignof-XML_Status @ALIGNOF_XML_STATUS@)
+  (define
+    strideof-XML_Status
+    @STRIDEOF_XML_STATUS@)
+  (define
+    pointer-ref-c-XML_Status
+    @GETTEROF_XML_STATUS@)
+  (define
+    pointer-set-c-XML_Status!
+    @SETTEROF_XML_STATUS@)
+  (define-syntax
+    sizeof-XML_Status-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-XML_Status ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Status
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-XML_Status
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Status))))))
+  (define-syntax
+    array-set-c-XML_Status!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-XML_Status!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Status))
+         ?value))))
   (define
     XML_STATUS_ERROR
     @VALUEOF_XML_STATUS_ERROR@)
@@ -541,6 +713,41 @@
   (define
     XML_STATUS_SUSPENDED
     @VALUEOF_XML_STATUS_SUSPENDED@)
+  (define XML_Error '@TYPEOF_XML_ERROR@)
+  (define sizeof-XML_Error @SIZEOF_XML_ERROR@)
+  (define alignof-XML_Error @ALIGNOF_XML_ERROR@)
+  (define strideof-XML_Error @STRIDEOF_XML_ERROR@)
+  (define
+    pointer-ref-c-XML_Error
+    @GETTEROF_XML_ERROR@)
+  (define
+    pointer-set-c-XML_Error!
+    @SETTEROF_XML_ERROR@)
+  (define-syntax
+    sizeof-XML_Error-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-XML_Error ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Error
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-XML_Error
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Error))))))
+  (define-syntax
+    array-set-c-XML_Error!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-XML_Error!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Error))
+         ?value))))
   (define XML_ERROR_NONE @VALUEOF_XML_ERROR_NONE@)
   (define
     XML_ERROR_NO_MEMORY
@@ -663,6 +870,49 @@
     XML_ERROR_RESERVED_NAMESPACE_URI
     @VALUEOF_XML_ERROR_RESERVED_NAMESPACE_URI@)
   (define
+    XML_Content_Type
+    '@TYPEOF_XML_CONTENT_TYPE@)
+  (define
+    sizeof-XML_Content_Type
+    @SIZEOF_XML_CONTENT_TYPE@)
+  (define
+    alignof-XML_Content_Type
+    @ALIGNOF_XML_CONTENT_TYPE@)
+  (define
+    strideof-XML_Content_Type
+    @STRIDEOF_XML_CONTENT_TYPE@)
+  (define
+    pointer-ref-c-XML_Content_Type
+    @GETTEROF_XML_CONTENT_TYPE@)
+  (define
+    pointer-set-c-XML_Content_Type!
+    @SETTEROF_XML_CONTENT_TYPE@)
+  (define-syntax
+    sizeof-XML_Content_Type-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-XML_Content_Type ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Content_Type
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-XML_Content_Type
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Content_Type))))))
+  (define-syntax
+    array-set-c-XML_Content_Type!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-XML_Content_Type!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Content_Type))
+         ?value))))
+  (define
     XML_CTYPE_EMPTY
     @VALUEOF_XML_CTYPE_EMPTY@)
   (define XML_CTYPE_ANY @VALUEOF_XML_CTYPE_ANY@)
@@ -675,6 +925,49 @@
     @VALUEOF_XML_CTYPE_CHOICE@)
   (define XML_CTYPE_SEQ @VALUEOF_XML_CTYPE_SEQ@)
   (define
+    XML_Content_Quant
+    '@TYPEOF_XML_CONTENT_QUANT@)
+  (define
+    sizeof-XML_Content_Quant
+    @SIZEOF_XML_CONTENT_QUANT@)
+  (define
+    alignof-XML_Content_Quant
+    @ALIGNOF_XML_CONTENT_QUANT@)
+  (define
+    strideof-XML_Content_Quant
+    @STRIDEOF_XML_CONTENT_QUANT@)
+  (define
+    pointer-ref-c-XML_Content_Quant
+    @GETTEROF_XML_CONTENT_QUANT@)
+  (define
+    pointer-set-c-XML_Content_Quant!
+    @SETTEROF_XML_CONTENT_QUANT@)
+  (define-syntax
+    sizeof-XML_Content_Quant-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-XML_Content_Quant ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Content_Quant
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-XML_Content_Quant
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Content_Quant))))))
+  (define-syntax
+    array-set-c-XML_Content_Quant!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-XML_Content_Quant!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Content_Quant))
+         ?value))))
+  (define
     XML_CQUANT_NONE
     @VALUEOF_XML_CQUANT_NONE@)
   (define XML_CQUANT_OPT @VALUEOF_XML_CQUANT_OPT@)
@@ -682,12 +975,95 @@
   (define
     XML_CQUANT_PLUS
     @VALUEOF_XML_CQUANT_PLUS@)
+  (define XML_Parsing '@TYPEOF_XML_PARSING@)
+  (define sizeof-XML_Parsing @SIZEOF_XML_PARSING@)
+  (define
+    alignof-XML_Parsing
+    @ALIGNOF_XML_PARSING@)
+  (define
+    strideof-XML_Parsing
+    @STRIDEOF_XML_PARSING@)
+  (define
+    pointer-ref-c-XML_Parsing
+    @GETTEROF_XML_PARSING@)
+  (define
+    pointer-set-c-XML_Parsing!
+    @SETTEROF_XML_PARSING@)
+  (define-syntax
+    sizeof-XML_Parsing-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-XML_Parsing ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_Parsing
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-XML_Parsing
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Parsing))))))
+  (define-syntax
+    array-set-c-XML_Parsing!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-XML_Parsing!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_Parsing))
+         ?value))))
   (define
     XML_INITIALIZED
     @VALUEOF_XML_INITIALIZED@)
   (define XML_PARSING @VALUEOF_XML_PARSING@)
   (define XML_FINISHED @VALUEOF_XML_FINISHED@)
   (define XML_SUSPENDED @VALUEOF_XML_SUSPENDED@)
+  (define
+    XML_ParamEntityParsing
+    '@TYPEOF_XML_PARAMENTITYPARSING@)
+  (define
+    sizeof-XML_ParamEntityParsing
+    @SIZEOF_XML_PARAMENTITYPARSING@)
+  (define
+    alignof-XML_ParamEntityParsing
+    @ALIGNOF_XML_PARAMENTITYPARSING@)
+  (define
+    strideof-XML_ParamEntityParsing
+    @STRIDEOF_XML_PARAMENTITYPARSING@)
+  (define
+    pointer-ref-c-XML_ParamEntityParsing
+    @GETTEROF_XML_PARAMENTITYPARSING@)
+  (define
+    pointer-set-c-XML_ParamEntityParsing!
+    @SETTEROF_XML_PARAMENTITYPARSING@)
+  (define-syntax
+    sizeof-XML_ParamEntityParsing-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-XML_ParamEntityParsing
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_ParamEntityParsing
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-XML_ParamEntityParsing
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_ParamEntityParsing))))))
+  (define-syntax
+    array-set-c-XML_ParamEntityParsing!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-XML_ParamEntityParsing!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_ParamEntityParsing))
+         ?value))))
   (define
     XML_PARAM_ENTITY_PARSING_NEVER
     @VALUEOF_XML_PARAM_ENTITY_PARSING_NEVER@)
@@ -706,6 +1082,49 @@
   (define
     XML_MICRO_VERSION
     @VALUEOF_XML_MICRO_VERSION@)
+  (define
+    XML_FeatureEnum
+    '@TYPEOF_XML_FEATUREENUM@)
+  (define
+    sizeof-XML_FeatureEnum
+    @SIZEOF_XML_FEATUREENUM@)
+  (define
+    alignof-XML_FeatureEnum
+    @ALIGNOF_XML_FEATUREENUM@)
+  (define
+    strideof-XML_FeatureEnum
+    @STRIDEOF_XML_FEATUREENUM@)
+  (define
+    pointer-ref-c-XML_FeatureEnum
+    @GETTEROF_XML_FEATUREENUM@)
+  (define
+    pointer-set-c-XML_FeatureEnum!
+    @SETTEROF_XML_FEATUREENUM@)
+  (define-syntax
+    sizeof-XML_FeatureEnum-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-XML_FeatureEnum ?number-of-elements))))
+  (define-syntax
+    array-ref-c-XML_FeatureEnum
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-XML_FeatureEnum
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_FeatureEnum))))))
+  (define-syntax
+    array-set-c-XML_FeatureEnum!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-XML_FeatureEnum!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-XML_FeatureEnum))
+         ?value))))
   (define
     XML_FEATURE_END
     @VALUEOF_XML_FEATURE_END@)

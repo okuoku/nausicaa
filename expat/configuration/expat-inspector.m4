@@ -2,13 +2,13 @@ dnl (foreign xml expat sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Tue Dec  1, 2009
+dnl Date: Mon Mar 29, 2010
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software:  you can redistribute it and/or modify
 dnl it under the terms of the  GNU General Public License as published by
@@ -24,20 +24,14 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_EXPAT],[
 
 NAU_DS_WITH_OPTION([EXPAT_SHARED_OBJECT],[expat-shared-object],[libexpat.so],
   [Expat shared library file],[select Expat shared library file])
+NAUSICAA_INSPECT_TYPE([XML_BOOL],[XML_Bool],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([XML_CHAR],[XML_Char],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([XML_LCHAR],[XML_LChar],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([XML_BOOL],[XML_Bool],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([XML_STATUS],[enum XML_Status],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([XML_ERROR],[enum XML_Error],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([XML_CONTENT_TYPE],[enum XML_Content_Type],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([XML_CONTENT_QUANT],[enum XML_Content_Quant],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([XML_FEATUREENUM],[enum XML_FeatureEnum],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([XML_INDEX],[XML_Index],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([XML_PARSING],[enum XML_Parsing],[signed-int],[#f])
-NAUSICAA_INSPECT_TYPE([XML_PARAMENTITYPARSING],[enum XML_ParamEntityParsing],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([XML_SIZE],[XML_Size],[unsigned-int],[#f])
 
 dnl Struct inspection: XML_Content
@@ -72,14 +66,16 @@ NAUSICAA_INSPECT_FIELD_TYPE([XML_FEATURE_FEATURE],[XML_Feature],[feature],[signe
 NAUSICAA_INSPECT_FIELD_TYPE([XML_FEATURE_NAME],[XML_Feature],[name],[pointer])
 NAUSICAA_INSPECT_FIELD_TYPE([XML_FEATURE_VALUE],[XML_Feature],[value],[signed-int])
 
-dnl enum XML_Bool
-NAUSICAA_ENUM_VALUE([XML_TRUE])
-NAUSICAA_ENUM_VALUE([XML_FALSE])
+dnl Preprocessor symbols: XML_Bool
+NAUSICAA_DEFINE_VALUE([XML_TRUE])
+NAUSICAA_DEFINE_VALUE([XML_FALSE])
+NAUSICAA_INSPECT_TYPE([XML_STATUS],[enum XML_Status],[signed-int],[#f])
 
 dnl enum XML_Status
 NAUSICAA_ENUM_VALUE([XML_STATUS_ERROR])
 NAUSICAA_ENUM_VALUE([XML_STATUS_OK])
 NAUSICAA_ENUM_VALUE([XML_STATUS_SUSPENDED])
+NAUSICAA_INSPECT_TYPE([XML_ERROR],[enum XML_Error],[signed-int],[#f])
 
 dnl enum XML_Error
 NAUSICAA_ENUM_VALUE([XML_ERROR_NONE])
@@ -123,6 +119,7 @@ NAUSICAA_ENUM_VALUE([XML_ERROR_SUSPEND_PE])
 NAUSICAA_ENUM_VALUE([XML_ERROR_RESERVED_PREFIX_XML])
 NAUSICAA_ENUM_VALUE([XML_ERROR_RESERVED_PREFIX_XMLNS])
 NAUSICAA_ENUM_VALUE([XML_ERROR_RESERVED_NAMESPACE_URI])
+NAUSICAA_INSPECT_TYPE([XML_CONTENT_TYPE],[enum XML_Content_Type],[signed-int],[#f])
 
 dnl enum XML_Content_Type
 NAUSICAA_ENUM_VALUE([XML_CTYPE_EMPTY])
@@ -131,18 +128,21 @@ NAUSICAA_ENUM_VALUE([XML_CTYPE_MIXED])
 NAUSICAA_ENUM_VALUE([XML_CTYPE_NAME])
 NAUSICAA_ENUM_VALUE([XML_CTYPE_CHOICE])
 NAUSICAA_ENUM_VALUE([XML_CTYPE_SEQ])
+NAUSICAA_INSPECT_TYPE([XML_CONTENT_QUANT],[enum XML_Content_Quant],[signed-int],[#f])
 
 dnl enum XML_Content_Quant
 NAUSICAA_ENUM_VALUE([XML_CQUANT_NONE])
 NAUSICAA_ENUM_VALUE([XML_CQUANT_OPT])
 NAUSICAA_ENUM_VALUE([XML_CQUANT_REP])
 NAUSICAA_ENUM_VALUE([XML_CQUANT_PLUS])
+NAUSICAA_INSPECT_TYPE([XML_PARSING],[enum XML_Parsing],[signed-int],[#f])
 
 dnl enum XML_Parsing
 NAUSICAA_ENUM_VALUE([XML_INITIALIZED])
 NAUSICAA_ENUM_VALUE([XML_PARSING])
 NAUSICAA_ENUM_VALUE([XML_FINISHED])
 NAUSICAA_ENUM_VALUE([XML_SUSPENDED])
+NAUSICAA_INSPECT_TYPE([XML_PARAMENTITYPARSING],[enum XML_ParamEntityParsing],[signed-int],[#f])
 
 dnl enum XML_ParamEntityParsing
 NAUSICAA_ENUM_VALUE([XML_PARAM_ENTITY_PARSING_NEVER])
@@ -153,6 +153,7 @@ dnl Preprocessor symbols: version numbers
 NAUSICAA_DEFINE_VALUE([XML_MAJOR_VERSION])
 NAUSICAA_DEFINE_VALUE([XML_MINOR_VERSION])
 NAUSICAA_DEFINE_VALUE([XML_MICRO_VERSION])
+NAUSICAA_INSPECT_TYPE([XML_FEATUREENUM],[enum XML_FeatureEnum],[signed-int],[#f])
 
 dnl enum XML_FeatureEnum
 NAUSICAA_ENUM_VALUE([XML_FEATURE_END])
@@ -165,5 +166,9 @@ NAUSICAA_ENUM_VALUE([XML_FEATURE_SIZEOF_XML_CHAR])
 NAUSICAA_ENUM_VALUE([XML_FEATURE_SIZEOF_XML_LCHAR])
 NAUSICAA_ENUM_VALUE([XML_FEATURE_NS])
 NAUSICAA_ENUM_VALUE([XML_FEATURE_LARGE_SIZE])
+
+
+])
+
 
 dnl end of file
