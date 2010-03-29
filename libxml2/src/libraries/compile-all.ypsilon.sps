@@ -25,7 +25,6 @@
 
 (import
     (only (xml libxml2))
-    (only (xml libxml2 compensated))
   )
 
 ;;; end of file

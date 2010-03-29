@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-libxml2],[0.1d0],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-libxml2],[0.1b0],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/xml/libxml2.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
