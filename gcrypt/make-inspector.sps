@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -312,7 +312,8 @@
 
 (define-shared-object gcrypt libgcrypt.so)
 
-(autoconf-lib-write "configuration/gcrypt-inspector.m4" gcrypt-library-spec)
+(autoconf-lib-write "configuration/gcrypt-inspector.m4" gcrypt-library-spec
+		    "NAUSICAA_GCRYPT")
 (sizeof-lib-write   "src/libraries/foreign/crypto/gcrypt/sizeof.sls.in" gcrypt-library-spec)
 
 ;;; end of file

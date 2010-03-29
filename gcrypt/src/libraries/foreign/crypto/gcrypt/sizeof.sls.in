@@ -2,13 +2,13 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Sat Dec 26, 2009
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -44,6 +44,8 @@
     sizeof-gcry_md_handle
     alignof-gcry_md_handle
     strideof-gcry_md_handle
+    sizeof-gcry_md_handle-array
+    array-ref-c-gcry_md_handle
     struct-gcry_md_handle-ctx-set!
     struct-gcry_md_handle-ctx-ref
     struct-gcry_md_handle-bufpos-set!
@@ -73,6 +75,9 @@
     strideof-gcry_ctl_cmds
     pointer-ref-c-gcry_ctl_cmds
     pointer-set-c-gcry_ctl_cmds!
+    sizeof-gcry_ctl_cmds-array
+    array-ref-c-gcry_ctl_cmds
+    array-set-c-gcry_ctl_cmds!
     GCRYCTL_SET_KEY
     GCRYCTL_SET_IV
     GCRYCTL_CFB_SYNC
@@ -135,6 +140,9 @@
     strideof-gcry_sexp_format
     pointer-ref-c-gcry_sexp_format
     pointer-set-c-gcry_sexp_format!
+    sizeof-gcry_sexp_format-array
+    array-ref-c-gcry_sexp_format
+    array-set-c-gcry_sexp_format!
     GCRYSEXP_FMT_DEFAULT
     GCRYSEXP_FMT_CANON
     GCRYSEXP_FMT_BASE64
@@ -145,6 +153,9 @@
     strideof-gcry_mpi_format
     pointer-ref-c-gcry_mpi_format
     pointer-set-c-gcry_mpi_format!
+    sizeof-gcry_mpi_format-array
+    array-ref-c-gcry_mpi_format
+    array-set-c-gcry_mpi_format!
     GCRYMPI_FMT_NONE
     GCRYMPI_FMT_STD
     GCRYMPI_FMT_PGP
@@ -157,6 +168,9 @@
     strideof-gcry_mpi_flag
     pointer-ref-c-gcry_mpi_flag
     pointer-set-c-gcry_mpi_flag!
+    sizeof-gcry_mpi_flag-array
+    array-ref-c-gcry_mpi_flag
+    array-set-c-gcry_mpi_flag!
     GCRYMPI_FLAG_SECURE
     GCRYMPI_FLAG_OPAQUE
     gcry_cipher_algos
@@ -165,6 +179,9 @@
     strideof-gcry_cipher_algos
     pointer-ref-c-gcry_cipher_algos
     pointer-set-c-gcry_cipher_algos!
+    sizeof-gcry_cipher_algos-array
+    array-ref-c-gcry_cipher_algos
+    array-set-c-gcry_cipher_algos!
     GCRY_CIPHER_NONE
     GCRY_CIPHER_IDEA
     GCRY_CIPHER_3DES
@@ -199,6 +216,9 @@
     strideof-gcry_cipher_modes
     pointer-ref-c-gcry_cipher_modes
     pointer-set-c-gcry_cipher_modes!
+    sizeof-gcry_cipher_modes-array
+    array-ref-c-gcry_cipher_modes
+    array-set-c-gcry_cipher_modes!
     GCRY_CIPHER_MODE_NONE
     GCRY_CIPHER_MODE_ECB
     GCRY_CIPHER_MODE_CFB
@@ -212,6 +232,9 @@
     strideof-gcry_cipher_flags
     pointer-ref-c-gcry_cipher_flags
     pointer-set-c-gcry_cipher_flags!
+    sizeof-gcry_cipher_flags-array
+    array-ref-c-gcry_cipher_flags
+    array-set-c-gcry_cipher_flags!
     GCRY_CIPHER_SECURE
     GCRY_CIPHER_ENABLE_SYNC
     GCRY_CIPHER_CBC_CTS
@@ -222,6 +245,9 @@
     strideof-gcry_pk_algos
     pointer-ref-c-gcry_pk_algos
     pointer-set-c-gcry_pk_algos!
+    sizeof-gcry_pk_algos-array
+    array-ref-c-gcry_pk_algos
+    array-set-c-gcry_pk_algos!
     GCRY_PK_RSA
     GCRY_PK_RSA_E
     GCRY_PK_RSA_S
@@ -240,6 +266,9 @@
     strideof-gcry_md_algos
     pointer-ref-c-gcry_md_algos
     pointer-set-c-gcry_md_algos!
+    sizeof-gcry_md_algos-array
+    array-ref-c-gcry_md_algos
+    array-set-c-gcry_md_algos!
     GCRY_MD_NONE
     GCRY_MD_MD5
     GCRY_MD_SHA1
@@ -262,6 +291,9 @@
     strideof-gcry_md_flags
     pointer-ref-c-gcry_md_flags
     pointer-set-c-gcry_md_flags!
+    sizeof-gcry_md_flags-array
+    array-ref-c-gcry_md_flags
+    array-set-c-gcry_md_flags!
     GCRY_MD_FLAG_SECURE
     GCRY_MD_FLAG_HMAC
     gcry_random_level_t
@@ -270,6 +302,9 @@
     strideof-gcry_random_level_t
     pointer-ref-c-gcry_random_level_t
     pointer-set-c-gcry_random_level_t!
+    sizeof-gcry_random_level_t-array
+    array-ref-c-gcry_random_level_t
+    array-set-c-gcry_random_level_t!
     GCRY_WEAK_RANDOM
     GCRY_STRONG_RANDOM
     GCRY_VERY_STRONG_RANDOM
@@ -284,6 +319,9 @@
     strideof-gcry_log_levels
     pointer-ref-c-gcry_log_levels
     pointer-set-c-gcry_log_levels!
+    sizeof-gcry_log_levels-array
+    array-ref-c-gcry_log_levels
+    array-set-c-gcry_log_levels!
     GCRY_LOG_CONT
     GCRY_LOG_INFO
     GCRY_LOG_WARN
@@ -318,6 +356,20 @@
   (define
     strideof-gcry_md_handle
     @STRIDEOF_GCRY_MD_HANDLE@)
+  (define-syntax
+    sizeof-gcry_md_handle-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-gcry_md_handle ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_md_handle
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-gcry_md_handle)))))
   (define-c-struct-accessor-and-mutator
     struct-gcry_md_handle-ctx-set!
     struct-gcry_md_handle-ctx-ref
@@ -385,6 +437,31 @@
   (define
     pointer-set-c-gcry_ctl_cmds!
     @SETTEROF_GCRY_CTL_CMDS@)
+  (define-syntax
+    sizeof-gcry_ctl_cmds-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gcry_ctl_cmds ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_ctl_cmds
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gcry_ctl_cmds
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_ctl_cmds))))))
+  (define-syntax
+    array-set-c-gcry_ctl_cmds!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gcry_ctl_cmds!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_ctl_cmds))
+         ?value))))
   (define
     GCRYCTL_SET_KEY
     @VALUEOF_GCRYCTL_SET_KEY@)
@@ -567,6 +644,31 @@
   (define
     pointer-set-c-gcry_sexp_format!
     @SETTEROF_GCRY_SEXP_FORMAT@)
+  (define-syntax
+    sizeof-gcry_sexp_format-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gcry_sexp_format ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_sexp_format
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gcry_sexp_format
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_sexp_format))))))
+  (define-syntax
+    array-set-c-gcry_sexp_format!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gcry_sexp_format!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_sexp_format))
+         ?value))))
   (define
     GCRYSEXP_FMT_DEFAULT
     @VALUEOF_GCRYSEXP_FMT_DEFAULT@)
@@ -597,6 +699,31 @@
   (define
     pointer-set-c-gcry_mpi_format!
     @SETTEROF_GCRY_MPI_FORMAT@)
+  (define-syntax
+    sizeof-gcry_mpi_format-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gcry_mpi_format ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_mpi_format
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gcry_mpi_format
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_mpi_format))))))
+  (define-syntax
+    array-set-c-gcry_mpi_format!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gcry_mpi_format!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_mpi_format))
+         ?value))))
   (define
     GCRYMPI_FMT_NONE
     @VALUEOF_GCRYMPI_FMT_NONE@)
@@ -631,6 +758,31 @@
   (define
     pointer-set-c-gcry_mpi_flag!
     @SETTEROF_GCRY_MPI_FLAG@)
+  (define-syntax
+    sizeof-gcry_mpi_flag-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gcry_mpi_flag ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_mpi_flag
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gcry_mpi_flag
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_mpi_flag))))))
+  (define-syntax
+    array-set-c-gcry_mpi_flag!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gcry_mpi_flag!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_mpi_flag))
+         ?value))))
   (define
     GCRYMPI_FLAG_SECURE
     @VALUEOF_GCRYMPI_FLAG_SECURE@)
@@ -655,6 +807,31 @@
   (define
     pointer-set-c-gcry_cipher_algos!
     @SETTEROF_GCRY_CIPHER_ALGOS@)
+  (define-syntax
+    sizeof-gcry_cipher_algos-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gcry_cipher_algos ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_cipher_algos
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gcry_cipher_algos
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_cipher_algos))))))
+  (define-syntax
+    array-set-c-gcry_cipher_algos!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gcry_cipher_algos!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_cipher_algos))
+         ?value))))
   (define
     GCRY_CIPHER_NONE
     @VALUEOF_GCRY_CIPHER_NONE@)
@@ -757,6 +934,31 @@
   (define
     pointer-set-c-gcry_cipher_modes!
     @SETTEROF_GCRY_CIPHER_MODES@)
+  (define-syntax
+    sizeof-gcry_cipher_modes-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gcry_cipher_modes ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_cipher_modes
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gcry_cipher_modes
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_cipher_modes))))))
+  (define-syntax
+    array-set-c-gcry_cipher_modes!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gcry_cipher_modes!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_cipher_modes))
+         ?value))))
   (define
     GCRY_CIPHER_MODE_NONE
     @VALUEOF_GCRY_CIPHER_MODE_NONE@)
@@ -796,6 +998,31 @@
   (define
     pointer-set-c-gcry_cipher_flags!
     @SETTEROF_GCRY_CIPHER_FLAGS@)
+  (define-syntax
+    sizeof-gcry_cipher_flags-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gcry_cipher_flags ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_cipher_flags
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gcry_cipher_flags
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_cipher_flags))))))
+  (define-syntax
+    array-set-c-gcry_cipher_flags!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gcry_cipher_flags!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_cipher_flags))
+         ?value))))
   (define
     GCRY_CIPHER_SECURE
     @VALUEOF_GCRY_CIPHER_SECURE@)
@@ -824,6 +1051,31 @@
   (define
     pointer-set-c-gcry_pk_algos!
     @SETTEROF_GCRY_PK_ALGOS@)
+  (define-syntax
+    sizeof-gcry_pk_algos-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gcry_pk_algos ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_pk_algos
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gcry_pk_algos
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_pk_algos))))))
+  (define-syntax
+    array-set-c-gcry_pk_algos!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gcry_pk_algos!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_pk_algos))
+         ?value))))
   (define GCRY_PK_RSA @VALUEOF_GCRY_PK_RSA@)
   (define GCRY_PK_RSA_E @VALUEOF_GCRY_PK_RSA_E@)
   (define GCRY_PK_RSA_S @VALUEOF_GCRY_PK_RSA_S@)
@@ -862,6 +1114,31 @@
   (define
     pointer-set-c-gcry_md_algos!
     @SETTEROF_GCRY_MD_ALGOS@)
+  (define-syntax
+    sizeof-gcry_md_algos-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gcry_md_algos ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_md_algos
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gcry_md_algos
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_md_algos))))))
+  (define-syntax
+    array-set-c-gcry_md_algos!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gcry_md_algos!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_md_algos))
+         ?value))))
   (define GCRY_MD_NONE @VALUEOF_GCRY_MD_NONE@)
   (define GCRY_MD_MD5 @VALUEOF_GCRY_MD_MD5@)
   (define GCRY_MD_SHA1 @VALUEOF_GCRY_MD_SHA1@)
@@ -900,6 +1177,31 @@
   (define
     pointer-set-c-gcry_md_flags!
     @SETTEROF_GCRY_MD_FLAGS@)
+  (define-syntax
+    sizeof-gcry_md_flags-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gcry_md_flags ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_md_flags
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gcry_md_flags
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_md_flags))))))
+  (define-syntax
+    array-set-c-gcry_md_flags!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gcry_md_flags!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_md_flags))
+         ?value))))
   (define
     GCRY_MD_FLAG_SECURE
     @VALUEOF_GCRY_MD_FLAG_SECURE@)
@@ -924,6 +1226,32 @@
   (define
     pointer-set-c-gcry_random_level_t!
     @SETTEROF_GCRY_RANDOM_LEVEL_T@)
+  (define-syntax
+    sizeof-gcry_random_level_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gcry_random_level_t
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_random_level_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gcry_random_level_t
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_random_level_t))))))
+  (define-syntax
+    array-set-c-gcry_random_level_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gcry_random_level_t!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_random_level_t))
+         ?value))))
   (define
     GCRY_WEAK_RANDOM
     @VALUEOF_GCRY_WEAK_RANDOM@)
@@ -966,6 +1294,31 @@
   (define
     pointer-set-c-gcry_log_levels!
     @SETTEROF_GCRY_LOG_LEVELS@)
+  (define-syntax
+    sizeof-gcry_log_levels-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-gcry_log_levels ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gcry_log_levels
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-gcry_log_levels
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_log_levels))))))
+  (define-syntax
+    array-set-c-gcry_log_levels!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-gcry_log_levels!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-gcry_log_levels))
+         ?value))))
   (define GCRY_LOG_CONT @VALUEOF_GCRY_LOG_CONT@)
   (define GCRY_LOG_INFO @VALUEOF_GCRY_LOG_INFO@)
   (define GCRY_LOG_WARN @VALUEOF_GCRY_LOG_WARN@)

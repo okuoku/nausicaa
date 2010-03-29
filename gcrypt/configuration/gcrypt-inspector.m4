@@ -2,13 +2,13 @@ dnl (foreign crypto gcrypt sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Sat Dec 26, 2009
+dnl Date: Mon Mar 29, 2010
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software:  you can redistribute it and/or modify
 dnl it under the terms of the  GNU General Public License as published by
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_GCRYPT],[
 
 
 dnl Struct inspection: gcry_md_handle
@@ -243,5 +244,9 @@ NAUSICAA_ENUM_VALUE([GCRY_LOG_BUG])
 NAUSICAA_ENUM_VALUE([GCRY_LOG_DEBUG])
 NAU_DS_WITH_OPTION([GCRYPT_SHARED_OBJECT],[gcrypt-shared-object],[libgcrypt.so],
   [Gcrypt shared library file],[select Gcrypt shared library file])
+
+
+])
+
 
 dnl end of file
