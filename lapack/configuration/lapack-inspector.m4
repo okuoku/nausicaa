@@ -2,7 +2,7 @@ dnl (foreign math lapack sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Tue Feb  9, 2010
+dnl Date: Mon Mar 29, 2010
 dnl
 dnl Abstract
 dnl
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_LAPACK],[
 
 NAUSICAA_INSPECT_TYPE([INTEGER],[integer],[signed-int],[#f])
 NAUSICAA_INSPECT_TYPE([UINTEGER],[uinteger],[unsigned-int],[#f])
@@ -49,5 +50,9 @@ NAUSICAA_INSPECT_FIELD_TYPE([DOUBLECOMPLEX_R],[doublecomplex],[r],[float])
 NAUSICAA_INSPECT_FIELD_TYPE([DOUBLECOMPLEX_I],[doublecomplex],[i],[float])
 NAU_DS_WITH_OPTION([LAPACK_SHARED_OBJECT],[lapack-shared-object],[libclapack.so],
   [Lapack shared library file],[select Lapack shared library file])
+
+
+])
+
 
 dnl end of file

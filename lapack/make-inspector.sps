@@ -45,22 +45,6 @@
 (define-c-type flag		signed-int)
 (define-c-type ftnint		signed-int)
 
-(sizeof-lib
-  (define (array-ref-c-integer array* idx)
-    (pointer-ref-c-integer array* (* idx strideof-integer)))
-  (define (array-set-c-integer! array* idx val)
-    (pointer-ref-c-integer array* (* idx strideof-integer) val))
-  (define (array-ref-c-real array* idx)
-    (pointer-ref-c-real array* (* idx strideof-real)))
-  (define (array-set-c-real! array* idx val)
-    (pointer-ref-c-real array* (* idx strideof-real) val))
-  )
-
-(sizeof-lib-exports
- array-ref-c-integer	array-set-c-integer!
- array-ref-c-real	array-set-c-real!
- )
-
 (define-c-type-alias address		void*)
 (define-c-type-alias integer*		void*)
 (define-c-type-alias logical*		void*)
@@ -100,7 +84,8 @@
 
 (define-shared-object lapack libclapack.so)
 
-(autoconf-lib-write "configuration/lapack-inspector.m4" lapack-library-spec)
+(autoconf-lib-write "configuration/lapack-inspector.m4" lapack-library-spec
+		    "NAUSICAA_LAPACK")
 (sizeof-lib-write   "src/libraries/foreign/math/lapack/sizeof.sls.in" lapack-library-spec)
 
 ;;; end of file

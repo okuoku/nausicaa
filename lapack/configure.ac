@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-lapack],[0.1b1],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-lapack],[0.1b2],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/math/lapack.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
@@ -58,7 +58,7 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #include <clapack.h>
 ])
 
-m4_include([configuration/lapack-inspector.m4])
+NAUSICAA_LAPACK
 
 dnl page
 dnl --------------------------------------------------------------------

@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/LAPACK 2010-03-15 tag 0.1b1
+Subject: [announce] Nausicaa/LAPACK 2010-03-29 tag 0.1b2
 
 		      Nausicaa/LAPACK
 		      ===============
@@ -45,6 +45,12 @@ and in printed form:
    Hammarling, McKenney,  Sorensen.  Third Edition.  Society
    for    Industrial   and   Applied    Mathematics,   1999.
    Philadelphia, PA.  ISBN 0-89871-447-8 (paperback).
+
+
+Notes for 2010-03-29 tag 0.1b2
+------------------------------
+
+* Updated to Nausicaa/Scheme 0.1a11.
 
 
 Notes for 2010-03-15 tag 0.1b1

@@ -306,17 +306,19 @@
   ;;
   (malloc-block/c (* strideof-integer len)))
 
-(define piv-set! array-set-c-integer!)
-		;(piv-set! piv idx val)
-		;
-		;Store the  exact integer value  VAL at location  IDX in
-		;the vector referenced by the pointer object PIV.
+(define-syntax piv-set!
+  ;;Store  the exact integer  value VAL  at location  IDX in  the vector
+  ;;referenced by the pointer object PIV.
+  (syntax-rules ()
+    ((_ ?pointer ?index ?value)
+     (array-set-c-integer! ?pointer ?index ?value))))
 
-(define piv-ref array-ref-c-integer)
-		;(piv-ref piv idx)
-		;
-		;Return the  exact integer value at location  IDX in the
-		;vector referenced by the pointer object PIV.
+(define-syntax piv-ref
+  ;;Return  the  exact integer  value  at  location  IDX in  the  vector
+  ;;referenced by the pointer object PIV.
+  (syntax-rules ()
+    ((_ ?pointer ?index)
+     (array-ref-c-integer ?pointer ?index))))
 
 (define (piv-fill! piv m)
   ;;Fill the  integer vector referenced  by the pointer object  PIV with
