@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -36,7 +36,8 @@
 
 (define-c-type-alias iconv_t		pointer)
 
-(autoconf-lib-write "configuration/iconv-inspector.m4" iconv-library-spec)
+(autoconf-lib-write "configuration/iconv-inspector.m4" iconv-library-spec
+		    "NAUSICAA_ICONV")
 (sizeof-lib-write   "src/libraries/foreign/i18n/iconv/sizeof.sls.in" iconv-library-spec)
 
 ;;; end of file
