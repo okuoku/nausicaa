@@ -302,18 +302,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-XML_Bool
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Bool))))))
+         ?pointer
+         (* ?index strideof-XML_Bool)))))
   (define-syntax
     array-set-c-XML_Bool!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-XML_Bool!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Bool))
+         ?pointer
+         (* ?index strideof-XML_Bool)
          ?value))))
   (define XML_Char '@TYPEOF_XML_CHAR@)
   (define sizeof-XML_Char @SIZEOF_XML_CHAR@)
@@ -337,18 +335,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-XML_Char
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Char))))))
+         ?pointer
+         (* ?index strideof-XML_Char)))))
   (define-syntax
     array-set-c-XML_Char!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-XML_Char!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Char))
+         ?pointer
+         (* ?index strideof-XML_Char)
          ?value))))
   (define XML_LChar '@TYPEOF_XML_LCHAR@)
   (define sizeof-XML_LChar @SIZEOF_XML_LCHAR@)
@@ -372,18 +368,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-XML_LChar
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_LChar))))))
+         ?pointer
+         (* ?index strideof-XML_LChar)))))
   (define-syntax
     array-set-c-XML_LChar!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-XML_LChar!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_LChar))
+         ?pointer
+         (* ?index strideof-XML_LChar)
          ?value))))
   (define XML_Index '@TYPEOF_XML_INDEX@)
   (define sizeof-XML_Index @SIZEOF_XML_INDEX@)
@@ -407,18 +401,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-XML_Index
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Index))))))
+         ?pointer
+         (* ?index strideof-XML_Index)))))
   (define-syntax
     array-set-c-XML_Index!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-XML_Index!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Index))
+         ?pointer
+         (* ?index strideof-XML_Index)
          ?value))))
   (define XML_Size '@TYPEOF_XML_SIZE@)
   (define sizeof-XML_Size @SIZEOF_XML_SIZE@)
@@ -442,18 +434,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-XML_Size
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Size))))))
+         ?pointer
+         (* ?index strideof-XML_Size)))))
   (define-syntax
     array-set-c-XML_Size!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-XML_Size!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Size))
+         ?pointer
+         (* ?index strideof-XML_Size)
          ?value))))
   (define sizeof-XML_Content @SIZEOF_XML_CONTENT@)
   (define
@@ -693,18 +683,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-XML_Status
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Status))))))
+         ?pointer
+         (* ?index strideof-XML_Status)))))
   (define-syntax
     array-set-c-XML_Status!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-XML_Status!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Status))
+         ?pointer
+         (* ?index strideof-XML_Status)
          ?value))))
   (define
     XML_STATUS_ERROR
@@ -735,18 +723,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-XML_Error
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Error))))))
+         ?pointer
+         (* ?index strideof-XML_Error)))))
   (define-syntax
     array-set-c-XML_Error!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-XML_Error!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Error))
+         ?pointer
+         (* ?index strideof-XML_Error)
          ?value))))
   (define XML_ERROR_NONE @VALUEOF_XML_ERROR_NONE@)
   (define
@@ -899,18 +885,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-XML_Content_Type
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Content_Type))))))
+         ?pointer
+         (* ?index strideof-XML_Content_Type)))))
   (define-syntax
     array-set-c-XML_Content_Type!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-XML_Content_Type!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Content_Type))
+         ?pointer
+         (* ?index strideof-XML_Content_Type)
          ?value))))
   (define
     XML_CTYPE_EMPTY
@@ -954,18 +938,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-XML_Content_Quant
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Content_Quant))))))
+         ?pointer
+         (* ?index strideof-XML_Content_Quant)))))
   (define-syntax
     array-set-c-XML_Content_Quant!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-XML_Content_Quant!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Content_Quant))
+         ?pointer
+         (* ?index strideof-XML_Content_Quant)
          ?value))))
   (define
     XML_CQUANT_NONE
@@ -1001,18 +983,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-XML_Parsing
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Parsing))))))
+         ?pointer
+         (* ?index strideof-XML_Parsing)))))
   (define-syntax
     array-set-c-XML_Parsing!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-XML_Parsing!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_Parsing))
+         ?pointer
+         (* ?index strideof-XML_Parsing)
          ?value))))
   (define
     XML_INITIALIZED
@@ -1051,18 +1031,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-XML_ParamEntityParsing
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_ParamEntityParsing))))))
+         ?pointer
+         (* ?index strideof-XML_ParamEntityParsing)))))
   (define-syntax
     array-set-c-XML_ParamEntityParsing!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-XML_ParamEntityParsing!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_ParamEntityParsing))
+         ?pointer
+         (* ?index strideof-XML_ParamEntityParsing)
          ?value))))
   (define
     XML_PARAM_ENTITY_PARSING_NEVER
@@ -1112,18 +1090,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-XML_FeatureEnum
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_FeatureEnum))))))
+         ?pointer
+         (* ?index strideof-XML_FeatureEnum)))))
   (define-syntax
     array-set-c-XML_FeatureEnum!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-XML_FeatureEnum!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-XML_FeatureEnum))
+         ?pointer
+         (* ?index strideof-XML_FeatureEnum)
          ?value))))
   (define
     XML_FEATURE_END
