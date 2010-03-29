@@ -566,6 +566,10 @@ references the foreign shared library.
 @item xml libxml2 sizeof
 Exports bindings to constant values and data structures accessors.
 
+@item xml libxml2 structs
+Exports macro constructors to define identifier syntaxes for foreign
+data structure access.
+
 @item xml libxml2 platform
 Exports one binding for each foreign function; the Scheme functions have
 the same name of the C functions, so @cfunc{xmlCheckVersion} is availale
@@ -583,11 +587,6 @@ availale as @func{xml-check-version}.
 Compound library exporting the high--level @api{}; it reexports bindings
 from the @samp{primitives} library and the constant values from the
 @samp{sizeof} library.
-
-@item xml libxml2 compensated
-Exports bindings to constructor functions making use of the
-@library{compensations} library from Nausicaa/Scheme.
-@nauref{compensations, Compensation stacks}.
 @end table
 
 The following program: initialises the library checking the revision
