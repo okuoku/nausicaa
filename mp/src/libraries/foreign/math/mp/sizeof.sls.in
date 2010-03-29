@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Thu Mar 25, 2010
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -34,6 +34,7 @@
     strideof-gmp_randalg_t
     pointer-ref-c-gmp_randalg_t
     pointer-set-c-gmp_randalg_t!
+    sizeof-gmp_randalg_t-array
     array-ref-c-gmp_randalg_t
     array-set-c-gmp_randalg_t!
     mp_exp_t
@@ -42,6 +43,7 @@
     strideof-mp_exp_t
     pointer-ref-c-mp_exp_t
     pointer-set-c-mp_exp_t!
+    sizeof-mp_exp_t-array
     array-ref-c-mp_exp_t
     array-set-c-mp_exp_t!
     mp_limb_t
@@ -50,6 +52,7 @@
     strideof-mp_limb_t
     pointer-ref-c-mp_limb_t
     pointer-set-c-mp_limb_t!
+    sizeof-mp_limb_t-array
     array-ref-c-mp_limb_t
     array-set-c-mp_limb_t!
     mp_size_t
@@ -58,6 +61,7 @@
     strideof-mp_size_t
     pointer-ref-c-mp_size_t
     pointer-set-c-mp_size_t!
+    sizeof-mp_size_t-array
     array-ref-c-mp_size_t
     array-set-c-mp_size_t!
     mpz_ptr
@@ -72,18 +76,22 @@
     sizeof-mpf_t
     alignof-mpf_t
     strideof-mpf_t
+    sizeof-mpf_t-array
     array-ref-c-mpf_t
     sizeof-mpq_t
     alignof-mpq_t
     strideof-mpq_t
+    sizeof-mpq_t-array
     array-ref-c-mpq_t
     sizeof-mpz_t
     alignof-mpz_t
     strideof-mpz_t
+    sizeof-mpz_t-array
     array-ref-c-mpz_t
     sizeof-gmp_randstate_t
     alignof-gmp_randstate_t
     strideof-gmp_randstate_t
+    sizeof-gmp_randstate_t-array
     array-ref-c-gmp_randstate_t
     struct-mpq-num-ref
     struct-mpq-den-ref
@@ -97,6 +105,7 @@
     strideof-mp_rnd_t
     pointer-ref-c-mp_rnd_t
     pointer-set-c-mp_rnd_t!
+    sizeof-mp_rnd_t-array
     array-ref-c-mp_rnd_t
     array-set-c-mp_rnd_t!
     mp_prec_t
@@ -105,6 +114,7 @@
     strideof-mp_prec_t
     pointer-ref-c-mp_prec_t
     pointer-set-c-mp_prec_t!
+    sizeof-mp_prec_t-array
     array-ref-c-mp_prec_t
     array-set-c-mp_prec_t!
     mpfr_prec_t
@@ -113,6 +123,7 @@
     strideof-mpfr_prec_t
     pointer-ref-c-mpfr_prec_t
     pointer-set-c-mpfr_prec_t!
+    sizeof-mpfr_prec_t-array
     array-ref-c-mpfr_prec_t
     array-set-c-mpfr_prec_t!
     mpfr_sign_t
@@ -121,6 +132,7 @@
     strideof-mpfr_sign_t
     pointer-ref-c-mpfr_sign_t
     pointer-set-c-mpfr_sign_t!
+    sizeof-mpfr_sign_t-array
     array-ref-c-mpfr_sign_t
     array-set-c-mpfr_sign_t!
     mpfr_rnd_t
@@ -129,6 +141,7 @@
     strideof-mpfr_rnd_t
     pointer-ref-c-mpfr_rnd_t
     pointer-set-c-mpfr_rnd_t!
+    sizeof-mpfr_rnd_t-array
     array-ref-c-mpfr_rnd_t
     array-set-c-mpfr_rnd_t!
     intmax_t
@@ -137,6 +150,7 @@
     strideof-intmax_t
     pointer-ref-c-intmax_t
     pointer-set-c-intmax_t!
+    sizeof-intmax_t-array
     array-ref-c-intmax_t
     array-set-c-intmax_t!
     uintmax_t
@@ -145,11 +159,13 @@
     strideof-uintmax_t
     pointer-ref-c-uintmax_t
     pointer-set-c-uintmax_t!
+    sizeof-uintmax_t-array
     array-ref-c-uintmax_t
     array-set-c-uintmax_t!
     sizeof-mpfr_t
     alignof-mpfr_t
     strideof-mpfr_t
+    sizeof-mpfr_t-array
     array-ref-c-mpfr_t
     struct-mpfr_t-_mpfr_prec-set!
     struct-mpfr_t-_mpfr_prec-ref
@@ -173,6 +189,7 @@
     sizeof-mpfi_t
     alignof-mpfi_t
     strideof-mpfi_t
+    sizeof-mpfi_t-array
     array-ref-c-mpfi_t
     struct-mpfi-left-ref
     struct-mpfi-right-ref
@@ -185,6 +202,7 @@
     sizeof-mpc_t
     alignof-mpc_t
     strideof-mpc_t
+    sizeof-mpc_t-array
     array-ref-c-mpc_t
     struct-mpc-re-ref
     struct-mpc-im-ref
@@ -194,6 +212,7 @@
     strideof-mpc_rnd_t
     pointer-ref-c-mpc_rnd_t
     pointer-set-c-mpc_rnd_t!
+    sizeof-mpc_rnd_t-array
     array-ref-c-mpc_rnd_t
     array-set-c-mpc_rnd_t!
     MPC_VERSION
@@ -205,6 +224,7 @@
     sizeof-mpfrx_t
     alignof-mpfrx_t
     strideof-mpfrx_t
+    sizeof-mpfrx_t-array
     array-ref-c-mpfrx_t
     struct-mpfrx_t-size-set!
     struct-mpfrx_t-size-ref
@@ -217,6 +237,7 @@
     sizeof-mpcx_t
     alignof-mpcx_t
     strideof-mpcx_t
+    sizeof-mpcx_t-array
     array-ref-c-mpcx_t
     struct-mpcx_t-size-set!
     struct-mpcx_t-size-ref
@@ -263,18 +284,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-gmp_randalg_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gmp_randalg_t))))))
+         ?pointer
+         (* ?index strideof-gmp_randalg_t)))))
   (define-syntax
     array-set-c-gmp_randalg_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-gmp_randalg_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-gmp_randalg_t))
+         ?pointer
+         (* ?index strideof-gmp_randalg_t)
          ?value))))
   (define mp_exp_t '@TYPEOF_MP_EXP_T@)
   (define sizeof-mp_exp_t @SIZEOF_MP_EXP_T@)
@@ -298,18 +317,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-mp_exp_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mp_exp_t))))))
+         ?pointer
+         (* ?index strideof-mp_exp_t)))))
   (define-syntax
     array-set-c-mp_exp_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-mp_exp_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mp_exp_t))
+         ?pointer
+         (* ?index strideof-mp_exp_t)
          ?value))))
   (define mp_limb_t '@TYPEOF_MP_LIMB_T@)
   (define sizeof-mp_limb_t @SIZEOF_MP_LIMB_T@)
@@ -333,18 +350,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-mp_limb_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mp_limb_t))))))
+         ?pointer
+         (* ?index strideof-mp_limb_t)))))
   (define-syntax
     array-set-c-mp_limb_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-mp_limb_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mp_limb_t))
+         ?pointer
+         (* ?index strideof-mp_limb_t)
          ?value))))
   (define mp_size_t '@TYPEOF_MP_SIZE_T@)
   (define sizeof-mp_size_t @SIZEOF_MP_SIZE_T@)
@@ -368,18 +383,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-mp_size_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mp_size_t))))))
+         ?pointer
+         (* ?index strideof-mp_size_t)))))
   (define-syntax
     array-set-c-mp_size_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-mp_size_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mp_size_t))
+         ?pointer
+         (* ?index strideof-mp_size_t)
          ?value))))
   (define mpz_ptr 'pointer)
   (define mpz_srcptr 'pointer)
@@ -504,18 +517,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-mp_rnd_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mp_rnd_t))))))
+         ?pointer
+         (* ?index strideof-mp_rnd_t)))))
   (define-syntax
     array-set-c-mp_rnd_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-mp_rnd_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mp_rnd_t))
+         ?pointer
+         (* ?index strideof-mp_rnd_t)
          ?value))))
   (define mp_prec_t '@TYPEOF_MP_PREC_T@)
   (define sizeof-mp_prec_t @SIZEOF_MP_PREC_T@)
@@ -539,18 +550,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-mp_prec_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mp_prec_t))))))
+         ?pointer
+         (* ?index strideof-mp_prec_t)))))
   (define-syntax
     array-set-c-mp_prec_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-mp_prec_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mp_prec_t))
+         ?pointer
+         (* ?index strideof-mp_prec_t)
          ?value))))
   (define mpfr_prec_t '@TYPEOF_MPFR_PREC_T@)
   (define sizeof-mpfr_prec_t @SIZEOF_MPFR_PREC_T@)
@@ -578,18 +587,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-mpfr_prec_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mpfr_prec_t))))))
+         ?pointer
+         (* ?index strideof-mpfr_prec_t)))))
   (define-syntax
     array-set-c-mpfr_prec_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-mpfr_prec_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mpfr_prec_t))
+         ?pointer
+         (* ?index strideof-mpfr_prec_t)
          ?value))))
   (define mpfr_sign_t '@TYPEOF_MPFR_SIGN_T@)
   (define sizeof-mpfr_sign_t @SIZEOF_MPFR_SIGN_T@)
@@ -617,18 +624,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-mpfr_sign_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mpfr_sign_t))))))
+         ?pointer
+         (* ?index strideof-mpfr_sign_t)))))
   (define-syntax
     array-set-c-mpfr_sign_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-mpfr_sign_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mpfr_sign_t))
+         ?pointer
+         (* ?index strideof-mpfr_sign_t)
          ?value))))
   (define mpfr_rnd_t '@TYPEOF_MPFR_RND_T@)
   (define sizeof-mpfr_rnd_t @SIZEOF_MPFR_RND_T@)
@@ -654,18 +659,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-mpfr_rnd_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mpfr_rnd_t))))))
+         ?pointer
+         (* ?index strideof-mpfr_rnd_t)))))
   (define-syntax
     array-set-c-mpfr_rnd_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-mpfr_rnd_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mpfr_rnd_t))
+         ?pointer
+         (* ?index strideof-mpfr_rnd_t)
          ?value))))
   (define intmax_t '@TYPEOF_INTMAX_T@)
   (define sizeof-intmax_t @SIZEOF_INTMAX_T@)
@@ -689,18 +692,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-intmax_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-intmax_t))))))
+         ?pointer
+         (* ?index strideof-intmax_t)))))
   (define-syntax
     array-set-c-intmax_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-intmax_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-intmax_t))
+         ?pointer
+         (* ?index strideof-intmax_t)
          ?value))))
   (define uintmax_t '@TYPEOF_UINTMAX_T@)
   (define sizeof-uintmax_t @SIZEOF_UINTMAX_T@)
@@ -724,18 +725,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-uintmax_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-uintmax_t))))))
+         ?pointer
+         (* ?index strideof-uintmax_t)))))
   (define-syntax
     array-set-c-uintmax_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-uintmax_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-uintmax_t))
+         ?pointer
+         (* ?index strideof-uintmax_t)
          ?value))))
   (define sizeof-mpfr_t @SIZEOF_MPFR_T@)
   (define alignof-mpfr_t @ALIGNOF_MPFR_T@)
@@ -889,18 +888,16 @@
       ()
       ((_ ?pointer ?index)
        (pointer-ref-c-mpc_rnd_t
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mpc_rnd_t))))))
+         ?pointer
+         (* ?index strideof-mpc_rnd_t)))))
   (define-syntax
     array-set-c-mpc_rnd_t!
     (syntax-rules
       ()
       ((_ ?pointer ?index ?value)
        (pointer-set-c-mpc_rnd_t!
-         (pointer-add
-           ?pointer
-           (* ?index strideof-mpc_rnd_t))
+         ?pointer
+         (* ?index strideof-mpc_rnd_t)
          ?value))))
   (define MPC_VERSION @VALUEOF_MPC_VERSION@)
   (define mpfrx_ptr 'pointer)
