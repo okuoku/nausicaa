@@ -2,13 +2,13 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Tue Dec  1, 2009
+;;;Date: Mon Mar 29, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -33,188 +33,281 @@
     sizeof-curl_socket_t
     alignof-curl_socket_t
     strideof-curl_socket_t
-    pointer-set-c-curl_socket_t!
     pointer-ref-c-curl_socket_t
+    pointer-set-c-curl_socket_t!
+    sizeof-curl_socket_t-array
+    array-ref-c-curl_socket_t
+    array-set-c-curl_socket_t!
     curl_off_t
     sizeof-curl_off_t
     alignof-curl_off_t
     strideof-curl_off_t
-    pointer-set-c-curl_off_t!
     pointer-ref-c-curl_off_t
+    pointer-set-c-curl_off_t!
+    sizeof-curl_off_t-array
+    array-ref-c-curl_off_t
+    array-set-c-curl_off_t!
     curlsocktype
     sizeof-curlsocktype
     alignof-curlsocktype
     strideof-curlsocktype
-    pointer-set-c-curlsocktype!
     pointer-ref-c-curlsocktype
+    pointer-set-c-curlsocktype!
+    sizeof-curlsocktype-array
+    array-ref-c-curlsocktype
+    array-set-c-curlsocktype!
     curlioerr
     sizeof-curlioerr
     alignof-curlioerr
     strideof-curlioerr
-    pointer-set-c-curlioerr!
     pointer-ref-c-curlioerr
+    pointer-set-c-curlioerr!
+    sizeof-curlioerr-array
+    array-ref-c-curlioerr
+    array-set-c-curlioerr!
     curliocmd
     sizeof-curliocmd
     alignof-curliocmd
     strideof-curliocmd
-    pointer-set-c-curliocmd!
     pointer-ref-c-curliocmd
+    pointer-set-c-curliocmd!
+    sizeof-curliocmd-array
+    array-ref-c-curliocmd
+    array-set-c-curliocmd!
     curl_infotype
     sizeof-curl_infotype
     alignof-curl_infotype
     strideof-curl_infotype
-    pointer-set-c-curl_infotype!
     pointer-ref-c-curl_infotype
+    pointer-set-c-curl_infotype!
+    sizeof-curl_infotype-array
+    array-ref-c-curl_infotype
+    array-set-c-curl_infotype!
     CURLcode
     sizeof-CURLcode
     alignof-CURLcode
     strideof-CURLcode
-    pointer-set-c-CURLcode!
     pointer-ref-c-CURLcode
+    pointer-set-c-CURLcode!
+    sizeof-CURLcode-array
+    array-ref-c-CURLcode
+    array-set-c-CURLcode!
     curl_proxytype
     sizeof-curl_proxytype
     alignof-curl_proxytype
     strideof-curl_proxytype
-    pointer-set-c-curl_proxytype!
     pointer-ref-c-curl_proxytype
+    pointer-set-c-curl_proxytype!
+    sizeof-curl_proxytype-array
+    array-ref-c-curl_proxytype
+    array-set-c-curl_proxytype!
     curl_khstat
     sizeof-curl_khstat
     alignof-curl_khstat
     strideof-curl_khstat
-    pointer-set-c-curl_khstat!
     pointer-ref-c-curl_khstat
+    pointer-set-c-curl_khstat!
+    sizeof-curl_khstat-array
+    array-ref-c-curl_khstat
+    array-set-c-curl_khstat!
     curl_khmatch
     sizeof-curl_khmatch
     alignof-curl_khmatch
     strideof-curl_khmatch
-    pointer-set-c-curl_khmatch!
     pointer-ref-c-curl_khmatch
+    pointer-set-c-curl_khmatch!
+    sizeof-curl_khmatch-array
+    array-ref-c-curl_khmatch
+    array-set-c-curl_khmatch!
     curl_usessl
     sizeof-curl_usessl
     alignof-curl_usessl
     strideof-curl_usessl
-    pointer-set-c-curl_usessl!
     pointer-ref-c-curl_usessl
+    pointer-set-c-curl_usessl!
+    sizeof-curl_usessl-array
+    array-ref-c-curl_usessl
+    array-set-c-curl_usessl!
     curl_ftpccc
     sizeof-curl_ftpccc
     alignof-curl_ftpccc
     strideof-curl_ftpccc
-    pointer-set-c-curl_ftpccc!
     pointer-ref-c-curl_ftpccc
+    pointer-set-c-curl_ftpccc!
+    sizeof-curl_ftpccc-array
+    array-ref-c-curl_ftpccc
+    array-set-c-curl_ftpccc!
     curl_ftpauth
     sizeof-curl_ftpauth
     alignof-curl_ftpauth
     strideof-curl_ftpauth
-    pointer-set-c-curl_ftpauth!
     pointer-ref-c-curl_ftpauth
+    pointer-set-c-curl_ftpauth!
+    sizeof-curl_ftpauth-array
+    array-ref-c-curl_ftpauth
+    array-set-c-curl_ftpauth!
     curl_ftpcreatedir
     sizeof-curl_ftpcreatedir
     alignof-curl_ftpcreatedir
     strideof-curl_ftpcreatedir
-    pointer-set-c-curl_ftpcreatedir!
     pointer-ref-c-curl_ftpcreatedir
+    pointer-set-c-curl_ftpcreatedir!
+    sizeof-curl_ftpcreatedir-array
+    array-ref-c-curl_ftpcreatedir
+    array-set-c-curl_ftpcreatedir!
     curl_ftpmethod
     sizeof-curl_ftpmethod
     alignof-curl_ftpmethod
     strideof-curl_ftpmethod
-    pointer-set-c-curl_ftpmethod!
     pointer-ref-c-curl_ftpmethod
+    pointer-set-c-curl_ftpmethod!
+    sizeof-curl_ftpmethod-array
+    array-ref-c-curl_ftpmethod
+    array-set-c-curl_ftpmethod!
     CURLoption
     sizeof-CURLoption
     alignof-CURLoption
     strideof-CURLoption
-    pointer-set-c-CURLoption!
     pointer-ref-c-CURLoption
+    pointer-set-c-CURLoption!
+    sizeof-CURLoption-array
+    array-ref-c-CURLoption
+    array-set-c-CURLoption!
     curl_netrc_option
     sizeof-curl_netrc_option
     alignof-curl_netrc_option
     strideof-curl_netrc_option
-    pointer-set-c-curl_netrc_option!
     pointer-ref-c-curl_netrc_option
+    pointer-set-c-curl_netrc_option!
+    sizeof-curl_netrc_option-array
+    array-ref-c-curl_netrc_option
+    array-set-c-curl_netrc_option!
     curl_TimeCond
     sizeof-curl_TimeCond
     alignof-curl_TimeCond
     strideof-curl_TimeCond
-    pointer-set-c-curl_TimeCond!
     pointer-ref-c-curl_TimeCond
+    pointer-set-c-curl_TimeCond!
+    sizeof-curl_TimeCond-array
+    array-ref-c-curl_TimeCond
+    array-set-c-curl_TimeCond!
     CURLformoption
     sizeof-CURLformoption
     alignof-CURLformoption
     strideof-CURLformoption
-    pointer-set-c-CURLformoption!
     pointer-ref-c-CURLformoption
+    pointer-set-c-CURLformoption!
+    sizeof-CURLformoption-array
+    array-ref-c-CURLformoption
+    array-set-c-CURLformoption!
     CURLFORMcode
     sizeof-CURLFORMcode
     alignof-CURLFORMcode
     strideof-CURLFORMcode
-    pointer-set-c-CURLFORMcode!
     pointer-ref-c-CURLFORMcode
+    pointer-set-c-CURLFORMcode!
+    sizeof-CURLFORMcode-array
+    array-ref-c-CURLFORMcode
+    array-set-c-CURLFORMcode!
     CURLINFO
     sizeof-CURLINFO
     alignof-CURLINFO
     strideof-CURLINFO
-    pointer-set-c-CURLINFO!
     pointer-ref-c-CURLINFO
+    pointer-set-c-CURLINFO!
+    sizeof-CURLINFO-array
+    array-ref-c-CURLINFO
+    array-set-c-CURLINFO!
     curl_closepolicy
     sizeof-curl_closepolicy
     alignof-curl_closepolicy
     strideof-curl_closepolicy
-    pointer-set-c-curl_closepolicy!
     pointer-ref-c-curl_closepolicy
+    pointer-set-c-curl_closepolicy!
+    sizeof-curl_closepolicy-array
+    array-ref-c-curl_closepolicy
+    array-set-c-curl_closepolicy!
     curl_lock_data
     sizeof-curl_lock_data
     alignof-curl_lock_data
     strideof-curl_lock_data
-    pointer-set-c-curl_lock_data!
     pointer-ref-c-curl_lock_data
+    pointer-set-c-curl_lock_data!
+    sizeof-curl_lock_data-array
+    array-ref-c-curl_lock_data
+    array-set-c-curl_lock_data!
     curl_lock_access
     sizeof-curl_lock_access
     alignof-curl_lock_access
     strideof-curl_lock_access
-    pointer-set-c-curl_lock_access!
     pointer-ref-c-curl_lock_access
+    pointer-set-c-curl_lock_access!
+    sizeof-curl_lock_access-array
+    array-ref-c-curl_lock_access
+    array-set-c-curl_lock_access!
     CURLSHcode
     sizeof-CURLSHcode
     alignof-CURLSHcode
     strideof-CURLSHcode
-    pointer-set-c-CURLSHcode!
     pointer-ref-c-CURLSHcode
+    pointer-set-c-CURLSHcode!
+    sizeof-CURLSHcode-array
+    array-ref-c-CURLSHcode
+    array-set-c-CURLSHcode!
     CURLSHoption
     sizeof-CURLSHoption
     alignof-CURLSHoption
     strideof-CURLSHoption
-    pointer-set-c-CURLSHoption!
     pointer-ref-c-CURLSHoption
+    pointer-set-c-CURLSHoption!
+    sizeof-CURLSHoption-array
+    array-ref-c-CURLSHoption
+    array-set-c-CURLSHoption!
     CURLversion
     sizeof-CURLversion
     alignof-CURLversion
     strideof-CURLversion
-    pointer-set-c-CURLversion!
     pointer-ref-c-CURLversion
+    pointer-set-c-CURLversion!
+    sizeof-CURLversion-array
+    array-ref-c-CURLversion
+    array-set-c-CURLversion!
     CURLMcode
     sizeof-CURLMcode
     alignof-CURLMcode
     strideof-CURLMcode
-    pointer-set-c-CURLMcode!
     pointer-ref-c-CURLMcode
+    pointer-set-c-CURLMcode!
+    sizeof-CURLMcode-array
+    array-ref-c-CURLMcode
+    array-set-c-CURLMcode!
     CURLMSG
     sizeof-CURLMSG
     alignof-CURLMSG
     strideof-CURLMSG
-    pointer-set-c-CURLMSG!
     pointer-ref-c-CURLMSG
+    pointer-set-c-CURLMSG!
+    sizeof-CURLMSG-array
+    array-ref-c-CURLMSG
+    array-set-c-CURLMSG!
     CURLMoption
     sizeof-CURLMoption
     alignof-CURLMoption
     strideof-CURLMoption
-    pointer-set-c-CURLMoption!
     pointer-ref-c-CURLMoption
+    pointer-set-c-CURLMoption!
+    sizeof-CURLMoption-array
+    array-ref-c-CURLMoption
+    array-set-c-CURLMoption!
     time_t
     sizeof-time_t
     alignof-time_t
     strideof-time_t
-    pointer-set-c-time_t!
     pointer-ref-c-time_t
+    pointer-set-c-time_t!
+    sizeof-time_t-array
+    array-ref-c-time_t
+    array-set-c-time_t!
     curl_conv_callback
     curl_debug_callback
     curl_formget_callback
@@ -239,6 +332,8 @@
     sizeof-curl_httppost
     alignof-curl_httppost
     strideof-curl_httppost
+    sizeof-curl_httppost-array
+    array-ref-c-curl_httppost
     struct-curl_httppost-next-set!
     struct-curl_httppost-next-ref
     struct-curl_httppost-name-set!
@@ -268,6 +363,8 @@
     sizeof-curl_sockaddr
     alignof-curl_sockaddr
     strideof-curl_sockaddr
+    sizeof-curl_sockaddr-array
+    array-ref-c-curl_sockaddr
     struct-curl_sockaddr-family-set!
     struct-curl_sockaddr-family-ref
     struct-curl_sockaddr-socktype-set!
@@ -280,6 +377,8 @@
     sizeof-curl_khkey
     alignof-curl_khkey
     strideof-curl_khkey
+    sizeof-curl_khkey-array
+    array-ref-c-curl_khkey
     struct-curl_khkey-key-set!
     struct-curl_khkey-key-ref
     struct-curl_khkey-len-set!
@@ -289,15 +388,17 @@
     sizeof-curl_forms
     alignof-curl_forms
     strideof-curl_forms
+    sizeof-curl_forms-array
+    array-ref-c-curl_forms
     struct-curl_forms-option-set!
     struct-curl_forms-option-ref
     struct-curl_forms-value-set!
     struct-curl_forms-value-ref
-    sizeof-curl_forms-array
-    array-ref-c-curl_forms
     sizeof-curl_slist
     alignof-curl_slist
     strideof-curl_slist
+    sizeof-curl_slist-array
+    array-ref-c-curl_slist
     struct-curl_slist-data-set!
     struct-curl_slist-data-ref
     struct-curl_slist-next-set!
@@ -305,6 +406,8 @@
     sizeof-curl_certinfo
     alignof-curl_certinfo
     strideof-curl_certinfo
+    sizeof-curl_certinfo-array
+    array-ref-c-curl_certinfo
     struct-curl_certinfo-num_of_certs-set!
     struct-curl_certinfo-num_of_certs-ref
     struct-curl_certinfo-certinfo-set!
@@ -312,6 +415,8 @@
     sizeof-curl_version_info_data
     alignof-curl_version_info_data
     strideof-curl_version_info_data
+    sizeof-curl_version_info_data-array
+    array-ref-c-curl_version_info_data
     struct-curl_version_info_data-age-set!
     struct-curl_version_info_data-age-ref
     struct-curl_version_info_data-version-set!
@@ -343,6 +448,8 @@
     sizeof-CURLMsg
     alignof-CURLMsg
     strideof-CURLMsg
+    sizeof-CURLMsg-array
+    array-ref-c-CURLMsg
     struct-CURLMsg-msg-set!
     struct-CURLMsg-msg-ref
     struct-CURLMsg-easy_handle-set!
@@ -926,11 +1033,36 @@
     strideof-curl_socket_t
     @STRIDEOF_CURL_SOCKET_T@)
   (define
-    pointer-set-c-curl_socket_t!
+    pointer-ref-c-curl_socket_t
     @GETTEROF_CURL_SOCKET_T@)
   (define
-    pointer-ref-c-curl_socket_t
+    pointer-set-c-curl_socket_t!
     @SETTEROF_CURL_SOCKET_T@)
+  (define-syntax
+    sizeof-curl_socket_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_socket_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_socket_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_socket_t
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_socket_t))))))
+  (define-syntax
+    array-set-c-curl_socket_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_socket_t!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_socket_t))
+         ?value))))
   (define curl_off_t '@TYPEOF_CURL_OFF_T@)
   (define sizeof-curl_off_t @SIZEOF_CURL_OFF_T@)
   (define alignof-curl_off_t @ALIGNOF_CURL_OFF_T@)
@@ -938,11 +1070,36 @@
     strideof-curl_off_t
     @STRIDEOF_CURL_OFF_T@)
   (define
-    pointer-set-c-curl_off_t!
+    pointer-ref-c-curl_off_t
     @GETTEROF_CURL_OFF_T@)
   (define
-    pointer-ref-c-curl_off_t
+    pointer-set-c-curl_off_t!
     @SETTEROF_CURL_OFF_T@)
+  (define-syntax
+    sizeof-curl_off_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_off_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_off_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_off_t
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_off_t))))))
+  (define-syntax
+    array-set-c-curl_off_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_off_t!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_off_t))
+         ?value))))
   (define curlsocktype '@TYPEOF_CURLSOCKTYPE@)
   (define
     sizeof-curlsocktype
@@ -954,31 +1111,106 @@
     strideof-curlsocktype
     @STRIDEOF_CURLSOCKTYPE@)
   (define
-    pointer-set-c-curlsocktype!
+    pointer-ref-c-curlsocktype
     @GETTEROF_CURLSOCKTYPE@)
   (define
-    pointer-ref-c-curlsocktype
+    pointer-set-c-curlsocktype!
     @SETTEROF_CURLSOCKTYPE@)
+  (define-syntax
+    sizeof-curlsocktype-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curlsocktype ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curlsocktype
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curlsocktype
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curlsocktype))))))
+  (define-syntax
+    array-set-c-curlsocktype!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curlsocktype!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curlsocktype))
+         ?value))))
   (define curlioerr '@TYPEOF_CURLIOERR@)
   (define sizeof-curlioerr @SIZEOF_CURLIOERR@)
   (define alignof-curlioerr @ALIGNOF_CURLIOERR@)
   (define strideof-curlioerr @STRIDEOF_CURLIOERR@)
   (define
-    pointer-set-c-curlioerr!
+    pointer-ref-c-curlioerr
     @GETTEROF_CURLIOERR@)
   (define
-    pointer-ref-c-curlioerr
+    pointer-set-c-curlioerr!
     @SETTEROF_CURLIOERR@)
+  (define-syntax
+    sizeof-curlioerr-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curlioerr ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curlioerr
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curlioerr
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curlioerr))))))
+  (define-syntax
+    array-set-c-curlioerr!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curlioerr!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curlioerr))
+         ?value))))
   (define curliocmd '@TYPEOF_CURLIOCMD@)
   (define sizeof-curliocmd @SIZEOF_CURLIOCMD@)
   (define alignof-curliocmd @ALIGNOF_CURLIOCMD@)
   (define strideof-curliocmd @STRIDEOF_CURLIOCMD@)
   (define
-    pointer-set-c-curliocmd!
+    pointer-ref-c-curliocmd
     @GETTEROF_CURLIOCMD@)
   (define
-    pointer-ref-c-curliocmd
+    pointer-set-c-curliocmd!
     @SETTEROF_CURLIOCMD@)
+  (define-syntax
+    sizeof-curliocmd-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curliocmd ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curliocmd
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curliocmd
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curliocmd))))))
+  (define-syntax
+    array-set-c-curliocmd!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curliocmd!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curliocmd))
+         ?value))))
   (define curl_infotype '@TYPEOF_CURL_INFOTYPE@)
   (define
     sizeof-curl_infotype
@@ -990,21 +1222,71 @@
     strideof-curl_infotype
     @STRIDEOF_CURL_INFOTYPE@)
   (define
-    pointer-set-c-curl_infotype!
+    pointer-ref-c-curl_infotype
     @GETTEROF_CURL_INFOTYPE@)
   (define
-    pointer-ref-c-curl_infotype
+    pointer-set-c-curl_infotype!
     @SETTEROF_CURL_INFOTYPE@)
+  (define-syntax
+    sizeof-curl_infotype-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_infotype ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_infotype
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_infotype
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_infotype))))))
+  (define-syntax
+    array-set-c-curl_infotype!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_infotype!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_infotype))
+         ?value))))
   (define CURLcode '@TYPEOF_CURLCODE@)
   (define sizeof-CURLcode @SIZEOF_CURLCODE@)
   (define alignof-CURLcode @ALIGNOF_CURLCODE@)
   (define strideof-CURLcode @STRIDEOF_CURLCODE@)
   (define
-    pointer-set-c-CURLcode!
+    pointer-ref-c-CURLcode
     @GETTEROF_CURLCODE@)
   (define
-    pointer-ref-c-CURLcode
+    pointer-set-c-CURLcode!
     @SETTEROF_CURLCODE@)
+  (define-syntax
+    sizeof-CURLcode-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CURLcode ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CURLcode
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CURLcode
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLcode))))))
+  (define-syntax
+    array-set-c-CURLcode!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CURLcode!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLcode))
+         ?value))))
   (define curl_proxytype '@TYPEOF_CURL_PROXYTYPE@)
   (define
     sizeof-curl_proxytype
@@ -1016,11 +1298,36 @@
     strideof-curl_proxytype
     @STRIDEOF_CURL_PROXYTYPE@)
   (define
-    pointer-set-c-curl_proxytype!
+    pointer-ref-c-curl_proxytype
     @GETTEROF_CURL_PROXYTYPE@)
   (define
-    pointer-ref-c-curl_proxytype
+    pointer-set-c-curl_proxytype!
     @SETTEROF_CURL_PROXYTYPE@)
+  (define-syntax
+    sizeof-curl_proxytype-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_proxytype ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_proxytype
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_proxytype
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_proxytype))))))
+  (define-syntax
+    array-set-c-curl_proxytype!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_proxytype!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_proxytype))
+         ?value))))
   (define curl_khstat '@TYPEOF_CURL_KHSTAT@)
   (define sizeof-curl_khstat @SIZEOF_CURL_KHSTAT@)
   (define
@@ -1030,11 +1337,36 @@
     strideof-curl_khstat
     @STRIDEOF_CURL_KHSTAT@)
   (define
-    pointer-set-c-curl_khstat!
+    pointer-ref-c-curl_khstat
     @GETTEROF_CURL_KHSTAT@)
   (define
-    pointer-ref-c-curl_khstat
+    pointer-set-c-curl_khstat!
     @SETTEROF_CURL_KHSTAT@)
+  (define-syntax
+    sizeof-curl_khstat-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_khstat ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_khstat
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_khstat
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_khstat))))))
+  (define-syntax
+    array-set-c-curl_khstat!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_khstat!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_khstat))
+         ?value))))
   (define curl_khmatch '@TYPEOF_CURL_KHMATCH@)
   (define
     sizeof-curl_khmatch
@@ -1046,11 +1378,36 @@
     strideof-curl_khmatch
     @STRIDEOF_CURL_KHMATCH@)
   (define
-    pointer-set-c-curl_khmatch!
+    pointer-ref-c-curl_khmatch
     @GETTEROF_CURL_KHMATCH@)
   (define
-    pointer-ref-c-curl_khmatch
+    pointer-set-c-curl_khmatch!
     @SETTEROF_CURL_KHMATCH@)
+  (define-syntax
+    sizeof-curl_khmatch-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_khmatch ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_khmatch
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_khmatch
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_khmatch))))))
+  (define-syntax
+    array-set-c-curl_khmatch!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_khmatch!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_khmatch))
+         ?value))))
   (define curl_usessl '@TYPEOF_CURL_USESSL@)
   (define sizeof-curl_usessl @SIZEOF_CURL_USESSL@)
   (define
@@ -1060,11 +1417,36 @@
     strideof-curl_usessl
     @STRIDEOF_CURL_USESSL@)
   (define
-    pointer-set-c-curl_usessl!
+    pointer-ref-c-curl_usessl
     @GETTEROF_CURL_USESSL@)
   (define
-    pointer-ref-c-curl_usessl
+    pointer-set-c-curl_usessl!
     @SETTEROF_CURL_USESSL@)
+  (define-syntax
+    sizeof-curl_usessl-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_usessl ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_usessl
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_usessl
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_usessl))))))
+  (define-syntax
+    array-set-c-curl_usessl!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_usessl!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_usessl))
+         ?value))))
   (define curl_ftpccc '@TYPEOF_CURL_FTPCCC@)
   (define sizeof-curl_ftpccc @SIZEOF_CURL_FTPCCC@)
   (define
@@ -1074,11 +1456,36 @@
     strideof-curl_ftpccc
     @STRIDEOF_CURL_FTPCCC@)
   (define
-    pointer-set-c-curl_ftpccc!
+    pointer-ref-c-curl_ftpccc
     @GETTEROF_CURL_FTPCCC@)
   (define
-    pointer-ref-c-curl_ftpccc
+    pointer-set-c-curl_ftpccc!
     @SETTEROF_CURL_FTPCCC@)
+  (define-syntax
+    sizeof-curl_ftpccc-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_ftpccc ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_ftpccc
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_ftpccc
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_ftpccc))))))
+  (define-syntax
+    array-set-c-curl_ftpccc!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_ftpccc!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_ftpccc))
+         ?value))))
   (define curl_ftpauth '@TYPEOF_CURL_FTPAUTH@)
   (define
     sizeof-curl_ftpauth
@@ -1090,11 +1497,36 @@
     strideof-curl_ftpauth
     @STRIDEOF_CURL_FTPAUTH@)
   (define
-    pointer-set-c-curl_ftpauth!
+    pointer-ref-c-curl_ftpauth
     @GETTEROF_CURL_FTPAUTH@)
   (define
-    pointer-ref-c-curl_ftpauth
+    pointer-set-c-curl_ftpauth!
     @SETTEROF_CURL_FTPAUTH@)
+  (define-syntax
+    sizeof-curl_ftpauth-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_ftpauth ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_ftpauth
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_ftpauth
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_ftpauth))))))
+  (define-syntax
+    array-set-c-curl_ftpauth!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_ftpauth!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_ftpauth))
+         ?value))))
   (define
     curl_ftpcreatedir
     '@TYPEOF_CURL_FTPCREATEDIR@)
@@ -1108,11 +1540,36 @@
     strideof-curl_ftpcreatedir
     @STRIDEOF_CURL_FTPCREATEDIR@)
   (define
-    pointer-set-c-curl_ftpcreatedir!
+    pointer-ref-c-curl_ftpcreatedir
     @GETTEROF_CURL_FTPCREATEDIR@)
   (define
-    pointer-ref-c-curl_ftpcreatedir
+    pointer-set-c-curl_ftpcreatedir!
     @SETTEROF_CURL_FTPCREATEDIR@)
+  (define-syntax
+    sizeof-curl_ftpcreatedir-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_ftpcreatedir ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_ftpcreatedir
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_ftpcreatedir
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_ftpcreatedir))))))
+  (define-syntax
+    array-set-c-curl_ftpcreatedir!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_ftpcreatedir!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_ftpcreatedir))
+         ?value))))
   (define curl_ftpmethod '@TYPEOF_CURL_FTPMETHOD@)
   (define
     sizeof-curl_ftpmethod
@@ -1124,11 +1581,36 @@
     strideof-curl_ftpmethod
     @STRIDEOF_CURL_FTPMETHOD@)
   (define
-    pointer-set-c-curl_ftpmethod!
+    pointer-ref-c-curl_ftpmethod
     @GETTEROF_CURL_FTPMETHOD@)
   (define
-    pointer-ref-c-curl_ftpmethod
+    pointer-set-c-curl_ftpmethod!
     @SETTEROF_CURL_FTPMETHOD@)
+  (define-syntax
+    sizeof-curl_ftpmethod-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_ftpmethod ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_ftpmethod
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_ftpmethod
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_ftpmethod))))))
+  (define-syntax
+    array-set-c-curl_ftpmethod!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_ftpmethod!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_ftpmethod))
+         ?value))))
   (define CURLoption '@TYPEOF_CURLOPTION@)
   (define sizeof-CURLoption @SIZEOF_CURLOPTION@)
   (define alignof-CURLoption @ALIGNOF_CURLOPTION@)
@@ -1136,11 +1618,36 @@
     strideof-CURLoption
     @STRIDEOF_CURLOPTION@)
   (define
-    pointer-set-c-CURLoption!
+    pointer-ref-c-CURLoption
     @GETTEROF_CURLOPTION@)
   (define
-    pointer-ref-c-CURLoption
+    pointer-set-c-CURLoption!
     @SETTEROF_CURLOPTION@)
+  (define-syntax
+    sizeof-CURLoption-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CURLoption ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CURLoption
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CURLoption
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLoption))))))
+  (define-syntax
+    array-set-c-CURLoption!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CURLoption!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLoption))
+         ?value))))
   (define
     curl_netrc_option
     '@TYPEOF_CURL_NETRC_OPTION@)
@@ -1154,11 +1661,36 @@
     strideof-curl_netrc_option
     @STRIDEOF_CURL_NETRC_OPTION@)
   (define
-    pointer-set-c-curl_netrc_option!
+    pointer-ref-c-curl_netrc_option
     @GETTEROF_CURL_NETRC_OPTION@)
   (define
-    pointer-ref-c-curl_netrc_option
+    pointer-set-c-curl_netrc_option!
     @SETTEROF_CURL_NETRC_OPTION@)
+  (define-syntax
+    sizeof-curl_netrc_option-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_netrc_option ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_netrc_option
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_netrc_option
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_netrc_option))))))
+  (define-syntax
+    array-set-c-curl_netrc_option!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_netrc_option!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_netrc_option))
+         ?value))))
   (define curl_TimeCond '@TYPEOF_CURL_TIMECOND@)
   (define
     sizeof-curl_TimeCond
@@ -1170,11 +1702,36 @@
     strideof-curl_TimeCond
     @STRIDEOF_CURL_TIMECOND@)
   (define
-    pointer-set-c-curl_TimeCond!
+    pointer-ref-c-curl_TimeCond
     @GETTEROF_CURL_TIMECOND@)
   (define
-    pointer-ref-c-curl_TimeCond
+    pointer-set-c-curl_TimeCond!
     @SETTEROF_CURL_TIMECOND@)
+  (define-syntax
+    sizeof-curl_TimeCond-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_TimeCond ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_TimeCond
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_TimeCond
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_TimeCond))))))
+  (define-syntax
+    array-set-c-curl_TimeCond!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_TimeCond!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_TimeCond))
+         ?value))))
   (define CURLformoption '@TYPEOF_CURLFORMOPTION@)
   (define
     sizeof-CURLformoption
@@ -1186,11 +1743,36 @@
     strideof-CURLformoption
     @STRIDEOF_CURLFORMOPTION@)
   (define
-    pointer-set-c-CURLformoption!
+    pointer-ref-c-CURLformoption
     @GETTEROF_CURLFORMOPTION@)
   (define
-    pointer-ref-c-CURLformoption
+    pointer-set-c-CURLformoption!
     @SETTEROF_CURLFORMOPTION@)
+  (define-syntax
+    sizeof-CURLformoption-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CURLformoption ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CURLformoption
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CURLformoption
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLformoption))))))
+  (define-syntax
+    array-set-c-CURLformoption!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CURLformoption!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLformoption))
+         ?value))))
   (define CURLFORMcode '@TYPEOF_CURLFORMCODE@)
   (define
     sizeof-CURLFORMcode
@@ -1202,21 +1784,71 @@
     strideof-CURLFORMcode
     @STRIDEOF_CURLFORMCODE@)
   (define
-    pointer-set-c-CURLFORMcode!
+    pointer-ref-c-CURLFORMcode
     @GETTEROF_CURLFORMCODE@)
   (define
-    pointer-ref-c-CURLFORMcode
+    pointer-set-c-CURLFORMcode!
     @SETTEROF_CURLFORMCODE@)
+  (define-syntax
+    sizeof-CURLFORMcode-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CURLFORMcode ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CURLFORMcode
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CURLFORMcode
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLFORMcode))))))
+  (define-syntax
+    array-set-c-CURLFORMcode!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CURLFORMcode!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLFORMcode))
+         ?value))))
   (define CURLINFO '@TYPEOF_CURLINFO@)
   (define sizeof-CURLINFO @SIZEOF_CURLINFO@)
   (define alignof-CURLINFO @ALIGNOF_CURLINFO@)
   (define strideof-CURLINFO @STRIDEOF_CURLINFO@)
   (define
-    pointer-set-c-CURLINFO!
+    pointer-ref-c-CURLINFO
     @GETTEROF_CURLINFO@)
   (define
-    pointer-ref-c-CURLINFO
+    pointer-set-c-CURLINFO!
     @SETTEROF_CURLINFO@)
+  (define-syntax
+    sizeof-CURLINFO-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CURLINFO ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CURLINFO
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CURLINFO
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLINFO))))))
+  (define-syntax
+    array-set-c-CURLINFO!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CURLINFO!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLINFO))
+         ?value))))
   (define
     curl_closepolicy
     '@TYPEOF_CURL_CLOSEPOLICY@)
@@ -1230,11 +1862,36 @@
     strideof-curl_closepolicy
     @STRIDEOF_CURL_CLOSEPOLICY@)
   (define
-    pointer-set-c-curl_closepolicy!
+    pointer-ref-c-curl_closepolicy
     @GETTEROF_CURL_CLOSEPOLICY@)
   (define
-    pointer-ref-c-curl_closepolicy
+    pointer-set-c-curl_closepolicy!
     @SETTEROF_CURL_CLOSEPOLICY@)
+  (define-syntax
+    sizeof-curl_closepolicy-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_closepolicy ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_closepolicy
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_closepolicy
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_closepolicy))))))
+  (define-syntax
+    array-set-c-curl_closepolicy!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_closepolicy!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_closepolicy))
+         ?value))))
   (define curl_lock_data '@TYPEOF_CURL_LOCK_DATA@)
   (define
     sizeof-curl_lock_data
@@ -1246,11 +1903,36 @@
     strideof-curl_lock_data
     @STRIDEOF_CURL_LOCK_DATA@)
   (define
-    pointer-set-c-curl_lock_data!
+    pointer-ref-c-curl_lock_data
     @GETTEROF_CURL_LOCK_DATA@)
   (define
-    pointer-ref-c-curl_lock_data
+    pointer-set-c-curl_lock_data!
     @SETTEROF_CURL_LOCK_DATA@)
+  (define-syntax
+    sizeof-curl_lock_data-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_lock_data ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_lock_data
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_lock_data
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_lock_data))))))
+  (define-syntax
+    array-set-c-curl_lock_data!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_lock_data!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_lock_data))
+         ?value))))
   (define
     curl_lock_access
     '@TYPEOF_CURL_LOCK_ACCESS@)
@@ -1264,11 +1946,36 @@
     strideof-curl_lock_access
     @STRIDEOF_CURL_LOCK_ACCESS@)
   (define
-    pointer-set-c-curl_lock_access!
+    pointer-ref-c-curl_lock_access
     @GETTEROF_CURL_LOCK_ACCESS@)
   (define
-    pointer-ref-c-curl_lock_access
+    pointer-set-c-curl_lock_access!
     @SETTEROF_CURL_LOCK_ACCESS@)
+  (define-syntax
+    sizeof-curl_lock_access-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-curl_lock_access ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_lock_access
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-curl_lock_access
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_lock_access))))))
+  (define-syntax
+    array-set-c-curl_lock_access!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-curl_lock_access!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-curl_lock_access))
+         ?value))))
   (define CURLSHcode '@TYPEOF_CURLSHCODE@)
   (define sizeof-CURLSHcode @SIZEOF_CURLSHCODE@)
   (define alignof-CURLSHcode @ALIGNOF_CURLSHCODE@)
@@ -1276,11 +1983,36 @@
     strideof-CURLSHcode
     @STRIDEOF_CURLSHCODE@)
   (define
-    pointer-set-c-CURLSHcode!
+    pointer-ref-c-CURLSHcode
     @GETTEROF_CURLSHCODE@)
   (define
-    pointer-ref-c-CURLSHcode
+    pointer-set-c-CURLSHcode!
     @SETTEROF_CURLSHCODE@)
+  (define-syntax
+    sizeof-CURLSHcode-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CURLSHcode ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CURLSHcode
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CURLSHcode
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLSHcode))))))
+  (define-syntax
+    array-set-c-CURLSHcode!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CURLSHcode!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLSHcode))
+         ?value))))
   (define CURLSHoption '@TYPEOF_CURLSHOPTION@)
   (define
     sizeof-CURLSHoption
@@ -1292,11 +2024,36 @@
     strideof-CURLSHoption
     @STRIDEOF_CURLSHOPTION@)
   (define
-    pointer-set-c-CURLSHoption!
+    pointer-ref-c-CURLSHoption
     @GETTEROF_CURLSHOPTION@)
   (define
-    pointer-ref-c-CURLSHoption
+    pointer-set-c-CURLSHoption!
     @SETTEROF_CURLSHOPTION@)
+  (define-syntax
+    sizeof-CURLSHoption-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CURLSHoption ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CURLSHoption
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CURLSHoption
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLSHoption))))))
+  (define-syntax
+    array-set-c-CURLSHoption!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CURLSHoption!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLSHoption))
+         ?value))))
   (define CURLversion '@TYPEOF_CURLVERSION@)
   (define sizeof-CURLversion @SIZEOF_CURLVERSION@)
   (define
@@ -1306,29 +2063,104 @@
     strideof-CURLversion
     @STRIDEOF_CURLVERSION@)
   (define
-    pointer-set-c-CURLversion!
+    pointer-ref-c-CURLversion
     @GETTEROF_CURLVERSION@)
   (define
-    pointer-ref-c-CURLversion
+    pointer-set-c-CURLversion!
     @SETTEROF_CURLVERSION@)
+  (define-syntax
+    sizeof-CURLversion-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CURLversion ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CURLversion
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CURLversion
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLversion))))))
+  (define-syntax
+    array-set-c-CURLversion!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CURLversion!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLversion))
+         ?value))))
   (define CURLMcode '@TYPEOF_CURLMCODE@)
   (define sizeof-CURLMcode @SIZEOF_CURLMCODE@)
   (define alignof-CURLMcode @ALIGNOF_CURLMCODE@)
   (define strideof-CURLMcode @STRIDEOF_CURLMCODE@)
   (define
-    pointer-set-c-CURLMcode!
+    pointer-ref-c-CURLMcode
     @GETTEROF_CURLMCODE@)
   (define
-    pointer-ref-c-CURLMcode
+    pointer-set-c-CURLMcode!
     @SETTEROF_CURLMCODE@)
+  (define-syntax
+    sizeof-CURLMcode-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CURLMcode ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CURLMcode
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CURLMcode
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLMcode))))))
+  (define-syntax
+    array-set-c-CURLMcode!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CURLMcode!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLMcode))
+         ?value))))
   (define CURLMSG '@TYPEOF_CURLMSG@)
   (define sizeof-CURLMSG @SIZEOF_CURLMSG@)
   (define alignof-CURLMSG @ALIGNOF_CURLMSG@)
   (define strideof-CURLMSG @STRIDEOF_CURLMSG@)
+  (define pointer-ref-c-CURLMSG @GETTEROF_CURLMSG@)
   (define
     pointer-set-c-CURLMSG!
-    @GETTEROF_CURLMSG@)
-  (define pointer-ref-c-CURLMSG @SETTEROF_CURLMSG@)
+    @SETTEROF_CURLMSG@)
+  (define-syntax
+    sizeof-CURLMSG-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CURLMSG ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CURLMSG
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CURLMSG
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLMSG))))))
+  (define-syntax
+    array-set-c-CURLMSG!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CURLMSG!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLMSG))
+         ?value))))
   (define CURLMoption '@TYPEOF_CURLMOPTION@)
   (define sizeof-CURLMoption @SIZEOF_CURLMOPTION@)
   (define
@@ -1338,17 +2170,63 @@
     strideof-CURLMoption
     @STRIDEOF_CURLMOPTION@)
   (define
-    pointer-set-c-CURLMoption!
+    pointer-ref-c-CURLMoption
     @GETTEROF_CURLMOPTION@)
   (define
-    pointer-ref-c-CURLMoption
+    pointer-set-c-CURLMoption!
     @SETTEROF_CURLMOPTION@)
+  (define-syntax
+    sizeof-CURLMoption-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-CURLMoption ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CURLMoption
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-CURLMoption
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLMoption))))))
+  (define-syntax
+    array-set-c-CURLMoption!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-CURLMoption!
+         (pointer-add
+           ?pointer
+           (* ?index strideof-CURLMoption))
+         ?value))))
   (define time_t '@TYPEOF_TIME_T@)
   (define sizeof-time_t @SIZEOF_TIME_T@)
   (define alignof-time_t @ALIGNOF_TIME_T@)
   (define strideof-time_t @STRIDEOF_TIME_T@)
-  (define pointer-set-c-time_t! @GETTEROF_TIME_T@)
-  (define pointer-ref-c-time_t @SETTEROF_TIME_T@)
+  (define pointer-ref-c-time_t @GETTEROF_TIME_T@)
+  (define pointer-set-c-time_t! @SETTEROF_TIME_T@)
+  (define-syntax
+    sizeof-time_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-time_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-time_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-time_t
+         (pointer-add ?pointer (* ?index strideof-time_t))))))
+  (define-syntax
+    array-set-c-time_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-time_t!
+         (pointer-add ?pointer (* ?index strideof-time_t))
+         ?value))))
   (define curl_conv_callback 'callback)
   (define curl_debug_callback 'callback)
   (define curl_formget_callback 'callback)
@@ -1379,6 +2257,20 @@
   (define
     strideof-curl_httppost
     @STRIDEOF_CURL_HTTPPOST@)
+  (define-syntax
+    sizeof-curl_httppost-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-curl_httppost ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_httppost
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-curl_httppost)))))
   (define-c-struct-accessor-and-mutator
     struct-curl_httppost-next-set!
     struct-curl_httppost-next-ref
@@ -1466,6 +2358,20 @@
   (define
     strideof-curl_sockaddr
     @STRIDEOF_CURL_SOCKADDR@)
+  (define-syntax
+    sizeof-curl_sockaddr-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-curl_sockaddr ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_sockaddr
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-curl_sockaddr)))))
   (define-c-struct-accessor-and-mutator
     struct-curl_sockaddr-family-set!
     struct-curl_sockaddr-family-ref
@@ -1498,6 +2404,20 @@
   (define
     strideof-curl_khkey
     @STRIDEOF_CURL_KHKEY@)
+  (define-syntax
+    sizeof-curl_khkey-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-curl_khkey ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_khkey
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-curl_khkey)))))
   (define-c-struct-accessor-and-mutator
     struct-curl_khkey-key-set!
     struct-curl_khkey-key-ref
@@ -1521,6 +2441,20 @@
   (define
     strideof-curl_forms
     @STRIDEOF_CURL_FORMS@)
+  (define-syntax
+    sizeof-curl_forms-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-curl_forms ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_forms
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-curl_forms)))))
   (define-c-struct-accessor-and-mutator
     struct-curl_forms-option-set!
     struct-curl_forms-option-ref
@@ -1533,22 +2467,25 @@
     @OFFSETOF_CURL_FORMS_VALUE@
     @SETTEROF_CURL_FORMS_VALUE@
     @GETTEROF_CURL_FORMS_VALUE@)
-  (define-syntax
-    sizeof-curl_forms-array
-    (syntax-rules
-      ()
-      ((_ ?number-of-elements)
-       (* strideof-curl_forms ?number-of-elements))))
-  (define
-    (array-ref-c-curl_forms pointer index)
-    (pointer-add
-      pointer
-      (* index strideof-curl_forms)))
   (define sizeof-curl_slist @SIZEOF_CURL_SLIST@)
   (define alignof-curl_slist @ALIGNOF_CURL_SLIST@)
   (define
     strideof-curl_slist
     @STRIDEOF_CURL_SLIST@)
+  (define-syntax
+    sizeof-curl_slist-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-curl_slist ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_slist
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-curl_slist)))))
   (define-c-struct-accessor-and-mutator
     struct-curl_slist-data-set!
     struct-curl_slist-data-ref
@@ -1570,6 +2507,20 @@
   (define
     strideof-curl_certinfo
     @STRIDEOF_CURL_CERTINFO@)
+  (define-syntax
+    sizeof-curl_certinfo-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-curl_certinfo ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_certinfo
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-curl_certinfo)))))
   (define-c-struct-accessor-and-mutator
     struct-curl_certinfo-num_of_certs-set!
     struct-curl_certinfo-num_of_certs-ref
@@ -1591,6 +2542,21 @@
   (define
     strideof-curl_version_info_data
     @STRIDEOF_CURL_VERSION_INFO_DATA@)
+  (define-syntax
+    sizeof-curl_version_info_data-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-curl_version_info_data
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-curl_version_info_data
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-curl_version_info_data)))))
   (define-c-struct-accessor-and-mutator
     struct-curl_version_info_data-age-set!
     struct-curl_version_info_data-age-ref
@@ -1678,6 +2644,20 @@
   (define sizeof-CURLMsg @SIZEOF_CURLMSG@)
   (define alignof-CURLMsg @ALIGNOF_CURLMSG@)
   (define strideof-CURLMsg @STRIDEOF_CURLMSG@)
+  (define-syntax
+    sizeof-CURLMsg-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-CURLMsg ?number-of-elements))))
+  (define-syntax
+    array-ref-c-CURLMsg
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-CURLMsg)))))
   (define-c-struct-accessor-and-mutator
     struct-CURLMsg-msg-set!
     struct-CURLMsg-msg-ref

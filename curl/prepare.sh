@@ -19,6 +19,7 @@ set -x
     --with-abi=local-slackware                  \
     --enable-use-sudo                           \
     --disable-larceny                           \
+    --enable-ikarus                             \
     --enable-mosh                               \
     --enable-ypsilon                            \
     --enable-doc-ps                             \

@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -133,17 +133,6 @@
   "struct curl_forms"
   (signed-int		option)
   (pointer		value))
-
-(sizeof-lib (define-syntax sizeof-curl_forms-array
-	      (syntax-rules ()
-		((_ ?number-of-elements)
-		 (* strideof-curl_forms ?number-of-elements))))
-
-	    (define (array-ref-c-curl_forms pointer index)
-	      (pointer-add pointer (* index strideof-curl_forms))))
-
-(sizeof-lib-exports sizeof-curl_forms-array
-		    array-ref-c-curl_forms)
 
 (define-c-struct curl_slist
   "struct curl_slist"
@@ -834,7 +823,8 @@
 
 ;;;; done
 
-(autoconf-lib-write "configuration/curl-inspector.m4" curl-library-spec)
+(autoconf-lib-write "configuration/curl-inspector.m4" curl-library-spec
+		    "NAUSICAA_CURL")
 (sizeof-lib-write   "src/libraries/foreign/net/curl/sizeof.sls.in" curl-library-spec)
 
 ;;; end of file

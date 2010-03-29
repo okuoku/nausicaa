@@ -31,7 +31,7 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-curl],[0.1a3],[marco.maggi-ipsu@poste.it])
+AC_INIT([nausicaa-curl],[0.1a4],[marco.maggi-ipsu@poste.it])
 DS_BEGIN([./src/libraries/foreign/net/curl.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
@@ -63,7 +63,7 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #endif
 ])
 
-m4_include(configuration/curl-inspector.m4)
+NAUSICAA_CURL
 
 dnl page
 dnl --------------------------------------------------------------------

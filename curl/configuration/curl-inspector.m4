@@ -2,13 +2,13 @@ dnl (foreign net curl sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Tue Dec  1, 2009
+dnl Date: Mon Mar 29, 2010
 dnl
 dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This program is free software:  you can redistribute it and/or modify
 dnl it under the terms of the  GNU General Public License as published by
@@ -24,6 +24,7 @@ dnl You should  have received  a copy of  the GNU General  Public License
 dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
 dnl
 
+AC_DEFUN([NAUSICAA_CURL],[
 
 NAU_DS_WITH_OPTION([CURL_SHARED_OBJECT],[curl-shared-object],[libcurl.so],
   [Curl shared library file],[select Curl shared library file])
@@ -764,5 +765,9 @@ NAUSICAA_DEFINE_VALUE([CURLMOPT_TIMERFUNCTION])
 NAUSICAA_DEFINE_VALUE([CURLMOPT_TIMERDATA])
 NAUSICAA_DEFINE_VALUE([CURLMOPT_MAXCONNECTS])
 NAUSICAA_DEFINE_VALUE([CURLMOPT_LASTENTRY])
+
+
+])
+
 
 dnl end of file
