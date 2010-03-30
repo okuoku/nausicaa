@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -33,6 +33,7 @@
     mhd-daemon?				mhd-run
     mhd-get-fdset			mhd-get-timeout
 
+    mhd-set-panic-func
     make-mhd-accept-policy-callback	make-mhd-access-contents-callback
 
     ;; connection
@@ -62,10 +63,12 @@
 ;;; mhd-get-version
     )
   (import (rnrs)
+    (language-extensions)
     (compensations)
     (foreign ffi)
     (foreign memory)
     (foreign cstrings)
+    (prefix (posix typedefs) px:)
     (rename (foreign net mhd record-types)
 	    (<mhd-pointer-wrapper>-pointer	pointer)
 	    (<mhd-daemon>?			mhd-daemon?)
@@ -84,27 +87,132 @@
        (exact?    obj)
        (positive? obj)))
 
+;;This  is the  number of  MHD_OPTION_* symbols,  with the  exception of
+;;MHD_OPTION_END and MHD_OPTION_ARRAY.
+;;
+(define $max-number-of-daemon-options 14)
+
+
+(define (%prepare-daemon-options/c cfg)
+  (begin0-let ((options (malloc-block/c (sizeof-MHD_OptionItem-array $max-number-of-daemon-options)))
+	       (i       0))
+
+    (define-syntax %opt!
+      (syntax-rules ()
+	((_ (?name ?accessor) ?option ?value1 ?value2)
+	 (let ((?name (?accessor cfg)))
+(write (list 'itis ?name))(newline)
+	   (when ?name
+	     (let ((item* (array-ref-c-MHD_OptionItem options i)))
+(write (list 'setting ?name))(newline)
+	       (struct-MHD_OptionItem-option-set!	item* ?option)
+	       (struct-MHD_OptionItem-value-set!	item* (let ((value ?value1))
+								(if (pointer? value)
+								    (pointer->integer value)
+								  value)))
+	       (struct-MHD_OptionItem-ptr_value-set!	item* ?value2)
+	       (incr! i)))))))
+
+    (%opt! (v <mhd-daemon-config>-connection-memory-limit)
+	   MHD_OPTION_CONNECTION_MEMORY_LIMIT
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-connection-limit)
+	   MHD_OPTION_CONNECTION_LIMIT
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-connection-timeout)
+	   MHD_OPTION_CONNECTION_TIMEOUT
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-notify-completed)
+	   MHD_OPTION_NOTIFY_COMPLETED
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-per-ip-connection-limit)
+	   MHD_OPTION_PER_IP_CONNECTION_LIMIT
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-sock-addr)
+	   MHD_OPTION_SOCK_ADDR
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-uri-log-callback)
+	   MHD_OPTION_URI_LOG_CALLBACK
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-https-mem-key)
+	   MHD_OPTION_HTTPS_MEM_KEY
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-https-mem-cert)
+	   MHD_OPTION_HTTPS_MEM_CERT
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-cred-type)
+	   MHD_OPTION_CRED_TYPE
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-protocol-version)
+	   MHD_OPTION_PROTOCOL_VERSION
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-cipher-algorithm)
+	   MHD_OPTION_CIPHER_ALGORITHM
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-external-logger)
+	   MHD_OPTION_EXTERNAL_LOGGER
+	   v
+	   pointer-null)
+
+    (%opt! (v <mhd-daemon-config>-thread-pool-size)
+	   MHD_OPTION_THREAD_POOL_SIZE
+	   v
+	   pointer-null)
+
+    (let ((item* (array-ref-c-MHD_OptionItem options i)))
+      (struct-MHD_OptionItem-option-set!	item* MHD_OPTION_END)
+      (struct-MHD_OptionItem-value-set!		item* 0)
+      (struct-MHD_OptionItem-ptr_value-set!	item* pointer-null))))
+
 
 ;;;; daemon
 
-(define (mhd-start-daemon flags-set port accept-policy-callback access-handler-callback)
-  (assert (%mhd-flags-set? flags-set))
+(define (mhd-set-panic-func scheme-function)
+  (MHD_set_panic_func
+   (make-c-callback* void
+		     scheme-function
+		     (void* char* unsigned-int char*))
+   pointer-null))
+
+(define (mhd-start-daemon flags-set port accept-policy-callback access-handler-callback cfg)
   (assert (%socket-port?   port))
   (assert (pointer?        access-handler-callback))
-  (let* ((flags		(%mhd-flags-set->flags flags-set))
-	 (daemon*	(MHD_start_daemon flags
-					  port
-					  (if accept-policy-callback
-					      accept-policy-callback
-					    pointer-null)
-					  pointer-null
+  (with-compensations
+    (let* ((options	(%prepare-daemon-options/c cfg))
+	   (flags	(mhd-flags->value flags-set))
+	   (daemon*	(MHD_start_daemon flags port
+					  (or accept-policy-callback pointer-null) pointer-null
 					  access-handler-callback pointer-null
-					  MHD_OPTION_END)))
-    (if (pointer-null? daemon*)
-	(error 'mhd-start-daemon
-	  "unable to initialise MHD daemon"
-	  flags-set port accept-policy-callback access-handler-callback)
-      (make-<mhd-daemon> daemon*))))
+					  MHD_OPTION_ARRAY options MHD_OPTION_END)))
+      (if (pointer-null? daemon*)
+	  (error 'mhd-start-daemon
+	    "unable to initialise MHD daemon"
+	    flags-set port accept-policy-callback access-handler-callback cfg)
+	(make-<mhd-daemon> daemon*)))))
 
 (define (mhd-stop-daemon daemon)
   (assert (mhd-daemon? daemon))
@@ -130,11 +238,13 @@
             url-cstr method-cstr version-cstr
 	    upload-data.ptr upload-data-len.ptr
 	    custom-connection-pointer*)
-     (guard (E (else MHD_NO))
+     (guard (E (else
+		(write E)(newline)
+		MHD_NO))
        (scheme-function (make-<mhd-connection> connection*)
 			(cstring->string url-cstr)
 			(string->symbol (cstring->string method-cstr))
-			(string->symbol version-cstr)
+			(string->symbol (cstring->string version-cstr))
 			upload-data.ptr
 			upload-data-len.ptr
 			(and (pointer-null? (pointer-ref-c-pointer custom-connection-pointer* 0))
@@ -143,17 +253,19 @@
 			       #t)))))
    (void* void* char* char* char* char* void* void*)))
 
-(define (mhd-get-fdset daemon read-fd-set* write-fd-set* except-fd-set*)
+(define (mhd-get-fdset daemon read-fd-set write-fd-set except-fd-set)
   (assert (mhd-daemon? daemon))
-  (assert (pointer? read-fd-set*))
-  (assert (pointer? write-fd-set*))
-  (assert (pointer? except-fd-set*))
+  (assert (px:fdset? read-fd-set))
+  (assert (px:fdset? write-fd-set))
+  (assert (px:fdset? except-fd-set))
   (with-compensations
     (let ((max-fd*	(malloc-small/c)))
       (if (= MHD_YES (MHD_get_fdset (pointer daemon)
-				    read-fd-set* write-fd-set* except-fd-set*
+				    (px:fdset->pointer read-fd-set)
+				    (px:fdset->pointer write-fd-set)
+				    (px:fdset->pointer except-fd-set)
 				    max-fd*))
-	  (pointer-ref-c-signed-int max-fd* 0)
+	  (px:integer->fd (pointer-ref-c-signed-int max-fd* 0))
 	(error 'mhd-get-fdset "error getting MHD daemon file descriptor sets" daemon)))))
 
 (define (mhd-get-timeout daemon)

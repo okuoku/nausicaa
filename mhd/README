@@ -27,13 +27,13 @@ interface.
 package supports GNU+Linux systems.
 
   The  last time  the  author has  bothered  to update  this
-paragraph, he had tested GNU Libmicrohttpd version 0.4.4.
+paragraph, he had tested GNU Libmicrohttpd checkout 10712.
 
 
 2. License
 ----------
 
-Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 
 This  program  is free  software:  you  can redistribute  it
 and/or modify it  under the terms of the  GNU General Public

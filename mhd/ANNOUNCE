@@ -1,0 +1,52 @@
+To: comp.lang.scheme
+Subject: [announce] Nausicaa/MHD --- tag 0.1b0
+
+			Nausicaa/MHD
+			============
+
+This package is a  distribution of libraries for R6RS Scheme
+implementations;   it   provides   bindings  for   the   GNU
+libmicrohttpd C language library,  which is supposed to make
+it  easy  to   run  an  HTTP  server  as   part  of  another
+application.
+
+  It  is  built  upon  Nausicaa/Scheme, making  use  of  its
+foreign-functions   interface.   It   supports   the  Scheme
+implementations  Ikarus, Mosh  and  Ypsilon.  The  packaging
+infrastructure currently supports only GNU+Linux systems.
+
+  The latest release of Nausicaa/Mhd is available at:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
+the home page of the Nausicaa project is at:
+
+	<http://marcomaggi.github.com/nausicaa.html>
+
+development takes place at:
+
+    <http://github.com/marcomaggi/nausicaa/tree/master>
+
+the documentation is available on line:
+
+ <http://marcomaggi.github.com/docs/nausicaa-mhd.html>
+
+MHD is available at:
+
+	<http://www.gnu.org/software/libmicrohttpd/>
+
+
+
+Notes for --- tag 0.1b0
+------------------------------
+
+* Tested with MHD checkout 10712.
+
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:

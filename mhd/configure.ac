@@ -7,7 +7,7 @@ dnl Abstract
 dnl
 dnl
 dnl
-dnl Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+dnl Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 dnl
 dnl This  program  is free  software:  you  can redistribute  it
 dnl and/or modify it  under the terms of the  GNU General Public
@@ -61,7 +61,7 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 #include <microhttpd.h>
 ])
 
-m4_include([configuration/mhd-inspector.m4])
+NAUSICAA_MHD
 
 dnl page
 dnl --------------------------------------------------------------------

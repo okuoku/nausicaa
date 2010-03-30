@@ -80,14 +80,6 @@ Revised^6 Report on the algorithmic language Scheme
 @acronym{FFI}
 @end macro
 
-@macro class{NAME}
-@code{<\NAME\>}
-@end macro
-
-@macro condition{NAME}
-@code{&\NAME\}
-@end macro
-
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
 @c ------------------------------------------------------------
@@ -232,6 +224,22 @@ Revised^6 Report on the algorithmic language Scheme
 
 @macro keyword{NAME}
 @code{#:\NAME\}
+@end macro
+
+@macro objtype{NAME}
+@code{\NAME\}
+@end macro
+
+@macro enum{NAME}
+@code{enum-\NAME\}
+@end macro
+
+@macro class{NAME}
+@code{<\NAME\>}
+@end macro
+
+@macro condition{NAME}
+@code{&\NAME\}
 @end macro
 
 @c ------------------------------------------------------------
@@ -430,7 +438,7 @@ Revised^6 Report on the algorithmic language Scheme
 
 @c To be used as @value{COPYRIGHT_YEARS} whenever we need to include the
 @c list of copyright years.
-@set COPYRIGHT_YEARS            2009
+@set COPYRIGHT_YEARS            2009, 2010
 
 @c page
 @c ------------------------------------------------------------
@@ -502,7 +510,7 @@ entitled ``@gnu{} Free Documentation License''.
 @ifinfo
 @dircategory Development
 @direntry
-* nausicaa-mhd: (nausicaa-mhd).         GNU Libmicrohttpd for Nausicaa.
+* nausicaa-mhd: (nausicaa-mhd). GNU Libmicrohttpd for Nausicaa.
 @end direntry
 @end ifinfo
 
@@ -589,8 +597,8 @@ Libmicrohttpd library}.
 @item foreign net mhd primitives
 Exports one binding for each foreign function, implementing marshaling
 of arguments and return values.  The Scheme functions have the same name
-of the C functions, buth with in lower case and with the underscores
-converted to dashes; so @cfunc{MHD_start_daemon} is availale as
+of the C functions, buth with lower case and underscores converted to
+dashes; so @cfunc{MHD_start_daemon} is availale as
 @func{mhd-start-daemon}.
 
 @item foreign net mhd
@@ -606,6 +614,71 @@ from the @samp{primitives} library and the constant values from the
 
 The following bindings are exported by @library{foreign net mhd
 enumerations} and reexported by @library{foreign net mhd}.
+
+@menu
+* enumerations flags::          Enumerating flags.
+@end menu
+
+@c page
+@node enumerations flags
+@section Enumerating flags
+
+
+@deftp {Enumeration Type} enum-mhd-flags
+Enumeration type for daemon configuration flags.  It holds the following
+symbols:
+
+@example
+no-flag                 use-debug
+use-ssl                 use-thread-per-connection
+use-select-internally   use-ipv6
+use-pedantic-checks
+@end example
+@end deftp
+
+
+@deffn Syntax mhd-flags @ameta{symbol} ...
+Expand into an enumeration set of type @enum{mhd-flags} holding the
+selected symbols.
+@end deffn
+
+
+@defun mhd-flags->value @var{enum-set}
+@defunx value->mhd-flags @var{integer}
+Convert between an enumeration set of type @enum{mhd-flags} and the
+corresponding list of integers in the set:
+
+@example
+MHD_NO_FLAG                 MHD_USE_DEBUG
+MHD_USE_SSL                 MHD_USE_THREAD_PER_CONNECTION
+MHD_USE_SELECT_INTERNALLY   MHD_USE_IPv6
+MHD_USE_PEDANTIC_CHECKS
+@end example
+@end defun
+
+
+    enum-mhd-option			mhd-option
+    mhd-option->value			value->mhd-option
+
+    enum-mhd-value-kind			mhd-value-kind
+    mhd-value-kind->value		value->mhd-value-kind
+
+    enum-mhd-request-termination-code	mhd-request-termination-code
+    mhd-request-termination-code->value	value->mhd-request-termination-code
+
+    enum-mhd-gnutls-cipher-algorithm	mhd-gnutls-cipher-algorithm
+    mhd-gnutls-cipher-algorithm->value	value->mhd-gnutls-cipher-algorithm
+
+    enum-mhd-gnutls-protocol		mhd-gnutls-protocol
+    mhd-gnutls-protocol->value		value->mhd-gnutls-protocol
+
+    enum-mhd-connection-info-type	mhd-connection-info-type
+    mhd-connection-info-type->value	value->mhd-connection-info-type
+
+    enum-mhd-daemon-info-type		mhd-daemon-info-type
+    mhd-daemon-info-type->value		value->mhd-daemon-info-type
+
+
 
 
 @deftp {Enumeration Type} enum-mhd-flags

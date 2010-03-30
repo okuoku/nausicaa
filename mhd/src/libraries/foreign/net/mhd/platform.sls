@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,6 +27,7 @@
 
 (library (foreign net mhd platform)
   (export
+    MHD_set_panic_func
     MHD_start_daemon
     MHD_stop_daemon
     MHD_get_fdset
@@ -69,25 +70,17 @@
 
 (define-c-functions mhd-shared-object
 
-;;;Cannot interface with "va_list".
-;;;
-;;; (MHD_start_daemon_va
-;;;  (MHD_Daemon* MHD_start_daemon_va (unsigned int options,
-;;;                                       unsigned short port,
-;;;                                       MHD_AcceptPolicyCallback apc,
-;;;                                       void *apc_cls,
-;;;                                       MHD_AccessHandlerCallback dh,
-;;;                                       void *dh_cls, va_list ap)))
+  (MHD_set_panic_func
+   (void MHD_set_panic_func (callback pointer)))
 
-;;;In truth this is variadic.
-;;;
   (MHD_start_daemon
    (MHD_Daemon* MHD_start_daemon (unsigned-int unsigned-short
 					       MHD_AcceptPolicyCallback
 					       void*
 					       MHD_AccessHandlerCallback
 					       void*
-					       signed-int)))
+					       ;;This is for use with MHD_OPTION_ARRAY.
+					       signed-int pointer signed-int)))
 
   (MHD_stop_daemon
    (void MHD_stop_daemon (MHD_Daemon*)))

@@ -9,7 +9,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -171,7 +171,8 @@
   MHD_HTTP_POST_ENCODING_FORM_URLENCODED
   MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA)
 
-(define-c-enumeration "enum MHD_FLAG"
+(define-c-enumeration MHD_FLAG
+  "enum MHD_FLAG"
   MHD_NO_FLAG
   MHD_USE_DEBUG
   MHD_USE_SSL
@@ -180,8 +181,10 @@
   MHD_USE_IPv6
   MHD_USE_PEDANTIC_CHECKS)
 
-(define-c-enumeration "enum MHD_OPTION"
+(define-c-enumeration MHD_OPTION
+  "enum MHD_OPTION"
   MHD_OPTION_END
+  MHD_OPTION_ARRAY
   MHD_OPTION_CONNECTION_MEMORY_LIMIT
   MHD_OPTION_CONNECTION_LIMIT
   MHD_OPTION_CONNECTION_TIMEOUT
@@ -197,7 +200,8 @@
   MHD_OPTION_EXTERNAL_LOGGER
   MHD_OPTION_THREAD_POOL_SIZE)
 
-(define-c-enumeration "enum MHD_ValueKind"
+(define-c-enumeration MHD_ValueKind
+  "enum MHD_ValueKind"
   MHD_RESPONSE_HEADER_KIND
   MHD_HEADER_KIND
   MHD_COOKIE_KIND
@@ -205,13 +209,15 @@
   MHD_GET_ARGUMENT_KIND
   MHD_FOOTER_KIND)
 
-(define-c-enumeration "enum MHD_RequestTerminationCode"
+(define-c-enumeration MHD_RequestTerminationCode
+  "enum MHD_RequestTerminationCode"
   MHD_REQUEST_TERMINATED_COMPLETED_OK
   MHD_REQUEST_TERMINATED_WITH_ERROR
   MHD_REQUEST_TERMINATED_TIMEOUT_REACHED
   MHD_REQUEST_TERMINATED_DAEMON_SHUTDOWN)
 
-(define-c-enumeration "enum MHD_GNUTLS_CipherAlgorithm"
+(define-c-enumeration MHD_GNUTLS_CipherAlgorithm
+  "enum MHD_GNUTLS_CipherAlgorithm"
   MHD_GNUTLS_CIPHER_UNKNOWN
   MHD_GNUTLS_CIPHER_NULL
   MHD_GNUTLS_CIPHER_ARCFOUR_128
@@ -219,7 +225,8 @@
   MHD_GNUTLS_CIPHER_AES_128_CBC
   MHD_GNUTLS_CIPHER_AES_256_CBC)
 
-(define-c-enumeration "enum MHD_GNUTLS_Protocol"
+(define-c-enumeration MHD_GNUTLS_Protocol
+  "enum MHD_GNUTLS_Protocol"
   MHD_GNUTLS_PROTOCOL_END
   MHD_GNUTLS_PROTOCOL_SSL3
   MHD_GNUTLS_PROTOCOL_TLS1_0
@@ -227,12 +234,14 @@
   MHD_GNUTLS_PROTOCOL_TLS1_2
   MHD_GNUTLS_PROTOCOL_VERSION_UNKNOWN)
 
-(define-c-enumeration "enum MHD_ConnectionInfoType"
+(define-c-enumeration MHD_ConnectionInfoType
+  "enum MHD_ConnectionInfoType"
   MHD_CONNECTION_INFO_CIPHER_ALGO
   MHD_CONNECTION_INFO_PROTOCOL
   MHD_CONNECTION_INFO_CLIENT_ADDRESS)
 
-(define-c-enumeration "enum MHD_DaemonInfoType"
+(define-c-enumeration MHD_DaemonInfoType
+  "enum MHD_DaemonInfoType"
   MHD_DAEMON_INFO_KEY_SIZE
   MHD_DAEMON_INFO_MAC_KEY_SIZE
   MHD_DAEMON_INFO_LISTEN_FD)
@@ -240,14 +249,6 @@
 
 ;;;; data types and aliases
 
-(define-c-type MHD_FLAG				signed-int	"enum MHD_FLAG")
-(define-c-type MHD_OPTION			signed-int	"enum MHD_OPTION")
-(define-c-type MHD_ValueKind			signed-int	"enum MHD_ValueKind")
-(define-c-type MHD_RequestTerminationCode	signed-int	"enum MHD_RequestTerminationCode")
-(define-c-type MHD_GNUTLS_CipherAlgorithm	signed-int	"enum MHD_GNUTLS_CipherAlgorithm")
-(define-c-type MHD_GNUTLS_Protocol		signed-int	"enum MHD_GNUTLS_Protocol")
-(define-c-type MHD_ConnectionInfoType		signed-int	"enum MHD_ConnectionInfoType")
-(define-c-type MHD_DaemonInfoType		signed-int	"enum MHD_DaemonInfoType")
 (define-c-type socklen_t			unsigned-int)
 
 (define-c-type-alias MHD_Daemon*			pointer)
@@ -268,15 +269,22 @@
 
 (define-c-struct MHD_ConnectionInfo
   "union MHD_ConnectionInfo"
-  (signed-int	cipher_algorithm)
-  (signed-int	protocol)
-  (pointer	client_addr))
+  (signed-int		cipher_algorithm)
+  (signed-int		protocol)
+  (pointer		client_addr))
 
 (define-c-struct MHD_DaemonInfo
   "union MHD_DaemonInfo"
   (unsigned-int		key_size)
   (unsigned-int		mac_key_size)
   (signed-int		listen_fd))
+
+(define-c-struct MHD_OptionItem
+  "struct MHD_OptionItem"
+  (signed-int		option)
+  (signed-int		value)
+  (pointer		ptr_value))
+
 
 
 ;;;; done
@@ -286,7 +294,8 @@
 
 (define-shared-object mhd libmicrohttpd.so)
 
-(autoconf-lib-write "configuration/mhd-inspector.m4" mhd-library-spec)
+(autoconf-lib-write "configuration/mhd-inspector.m4" mhd-library-spec
+		    "NAUSICAA_MHD")
 (sizeof-lib-write   "src/libraries/foreign/net/mhd/sizeof.sls.in" mhd-library-spec)
 
 ;;; end of file

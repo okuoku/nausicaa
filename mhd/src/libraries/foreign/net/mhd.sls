@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -33,6 +33,7 @@
     mhd-daemon?				mhd-run
     mhd-get-fdset			mhd-get-timeout
 
+    mhd-set-panic-func
     make-mhd-accept-policy-callback	make-mhd-access-contents-callback
 
     ;; connection
@@ -64,7 +65,51 @@
 ;;; --------------------------------------------------------------------
 ;;; enumerations
 
-    enum-mhd-flags		mhd-flags
+    enum-mhd-flags			mhd-flags
+    mhd-flags->value			value->mhd-flags
+
+    enum-mhd-option			mhd-option
+    mhd-option->value			value->mhd-option
+
+    enum-mhd-value-kind			mhd-value-kind
+    mhd-value-kind->value		value->mhd-value-kind
+
+    enum-mhd-request-termination-code	mhd-request-termination-code
+    mhd-request-termination-code->value	value->mhd-request-termination-code
+
+    enum-mhd-gnutls-cipher-algorithm	mhd-gnutls-cipher-algorithm
+    mhd-gnutls-cipher-algorithm->value	value->mhd-gnutls-cipher-algorithm
+
+    enum-mhd-gnutls-protocol		mhd-gnutls-protocol
+    mhd-gnutls-protocol->value		value->mhd-gnutls-protocol
+
+    enum-mhd-connection-info-type	mhd-connection-info-type
+    mhd-connection-info-type->value	value->mhd-connection-info-type
+
+    enum-mhd-daemon-info-type		mhd-daemon-info-type
+    mhd-daemon-info-type->value		value->mhd-daemon-info-type
+
+;;; --------------------------------------------------------------------
+;;; record types
+
+    <mhd-daemon-config>			<mhd-daemon-config>?
+    make-<mhd-daemon-config>
+    <mhd-daemon-config>-connection-memory-limit
+    <mhd-daemon-config>-connection-limit
+    <mhd-daemon-config>-connection-timeout
+    <mhd-daemon-config>-notify-completed
+    <mhd-daemon-config>-per-ip-connection-limit
+    <mhd-daemon-config>-sock-addr
+    <mhd-daemon-config>-uri-log-callback
+    <mhd-daemon-config>-https-mem-key
+    <mhd-daemon-config>-https-mem-cert
+    <mhd-daemon-config>-cred-type
+    <mhd-daemon-config>-protocol-version
+    <mhd-daemon-config>-cipher-algorithm
+    <mhd-daemon-config>-external-logger
+    <mhd-daemon-config>-thread-pool-size
+
+    mhd-daemon-config
 
 ;;; --------------------------------------------------------------------
 ;;; constants
@@ -179,6 +224,7 @@
     MHD_DAEMON_INFO_KEY_SIZE		MHD_DAEMON_INFO_MAC_KEY_SIZE
     MHD_DAEMON_INFO_LISTEN_FD)
   (import (rnrs)
+    (foreign net mhd record-types)
     (foreign net mhd enumerations)
     (foreign net mhd primitives)
     (foreign net mhd sizeof)))

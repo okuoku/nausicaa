@@ -2,13 +2,13 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library inspection generation
-;;;Date: Thu Dec  3, 2009
+;;;Date: Tue Mar 30, 2010
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -147,6 +147,15 @@
     MHD_HTTP_METHOD_TRACE
     MHD_HTTP_POST_ENCODING_FORM_URLENCODED
     MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA
+    MHD_FLAG
+    sizeof-MHD_FLAG
+    alignof-MHD_FLAG
+    strideof-MHD_FLAG
+    pointer-ref-c-MHD_FLAG
+    pointer-set-c-MHD_FLAG!
+    sizeof-MHD_FLAG-array
+    array-ref-c-MHD_FLAG
+    array-set-c-MHD_FLAG!
     MHD_NO_FLAG
     MHD_USE_DEBUG
     MHD_USE_SSL
@@ -154,7 +163,17 @@
     MHD_USE_SELECT_INTERNALLY
     MHD_USE_IPv6
     MHD_USE_PEDANTIC_CHECKS
+    MHD_OPTION
+    sizeof-MHD_OPTION
+    alignof-MHD_OPTION
+    strideof-MHD_OPTION
+    pointer-ref-c-MHD_OPTION
+    pointer-set-c-MHD_OPTION!
+    sizeof-MHD_OPTION-array
+    array-ref-c-MHD_OPTION
+    array-set-c-MHD_OPTION!
     MHD_OPTION_END
+    MHD_OPTION_ARRAY
     MHD_OPTION_CONNECTION_MEMORY_LIMIT
     MHD_OPTION_CONNECTION_LIMIT
     MHD_OPTION_CONNECTION_TIMEOUT
@@ -169,88 +188,97 @@
     MHD_OPTION_CIPHER_ALGORITHM
     MHD_OPTION_EXTERNAL_LOGGER
     MHD_OPTION_THREAD_POOL_SIZE
+    MHD_ValueKind
+    sizeof-MHD_ValueKind
+    alignof-MHD_ValueKind
+    strideof-MHD_ValueKind
+    pointer-ref-c-MHD_ValueKind
+    pointer-set-c-MHD_ValueKind!
+    sizeof-MHD_ValueKind-array
+    array-ref-c-MHD_ValueKind
+    array-set-c-MHD_ValueKind!
     MHD_RESPONSE_HEADER_KIND
     MHD_HEADER_KIND
     MHD_COOKIE_KIND
     MHD_POSTDATA_KIND
     MHD_GET_ARGUMENT_KIND
     MHD_FOOTER_KIND
+    MHD_RequestTerminationCode
+    sizeof-MHD_RequestTerminationCode
+    alignof-MHD_RequestTerminationCode
+    strideof-MHD_RequestTerminationCode
+    pointer-ref-c-MHD_RequestTerminationCode
+    pointer-set-c-MHD_RequestTerminationCode!
+    sizeof-MHD_RequestTerminationCode-array
+    array-ref-c-MHD_RequestTerminationCode
+    array-set-c-MHD_RequestTerminationCode!
     MHD_REQUEST_TERMINATED_COMPLETED_OK
     MHD_REQUEST_TERMINATED_WITH_ERROR
     MHD_REQUEST_TERMINATED_TIMEOUT_REACHED
     MHD_REQUEST_TERMINATED_DAEMON_SHUTDOWN
+    MHD_GNUTLS_CipherAlgorithm
+    sizeof-MHD_GNUTLS_CipherAlgorithm
+    alignof-MHD_GNUTLS_CipherAlgorithm
+    strideof-MHD_GNUTLS_CipherAlgorithm
+    pointer-ref-c-MHD_GNUTLS_CipherAlgorithm
+    pointer-set-c-MHD_GNUTLS_CipherAlgorithm!
+    sizeof-MHD_GNUTLS_CipherAlgorithm-array
+    array-ref-c-MHD_GNUTLS_CipherAlgorithm
+    array-set-c-MHD_GNUTLS_CipherAlgorithm!
     MHD_GNUTLS_CIPHER_UNKNOWN
     MHD_GNUTLS_CIPHER_NULL
     MHD_GNUTLS_CIPHER_ARCFOUR_128
     MHD_GNUTLS_CIPHER_3DES_CBC
     MHD_GNUTLS_CIPHER_AES_128_CBC
     MHD_GNUTLS_CIPHER_AES_256_CBC
+    MHD_GNUTLS_Protocol
+    sizeof-MHD_GNUTLS_Protocol
+    alignof-MHD_GNUTLS_Protocol
+    strideof-MHD_GNUTLS_Protocol
+    pointer-ref-c-MHD_GNUTLS_Protocol
+    pointer-set-c-MHD_GNUTLS_Protocol!
+    sizeof-MHD_GNUTLS_Protocol-array
+    array-ref-c-MHD_GNUTLS_Protocol
+    array-set-c-MHD_GNUTLS_Protocol!
     MHD_GNUTLS_PROTOCOL_END
     MHD_GNUTLS_PROTOCOL_SSL3
     MHD_GNUTLS_PROTOCOL_TLS1_0
     MHD_GNUTLS_PROTOCOL_TLS1_1
     MHD_GNUTLS_PROTOCOL_TLS1_2
     MHD_GNUTLS_PROTOCOL_VERSION_UNKNOWN
-    MHD_CONNECTION_INFO_CIPHER_ALGO
-    MHD_CONNECTION_INFO_PROTOCOL
-    MHD_CONNECTION_INFO_CLIENT_ADDRESS
-    MHD_DAEMON_INFO_KEY_SIZE
-    MHD_DAEMON_INFO_MAC_KEY_SIZE
-    MHD_DAEMON_INFO_LISTEN_FD
-    MHD_FLAG
-    sizeof-MHD_FLAG
-    alignof-MHD_FLAG
-    strideof-MHD_FLAG
-    pointer-set-c-MHD_FLAG!
-    pointer-ref-c-MHD_FLAG
-    MHD_OPTION
-    sizeof-MHD_OPTION
-    alignof-MHD_OPTION
-    strideof-MHD_OPTION
-    pointer-set-c-MHD_OPTION!
-    pointer-ref-c-MHD_OPTION
-    MHD_ValueKind
-    sizeof-MHD_ValueKind
-    alignof-MHD_ValueKind
-    strideof-MHD_ValueKind
-    pointer-set-c-MHD_ValueKind!
-    pointer-ref-c-MHD_ValueKind
-    MHD_RequestTerminationCode
-    sizeof-MHD_RequestTerminationCode
-    alignof-MHD_RequestTerminationCode
-    strideof-MHD_RequestTerminationCode
-    pointer-set-c-MHD_RequestTerminationCode!
-    pointer-ref-c-MHD_RequestTerminationCode
-    MHD_GNUTLS_CipherAlgorithm
-    sizeof-MHD_GNUTLS_CipherAlgorithm
-    alignof-MHD_GNUTLS_CipherAlgorithm
-    strideof-MHD_GNUTLS_CipherAlgorithm
-    pointer-set-c-MHD_GNUTLS_CipherAlgorithm!
-    pointer-ref-c-MHD_GNUTLS_CipherAlgorithm
-    MHD_GNUTLS_Protocol
-    sizeof-MHD_GNUTLS_Protocol
-    alignof-MHD_GNUTLS_Protocol
-    strideof-MHD_GNUTLS_Protocol
-    pointer-set-c-MHD_GNUTLS_Protocol!
-    pointer-ref-c-MHD_GNUTLS_Protocol
     MHD_ConnectionInfoType
     sizeof-MHD_ConnectionInfoType
     alignof-MHD_ConnectionInfoType
     strideof-MHD_ConnectionInfoType
-    pointer-set-c-MHD_ConnectionInfoType!
     pointer-ref-c-MHD_ConnectionInfoType
+    pointer-set-c-MHD_ConnectionInfoType!
+    sizeof-MHD_ConnectionInfoType-array
+    array-ref-c-MHD_ConnectionInfoType
+    array-set-c-MHD_ConnectionInfoType!
+    MHD_CONNECTION_INFO_CIPHER_ALGO
+    MHD_CONNECTION_INFO_PROTOCOL
+    MHD_CONNECTION_INFO_CLIENT_ADDRESS
     MHD_DaemonInfoType
     sizeof-MHD_DaemonInfoType
     alignof-MHD_DaemonInfoType
     strideof-MHD_DaemonInfoType
-    pointer-set-c-MHD_DaemonInfoType!
     pointer-ref-c-MHD_DaemonInfoType
+    pointer-set-c-MHD_DaemonInfoType!
+    sizeof-MHD_DaemonInfoType-array
+    array-ref-c-MHD_DaemonInfoType
+    array-set-c-MHD_DaemonInfoType!
+    MHD_DAEMON_INFO_KEY_SIZE
+    MHD_DAEMON_INFO_MAC_KEY_SIZE
+    MHD_DAEMON_INFO_LISTEN_FD
     socklen_t
     sizeof-socklen_t
     alignof-socklen_t
     strideof-socklen_t
-    pointer-set-c-socklen_t!
     pointer-ref-c-socklen_t
+    pointer-set-c-socklen_t!
+    sizeof-socklen_t-array
+    array-ref-c-socklen_t
+    array-set-c-socklen_t!
     MHD_Daemon*
     MHD_Connection*
     MHD_Response*
@@ -265,6 +293,8 @@
     sizeof-MHD_ConnectionInfo
     alignof-MHD_ConnectionInfo
     strideof-MHD_ConnectionInfo
+    sizeof-MHD_ConnectionInfo-array
+    array-ref-c-MHD_ConnectionInfo
     struct-MHD_ConnectionInfo-cipher_algorithm-set!
     struct-MHD_ConnectionInfo-cipher_algorithm-ref
     struct-MHD_ConnectionInfo-protocol-set!
@@ -274,12 +304,25 @@
     sizeof-MHD_DaemonInfo
     alignof-MHD_DaemonInfo
     strideof-MHD_DaemonInfo
+    sizeof-MHD_DaemonInfo-array
+    array-ref-c-MHD_DaemonInfo
     struct-MHD_DaemonInfo-key_size-set!
     struct-MHD_DaemonInfo-key_size-ref
     struct-MHD_DaemonInfo-mac_key_size-set!
     struct-MHD_DaemonInfo-mac_key_size-ref
     struct-MHD_DaemonInfo-listen_fd-set!
     struct-MHD_DaemonInfo-listen_fd-ref
+    sizeof-MHD_OptionItem
+    alignof-MHD_OptionItem
+    strideof-MHD_OptionItem
+    sizeof-MHD_OptionItem-array
+    array-ref-c-MHD_OptionItem
+    struct-MHD_OptionItem-option-set!
+    struct-MHD_OptionItem-option-ref
+    struct-MHD_OptionItem-value-set!
+    struct-MHD_OptionItem-value-ref
+    struct-MHD_OptionItem-ptr_value-set!
+    struct-MHD_OptionItem-ptr_value-ref
     MHD_SHARED_OBJECT)
   (import
     (rnrs)
@@ -630,6 +673,39 @@
   (define
     MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA
     @VALUEOF_MHD_HTTP_POST_ENCODING_MULTIPART_FORMDATA@)
+  (define MHD_FLAG '@TYPEOF_MHD_FLAG@)
+  (define sizeof-MHD_FLAG @SIZEOF_MHD_FLAG@)
+  (define alignof-MHD_FLAG @ALIGNOF_MHD_FLAG@)
+  (define strideof-MHD_FLAG @STRIDEOF_MHD_FLAG@)
+  (define
+    pointer-ref-c-MHD_FLAG
+    @GETTEROF_MHD_FLAG@)
+  (define
+    pointer-set-c-MHD_FLAG!
+    @SETTEROF_MHD_FLAG@)
+  (define-syntax
+    sizeof-MHD_FLAG-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-MHD_FLAG ?number-of-elements))))
+  (define-syntax
+    array-ref-c-MHD_FLAG
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-MHD_FLAG
+         ?pointer
+         (* ?index strideof-MHD_FLAG)))))
+  (define-syntax
+    array-set-c-MHD_FLAG!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-MHD_FLAG!
+         ?pointer
+         (* ?index strideof-MHD_FLAG)
+         ?value))))
   (define MHD_NO_FLAG @VALUEOF_MHD_NO_FLAG@)
   (define MHD_USE_DEBUG @VALUEOF_MHD_USE_DEBUG@)
   (define MHD_USE_SSL @VALUEOF_MHD_USE_SSL@)
@@ -643,7 +719,45 @@
   (define
     MHD_USE_PEDANTIC_CHECKS
     @VALUEOF_MHD_USE_PEDANTIC_CHECKS@)
+  (define MHD_OPTION '@TYPEOF_MHD_OPTION@)
+  (define sizeof-MHD_OPTION @SIZEOF_MHD_OPTION@)
+  (define alignof-MHD_OPTION @ALIGNOF_MHD_OPTION@)
+  (define
+    strideof-MHD_OPTION
+    @STRIDEOF_MHD_OPTION@)
+  (define
+    pointer-ref-c-MHD_OPTION
+    @GETTEROF_MHD_OPTION@)
+  (define
+    pointer-set-c-MHD_OPTION!
+    @SETTEROF_MHD_OPTION@)
+  (define-syntax
+    sizeof-MHD_OPTION-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-MHD_OPTION ?number-of-elements))))
+  (define-syntax
+    array-ref-c-MHD_OPTION
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-MHD_OPTION
+         ?pointer
+         (* ?index strideof-MHD_OPTION)))))
+  (define-syntax
+    array-set-c-MHD_OPTION!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-MHD_OPTION!
+         ?pointer
+         (* ?index strideof-MHD_OPTION)
+         ?value))))
   (define MHD_OPTION_END @VALUEOF_MHD_OPTION_END@)
+  (define
+    MHD_OPTION_ARRAY
+    @VALUEOF_MHD_OPTION_ARRAY@)
   (define
     MHD_OPTION_CONNECTION_MEMORY_LIMIT
     @VALUEOF_MHD_OPTION_CONNECTION_MEMORY_LIMIT@)
@@ -686,6 +800,45 @@
   (define
     MHD_OPTION_THREAD_POOL_SIZE
     @VALUEOF_MHD_OPTION_THREAD_POOL_SIZE@)
+  (define MHD_ValueKind '@TYPEOF_MHD_VALUEKIND@)
+  (define
+    sizeof-MHD_ValueKind
+    @SIZEOF_MHD_VALUEKIND@)
+  (define
+    alignof-MHD_ValueKind
+    @ALIGNOF_MHD_VALUEKIND@)
+  (define
+    strideof-MHD_ValueKind
+    @STRIDEOF_MHD_VALUEKIND@)
+  (define
+    pointer-ref-c-MHD_ValueKind
+    @GETTEROF_MHD_VALUEKIND@)
+  (define
+    pointer-set-c-MHD_ValueKind!
+    @SETTEROF_MHD_VALUEKIND@)
+  (define-syntax
+    sizeof-MHD_ValueKind-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-MHD_ValueKind ?number-of-elements))))
+  (define-syntax
+    array-ref-c-MHD_ValueKind
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-MHD_ValueKind
+         ?pointer
+         (* ?index strideof-MHD_ValueKind)))))
+  (define-syntax
+    array-set-c-MHD_ValueKind!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-MHD_ValueKind!
+         ?pointer
+         (* ?index strideof-MHD_ValueKind)
+         ?value))))
   (define
     MHD_RESPONSE_HEADER_KIND
     @VALUEOF_MHD_RESPONSE_HEADER_KIND@)
@@ -705,6 +858,48 @@
     MHD_FOOTER_KIND
     @VALUEOF_MHD_FOOTER_KIND@)
   (define
+    MHD_RequestTerminationCode
+    '@TYPEOF_MHD_REQUESTTERMINATIONCODE@)
+  (define
+    sizeof-MHD_RequestTerminationCode
+    @SIZEOF_MHD_REQUESTTERMINATIONCODE@)
+  (define
+    alignof-MHD_RequestTerminationCode
+    @ALIGNOF_MHD_REQUESTTERMINATIONCODE@)
+  (define
+    strideof-MHD_RequestTerminationCode
+    @STRIDEOF_MHD_REQUESTTERMINATIONCODE@)
+  (define
+    pointer-ref-c-MHD_RequestTerminationCode
+    @GETTEROF_MHD_REQUESTTERMINATIONCODE@)
+  (define
+    pointer-set-c-MHD_RequestTerminationCode!
+    @SETTEROF_MHD_REQUESTTERMINATIONCODE@)
+  (define-syntax
+    sizeof-MHD_RequestTerminationCode-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-MHD_RequestTerminationCode
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-MHD_RequestTerminationCode
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-MHD_RequestTerminationCode
+         ?pointer
+         (* ?index strideof-MHD_RequestTerminationCode)))))
+  (define-syntax
+    array-set-c-MHD_RequestTerminationCode!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-MHD_RequestTerminationCode!
+         ?pointer
+         (* ?index strideof-MHD_RequestTerminationCode)
+         ?value))))
+  (define
     MHD_REQUEST_TERMINATED_COMPLETED_OK
     @VALUEOF_MHD_REQUEST_TERMINATED_COMPLETED_OK@)
   (define
@@ -716,6 +911,48 @@
   (define
     MHD_REQUEST_TERMINATED_DAEMON_SHUTDOWN
     @VALUEOF_MHD_REQUEST_TERMINATED_DAEMON_SHUTDOWN@)
+  (define
+    MHD_GNUTLS_CipherAlgorithm
+    '@TYPEOF_MHD_GNUTLS_CIPHERALGORITHM@)
+  (define
+    sizeof-MHD_GNUTLS_CipherAlgorithm
+    @SIZEOF_MHD_GNUTLS_CIPHERALGORITHM@)
+  (define
+    alignof-MHD_GNUTLS_CipherAlgorithm
+    @ALIGNOF_MHD_GNUTLS_CIPHERALGORITHM@)
+  (define
+    strideof-MHD_GNUTLS_CipherAlgorithm
+    @STRIDEOF_MHD_GNUTLS_CIPHERALGORITHM@)
+  (define
+    pointer-ref-c-MHD_GNUTLS_CipherAlgorithm
+    @GETTEROF_MHD_GNUTLS_CIPHERALGORITHM@)
+  (define
+    pointer-set-c-MHD_GNUTLS_CipherAlgorithm!
+    @SETTEROF_MHD_GNUTLS_CIPHERALGORITHM@)
+  (define-syntax
+    sizeof-MHD_GNUTLS_CipherAlgorithm-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-MHD_GNUTLS_CipherAlgorithm
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-MHD_GNUTLS_CipherAlgorithm
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-MHD_GNUTLS_CipherAlgorithm
+         ?pointer
+         (* ?index strideof-MHD_GNUTLS_CipherAlgorithm)))))
+  (define-syntax
+    array-set-c-MHD_GNUTLS_CipherAlgorithm!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-MHD_GNUTLS_CipherAlgorithm!
+         ?pointer
+         (* ?index strideof-MHD_GNUTLS_CipherAlgorithm)
+         ?value))))
   (define
     MHD_GNUTLS_CIPHER_UNKNOWN
     @VALUEOF_MHD_GNUTLS_CIPHER_UNKNOWN@)
@@ -735,6 +972,48 @@
     MHD_GNUTLS_CIPHER_AES_256_CBC
     @VALUEOF_MHD_GNUTLS_CIPHER_AES_256_CBC@)
   (define
+    MHD_GNUTLS_Protocol
+    '@TYPEOF_MHD_GNUTLS_PROTOCOL@)
+  (define
+    sizeof-MHD_GNUTLS_Protocol
+    @SIZEOF_MHD_GNUTLS_PROTOCOL@)
+  (define
+    alignof-MHD_GNUTLS_Protocol
+    @ALIGNOF_MHD_GNUTLS_PROTOCOL@)
+  (define
+    strideof-MHD_GNUTLS_Protocol
+    @STRIDEOF_MHD_GNUTLS_PROTOCOL@)
+  (define
+    pointer-ref-c-MHD_GNUTLS_Protocol
+    @GETTEROF_MHD_GNUTLS_PROTOCOL@)
+  (define
+    pointer-set-c-MHD_GNUTLS_Protocol!
+    @SETTEROF_MHD_GNUTLS_PROTOCOL@)
+  (define-syntax
+    sizeof-MHD_GNUTLS_Protocol-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-MHD_GNUTLS_Protocol
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-MHD_GNUTLS_Protocol
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-MHD_GNUTLS_Protocol
+         ?pointer
+         (* ?index strideof-MHD_GNUTLS_Protocol)))))
+  (define-syntax
+    array-set-c-MHD_GNUTLS_Protocol!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-MHD_GNUTLS_Protocol!
+         ?pointer
+         (* ?index strideof-MHD_GNUTLS_Protocol)
+         ?value))))
+  (define
     MHD_GNUTLS_PROTOCOL_END
     @VALUEOF_MHD_GNUTLS_PROTOCOL_END@)
   (define
@@ -753,116 +1032,6 @@
     MHD_GNUTLS_PROTOCOL_VERSION_UNKNOWN
     @VALUEOF_MHD_GNUTLS_PROTOCOL_VERSION_UNKNOWN@)
   (define
-    MHD_CONNECTION_INFO_CIPHER_ALGO
-    @VALUEOF_MHD_CONNECTION_INFO_CIPHER_ALGO@)
-  (define
-    MHD_CONNECTION_INFO_PROTOCOL
-    @VALUEOF_MHD_CONNECTION_INFO_PROTOCOL@)
-  (define
-    MHD_CONNECTION_INFO_CLIENT_ADDRESS
-    @VALUEOF_MHD_CONNECTION_INFO_CLIENT_ADDRESS@)
-  (define
-    MHD_DAEMON_INFO_KEY_SIZE
-    @VALUEOF_MHD_DAEMON_INFO_KEY_SIZE@)
-  (define
-    MHD_DAEMON_INFO_MAC_KEY_SIZE
-    @VALUEOF_MHD_DAEMON_INFO_MAC_KEY_SIZE@)
-  (define
-    MHD_DAEMON_INFO_LISTEN_FD
-    @VALUEOF_MHD_DAEMON_INFO_LISTEN_FD@)
-  (define MHD_FLAG '@TYPEOF_MHD_FLAG@)
-  (define sizeof-MHD_FLAG @SIZEOF_MHD_FLAG@)
-  (define alignof-MHD_FLAG @ALIGNOF_MHD_FLAG@)
-  (define strideof-MHD_FLAG @STRIDEOF_MHD_FLAG@)
-  (define
-    pointer-set-c-MHD_FLAG!
-    @GETTEROF_MHD_FLAG@)
-  (define
-    pointer-ref-c-MHD_FLAG
-    @SETTEROF_MHD_FLAG@)
-  (define MHD_OPTION '@TYPEOF_MHD_OPTION@)
-  (define sizeof-MHD_OPTION @SIZEOF_MHD_OPTION@)
-  (define alignof-MHD_OPTION @ALIGNOF_MHD_OPTION@)
-  (define
-    strideof-MHD_OPTION
-    @STRIDEOF_MHD_OPTION@)
-  (define
-    pointer-set-c-MHD_OPTION!
-    @GETTEROF_MHD_OPTION@)
-  (define
-    pointer-ref-c-MHD_OPTION
-    @SETTEROF_MHD_OPTION@)
-  (define MHD_ValueKind '@TYPEOF_MHD_VALUEKIND@)
-  (define
-    sizeof-MHD_ValueKind
-    @SIZEOF_MHD_VALUEKIND@)
-  (define
-    alignof-MHD_ValueKind
-    @ALIGNOF_MHD_VALUEKIND@)
-  (define
-    strideof-MHD_ValueKind
-    @STRIDEOF_MHD_VALUEKIND@)
-  (define
-    pointer-set-c-MHD_ValueKind!
-    @GETTEROF_MHD_VALUEKIND@)
-  (define
-    pointer-ref-c-MHD_ValueKind
-    @SETTEROF_MHD_VALUEKIND@)
-  (define
-    MHD_RequestTerminationCode
-    '@TYPEOF_MHD_REQUESTTERMINATIONCODE@)
-  (define
-    sizeof-MHD_RequestTerminationCode
-    @SIZEOF_MHD_REQUESTTERMINATIONCODE@)
-  (define
-    alignof-MHD_RequestTerminationCode
-    @ALIGNOF_MHD_REQUESTTERMINATIONCODE@)
-  (define
-    strideof-MHD_RequestTerminationCode
-    @STRIDEOF_MHD_REQUESTTERMINATIONCODE@)
-  (define
-    pointer-set-c-MHD_RequestTerminationCode!
-    @GETTEROF_MHD_REQUESTTERMINATIONCODE@)
-  (define
-    pointer-ref-c-MHD_RequestTerminationCode
-    @SETTEROF_MHD_REQUESTTERMINATIONCODE@)
-  (define
-    MHD_GNUTLS_CipherAlgorithm
-    '@TYPEOF_MHD_GNUTLS_CIPHERALGORITHM@)
-  (define
-    sizeof-MHD_GNUTLS_CipherAlgorithm
-    @SIZEOF_MHD_GNUTLS_CIPHERALGORITHM@)
-  (define
-    alignof-MHD_GNUTLS_CipherAlgorithm
-    @ALIGNOF_MHD_GNUTLS_CIPHERALGORITHM@)
-  (define
-    strideof-MHD_GNUTLS_CipherAlgorithm
-    @STRIDEOF_MHD_GNUTLS_CIPHERALGORITHM@)
-  (define
-    pointer-set-c-MHD_GNUTLS_CipherAlgorithm!
-    @GETTEROF_MHD_GNUTLS_CIPHERALGORITHM@)
-  (define
-    pointer-ref-c-MHD_GNUTLS_CipherAlgorithm
-    @SETTEROF_MHD_GNUTLS_CIPHERALGORITHM@)
-  (define
-    MHD_GNUTLS_Protocol
-    '@TYPEOF_MHD_GNUTLS_PROTOCOL@)
-  (define
-    sizeof-MHD_GNUTLS_Protocol
-    @SIZEOF_MHD_GNUTLS_PROTOCOL@)
-  (define
-    alignof-MHD_GNUTLS_Protocol
-    @ALIGNOF_MHD_GNUTLS_PROTOCOL@)
-  (define
-    strideof-MHD_GNUTLS_Protocol
-    @STRIDEOF_MHD_GNUTLS_PROTOCOL@)
-  (define
-    pointer-set-c-MHD_GNUTLS_Protocol!
-    @GETTEROF_MHD_GNUTLS_PROTOCOL@)
-  (define
-    pointer-ref-c-MHD_GNUTLS_Protocol
-    @SETTEROF_MHD_GNUTLS_PROTOCOL@)
-  (define
     MHD_ConnectionInfoType
     '@TYPEOF_MHD_CONNECTIONINFOTYPE@)
   (define
@@ -875,11 +1044,44 @@
     strideof-MHD_ConnectionInfoType
     @STRIDEOF_MHD_CONNECTIONINFOTYPE@)
   (define
-    pointer-set-c-MHD_ConnectionInfoType!
+    pointer-ref-c-MHD_ConnectionInfoType
     @GETTEROF_MHD_CONNECTIONINFOTYPE@)
   (define
-    pointer-ref-c-MHD_ConnectionInfoType
+    pointer-set-c-MHD_ConnectionInfoType!
     @SETTEROF_MHD_CONNECTIONINFOTYPE@)
+  (define-syntax
+    sizeof-MHD_ConnectionInfoType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-MHD_ConnectionInfoType
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-MHD_ConnectionInfoType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-MHD_ConnectionInfoType
+         ?pointer
+         (* ?index strideof-MHD_ConnectionInfoType)))))
+  (define-syntax
+    array-set-c-MHD_ConnectionInfoType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-MHD_ConnectionInfoType!
+         ?pointer
+         (* ?index strideof-MHD_ConnectionInfoType)
+         ?value))))
+  (define
+    MHD_CONNECTION_INFO_CIPHER_ALGO
+    @VALUEOF_MHD_CONNECTION_INFO_CIPHER_ALGO@)
+  (define
+    MHD_CONNECTION_INFO_PROTOCOL
+    @VALUEOF_MHD_CONNECTION_INFO_PROTOCOL@)
+  (define
+    MHD_CONNECTION_INFO_CLIENT_ADDRESS
+    @VALUEOF_MHD_CONNECTION_INFO_CLIENT_ADDRESS@)
   (define
     MHD_DaemonInfoType
     '@TYPEOF_MHD_DAEMONINFOTYPE@)
@@ -893,21 +1095,76 @@
     strideof-MHD_DaemonInfoType
     @STRIDEOF_MHD_DAEMONINFOTYPE@)
   (define
-    pointer-set-c-MHD_DaemonInfoType!
+    pointer-ref-c-MHD_DaemonInfoType
     @GETTEROF_MHD_DAEMONINFOTYPE@)
   (define
-    pointer-ref-c-MHD_DaemonInfoType
+    pointer-set-c-MHD_DaemonInfoType!
     @SETTEROF_MHD_DAEMONINFOTYPE@)
+  (define-syntax
+    sizeof-MHD_DaemonInfoType-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-MHD_DaemonInfoType ?number-of-elements))))
+  (define-syntax
+    array-ref-c-MHD_DaemonInfoType
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-MHD_DaemonInfoType
+         ?pointer
+         (* ?index strideof-MHD_DaemonInfoType)))))
+  (define-syntax
+    array-set-c-MHD_DaemonInfoType!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-MHD_DaemonInfoType!
+         ?pointer
+         (* ?index strideof-MHD_DaemonInfoType)
+         ?value))))
+  (define
+    MHD_DAEMON_INFO_KEY_SIZE
+    @VALUEOF_MHD_DAEMON_INFO_KEY_SIZE@)
+  (define
+    MHD_DAEMON_INFO_MAC_KEY_SIZE
+    @VALUEOF_MHD_DAEMON_INFO_MAC_KEY_SIZE@)
+  (define
+    MHD_DAEMON_INFO_LISTEN_FD
+    @VALUEOF_MHD_DAEMON_INFO_LISTEN_FD@)
   (define socklen_t '@TYPEOF_SOCKLEN_T@)
   (define sizeof-socklen_t @SIZEOF_SOCKLEN_T@)
   (define alignof-socklen_t @ALIGNOF_SOCKLEN_T@)
   (define strideof-socklen_t @STRIDEOF_SOCKLEN_T@)
   (define
-    pointer-set-c-socklen_t!
+    pointer-ref-c-socklen_t
     @GETTEROF_SOCKLEN_T@)
   (define
-    pointer-ref-c-socklen_t
+    pointer-set-c-socklen_t!
     @SETTEROF_SOCKLEN_T@)
+  (define-syntax
+    sizeof-socklen_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-socklen_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-socklen_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-socklen_t
+         ?pointer
+         (* ?index strideof-socklen_t)))))
+  (define-syntax
+    array-set-c-socklen_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-socklen_t!
+         ?pointer
+         (* ?index strideof-socklen_t)
+         ?value))))
   (define MHD_Daemon* 'pointer)
   (define MHD_Connection* 'pointer)
   (define MHD_Response* 'pointer)
@@ -928,6 +1185,21 @@
   (define
     strideof-MHD_ConnectionInfo
     @STRIDEOF_MHD_CONNECTIONINFO@)
+  (define-syntax
+    sizeof-MHD_ConnectionInfo-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-MHD_ConnectionInfo
+          ?number-of-elements))))
+  (define-syntax
+    array-ref-c-MHD_ConnectionInfo
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-MHD_ConnectionInfo)))))
   (define-c-struct-accessor-and-mutator
     struct-MHD_ConnectionInfo-cipher_algorithm-set!
     struct-MHD_ConnectionInfo-cipher_algorithm-ref
@@ -955,6 +1227,20 @@
   (define
     strideof-MHD_DaemonInfo
     @STRIDEOF_MHD_DAEMONINFO@)
+  (define-syntax
+    sizeof-MHD_DaemonInfo-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-MHD_DaemonInfo ?number-of-elements))))
+  (define-syntax
+    array-ref-c-MHD_DaemonInfo
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-MHD_DaemonInfo)))))
   (define-c-struct-accessor-and-mutator
     struct-MHD_DaemonInfo-key_size-set!
     struct-MHD_DaemonInfo-key_size-ref
@@ -973,6 +1259,47 @@
     @OFFSETOF_MHD_DAEMONINFO_LISTEN_FD@
     @SETTEROF_MHD_DAEMONINFO_LISTEN_FD@
     @GETTEROF_MHD_DAEMONINFO_LISTEN_FD@)
+  (define
+    sizeof-MHD_OptionItem
+    @SIZEOF_MHD_OPTIONITEM@)
+  (define
+    alignof-MHD_OptionItem
+    @ALIGNOF_MHD_OPTIONITEM@)
+  (define
+    strideof-MHD_OptionItem
+    @STRIDEOF_MHD_OPTIONITEM@)
+  (define-syntax
+    sizeof-MHD_OptionItem-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-MHD_OptionItem ?number-of-elements))))
+  (define-syntax
+    array-ref-c-MHD_OptionItem
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-MHD_OptionItem)))))
+  (define-c-struct-accessor-and-mutator
+    struct-MHD_OptionItem-option-set!
+    struct-MHD_OptionItem-option-ref
+    @OFFSETOF_MHD_OPTIONITEM_OPTION@
+    @SETTEROF_MHD_OPTIONITEM_OPTION@
+    @GETTEROF_MHD_OPTIONITEM_OPTION@)
+  (define-c-struct-accessor-and-mutator
+    struct-MHD_OptionItem-value-set!
+    struct-MHD_OptionItem-value-ref
+    @OFFSETOF_MHD_OPTIONITEM_VALUE@
+    @SETTEROF_MHD_OPTIONITEM_VALUE@
+    @GETTEROF_MHD_OPTIONITEM_VALUE@)
+  (define-c-struct-accessor-and-mutator
+    struct-MHD_OptionItem-ptr_value-set!
+    struct-MHD_OptionItem-ptr_value-ref
+    @OFFSETOF_MHD_OPTIONITEM_PTR_VALUE@
+    @SETTEROF_MHD_OPTIONITEM_PTR_VALUE@
+    @GETTEROF_MHD_OPTIONITEM_PTR_VALUE@)
   (define MHD_SHARED_OBJECT "@MHD_SHARED_OBJECT@"))
 
 
