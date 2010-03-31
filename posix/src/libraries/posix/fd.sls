@@ -58,8 +58,11 @@
     mremap			mremap-function
 
     select			select-function
-    select/interruptible	select/interruptible-function
     select*			select*-function
+    select/fd			select/fd-function
+    select/interruptible	select/interruptible-function
+    select*/interruptible	select*/interruptible-function
+    select/fd/interruptible	select/fd/interruptible-function
     (rename (primitive:FD_ZERO		FD_ZERO)
 	    (primitive:FD_SET		FD_SET)
 	    (primitive:FD_CLR		FD_CLR)
@@ -136,7 +139,10 @@
 ;; select
 (define-parametrised select max-fd read-set write-set except-set timeout)
 (define-parametrised select/interruptible max-fd read-set write-set except-set timeout)
-(define-parametrised select* max-fd rd-ell wr-ell ex-ell timeval)
+(define-parametrised select* rd-ell wr-ell ex-ell timeval)
+(define-parametrised select*/interruptible rd-ell wr-ell ex-ell timeval)
+(define-parametrised select/fd fd timeval)
+(define-parametrised select/fd/interruptible fd timeval)
 
 
 ;;;; custom binary ports

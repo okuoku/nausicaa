@@ -44,7 +44,8 @@
     msync		mremap
 
     select		select/interruptible
-    select*
+    select*		select*/interruptible
+    select/fd		select/fd/interruptible
     FD_ISSET		FD_SET
     FD_CLR		FD_ZERO
 
@@ -59,7 +60,11 @@
     (only (foreign errno)	EINTR raise-errno-error)
     (foreign ffi pointers)
     (only (foreign ffi sizeof)	sizeof-int-array)
-    (only (posix sizeof)	sizeof-fdset FD_SETSIZE)
+    (only (posix sizeof)
+	  sizeof-fdset
+	  sizeof-fdset-array
+	  array-ref-c-fdset
+	  FD_SETSIZE)
     (posix typedefs)
     (only (posix time primitives) <timeval>->pointer)
     (prefix (posix fd platform) platform:))
@@ -75,14 +80,14 @@
   ;;made into a function.
   ;;
   (syntax-rules ()
-    ((_ ?funcname (?primitive ?arg ...) ?irritants)
+    ((_ ?who (?primitive ?arg ...) ?irritants)
      (let loop ()
        (receive (result errno)
 	   (?primitive ?arg ...)
 	 (when (= -1 result)
 	   (when (= EINTR errno)
 	     (loop))
-	   (raise-errno-error (quote ?funcname) errno ?irritants))
+	   (raise-errno-error (quote ?who) errno ?irritants))
 	 result)))))
 
 (define-syntax %call-for-minus-one
@@ -93,11 +98,11 @@
   ;;EINTR.
   ;;
   (syntax-rules ()
-    ((_ ?funcname ?primitive ?arg ...)
+    ((_ ?who ?primitive ?arg ...)
      (receive (result errno)
 	 (?primitive ?arg ...)
        (when (= -1 result)
-	 (raise-errno-error (quote ?funcname) errno (list ?arg ...)))
+	 (raise-errno-error (quote ?who) errno (list ?arg ...)))
        result))))
 
 (define-syntax %call-for-minus-one/irritants
@@ -108,11 +113,11 @@
   ;;EINTR.
   ;;
   (syntax-rules ()
-    ((_ ?funcname (?primitive ?arg ...) ?irritants ...)
+    ((_ ?who (?primitive ?arg ...) ?irritants ...)
      (receive (result errno)
 	 (?primitive ?arg ...)
        (when (= -1 result)
-	 (raise-errno-error (quote ?funcname) errno (list ?irritants ...)))
+	 (raise-errno-error (quote ?who) errno (list ?irritants ...)))
        result))))
 
 (define-syntax %fd->integer
@@ -123,7 +128,7 @@
 	   (fd->integer obj)
 	 obj)))))
 
-(define (%timeval->pointer/c obj procname)
+(define (%timeval->pointer/c obj who)
   (cond ((<timeval>? obj)
 	 (<timeval>->pointer obj malloc-block/c))
 	((struct-timeval? obj)
@@ -131,7 +136,7 @@
 	((pointer? obj)
 	 obj)
 	(else
-	 (assertion-violation procname "expected struct timeval specification" obj))))
+	 (assertion-violation who "expected struct timeval specification" obj))))
 
 
 ;;;; opening and closing
@@ -205,7 +210,7 @@
 (define (sync)
   (receive (result errno)
       (platform:sync)
-    (unless (= 0 result)
+    (unless (zero? result)
       (raise-errno-error 'sync errno #f))
     result))
 
@@ -319,7 +324,7 @@
   (platform:FD_ZERO (fdset->pointer set)))
 
 (define (FD_ISSET fd set)
-  (not (= 0 (platform:FD_ISSET (fd->integer fd) (fdset->pointer set)))))
+  (not (zero? (platform:FD_ISSET (fd->integer fd) (fdset->pointer set)))))
 
 (define (FD_SET fd set)
   (platform:FD_SET (fd->integer fd) (fdset->pointer set)))
@@ -357,15 +362,15 @@
 
 ;;; --------------------------------------------------------------------
 
-(define (select* max-fd rd-ell wr-ell ex-ell timeval)
+(define (select* rd-ell wr-ell ex-ell timeval)
   (assert (list? rd-ell))
   (assert (list? wr-ell))
   (assert (list? ex-ell))
   (with-compensations
-    (let* ((pool*	(malloc-block/c (* 3 sizeof-fdset)))
-	   (rd-set*	pool*)
-	   (wr-set*	(pointer-add rd-set* sizeof-fdset))
-	   (ex-set*	(pointer-add wr-set* sizeof-fdset)))
+    (let* ((pool*	(malloc-block/c (sizeof-fdset-array 3)))
+	   (rd-set*	(array-ref-c-fdset pool* 0))
+	   (wr-set*	(array-ref-c-fdset pool* 1))
+	   (ex-set*	(array-ref-c-fdset pool* 2)))
       (platform:FD_ZERO rd-set*)
       (platform:FD_ZERO wr-set*)
       (platform:FD_ZERO ex-set*)
@@ -374,19 +379,19 @@
 			      (platform:FD_SET (fd->integer fd) fdset*))
 		    fd-ell))
 	(list rd-set* wr-set* ex-set*)
-	(list rd-ell wr-ell ex-ell))
+	(list rd-ell  wr-ell  ex-ell))
       (let ((total-number-of-fds
 	     (%temp-failure-retry-minus-one
 	      select
-	      (platform:select (%fd->integer max-fd)
+	      (platform:select FD_SETSIZE
 			       rd-set* wr-set* ex-set*
-			       (%timeval->pointer/c timeval 'select))
-	      (list max-fd rd-ell wr-ell ex-ell timeval))))
-	(if (= 0 total-number-of-fds)
+			       (%timeval->pointer/c timeval 'select*))
+	      (list rd-ell wr-ell ex-ell timeval))))
+	(if (zero? total-number-of-fds)
 	    (values '() '() '())
 	  (let ((%fold-fds (lambda (fd-set* fd-ell)
 			     (fold-left (lambda (knil fd)
-					  (if (= 0 (platform:FD_ISSET (fd->integer fd) fd-set*))
+					  (if (zero? (platform:FD_ISSET (fd->integer fd) fd-set*))
 					      knil
 					    (cons fd knil)))
 					'()
@@ -394,6 +399,96 @@
 	    (values (%fold-fds rd-set* rd-ell)
 		    (%fold-fds wr-set* wr-ell)
 		    (%fold-fds ex-set* ex-ell))))))))
+
+(define (select*/interruptible rd-ell wr-ell ex-ell timeval)
+  (assert (list? rd-ell))
+  (assert (list? wr-ell))
+  (assert (list? ex-ell))
+  (with-compensations
+    (let* ((pool*	(malloc-block/c (sizeof-fdset-array 3)))
+	   (rd-set*	(array-ref-c-fdset pool* 0))
+	   (wr-set*	(array-ref-c-fdset pool* 1))
+	   (ex-set*	(array-ref-c-fdset pool* 2)))
+      (platform:FD_ZERO rd-set*)
+      (platform:FD_ZERO wr-set*)
+      (platform:FD_ZERO ex-set*)
+      (for-each (lambda (fdset* fd-ell)
+		  (for-each (lambda (fd)
+			      (platform:FD_SET (fd->integer fd) fdset*))
+		    fd-ell))
+	(list rd-set* wr-set* ex-set*)
+	(list rd-ell  wr-ell  ex-ell))
+      (let ((total-number-of-fds
+	     (%call-for-minus-one select platform:select
+				  FD_SETSIZE
+				  rd-set* wr-set* ex-set*
+				  (%timeval->pointer/c timeval 'select*/interruptible))))
+	(if (zero? total-number-of-fds)
+	    (values '() '() '())
+	  (let ((%fold-fds (lambda (fd-set* fd-ell)
+			     (fold-left (lambda (knil fd)
+					  (if (zero? (platform:FD_ISSET (fd->integer fd) fd-set*))
+					      knil
+					    (cons fd knil)))
+					'()
+					fd-ell))))
+	    (values (%fold-fds rd-set* rd-ell)
+		    (%fold-fds wr-set* wr-ell)
+		    (%fold-fds ex-set* ex-ell))))))))
+
+;;; --------------------------------------------------------------------
+
+(define (select/fd fd timeval)
+  (assert (fd? fd))
+  (with-compensations
+    (let* ((pool*	(malloc-block/c (sizeof-fdset-array 3)))
+	   (rd-set*	(array-ref-c-fdset pool* 0))
+	   (wr-set*	(array-ref-c-fdset pool* 1))
+	   (ex-set*	(array-ref-c-fdset pool* 2))
+	   (fd-int	(fd->integer fd)))
+      (platform:FD_ZERO rd-set*)
+      (platform:FD_ZERO wr-set*)
+      (platform:FD_ZERO ex-set*)
+      (platform:FD_SET fd-int rd-set*)
+      (platform:FD_SET fd-int wr-set*)
+      (platform:FD_SET fd-int ex-set*)
+      (let ((total-number-of-fds
+	     (%temp-failure-retry-minus-one
+	      select
+	      (platform:select FD_SETSIZE
+			       rd-set* wr-set* ex-set*
+			       (%timeval->pointer/c timeval 'select/fd))
+	      (list fd timeval))))
+	(if (zero? total-number-of-fds)
+	    (values #f #f #f)
+	  (values (not (zero? (platform:FD_ISSET fd-int rd-set*)))
+		  (not (zero? (platform:FD_ISSET fd-int wr-set*)))
+		  (not (zero? (platform:FD_ISSET fd-int ex-set*)))))))))
+
+(define (select/fd/interruptible fd timeval)
+  (assert (fd? fd))
+  (with-compensations
+    (let* ((pool*	(malloc-block/c (sizeof-fdset-array 3)))
+	   (rd-set*	(array-ref-c-fdset pool* 0))
+	   (wr-set*	(array-ref-c-fdset pool* 1))
+	   (ex-set*	(array-ref-c-fdset pool* 2))
+	   (fd-int	(fd->integer fd)))
+      (platform:FD_ZERO rd-set*)
+      (platform:FD_ZERO wr-set*)
+      (platform:FD_ZERO ex-set*)
+      (platform:FD_SET fd-int rd-set*)
+      (platform:FD_SET fd-int wr-set*)
+      (platform:FD_SET fd-int ex-set*)
+      (let ((total-number-of-fds
+	     (%call-for-minus-one select platform:select
+				  FD_SETSIZE
+				  rd-set* wr-set* ex-set*
+				  (%timeval->pointer/c timeval 'select/fd))))
+	(if (zero? total-number-of-fds)
+	    (values #f #f #f)
+	  (values (not (zero? (platform:FD_ISSET fd-int rd-set*)))
+		  (not (zero? (platform:FD_ISSET fd-int wr-set*)))
+		  (not (zero? (platform:FD_ISSET fd-int ex-set*)))))))))
 
 
 ;;; asynchronous input/output

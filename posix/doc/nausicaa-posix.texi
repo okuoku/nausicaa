@@ -2901,7 +2901,7 @@ and call the appropriate free function.
 
 @defun fdset->pointer @var{fdset}
 @defunx pointer->fdset @var{integer}
-Convert between a file descriptor object and an integer object.
+Convert between a file descriptor object and a @objtype{pointer} object.
 @end defun
 
 
@@ -4041,34 +4041,34 @@ The following example sets up what is needed to wait for events on a
 file descriptor:
 
 @example
-(import (except (rnrs) read write)
+(import (rnrs)
   (records)
   (compensations)
   (foreign memory)
-  (posix fd)
-  (posix sizeof)
-  (for (posix typedefs) expand run)
-  (for (posix extensions) expand))
+  (prefix (posix fd)     px:)
+  (prefix (posix sizeof) px:)
+  (for (prefix (posix typedefs)   px:) expand run)
+  (for (prefix (posix extensions) px:) expand))
 
 (with-compensations
-  (let ((fd        ---)
-        (rd-fdset  (make-fdset malloc-block/c))
-        (wr-fdset  (make-fdset malloc-block/c))
-        (ex-fdset  (make-fdset malloc-block/c))
-        (timeout   (make-struct-timeval malloc-block/c)))
+  (let ((fd        ---) ;an fd coming from somewhere
+        (rd-fdset  (px:make-fdset malloc-block/c))
+        (wr-fdset  (px:make-fdset malloc-block/c))
+        (ex-fdset  (px:make-fdset malloc-block/c))
+        (timeout   (px:make-struct-timeval malloc-block/c)))
 
-    (with-fields* (((sec usec) struct-timeval* timeout))
+    (with-fields* (((sec usec) px:struct-timeval* timeout))
       (set! timeout.sec  1)
       (set! timeout.usec 0))
 
-    (FD_ZERO rd-fdset)
-    (FD_ZERO wr-fdset)
-    (FD_ZERO ex-fdset)
+    (px:FD_ZERO rd-fdset)
+    (px:FD_ZERO wr-fdset)
+    (px:FD_ZERO ex-fdset)
 
-    (FD_SET fd rd-fdset)
+    (px:FD_SET fd rd-fdset)
 
-    (select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
-    (when (FD_ISSET fd rd-fdset)
+    (px:select px:FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
+    (when (px:FD_ISSET fd rd-fdset)
       ---)))
 @end example
 
@@ -4077,31 +4077,49 @@ the following example does the same using a @class{timeval} object for
 the timeout:
 
 @example
-(import (except (rnrs) read write)
-  (records)
+(import (rnrs)
   (compensations)
   (foreign memory)
-  (posix fd)
-  (posix sizeof)
-  (for (posix typedefs) expand run)
-  (for (posix extensions) expand))
+  (prefix (posix fd)       px:)
+  (prefix (posix sizeof)   px:)
+  (prefix (posix typedefs) px:))
 
 (with-compensations
-  (let ((fd        ---)
-        (rd-fdset  (make-fdset malloc-block/c))
-        (wr-fdset  (make-fdset malloc-block/c))
-        (ex-fdset  (make-fdset malloc-block/c))
-        (timeout   (make-<timeval> 1 0)))
+  (let ((fd        ---) ;an fd coming from somewhere
+        (rd-fdset  (px:make-fdset malloc-block/c))
+        (wr-fdset  (px:make-fdset malloc-block/c))
+        (ex-fdset  (px:make-fdset malloc-block/c))
+        (timeout   (px:make-<timeval> 1 0)))
 
-    (FD_ZERO rd-fdset)
-    (FD_ZERO wr-fdset)
-    (FD_ZERO ex-fdset)
+    (px:FD_ZERO rd-fdset)
+    (px:FD_ZERO wr-fdset)
+    (px:FD_ZERO ex-fdset)
 
-    (FD_SET fd rd-fdset)
+    (px:FD_SET fd rd-fdset)
 
-    (select FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
-    (when (FD_ISSET fd rd-fdset)
+    (px:select px:FD_SETSIZE rd-fdset wr-fdset ex-fdset timeout)
+    (when (px:FD_ISSET fd rd-fdset)
       ---)))
+@end example
+
+@noindent
+the following example makes use of a @func{select} wrapper which takes
+care of internally allocate @code{fd_set} data structures:
+
+@example
+(import (rnrs)
+  (compensations)
+  (prefix (posix fd)       px:)
+  (prefix (posix sizeof)   px:)
+  (prefix (posix typedefs) px:))
+
+(with-compensations
+  (let ((fd ---)) ;an fd coming from somewhere
+    (receive (readable writable exceptions)
+        (px:select* (list fd) '() '()
+                    (px:make-<timeval> 1 0))
+      (unless (null? readable)
+        ---))))
 @end example
 
 @c page
@@ -4110,13 +4128,13 @@ the timeout:
 
 
 In the following descriptions the @var{fdset} arguments are @code{fdset}
-objects.  @ref{fd typedefs, File descriptor related data types}.
+objects.  @ref{fd typedefs fdsets, File descriptor sets}.
 
 
 @deffn Function FD_ZERO @var{fdset}
 @deffnx Function primitive:FD_ZERO @var{fdset}
 @deffnx Function platform:FD_ZERO @var{fdset}
-Initialises the file descriptor set referenced by @var{fdset}.  The
+Initialise the file descriptor set referenced by @var{fdset}.  The
 return value is undefined, platform function included.
 @end deffn
 
@@ -4156,16 +4174,23 @@ value, an integer with C language true/false meaning.
 @deffnx Function platform:select @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
 Halt the process until one or more events happen on the selected file
 descriptors; mutate the given file descriptor sets to report which file
-descriptor are affected.
+descriptors are affected.
 
-@var{max-fd} must be an integer or @objtype{fd} object.  @var{rdset},
-@var{wrset} and @var{exset} must be @code{fdset} objects selecting file
-descriptors to watch for specific events.  @var{timeout} must be a
-@code{struct-timeval} object.
+@var{max-fd} must be an integer or @objtype{fd} object selecting the
+maximum @objtype{fd} to watch; it can also be @false{}, in which case it
+defaults to @code{FD_SETSIZE}.
 
-@strong{NOTE} This function can be interrupted and return with
-@code{errno} set to @code{EINTR}; in this case the library automatically
-reinvokes it until a different return condition happens.
+@var{rdset}, @var{wrset} and @var{exset} must be @code{fdset} objects
+selecting file descriptors to watch for specific events.
+
+@var{timeout} can be: a @objtype{pointer} object referencing a
+@code{struct timeval} data structure; a @objtype{struct-timeval} object;
+a @class{timeval} record.
+
+@strong{NOTE} This function can be interrupted, in which case it will
+return with @code{errno} set to @code{EINTR}; if this happens, the
+library automatically reinvokes the function with the same arguments
+until a different return condition happens.
 @end deffn
 
 
@@ -4179,20 +4204,57 @@ automatically reinvoke it, rather it raises an error with
 @func{raise-errno-error}.
 @end deffn
 
+@c ------------------------------------------------------------
 
-@deffn Function select* @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+@deffn Function select* @var{rdell} @var{wrell} @var{exell} @var{timeout}
 @deffnx Parameter select*-function
-@deffnx Function primitive:select* @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
-Like @func{select} but accept a @class{timeval} object as @var{timeout}
-argument.
+@deffnx Function primitive:select* @var{rdell} @var{wrell} @var{exell} @var{timeout}
+Like @func{select} but accept selected file descriptors as lists of
+@objtype{fd} objects: @var{rdell}, @var{wrell}, @var{exell}.  Also the
+@var{max-fd} argument is not present, it defaults to @code{FD_SETSIZE}.
+
+Return three values: the list of readable @objtype{fd} objects, the list
+of writable @objtype{fd} objects, the list of @objtype{fd} objects upon
+which an exceptional condition has occurred.
 @end deffn
 
 
-@deffn Function select*/interruptible @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
+@deffn Function select*/interruptible @var{rdell} @var{wrell} @var{exell} @var{timeout}
 @deffnx Parameter select*/interruptible-function
-@deffnx Function primitive:select*/interruptible @var{max-fd} @var{rdset} @var{wrset} @var{exset} @var{timeout}
-Like @func{select} but accept a @class{timeval} object as @var{timeout}
-argument.
+@deffnx Function primitive:select*/interruptible @var{rdell} @var{wrell} @var{exell} @var{timeout}
+Like @func{select/interruptible} but accept selected file descriptors as
+lists of @objtype{fd} objects: @var{rdell}, @var{wrell}, @var{exell}.
+Also the @var{max-fd} argument is not present, it defaults to
+@code{FD_SETSIZE}.
+
+Return three values: the list of readable @objtype{fd} objects, the list
+of writable @objtype{fd} objects, the list of @objtype{fd} objects upon
+which an exceptional condition has occurred.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Function select/fd @var{fd} @var{timeout}
+@deffnx Parameter select/fd-function
+@deffnx Function primitive:select/fd @var{fd} @var{timeout}
+Like @func{select} but watch a single @objtype{fd} for readable,
+writable and exceptional events.
+
+Return three values: true if @var{fd} is readable, false otherwise; true
+if @var{fd} is writable, false otherwise; true if @var{fd} had an
+exceptional event, false otherwise.
+@end deffn
+
+
+@deffn Function select/fd/interruptible @var{fd} @var{timeout}
+@deffnx Parameter select/fd/interruptible-function
+@deffnx Function primitive:select/fd/interruptible @var{fd} @var{timeout}
+Like @func{select/interruptible} but watch a single @objtype{fd} for
+readable, writable and exceptional events.
+
+Return three values: true if @var{fd} is readable, false otherwise; true
+if @var{fd} is writable, false otherwise; true if @var{fd} had an
+exceptional event, false otherwise.
 @end deffn
 
 @c page
