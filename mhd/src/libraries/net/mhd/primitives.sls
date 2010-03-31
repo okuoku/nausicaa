@@ -25,19 +25,18 @@
 ;;;
 
 
-(library (foreign net mhd primitives)
+(library (net mhd primitives)
   (export
 
     ;; daemon
     mhd-start-daemon			mhd-stop-daemon
-    mhd-daemon?				mhd-run
+    mhd-run
     mhd-get-fdset			mhd-get-timeout
 
     mhd-set-panic-func
     make-mhd-accept-policy-callback	make-mhd-access-contents-callback
 
     ;; connection
-    mhd-connection?
     mhd-get-connection-values		mhd-set-connection-value
     mhd-lookup-connection-value
 
@@ -46,7 +45,6 @@
     ;; response
     mhd-create-response-from-callback	mhd-create-response-from-data
     mhd-queue-response			mhd-destroy-response
-    mhd-response?
     mhd-add-response-header		mhd-del-response-header
     mhd-get-response-headers		mhd-get-response-header
 
@@ -55,7 +53,7 @@
 
     ;; HTTP POST
     mhd-create-post-processor		mhd-destroy-post-processor
-    mhd-post-process			mhd-post-processor?
+    mhd-post-process
 
 ;;; mhd-get-connection-info
 ;;; mhd-get-daemon-info
@@ -68,16 +66,10 @@
     (foreign ffi)
     (foreign memory)
     (foreign cstrings)
-    (prefix (posix typedefs) px:)
-    (rename (foreign net mhd record-types)
-	    (<mhd-pointer-wrapper>-pointer	pointer)
-	    (<mhd-daemon>?			mhd-daemon?)
-	    (<mhd-connection>?			mhd-connection?)
-	    (<mhd-response>?			mhd-response?)
-	    (<mhd-post-processor>?		mhd-post-processor?))
-    (foreign net mhd enumerations)
-    (foreign net mhd platform)
-    (foreign net mhd sizeof))
+    (net mhd typedefs)
+    (net mhd enumerations)
+    (net mhd platform)
+    (net mhd sizeof))
 
 
 ;;;; helpers
@@ -101,10 +93,8 @@
       (syntax-rules ()
 	((_ (?name ?accessor) ?option ?value1 ?value2)
 	 (let ((?name (?accessor cfg)))
-(write (list 'itis ?name))(newline)
 	   (when ?name
 	     (let ((item* (array-ref-c-MHD_OptionItem options i)))
-(write (list 'setting ?name))(newline)
 	       (struct-MHD_OptionItem-option-set!	item* ?option)
 	       (struct-MHD_OptionItem-value-set!	item* (let ((value ?value1))
 								(if (pointer? value)
@@ -212,15 +202,15 @@
 	  (error 'mhd-start-daemon
 	    "unable to initialise MHD daemon"
 	    flags-set port accept-policy-callback access-handler-callback cfg)
-	(make-<mhd-daemon> daemon*)))))
+	(pointer->daemon daemon*)))))
 
 (define (mhd-stop-daemon daemon)
-  (assert (mhd-daemon? daemon))
-  (MHD_stop_daemon (pointer daemon)))
+  (assert (daemon? daemon))
+  (MHD_stop_daemon (daemon->pointer daemon)))
 
 (define (mhd-run daemon)
-  (assert (mhd-daemon? daemon))
-  (unless (= MHD_YES (MHD_run (pointer daemon)))
+  (assert (daemon? daemon))
+  (unless (= MHD_YES (MHD_run (daemon->pointer daemon)))
     (error 'mhd-run "error running MHD daemon" daemon)))
 
 (define (make-mhd-accept-policy-callback scheme-function)
@@ -241,7 +231,7 @@
      (guard (E (else
 		(write E)(newline)
 		MHD_NO))
-       (scheme-function (make-<mhd-connection> connection*)
+       (scheme-function (pointer->connection connection*)
 			(cstring->string url-cstr)
 			(string->symbol (cstring->string method-cstr))
 			(string->symbol (cstring->string version-cstr))
@@ -254,25 +244,25 @@
    (void* void* char* char* char* char* void* void*)))
 
 (define (mhd-get-fdset daemon read-fd-set write-fd-set except-fd-set)
-  (assert (mhd-daemon? daemon))
-  (assert (px:fdset? read-fd-set))
-  (assert (px:fdset? write-fd-set))
-  (assert (px:fdset? except-fd-set))
+  (assert (daemon? daemon))
+  (assert (fdset? read-fd-set))
+  (assert (fdset? write-fd-set))
+  (assert (fdset? except-fd-set))
   (with-compensations
     (let ((max-fd*	(malloc-small/c)))
-      (if (= MHD_YES (MHD_get_fdset (pointer daemon)
-				    (px:fdset->pointer read-fd-set)
-				    (px:fdset->pointer write-fd-set)
-				    (px:fdset->pointer except-fd-set)
+      (if (= MHD_YES (MHD_get_fdset (daemon->pointer daemon)
+				    (fdset->pointer read-fd-set)
+				    (fdset->pointer write-fd-set)
+				    (fdset->pointer except-fd-set)
 				    max-fd*))
-	  (px:integer->fd (pointer-ref-c-signed-int max-fd* 0))
+	  (integer->fd (pointer-ref-c-signed-int max-fd* 0))
 	(error 'mhd-get-fdset "error getting MHD daemon file descriptor sets" daemon)))))
 
 (define (mhd-get-timeout daemon)
-  (assert (mhd-daemon? daemon))
+  (assert (daemon? daemon))
   (with-compensations
     (let ((timeout* (malloc-small/c)))
-      (if (= MHD_YES (MHD_get_timeout (pointer daemon) timeout*))
+      (if (= MHD_YES (MHD_get_timeout (daemon->pointer daemon) timeout*))
 	  (pointer-ref-c-unsigned-long-long timeout* 0)
 	(error 'mhd-get-timeout "error getting MHD daemon timeout" daemon)))))
 
@@ -280,8 +270,8 @@
 ;;;; connection
 
 (define (mhd-get-connection-values connection header-kind header-callback)
-  (assert (mhd-connection? connection))
-  (let ((code (MHD_get_connection_values (pointer connection) header-kind
+  (assert (connection? connection))
+  (let ((code (MHD_get_connection_values (connection->pointer connection) header-kind
 					 header-callback pointer-null)))
     (if (= code MHD_NO)
 	(error 'mhd-get-connection-values
@@ -298,10 +288,10 @@
    (void* MHD_ValueKind char* char*)))
 
 (define (mhd-set-connection-value connection kind key value)
-  (assert (mhd-connection? connection))
+  (assert (connection? connection))
   (assert (string? key))
   (assert (string? value))
-  (unless (= MHD_YES (MHD_set_connection_value (pointer connection)
+  (unless (= MHD_YES (MHD_set_connection_value (connection->pointer connection)
 					       kind
 					       (string->cstring/c key)
 					       (string->cstring/c value)))
@@ -310,14 +300,14 @@
       connection kind key value)))
 
 (define (mhd-lookup-connection-value connection header-kind key malloc)
-  (assert (mhd-connection? connection))
+  (assert (connection? connection))
   (assert (string? key))
-  (with-compensations
-    (let ((value* (MHD_lookup_connection_value (pointer connection) header-kind
-					       (string->cstring key malloc))))
-      (if (pointer-null? value*)
-	  #f
-	(cstring->string value*)))))
+  (let ((value* (MHD_lookup_connection_value (connection->pointer connection)
+					     header-kind
+					     (string->cstring key malloc))))
+    (if (pointer-null? value*)
+	#f
+      (cstring->string value*))))
 
 
 ;;;; response
@@ -333,7 +323,7 @@
 	(error 'mhd-create-response-from-callback
 	  "error creating response for MHD daemon"
 	  content-size block-size content-reader-callback content-reader-free-callback)
-      (make-<mhd-response> response*))))
+      (pointer->response response*))))
 
 (define (make-mhd-content-reader-callback scheme-function)
   (make-c-callback*
@@ -360,30 +350,32 @@
 	(error 'mhd-create-response-from-data
 	  "error creating response for MHD daemon"
 	  data must-free must-copy)
-      (make-<mhd-response> response*))))
+      (pointer->response response*))))
 
 ;;; --------------------------------------------------------------------
 
 (define (mhd-queue-response connection status-code response)
-  (assert (mhd-connection? connection))
-  (assert (mhd-response?   response))
-  (unless (= MHD_YES (MHD_queue_response (pointer connection) status-code (pointer response)))
+  (assert (connection? connection))
+  (assert (response?   response))
+  (unless (= MHD_YES (MHD_queue_response (connection->pointer connection)
+					 status-code
+					 (response->pointer response)))
     (error 'mhd-queue-response
       "error enqueuing response to MHD daemon"
       connection status-code response)))
 
 (define (mhd-destroy-response response)
-  (assert (mhd-response?  response))
-  (MHD_destroy_response (pointer response)))
+  (assert (response?  response))
+  (MHD_destroy_response (response->pointer response)))
 
 ;;; --------------------------------------------------------------------
 
 (define (mhd-add-response-header response key value)
-  (assert (mhd-response? response))
+  (assert (response? response))
   (assert (string? key))
   (assert (string? value))
   (with-compensations
-    (unless (= MHD_YES (MHD_add_response_header (pointer response)
+    (unless (= MHD_YES (MHD_add_response_header (response->pointer response)
 						(string->cstring/c key)
 						(string->cstring/c value)))
       (error 'mhd-add-response-header
@@ -391,11 +383,11 @@
 	response key value))))
 
 (define (mhd-del-response-header response key value)
-  (assert (mhd-response? response))
+  (assert (response? response))
   (assert (string? key))
   (assert (string? value))
   (with-compensations
-    (unless (= MHD_YES (MHD_del_response_header (pointer response)
+    (unless (= MHD_YES (MHD_del_response_header (response->pointer response)
 						(string->cstring/c key)
 						(string->cstring/c value)))
       (error 'mhd-del-response-header
@@ -403,9 +395,9 @@
 	response key value))))
 
 (define (mhd-get-response-headers response header-callback)
-  (assert (mhd-response? response))
+  (assert (response? response))
   (assert (pointer? header-callback))
-  (let ((code (MHD_get_response_headers (pointer response) header-callback pointer-null)))
+  (let ((code (MHD_get_response_headers (response->pointer response) header-callback pointer-null)))
     (if (= code MHD_NO)
 	(error 'mhd-get-response-headers
 	  "error querying headers in response object for MHD daemon"
@@ -413,10 +405,10 @@
       code)))
 
 (define (mhd-get-response-header response key)
-  (assert (mhd-response? response))
+  (assert (response? response))
   (assert (string? key))
   (with-compensations
-    (let ((cstr (MHD_get_response_header (pointer response) (string->cstring/c key))))
+    (let ((cstr (MHD_get_response_header (response->pointer response) (string->cstring/c key))))
       (if (pointer-null? cstr)
 	  #f
 	(cstring->string cstr)))))
@@ -425,22 +417,23 @@
 ;;;; HTTP POST processor
 
 (define (mhd-create-post-processor connection buffer-size post-data-callback)
-  (assert (mhd-connection? connection))
+  (assert (connection? connection))
   (assert (pointer? post-data-callback))
-  (let ((post-processor* (MHD_create_post_processor (pointer connection) buffer-size post-data-callback)))
+  (let ((post-processor* (MHD_create_post_processor (connection->pointer connection)
+						    buffer-size post-data-callback)))
     (if (pointer-null? post-processor*)
 	(error 'mhd-create-post-processor
 	  "error creating HTTP POST data processor for MHD daemon"
 	  connection buffer-size post-data-callback)
-      (make-<mhd-post-processor> post-processor*))))
+      (pointer->post-processor post-processor*))))
 
 (define (mhd-destroy-post-processor post-processor)
-  (assert (mhd-post-processor? post-processor))
-  (MHD_destroy_post_processor (pointer post-processor)))
+  (assert (post-processor? post-processor))
+  (MHD_destroy_post_processor (post-processor->pointer post-processor)))
 
 (define (mhd-post-process post-processor data.ptr data.len)
-  (assert (mhd-post-processor? post-processor))
-  (unless (= MHD_YES (MHD_post_process (pointer post-processor) data.ptr data.len))
+  (assert (post-processor? post-processor))
+  (unless (= MHD_YES (MHD_post_process (post-processor->pointer post-processor) data.ptr data.len))
     (error 'mhd-post-process
       "error processing HTTP POST data for MHD daemon"
       post-processor data.ptr data.len)))

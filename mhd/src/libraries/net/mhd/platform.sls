@@ -25,7 +25,7 @@
 ;;;
 
 
-(library (foreign net mhd platform)
+(library (net mhd platform)
   (export
     MHD_set_panic_func
     MHD_start_daemon
@@ -59,8 +59,8 @@
   (import (rnrs)
     (foreign ffi)
     (foreign ffi sizeof)
-    (foreign net mhd sizeof)
-    (foreign net mhd shared-object))
+    (net mhd sizeof)
+    (net mhd shared-object))
 
 
 (define fd_set*			'pointer)

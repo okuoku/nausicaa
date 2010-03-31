@@ -32,7 +32,7 @@ dnl Setup.
 dnl --------------------------------------------------------------------
 
 AC_INIT([nausicaa-mhd],[0.1d0],[marco.maggi-ipsu@poste.it])
-DS_BEGIN([./src/libraries/foreign/net/mhd.sls])
+DS_BEGIN([./src/libraries/net/mhd.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
 NAUSICAA_SYSTEM_SETUP
@@ -68,7 +68,7 @@ dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../src/libraries/foreign/net/mhd/sizeof.sls:src/libraries/foreign/net/mhd/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/net/mhd/sizeof.sls:src/libraries/net/mhd/sizeof.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END

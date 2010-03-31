@@ -25,24 +25,30 @@
 ;;;
 
 
-(library (foreign net mhd record-types)
+(library (net mhd typedefs)
   (export
 
-    <mhd-pointer-wrapper>
-    make-<mhd-pointer-wrapper>		<mhd-pointer-wrapper>?
-    <mhd-pointer-wrapper>-pointer
+    daemon				daemon?
+    pointer->daemon			daemon->pointer
 
-    <mhd-daemon>
-    make-<mhd-daemon>			<mhd-daemon>?
+    connection				connection?
+    pointer->connection			connection->pointer
 
-    <mhd-connection>
-    make-<mhd-connection>		<mhd-connection>?
+    response				response?
+    pointer->response			response->pointer
 
-    <mhd-response>
-    make-<mhd-response>			<mhd-response>?
+    post-processor			post-processor?
+    pointer->post-processor		post-processor->pointer
 
-    <mhd-post-processor>
-    make-<mhd-post-processor>		<mhd-post-processor>?
+;;; --------------------------------------------------------------------
+
+    fd					fd?
+    integer->fd				fd->integer
+
+    fdset				fdset?
+    pointer->fdset			fdset->pointer
+
+;;; --------------------------------------------------------------------
 
     <mhd-daemon-config>			<mhd-daemon-config>?
     make-<mhd-daemon-config>
@@ -66,20 +72,31 @@
   (import (rnrs))
 
 
-(define-record-type <mhd-pointer-wrapper>
-  (fields (immutable pointer)))
+(define-record-type (daemon pointer->daemon daemon?)
+  (nongenerative nausicaa:mhd:daemon)
+  (fields (immutable pointer daemon->pointer)))
 
-(define-record-type <mhd-daemon>
-  (parent <mhd-pointer-wrapper>))
+(define-record-type (connection pointer->connection connection?)
+  (nongenerative nausicaa:mhd:connection)
+  (fields (immutable pointer connection->pointer)))
 
-(define-record-type <mhd-connection>
-  (parent <mhd-pointer-wrapper>))
+(define-record-type (response pointer->response response?)
+  (nongenerative nausicaa:mhd:response)
+  (fields (immutable pointer response->pointer)))
 
-(define-record-type <mhd-response>
-  (parent <mhd-pointer-wrapper>))
+(define-record-type (post-processor pointer->post-processor post-processor?)
+  (nongenerative nausicaa:mhd:post-processor)
+  (fields (immutable pointer post-processor->pointer)))
 
-(define-record-type <mhd-post-processor>
-  (parent <mhd-pointer-wrapper>))
+;;; --------------------------------------------------------------------
+
+(define-record-type (fd integer->fd fd?)
+  (nongenerative nausicaa:posix:fd)
+  (fields (immutable object fd->integer)))
+
+(define-record-type (fdset pointer->fdset fdset?)
+  (nongenerative nausicaa:posix:fdset)
+  (fields (immutable object fdset->pointer)))
 
 
 (define-record-type <mhd-daemon-config>

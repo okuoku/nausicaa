@@ -7,7 +7,7 @@
 #
 #
 #
-# Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+# Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 #
 # This program is  free software: you can redistribute  it and/or modify
 # it under the  terms of the GNU General Public  License as published by
@@ -28,8 +28,8 @@
 ## Installation of source and fasl libraries.
 ## --------------------------------------------------------------------
 
-$(eval $(call nau-libraries,base,foreign/net))
-$(eval $(call nau-libraries,mhd,foreign/net/mhd))
+$(eval $(call nau-libraries,base,net))
+$(eval $(call nau-libraries,mhd,net/mhd))
 
 
 ### end of file

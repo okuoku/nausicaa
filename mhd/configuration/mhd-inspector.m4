@@ -1,8 +1,8 @@
-dnl (foreign net mhd sizeof) --
+dnl (net mhd sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Tue Mar 30, 2010
+dnl Date: Wed Mar 31, 2010
 dnl
 dnl Abstract
 dnl

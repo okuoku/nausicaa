@@ -25,7 +25,7 @@
 ;;;
 
 
-(library (foreign net mhd enumerations)
+(library (net mhd enumerations)
   (export
     enum-mhd-flags			mhd-flags
     mhd-flags->value			value->mhd-flags
@@ -52,7 +52,7 @@
     mhd-daemon-info-type->value		value->mhd-daemon-info-type)
   (import (rnrs)
     (enumerations)
-    (foreign net mhd sizeof))
+    (net mhd sizeof))
 
 
 (define-c-ior-flags mhd-flags

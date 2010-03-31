@@ -30,7 +30,7 @@
   (foreign ffi)
   (foreign memory)
   (foreign cstrings)
-  (foreign net mhd)
+  (net mhd)
   (foreign net curl)
   (foreign net curl)
   (foreign net curl compensated)

@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,11 +25,11 @@
 ;;;
 
 
-(library (foreign net mhd shared-object)
+(library (net mhd shared-object)
   (export mhd-shared-object)
   (import (rnrs)
     (foreign ffi)
-    (foreign net mhd sizeof))
+    (net mhd sizeof))
   (define-shared-object mhd-shared-object
     MHD_SHARED_OBJECT))
 

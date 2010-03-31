@@ -290,12 +290,12 @@
 ;;;; done
 
 (define mhd-library-spec
-  '(foreign net mhd sizeof))
+  '(net mhd sizeof))
 
 (define-shared-object mhd libmicrohttpd.so)
 
 (autoconf-lib-write "configuration/mhd-inspector.m4" mhd-library-spec
 		    "NAUSICAA_MHD")
-(sizeof-lib-write   "src/libraries/foreign/net/mhd/sizeof.sls.in" mhd-library-spec)
+(sizeof-lib-write   "src/libraries/net/mhd/sizeof.sls.in" mhd-library-spec)
 
 ;;; end of file

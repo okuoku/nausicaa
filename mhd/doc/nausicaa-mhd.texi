@@ -278,6 +278,10 @@ Revised^6 Report on the algorithmic language Scheme
 @ref{\NODE\,\TITLE\,\TITLE\,nausicaa}
 @end macro
 
+@macro nauposixref{NODE, TITLE}
+@ref{\NODE\,\TITLE\,\TITLE\,nausicaa-posix}
+@end macro
+
 @macro mhdref{NODE, TITLE}
 @ref{\NODE\,\TITLE\,\TITLE\,microhttpd}
 @end macro
@@ -478,7 +482,7 @@ development of Nausicaa takes place at:
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR} @value{AUTHOR_EMAIL}
-Copyright @copyright{}  2008 by Sebastian Gerhardt @email{sebgerhardt@@gmx.net}
+Copyright @copyright{} 2008-2010 by Sebastian Gerhardt @email{sebgerhardt@@gmx.net}
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -531,6 +535,7 @@ entitled ``@gnu{} Free Documentation License''.
 
 @menu
 * overview::                    Overview of the package.
+* typedefs::                    Type definitions.
 * enumerations::                Enumeration types.
 * daemon::                      Starting and stopping the daemon.
 * connections::                 Handling connections.
@@ -550,7 +555,54 @@ Indexes
 * function index::              An entry for each function.
 * variable index::              An entry for each variable.
 * type index::                  An entry for each type.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Type definitions
+
+* typedefs daemon::             Reference to @code{MHD_Daemon} structures.
+* typedefs connection::         Reference to @code{MHD_Connection}
+                                structures.
+* typedefs response::           Reference to @code{MHD_Response}
+                                structures.
+* typedefs processor::          Reference to @code{MHD_PostProcessor}
+                                structures.
+
+External object types
+
+* typedefs fd::                 File descriptors.
+* typedefs fdset::              File descriptor sets.
+
+Enumeration types
+
+* enumerations flags::          Enumerating flags.
+
+Handling @http{} responses
+
+* responses callback::          Creating responses with callback
+                                functions.
+* responses data::              Creating responses from a buffer.
+* responses handling::          Handling response objects.
+* responses headers::           Managing response headers.
+
+A Tutorial for GNU libmicrohttpd
+
+* tutorial intro::              Introduction.
+* tutorial hello::              Hello browser example.
+@c * Exploring requests::
+@c * Response headers::
+@c * Supporting basic authentication::
+@c * Processing POST data::
+@c * Improved processing of POST data::
+@c * Adding a layer of security::
+@c * Bibliography::
+@c * License text::
+@c * Example programs::
+
+@end detailmenu
 @end menu
+
 @end ifnottex
 
 @c page
@@ -573,47 +625,214 @@ Gerhardt for the C library and adapted to Scheme with @value{PACKAGE}.
 The installed libraries are:
 
 @table @library
-@item foreign net mhd shared-object
+@item net mhd shared-object
 Exports the single binding @code{mhd-shared-object} which references the
 foreign shared library.
 
-@item foreign net mhd sizeof
+@item net mhd sizeof
 Exports bindings to constant values and data structures accessors.
 
-@item foreign net mhd record-types
+@item net mhd typedefs
 Define record types to be used as wrappers for pointers to @mhd{} data
 structures.
 
-@item foreign net mhd enumerations
+@item net mhd enumerations
 Defines enumeration types.
 
-@item foreign net mhd platform
+@item net mhd platform
 Exports one binding for each foreign function; the Scheme functions have
 the same name of the C functions, so @cfunc{MHD_start_daemon} is
 availale as @func{MHD_start_daemon}.  This library makes the original
 @mhd{} documentation relevant for this package.  @mhdref{Top, The GNU
 Libmicrohttpd library}.
 
-@item foreign net mhd primitives
+@item net mhd primitives
 Exports one binding for each foreign function, implementing marshaling
 of arguments and return values.  The Scheme functions have the same name
 of the C functions, buth with lower case and underscores converted to
 dashes; so @cfunc{MHD_start_daemon} is availale as
 @func{mhd-start-daemon}.
 
-@item foreign net mhd
+@item net mhd
 Compound library exporting the high--level @api{}; it reexports bindings
 from the @samp{primitives} library and the constant values from the
 @samp{sizeof} library.
 @end table
 
 @c page
+@node typedefs
+@chapter Type definitions
+
+
+The bindings described in this chapter are exported by the @library{net
+mhd typedefs} library and, unless otherwise specified, they are
+reexported by the @library{net mhd} library.
+
+@menu
+Internal object types
+
+* typedefs daemon::             Reference to @code{MHD_Daemon} structures.
+* typedefs connection::         Reference to @code{MHD_Connection}
+                                structures.
+* typedefs response::           Reference to @code{MHD_Response}
+                                structures.
+* typedefs processor::          Reference to @code{MHD_PostProcessor}
+                                structures.
+
+External object types
+
+* typedefs fd::                 File descriptors.
+* typedefs fdset::              File descriptor sets.
+@end menu
+
+@c page
+@node typedefs daemon
+@section Reference to @code{MHD_Daemon} structures
+
+
+@deftp {Object Type} daemon
+Object type used to wrap @objtype{pointer} objects to @code{MHD_Daemon}
+foreign data structures; it is disjoint from all the other Scheme object
+types.  @nauref{ffi pointers, Pointer objects}.
+@end deftp
+
+
+@defun daemon? @var{obj}
+Return true if @var{obj} is an object of type @objtype{daemon}.
+@end defun
+
+
+@defun pointer->daemon @var{pointer}
+@defunx daemon->pointer @var{daemon}
+Convert to and from a @objtype{daemon} object and a @objtype{pointer}
+object.
+@end defun
+
+@c page
+@node typedefs connection
+@section Reference to @code{MHD_Connection} structures
+
+
+@deftp {Object Type} connection
+Object type used to wrap @objtype{pointer} objects to
+@code{MHD_Connection} foreign data structures; it is disjoint from all
+the other Scheme object types.  @nauref{ffi pointers, Pointer objects}.
+@end deftp
+
+
+@defun connection? @var{obj}
+Return true if @var{obj} is an object of type @objtype{connection}.
+@end defun
+
+
+@defun pointer->connection @var{pointer}
+@defunx connection->pointer @var{connection}
+Convert to and from a @objtype{connection} object and a
+@objtype{pointer} object.
+@end defun
+
+@c page
+@node typedefs response
+@section Reference to @code{MHD_Response} structures
+
+
+@deftp {Object Type} response
+Object type used to wrap @objtype{pointer} objects to
+@code{MHD_Response} foreign data structures; it is disjoint from all the
+other Scheme object types.  @nauref{ffi pointers, Pointer objects}.
+@end deftp
+
+
+@defun response? @var{obj}
+Return true if @var{obj} is an object of type @objtype{response}.
+@end defun
+
+
+@defun pointer->response @var{pointer}
+@defunx response->pointer @var{response}
+Convert to and from a @objtype{response} object and a @objtype{pointer}
+object.
+@end defun
+
+@c page
+@node typedefs processor
+@section Reference to @code{MHD_PostProcessor} structures
+
+
+@deftp {Object Type} post-processor
+Object type used to wrap @objtype{pointer} objects to
+@code{MHD_PostProcessor} foreign data structures; it is disjoint from
+all the other Scheme object types.  @nauref{ffi pointers, Pointer
+objects}.
+@end deftp
+
+
+@defun post-processor? @var{obj}
+Return true if @var{obj} is an object of type @objtype{post-processor}.
+@end defun
+
+
+@defun pointer->post-processor @var{pointer}
+@defunx post-processor->pointer @var{post-processor}
+Convert to and from a @objtype{post-processor} object and a
+@objtype{pointer} object.
+@end defun
+
+@c page
+@node typedefs fd
+@section File descriptors
+
+
+@deftp {Object Type} fd
+Object type representing a file descriptor integer; it is disjoint from
+all the other Scheme object types.  This type is compatible with the one
+defined by Nausicaa/@posix{}.  @nauposixref{fd typedefs fds, File
+descriptors}.
+@end deftp
+
+
+@defun fd? @var{obj}
+Return true if @var{obj} is a file descriptor object.
+@end defun
+
+
+@defun fd->integer @var{fd}
+@defunx integer->fd @var{integer}
+Convert between a file descriptor object and an integer object.
+@end defun
+
+@c page
+@node typedefs fdset
+@section File descriptor sets
+
+
+@deftp {Object Type} fdset
+Object type used to wrap @objtype{pointer} objects referencing a file
+descriptor set; it is disjoint from all the other Scheme object types.
+This type is compatible with the one defined by Nausicaa/@posix{}.
+@nauref{ffi pointers, Pointer objects}.  @nauposixref{fd typedefs
+fdsets, File descriptor sets}.
+@end deftp
+
+
+@defun fdset? @var{obj}
+Return true if @var{obj} is an object of type @objtype{fdset}.
+@end defun
+
+
+@defun fdset->pointer @var{fdset}
+@defunx pointer->fdset @var{integer}
+Convert between an object of type @objtype{fdset} and an object of type
+@objtype{pointer}.
+@end defun
+
+@c page
 @node enumerations
 @chapter Enumeration types
 
 
-The following bindings are exported by @library{foreign net mhd
-enumerations} and reexported by @library{foreign net mhd}.
+The following bindings are exported by @library{net mhd enumerations}
+and reexported by @library{net mhd}.
 
 @menu
 * enumerations flags::          Enumerating flags.
@@ -702,14 +921,14 @@ Build and return a new enumeration set of type @code{enum-mhd-flags}.
 @chapter Starting and stopping the daemon
 
 
-The following bindings are exported by @library{foreign net mhd
-primitives} and reexported by @library{foreign net mhd}.
+The following bindings are exported by @library{net mhd primitives} and
+reexported by @library{net mhd}.
 
 
 @defun mhd-start-daemon @var{flags-set} @var{port} @var{accept-policy-callback} @var{access-handler-callback}
-Start an @mhd{} daemon and return its handler object; daemon handler
-objects are disjoint from the other Scheme objects.  The daemon must be
-finalised with a call to @func{mhd-start-daemon}.
+Start an @mhd{} daemon and return its handler as object of type
+@objtype{daemon}.  The daemon must be finalised with a call to
+@func{mhd-start-daemon}.
 
 @var{flags-set} must be an enumeration set of type
 @code{enum-mhd-flags}.  @var{port} must be an exact integer representing
@@ -727,12 +946,7 @@ Stop @var{daemon} and release all the associated resources.
 @end defun
 
 
-@defun mhd-daemon? @var{obj}
-Return true if @var{obj} is an @mhd{} daemon handler.
-@end defun
-
-
-@defun mhd-daemon @var{daemon}
+@defun mhd-run @var{daemon}
 Run the daemon.
 @end defun
 
@@ -815,8 +1029,8 @@ of @var{daemon}.
 @chapter Handling connections
 
 
-The following bindings are exported by @library{foreign net mhd
-primitives} and reexported by @library{foreign net mhd}.
+The following bindings are exported by @library{net mhd primitives} and
+reexported by @library{net mhd}.
 
 
 @defun mhd-connection? @var{obj}
@@ -887,8 +1101,8 @@ value is @false{}.
 @chapter Handling @http{} responses
 
 
-The bindings documented in this section are exported by @library{foreign
-net mhd primitives} and reexported by @library{foreign net mhd}.
+The bindings documented in this section are exported by @library{net mhd
+primitives} and reexported by @library{net mhd}.
 
 @menu
 * responses callback::          Creating responses with callback
@@ -1032,8 +1246,8 @@ if no such header exists in the response object.
 @chapter @http{} @samp{POST} processor
 
 
-The following bindings are exported by @library{foreign net mhd
-primitives} and reexported by @library{foreign net mhd}.
+The following bindings are exported by @library{net mhd primitives} and
+reexported by @library{net mhd}.
 
 
 @defun mhd-create-post-processor @var{connection} @var{buffer-size} @var{post-data-callback}
@@ -1130,7 +1344,7 @@ We must start with the appropriate library import specifications:
 
 @example
 (import (rnrs)
-  (foreign net mhd))
+  (net mhd))
 @end example
 
 @noindent

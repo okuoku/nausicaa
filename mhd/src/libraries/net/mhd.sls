@@ -25,19 +25,18 @@
 ;;;
 
 
-(library (foreign net mhd)
+(library (net mhd)
   (export
 
     ;; daemon
     mhd-start-daemon			mhd-stop-daemon
-    mhd-daemon?				mhd-run
+    mhd-run
     mhd-get-fdset			mhd-get-timeout
 
     mhd-set-panic-func
     make-mhd-accept-policy-callback	make-mhd-access-contents-callback
 
     ;; connection
-    mhd-connection?
     mhd-get-connection-values		mhd-set-connection-value
     mhd-lookup-connection-value
 
@@ -46,7 +45,6 @@
     ;; response
     mhd-create-response-from-callback	mhd-create-response-from-data
     mhd-queue-response			mhd-destroy-response
-    mhd-response?
     mhd-add-response-header		mhd-del-response-header
     mhd-get-response-headers		mhd-get-response-header
 
@@ -55,7 +53,7 @@
 
     ;; HTTP POST
     mhd-create-post-processor		mhd-destroy-post-processor
-    mhd-post-process			mhd-post-processor?
+    mhd-post-process
 
 ;;; mhd-get-connection-info
 ;;; mhd-get-daemon-info
@@ -91,6 +89,18 @@
 
 ;;; --------------------------------------------------------------------
 ;;; record types
+
+    daemon				daemon?
+    pointer->daemon			daemon->pointer
+
+    connection				connection?
+    pointer->connection			connection->pointer
+
+    response				response?
+    pointer->response			response->pointer
+
+    post-processor			post-processor?
+    pointer->post-processor		post-processor->pointer
 
     <mhd-daemon-config>			<mhd-daemon-config>?
     make-<mhd-daemon-config>
@@ -224,9 +234,9 @@
     MHD_DAEMON_INFO_KEY_SIZE		MHD_DAEMON_INFO_MAC_KEY_SIZE
     MHD_DAEMON_INFO_LISTEN_FD)
   (import (rnrs)
-    (foreign net mhd record-types)
-    (foreign net mhd enumerations)
-    (foreign net mhd primitives)
-    (foreign net mhd sizeof)))
+    (net mhd typedefs)
+    (net mhd enumerations)
+    (net mhd primitives)
+    (net mhd sizeof)))
 
 ;;; end of file
