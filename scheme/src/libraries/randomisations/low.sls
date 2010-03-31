@@ -119,13 +119,14 @@
 	       ((< N QU)
 		(div N Q))))))))
 
-;;The version commented out below is an equivalent reorganisation of the
-;;original  version  in the  reference  implementation  of SRFI-42.   It
-;;literally computes:
+;;The  version  of %POLYNOMIAL  commented  out  below  is an  equivalent
+;;reorganisation of the original version in the reference implementation
+;;of SRFI-42.  It literally computes:
 ;;
 ;;  N0 + (M * (N1 + (M * (N2 + (... (M * (N(k-3) + (M * (N(k-2) + (M * N(k-1)))))))))))
 ;;
-;;which is not tail recursive.
+;;which is  not tail  recursive, but uses  Horner's polynomial-rewriting
+;;rule which has less operations.
 ;;
 ;; (define (%polynomial k U M make-random-bits)
 ;;   (let ((N (%make-random-integer/small U M make-random-bits)))
