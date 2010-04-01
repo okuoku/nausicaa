@@ -145,6 +145,9 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "classes.sls"
+		 "classes.slfasl")
+
 (compile-library "records/builtins.sls"
 		 "records/builtins.slfasl")
 

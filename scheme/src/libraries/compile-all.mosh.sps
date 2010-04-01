@@ -55,6 +55,7 @@
   (only (arrays))
   (only (times-and-dates))
 
+  (only (classes))
   (only (records))
   (only (scmobj))
   (only (scmobj utils))
