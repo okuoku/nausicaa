@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Scheme 2010-03-28 tag 0.1a11
+Subject: [announce] Nausicaa/Scheme --- tag 0.1a12
 
 		      Nausicaa/Scheme
 		      ===============
@@ -38,6 +38,12 @@ development takes place at:
 the documentation is available on line:
 
      <http://marcomaggi.github.com/docs/nausicaa.html>
+
+
+Notes for --- tag 0.1a12
+-------------------------------
+
+* Added WITH-ACCESSOR-AND-MUTATOR to (language-extensions).
 
 
 Notes for 2010-03-28 tag 0.1a11

@@ -794,6 +794,53 @@
 	alpha)
     => 2)
 
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((a 1))
+	(with-accessor-and-mutator ((alpha a (lambda (x) x) set!))
+				   alpha))
+    => 1)
+
+  (check
+      (let ((a 1))
+	(with-accessor-and-mutator ((alpha a (lambda (x) x) set!))
+				   (set! alpha 2)
+				   alpha))
+    => 2)
+
+  (check
+      (let ((a 1))
+	(with-accessor-and-mutator ((alpha a (lambda (x) x)))
+				   alpha))
+    => 1)
+
+  (check
+      (let ((a 1)
+	    (b 2))
+	(with-accessor-and-mutator ((alpha a (lambda (x) x) set!)
+				    (beta  b (lambda (x) x) set!))
+				   (list alpha beta)))
+    => '(1 2))
+
+  (check
+      (let ((a 1)
+	    (b 2))
+	(with-accessor-and-mutator ((alpha a (lambda (x) x) set!)
+				    (beta  b (lambda (x) x) set!))
+				   (set! alpha 3)
+				   (set! beta  4)
+				   (list alpha beta)))
+    => '(3 4))
+
+  (check
+      (let ((a 1)
+	    (b 2))
+	(with-accessor-and-mutator ((alpha a (lambda (x) x))
+				    (beta  b (lambda (x) x)))
+				   (list alpha beta)))
+    => '(1 2))
+
   #t)
 
 

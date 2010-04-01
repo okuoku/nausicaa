@@ -795,7 +795,7 @@
 
     ;; macro definition helpers
     define-identifier-accessor-mutator define-inline
-    identifier-syntax-accessor-mutator
+    identifier-syntax-accessor-mutator with-accessor-and-mutator
 
     ;; shared structures
     write-with-shared-structure

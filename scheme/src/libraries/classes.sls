@@ -763,19 +763,6 @@
        #'(begin ?body0 ?body ...))
       )))
 
-(define-syntax with-accessor-and-mutator
-  (syntax-rules ()
-    ((_ ((?name ?thing ?accessor ?mutator) ?spec ...) ?body0 ?body ...)
-     (let-syntax ((?name (identifier-syntax
-			  (_              (?accessor ?thing))
-			  ((set! _ ?expr) (?mutator ?thing ?expr)))))
-       (with-accessor-and-mutator (?spec ...) ?body0 ?body ...)))
-    ((_ ((?name ?thing ?accessor) ?spec ...) ?body0 ?body ...)
-     (let-syntax ((?name (identifier-syntax (?accessor ?thing))))
-       (with-accessor-and-mutator (?spec ...) ?body0 ?body ...)))
-    ((_ () ?body0 ?body ...)
-     (begin ?body0 ?body ...))))
-
 (define-syntax with-fields
   (syntax-rules ()
 

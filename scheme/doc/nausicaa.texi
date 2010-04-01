@@ -19606,6 +19606,63 @@ Helper for the definition of an identifier syntax.  It is defined as:
 @end smallexample
 @end deffn
 
+
+@deffn Syntax with-accessor-and-mutator (@ametao{spec} @ameta{spec} ...) @ametao{body} @ameta{body} ...
+Expand to a @func{let-syntax} form used to define identifier syntaxes;
+@meta{spec} and subsequent forms are expected to be in one of the forms:
+
+@example
+(@cmeta{name} @cmeta{thing} @cmeta{accessor})
+(@cmeta{name} @cmeta{thing} @cmeta{accessor} @cmeta{mutator})
+@end example
+
+@noindent
+in which the symbol @meta{name} is defined as identifier syntax that
+makes use of @meta{accessor} and @meta{mutator} to access and mutate
+@meta{thing}.  Examples:
+
+@example
+(let ((a 1))
+  (with-accessor-and-mutator ((alpha a (lambda (x) x) set!))
+    alpha))
+@result{} 1
+
+(let ((a 1))
+  (with-accessor-and-mutator ((alpha a (lambda (x) x) set!))
+    (set! alpha 2)
+    alpha))
+@result{} 2
+
+(let ((a 1))
+  (with-accessor-and-mutator ((alpha a (lambda (x) x)))
+     alpha))
+@result{} 1
+
+(let ((a 1)
+      (b 2))
+  (with-accessor-and-mutator ((alpha a (lambda (x) x) set!)
+                              (beta  b (lambda (x) x) set!))
+    (list alpha beta)))
+@result{} (1 2)
+
+(let ((a 1)
+      (b 2))
+  (with-accessor-and-mutator ((alpha a (lambda (x) x) set!)
+                              (beta  b (lambda (x) x) set!))
+    (set! alpha 3)
+    (set! beta  4)
+    (list alpha beta)))
+@result{} (3 4)
+
+(let ((a 1)
+      (b 2))
+   (with-accessor-and-mutator ((alpha a (lambda (x) x))
+                               (beta  b (lambda (x) x)))
+     (list alpha beta)))
+@result{} (1 2)
+@end example
+@end deffn
+
 @c page
 @node naulib parameters
 @section Paremeter objects
