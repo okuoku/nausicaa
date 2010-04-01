@@ -163,13 +163,234 @@
 	      (environment '(nausicaa) '(classes))))
     => #t)
 
+;;; --------------------------------------------------------------------
+;;; accessor and mutator names
+
+  (let ()
+
+    (define-class <alpha>
+      (fields (mutable a access-a mutate-a)))
+
+    (check
+	(let ((o (make-<alpha> 123)))
+	  (access-a o))
+      => 123)
+
+    (check
+	(let ((o (make-<alpha> 123)))
+	  (mutate-a o 456)
+	  (access-a o))
+      => 456)
+
+    #f)
+
+  (let ()
+
+    (define-class <alpha>
+      (fields (immutable a access-a)))
+
+    (check
+	(let ((o (make-<alpha> 123)))
+	  (access-a o))
+      => 123)
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'definitions-virtual-fields))
+
+  (let ()	;immutable virtual fields
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (immutable numerator)
+		      (immutable denominator)))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (<fraction>-numerator o))
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (<fraction>-denominator o))
+      => 3)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;mutable virtual fields
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (mutable numerator)
+		      (mutable denominator)))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-numerator-set! o v)
+      (let ((n (<fraction>-number o)))
+	(<fraction>-number-set! o (/ v (denominator n)))))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    (define (<fraction>-denominator-set! o v)
+      (let ((n (<fraction>-number o)))
+	(<fraction>-number-set! o (/ (numerator n) v))))
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (<fraction>-numerator o))
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (<fraction>-denominator o))
+      => 3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (<fraction>-numerator-set! o 5)
+	  (<fraction>-number o))
+      => 5/3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (<fraction>-denominator-set! o 5)
+	  (<fraction>-number o))
+      => 2/5)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;explicitly named immutable virtual fields accessor
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (immutable numerator the-numerator)
+		      (immutable denominator the-denominator)))
+
+    (define (the-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (the-denominator o)
+      (denominator (<fraction>-number o)))
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (the-numerator o))
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (the-denominator o))
+      => 3)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;explicitly named virtual fields accessor and mutator
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (mutable numerator the-numerator the-numerator-set!)
+		      (mutable denominator the-denominator the-denominator-set!)))
+
+    (define (the-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (the-numerator-set! o v)
+      (let ((n (<fraction>-number o)))
+	(<fraction>-number-set! o (/ v (denominator n)))))
+
+    (define (the-denominator o)
+      (denominator (<fraction>-number o)))
+
+    (define (the-denominator-set! o v)
+      (let ((n (<fraction>-number o)))
+	(<fraction>-number-set! o (/ (numerator n) v))))
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (the-numerator o))
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (the-denominator o))
+      => 3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (the-numerator-set! o 5)
+	  (<fraction>-number o))
+      => 5/3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (the-denominator-set! o 5)
+	  (<fraction>-number o))
+      => 2/5)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()	;explicitly named virtual fields accessor and mutator
+		;mixed mutable and immutable
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (immutable numerator the-numerator)
+		      (mutable denominator the-denominator the-denominator-set!)))
+
+    (define (the-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (the-denominator o)
+      (denominator (<fraction>-number o)))
+
+    (define (the-denominator-set! o v)
+      (let ((n (<fraction>-number o)))
+	(<fraction>-number-set! o (/ (numerator n) v))))
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (the-numerator o))
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (the-denominator o))
+      => 3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (the-denominator-set! o 5)
+	  (<fraction>-number o))
+      => 2/5)
+
+    #f)
+
   #t)
 
 
 (parametrise ((check-test-name	'with-fields))
 
-  (let ()
-    ;;Automatic generation of FIELDS-ACCESSOR name.
+  (let ()	;automatic generation of FIELDS-ACCESSOR name
 
     (define-class <alpha>
       (fields (mutable a)))
@@ -196,8 +417,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let ()
-    ;;Explicit FIELDS-ACCESSOR name.
+  (let ()	;explicit FIELDS-ACCESSOR name
 
     (define-class <alpha>
       (fields-accessor alpha)
@@ -236,6 +456,89 @@
       #f))
 
   #t)
+
+
+(parametrise ((check-test-name	'with-virtual-fields))
+
+  (let ()	;immutable virtual fields
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (immutable numerator)
+		      (immutable denominator)))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction>* o))
+	    o.numerator))
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction>* o))
+	    o.denominator))
+      => 3)
+
+    #f)
+
+  (let ()	;mutable virtual fields
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (mutable numerator)
+		      (mutable denominator)))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-numerator-set! o v)
+      (let ((n (<fraction>-number o)))
+	(<fraction>-number-set! o (/ v (denominator n)))))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    (define (<fraction>-denominator-set! o v)
+      (let ((n (<fraction>-number o)))
+	(<fraction>-number-set! o (/ (numerator n) v))))
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction>* o))
+	    o.numerator))
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction>* o))
+	    o.denominator))
+      => 3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction>* o))
+	    (set! o.numerator 5)
+	    o.number))
+      => 5/3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction>* o))
+	    (set! o.denominator 5)
+	    o.number))
+      => 2/5)
+
+    #f)
+
+  #t)
+
+
 
 
 #;(parametrise ((check-test-name 'parent-list))
