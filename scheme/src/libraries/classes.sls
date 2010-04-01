@@ -147,7 +147,7 @@
 
 (define-syntax define-class
   (syntax-rules (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
-			fields-accessor virtual-fields)
+			virtual-fields)
 
     ((_ (?name ?constructor ?predicate) ?clause ...)
      (%define-class/sort-clauses
@@ -156,7 +156,7 @@
       ()	;collected immutable fields
       ()	;collected mutable virtual fields
       ()	;collected immutable virtual fields
-      (fields) (parent) (protocol) (sealed) (opaque) (parent-rtd) (nongenerative) (fields-accessor)
+      (fields) (parent) (protocol) (sealed) (opaque) (parent-rtd) (nongenerative)
       ?clause ...))
 
     ((_ ?name ?clause ...)
@@ -169,7 +169,7 @@
     (define (%predicate name)
       (string->symbol (string-append name "?")))
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
-			     fields-accessor virtual-fields)
+			     virtual-fields)
       ((_ ?name ?clause ...)
        (let ((name (symbol->string (syntax->datum #'?name))))
 	 (with-syntax ((MAKER     (datum->syntax #'?name (%maker     name)))
@@ -180,7 +180,7 @@
 	      () ;collected immutable fields
 	      () ;collected mutable virtual fields
 	      () ;collected immutable virtual fields
-	      (fields) (parent) (protocol) (sealed) (opaque) (parent-rtd) (nongenerative) (fields-accessor)
+	      (fields) (parent) (protocol) (sealed) (opaque) (parent-rtd) (nongenerative)
 	      ?clause ...))))
       )))
 
@@ -195,7 +195,7 @@
   ;;control and expandability, so I keep it like this.
   ;;
   (syntax-rules (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
-			fields-accessor virtual-fields)
+			virtual-fields)
 
     ;;Gather the PARENT clause.
     ((%define-class/sort-clauses
@@ -211,7 +211,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (parent ?parent-name) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -226,7 +225,6 @@
       (opaque		?opa ...)
       (parent-rtd		?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       ?clause ...))
 
     ;;Gather the PROTOCOL clause.
@@ -243,7 +241,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (protocol ?protocol-proc) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -258,7 +255,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       ?clause ...))
 
     ;;Gather the SEALED clause.
@@ -275,7 +271,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (sealed ?sealed) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -290,7 +285,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       ?clause ...))
 
     ;;Gather the OPAQUE clause.
@@ -307,7 +301,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (opaque ?opaque) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -322,7 +315,6 @@
       (opaque		?opa ... ?opaque)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       ?clause ...))
 
     ;;Gatherthe PARENT-RTD clause.
@@ -339,7 +331,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (parent-rtd ?parent-rtd ?parent-cd) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -354,7 +345,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ... ?parent-rtd ?parent-cd)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       ?clause ...))
 
     ;;Gather the NONGENERATIVE non-empty clause.
@@ -371,7 +361,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (nongenerative ?nongenerative) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -386,7 +375,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ... ?nongenerative)
-      (fields-accessor	?fac ...)
       ?clause ...))
 
     ;;Gather the NONGENERATIVE empty clause.
@@ -403,7 +391,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (nongenerative) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -418,7 +405,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ... #t)
-      (fields-accessor	?fac ...)
       ?clause ...))
 
     ;;Gather mutable FIELDS clause.
@@ -435,7 +421,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (fields (mutable ?field0 ?field ...) ?field-clause ...) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -450,7 +435,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (fields ?field-clause ...) ?clause ...))
 
     ;;Gather immutable FIELDS clause.
@@ -467,7 +451,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (fields (immutable ?field0 ?field ...) ?field-clause ...) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -482,7 +465,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (fields ?field-clause ...) ?clause ...))
 
     ;;Gather   immutable  FIELDS   clause  declared   without  IMMUTABLE
@@ -500,7 +482,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (fields ?field ?field-clause ...) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -515,7 +496,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (fields ?field-clause ...) ?clause ...))
 
     ;;Remove empty, leftover, FIELDS clause.
@@ -532,7 +512,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (fields) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -547,7 +526,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       ?clause ...))
 
     ;;Gather mutable VIRTUAL-FIELDS clause.
@@ -564,7 +542,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (virtual-fields (mutable ?field0 ?field ...) ?field-clause ...) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -579,7 +556,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (virtual-fields ?field-clause ...) ?clause ...))
 
     ;;Gather immutable VIRTUAL-FIELDS clause.
@@ -596,7 +572,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (virtual-fields (immutable ?field0 ?field ...) ?field-clause ...) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -611,7 +586,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (virtual-fields ?field-clause ...) ?clause ...))
 
     ;;Gather immutable VIRTUAL-FIELDS  clause declared without IMMUTABLE
@@ -629,7 +603,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (virtual-fields ?field ?field-clause ...) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -644,7 +617,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (fields ?field-clause ...) ?clause ...))
 
     ;;Remove empty, leftover, VIRTUAL-FIELDS clause.
@@ -661,7 +633,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
       (virtual-fields) ?clause ...)
      (%define-class/sort-clauses
       (?name ...)
@@ -676,39 +647,6 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
-      ?clause ...))
-
-    ;;Gather FIELD-ACCESSOR clause.
-    ((%define-class/sort-clauses
-      (?name ...)
-      (?collected-mutable-field ...)
-      (?collected-immutable-field ...)
-      (?collected-mutable-virtual-field ...)
-      (?collected-immutable-virtual-field ...)
-      (fields		?fie ...)
-      (parent		?par ...)
-      (protocol		?pro ...)
-      (sealed		?sea ...)
-      (opaque		?opa ...)
-      (parent-rtd	?pad ...)
-      (nongenerative	?non ...)
-      (fields-accessor	?fac ...)
-      (fields-accessor ?fields-accessor) ?clause ...)
-     (%define-class/sort-clauses
-      (?name ...)
-      (?collected-mutable-field ...)
-      (?collected-immutable-field ...)
-      (?collected-mutable-virtual-field ...)
-      (?collected-immutable-virtual-field ...)
-      (fields		?fie ...)
-      (parent		?par ...)
-      (protocol		?pro ...)
-      (sealed		?sea ...)
-      (opaque		?opa ...)
-      (parent-rtd	?pad ...)
-      (nongenerative	?non ...)
-      (fields-accessor	?fac ... ?fields-accessor)
       ?clause ...))
 
     ;;No    more    clauses    to    gather,    hand    everything    to
@@ -725,8 +663,7 @@
       (sealed		?sea ...)
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
-      (nongenerative	?non ...)
-      (fields-accessor	?fac ...))
+      (nongenerative	?non ...))
      (%define-class/filter-unused
       (?name ...)
       ()	;collected clauses
@@ -740,13 +677,11 @@
       (sealed		?sea ...)
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
-      (nongenerative	?non ...)
-      (fields-accessor	?fac ...)))
+      (nongenerative	?non ...)))
     ))
 
 (define-syntax %define-class/filter-unused
-  ;;Removes  auxiliary  syntaxes  which   cannot  be  empty.   Adds  the
-  ;;FIELDS-ACCESSOR value in front of the ?NAMES list.
+  ;;Removes auxiliary syntaxes which cannot be empty.
   ;;
   (lambda (stx)
     (syntax-case stx (fields parent protocol sealed opaque parent-rtd nongenerative)
@@ -962,43 +897,9 @@
 				      (?collected-immutable-virtual-field ...)
 				      ?clause ...))
 
-      ;;Collect used FIELD-ACCESSOR form.
-      ((%define-class/filter-unused (?name ...) (?collected-clause ...)
-				    (?collected-mutable-field ...)
-				    (?collected-immutable-field ...)
-				    (?collected-mutable-virtual-field ...)
-				    (?collected-immutable-virtual-field ...)
-				    (field-accessor ?accessor-name)
-				    ?clause ...)
-       #'(%define-class/filter-unused (?accessor-name ?name ...) (?collected-clause ...)
-				      (?collected-mutable-field ...)
-				      (?collected-immutable-field ...)
-				      (?collected-mutable-virtual-field ...)
-				      (?collected-immutable-virtual-field ...)
-				      ?clause ...))
-      ;;Remove unused FIELD-ACCESSOR  form.  Automatically generate a name
-      ;;for the accessor.
-      ((%define-class/filter-unused (?name ?constructor ?predicate) (?collected-clause ...)
-				    (?collected-mutable-field ...)
-				    (?collected-immutable-field ...)
-				    (?collected-mutable-virtual-field ...)
-				    (?collected-immutable-virtual-field ...)
-				    (field-accessor)
-				    ?clause ...)
-       (let ((%accessor (lambda (name)
-			  (string->symbol (string-append (symbol->string name) "*")))))
-	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor (syntax->datum #'?name)))))
-	   #'(%define-class/filter-unused (ACCESSOR ?name ?constructor ?predicate)
-					  (?collected-clause ...)
-					  (?collected-mutable-field ...)
-					  (?collected-immutable-field ...)
-					  (?collected-mutable-virtual-field ...)
-					  (?collected-immutable-virtual-field ...)
-					  ?clause ...))))
-
       ;;No    more    clauses   to    filter,    hand   everything    to
       ;;%DEFINE-CLASS/EXPAND-FIELD-NAMES.
-      ((%define-class/filter-unused (?accessor-name ?name ?constructor ?predicate)
+      ((%define-class/filter-unused (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1006,7 +907,7 @@
 				    (?collected-immutable-virtual-field ...))
        #'(begin
 	   (define-record-type (?name ?constructor ?predicate) ?collected-clause ...)
-	   (%define-class/expand-field-names ?name ?accessor-name
+	   (%define-class/expand-field-names ?name
 					     ()	;expanded mutable fields
 					     ()	;expanded immutable fields
 					     ()	;expanded virtual mutable fields
@@ -1033,7 +934,7 @@
       ;;name.
 
       ;;Expand mutable field clause with neither accessor nor mutator names.
-      ((_ ?name ?accessor-name
+      ((_ ?name
 	  (?expanded-mutable-field ...)
 	  (?expanded-immutable-field ...)
 	  (?expanded-virtual-mutable-field ...)
@@ -1047,7 +948,7 @@
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field)))
 		       (MUTATOR  (datum->syntax #'?name (%mutator  name field))))
 	   #'(%define-class/expand-field-names
-	      ?name ?accessor-name
+	      ?name
 	      (?expanded-mutable-field ... (?mutable-name ACCESSOR MUTATOR))
 	      (?expanded-immutable-field ...)
 	      (?expanded-virtual-mutable-field ...)
@@ -1058,7 +959,7 @@
 	      (?virtual-immutable-field ...)))))
 
       ;;Pass through mutable field clause with accessor and mutator name.
-      ((_ ?name ?accessor-name
+      ((_ ?name
 	  (?expanded-mutable-field ...)
 	  (?expanded-immutable-field ...)
 	  (?expanded-virtual-mutable-field ...)
@@ -1068,7 +969,7 @@
 	  (?virtual-mutable-field ...)
 	  (?virtual-immutable-field ...))
        #'(%define-class/expand-field-names
-	  ?name ?accessor-name
+	  ?name
 	  (?expanded-mutable-field ... (?mutable-name ?mutable-accessor ?mutable-mutator))
 	  (?expanded-immutable-field ...)
 	  (?expanded-virtual-mutable-field ...)
@@ -1079,7 +980,7 @@
 	  (?virtual-immutable-field ...)))
 
       ;;Expand immutable field clause without accessor name.
-      ((_ ?name ?accessor-name
+      ((_ ?name
 	  (?expanded-mutable-field ...)
 	  (?expanded-immutable-field ...)
 	  (?expanded-virtual-mutable-field ...)
@@ -1092,7 +993,7 @@
 	     (field (symbol->string (syntax->datum #'?immutable-name))))
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
 	   #'(%define-class/expand-field-names
-	      ?name ?accessor-name
+	      ?name
 	      (?expanded-mutable-field ...)
 	      (?expanded-immutable-field ... (?immutable-name ACCESSOR))
 	      (?expanded-virtual-mutable-field ...)
@@ -1103,7 +1004,7 @@
 	      (?virtual-immutable-field ...)))))
 
       ;;Pass through immutable field clause with accessor name.
-      ((_ ?name ?accessor-name
+      ((_ ?name
 	  (?expanded-mutable-field ...)
 	  (?expanded-immutable-field ...)
 	  (?expanded-virtual-mutable-field ...)
@@ -1113,7 +1014,7 @@
 	  (?virtual-mutable-field ...)
 	  (?virtual-immutable-field ...))
        #'(%define-class/expand-field-names
-	  ?name ?accessor-name
+	  ?name
 	  (?expanded-mutable-field ...)
 	  (?expanded-immutable-field ... (?immutable-name ?immutable-accessor))
 	  (?expanded-virtual-mutable-field ...)
@@ -1124,7 +1025,7 @@
 	  (?virtual-immutable-field ...)))
 
       ;;Expand virtual mutable field clause with neither accessor nor mutator names.
-      ((_ ?name ?accessor-name
+      ((_ ?name
 	  (?expanded-mutable-field ...)
 	  (?expanded-immutable-field ...)
 	  (?expanded-virtual-mutable-field ...)
@@ -1138,7 +1039,7 @@
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field)))
 		       (MUTATOR  (datum->syntax #'?name (%mutator  name field))))
 	   #'(%define-class/expand-field-names
-	      ?name ?accessor-name
+	      ?name
 	      (?expanded-mutable-field ...)
 	      (?expanded-immutable-field ...)
 	      (?expanded-virtual-mutable-field ... (?virtual-mutable-name ACCESSOR MUTATOR))
@@ -1149,7 +1050,7 @@
 	      (?virtual-immutable-field ...)))))
 
       ;;Pass through virtual mutable field clause with accessor and mutator name.
-      ((_ ?name ?accessor-name
+      ((_ ?name
 	  (?expanded-mutable-field ...)
 	  (?expanded-immutable-field ...)
 	  (?expanded-virtual-mutable-field ...)
@@ -1160,7 +1061,7 @@
 	   ?virtual-mutable-field ...)
 	  (?virtual-immutable-field ...))
        #'(%define-class/expand-field-names
-	  ?name ?accessor-name
+	  ?name
 	  (?expanded-mutable-field ...)
 	  (?expanded-immutable-field ...)
 	  (?expanded-virtual-mutable-field ... (?virtual-mutable-name
@@ -1173,7 +1074,7 @@
 	  (?virtual-immutable-field ...)))
 
       ;;Expand virtual immutable field clause without accessor name.
-      ((_ ?name ?accessor-name
+      ((_ ?name
 	  (?expanded-mutable-field ...)
 	  (?expanded-immutable-field ...)
 	  (?expanded-virtual-mutable-field ...)
@@ -1186,7 +1087,7 @@
 	     (field (symbol->string (syntax->datum #'?virtual-immutable-name))))
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
 	   #'(%define-class/expand-field-names
-	      ?name ?accessor-name
+	      ?name
 	      (?expanded-mutable-field ...)
 	      (?expanded-immutable-field ...)
 	      (?expanded-virtual-mutable-field ...)
@@ -1197,7 +1098,7 @@
 	      (?virtual-immutable-field ...)))))
 
       ;;Pass through immutable field clause with accessor name.
-      ((_ ?name ?accessor-name
+      ((_ ?name
 	  (?expanded-mutable-field ...)
 	  (?expanded-immutable-field ...)
 	  (?expanded-virtual-mutable-field ...)
@@ -1207,7 +1108,7 @@
 	  ()	;no more virtual mutable field clauses
 	  ((?virtual-immutable-name ?virtual-immutable-accessor) ?virtual-immutable-field ...))
        #'(%define-class/expand-field-names
-	  ?name ?accessor-name
+	  ?name
 	  (?expanded-mutable-field ...)
 	  (?expanded-immutable-field ...)
 	  (?expanded-virtual-mutable-field ...)
@@ -1217,8 +1118,9 @@
 	  ()	;no more virtual mutable field clauses
 	  (?virtual-immutable-field ...)))
 
-      ;;No more lists to expand, define the output syntax.
-      ((_ ?name ?accessor-name
+      ;;No    more    lists    to    expand,    hand    everything    to
+      ;;%DEFINE-CLASS/OUTPUT-FORMS.
+      ((_ ?name
 	  (?expanded-mutable-field ...)
 	  (?expanded-immutable-field ...)
 	  (?expanded-virtual-mutable-field ...)
@@ -1227,16 +1129,33 @@
 	  ()	;no more immutable field clauses
 	  ()	;no more virtual mutable field clauses
 	  ())	;no more virtual immutable field clauses
-       #'(define-syntax ?accessor-name
-	   (syntax-rules ()
-	     ((_  ?name ?body0 ?body (... ...))
-	      (%with-record-fields ?name (?expanded-mutable-field
-					  ...
-					  ?expanded-immutable-field ...
-					  ?expanded-virtual-mutable-field ...
-					  ?expanded-virtual-immutable-field ...)
-				   ?body0 ?body (... ...))))))
+       #'(%define-class/output-forms ?name
+				     (?expanded-mutable-field ...)
+				     (?expanded-immutable-field ...)
+				     (?expanded-virtual-mutable-field ...)
+				     (?expanded-virtual-immutable-field ...)))
       )))
+
+(define-syntax %define-class/output-forms
+  (lambda (stx)
+    (define (%accessor name)
+      (string->symbol (string-append "with-record-fields-of-" (symbol->string name))))
+    (syntax-case stx ()
+      ((_ ?name
+	  (?expanded-mutable-field ...)
+	  (?expanded-immutable-field ...)
+	  (?expanded-virtual-mutable-field ...)
+	  (?expanded-virtual-immutable-field ...))
+       (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor (syntax->datum #'?name)))))
+	 #'(define-syntax ACCESSOR
+	     (syntax-rules ()
+	       ((_  ?name ?body0 ?body (... ...))
+		(%with-record-fields ?name (?expanded-mutable-field
+					    ...
+					    ?expanded-immutable-field ...
+					    ?expanded-virtual-mutable-field ...
+					    ?expanded-virtual-immutable-field ...)
+				     ?body0 ?body (... ...))))))))))
 
 (define-syntax %with-record-fields
   (lambda (stx)
@@ -1263,15 +1182,26 @@
        #'(begin ?body0 ?body ...))
       )))
 
+;; (define-syntax record-fields-with
+;;   (lambda (stx)
+;;     (define (%accessor class)
+;;       (string->symbol (string-append "with-record-fields-of-" (symbol->string class))))
+;;     (syntax-case stx ()
+;;       ((_ ?class)
+;;        (datum->syntax #'?class (%accessor (syntax->datum #'?class)))))))
+
 (define-syntax with-fields
-  (syntax-rules ()
+  (lambda (stx)
+    (define (%accessor class)
+      (string->symbol (string-append "with-record-fields-of-" (symbol->string class))))
+    (syntax-case stx ()
 
-    ((_ ((?with-class ?name) ?clause ...) ?body0 ?body ...)
-     (?with-class ?name (with-fields (?clause ...) ?body0 ?body ...)))
+      ((_ ((?class ?name) ?clause ...) ?body0 ?body ...)
+       (with-syntax ((ACCESSOR (datum->syntax #'?class (%accessor (syntax->datum #'?class)))))
+	 #'(ACCESSOR ?name (with-fields (?clause ...) ?body0 ?body ...))))
 
-    ((_ () ?body0 ?body ...)
-     (begin ?body0 ?body ...))
-    ))
+      ((_ () ?body0 ?body ...)
+       #'(begin ?body0 ?body ...)))))
 
 
 ;;;; constructors

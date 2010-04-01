@@ -124,43 +124,43 @@
 
   (check
       (eval '(letrec ()
-	       (define-class <alpha>
-		 (fields (mutable a)
-			 (immutable b)
-			 c))
-	       (define o (make-<alpha> 1 2 3))
-	       (with-fields ((<alpha>* o))
-		 (set! o.a #t)
-		 o.a))
-	    (environment '(nausicaa) '(classes)))
+  	       (define-class <alpha>
+  		 (fields (mutable a)
+  			 (immutable b)
+  			 c))
+  	       (define o (make-<alpha> 1 2 3))
+  	       (with-fields ((<alpha> o))
+  		 (set! o.a #t)
+  		 o.a))
+  	    (environment '(nausicaa) '(classes)))
     => #t)
 
   (check
       (guard (E ((syntax-violation? E) #t)
-		(else #f))
-	(eval '(letrec ()
-		 (define-class <alpha>
-		   (fields (mutable a)
-			   (immutable b)
-			   c))
-		 (define o (make-<alpha> 1 2 3))
-		 (with-fields ((<alpha>* o))
-		   (set! o.b #f)))
-	      (environment '(nausicaa) '(classes))))
+  		(else #f))
+  	(eval '(letrec ()
+  		 (define-class <alpha>
+  		   (fields (mutable a)
+  			   (immutable b)
+  			   c))
+  		 (define o (make-<alpha> 1 2 3))
+  		 (with-fields ((<alpha> o))
+  		   (set! o.b #f)))
+  	      (environment '(nausicaa) '(classes))))
     => #t)
 
   (check
       (guard (E ((syntax-violation? E) #t)
-		(else #f))
-	(eval '(letrec ()
-		 (define-class <alpha>
-		   (fields (mutable a)
-			   (immutable b)
-			   c))
-		 (define o (make-<alpha> 1 2 3))
-		 (with-fields ((<alpha>* o))
-		   (set! o.c #f)))
-	      (environment '(nausicaa) '(classes))))
+  		(else #f))
+  	(eval '(letrec ()
+  		 (define-class <alpha>
+  		   (fields (mutable a)
+  			   (immutable b)
+  			   c))
+  		 (define o (make-<alpha> 1 2 3))
+  		 (with-fields ((<alpha> o))
+  		   (set! o.c #f)))
+  	      (environment '(nausicaa) '(classes))))
     => #t)
 
 ;;; --------------------------------------------------------------------
@@ -398,12 +398,13 @@
     (define r (make-<alpha> 123))
     (define s (make-<alpha> #\a))
     (define t (make-<alpha> 1.0))
-    (with-fields ((<alpha>* r)
-		  (<alpha>* s)
-		  (<alpha>* t))
+
+    (with-fields ((<alpha> r)
+    		  (<alpha> s)
+    		  (<alpha> t))
       (check
-	  (list r.a s.a t.a)
-	=> '(123 #\a 1.0))
+      	  (list r.a s.a t.a)
+      	=> '(123 #\a 1.0))
 
       (set! r.a 456)
       (set! s.a #\b)
@@ -420,16 +421,15 @@
   (let ()	;explicit FIELDS-ACCESSOR name
 
     (define-class <alpha>
-      (fields-accessor alpha)
       (fields (mutable a)
 	      (mutable b)))
 
     (define r (make-<alpha> 1 2))
     (define s (make-<alpha> #\a #\b))
     (define t (make-<alpha> 1.0 2.0))
-    (with-fields ((alpha r)
-		  (alpha s)
-		  (alpha t))
+    (with-fields ((<alpha> r)
+		  (<alpha> s)
+		  (<alpha> t))
       (check
 	  (list r.a s.a t.a
 		r.b s.b t.b)
@@ -475,13 +475,13 @@
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction>* o))
+	  (with-fields ((<fraction> o))
 	    o.numerator))
       => 2)
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction>* o))
+	  (with-fields ((<fraction> o))
 	    o.denominator))
       => 3)
 
@@ -510,26 +510,26 @@
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction>* o))
+	  (with-fields ((<fraction> o))
 	    o.numerator))
       => 2)
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction>* o))
+	  (with-fields ((<fraction> o))
 	    o.denominator))
       => 3)
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction>* o))
+	  (with-fields ((<fraction> o))
 	    (set! o.numerator 5)
 	    o.number))
       => 5/3)
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction>* o))
+	  (with-fields ((<fraction> o))
 	    (set! o.denominator 5)
 	    o.number))
       => 2/5)
@@ -537,8 +537,6 @@
     #f)
 
   #t)
-
-
 
 
 #;(parametrise ((check-test-name 'parent-list))
