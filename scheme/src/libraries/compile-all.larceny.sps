@@ -148,6 +148,9 @@
 (compile-library "classes.sls"
 		 "classes.slfasl")
 
+(compile-library "generics.sls"
+		 "generics.slfasl")
+
 (compile-library "scmobj.sls"
 		 "scmobj.slfasl")
 

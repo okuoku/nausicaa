@@ -56,6 +56,7 @@
   (only (times-and-dates))
 
   (only (classes))
+  (only (generics))
   (only (scmobj))
   (only (scmobj utils))
 

@@ -541,6 +541,7 @@ More libraries
 * sentinel::                    The sentinel value.
 * variables::                   Defining storage locations.
 * classes::                     Record utilities.
+* generics::                    Multimethods dispatching.
 * scmobj::                      A simple object system.
 * sexps::                       Handling symbolic expressions.
 * matches::                     Pattern matching.
@@ -37247,7 +37248,6 @@ behaviour of this library with such type is undefined.
 * classes pred::                Record type predicates.
 * classes inspect::             Record type inspection.
 * classes fields::              Binding accessors and mutators.
-* classes methods::             Multimethod dispatching.
 @end menu
 
 @c page
@@ -37449,7 +37449,7 @@ instantiate builtin objects, for example: @func{make-<string>} does
 @subsection Basic conventional @rtd{}s
 
 
-@deftp {Record Type Name} <top>
+@deftp Class <top>
 Conventional parent of all the record types.  When defining a new record
 type with no parent, we may want to derive it from @class{top}:
 
@@ -37466,7 +37466,7 @@ parent type if we do not select explicitly a parent with the
 @end deftp
 
 
-@deftp {Record Type Name} <builtin>
+@deftp Class <builtin>
 The parent of all the conventional @rtd{}s, with the exception of
 @class{top}.
 @end deftp
@@ -37476,7 +37476,7 @@ The parent of all the conventional @rtd{}s, with the exception of
 @subsection Pairs and lists @rtd{}s
 
 
-@deftp {Record Type Name} <pair>
+@deftp Class <pair>
 Type for values satisfying @func{pair?}.  It provides the following
 virtual fields:
 
@@ -37490,7 +37490,7 @@ Immutable.  Access the cdr of the pair.
 @end deftp
 
 
-@deftp {Record Type Name} <list>
+@deftp Class <list>
 Type for values satisfying @func{list?}.  It provides the following
 virtual fields:
 
@@ -37511,7 +37511,7 @@ Immutable.  Access the length of the list.
 @subsection Non--list compound @rtd{}s
 
 
-@deftp {Record Type Name} <vector>
+@deftp Class <vector>
 Type for values satisfying @func{vector?}.  It provides the following
 virtual fields:
 
@@ -37522,7 +37522,7 @@ Immutable.  Access the length of the vector.
 @end deftp
 
 
-@deftp {Record Type Name} <bytevector>
+@deftp Class <bytevector>
 Type for values satisfying @func{bytevector?}.  It provides the following
 virtual fields:
 
@@ -37533,7 +37533,7 @@ Immutable.  Access the length of the bytevector.
 @end deftp
 
 
-@deftp {Record Type Name} <hashtable>
+@deftp Class <hashtable>
 Type for values satisfying @func{hashtable?}.  It provides the following
 virtual fields:
 
@@ -37556,7 +37556,7 @@ applying @func{hashtable-entries} to the hashtable.
 @subsection Numeric objects @rtd{}s
 
 
-@deftp {Record Type Name} <number>
+@deftp Class <number>
 Type for values satisfying @func{number?}.  It provides the following
 virtual fields:
 
@@ -37652,47 +37652,47 @@ number.
 @end deftp
 
 
-@deftp {Record Type Name} <complex>
+@deftp Class <complex>
 Type for values satisfying @func{complex?}.
 @end deftp
 
 
-@deftp {Record Type Name} <real-valued>
+@deftp Class <real-valued>
 Type for values satisfying @func{real-valued?}.
 @end deftp
 
 
-@deftp {Record Type Name} <real>
+@deftp Class <real>
 Type for values satisfying @func{real?}.
 @end deftp
 
 
-@deftp {Record Type Name} <rational>
+@deftp Class <rational>
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
-@deftp {Record Type Name} <rational-valued>
+@deftp Class <rational-valued>
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
-@deftp {Record Type Name} <integer-valued>
+@deftp Class <integer-valued>
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
-@deftp {Record Type Name} <integer>
+@deftp Class <integer>
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
-@deftp {Record Type Name} <fixnum>
+@deftp Class <fixnum>
 Type for values satisfying @func{fixnum?}.
 @end deftp
 
 
-@deftp {Record Type Name} <flonum>
+@deftp Class <flonum>
 Type for values satisfying @func{flonum?}.
 @end deftp
 
@@ -37705,7 +37705,7 @@ The binary/textual attributes are not mututally exclusive with the
 input/output attributes.
 
 
-@deftp {Record Type Name} <port>
+@deftp Class <port>
 Type for values satisfying @func{port?}.  It provides the following
 virtual fields:
 
@@ -37750,23 +37750,23 @@ the port.
 @end deftp
 
 
-@deftp {Record Type Name} <input-port>
+@deftp Class <input-port>
 @deftpx {Record Type Descriptor} <input-port-rtd>
 Type for values satisfying @func{input-port?}.
 @end deftp
 
 
-@deftp {Record Type Name} <output-port>
+@deftp Class <output-port>
 Type for values satisfying @func{output-port?}.
 @end deftp
 
 
-@deftp {Record Type Name} <textual-port>
+@deftp Class <textual-port>
 Type for values satisfying @func{textual-port?}.
 @end deftp
 
 
-@deftp {Record Type Name} <binary-port>
+@deftp Class <binary-port>
 Type for values satisfying @func{binary-port?}.
 @end deftp
 
@@ -37775,7 +37775,7 @@ Type for values satisfying @func{binary-port?}.
 @subsection Character and string @rtd{}s
 
 
-@deftp {Record Type Name} <string>
+@deftp Class <string>
 Type for values satisfying @func{string?}.  It provides the following
 virtual fields:
 
@@ -37803,7 +37803,7 @@ to the string.
 @end deftp
 
 
-@deftp {Record Type Name} <char>
+@deftp Class <char>
 Type for values satisfying @func{char?}.  It provides the following
 virtual fields:
 
@@ -37831,7 +37831,7 @@ to the char.
 @subsection Miscellaneous conventional @rtd{}s
 
 
-@deftp {Record Type Name} <condition>
+@deftp Class <condition>
 Type for values satisfying @func{condition?}.  It provides the following
 virtual fields:
 
@@ -37851,7 +37851,7 @@ Immutable.  Accessing this field is like applying
 @end deftp
 
 
-@deftp {Record Type Name} <record>
+@deftp Class <record>
 Type for values satisfying @func{record?}.
 @end deftp
 
@@ -38206,29 +38206,29 @@ record type name.
 @end deffn
 
 @c page
-@node classes methods
-@section Multimethod dispatching
+@node generics
+@chapter Multimethods dispatching
 
 
-In the context of the @library{classes} library, @dfn{generic functions}
-are procedures that can be specialised to the (conventional) record
-types of their arguments.  Each specialisation of a generic function is
-called @dfn{method}.  When applying a generic function to a set of
-arguments, the most specific method with respect to the arguments' types
-is chosen.
+In the context of the @library{generics} library, @dfn{generic
+functions} are procedures that can be specialised to the (conventional)
+record types of their arguments.  Each specialisation of a generic
+function is called @dfn{method}.  When applying a generic function to a
+set of arguments, the most specific method with respect to the
+arguments' types is chosen.
 
 @menu
-* classes methods application:: How generic functions and methods
+* generics application::        How generic functions and methods
                                 are invoked.
-* classes methods dispatching:: How methods are dispatched.
-* classes methods define::      Defining generic functions and methods.
-* classes methods next::        Invoking the next method.
-* classes methods examples::    Examples of method dispatching.
-* classes methods predefined::  Predefined generic functions.
+* generics dispatching::        How methods are dispatched.
+* generics define::             Defining generic functions and methods.
+* generics next::               Invoking the next method.
+* generics examples::           Examples of method dispatching.
+* generics predefined::         Predefined generic functions.
 @end menu
 
 @c page
-@node classes methods application
+@node generics application
 @subsection How generic functions and methods are invoked
 
 
@@ -38259,7 +38259,7 @@ next method, recurse to step 4.
 @end enumerate
 
 @c page
-@node classes methods dispatching
+@node generics dispatching
 @subsection How methods are dispatched
 
 
@@ -38343,7 +38343,7 @@ position, the @rtd{}s of @var{A} are @func{eq?} to the
 @end enumerate
 
 @c page
-@node classes methods define
+@node generics define
 @subsection Defining generic functions and methods
 
 
@@ -38415,7 +38415,7 @@ means that the closure supports rest arguments.
 @end deffn
 
 @c page
-@node classes methods next
+@node generics next
 @subsection Invoking the next method
 
 
@@ -38429,12 +38429,12 @@ Return true if a next method is available.
 @end defun
 
 @c page
-@node classes methods examples
+@node generics examples
 @subsection Examples of method dispatching.
 
 
 Here we show with some examples what we have to expect from the
-multimethod dispatching of @library{classes}.  In the following examples
+multimethod dispatching of @library{generics}.  In the following examples
 the string @code{%apple} is written in place of the value bound to the
 symbol @class{apple}.
 
@@ -38502,7 +38502,7 @@ The following example shows a call to the next method:
 @end example
 
 @c page
-@node classes methods predefined
+@node generics predefined
 @subsection Predefined generic functions
 
 
