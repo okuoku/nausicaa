@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,27 +27,27 @@
 (import (nausicaa)
   (lists)
   (checks)
-  (records)
+  (classes)
   (keywords)
-  (for (records-lib) expand))
+  (records-lib))
 
 (check-set-mode! 'report-failed)
-(display "*** testing records generics\n")
+(display "*** testing generic functions\n")
 
 
 (parameterise ((check-test-name 'generic-simple-inheritance))
 
   (let ()
-    (define-record-type <one>
+    (define-class <one>
       (fields (mutable a)
 	      (mutable b)
 	      (mutable c)))
-    (define-record-type <two>
+    (define-class <two>
       (parent <one>)
       (fields (mutable d)
 	      (mutable e)
 	      (mutable f)))
-    (define-record-type <three>
+    (define-class <three>
       (parent <two>)
       (fields (mutable g)
 	      (mutable h)
@@ -78,11 +78,11 @@
   (let ()
     ;;This tests overwriting an existing method function.
 
-    (define-record-type <one>
+    (define-class <one>
       (fields (mutable a)
 	      (mutable b)
 	      (mutable c)))
-    (define-record-type <two>
+    (define-class <two>
       (parent <one>)
       (fields (mutable d)
 	      (mutable e)
@@ -129,16 +129,16 @@
 
 (parameterise ((check-test-name 'generic-next-method))
 
-  (define-record-type <one>
+  (define-class <one>
     (fields (mutable a)
 	    (mutable b)
 	    (mutable c)))
-  (define-record-type <two>
+  (define-class <two>
     (parent <one>)
     (fields (mutable d)
 	    (mutable e)
 	    (mutable f)))
-  (define-record-type <three>
+  (define-class <three>
     (parent <two>)
     (fields (mutable g)
 	    (mutable h)
@@ -172,22 +172,22 @@
 
 (parameterise ((check-test-name 'generic-specificity))
 
-  (define-record-type <a>
+  (define-class <a>
     (fields (mutable a)))
-  (define-record-type <b>
+  (define-class <b>
     (fields (mutable b)))
-  (define-record-type <c>
+  (define-class <c>
     (fields (mutable c)))
-  (define-record-type <d>
+  (define-class <d>
     (fields (mutable d)))
 
-  (define-record-type <1>
+  (define-class <1>
     (parent <a>))
-  (define-record-type <2>
+  (define-class <2>
     (parent <b>))
-  (define-record-type <3>
+  (define-class <3>
     (parent <c>))
-  (define-record-type <4>
+  (define-class <4>
     (parent <d>))
 
   (define a (make-<a> 1))
@@ -314,16 +314,16 @@
 (parameterise ((check-test-name 'generic-merge))
 
   (let ()
-    (define-record-type <one>
+    (define-class <one>
       (fields (mutable a)
 	      (mutable b)
 	      (mutable c)))
-    (define-record-type <two>
+    (define-class <two>
       (parent <one>)
       (fields (mutable d)
 	      (mutable e)
 	      (mutable f)))
-    (define-record-type <three>
+    (define-class <three>
       (parent <two>)
       (fields (mutable g)
 	      (mutable h)
@@ -357,10 +357,10 @@
 
 (parametrise ((check-test-name 'predefined))
 
-  (define-record-type <alpha>
+  (define-class <alpha>
     (fields (immutable the-string)))
 
-  (define-record-type <beta>
+  (define-class <beta>
     (fields (immutable the-string)))
 
   (check

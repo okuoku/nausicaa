@@ -31,7 +31,6 @@
 
     ;; definitions
     define-class
-    define-record-extension
 
     ;; constructors
     make
@@ -44,31 +43,9 @@
     ;; inspection
     record-type-of
     record-parent-list			record-parent-list*
-    record-field-accessor		record-field-accessor*
-    record-field-mutator		record-field-mutator*
-    virtual-field-accessor		virtual-field-accessor*
-    virtual-field-mutator		virtual-field-mutator*
-
-    ;; field bindings
-    define-record-accessors
-    define-record-accessors/this
-    define-record-accessors/parents
-
-    define-record-mutators
-    define-record-mutators/this
-    define-record-mutators/parents
-
-    define-record-accessors&mutators
-    define-record-accessors&mutators/this
-    define-record-accessors&mutators/parents
 
     ;; field access
-    field-ref				field-set!
-    with-record-accessors		with-record-mutators
-    with-record-accessors&mutators
-    with-record-fields			with-record-fields*
     with-fields
-    ;;with-fields*
 
     ;; builtin conventional record type names
     <top> <builtin>
@@ -87,12 +64,6 @@
     <fixnum-rtd> <flonum-rtd> <integer-rtd> <integer-valued-rtd> <rational-rtd> <rational-valued-rtd>
     <real-rtd> <real-valued-rtd> <complex-rtd> <number-rtd>
 
-    ;; builtin extensions
-    <pair*> <list*>
-    <vector*> <bytevector*> <hashtable*>
-    <number*> <port*>
-    <condition*> <string*> <char*>
-
     ;; generic functions infrastructure
     define-generic declare-method add-method define-generic/merge
     call-next-method next-method?
@@ -104,10 +75,7 @@
 	  begin0
 	  with-accessor-and-mutator)
     (rnrs mutable-pairs (6))
-    (parameters)
-    (for (records helpers) run expand)
-    (for (records builtins) run expand)
-    (records extensions))
+    (parameters))
 
 
 ;;;; helpers
@@ -143,6 +111,15 @@
 	     ((?eq (car ell1) (car ell2))
 	      (loop (cdr ell1) (cdr ell2)))
 	     (else #f))))))
+
+(define-syntax make-list
+  (syntax-rules ()
+    ((_ ?len ?fill)
+     (let ((len ?len))
+       (do ((i 0 (+ 1 i))
+	    (result '() (cons ?fill result)))
+	   ((= i ?len)
+	    result))))))
 
 
 (define-syntax define-class
@@ -1204,26 +1181,229 @@
        #'(begin ?body0 ?body ...)))))
 
 
+(define-class <top>
+  (nongenerative nausicaa:builtin:<top>))
+
+(define-class <builtin>
+  (parent <top>)
+  (nongenerative nausicaa:builtin:<builtin>))
+
+;;; --------------------------------------------------------------------
+
+(define-class <pair>
+  (parent <builtin>)
+  (nongenerative nausicaa:builtin:<pair>)
+  (virtual-fields (immutable car car)
+		  (immutable cdr cdr)))
+
+(define-class <list>
+  (parent <pair>)
+  (nongenerative nausicaa:builtin:<list>)
+  (virtual-fields (immutable car car)
+		  (immutable cdr cdr)
+		  (immutable length length)))
+
+(define-class <char>
+  (parent <builtin>)
+  (nongenerative nausicaa:builtin:<char>)
+  (virtual-fields (immutable upcase	char-upcase)
+		  (immutable downcase	char-downcase)
+		  (immutable titlecase	char-titlecase)
+		  (immutable foldcase	char-foldcase)))
+
+(define-class <string>
+  (parent <builtin>)
+  (nongenerative nausicaa:builtin:<string>)
+  (virtual-fields (immutable length	string-length)
+		  (immutable upcase	string-upcase)
+		  (immutable downcase	string-downcase)
+		  (immutable titlecase	string-titlecase)
+		  (immutable foldcase	string-foldcase)))
+
+(define-class <vector>
+  (parent <builtin>)
+  (nongenerative nausicaa:builtin:<vector>)
+  (virtual-fields (immutable length vector-length)))
+
+(define-class <bytevector>
+  (parent <builtin>)
+  (nongenerative nausicaa:builtin:<bytevector>)
+  (virtual-fields (immutable length bytevector-length)))
+
+(define-class <hashtable>
+  (parent <builtin>)
+  (nongenerative nausicaa:builtin:<hashtable>)
+  (virtual-fields (immutable size hashtable-size)
+		  (immutable keys hashtable-keys)
+		  (immutable entries hashtable-entries)))
+
+(define <pair-rtd>		(record-type-descriptor <pair>))
+(define <list-rtd>		(record-type-descriptor <list>))
+(define <char-rtd>		(record-type-descriptor <char>))
+(define <string-rtd>		(record-type-descriptor <string>))
+(define <vector-rtd>		(record-type-descriptor <vector>))
+(define <bytevector-rtd>	(record-type-descriptor <bytevector>))
+(define <hashtable-rtd>		(record-type-descriptor <hashtable>))
+
+;;; --------------------------------------------------------------------
+
+(define-class <record>
+  (parent <builtin>)
+  (nongenerative nausicaa:builtin:<record>))
+
+(define-class <condition>
+  (parent <record>)
+  (nongenerative nausicaa:builtin:<condition>)
+  (virtual-fields (immutable message	condition-message)
+		  (immutable who	condition-who)
+		  (immutable irritants	condition-irritants)))
+
+(define <record-rtd>		(record-type-descriptor <record>))
+(define <condition-rtd>		(record-type-descriptor <condition>))
+
+;;; --------------------------------------------------------------------
+
+(define-class <port>
+  (parent <builtin>)
+  (nongenerative nausicaa:builtin:<port>)
+  (virtual-fields (immutable transcoder port-transcoder)
+		  (immutable textual? textual-port?)
+		  (immutable binary? binary-port?)
+		  (immutable has-port-position? port-has-port-position?)
+		  (immutable has-set-port-position? port-has-set-port-position!?)
+		  (mutable port-position port-position set-port-position!)
+		  (immutable eof? port-eof?)
+		  (immutable input? input-port?)
+		  (immutable output? output-port?)))
+
+(define-class <input-port>
+  (parent <port>)
+  (nongenerative nausicaa:builtin:<input-port>))
+
+(define-class <output-port>
+  (parent <port>)
+  (nongenerative nausicaa:builtin:<output-port>))
+
+(define-class <binary-port>
+  (parent <port>)
+  (nongenerative nausicaa:builtin:<binary-port>))
+
+(define-class <textual-port>
+  (parent <port>)
+  (nongenerative nausicaa:builtin:<textual-port>))
+
+(define <port-rtd>		(record-type-descriptor <port>))
+(define <input-port-rtd>	(record-type-descriptor <input-port>))
+(define <output-port-rtd>	(record-type-descriptor <output-port>))
+(define <binary-port-rtd>	(record-type-descriptor <binary-port>))
+(define <textual-port-rtd>	(record-type-descriptor <textual-port>))
+
+;;; --------------------------------------------------------------------
+
+(define-class <number>
+  (parent <builtin>)
+  (nongenerative nausicaa:builtin:<number>)
+  (virtual-fields (immutable exact	exact)
+		  (immutable inexact	inexact)
+
+		  (immutable exact?	exact?)
+		  (immutable inexact?	inexact?)
+
+		  (immutable zero?	zero?)
+		  (immutable positive?	positive?)
+		  (immutable negative?	negative?)
+
+		  (immutable odd?	odd?)
+		  (immutable even?	even?)
+
+		  (immutable finite?	finite?)
+		  (immutable infinite?	infinite?)
+		  (immutable nan?	nan?)
+
+		  (immutable real-part	real-part)
+		  (immutable imag-part	imag-part)
+		  (immutable magnitude	magnitude)
+		  (immutable angle	angle)
+
+		  (immutable numerator	numerator)
+		  (immutable denominator denominator)
+
+		  (immutable floor	floor)
+		  (immutable ceiling	ceiling)
+		  (immutable truncate	truncate)
+		  (immutable round	round)))
+
+(define-class <complex>
+  (parent <number>)
+  (nongenerative nausicaa:builtin:<complex>))
+
+(define-class <real-valued>
+  (parent <complex>)
+  (nongenerative nausicaa:builtin:<real-valued>))
+
+(define-class <real>
+  (parent <real-valued>)
+  (nongenerative nausicaa:builtin:<real>))
+
+(define-class <rational-valued>
+  (parent <real>)
+  (nongenerative nausicaa:builtin:<rational-valued>))
+
+(define-class <flonum>
+  (parent <real>)
+  (nongenerative nausicaa:builtin:<flonum>))
+
+(define-class <rational>
+  (parent <rational-valued>)
+  (nongenerative nausicaa:builtin:<rational>))
+
+(define-class <integer-valued>
+  (parent <rational-valued>)
+  (nongenerative nausicaa:builtin:<integer-valued>))
+
+(define-class <integer>
+  (parent <integer-valued>)
+  (nongenerative nausicaa:builtin:<integer>))
+
+(define-class <fixnum>
+  (parent <integer>)
+  (nongenerative nausicaa:builtin:<fixnum>))
+
+(define <number-rtd>		(record-type-descriptor <number>))
+(define <complex-rtd>		(record-type-descriptor <complex>))
+(define <real-valued-rtd>	(record-type-descriptor <real-valued>))
+(define <real-rtd>		(record-type-descriptor <real>))
+(define <rational-valued-rtd>	(record-type-descriptor <rational-valued>))
+(define <flonum-rtd>		(record-type-descriptor <flonum>))
+(define <rational-rtd>		(record-type-descriptor <rational>))
+(define <integer-valued-rtd>	(record-type-descriptor <integer-valued>))
+(define <integer-rtd>		(record-type-descriptor <integer>))
+(define <fixnum-rtd>		(record-type-descriptor <fixnum>))
+
+
 ;;;; constructors
 
+(define make-record-maker
+  (case-lambda
+   ((rtd)
+    (make-record-maker rtd #f))
+   ((rtd init)
+    (let ((init-values (make-list (fold-left
+				   (lambda (sum rtd)
+				     (+ sum (vector-length (record-type-field-names rtd))))
+				   0
+				   (record-parent-list rtd))
+				  init))
+	  (maker	(record-constructor (make-record-constructor-descriptor rtd #f #f))))
+      (lambda ()
+	(apply maker init-values))))))
+
 (define-syntax make-record-maker*
-  ;;When there  is no init value, we  can build the maker  in the expand
-  ;;phase;  when the  init value  is present,  we need  to  delay actual
-  ;;building to the run phase.
   (syntax-rules ()
     ((_ ?record-name)
-     (let-syntax
-	 ((dummy (lambda (stx)
-		   #`(quote #,(make-record-maker (record-type-descriptor ?record-name))))))
-       (dummy)))
+     (make-record-maker (record-type-descriptor ?record-name)))
     ((_ ?record-name ?init)
-     (let-syntax
-	 ((dummy (lambda (stx)
-		   (syntax-case stx ()
-		     ((_ ?kontext)
-		      #`(make-record-maker (record-type-descriptor ?record-name)
-					   #,(datum->syntax #'?kontext '?init)))))))
-       (dummy ?record-name)))))
+     (make-record-maker (record-type-descriptor ?record-name) ?init))))
 
 (define-syntax make
   (syntax-rules ()
@@ -1238,24 +1418,58 @@
 
 ;;;; predicates
 
+(define (record-type-parent? rtd1 rtd2)
+  (cond ((eq? (record-type-uid rtd1) (record-type-uid rtd2))	#t)
+	((eq? (record-type-uid rtd1) (record-type-uid (record-type-descriptor <top>)))   #f)
+   	((eq? (record-type-uid rtd2) (record-type-uid (record-type-descriptor <top>)))   #t)
+	(else
+	 (memq (record-type-uid rtd2) (map record-type-uid (record-parent-list rtd1))))))
+
 (define (record-is-a? obj rtd)
-  (eq? rtd (record-type-of obj)))
+  (eq? (record-type-uid rtd) (record-type-uid (record-type-of obj))))
 
 (define-syntax is-a?
   (syntax-rules ()
     ((_ ?obj ?record-name)
-     (let-syntax
-	 ((dummy (lambda (stx)
-		   #`((quote #,(%record-predicate (record-type-descriptor ?record-name)))
-		      ?obj))))
-       (dummy)))))
+     ((%record-predicate (record-type-descriptor ?record-name)) ?obj))))
 
-(define (record-type-parent? rtd1 rtd2)
-  (cond ((eq? rtd1 rtd2)	#t)
-	((eq? rtd1 (record-type-descriptor <top>))   #f)
-   	((eq? rtd2 (record-type-descriptor <top>))   #t)
-	(else
-	 (memq rtd2 (record-parent-list rtd1)))))
+(define (%record-predicate rtd)
+  ;;Return the  record type predicate  associated to RTD.   Support both
+  ;;normal record types and conventional record types.
+  ;;
+  (case (record-type-name rtd)
+    ((<fixnum>)			fixnum?)
+    ((<integer>)		integer?)
+    ((<rational>)		rational?)
+    ((<integer-valued>)		integer-valued?)
+    ((<rational-valued>)	rational-valued?)
+    ((<flonum>)			flonum?)
+    ((<real>)			real?)
+    ((<real-valued>)		real-valued?)
+    ((<complex>)		complex?)
+    ((<number>)			number?)
+
+    ((<char>)			char?)
+    ((<string>)			string?)
+    ((<vector>)			vector?)
+    ((<bytevector>)		bytevector?)
+    ((<hashtable>)		hashtable?)
+
+    ((<input-port>)		input-port?)
+    ((<output-port>)		output-port?)
+    ((<binary-port>)		(lambda (obj)
+				  (and (port? obj) (binary-port? obj))))
+    ((<textual-port>)		(lambda (obj)
+				  (and (port? obj) (textual-port? obj))))
+    ((<port>)			port?)
+
+    ((<condition>)		condition?)
+    ((<record>)			record?)
+    ((<pair>)			pair?)
+    ((<list>)			list?)
+
+    (else
+     (record-predicate rtd))))
 
 
 ;;;; inspection
@@ -1263,10 +1477,14 @@
 (define-syntax record-parent-list*
   (syntax-rules ()
     ((_ ?record-name)
-     (let-syntax
-	 ((dummy (lambda (stx)
-		   #`(quote #,(record-parent-list (record-type-descriptor ?record-name))))))
-       (dummy)))))
+     (record-parent-list (record-type-descriptor ?record-name)))))
+
+(define (record-parent-list rtd)
+  (let loop ((cls (list rtd))
+	     (rtd (record-type-parent rtd)))
+    (if rtd
+	(loop (cons rtd cls) (record-type-parent rtd))
+      (reverse cls))))
 
 (define (record-type-of obj)
   ;;Return the  record type  descriptor associated to  OBJ, if obj  is a
@@ -1314,305 +1532,6 @@
     (cond ((list?	obj)	(record-type-descriptor <list>))
 	  (else			(record-type-descriptor <pair>))))
    (else (record-type-descriptor <top>))))
-
-
-;;;; basic field access
-
-(define-syntax record-field-accessor*
-  (syntax-rules ()
-    ((_ ?record-name ?field-name)
-     (let-syntax
-	 ((dummy (lambda (stx)
-		   #`(quote #,(record-field-accessor (record-type-descriptor ?record-name)
-						     '?field-name)))))
-       (dummy)))))
-
-(define-syntax record-field-mutator*
-  (syntax-rules ()
-    ((_ ?record-name ?field-name)
-     (record-field-mutator* ?record-name ?field-name #f))
-
-    ((_ ?record-name ?field-name ?false-if-immutable)
-     (let-syntax
-	 ((dummy (lambda (stx)
-		   #`(quote #,(record-field-mutator (record-type-descriptor ?record-name)
-						    '?field-name ?false-if-immutable)))))
-       (dummy)))))
-
-(define-syntax virtual-field-accessor*
-  (syntax-rules ()
-    ((_ ?extension-record ?field-name)
-     (let-syntax
-	 ((dummy (lambda (stx)
-		   #`(quote #,(virtual-field-accessor ?extension-record (quote ?field-name))))))
-       (dummy)))))
-
-(define-syntax virtual-field-mutator*
-  (syntax-rules ()
-    ((_ ?extension-record ?field-name)
-     (virtual-field-mutator* ?extension-record ?field-name #f))
-
-    ((_ ?extension-record ?field-name ?false-if-immutable)
-     (let-syntax
-	 ((dummy (lambda (stx)
-		   #`(quote #,(virtual-field-mutator ?extension-record (quote ?field-name)
-						     ?false-if-immutable)))))
-       (dummy)))))
-
-(define-syntax field-ref
-  (syntax-rules ()
-    ((_ ?expr ?field-name)
-     (let ((obj ?expr))
-       ((record-field-accessor (record-rtd obj) ?field-name) obj)))))
-
-(define-syntax field-set!
-  (syntax-rules ()
-    ((_ ?expr ?field-name ?value)
-     (let ((obj ?expr))
-       ((record-field-mutator (record-rtd obj) ?field-name) obj ?value)))))
-
-
-(define-syntax %define-record-thing
-  (syntax-rules ()
-    ((_ ?-name ?-what ?-which)
-     (define-syntax ?-name
-       (syntax-rules ()
-	 ((_ ?record-name)
-	  (?-name ?record-name ?record-name))
-	 ((_ ?record-name ?context-identifier)
-	  (let-syntax
-	      ((dummy (lambda (stx)
-			(syntax-case stx ()
-			  ((_ ?kontext)
-			   (with-syntax (((DEFINES ((... ...) (... ...)))
-					  (make-define-forms (quote ?-what) (quote ?-which)
-							     #'?kontext
-							     (record-type-descriptor ?record-name))))
-			     #'(begin DEFINES ((... ...) (... ...)))))))))
-	    (dummy ?context-identifier))))))))
-
-(%define-record-thing define-record-accessors			accessor all)
-(%define-record-thing define-record-mutators			mutator all)
-(%define-record-thing define-record-accessors&mutators		accessor&mutator all)
-
-(%define-record-thing define-record-accessors/parents		accessor parent)
-(%define-record-thing define-record-mutators/parents		mutator parent)
-(%define-record-thing define-record-accessors&mutators/parents	accessor&mutator parent)
-
-(%define-record-thing define-record-accessors/this		accessor this)
-(%define-record-thing define-record-mutators/this		mutator this)
-(%define-record-thing define-record-accessors&mutators/this	accessor&mutator this)
-
-
-(define-syntax %define-with-record
-  (syntax-rules ()
-    ((_ ?-name ?-what)
-     (define-syntax ?-name
-       (syntax-rules ()
-	 ((_ ?record-name (?field-name (... ...)) ?form0 ?form (... ...))
-	  (let-syntax
-	      ((dummy (lambda (stx)
-			(syntax-case stx ()
-			  ((_ ?kontext)
-			   (with-syntax
-			       (((BINDINGS ((... ...) (... ...)))
-				 (make-bindings-for-with (quote ?-what) #'?kontext
-							 (record-type-descriptor ?record-name)
-							 '(?field-name (... ...))))
-				((FORMS ((... ...) (... ...)))
-				 (datum->syntax #'?kontext '(?form0 ?form (... ...)))))
-			     #'(let (BINDINGS ((... ...) (... ...)))
-				 FORMS ((... ...) (... ...)))))))))
-	    (dummy ?record-name))))))))
-
-(%define-with-record with-record-accessors accessor)
-(%define-with-record with-record-mutators mutator)
-(%define-with-record with-record-accessors&mutators accessor&mutator)
-
-
-(define-syntax with-record-fields
-  (syntax-rules ()
-    ((_ () ?form0 ?form ...)
-     (begin ?form0 ?form ...))
-
-    ((_ ((() ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
-     (with-record-fields (?bindings ...) ?form0 ?form ...))
-
-    ((_ ((((?var-name ?field-name) ?field-spec ...) ?record-name ?expr) ?bindings ...)
-	?form0 ?form ...)
-     (let ((id ?expr))
-       (let-syntax
-	   ((?var-name (identifier-syntax
-			(_          ((record-field-accessor* ?record-name ?field-name)    id))
-			((set! _ e) ((record-field-mutator*  ?record-name ?field-name #f) id e)))))
-	 (with-record-fields (((?field-spec ...) ?record-name id))
-	   (with-record-fields (?bindings ...) ?form0 ?form ...)))))
-
-    ((_ (((?field-name ?field-spec ...) ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
-     (with-record-fields ((((?field-name ?field-name) ?field-spec ...) ?record-name ?expr))
-       (with-record-fields (?bindings ...) ?form0 ?form ...)))
-
-    ((_ ((?field-name ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
-     (with-record-fields ((((?field-name ?field-name)) ?record-name ?expr))
-       (with-record-fields (?bindings ...) ?form0 ?form ...)))))
-
-
-(define-syntax with-record-fields*
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ () ?form0 ?form ...)
-       #'(begin ?form0 ?form ...))
-
-      ((_ ((() ?record-name ?expr) ?bindings ...) ?form0 ?form ...)
-       #'(with-record-fields* (?bindings ...) ?form0 ?form ...))
-
-      ((_ (((?field-name) ?record-name ?record-id)) ?form0 ?form ...)
-       (let ((vars (%record-field-identifiers (syntax->datum #'?record-id)
-					      (list (syntax->datum #'?field-name)))))
-	 (with-syntax (((VAR) (datum->syntax #'?field-name vars)))
-	   #'(let-syntax
-		 ((VAR (identifier-syntax
-			(_
-			 ((record-field-accessor* ?record-name ?field-name) ?record-id))
-			((set! _ e)
-			 ((record-field-mutator*  ?record-name ?field-name) ?record-id e)))))
-		  ?form0 ?form ...))))
-
-      ((_ (((?field-name0 ?field-name ...) ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
-       #'(with-record-fields* (((?field-name0) ?record-name ?record-id))
-	   (with-record-fields* (((?field-name ...) ?record-name ?record-id))
-	     (with-record-fields* (?bindings ...) ?form0 ?form ...))))
-
-      ((_ ((?field-name ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
-       #'(with-record-fields* (((?field-name) ?record-name ?record-id))
-	   (with-record-fields* (?bindings ...) ?form0 ?form ...))))))
-
-;; (define-syntax with-record-fields*
-;;   (syntax-rules ()
-;;     ((_ () ?form0 ?form ...)
-;;      (begin ?form0 ?form ...))
-
-;;     ((_ (((?field-name ...) ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
-;;      (let-syntax
-;; 	 ((dummy (lambda (stx)
-;; 		   (syntax-case stx ()
-;; 		     ((_ ?kontext)
-;; 		      (let ((RTD (record-type-descriptor ?record-name)))
-;; 			(with-syntax
-;; 			    ((ID (datum->syntax #'?kontext '?record-id))
-;; 			     ((VAR (... ...))
-;; 			      (datum->syntax #'?kontext
-;; 					     (%record-field-identifiers '?record-id '(?field-name ...))))
-;; 			     ((ACCESSOR (... ...)) `(,(record-field-accessor RTD '?field-name)    ...))
-;; 			     ((MUTATOR (... ...))  `(,(record-field-mutator  RTD '?field-name #f) ...))
-;; 			     ((FORMS (... ...))    (datum->syntax #'?kontext '(?form0 ?form ...)))
-;; 			     ((BINDS (... ...))    (datum->syntax #'?kontext '(?bindings ...))))
-;; 			  #'(let-syntax
-;; 				((VAR (identifier-syntax (_          ('ACCESSOR ID))
-;; 							 ((set! _ e) ('MUTATOR  ID e))))
-;; 				 (... ...))
-;; 			      (with-record-fields* (BINDS (... ...)) FORMS (... ...))))))))))
-;;        (dummy ?record-name)))
-
-;;     ((_ ((?field-name ?record-name ?record-id) ?bindings ...) ?form0 ?form ...)
-;;      (with-record-fields* (((?field-name) ?record-name ?record-id))
-;;        (with-record-fields* (?bindings ...) ?form0 ?form ...)))))
-
-
-#;(define-syntax with-fields
-  (syntax-rules ()
-    ((_ () ?form0 ?form ...)
-     (begin ?form0 ?form ...))
-
-    ((_ ((() ?extension-record ?expr) ?bindings ...) ?form0 ?form ...)
-     (with-fields (?bindings ...) ?form0 ?form ...))
-
-    ((_ ((((?var-name ?field-name) ?field-spec ...) ?extension-record ?expr) ?bindings ...)
-	?form0 ?form ...)
-     (let ((id ?expr))
-       (let-syntax
-	   ((?var-name (identifier-syntax
-			(_          ((virtual-field-accessor* ?extension-record ?field-name)    id))
-			((set! _ e) ((virtual-field-mutator*  ?extension-record ?field-name #f) id e)))))
-	 (with-fields (((?field-spec ...) ?extension-record id))
-	   (with-fields (?bindings ...) ?form0 ?form ...)))))
-
-    ((_ (((?field-name ?field-spec ...) ?extension-record ?expr) ?bindings ...) ?form0 ?form ...)
-     (with-fields ((((?field-name ?field-name) ?field-spec ...) ?extension-record ?expr))
-       (with-fields (?bindings ...) ?form0 ?form ...)))
-
-    ((_ ((?field-name ?extension-record ?expr) ?bindings ...) ?form0 ?form ...)
-     (with-fields ((((?field-name ?field-name)) ?extension-record ?expr))
-       (with-fields (?bindings ...) ?form0 ?form ...)))))
-
-
-#;(define-syntax with-fields*
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ () ?form0 ?form ...)
-       #'(begin ?form0 ?form ...))
-
-      ((_ ((() ?extension-record ?expr) ?bindings ...) ?form0 ?form ...)
-       #'(with-fields* (?bindings ...) ?form0 ?form ...))
-
-      ((_ (((?field-name) ?extension-record ?record-id)) ?form0 ?form ...)
-       (let ((var (%record-field-identifiers (syntax->datum #'?record-id)
-					     (list (syntax->datum #'?field-name)))))
-	 (with-syntax (((VAR) (datum->syntax #'?field-name var)))
-	   #'(let-syntax
-		 ((VAR (identifier-syntax
-			(_
-			 ((virtual-field-accessor* ?extension-record ?field-name) ?record-id))
-			((set! _ e)
-			 ((virtual-field-mutator*  ?extension-record ?field-name) ?record-id e)))))
-		  ?form0 ?form ...))))
-
-      ((_ (((?field-name0 ?field-name ...) ?extension-record ?record-id) ?bindings ...) ?form0 ?form ...)
-       #'(with-fields* (((?field-name0) ?extension-record ?record-id))
-	   (with-fields* (((?field-name ...) ?extension-record ?record-id))
-	     (with-fields* (?bindings ...) ?form0 ?form ...))))
-
-      ((_ ((?field-name ?extension-record ?record-id) ?bindings ...) ?form0 ?form ...)
-       #'(with-fields* (((?field-name) ?extension-record ?record-id))
-	   (with-fields* (?bindings ...) ?form0 ?form ...))))))
-
-;; (define-syntax with-fields*
-;;   (syntax-rules ()
-;;     ((_ () ?form0 ?form ...)
-;;      (begin ?form0 ?form ...))
-
-;;     ((_ (((?field-name ...) ?extension-record ?record-id))
-;; 	?form0 ?form ...)
-;;      (let-syntax
-;; 	 ((dummy (lambda (stx)
-;; 		   (syntax-case stx ()
-;; 		     ((_ ?kontext)
-;; 		      (with-syntax
-;; 			  (((RECORD-ID)
-;; 			    (datum->syntax #'?kontext '(?record-id)))
-;; 			   ((VAR (... ...))
-;; 			    (datum->syntax #'?kontext
-;; 					   (%record-field-identifiers '?record-id '(?field-name ...))))
-;; 			   ((ACCESSOR (... ...))
-;; 			    `(,(virtual-field-accessor ?extension-record '?field-name) ...))
-;; 			   ((MUTATOR (... ...))
-;; 			    `(,(virtual-field-mutator  ?extension-record '?field-name #f) ...))
-;; 			   ((FORMS (... ...))
-;; 			    (datum->syntax #'?kontext '(?form0 ?form ...))))
-;; 			#'(let-syntax
-;; 			      ((VAR (identifier-syntax (_          ('ACCESSOR RECORD-ID))
-;; 						       ((set! _ e) ('MUTATOR  RECORD-ID e))))
-;; 			       (... ...))
-;; 			    FORMS (... ...))))))))
-;;        (dummy ?extension-record)))
-
-;;     ((_ (((?field-name ...) ?extension-record ?record-id) ?bindings ...) ?form0 ?form ...)
-;;      (with-fields* (((?field-name ...) ?extension-record ?record-id))
-;;        (with-fields* (?bindings ...) ?form0 ?form ...)))
-
-;;     ((_ ((?field-name ?extension-record ?record-id) ?bindings ...) ?form0 ?form ...)
-;;      (with-fields* (((?field-name) ?extension-record ?record-id))
-;;        (with-fields* (?bindings ...) ?form0 ?form ...)))))
 
 
 ;;;; next method implementation

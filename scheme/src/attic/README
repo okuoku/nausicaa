@@ -1,0 +1,9 @@
+The "attic" directory holds files which where once used, but
+now are  no more.  It is  quicker look for  them here rather
+than to checkout old revisions from the repository.
+
+### end of file
+# Local Variables:
+# mode: text
+# paragraph-start: "*"
+# End:

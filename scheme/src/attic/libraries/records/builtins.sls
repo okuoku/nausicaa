@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -47,40 +47,40 @@
 
 
 (define-record-type <top>
-  (nongenerative nausicaa:<top>))
+  (nongenerative nausicaa:builtin:<top>))
 
 (define-record-type <builtin>
   (parent <top>)
-  (nongenerative nausicaa:<builtin>))
+  (nongenerative nausicaa:builtin:<builtin>))
 
 
 (define-record-type <pair>
   (parent <builtin>)
-  (nongenerative nausicaa:<pair>))
+  (nongenerative nausicaa:builtin:<pair>))
 
 (define-record-type <list>
   (parent <pair>)
-  (nongenerative nausicaa:<list>))
+  (nongenerative nausicaa:builtin:<list>))
 
 (define-record-type <char>
   (parent <builtin>)
-  (nongenerative nausicaa:<char>))
+  (nongenerative nausicaa:builtin:<char>))
 
 (define-record-type <string>
   (parent <builtin>)
-  (nongenerative nausicaa:<string>))
+  (nongenerative nausicaa:builtin:<string>))
 
 (define-record-type <vector>
   (parent <builtin>)
-  (nongenerative nausicaa:<vector>))
+  (nongenerative nausicaa:builtin:<vector>))
 
 (define-record-type <bytevector>
   (parent <builtin>)
-  (nongenerative nausicaa:<bytevector>))
+  (nongenerative nausicaa:builtin:<bytevector>))
 
 (define-record-type <hashtable>
   (parent <builtin>)
-  (nongenerative nausicaa:<hashtable>))
+  (nongenerative nausicaa:builtin:<hashtable>))
 
 (define <pair-rtd>		(record-type-descriptor <pair>))
 (define <list-rtd>		(record-type-descriptor <list>))
@@ -93,11 +93,11 @@
 
 (define-record-type <record>
   (parent <builtin>)
-  (nongenerative nausicaa:<record>))
+  (nongenerative nausicaa:builtin:<record>))
 
 (define-record-type <condition>
   (parent <record>)
-  (nongenerative nausicaa:<condition>))
+  (nongenerative nausicaa:builtin:<condition>))
 
 (define <record-rtd>		(record-type-descriptor <record>))
 (define <condition-rtd>		(record-type-descriptor <condition>))
@@ -105,23 +105,23 @@
 
 (define-record-type <port>
   (parent <builtin>)
-  (nongenerative nausicaa:<port>))
+  (nongenerative nausicaa:builtin:<port>))
 
 (define-record-type <input-port>
   (parent <port>)
-  (nongenerative nausicaa:<input-port>))
+  (nongenerative nausicaa:builtin:<input-port>))
 
 (define-record-type <output-port>
   (parent <port>)
-  (nongenerative nausicaa:<output-port>))
+  (nongenerative nausicaa:builtin:<output-port>))
 
 (define-record-type <binary-port>
   (parent <port>)
-  (nongenerative nausicaa:<binary-port>))
+  (nongenerative nausicaa:builtin:<binary-port>))
 
 (define-record-type <textual-port>
   (parent <port>)
-  (nongenerative nausicaa:<textual-port>))
+  (nongenerative nausicaa:builtin:<textual-port>))
 
 (define <port-rtd>		(record-type-descriptor <port>))
 (define <input-port-rtd>	(record-type-descriptor <input-port>))
@@ -132,43 +132,43 @@
 
 (define-record-type <number>
   (parent <builtin>)
-  (nongenerative nausicaa:<number>))
+  (nongenerative nausicaa:builtin:<number>))
 
 (define-record-type <complex>
   (parent <number>)
-  (nongenerative nausicaa:<complex>))
+  (nongenerative nausicaa:builtin:<complex>))
 
 (define-record-type <real-valued>
   (parent <complex>)
-  (nongenerative nausicaa:<real-valued>))
+  (nongenerative nausicaa:builtin:<real-valued>))
 
 (define-record-type <real>
   (parent <real-valued>)
-  (nongenerative nausicaa:<real>))
+  (nongenerative nausicaa:builtin:<real>))
 
 (define-record-type <rational-valued>
   (parent <real>)
-  (nongenerative nausicaa:<rational-valued>))
+  (nongenerative nausicaa:builtin:<rational-valued>))
 
 (define-record-type <flonum>
   (parent <real>)
-  (nongenerative nausicaa:<flonum>))
+  (nongenerative nausicaa:builtin:<flonum>))
 
 (define-record-type <rational>
   (parent <rational-valued>)
-  (nongenerative nausicaa:<rational>))
+  (nongenerative nausicaa:builtin:<rational>))
 
 (define-record-type <integer-valued>
   (parent <rational-valued>)
-  (nongenerative nausicaa:<integer-valued>))
+  (nongenerative nausicaa:builtin:<integer-valued>))
 
 (define-record-type <integer>
   (parent <integer-valued>)
-  (nongenerative nausicaa:<integer>))
+  (nongenerative nausicaa:builtin:<integer>))
 
 (define-record-type <fixnum>
   (parent <integer>)
-  (nongenerative nausicaa:<fixnum>))
+  (nongenerative nausicaa:builtin:<fixnum>))
 
 (define <number-rtd>		(record-type-descriptor <number>))
 (define <complex-rtd>		(record-type-descriptor <complex>))

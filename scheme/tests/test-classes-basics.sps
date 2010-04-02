@@ -28,6 +28,7 @@
 (import (nausicaa)
   (rnrs eval)
   (checks)
+  (records-lib)
   (classes))
 
 (check-set-mode! 'report-failed)
@@ -539,29 +540,33 @@
   #t)
 
 
-#;(parametrise ((check-test-name 'parent-list))
+(parametrise ((check-test-name 'parent-list))
+
+;;;We cannot  rely on the  RTDs to be  equal when the definition  of the
+;;;corresponding records comes from different library import paths, even
+;;;when the records are nongenerative.  So we compare the UIDs.
 
   (let ()
-    (define-record-type <alpha>)
-    (define-record-type <beta>
+    (define-class <alpha>)
+    (define-class <beta>
       (parent <alpha>))
-    (define-record-type <gamma>
+    (define-class <gamma>
       (parent <beta>))
 
     (check
-	(record-parent-list (record-type-descriptor <alpha>))
-      => (list (record-type-descriptor <alpha>)))
+	(map record-type-uid (record-parent-list (record-type-descriptor <alpha>)))
+      => (map record-type-uid (list (record-type-descriptor <alpha>))))
 
     (check
-	(record-parent-list (record-type-descriptor <beta>))
-      => (list (record-type-descriptor <beta>)
-	       (record-type-descriptor <alpha>)))
+	(map record-type-uid (record-parent-list (record-type-descriptor <beta>)))
+      => (map record-type-uid (list (record-type-descriptor <beta>)
+				    (record-type-descriptor <alpha>))))
 
     (check
-	(record-parent-list (record-type-descriptor <gamma>))
-      => (list (record-type-descriptor <gamma>)
-	       (record-type-descriptor <beta>)
-	       (record-type-descriptor <alpha>)))
+	(map record-type-uid (record-parent-list (record-type-descriptor <gamma>)))
+      => (map record-type-uid (list (record-type-descriptor <gamma>)
+				    (record-type-descriptor <beta>)
+				    (record-type-descriptor <alpha>))))
     #t)
 
 ;;; --------------------------------------------------------------------
@@ -570,42 +575,42 @@
   (let ((env (environment '(rnrs) '(records-lib))))
 
     (check
-	(record-parent-list* <alpha>)
-      => (eval '(list (record-type-descriptor <alpha>))
+	(map record-type-uid (record-parent-list* <alpha>))
+      => (eval '(map record-type-uid (list (record-type-descriptor <alpha>)))
 	       env))
 
     (check
-	(record-parent-list* <beta>)
-      => (eval '(list (record-type-descriptor <beta>)
-		      (record-type-descriptor <alpha>))
+	(map record-type-uid (record-parent-list* <beta>))
+      => (eval '(map record-type-uid (list (record-type-descriptor <beta>)
+					   (record-type-descriptor <alpha>)))
 	       env))
 
     (check
-	(record-parent-list* <gamma>)
-      => (eval '(list (record-type-descriptor <gamma>)
-		      (record-type-descriptor <beta>)
-		      (record-type-descriptor <alpha>))
+	(map record-type-uid (record-parent-list* <gamma>))
+      => (eval '(map record-type-uid (list (record-type-descriptor <gamma>)
+					   (record-type-descriptor <beta>)
+					   (record-type-descriptor <alpha>)))
 	       env))
     #f)
 
   #t)
 
 
-#;(parametrise ((check-test-name 'function-makers))
+(parametrise ((check-test-name 'function-makers))
 
   (let ()
-    (define-record-type <alpha>
+    (define-class <alpha>
       (fields (mutable a)
 	      (immutable b)
 	      (mutable c)))
 
-    (define-record-type <beta>
+    (define-class <beta>
       (parent <alpha>)
       (fields (mutable d)
 	      (immutable e)
 	      (mutable f)))
 
-    (define-record-type <gamma>
+    (define-class <gamma>
       (parent <beta>)
       (fields (mutable g)
 	      (immutable h)
@@ -698,7 +703,7 @@
   #t)
 
 
-#;(parametrise ((check-test-name 'macro-makers))
+(parametrise ((check-test-name 'macro-makers))
 
 ;;; These tests make use of the record types exported by (records-lib).
 
@@ -728,7 +733,7 @@
   #t)
 
 
-#;(parametrise ((check-test-name 'predicates))
+(parametrise ((check-test-name 'predicates))
 
 ;;; These tests make use of the record types exported by (records-lib).
 
@@ -827,21 +832,21 @@
   #t)
 
 
-#;(parametrise ((check-test-name 'inspection))
+(parametrise ((check-test-name 'inspection))
 
   (let ()
-    (define-record-type <alpha>
+    (define-class <alpha>
       (fields (mutable a)
 	      (immutable b)
 	      (mutable c)))
 
-    (define-record-type <beta>
+    (define-class <beta>
       (parent <alpha>)
       (fields (mutable d)
 	      (immutable e)
 	      (mutable f)))
 
-    (define-record-type <gamma>
+    (define-class <gamma>
       (parent <beta>)
       (fields (mutable g)
 	      (immutable h)
@@ -857,12 +862,12 @@
     (define g (make-g))
 
     (check
-	(record-type-of a)
-      => (record-type-descriptor <alpha>))
+	(record-type-uid (record-type-of a))
+      => (record-type-uid (record-type-descriptor <alpha>)))
 
     (check
-	(record-type-of g)
-      => (record-type-descriptor <gamma>))
+	(record-type-uid (record-type-of g))
+      => (record-type-uid (record-type-descriptor <gamma>)))
 
     #f)
 
@@ -876,12 +881,12 @@
 	     4 5 6)))
 
     (check
-	(record-type-of a)
-      => (record-type-descriptor <alpha>))
+	(record-type-uid (record-type-of a))
+      => (record-type-uid (record-type-descriptor <alpha>)))
 
     (check
-	(record-type-of b)
-      => (record-type-descriptor <beta>))
+	(record-type-uid (record-type-of b))
+      => (record-type-uid (record-type-descriptor <beta>)))
 
     #f)
 
@@ -890,235 +895,80 @@
 ;;; These tests make use of the record types exported by (records).
 
   (check
-      (record-type-of 123)
-    => (record-type-descriptor <fixnum>))
+      (record-type-uid (record-type-of 123))
+    => (record-type-uid (record-type-descriptor <fixnum>)))
 
   (check
-      (record-type-of (expt 10 30))
-    => (record-type-descriptor <integer>))
+      (record-type-uid (record-type-of (expt 10 30)))
+    => (record-type-uid (record-type-descriptor <integer>)))
 
   (check
-      (record-type-of 1/2)
-    => (record-type-descriptor <rational>))
+      (record-type-uid (record-type-of 1/2))
+    => (record-type-uid (record-type-descriptor <rational>)))
 
   (check
-      (record-type-of #i3+0i)
-    => (record-type-descriptor <integer-valued>))
+      (record-type-uid (record-type-of #i3+0i))
+    => (record-type-uid (record-type-descriptor <integer-valued>)))
 
   (check
-      (record-type-of #i3.0+0i)
-    => (record-type-descriptor <integer-valued>))
+      (record-type-uid (record-type-of #i3.0+0i))
+    => (record-type-uid (record-type-descriptor <integer-valued>)))
 
   (check
-      (record-type-of #i3/2+0i)
-    => (record-type-descriptor <rational-valued>))
+      (record-type-uid (record-type-of #i3/2+0i))
+    => (record-type-uid (record-type-descriptor <rational-valued>)))
 
   (check
-      (record-type-of #i3/2+0.0i)
-    => (record-type-descriptor <rational-valued>))
+      (record-type-uid (record-type-of #i3/2+0.0i))
+    => (record-type-uid (record-type-descriptor <rational-valued>)))
 
   (check
-      (record-type-of #\a)
-    => (record-type-descriptor <char>))
+      (record-type-uid (record-type-of #\a))
+    => (record-type-uid (record-type-descriptor <char>)))
 
   (check
-      (record-type-of "ciao")
-    => (record-type-descriptor <string>))
+      (record-type-uid (record-type-of "ciao"))
+    => (record-type-uid (record-type-descriptor <string>)))
 
   (check
-      (record-type-of '#(1 2 3))
-    => (record-type-descriptor <vector>))
+      (record-type-uid (record-type-of '#(1 2 3)))
+    => (record-type-uid (record-type-descriptor <vector>)))
 
   (check
-      (record-type-of '#vu8(1 2 3))
-    => (record-type-descriptor <bytevector>))
+      (record-type-uid (record-type-of '#vu8(1 2 3)))
+    => (record-type-uid (record-type-descriptor <bytevector>)))
 
   (check
-      (record-type-of (make-eq-hashtable))
-    => (record-type-descriptor <hashtable>))
+      (record-type-uid (record-type-of (make-eq-hashtable)))
+    => (record-type-uid (record-type-descriptor <hashtable>)))
 
   (check
-      (record-type-of (open-string-input-port "ciao"))
-    => (record-type-descriptor <input-port>))
+      (record-type-uid (record-type-of (open-string-input-port "ciao")))
+    => (record-type-uid (record-type-descriptor <input-port>)))
 
   ;;It never returns <textual-port>  because input and output attributes
   ;;are checked first.
-  #;(check
-      (record-type-of (open-string-input-port "ciao"))
-    => (record-type-descriptor <textual-port>))
+  ;; (check
+  ;;     (record-type-uid (record-type-of (open-string-input-port "ciao")))
+  ;;   => (record-type-uid (record-type-descriptor <textual-port>)))
 
   ;;It  never returns  <port> because  input and  output  attributes are
   ;;checked first so it returns <input-port> or <output-port>.
-  #;(check
-      (record-type-of (open-string-input-port "ciao"))
-    => (record-type-descriptor <port>))
+  ;; (check
+  ;;     (record-type-uid (record-type-of (open-string-input-port "ciao")))
+  ;;   => (record-type-uid (record-type-descriptor <port>)))
 
   (check
-      (record-type-of (current-output-port))
-    => (record-type-descriptor <output-port>))
+      (record-type-uid (record-type-of (current-output-port)))
+    => (record-type-uid (record-type-descriptor <output-port>)))
 
   (check
-      (record-type-of (make-message-condition "ciao"))
-    => (record-type-descriptor &message))
+      (record-type-uid (record-type-of (make-message-condition "ciao")))
+    => (record-type-uid (record-type-descriptor &message)))
 
   (check
-      (record-type-of '(1 . 2))
-    => (record-type-descriptor <pair>))
-
-  #t)
-
-
-#;(parametrise ((check-test-name 'fields-accessor-mutator))
-
-  (let ()
-    (define-record-type <alpha>
-      (fields (mutable a)
-	      (immutable b)
-	      (mutable c)))
-
-    (define-record-type <beta>
-      (parent <alpha>)
-      (fields (mutable d)
-	      (immutable e)
-	      (mutable f)))
-
-    (define-record-type <gamma>
-      (parent <beta>)
-      (fields (mutable g)
-	      (immutable h)
-	      (mutable i)))
-
-    (let ((o (make-<gamma>
-	      1 2 3
-	      4 5 6
-	      7 8 9)))
-
-      (define <gamma>-a (record-field-accessor (record-type-descriptor <gamma>) 'a))
-      (define <gamma>-b (record-field-accessor (record-type-descriptor <gamma>) 'b))
-      (define <gamma>-c (record-field-accessor (record-type-descriptor <gamma>) 'c))
-      (define <gamma>-d (record-field-accessor (record-type-descriptor <gamma>) 'd))
-      (define <gamma>-e (record-field-accessor (record-type-descriptor <gamma>) 'e))
-      (define <gamma>-f (record-field-accessor (record-type-descriptor <gamma>) 'f))
-      (define <gamma>-g (record-field-accessor (record-type-descriptor <gamma>) 'g))
-      (define <gamma>-h (record-field-accessor (record-type-descriptor <gamma>) 'h))
-      (define <gamma>-i (record-field-accessor (record-type-descriptor <gamma>) 'i))
-
-      (define <gamma>-a-set! (record-field-mutator (record-type-descriptor <gamma>) 'a))
-      (define <gamma>-c-set! (record-field-mutator (record-type-descriptor <gamma>) 'c))
-      (define <gamma>-d-set! (record-field-mutator (record-type-descriptor <gamma>) 'd))
-      (define <gamma>-f-set! (record-field-mutator (record-type-descriptor <gamma>) 'f))
-      (define <gamma>-g-set! (record-field-mutator (record-type-descriptor <gamma>) 'g))
-      (define <gamma>-i-set! (record-field-mutator (record-type-descriptor <gamma>) 'i))
-
-      (check
-	  (list (<gamma>-a o)
-		(<gamma>-b o)
-		(<gamma>-c o)
-		(<gamma>-d o)
-		(<gamma>-e o)
-		(<gamma>-f o)
-		(<gamma>-g o)
-		(<gamma>-h o)
-		(<gamma>-i o))
-	=> '(1 2 3 4 5 6 7 8 9))
-
-      (<gamma>-a-set! o 10)
-      (<gamma>-c-set! o 30)
-      (<gamma>-d-set! o 40)
-      (<gamma>-f-set! o 60)
-      (<gamma>-g-set! o 70)
-      (<gamma>-i-set! o 90)
-
-      (check
-	  (list (<gamma>-a o)
-		(<gamma>-b o)
-		(<gamma>-c o)
-		(<gamma>-d o)
-		(<gamma>-e o)
-		(<gamma>-f o)
-		(<gamma>-g o)
-		(<gamma>-h o)
-		(<gamma>-i o))
-	=> '(10 2 30 40 5 60 70 8 90))
-
-      (check
-	  (record-field-mutator (record-type-descriptor <gamma>) 'b)
-	=> #f)
-
-      #f)
-
-    #f)
-
-;;; --------------------------------------------------------------------
-;;; These tests use the hierarchy from the (records-lib) library.
-
-  (let* ((make-gamma (record-constructor (record-constructor-descriptor <gamma>)))
-	 (o (make-gamma 1 2 3
-			4 5 6
-			7 8 9)))
-
-    (define <gamma>-a (record-field-accessor* <gamma> a))
-    (define <gamma>-b (record-field-accessor* <gamma> b))
-    (define <gamma>-c (record-field-accessor* <gamma> c))
-    (define <gamma>-d (record-field-accessor* <gamma> d))
-    (define <gamma>-e (record-field-accessor* <gamma> e))
-    (define <gamma>-f (record-field-accessor* <gamma> f))
-    (define <gamma>-g (record-field-accessor* <gamma> g))
-    (define <gamma>-h (record-field-accessor* <gamma> h))
-    (define <gamma>-i (record-field-accessor* <gamma> i))
-
-    (define <gamma>-a-set! (record-field-mutator* <gamma> a))
-    (define <gamma>-c-set! (record-field-mutator* <gamma> c))
-    (define <gamma>-d-set! (record-field-mutator* <gamma> d))
-    (define <gamma>-f-set! (record-field-mutator* <gamma> f))
-    (define <gamma>-g-set! (record-field-mutator* <gamma> g))
-    (define <gamma>-i-set! (record-field-mutator* <gamma> i))
-
-    (check
-	(list (<gamma>-a o)
-	      (<gamma>-b o)
-	      (<gamma>-c o)
-	      (<gamma>-d o)
-	      (<gamma>-e o)
-	      (<gamma>-f o)
-	      (<gamma>-g o)
-	      (<gamma>-h o)
-	      (<gamma>-i o))
-      => '(1 2 3 4 5 6 7 8 9))
-
-    (<gamma>-a-set! o 10)
-    (<gamma>-c-set! o 30)
-    (<gamma>-d-set! o 40)
-    (<gamma>-f-set! o 60)
-    (<gamma>-g-set! o 70)
-    (<gamma>-i-set! o 90)
-
-    (check
-    	(list (<gamma>-a o)
-    	      (<gamma>-b o)
-    	      (<gamma>-c o)
-    	      (<gamma>-d o)
-    	      (<gamma>-e o)
-    	      (<gamma>-f o)
-    	      (<gamma>-g o)
-    	      (<gamma>-h o)
-    	      (<gamma>-i o))
-      => '(10 2 30 40 5 60 70 8 90))
-
-    (check
-	(record-field-mutator* <gamma> b #t)
-      => #f)
-
-    (check
-	(procedure? (record-field-mutator* <gamma> b))
-      => #t)
-
-    (check
-	(guard (E (else (condition-message E)))
-	  ((record-field-mutator* <gamma> b) o 1))
-      => "attempt to mutate immutable field of record \"<alpha>\" in record hierarchy of \"<gamma>\"")
-
-    #f)
+      (record-type-uid (record-type-of '(1 . 2)))
+    => (record-type-uid (record-type-descriptor <pair>)))
 
   #t)
 

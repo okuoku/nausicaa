@@ -24,67 +24,35 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 (library (records-lib)
-  (export <alpha> <beta> <gamma>)
+  (export <alpha> <beta> <gamma>
+	  <alpha-rtd> <beta-rtd> <gamma-rtd>)
   (import (rnrs)
     (classes))
 
-  (define-class <alpha>
+  (define-record-type <alpha>
     (nongenerative records-lib:<alpha>)
     (fields (mutable a)
 	    (immutable b)
 	    (mutable c)))
 
-  (define-class <beta>
+  (define-record-type <beta>
     (nongenerative records-lib:<beta>)
     (parent <alpha>)
     (fields (mutable d)
 	    (immutable e)
-	    (mutable f))
-    (virtual-fields (mutable def beta-def-ref beta-def-set!)))
+	    (mutable f)))
 
-  (define-class <gamma>
+  (define-record-type <gamma>
     (nongenerative records-lib:<gamma>)
     (parent <beta>)
     (fields (mutable g)
 	    (immutable h)
-	    (mutable i))
-    (virtual-fields (mutable iota iota-ref iota-set!)
-		    (mutable theta theta-ref theta-set!)))
+	    (mutable i)))
 
   (define <alpha-rtd>	(record-type-descriptor <alpha>))
   (define <beta-rtd>	(record-type-descriptor <beta>))
   (define <gamma-rtd>	(record-type-descriptor <gamma>))
-
-  (define (beta-def-ref o)
-    (with-fields ((<beta> o))
-      (list o.d o.e o.f)))
-
-  (define (beta-def-set! o ell)
-    (with-fields ((<beta> o))
-      (set! o.d (car ell))
-      (set! o.f (cadr ell))))
-
-  ;;The following  definition is to  verify that DEFINE-RECORD-EXTENSION
-  ;;is a  <definition> in a <body>,  so it allows  other <definition> to
-  ;;appear after it.
-  (define dummy 123)
-
-  (define iota  91)
-  (define theta 92)
-
-  (define (iota-ref o)
-    iota)
-
-  (define (iota-set! o v)
-    (set! iota v))
-
-  (define (theta-ref o)
-    theta)
-
-  (define (theta-set! o v)
-    (set! theta v))
 
   )
 
