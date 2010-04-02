@@ -148,18 +148,6 @@
 (compile-library "classes.sls"
 		 "classes.slfasl")
 
-(compile-library "records/builtins.sls"
-		 "records/builtins.slfasl")
-
-(compile-library "records/helpers.sls"
-		 "records/helpers.slfasl")
-
-(compile-library "records/extensions.sls"
-		 "records/extensions.slfasl")
-
-(compile-library "records.sls"
-		 "records.slfasl")
-
 (compile-library "scmobj.sls"
 		 "scmobj.slfasl")
 

@@ -54,15 +54,17 @@
 
   (let ()
 
-    (define-class <alpha>
+    (define-record-type <alpha>
+      (parent <top>)
+      (nongenerative alpha)
       (fields (mutable a)))
 
-    (define-class <beta>
+    (define-record-type <beta>
       (parent <alpha>)
       (protocol (lambda (alpha-maker)
       		  (lambda (a b)
       		    (let ((beta-maker (alpha-maker a)))
-		      (beta-maker b)))))
+    		      (beta-maker b)))))
       (sealed #t)
       (opaque #t)
       (nongenerative test:beta)
@@ -72,7 +74,7 @@
     	(let ((o (make-<beta> 1 2)))
     	  (list (<alpha>-a o)
     		(<beta>-b o)
-		))
+    		))
       => '(1 2))
 
     #f)
@@ -84,14 +86,14 @@
 
     (define-class <beta>
       (parent-rtd (record-type-descriptor <alpha>)
-		  (record-constructor-descriptor <alpha>))
+    		  (record-constructor-descriptor <alpha>))
       (fields (immutable b)))
 
     (check
     	(let ((o (make-<beta> 1 2)))
     	  (list (<alpha>-a o)
     		(<beta>-b o)
-		))
+    		))
       => '(1 2))
 
     #f)
@@ -488,6 +490,8 @@
 
     #f)
 
+;;; --------------------------------------------------------------------
+
   (let ()	;mutable virtual fields
 
     (define-class <fraction>
@@ -537,6 +541,299 @@
 
     #f)
 
+;;; --------------------------------------------------------------------
+;;; the following tests use the records from (records-lib)
+
+  (let ()
+    (define r (make-<alpha> 123 #\a 1.0))
+
+    (with-fields ((<alpha> r))
+
+      (check
+      	  (list r.a r.b r.c)
+      	=> '(123 #\a 1.0))
+
+      (set! r.a 456)
+      (set! r.c 2.0)
+
+      (check
+	  (list r.a r.b r.c)
+	=> '(456 #\a 2.0))
+
+      #f)
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'let-fields))
+
+;;; let-fields
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (immutable numerator)
+		      (immutable denominator)))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    (check
+	(let-fields (((a <fraction>) (make-<fraction> 2/3))
+		     ((b <fraction>) (make-<fraction> 4/5)))
+	  (list a.numerator b.denominator))
+      => '(2 5))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; let*-fields
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (immutable numerator)
+		      (immutable denominator)))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    (check
+	(let*-fields (((a <fraction>) (make-<fraction> 2/3))
+		      ((b <fraction>) (make-<fraction> 4/5)))
+	  (list a.numerator b.denominator))
+      => '(2 5))
+
+    (check
+	(let*-fields (((a <fraction>) (make-<fraction> 2/3))
+		      ((b <fraction>) (make-<fraction> (/ a.numerator 5))))
+	  b.number)
+      => 2/5)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; letrec-fields
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (immutable numerator)
+		      (immutable denominator)))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    (check
+	(letrec-fields (((a <fraction>) (make-<fraction> 2/3))
+			((b <fraction>) (make-<fraction> 4/5)))
+	  (list a.numerator b.denominator))
+      => '(2 5))
+
+    #f)
+
+  (let ()
+
+    (define-class <alpha>
+      (fields (immutable value)))
+
+    (define-class <beta>
+      (fields (immutable proc)))
+
+    (check
+	(letrec-fields (((a <alpha>) (make-<alpha> 123))
+			((b <beta>)  (make-<beta> (lambda () a.value))))
+	  (b.proc))
+      => 123)
+
+    #f)
+
+  (let ()
+
+    (define-class <alpha>
+      (fields (immutable value)
+	      (immutable proc)))
+
+    (define-class <beta>
+      (fields (immutable value)
+	      (immutable proc)))
+
+    (check
+	(letrec-fields (((a <alpha>) (make-<alpha>
+				      1 (lambda ()
+					  (cons a.value b.value))))
+			((b <beta>)  (make-<beta>
+				      2 (lambda ()
+					  (cons a.value b.value)))))
+	  (list (a.proc) (b.proc)))
+      => '((1 . 2) (1 . 2)))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; letrec*-fields
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (immutable numerator)
+		      (immutable denominator)))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    (check
+	(letrec*-fields (((a <fraction>) (make-<fraction> 2/3))
+			 ((b <fraction>) (make-<fraction> 4/5)))
+	  (list a.numerator b.denominator))
+      => '(2 5))
+
+    (check
+	(letrec*-fields (((a <fraction>) (make-<fraction> 2/3))
+			 ((b <fraction>) (make-<fraction> (/ a.numerator 5))))
+	  b.number)
+      => 2/5)
+
+    #f)
+
+  (let ()
+
+    (define-class <alpha>
+      (fields (immutable value)
+	      (immutable proc)))
+
+    (define-class <beta>
+      (fields (immutable value)
+	      (immutable proc)))
+
+    (check
+	(letrec*-fields (((a <alpha>) (make-<alpha>
+				       1 (lambda () b.value)))
+			 ((b <beta>)  (make-<beta>
+				       2 (lambda () a.value))))
+	  (list (a.proc) (b.proc)))
+      => '(2 1))
+
+    #f)
+
+  (let ()
+
+    (define-class <alpha>
+      (fields (immutable value)
+	      (immutable proc)))
+
+    (define-class <beta>
+      (fields (immutable value)
+	      (immutable proc)))
+
+    (check
+	(letrec*-fields (((a <alpha>) (make-<alpha>
+				       1 (lambda ()
+					   (cons a.value b.value))))
+			 ((b <beta>)  (make-<beta>
+				       2 (lambda ()
+					   (cons a.value b.value)))))
+	  (list (a.proc) (b.proc)))
+      => '((1 . 2) (1 . 2)))
+
+    #f)
+
+  (let ()
+
+    (define-class <alpha>
+      (fields (immutable value)
+	      (immutable proc)))
+
+    (define-class <beta>
+      (fields (immutable value)
+	      (immutable proc)))
+
+    (check
+	(letrec*-fields (((a <alpha>) (make-<alpha>
+				       1 (lambda ()
+					   (cons a.value b.value))))
+			 ((b <beta>)  (make-<beta>
+				       2 (lambda ()
+					   (cons a.value b.value))))
+			 ((c <top>)   (list (a.proc) (b.proc))))
+	  c)
+      => '((1 . 2) (1 . 2)))
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'define-with))
+
+  (let ()	;define/with
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (mutable numerator)
+		      (mutable denominator)))
+
+    (define/with (<fraction>-numerator (o <fraction>))
+      (numerator o.number))
+
+    (define/with (<fraction>-numerator-set! (o <fraction>) (v <top>))
+      (set! o.number (/ v (denominator o.number))))
+
+    (define/with (<fraction>-denominator (o <fraction>))
+      (denominator o.number))
+
+    (define/with (<fraction>-denominator-set! (o <fraction>) (v <top>))
+      (set! o.number (/ (numerator o.number) v)))
+
+    (check
+	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+	  o.numerator)
+      => 2)
+
+    (check
+	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+	  o.numerator)
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction> o))
+	    o.denominator))
+      => 3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction> o))
+	    (set! o.numerator 5)
+	    o.number))
+      => 5/3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction> o))
+	    (set! o.denominator 5)
+	    o.number))
+      => 2/5)
+
+    #f)
+
   #t)
 
 
@@ -555,150 +852,49 @@
 
     (check
 	(map record-type-uid (record-parent-list (record-type-descriptor <alpha>)))
-      => (map record-type-uid (list (record-type-descriptor <alpha>))))
+      => (map record-type-uid (list (record-type-descriptor <alpha>)
+				    (record-type-descriptor <top>))))
 
     (check
 	(map record-type-uid (record-parent-list (record-type-descriptor <beta>)))
       => (map record-type-uid (list (record-type-descriptor <beta>)
-				    (record-type-descriptor <alpha>))))
+				    (record-type-descriptor <alpha>)
+				    (record-type-descriptor <top>))))
 
     (check
 	(map record-type-uid (record-parent-list (record-type-descriptor <gamma>)))
       => (map record-type-uid (list (record-type-descriptor <gamma>)
 				    (record-type-descriptor <beta>)
-				    (record-type-descriptor <alpha>))))
+				    (record-type-descriptor <alpha>)
+				    (record-type-descriptor <top>))))
     #t)
 
 ;;; --------------------------------------------------------------------
 ;;; The following tests use the hierarchy from the (records-lib) library
 
-  (let ((env (environment '(rnrs) '(records-lib))))
+  (let ((env (environment '(rnrs) '(classes) '(records-lib))))
 
     (check
 	(map record-type-uid (record-parent-list* <alpha>))
-      => (eval '(map record-type-uid (list (record-type-descriptor <alpha>)))
+      => (eval '(map record-type-uid (list (record-type-descriptor <alpha>)
+					   (record-type-descriptor <top>)))
 	       env))
 
     (check
 	(map record-type-uid (record-parent-list* <beta>))
       => (eval '(map record-type-uid (list (record-type-descriptor <beta>)
-					   (record-type-descriptor <alpha>)))
+					   (record-type-descriptor <alpha>)
+					   (record-type-descriptor <top>)))
 	       env))
 
     (check
 	(map record-type-uid (record-parent-list* <gamma>))
       => (eval '(map record-type-uid (list (record-type-descriptor <gamma>)
 					   (record-type-descriptor <beta>)
-					   (record-type-descriptor <alpha>)))
+					   (record-type-descriptor <alpha>)
+					   (record-type-descriptor <top>)))
 	       env))
     #f)
-
-  #t)
-
-
-(parametrise ((check-test-name 'function-makers))
-
-  (let ()
-    (define-class <alpha>
-      (fields (mutable a)
-	      (immutable b)
-	      (mutable c)))
-
-    (define-class <beta>
-      (parent <alpha>)
-      (fields (mutable d)
-	      (immutable e)
-	      (mutable f)))
-
-    (define-class <gamma>
-      (parent <beta>)
-      (fields (mutable g)
-	      (immutable h)
-	      (mutable i)))
-
-    (let* ((maker	(make-record-maker (record-type-descriptor <gamma>) 1))
-	   (ga		(maker)))
-
-      (check
-	  (<gamma>? ga)
-	=> #t)
-
-      (check
-	  (list (<alpha>-a ga) (<alpha>-b ga) (<alpha>-c ga)
-		(<beta>-d  ga) (<beta>-e  ga) (<beta>-f  ga)
-		(<gamma>-g ga) (<gamma>-h ga) (<gamma>-i ga))
-	=> '(1 1 1  1 1 1  1 1 1))
-
-      #t)
-
-    (let* ((maker	(make-record-maker (record-type-descriptor <gamma>)))
-	   (ga		(maker)))
-
-      (check
-	  (<gamma>? ga)
-	=> #t)
-
-      (check
-	  (list (<alpha>-a ga)
-		(<alpha>-b ga)
-		(<alpha>-c ga)
-		(<beta>-d ga)
-		(<beta>-e ga)
-		(<beta>-f ga)
-		(<gamma>-g ga)
-		(<gamma>-h ga)
-		(<gamma>-i ga))
-	=> '(#f #f #f  #f #f #f  #f #f #f))
-
-      #t)
-    #t)
-
-;;; --------------------------------------------------------------------
-;;; The following tests use the hierarchy from the (records-lib) library
-
-  (check
-      (let ((maker (make-record-maker* <alpha>)))
-	(record? (maker)))
-    => #t)
-
-  (check
-      (let* ((maker (make-record-maker* <alpha>))
-	     (o     (maker)))
-	(list ((record-accessor (record-type-descriptor <alpha>) 0) o)
-	      ((record-accessor (record-type-descriptor <alpha>) 1) o)
-	      ((record-accessor (record-type-descriptor <alpha>) 2) o)))
-    => '(#f #f #f))
-
-  (check
-      (let ((maker (make-record-maker* <alpha> 1)))
-	(record? (maker)))
-    => #t)
-
-  (check
-      (let* ((maker (make-record-maker* <alpha> 1))
-	     (o     (maker)))
-	(list ((record-accessor (record-type-descriptor <alpha>) 0) o)
-	      ((record-accessor (record-type-descriptor <alpha>) 1) o)
-	      ((record-accessor (record-type-descriptor <alpha>) 2) o)))
-    => '(1 1 1))
-
-  (check
-      (let* ((v     124)
-	     (maker (make-record-maker* <alpha> v))
-	     (o     (maker)))
-	(list ((record-accessor (record-type-descriptor <alpha>) 0) o)
-	      ((record-accessor (record-type-descriptor <alpha>) 1) o)
-	      ((record-accessor (record-type-descriptor <alpha>) 2) o)))
-    => '(124 124 124))
-
-  (check
-      (let* ((v     123)
-	     (maker (make-record-maker* <alpha> (+ 1 v)))
-	     (o     (maker)))
-	(list ((record-accessor (record-type-descriptor <alpha>) 0) o)
-	      ((record-accessor (record-type-descriptor <alpha>) 1) o)
-	      ((record-accessor (record-type-descriptor <alpha>) 2) o)))
-    => '(124 124 124))
 
   #t)
 
@@ -852,14 +1048,10 @@
 	      (immutable h)
 	      (mutable i)))
 
-    (define make-a
-      (make-record-maker (record-type-descriptor <alpha>)))
-
-    (define make-g
-      (make-record-maker (record-type-descriptor <gamma>)))
-
-    (define a (make-a))
-    (define g (make-g))
+    (define a (make-<alpha> #f #f #f))
+    (define g (make-<gamma> #f #f #f
+			    #f #f #f
+			    #f #f #f))
 
     (check
 	(record-type-uid (record-type-of a))

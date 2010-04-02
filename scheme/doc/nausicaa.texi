@@ -88,6 +88,10 @@ Revised^6 Report on the algorithmic language Scheme
 @code{&\NAME\}
 @end macro
 
+@macro rtd{}
+@acronym{RTD}
+@end macro
+
 @c ------------------------------------------------------------
 @c Miscellaneous acronyms.
 @c ------------------------------------------------------------
@@ -536,7 +540,7 @@ More libraries
 * keywords::                    Keyword values.
 * sentinel::                    The sentinel value.
 * variables::                   Defining storage locations.
-* records::                     Record utilities.
+* classes::                     Record utilities.
 * scmobj::                      A simple object system.
 * sexps::                       Handling symbolic expressions.
 * matches::                     Pattern matching.
@@ -1198,53 +1202,34 @@ Deferred exceptions
 
 Record utilities
 
-* records builtin::             Conventional type descriptors.
-* records make::                Record makers.
-* records pred::                Record type predicates.
-* records inspect::             Record type inspection.
-* records fields::              Binding accessors and mutators.
-* records methods::             Multimethod dispatching.
-* records extensions::          Extending records.
+* classes define::              Defining new class types.
+* classes builtin::             Conventional type descriptors.
+* classes make::                Record makers.
+* classes pred::                Record type predicates.
+* classes inspect::             Record type inspection.
+* classes fields::              Binding accessors and mutators.
+* classes methods::             Multimethod dispatching.
 
 Conventional type descriptors
 
-* records builtin chart::           A chart for predefined @acronym{RTD}s.
-* records builtin bind::            Bindings for conventional @acronym{RTD}s.
-
-Binding accessors and mutators
-
-* records fields access::       Accessors and mutators.
-* records fields define::       Defining bindings to accessors
-                                and mutators.
-* records fields with::         Selecting field--specific accessors
-                                and mutators.
-* records fields identifier::   Accessing fields through identifier
-                                macros.
+* classes builtin chart::       A chart for predefined @rtd{}s.
+* classes builtin base::        Basic conventional @rtd{}s.
+* classes builtin list::        Pairs and lists @rtd{}s.
+* classes builtin compound::    Non--list compound @rtd{}s.
+* classes builtin number::      Numeric objects @rtd{}s.
+* classes builtin port::        Input/output port objects @rtd{}s.
+* classes builtin string::      Character and string @rtd{}s.
+* classes builtin misc::        Miscellaneous conventional @rtd{}s.
 
 Multimethod dispatching
 
-* records methods application:: How generic functions and methods
+* classes methods application:: How generic functions and methods
                                 are invoked.
-* records methods dispatching:: How methods are dispatched.
-* records methods define::      Defining generic functions and methods.
-* records methods next::        Invoking the next method.
-* records methods examples::    Examples of method dispatching.
-* records methods predefined::  Predefined generic functions.
-
-Extending records
-
-* records extensions define::   Defining record extensions.
-* records extensions access::   Virtual accessors and mutators.
-* records extensions fields::   Using virtual fields.
-* records extensions builtin::  Builtin extensions.
-
-Builtin extensions.
-
-* records extensions list::  List types.
-* records extensions compound:: Non--list compound data types.
-* records extensions numeric::  Numeric data types.
-* records extensions port::     Port types.
-* records extensions misc::     Miscellaneous types.
+* classes methods dispatching:: How methods are dispatched.
+* classes methods define::      Defining generic functions and methods.
+* classes methods next::        Invoking the next method.
+* classes methods examples::    Examples of method dispatching.
+* classes methods predefined::  Predefined generic functions.
 
 A simple object system
 
@@ -5875,7 +5860,7 @@ definitions may appear.
 
 @deffn Syntax define @meta{variable} @hyper{expression}
 @deffnx Syntax define @meta{variable}
-@deffnx Syntax define @meta{variable} @hyper{formals} @hyper{body}
+@deffnx Syntax define (@meta{variable} @hyper{formals}) @hyper{body}
 @deffnx Syntax define (@meta{variable} . @hyper{formal}) @hyper{body}
 The first from of @func{define} binds @meta{variable} to a new location
 before assigning the value of @meta{expression} to it.
@@ -12031,15 +12016,15 @@ appear.
 
 
 @deffn Syntax define-record-type @meta{name spec} @arbno{@hyper{record clause}}
-@deffnx {Auxiliary Syntax} fields
-@deffnx {Auxiliary Syntax} mutable
-@deffnx {Auxiliary Syntax} immutable
-@deffnx {Auxiliary Syntax} parent
-@deffnx {Auxiliary Syntax} protocol
-@deffnx {Auxiliary Syntax} sealed
-@deffnx {Auxiliary Syntax} opaque
-@deffnx {Auxiliary Syntax} nongenerative
-@deffnx {Auxiliary Syntax} parent-rtd
+@c @deffnx {Auxiliary Syntax} fields
+@c @deffnx {Auxiliary Syntax} mutable
+@c @deffnx {Auxiliary Syntax} immutable
+@c @deffnx {Auxiliary Syntax} parent
+@c @deffnx {Auxiliary Syntax} protocol
+@c @deffnx {Auxiliary Syntax} sealed
+@c @deffnx {Auxiliary Syntax} opaque
+@c @deffnx {Auxiliary Syntax} nongenerative
+@c @deffnx {Auxiliary Syntax} parent-rtd
 A @func{define-record-type} form defines a record type along with
 associated constructor descriptor and constructor, predicate, field
 accessors, and field mutators.  The @func{define-record-type} form
@@ -12504,15 +12489,15 @@ library.
 
 
 @deffn Procedure make-record-type-descriptor @var{name} @var{parent} @var{uid} @var{sealed?} @var{opaque?} @var{fields}
-Return a @dfn{record-type descriptor} (@acronym{RTD}) representing a
+Return a @dfn{record-type descriptor} (@rtd{}) representing a
 record type distinct from all built--in types and other record types.
 
 The @var{name} argument must be a symbol.  It names the record type, and
 is intended purely for informational purposes and may be used for
 printing by the underlying Scheme system.
 
-The @var{parent} argument must be either @false{} or an @acronym{RTD}.
-If it is an @acronym{RTD}, the returned record type, @var{t}, extends
+The @var{parent} argument must be either @false{} or an @rtd{}.
+If it is an @rtd{}, the returned record type, @var{t}, extends
 the record type @var{p} represented by @var{parent}.  An exception with
 condition type @condition{assertion} is raised if @var{parent} is sealed
 (see below).
@@ -12568,7 +12553,7 @@ actual representation of a record instance.
 The specified fields are added to the parent fields, if any, to
 determine the complete set of fields of the returned record type.  If
 @var{fields} is modified after @func{make-record-type-descriptor} has
-been called, the effect on the returned @acronym{RTD} is unspecified.
+been called, the effect on the returned @rtd{} is unspecified.
 
 A generative record--type descriptor created by a call to
 @func{make-record-type-descriptor} is not @func{eqv?} to any
@@ -36113,7 +36098,7 @@ library; the library implements queues holding arbitrary scheme objects
 and designed for efficient first--in/first--out operations.
 
 The library is meant to be used with the features of the
-@library{records} library; for this purpose, @library{queues} must be
+@library{classes} library; for this purpose, @library{queues} must be
 imported both for the @samp{expand} and @samp{run} phases.
 
 @menu
@@ -36275,7 +36260,7 @@ library; the library implements stacks holding arbitrary scheme objects
 and designed for efficient last--in/first--out operations.
 
 The library is meant to be used with the features of the
-@library{records} library; for this purpose, @library{stacks} must be
+@library{classes} library; for this purpose, @library{stacks} must be
 imported both for the @samp{expand} and @samp{run} phases.
 
 @menu
@@ -37239,34 +37224,146 @@ The difference between @func{define-syntax} and @func{define}, is that
 @end deffn
 
 @c page
-@node records
+@node classes
 @chapter Record utilities
 
 
-The @library{records} library implements a number of utility functions
-and macros to handle records.  It is built upon plain records and tries
-to limit complexity.
+The @library{classes} library implements a number of utility functions
+and macros to handle records; it is built upon plain records and tries
+to limit complexity.  The library is designed to work with record type
+definitions imported for the @code{run} phase only.
 
-The functions will work if the record type definitions are made
-available in the @samp{run} phase; the macros will work if the record
-type definitions are made available in the @samp{expand} phase.
-@ref{lang library import export, Import and export levels}
-
-The library itself exports some record type definitions, so it can be
-useful to import it for both @samp{expand} and @samp{run}.
+Many features will work only with non--generative record types, that is:
+types defined using the @func{nongenerative} clause; more specifically:
+the features will work only if @func{record-type-uid} applied to a
+record type descriptor returns a symbol uniquely identifying the record
+type.  If @func{record-type-uid} returns @false{} for a record type: the
+behaviour of this library with such type is undefined.
 
 @menu
-* records builtin::             Conventional type descriptors.
-* records make::                Record makers.
-* records pred::                Record type predicates.
-* records inspect::             Record type inspection.
-* records fields::              Binding accessors and mutators.
-* records methods::             Multimethod dispatching.
-* records extensions::          Extending records.
+* classes define::              Defining new class types.
+* classes builtin::             Conventional type descriptors.
+* classes make::                Record makers.
+* classes pred::                Record type predicates.
+* classes inspect::             Record type inspection.
+* classes fields::              Binding accessors and mutators.
+* classes methods::             Multimethod dispatching.
 @end menu
 
 @c page
-@node records builtin
+@node classes define
+@section Defining new class types
+
+
+A @dfn{class type} as defined by the @library{classes} library is a
+regular record type, with the only constraint of being nongenerative;
+the following is a valid class definition:
+
+@example
+(define-record-type <alpha>
+  (nongenerative)
+  ---)
+@end example
+
+@noindent
+but it is better to use @func{define-class} to define classes.
+
+
+@deffn Syntax define-class @ameta{name spec} @ameta{class clause}*
+Define a new record type satisfying the constraints of a class
+definition; expand to a regular record type definition and some
+additional syntax definitions used by the @library{classes} library.
+
+One of the defined syntaxes is bound to the identifier:
+
+@example
+with-record-fields-of-@cmeta{name}
+@end example
+
+@noindent
+where @meta{name} is the name of the record type.  This syntax must be
+exported from libraries, along with the record name itself, if we want
+to use other syntaxes like @func{with-fields} and the @func{let-fields}
+variants.
+
+The arguments are compatible with the ones of @func{define-record-type}
+because @func{define-class} is a transparent wrapper of it; every
+regular record type definition can be turned into a class definition
+simply by changing @func{define-record-type} into @func{define-class}.
+
+If none of the @meta{class clause} arguments is a @func{parent} or
+@func{parent-rtd} syntax, the clause @code{(parent <top>)} is added to
+the record definition.  @ref{classes builtin base, Basic conventional
+@rtd{}s}.
+
+If none of the @meta{class clause} arguments is a @func{nongenerative}
+syntax, the clause @code{(nongenerative)} is added to the record
+definition.
+
+Additionally the @meta{class clause} arguments can be the auxiliary
+syntaxes described below.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} virtual-fields @ameta{field spec}*
+Add a virtual field to the enclosing class definition; the @meta{field
+spec} arguments are the same as the @func{fields} ones.
+
+An immutable virtual field is defined by a field name and a field
+accessor which can be applied to a class instance to compute a value.  A
+mutable virtual field is defined by a field name, a field accessor which
+can be applied to a class instance to compute a value, a field mutator
+which can be applied to a class instance to mutate its fields.
+
+The following is an example of virtual fields usage:
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator)
+                  (mutable denominator)))
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-numerator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ v (denominator n)))))
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(define (<fraction>-denominator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ (numerator n) v))))
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((<fraction> o))
+    o.numerator))
+@result{} 2
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((<fraction> o))
+    o.denominator))
+@result{} 3
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((<fraction> o))
+    (set! o.numerator 5)
+    o.number))
+@result{} 5/3
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((<fraction> o))
+    (set! o.denominator 5)
+    o.number))
+@result{} 2/5
+@end example
+@end deffn
+
+
+@c page
+@node classes builtin
 @section Conventional type descriptors
 
 
@@ -37275,25 +37372,34 @@ useful to import it for both @samp{expand} and @samp{run}.
 @cindex Record types, conventional descriptors
 
 
-A record is described by its record type descriptor (@acronym{RTD});
-when dispatching multimethods, it is convenient to use the record type
-descriptor to represent the ``class'' of a record.
+A record is described by its record type descriptor (@rtd{});
+unfortunately we cannot rely on @rtd{}s describing the same record type
+to be @func{eq?} to each other, so we have to rely on the @acronym{UID}s
+of non--generative record types.  When dispatching multimethods, it is
+convenient to use those @acronym{UID}s to represent the ``class'' of a
+record.
 
-Builtin Scheme values have no @acronym{RTD}, so @library{records}
-assigns a conventional one to them.  Conventional @acronym{RTD}s have
-two purposes: to be used in multimethod dispatching (@pxref{records
-methods}) and to provide an interface for identifier macros
-(@pxref{records extensions}).  The conventional @acronym{RTD}s
-@strong{cannot} be used to instantiate builtin objects.
+Builtin Scheme values have no @rtd{}, so @library{classes} assigns a
+conventional one to them.  Conventional @rtd{}s have two purposes: to be
+used in multimethod dispatching and to provide an interface for
+identifier macros.  The conventional @rtd{}s @strong{cannot} be used to
+instantiate builtin objects, for example: @func{make-<string>} does
+@strong{not} return a builtin Scheme string object.
 
 @menu
-* records builtin chart::           A chart for predefined @acronym{RTD}s.
-* records builtin bind::            Bindings for conventional @acronym{RTD}s.
+* classes builtin chart::       A chart for predefined @rtd{}s.
+* classes builtin base::        Basic conventional @rtd{}s.
+* classes builtin list::        Pairs and lists @rtd{}s.
+* classes builtin compound::    Non--list compound @rtd{}s.
+* classes builtin number::      Numeric objects @rtd{}s.
+* classes builtin port::        Input/output port objects @rtd{}s.
+* classes builtin string::      Character and string @rtd{}s.
+* classes builtin misc::        Miscellaneous conventional @rtd{}s.
 @end menu
 
 @c page
-@node records builtin chart
-@subsection A chart for predefined builtin @acronym{RTD}s
+@node classes builtin chart
+@subsection A chart for predefined builtin @rtd{}s
 
 
 @example
@@ -37339,150 +37445,308 @@ methods}) and to provide an interface for identifier macros
 @end example
 
 @c page
-@node records builtin bind
-@subsection Bindings for conventional @acronym{RTD}s
-
-
-The @library{records} library exports the following record type names,
-which can be used to access the conventional record type descriptors
-through the @func{record-type-descriptor} syntax.  To use the record
-names, we have to import @library{records} for the @samp{expand} phase.
-@ref{stdlib records syntactic layer, Syntactic Layer}
-
-Additionally, the bindings ending with @samp{-rtd>} are exported to
-access directly the @acronym{RTD} of the builtin type, without the need
-to expand @func{record-type-descriptor}.
+@node classes builtin base
+@subsection Basic conventional @rtd{}s
 
 
 @deftp {Record Type Name} <top>
-Conventional parent of all the record types.
+Conventional parent of all the record types.  When defining a new record
+type with no parent, we may want to derive it from @class{top}:
+
+@example
+(define-record-type <alpha>
+  (parent <top>)
+  ---)
+@end example
+
+@noindent
+record types defined with @func{define-class}, have @class{top} as
+parent type if we do not select explicitly a parent with the
+@func{parent} or @func{parent-rtd} clauses.
 @end deftp
 
 
 @deftp {Record Type Name} <builtin>
-The parent of all the conventional @acronym{RTD}s, with the exception of
+The parent of all the conventional @rtd{}s, with the exception of
 @class{top}.
 @end deftp
 
-@c ------------------------------------------------------------
-
-@subsubheading List types
+@c page
+@node classes builtin list
+@subsection Pairs and lists @rtd{}s
 
 
 @deftp {Record Type Name} <pair>
-@deftpx {Record Type Descriptor} <pair-rtd>
-Type for values satisfying @func{pair?}.
+Type for values satisfying @func{pair?}.  It provides the following
+virtual fields:
+
+@table @code
+@item car
+Immutable.  Access the car of the pair.
+
+@item cdr
+Immutable.  Access the cdr of the pair.
+@end table
 @end deftp
 
 
 @deftp {Record Type Name} <list>
-@deftpx {Record Type Descriptor} <list-rtd>
-Type for values satisfying @func{list?}.
+Type for values satisfying @func{list?}.  It provides the following
+virtual fields:
+
+@table @code
+@item car
+Immutable.  Access the car of the list.
+
+@item cdr
+Immutable.  Access the cdr of the list.
+
+@item length
+Immutable.  Access the length of the list.
+@end table
 @end deftp
 
-@c ------------------------------------------------------------
-
-@subsubheading Non--list compound data types
+@c page
+@node classes builtin compound
+@subsection Non--list compound @rtd{}s
 
 
 @deftp {Record Type Name} <vector>
-@deftpx {Record Type Descriptor} <vector-rtd>
-Type for values satisfying @func{vector?}.
+Type for values satisfying @func{vector?}.  It provides the following
+virtual fields:
+
+@table @code
+@item length
+Immutable.  Access the length of the vector.
+@end table
 @end deftp
 
 
 @deftp {Record Type Name} <bytevector>
-@deftpx {Record Type Descriptor} <bytevector-rtd>
-Type for values satisfying @func{bytevector?}.
+Type for values satisfying @func{bytevector?}.  It provides the following
+virtual fields:
+
+@table @code
+@item length
+Immutable.  Access the length of the bytevector.
+@end table
 @end deftp
 
 
 @deftp {Record Type Name} <hashtable>
-@deftpx {Record Type Descriptor} <hashtable-rtd>
-Type for values satisfying @func{hashtable?}.
+Type for values satisfying @func{hashtable?}.  It provides the following
+virtual fields:
+
+@table @code
+@item size
+Immutable.  Access the size of the table.
+
+@item keys
+Immutable.  Access the keys.  Retrieving this field is like applying
+@func{hashtable-keys} to the hashtable.
+
+@item entries
+Immutable.  Access the keys and values.  Retrieving this field is like
+applying @func{hashtable-entries} to the hashtable.
+@end table
 @end deftp
 
-
-@deftp {Record Type Name} <record>
-@deftpx {Record Type Descriptor} <record-rtd>
-Type for values satisfying @func{record?}.
-@end deftp
-
-@c ------------------------------------------------------------
-
-@subsubheading Numeric data types
+@c page
+@node classes builtin number
+@subsection Numeric objects @rtd{}s
 
 
 @deftp {Record Type Name} <number>
-@deftpx {Record Type Descriptor} <number-rtd>
-Type for values satisfying @func{number?}.
+Type for values satisfying @func{number?}.  It provides the following
+virtual fields:
+
+@table @code
+@item exact
+Immutable.  Accessing this field is like applying @func{exact} to the
+number.
+
+@item inexact
+Immutable.  Accessing this field is like applying @func{inexact} to the
+number.
+
+@item exact?
+Immutable.  Accessing this field is like applying @func{exact?} to the
+number.
+
+@item inexact?
+Immutable.  Accessing this field is like applying @func{inexact?} to the
+number.
+
+@item zero?
+Immutable.  Accessing this field is like applying @func{zero?} to the
+number.
+
+@item positive?
+Immutable.  Accessing this field is like applying @func{positive?} to
+the number.
+
+@item negative?
+Immutable.  Accessing this field is like applying @func{negative?} to
+the number.
+
+@item odd?
+Immutable.  Accessing this field is like applying @func{odd?} to the
+number.
+
+@item even?
+Immutable.  Accessing this field is like applying @func{even?} to the
+number.
+
+@item finite?
+Immutable.  Accessing this field is like applying @func{finite?} to the
+number.
+
+@item infinite?
+Immutable.  Accessing this field is like applying @func{infinite?} to
+the number.
+
+@item nan?
+Immutable.  Accessing this field is like applying @func{nan?} to the
+number.
+
+@item real-part
+Immutable.  Accessing this field is like applying @func{real-part} to
+the number.
+
+@item imag-part
+Immutable.  Accessing this field is like applying @func{imag-part} to
+the number.
+
+@item magnitude
+Immutable.  Accessing this field is like applying @func{magnitude} to
+the number.
+
+@item angle
+Immutable.  Accessing this field is like applying @func{angle} to the
+number.
+
+@item numerator
+Immutable.  Accessing this field is like applying @func{numerator} to
+the number.
+
+@item denominator
+Immutable.  Accessing this field is like applying @func{denominator} to
+the number.
+
+@item floor
+Immutable.  Accessing this field is like applying @func{floor} to the
+number.
+
+@item ceiling
+Immutable.  Accessing this field is like applying @func{ceiling} to the
+number.
+
+@item truncate
+Immutable.  Accessing this field is like applying @func{truncate} to the
+number.
+
+@item round
+Immutable.  Accessing this field is like applying @func{round} to the
+number.
+@end table
 @end deftp
 
 
 @deftp {Record Type Name} <complex>
-@deftpx {Record Type Descriptor} <complex-rtd>
 Type for values satisfying @func{complex?}.
 @end deftp
 
 
 @deftp {Record Type Name} <real-valued>
-@deftpx {Record Type Descriptor} <real-valued-rtd>
 Type for values satisfying @func{real-valued?}.
 @end deftp
 
 
 @deftp {Record Type Name} <real>
-@deftpx {Record Type Descriptor} <real-rtd>
 Type for values satisfying @func{real?}.
 @end deftp
 
 
 @deftp {Record Type Name} <rational>
-@deftpx {Record Type Descriptor} <rational-rtd>
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
 @deftp {Record Type Name} <rational-valued>
-@deftpx {Record Type Descriptor} <rational-valued-rtd>
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
 @deftp {Record Type Name} <integer-valued>
-@deftpx {Record Type Descriptor} <integer-valued-rtd>
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
 @deftp {Record Type Name} <integer>
-@deftpx {Record Type Descriptor} <integer-rtd>
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
 @deftp {Record Type Name} <fixnum>
-@deftpx {Record Type Descriptor} <fixnum-rtd>
 Type for values satisfying @func{fixnum?}.
 @end deftp
 
 
 @deftp {Record Type Name} <flonum>
-@deftpx {Record Type Descriptor} <flonum-rtd>
 Type for values satisfying @func{flonum?}.
 @end deftp
 
-@c ------------------------------------------------------------
+@c page
+@node classes builtin port
+@subsection Input/output port objects @rtd{}s
 
-@subsubheading Port types
 
 The binary/textual attributes are not mututally exclusive with the
 input/output attributes.
 
 
 @deftp {Record Type Name} <port>
-@deftpx {Record Type Descriptor} <port-rtd>
-Type for values satisfying @func{port?}.
+Type for values satisfying @func{port?}.  It provides the following
+virtual fields:
+
+@table @code
+@item transcoder
+Immutable.  Accessing this field is like applying @func{port-transcoder}
+to the port.
+
+@item textual?
+Immutable.  Accessing this field is like applying @func{textual-port?}
+to the port.
+
+@item binary?
+Immutable.  Accessing this field is like applying @func{binary-port?} to
+the port.
+
+@item has-port-position?
+Immutable.  Accessing this field is like applying
+@func{port-has-port-position?} to the port.
+
+@item has-set-port-position?
+Immutable.  Accessing this field is like applying
+@func{port-has-set-port-position?}  to the port.
+
+@item port-position
+Immutable.  Accessing this field is like applying @func{port-position}
+to the port; mutating this field is like applying
+@func{set-port-position!} to the port.
+
+@item eof?
+Immutable.  Accessing this field is like applying @func{port-eof?} to
+the port.
+
+@item input?
+Immutable.  Accessing this field is like applying @func{input-port?} to
+the port.
+
+@item output?
+Immutable.  Accessing this field is like applying @func{output-port?} to
+the port.
+@end table
 @end deftp
 
 
@@ -37493,46 +37757,106 @@ Type for values satisfying @func{input-port?}.
 
 
 @deftp {Record Type Name} <output-port>
-@deftpx {Record Type Descriptor} <output-port-rtd>
 Type for values satisfying @func{output-port?}.
 @end deftp
 
 
 @deftp {Record Type Name} <textual-port>
-@deftpx {Record Type Descriptor} <textual-port-rtd>
 Type for values satisfying @func{textual-port?}.
 @end deftp
 
 
 @deftp {Record Type Name} <binary-port>
-@deftpx {Record Type Descriptor} <binary-port-rtd>
 Type for values satisfying @func{binary-port?}.
 @end deftp
 
-@c ------------------------------------------------------------
-
-@subsubheading Miscellaneous types
-
-
-@deftp {Record Type Name} <condition>
-@deftpx {Record Type Descriptor} <condition-rtd>
-Type for values satisfying @func{condition?}.
-@end deftp
+@c page
+@node classes builtin string
+@subsection Character and string @rtd{}s
 
 
 @deftp {Record Type Name} <string>
-@deftpx {Record Type Descriptor} <string-rtd>
-Type for values satisfying @func{string?}.
+Type for values satisfying @func{string?}.  It provides the following
+virtual fields:
+
+@table @code
+@item length
+Immutable.  Accessing this field is like applying @func{string-length}
+to the string.
+
+@item upcase
+Immutable.  Accessing this field is like applying @func{string-upcase}
+to the string.
+
+@item downcase
+Immutable.  Accessing this field is like applying @func{string-downcase}
+to the string.
+
+@item titlecase
+Immutable.  Accessing this field is like applying
+@func{string-titlecase} to the string.
+
+@item foldcase
+Immutable.  Accessing this field is like applying @func{string-foldcase}
+to the string.
+@end table
 @end deftp
 
 
 @deftp {Record Type Name} <char>
-@deftpx {Record Type Descriptor} <char-rtd>
-Type for values satisfying @func{char?}.
+Type for values satisfying @func{char?}.  It provides the following
+virtual fields:
+
+@table @code
+@item upcase
+Immutable.  Accessing this field is like applying @func{char-upcase} to
+the char.
+
+@item downcase
+Immutable.  Accessing this field is like applying @func{char-downcase}
+to the char.
+
+@item titlecase
+Immutable.  Accessing this field is like applying @func{char-titlecase}
+to the char.
+
+@item foldcase
+Immutable.  Accessing this field is like applying @func{char-foldcase}
+to the char.
+@end table
 @end deftp
 
 @c page
-@node records make
+@node classes builtin misc
+@subsection Miscellaneous conventional @rtd{}s
+
+
+@deftp {Record Type Name} <condition>
+Type for values satisfying @func{condition?}.  It provides the following
+virtual fields:
+
+@table @code
+@item message
+Immutable.  Accessing this field is like applying
+@func{condition-message} to the condition object.
+
+@item who
+Immutable.  Accessing this field is like applying @func{condition-who}
+to the condition object.
+
+@item irritants
+Immutable.  Accessing this field is like applying
+@func{condition-irritants} to the condition object.
+@end table
+@end deftp
+
+
+@deftp {Record Type Name} <record>
+Type for values satisfying @func{record?}.
+@end deftp
+
+@c page
+@node classes make
 @section Record makers
 
 
@@ -37540,121 +37864,22 @@ Type for values satisfying @func{char?}.
 Extract the record constructor associated to the @meta{record name} and
 apply it to the results of evaluating the @meta{expression} arguments.
 
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
 The @meta{expression} forms can be any expression and are evaluated only
 once; they provide the values of the fields, so their number must match
 the number of fields.  Also, the order of the expressions matches the
 order of the fields in the record type definition.
-
-@example
-(library (types)
-  (export <alpha>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b))))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-  (define o (make <alpha>
-              1 (* 2 3))))
-@end example
-@end deffn
-
-
-@defun make-record-maker @var{rtd}
-@defunx make-record-maker @var{rtd} @var{init-obj}
-Build and return a thunk which, when evaluated, returns a new record of
-type @var{rtd}.  All the fields are initialised to @var{init-obj}, which
-defaults to @false{}.
-
-@example
-(define-record-type <alpha>
-  (fields (mutable a)
-          (mutable b)
-          (mutable c)))
-
-(define-record-type <beta>
-  (parent <alpha>)
-  (fields (mutable d)
-          (mutable e)
-          (mutable f)))
-
-(define-record-type <gamma>
-  (parent <beta>)
-  (fields (mutable g)
-          (mutable h)
-          (mutable i)))
-
-(define maker
-  (make-record-maker (record-type-descriptor <gamma>) 1))
-
-(define obj (maker))
-
-(<gamma>? obj)
-@result{} #t
-
-(list (<alpha>-a obj) (<alpha>-b obj) (<alpha>-c obj)
-      (<beta>-d  obj) (<beta>-e  obj) (<beta>-f  obj)
-      (<gamma>-g obj) (<gamma>-h obj) (<gamma>-i obj))
-@result{} (1 1 1  1 1 1  1 1 1)
-@end example
-@end defun
-
-
-@deffn Syntax make-record-maker* @ameta{record name}
-@deffnx Syntax make-record-maker* @ameta{record name} @ameta{init-expr}
-Expand to an invocation of @func{make-record-maker} applied to the
-record type descriptor associated to @meta{record name} and to the
-result of expanding @meta{init-expr} and evaluating it in the @samp{run}
-phase.
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-@meta{init-expr} can be any expression and it is evaluated only once;
-its value is used as initialisation value for all the fields of the
-records.  When not given it defaults to @false{}.
-
-@example
-(library (types)
-  (export <alpha>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b)
-            (mutable c))))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-  (define maker
-    (maker-record-maker* <alpha> 123))
-  (define o
-    (maker)))
-@end example
 @end deffn
 
 @c page
-@node records pred
+@node classes pred
 @section Record type predicates
 
 
 @defun record-is-a? @var{obj} @var{rtd}
-Return true if @var{obj} is a value of type @var{rtd}.  @var{obj} can be
-a record or a builtin Scheme type.  This function supports both common
-and conventional record type descriptors.
+Return true if @var{obj} is a value of type described by the record type
+descriptor @var{rtd}.  @var{obj} can be a record or a builtin Scheme
+type.  This function supports both regular and conventional record type
+descriptors.
 
 @example
 (define-record-type <alpha>
@@ -37676,14 +37901,9 @@ and conventional record type descriptors.
 @deffn Syntax is-a? @ameta{expression} @ameta{record name}
 Expand to a form which applies a record type predicate to
 @meta{expression}; at run time it evaluates to true if the value of the
-expression is a record or builtin value whose @acronym{RTD} is
-associated to @meta{record name}.  This macro supports both common and
-conventional type descriptors.
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
+expression is a record or builtin value whose @rtd{} is associated to
+@meta{record name}.  This macro supports both regular and conventional
+type descriptors.
 
 @meta{expression} can be any expression and it is evaluated only once.
 
@@ -37710,19 +37930,20 @@ must be available at expansion time.
 @end deffn
 
 @c page
-@node records inspect
+@node classes inspect
 @section Record type inspection
 
 
 @defun record-type-of @var{obj}
 Return the record type descriptor associated to @var{obj}.  This
-function supports both common and conventional record type descriptors.
+function supports both regular and conventional record type descriptors.
 @end defun
 
 
 @defun record-type-parent? @vari{rtd} @varii{rtd}
-Return true if @varii{rtd} is @func{eq?} to @vari{rtd} or it is in the
-list of parents of @vari{rtd}.
+Return true if @vari{rtd} and @varii{rtd} describe the same type, or if
+the list of parents of @vari{rtd} contains an @rtd{} describing the same
+type of @varii{rtd}.
 @end defun
 
 
@@ -37730,7 +37951,7 @@ list of parents of @vari{rtd}.
 Return the list of record type descriptors which are parents of
 @var{rtd}; the first element of the list is @var{rtd} itself, followed
 by its parent, then the parent of the parent and so on.  This function
-supports both common and conventional record type descriptors.
+supports both regular and conventional record type descriptors.
 
 @example
 (define-record-type <alpha>)
@@ -37756,884 +37977,240 @@ supports both common and conventional record type descriptors.
 @end defun
 
 
-@defun Syntax record-parent-list* @ameta{record name}
-Do the same as @func{record-parent-list} but in the @samp{expand}
-phase.
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-@example
-(library (types)
-  (export <alpha> <beta> <gamma>)
-  (import (rnrs))
-  (define-record-type <alpha>)
-  (define-record-type <beta>
-    (parent <alpha>))
-  (define-record-type <gamma>
-    (parent <beta>)))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-
-  (record-parent-list* <alpha>)
-  @equiv{} (list (record-type-descriptor <alpha>))
-
-  (record-parent-list* <beta>)
-  @equiv{} (list (record-type-descriptor <beta>)
-           (record-type-descriptor <alpha>))
-
-  (record-parent-list* <gamma>))
-  @equiv{} (list (record-type-descriptor <gamma>)
-           (record-type-descriptor <beta>)
-           (record-type-descriptor <alpha>))
-@end example
-@end defun
+@deffn Syntax record-parent-list* @ameta{record name}
+Do the same as @func{record-parent-list}; @meta{record name} must be a
+record type name.
+@end deffn
 
 @c page
-@node records fields
+@node classes fields
 @section Binding accessors and mutators
 
 
-@menu
-* records fields access::       Accessors and mutators.
-* records fields define::       Defining bindings to accessors
-                                and mutators.
-* records fields with::         Selecting field--specific accessors
-                                and mutators.
-* records fields identifier::   Accessing fields through identifier
-                                macros.
-@end menu
-
-@c page
-@node records fields access
-@subsection Accessors and mutators
+All the following macros work correctly only if we have imported the
+automatically generated @func{with-record-fields-of-@cmeta{record name}}
+binding along with the record name; @ref{classes define} for details on
+classes definition.
 
 
-@defun record-field-accessor @var{rtd} @var{field-name}
-@defunx record-field-accessor @var{rtd} @var{field-name} @var{rtd-name}
-Return the accessor procedure of a field for a record type; it is an
-assertion violation if the selected field is not found.  This function
-generalises @func{record-accessor} in that it scans the whole hierarchy
-of inheritance for the record type descriptor.  @ref{stdlib records
-procedural layer, @func{record-accessor}}
+@deffn Syntax with-fields ((@ameta{record name} @ameta{name}) ...) @ameta{body}
+Expand into a @func{let-syntax} form which defines identifier syntaxes
+to be used to access and mutate fields and virtual of objects and
+records.
 
-@var{rtd} must be a record type descriptor.  @var{field-name} must be a
-Scheme symbol matching the name of a field in @var{rtd} or one of its
-ancestors.  The optional @var{rtd-name} must be a record type name
-Scheme symbol, it is used only to compose error messages; it defaults to
-the name of @var{rtd}.
+@meta{record name} must be a record type name; @meta{name} must be an
+identifier bound to the object or record to be accessed.  The identifier
+syntax for a field named @samp{alpha} is built as:
 
 @example
-(define-record-type <alpha>
-  (fields (mutable a)
-          (mutable b)))
-
-(define-record-type <beta>
-  (parent <alpha>)
-  (fields (mutable c)
-          (mutable d)))
-
-(record-field-accessor
-   (record-type-descriptor <alpha>) 'a)
-@result{} #<accessor of a in <alpha>>
-
-(record-field-accessor
-  (record-type-descriptor <beta>) 'a)
-@result{} #<accessor of a in <alpha>>
+@cmeta{name}.alpha
 @end example
-@end defun
-
-
-@deffn Syntax record-field-accessor* @ameta{record name} @ameta{field name}
-@deffnx Syntax record-field-accessor* @ameta{record name} @ameta{field name} @ameta{rtd name}
-Does the same as @func{record-field-accessor} but in the @samp{expand}
-phase.
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-@meta{field name} must be a Scheme symbol matching the name of a field
-in the record type descriptor associated to @meta{record name} or one of
-its ancestors.
-
-The optional @meta{rtd name} must be a record type name Scheme symbol,
-it is used only to compose error messages; it defaults to @meta{record
-name} itself.
-
-@example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b)))
-  (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable c)
-            (mutable d))))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-
-  (define get-a
-    (record-field-accessor* <beta> a))
-
-  (define get-c
-    (record-field-accessor* <beta> c)))
-@end example
-@end deffn
-
-
-@defun record-field-mutator @var{rtd} @var{field-name}
-@defunx record-field-mutator @var{rtd} @var{field-name} @var{false-if-immutable}
-@defunx record-field-mutator @var{rtd} @var{field-name} @var{false-if-immutable} @var{rtd-name}
-Return the mutator procedure of a field for a record type; it is an
-assertion violation if the selected field is not found.  This function
-generalises @func{record-mutator} in that it scans the whole hierarchy
-of inheritance for the record type descriptor.  @ref{stdlib records
-procedural layer, @func{record-mutator}}
-
-@var{rtd} must be a record type descriptor.  @var{field-name} must be a
-Scheme symbol matching the name of a field in @var{rtd} or one of its
-ancestors.
-
-The optional @var{false-if-immutable} decides what to do when the
-selected field is immutable:
-
-@itemize
-@item
-If set to @true{}, the returned value is @false{}.
-
-@item
-If set to @false{}, the returned value is a function accepting two
-arguments (ignored) and always raising an assertion violation if
-invoked.
-@end itemize
 
 @noindent
-@var{false-if-immutable} defaults to @true{}.
-
-The optional @var{rtd-name} must be a record type name Scheme symbol, it
-is used only to compose error messages; it defaults to the name of
-@var{rtd}.
+that is: identifier name, dot, field name.  One identifier syntax for
+each field and virtual field of @meta{record name} is defined; mutable
+fields generate a full identifier syntax with accessor and mutator;
+immutable fields generate only the accessor identifier syntax.
 
 @example
-(define-record-type <alpha>
-  (fields (mutable a)
-          (mutable b)))
+(define-class <alpha>
+  (fields (mutable a)))
 
-(define-record-type <beta>
-  (parent <alpha>)
-  (fields (mutable c)
-          (mutable d)))
+(define r (make-<alpha> 123))
+(define s (make-<alpha> #\a))
+(define t (make-<alpha> 1.0))
 
-(record-field-mutator
-   (record-type-descriptor <alpha>) 'a)
-@result{} #<mutator of a in <alpha>>
+(with-fields ((<alpha> r)
+              (<alpha> s)
+              (<alpha> t))
 
-(record-field-mutator
-  (record-type-descriptor <beta>) 'a)
-@result{} #<mutator of a in <alpha>>
+  (list r.a s.a t.a) @result{} (123 #\a 1.0)
+
+  (set! r.a 456)
+  (set! s.a #\b)
+  (set! t.a 2.0)
+
+  (list r.a s.a t.a)) @result{} (456 #\b 2.0)
+
+(let ()
+  (define-class <fraction>
+    (fields (mutable number))
+    (virtual-fields (immutable numerator)
+                    (immutable denominator)))
+
+  (define (<fraction>-numerator o)
+    (numerator (<fraction>-number o)))
+
+  (define (<fraction>-denominator o)
+    (denominator (<fraction>-number o)))
+
+  (let ((o (make-<fraction> 2/3)))
+    (with-fields ((<fraction> o))
+      (list o.numerator o.denominator))))
+  @result{} (2 3)
 @end example
-@end defun
+
+When a @meta{name} as no type: we can use @class{top} as its
+conventional record type name; this can be useful when expanding macros
+making use of @func{with-fields}.
+@end deffn
 
 
-@deffn Syntax record-field-mutator* @ameta{record name} @ameta{field name}
-@deffnx Syntax record-field-mutator* @ameta{record name} @ameta{field name} @ameta{false if immutable}
-Does the same as @func{record-field-mutator} but in the @samp{expand}
-phase.
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-@meta{field name} must be a Scheme symbol matching the name of a field
-in the record type descriptor associated to @meta{record name} or one of
-its ancestors.
-
-The optional @meta{false if immutable} decides what to do when the
-selected field is immutable; it is like the @var{false-if-immutable}
-argument of @func{record-field-mutator}, but has @false{} as default
-value.
+@deffn Syntax let-fields (((@ameta{var} @ameta{record name}) @ameta{init}) ...) @ameta{body}
+Like @func{let} but automatically enclose the body in a
+@func{with-fields} syntax using the specified record types.  When a
+variable as no type: we can use @class{top} as its conventional record
+type name.
 
 @example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b)))
-  (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable c)
-            (mutable d))))
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (immutable numerator)
+                  (immutable denominator)))
 
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
 
-  (define set-a
-    (record-field-mutator* <beta> a))
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
 
-  (define set-c
-    (record-field-mutator* <beta> c)))
+(let-fields (((a <fraction>) (make-<fraction> 2/3))
+             ((b <fraction>) (make-<fraction> 4/5)))
+  (list a.numerator b.denominator))
+@result{} (2 5)
 @end example
 @end deffn
 
 
-@deffn Syntax field-ref @ameta{obj expr} @ameta{field name expr}
-Return the value of a field in a record.  @meta{obj expr} must be an
-expression evaluating to a record.  @meta{field name expr} must be an
-expression evaluating to a field name.
+@deffn Syntax let*-fields (((@ameta{var} @ameta{record name}) @ameta{init}) ...) @ameta{body}
+Like @func{let*} but automatically enclose the body in a
+@func{with-fields} syntax using the specified record types.  Given two
+bindings @metai{var}, @metai{init} and @metaii{var}, @metaii{init}
+defined in sequence: @metaii{init} is evaluated in the region of the
+identifier syntaxes used to access the fields of @metai{var}.  When a
+variable as no type: we can use @class{top} as its conventional record
+type name.
+
+@smallexample
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (immutable numerator)
+                  (immutable denominator)))
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(let*-fields (((a <fraction>) (make-<fraction> 2/3))
+              ((b <fraction>) (make-<fraction>
+                                (/ a.numerator 5))))
+  b.number)
+@result{} 2/5
+@end smallexample
+@end deffn
+
+
+@deffn Syntax letrec-fields (((@ameta{var} @ameta{record name}) @ameta{init}) ...) @ameta{body}
+Like @func{letrec} but automatically enclose the body in a
+@func{with-fields} syntax using the specified record types.  The
+@meta{init} expressions can contain references to the identifier
+syntaxes, as long as they are not resolved.  When a variable as no type:
+we can use @class{top} as its conventional record type name.
+
+@smallexample
+(define-class <alpha>
+  (fields (immutable value)
+          (immutable proc)))
+
+(define-class <beta>
+  (fields (immutable value)
+          (immutable proc)))
+
+(letrec-fields (((a <alpha>) (make-<alpha>
+                               1 (lambda ()
+                                   (cons a.value b.value))))
+                ((b <beta>)  (make-<beta>
+                               2 (lambda ()
+                                   (cons a.value b.value)))))
+  (list (a.proc) (b.proc)))
+@result{} ((1 . 2) (1 . 2))
+@end smallexample
+@end deffn
+
+
+@deffn Syntax letrec*-fields (((@ameta{var} @ameta{record name}) @ameta{init}) ...) @ameta{body}
+Like @func{letrec*} but automatically enclose the body in a
+@func{with-fields} syntax using the specified record types.  The
+@meta{init} expressions can contain references to the identifier
+syntaxes.  When a variable as no type: we can use @class{top} as its
+conventional record type name.
+
+@smallexample
+(define-class <alpha>
+  (fields (immutable value)
+          (immutable proc)))
+
+(define-class <beta>
+  (fields (immutable value)
+          (immutable proc)))
+
+(letrec*-fields (((a <alpha>) (make-<alpha>
+                                1 (lambda ()
+                                    (cons a.value b.value))))
+                 ((b <beta>)  (make-<beta>
+                                2 (lambda ()
+                                    (cons a.value b.value))))
+                 ((c <top>)   (list (a.proc) (b.proc))))
+  c)
+@result{} ((1 . 2) (1 . 2))
+@end smallexample
+@end deffn
+
+
+@deffn Syntax define/with (@ameta{variable} (@ameta{arg} @ameta{class}) ...) @ameta{body}
+@deffnx Syntax define/with (@ameta{variable} @ameta{arg} ...) @ameta{body}
+@deffnx Syntax define/with @ameta{variable} @ameta{expression}
+@deffnx Syntax define/with @ameta{variable}
+Like @func{define} but, when used in the first form, encloses the body
+into a @func{with-fields} syntax defining identifier syntaxes to access
+the fields and virtual fields of the @meta{arg} objects and records.
+When an argument as no type: we can use @class{top} as its conventional
+record type name.
 
 @example
-(define-record-type <alpha>
-  (fields (mutable a)
-          (mutable b)))
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator)
+                  (mutable denominator)))
 
-(define o
-  (make-<alpha> 1 2))
+(define/with (<fraction>-numerator (o <fraction>))
+  (numerator o.number))
 
-(field-ref o 'a)
-@result{} 1
+(define/with (<fraction>-numerator-set! (o <fraction>)
+                                        (v <top>))
+  (set! o.number (/ v (denominator o.number))))
 
-(field-ref o 'b)
+(define/with (<fraction>-denominator (o <fraction>))
+  (denominator o.number))
+
+(define/with (<fraction>-denominator-set! (o <fraction>)
+                                          (v <top>))
+  (set! o.number (/ (numerator o.number) v)))
+
+(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+  o.numerator)
 @result{} 2
 @end example
 @end deffn
 
-
-@deffn Syntax field-set! @ameta{obj expr} @ameta{field name expr} @ameta{value expr}
-Store a new the value in the field of a record.  @meta{obj expr} must be
-an expression evaluating to a record.  @meta{field name expr} must be an
-expression evaluating to a field name.  @meta{value expr} must be an
-expression evaluating to the new value.
-
-@example
-(define-record-type <alpha>
-  (fields (mutable a)
-          (mutable b)))
-
-(define o
-  (make-<alpha> 1 2))
-
-(field-set! o 'a 3)
-(field-set! o 'b 4)
-@end example
-@end deffn
-
 @c page
-@node records fields define
-@subsection Defining bindings to accessors and mutators
-
-
-The following macros can be used as @meta{definition} element of a
-@meta{body} (@pxref{baselib bodies}); when used in a @meta{top-level
-body} or @meta{library body}, they avoid the need to export the bindings
-for accessors and mutators from the library exporting the record types.
-
-
-@deffn Syntax define-record-accessors @ameta{record name}
-@deffnx Syntax define-record-accessors @ameta{record name} @ameta{context identifier}
-Acquire the record type descriptor associated to @ameta{record name} and
-bind its accessors to automatically generated names, formed by joining
-@meta{record name} and the field name, using a single dash character as
-separator.
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-The optional @meta{context identifier} must be an identifier used to
-represent the lexical context in which the accessors are bound; it
-defaults to @meta{record name}.  It is useful to expand this macro in
-another macro expansion.
-
-@example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b)))
-  (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable c)
-            (mutable d)))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-
-  (define-record-accessors <beta>)
-
-  (define o
-    (make <beta> 1 2 3 4))
-
-  (<beta>-a o)  @result{} 1
-  (<beta>-b o)  @result{} 2
-  (<beta>-c o)  @result{} 3
-  (<beta>-d o)) @result{} 4
-@end example
-@end deffn
-
-
-@deffn Syntax define-record-mutators @ameta{record name}
-@deffnx Syntax define-record-mutators @ameta{record name} @ameta{context identifier}
-Acquire the record type descriptor associated to @ameta{record name} and
-bind its mutators to automatically generated names, formed by joining
-@meta{record name}, the field name and the string @samp{set!}, using a
-single dash character as separator.  If a field is immutable, no mutator
-binding is created.
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-The optional @meta{context identifier} must be an identifier used to
-represent the lexical context in which the mutators are bound; it
-defaults to @meta{record name}.  It is useful to expand this macro in
-another macro expansion.
-
-@example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b)))
-  (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable c)
-            (mutable d)))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-
-  (define-record-accessors <beta>)
-  (define-record-mutators  <beta>)
-
-  (define o
-    (make <beta> 1 2 3 4))
-
-  (<beta>-a-set! o 5)
-  (<beta>-b-set! o 6)
-  (<beta>-c-set! o 7)
-  (<beta>-d-set! o 8)
-
-  (<beta>-a o)  @result{} 5
-  (<beta>-b o)  @result{} 6
-  (<beta>-c o)  @result{} 7
-  (<beta>-d o)) @result{} 8
-@end example
-@end deffn
-
-
-@deffn Syntax define-record-accessors&mutators @ameta{record-name}
-@deffnx Syntax define-record-accessors&mutators @ameta{record-name} @ameta{context identifier}
-Acquire the record type descriptor associated to @meta{record name} and
-bind accessor and mutator procedures to automatically generated names,
-formed by joining @meta{record name} and the field name, using a single
-dash character as separator.  If a field is immutable, bind the accessor
-only.
-
-When the accessor and mutator procedure is invoked with a single
-argument: It must be a record and the accessor is applied to it.  When
-the accessor and mutator procedure is invoked with two arguments: The
-first must be a record and the second the new field value, the mutator
-is applied to them.
-
-@example
-(define <accessor-and-mutator>
-  (case-lambda
-    ((o)
-     (<accessor> o))
-    ((o value)
-     (<mutator> o value))))
-@end example
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-The optional @meta{context identifier} must be an identifier used to
-represent the lexical context in which the mutators are bound; it
-defaults to @meta{record name}.  It is useful to expand this macro in
-another macro expansion.
-
-@example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b)))
-  (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable c)
-            (mutable d)))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-
-  (define-record-accessors&mutators <beta>)
-
-  (define o
-    (make <beta> 1 2 3 4))
-
-  (<beta>-a o 5)
-  (<beta>-b o 6)
-  (<beta>-c o 7)
-  (<beta>-d o 8)
-
-  (<beta>-a o)  @result{} 5
-  (<beta>-b o)  @result{} 6
-  (<beta>-c o)  @result{} 7
-  (<beta>-d o)) @result{} 8
-@end example
-@end deffn
-
-
-@deffn Syntax define-record-accessors/this @ameta{record-name}
-@deffnx Syntax define-record-mutators/this @ameta{record-name}
-@deffnx Syntax define-record-accessors&mutators/this @ameta{record-name}
-@deffnx Syntax define-record-accessors/this @ameta{record-name} @ameta{context identifier}
-@deffnx Syntax define-record-mutators/this @ameta{record-name} @ameta{context identifier}
-@deffnx Syntax define-record-accessors&mutators/this @ameta{record-name} @ameta{context identifier}
-Like the above syntaxes, but bind only the accessors and mutators of the
-record type itself, @strong{not} the ones of its ancestors.
-@end deffn
-
-
-@deffn Syntax define-record-accessors/parents @ameta{record-name}
-@deffnx Syntax define-record-mutators/parents @ameta{record-name}
-@deffnx Syntax define-record-accessors&mutators/parents @ameta{record-name}
-@deffnx Syntax define-record-accessors/parents @ameta{record-name} @ameta{context identifier}
-@deffnx Syntax define-record-mutators/parents @ameta{record-name} @ameta{context identifier}
-@deffnx Syntax define-record-accessors&mutators/parents @ameta{record-name} @ameta{context identifier}
-Like the above syntaxes, but bind only the accessors and mutators of the
-ancestors of the record type, @strong{not} the ones of the record
-itself.
-@end deffn
-
-@c page
-@node records fields with
-@subsection Selecting field--specific accessors and mutators
-
-
-@deffn Syntax with-record-accessors @ameta{record name} (@ameta{field name} ...) @ameta{form0} @ameta{form} ...
-Acquire the record type descriptor whose name is @meta{record name} and
-bind its accessors to automatically generated names; in the region of
-these bindings, evaluate the forms.  The accessor names are formed by
-joining @meta{record name} and the @meta{field name}, using a single
-dash character as separator.
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-@meta{field name} must be a Scheme symbol matching the name of a field
-in the record type descriptor associated to @meta{record name} or one of
-its ancestors.
-
-@example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b)))
-  (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable c)
-            (mutable d))))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-  (with-record-accessors <beta>
-      (a b c d)
-    (let ((o (make <beta> 1 2 3 4)))
-      (list (<beta>-a o)
-            (<beta>-b o)
-            (<beta>-c o)
-            (<beta>-d o)))))
-@result{} (1 2 3 4)
-@end example
-@end deffn
-
-
-@deffn Syntax with-record-mutators @ameta{record-name} (@ameta{field name} ...) @ameta{form0} @ameta{form} ...
-Acquire the record type descriptor whose name is @meta{record name} and
-bind its mutators to automatically generated names; in the region of
-these bindings, evaluate the forms.  The mutator names are formed by
-joining @meta{record name}, the @meta{field name} and the string
-@samp{set!}, using a single dash character as separator.
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-@meta{field name} must be a Scheme symbol matching the name of a field
-in the record type descriptor associated to @meta{record name} or one of
-its ancestors.
-
-@example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b)))
-  (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable c)
-            (mutable d))))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-  (with-record-mutators <beta>
-      (a b c d)
-    (let ((o (make <beta> 1 2 3 4)))
-      (<beta>-a-set! o 5)
-      (<beta>-b-set! o 6)
-      (<beta>-c-set! o 7)
-      (<beta>-d-set! o 8)
-      (list (<beta>-a o)
-            (<beta>-b o)
-            (<beta>-c o)
-            (<beta>-d o)))))
-@result{} (5 6 7 8)
-@end example
-@end deffn
-
-
-@deffn Syntax with-record-accessors&mutators @ameta{record-name} (@ameta{field name} ...) @ameta{form0} @ameta{form} ...
-Acquire the record type descriptor whose name is @meta{record name} and
-bind accessor and mutator procedures to automatically generated names;
-in the region of these bindings, evaluate the forms.  The procedure
-names are formed by joining @meta{record name} and @meta{field name},
-using a single dash character as separator.
-
-When the accessor and mutator procedure is invoked with a single
-argument: It must be a record and the accessor is applied to it.  When
-the accessor and mutator procedure is invoked with two arguments: The
-first must be a record and the second the new field value, the mutator
-is applied to them.
-
-@example
-(define <accessor-and-mutator>
-  (case-lambda
-    ((o)
-     (<accessor> o))
-    ((o value)
-     (<mutator> o value))))
-@end example
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-@meta{field name} must be a Scheme symbol matching the name of a field
-in the record type descriptor associated to @meta{record name} or one of
-its ancestors.
-
-@example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b)))
-  (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable c)
-            (mutable d))))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-  (with-record-accessors&mutators <beta>
-      (a b c d)
-    (let ((o (make <beta> 1 2 3 4)))
-      (<beta>-a o 5)
-      (<beta>-b o 6)
-      (<beta>-c o 7)
-      (<beta>-d o 8)
-      (list (<beta>-a o)
-            (<beta>-b o)
-            (<beta>-c o)
-            (<beta>-d o)))))
-@result{} (5 6 7 8)
-@end example
-@end deffn
-
-
-@c page
-@node records fields identifier
-@subsection Accessing fields through identifier macros
-
-
-The syntaxes @func{with-record-fields} and @func{with-record-fields*}
-allow access to the fields of a record using identifier macros;
-@func{with-record-fields} is similar to Common Lisp's @func{with-slots}.
-@ref{baselib transformers, @func{identifier-syntax}}
-
-
-@deffn Syntax with-record-fields @ameta{field bindings} @ameta{body}
-Bind the accessors and mutators of multiple records to identifier
-macros; in the region of these bindings, evaluate the @meta{body}.
-
-@meta{body} is a normal body (@pxref{baselib bodies}), while
-@meta{field bindings} has the form:
-
-@example
-((@cmeta{bind list} @cmeta{record name} @cmeta{expression}) ...)
-@end example
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-@meta{expression} must be an expression evaluating to a record whose
-type descriptor is associated to @meta{record name}.  It is evaluated
-only once.
-
-@meta{bind list} can be one of the forms:
-
-@example
-@cmeta{field name}
-(@cmeta{field bind} @cmeta{field bind} ...)
-@end example
-
-@meta{field name} must be a Scheme symbol matching a valid field name
-for the record type associated to @meta{record name} or one of its
-ancestors.  When used in the first form above, it is bound to the
-identifier syntax.
-
-@meta{field bind} can be one of the forms:
-
-@example
-@cmeta{field name}
-(@cmeta{var name} @cmeta{field name})
-@end example
-
-@meta{var name} must be an identifier which is bound to the identifier
-syntax; when not given, it defaults to @meta{field name} itself.
-
-The following example shows a @meta{bind list} in the simple form
-@meta{field name}:
-
-@example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (immutable b)))
-  (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable c)
-            (mutable d))))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-  (let ((o (make <beta>
-              1 2 3 4)))
-    (with-record-fields ((a <beta> o)
-                         (c <beta> o))
-      (set! c 9)
-      (list a c))))
-@result{} (1 9)
-@end example
-
-The following example shows a @meta{bind list} in the form
-@code{(@cmeta{field name} ...)}:
-
-@example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b)))
-  (define-record-type <beta>
-    (fields (mutable c)
-            (mutable d))))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-  (let ((p (make <alpha> 1 2))
-        (q (make <beta>  3 4)))
-    (with-record-fields (((a b) <alpha> p)
-                         ((c d) <beta>  q))
-      (list a b c d))))
-@result{} (1 2 3 4)
-@end example
-
-The following example shows a @meta{bind list} in the form
-@code{((@cmeta{var name} @cmeta{field name}) ...)}:
-
-@example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b))))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-  (let ((p (make <alpha> 1 2))
-        (q (make <alpha> 3 4)))
-    (with-record-fields ((((a1 a) (b1 b)) <alpha> p)
-                         (((a2 a) (b2 b)) <alpha> q))
-      (list a1 a2 b1 b2)))
-@result{} (1 3 2 4)
-@end example
-@end deffn
-
-@c ------------------------------------------------------------
-
-@deffn Syntax with-record-fields* @ameta{field bindings} @ameta{body}
-Bind the accessors and mutators of multiple records to identifier
-macros; in the region of these bindings, evaluate the @meta{body}.
-
-@meta{body} is a normal body (@pxref{baselib bodies}), while
-@meta{field bindings} can be of one of the following forms:
-
-@example
-((@cmeta{bind list} @cmeta{record name} @cmeta{record-id}) ...)
-@end example
-
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-@meta{record-id} must be the identifier to which the record is bound;
-its symbol is used to compose the identifier syntaxes by appending a dot
-and the name of the field.
-
-@meta{bind list} can be one of the forms:
-
-@example
-@cmeta{field name}
-(@cmeta{field name} @cmeta{field name} ...)
-@end example
-
-@meta{field name} must be a Scheme symbol matching a valid field name
-for the record type associated to @meta{record name} or one of its
-ancestors.
-
-The following example shows a @meta{bind list} in the simple form
-@meta{field name}:
-
-@example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (immutable b)))
-  (define-record-type <beta>
-    (parent <alpha>)
-    (fields (mutable c)
-            (mutable d))))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-  (let ((o (make <beta>
-              1 2 3 4)))
-    (with-record-fields* ((a <beta> o)
-                          (c <beta> o))
-      (set! o.c 9)
-      (list o.a o.c))))
-@result{} (1 9)
-@end example
-
-The following example shows a @meta{bind list} in the form
-@code{(@cmeta{field name} @cmeta{field name} ...)}:
-
-@example
-(library (types)
-  (export <alpha> <beta>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b)))
-  (define-record-type <beta>
-    (fields (mutable c)
-            (mutable d))))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-  (let ((p (make <alpha> 1 2))
-        (q (make <beta>  3 4)))
-    (with-record-fields* (((a b) <alpha> p)
-                          ((c d) <beta>  q))
-      (list p.a p.b q.c q.d))))
-@result{} (1 2 3 4)
-@end example
-@end deffn
-
-@c page
-@node records methods
+@node classes methods
 @section Multimethod dispatching
 
 
-In the context of the @library{records} library, @dfn{generic functions}
+In the context of the @library{classes} library, @dfn{generic functions}
 are procedures that can be specialised to the (conventional) record
 types of their arguments.  Each specialisation of a generic function is
 called @dfn{method}.  When applying a generic function to a set of
@@ -38641,17 +38218,17 @@ arguments, the most specific method with respect to the arguments' types
 is chosen.
 
 @menu
-* records methods application:: How generic functions and methods
+* classes methods application:: How generic functions and methods
                                 are invoked.
-* records methods dispatching:: How methods are dispatched.
-* records methods define::      Defining generic functions and methods.
-* records methods next::        Invoking the next method.
-* records methods examples::    Examples of method dispatching.
-* records methods predefined::  Predefined generic functions.
+* classes methods dispatching:: How methods are dispatched.
+* classes methods define::      Defining generic functions and methods.
+* classes methods next::        Invoking the next method.
+* classes methods examples::    Examples of method dispatching.
+* classes methods predefined::  Predefined generic functions.
 @end menu
 
 @c page
-@node records methods application
+@node classes methods application
 @subsection How generic functions and methods are invoked
 
 
@@ -38682,12 +38259,12 @@ next method, recurse to step 4.
 @end enumerate
 
 @c page
-@node records methods dispatching
+@node classes methods dispatching
 @subsection How methods are dispatched
 
 
 Here we attempt the formulation of the rules of method dispatching.  A
-method is identified by a triplet of values: a list of @acronym{RTD}s,
+method is identified by a triplet of values: a list of @rtd{}s,
 called signature, representing the classes or expected arguments; a
 boolean value telling if the closure accepts rest arguments; the
 closure.
@@ -38706,8 +38283,8 @@ The length of the signature is equal to the length of the arguments'
 tuple.
 
 @item
-Position by position, the @acronym{RTD} in the signature is @func{eq?}
-to the @acronym{RTD} of the argument or it is one of its parents.
+Position by position, the @rtd{} in the signature is @func{eq?}
+to the @rtd{} of the argument or it is one of its parents.
 @end enumerate
 
 @noindent
@@ -38720,7 +38297,7 @@ arguments' tuple.
 
 @item
 Position by position, up to the last element in the signature, the
-@acronym{RTD} in the signature is @func{eq?} to the @acronym{RTD} of the
+@rtd{} in the signature is @func{eq?} to the @rtd{} of the
 argument or it is one of its parents.
 @end enumerate
 
@@ -38737,7 +38314,7 @@ generic function, to have the same signature and the same support for
 rest arguments.
 
 Also, records support only single inheritance, so if two methods are
-applicable the homologous @acronym{RTD}s in their signatures are
+applicable the homologous @rtd{}s in their signatures are
 @func{eq?} or subtypes.
 
 @enumerate
@@ -38746,27 +38323,27 @@ If both @var{A} and @var{B} support rest arguments: The one with the
 longest signature is more specific.
 
 @item
-The @acronym{RTD}s in the signatures are compared in couples, position
+The @rtd{}s in the signatures are compared in couples, position
 by position from the beginning to the end.
 
 @enumerate a
 @item
-If the @acronym{RTD}s are @func{eq?}, the next couple is inspected.
+If the @rtd{}s are @func{eq?}, the next couple is inspected.
 
 @item
-If the @acronym{RTD} from @var{A} is a subtype of the one from @var{B}:
+If the @rtd{} from @var{A} is a subtype of the one from @var{B}:
 @var{A} is more specific than @var{B}.
 @end enumerate
 
 @item
 If the methods' signatures have the same length, and, position by
-position, the @acronym{RTD}s of @var{A} are @func{eq?} to the
-@acronym{RTD}s of @var{B}, but @var{A} supports rest arguments while
+position, the @rtd{}s of @var{A} are @func{eq?} to the
+@rtd{}s of @var{B}, but @var{A} supports rest arguments while
 @var{B} does not: Then @var{B} is more specific than @var{A}.
 @end enumerate
 
 @c page
-@node records methods define
+@node classes methods define
 @subsection Defining generic functions and methods
 
 
@@ -38804,7 +38381,7 @@ Add a new method to an already existent generic function, @var{generic};
 a declaration is @strong{not} a definition.  @ref{baselib definitions,
 Definitions}
 
-The list of @var{arg-spec} specifies the @acronym{RTD}s of the arguments
+The list of @var{arg-spec} specifies the @rtd{}s of the arguments
 for which this method specialises the generic function.  Notice that
 rest arguments are supported and specified with the usual syntax.  An
 @var{arg-spec} can be:
@@ -38816,15 +38393,15 @@ the (conventional) record name of expected values.
 
 @item @var{arg}
 Where @var{arg} is the formal name of the argument.  In this case the
-@acronym{RTD} defaults to the conventional @class{top}, which is
-interpreted as parent of every other @acronym{RTD} (and so it has the
+@rtd{} defaults to the conventional @class{top}, which is
+interpreted as parent of every other @rtd{} (and so it has the
 least specificity).
 @end table
 
 If a method is defined with the same signature, and support for rest
 arguments, of an already registered method: The old method is
 overwritten by the new one.  Two methods having, position by position,
-arguments of the same @acronym{RTD}, but such that one supports rest
+arguments of the same @rtd{}, but such that one supports rest
 arguments and the other does not, are different.
 @end deffn
 
@@ -38838,7 +38415,7 @@ means that the closure supports rest arguments.
 @end deffn
 
 @c page
-@node records methods next
+@node classes methods next
 @subsection Invoking the next method
 
 
@@ -38852,12 +38429,12 @@ Return true if a next method is available.
 @end defun
 
 @c page
-@node records methods examples
+@node classes methods examples
 @subsection Examples of method dispatching.
 
 
 Here we show with some examples what we have to expect from the
-multimethod dispatching of @library{records}.  In the following examples
+multimethod dispatching of @library{classes}.  In the following examples
 the string @code{%apple} is written in place of the value bound to the
 symbol @class{apple}.
 
@@ -38925,7 +38502,7 @@ The following example shows a call to the next method:
 @end example
 
 @c page
-@node records methods predefined
+@node classes methods predefined
 @subsection Predefined generic functions
 
 
@@ -38939,565 +38516,6 @@ is predefined to use the following algorithm:
      (display obj port)))
 @end example
 @end deffn
-
-@c page
-@node records extensions
-@section Extending records
-
-
-Record extensions are additions to the record features defined by
-@rnrs{6}.
-
-@menu
-* records extensions define::   Defining record extensions.
-* records extensions access::   Virtual accessors and mutators.
-* records extensions fields::   Using virtual fields.
-* records extensions builtin::  Builtin extensions.
-@end menu
-
-@c page
-@node records extensions define
-@subsection Defining record extensions
-
-
-@deffn Syntax define-record-extension @ameta{extension name} @ameta{parent spec} @ameta{fields spec}
-@deffnx {Auxiliary Syntax} parent @ameta{record name}
-@deffnx {Auxiliary Syntax} fields (@cmeta{field name} @cmeta{accessor} @cmeta{mutator}) ...
-Define a record extension for an already defined record type descriptor.
-@meta{extension name} must be a Scheme symbol representing the name of
-the extension; this macro builds an extension object and binds it to
-@meta{extension name}.
-
-@meta{parent spec} must have the following form:
-
-@example
-(parent @cmeta{record name})
-@end example
-
-The @samp{parent} element specifies the record type to be extended.
-@meta{record name} must be a record type name as described in the
-definition of @ref{stdlib records syntactic layer,
-@func{define-record-type}}.  For this macro to work, @meta{record name}
-must be available at expansion time.
-
-@meta{fields spec} must have the following form:
-
-@example
-(fields @cmeta{virtual field spec} ...)
-@end example
-
-The @samp{fields} element specifies a list of virtual fields for a
-record type.  @meta{field name} must be a Scheme symbol representing a
-unique virtual field name.  @meta{accessor} must be an identifier bound
-to an accessor procedure or @false{}.  @meta{mutator} must be an
-identifier bound to a mutator procedure or @false{}.
-@end deffn
-
-
-To define a record extension, we first need to define the target record descriptor:
-
-@example
-(library (types)
-  (export <alpha>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b))))
-@end example
-
-@noindent
-then we must create a library like the following:
-
-@example
-(library (extensions)
-  (export <alpha*>)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-
-  (define (iota-ref o)
-    ---)
-
-  (define (iota-set! o v)
-    ---)
-
-  (define (theta-ref o)
-    ---)
-
-  (define (theta-set! o v)
-    ---)
-
-  (define-record-extension <alpha*>
-    (parent <alpha>)
-    (fields (iota  iota-ref  iota-set!)
-            (theta theta-ref theta-set!))))
-@end example
-
-@noindent
-to use the extension we must import both the types and extensions
-libraries for @samp{expand}:
-
-@example
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand)
-    (for (extensions) expand))
-
-    (let ((o (make <alpha> 1 2)))
-      (with-virtual-fields ((iota <alpha*> o))
-        (set! iota 123)
-        iota)))
-@end example
-
-@c page
-@node records extensions access
-@subsection Virtual accessors and mutators
-
-
-The following functions and macros work exactly like their homologous
-for builtin record fields, but they retrieve accessors and mutators for
-virtual fields.  First they look for a virtual field in a record type
-extension object; then they look for a field in the extension's parent
-record type; then for a field in the extension's parent ancestor types.
-
-
-@defun virtual-field-accessor @var{extension} @var{field-name}
-Return the accessor procedure of a virtual field or record field; it is
-an assertion violation if the selected field is not found.
-
-@var{extension} must be an extension object.  @var{field-name} must be a
-Scheme symbol matching the name of a virtual field in @var{extension},
-or a field in its parent record type, or a field in one of its
-ancestors.
-@end defun
-
-
-@deffn Syntax virtual-field-accessor* @ameta{extension name} @ameta{field name}
-Does the same as @func{virtual-field-accessor} but in the @samp{expand}
-phase.  @meta{extension name} must be an identifier bound to an
-extension object.  @meta{field name} must be a Scheme symbol matching
-the name of a virtual field or the name of a field of the parent record
-type or one of its ancestors.
-@end deffn
-
-
-@defun virtual-field-mutator @var{extension} @var{field-name}
-@defunx virtual-field-mutator @var{extension} @var{field-name} @var{false-if-immutable}
-Return the mutator procedure of a virtual field or a record field; it is
-an assertion violation if the selected field is not found.
-
-@var{extension} must be an extension object.  @var{field-name} must be a
-Scheme symbol matching the name of a virtual field in @var{extension} or
-in the parent record type or one of its ancestors.
-
-The optional @var{false-if-immutable} decides what to do when the
-selected field is immutable:
-
-@itemize
-@item
-If set to @true{}, the returned value is @false{}.
-
-@item
-If set to @false{}, the returned value is a function accepting two
-arguments (ignored) and always raising an assertion violation if
-invoked.
-@end itemize
-
-@noindent
-@var{false-if-immutable} defaults to @true{}.
-@end defun
-
-
-@deffn Syntax virtual-field-mutator* @ameta{extension name} @ameta{field name}
-@deffnx Syntax virtual-field-mutator* @ameta{extension name} @ameta{field name} @ameta{false if immutable}
-Does the same as @func{virtual-field-mutator} but in the @samp{expand}
-phase.  @meta{extension name} must be an identifier bound to an
-extension object.  @meta{field name} must be a Scheme symbol matching
-the name of a virtual field.  The optional @meta{false if immutable}
-decides what to do when the selected field is immutable; it is like the
-@var{false-if-immutable} argument of @func{virtual-field-mutator}, but
-has @false{} as default value.
-@end deffn
-
-@c page
-@node records extensions fields
-@subsection Using virtual fields
-
-
-The syntaxes @func{with-fields} and @func{with-fields*} allow access to
-both the virtual fields of a record extension and the fields of records,
-using identifier macros; they work exactly like
-@func{with-record-fields} and @func{with-record-fields*}.
-
-
-@deffn Syntax with-fields @ameta{field bindings} @ameta{body}
-Bind the accessors and mutators of multiple records and record
-extensions to identifier macros; in the region of these bindings,
-evaluate the @meta{body}.
-
-@meta{body} is a normal body (@pxref{baselib bodies}), while
-@meta{field bindings} has the form:
-
-@example
-((@cmeta{bind list} @cmeta{extension name} @cmeta{expression}) ...)
-@end example
-
-@meta{extension name} must be an identifier bound to an extension
-object.  For this macro to work, @meta{extension name} must be available
-at expansion time.
-
-@meta{expression} must be an expression evaluating to an object whose
-type descriptor is the parent of @meta{extension name}.  It is evaluated
-only once.
-
-@meta{bind list} can be one of the forms:
-
-@example
-@cmeta{field name}
-(@cmeta{field bind} @cmeta{field bind} ...)
-@end example
-
-@meta{field name} must be a Scheme symbol matching a valid virtual field
-name for the extension object or a valid field for the extension's
-parent record type or one of its ancestors.  When used in the first form
-above, it is bound to the identifier syntax.
-
-@meta{field bind} can be one of the forms:
-
-@example
-@cmeta{field name}
-(@cmeta{var name} @cmeta{field name})
-@end example
-
-@meta{var name} must be an identifier which is bound to the identifier
-syntax; when not given, it defaults to @meta{field name} itself.
-@end deffn
-
-@c ------------------------------------------------------------
-
-@deffn Syntax with-fields* @ameta{field bindings} @ameta{body}
-Bind the accessors and mutators of multiple records and record
-extensions to identifier macros; in the region of these bindings,
-evaluate the @meta{body}.
-
-@meta{body} is a normal body (@pxref{baselib bodies}), while
-@meta{field bindings} can be of one of the following forms:
-
-@example
-((@cmeta{bind list} @cmeta{extension name} @cmeta{record-id}) ...)
-@end example
-
-@meta{extension name} must be an identifier bound to an extension
-object.  For this macro to work, @meta{extension name} must be available
-at expansion time.
-
-@meta{record-id} must an identifier bound to an object whose type
-descriptor is the parent of @meta{extension name}; its symbol is used to
-compose the identifier syntaxes by appending a dot and the name of the
-field.
-
-@meta{bind list} can be one of the forms:
-
-@example
-@cmeta{field name}
-(@cmeta{field name} @cmeta{field name} ...)
-@end example
-
-@meta{field name} must be a Scheme symbol matching a valid virtual field
-name for the record type associated to @meta{record name} or one of its
-ancestors.
-@end deffn
-
-@c page
-@node records extensions builtin
-@subsection Builtin extensions.
-
-
-The main reason for the existence of record extensions is to provide
-easy access to attributes of builtin ojects.
-
-@menu
-* records extensions list::  List types.
-* records extensions compound:: Non--list compound data types.
-* records extensions numeric::  Numeric data types.
-* records extensions port::     Port types.
-* records extensions misc::     Miscellaneous types.
-@end menu
-
-@c page
-@node records extensions list
-@subsubsection List types
-
-
-@deftp {Record Extension} <pair*>
-Extension of the @class{pair} record type; defines the following virtual
-fields.
-
-@table @samp
-@item car
-Access and mutate the car.
-
-@item cdr
-Access and mutate the cdr.
-@end table
-@end deftp
-
-
-@deftp {Record Extension} <list*>
-Extension of the @class{list} record type; defines the following virtual
-fields.
-
-@table @samp
-@item car
-Access and mutate the car.
-
-@item cdr
-Access and mutate the cdr.
-
-@item length
-Access the length of the list.
-@end table
-@end deftp
-
-@c page
-@node records extensions compound
-@subsubsection Non--list compound data types
-
-
-@deftp {Record Extension} <vector*>
-Extension of the @class{vector} record type; defines the following
-virtual fields.
-
-@table @samp
-@item length
-Access the length of the vector.
-@end table
-@end deftp
-
-
-@deftp {Record Extension} <bytevector*>
-Extension of the @class{vector} record type; defines the following
-virtual fields.
-
-@table @samp
-@item length
-Access the length of the bytevector.
-@end table
-@end deftp
-
-
-@deftp {Record Extension} <hashtable*>
-Extension of the @class{hashtable} record type; defines the following
-virtual fields.
-
-@table @samp
-@item size
-Access the size of the table.
-
-@item keys
-Access the keys.  Retrieving this field is like applying
-@func{hashtable-keys} to the hashtable.
-
-@item entries
-Access the keys and values.  Retrieving this fiels is like applying
-@func{hashtable-entries} to the hashtable.
-@end table
-@end deftp
-
-@c page
-@node records extensions numeric
-@subsubsection Numeric data types
-
-
-@deftp {Record Extension} <number*>
-Extension of the @class{number} record type; defines the following
-virtual fields.
-
-@table @samp
-@item exact
-Accessing this field is like applying @func{exact} to the number.
-
-@item inexact
-Accessing this field is like applying @func{inexact} to the number.
-
-@item exact?
-Accessing this field is like applying @func{exact?} to the number.
-
-@item inexact?
-Accessing this field is like applying @func{inexact?} to the number.
-
-@item zero?
-Accessing this field is like applying @func{zero?} to the number.
-
-@item positive?
-Accessing this field is like applying @func{positive?} to the number.
-
-@item negative?
-Accessing this field is like applying @func{negative?} to the number.
-
-@item odd?
-Accessing this field is like applying @func{odd?} to the number.
-
-@item even?
-Accessing this field is like applying @func{even?} to the number.
-
-@item finite?
-Accessing this field is like applying @func{finite?} to the number.
-
-@item infinite?
-Accessing this field is like applying @func{infinite?} to the number.
-
-@item nan?
-Accessing this field is like applying @func{nan?} to the number.
-
-@item real-part
-Accessing this field is like applying @func{real-part} to the number.
-
-@item imag-part
-Accessing this field is like applying @func{imag-part} to the number.
-
-@item magnitude
-Accessing this field is like applying @func{magnitude} to the number.
-
-@item angle
-Accessing this field is like applying @func{angle} to the number.
-
-@item numerator
-Accessing this field is like applying @func{numerator} to the number.
-
-@item denominator
-Accessing this field is like applying @func{denominator} to the number.
-
-@item floor
-Accessing this field is like applying @func{floor} to the number.
-
-@item ceiling
-Accessing this field is like applying @func{ceiling} to the number.
-
-@item truncate
-Accessing this field is like applying @func{truncate} to the number.
-
-@item round
-Accessing this field is like applying @func{round} to the number.
-@end table
-@end deftp
-
-@c page
-@node records extensions port
-@subsubsection Port types
-
-
-@deftp {Record Extension} <port*>
-Extension of the @class{port} record type; defines the following virtual
-fields.
-
-@table @samp
-@item transcoder
-Accessing this field is like applying @func{port-transcoder} to the port.
-
-@item textual?
-Accessing this field is like applying @func{textual-port?} to the port.
-
-@item binary?
-Accessing this field is like applying @func{binary-port?} to the port.
-
-@item has-port-position?
-Accessing this field is like applying @func{port-has-port-position?} to
-the port.
-
-@item has-set-port-position?
-Accessing this field is like applying @func{port-has-set-port-position?}
-to the port.
-
-@item port-position
-Accessing this field is like applying @func{port-position} to the port;
-mutating this field is like applying @func{set-port-position!} to the
-port.
-
-@item eof?
-Accessing this field is like applying @func{port-eof?} to the port.
-
-@item input?
-Accessing this field is like applying @func{input-port?} to the port.
-
-@item output?
-Accessing this field is like applying @func{output-port?} to the port.
-@end table
-@end deftp
-
-@c page
-@node records extensions misc
-@subsubsection Miscellaneous types
-
-
-@deftp {Record Extension} <condition*>
-Extension of the @class{condition} record type; defines the following
-virtual fields.
-
-@table @samp
-@item message
-Accessing this field is like applying @func{condition-message} to the
-condition object.
-
-@item who
-Accessing this field is like applying @func{condition-who} to the
-condition object.
-
-@item irritants
-Accessing this field is like applying @func{condition-irritants} to the
-condition object.
-@end table
-@end deftp
-
-
-@deftp {Record Extension} <string*>
-Extension of the @class{string} record type; defines the following
-virtual fields.
-
-@table @samp
-@item length
-Accessing this field is like applying @func{string-length} to the
-string.
-
-@item upcase
-Accessing this field is like applying @func{string-upcase} to the
-string.
-
-@item downcase
-Accessing this field is like applying @func{string-downcase} to the
-string.
-
-@item titlecase
-Accessing this field is like applying @func{string-titlecase} to the
-string.
-
-@item foldcase
-Accessing this field is like applying @func{string-foldcase} to the
-string.
-@end table
-@end deftp
-
-
-@deftp {Record Extension} <char*>
-Extension of the @class{char} record type; defines the following virtual
-fields.
-
-@table @samp
-@item upcase
-Accessing this field is like applying @func{char-upcase} to the char.
-
-@item downcase
-Accessing this field is like applying @func{char-downcase} to the char.
-
-@item titlecase
-Accessing this field is like applying @func{char-titlecase} to the char.
-
-@item foldcase
-Accessing this field is like applying @func{char-foldcase} to the char.
-@end table
-@end deftp
 
 @c page
 @node scmobj
@@ -45363,8 +44381,8 @@ a @samp{#\return} character or not.
 @subsection Miscellaneous functions
 
 
-The procedures described here make use of the @library{records} library.
-@ref{records, Record utilities}
+The procedures described here make use of the @library{classes} library.
+@ref{classes, Record utilities}
 
 
 @defun source-location->string @var{loc}
@@ -50274,8 +49292,8 @@ An address is a list of mailboxes and groups separated by @samp{,}.
 
 
 All the record types defined by @library{email addresses} are meant to
-be handled with the facilities of the @library{records} library.
-@ref{records, Record utilities}
+be handled with the facilities of the @library{classes} library.
+@ref{classes, Record utilities}
 
 @menu
 * email addresses domain::              Domain.

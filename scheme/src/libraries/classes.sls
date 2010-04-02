@@ -30,11 +30,10 @@
   (export
 
     ;; definitions
-    define-class
+    define-class			define/with
 
     ;; constructors
     make
-    make-record-maker			make-record-maker*
 
     ;; predicates
     is-a?				record-is-a?
@@ -46,6 +45,8 @@
 
     ;; field access
     with-fields
+    let-fields				let*-fields
+    letrec-fields			letrec*-fields
 
     ;; builtin conventional record type names
     <top> <builtin>
@@ -56,13 +57,32 @@
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>
 
-    ;; bindings for builtin record type descriptors
-    <pair-rtd> <list-rtd>
-    <char-rtd> <string-rtd> <vector-rtd> <bytevector-rtd> <hashtable-rtd>
-    <record-rtd> <condition-rtd>
-    <port-rtd> <binary-port-rtd> <input-port-rtd> <output-port-rtd> <textual-port-rtd>
-    <fixnum-rtd> <flonum-rtd> <integer-rtd> <integer-valued-rtd> <rational-rtd> <rational-valued-rtd>
-    <real-rtd> <real-valued-rtd> <complex-rtd> <number-rtd>
+    with-record-fields-of-<top>
+    with-record-fields-of-<builtin>
+    with-record-fields-of-<pair>
+    with-record-fields-of-<list>
+    with-record-fields-of-<char>
+    with-record-fields-of-<string>
+    with-record-fields-of-<vector>
+    with-record-fields-of-<bytevector>
+    with-record-fields-of-<hashtable>
+    with-record-fields-of-<record>
+    with-record-fields-of-<condition>
+    with-record-fields-of-<port>
+    with-record-fields-of-<binary-port>
+    with-record-fields-of-<input-port>
+    with-record-fields-of-<output-port>
+    with-record-fields-of-<textual-port>
+    with-record-fields-of-<fixnum>
+    with-record-fields-of-<flonum>
+    with-record-fields-of-<integer>
+    with-record-fields-of-<integer-valued>
+    with-record-fields-of-<rational>
+    with-record-fields-of-<rational-valued>
+    with-record-fields-of-<real>
+    with-record-fields-of-<real-valued>
+    with-record-fields-of-<complex>
+    with-record-fields-of-<number>
 
     ;; generic functions infrastructure
     define-generic declare-method add-method define-generic/merge
@@ -200,7 +220,7 @@
       (protocol		?pro ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
-      (parent-rtd		?pad ...)
+      (parent-rtd	?pad ...)
       (nongenerative	?non ...)
       ?clause ...))
 
@@ -627,7 +647,7 @@
       ?clause ...))
 
     ;;No    more    clauses    to    gather,    hand    everything    to
-    ;;%DEFINE-CLASS/FILTER-UNUSED.
+    ;;%DEFINE-CLASS/TOP-as-PARENT.
     ((%define-class/sort-clauses
       (?name ...)
       (?collected-mutable-field ...)
@@ -641,6 +661,127 @@
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
       (nongenerative	?non ...))
+     (%define-class/top-as-parent
+      (?name ...)
+      (?collected-mutable-field ...)
+      (?collected-immutable-field ...)
+      (?collected-mutable-virtual-field ...)
+      (?collected-immutable-virtual-field ...)
+      (fields		?fie ...)
+      (parent		?par ...)
+      (protocol		?pro ...)
+      (sealed		?sea ...)
+      (opaque		?opa ...)
+      (parent-rtd	?pad ...)
+      (nongenerative	?non ...)))
+    ))
+
+(define-syntax %define-class/top-as-parent
+  ;;If  the class  definition used  neither  the PARENT  clause nor  the
+  ;;PARENT-RTD clause,  make the type derived by  "<top>".  Finally hand
+  ;;everything to %DEFINE-CLASS/ENSURE-NONGENERATIVE.
+  ;;
+  (syntax-rules ()
+
+    ((_ (?name ...)
+	(?collected-mutable-field ...)
+	(?collected-immutable-field ...)
+	(?collected-mutable-virtual-field ...)
+	(?collected-immutable-virtual-field ...)
+	(fields		?fie ...)
+	(parent)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd)
+	(nongenerative	?non ...))
+     (%define-class/ensure-nongenerative
+      (?name ...)
+      (?collected-mutable-field ...)
+      (?collected-immutable-field ...)
+      (?collected-mutable-virtual-field ...)
+      (?collected-immutable-virtual-field ...)
+      (fields		?fie ...)
+      (parent		<top>)
+      (protocol		?pro ...)
+      (sealed		?sea ...)
+      (opaque		?opa ...)
+      (parent-rtd)
+      (nongenerative	?non ...)))
+
+    ((_ (?name ...)
+	(?collected-mutable-field ...)
+	(?collected-immutable-field ...)
+	(?collected-mutable-virtual-field ...)
+	(?collected-immutable-virtual-field ...)
+	(fields		?fie ...)
+	(parent		?par ...)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?pad ...)
+	(nongenerative	?non ...))
+     (%define-class/ensure-nongenerative
+      (?name ...)
+      (?collected-mutable-field ...)
+      (?collected-immutable-field ...)
+      (?collected-mutable-virtual-field ...)
+      (?collected-immutable-virtual-field ...)
+      (fields		?fie ...)
+      (parent		?par ...)
+      (protocol		?pro ...)
+      (sealed		?sea ...)
+      (opaque		?opa ...)
+      (parent-rtd	?pad ...)
+      (nongenerative	?non ...)))
+    ))
+
+(define-syntax %define-class/ensure-nongenerative
+  ;;If the class  definition used no NONGENERATIVE clause,  add an empty
+  ;;NONGENERATIVE     clause.      Finally     hand    everything     to
+  ;;%DEFINE-CLASS/FILTER-UNUSED.
+  ;;
+  (syntax-rules ()
+
+    ((_ (?name ...)
+	(?collected-mutable-field ...)
+	(?collected-immutable-field ...)
+	(?collected-mutable-virtual-field ...)
+	(?collected-immutable-virtual-field ...)
+	(fields		?fie ...)
+	(parent		?par ...)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?pad ...)
+	(nongenerative))
+     (%define-class/filter-unused
+      (?name ...)
+      ()	;collected clauses
+      (?collected-mutable-field ...)
+      (?collected-immutable-field ...)
+      (?collected-mutable-virtual-field ...)
+      (?collected-immutable-virtual-field ...)
+      (fields		?fie ...)
+      (parent		?par ...)
+      (protocol		?pro ...)
+      (sealed		?sea ...)
+      (opaque		?opa ...)
+      (parent-rtd	?pad ...)
+      (nongenerative)))
+
+    ((_ (?name ...)
+	(?collected-mutable-field ...)
+	(?collected-immutable-field ...)
+	(?collected-mutable-virtual-field ...)
+	(?collected-immutable-virtual-field ...)
+	(fields		?fie ...)
+	(parent		?par ...)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?pad ...)
+	(nongenerative	?non ...))
      (%define-class/filter-unused
       (?name ...)
       ()	;collected clauses
@@ -662,35 +803,6 @@
   ;;
   (lambda (stx)
     (syntax-case stx (fields parent protocol sealed opaque parent-rtd nongenerative)
-
-      ;;Remove unused FIELDS form.
-      ((%define-class/filter-unused (?name ...) (?collected-clause ...)
-				    (?collected-mutable-field ...)
-				    (?collected-immutable-field ...)
-				    (?collected-mutable-virtual-field ...)
-				    (?collected-immutable-virtual-field ...)
-				    (fields)
-				    ?clause ...)
-       #'(%define-class/filter-unused (?name ...) (?collected-clause ...)
-				      (?collected-mutable-field ...)
-				      (?collected-immutable-field ...)
-				      (?collected-mutable-virtual-field ...)
-				      (?collected-immutable-virtual-field ...)
-				      ?clause ...))
-      ;;Collect used FIELDS form.
-      ((%define-class/filter-unused (?name ...) (?collected-clause ...)
-				    (?collected-mutable-field ...)
-				    (?collected-immutable-field ...)
-				    (?collected-mutable-virtual-field ...)
-				    (?collected-immutable-virtual-field ...)
-				    (fields ?e0 ?e ...)
-				    ?clause ...)
-       #'(%define-class/filter-unused (?name ...) (?collected-clause ... (fields ?e0 ?e ...))
-				      (?collected-mutable-field ...)
-				      (?collected-immutable-field ...)
-				      (?collected-mutable-virtual-field ...)
-				      (?collected-immutable-virtual-field ...)
-				      ?clause ...))
 
       ;;Remove unused PARENT form.
       ((%define-class/filter-unused (?name ...) (?collected-clause ...)
@@ -715,6 +827,35 @@
 				    (parent ?e0 ?e ...)
 				    ?clause ...)
        #'(%define-class/filter-unused (?name ...) (?collected-clause ... (parent ?e0 ?e ...))
+				      (?collected-mutable-field ...)
+				      (?collected-immutable-field ...)
+				      (?collected-mutable-virtual-field ...)
+				      (?collected-immutable-virtual-field ...)
+				      ?clause ...))
+
+      ;;Remove unused FIELDS form.
+      ((%define-class/filter-unused (?name ...) (?collected-clause ...)
+				    (?collected-mutable-field ...)
+				    (?collected-immutable-field ...)
+				    (?collected-mutable-virtual-field ...)
+				    (?collected-immutable-virtual-field ...)
+				    (fields)
+				    ?clause ...)
+       #'(%define-class/filter-unused (?name ...) (?collected-clause ...)
+				      (?collected-mutable-field ...)
+				      (?collected-immutable-field ...)
+				      (?collected-mutable-virtual-field ...)
+				      (?collected-immutable-virtual-field ...)
+				      ?clause ...))
+      ;;Collect used FIELDS form.
+      ((%define-class/filter-unused (?name ...) (?collected-clause ...)
+				    (?collected-mutable-field ...)
+				    (?collected-immutable-field ...)
+				    (?collected-mutable-virtual-field ...)
+				    (?collected-immutable-virtual-field ...)
+				    (fields ?e0 ?e ...)
+				    ?clause ...)
+       #'(%define-class/filter-unused (?name ...) (?collected-clause ... (fields ?e0 ?e ...))
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
 				      (?collected-mutable-virtual-field ...)
@@ -1126,7 +1267,7 @@
        (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor (syntax->datum #'?name)))))
 	 #'(define-syntax ACCESSOR
 	     (syntax-rules ()
-	       ((_  ?name ?body0 ?body (... ...))
+	       ((_ ?name ?body0 ?body (... ...))
 		(%with-record-fields ?name (?expanded-mutable-field
 					    ...
 					    ?expanded-immutable-field ...
@@ -1159,13 +1300,8 @@
        #'(begin ?body0 ?body ...))
       )))
 
-;; (define-syntax record-fields-with
-;;   (lambda (stx)
-;;     (define (%accessor class)
-;;       (string->symbol (string-append "with-record-fields-of-" (symbol->string class))))
-;;     (syntax-case stx ()
-;;       ((_ ?class)
-;;        (datum->syntax #'?class (%accessor (syntax->datum #'?class)))))))
+
+;;;; fields access syntaxes
 
 (define-syntax with-fields
   (lambda (stx)
@@ -1180,92 +1316,125 @@
       ((_ () ?body0 ?body ...)
        #'(begin ?body0 ?body ...)))))
 
+(define-syntax let-fields
+  (syntax-rules ()
+    ((_ (((?var ?class) ?init) ...) ?body0 ?body ...)
+     (let ((?var ?init) ...)
+       (with-fields ((?class ?var) ...) ?body0 ?body ...)))))
+
+(define-syntax let*-fields
+  (syntax-rules ()
+    ((_ (((?var0 ?class0) ?init0) ((?var ?class) ?init) ...) ?body0 ?body ...)
+     (let ((?var0 ?init0))
+       (with-fields ((?class0 ?var0))
+	 (let*-fields (((?var ?class) ?init) ...) ?body0 ?body ...))))
+
+    ((_ () ?body0 ?body ...)
+     (begin ?body0 ?body ...))))
+
+(define-syntax letrec-fields
+  (syntax-rules ()
+    ((_ (((?var ?class) ?init) ...) ?body0 ?body ...)
+     (let ((?var #f) ...)
+       (with-fields ((?class ?var) ...)
+	 (set! ?var ?init) ...
+	 ?body0 ?body ...)))))
+
+(define-syntax letrec*-fields
+  (syntax-rules ()
+    ((_ (((?var ?class) ?init) ...) ?body0 ?body ...)
+     (let ((?var #f) ...)
+       (with-fields ((?class ?var) ...)
+	 (set! ?var ?init) ...
+	 ?body0 ?body ...)))))
+
+(define-syntax define/with
+  (syntax-rules ()
+    ((_ (?name (?arg ?class) ...) ?body0 ?body ...)
+     (define (?name ?arg ...)
+       (with-fields ((?class ?arg) ...)
+	 ?body0 ?body ...)))
+
+    ((_ (?name ?arg ...) ?body0 ?body ...)
+     (define (?name ?arg ...) ?body0 ?body ...))
+
+    ((_ ?name ?expr)
+     (define ?name ?expr))
+
+    ((_ ?name)
+     (define ?name))))
+
 
-(define-class <top>
+(define-record-type <top>
   (nongenerative nausicaa:builtin:<top>))
 
+(define-syntax with-record-fields-of-<top>
+  (syntax-rules ()
+    ((_ ?name ?body0 ?body ...)
+     (begin ?body0 ?body ...))))
+
 (define-class <builtin>
-  (parent <top>)
   (nongenerative nausicaa:builtin:<builtin>))
 
 ;;; --------------------------------------------------------------------
 
-(define-class <pair>
-  (parent <builtin>)
-  (nongenerative nausicaa:builtin:<pair>)
+(define-syntax define-builtin-class
+  (lambda (stx)
+    (define (%uid name)
+      (string->symbol (string-append "nausicaa:builtin:" (symbol->string name))))
+    (syntax-case stx ()
+      ((_ ?name ?clause ...)
+       (with-syntax ((UID (datum->syntax #'?name (%uid (syntax->datum #'?name)))))
+	 #'(define-class ?name
+	     (parent <builtin>)
+	     (nongenerative UID)
+	     ?clause ...))))))
+
+(define-builtin-class <pair>
   (virtual-fields (immutable car car)
 		  (immutable cdr cdr)))
 
-(define-class <list>
-  (parent <pair>)
-  (nongenerative nausicaa:builtin:<list>)
+(define-builtin-class <list>
   (virtual-fields (immutable car car)
 		  (immutable cdr cdr)
 		  (immutable length length)))
 
-(define-class <char>
-  (parent <builtin>)
-  (nongenerative nausicaa:builtin:<char>)
+(define-builtin-class <char>
   (virtual-fields (immutable upcase	char-upcase)
 		  (immutable downcase	char-downcase)
 		  (immutable titlecase	char-titlecase)
 		  (immutable foldcase	char-foldcase)))
 
-(define-class <string>
-  (parent <builtin>)
-  (nongenerative nausicaa:builtin:<string>)
+(define-builtin-class <string>
   (virtual-fields (immutable length	string-length)
 		  (immutable upcase	string-upcase)
 		  (immutable downcase	string-downcase)
 		  (immutable titlecase	string-titlecase)
 		  (immutable foldcase	string-foldcase)))
 
-(define-class <vector>
-  (parent <builtin>)
-  (nongenerative nausicaa:builtin:<vector>)
+(define-builtin-class <vector>
   (virtual-fields (immutable length vector-length)))
 
-(define-class <bytevector>
-  (parent <builtin>)
-  (nongenerative nausicaa:builtin:<bytevector>)
+(define-builtin-class <bytevector>
   (virtual-fields (immutable length bytevector-length)))
 
-(define-class <hashtable>
-  (parent <builtin>)
-  (nongenerative nausicaa:builtin:<hashtable>)
+(define-builtin-class <hashtable>
   (virtual-fields (immutable size hashtable-size)
 		  (immutable keys hashtable-keys)
 		  (immutable entries hashtable-entries)))
 
-(define <pair-rtd>		(record-type-descriptor <pair>))
-(define <list-rtd>		(record-type-descriptor <list>))
-(define <char-rtd>		(record-type-descriptor <char>))
-(define <string-rtd>		(record-type-descriptor <string>))
-(define <vector-rtd>		(record-type-descriptor <vector>))
-(define <bytevector-rtd>	(record-type-descriptor <bytevector>))
-(define <hashtable-rtd>		(record-type-descriptor <hashtable>))
-
 ;;; --------------------------------------------------------------------
 
-(define-class <record>
-  (parent <builtin>)
-  (nongenerative nausicaa:builtin:<record>))
+(define-builtin-class <record>)
 
-(define-class <condition>
-  (parent <record>)
-  (nongenerative nausicaa:builtin:<condition>)
+(define-builtin-class <condition>
   (virtual-fields (immutable message	condition-message)
 		  (immutable who	condition-who)
 		  (immutable irritants	condition-irritants)))
 
-(define <record-rtd>		(record-type-descriptor <record>))
-(define <condition-rtd>		(record-type-descriptor <condition>))
-
 ;;; --------------------------------------------------------------------
 
-(define-class <port>
-  (parent <builtin>)
-  (nongenerative nausicaa:builtin:<port>)
+(define-builtin-class <port>
   (virtual-fields (immutable transcoder port-transcoder)
 		  (immutable textual? textual-port?)
 		  (immutable binary? binary-port?)
@@ -1292,17 +1461,9 @@
   (parent <port>)
   (nongenerative nausicaa:builtin:<textual-port>))
 
-(define <port-rtd>		(record-type-descriptor <port>))
-(define <input-port-rtd>	(record-type-descriptor <input-port>))
-(define <output-port-rtd>	(record-type-descriptor <output-port>))
-(define <binary-port-rtd>	(record-type-descriptor <binary-port>))
-(define <textual-port-rtd>	(record-type-descriptor <textual-port>))
-
 ;;; --------------------------------------------------------------------
 
-(define-class <number>
-  (parent <builtin>)
-  (nongenerative nausicaa:builtin:<number>)
+(define-builtin-class <number>
   (virtual-fields (immutable exact	exact)
 		  (immutable inexact	inexact)
 
@@ -1369,41 +1530,8 @@
   (parent <integer>)
   (nongenerative nausicaa:builtin:<fixnum>))
 
-(define <number-rtd>		(record-type-descriptor <number>))
-(define <complex-rtd>		(record-type-descriptor <complex>))
-(define <real-valued-rtd>	(record-type-descriptor <real-valued>))
-(define <real-rtd>		(record-type-descriptor <real>))
-(define <rational-valued-rtd>	(record-type-descriptor <rational-valued>))
-(define <flonum-rtd>		(record-type-descriptor <flonum>))
-(define <rational-rtd>		(record-type-descriptor <rational>))
-(define <integer-valued-rtd>	(record-type-descriptor <integer-valued>))
-(define <integer-rtd>		(record-type-descriptor <integer>))
-(define <fixnum-rtd>		(record-type-descriptor <fixnum>))
-
 
 ;;;; constructors
-
-(define make-record-maker
-  (case-lambda
-   ((rtd)
-    (make-record-maker rtd #f))
-   ((rtd init)
-    (let ((init-values (make-list (fold-left
-				   (lambda (sum rtd)
-				     (+ sum (vector-length (record-type-field-names rtd))))
-				   0
-				   (record-parent-list rtd))
-				  init))
-	  (maker	(record-constructor (make-record-constructor-descriptor rtd #f #f))))
-      (lambda ()
-	(apply maker init-values))))))
-
-(define-syntax make-record-maker*
-  (syntax-rules ()
-    ((_ ?record-name)
-     (make-record-maker (record-type-descriptor ?record-name)))
-    ((_ ?record-name ?init)
-     (make-record-maker (record-type-descriptor ?record-name) ?init))))
 
 (define-syntax make
   (syntax-rules ()
@@ -1761,7 +1889,8 @@
 ;;does not.
 ;;
 
-(define make-method-entry-key		cons)
+(define (make-method-entry-key has-rest signature)
+  (cons has-rest (map record-type-uid signature)))
 
 (define-syntax method-alist-cons
   (syntax-rules ()

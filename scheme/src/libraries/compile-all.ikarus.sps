@@ -57,7 +57,6 @@
 
   (only (classes))
 
-  (only (records))
   (only (scmobj))
   (only (scmobj utils))
 

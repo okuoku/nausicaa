@@ -26,7 +26,13 @@
 
 
 (library (records-lib)
-  (export <alpha> <beta> <gamma>)
+  (export <alpha> <beta> <gamma>
+	  with-record-fields-of-<alpha>
+	  with-record-fields-of-<beta>
+	  with-record-fields-of-<gamma>
+	  make-<alpha>
+	  make-<beta>
+	  make-<gamma>)
   (import (rnrs)
     (classes))
 
@@ -53,10 +59,6 @@
     (virtual-fields (mutable iota iota-ref iota-set!)
 		    (mutable theta theta-ref theta-set!)))
 
-  (define <alpha-rtd>	(record-type-descriptor <alpha>))
-  (define <beta-rtd>	(record-type-descriptor <beta>))
-  (define <gamma-rtd>	(record-type-descriptor <gamma>))
-
   (define (beta-def-ref o)
     (with-fields ((<beta> o))
       (list o.d o.e o.f)))
@@ -65,11 +67,6 @@
     (with-fields ((<beta> o))
       (set! o.d (car ell))
       (set! o.f (cadr ell))))
-
-  ;;The following  definition is to  verify that DEFINE-RECORD-EXTENSION
-  ;;is a  <definition> in a <body>,  so it allows  other <definition> to
-  ;;appear after it.
-  (define dummy 123)
 
   (define iota  91)
   (define theta 92)
