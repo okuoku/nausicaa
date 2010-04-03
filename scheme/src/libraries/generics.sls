@@ -37,26 +37,17 @@
 
 ;;;; the following are all the bindings from (classes)
 
-    ;; definitions
-    define-class			define/with
-
-    ;; constructors
-    make
-
-    ;; predicates
+    define-class			make
+    define/with				define/with*
+    lambda/with				lambda/with*
+    let-fields				let*-fields
+    letrec-fields			letrec*-fields
+    with-fields
     is-a?				record-is-a?
     record-type-parent?
-
-    ;; inspection
     record-type-of
     record-parent-list			record-parent-list*
 
-    ;; field access
-    with-fields
-    let-fields				let*-fields
-    letrec-fields			letrec*-fields
-
-    ;; builtin conventional record type names
     <top> <builtin>
     <pair> <list>
     <char> <string> <vector> <bytevector> <hashtable>
@@ -65,39 +56,37 @@
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>
 
-    with-record-fields-of-<top>
-    with-record-fields-of-<builtin>
-    with-record-fields-of-<pair>
-    with-record-fields-of-<list>
-    with-record-fields-of-<char>
-    with-record-fields-of-<string>
-    with-record-fields-of-<vector>
-    with-record-fields-of-<bytevector>
-    with-record-fields-of-<hashtable>
-    with-record-fields-of-<record>
-    with-record-fields-of-<condition>
-    with-record-fields-of-<port>
-    with-record-fields-of-<binary-port>
-    with-record-fields-of-<input-port>
-    with-record-fields-of-<output-port>
-    with-record-fields-of-<textual-port>
-    with-record-fields-of-<fixnum>
-    with-record-fields-of-<flonum>
-    with-record-fields-of-<integer>
-    with-record-fields-of-<integer-valued>
-    with-record-fields-of-<rational>
-    with-record-fields-of-<rational-valued>
-    with-record-fields-of-<real>
-    with-record-fields-of-<real-valued>
-    with-record-fields-of-<complex>
-    with-record-fields-of-<number>)
+    <top>-with-record-fields-of
+    <builtin>-with-record-fields-of
+    <pair>-with-record-fields-of
+    <list>-with-record-fields-of
+    <char>-with-record-fields-of
+    <string>-with-record-fields-of
+    <vector>-with-record-fields-of
+    <bytevector>-with-record-fields-of
+    <hashtable>-with-record-fields-of
+    <record>-with-record-fields-of
+    <condition>-with-record-fields-of
+    <port>-with-record-fields-of
+    <binary-port>-with-record-fields-of
+    <input-port>-with-record-fields-of
+    <output-port>-with-record-fields-of
+    <textual-port>-with-record-fields-of
+    <fixnum>-with-record-fields-of
+    <flonum>-with-record-fields-of
+    <integer>-with-record-fields-of
+    <integer-valued>-with-record-fields-of
+    <rational>-with-record-fields-of
+    <rational-valued>-with-record-fields-of
+    <real>-with-record-fields-of
+    <real-valued>-with-record-fields-of
+    <complex>-with-record-fields-of
+    <number>-with-record-fields-of)
   (import (rnrs)
     (classes)
-    (only (language-extensions)
-	  begin0
-	  with-accessor-and-mutator)
-    (rnrs mutable-pairs (6))
-    (parameters))
+    (language-extensions)
+    (parameters)
+    (rnrs mutable-pairs (6)))
 
 
 ;;;; helpers
@@ -120,7 +109,7 @@
   ;;
   ;;This is  more than SRFI-1's EVERY,  because EVERY does  not test for
   ;;equal length.  It is not like R6RS's FOR-ALL, because FOR-ALL raises
-  ;;an error if the length is different.
+  ;;an error if the lengths are not equal.
   ;;
   (syntax-rules ()
     ((_ ?eq ?ell1 ?ell2)
@@ -247,11 +236,10 @@
 		(cond ((and cache (hashtable-ref cache signature #f))
 		       => (lambda (methods) methods))
 		      (else
-		       (let ((methods (%compute-applicable-methods signature method-alist)))
+		       (begin0-let ((methods (%compute-applicable-methods signature method-alist)))
 			 (unless cache
 			   (set! cache (make-hashtable signature-hash eq?)))
-			 (hashtable-set! cache signature methods)
-			 methods))))
+			 (hashtable-set! cache signature methods)))))
 
 	       (method-called?  #f)
 
@@ -333,7 +321,7 @@
      ;;below.
      (add-method ?generic-function (?record-name ...)
 		 #f ;means no rest argument
-		 (lambda (?arg-name ...) . ?body)))
+		 (lambda/with ((?arg-name ?record-name) ...) . ?body)))
 
     ((_ ?generic-function ?rest-name (?record-name ...) (?arg-name ...) . ?body)
      ;;Matches the form  when all the arguments have  been processed and
@@ -341,7 +329,7 @@
      ;;above.
      (add-method ?generic-function (?record-name ...)
 		 #t ;means rest argument is present
-		 (lambda (?arg-name ... . ?rest-name) . ?body)))))
+		 (lambda/with ((?arg-name ?record-name) ... . ?rest-name) . ?body)))))
 
 (define-syntax add-method
   (syntax-rules ()
@@ -356,29 +344,33 @@
 ;;The  collection of methods  in a  generic function  is an  alist; each
 ;;entry has the format:
 ;;
-;;	((has-rest . signature) . closure)
+;;	((has-rest . uids) . <method record>)
 ;;
 ;;the key is a pair whose CAR  is the HAS-REST boolean, and whose CDR is
-;;the  SIGNATURE of  the  method;  this allows  two  methods with  equal
-;;signatures to be distinct if one supports rest arguments and the other
-;;does not.
+;;the list  of UIDs  of the RTDs  in the  signature of the  method; this
+;;allows  two  methods with  equal  signatures  to  be distinct  if  one
+;;supports rest arguments and the other does not.
 ;;
 
-(define (make-method-entry-key has-rest signature)
-  (cons has-rest (map record-type-uid signature)))
+(define-class <method>
+  (fields (mutable closure)
+	  (immutable signature)
+	  (immutable accept-rest?)))
 
-(define-syntax method-alist-cons
-  (syntax-rules ()
-    ((_ ?key ?closure ?method-alist)
-     (cons (cons ?key ?closure) ?method-alist))))
+(define-inline (%make-method-entry-key ?has-rest ?signature)
+  (cons ?has-rest (map record-type-uid ?signature)))
 
-(define method-entry-key		car)
-(define method-entry-closure		cdr)
+(define (method-entry-closure method-entry)
+  (<method>-closure (cdr method-entry)))
 
-(define method-entry-accept-rest?	caar)
-(define method-entry-signature		cdar)
+(define-inline (method-entry-accept-rest? ?method-entry)
+  (<method>-accept-rest? (cdr ?method-entry)))
 
-(define method-entry-closure-set!	set-cdr!)
+(define-inline (method-entry-signature ?method-entry)
+  (<method>-signature (cdr ?method-entry)))
+
+(define-inline (method-entry-closure-set! ?method-entry ?closure)
+  (<method>-closure-set! (cdr ?method-entry) ?closure))
 
 
 ;;;; actually adding methods
@@ -391,15 +383,16 @@
   ;;already  exists.  If  a  method  with the  key  already exists,  its
   ;;closure is overwritten with the new one.
   ;;
-  (let ((key (make-method-entry-key has-rest signature)))
+  (let ((key (%make-method-entry-key has-rest signature)))
     (cond ((find (lambda (method-entry)
-		   (for-all* eq? key (method-entry-key method-entry)))
+		   (for-all* eq? key (car method-entry)))
 		 method-alist)
 	   => (lambda (method-entry)
-		(method-entry-closure-set! method-entry closure)
+		(<method>-closure-set! (cdr method-entry) closure)
 		method-alist))
 	  (else
-	   (method-alist-cons key closure method-alist)))))
+	   (cons (cons key (make-<method> closure signature has-rest))
+		 method-alist)))))
 
 
 ;;;; methods dispatching
@@ -412,22 +405,21 @@
   ;;
   (map method-entry-closure
     (list-sort
-     (lambda (method1 method2)
-       (%more-specific-method? method1 method2 call-signature))
+     (lambda (method-entry1 method-entry2)
+       (%more-specific-method? (cdr method-entry1) (cdr method-entry2) call-signature))
      (filter
-	 (lambda (method)
-	   (%applicable-method? call-signature
-				(method-entry-signature    method)
-				(method-entry-accept-rest? method)))
+	 (lambda (method-entry)
+	   (%applicable-method? call-signature (cdr method-entry)))
        method-alist))))
 
-(define (%applicable-method? call-signature signature has-rest)
-  ;;Return true if a method with SIGNATURE as tuple of arguments' record
-  ;;types can be  applied to a tuple of  arguments having CALL-SIGNATURE
-  ;;as record types.  HAS-REST must  be true if the method supports rest
-  ;;arguments.
-  (let ((len      (length signature))
-	(call-len (length call-signature)))
+(define/with (%applicable-method? call-signature (method <method>))
+  ;;Return true  if the METHOD  can be applied  to a tuple  of arguments
+  ;;having CALL-SIGNATURE as record types.
+  ;;
+  (let* ((signature	method.signature)
+	 (has-rest	method.accept-rest?)
+	 (len		(length signature))
+	 (call-len	(length call-signature)))
     (cond
      ;;If SIGNATURE has  the same length of the  call signature, test it
      ;;for applicability.
@@ -442,13 +434,13 @@
      ;;This method is not applicable.
      (else #f))))
 
-(define (%more-specific-method? method1 method2 call-signature)
+(define/with (%more-specific-method? (method1 <method>) (method2 <method>) call-signature)
   ;;Return true if METHOD1 is more specific than METHOD2 with respect to
   ;;CALL-SIGNATURE.   This  function   must  be  applied  to  applicable
   ;;methods.  The longest signature is more specific, by definition.
   ;;
-  (let* ((signature1	(cdar method1))
-	 (signature2	(cdar method2))
+  (let* ((signature1	method1.signature)
+	 (signature2	method2.signature)
 	 (len1		(length signature1))
 	 (len2		(length signature2)))
     (cond ((> len1 len2) #t)
@@ -464,7 +456,7 @@
 		 ;;supports  rest arguments and  METHOD1 does  not, then
 		 ;;METHOD1  is  more  specific.   This test  reduces  to
 		 ;;testing if METHOD2 supports rest arguments.
-		 (method-entry-accept-rest? method2)
+		 method2.accept-rest?
 
 	       (let ((rtd1 (car signature1))
 		     (rtd2 (car signature2)))
@@ -486,23 +478,19 @@
     (new :method-alist-set! ma)
     new))
 
-(define-syntax list-copy
-  (syntax-rules ()
-    ((_ ?ell)
-     (let loop ((ell ?ell))
-       (if (pair? ell)
-	   (cons (car ell) (loop (cdr ell)))
-	 ell)))))
+(define-inline (list-copy ?ell)
+  (let loop ((ell ?ell))
+    (if (pair? ell)
+	(cons (car ell) (loop (cdr ell)))
+      ell)))
 
-(define-syntax merge-method-alists
-  (syntax-rules ()
-    ((_ ?ma ?method-alists)
-     (let loop ((ma		(list-copy ?ma))
-		(method-alists	?method-alists))
-       (if (null? method-alists)
-	   ma
-	 (loop (merge-two-method-alists ma (car method-alists))
-	       (cdr method-alists)))))))
+(define-inline (merge-method-alists ?ma ?method-alists)
+  (let loop ((ma		(list-copy ?ma))
+	     (method-alists	?method-alists))
+    (if (null? method-alists)
+	ma
+      (loop (merge-two-method-alists ma (car method-alists))
+	    (cdr method-alists)))))
 
 (define-syntax merge-two-method-alists
   ;;Merge ?MA1 into ?MA and return a new alist.
@@ -515,25 +503,23 @@
 	   ma
 	 (loop (maybe-merge-method (car ma1) ma) (cdr ma1)))))))
 
-(define-syntax maybe-merge-method
+(define-inline (maybe-merge-method ?candidate-method-entry ?method-alist)
   ;;Add CANDIDATE-METHOD-ENTRY to METHOD-ALIST and return the new alist.
   ;;Adding happens  only if  a method with  the same signature  and rest
   ;;arguments support does not already exist in METHOD-ALIST.
   ;;
-  (syntax-rules ()
-    ((_ ?candidate-method-entry ?method-alist)
-     (let* ((candidate-method-entry	?candidate-method-entry)
-	    (method-alist		?method-alist)
-	    (key			(method-entry-key candidate-method-entry)))
-       (unless (find (lambda (method-entry)
-		       (for-all* eq? key (method-entry-key method-entry)))
-		     method-alist)
-	 (cons candidate-method-entry method-alist))))))
+  (let* ((candidate-method-entry	?candidate-method-entry)
+	 (method-alist			?method-alist)
+	 (key				(car candidate-method-entry)))
+    (unless (find (lambda (method-entry)
+		    (for-all* eq? key (car method-entry)))
+		  method-alist)
+      (cons candidate-method-entry method-alist))))
 
 
 (define (signature-hash signature)
   (fold-left (lambda (nil rtd)
-	       (+ nil (symbol-hash (record-type-name rtd))))
+	       (+ nil (symbol-hash (record-type-uid rtd))))
 	     0
 	     signature))
 
