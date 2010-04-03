@@ -44,7 +44,7 @@
     record-parent-list			record-parent-list*
 
     ;; field access
-    with-fields
+    lambda/with				with-fields
     let-fields				let*-fields
     letrec-fields			letrec*-fields
 
@@ -57,32 +57,32 @@
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>
 
-    with-record-fields-of-<top>
-    with-record-fields-of-<builtin>
-    with-record-fields-of-<pair>
-    with-record-fields-of-<list>
-    with-record-fields-of-<char>
-    with-record-fields-of-<string>
-    with-record-fields-of-<vector>
-    with-record-fields-of-<bytevector>
-    with-record-fields-of-<hashtable>
-    with-record-fields-of-<record>
-    with-record-fields-of-<condition>
-    with-record-fields-of-<port>
-    with-record-fields-of-<binary-port>
-    with-record-fields-of-<input-port>
-    with-record-fields-of-<output-port>
-    with-record-fields-of-<textual-port>
-    with-record-fields-of-<fixnum>
-    with-record-fields-of-<flonum>
-    with-record-fields-of-<integer>
-    with-record-fields-of-<integer-valued>
-    with-record-fields-of-<rational>
-    with-record-fields-of-<rational-valued>
-    with-record-fields-of-<real>
-    with-record-fields-of-<real-valued>
-    with-record-fields-of-<complex>
-    with-record-fields-of-<number>)
+    <top>-with-record-fields-of
+    <builtin>-with-record-fields-of
+    <pair>-with-record-fields-of
+    <list>-with-record-fields-of
+    <char>-with-record-fields-of
+    <string>-with-record-fields-of
+    <vector>-with-record-fields-of
+    <bytevector>-with-record-fields-of
+    <hashtable>-with-record-fields-of
+    <record>-with-record-fields-of
+    <condition>-with-record-fields-of
+    <port>-with-record-fields-of
+    <binary-port>-with-record-fields-of
+    <input-port>-with-record-fields-of
+    <output-port>-with-record-fields-of
+    <textual-port>-with-record-fields-of
+    <fixnum>-with-record-fields-of
+    <flonum>-with-record-fields-of
+    <integer>-with-record-fields-of
+    <integer-valued>-with-record-fields-of
+    <rational>-with-record-fields-of
+    <rational-valued>-with-record-fields-of
+    <real>-with-record-fields-of
+    <real-valued>-with-record-fields-of
+    <complex>-with-record-fields-of
+    <number>-with-record-fields-of)
   (import (rnrs)
     (only (language-extensions)
 	  begin0
@@ -1216,7 +1216,7 @@
 (define-syntax %define-class/output-forms
   (lambda (stx)
     (define (%accessor name)
-      (string->symbol (string-append "with-record-fields-of-" (symbol->string name))))
+      (string->symbol (string-append (symbol->string name) "-with-record-fields-of")))
     (syntax-case stx ()
       ((_ ?name
 	  (?expanded-mutable-field ...)
@@ -1265,7 +1265,7 @@
 (define-syntax with-fields
   (lambda (stx)
     (define (%accessor class)
-      (string->symbol (string-append "with-record-fields-of-" (symbol->string class))))
+      (string->symbol (string-append (symbol->string class) "-with-record-fields-of")))
     (syntax-case stx ()
 
       ((_ ((?class ?name) ?clause ...) ?body0 ?body ...)
@@ -1307,6 +1307,16 @@
 	 (set! ?var ?init) ...
 	 ?body0 ?body ...)))))
 
+(define-syntax lambda/with
+  (syntax-rules ()
+    ((_ ((?arg ?class) ...) ?body0 ?body ...)
+     (lambda (?arg ...)
+       (with-fields ((?class ?arg) ...)
+	 ?body0 ?body ...)))
+
+    ((_ (?name ?arg ...) ?body0 ?body ...)
+     (lambda (?arg ...) ?body0 ?body ...))))
+
 (define-syntax define/with
   (syntax-rules ()
     ((_ (?name (?arg ?class) ...) ?body0 ?body ...)
@@ -1327,7 +1337,7 @@
 (define-record-type <top>
   (nongenerative nausicaa:builtin:<top>))
 
-(define-syntax with-record-fields-of-<top>
+(define-syntax <top>-with-record-fields-of
   (syntax-rules ()
     ((_ ?name ?body0 ?body ...)
      (begin ?body0 ?body ...))))

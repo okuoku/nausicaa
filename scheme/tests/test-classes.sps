@@ -49,6 +49,18 @@
 
     #f)
 
+  (let ()
+
+    (define-class (<alpha> make-<alpha> <alpha>?)
+      (fields (mutable a)))
+
+    (check
+	(let ((o (make-<alpha> 123)))
+	  (<alpha>-a o))
+      => 123)
+
+    #f)
+
 ;;; --------------------------------------------------------------------
 ;;; all the auxiliary syntaxes
 
@@ -775,6 +787,66 @@
 			 ((c <top>)   (list (a.proc) (b.proc))))
 	  c)
       => '((1 . 2) (1 . 2)))
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'lambda-with))
+
+  (let ()	;define/with
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (mutable numerator)
+		      (mutable denominator)))
+
+    (define <fraction>-numerator
+      (lambda/with ((o <fraction>))
+	(numerator o.number)))
+
+    (define <fraction>-numerator-set!
+      (lambda/with ((o <fraction>) (v <top>))
+	(set! o.number (/ v (denominator o.number)))))
+
+    (define <fraction>-denominator
+      (lambda/with ((o <fraction>))
+	(denominator o.number)))
+
+    (define <fraction>-denominator-set!
+      (lambda/with ((o <fraction>) (v <top>))
+	(set! o.number (/ (numerator o.number) v))))
+
+    (check
+	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+	  o.numerator)
+      => 2)
+
+    (check
+	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+	  o.numerator)
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction> o))
+	    o.denominator))
+      => 3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction> o))
+	    (set! o.numerator 5)
+	    o.number))
+      => 5/3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction> o))
+	    (set! o.denominator 5)
+	    o.number))
+      => 2/5)
 
     #f)
 
