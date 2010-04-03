@@ -687,9 +687,10 @@
     ))
 
 (define-syntax %define-class/ensure-nongenerative
-  ;;If the class  definition used no NONGENERATIVE clause,  add an empty
-  ;;NONGENERATIVE     clause.      Finally     hand    everything     to
-  ;;%DEFINE-CLASS/FILTER-UNUSED.
+  ;;If  the  class  definition  used  no  NONGENERATIVE  clause,  add  a
+  ;;NONGENERATIVE  clause  with  argument  #t, which  is  recognised  as
+  ;;empty-but-used   by   %DEFINE-CLASS/FILTER-UNUSED.    Finally   hand
+  ;;everything to %DEFINE-CLASS/FILTER-UNUSED.
   ;;
   (syntax-rules ()
 
@@ -718,7 +719,7 @@
       (sealed		?sea ...)
       (opaque		?opa ...)
       (parent-rtd	?pad ...)
-      (nongenerative)))
+      (nongenerative #t)))
 
     ((_ (?name ...)
 	(?collected-mutable-field ...)
@@ -925,18 +926,18 @@
 
       ;;Remove unused NONGENERATIVE form.
       ((%define-class/filter-unused (?name ...) (?collected-clause ...)
-				    (?collected-mutable-field ...)
-				    (?collected-immutable-field ...)
-				    (?collected-mutable-virtual-field ...)
-				    (?collected-immutable-virtual-field ...)
-				    (nongenerative)
-				    ?clause ...)
+      				    (?collected-mutable-field ...)
+      				    (?collected-immutable-field ...)
+      				    (?collected-mutable-virtual-field ...)
+      				    (?collected-immutable-virtual-field ...)
+      				    (nongenerative)
+      				    ?clause ...)
        #'(%define-class/filter-unused (?name ...) (?collected-clause ...)
-				      (?collected-mutable-field ...)
-				      (?collected-immutable-field ...)
-				      (?collected-mutable-virtual-field ...)
-				      (?collected-immutable-virtual-field ...)
-				      ?clause ...))
+      				      (?collected-mutable-field ...)
+      				      (?collected-immutable-field ...)
+      				      (?collected-mutable-virtual-field ...)
+      				      (?collected-immutable-virtual-field ...)
+      				      ?clause ...))
       ;;Collect empty-but-used NONGENERATIVE form.
       ((%define-class/filter-unused (?name ...) (?collected-clause ...)
 				    (?collected-mutable-field ...)
