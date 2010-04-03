@@ -29,17 +29,16 @@
 (library (classes)
   (export
 
-    define-class
+    define-class			make
     define/with				define/with*
-    make
+    lambda/with				lambda/with*
+    let-fields				let*-fields
+    letrec-fields			letrec*-fields
+    with-fields
     is-a?				record-is-a?
     record-type-parent?
     record-type-of
     record-parent-list			record-parent-list*
-    with-fields
-    lambda/with				lambda/with*
-    let-fields				let*-fields
-    letrec-fields			letrec*-fields
 
     <top> <builtin>
     <pair> <list>

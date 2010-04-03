@@ -1022,38 +1022,6 @@
       (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
       #f)
 
-;;; --------------------------------------------------------------------
-
-    (check
-	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
-	  o.numerator)
-      => 2)
-
-    (check
-	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
-	  o.numerator)
-      => 2)
-
-    (check
-	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
-	    o.denominator))
-      => 3)
-
-    (check
-	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
-	    (set! o.numerator 5)
-	    o.number))
-      => 5/3)
-
-    (check
-	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
-	    (set! o.denominator 5)
-	    o.number))
-      => 2/5)
-
     #f)
 
 ;;; --------------------------------------------------------------------
@@ -1090,7 +1058,50 @@
 
 (parametrise ((check-test-name	'define-with))
 
-  (let ()	;define/with
+  (let ()
+    (define/with (f a)
+      a)
+    (check (f 123) => 123)
+    #f)
+
+  (let ()
+    (define/with (f a b)
+      (list a b))
+    (check (f 1 2) => '(1 2))
+    #f)
+
+  (let ()
+    (define/with (f a b c)
+      (list a b c))
+    (check (f 1 2 3) => '(1 2 3))
+    #f)
+
+  (let ()
+    (define/with (f . args)
+      (list->vector args))
+    (check (f) => '#())
+    (check (f 1) => '#(1))
+    (check (f 1 2) => '#(1 2))
+    (check (f 1 2 3) => '#(1 2 3))
+    #f)
+
+  (let ()
+    (define/with (f a . rest)
+      (vector a rest))
+    (check (f 1) => '#(1 ()))
+    (check (f 1 2) => '#(1 (2)))
+    (check (f 1 2 3 4) => '#(1 (2 3 4)))
+    #f)
+
+  (let ()
+    (define/with (f a b . rest)
+      (vector a b rest))
+    (check (f 1 2) => '#(1 2 ()))
+    (check (f 1 2 3) => '#(1 2 (3)))
+    (check (f 1 2 3 4) => '#(1 2 (3 4)))
+    #f)
+
+  (let ()
 
     (define-class <fraction>
       (fields (mutable number))
@@ -1139,6 +1150,62 @@
 	    o.number))
       => 2/5)
 
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'define-with*))
+
+  (define-class <fraction>
+    (fields (mutable number))
+    (virtual-fields (mutable numerator)
+		    (mutable denominator)))
+
+  (define/with* (<fraction>-numerator (o <fraction>))
+    (numerator o.number))
+
+  (define/with* (<fraction>-numerator-set! (o <fraction>) (v <top>))
+    (set! o.number (/ v (denominator o.number))))
+
+  (define/with* (<fraction>-denominator (o <fraction>))
+    (denominator o.number))
+
+  (define/with* (<fraction>-denominator-set! (o <fraction>) (v <top>))
+    (set! o.number (/ (numerator o.number) v)))
+
+  (let ()
+    (define/with* (f (a <fraction>))
+      a.numerator)
+    (check (f (make-<fraction> 2/3)) => 2)
+    #f)
+
+  (let ()
+    (define/with* (f (a <fraction>) (b <number>))
+      (list a.numerator b.magnitude))
+    (check (f (make-<fraction> 2/3) -4) => '(2 4))
+    #f)
+
+  (let ()
+    (define/with* (f (a <fraction>) b (c <fraction>))
+      (list a.numerator b c.denominator))
+    (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
+    #f)
+
+  (let ()
+    (define/with* (f (a <fraction>) . rest)
+      (vector a.numerator rest))
+    (check (f (make-<fraction> 11/12)) => '#(11 ()))
+    (check (f (make-<fraction> 11/12) 2) => '#(11 (2)))
+    (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 (2 3 4)))
+    #f)
+
+  (let ()
+    (define/with* (f (a <fraction>) b . rest)
+      (vector a.numerator b rest))
+    (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
+    (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
+    (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
     #f)
 
   #t)
