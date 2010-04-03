@@ -795,7 +795,49 @@
 
 (parametrise ((check-test-name	'lambda-with))
 
-  (let ()	;define/with
+;;; untyped
+
+  (let ((f (lambda/with (a)
+	     a)))
+    (check (f 123) => 123)
+    #f)
+
+  (let ((f (lambda/with (a b)
+	     (list a b))))
+    (check (f 1 2) => '(1 2))
+    #f)
+
+  (let ((f (lambda/with (a b c)
+	     (list a b c))))
+    (check (f 1 2 3) => '(1 2 3))
+    #f)
+
+  (let ((f (lambda/with args
+	     (list->vector args))))
+    (check (f) => '#())
+    (check (f 1) => '#(1))
+    (check (f 1 2) => '#(1 2))
+    (check (f 1 2 3) => '#(1 2 3))
+    #f)
+
+  (let ((f (lambda/with (a . rest)
+	     (vector a rest))))
+    (check (f 1) => '#(1 ()))
+    (check (f 1 2) => '#(1 (2)))
+    (check (f 1 2 3 4) => '#(1 (2 3 4)))
+    #f)
+
+  (let ((f (lambda/with (a b . rest)
+	     (vector a b rest))))
+    (check (f 1 2) => '#(1 2 ()))
+    (check (f 1 2 3) => '#(1 2 (3)))
+    (check (f 1 2 3 4) => '#(1 2 (3 4)))
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; typed
+
+  (let ()
 
     (define-class <fraction>
       (fields (mutable number))
@@ -807,7 +849,7 @@
 	(numerator o.number)))
 
     (define <fraction>-numerator-set!
-      (lambda/with ((o <fraction>) (v <top>))
+      (lambda/with ((o <fraction>) v)
 	(set! o.number (/ v (denominator o.number)))))
 
     (define <fraction>-denominator
@@ -817,6 +859,37 @@
     (define <fraction>-denominator-set!
       (lambda/with ((o <fraction>) (v <top>))
 	(set! o.number (/ (numerator o.number) v))))
+
+    (let ((f (lambda/with ((a <fraction>))
+	       a.numerator)))
+      (check (f (make-<fraction> 2/3)) => 2)
+      #f)
+
+    (let ((f (lambda/with ((a <fraction>) (b <number>))
+	       (list a.numerator b.magnitude))))
+      (check (f (make-<fraction> 2/3) -4) => '(2 4))
+      #f)
+
+    (let ((f (lambda/with ((a <fraction>) b (c <fraction>))
+	       (list a.numerator b c.denominator))))
+      (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
+      #f)
+
+    (let ((f (lambda/with ((a <fraction>) . rest)
+	       (vector a.numerator rest))))
+      (check (f (make-<fraction> 11/12)) => '#(11 ()))
+      (check (f (make-<fraction> 11/12) 2) => '#(11 (2)))
+      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 (2 3 4)))
+      #f)
+
+    (let ((f (lambda/with ((a <fraction>) b . rest)
+	       (vector a.numerator b rest))))
+      (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
+      (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
+      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
+      #f)
+
+;;; --------------------------------------------------------------------
 
     (check
 	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
@@ -849,6 +922,168 @@
       => 2/5)
 
     #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'lambda-with*))
+
+;;; untyped
+
+  (let ((f (lambda/with* (a)
+	     a)))
+    (check (f 123) => 123)
+    #f)
+
+  (let ((f (lambda/with* (a b)
+	     (list a b))))
+    (check (f 1 2) => '(1 2))
+    #f)
+
+  (let ((f (lambda/with* (a b c)
+	     (list a b c))))
+    (check (f 1 2 3) => '(1 2 3))
+    #f)
+
+  (let ((f (lambda/with* args
+	     (list->vector args))))
+    (check (f) => '#())
+    (check (f 1) => '#(1))
+    (check (f 1 2) => '#(1 2))
+    (check (f 1 2 3) => '#(1 2 3))
+    #f)
+
+  (let ((f (lambda/with* (a . rest)
+	     (vector a rest))))
+    (check (f 1) => '#(1 ()))
+    (check (f 1 2) => '#(1 (2)))
+    (check (f 1 2 3 4) => '#(1 (2 3 4)))
+    #f)
+
+  (let ((f (lambda/with* (a b . rest)
+	     (vector a b rest))))
+    (check (f 1 2) => '#(1 2 ()))
+    (check (f 1 2 3) => '#(1 2 (3)))
+    (check (f 1 2 3 4) => '#(1 2 (3 4)))
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; typed
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (mutable numerator)
+		      (mutable denominator)))
+
+    (define <fraction>-numerator
+      (lambda/with* ((o <fraction>))
+	(numerator o.number)))
+
+    (define <fraction>-numerator-set!
+      (lambda/with* ((o <fraction>) v)
+	(set! o.number (/ v (denominator o.number)))))
+
+    (define <fraction>-denominator
+      (lambda/with* ((o <fraction>))
+	(denominator o.number)))
+
+    (define <fraction>-denominator-set!
+      (lambda/with* ((o <fraction>) (v <top>))
+	(set! o.number (/ (numerator o.number) v))))
+
+    (let ((f (lambda/with* ((a <fraction>))
+	       a.numerator)))
+      (check (f (make-<fraction> 2/3)) => 2)
+      #f)
+
+    (let ((f (lambda/with* ((a <fraction>) (b <number>))
+	       (list a.numerator b.magnitude))))
+      (check (f (make-<fraction> 2/3) -4) => '(2 4))
+      #f)
+
+    (let ((f (lambda/with* ((a <fraction>) b (c <fraction>))
+	       (list a.numerator b c.denominator))))
+      (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
+      #f)
+
+    (let ((f (lambda/with* ((a <fraction>) . rest)
+	       (vector a.numerator rest))))
+      (check (f (make-<fraction> 11/12)) => '#(11 ()))
+      (check (f (make-<fraction> 11/12) 2) => '#(11 (2)))
+      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 (2 3 4)))
+      #f)
+
+    (let ((f (lambda/with* ((a <fraction>) b . rest)
+	       (vector a.numerator b rest))))
+      (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
+      (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
+      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
+      #f)
+
+;;; --------------------------------------------------------------------
+
+    (check
+	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+	  o.numerator)
+      => 2)
+
+    (check
+	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+	  o.numerator)
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction> o))
+	    o.denominator))
+      => 3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction> o))
+	    (set! o.numerator 5)
+	    o.number))
+      => 5/3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((<fraction> o))
+	    (set! o.denominator 5)
+	    o.number))
+      => 2/5)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; type error
+
+  (check
+      (guard (E ((assertion-violation? E)
+;;;		 (write (condition-message E))(newline)
+		 #t)
+		(else
+;;;		 (write E)(newline)
+                 #f))
+	(eval '(let ((f (lambda/with* ((a <number>))
+			  #f)))
+		 (f "ciao"))
+	      (environment '(nausicaa) '(classes))))
+    => #t)
+
+  (check
+      (guard (E ((assertion-violation? E)
+;;;		 (write (condition-message E))(newline)
+		 #t)
+		(else
+;;;		 (write E)(newline)
+                 #f))
+	(eval '(let ((f (lambda/with* ((a <number>) (b <string>))
+			  #f)))
+		 (f 1 2))
+	      (environment '(nausicaa) '(classes))))
+    => #t)
 
   #t)
 

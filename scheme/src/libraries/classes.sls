@@ -29,26 +29,18 @@
 (library (classes)
   (export
 
-    ;; definitions
-    define-class			define/with
-
-    ;; constructors
+    define-class
+    define/with				define/with*
     make
-
-    ;; predicates
     is-a?				record-is-a?
     record-type-parent?
-
-    ;; inspection
     record-type-of
     record-parent-list			record-parent-list*
-
-    ;; field access
-    lambda/with				with-fields
+    with-fields
+    lambda/with				lambda/with*
     let-fields				let*-fields
     letrec-fields			letrec*-fields
 
-    ;; builtin conventional record type names
     <top> <builtin>
     <pair> <list>
     <char> <string> <vector> <bytevector> <hashtable>
@@ -1307,31 +1299,100 @@
 	 (set! ?var ?init) ...
 	 ?body0 ?body ...)))))
 
-(define-syntax lambda/with
-  (syntax-rules ()
-    ((_ ((?arg ?class) ...) ?body0 ?body ...)
-     (lambda (?arg ...)
-       (with-fields ((?class ?arg) ...)
-	 ?body0 ?body ...)))
-
-    ((_ (?name ?arg ...) ?body0 ?body ...)
-     (lambda (?arg ...) ?body0 ?body ...))))
-
+
 (define-syntax define/with
   (syntax-rules ()
-    ((_ (?name (?arg ?class) ...) ?body0 ?body ...)
-     (define (?name ?arg ...)
-       (with-fields ((?class ?arg) ...)
-	 ?body0 ?body ...)))
+    ((_ (?name . ?formals) . ?body)
+     (define ?name
+       (lambda/with ?formals . ?body)))
+    ((_ ?variable ?expression)
+     (define ?variable ?expression))
+    ((_ ?variable)
+     (define ?variable))))
 
-    ((_ (?name ?arg ...) ?body0 ?body ...)
-     (define (?name ?arg ...) ?body0 ?body ...))
+(define-syntax define/with*
+  (syntax-rules ()
+    ((_ (?name . ?formals) . ?body)
+     (define ?name
+       (lambda/with* ?formals . ?body)))
+    ((_ ?variable ?expression)
+     (define ?variable ?expression))
+    ((_ ?variable)
+     (define ?variable))))
 
-    ((_ ?name ?expr)
-     (define ?name ?expr))
+(define-syntax lambda/with
+  (syntax-rules ()
+    ((_ ?formals . ?body)
+     (%collect-classes-and-arguments #f ?formals
+				     () ;collected classes
+				     () ;collected args
+				     . ?body))))
 
-    ((_ ?name)
-     (define ?name))))
+(define-syntax lambda/with*
+  (syntax-rules ()
+    ((_ ?formals . ?body)
+     (%collect-classes-and-arguments #t ?formals
+				     () ;collected classes
+				     () ;collected args
+				     . ?body))))
+
+(define-syntax %collect-classes-and-arguments
+  ;;Analyse the list of formals  collecting a list of argument names and
+  ;;a list of class names.
+  ;;
+  (syntax-rules ()
+
+    ;;Matches when the next argument to be processed has a type.
+    ((_ ?add-assertions ((?arg ?cls) . ?args) (?collected-cls ...) (?collected-arg ...) . ?body)
+     (%collect-classes-and-arguments ?add-assertions ?args
+				     (?collected-cls ... ?cls)
+				     (?collected-arg ... ?arg)
+				     . ?body))
+
+    ;;Matches when the next argument to be processed has no type.
+    ((_ ?add-assertions (?arg . ?args) (?collected-cls ...) (?collected-arg ...) . ?body)
+     (%collect-classes-and-arguments ?add-assertions ?args
+				     (?collected-cls ... <top>)
+				     (?collected-arg ... ?arg)
+				     . ?body))
+
+    ;;Matches all the arguments have been processed and NO rest argument
+    ;;is present.  This MUST come before the one below.
+    ((_ #f () (?collected-cls ...) (?collected-arg ...) . ?body)
+     (lambda (?collected-arg ...)
+       (with-fields ((?collected-cls ?collected-arg) ...) . ?body)))
+    ((_ #t () (?collected-cls ...) (?collected-arg ...) . ?body)
+     (lambda (?collected-arg ...)
+       (%add-assertions (?collected-cls ...) (?collected-arg ...))
+       (with-fields ((?collected-cls ?collected-arg) ...) . ?body)))
+
+    ;;Matches two cases: (1) when  all the arguments have been processed
+    ;;and only  the rest argument is  there; (2) when the  formals is an
+    ;;identifier (lambda args ---).
+    ((_ #f ?rest (?collected-cls ...) (?collected-arg ...) . ?body)
+     (lambda (?collected-arg ... . ?rest)
+       (with-fields ((?collected-cls ?collected-arg) ...) . ?body)))
+    ((_ #t ?rest (?collected-cls ...) (?collected-arg ...) . ?body)
+     (lambda (?collected-arg ... . ?rest)
+       (%add-assertions (?collected-cls ...) (?collected-arg ...))
+       (with-fields ((?collected-cls ?collected-arg) ...) . ?body)))
+    ))
+
+(define-syntax %add-assertions
+  (syntax-rules (<top>)
+
+    ;;Drop arguments of class "<top>",  all the values are implicitly of
+    ;;type "<top>".
+    ((_ (<top> ?cls ...) (?arg0 ?arg ...))
+     (%add-assertions (?cls ...) (?arg ...)))
+
+    ;;Add an assertion.
+    ((_ (?cls0 ?cls ...) (?arg0 ?arg ...))
+     (begin (assert (is-a? ?arg0 ?cls0)) (%add-assertions (?cls ...) (?arg ...))))
+
+    ;;No more arguments.
+    ((_ () ())
+     (values))))
 
 
 (define-record-type <top>

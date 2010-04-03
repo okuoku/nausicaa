@@ -37685,13 +37685,23 @@ conventional record type name.
 @end deffn
 
 
-@deffn Syntax lambda/with ((@ameta{arg} @ameta{class}) ...) @ameta{body}
-@deffnx Syntax lambda/with (@ameta{arg} ...) @ameta{body}
-Like @func{lambda} but, when used in the first form, encloses the body
-into a @func{with-fields} syntax defining identifier syntaxes to access
-the fields and virtual fields of the @meta{arg} objects and records.
-When an argument as no type: we can use @class{top} as its conventional
-record type name.
+@deffn Syntax lambda/with @ameta{formals} @ameta{body}
+Like @func{lambda} but encloses the body into a @func{with-fields}
+syntax defining identifier syntaxes to access the fields and virtual
+fields of the arguments.  @meta{formals} must have the same form of the
+formals for @func{lambda}, but each @meta{variable} argument can be an
+identifier, as in @func{lambda}, or a list of the form:
+
+@example
+(@cmeta{variable} @cmeta{record name})
+@end example
+
+@noindent
+in which case the @meta{variable} argument is meant to be of type
+@meta{record name} and the corresponding identifier syntaxes are
+defined.  When an argument as no type: we can use @class{top} as its
+conventional record type name, or let @func{lambda/with} select
+@class{top} automatically.
 
 @example
 (define-class <fraction>
@@ -37704,7 +37714,7 @@ record type name.
     (numerator o.number)))
 
 (define <fraction>-numerator-set!
-  (lambda/with ((o <fraction>) (v <top>))
+  (lambda/with ((o <fraction>) v)
     (set! o.number (/ v (denominator o.number)))))
 
 (define <fraction>-denominator
@@ -37712,7 +37722,7 @@ record type name.
     (denominator o.number)))
 
 (define <fraction>-denominator-set!
-  (lambda/with ((o <fraction>) (v <top>))
+  (lambda/with ((o <fraction>) v)
     (set! o.number (/ (numerator o.number) v))))
 
 (let-fields (((o <fraction>) (make-<fraction> 2/3)))
@@ -37722,15 +37732,12 @@ record type name.
 @end deffn
 
 
-@deffn Syntax define/with (@ameta{variable} (@ameta{arg} @ameta{class}) ...) @ameta{body}
-@deffnx Syntax define/with (@ameta{variable} @ameta{arg} ...) @ameta{body}
+@deffn Syntax define/with (@ameta{variable} @ameta{formals}) @ameta{body}
+@deffnx Syntax define/with (@ameta{variable} . @ameta{formal}) @ameta{body}
 @deffnx Syntax define/with @ameta{variable} @ameta{expression}
 @deffnx Syntax define/with @ameta{variable}
-Like @func{define} but, when used in the first form, encloses the body
-into a @func{with-fields} syntax defining identifier syntaxes to access
-the fields and virtual fields of the @meta{arg} objects and records.
-When an argument as no type: we can use @class{top} as its conventional
-record type name.
+Like @func{define} but when used in the first and second forms expands
+to the use of @func{lambda/with}.
 
 @example
 (define-class <fraction>
@@ -37741,21 +37748,49 @@ record type name.
 (define/with (<fraction>-numerator (o <fraction>))
   (numerator o.number))
 
-(define/with (<fraction>-numerator-set! (o <fraction>)
-                                        (v <top>))
+(define/with (<fraction>-numerator-set! (o <fraction>) v)
   (set! o.number (/ v (denominator o.number))))
 
 (define/with (<fraction>-denominator (o <fraction>))
   (denominator o.number))
 
-(define/with (<fraction>-denominator-set! (o <fraction>)
-                                          (v <top>))
+(define/with (<fraction>-denominator-set! (o <fraction>) v)
   (set! o.number (/ (numerator o.number) v)))
 
 (let-fields (((o <fraction>) (make-<fraction> 2/3)))
   o.numerator)
 @result{} 2
 @end example
+@end deffn
+
+
+@deffn Syntax lambda/with* @ameta{formals} @ameta{body}
+Like @func{lambda/with*}, but prepends to the body a list of calls to
+@func{assert} to verify the type of the arguments.  For example:
+
+@example
+(lambda/with* ((a <number>) (b <string>))
+  ---)
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(lambda/with ((a <number>) (b <string>))
+  (assert (is-a? a <number>))
+  (assert (is-a? b <string>))
+  ---)
+@end example
+@end deffn
+
+
+@deffn Syntax define/with* (@ameta{variable} @ameta{formals}) @ameta{body}
+@deffnx Syntax define/with* (@ameta{variable} . @ameta{formal}) @ameta{body}
+@deffnx Syntax define/with* @ameta{variable} @ameta{expression}
+@deffnx Syntax define/with* @ameta{variable}
+Like @func{define/with}, but in the first and second forms expands to
+the use of @func{lambda/with*}.
 @end deffn
 
 @c page
