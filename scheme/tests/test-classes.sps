@@ -1273,7 +1273,7 @@
   #t)
 
 
-(parametrise ((check-test-name 'macro-makers))
+#;(parametrise ((check-test-name 'macro-makers))
 
 ;;; These tests make use of the record types exported by (records-lib).
 
@@ -1303,7 +1303,7 @@
   #t)
 
 
-(parametrise ((check-test-name 'predicates))
+#;(parametrise ((check-test-name 'predicates))
 
 ;;; These tests make use of the record types exported by (records-lib).
 
@@ -1402,7 +1402,7 @@
   #t)
 
 
-(parametrise ((check-test-name 'inspection))
+#;(parametrise ((check-test-name 'inspection))
 
   (let ()
     (define-class <alpha>

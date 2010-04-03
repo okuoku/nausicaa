@@ -1566,12 +1566,7 @@
 (define-syntax make
   (syntax-rules ()
     ((_ ?record-name ?arg ...)
-     (let-syntax
-	 ((dummy (lambda (stx)
-		   #`((quote #,(record-constructor
-				(record-constructor-descriptor ?record-name)))
-		      ?arg ...))))
-       (dummy)))))
+     (record-constructor (record-constructor-descriptor ?record-name) ?arg ...))))
 
 
 ;;;; predicates
