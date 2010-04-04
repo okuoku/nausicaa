@@ -144,7 +144,7 @@
   			 (immutable b)
   			 c))
   	       (define o (make-<alpha> 1 2 3))
-  	       (with-fields ((<alpha> o))
+  	       (with-fields ((o <alpha>))
   		 (set! o.a #t)
   		 o.a))
   	    (environment '(nausicaa) '(classes)))
@@ -159,7 +159,7 @@
   			   (immutable b)
   			   c))
   		 (define o (make-<alpha> 1 2 3))
-  		 (with-fields ((<alpha> o))
+  		 (with-fields ((o <alpha>))
   		   (set! o.b #f)))
   	      (environment '(nausicaa) '(classes))))
     => #t)
@@ -173,7 +173,7 @@
   			   (immutable b)
   			   c))
   		 (define o (make-<alpha> 1 2 3))
-  		 (with-fields ((<alpha> o))
+  		 (with-fields ((o <alpha>))
   		   (set! o.c #f)))
   	      (environment '(nausicaa) '(classes))))
     => #t)
@@ -414,9 +414,9 @@
     (define s (make-<alpha> #\a))
     (define t (make-<alpha> 1.0))
 
-    (with-fields ((<alpha> r)
-    		  (<alpha> s)
-    		  (<alpha> t))
+    (with-fields ((r <alpha>)
+    		  (s <alpha>)
+    		  (t <alpha>))
       (check
       	  (list r.a s.a t.a)
       	=> '(123 #\a 1.0))
@@ -442,9 +442,9 @@
     (define r (make-<alpha> 1 2))
     (define s (make-<alpha> #\a #\b))
     (define t (make-<alpha> 1.0 2.0))
-    (with-fields ((<alpha> r)
-		  (<alpha> s)
-		  (<alpha> t))
+    (with-fields ((r <alpha>)
+		  (s <alpha>)
+		  (t <alpha>))
       (check
 	  (list r.a s.a t.a
 		r.b s.b t.b)
@@ -490,13 +490,13 @@
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
+	  (with-fields ((o <fraction>))
 	    o.numerator))
       => 2)
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
+	  (with-fields ((o <fraction>))
 	    o.denominator))
       => 3)
 
@@ -527,26 +527,26 @@
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
+	  (with-fields ((o <fraction>))
 	    o.numerator))
       => 2)
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
+	  (with-fields ((o <fraction>))
 	    o.denominator))
       => 3)
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
+	  (with-fields ((o <fraction>))
 	    (set! o.numerator 5)
 	    o.number))
       => 5/3)
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
+	  (with-fields ((o <fraction>))
 	    (set! o.denominator 5)
 	    o.number))
       => 2/5)
@@ -559,7 +559,7 @@
   (let ()
     (define r (make-<alpha> 123 #\a 1.0))
 
-    (with-fields ((<alpha> r))
+    (with-fields ((r <alpha>))
 
       (check
       	  (list r.a r.b r.c)
@@ -903,20 +903,20 @@
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
+	  (with-fields ((o <fraction>))
 	    o.denominator))
       => 3)
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
+	  (with-fields ((o <fraction>))
 	    (set! o.numerator 5)
 	    o.number))
       => 5/3)
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
+	  (with-fields ((o <fraction>))
 	    (set! o.denominator 5)
 	    o.number))
       => 2/5)
@@ -1132,20 +1132,20 @@
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
+	  (with-fields ((o <fraction>))
 	    o.denominator))
       => 3)
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
+	  (with-fields ((o <fraction>))
 	    (set! o.numerator 5)
 	    o.number))
       => 5/3)
 
     (check
 	(let ((o (make-<fraction> 2/3)))
-	  (with-fields ((<fraction> o))
+	  (with-fields ((o <fraction>))
 	    (set! o.denominator 5)
 	    o.number))
       => 2/5)

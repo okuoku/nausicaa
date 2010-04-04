@@ -1260,7 +1260,7 @@
       (string->symbol (string-append (symbol->string class) "-with-record-fields-of")))
     (syntax-case stx ()
 
-      ((_ ((?class ?name) ?clause ...) ?body0 ?body ...)
+      ((_ ((?name ?class) ?clause ...) ?body0 ?body ...)
        (with-syntax ((ACCESSOR (datum->syntax #'?class (%accessor (syntax->datum #'?class)))))
 	 #'(ACCESSOR ?name (with-fields (?clause ...) ?body0 ?body ...))))
 
@@ -1271,13 +1271,13 @@
   (syntax-rules ()
     ((_ (((?var ?class) ?init) ...) ?body0 ?body ...)
      (let ((?var ?init) ...)
-       (with-fields ((?class ?var) ...) ?body0 ?body ...)))))
+       (with-fields ((?var ?class) ...) ?body0 ?body ...)))))
 
 (define-syntax let*-fields
   (syntax-rules ()
     ((_ (((?var0 ?class0) ?init0) ((?var ?class) ?init) ...) ?body0 ?body ...)
      (let ((?var0 ?init0))
-       (with-fields ((?class0 ?var0))
+       (with-fields ((?var0 ?class0))
 	 (let*-fields (((?var ?class) ?init) ...) ?body0 ?body ...))))
 
     ((_ () ?body0 ?body ...)
@@ -1287,7 +1287,7 @@
   (syntax-rules ()
     ((_ (((?var ?class) ?init) ...) ?body0 ?body ...)
      (let ((?var #f) ...)
-       (with-fields ((?class ?var) ...)
+       (with-fields ((?var ?class) ...)
 	 (set! ?var ?init) ...
 	 ?body0 ?body ...)))))
 
@@ -1295,7 +1295,7 @@
   (syntax-rules ()
     ((_ (((?var ?class) ?init) ...) ?body0 ?body ...)
      (let ((?var #f) ...)
-       (with-fields ((?class ?var) ...)
+       (with-fields ((?var ?class) ...)
 	 (set! ?var ?init) ...
 	 ?body0 ?body ...)))))
 
@@ -1360,22 +1360,22 @@
     ;;is present.  This MUST come before the one below.
     ((_ #f () (?collected-cls ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ...)
-       (with-fields ((?collected-cls ?collected-arg) ...) . ?body)))
+       (with-fields ((?collected-arg ?collected-cls) ...) . ?body)))
     ((_ #t () (?collected-cls ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ...)
        (%add-assertions (?collected-cls ...) (?collected-arg ...))
-       (with-fields ((?collected-cls ?collected-arg) ...) . ?body)))
+       (with-fields ((?collected-arg ?collected-cls) ...) . ?body)))
 
     ;;Matches two cases: (1) when  all the arguments have been processed
     ;;and only  the rest argument is  there; (2) when the  formals is an
     ;;identifier (lambda args ---).
     ((_ #f ?rest (?collected-cls ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ... . ?rest)
-       (with-fields ((?collected-cls ?collected-arg) ...) . ?body)))
+       (with-fields ((?collected-arg ?collected-cls) ...) . ?body)))
     ((_ #t ?rest (?collected-cls ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ... . ?rest)
        (%add-assertions (?collected-cls ...) (?collected-arg ...))
-       (with-fields ((?collected-cls ?collected-arg) ...) . ?body)))
+       (with-fields ((?collected-arg ?collected-cls) ...) . ?body)))
     ))
 
 (define-syntax %add-assertions

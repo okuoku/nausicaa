@@ -37509,7 +37509,7 @@ binding along with the record name; @ref{classes define} for details on
 classes definition.
 
 
-@deffn Syntax with-fields ((@ameta{record name} @ameta{name}) ...) @ameta{body}
+@deffn Syntax with-fields ((@ameta{name} @ameta{record name}) ...) @ameta{body}
 Expand into a @func{let-syntax} form which defines identifier syntaxes
 to be used to access and mutate fields and virtual of objects and
 records.
@@ -37526,7 +37526,9 @@ syntax for a field named @samp{alpha} is built as:
 that is: identifier name, dot, field name.  One identifier syntax for
 each field and virtual field of @meta{record name} is defined; mutable
 fields generate a full identifier syntax with accessor and mutator;
-immutable fields generate only the accessor identifier syntax.
+immutable fields generate only the accessor identifier syntax.  Only the
+fields of @ameta{record name} are handled, @strong{not} the fields of
+its parents.
 
 @example
 (define-class <alpha>
@@ -37536,9 +37538,9 @@ immutable fields generate only the accessor identifier syntax.
 (define s (make-<alpha> #\a))
 (define t (make-<alpha> 1.0))
 
-(with-fields ((<alpha> r)
-              (<alpha> s)
-              (<alpha> t))
+(with-fields ((r <alpha>)
+              (s <alpha>)
+              (t <alpha>))
 
   (list r.a s.a t.a) @result{} (123 #\a 1.0)
 
@@ -37561,7 +37563,7 @@ immutable fields generate only the accessor identifier syntax.
     (denominator (<fraction>-number o)))
 
   (let ((o (make-<fraction> 2/3)))
-    (with-fields ((<fraction> o))
+    (with-fields ((o <fraction>))
       (list o.numerator o.denominator))))
   @result{} (2 3)
 @end example
