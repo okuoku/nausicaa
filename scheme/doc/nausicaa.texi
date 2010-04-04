@@ -268,6 +268,10 @@ Revised^6 Report on the algorithmic language Scheme
 <\THING\>
 @end macro
 
+@macro metao{THING}
+<\THING\0>
+@end macro
+
 @macro metai{THING}
 <\THING\1>
 @end macro
@@ -285,6 +289,10 @@ Revised^6 Report on the algorithmic language Scheme
 
 @macro cmeta{THING}
 <\THING\>
+@end macro
+
+@macro cmetao{THING}
+<\THING\0>
 @end macro
 
 @macro cmetai{THING}
@@ -37509,14 +37517,22 @@ binding along with the record name; @ref{classes define} for details on
 classes definition.
 
 
-@deffn Syntax with-fields ((@ameta{name} @ameta{record name}) ...) @ameta{body}
+@deffn Syntax with-fields (@ameta{clause} ...) @ameta{body}
 Expand into a @func{let-syntax} form which defines identifier syntaxes
-to be used to access and mutate fields and virtual of objects and
+to be used to access and mutate fields and virtual fields of objects and
 records.
 
-@meta{record name} must be a record type name; @meta{name} must be an
-identifier bound to the object or record to be accessed.  The identifier
-syntax for a field named @samp{alpha} is built as:
+Each @meta{clause} must be one among:
+
+@example
+(@cmeta{name} @cmeta{record name})
+(@cmeta{name} @cmetao{record name} @cmeta{record name} ...)
+@end example
+
+@noindent
+where @meta{record name} must be a record type name; @meta{name} must be
+an identifier bound to the object or record to be accessed.  The
+identifier syntax for a field named @samp{alpha} is built as:
 
 @example
 @cmeta{name}.alpha
@@ -37529,6 +37545,8 @@ fields generate a full identifier syntax with accessor and mutator;
 immutable fields generate only the accessor identifier syntax.  Only the
 fields of @ameta{record name} are handled, @strong{not} the fields of
 its parents.
+
+Example:
 
 @example
 (define-class <alpha>
@@ -37549,23 +37567,46 @@ its parents.
   (set! t.a 2.0)
 
   (list r.a s.a t.a)) @result{} (456 #\b 2.0)
+@end example
 
-(let ()
-  (define-class <fraction>
-    (fields (mutable number))
-    (virtual-fields (immutable numerator)
-                    (immutable denominator)))
+@noindent
+an example with virtual fields:
 
-  (define (<fraction>-numerator o)
-    (numerator (<fraction>-number o)))
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (immutable numerator)
+                  (immutable denominator)))
 
-  (define (<fraction>-denominator o)
-    (denominator (<fraction>-number o)))
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
 
-  (let ((o (make-<fraction> 2/3)))
-    (with-fields ((o <fraction>))
-      (list o.numerator o.denominator))))
-  @result{} (2 3)
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(define o (make-<fraction> 2/3))
+
+(with-fields ((o <fraction>))
+  (list o.numerator o.denominator))
+@result{} (2 3)
+@end example
+
+@noindent
+an example with multiple types:
+
+@example
+(define-class <alpha>
+  (fields (immutable a)))
+
+(define-class <beta>
+  (parent <alpha>)
+  (fields (immutable b)))
+
+(define o (make-<beta> 1 2))
+
+(with-fields ((o <beta> <alpha>))
+  (list o.a o.b))
+@result{} (1 2)
 @end example
 
 When a @meta{name} as no type: we can use @class{top} as its
@@ -37574,7 +37615,7 @@ making use of @func{with-fields}.
 @end deffn
 
 
-@deffn Syntax let-fields (((@ameta{var} @ameta{record name}) @ameta{init}) ...) @ameta{body}
+@deffn Syntax let-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{let} but automatically enclose the body in a
 @func{with-fields} syntax using the specified record types.  When a
 variable as no type: we can use @class{top} as its conventional record
@@ -37600,7 +37641,7 @@ type name.
 @end deffn
 
 
-@deffn Syntax let*-fields (((@ameta{var} @ameta{record name}) @ameta{init}) ...) @ameta{body}
+@deffn Syntax let*-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{let*} but automatically enclose the body in a
 @func{with-fields} syntax using the specified record types.  Given two
 bindings @metai{var}, @metai{init} and @metaii{var}, @metaii{init}
@@ -37630,7 +37671,7 @@ type name.
 @end deffn
 
 
-@deffn Syntax letrec-fields (((@ameta{var} @ameta{record name}) @ameta{init}) ...) @ameta{body}
+@deffn Syntax letrec-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{letrec} but automatically enclose the body in a
 @func{with-fields} syntax using the specified record types.  The
 @meta{init} expressions can contain references to the identifier
@@ -37658,7 +37699,7 @@ we can use @class{top} as its conventional record type name.
 @end deffn
 
 
-@deffn Syntax letrec*-fields (((@ameta{var} @ameta{record name}) @ameta{init}) ...) @ameta{body}
+@deffn Syntax letrec*-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{letrec*} but automatically enclose the body in a
 @func{with-fields} syntax using the specified record types.  The
 @meta{init} expressions can contain references to the identifier
@@ -37695,7 +37736,7 @@ formals for @func{lambda}, but each @meta{variable} argument can be an
 identifier, as in @func{lambda}, or a list of the form:
 
 @example
-(@cmeta{variable} @cmeta{record name})
+(@cmeta{variable} @cmetao{record name} @ameta{record name} ...)
 @end example
 
 @noindent
@@ -38096,7 +38137,14 @@ Type for values satisfying @func{real-valued?}.
 
 
 @deftp Class <real>
-Type for values satisfying @func{real?}.
+Type for values satisfying @func{real?}.  It provides the following
+virtual fields:
+
+@table @code
+@item abs
+Immutable.  Accessing this field is like applying @func{abs} to the
+number.
+@end table
 @end deftp
 
 

@@ -405,7 +405,7 @@
 
 (parametrise ((check-test-name	'with-fields))
 
-  (let ()	;automatic generation of FIELDS-ACCESSOR name
+  (let ()	;one field
 
     (define-class <alpha>
       (fields (mutable a)))
@@ -433,7 +433,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let ()	;explicit FIELDS-ACCESSOR name
+  (let ()	;more fields
 
     (define-class <alpha>
       (fields (mutable a)
@@ -469,6 +469,24 @@
 	=> '(3 #\c 3.0  4 #\d 4.0))
 
       #f))
+
+;;; --------------------------------------------------------------------
+;;; these tests use the record definitions from (records-lib)
+
+  (check
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+	(with-fields ((r <gamma> <beta> <alpha>))
+	  (list r.a r.b r.c
+		r.d r.e r.f
+		r.g r.h r.i)))
+    => '(1 2 3 4 5 6 7 8 9))
+
+  (check
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+	(with-fields ((r <gamma> <alpha>))
+	  (list r.a r.b r.c
+		r.g r.h r.i)))
+    => '(1 2 3 7 8 9))
 
   #t)
 
@@ -603,6 +621,19 @@
 
     #f)
 
+  (check	;use the records from (records-lib)
+      (let-fields (((r <gamma> <beta> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+	(list r.a r.b r.c
+	      r.d r.e r.f
+	      r.g r.h r.i))
+    => '(1 2 3 4 5 6 7 8 9))
+
+  (check	;use the records from (records-lib)
+      (let-fields (((r <gamma> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9))
+		   ((s <beta>  <alpha>) (make-<beta>  10 20 30 40 50 60)))
+	(list r.a r.g s.a s.d))
+    => '(1 7 10 40))
+
 ;;; --------------------------------------------------------------------
 ;;; let*-fields
 
@@ -632,6 +663,19 @@
       => 2/5)
 
     #f)
+
+  (check	;use the records from (records-lib)
+      (let*-fields (((r <gamma> <beta> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+	(list r.a r.b r.c
+	      r.d r.e r.f
+	      r.g r.h r.i))
+    => '(1 2 3 4 5 6 7 8 9))
+
+  (check	;use the records from (records-lib)
+      (let*-fields (((r <gamma> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9))
+		    ((s <beta>  <alpha>) (make-<beta>  10 20 30 40 50 60)))
+	(list r.a r.g s.a s.d))
+    => '(1 7 10 40))
 
 ;;; --------------------------------------------------------------------
 ;;; letrec-fields
@@ -694,6 +738,19 @@
       => '((1 . 2) (1 . 2)))
 
     #f)
+
+  (check	;use the records from (records-lib)
+      (letrec-fields (((r <gamma> <beta> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+	(list r.a r.b r.c
+	      r.d r.e r.f
+	      r.g r.h r.i))
+    => '(1 2 3 4 5 6 7 8 9))
+
+  (check	;use the records from (records-lib)
+      (letrec-fields (((r <gamma> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9))
+		      ((s <beta>  <alpha>) (make-<beta>  10 20 30 40 50 60)))
+	(list r.a r.g s.a s.d))
+    => '(1 7 10 40))
 
 ;;; --------------------------------------------------------------------
 ;;; letrec*-fields
@@ -789,6 +846,19 @@
       => '((1 . 2) (1 . 2)))
 
     #f)
+
+  (check	;use the records from (records-lib)
+      (letrec*-fields (((r <gamma> <beta> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+	(list r.a r.b r.c
+	      r.d r.e r.f
+	      r.g r.h r.i))
+    => '(1 2 3 4 5 6 7 8 9))
+
+  (check	;use the records from (records-lib)
+      (letrec*-fields (((r <gamma> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9))
+		       ((s <beta>  <alpha>) (make-<beta>  10 20 30 40 50 60)))
+	(list r.a r.g s.a s.d))
+    => '(1 7 10 40))
 
   #t)
 
@@ -923,6 +993,26 @@
 
     #f)
 
+;;; --------------------------------------------------------------------
+;;; use the records from (records-lib)
+
+  (check
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+	    (f (lambda/with ((r <gamma> <beta> <alpha>))
+		 (list r.a r.b r.c
+		       r.d r.e r.f
+		       r.g r.h r.i))))
+	(f r))
+    => '(1 2 3 4 5 6 7 8 9))
+
+  (check	;use the records from (records-lib)
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+	    (s (make-<beta>  10 20 30 40 50 60))
+	    (f (lambda/with ((r <gamma> <alpha>) (s <beta> <alpha>))
+		 (list r.a r.g s.a s.d))))
+	(f r s))
+    => '(1 7 10 40))
+
   #t)
 
 
@@ -1053,6 +1143,26 @@
 	      (environment '(nausicaa) '(classes))))
     => #t)
 
+;;; --------------------------------------------------------------------
+;;; use the records from (records-lib)
+
+  (check
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+	    (f (lambda/with* ((r <gamma> <beta> <alpha>))
+		 (list r.a r.b r.c
+		       r.d r.e r.f
+		       r.g r.h r.i))))
+	(f r))
+    => '(1 2 3 4 5 6 7 8 9))
+
+  (check	;use the records from (records-lib)
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+	    (s (make-<beta>  10 20 30 40 50 60))
+	    (f (lambda/with* ((r <gamma> <alpha>) (s <beta> <alpha>))
+		 (list r.a r.g s.a s.d))))
+	(f r s))
+    => '(1 7 10 40))
+
   #t)
 
 
@@ -1152,6 +1262,26 @@
 
     #f)
 
+;;; --------------------------------------------------------------------
+;;; use the records from (records-lib)
+
+  (check
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+	(define/with (f (r <gamma> <beta> <alpha>))
+	  (list r.a r.b r.c
+		r.d r.e r.f
+		r.g r.h r.i))
+	(f r))
+    => '(1 2 3 4 5 6 7 8 9))
+
+  (check	;use the records from (records-lib)
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+	    (s (make-<beta>  10 20 30 40 50 60)))
+	(define/with (f (r <gamma> <alpha>) (s <beta> <alpha>))
+	  (list r.a r.g s.a s.d))
+	(f r s))
+    => '(1 7 10 40))
+
   #t)
 
 
@@ -1207,6 +1337,26 @@
     (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
     (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
     #f)
+
+;;; --------------------------------------------------------------------
+;;; use the records from (records-lib)
+
+  (check
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+	(define/with* (f (r <gamma> <beta> <alpha>))
+	  (list r.a r.b r.c
+		r.d r.e r.f
+		r.g r.h r.i))
+	(f r))
+    => '(1 2 3 4 5 6 7 8 9))
+
+  (check	;use the records from (records-lib)
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+	    (s (make-<beta>  10 20 30 40 50 60)))
+	(define/with* (f (r <gamma> <alpha>) (s <beta> <alpha>))
+	  (list r.a r.g s.a s.d))
+	(f r s))
+    => '(1 7 10 40))
 
   #t)
 

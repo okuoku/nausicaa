@@ -1255,47 +1255,63 @@
 ;;;; fields access syntaxes
 
 (define-syntax with-fields
+  ;;Hand  everything to  %WITH-FIELDS.   This is  because the  recursive
+  ;;%WITH-FIELDS needs  to allow  input forms which  we do not  want for
+  ;;WITH-FIELDS.
+  ;;
+  ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
+  ;;expanding macros into WITH-FIELDS forms.
+  ;;
+  (syntax-rules ()
+    ((_ (?clause ...) ?body0 ?body ...)
+     (%with-fields (?clause ...) ?body0 ?body ...))))
+
+(define-syntax %with-fields
   (lambda (stx)
     (define (%accessor class)
       (string->symbol (string-append (symbol->string class) "-with-record-fields-of")))
     (syntax-case stx ()
 
-      ((_ ((?name ?class) ?clause ...) ?body0 ?body ...)
-       (with-syntax ((ACCESSOR (datum->syntax #'?class (%accessor (syntax->datum #'?class)))))
-	 #'(ACCESSOR ?name (with-fields (?clause ...) ?body0 ?body ...))))
+      ((_ ((?name ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
+       (with-syntax ((ACCESSOR (datum->syntax #'?class0 (%accessor (syntax->datum #'?class0)))))
+	 #'(ACCESSOR ?name (%with-fields ((?name ?class ...) ?clause ...) ?body0 ?body ...))))
+
+      ((_ ((?name) ?clause ...) ?body0 ?body ...)
+       #'(%with-fields (?clause ...) ?body0 ?body ...))
 
       ((_ () ?body0 ?body ...)
        #'(begin ?body0 ?body ...)))))
 
 (define-syntax let-fields
   (syntax-rules ()
-    ((_ (((?var ?class) ?init) ...) ?body0 ?body ...)
+    ((_ (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
      (let ((?var ?init) ...)
-       (with-fields ((?var ?class) ...) ?body0 ?body ...)))))
+       (with-fields ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))))
 
 (define-syntax let*-fields
   (syntax-rules ()
-    ((_ (((?var0 ?class0) ?init0) ((?var ?class) ?init) ...) ?body0 ?body ...)
+
+    ((_ (((?var0 ?class0 ?class ...) ?init0) ?binding ...) ?body0 ?body ...)
      (let ((?var0 ?init0))
-       (with-fields ((?var0 ?class0))
-	 (let*-fields (((?var ?class) ?init) ...) ?body0 ?body ...))))
+       (with-fields ((?var0 ?class0 ?class ...))
+	 (let*-fields (?binding ...) ?body0 ?body ...))))
 
     ((_ () ?body0 ?body ...)
      (begin ?body0 ?body ...))))
 
 (define-syntax letrec-fields
   (syntax-rules ()
-    ((_ (((?var ?class) ?init) ...) ?body0 ?body ...)
+    ((_ (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
      (let ((?var #f) ...)
-       (with-fields ((?var ?class) ...)
+       (with-fields ((?var ?class0 ?class ...) ...)
 	 (set! ?var ?init) ...
 	 ?body0 ?body ...)))))
 
 (define-syntax letrec*-fields
   (syntax-rules ()
-    ((_ (((?var ?class) ?init) ...) ?body0 ?body ...)
+    ((_ (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
      (let ((?var #f) ...)
-       (with-fields ((?var ?class) ...)
+       (with-fields ((?var ?class0 ?class ...) ...)
 	 (set! ?var ?init) ...
 	 ?body0 ?body ...)))))
 
@@ -1313,8 +1329,7 @@
 (define-syntax define/with*
   (syntax-rules ()
     ((_ (?name . ?formals) . ?body)
-     (define ?name
-       (lambda/with* ?formals . ?body)))
+     (define ?name (lambda/with* ?formals . ?body)))
     ((_ ?variable ?expression)
      (define ?variable ?expression))
     ((_ ?variable)
@@ -1343,39 +1358,39 @@
   (syntax-rules ()
 
     ;;Matches when the next argument to be processed has a type.
-    ((_ ?add-assertions ((?arg ?cls) . ?args) (?collected-cls ...) (?collected-arg ...) . ?body)
+    ((_ ?add-assertions ((?arg ?cls0 ?cls ...) . ?args) (?collected-cls ...) (?collected-arg ...) . ?body)
      (%collect-classes-and-arguments ?add-assertions ?args
-				     (?collected-cls ... ?cls)
+				     (?collected-cls ... (?cls0 ?cls ...))
 				     (?collected-arg ... ?arg)
 				     . ?body))
 
     ;;Matches when the next argument to be processed has no type.
     ((_ ?add-assertions (?arg . ?args) (?collected-cls ...) (?collected-arg ...) . ?body)
      (%collect-classes-and-arguments ?add-assertions ?args
-				     (?collected-cls ... <top>)
+				     (?collected-cls ... (<top>))
 				     (?collected-arg ... ?arg)
 				     . ?body))
 
     ;;Matches all the arguments have been processed and NO rest argument
     ;;is present.  This MUST come before the one below.
-    ((_ #f () (?collected-cls ...) (?collected-arg ...) . ?body)
+    ((_ #f () ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ...)
-       (with-fields ((?collected-arg ?collected-cls) ...) . ?body)))
-    ((_ #t () (?collected-cls ...) (?collected-arg ...) . ?body)
+       (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body)))
+    ((_ #t () ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ...)
-       (%add-assertions (?collected-cls ...) (?collected-arg ...))
-       (with-fields ((?collected-arg ?collected-cls) ...) . ?body)))
+       (%add-assertions ((?collected-cls ...) ...) (?collected-arg ...))
+       (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body)))
 
     ;;Matches two cases: (1) when  all the arguments have been processed
     ;;and only  the rest argument is  there; (2) when the  formals is an
     ;;identifier (lambda args ---).
-    ((_ #f ?rest (?collected-cls ...) (?collected-arg ...) . ?body)
+    ((_ #f ?rest ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ... . ?rest)
-       (with-fields ((?collected-arg ?collected-cls) ...) . ?body)))
-    ((_ #t ?rest (?collected-cls ...) (?collected-arg ...) . ?body)
+       (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body)))
+    ((_ #t ?rest ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ... . ?rest)
-       (%add-assertions (?collected-cls ...) (?collected-arg ...))
-       (with-fields ((?collected-arg ?collected-cls) ...) . ?body)))
+       (%add-assertions ((?collected-cls ...) ...) (?collected-arg ...))
+       (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body)))
     ))
 
 (define-syntax %add-assertions
@@ -1383,12 +1398,13 @@
 
     ;;Drop arguments of class "<top>",  all the values are implicitly of
     ;;type "<top>".
-    ((_ (<top> ?cls ...) (?arg0 ?arg ...))
+    ((_ ((<top>) ?cls ...) (?arg0 ?arg ...))
      (%add-assertions (?cls ...) (?arg ...)))
 
     ;;Add an assertion.
-    ((_ (?cls0 ?cls ...) (?arg0 ?arg ...))
-     (begin (assert (is-a? ?arg0 ?cls0)) (%add-assertions (?cls ...) (?arg ...))))
+    ((_ ((?cls0 ...) ?cls ...) (?arg0 ?arg ...))
+     (begin (assert (is-a? ?arg0 ?cls0)) ...
+	    (%add-assertions (?cls ...) (?arg ...))))
 
     ;;No more arguments.
     ((_ () ())
@@ -1534,7 +1550,8 @@
 
 (define-class <real>
   (parent <real-valued>)
-  (nongenerative nausicaa:builtin:<real>))
+  (nongenerative nausicaa:builtin:<real>)
+  (virtual-fields (immutable abs)))
 
 (define-class <rational-valued>
   (parent <real>)
