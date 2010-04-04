@@ -38342,11 +38342,11 @@ Type for values satisfying @func{record?}.
 
 
 In the context of the @library{generics} library, @dfn{generic
-functions} are procedures that can be specialised to the (conventional)
-record types of their arguments.  Each specialisation of a generic
-function is called @dfn{method}.  When applying a generic function to a
-set of arguments, the most specific method with respect to the
-arguments' types is chosen.
+functions} are procedures that can be specialised to the (possibly
+conventional) record types of their arguments.  Each specialisation of a
+generic function is called @dfn{method}.  When applying a generic
+function to a set of arguments, the most specific method with respect to
+the arguments' types is chosen.
 
 The @library{generics} library is built on top of the @library{classes}
 library; importing the @library{generics} library automatically imports
@@ -38409,8 +38409,9 @@ closure.
 @subsubheading Applicability
 
 First we need to understand when a method is applicable to a tuple of
-arguments.  Given a tuple of arguments, a method supporting no rest
-arguments is applicable to it if:
+arguments.  Record types are identified by their @acronym{UID}: the
+return value of @func{record-type-uid}.  Given a tuple of arguments, a
+method supporting no rest arguments is applicable to the tuple if:
 
 @enumerate
 @item
@@ -38418,12 +38419,13 @@ The length of the signature is equal to the length of the arguments'
 tuple.
 
 @item
-Position by position, the @rtd{} in the signature is @func{eq?}
-to the @rtd{} of the argument or it is one of its parents.
+Position by position, the @acronym{UID} of the @rtd{} in the signature
+is @func{eq?}  to the @acronym{UID} of the @rtd{} of the argument or to
+the @acronym{UID} of one of its parents.
 @end enumerate
 
 @noindent
-a method supporting rest arguments is applicable to it if:
+a method supporting rest arguments is applicable to the tuple if:
 
 @enumerate
 @item
@@ -38432,8 +38434,9 @@ arguments' tuple.
 
 @item
 Position by position, up to the last element in the signature, the
-@rtd{} in the signature is @func{eq?} to the @rtd{} of the
-argument or it is one of its parents.
+@acronym{UID} of the @rtd{} in the signature is @func{eq?} to the
+@acronym{UID} of the @rtd{} of the argument or to the @acronym{UID} of
+one of its parents.
 @end enumerate
 
 @c ------------------------------------------------------------
@@ -38449,8 +38452,8 @@ generic function, to have the same signature and the same support for
 rest arguments.
 
 Also, records support only single inheritance, so if two methods are
-applicable the homologous @rtd{}s in their signatures are
-@func{eq?} or subtypes.
+applicable: the homologous @rtd{} in their signatures, or their
+subtypes, have @func{eq?}  @acronym{UID}s.
 
 @enumerate
 @item
@@ -38463,18 +38466,20 @@ by position from the beginning to the end.
 
 @enumerate a
 @item
-If the @rtd{}s are @func{eq?}, the next couple is inspected.
+If the @rtd{}s have @func{eq?} @acronym{UID}s, the next couple is
+inspected.
 
 @item
-If the @rtd{} from @var{A} is a subtype of the one from @var{B}:
-@var{A} is more specific than @var{B}.
+If the @rtd{} from @var{A} is a subtype of the one from @var{B}: @var{A}
+is more specific than @var{B}.
 @end enumerate
 
 @item
 If the methods' signatures have the same length, and, position by
-position, the @rtd{}s of @var{A} are @func{eq?} to the
-@rtd{}s of @var{B}, but @var{A} supports rest arguments while
-@var{B} does not: Then @var{B} is more specific than @var{A}.
+position, the @rtd{}s of @var{A} have @acronym{UID}s which are
+@func{eq?}  to the @acronym{UID}s of the @rtd{}s of @var{B}, but @var{A}
+supports rest arguments while @var{B} does not: Then @var{B} is more
+specific than @var{A}.
 @end enumerate
 
 @c page
@@ -38486,8 +38491,8 @@ The number of arguments (arity) of a generic function is undefined:
 Every method can have a different number of arguments.
 
 
-@deffn Syntax define-generic @var{name}
-Define a new generic function and bind it to @var{name}.
+@deffn Syntax define-generic @ameta{name}
+Define a new generic function and bind it to @meta{name}.
 @end deffn
 
 
@@ -38496,10 +38501,10 @@ Build and return a new generic function.
 @end defun
 
 
-@deffn Syntax define-generic/merge @var{name} @var{generic0} @var{generic} ...
-Define a new generic function and bind it to @var{name}.  The internal
+@deffn Syntax define-generic/merge @ameta{name} @ametao{generic} @ameta{generic} ...
+Define a new generic function and bind it to @meta{name}.  The internal
 collection of methods holds the union of the method collections from the
-@var{generic} arguments, which must be generic functions.
+@meta{generic} arguments, which must be generic functions.
 
 The union is performed visiting arguments from left to right; when two
 methods have the same signature and the same support for rest arguments,
@@ -38510,43 +38515,41 @@ functions bound to the same identifier.
 @end deffn
 
 
-@deffn Syntax declare-method @var{generic} (@var{arg-spec} ...) . @var{body}
-@deffnx Syntax declare-method (@var{generic} @var{arg-spec} ...) . @var{body}
-Add a new method to an already existent generic function, @var{generic};
-a declaration is @strong{not} a definition.  @ref{baselib definitions,
-Definitions}
+@deffn Syntax define-method @ameta{generic} (@ameta{arg-spec} ...) @ameta{body}
+@deffnx Syntax define-method (@ameta{generic} @ameta{arg-spec} ...) @ameta{body}
+Add a new method to an already existent generic function,
+@ameta{generic}.
 
-The list of @var{arg-spec} specifies the @rtd{}s of the arguments
-for which this method specialises the generic function.  Notice that
-rest arguments are supported and specified with the usual syntax.  An
-@var{arg-spec} can be:
+The list of @meta{arg-spec} specifies the @rtd{}s of the arguments for
+which this method specialises the generic function.  Notice that rest
+arguments are supported and specified with the usual syntax.  An
+@meta{arg-spec} can be:
 
 @table @code
-@item (@var{arg} @var{record-name})
-Where @var{arg} is the formal name of the argument and @var{record-name}
-the (conventional) record name of expected values.
+@item (@meta{arg} @meta{record name})
+Where @meta{arg} is the formal name of the argument and @meta{record
+name} the (possibly conventional) record name of expected values.
 
-@item @var{arg}
-Where @var{arg} is the formal name of the argument.  In this case the
-@rtd{} defaults to the conventional @class{top}, which is
-interpreted as parent of every other @rtd{} (and so it has the
-least specificity).
+@item @meta{arg}
+Where @meta{arg} is the formal name of the argument.  In this case the
+@rtd{} defaults to the conventional @class{top}, which is interpreted as
+parent of every other @rtd{} (and so it has the least specificity).
 @end table
 
 If a method is defined with the same signature, and support for rest
 arguments, of an already registered method: The old method is
 overwritten by the new one.  Two methods having, position by position,
-arguments of the same @rtd{}, but such that one supports rest
-arguments and the other does not, are different.
+arguments of the same @rtd{}, but such that one supports rest arguments
+and the other does not, are different.
 @end deffn
 
 
-@deffn Syntax add-method @var{generic} @var{signature} @var{has-rest} @var{closure}
-Add a new method to an already existent generic function, @var{generic}.
-@var{signature} must be a list of record names for which this method
-specialises the generic function.  @var{closure} must be the method's
-closure.  @var{has-rest} must be @true{} or @false{}, when @true{} it
-means that the closure supports rest arguments.
+@deffn Syntax add-method @ameta{generic} @ameta{signature} @ameta{has-rest} @ameta{closure}
+Add a new method to an already existent generic function,
+@meta{generic}.  @meta{signature} must be a list of record names for
+which this method specialises the generic function.  @meta{closure} must
+be the method's closure.  @meta{has-rest} must be @true{} or @false{},
+when @true{} it means that the closure supports rest arguments.
 @end deffn
 
 @c page
@@ -38576,9 +38579,9 @@ symbol @class{apple}.
 Let's examine this example:
 
 @example
-(define-record-type <one> (parent <top>))
-(define-record-type <two> (parent <one>))
-(define-record-type <c>   (parent <two>))
+(define-class <one> (parent <top>))
+(define-class <two> (parent <one>))
+(define-class <c>   (parent <two>))
 @end example
 
 @noindent
@@ -38601,8 +38604,8 @@ so for the generic function:
 
 @example
 (define-generic doit)
-(declare-method (doit (o <one>)) 'one)
-(declare-method (doit (o <two>)) 'two)
+(define-method (doit (o <one>)) 'one)
+(define-method (doit (o <two>)) 'two)
 @end example
 
 @noindent
@@ -38624,10 +38627,10 @@ The following example shows a call to the next method:
 @example
 (define-generic fluff)
 
-(declare-method (fluff (o <one>))
+(define-method (fluff (o <one>))
   'one)
 
-(declare-method (fluff (o <two>))
+(define-method (fluff (o <two>))
   (cons 'two (call-next-method)))
 
 (define o (make-<c>))
@@ -38643,7 +38646,7 @@ The following example shows a call to the next method:
 
 @deffn {Generic Function} object->string @var{obj}
 Return a string representation for @var{obj}.  A non--specialised method
-is predefined to use the following algorithm:
+is predefined to use the following implementation:
 
 @example
 (call-with-string-output-port
