@@ -516,7 +516,7 @@ the list of original documents and their authors.  See also the
 
 @menu
 * overview::                    Overview of the distribution.
-* lang::                        The Scheme language.
+* scheme::                      The Scheme language.
 * baselib::                     Base library.
 * stdlib::                      Standard libraries.
 * naulib::                      The @library{nausicaa} language.
@@ -604,122 +604,122 @@ Overview of the distribution
 
 The Scheme language
 
-* lang overview::               Overview of Scheme.
-* lang requirements::           Requirement levels.
-* lang numbers::                Numbers.
-* lang lex::                    Lexical syntax and datum syntax.
-* lang basic::                  Semantic concepts.
-* lang entry::                  Entry format.
-* lang library::                Libraries.
-* lang programs::               Top-level programs.
-* lang syntax::                 Primitive syntax.
-* lang expansion::              Expansion process.
-* lang derived::                Sample definitions for derived forms.
+* scheme overview::               Overview of Scheme.
+* scheme requirements::           Requirement levels.
+* scheme numbers::                Numbers.
+* scheme lex::                    Lexical syntax and datum syntax.
+* scheme basic::                  Semantic concepts.
+* scheme entry::                  Entry format.
+* scheme library::                Libraries.
+* scheme programs::               Top-level programs.
+* scheme syntax::                 Primitive syntax.
+* scheme expansion::              Expansion process.
+* scheme derived::                Sample definitions for derived forms.
 
 Overview of Scheme
 
-* lang overview intro::         Introduction.
-* lang overview basic types::   Basic types.
-* lang overview expressions::   Expressions.
-* lang overview variables::     Variables and binding.
-* lang overview definitions::   Definitions.
-* lang overview forms::         Forms.
-* lang overview procedures::    Procedures.
-* lang overview syntax::        Procedure calls and syntactic keywords.
-* lang overview assignment::    Assignment.
-* lang overview macros::        Derived forms and macros.
-* lang overview data::          Syntactic data and datum values.
-* lang overview continuations:: Continuations.
-* lang overview libraries::     Libraries.
-* lang overview programs::      Top--level programs.
+* scheme overview intro::         Introduction.
+* scheme overview basic types::   Basic types.
+* scheme overview expressions::   Expressions.
+* scheme overview variables::     Variables and binding.
+* scheme overview definitions::   Definitions.
+* scheme overview forms::         Forms.
+* scheme overview procedures::    Procedures.
+* scheme overview syntax::        Procedure calls and syntactic keywords.
+* scheme overview assignment::    Assignment.
+* scheme overview macros::        Derived forms and macros.
+* scheme overview data::          Syntactic data and datum values.
+* scheme overview continuations:: Continuations.
+* scheme overview libraries::     Libraries.
+* scheme overview programs::      Top--level programs.
 
 Numbers
 
-* lang numbers tower::          Numerical tower.
-* lang numbers exactness::      Exactness.
-* lang numbers fix flo::        Fixnums and flonums.
-* lang numbers requirements::   Implementation requirements.
-* lang numbers inf nan::        Infinities and NaNs.
-* lang numbers minus zero::     Distinguished @math{-0.0}.
+* scheme numbers tower::          Numerical tower.
+* scheme numbers exactness::      Exactness.
+* scheme numbers fix flo::        Fixnums and flonums.
+* scheme numbers requirements::   Implementation requirements.
+* scheme numbers inf nan::        Infinities and NaNs.
+* scheme numbers minus zero::     Distinguished @math{-0.0}.
 
 Lexical syntax and datum syntax
 
-* lang lex intro::              Introduction.
-* lang lex notation::           Notation.
-* lang lex syntax::             Lexical syntax.
-* lang lex datum::              Datum syntax.
+* scheme lex intro::              Introduction.
+* scheme lex notation::           Notation.
+* scheme lex syntax::             Lexical syntax.
+* scheme lex datum::              Datum syntax.
 
 Lexical syntax
 
-* lang lex syntax formal account::           Formal account.
-* lang lex syntax line endings::             Line endings.
-* lang lex syntax whitespace and comments::  Whitespace and comments.
-* lang lex syntax identifiers::              Identifiers.
-* lang lex syntax booleans::                 Booleans.
-* lang lex syntax characters::               Characters.
-* lang lex syntax strings::                  Strings.
-* lang lex syntax numbers::                  Numbers.
+* scheme lex syntax formal account::           Formal account.
+* scheme lex syntax line endings::             Line endings.
+* scheme lex syntax whitespace and comments::  Whitespace and comments.
+* scheme lex syntax identifiers::              Identifiers.
+* scheme lex syntax booleans::                 Booleans.
+* scheme lex syntax characters::               Characters.
+* scheme lex syntax strings::                  Strings.
+* scheme lex syntax numbers::                  Numbers.
 
 Datum syntax
 
-* lang lex datum formal account::       Formal account.
-* lang lex datum pairs and lists::      Pairs and lists.
-* lang lex datum vectors::              Vectors.
-* lang lex datum bytevectors::          Bytevectors.
-* lang lex datum abbreviations::        Abbreviations.
+* scheme lex datum formal account::       Formal account.
+* scheme lex datum pairs and lists::      Pairs and lists.
+* scheme lex datum vectors::              Vectors.
+* scheme lex datum bytevectors::          Bytevectors.
+* scheme lex datum abbreviations::        Abbreviations.
 
 Semantic concepts
 
-* lang basic programs and libraries::        Programs and libraries.
-* lang basic variables keywords regions::    Variables, keywords,
+* scheme basic programs and libraries::        Programs and libraries.
+* scheme basic variables keywords regions::    Variables, keywords,
                                              and regions.
-* lang basic exceptions::                    Exceptional situations.
-* lang basic argument checking::             Argument checking.
-* lang basic syntax violations::             Syntax violations.
-* lang basic safety::                        Safety.
-* lang basic boolean values::                Boolean values.
-* lang basic multiple return values::        Multiple return values.
-* lang basic unspecified behavior::          Unspecified behavior.
-* lang basic storage model::                 Storage model.
-* lang basic proper tail recursion::         Proper tail recursion.
-* lang basic dynamic extent::                Dynamic extent and the
+* scheme basic exceptions::                    Exceptional situations.
+* scheme basic argument checking::             Argument checking.
+* scheme basic syntax violations::             Syntax violations.
+* scheme basic safety::                        Safety.
+* scheme basic boolean values::                Boolean values.
+* scheme basic multiple return values::        Multiple return values.
+* scheme basic unspecified behavior::          Unspecified behavior.
+* scheme basic storage model::                 Storage model.
+* scheme basic proper tail recursion::         Proper tail recursion.
+* scheme basic dynamic extent::                Dynamic extent and the
                                              dynamic environment.
 
 Entry format
 
-* lang entry syntax::                Syntax entries.
-* lang entry procedure::             Procedure entries.
-* lang entry implementation resp::   Implementation responsibilities.
-* lang entry other kinds::           Other kinds of entries.
-* lang entry equivalent::            Equivalent entries.
-* lang entry evaluation examples::   Evaluation examples.
-* lang entry naming conventions::    Naming conventions.
+* scheme entry syntax::                Syntax entries.
+* scheme entry procedure::             Procedure entries.
+* scheme entry implementation resp::   Implementation responsibilities.
+* scheme entry other kinds::           Other kinds of entries.
+* scheme entry equivalent::            Equivalent entries.
+* scheme entry evaluation examples::   Evaluation examples.
+* scheme entry naming conventions::    Naming conventions.
 
 Libraries
 
-* lang library form::           Library form.
-* lang library import export::  Import and export levels.
-* lang library examples::       Examples.
+* scheme library form::           Library form.
+* scheme library import export::  Import and export levels.
+* scheme library examples::       Examples.
 
 Library form
 
-* lang library form decl::      Library declaration.
-* lang library form names::     Library names.
-* lang library form export::    The export specification.
-* lang library form import::    The import specification.
-* lang library form version::   The version reference.
-* lang library form conflicts:: Handling conflicts.
-* lang library form body::      Library bodies.
+* scheme library form decl::      Library declaration.
+* scheme library form names::     Library names.
+* scheme library form export::    The export specification.
+* scheme library form import::    The import specification.
+* scheme library form version::   The version reference.
+* scheme library form conflicts:: Handling conflicts.
+* scheme library form body::      Library bodies.
 
 Top--level programs
 
-* lang programs syntax::        Top-level program syntax.
-* lang programs semantics::     Top-level program semantics.
+* scheme programs syntax::        Top-level program syntax.
+* scheme programs semantics::     Top-level program semantics.
 
 Primitive syntax
 
-* lang syntax primitive::       Primitive expression types.
-* lang syntax macros::          Macros.
+* scheme syntax primitive::       Primitive expression types.
+* scheme syntax macros::          Macros.
 
 Base library
 
@@ -1750,7 +1750,7 @@ available in the chapters:
 
 @itemize -
 @item
-@ref{lang,The Scheme language}.
+@ref{scheme,The Scheme language}.
 
 @item
 @ref{baselib,Base library}.
@@ -1791,27 +1791,26 @@ module.  It is available only on Unix--like platforms running the Linux
 kernel.
 
 @c page
-@node lang
+@node scheme
 @chapter The Scheme language
 
 
 @menu
-* lang overview::               Overview of Scheme.
-* lang requirements::           Requirement levels.
-* lang numbers::                Numbers.
-* lang lex::                    Lexical syntax and datum syntax.
-* lang basic::                  Semantic concepts.
-* lang entry::                  Entry format.
-* lang library::                Libraries.
-* lang programs::               Top-level programs.
-* lang syntax::                 Primitive syntax.
-* lang expansion::              Expansion process.
-* lang derived::                Sample definitions for derived forms.
+* scheme overview::             Overview of Scheme.
+* scheme requirements::         Requirement levels.
+* scheme numbers::              Numbers.
+* scheme lex::                  Lexical syntax and datum syntax.
+* scheme basic::                Semantic concepts.
+* scheme entry::                Entry format.
+* scheme library::              Libraries.
+* scheme programs::             Top-level programs.
+* scheme syntax::               Primitive syntax.
+* scheme expansion::            Expansion process.
+* scheme derived::              Sample definitions for derived forms.
 @end menu
 
-
 @c page
-@node lang overview
+@node scheme overview
 @section Overview of Scheme
 
 @c originally this chapter was the "struct" file.
@@ -1824,24 +1823,24 @@ overview is neither a complete introduction to the language, nor precise
 in all respects, nor normative in any way.
 
 @menu
-* lang overview intro::         Introduction.
-* lang overview basic types::   Basic types.
-* lang overview expressions::   Expressions.
-* lang overview variables::     Variables and binding.
-* lang overview definitions::   Definitions.
-* lang overview forms::         Forms.
-* lang overview procedures::    Procedures.
-* lang overview syntax::        Procedure calls and syntactic keywords.
-* lang overview assignment::    Assignment.
-* lang overview macros::        Derived forms and macros.
-* lang overview data::          Syntactic data and datum values.
-* lang overview continuations:: Continuations.
-* lang overview libraries::     Libraries.
-* lang overview programs::      Top--level programs.
+* scheme overview intro::         Introduction.
+* scheme overview basic types::   Basic types.
+* scheme overview expressions::   Expressions.
+* scheme overview variables::     Variables and binding.
+* scheme overview definitions::   Definitions.
+* scheme overview forms::         Forms.
+* scheme overview procedures::    Procedures.
+* scheme overview syntax::        Procedure calls and syntactic keywords.
+* scheme overview assignment::    Assignment.
+* scheme overview macros::        Derived forms and macros.
+* scheme overview data::          Syntactic data and datum values.
+* scheme overview continuations:: Continuations.
+* scheme overview libraries::     Libraries.
+* scheme overview programs::      Top--level programs.
 @end menu
 
 @c page
-@node lang overview intro
+@node scheme overview intro
 @subsection Introduction
 
 
@@ -1901,9 +1900,8 @@ operations on them.  Furthermore, it distinguishes @dfn{exact} and
 corresponds to a number exactly, and an inexact number object is the
 result of a computation that involved rounding or other errors.
 
-
 @c page
-@node lang overview basic types
+@node scheme overview basic types
 @subsection Basic types
 
 
@@ -1930,7 +1928,7 @@ however, any object different from @false{} counts as true.
 
 Scheme supports a rich variety of numerical data types, including
 objects representing integers of arbitrary precision, rational numbers,
-complex numbers, and inexact numbers of various kinds.  @ref{lang
+complex numbers, and inexact numbers of various kinds.  @ref{scheme
 numbers, Numbers}
 
 @subsubheading Characters
@@ -1974,13 +1972,13 @@ are more appropriate than lists for random access to elements.
 Procedures are values in Scheme.
 
 @c page
-@node lang overview expressions
+@node scheme overview expressions
 @subsection Expressions
 
 
 The most important elements of Scheme code are @dfn{expressions}.
 Expressions can be @dfn{evaluated}, producing a @dfn{value}.  (Actually,
-any number of values.  @ref{lang basic multiple return values, Multiple
+any number of values.  @ref{scheme basic multiple return values, Multiple
 return values}.)
 
 The most fundamental expressions are literal expressions:
@@ -2024,7 +2022,7 @@ significant when it separates subexpressions of an expression, and can
 be used to indicate structure.
 
 @c page
-@node lang overview variables
+@node scheme overview variables
 @subsection Variables and binding
 
 
@@ -2049,7 +2047,7 @@ variables alongside expressions: the variable @samp{x} alongside
 @func{let} expression, @code{(+ x y)}, and only there.
 
 @c page
-@node lang overview definitions
+@node scheme overview definitions
 @subsection Definitions
 
 
@@ -2065,7 +2063,7 @@ allows creating top--level bindings for identifiers as follows:
 
 @noindent
 these are actually ``top--level'' in the body of a top--level program
-or library.  @ref{lang library, Libraries}.
+or library.  @ref{scheme library, Libraries}.
 
 The first two parenthesized structures are @dfn{definitions}; they
 create top--level bindings, binding @samp{x} to @samp{23} and @samp{y}
@@ -2091,7 +2089,7 @@ no local binding can be found along the way:
 @end example
 
 @c page
-@node lang overview forms
+@node scheme overview forms
 @subsection Forms
 
 
@@ -2111,7 +2109,7 @@ In particular, @samp{23} is a @emph{subform} of the form @code{(define x
 23)}.
 
 @c page
-@node lang overview procedures
+@node scheme overview procedures
 @subsection Procedures
 
 
@@ -2176,7 +2174,7 @@ The entire expression in this example is a procedure call; @code{(lambda
 object and adds 42 to it.
 
 @c page
-@node lang overview syntax
+@node scheme overview syntax
 @subsection Procedure calls and syntactic keywords
 
 
@@ -2202,11 +2200,11 @@ expression is a procedure call.  (So--called @emph{identifier macros}
 allow creating other kinds of special forms, but are comparatively
 rare.)  The set of syntactic keywords of Scheme is fairly small, which
 usually makes this task fairly simple.  It is possible, however, to
-create new bindings for syntactic keywords.  @ref{lang overview macros,
+create new bindings for syntactic keywords.  @ref{scheme overview macros,
 Derived forms and macros}
 
 @c page
-@node lang overview assignment
+@node scheme overview assignment
 @subsection Assignment
 
 
@@ -2230,7 +2228,7 @@ object in the location referenced by @samp{x} with @samp{42}''.  Thus,
 the previous value of @samp{x}, @samp{23}, is replaced by @samp{42}.
 
 @c page
-@node lang overview macros
+@node scheme overview macros
 @subsection Derived forms and macros
 
 
@@ -2293,7 +2291,7 @@ flexible and expressive, allowing many of the features built into other
 languages to be derived forms in Scheme.
 
 @c page
-@node lang overview data
+@node scheme overview data
 @subsection Syntactic data and datum values
 
 
@@ -2338,7 +2336,7 @@ This facilitates writing programs that operate on Scheme source code, in
 particular interpreters and program transformers.
 
 @c page
-@node lang overview continuations
+@node scheme overview continuations
 @subsection Continuations
 
 
@@ -2389,7 +2387,7 @@ more powerful than typical non--local control constructs such as
 exceptions in other languages.
 
 @c page
-@node lang overview libraries
+@node scheme overview libraries
 @subsection Libraries
 
 
@@ -2413,7 +2411,7 @@ library.  The @func{hello-world} export is a procedure that displays
 @end example
 
 @c page
-@node lang overview programs
+@node scheme overview programs
 @subsection Top--level programs
 
 
@@ -2447,7 +2445,7 @@ output:
 @end example
 
 @c page
-@node lang requirements
+@node scheme requirements
 @section Requirement levels
 
 
@@ -2483,7 +2481,7 @@ optional.
 
 In particular, this report occasionally uses ``should'' to designate
 circumstances that are outside the specification of this report, but
-cannot be practically detected by an implementation.  @ref{lang basic
+cannot be practically detected by an implementation.  @ref{scheme basic
 argument checking, Arguments checking}.  In such circumstances, a
 particular implementation may allow the programmer to ignore the
 recommendation of the report and even exhibit reasonable behavior.
@@ -2495,7 +2493,7 @@ Moreover, this report occasionally uses the phrase ``not required'' to
 note the absence of an absolute requirement.
 
 @c page
-@node lang numbers
+@node scheme numbers
 @section Numbers
 
 
@@ -2513,17 +2511,17 @@ special subsets of the number objects, as determined by common machine
 representations, as explained below.
 
 @menu
-* lang numbers tower::          Numerical tower.
-* lang numbers exactness::      Exactness.
-* lang numbers fix flo::        Fixnums and flonums.
-* lang numbers requirements::   Implementation requirements.
-* lang numbers inf nan::        Infinities and NaNs.
-* lang numbers minus zero::     Distinguished @math{-0.0}.
+* scheme numbers tower::        Numerical tower.
+* scheme numbers exactness::    Exactness.
+* scheme numbers fix flo::      Fixnums and flonums.
+* scheme numbers requirements:: Implementation requirements.
+* scheme numbers inf nan::      Infinities and NaNs.
+* scheme numbers minus zero::   Distinguished @math{-0.0}.
 @end menu
 
 
 @c page
-@node lang numbers tower
+@node scheme numbers tower
 @subsection Numerical tower
 
 
@@ -2556,7 +2554,7 @@ may use many different representations for numbers, this should not be
 apparent to a casual programmer writing simple programs.
 
 @c page
-@node lang numbers exactness
+@node scheme numbers exactness
 @subsection Exactness
 
 
@@ -2592,7 +2590,7 @@ implementation to make the result as close as practical to the
 mathematically ideal result.
 
 @c page
-@node lang numbers fix flo
+@node scheme numbers fix flo
 @subsection Fixnums and flonums
 
 
@@ -2608,12 +2606,12 @@ Note that this does not imply that an implementation must use
 floating--point representations.
 
 @c page
-@node lang numbers requirements
+@node scheme numbers requirements
 @subsection Implementation requirements
 
 
 Implementations of Scheme must support number objects for the entire
-tower of subtypes given in @ref{lang numbers tower, Numerical tower}.
+tower of subtypes given in @ref{scheme numbers tower, Numerical tower}.
 Moreover, implementations must support exact integer objects and exact
 rational number objects of practically unlimited size and precision, and
 to implement certain procedures (listed in @ref{baselib math exactness,
@@ -2659,7 +2657,7 @@ implementation.
 
 
 @c page
-@node lang numbers inf nan
+@node scheme numbers inf nan
 @subsection Infinities and NaNs
 
 
@@ -2680,7 +2678,7 @@ positive or negative infinity, and might even be greater than positive
 infinity or less than negative infinity.
 
 @c page
-@node lang numbers minus zero
+@node scheme numbers minus zero
 @subsection Distinguished @math{-0.0}
 
 
@@ -2694,19 +2692,19 @@ distinguish @math{-0.0}''.
 
 
 @c page
-@node lang lex
+@node scheme lex
 @section Lexical syntax and datum syntax
 
 
 @menu
-* lang lex intro::              Introduction.
-* lang lex notation::           Notation.
-* lang lex syntax::             Lexical syntax.
-* lang lex datum::              Datum syntax.
+* scheme lex intro::            Introduction.
+* scheme lex notation::         Notation.
+* scheme lex syntax::           Lexical syntax.
+* scheme lex datum::            Datum syntax.
 @end menu
 
 @c page
-@node lang lex intro
+@node scheme lex intro
 @subsection Introduction
 
 
@@ -2763,17 +2761,17 @@ the context.
 
 An implementation must not extend the lexical or datum syntax in any
 way, with one exception: it need not treat the syntax
-@code{#!<identifier>}, for any <identifier> (@ref{lang lex syntax
+@code{#!<identifier>}, for any <identifier> (@ref{scheme lex syntax
 identifiers}) that is not @code{r6rs}, as a syntax violation, and it may
 use specific @code{#!}--prefixed identifiers as flags indicating that
 subsequent input contains extensions to the standard lexical or datum
 syntax.  The syntax @code{#!r6rs} may be used to signify that the input
 afterward is written with the lexical syntax and datum syntax described
 by this report.  @code{#!r6rs} is otherwise treated as a comment;
-@ref{lang lex syntax whitespace and comments}.
+@ref{scheme lex syntax whitespace and comments}.
 
 @c page
-@node lang lex notation
+@node scheme lex notation
 @subsection Notation
 
 
@@ -2796,9 +2794,8 @@ name: @meta{character tabulation} (U+0009), @meta{linefeed} (U+000A),
 (U+0085), @meta{line separator} (U+2028), and @meta{paragraph separator}
 (U+2029).
 
-
 @c page
-@node lang lex syntax
+@node scheme lex syntax
 @subsection Lexical syntax
 
 
@@ -2823,23 +2820,21 @@ For example, @code{#x1A} and @code{#X1a} are equivalent.  The identifier
 
 
 @menu
-* lang lex syntax formal account::           Formal account.
-* lang lex syntax line endings::             Line endings.
-* lang lex syntax whitespace and comments::  Whitespace and comments.
-* lang lex syntax identifiers::              Identifiers.
-* lang lex syntax booleans::                 Booleans.
-* lang lex syntax characters::               Characters.
-* lang lex syntax strings::                  Strings.
-* lang lex syntax numbers::                  Numbers.
+* scheme lex syntax formal account::           Formal account.
+* scheme lex syntax line endings::             Line endings.
+* scheme lex syntax whitespace and comments::  Whitespace and comments.
+* scheme lex syntax identifiers::              Identifiers.
+* scheme lex syntax booleans::                 Booleans.
+* scheme lex syntax characters::               Characters.
+* scheme lex syntax strings::                  Strings.
+* scheme lex syntax numbers::                  Numbers.
 @end menu
 
-
 @c page
-@node lang lex syntax formal account
+@node scheme lex syntax formal account
 @subsubsection Formal account
 
 
-@noindent
 @meta{interlexeme space} may occur on either side of any lexeme, but not
 within a lexeme.
 
@@ -2971,14 +2966,13 @@ decimal radix.
 <digit 16> -> <hex digit>
 @end example
 
-
 @c page
-@node lang lex syntax line endings
+@node scheme lex syntax line endings
 @subsubsection Line endings
 
 
 Line endings are significant in Scheme in single--line comments
-(@ref{lang lex syntax whitespace and comments}) and within string
+(@ref{scheme lex syntax whitespace and comments}) and within string
 literals.  In Scheme source code, any of the line endings in @meta{line
 ending} marks the end of a line.  Moreover, the two--character line
 endings @meta{carriage return} @meta{linefeed} and @meta{carriage
@@ -2988,9 +2982,8 @@ In a string literal, a @meta{line ending} not preceded by a @code{\}
 stands for a linefeed character, which is the standard line--ending
 character of Scheme.
 
-
 @c page
-@node lang lex syntax whitespace and comments
+@node scheme lex syntax whitespace and comments
 @subsubsection Whitespace and comments
 
 
@@ -3037,9 +3030,8 @@ The lexeme @code{#!r6rs}, which signifies that the program text that
 follows is written with the lexical and datum syntax described in this
 report, is also otherwise treated as a comment.
 
-
 @c page
-@node lang lex syntax identifiers
+@node scheme lex syntax identifiers
 @subsubsection Identifiers
 
 
@@ -3081,23 +3073,21 @@ the identifier @code{H\x65;llo} is the same as the identifier
 @c identifier $\lambda$.
 
 Any identifier may be used as a variable or as a syntactic keyword
-(@ref{lang basic variables keywords regions} and @ref{lang syntax
+(@ref{scheme basic variables keywords regions} and @ref{scheme syntax
 macros}) in a Scheme program.  Any identifier may also be used as a
 syntactic datum, in which case it represents a @emph{symbol}
 (@ref{baselib symbols}).
 
-
 @c page
-@node lang lex syntax booleans
+@node scheme lex syntax booleans
 @subsubsection Booleans
 
 
 The standard boolean objects for true and false have external
 representations @true{} and @false{}.
 
-
 @c page
-@node lang lex syntax characters
+@node scheme lex syntax characters
 @subsubsection Characters
 
 
@@ -3162,9 +3152,8 @@ compatibility.  Its use is deprecated; @code{#\linefeed} should be used
 instead.
 @end quotation
 
-
 @c page
-@node lang lex syntax strings
+@node scheme lex syntax strings
 @subsubsection Strings
 
 
@@ -3233,9 +3222,8 @@ bc"             U+0041, U+000A, U+0062, U+0063
                 if no space occurs after the A
 @end example
 
-
 @c page
-@node lang lex syntax numbers
+@node scheme lex syntax numbers
 @subsubsection Numbers
 
 
@@ -3332,9 +3320,8 @@ library section ``Flonums'').  Some or all of the other external
 representations of inexact real number objects may also represent
 flonums, but that is not required by this report.
 
-
 @c page
-@node lang lex datum
+@node scheme lex datum
 @subsection Datum syntax
 
 
@@ -3355,23 +3342,21 @@ vectors;
 bytevectors.
 @end itemize
 
-
 @menu
-* lang lex datum formal account::       Formal account.
-* lang lex datum pairs and lists::      Pairs and lists.
-* lang lex datum vectors::              Vectors.
-* lang lex datum bytevectors::          Bytevectors.
-* lang lex datum abbreviations::        Abbreviations.
+* scheme lex datum formal account::  Formal account.
+* scheme lex datum pairs and lists:: Pairs and lists.
+* scheme lex datum vectors::         Vectors.
+* scheme lex datum bytevectors::     Bytevectors.
+* scheme lex datum abbreviations::   Abbreviations.
 @end menu
 
-
 @c page
-@node lang lex datum formal account
+@node scheme lex datum formal account
 @subsubsection Formal account
 
 
 The following grammar describes the syntax of syntactic data in terms of
-various kinds of lexemes defined in the grammar in @ref{lang lex
+various kinds of lexemes defined in the grammar in @ref{scheme lex
 syntax,Lexical Syntax}
 
 @example
@@ -3392,9 +3377,8 @@ syntax,Lexical Syntax}
 <u8> -> <any <number> representing an exact integer in @{0, ..., 255@}>
 @end example
 
-
 @c page
-@node lang lex datum pairs and lists
+@node scheme lex datum pairs and lists
 @subsubsection Pairs and lists
 
 
@@ -3434,15 +3418,14 @@ omitted in the external representation.
 The sequence of characters @code{(4 . 5)} is the external representation
 of a pair, not an expression that evaluates to a pair.  Similarly, the
 sequence of characters @code{(+ 2 6)} is @emph{not} an external
-representation of the integer 8, even though it @emph{is} an expression
-(in the language of the @rsixlibrary{base} library) evaluating to the
-integer 8; rather, it is a syntactic datum representing a three--element
-list, the elements of which are the symbol @code{+} and the integers 2
-and 6.
-
+representation of the integer @math{8}, even though it @emph{is} an
+expression (in the language of the @rsixlibrary{base} library)
+evaluating to the integer @math{8}; rather, it is a syntactic datum
+representing a three--element list, the elements of which are the symbol
+@code{+} and the integers @math{2} and @math{6}.
 
 @c page
-@node lang lex datum vectors
+@node scheme lex datum vectors
 @subsubsection Vectors
 
 
@@ -3459,9 +3442,8 @@ represented as follows:
 This is the external representation of a vector, not an expression that
 evaluates to a vector.
 
-
 @c page
-@node lang lex datum bytevectors
+@node scheme lex datum bytevectors
 @subsubsection Bytevectors
 
 
@@ -3478,9 +3460,8 @@ represented as follows:
 This is the external representation of a bytevector, and also an
 expression that evaluates to a bytevector.
 
-
 @c page
-@node lang lex datum abbreviations
+@node scheme lex datum abbreviations
 @subsubsection Abbreviations
 
 
@@ -3518,9 +3499,8 @@ for @code{(unsyntax <datum>)}, and
 for @code{(unsyntax-splicing <datum>)}.
 @end table
 
-
 @c page
-@node lang basic
+@node scheme basic
 @section Semantic concepts
 
 @ignore
@@ -3528,25 +3508,24 @@ In the original document this chapter was the "basic.tex" file.
 @end ignore
 
 @menu
-* lang basic programs and libraries::        Programs and libraries.
-* lang basic variables keywords regions::    Variables, keywords,
+* scheme basic programs and libraries::      Programs and libraries.
+* scheme basic variables keywords regions::  Variables, keywords,
                                              and regions.
-* lang basic exceptions::                    Exceptional situations.
-* lang basic argument checking::             Argument checking.
-* lang basic syntax violations::             Syntax violations.
-* lang basic safety::                        Safety.
-* lang basic boolean values::                Boolean values.
-* lang basic multiple return values::        Multiple return values.
-* lang basic unspecified behavior::          Unspecified behavior.
-* lang basic storage model::                 Storage model.
-* lang basic proper tail recursion::         Proper tail recursion.
-* lang basic dynamic extent::                Dynamic extent and the
+* scheme basic exceptions::                  Exceptional situations.
+* scheme basic argument checking::           Argument checking.
+* scheme basic syntax violations::           Syntax violations.
+* scheme basic safety::                      Safety.
+* scheme basic boolean values::              Boolean values.
+* scheme basic multiple return values::      Multiple return values.
+* scheme basic unspecified behavior::        Unspecified behavior.
+* scheme basic storage model::               Storage model.
+* scheme basic proper tail recursion::       Proper tail recursion.
+* scheme basic dynamic extent::              Dynamic extent and the
                                              dynamic environment.
 @end menu
 
-
 @c page
-@node lang basic programs and libraries
+@node scheme basic programs and libraries
 @subsection Programs and libraries
 
 
@@ -3580,9 +3559,8 @@ syntactic forms are not part of the base library, but are defined in
 separate libraries.  Examples include the fixnums and flonums libraries,
 the exceptions and conditions libraries, and the libraries for records.
 
-
 @c page
-@node lang basic variables keywords regions
+@node scheme basic variables keywords regions
 @subsection Variables, keywords, and regions
 
 
@@ -3657,9 +3635,8 @@ identifier, the use may refer to a binding established by a definition
 or import at the top of the enclosing library or top--level program.  If
 there is no binding for the identifier, it is said to be @emph{unbound}.
 
-
 @c page
-@node lang basic exceptions
+@node scheme basic exceptions
 @subsection Exceptional situations
 
 
@@ -3705,9 +3682,8 @@ provided with the exception is a condition object of the specified type.
 The phrase ``a continuable exception is raised'' indicates an
 exceptional situation that permits the exception handler to return.
 
-
 @c page
-@node lang basic argument checking
+@node scheme basic argument checking
 @subsection Argument checking
 
 
@@ -3748,9 +3724,8 @@ argument, it must raise an exception with condition type
 @condition{assertion} in a way consistent with the safety of execution as
 described in section ``Safety''.
 
-
 @c page
-@node lang basic syntax violations
+@node scheme basic syntax violations
 @subsection Syntax violations
 
 
@@ -3772,9 +3747,8 @@ correct, then the implementation must raise an exception with condition
 type @condition{syntax}, and execution of that top--level program or library
 must not be allowed to begin.
 
-
 @c page
-@node lang basic safety
+@node scheme basic safety
 @subsection Safety
 
 
@@ -3799,9 +3773,8 @@ and libraries that are said to be safe.  In particular, implementations
 may provide access to unsafe libraries in ways that cannot guarantee
 safety.
 
-
 @c page
-@node lang basic boolean values
+@node scheme basic boolean values
 @subsection Boolean values
 
 
@@ -3811,9 +3784,8 @@ conditional test, all values count as true in such a test except for
 @false{}.  This report uses the word ``true'' to refer to any Scheme
 value except @false{}, and the word ``false'' to refer to @false{}.
 
-
 @c page
-@node lang basic multiple return values
+@node scheme basic multiple return values
 @subsection Multiple return values
 
 
@@ -3838,9 +3810,8 @@ subforms that are evaluated sequentially, with the return values of all
 but the last expression being discarded.  The continuations discarding
 these values accept any number of values.
 
-
 @c page
-@node lang basic unspecified behavior
+@node scheme basic unspecified behavior
 @subsection Unspecified behavior
 
 
@@ -3851,9 +3822,8 @@ say how many or what values should be returned.  Programmers should not
 rely on a specific number of return values or the specific values
 themselves.
 
-
 @c page
-@node lang basic storage model
+@node scheme basic storage model
 @subsection Storage model
 
 
@@ -3889,9 +3859,8 @@ listed in this report are mutable.  An attempt to store a new value into
 a location referred to by an immutable object should raise an exception
 with condition type @condition{assertion}.
 
-
 @c page
-@node lang basic proper tail recursion
+@node scheme basic proper tail recursion
 @subsection Proper tail recursion
 
 
@@ -3911,9 +3880,8 @@ definition of proper tail recursion can be found in Clinger's paper
 identifying tail calls in constructs from the @rsixlibrary{base} library
 are described in section ``Tail calls and tail contexts''.
 
-
 @c page
-@node lang basic dynamic extent
+@node scheme basic dynamic extent
 @subsection Dynamic extent and the dynamic environment
 
 
@@ -3944,10 +3912,8 @@ be thought of as part of the dynamic extent of a call.  Consequently, it
 is captured by @func{call-with-current-continuation}, and restored by
 invoking the escape procedure it creates.
 
-
-
 @c page
-@node lang entry
+@node scheme entry
 @section Entry format
 
 @ignore
@@ -3970,18 +3936,17 @@ various restrictions on subforms or arguments.
 
 
 @menu
-* lang entry syntax::                Syntax entries.
-* lang entry procedure::             Procedure entries.
-* lang entry implementation resp::   Implementation responsibilities.
-* lang entry other kinds::           Other kinds of entries.
-* lang entry equivalent::            Equivalent entries.
-* lang entry evaluation examples::   Evaluation examples.
-* lang entry naming conventions::    Naming conventions.
+* scheme entry syntax::              Syntax entries.
+* scheme entry procedure::           Procedure entries.
+* scheme entry implementation resp:: Implementation responsibilities.
+* scheme entry other kinds::         Other kinds of entries.
+* scheme entry equivalent::          Equivalent entries.
+* scheme entry evaluation examples:: Evaluation examples.
+* scheme entry naming conventions::  Naming conventions.
 @end menu
 
-
 @c page
-@node lang entry syntax
+@node scheme entry syntax
 @subsection Syntax entries
 
 
@@ -3993,7 +3958,7 @@ and datum syntax'', and describes the set of forms equivalent to the
 forms matching the template as syntactic data.  Some ``Syntax'' entries
 carry a suffix (@code{expand}), specifying that the syntactic keyword of
 the construct is exported with level 1.  Otherwise, the syntactic
-keyword is exported with level 0; @ref{lang library import export}.
+keyword is exported with level 0; @ref{scheme library import export}.
 
 Components of the form described by a template are designated by
 syntactic variables, which are written using angle brackets, for
@@ -4034,9 +3999,8 @@ form terminate.  If the implementation detects that a component does not
 meet the restriction, an exception with condition type @condition{syntax}
 is raised.
 
-
 @c page
-@node lang entry procedure
+@node scheme entry procedure
 @subsection Procedure entries
 
 
@@ -4167,9 +4131,8 @@ arguments of a procedure.  Typically, such a restriction is formulated
 as a phrase of the form ``@var{x} must be a @dots{}'' (or otherwise
 using the word ``must'').
 
-
 @c page
-@node lang entry implementation resp
+@node scheme entry implementation resp
 @subsection Implementation responsibilities
 
 
@@ -4189,9 +4152,8 @@ the programmer.  A paragraph describing implementation responsibility
 does not affect the implementation's responsibilities for checking
 subforms or arguments not mentioned in the paragraph.
 
-
 @c page
-@node lang entry other kinds
+@node scheme entry other kinds
 @subsection Other kinds of entries
 
 
@@ -4218,9 +4180,8 @@ syntactic construct or identifier is a syntax violation.  As with
 (@code{expand}), specifying that the syntactic keyword of the construct
 is exported with level 1.
 
-
 @c page
-@node lang entry equivalent
+@node scheme entry equivalent
 @subsection Equivalent entries
 
 
@@ -4230,9 +4191,8 @@ Specifically, it means that if both entries have the same name and are
 thus exported from different libraries, the entries from both libraries
 can be imported under the same name without conflict.
 
-
 @c page
-@node lang entry evaluation examples
+@node scheme entry evaluation examples
 @subsection Evaluation examples
 
 
@@ -4282,9 +4242,8 @@ only specified conditionally or approximately.  For example:
 @result{} -1.5707963267948965 ; approximately
 @end example
 
-
 @c page
-@node lang entry naming conventions
+@node scheme entry naming conventions
 @subsection Naming conventions
 
 
@@ -4308,11 +4267,10 @@ other than a letter, in which case the hyphen is omitted.  Short,
 unpronounceable prefixes (@code{fx} and @code{fl}) are not followed by a
 hyphen.
 
-By convention, the names of condition types start with @condition{}.
-
+By convention, the names of condition types start with @code{&}.
 
 @c page
-@node lang library
+@node scheme library
 @section Libraries
 
 
@@ -4327,14 +4285,13 @@ are needed.  This chapter defines the notation for libraries and a
 semantics for library expansion and execution.
 
 @menu
-* lang library form::           Library form.
-* lang library import export::  Import and export levels.
-* lang library examples::       Examples.
+* scheme library form::           Library form.
+* scheme library import export::  Import and export levels.
+* scheme library examples::       Examples.
 @end menu
 
-
 @c page
-@node lang library form
+@node scheme library form
 @subsection Library form
 
 
@@ -4357,20 +4314,18 @@ A library definition must have the following form:
 It is a syntax violation if a constraint given in this section is not
 met.
 
-
 @menu
-* lang library form decl::      Library declaration.
-* lang library form names::     Library names.
-* lang library form export::    The export specification.
-* lang library form import::    The import specification.
-* lang library form version::   The version reference.
-* lang library form conflicts:: Handling conflicts.
-* lang library form body::      Library bodies.
+* scheme library form decl::      Library declaration.
+* scheme library form names::     Library names.
+* scheme library form export::    The export specification.
+* scheme library form import::    The import specification.
+* scheme library form version::   The version reference.
+* scheme library form conflicts:: Handling conflicts.
+* scheme library form body::      Library bodies.
 @end menu
 
-
 @c page
-@node lang library form decl
+@node scheme library form decl
 @subsubsection Library declaration
 
 
@@ -4420,9 +4375,8 @@ times, defined multiple times, or both defined and imported.  No
 identifiers are visible within a library except for those explicitly
 imported into the library or defined within the library.
 
-
 @c page
-@node lang library form names
+@node scheme library form names
 @subsubsection Library names
 
 
@@ -4445,9 +4399,8 @@ where @meta{version} is empty or has the following form:
 Each @meta{sub-version} must represent an exact nonnegative integer
 object.  An empty @meta{version} is equivalent to @code{()}.
 
-
 @c page
-@node lang library form export
+@node scheme library form export
 @subsubsection The export specification
 
 
@@ -4468,9 +4421,8 @@ the export is the same as the name of the binding within the library.  A
 each @code{(@hyperi{identifier} @hyperii{identifier})} pairing, using
 @hyperii{identifier} as the external name.
 
-
 @c page
-@node lang library form import
+@node scheme library form import
 @subsubsection The import specification
 
 
@@ -4529,9 +4481,8 @@ A @meta{library reference} with no @meta{version reference} (first form
 above) is equivalent to a @meta{library reference} with a @meta{version
 reference} of @code{()}.
 
-
 @c page
-@node lang library form version
+@node scheme library form version
 @subsubsection The version reference
 
 
@@ -4600,9 +4551,8 @@ Examples:
 @item @code{((or 1 2 3))} @tab @code{(4)} @tab no
 @end multitable
 
-
 @c page
-@node lang library form conflicts
+@node scheme library form conflicts
 @subsubsection Handling conflicts
 
 
@@ -4655,9 +4605,8 @@ intermediate @meta{import set}, and the @hyperii{identifier}s must be
 distinct.
 @end table
 
-
 @c page
-@node lang library form body
+@node scheme library form body
 @subsubsection Library bodies
 
 
@@ -4682,7 +4631,7 @@ wrapped in @func{begin}, @func{let-syntax}, or @func{letrec-syntax}
 forms, may be specified by a syntactic abstraction.
 
 The transformer expressions and bindings are evaluated and created from
-left to right, as described in @ref{lang expansion,Expansion process}
+left to right, as described in @ref{scheme expansion,Expansion process}
 The expressions of variable definitions are evaluated from left to
 right, as if in an implicit @func{letrec*}, and the body expressions are
 also evaluated from left to right after the expressions of the variable
@@ -4726,9 +4675,8 @@ assigned variable is one that appears on the left--hand side of a
 
 All other variables defined within a library are mutable.
 
-
 @c page
-@node lang library import export
+@node scheme library import export
 @subsection Import and export levels
 
 
@@ -4855,9 +4803,8 @@ time or run time, or it may allow the reference.  Thus, a library whose
 meaning depends on whether the instances of a library are distinguished
 or shared across phases or @func{library} expansions may be unportable.
 
-
 @c page
-@node lang library examples
+@node scheme library examples
 @subsection Examples
 
 
@@ -4973,9 +4920,8 @@ Examples for macros and phases:
          body0 body ...)])))
 @end example
 
-
 @c page
-@node lang programs
+@node scheme programs
 @section Top--level programs
 
 
@@ -4991,13 +4937,12 @@ top--level program defines a complete Scheme program.
 
 
 @menu
-* lang programs syntax::        Top-level program syntax.
-* lang programs semantics::     Top-level program semantics.
+* scheme programs syntax::      Top-level program syntax.
+* scheme programs semantics::   Top-level program semantics.
 @end menu
 
-
 @c page
-@node lang programs syntax
+@node scheme programs syntax
 @subsection Top--level program syntax
 
 
@@ -5040,9 +4985,8 @@ the body, including portions wrapped in @func{begin}, @func{let-syntax},
 or @func{letrec-syntax} forms, may be specified by a syntactic
 abstraction.
 
-
 @c page
-@node lang programs semantics
+@node scheme programs semantics
 @subsection Top--level program semantics
 
 
@@ -5065,11 +5009,10 @@ translation is somewhat more complicated.)
 
 On platforms that support it, a top--level program may access its
 command line by calling the @func{command-line} procedure, @ref{stdlib
-programlib,Command line access and exit values}
-
+programlib,Command line access and exit values}.
 
 @c page
-@node lang syntax
+@node scheme syntax
 @section Primitive syntax
 
 
@@ -5087,13 +5030,12 @@ imported libraries, however, including constant literals, variable
 references, procedure calls, and macro uses.
 
 @menu
-* lang syntax primitive::       Primitive expression types.
-* lang syntax macros::          Macros.
+* scheme syntax primitive::     Primitive expression types.
+* scheme syntax macros::        Macros.
 @end menu
 
-
 @c page
-@node lang syntax primitive
+@node scheme syntax primitive
 @subsection Primitive expression types
 
 
@@ -5119,7 +5061,7 @@ itself''.
 #vu8(2 24 123)  @result{} #vu8(2 24 123)
 @end example
 
-The value of a literal expression is immutable, @ref{lang basic storage
+The value of a literal expression is immutable, @ref{scheme basic storage
 model,Storage model}
 @end deffn
 
@@ -5190,7 +5132,7 @@ syntactically valid expression.
 @end deffn
 
 @c page
-@node lang syntax macros
+@node scheme syntax macros
 @subsection Macros
 
 
@@ -5264,7 +5206,7 @@ Macros defined using the @func{syntax-case} facility are also hygienic
 unless @func{datum->syntax} is used.
 
 @c page
-@node lang expansion
+@node scheme expansion
 @section Expansion process
 
 
@@ -5485,7 +5427,7 @@ evaluation order is preserved.  The @func{begin} wrapper allows
 @end itemize
 
 @c page
-@node lang derived
+@node scheme derived
 @section Sample definitions for derived forms
 
 
@@ -9955,7 +9897,7 @@ allows syntactic abstractions to expand into forms containing ellipses.
 
 As an example for hygienic use of auxiliary identifier, if @func{let}
 and @func{cond} are defined as in @ref{baselib expressions binding,let}
-and @ref{lang derived,cond} then they are hygienic (as required) and the
+and @ref{scheme derived,cond} then they are hygienic (as required) and the
 following is not an error.
 
 @example
@@ -11982,7 +11924,7 @@ is called immutable, and all records of that type are immutable objects.
 All other record types are mutable, and so are their records.
 
 Each call to a record constructor returns a new record with a fresh
-location (@ref{lang basic storage model}).  Consequently, for two
+location (@ref{scheme basic storage model}).  Consequently, for two
 records @vari{obj} and @varii{obj}, the return value of @code{(eqv?
 @vari{obj} @varii{obj})}, as well as the return value of @code{(eq?
 @vari{obj} @varii{obj})}, adheres to the following criteria
@@ -13011,7 +12953,8 @@ exception.  Any procedure accepting one argument may serve as an
 exception handler and any object may be used to represent an exception.
 
 The system maintains the current exception handler as part of the
-dynamic environment of the program (@pxref{lang basic dynamic extent}).
+dynamic environment of the program (@pxref{scheme basic dynamic
+extent}).
 
 When a program begins its execution, the current exception handler is
 expected to handle all @condition{serious} conditions by interrupting
@@ -13595,7 +13538,7 @@ This condition type could be defined by:
 @var{who} should be a symbol or string identifying the entity reporting
 the exception.  Conditions of this type are created by the @func{error}
 and @func{assertion-violation} procedures (report section @ref{baselib
-errors}), and the @func{syntax-violation} procedure (section @ref{lang
+errors}), and the @func{syntax-violation} procedure (section @ref{scheme
 basic syntax violations}).
 @end deffn
 
@@ -14877,7 +14820,7 @@ the next datum that can be parsed from the given
 @var{textual-input-port}, updating @var{textual-input-port} to point
 exactly past the end of the external representation of the object.
 
-Any @meta{interlexeme space} (@ref{lang lex syntax}) in the input is
+Any @meta{interlexeme space} (@ref{scheme lex syntax}) in the input is
 first skipped.  If an end of file occurs after the @meta{interlexeme
 space}, the end--of--file object is returned.
 
@@ -16973,7 +16916,7 @@ is equivalent to:
 @end example
 
 @noindent
-@ref{lang lex datum abbreviations} for the other abbreviations.
+@ref{scheme lex datum abbreviations} for the other abbreviations.
 
 A @hyper{template} can be one among: a pattern variable, an identifier
 that is not a pattern variable, a pattern datum, or one of the
@@ -17628,7 +17571,7 @@ The number of temporaries generated is the number of elements in
 from all other identifiers.
 
 A definition of @func{letrec} equivalent to the one using
-@func{syntax-rules} given in @ref{lang derived} is shown below.
+@func{syntax-rules} given in @ref{scheme derived} is shown below.
 
 @example
 (define-syntax letrec
@@ -17751,7 +17694,7 @@ quotation.  An expression nested within @math{n} @func{quasisyntax}
 expressions must be within @math{n} @func{unsyntax} or
 @func{unsyntax-splicing} expressions to be evaluated.
 
-As noted in @ref{lang lex datum abbreviations}:
+As noted in @ref{scheme lex datum abbreviations}:
 
 @example
 #`@hyper{template}   @equiv{} (quasisyntax @hyper{template})
@@ -18478,7 +18421,7 @@ The library exports all procedures and syntactic forms provided by the
 component libraries.
 
 All of the bindings exported by @rsixlibrary{} are exported for both
-@code{run} and @code{expand}; @ref{lang library import export}.
+@code{run} and @code{expand}; @ref{scheme library import export}.
 
 
 @c page
@@ -18508,7 +18451,7 @@ type @condition{syntax}.
 
 @deffn Procedure environment @var{import-spec} @dots{}
 @var{import-spec} must be a datum representing an @hyper{import spec}
-(@ref{lang library form}).
+(@ref{scheme library form}).
 
 The @func{environment} procedure returns an environment corresponding to
 @var{import-spec}.
@@ -46813,7 +46756,7 @@ If this option is used, but @samp{:library-spec} is not: The output is a
 Instruct @func{lalr-parser} to generate a proper Scheme library, holding
 the parser definition and exporting a binding to the parser maker
 function.  @var{spec} must be a proper @meta{library name} as defined by
-@rnrs{6}.  @ref{lang library form, Libary form}
+@rnrs{6}.  @ref{scheme library form, Libary form}
 
 This option is especially useful in conjunction with @samp{output-file}.
 It is mandatory to use the option @samp{:parser-name} along with
@@ -55598,8 +55541,8 @@ is because of the @gnu{} Software tools he uses all the time.
 
 @subsubheading Documentation: language definition, base and standard library
 
-The chapters @ref{lang,The Scheme language}, @ref{baselib,Base library}
-and @ref{stdlib,Standard library} are derived from the original
+The chapters @ref{scheme, The Scheme language}, @ref{baselib,Base
+library} and @ref{stdlib,Standard library} are derived from the original
 ``Revised^6 Report on the Algorithmic Language Scheme'' document and the
 original ``Revised^6 Report on the Algorithmic Language Scheme ----
 Standard Libraries'', authored by the following people:
