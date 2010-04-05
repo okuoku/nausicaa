@@ -1583,7 +1583,7 @@
 (define-syntax make
   (syntax-rules ()
     ((_ ?record-name ?arg ...)
-     (record-constructor (record-constructor-descriptor ?record-name) ?arg ...))))
+     ((record-constructor (record-constructor-descriptor ?record-name)) ?arg ...))))
 
 
 ;;;; predicates
