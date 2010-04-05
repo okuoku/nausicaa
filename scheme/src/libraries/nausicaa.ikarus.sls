@@ -767,10 +767,8 @@
     identifier-syntax-accessor-mutator with-accessor-and-mutator
 
     ;; shared structures
-    write-with-shared-structure
-    read-with-shared-structure
-    (rename (write-with-shared-structure write/ss))
-    (rename (read-with-shared-structure  read/ss))
+    write-with-shared-structure write/ss
+    read-with-shared-structure  read/ss
 
     ;; environment variables
     (rename (getenv get-environment-variable))
@@ -794,10 +792,13 @@
     pretty-print)
   (import (except (rnrs) equal-hash finite? infinite? nan? = max)
     (only (ikarus) getenv)
-    (nausicaa common)
+    (cond-expand)
+    (unimplemented)
+    (language-extensions)
     (parameters)
     (pretty-print)
-    (cond-expand))
+    (shared-structures)
+    (nausicaa common))
 
 
 ;;;; Ikarus specific stuff

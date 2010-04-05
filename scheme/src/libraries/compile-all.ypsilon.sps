@@ -31,6 +31,7 @@
   (only (language-extensions))
   (only (parameters))
   (only (pretty-print))
+  (only (shared-structures))
   (only (classes))
   (only (generics))
   (only (nausicaa))

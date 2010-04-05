@@ -767,10 +767,8 @@
     identifier-syntax-accessor-mutator with-accessor-and-mutator
 
     ;; shared structures
-    write-with-shared-structure
-    read-with-shared-structure
-    (rename (write-with-shared-structure write/ss))
-    (rename (read-with-shared-structure  read/ss))
+    write-with-shared-structure write/ss
+    read-with-shared-structure  read/ss
 
     ;; environment variables
     (rename (getenv get-environment-variable))
@@ -794,11 +792,14 @@
     pretty-print)
   (import (except (rnrs) finite? infinite? nan? = * rational-valued?)
     (prefix (only (rnrs) * rational-valued?) petite:)
+    (only (chezscheme) getenv)
+    (cond-expand)
+    (unimplemented)
+    (language-extensions)
     (parameters)
     (pretty-print)
-    (only (chezscheme) getenv)
-    (nausicaa common)
-    (cond-expand))
+    (shared-structures)
+    (nausicaa common))
 
 
 ;;;; Petite specific stuff

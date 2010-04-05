@@ -52,6 +52,9 @@
 (compile-library "pretty-print.larceny.sls"
 		 "pretty-print.larceny.slfasl")
 
+(compile-library "shared-structures.larceny.sls"
+		 "shared-structures.larceny.slfasl")
+
 (compile-library "classes.sls"
 		 "classes.slfasl")
 

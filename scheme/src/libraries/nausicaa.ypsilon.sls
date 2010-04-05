@@ -767,10 +767,8 @@
     identifier-syntax-accessor-mutator with-accessor-and-mutator
 
     ;; shared structures
-    write-with-shared-structure
-    read-with-shared-structure
-    (rename (write-with-shared-structure write/ss))
-    (rename (read-with-shared-structure  read/ss))
+    write-with-shared-structure write/ss
+    read-with-shared-structure  read/ss
 
     (rename (lookup-process-environment get-environment-variable)
 	    (process-environment->alist get-environment-variables))
@@ -793,12 +791,14 @@
     pretty-print)
   (import (except (rnrs) finite? infinite? nan? = max *)
     (prefix (only (rnrs) *) ypsilon:)
-    (only (core)
-	  lookup-process-environment process-environment->alist)
-    (nausicaa common)
+    (only (core) lookup-process-environment process-environment->alist)
+    (cond-expand)
+    (unimplemented)
+    (language-extensions)
     (parameters)
     (pretty-print)
-    (cond-expand))
+    (shared-structures)
+    (nausicaa common))
 
 
 ;;;; Ypsilon specific stuff
