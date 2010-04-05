@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,8 +26,7 @@
 
 (import (nausicaa)
   (checks)
-  (records)
-  (for (stacks) expand run))
+  (stacks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing stacks\n")
@@ -36,32 +35,49 @@
 (parametrise ((check-test-name 'making))
 
   (check
-      (let ((q (stack)))
+      (let ((q (make-<stack>)))
 	(is-a? q <stack>))
     => #t)
 
   (check
-      (let ((q (stack 1)))
+      (let ((q (make-<stack> 1)))
 	(is-a? q <stack>))
     => #t)
 
   (check
-      (let ((q (stack 1 2 3)))
+      (let ((q (make-<stack> 1 2 3)))
 	(is-a? q <stack>))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (stack->list (stack))
+      (let ((q (make <stack>)))
+	(is-a? q <stack>))
+    => #t)
+
+  (check
+      (let ((q (make <stack> 1)))
+	(is-a? q <stack>))
+    => #t)
+
+  (check
+      (let ((q (make <stack> 1 2 3)))
+	(is-a? q <stack>))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (stack->list (make-<stack>))
     => '())
 
   (check
-      (stack->list (stack 1))
+      (stack->list (make-<stack> 1))
     => '(1))
 
   (check
-      (stack->list (stack 1 2 3))
+      (stack->list (make-<stack> 1 2 3))
     => '(1 2 3))
 
   #t)
@@ -70,32 +86,32 @@
 (parametrise ((check-test-name 'pred))
 
   (check
-      (stack-empty? (stack))
+      (stack-empty? (make-<stack>))
     => #t)
 
   (check
-      (stack-empty? (stack 1))
+      (stack-empty? (make-<stack> 1))
     => #f)
 
   (check
-      (stack-empty? (stack 1 2 3))
+      (stack-empty? (make-<stack> 1 2 3))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (with-fields ((empty? <stack*> (stack)))
-	empty?)
+      (let-fields (((S <stack>) (make-<stack>)))
+	S.empty?)
     => #t)
 
   (check
-      (with-fields ((empty? <stack*> (stack 1)))
-	empty?)
+      (let-fields (((S <stack>) (make-<stack> 1)))
+	S.empty?)
     => #f)
 
   (check
-      (with-fields ((empty? <stack*> (stack 1 2 3)))
-	empty?)
+      (let-fields (((S <stack>) (make-<stack> 1 2 3)))
+	S.empty?)
     => #f)
 
   #t)
@@ -104,65 +120,65 @@
 (parametrise ((check-test-name 'inspect))
 
   (check
-      (stack-length (stack))
+      (stack-length (make-<stack>))
     => 0)
 
   (check
-      (stack-length (stack 1))
+      (stack-length (make-<stack> 1))
     => 1)
 
   (check
-      (stack-length (stack 1 2 3))
+      (stack-length (make-<stack> 1 2 3))
     => 3)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (with-fields ((length <stack*> (stack)))
-	length)
+      (let-fields (((S <stack>) (make-<stack>)))
+	S.length)
     => 0)
 
   (check
-      (with-fields ((length <stack*> (stack 1)))
-	length)
+      (let-fields (((S <stack>) (make-<stack> 1)))
+	S.length)
     => 1)
 
   (check
-      (with-fields ((length <stack*> (stack 1 2 3)))
-	length)
+      (let-fields (((S <stack>) (make-<stack> 1 2 3)))
+	S.length)
     => 3)
 
 ;;; --------------------------------------------------------------------
 
   (check
       (guard (E (else (condition-message E)))
-	(stack-top (stack)))
+	(stack-top (make-<stack>)))
     => "stack is empty")
 
   (check
-      (stack-top (stack 1))
+      (stack-top (make-<stack> 1))
     => 1)
 
   (check
-      (stack-top (stack 1 2 3))
+      (stack-top (make-<stack> 1 2 3))
     => 1)
 
 ;;; --------------------------------------------------------------------
 
   (check
       (guard (E (else (condition-message E)))
-	(with-fields ((top <stack*> (stack)))
-	  top))
+	(let-fields (((S <stack>) (make-<stack>)))
+	  S.top))
     => "stack is empty")
 
   (check
-      (with-fields ((top <stack*> (stack 1)))
-	top)
+      (let-fields (((S <stack>) (make-<stack> 1)))
+	S.top)
     => 1)
 
   (check
-      (with-fields ((top <stack*> (stack 1 2 3)))
-	top)
+      (let-fields (((S <stack>) (make-<stack> 1 2 3)))
+	S.top)
     => 1)
 
   #t)
@@ -171,7 +187,7 @@
 (parametrise ((check-test-name 'operations))
 
   (check
-      (let ((q (stack)))
+      (let ((q (make-<stack>)))
 	(stack-push! 1 q)
 	(stack-push! 2 q)
 	(stack-push! 3 q)
@@ -182,24 +198,24 @@
 
   (check
       (guard (E (else (condition-message E)))
-	(let ((q (stack)))
+	(let ((q (make-<stack>)))
 	  (stack-pop! q)))
     => "stack is empty")
 
   (check
-      (let ((q (stack 1 2 3)))
+      (let ((q (make-<stack> 1 2 3)))
 	(stack-pop! q))
     => 1)
 
   (check
-      (let ((q (stack 1 2 3)))
+      (let ((q (make-<stack> 1 2 3)))
 	(stack-pop! q)
 	(stack-pop! q)
 	(stack-pop! q))
     => 3)
 
   (check
-      (let ((q (stack 1 2 3)))
+      (let ((q (make-<stack> 1 2 3)))
 	(stack-pop! q)
 	(stack-pop! q)
 	(stack-pop! q)
@@ -212,81 +228,81 @@
 (parametrise ((check-test-name 'list))
 
   (check
-      (let ((q (stack)))
+      (let ((q (make-<stack>)))
 	(stack-find even? q))
     => #f)
 
   (check
-      (let ((q (stack 1 2)))
-	(stack-find even? q))
-    => 2)
-
-  (check
-      (let ((q (stack 1 2 3 4)))
+      (let ((q (make-<stack> 1 2)))
 	(stack-find even? q))
     => 2)
 
-;;; --------------------------------------------------------------------
-
   (check
-      (let ((q (stack)))
-	(stack-exists even? q))
-    => #f)
-
-  (check
-      (let ((q (stack 1 2)))
-	(stack-exists even? q))
-    => #t)
-
-  (check
-      (let ((q (stack 1 2 3 4)))
-	(stack-exists even? q))
-    => #t)
+      (let ((q (make-<stack> 1 2 3 4)))
+	(stack-find even? q))
+    => 2)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((q (stack)))
-	(stack-for-all even? q))
+      (let ((q (make-<stack>)))
+	(stack-exists even? q))
+    => #f)
+
+  (check
+      (let ((q (make-<stack> 1 2)))
+	(stack-exists even? q))
     => #t)
 
   (check
-      (let ((q (stack 1 2)))
-	(stack-for-all even? q))
-    => #f)
-
-  (check
-      (let ((q (stack 1 2 3 4)))
-	(stack-for-all even? q))
-    => #f)
-
-  (check
-      (let ((q (stack 2 4 6 8)))
-	(stack-for-all even? q))
+      (let ((q (make-<stack> 1 2 3 4)))
+	(stack-exists even? q))
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((q (stack)))
+      (let ((q (make-<stack>)))
+	(stack-for-all even? q))
+    => #t)
+
+  (check
+      (let ((q (make-<stack> 1 2)))
+	(stack-for-all even? q))
+    => #f)
+
+  (check
+      (let ((q (make-<stack> 1 2 3 4)))
+	(stack-for-all even? q))
+    => #f)
+
+  (check
+      (let ((q (make-<stack> 2 4 6 8)))
+	(stack-for-all even? q))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (let ((q (make-<stack>)))
 	(stack-remp! even? q)
 	(stack->list q))
     => '())
 
   (check
-      (let ((q (stack 1 2)))
+      (let ((q (make-<stack> 1 2)))
 	(stack-remp! even? q)
 	(stack->list q))
     => '(1))
 
   (check
-      (let ((q (stack 1 2 3 4)))
+      (let ((q (make-<stack> 1 2 3 4)))
 	(stack-remp! even? q)
 	(stack->list q))
     => '(1 3))
 
   (check
-      (let ((q (stack 2 4 6 8)))
+      (let ((q (make-<stack> 2 4 6 8)))
 	(stack-remp! even? q)
 	(stack->list q))
     => '())
@@ -294,25 +310,25 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((q (stack)))
+      (let ((q (make-<stack>)))
 	(stack-remove! 2 q)
 	(stack->list q))
     => '())
 
   (check
-      (let ((q (stack 1 2)))
+      (let ((q (make-<stack> 1 2)))
 	(stack-remove! 2 q)
 	(stack->list q))
     => '(1))
 
   (check
-      (let ((q (stack 1 2 3 4)))
+      (let ((q (make-<stack> 1 2 3 4)))
 	(stack-remove! 2 q)
 	(stack->list q))
     => '(1 3 4))
 
   (check
-      (let ((q (stack 2 4 6 8)))
+      (let ((q (make-<stack> 2 4 6 8)))
 	(stack-remove! 2 q)
 	(stack->list q))
     => '(4 6 8))
@@ -320,25 +336,25 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((q (stack)))
+      (let ((q (make-<stack>)))
 	(stack-remv! 2 q)
 	(stack->list q))
     => '())
 
   (check
-      (let ((q (stack 1 2)))
+      (let ((q (make-<stack> 1 2)))
 	(stack-remv! 2 q)
 	(stack->list q))
     => '(1))
 
   (check
-      (let ((q (stack 1 2 3 4)))
+      (let ((q (make-<stack> 1 2 3 4)))
 	(stack-remv! 2 q)
 	(stack->list q))
     => '(1 3 4))
 
   (check
-      (let ((q (stack 2 4 6 8)))
+      (let ((q (make-<stack> 2 4 6 8)))
 	(stack-remv! 2 q)
 	(stack->list q))
     => '(4 6 8))
@@ -346,25 +362,25 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((q (stack)))
+      (let ((q (make-<stack>)))
 	(stack-remq! 'two q)
 	(stack->list q))
     => '())
 
   (check
-      (let ((q (stack 1 'two)))
+      (let ((q (make-<stack> 1 'two)))
 	(stack-remq! 'two q)
 	(stack->list q))
     => '(1))
 
   (check
-      (let ((q (stack 1 'two 3 4)))
+      (let ((q (make-<stack> 1 'two 3 4)))
 	(stack-remq! 'two q)
 	(stack->list q))
     => '(1 3 4))
 
   (check
-      (let ((q (stack 'two 4 6 8)))
+      (let ((q (make-<stack> 'two 4 6 8)))
 	(stack-remq! 'two q)
 	(stack->list q))
     => '(4 6 8))
@@ -372,98 +388,98 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((q (stack)))
+      (let ((q (make-<stack>)))
 	(stack-memp even? q))
     => #f)
 
   (check
-      (let ((q (stack 1 2)))
+      (let ((q (make-<stack> 1 2)))
 	(stack-memp even? q))
     => '(2))
 
   (check
-      (let ((q (stack 1 2 3 4)))
+      (let ((q (make-<stack> 1 2 3 4)))
 	(stack-memp even? q))
     => '(2 3 4))
 
   (check
-      (let ((q (stack 2 4 6 8)))
+      (let ((q (make-<stack> 2 4 6 8)))
 	(stack-memp even? q))
     => '(2 4 6 8))
 
   (check
-      (let ((q (stack 2 4 6 8)))
+      (let ((q (make-<stack> 2 4 6 8)))
 	(stack-memp odd? q))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((q (stack)))
+      (let ((q (make-<stack>)))
 	(stack-member 2 q))
     => #f)
 
   (check
-      (let ((q (stack 1 2)))
+      (let ((q (make-<stack> 1 2)))
 	(stack-member 2 q))
     => '(2))
 
   (check
-      (let ((q (stack 1 2 3 4)))
+      (let ((q (make-<stack> 1 2 3 4)))
 	(stack-member 2 q))
     => '(2 3 4))
 
   (check
-      (let ((q (stack 2 4 6 8)))
+      (let ((q (make-<stack> 2 4 6 8)))
 	(stack-member 2 q))
     => '(2 4 6 8))
 
   (check
-      (let ((q (stack 2 4 6 8)))
+      (let ((q (make-<stack> 2 4 6 8)))
 	(stack-member 10 q))
     => #f)
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((q (stack)))
+      (let ((q (make-<stack>)))
 	(stack-memv 2 q))
     => #f)
 
   (check
-      (let ((q (stack 1 2)))
+      (let ((q (make-<stack> 1 2)))
 	(stack-memv 2 q))
     => '(2))
 
   (check
-      (let ((q (stack 1 2 3 4)))
+      (let ((q (make-<stack> 1 2 3 4)))
 	(stack-memv 2 q))
     => '(2 3 4))
 
   (check
-      (let ((q (stack 2 4 6 8)))
+      (let ((q (make-<stack> 2 4 6 8)))
 	(stack-memv 2 q))
     => '(2 4 6 8))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (let ((q (stack)))
+      (let ((q (make-<stack>)))
 	(stack-memq 'two q))
     => #f)
 
   (check
-      (let ((q (stack 1 'two)))
+      (let ((q (make-<stack> 1 'two)))
 	(stack-memq 'two q))
     => '(two))
 
   (check
-      (let ((q (stack 1 'two 3 4)))
+      (let ((q (make-<stack> 1 'two 3 4)))
 	(stack-memq 'two q))
     => '(two 3 4))
 
   (check
-      (let ((q (stack 'two 4 6 8)))
+      (let ((q (make-<stack> 'two 4 6 8)))
 	(stack-memq 'two q))
     => '(two 4 6 8))
 
@@ -475,29 +491,29 @@
 (parametrise ((check-test-name 'conversion))
 
   (check
-      (stack->list (stack))
+      (stack->list (make-<stack>))
     => '())
 
   (check
-      (stack->list (stack 1))
+      (stack->list (make-<stack> 1))
     => '(1))
 
   (check
-      (stack->list (stack 1 2 3))
+      (stack->list (make-<stack> 1 2 3))
     => '(1 2 3))
 
 ;;; --------------------------------------------------------------------
 
   (check
-      (stack->vector (stack))
+      (stack->vector (make-<stack>))
     => '#())
 
   (check
-      (stack->vector (stack 1))
+      (stack->vector (make-<stack> 1))
     => '#(1))
 
   (check
-      (stack->vector (stack 1 2 3))
+      (stack->vector (make-<stack> 1 2 3))
     => '#(1 2 3))
 
 ;;; --------------------------------------------------------------------

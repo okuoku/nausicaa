@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,13 +26,15 @@
 
 (library (stacks)
   (export
-    <stack>		<stack-rtd>
-    <stack*>		stack
+    <stack>		<stack>?	<stack>-with-record-fields-of
+    make-<stack>
+    <stack>-first-pair	<stack>-first-pair-set!
 
     stack-empty?	stack-length
 
     stack-top
     stack-push!		stack-pop!
+    stack-purge!
 
     stack-find		stack-for-all
     stack-exists
@@ -46,128 +48,109 @@
 
     stack->list		list->stack
     stack->vector	vector->stack)
-  (import (rnrs)
-    (rnrs mutable-pairs)
-    (stacks types)
-    (stacks extensions))
+  (import (nausicaa)
+    (rnrs mutable-pairs))
 
 
 ;;; helpers
 
-(define-syntax list-copy/stx
-  (syntax-rules ()
-    ((_ ?ell)
-     (let loop ((ell ?ell))
-       (if (pair? ell)
-	   (cons (car ell) (loop (cdr ell)))
-	 ell)))))
+(define-inline (list-copy/stx ?ell)
+  (let loop ((ell ?ell))
+    (if (pair? ell)
+	(cons (car ell) (loop (cdr ell)))
+      ell)))
 
 
-(define stack
-  (case-lambda
-   (()
-    (make-<stack> '()))
-   (args
-    (make-<stack> args))))
+(define-class <stack>
+  (protocol (lambda (make-<top>)
+	      (case-lambda
+	       (()
+		((make-<top>) '()))
+	       (args
+		((make-<top>) args)))))
+  (fields (mutable first-pair))
+  (virtual-fields (immutable top	stack-top)
+		  (immutable empty?	stack-empty?)
+		  (immutable length	stack-length)))
+
+(define (stack-top (S <stack>))
+  (if (null? S.first-pair)
+      (error 'stack-top "stack is empty" S)
+    (car S.first-pair)))
+
+(define (stack-empty? (S <stack>))
+  (null? S.first-pair))
+
+(define (stack-length (S <stack>))
+  (length S.first-pair))
 
 
-(define (stack-push! obj stk)
-  (assert (<stack>? stk))
-  (let-syntax ((first-pair	(identifier-syntax (_ (<stack>-first-pair stk))
-						   ((set! _ ?value)
-						    (<stack>-first-pair-set! stk ?value)))))
-    (set! first-pair (cons obj first-pair))))
+(define (stack-push! obj (S <stack>))
+  (set! S.first-pair (cons obj S.first-pair)))
 
-(define (stack-pop! stk)
-  (assert (<stack>? stk))
-  (let-syntax ((first-pair	(identifier-syntax (_ (<stack>-first-pair stk))
-						   ((set! _ ?value)
-						    (<stack>-first-pair-set! stk ?value)))))
-    (let ((first first-pair))
-      (if (null? first)
-	  (error 'stack-pop! "stack is empty" stk)
-	(set! first-pair (cdr first)))
-      (car first))))
+(define (stack-pop! (S <stack>))
+  (if (null? S.first-pair)
+      (error 'stack-pop! "stack is empty" S)
+    (begin0-let ((v (car S.first-pair)))
+      (set! S.first-pair (cdr S.first-pair)))))
+
+(define (stack-purge! (S <stack>))
+  (set! S.first-pair '()))
 
 
-(define (stack-find proc stk)
-  (assert (<stack>? stk))
-  (assert (procedure? proc))
-  (find proc (<stack>-first-pair stk)))
+(define (stack-find proc (S <stack>))
+  (find proc S.first-pair))
 
-(define (stack-for-all proc stk)
-  (assert (<stack>? stk))
-  (assert (procedure? proc))
-  (for-all proc (<stack>-first-pair stk)))
+(define (stack-for-all proc (S <stack>))
+  (for-all proc S.first-pair))
 
-(define (stack-exists proc stk)
-  (assert (<stack>? stk))
-  (assert (procedure? proc))
-  (exists proc (<stack>-first-pair stk)))
+(define (stack-exists proc (S <stack>))
+  (exists proc S.first-pair))
 
 
-(define (%remove remover thing stk)
-  (let-syntax ((first-pair	(identifier-syntax (_ (<stack>-first-pair stk))
-						   ((set! _ ?value)
-						    (<stack>-first-pair-set! stk ?value)))))
-    (set! first-pair (remover thing first-pair))))
+(define (%remove remover thing (S <stack>))
+  (set! S.first-pair (remover thing S.first-pair)))
 
 (define (stack-remp! proc stk)
-  (assert (<stack>? stk))
-  (assert (procedure? proc))
   (%remove remp proc stk))
 
 (define (stack-remove! obj stk)
-  (assert (<stack>? stk))
   (%remove remove obj stk))
 
 (define (stack-remv! obj stk)
-  (assert (<stack>? stk))
   (%remove remv obj stk))
 
 (define (stack-remq! obj stk)
-  (assert (<stack>? stk))
   (%remove remq obj stk))
 
 (define (stack-filter! proc stk)
-  (assert (<stack>? stk))
-  (assert (procedure? proc))
   (%remove filter proc stk))
 
 
-(define (stack-memp proc stk)
-  (assert (<stack>? stk))
-  (assert (procedure? proc))
-  (memp proc (<stack>-first-pair stk)))
+(define (stack-memp proc (S <stack>))
+  (memp proc S.first-pair))
 
-(define (stack-member obj stk)
-  (assert (<stack>? stk))
-  (member obj (<stack>-first-pair stk)))
+(define (stack-member obj (S <stack>))
+  (member obj S.first-pair))
 
-(define (stack-memv obj stk)
-  (assert (<stack>? stk))
-  (memv obj (<stack>-first-pair stk)))
+(define (stack-memv obj (S <stack>))
+  (memv obj S.first-pair))
 
-(define (stack-memq obj stk)
-  (assert (<stack>? stk))
-  (memq obj (<stack>-first-pair stk)))
+(define (stack-memq obj (S <stack>))
+  (memq obj S.first-pair))
 
 
-(define (stack->list stk)
-  (assert (<stack>? stk))
-  (list-copy/stx (<stack>-first-pair stk)))
+(define (stack->list (S <stack>))
+  (list-copy/stx S.first-pair))
 
 (define (list->stack ell)
-  (assert (list? ell))
-  (make-<stack> (list-copy/stx ell)))
+  (apply make-<stack> ell))
 
-(define (stack->vector stk)
-  (assert (<stack>? stk))
-  (list->vector (<stack>-first-pair stk)))
+(define (stack->vector (S <stack>))
+  (list->vector S.first-pair))
 
 (define (vector->stack vec)
-  (assert (vector? vec))
-  (make-<stack> (vector->list vec)))
+  (apply make-<stack> (vector->list vec)))
 
 
 ;;;; done
