@@ -62,7 +62,9 @@
 
     ;;Next method interface.
     call-next-method next-method?)
-  (import (nausicaa)
+  (import (rnrs)
+    (language-extensions)
+    (parameters)
     (rnrs mutable-pairs (6))
     (lists))
 

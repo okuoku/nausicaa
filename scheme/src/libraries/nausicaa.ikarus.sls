@@ -240,7 +240,8 @@
     current-input-port
     current-output-port
     datum->syntax
-    define
+;;;replaced by define/with from (classes)
+;;;    define
     define-condition-type
     define-enumeration
     define-record-type
@@ -789,7 +790,61 @@
     symbol*->string symbol->string/maybe do*
 
     ;; other stuff
-    pretty-print)
+    pretty-print
+
+    (rename (define/with define))
+
+;;;; bindings from (classes)
+
+    define-class			make
+    define/with				define/with*
+    lambda/with				lambda/with*
+    let-fields				let*-fields
+    letrec-fields			letrec*-fields
+    with-fields
+    is-a?				record-is-a?
+    record-type-parent?
+    record-type-of
+    record-parent-list			record-parent-list*
+
+    <top> <builtin>
+    <pair> <list>
+    <char> <string> <vector> <bytevector> <hashtable>
+    <record> <condition>
+    <port> <binary-port> <input-port> <output-port> <textual-port>
+    <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
+    <real> <real-valued> <complex> <number>
+
+    <top>-with-record-fields-of
+    <builtin>-with-record-fields-of
+    <pair>-with-record-fields-of
+    <list>-with-record-fields-of
+    <char>-with-record-fields-of
+    <string>-with-record-fields-of
+    <vector>-with-record-fields-of
+    <bytevector>-with-record-fields-of
+    <hashtable>-with-record-fields-of
+    <record>-with-record-fields-of
+    <condition>-with-record-fields-of
+    <port>-with-record-fields-of
+    <binary-port>-with-record-fields-of
+    <input-port>-with-record-fields-of
+    <output-port>-with-record-fields-of
+    <textual-port>-with-record-fields-of
+    <fixnum>-with-record-fields-of
+    <flonum>-with-record-fields-of
+    <integer>-with-record-fields-of
+    <integer-valued>-with-record-fields-of
+    <rational>-with-record-fields-of
+    <rational-valued>-with-record-fields-of
+    <real>-with-record-fields-of
+    <real-valued>-with-record-fields-of
+    <complex>-with-record-fields-of
+    <number>-with-record-fields-of
+
+  )
+
+
   (import (except (rnrs) equal-hash finite? infinite? nan? = max)
     (only (ikarus) getenv)
     (cond-expand)
@@ -798,6 +853,7 @@
     (parameters)
     (pretty-print)
     (shared-structures)
+    (classes)
     (nausicaa common))
 
 

@@ -531,10 +531,10 @@ Basic libraries
 * shared-structures::           External representation for data
                                 with shared structure.
 * classes::                     Record utilities.
-* generics::                    Multimethods dispatching.
 
 More libraries
 
+* generics::                    Multimethods dispatching.
 * conditions::                  Predefined condition types.
 * enumerations::                Enumeration sets utilities.
 * lists::                       Lists library.
@@ -18893,8 +18893,8 @@ representation for data with shared structure}.
 @item classes
 Provides record type extensions.  @ref{classes, Record utilities}.
 
-@item generics
-Provides generic functions.  @ref{generics, Multimethod dispatching}.
+@c @item generics
+@c Provides generic functions.  @ref{generics, Multimethod dispatching}.
 @end table
 
 @c page

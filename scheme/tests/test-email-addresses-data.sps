@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,8 +27,7 @@
 
 (import (nausicaa)
   (checks)
-  (email addresses common)
-  (records))
+  (email addresses common))
 
 (check-set-mode! 'report-failed)
 (display "*** testing email addresses records\n")
