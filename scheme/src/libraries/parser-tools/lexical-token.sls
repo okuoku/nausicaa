@@ -9,7 +9,7 @@
 ;;;	lexer and consumed  by a parser.  It is meant to  be used by all
 ;;;	the parser libraries distributed with Nausicaa.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2005-2008 Dominique Boucher
 ;;;
 ;;;Original  code  by Dominique  Boucher.   Port  to  R6RS and  Nausicaa
@@ -33,6 +33,7 @@
 #!r6rs
 (library (parser-tools lexical-token)
   (export
+    <lexical-token>			<lexical-token>-with-record-fields-of
     make-<lexical-token>
     make-<lexical-token>/end-of-input
     make-<lexical-token>/lexer-error
@@ -47,10 +48,10 @@
     <lexical-token>?/end-of-input
     <lexical-token>?/lexer-error
     <lexical-token>?/special)
-  (import (rnrs))
+  (import (nausicaa))
 
 
-(define-record-type <lexical-token>
+(define-class <lexical-token>
   (fields (immutable category)
 	  (immutable location)
 	  (immutable value)

@@ -10,7 +10,7 @@
 ;;;	parser.   It is meant  to be  used by  all the  parser libraries
 ;;;	distributed with Nausicaa.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2005-2008 Dominique Boucher
 ;;;
 ;;;Original  code  by Dominique  Boucher.   Port  to  R6RS and  Nausicaa
@@ -35,6 +35,7 @@
 (library (parser-tools source-location)
   (export
 
+    <source-location>		<source-location>-with-record-fields-of
     make-<source-location>	make-<source-location>/start
     <source-location>?		<source-location>?/start
     <source-location>?/or-false	<source-location>?/start/or-false
@@ -59,21 +60,11 @@
     source-location-tab-table
 
     source-location-honor-return)
-  (import (rnrs)
-    (records)
-    (parameters))
+  (import (nausicaa)
+    (generics))
 
 
-(define-syntax define-inline
-  (syntax-rules ()
-    ((_ (?name ?arg ...) ?form0 ?form ...)
-     (define-syntax ?name
-       (syntax-rules ()
-	 ((_ ?arg ...)
-	  (begin ?form0 ?form ...)))))))
-
-
-(define-record-type <source-location>
+(define-class <source-location>
   (fields (immutable input)
 	  (immutable line)
 	  (immutable column)
@@ -101,32 +92,30 @@
   (cond ((not a) #f)
 	((not b) #f)
 	(else
-	 (and (= (<source-location>-line a)
-		 (<source-location>-line b))
-	      (= (<source-location>-column a)
-		 (<source-location>-column b))
-	      (= (<source-location>-offset a)
-		 (<source-location>-offset b))))))
+	 (with-fields ((a <source-location>)
+		       (b <source-location>))
+	   (and (= a.line b.line)
+		(= a.column b.column)
+		(= a.offset b.offset))))))
 
 (define (source-location-point=? a b)
   (cond ((not a) #f)
 	((not b) #f)
 	(else
-	 (and (= (<source-location>-line a)
-		 (<source-location>-line b))
-	      (= (<source-location>-column a)
-		 (<source-location>-column b))))))
+	 (with-fields ((a <source-location>)
+		       (b <source-location>))
+	   (and (= a.line b.line)
+		(= a.column b.column))))))
 
 (define (source-location-point>? a b)
   (cond ((not a) #f)
 	((not b) #t)
 	(else
-	 (let ((la (<source-location>-line a))
-	       (lb (<source-location>-line b)))
-	   (or (> la lb)
-	       (and (= la lb)
-		    (> (<source-location>-column a)
-		       (<source-location>-column b))))))))
+	 (with-fields ((a <source-location>)
+		       (b <source-location>))
+	   (or (> a.line b.line)
+	       (and (= a.line b.line)
+		    (> a.column b.column)))))))
 
 (define (source-location-point<? a b)
   (source-location-point>? b a))
@@ -135,49 +124,45 @@
   (cond ((not a) #f)
 	((not b) #t)
 	(else
-	 (let ((la (<source-location>-line a))
-	       (lb (<source-location>-line b)))
-	 (or (> la lb)
-	     (and (= la lb)
-		  (>= (<source-location>-column a)
-		      (<source-location>-column b))))))))
+	 (with-fields ((a <source-location>)
+		       (b <source-location>))
+	   (or (> a.line b.line)
+	       (and (= a.line b.line)
+		    (>= a.column b.column)))))))
 
 (define (source-location-point<=? a b)
   (source-location-point>=? b a))
 
 
-(define (source-location-update location char/token-length)
+(define (source-location-update (location <source-location>) char/token-length)
   (and location
-       (let* ((input		(<source-location>-input  location))
-	      (line		(<source-location>-line   location))
-	      (column		(<source-location>-column location))
-	      (offset		(<source-location>-offset location)))
-	 (cond ((integer? char/token-length)
-		(make-<source-location> input line
-					(+ char/token-length column)
-					(+ char/token-length offset)))
+       (cond ((integer? char/token-length)
+	      (make-<source-location> location.input location.line
+				      (+ char/token-length location.column)
+				      (+ char/token-length location.offset)))
 
-	       ((char? char/token-length)
-		(let ((new-offset (+ 1 offset)))
-		  (case char/token-length
-		    ((#\newline)
-		     (make-<source-location> input (+ line 1) 1 new-offset))
-		    ((#\return)
-		     (make-<source-location> input line
-					     (if (source-location-honor-return)
-						 1
-					       (+ 1 column))
-					     new-offset))
-		    ((#\tab)
-		     (make-<source-location> input line
-					     ((source-location-tab-function) column)
-					     new-offset))
-		    (else
-		     (make-<source-location> input line (+ 1 column) new-offset)))))
-	       (else
-		(assertion-violation 'source-location-update
-		  "expected character or lexical token length"
-		  char/token-length))))))
+	     ((char? char/token-length)
+	      (let ((new-offset (+ 1 location.offset)))
+		(case char/token-length
+		  ((#\newline)
+		   (make-<source-location> location.input (+ location.line 1) 1 new-offset))
+		  ((#\return)
+		   (make-<source-location> location.input location.line
+					   (if (source-location-honor-return)
+					       1
+					     (+ 1 location.column))
+					   new-offset))
+		  ((#\tab)
+		   (make-<source-location> location.input location.line
+					   ((source-location-tab-function) location.column)
+					   new-offset))
+		  (else
+		   (make-<source-location> location.input location.line
+					   (+ 1 location.column) new-offset)))))
+	     (else
+	      (assertion-violation 'source-location-update
+		"expected character or lexical token length"
+		char/token-length)))))
 
 (define (source-location-tab-function/8chars column)
   (+ 8 (- column (mod column 8))))
@@ -208,17 +193,16 @@
   (make-parameter #f))
 
 
-(define (source-location->string location)
+(define (source-location->string (location <source-location>))
   (if location
-      (string-append (object->string (<source-location>-input  location))
+      (string-append (object->string location.input)
 		     ":"
-		     (number->string (<source-location>-line   location))
+		     (number->string location.line)
 		     ":"
-		     (number->string (<source-location>-column location)))
+		     (number->string location.column))
     "<??>"))
 
-
-(declare-method (object->string (o <source-location>))
+(define-method (object->string (o <source-location>))
   (source-location->string o))
 
 
