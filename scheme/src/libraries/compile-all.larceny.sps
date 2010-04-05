@@ -26,8 +26,11 @@
 (import (rnrs)
   (larceny compiler))
 
-(compile-library "nausicaa/registry.sls"
-		 "nausicaa/registry.slfasl")
+(compile-library "cond-expand/registry.sls"
+		 "cond-expand/registry.slfasl")
+
+(compile-library "cond-expand.sls"
+		 "cond-expand.slfasl")
 
 (compile-library "profiling/compat.larceny.sls"
 		 "profiling/compat.larceny.slfasl")

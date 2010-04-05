@@ -25,7 +25,7 @@ NAU_DS_WITH_OPTION([LIBC_SHARED_OBJECT_SPEC],[libc-shared-object],[],
 AC_CONFIG_FILES([../src/libraries/foreign/ffi/sizeof.sls:../src/libraries/foreign/ffi/sizeof.sls.in])
 AC_CONFIG_FILES([../src/libraries/foreign/ffi/peekers-and-pokers.sls:../src/libraries/foreign/ffi/peekers-and-pokers.sls.in])
 AC_CONFIG_FILES([../src/libraries/foreign/errno.sls:../src/libraries/foreign/errno.sls.in])
-AC_CONFIG_FILES([../src/libraries/nausicaa/registry.sls:../src/libraries/nausicaa/registry.sls.in])
+AC_CONFIG_FILES([../src/libraries/cond-expand/registry.sls:../src/libraries/cond-expand/registry.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END

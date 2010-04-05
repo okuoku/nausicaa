@@ -23,16 +23,23 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-    (only (language-extensions))
+(import (rnrs)
+
+  ;;Basic libraries
+  (only (cond-expand))
+  (only (language-extensions))
+  (only (classes))
+  (only (generics))
+
+  ;;Other libraries
   (only (profiling))
   (only (unimplemented))
   (only (conditions))
   (only (enumerations))
   (only (parameters))
   (only (pretty-print))
-  (only (nausicaa common))
   (only (nausicaa))
+
   (only (lists))
   (only (one-dimension-cc))
   (only (one-dimension-co))
@@ -55,8 +62,6 @@
   (only (arrays))
   (only (times-and-dates))
 
-  (only (classes))
-  (only (generics))
   (only (scmobj))
   (only (scmobj utils))
 

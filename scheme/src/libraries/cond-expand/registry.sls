@@ -27,11 +27,11 @@
 ;;;SOFTWARE.
 
 #!r6rs
-(library (nausicaa registry)
+(library (cond-expand registry)
   (export registry-features)
   (import (rnrs))
   (define registry-features
-    '(@NAUSICAA_OS@
+    '(linux-gnu
       r6rs)))
 
 ;;; end of file
