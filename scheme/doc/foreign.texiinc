@@ -4451,11 +4451,7 @@ To log memory allocations we can do:
 The bindings described in this section are exported by @library{foreign
 memory memblocks} and reexported by @library{foreign memory}; a number
 of libraries in the @library{foreign memory ---} hierarchy makes use of
-this library.
-
-To use the @class{memblock} record type with the @library{records}
-library, we have to import @library{foreign memory memblock} for the
-@samp{expand} phase.
+this library.  The library is built on top of @library{classes}.
 
 @menu
 * memory blocks type::          Record type definition.
@@ -4471,12 +4467,7 @@ library, we have to import @library{foreign memory memblock} for the
 @subsubsection Record type definition
 
 
-A @class{memblock} is a record that holds a pointer to a raw memory
-block and its size.
-
-
-@deftp {Record Type Name} <memblock>
-@deftpx {Record Type Descriptor} <memblock-rtd>
+@deftp Class <memblock>
 Type of record used to represent memory blocks.  It has the following
 mutable fields:
 
@@ -4496,14 +4487,21 @@ block.
 @end deftp
 
 
-@defun make-<memblock> @var{pointer} @var{number-of-bytes} @var{alloc-size}
-Build and return a new @class{memblock} record.
+@deffn {Auxiliary Syntax} <memblock>-with-record-fields-of
+Used to access fields of @class{memblock} records by @func{with-fields}
+from @library{classes}.
+@end deffn
+
+
+@defun make-<memblock> @var{pointer} @var{number-of-bytes}
+@defunx make-<memblock> @var{pointer} @var{number-of-bytes} @var{alloc-size}
+Build and return a new @class{memblock} record.  When @var{alloc-size}
+is not used, it defaults to @false{}.
 @end defun
 
 
 @defun <memblock>? @var{obj}
-Return true if @var{obj} is a record of type @class{memblock}, return
-@false{} otherwise.
+Return @true{} if @var{obj} is a record of type @class{memblock}.
 @end defun
 
 
@@ -5047,36 +5045,37 @@ contiguously from a preallocated memory block accessed through a
 in the status of the pool.  When using this allocator there is no need
 to release individual blocks: Releasing the pool releases all of them.
 
-The following bindings are exported by @library{foreign memory mempool}.
+The following bindings are exported by @library{foreign memory
+mempool}.  The library is built on top of @library{classes}.
 
 
-@deftp {Record Type Name} <mempool>
-@deftpx {Record Type Descriptor} <mempool-rtd>
-@deftpx {Record Extension} <mempool*>
-Record type descriptor of the memory pool object; it is derived from
-@class{memblock}.  It has the following fields:
+@deftp Class <mempool>
+Record type descriptor of the memory pool object.  It has the following
+concrete and virtual fields:
 
-@table @samp
+@table @code
 @item pointer
-Pointer to the allocated block.
+Immutable.  Pointer to the allocated block.
 
 @item size
-Number of allocated bytes.
+Immutable.  Number of allocated bytes.
 
 @item pointer-free
-Pointer to the first free byte in the allocated block.
-@end table
+Mutable.  Pointer to the first free byte in the allocated block.
 
-The record extension has the following virtual fields:
-
-@table @samp
 @item free-size
-Number of free bytes in the memory pool.
+Immutable.  Number of free bytes in the memory pool.
 @end table
 @end deftp
 
 
-@defun make-mempool @var{pointer} @var{number-of-bytes}
+@deffn {Auxiliary Syntax} <mempool>-with-record-fields-of
+Used to access the fields of @class{mempool} records by
+@func{with-fields} from @library{classes}.
+@end deffn
+
+
+@defun make-<mempool> @var{pointer} @var{number-of-bytes}
 Build and return a new @class{mempool} record.  Notice that the
 allocated memory must be released explicitly by accessing the
 @samp{pointer} field of the record.
@@ -5109,35 +5108,34 @@ A wrapper for @func{primitive-malloc/mempool} that raises an
 Example:
 
 @example
-(import (rnrs)
+(import (nausicaa)
   (foreign memory)
-  (for (foreign memory mempool) expand run)
-  (records))
+  (foreign memory mempool))
 
 (define pool
-  (make-mempool (malloc 4096) 4096))
+  (make-<mempool> (malloc 4096) 4096))
 
 (parametrise ((memory-pool pool))
   (let ((p (malloc/mempool 10))
         (q (malloc/mempool 20)))
     ---))
 
-(with-fields ((pointer <mempool*> pool))
-  (primitive-free pointer))
+(with-fields ((pool <mempool>))
+  (primitive-free pool.pointer))
 @end example
 
 @noindent
 or using compensations:
 
 @example
-(import (rnrs)
+(import (nausicaa)
   (foreign memory compensate)
   (foreign memory mempool)
   (compensations))
 
 (with-compensations
-  (parametrise ((memory-pool (make-mempool (malloc/c 4096)
-                                           4096)))
+  (parametrise ((memory-pool
+                   (make-<mempool> (malloc/c 4096) 4096)))
     (let ((p (malloc/mempool 10))
           (q (malloc/mempool 20)))
       ---)))
@@ -5224,20 +5222,23 @@ usage example with compensations (@pxref{compensations}):
 
 
 The following bindings are exported by @library{foreign memory
-membuffers}.  This library is meant to be used with the features of the
-@library{records} library and it may require the @library{foreign memory
-memblocks} library if @class{memblock} records are used.
+membuffers}; the library is built on top of @class{classes}.
 
 
-@deftp {Record Type Name} <membuffer>
-@deftpx {Record Type Descriptor} <membuffer-rtd>
+@deftp Class <membuffer>
 Record type of byte buffers; it is used as a @acronym{FIFO} for bytes or
-multi--byte data types.  It is derived from @class{queue}.
+multi--byte data types.
 @end deftp
 
 
-@defun membuffer
-@defunx membuffer @var{cache}
+@deffn {Auxiliary Syntax} <membuffer>-with-record-fields-of
+Used to access the fields of @class{membuffer} records by
+@func{with-fields} from @library{classes}.
+@end deffn
+
+
+@defun make-<membuffer>
+@defunx make-<membuffer> @var{cache}
 Build and return a new @class{membuffer} record.  @var{cache} must be a
 memory block cache interface function returned by
 @func{make-block-cache}; when not given, it defaults to
@@ -5245,6 +5246,11 @@ memory block cache interface function returned by
 
 The cache function must raise an @condition{out-of-memory} condition if
 memory allocation fails.
+@end defun
+
+
+@defun <membuffer>? @var{obj}
+Return @true{} if @var{obj} is a record of type @class{membuffer}.
 @end defun
 
 

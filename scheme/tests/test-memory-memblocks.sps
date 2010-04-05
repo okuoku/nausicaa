@@ -62,20 +62,20 @@
   (check
       (with-compensations
 	(let ((mb (malloc-memblock/c 16)))
-	  (with-record-fields ((((ptr pointer)) <memblock> mb))
+	  (with-fields ((mb <memblock>))
 	    (do ((i 0 (+ 1 i)))
 		((= i 16))
-	      (pointer-set-c-uint8! ptr i i)))
+	      (pointer-set-c-uint8! mb.pointer i i)))
 	  (memblock->string-hex mb)))
     => "000102030405060708090A0B0C0D0E0F")
 
   (check
       (with-compensations
 	(let ((mb (malloc-memblock/c 16)))
-	  (with-record-fields ((((ptr pointer)) <memblock> mb))
+	  (with-fields ((mb <memblock>))
 	    (do ((i 0 (+ 1 i)))
 		((= i 16))
-	      (pointer-set-c-uint8! ptr i (+ 16 i))))
+	      (pointer-set-c-uint8! mb.pointer i (+ 16 i))))
 	  (memblock->string-hex mb)))
     => "101112131415161718191A1B1C1D1E1F")
 

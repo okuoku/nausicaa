@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,8 +27,8 @@
 
 (library (foreign memory membuffers)
   (export
-    <membuffer>			<membuffer-rtd>
-    membuffer
+    <membuffer>			<membuffer>-with-record-fields-of
+    make-<membuffer>		<membuffer>?
     membuffer-push-memblock!	membuffer-pop-memblock!
     membuffer-push-bytevector!	membuffer-pop-bytevector!
 
@@ -38,13 +38,55 @@
     membuffer-incomplete-push/source
     membuffer-incomplete-push/source-start-offset
     membuffer-incomplete-push/source-past-offset)
-  (import (rnrs)
+  (import (nausicaa)
     (queues)
+    (only (foreign ffi pointers) pointer=? pointer-diff)
     (foreign memory)
     (foreign memory caches)
-    (for (foreign memory memblocks) expand)
-    (for (foreign memory membuffers types) expand run)
-    (for (foreign memory membuffers extensions) expand run))
+    (foreign memory memblocks))
+
+
+(define-class <membuffer>
+  (parent <queue>)
+  (nongenerative nausicaa:ffi:memory:membuffer:<membuffer>)
+  (protocol (lambda (make-<queue>)
+	      (case-lambda
+	       (()
+		((make-<queue>) page-blocks-cache))
+	       ((cache)
+		((make-<queue>) cache)))))
+  (fields (immutable cache)))
+
+(define (%buffer-alloc (mb <membuffer>))
+  (let ((pointer (mb.cache)))
+    (make-<buffer> pointer (mb.cache 'size) (mb.cache 'size) pointer pointer)))
+
+(define (%buffer-free (mb <membuffer>) (buf <buffer>))
+  (mb.cache buf.pointer))
+
+
+(define-class <buffer>
+  (parent <memblock>)
+  (fields (mutable pointer-used)	;pointer to first used byte
+	  (mutable pointer-free))	;pointer to first free byte
+  (virtual-fields (immutable pointer	<memblock>-pointer)
+		  (immutable size	<memblock>-size)
+		  (immutable empty?	%buffer-empty?)
+		  (immutable full?	%buffer-full?)
+		  (immutable used-size	%buffer-used-size)
+		  (immutable free-size	%buffer-free-size)))
+
+(define (%buffer-empty? (buf <buffer>))
+  (pointer=? buf.pointer-used buf.pointer-free))
+
+(define (%buffer-full? (buf <buffer>))
+  (= buf.size (pointer-diff buf.pointer-free buf.pointer-used)))
+
+(define (%buffer-free-size (buf <buffer>))
+  (- buf.size (pointer-diff buf.pointer-free buf.pointer-used)))
+
+(define (%buffer-used-size (buf <buffer>))
+  (pointer-diff buf.pointer-free buf.pointer-used))
 
 
 (define-condition-type &membuffer-incomplete-push
@@ -57,22 +99,75 @@
   (source-past-offset	membuffer-incomplete-push/source-past-offset))
 
 
-;;;; allocation and release of <buffer> records
+(define membuffer-pop-bytevector!
+  (case-lambda
+   ((buf bv)
+    (membuffer-pop-bytevector! buf bv 0 (bytevector-length bv)))
+   ((buf bv bv.start)
+    (membuffer-pop-bytevector! buf bv bv.start (bytevector-length bv)))
+   ((buf bv bv.start bv.past)
+    (%membuffer-pop! buf bv bv.start bv.past %buffer-pop-bytevector!))))
 
-(define (buffer-alloc mb)
-  (let-syntax ((cache (identifier-syntax (<membuffer>-cache mb))))
-    (let ((pointer (cache)))
-      (make-<buffer> pointer (cache 'size) (cache 'size) pointer pointer))))
+(define membuffer-push-bytevector!
+  (case-lambda
+   ((buf bv)
+    (membuffer-push-bytevector! buf bv 0 (bytevector-length bv)))
+   ((buf bv bv.start)
+    (membuffer-push-bytevector! buf bv bv.start (bytevector-length bv)))
+   ((buf bv bv.start bv.past)
+    (%membuffer-push! buf bv bv.start bv.past %buffer-push-bytevector!))))
 
-(define (buffer-free mb buf)
-  (let-syntax ((cache	(identifier-syntax (<membuffer>-cache mb)))
-	       (pointer	(identifier-syntax (<buffer>-pointer buf))))
-    (cache pointer)))
+(define membuffer-pop-memblock!
+  (case-lambda
+   ((buf blk)
+    (membuffer-pop-memblock! buf blk 0 (<memblock>-size blk)))
+   ((buf blk blk.start)
+    (membuffer-pop-memblock! buf blk blk.start (<memblock>-size blk)))
+   ((buf blk blk.start blk.past)
+    (%membuffer-pop! buf blk blk.start blk.past %buffer-pop-memblock!))))
+
+(define membuffer-push-memblock!
+  (case-lambda
+   ((buf blk)
+    (membuffer-push-memblock! buf blk 0 (<memblock>-size blk)))
+   ((buf blk blk.start)
+    (membuffer-push-memblock! buf blk blk.start (<memblock>-size blk)))
+   ((buf blk blk.start blk.past)
+    (%membuffer-push! buf blk blk.start blk.past %buffer-push-memblock!))))
+
+
+(define (%membuffer-pop! (mb <queue>) dst dst.start dst.past popper)
+  (let loop ((dst.start dst.start))
+    (if (= dst.start dst.past)
+	dst.past
+      (with-fields ((mb.front <buffer>))
+	(if mb.empty?
+	    dst.start
+	  (let ((start (popper mb.front dst dst.start dst.past)))
+	    (when mb.front.empty?
+	      (%buffer-free mb (queue-dequeue! mb)))
+	    (loop start)))))))
+
+(define (%membuffer-push! (mb <queue>) src src.start src.past pusher)
+  (let loop ((src.start src.start))
+    (if (= src.start src.past)
+	src.past
+      (with-fields ((mb.rear <buffer>))
+	(when (or mb.empty? mb.rear.full?)
+	  (with-exception-handler
+	      (lambda (E)
+		(raise-continuable
+		 (if (out-of-memory-condition? E)
+		     (condition E (make-membuffer-incomplete-push-condition mb src src.start src.past))
+		   E)))
+	    (lambda ()
+	      (queue-enqueue! mb (%buffer-alloc mb)))))
+	(loop (pusher mb.rear src src.start src.past))))))
 
 
 ;;;; <buffer> records operations
 
-(define buffer-pop-bytevector!
+(define %buffer-pop-bytevector!
   ;;Fill  the bytevector BV,  starting at  BV.START and  stopping before
   ;;BV.PAST, with bytes  from BUF.  Return the offset  in the bytevector
   ;;of the position  past the last filled byte.  If BV  is filled to the
@@ -81,18 +176,13 @@
   (case-lambda
 
    ((buf bv)
-    (buffer-pop-bytevector! buf bv 0 (bytevector-length bv)))
+    (%buffer-pop-bytevector! buf bv 0 (bytevector-length bv)))
 
    ((buf bv bv.start)
-    (buffer-pop-bytevector! buf bv bv.start (bytevector-length bv)))
+    (%buffer-pop-bytevector! buf bv bv.start (bytevector-length bv)))
 
    ((buf bv bv.start bv.past)
-    (let-syntax ((buf.pointer-used	(identifier-syntax
-					 (_ (<buffer>-pointer-used buf))
-					 ((set! _ ?value)
-					  (<buffer>-pointer-used-set! buf ?value))))
-		 (buf.used-size		(identifier-syntax
-					 (%buffer-used-size buf))))
+    (with-fields ((buf <buffer>))
       (if (zero? buf.used-size)
 	  bv.start
 	(let ((copy-len (min (- bv.past bv.start) buf.used-size)))
@@ -103,7 +193,7 @@
 	    (bytevector-u8-set! bv (+ bv.start i)
 				(pointer-ref-c-uint8 buf.pointer-used i)))))))))
 
-(define buffer-pop-memblock!
+(define %buffer-pop-memblock!
   ;;Fill the  <memblock> BLK, starting  at BLK.START and  sopping before
   ;;BLK.PAST,  with bytes from  BUF.  Return  the offset  in BLK  of the
   ;;position  past  the last  filled  byte.  If  the  BLK  is filled  to
@@ -112,20 +202,14 @@
   (case-lambda
 
    ((buf blk)
-    (buffer-pop-memblock! buf blk 0 (<memblock>-size blk)))
+    (%buffer-pop-memblock! buf blk 0 (<memblock>-size blk)))
 
    ((buf blk blk.start)
-    (buffer-pop-memblock! buf blk blk.start (<memblock>-size blk)))
+    (%buffer-pop-memblock! buf blk blk.start (<memblock>-size blk)))
 
    ((buf blk blk.start blk.past)
-    (let-syntax ((blk.pointer		(identifier-syntax
-					 (<memblock>-pointer blk)))
-		 (buf.pointer-used	(identifier-syntax
-					 (_ (<buffer>-pointer-used buf))
-					 ((set! _ ?value)
-					  (<buffer>-pointer-used-set! buf ?value))))
-		 (buf.used-size		(identifier-syntax
-					 (%buffer-used-size buf))))
+    (with-fields ((blk <memblock>)
+		  (buf <buffer>))
       (if (zero? buf.used-size)
 	  blk.start
 	(let ((copy-len (min (- blk.past blk.start) buf.used-size)))
@@ -134,7 +218,7 @@
 	  (pointer-incr! buf.pointer-used copy-len)
 	  (+ blk.start copy-len)))))))
 
-(define buffer-push-bytevector!
+(define %buffer-push-bytevector!
   ;;Fill the <buffer> BUF with bytes from the bytevector BV, starting at
   ;;BV.START  and stopping  before BV.PAST.   Return the  offset  in the
   ;;bytevector  of the position  past the  last filled  byte.  If  BV is
@@ -143,18 +227,13 @@
   (case-lambda
 
    ((buf bv)
-    (buffer-push-bytevector! buf bv 0 (bytevector-length bv)))
+    (%buffer-push-bytevector! buf bv 0 (bytevector-length bv)))
 
    ((buf bv bv.start)
-    (buffer-push-bytevector! buf bv bv.start (bytevector-length bv)))
+    (%buffer-push-bytevector! buf bv bv.start (bytevector-length bv)))
 
    ((buf bv bv.start bv.past)
-    (let-syntax ((buf.pointer-free	(identifier-syntax
-    					 (_ (<buffer>-pointer-free buf))
-    					 ((set! _ ?value)
-    					  (<buffer>-pointer-free-set! buf ?value))))
-    		 (buf.free-size		(identifier-syntax
-    					 (%buffer-free-size buf))))
+    (with-fields ((buf <buffer>))
       (if (zero? buf.free-size)
 	  bv.start
 	(let ((copy-len (min (- bv.past bv.start) buf.free-size)))
@@ -165,7 +244,7 @@
 	    (pointer-set-c-uint8! buf.pointer-free i
 				  (bytevector-u8-ref bv (+ bv.start i))))))))))
 
-(define buffer-push-memblock!
+(define %buffer-push-memblock!
   ;;Fill the <buffer>  BUF with bytes from the  <memblock> BLK, starting
   ;;at BLK.START and sopping before  BLK.PAST.  Return the offset in BLK
   ;;of the position past the last depleted byte.  If the BLK is depleted
@@ -174,117 +253,20 @@
   (case-lambda
 
    ((buf blk)
-    (buffer-push-memblock! buf blk 0 (<memblock>-size blk)))
+    (%buffer-push-memblock! buf blk 0 (<memblock>-size blk)))
 
    ((buf blk blk.start)
-    (buffer-push-memblock! buf blk blk.start (<memblock>-size blk)))
+    (%buffer-push-memblock! buf blk blk.start (<memblock>-size blk)))
 
    ((buf blk blk.start blk.past)
-    (let-syntax ((blk.pointer		(identifier-syntax
-					 (<memblock>-pointer blk)))
-		 (buf.pointer-free	(identifier-syntax
-    					 (_ (<buffer>-pointer-free buf))
-    					 ((set! _ ?value)
-    					  (<buffer>-pointer-free-set! buf ?value))))
-    		 (buf.free-size		(identifier-syntax
-    					 (%buffer-free-size buf))))
+    (with-fields ((buf <buffer>)
+		  (blk <memblock>))
       (if (zero? buf.free-size)
 	  blk.start
 	(let ((copy-len (min (- blk.past blk.start) buf.free-size)))
 	  (memcpy buf.pointer-free (pointer-add blk.pointer blk.start) copy-len)
 	  (pointer-incr! buf.pointer-free copy-len)
 	  (+ blk.start copy-len)))))))
-
-
-(define membuffer
-  (case-lambda
-   (()
-    (make-<membuffer> '() #f page-blocks-cache))
-   ((cache)
-    (make-<membuffer> '() #f cache))))
-
-(define (%membuffer-pop! mb dst dst.start dst.past popper)
-  (let loop ((dst.start dst.start))
-    (if (= dst.start dst.past)
-	dst.past
-      (let-syntax ((mb.front	(identifier-syntax (queue-front mb)))
-		   (mb.empty?	(identifier-syntax (queue-empty? mb))))
-	(let-syntax ((mb.front.empty? (identifier-syntax (%buffer-empty? mb.front))))
-	  (if mb.empty?
-	      dst.start
-	    (let ((start (popper mb.front dst dst.start dst.past)))
-	      (when mb.front.empty?
-		(buffer-free mb (queue-dequeue! mb)))
-	      (loop start))))))))
-
-(define (%membuffer-push! mb src src.start src.past pusher)
-  (let loop ((src.start src.start))
-    (if (= src.start src.past)
-	src.past
-      (let-syntax ((mb.rear	(identifier-syntax (queue-rear mb)))
-		   (mb.empty?	(identifier-syntax (queue-empty? mb))))
-	(let-syntax ((mb.rear.full? (identifier-syntax (%buffer-full? mb.rear))))
-	  (when (or mb.empty? mb.rear.full?)
-	    (with-exception-handler
-		(lambda (E)
-		  (raise-continuable
-		   (if (out-of-memory-condition? E)
-		       (condition E (make-membuffer-incomplete-push-condition mb src
-									      src.start src.past))
-		     E)))
-	      (lambda ()
-		(queue-enqueue! mb (buffer-alloc mb)))))
-	  (loop (pusher mb.rear src src.start src.past)))))))
-
-
-(define membuffer-pop-bytevector!
-  (case-lambda
-
-   ((buf bv)
-    (membuffer-pop-bytevector! buf bv 0 (bytevector-length bv)))
-
-   ((buf bv bv.start)
-    (membuffer-pop-bytevector! buf bv bv.start (bytevector-length bv)))
-
-   ((buf bv bv.start bv.past)
-    (%membuffer-pop! buf bv bv.start bv.past buffer-pop-bytevector!))))
-
-(define membuffer-push-bytevector!
-  (case-lambda
-
-   ((buf bv)
-    (membuffer-push-bytevector! buf bv 0 (bytevector-length bv)))
-
-   ((buf bv bv.start)
-    (membuffer-push-bytevector! buf bv bv.start (bytevector-length bv)))
-
-   ((buf bv bv.start bv.past)
-    (%membuffer-push! buf bv bv.start bv.past buffer-push-bytevector!))))
-
-
-(define membuffer-pop-memblock!
-  (case-lambda
-
-   ((buf blk)
-    (membuffer-pop-memblock! buf blk 0 (<memblock>-size blk)))
-
-   ((buf blk blk.start)
-    (membuffer-pop-memblock! buf blk blk.start (<memblock>-size blk)))
-
-   ((buf blk blk.start blk.past)
-    (%membuffer-pop! buf blk blk.start blk.past buffer-pop-memblock!))))
-
-(define membuffer-push-memblock!
-  (case-lambda
-
-   ((buf blk)
-    (membuffer-push-memblock! buf blk 0 (<memblock>-size blk)))
-
-   ((buf blk blk.start)
-    (membuffer-push-memblock! buf blk blk.start (<memblock>-size blk)))
-
-   ((buf blk blk.start blk.past)
-    (%membuffer-push! buf blk blk.start blk.past buffer-push-memblock!))))
 
 
 ;;;; done

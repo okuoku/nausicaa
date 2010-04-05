@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -27,7 +27,7 @@
 (import (nausicaa)
   (checks)
   (foreign memory membuffers)
-  (for (foreign memory memblocks) expand)
+  (foreign memory memblocks)
   (only (foreign memory alloc)
 	malloc)
   (only (foreign memory operations)
@@ -61,7 +61,7 @@
 (parametrise ((check-test-name 'bytevector))
 
   (check
-      (let ((mb  (membuffer small-blocks-cache))
+      (let ((mb  (make-<membuffer> small-blocks-cache))
 	    (src default-bv)
 	    (dst (make-bytevector 100)))
 	(membuffer-push-bytevector! mb src)
@@ -76,13 +76,13 @@
 
   (check
       (let* ((len  100)
-	     (mb   (membuffer small-blocks-cache))
+	     (mb   (make-<membuffer> small-blocks-cache))
 	     (src  default-blk)
 	     (dst  (make <memblock> (malloc len) len len)))
 	(membuffer-push-memblock! mb src)
 	(membuffer-pop-memblock!  mb dst)
-	(with-record-fields* ((pointer <memblock> dst)
-			      (pointer <memblock> src))
+	(with-fields ((dst <memblock>)
+		      (src <memblock>))
 	  (memcmp dst.pointer src.pointer len)))
     => 0)
 

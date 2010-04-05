@@ -401,20 +401,8 @@
 ;; (compile-library "foreign/memory/refcount.sls"
 ;; 		 "foreign/memory/refcount.slfasl")
 
-;; (compile-library "foreign/memory/membuffers/types.sls"
-;;  		 "foreign/memory/membuffers/types.slfasl")
-
-;; (compile-library "foreign/memory/membuffers/extensions.sls"
-;; 		 "foreign/memory/membuffers/extensions.slfasl")
-
 ;; (compile-library "foreign/memory/membuffers.sls"
 ;; 		 "foreign/memory/membuffers.slfasl")
-
-;; (compile-library "foreign/memory/mempool/types.sls"
-;;  		 "foreign/memory/mempool/types.slfasl")
-
-;; (compile-library "foreign/memory/mempool/extensions.sls"
-;; 		 "foreign/memory/mempool/extensions.slfasl")
 
 ;; (compile-library "foreign/memory/mempool.sls"
 ;; 		 "foreign/memory/mempool.slfasl")

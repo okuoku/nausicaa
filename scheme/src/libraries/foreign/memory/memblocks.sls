@@ -11,7 +11,7 @@
 ;;;	independent library so  that they can be made  available in both
 ;;;	the run and expand phases.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 (library (foreign memory memblocks)
   (export
-    <memblock>			<memblock-rtd>
+    <memblock>			<memblock>-with-record-fields-of
     make-<memblock>		<memblock>?
     <memblock>-pointer		<memblock>-pointer-set!
     <memblock>-size		<memblock>-size-set!
@@ -43,7 +43,7 @@
     memblock-head?		memblock-tail?
     memblock&tail-head		memblock&head-tail
     )
-  (import (rnrs)
+  (import (nausicaa)
     (rnrs mutable-strings)
     (foreign ffi pointers)
     (only (foreign ffi peekers-and-pokers)
@@ -52,27 +52,28 @@
     (only (foreign memory operations) memcpy))
 
 
-(define-record-type <memblock>
+(define-class <memblock>
+  (nongenerative nausicaa:ffi:memory:memblocks:<memblock>)
+  (protocol (lambda (make-<top>)
+	      (case-lambda
+	       ((pointer size)
+		((make-<top>) pointer size #f))
+	       ((pointer size alloc-size)
+		((make-<top>) pointer size alloc-size)))))
   (fields (mutable pointer)	 ;pointer to the allocated block
 	  (mutable size)	 ;official number of bytes
 	  (mutable alloc-size))) ;number of allocated bytes
 
-(define <memblock-rtd>
-  (record-type-descriptor <memblock>))
-
 (define (memblock-null)
   (make-<memblock> pointer-null 0 0))
 
-(define (memblock-shallow-clone mb)
-  (make-<memblock> (<memblock>-pointer mb)
-		   (<memblock>-size    mb)
-		   #f))
+(define (memblock-shallow-clone (mb <memblock>))
+  (make-<memblock> mb.pointer mb.size))
 
-(define (memblock-deep-clone mb malloc)
-  (let* ((size (<memblock>-size mb))
-	 (ptr  (malloc size)))
-    (memcpy ptr (<memblock>-pointer mb) size)
-    (make-<memblock> ptr size size)))
+(define (memblock-deep-clone (mb <memblock>) malloc)
+  (let ((ptr (malloc mb.size)))
+    (memcpy ptr mb.pointer mb.size)
+    (make-<memblock> ptr mb.size mb.size)))
 
 
 (define (memblock->string-hex mb)
@@ -112,52 +113,32 @@
 	(pointer-set-c-uint8! ptr j (string->number (substring str i i2) 16))))))
 
 
-(define (memblock-tail block tail.len)
-  (let ((block.ptr	(<memblock>-pointer block))
-	(block.len	(<memblock>-size    block)))
-    (assert (<= tail.len block.len))
-    (make-<memblock> (pointer-add block.ptr (- block.len tail.len)) tail.len #f)))
+(define (memblock-tail (block <memblock>) tail.size)
+  (assert (<= tail.size block.size))
+  (make-<memblock> (pointer-add block.pointer (- block.size tail.size)) tail.size #f))
 
-(define (memblock-head block head.size)
-  (let ((block.ptr	(<memblock>-pointer block))
-	(block.len	(<memblock>-size    block)))
-    (assert (<= head.size block.len))
-    (make-<memblock> block.ptr head.size #f)))
+(define (memblock-head (block <memblock>) head.size)
+  (assert (<= head.size block.size))
+  (make-<memblock> block.pointer head.size))
 
-(define (memblock-tail? block tail)
-  (let ((block.ptr	(<memblock>-pointer block))
-	(block.len	(<memblock>-size    block))
-	(tail.ptr	(<memblock>-pointer tail))
-	(tail.len	(<memblock>-size    tail)))
-    (and (pointer<=? block.ptr tail.ptr)
-	 (pointer=? (pointer-add block.ptr block.len)
-		    (pointer-add tail.ptr  tail.len)))))
+(define (memblock-tail? (block <memblock>) (tail <memblock>))
+  (and (pointer<=? block.pointer tail.pointer)
+       (pointer=? (pointer-add block.pointer block.size)
+		  (pointer-add tail.pointer  tail.size))))
 
-(define (memblock-head? block head)
-  (let ((block.ptr	(<memblock>-pointer block))
-	(block.len	(<memblock>-size    block))
-	(head.ptr	(<memblock>-pointer head))
-	(head.len	(<memblock>-size    head)))
-    (and (pointer=? block.ptr head.ptr)
-	 (<= head.len block.len))))
+(define (memblock-head? (block <memblock>) (head <memblock>))
+  (and (pointer=? block.pointer head.pointer)
+       (<= head.size block.size)))
 
-(define (memblock&head-tail block head)
-  (let ((block.ptr	(<memblock>-pointer block))
-	(block.len	(<memblock>-size    block))
-	(head.ptr	(<memblock>-pointer head))
-	(head.len	(<memblock>-size    head)))
-    (assert (pointer=? block.ptr head.ptr))
-    (assert (<= head.len block.len))
-    (make-<memblock> (pointer-add block.ptr head.len) (- block.len head.len) #f)))
+(define (memblock&head-tail (block <memblock>) (head <memblock>))
+  (assert (pointer=? block.pointer head.pointer))
+  (assert (<= head.size block.size))
+  (make-<memblock> (pointer-add block.pointer head.size) (- block.size head.size)))
 
-(define (memblock&tail-head block tail)
-  (let ((block.ptr	(<memblock>-pointer block))
-	(block.len	(<memblock>-size    block))
-	(tail.ptr	(<memblock>-pointer tail))
-	(tail.len	(<memblock>-size    tail)))
-    (assert (pointer<=? block.ptr tail.ptr))
-    (assert (<= tail.len block.len))
-    (make-<memblock> block.ptr (- block.len tail.len) #f)))
+(define (memblock&tail-head (block <memblock>) (tail <memblock>))
+  (assert (pointer<=? block.pointer tail.pointer))
+  (assert (<= tail.size block.size))
+  (make-<memblock> block.pointer (- block.size tail.size)))
 
 
 ;;;; done

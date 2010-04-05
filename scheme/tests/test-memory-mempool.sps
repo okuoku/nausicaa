@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -42,14 +42,14 @@
 
   (check
       (with-compensations
-	(parametrise ((memory-pool (make-mempool (malloc/c size) size)))
+	(parametrise ((memory-pool (make-<mempool> (malloc/c size) size)))
 	  (let ((p (malloc/mempool 1000)))
 	    (pointer-null? p))))
     => #f)
 
   (check
       (with-compensations
-	(parametrise ((memory-pool (make-mempool (malloc/c size) size)))
+	(parametrise ((memory-pool (make-<mempool> (malloc/c size) size)))
 	  (list (pointer-null? (malloc/mempool 1000))
 		(pointer-null? (malloc/mempool 1000))
 		(pointer-null? (malloc/mempool 1000))
@@ -59,7 +59,7 @@
 
   (check
       (with-compensations
-	(parametrise ((memory-pool (make-mempool (malloc/c size) size)))
+	(parametrise ((memory-pool (make-<mempool> (malloc/c size) size)))
 	  (guard (exc (else
 		       (list (out-of-memory-condition? exc)
 			     (condition-out-of-memory/number-of-bytes exc))))

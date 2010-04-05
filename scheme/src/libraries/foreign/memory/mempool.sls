@@ -27,43 +27,58 @@
 
 (library (foreign memory mempool)
   (export
-    <mempool>		<mempool-rtd>
-    <mempool*>
-    make-mempool	<mempool>?
-    <mempool>-pointer-free
-    <mempool>-pointer <mempool>-size
+    <mempool>			<mempool>-with-record-fields-of
+    make-<mempool>		<mempool>?
+    <mempool>-pointer-free	<mempool>-pointer-free-set!
+    <mempool>-pointer
+    <mempool>-size
     memory-pool
     primitive-malloc/mempool	malloc/mempool)
-  (import (rnrs)
-    (parameters)
-    (only (language-extensions) begin0)
+  (import (nausicaa)
+    (foreign memory memblocks)
     (foreign memory conditions)
-    (foreign ffi pointers)
-    (for (foreign memory mempool types) expand run)
-    (for (foreign memory mempool extensions) expand run))
+    (foreign ffi pointers))
 
-  (define memory-pool
-    (make-parameter #f
-      (lambda (obj)
-	(assert (or (not obj) (<mempool>? obj)))
-	obj)))
+
+(define-class <mempool>
+  (parent <memblock>)
+  (nongenerative nausicaa:ffi:memory:mempool:<mempool>)
+  (protocol (lambda (make-<memblock>)
+	      (lambda (pointer size)
+		((make-<memblock> pointer size #f) pointer))))
+  (fields (mutable pointer-free))
+		;pointer to the first free byte
+  (virtual-fields (immutable free-size	%mempool-free-size)
+		  (immutable pointer	<mempool>-pointer)
+		  (immutable size	<mempool>-size)))
 
-  (define (primitive-malloc/mempool number-of-bytes)
-    (let ((pool (memory-pool)))
-      (assert pool)
-      (let-syntax ((pointer-free	(identifier-syntax
-					 (_ (<mempool>-pointer-free pool))
-					 ((set! _ ?value)
-					  (<mempool>-pointer-free-set! pool ?value))))
-		   (free-size		(identifier-syntax
-					 (%mempool-free-size pool))))
-	(and (<= number-of-bytes free-size)
-	     (begin0
-		 pointer-free
-	       (pointer-incr! pointer-free number-of-bytes))))))
+(define <mempool>-pointer	<memblock>-pointer)
+(define <mempool>-size		<memblock>-size)
 
-  (define (malloc/mempool number-of-bytes)
-    (or (primitive-malloc/mempool number-of-bytes)
-	(raise-out-of-memory 'malloc/mempool number-of-bytes))))
+(define (%mempool-free-size (pool <mempool>))
+  (- pool.size (pointer-diff pool.pointer-free pool.pointer)))
+
+(define memory-pool
+  (make-parameter #f
+    (lambda (obj)
+      (assert (or (not obj) (<mempool>? obj)))
+      obj)))
+
+(define (primitive-malloc/mempool number-of-bytes)
+  (let-fields (((pool <mempool>) (memory-pool)))
+    (assert pool)
+    (and (<= number-of-bytes pool.free-size)
+	 (begin0
+	     pool.pointer-free
+	   (pointer-incr! pool.pointer-free number-of-bytes)))))
+
+(define (malloc/mempool number-of-bytes)
+  (or (primitive-malloc/mempool number-of-bytes)
+      (raise-out-of-memory 'malloc/mempool number-of-bytes)))
+
+
+;;;; done
+
+)
 
 ;;; end of file

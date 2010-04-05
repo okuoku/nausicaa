@@ -7,7 +7,7 @@
 ;;;
 ;;;	Notice that this library avoids using (foreign ffi).
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,7 +28,7 @@
   (export
 
     ;; memory blocks
-    <memblock>			<memblock-rtd>
+    <memblock>			<memblock>-with-record-fields-of
     make-<memblock>		<memblock>?
     <memblock>-pointer		<memblock>-pointer-set!
     <memblock>-size		<memblock>-size-set!
