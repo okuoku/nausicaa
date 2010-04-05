@@ -26,6 +26,8 @@
 (import (rnrs)
   (larceny compiler))
 
+;;Basic libraries
+
 (compile-library "cond-expand/registry.sls"
 		 "cond-expand/registry.slfasl")
 
@@ -41,11 +43,8 @@
 (compile-library "unimplemented.sls"
 		 "unimplemented.slfasl")
 
-(compile-library "conditions.sls"
-		 "conditions.slfasl")
-
-(compile-library "enumerations.sls"
-		 "enumerations.slfasl")
+(compile-library "language-extensions.sls"
+		 "language-extensions.slfasl")
 
 (compile-library "parameters.larceny.sls"
 		 "parameters.larceny.slfasl")
@@ -53,14 +52,26 @@
 (compile-library "pretty-print.larceny.sls"
 		 "pretty-print.larceny.slfasl")
 
-(compile-library "language-extensions.sls"
-		 "language-extensions.slfasl")
+(compile-library "classes.sls"
+		 "classes.slfasl")
+
+(compile-library "generics.sls"
+		 "generics.slfasl")
 
 (compile-library "nausicaa/common.sls"
 		 "nausicaa/common.larceny.slfasl")
 
 (compile-library "nausicaa.larceny.sls"
 		 "nausicaa.larceny.slfasl")
+
+;; Other libraries
+
+(compile-library "conditions.sls"
+		 "conditions.slfasl")
+
+(compile-library "enumerations.sls"
+		 "enumerations.slfasl")
+
 
 (compile-library "formations.sls"
 		 "formations.slfasl")
@@ -147,12 +158,6 @@
 		 "times-and-dates.slfasl")
 
 ;;; --------------------------------------------------------------------
-
-(compile-library "classes.sls"
-		 "classes.slfasl")
-
-(compile-library "generics.sls"
-		 "generics.slfasl")
 
 (compile-library "scmobj.sls"
 		 "scmobj.slfasl")

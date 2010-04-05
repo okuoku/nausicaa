@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: compile script for Ikarus
+;;;Contents: compile script for Ypsilon
 ;;;Date: Mon Jan 19, 2009
 ;;;
 ;;;Abstract
@@ -23,16 +23,22 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-    (only (language-extensions))
-  (only (profiling))
+(import (rnrs)
+
+  ;; Basic libraries
+  (only (cond-expand))
   (only (unimplemented))
-  (only (conditions))
-  (only (enumerations))
+  (only (language-extensions))
   (only (parameters))
   (only (pretty-print))
-  (only (nausicaa common))
+  (only (classes))
+  (only (generics))
   (only (nausicaa))
+
+  ;; Other libraries
+  (only (profiling))
+  (only (conditions))
+  (only (enumerations))
   (only (lists))
   (only (one-dimension-cc))
   (only (one-dimension-co))
@@ -55,8 +61,6 @@
   (only (arrays))
   (only (times-and-dates))
 
-  (only (classes))
-  (only (generics))
   (only (scmobj))
   (only (scmobj utils))
 

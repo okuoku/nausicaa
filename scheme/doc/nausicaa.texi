@@ -519,12 +519,15 @@ the list of original documents and their authors.  See also the
 * scheme::                      The Scheme language.
 * baselib::                     Base library.
 * stdlib::                      Standard libraries.
-* naulib::                      The @library{nausicaa} language.
+* nausicaa::                    The @library{nausicaa} language.
 
 Basic libraries
 
 * cond-expand::                 Feature-based conditional expansion.
+* unimplemented::               Unimplemented error condition.
 * lang::                        Simple language extensions.
+* pretty-print::                Pretty printing.
+* parameters::                  Parameter objects.
 * classes::                     Record utilities.
 * generics::                    Multimethods dispatching.
 
@@ -904,13 +907,12 @@ Hashtables
 
 The @library{nausicaa} language
 
-* naulib funcs::                Functions.
-* naulib pretty::               Pretty printing.
-* naulib parameters::           Paremeter objects.
-* naulib shared::               External representation for data
+* nausicaa libs::               Component libraries.
+* nausicaa functions::          Normalised functions.
+* nausicaa macros::             Extended syntaxes.
+* nausicaa shared::             External representation for data
                                 with shared structure.
-* naulib environment::          Accessing environment variables.
-* naulib unimplemented::        Unimplemented error condition.
+* nausicaa environment::        Accessing environment variables.
 
 Simple language extensions
 
@@ -1764,7 +1766,7 @@ available in the chapters:
 
 @noindent
 the features of @library{nausicaa} that extend the @library{rnrs} language
-are described in the chapter @ref{naulib,The augmented language}.
+are described in the chapter @ref{nausicaa,The augmented language}.
 
 
 @c page
@@ -18836,14 +18838,32 @@ this report.
 
 
 @c page
-@node naulib
+@node nausicaa
 @chapter The @library{nausicaa} language
 
 
 This chapter describes the @library{nausicaa} language and its
-differences from the @library{rnrs} language.  Most of them are the
-revised implementations of @srfi{} specifications that were voted to the
-@emph{final} status.
+differences from the @library{rnrs} language.  To use the nausicaa
+language, we put @library{nausicaa} in place of @library{rnrs} as first
+import specification:
+
+@example
+(import (nausicaa))
+@end example
+
+@menu
+* nausicaa libs::               Component libraries.
+* nausicaa functions::          Normalised functions.
+* nausicaa macros::             Extended syntaxes.
+* nausicaa shared::             External representation for data
+                                with shared structure.
+* nausicaa environment::        Accessing environment variables.
+@end menu
+
+@c page
+@node nausicaa libs
+@section Component libraries
+
 
 The @library{nausicaa} library reexports all the bindings from the
 following libraries:
@@ -18853,25 +18873,31 @@ following libraries:
 Feature--based conditional expansion; provides the @func{cond-expand}
 syntax.  @ref{cond-expand, Feature--based conditional expansion}.
 
+@item unimplemented
+Definition of the condition object type @condition{unimplemented}.
+@ref{unimplemented, Unimplemented error condition}.
+
 @item language-extension
 Simple language extensions, mostly syntaxes.  @ref{lang, Simple language
 extensions}.
+
+@item pretty-print
+Provides the @func{pretty-print} function.  @ref{pretty-print, Pretty
+printing}.
+
+@item parameters
+Parameter objects.  @ref{parameters, Parameter objects}.
+
+@item classes
+Provides record type extensions.  @ref{classes, Record utilities}.
+
+@item generics
+Provides generic functions.  @ref{generics, Multimethod dispatching}.
 @end table
 
-
-@menu
-* naulib funcs::                Functions.
-* naulib pretty::               Pretty printing.
-* naulib parameters::           Paremeter objects.
-* naulib shared::               External representation for data
-                                with shared structure.
-* naulib environment::          Accessing environment variables.
-* naulib unimplemented::        Unimplemented error condition.
-@end menu
-
 @c page
-@node naulib funcs
-@section Functions
+@node nausicaa functions
+@section Normalised functions
 
 
 @defun = @var{x} ...
@@ -18938,101 +18964,17 @@ symbol: Raise an assertion violation.
 @end defun
 
 @c page
-@node naulib pretty
-@section Pretty printing
+@node nausicaa macros
+@section Extended syntaxes
 
 
-The following bindings are exported by the @library{pretty-print}
-library and re--exported by the @library{nausicaa} library.
-
-
-@defun pretty-print @var{obj}
-@defunx pretty-print @var{obj} @var{port}
-Print a human readable representation of @var{obj} to @var{port} or the
-return value of @func{current-output-port}.
-@end defun
+The @func{define} function from @library{rnrs} is replaced by the
+@func{define/with} function from @library{classes} renamed to
+@func{define}.  @func{define/with} is still exported by
+@library{nausicaa}.
 
 @c page
-@node naulib parameters
-@section Paremeter objects
-
-
-The following bindings are exported by the @library{parameters}
-library and re--exported by the @library{nausicaa} library.
-
-
-@defun make-parameter @var{init}
-@defunx make-parameter @var{init} @var{converter}
-Return a new parameter object which is bound to a cell containing the
-value returned by @code{(converter init)}.  If @var{converter} is not
-specified, the identity function is used instead.
-
-The parameter object is a procedure which accepts zero or one argument.
-When it is called with no argument, the content of the cell bound to
-this parameter object in the current dynamic environment is returned.
-When it is called with one argument, the content of the cell bound to
-this parameter object in the current dynamic environment is set to the
-result of the call @code{(converter arg)}, where @var{arg} is the
-argument passed to the parameter object, and an unspecified value is
-returned.
-
-Examples:
-
-@example
-(define radix
-  (make-parameter 10))
-
-(radix)         @result{} 10
-(radix 2)
-(radix)         @result{} 2
-@end example
-@end defun
-
-
-@deffn Syntax parameterize ((@var{expr1} @var{expr2}) ...) . @var{body}
-@deffnx Syntax parameterise ((@var{expr1} @var{expr2}) ...) . @var{body}
-@deffnx Syntax parametrise ((@var{expr1} @var{expr2}) ...) . @var{body}
-The expressions @var{expr1} and @var{expr2} are evaluated in an
-unspecified order.  The value of the @var{expr1} expressions must be
-parameter objects.  For each @var{expr1} expression and in an
-unspecified order, the local dynamic environment is extended with a
-binding of the parameter object @var{expr1} to a new cell whose content
-is the result of the call @code{(converter val)}, where @var{val} is the
-value of @var{expr2} and @var{converter} is the conversion procedure of
-the parameter object.
-
-The resulting dynamic environment is then used for the evaluation of the
-forms in @var{body}.  The result(s) of the @func{parameterize} form are
-the result(s) of the @var{body}.
-
-With reference to the example above:
-
-@example
-(radix)
-@result{}  2
-
-(parameterize ((radix 16))
-  (radix))
-@result{}  16
-
-(radix)
-@result{}  2
-
-(define (f n)
-  (number->string n (radix)))
-
-(f 10)
-@result{}  "1010"
-
-(parameterize ((radix 8))
-  (f 10))
-@result{}  "12"
-@end example
-@end deffn
-
-
-@c page
-@node naulib shared
+@node nausicaa shared
 @section External representation for data with shared structure
 
 
@@ -19137,7 +19079,7 @@ It is an error to read from a closed port.
 
 
 @c page
-@node naulib environment
+@node nausicaa environment
 @section Accessing environment variables
 
 
@@ -19178,41 +19120,6 @@ apply.
     ("USERNAME" . "taro"))
 @end example
 @end deffn
-
-@c page
-@node naulib unimplemented
-@section Unimplemented error condition
-
-
-The following bindings are exported by the @library{unimplemented}
-library and re--exported by the @library{nausicaa} library.
-
-
-@deftp Condition &unimplemented
-The type of condition used to signal unimplemented features.  It is
-defined as:
-
-@example
-(define-condition-type &unimplemented &error
-  make-unimplemented-condition
-  unimplemented-condition?)
-@end example
-@end deftp
-
-
-@defun raise-unimplemented-error @var{who}
-@defunx raise-unimplemented-error @var{who} @var{message}
-@defunx raise-unimplemented-error @var{who} @var{message} @var{irritants}
-Raise a composite condition embedding a condition of type
-@condition{unimplemented}.
-
-@var{who} is used for the @condition{who} component.
-
-@var{message} is used for the @condition{message} component and defaults to
-@code{feature not implemented or not available}.
-
-@var{irritants} is used for the @condition{irritants} component.
-@end defun
 
 @c page
 @node cond-expand
@@ -19304,6 +19211,41 @@ Canonical System Type, autoconf, @gnu{} Autoconf}.
 @item r6rs
 The @rnrs{6} Scheme language.
 @end table
+
+@c page
+@node unimplemented
+@chapter Unimplemented error condition
+
+
+The following bindings are exported by the @library{unimplemented}
+library.
+
+
+@deftp Condition &unimplemented
+The type of condition used to signal unimplemented features.  It is
+defined as:
+
+@example
+(define-condition-type &unimplemented &error
+  make-unimplemented-condition
+  unimplemented-condition?)
+@end example
+@end deftp
+
+
+@defun raise-unimplemented-error @var{who}
+@defunx raise-unimplemented-error @var{who} @var{message}
+@defunx raise-unimplemented-error @var{who} @var{message} @var{irritants}
+Raise a composite condition embedding a condition of type
+@condition{unimplemented}.
+
+@var{who} is used for the @condition{who} component.
+
+@var{message} is used for the @condition{message} component and defaults to
+@code{feature not implemented or not available}.
+
+@var{irritants} is used for the @condition{irritants} component.
+@end defun
 
 @c page
 @node lang
@@ -19874,6 +19816,96 @@ makes use of @meta{accessor} and @meta{mutator} to access and mutate
 @end example
 @end deffn
 
+@c page
+@node pretty-print
+@chapter Pretty printing
+
+
+The following bindings are exported by the @library{pretty-print} library.
+
+
+@defun pretty-print @var{obj}
+@defunx pretty-print @var{obj} @var{port}
+Print a human readable representation of @var{obj} to @var{port} or the
+return value of @func{current-output-port}.
+@end defun
+
+@c page
+@node parameters
+@chapter Parameter objects
+
+
+The following bindings are exported by the @library{parameters} library.
+
+
+@defun make-parameter @var{init}
+@defunx make-parameter @var{init} @var{converter}
+Return a new parameter object which is bound to a cell containing the
+value returned by @code{(converter init)}.  If @var{converter} is not
+specified, the identity function is used instead.
+
+The parameter object is a procedure which accepts zero or one argument.
+When it is called with no argument, the content of the cell bound to
+this parameter object in the current dynamic environment is returned.
+When it is called with one argument, the content of the cell bound to
+this parameter object in the current dynamic environment is set to the
+result of the call @code{(converter arg)}, where @var{arg} is the
+argument passed to the parameter object, and an unspecified value is
+returned.
+
+Examples:
+
+@example
+(define radix
+  (make-parameter 10))
+
+(radix)         @result{} 10
+(radix 2)
+(radix)         @result{} 2
+@end example
+@end defun
+
+
+@deffn Syntax parameterize ((@var{expr1} @var{expr2}) ...) . @var{body}
+@deffnx Syntax parameterise ((@var{expr1} @var{expr2}) ...) . @var{body}
+@deffnx Syntax parametrise ((@var{expr1} @var{expr2}) ...) . @var{body}
+The expressions @var{expr1} and @var{expr2} are evaluated in an
+unspecified order.  The value of the @var{expr1} expressions must be
+parameter objects.  For each @var{expr1} expression and in an
+unspecified order, the local dynamic environment is extended with a
+binding of the parameter object @var{expr1} to a new cell whose content
+is the result of the call @code{(converter val)}, where @var{val} is the
+value of @var{expr2} and @var{converter} is the conversion procedure of
+the parameter object.
+
+The resulting dynamic environment is then used for the evaluation of the
+forms in @var{body}.  The result(s) of the @func{parameterize} form are
+the result(s) of the @var{body}.
+
+With reference to the example above:
+
+@example
+(radix)
+@result{}  2
+
+(parameterize ((radix 16))
+  (radix))
+@result{}  16
+
+(radix)
+@result{}  2
+
+(define (f n)
+  (number->string n (radix)))
+
+(f 10)
+@result{}  "1010"
+
+(parameterize ((radix 8))
+  (f 10))
+@result{}  "12"
+@end example
+@end deffn
 
 @c page
 @node classes

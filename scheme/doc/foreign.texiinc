@@ -2329,7 +2329,7 @@ signals that the accessor for the field is not implemented; in this case
 @meta{foreign-type-accessor} is ignored.  This is useful in cases where
 it is not possible to determine the offset of a field (for example
 because two versions of the same foreign library have different fields).
-@ref{naulib unimplemented, Unimplemented error condition}
+@ref{unimplemented, Unimplemented error condition}
 @end deffn
 
 
@@ -2358,7 +2358,7 @@ signals that the mutator for the field is not implemented; in this case
 @meta{foreign-type-mutator} is ignored.  This is useful in cases where
 it is not possible to determine the offset of a field (for example
 because two versions of the same foreign library have different fields).
-@ref{naulib unimplemented, Unimplemented error condition}
+@ref{unimplemented, Unimplemented error condition}
 @end deffn
 
 
@@ -2492,7 +2492,7 @@ As a special case, if @meta{field-offset} is @false{}: The defined macro
 expands into an invocation of @func{raise-unimplemented-error}, which
 signals that the mutator for the field is not implemented.  This is
 useful in cases where it is not possible to determine the offset of a
-field.  @ref{naulib unimplemented, Unimplemented error condition}
+field.  @ref{unimplemented, Unimplemented error condition}
 @end deffn
 
 

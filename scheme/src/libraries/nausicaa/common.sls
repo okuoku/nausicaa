@@ -19,7 +19,6 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-
 ;;;; copyright notice for the shared structures SRFI
 ;;;
 ;;;Copyright (C) Ray Dillinger 2003.  All Rights Reserved.

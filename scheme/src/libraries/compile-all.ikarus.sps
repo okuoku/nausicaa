@@ -25,21 +25,20 @@
 
 (import (rnrs)
 
-  ;;Basic libraries
+  ;; Basic libraries
   (only (cond-expand))
-  (only (language-extensions))
-  (only (classes))
-  (only (generics))
-
-  ;;Other libraries
-  (only (profiling))
   (only (unimplemented))
-  (only (conditions))
-  (only (enumerations))
+  (only (language-extensions))
   (only (parameters))
   (only (pretty-print))
-  (only (nausicaa common))
+  (only (classes))
+  (only (generics))
   (only (nausicaa))
+
+  ;; Other libraries
+  (only (profiling))
+  (only (conditions))
+  (only (enumerations))
   (only (lists))
   (only (one-dimension-cc))
   (only (one-dimension-co))
