@@ -31,8 +31,8 @@
 (compile-library "cond-expand/registry.sls"
 		 "cond-expand/registry.slfasl")
 
-(compile-library "cond-expand.sls"
-		 "cond-expand.slfasl")
+(compile-library "cond-expand.larceny.sls"
+		 "cond-expand.larceny.slfasl")
 
 (compile-library "profiling/compat.larceny.sls"
 		 "profiling/compat.larceny.slfasl")
@@ -52,8 +52,8 @@
 (compile-library "pretty-print.larceny.sls"
 		 "pretty-print.larceny.slfasl")
 
-(compile-library "shared-structures.larceny.sls"
-		 "shared-structures.larceny.slfasl")
+(compile-library "shared-structures.sls"
+		 "shared-structures.slfasl")
 
 (compile-library "classes.sls"
 		 "classes.slfasl")
