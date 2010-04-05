@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Nausicaa/Scheme --- tag 0.1a12
+Subject: [announce] Nausicaa/Scheme --- tag 0.2a0
 
 		      Nausicaa/Scheme
 		      ===============
@@ -40,10 +40,18 @@ the documentation is available on line:
      <http://marcomaggi.github.com/docs/nausicaa.html>
 
 
-Notes for --- tag 0.1a12
+Notes for --- tag 0.2a0
 -------------------------------
 
 * Added WITH-ACCESSOR-AND-MUTATOR to (language-extensions).
+
+* Removed the (records) library.  Replaced it with (classes)
+  and (generics).
+
+* Reorganised  the   (nausicaa)  library:  more  independent
+  component libraries; added (classes) stuff.
+
+* Added use of (classes) to several libraries.
 
 
 Notes for 2010-03-28 tag 0.1a11
