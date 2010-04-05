@@ -524,6 +524,8 @@ the list of original documents and their authors.  See also the
 More libraries
 
 * conditions::                  Predefined condition types.
+* classes::                     Record utilities.
+* generics::                    Multimethods dispatching.
 * enumerations::                Enumeration sets utilities.
 * lists::                       Lists library.
 * char-sets::                   Character sets library.
@@ -548,8 +550,6 @@ More libraries
 * keywords::                    Keyword values.
 * sentinel::                    The sentinel value.
 * variables::                   Defining storage locations.
-* classes::                     Record utilities.
-* generics::                    Multimethods dispatching.
 * scmobj::                      A simple object system.
 * sexps::                       Handling symbolic expressions.
 * matches::                     Pattern matching.
@@ -922,6 +922,36 @@ Predefined condition types
 * conditions mismatch::         General mismatch error.
 * conditions num-args::         Wrong number of arguments error.
 
+Record utilities
+
+* classes define::              Defining new class types.
+* classes make::                Record makers.
+* classes pred::                Record type predicates.
+* classes inspect::             Record type inspection.
+* classes fields::              Binding accessors and mutators.
+* classes builtin::             Conventional type descriptors.
+
+Conventional type descriptors
+
+* classes builtin chart::       A chart for predefined @rtd{}s.
+* classes builtin base::        Basic conventional @rtd{}s.
+* classes builtin list::        Pairs and lists @rtd{}s.
+* classes builtin compound::    Non--list compound @rtd{}s.
+* classes builtin number::      Numeric objects @rtd{}s.
+* classes builtin port::        Input/output port objects @rtd{}s.
+* classes builtin string::      Character and string @rtd{}s.
+* classes builtin misc::        Miscellaneous conventional @rtd{}s.
+
+Multimethods dispatching
+
+* generics application::        How generic functions and methods
+                                are invoked.
+* generics dispatching::        How methods are dispatched.
+* generics define::             Defining generic functions and methods.
+* generics next::               Invoking the next method.
+* generics examples::           Examples of method dispatching.
+* generics predefined::         Predefined generic functions.
+
 Enumeration sets utilities
 
 * enumerations flags::          Flags and flags combinations.
@@ -1208,36 +1238,6 @@ Deferred exceptions
 * deferred exceptions intro::   Introduction.
 * deferred exceptions usage::   Usage examples.
 * deferred exceptions api::     Programming interface.
-
-Record utilities
-
-* classes define::              Defining new class types.
-* classes make::                Record makers.
-* classes pred::                Record type predicates.
-* classes inspect::             Record type inspection.
-* classes fields::              Binding accessors and mutators.
-* classes builtin::             Conventional type descriptors.
-
-Conventional type descriptors
-
-* classes builtin chart::       A chart for predefined @rtd{}s.
-* classes builtin base::        Basic conventional @rtd{}s.
-* classes builtin list::        Pairs and lists @rtd{}s.
-* classes builtin compound::    Non--list compound @rtd{}s.
-* classes builtin number::      Numeric objects @rtd{}s.
-* classes builtin port::        Input/output port objects @rtd{}s.
-* classes builtin string::      Character and string @rtd{}s.
-* classes builtin misc::        Miscellaneous conventional @rtd{}s.
-
-Multimethods dispatching
-
-* generics application::        How generic functions and methods
-                                are invoked.
-* generics dispatching::        How methods are dispatched.
-* generics define::             Defining generic functions and methods.
-* generics next::               Invoking the next method.
-* generics examples::           Examples of method dispatching.
-* generics predefined::         Predefined generic functions.
 
 A simple object system
 
@@ -20011,6 +20011,1430 @@ it is defined as follows:
 @end deffn
 
 @c page
+@node classes
+@chapter Record utilities
+
+
+The @library{classes} library implements a number of utility functions
+and macros to handle records; it is built upon plain records and tries
+to limit complexity.  The library is designed to work with record type
+definitions imported for the @code{run} phase only.
+
+Many features will work only with non--generative record types, that is:
+types defined using the @func{nongenerative} clause; more specifically:
+the features will work only if @func{record-type-uid} applied to a
+record type descriptor returns a symbol uniquely identifying the record
+type.  If @func{record-type-uid} returns @false{} for a record type: the
+behaviour of this library with such type is undefined.
+
+@menu
+* classes define::              Defining new class types.
+* classes make::                Record makers.
+* classes pred::                Record type predicates.
+* classes inspect::             Record type inspection.
+* classes fields::              Binding accessors and mutators.
+* classes builtin::             Conventional type descriptors.
+@end menu
+
+@c page
+@node classes define
+@section Defining new class types
+
+
+A @dfn{class type} as defined by the @library{classes} library is a
+regular record type, with the only constraint of being nongenerative;
+the following is a valid class definition:
+
+@example
+(define-record-type <alpha>
+  (nongenerative)
+  ---)
+@end example
+
+@noindent
+but it is better to use @func{define-class} to define classes.
+
+
+@deffn Syntax define-class @ameta{name spec} @ameta{class clause}*
+Define a new record type satisfying the constraints of a class
+definition; expand to a regular record type definition and some
+additional syntax definitions used by the @library{classes} library.
+
+The arguments are compatible with the ones of @func{define-record-type}
+because @func{define-class} is a transparent wrapper of it; every
+regular record type definition can be turned into a class definition
+simply by changing @func{define-record-type} into @func{define-class}.
+
+If none of the @meta{class clause} arguments is a @func{parent} or
+@func{parent-rtd} syntax, the clause @code{(parent <top>)} is added to
+the record definition.  @ref{classes builtin base, Basic conventional
+@rtd{}s}.
+
+If none of the @meta{class clause} arguments is a @func{nongenerative}
+syntax, the clause @code{(nongenerative)} is added to the record
+definition.
+
+Additionally the @meta{class clause} arguments can be the auxiliary
+syntaxes described below.
+
+One of the defined syntaxes is bound to the identifier:
+
+@example
+@cmeta{name}-with-record-fields-of
+@end example
+
+@noindent
+where @meta{name} is the name of the record type.  This syntax must be
+exported from libraries, along with the record name itself, if we want
+to use other syntaxes like @func{with-fields} and the @func{let-fields}
+variants.  The syntax's name must always be the record type name with
+@code{-with-record-fields-of} appended, so we have to take care of this
+when renaming the record type name; for example:
+
+@example
+(import (rnrs)
+  (rename (defs)
+    (<alpha>
+      the-<alpha>)
+    (<alpha>-with-record-fields-of
+      the-<alpha>-with-record-fields-of)))
+@end example
+@end deffn
+
+
+@deffn {Auxiliary Syntax} virtual-fields @ameta{field spec}*
+Add a virtual field to the enclosing class definition; the @meta{field
+spec} arguments are the same as the @func{fields} ones.
+
+An immutable virtual field is defined by a field name and a field
+accessor which can be applied to a class instance to compute a value.  A
+mutable virtual field is defined by a field name, a field accessor which
+can be applied to a class instance to compute a value, a field mutator
+which can be applied to a class instance to mutate its fields.
+
+The following is an example of virtual fields usage:
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator)
+                  (mutable denominator)))
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-numerator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ v (denominator n)))))
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(define (<fraction>-denominator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ (numerator n) v))))
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((<fraction> o))
+    o.numerator))
+@result{} 2
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((<fraction> o))
+    o.denominator))
+@result{} 3
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((<fraction> o))
+    (set! o.numerator 5)
+    o.number))
+@result{} 5/3
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((<fraction> o))
+    (set! o.denominator 5)
+    o.number))
+@result{} 2/5
+@end example
+@end deffn
+
+@c page
+@node classes make
+@section Record makers
+
+
+@deffn Syntax make @ameta{record name} @ameta{expression} ...
+Extract the record constructor associated to the @meta{record name} and
+apply it to the results of evaluating the @meta{expression} arguments.
+
+The @meta{expression} forms can be any expression and are evaluated only
+once; they provide the values of the fields, so their number must match
+the number of fields.  Also, the order of the expressions matches the
+order of the fields in the record type definition.
+@end deffn
+
+@c page
+@node classes pred
+@section Record type predicates
+
+
+@defun record-is-a? @var{obj} @var{rtd}
+Return true if @var{obj} is a value of type described by the record type
+descriptor @var{rtd}.  @var{obj} can be a record or a builtin Scheme
+type.  This function supports both regular and conventional record type
+descriptors.
+
+@example
+(define-record-type <alpha>
+  (fields (mutable a)
+          (mutable b)))
+
+(define rtd
+  (record-type-descriptor <alpha>))
+
+(define o
+  (make-<alpha> 1 2))
+
+(record-is-a? o   rtd)  @result{} #t
+(record-is-a? 123 rtd)  @result{} #f
+@end example
+@end defun
+
+
+@deffn Syntax is-a? @ameta{expression} @ameta{record name}
+Expand to a form which applies a record type predicate to
+@meta{expression}; at run time it evaluates to true if the value of the
+expression is a record or builtin value whose @rtd{} is associated to
+@meta{record name}.  This macro supports both regular and conventional
+type descriptors.
+
+@meta{expression} can be any expression and it is evaluated only once.
+
+@example
+(library (types)
+  (export <alpha>)
+  (import (rnrs))
+  (define-record-type <alpha>
+    (fields (mutable a)
+            (mutable b))))
+
+(library (example)
+  (export)
+  (import (rnrs)
+    (records)
+    (for (types) expand))
+
+  (define o (make <alpha>
+              1 2))
+
+  (is-a? o   <alpha>)     @result{} #t
+  (is-a? 123 <alpha>))    @result{} #f
+@end example
+@end deffn
+
+@c page
+@node classes inspect
+@section Record type inspection
+
+
+@defun record-type-of @var{obj}
+Return the record type descriptor associated to @var{obj}.  This
+function supports both regular and conventional record type descriptors.
+@end defun
+
+
+@defun record-type-parent? @vari{rtd} @varii{rtd}
+Return true if @vari{rtd} and @varii{rtd} describe the same type, or if
+the list of parents of @vari{rtd} contains an @rtd{} describing the same
+type of @varii{rtd}.
+@end defun
+
+
+@defun Function record-parent-list @var{rtd}
+Return the list of record type descriptors which are parents of
+@var{rtd}; the first element of the list is @var{rtd} itself, followed
+by its parent, then the parent of the parent and so on.  This function
+supports both regular and conventional record type descriptors.
+
+@example
+(define-record-type <alpha>)
+
+(define-record-type <beta>
+  (parent <alpha>))
+
+(define-record-type <gamma>
+  (parent <beta>))
+
+(record-parent-list (record-type-descriptor <alpha>))
+@equiv{} (list (record-type-descriptor <alpha>))
+
+(record-parent-list (record-type-descriptor <beta>))
+@equiv{} (list (record-type-descriptor <beta>)
+         (record-type-descriptor <alpha>))
+
+(record-parent-list (record-type-descriptor <gamma>))
+@equiv{} (list (record-type-descriptor <gamma>)
+         (record-type-descriptor <beta>)
+         (record-type-descriptor <alpha>))
+@end example
+@end defun
+
+
+@deffn Syntax record-parent-list* @ameta{record name}
+Do the same as @func{record-parent-list}; @meta{record name} must be a
+record type name.
+@end deffn
+
+@c page
+@node classes fields
+@section Binding accessors and mutators
+
+
+All the following macros work correctly only if we have imported the
+automatically generated @func{@cmeta{record name}-with-record-fields-of}
+binding along with the record name; @ref{classes define} for details on
+classes definition.
+
+
+@deffn Syntax with-fields (@ameta{clause} ...) @ameta{body}
+Expand into a @func{let-syntax} form which defines identifier syntaxes
+to be used to access and mutate fields and virtual fields of objects and
+records.
+
+Each @meta{clause} must be one among:
+
+@example
+(@cmeta{name} @cmeta{record name})
+(@cmeta{name} @cmetao{record name} @cmeta{record name} ...)
+@end example
+
+@noindent
+where @meta{record name} must be a record type name; @meta{name} must be
+an identifier bound to the object or record to be accessed.  The
+identifier syntax for a field named @samp{alpha} is built as:
+
+@example
+@cmeta{name}.alpha
+@end example
+
+@noindent
+that is: identifier name, dot, field name.  One identifier syntax for
+each field and virtual field of @meta{record name} is defined; mutable
+fields generate a full identifier syntax with accessor and mutator;
+immutable fields generate only the accessor identifier syntax.  Only the
+fields of @ameta{record name} are handled, @strong{not} the fields of
+its parents.
+
+Example:
+
+@example
+(define-class <alpha>
+  (fields (mutable a)))
+
+(define r (make-<alpha> 123))
+(define s (make-<alpha> #\a))
+(define t (make-<alpha> 1.0))
+
+(with-fields ((r <alpha>)
+              (s <alpha>)
+              (t <alpha>))
+
+  (list r.a s.a t.a) @result{} (123 #\a 1.0)
+
+  (set! r.a 456)
+  (set! s.a #\b)
+  (set! t.a 2.0)
+
+  (list r.a s.a t.a)) @result{} (456 #\b 2.0)
+@end example
+
+@noindent
+an example with virtual fields:
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (immutable numerator)
+                  (immutable denominator)))
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(define o (make-<fraction> 2/3))
+
+(with-fields ((o <fraction>))
+  (list o.numerator o.denominator))
+@result{} (2 3)
+@end example
+
+@noindent
+an example with multiple types:
+
+@example
+(define-class <alpha>
+  (fields (immutable a)))
+
+(define-class <beta>
+  (parent <alpha>)
+  (fields (immutable b)))
+
+(define o (make-<beta> 1 2))
+
+(with-fields ((o <beta> <alpha>))
+  (list o.a o.b))
+@result{} (1 2)
+@end example
+
+When a @meta{name} as no type: we can use @class{top} as its
+conventional record type name; this can be useful when expanding macros
+making use of @func{with-fields}.
+@end deffn
+
+
+@deffn Syntax let-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
+Like @func{let} but automatically enclose the body in a
+@func{with-fields} syntax using the specified record types.  When a
+variable as no type: we can use @class{top} as its conventional record
+type name.
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (immutable numerator)
+                  (immutable denominator)))
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(let-fields (((a <fraction>) (make-<fraction> 2/3))
+             ((b <fraction>) (make-<fraction> 4/5)))
+  (list a.numerator b.denominator))
+@result{} (2 5)
+@end example
+@end deffn
+
+
+@deffn Syntax let*-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
+Like @func{let*} but automatically enclose the body in a
+@func{with-fields} syntax using the specified record types.  Given two
+bindings @metai{var}, @metai{init} and @metaii{var}, @metaii{init}
+defined in sequence: @metaii{init} is evaluated in the region of the
+identifier syntaxes used to access the fields of @metai{var}.  When a
+variable as no type: we can use @class{top} as its conventional record
+type name.
+
+@smallexample
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (immutable numerator)
+                  (immutable denominator)))
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(let*-fields (((a <fraction>) (make-<fraction> 2/3))
+              ((b <fraction>) (make-<fraction>
+                                (/ a.numerator 5))))
+  b.number)
+@result{} 2/5
+@end smallexample
+@end deffn
+
+
+@deffn Syntax letrec-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
+Like @func{letrec} but automatically enclose the body in a
+@func{with-fields} syntax using the specified record types.  The
+@meta{init} expressions can contain references to the identifier
+syntaxes, as long as they are not resolved.  When a variable as no type:
+we can use @class{top} as its conventional record type name.
+
+@smallexample
+(define-class <alpha>
+  (fields (immutable value)
+          (immutable proc)))
+
+(define-class <beta>
+  (fields (immutable value)
+          (immutable proc)))
+
+(letrec-fields (((a <alpha>) (make-<alpha>
+                               1 (lambda ()
+                                   (cons a.value b.value))))
+                ((b <beta>)  (make-<beta>
+                               2 (lambda ()
+                                   (cons a.value b.value)))))
+  (list (a.proc) (b.proc)))
+@result{} ((1 . 2) (1 . 2))
+@end smallexample
+@end deffn
+
+
+@deffn Syntax letrec*-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
+Like @func{letrec*} but automatically enclose the body in a
+@func{with-fields} syntax using the specified record types.  The
+@meta{init} expressions can contain references to the identifier
+syntaxes.  When a variable as no type: we can use @class{top} as its
+conventional record type name.
+
+@smallexample
+(define-class <alpha>
+  (fields (immutable value)
+          (immutable proc)))
+
+(define-class <beta>
+  (fields (immutable value)
+          (immutable proc)))
+
+(letrec*-fields (((a <alpha>) (make-<alpha>
+                                1 (lambda ()
+                                    (cons a.value b.value))))
+                 ((b <beta>)  (make-<beta>
+                                2 (lambda ()
+                                    (cons a.value b.value))))
+                 ((c <top>)   (list (a.proc) (b.proc))))
+  c)
+@result{} ((1 . 2) (1 . 2))
+@end smallexample
+@end deffn
+
+
+@deffn Syntax lambda/with @ameta{formals} @ameta{body}
+Like @func{lambda} but encloses the body into a @func{with-fields}
+syntax defining identifier syntaxes to access the fields and virtual
+fields of the arguments.  @meta{formals} must have the same form of the
+formals for @func{lambda}, but each @meta{variable} argument can be an
+identifier, as in @func{lambda}, or a list of the form:
+
+@example
+(@cmeta{variable} @cmetao{record name} @ameta{record name} ...)
+@end example
+
+@noindent
+in which case the @meta{variable} argument is meant to be of type
+@meta{record name} and the corresponding identifier syntaxes are
+defined.  When an argument as no type: we can use @class{top} as its
+conventional record type name, or let @func{lambda/with} select
+@class{top} automatically.
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator)
+                  (mutable denominator)))
+
+(define <fraction>-numerator
+  (lambda/with ((o <fraction>))
+    (numerator o.number)))
+
+(define <fraction>-numerator-set!
+  (lambda/with ((o <fraction>) v)
+    (set! o.number (/ v (denominator o.number)))))
+
+(define <fraction>-denominator
+  (lambda/with ((o <fraction>))
+    (denominator o.number)))
+
+(define <fraction>-denominator-set!
+  (lambda/with ((o <fraction>) v)
+    (set! o.number (/ (numerator o.number) v))))
+
+(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+  o.numerator)
+@result{} 2
+@end example
+@end deffn
+
+
+@deffn Syntax define/with (@ameta{variable} @ameta{formals}) @ameta{body}
+@deffnx Syntax define/with (@ameta{variable} . @ameta{formal}) @ameta{body}
+@deffnx Syntax define/with @ameta{variable} @ameta{expression}
+@deffnx Syntax define/with @ameta{variable}
+Like @func{define} but when used in the first and second forms expands
+to the use of @func{lambda/with}.
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator)
+                  (mutable denominator)))
+
+(define/with (<fraction>-numerator (o <fraction>))
+  (numerator o.number))
+
+(define/with (<fraction>-numerator-set! (o <fraction>) v)
+  (set! o.number (/ v (denominator o.number))))
+
+(define/with (<fraction>-denominator (o <fraction>))
+  (denominator o.number))
+
+(define/with (<fraction>-denominator-set! (o <fraction>) v)
+  (set! o.number (/ (numerator o.number) v)))
+
+(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+  o.numerator)
+@result{} 2
+@end example
+@end deffn
+
+
+@deffn Syntax lambda/with* @ameta{formals} @ameta{body}
+Like @func{lambda/with*}, but prepends to the body a list of calls to
+@func{assert} to verify the type of the arguments.  For example:
+
+@example
+(lambda/with* ((a <number>) (b <string>))
+  ---)
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(lambda/with ((a <number>) (b <string>))
+  (assert (is-a? a <number>))
+  (assert (is-a? b <string>))
+  ---)
+@end example
+@end deffn
+
+
+@deffn Syntax define/with* (@ameta{variable} @ameta{formals}) @ameta{body}
+@deffnx Syntax define/with* (@ameta{variable} . @ameta{formal}) @ameta{body}
+@deffnx Syntax define/with* @ameta{variable} @ameta{expression}
+@deffnx Syntax define/with* @ameta{variable}
+Like @func{define/with}, but in the first and second forms expands to
+the use of @func{lambda/with*}.
+@end deffn
+
+@c page
+@node classes builtin
+@section Conventional type descriptors
+
+
+@cindex Conventional record type descriptors
+@cindex Conventional type descriptors
+@cindex Record types, conventional descriptors
+
+
+A record is described by its record type descriptor (@rtd{});
+unfortunately we cannot rely on @rtd{}s describing the same record type
+to be @func{eq?} to each other, so we have to rely on the @acronym{UID}s
+of non--generative record types.  When dispatching multimethods, it is
+convenient to use those @acronym{UID}s to represent the ``class'' of a
+record.
+
+Builtin Scheme values have no @rtd{}, so @library{classes} assigns a
+conventional one to them.  Conventional @rtd{}s have two purposes: to be
+used in multimethod dispatching and to provide an interface for
+identifier macros.  The conventional @rtd{}s @strong{cannot} be used to
+instantiate builtin objects, for example: @func{make-<string>} does
+@strong{not} return a builtin Scheme string object.
+
+@menu
+* classes builtin chart::       A chart for predefined @rtd{}s.
+* classes builtin base::        Basic conventional @rtd{}s.
+* classes builtin list::        Pairs and lists @rtd{}s.
+* classes builtin compound::    Non--list compound @rtd{}s.
+* classes builtin number::      Numeric objects @rtd{}s.
+* classes builtin port::        Input/output port objects @rtd{}s.
+* classes builtin string::      Character and string @rtd{}s.
+* classes builtin misc::        Miscellaneous conventional @rtd{}s.
+@end menu
+
+@c page
+@node classes builtin chart
+@subsection A chart for predefined builtin @rtd{}s
+
+
+@example
+                                 -> <input-port>
+                                |
+                                +-> <output-port>
+                                |
+                                +-> <binary-port>
+                                |
+                   --> <port> --+-> <textual-port>
+                  |
+                  +--> <record> --> <condition>
+                  |
+                  +--> <string>
+ <top>            |
+   |              +--> <char>
+   v              |
+<builtin> --------+-------+---------+-----------+
+   |              |       |         |           |
+   v              v       v         v           v
+<number>        <pair> <vector> <bytevector> <hashtable>
+   |              |
+   v              v
+<complex>       <list>
+   |
+   v
+<real-valued>
+   |
+   v
+<real> ------> <flonum>
+   |
+   v
+<rational-valued>
+   |         |
+   v         v
+<rational> <integer-valued>
+   |
+   v
+<integer>
+   |
+   v
+<fixnum>
+@end example
+
+@c page
+@node classes builtin base
+@subsection Basic conventional @rtd{}s
+
+
+@deftp Class <top>
+Conventional parent of all the record types.  When defining a new record
+type with no parent, we may want to derive it from @class{top}:
+
+@example
+(define-record-type <alpha>
+  (parent <top>)
+  ---)
+@end example
+
+@noindent
+record types defined with @func{define-class}, have @class{top} as
+parent type if we do not select explicitly a parent with the
+@func{parent} or @func{parent-rtd} clauses.
+@end deftp
+
+
+@deftp Class <builtin>
+The parent of all the conventional @rtd{}s, with the exception of
+@class{top}.
+@end deftp
+
+@c page
+@node classes builtin list
+@subsection Pairs and lists @rtd{}s
+
+
+@deftp Class <pair>
+Type for values satisfying @func{pair?}.  It provides the following
+virtual fields:
+
+@table @code
+@item car
+Immutable.  Access the car of the pair.
+
+@item cdr
+Immutable.  Access the cdr of the pair.
+@end table
+@end deftp
+
+
+@deftp Class <list>
+Type for values satisfying @func{list?}.  It provides the following
+virtual fields:
+
+@table @code
+@item car
+Immutable.  Access the car of the list.
+
+@item cdr
+Immutable.  Access the cdr of the list.
+
+@item length
+Immutable.  Access the length of the list.
+@end table
+@end deftp
+
+@c page
+@node classes builtin compound
+@subsection Non--list compound @rtd{}s
+
+
+@deftp Class <vector>
+Type for values satisfying @func{vector?}.  It provides the following
+virtual fields:
+
+@table @code
+@item length
+Immutable.  Access the length of the vector.
+@end table
+@end deftp
+
+
+@deftp Class <bytevector>
+Type for values satisfying @func{bytevector?}.  It provides the following
+virtual fields:
+
+@table @code
+@item length
+Immutable.  Access the length of the bytevector.
+@end table
+@end deftp
+
+
+@deftp Class <hashtable>
+Type for values satisfying @func{hashtable?}.  It provides the following
+virtual fields:
+
+@table @code
+@item size
+Immutable.  Access the size of the table.
+
+@item keys
+Immutable.  Access the keys.  Retrieving this field is like applying
+@func{hashtable-keys} to the hashtable.
+
+@item entries
+Immutable.  Access the keys and values.  Retrieving this field is like
+applying @func{hashtable-entries} to the hashtable.
+@end table
+@end deftp
+
+@c page
+@node classes builtin number
+@subsection Numeric objects @rtd{}s
+
+
+@deftp Class <number>
+Type for values satisfying @func{number?}.  It provides the following
+virtual fields:
+
+@table @code
+@item exact
+Immutable.  Accessing this field is like applying @func{exact} to the
+number.
+
+@item inexact
+Immutable.  Accessing this field is like applying @func{inexact} to the
+number.
+
+@item exact?
+Immutable.  Accessing this field is like applying @func{exact?} to the
+number.
+
+@item inexact?
+Immutable.  Accessing this field is like applying @func{inexact?} to the
+number.
+
+@item zero?
+Immutable.  Accessing this field is like applying @func{zero?} to the
+number.
+
+@item positive?
+Immutable.  Accessing this field is like applying @func{positive?} to
+the number.
+
+@item negative?
+Immutable.  Accessing this field is like applying @func{negative?} to
+the number.
+
+@item odd?
+Immutable.  Accessing this field is like applying @func{odd?} to the
+number.
+
+@item even?
+Immutable.  Accessing this field is like applying @func{even?} to the
+number.
+
+@item finite?
+Immutable.  Accessing this field is like applying @func{finite?} to the
+number.
+
+@item infinite?
+Immutable.  Accessing this field is like applying @func{infinite?} to
+the number.
+
+@item nan?
+Immutable.  Accessing this field is like applying @func{nan?} to the
+number.
+
+@item real-part
+Immutable.  Accessing this field is like applying @func{real-part} to
+the number.
+
+@item imag-part
+Immutable.  Accessing this field is like applying @func{imag-part} to
+the number.
+
+@item magnitude
+Immutable.  Accessing this field is like applying @func{magnitude} to
+the number.
+
+@item angle
+Immutable.  Accessing this field is like applying @func{angle} to the
+number.
+
+@item numerator
+Immutable.  Accessing this field is like applying @func{numerator} to
+the number.
+
+@item denominator
+Immutable.  Accessing this field is like applying @func{denominator} to
+the number.
+
+@item floor
+Immutable.  Accessing this field is like applying @func{floor} to the
+number.
+
+@item ceiling
+Immutable.  Accessing this field is like applying @func{ceiling} to the
+number.
+
+@item truncate
+Immutable.  Accessing this field is like applying @func{truncate} to the
+number.
+
+@item round
+Immutable.  Accessing this field is like applying @func{round} to the
+number.
+@end table
+@end deftp
+
+
+@deftp Class <complex>
+Type for values satisfying @func{complex?}.
+@end deftp
+
+
+@deftp Class <real-valued>
+Type for values satisfying @func{real-valued?}.
+@end deftp
+
+
+@deftp Class <real>
+Type for values satisfying @func{real?}.  It provides the following
+virtual fields:
+
+@table @code
+@item abs
+Immutable.  Accessing this field is like applying @func{abs} to the
+number.
+@end table
+@end deftp
+
+
+@deftp Class <rational>
+Type for values satisfying @func{integer?}.
+@end deftp
+
+
+@deftp Class <rational-valued>
+Type for values satisfying @func{integer?}.
+@end deftp
+
+
+@deftp Class <integer-valued>
+Type for values satisfying @func{integer?}.
+@end deftp
+
+
+@deftp Class <integer>
+Type for values satisfying @func{integer?}.
+@end deftp
+
+
+@deftp Class <fixnum>
+Type for values satisfying @func{fixnum?}.
+@end deftp
+
+
+@deftp Class <flonum>
+Type for values satisfying @func{flonum?}.
+@end deftp
+
+@c page
+@node classes builtin port
+@subsection Input/output port objects @rtd{}s
+
+
+The binary/textual attributes are not mututally exclusive with the
+input/output attributes.
+
+
+@deftp Class <port>
+Type for values satisfying @func{port?}.  It provides the following
+virtual fields:
+
+@table @code
+@item transcoder
+Immutable.  Accessing this field is like applying @func{port-transcoder}
+to the port.
+
+@item textual?
+Immutable.  Accessing this field is like applying @func{textual-port?}
+to the port.
+
+@item binary?
+Immutable.  Accessing this field is like applying @func{binary-port?} to
+the port.
+
+@item has-port-position?
+Immutable.  Accessing this field is like applying
+@func{port-has-port-position?} to the port.
+
+@item has-set-port-position?
+Immutable.  Accessing this field is like applying
+@func{port-has-set-port-position?}  to the port.
+
+@item port-position
+Immutable.  Accessing this field is like applying @func{port-position}
+to the port; mutating this field is like applying
+@func{set-port-position!} to the port.
+
+@item eof?
+Immutable.  Accessing this field is like applying @func{port-eof?} to
+the port.
+
+@item input?
+Immutable.  Accessing this field is like applying @func{input-port?} to
+the port.
+
+@item output?
+Immutable.  Accessing this field is like applying @func{output-port?} to
+the port.
+@end table
+@end deftp
+
+
+@deftp Class <input-port>
+@deftpx {Record Type Descriptor} <input-port-rtd>
+Type for values satisfying @func{input-port?}.
+@end deftp
+
+
+@deftp Class <output-port>
+Type for values satisfying @func{output-port?}.
+@end deftp
+
+
+@deftp Class <textual-port>
+Type for values satisfying @func{textual-port?}.
+@end deftp
+
+
+@deftp Class <binary-port>
+Type for values satisfying @func{binary-port?}.
+@end deftp
+
+@c page
+@node classes builtin string
+@subsection Character and string @rtd{}s
+
+
+@deftp Class <string>
+Type for values satisfying @func{string?}.  It provides the following
+virtual fields:
+
+@table @code
+@item length
+Immutable.  Accessing this field is like applying @func{string-length}
+to the string.
+
+@item upcase
+Immutable.  Accessing this field is like applying @func{string-upcase}
+to the string.
+
+@item downcase
+Immutable.  Accessing this field is like applying @func{string-downcase}
+to the string.
+
+@item titlecase
+Immutable.  Accessing this field is like applying
+@func{string-titlecase} to the string.
+
+@item foldcase
+Immutable.  Accessing this field is like applying @func{string-foldcase}
+to the string.
+@end table
+@end deftp
+
+
+@deftp Class <char>
+Type for values satisfying @func{char?}.  It provides the following
+virtual fields:
+
+@table @code
+@item upcase
+Immutable.  Accessing this field is like applying @func{char-upcase} to
+the char.
+
+@item downcase
+Immutable.  Accessing this field is like applying @func{char-downcase}
+to the char.
+
+@item titlecase
+Immutable.  Accessing this field is like applying @func{char-titlecase}
+to the char.
+
+@item foldcase
+Immutable.  Accessing this field is like applying @func{char-foldcase}
+to the char.
+@end table
+@end deftp
+
+@c page
+@node classes builtin misc
+@subsection Miscellaneous conventional @rtd{}s
+
+
+@deftp Class <condition>
+Type for values satisfying @func{condition?}.  It provides the following
+virtual fields:
+
+@table @code
+@item message
+Immutable.  Accessing this field is like applying
+@func{condition-message} to the condition object.
+
+@item who
+Immutable.  Accessing this field is like applying @func{condition-who}
+to the condition object.
+
+@item irritants
+Immutable.  Accessing this field is like applying
+@func{condition-irritants} to the condition object.
+@end table
+@end deftp
+
+
+@deftp Class <record>
+Type for values satisfying @func{record?}.
+@end deftp
+
+@c page
+@node generics
+@chapter Multimethods dispatching
+
+
+In the context of the @library{generics} library, @dfn{generic
+functions} are procedures that can be specialised to the (possibly
+conventional) record types of their arguments.  Each specialisation of a
+generic function is called @dfn{method}.  When applying a generic
+function to a set of arguments, the most specific method with respect to
+the arguments' types is chosen.
+
+The @library{generics} library is built on top of the @library{classes}
+library; importing the @library{generics} library automatically imports
+all the bindings exported by the @library{classes} library, too.
+
+@menu
+* generics application::        How generic functions and methods
+                                are invoked.
+* generics dispatching::        How methods are dispatched.
+* generics define::             Defining generic functions and methods.
+* generics next::               Invoking the next method.
+* generics examples::           Examples of method dispatching.
+* generics predefined::         Predefined generic functions.
+@end menu
+
+@c page
+@node generics application
+@section How generic functions and methods are invoked
+
+
+When a generic function is applied to a tuple of arguments, the
+following happens:
+
+@enumerate
+@item
+For each argument in the tuple a record type is determined.  The tuple
+of types is called @dfn{signature}.  Each generic function maintains an
+internal collection in which every method's closure is associated to a
+signature.
+
+@item
+The internal collection of methods is queried for all the methods
+applicable to the tuple of arguments, using the signature as search key.
+
+@item
+The list of applicable methods is sorted from the more specific to the
+least specific for the signature.  From now on the list of sorted,
+applicable methods is handled as a stack.
+
+@item
+Pop the next method from the stack and apply its closure to the tuple of
+arguments.  The return value of this application becomes the return
+value of the generic function application.  If the function calls the
+next method, recurse to step 4.
+@end enumerate
+
+@c page
+@node generics dispatching
+@section How methods are dispatched
+
+
+Here we attempt the formulation of the rules of method dispatching.  A
+method is identified by a triplet of values: a list of @rtd{}s,
+called signature, representing the classes or expected arguments; a
+boolean value telling if the closure accepts rest arguments; the
+closure.
+
+@c ------------------------------------------------------------
+
+@subsubheading Applicability
+
+First we need to understand when a method is applicable to a tuple of
+arguments.  Record types are identified by their @acronym{UID}: the
+return value of @func{record-type-uid}.  Given a tuple of arguments, a
+method supporting no rest arguments is applicable to the tuple if:
+
+@enumerate
+@item
+The length of the signature is equal to the length of the arguments'
+tuple.
+
+@item
+Position by position, the @acronym{UID} of the @rtd{} in the signature
+is @func{eq?}  to the @acronym{UID} of the @rtd{} of the argument or to
+the @acronym{UID} of one of its parents.
+@end enumerate
+
+@noindent
+a method supporting rest arguments is applicable to the tuple if:
+
+@enumerate
+@item
+The length of the signature is less than or equal to the length of the
+arguments' tuple.
+
+@item
+Position by position, up to the last element in the signature, the
+@acronym{UID} of the @rtd{} in the signature is @func{eq?} to the
+@acronym{UID} of the @rtd{} of the argument or to the @acronym{UID} of
+one of its parents.
+@end enumerate
+
+@c ------------------------------------------------------------
+
+@subsubheading Specificity
+
+Now we can understand how to determine which one, among two applicable
+methods, is more specific for a tuple of arguments.  Let's call the
+methods @var{A} and @var{B}.
+
+Notice that it is impossible for two distinct methods, in the same
+generic function, to have the same signature and the same support for
+rest arguments.
+
+Also, records support only single inheritance, so if two methods are
+applicable: the homologous @rtd{} in their signatures, or their
+subtypes, have @func{eq?}  @acronym{UID}s.
+
+@enumerate
+@item
+If both @var{A} and @var{B} support rest arguments: The one with the
+longest signature is more specific.
+
+@item
+The @rtd{}s in the signatures are compared in couples, position
+by position from the beginning to the end.
+
+@enumerate a
+@item
+If the @rtd{}s have @func{eq?} @acronym{UID}s, the next couple is
+inspected.
+
+@item
+If the @rtd{} from @var{A} is a subtype of the one from @var{B}: @var{A}
+is more specific than @var{B}.
+@end enumerate
+
+@item
+If the methods' signatures have the same length, and, position by
+position, the @rtd{}s of @var{A} have @acronym{UID}s which are
+@func{eq?}  to the @acronym{UID}s of the @rtd{}s of @var{B}, but @var{A}
+supports rest arguments while @var{B} does not: Then @var{B} is more
+specific than @var{A}.
+@end enumerate
+
+@c page
+@node generics define
+@section Defining generic functions and methods
+
+
+The number of arguments (arity) of a generic function is undefined:
+Every method can have a different number of arguments.
+
+
+@deffn Syntax define-generic @ameta{name}
+Define a new generic function and bind it to @meta{name}.
+@end deffn
+
+
+@defun make-generic-function
+Build and return a new generic function.
+@end defun
+
+
+@deffn Syntax define-generic/merge @ameta{name} @ametao{generic} @ameta{generic} ...
+Define a new generic function and bind it to @meta{name}.  The internal
+collection of methods holds the union of the method collections from the
+@meta{generic} arguments, which must be generic functions.
+
+The union is performed visiting arguments from left to right; when two
+methods have the same signature and the same support for rest arguments,
+the one from the leftmost generic function has precedence.
+
+Merging methods is useful when two different libraries export generic
+functions bound to the same identifier.
+@end deffn
+
+
+@deffn Syntax define-method @ameta{generic} (@ameta{arg-spec} ...) @ameta{body}
+@deffnx Syntax define-method (@ameta{generic} @ameta{arg-spec} ...) @ameta{body}
+Add a new method to an already existent generic function,
+@ameta{generic}.
+
+The list of @meta{arg-spec} specifies the @rtd{}s of the arguments for
+which this method specialises the generic function.  Notice that rest
+arguments are supported and specified with the usual syntax.  An
+@meta{arg-spec} can be:
+
+@table @code
+@item (@meta{arg} @meta{record name})
+Where @meta{arg} is the formal name of the argument and @meta{record
+name} the (possibly conventional) record name of expected values.
+
+@item @meta{arg}
+Where @meta{arg} is the formal name of the argument.  In this case the
+@rtd{} defaults to the conventional @class{top}, which is interpreted as
+parent of every other @rtd{} (and so it has the least specificity).
+@end table
+
+If a method is defined with the same signature, and support for rest
+arguments, of an already registered method: The old method is
+overwritten by the new one.  Two methods having, position by position,
+arguments of the same @rtd{}, but such that one supports rest arguments
+and the other does not, are different.
+@end deffn
+
+
+@deffn Syntax add-method @ameta{generic} @ameta{signature} @ameta{has-rest} @ameta{closure}
+Add a new method to an already existent generic function,
+@meta{generic}.  @meta{signature} must be a list of record names for
+which this method specialises the generic function.  @meta{closure} must
+be the method's closure.  @meta{has-rest} must be @true{} or @false{},
+when @true{} it means that the closure supports rest arguments.
+@end deffn
+
+@c page
+@node generics next
+@section Invoking the next method
+
+
+@defun call-next-method
+Call the next most specific method.
+@end defun
+
+
+@defun next-method?
+Return true if a next method is available.
+@end defun
+
+@c page
+@node generics examples
+@section Examples of method dispatching.
+
+
+Here we show with some examples what we have to expect from the
+multimethod dispatching of @library{generics}.  In the following examples
+the string @code{%apple} is written in place of the value bound to the
+symbol @class{apple}.
+
+Let's examine this example:
+
+@example
+(define-class <one> (parent <top>))
+(define-class <two> (parent <one>))
+(define-class <c>   (parent <two>))
+@end example
+
+@noindent
+the record hierarchy is:
+
+@example
+<top> -> <one> -> <two> -> <c>
+@end example
+
+@noindent
+and the full record precedence list for @class{c} is:
+
+@example
+(record-precedence-list* <c>)
+@result{} (%c %two %one %top)
+@end example
+
+@noindent
+so for the generic function:
+
+@example
+(define-generic doit)
+(define-method (doit (o <one>)) 'one)
+(define-method (doit (o <two>)) 'two)
+@end example
+
+@noindent
+applied to a value of type @class{c}: the method with @class{two} in the
+signature is @emph{more specific} than the method with @class{one} in
+the signature:
+
+@example
+(doit (make-<c>)) @result{} two
+@end example
+
+@noindent
+also the method with @class{one} in the signature is the ``next method''
+of the method with @class{two} in the signature, we can call it using
+@func{call-next-method}.
+
+The following example shows a call to the next method:
+
+@example
+(define-generic fluff)
+
+(define-method (fluff (o <one>))
+  'one)
+
+(define-method (fluff (o <two>))
+  (cons 'two (call-next-method)))
+
+(define o (make-<c>))
+
+(fluff o)
+@result{} (two . one)
+@end example
+
+@c page
+@node generics predefined
+@section Predefined generic functions
+
+
+@deffn {Generic Function} object->string @var{obj}
+Return a string representation for @var{obj}.  A non--specialised method
+is predefined to use the following implementation:
+
+@example
+(call-with-string-output-port
+   (lambda (port)
+     (display obj port)))
+@end example
+@end deffn
+
+@c page
 @node enumerations
 @chapter Enumeration sets utilities
 
@@ -37229,1430 +38653,6 @@ The difference between @func{define-syntax} and @func{define}, is that
 @func{define} only defines a binding which cannot be modified, while
 @func{define-syntax} allocates a storage location, so the value bound to
 @var{name} can be modified at will.
-@end deffn
-
-@c page
-@node classes
-@chapter Record utilities
-
-
-The @library{classes} library implements a number of utility functions
-and macros to handle records; it is built upon plain records and tries
-to limit complexity.  The library is designed to work with record type
-definitions imported for the @code{run} phase only.
-
-Many features will work only with non--generative record types, that is:
-types defined using the @func{nongenerative} clause; more specifically:
-the features will work only if @func{record-type-uid} applied to a
-record type descriptor returns a symbol uniquely identifying the record
-type.  If @func{record-type-uid} returns @false{} for a record type: the
-behaviour of this library with such type is undefined.
-
-@menu
-* classes define::              Defining new class types.
-* classes make::                Record makers.
-* classes pred::                Record type predicates.
-* classes inspect::             Record type inspection.
-* classes fields::              Binding accessors and mutators.
-* classes builtin::             Conventional type descriptors.
-@end menu
-
-@c page
-@node classes define
-@section Defining new class types
-
-
-A @dfn{class type} as defined by the @library{classes} library is a
-regular record type, with the only constraint of being nongenerative;
-the following is a valid class definition:
-
-@example
-(define-record-type <alpha>
-  (nongenerative)
-  ---)
-@end example
-
-@noindent
-but it is better to use @func{define-class} to define classes.
-
-
-@deffn Syntax define-class @ameta{name spec} @ameta{class clause}*
-Define a new record type satisfying the constraints of a class
-definition; expand to a regular record type definition and some
-additional syntax definitions used by the @library{classes} library.
-
-The arguments are compatible with the ones of @func{define-record-type}
-because @func{define-class} is a transparent wrapper of it; every
-regular record type definition can be turned into a class definition
-simply by changing @func{define-record-type} into @func{define-class}.
-
-If none of the @meta{class clause} arguments is a @func{parent} or
-@func{parent-rtd} syntax, the clause @code{(parent <top>)} is added to
-the record definition.  @ref{classes builtin base, Basic conventional
-@rtd{}s}.
-
-If none of the @meta{class clause} arguments is a @func{nongenerative}
-syntax, the clause @code{(nongenerative)} is added to the record
-definition.
-
-Additionally the @meta{class clause} arguments can be the auxiliary
-syntaxes described below.
-
-One of the defined syntaxes is bound to the identifier:
-
-@example
-@cmeta{name}-with-record-fields-of
-@end example
-
-@noindent
-where @meta{name} is the name of the record type.  This syntax must be
-exported from libraries, along with the record name itself, if we want
-to use other syntaxes like @func{with-fields} and the @func{let-fields}
-variants.  The syntax's name must always be the record type name with
-@code{-with-record-fields-of} appended, so we have to take care of this
-when renaming the record type name; for example:
-
-@example
-(import (rnrs)
-  (rename (defs)
-    (<alpha>
-      the-<alpha>)
-    (<alpha>-with-record-fields-of
-      the-<alpha>-with-record-fields-of)))
-@end example
-@end deffn
-
-
-@deffn {Auxiliary Syntax} virtual-fields @ameta{field spec}*
-Add a virtual field to the enclosing class definition; the @meta{field
-spec} arguments are the same as the @func{fields} ones.
-
-An immutable virtual field is defined by a field name and a field
-accessor which can be applied to a class instance to compute a value.  A
-mutable virtual field is defined by a field name, a field accessor which
-can be applied to a class instance to compute a value, a field mutator
-which can be applied to a class instance to mutate its fields.
-
-The following is an example of virtual fields usage:
-
-@example
-(define-class <fraction>
-  (fields (mutable number))
-  (virtual-fields (mutable numerator)
-                  (mutable denominator)))
-
-(define (<fraction>-numerator o)
-  (numerator (<fraction>-number o)))
-
-(define (<fraction>-numerator-set! o v)
-  (let ((n (<fraction>-number o)))
-    (<fraction>-number-set! o (/ v (denominator n)))))
-
-(define (<fraction>-denominator o)
-  (denominator (<fraction>-number o)))
-
-(define (<fraction>-denominator-set! o v)
-  (let ((n (<fraction>-number o)))
-    (<fraction>-number-set! o (/ (numerator n) v))))
-
-(let ((o (make-<fraction> 2/3)))
-  (with-fields ((<fraction> o))
-    o.numerator))
-@result{} 2
-
-(let ((o (make-<fraction> 2/3)))
-  (with-fields ((<fraction> o))
-    o.denominator))
-@result{} 3
-
-(let ((o (make-<fraction> 2/3)))
-  (with-fields ((<fraction> o))
-    (set! o.numerator 5)
-    o.number))
-@result{} 5/3
-
-(let ((o (make-<fraction> 2/3)))
-  (with-fields ((<fraction> o))
-    (set! o.denominator 5)
-    o.number))
-@result{} 2/5
-@end example
-@end deffn
-
-@c page
-@node classes make
-@section Record makers
-
-
-@deffn Syntax make @ameta{record name} @ameta{expression} ...
-Extract the record constructor associated to the @meta{record name} and
-apply it to the results of evaluating the @meta{expression} arguments.
-
-The @meta{expression} forms can be any expression and are evaluated only
-once; they provide the values of the fields, so their number must match
-the number of fields.  Also, the order of the expressions matches the
-order of the fields in the record type definition.
-@end deffn
-
-@c page
-@node classes pred
-@section Record type predicates
-
-
-@defun record-is-a? @var{obj} @var{rtd}
-Return true if @var{obj} is a value of type described by the record type
-descriptor @var{rtd}.  @var{obj} can be a record or a builtin Scheme
-type.  This function supports both regular and conventional record type
-descriptors.
-
-@example
-(define-record-type <alpha>
-  (fields (mutable a)
-          (mutable b)))
-
-(define rtd
-  (record-type-descriptor <alpha>))
-
-(define o
-  (make-<alpha> 1 2))
-
-(record-is-a? o   rtd)  @result{} #t
-(record-is-a? 123 rtd)  @result{} #f
-@end example
-@end defun
-
-
-@deffn Syntax is-a? @ameta{expression} @ameta{record name}
-Expand to a form which applies a record type predicate to
-@meta{expression}; at run time it evaluates to true if the value of the
-expression is a record or builtin value whose @rtd{} is associated to
-@meta{record name}.  This macro supports both regular and conventional
-type descriptors.
-
-@meta{expression} can be any expression and it is evaluated only once.
-
-@example
-(library (types)
-  (export <alpha>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b))))
-
-(library (example)
-  (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
-
-  (define o (make <alpha>
-              1 2))
-
-  (is-a? o   <alpha>)     @result{} #t
-  (is-a? 123 <alpha>))    @result{} #f
-@end example
-@end deffn
-
-@c page
-@node classes inspect
-@section Record type inspection
-
-
-@defun record-type-of @var{obj}
-Return the record type descriptor associated to @var{obj}.  This
-function supports both regular and conventional record type descriptors.
-@end defun
-
-
-@defun record-type-parent? @vari{rtd} @varii{rtd}
-Return true if @vari{rtd} and @varii{rtd} describe the same type, or if
-the list of parents of @vari{rtd} contains an @rtd{} describing the same
-type of @varii{rtd}.
-@end defun
-
-
-@defun Function record-parent-list @var{rtd}
-Return the list of record type descriptors which are parents of
-@var{rtd}; the first element of the list is @var{rtd} itself, followed
-by its parent, then the parent of the parent and so on.  This function
-supports both regular and conventional record type descriptors.
-
-@example
-(define-record-type <alpha>)
-
-(define-record-type <beta>
-  (parent <alpha>))
-
-(define-record-type <gamma>
-  (parent <beta>))
-
-(record-parent-list (record-type-descriptor <alpha>))
-@equiv{} (list (record-type-descriptor <alpha>))
-
-(record-parent-list (record-type-descriptor <beta>))
-@equiv{} (list (record-type-descriptor <beta>)
-         (record-type-descriptor <alpha>))
-
-(record-parent-list (record-type-descriptor <gamma>))
-@equiv{} (list (record-type-descriptor <gamma>)
-         (record-type-descriptor <beta>)
-         (record-type-descriptor <alpha>))
-@end example
-@end defun
-
-
-@deffn Syntax record-parent-list* @ameta{record name}
-Do the same as @func{record-parent-list}; @meta{record name} must be a
-record type name.
-@end deffn
-
-@c page
-@node classes fields
-@section Binding accessors and mutators
-
-
-All the following macros work correctly only if we have imported the
-automatically generated @func{@cmeta{record name}-with-record-fields-of}
-binding along with the record name; @ref{classes define} for details on
-classes definition.
-
-
-@deffn Syntax with-fields (@ameta{clause} ...) @ameta{body}
-Expand into a @func{let-syntax} form which defines identifier syntaxes
-to be used to access and mutate fields and virtual fields of objects and
-records.
-
-Each @meta{clause} must be one among:
-
-@example
-(@cmeta{name} @cmeta{record name})
-(@cmeta{name} @cmetao{record name} @cmeta{record name} ...)
-@end example
-
-@noindent
-where @meta{record name} must be a record type name; @meta{name} must be
-an identifier bound to the object or record to be accessed.  The
-identifier syntax for a field named @samp{alpha} is built as:
-
-@example
-@cmeta{name}.alpha
-@end example
-
-@noindent
-that is: identifier name, dot, field name.  One identifier syntax for
-each field and virtual field of @meta{record name} is defined; mutable
-fields generate a full identifier syntax with accessor and mutator;
-immutable fields generate only the accessor identifier syntax.  Only the
-fields of @ameta{record name} are handled, @strong{not} the fields of
-its parents.
-
-Example:
-
-@example
-(define-class <alpha>
-  (fields (mutable a)))
-
-(define r (make-<alpha> 123))
-(define s (make-<alpha> #\a))
-(define t (make-<alpha> 1.0))
-
-(with-fields ((r <alpha>)
-              (s <alpha>)
-              (t <alpha>))
-
-  (list r.a s.a t.a) @result{} (123 #\a 1.0)
-
-  (set! r.a 456)
-  (set! s.a #\b)
-  (set! t.a 2.0)
-
-  (list r.a s.a t.a)) @result{} (456 #\b 2.0)
-@end example
-
-@noindent
-an example with virtual fields:
-
-@example
-(define-class <fraction>
-  (fields (mutable number))
-  (virtual-fields (immutable numerator)
-                  (immutable denominator)))
-
-(define (<fraction>-numerator o)
-  (numerator (<fraction>-number o)))
-
-(define (<fraction>-denominator o)
-  (denominator (<fraction>-number o)))
-
-(define o (make-<fraction> 2/3))
-
-(with-fields ((o <fraction>))
-  (list o.numerator o.denominator))
-@result{} (2 3)
-@end example
-
-@noindent
-an example with multiple types:
-
-@example
-(define-class <alpha>
-  (fields (immutable a)))
-
-(define-class <beta>
-  (parent <alpha>)
-  (fields (immutable b)))
-
-(define o (make-<beta> 1 2))
-
-(with-fields ((o <beta> <alpha>))
-  (list o.a o.b))
-@result{} (1 2)
-@end example
-
-When a @meta{name} as no type: we can use @class{top} as its
-conventional record type name; this can be useful when expanding macros
-making use of @func{with-fields}.
-@end deffn
-
-
-@deffn Syntax let-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
-Like @func{let} but automatically enclose the body in a
-@func{with-fields} syntax using the specified record types.  When a
-variable as no type: we can use @class{top} as its conventional record
-type name.
-
-@example
-(define-class <fraction>
-  (fields (mutable number))
-  (virtual-fields (immutable numerator)
-                  (immutable denominator)))
-
-(define (<fraction>-numerator o)
-  (numerator (<fraction>-number o)))
-
-(define (<fraction>-denominator o)
-  (denominator (<fraction>-number o)))
-
-(let-fields (((a <fraction>) (make-<fraction> 2/3))
-             ((b <fraction>) (make-<fraction> 4/5)))
-  (list a.numerator b.denominator))
-@result{} (2 5)
-@end example
-@end deffn
-
-
-@deffn Syntax let*-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
-Like @func{let*} but automatically enclose the body in a
-@func{with-fields} syntax using the specified record types.  Given two
-bindings @metai{var}, @metai{init} and @metaii{var}, @metaii{init}
-defined in sequence: @metaii{init} is evaluated in the region of the
-identifier syntaxes used to access the fields of @metai{var}.  When a
-variable as no type: we can use @class{top} as its conventional record
-type name.
-
-@smallexample
-(define-class <fraction>
-  (fields (mutable number))
-  (virtual-fields (immutable numerator)
-                  (immutable denominator)))
-
-(define (<fraction>-numerator o)
-  (numerator (<fraction>-number o)))
-
-(define (<fraction>-denominator o)
-  (denominator (<fraction>-number o)))
-
-(let*-fields (((a <fraction>) (make-<fraction> 2/3))
-              ((b <fraction>) (make-<fraction>
-                                (/ a.numerator 5))))
-  b.number)
-@result{} 2/5
-@end smallexample
-@end deffn
-
-
-@deffn Syntax letrec-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
-Like @func{letrec} but automatically enclose the body in a
-@func{with-fields} syntax using the specified record types.  The
-@meta{init} expressions can contain references to the identifier
-syntaxes, as long as they are not resolved.  When a variable as no type:
-we can use @class{top} as its conventional record type name.
-
-@smallexample
-(define-class <alpha>
-  (fields (immutable value)
-          (immutable proc)))
-
-(define-class <beta>
-  (fields (immutable value)
-          (immutable proc)))
-
-(letrec-fields (((a <alpha>) (make-<alpha>
-                               1 (lambda ()
-                                   (cons a.value b.value))))
-                ((b <beta>)  (make-<beta>
-                               2 (lambda ()
-                                   (cons a.value b.value)))))
-  (list (a.proc) (b.proc)))
-@result{} ((1 . 2) (1 . 2))
-@end smallexample
-@end deffn
-
-
-@deffn Syntax letrec*-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
-Like @func{letrec*} but automatically enclose the body in a
-@func{with-fields} syntax using the specified record types.  The
-@meta{init} expressions can contain references to the identifier
-syntaxes.  When a variable as no type: we can use @class{top} as its
-conventional record type name.
-
-@smallexample
-(define-class <alpha>
-  (fields (immutable value)
-          (immutable proc)))
-
-(define-class <beta>
-  (fields (immutable value)
-          (immutable proc)))
-
-(letrec*-fields (((a <alpha>) (make-<alpha>
-                                1 (lambda ()
-                                    (cons a.value b.value))))
-                 ((b <beta>)  (make-<beta>
-                                2 (lambda ()
-                                    (cons a.value b.value))))
-                 ((c <top>)   (list (a.proc) (b.proc))))
-  c)
-@result{} ((1 . 2) (1 . 2))
-@end smallexample
-@end deffn
-
-
-@deffn Syntax lambda/with @ameta{formals} @ameta{body}
-Like @func{lambda} but encloses the body into a @func{with-fields}
-syntax defining identifier syntaxes to access the fields and virtual
-fields of the arguments.  @meta{formals} must have the same form of the
-formals for @func{lambda}, but each @meta{variable} argument can be an
-identifier, as in @func{lambda}, or a list of the form:
-
-@example
-(@cmeta{variable} @cmetao{record name} @ameta{record name} ...)
-@end example
-
-@noindent
-in which case the @meta{variable} argument is meant to be of type
-@meta{record name} and the corresponding identifier syntaxes are
-defined.  When an argument as no type: we can use @class{top} as its
-conventional record type name, or let @func{lambda/with} select
-@class{top} automatically.
-
-@example
-(define-class <fraction>
-  (fields (mutable number))
-  (virtual-fields (mutable numerator)
-                  (mutable denominator)))
-
-(define <fraction>-numerator
-  (lambda/with ((o <fraction>))
-    (numerator o.number)))
-
-(define <fraction>-numerator-set!
-  (lambda/with ((o <fraction>) v)
-    (set! o.number (/ v (denominator o.number)))))
-
-(define <fraction>-denominator
-  (lambda/with ((o <fraction>))
-    (denominator o.number)))
-
-(define <fraction>-denominator-set!
-  (lambda/with ((o <fraction>) v)
-    (set! o.number (/ (numerator o.number) v))))
-
-(let-fields (((o <fraction>) (make-<fraction> 2/3)))
-  o.numerator)
-@result{} 2
-@end example
-@end deffn
-
-
-@deffn Syntax define/with (@ameta{variable} @ameta{formals}) @ameta{body}
-@deffnx Syntax define/with (@ameta{variable} . @ameta{formal}) @ameta{body}
-@deffnx Syntax define/with @ameta{variable} @ameta{expression}
-@deffnx Syntax define/with @ameta{variable}
-Like @func{define} but when used in the first and second forms expands
-to the use of @func{lambda/with}.
-
-@example
-(define-class <fraction>
-  (fields (mutable number))
-  (virtual-fields (mutable numerator)
-                  (mutable denominator)))
-
-(define/with (<fraction>-numerator (o <fraction>))
-  (numerator o.number))
-
-(define/with (<fraction>-numerator-set! (o <fraction>) v)
-  (set! o.number (/ v (denominator o.number))))
-
-(define/with (<fraction>-denominator (o <fraction>))
-  (denominator o.number))
-
-(define/with (<fraction>-denominator-set! (o <fraction>) v)
-  (set! o.number (/ (numerator o.number) v)))
-
-(let-fields (((o <fraction>) (make-<fraction> 2/3)))
-  o.numerator)
-@result{} 2
-@end example
-@end deffn
-
-
-@deffn Syntax lambda/with* @ameta{formals} @ameta{body}
-Like @func{lambda/with*}, but prepends to the body a list of calls to
-@func{assert} to verify the type of the arguments.  For example:
-
-@example
-(lambda/with* ((a <number>) (b <string>))
-  ---)
-@end example
-
-@noindent
-is equivalent to:
-
-@example
-(lambda/with ((a <number>) (b <string>))
-  (assert (is-a? a <number>))
-  (assert (is-a? b <string>))
-  ---)
-@end example
-@end deffn
-
-
-@deffn Syntax define/with* (@ameta{variable} @ameta{formals}) @ameta{body}
-@deffnx Syntax define/with* (@ameta{variable} . @ameta{formal}) @ameta{body}
-@deffnx Syntax define/with* @ameta{variable} @ameta{expression}
-@deffnx Syntax define/with* @ameta{variable}
-Like @func{define/with}, but in the first and second forms expands to
-the use of @func{lambda/with*}.
-@end deffn
-
-@c page
-@node classes builtin
-@section Conventional type descriptors
-
-
-@cindex Conventional record type descriptors
-@cindex Conventional type descriptors
-@cindex Record types, conventional descriptors
-
-
-A record is described by its record type descriptor (@rtd{});
-unfortunately we cannot rely on @rtd{}s describing the same record type
-to be @func{eq?} to each other, so we have to rely on the @acronym{UID}s
-of non--generative record types.  When dispatching multimethods, it is
-convenient to use those @acronym{UID}s to represent the ``class'' of a
-record.
-
-Builtin Scheme values have no @rtd{}, so @library{classes} assigns a
-conventional one to them.  Conventional @rtd{}s have two purposes: to be
-used in multimethod dispatching and to provide an interface for
-identifier macros.  The conventional @rtd{}s @strong{cannot} be used to
-instantiate builtin objects, for example: @func{make-<string>} does
-@strong{not} return a builtin Scheme string object.
-
-@menu
-* classes builtin chart::       A chart for predefined @rtd{}s.
-* classes builtin base::        Basic conventional @rtd{}s.
-* classes builtin list::        Pairs and lists @rtd{}s.
-* classes builtin compound::    Non--list compound @rtd{}s.
-* classes builtin number::      Numeric objects @rtd{}s.
-* classes builtin port::        Input/output port objects @rtd{}s.
-* classes builtin string::      Character and string @rtd{}s.
-* classes builtin misc::        Miscellaneous conventional @rtd{}s.
-@end menu
-
-@c page
-@node classes builtin chart
-@subsection A chart for predefined builtin @rtd{}s
-
-
-@example
-                                 -> <input-port>
-                                |
-                                +-> <output-port>
-                                |
-                                +-> <binary-port>
-                                |
-                   --> <port> --+-> <textual-port>
-                  |
-                  +--> <record> --> <condition>
-                  |
-                  +--> <string>
- <top>            |
-   |              +--> <char>
-   v              |
-<builtin> --------+-------+---------+-----------+
-   |              |       |         |           |
-   v              v       v         v           v
-<number>        <pair> <vector> <bytevector> <hashtable>
-   |              |
-   v              v
-<complex>       <list>
-   |
-   v
-<real-valued>
-   |
-   v
-<real> ------> <flonum>
-   |
-   v
-<rational-valued>
-   |         |
-   v         v
-<rational> <integer-valued>
-   |
-   v
-<integer>
-   |
-   v
-<fixnum>
-@end example
-
-@c page
-@node classes builtin base
-@subsection Basic conventional @rtd{}s
-
-
-@deftp Class <top>
-Conventional parent of all the record types.  When defining a new record
-type with no parent, we may want to derive it from @class{top}:
-
-@example
-(define-record-type <alpha>
-  (parent <top>)
-  ---)
-@end example
-
-@noindent
-record types defined with @func{define-class}, have @class{top} as
-parent type if we do not select explicitly a parent with the
-@func{parent} or @func{parent-rtd} clauses.
-@end deftp
-
-
-@deftp Class <builtin>
-The parent of all the conventional @rtd{}s, with the exception of
-@class{top}.
-@end deftp
-
-@c page
-@node classes builtin list
-@subsection Pairs and lists @rtd{}s
-
-
-@deftp Class <pair>
-Type for values satisfying @func{pair?}.  It provides the following
-virtual fields:
-
-@table @code
-@item car
-Immutable.  Access the car of the pair.
-
-@item cdr
-Immutable.  Access the cdr of the pair.
-@end table
-@end deftp
-
-
-@deftp Class <list>
-Type for values satisfying @func{list?}.  It provides the following
-virtual fields:
-
-@table @code
-@item car
-Immutable.  Access the car of the list.
-
-@item cdr
-Immutable.  Access the cdr of the list.
-
-@item length
-Immutable.  Access the length of the list.
-@end table
-@end deftp
-
-@c page
-@node classes builtin compound
-@subsection Non--list compound @rtd{}s
-
-
-@deftp Class <vector>
-Type for values satisfying @func{vector?}.  It provides the following
-virtual fields:
-
-@table @code
-@item length
-Immutable.  Access the length of the vector.
-@end table
-@end deftp
-
-
-@deftp Class <bytevector>
-Type for values satisfying @func{bytevector?}.  It provides the following
-virtual fields:
-
-@table @code
-@item length
-Immutable.  Access the length of the bytevector.
-@end table
-@end deftp
-
-
-@deftp Class <hashtable>
-Type for values satisfying @func{hashtable?}.  It provides the following
-virtual fields:
-
-@table @code
-@item size
-Immutable.  Access the size of the table.
-
-@item keys
-Immutable.  Access the keys.  Retrieving this field is like applying
-@func{hashtable-keys} to the hashtable.
-
-@item entries
-Immutable.  Access the keys and values.  Retrieving this field is like
-applying @func{hashtable-entries} to the hashtable.
-@end table
-@end deftp
-
-@c page
-@node classes builtin number
-@subsection Numeric objects @rtd{}s
-
-
-@deftp Class <number>
-Type for values satisfying @func{number?}.  It provides the following
-virtual fields:
-
-@table @code
-@item exact
-Immutable.  Accessing this field is like applying @func{exact} to the
-number.
-
-@item inexact
-Immutable.  Accessing this field is like applying @func{inexact} to the
-number.
-
-@item exact?
-Immutable.  Accessing this field is like applying @func{exact?} to the
-number.
-
-@item inexact?
-Immutable.  Accessing this field is like applying @func{inexact?} to the
-number.
-
-@item zero?
-Immutable.  Accessing this field is like applying @func{zero?} to the
-number.
-
-@item positive?
-Immutable.  Accessing this field is like applying @func{positive?} to
-the number.
-
-@item negative?
-Immutable.  Accessing this field is like applying @func{negative?} to
-the number.
-
-@item odd?
-Immutable.  Accessing this field is like applying @func{odd?} to the
-number.
-
-@item even?
-Immutable.  Accessing this field is like applying @func{even?} to the
-number.
-
-@item finite?
-Immutable.  Accessing this field is like applying @func{finite?} to the
-number.
-
-@item infinite?
-Immutable.  Accessing this field is like applying @func{infinite?} to
-the number.
-
-@item nan?
-Immutable.  Accessing this field is like applying @func{nan?} to the
-number.
-
-@item real-part
-Immutable.  Accessing this field is like applying @func{real-part} to
-the number.
-
-@item imag-part
-Immutable.  Accessing this field is like applying @func{imag-part} to
-the number.
-
-@item magnitude
-Immutable.  Accessing this field is like applying @func{magnitude} to
-the number.
-
-@item angle
-Immutable.  Accessing this field is like applying @func{angle} to the
-number.
-
-@item numerator
-Immutable.  Accessing this field is like applying @func{numerator} to
-the number.
-
-@item denominator
-Immutable.  Accessing this field is like applying @func{denominator} to
-the number.
-
-@item floor
-Immutable.  Accessing this field is like applying @func{floor} to the
-number.
-
-@item ceiling
-Immutable.  Accessing this field is like applying @func{ceiling} to the
-number.
-
-@item truncate
-Immutable.  Accessing this field is like applying @func{truncate} to the
-number.
-
-@item round
-Immutable.  Accessing this field is like applying @func{round} to the
-number.
-@end table
-@end deftp
-
-
-@deftp Class <complex>
-Type for values satisfying @func{complex?}.
-@end deftp
-
-
-@deftp Class <real-valued>
-Type for values satisfying @func{real-valued?}.
-@end deftp
-
-
-@deftp Class <real>
-Type for values satisfying @func{real?}.  It provides the following
-virtual fields:
-
-@table @code
-@item abs
-Immutable.  Accessing this field is like applying @func{abs} to the
-number.
-@end table
-@end deftp
-
-
-@deftp Class <rational>
-Type for values satisfying @func{integer?}.
-@end deftp
-
-
-@deftp Class <rational-valued>
-Type for values satisfying @func{integer?}.
-@end deftp
-
-
-@deftp Class <integer-valued>
-Type for values satisfying @func{integer?}.
-@end deftp
-
-
-@deftp Class <integer>
-Type for values satisfying @func{integer?}.
-@end deftp
-
-
-@deftp Class <fixnum>
-Type for values satisfying @func{fixnum?}.
-@end deftp
-
-
-@deftp Class <flonum>
-Type for values satisfying @func{flonum?}.
-@end deftp
-
-@c page
-@node classes builtin port
-@subsection Input/output port objects @rtd{}s
-
-
-The binary/textual attributes are not mututally exclusive with the
-input/output attributes.
-
-
-@deftp Class <port>
-Type for values satisfying @func{port?}.  It provides the following
-virtual fields:
-
-@table @code
-@item transcoder
-Immutable.  Accessing this field is like applying @func{port-transcoder}
-to the port.
-
-@item textual?
-Immutable.  Accessing this field is like applying @func{textual-port?}
-to the port.
-
-@item binary?
-Immutable.  Accessing this field is like applying @func{binary-port?} to
-the port.
-
-@item has-port-position?
-Immutable.  Accessing this field is like applying
-@func{port-has-port-position?} to the port.
-
-@item has-set-port-position?
-Immutable.  Accessing this field is like applying
-@func{port-has-set-port-position?}  to the port.
-
-@item port-position
-Immutable.  Accessing this field is like applying @func{port-position}
-to the port; mutating this field is like applying
-@func{set-port-position!} to the port.
-
-@item eof?
-Immutable.  Accessing this field is like applying @func{port-eof?} to
-the port.
-
-@item input?
-Immutable.  Accessing this field is like applying @func{input-port?} to
-the port.
-
-@item output?
-Immutable.  Accessing this field is like applying @func{output-port?} to
-the port.
-@end table
-@end deftp
-
-
-@deftp Class <input-port>
-@deftpx {Record Type Descriptor} <input-port-rtd>
-Type for values satisfying @func{input-port?}.
-@end deftp
-
-
-@deftp Class <output-port>
-Type for values satisfying @func{output-port?}.
-@end deftp
-
-
-@deftp Class <textual-port>
-Type for values satisfying @func{textual-port?}.
-@end deftp
-
-
-@deftp Class <binary-port>
-Type for values satisfying @func{binary-port?}.
-@end deftp
-
-@c page
-@node classes builtin string
-@subsection Character and string @rtd{}s
-
-
-@deftp Class <string>
-Type for values satisfying @func{string?}.  It provides the following
-virtual fields:
-
-@table @code
-@item length
-Immutable.  Accessing this field is like applying @func{string-length}
-to the string.
-
-@item upcase
-Immutable.  Accessing this field is like applying @func{string-upcase}
-to the string.
-
-@item downcase
-Immutable.  Accessing this field is like applying @func{string-downcase}
-to the string.
-
-@item titlecase
-Immutable.  Accessing this field is like applying
-@func{string-titlecase} to the string.
-
-@item foldcase
-Immutable.  Accessing this field is like applying @func{string-foldcase}
-to the string.
-@end table
-@end deftp
-
-
-@deftp Class <char>
-Type for values satisfying @func{char?}.  It provides the following
-virtual fields:
-
-@table @code
-@item upcase
-Immutable.  Accessing this field is like applying @func{char-upcase} to
-the char.
-
-@item downcase
-Immutable.  Accessing this field is like applying @func{char-downcase}
-to the char.
-
-@item titlecase
-Immutable.  Accessing this field is like applying @func{char-titlecase}
-to the char.
-
-@item foldcase
-Immutable.  Accessing this field is like applying @func{char-foldcase}
-to the char.
-@end table
-@end deftp
-
-@c page
-@node classes builtin misc
-@subsection Miscellaneous conventional @rtd{}s
-
-
-@deftp Class <condition>
-Type for values satisfying @func{condition?}.  It provides the following
-virtual fields:
-
-@table @code
-@item message
-Immutable.  Accessing this field is like applying
-@func{condition-message} to the condition object.
-
-@item who
-Immutable.  Accessing this field is like applying @func{condition-who}
-to the condition object.
-
-@item irritants
-Immutable.  Accessing this field is like applying
-@func{condition-irritants} to the condition object.
-@end table
-@end deftp
-
-
-@deftp Class <record>
-Type for values satisfying @func{record?}.
-@end deftp
-
-@c page
-@node generics
-@chapter Multimethods dispatching
-
-
-In the context of the @library{generics} library, @dfn{generic
-functions} are procedures that can be specialised to the (possibly
-conventional) record types of their arguments.  Each specialisation of a
-generic function is called @dfn{method}.  When applying a generic
-function to a set of arguments, the most specific method with respect to
-the arguments' types is chosen.
-
-The @library{generics} library is built on top of the @library{classes}
-library; importing the @library{generics} library automatically imports
-all the bindings exported by the @library{classes} library, too.
-
-@menu
-* generics application::        How generic functions and methods
-                                are invoked.
-* generics dispatching::        How methods are dispatched.
-* generics define::             Defining generic functions and methods.
-* generics next::               Invoking the next method.
-* generics examples::           Examples of method dispatching.
-* generics predefined::         Predefined generic functions.
-@end menu
-
-@c page
-@node generics application
-@section How generic functions and methods are invoked
-
-
-When a generic function is applied to a tuple of arguments, the
-following happens:
-
-@enumerate
-@item
-For each argument in the tuple a record type is determined.  The tuple
-of types is called @dfn{signature}.  Each generic function maintains an
-internal collection in which every method's closure is associated to a
-signature.
-
-@item
-The internal collection of methods is queried for all the methods
-applicable to the tuple of arguments, using the signature as search key.
-
-@item
-The list of applicable methods is sorted from the more specific to the
-least specific for the signature.  From now on the list of sorted,
-applicable methods is handled as a stack.
-
-@item
-Pop the next method from the stack and apply its closure to the tuple of
-arguments.  The return value of this application becomes the return
-value of the generic function application.  If the function calls the
-next method, recurse to step 4.
-@end enumerate
-
-@c page
-@node generics dispatching
-@section How methods are dispatched
-
-
-Here we attempt the formulation of the rules of method dispatching.  A
-method is identified by a triplet of values: a list of @rtd{}s,
-called signature, representing the classes or expected arguments; a
-boolean value telling if the closure accepts rest arguments; the
-closure.
-
-@c ------------------------------------------------------------
-
-@subsubheading Applicability
-
-First we need to understand when a method is applicable to a tuple of
-arguments.  Record types are identified by their @acronym{UID}: the
-return value of @func{record-type-uid}.  Given a tuple of arguments, a
-method supporting no rest arguments is applicable to the tuple if:
-
-@enumerate
-@item
-The length of the signature is equal to the length of the arguments'
-tuple.
-
-@item
-Position by position, the @acronym{UID} of the @rtd{} in the signature
-is @func{eq?}  to the @acronym{UID} of the @rtd{} of the argument or to
-the @acronym{UID} of one of its parents.
-@end enumerate
-
-@noindent
-a method supporting rest arguments is applicable to the tuple if:
-
-@enumerate
-@item
-The length of the signature is less than or equal to the length of the
-arguments' tuple.
-
-@item
-Position by position, up to the last element in the signature, the
-@acronym{UID} of the @rtd{} in the signature is @func{eq?} to the
-@acronym{UID} of the @rtd{} of the argument or to the @acronym{UID} of
-one of its parents.
-@end enumerate
-
-@c ------------------------------------------------------------
-
-@subsubheading Specificity
-
-Now we can understand how to determine which one, among two applicable
-methods, is more specific for a tuple of arguments.  Let's call the
-methods @var{A} and @var{B}.
-
-Notice that it is impossible for two distinct methods, in the same
-generic function, to have the same signature and the same support for
-rest arguments.
-
-Also, records support only single inheritance, so if two methods are
-applicable: the homologous @rtd{} in their signatures, or their
-subtypes, have @func{eq?}  @acronym{UID}s.
-
-@enumerate
-@item
-If both @var{A} and @var{B} support rest arguments: The one with the
-longest signature is more specific.
-
-@item
-The @rtd{}s in the signatures are compared in couples, position
-by position from the beginning to the end.
-
-@enumerate a
-@item
-If the @rtd{}s have @func{eq?} @acronym{UID}s, the next couple is
-inspected.
-
-@item
-If the @rtd{} from @var{A} is a subtype of the one from @var{B}: @var{A}
-is more specific than @var{B}.
-@end enumerate
-
-@item
-If the methods' signatures have the same length, and, position by
-position, the @rtd{}s of @var{A} have @acronym{UID}s which are
-@func{eq?}  to the @acronym{UID}s of the @rtd{}s of @var{B}, but @var{A}
-supports rest arguments while @var{B} does not: Then @var{B} is more
-specific than @var{A}.
-@end enumerate
-
-@c page
-@node generics define
-@section Defining generic functions and methods
-
-
-The number of arguments (arity) of a generic function is undefined:
-Every method can have a different number of arguments.
-
-
-@deffn Syntax define-generic @ameta{name}
-Define a new generic function and bind it to @meta{name}.
-@end deffn
-
-
-@defun make-generic-function
-Build and return a new generic function.
-@end defun
-
-
-@deffn Syntax define-generic/merge @ameta{name} @ametao{generic} @ameta{generic} ...
-Define a new generic function and bind it to @meta{name}.  The internal
-collection of methods holds the union of the method collections from the
-@meta{generic} arguments, which must be generic functions.
-
-The union is performed visiting arguments from left to right; when two
-methods have the same signature and the same support for rest arguments,
-the one from the leftmost generic function has precedence.
-
-Merging methods is useful when two different libraries export generic
-functions bound to the same identifier.
-@end deffn
-
-
-@deffn Syntax define-method @ameta{generic} (@ameta{arg-spec} ...) @ameta{body}
-@deffnx Syntax define-method (@ameta{generic} @ameta{arg-spec} ...) @ameta{body}
-Add a new method to an already existent generic function,
-@ameta{generic}.
-
-The list of @meta{arg-spec} specifies the @rtd{}s of the arguments for
-which this method specialises the generic function.  Notice that rest
-arguments are supported and specified with the usual syntax.  An
-@meta{arg-spec} can be:
-
-@table @code
-@item (@meta{arg} @meta{record name})
-Where @meta{arg} is the formal name of the argument and @meta{record
-name} the (possibly conventional) record name of expected values.
-
-@item @meta{arg}
-Where @meta{arg} is the formal name of the argument.  In this case the
-@rtd{} defaults to the conventional @class{top}, which is interpreted as
-parent of every other @rtd{} (and so it has the least specificity).
-@end table
-
-If a method is defined with the same signature, and support for rest
-arguments, of an already registered method: The old method is
-overwritten by the new one.  Two methods having, position by position,
-arguments of the same @rtd{}, but such that one supports rest arguments
-and the other does not, are different.
-@end deffn
-
-
-@deffn Syntax add-method @ameta{generic} @ameta{signature} @ameta{has-rest} @ameta{closure}
-Add a new method to an already existent generic function,
-@meta{generic}.  @meta{signature} must be a list of record names for
-which this method specialises the generic function.  @meta{closure} must
-be the method's closure.  @meta{has-rest} must be @true{} or @false{},
-when @true{} it means that the closure supports rest arguments.
-@end deffn
-
-@c page
-@node generics next
-@section Invoking the next method
-
-
-@defun call-next-method
-Call the next most specific method.
-@end defun
-
-
-@defun next-method?
-Return true if a next method is available.
-@end defun
-
-@c page
-@node generics examples
-@section Examples of method dispatching.
-
-
-Here we show with some examples what we have to expect from the
-multimethod dispatching of @library{generics}.  In the following examples
-the string @code{%apple} is written in place of the value bound to the
-symbol @class{apple}.
-
-Let's examine this example:
-
-@example
-(define-class <one> (parent <top>))
-(define-class <two> (parent <one>))
-(define-class <c>   (parent <two>))
-@end example
-
-@noindent
-the record hierarchy is:
-
-@example
-<top> -> <one> -> <two> -> <c>
-@end example
-
-@noindent
-and the full record precedence list for @class{c} is:
-
-@example
-(record-precedence-list* <c>)
-@result{} (%c %two %one %top)
-@end example
-
-@noindent
-so for the generic function:
-
-@example
-(define-generic doit)
-(define-method (doit (o <one>)) 'one)
-(define-method (doit (o <two>)) 'two)
-@end example
-
-@noindent
-applied to a value of type @class{c}: the method with @class{two} in the
-signature is @emph{more specific} than the method with @class{one} in
-the signature:
-
-@example
-(doit (make-<c>)) @result{} two
-@end example
-
-@noindent
-also the method with @class{one} in the signature is the ``next method''
-of the method with @class{two} in the signature, we can call it using
-@func{call-next-method}.
-
-The following example shows a call to the next method:
-
-@example
-(define-generic fluff)
-
-(define-method (fluff (o <one>))
-  'one)
-
-(define-method (fluff (o <two>))
-  (cons 'two (call-next-method)))
-
-(define o (make-<c>))
-
-(fluff o)
-@result{} (two . one)
-@end example
-
-@c page
-@node generics predefined
-@section Predefined generic functions
-
-
-@deffn {Generic Function} object->string @var{obj}
-Return a string representation for @var{obj}.  A non--specialised method
-is predefined to use the following implementation:
-
-@example
-(call-with-string-output-port
-   (lambda (port)
-     (display obj port)))
-@end example
 @end deffn
 
 @c page
