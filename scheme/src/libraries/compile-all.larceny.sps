@@ -185,12 +185,6 @@
 (compile-library "queues.sls"
 		 "queues.slfasl")
 
-(compile-library "stacks/types.sls"
- 		 "stacks/types.slfasl")
-
-(compile-library "stacks/extensions.sls"
-		 "stacks/extensions.slfasl")
-
 (compile-library "stacks.sls"
 		 "stacks.slfasl")
 
