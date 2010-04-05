@@ -433,7 +433,7 @@ The project home page of Nausicaa is at:
 @noindent
 development of Nausicaa takes place at:
 
-@center @url{http://github.com/marcomaggi/nausicaa/tree/master}
+@center @url{http://github.com/marcomaggi/nausicaa/}
 
 @noindent
 Copyright @copyright{} @value{COPYRIGHT_YEARS} by @value{AUTHOR}.@*
@@ -521,11 +521,15 @@ the list of original documents and their authors.  See also the
 * stdlib::                      Standard libraries.
 * naulib::                      The @library{nausicaa} language.
 
+Basic libraries
+
+* lang::                        Simple language extensions.
+* classes::                     Record utilities.
+* generics::                    Multimethods dispatching.
+
 More libraries
 
 * conditions::                  Predefined condition types.
-* classes::                     Record utilities.
-* generics::                    Multimethods dispatching.
 * enumerations::                Enumeration sets utilities.
 * lists::                       Lists library.
 * char-sets::                   Character sets library.
@@ -604,17 +608,17 @@ Overview of the distribution
 
 The Scheme language
 
-* scheme overview::               Overview of Scheme.
-* scheme requirements::           Requirement levels.
-* scheme numbers::                Numbers.
-* scheme lex::                    Lexical syntax and datum syntax.
-* scheme basic::                  Semantic concepts.
-* scheme entry::                  Entry format.
-* scheme library::                Libraries.
-* scheme programs::               Top-level programs.
-* scheme syntax::                 Primitive syntax.
-* scheme expansion::              Expansion process.
-* scheme derived::                Sample definitions for derived forms.
+* scheme overview::             Overview of Scheme.
+* scheme requirements::         Requirement levels.
+* scheme numbers::              Numbers.
+* scheme lex::                  Lexical syntax and datum syntax.
+* scheme basic::                Semantic concepts.
+* scheme entry::                Entry format.
+* scheme library::              Libraries.
+* scheme programs::             Top-level programs.
+* scheme syntax::               Primitive syntax.
+* scheme expansion::            Expansion process.
+* scheme derived::              Sample definitions for derived forms.
 
 Overview of Scheme
 
@@ -635,19 +639,19 @@ Overview of Scheme
 
 Numbers
 
-* scheme numbers tower::          Numerical tower.
-* scheme numbers exactness::      Exactness.
-* scheme numbers fix flo::        Fixnums and flonums.
-* scheme numbers requirements::   Implementation requirements.
-* scheme numbers inf nan::        Infinities and NaNs.
-* scheme numbers minus zero::     Distinguished @math{-0.0}.
+* scheme numbers tower::        Numerical tower.
+* scheme numbers exactness::    Exactness.
+* scheme numbers fix flo::      Fixnums and flonums.
+* scheme numbers requirements:: Implementation requirements.
+* scheme numbers inf nan::      Infinities and NaNs.
+* scheme numbers minus zero::   Distinguished @math{-0.0}.
 
 Lexical syntax and datum syntax
 
-* scheme lex intro::              Introduction.
-* scheme lex notation::           Notation.
-* scheme lex syntax::             Lexical syntax.
-* scheme lex datum::              Datum syntax.
+* scheme lex intro::            Introduction.
+* scheme lex notation::         Notation.
+* scheme lex syntax::           Lexical syntax.
+* scheme lex datum::            Datum syntax.
 
 Lexical syntax
 
@@ -662,38 +666,38 @@ Lexical syntax
 
 Datum syntax
 
-* scheme lex datum formal account::       Formal account.
-* scheme lex datum pairs and lists::      Pairs and lists.
-* scheme lex datum vectors::              Vectors.
-* scheme lex datum bytevectors::          Bytevectors.
-* scheme lex datum abbreviations::        Abbreviations.
+* scheme lex datum formal account::  Formal account.
+* scheme lex datum pairs and lists:: Pairs and lists.
+* scheme lex datum vectors::         Vectors.
+* scheme lex datum bytevectors::     Bytevectors.
+* scheme lex datum abbreviations::   Abbreviations.
 
 Semantic concepts
 
-* scheme basic programs and libraries::        Programs and libraries.
-* scheme basic variables keywords regions::    Variables, keywords,
+* scheme basic programs and libraries::      Programs and libraries.
+* scheme basic variables keywords regions::  Variables, keywords,
                                              and regions.
-* scheme basic exceptions::                    Exceptional situations.
-* scheme basic argument checking::             Argument checking.
-* scheme basic syntax violations::             Syntax violations.
-* scheme basic safety::                        Safety.
-* scheme basic boolean values::                Boolean values.
-* scheme basic multiple return values::        Multiple return values.
-* scheme basic unspecified behavior::          Unspecified behavior.
-* scheme basic storage model::                 Storage model.
-* scheme basic proper tail recursion::         Proper tail recursion.
-* scheme basic dynamic extent::                Dynamic extent and the
+* scheme basic exceptions::                  Exceptional situations.
+* scheme basic argument checking::           Argument checking.
+* scheme basic syntax violations::           Syntax violations.
+* scheme basic safety::                      Safety.
+* scheme basic boolean values::              Boolean values.
+* scheme basic multiple return values::      Multiple return values.
+* scheme basic unspecified behavior::        Unspecified behavior.
+* scheme basic storage model::               Storage model.
+* scheme basic proper tail recursion::       Proper tail recursion.
+* scheme basic dynamic extent::              Dynamic extent and the
                                              dynamic environment.
 
 Entry format
 
-* scheme entry syntax::                Syntax entries.
-* scheme entry procedure::             Procedure entries.
-* scheme entry implementation resp::   Implementation responsibilities.
-* scheme entry other kinds::           Other kinds of entries.
-* scheme entry equivalent::            Equivalent entries.
-* scheme entry evaluation examples::   Evaluation examples.
-* scheme entry naming conventions::    Naming conventions.
+* scheme entry syntax::              Syntax entries.
+* scheme entry procedure::           Procedure entries.
+* scheme entry implementation resp:: Implementation responsibilities.
+* scheme entry other kinds::         Other kinds of entries.
+* scheme entry equivalent::          Equivalent entries.
+* scheme entry evaluation examples:: Evaluation examples.
+* scheme entry naming conventions::  Naming conventions.
 
 Libraries
 
@@ -713,13 +717,13 @@ Library form
 
 Top--level programs
 
-* scheme programs syntax::        Top-level program syntax.
-* scheme programs semantics::     Top-level program semantics.
+* scheme programs syntax::      Top-level program syntax.
+* scheme programs semantics::   Top-level program semantics.
 
 Primitive syntax
 
-* scheme syntax primitive::       Primitive expression types.
-* scheme syntax macros::          Macros.
+* scheme syntax primitive::     Primitive expression types.
+* scheme syntax macros::        Macros.
 
 Base library
 
@@ -902,25 +906,19 @@ The @library{nausicaa} language
 * naulib features::             Feature-based conditional expansion.
 * naulib funcs::                Functions.
 * naulib pretty::               Pretty printing.
-* naulib macros::               Syntactic abstractions.
 * naulib parameters::           Paremeter objects.
 * naulib shared::               External representation for data
                                 with shared structure.
 * naulib environment::          Accessing environment variables.
 * naulib unimplemented::        Unimplemented error condition.
 
-Syntactic abstractions
+Simple language extensions
 
-* naulib macros lang::          Language constructs.
-* naulib macros let::           Binding constructs.
-* naulib macros loop::          Loop constructs.
-* naulib macros id::            Bindings mutations.
-* naulib macros define::        Macro definition helpers.
-
-Predefined condition types
-
-* conditions mismatch::         General mismatch error.
-* conditions num-args::         Wrong number of arguments error.
+* lang lang::                   Language constructs.
+* lang let::                    Binding constructs.
+* lang loop::                   Loop constructs.
+* lang id::                     Bindings mutations.
+* lang define::                 Macro definition helpers.
 
 Record utilities
 
@@ -951,6 +949,11 @@ Multimethods dispatching
 * generics next::               Invoking the next method.
 * generics examples::           Examples of method dispatching.
 * generics predefined::         Predefined generic functions.
+
+Predefined condition types
+
+* conditions mismatch::         General mismatch error.
+* conditions num-args::         Wrong number of arguments error.
 
 Enumeration sets utilities
 
@@ -18842,12 +18845,20 @@ differences from the @library{rnrs} language.  Most of them are the
 revised implementations of @srfi{} specifications that were voted to the
 @emph{final} status.
 
+The @library{nausicaa} library reexports all the bindings from the
+following libraries:
+
+@table @library
+@item language-extension
+Simple language extensions, mostly syntaxes.  @ref{lang, Simple language
+extensions}.
+@end table
+
 
 @menu
 * naulib features::             Feature-based conditional expansion.
 * naulib funcs::                Functions.
 * naulib pretty::               Pretty printing.
-* naulib macros::               Syntactic abstractions.
 * naulib parameters::           Paremeter objects.
 * naulib shared::               External representation for data
                                 with shared structure.
@@ -19028,576 +19039,6 @@ library and re--exported by the @library{nausicaa} library.
 Print a human readable representation of @var{obj} to @var{port} or the
 return value of @func{current-output-port}.
 @end defun
-
-@c page
-@node naulib macros
-@section Syntactic abstractions
-
-
-The bindings documented in this section are exported by the
-@library{language-extensions} library and re--exported by the
-@library{nausicaa} library.
-
-@menu
-* naulib macros lang::          Language constructs.
-* naulib macros let::           Binding constructs.
-* naulib macros loop::          Loop constructs.
-* naulib macros id::            Bindings mutations.
-* naulib macros define::        Macro definition helpers.
-@end menu
-
-@c page
-@node naulib macros lang
-@subsection Language constructs
-
-
-@deffn Syntax begin0 @var{form0} @var{form} ...
-Evaluate all the @var{form}s like the standard @func{begin}, but return
-the value of @var{form0}.  The implementation comes from the @rnrs{6}
-original document, Appendix A ``Formal semantics''.
-
-@example
-(define-syntax begin0
-  (syntax-rules ()
-    ((_ ?form0 ?form ...)
-     (call-with-values
-         (lambda () ?form0)
-       (lambda x
-         ?form ...
-         (apply values x))))))
-@end example
-
-This syntax is called @func{prog1} in Common Lisp and Emacs Lisp.
-@end deffn
-
-
-@deffn Syntax cut @var{slot-or-expr} ...
-@deffnx Syntax cute @var{slot-or-expr} ...
-When programming in functional style, it is frequently necessary to
-specialize some of the parameters of a multi--parameter procedure.  For
-example, from the binary operation @func{cons} one might want to obtain
-the unary operation @code{(lambda (x) (cons 1 x))}.  This specialization
-of parameters is also known as ``partial application'', ``operator
-section'' or ``projection''.
-
-The @func{cut} and @func{cute} syntaxes allow to write this sort of
-specialization in a simple and compact way.  Examples:
-
-@example
-(cut cons (+ a 1) <>)   = (lambda (x2)
-                            (cons (+ a 1) x2))
-
-(cut list 1 <> 3 <> 5)  = (lambda (x2 x4)
-                            (list 1 x2 3 x4 5))
-
-(cut list)              = (lambda () (list))
-
-(cut list 1 <> 3 <...>) = (lambda (x2 . xs)
-                            (apply list 1 x2 3 xs))
-
-(cut <> a b)            = (lambda (f) (f a b))
-@end example
-
-@func{cut} specializes some of the parameters of its first argument.
-The parameters that are to show up as formal variables of the result are
-indicated by the symbol @code{<>}, pronouced as ``slot''.  In addition,
-the symbol @code{<...>}, pronounced as ``rest--slot'', matches all
-residual arguments of a variable argument procedure.  The first argument
-can also be a slot.
-
-@func{cute} evaluates the non--slot expressions at the time the
-procedure is specialized, not at the time the specialized procedure is
-called.  For example:
-
-@example
-(cute cons (+ a 1) <>) = (let ((a1 (+ a 1)))
-                           (lambda (x2)
-                             (cons a1 x2)))
-@end example
-
-@noindent
-@func{cute} will evaluate @code{(+ a 1)} once, while the @func{cut}
-would evaluate it during every invocation of the resulting procedure.
-
-The formal syntax of a specialized expression is:
-
-@example
-<cut-expression> -> (cut  <slot-or-expr> <slot-or-expr>*)
-                 |  (cut  <slot-or-expr> <slot-or-expr>* <...>)
-                 |  (cute <slot-or-expr> <slot-or-expr>*)
-                 |  (cute <slot-or-expr> <slot-or-expr>* <...>)
-
-<slot-or-expr>   -> <>              ; a "slot"
-                 |  <expression>    ; a "non-slot expression"
-@end example
-@end deffn
-
-
-@deffn Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else @var{form0} @var{form} ...)
-@deffnx Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else-by @var{form0} @var{form} ...) ... (else @var{form0} @var{form} ...)
-Evaluate the @var{form}s in the @code{by} and @code{else-by} clauses, in
-sequence, until @var{test} evaluates to true.  If the first evaluation
-of @var{test} gives true: no @var{form}s are evaluated.  If neither the
-@code{by} nor the @code{else-by} forms succeed in making @var{test}
-true: the @var{form}s in the @code{else} clause are evaluated.
-
-Return the value of the last @var{form} in the clause that made
-@var{test} true, or the value in the last @var{form} in the @code{else}
-clause, or @false{} if the first evaluation of @var{test} was true and
-no @var{form}s were evaluated.
-
-Examples:
-
-@example
-(let ((i #f))
-  (ensure (= i 1)
-      (by
-        (set! i 1)
-        123)
-    (else-by
-      (set! i 2)
-      456)
-    (else
-      (set! i 3)
-      789)))
-@result{} 123
-
-(let ((i #f))
-  (ensure (= i 2)
-      (by
-        (set! i 1)
-        123)
-    (else-by
-      (set! i 2)
-      456)
-    (else
-      (set! i 3)
-      789)))
-@result{} 456
-
-(let ((i #f))
-  (ensure (= i 3)
-      (by
-        (set! i 1)
-        123)
-    (else-by
-      (set! i 2)
-      456)
-    (else
-      (set! i 3)
-      789)))
-@result{} 789
-@end example
-@end deffn
-
-@c page
-@node naulib macros let
-@subsection Binding constructs
-
-
-@deffn Syntax and-let* @var{formals} . @var{body}
-Like an ordinary @func{and}, an @func{and-let*} special form evaluates
-the expressions in @var{formals} in order until the first one that
-yields @false{}.  Unlike @func{and}, however, a non--@false{} result of
-one expression can be bound to a fresh variable and used in the
-subsequent expressions.  @func{and-let*} is a cross--breed between
-@func{let*} and @func{and}.
-
-@var{formals} can be the empty list, or a list of the following
-elements:
-
-@table @code
-@item (@var{varname} @var{expression})
-evaluate @var{expression}; if the result is @false{}: return @false{}
-immediately, else bind the result to @var{varname}; @var{varname} is
-available to the rest of the @var{expressions}, and the @code{BODY};
-
-@item @var{expression}
-evaluate @var{expression}; if the result is @false{}: return @false{}
-immediately;
-
-@item @var{bound-variable}
-look up @var{bound-variable}; if the value is @false{}; return @false{}
-immediately; @var{bound-varname} is available to the rest of the
-@var{expressions}, and the @var{body}.
-@end table
-
-If all the @var{expression}s and @var{bound-variable}s in @var{formals}
-evaluate to true, the forms in @var{body} are evaluated and the result
-of the last one returned.
-@end deffn
-
-@c ------------------------------------------------------------
-
-@deffn Syntax begin0-let ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
-@deffnx Syntax begin0-let (((@varo{var} ...) @varo{expr}) ((@var{var} ...) @var{expr}) ...) @varo{form} @var{form} ...
-Bind the result of @var{expr} to @var{var} as in @func{let} or
-@func{let-values}, evaluate the forms in the resulting environment, then
-return @varo{var} possibly as multiple values.
-@end deffn
-
-
-@deffn Syntax begin0-let* ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
-@deffnx Syntax begin0-letrec ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
-Like @func{begin0-let}, but bind the identifiers using @func{let*} and
-@func{letrec}.
-@end deffn
-
-@c ------------------------------------------------------------
-
-@deffn Syntax receive @var{formals} @var{expression} . @var{body}
-The mechanism provided for binding identifiers to the values of a
-multiple--valued expression are @func{call-with-values},
-@func{let-values}, @func{let*-values}.  @func{receive} is another
-concise and readable syntax for creating such bindings.
-
-@var{formals} can have any of 3 forms:
-
-@table @code
-@item (variable1 ... variablen)
-The environment in which the @func{receive}--expression is evaluated is
-extended by binding @var{variable1}, ..., @var{variablen} to fresh
-locations.  The @var{expression} is evaluated, and its values are stored
-into those locations (it is an error if @var{expression} does not have
-exactly @var{n} values).
-
-@item variable
-The environment in which the @func{receive}--expression is evaluated is
-extended by binding @var{variable} to a fresh location.  The
-@var{expression} is evaluated, its values are converted into a newly
-allocated list, and the list is stored in the location bound to
-@var{variable}.
-
-@item (variable1 ... variablen . variablen+1)
-The environment in which the @func{receive}--expression is evaluated is
-extended by binding @var{variable1}, ..., @var{variablen+1} to fresh
-locations.  The @var{expression} is evaluated.  Its first @var{n} values
-are stored into the locations bound to @var{variable1}, ...,
-@var{variablen}.  Any remaining values are converted into a newly
-allocated list, which is stored into the location bound to
-@var{variablen+1} (it is an error if @var{expression} does not have at
-least @var{n} values.
-@end table
-
-In any case, the expressions in @var{body} are evaluated sequentially in
-the extended environment.  The results of the last expression in the
-body are the values of the @var{receive}--expression.
-@end deffn
-
-@c ------------------------------------------------------------
-
-@deffn Syntax define-values (@ameta{var0} @ameta{var} ...) @ameta{form0} @ameta{form} ...
-Evaluate the given forms and bind the, possibly multiple, result of the
-last one to the given @meta{var} identifiers.
-@end deffn
-
-@c page
-@node naulib macros loop
-@subsection Loop constructs
-
-
-@deffn Syntax do* ((@meta{variable1} @meta{init1} @meta{step1}) ...) (@meta{test} @meta{expr} ...) @meta{command} ...
-Like @func{do}, but bind the variables as in @func{let*} rather than as
-in @func{let}.  The @meta{step} form is optional.
-@end deffn
-
-
-@deffn Syntax while @ameta{test} @ametai{expression} @ametaii{expression} ...
-If @meta{test} is true evaluate the @meta{expression} forms; then loop,
-if @meta{test} is true@dots{}
-@end deffn
-
-
-@deffn Syntax while* @ameta{test} @ametai{expression} @ametaii{expression} ...
-@deffnx {Auxiliary Syntax} break
-If @meta{test} is true evaluate the @meta{expression} forms; then loop,
-if @meta{test} is true@dots{}
-
-In the body of the form we can use the auxiliary syntax @func{break} to
-return zero, one or more values to the @func{while*} continuation,
-breaking out of the loop.  @strong{NOTE} @func{break} breaks out of the
-innermost loop.
-@end deffn
-
-
-@deffn Syntax do-while @ameta{test} @ametai{expression} @ametaii{expression} ...
-Evaluate the @meta{expression} forms; then if @meta{test} is true loop:
-evaluate the @meta{expressions} @dots{}
-@end deffn
-
-
-@deffn Syntax do-while* @ameta{test} @ametai{expression} @ametaii{expression} ...
-@deffnx {Auxiliary Syntax} break
-Evaluate the @meta{expression} forms; then if @meta{test} is true loop:
-evaluate the @meta{expressions} @dots{}
-
-In the body of the form we can use the auxiliary syntax @func{break} to
-return zero, one or more values to the @func{while*} continuation,
-breaking out of the loop.  @strong{NOTE} @func{break} breaks out of the
-innermost loop.
-@end deffn
-
-@c ------------------------------------------------------------
-
-@deffn Syntax dotimes (@var{varname} @var{exclusive-count}) @var{form} ...
-@deffnx Syntax dotimes (@var{varname} @var{exclusive-count} @var{result}) @var{form} ...
-Loop evaluating the @var{form}s and assigning @var{varname} to an
-integer from zero inclusive to @var{exclusive-count}.  Return
-@var{result}, or @false{} if @var{result} is not given.
-
-Example:
-
-@example
-(dotimes (i 100)
-  (display i)
-  (newline))
-@end example
-
-@noindent
-prints the integers in the range @code{[0, 99]}.
-@end deffn
-
-
-@deffn Syntax dolist (@var{varname} @var{list}) @var{form} ...
-@deffnx Syntax dolist (@var{varname} @var{list} @var{result}) @var{form} ...
-Loop evaluating the @var{form}s and assigning @var{varname} to the
-elements from @var{list}.  Return @var{result}, or @false{} if
-@var{result} is not given.
-
-Example:
-
-@example
-(dolist (elm '(1 2 3))
-  (display elm)
-  (newline))
-@end example
-
-@noindent
-prints 1, 2, 3.
-@end deffn
-
-
-@deffn Syntax loop-upon-list (@var{varname} @var{list}) (break-when @var{test}) @var{form} ...
-@deffnx Syntax loop-upon-list (@var{varname} @var{list} @var{result}) (break-when @var{test}) @var{form} ...
-Loop evaluating the @var{form}s and assigning @var{varname} to the
-elements from @var{list}.  Return @var{result}, or @false{} if
-@var{result} is not given.  The loop is broken if @var{test} evaluates
-to true.
-
-Example:
-
-@example
-(loop-upon-list (i '(1 2 3 4) 'retval)
-    (break-when (= i 3))
-  (display i)
-  (newline))
-@end example
-
-@noindent
-prints @code{1} and @code{2}, then returns @code{retval}.
-@end deffn
-
-
-@deffn Syntax recursion @var{formals} @var{body}
-Allow the simple and non--imperative construction of self--referential
-expressions.  The implementation is:
-
-@example
-(define-syntax recursion
-  (syntax-rules ()
-    ((_ (?name . ?variables) . ?body)
-     (letrec ((?name (lambda ?variables . ?body))) ?name))
-    ((_ ?name ?expr)
-     (letrec ((?name ?expr)) ?name))))
-@end example
-
-@func{recursion} generates an inner lambda using @var{formals} and
-@var{body}; the first identifier in @var{formals} is meant to be bound
-to the inner lambda itself.  The return value is a function that invokes
-the inner lambda with the inner lambda and the given arguments.
-
-For example the following:
-
-@example
-(define (dummy n)
-  (let loop ((n n))
-    (if (zero? n)
-        1
-      (* n (loop (- n 1))))))
-
-(dummy 5)
-@end example
-
-@noindent
-can be rewritten:
-
-@example
-(letrec ((dummy (lambda (n)
-                  (if (zero? n)
-                      1
-                    (* n (dummy (- n 1)))))))
-  (dummy 5))
-@result{} 120
-@end example
-
-@noindent
-which can be written:
-
-@example
-((recursion (loop n)
-   (if (zero? n)
-       1
-     (* n (loop (- n 1)))))
- 5)
-@result{} 120
-@end example
-@end deffn
-
-@c page
-@node naulib macros id
-@subsection Bindings mutations
-
-
-@deffn Syntax incr! @ameta{id}
-@deffnx Syntax incr! @ameta{id} @ameta{expr}
-Increment the value bound to the identifier @meta{id} by @meta{expr};
-when @meta{expr} is not given, it defaults to @samp{+1}.
-@end deffn
-
-
-@deffn Syntax decr! @ameta{id}
-@deffnx Syntax decr! @ameta{id} @ameta{expr}
-Decrement the value bound to the identifier @meta{id} by @meta{expr};
-when @meta{expr} is not given, it defaults to @samp{+1}.
-@end deffn
-
-
-@deffn Syntax set-cons! @ameta{id} @ameta{expr}
-Bind to the identifier @meta{id} the result of @func{cons} applied to
-@meta{expr} and the old value bound to @meta{id}.  The following:
-
-@example
-(set-cons! ell 123)
-@end example
-
-@noindent
-expands to:
-
-@example
-(set! ell (cons 123 ell))
-@end example
-@end deffn
-
-@c page
-@node naulib macros define
-@subsection Macro definition helpers
-
-
-@deffn Syntax define-inline (@ameta{name} @ameta{arg} ...) @ameta{form0} @ameta{form} ...
-Define a macro with with a definition resembling a function.  It is
-defined as:
-
-@example
-(define-syntax define-inline
-  (syntax-rules ()
-    ((_ (?name ?arg ...) ?form0 ?form ...)
-     (define-syntax ?name
-       (syntax-rules ()
-         ((_ ?arg ...)
-          (begin ?form0 ?form ...)))))))
-@end example
-@end deffn
-
-
-@deffn Syntax define-identifier-accessor-mutator @ameta{name} @ameta{thing} @ameta{accessor}
-@deffnx Syntax define-identifier-accessor-mutator @ameta{name} @ameta{thing} @ameta{accessor} @ameta{mutator}
-Helper for the definition of an identifier syntax.  It is defined as:
-
-@smallexample
-(define-syntax define-identifier-accessor-mutator
-  (syntax-rules ()
-    ((_ ?name ?thing ?accessor ?mutator)
-     (define-syntax ?name
-       (identifier-syntax-accessor-mutator ?thing ?accessor ?mutator)))
-    ((_ ?name ?thing ?accessor)
-     (define-syntax ?name
-       (identifier-syntax-accessor-mutator ?thing ?accessor)))))
-@end smallexample
-@end deffn
-
-
-@deffn Syntax identifier-syntax-accessor-mutator @ameta{thing} @ameta{accessor}
-@deffnx Syntax identifier-syntax-accessor-mutator @ameta{thing} @ameta{accessor} @ameta{mutator}
-Helper for the definition of an identifier syntax.  It is defined as:
-
-@smallexample
-(define-syntax identifier-syntax-accessor-mutator
-  (syntax-rules ()
-    ((_ ?thing ?accessor ?mutator)
-     (identifier-syntax
-      (_                (?accessor ?thing))
-      ((set! _ expr)    (?mutator  ?thing expr))))
-    ((_ ?thing ?accessor)
-     (identifier-syntax (?accessor ?thing)))))
-@end smallexample
-@end deffn
-
-
-@deffn Syntax with-accessor-and-mutator (@ametao{spec} @ameta{spec} ...) @ametao{body} @ameta{body} ...
-Expand to a @func{let-syntax} form used to define identifier syntaxes;
-@meta{spec} and subsequent forms are expected to be in one of the forms:
-
-@example
-(@cmeta{name} @cmeta{thing} @cmeta{accessor})
-(@cmeta{name} @cmeta{thing} @cmeta{accessor} @cmeta{mutator})
-@end example
-
-@noindent
-in which the symbol @meta{name} is defined as identifier syntax that
-makes use of @meta{accessor} and @meta{mutator} to access and mutate
-@meta{thing}.  Examples:
-
-@example
-(let ((a 1))
-  (with-accessor-and-mutator ((alpha a (lambda (x) x) set!))
-    alpha))
-@result{} 1
-
-(let ((a 1))
-  (with-accessor-and-mutator ((alpha a (lambda (x) x) set!))
-    (set! alpha 2)
-    alpha))
-@result{} 2
-
-(let ((a 1))
-  (with-accessor-and-mutator ((alpha a (lambda (x) x)))
-     alpha))
-@result{} 1
-
-(let ((a 1)
-      (b 2))
-  (with-accessor-and-mutator ((alpha a (lambda (x) x) set!)
-                              (beta  b (lambda (x) x) set!))
-    (list alpha beta)))
-@result{} (1 2)
-
-(let ((a 1)
-      (b 2))
-  (with-accessor-and-mutator ((alpha a (lambda (x) x) set!)
-                              (beta  b (lambda (x) x) set!))
-    (set! alpha 3)
-    (set! beta  4)
-    (list alpha beta)))
-@result{} (3 4)
-
-(let ((a 1)
-      (b 2))
-   (with-accessor-and-mutator ((alpha a (lambda (x) x))
-                               (beta  b (lambda (x) x)))
-     (list alpha beta)))
-@result{} (1 2)
-@end example
-@end deffn
 
 @c page
 @node naulib parameters
@@ -19862,96 +19303,574 @@ Raise a composite condition embedding a condition of type
 @end defun
 
 @c page
-@node conditions
-@chapter Predefined condition types
+@node lang
+@chapter Simple language extensions
 
 
-The @library{conditions} library defines a set of condition types to be
-used by the Nausicaa libraries.  It re--exports all the bindings from
-the @library{unimplemented} library.
+The bindings documented in this section are exported by the
+@library{language-extensions} library.
 
 @menu
-* conditions mismatch::         General mismatch error.
-* conditions num-args::         Wrong number of arguments error.
+* lang lang::                   Language constructs.
+* lang let::                    Binding constructs.
+* lang loop::                   Loop constructs.
+* lang id::                     Bindings mutations.
+* lang define::                 Macro definition helpers.
 @end menu
 
 @c page
-@node conditions mismatch
-@section General mismatch error
+@node lang lang
+@section Language constructs
 
 
-@deftp {Condition Type} &mismatch
-Signal a mismatch between two values.  It is derived from
-@condition{assertion}.
-@end deftp
-
-
-@defun make-mismatch-condition
-Build and return a new @condition{mismatch} condition object.
-@end defun
-
-
-@defun mismatch-condition? @var{obj}
-Return @true{} if @var{obj} is a condition of object of type
-@condition{mismatch}.
-@end defun
-
-@c page
-@node conditions num-args
-@section Wrong number of arguments error
-
-
-@deftp {Condition Type} &wrong-num-args
-Condition type used to signal a call to function with the wrong number
-of arguments; it is derived from @condition{assertion}.  It has the
-following fields:
-
-@table @code
-@item procname
-A Scheme symbol representing the name of the invoked function; @false{}
-if the name is not available.
-
-@item expected
-An exact integer representing the expected number of arguments.
-
-@item given
-An exact integer representing the number of arguments used in the
-offending call.
-@end table
-@end deftp
-
-
-@defun make-wrong-num-args-condition @var{procname} @var{expected} @var{given}
-@defunx wrong-num-args-condition? @var{obj}
-Constructor and predicate for condition objects of type
-@condition{wrong-num-args}.
-@end defun
-
-
-@defun condition-wrong-num-args-procname @var{condition}
-@defunx condition-expected-arguments-number @var{condition}
-@defunx condition-given-arguments-number @var{condition}
-Accessors for the fields of a condition object of type
-@condition{wrong-num-args}.
-@end defun
-
-
-@deffn raise-wrong-num-args @var{who} @var{message} @var{procname} @var{expected} @var{given}
-Raise a non--continuable exception with compound condition object of
-type: @condition{who}, @condition{message}, @condition{wrong-num-args}.
-it is defined as follows:
+@deffn Syntax begin0 @var{form0} @var{form} ...
+Evaluate all the @var{form}s like the standard @func{begin}, but return
+the value of @var{form0}.  The implementation comes from the @rnrs{6}
+original document, Appendix A ``Formal semantics''.
 
 @example
-(define-syntax raise-wrong-num-args
+(define-syntax begin0
   (syntax-rules ()
-    ((_ ?who ?message ?procname ?expected ?given)
-     (raise
-      (condition (make-who-condition ?who)
-                 (make-message-condition ?message)
-                 (make-wrong-num-args-condition
-                    ?procname ?expected ?given))))))
+    ((_ ?form0 ?form ...)
+     (call-with-values
+         (lambda () ?form0)
+       (lambda x
+         ?form ...
+         (apply values x))))))
+@end example
+
+This syntax is called @func{prog1} in Common Lisp and Emacs Lisp.
+@end deffn
+
+
+@deffn Syntax cut @var{slot-or-expr} ...
+@deffnx Syntax cute @var{slot-or-expr} ...
+When programming in functional style, it is frequently necessary to
+specialize some of the parameters of a multi--parameter procedure.  For
+example, from the binary operation @func{cons} one might want to obtain
+the unary operation @code{(lambda (x) (cons 1 x))}.  This specialization
+of parameters is also known as ``partial application'', ``operator
+section'' or ``projection''.
+
+The @func{cut} and @func{cute} syntaxes allow to write this sort of
+specialization in a simple and compact way.  Examples:
+
+@example
+(cut cons (+ a 1) <>)   = (lambda (x2)
+                            (cons (+ a 1) x2))
+
+(cut list 1 <> 3 <> 5)  = (lambda (x2 x4)
+                            (list 1 x2 3 x4 5))
+
+(cut list)              = (lambda () (list))
+
+(cut list 1 <> 3 <...>) = (lambda (x2 . xs)
+                            (apply list 1 x2 3 xs))
+
+(cut <> a b)            = (lambda (f) (f a b))
+@end example
+
+@func{cut} specializes some of the parameters of its first argument.
+The parameters that are to show up as formal variables of the result are
+indicated by the symbol @code{<>}, pronouced as ``slot''.  In addition,
+the symbol @code{<...>}, pronounced as ``rest--slot'', matches all
+residual arguments of a variable argument procedure.  The first argument
+can also be a slot.
+
+@func{cute} evaluates the non--slot expressions at the time the
+procedure is specialized, not at the time the specialized procedure is
+called.  For example:
+
+@example
+(cute cons (+ a 1) <>) = (let ((a1 (+ a 1)))
+                           (lambda (x2)
+                             (cons a1 x2)))
+@end example
+
+@noindent
+@func{cute} will evaluate @code{(+ a 1)} once, while the @func{cut}
+would evaluate it during every invocation of the resulting procedure.
+
+The formal syntax of a specialized expression is:
+
+@example
+<cut-expression> -> (cut  <slot-or-expr> <slot-or-expr>*)
+                 |  (cut  <slot-or-expr> <slot-or-expr>* <...>)
+                 |  (cute <slot-or-expr> <slot-or-expr>*)
+                 |  (cute <slot-or-expr> <slot-or-expr>* <...>)
+
+<slot-or-expr>   -> <>              ; a "slot"
+                 |  <expression>    ; a "non-slot expression"
 @end example
 @end deffn
+
+
+@deffn Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else @var{form0} @var{form} ...)
+@deffnx Syntax ensure @var{test} (by @var{form0} @var{form} ...) (else-by @var{form0} @var{form} ...) ... (else @var{form0} @var{form} ...)
+Evaluate the @var{form}s in the @code{by} and @code{else-by} clauses, in
+sequence, until @var{test} evaluates to true.  If the first evaluation
+of @var{test} gives true: no @var{form}s are evaluated.  If neither the
+@code{by} nor the @code{else-by} forms succeed in making @var{test}
+true: the @var{form}s in the @code{else} clause are evaluated.
+
+Return the value of the last @var{form} in the clause that made
+@var{test} true, or the value in the last @var{form} in the @code{else}
+clause, or @false{} if the first evaluation of @var{test} was true and
+no @var{form}s were evaluated.
+
+Examples:
+
+@example
+(let ((i #f))
+  (ensure (= i 1)
+      (by
+        (set! i 1)
+        123)
+    (else-by
+      (set! i 2)
+      456)
+    (else
+      (set! i 3)
+      789)))
+@result{} 123
+
+(let ((i #f))
+  (ensure (= i 2)
+      (by
+        (set! i 1)
+        123)
+    (else-by
+      (set! i 2)
+      456)
+    (else
+      (set! i 3)
+      789)))
+@result{} 456
+
+(let ((i #f))
+  (ensure (= i 3)
+      (by
+        (set! i 1)
+        123)
+    (else-by
+      (set! i 2)
+      456)
+    (else
+      (set! i 3)
+      789)))
+@result{} 789
+@end example
+@end deffn
+
+@c page
+@node lang let
+@section Binding constructs
+
+
+@deffn Syntax and-let* @var{formals} . @var{body}
+Like an ordinary @func{and}, an @func{and-let*} special form evaluates
+the expressions in @var{formals} in order until the first one that
+yields @false{}.  Unlike @func{and}, however, a non--@false{} result of
+one expression can be bound to a fresh variable and used in the
+subsequent expressions.  @func{and-let*} is a cross--breed between
+@func{let*} and @func{and}.
+
+@var{formals} can be the empty list, or a list of the following
+elements:
+
+@table @code
+@item (@var{varname} @var{expression})
+evaluate @var{expression}; if the result is @false{}: return @false{}
+immediately, else bind the result to @var{varname}; @var{varname} is
+available to the rest of the @var{expressions}, and the @code{BODY};
+
+@item @var{expression}
+evaluate @var{expression}; if the result is @false{}: return @false{}
+immediately;
+
+@item @var{bound-variable}
+look up @var{bound-variable}; if the value is @false{}; return @false{}
+immediately; @var{bound-varname} is available to the rest of the
+@var{expressions}, and the @var{body}.
+@end table
+
+If all the @var{expression}s and @var{bound-variable}s in @var{formals}
+evaluate to true, the forms in @var{body} are evaluated and the result
+of the last one returned.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Syntax begin0-let ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
+@deffnx Syntax begin0-let (((@varo{var} ...) @varo{expr}) ((@var{var} ...) @var{expr}) ...) @varo{form} @var{form} ...
+Bind the result of @var{expr} to @var{var} as in @func{let} or
+@func{let-values}, evaluate the forms in the resulting environment, then
+return @varo{var} possibly as multiple values.
+@end deffn
+
+
+@deffn Syntax begin0-let* ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
+@deffnx Syntax begin0-letrec ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
+Like @func{begin0-let}, but bind the identifiers using @func{let*} and
+@func{letrec}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Syntax receive @var{formals} @var{expression} . @var{body}
+The mechanism provided for binding identifiers to the values of a
+multiple--valued expression are @func{call-with-values},
+@func{let-values}, @func{let*-values}.  @func{receive} is another
+concise and readable syntax for creating such bindings.
+
+@var{formals} can have any of 3 forms:
+
+@table @code
+@item (variable1 ... variablen)
+The environment in which the @func{receive}--expression is evaluated is
+extended by binding @var{variable1}, ..., @var{variablen} to fresh
+locations.  The @var{expression} is evaluated, and its values are stored
+into those locations (it is an error if @var{expression} does not have
+exactly @var{n} values).
+
+@item variable
+The environment in which the @func{receive}--expression is evaluated is
+extended by binding @var{variable} to a fresh location.  The
+@var{expression} is evaluated, its values are converted into a newly
+allocated list, and the list is stored in the location bound to
+@var{variable}.
+
+@item (variable1 ... variablen . variablen+1)
+The environment in which the @func{receive}--expression is evaluated is
+extended by binding @var{variable1}, ..., @var{variablen+1} to fresh
+locations.  The @var{expression} is evaluated.  Its first @var{n} values
+are stored into the locations bound to @var{variable1}, ...,
+@var{variablen}.  Any remaining values are converted into a newly
+allocated list, which is stored into the location bound to
+@var{variablen+1} (it is an error if @var{expression} does not have at
+least @var{n} values.
+@end table
+
+In any case, the expressions in @var{body} are evaluated sequentially in
+the extended environment.  The results of the last expression in the
+body are the values of the @var{receive}--expression.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Syntax define-values (@ameta{var0} @ameta{var} ...) @ameta{form0} @ameta{form} ...
+Evaluate the given forms and bind the, possibly multiple, result of the
+last one to the given @meta{var} identifiers.
+@end deffn
+
+@c page
+@node lang loop
+@section Loop constructs
+
+
+@deffn Syntax do* ((@meta{variable1} @meta{init1} @meta{step1}) ...) (@meta{test} @meta{expr} ...) @meta{command} ...
+Like @func{do}, but bind the variables as in @func{let*} rather than as
+in @func{let}.  The @meta{step} form is optional.
+@end deffn
+
+
+@deffn Syntax while @ameta{test} @ametai{expression} @ametaii{expression} ...
+If @meta{test} is true evaluate the @meta{expression} forms; then loop,
+if @meta{test} is true@dots{}
+@end deffn
+
+
+@deffn Syntax while* @ameta{test} @ametai{expression} @ametaii{expression} ...
+@deffnx {Auxiliary Syntax} break
+If @meta{test} is true evaluate the @meta{expression} forms; then loop,
+if @meta{test} is true@dots{}
+
+In the body of the form we can use the auxiliary syntax @func{break} to
+return zero, one or more values to the @func{while*} continuation,
+breaking out of the loop.  @strong{NOTE} @func{break} breaks out of the
+innermost loop.
+@end deffn
+
+
+@deffn Syntax do-while @ameta{test} @ametai{expression} @ametaii{expression} ...
+Evaluate the @meta{expression} forms; then if @meta{test} is true loop:
+evaluate the @meta{expressions} @dots{}
+@end deffn
+
+
+@deffn Syntax do-while* @ameta{test} @ametai{expression} @ametaii{expression} ...
+@deffnx {Auxiliary Syntax} break
+Evaluate the @meta{expression} forms; then if @meta{test} is true loop:
+evaluate the @meta{expressions} @dots{}
+
+In the body of the form we can use the auxiliary syntax @func{break} to
+return zero, one or more values to the @func{while*} continuation,
+breaking out of the loop.  @strong{NOTE} @func{break} breaks out of the
+innermost loop.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@deffn Syntax dotimes (@var{varname} @var{exclusive-count}) @var{form} ...
+@deffnx Syntax dotimes (@var{varname} @var{exclusive-count} @var{result}) @var{form} ...
+Loop evaluating the @var{form}s and assigning @var{varname} to an
+integer from zero inclusive to @var{exclusive-count}.  Return
+@var{result}, or @false{} if @var{result} is not given.
+
+Example:
+
+@example
+(dotimes (i 100)
+  (display i)
+  (newline))
+@end example
+
+@noindent
+prints the integers in the range @code{[0, 99]}.
+@end deffn
+
+
+@deffn Syntax dolist (@var{varname} @var{list}) @var{form} ...
+@deffnx Syntax dolist (@var{varname} @var{list} @var{result}) @var{form} ...
+Loop evaluating the @var{form}s and assigning @var{varname} to the
+elements from @var{list}.  Return @var{result}, or @false{} if
+@var{result} is not given.
+
+Example:
+
+@example
+(dolist (elm '(1 2 3))
+  (display elm)
+  (newline))
+@end example
+
+@noindent
+prints 1, 2, 3.
+@end deffn
+
+
+@deffn Syntax loop-upon-list (@var{varname} @var{list}) (break-when @var{test}) @var{form} ...
+@deffnx Syntax loop-upon-list (@var{varname} @var{list} @var{result}) (break-when @var{test}) @var{form} ...
+Loop evaluating the @var{form}s and assigning @var{varname} to the
+elements from @var{list}.  Return @var{result}, or @false{} if
+@var{result} is not given.  The loop is broken if @var{test} evaluates
+to true.
+
+Example:
+
+@example
+(loop-upon-list (i '(1 2 3 4) 'retval)
+    (break-when (= i 3))
+  (display i)
+  (newline))
+@end example
+
+@noindent
+prints @code{1} and @code{2}, then returns @code{retval}.
+@end deffn
+
+
+@deffn Syntax recursion @var{formals} @var{body}
+Allow the simple and non--imperative construction of self--referential
+expressions.  The implementation is:
+
+@example
+(define-syntax recursion
+  (syntax-rules ()
+    ((_ (?name . ?variables) . ?body)
+     (letrec ((?name (lambda ?variables . ?body))) ?name))
+    ((_ ?name ?expr)
+     (letrec ((?name ?expr)) ?name))))
+@end example
+
+@func{recursion} generates an inner lambda using @var{formals} and
+@var{body}; the first identifier in @var{formals} is meant to be bound
+to the inner lambda itself.  The return value is a function that invokes
+the inner lambda with the inner lambda and the given arguments.
+
+For example the following:
+
+@example
+(define (dummy n)
+  (let loop ((n n))
+    (if (zero? n)
+        1
+      (* n (loop (- n 1))))))
+
+(dummy 5)
+@end example
+
+@noindent
+can be rewritten:
+
+@example
+(letrec ((dummy (lambda (n)
+                  (if (zero? n)
+                      1
+                    (* n (dummy (- n 1)))))))
+  (dummy 5))
+@result{} 120
+@end example
+
+@noindent
+which can be written:
+
+@example
+((recursion (loop n)
+   (if (zero? n)
+       1
+     (* n (loop (- n 1)))))
+ 5)
+@result{} 120
+@end example
+@end deffn
+
+@c page
+@node lang id
+@section Bindings mutations
+
+
+@deffn Syntax incr! @ameta{id}
+@deffnx Syntax incr! @ameta{id} @ameta{expr}
+Increment the value bound to the identifier @meta{id} by @meta{expr};
+when @meta{expr} is not given, it defaults to @samp{+1}.
+@end deffn
+
+
+@deffn Syntax decr! @ameta{id}
+@deffnx Syntax decr! @ameta{id} @ameta{expr}
+Decrement the value bound to the identifier @meta{id} by @meta{expr};
+when @meta{expr} is not given, it defaults to @samp{+1}.
+@end deffn
+
+
+@deffn Syntax set-cons! @ameta{id} @ameta{expr}
+Bind to the identifier @meta{id} the result of @func{cons} applied to
+@meta{expr} and the old value bound to @meta{id}.  The following:
+
+@example
+(set-cons! ell 123)
+@end example
+
+@noindent
+expands to:
+
+@example
+(set! ell (cons 123 ell))
+@end example
+@end deffn
+
+@c page
+@node lang define
+@section Macro definition helpers
+
+
+@deffn Syntax define-inline (@ameta{name} @ameta{arg} ...) @ameta{form0} @ameta{form} ...
+Define a macro with with a definition resembling a function.  It is
+defined as:
+
+@example
+(define-syntax define-inline
+  (syntax-rules ()
+    ((_ (?name ?arg ...) ?form0 ?form ...)
+     (define-syntax ?name
+       (syntax-rules ()
+         ((_ ?arg ...)
+          (begin ?form0 ?form ...)))))))
+@end example
+@end deffn
+
+
+@deffn Syntax define-identifier-accessor-mutator @ameta{name} @ameta{thing} @ameta{accessor}
+@deffnx Syntax define-identifier-accessor-mutator @ameta{name} @ameta{thing} @ameta{accessor} @ameta{mutator}
+Helper for the definition of an identifier syntax.  It is defined as:
+
+@smallexample
+(define-syntax define-identifier-accessor-mutator
+  (syntax-rules ()
+    ((_ ?name ?thing ?accessor ?mutator)
+     (define-syntax ?name
+       (identifier-syntax-accessor-mutator ?thing ?accessor ?mutator)))
+    ((_ ?name ?thing ?accessor)
+     (define-syntax ?name
+       (identifier-syntax-accessor-mutator ?thing ?accessor)))))
+@end smallexample
+@end deffn
+
+
+@deffn Syntax identifier-syntax-accessor-mutator @ameta{thing} @ameta{accessor}
+@deffnx Syntax identifier-syntax-accessor-mutator @ameta{thing} @ameta{accessor} @ameta{mutator}
+Helper for the definition of an identifier syntax.  It is defined as:
+
+@smallexample
+(define-syntax identifier-syntax-accessor-mutator
+  (syntax-rules ()
+    ((_ ?thing ?accessor ?mutator)
+     (identifier-syntax
+      (_                (?accessor ?thing))
+      ((set! _ expr)    (?mutator  ?thing expr))))
+    ((_ ?thing ?accessor)
+     (identifier-syntax (?accessor ?thing)))))
+@end smallexample
+@end deffn
+
+
+@deffn Syntax with-accessor-and-mutator (@ametao{spec} @ameta{spec} ...) @ametao{body} @ameta{body} ...
+Expand to a @func{let-syntax} form used to define identifier syntaxes;
+@meta{spec} and subsequent forms are expected to be in one of the forms:
+
+@example
+(@cmeta{name} @cmeta{thing} @cmeta{accessor})
+(@cmeta{name} @cmeta{thing} @cmeta{accessor} @cmeta{mutator})
+@end example
+
+@noindent
+in which the symbol @meta{name} is defined as identifier syntax that
+makes use of @meta{accessor} and @meta{mutator} to access and mutate
+@meta{thing}.  Examples:
+
+@example
+(let ((a 1))
+  (with-accessor-and-mutator ((alpha a (lambda (x) x) set!))
+    alpha))
+@result{} 1
+
+(let ((a 1))
+  (with-accessor-and-mutator ((alpha a (lambda (x) x) set!))
+    (set! alpha 2)
+    alpha))
+@result{} 2
+
+(let ((a 1))
+  (with-accessor-and-mutator ((alpha a (lambda (x) x)))
+     alpha))
+@result{} 1
+
+(let ((a 1)
+      (b 2))
+  (with-accessor-and-mutator ((alpha a (lambda (x) x) set!)
+                              (beta  b (lambda (x) x) set!))
+    (list alpha beta)))
+@result{} (1 2)
+
+(let ((a 1)
+      (b 2))
+  (with-accessor-and-mutator ((alpha a (lambda (x) x) set!)
+                              (beta  b (lambda (x) x) set!))
+    (set! alpha 3)
+    (set! beta  4)
+    (list alpha beta)))
+@result{} (3 4)
+
+(let ((a 1)
+      (b 2))
+   (with-accessor-and-mutator ((alpha a (lambda (x) x))
+                               (beta  b (lambda (x) x)))
+     (list alpha beta)))
+@result{} (1 2)
+@end example
+@end deffn
+
 
 @c page
 @node classes
@@ -21374,6 +21293,98 @@ is predefined to use the following implementation:
 (call-with-string-output-port
    (lambda (port)
      (display obj port)))
+@end example
+@end deffn
+
+@c page
+@node conditions
+@chapter Predefined condition types
+
+
+The @library{conditions} library defines a set of condition types to be
+used by the Nausicaa libraries.  It re--exports all the bindings from
+the @library{unimplemented} library.
+
+@menu
+* conditions mismatch::         General mismatch error.
+* conditions num-args::         Wrong number of arguments error.
+@end menu
+
+@c page
+@node conditions mismatch
+@section General mismatch error
+
+
+@deftp {Condition Type} &mismatch
+Signal a mismatch between two values.  It is derived from
+@condition{assertion}.
+@end deftp
+
+
+@defun make-mismatch-condition
+Build and return a new @condition{mismatch} condition object.
+@end defun
+
+
+@defun mismatch-condition? @var{obj}
+Return @true{} if @var{obj} is a condition of object of type
+@condition{mismatch}.
+@end defun
+
+@c page
+@node conditions num-args
+@section Wrong number of arguments error
+
+
+@deftp {Condition Type} &wrong-num-args
+Condition type used to signal a call to function with the wrong number
+of arguments; it is derived from @condition{assertion}.  It has the
+following fields:
+
+@table @code
+@item procname
+A Scheme symbol representing the name of the invoked function; @false{}
+if the name is not available.
+
+@item expected
+An exact integer representing the expected number of arguments.
+
+@item given
+An exact integer representing the number of arguments used in the
+offending call.
+@end table
+@end deftp
+
+
+@defun make-wrong-num-args-condition @var{procname} @var{expected} @var{given}
+@defunx wrong-num-args-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{wrong-num-args}.
+@end defun
+
+
+@defun condition-wrong-num-args-procname @var{condition}
+@defunx condition-expected-arguments-number @var{condition}
+@defunx condition-given-arguments-number @var{condition}
+Accessors for the fields of a condition object of type
+@condition{wrong-num-args}.
+@end defun
+
+
+@deffn raise-wrong-num-args @var{who} @var{message} @var{procname} @var{expected} @var{given}
+Raise a non--continuable exception with compound condition object of
+type: @condition{who}, @condition{message}, @condition{wrong-num-args}.
+it is defined as follows:
+
+@example
+(define-syntax raise-wrong-num-args
+  (syntax-rules ()
+    ((_ ?who ?message ?procname ?expected ?given)
+     (raise
+      (condition (make-who-condition ?who)
+                 (make-message-condition ?message)
+                 (make-wrong-num-args-condition
+                    ?procname ?expected ?given))))))
 @end example
 @end deffn
 
