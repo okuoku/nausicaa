@@ -69,7 +69,7 @@
 	  (immutable line)
 	  (immutable column)
 	  (immutable offset))
-  (nongenerative nausicaa:parser-tools:source-location))
+  (nongenerative nausicaa:parser-tools:<source-location>))
 
 (define-inline (make-<source-location>/start input-spec)
   (make-<source-location> input-spec 1 1 0))

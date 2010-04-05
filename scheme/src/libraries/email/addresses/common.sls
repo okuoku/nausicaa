@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -31,28 +31,33 @@
     unquote-string
 
     ;; domain data type
+    <domain>			<domain>-with-record-fields-of
     make-<domain>
     <domain>?			<domain>?/or-false
     assert-<domain>		assert-<domain>/or-false
     <domain>-subdomains		<domain>-literal?
 
     ;; local part data type
+    <local-part>		<local-part>-with-record-fields-of
     make-<local-part>
     <local-part>?
     <local-part>-subparts
 
     ;; addr-spec data type
+    <addr-spec>			<addr-spec>-with-record-fields-of
     make-<addr-spec>
     <addr-spec>?
     <addr-spec>-local-part
     <addr-spec>-domain
 
     ;; route data type
+    <route>			<route>-with-record-fields-of
     make-<route>
     <route>?
     <route>-domains
 
     ;; route address data type
+    <mailbox>			<mailbox>-with-record-fields-of
     make-<mailbox>
     <mailbox>?
     <mailbox>-display-name
@@ -60,12 +65,13 @@
     <mailbox>-addr-spec
 
     ;; group data type
+    <group>			<group>-with-record-fields-of
     make-<group>
     <group>?
     <group>-display-name
     <group>-mailboxes)
-  (import (rnrs)
-    (records)
+  (import (nausicaa)
+    (generics)
     (strings)
     (lists))
 
@@ -117,7 +123,8 @@
 
 ;;;; address domain record
 
-(define-record-type <domain>
+(define-class <domain>
+  (nongenerative nausicaa:email:addresses:common:<domain>)
   (fields (immutable literal?)		;boolean
 	  (immutable subdomains)))	;list of strings
 
@@ -135,65 +142,45 @@
   (unless (not obj)
     (assert-<domain> obj)))
 
-
-;;;; address local part record
-
-(define-record-type <local-part>
-  (fields (immutable subparts)))
-
-
-
-;;;; address <addr-spec> record
-
-(define-record-type <addr-spec>
-  (fields (immutable local-part)
-	  (immutable domain)))
-
-
-
-;;;; route record
-
-(define-record-type <route>
-  (fields (immutable domains)))
-
-
-
-;;;; mailbox record
-
-(define-record-type <mailbox>
-  (fields (immutable display-name) ;string or #f
-	  (immutable route)	   ;route record or #f
-	  (immutable addr-spec)))  ;addr-spec record
-
-
-
-;;;; group record
-
-(define-record-type <group>
-  (fields (immutable display-name)
-	  (immutable mailboxes)))
-
-
-
-;;;; NOS stuff
-
-(declare-method (object->string (o <domain>))
-  (let ((str (string-join (<domain>-subdomains o) %dot-string)))
-    (if (<domain>-literal? o)
+(define-method (object->string (o <domain>))
+  (let ((str (string-join o.subdomains %dot-string)))
+    (if o.literal?
 	(string-append %open-bracket-string
 		       str
 		       %close-bracket-string)
       str)))
 
-(declare-method (object->string (o <local-part>))
-  (string-join (<local-part>-subparts o) %dot-string))
+
+;;;; address local part record
 
-(declare-method (object->string (o <addr-spec>))
-  (string-append (object->string (<addr-spec>-local-part o))
+(define-class <local-part>
+  (nongenerative nausicaa:email:addresses:common:<local-part>)
+  (fields (immutable subparts)))
+
+(define-method (object->string (o <local-part>))
+  (string-join o.subparts %dot-string))
+
+
+;;;; address <addr-spec> record
+
+(define-class <addr-spec>
+  (nongenerative nausicaa:email:addresses:common:<addr-spec>)
+  (fields (immutable local-part)
+	  (immutable domain)))
+
+(define-method (object->string (o <addr-spec>))
+  (string-append (object->string o.local-part)
 		 %at-string
-		 (object->string (<addr-spec>-domain o))))
+		 (object->string o.domain)))
 
-(declare-method (object->string (o <route>))
+
+;;;; route record
+
+(define-class <route>
+  (nongenerative nausicaa:email:addresses:common:<route>)
+  (fields (immutable domains)))
+
+(define-method (object->string (o <route>))
   (call-with-string-output-port
       (lambda (port)
 	(define (%display thing)
@@ -202,35 +189,49 @@
 	  (unless (<domain>-literal? dom)
 	    (%display %at-string))
 	  (%display (object->string dom)))
-	(let ((domains (<route>-domains o)))
-	  (unless (null? domains)
-	    (display-domain (car domains))
-	    (let loop ((domains (cdr domains)))
-	      (unless (null? domains)
-		(let ((dom (car domains)))
-		  (%display %comma-string)
-		  (display-domain dom)
-		  (loop (cdr domains))))))))))
+	(unless (null? o.domains)
+	  (display-domain (car o.domains))
+	  (let loop ((domains (cdr o.domains)))
+	    (unless (null? domains)
+	      (let ((dom (car domains)))
+		(%display %comma-string)
+		(display-domain dom)
+		(loop (cdr domains)))))))))
 
-(declare-method (object->string (o <mailbox>))
-  (let ((display-name (<mailbox>-display-name o)))
-    (string-append (if display-name
-		       ;;Take care of quoting  the phrase if it contains
-		       ;;a comma.
-		       (string-append (display-name->string display-name) %space-string)
-		     %empty-string)
-		   %open-angle-string
-		   (let ((route (<mailbox>-route o)))
-		     (if route
-			 (string-append (object->string route) %colon-string)
-		       %empty-string))
-		   (object->string (<mailbox>-addr-spec o))
-		   %close-angle-string)))
+
+;;;; mailbox record
 
-(declare-method (object->string (o <group>))
-  (string-append (object->string (<group>-display-name o))
+(define-class <mailbox>
+  (nongenerative nausicaa:email:addresses:common:<mailbox>)
+  (fields (immutable display-name) ;string or #f
+	  (immutable route)	   ;route record or #f
+	  (immutable addr-spec)))  ;addr-spec record
+
+(define-method (object->string (o <mailbox>))
+  (string-append (if o.display-name
+		     ;;Take care of quoting  the phrase if it contains
+		     ;;a comma.
+		     (string-append (display-name->string o.display-name) %space-string)
+		   %empty-string)
+		 %open-angle-string
+		 (if o.route
+		     (string-append (object->string o.route) %colon-string)
+		   %empty-string)
+		 (object->string o.addr-spec)
+		 %close-angle-string))
+
+
+;;;; group record
+
+(define-class <group>
+  (nongenerative nausicaa:email:addresses:common:<group>)
+  (fields (immutable display-name)
+	  (immutable mailboxes)))
+
+(define-method (object->string (o <group>))
+  (string-append (object->string o.display-name)
 		 %colon-string %space-string
-		 (string-join (map object->string (<group>-mailboxes o)) ", ")
+		 (string-join (map object->string o.mailboxes) ", ")
 		 %semicolon-string))
 
 

@@ -26,6 +26,7 @@
 
 
 (import (nausicaa)
+  (generics)
   (keywords)
   (checks)
   (email addresses)

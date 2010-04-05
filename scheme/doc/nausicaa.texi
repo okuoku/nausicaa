@@ -49341,6 +49341,9 @@ This library would not exist without the work Peter Simons did for the
 C++ library @samp{librfc822} (@url{http://cryp.to/librfc2822/}, @aurl{}
 last verified Mon Aug 24, 2009).
 
+This library is built on top of @library{classes} and
+@library{generics}.
+
 @menu
 * email addresses components::  Parsed components.
 * email addresses types::       Record types.
@@ -49482,7 +49485,7 @@ be handled with the facilities of the @library{classes} library.
 @subsubsection Domain
 
 
-@deftp {Record Type} <domain>
+@deftp Class <domain>
 Represent the domain portion of an address specification.  Fields
 description:
 
@@ -49494,6 +49497,12 @@ A boolean, true if the domain is composed of four numeric components.
 The list of strings representing the domain components.
 @end table
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <domain>-with-record-fields-of
+Used to access fields of @class{domain} records by @func{with-fields}
+from the @library{classes} library.
+@end deffn
 
 
 @defun <domain>-literal? @var{dom}
@@ -49528,7 +49537,7 @@ enclosed in square parentheses.
 @subsubsection Local part
 
 
-@deftp {Record Type} <local-part>
+@deftp Class <local-part>
 Holds a list of local part strings.  The local part is a single string,
 but for parsing reasons it is accumulated as a list of strings.  Fields
 description:
@@ -49538,6 +49547,12 @@ description:
 A list of strings.
 @end table
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <local-part>-with-record-fields-of
+Used to access fields of @class{local-part} records by
+@func{with-fields} from the @library{classes} library.
+@end deffn
 
 
 @defun <local-part>-subparts @var{lp}
@@ -49554,7 +49569,7 @@ Return the string representation of @var{o}.
 @subsubsection Address specification
 
 
-@deftp {Record Type} <addr-spec>
+@deftp Class <addr-spec>
 Holds an address specification: a local part and a domain.  Fields
 description:
 
@@ -49566,6 +49581,12 @@ Holds a @class{local-part} record.
 Holds a @class{domain} record.
 @end table
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <addr-spec>-with-record-fields-of
+Used to access fields of @class{addr-spec} records by @func{with-fields}
+from the @library{classes} library.
+@end deffn
 
 
 @defun <addr-spec>-local-part @var{as}
@@ -49583,7 +49604,7 @@ Return the string representation of @var{o}.
 @subsubsection Route
 
 
-@deftp {Record Type} <route>
+@deftp Class <route>
 Holds a list of domains to be used to route the message to the final
 destination.  Fields description:
 
@@ -49592,6 +49613,12 @@ destination.  Fields description:
 A list of @class{domain} records.
 @end table
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <route>-with-record-fields-of
+Used to access fields of @class{route} records by @func{with-fields}
+from the @library{classes} library.
+@end deffn
 
 
 @deffn Method object->string (@var{o} <route>)
@@ -49603,7 +49630,7 @@ Return the string representation of @var{o}.
 @subsubsection Mailbox
 
 
-@deftp {Record Type} <mailbox>
+@deftp Class <mailbox>
 Hold a mailbox specification.  Fields description:
 
 @table @code
@@ -49617,6 +49644,12 @@ Holds @false{} or a @class{route} record.
 Holds an @class{addr-spec} record.
 @end table
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <mailbox>-with-record-fields-of
+Used to access fields of @class{mailbox} records by @func{with-fields}
+from the @library{classes} library.
+@end deffn
 
 
 @defun <mailbox>-display-name @var{mb}
@@ -49635,7 +49668,7 @@ Return the string representation of @var{o}.
 @subsubsection Group of mailboxes
 
 
-@deftp {Record Type} <group>
+@deftp Class <group>
 Holds a list of mailboxes and a phrase.  Fields description:
 
 @table @samp
@@ -49646,6 +49679,12 @@ Holds the phrase string.
 Holds a list of @class{mailbox} records.
 @end table
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <group>-with-record-fields-of
+Used to access fields of @class{group} records by @func{with-fields}
+from the @library{classes} library.
+@end deffn
 
 
 @defun <group>-display-name @var{gr}

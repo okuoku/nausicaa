@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -33,36 +33,42 @@
     make-address-parser
 
     ;; domain data type
+    <domain>			<domain>-with-record-fields-of
     make-<domain>
     <domain>?			<domain>?/or-false
     assert-<domain>		assert-<domain>/or-false
     <domain>-subdomains		<domain>-literal?
 
     ;; local part data type
+    <local-part>		<local-part>-with-record-fields-of
     make-<local-part>
     <local-part>?
     <local-part>-subparts
 
     ;; addr-spec data type
+    <addr-spec>			<addr-spec>-with-record-fields-of
     make-<addr-spec>
     <addr-spec>?
     <addr-spec>-local-part	<addr-spec>-domain
 
     ;; route data type
+    <route>			<route>-with-record-fields-of
     make-<route>
     <route>?
     <route>-domains
 
     ;; route address data type
+    <mailbox>			<mailbox>-with-record-fields-of
     make-<mailbox>
     <mailbox>?
     <mailbox>-display-name	<mailbox>-route		<mailbox>-addr-spec
 
     ;; group data type
+    <group>			<group>-with-record-fields-of
     make-<group>
     <group>?
     <group>-display-name	<group>-mailboxes)
-  (import (rnrs)
+  (import (nausicaa)
     (silex lexer)
     (email addresses common)
     (email addresses quoted-text-lexer)
@@ -70,21 +76,8 @@
     (email addresses domain-literals-lexer)
     (email addresses lexer)
     (email addresses parser)
-;;;    (debugging)
-    (parameters)
     (parser-tools lexical-token)
     (parser-tools source-location))
-
-
-;;;; helpers
-
-(define-syntax define-inline
-  (syntax-rules ()
-    ((_ (?name ?arg ...) ?form0 ?form ...)
-     (define-syntax ?name
-       (syntax-rules ()
-	 ((_ ?arg ...)
-	  (begin ?form0 ?form ...)))))))
 
 
 (define (make-address-lexer IS)

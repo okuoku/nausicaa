@@ -56,7 +56,7 @@
 	  (immutable location)
 	  (immutable value)
 	  (immutable length))
-  (nongenerative nausicaa:parser-tools:lexical-token))
+  (nongenerative nausicaa:parser-tools:<lexical-token>))
 
 (define (make-<lexical-token>/end-of-input location)
   (make-<lexical-token> '*eoi* location (eof-object) 0))
