@@ -182,12 +182,6 @@
 (compile-library "cleanup-handlers.sls"
 		 "cleanup-handlers.slfasl")
 
-(compile-library "queues/types.sls"
- 		 "queues/types.slfasl")
-
-(compile-library "queues/extensions.sls"
-		 "queues/extensions.slfasl")
-
 (compile-library "queues.sls"
 		 "queues.slfasl")
 

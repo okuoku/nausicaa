@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,14 +26,17 @@
 
 (library (queues)
   (export
-    <queue>		<queue-rtd>
-    <queue*>		queue
+    <queue>		<queue>?	<queue>-with-record-fields-of
+    make-<queue>
+    <queue>-first-pair	<queue>-first-pair-set!
+    <queue>-last-pair	<queue>-last-pair-set!
 
     queue-empty?	queue-length
 
     queue-front		queue-rear
     queue-push!		queue-pop!
     queue-enqueue!	(rename (queue-pop! queue-dequeue!))
+    queue-purge!
 
     queue-find		queue-for-all
     queue-exists
@@ -47,27 +50,23 @@
 
     queue->list		list->queue
     queue->vector	vector->queue)
-  (import (rnrs)
-    (rnrs mutable-pairs)
-    (queues types)
-    (queues extensions))
+  (import (nausicaa)
+    (rnrs mutable-pairs))
 
 
 ;;; helpers
 
-(define-syntax last-pair/stx
+(define-inline (last-pair/stx ?x)
   ;;*WARNING* Do  not rename LAST-PAIR/STX to LAST-PAIR,  it would clash
   ;;with the LAST-PAIR field of <queue> records.
   ;;
-  (syntax-rules ()
-    ((_ ?x)
-     (let ((x ?x))
-       (if (null? x)
-	   #f
-	 (let loop ((x x))
-	   (if (pair? (cdr x))
-	       (loop (cdr x))
-	     x)))))))
+  (let ((x ?x))
+    (if (null? x)
+	#f
+      (let loop ((x x))
+	(if (pair? (cdr x))
+	    (loop (cdr x))
+	  x)))))
 
 (define-syntax list-copy
   (syntax-rules ()
@@ -78,148 +77,126 @@
 	 ell)))))
 
 
-(define queue
-  (case-lambda
-   (()
-    (make-<queue> '() #f))
-   (args
-    (make-<queue> args (last-pair/stx args)))))
+(define-class <queue>
+  (nongenerative nausicaa:queues:<queue>)
+  (protocol (lambda (make-<top>)
+	      (case-lambda
+	       (()
+		((make-<top>) '() #f))
+	       (args
+		((make-<top>) args (last-pair/stx args))))))
+  (fields (mutable first-pair)
+	  (mutable last-pair))
+  (virtual-fields (immutable front	queue-front)
+		  (immutable rear	queue-rear)
+		  (immutable empty?	queue-empty?)
+		  (immutable length	queue-length)))
 
 
-(define (queue-push! value que)
+(define (queue-front (que <queue>))
+  (if (null? que.first-pair)
+      (error 'queue-front "queue is empty" que)
+    (car que.first-pair)))
+
+(define (queue-rear (que <queue>))
+  (if que.last-pair
+      (car que.last-pair)
+    (error 'queue-rear "queue is empty" que)))
+
+(define (queue-empty? (que <queue>))
+  (null? que.first-pair))
+
+(define (queue-length (que <queue>))
+  (length que.first-pair))
+
+
+(define (queue-push! value (que <queue>))
   ;;Push VALUE at the beginning of QUE.
   ;;
-  (assert (<queue>? que))
-  (let-syntax ((first-pair	(identifier-syntax (_ (<queue>-first-pair que))
-						   ((set! _ ?value)
-						    (<queue>-first-pair-set! que ?value))))
-	       (last-pair	(identifier-syntax (_ (<queue>-last-pair que))
-						   ((set! _ ?value)
-						    (<queue>-last-pair-set! que ?value)))))
-      (let ((first (cons value first-pair)))
-	(set! first-pair first)
-	(or last-pair (set! last-pair first)))))
+  (let ((first (cons value que.first-pair)))
+    (set! que.first-pair first)
+    (or que.last-pair (set! que.last-pair first))))
 
-(define (queue-pop! que)
+(define (queue-pop! (que <queue>))
   ;;Pop a value from the beginning of QUE.
   ;;
-  (assert (<queue>? que))
-  (let-syntax ((first-pair	(identifier-syntax (_ (<queue>-first-pair que))
-						   ((set! _ ?value)
-						    (<queue>-first-pair-set! que ?value))))
-	       (last-pair	(identifier-syntax (_ (<queue>-last-pair que))
-						   ((set! _ ?value)
-						    (<queue>-last-pair-set! que ?value)))))
-    (let ((first first-pair))
-      (if (null? first)
-	  (error 'queue-pop! "queue is empty" que)
-	(begin
-	  (set! first-pair (cdr first))
-	  (when (eq? last-pair first)
-	    (set! last-pair #f))))
-      (car first))))
+  (let ((first que.first-pair))
+    (if (null? first)
+	(error 'queue-pop! "queue is empty" que)
+      (begin
+	(set! que.first-pair (cdr first))
+	(when (eq? que.last-pair first)
+	  (set! que.last-pair #f))))
+    (car first)))
 
-(define (queue-enqueue! que obj)
+(define (queue-enqueue! (que <queue>) obj)
   ;;Push VALUE at the end of QUE.
   ;;
-  (assert (<queue>? que))
-  (let-syntax ((first-pair	(identifier-syntax (_ (<queue>-first-pair que))
-						   ((set! _ ?value)
-						    (<queue>-first-pair-set! que ?value))))
-	       (last-pair	(identifier-syntax (_ (<queue>-last-pair que))
-						   ((set! _ ?value)
-						    (<queue>-last-pair-set! que ?value)))))
-    (let ((last (list obj)))
-      (if (null? first-pair)
-	  (set! first-pair last)
-	(set-cdr! last-pair last))
-      (set! last-pair last))))
+  (let ((last (list obj)))
+    (if (null? que.first-pair)
+	(set! que.first-pair last)
+      (set-cdr! que.last-pair last))
+    (set! que.last-pair last)))
+
+(define (queue-purge! (que <queue>))
+  (set! que.first-pair '())
+  (set! que.last-pair  #f))
 
 
-(define (queue-find proc que)
-  (assert (<queue>? que))
-  (assert (procedure? proc))
-  (find proc (<queue>-first-pair que)))
+(define (queue-find proc (que <queue>))
+  (find proc que.first-pair))
 
-(define (queue-for-all proc que)
-  (assert (<queue>? que))
-  (assert (procedure? proc))
-  (for-all proc (<queue>-first-pair que)))
+(define (queue-for-all proc (que <queue>))
+  (for-all proc que.first-pair))
 
-(define (queue-exists proc que)
-  (assert (<queue>? que))
-  (assert (procedure? proc))
-  (exists proc (<queue>-first-pair que)))
+(define (queue-exists proc (que <queue>))
+  (exists proc que.first-pair))
 
 
-(define (%remove remover thing que)
-  (let-syntax ((first-pair	(identifier-syntax (_ (<queue>-first-pair que))
-						   ((set! _ ?value)
-						    (<queue>-first-pair-set! que ?value))))
-	       (last-pair	(identifier-syntax (_ (<queue>-last-pair que))
-						   ((set! _ ?value)
-						    (<queue>-last-pair-set! que ?value)))))
-    (set! first-pair (remover thing first-pair))
-    (set! last-pair (last-pair/stx first-pair))))
+(define (%remove remover thing (que <queue>))
+  (set! que.first-pair (remover thing que.first-pair))
+  (set! que.last-pair (last-pair/stx que.first-pair)))
 
 (define (queue-remp! proc que)
-  (assert (<queue>? que))
-  (assert (procedure? proc))
   (%remove remp proc que))
 
 (define (queue-remove! obj que)
-  (assert (<queue>? que))
   (%remove remove obj que))
 
 (define (queue-remv! obj que)
-  (assert (<queue>? que))
   (%remove remv obj que))
 
 (define (queue-remq! obj que)
-  (assert (<queue>? que))
   (%remove remq obj que))
 
 (define (queue-filter! proc que)
-  (assert (<queue>? que))
-  (assert (procedure? proc))
   (%remove filter proc que))
 
 
-(define (queue-memp proc que)
-  (assert (<queue>? que))
-  (assert (procedure? proc))
-  (memp proc (<queue>-first-pair que)))
+(define (queue-memp proc (que <queue>))
+  (memp proc que.first-pair))
 
-(define (queue-member obj que)
-  (assert (<queue>? que))
-  (member obj (<queue>-first-pair que)))
+(define (queue-member obj (que <queue>))
+  (member obj que.first-pair))
 
-(define (queue-memv obj que)
-  (assert (<queue>? que))
-  (memv obj (<queue>-first-pair que)))
+(define (queue-memv obj (que <queue>))
+  (memv obj que.first-pair))
 
-(define (queue-memq obj que)
-  (assert (<queue>? que))
-  (memq obj (<queue>-first-pair que)))
+(define (queue-memq obj (que <queue>))
+  (memq obj que.first-pair))
 
 
-(define (queue->list que)
-  (assert (<queue>? que))
-  (list-copy (<queue>-first-pair que)))
+(define (queue->list (que <queue>))
+  (list-copy que.first-pair))
 
 (define (list->queue ell)
-  (assert (list? ell))
-  (let ((ell (list-copy ell)))
-    (make-<queue> ell (last-pair/stx ell))))
+  (apply make-<queue> (list-copy ell)))
 
-(define (queue->vector que)
-  (assert (<queue>? que))
-  (list->vector (<queue>-first-pair que)))
+(define (queue->vector (que <queue>))
+  (list->vector que.first-pair))
 
 (define (vector->queue vec)
-  (assert (vector? vec))
-  (let ((ell (vector->list vec)))
-    (make-<queue> ell (last-pair/stx ell))))
+  (apply make-<queue> (vector->list vec)))
 
 
 ;;;; done

@@ -37520,11 +37520,9 @@ to print @var{exc}, which must be a Scheme condition value.
 
 The functions in this section are exported by the @library{queues}
 library; the library implements queues holding arbitrary scheme objects
-and designed for efficient first--in/first--out operations.
-
-The library is meant to be used with the features of the
-@library{classes} library; for this purpose, @library{queues} must be
-imported both for the @samp{expand} and @samp{run} phases.
+and designed for efficient first--in/first--out operations.  The
+@library{queues} library is built on top of the @library{classes}
+library.
 
 @menu
 * queues types::                Type definitions and constructors.
@@ -37539,44 +37537,56 @@ imported both for the @samp{expand} and @samp{run} phases.
 @section Type definitions and constructors
 
 
-@deftp {Record Type Name} <queue>
-@deftpx {Record Type Descriptor} <queue-rtd>
-@deftpx {Record Type Extension} <queue*>
-Record type descriptor for queue objects.  Records of this type hold the
-following fields:
+@deftp Class <queue>
+Class type name of queue objects.  Records of this type hold the
+following concrete and virtual fields:
 
-@table @samp
+@table @code
 @item first-pair
-The first pair of the internal list of elements.
+Mutable.  The first pair of the internal list of elements.
 
 @item last-pair
-The last pair of the internal list of elements.
-@end table
+Mutable.  The last pair of the internal list of elements.
 
-The record extension defines the following virtual fields:
-
-@table @samp
 @item front
-The first element in the queue; it is an access--only field.  It is the
-next element returned by a dequeue operation.
+Immutable.  The first element in the queue: the next element returned by
+a dequeue operation.
 
 @item rear
-The last element in the queue; it is an access--only field.
+Immutable.  The last element in the queue.
 
 @item empty?
-Access--only field, true if the queue is empty.
+Immutable.  True if the queue is empty.
 
 @item length
-Access--only field, it holds the number of elements in the queue.
+Immutable.  It holds the number of elements in the queue.
 @end table
 @end deftp
 
 
-@defun queue
-@defunx queue @var{arg} ...
+@deffn {Auxiliary Syntax} <queue>-with-record-fields-of
+Used to access fields by @func{with-fields} from the @library{classes}
+library.
+@end deffn
+
+
+@defun make-<queue> @var{arg} ...
 Build and return a new @class{queue} record.  When called with no
-arguments, return an empty queue.  When applied to arguments, return a
+arguments, return an empty queue; when applied to arguments, return a
 queue holding those arguments in the given order.
+@end defun
+
+
+@defun <queue>? @var{obj}
+Return @true{} if @var{obj} is an object of type @class{queue}.
+@end defun
+
+
+@defun <queue>-first-pair @var{queue}
+@defunx <queue>-first-pair-set! @var{queue} @var{obj}
+@defunx <queue>-last-pair @var{queue}
+@defunx <queue>-last-pair-set! @var{queue} @var{obj}
+Accessors and mutators for the concrete fields of @class{queue} records.
 @end defun
 
 @c page
@@ -37624,6 +37634,11 @@ Push @var{obj} in the front of the queue.
 @defun queue-dequeue! @var{que}
 @defunx queue-pop! @var{que}
 Pop and return a value from the front of the queue.
+@end defun
+
+
+@defun queue-purge! @var{que}
+Discard all the elements from the queue.
 @end defun
 
 @c page
