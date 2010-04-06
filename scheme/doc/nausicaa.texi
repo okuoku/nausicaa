@@ -20514,6 +20514,13 @@ is equivalent to:
 @end deffn
 
 
+@deffn Syntax case-lambda/with @ameta{case-lambda-clause} ...
+@deffnx Syntax case-lambda/with* @ameta{case-lambda-clause} ...
+The natural extensions of @func{lambda/with} and @func{lambda/with*} to
+@func{case-lambda}.
+@end deffn
+
+
 @deffn Syntax define/with* (@ameta{variable} @ameta{formals}) @ameta{body}
 @deffnx Syntax define/with* (@ameta{variable} . @ameta{formal}) @ameta{body}
 @deffnx Syntax define/with* @ameta{variable} @ameta{expression}

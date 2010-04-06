@@ -32,6 +32,7 @@
     define-class			make
     define/with				define/with*
     lambda/with				lambda/with*
+    case-lambda/with			case-lambda/with*
     let-fields				let*-fields
     letrec-fields			letrec*-fields
     with-fields
@@ -1338,20 +1339,20 @@
 (define-syntax lambda/with
   (syntax-rules ()
     ((_ ?formals . ?body)
-     (%collect-classes-and-arguments #f ?formals
-				     () ;collected classes
-				     () ;collected args
-				     . ?body))))
+     (%lambda/collect-classes-and-arguments #f ?formals
+					    () ;collected classes
+					    () ;collected args
+					    . ?body))))
 
 (define-syntax lambda/with*
   (syntax-rules ()
     ((_ ?formals . ?body)
-     (%collect-classes-and-arguments #t ?formals
-				     () ;collected classes
-				     () ;collected args
-				     . ?body))))
+     (%lambda/collect-classes-and-arguments #t ?formals
+					    () ;collected classes
+					    () ;collected args
+					    . ?body))))
 
-(define-syntax %collect-classes-and-arguments
+(define-syntax %lambda/collect-classes-and-arguments
   ;;Analyse the list of formals  collecting a list of argument names and
   ;;a list of class names.
   ;;
@@ -1359,20 +1360,20 @@
 
     ;;Matches when the next argument to be processed has a type.
     ((_ ?add-assertions ((?arg ?cls0 ?cls ...) . ?args) (?collected-cls ...) (?collected-arg ...) . ?body)
-     (%collect-classes-and-arguments ?add-assertions ?args
-				     (?collected-cls ... (?cls0 ?cls ...))
-				     (?collected-arg ... ?arg)
-				     . ?body))
+     (%lambda/collect-classes-and-arguments ?add-assertions ?args
+					    (?collected-cls ... (?cls0 ?cls ...))
+					    (?collected-arg ... ?arg)
+					    . ?body))
 
     ;;Matches when the next argument to be processed has no type.
     ((_ ?add-assertions (?arg . ?args) (?collected-cls ...) (?collected-arg ...) . ?body)
-     (%collect-classes-and-arguments ?add-assertions ?args
-				     (?collected-cls ... (<top>))
-				     (?collected-arg ... ?arg)
-				     . ?body))
+     (%lambda/collect-classes-and-arguments ?add-assertions ?args
+					    (?collected-cls ... (<top>))
+					    (?collected-arg ... ?arg)
+					    . ?body))
 
-    ;;Matches all the arguments have been processed and NO rest argument
-    ;;is present.  This MUST come before the one below.
+    ;;Matches when  all the  arguments have been  processed and  NO rest
+    ;;argument is present.  This MUST come before the one below.
     ((_ #f () ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ...)
        (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body)))
@@ -1409,6 +1410,144 @@
     ;;No more arguments.
     ((_ () ())
      (values))))
+
+
+(define-syntax case-lambda/with
+  (syntax-rules ()
+    ((_ (?formals . ?body) ...)
+     (%case-lambda/collect-classes-and-arguments
+      #f
+      ()	;collected CASE-LAMBDA clauses
+      ()	;collected classes in current CASE-LAMBDA clause
+      ()	;collected args in current CASE-LAMBDA clause
+      (?formals . ?body)
+      ...))))
+
+(define-syntax case-lambda/with*
+  (syntax-rules ()
+    ((_ (?formals . ?body) ...)
+     (%case-lambda/collect-classes-and-arguments
+      #t
+      ()	;collected CASE-LAMBDA clauses
+      ()	;collected classes in current CASE-LAMBDA clause
+      ()	;collected args in current CASE-LAMBDA clause
+      (?formals . ?body)
+      ...))))
+
+(define-syntax %case-lambda/collect-classes-and-arguments
+  ;;Analyse the list of formals  collecting a list of argument names and
+  ;;a list of class names.
+  ;;
+  (syntax-rules ()
+
+    ;;Matches when  the next  argument to be  processed, in  the current
+    ;;CASE-LAMBDA clause, has a type.
+    ((_ ?add-assertions
+	(?collected-case-lambda-clause ...)
+	(?collected-cls ...)
+	(?collected-arg ...)
+	(((?arg ?cls0 ?cls ...) . ?args) . ?body)
+	?case-lambda-clause ...)
+     (%case-lambda/collect-classes-and-arguments
+      ?add-assertions
+      (?collected-case-lambda-clause ...)
+      (?collected-cls ... (?cls0 ?cls ...))
+      (?collected-arg ... ?arg)
+      (?args . ?body)
+      ?case-lambda-clause ...))
+
+    ;;Matches when  the next  argument to be  processed, in  the current
+    ;;CASE-LAMBDA clause, has no type.
+    ((_ ?add-assertions
+    	(?collected-case-lambda-clause ...)
+    	(?collected-cls ...)
+    	(?collected-arg ...)
+    	((?arg . ?args) . ?body)
+    	?case-lambda-clause ...)
+     (%case-lambda/collect-classes-and-arguments
+      ?add-assertions
+      (?collected-case-lambda-clause ...)
+      (?collected-cls ... (<top>))
+      (?collected-arg ... ?arg)
+      (?args . ?body)
+      ?case-lambda-clause ...))
+
+    ;;Matches when all the arguments in a clause have been processed and
+    ;;NO rest argument is present.  This MUST come before the one below.
+    ((_ #f
+	(?collected-case-lambda-clause ...)
+	((?collected-cls ...) ...)
+	(?collected-arg ...)
+	(() . ?body)
+	?case-lambda-clause ...)
+     (%case-lambda/collect-classes-and-arguments
+      #f
+      (?collected-case-lambda-clause ... ((?collected-arg ...)
+					  (with-fields ((?collected-arg ?collected-cls ...)
+							...)
+					    . ?body)))
+      ()
+      ()
+      ?case-lambda-clause ...))
+    ((_ #t
+	(?collected-case-lambda-clause ...)
+	((?collected-cls ...) ...)
+	(?collected-arg ...)
+	(() . ?body)
+	?case-lambda-clause ...)
+     (%case-lambda/collect-classes-and-arguments
+      #t
+      (?collected-case-lambda-clause ... ((?collected-arg ...)
+					  (%add-assertions ((?collected-cls ...) ...)
+							   (?collected-arg ...))
+					  (with-fields ((?collected-arg ?collected-cls ...)
+							...)
+					    . ?body)))
+      ()
+      ()
+      ?case-lambda-clause ...))
+
+    ;;Matches two  cases: (1)  when all the  arguments in a  clause have
+    ;;been processed and  only the rest argument is  there; (2) when the
+    ;;formals in a clause is an identifier (args ---).
+    ((_ #f
+	(?collected-case-lambda-clause ...)
+	((?collected-cls ...) ...)
+	(?collected-arg ...)
+	(?rest . ?body)
+	?case-lambda-clause ...)
+     (%case-lambda/collect-classes-and-arguments
+      #f
+      (?collected-case-lambda-clause ... ((?collected-arg ... . ?rest)
+					  (with-fields ((?collected-arg ?collected-cls ...)
+							...)
+					    . ?body)))
+      ()
+      ()
+      ?case-lambda-clause ...))
+    ((_ #t
+	(?collected-case-lambda-clause ...)
+	((?collected-cls ...) ...)
+	(?collected-arg ...)
+	(?rest . ?body)
+	?case-lambda-clause ...)
+     (%case-lambda/collect-classes-and-arguments
+      #t
+      (?collected-case-lambda-clause ... ((?collected-arg ... . ?rest)
+					  (%add-assertions ((?collected-cls ...) ...)
+							   (?collected-arg ...))
+					  (with-fields ((?collected-arg ?collected-cls ...)
+							...)
+					    . ?body)))
+      ()
+      ()
+      ?case-lambda-clause ...))
+
+    ;;Matches when all the CASE-LAMBDA clauses have been collected.
+    ((_ ?add-assertions (?collected-case-lambda-clause ...) () ())
+     (case-lambda ?collected-case-lambda-clause ...))
+
+    ))
 
 
 (define-record-type <top>

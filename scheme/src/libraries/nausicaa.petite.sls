@@ -799,6 +799,7 @@
     define-class			make
     define/with				define/with*
     lambda/with				lambda/with*
+    case-lambda/with			case-lambda/with*
     let-fields				let*-fields
     letrec-fields			letrec*-fields
     with-fields

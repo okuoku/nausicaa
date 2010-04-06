@@ -1361,6 +1361,433 @@
   #t)
 
 
+(parametrise ((check-test-name	'case-lambda-with))
+
+;;; untyped
+
+  (let ((f (case-lambda/with
+	     ((a)
+	      a))))
+    (check (f 123) => 123)
+    #f)
+
+  (let ((f (case-lambda/with
+	     ((a b)
+	      (list a b)))))
+    (check (f 1 2) => '(1 2))
+    #f)
+
+  (let ((f (case-lambda/with
+	     ((a b c)
+	      (list a b c)))))
+    (check (f 1 2 3) => '(1 2 3))
+    #f)
+
+  (let ((f (case-lambda/with
+	     (args
+	      (list->vector args)))))
+    (check (f) => '#())
+    (check (f 1) => '#(1))
+    (check (f 1 2) => '#(1 2))
+    (check (f 1 2 3) => '#(1 2 3))
+    #f)
+
+  (let ((f (case-lambda/with
+	     ((a . rest)
+	      (vector a rest)))))
+    (check (f 1) => '#(1 ()))
+    (check (f 1 2) => '#(1 (2)))
+    (check (f 1 2 3 4) => '#(1 (2 3 4)))
+    #f)
+
+  (let ((f (case-lambda/with
+	     ((a b . rest)
+	      (vector a b rest)))))
+    (check (f 1 2) => '#(1 2 ()))
+    (check (f 1 2 3) => '#(1 2 (3)))
+    (check (f 1 2 3 4) => '#(1 2 (3 4)))
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; typed
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (mutable numerator)
+		      (mutable denominator)))
+
+    (define <fraction>-numerator
+      (case-lambda/with
+	(((o <fraction>))
+	 (numerator o.number))))
+
+    (define <fraction>-numerator-set!
+      (case-lambda/with
+	(((o <fraction>) v)
+	 (set! o.number (/ v (denominator o.number))))))
+
+    (define <fraction>-denominator
+      (case-lambda/with
+	(((o <fraction>))
+	 (denominator o.number))))
+
+    (define <fraction>-denominator-set!
+      (case-lambda/with
+	(((o <fraction>) (v <top>))
+	 (set! o.number (/ (numerator o.number) v)))))
+
+    (let ((f (case-lambda/with
+	       (((a <fraction>))
+		a.numerator))))
+      (check (f (make-<fraction> 2/3)) => 2)
+      #f)
+
+    (let ((f (case-lambda/with
+	       (((a <fraction>) (b <number>))
+		(list a.numerator b.magnitude)))))
+      (check (f (make-<fraction> 2/3) -4) => '(2 4))
+      #f)
+
+    (let ((f (case-lambda/with
+	       (((a <fraction>) b (c <fraction>))
+		(list a.numerator b c.denominator)))))
+      (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
+      #f)
+
+    (let ((f (case-lambda/with
+	       (((a <fraction>) . rest)
+		(vector a.numerator rest)))))
+      (check (f (make-<fraction> 11/12)) => '#(11 ()))
+      (check (f (make-<fraction> 11/12) 2) => '#(11 (2)))
+      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 (2 3 4)))
+      #f)
+
+    (let ((f (case-lambda/with
+	       (((a <fraction>) b . rest)
+		(vector a.numerator b rest)))))
+      (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
+      (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
+      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
+      #f)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; multiple clauses
+
+  (let ((f (case-lambda/with
+	     ((a) a)
+	     ((a b) (list a b)))))
+    (check (f 1) => 1)
+    (check (f 1 2) => '(1 2))
+    #f)
+
+  (let ((f (case-lambda/with
+	     ((a)	a)
+	     ((a b)	(list a b))
+	     ((a b c)	(list a b c))
+	     )))
+    (check (f 1) => 1)
+    (check (f 1 2) => '(1 2))
+    (check (f 1 2 3) => '(1 2 3))
+    #f)
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (immutable numerator)
+		      (immutable denominator)))
+
+    (define <fraction>-numerator
+      (case-lambda/with
+	(((o <fraction>))
+	 (numerator o.number))))
+
+    (define <fraction>-denominator
+      (case-lambda/with
+	(((o <fraction>))
+	 (denominator o.number))))
+
+    (let ((f (case-lambda/with
+	       (((a <fraction>))
+		a.numerator)
+	       (((a <fraction>) (b <string>))
+		(list a.numerator b.length)))))
+      (check (f (make-<fraction> 2/3)) => 2)
+      (check (f (make-<fraction> 2/3) "ciao") => '(2 4))
+      #f)
+
+    (let ((f (case-lambda/with
+	       (((a <fraction>))
+		a.numerator)
+	       (((a <fraction>) (b <string>))
+		(list a.numerator b.length))
+	       (((a <fraction>) (b <string>) (c <char>))
+		(list a.numerator b.length c.upcase)))))
+      (check (f (make-<fraction> 2/3)) => 2)
+      (check (f (make-<fraction> 2/3) "ciao") => '(2 4))
+      (check (f (make-<fraction> 2/3) "ciao" #\a) => '(2 4 #\A))
+      #f)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; use the records from (records-lib)
+
+  (check
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+	    (f (case-lambda/with
+		 (((r <gamma> <beta> <alpha>))
+		  (list r.a r.b r.c
+			r.d r.e r.f
+			r.g r.h r.i)))))
+	(f r))
+    => '(1 2 3 4 5 6 7 8 9))
+
+  (check	;use the records from (records-lib)
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+	    (s (make-<beta>  10 20 30 40 50 60))
+	    (f (case-lambda/with
+		 (((r <gamma> <alpha>) (s <beta> <alpha>))
+		  (list r.a r.g s.a s.d)))))
+	(f r s))
+    => '(1 7 10 40))
+
+  #t)
+
+
+(parametrise ((check-test-name	'case-lambda-with*))
+
+;;; untyped
+
+  (let ((f (case-lambda/with*
+	     ((a)
+	      a))))
+    (check (f 123) => 123)
+    #f)
+
+  (let ((f (case-lambda/with*
+	     ((a b)
+	      (list a b)))))
+    (check (f 1 2) => '(1 2))
+    #f)
+
+  (let ((f (case-lambda/with*
+	     ((a b c)
+	      (list a b c)))))
+    (check (f 1 2 3) => '(1 2 3))
+    #f)
+
+  (let ((f (case-lambda/with*
+	     (args
+	      (list->vector args)))))
+    (check (f) => '#())
+    (check (f 1) => '#(1))
+    (check (f 1 2) => '#(1 2))
+    (check (f 1 2 3) => '#(1 2 3))
+    #f)
+
+  (let ((f (case-lambda/with*
+	     ((a . rest)
+	      (vector a rest)))))
+    (check (f 1) => '#(1 ()))
+    (check (f 1 2) => '#(1 (2)))
+    (check (f 1 2 3 4) => '#(1 (2 3 4)))
+    #f)
+
+  (let ((f (case-lambda/with*
+	     ((a b . rest)
+	      (vector a b rest)))))
+    (check (f 1 2) => '#(1 2 ()))
+    (check (f 1 2 3) => '#(1 2 (3)))
+    (check (f 1 2 3 4) => '#(1 2 (3 4)))
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; typed
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (mutable numerator)
+		      (mutable denominator)))
+
+    (define <fraction>-numerator
+      (case-lambda/with*
+	(((o <fraction>))
+	 (numerator o.number))))
+
+    (define <fraction>-numerator-set!
+      (case-lambda/with*
+	(((o <fraction>) v)
+	 (set! o.number (/ v (denominator o.number))))))
+
+    (define <fraction>-denominator
+      (case-lambda/with*
+	(((o <fraction>))
+	 (denominator o.number))))
+
+    (define <fraction>-denominator-set!
+      (case-lambda/with*
+	(((o <fraction>) (v <top>))
+	 (set! o.number (/ (numerator o.number) v)))))
+
+    (let ((f (case-lambda/with*
+	       (((a <fraction>))
+		a.numerator))))
+      (check (f (make-<fraction> 2/3)) => 2)
+      #f)
+
+    (let ((f (case-lambda/with*
+	       (((a <fraction>) (b <number>))
+		(list a.numerator b.magnitude)))))
+      (check (f (make-<fraction> 2/3) -4) => '(2 4))
+      #f)
+
+    (let ((f (case-lambda/with*
+	       (((a <fraction>) b (c <fraction>))
+		(list a.numerator b c.denominator)))))
+      (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
+      #f)
+
+    (let ((f (case-lambda/with*
+	       (((a <fraction>) . rest)
+		(vector a.numerator rest)))))
+      (check (f (make-<fraction> 11/12)) => '#(11 ()))
+      (check (f (make-<fraction> 11/12) 2) => '#(11 (2)))
+      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 (2 3 4)))
+      #f)
+
+    (let ((f (case-lambda/with*
+	       (((a <fraction>) b . rest)
+		(vector a.numerator b rest)))))
+      (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
+      (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
+      (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
+      #f)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; multiple clauses
+
+  (let ((f (case-lambda/with*
+	     ((a) a)
+	     ((a b) (list a b)))))
+    (check (f 1) => 1)
+    (check (f 1 2) => '(1 2))
+    #f)
+
+  (let ((f (case-lambda/with*
+	     ((a)	a)
+	     ((a b)	(list a b))
+	     ((a b c)	(list a b c))
+	     )))
+    (check (f 1) => 1)
+    (check (f 1 2) => '(1 2))
+    (check (f 1 2 3) => '(1 2 3))
+    #f)
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (immutable numerator)
+		      (immutable denominator)))
+
+    (define <fraction>-numerator
+      (case-lambda/with*
+	(((o <fraction>))
+	 (numerator o.number))))
+
+    (define <fraction>-denominator
+      (case-lambda/with*
+	(((o <fraction>))
+	 (denominator o.number))))
+
+    (let ((f (case-lambda/with*
+	       (((a <fraction>))
+		a.numerator)
+	       (((a <fraction>) (b <string>))
+		(list a.numerator b.length)))))
+      (check (f (make-<fraction> 2/3)) => 2)
+      (check (f (make-<fraction> 2/3) "ciao") => '(2 4))
+      #f)
+
+    (let ((f (case-lambda/with*
+	       (((a <fraction>))
+		a.numerator)
+	       (((a <fraction>) (b <string>))
+		(list a.numerator b.length))
+	       (((a <fraction>) (b <string>) (c <char>))
+		(list a.numerator b.length c.upcase)))))
+      (check (f (make-<fraction> 2/3)) => 2)
+      (check (f (make-<fraction> 2/3) "ciao") => '(2 4))
+      (check (f (make-<fraction> 2/3) "ciao" #\a) => '(2 4 #\A))
+      #f)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; use the records from (records-lib)
+
+  (check
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+	    (f (case-lambda/with*
+		 (((r <gamma> <beta> <alpha>))
+		  (list r.a r.b r.c
+			r.d r.e r.f
+			r.g r.h r.i)))))
+	(f r))
+    => '(1 2 3 4 5 6 7 8 9))
+
+  (check	;use the records from (records-lib)
+      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+	    (s (make-<beta>  10 20 30 40 50 60))
+	    (f (case-lambda/with*
+		 (((r <gamma> <alpha>) (s <beta> <alpha>))
+		  (list r.a r.g s.a s.d)))))
+	(f r s))
+    => '(1 7 10 40))
+
+;;; --------------------------------------------------------------------
+;;; type error
+
+  (check
+      (guard (E ((assertion-violation? E)
+;;;		 (write (condition-message E))(newline)
+		 #t)
+		(else
+;;;		 (write E)(newline)
+                 #f))
+	(eval '(let ((f (case-lambda/with*
+			  (((a <number>))
+			   #f))))
+		 (f "ciao"))
+	      (environment '(nausicaa) '(classes))))
+    => #t)
+
+  (check
+      (guard (E ((assertion-violation? E)
+;;;		 (write (condition-message E))(newline)
+		 #t)
+		(else
+;;;		 (write E)(newline)
+                 #f))
+	(eval '(let ((f (case-lambda/with*
+			  (((a <number>) (b <string>))
+			   #f))))
+		 (f 1 2))
+	      (environment '(nausicaa) '(classes))))
+    => #t)
+
+  #t)
+
+
 (parametrise ((check-test-name 'parent-list))
 
 ;;;We cannot  rely on the  RTDs to be  equal when the definition  of the
