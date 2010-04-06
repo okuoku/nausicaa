@@ -40,6 +40,7 @@
   (define dummy (r5rs:require 'time))
 
   (define-record-type time
+  (nongenerative nausicaa:times-and-dates:compat:time)
     (fields secs usecs))
 
   ;; Larceny uses gettimeofday() which gives microseconds,

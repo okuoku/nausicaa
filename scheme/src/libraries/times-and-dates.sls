@@ -353,6 +353,7 @@
 ;;;; time structure
 
 (define-record-type time
+  (nongenerative nausicaa:times-and-dates:time)
   (fields (mutable type		time-type	set-time-type!)
 	  (mutable nanosecond	time-nanosecond	set-time-nanosecond!)
 	  (mutable second	time-second	set-time-second!)))
@@ -688,6 +689,7 @@
 ;;;; date record
 
 (define-record-type date
+  (nongenerative nausicaa:times-and-dates:date)
   (fields (mutable nanosecond)
 	  (mutable second)
 	  (mutable minute)
