@@ -85,6 +85,7 @@
 
 
 (define-record-type <state>
+  (nongenerative nausicaa:packrat:<state>)
   (fields (immutable lookahead)
 	  (mutable   next-state)
 	  (mutable   memoized-results)))
