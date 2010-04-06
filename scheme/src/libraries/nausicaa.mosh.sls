@@ -857,6 +857,7 @@
     (parameters)
     (pretty-print)
     (shared-structures)
+    (classes)
     (nausicaa common))
 
 
