@@ -265,17 +265,20 @@
 ;;;; macro pour les structures de donnees
 
 (define-record-type core
+  (nongenerative nausicaa:lalr:core)
   (fields (mutable number)
 	  (mutable acc-sym)
 	  (mutable nitems)
 	  (mutable items)))
 
 (define-record-type shift
+  (nongenerative nausicaa:lalr:shift)
   (fields (mutable number)
 	  (mutable nshifts)
 	  (mutable shifts)))
 
 (define-record-type red
+  (nongenerative nausicaa:lalr:red)
   (fields (mutable number)
 	  (mutable nreds)
 	  (mutable rules)))
