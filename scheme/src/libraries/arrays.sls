@@ -72,7 +72,8 @@
     array-display
     array-write
     )
-  (import (nausicaa)
+  (import (rnrs)
+    (only (language-extensions) do*)
     (lists)
     (vectors)
     (strings))
@@ -141,6 +142,7 @@
 ;;;; array shape
 
 (define-record-type (:shape :shape-make array-shape?)
+  (nongenerative nausicaa:arrays::shape)
   (opaque #t)
   (fields (immutable starts)
 		;A vector holding the start indexes for each dimension.
@@ -311,6 +313,7 @@
 ;;;; arrays
 
 (define-record-type (:array :array-make array?)
+  (nongenerative nausicaa:arrays::array)
   (opaque #t)
   (parent :shape)
   (fields (immutable dimensions)
