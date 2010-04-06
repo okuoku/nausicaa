@@ -46,22 +46,27 @@
 
     base32-encode-block-length			base32-decode-block-length
 
+    <base32-encode-ctx>-with-record-fields-of
+    <base32-decode-ctx>-with-record-fields-of
+
     armored-byte-of-base32/upper-case?		armored-byte-of-base32/hex/upper-case?
     armored-byte-of-base32/lower-case?		armored-byte-of-base32/hex/lower-case?
     armored-byte-of-base32/mixed-case?		armored-byte-of-base32/hex/mixed-case?)
   (import (rnrs)
     (language-extensions)
+    (classes)
     (armor conditions))
 
 
-(define-record-type <base32-encode-ctx>
+(define-class <base32-encode-ctx>
+  (nongenerative nausicaa:armor:base32:<base32-encode-ctx>)
   (fields (immutable encoding)
 	  (immutable encoding-case)
 	  (immutable generate-padding?)
 	  (immutable pad-char)
 	  (immutable table))
   (protocol
-   (lambda (maker)
+   (lambda (make-<top>)
      (lambda (encoding generate-padding? encoding-case)
        ;;ENCODING must  be a Scheme symbol selecting  the encoding type:
        ;;base32,  rfc4648, base32/hex,  rfc2938.  The  argument  value is
@@ -96,17 +101,18 @@
 				     ((upper)	encode-table-base32/hex/upper-case)
 				     ((lower)	encode-table-base32/hex/lower-case))))))
 
-	 (maker encoding encoding-case generate-padding? (char->integer #\=) table))))))
+	 ((make-<top>) encoding encoding-case generate-padding? (char->integer #\=) table))))))
 
 
-(define-record-type <base32-decode-ctx>
+(define-class <base32-decode-ctx>
+  (nongenerative nausicaa:armor:base32:<base32-decode-ctx>)
   (fields (immutable encoding)
 	  (immutable encoding-case)
 	  (immutable expect-padding?)
 	  (immutable pad-char)
 	  (immutable table))
   (protocol
-   (lambda (maker)
+   (lambda (make-<top>)
      (lambda (encoding expect-padding? encoding-case)
        ;;ENCODING must  be a Scheme symbol selecting  the encoding type:
        ;;base32,  rfc4648, base32/hex,  rfc2938.  The  argument  value is
@@ -151,7 +157,7 @@
 				     ((mixed)
 				      decode-table-base32/hex/mixed-case))))))
 
-	 (maker encoding encoding-case expect-padding? (char->integer #\=) table))))))
+	 ((make-<top>) encoding encoding-case expect-padding? (char->integer #\=) table))))))
 
 
 ;;;; encoding tables

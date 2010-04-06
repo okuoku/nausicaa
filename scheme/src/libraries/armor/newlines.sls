@@ -34,19 +34,25 @@
     <newlines-encode-ctx>-column
     <newlines-encode-ctx>-width
 
+    <newlines-encode-ctx>-with-record-fields-of
+    <newlines-decode-ctx>-with-record-fields-of
+
     newlines-encode-update!			newlines-decode-update!
     newlines-encode-final!			newlines-decode-final!)
   (import (rnrs)
     (language-extensions)
+    (classes)
     (armor conditions))
 
 
-(define-record-type <newlines-encode-ctx>
+(define-class <newlines-encode-ctx>
+  (nongenerative nausicaa:armor:newlines:<newlines-encode-ctx>)
   (fields (immutable width)
 	  (immutable sequence)
 	  (mutable column)))
 
-(define-record-type <newlines-decode-ctx>
+(define-class <newlines-decode-ctx>
+  (nongenerative nausicaa:armor:newlines:<newlines-decode-ctx>)
   (fields (immutable sequence)))
 
 

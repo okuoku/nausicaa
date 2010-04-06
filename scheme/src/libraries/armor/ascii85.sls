@@ -44,16 +44,23 @@
 
     ascii85-encode-block-length		ascii85-decode-block-length
 
+    <ascii85-encode-ctx>-with-record-fields-of
+    <ascii85-decode-ctx>-with-record-fields-of
+
     ascii85-encode-opening!
     ascii85-encode-closing!
     armored-byte-of-ascii85?)
   (import (rnrs)
-    (armor conditions)
-    (language-extensions))
+    (language-extensions)
+    (classes)
+    (armor conditions))
 
 
-(define-record-type <ascii85-encode-ctx>)
-(define-record-type <ascii85-decode-ctx>)
+(define-class <ascii85-encode-ctx>
+  (nongenerative nausicaa:armor:ascii85:<ascii85-encode-ctx>))
+
+(define-class <ascii85-decode-ctx>
+  (nongenerative nausicaa:armor:ascii85:<ascii85-decode-ctx>))
 
 
 (define less-than-char		(char->integer #\<))

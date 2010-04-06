@@ -42,19 +42,24 @@
 
 						base16-decode-block-length
 
+    <base16-encode-ctx>-with-record-fields-of
+    <base16-decode-ctx>-with-record-fields-of
+
     armored-byte-of-base16/upper-case?
     armored-byte-of-base16/mixed-case?
     armored-byte-of-base16/lower-case?)
   (import (rnrs)
     (language-extensions)
+    (classes)
     (armor conditions))
 
 
-(define-record-type <base16-encode-ctx>
+(define-class <base16-encode-ctx>
+  (nongenerative nausicaa:armor:base16:<base16-encode-ctx>)
   (fields (immutable encoding-case)
 	  (immutable table))
   (protocol
-   (lambda (maker)
+   (lambda (make-<top>)
      (lambda (encoding-case)
        ;;ENCODING-CASE must be a Scheme symbol among: upper, lower.
        ;;
@@ -67,14 +72,15 @@
 				  ((upper)	encode-table-base16/upper-case)
 				  ((lower)	encode-table-base16/lower-case))))
 
-	 (maker encoding-case table))))))
+	 ((make-<top>) encoding-case table))))))
 
 
-(define-record-type <base16-decode-ctx>
+(define-class <base16-decode-ctx>
+  (nongenerative nausicaa:armor:base16:<base16-decode-ctx>)
   (fields (immutable encoding-case)
 	  (immutable table))
   (protocol
-   (lambda (maker)
+   (lambda (make-<top>)
      (lambda (encoding-case)
        ;;ENCODING-CASE must be a Scheme symbol among: upper, lower.
        ;;
@@ -88,7 +94,7 @@
 				  ((mixed)	decode-table-base16/mixed-case)
 				  ((lower)	decode-table-base16/lower-case))))
 
-	 (maker encoding-case table))))))
+	 ((make-<top>) encoding-case table))))))
 
 
 ;;;; encoding tables

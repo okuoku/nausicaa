@@ -50606,6 +50606,8 @@ output; to split a stream of @ascii{} characters into lines, we have to
 apply a specific filter; to process a sequence of lines we have to
 remove the newlines first.
 
+All the libraries are built on top of the @library{classes} library.
+
 @menu
 * armor conditions::            Condition objects.
 * armor base16::                Base 16 encoder/decoder.
@@ -50756,7 +50758,7 @@ produced in @math{2}-bytes blocks.
 @subsection Encoding byte streams with base16
 
 
-@deftp {Record Type Name} <base16-encode-ctx>
+@deftp Class <base16-encode-ctx>
 Context descriptor for base16 encoding.  It has the following immutable
 fields:
 
@@ -50774,6 +50776,12 @@ Nothing in this record depends on the input or output data: records of
 this type can be reused for different streams, both in sequence and in
 parallel.
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <base16-encode-ctx>-with-record-fields-of
+Used to access fields of @class{base16-encode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<base16-encode-ctx> @var{encoding-case}
@@ -50887,7 +50895,7 @@ available input data is not consumed.
 @subsection Decoding byte streams with base16
 
 
-@deftp {Record Type Name} <base16-decode-ctx>
+@deftp Class <base16-decode-ctx>
 Context descriptor for base16 decoding.  It has the following immutable
 fields:
 
@@ -50905,6 +50913,12 @@ Nothing in this record depends on the input or output data: records of
 this type can be reused for different streams, both in sequence and in
 parallel.
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <base16-decode-ctx>-with-record-fields-of
+Used to access fields of @class{base16-decode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<base16-decode-ctx> @var{encoding-case}
@@ -51159,7 +51173,7 @@ when padding is off: the last block can have the lengths: @math{2},
 @subsection Encoding byte streams with base32
 
 
-@deftp {Record Type Name} <base32-encode-ctx>
+@deftp Class <base32-encode-ctx>
 Context descriptor for base32 encoding.  It has the following immutable
 fields:
 
@@ -51189,6 +51203,12 @@ Nothing in this record depends on the input or output data: records of
 this type can be reused for different streams, both in sequence and in
 parallel.
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <base32-encode-ctx>-with-record-fields-of
+Used to access fields of @class{base32-encode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<base32-encode-ctx> @var{encoding} @var{generate-padding?} @var{encoding-case}
@@ -51335,7 +51355,7 @@ not consumed.
 @subsection Decoding byte streams with base32
 
 
-@deftp {Record Type Name} <base32-decode-ctx>
+@deftp Class <base32-decode-ctx>
 Context descriptor for base32 decoding.  It has the following immutable
 fields:
 
@@ -51366,6 +51386,12 @@ Nothing in this record depends on the input or output data: records of
 this type can be reused for different streams, both in sequence and in
 parallel.
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <base32-decode-ctx>-with-record-fields-of
+Used to access fields of @class{base32-decode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<base32-decode-ctx> @var{encoding} @var{expect-padding?} @var{encoding-case}
@@ -51625,7 +51651,7 @@ when padding is off: the last block can have the lengths: @math{2},
 @subsection Encoding byte streams with base64
 
 
-@deftp {Record Type Name} <base64-encode-ctx>
+@deftp Class <base64-encode-ctx>
 Context descriptor for base64 encoding.  It has the following immutable
 fields:
 
@@ -51651,6 +51677,12 @@ Nothing in this record depends on the input or output data: records of
 this type can be reused for different streams, both in sequence and in
 parallel.
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <base64-encode-ctx>-with-record-fields-of
+Used to access fields of @class{base64-encode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<base64-encode-ctx> @var{encoding} @var{generate-padding?}
@@ -51791,7 +51823,7 @@ not consumed.
 @subsection Decoding byte streams with base64
 
 
-@deftp {Record Type Name} <base64-decode-ctx>
+@deftp Class <base64-decode-ctx>
 Context descriptor for base64 decoding.  It has the following immutable
 fields:
 
@@ -51818,6 +51850,12 @@ Nothing in this record depends on the input or output data: records of
 this type can be reused for different streams, both in sequence and in
 parallel.
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <base64-decode-ctx>-with-record-fields-of
+Used to access fields of @class{base64-decode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<base64-decode-ctx> @var{encoding} @var{expect-padding?}
@@ -52047,11 +52085,17 @@ y z 0   1 2 3   4 5 6   7    ;; 50 - 59
 @subsection Encoding byte streams with base91
 
 
-@deftp {Record Type Name} <base91-encode-ctx>
+@deftp Class <base91-encode-ctx>
 Context descriptor for base91 encoding.  The fields of this record
 depend on the input data: records of this type @strong{cannot} be reused
 for different streams.
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <base91-encode-ctx>-with-record-fields-of
+Used to access fields of @class{base91-encode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<base91-encode-ctx>
@@ -52065,6 +52109,12 @@ Return the minimum number of bytes required in the output bytevector
 when @func{base91-encode-update!}  is applied to @var{number-of-bytes}
 of binary input data.
 @end defun
+
+
+@deffn {Auxiliary Syntax} <base91-encode-ctx>-with-record-fields-of
+Used to access fields of @class{base91-encode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun base91-encode-final-length @var{unused}
@@ -52144,11 +52194,17 @@ from @var{src-bv} are consumed, this value is @var{src-past}.
 @subsection Decoding byte streams with base91
 
 
-@deftp {Record Type Name} <base91-decode-ctx>
+@deftp Class <base91-decode-ctx>
 Context descriptor for base91 decoding.  The fields of this record
 depend on the input data: records of this type @strong{cannot} be reused
 for different streams.
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <base91-decode-ctx>-with-record-fields-of
+Used to access fields of @class{base91-decode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<base91-decode-ctx>
@@ -52487,9 +52543,15 @@ Trailing characters must come in blocks of at least @math{2} bytes.
 @subsection Encoding byte streams with @ascii{}85
 
 
-@deftp {Record Type Name} <ascii85-encode-ctx>
+@deftp Class <ascii85-encode-ctx>
 Context descriptor for @ascii{}85 encoding.
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <ascii85-encode-ctx>-with-record-fields-of
+Used to access fields of @class{ascii85-encode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<ascii85-encode-ctx>
@@ -52596,9 +52658,15 @@ the opening @samp{<~} or closing @samp{~>} sequences of the @ascii{}85
 encoding.
 
 
-@deftp {Record Type Name} <ascii85-decode-ctx>
+@deftp Class <ascii85-decode-ctx>
 Context descriptor for @ascii{}85 decoding.
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <ascii85-decode-ctx>-with-record-fields-of
+Used to access fields of @class{ascii85-decode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<ascii85-decode-ctx>
@@ -52840,7 +52908,7 @@ strings which can be correctly processed by the same decoder.
 @subsection Encoding byte streams with quoted--printable
 
 
-@deftp {Record Type Descriptor} <qprint-encode-ctx>
+@deftp Class <qprint-encode-ctx>
 Context descriptor for quoted--printable encoding.  It has the following
 fields:
 
@@ -52852,6 +52920,12 @@ A Scheme symbol among: @code{default}, @code{strong}.
 Nothing in records of this type depends upon the input or output data,
 so they can be reused for multiple streams.
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <qprint-encode-ctx>-with-record-fields-of
+Used to access fields of @class{qprint-encode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<qprint-encode-ctx> @var{encoding}
@@ -52931,11 +53005,17 @@ triplets of bytes.
 @subsection Decoding byte streams with quoted--printable
 
 
-@deftp {Record Type Descriptor} <qprint-decode-ctx>
+@deftp Class <qprint-decode-ctx>
 Context descriptor for quoted--printable decoding.  Nothing in records
 of this type depends upon the input or output data, so they can be
 reused for multiple streams.
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <qprint-decode-ctx>-with-record-fields-of
+Used to access fields of @class{qprint-decode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<qprint-decode-ctx>
@@ -53036,7 +53116,7 @@ The bindings documented in this section are exported by the
 @subsection Inserting sequences of bytes
 
 
-@deftp {Record Type Name} <newlines-encode-ctx>
+@deftp Class <newlines-encode-ctx>
 Context record for newline insertion.  It has the following fields:
 
 @table @code
@@ -53051,6 +53131,12 @@ field is immutable.
 The current colum number.
 @end table
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <newlines-encode-ctx>-with-record-fields-of
+Used to access fields of @class{newlines-encode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<newlines-encode-ctx> @var{width} @var{sequence} @var{column}
@@ -53112,7 +53198,7 @@ from @var{src-bv} are consumed, this value is @var{src-past}.
 @subsection Removing sequences of bytes
 
 
-@deftp {Record Type Name} <newlines-decode-ctx>
+@deftp Class <newlines-decode-ctx>
 Context record for newline removal.  It has the following fields:
 
 @table @code
@@ -53121,6 +53207,12 @@ A bytevector representing the newline sequence of characters.  This
 field is immutable.
 @end table
 @end deftp
+
+
+@deffn {Auxiliary Syntax} <newlines-decode-ctx>-with-record-fields-of
+Used to access fields of @class{newlines-decode-ctx} records by
+@func{with-fields} from @library{classes}.
+@end deffn
 
 
 @defun make-<newlines-decode-ctx> @var{sequence}

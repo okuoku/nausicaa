@@ -67,26 +67,32 @@
     base91-encode-update-length			base91-decode-update-length
     base91-encode-final-length			base91-decode-final-length
 
+    <base91-encode-ctx>-with-record-fields-of
+    <base91-decode-ctx>-with-record-fields-of
+
     armored-byte-of-base91?)
   (import (rnrs)
     (language-extensions)
+    (classes)
     (armor conditions))
 
 
-(define-record-type <base91-encode-ctx>
+(define-class <base91-encode-ctx>
+  (nongenerative nausicaa:armor:base91:<base91-encode-ctx>)
   (fields (mutable queue-length)
 	  (mutable bit-queue))
-  (protocol (lambda (maker)
+  (protocol (lambda (make-<top>)
 	      (lambda ()
-		(maker 0 0)))))
+		((make-<top>) 0 0)))))
 
-(define-record-type <base91-decode-ctx>
+(define-class <base91-decode-ctx>
+  (nongenerative nausicaa:armor:base91:<base91-decode-ctx>)
   (fields (mutable queue-length)
 	  (mutable bit-queue)
 	  (mutable val))
-  (protocol (lambda (maker)
+  (protocol (lambda (make-<top>)
 	      (lambda ()
-		(maker 0 0 #f)))))
+		((make-<top>) 0 0 #f)))))
 
 
 ;;;; encoding tables

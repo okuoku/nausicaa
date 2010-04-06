@@ -37,16 +37,21 @@
 
 					qprint-decode-block-length
 
+    <qprint-encode-ctx>-with-record-fields-of
+    <qprint-decode-ctx>-with-record-fields-of
+
     armored-byte-of-qprint?		armored-byte-of-qprint?/strong)
   (import (rnrs)
     (language-extensions)
+    (classes)
     (armor conditions))
 
 
-(define-record-type <qprint-encode-ctx>
+(define-class <qprint-encode-ctx>
+  (nongenerative nausicaa:armor:quoted-printable:<qprint-encode-ctx>)
   (fields (immutable encoding))
   (protocol
-   (lambda (maker)
+   (lambda (make-<top>)
      (lambda (encoding)
        (let ((encoding (case encoding
 			 ((default)		'default)
@@ -54,9 +59,10 @@
 			 (else
 			  (assertion-violation 'make-<qprint-encode-ctx>
 			    "invalid encoding selection for qprint encoder" encoding)))))
-	 (maker encoding))))))
+	 ((make-<top>) encoding))))))
 
-(define-record-type <qprint-decode-ctx>)
+(define-class <qprint-decode-ctx>
+  (nongenerative nausicaa:armor:quoted-printable:<qprint-decode-ctx>))
 
 
 ;;;; encoding tables

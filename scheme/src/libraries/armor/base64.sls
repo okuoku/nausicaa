@@ -45,19 +45,24 @@
 
     base64-encode-block-length			base64-decode-block-length
 
+    <base64-encode-ctx>-with-record-fields-of
+    <base64-decode-ctx>-with-record-fields-of
+
     armored-byte-of-base64?			armored-byte-of-base64/url?)
   (import (rnrs)
     (language-extensions)
+    (classes)
     (armor conditions))
 
 
-(define-record-type <base64-encode-ctx>
+(define-class <base64-encode-ctx>
+  (nongenerative nausicaa:armor:base64:<base64-encode-ctx>)
   (fields (immutable encoding)
 	  (immutable generate-padding?)
 	  (immutable pad-char)
 	  (immutable table))
   (protocol
-   (lambda (maker)
+   (lambda (make-<top>)
      (lambda (encoding generate-padding?)
        ;;ENCODING must  be a Scheme symbol selecting  the encoding type:
        ;;base64, base64/url.
@@ -77,16 +82,17 @@
 				  ((base64)	encode-table-base64)
 				  ((base64hex)	encode-table-base64/url))))
 
-	 (maker encoding generate-padding? (char->integer #\=) table))))))
+	 ((make-<top>) encoding generate-padding? (char->integer #\=) table))))))
 
 
-(define-record-type <base64-decode-ctx>
+(define-class <base64-decode-ctx>
+  (nongenerative nausicaa:armor:base64:<base64-decode-ctx>)
   (fields (immutable encoding)
 	  (immutable expect-padding?)
 	  (immutable pad-char)
 	  (immutable table))
   (protocol
-   (lambda (maker)
+   (lambda (make-<top>)
      (lambda (encoding expect-padding?)
        ;;ENCODING must  be a Scheme symbol selecting  the encoding type:
        ;;base64, base64/url.
@@ -106,7 +112,7 @@
 				  ((base64)	decode-table-base64)
 				  ((base64/url)	decode-table-base64/url))))
 
-	 (maker encoding expect-padding? (char->integer #\=) table))))))
+	 ((make-<top>) encoding expect-padding? (char->integer #\=) table))))))
 
 
 ;;;; encoding tables
