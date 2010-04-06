@@ -8,7 +8,7 @@ implementations.  The @api{} is exported by the following libraries:
 
 @example
 (ffi)
-(ffi ffi sizeof)
+(ffi sizeof)
 (ffi memory)
 (ffi cstrings)
 (ffi errno)
