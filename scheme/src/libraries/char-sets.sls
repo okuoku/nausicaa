@@ -81,6 +81,7 @@
 
 
 (define-record-type char-set
+  (nongenerative nausicaa:char-sets:char-set)
   (fields (mutable domain domain-ref domain-set!)))
 
 (define (%true-char-set . args)
