@@ -34,10 +34,10 @@
   (import (rnrs))
 
   (define-record-type (<keyword> %keyword keyword?)
+    (nongenerative nausicaa:keywords:<keyword>)
     (fields (immutable name keyword->symbol))
     (sealed #t)
     (opaque #t)
-    (nongenerative keyword)
     (protocol (let ((table (make-eq-hashtable)))
 		(lambda (constructor)
 		  ;;Store new keywords in a table, so that keywords with
