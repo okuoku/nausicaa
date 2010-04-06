@@ -115,7 +115,8 @@
 	 (sexp-mismatch-error 'sexp-match pattern form))))
 
 (define (sexp-match? pattern form)
-  (guard (C ((sexp-mismatch? C) #f))
+  (guard (E ((sexp-mismatch? E) #f)
+	    (else (raise-continuable E)))
     (sexp-match pattern form)
     #t))	;enforce a boolean as return value
 

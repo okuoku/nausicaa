@@ -40319,11 +40319,17 @@ pair in @var{form} will be matched or not depends on the operators in
 @var{pattern}.
 
 @item
-Every other element is compared to the elements of @var{form} using
-@func{eqv?}.  Notice that the behaviour of @func{eqv?} with respect to
-procedures is undefined in @rnrs{6}; it appears there is no safe way to
-match a procedure in @var{form}.
+Every other element is compared to the elements of @var{pattern} using
+@func{equal?}.  Notice that the behaviour of @func{equal?} with respect
+to procedures is undefined in @rnrs{6}; it appears there is no safe way
+to match a procedure in @var{form}.
 @end itemize
+@end defun
+
+
+@defun sexp-match? @var{pattern} @var{form}
+Like @func{sexp-match} but return @true{} when successfully matches and
+@false{} otherwise.
 @end defun
 
 
@@ -40369,9 +40375,16 @@ elements in it.
 
 @itemize
 @item
-If successful, it must return two values: the alist of bindings defined
-by the matching (see variables matching below), which can be null; the
-tail of the form still to match.
+If successful, it must return two values:
+
+@enumerate
+@item
+The alist of bindings defined by the matching (see variables matching
+below), which can be null.
+
+@item
+The tail of the form still to match.
+@end enumerate
 
 @item
 If a mismatch is detected, it must raise a @condition{sexp-mismatch}
