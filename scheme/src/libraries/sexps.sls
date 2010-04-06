@@ -44,6 +44,7 @@
     &sexp-mismatch make-sexp-mismatch sexp-mismatch?
     sexp-mismatch-pattern sexp-mismatch-form)
   (import (rnrs)
+    (classes)
     (sentinel)
     (conditions))
 
@@ -58,7 +59,7 @@
      (if (null? ?form) '() (cdr ?form)))))
 
 
-(define-record-type sexp-variable
+(define-class sexp-variable
   (nongenerative nausicaa:sexps:sexp-variable)
   (fields (immutable name)
 	  (immutable default)))

@@ -81,7 +81,6 @@
   (only (pregexp))
 
   (only (sexps))
-  (only (sexps syntax))
   (only (matches))
 
   (only (parser-tools source-location))

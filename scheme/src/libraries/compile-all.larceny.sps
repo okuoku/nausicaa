@@ -211,9 +211,6 @@
 (compile-library "sexps.sls"
 		 "sexps.slfasl")
 
-(compile-library "sexps/syntax.sls"
-		 "sexps/syntax.slfasl")
-
 ;;; --------------------------------------------------------------------
 
 (compile-library "parser-tools/source-location.sls"
