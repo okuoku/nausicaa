@@ -296,7 +296,8 @@ else
 nau_test_FILES		= $(wildcard $(nau_test_SRCDIR)/test-*.sps)
 endif
 
-nau_test_ENV		= LD_LIBRARY_PATH=$(nau_test_LDPATH):$(LD_LIBRARY_PATH)
+nau_test_ENV		= LD_LIBRARY_PATH=$(nau_test_LDPATH):$(LD_LIBRARY_PATH) \
+			  SCHEME_LIBPATH=$(nau_sls_BUILDDIR)
 
 # The variable  "name" is available to  the user on the  command line of
 # "make": It selects specific tests.

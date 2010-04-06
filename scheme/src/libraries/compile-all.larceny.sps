@@ -26,7 +26,7 @@
 (import (rnrs)
   (larceny compiler))
 
-;;Basic libraries
+;;Core libraries
 
 (compile-library "cond-expand/registry.sls"
 		 "cond-expand/registry.slfasl")
@@ -67,7 +67,7 @@
 (compile-library "nausicaa.larceny.sls"
 		 "nausicaa.larceny.slfasl")
 
-;; Other libraries
+;;Basic libraries
 
 (compile-library "conditions.sls"
 		 "conditions.slfasl")
@@ -151,9 +151,6 @@
 (compile-library "arrays.sls"
 		 "arrays.slfasl")
 
-(compile-library "sentinel.sls"
-		 "sentinel.slfasl")
-
 (compile-library "times-and-dates/compat.larceny.sls"
 		 "times-and-dates/compat.larceny.slfasl")
 
@@ -162,11 +159,14 @@
 
 ;;; --------------------------------------------------------------------
 
-(compile-library "scmobj.sls"
-		 "scmobj.slfasl")
+(compile-library "sentinel.sls"
+		 "sentinel.slfasl")
 
-(compile-library "scmobj/utils.sls"
-		 "scmobj/utils.slfasl")
+(compile-library "variables.sls"
+		 "variables.slfasl")
+
+(compile-library "keywords.sls"
+		 "keywords.slfasl")
 
 ;;; --------------------------------------------------------------------
 
@@ -188,14 +188,20 @@
 (compile-library "stacks.sls"
 		 "stacks.slfasl")
 
+;;; --------------------------------------------------------------------
+
+;; High level other libraries
+
+(compile-library "scmobj.sls"
+		 "scmobj.slfasl")
+
+(compile-library "scmobj/utils.sls"
+		 "scmobj/utils.slfasl")
+
+;;; --------------------------------------------------------------------
+
 (compile-library "combinators.sls"
 		 "combinators.slfasl")
-
-(compile-library "variables.sls"
-		 "variables.slfasl")
-
-(compile-library "keywords.sls"
-		 "keywords.slfasl")
 
 (compile-library "irregex.sls"
 		 "irregex.slfasl")
@@ -304,6 +310,9 @@
 
 (compile-library "getopts.sls"
 		 "getopts.slfasl")
+
+(compile-library "libraries.sls"
+		 "libraries.slfasl")
 
 ;;; --------------------------------------------------------------------
 

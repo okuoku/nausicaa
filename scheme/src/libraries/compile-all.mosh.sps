@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -25,7 +25,7 @@
 
 (import (rnrs)
 
-  ;; Basic libraries
+  ;; Core libraries
   (only (cond-expand))
   (only (unimplemented))
   (only (language-extensions))
@@ -36,7 +36,7 @@
   (only (generics))
   (only (nausicaa))
 
-  ;; Other libraries
+  ;; Basic libraries
   (only (profiling))
   (only (conditions))
   (only (enumerations))
@@ -62,8 +62,9 @@
   (only (arrays))
   (only (times-and-dates))
 
-  (only (scmobj))
-  (only (scmobj utils))
+  (only (sentinel))
+  (only (variables))
+  (only (keywords))
 
   (only (deferred-exceptions))
   (only (compensations))
@@ -71,10 +72,14 @@
   (only (cleanup-handlers))
   (only (queues))
   (only (stacks))
+
+  ;;High level libraries
+  (only (libraries))
+
+  (only (scmobj))
+  (only (scmobj utils))
+
   (only (combinators))
-  (only (sentinel))
-  (only (variables))
-  (only (keywords))
   (only (irregex))
   (only (pregexp))
 

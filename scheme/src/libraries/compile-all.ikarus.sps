@@ -25,7 +25,7 @@
 
 (import (rnrs)
 
-  ;; Basic libraries
+  ;; Core libraries
   (only (cond-expand))
   (only (unimplemented))
   (only (language-extensions))
@@ -36,7 +36,7 @@
   (only (generics))
   (only (nausicaa))
 
-  ;; Other libraries
+  ;; Basic libraries
   (only (profiling))
   (only (conditions))
   (only (enumerations))
@@ -62,8 +62,9 @@
   (only (arrays))
   (only (times-and-dates))
 
-  (only (scmobj))
-  (only (scmobj utils))
+  (only (sentinel))
+  (only (variables))
+  (only (keywords))
 
   (only (deferred-exceptions))
   (only (compensations))
@@ -73,10 +74,11 @@
   (only (queues))
   (only (stacks))
 
+  ;;High level libraries.
+  (only (scmobj))
+  (only (scmobj utils))
+
   (only (combinators))
-  (only (sentinel))
-  (only (variables))
-  (only (keywords))
   (only (irregex))
   (only (pregexp))
 
@@ -115,6 +117,7 @@
   (only (email addresses))
 
   (only (getopts))
+  (only (libraries))
 
   (only (armor conditions))
   (only (armor base16))
