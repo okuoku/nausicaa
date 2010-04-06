@@ -84,6 +84,7 @@
 ;;;; data structures
 
 (define-record-type (irregex make-irregex irregex?)
+  (nongenerative nausicaa:irregex:irregex)
   (fields (immutable dfa)
 	  (immutable dfa/search)
 	  (immutable dfa/extract)
