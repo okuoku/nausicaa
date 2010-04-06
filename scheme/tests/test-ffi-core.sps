@@ -25,10 +25,10 @@
 
 
 (import (nausicaa)
-  (foreign ffi)
-  (foreign memory)
-  (foreign cstrings)
-  (foreign errno)
+  (ffi)
+  (ffi memory)
+  (ffi cstrings)
+  (ffi errno)
   (checks)
   (compensations))
 

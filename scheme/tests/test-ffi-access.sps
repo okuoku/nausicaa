@@ -26,9 +26,9 @@
 
 (import (nausicaa)
   (checks)
-  (foreign memory)
-  (foreign memory compensated)
-  (foreign ffi sizeof)
+  (ffi memory)
+  (ffi memory compensated)
+  (ffi sizeof)
   (formations)
   (compensations))
 

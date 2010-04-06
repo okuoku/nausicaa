@@ -26,9 +26,9 @@
 
 (import (nausicaa)
   (checks)
-  (foreign memory)
-  (foreign memory mempool)
-  (foreign memory compensated)
+  (ffi memory)
+  (ffi memory mempool)
+  (ffi memory compensated)
   (compensations))
 
 (check-set-mode! 'report-failed)

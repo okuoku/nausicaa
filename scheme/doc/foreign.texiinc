@@ -1,4 +1,4 @@
-@node foreign
+@node ffi
 @chapter Foreign--functions interface
 
 
@@ -7,12 +7,15 @@ libraries built upon the interfaces provided by the underlying Scheme
 implementations.  The @api{} is exported by the following libraries:
 
 @example
-(foreign memory)
-(foreign ffi)
-(foreign ffi sizeof)
-(foreign cstrings)
-(foreign errno)
+(ffi)
+(ffi ffi sizeof)
+(ffi memory)
+(ffi cstrings)
+(ffi errno)
 @end example
+
+@noindent
+plus a plethora of other sublibraries.
 
 Not all the Scheme implementations provide an @ffi{} usable by Nausicaa;
 only Ikarus, Mosh and Ypsilon are supported.  At present, Nausicaa's
@@ -23,14 +26,14 @@ can try, at installation time, to select a C library pathname with the
 @command{configure} script.
 
 @menu
-* ffi::                         Foreign--functions interface.
-* memory::                      Low level memory handling.
-* cstrings::                    C language strings handling.
-* errno::                       C language system errors.
+* ffi core::                    Foreign--functions interface.
+* ffi memory::                  Low level memory handling.
+* ffi cstrings::                C language strings handling.
+* ffi errno::                   C language system errors.
 @end menu
 
 @c page
-@node ffi
+@node ffi core
 @section Foreign--functions interface
 
 
@@ -40,80 +43,79 @@ the foreign--functions interfaces of the underlying Scheme
 implementations.
 
 @menu
-* ffi libraries::               Installed libraries.
-* ffi conditions::              Condition objects.
-* ffi sizeof::                  Sizes and limits.
-* ffi pointers::                Pointer objects.
-* ffi access::                  Direct access to memory blocks.
-* ffi call::                    Callouts and callbacks.
-* ffi struct::                  Accessing data structures.
-* ffi headers::                 Inspecting foreign header files.
-* ffi generator::               Generating an interface.
+* ffi core libraries::          Installed libraries.
+* ffi core conditions::         Condition objects.
+* ffi core sizeof::             Sizes and limits.
+* ffi core pointers::           Pointer objects.
+* ffi core access::             Direct access to memory blocks.
+* ffi core call::               Callouts and callbacks.
+* ffi core struct::             Accessing data structures.
+* ffi core headers::            Inspecting foreign header files.
+* ffi core generator::          Generating an interface.
 @end menu
 
 @c page
-@node ffi libraries
+@node ffi core libraries
 @subsection Installed libraries
 
 
 The following libraries are installed:
 
 @table @library
-@item foreign ffi sizeof
+@item ffi sizeof
 Exports bindings to constant values like the size of C language data
 types.
 
-@item foreign ffi conditions
+@item ffi conditions
 Definition of condition object related to the foreign--functions
 interface.
 
-@item foreign ffi pointers
+@item ffi pointers
 Exports an interface to memory pointer values.
 
-@item foreign ffi peekers-and-pokers
+@item ffi peekers-and-pokers
 Exports an interface for raw memory access.
 
-@item foreign ffi platform
+@item ffi platform
 Exports an adapter interface to the foreign--functions interfaces of the
 underlying Scheme implementation.  This library is not meant to be used
 directly by client code.
 
-@item foreign ffi primitives
+@item ffi primitives
 Exports a function--based interface to the constructors of callout and
 callback functions.  This library is rarely used by client code.
 
-@item foreign ffi utilities
-User friendly macros to the @api{} of @library{foreign ffi primitives}.
+@item ffi utilities
+User friendly macros to the @api{} of @library{ffi primitives}.
 
-@item foreign ffi
+@item ffi
 Compound library exporting the high--level @api{}.
 
-@item foreign ffi parametrised
+@item ffi parametrised
 Deprecated interface using parameters.
 @end table
 
 @c page
-@node ffi conditions
+@node ffi core conditions
 @subsection Condition objects
 
 
-The bindings described in this section are exported by the
-@library{foreign ffi conditions} library and reexported by the compound
-library @library{foreign ffi}.  There are two kinds of condition
-objects: data conditions, which are meant to hold values; error
-conditions, which are meant to tag condition objects describing the
-cause of the exception.
+The bindings described in this section are exported by the @library{ffi
+conditions} library and reexported by the compound library
+@library{ffi}.  There are two kinds of condition objects: data
+conditions, which are meant to hold values; error conditions, which are
+meant to tag condition objects describing the cause of the exception.
 
 @menu
-* ffi conditions library-name::         Foreign library names.
-* ffi conditions shared-object::        Shared objects.
-* ffi conditions foreign-symbol::       Foreign symbols.
-* ffi conditions opening::              Shared objects opening error.
-* ffi conditions lookup::               Shared objects lookup error.
+* ffi core conditions library-name::    Foreign library names.
+* ffi core conditions shared-object::   Shared objects.
+* ffi core conditions foreign-symbol::  Foreign symbols.
+* ffi core conditions opening::         Shared objects opening error.
+* ffi core conditions lookup::          Shared objects lookup error.
 @end menu
 
 @c page
-@node ffi conditions library-name
+@node ffi core conditions library-name
 @subsubsection Foreign library names
 
 
@@ -142,7 +144,7 @@ Accessor for the field of condition objects of type
 @end defun
 
 @c page
-@node ffi conditions shared-object
+@node ffi core conditions shared-object
 @subsubsection Shared objects
 
 
@@ -170,7 +172,7 @@ Accessor for the field of condition objects of type
 @end defun
 
 @c page
-@node ffi conditions foreign-symbol
+@node ffi core conditions foreign-symbol
 @subsubsection Foreign symbols
 
 
@@ -199,7 +201,7 @@ Accessor for the field of condition objects of type
 @end defun
 
 @c page
-@node ffi conditions opening
+@node ffi core conditions opening
 @subsubsection Shared objects opening error
 
 
@@ -229,7 +231,7 @@ initialised, shared object.
 @end deffn
 
 @c page
-@node ffi conditions lookup
+@node ffi core conditions lookup
 @subsubsection Shared objects lookup error
 
 
@@ -259,13 +261,12 @@ returned value must be the pointer object referencing the entity.
 @end deffn
 
 @c page
-@node ffi sizeof
+@node ffi core sizeof
 @subsection Sizes and limits
 
 
-The @library{foreign ffi sizeof} library exports a set of bindings to
-allow interface libraries to be aware of C language type sizes and
-limits.
+The @library{ffi sizeof} library exports a set of bindings to allow
+interface libraries to be aware of C language type sizes and limits.
 
 
 @defvr Constant pointer-integer
@@ -391,7 +392,7 @@ respectively.
 @end defvr
 
 @c page
-@node ffi pointers
+@node ffi core pointers
 @subsection Pointer objects
 
 
@@ -402,8 +403,8 @@ the specific type used to represent them depends upon the underlying
 Scheme implementation.  The only pointer constructor is
 @func{integer->pointer}.
 
-The following bindings are exported by @library{foreign ffi pointers}
-and re--exported by @library{foreign ffi} and @library{foreign memory}.
+The following bindings are exported by @library{ffi pointers} and
+re--exported by @library{ffi} and @library{ffi memory}.
 
 
 @defun pointer? @var{x}
@@ -496,26 +497,26 @@ With the single exception of @func{pointer<>?}: All the functions return
 @end defun
 
 @c page
-@node ffi access
+@node ffi core access
 @subsection Direct access to memory blocks
 
 
 A rich set of procedures is implemented to access directly memory blocks
 referenced by pointer values.  The bindings described in this section
-are exported by @library{foreign ffi peekers-and-pokers} and
-re--exported by @library{foreign ffi} and @library{foreign memory}.
+are exported by @library{ffi peekers-and-pokers} and re--exported by
+@library{ffi} and @library{ffi memory}.
 
 @menu
-* ffi access intro::            Introduction.
-* ffi peekers::                 Peeking values.
-* ffi pokers::                  Poking values.
-* ffi array peekers::           Peeking values into arrays.
-* ffi array pokers::            Poking values into arrays.
-* ffi array pointers::          Computing pointers into arrays.
+* ffi core access intro::       Introduction.
+* ffi core peekers::            Peeking values.
+* ffi core pokers::             Poking values.
+* ffi core array peekers::      Peeking values into arrays.
+* ffi core array pokers::       Poking values into arrays.
+* ffi core array pointers::     Computing pointers into arrays.
 @end menu
 
 @c page
-@node ffi access intro
+@node ffi core access intro
 @subsubsection Introduction
 
 
@@ -528,8 +529,8 @@ The names of the formal arguments follow these conventions:
 
 @table @var
 @item pointer
-It must be a value used to reference a memory block.  @ref{ffi pointers,
-Pointer objects}
+It must be a value used to reference a memory block.  @ref{ffi core
+pointers, Pointer objects}.
 
 @item offset
 It must be an exact integer, a fixnum, representing the offset of a byte
@@ -544,13 +545,13 @@ range that is left--inclusive and right--exclusive, that is @math{[1,
 @end itemize
 
 @c page
-@node ffi peekers
+@node ffi core peekers
 @subsubsection Peeking values
 
 
 When adding an offset to a pointer: All the following functions
 @strong{do not} scale the offset to the size of the peeked value.
-Pointer arithmetics is performed with byte offsets.  @ref{ffi array
+Pointer arithmetics is performed with byte offsets.  @ref{ffi core array
 peekers} for functions that do scale the index.
 
 
@@ -749,13 +750,13 @@ systems.
 @end deffn
 
 @c page
-@node ffi pokers
+@node ffi core pokers
 @subsubsection Poking values
 
 
 When adding an offset to a pointer: All the following functions
 @strong{do not} scale the offset to the size of the poked value.
-Pointer arithmetics is performed with byte offsets.  @ref{ffi array
+Pointer arithmetics is performed with byte offsets.  @ref{ffi core array
 pokers}, for functions that do scale the index.
 
 
@@ -952,7 +953,7 @@ systems.
 @end deffn
 
 @c page
-@node ffi array peekers
+@node ffi core array peekers
 @subsubsection Peeking values into arrays
 
 
@@ -962,7 +963,7 @@ of the first byte taking into account the element stride of the data
 type.
 
 To allocate an array of a given type, we can compute the correct size
-using the @samp{sizeof-*-array} bindings.  @ref{ffi sizeof,
+using the @samp{sizeof-*-array} bindings.  @ref{ffi core sizeof,
 sizeof-char-array}
 
 
@@ -1148,7 +1149,7 @@ it is @math{4} bytes on @math{32}-bit systems and @math{8} bytes on
 @end defun
 
 @c page
-@node ffi array pokers
+@node ffi core array pokers
 @subsubsection Poking values into arrays
 
 
@@ -1158,7 +1159,7 @@ of the first byte taking into account the element stride of the data
 type.
 
 To allocate an array of a given type, we can compute the correct size
-using the @samp{sizeof-*-array} bindings.  @ref{ffi sizeof,
+using the @samp{sizeof-*-array} bindings.  @ref{ffi core sizeof,
 sizeof-char-array}
 
 
@@ -1343,7 +1344,7 @@ bytes on @math{64}-bit systems.  @var{pointer-value} must be a
 @end defun
 
 @c page
-@node ffi array pointers
+@node ffi core array pointers
 @subsubsection Computing pointers into arrays
 
 
@@ -1514,22 +1515,22 @@ referenced by @var{pointer}.
 @end defun
 
 @c page
-@node ffi call
+@node ffi core call
 @subsection High level interface
 
 
 @menu
-* ffi call shared::             Dynamic loading of libraries.
-* ffi call types::              Interface to C language types.
-* ffi call out::                Calling foreign functions.
-* ffi call back::               Calling Scheme functions.
-* ffi call utilities::          Utility macros.
-* ffi call parametrised::       Auxiliary parametrised interface.
-* ffi call platform::           Low level interface.
+* ffi core call shared::        Dynamic loading of libraries.
+* ffi core call types::         Interface to C language types.
+* ffi core call out::           Calling foreign functions.
+* ffi core call back::          Calling Scheme functions.
+* ffi core call utilities::     Utility macros.
+* ffi core call parametrised::  Auxiliary parametrised interface.
+* ffi core call platform::      Low level interface.
 @end menu
 
 @c page
-@node ffi call shared
+@node ffi core call shared
 @subsubsection Dynamic loading of libraries
 
 
@@ -1539,9 +1540,8 @@ shared object can be opened, but not closed.  The @api{} makes use of a
 Scheme object to represent a shared object; it allows access to all the
 functions and variables exported by the library.
 
-The following bindings are exported by the @library{foreign ffi
-primitives} library and reexported by the @library{foreign ffi} compound
-library.
+The following bindings are exported by the @library{ffi primitives}
+library and reexported by the @library{ffi} compound library.
 
 
 @defun open-shared-object @var{library-name}
@@ -1549,8 +1549,8 @@ Open a foreign shared library on the host system and return a shared
 object; shared objects are disjoint from the other Scheme object types.
 
 If opening the shared library fails: throw a continuable exception with
-@func{raise-shared-object-opening-error}.  @ref{ffi conditions opening,
-Shared objects opening error}.
+@func{raise-shared-object-opening-error}.  @ref{ffi core conditions
+opening, Shared objects opening error}.
 
 @var{library-name} must be a Scheme string or symbol representing the
 file name or pathname to be opened; examples: @samp{zlib.so},
@@ -1573,12 +1573,12 @@ Return true if @var{obj} is a shared object.
 @defun lookup-shared-object @var{shared} @var{foreign-symbol}
 Search the shared object referenced by @var{shared} for an exported
 symbol matching @var{foreign-symbol}, which must be a Scheme symbol or
-string, and return its address as a pointer object.  @ref{ffi pointers,
-Pointer objects}.
+string, and return its address as a pointer object.  @ref{ffi core
+pointers, Pointer objects}.
 
 If the foreign symbol is not found: raise a continuable exception with
-@func{raise-shared-object-lookup-error}.  @ref{ffi conditions lookup,
-Shared objects lookup error}.
+@func{raise-shared-object-lookup-error}.  @ref{ffi core conditions
+lookup, Shared objects lookup error}.
 @end defun
 
 
@@ -1590,7 +1590,7 @@ with the @option{--with-libc-shared-object} option to the
 @end defvr
 
 @c page
-@node ffi call types
+@node ffi core call types
 @subsubsection Interface to C language types
 
 
@@ -1613,7 +1613,8 @@ unsigned-int  unsigned-long  unsigned-long-long
 Remember that C strings (zero terminated arrays of @samp{char}) must be
 converted from/to Scheme strings with @func{string->cstring} and
 @func{cstring->string}, and exchanged with foreign functions as
-pointers.  @ref{cstrings conversion, Converting to and from cstrings}
+pointers.  @ref{ffi cstrings conversion, Converting to and from
+cstrings}.
 
 @float Table
 @multitable {012345678901234567} {0123456789012345678} {01234567890123456789012}
@@ -1825,7 +1826,7 @@ revision 6404 (last updated Tue Nov 17, 2009).}
 @end float
 
 
-The following bindings are exported by the @library{foreign ffi
+The following bindings are exported by the @library{ffi
 clang-data-types} library.
 
 
@@ -1865,13 +1866,12 @@ used by client code.
 @end defun
 
 @c page
-@node ffi call out
+@node ffi core call out
 @subsubsection Calling foreign functions
 
 
-The following bindings are exported by the @library{foreign ffi
-primitives} library and reexported by the @library{foreign ffi} compound
-library.
+The following bindings are exported by the @library{ffi primitives}
+library and reexported by the @library{ffi} compound library.
 
 
 @defun make-c-callout @var{ret-type} @var{address} @var{arg-types}
@@ -1929,8 +1929,8 @@ Beware that, sometimes, the exported symbols are different from the ones
 we write in C language code to call a function.  If the foreign symbol
 is not found, a continuable exception is raised with
 @func{raise-shared-object-lookup-error}; returning to the continuation
-must return the address of the function.  @ref{ffi conditions lookup,
-Shared objects lookup error}.
+must return the address of the function.  @ref{ffi core conditions
+lookup, Shared objects lookup error}.
 
 @quotation
 @strong{For Unix} One way to discover the names of symbols exported by a
@@ -1949,14 +1949,14 @@ deflateEnd
 @end defun
 
 @c page
-@node ffi call back
+@node ffi core call back
 @subsubsection Calling Scheme functions
 
 
-The following bindings are exported by the @library{foreign ffi
-primitives} library and reexported by the @library{foreign ffi} compound
-library.  As example, the following form defines a callback accepting
-three @samp{int} as arguments and returning an @samp{int}:
+The following bindings are exported by the @library{ffi primitives}
+library and reexported by the @library{ffi} compound library.  As
+example, the following form defines a callback accepting three
+@samp{int} as arguments and returning an @samp{int}:
 
 @example
 (define (fn a b c)
@@ -2010,13 +2010,12 @@ releasing such a resource.
 @end defun
 
 @c page
-@node ffi call utilities
+@node ffi core call utilities
 @subsubsection Utility macros
 
 
-The following bindings are exported by the @library{foreign ffi
-utilities} library and reexported by the compound library
-@library{foreign ffi}.
+The following bindings are exported by the @library{ffi utilities}
+library and reexported by the compound library @library{ffi}.
 
 
 @deffn Syntax define-shared-object @ameta{name} @ameta{library-name}
@@ -2141,12 +2140,12 @@ An interface to the above macros.  Example:
 @end deffn
 
 @c page
-@node ffi call parametrised
+@node ffi core call parametrised
 @subsubsection Auxiliary parametrised interface
 
 
-The following bindings are exported by the @library{foreign ffi
-parametrised} library.  This interface is deprecated.
+The following bindings are exported by the @library{ffi parametrised}
+library.  This interface is deprecated.
 
 
 @deffn Parameter current-shared-object
@@ -2211,13 +2210,13 @@ other, miscellaneous, examples from the C standard library and the
 
 
 @c page
-@node ffi call platform
+@node ffi core call platform
 @subsubsection Low level interface
 
 
-The following bindings are exported by the @library{foreign ffi
-platform} library.  This interface adapts the Scheme implementation
-@ffi{} to the requirements of the Nausicaa distribution.
+The following bindings are exported by the @library{ffi platform}
+library.  This interface adapts the Scheme implementation @ffi{} to the
+requirements of the Nausicaa distribution.
 
 
 @defun open-shared-object @var{library-name}
@@ -2280,7 +2279,7 @@ other ones; in the latter case, calling this function does nothing.
 @end defun
 
 @c page
-@node ffi struct
+@node ffi core struct
 @subsection Accessing data structures
 
 
@@ -2295,13 +2294,13 @@ block.
 
 @item
 The C language data type of the field.  Knowing the data type is
-equivalent to knowing the required peeker and poker.  @ref{ffi access,
-Direct access to memory blocks}
+equivalent to knowing the required peeker and poker.  @ref{ffi core
+access, Direct access to memory blocks}
 @end itemize
 
 Unless otherwise specified, the following bindings are exported by the
-@library{foreign ffi primitives} library and reexported by the compound
-library @library{foreign ffi}.
+@library{ffi primitives} library and reexported by the compound library
+@library{ffi}.
 
 
 @deffn Syntax define-c-struct-accessor @ameta{accessor-name} @ameta{field-offset} @ameta{foreign-type-accessor}
@@ -2319,9 +2318,9 @@ in the structure.  Example:
 
 @meta{accessor-name} must be a Scheme symbol.
 @meta{foreign-type-accessor} must be a peeker among the ones defined in
-@ref{ffi peekers, Peeking values}.  @meta{field-offset} must be an exact
-non--negative integer, representing the offset of the field's first byte
-in the data structure.
+@ref{ffi core peekers, Peeking values}.  @meta{field-offset} must be an
+exact non--negative integer, representing the offset of the field's
+first byte in the data structure.
 
 As a special case, if @meta{field-offset} is @false{}: The defined macro
 expands into an invocation of @func{raise-unimplemented-error}, which
@@ -2348,9 +2347,9 @@ wraps the poker @meta{foreign-type-mutator} to mutate the field at
 
 @meta{mutator-name} must be a Scheme symbol.
 @meta{foreign-type-mutator} must be a poker among the ones defined in
-@ref{ffi pokers, Poking values}.  @meta{field-offset} must be an exact
-non--negative integer, representing the offset of the field's first byte
-in the data structure.
+@ref{ffi core pokers, Poking values}.  @meta{field-offset} must be an
+exact non--negative integer, representing the offset of the field's
+first byte in the data structure.
 
 As a special case, if @meta{field-offset} is @false{}: The defined macro
 expands into an invocation of @func{raise-unimplemented-error}, which
@@ -2407,7 +2406,7 @@ next_out        avail_out       total_out
 
 @noindent
 @samp{next_in} and @samp{next_out} are pointers, while the others are
-unsigned integers; using appropriate inspection tools (@pxref{ffi
+unsigned integers; using appropriate inspection tools (@pxref{ffi core
 headers, Inspecting foreign header files}) we can determine the
 associations in the following table.
 
@@ -2520,7 +2519,7 @@ and then use code like the following:
 
 It is often tedious to accees foreign data structure fields with the
 accessors and mutators defined by the previous macros, so the library
-@library{foreign ffi utilities} exports the following bindings.
+@library{ffi utilities} exports the following bindings.
 
 
 @deffn Syntax define-struct-fields @ameta{struct} @ameta{field-spec} ...
@@ -2554,7 +2553,7 @@ we prepare accessors and mutators in an appropriate library:
     struct-xmlChSRange-high-set!
     struct-xmlChSRange-high-ref)
   (import (rnrs)
-    (foreign ffi))
+    (ffi))
   (define-c-struct-accessor-and-mutator
     struct-xmlChSRange-low-set!
     struct-xmlChSRange-low-ref
@@ -2576,8 +2575,8 @@ then we define identifier macro builders in another library:
 (library (xml libxml2 structs)
   (export define-xmlChSRange)
   (import (rnrs)
-    (foreign ffi)
-    (foreign ffi utilities)
+    (ffi)
+    (ffi utilities)
     (xml libxml2 sizeof))
   (define-struct-fields xmlChSRange
     (high high)
@@ -2640,7 +2639,7 @@ we prepare accessors and mutators in an appropriate library:
     struct-xmlChSRange-high-set!
     struct-xmlChSRange-high-ref)
   (import (rnrs)
-    (foreign ffi))
+    (ffi))
   (define-c-struct-accessor-and-mutator
     struct-xmlChSRange-low-set!
     struct-xmlChSRange-low-ref
@@ -2662,8 +2661,8 @@ then we define identifier macro builders in another library:
 (library (xml libxml2 structs)
   (export with-struct-xmlChSRange)
   (import (rnrs)
-    (foreign ffi)
-    (foreign ffi utilities)
+    (ffi)
+    (ffi utilities)
     (xml libxml2 sizeof))
   (define-with-struct xmlChSRange
     (high high)
@@ -2696,7 +2695,7 @@ struct-@cmeta{struct}-@cmeta{field}-ref
 
 
 @c page
-@node ffi headers
+@node ffi core headers
 @subsection Inspecting foreign header files
 
 
@@ -2712,23 +2711,27 @@ which should be used to process a Scheme library for substitution of
 @samp{@@...@@} symbols.
 
 @menu
-* ffi headers setup::           Setting up the C language environment.
-* ffi headers includes::        Including header files.
-* ffi headers valueof::         Determining the value of expressions.
-* ffi headers sizeof::          Determining the size of data types.
-* ffi headers typeof::          Determining the basic type of data types.
-* ffi headers alignof::         Determining the alignment of data types.
-* ffi headers strideof::        Determining the array stride of data types.
-* ffi headers offsetof::        Determining the offset of fields in data
-                                structures.
-* ffi headers access::          Determining the accessors of data types.
-* ffi headers inspect::         Full inspection of data types.
-* ffi headers string::          Determining string values.
-* ffi headers common::          Common groups of tests.
+* ffi core headers setup::      Setting up the C language environment.
+* ffi core headers includes::   Including header files.
+* ffi core headers valueof::    Determining the value of expressions.
+* ffi core headers sizeof::     Determining the size of data types.
+* ffi core headers typeof::     Determining the basic type of data
+                                types.
+* ffi core headers alignof::    Determining the alignment of data
+                                types.
+* ffi core headers strideof::   Determining the array stride of data
+                                types.
+* ffi core headers offsetof::   Determining the offset of fields in
+                                data structures.
+* ffi core headers access::     Determining the accessors of data
+                                types.
+* ffi core headers inspect::    Full inspection of data types.
+* ffi core headers string::     Determining string values.
+* ffi core headers common::     Common groups of tests.
 @end menu
 
 @c page
-@node ffi headers setup
+@node ffi core headers setup
 @subsubsection Setting up the C language environment
 
 
@@ -2745,7 +2748,7 @@ compiler to inspect system and libraries facilities.
 @end deffn
 
 @c page
-@node ffi headers includes
+@node ffi core headers includes
 @subsubsection Including header files
 
 
@@ -2824,7 +2827,7 @@ m4_define([NAUSICAA_CUSTOM_INCLUDES],[
 @end deffn
 
 @c page
-@node ffi headers valueof
+@node ffi core headers valueof
 @subsubsection Determining the value of expressions
 
 
@@ -2892,7 +2895,7 @@ NAUSICAA_VALUEOF_TEST([@var{symbol}],[@var{symbol}],,[@var{headers}])
 @end deffn
 
 @c page
-@node ffi headers sizeof
+@node ffi core headers sizeof
 @subsubsection Determining the size of data types
 
 
@@ -2947,7 +2950,7 @@ included in the test program.
 @end deffn
 
 @c page
-@node ffi headers typeof
+@node ffi core headers typeof
 @subsubsection Determining the basic type of data types
 
 
@@ -3127,7 +3130,7 @@ macro @samp{NAUSICAA_SIZEOF_TEST} or an equivalent macro.
 @end deffn
 
 @c page
-@node ffi headers alignof
+@node ffi core headers alignof
 @subsubsection Determining the alignment of data types
 
 
@@ -3154,7 +3157,7 @@ included in the test program.
 @end deffn
 
 @c page
-@node ffi headers strideof
+@node ffi core headers strideof
 @subsubsection Determining the array stride of data types
 
 
@@ -3183,7 +3186,7 @@ included in the test program.
 @end deffn
 
 @c page
-@node ffi headers offsetof
+@node ffi core headers offsetof
 @subsubsection Determining the offset of fields in data structures
 
 
@@ -3229,7 +3232,7 @@ included in the test program.
 @end deffn
 
 @c page
-@node ffi headers access
+@node ffi core headers access
 @subsubsection Determining the accessors of data types
 
 
@@ -3325,7 +3328,7 @@ long-double             pointer
 @end deffn
 
 @c page
-@node ffi headers inspect
+@node ffi core headers inspect
 @subsubsection Full inspection of data types
 
 
@@ -3379,15 +3382,15 @@ Perform an inspection for a C language field structure type definition,
 but only to acquire the offset.  This macro is required when we need to
 access a structure field through a pointer to it; an example is the
 @samp{d_name} field of @samp{struct dirent} from @file{dirent.h}.
-@ref{ffi struct, Accessing data structures} for a discussion of this
-case.
+@ref{ffi core struct, Accessing data structures} for a discussion of
+this case.
 
 Only the offset of the field (output variable
 @samp{OFFSETOF_<@var{SUFFIX}>}) is defined.
 @end deffn
 
 @c page
-@node ffi headers string
+@node ffi core headers string
 @subsubsection Determining string values
 
 
@@ -3416,7 +3419,7 @@ included in the test program.
 @end deffn
 
 @c page
-@node ffi headers common
+@node ffi core headers common
 @subsubsection Common groups of tests
 
 
@@ -3632,15 +3635,15 @@ EKEYREJECTED    EOWNERDEAD      ENOTRECOVERABLE
 @end deffn
 
 @c page
-@node ffi generator
+@node ffi core generator
 @subsection Generating an interface
 
 
-This section documents the @library{foreign ffi inspector-maker}
-library, which provides some automation in the generation of the
-infrastructure required by interfaces to foreign, C language, libraries.
-At present this library is for internal use, so Nausicaa's end users can
-just ignore it.
+This section documents the @library{ffi inspector-maker} library, which
+provides some automation in the generation of the infrastructure
+required by interfaces to foreign, C language, libraries.  At present
+this library is for internal use, so Nausicaa's end users can just
+ignore it.
 
 The library is meant to be loaded by a Scheme program, which generates a
 set of files required by the interface; the program's file should be in
@@ -3676,8 +3679,8 @@ values for the @code{@@...@@} symbols.
 
 @item src/libraries/xml/libxml2/structs.sls
 A library defining macros which in turn define identifier syntaxes to
-access foreign data structure fields.  @ref{ffi struct} for details on
-@func{define-struct-fields} and @func{define-with-struct}.
+access foreign data structure fields.  @ref{ffi core struct} for details
+on @func{define-struct-fields} and @func{define-with-struct}.
 @end table
 
 @c ------------------------------------------------------------
@@ -4066,7 +4069,7 @@ introduced with @func{sizeof-lib}.  Example:
 @end deffn
 
 @c page
-@node memory
+@node ffi memory
 @section Low level memory handling
 
 
@@ -4076,42 +4079,42 @@ subjected to garbage collection.  It is a compound library re--exporting
 @api{}s from the following component libraries:
 
 @example
-(foreign memory alloc)
-(foreign memory bytevectors)
-(foreign memory caches)
-(foreign memory conditions)
-(foreign memory memblocks)
-(foreign memory operations)
-(foreign ffi peekers-and-pokers)
-(foreign ffi pointers)
+(ffi memory alloc)
+(ffi memory bytevectors)
+(ffi memory caches)
+(ffi memory conditions)
+(ffi memory memblocks)
+(ffi memory operations)
+(ffi peekers-and-pokers)
+(ffi pointers)
 @end example
 
 More libraries export other memory related @api{}s.
 
 @menu
-* memory conditions::           Out of memory errors.
-* memory alloc::                Allocation functions.
-* memory blocks::               Memory blocks.
-* memory cache::                Caching memory blocks.
-* memory compensate::           Compensations.
-* memory operations::           Operations.
-* memory bytevectors::          Bytevectors conversion.
+* ffi memory conditions::       Out of memory errors.
+* ffi memory alloc::            Allocation functions.
+* ffi memory blocks::           Memory blocks.
+* ffi memory cache::            Caching memory blocks.
+* ffi memory compensate::       Compensations.
+* ffi memory operations::       Operations.
+* ffi memory bytevectors::      Bytevectors conversion.
 
 Independent libraries
 
-* memory mempool::              Allocation from a memory pool.
-* memory refcount::             Reference counting.
-* memory membuffer::            Memory buffers.
-* memory guarded::              Guarded memory allocation.
+* ffi memory mempool::          Allocation from a memory pool.
+* ffi memory refcount::         Reference counting.
+* ffi memory membuffer::        Memory buffers.
+* ffi memory guarded::          Guarded memory allocation.
 @end menu
 
 @c page
-@node memory conditions
+@node ffi memory conditions
 @subsection Out of memory errors
 
 
-The following bindings are exported by @library{foreign memory
-conditions} and re--exported by @library{foreign memory}.
+The following bindings are exported by @library{ffi memory conditions}
+and re--exported by @library{ffi memory}.
 
 
 @deftp Condition {&out-of-memory}
@@ -4208,32 +4211,31 @@ requested block of memory (allocated by the exception handler).
 @end defun
 
 @c page
-@node memory alloc
+@node ffi memory alloc
 @subsection Allocation functions
 
 
 The memory alloction @api{} described in this section is exported by
-@library{foreign memory alloc} and re--exported by @library{foreign
-memory}.
+@library{ffi memory alloc} and re--exported by @library{ffi memory}.
 
 @menu
-* memory alloc system::         System functions.
-* memory alloc platform::       Platform functions.
-* memory alloc primitive::      Primitive functions.
-* memory alloc high::           Exception raising functions.
-* memory alloc examples::       Memory allocation examples.
+* ffi memory alloc system::     System functions.
+* ffi memory alloc platform::   Platform functions.
+* ffi memory alloc primitive::  Primitive functions.
+* ffi memory alloc high::       Exception raising functions.
+* ffi memory alloc examples::   Memory allocation examples.
 @end menu
 
 @c page
-@node memory alloc system
+@node ffi memory alloc system
 @subsubsection System functions
 
 
 The system @api{} deals with pointer values as exact integers; it is a
 very raw @api{} which should be used only when absolutely required.
-Many functions in @library{foreign memory} require pointers to be of
-type @samp{pointer}; sometimes, though, foreign libraries require the
-raw pointer value, for example to be stored in structure fields.
+Many functions in @library{ffi memory} require pointers to be of type
+@samp{pointer}; sometimes, though, foreign libraries require the raw
+pointer value, for example to be stored in structure fields.
 
 For some Scheme implementations the @samp{system-} @api{} is a little
 faster than the @samp{platform-} one, while for others it is a little
@@ -4270,7 +4272,7 @@ value expressed as exact integer.
 @end defun
 
 @c page
-@node memory alloc platform
+@node ffi memory alloc platform
 @subsubsection Platform functions
 
 
@@ -4309,7 +4311,7 @@ memory referenced by @var{pointer}.  The return value is unspecified.
 @end defun
 
 @c page
-@node memory alloc primitive
+@node ffi memory alloc primitive
 @subsubsection Primitive functions
 
 
@@ -4365,7 +4367,7 @@ The parameter is preset to @func{platform-free}.
 @end deffn
 
 @c page
-@node memory alloc high
+@node ffi memory alloc high
 @subsubsection Exception raising functions
 
 
@@ -4373,8 +4375,8 @@ The parameter is preset to @func{platform-free}.
 @defunx realloc @var{pointer} @var{new-number-of-bytes}
 @defunx calloc @var{count} @var{element-size}
 Wrappers for the corresponding @samp{primitive-} functions that raise a
-continuable @condition{memory-request} condition in case of error.  Blocks
-of memory allocated with these functions can be freed with
+continuable @condition{memory-request} condition in case of error.
+Blocks of memory allocated with these functions can be freed with
 @func{primitive-free}.
 
 In case of error, it is fine to make the exception handler return to the
@@ -4382,7 +4384,7 @@ continuation a pointer to an allocated block of memory.
 @end defun
 
 @c page
-@node memory alloc examples
+@node ffi memory alloc examples
 @subsubsection Memory allocation examples
 
 
@@ -4411,8 +4413,8 @@ another is to use a compensation (@pxref{compensations}):
 @end example
 
 @noindent
-another method, if supported, is to use @func{malloc/guarded},
-@ref{memory guarded, guarded-malloc}
+another method, if supported, is to use @func{malloc/guarded}.  @ref{ffi
+memory guarded, guarded-malloc}
 
 To test memory allocation failure we can do:
 
@@ -4444,26 +4446,26 @@ To log memory allocations we can do:
 @end example
 
 @c page
-@node memory blocks
+@node ffi memory blocks
 @subsection Memory blocks
 
 
-The bindings described in this section are exported by @library{foreign
-memory memblocks} and reexported by @library{foreign memory}; a number
-of libraries in the @library{foreign memory ---} hierarchy makes use of
-this library.  The library is built on top of @library{classes}.
+The bindings described in this section are exported by @library{ffi
+memory memblocks} and reexported by @library{ffi memory}; a number of
+libraries in the @library{ffi memory ---} hierarchy makes use of this
+library.  The library is built on top of @library{classes}.
 
 @menu
-* memory blocks type::          Record type definition.
-* memory blocks clone::         Duplicating blocks.
-* memory blocks conversion::    Conversion between blocks and other
-                                objects.
-* memory blocks portions::      Dealing with block portions.
-* memory blocks misc::          Miscellaneous stuff.
+* ffi memory blocks type::        Record type definition.
+* ffi memory blocks clone::       Duplicating blocks.
+* ffi memory blocks conversion::  Conversion between blocks and other
+                                  objects.
+* ffi memory blocks portions::    Dealing with block portions.
+* ffi memory blocks misc::        Miscellaneous stuff.
 @end menu
 
 @c page
-@node memory blocks type
+@node ffi memory blocks type
 @subsubsection Record type definition
 
 
@@ -4515,7 +4517,7 @@ Field accessors and mutators.
 @end defun
 
 @c page
-@node memory blocks clone
+@node ffi memory blocks clone
 @subsubsection Duplicating blocks
 
 
@@ -4530,11 +4532,11 @@ record.
 Return a new @class{memblock} record holding a newly allocated memory
 block equal to the one referenced by @var{mb}.  The new block is
 allocated with @var{malloc}, which must be a function like @func{malloc}
-from @library{foreign memory alloc}.
+from @library{ffi memory alloc}.
 @end defun
 
 @c page
-@node memory blocks conversion
+@node ffi memory blocks conversion
 @subsubsection Conversion between blocks and other objects
 
 
@@ -4547,13 +4549,13 @@ purposes.
 
 When converting from a string, the new memory block is allocated with
 @var{malloc}, which must be a function like @func{malloc} from
-@library{foreign memory alloc}.
+@library{ffi memory alloc}.
 
 When converting to a string, the returned value is in upper case.
 @end defun
 
 @c page
-@node memory blocks portions
+@node ffi memory blocks portions
 @subsubsection Dealing with block portions
 
 
@@ -4617,7 +4619,7 @@ The returned block has @code{alloc-size} set to @false{}.
 @end defun
 
 @c page
-@node memory blocks misc
+@node ffi memory blocks misc
 @subsubsection Miscellaneous stuff
 
 
@@ -4627,14 +4629,14 @@ and zero size; it is meant to be used as sentinel value.
 @end defun
 
 @c page
-@node memory cache
+@node ffi memory cache
 @subsection Caching memory blocks
 
 
-The following bindings are exported by @library{foreign memory caches}
-and re--exported by @library{foreign memory}.  This library makes use of
-@class{memblock} records, whose interface is exported by
-@library{foreign memory memblocks}.
+The following bindings are exported by @library{ffi memory caches} and
+re--exported by @library{ffi memory}.  This library makes use of
+@class{memblock} records, whose interface is exported by @library{ffi
+memory memblocks}.
 
 
 @defun make-block-cache @var{number-of-bytes} @var{max-depth}
@@ -4830,7 +4832,7 @@ at the end of the world, if we feel like it, we can do:
 @end defun
 
 @c page
-@node memory compensate
+@node ffi memory compensate
 @subsection Compensations
 
 
@@ -4838,11 +4840,10 @@ The functions described here make use of compensation stacks to handle
 semi--automatice release of allocated memory.  @ref{compensations,
 Compensation stacks}
 
-The following bindings are exported by @library{foreign memory
-compensated} and re--exported by @library{foreign memory}.  This library
-makes internal use of @library{foreign memory caches}; the @api{}
-requires also the @library{compensations} and @library{foreign memory
-memblocks} libraries.
+The following bindings are exported by @library{ffi memory compensated}
+and re--exported by @library{ffi memory}.  This library makes internal
+use of @library{ffi memory caches}; the @api{} requires also the
+@library{compensations} and @library{ffi memory memblocks} libraries.
 
 
 @defun malloc/compensated @var{number-of-bytes}
@@ -4906,12 +4907,12 @@ environment of the current compensations stack.
 @end defun
 
 @c page
-@node memory operations
+@node ffi memory operations
 @subsection Operations
 
 
-The following bindings are exported by @library{foreign memory
-operations} and re--exported by @library{foreign memory}.
+The following bindings are exported by @library{ffi memory operations}
+and re--exported by @library{ffi memory}.
 
 
 @defun memcpy @var{dest-pointer} @var{source-pointer} @var{number-of-bytes}
@@ -4944,14 +4945,14 @@ return value is zero.
 @end defun
 
 @c page
-@node memory bytevectors
+@node ffi memory bytevectors
 @subsection Bytevectors conversion
 
 
-The following bindings are exported by @library{foreign memory
-bytevectors} and re--exported by @library{foreign memory}.  The @api{}
-requires the @library{foreign memory memblocks} library when
-@class{memblock} records are used.
+The following bindings are exported by @library{ffi memory bytevectors}
+and re--exported by @library{ffi memory}.  The @api{} requires the
+@library{ffi memory memblocks} library when @class{memblock} records are
+used.
 
 In the implementation of the following functions:
 
@@ -5035,7 +5036,7 @@ is copied starting at @var{offset} from the beginning of the block.
 @end defun
 
 @c page
-@node memory mempool
+@node ffi memory mempool
 @subsection Allocation from a memory pool
 
 
@@ -5045,8 +5046,8 @@ contiguously from a preallocated memory block accessed through a
 in the status of the pool.  When using this allocator there is no need
 to release individual blocks: Releasing the pool releases all of them.
 
-The following bindings are exported by @library{foreign memory
-mempool}.  The library is built on top of @library{classes}.
+The following bindings are exported by @library{ffi memory mempool}.
+The library is built on top of @library{classes}.
 
 
 @deftp Class <mempool>
@@ -5094,8 +5095,8 @@ pointer to the first allocated byte, or @false{} if there is not enough
 room in the pool.
 
 Notice that this function has the correct interface to be used as value
-for the @func{primitive-malloc-function} parameter.  @ref{memory alloc,
-Allocation functions}
+for the @func{primitive-malloc-function} parameter.  @ref{ffi memory
+alloc, Allocation functions}
 @end defun
 
 
@@ -5109,8 +5110,8 @@ Example:
 
 @example
 (import (nausicaa)
-  (foreign memory)
-  (foreign memory mempool))
+  (ffi memory)
+  (ffi memory mempool))
 
 (define pool
   (make-<mempool> (malloc 4096) 4096))
@@ -5129,8 +5130,8 @@ or using compensations:
 
 @example
 (import (nausicaa)
-  (foreign memory compensate)
-  (foreign memory mempool)
+  (ffi memory compensate)
+  (ffi memory mempool)
   (compensations))
 
 (with-compensations
@@ -5142,7 +5143,7 @@ or using compensations:
 @end example
 
 @c page
-@node memory refcount
+@node ffi memory refcount
 @subsection Reference counting
 
 
@@ -5162,7 +5163,7 @@ pointer returned by MALLOC/REFCOUNT
 the reference counter is handled as an @code{unsigned long} and it is
 located at a negative offset from the address we use to access data.
 
-The following bindings are exported by @library{foreign memory refcount}.
+The following bindings are exported by @library{ffi memory refcount}.
 
 
 @defun malloc/refcount @var{number-of-bytes}
@@ -5217,12 +5218,12 @@ usage example with compensations (@pxref{compensations}):
 @end example
 
 @c page
-@node memory membuffer
+@node ffi memory membuffer
 @subsection Memory buffers
 
 
-The following bindings are exported by @library{foreign memory
-membuffers}; the library is built on top of @class{classes}.
+The following bindings are exported by @library{ffi memory membuffers};
+the library is built on top of @class{classes}.
 
 
 @deftp Class <membuffer>
@@ -5358,13 +5359,13 @@ Field accessors for condition objects of type
 @end defun
 
 @c page
-@node memory guarded
+@node ffi memory guarded
 @subsection Guarded memory allocation
 
 
 The functions described in this section are usable only when the Scheme
 implementation provides guardians (only Ikarus at present, Tue Oct 13,
-2009).  The following bindings are exported by @library{foreign memory
+2009).  The following bindings are exported by @library{ffi memory
 guarded-malloc}.
 
 
@@ -5385,24 +5386,24 @@ Like @func{malloc/guarded} but makes use of @func{calloc}.
 
 
 @c page
-@node cstrings
+@node ffi cstrings
 @section C language strings handling
 
 
 A @dfn{C string} is a block of memory holding a string of characters
 terminated by a zero byte.  The functions described in this chapter are
-exported by the @library{foreign cstrings} library.
+exported by the @library{ffi cstrings} library.
 
 @menu
-* cstrings constants::          Constant values.
-* cstrings inspection::         Inspecting cstrings.
-* cstrings operations::         Acting upon cstrings.
-* cstrings conversion::         Converting to and from cstrings.
-* cstrings argv::               Converting arrays of cstrings.
+* ffi cstrings constants::      Constant values.
+* ffi cstrings inspection::     Inspecting cstrings.
+* ffi cstrings operations::     Acting upon cstrings.
+* ffi cstrings conversion::     Converting to and from cstrings.
+* ffi cstrings argv::           Converting arrays of cstrings.
 @end menu
 
 @c page
-@node cstrings constants
+@node ffi cstrings constants
 @subsection Constant values
 
 
@@ -5410,9 +5411,8 @@ exported by the @library{foreign cstrings} library.
 Pointer to an empty, zero--terminated, string.
 @end defvr
 
-
 @c page
-@node cstrings inspection
+@node ffi cstrings inspection
 @subsection Inspecting strings
 
 
@@ -5432,7 +5432,7 @@ blocks are equal, the return value is zero.
 @end defun
 
 @c page
-@node cstrings operations
+@node ffi cstrings operations
 @subsection Acting upon cstrings
 
 
@@ -5454,7 +5454,7 @@ string is allocated using the supplied @var{malloc} function, or
 @end defun
 
 @c page
-@node cstrings conversion
+@node ffi cstrings conversion
 @subsection Converting to and from cstrings
 
 
@@ -5577,7 +5577,7 @@ a Scheme string.
 @end defun
 
 @c page
-@node cstrings argv
+@node ffi cstrings argv
 @subsection Converting arrays of cstrings
 
 
@@ -5627,22 +5627,22 @@ strings.
 @end defun
 
 @c page
-@node errno
+@node ffi errno
 @section C language system errors
 
 
-The bindings described in this chapter are exported by the
-@library{foreign errno} library.
+The bindings described in this chapter are exported by the @library{ffi
+errno} library.
 
 @menu
-* errno values::                Error codes.
-* errno enumerations::          Enumeration type.
-* errno conversion::            Conversion of error codes.
-* errno condition::             Raising exceptions.
+* ffi errno values::            Error codes.
+* ffi errno enumerations::      Enumeration type.
+* ffi errno conversion::        Conversion of error codes.
+* ffi errno condition::         Raising exceptions.
 @end menu
 
 @c page
-@node errno values
+@node ffi errno values
 @subsection Error codes
 
 
@@ -5831,7 +5831,7 @@ EXDEV               EXFULL
 @end example
 
 @c page
-@node errno enumerations
+@node ffi errno enumerations
 @subsection Enumeration type
 
 
@@ -5850,7 +5850,7 @@ Like @func{errno-symbols} but accept only one symbol as argument.
 @end deffn
 
 @c page
-@node errno conversion
+@node ffi errno conversion
 @subsection Conversion of error codes
 
 
@@ -5880,7 +5880,7 @@ not an @samp{errno} numeric value.
 @end defun
 
 @c page
-@node errno condition
+@node ffi errno condition
 @subsection Raising exceptions
 
 

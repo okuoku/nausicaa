@@ -26,16 +26,12 @@
 
 (import (nausicaa)
   (checks)
-  (foreign memory membuffers)
-  (foreign memory memblocks)
-  (only (foreign memory alloc)
-	malloc)
-  (only (foreign memory operations)
-	memcmp)
-  (only (foreign memory caches)
-	small-blocks-cache)
-  (only (foreign memory bytevectors)
-	bytevector->memblock))
+  (ffi memory membuffers)
+  (ffi memory memblocks)
+  (only (ffi memory alloc) malloc)
+  (only (ffi memory operations) memcmp)
+  (only (ffi memory caches) small-blocks-cache)
+  (only (ffi memory bytevectors) bytevector->memblock))
 
 (cond-expand (petite (exit)) (else #f))
 

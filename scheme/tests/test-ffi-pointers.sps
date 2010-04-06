@@ -26,7 +26,7 @@
 
 (import (nausicaa)
   (checks)
-  (foreign memory))
+  (ffi memory))
 
 (check-set-mode! 'report-failed)
 (display "*** testing memory pointers\n")

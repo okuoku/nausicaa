@@ -574,7 +574,7 @@ More libraries
 * infix::                       Infix notation utilities.
 * getopts::                     Parsing command line arguments.
 * armor::                       @ascii{} armor encoding/decoding.
-* foreign::                     Foreign functions interface.
+* ffi::                         Foreign functions interface.
 
 Low level libraries
 
