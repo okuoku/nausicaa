@@ -36,6 +36,7 @@
 
 
 (define-record-type (stream-type make-stream stream?)
+  (nongenerative nausicaa:streams:stream-type)
   (fields (mutable box stream-promise stream-promise!)))
 
 (define-syntax stream-lazy
@@ -68,6 +69,7 @@
 
 
 (define-record-type <stream-pair>
+  (nongenerative nausicaa:streams:<stream-pair>)
   (fields (immutable kar stream-kar)
 	  (immutable kdr stream-kdr)))
 
