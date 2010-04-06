@@ -7,7 +7,7 @@
 ;;;
 ;;;	This is the double-closed ranges version of the library.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -82,6 +82,7 @@
 ;;;; type descriptor
 
 (define-record-type (type-descriptor %make-type-descriptor %type-descriptor?)
+  (nongenerative nausicaa:one-dimension-cc:type-descriptor)
   (fields (immutable item?)
 	  (immutable item=?)
 	  (immutable item<?)
