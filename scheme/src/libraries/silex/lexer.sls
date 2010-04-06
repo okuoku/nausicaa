@@ -58,6 +58,7 @@
 (define lexer-integer-newline (char->integer #\newline))
 
 (define-record-type (:input-system :input-system-make lexer?)
+  (nongenerative nausicaa:silex:lexer::input-system)
   (fields (immutable start-go-to-end)
 	  (immutable end-go-to-point)
 	  (immutable init-lexeme)

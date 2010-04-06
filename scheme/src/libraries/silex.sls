@@ -207,6 +207,7 @@
 ;;; Fonctions de manipulation des tokens
 
 (define-record-type (:tok :tok-make tok?)
+  (nongenerative nausicaa:silex::tok)
   (fields (immutable type		get-tok-type)
 	  (immutable line		get-tok-line)
 	  (immutable column		get-tok-column)
@@ -226,6 +227,7 @@
 ;;; Fonctions de manipulations des regles
 
 (define-record-type (:rule :rule-make rule?)
+  (nongenerative nausicaa:silex::rule)
   (fields (immutable line	get-rule-line)
 	  (immutable eof?	get-rule-eof?)
 	  (immutable error?	get-rule-error?)
@@ -242,6 +244,7 @@
 ;;; Noeuds des regexp
 
 (define-record-type (:regexp :regexp-make :regexp?)
+  (nongenerative nausicaa:silex::regexp)
   (fields (immutable type	get-re-type)
 	  (immutable attr1	get-re-attr1)
 	  (immutable attr2	get-re-attr2)))
