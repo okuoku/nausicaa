@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marcomaggi@gna.org>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -3097,7 +3097,13 @@
       (string-tokenize "ciao hello salut" (char-set))
     => '())
 
-  )
+  (check
+      (string-tokenize "Help make programs run, run, RUN!"
+		       (char-set-complement (char-set #\space)
+					    char-set:ascii))
+    => '("Help" "make" "programs" "run," "run," "RUN!"))
+
+  #f)
 
 ;;; --------------------------------------------------------------------
 

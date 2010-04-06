@@ -27101,7 +27101,8 @@ character set @var{token-set}.
 
 @example
 (string-tokenize "Help make programs run, run, RUN!"
-                 (char-set #\space))
+                 (char-set-complement (char-set #\space)
+                                      (char-set:ascii)))
 @result{} ("Help" "make" "programs" "run," "run," "RUN!")
 @end example
 
