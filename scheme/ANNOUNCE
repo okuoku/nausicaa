@@ -53,6 +53,8 @@ Notes for --- tag 0.2a0
 
 * Added use of (classes) to several libraries.
 
+* Reorganised FFI libraries, removed "foreign" prefix.
+
 
 Notes for 2010-03-28 tag 0.1a11
 -------------------------------
