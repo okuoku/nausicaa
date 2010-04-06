@@ -35,28 +35,14 @@
 
 ;;;; library cache
 
-(define-constant $library-registry
-  (make-hashtable equal-hash equal?))
+(define library-registry
+  (make-parameter #f))
 
 (define (library-cache:load-library spec)
-  (hashtable-ref $library-registry spec #f))
+  (hashtable-ref (library-registry) spec #f))
 
 (define (library-cache:register spec sexp)
-  (hashtable-set! $library-registry spec sexp))
-
-;;; --------------------------------------------------------------------
-
-(library-cache:register '(proof one)
-			'(library (proof one)
-			   (export a b c)
-			   (import (rnrs))
-			   (define a 1)
-			   (define (b arg)
-			     (vector arg))
-			   (define-syntax c
-			     (syntax-rules ()
-			       ((_ ?ch)
-				(string ?ch))))))
+  (hashtable-set! (library-registry) spec sexp))
 
 
 (parametrise ((check-test-name	'loading))
@@ -87,7 +73,20 @@
 
 
 (parametrise ((check-test-name		'matching-basic)
-	      (load-library-function	library-cache:load-library))
+	      (load-library-function	library-cache:load-library)
+	      (library-registry		(make-hashtable equal-hash equal?)))
+
+  (library-cache:register '(proof one)
+			  '(library (proof one)
+			     (export a b c)
+			     (import (rnrs))
+			     (define a 1)
+			     (define (b arg)
+			       (vector arg))
+			     (define-syntax c
+			       (syntax-rules ()
+				 ((_ ?ch)
+				  (string ?ch))))))
 
   (check
       (let-fields (((lib <library>) (load-library '(proof one))))
