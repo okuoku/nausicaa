@@ -10,7 +10,7 @@
 ;;;	Bourgignon on Aug 29,  2009 in the thread "generic S-expressions
 ;;;	library".
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2009 Pascal Bourguignon
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -59,6 +59,7 @@
 
 
 (define-record-type sexp-variable
+  (nongenerative nausicaa:sexps:sexp-variable)
   (fields (immutable name)
 	  (immutable default)))
 
