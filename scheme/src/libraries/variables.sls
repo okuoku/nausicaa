@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -34,7 +34,7 @@
   (define-record-type (:variable :variable-make variable?)
     (sealed #t)
     (opaque #t)
-    (nongenerative)
+    (nongenerative nausicaa:variables::variable)
     (fields (mutable value)))
 
   (define variable-ref  :variable-value)
