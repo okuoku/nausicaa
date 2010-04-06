@@ -11,7 +11,7 @@
 ;;;
 ;;;	and it works with MzScheme.
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2004, 2005 Tony Garnock-Jones <tonyg@kcbbs.gen.nz>
 ;;;Copyright (c) 2005 LShift Ltd. <query@lshift.net>
 ;;;
@@ -66,13 +66,16 @@
 
 
 (define-record-type <result>
+  (nongenerative nausicaa:packrat:<result>)
   (fields (immutable state)))
 
 (define-record-type <error>
+  (nongenerative nausicaa:packrat:<error>)
   (parent <result>)
   (fields (immutable message)))
 
 (define-record-type <success>
+  (nongenerative nausicaa:packrat:<success>)
   (parent <result>)
   (fields (immutable value)))
 
