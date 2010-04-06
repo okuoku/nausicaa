@@ -70,6 +70,7 @@
 ;;;; randomness source
 
 (define-record-type (:random-source :random-source-make random-source?)
+  (nongenerative nausicaa:randomisations:low::random-source)
   (fields (immutable state-ref)
 	  (immutable state-set!)
 	  (immutable seed!)
