@@ -55,6 +55,7 @@
 
 
 (define-record-type (<shared-object> open-shared-object shared-object?)
+  (nongenerative nausicaa:ffi:primitives:<shared-object>)
   (fields (immutable library-name)
 	  (immutable reference))
   (protocol (lambda (maker)

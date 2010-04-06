@@ -39,6 +39,7 @@
 
 
 (define-record-type pointer
+  (nongenerative nausicaa:ffi:pointers:pointer)
   (fields (immutable value)))
 
 (define (integer->pointer value)
