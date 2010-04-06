@@ -50086,7 +50086,8 @@ Numbers and all ``the other'' values are just put there.
 
 The @library{getopts} library implements basic parsing of Unix--style
 command line arguments.  It is meant to be used as low--level module in
-an infrastructure for command line interfaces (@acronym{CLI}).
+an infrastructure for command line interfaces (@acronym{CLI}).  The
+library is built on top of @library{classes}.
 
 @menu
 * getopts intro::               Introduction.
@@ -50190,12 +50191,7 @@ Notice that a single dash, @samp{-}, is a valid non--option argument.
 @section Record types
 
 
-The following bindings are exported by the @library{getopts
-record-types} library and re--exported by the @library{getopts} library.
-
-
-@deftp {Record Type Name} <option>
-@deftpx {Record Type Descriptor} <option-rtd>
+@deftp Class <option>
 Type of records representing command line options.  It has the following
 fields, all immutable:
 
@@ -50232,6 +50228,12 @@ Scheme string representing the option's value.
 @end deftp
 
 
+@deffn {Auxiliary Syntax} <option>-with-record-fields-of
+Used to access the fields of @class{option} records by
+@func{with-fields} from @library{classes}.
+@end deffn
+
+
 @defun make-<option> @var{brief} @var{long} @var{with-arg?} @var{description} @var{action}
 Build and return a new @class{option} record.
 @end defun
@@ -50251,18 +50253,15 @@ Accessors for the fields of an @class{option} record.
 @end defun
 
 
-@deffn Syntax define-option @ameta{name} @ameta{spec} ...
+@deffn Syntax define-option @ameta{name} @ameta{clause} ...
 @deffnx {Auxiliary Syntax} brief @ameta{char}
 @deffnx {Auxiliary Syntax} long @ameta{string}
 @deffnx {Auxiliary Syntax} with-arg? @ameta{bool}
 @deffnx {Auxiliary Syntax} description @ameta{string}
 @deffnx {Auxiliary Syntax} action @ameta{function}
 Build a new @class{option} record and bind it to @ameta{name}, which
-must be a Scheme symbol.  All the @ameta{spec} arguments must be
-subforms with an auxiliary syntactic keyword as first element; the order
-of the subforms is mandatory and all of them must be present.
-
-Example:
+must be a Scheme symbol.  All the @ameta{clause} arguments must be
+subforms with an auxiliary syntactic keyword as first element.  Example:
 
 @example
 (define-option interactive

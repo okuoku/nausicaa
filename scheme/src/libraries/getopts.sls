@@ -33,7 +33,7 @@
 
 ;;; --------------------------------------------------------------------
 
-    <option>			<option-rtd>
+    <option>			<option>-with-record-fields-of
     make-<option>		<option>?
 
     <option>-brief		<option>-long
@@ -73,8 +73,8 @@
     raise-invalid-option
     )
   (import (rnrs)
-    (only (language-extensions) set-cons!)
-    (getopts record-types))
+    (classes)
+    (only (language-extensions) set-cons!))
 
 
 ;;;; helpers
@@ -117,6 +117,216 @@
 	      (if (char=? ?char (string-ref str i))
 		  i
 		(loop (+ 1 i)))))))))
+
+
+(define-class <option>
+  (nongenerative nausicaa:getopts:<option>)
+  (fields (immutable brief)
+		;A Scheme char representing a brief option.
+	  (immutable long)
+		;A Scheme string representing a long option, without the
+		;leading "--".
+	  (immutable with-arg?)
+		;Boolean, true if this option requires an argument.
+	  (immutable description)
+		;Scheme string describing this option.
+	  (immutable action)))
+		;Closure to be invoked when this option is found.
+
+(define-syntax define-option
+  (syntax-rules (brief long with-arg? description action)
+    ((_ ?name ?clause ...)
+     (%define-option/parse-clauses ?name
+				   (brief) (long) (with-arg?) (description) (action)
+				   ?clause ...))))
+
+
+(define-syntax %define-option/parse-clauses
+  (syntax-rules (brief long with-arg? description action)
+
+    ;;Parse BRIEF clause.
+    ((_ ?name
+	(brief		?brief ...)
+	(long		?long ...)
+	(with-arg?	?with-arg ...)
+	(description	?description ...)
+	(action		?action ...)
+	(brief ?expr)
+	?clause ...)
+     (%define-option/parse-clauses ?name
+				   (brief	?brief ... ?expr)
+				   (long	?long ...)
+				   (with-arg?	?with-arg ...)
+				   (description ?description ...)
+				   (action	?action ...)
+				   ?clause ...))
+
+    ;;Parse LONG clause.
+    ((_ ?name
+	(brief		?brief ...)
+	(long		?long ...)
+	(with-arg?	?with-arg ...)
+	(description	?description ...)
+	(action		?action ...)
+	(long ?expr)
+	?clause ...)
+     (%define-option/parse-clauses ?name
+				   (brief	?brief ...)
+				   (long	?long ... ?expr)
+				   (with-arg?	?with-arg ...)
+				   (description	?description ...)
+				   (action	?action ...)
+				   ?clause ...))
+
+    ;;Parse WITH-ARG? clause.
+    ((_ ?name
+	(brief		?brief ...)
+	(long		?long ...)
+	(with-arg?	?with-arg ...)
+	(description	?description ...)
+	(action		?action ...)
+	(with-arg? ?expr)
+	?clause ...)
+     (%define-option/parse-clauses ?name
+				   (brief	?brief ...)
+				   (long	?long ...)
+				   (with-arg?	?with-arg ... ?expr)
+				   (description	?description ...)
+				   (action	?action ...)
+				   ?clause ...))
+
+    ;;Parse DESCRIPTION clause.
+    ((_ ?name
+	(brief		?brief ...)
+	(long		?long ...)
+	(with-arg?	?with-arg ...)
+	(description	?description ...)
+	(action		?action ...)
+	(description ?expr)
+	?clause ...)
+     (%define-option/parse-clauses ?name
+				   (brief	?brief ...)
+				   (long	?long ...)
+				   (with-arg?	?with-arg ...)
+				   (description	?description ... ?expr)
+				   (action	?action ...)
+				   ?clause ...))
+
+    ;;Parse ACTION clause.
+    ((_ ?name
+	(brief		?brief ...)
+	(long		?long ...)
+	(with-arg?	?with-arg ...)
+	(description	?description ...)
+	(action		?action ...)
+	(action ?expr)
+	?clause ...)
+     (%define-option/parse-clauses ?name
+				   (brief	?brief ...)
+				   (long	?long ...)
+				   (with-arg?	?with-arg ...)
+				   (description	?description ...)
+				   (action	?action ... ?expr)
+				   ?clause ...))
+
+    ;;no more clauses to parse
+    ((_ ?name
+	(brief		?brief ...)
+	(long		?long ...)
+	(with-arg?	?with-arg ...)
+	(description	?description ...)
+	(action		?action ...))
+     (%define-option/add-defaults ?name
+				  (brief	?brief ...)
+				  (long		?long ...)
+				  (with-arg?	?with-arg ...)
+				  (description	?description ...)
+				  (action	?action ...)))))
+
+
+(define-syntax %define-option/add-defaults
+  (syntax-rules (brief long with-arg? description action)
+
+    ;;Process empty BRIEF clause.
+    ((_ ?name
+	(brief)
+	(long		?long ...)
+	(with-arg?	?with-arg ...)
+	(description	?description ...)
+	(action		?action ...))
+     (%define-option/add-defaults ?name
+				  (brief	#f)
+				  (long		?long ...)
+				  (with-arg?	?with-arg ...)
+				  (description	?description ...)
+				  (action	?action ...)))
+
+    ;;Process empty LONG clause.
+    ((_ ?name
+	(brief		?brief ...)
+	(long)
+	(with-arg?	?with-arg ...)
+	(description	?description ...)
+	(action		?action ...))
+     (%define-option/add-defaults ?name
+				  (brief	?brief ...)
+				  (long		#f)
+				  (with-arg?	?with-arg ...)
+				  (description	?description ...)
+				  (action	?action ...)))
+
+    ;;Process empty WITH-ARG? clause.
+    ((_ ?name
+	(brief		?brief ...)
+	(long		?long ...)
+	(with-arg?)
+	(description	?description ...)
+	(action		?action ...))
+     (%define-option/add-defaults ?name
+				  (brief	?brief ...)
+				  (long		?long ...)
+				  (with-arg?	#f)
+				  (description	?description ...)
+				  (action	?action ...)))
+
+    ;;Process empty DESCRIPTION clause.
+    ((_ ?name
+	(brief		?brief ...)
+	(long		?long ...)
+	(with-arg?	?with-arg ...)
+	(description)
+	(action		?action ...))
+     (%define-option/add-defaults ?name
+				  (brief	?brief ...)
+				  (long		?long ...)
+				  (with-arg?	?with-arg ...)
+				  (description	"undocumented option")
+				  (action	?action ...)))
+
+    ;;Process empty ACTION clause.
+    ((_ ?name
+	(brief		?brief ...)
+	(long		?long ...)
+	(with-arg?	?with-arg ...)
+	(description	?description ...)
+	(action))
+     (%define-option/add-defaults ?name
+				  (brief	?brief ...)
+				  (long		?long ...)
+				  (with-arg?	?with-arg ...)
+				  (description	?description ...)
+				  (action	(lambda args
+						  (error #f "missing semantic action")))))
+
+    ;;Everything processed.
+    ((_ ?name
+	(brief		?brief)
+	(long		?long)
+	(with-arg?	?with-arg)
+	(description	?description)
+	(action		?action))
+     (define ?name
+       (make-<option> ?brief ?long ?with-arg ?description ?action)))))
 
 
 (define-condition-type &getopts &error

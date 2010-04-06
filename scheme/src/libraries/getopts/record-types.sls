@@ -36,32 +36,6 @@
   (import (rnrs))
 
 
-(define-record-type <option>
-  (fields (immutable brief)
-		;A Scheme char representing a brief option.
-	  (immutable long)
-		;A Scheme string representing a long option, without the
-		;leading "--".
-	  (immutable with-arg?)
-		;Boolean, true if this option requires an argument.
-	  (immutable description)
-		;Scheme string describing this option.
-	  (immutable action)))
-		;Closure to be invoked when this option is found.
-
-(define <option-rtd>
-  (record-type-descriptor <option>))
-
-(define-syntax define-option
-  (syntax-rules (brief long with-arg? description action)
-    ((_ ?name
-	(brief ?brief)
-	(long ?long)
-	(with-arg? ?with-arg)
-	(description ?description)
-	(action ?action))
-     (define ?name
-       (make-<option> ?brief ?long ?with-arg ?description ?action)))))
 
 
 ;;;; done
