@@ -99,6 +99,7 @@
 
     ((_ (?name ?constructor ?predicate) ?clause ...)
      (%define-class/sort-clauses
+      (quote (define-class (?name ?constructor ?predicate) ?clause ...))
       (?name ?constructor ?predicate)
       ()	;collected mutable fields
       ()	;collected immutable fields
@@ -110,7 +111,8 @@
       ?clause ...))
 
     ((_ ?name ?clause ...)
-     (%define-class/expand-name ?name ?clause ...))))
+     (%define-class/expand-name (quote (define-class (?name ?constructor ?predicate) ?clause ...))
+				?name ?clause ...))))
 
 (define-syntax %define-class/expand-name
   (lambda (stx)
@@ -120,11 +122,12 @@
       (string->symbol (string-append name "?")))
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
 			     virtual-fields methods method)
-      ((_ ?name ?clause ...)
+      ((_ (quote ?input-form) ?name ?clause ...)
        (let ((name (symbol->string (syntax->datum #'?name))))
 	 (with-syntax ((CONSTRUCTOR  (datum->syntax #'?name (%constructor name)))
 		       (PREDICATE    (datum->syntax #'?name (%predicate   name))))
 	   #'(%define-class/sort-clauses
+	      (quote ?input-form)
 	      (?name CONSTRUCTOR PREDICATE)
 	      () ;collected mutable fields
 	      () ;collected immutable fields
@@ -163,7 +166,7 @@
 
       ;;Gather the PARENT clause.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -179,7 +182,7 @@
 	(nongenerative	?non ...)
 	(parent ?parent-name) ?clause ...)
        #'(%define-class/sort-clauses
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -197,7 +200,7 @@
 
       ;;Gather the PROTOCOL clause.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -213,7 +216,7 @@
 	(nongenerative	?non ...)
 	(protocol ?protocol-proc) ?clause ...)
        #'(%define-class/sort-clauses
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -231,7 +234,7 @@
 
       ;;Gather the SEALED clause.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -247,7 +250,7 @@
 	(nongenerative	?non ...)
 	(sealed ?sealed) ?clause ...)
        #'(%define-class/sort-clauses
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -265,7 +268,7 @@
 
       ;;Gather the OPAQUE clause.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -281,7 +284,7 @@
 	(nongenerative	?non ...)
 	(opaque ?opaque) ?clause ...)
        #'(%define-class/sort-clauses
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -299,7 +302,7 @@
 
       ;;Gather the PARENT-RTD clause.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -315,7 +318,7 @@
 	(nongenerative	?non ...)
 	(parent-rtd ?parent-rtd ?parent-cd) ?clause ...)
        #'(%define-class/sort-clauses
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -333,7 +336,7 @@
 
       ;;Gather the NONGENERATIVE empty clause.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -349,7 +352,7 @@
 	(nongenerative	?non ...)
 	(nongenerative) ?clause ...)
        #'(%define-class/sort-clauses
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -367,7 +370,7 @@
 
       ;;Gather the NONGENERATIVE non-empty clause.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -383,7 +386,7 @@
 	(nongenerative	?non ...)
 	(nongenerative ?uid) ?clause ...)
        #'(%define-class/sort-clauses
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -403,7 +406,7 @@
 
       ;;Gather the FIELDS clause.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -419,7 +422,7 @@
 	(nongenerative	?non ...)
 	(fields ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/fields
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -438,7 +441,7 @@
       ;;Raise a syntax  violation if the FIELDS clause  is used multiple
       ;;times.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -455,13 +458,13 @@
 	(fields ?field-clause ...) ?clause ...)
        #'(syntax-violation 'define-class
 	   "\"fields\" clause used multiple times in class definition"
-	   '(fields ?field-clause ...)))
+	   (quote ?input-form) (quote (fields ?field-clause ...))))
 
 ;;; --------------------------------------------------------------------
 
       ;;Gather the VIRTUAL-FIELDS clause.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	() ;must be empty here to detect multiple usages of VIRTUAL-FIELDS
@@ -477,7 +480,7 @@
 	(nongenerative	?non ...)
 	(virtual-fields ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/virtual-fields
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ... )
 	  (?collected-immutable-field ...)
 	  ()
@@ -496,7 +499,7 @@
       ;;Raise a syntax  violation if the FIELDS clause  is used multiple
       ;;times.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field0 ?collected-mutable-virtual-field ...) ;at least one
@@ -513,9 +516,9 @@
 	(virtual-fields ?field-clause ...) ?clause ...)
        #'(syntax-violation 'define-class
 	   "\"virtual-fields\" clause used multiple times in class definition"
-	   '(virtual-fields ?field-clause ...)))
+	   (quote ?input-form) (quote (virtual-fields ?field-clause ...))))
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -532,13 +535,13 @@
 	(virtual-fields ?field-clause ...) ?clause ...)
        #'(syntax-violation 'define-class
 	   "\"virtual-fields\" clause used multiple times in class definition"
-	   '(virtual-fields ?field-clause ...)))
+	   (quote ?input-form) (quote (virtual-fields ?field-clause ...))))
 
 ;;; --------------------------------------------------------------------
 
       ;;Gather METHODS clause.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -554,7 +557,7 @@
 	(nongenerative	?non ...)
 	(methods ?method-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/methods
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -573,7 +576,7 @@
       ;;Raise a syntax violation if  the METHODS clause is used multiple
       ;;times.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field0 ?collected-mutable-virtual-field ...)
@@ -590,13 +593,13 @@
 	(methods ?method-clause ...) ?clause ...)
        #'(syntax-violation 'define-class
 	   "\"methods\" clause used multiple times in class definition"
-	   '(methods ?method-clause ...)))
+	   (quote ?input-form) (quote (methods ?method-clause ...))))
 
 ;;; --------------------------------------------------------------------
 
       ;;Gather METHOD clause.
       ((%define-class/sort-clauses
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -612,7 +615,7 @@
 	(nongenerative	?non ...)
 	(method (?method . ?args) . ?body) ?clause ...)
        #'(%define-class/sort-clauses
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -635,7 +638,7 @@
       ;;derived    by    "<top>".     Finally   hand    everything    to
       ;;%DEFINE-CLASS/FILTER-UNUSED.
       ;;
-      ((_ (?name ?constructor ?predicate)
+      ((_ (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -650,7 +653,7 @@
 	  (parent-rtd)
 	  (nongenerative	?non ...))
        #'(%define-class/filter-unused
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  ()	;collected clauses
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
@@ -669,7 +672,7 @@
       ;;No    more   clauses    to   gather.     Hand    everything   to
       ;;%DEFINE-CLASS/FILTER-UNUSED.
       ;;
-      ((_ (?name ?constructor ?predicate)
+      ((_ (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -684,7 +687,7 @@
 	  (parent-rtd	?pad ...)
 	  (nongenerative	?non ...))
        #'(%define-class/filter-unused
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  ()	;collected clauses
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
@@ -714,7 +717,7 @@
       ;;Gather mutable FIELDS clause with explicit selection of accessor
       ;;and mutator names.
       ((%define-class/sort-clauses/fields
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -730,7 +733,7 @@
 	(nongenerative	?non ...)
 	(fields (mutable ?field ?field-accessor ?field-mutator) ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/fields
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ... (?field ?field-accessor ?field-mutator))
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -749,7 +752,7 @@
       ;;Gather  mutable  FIELDS   clause  with  automatically  generated
       ;;accessor and mutator names.
       ((%define-class/sort-clauses/fields
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -769,7 +772,7 @@
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field)))
 		       (MUTATOR  (datum->syntax #'?name (%mutator  name field))))
 	   #'(%define-class/sort-clauses/fields
-	      (?name ?constructor ?predicate)
+	      (quote ?input-form) (?name ?constructor ?predicate)
 	      (?collected-mutable-field ... (?field ACCESSOR MUTATOR))
 	      (?collected-immutable-field ...)
 	      (?collected-mutable-virtual-field ...)
@@ -788,7 +791,7 @@
       ;;Gather  immutable  FIELDS  clause  with  explicit  selection  of
       ;;accessor name.
       ((%define-class/sort-clauses/fields
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -804,7 +807,7 @@
 	(nongenerative	?non ...)
 	(fields (immutable ?field ?accessor) ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/fields
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ... (?field ?accessor))
 	  (?collected-mutable-virtual-field ...)
@@ -823,7 +826,7 @@
       ;;Gather  immutable  FIELDS  clause with  automatically  generated
       ;;accessor name.
       ((%define-class/sort-clauses/fields
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -842,7 +845,7 @@
 	     (field (symbol->string (syntax->datum #'?field))))
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
 	   #'(%define-class/sort-clauses/fields
-	      (?name ?constructor ?predicate)
+	      (quote ?input-form) (?name ?constructor ?predicate)
 	      (?collected-mutable-field ...)
 	      (?collected-immutable-field ... (?field ACCESSOR))
 	      (?collected-mutable-virtual-field ...)
@@ -861,7 +864,7 @@
       ;;Gather   immutable  FIELDS   clause  declared   without  IMMUTABLE
       ;;auxiliary syntax.
       ((%define-class/sort-clauses/fields
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -880,7 +883,7 @@
 	     (field (symbol->string (syntax->datum #'?field))))
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
 	   #'(%define-class/sort-clauses/fields
-	      (?name ?constructor ?predicate)
+	      (quote ?input-form) (?name ?constructor ?predicate)
 	      (?collected-mutable-field ...)
 	      (?collected-immutable-field ... (?field ACCESSOR))
 	      (?collected-mutable-virtual-field ...)
@@ -898,7 +901,7 @@
 
       ;;Remove empty, leftover, FIELDS clause.
       ((%define-class/sort-clauses/fields
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -914,7 +917,7 @@
 	(nongenerative	?non ...)
 	(fields) ?clause ...)
        #'(%define-class/sort-clauses
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -945,7 +948,7 @@
       ;;Gather mutable VIRTUAL-FIELDS  clause with explicit selection of
       ;;accessor and mutator names.
       ((%define-class/sort-clauses/virtual-fields
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -961,7 +964,7 @@
 	(nongenerative	?non ...)
 	(virtual-fields (mutable ?field ?accessor ?mutator) ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/virtual-fields
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...  (?field ?accessor ?mutator))
@@ -980,7 +983,7 @@
       ;;Gather   mutable   VIRTUAL-FIELDS   clause  with   automatically
       ;;generated accessor and mutator names.
       ((%define-class/sort-clauses/virtual-fields
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -1000,7 +1003,7 @@
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field)))
 		       (MUTATOR  (datum->syntax #'?name (%mutator  name field))))
 	   #'(%define-class/sort-clauses/virtual-fields
-	      (?name ?constructor ?predicate)
+	      (quote ?input-form) (?name ?constructor ?predicate)
 	      (?collected-mutable-field ...)
 	      (?collected-immutable-field ...)
 	      (?collected-mutable-virtual-field ...  (?field ACCESSOR MUTATOR))
@@ -1019,7 +1022,7 @@
       ;;Gather immutable  VIRTUAL-FIELDS clause with  explicit selection
       ;;of accessor name.
       ((%define-class/sort-clauses/virtual-fields
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -1035,7 +1038,7 @@
 	(nongenerative	?non ...)
 	(virtual-fields (immutable ?field ?accessor) ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/virtual-fields
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -1054,7 +1057,7 @@
       ;;Gather   immutable  VIRTUAL-FIELDS  clause   with  automatically
       ;;generated accessor name.
       ((%define-class/sort-clauses/virtual-fields
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -1073,7 +1076,7 @@
 	     (field (symbol->string (syntax->datum #'?field))))
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
 	   #'(%define-class/sort-clauses/virtual-fields
-	      (?name ?constructor ?predicate)
+	      (quote ?input-form) (?name ?constructor ?predicate)
 	      (?collected-mutable-field ...)
 	      (?collected-immutable-field ...)
 	      (?collected-mutable-virtual-field ...)
@@ -1092,7 +1095,7 @@
       ;;Gather immutable VIRTUAL-FIELDS  clause declared without IMMUTABLE
       ;;auxiliary syntax.
       ((%define-class/sort-clauses/virtual-fields
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -1111,7 +1114,7 @@
 	     (field (symbol->string (syntax->datum #'?field))))
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
 	   #'(%define-class/sort-clauses/virtual-fields
-	      (?name ?constructor ?predicate)
+	      (quote ?input-form) (?name ?constructor ?predicate)
 	      (?collected-mutable-field ...)
 	      (?collected-immutable-field ...)
 	      (?collected-mutable-virtual-field ...)
@@ -1129,7 +1132,7 @@
 
       ;;Remove empty, leftover, VIRTUAL-FIELDS clause.
       ((%define-class/sort-clauses/virtual-fields
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -1145,7 +1148,7 @@
 	(nongenerative	?non ...)
 	(virtual-fields) ?clause ...)
        #'(%define-class/sort-clauses
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -1172,7 +1175,7 @@
 
       ;;Gather METHODS clause with explicit selection of function name.
       ((%define-class/sort-clauses/methods
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -1188,7 +1191,7 @@
 	(nongenerative	?non ...)
 	(methods (?method ?function) ?method-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/methods
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -1207,7 +1210,7 @@
       ;;Gather  METHODS  clause  with automatically  generated  function
       ;;name.
       ((%define-class/sort-clauses/methods
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -1226,7 +1229,7 @@
 	     (field (symbol->string (syntax->datum #'?method))))
 	 (with-syntax ((FUNCTION (datum->syntax #'?name (%function name field))))
 	   #'(%define-class/sort-clauses/methods
-	      (?name ?constructor ?predicate)
+	      (quote ?input-form) (?name ?constructor ?predicate)
 	      (?collected-mutable-field ...)
 	      (?collected-immutable-field ...)
 	      (?collected-mutable-virtual-field ...)
@@ -1244,7 +1247,7 @@
 
       ;;Gather METHODS clause declared with only the symbol.
       ((%define-class/sort-clauses/methods
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -1263,7 +1266,7 @@
 	     (field (symbol->string (syntax->datum #'?method))))
 	 (with-syntax ((FUNCTION (datum->syntax #'?name (%function name field))))
 	   #'(%define-class/sort-clauses/methods
-	      (?name ?constructor ?predicate)
+	      (quote ?input-form) (?name ?constructor ?predicate)
 	      (?collected-mutable-field ...)
 	      (?collected-immutable-field ...)
 	      (?collected-mutable-virtual-field ...)
@@ -1281,7 +1284,7 @@
 
       ;;Remove empty, leftover, METHODS clause.
       ((%define-class/sort-clauses/methods
-	(?name ?constructor ?predicate)
+	(quote ?input-form) (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field ...)
@@ -1297,7 +1300,7 @@
 	(nongenerative	?non ...)
 	(methods) ?clause ...)
        #'(%define-class/sort-clauses
-	  (?name ?constructor ?predicate)
+	  (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-mutable-field ...)
 	  (?collected-immutable-field ...)
 	  (?collected-mutable-virtual-field ...)
@@ -1323,7 +1326,7 @@
     (syntax-case stx (fields parent protocol sealed opaque parent-rtd nongenerative)
 
       ;;Remove unused PARENT form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1333,7 +1336,7 @@
 				    (?collected-function ...)
 				    (parent)
 				    ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ...)
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1343,7 +1346,7 @@
 				      (?collected-function ...)
 				      ?clause ...))
       ;;Collect used PARENT form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1353,7 +1356,7 @@
 				    (?collected-function ...)
 				    (parent ?e0 ?e ...)
 				    ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ... (parent ?e0 ?e ...))
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1364,7 +1367,7 @@
 				      ?clause ...))
 
       ;;Remove unused FIELDS form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1374,7 +1377,7 @@
 				    (?collected-function ...)
 				    (fields)
 				    ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ...)
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1384,7 +1387,7 @@
 				      (?collected-function ...)
 				      ?clause ...))
       ;;Collect used FIELDS form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1394,7 +1397,7 @@
 				    (?collected-function ...)
 				    (fields ?e0 ?e ...)
 				    ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ... (fields ?e0 ?e ...))
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1405,7 +1408,7 @@
 				      ?clause ...))
 
       ;;Remove unused PROTOCOL form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1415,7 +1418,7 @@
 				    (?collected-function ...)
 				    (protocol)
 				    ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ...)
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1425,7 +1428,7 @@
 				      (?collected-function ...)
 				      ?clause ...))
       ;;Collect used PROTOCOL form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1435,7 +1438,7 @@
 				    (?collected-function ...)
 				    (protocol ?e0 ?e ...)
 				    ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ... (protocol ?e0 ?e ...))
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1446,7 +1449,7 @@
 				      ?clause ...))
 
       ;;Remove unused SEALED form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1456,7 +1459,7 @@
 				    (?collected-function ...)
 				    (sealed)
 				    ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ...)
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1466,7 +1469,7 @@
 				      (?collected-function ...)
 				      ?clause ...))
       ;;Collect used SEALED form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1475,7 +1478,7 @@
 				    (?collected-method ...)
 				    (?collected-function ...)
 				    (sealed ?e0 ?e ...) ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ... (sealed ?e0 ?e ...))
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1486,7 +1489,7 @@
 				      ?clause ...))
 
       ;;Remove unused OPAQUE form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1495,7 +1498,7 @@
 				    (?collected-method ...)
 				    (?collected-function ...)
 				    (opaque) ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ...)
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1505,7 +1508,7 @@
 				      (?collected-function ...)
 				      ?clause ...))
       ;;Collect used OPAQUE form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1514,7 +1517,7 @@
 				    (?collected-method ...)
 				    (?collected-function ...)
 				    (opaque ?e0 ?e ...) ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ... (opaque ?e0 ?e ...))
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1525,7 +1528,7 @@
 				      ?clause ...))
 
       ;;Remove unused PARENT-RTD form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1534,7 +1537,7 @@
 				    (?collected-method ...)
 				    (?collected-function ...)
 				    (parent-rtd) ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ...)
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1544,7 +1547,7 @@
 				      (?collected-function ...)
 				      ?clause ...))
       ;;Collect used PARENT-RTD form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1553,7 +1556,7 @@
 				    (?collected-method ...)
 				    (?collected-function ...)
 				    (parent-rtd ?e0 ?e ...) ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ... (parent-rtd ?e0 ?e ...))
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1564,7 +1567,7 @@
 				      ?clause ...))
 
       ;;Collect NONGENERATIVE form.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1574,7 +1577,7 @@
 				    (?collected-function ...)
 				    (nongenerative ?uid ...)
 				    ?clause ...)
-       #'(%define-class/filter-unused (?name ?constructor ?predicate)
+       #'(%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				      (?collected-clause ... (nongenerative ?uid ...))
 				      (?collected-mutable-field ...)
 				      (?collected-immutable-field ...)
@@ -1586,7 +1589,7 @@
 
       ;;No    more    clauses   to    filter,    hand   everything    to
       ;;%DEFINE-CLASS/EXPAND-FIELD-NAMES.
-      ((%define-class/filter-unused (?name ?constructor ?predicate)
+      ((%define-class/filter-unused (quote ?input-form) (?name ?constructor ?predicate)
 				    (?collected-clause ...)
 				    (?collected-mutable-field ...)
 				    (?collected-immutable-field ...)
@@ -1594,7 +1597,7 @@
 				    (?collected-immutable-virtual-field ...)
 				    (?collected-method ...)
 				    (?collected-function ...))
-       #'(%define-class/output-forms (?name ?constructor ?predicate)
+       #'(%define-class/output-forms (quote ?input-form) (?name ?constructor ?predicate)
 				     (?collected-clause ...)
 				     (?collected-mutable-field ...)
 				     (?collected-immutable-field ...)
@@ -1621,7 +1624,7 @@
 	      (inner x (cdr ls)))))))
     (syntax-case stx ()
 
-      ((_ (?name ?constructor ?predicate)
+      ((_ (quote ?input-form) (?name ?constructor ?predicate)
 	  (?collected-clause ...)
 	  ((?mutable-field ?mf ...) ...)
 	  ((?immutable-field ?if ...) ...)
@@ -1639,7 +1642,7 @@
 		       (make-who-condition 'define-class)
 		       (make-message-condition "duplicated field names in class definition")
 		       (make-irritants-condition (quote (#,id)))
-		       (make-syntax-violation #f #f)))
+		       (make-syntax-violation (quote ?input-form) #f)))
 	   (with-syntax ((WITH-FIELDS (datum->syntax #'?name (%with-fields (syntax->datum #'?name)))))
 	     #'(begin
 		 (define-record-type (?name ?constructor ?predicate) ?collected-clause ...)
