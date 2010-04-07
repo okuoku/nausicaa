@@ -305,9 +305,6 @@
 
 ;;; --------------------------------------------------------------------
 
-(compile-library "getopts/record-types.sls"
-		 "getopts/record-types.slfasl")
-
 (compile-library "getopts.sls"
 		 "getopts.slfasl")
 
