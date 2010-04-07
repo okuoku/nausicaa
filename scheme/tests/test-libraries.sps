@@ -78,7 +78,9 @@
 
   (library-cache:register '(proof one)
 			  '(library (proof one)
-			     (export a b c)
+			     (export a b c
+				     (rename (a alpha)
+					     (b beta)))
 			     (import (rnrs))
 			     (define a 1)
 			     (define (b arg)
@@ -88,17 +90,23 @@
 				 ((_ ?ch)
 				  (string ?ch))))))
 
-  (check
-      (let-fields (((lib <library>) (load-library '(proof one))))
-	lib.raw-exports)
-    => '(a b c))
+  (let-fields (((lib <library>) (load-library '(proof one))))
 
-  (check
-      (let-fields (((lib <library>) (load-library '(proof one))))
-	lib.raw-imports)
-    => '((rnrs)))
+    (check
+	lib.raw-exports
+      => '(a b c (rename (a alpha) (b beta))))
 
-  #f)
+    (check
+	lib.raw-imports
+      => '((rnrs)))
+
+    (check
+	lib.exports
+      => '((a a) (b b) (c c) (a alpha) (b beta)))
+
+    #f)
+
+  #t)
 
 
 ;;;; done

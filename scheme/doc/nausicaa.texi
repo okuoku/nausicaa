@@ -4490,9 +4490,10 @@ optionally by its version.  It has one of the following forms:
 
 A @meta{library reference} whose first @meta{identifier} is @func{for},
 @func{library}, @func{only}, @func{except}, @func{prefix}, or
-@func{rename} is permitted only within a @func{library} @meta{import
-set}.  The @meta{import set} @code{(library @meta{library reference})}
-is otherwise equivalent to @meta{library reference}.
+@func{rename} is permitted only within a @code{(library @meta{library
+reference})} @meta{import set}.  The @meta{import set} @code{(library
+@meta{library reference})} is otherwise equivalent to @meta{library
+reference}.
 
 A @meta{library reference} with no @meta{version reference} (first form
 above) is equivalent to a @meta{library reference} with a @meta{version

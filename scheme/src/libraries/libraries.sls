@@ -28,16 +28,23 @@
 (library (libraries)
   (export
 
-    <library>				<library>-with-record-fields-of
-    make-<library>			<library>?
+    <library>					<library>-with-record-fields-of
+    make-<library>				<library>?
     <library>-spec
     <library>-sexp
 
     ;; conditions
     &library-not-found
-    make-library-not-found-condition	library-not-found-condition?
+    make-library-not-found-condition
+    library-not-found-condition?
     condition-library-not-found-spec
     error-library-not-found
+
+    &library-invalid-exports
+    make-library-invalid-exports-condition
+    library-invalid-exports-condition?
+    condition-library-invalid-exports-spec
+    error-invalid-exports
 
     ;;search path
     library-search-path-environment-variable
@@ -45,7 +52,7 @@
     get-search-path-function
 
     ;;loading
-    load-library			load-library-function
+    load-library				load-library-function
     load-library-from-file
     ignore-library-version
 
@@ -71,21 +78,30 @@
 	  (mutable raw-parsed?)
 		;true if %LIBRARY-RAW-PARSE  has already been applied to
 		;this record
-	  (mutable %raw-exports)
+	  (mutable _raw-exports)
 		;the   content  of  the   EXPORT  clause,   produced  by
 		;%LIBRARY-RAW-PARSE
-	  (mutable %raw-imports)
+	  (mutable _raw-imports)
 		;the   content  of  the   IMPORT  clause,   produced  by
 		;%LIBRARY-RAW-PARSE
-	  (mutable %raw-body)
+	  (mutable _raw-body)
 		;the body of the library, produced by %LIBRARY-RAW-PARSE
+	  (mutable _exports)
+		;list pairs representing the  export list, each pair as:
+		;(defined-name . exported-name)
 	  )
   (virtual-fields (immutable raw-exports)
 		  (immutable raw-imports)
-		  (immutable raw-body))
+		  (immutable raw-body)
+		  (immutable exports))
+
   (protocol (lambda (make-<top>)
 	      (lambda/with* ((spec <list>) (sexp <list>))
-		((make-<top>) spec sexp #f #f #f #f)))))
+		((make-<top>) spec sexp
+		 #f	  ;raw-parsed?
+		 #f #f #f ;_raw-exports _raw-imports _raw-body
+		 #f	  ;_exports
+		 )))))
 
 
 (define-condition-type &library-not-found
@@ -99,6 +115,20 @@
 	  (make-who-condition ?who)
 	  (make-message-condition "library not found")
 	  (make-library-not-found-condition ?library-spec))))
+
+;;; --------------------------------------------------------------------
+
+(define-condition-type &library-invalid-exports
+  &error
+  make-library-invalid-exports-condition
+  library-invalid-exports-condition?
+  (export-spec	condition-library-invalid-exports-spec))
+
+(define-inline (error-invalid-exports ?who ?export-spec)
+  (raise (condition
+	  (make-who-condition ?who)
+	  (make-message-condition "invalid library exports specification")
+	  (make-library-invalid-exports-condition ?export-spec))))
 
 
 ;;;; library registry
@@ -196,6 +226,18 @@
 
 ;;;; basic matching
 
+(define (<library>-raw-exports (lib <library>))
+  (%library-raw-parse lib)
+  (<library>-_raw-exports lib))
+
+(define (<library>-raw-imports (lib <library>))
+  (%library-raw-parse lib)
+  (<library>-_raw-imports lib))
+
+(define (<library>-raw-body (lib <library>))
+  (%library-raw-parse lib)
+  (<library>-_raw-body lib))
+
 (define (%library-raw-parse (lib <library>))
   (unless lib.raw-parsed?
     (let-sexp-variables ((?spec		sentinel)
@@ -210,22 +252,29 @@
 	     (exports (assq ?exports match))
 	     (imports (assq ?imports match))
 	     (body    (assq ?body    match)))
-	(when exports (set! lib.%raw-exports (cdr exports)))
-	(when imports (set! lib.%raw-imports (cdr imports)))
-	(when body    (set! lib.%raw-body    (cdr body)))
+	(when exports (set! lib._raw-exports (cdr exports)))
+	(when imports (set! lib._raw-imports (cdr imports)))
+	(when body    (set! lib._raw-body    (cdr body)))
 	(set! lib.raw-parsed? #t)))))
 
-(define (<library>-raw-exports (lib <library>))
-  (%library-raw-parse lib)
-  (<library>-%raw-exports lib))
+
+;;;; export lists
 
-(define (<library>-raw-imports (lib <library>))
-  (%library-raw-parse lib)
-  (<library>-%raw-imports lib))
+(define (<library>-exports (lib <library>))
+  (reverse
+   (fold-left (lambda (knil spec)
+		(cond ((symbol? spec)
+		       `((,spec ,spec) . ,knil))
+		      ((and (pair? spec)
+			    (sexp-match? `(rename ,(sexp-one `(,(sexp-pred symbol?)
+							       ,(sexp-pred symbol?))))
+					 spec))
+		       (append (reverse (cdr spec)) knil))
+		      (else
+		       (error-invalid-exports '<library>-exports spec))))
+	      '()
+	      lib.raw-exports)))
 
-(define (<library>-raw-body (lib <library>))
-  (%library-raw-parse lib)
-  (<library>-%raw-body lib))
 
 
 ;;;; done
