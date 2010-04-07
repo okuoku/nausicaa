@@ -932,6 +932,11 @@ Record utilities
 * classes fields::              Binding accessors and mutators.
 * classes builtin::             Conventional type descriptors.
 
+Binding accessors and mutators
+
+* classes fields with::         Basic fields and methods usage.
+* classes fields lambda::       High-level fields and methods usage.
+
 Conventional type descriptors
 
 * classes builtin chart::       A chart for predefined @rtd{}s.
@@ -20011,14 +20016,19 @@ when renaming the record type name; for example:
 
 
 @deffn {Auxiliary Syntax} virtual-fields @ameta{field spec}*
-Add a virtual field to the enclosing class definition; the @meta{field
-spec} arguments are the same as the @func{fields} ones.
+Add virtual fields to the enclosing class definition; the @meta{field
+spec} arguments are the same as the @func{fields} ones.  This clause can
+be used only once.
 
 An immutable virtual field is defined by a field name and a field
 accessor which can be applied to a class instance to compute a value.  A
 mutable virtual field is defined by a field name, a field accessor which
 can be applied to a class instance to compute a value, a field mutator
 which can be applied to a class instance to mutate its fields.
+
+For more details on virtual fields, especially fields with the same name
+in different record types of the same hierarchy, @ref{classes fields
+with, @func{with-fields}}.
 
 The following is an example of virtual fields usage:
 
@@ -20043,26 +20053,169 @@ The following is an example of virtual fields usage:
     (<fraction>-number-set! o (/ (numerator n) v))))
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((<fraction> o))
+  (with-fields ((o <fraction>))
     o.numerator))
 @result{} 2
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((<fraction> o))
+  (with-fields ((o <fraction>))
     o.denominator))
 @result{} 3
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((<fraction> o))
+  (with-fields ((o <fraction>))
     (set! o.numerator 5)
     o.number))
 @result{} 5/3
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((<fraction> o))
+  (with-fields ((o <fraction>))
     (set! o.denominator 5)
     o.number))
 @result{} 2/5
+@end example
+@end deffn
+
+
+@deffn {Auxiliary Syntax} methods @ameta{method spec}*
+Add a method to the enclosing class definition; the @meta{field spec}
+arguments can be of the form:
+
+@example
+@cmeta{field}
+(@cmeta{field})
+(@cmeta{field} @cmeta{function name})
+@end example
+
+@noindent
+in the first two forms the function name is built in the same way the
+field accessor names are built: appending a dash and @meta{field} to the
+record type name.  This clause can be used only once.
+
+The @meta{function name} must be the name of a Scheme function which
+will be invoked as method; it must accept as first argument the record
+instance interested in the application.
+
+For more details on methods, especially methods with the same name in
+different record types of the same hierarchy, @ref{classes fields with,
+@func{with-fields}}.
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator))
+  (methods (denominator)
+           product
+           (the-list the-list-function)))
+
+;; virtual field accessor and mutator
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-numerator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ v (denominator n)))))
+
+;; method functions
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(define/with (<fraction>-product (o <fraction>) lambda)
+  (set! o.numerator (* o.numerator lambda)))
+
+(define/with (the-list-function (o <fraction>) . ell)
+  (cons o.numerator ell))
+
+;; tests
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    (o.denominator)))
+@result{} 3
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    (o.product 10)
+    o.numerator))
+@result{} 20
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    (o.the-list 10 11 12 13)))
+@result{} (2 10 11 12 13)
+@end example
+@end deffn
+
+
+@deffn {Auxiliary Syntax} method (@ameta{name} . @ameta{formals}) . @ameta{body}
+Add a method to the enclosing class definition; the method is applicable
+only through an automatically generated macro, which is bound by
+@func{with-fields} to an identifier in dot notation.  This clause can be
+used any number of times in a class definition.
+
+The method definition is added to the methods list as if the following
+clause had been used:
+
+@example
+(methods @cmeta{other methods} ...
+         (@cmeta{name} function-name))
+@end example
+
+@noindent
+the function definition is expanded to:
+
+@example
+(define/with (function-name . @cmeta{formals}) . @cmeta{body})
+@end example
+
+@noindent
+where @code{function-name} is a unique, automatically generated,
+identifier.  The first argument in @meta{formals} will be the class
+instance.
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator))
+
+  (method (denominator (o <fraction>))
+    (denominator o.number))
+
+  (method (product (o <fraction>) lambda)
+    (set! o.numerator (* o.numerator lambda)))
+
+  (method (the-list (o <fraction>) . ell)
+    (cons o.numerator ell)))
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-numerator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ v (denominator n)))))
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    o.numerator))
+@result{} 2
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    (o.denominator)))
+@result{} 3
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    (o.product 10)
+    o.numerator))
+@result{} 20
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    (o.the-list 10 11 12 13)))
+@result{} (2 10 11 12 13)
 @end example
 @end deffn
 
@@ -20203,37 +20356,66 @@ automatically generated @func{@cmeta{record name}-with-record-fields-of}
 binding along with the record name; @ref{classes define} for details on
 classes definition.
 
+@menu
+* classes fields with::         Basic fields and methods usage.
+* classes fields lambda::       High-level fields and methods usage.
+@end menu
+
+@c page
+@node classes fields with
+@subsection Basic fields and methods usage
+
+
+The @func{with-fields} syntax is the basic tool to use dot notation in
+fields and methods usage.
+
 
 @deffn Syntax with-fields (@ameta{clause} ...) @ameta{body}
-Expand into a @func{let-syntax} form which defines identifier syntaxes
-to be used to access and mutate fields and virtual fields of objects and
-records.
+Expand into a @func{let-syntax} form which defines: identifier syntaxes
+to access and mutate fields and virtual fields of objects and records;
+macros to invoke methods of objects and records.
 
-Each @meta{clause} must be one among:
+Each @meta{clause} must have the form:
 
 @example
-(@cmeta{name} @cmeta{record name})
-(@cmeta{name} @cmetao{record name} @cmeta{record name} ...)
+(@cmeta{name} @cmetao{class name} @cmeta{class name} ...)
 @end example
 
 @noindent
-where @meta{record name} must be a record type name; @meta{name} must be
-an identifier bound to the object or record to be accessed.  The
-identifier syntax for a field named @samp{alpha} is built as:
+where @meta{class name} must be a record class name; @meta{name} must be
+an identifier bound to the object or record to be used as ``subject''.
+When multiple class names are included, the clause is equivalent to the
+sequence of clauses:
+
+@example
+(@cmeta{name} @cmetao{class name})
+(@cmeta{name} @cmeta{class name})
+(@cmeta{name} ...)
+@end example
+
+The identifier syntax for a field named @samp{alpha} is built as:
 
 @example
 @cmeta{name}.alpha
 @end example
 
 @noindent
-that is: identifier name, dot, field name.  One identifier syntax for
-each field and virtual field of @meta{record name} is defined; mutable
-fields generate a full identifier syntax with accessor and mutator;
-immutable fields generate only the accessor identifier syntax.  Only the
-fields of @ameta{record name} are handled, @strong{not} the fields of
-its parents.
+that is: name, dot, field name; the same goes for method's macros.
 
-Example:
+When a @meta{name} as no type: we can use @class{top} as its
+conventional record type name; this can be useful when expanding macros
+making use of @func{with-fields}.
+
+One identifier syntax for each field and virtual field of @meta{class
+name} is defined; one macro for each method of @meta{class name} is
+defined.  Mutable fields generate a full identifier syntax with accessor
+and mutator; immutable fields generate only the accessor identifier
+syntax.  Only the fields and methods of @ameta{class name} are handled,
+@strong{not} the ones of its parents.
+@end deffn
+
+
+Usage example:
 
 @example
 (define-class <alpha>
@@ -20279,7 +20461,7 @@ an example with virtual fields:
 @end example
 
 @noindent
-an example with multiple types:
+an example with multiple class names:
 
 @example
 (define-class <alpha>
@@ -20296,10 +20478,238 @@ an example with multiple types:
 @result{} (1 2)
 @end example
 
-When a @meta{name} as no type: we can use @class{top} as its
-conventional record type name; this can be useful when expanding macros
-making use of @func{with-fields}.
-@end deffn
+@noindent
+an example with methods, external definitions:
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator))
+  (methods (denominator)
+           product
+           (the-list the-list-function)))
+
+;; virtual field accessor and mutator
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-numerator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ v (denominator n)))))
+
+;; method functions
+
+(define (<fraction>-denominator o)
+  (denominator (<fraction>-number o)))
+
+(define/with (<fraction>-product (o <fraction>) lambda)
+  (set! o.numerator (* o.numerator lambda)))
+
+(define/with (the-list-function (o <fraction>) . ell)
+  (cons o.numerator ell))
+
+;; tests
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    (o.denominator)))
+@result{} 3
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    (o.product 10)
+    o.numerator))
+@result{} 20
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    (o.the-list 10 11 12 13)))
+@result{} (2 10 11 12 13)
+@end example
+
+@noindent
+another example with methods, internal definitions:
+
+@example
+(define-class <fraction>
+  (fields (mutable number))
+  (virtual-fields (mutable numerator))
+
+  (method (denominator o)
+    (denominator (<fraction>-number o)))
+
+  (method (product (o <fraction>) lambda)
+    (set! o.numerator (* o.numerator lambda)))
+
+  (method (the-list (o <fraction>) . ell)
+    (cons o.numerator ell)))
+
+;; virtual field accessor and mutator
+
+(define (<fraction>-numerator o)
+  (numerator (<fraction>-number o)))
+
+(define (<fraction>-numerator-set! o v)
+  (let ((n (<fraction>-number o)))
+    (<fraction>-number-set! o (/ v (denominator n)))))
+
+;; tests
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    o.numerator))
+@result{} 2
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    (o.denominator)))
+@result{} 3
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    (o.product 10)
+    o.numerator))
+@result{} 20
+
+(let ((o (make-<fraction> 2/3)))
+  (with-fields ((o <fraction>))
+    (o.the-list 10 11 12 13)))
+@result{} (2 10 11 12 13)
+@end example
+
+Notice that we can use virtual fields to access the concrete fields of
+parent classes:
+
+@example
+(define-class <alpha>
+  (fields a))
+
+(define-class <beta>
+  (parent <alpha>)
+  (fields b)
+  (virtual-fields (immutable a <alpha>-a)))
+
+(let ((o (make-<beta> 1 2)))
+  (with-fields ((o <beta>))
+    (list o.a o.b)))
+@result{} (1 2)
+@end example
+
+@c ------------------------------------------------------------
+
+@subsubheading Duplicated field names
+
+We have to be careful when selecting names for methods and virtual
+fields.  In any case, it is forbidden to use the same symbol twice for
+fields, virtual fields or methods of the same class definition.
+Duplication of names in concrete fields, of record types in the same
+hierarchy, is allowed:
+
+@example
+(define-record-type <alpha>
+  (fields a))
+
+(define-record-type <beta>
+  (parent <alpha>)
+  (fields a))
+
+(let ((o (make-<beta> 1 2)))
+
+  (<alpha>-a o) @result{} 1
+
+  (<beta>-a o) @result{} 2
+
+  )
+@end example
+
+@noindent
+in the same way duplication of names of virtual fields is allowed:
+
+@example
+(define-class <alpha>
+  (virtual-fields a))
+
+(define-class <beta>
+  (parent <alpha>)
+  (virtual-fields a))
+
+(define (<alpha>-a o)
+  1)
+
+(define (<beta>-a o)
+  2)
+
+(let ((o (make-<beta>)))
+
+  (with-fields ((o <alpha>))
+    o.a) @result{} 1
+
+  (with-fields ((o <beta>))
+    o.a) @result{} 2
+
+  (with-fields ((o <alpha>)
+                (o <beta>))  ;the last takes precedence
+    o.a) @result{} 2
+
+  (with-fields ((o <beta>)
+                (o <alpha>)) ;the last takes precedence
+    o.a) @result{} 1
+
+  (with-fields ((o <alpha> <beta>)) ;the last takes precedence
+    o.a) @result{} 2
+
+  (with-fields ((o <beta> <alpha>)) ;the last takes precedence
+    o.a) @result{} 1
+
+  )
+@end example
+
+@noindent
+and duplication of names of methods is allowed, too:
+
+@example
+(define-class <alpha>
+  (methods a))
+
+(define-class <beta>
+  (parent <alpha>)
+  (methods a))
+
+(define (<alpha>-a o)
+  1)
+
+(define (<beta>-a o)
+  2)
+
+(let ((o (make-<beta>)))
+
+  (with-fields ((o <alpha>))
+    (o.a)) @result{} 1
+
+  (with-fields ((o <beta>))
+    (o.a)) @result{} 2
+
+  (with-fields ((o <alpha>)
+                (o <beta>))  ;the last takes precedence
+    (o.a)) @result{} 2
+
+  (with-fields ((o <beta>)
+                (o <alpha>)) ;the last takes precedence
+    (o.a)) @result{} 1
+
+  (with-fields ((o <alpha> <beta>)) ;the last takes precedence
+    (o.a)) @result{} 2
+
+  (with-fields ((o <beta> <alpha>)) ;the last takes precedence
+    (o.a)) @result{} 1
+
+  )
+@end example
+
+@c page
+@node classes fields lambda
+@subsection High--level fields and methods usage
 
 
 @deffn Syntax let-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}

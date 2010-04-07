@@ -26,10 +26,11 @@
 
 
 (import (nausicaa)
-  (rnrs eval)
+;;;  (classes)	all the bindings are reexported by (nausicaa)
   (checks)
+  (debugging)
   (records-lib)
-  (classes))
+  (rnrs eval))
 
 (check-set-mode! 'report-failed)
 (display "*** testing classes basics\n")
@@ -147,35 +148,7 @@
   	       (with-fields ((o <alpha>))
   		 (set! o.a #t)
   		 o.a))
-  	    (environment '(nausicaa) '(classes)))
-    => #t)
-
-  (check
-      (guard (E ((syntax-violation? E) #t)
-  		(else #f))
-  	(eval '(letrec ()
-  		 (define-class <alpha>
-  		   (fields (mutable a)
-  			   (immutable b)
-  			   c))
-  		 (define o (make-<alpha> 1 2 3))
-  		 (with-fields ((o <alpha>))
-  		   (set! o.b #f)))
-  	      (environment '(nausicaa) '(classes))))
-    => #t)
-
-  (check
-      (guard (E ((syntax-violation? E) #t)
-  		(else #f))
-  	(eval '(letrec ()
-  		 (define-class <alpha>
-  		   (fields (mutable a)
-  			   (immutable b)
-  			   c))
-  		 (define o (make-<alpha> 1 2 3))
-  		 (with-fields ((o <alpha>))
-  		   (set! o.c #f)))
-  	      (environment '(nausicaa) '(classes))))
+  	    (environment '(nausicaa)))
     => #t)
 
 ;;; --------------------------------------------------------------------
@@ -403,6 +376,240 @@
   #t)
 
 
+(parametrise ((check-test-name	'definitions-methods))
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (methods numerator denominator))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    #f)
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (methods (numerator)
+	       (denominator)))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    #f)
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (methods (numerator   fraction-numerator)
+	       (denominator fraction-denominator)))
+
+    (define (fraction-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (fraction-denominator o)
+      (denominator (<fraction>-number o)))
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-errors)
+	      (debugging	#t))
+
+  (check	;attempt to mutate immutable field
+      (guard (E ((syntax-violation? E) #t)
+  		(else #f))
+  	(eval '(letrec ()
+  		 (define-class <alpha>
+  		   (fields (mutable a)
+  			   (immutable b)
+  			   c))
+  		 (define o (make-<alpha> 1 2 3))
+  		 (with-fields ((o <alpha>))
+  		   (set! o.b #f)))
+  	      (environment '(nausicaa))))
+    => #t)
+
+  (check	;attempt to mutate immutable field
+      (guard (E ((syntax-violation? E) #t)
+  		(else #f))
+  	(eval '(letrec ()
+  		 (define-class <alpha>
+  		   (fields (mutable a)
+  			   (immutable b)
+  			   c))
+  		 (define o (make-<alpha> 1 2 3))
+  		 (with-fields ((o <alpha>))
+  		   (set! o.c #f)))
+  	      (environment '(nausicaa) '(classes))))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check	;attempt to mutate immutable virtual-field
+      (guard (E ((syntax-violation? E) #t)
+  		(else #f))
+  	(eval '(letrec ()
+  		 (define-class <alpha>
+  		   (fields (mutable a)
+  			   c)
+		   (virtual-fields (immutable b)))
+		 (define (<alpha>-b o)
+		   #t)
+  		 (define o (make-<alpha> 1 2 3))
+  		 (with-fields ((o <alpha>))
+  		   (set! o.b #f)))
+  	      (environment '(nausicaa))))
+    => #t)
+
+  (check	;attempt to mutate immutable virtual field
+      (guard (E ((syntax-violation? E) #t)
+  		(else #f))
+  	(eval '(letrec ()
+  		 (define-class <alpha>
+  		   (fields (mutable a)
+  			   (immutable b))
+		   (virtual-fields c))
+		 (define (<alpha>-c o)
+		   #t)
+  		 (define o (make-<alpha> 1 2 3))
+  		 (with-fields ((o <alpha>))
+  		   (set! o.c #f)))
+  	      (environment '(nausicaa) '(classes))))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (check	;duplicated field name, FIELDS/VIRTUAL-FIELDS
+	(guard (E ((syntax-violation? E)
+		   (condition-irritants E))
+		  (else
+		   (debug-print-condition "should have been duplicated name:" E)
+		   #f))
+	  (eval '(define-class <alpha>
+		   (fields a)
+		   (virtual-fields a))
+		(environment '(nausicaa))))
+      => '(a))
+
+    (check	;duplicated field name, FIELDS/METHODS
+	(guard (E ((syntax-violation? E)
+		   (condition-irritants E))
+		  (else
+		   (debug-print-condition "should have been duplicated name:" E)
+		   #f))
+	  (eval '(define-class <alpha>
+		   (fields a)
+		   (methods a))
+		(environment '(nausicaa))))
+      => '(a))
+
+    (check	;duplicated field name, FIELDS/METHOD
+	(guard (E ((syntax-violation? E)
+		   (condition-irritants E))
+		  (else
+		   (debug-print-condition "should have been duplicated name:" E)
+		   #f))
+	  (eval '(define-class <alpha>
+		   (fields a)
+		   (method (a o)
+		     #t))
+		(environment '(nausicaa))))
+      => '(a))
+
+    (check	;duplicated field name, VIRTUAL-FIELDS/METHODS
+	(guard (E ((syntax-violation? E)
+		   (condition-irritants E))
+		  (else
+		   (debug-print-condition "should have been duplicated name:" E)
+		   #f))
+	  (eval '(define-class <alpha>
+		   (virtual-fields a)
+		   (methods a))
+		(environment '(nausicaa))))
+      => '(a))
+
+    (check	;duplicated field name, VIRTUAL-FIELDS/METHOD
+	(guard (E ((syntax-violation? E)
+		   (condition-irritants E))
+		  (else
+		   (debug-print-condition "should have been duplicated name:" E)
+		   #f))
+	  (eval '(define-class <alpha>
+		   (virtual-fields a)
+		   (method (a o)
+		     #t))
+		(environment '(nausicaa))))
+      => '(a))
+
+    (check	;duplicated field name, METHODS/METHOD
+	(guard (E ((syntax-violation? E)
+		   (condition-irritants E))
+		  (else
+		   (debug-print-condition "should have been duplicated name:" E)
+		   #f))
+	  (eval '(define-class <alpha>
+		   (methods a)
+		   (method (a o)
+		     #t))
+		(environment '(nausicaa))))
+      => '(a))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (check	;VIRTUAL-FIELDS used twice
+	(guard (E ((syntax-violation? E)
+		   #t)
+		  (else
+		   (write E)(newline)
+		   #f))
+	  (eval '(define-class <alpha>
+		   (virtual-fields a)
+		   (virtual-fields b))
+		(environment '(nausicaa))))
+      => #t)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (check	;METHODS used twice
+	(guard (E ((syntax-violation? E)
+		   #t)
+		  (else
+		   (write E)(newline)
+		   #f))
+	  (eval '(define-class <alpha>
+		   (methods a)
+		   (methods b))
+		(environment '(nausicaa))))
+      => #t)
+
+    #f)
+
+  #t)
+
+
 (parametrise ((check-test-name	'with-fields))
 
   (let ()	;one field
@@ -593,6 +800,300 @@
       #f)
     #f)
 
+;;; --------------------------------------------------------------------
+;;; virtual field name collision
+
+  (let ()	;concrete fields name collision
+
+    (define-record-type <alpha>
+      (fields a))
+
+    (define-record-type <beta>
+      (parent <alpha>)
+      (fields a))
+
+    (let ((o (make-<beta> 1 2)))
+
+      (check
+	  (<alpha>-a o)
+	=> 1)
+
+      (check
+	  (<beta>-a o)
+	=> 2)
+
+      #f)
+
+    #f)
+
+  (let ()	;virtual fields
+
+    (define-class <alpha>
+      (virtual-fields a))
+
+    (define-class <beta>
+      (parent <alpha>)
+      (virtual-fields a))
+
+    (define (<alpha>-a o)
+      1)
+
+    (define (<beta>-a o)
+      2)
+
+    (let ((o (make-<beta>)))
+
+      (check
+	  (with-fields ((o <alpha>))
+	    o.a)
+	=> 1)
+
+      (check
+	  (with-fields ((o <beta>))
+	    o.a)
+	=> 2)
+
+      (check
+	  (with-fields ((o <alpha>)
+			(o <beta>))
+	    o.a)
+	=> 2)
+
+      (check
+	  (with-fields ((o <beta>)
+			(o <alpha>))
+	    o.a)
+	=> 1)
+
+      (check
+	  (with-fields ((o <alpha> <beta>))
+	    o.a)
+	=> 2)
+
+      (check
+	  (with-fields ((o <beta> <alpha>))
+	    o.a)
+	=> 1)
+
+      #f)
+
+    #f)
+
+  #t)
+
+
+(parametrise ((check-test-name	'with-methods))
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (mutable numerator))
+      (methods (denominator)
+	       product
+	       (the-list the-list-function)))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-numerator-set! o v)
+      (let ((n (<fraction>-number o)))
+	(<fraction>-number-set! o (/ v (denominator n)))))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    (define/with (<fraction>-product (o <fraction>) lambda)
+      (set! o.numerator (* o.numerator lambda)))
+
+    (define/with (the-list-function (o <fraction>) . ell)
+      (cons o.numerator ell))
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((o <fraction>))
+	    o.numerator))
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((o <fraction>))
+	    (o.denominator)))
+      => 3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((o <fraction>))
+	    (o.product 10)
+	    o.numerator))
+      => 20)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((o <fraction>))
+	    (o.the-list 10 11 12 13)))
+      => '(2 10 11 12 13))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; method name collision
+
+  (let ()
+
+    (define-class <alpha>
+      (methods a))
+
+    (define-class <beta>
+      (parent <alpha>)
+      (methods a))
+
+    (define (<alpha>-a o)
+      1)
+
+    (define (<beta>-a o)
+      2)
+
+    (let ((o (make-<beta>)))
+
+      (check
+	  (with-fields ((o <alpha>))
+	    (o.a))
+	=> 1)
+
+      (check
+	  (with-fields ((o <beta>))
+	    (o.a))
+	=> 2)
+
+      (check
+	  (with-fields ((o <alpha>)
+			(o <beta>))
+	    (o.a))
+	=> 2)
+
+      (check
+	  (with-fields ((o <beta>)
+			(o <alpha>))
+	    (o.a))
+	=> 1)
+
+      (check
+	  (with-fields ((o <alpha> <beta>))
+	    (o.a))
+	=> 2)
+
+      (check
+	  (with-fields ((o <beta> <alpha>))
+	    (o.a))
+	=> 1)
+
+      #f)
+    #f)
+  #t)
+
+
+(parametrise ((check-test-name	'in-definition-methods))
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (mutable numerator))
+      (method (denominator o)
+	(denominator (<fraction>-number o)))
+      (method (product (o <fraction>) lambda)
+	(set! o.numerator (* o.numerator lambda)))
+      (method (the-list (o <fraction>) . ell)
+	(cons o.numerator ell)))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-numerator-set! o v)
+      (let ((n (<fraction>-number o)))
+	(<fraction>-number-set! o (/ v (denominator n)))))
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((o <fraction>))
+	    o.numerator))
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((o <fraction>))
+	    (o.denominator)))
+      => 3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((o <fraction>))
+	    (o.product 10)
+	    o.numerator))
+      => 20)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-fields ((o <fraction>))
+	    (o.the-list 10 11 12 13)))
+      => '(2 10 11 12 13))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; method name collision
+
+  (let ()
+
+    (define-class <alpha>
+      (method (a o)
+	1))
+
+    (define-class <beta>
+      (parent <alpha>)
+      (method (a o)
+	2))
+
+    (check
+	(let ((o (make-<beta>)))
+	  (with-fields ((o <alpha>))
+	    (o.a)))
+      => 1)
+
+    (check
+	(let ((o (make-<beta>)))
+	  (with-fields ((o <beta>))
+	    (o.a)))
+      => 2)
+
+    (check
+	(let ((o (make-<beta>)))
+	  (with-fields ((o <alpha>)
+			(o <beta>))
+	    (o.a)))
+      => 2)
+
+    (check
+	(let ((o (make-<beta>)))
+	  (with-fields ((o <beta>)
+			(o <alpha>))
+	    (o.a)))
+      => 1)
+
+    (check
+	(let ((o (make-<beta>)))
+	  (with-fields ((o <alpha> <beta>))
+	    (o.a)))
+      => 2)
+
+    (check
+	(let ((o (make-<beta>)))
+	  (with-fields ((o <beta> <alpha>))
+	    (o.a)))
+      => 1)
+
+    #f)
   #t)
 
 
