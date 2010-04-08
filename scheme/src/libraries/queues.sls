@@ -90,7 +90,53 @@
   (virtual-fields (immutable front	queue-front)
 		  (immutable rear	queue-rear)
 		  (immutable empty?	queue-empty?)
-		  (immutable length	queue-length)))
+		  (immutable length	queue-length))
+
+  (methods (pop!	queue-pop!)
+	   (dequeue!	queue-pop!)
+	   (enqueue!	queue-enqueue!)
+	   (purge!	queue-purge!)
+	   (list	queue->list)
+	   (vector	queue->vector))
+
+  (method (push! Q obj)
+    (queue-push! obj Q))
+
+  (method (find Q proc)
+    (queue-find proc Q))
+
+  (method (for-all Q proc)
+    (queue-for-all proc Q))
+
+  (method (exists Q proc)
+    (queue-exists proc Q))
+
+  (method (remp! Q proc)
+    (queue-remp! proc Q))
+
+  (method (remove! Q obj)
+    (queue-remove! obj Q))
+
+  (method (remv! Q obj)
+    (queue-remv! obj Q))
+
+  (method (remq! Q obj)
+    (queue-remq! obj Q))
+
+  (method (filter! Q proc)
+    (queue-filter! proc Q))
+
+  (method (memp Q proc)
+    (queue-memp proc Q))
+
+  (method (member Q obj)
+    (queue-member obj Q))
+
+  (method (memv Q obj)
+    (queue-memv obj Q))
+
+  (method (memq Q obj)
+    (queue-memq obj Q)))
 
 
 (define (queue-front (que <queue>))

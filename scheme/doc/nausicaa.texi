@@ -38128,66 +38128,76 @@ The queue is left unchanged.  Raise an exception if the queue is empty.
 @section Basic operations
 
 
-@defun queue-enqueue! @var{que} @var{obj}
+@deffn Function queue-enqueue! @var{que} @var{obj}
+@deffnx {Dot Method} enqueue! @var{obj}
 Enqueue @var{obj} in the rear of the queue.
-@end defun
+@end deffn
 
 
-@defun queue-push! @var{obj} @var{que}
+@deffn Function queue-push! @var{obj} @var{que}
+@deffnx {Dot Method} push! @var{obj}
 Push @var{obj} in the front of the queue.
-@end defun
+@end deffn
 
 
-@defun queue-dequeue! @var{que}
-@defunx queue-pop! @var{que}
+@deffn Function queue-dequeue! @var{que}
+@deffnx Function queue-pop! @var{que}
+@deffnx {Dot Method} dequeue!
+@deffnx {Dot Method} pop!
 Pop and return a value from the front of the queue.
-@end defun
+@end deffn
 
 
-@defun queue-purge! @var{que}
+@deffn Function queue-purge! @var{que}
+@deffnx {Dot Method} purge!
 Discard all the elements from the queue.
-@end defun
+@end deffn
 
 @c page
 @node queues list
 @section List operations
 
 
-@defun queue-find @var{proc} @var{que}
-@defunx queue-for-all @var{proc} @var{que}
-@defunx queue-exists @var{proc} @var{que}
+@deffn Function queue-find @var{proc} @var{que}
+@deffnx Function queue-for-all @var{proc} @var{que}
+@deffnx Function queue-exists @var{proc} @var{que}
+@deffnx {Dot Method} queue-find @var{proc}
+@deffnx {Dot Method} for-all @var{proc}
+@deffnx {Dot Method} exists @var{proc} @var{que}
 Apply @func{find} or @func{for-all} or @func{exists} to the internal
 list of the queue, return the result.
-@end defun
+@end deffn
 
 
-@defun queue-remp! @var{proc} @var{que}
-@defunx queue-remove! @var{obj} @var{que}
-@defunx queue-remv! @var{obj} @var{que}
-@defunx queue-remq! @var{obj} @var{que}
+@deffn Function queue-remp! @var{proc} @var{que}
+@deffnx Function queue-remove! @var{obj} @var{que}
+@deffnx {Dot Method} remv! @var{obj}
+@deffnx {Dot Method} remq! @var{obj}
 Apply @func{remp} or @func{remove} or @func{remv} or @func{remq} to the
 internal list of the queue, removing objects from the queue.
-@end defun
+@end deffn
 
 
-@defun queue-memp @var{proc} @var{que}
-@defunx queue-member @var{obj} @var{que}
-@defunx queue-memv @var{obj} @var{que}
-@defunx queue-memq @var{obj} @var{que}
+@deffn Function queue-memp @var{proc} @var{que}
+@deffnx Function queue-member @var{obj} @var{que}
+@deffnx {Dot Method} memv @var{obj}
+@deffnx {Dot Method} memq @var{obj}
 Apply @func{memp} or @func{member} or @func{memv} or @func{memq} to the
 internal list of the queue, return the result.
-@end defun
+@end deffn
 
 @c page
 @node queues conv
 @section Conversion
 
 
-@defun queue->list @var{que}
-@defunx queue->vector @var{que}
+@deffn Function queue->list @var{que}
+@deffnx Function queue->vector @var{que}
+@deffnx {Dot Method} list
+@deffnx {Dot Method} vector
 Return a list or vector holding the elements in the queue.  In the list
 case, return a copy of the spine of the list in the queue.
-@end defun
+@end deffn
 
 
 @defun list->queue @var{ell}

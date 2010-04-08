@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009, 2010 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -90,7 +90,7 @@
 
 (parametrise ((check-test-name 'pred))
 
-  (check 'this
+  (check
       (queue-empty? (make-<queue>))
     => #t)
 
@@ -230,6 +230,12 @@
 	(queue-empty? q))
     => #t)
 
+  (check
+      (let-fields (((q <queue>) (make-<queue> 1 2 3)))
+	(q.purge!)
+	q.empty?)
+    => #t)
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -240,6 +246,14 @@
 	(queue->list q))
     => '(1 2 3))
 
+  (check
+      (let-fields (((q <queue>) (make-<queue>)))
+	(q.enqueue! 1)
+	(q.enqueue! 2)
+	(q.enqueue! 3)
+	(q.list))
+    => '(1 2 3))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -248,6 +262,14 @@
 	(queue-push! 2 q)
 	(queue-push! 3 q)
 	(queue->list q))
+    => '(3 2 1))
+
+  (check
+      (let-fields (((q <queue>) (make-<queue>)))
+	(q.push! 1)
+	(q.push! 2)
+	(q.push! 3)
+	(q.list))
     => '(3 2 1))
 
 ;;; --------------------------------------------------------------------
@@ -278,6 +300,12 @@
 	(queue-empty? q))
     => #t)
 
+  (check
+      (let-fields (((q <queue>) (make-<queue> 1 2 3)))
+	(q.dequeue!)
+	(q.dequeue!)
+	(q.dequeue!))
+    => 3)
   #t)
 
 
@@ -298,6 +326,11 @@
 	(queue-find even? q))
     => 2)
 
+  (check
+      (let-fields (((q <queue>) (make-<queue> 1 2)))
+	(q.find even?))
+    => 2)
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -313,6 +346,11 @@
   (check
       (let ((q (make-<queue> 1 2 3 4)))
 	(queue-exists even? q))
+    => #t)
+
+  (check
+      (let-fields (((q <queue>) (make-<queue> 1 2)))
+	(q.exists even?))
     => #t)
 
 ;;; --------------------------------------------------------------------
@@ -336,6 +374,11 @@
       (let ((q (make-<queue> 2 4 6 8)))
 	(queue-for-all even? q))
     => #t)
+
+  (check
+      (let-fields (((q <queue>) (make-<queue> 1 2 3 4)))
+	(q.for-all even?))
+    => #f)
 
 ;;; --------------------------------------------------------------------
 
@@ -363,6 +406,12 @@
 	(queue->list q))
     => '())
 
+  (check
+      (let-fields (((q <queue>) (make-<queue> 1 2 3 4)))
+	(q.remp! even?)
+	(q.list))
+    => '(1 3))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -389,6 +438,12 @@
 	(queue->list q))
     => '(4 6 8))
 
+  (check
+      (let-fields (((q <queue>) (make-<queue> 1 2 3 4)))
+	(q.remove! 2)
+	(q.list))
+    => '(1 3 4))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -414,6 +469,12 @@
 	(queue-remv! 2 q)
 	(queue->list q))
     => '(4 6 8))
+
+  (check
+      (let-fields (((q <queue>) (make-<queue> 1 2 3 4)))
+	(q.remv! 2)
+	(q.list))
+    => '(1 3 4))
 
 ;;; --------------------------------------------------------------------
 
@@ -440,6 +501,12 @@
 	(queue-remq! 'two q)
 	(queue->list q))
     => '(4 6 8))
+
+  (check
+      (let-fields (((q <queue>) (make-<queue> 1 'two 3 4)))
+	(q.remq! 'two)
+	(q.list))
+    => '(1 3 4))
 
 ;;; --------------------------------------------------------------------
 
@@ -468,6 +535,11 @@
 	(queue-memp odd? q))
     => #f)
 
+  (check
+      (let-fields (((q <queue>) (make-<queue> 2 4 6 8)))
+	(q.memp even?))
+    => '(2 4 6 8))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -495,6 +567,11 @@
 	(queue-member 10 q))
     => #f)
 
+  (check
+      (let-fields (((q <queue>) (make-<queue> 1 2 3 4)))
+	(q.member 2))
+    => '(2 3 4))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -516,6 +593,11 @@
       (let ((q (make-<queue> 2 4 6 8)))
 	(queue-memv 2 q))
     => '(2 4 6 8))
+
+  (check
+      (let-fields (((q <queue>) (make-<queue> 1 2 3 4)))
+	(q.memv 2))
+    => '(2 3 4))
 
 ;;; --------------------------------------------------------------------
 
@@ -539,7 +621,10 @@
 	(queue-memq 'two q))
     => '(two 4 6 8))
 
-;;; --------------------------------------------------------------------
+  (check
+      (let-fields (((q <queue>) (make-<queue> 1 'two 3 4)))
+	(q.memq 'two))
+    => '(two 3 4))
 
   #t)
 
