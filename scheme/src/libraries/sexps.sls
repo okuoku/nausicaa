@@ -134,9 +134,7 @@
   ;;Match the all of FORM, binding it to SEXP-VARIABLE.
   ;;
   (lambda (form)
-    (if (null? form)
-	(sexp-mismatch-error 'sexp-var (list 'sexp-var sexp-variable) form)
-      (values `((,sexp-variable . ,form)) '()))))
+    (values `((,sexp-variable . ,form)) '())))
 
 (define (sexp-pred pred)
   ;;Attempt  to  match the  car  of  FORM by  applying  PRED  to it  and

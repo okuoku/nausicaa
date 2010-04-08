@@ -41040,7 +41040,8 @@ Used to extract a value from a form, return a matching operator.
 @defun sexp-var-rest @var{variable}
 Used to extract a list of values from a form, return a matching
 operator.  @var{variable} must be a record of type @samp{sexp-variable}.
-This operator matches all its input form and binds it to the variable.
+This operator matches all its input form and binds it to the variable;
+the input form can be null.
 @end defun
 
 
