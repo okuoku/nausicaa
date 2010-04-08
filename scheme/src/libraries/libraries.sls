@@ -65,7 +65,10 @@
     (lists)
     (strings)
     (char-sets)
-    (sexps))
+    (sexps)
+    (matches)
+    (libraries rnrs-bindings)
+    (libraries low))
 
 
 (define-class <library>
@@ -88,19 +91,28 @@
 		;the body of the library, produced by %LIBRARY-RAW-PARSE
 	  (mutable _exports)
 		;list pairs representing the  export list, each pair as:
-		;(defined-name . exported-name)
+		;(defined-name exported-name)
+
+	  (mutable _imported-libraries)
+		;list    of     imported    libraries,    produced    by
+		;<LIBRARY>-IMPORTED-LIBRARIES
+	  (mutable _imported-bindings)
+		;list     of    imported    bingings,     produced    by
+		;<LIBRARY>-IMPORTED-BINDINGS
 	  )
   (virtual-fields (immutable raw-exports)
 		  (immutable raw-imports)
 		  (immutable raw-body)
-		  (immutable exports))
+		  (immutable exports)
+		  (immutable imported-libraries)
+		  (immutable imported-bindings))
 
   (protocol (lambda (make-<top>)
 	      (lambda/with* ((spec <list>) (sexp <list>))
 		((make-<top>) spec sexp
 		 #f	  ;raw-parsed?
 		 #f #f #f ;_raw-exports _raw-imports _raw-body
-		 #f	  ;_exports
+		 #f #f #f ;_exports _imported-libraries _imported-bindings
 		 )))))
 
 
@@ -175,7 +187,7 @@
 (define ignore-library-version
   (make-parameter #t))
 
-(define $extensions
+(define-constant $extensions
   (list (cond-expand
 	 (ikarus	".ikarus.sls")
 	 (larceny	".larceny.sls")
@@ -184,11 +196,17 @@
 	 (ypsilon	".ypsilon.sls"))
 	".sls" ".scm" ".ss"))
 
+(define get-library-pathname-function
+  (make-parameter get-library-pathname
+    (lambda (f)
+      (assert (procedure? f))
+      f)))
+
 (define (load-library-from-file spec)
   ;;Search a library  on the system and load it.  Return  the sexp or #f
   ;;if not found.
   ;;
-  (let ((pathname (get-library-pathname spec)))
+  (let ((pathname ((get-library-pathname-function) spec)))
     (if pathname
 	(with-compensations
 	  (letrec ((port (compensate
@@ -207,13 +225,15 @@
   ;;account  depending  on   the  value  of  the  IGNORE-LIBRARY-VERSION
   ;;parameter: if #f it is removed before building the pathname.
   ;;
-  (let* ((spec	(if (ignore-library-version)
-		    (if (pair? (last spec))
-			(drop-right spec 1)
-		      spec)
-		  spec))
-	 (name	(string-join (map symbol->string spec) "/"))
-	 (dirs	((get-search-path-function))))
+
+  (let* ((spec (if (pair? (last spec))
+		   (if (ignore-library-version)
+		       (drop-right spec 1)
+		     (append (drop-right spec 1)
+			     (list (string-join (map number->string (take-right spec 1)) "."))))
+		 spec))
+	 (name (string-join (map symbol->string/maybe spec) "/"))
+	 (dirs ((get-search-path-function))))
     (exists (lambda (dir)
 	      (exists (lambda (ext)
 			(let ((pathname (string-append dir "/" name ext)))
@@ -243,7 +263,7 @@
     (let-sexp-variables ((?spec		sentinel)
 			 (?exports	sentinel)
 			 (?imports	sentinel)
-			 (?body		sentinel))
+			 (?body		'()))
       (let* ((match (sexp-match `(library ,(sexp-var ?spec)
 				   (export ,(sexp-var-rest ?exports))
 				   (import ,(sexp-var-rest ?imports))
@@ -261,20 +281,186 @@
 ;;;; export lists
 
 (define (<library>-exports (lib <library>))
-  (reverse
-   (fold-left (lambda (knil spec)
-		(cond ((symbol? spec)
-		       `((,spec ,spec) . ,knil))
-		      ((and (pair? spec)
-			    (sexp-match? `(rename ,(sexp-one `(,(sexp-pred symbol?)
-							       ,(sexp-pred symbol?))))
-					 spec))
-		       (append (reverse (cdr spec)) knil))
-		      (else
-		       (error-invalid-exports '<library>-exports spec))))
-	      '()
-	      lib.raw-exports)))
+  (or lib._exports
+      (begin0-let ((exports (reverse
+			     (fold-left (lambda (knil spec)
+					  (cond ((symbol? spec)
+						 `((,spec ,spec) . ,knil))
+						((and (pair? spec)
+						      (sexp-match? `(rename
+								     ,(sexp-one
+								       `(,(sexp-pred symbol?)
+									 ,(sexp-pred symbol?))))
+								   spec))
+						 (append (reverse (cdr spec)) knil))
+						(else
+						 (error-invalid-exports '<library>-exports spec))))
+					'()
+					lib.raw-exports))))
+	(set! lib._exports exports))))
 
+
+;;;; libraries import list
+
+(define (<library>-imported-libraries (lib <library>))
+  (or lib._imported-libraries
+      (begin0-let ((lib-list (map (lambda (spec)
+				    (match spec
+				      (('for import-set)
+				       (%extract-library-from-import-spec import-set))
+				      (('for import-set *)
+				       (%extract-library-from-import-spec import-set))
+				      (import-set
+				       (%extract-library-from-import-spec import-set))))
+			       lib.raw-imports)))
+	(set! lib._imported-libraries lib-list))))
+
+(define (%extract-library-from-import-spec spec)
+  (match spec
+    (('rename import-set)
+     (%extract-library-from-import-spec import-set))
+    (('rename import-set . *)
+     (%extract-library-from-import-spec import-set))
+
+    (('only import-set)
+     (%extract-library-from-import-spec import-set))
+    (('only import-set . *)
+     (%extract-library-from-import-spec import-set))
+
+    (('except import-set)
+     (%extract-library-from-import-spec import-set))
+    (('except import-set . *)
+     (%extract-library-from-import-spec import-set))
+
+    (('prefix import-set prefix)
+     (assert (symbol? prefix))
+     (%extract-library-from-import-spec import-set))
+
+    (('library library-spec)
+     library-spec)
+
+    (library-spec
+     library-spec)))
+
+
+;;;; libraries import bindings
+
+(define (<library>-imported-bindings (lib <library>))
+  (or lib._imported-bindings
+      (begin0-let ((lib-list (map (lambda (spec)
+				    (match spec
+				      (('for import-set)
+				       (%extract-bindings-from-import-spec import-set))
+				      (('for import-set *)
+				       (%extract-bindings-from-import-spec import-set))
+				      (import-set
+				       (%extract-bindings-from-import-spec import-set))))
+			       lib.raw-imports)))
+	(set! lib._imported-bindings lib-list))))
+
+(define (%extract-bindings-from-import-spec spec)
+  (match spec
+    (('rename import-set)
+     (%extract-bindings-from-import-spec import-set))
+    (('rename import-set . list-of-renamings)
+     (%extract-bindings-from-import-spec import-set))
+
+    (('only import-set) ;exclude all the bindings
+     '())
+    (('only import-set . list-of-ids)
+     (%apply-import-spec/only (%extract-bindings-from-import-spec import-set)
+			      list-of-ids))
+
+    (('except import-set)
+     (%extract-bindings-from-import-spec import-set))
+    (('except import-set . list-of-ids)
+     (%apply-import-spec/except (%extract-bindings-from-import-spec import-set) list-of-ids))
+
+    (('prefix import-set the-prefix)
+     (%apply-import-spec/prefix (%extract-bindings-from-import-spec import-set)))
+
+    (('library library-spec)
+     (<library>-exports (load-library library-spec)))
+
+    (library-spec
+     (<library>-exports (load-library library-spec)))))
+
+
+;;;; rnrs libraries
+
+(define (%symbols->renamings list-of-symbols)
+  (map (lambda (sym)
+	 (list sym sym))
+    list-of-symbols))
+
+(define (%register-rnrs-lib spec bindings)
+  (let*-fields (((spec <top>)      spec)
+		((lib  <library>)  (make-<library> spec '())))
+    (hashtable-set! $library-registry spec lib)
+    (hashtable-set! $library-registry (drop-right spec 1) lib)
+		;remove the version spec
+    (set! lib.raw-parsed? #t)
+    (set! lib._raw-exports bindings)
+    (set! lib._raw-imports '())
+    (set! lib._raw-body '())
+    (set! lib._exports (%symbols->renamings bindings))
+    (set! lib._imported-libraries '())
+    (set! lib._imported-bindings '())))
+
+(%register-rnrs-lib '(rnrs base (6))			rnrs-base-6)
+(%register-rnrs-lib '(rnrs unicode (6))			rnrs-unicode-6)
+(%register-rnrs-lib '(rnrs bytevectors (6))		rnrs-bytevectors-6)
+(%register-rnrs-lib '(rnrs lists (6))			rnrs-lists-6)
+(%register-rnrs-lib '(rnrs sorting (6))			rnrs-sorting-6)
+(%register-rnrs-lib '(rnrs control (6))			rnrs-control-6)
+(%register-rnrs-lib '(rnrs records syntactic (6))	rnrs-records-syntactic-6)
+(%register-rnrs-lib '(rnrs records procedural (6))	rnrs-records-procedural-6)
+(%register-rnrs-lib '(rnrs records inspection (6))	rnrs-records-inspection-6)
+(%register-rnrs-lib '(rnrs exceptions (6))		rnrs-exceptions-6)
+(%register-rnrs-lib '(rnrs conditions (6))		rnrs-conditions-6)
+(%register-rnrs-lib '(rnrs io ports (6))		rnrs-io-ports-6)
+(%register-rnrs-lib '(rnrs io simple (6))		rnrs-io-simple-6)
+(%register-rnrs-lib '(rnrs files (6))			rnrs-files-6)
+(%register-rnrs-lib '(rnrs enums (6))			rnrs-enums-6)
+(%register-rnrs-lib '(rnrs programs (6))		rnrs-programs-6)
+(%register-rnrs-lib '(rnrs arithmetic fixnums (6))	rnrs-arithmetic-fixnums-6)
+(%register-rnrs-lib '(rnrs arithmetic flonums (6))	rnrs-arithmetic-flonums-6)
+(%register-rnrs-lib '(rnrs arithmetic bitwise (6))	rnrs-arithmetic-bitwise-6)
+(%register-rnrs-lib '(rnrs syntax-case (6))		rnrs-syntax-case-6)
+(%register-rnrs-lib '(rnrs hashtables (6))		rnrs-hashtables-6)
+
+(let*-fields (((spec <top>)      '(rnrs (6)))
+	      ((lib  <library>)  (make-<library> spec '())))
+  (hashtable-set! $library-registry spec lib)
+  (hashtable-set! $library-registry (drop-right spec 1) lib)
+		;remove the version spec
+  (set! lib.raw-parsed? #t)
+  (set! lib._raw-exports rnrs-6)
+  (set! lib._raw-imports '((rnrs base (6))
+			   (rnrs unicode (6))
+			   (rnrs bytevectors (6))
+			   (rnrs lists (6))
+			   (rnrs sorting (6))
+			   (rnrs control (6))
+			   (rnrs records syntactic (6))
+			   (rnrs records procedural (6))
+			   (rnrs records inspection (6))
+			   (rnrs exceptions (6))
+			   (rnrs conditions (6))
+			   (rnrs io ports (6))
+			   (rnrs io simple (6))
+			   (rnrs files (6))
+			   (rnrs enums (6))
+			   (rnrs programs (6))
+			   (rnrs arithmetic fixnums (6))
+			   (rnrs arithmetic flonums (6))
+			   (rnrs arithmetic bitwise (6))
+			   (rnrs syntax-case (6))
+			   (rnrs hashtables (6))))
+  (set! lib._raw-body '())
+  (set! lib._exports (%symbols->renamings rnrs-6))
+  (set! lib._imported-libraries lib._raw-imports)
+  (set! lib._imported-bindings '()))
 
 
 ;;;; done

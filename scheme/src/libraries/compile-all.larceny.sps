@@ -308,6 +308,12 @@
 (compile-library "getopts.sls"
 		 "getopts.slfasl")
 
+(compile-library "libraries/low.sls"
+		 "libraries/low.slfasl")
+
+(compile-library "libraries/rnrs-bindings.sls"
+		 "libraries/rnrs-bindings.slfasl")
+
 (compile-library "libraries.sls"
 		 "libraries.slfasl")
 
