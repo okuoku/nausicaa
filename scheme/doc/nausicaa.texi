@@ -253,6 +253,11 @@ Revised^6 Report on the algorithmic language Scheme
 @code{(rnrs \THING\ (6))}
 @end macro
 
+@macro cindexRsixlibrary{THING}
+@cindex @code{rnrs \THING\ (6)}, library
+@cindex Library, @rsixlibrary{\THING\}
+@end macro
+
 @macro arbno{THING}
 \THING\*
 @end macro
@@ -5740,6 +5745,8 @@ The @func{let} keyword could be defined in terms of @func{lambda} and
 @chapter Base library
 
 
+@cindexRsixlibrary{base}
+
 @ignore
 In the original document this chapter is the "base.tex" file.
 @end ignore
@@ -10147,6 +10154,9 @@ implementation--dependent.)
 @section Unicode
 
 
+@cindexRsixlibrary{unicode}
+
+
 The procedures exported by the @rsixlibrary{unicode} library provide
 access to some aspects of the Unicode semantics for characters and
 strings: category information, case--independent comparisons, case
@@ -10384,6 +10394,9 @@ the argument instead of a newly allocated string.
 @c page
 @node stdlib bytevector
 @section Bytevectors
+
+
+@cindexRsixlibrary{bytevectors}
 
 
 Many applications deal with blocks of binary data by accessing them in
@@ -11073,6 +11086,9 @@ specifying @code{little} and @utf{}-32LE.
 @section List utilities
 
 
+@cindexRsixlibrary{lists}
+
+
 This chapter describes the @rsixlibrary{lists} library, which contains
 various useful procedures that operate on lists.
 
@@ -11535,6 +11551,9 @@ and whose last cdr is @var{obj}.  If called with only one argument,
 @section Sorting
 
 
+@cindexRsixlibrary{sorting}
+
+
 This chapter describes the @rsixlibrary{sorting} library for sorting
 lists and vectors.
 
@@ -11605,6 +11624,9 @@ appropriate argument before applying it.
 @c page
 @node stdlib control
 @section Control structures
+
+
+@cindexRsixlibrary{control}
 
 
 This chapter describes the @rsixlibrary{control} library, which provides
@@ -11971,6 +11993,9 @@ returns @false{}, then @func{eqv?} returns @false{}.
 @c page
 @node stdlib records syntactic layer
 @subsection Syntactic layer
+
+
+@cindexRsixlibrary{records syntactic}
 
 
 The syntactic layer is provided by the @rsixlibrary{records syntactic}
@@ -12452,6 +12477,9 @@ The following example uses the @func{record?} procedure from the
 @subsection Procedural layer
 
 
+@cindexRsixlibrary{records procedural}
+
+
 The procedural layer is provided by the @rsixlibrary{records procedural}
 library.
 
@@ -12844,6 +12872,9 @@ The mutator returns unspecified values.
 @subsection Inspection
 
 
+@cindexRsixlibrary{record inspection}
+
+
 The @rsixlibrary{records inspection} library provides procedures for
 inspecting records and their record--type descriptors.  These procedures
 are designed to allow the writing of portable printers and inspectors.
@@ -12955,6 +12986,7 @@ objects, as well as a facility for extending the taxonomy.
 
 
 @cindex Catching exceptions
+@cindexRsixlibrary{exceptions}
 
 
 This section describes Scheme's exception--handling and
@@ -13121,6 +13153,9 @@ by the call to @func{raise-continuable}.
 @c page
 @node stdlib exceptions conditions
 @subsection Conditions
+
+
+@cindexRsixlibrary{conditions}
 
 
 This section describes Scheme's @rsixlibrary{conditions} library for
@@ -13655,6 +13690,10 @@ This type describes unbound identifiers in the program.
 @section Input/output
 
 
+@cindexRsixlibrary{io ports}
+@cindexRsixlibrary{io simple}
+
+
 This chapter describes Scheme's libraries for performing input and
 output:
 
@@ -13876,6 +13915,9 @@ procedures accepting a port as an argument should include an
 @c page
 @node stdlib io port
 @subsection Port input/output
+
+
+@cindexRsixlibrary{io ports}
 
 
 The @rsixlibrary{io ports} library defines an I/O layer for
@@ -15218,6 +15260,9 @@ specified in the description of @func{make-custom-textual-input-port}.
 @subsection Simple input/output
 
 
+@cindexRsixlibrary{io simple}
+
+
 This section describes the @rsixlibrary{io simple} library, which
 provides a somewhat more convenient interface for performing textual I/O
 on ports.  This library implements most of the I/O procedures of the
@@ -15230,7 +15275,7 @@ associated implementation--dependent transcoders.
 @deffn Procedure {eof-object}
 @deffnx Procedure {eof-object?} @var{obj}
 These are the same as @func{eof-object} and @func{eof-object?} from the
-@rsixlibrary{ports} library.
+@rsixlibrary{io ports} library.
 @end deffn
 
 
@@ -15398,6 +15443,9 @@ returned by @func{current-output-port}.
 @section File system
 
 
+@cindexRsixlibrary{files}
+
+
 This chapter describes the @rsixlibrary{files} library for operations on
 the file system.  This library, in addition to the procedures described
 here, also exports the I/O condition types described in section
@@ -15424,6 +15472,9 @@ exist or cannot be deleted, an exception with condition type
 @c page
 @node stdlib programlib
 @section Command line access and exit values
+
+
+@cindexRsixlibrary{programs}
 
 
 The procedures described in this section are exported by the
@@ -15487,6 +15538,9 @@ positive, and always defined using a finite number of bits.
 @c page
 @node stdlib arithmetics fixnum
 @subsection Fixnums
+
+
+@cindexRsixlibrary{arithmetic fixnums}
 
 
 Every implementation must define its fixnum range as a closed interval:
@@ -15874,6 +15928,9 @@ from @vari{fx} by reversing the order of the bits at positions from
 @subsection Flonums
 
 
+@cindexRsixlibrary{arithmetic flonums}
+
+
 This section describes the @rsixlibrary{arithmetic flonums} library.
 
 This section uses @var{fl}, @vari{fl}, @varii{fl}, etc., as parameter
@@ -16248,6 +16305,9 @@ precision.
 @subsection Exact bitwise arithmetic
 
 
+@cindexRsixlibrary{arithmetic bitwise}
+
+
 This section describes the @rsixlibrary{arithmetic bitwise} library.
 The exact bitwise arithmetic provides generic operations on exact
 integer objects.  This section uses @var{ei}, @vari{ei}, @varii{ei},
@@ -16503,6 +16563,9 @@ from @varii{ei} (inclusive) to @variii{ei} (exclusive).
 @c page
 @node stdlib syntax-case
 @section Syntax--case
+
+
+@cindexRsixlibrary{syntax-case}
 
 
 The @rsixlibrary{syntax-case} library provides support for writing
@@ -17911,6 +17974,9 @@ of the macro use.
 @section Hashtables
 
 
+@cindexRsixlibrary{hashtables}
+
+
 The @rsixlibrary{hashtables} library provides a set of operations on
 hashtables.
 
@@ -18180,6 +18246,9 @@ Return an integer hash value for @var{symbol}.
 @section Enumerations
 
 
+@cindexRsixlibrary{enums}
+
+
 This chapter describes the @rsixlibrary{enums} library for dealing with
 enumerated values and sets of enumerated values.  Enumerated values are
 represented by ordinary symbols, while finite sets of enumerated values
@@ -18447,6 +18516,9 @@ All of the bindings exported by @rsixlibrary{} are exported for both
 @section Evaluation
 
 
+@cindexRsixlibrary{eval}
+
+
 The @rsixlibrary{eval} library allows a program to create Scheme
 expressions as data at run time and evaluate them.
 
@@ -18516,6 +18588,9 @@ but I see no &syntax in section 7.1 of R6RS document.
 @section Mutable pairs
 
 
+@cindexRsixlibrary{mutable-pairs}
+
+
 The procedures provided by the @rsixlibrary{mutable-pairs} library allow
 new values to be assigned to the car and cdr fields of previously
 allocated pairs.
@@ -18564,6 +18639,9 @@ condition type @condition{assertion} should be raised.
 @section Mutable strings
 
 
+@cindexRsixlibrary{mutable-strings}
+
+
 The @func{string-set!} procedure provided by the
 @rsixlibrary{mutable-strings} library allows mutating the characters of
 a string in--place.
@@ -18607,6 +18685,9 @@ unspecified values.
 @c page
 @node stdlib rfive compat
 @section @rnrs{5} compatibility
+
+
+@cindexRsixlibrary{r5rs}
 
 
 The features described in this chapter are exported from the
@@ -23822,7 +23903,7 @@ specified.
 
 @func{filter!} may alter the cons cells in @var{ell} to construct the
 result lists.  Notice that @func{filter} is exported by
-@rsixlibrary{list}.  @ref{stdlib list, List utilities}
+@rsixlibrary{lists}.  @ref{stdlib list, List utilities}
 @end defun
 
 
@@ -23842,7 +23923,7 @@ specified.  One of the returned lists may share a common tail with
 
 @func{partition!} may alter the cons cells in @var{ell} to construct the
 result lists.  Notice that @func{partition} is exported by
-@rsixlibrary{list}.  @ref{stdlib list, List utilities}
+@rsixlibrary{lists}.  @ref{stdlib list, List utilities}
 @end defun
 
 
