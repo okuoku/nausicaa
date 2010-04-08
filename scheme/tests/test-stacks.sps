@@ -194,6 +194,14 @@
 	(stack->list q))
     => '(3 2 1))
 
+  (check
+      (let-fields (((q <stack>) (make-<stack>)))
+	(q.push! 1)
+	(q.push! 2)
+	(q.push! 3)
+	(q.list))
+    => '(3 2 1))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -222,6 +230,13 @@
 	(stack-empty? q))
     => #t)
 
+  (check
+      (let-fields (((q <stack>) (make-<stack> 1 2 3)))
+	(q.pop!)
+	(q.pop!)
+	(q.pop!))
+    => 3)
+
   #t)
 
 
@@ -242,6 +257,11 @@
 	(stack-find even? q))
     => 2)
 
+  (check
+      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+	(q.find even?))
+    => 2)
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -257,6 +277,11 @@
   (check
       (let ((q (make-<stack> 1 2 3 4)))
 	(stack-exists even? q))
+    => #t)
+
+  (check
+      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+	(q.exists even?))
     => #t)
 
 ;;; --------------------------------------------------------------------
@@ -279,6 +304,11 @@
   (check
       (let ((q (make-<stack> 2 4 6 8)))
 	(stack-for-all even? q))
+    => #t)
+
+  (check
+      (let-fields (((q <stack>) (make-<stack> 2 4 6 8)))
+	(q.for-all even?))
     => #t)
 
 ;;; --------------------------------------------------------------------
@@ -307,6 +337,12 @@
 	(stack->list q))
     => '())
 
+  (check
+      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+	(q.remp! even?)
+	(q.list))
+    => '(1 3))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -333,6 +369,12 @@
 	(stack->list q))
     => '(4 6 8))
 
+  (check
+      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+	(q.remove! 2)
+	(q.list))
+    => '(1 3 4))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -358,6 +400,12 @@
 	(stack-remv! 2 q)
 	(stack->list q))
     => '(4 6 8))
+
+  (check
+      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+	(q.remv! 2)
+	(q.list))
+    => '(1 3 4))
 
 ;;; --------------------------------------------------------------------
 
@@ -384,6 +432,12 @@
 	(stack-remq! 'two q)
 	(stack->list q))
     => '(4 6 8))
+
+  (check
+      (let-fields (((q <stack>) (make-<stack> 1 'two 3 4)))
+	(q.remq! 'two)
+	(q.list))
+    => '(1 3 4))
 
 ;;; --------------------------------------------------------------------
 
@@ -412,6 +466,11 @@
 	(stack-memp odd? q))
     => #f)
 
+  (check
+      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+	(q.memp even?))
+    => '(2 3 4))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -439,6 +498,11 @@
 	(stack-member 10 q))
     => #f)
 
+  (check
+      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+	(q.member 2))
+    => '(2 3 4))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -461,6 +525,11 @@
 	(stack-memv 2 q))
     => '(2 4 6 8))
 
+  (check
+      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+	(q.memv 2))
+    => '(2 3 4))
+
 ;;; --------------------------------------------------------------------
 
   (check
@@ -482,6 +551,11 @@
       (let ((q (make-<stack> 'two 4 6 8)))
 	(stack-memq 'two q))
     => '(two 4 6 8))
+
+  (check
+      (let-fields (((q <stack>) (make-<stack> 1 'two 3 4)))
+	(q.memq 'two))
+    => '(two 3 4))
 
 ;;; --------------------------------------------------------------------
 

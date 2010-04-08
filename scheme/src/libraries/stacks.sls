@@ -71,8 +71,55 @@
   (fields (mutable first-pair))
   (virtual-fields (immutable top	stack-top)
 		  (immutable empty?	stack-empty?)
-		  (immutable length	stack-length)))
+		  (immutable length	stack-length))
+  (methods (pop!	stack-pop!)
+	   (purge!	stack-purge!)
+	   (list	stack->list)
+	   (vector	stack->vector))
 
+  (method (push! S obj)
+    (stack-push! obj S))
+
+  (method (find S obj)
+    (stack-find obj S))
+
+  (method (for-all S obj)
+    (stack-for-all obj S))
+
+  (method (exists S obj)
+    (stack-exists obj S))
+
+  (method (remp! S proc)
+    (stack-remp! proc S))
+
+  (method (remove! S obj)
+    (stack-remove! obj S))
+
+  (method (remv! S obj)
+    (stack-remv! obj S))
+
+  (method (remq! S obj)
+    (stack-remq! obj S))
+
+  (method (filter! S proc)
+    (stack-filter! proc S))
+
+  (method (memp S proc)
+    (stack-memp proc S))
+
+  (method (member S obj)
+    (stack-member obj S))
+
+  (method (memv S obj)
+    (stack-memv obj S))
+
+  (method (memq S obj)
+    (stack-memq obj S))
+
+
+  )
+
+
 (define (stack-top (S <stack>))
   (if (null? S.first-pair)
       (error 'stack-top "stack is empty" S)
@@ -84,7 +131,8 @@
 (define (stack-length (S <stack>))
   (length S.first-pair))
 
-
+;;; --------------------------------------------------------------------
+
 (define (stack-push! obj (S <stack>))
   (set! S.first-pair (cons obj S.first-pair)))
 
@@ -97,7 +145,8 @@
 (define (stack-purge! (S <stack>))
   (set! S.first-pair '()))
 
-
+;;; --------------------------------------------------------------------
+
 (define (stack-find proc (S <stack>))
   (find proc S.first-pair))
 
@@ -126,7 +175,8 @@
 (define (stack-filter! proc stk)
   (%remove filter proc stk))
 
-
+;;; --------------------------------------------------------------------
+
 (define (stack-memp proc (S <stack>))
   (memp proc S.first-pair))
 

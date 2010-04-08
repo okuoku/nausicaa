@@ -38291,60 +38291,75 @@ stack is empty.
 @section Basic operations
 
 
-@defun stack-push! @var{obj} @var{stk}
+@deffn Function stack-push! @var{obj} @var{stk}
+@deffnx {Dot Method} push! @var{obj}
 Push @var{obj} in the top of the stack.
-@end defun
+@end deffn
 
 
-@defun stack-pop! @var{stk}
+@deffn Function stack-pop! @var{stk}
+@deffnx {Dot Method} pop!
 Pop and return a value from the top of the stack.
-@end defun
+@end deffn
 
-@defun stack-purge! @var{stk}
+@deffn Function stack-purge! @var{stk}
+@deffnx {Dot Method} purge!
 Remove all the elements from the stack.
-@end defun
-
+@end deffn
 
 @c page
 @node stacks list
 @section List operations
 
 
-@defun stack-find @var{proc} @var{stk}
-@defunx stack-for-all @var{proc} @var{stk}
-@defunx stack-exists @var{proc} @var{stk}
+@deffn Function stack-find @var{proc} @var{stk}
+@deffnx Function stack-for-all @var{proc} @var{stk}
+@deffnx Function stack-exists @var{proc} @var{stk}
+@deffnx {Dot Method} find @var{proc}
+@deffnx {Dot Method} for-all @var{proc}
+@deffnx {Dot Method} exists @var{proc}
 Apply @func{find} or @func{for-all} or @func{exists} to the internal
 list of elements, return the result.
-@end defun
+@end deffn
 
 
-@defun stack-remp! @var{proc} @var{stk}
-@defunx stack-remove! @var{obj} @var{stk}
-@defunx stack-remv! @var{obj} @var{stk}
-@defunx stack-remq! @var{obj} @var{stk}
+@deffn Function stack-remp! @var{proc} @var{stk}
+@deffnx Function stack-remove! @var{obj} @var{stk}
+@deffnx Function stack-remv! @var{obj} @var{stk}
+@deffnx Function stack-remq! @var{obj} @var{stk}
+@deffnx {Dot Method} remp! @var{proc}
+@deffnx {Dot Method} remove! @var{obj}
+@deffnx {Dot Method} remv! @var{obj}
+@deffnx {Dot Method} remq! @var{obj}
 Apply @func{remp} or @func{remove} or @func{remv} or @func{remq} to the
 internal list of elements, removing objects from the stack.
-@end defun
+@end deffn
 
 
-@defun stack-memp @var{proc} @var{stk}
-@defunx stack-member @var{obj} @var{stk}
-@defunx stack-memv @var{obj} @var{stk}
-@defunx stack-memq @var{obj} @var{stk}
+@deffn Function stack-memp @var{proc} @var{stk}
+@deffnx Function stack-member @var{obj} @var{stk}
+@deffnx Function stack-memv @var{obj} @var{stk}
+@deffnx Function stack-memq @var{obj} @var{stk}
+@deffnx {Dot Method} memp @var{proc}
+@deffnx {Dot Method} member @var{obj}
+@deffnx {Dot Method} memv @var{obj}
+@deffnx {Dot Method} memq @var{obj}
 Apply @func{memp} or @func{member} or @func{memv} or @func{memq} to the
 internal list of elements, return the result.
-@end defun
+@end deffn
 
 @c page
 @node stacks conv
 @section Conversion
 
 
-@defun stack->list @var{stk}
-@defunx stack->vector @var{stk}
+@deffn Function stack->list @var{stk}
+@deffnx Function stack->vector @var{stk}
+@deffnx {Dot Method} list
+@deffnx {Dot Method} vector
 Return a list or vector holding the elements in the stack.  In the list
 case, return a copy of the spine of the list in the stack.
-@end defun
+@end deffn
 
 
 @defun list->stack @var{ell}
