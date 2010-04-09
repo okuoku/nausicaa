@@ -6,23 +6,35 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;
+;;;	This file is not licensed under the GPL because I want people to
+;;;	freely take this code out of Nausicaa and try stuff.
 ;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
-;;;This program is free software:  you can redistribute it and/or modify
-;;;it under the terms of the  GNU General Public License as published by
-;;;the Free Software Foundation, either version 3 of the License, or (at
-;;;your option) any later version.
+;;;Permission is hereby granted, free of charge, to any person obtaining
+;;;a  copy of  this  software and  associated  documentation files  (the
+;;;"Software"), to  deal in the Software  without restriction, including
+;;;without limitation  the rights to use, copy,  modify, merge, publish,
+;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
+;;;permit persons to whom the Software is furnished to do so, subject to
+;;;the following conditions:
 ;;;
-;;;This program is  distributed in the hope that it  will be useful, but
-;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
-;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
-;;;General Public License for more details.
+;;;The  above  copyright notice  and  this  permission  notice shall  be
+;;;included in all copies or substantial portions of the Software.
 ;;;
-;;;You should  have received  a copy of  the GNU General  Public License
-;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;Except  as  contained  in  this  notice, the  name(s)  of  the  above
+;;;copyright holders  shall not be  used in advertising or  otherwise to
+;;;promote  the sale,  use or  other dealings  in this  Software without
+;;;prior written authorization.
 ;;;
+;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
+;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
+;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
+;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
+;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
+;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
+;;;SOFTWARE.
 
 
 #!r6rs
@@ -1742,6 +1754,7 @@
        (with-fields ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))))
 
 (define-syntax let*-fields
+  ;;*FIXME* This does not detect duplicate bindings.
   (syntax-rules ()
 
     ((_ (((?var0 ?class0 ?class ...) ?init0) ?binding ...) ?body0 ?body ...)
@@ -1761,6 +1774,9 @@
 	 ?body0 ?body ...)))))
 
 (define-syntax letrec*-fields
+  ;;The  difference between  LETREC and  LETREC*  is only  the order  of
+  ;;evaluation of ?INIT, which is enforced in LETREC*.
+  ;;
   (syntax-rules ()
     ((_ (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
      (let ((?var #f) ...)
