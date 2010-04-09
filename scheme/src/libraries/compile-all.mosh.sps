@@ -128,16 +128,17 @@
   (only (armor newlines))
   (only (armor quoted-printable))
 
-  (only (foreign memory))
-  (only (foreign memory mempool))
-  (only (foreign memory refcount))
-  (only (foreign memory membuffers))
+  (only (ffi))
+  (only (ffi utilities))
 
-  (only (foreign ffi))
-  (only (foreign ffi utilities))
-  (only (foreign ffi parametrised))
-  (only (foreign cstrings))
-  (only (foreign errno))
+  (only (ffi memory))
+  (only (ffi memory mempool))
+  (only (ffi memory refcount))
+  (only (ffi memory membuffers))
+
+  (only (ffi parametrised))
+  (only (ffi cstrings))
+  (only (ffi errno))
 
   )
 

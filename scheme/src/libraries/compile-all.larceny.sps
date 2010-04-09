@@ -345,83 +345,83 @@
 
 ;;; --------------------------------------------------------------------
 
-;; (compile-library "foreign/ffi/sizeof.sls"
-;; 		 "foreign/ffi/sizeof.slfasl")
+;; (compile-library "ffi/sizeof.sls"
+;; 		 "ffi/sizeof.slfasl")
 
-;; (compile-library "foreign/ffi/conditions.sls"
-;; 		 "foreign/ffi/conditions.slfasl")
+;; (compile-library "ffi/conditions.sls"
+;; 		 "ffi/conditions.slfasl")
 
-;; (compile-library "foreign/ffi/pointers/compat.larceny.sls"
-;;  		 "foreign/ffi/pointers/compat.larceny.slfasl")
+;; (compile-library "ffi/pointers/compat.larceny.sls"
+;;  		 "ffi/pointers/compat.larceny.slfasl")
 
-;; (compile-library "foreign/ffi/pointers.sls"
-;;  		 "foreign/ffi/pointers.slfasl")
+;; (compile-library "ffi/pointers.sls"
+;;  		 "ffi/pointers.slfasl")
 
-;; (compile-library "foreign/ffi/peekers-and-pokers/compat.larceny.sls"
-;;  		 "foreign/ffi/peekers-and-pokers/compat.larceny.slfasl")
+;; (compile-library "ffi/peekers-and-pokers/compat.larceny.sls"
+;;  		 "ffi/peekers-and-pokers/compat.larceny.slfasl")
 
-;; (compile-library "foreign/ffi/peekers-and-pokers.sls"
-;;  		 "foreign/ffi/peekers-and-pokers.slfasl")
+;; (compile-library "ffi/peekers-and-pokers.sls"
+;;  		 "ffi/peekers-and-pokers.slfasl")
 
-;; (compile-library "foreign/ffi/clang-data-types.sls"
-;;  		 "foreign/ffi/clang-data-types.slfasl")
+;; (compile-library "ffi/clang-data-types.sls"
+;;  		 "ffi/clang-data-types.slfasl")
 
-;; (compile-library "foreign/ffi/platform.larceny.sls"
-;;  		 "foreign/ffi/platform.larceny.slfasl")
+;; (compile-library "ffi/platform.larceny.sls"
+;;  		 "ffi/platform.larceny.slfasl")
 
-;; (compile-library "foreign/ffi/primitives.sls"
-;;  		 "foreign/ffi/primitives.slfasl")
+;; (compile-library "ffi/primitives.sls"
+;;  		 "ffi/primitives.slfasl")
 
-;; (compile-library "foreign/ffi.sls"
-;;  		 "foreign/ffi.slfasl")
-
-;;; --------------------------------------------------------------------
-
-;; (compile-library "foreign/memory/conditions.sls"
-;;  		 "foreign/memory/conditions.slfasl")
-
-;; (compile-library "foreign/memory/operations/compat.larceny.sls"
-;;  		 "foreign/memory/operations/compat.larceny.slfasl")
-
-;; (compile-library "foreign/memory/operations.sls"
-;;  		 "foreign/memory/operations.slfasl")
-
-;; (compile-library "foreign/memory/memblocks.sls"
-;;  		 "foreign/memory/memblocks.slfasl")
-
-;; (compile-library "foreign/memory/alloc/compat.larceny.sls"
-;;  		 "foreign/memory/alloc/compat.larceny.slfasl")
-
-;; (compile-library "foreign/memory/alloc.sls"
-;;  		 "foreign/memory/alloc.slfasl")
-
-;; (compile-library "foreign/memory/bytevectors.sls"
-;; 		 "foreign/memory/bytevectors.slfasl")
-
-;; (compile-library "foreign/memory/caches.sls"
-;; 		 "foreign/memory/caches.slfasl")
-
-;; (compile-library "foreign/memory/compensated.sls"
-;; 		 "foreign/memory/compensated.slfasl")
-
-;; (compile-library "foreign/memory.sls"
-;; 		 "foreign/memory.slfasl")
-
-;; (compile-library "foreign/memory/refcount.sls"
-;; 		 "foreign/memory/refcount.slfasl")
-
-;; (compile-library "foreign/memory/membuffers.sls"
-;; 		 "foreign/memory/membuffers.slfasl")
-
-;; (compile-library "foreign/memory/mempool.sls"
-;; 		 "foreign/memory/mempool.slfasl")
+;; (compile-library "ffi.sls"
+;;  		 "ffi.slfasl")
 
 ;;; --------------------------------------------------------------------
 
-;; (compile-library "foreign/cstrings.sls"
-;; 		 "foreign/cstrings.slfasl")
+;; (compile-library "ffi/memory/conditions.sls"
+;;  		 "ffi/memory/conditions.slfasl")
 
-;; (compile-library "foreign/errno.sls"
-;; 		 "foreign/errno.slfasl")
+;; (compile-library "ffi/memory/operations/compat.larceny.sls"
+;;  		 "ffi/memory/operations/compat.larceny.slfasl")
+
+;; (compile-library "ffi/memory/operations.sls"
+;;  		 "ffi/memory/operations.slfasl")
+
+;; (compile-library "ffi/memory/memblocks.sls"
+;;  		 "ffi/memory/memblocks.slfasl")
+
+;; (compile-library "ffi/memory/alloc/compat.larceny.sls"
+;;  		 "ffi/memory/alloc/compat.larceny.slfasl")
+
+;; (compile-library "ffi/memory/alloc.sls"
+;;  		 "ffi/memory/alloc.slfasl")
+
+;; (compile-library "ffi/memory/bytevectors.sls"
+;; 		 "ffi/memory/bytevectors.slfasl")
+
+;; (compile-library "ffi/memory/caches.sls"
+;; 		 "ffi/memory/caches.slfasl")
+
+;; (compile-library "ffi/memory/compensated.sls"
+;; 		 "ffi/memory/compensated.slfasl")
+
+;; (compile-library "ffi/memory.sls"
+;; 		 "ffi/memory.slfasl")
+
+;; (compile-library "ffi/memory/refcount.sls"
+;; 		 "ffi/memory/refcount.slfasl")
+
+;; (compile-library "ffi/memory/membuffers.sls"
+;; 		 "ffi/memory/membuffers.slfasl")
+
+;; (compile-library "ffi/memory/mempool.sls"
+;; 		 "ffi/memory/mempool.slfasl")
+
+;;; --------------------------------------------------------------------
+
+;; (compile-library "ffi/cstrings.sls"
+;; 		 "ffi/cstrings.slfasl")
+
+;; (compile-library "ffi/errno.sls"
+;; 		 "ffi/errno.slfasl")
 
 ;;; end of file
