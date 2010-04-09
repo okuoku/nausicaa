@@ -67,6 +67,10 @@
 
 (define-class <buffer>
   (parent <memblock>)
+  ;;If the parent has a protocol, the class must have a protocol, too?!?
+  (protocol (lambda (make-<memblock>)
+	      (lambda args
+		(apply make-<memblock> args))))
   (fields (mutable pointer-used)	;pointer to first used byte
 	  (mutable pointer-free))	;pointer to first free byte
   (virtual-fields (immutable pointer	<memblock>-pointer)
