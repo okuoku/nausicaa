@@ -253,10 +253,15 @@ Revised^6 Report on the algorithmic language Scheme
 @code{(rnrs \THING\ (6))}
 @end macro
 
-@macro cindexRsixlibrary{THING}
-@cindex @code{rnrs \THING\ (6)}, library
-@cindex Library, @rsixlibrary{\THING\}
-@end macro
+@c The following macro does not work.  It appears that it is not
+@c possible to use "@cindex" in the expansion of a macro because the DVI
+@c output will not work.  Texinfo output would work, though.  Tested
+@c with "texi2dvi" version 1.135 (GNU Texinfo 4.13).
+@c
+@c @macro cindexRsixlibrary{THING}
+@c @cindex @rsixlibrary{\THING\}, library
+@c @cindex Library, @rsixlibrary{\THING\}
+@c @end macro
 
 @macro arbno{THING}
 \THING\*
@@ -5745,7 +5750,9 @@ The @func{let} keyword could be defined in terms of @func{lambda} and
 @chapter Base library
 
 
-@cindexRsixlibrary{base}
+@cindex @rsixlibrary{base}, library
+@cindex Library, @rsixlibrary{base}
+
 
 @ignore
 In the original document this chapter is the "base.tex" file.
@@ -10154,7 +10161,9 @@ implementation--dependent.)
 @section Unicode
 
 
-@cindexRsixlibrary{unicode}
+@cindex @rsixlibrary{unicode}, library
+@cindex Library, @rsixlibrary{unicode}
+
 
 
 The procedures exported by the @rsixlibrary{unicode} library provide
@@ -10396,7 +10405,9 @@ the argument instead of a newly allocated string.
 @section Bytevectors
 
 
-@cindexRsixlibrary{bytevectors}
+@cindex @rsixlibrary{bytevectors}, library
+@cindex Library, @rsixlibrary{bytevectors}
+
 
 
 Many applications deal with blocks of binary data by accessing them in
@@ -11086,7 +11097,9 @@ specifying @code{little} and @utf{}-32LE.
 @section List utilities
 
 
-@cindexRsixlibrary{lists}
+@cindex @rsixlibrary{lists}, library
+@cindex Library, @rsixlibrary{lists}
+
 
 
 This chapter describes the @rsixlibrary{lists} library, which contains
@@ -11551,7 +11564,9 @@ and whose last cdr is @var{obj}.  If called with only one argument,
 @section Sorting
 
 
-@cindexRsixlibrary{sorting}
+@cindex @rsixlibrary{sorting}, library
+@cindex Library, @rsixlibrary{sorting}
+
 
 
 This chapter describes the @rsixlibrary{sorting} library for sorting
@@ -11626,7 +11641,9 @@ appropriate argument before applying it.
 @section Control structures
 
 
-@cindexRsixlibrary{control}
+@cindex @rsixlibrary{control}, library
+@cindex Library, @rsixlibrary{control}
+
 
 
 This chapter describes the @rsixlibrary{control} library, which provides
@@ -11995,7 +12012,9 @@ returns @false{}, then @func{eqv?} returns @false{}.
 @subsection Syntactic layer
 
 
-@cindexRsixlibrary{records syntactic}
+@cindex @rsixlibrary{records syntactic}, library
+@cindex Library, @rsixlibrary{records syntactic}
+
 
 
 The syntactic layer is provided by the @rsixlibrary{records syntactic}
@@ -12477,7 +12496,9 @@ The following example uses the @func{record?} procedure from the
 @subsection Procedural layer
 
 
-@cindexRsixlibrary{records procedural}
+@cindex @rsixlibrary{records procedural}, library
+@cindex Library, @rsixlibrary{records procedural}
+
 
 
 The procedural layer is provided by the @rsixlibrary{records procedural}
@@ -12872,7 +12893,9 @@ The mutator returns unspecified values.
 @subsection Inspection
 
 
-@cindexRsixlibrary{record inspection}
+@cindex @rsixlibrary{record inspection}, library
+@cindex Library, @rsixlibrary{record inspection}
+
 
 
 The @rsixlibrary{records inspection} library provides procedures for
@@ -12986,7 +13009,9 @@ objects, as well as a facility for extending the taxonomy.
 
 
 @cindex Catching exceptions
-@cindexRsixlibrary{exceptions}
+@cindex @rsixlibrary{exceptions}, library
+@cindex Library, @rsixlibrary{exceptions}
+
 
 
 This section describes Scheme's exception--handling and
@@ -13155,7 +13180,9 @@ by the call to @func{raise-continuable}.
 @subsection Conditions
 
 
-@cindexRsixlibrary{conditions}
+@cindex @rsixlibrary{conditions}, library
+@cindex Library, @rsixlibrary{conditions}
+
 
 
 This section describes Scheme's @rsixlibrary{conditions} library for
@@ -13690,8 +13717,12 @@ This type describes unbound identifiers in the program.
 @section Input/output
 
 
-@cindexRsixlibrary{io ports}
-@cindexRsixlibrary{io simple}
+@cindex @rsixlibrary{io ports}, library
+@cindex Library, @rsixlibrary{io ports}
+
+@cindex @rsixlibrary{io simple}, library
+@cindex Library, @rsixlibrary{io simple}
+
 
 
 This chapter describes Scheme's libraries for performing input and
@@ -13917,7 +13948,9 @@ procedures accepting a port as an argument should include an
 @subsection Port input/output
 
 
-@cindexRsixlibrary{io ports}
+@cindex @rsixlibrary{io ports}, library
+@cindex Library, @rsixlibrary{io ports}
+
 
 
 The @rsixlibrary{io ports} library defines an I/O layer for
@@ -15260,7 +15293,9 @@ specified in the description of @func{make-custom-textual-input-port}.
 @subsection Simple input/output
 
 
-@cindexRsixlibrary{io simple}
+@cindex @rsixlibrary{io simple}, library
+@cindex Library, @rsixlibrary{io simple}
+
 
 
 This section describes the @rsixlibrary{io simple} library, which
@@ -15443,7 +15478,9 @@ returned by @func{current-output-port}.
 @section File system
 
 
-@cindexRsixlibrary{files}
+@cindex @rsixlibrary{files}, library
+@cindex Library, @rsixlibrary{files}
+
 
 
 This chapter describes the @rsixlibrary{files} library for operations on
@@ -15474,7 +15511,9 @@ exist or cannot be deleted, an exception with condition type
 @section Command line access and exit values
 
 
-@cindexRsixlibrary{programs}
+@cindex @rsixlibrary{programs}, library
+@cindex Library, @rsixlibrary{programs}
+
 
 
 The procedures described in this section are exported by the
@@ -15540,7 +15579,9 @@ positive, and always defined using a finite number of bits.
 @subsection Fixnums
 
 
-@cindexRsixlibrary{arithmetic fixnums}
+@cindex @rsixlibrary{arithmetic fixnums}, library
+@cindex Library, @rsixlibrary{arithmetic fixnums}
+
 
 
 Every implementation must define its fixnum range as a closed interval:
@@ -15928,7 +15969,9 @@ from @vari{fx} by reversing the order of the bits at positions from
 @subsection Flonums
 
 
-@cindexRsixlibrary{arithmetic flonums}
+@cindex @rsixlibrary{arithmetic flonums}, library
+@cindex Library, @rsixlibrary{arithmetic flonums}
+
 
 
 This section describes the @rsixlibrary{arithmetic flonums} library.
@@ -16305,7 +16348,9 @@ precision.
 @subsection Exact bitwise arithmetic
 
 
-@cindexRsixlibrary{arithmetic bitwise}
+@cindex @rsixlibrary{arithmetic bitwise}, library
+@cindex Library, @rsixlibrary{arithmetic bitwise}
+
 
 
 This section describes the @rsixlibrary{arithmetic bitwise} library.
@@ -16565,7 +16610,9 @@ from @varii{ei} (inclusive) to @variii{ei} (exclusive).
 @section Syntax--case
 
 
-@cindexRsixlibrary{syntax-case}
+@cindex @rsixlibrary{syntax-case}, library
+@cindex Library, @rsixlibrary{syntax-case}
+
 
 
 The @rsixlibrary{syntax-case} library provides support for writing
@@ -17974,7 +18021,9 @@ of the macro use.
 @section Hashtables
 
 
-@cindexRsixlibrary{hashtables}
+@cindex @rsixlibrary{hashtables}, library
+@cindex Library, @rsixlibrary{hashtables}
+
 
 
 The @rsixlibrary{hashtables} library provides a set of operations on
@@ -18246,7 +18295,9 @@ Return an integer hash value for @var{symbol}.
 @section Enumerations
 
 
-@cindexRsixlibrary{enums}
+@cindex @rsixlibrary{enums}, library
+@cindex Library, @rsixlibrary{enums}
+
 
 
 This chapter describes the @rsixlibrary{enums} library for dealing with
@@ -18516,7 +18567,9 @@ All of the bindings exported by @rsixlibrary{} are exported for both
 @section Evaluation
 
 
-@cindexRsixlibrary{eval}
+@cindex @rsixlibrary{eval}, library
+@cindex Library, @rsixlibrary{eval}
+
 
 
 The @rsixlibrary{eval} library allows a program to create Scheme
@@ -18588,7 +18641,9 @@ but I see no &syntax in section 7.1 of R6RS document.
 @section Mutable pairs
 
 
-@cindexRsixlibrary{mutable-pairs}
+@cindex @rsixlibrary{mutable-pairs}, library
+@cindex Library, @rsixlibrary{mutable-pairs}
+
 
 
 The procedures provided by the @rsixlibrary{mutable-pairs} library allow
@@ -18639,7 +18694,9 @@ condition type @condition{assertion} should be raised.
 @section Mutable strings
 
 
-@cindexRsixlibrary{mutable-strings}
+@cindex @rsixlibrary{mutable-strings}, library
+@cindex Library, @rsixlibrary{mutable-strings}
+
 
 
 The @func{string-set!} procedure provided by the
@@ -18687,7 +18744,8 @@ unspecified values.
 @section @rnrs{5} compatibility
 
 
-@cindexRsixlibrary{r5rs}
+@cindex @rsixlibrary{r5rs}, library
+@cindex Library, @rsixlibrary{r5rs}
 
 
 The features described in this chapter are exported from the
