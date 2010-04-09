@@ -143,26 +143,6 @@
 	  (make-library-invalid-exports-condition ?export-spec))))
 
 
-;;;; library registry
-
-(define-constant $library-registry
-  (make-hashtable equal-hash equal?))
-
-(define load-library-function
-  (make-parameter load-library-from-file
-    (lambda (f)
-      (assert (procedure? f))
-      f)))
-
-(define (load-library spec)
-  (or (hashtable-ref $library-registry spec #f)
-      (let ((sexp ((load-library-function) spec)))
-	(if sexp
-	    (begin0-let ((lib (make-<library> spec sexp)))
-	      (hashtable-set! $library-registry spec lib))
-	  (error-library-not-found 'load-library spec)))))
-
-
 ;;;; libraries search path
 
 (define library-search-path-environment-variable
@@ -181,8 +161,35 @@
       (assert (procedure? f))
       f)))
 
+(define (get-library-pathname spec)
+  ;;Given a library specification, find  the pathname of its file on the
+  ;;system.  Return the pathname as a string or #f if not found.
+  ;;
+  ;;SPEC  must  be  a  library  specification as  defined  in  the  R6RS
+  ;;document.   The version  specification,  if present,  is taken  into
+  ;;account  depending  on   the  value  of  the  IGNORE-LIBRARY-VERSION
+  ;;parameter: if #f it is removed before building the pathname.
+  ;;
+
+  (let* ((spec (if (pair? (last spec))
+		   (if (ignore-library-version)
+		       (drop-right spec 1)
+		     (append (drop-right spec 1)
+			     (list (string-join (map number->string (take-right spec 1)) "."))))
+		 spec))
+	 (name (string-join (map symbol->string/maybe spec) "/"))
+	 (dirs ((get-search-path-function))))
+    (exists (lambda (dir)
+	      (exists (lambda (ext)
+			(let ((pathname (string-append dir "/" name ext)))
+			  (if (file-exists? pathname)
+			      pathname
+			    #f)))
+		      $extensions))
+	    dirs)))
+
 
-;;;; library loading
+;;;; library loading from file
 
 (define ignore-library-version
   (make-parameter #t))
@@ -216,32 +223,25 @@
 	    (read port)))
       #f)))
 
-(define (get-library-pathname spec)
-  ;;Given a library specification, find  the pathname of its file on the
-  ;;system.  Return the pathname as a string or #f if not found.
-  ;;
-  ;;SPEC  must  be  a  library  specification as  defined  in  the  R6RS
-  ;;document.   The version  specification,  if present,  is taken  into
-  ;;account  depending  on   the  value  of  the  IGNORE-LIBRARY-VERSION
-  ;;parameter: if #f it is removed before building the pathname.
-  ;;
+
+;;;; library registry
 
-  (let* ((spec (if (pair? (last spec))
-		   (if (ignore-library-version)
-		       (drop-right spec 1)
-		     (append (drop-right spec 1)
-			     (list (string-join (map number->string (take-right spec 1)) "."))))
-		 spec))
-	 (name (string-join (map symbol->string/maybe spec) "/"))
-	 (dirs ((get-search-path-function))))
-    (exists (lambda (dir)
-	      (exists (lambda (ext)
-			(let ((pathname (string-append dir "/" name ext)))
-			  (if (file-exists? pathname)
-			      pathname
-			    #f)))
-		      $extensions))
-	    dirs)))
+(define-constant $library-registry
+  (make-hashtable equal-hash equal?))
+
+(define load-library-function
+  (make-parameter load-library-from-file
+    (lambda (f)
+      (assert (procedure? f))
+      f)))
+
+(define (load-library spec)
+  (or (hashtable-ref $library-registry spec #f)
+      (let ((sexp ((load-library-function) spec)))
+	(if sexp
+	    (begin0-let ((lib (make-<library> spec sexp)))
+	      (hashtable-set! $library-registry spec lib))
+	  (error-library-not-found 'load-library spec)))))
 
 
 ;;;; basic matching

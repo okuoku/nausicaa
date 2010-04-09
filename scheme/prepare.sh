@@ -27,5 +27,4 @@ set -x
     --enable-time-tests                         \
     "$@"
 
-
 ### end of file
