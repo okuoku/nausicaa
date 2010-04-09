@@ -347,16 +347,18 @@
 
 (define (<library>-imported-bindings (lib <library>))
   (or lib._imported-bindings
-      (begin0-let ((lib-list (map (lambda (spec)
-				    (match spec
-				      (('for import-set)
-				       (%extract-bindings-from-import-spec import-set))
-				      (('for import-set *)
-				       (%extract-bindings-from-import-spec import-set))
-				      (import-set
-				       (%extract-bindings-from-import-spec import-set))))
-			       lib.raw-imports)))
-	(set! lib._imported-bindings lib-list))))
+      (begin0-let ((renamings
+		    (concatenate
+		     (map (lambda (spec)
+			    (match spec
+			      (('for import-set)
+			       (%extract-bindings-from-import-spec import-set))
+			      (('for import-set *)
+			       (%extract-bindings-from-import-spec import-set))
+			      (import-set
+			       (%extract-bindings-from-import-spec import-set))))
+		       lib.raw-imports))))
+	(set! lib._imported-bindings renamings))))
 
 (define (%extract-bindings-from-import-spec spec)
   (match spec

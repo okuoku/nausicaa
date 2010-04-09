@@ -35,15 +35,25 @@
 
 
 ;;;; library cache
+;;
+;;This cache  is for the custom LOAD-LIBRARY  function, selected through
+;;the LOAD-LIBRARY-FUNCTION  parameter.  Remember that  LOAD-LIBRARY has
+;;its   own    cache,   which   will   be    queried   before   invoking
+;;(LOAD-LIBRARY-FUNCTION); so  we have to  keep unique the names  of the
+;;libraries we define this file.
+;;
 
-(define library-cache:registry
+(define test-cache:registry
   (make-parameter #f))
 
-(define (library-cache:load-library spec)
-  (hashtable-ref (library-cache:registry) spec #f))
+(define (test-cache:make-table)
+  (make-hashtable equal-hash equal?))
 
-(define (library-cache:register spec sexp)
-  (hashtable-set! (library-cache:registry) spec sexp))
+(define (test-cache:load-library spec)
+  (hashtable-ref (test-cache:registry) spec #f))
+
+(define (test-cache:register spec sexp)
+  (hashtable-set! (test-cache:registry) spec sexp))
 
 
 (parametrise ((check-test-name	'low-import-specs))
@@ -161,27 +171,27 @@
 
 
 (parametrise ((check-test-name		'matching-basic)
-	      (load-library-function	library-cache:load-library)
-	      (library-cache:registry	(make-hashtable equal-hash equal?)))
+	      (load-library-function	test-cache:load-library)
+	      (test-cache:registry	(test-cache:make-table)))
 
-  (library-cache:register '(proof one)
-			  '(library (proof one)
-			     (export a b c
-				     (rename (a alpha)
-					     (b beta)))
-			     (import (rnrs)
-			       (lists))
-			     (define a 1)
-			     (define (b arg)
-			       (vector arg))
-			     (define-syntax c
-			       (syntax-rules ()
-				 ((_ ?ch)
-				  (string ?ch))))))
+  (test-cache:register '(test matching-basic one)
+		       '(library (test matching-basic one)
+			  (export a b c
+				  (rename (a alpha)
+					  (b beta)))
+			  (import (rnrs)
+			    (lists))
+			  (define a 1)
+			  (define (b arg)
+			    (vector arg))
+			  (define-syntax c
+			    (syntax-rules ()
+			      ((_ ?ch)
+			       (string ?ch))))))
 
 ;;; --------------------------------------------------------------------
 
-  (let-fields (((lib <library>) (load-library '(proof one))))
+  (let-fields (((lib <library>) (load-library '(test matching-basic one))))
 
     (check
 	lib.raw-exports
@@ -195,7 +205,6 @@
 	lib.exports
       => '((a a) (b b) (c c) (a alpha) (b beta)))
 
-
     (check
 	lib.imported-libraries
       => '((rnrs) (lists)))
@@ -205,48 +214,87 @@
   #t)
 
 
-(parametrise ((check-test-name		'imported-libraries)
-	      (load-library-function	library-cache:load-library)
-	      (library-cache:registry	(make-hashtable equal-hash equal?)))
+(parametrise ((check-test-name		'exported-bindings)
+	      (load-library-function	test-cache:load-library)
+	      (test-cache:registry	(test-cache:make-table)))
 
-  (library-cache:register '(proof one)
-			  '(library (proof one)
-			     (export)
-			     (import (rnrs) (lists))))
-
-  (library-cache:register '(proof two)
-			  '(library (proof two)
-			     (export)
-			     (import (rnrs)
-			       (only (a))
-			       (except (b))
-			       (prefix (c) p)
-			       (rename (d))
-			       (library (e))
-			       )))
-
-  (library-cache:register '(proof three)
-			  '(library (proof three)
-			     (export)
-			     (import (rnrs)
-			       (only (a) alpha beta)
-			       (except (b) delta)
-			       (prefix (c) gamma:)
-			       (rename (d)
-				       (ciao hello))
-			       )))
+  (test-cache:register '(test exported-bindings one)
+		       '(library (test exported-bindings one)
+			  (export a b c
+				  (rename (a alpha)
+					  (b beta)))
+			  (import (rnrs)
+			    (lists))
+			  (define a 1)
+			  (define (b arg)
+			    (vector arg))
+			  (define-syntax c
+			    (syntax-rules ()
+			      ((_ ?ch)
+			       (string ?ch))))))
 
 ;;; --------------------------------------------------------------------
 
-  (let-fields (((lib <library>) (load-library '(proof one))))
+  (let-fields (((lib <library>) (load-library '(test matching-basic one))))
+
+    (check
+	lib.raw-exports
+      => '(a b c (rename (a alpha) (b beta))))
+
+    (check
+	lib.raw-imports
+      => '((rnrs) (lists)))
+
+    (check
+	lib.exports
+      => '((a a) (b b) (c c) (a alpha) (b beta)))
+
+    #f)
+  #t)
+
+
+(parametrise ((check-test-name		'imported-libraries)
+	      (load-library-function	test-cache:load-library)
+	      (test-cache:registry	(test-cache:make-table)))
+
+  (test-cache:register '(test imported-libraries one)
+		       '(library (test imported-libraries one)
+			  (export)
+			  (import (rnrs) (lists))))
+
+  (test-cache:register '(test imported-libraries two)
+		       '(library (test imported-libraries two)
+			  (export)
+			  (import (rnrs)
+			    (only (a))
+			    (except (b))
+			    (prefix (c) p)
+			    (rename (d))
+			    (library (e))
+			    )))
+
+  (test-cache:register '(test imported-libraries three)
+		       '(library (test imported-libraries three)
+			  (export)
+			  (import (rnrs)
+			    (only (a) alpha beta)
+			    (except (b) delta)
+			    (prefix (c) gamma:)
+			    (rename (d)
+				    (ciao hello))
+			    )))
+
+;;; --------------------------------------------------------------------
+
+  (let-fields (((lib <library>) (load-library '(test imported-libraries one))))
     (check lib.imported-libraries => '((rnrs) (lists)))
     #f)
 
-  (let-fields (((lib <library>) (load-library '(proof two))))
+  (let-fields (((lib <library>) (load-library '(test imported-libraries two))))
     (check lib.imported-libraries => '((rnrs) (a) (b) (c) (d) (e)))
     #f)
 
-  (let-fields (((lib <library>) (load-library '(proof three))))
+  (let-fields (((lib <library>) (load-library '(test imported-libraries three))))
     (check lib.imported-libraries => '((rnrs) (a) (b) (c) (d)))
     #f)
 
@@ -262,15 +310,14 @@
 
 
 (parametrise ((check-test-name		'imported-bindings)
-	      (load-library-function	library-cache:load-library)
-	      (library-cache:registry	(make-hashtable equal-hash equal?)))
+	      (load-library-function	test-cache:load-library)
+	      (test-cache:registry	(test-cache:make-table)))
 
-(hashtable-clear! (library-cache:registry))
-
-  (library-cache:register '(proof one)
-			  '(library (proof one)
-			     (export)
-			     (import (rnrs unicode))))
+  (test-cache:register '(test imported-bindings one)
+		       '(library (test imported-bindings one)
+			  (export)
+			  (import (rnrs sorting)
+			    (rnrs control (6)))))
 
 ;;; --------------------------------------------------------------------
 
@@ -278,8 +325,14 @@
     (check lib.imported-bindings => '())
     #f)
 
-  (let-fields (((lib <library>) (load-library '(proof one))))
-    (check lib.imported-bindings => '())
+  (let-fields (((lib <library>) (load-library '(test imported-bindings one))))
+    (check lib.imported-bindings => '((list-sort list-sort)
+				      (vector-sort vector-sort)
+				      (vector-sort! vector-sort!)
+				      (when when)
+				      (unless unless)
+				      (do do)
+				      (case-lambda case-lambda)))
     #f)
 
   #t)
