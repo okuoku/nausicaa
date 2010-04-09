@@ -127,9 +127,9 @@
   (only (armor newlines))
   (only (armor quoted-printable))
 
-  (only (ffi ffi))
-  (only (ffi ffi utilities))
-  (only (ffi ffi parametrised))
+  (only (ffi))
+  (only (ffi utilities))
+  (only (ffi parametrised))
 
   (only (ffi memory))
   (only (ffi memory mempool))
