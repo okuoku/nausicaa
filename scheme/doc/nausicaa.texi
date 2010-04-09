@@ -20214,6 +20214,13 @@ The following is an example of virtual fields usage:
     o.number))
 @result{} 2/5
 @end example
+
+Notice the semantic difference between @func{fields} clauses and
+@func{virtual-fields} clauses.  With @func{fields} we add a concrete
+field to the record type, thereby creating the accessor and possibly the
+mutator; then select the public names of accessors and mutators.  With
+@func{virtual-fields} we select the name of a virtual field whose
+accessor and mutator must be explicitly defined in some other way.
 @end deffn
 
 
