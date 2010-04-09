@@ -28,15 +28,56 @@
 (library (libraries low)
   (export
 
+    %library-version-ref
+
+    %library-name?
+    %library-version?
+    %phase-number?
     %list-of-symbols?
     %list-of-renamings?			%renaming?
 
     %apply-import-spec/only
     %apply-import-spec/except
     %apply-import-spec/prefix
-    %apply-import-spec/rename
-    )
-  (import (nausicaa))
+    %apply-import-spec/rename)
+  (import (nausicaa)
+    (only (lists) take-right drop-right))
+
+
+(define (%library-name? obj)
+  (and (list? obj)
+       (not (null? obj))
+       (if (< 1 (length obj))
+	   (let ((version (car (take-right obj 1)))
+		 (name    (drop-right obj 1)))
+	     (cond ((null? version)
+		    (for-all symbol? name))
+		   ((pair? version)
+		    (and (for-all symbol? name)
+			 (%library-version? version)))
+		   (else
+		    (for-all symbol? obj))))
+	 (for-all symbol? obj))))
+
+(define (%library-version? obj)
+  (and (list? obj)
+       (or (null? obj)
+	   (and (for-all integer? obj)
+		(for-all exact? obj)))))
+
+(define (%phase-number? obj)
+  (and (integer? obj) (exact? obj)))
+
+(define (%library-version-ref library-name)
+  (if (< 1 (length library-name))
+      (let ((version (car (take-right library-name 1))))
+	(cond ((null? version)
+	       '())
+	      ((pair? version)
+	       version)
+	      (else
+	       '())))
+    '()))
 
 
 (define (%list-of-symbols? obj)

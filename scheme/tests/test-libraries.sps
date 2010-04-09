@@ -59,6 +59,92 @@
 (parametrise ((check-test-name	'low-import-specs))
 
   (check
+      (%library-version-ref '(alpha))
+    => '())
+
+  (check
+      (%library-version-ref '(alpha beta))
+    => '())
+
+  (check
+      (%library-version-ref '(alpha beta gamma))
+    => '())
+
+  (check
+      (%library-version-ref '(alpha beta gamma ()))
+    => '())
+
+  (check
+      (%library-version-ref '(alpha beta gamma (1)))
+    => '(1))
+
+  (check
+      (%library-version-ref '(alpha beta gamma (1 2 3)))
+    => '(1 2 3))
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%library-version? '())
+    => #t)
+
+  (check
+      (%library-version? '(1))
+    => #t)
+
+  (check
+      (%library-version? '(1 2 3))
+    => #t)
+
+  (check
+      (%library-version? 'ciao)
+    => #f)
+
+  (check
+      (%library-version? '(1 ciao))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%library-name? '())
+    => #f)
+
+  (check
+      (%library-name? '(alpha))
+    => #t)
+
+  (check
+      (%library-name? '(alpha beta))
+    => #t)
+
+  (check
+      (%library-name? '(alpha beta gamma))
+    => #t)
+
+  (check
+      (%library-name? '(alpha beta gamma ()))
+    => #t)
+
+  (check
+      (%library-name? '(alpha beta gamma (1)))
+    => #t)
+
+  (check
+      (%library-name? '(alpha beta gamma (1 2 3)))
+    => #t)
+
+  (check
+      (%library-name? '(alpha 123 gamma))
+    => #f)
+
+  (check
+      (%library-name? '(alpha beta gamma (1 ciao)))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
       (%apply-import-spec/only '() '(a b c))
     => '())
 
@@ -157,7 +243,7 @@
 
   (check
       (let-fields (((lib <library>) (load-library '(lists))))
-	lib.spec)
+	lib.library-name)
     => '(lists))
 
   (check
@@ -193,13 +279,13 @@
 
   (let-fields (((lib <library>) (load-library '(test matching-basic one))))
 
-    (check
-	lib.raw-exports
-      => '(a b c (rename (a alpha) (b beta))))
+    ;; (check
+    ;; 	lib.exports
+    ;;   => '(a b c (rename (a alpha) (b beta))))
 
-    (check
-	lib.raw-imports
-      => '((rnrs) (lists)))
+    ;; (check
+    ;; 	lib.imports
+    ;;   => '((rnrs) (lists)))
 
     (check
 	lib.exports
@@ -214,7 +300,7 @@
   #t)
 
 
-(parametrise ((check-test-name		'exported-bindings)
+#;(parametrise ((check-test-name		'exported-bindings)
 	      (load-library-function	test-cache:load-library)
 	      (test-cache:registry	(test-cache:make-table)))
 
@@ -253,7 +339,7 @@
   #t)
 
 
-(parametrise ((check-test-name		'imported-libraries)
+#;(parametrise ((check-test-name		'imported-libraries)
 	      (load-library-function	test-cache:load-library)
 	      (test-cache:registry	(test-cache:make-table)))
 
@@ -309,7 +395,7 @@
   #t)
 
 
-(parametrise ((check-test-name		'imported-bindings)
+#;(parametrise ((check-test-name		'imported-bindings)
 	      (load-library-function	test-cache:load-library)
 	      (test-cache:registry	(test-cache:make-table)))
 
