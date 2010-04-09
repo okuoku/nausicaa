@@ -1848,7 +1848,8 @@
     ((_ #t () ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ...)
        (%add-assertions ((?collected-cls ...) ...) (?collected-arg ...))
-       (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body)))
+       (let ()
+	 (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body))))
 
     ;;Matches two cases: (1) when  all the arguments have been processed
     ;;and only  the rest argument is  there; (2) when the  formals is an
@@ -1859,7 +1860,8 @@
     ((_ #t ?rest ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ... . ?rest)
        (%add-assertions ((?collected-cls ...) ...) (?collected-arg ...))
-       (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body)))
+       (let ()
+	 (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body))))
     ))
 
 (define-syntax %add-assertions
@@ -1968,9 +1970,10 @@
       (?collected-case-lambda-clause ... ((?collected-arg ...)
 					  (%add-assertions ((?collected-cls ...) ...)
 							   (?collected-arg ...))
-					  (with-fields ((?collected-arg ?collected-cls ...)
-							...)
-					    . ?body)))
+					  (let ()
+					    (with-fields ((?collected-arg ?collected-cls ...)
+							  ...)
+					      . ?body))))
       ()
       ()
       ?case-lambda-clause ...))
@@ -2004,9 +2007,10 @@
       (?collected-case-lambda-clause ... ((?collected-arg ... . ?rest)
 					  (%add-assertions ((?collected-cls ...) ...)
 							   (?collected-arg ...))
-					  (with-fields ((?collected-arg ?collected-cls ...)
-							...)
-					    . ?body)))
+					  (let ()
+					    (with-fields ((?collected-arg ?collected-cls ...)
+							  ...)
+					      . ?body))))
       ()
       ()
       ?case-lambda-clause ...))
