@@ -241,7 +241,7 @@
     current-output-port
     datum->syntax
 ;;;replaced by define/with from (classes)
-;;;    define
+    (rename (define rnrs:define))
     define-condition-type
     define-enumeration
     define-record-type
