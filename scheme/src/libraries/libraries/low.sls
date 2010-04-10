@@ -35,12 +35,14 @@
     %phase-number?
     %list-of-symbols?
     %list-of-renamings?			%renaming?
+    %library-reference?			%version-reference?
 
     %apply-import-spec/only
     %apply-import-spec/except
     %apply-import-spec/prefix
     %apply-import-spec/rename)
   (import (nausicaa)
+    (matches)
     (only (lists) take-right drop-right))
 
 
@@ -78,6 +80,51 @@
 	      (else
 	       '())))
     '()))
+
+
+(define (%library-reference? obj)
+  (and (list? obj)
+       (not (null? obj))
+       (if (< 1 (length obj))
+	   (let ((version (car (take-right obj 1)))
+		 (name    (drop-right obj 1)))
+	     (cond ((null? version)
+		    (for-all symbol? name))
+		   ((pair? version)
+		    (and (for-all symbol? name)
+			 (%version-reference? version)))
+		   (else
+		    (for-all symbol? obj))))
+	 (for-all symbol? obj))))
+
+(define (%version-reference? obj)
+  (define (main)
+    (match obj
+      (('and ?sub-version0 ?sub-version ...)
+       (for-all %match-sub-version (cons ?sub-version0 ?sub-version)))
+      (('or  ?sub-version0 ?sub-version ...)
+       (for-all %match-sub-version (cons ?sub-version0 ?sub-version)))
+      (('not ?sub-version)
+       (%match-sub-version ?sub-version))
+      (?sub-version
+       (for-all %match-sub-version ?sub-version))))
+  (define (%match-sub-version sub-version)
+    (match sub-version
+      (('and ?sub-version0 ?sub-version ...)
+       (for-all %match-sub-version (cons ?sub-version0 ?sub-version)))
+      (('or  ?sub-version0 ?sub-version ...)
+       (for-all %match-sub-version (cons ?sub-version0 ?sub-version)))
+      (('not ?sub-version)
+       (%match-sub-version ?sub-version))
+      (('<= ?sub-version)
+       (%match-sub-version ?sub-version))
+      (('>= ?sub-version)
+       (%match-sub-version ?sub-version))
+      ((and (? integer?) (? exact?))
+       #t)
+      (*
+       #f)))
+  (main))
 
 
 (define (%list-of-symbols? obj)

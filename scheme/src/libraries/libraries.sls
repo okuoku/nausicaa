@@ -116,11 +116,10 @@
 
     ;;loading
     load-library				load-library-function
-    load-library-from-file
-    ignore-library-version
+    load-library-from-file			ignore-library-version
+    library-reference-resolve
     )
   (import (nausicaa)
-    (sentinel)
     (compensations)
     (lists)
     (strings)
@@ -247,12 +246,12 @@
        (match library-sexp
 	 (('library (and (? %library-name?) ?library-name)
 	    ('export . ?exports) ;?exports can be null
-	    ('import ?import . ?imports)
+	    ('import . ?imports) ;?imports can be null
 	    . ?body) ;?body can be null
 	  ((make-<top>) requested-library-name library-sexp
 	   ?library-name
 	   (%library-version-ref ?library-name)
-	   ?exports (cons ?import ?imports) ?body))
+	   ?exports ?imports ?body))
 	 (*
 	  (error-library-invalid-sexp 'make-<raw-library> requested-library-name library-sexp))))))
   (nongenerative nausicaa:libraries:<raw-library>))
@@ -260,13 +259,22 @@
 
 (define-class <import-spec>
   (fields (immutable library-name)
+		;The library name, as  defined by R6RS, specified in the
+		;import set.
+	  (immutable library-reference)
+		;The library reference in the import set.
 	  (immutable phases)
-	  (immutable import-set))
+		;A list  of exact  integers representing the  phases for
+		;which this  import set  was requested.  It  contains at
+		;least one element.
+	  (immutable import-set)
+		;The original import set.
+	  )
   (protocol (lambda (make-<top>)
 	      (lambda (import-set library-name)
 
 		(define (main)
-		  (receive (import-spec phases)
+		  (receive (library-reference phases)
 		      (match import-set
 			;;The FOR  clause is parsed here  because it can
 			;;appear only once.
@@ -279,16 +287,11 @@
 			;;function.
 			(?import-set
 			 (values (%take-import-spec ?import-set) 0)))
-		    ((make-<top>) import-spec phases import-set)))
+		    ((make-<top>) (library-reference-resolve library-reference)
+		     library-reference phases import-set)))
 
 		(define (%take-import-spec spec)
 		  (match spec
-		    ;;This  is used  only when  building the  fake (rnrs
-		    ;;---) library records at the end of this file.  The
-		    ;;sentinel means that there is no import spec.
-		    ((? sentinel?)
-		     '())
-
 		    ;;The  RENAME  clause can  appear  with and  without
 		    ;;renamings.
 		    (('rename ?import-set)
@@ -317,12 +320,12 @@
 
 		    ;;The LIBRARY  clause allows library  names starting
 		    ;;with FOR, ONLY, etc.
-		    (('library . (and (? %library-name?) ?library-name))
-		     ?library-name)
+		    (('library (and (? %library-reference?) ?library-reference))
+		     ?library-reference)
 
 		    ;;A plain library name.
-		    ((and (? %library-name?) ?library-name)
-		     ?library-name)
+		    ((and (? %library-reference?) ?library-reference)
+		     ?library-reference)
 
 		    ;;Everything else is an error.
 		    (?import-set
@@ -353,48 +356,55 @@
   (parent <raw-library>)
   (fields (mutable exports)
 		;Renamings representing the export list.
-	  (mutable imported-libraries)
-		;List  of library  specifications, as  defined  by R6RS,
-		;representing the libraries imported by this library.
+	  (mutable import-specs)
+		;List of <import-spec> records; it represents the import
+		;sets of this library.   Notice that an imported library
+		;can appear in more import sets.
 	  )
   (virtual-fields (immutable requested-library-name	<raw-library>-requested-library-name)
 		  (immutable library-name		<raw-library>-library-name)
-		  (immutable library-version		<raw-library>-library-version))
+		  (immutable library-version		<raw-library>-library-version)
+		  (immutable imported-libraries		<library>-imported-libraries))
   (methods imported-bindings)
 
   (protocol (lambda (make-<raw-library>)
-
-	      (define (%<library>-build-exports! (lib <library>))
-		(let-fields (((raw <raw-library>) lib))
-		  (reverse
-		   (fold-left
-		    (lambda (knil spec)
-		      (match spec
-			((and (? symbol?) ?identifier)
-			 `((,?identifier ,?identifier) . ,knil))
-			(('rename . ?renamings)
-			 (if (%list-of-renamings? ?renamings)
-			     (append ?renamings knil)
-			   (error-library-invalid-exports 'make-<library> lib.library-name spec)))
-			(*
-			 (error-library-invalid-exports 'make-<library> lib.library-name spec))))
-		    '()
-		    raw.exports))))
-
-	      (define (%<library>-build-import-sets! (lib <library>))
-		(set! lib.imported-libraries
-		      (begin0-let ((table (make-hashtable equal-hash equal?)))
-			(for-each (lambda (import-set)
-				    (hashtable-set! table lib.library-name
-						    (make-<import-spec> import-set lib.library-name)))
-			  (<raw-library>-imports lib)))))
-
 	      (lambda/with* ((requested-library-name <list>) (library-sexp <list>))
-		(begin0-let ((lib ((make-<raw-library> requested-library-name library-sexp)
-				   #f #f))) ;exports imported-libraries
-		  (%<library>-build-exports! lib)
-		  (%<library>-build-import-sets! lib)
-		  ))))
+
+		(define (main)
+		  (begin0-let ((lib ((make-<raw-library> requested-library-name library-sexp)
+				     #f #f))) ;exports import-specs
+		    (%build-exports! lib)
+		    (%build-import-specs! lib)))
+
+		(define (%build-exports! (lib <library>))
+		  (let-fields (((raw <raw-library>) lib))
+		    (set! lib.exports
+			  (reverse
+			   (fold-left
+			    (lambda (knil spec)
+			      (define (%error)
+				(error-library-invalid-exports 'make-<library> lib.library-name spec))
+			      (match spec
+				((and (? symbol?) ?identifier)
+				 `((,?identifier ,?identifier) . ,knil))
+				(('rename . ?renamings)
+				 (if (%list-of-renamings? ?renamings)
+				     (append (reverse ?renamings) knil)
+				   (%error)))
+				(*
+				 (%error))))
+			    '()
+			    raw.exports)))))
+
+		(define (%build-import-specs! (lib <library>))
+		  (let-fields (((raw <raw-library>) lib))
+		    (set! lib.import-specs
+			  (if (null? raw.imports)
+			      '()
+			    (map (lambda (import-set)
+				   (make-<import-spec> import-set lib.library-name))
+			      raw.imports)))))
+		(main))))
   (nongenerative nausicaa:libraries:<library>))
 
 (define (<library>-library-version (o <library>))
@@ -405,6 +415,11 @@
 
 (define (<library>-library-name (o <library>))
   o.library-name)
+
+(define (<library>-imported-libraries (lib <library>))
+  (delete-duplicates (map (lambda/with ((spec <import-spec>))
+			    spec.library-name)
+		       lib.import-specs)))
 
 
 ;;;; libraries search path
@@ -488,6 +503,12 @@
       #f)))
 
 
+;;;; resolving library references
+
+(define (library-reference-resolve library-reference)
+  library-reference)
+
+
 ;;;; library registry
 
 (define-constant $library-registry
@@ -512,43 +533,47 @@
 
 (define (<library>-imported-bindings (lib <library>))
   (define (main)
-    (concatenate
-     (map (lambda (spec)
-	    (match spec
-	      (('for import-set)
-	       (%extract-bindings-from-import-spec import-set))
-	      (('for import-set *)
-	       (%extract-bindings-from-import-spec import-set))
-	      (import-set
-	       (%extract-bindings-from-import-spec import-set))))
-       (<raw-library>-imports lib))))
+    (let-fields (((raw <raw-library>) lib))
+      (concatenate
+       (map (lambda (spec)
+	      (match spec
+		(('for ?import-set)
+		 (%extract-bindings-from-import-spec ?import-set))
+		(('for ?import-set *)
+		 (%extract-bindings-from-import-spec ?import-set))
+		(?import-set
+		 (%extract-bindings-from-import-spec ?import-set))))
+	 raw.imports))))
 
   (define (%extract-bindings-from-import-spec spec)
     (match spec
-      (('rename import-set)
-       (%extract-bindings-from-import-spec import-set))
-      (('rename import-set . list-of-renamings)
-       (%extract-bindings-from-import-spec import-set))
+      (('rename ?import-set)
+       (%extract-bindings-from-import-spec ?import-set))
+      (('rename ?import-set . list-of-renamings)
+       (%extract-bindings-from-import-spec ?import-set))
 
-      (('only import-set) ;exclude all the bindings
+      (('only ?import-set) ;exclude all the bindings
        '())
-      (('only import-set . list-of-ids)
-       (%apply-import-spec/only (%extract-bindings-from-import-spec import-set)
-				list-of-ids))
+      (('only ?import-set . ?list-of-ids)
+       (%apply-import-spec/only (%extract-bindings-from-import-spec ?import-set)
+				?list-of-ids))
 
-      (('except import-set)
-       (%extract-bindings-from-import-spec import-set))
-      (('except import-set . list-of-ids)
-       (%apply-import-spec/except (%extract-bindings-from-import-spec import-set) list-of-ids))
+      (('except ?import-set)
+       (%extract-bindings-from-import-spec ?import-set))
+      (('except ?import-set . ?list-of-ids)
+       (%apply-import-spec/except (%extract-bindings-from-import-spec ?import-set) ?list-of-ids))
 
-      (('prefix import-set the-prefix)
-       (%apply-import-spec/prefix (%extract-bindings-from-import-spec import-set)))
+      (('prefix ?import-set (and (? symbol?) ?prefix))
+       (%apply-import-spec/prefix (%extract-bindings-from-import-spec ?import-set)))
 
-      (('library library-name)
-       (<library>-exports (load-library library-name)))
+      (('library (and (? %library-reference?) ?library-reference))
+       (<library>-exports (load-library ?library-reference)))
 
-      (library-name
-       (<library>-exports (load-library library-name)))))
+      ((and (? %library-reference?) ?library-reference)
+       (<library>-exports (load-library ?library-reference)))
+
+      (?import-set
+       (error-library-invalid-import-set '<library>-imported-bindings lib.library-name ?import-set))))
 
   (main))
 
@@ -564,7 +589,7 @@
   (let*-fields (((spec <top>)		library-name)
 		((lib  <library>)	(make-<library> spec `(library ,library-name
 								(export ,@bindings)
-								(import ,sentinel))))
+								(import))))
 		((raw  <raw-library>)	lib))
     (hashtable-set! $library-registry spec lib)
     (hashtable-set! $library-registry (drop-right spec 1) lib)
