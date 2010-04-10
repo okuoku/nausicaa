@@ -120,7 +120,7 @@
        (%match-sub-version ?sub-version))
       (('>= ?sub-version)
        (%match-sub-version ?sub-version))
-      ((and (? integer?) (? exact?))
+      ((:and (:predicate integer?) (:predicate exact?))
        #t)
       (*
        #f)))

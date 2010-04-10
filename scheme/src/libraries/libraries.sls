@@ -244,7 +244,7 @@
    (lambda (make-<top>)
      (lambda/with* ((requested-library-name <list>) (library-sexp <list>))
        (match library-sexp
-	 (('library (and (? %library-name?) ?library-name)
+	 (('library (:predicate %library-name? ?library-name)
 	    ('export . ?exports) ;?exports can be null
 	    ('import . ?imports) ;?imports can be null
 	    . ?body) ;?body can be null
@@ -252,7 +252,7 @@
 	   ?library-name
 	   (%library-version-ref ?library-name)
 	   ?exports ?imports ?body))
-	 (*
+	 (_
 	  (error-library-invalid-sexp 'make-<raw-library> requested-library-name library-sexp))))))
   (nongenerative nausicaa:libraries:<raw-library>))
 
@@ -296,35 +296,35 @@
 		    ;;renamings.
 		    (('rename ?import-set)
 		     (%take-import-spec ?import-set))
-		    (('rename ?import-set . *)
+		    (('rename ?import-set . _)
 		     (%take-import-spec ?import-set))
 
 		    ;;The  ONLY  clause  can  appear  with  and  without
 		    ;;symbols.
 		    (('only ?import-set)
 		     (%take-import-spec ?import-set))
-		    (('only ?import-set . *)
+		    (('only ?import-set . _)
 		     (%take-import-spec ?import-set))
 
 		    ;;The  EXCEPT  clause can  appear  with and  without
 		    ;;symbols.
 		    (('except ?import-set)
 		     (%take-import-spec ?import-set))
-		    (('except ?import-set . *)
+		    (('except ?import-set . _)
 		     (%take-import-spec ?import-set))
 
 		    ;;The  PREFIX  clause must  appear  with a  symbolic
 		    ;;prefix.
-		    (('prefix ?import-set (and (? symbol?) ?prefix))
+		    (('prefix ?import-set (:predicate symbol? ?prefix))
 		     (%take-import-spec ?import-set))
 
 		    ;;The LIBRARY  clause allows library  names starting
 		    ;;with FOR, ONLY, etc.
-		    (('library (and (? %library-reference?) ?library-reference))
+		    (('library (:predicate %library-reference? ?library-reference))
 		     ?library-reference)
 
 		    ;;A plain library name.
-		    ((and (? %library-reference?) ?library-reference)
+		    ((:predicate %library-reference? ?library-reference)
 		     ?library-reference)
 
 		    ;;Everything else is an error.
@@ -334,7 +334,7 @@
 	      (define (%process-phases phases-list)
 		(map (lambda (phase)
 		       (match phase
-			 (('meta (and (? %phase-number?) ?phase))
+			 (('meta (:predicate %phase-number? ?phase))
 			  ?phase)
 			 ((and (? symbol?) ?phase)
 			  (case ?phase
@@ -385,13 +385,13 @@
 			      (define (%error)
 				(error-library-invalid-exports 'make-<library> lib.library-name spec))
 			      (match spec
-				((and (? symbol?) ?identifier)
+				((:predicate symbol? ?identifier)
 				 `((,?identifier ,?identifier) . ,knil))
 				(('rename . ?renamings)
 				 (if (%list-of-renamings? ?renamings)
 				     (append (reverse ?renamings) knil)
 				   (%error)))
-				(*
+				(_
 				 (%error))))
 			    '()
 			    raw.exports)))))
@@ -539,7 +539,7 @@
 	      (match spec
 		(('for ?import-set)
 		 (%extract-bindings-from-import-spec ?import-set))
-		(('for ?import-set *)
+		(('for ?import-set _)
 		 (%extract-bindings-from-import-spec ?import-set))
 		(?import-set
 		 (%extract-bindings-from-import-spec ?import-set))))
@@ -563,13 +563,13 @@
       (('except ?import-set . ?list-of-ids)
        (%apply-import-spec/except (%extract-bindings-from-import-spec ?import-set) ?list-of-ids))
 
-      (('prefix ?import-set (and (? symbol?) ?prefix))
+      (('prefix ?import-set (:predicate symbol? ?prefix))
        (%apply-import-spec/prefix (%extract-bindings-from-import-spec ?import-set)))
 
-      (('library (and (? %library-reference?) ?library-reference))
+      (('library (:predicate %library-reference? ?library-reference))
        (<library>-exports (load-library ?library-reference)))
 
-      ((and (? %library-reference?) ?library-reference)
+      ((:predicate %library-reference? ?library-reference)
        (<library>-exports (load-library ?library-reference)))
 
       (?import-set

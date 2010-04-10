@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2006, 2007 Alex Shinn
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -25,8 +25,7 @@
 ;;;
 
 
-(import (except (nausicaa) *)
-  (only (rnrs) *)
+(import (nausicaa)
   (checks)
   (matches)
   (rnrs eval))
@@ -106,12 +105,12 @@
 (parameterise ((check-test-name 'wildcard))
 
   (check
-      (match 'any (* 'ok))
+      (match 'any (_ 'ok))
     => 'ok)
 
   (check
       (match '(1 2)
-  	((* *)
+  	((_ _)
   	 'ok))
     => 'ok)
 
@@ -223,19 +222,19 @@
 
   (check	;quoted symbols
       (match '(alpha (beta (delta 123)))
-	(('alpha ('beta ('delta x))) x))
+  	(('alpha ('beta ('delta x))) x))
     => 123)
 
   (check	;sexp
       (match '(alpha (beta (delta 123)))
-	(('alpha (or ('beta ('delta x))
-		     ('gamma ('delta x)))) x))
+  	(('alpha (:or ('beta ('delta x))
+		      ('gamma ('delta x)))) x))
     => 123)
 
   (check	;sexp
       (match '(alpha (gamma (delta 123)))
-	(('alpha (or ('beta ('delta x))
-		     ('gamma ('delta x)))) x))
+  	(('alpha (:or ('beta ('delta x))
+		      ('gamma ('delta x)))) x))
     => 123)
 
   #t)
@@ -243,36 +242,43 @@
 
 (parameterise ((check-test-name 'vectors))
 
+;;; unquoted vectors are automatically quoted by MATCH
+
   (check
-      (match '#()
+      (match #()
 	(#() 'ok))
     => 'ok)
 
   (check
-      (match '#(ok)
+      (match #(ok)
 	(#(x) x))
     => 'ok)
 
   (check
-      (match '#(1 2 3 4)
+      (match #(ok)
+  	(#(x) x))
+    => 'ok)
+
+  (check
+      (match #(1 2 3 4)
 	(#(x ...) x))
     => '(1 2 3 4))
 
   (check
-      (match '#(1 2 3 4)
+      (match #(1 2 3 4)
 	(#(1 2 3 4) 'ok))
     => 'ok)
 
   (check
       (match 1
 	(#(1 2 3 4)	'ok)
-	(*		'fail))
+	(_		'fail))
     => 'fail)
 
   (check
-      (match '#(1 2)
+      (match #(1 2)
 	(#(1 2 3 4)	'ok)
-	(*		'fail))
+	(_		'fail))
     => 'fail)
 
   #t)
@@ -287,30 +293,32 @@
 
   (check
       (match (make-color 1 2 3)
-	((? color?)
-	 'ok))
+	((:predicate color?)
+	 'ok)
+	(_
+	 'fail))
     => 'ok)
 
   (check
       (match (make-color 1 2 3)
-	((? color? ($ color-red x))
-	 x))
+  	((:predicate color? (:apply color-red x))
+  	 x))
     => 1)
 
   (check
       (match (make-color 1 2 3)
-	((? color?
-	    ($ color-red   x)
-	    ($ color-green y)
-	    ($ color-blue  z))
-	 (list x y z)))
+  	((:predicate color?
+  		     (:apply color-red   x)
+  		     (:apply color-green y)
+  		     (:apply color-blue  z))
+  	 (list x y z)))
     => '(1 2 3))
 
   (check
       (match (make-color 1 2 3)
-	((? color?
-	    ($ color-red (? zero?))) 'ok)
-	(* 'fail))
+  	((:predicate color?
+  		     (:apply color-red (:predicate zero?))) 'ok)
+  	(_ 'fail))
     => 'fail)
 
   #t)
@@ -320,17 +328,17 @@
 
   (check	;and empty
       (match '(o k)
-	((and) 'ok))
+	((:and) 'ok))
     => 'ok)
 
   (check	;and single
       (match 'ok
-	((and x) x))
+	((:and x) x))
     => 'ok)
 
   (check	;and double
       (match 'ok
-	((and (? symbol?) y)
+	((:and (:predicate symbol?) y)
 	 'ok))
     => 'ok)
 
@@ -338,34 +346,34 @@
 
   (check	;or empty
       (match '(o k)
-	((or) 'fail)
+	((:or) 'fail)
 	(else 'ok))
     => 'ok)
 
   (check	;or single
       (match 'ok
-	((or x) 'ok))
+	((:or x) 'ok))
     => 'ok)
 
   (check	;or double
       (match 'ok
-	((or (? symbol? y)
-	     y)
+	((:or (:predicate symbol? y)
+	      y)
 	 y))
     => 'ok)
 
   (check
       (match 'ok
-	((or (? integer? x)
-	     (? symbol?  x))
+	((:or (:predicate integer? x)
+	      (:predicate symbol?  x))
 	 x))
     => 'ok)
 
   (check
       (guard (E (else #t))
 	(eval '(match 123
-		 ((or (? integer? x)
-		      (? symbol?  y))
+		 ((:or (:predicate integer? x)
+		       (:predicate symbol?  y))
 		  y))
 	      (environment '(rnrs) '(matches))))
     => #t)
@@ -373,8 +381,8 @@
   (check
       (guard (E (else #t))
 	(eval '(match 123
-		 ((or (? integer? x)
-		      (? symbol?  y))
+		 ((:or (:predicate integer? x)
+		       (:predicate symbol?  y))
 		  x))
 	      (environment '(rnrs) '(matches))))
     => #t)
@@ -383,34 +391,34 @@
 
   (check	;not
       (match 28
-	((not (a . b)) 'ok))
+	((:not (a . b)) 'ok))
     => 'ok)
 
   (check	;not
       (match 28
-	((not 28) 'fail)
-	(*        'ok))
+	((:not 28) 'fail)
+	(_        'ok))
     => 'ok)
 
   (check
       (match 123
-	((not (? symbol?))
+	((:not (:predicate symbol?))
 	 'ok))
     => 'ok)
 
   (check
       (guard (E (else #t))
 	(eval '(match 123
-		 ((not (? symbol? x))
+		 ((:not (:predicate symbol? x))
 		  x)) ; unbound identifier
 	      (environment '(rnrs) '(matches))))
     => #t)
 
   (check
       (catch-syntax-error (match '()
-			    ((not) 'fail)))
-    => '((message . "empty NOT form in pattern")
-	 (form    . (not))))
+			    ((:not) 'fail)))
+    => '((message . "empty :NOT form in pattern")
+	 (form    . (:not))))
 
   #t)
 
@@ -419,24 +427,24 @@
 
   (check	;pred
       (match 28
-	((? number?) 'ok))
+	((:predicate number?) 'ok))
     => 'ok)
 
   (check
       (match 28
-	((? number? x)
+	((:predicate number? x)
 	 (+ 1 x)))
     => 29)
 
   (check
       (match 28
-	((? number? (? integer? x))
+	((:predicate number? (:predicate integer? x))
 	 (+ 1 x)))
     => 29)
 
   (check
       (match 28
-	((? number? x y z)
+	((:predicate number? x y z)
 	 (list x y z)))
     => '(28 28 28))
 
@@ -448,12 +456,12 @@
   (check
       (let ((f (lambda (x) (+ 1 x))))
 	(match 1
-	  (($ f x) 'ok)))
+	  ((:apply f x) 'ok)))
     => 'ok)
 
   (check
       (match 1
-	(($ (lambda (x) (+ 1 x)) x)
+	((:apply (lambda (x) (+ 1 x)) x)
 	 x)
 	(y y))
     => 2)
@@ -467,22 +475,22 @@
       (let ((x 1))
 	(match 1
 	  (`,x 'ok)
-	  (*   'fail)))
+	  (_   'fail)))
     => 'ok)
 
   (check
       (let ((x 2))
 	(match '(1 2 3)
-	  ((* `,x y) y)
-	  (*         'fail)))
+	  ((_ `,x y) y)
+	  (_         'fail)))
     => 3)
 
   (check
       (let ((x 10))
 	(match '(1 2 3)
-	  ((* `,(- x 8) y)
+	  ((_ `,(- x 8) y)
 	   y)
-	  (*
+	  (_
 	   'fail)))
     => 3)
 
@@ -490,19 +498,19 @@
       (let ((x '(2 3)))
 	(match '(1 2 3 4)
 	  (`(1 ,@x 4)	'ok)
-	  (*		'fail)))
+	  (_		'fail)))
     => 'ok)
 
   (check
       (let ((pred number?))
 	(match 28
-	  ((? `,pred) 'ok)))
+	  ((:predicate `,pred) 'ok)))
     => 'ok)
 
   (check
       (let ((f (lambda (x) (+ 1 x))))
 	(match 2
-	  (($ `,f x) x)))
+	  ((:apply `,f x) x)))
     => 3)
 
   #t)
@@ -510,36 +518,15 @@
 
 (parameterise ((check-test-name 'expand))
 
-  (define-syntax it
-    (syntax-rules ()
-      ((_ ?var)
-       (* ?var *))))
-
-  (check
-      (match '(1 2 3)
-	((it x) x)
-	(*      'fail))
-    => 'fail)
-
-  (check
+  (check	;verify that  a pattern which  resembles a macro  use is
+		;not expanded
       (let-syntax ((it (syntax-rules ()
 			 ((_ ?var)
-			  (* ?var *)))))
+			  (_ ?var _)))))
 	(match '(1 2 3)
 	  ((it x) x)
-	  (*      'fail)))
+	  (_      'fail)))
     => 'fail)
-
-  (check
-      (let-syntax ((one (syntax-rules ()
-			  ((_)
-			   1)))
-		   (two (syntax-rules ()
-			  ((_ ?v)
-			   (quote ?v)))))
-	(two (one)))
-    => '(one))
-
 
   #t)
 
@@ -646,11 +633,11 @@
 
   (check
       (match '(1 2 3)
-	(((? odd? n) ...) ;does not match, not all odd
+	(((:predicate odd? n) ...) ;does not match, not all odd
 	 n)
-	(((? even? n) ...) ;does not match, not all even
+	(((:predicate even? n) ...) ;does not match, not all even
 	 n)
-	(((? number? n) ...) ;does match, all numbers
+	(((:predicate number? n) ...) ;does match, all numbers
 	 n))
     => '(1 2 3))
 
@@ -670,12 +657,12 @@
 
   (check
       (match 3
-	((? positive? x)
+	((:predicate positive? x)
 	 (=> next)
 	 (if (even? x)
 	     x
 	   (next)))
-	(* 0))
+	(_ 0))
     => 0)
 
   #t)
@@ -693,15 +680,15 @@
 	x)
     => 1)
 
-  (check
-      (match-let ((* 1))
-	*)
+  (check	;binds _ as a normal variable
+      (match-let ((_ 1))
+	_)
     => 1)
 
-  (check
-      (match-let ((* 1))
-	1)
-    => 1)
+  (check	;uses _ as the wildcard pattern
+      (match-let (((_) '(1)))
+	'ok)
+    => 'ok)
 
   (check
       (match-let ((x 'ok)
@@ -716,8 +703,8 @@
     => '(1 2 3))
 
   (check
-      (match-let (((? number?  x) 1)
-		  ((? integer? y) 2))
+      (match-let (((:predicate number?  x) 1)
+		  ((:predicate integer? y) 2))
 	x)
     => 1)
 
@@ -733,8 +720,8 @@
 	x)
     => 1)
 
-  (check
-      (match-let* ((* 1))
+  (check	;binds _ as a normal variable
+      (match-let* ((_ 1))
 	1)
     => 1)
 
@@ -751,8 +738,8 @@
     => '(1 2 3))
 
   (check
-      (match-let* (((? number?  x) 1)
-		   ((? integer? y) 2))
+      (match-let* (((:predicate number?  x) 1)
+		   ((:predicate integer? y) 2))
 	x)
     => 1)
 
@@ -775,8 +762,8 @@
 		    x)
     => 1)
 
-  (check
-      (match-letrec ((* 1))
+  (check	;binds _ as a normal variable
+      (match-letrec ((_ 1))
 		    1)
     => 1)
 
@@ -793,8 +780,8 @@
     => '(1 2 3))
 
   (check
-      (match-letrec (((? number?  x) 1)
-		     ((? integer? y) 2))
+      (match-letrec (((:predicate number?  x) 1)
+		     ((:predicate integer? y) 2))
 		    x)
     => 1)
 
@@ -825,7 +812,7 @@
 	(two 1 2)
       => 3)
 
-    )
+    #f)
 
   #t)
 
@@ -852,7 +839,7 @@
 
   (check
       (match '(1 2 3)
-  	((* (get! two) *)
+  	((_ (get! two) _)
   	 (two)))
     => 2)
 
@@ -901,7 +888,7 @@
 
   (check	;setter car
       (let ((x '(1 . 2)))
-	(match x (((set! a) . *) (a 3)))
+	(match x (((set! a) . _) (a 3)))
 	x)
     => '(3 . 2))
 

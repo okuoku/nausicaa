@@ -9,7 +9,7 @@
 ;;;	Public Domain.
 ;;;
 ;;;Copyright (c) 2006, 2007 Alex Shinn
-;;;Nausicaa integration by Marco Maggi <marcomaggi@gna.org>
+;;;Nausicaa integration by Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -123,7 +123,7 @@
        (next-clause expr expr (set! expr) ?clause ...)))
 
     ((_ #(?item ...) ?clause ...)
-     (let ((expr #(?item ...)))
+     (let ((expr (quote #(?item ...))))
        (next-clause expr expr (set! expr) ?clause ...)))
 
     ((_ ?atom ?clause ...)
@@ -235,147 +235,150 @@
   ;;models; invoke  the appropriate macro.   To be called with  the same
   ;;arguments of NEXT-PATTERN.
   ;;
-  (syntax-rules (quote quasiquote * ? $ and or not set! get!)
+  (lambda (stx)
+    (syntax-case stx (:predicate :apply :and :or :not quote quasiquote set! get!)
 
-    ;;the pattern is null
-    ((_ v () g s (sk ...) fk i)
-     (if (null? v) (sk ... i) fk))
+      ;;the pattern is null
+      ((_ v () g s (sk ...) fk i)
+       #'(if (null? v) (sk ... i) fk))
 
-    ;;the pattern is a quoted sexp
-    ((_ ?expr (quote ?pattern) g s (?success-kont ...) ?failure-kont ?identifiers)
-     (if-identifier ?pattern
-		    (if (eq? ?expr (quote ?pattern))
-			(?success-kont ... ?identifiers)
-		      ?failure-kont)
-		    (if (equal? ?expr (quote ?pattern))
-			(?success-kont ... ?identifiers)
-		      ?failure-kont)))
+      ;;the pattern is a quoted sexp
+      ((_ ?expr (quote ?pattern) g s (?success-kont ...) ?failure-kont ?identifiers)
+       #'(if-identifier ?pattern
+			(if (eq? ?expr (quote ?pattern))
+			    (?success-kont ... ?identifiers)
+			  ?failure-kont)
+			(if (equal? ?expr (quote ?pattern))
+			    (?success-kont ... ?identifiers)
+			  ?failure-kont)))
 
-    ;;the pattern is a quasiquoted sexp
-    ((_ ?expr (quasiquote ?pattern) g s (sk ...) fk (id ...))
-     (let ((pattern (quasiquote ?pattern)))
-       (if (equal? ?expr pattern)
-	   (sk ... (id ...))
-	 fk)))
+      ;;the pattern is a quasiquoted sexp
+      ((_ ?expr (quasiquote ?pattern) g s (sk ...) fk (id ...))
+       #'(let ((pattern (quasiquote ?pattern)))
+	   (if (equal? ?expr pattern)
+	       (sk ... (id ...))
+	     fk)))
 
-    ;;the pattern is the empty AND
-    ((_ v (and) g s (sk ...) fk i)
-     (sk ... i))
+      ;;the pattern is the empty :AND
+      ((_ v (:and) g s (sk ...) fk i)
+       #'(sk ... i))
 
-    ;;the pattern is a single-clause AND
-    ((_ v (and p) g s sk fk i)
-     (next-pattern v p g s sk fk i))
+      ;;the pattern is a single-clause AND
+      ((_ v (:and p) g s sk fk i)
+       #'(next-pattern v p g s sk fk i))
 
-    ;;the pattern is a non-empty AND
-    ((_ ?expr (and p q ...) g s sk fk i)
-     (next-pattern ?expr p g s (next-pattern ?expr (and q ...) g s sk fk) fk i))
+      ;;the pattern is a non-empty AND
+      ((_ ?expr (:and p q ...) g s sk fk i)
+       #'(next-pattern ?expr p g s (next-pattern ?expr (:and q ...) g s sk fk) fk i))
 
-    ;;the pattern is an empty OR
-    ((_ v (or) g s sk ?failure-kont i)
-     ?failure-kont)
+      ;;the pattern is an empty OR
+      ((_ v (:or) g s sk ?failure-kont i)
+       #'?failure-kont)
 
-    ;;the pattern is a single-clause OR
-    ((_ v (or p) g s sk fk i)
-     (next-pattern v p g s sk fk i))
+      ;;the pattern is a single-clause OR
+      ((_ v (:or p) g s sk fk i)
+       #'(next-pattern v p g s sk fk i))
 
-    ;;the pattern is a multiple-clause OR
-    ((_ v (or p ...) g s sk fk i)
-     (extract-vars (or p ...)
-		   (generate-or v (p ...) g s sk fk i)
-		   i
-		   ()))
+      ;;the pattern is a multiple-clause OR
+      ((_ v (:or p ...) g s sk fk i)
+       #'(extract-vars (:or p ...)
+		       (generate-or v (p ...) g s sk fk i)
+		       i
+		       ()))
 
-    ;;the pattern is a NOT form
-    ((_ v (not p) g s (sk ...) fk i)
-     (next-pattern v p g s (match-drop-ids fk) (sk ... i) i))
+      ;;the pattern is a :NOT form
+      ((_ v (:not p) g s (sk ...) fk i)
+       #'(next-pattern v p g s (match-drop-ids fk) (sk ... i) i))
 
-    ;;the pattern is an empty NOT form
-    ((_ v (not) g s (sk ...) fk i)
-     (syntax-violation 'match "empty NOT form in pattern" '(not)))
+      ;;the pattern is an empty :NOT form
+      ((_ v (:not) g s (sk ...) fk i)
+       #'(syntax-violation 'match "empty :NOT form in pattern" '(:not)))
 
-    ;;the pattern is a getter
-    ((_ v (get! getter) ?getter s (?success-kont ...) fk ?identifiers)
-     (let ((getter (lambda () ?getter)))
-       (?success-kont ... ?identifiers)))
+      ;;the pattern is a getter
+      ((_ v (get! getter) ?getter s (?success-kont ...) fk ?identifiers)
+       #'(let ((getter (lambda () ?getter)))
+	   (?success-kont ... ?identifiers)))
 
-    ;;the pattern is a setter
-    ((_ v (set! setter) g (?setter ...) (?success-kont ...) fk ?identifiers)
-     (let ((setter (lambda (x) (?setter ... x))))
-       (?success-kont ... ?identifiers)))
+      ;;the pattern is a setter
+      ((_ v (set! setter) g (?setter ...) (?success-kont ...) fk ?identifiers)
+       #'(let ((setter (lambda (x) (?setter ... x))))
+	   (?success-kont ... ?identifiers)))
 
-    ;;the pattern is a quasiquoted predicate
-    ((_ ?expr (? (quasiquote ?predicate) ?pattern ...) g s sk ?failure-kont i)
-     (let ((predicate (quasiquote ?predicate)))
-       (if (predicate ?expr)
-	   (next-pattern ?expr (and ?pattern ...) g s sk ?failure-kont i)
-	 ?failure-kont)))
+      ;;the pattern is a quasiquoted predicate
+      ((_ ?expr (:predicate (quasiquote ?predicate) ?pattern ...) g s sk ?failure-kont i)
+       #'(let ((predicate (quasiquote ?predicate)))
+	   (if (predicate ?expr)
+	       (next-pattern ?expr (:and ?pattern ...) g s sk ?failure-kont i)
+	     ?failure-kont)))
 
-    ;;the pattern is a predicate
-    ((_ ?expr (? ?predicate ?pattern ...) g s sk ?failure-kont i)
-     (if (?predicate ?expr)
-	 (next-pattern ?expr (and ?pattern ...) g s sk ?failure-kont i)
-       ?failure-kont))
+      ;;the pattern is a predicate
+      ((_ ?expr (:predicate ?predicate ?pattern ...) g s sk ?failure-kont i)
+       #'(if (?predicate ?expr)
+	     (next-pattern ?expr (:and ?pattern ...) g s sk ?failure-kont i)
+	   ?failure-kont))
 
-    ;;the pattern is an accessor matcher with quasiquoted procedure
-    ((_ ?expr ($ (quasiquote ?proc) ?pattern) g s sk fk i)
-     (let ((proc (quasiquote ?proc)))
-       (let ((expr1 (proc ?expr)))
-	 (next-pattern expr1 ?pattern g s sk fk i))))
+      ;;the pattern is an accessor matcher with quasiquoted procedure
+      ((_ ?expr (:apply (quasiquote ?proc) ?pattern) g s sk fk i)
+       #'(let ((proc (quasiquote ?proc)))
+	   (let ((expr1 (proc ?expr)))
+	     (next-pattern expr1 ?pattern g s sk fk i))))
 
-    ;;the pattern is an accessor matcher
-    ((_ ?expr ($ ?proc ?pattern) g s sk fk i)
-     (let ((expr1 (?proc ?expr)))
-       (next-pattern expr1 ?pattern g s sk fk i)))
+      ;;the pattern is an accessor matcher
+      ((_ ?expr (:apply ?proc ?pattern) g s sk fk i)
+       #'(let ((expr1 (?proc ?expr)))
+	   (next-pattern expr1 ?pattern g s sk fk i)))
 
-    ;;the pattern is a one-element list
-    ((_ ?expr (p) g s sk fk i)
-     (if (and (pair? ?expr)
-	      (null? (cdr ?expr)))
-	 (let ((sub-expr (car ?expr)))
-	   (next-pattern sub-expr p sub-expr (set-car! ?expr) sk fk i))
-       fk))
+      ;;the pattern is a one-element list
+      ((_ ?expr (p) g s sk fk i)
+       #'(if (and (pair? ?expr)
+		  (null? (cdr ?expr)))
+	     (let ((sub-expr (car ?expr)))
+	       (next-pattern sub-expr p sub-expr (set-car! ?expr) sk fk i))
+	   fk))
 
-    ;;the pattern is a pair
-    ((_ ?expr (?pattern . ?pattern-rest) g s ?success-kont ?failure-kont ?identifiers)
-     (if (pair? ?expr)
-	 (let ((expr-a (car ?expr))
-	       (expr-d (cdr ?expr)))
-	   (next-pattern expr-a ?pattern (car ?expr) (set-car! ?expr)
-			 (next-pattern expr-d ?pattern-rest ;success continuation
-				       (cdr ?expr) (set-cdr! ?expr)
-				       ?success-kont ?failure-kont)
-			 ?failure-kont
-			 ?identifiers))
-       ?failure-kont))
+      ;;the pattern is a pair
+      ((_ ?expr (?pattern . ?pattern-rest) g s ?success-kont ?failure-kont ?identifiers)
+       #'(if (pair? ?expr)
+	     (let ((expr-a (car ?expr))
+		   (expr-d (cdr ?expr)))
+	       (next-pattern expr-a ?pattern (car ?expr) (set-car! ?expr)
+			     (next-pattern expr-d ?pattern-rest ;success continuation
+					   (cdr ?expr) (set-cdr! ?expr)
+					   ?success-kont ?failure-kont)
+			     ?failure-kont
+			     ?identifiers))
+	   ?failure-kont))
 
-    ;;the pattern is a vector
-    ((_ ?expr #(?pattern ...) g s sk fk i)
-     (match-vector ?expr
-		   0  ;index of the first element
-		   () ;list of index patterns
-		   (?pattern ...) sk fk i))
+      ;;the pattern is a vector
+      ((_ ?expr #(?pattern ...) g s sk fk i)
+       #'(match-vector ?expr
+		       0 ;index of the first element
+		       () ;list of index patterns
+		       (?pattern ...) sk fk i))
 
-    ;;the pattern is the wildcard
-    ((_ v * g s (sk ...) fk i)
-     (sk ... i))
+      ;;the pattern is the wildcard
+      ((_ v underscore g s (sk ...) fk i)
+       (and (identifier? #'underscore)
+	    (eq? '_ (syntax->datum #'underscore)))
+       #'(sk ... i))
 
-    ;;Not a pair or vector or special literal, test to see if it's a new
-    ;;symbol, in which case we just bind it, or if it's an already bound
-    ;;symbol or  some other  literal, in which  case we compare  it with
-    ;;EQUAL?.
-    ((_ ?expr ?pattern g s (sk ...) fk (id ...))
-     (let-syntax ((new-sym? (syntax-rules (id ...)
+      ;;Not a pair or vector or special literal, test to see if it's a new
+      ;;symbol, in which case we just bind it, or if it's an already bound
+      ;;symbol or  some other  literal, in which  case we compare  it with
+      ;;EQUAL?.
+      ((_ ?expr ?pattern g s (sk ...) fk (id ...))
+       #'(let-syntax ((new-sym? (syntax-rules (id ...)
 		;If ?PATTERN is among the ID symbols listed as literals,
 		;the first rule matches; else the second rule matches.
-			      ((_ ?pattern sk2 fk2) sk2)
-			      ((_ y        sk2 fk2) fk2))))
-       (new-sym? random-sym-to-match
-                 (let ((?pattern ?expr))
-		   (sk ... (id ... ?pattern)))
-                 (if (equal? ?expr ?pattern)
-		     (sk ... (id ...))
-		   fk))))
-    ))
+				  ((_ ?pattern sk2 fk2) sk2)
+				  ((_ y        sk2 fk2) fk2))))
+	   (new-sym? random-sym-to-match
+		     (let ((?pattern ?expr))
+		       (sk ... (id ... ?pattern)))
+		     (if (equal? ?expr ?pattern)
+			 (sk ... (id ...))
+		       fk))))
+      )))
 
 
 (define-syntax generate-or
@@ -420,9 +423,7 @@
     ;;bind the expression  to it and call the  continuation; if ?PATTERN
     ;;is  a   form  match  the   nested  patterns  against   the  nested
     ;;expressions.
-    ((_ ?expr ?pattern () ?getter ?setter
-	(?success-kont ...) ?failure-kont
-	?identifiers ((id id-ls) ...))
+    ((_ ?expr ?pattern () ?getter ?setter (?success-kont ...) ?failure-kont ?identifiers ((id id-ls) ...))
      (if-identifier ?pattern
 		    (let ((?pattern ?expr))
 		      (?success-kont ... ?identifiers))
@@ -442,9 +443,7 @@
 
     ;;Match  the  pattern "(?pattern  ...   .  ?rest)"  where ?REST  are
     ;;trailing patterns.
-    ((_ ?expr ?pattern (?pattern-rest ...)
-	g s (?success-kont ...) ?failure-kont
-	?identifiers ((id id-ls) ...))
+    ((_ ?expr ?pattern (?pattern-rest ...) g s (?success-kont ...) ?failure-kont ?identifiers ((id id-ls) ...))
      (verify-no-ellipsis (?pattern-rest ...)
 			 (let* ((tail-len (length '(?pattern-rest ...)))
 				(ls ?expr)
@@ -492,8 +491,8 @@
 ;;;					success failure identifiers)
 ;;;
 ;;;where  "((a 0)  (b 1)  (c 1))"  are the  patterns coupled  with their
-;;;indexes in the  vector (index patterns) and "3" is  the length of the
-;;;vector.
+;;;indexes in the vector (these  are called "index patterns") and "3" is
+;;;the length of the vector.
 ;;;
 
 (define-syntax match-vector
@@ -604,40 +603,43 @@
   ;;
   ;; (extract-vars pattern continuation (ids ...) (new-vars ...))
   ;;
-  (syntax-rules (* ? $ quote quasiquote and or not get! set!)
-    ((_ (? pred . p) k i v)
-     (extract-vars p k i v))
-    ((_ ($ accessor p) k i v)
-     (extract-vars p k i v))
-    ((_ (quote x) (k ...) i v)
-     (k ... v))
-    ((_ (and . p) k i v)
-     (extract-vars p k i v))
-    ((_ (or . p) k i v)
-     (extract-vars p k i v))
-    ((_ (not . p) k i v)
-     (extract-vars p k i v))
-    ((_ (p q . r) k i v)
+  (lambda (stx)
+    (syntax-case stx (:predicate :apply :and :or :not quote quasiquote get! set!)
+      ((_ (:predicate pred . p) k i v)
+       #'(extract-vars p k i v))
+      ((_ (:apply accessor p) k i v)
+       #'(extract-vars p k i v))
+      ((_ (quote x) (k ...) i v)
+       #'(k ... v))
+      ((_ (:and . p) k i v)
+       #'(extract-vars p k i v))
+      ((_ (:or . p) k i v)
+       #'(extract-vars p k i v))
+      ((_ (:not . p) k i v)
+       #'(extract-vars p k i v))
+      ((_ (p q . r) k i v)
 		;A non-keyword pair, expand  the CAR with a continuation
 		;to expand the CDR.
-     (if-ellipsis q
-		  (extract-vars (p . r) k i v)
-		  (extract-vars p (extract-vars-step (q . r) k i v) i ())))
-    ((_ (p . q) k i v)
-     (extract-vars p (extract-vars-step q k i v) i ()))
-    ((_ #(p ...) k i v)
-     (extract-vars (p ...) k i v))
-    ((_ * (k ...) i v)
-     (k ... v))
-    ((_ p (k ...) (i ...) v)
+       #'(if-ellipsis q
+		      (extract-vars (p . r) k i v)
+		      (extract-vars p (extract-vars-step (q . r) k i v) i ())))
+      ((_ (p . q) k i v)
+       #'(extract-vars p (extract-vars-step q k i v) i ()))
+      ((_ #(p ...) k i v)
+       #'(extract-vars (p ...) k i v))
+      ((_ underscore (k ...) i v)
+       (and (identifier? #'underscore)
+	    (eq? '_ (syntax->datum #'underscore)))
+       #'(k ... v))
+      ((_ p (k ...) (i ...) v)
 		;This is  the main part,  the only place where  we might
 		;add a new var if it's an unbound symbol.
-     (let-syntax ((new-sym? (syntax-rules (i ...)
-			      ((_ p sk fk) sk)
-			      ((_ x sk fk) fk))))
-       (new-sym? random-sym-to-match
-                 (k ... ((p p-ls) . v))
-                 (k ... v))))))
+       #'(let-syntax ((new-sym? (syntax-rules (i ...)
+				  ((_ p sk fk) sk)
+				  ((_ x sk fk) fk))))
+	   (new-sym? random-sym-to-match
+		     (k ... ((p p-ls) . v))
+		     (k ... v)))))))
 
 (define-syntax extract-vars-step
   ;;Stepper  used  in  the above  so  it  can  expand  the CAR  and  CDR
@@ -671,7 +673,7 @@
 (define-syntax match-let
   (syntax-rules ()
     ((_ (vars ...) . body)
-     (match-let/helper let () () (vars ...) . body))
+     (%match-let/helper let () () (vars ...) . body))
     ((_ loop . rest)
      (match-named-let loop () . rest))))
 
@@ -695,9 +697,9 @@
 (define-syntax match-letrec
   (syntax-rules ()
     ((_ vars . body)
-     (match-let/helper letrec () () vars . body))))
+     (%match-let/helper letrec () () vars . body))))
 
-(define-syntax match-let/helper
+(define-syntax %match-let/helper
   ;;To be called with the following arguments:
   ;;
   ;;LET		- The identifier of the selected LET form, LET
@@ -723,31 +725,31 @@
     ;;MATCH-LET* recursion to nest pattern matchers.
     ((_ ?let ((?var ?expr) ...) ((?pattern ?tmp-var) ...) () . ?body)
      (?let ((?var ?expr) ...)
-       (match-let* ((?pattern ?tmp-var) ...) . ?body)))
+	   (match-let* ((?pattern ?tmp-var) ...) . ?body)))
 
     ;;Possible initial form: the pattern  in the first clause is a pair.
     ;;Generate a temporary  variable TMP for the expression  and add the
     ;;pair  pattern to  the list  of  patterns.  Notice  that this  also
-    ;;matches the special patterns ?, $, get!, set!.
+    ;;matches the special patterns :predicate, :apply, get!, set!.
     ((_ ?let (?binding ...) (?pattern ...) (((?a . ?b) ?expr) . ?rest) . ?body)
-     (match-let/helper ?let (?binding ... (tmp ?expr))
-		       (?pattern ... ((?a . ?b) tmp))
-		       ?rest . ?body))
+     (%match-let/helper ?let (?binding ... (tmp ?expr))
+			(?pattern ... ((?a . ?b) tmp))
+			?rest . ?body))
 
     ;;Possible  initial form:  the  pattern  in the  first  clause is  a
     ;;vector.  Generate a temporary  variable TMP for the expression and
     ;;add the vector pattern to the list of patterns.
     ((_ ?let (?binding ...) (?pattern ...) ((#(?a ...) ?expr) . ?rest) . ?body)
-     (match-let/helper ?let (?binding ... (tmp ?expr))
-		       (?pattern ... (#(?a ...) tmp))
-		       ?rest . ?body))
+     (%match-let/helper ?let (?binding ... (tmp ?expr))
+			(?pattern ... (#(?a ...) tmp))
+			?rest . ?body))
 
     ;;Possible initial form: the first clause is a list of two elements;
     ;;add the first clause to the list of bindings.
     ((_ ?let (?binding ...) (?pattern ...) ((?a ?expr) . ?rest) . ?body)
-     (match-let/helper ?let (?binding ... (?a ?expr))
-		       (?pattern ...)
-		       ?rest . ?body))))
+     (%match-let/helper ?let (?binding ... (?a ?expr))
+			(?pattern ...)
+			?rest . ?body))))
 
 
 ;;;; done

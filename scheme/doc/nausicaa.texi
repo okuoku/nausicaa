@@ -1307,6 +1307,7 @@ Pattern matching
 
 * matches intro::               Introduction.
 * matches match::               Basic pattern matching.
+* matches macros::              Syntaxes for pattern matching.
 * matches condition::           Mismatch error condition.
 * matches syntax::              The pattern syntax.
 
@@ -41380,6 +41381,7 @@ known as @dfn{destructuring bind}.
 @menu
 * matches intro::               Introduction.
 * matches match::               Basic pattern matching.
+* matches macros::              Syntaxes for pattern matching.
 * matches condition::           Mismatch error condition.
 * matches syntax::              The pattern syntax.
 @end menu
@@ -41424,49 +41426,57 @@ on the pattern.
 The syntax for the patterns is:
 
 @table @samp
-@item *
-Matches anything.
+@item _
+The literal underscore is the wildcard: it matches anything, it does not
+bind any variable.
 
-@item literal
+@item @cmeta{literal}
 Matches with @func{equal?}.
 
-@item (quote sexp)
-A literal S--expression.
+@item (quote @cmeta{sexp})
+A literal S--expression.  Matches with @func{equal?}.
 
-@item pattern-var
-Matches anything and binds @samp{pattern-var} to it.
+@item @cmeta{pattern var}
+If @meta{pattern var} is a symbol: matches anything and binds
+@meta{pattern var} to it as in:
 
-@item (pattern1 --- patternN)
+@example
+(let ((@meta{pattern var} @meta{matched subexpression}))
+  ---)
+@end example
+
+@item (@cmeta{pattern1} --- @cmeta{patternN})
 Proper list of @math{n} elements.
 
-@item (pattern1 --- patternN . patternN+1)
+@item (@cmeta{pattern1} --- @cmeta{patternN} . @cmeta{patternN+1})
 Improper list of @math{n} or more elements.
 
-@item (pattern1 --- patternN patternN+1 ...)
+@item (@cmeta{pattern1} --- @cmeta{patternN} @cmeta{patternN+1} ...)
 List of @math{n} or more elements with terminating ellipsis; each
-element of remainder must match @samp{patternN+1}.
+element of remainder must match @meta{patternN+1}.
 
-@item #(pattern1 --- patternN)
+@item #(@cmeta{pattern1} --- @cmeta{patternN})
 Vector of @math{n} elements.
 
-@item #(pattern1 --- patternN patternN+1 ...)
+@item #(@cmeta{pattern1} --- @cmeta{patternN} @cmeta{patternN+1} ...)
 Vector of @math{n} or more elements with terminating ellipsis; each
-element of remainder must match @samp{patternN+1}.
+element of remainder must match @meta{patternN+1}.
 
-@item (and pattern ---)
-If all of @samp{pattern} match.
+@item (and @cmeta{pattern} ---)
+If all of @meta{pattern} match.
 
-@item (or pattern ---)
-If any of @samp{pattern} match.
+@item (or @cmeta{pattern} ---)
+If any of @meta{pattern} match.
 
-@item (not pattern ---)
-If all @samp{pattern} don't match at all.
+@item (not @cmeta{pattern} ---)
+If all @meta{pattern} don't match at all.
 
-@item (? pred pattern ---)
-If @samp{pred} is true and all @samp{pattern} match.
+@item (:predicate @cmeta{pred} @cmeta{pattern} ---)
+If the predicate funcion @meta{pred} applied to the expression is true
+and all the @meta{pattern} match.
 
-@item ($ proc pattern)
-If @samp{pattern} matches the result of applying @samp{proc} to the
+@item (:apply @cmeta{proc} @cmeta{pattern})
+If @meta{pattern} matches the result of applying @meta{proc} to the
 expression.
 
 @item (get! @cmeta{symbol})
@@ -41480,6 +41490,10 @@ use of @func{set-car!}, @func{set-cdr!} and other mutators.
 @end table
 @end deffn
 
+@c page
+@node matches macros
+@section Syntaxes for pattern matching
+
 
 @deffn Syntax match-let ((@meta{pattern} @meta{expression}) ...) . @meta{body}
 @deffnx Syntax match-let @meta{variable} ((@meta{pattern} @meta{expression}) ...) . @meta{body}
@@ -41490,6 +41504,9 @@ the matches are successful, evaluate @cmeta{body} in the resulting
 environment.  If a pattern does not match, a mismatch error is raised;
 these syntaxes are meant to provide destructuring, not to test if an
 S--expression matches a pattern.
+
+When the second form is used: a named @func{match-let} is defined,
+working like the named @func{let}.
 
 @example
 (match-let ((x 1))
@@ -41506,9 +41523,13 @@ These syntaxes are matching extensions of the corresponding @rnrs{6}
 @func{let} syntaxes.  Notice that:
 
 @example
-(match-let ((* 1))
-  *)
+(match-let ((_ 1))
+  _)
 @result{} 1
+
+(match-let (((_) '(1)))
+  'ok)
+@result{} ok
 @end example
 
 @noindent
@@ -41531,8 +41552,8 @@ patterns.
 @end deffn
 
 
-@deffn Syntax match-lambda @var{name} @meta{clause} ...
-@deffnx Syntax match-lambda* @var{name} @meta{clause} ...
+@deffn Syntax match-define @var{name} @meta{clause} ...
+@deffnx Syntax match-define* @var{name} @meta{clause} ...
 Define a @func{lambda} which matches its arguments against a set of
 patterns, binding it to @var{name}.
 
@@ -41645,13 +41666,13 @@ these identifiers in the body of a clause.  They are indicated here with
 @subsection Mathing anything with blind semantic action
 
 
-The wildcard pattern @samp{*} matches any expression and, when used
+The wildcard pattern @samp{_} matches any expression and, when used
 alone, it only allows the evaluation of code independent from the
 expression itself.  A wildcard pattern usage looks like this:
 
 @example
 (match '(1 2 3)
-  (* 'ok))
+  (_ 'ok))
 @result{} ok
 @end example
 
@@ -41726,7 +41747,7 @@ the next clause.  A multiple clause matcher usage looks like this:
 (match 2
   (1 'one)
   (2 'two)
-  (* 'any))
+  (_ 'any))
 @result{} two
 @end example
 
@@ -41872,7 +41893,7 @@ wildcards:
 
 @example
 (match '(1 . 2)
-  ((* . *)
+  ((_ . _)
    'ok))
 @result{} ok
 @end example
@@ -42043,12 +42064,12 @@ usage looks like this:
 
 @example
 (match 123
-  ((? integer?)
+  ((:predicate integer?)
    'ok))
 @result{} ok
 
 (match 'alpha
-  ((? integer?)
+  ((:predicate integer?)
    'ok))
 @error{} no matching pattern
 @end example
@@ -42068,7 +42089,7 @@ tried if the predicate evaluates to true:
 
 @example
 (match 28
-  ((? number? x)
+  ((:predicate number? x)
    x))
 @result{} 28
 @end example
@@ -42088,12 +42109,12 @@ More examples:
 
 @example
 (match 28
-  ((? number? x y z)
+  ((:predicate number? x y z)
    (list x y z)))
 @result{} (28 28 28)
 
 (match 28
-  ((? number? (? integer? x))
+  ((:predicate number? (:predicate integer? x))
    (+ 1 x)))
 @result{} 29
 @end example
@@ -42109,7 +42130,7 @@ pattern against the result.  An accessor pattern usage looks like this:
 
 @example
 (match '(1 2)
-  (($ car x)
+  ((?apply car x)
    x))
 @result{} 1
 @end example
@@ -42138,18 +42159,18 @@ A notable use of this pattern is to access record fields:
           (immutable blue)))
 
 (match (make-color 1 2 3)
-  ((? color?
-      ($ color-red   x)
-      ($ color-green y)
-      ($ color-blue  z))
+  ((:predicate color?
+      (:apply color-red   x)
+      (:apply color-green y)
+      (:apply color-blue  z))
    (list x y z)))
 @result{} (1 2 3)
 
 (match (make-color 1 2 3)
-  ((? color?
-      ($ color-red
-         (? zero?))) 'ok)
-  (* 'fail))
+  ((:predicate color?
+      (:apply color-red
+         (:predicate zero?))) 'ok)
+  (_ 'fail))
 @result{} fail  ;because red is not zero
 @end example
 
@@ -42169,8 +42190,8 @@ A logical AND pattern usage looks like this:
 
 @example
 (match 123
-  ((and (? number?)
-        (? positive?)
+  ((and (:predicate number?)
+        (:predicate positive?)
         x)
    x))
 @result{} 123
@@ -42192,7 +42213,7 @@ we can think of it as expanding to:
 @noindent
 the code performing the matching is simply nested referencing the same
 expression.  An empty @samp{and} pattern will match everything, it is
-equivalent to the wildcard @samp{*}:
+equivalent to the wildcard @samp{_}:
 
 @example
 (match 123
@@ -42208,14 +42229,14 @@ A logical OR pattern usage looks like this:
 
 @example
 (match 123
-  ((or (? number? x)
-       (? symbol? x))
+  ((or (:predicate number? x)
+       (:predicate symbol? x))
    x))
 @result{} 123
 
 (match 'alpha
-  ((or (? number? x)
-       (? symbol? x))
+  ((or (:predicate number? x)
+       (:predicate symbol? x))
    x))
 @result{} alpha
 @end example
@@ -42249,8 +42270,8 @@ alternative patterns, the following example is wrong:
 
 @example
 (match 123
-  ((or (? integer? x)
-       (? symbol?  y))
+  ((or (:predicate integer? x)
+       (:predicate symbol?  y))
    y))
 @error{} unbound identifier
 @end example
@@ -42286,7 +42307,7 @@ A logical NOT pattern usage looks like this:
 
 @example
 (match 123
-  ((not (? symbol?))
+  ((not (:predicate symbol?))
    'ok))
 @result{} ok
 @end example
@@ -42305,7 +42326,7 @@ Notice that the following will raise an error:
 
 @example
 (match 123
-  ((not (? symbol? x))
+  ((not (:predicate symbol? x))
    x))
 @error{} unbound identifier x
 @end example
@@ -42349,7 +42370,7 @@ remains unchanged.  A @samp{quasiquote} pattern usage looks like this:
 (let ((x 1))
   (match 1
     (`,x 'ok)
-    (*   'fail)))
+    (_   'fail)))
 @result{} ok
 @end example
 
@@ -42370,13 +42391,13 @@ Let's see other examples:
 @example
 (let ((x 2))
   (match '(1 2 3)
-    ((* `,x y) y)
-    (*         'fail)))
+    ((_ `,x y) y)
+    (_         'fail)))
 @result{} 3
 
 (let ((x 10))
   (match '(1 2 3)
-    ((* `,(- x 8) y)
+    ((_ `,(- x 8) y)
      y)))
 @result{} 3
 
@@ -42392,12 +42413,12 @@ accessors, too:
 @example
 (let ((pred number?))
   (match 28
-    ((? `,pred) 'ok)))
+    ((:predicate `,pred) 'ok)))
 @result{} ok
 
 (let ((f (lambda (x) (+ 1 x))))
   (match 2
-    (($ `,f x) x)))
+    ((:apply `,f x) x)))
 @result{} 3
 @end example
 
@@ -42435,7 +42456,7 @@ Let's look at another example:
 
 @example
 (match '(1 2 3)
-  ((* (get! two) *)
+  ((_ (get! two) _)
    (two)))
 @result{} 2
 @end example
@@ -42490,7 +42511,7 @@ mutator:
 @example
 (let ((x '(1 . 2)))
   (match x
-    (((set! doit) . *)
+    (((set! doit) . _)
      (doit 3)))
   x)
 @result{} (3 . 2)
@@ -42517,7 +42538,7 @@ and for a cadr setter:
 @example
 (let ((x '(1 2 3)))
   (match x
-    ((* (set! doit) *)
+    ((_ (set! doit) _)
      (doit 9)))
   x)
 @result{} (1 9 3)
@@ -42565,13 +42586,13 @@ not fit some criteria.  A matcher continuation use looks like this:
 @example
 (match 3
 
-  ((? positive? x)
+  ((:predicate positive? x)
    (=> next)
    (if (even? x)
        x
      (next)))
 
-  (* 0))
+  (_ 0))
 @result{} 0
 @end example
 
@@ -42652,16 +42673,14 @@ pattern.
 @result{} ((a b) (c d))
 
 (match '(1 2 3)
-  (((? odd? n) ...)     ;no match, not all odd
+  (((:predicate odd? n) ...)     ;no match, not all odd
    n)
-  (((? even? n) ...)    ;no match, not all even
+  (((:predicate even? n) ...)    ;no match, not all even
    n)
-  (((? number? n) ...)  ;match, all numbers
+  (((:predicate number? n) ...)  ;match, all numbers
    n))
 @result{} (1 2 3)
 @end example
-
-
 
 @c page
 @node matches syntax macros
@@ -42675,11 +42694,11 @@ following:
 (define-syntax it
   (syntax-rules ()
     ((_ ?var)
-     (* ?var *))))
+     (_ ?var _))))
 
 (match '(1 2 3)
   ((it x) x)
-  (*      'fail))
+  (_      'fail))
 @result{} fail
 @end example
 
