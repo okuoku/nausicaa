@@ -32,25 +32,17 @@
     match match-lambda match-lambda* match-define match-define*
     match-let match-letrec match-named-let match-let*
 
-    match-mismatch-error
-    &match-mismatch make-match-mismatch match-mismatch? match-mismatch-expression)
+    &match-mismatch
+    make-match-mismatch-condition
+    match-mismatch-condition?
+    condition-match-mismatch-expression
+    match-mismatch-error)
   (import (rnrs)
     (rnrs mutable-pairs)
     (conditions))
 
 
 ;;;; helpers
-
-(define-syntax if-identifier
-  ;;If "?thing"  is an identifier,  expand to the  success continuation;
-  ;;else expand to the failure continuation.
-  ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?thing ?success-kont ?failure-kont)
-       (if (identifier? (syntax ?thing))
-	   (syntax ?success-kont)
-	 (syntax ?failure-kont))))))
 
 (define-syntax if-ellipsis
   ;;If ?THING  is the ellipsis  identifier "...", expand to  the success
@@ -88,14 +80,14 @@
 
 (define-condition-type &match-mismatch
   &mismatch
-  make-match-mismatch
-  match-mismatch?
-  (expr match-mismatch-expression))
+  make-match-mismatch-condition
+  match-mismatch-condition?
+  (expr condition-match-mismatch-expression))
 
 (define-syntax match-mismatch-error
   (syntax-rules ()
     ((_ ?who ?expr)
-     (raise (condition (make-match-mismatch ?expr)
+     (raise (condition (make-match-mismatch-condition ?expr)
 		       (make-who-condition ?who)
 		       (make-message-condition "no matching pattern"))))))
 
@@ -236,21 +228,33 @@
   ;;arguments of NEXT-PATTERN.
   ;;
   (lambda (stx)
-    (syntax-case stx (:predicate :apply :and :or :not quote quasiquote set! get!)
+    (syntax-case stx (:predicate :accessor :and :or :not quote quasiquote set! get!)
 
       ;;the pattern is null
       ((_ v () g s (sk ...) fk i)
        #'(if (null? v) (sk ... i) fk))
 
-      ;;the pattern is a quoted sexp
+      ;;the pattern is a quoted identifier
       ((_ ?expr (quote ?pattern) g s (?success-kont ...) ?failure-kont ?identifiers)
-       #'(if-identifier ?pattern
-			(if (eq? ?expr (quote ?pattern))
-			    (?success-kont ... ?identifiers)
-			  ?failure-kont)
-			(if (equal? ?expr (quote ?pattern))
-			    (?success-kont ... ?identifiers)
-			  ?failure-kont)))
+       (identifier? #'?pattern)
+       #'(if (eq? ?expr (quote ?pattern))
+	     (?success-kont ... ?identifiers)
+	   ?failure-kont))
+
+      ;;the pattern is a quoted S-expression
+      ((_ ?expr (quote ?pattern) g s (?success-kont ...) ?failure-kont ?identifiers)
+       #'(if (equal? ?expr (quote ?pattern))
+	     (?success-kont ... ?identifiers)
+	   ?failure-kont))
+
+      ;; ((_ ?expr (quote ?pattern) g s (?success-kont ...) ?failure-kont ?identifiers)
+      ;;  #'(if-identifier ?pattern
+      ;; 			(if (eq? ?expr (quote ?pattern))
+      ;; 			    (?success-kont ... ?identifiers)
+      ;; 			  ?failure-kont)
+      ;; 			(if (equal? ?expr (quote ?pattern))
+      ;; 			    (?success-kont ... ?identifiers)
+      ;; 			  ?failure-kont)))
 
       ;;the pattern is a quasiquoted sexp
       ((_ ?expr (quasiquote ?pattern) g s (sk ...) fk (id ...))
@@ -318,13 +322,13 @@
 	   ?failure-kont))
 
       ;;the pattern is an accessor matcher with quasiquoted procedure
-      ((_ ?expr (:apply (quasiquote ?proc) ?pattern) g s sk fk i)
+      ((_ ?expr (:accessor (quasiquote ?proc) ?pattern) g s sk fk i)
        #'(let ((proc (quasiquote ?proc)))
 	   (let ((expr1 (proc ?expr)))
 	     (next-pattern expr1 ?pattern g s sk fk i))))
 
       ;;the pattern is an accessor matcher
-      ((_ ?expr (:apply ?proc ?pattern) g s sk fk i)
+      ((_ ?expr (:accessor ?proc ?pattern) g s sk fk i)
        #'(let ((expr1 (?proc ?expr)))
 	   (next-pattern expr1 ?pattern g s sk fk i)))
 
@@ -332,15 +336,19 @@
       ((_ ?expr (p) g s sk fk i)
        #'(if (and (pair? ?expr)
 		  (null? (cdr ?expr)))
-	     (let ((sub-expr (car ?expr)))
+	     (let-syntax ((sub-expr (identifier-syntax (car ?expr))))
 	       (next-pattern sub-expr p sub-expr (set-car! ?expr) sk fk i))
+	     ;; (let ((sub-expr (car ?expr)))
+	     ;;   (next-pattern sub-expr p sub-expr (set-car! ?expr) sk fk i))
 	   fk))
 
       ;;the pattern is a pair
       ((_ ?expr (?pattern . ?pattern-rest) g s ?success-kont ?failure-kont ?identifiers)
        #'(if (pair? ?expr)
-	     (let ((expr-a (car ?expr))
-		   (expr-d (cdr ?expr)))
+	     (let-syntax ((expr-a (identifier-syntax (car ?expr)))
+			  (expr-d (identifier-syntax (cdr ?expr))))
+	     ;; (let ((expr-a (car ?expr))
+	     ;; 	   (expr-d (cdr ?expr)))
 	       (next-pattern expr-a ?pattern (car ?expr) (set-car! ?expr)
 			     (next-pattern expr-d ?pattern-rest ;success continuation
 					   (cdr ?expr) (set-cdr! ?expr)
@@ -417,135 +425,178 @@
 (define-syntax ellipsis-pattern
   ;;Match a pattern with an ellipsis.
   ;;
-  (syntax-rules ()
+  (lambda (stx)
+    (syntax-case stx ()
 
-    ;;Match the pattern "(?pattern ...)".  If ?PATTERN is an identifier,
-    ;;bind the expression  to it and call the  continuation; if ?PATTERN
-    ;;is  a   form  match  the   nested  patterns  against   the  nested
-    ;;expressions.
-    ((_ ?expr ?pattern () ?getter ?setter (?success-kont ...) ?failure-kont ?identifiers ((id id-ls) ...))
-     (if-identifier ?pattern
-		    (let ((?pattern ?expr))
-		      (?success-kont ... ?identifiers))
-		    (let loop ((ls ?expr)
-			       (id-ls '())
-			       ...)
-		      (cond ((null? ls)
-			     (let ((id (reverse id-ls)) ...)
-			       (?success-kont ... ?identifiers)))
-			    ((pair? ls)
-			     (let ((sub-expr (car ls)))
-			       (next-pattern sub-expr ?pattern sub-expr (set-car! ls)
-					     (match-drop-ids (loop (cdr ls) (cons id id-ls) ...))
-					     ?failure-kont ?identifiers)))
-			    (else
-			     ?failure-kont)))))
+      ;;Match  the  pattern  "(?pattern   ...)"   when  ?PATTERN  is  an
+      ;;identifier: bind the expression to it and call the continuation.
+      ((_ ?expr ?pattern () ;pattern rest
+	  ?getter ?setter
+	  (?success-kont ...) ?failure-kont
+	  ?identifiers ((id id-ls) ...))
+       (identifier? #'?pattern)
+       #'(let ((?pattern ?expr))
+	   (?success-kont ... ?identifiers)))
 
-    ;;Match  the  pattern "(?pattern  ...   .  ?rest)"  where ?REST  are
-    ;;trailing patterns.
-    ((_ ?expr ?pattern (?pattern-rest ...) g s (?success-kont ...) ?failure-kont ?identifiers ((id id-ls) ...))
-     (verify-no-ellipsis (?pattern-rest ...)
-			 (let* ((tail-len (length '(?pattern-rest ...)))
-				(ls ?expr)
-				(len (length ls)))
-			   (if (< len tail-len)
-			       ?failure-kont
-			     (let loop ((ls ls)
-					(n len)
-					(id-ls '())
-					...)
-			       (cond
-				((= n tail-len)
-				 (let ((id (reverse id-ls)) ...)
-				   (next-pattern ls (?pattern-rest ...) #f #f
-						 (?success-kont ... ?identifiers) ?failure-kont
-						 ?identifiers)))
-				((pair? ls)
-				 (let ((w (car ls)))
-				   (next-pattern w ?pattern (car ls) (set-car! ls)
-						 (match-drop-ids
-						  (loop (cdr ls) (- n 1) (cons id id-ls) ...))
-						 ?failure-kont
-						 ?identifiers)))
-				(else
-				 ?failure-kont)))))))))
+      ;;Match  the pattern  "(?pattern  ...)"  when  ?PATTERN  is not  a
+      ;;identifier:  match  the   nested  patterns  against  the  nested
+      ;;expressions.
+      ((_ ?expr ?pattern () ;pattern rest
+	  ?getter ?setter
+	  (?success-kont ...) ?failure-kont
+	  ?identifiers ((id id-ls) ...))
+       #'(let loop ((ls ?expr)
+		    (id-ls '())
+		    ...)
+	   (cond ((null? ls)
+		  (let ((id (reverse id-ls)) ...)
+		    (?success-kont ... ?identifiers)))
+		 ((pair? ls)
+		  (let ((sub-expr (car ls)))
+		    (next-pattern sub-expr ?pattern sub-expr (set-car! ls)
+				  (match-drop-ids (loop (cdr ls) (cons id id-ls) ...))
+				  ?failure-kont ?identifiers)))
+		 (else
+		  ?failure-kont))))
+
+      ;;Match  the  pattern  "(?pattern  ...  .   ?pattern-rest)"  where
+      ;;?PATTERN-REST are trailing patterns.
+      ((_ ?expr ?pattern (?pattern-rest ...)
+	  g s
+	  (?success-kont ...) ?failure-kont
+	  ?identifiers ((id id-ls) ...))
+       #'(verify-no-ellipsis (?pattern-rest ...)
+			     (let* ((tail-len (length '(?pattern-rest ...)))
+				    (ls ?expr)
+				    (len (length ls)))
+			       (if (< len tail-len)
+				   ?failure-kont
+				 (let loop ((ls ls)
+					    (n len)
+					    (id-ls '())
+					    ...)
+				   (cond
+				    ((= n tail-len)
+				     (let ((id (reverse id-ls)) ...)
+				       (next-pattern ls (?pattern-rest ...) #f #f
+						     (?success-kont ... ?identifiers) ?failure-kont
+						     ?identifiers)))
+				    ((pair? ls)
+				     (let ((w (car ls)))
+				       (next-pattern w ?pattern (car ls) (set-car! ls)
+						     (match-drop-ids
+						      (loop (cdr ls) (- n 1) (cons id id-ls) ...))
+						     ?failure-kont
+						     ?identifiers)))
+				    (else
+				     ?failure-kont))))))))))
 
 
-;;;The vector pattern (without ellipsis):
-;;;
-;;;	(match expr
-;;;	  (#(a b c) 'ok))
-;;;
-;;;is expanded to:
-;;;
-;;;	(match-vector expr 0
-;;;			   ()
-;;;			   (a b c)
-;;;			   success failure identifiers)
-;;;
-;;;where "0" is the index of the first element; then it is expanded to:
-;;;
-;;;	(match-vector-fixed-length expr 3
-;;;					((a 0) (b 1) (c 2))
-;;;					()
-;;;					success failure identifiers)
-;;;
-;;;where  "((a 0)  (b 1)  (c 1))"  are the  patterns coupled  with their
-;;;indexes in the vector (these  are called "index patterns") and "3" is
-;;;the length of the vector.
-;;;
+;;;; vector matching
 
 (define-syntax match-vector
-  ;;Vector patterns are just more of the same, with the slight exception
-  ;;that we pass around the current vector index being matched.
+  ;;This syntax is  the entry point for vector matching,  but it is also
+  ;;called recursively.  Synopsis:
+  ;;
+  ;;	(match-vector ?expression-to-be-matches
+  ;;		      0		;index of the first element
+  ;;                  ()	;list of index patterns
+  ;;                  (?vector-pattern ...)
+  ;;                  ?success-continuation ?failure-continuation
+  ;;                  ?identifiers)
+  ;;
+  ;;The vector pattern (without ellipsis):
+  ;;
+  ;;	(match expr
+  ;;	  (#(a b c) 'ok))
+  ;;
+  ;;is expanded to:
+  ;;
+  ;;	(match-vector expr
+  ;;			0  ()  (a b c)
+  ;;			<success-continuation>
+  ;;			<failure-continuation> <identifiers>)
+  ;;
+  ;;where "0" is the index of the first element; then it is expanded to:
+  ;;
+  ;;	(match-vector expr
+  ;;			3  ((a 0) (b 1) (c 2))  ()
+  ;;			<success-continuation>
+  ;;			<failure-continuation> <identifiers>)
+  ;;
+  ;;where "((a  0) (b  1) (c  1))" are the  patterns coupled  with their
+  ;;indexes in the vector (these are called "index patterns") and "3" is
+  ;;the length of the vector.
+  ;;
+  ;;Matching   in  case   an   ellipsis  is   found   is  delegated   to
+  ;;MATCH-VECTOR-ELLIPSIS such that:
+  ;;
+  ;;	(match expr
+  ;;	  (#(a b c d ...) 'ok))
+  ;;
+  ;;is expanded to:
+  ;;
+  ;;	(match-vector-ellipsis expr
+  ;;			3  ((a 0) (b 1) (c 2))  (d)
+  ;;			<success-continuation>
+  ;;			<failure-continuation> <identifiers>)
+  ;;
+  ;;where "3"  is the last index-pattern's  index plus 1 and  "d" is the
+  ;;pattern which must match all the elements selected by the ellipsis.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ;;Matches   only   if  the   vector   pattern   is  "#(...)",   so
+      ;;?SINGLE-PATTERN is the ellipsis.
+      ((_ v ?next-index ?index-patterns (?single-pattern) sk fk i)
+       (and (identifier? #'?single-pattern)
+	    (free-identifier=? #'?single-pattern #'(... ...)))
+       #'(syntax-violation 'match
+	   "ellipsis not allowed as single, vector pattern value"
+	   '#(?single-pattern)))
+
+      ;;Detect if the last pattern in the vector is an ellipsis.
+      ;;
+      ;;*FIXME* Currently the ellipsis can appear only as the last element.
+      ((_ v ?next-index ?index-patterns (penultimate-pattern last-pattern) sk fk i)
+       (and (identifier? #'last-pattern)
+	    (free-identifier=? #'last-pattern #'(... ...)))
+       #'(match-vector-ellipsis v ?next-index ?index-patterns penultimate-pattern sk fk i))
+
+      ;;All the  patterns have been converted to  index patterns.  Check
+      ;;the exact vector length, then match each element in turn.
+      ((_ ?expr ?vector-len ((?pattern ?index) ...) () sk fk i)
+       #'(if (vector? ?expr)
+	     (let-syntax ((len (identifier-syntax (vector-length ?expr))))
+	       (if (= len ?vector-len)
+		   (match-vector-index-pattern ?expr ((?pattern ?index) ...) sk fk i)
+		 fk))
+	   fk))
+
+      ;;Convert the next pattern into an index pattern.
+      ((_ ?expr ?next-index (?index-pattern ...) (?pattern . ?pattern-rest) sk fk i)
+       #'(match-vector ?expr (+ ?next-index 1)
+		       (?index-pattern ... (?pattern ?next-index))
+		       ?pattern-rest sk fk i))
+      )))
+
+(define-syntax match-vector-index-pattern
+  ;;Expand to the  code needed to match the  next index pattern.  Expand
+  ;;recursively until all the index patterns have been processed.
   ;;
   (syntax-rules ()
 
-    ;;Detect if the last pattern in the vector is an ellipsis.
-    ;;
-    ;;FIXME Currently the ellipsis can appear only as the last element.
-    ((_ v ?next-index ?index-patterns (p q) sk fk i)
-     (if-ellipsis q
-		  (match-vector-ellipsis     v ?next-index ?index-patterns p     sk fk i)
-		  (match-vector-fixed-length v ?next-index ?index-patterns (p q) sk fk i)))
-
-    ;;Convert all  the patterns into index patterns,  finally expand the
-    ;;matching code.
-    ((_ . ?all)
-     (match-vector-fixed-length . ?all))))
-
-(define-syntax match-vector-fixed-length
-  (syntax-rules ()
-
-    ;;All the patterns have been converted to index patterns.  Check the
-    ;;exact vector length, then match each element in turn.
-    ((_ ?expr ?vector-len ((?pattern ?index) ...) () sk fk i)
-     (if (vector? ?expr)
-	 (let ((len (vector-length ?expr)))
-	   (if (= len ?vector-len)
-	       (match-vector-index-pattern ?expr ((?pattern ?index) ...) sk fk i)
-	     fk))
-       fk))
-
-    ;;Convert the next pattern into an index pattern.
-    ((_ ?expr ?next-index (?index-pattern ...) (?pattern . ?pattern-rest) sk fk i)
-     (match-vector ?expr (+ ?next-index 1)
-		   (?index-pattern ... (?pattern ?next-index))
-		   ?pattern-rest sk fk i))))
-
-(define-syntax match-vector-index-pattern
-  (syntax-rules ()
-
-    ;;No patterns, success.
+    ;;No more patterns, success.
     ((_ v () (sk ...) fk i)
      (sk ... i))
 
     ;;Match an element, then match recursively the next one.
     ((_ ?expr ((?pattern ?index) . ?rest) sk fk i)
-     (let ((item (vector-ref ?expr ?index)))
+     (let-syntax ((item (identifier-syntax (vector-ref ?expr ?index))))
        (next-pattern item ?pattern
 		     (vector-ref ?expr ?index) (vector-set! ?expr ?index)
-		     (match-vector-index-pattern ?expr ?rest sk fk)
+		     (match-vector-index-pattern ?expr ?rest sk fk) ;success continuation
 		     fk i)))))
 
 (define-syntax match-vector-ellipsis
@@ -555,41 +606,41 @@
   (syntax-rules ()
     ;;The ?TAIL-PATTERN is the one that must match all the tail items in
     ;;the vector.
-    ((_ ?expr ?pattern-vector-len ((?pattern ?index) ...) ?tail-pattern sk fk i)
+    ((_ ?expr ?number-of-index-patterns ((?pattern ?index) ...) ?ellipsis-pattern sk fk i)
      (if (vector? ?expr)
 	 (let ((expr-vector-len (vector-length ?expr)))
-	   (if (>= expr-vector-len ?pattern-vector-len)
+	   (if (>= expr-vector-len ?number-of-index-patterns)
 	       (match-vector-index-pattern ?expr ((?pattern ?index) ...)
-					   (match-vector-tail ?expr ?tail-pattern
-							      ?pattern-vector-len
-							      expr-vector-len sk fk)
+					   (match-vector-tail ?expr expr-vector-len
+							      ?ellipsis-pattern
+							      ?number-of-index-patterns
+							      sk fk)
 					   fk i)
 	     fk))
        fk))))
 
 (define-syntax match-vector-tail
   (syntax-rules ()
-    ((_ v ?tail-pattern ?pattern-vector-len ?expr-vector-len sk fk i)
-     (extract-vars ?tail-pattern
-		   (match-vector-tail-two v ?tail-pattern
-					  ?pattern-vector-len
-					  ?expr-vector-len sk fk i)
-		   i ()))))
+    ((_ ?expr ?expr-vector-len ?ellipsis-pattern ?number-of-index-patterns sk fk i)
+     (extract-vars ?ellipsis-pattern
+		   (match-vector-tail #t
+				      ?expr ?expr-vector-len
+				      ?ellipsis-pattern ?number-of-index-patterns
+				      sk fk i)
+		   i ()))
 
-(define-syntax match-vector-tail-two
-  (syntax-rules ()
-    ((_ v ?tail-pattern ?pattern-vector-len ?expr-vector-len (sk ...) fk i ((id id-ls) ...))
-     (let loop ((j     ?pattern-vector-len)
+    ((_ #t v ?expr-vector-len ?ellipsis-pattern ?number-of-index-patterns (sk ...) fk i ((id id-ls) ...))
+     (let loop ((j     ?number-of-index-patterns) ;loop over the tail vector indices
 		(id-ls '())
 		...)
        (if (>= j ?expr-vector-len)
 	   (let ((id (reverse id-ls))
 		 ...)
 	     (sk ... i))
-         (let ((item (vector-ref v j)))
-           (next-pattern item ?tail-pattern
+         (let-syntax ((item (identifier-syntax (vector-ref v j))))
+           (next-pattern item ?ellipsis-pattern
 			 (vector-ref v j) (vetor-set! v j)
-			 (match-drop-ids (loop (+ j 1) (cons id id-ls) ...))
+			 (match-drop-ids (loop (+ j 1) (cons id id-ls) ...)) ;success continuation
 			 fk i)))))))
 
 
@@ -604,10 +655,10 @@
   ;; (extract-vars pattern continuation (ids ...) (new-vars ...))
   ;;
   (lambda (stx)
-    (syntax-case stx (:predicate :apply :and :or :not quote quasiquote get! set!)
+    (syntax-case stx (:predicate :accessor :and :or :not quote quasiquote get! set!)
       ((_ (:predicate pred . p) k i v)
        #'(extract-vars p k i v))
-      ((_ (:apply accessor p) k i v)
+      ((_ (:accessor accessor p) k i v)
        #'(extract-vars p k i v))
       ((_ (quote x) (k ...) i v)
        #'(k ... v))
@@ -730,7 +781,7 @@
     ;;Possible initial form: the pattern  in the first clause is a pair.
     ;;Generate a temporary  variable TMP for the expression  and add the
     ;;pair  pattern to  the list  of  patterns.  Notice  that this  also
-    ;;matches the special patterns :predicate, :apply, get!, set!.
+    ;;matches the special patterns :predicate, :accessor, get!, set!.
     ((_ ?let (?binding ...) (?pattern ...) (((?a . ?b) ?expr) . ?rest) . ?body)
      (%match-let/helper ?let (?binding ... (tmp ?expr))
 			(?pattern ... ((?a . ?b) tmp))

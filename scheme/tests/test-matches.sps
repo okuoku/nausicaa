@@ -54,7 +54,7 @@
   (syntax-rules ()
     ((_ ?body)
      (guard (E (else `((message   . ,(condition-message E))
-		       (expr      . ,(match-mismatch-expression E)))))
+		       (expr      . ,(condition-match-mismatch-expression E)))))
        ?body))))
 
 
@@ -301,23 +301,23 @@
 
   (check
       (match (make-color 1 2 3)
-  	((:predicate color? (:apply color-red x))
+  	((:predicate color? (:accessor color-red x))
   	 x))
     => 1)
 
   (check
       (match (make-color 1 2 3)
   	((:predicate color?
-  		     (:apply color-red   x)
-  		     (:apply color-green y)
-  		     (:apply color-blue  z))
+  		     (:accessor color-red   x)
+  		     (:accessor color-green y)
+  		     (:accessor color-blue  z))
   	 (list x y z)))
     => '(1 2 3))
 
   (check
       (match (make-color 1 2 3)
   	((:predicate color?
-  		     (:apply color-red (:predicate zero?))) 'ok)
+  		     (:accessor color-red (:predicate zero?))) 'ok)
   	(_ 'fail))
     => 'fail)
 
@@ -456,12 +456,12 @@
   (check
       (let ((f (lambda (x) (+ 1 x))))
 	(match 1
-	  ((:apply f x) 'ok)))
+	  ((:accessor f x) 'ok)))
     => 'ok)
 
   (check
       (match 1
-	((:apply (lambda (x) (+ 1 x)) x)
+	((:accessor (lambda (x) (+ 1 x)) x)
 	 x)
 	(y y))
     => 2)
@@ -510,7 +510,7 @@
   (check
       (let ((f (lambda (x) (+ 1 x))))
 	(match 2
-	  ((:apply `,f x) x)))
+	  ((:accessor `,f x) x)))
     => 3)
 
   #t)
@@ -552,6 +552,18 @@
     => '(a (b c d)))
 
   (check
+      (guard (E ((syntax-violation? E)
+;;;		 (write (condition-message E))(newline)
+		 #t)
+		(else
+;;;		 (write (condition-message E))(newline)
+		 #f))
+	(match '#(a b c d)
+	  (#( ...)
+	   x)))
+    => #t)
+
+  (check
       (match '#(a b c d)
 	(#(x ...)
 	 x))
@@ -562,6 +574,18 @@
 	(#(x y ...)
 	 (list x y)))
     => '(a (b c d)))
+
+  (check
+      (match '#(a b c d)
+	(#(x y z ...)
+	 (list x y z)))
+    => '(a b (c d)))
+
+  (check
+      (match '#(a b 1 2)
+	(#(x y (:predicate exact? z) ...)
+	 (list x y z)))
+    => '(a b (1 2)))
 
   (check
       (match '(a b c d)
