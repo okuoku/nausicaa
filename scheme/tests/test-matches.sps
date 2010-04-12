@@ -168,6 +168,24 @@
 
 (parameterise ((check-test-name 'literals))
 
+  (check
+      (match 28
+	(#t 'ok)
+	(_  'fail))
+    => 'ok)
+
+  (check
+      (match #t
+	(#t 'ok)
+	(_  'fail))
+    => 'ok)
+
+  (check
+      (match #f
+	(#f 'ok)
+	(_  'fail))
+    => 'ok)
+
   (check	;number
       (match 28 (28 'ok))
     => 'ok)

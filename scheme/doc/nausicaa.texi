@@ -41425,6 +41425,12 @@ The syntax for the patterns is:
 The literal underscore is the wildcard: it matches anything, it does not
 bind any variable.
 
+@item #t
+Matches if non-false.
+
+@item #f
+Matches if false.
+
 @item @cmeta{literal}
 Matches with @func{equal?}.
 
