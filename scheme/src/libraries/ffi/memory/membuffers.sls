@@ -57,20 +57,22 @@
 		((make-<queue>) cache)))))
   (fields (immutable cache)))
 
-(define (%buffer-alloc (mb <membuffer>))
+(define (%enqueue-<buffer>-in-<membuffer> (mb <membuffer>))
   (let ((pointer (mb.cache)))
     (make-<buffer> pointer (mb.cache 'size) (mb.cache 'size) pointer pointer)))
 
-(define (%buffer-free (mb <membuffer>) (buf <buffer>))
-  (mb.cache buf.pointer))
+(define (%dequeue-<buffer>-from-<membuffer> (mb <membuffer>))
+  (let-fields (((buf <buffer>) (queue-dequeue! mb)))
+    (mb.cache buf.pointer)))
 
 
 (define-class <buffer>
   (parent <memblock>)
   ;;If the parent has a protocol, the class must have a protocol, too?!?
   (protocol (lambda (make-<memblock>)
-	      (lambda args
-		(apply make-<memblock> args))))
+	      (lambda (pointer size alloc-size pointer-used pointer-free)
+		((make-<memblock> pointer size alloc-size)
+		 pointer-used pointer-free))))
   (fields (mutable pointer-used)	;pointer to first used byte
 	  (mutable pointer-free))	;pointer to first free byte
   (virtual-fields (immutable pointer	<memblock>-pointer)
@@ -140,33 +142,33 @@
     (%membuffer-push! buf blk blk.start blk.past %buffer-push-memblock!))))
 
 
-(define (%membuffer-pop! (mb <queue>) dst dst.start dst.past popper)
+(define (%membuffer-pop! (membuf <queue>) dst dst.start dst.past popper)
   (let loop ((dst.start dst.start))
     (if (= dst.start dst.past)
 	dst.past
-      (with-fields ((mb.front <buffer>))
-	(if mb.empty?
+      (with-fields ((membuf.front <buffer>))
+	(if membuf.empty?
 	    dst.start
-	  (let ((start (popper mb.front dst dst.start dst.past)))
-	    (when mb.front.empty?
-	      (%buffer-free mb (queue-dequeue! mb)))
+	  (let ((start (popper membuf.front dst dst.start dst.past)))
+	    (when membuf.front.empty?
+	      (%dequeue-<buffer>-from-<membuffer> membuf))
 	    (loop start)))))))
 
-(define (%membuffer-push! (mb <queue>) src src.start src.past pusher)
+(define (%membuffer-push! (membuf <queue>) src src.start src.past pusher)
   (let loop ((src.start src.start))
     (if (= src.start src.past)
 	src.past
-      (with-fields ((mb.rear <buffer>))
-	(when (or mb.empty? mb.rear.full?)
+      (with-fields ((membuf.rear <buffer>))
+	(when (or membuf.empty? membuf.rear.full?)
 	  (with-exception-handler
 	      (lambda (E)
 		(raise-continuable
 		 (if (out-of-memory-condition? E)
-		     (condition E (make-membuffer-incomplete-push-condition mb src src.start src.past))
+		     (condition E (make-membuffer-incomplete-push-condition membuf src src.start src.past))
 		   E)))
 	    (lambda ()
-	      (queue-enqueue! mb (%buffer-alloc mb)))))
-	(loop (pusher mb.rear src src.start src.past))))))
+	      (queue-enqueue! membuf (%enqueue-<buffer>-in-<membuffer> membuf)))))
+	(loop (pusher membuf.rear src src.start src.past))))))
 
 
 ;;;; <buffer> records operations

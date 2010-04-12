@@ -112,7 +112,7 @@
   #t)
 
 
-(parametrise ((check-test-name 'primitve))
+(parametrise ((check-test-name 'primitive))
 
   (define (failing-alloc . args)
     #f)
@@ -170,45 +170,45 @@
 
   (check
       (let ((p (malloc 4096)))
-	(primitive-free p)
-	#t)
+  	(primitive-free p)
+  	#t)
     => #t)
 
   (check
       (let* ((p (malloc 4096))
-	     (q (realloc p 8192)))
-	(primitive-free q)
-	#t)
+  	     (q (realloc p 8192)))
+  	(primitive-free q)
+  	#t)
     => #t)
 
   (check
       (let ((p (calloc 4096 4)))
-	(primitive-free p)
-	#t)
+  	(primitive-free p)
+  	#t)
     => #t)
 
 ;;; --------------------------------------------------------------------
 
   (check
       (guard (E ((memory-request-condition? E)
-		 (condition-message E)))
-	(parametrise ((primitive-malloc-function failing-alloc))
-	  (malloc 4096)))
+  		 (condition-message E)))
+  	(parametrise ((primitive-malloc-function failing-alloc))
+  	  (malloc 4096)))
     => "out of memory")
 
   (check
       (guard (E ((memory-request-condition? E)
-		 (condition-message E)))
-	(parametrise ((primitive-realloc-function failing-alloc))
-	  (let ((p (malloc 4096)))	;let's leak it
-	    (realloc p 8192))))
+  		 (condition-message E)))
+  	(parametrise ((primitive-realloc-function failing-alloc))
+  	  (let ((p (malloc 4096)))	;let's leak it
+  	    (realloc p 8192))))
     => "out of memory")
 
   (check
       (guard (E ((memory-request-condition? E)
-		 (condition-message E)))
-	(parametrise ((primitive-calloc-function failing-alloc))
-	  (calloc 4096 4)))
+  		 (condition-message E)))
+  	(parametrise ((primitive-calloc-function failing-alloc))
+  	  (calloc 4096 4)))
     => "out of memory")
 
 ;;; --------------------------------------------------------------------

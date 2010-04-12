@@ -56,7 +56,7 @@
 
 (parametrise ((check-test-name 'bytevector))
 
-  (check
+  (check 'this
       (let ((mb  (make-<membuffer> small-blocks-cache))
 	    (src default-bv)
 	    (dst (make-bytevector 100)))
