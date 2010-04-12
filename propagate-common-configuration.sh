@@ -1,5 +1,5 @@
 #!/bin/bash
-## relink-configuration.sh --
+## propagate-common-configuration.sh --
 ##
 ##
 
@@ -16,8 +16,12 @@ find -maxdepth 2 \
     do
         echo "processing $REPLY ..."
         rm --force "$top_srcdir/$REPLY"/nausicaa.*
-        cd "$top_srcdir/$REPLY"
-        ln --force "$scheme_dir"/nausicaa.* .
+        pushd .
+        {
+            cd "$top_srcdir/$REPLY"
+            cp --verbose "$scheme_dir"/nausicaa.* .
+        }
+        popd
     done
 
 ### end of file

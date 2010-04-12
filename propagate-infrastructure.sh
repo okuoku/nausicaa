@@ -1,5 +1,5 @@
 #!/bin/bash
-## relink-infrastructure.sh --
+## propagate-infrastructure.sh --
 ##
 ##
 
@@ -16,8 +16,12 @@ find -maxdepth 2 \
     do
         echo "processing $REPLY ..."
         rm --force "$top_srcdir/$REPLY"/*
-        cd "$top_srcdir/$REPLY"
-        ln --force "$scheme_dir"/* .
+        pushd .
+        {
+            cd "$top_srcdir/$REPLY"
+            cp --verbose "$scheme_dir"/* .
+        }
+        popd
     done
 
 ### end of file
