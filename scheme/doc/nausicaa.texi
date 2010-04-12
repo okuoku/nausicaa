@@ -41474,11 +41474,11 @@ true and all the @meta{pattern} match.
 If @meta{pattern} matches the result of applying @meta{proc} to the
 subexpression.
 
-@item (get! @cmeta{symbol})
+@item (:getter @cmeta{symbol})
 Match anything and bind to @meta{symbol} a thunk which, when evaluated,
 returns the matched element itself.
 
-@item (set! @cmeta{symbol})
+@item (:setter @cmeta{symbol})
 Match anything and bind to @meta{symbol} a function which, when applied
 to a value, replaces the expression with that value.  This involves the
 use of @func{set-car!}, @func{set-cdr!} and other mutators.
@@ -41786,8 +41786,8 @@ we can think of it as expanding to:
 @example
 (let ((expr '(1 . 2)))
   (if (pair? expr)
-      (let-syntax ((expr1 (identifier-syntax (car expr)))
-                   (expr2 (identifier-syntax (cdr expr))))
+      (let ((expr1 (car expr))
+            (expr2 (cdr expr)))
         (if (equal? expr1 1)
             (if (equal? expr2 2)
                 'ok
@@ -41805,8 +41805,8 @@ the pair we obtain:
 @example
 (let ((expr '(1 . 2)))
   (if (pair? expr)
-      (let-syntax ((expr1 (identifier-syntax (car expr)))
-                   (expr2 (identifier-syntax (cdr expr))))
+      (let ((expr1 (car expr))
+            (expr2 (cdr expr)))
         ---)
     (match-mismatch-error 'match expr)))
 @end example
@@ -41831,8 +41831,8 @@ we can think of it as expanding to:
 @example
 (let ((expr '(1 . 2)))
   (if (pair? expr)
-      (let-syntax ((expr1 (identifier-syntax (car expr)))
-                   (expr2 (identifier-syntax (cdr expr))))
+      (let ((expr1 (car expr))
+            (expr2 (cdr expr)))
         ok)
     (match-mismatch-error 'match expr)))
 @end example
@@ -41852,12 +41852,12 @@ we can think of it as expanding to:
 @example
 (let ((expr '(1 2)))
   (if (pair? expr)
-      (let-syntax ((expr1 (identifier-syntax (car expr)))
-                   (expr2 (identifier-syntax (cdr expr))))
+      (let ((expr1 (car expr))
+            (expr2 (cdr expr)))
         (if (equal? expr1 1)
             (if (pair? expr2)
-                (let-syntax ((expr3 (identifier-syntax (car expr2)))
-                             (expr4 (identifier-syntax (cdr expr2))))
+                (let ((expr3 (car expr2))
+                      (expr4 (cdr expr2)))
                   (if (equal? expr3 2)
                       (if (null? expr4)
                           'ok
@@ -42367,7 +42367,7 @@ A getter expression matcher looks like this:
 
 @example
 (match 2
-  ((get! two)
+  ((:getter two)
    (two)))
 @result{} 2
 @end example
@@ -42382,17 +42382,17 @@ we can think of it as expanding to:
 @end example
 
 @noindent
-so the @samp{(get! two)} pattern instructs @func{match} to define a
+so the @samp{(:getter two)} pattern instructs @func{match} to define a
 thunk that can be used to retrieve the expression itself.  We understand
 that the single argument @meta{getter} in the abstract pattern
-@samp{(get! @cmeta{getter})} must be an indentifier.  We can evaluate
+@samp{(:getter @cmeta{getter})} must be an indentifier.  We can evaluate
 the thunk any number of times.
 
 Let's look at another example:
 
 @example
 (match '(1 2 3)
-  ((_ (get! two) _)
+  ((_ (:getter two) _)
    (two)))
 @result{} 2
 @end example
@@ -42417,7 +42417,7 @@ A setter expression matcher looks like this:
 @example
 (let ((x 1))
   (match x
-    ((set! doit)
+    ((:setter doit)
      (doit 3)))
   x)
 @result{} 3
@@ -42435,10 +42435,10 @@ we can think of it as expanding to:
 @end example
 
 @noindent
-so the @samp{(set! doit)} pattern instructs @func{match} to define a
+so the @samp{(:setter doit)} pattern instructs @func{match} to define a
 procedure that can be used to store a new value in the expression
 itself.  We understand that the single argument @meta{setter} in the
-abstract pattern @samp{(set! @cmeta{setter})} must be an indentifier.
+abstract pattern @samp{(:setter @cmeta{setter})} must be an indentifier.
 We can evaluate the procedure any number of times.
 
 For a composite expression, @func{match} tries to select the correct
@@ -42447,7 +42447,7 @@ mutator:
 @example
 (let ((x '(1 . 2)))
   (match x
-    (((set! doit) . _)
+    (((:setter doit) . _)
      (doit 3)))
   x)
 @result{} (3 . 2)
@@ -42474,7 +42474,7 @@ and for a cadr setter:
 @example
 (let ((x '(1 2 3)))
   (match x
-    ((_ (set! doit) _)
+    ((_ (:setter doit) _)
      (doit 9)))
   x)
 @result{} (1 9 3)
@@ -42502,11 +42502,11 @@ composite object like a list or vector, the following will fail:
 
 @example
 (match 1
-  ((and (set! doit)
+  ((and (:setter doit)
         x)
    (doit 3)
    x))
-@error{} invalid expression (set! 1 3)
+@error{} invalid expression (:setter 1 3)
 @end example
 
 @c page
@@ -42549,7 +42549,7 @@ we can think of it as expanding to:
 @subsection Matching an arbitrary number of subexpressions
 
 
-The special ellipsis pattern @samp{...} can be used to match an
+The special ellipsis pattern @code{...} can be used to match an
 arbitrary number of subexpressions against the same pattern.  A usage of
 ellipsis in a list looks like:
 
@@ -42582,8 +42582,9 @@ The same happens with vector patterns:
 @result{} (a (b c d))
 @end example
 
-Currently (Fri Sep 4, 2009) the ellipsis can appear only as last element
-of a pattern vector; instead, other patterns can appear after an
+@noindent
+currently (Mon Apr 12, 2010) the ellipsis can appear only as last
+element of a pattern vector; instead, other patterns can appear after an
 ellipsis in a list pattern, but only one ellipsis is allowed in a list
 pattern.
 

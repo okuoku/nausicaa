@@ -841,97 +841,103 @@
   #t)
 
 
-(parameterise ((check-test-name 'getter-setter))
+(parameterise ((check-test-name 'getter))
 
   (check
       (match 2
-	((get! two)
+	((:getter two)
 	 (two)))
     => 2)
 
   (check
       (match '(2)
-	((get! two)
+	((:getter two)
 	 (two)))
     => '(2))
 
   (check
       (match '(2)
-	(((get! two))
+	(((:getter two))
 	 (two)))
     => 2)
 
   (check
       (match '(1 2 3)
-  	((_ (get! two) _)
+  	((_ (:getter two) _)
   	 (two)))
     => 2)
 
   (check	;getter car
       (match '(1 . 2)
-	(((get! a) . b)
+	(((:getter a) . b)
 	 (list (a) b)))
     => '(1 2))
 
   (check	;getter cdr
       (match '(1 . 2)
-	((a . (get! b))
+	((a . (:getter b))
 	 (list a (b))))
     => '(1 2))
 
   (check	;getter vector
       (match '#(1 2 3)
-	(#((get! a) b c)
+	(#((:getter a) b c)
 	 (list (a) b c)))
     => '(1 2 3))
 
-;;; --------------------------------------------------------------------
+  #t)
+
+
+(parameterise ((check-test-name 'setter))
 
   (check
       (let ((x 1))
 	(match x
-	  ((set! doit)
+	  ((:setter doit)
 	   (doit 3)))
 	x)
     => 3)
 
   (check
-      (catch-error (eval '(match 1
-			    ((and (set! doit)
-				  x)
-			     (doit 3)
-			     x))
-			 (environment '(rnrs) '(matches))))
+      (guard (E ((assertion-violation? E)
+		 #t)
+		(else
+		 (write (condition-message E))(newline)
+		 #f))
+	(eval '(match 1
+		 ((:setter doit)
+		  (doit 3)))
+	      (environment '(rnrs) '(matches))))
     => #t)
 
   (check	;setter car
       (let ((x '(1 . 2)))
-	(match x (((set! a) . b) (a 3)))
+	(match x (((:setter a) . b) (a 3)))
 	x)
     => '(3 . 2))
 
   (check	;setter car
       (let ((x '(1 . 2)))
-	(match x (((set! a) . _) (a 3)))
+	(match x (((:setter a) . _) (a 3)))
 	x)
     => '(3 . 2))
 
   (check	;setter cdr
       (let ((x '(1 . 2)))
-	(match x ((a . (set! b)) (b 3)))
+	(match x ((a . (:setter b)) (b 3)))
 	x)
     => '(1 . 3))
 
   (check
       (let ((x '(1 2 3 4)))
-	(match x ((a b (set! c) d)
+	(match x ((a b (:setter c) d)
 		  (c 10)))
 	x)
     => '(1 2 10 4))
 
   (check	;setter vector
       (let ((x '#(1 2 3)))
-	(match x (#(a (set! b) c) (b 0)))
+	(match x (#(a (:setter b) c) (b 0)))
 	x)
     => '#(1 0 3))
 

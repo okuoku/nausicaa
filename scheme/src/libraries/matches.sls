@@ -44,31 +44,23 @@
 
 ;;;; helpers
 
-(define-syntax if-ellipsis
-  ;;If ?THING  is the ellipsis  identifier "...", expand to  the success
-  ;;continuation; else expand to the failure continuation.
-  ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?thing ?success-kont ?failure-kont)
-       (if (and (identifier? (syntax ?thing))
-		(free-identifier=? (syntax ?thing)
-				   (syntax (... ...))))
-	   (syntax ?success-kont)
-	 (syntax ?failure-kont))))))
-
 (define-syntax verify-no-ellipsis
   ;;Raise a syntax error if the first argument is a list and any element
   ;;in it is an ellipsis identifier.
   ;;
-  (syntax-rules ()
-    ((_ (x . y) sk)
-     (if-ellipsis x (syntax-violation 'match
-			       "multiple ellipsis patterns not allowed at same level"
-			       '(x . y))
-			   (verify-no-ellipsis y sk)))
-    ((_ x sk)
-     sk)))
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ (x . y) sk)
+       (and (identifier? #'x) (free-identifier=? #'(... ...) #'x))
+       #'(syntax-violation 'match
+	   "multiple ellipsis patterns not allowed at same level"
+	   '(x . y)))
+
+      ((_ (x . y) sk)
+       #'(verify-no-ellipsis y sk))
+
+      ((_ x sk)
+       #'sk))))
 
 (define-syntax match-drop-ids
   ;;A continuation-passing-style utility that  takes two values and just
@@ -97,40 +89,47 @@
   ;;expression to match to a temporary  variable (if it is not an atom),
   ;;and pass it on to NEXT-CLAUSE.
   ;;
-  (syntax-rules (=>)
-    ((_)
-     (syntax-violation 'match "missing match expression" '(match)))
+  (lambda (stx)
+    (syntax-case stx (=>)
+      ((_)
+       #'(syntax-violation 'match "missing match expression" '(match)))
 
-    ((_ ?expr)
-     (syntax-violation 'match "missing match clause" '(match ?expr)))
+      ((_ ?expr)
+       #'(syntax-violation 'match "missing match clause" '(match ?expr)))
 
-    ((_ ?expr (?pattern))
-     (syntax-violation 'match "no body in match clause" '(?pattern)))
+      ((_ ?expr (?pattern))
+       #'(syntax-violation 'match "no body in match clause" '(?pattern)))
 
-    ((_ ?expr (?pattern (=> ?failure)))
-     (syntax-violation 'match "no body in match clause" '(?pattern (=> ?failure))))
+      ((_ ?expr (?pattern (=> ?failure)))
+       #'(syntax-violation 'match "no body in match clause" '(?pattern (=> ?failure))))
 
-    ((_ (?item ...) ?clause ...)
-     (let ((expr (?item ...)))
-       (next-clause expr expr (set! expr) ?clause ...)))
+      ((_ (?item ...) ?clause ...)
+       #'(let ((expr (?item ...)))
+	   (next-clause expr expr (set! expr) ?clause ...)))
 
-    ((_ #(?item ...) ?clause ...)
-     (let ((expr (quote #(?item ...))))
-       (next-clause expr expr (set! expr) ?clause ...)))
+      ((_ #(?item ...) ?clause ...)
+       #'(let ((expr (quote #(?item ...))))
+	   (next-clause expr expr (set! expr) ?clause ...)))
 
-    ((_ ?atom ?clause ...)
-     (next-clause ?atom ?atom (set! ?atom) ?clause ...))))
+      ((_ ?atom ?clause ...)
+       (identifier? #'?atom)
+       #'(next-clause ?atom ?atom (set! ?atom) ?clause ...))
+
+      ((_ ?atom ?clause ...)
+       #'(next-clause ?atom ?atom (assertion-violation 'match "invoked setter for an atom") ?clause ...))
+
+      )))
 
 
 (define-syntax next-clause
-  ;;Match an expression against the  full pattern from the first clause;
-  ;;if matching fails, invoke a  thunk that attempts to match the second
+  ;;Match  an expression  against the  full  pattern from  a clause;  if
+  ;;matching  fails, invoke  a thunk  that  attempts to  match the  next
   ;;clause or  raise an error  if no other  clauses are present.   To be
   ;;called with the following arguments:
   ;;
   ;;EXPR	- the expression to match
-  ;;GETTER	- the getter form
-  ;;SETTER	- the setter form
+  ;;GETTER	- the getter form accumulated for this clause
+  ;;SETTER	- the setter form accumulated for this clause
   ;;CLAUSE ...	- one or more match clauses
   ;;
   ;;The EXPR value must be the name of a temporary variable to which the
@@ -140,7 +139,7 @@
   ;;
   ;;The GETTER  must be a form  which, when evaluated,  returns the full
   ;;expression;  the getter  can be  EXPR itself.   It is  used  only by
-  ;;DISPATCH-PATTERN when  the pattern  has the form  "(get! <getter>)",
+  ;;DISPATCH-PATTERN when the pattern has the form "(:getter <getter>)",
   ;;where <getter> is a symbol; the usage looks like this:
   ;;
   ;;	(let ((<getter> (lambda () GETTER)))
@@ -150,10 +149,12 @@
   ;;BODY.
   ;;
   ;;The  SETTER  must  be an  "incomplete"  form;  it  is used  only  by
-  ;;DISPATCH-PATTERN when  the pattern  has the form  "(set! <setter>)",
+  ;;DISPATCH-PATTERN when the pattern has the form "(:setter <setter>)",
   ;;where <setter> is a symbol; the usage looks like this:
   ;;
-  ;;	(let ((<setter> (lambda (x) (?setter ... x)))) BODY)
+  ;;	(let ((<setter> (lambda (x)
+  ;;	                  (?setter ... x))))
+  ;;      . BODY)
   ;;
   ;;and  the the  accessor function  bound to  <setter> is  meant  to be
   ;;invoked by  the BODY.  The SETTER  form with X appended  is meant to
@@ -162,21 +163,26 @@
   ;;
   (syntax-rules (=>)
 
-    ;;no more clauses
-    ((_ ?expr ?getter ?setter)
+    ;;No more clauses.
+    ((_ ?expr ?accumulated-getter ?accumulated-setter)
      (match-mismatch-error 'match ?expr))
 
-    ((_ ?expr ?getter ?setter (?pattern (=> ?failure) . ?body) . ?other-clauses)
-     (let ((?failure (lambda ()
-		       (next-clause ?expr ?getter ?setter . ?other-clauses))))
-       (next-pattern ?expr ?pattern ?getter ?setter
+    ;;Match when the clause has an explicitly named match continuation.
+    ((_ ?expr ?accumulated-getter ?accumulated-setter
+	(?pattern (=> ?failure-kont) . ?body) . ?other-clauses)
+     (let ((?failure-kont (lambda ()
+			    (next-clause ?expr ?accumulated-getter ?accumulated-setter
+					 . ?other-clauses))))
+       (next-pattern ?expr ?pattern
+		     ?accumulated-getter ?accumulated-setter
 		     (match-drop-ids (begin . ?body)) ;success continuation
-		     (?failure) ;failure continuation
-		     ())))	;matched identifiers
+		     (?failure-kont) ;failure continuation
+		     ())))	     ;matched identifiers
 
-    ;;anonymous failure continuation, give it a dummy name
-    ((_ ?expr ?getter ?setter (?pattern . ?body) . ?other-clauses)
-     (next-clause ?expr ?getter ?setter (?pattern (=> failure) . ?body) . ?other-clauses))))
+    ;;Anonymous failure continuation, give it a dummy name and recurse.
+    ((_ ?expr ?accumulated-getter ?accumulated-setter (?pattern . ?body) . ?other-clauses)
+     (next-clause ?expr ?accumulated-getter ?accumulated-setter
+		  (?pattern (=> anonymous-kont) . ?body) . ?other-clauses))))
 
 
 (define-syntax next-pattern
@@ -186,8 +192,8 @@
   ;;
   ;;EXPR		- the expression to match
   ;;PATTERN		- is the current pattern to match against EXPR
-  ;;GETTER		- the getter
-  ;;SETTER		- the setter
+  ;;GETTER		- the getter form accumulated so far
+  ;;SETTER		- the setter form accumulated so far
   ;;SUCCESS-KONT	- the success continuation
   ;;FAILURE-KONT	- the failure continuation
   ;;IDENTIFIERS		- the list of identifiers bound in the pattern
@@ -204,22 +210,40 @@
   ;;see  if   ?Q  is  an   ellipsis  and  handle  it   accordingly  with
   ;;ELLIPSIS-PATTERN; else pass all the arguments to DISPATCH-PATTERN.
   ;;
-  (syntax-rules ()
+  (lambda (stx)
+    (syntax-case stx ()
 
-    ((_ ?expr (?pattern ?second-pattern . ?pattern-rest)
-	?getter ?setter ?success-kont ?failure-kont ?identifiers)
-     (if-ellipsis ?second-pattern
-		  (extract-vars ?pattern
-				(ellipsis-pattern ?expr ?pattern ?pattern-rest
-						  ?getter ?setter
-						  ?success-kont ?failure-kont ?identifiers)
-				?identifiers ())
-		  (dispatch-pattern ?expr (?pattern ?second-pattern . ?pattern-rest)
-				    ?getter ?setter
-				    ?success-kont ?failure-kont ?identifiers)))
+      ((_ ?expr (?pattern ?second-pattern . ?pattern-rest)
+	  ?accumulated-getter ?accumulated-setter
+	  ?success-kont ?failure-kont ?bound-identifiers)
+       (and (identifier? #'?second-pattern)
+;;;	    (eq? '... (syntax->datum #'?second-pattern))
+	    (free-identifier=? #'(... ...) #'?second-pattern)
+	    )
+       #'(extract-vars ?pattern
+		       (ellipsis-pattern ?expr ?pattern ?pattern-rest
+					 ?accumulated-getter ?accumulated-setter
+					 ?success-kont ?failure-kont ?bound-identifiers)
+		       ?bound-identifiers ()))
 
-    ((_ . ?x)
-     (dispatch-pattern . ?x))))
+      ((_ ?expr (?pattern ?second-pattern . ?pattern-rest)
+	  ?accumulated-getter ?accumulated-setter
+	  ?success-kont ?failure-kont ?bound-identifiers)
+       #'(dispatch-pattern ?expr (?pattern ?second-pattern . ?pattern-rest)
+			   ?accumulated-getter ?accumulated-setter
+			   ?success-kont ?failure-kont ?bound-identifiers))
+
+      ((_ ?expr ?pattern
+	  ?accumulated-getter ?accumulated-setter
+	  ?success-kont ?failure-kont ?bound-identifiers)
+       #'(dispatch-pattern ?expr ?pattern
+			   ?accumulated-getter ?accumulated-setter
+			   ?success-kont ?failure-kont ?bound-identifiers))
+
+      ;; ((_ . ?x)
+      ;;  #'(dispatch-pattern . ?x))
+
+      )))
 
 
 (define-syntax dispatch-pattern
@@ -228,97 +252,143 @@
   ;;arguments of NEXT-PATTERN.
   ;;
   (lambda (stx)
-    (syntax-case stx (:predicate :accessor :and :or :not quote quasiquote set! get!)
+    (syntax-case stx (:predicate :accessor :and :or :not :setter :getter quasiquote quote)
 
       ;;the pattern is null
-      ((_ v () g s (sk ...) fk i)
-       #'(if (null? v) (sk ... i) fk))
+      ((_ ?expr ()
+	  ?accumulated-getter ?accumulated-setter
+	  (?success-kont ...) ?failure-kont ?bound-identifiers)
+       #'(if (null? ?expr)
+	     (?success-kont ... ?bound-identifiers)
+	   ?failure-kont))
 
       ;;the pattern is a quoted identifier
-      ((_ ?expr (quote ?pattern) g s (?success-kont ...) ?failure-kont ?identifiers)
+      ((_ ?expr (quote ?pattern)
+	  ?accumulated-getter ?accumulated-setter
+	  (?success-kont ...) ?failure-kont ?bound-identifiers)
        (identifier? #'?pattern)
        #'(if (eq? ?expr (quote ?pattern))
-	     (?success-kont ... ?identifiers)
+	     (?success-kont ... ?bound-identifiers)
 	   ?failure-kont))
 
       ;;the pattern is a quoted S-expression
-      ((_ ?expr (quote ?pattern) g s (?success-kont ...) ?failure-kont ?identifiers)
+      ((_ ?expr (quote ?pattern)
+	  ?accumulated-getter ?accumulated-setter
+	  (?success-kont ...) ?failure-kont ?bound-identifiers)
        #'(if (equal? ?expr (quote ?pattern))
-	     (?success-kont ... ?identifiers)
+	     (?success-kont ... ?bound-identifiers)
 	   ?failure-kont))
 
-      ;; ((_ ?expr (quote ?pattern) g s (?success-kont ...) ?failure-kont ?identifiers)
-      ;;  #'(if-identifier ?pattern
-      ;; 			(if (eq? ?expr (quote ?pattern))
-      ;; 			    (?success-kont ... ?identifiers)
-      ;; 			  ?failure-kont)
-      ;; 			(if (equal? ?expr (quote ?pattern))
-      ;; 			    (?success-kont ... ?identifiers)
-      ;; 			  ?failure-kont)))
-
       ;;the pattern is a quasiquoted sexp
-      ((_ ?expr (quasiquote ?pattern) g s (sk ...) fk (id ...))
+      ((_ ?expr (quasiquote ?pattern)
+	  ?accumulated-getter ?accumulated-setter
+	  (?success-kont ...) ?failure-kont ?bound-identifiers)
        #'(let ((pattern (quasiquote ?pattern)))
 	   (if (equal? ?expr pattern)
-	       (sk ... (id ...))
-	     fk)))
+	       (?success-kont ... ?bound-identifiers)
+	     ?failure-kont)))
 
       ;;the pattern is the empty :AND
-      ((_ v (:and) g s (sk ...) fk i)
-       #'(sk ... i))
+      ((_ ?expr (:and)
+	  ?accumulated-getter ?accumulated-setter
+	  (?success-kont ...) ?failure-kont ?bound-identifiers)
+       #'(?success-kont ... ?bound-identifiers))
 
       ;;the pattern is a single-clause AND
-      ((_ v (:and p) g s sk fk i)
-       #'(next-pattern v p g s sk fk i))
+      ((_ ?expr (:and ?pattern)
+	  ?accumulated-getter ?accumulated-setter
+	  ?success-kont ?failure-kont ?bound-identifiers)
+       #'(next-pattern ?expr ?pattern
+		       ?accumulated-getter ?accumulated-setter
+		       ?success-kont ?failure-kont ?bound-identifiers))
 
       ;;the pattern is a non-empty AND
-      ((_ ?expr (:and p q ...) g s sk fk i)
-       #'(next-pattern ?expr p g s (next-pattern ?expr (:and q ...) g s sk fk) fk i))
+      ((_ ?expr (:and ?first-pattern ?other-pattern ...)
+	  ?accumulated-getter ?accumulated-setter
+	  ?success-kont ?failure-kont ?bound-identifiers)
+       #'(next-pattern ?expr ?first-pattern
+		       ?accumulated-getter ?accumulated-setter
+		       ;;The  following  is  the  success  continuation.
+		       ;;Notice  that ?BOUND-IDENTIFIERS is  appended to
+		       ;;it by the clause for the empty (:and).
+		       (next-pattern ?expr (:and ?other-pattern ...)
+				     ?accumulated-getter ?accumulated-setter
+				     ?success-kont ?failure-kont)
+		       ?failure-kont ?bound-identifiers))
 
       ;;the pattern is an empty OR
-      ((_ v (:or) g s sk ?failure-kont i)
+      ((_ ?expr (:or)
+	  ?accumulated-getter ?accumulated-setter
+	  ?success-kont ?failure-kont ?bound-identifiers)
        #'?failure-kont)
 
       ;;the pattern is a single-clause OR
-      ((_ v (:or p) g s sk fk i)
-       #'(next-pattern v p g s sk fk i))
+      ((_ ?expr (:or ?pattern)
+	  ?accumulated-getter ?accumulated-setter
+	  ?success-kont ?failure-kont ?bound-identifiers)
+       #'(next-pattern ?expr ?pattern
+		       ?accumulated-getter ?accumulated-setter
+		       ?success-kont ?failure-kont ?bound-identifiers))
 
       ;;the pattern is a multiple-clause OR
-      ((_ v (:or p ...) g s sk fk i)
-       #'(extract-vars (:or p ...)
-		       (generate-or v (p ...) g s sk fk i)
-		       i
-		       ()))
-
-      ;;the pattern is a :NOT form
-      ((_ v (:not p) g s (sk ...) fk i)
-       #'(next-pattern v p g s (match-drop-ids fk) (sk ... i) i))
+      ((_ ?expr (:or ?pattern ...)
+	  ?accumulated-getter ?accumulated-setter
+	  ?success-kont ?failure-kont ?bound-identifiers)
+       #'(extract-vars (:or ?pattern ...)
+		       (generate-or ?expr (?pattern ...)
+				    ?accumulated-getter ?accumulated-setter
+				    ?success-kont ?failure-kont ?bound-identifiers)
+		       ?bound-identifiers ()))
 
       ;;the pattern is an empty :NOT form
-      ((_ v (:not) g s (sk ...) fk i)
+      ((_ ?expr (:not)
+	  ?accumulated-getter ?accumulated-setter
+	  ?success-kont ?failure-kont ?bound-identifiers)
        #'(syntax-violation 'match "empty :NOT form in pattern" '(:not)))
 
+      ;;the pattern is a :NOT form
+      ((_ ?expr (:not ?pattern)
+	  ?accumulated-getter ?accumulated-setter
+	  (?success-kont ...) ?failure-kont ?bound-identifiers)
+       #'(next-pattern ?expr ?pattern
+		       ?accumulated-getter ?accumulated-setter
+		       (match-drop-ids ?failure-kont)
+		       (?success-kont ... ?bound-identifiers)
+		       ?bound-identifiers))
+
       ;;the pattern is a getter
-      ((_ v (get! getter) ?getter s (?success-kont ...) fk ?identifiers)
-       #'(let ((getter (lambda () ?getter)))
-	   (?success-kont ... ?identifiers)))
+      ((_ ?expr (:getter getter)
+	  ?accumulated-getter ?accumulated-setter
+	  (?success-kont ...) ?failure-kont ?bound-identifiers)
+       #'(let ((getter (lambda () ?accumulated-getter)))
+	   (?success-kont ... ?bound-identifiers)))
 
       ;;the pattern is a setter
-      ((_ v (set! setter) g (?setter ...) (?success-kont ...) fk ?identifiers)
-       #'(let ((setter (lambda (x) (?setter ... x))))
-	   (?success-kont ... ?identifiers)))
+      ((_ ?expr (:setter setter)
+	  ?accumulated-getter (?accumulated-setter ...)
+	  (?success-kont ...) ?failure-kont ?bound-identifiers)
+       #'(let ((setter (lambda (x) (?accumulated-setter ... x))))
+	   (?success-kont ... ?bound-identifiers)))
 
       ;;the pattern is a quasiquoted predicate
-      ((_ ?expr (:predicate (quasiquote ?predicate) ?pattern ...) g s sk ?failure-kont i)
+      ((_ ?expr (:predicate (quasiquote ?predicate) ?pattern ...)
+	  ?accumulated-getter ?accumulated-setter
+	  ?success-kont ?failure-kont ?bound-identifiers)
        #'(let ((predicate (quasiquote ?predicate)))
 	   (if (predicate ?expr)
-	       (next-pattern ?expr (:and ?pattern ...) g s sk ?failure-kont i)
+	       (next-pattern ?expr (:and ?pattern ...)
+			     ?accumulated-getter ?accumulated-setter
+			     ?success-kont ?failure-kont ?bound-identifiers)
 	     ?failure-kont)))
 
       ;;the pattern is a predicate
-      ((_ ?expr (:predicate ?predicate ?pattern ...) g s sk ?failure-kont i)
+      ((_ ?expr (:predicate ?predicate ?pattern ...)
+	  ?accumulated-getter ?accumulated-setter
+	  ?success-kont ?failure-kont ?bound-identifiers)
        #'(if (?predicate ?expr)
-	     (next-pattern ?expr (:and ?pattern ...) g s sk ?failure-kont i)
+	     (next-pattern ?expr (:and ?pattern ...)
+			   ?accumulated-getter ?accumulated-setter
+			   ?success-kont ?failure-kont ?bound-identifiers)
 	   ?failure-kont))
 
       ;;the pattern is an accessor matcher with quasiquoted procedure
@@ -338,8 +408,6 @@
 		  (null? (cdr ?expr)))
 	     (let-syntax ((sub-expr (identifier-syntax (car ?expr))))
 	       (next-pattern sub-expr p sub-expr (set-car! ?expr) sk fk i))
-	     ;; (let ((sub-expr (car ?expr)))
-	     ;;   (next-pattern sub-expr p sub-expr (set-car! ?expr) sk fk i))
 	   fk))
 
       ;;the pattern is a pair
@@ -347,8 +415,6 @@
        #'(if (pair? ?expr)
 	     (let-syntax ((expr-a (identifier-syntax (car ?expr)))
 			  (expr-d (identifier-syntax (cdr ?expr))))
-	     ;; (let ((expr-a (car ?expr))
-	     ;; 	   (expr-d (cdr ?expr)))
 	       (next-pattern expr-a ?pattern (car ?expr) (set-car! ?expr)
 			     (next-pattern expr-d ?pattern-rest ;success continuation
 					   (cdr ?expr) (set-cdr! ?expr)
@@ -360,7 +426,7 @@
       ;;the pattern is a vector
       ((_ ?expr #(?pattern ...) g s sk fk i)
        #'(match-vector ?expr
-		       0 ;index of the first element
+		       0  ;index of the first element
 		       () ;list of index patterns
 		       (?pattern ...) sk fk i))
 
@@ -559,10 +625,10 @@
       ;;Detect if the last pattern in the vector is an ellipsis.
       ;;
       ;;*FIXME* Currently the ellipsis can appear only as the last element.
-      ((_ v ?next-index ?index-patterns (penultimate-pattern last-pattern) sk fk i)
-       (and (identifier? #'last-pattern)
-	    (free-identifier=? #'last-pattern #'(... ...)))
-       #'(match-vector-ellipsis v ?next-index ?index-patterns penultimate-pattern sk fk i))
+      ((_ v ?next-index ?index-patterns (?penultimate-pattern ?last-pattern) sk fk i)
+       (and (identifier? #'?last-pattern)
+	    (free-identifier=? #'?last-pattern #'(... ...)))
+       #'(match-vector-ellipsis v ?next-index ?index-patterns ?penultimate-pattern sk fk i))
 
       ;;All the  patterns have been converted to  index patterns.  Check
       ;;the exact vector length, then match each element in turn.
@@ -650,12 +716,12 @@
   ;;
   ;;A little more complicated than  just looking for symbols, we need to
   ;;ignore special keywords and not pattern forms (such as the predicate
-  ;;expression in ?  patterns).
+  ;;expression in :predicate patterns).
   ;;
   ;; (extract-vars pattern continuation (ids ...) (new-vars ...))
   ;;
   (lambda (stx)
-    (syntax-case stx (:predicate :accessor :and :or :not quote quasiquote get! set!)
+    (syntax-case stx (:predicate :accessor :and :or :not :getter :setter quasiquote quote)
       ((_ (:predicate pred . p) k i v)
        #'(extract-vars p k i v))
       ((_ (:accessor accessor p) k i v)
@@ -671,9 +737,12 @@
       ((_ (p q . r) k i v)
 		;A non-keyword pair, expand  the CAR with a continuation
 		;to expand the CDR.
-       #'(if-ellipsis q
-		      (extract-vars (p . r) k i v)
-		      (extract-vars p (extract-vars-step (q . r) k i v) i ())))
+       (and (identifier? #'q) (free-identifier=? #'(... ...) #'q))
+       #'(extract-vars (p . r) k i v))
+      ((_ (p q . r) k i v)
+		;A non-keyword pair, expand  the CAR with a continuation
+		;to expand the CDR.
+       #'(extract-vars p (extract-vars-step (q . r) k i v) i ()))
       ((_ (p . q) k i v)
        #'(extract-vars p (extract-vars-step q k i v) i ()))
       ((_ #(p ...) k i v)
@@ -781,7 +850,8 @@
     ;;Possible initial form: the pattern  in the first clause is a pair.
     ;;Generate a temporary  variable TMP for the expression  and add the
     ;;pair  pattern to  the list  of  patterns.  Notice  that this  also
-    ;;matches the special patterns :predicate, :accessor, get!, set!.
+    ;;matches  the  special  patterns  :predicate,  :accessor,  :getter,
+    ;;:setter.
     ((_ ?let (?binding ...) (?pattern ...) (((?a . ?b) ?expr) . ?rest) . ?body)
      (%match-let/helper ?let (?binding ... (tmp ?expr))
 			(?pattern ... ((?a . ?b) tmp))
