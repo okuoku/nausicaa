@@ -85,14 +85,14 @@
 			    ((a ... b ... c)
 			     'fail)))
     => '((message . "multiple ellipsis patterns not allowed at same level")
-	 (form    . (... c))))
+	 (form    . (a ... b ... c))))
 
   (check
       (catch-syntax-error (match 28
 			    ((a ... b ...)
 			     'fail)))
     => '((message . "multiple ellipsis patterns not allowed at same level")
-	 (form    . (...))))
+	 (form    . (a ... b ...))))
 
   (check
       (catch-syntax-error (match 28 (28)))

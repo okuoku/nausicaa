@@ -8,6 +8,12 @@
 ;;;	The original  code was written by  Alex Shinn and  placed in the
 ;;;	Public Domain.
 ;;;
+;;;	Notice  that   some  SYNTAX-CASE  uses   have  "complex"  fender
+;;;	expressions; they  could be put into a  separate library, loaded
+;;;	for EXPAND, instead  they are kept here.  This  is to reduce the
+;;;	overall  number of libraries  and to  improve "locality"  in the
+;;;	reading comprehension of the code.
+;;;
 ;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2006, 2007 Alex Shinn
 ;;;
@@ -40,34 +46,6 @@
   (import (rnrs)
     (rnrs mutable-pairs)
     (conditions))
-
-
-;;;; helpers
-
-(define-syntax verify-no-ellipsis
-  ;;Raise a syntax error if the first argument is a list and any element
-  ;;in it is an ellipsis identifier.
-  ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ (x . y) sk)
-       (and (identifier? #'x) (free-identifier=? #'(... ...) #'x))
-       #'(syntax-violation 'match
-	   "multiple ellipsis patterns not allowed at same level"
-	   '(x . y)))
-
-      ((_ (x . y) sk)
-       #'(verify-no-ellipsis y sk))
-
-      ((_ x sk)
-       #'sk))))
-
-(define-syntax match-drop-bound-pattern-variables
-  ;;A continuation-passing-style utility that  takes two values and just
-  ;;expands into the first.
-  ;;
-  (syntax-rules ()
-    ((_ expr ids ...) expr)))
 
 
 (define-condition-type &match-mismatch
@@ -187,9 +165,11 @@
 
 
 (define-syntax next-pattern
-  ;;Match   the  expression  against   a  pattern   element;  it   is  a
-  ;;normalisation step  before DISPATCH-PATTERN.  To be  called with the
-  ;;following arguments:
+  ;;Match an expression against a pattern element; it is a normalisation
+  ;;step  before DISPATCH-PATTERN.   This macro  is the  entry  point to
+  ;;match a pattern against an expression.
+  ;;
+  ;;To be called with the following arguments:
   ;;
   ;;EXPR		- the expression to match
   ;;PATTERN		- is the current pattern to match against EXPR
@@ -219,11 +199,12 @@
 	  ?success-kont ?failure-kont ?bound-pattern-variables)
        (and (identifier? #'?second-pattern)
 	    (free-identifier=? #'(... ...) #'?second-pattern))
-       #'(extract-vars ?pattern
-		       (ellipsis-pattern ?expr ?pattern ?pattern-rest
-					 ?accumulated-getter ?accumulated-setter
-					 ?success-kont ?failure-kont ?bound-pattern-variables)
-		       ?bound-pattern-variables ()))
+       #'(extract-new-pattern-variables ?pattern
+					(ellipsis-pattern ?expr ?pattern ?pattern-rest
+							  ?accumulated-getter ?accumulated-setter
+							  ?success-kont ?failure-kont
+							  ?bound-pattern-variables)
+					?bound-pattern-variables ()))
 
       ((_ ?expr (?pattern ?second-pattern . ?pattern-rest)
 	  ?accumulated-getter ?accumulated-setter
@@ -240,6 +221,54 @@
 			   ?success-kont ?failure-kont ?bound-pattern-variables))
 
       )))
+
+
+(define-syntax match-drop-bound-pattern-variables
+  ;;Occasionally NEXT-PATTERN is used  with a success continuation which
+  ;;not  only does not  need the  list of  bound pattern  variables, but
+  ;;which would raise an error if the list of variables is appended:
+  ;;
+  ;;	(next-pattern <expr> <pattern> <getter> <setter>
+  ;;		(<success-kont> ...)
+  ;;		<failure-kont> <bound-pattern-variables>)
+  ;;
+  ;;would expand the success continuation to:
+  ;;
+  ;;    (<success-kont> ... <bound-pattern-variables>) -> ERROR!!!
+  ;;
+  ;;In these  cases we can wrap  the continuation with  this macro which
+  ;;has the only effect of dropping the list of variables:
+  ;;
+  ;;	(next-pattern <expr> <pattern> <getter> <setter>
+  ;;		(match-drop-bound-pattern-variables
+  ;;		   (<success-kont> ...))
+  ;;		<failure-kont> <bound-pattern-variables>)
+  ;;
+  ;;expands the success continuation to:
+  ;;
+  ;;    (match-drop-bound-pattern-variables
+  ;;       (<success-kont> ...)
+  ;;       <bound-pattern-variables>)
+  ;;
+  ;;which then expands to:
+  ;;
+  ;;    (<success-kont> ...)
+  ;;
+  ;;This macro removes both the  list of already bound pattern variables
+  ;;and    the   list    of   to-be-bound    pattern    variables;   see
+  ;;EXTRACT-NEW-PATTERN-VARIABLES for details.
+  ;;
+  (syntax-rules ()
+
+    ((_ (?success-kont ...) ?bound-pattern-variables)
+     (?success-kont ...))
+
+    ((_ (?success-kont ...) ?bound-pattern-variables ?to-be-bound-pattern-variables)
+     (?success-kont ...))
+
+    ((_ (?success-kont ...))
+     (?success-kont ...))
+    ))
 
 
 (define-syntax dispatch-pattern
@@ -344,11 +373,12 @@
       ((_ ?expr (:or ?pattern ...)
 	  ?accumulated-getter ?accumulated-setter
 	  ?success-kont ?failure-kont ?bound-pattern-variables)
-       #'(extract-vars (:or ?pattern ...)
-		       (generate-or ?expr (?pattern ...)
-				    ?accumulated-getter ?accumulated-setter
-				    ?success-kont ?failure-kont ?bound-pattern-variables)
-		       ?bound-pattern-variables ()))
+       #'(extract-new-pattern-variables (:or ?pattern ...)
+					(generate-or ?expr (?pattern ...)
+						     ?accumulated-getter ?accumulated-setter
+						     ?success-kont ?failure-kont
+						     ?bound-pattern-variables)
+					?bound-pattern-variables ()))
 
 ;;; --------------------------------------------------------------------
 
@@ -568,10 +598,44 @@
 
 
 (define-syntax ellipsis-pattern
-  ;;Match a pattern with an ellipsis.
+  ;;Match  the expression with  a list  pattern containing  an ellipsis;
+  ;;this macro  is called by  NEXT-PATTERN when it has  already verified
+  ;;that the expression ?EXPR is null or a pair.
   ;;
-  ;;Here we have already verified that the expression ?EXPR is null or a
-  ;;pair.
+  ;;This  macro can  be called  with list  input pattern  in one  of the
+  ;;following forms, in  which the ellipsis identifier is  always in the
+  ;;cadr position:
+  ;;
+  ;;	(?identifier-pattern ?ellipsis-identifier)
+  ;;	(?some-pattern       ?ellipsis-identifier)
+  ;;	(?some-pattern       ?ellipsis-identifier . ?pattern-rest)
+  ;;
+  ;;* In the first form we just take the whole expression ?EXPR and bind
+  ;;it to ?IDENTIFIER-PATTERN.
+  ;;
+  ;;* In the second form we  use a loop to match every sub-expression in
+  ;;?EXPR against ?SOME-PATTERN, using NEXT-PATTERN.
+  ;;
+  ;;* In the third form we assume that ?PATTERN-REST is a list (possibly
+  ;;null), so we determine its length and compute the number of elements
+  ;;in ?EXPR to match against ?SOME-PATTERN:
+  ;;
+  ;;	(define number-of-subexpressions-to-match
+  ;;	   (- (length ?EXPR) (length ?PATTERN-REST)))
+  ;;
+  ;;the match is  positive if ?EXPR has enough  sub-expressions to match
+  ;;all the patterns in ?PATTERN-REST;  it may be that no sub-expression
+  ;;is available to be matched by  ?SOME-PATTERN.  Then we use a loop to
+  ;;match the sub-expressions agains ?SOME-PATTERN, using NEXT-PATTERN.
+  ;;
+  ;;Synopsis:
+  ;;
+  ;;   (ellipsis-pattern	?expr ?pattern ?pattern-rest
+  ;;				?accumulated-getter ?accumulated-setter
+  ;;				?success-kont ?failure-kont
+  ;;				?already-bound-pattern-variables
+  ;;				?to-be-bound-pattern-variables)
+  ;;
   ;;
   (lambda (stx)
     (syntax-case stx ()
@@ -582,10 +646,10 @@
       ((_ ?expr ?pattern () ;pattern rest
 	  ?getter ?setter
 	  (?success-kont ...) ?failure-kont
-	  ?identifiers ((id id-ls) ...))
+	  ?bound-pattern-variables ((id id-ls) ...))
        (identifier? #'?pattern)
        #'(let ((?pattern ?expr))
-	   (?success-kont ... ?identifiers)))
+	   (?success-kont ... ?bound-pattern-variables)))
 
       ;;Match  the pattern  "(?pattern ...)"   when ?PATTERN  is  not an
       ;;identifier:  match  the   nested  patterns  against  the  nested
@@ -593,59 +657,90 @@
       ((_ ?expr ?pattern () ;pattern rest
 	  ?getter ?setter
 	  (?success-kont ...) ?failure-kont
-	  ?identifiers ((id id-ls) ...))
-       #'(let loop ((ls ?expr)
-		    (id-ls '())
+	  ?bound-pattern-variables
+	  ((to-be-bound-pattern-variable to-be-bound-pattern-variable-values) ...))
+       #'(let loop ((sub-expressions ?expr)
+		    (to-be-bound-pattern-variable-values '())
 		    ...)
-	   (cond ((null? ls)
-		  (let ((id (reverse id-ls)) ...)
-		    (?success-kont ... ?identifiers)))
-		 ((pair? ls)
-		  (let ((sub-expr (car ls)))
-		    (next-pattern sub-expr ?pattern sub-expr (set-car! ls)
+	   (cond ((null? sub-expressions)
+		  (let ((to-be-bound-pattern-variable (reverse to-be-bound-pattern-variable-values))
+			...)
+		    (?success-kont ... ?bound-pattern-variables)))
+		 ((pair? sub-expressions)
+		  (let ((sub-expr (car sub-expressions)))
+		    (next-pattern sub-expr ?pattern
+				  sub-expr (set-car! sub-expressions)
+				  ;;The   following   is   the   success
+				  ;;continuation.   Notice that  we have
+				  ;;to drop  the bound pattern variables
+				  ;;appended by NEXT-PATTERN.
 				  (match-drop-bound-pattern-variables
-				   (loop (cdr ls) (cons id id-ls) ...))
-				  ?failure-kont ?identifiers)))
+				   (loop (cdr sub-expressions)
+					 (cons to-be-bound-pattern-variable
+					       to-be-bound-pattern-variable-values) ...))
+				  ?failure-kont ?bound-pattern-variables)))
 		 (else
 		  ?failure-kont))))
+
+      ;;Detect multiple ellipsis at the same level in the list pattern.
+      ((_ ?expr ?pattern (?pattern-rest ...) getter ?setter
+	  (?success-kont ...) ?failure-kont ?bound-pattern-variables ((id id-ls) ...))
+       (memq '... (syntax->datum #'(?pattern-rest ...)))
+       #'(syntax-violation 'match
+	   "multiple ellipsis patterns not allowed at same level"
+	   '(?pattern (... ...) . (?pattern-rest ...))))
 
       ;;Match  the  pattern  "(?pattern  ...  .   ?pattern-rest)"  where
       ;;?PATTERN-REST are trailing patterns.
       ((_ ?expr ?pattern (?pattern-rest ...)
-	  g s
+	  ?getter ?setter
 	  (?success-kont ...) ?failure-kont
-	  ?identifiers ((id id-ls) ...))
-       #'(verify-no-ellipsis
-	  (?pattern-rest ...)
-	  (let* ((tail-len	(length '(?pattern-rest ...)))
-		 (ls		?expr)
-		 (len	(length ls)))
-	    (if (< len tail-len)
-		?failure-kont
-	      (let loop ((ls		ls)
-			 (n		len)
-			 (id-ls	'())
-			 ...)
-		(cond
-		 ((= n tail-len)
-		  (let ((id (reverse id-ls))
+	  ?bound-pattern-variables
+	  ((to-be-bound-pattern-variable to-be-bound-pattern-variable-values) ...))
+       #'(let* ((rest-len		(length '(?pattern-rest ...)))
+		(sub-expressions	?expr)
+		(len			(length sub-expressions)))
+	   (if (< len rest-len)
+	       ;;Not enough sub-expressions to match the rest patterns.
+	       ?failure-kont
+	     (let loop ((sub-expressions			sub-expressions)
+			(still-to-match-len			len)
+			(to-be-bound-pattern-variable-values	'())
 			...)
-		    (next-pattern ls (?pattern-rest ...) #f #f
-				  (?success-kont ... ?identifiers) ?failure-kont
-				  ?identifiers)))
-		 ((pair? ls)
-		  (let ((w (car ls)))
-		    (next-pattern w ?pattern (car ls) (set-car! ls)
-				  (match-drop-bound-pattern-variables
-				   (loop (cdr ls) (- n 1) (cons id id-ls) ...))
-				  ?failure-kont
-				  ?identifiers)))
-		 (else
-		  ?failure-kont))))))))))
+	       (cond
+
+		;;When  the  number  of  sub-expressions left  to  match
+		;;equals  the  number of  patterns  in  the rest:  start
+		;;matching the rest.
+		((= still-to-match-len rest-len)
+		 (let ((to-be-bound-pattern-variable (reverse to-be-bound-pattern-variable-values))
+		       ...)
+		   (next-pattern sub-expressions (?pattern-rest ...) #f #f
+				 (?success-kont ... ?bound-pattern-variables) ?failure-kont
+				 ?bound-pattern-variables)))
+
+		;;Match  the next  sub-expression against  the ellipsis'
+		;;pattern.
+		((pair? sub-expressions)
+		 (next-pattern (car sub-expressions) ?pattern
+			       (car sub-expressions) (set-car! sub-expressions)
+			       ;;The    following    is   the    success
+			       ;;continuation.   Notice that we  have to
+			       ;;drop   the   bound  pattern   variables
+			       ;;appended by NEXT-PATTERN.
+			       (match-drop-bound-pattern-variables
+				(loop (cdr sub-expressions) (- still-to-match-len 1)
+				      (cons to-be-bound-pattern-variable
+					    to-be-bound-pattern-variable-values)
+				      ...))
+			       ?failure-kont
+			       ?bound-pattern-variables))
+
+		(else
+		 ?failure-kont))))))
+      )))
 
 
-;;;; vector matching
-
 (define-syntax match-vector
   ;;This syntax is  the entry point for vector matching,  but it is also
   ;;called recursively.  Synopsis:
@@ -774,12 +869,12 @@
 (define-syntax match-vector-tail
   (syntax-rules ()
     ((_ ?expr ?expr-vector-len ?ellipsis-pattern ?number-of-index-patterns sk fk i)
-     (extract-vars ?ellipsis-pattern
-		   (match-vector-tail #t
-				      ?expr ?expr-vector-len
-				      ?ellipsis-pattern ?number-of-index-patterns
-				      sk fk i)
-		   i ()))
+     (extract-new-pattern-variables ?ellipsis-pattern
+				    (match-vector-tail #t
+						       ?expr ?expr-vector-len
+						       ?ellipsis-pattern ?number-of-index-patterns
+						       sk fk i)
+				    i ()))
 
     ((_ #t v ?expr-vector-len ?ellipsis-pattern ?number-of-index-patterns (sk ...) fk i ((id id-ls) ...))
      (let loop ((j     ?number-of-index-patterns) ;loop over the tail vector indices
@@ -797,89 +892,155 @@
 			 fk i)))))))
 
 
-(define-syntax extract-vars
-  ;;Extract  all  identifiers  in  a  pattern  which  represent  pattern
-  ;;variables.  All the branches  in DISPATCH-PATTERN must be duplicated
-  ;;here.
+(define-syntax extract-new-pattern-variables
+  ;;Extract  all  the  identifiers  in a  pattern  representing  pattern
+  ;;variables.  Unfortunately all  the branches in DISPATCH-PATTERN must
+  ;;be duplicated here.
   ;;
-  ;;A little more complicated than  just looking for symbols, we need to
-  ;;ignore special keywords and not pattern forms (such as the predicate
-  ;;expression in :predicate patterns).
+  ;;The need for this macro  arises from the feature of matching already
+  ;;bound pattern variables with the value assigned before; example:
+  ;;
+  ;;	(match '(ok . ok)
+  ;;	  ((X . X)
+  ;;	   <body>))
+  ;;
+  ;;the  first occurrence  of  X in  the  pattern causes  a new  pattern
+  ;;variable   to   be  bound,   the   second   occurrence  causes   the
+  ;;sub-expression to be compared to the value already bound:
+  ;;
+  ;;	(let ((expr '(ok . ok)))
+  ;;      (let ((X (car expr)))		;first time, bind
+  ;;        (if (equal? X)		;second time, compare
+  ;;            <body>
+  ;;          (match-mismatch-error 'match (cdr expr)))))
+  ;;
+  ;;The simple cases  of pattern variables in pairs  or lists or vectors
+  ;;without  ellipsis,  are  handled  directly by  DISPATCH-PATTERN  and
+  ;;MATCH-VECTOR; this macro handles the  case of pattern followed by an
+  ;;ellipsis, both  in lists and vectors,  and the case  of multiple :OR
+  ;;clauses.   For this complex  cases it  is required  to know  all the
+  ;;newly defined pattern variable identifiers while building the output
+  ;;form.
   ;;
   ;;Synopsis:
   ;;
-  ;; (extract-vars	pattern continuation
-  ;;			(already-bound-pattern-variable ...)
-  ;;			(extracted-var ...))
+  ;;    (extract-new-pattern-variables
+  ;;		<pattern> (<continuation> ...)
+  ;;		(<already-bound-pattern-variable> ...)
+  ;;		(<extracted-var> ...))
   ;;
-  ;;the purpose of  this macro is to add find  new pattern variables and
-  ;;add them to the EXTRACTED-VAR list.
+  ;;The purpose of  this macro is to find new  pattern variables and add
+  ;;them to  the <EXTRACTED-VAR> list; finally the  continuation is used
+  ;;as output form with the variables appended:
+  ;;
+  ;;    (<continuation> ...
+  ;;       ((<extracted-var> extracted-var-values) ...))
+  ;;
+  ;;where EXTRACTED-VAR-VALUES is a  newly generated identifier which is
+  ;;coupled with the extracted variable identifier.
+  ;;
+  ;;The  list of <ALREADY-BOUND-PATTERN-VARIABLE>  identifiers represent
+  ;;the  pattern variables  which  where already  bound  before: when  a
+  ;;variable is  found which is already  bound, it is  ignored; only new
+  ;;pattern variables are registered by this macro.
+  ;;
+  ;;When called by  other macros: the list of  <EXTRACTED-VAR> is always
+  ;;null; this  macro calls  itself recursively so  the list can  be not
+  ;;null for a macro use.
   ;;
   (lambda (stx)
     (syntax-case stx (:predicate :accessor :and :or :not :getter :setter quasiquote quote)
 
+      ;;The pattern is the literal #t.
       ((_ #t (?kont ...) ?bound-pattern-variables ?extracted-variables)
        #'(?kont ... ?extracted-variables))
 
+      ;;The pattern is the literal #f.
       ((_ #f (?kont ...) ?bound-pattern-variables ?extracted-variables)
        #'(?kont ... ?extracted-variables))
 
-      ((_ (:predicate pred . p) ?kont ?bound-pattern-variables ?extracted-variables)
-       #'(extract-vars p ?kont ?bound-pattern-variables ?extracted-variables))
+      ;;The pattern is the :PREDICATE special keyword.
+      ((_ (:predicate pred . ?rest-pattern) ?kont ?bound-pattern-variables ?extracted-variables)
+       #'(extract-new-pattern-variables ?rest-pattern ?kont
+					?bound-pattern-variables ?extracted-variables))
 
-      ((_ (:accessor accessor p) ?kont ?bound-pattern-variables ?extracted-variables)
-       #'(extract-vars p ?kont ?bound-pattern-variables ?extracted-variables))
+      ;;The pattern is the :ACCESSOR special keyword.
+      ((_ (:accessor accessor ?pattern) ?kont ?bound-pattern-variables ?extracted-variables)
+       #'(extract-new-pattern-variables ?pattern ?kont ?bound-pattern-variables ?extracted-variables))
 
+      ;;The pattern is the :AND special keyword.
+      ((_ (:and . ?and-patterns) ?kont ?bound-pattern-variables ?extracted-variables)
+       #'(extract-new-pattern-variables ?and-patterns ?kont
+					?bound-pattern-variables ?extracted-variables))
+
+      ;;The pattern is the :OR special keyword.
+      ((_ (:or . ?or-patterns) ?kont ?bound-pattern-variables ?extracted-variables)
+       #'(extract-new-pattern-variables ?or-patterns ?kont
+					?bound-pattern-variables ?extracted-variables))
+
+      ;;The pattern is the :NOT special keyword.
+      ((_ (:not ?not-pattern) ?kont ?bound-pattern-variables ?extracted-variables)
+       #'(extract-new-pattern-variables ?not-pattern ?kont
+					?bound-pattern-variables ?extracted-variables))
+
+      ;;The pattern is a quoted S-expression.
       ((_ (quote x) (?kont ...) ?bound-pattern-variables ?extracted-variables)
        #'(?kont ... ?extracted-variables))
 
-      ((_ (:and . p) ?kont ?bound-pattern-variables ?extracted-variables)
-       #'(extract-vars p ?kont ?bound-pattern-variables ?extracted-variables))
+      ;;The pattern is a list whose second element is the ellipsis.
+      ((_ (?first-pattern ?second-pattern . ?rest-patterns)
+	  ?kont ?bound-pattern-variables ?extracted-variables)
+       (and (identifier? #'?second-pattern) (free-identifier=? #'(... ...) #'?second-pattern))
+       #'(extract-new-pattern-variables (?first-pattern . ?rest-patterns) ?kont
+					?bound-pattern-variables ?extracted-variables))
 
-      ((_ (:or . p) ?kont ?bound-pattern-variables ?extracted-variables)
-       #'(extract-vars p ?kont ?bound-pattern-variables ?extracted-variables))
+      ;;The pattern is a list whose second element is NOT the ellipsis.
+      ((_ (?first-pattern ?second-pattern . ?rest-pattern)
+	  ?kont ?bound-pattern-variables ?extracted-variables)
+       #'(extract-new-pattern-variables ?first-pattern
+					(extract-new-cdr-pattern-variables
+					 (?second-pattern . ?rest-pattern)
+					 ?kont ?bound-pattern-variables ?extracted-variables)
+					?bound-pattern-variables ()))
 
-      ((_ (:not . p) ?kont ?bound-pattern-variables ?extracted-variables)
-       #'(extract-vars p ?kont ?bound-pattern-variables ?extracted-variables))
+      ;;The pattern is a pair.
+      ((_ (?first-pattern . ?second-pattern)
+	  ?kont ?bound-pattern-variables ?extracted-variables)
+       #'(extract-new-pattern-variables ?first-pattern
+					(extract-new-cdr-pattern-variables
+					 ?second-pattern ?kont
+					 ?bound-pattern-variables ?extracted-variables)
+					?bound-pattern-variables ()))
 
-      ((_ (p q . r) ?kont ?bound-pattern-variables ?extracted-variables)
-       (and (identifier? #'q) (free-identifier=? #'(... ...) #'q))
-       #'(extract-vars (p . r) ?kont ?bound-pattern-variables ?extracted-variables))
+      ;;The pattern is a vector.
+      ((_ #(?pattern ...) ?kont ?bound-pattern-variables ?extracted-variables)
+       #'(extract-new-pattern-variables (?pattern ...)
+					?kont ?bound-pattern-variables ?extracted-variables))
 
-      ((_ (p q . r) ?kont ?bound-pattern-variables ?extracted-variables)
-       #'(extract-vars p (extract-vars-step (q . r) ?kont ?bound-pattern-variables ?extracted-variables)
-		       ?bound-pattern-variables ()))
-
-      ((_ (p . q) ?kont ?bound-pattern-variables ?extracted-variables)
-       #'(extract-vars p (extract-vars-step q ?kont ?bound-pattern-variables ?extracted-variables)
-		       ?bound-pattern-variables ()))
-
-      ((_ #(p ...) ?kont ?bound-pattern-variables ?extracted-variables)
-       #'(extract-vars (p ...) ?kont ?bound-pattern-variables ?extracted-variables))
-
-      ((_ underscore (?kont ...) ?bound-pattern-variables ?extracted-variables)
-       (and (identifier? #'underscore) (free-identifier=? #'_ #'underscore))
+      ;;The pattern is the underscore identifier, the wildcard.
+      ((_ ?pattern (?kont ...) ?bound-pattern-variables ?extracted-variables)
+       (and (identifier? #'?pattern) (free-identifier=? #'_ #'?pattern))
        #'(?kont ... ?extracted-variables))
 
-      ;;The pattern is a literal.
-      ((_ p (?kont ...) ?bound-pattern-variables ?extracted-variables)
-       (not (identifier? #'p))
+      ;;The pattern is a non-identifier literal.
+      ((_ ?pattern (?kont ...) ?bound-pattern-variables ?extracted-variables)
+       (not (identifier? #'?pattern))
        #'(?kont ... ?extracted-variables))
 
-      ;;The pattern is an  identifier already bound as pattern variable,
-      ;;this   is  the   only   clause   in  which   we   make  use   of
+      ;;The pattern is an  identifier already bound as pattern variable:
+      ;;we ignore it.   This is the only clause in which  we make use of
       ;;?BOUND-PATTERN-VARIABLE.
-      ((_ p (?kont ...) (?bound-pattern-variable ...) ?extracted-variables)
-       (and (identifier? #'p) (memq (syntax->datum #'p)
-				    (syntax->datum #'(?bound-pattern-variable ...))))
+      ((_ ?pattern (?kont ...) (?bound-pattern-variable ...) ?extracted-variables)
+       (and (identifier? #'?pattern)
+	    (memq (syntax->datum #'?pattern) (syntax->datum #'(?bound-pattern-variable ...))))
        #'(?kont ... ?extracted-variables))
 
-      ;;The  pattern is  an identifier  not bound  as  pattern variable.
-      ;;Register it in  the list of extracted variables,  coupled with a
-      ;;newly generated identifier.
-      ((_ p (?kont ...) ?bound-pattern-variables ?extracted-variables)
-       (identifier? #'p)
-       #'(?kont ... ((p p-ls) . ?extracted-variables)))
+      ;;The pattern is  an identifier not bound as  pattern variable: we
+      ;;register it in the list of extracted variables, coupled with the
+      ;;newly generated identifier PATTERN-LIST-OF-VALUES.
+      ((_ ?pattern (?kont ...) ?bound-pattern-variables ?extracted-variables)
+       (identifier? #'?pattern)
+       #'(?kont ... ((?pattern pattern-list-of-values) . ?extracted-variables)))
 
       ;;We should never reach this clause.
       ((_ ?pattern ?kont ?bound-pattern-variables ?extracted-variables)
@@ -887,13 +1048,47 @@
 
       )))
 
-(define-syntax extract-vars-step
-  ;;Stepper  used  in  the above  so  it  can  expand  the CAR  and  CDR
-  ;;separately.
+(define-syntax extract-new-cdr-pattern-variables
+  ;;When EXTRACT-NEW-PATTERN-VARIABLES has  to parse a composite pattern
+  ;;like:
+  ;;
+  ;;    (?car-pattern . ?cdr-pattern)
+  ;;    ()
+  ;;
+  ;;it has  to process recursively the component  patterns; however when
+  ;;processing ?CDR-PATTERN the variables  found in ?CAR-PATTERN must be
+  ;;present as "already bound", so simply expanding:
+  ;;
+  ;;    (extract-new-pattern-variables
+  ;;		(?car-pattern . ?cdr-pattern) ?kont
+  ;;		?bound-pattern-variables ?extracted-variables)
+  ;;
+  ;;to:
+  ;;
+  ;;    (extract-new-pattern-variables
+  ;;		?car-pattern
+  ;;		(extract-new-pattern-variables
+  ;;		    ?cdr-pattern ?kont
+  ;;		    ?bound-pattern-variables ?extracted-variables)
+  ;;		?bound-pattern-variables ?extracted-variables)
+  ;;
+  ;;is incorrect.  By using this macro to wrap the continuation:
+  ;;
+  ;;    (extract-new-pattern-variables
+  ;;		?car-pattern
+  ;;		(extract-new-cdr-pattern-variables
+  ;;		    ?cdr-pattern ?kont
+  ;;		    ?bound-pattern-variables ?extracted-variables)
+  ;;		?bound-pattern-variables ?extracted-variables)
+  ;;
+  ;;we append the variables extracted  from the ?CAR-PATTERN to the list
+  ;;of already bound variables when parsing the ?CDR-pattern.
   ;;
   (syntax-rules ()
-    ((_ p k i v ((v2 v2-ls) ...))
-     (extract-vars p k (v2 ... . i) ((v2 v2-ls) ... . v)))))
+    ((_ ?pattern ?kont ?bound-pattern-variables ?extracted-variables ((v2 v2-ls) ...))
+     (extract-new-pattern-variables ?pattern ?kont
+				    (v2 ... . ?bound-pattern-variables)
+				    ((v2 v2-ls) ... . ?extracted-variables)))))
 
 
 ;;;; gimme some sugar baby
