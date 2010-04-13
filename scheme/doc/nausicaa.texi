@@ -12549,23 +12549,23 @@ type is sealed, i.e., it cannot be extended.
 
 The @var{opaque?} flag must be a boolean.  If true, the record type is
 opaque.  If passed an instance of the record type, @func{record?}
-returns @false{}.  Moreover, if @samp{record-rtd} (see ``Inspection''
-below) is called with an instance of the record type, an exception with
-condition type @condition{assertion} is raised.  The record type is also
-opaque if an opaque parent is supplied.  If @var{opaque?} is @false{}
-and an opaque parent is not supplied, the record is not opaque.
+returns @false{}.  Moreover, if @samp{record-rtd} is called with an
+instance of the record type, an exception with condition type
+@condition{assertion} is raised.  The record type is also opaque if an
+opaque parent is supplied.  If @var{opaque?} is @false{} and an opaque
+parent is not supplied, the record is not opaque.
 
-The @var{fields} argument must be a vector of field specifiers. Each
+The @var{fields} argument must be a vector of field specifiers.  Each
 field specifier must be a list of the form @code{(mutable @var{name})}
 or a list of the form @code{(immutable @var{name})}.  Each name must be
 a symbol and names the corresponding field of the record type; the names
 need not be distinct.  A field identified as mutable may be modified,
 whereas, when a program attempts to obtain a mutator for a field
 identified as immutable, an exception with condition type
-@condition{assertion} is raised.  Where field order is relevant, e.g., for
-record construction and field access, the fields are considered to be
-ordered as specified, although no particular order is required for the
-actual representation of a record instance.
+@condition{assertion} is raised.  Where field order is relevant, e.g.,
+for record construction and field access, the fields are considered to
+be ordered as specified, although no particular order is required for
+the actual representation of a record instance.
 
 The specified fields are added to the parent fields, if any, to
 determine the complete set of fields of the returned record type.  If
@@ -12893,7 +12893,7 @@ The mutator returns unspecified values.
 @subsection Inspection
 
 
-@cindex @rsixlibrary{record inspection}, library
+@cindex @rsixlibrary{records inspection}, library
 @cindex Library, @rsixlibrary{record inspection}
 
 
