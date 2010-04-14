@@ -8,7 +8,7 @@
 ;;;	The original  code was written by  Alex Shinn and  placed in the
 ;;;	Public Domain.
 ;;;
-;;;	Notice  that   some  SYNTAX-CASE  uses   have  "complex"  fender
+;;;	  Notice  that  some  SYNTAX-CASE  uses  have  "complex"  fender
 ;;;	expressions; they  could be put into a  separate library, loaded
 ;;;	for EXPAND, instead  they are kept here.  This  is to reduce the
 ;;;	overall  number of libraries  and to  improve "locality"  in the
@@ -63,9 +63,15 @@
 
 
 (define-syntax match
-  ;;The basic interface.  Perform some basic syntax validation, bind the
-  ;;expression to match to a temporary  variable (if it is not an atom),
-  ;;and pass it on to NEXT-CLAUSE.
+  ;;The main macro for pattern matching.  Synopsis:
+  ;;
+  ;;    (match <expression> <clause> ...)
+  ;;
+  ;;    <clause> == (<pattern> <body>)
+  ;;
+  ;;Perform some  basic syntax validation, bind the  expression to match
+  ;;to a temporary  variable (if it is  not an atom), and pass  it on to
+  ;;MATCH-CLAUSE.
   ;;
   (lambda (stx)
     (syntax-case stx (=>)
@@ -83,31 +89,33 @@
 
       ((_ (?item ...) ?clause ...)
        #'(let ((expr (?item ...)))
-	   (next-clause expr expr (set! expr) ?clause ...)))
+	   (match-clause expr expr (set! expr) ?clause ...)))
 
       ((_ #(?item ...) ?clause ...)
        #'(let ((expr (quote #(?item ...))))
-	   (next-clause expr expr (set! expr) ?clause ...)))
+	   (match-clause expr expr (set! expr) ?clause ...)))
 
       ((_ ?atom ?clause ...)
        (identifier? #'?atom)
-       #'(next-clause ?atom ?atom (set! ?atom) ?clause ...))
+       #'(match-clause ?atom ?atom (set! ?atom) ?clause ...))
 
       ((_ ?atom ?clause ...)
-       #'(next-clause ?atom ?atom (assertion-violation 'match "invoked setter for an atom") ?clause ...))
-
+       #'(match-clause ?atom ?atom
+		       (assertion-violation 'match "invoked setter for an atom")
+		       ?clause ...))
       )))
 
 
-(define-syntax next-clause
-  ;;Match  an expression  against the  full  pattern from  a clause;  if
-  ;;matching  fails, invoke  a thunk  that  attempts to  match the  next
-  ;;clause or  raise an error  if no other  clauses are present.   To be
-  ;;called with the following arguments:
+(define-syntax match-clause
+  ;;This macro is the entry point  to process a full clause from a MATCH
+  ;;use.  It  matches an  expression against the  full pattern  from the
+  ;;first given clause; if matching  fails, invoke a thunk that attempts
+  ;;to match the  next clause or raise an error if  no other clauses are
+  ;;present.  To be called with the following arguments:
   ;;
   ;;EXPR	- the expression to match
-  ;;GETTER	- the getter form accumulated for this clause
-  ;;SETTER	- the setter form accumulated for this clause
+  ;;GETTER	- the first getter form for this clause
+  ;;SETTER	- the first setter form for this clause
   ;;CLAUSE ...	- one or more match clauses
   ;;
   ;;The EXPR value must be the name of a temporary variable to which the
@@ -117,7 +125,7 @@
   ;;
   ;;The GETTER  must be a form  which, when evaluated,  returns the full
   ;;expression;  the getter  can be  EXPR itself.   It is  used  only by
-  ;;DISPATCH-PATTERN when the pattern has the form "(:getter <getter>)",
+  ;;MATCH-PATTERN when the pattern has the form "(:getter <getter>)",
   ;;where <getter> is a symbol; the usage looks like this:
   ;;
   ;;	(let ((<getter> (lambda () GETTER)))
@@ -127,7 +135,7 @@
   ;;BODY.
   ;;
   ;;The  SETTER  must  be an  "incomplete"  form;  it  is used  only  by
-  ;;DISPATCH-PATTERN when the pattern has the form "(:setter <setter>)",
+  ;;MATCH-PATTERN when the pattern has the form "(:setter <setter>)",
   ;;where <setter> is a symbol; the usage looks like this:
   ;;
   ;;	(let ((<setter> (lambda (x)
@@ -141,33 +149,32 @@
   ;;
   (syntax-rules (=>)
 
-    ;;No more clauses.
-    ((_ ?expr ?accumulated-getter ?accumulated-setter)
+    ;;No more clauses, raise an error.
+    ((_ ?expr ?getter ?setter)
      (match-mismatch-error 'match ?expr))
 
     ;;Match when the clause has an explicitly named match continuation.
-    ((_ ?expr ?accumulated-getter ?accumulated-setter
-	(?pattern (=> ?failure-kont) . ?body) . ?other-clauses)
+    ((_ ?expr ?getter ?setter
+	(?pattern (=> ?failure-kont) . ?body) ;this clause
+	. ?other-clauses)
      (let ((?failure-kont (lambda ()
-			    (next-clause ?expr ?accumulated-getter ?accumulated-setter
-					 . ?other-clauses))))
-       (next-pattern ?expr ?pattern
-		     ?accumulated-getter ?accumulated-setter
-		     (match-drop-bound-pattern-variables
-		      (begin . ?body)) ;success continuation
-		     (?failure-kont) ;failure continuation
-		     ()))) ;identifiers bound as pattern variables
+			    (match-clause ?expr ?getter ?setter . ?other-clauses))))
+       (match-pattern ?expr ?pattern
+		      ?getter ?setter
+		      (match-drop-bound-pattern-variables
+		       (begin . ?body)) ;success continuation
+		      (?failure-kont)	;failure continuation
+		      ()))) ;identifiers bound as pattern variables
 
     ;;Anonymous failure continuation, give it a dummy name and recurse.
-    ((_ ?expr ?accumulated-getter ?accumulated-setter (?pattern . ?body) . ?other-clauses)
-     (next-clause ?expr ?accumulated-getter ?accumulated-setter
-		  (?pattern (=> anonymous-kont) . ?body) . ?other-clauses))))
+    ((_ ?expr ?getter ?setter (?pattern . ?body) . ?other-clauses)
+     (match-clause ?expr ?getter ?setter
+		   (?pattern (=> anonymous-kont) . ?body) . ?other-clauses))))
 
 
-(define-syntax next-pattern
-  ;;Match an expression against a pattern element; it is a normalisation
-  ;;step  before DISPATCH-PATTERN.   This macro  is the  entry  point to
-  ;;match a pattern against an expression.
+(define-syntax match-pattern
+  ;;This  macro  is  the entry  point  to  match  a pattern  against  an
+  ;;expression.
   ;;
   ;;To be called with the following arguments:
   ;;
@@ -180,101 +187,17 @@
   ;;IDENTIFIERS		- the list of identifiers bound as pattern
   ;;			  variables so far
   ;;
-  ;;See NEXT-CLAUSE for the meaning of EXPR, GETTER and SETTER.
+  ;;See MATCH-CLAUSE for the meaning of EXPR, GETTER and SETTER.
   ;;
   ;;The  failure  continuation is  invoked  when  matching EXPR  against
-  ;;PATTERN fails;  the continuation is  meant to invoke  NEXT-CLAUSE to
+  ;;PATTERN fails;  the continuation is meant to  invoke MATCH-CLAUSE to
   ;;match  EXPR against  the next  clause.  The  FAILURE-KONT must  be a
   ;;thunk call, so that it is safe to expand it multiple times.
   ;;
   ;;If PATTERN is a list of two  or more values "(?p ?q . ?r)", check to
   ;;see  if   ?Q  is  an   ellipsis  and  handle  it   accordingly  with
-  ;;ELLIPSIS-PATTERN; else pass all the arguments to DISPATCH-PATTERN.
+  ;;ELLIPSIS-PATTERN; else pass all the arguments to MATCH-PATTERN.
   ;;
-  (lambda (stx)
-    (syntax-case stx ()
-
-      ((_ ?expr (?pattern ?second-pattern . ?pattern-rest)
-	  ?accumulated-getter ?accumulated-setter
-	  ?success-kont ?failure-kont ?bound-pattern-variables)
-       (and (identifier? #'?second-pattern)
-	    (free-identifier=? #'(... ...) #'?second-pattern))
-       #'(extract-new-pattern-variables ?pattern
-					(ellipsis-pattern ?expr ?pattern ?pattern-rest
-							  ?accumulated-getter ?accumulated-setter
-							  ?success-kont ?failure-kont
-							  ?bound-pattern-variables)
-					?bound-pattern-variables ()))
-
-      ((_ ?expr (?pattern ?second-pattern . ?pattern-rest)
-	  ?accumulated-getter ?accumulated-setter
-	  ?success-kont ?failure-kont ?bound-pattern-variables)
-       #'(dispatch-pattern ?expr (?pattern ?second-pattern . ?pattern-rest)
-			   ?accumulated-getter ?accumulated-setter
-			   ?success-kont ?failure-kont ?bound-pattern-variables))
-
-      ((_ ?expr ?pattern
-	  ?accumulated-getter ?accumulated-setter
-	  ?success-kont ?failure-kont ?bound-pattern-variables)
-       #'(dispatch-pattern ?expr ?pattern
-			   ?accumulated-getter ?accumulated-setter
-			   ?success-kont ?failure-kont ?bound-pattern-variables))
-
-      )))
-
-
-(define-syntax match-drop-bound-pattern-variables
-  ;;Occasionally NEXT-PATTERN is used  with a success continuation which
-  ;;not  only does not  need the  list of  bound pattern  variables, but
-  ;;which would raise an error if the list of variables is appended:
-  ;;
-  ;;	(next-pattern <expr> <pattern> <getter> <setter>
-  ;;		(<success-kont> ...)
-  ;;		<failure-kont> <bound-pattern-variables>)
-  ;;
-  ;;would expand the success continuation to:
-  ;;
-  ;;    (<success-kont> ... <bound-pattern-variables>) -> ERROR!!!
-  ;;
-  ;;In these  cases we can wrap  the continuation with  this macro which
-  ;;has the only effect of dropping the list of variables:
-  ;;
-  ;;	(next-pattern <expr> <pattern> <getter> <setter>
-  ;;		(match-drop-bound-pattern-variables
-  ;;		   (<success-kont> ...))
-  ;;		<failure-kont> <bound-pattern-variables>)
-  ;;
-  ;;expands the success continuation to:
-  ;;
-  ;;    (match-drop-bound-pattern-variables
-  ;;       (<success-kont> ...)
-  ;;       <bound-pattern-variables>)
-  ;;
-  ;;which then expands to:
-  ;;
-  ;;    (<success-kont> ...)
-  ;;
-  ;;This macro removes both the  list of already bound pattern variables
-  ;;and    the   list    of   to-be-bound    pattern    variables;   see
-  ;;EXTRACT-NEW-PATTERN-VARIABLES for details.
-  ;;
-  (syntax-rules ()
-
-    ((_ (?success-kont ...) ?bound-pattern-variables)
-     (?success-kont ...))
-
-    ((_ (?success-kont ...) ?bound-pattern-variables ?to-be-bound-pattern-variables)
-     (?success-kont ...))
-
-    ((_ (?success-kont ...))
-     (?success-kont ...))
-    ))
-
-
-(define-syntax dispatch-pattern
-  ;;Match a  pattern element against all the  supported pattern matching
-  ;;models; invoke  the appropriate macro.   To be called with  the same
-  ;;arguments of NEXT-PATTERN.
   ;;
   (lambda (stx)
     (syntax-case stx (:predicate :accessor :and :or :not :setter :getter quasiquote quote)
@@ -335,23 +258,23 @@
       ((_ ?expr (:and ?pattern)
 	  ?accumulated-getter ?accumulated-setter
 	  ?success-kont ?failure-kont ?bound-pattern-variables)
-       #'(next-pattern ?expr ?pattern
-		       ?accumulated-getter ?accumulated-setter
-		       ?success-kont ?failure-kont ?bound-pattern-variables))
+       #'(match-pattern ?expr ?pattern
+			?accumulated-getter ?accumulated-setter
+			?success-kont ?failure-kont ?bound-pattern-variables))
 
       ;;the pattern is a non-empty AND
       ((_ ?expr (:and ?first-pattern ?other-pattern ...)
 	  ?accumulated-getter ?accumulated-setter
 	  ?success-kont ?failure-kont ?bound-pattern-variables)
-       #'(next-pattern ?expr ?first-pattern
-		       ?accumulated-getter ?accumulated-setter
-		       ;;The  following  is  the  success  continuation.
-		       ;;Notice    that    ?BOUND-PATTERN-VARIABLES   is
-		       ;;appended to it by the nested NEXT-PATTERN use.
-		       (next-pattern ?expr (:and ?other-pattern ...)
-				     ?accumulated-getter ?accumulated-setter
-				     ?success-kont ?failure-kont)
-		       ?failure-kont ?bound-pattern-variables))
+       #'(match-pattern ?expr ?first-pattern
+			?accumulated-getter ?accumulated-setter
+			;;The  following  is  the  success  continuation.
+			;;Notice    that    ?BOUND-PATTERN-VARIABLES   is
+			;;appended to it by the nested MATCH-PATTERN use.
+			(match-pattern ?expr (:and ?other-pattern ...)
+				       ?accumulated-getter ?accumulated-setter
+				       ?success-kont ?failure-kont)
+			?failure-kont ?bound-pattern-variables))
 
 ;;; --------------------------------------------------------------------
 
@@ -365,19 +288,19 @@
       ((_ ?expr (:or ?pattern)
 	  ?accumulated-getter ?accumulated-setter
 	  ?success-kont ?failure-kont ?bound-pattern-variables)
-       #'(next-pattern ?expr ?pattern
-		       ?accumulated-getter ?accumulated-setter
-		       ?success-kont ?failure-kont ?bound-pattern-variables))
+       #'(match-pattern ?expr ?pattern
+			?accumulated-getter ?accumulated-setter
+			?success-kont ?failure-kont ?bound-pattern-variables))
 
       ;;the pattern is a multiple-clause OR
       ((_ ?expr (:or ?pattern ...)
 	  ?accumulated-getter ?accumulated-setter
 	  ?success-kont ?failure-kont ?bound-pattern-variables)
        #'(extract-new-pattern-variables (:or ?pattern ...)
-					(generate-or ?expr (?pattern ...)
-						     ?accumulated-getter ?accumulated-setter
-						     ?success-kont ?failure-kont
-						     ?bound-pattern-variables)
+					(match-or-pattern ?expr (?pattern ...)
+							  ?accumulated-getter ?accumulated-setter
+							  ?success-kont ?failure-kont
+							  ?bound-pattern-variables)
 					?bound-pattern-variables ()))
 
 ;;; --------------------------------------------------------------------
@@ -392,11 +315,11 @@
       ((_ ?expr (:not ?pattern)
 	  ?accumulated-getter ?accumulated-setter
 	  (?success-kont ...) ?failure-kont ?bound-pattern-variables)
-       #'(next-pattern ?expr ?pattern
-		       ?accumulated-getter ?accumulated-setter
-		       (match-drop-bound-pattern-variables ?failure-kont)
-		       (?success-kont ... ?bound-pattern-variables)
-		       ?bound-pattern-variables))
+       #'(match-pattern ?expr ?pattern
+			?accumulated-getter ?accumulated-setter
+			(match-drop-bound-pattern-variables ?failure-kont)
+			(?success-kont ... ?bound-pattern-variables)
+			?bound-pattern-variables))
 
 ;;; --------------------------------------------------------------------
 
@@ -422,9 +345,9 @@
 	  ?success-kont ?failure-kont ?bound-pattern-variables)
        #'(let ((predicate (quasiquote ?predicate)))
 	   (if (predicate ?expr)
-	       (next-pattern ?expr (:and ?pattern ...)
-			     ?accumulated-getter ?accumulated-setter
-			     ?success-kont ?failure-kont ?bound-pattern-variables)
+	       (match-pattern ?expr (:and ?pattern ...)
+			      ?accumulated-getter ?accumulated-setter
+			      ?success-kont ?failure-kont ?bound-pattern-variables)
 	     ?failure-kont)))
 
       ;;the pattern is a predicate
@@ -432,9 +355,9 @@
 	  ?accumulated-getter ?accumulated-setter
 	  ?success-kont ?failure-kont ?bound-pattern-variables)
        #'(if (?predicate ?expr)
-	     (next-pattern ?expr (:and ?pattern ...)
-			   ?accumulated-getter ?accumulated-setter
-			   ?success-kont ?failure-kont ?bound-pattern-variables)
+	     (match-pattern ?expr (:and ?pattern ...)
+			    ?accumulated-getter ?accumulated-setter
+			    ?success-kont ?failure-kont ?bound-pattern-variables)
 	   ?failure-kont))
 
 ;;; --------------------------------------------------------------------
@@ -445,18 +368,18 @@
 	  ?success-kont ?failure-kont ?bound-pattern-variables)
        #'(let ((proc (quasiquote ?proc)))
 	   (let ((expr1 (proc ?expr)))
-	     (next-pattern expr1 ?pattern
-			   ?accumulated-getter ?accumulated-setter
-			   ?success-kont ?failure-kont ?bound-pattern-variables))))
+	     (match-pattern expr1 ?pattern
+			    ?accumulated-getter ?accumulated-setter
+			    ?success-kont ?failure-kont ?bound-pattern-variables))))
 
       ;;the pattern is an accessor matcher
       ((_ ?expr (:accessor ?proc ?pattern)
 	  ?accumulated-getter ?accumulated-setter
 	  ?success-kont ?failure-kont ?bound-pattern-variables)
        #'(let ((expr1 (?proc ?expr)))
-	   (next-pattern expr1 ?pattern
-			 ?accumulated-getter ?accumulated-setter
-			 ?success-kont ?failure-kont ?bound-pattern-variables)))
+	   (match-pattern expr1 ?pattern
+			  ?accumulated-getter ?accumulated-setter
+			  ?success-kont ?failure-kont ?bound-pattern-variables)))
 
 ;;; --------------------------------------------------------------------
 
@@ -475,10 +398,25 @@
        #'(if (and (pair? ?expr)
 		  (null? (cdr ?expr)))
 	     (let-syntax ((sub-expr (identifier-syntax (car ?expr))))
-	       (next-pattern sub-expr ?pattern
-			     sub-expr (set-car! ?expr)
-			     ?success-kont ?failure-kont ?bound-pattern-variables))
+	       (match-pattern sub-expr ?pattern
+			      sub-expr (set-car! ?expr)
+			      ?success-kont ?failure-kont ?bound-pattern-variables))
 	   ?failure-kont))
+
+;;;***
+      ;;the pattern is a list with  at least 2 sub-patterns in which the
+      ;;first sub-pattern is followed by the ellipsis
+      ((_ ?expr (?pattern ?second-pattern . ?pattern-rest)
+	  ?accumulated-getter ?accumulated-setter
+	  ?success-kont ?failure-kont ?bound-pattern-variables)
+       (and (identifier? #'?second-pattern)
+	    (free-identifier=? #'(... ...) #'?second-pattern))
+       #'(extract-new-pattern-variables ?pattern
+					(ellipsis-pattern ?expr ?pattern ?pattern-rest
+							  ?accumulated-getter ?accumulated-setter
+							  ?success-kont ?failure-kont
+							  ?bound-pattern-variables)
+					?bound-pattern-variables ()))
 
       ;;the pattern is a pair
       ((_ ?expr (?pattern . ?pattern-rest)
@@ -487,17 +425,17 @@
        #'(if (pair? ?expr)
 	     (let-syntax ((expr-a (identifier-syntax (car ?expr)))
 			  (expr-d (identifier-syntax (cdr ?expr))))
-	       (next-pattern expr-a ?pattern
-			     (car ?expr) (set-car! ?expr)
-			     ;;The    following     is    the    success
-			     ;;continuation.          Notice        that
-			     ;;?BOUND-PATTERN-VARIABLES  is  appended to
-			     ;;it by the nested NEXT-PATTERN use.
-			     (next-pattern expr-d ?pattern-rest
-					   (cdr ?expr) (set-cdr! ?expr)
-					   ?success-kont ?failure-kont)
-			     ?failure-kont
-			     ?bound-pattern-variables))
+	       (match-pattern expr-a ?pattern
+			      (car ?expr) (set-car! ?expr)
+			      ;;The    following     is    the    success
+			      ;;continuation.          Notice        that
+			      ;;?BOUND-PATTERN-VARIABLES  is  appended to
+			      ;;it by the nested MATCH-PATTERN use.
+			      (match-pattern expr-d ?pattern-rest
+					     (cdr ?expr) (set-cdr! ?expr)
+					     ?success-kont ?failure-kont)
+			      ?failure-kont
+			      ?bound-pattern-variables))
 	   ?failure-kont))
 
 ;;; --------------------------------------------------------------------
@@ -564,42 +502,150 @@
       )))
 
 
-(define-syntax generate-or
-  ;;Generating OR clauses just involves binding the success continuation
-  ;;into a  thunk which takes the  identifiers from each  OR clause, and
-  ;;trying each clause, calling the thunk as soon as we succeed.
+(define-syntax match-drop-bound-pattern-variables
+  ;;Occasionally MATCH-PATTERN is used with a success continuation which
+  ;;not  only does not  need the  list of  bound pattern  variables, but
+  ;;which would raise an error if the list of variables is appended:
+  ;;
+  ;;	(match-pattern <expr> <pattern> <getter> <setter>
+  ;;		(<success-kont> ...)
+  ;;		<failure-kont> <bound-pattern-variables>)
+  ;;
+  ;;would expand the success continuation to:
+  ;;
+  ;;    (<success-kont> ... <bound-pattern-variables>) -> ERROR!!!
+  ;;
+  ;;In these  cases we can wrap  the continuation with  this macro which
+  ;;has the only effect of dropping the list of variables:
+  ;;
+  ;;	(match-pattern <expr> <pattern> <getter> <setter>
+  ;;		(match-drop-bound-pattern-variables
+  ;;		   (<success-kont> ...))
+  ;;		<failure-kont> <bound-pattern-variables>)
+  ;;
+  ;;expands the success continuation to:
+  ;;
+  ;;    (match-drop-bound-pattern-variables
+  ;;       (<success-kont> ...)
+  ;;       <bound-pattern-variables>)
+  ;;
+  ;;which then expands to:
+  ;;
+  ;;    (<success-kont> ...)
+  ;;
+  ;;This macro removes both the  list of already bound pattern variables
+  ;;and    the   list    of   to-be-bound    pattern    variables;   see
+  ;;EXTRACT-NEW-PATTERN-VARIABLES for details.
   ;;
   (syntax-rules ()
-    ((_ v p g s (sk ...) fk (i ...) (id ...))
-     (let ((sk2 (lambda (id ...) (sk ... (i ... id ...)))))
-       (generate-or-step v p g s
-			  (match-drop-bound-pattern-variables (sk2 id ...))
-			  fk (i ...))))))
 
-(define-syntax generate-or-step
+    ((_ (?success-kont ...) ?bound-pattern-variables)
+     (?success-kont ...))
+
+    ((_ (?success-kont ...) ?bound-pattern-variables ?to-be-bound-pattern-variables)
+     (?success-kont ...))
+
+    ((_ (?success-kont ...))
+     (?success-kont ...))
+    ))
+
+
+(define-syntax match-or-pattern
+  ;;Matching an :OR pattern means transforming:
+  ;;
+  ;;    (match 123
+  ;;		((:or (:predicate integer? x)
+  ;;		      (:predicate flonum?  x))
+  ;;		 (+ 1 x)))
+  ;;
+  ;;to an equivalent of:
+  ;;
+  ;;    (let ((expr    123)
+  ;;          (success (lambda (x)              ;success continuation
+  ;;                     (+ 1 x))))
+  ;;        (if (integer? expr)                 ;try first :OR clause
+  ;;            (let ((x expr))
+  ;;              (success x))
+  ;;          (if (flonum? expr)                ;try second :OR clause
+  ;;              (let ((x expr))
+  ;;                (success x))
+  ;;            ---)                            ;failure continuation
+  ;;          )))
+  ;;
+  ;;The macro use:
+  ;;
+  ;;    (match-pattern ?expr (:or ?or-pattern ...)
+  ;;		?accumulated-getter ?accumulated-setter
+  ;;		?success-kont ?failure-kont ?bound-pattern-variables)
+  ;;
+  ;;is expanded to:
+  ;;
+  ;;    (extract-new-pattern-variables (:or ?or-pattern ...)
+  ;;		(match-or-pattern ?expr (?or-pattern ...)
+  ;;			?accumulated-getter ?accumulated-setter
+  ;;			?success-kont ?failure-kont
+  ;;			?bound-pattern-variables)
+  ;;		?bound-pattern-variables ()))
+  ;;
+  ;;which is expanded to:
+  ;;
+  ;;	(match-or-pattern ?expr (?or-pattern ...)
+  ;;		?accumulated-getter ?accumulated-setter
+  ;;		(?success-kont ...) ?failure-kont
+  ;;		(?bound-pattern-variable ...)
+  ;;		(?to-be-bound-pattern-variable ...))
+  ;;
+  ;;in which  the list of  ?TO-BE-BOUND-PATTERN-VARIABLE is the  list of
+  ;;pattern variables in the :OR clauses:  it is used as formals for the
+  ;;success continuation's LAMBDA.
+  ;;
+  (syntax-rules ()
+    ((_ ?expr (?or-pattern ...)
+	?getter ?setter
+	(?success-kont ...) ?failure-kont
+	(?bound-pattern-variable ...)
+	(?to-be-bound-pattern-variable ...))
+     (let ((success (lambda (?to-be-bound-pattern-variable ...)
+		      (?success-kont
+		       ...
+		       (?bound-pattern-variable
+			...
+			?to-be-bound-pattern-variable ...)))))
+       (match-or-clause-pattern ?expr (?or-pattern ...) ?getter ?setter
+				(match-drop-bound-pattern-variables
+				 (success ?to-be-bound-pattern-variable ...))
+				?failure-kont (?bound-pattern-variable ...))))))
+
+(define-syntax match-or-clause-pattern
+  ;;Match a single  :OR clause pattern and try the  next one if failure.
+  ;;It is a wrapper for MATCH-PATTERN.
+  ;;
   (syntax-rules ()
 
-    ;;no OR clauses, call the failure continuation
-    ((_ ?expr () ?getter ?setter ?success-kont ?failure-kont ?identifiers)
+    ;;No more :OR clauses, call the failure continuation.
+    ((_ ?expr () ?getter ?setter ?success-kont ?failure-kont ?bound-pattern-variables)
      ?failure-kont)
 
-    ;;last (or only) OR clause, just expand normally
-    ((_ ?expr (?pattern) ?getter ?setter ?success-kont ?failure-kont ?identifiers)
-     (next-pattern ?expr ?pattern ?getter ?setter ?success-kont ?failure-kont ?identifiers))
+    ;;Last :OR clause, just expand to MATCH-PATTERN.
+    ((_ ?expr (?or-pattern) ?getter ?setter ?success-kont ?failure-kont ?bound-pattern-variables)
+     (match-pattern ?expr ?or-pattern ?getter ?setter
+		    ?success-kont ?failure-kont ?bound-pattern-variables))
 
-    ;;match one and try the remaining on failure
-    ((_ ?expr (?pattern . ?pattern-rest) ?getter ?setter ?success-kont ?failure-kont ?identifiers)
-     (next-pattern ?expr ?pattern ?getter ?setter
-		   ?success-kont
-		   (generate-or-step ?expr ?pattern-rest ;failure continuation
-				      ?getter ?setter
-				      ?success-kont ?failure-kont ?identifiers)
-		   ?identifiers))))
+    ;;Match the first :OR clause and try the remaining on failure.
+    ((_ ?expr (?or-pattern . ?or-pattern-rest) ?getter ?setter
+	?success-kont ?failure-kont ?bound-pattern-variables)
+     (match-pattern ?expr ?or-pattern ?getter ?setter
+		    ?success-kont
+		    ;;The following is the failure continuation.
+		    (match-or-clause-pattern ?expr ?or-pattern-rest
+					     ?getter ?setter
+					     ?success-kont ?failure-kont ?bound-pattern-variables)
+		    ?bound-pattern-variables))))
 
 
 (define-syntax ellipsis-pattern
   ;;Match  the expression with  a list  pattern containing  an ellipsis;
-  ;;this macro  is called by  NEXT-PATTERN when it has  already verified
+  ;;this macro  is called by  MATCH-PATTERN when it has  already verified
   ;;that the expression ?EXPR is null or a pair.
   ;;
   ;;This  macro can  be called  with list  input pattern  in one  of the
@@ -614,7 +660,7 @@
   ;;it to ?IDENTIFIER-PATTERN.
   ;;
   ;;* In the second form we  use a loop to match every sub-expression in
-  ;;?EXPR against ?SOME-PATTERN, using NEXT-PATTERN.
+  ;;?EXPR against ?SOME-PATTERN, using MATCH-PATTERN.
   ;;
   ;;* In the third form we assume that ?PATTERN-REST is a list (possibly
   ;;null), so we determine its length and compute the number of elements
@@ -626,7 +672,7 @@
   ;;the match is  positive if ?EXPR has enough  sub-expressions to match
   ;;all the patterns in ?PATTERN-REST;  it may be that no sub-expression
   ;;is available to be matched by  ?SOME-PATTERN.  Then we use a loop to
-  ;;match the sub-expressions agains ?SOME-PATTERN, using NEXT-PATTERN.
+  ;;match the sub-expressions agains ?SOME-PATTERN, using MATCH-PATTERN.
   ;;
   ;;Synopsis:
   ;;
@@ -670,17 +716,17 @@
 		      (?success-kont ... ?bound-pattern-variables)))
 		   ((pair? sub-expressions)
 		    (let ((sub-expr (car sub-expressions)))
-		      (next-pattern sub-expr ?pattern
-				    sub-expr (set-car! sub-expressions)
-				    ;;The   following   is   the   success
-				    ;;continuation.   Notice that  we have
-				    ;;to drop  the bound pattern variables
-				    ;;appended by NEXT-PATTERN.
-				    (match-drop-bound-pattern-variables
-				     (loop (cdr sub-expressions)
-					   (cons to-be-bound-pattern-variable
-						 pattern-variable-values) ...))
-				    ?failure-kont ?bound-pattern-variables)))
+		      (match-pattern sub-expr ?pattern
+				     sub-expr (set-car! sub-expressions)
+				     ;;The   following   is   the   success
+				     ;;continuation.   Notice that  we have
+				     ;;to drop  the bound pattern variables
+				     ;;appended by MATCH-PATTERN.
+				     (match-drop-bound-pattern-variables
+				      (loop (cdr sub-expressions)
+					    (cons to-be-bound-pattern-variable
+						  pattern-variable-values) ...))
+				     ?failure-kont ?bound-pattern-variables)))
 		   (else
 		    ?failure-kont)))))
 
@@ -720,26 +766,26 @@
 		  ((= still-to-match-len rest-len)
 		   (let ((?to-be-bound-pattern-variable (reverse pattern-variable-values))
 			 ...)
-		     (next-pattern sub-expressions (?pattern-rest ...) #f #f
-				   (?success-kont ... ?bound-pattern-variables) ?failure-kont
-				   ?bound-pattern-variables)))
+		     (match-pattern sub-expressions (?pattern-rest ...) #f #f
+				    (?success-kont ... ?bound-pattern-variables) ?failure-kont
+				    ?bound-pattern-variables)))
 
 		  ;;Match  the next  sub-expression against  the ellipsis'
 		  ;;pattern.
 		  ((pair? sub-expressions)
-		   (next-pattern (car sub-expressions) ?pattern
-				 (car sub-expressions) (set-car! sub-expressions)
-				 ;;The    following    is   the    success
-				 ;;continuation.   Notice that we  have to
-				 ;;drop   the   bound  pattern   variables
-				 ;;appended by NEXT-PATTERN.
-				 (match-drop-bound-pattern-variables
-				  (loop (cdr sub-expressions) (- still-to-match-len 1)
-					(cons ?to-be-bound-pattern-variable
-					      pattern-variable-values)
-					...))
-				 ?failure-kont
-				 ?bound-pattern-variables))
+		   (match-pattern (car sub-expressions) ?pattern
+				  (car sub-expressions) (set-car! sub-expressions)
+				  ;;The    following    is   the    success
+				  ;;continuation.   Notice that we  have to
+				  ;;drop   the   bound  pattern   variables
+				  ;;appended by MATCH-PATTERN.
+				  (match-drop-bound-pattern-variables
+				   (loop (cdr sub-expressions) (- still-to-match-len 1)
+					 (cons ?to-be-bound-pattern-variable
+					       pattern-variable-values)
+					 ...))
+				  ?failure-kont
+				  ?bound-pattern-variables))
 
 		  (else
 		   ?failure-kont)))))))
@@ -846,7 +892,7 @@
     ;;Match an element, then match recursively the next one.
     ((_ ?expr ((?pattern ?index) . ?rest) sk fk i)
      (let-syntax ((item (identifier-syntax (vector-ref ?expr ?index))))
-       (next-pattern item ?pattern
+       (match-pattern item ?pattern
 		     (vector-ref ?expr ?index) (vector-set! ?expr ?index)
 		     (match-vector-index-pattern ?expr ?rest sk fk) ;success continuation
 		     fk i)))))
@@ -898,7 +944,7 @@
 		       ...)
 		   (?success-kont ... ?bound-pattern-variables))
 	       (let-syntax ((sub-expression (identifier-syntax (vector-ref v j))))
-		 (next-pattern sub-expression ?ellipsis-pattern
+		 (match-pattern sub-expression ?ellipsis-pattern
 			       (vector-ref v j) (vetor-set! v j)
 			       (match-drop-bound-pattern-variables
 				(loop (+ j 1)
@@ -909,7 +955,7 @@
 
 (define-syntax extract-new-pattern-variables
   ;;Extract  all  the  identifiers  in a  pattern  representing  pattern
-  ;;variables.  Unfortunately all  the branches in DISPATCH-PATTERN must
+  ;;variables.  Unfortunately all  the branches in MATCH-PATTERN must
   ;;be duplicated here.
   ;;
   ;;The need for this macro  arises from the feature of matching already
@@ -930,7 +976,7 @@
   ;;          (match-mismatch-error 'match (cdr expr)))))
   ;;
   ;;The simple cases  of pattern variables in pairs  or lists or vectors
-  ;;without  ellipsis,  are  handled  directly by  DISPATCH-PATTERN  and
+  ;;without  ellipsis,   are  handled  directly   by  MATCH-PATTERN  and
   ;;MATCH-VECTOR; this macro handles the  case of pattern followed by an
   ;;ellipsis, both  in lists and vectors,  and the case  of multiple :OR
   ;;clauses.   For this complex  cases it  is required  to know  all the
