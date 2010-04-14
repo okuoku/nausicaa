@@ -102,7 +102,31 @@
   #t)
 
 
-(parameterise ((check-test-name 'wildcard))
+(parametrise ((check-test-name 'expressions))
+
+  (check
+      (let ((expr 123))
+  	(match expr
+  	  (_ 'ok)))
+    => 'ok)
+
+  (check 'this
+    (let* ((a 1)
+	   (count 0)
+	   (b (lambda ()
+;;;(write 'in)(newline)
+		(set! count (+ 1 count))
+		2)))
+;;;(write count)(newline)
+      (let ((result (match (quasiquote (,a ,(b) 3))
+		      (_ 'ok))))
+	(cons result count)))
+    => '(ok . 1))
+
+  #t)
+
+
+(parametrise ((check-test-name 'wildcard))
 
   (check
       (match 'any (_ 'ok))
@@ -117,7 +141,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'variables))
+(parametrise ((check-test-name 'variables))
 
   (check
       (match 'ok (x x))
@@ -166,7 +190,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'literals))
+(parametrise ((check-test-name 'literals))
 
   (check
       (match 28
@@ -211,7 +235,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'lists))
+(parametrise ((check-test-name 'lists))
 
   (check	;null
       (match '()
@@ -231,7 +255,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'quoted))
+(parametrise ((check-test-name 'quoted))
 
   (check	;quoted sexp
       (match '(alpha (beta (delta 123)))
@@ -258,7 +282,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'vectors))
+(parametrise ((check-test-name 'vectors))
 
 ;;; unquoted vectors are automatically quoted by MATCH
 
@@ -302,7 +326,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'records))
+(parametrise ((check-test-name 'records))
 
   (define-record-type color
     (fields (immutable red)
@@ -342,7 +366,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'logic))
+(parametrise ((check-test-name 'logic))
 
   (check	;and empty
       (match '(o k)
@@ -381,11 +405,26 @@
     => 'ok)
 
   (check
+      (match 123
+	((:or (:predicate integer? x)
+	      (:predicate symbol?  x))
+	 x))
+    => 123)
+
+  (check
       (match 'ok
 	((:or (:predicate integer? x)
 	      (:predicate symbol?  x))
 	 x))
     => 'ok)
+
+  (check
+      (match "ok"
+	((:or (:predicate integer? x)
+	      (:predicate symbol?  x)
+	      (:predicate string?  x))
+	 x))
+    => "ok")
 
   (check
       (guard (E (else #t))
@@ -441,7 +480,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'predicates))
+(parametrise ((check-test-name 'predicates))
 
   (check	;pred
       (match 28
@@ -469,7 +508,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'proc))
+(parametrise ((check-test-name 'proc))
 
   (check
       (let ((f (lambda (x) (+ 1 x))))
@@ -487,7 +526,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'quasiquote))
+(parametrise ((check-test-name 'quasiquote))
 
   (check
       (let ((x 1))
@@ -534,7 +573,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'expand))
+(parametrise ((check-test-name 'expand))
 
   (check	;verify that  a pattern which  resembles a macro  use is
 		;not expanded
@@ -549,7 +588,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'ellipses))
+(parametrise ((check-test-name 'ellipses))
 
   (check
       (match '()
@@ -686,7 +725,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'continuation))
+(parametrise ((check-test-name 'continuation))
 
   (check
       (match '(1 2)
@@ -710,7 +749,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'extensions))
+(parametrise ((check-test-name 'extensions))
 
   (check
       (match-let ()
@@ -859,7 +898,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'getter))
+(parametrise ((check-test-name 'getter))
 
   (check
       (match 2
@@ -906,7 +945,7 @@
   #t)
 
 
-(parameterise ((check-test-name 'setter))
+(parametrise ((check-test-name 'setter))
 
   (check
       (let ((x 1))
