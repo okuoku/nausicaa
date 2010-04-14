@@ -412,9 +412,8 @@ nau_ptest_ENV		= CHEZSCHEMELIBDIRS=$(nau_test_PATH)
 else
 nau_ptest_ENV		= CHEZSCHEMELIBDIRS=$(nau_test_PATH):$(CHEZSCHEMELIBDIRS)
 endif
-nau_ptest_ENV		+= $(nau_test_ENV)
 nau_ptest_PROGRAM	= $(PETITE) --libexts .petite.sls:.sls --libdirs $${CHEZSCHEMELIBDIRS} --program
-nau_ptest_RUN		= $(nau_ptest_ENV) ; $(nau_TIME_TESTS) $(nau_ptest_PROGRAM)
+nau_ptest_RUN		= $(nau_ptest_ENV) ; $(nau_test_ENV) $(nau_TIME_TESTS) $(nau_ptest_PROGRAM)
 
 nau_ptest_installed_ENV	= CHEZSCHEMELIBDIRS=$(nau_test_SRCDIR):$(CHEZSCHEMELIBDIRS)
 nau_ptest_installed_RUN	= $(nau_ptest_installed_ENV) ; $(nau_TIME_TESTS) $(nau_ptest_PROGRAM)
