@@ -33,7 +33,7 @@
 (display "*** testing low level routines of libraries library\n")
 
 
-(parametrise ((check-test-name	'low-import-specs))
+(parametrise ((check-test-name	'library-name))
 
   (check
       (%library-version-ref '(alpha))
@@ -119,7 +119,10 @@
       (%library-name? '(alpha beta gamma (1 ciao)))
     => #f)
 
-;;; --------------------------------------------------------------------
+  #t)
+
+
+(parametrise ((check-test-name	'library-reference))
 
   (check
       (%version-reference? '())
@@ -253,6 +256,196 @@
 
   (check
       (%library-reference? '(alpha beta (1 (<= 2) (or 10 (and (>= 4) (>= 2))))))
+    => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'conformance-sub-version))
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 1)
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 0)
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(<= 1))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 2 '(<= 1))
+    => #f)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 0 '(<= 1))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(>= 1))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 2 '(>= 1))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 0 '(>= 1))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(not 1))
+    => #f)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(not 0))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(or 1 2))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(or 2 1))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(or 2 3))
+    => #f)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(or 2 3 4))
+    => #f)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 4 '(or 2 3 4))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 5 '(or 2 (or 3 (or 4 (or 5)))))
+    => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(and 1))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(and 1 1))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(and 1 1 1))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(and 1 (and 1 (and 1 (and 1)))))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(and (>= 0) (<= 2)))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 0 '(and (>= 0) (<= 2)))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 2 '(and (>= 0) (<= 2)))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(and (>= 0) (<= 2) (not 3)))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(and (>= 0) (<= 2) (not 1)))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 1 '(or (and (>= 0) (<= 2))
+							      4))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 4 '(or (and (>= 0) (<= 2))
+							      4))
+    => #t)
+
+  (check
+      (%sub-version-conforms-to-sub-version-reference? 3 '(or (and (>= 0) (<= 2))
+							      4))
+    => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (guard (E ((assertion-violation? E)
+		 #t)
+		(else #f))
+	(%sub-version-conforms-to-sub-version-reference? 3 '(>=)))
+    => #t)
+
+  (check
+      (guard (E ((assertion-violation? E)
+		 #t)
+		(else #f))
+	(%sub-version-conforms-to-sub-version-reference? 3 '(<=)))
+    => #t)
+
+  (check
+      (guard (E ((assertion-violation? E)
+		 #t)
+		(else #f))
+	(%sub-version-conforms-to-sub-version-reference? 3 '(and)))
+    => #t)
+
+  (check
+      (guard (E ((assertion-violation? E)
+		 #t)
+		(else #f))
+	(%sub-version-conforms-to-sub-version-reference? 3 '(not)))
+    => #t)
+
+  (check
+      (guard (E ((assertion-violation? E)
+		 #t)
+		(else #f))
+	(%sub-version-conforms-to-sub-version-reference? 3 '(not ciao)))
+    => #t)
+
+  (check
+      (guard (E ((assertion-violation? E)
+		 #t)
+		(else #f))
+	(%sub-version-conforms-to-sub-version-reference? 3 '(not)))
+    => #t)
+
+  (check
+      (guard (E ((assertion-violation? E)
+		 #t)
+		(else #f))
+	(%sub-version-conforms-to-sub-version-reference? 3 '(or)))
+    => #t)
+
+  (check
+      (guard (E ((assertion-violation? E)
+		 #t)
+		(else #f))
+	(%sub-version-conforms-to-sub-version-reference? 3 '(ciao)))
     => #t)
 
   #t)

@@ -30,12 +30,13 @@
 
     %library-version-ref
 
-    %library-name?
-    %library-version?
-    %phase-number?
+    %library-name?			%library-version?
+    %import-level?
     %list-of-symbols?
     %list-of-renamings?			%renaming?
     %library-reference?			%version-reference?
+
+    %sub-version-conforms-to-sub-version-reference?
 
     %apply-import-spec/only
     %apply-import-spec/except
@@ -46,7 +47,19 @@
     (only (lists) take-right drop-right))
 
 
+;;;; helpers
+
+(define-syntax %normalise-to-boolean
+  (syntax-rules ()
+    ((_ ?expr)
+     (if ?expr #t #f))))
+
+
+
+
 (define (%library-name? obj)
+  ;;Return true if OBJ is a valid <library name> as specified by R6RS.
+  ;;
   (and (list? obj)
        (not (null? obj))
        (if (< 1 (length obj))
@@ -62,13 +75,24 @@
 	 (for-all symbol? obj))))
 
 (define (%library-version? obj)
-  (and (list? obj)
-       (or (null? obj)
-	   (and (for-all integer? obj)
-		(for-all exact? obj)))))
+  ;;Return true if OBJ is a valid <version> as specified by R6RS.
+  ;;
+  (or (null? obj)
+      (and (list? obj)
+	   (for-all integer? obj)
+	   (for-all exact? obj))))
 
-(define (%phase-number? obj)
-  (and (integer? obj) (exact? obj)))
+(define (%import-level? obj)
+  ;;Return true if OBJ is a valid <import level> as specified by R6RS.
+  ;;
+  (case obj
+    ((run expand)
+     #t)
+    (else
+     (and (pair? obj)
+	  (eq? 'meta (car obj))
+	  (integer?  (cdr obj))
+	  (exact?    (cdr obj))))))
 
 (define (%library-version-ref library-name)
   (if (< 1 (length library-name))
@@ -125,6 +149,70 @@
       (*
        #f)))
   (main))
+
+
+(define (%library-name-conforms-to-library-reference? name reference)
+  (assert (%library-name?      name))
+  (assert (%library-reference? reference))
+  (receive (name reference)
+      (let loop ((name      name)
+		 (reference reference))
+	(if (and (symbol? (car name))
+		 (symbol? (car reference))
+		 (eq? (car name) (car reference)))
+	    (loop (cdr name) (cdr reference))
+	  (values name reference)))
+    (if (and (%library-version?   (car name))
+	     (%version-reference? (car reference)))
+	'()
+      #f)))
+
+
+(define (%sub-version-conforms-to-sub-version-reference? sub-version sub-version-reference)
+  (define (%error-invalid-sub-version-reference)
+    (assertion-violation '%sub-version-conforms-to-sub-version-reference?
+      "invalid library sub-version reference" sub-version-reference))
+  (unless (and (integer?  sub-version)
+	       (exact?    sub-version)
+	       (or (zero? sub-version)
+		   (positive? sub-version)))
+    (assertion-violation '%sub-version-conforms-to-sub-version-reference?
+      "invalid library sub-version number" sub-version))
+  (%normalise-to-boolean
+   (cond ((list? sub-version-reference)
+	  (when (zero? (length (cdr sub-version-reference)))
+	    (%error-invalid-sub-version-reference))
+	  (case (car sub-version-reference)
+	    ((>=)
+	     (>= sub-version (cadr sub-version-reference)))
+	    ((<=)
+	     (<= sub-version (cadr sub-version-reference)))
+	    ((and)
+	     (for-all (lambda (sub-version-reference)
+			(%sub-version-conforms-to-sub-version-reference? sub-version
+									 sub-version-reference))
+		      (cdr sub-version-reference)))
+	    ((or)
+	     (find (lambda (sub-version-reference)
+		     (%sub-version-conforms-to-sub-version-reference? sub-version
+								      sub-version-reference))
+		   (cdr sub-version-reference)))
+
+	    ((not)
+	     (if (= 1 (length (cdr sub-version-reference)))
+		 (not (%sub-version-conforms-to-sub-version-reference? sub-version
+								       (cadr sub-version-reference)))
+	       (%error-invalid-sub-version-reference)))
+
+	    (else
+	     (%error-invalid-sub-version-reference))))
+	 ((and (integer?  sub-version-reference)
+	       (exact?    sub-version-reference)
+	       (or (zero? sub-version-reference)
+		   (positive? sub-version-reference)))
+	  (= sub-version sub-version-reference))
+	 (else
+	  (%error-invalid-sub-version-reference)))))
 
 
 (define (%list-of-symbols? obj)

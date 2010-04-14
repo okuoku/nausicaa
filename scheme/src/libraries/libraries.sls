@@ -33,8 +33,8 @@
 ;;;	the  body  of this  library;  the  internal  symbol is  the  one
 ;;;	exported by the imported library.
 ;;;
-;;;	If we know  the library specification and the  renamings, we can
-;;;	build an import set with:
+;;;	If we know  the library name and the renamings,  we can build an
+;;;	import set with:
 ;;;
 ;;;		(only (rename <library-name> . <renamings>))
 ;;;
@@ -280,9 +280,8 @@
 			;;appear only once.
 			(('for ?import-set)
 			 (values (%take-import-spec ?import-set) 0))
-			(('for ?import-set . ?phases)
-			 (values (%take-import-spec ?import-set)
-				 (%process-phases ?phases)))
+			(('for ?import-set (:predicate %import-level? ?import-levels) ...)
+			 (values (%take-import-spec ?import-set) ?import-levels))
 			;;Everything  else is  handed  to the  recursive
 			;;function.
 			(?import-set
@@ -330,23 +329,6 @@
 		    ;;Everything else is an error.
 		    (?import-set
 		     (error-library-invalid-import-set 'make-<import-spec> library-name ?import-set))))
-
-	      (define (%process-phases phases-list)
-		(map (lambda (phase)
-		       (match phase
-			 (('meta (:predicate %phase-number? ?phase))
-			  ?phase)
-			 ((and (? symbol?) ?phase)
-			  (case ?phase
-			    ((run)    0)
-			    ((expand) 0)
-			    (else
-			     (error-library-invalid-phase-spec 'make-<import-spec>
-							       library-name ?phase))))
-			 (?phase-spec
-			  (error-library-invalid-phase-spec 'make-<import-spec>
-							    library-name ?phase-spec))))
-		  phases-list))
 
 	      (main))))
   (nongenerative nausicaa:libraries:<import-spec>))
