@@ -509,7 +509,7 @@ proofs proof:
 
 nau_iproof_ENV		= IKARUS_LIBRARY_PATH=$(nau_proof_PATH):$(IKARUS_LIBRARY_PATH)
 nau_iproof_ENV		+= $(nau_proof_ENV)
-nau_iproof_PROGRAM	= $(IKARUS) --r6rs-script
+nau_iproof_PROGRAM	= $(IKARUS) --debug --r6rs-script
 nau_iproof_RUN		= $(nau_iproof_ENV) $(nau_iproof_PROGRAM)
 
 .PHONY: iproof iproofs

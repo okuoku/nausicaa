@@ -110,7 +110,47 @@
   	  (_ 'ok)))
     => 'ok)
 
-  (check 'this
+  (check
+    (let* ((count 0)
+	   (b (lambda ()
+		(set! count (+ 1 count))
+		2)))
+      (let ((result (match (b)
+		      (_ 'ok))))
+	(cons result count)))
+    => '(ok . 1))
+
+  (check
+    (let* ((count 0)
+	   (b (lambda ()
+		(set! count (+ 1 count))
+		2)))
+      (let ((result (match `,(b)
+		      (_ 'ok))))
+	(cons result count)))
+    => '(ok . 1))
+
+  (check
+    (let* ((count 0)
+	   (b (lambda ()
+		(set! count (+ 1 count))
+		2)))
+      (let ((result (match (quasiquote ,(b))
+		      (_ 'ok))))
+	(cons result count)))
+    => '(ok . 1))
+
+  (check
+    (let* ((count 0)
+	   (b (lambda ()
+		(set! count (+ 1 count))
+		2)))
+      (let ((result (match (quasiquote (,(b)))
+		      (_ 'ok))))
+	(cons result count)))
+    => '(ok . 1))
+
+  (check
     (let* ((a 1)
 	   (count 0)
 	   (b (lambda ()
