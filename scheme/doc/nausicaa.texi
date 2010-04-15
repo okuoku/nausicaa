@@ -54212,6 +54212,93 @@ is decoded in the sequence of bytes:
 The @library{libraries} library implements routines to inspect
 @func{library} forms as defined by @rnrs{6}.
 
+@menu
+* libraries names::             Handling @rnrs{6} library names.
+@end menu
+
+@c page
+@node libraries names
+@section Handling @rnrs{6} library names
+
+
+The bindings documented in this section are exported by the
+@library{libraries names} library.
+
+@menu
+* libraries names typedefs::    Type definitions.
+* libraries names utilities::   Utility functions.
+@end menu
+
+@c page
+@node libraries names typedefs
+@subsection Type definitions
+
+
+@deftp Class <library-name>
+Class type representing library names as specified by @rnrs{6}.  It has
+the following immutable fields:
+
+@table @code
+@item identifiers
+The list of @meta{identifier} in the library specification.
+
+@item version
+The version specification as a, possibly null, list of exact,
+non--negative, integers.
+@end table
+@end deftp
+
+
+@defun make-<library-name> @var{sexp}
+Parse @var{sexp} as an symbolic expression representing a library name
+as specified by @rnrs{6}; build and return a new @class{library-name}
+object representing it.  If @var{sexp} is not valid: raise an assertion
+violation.
+@end defun
+
+
+@defun <library-name>? @var{obj}
+Return @true{} if @var{obj} is an object of type @class{library-name}.
+@end defun
+
+
+@defun <library-name>-identifiers @var{library-name}
+@defunx <library-name>-version @var{library-name}
+Accessors for the fields of objects of type @class{library-name}.
+@end defun
+
+
+@c page
+@node libraries names utilities
+@subsection Utility functions
+
+
+@defun library-name? @var{obj}
+Return @true{} if @var{obj} is a valid library name as specified by
+@rnrs{6}.
+@end defun
+
+
+@defun library-name-decompose @var{obj}
+Interpret @var{obj} as an symbolic expression representing a library
+name as specified by @rnrs{6}.  Return two values: the list of
+identifiers, the version specification.  If @var{obj} is not a valid
+library name: return @false{} and @false{}.
+@end defun
+
+
+@defun library-name->identifiers @var{obj}
+If @var{obj} is a valid library name as specified by @rnrs{6}, return
+the list of identifiers; else return @false{}.
+@end defun
+
+
+@defun library-name->version @var{obj}
+If @var{obj} is a valid library name as specified by @rnrs{6}, return
+the version specification; else return @false{}.
+@end defun
+
+
 @c page
 
 @include foreign.texiinc

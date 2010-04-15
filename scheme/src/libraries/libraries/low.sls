@@ -57,31 +57,6 @@
 
 
 
-(define (%library-name? obj)
-  ;;Return true if OBJ is a valid <library name> as specified by R6RS.
-  ;;
-  (and (list? obj)
-       (not (null? obj))
-       (if (< 1 (length obj))
-	   (let ((version (car (take-right obj 1)))
-		 (name    (drop-right obj 1)))
-	     (cond ((null? version)
-		    (for-all symbol? name))
-		   ((pair? version)
-		    (and (for-all symbol? name)
-			 (%library-version? version)))
-		   (else
-		    (for-all symbol? obj))))
-	 (for-all symbol? obj))))
-
-(define (%library-version? obj)
-  ;;Return true if OBJ is a valid <version> as specified by R6RS.
-  ;;
-  (or (null? obj)
-      (and (list? obj)
-	   (for-all integer? obj)
-	   (for-all exact? obj))))
-
 (define (%import-level? obj)
   ;;Return true if OBJ is a valid <import level> as specified by R6RS.
   ;;
@@ -93,17 +68,6 @@
 	  (eq? 'meta (car obj))
 	  (integer?  (cdr obj))
 	  (exact?    (cdr obj))))))
-
-(define (%library-version-ref library-name)
-  (if (< 1 (length library-name))
-      (let ((version (car (take-right library-name 1))))
-	(cond ((null? version)
-	       '())
-	      ((pair? version)
-	       version)
-	      (else
-	       '())))
-    '()))
 
 
 (define (%library-reference? obj)
@@ -154,6 +118,9 @@
 (define (%library-name-conforms-to-library-reference? name reference)
   (assert (%library-name?      name))
   (assert (%library-reference? reference))
+  (define (%error-invalid-library-reference)
+    (assertion-violation '%library-name-conforms-to-library-reference?
+      "invalid library reference" reference))
   (receive (name reference)
       (let loop ((name      name)
 		 (reference reference))
@@ -164,7 +131,23 @@
 	  (values name reference)))
     (if (and (%library-version?   (car name))
 	     (%version-reference? (car reference)))
-	'()
+	(%normalise-to-boolean
+	 (case reference
+	   ((and)
+	    (for-all (lambda (reference)
+		       (%library-name-conforms-to-library-reference? name reference))
+		     (cdr reference)))
+	   ((or)
+	    (find (lambda (reference)
+		    (%sub-name-conforms-to-library-reference? name reference))
+		  (cdr reference)))
+
+	   ((not)
+	    (if (= 1 (length (cdr reference)))
+		(not (%library-name-conforms-to-library-reference? name (cadr reference)))
+	      (%error-invalid-library-reference)))
+	   (else
+	    )))
       #f)))
 
 
