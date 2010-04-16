@@ -257,83 +257,6 @@
   (nongenerative nausicaa:libraries:<raw-library>))
 
 
-(define-class <import-spec>
-  (fields (immutable library-name)
-		;The library name, as  defined by R6RS, specified in the
-		;import set.
-	  (immutable library-reference)
-		;The library reference in the import set.
-	  (immutable phases)
-		;A list  of exact  integers representing the  phases for
-		;which this  import set  was requested.  It  contains at
-		;least one element.
-	  (immutable import-set)
-		;The original import set.
-	  )
-  (protocol (lambda (make-<top>)
-	      (lambda (import-set library-name)
-
-		(define (main)
-		  (receive (library-reference phases)
-		      (match import-set
-			;;The FOR  clause is parsed here  because it can
-			;;appear only once.
-			(('for ?import-set)
-			 (values (%take-import-spec ?import-set) 0))
-			(('for ?import-set (:predicate %import-level? ?import-levels) ...)
-			 (values (%take-import-spec ?import-set) ?import-levels))
-			;;Everything  else is  handed  to the  recursive
-			;;function.
-			(?import-set
-			 (values (%take-import-spec ?import-set) 0)))
-		    ((make-<top>) (library-reference-resolve library-reference)
-		     library-reference phases import-set)))
-
-		(define (%take-import-spec spec)
-		  (match spec
-		    ;;The  RENAME  clause can  appear  with and  without
-		    ;;renamings.
-		    (('rename ?import-set)
-		     (%take-import-spec ?import-set))
-		    (('rename ?import-set . _)
-		     (%take-import-spec ?import-set))
-
-		    ;;The  ONLY  clause  can  appear  with  and  without
-		    ;;symbols.
-		    (('only ?import-set)
-		     (%take-import-spec ?import-set))
-		    (('only ?import-set . _)
-		     (%take-import-spec ?import-set))
-
-		    ;;The  EXCEPT  clause can  appear  with and  without
-		    ;;symbols.
-		    (('except ?import-set)
-		     (%take-import-spec ?import-set))
-		    (('except ?import-set . _)
-		     (%take-import-spec ?import-set))
-
-		    ;;The  PREFIX  clause must  appear  with a  symbolic
-		    ;;prefix.
-		    (('prefix ?import-set (:predicate symbol? ?prefix))
-		     (%take-import-spec ?import-set))
-
-		    ;;The LIBRARY  clause allows library  names starting
-		    ;;with FOR, ONLY, etc.
-		    (('library (:predicate %library-reference? ?library-reference))
-		     ?library-reference)
-
-		    ;;A plain library name.
-		    ((:predicate %library-reference? ?library-reference)
-		     ?library-reference)
-
-		    ;;Everything else is an error.
-		    (?import-set
-		     (error-library-invalid-import-set 'make-<import-spec> library-name ?import-set))))
-
-	      (main))))
-  (nongenerative nausicaa:libraries:<import-spec>))
-
-
 (define-class <library>
   (parent <raw-library>)
   (fields (mutable exports)
