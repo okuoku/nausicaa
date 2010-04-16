@@ -28,7 +28,7 @@
 (library (libraries names)
   (export
     <library-name>		<library-name>?
-    make-<library-name>
+    make-<library-name>		<library-name>-with-record-fields-of
     <library-name>-identifiers
     <library-name>-version
 
@@ -60,6 +60,30 @@
 		      ((make-<top>) identifiers version)
 		    (assertion-violation 'make-<library-name>
 		      "invalid library name symbolic expression" sexp))))))
+
+  (method (identifiers= (a <library-name>) (b <library-name>))
+    (for-all eq? a.identifiers b.identifiers))
+
+  (method (= (a <library-name>) (b <library-name>))
+    (and (for-all eq? a.identifiers b.identifiers)
+	 (library-version=? a.version b.version)))
+
+  (method (< (a <library-name>) (b <library-name>))
+    (and (for-all eq? a.identifiers b.identifiers)
+	 (library-version<? a.version b.version)))
+
+  (method (<= (a <library-name>) (b <library-name>))
+    (and (for-all eq? a.identifiers b.identifiers)
+	 (library-version<=? a.version b.version)))
+
+  (method (> (a <library-name>) (b <library-name>))
+    (and (for-all eq? a.identifiers b.identifiers)
+	 (library-version<? b.version a.version)))
+
+  (method (>= (a <library-name>) (b <library-name>))
+    (and (for-all eq? a.identifiers b.identifiers)
+	 (library-version<=? b.version a.version)))
+
   (nongenerative nausicaa:libraries:<library-name>))
 
 

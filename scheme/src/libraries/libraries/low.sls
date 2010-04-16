@@ -28,13 +28,9 @@
 (library (libraries low)
   (export
 
-    %library-version-ref
-
-    %library-name?			%library-version?
     %import-level?
     %list-of-symbols?
     %list-of-renamings?			%renaming?
-    %library-reference?			%version-reference?
 
     %sub-version-conforms-to-sub-version-reference?
 
@@ -68,134 +64,6 @@
 	  (eq? 'meta (car obj))
 	  (integer?  (cdr obj))
 	  (exact?    (cdr obj))))))
-
-
-(define (%library-reference? obj)
-  (and (list? obj)
-       (not (null? obj))
-       (if (< 1 (length obj))
-	   (let ((version (car (take-right obj 1)))
-		 (name    (drop-right obj 1)))
-	     (cond ((null? version)
-		    (for-all symbol? name))
-		   ((pair? version)
-		    (and (for-all symbol? name)
-			 (%version-reference? version)))
-		   (else
-		    (for-all symbol? obj))))
-	 (for-all symbol? obj))))
-
-(define (%version-reference? obj)
-  (define (main)
-    (match obj
-      (('and ?sub-version0 ?sub-version ...)
-       (for-all %match-sub-version (cons ?sub-version0 ?sub-version)))
-      (('or  ?sub-version0 ?sub-version ...)
-       (for-all %match-sub-version (cons ?sub-version0 ?sub-version)))
-      (('not ?sub-version)
-       (%match-sub-version ?sub-version))
-      (?sub-version
-       (for-all %match-sub-version ?sub-version))))
-  (define (%match-sub-version sub-version)
-    (match sub-version
-      (('and ?sub-version0 ?sub-version ...)
-       (for-all %match-sub-version (cons ?sub-version0 ?sub-version)))
-      (('or  ?sub-version0 ?sub-version ...)
-       (for-all %match-sub-version (cons ?sub-version0 ?sub-version)))
-      (('not ?sub-version)
-       (%match-sub-version ?sub-version))
-      (('<= ?sub-version)
-       (%match-sub-version ?sub-version))
-      (('>= ?sub-version)
-       (%match-sub-version ?sub-version))
-      ((:and (:predicate integer?) (:predicate exact?))
-       #t)
-      (*
-       #f)))
-  (main))
-
-
-(define (%library-name-conforms-to-library-reference? name reference)
-  (assert (%library-name?      name))
-  (assert (%library-reference? reference))
-  (define (%error-invalid-library-reference)
-    (assertion-violation '%library-name-conforms-to-library-reference?
-      "invalid library reference" reference))
-  (receive (name reference)
-      (let loop ((name      name)
-		 (reference reference))
-	(if (and (symbol? (car name))
-		 (symbol? (car reference))
-		 (eq? (car name) (car reference)))
-	    (loop (cdr name) (cdr reference))
-	  (values name reference)))
-    (if (and (%library-version?   (car name))
-	     (%version-reference? (car reference)))
-	(%normalise-to-boolean
-	 (case reference
-	   ((and)
-	    (for-all (lambda (reference)
-		       (%library-name-conforms-to-library-reference? name reference))
-		     (cdr reference)))
-	   ((or)
-	    (find (lambda (reference)
-		    (%sub-name-conforms-to-library-reference? name reference))
-		  (cdr reference)))
-
-	   ((not)
-	    (if (= 1 (length (cdr reference)))
-		(not (%library-name-conforms-to-library-reference? name (cadr reference)))
-	      (%error-invalid-library-reference)))
-	   (else
-	    )))
-      #f)))
-
-
-(define (%sub-version-conforms-to-sub-version-reference? sub-version sub-version-reference)
-  (define (%error-invalid-sub-version-reference)
-    (assertion-violation '%sub-version-conforms-to-sub-version-reference?
-      "invalid library sub-version reference" sub-version-reference))
-  (unless (and (integer?  sub-version)
-	       (exact?    sub-version)
-	       (or (zero? sub-version)
-		   (positive? sub-version)))
-    (assertion-violation '%sub-version-conforms-to-sub-version-reference?
-      "invalid library sub-version number" sub-version))
-  (%normalise-to-boolean
-   (cond ((list? sub-version-reference)
-	  (when (zero? (length (cdr sub-version-reference)))
-	    (%error-invalid-sub-version-reference))
-	  (case (car sub-version-reference)
-	    ((>=)
-	     (>= sub-version (cadr sub-version-reference)))
-	    ((<=)
-	     (<= sub-version (cadr sub-version-reference)))
-	    ((and)
-	     (for-all (lambda (sub-version-reference)
-			(%sub-version-conforms-to-sub-version-reference? sub-version
-									 sub-version-reference))
-		      (cdr sub-version-reference)))
-	    ((or)
-	     (find (lambda (sub-version-reference)
-		     (%sub-version-conforms-to-sub-version-reference? sub-version
-								      sub-version-reference))
-		   (cdr sub-version-reference)))
-
-	    ((not)
-	     (if (= 1 (length (cdr sub-version-reference)))
-		 (not (%sub-version-conforms-to-sub-version-reference? sub-version
-								       (cadr sub-version-reference)))
-	       (%error-invalid-sub-version-reference)))
-
-	    (else
-	     (%error-invalid-sub-version-reference))))
-	 ((and (integer?  sub-version-reference)
-	       (exact?    sub-version-reference)
-	       (or (zero? sub-version-reference)
-		   (positive? sub-version-reference)))
-	  (= sub-version sub-version-reference))
-	 (else
-	  (%error-invalid-sub-version-reference)))))
 
 
 (define (%list-of-symbols? obj)

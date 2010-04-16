@@ -80,6 +80,14 @@ Revised^6 Report on the algorithmic language Scheme
 @code{<\NAME\>}
 @end macro
 
+@macro aclass{NAME}
+<\NAME\>
+@end macro
+
+@macro cclass{NAME}
+<\NAME\>
+@end macro
+
 @macro objtype{NAME}
 @code{\NAME\}
 @end macro
@@ -54214,6 +54222,7 @@ The @library{libraries} library implements routines to inspect
 
 @menu
 * libraries names::             Handling @rnrs{6} library names.
+* libraries references::        Handling @rnrs{6} library references.
 @end menu
 
 @c page
@@ -54234,19 +54243,20 @@ The bindings documented in this section are exported by the
 @subsection Type definitions
 
 
-@deftp Class <library-name>
-Class type representing library names as specified by @rnrs{6}.  It has
-the following immutable fields:
+@deftp Class @aclass{library-name}
+Class type representing library names as specified by @rnrs{6}.
+@end deftp
 
-@table @code
-@item identifiers
-The list of @meta{identifier} in the library specification.
 
-@item version
+@defcv {Immutable Field} @aclass{library-name} identifiers
+List of identifiers in the library reference specification.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{library-name} version
 The version specification as a, possibly null, list of exact,
 non--negative, integers.
-@end table
-@end deftp
+@end defcv
 
 
 @defun make-<library-name> @var{sexp}
@@ -54262,10 +54272,42 @@ Return @true{} if @var{obj} is an object of type @class{library-name}.
 @end defun
 
 
-@defun <library-name>-identifiers @var{library-name}
-@defunx <library-name>-version @var{library-name}
-Accessors for the fields of objects of type @class{library-name}.
+@defun <library-name>-identifiers @var{name}
+@defunx <library-name>-version @var{name}
+Accessors for the fields of @class{library-name} objects.
 @end defun
+
+
+@deftypemethod @aclass{library-name} <boolean> identifiers=? (@var{name} @aclass{library-name})
+Return @true{} if the arguments are library names having equal list of
+identifiers; else return @false{}.
+@end deftypemethod
+
+
+@deftypemethod @aclass{library-name} <boolean> = (@var{name} @aclass{library-name})
+@deftypemethodx @aclass{library-name} <boolean> < (@var{name} @aclass{library-name})
+@deftypemethodx @aclass{library-name} <boolean> <= (@var{name} @aclass{library-name})
+Return @true{} if the arguments have equal list of identifiers and
+version specifications satisfying the selected predicate; else return
+@false{}.
+@end deftypemethod
+
+
+Examples:
+
+@example
+(let ((a (make-<library-name> '(x y (1 2))))
+      (b (make-<library-name> '(x y (1 3))))
+      (c (make-<library-name> '(x y (1 4))))
+      (d (make-<library-name> '(x y (2 1)))))
+
+  (list-sort (lambda/with ((a <library-name>) (b <library-name>))
+               (a.< b))
+    (list a d c b))
+  @result{} (list a b c d)
+
+  )
+@end example
 
 
 @c page
@@ -54298,6 +54340,155 @@ If @var{obj} is a valid library name as specified by @rnrs{6}, return
 the version specification; else return @false{}.
 @end defun
 
+
+@defun library-name-identifiers=? @vari{name} @varii{name}
+Return @true{} if the arguments are library names having equal list of
+identifiers; else return @false{}.  If the arguments are not valid
+library names: the behaviour of this function is undefined.
+@end defun
+
+
+@defun library-name=? @vari{name} @varii{name}
+@defunx library-name<? @vari{name} @varii{name}
+@defunx library-name<=? @vari{name} @varii{name}
+Return @true{} if the arguments are library names having equal list of
+identifiers and version specifications satisfying the selected
+predicate; else return @false{}.  If the arguments are not valid library
+names: the behaviour of this function is undefined.
+@end defun
+
+
+@defun library-version=? @vari{version} @varii{version}
+@defunx library-version<? @vari{version} @varii{version}
+@defunx library-version<=? @vari{version} @varii{version}
+Return @true{} if the arguments are library versions satisfying the
+selected predicate; else return @false{}.  If the arguments are not
+valid library names: the behaviour of this function is undefined.
+@end defun
+
+@c page
+@node libraries references
+@section Handling @rnrs{6} library references
+
+The bindings documented in this section are exported by the
+@library{libraries references} library.
+
+@menu
+* libraries references typedefs::   Type definitions.
+* libraries references utilities::  Utility functions.
+@end menu
+
+@c page
+@node libraries references typedefs
+@subsection Type definitions
+
+
+@deftp Class @aclass{library-reference}
+Class type representing library references as specified by @rnrs{6}.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{library-reference} identifiers
+List of identifiers in the library reference specification.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{library-reference} version-reference
+The version specification as a, possibly null, list of exact,
+non--negative, integers.
+@end defcv
+
+
+@defun make-<library-reference> @var{sexp}
+Parse @var{sexp} as an symbolic expression representing a library
+reference as specified by @rnrs{6}; build and return a new
+@class{library-reference} object representing it.  If @var{sexp} is not
+valid: raise an assertion violation.
+@end defun
+
+
+@defun <library-reference>? @var{obj}
+Return @true{} if @var{obj} is an object of type @class{library-reference}.
+@end defun
+
+
+@defun <library-reference>-identifiers @var{reference}
+@defunx <library-reference>-version-reference @var{reference}
+Accessors for the fields of @class{library-reference} objects.
+@end defun
+
+
+@deftypemethod @aclass{library-reference} @aclass{boolean} conforming? (@var{name} @aclass{library-name})
+Return @true{} if the name conforms to the reference; else return
+@false{}.
+@end deftypemethod
+
+@c page
+@node libraries references utilities
+@subsection Utility functions
+
+
+@defun library-reference? @var{obj}
+Return @true{} if @var{obj} is a valid library reference as specified by
+@rnrs{6}.
+@end defun
+
+
+@defun library-reference-decompose @var{obj}
+Interpret @var{obj} as an symbolic expression representing a library
+reference as specified by @rnrs{6}.  Return two values: the list of
+identifiers, the version reference.  If @var{obj} is not a valid library
+reference: return @false{} and @false{}.
+@end defun
+
+
+@defun library-reference->identifiers @var{obj}
+If @var{obj} is a valid library reference as specified by @rnrs{6},
+return the list of identifiers; else return @false{}.
+@end defun
+
+
+@defun library-reference->version @var{obj}
+If @var{obj} is a valid library reference as specified by @rnrs{6},
+return the version reference; else return @false{}.
+@end defun
+
+
+@defun library-reference-identifiers=? @vari{reference} @varii{reference}
+Return @true{} if the arguments are library references having equal list
+of identifiers; else return @false{}.  If the arguments are not valid
+library references: the behaviour of this function is undefined.
+@end defun
+
+
+@defun conforming-sub-version-and-sub-version-reference? @var{sub-version} @var{sub-version-reference}
+Interpret @var{sub-version} as a sub--version number as specified by
+@rnrs{6} and @var{sub-version-reference} as a sub--version reference as
+specified by @rnrs{6}.  Return @true{} if the sub--version conforms to
+the sub--version reference; else return @false{}.  If the arguments are
+not valid sub--version and sub--version reference: the behaviour of this
+function is undefined.
+@end defun
+
+
+@defun conforming-version-and-version-reference? @vari{version} @varii{version-reference}
+Interpret @var{version} as a version symbolic expression as specified by
+@rnrs{6} and @var{version-reference} as a version reference symbolic
+expression as specified by @rnrs{6}.  Return @true{} if the version
+conforms to the version reference; else return @false{}.  If the
+arguments are not valid version and version reference: the behaviour of
+this function is undefined.
+@end defun
+
+
+@defun conforming-library-name-and-library-reference? @var{name} @var{reference}
+Interpret @var{name} as a library name symbolic expression as specified
+by @rnrs{6} and @var{reference} as a library reference symbolic
+expression as specified by @rnrs{6}.  Return @true{} if the name
+conforms to the reference; else return @false{}.  If the arguments are
+not valid name and reference: the behaviour of this function is
+undefined.
+@end defun
 
 @c page
 

@@ -159,7 +159,7 @@
   #t)
 
 
-(parametrise ((check-test-name	'predicates))
+(parametrise ((check-test-name	'comparison))
 
   (check (library-version=? '() '()) => #t)
   (check (library-version=? '(1) '(1)) => #t)
@@ -216,6 +216,110 @@
   (check (library-version<=? '(1 2 0 0 1) '(1 2)) => #f)
   (check (library-version<=? '(1 2) '(1 2 0 0 1)) => #t)
 
+;;; --------------------------------------------------------------------
+
+  (check (library-name-identifiers=? '(a) '(a)) => #t)
+  (check (library-name-identifiers=? '(a b) '(a b)) => #t)
+  (check (library-name-identifiers=? '(a b c) '(a b c)) => #t)
+
+  (check (library-name-identifiers=? '(a) '(b)) => #f)
+  (check (library-name-identifiers=? '(a b) '(b a)) => #f)
+  (check (library-name-identifiers=? '(a b c) '(a b z)) => #f)
+
+  (check (library-name-identifiers=? '(a b c (2)) '(a b c (1))) => #t)
+  (check (library-name-identifiers=? '(a b c (2)) '(a b d (1))) => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check (library-name=? '(a) '(a)) => #t)
+  (check (library-name=? '(a b) '(a b)) => #t)
+  (check (library-name=? '(a b c) '(a b c)) => #t)
+
+  (check (library-name=? '(a) '(b)) => #f)
+  (check (library-name=? '(a b) '(b a)) => #f)
+  (check (library-name=? '(a b c) '(a b z)) => #f)
+
+  (check (library-name=? '(a b c (2)) '(a b c (1))) => #f)
+  (check (library-name=? '(a b c (2)) '(a b d (1))) => #f)
+
+  (check (library-name=? '(a ()) '(a ())) => #t)
+  (check (library-name=? '(a (1)) '(a (1))) => #t)
+  (check (library-name=? '(a (1 2)) '(a (1 2))) => #t)
+  (check (library-name=? '(a (1 2 3)) '(a (1 2 3))) => #t)
+
+  (check (library-name=? '(a (1)) '(a (2))) => #f)
+  (check (library-name=? '(a (1 2)) '(a (1 3))) => #f)
+  (check (library-name=? '(a (1 2 3)) '(a (1 2 4))) => #f)
+
+  (check (library-name=? '(a (1 2 0 0 0)) '(a (1 2))) => #t)
+  (check (library-name=? '(a (1 2)) '(a (1 2 0 0 0))) => #t)
+
+  (check (library-name=? '(a (1 2 0 0 1)) '(a (1 2))) => #f)
+  (check (library-name=? '(a (1 2)) '(a (1 2 0 0 1))) => #f)
+
+;;; --------------------------------------------------------------------
+
+  (check (library-name<? '(a ()) '(a ())) => #f)
+  (check (library-name<? '(a (1)) '(a (1))) => #f)
+  (check (library-name<? '(a (1 2)) '(a (1 2))) => #f)
+  (check (library-name<? '(a (1 2 3)) '(a (1 2 3))) => #f)
+
+  (check (library-name<? '(a (1)) '(a (2))) => #t)
+  (check (library-name<? '(a (2)) '(a (1))) => #f)
+  (check (library-name<? '(a (1 2)) '(a (1 3))) => #t)
+  (check (library-name<? '(a (1 3)) '(a (1 2))) => #f)
+  (check (library-name<? '(a (1 2 3)) '(a (1 2 4))) => #t)
+  (check (library-name<? '(a (1 2 4)) '(a (1 2 3))) => #f)
+
+  (check (library-name<? '(a (1 2 0 0 0)) '(a (1 2))) => #f)
+  (check (library-name<? '(a (1 2)) '(a (1 2 0 0 0))) => #f)
+
+  (check (library-name<? '(a (1 2 0 0 1)) '(a (1 2))) => #f)
+  (check (library-name<? '(a (1 2)) '(a (1 2 0 0 1))) => #t)
+
+;;; --------------------------------------------------------------------
+
+  (check (library-name<=? '(a ()) '(a ())) => #t)
+  (check (library-name<=? '(a (1)) '(a (1))) => #t)
+  (check (library-name<=? '(a (1 2)) '(a (1 2))) => #t)
+  (check (library-name<=? '(a (1 2 3)) '(a (1 2 3))) => #t)
+
+  (check (library-name<=? '(a (1)) '(a (2))) => #t)
+  (check (library-name<=? '(a (2)) '(a (1))) => #f)
+  (check (library-name<=? '(a (1 2)) '(a (1 3))) => #t)
+  (check (library-name<=? '(a (1 3)) '(a (1 2))) => #f)
+  (check (library-name<=? '(a (1 2 3)) '(a (1 2 4))) => #t)
+  (check (library-name<=? '(a (1 2 4)) '(a (1 2 3))) => #f)
+
+  (check (library-name<=? '(a (1 2 0 0 0)) '(a (1 2))) => #t)
+  (check (library-name<=? '(a (1 2)) '(a (1 2 0 0 0))) => #t)
+
+  (check (library-name<=? '(a (1 2 0 0 1)) '(a (1 2))) => #f)
+  (check (library-name<=? '(a (1 2)) '(a (1 2 0 0 1))) => #t)
+
+  #t)
+
+
+(parametrise ((check-test-name	'sorting))
+
+  (let ((a (make-<library-name> '(x y (1 2))))
+	(b (make-<library-name> '(x y (1 3))))
+	(c (make-<library-name> '(x y (1 4))))
+	(d (make-<library-name> '(x y (2 1)))))
+
+    (check
+	(list-sort (lambda/with ((a <library-name>) (b <library-name>))
+		     (a.< b))
+		   (list a b))
+      => (list a b))
+
+    (check
+	(list-sort (lambda/with ((a <library-name>) (b <library-name>))
+		     (a.< b))
+		   (list a d c b))
+      => (list a b c d))
+
+    #f)
   #t)
 
 
