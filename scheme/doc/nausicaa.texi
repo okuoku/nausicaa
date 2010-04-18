@@ -20076,17 +20076,14 @@ It is an error to read from a closed port.
 @chapter Record utilities
 
 
-The @library{classes} library implements a number of utility functions
-and macros to handle records; it is built upon plain records and tries
-to limit complexity.  The library is designed to work with record type
-definitions imported for the @code{run} phase only.
+The @library{classes} is an alternative to the @rsixlibrary{records
+syntactic} library; it is built upon @rsixlibrary{records procedural}
+but adds some features like dot notation to access fields.  The library
+is designed to work with class type definitions imported for the
+@code{run} phase.
 
-Many features will work only with non--generative record types, that is:
-types defined using the @func{nongenerative} clause; more specifically:
-the features will work only if @func{record-type-uid} applied to a
-record type descriptor returns a symbol uniquely identifying the record
-type.  If @func{record-type-uid} returns @false{} for a record type: the
-behaviour of this library with such type is undefined.
+The facilities of the library work only on records of type defined with
+@func{define-class}.
 
 @menu
 * classes define::              Defining new class types.
@@ -20137,6 +20134,14 @@ definition.
 
 Additionally the @meta{class clause} arguments can be the auxiliary
 syntaxes described below.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} predicate @ameta{function name}
+Select a custom predicate function to be used to identify instances of
+classes by the @func{is-a?} macro.  When not used, the default record
+predicate is used.  This clause is useful especially to select custom
+predicates for the builtin class types.
 @end deffn
 
 
@@ -21154,7 +21159,7 @@ instantiate builtin objects, for example: @func{make-<string>} does
 @subsection Basic conventional @rtd{}s
 
 
-@deftp Class <top>
+@deftp Class @aclass{top}
 Conventional parent of all the record types.  When defining a new record
 type with no parent, we may want to derive it from @class{top}:
 
@@ -21171,7 +21176,7 @@ parent type if we do not select explicitly a parent with the
 @end deftp
 
 
-@deftp Class <builtin>
+@deftp Class @aclass{builtin}
 The parent of all the conventional @rtd{}s, with the exception of
 @class{top}.
 @end deftp
@@ -21181,7 +21186,7 @@ The parent of all the conventional @rtd{}s, with the exception of
 @subsection Pairs and lists @rtd{}s
 
 
-@deftp Class <pair>
+@deftp Class @aclass{pair}
 Type for values satisfying @func{pair?}.  It provides the following
 virtual fields:
 
@@ -21195,7 +21200,7 @@ Immutable.  Access the cdr of the pair.
 @end deftp
 
 
-@deftp Class <list>
+@deftp Class @aclass{list}
 Type for values satisfying @func{list?}.  It provides the following
 virtual fields:
 
@@ -21216,7 +21221,7 @@ Immutable.  Access the length of the list.
 @subsection Non--list compound @rtd{}s
 
 
-@deftp Class <vector>
+@deftp Class @aclass{vector}
 Type for values satisfying @func{vector?}.  It provides the following
 virtual fields:
 
@@ -21227,7 +21232,7 @@ Immutable.  Access the length of the vector.
 @end deftp
 
 
-@deftp Class <bytevector>
+@deftp Class @aclass{bytevector}
 Type for values satisfying @func{bytevector?}.  It provides the following
 virtual fields:
 
@@ -21238,7 +21243,7 @@ Immutable.  Access the length of the bytevector.
 @end deftp
 
 
-@deftp Class <hashtable>
+@deftp Class @aclass{hashtable}
 Type for values satisfying @func{hashtable?}.  It provides the following
 virtual fields:
 
@@ -21261,7 +21266,7 @@ applying @func{hashtable-entries} to the hashtable.
 @subsection Numeric objects @rtd{}s
 
 
-@deftp Class <number>
+@deftp Class @aclass{number}
 Type for values satisfying @func{number?}.  It provides the following
 virtual fields:
 
@@ -21357,17 +21362,17 @@ number.
 @end deftp
 
 
-@deftp Class <complex>
+@deftp Class @aclass{complex}
 Type for values satisfying @func{complex?}.
 @end deftp
 
 
-@deftp Class <real-valued>
+@deftp Class @aclass{real-valued}
 Type for values satisfying @func{real-valued?}.
 @end deftp
 
 
-@deftp Class <real>
+@deftp Class @aclass{real}
 Type for values satisfying @func{real?}.  It provides the following
 virtual fields:
 
@@ -21379,32 +21384,32 @@ number.
 @end deftp
 
 
-@deftp Class <rational>
+@deftp Class @aclass{rational}
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
-@deftp Class <rational-valued>
+@deftp Class @aclass{rational-valued}
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
-@deftp Class <integer-valued>
+@deftp Class @aclass{integer-valued}
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
-@deftp Class <integer>
+@deftp Class @aclass{integer}
 Type for values satisfying @func{integer?}.
 @end deftp
 
 
-@deftp Class <fixnum>
+@deftp Class @aclass{fixnum}
 Type for values satisfying @func{fixnum?}.
 @end deftp
 
 
-@deftp Class <flonum>
+@deftp Class @aclass{flonum}
 Type for values satisfying @func{flonum?}.
 @end deftp
 
@@ -21417,7 +21422,7 @@ The binary/textual attributes are not mututally exclusive with the
 input/output attributes.
 
 
-@deftp Class <port>
+@deftp Class @aclass{port}
 Type for values satisfying @func{port?}.  It provides the following
 virtual fields:
 
@@ -21462,23 +21467,23 @@ the port.
 @end deftp
 
 
-@deftp Class <input-port>
+@deftp Class @aclass{input-port}
 @deftpx {Record Type Descriptor} <input-port-rtd>
 Type for values satisfying @func{input-port?}.
 @end deftp
 
 
-@deftp Class <output-port>
+@deftp Class @aclass{output-port}
 Type for values satisfying @func{output-port?}.
 @end deftp
 
 
-@deftp Class <textual-port>
+@deftp Class @aclass{textual-port}
 Type for values satisfying @func{textual-port?}.
 @end deftp
 
 
-@deftp Class <binary-port>
+@deftp Class @aclass{binary-port}
 Type for values satisfying @func{binary-port?}.
 @end deftp
 
@@ -21487,7 +21492,7 @@ Type for values satisfying @func{binary-port?}.
 @subsection Character and string @rtd{}s
 
 
-@deftp Class <string>
+@deftp Class @aclass{string}
 Type for values satisfying @func{string?}.  It provides the following
 virtual fields:
 
@@ -21515,7 +21520,7 @@ to the string.
 @end deftp
 
 
-@deftp Class <char>
+@deftp Class @aclass{char}
 Type for values satisfying @func{char?}.  It provides the following
 virtual fields:
 
@@ -21543,7 +21548,7 @@ to the char.
 @subsection Miscellaneous conventional @rtd{}s
 
 
-@deftp Class <condition>
+@deftp Class @aclass{condition}
 Type for values satisfying @func{condition?}.  It provides the following
 virtual fields:
 
@@ -21563,7 +21568,7 @@ Immutable.  Accessing this field is like applying
 @end deftp
 
 
-@deftp Class <record>
+@deftp Class @aclass{record}
 Type for values satisfying @func{record?}.
 @end deftp
 
@@ -38089,7 +38094,7 @@ library.
 @section Type definitions and constructors
 
 
-@deftp Class <queue>
+@deftp Class @aclass{queue}
 Class type name of queue objects.  Records of this type hold the
 following concrete and virtual fields:
 
@@ -38167,76 +38172,112 @@ The queue is left unchanged.  Raise an exception if the queue is empty.
 @section Basic operations
 
 
-@deffn Function queue-enqueue! @var{que} @var{obj}
-@deffnx {Dot Method} enqueue! @var{obj}
+@defun queue-enqueue! @var{que} @var{obj}
 Enqueue @var{obj} in the rear of the queue.
-@end deffn
+@end defun
 
 
-@deffn Function queue-push! @var{obj} @var{que}
-@deffnx {Dot Method} push! @var{obj}
+@defmethod @aclass{queue} enqueue! @var{obj}
+Enqueue @var{obj} in the rear of the queue.
+@end defmethod
+
+
+@defun queue-push! @var{obj} @var{que}
 Push @var{obj} in the front of the queue.
-@end deffn
+@end defun
 
 
-@deffn Function queue-dequeue! @var{que}
-@deffnx Function queue-pop! @var{que}
-@deffnx {Dot Method} dequeue!
-@deffnx {Dot Method} pop!
+@defmethod @aclass{queue} push! @var{obj}
+Push @var{obj} in the front of the queue.
+@end defmethod
+
+
+@defun queue-dequeue! @var{que}
+@defunx queue-pop! @var{que}
 Pop and return a value from the front of the queue.
-@end deffn
+@end defun
 
 
-@deffn Function queue-purge! @var{que}
-@deffnx {Dot Method} purge!
+@defmethod @aclass{queue} dequeue!
+@defmethodx @aclass{queue} pop!
+Pop and return a value from the front of the queue.
+@end defmethod
+
+
+@defun queue-purge! @var{que}
 Discard all the elements from the queue.
-@end deffn
+@end defun
+
+
+@defmethod @aclass{queue} purge!
+Discard all the elements from the queue.
+@end defmethod
 
 @c page
 @node queues list
 @section List operations
 
 
-@deffn Function queue-find @var{proc} @var{que}
-@deffnx Function queue-for-all @var{proc} @var{que}
-@deffnx Function queue-exists @var{proc} @var{que}
-@deffnx {Dot Method} queue-find @var{proc}
-@deffnx {Dot Method} for-all @var{proc}
-@deffnx {Dot Method} exists @var{proc} @var{que}
+@defun queue-find @var{proc} @var{que}
+@defunx queue-for-all @var{proc} @var{que}
+@defunx queue-exists @var{proc} @var{que}
 Apply @func{find} or @func{for-all} or @func{exists} to the internal
 list of the queue, return the result.
-@end deffn
+@end defun
 
 
-@deffn Function queue-remp! @var{proc} @var{que}
-@deffnx Function queue-remove! @var{obj} @var{que}
-@deffnx {Dot Method} remv! @var{obj}
-@deffnx {Dot Method} remq! @var{obj}
+@defmethod @aclass{queue} find @var{proc}
+@defmethodx @aclass{queue} for-all @var{proc}
+@defmethodx @aclass{queue} exists @var{proc} @var{que}
+Apply @func{find} or @func{for-all} or @func{exists} to the internal
+list of the queue, return the result.
+@end defmethod
+
+
+@defun queue-remp! @var{proc} @var{que}
+@defunx queue-remove! @var{obj} @var{que}
 Apply @func{remp} or @func{remove} or @func{remv} or @func{remq} to the
 internal list of the queue, removing objects from the queue.
-@end deffn
+@end defun
 
 
-@deffn Function queue-memp @var{proc} @var{que}
-@deffnx Function queue-member @var{obj} @var{que}
-@deffnx {Dot Method} memv @var{obj}
-@deffnx {Dot Method} memq @var{obj}
+@defmethod @aclass{queue} remv! @var{obj}
+@defmethodx @aclass{queue} remq! @var{obj}
+Apply @func{remp} or @func{remove} or @func{remv} or @func{remq} to the
+internal list of the queue, removing objects from the queue.
+@end defmethod
+
+
+@defun queue-memp @var{proc} @var{que}
+@defunx queue-member @var{obj} @var{que}
 Apply @func{memp} or @func{member} or @func{memv} or @func{memq} to the
 internal list of the queue, return the result.
-@end deffn
+@end defun
+
+
+@defmethod @aclass{queue} memv @var{obj}
+@defmethodx @aclass{queue} memq @var{obj}
+Apply @func{memp} or @func{member} or @func{memv} or @func{memq} to the
+internal list of the queue, return the result.
+@end defmethod
 
 @c page
 @node queues conv
 @section Conversion
 
 
-@deffn Function queue->list @var{que}
-@deffnx Function queue->vector @var{que}
-@deffnx {Dot Method} list
-@deffnx {Dot Method} vector
+@defun queue->list @var{que}
+@defunx queue->vector @var{que}
 Return a list or vector holding the elements in the queue.  In the list
 case, return a copy of the spine of the list in the queue.
-@end deffn
+@end defun
+
+
+@defmethod @aclass{queue} list
+@defmethodx @aclass{queue} vector
+Return a list or vector holding the elements in the queue.  In the list
+case, return a copy of the spine of the list in the queue.
+@end defmethod
 
 
 @defun list->queue @var{ell}
@@ -38270,7 +38311,7 @@ library.
 @section Type definitions and constructors
 
 
-@deftp Class <stack>
+@deftp Class @aclass{stack}
 Class name of stack objects.  Records of this type hold the following
 concrete and virtual fields:
 
@@ -38334,75 +38375,108 @@ stack is empty.
 @section Basic operations
 
 
-@deffn Function stack-push! @var{obj} @var{stk}
-@deffnx {Dot Method} push! @var{obj}
+@defun stack-push! @var{obj} @var{stk}
 Push @var{obj} in the top of the stack.
-@end deffn
+@end defun
 
 
-@deffn Function stack-pop! @var{stk}
-@deffnx {Dot Method} pop!
+@defmethod @aclass{stack} push! @var{obj}
+Push @var{obj} in the top of the stack.
+@end defmethod
+
+
+@defun stack-pop! @var{stk}
 Pop and return a value from the top of the stack.
-@end deffn
+@end defun
 
-@deffn Function stack-purge! @var{stk}
-@deffnx {Dot Method} purge!
+
+@defmethod @aclass{stack} pop!
+Pop and return a value from the top of the stack.
+@end defmethod
+
+
+@defun stack-purge! @var{stk}
 Remove all the elements from the stack.
-@end deffn
+@end defun
+
+
+@defmethod @aclass{stack} purge!
+Remove all the elements from the stack.
+@end defmethod
 
 @c page
 @node stacks list
 @section List operations
 
 
-@deffn Function stack-find @var{proc} @var{stk}
-@deffnx Function stack-for-all @var{proc} @var{stk}
-@deffnx Function stack-exists @var{proc} @var{stk}
-@deffnx {Dot Method} find @var{proc}
-@deffnx {Dot Method} for-all @var{proc}
-@deffnx {Dot Method} exists @var{proc}
+@defun stack-find @var{proc} @var{stk}
+@defunx stack-for-all @var{proc} @var{stk}
+@defunx stack-exists @var{proc} @var{stk}
 Apply @func{find} or @func{for-all} or @func{exists} to the internal
 list of elements, return the result.
-@end deffn
+@end defun
 
 
-@deffn Function stack-remp! @var{proc} @var{stk}
-@deffnx Function stack-remove! @var{obj} @var{stk}
-@deffnx Function stack-remv! @var{obj} @var{stk}
-@deffnx Function stack-remq! @var{obj} @var{stk}
-@deffnx {Dot Method} remp! @var{proc}
-@deffnx {Dot Method} remove! @var{obj}
-@deffnx {Dot Method} remv! @var{obj}
-@deffnx {Dot Method} remq! @var{obj}
+@defmethod @aclass{stack} find @var{proc}
+@defmethodx @aclass{stack} for-all @var{proc}
+@defmethodx @aclass{stack} exists @var{proc}
+Apply @func{find} or @func{for-all} or @func{exists} to the internal
+list of elements, return the result.
+@end defmethod
+
+
+@defun stack-remp! @var{proc} @var{stk}
+@defunx stack-remove! @var{obj} @var{stk}
+@defunx stack-remv! @var{obj} @var{stk}
+@defunx stack-remq! @var{obj} @var{stk}
 Apply @func{remp} or @func{remove} or @func{remv} or @func{remq} to the
 internal list of elements, removing objects from the stack.
-@end deffn
+@end defun
 
 
-@deffn Function stack-memp @var{proc} @var{stk}
-@deffnx Function stack-member @var{obj} @var{stk}
-@deffnx Function stack-memv @var{obj} @var{stk}
-@deffnx Function stack-memq @var{obj} @var{stk}
-@deffnx {Dot Method} memp @var{proc}
-@deffnx {Dot Method} member @var{obj}
-@deffnx {Dot Method} memv @var{obj}
-@deffnx {Dot Method} memq @var{obj}
+@defmethod @aclass{stack} remp! @var{proc}
+@defmethodx @aclass{stack} remove! @var{obj}
+@defmethodx @aclass{stack} remv! @var{obj}
+@defmethodx @aclass{stack} remq! @var{obj}
+Apply @func{remp} or @func{remove} or @func{remv} or @func{remq} to the
+internal list of elements, removing objects from the stack.
+@end defmethod
+
+
+@defun stack-memp @var{proc} @var{stk}
+@defunx stack-member @var{obj} @var{stk}
+@defunx stack-memv @var{obj} @var{stk}
+@defunx stack-memq @var{obj} @var{stk}
 Apply @func{memp} or @func{member} or @func{memv} or @func{memq} to the
 internal list of elements, return the result.
-@end deffn
+@end defun
+
+
+@defmethod @aclass{stack} memp @var{proc}
+@defmethodx @aclass{stack} member @var{obj}
+@defmethodx @aclass{stack} memv @var{obj}
+@defmethodx @aclass{stack} memq @var{obj}
+Apply @func{memp} or @func{member} or @func{memv} or @func{memq} to the
+internal list of elements, return the result.
+@end defmethod
 
 @c page
 @node stacks conv
 @section Conversion
 
 
-@deffn Function stack->list @var{stk}
-@deffnx Function stack->vector @var{stk}
-@deffnx {Dot Method} list
-@deffnx {Dot Method} vector
+@defun stack->list @var{stk}
+@defunx stack->vector @var{stk}
 Return a list or vector holding the elements in the stack.  In the list
 case, return a copy of the spine of the list in the stack.
-@end deffn
+@end defun
+
+
+@defmethod @aclass{stack} list
+@defmethodx @aclass{stack} vector
+Return a list or vector holding the elements in the stack.  In the list
+case, return a copy of the spine of the list in the stack.
+@end defmethod
 
 
 @defun list->stack @var{ell}
@@ -39652,23 +39726,23 @@ The base class built--in Scheme values.
 @subsection List types
 
 
-@deftp Class <pair>
+@deftp Class @aclass{pair}
 Class for values that satisfy @func{pair?}.
 @end deftp
 
 
-@deftp Class <list>
+@deftp Class @aclass{list}
 Class for values that satisfy @func{list?}.
 @end deftp
 
 
-@deftp Class <circular-list>
+@deftp Class @aclass{circular-list}
 Class for values that satisfy @func{circular-list?}.  Notice that a pair
 and a proper list are not circular lists.
 @end deftp
 
 
-@deftp Class <dotted-list>
+@deftp Class @aclass{dotted-list}
 Class for values that satisfy @func{dotted-list?}.  Notice that a pair
 is always a dotted list, but a proper list is not a dotted list.
 @end deftp
@@ -39678,22 +39752,22 @@ is always a dotted list, but a proper list is not a dotted list.
 @subsection Non--list compound data types
 
 
-@deftp Class <vector>
+@deftp Class @aclass{vector}
 Class for values that satisfy @func{vector?}.
 @end deftp
 
 
-@deftp Class <bytevector>
+@deftp Class @aclass{bytevector}
 Class for values that satisfy @func{bytevector?}.
 @end deftp
 
 
-@deftp Class <hashtable>
+@deftp Class @aclass{hashtable}
 Class for values that satisfy @func{hashtable?}.
 @end deftp
 
 
-@deftp Class <record>
+@deftp Class @aclass{record}
 Class for values that satisfy @func{record?}.
 @end deftp
 
@@ -39702,52 +39776,52 @@ Class for values that satisfy @func{record?}.
 @subsection Numeric data types
 
 
-@deftp Class <number>
+@deftp Class @aclass{number}
 Class for values that satisfy @func{number?}.
 @end deftp
 
 
-@deftp Class <complex>
+@deftp Class @aclass{complex}
 Class for values that satisfy @func{complex?}.
 @end deftp
 
 
-@deftp Class <real-valued>
+@deftp Class @aclass{real-valued}
 Class for values that satisfy @func{real-valued?}.
 @end deftp
 
 
-@deftp Class <real>
+@deftp Class @aclass{real}
 Class for values that satisfy @func{real?}.
 @end deftp
 
 
-@deftp Class <rational>
+@deftp Class @aclass{rational}
 Class for values that satisfy @func{integer?}.
 @end deftp
 
 
-@deftp Class <rational-valued>
+@deftp Class @aclass{rational-valued}
 Class for values that satisfy @func{integer?}.
 @end deftp
 
 
-@deftp Class <integer-valued>
+@deftp Class @aclass{integer-valued}
 Class for values that satisfy @func{integer?}.
 @end deftp
 
 
-@deftp Class <integer>
+@deftp Class @aclass{integer}
 Class for values that satisfy @func{integer?}.
 @end deftp
 
 
-@deftp Class <fixnum>
+@deftp Class @aclass{fixnum}
 Class for values that satisfy @func{fixnum?}.
 @end deftp
 
 
-@deftp Class <flonum>
+@deftp Class @aclass{flonum}
 Class for values that satisfy @func{flonum?}.
 @end deftp
 
@@ -39759,27 +39833,27 @@ Class for values that satisfy @func{flonum?}.
 The following classes for input/output ports are predefined.
 
 
-@deftp Class <port>
+@deftp Class @aclass{port}
 Class for values that satisfy @func{port?}.
 @end deftp
 
 
-@deftp Class <input-port>
+@deftp Class @aclass{input-port}
 Class for values that satisfy @func{input-port?}.
 @end deftp
 
 
-@deftp Class <output-port>
+@deftp Class @aclass{output-port}
 Class for values that satisfy @func{output-port?}.
 @end deftp
 
 
-@deftp Class <textual-port>
+@deftp Class @aclass{textual-port}
 Class for values that satisfy @func{textual-port?}.
 @end deftp
 
 
-@deftp Class <binary-port>
+@deftp Class @aclass{binary-port}
 Class for values that satisfy @func{binary-port?}.
 @end deftp
 
@@ -44882,7 +44956,7 @@ source location.
 @subsection Type, makers, accessors
 
 
-@deftp Class <source-location>
+@deftp Class @aclass{source-location}
 References the position of the next character to parse in the input
 stream, which is the position of the first char in the next token
 produced by the lexer.  All the fields in a @class{source-location}
@@ -45148,7 +45222,7 @@ top of @library{classes}.
 @subsection The record type
 
 
-@deftp Class <lexical-token>
+@deftp Class @aclass{lexical-token}
 Hold the informations about a token from the input stream.  All the
 fields in a @class{lexical-token} record are immutable.  Fields
 description follows.
@@ -50031,7 +50105,7 @@ be handled with the facilities of the @library{classes} library.
 @subsubsection Domain
 
 
-@deftp Class <domain>
+@deftp Class @aclass{domain}
 Represent the domain portion of an address specification.  Fields
 description:
 
@@ -50077,7 +50151,7 @@ enclosed in square parentheses.
 @subsubsection Local part
 
 
-@deftp Class <local-part>
+@deftp Class @aclass{local-part}
 Holds a list of local part strings.  The local part is a single string,
 but for parsing reasons it is accumulated as a list of strings.  Fields
 description:
@@ -50103,7 +50177,7 @@ Return the string representation of @var{o}.
 @subsubsection Address specification
 
 
-@deftp Class <addr-spec>
+@deftp Class @aclass{addr-spec}
 Holds an address specification: a local part and a domain.  Fields
 description:
 
@@ -50132,7 +50206,7 @@ Return the string representation of @var{o}.
 @subsubsection Route
 
 
-@deftp Class <route>
+@deftp Class @aclass{route}
 Holds a list of domains to be used to route the message to the final
 destination.  Fields description:
 
@@ -50152,7 +50226,7 @@ Return the string representation of @var{o}.
 @subsubsection Mailbox
 
 
-@deftp Class <mailbox>
+@deftp Class @aclass{mailbox}
 Hold a mailbox specification.  Fields description:
 
 @table @code
@@ -50184,7 +50258,7 @@ Return the string representation of @var{o}.
 @subsubsection Group of mailboxes
 
 
-@deftp Class <group>
+@deftp Class @aclass{group}
 Holds a list of mailboxes and a phrase.  Fields description:
 
 @table @samp
@@ -50701,7 +50775,7 @@ Notice that a single dash, @samp{-}, is a valid non--option argument.
 @section Record types
 
 
-@deftp Class <option>
+@deftp Class @aclass{option}
 Type of records representing command line options.  It has the following
 fields, all immutable:
 
@@ -51261,7 +51335,7 @@ produced in @math{2}-bytes blocks.
 @subsection Encoding byte streams with base16
 
 
-@deftp Class <base16-encode-ctx>
+@deftp Class @aclass{base16-encode-ctx}
 Context descriptor for base16 encoding.  It has the following immutable
 fields:
 
@@ -51392,7 +51466,7 @@ available input data is not consumed.
 @subsection Decoding byte streams with base16
 
 
-@deftp Class <base16-decode-ctx>
+@deftp Class @aclass{base16-decode-ctx}
 Context descriptor for base16 decoding.  It has the following immutable
 fields:
 
@@ -51664,7 +51738,7 @@ when padding is off: the last block can have the lengths: @math{2},
 @subsection Encoding byte streams with base32
 
 
-@deftp Class <base32-encode-ctx>
+@deftp Class @aclass{base32-encode-ctx}
 Context descriptor for base32 encoding.  It has the following immutable
 fields:
 
@@ -51840,7 +51914,7 @@ not consumed.
 @subsection Decoding byte streams with base32
 
 
-@deftp Class <base32-decode-ctx>
+@deftp Class @aclass{base32-decode-ctx}
 Context descriptor for base32 decoding.  It has the following immutable
 fields:
 
@@ -52130,7 +52204,7 @@ when padding is off: the last block can have the lengths: @math{2},
 @subsection Encoding byte streams with base64
 
 
-@deftp Class <base64-encode-ctx>
+@deftp Class @aclass{base64-encode-ctx}
 Context descriptor for base64 encoding.  It has the following immutable
 fields:
 
@@ -52296,7 +52370,7 @@ not consumed.
 @subsection Decoding byte streams with base64
 
 
-@deftp Class <base64-decode-ctx>
+@deftp Class @aclass{base64-decode-ctx}
 Context descriptor for base64 decoding.  It has the following immutable
 fields:
 
@@ -52552,7 +52626,7 @@ y z 0   1 2 3   4 5 6   7    ;; 50 - 59
 @subsection Encoding byte streams with base91
 
 
-@deftp Class <base91-encode-ctx>
+@deftp Class @aclass{base91-encode-ctx}
 Context descriptor for base91 encoding.  The fields of this record
 depend on the input data: records of this type @strong{cannot} be reused
 for different streams.
@@ -52649,7 +52723,7 @@ from @var{src-bv} are consumed, this value is @var{src-past}.
 @subsection Decoding byte streams with base91
 
 
-@deftp Class <base91-decode-ctx>
+@deftp Class @aclass{base91-decode-ctx}
 Context descriptor for base91 decoding.  The fields of this record
 depend on the input data: records of this type @strong{cannot} be reused
 for different streams.
@@ -52992,7 +53066,7 @@ Trailing characters must come in blocks of at least @math{2} bytes.
 @subsection Encoding byte streams with @ascii{}85
 
 
-@deftp Class <ascii85-encode-ctx>
+@deftp Class @aclass{ascii85-encode-ctx}
 Context descriptor for @ascii{}85 encoding.
 @end deftp
 
@@ -53101,7 +53175,7 @@ the opening @samp{<~} or closing @samp{~>} sequences of the @ascii{}85
 encoding.
 
 
-@deftp Class <ascii85-decode-ctx>
+@deftp Class @aclass{ascii85-decode-ctx}
 Context descriptor for @ascii{}85 decoding.
 @end deftp
 
@@ -53345,7 +53419,7 @@ strings which can be correctly processed by the same decoder.
 @subsection Encoding byte streams with quoted--printable
 
 
-@deftp Class <qprint-encode-ctx>
+@deftp Class @aclass{qprint-encode-ctx}
 Context descriptor for quoted--printable encoding.  It has the following
 fields:
 
@@ -53436,7 +53510,7 @@ triplets of bytes.
 @subsection Decoding byte streams with quoted--printable
 
 
-@deftp Class <qprint-decode-ctx>
+@deftp Class @aclass{qprint-decode-ctx}
 Context descriptor for quoted--printable decoding.  Nothing in records
 of this type depends upon the input or output data, so they can be
 reused for multiple streams.
@@ -53541,7 +53615,7 @@ The bindings documented in this section are exported by the
 @subsection Inserting sequences of bytes
 
 
-@deftp Class <newlines-encode-ctx>
+@deftp Class @aclass{newlines-encode-ctx}
 Context record for newline insertion.  It has the following fields:
 
 @table @code
@@ -53617,7 +53691,7 @@ from @var{src-bv} are consumed, this value is @var{src-past}.
 @subsection Removing sequences of bytes
 
 
-@deftp Class <newlines-decode-ctx>
+@deftp Class @aclass{newlines-decode-ctx}
 Context record for newline removal.  It has the following fields:
 
 @table @code

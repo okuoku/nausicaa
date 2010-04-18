@@ -117,7 +117,7 @@
   (only (email addresses))
 
   (only (getopts))
-;;  (only (libraries))
+  (only (libraries))
 
   (only (armor conditions))
   (only (armor base16))
