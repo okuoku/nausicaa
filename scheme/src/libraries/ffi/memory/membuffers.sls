@@ -27,7 +27,7 @@
 
 (library (ffi memory membuffers)
   (export
-    <membuffer>			<membuffer>-with-record-fields-of
+    <membuffer>
     make-<membuffer>		<membuffer>?
     membuffer-push-memblock!	membuffer-pop-memblock!
     membuffer-push-bytevector!	membuffer-pop-bytevector!

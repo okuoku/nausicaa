@@ -46,9 +46,6 @@
 
     base32-encode-block-length			base32-decode-block-length
 
-    <base32-encode-ctx>-with-record-fields-of
-    <base32-decode-ctx>-with-record-fields-of
-
     armored-byte-of-base32/upper-case?		armored-byte-of-base32/hex/upper-case?
     armored-byte-of-base32/lower-case?		armored-byte-of-base32/hex/lower-case?
     armored-byte-of-base32/mixed-case?		armored-byte-of-base32/hex/mixed-case?)

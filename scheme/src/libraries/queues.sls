@@ -26,7 +26,7 @@
 
 (library (queues)
   (export
-    <queue>		<queue>?	<queue>-with-record-fields-of
+    <queue>		<queue>?
     make-<queue>
     <queue>-first-pair	<queue>-first-pair-set!
     <queue>-last-pair	<queue>-last-pair-set!

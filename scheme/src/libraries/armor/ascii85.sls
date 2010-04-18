@@ -44,9 +44,6 @@
 
     ascii85-encode-block-length		ascii85-decode-block-length
 
-    <ascii85-encode-ctx>-with-record-fields-of
-    <ascii85-decode-ctx>-with-record-fields-of
-
     ascii85-encode-opening!
     ascii85-encode-closing!
     armored-byte-of-ascii85?)

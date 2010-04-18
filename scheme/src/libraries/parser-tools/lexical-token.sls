@@ -33,7 +33,7 @@
 #!r6rs
 (library (parser-tools lexical-token)
   (export
-    <lexical-token>			<lexical-token>-with-record-fields-of
+    <lexical-token>
     make-<lexical-token>
     make-<lexical-token>/end-of-input
     make-<lexical-token>/lexer-error

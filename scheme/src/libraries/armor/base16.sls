@@ -42,9 +42,6 @@
 
 						base16-decode-block-length
 
-    <base16-encode-ctx>-with-record-fields-of
-    <base16-decode-ctx>-with-record-fields-of
-
     armored-byte-of-base16/upper-case?
     armored-byte-of-base16/mixed-case?
     armored-byte-of-base16/lower-case?)

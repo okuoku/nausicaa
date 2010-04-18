@@ -26,7 +26,7 @@
 
 (library (stacks)
   (export
-    <stack>		<stack>?	<stack>-with-record-fields-of
+    <stack>		<stack>?
     make-<stack>
     <stack>-first-pair	<stack>-first-pair-set!
 

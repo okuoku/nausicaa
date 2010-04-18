@@ -38,6 +38,7 @@
 ;;;; the following are all the bindings from (classes)
 
     define-class			make
+    class-type-descriptor		class-constructor-descriptor
     define/with				define/with*
     lambda/with				lambda/with*
     let-fields				let*-fields
@@ -54,34 +55,7 @@
     <record> <condition>
     <port> <binary-port> <input-port> <output-port> <textual-port>
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
-    <real> <real-valued> <complex> <number>
-
-    <top>-with-record-fields-of
-    <builtin>-with-record-fields-of
-    <pair>-with-record-fields-of
-    <list>-with-record-fields-of
-    <char>-with-record-fields-of
-    <string>-with-record-fields-of
-    <vector>-with-record-fields-of
-    <bytevector>-with-record-fields-of
-    <hashtable>-with-record-fields-of
-    <record>-with-record-fields-of
-    <condition>-with-record-fields-of
-    <port>-with-record-fields-of
-    <binary-port>-with-record-fields-of
-    <input-port>-with-record-fields-of
-    <output-port>-with-record-fields-of
-    <textual-port>-with-record-fields-of
-    <fixnum>-with-record-fields-of
-    <flonum>-with-record-fields-of
-    <integer>-with-record-fields-of
-    <integer-valued>-with-record-fields-of
-    <rational>-with-record-fields-of
-    <rational-valued>-with-record-fields-of
-    <real>-with-record-fields-of
-    <real-valued>-with-record-fields-of
-    <complex>-with-record-fields-of
-    <number>-with-record-fields-of)
+    <real> <real-valued> <complex> <number>)
   (import (rnrs)
     (classes)
     (language-extensions)
@@ -335,7 +309,7 @@
   (syntax-rules ()
     ((_ ?generic-function (?record-name ...) ?has-rest ?closure)
      ((?generic-function :method-adder)
-      (list (record-type-descriptor ?record-name) ...) ;this is the signature
+      (list (class-type-descriptor ?record-name) ...) ;this is the signature
       ?has-rest ?closure))))
 
 

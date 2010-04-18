@@ -27,7 +27,7 @@
 
 (library (ffi memory mempool)
   (export
-    <mempool>			<mempool>-with-record-fields-of
+    <mempool>
     make-<mempool>		<mempool>?
     <mempool>-pointer-free	<mempool>-pointer-free-set!
     <mempool>-pointer

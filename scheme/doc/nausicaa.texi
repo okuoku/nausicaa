@@ -20137,29 +20137,6 @@ definition.
 
 Additionally the @meta{class clause} arguments can be the auxiliary
 syntaxes described below.
-
-One of the defined syntaxes is bound to the identifier:
-
-@example
-@cmeta{name}-with-record-fields-of
-@end example
-
-@noindent
-where @meta{name} is the name of the record type.  This syntax must be
-exported from libraries, along with the record name itself, if we want
-to use other syntaxes like @func{with-fields} and the @func{let-fields}
-variants.  The syntax's name must always be the record type name with
-@code{-with-record-fields-of} appended, so we have to take care of this
-when renaming the record type name; for example:
-
-@example
-(import (rnrs)
-  (rename (defs)
-    (<alpha>
-      the-<alpha>)
-    (<alpha>-with-record-fields-of
-      the-<alpha>-with-record-fields-of)))
-@end example
 @end deffn
 
 
@@ -20505,11 +20482,6 @@ record type name.
 @node classes fields
 @section Binding accessors and mutators
 
-
-All the following macros work correctly only if we have imported the
-automatically generated @func{@cmeta{record name}-with-record-fields-of}
-binding along with the record name; @ref{classes define} for details on
-classes definition.
 
 @menu
 * classes fields with::         Basic fields and methods usage.
@@ -38144,12 +38116,6 @@ Immutable.  It holds the number of elements in the queue.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <queue>-with-record-fields-of
-Used to access fields by @func{with-fields} from the @library{classes}
-library.
-@end deffn
-
-
 @defun make-<queue> @var{arg} ...
 Build and return a new @class{queue} record.  When called with no
 arguments, return an empty queue; when applied to arguments, return a
@@ -38323,12 +38289,6 @@ Immutable.  True if the stack is empty.
 Immutable.  The number of elements on the stack.
 @end table
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <stack>-with-record-fields-of
-Used to access fields by @func{with-fields} from the @library{classes}
-library.
-@end deffn
 
 
 @defun make-<stack> @var{arg} ...
@@ -41132,12 +41092,6 @@ When using a transformer the sentinel value has a special meaning.
 @pxref{sentinel, The sentinel value}
 @end table
 @end deftp
-
-
-@deffn {Auxiliary Syntax} sexp-variable-with-record-fields-of
-Used to access the fields of @objtype{sexp-variable} records by
-@func{with-fields} from @library{classes}.
-@end deffn
 
 
 @defun make-sexp-variable @var{name} @var{default}
@@ -44958,12 +44912,6 @@ the actions}
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <source-location>-with-record-fields-of
-Used to access fields of @class{source-location} records by
-@func{with-fields} from the @library{classes} library.
-@end deffn
-
-
 @defun <source-location>-input @var{loc}
 @defunx <source-location>-line @var{loc}
 @defunx <source-location>-column @var{loc}
@@ -45225,12 +45173,6 @@ When the token represents the end--of--input, this field can be set to
 zero.
 @end table
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <lexical-token>-with-record-fields-of
-Used to access @class{lexical-token} record fields by @func{with-fields}
-from the @library{classes} library.
-@end deffn
 
 
 @defun <lexical-token>-category @var{tok}
@@ -50103,12 +50045,6 @@ The list of strings representing the domain components.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <domain>-with-record-fields-of
-Used to access fields of @class{domain} records by @func{with-fields}
-from the @library{classes} library.
-@end deffn
-
-
 @defun <domain>-literal? @var{dom}
 @defunx <domain>-subdomains @var{dom}
 Field accessors.
@@ -50153,12 +50089,6 @@ A list of strings.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <local-part>-with-record-fields-of
-Used to access fields of @class{local-part} records by
-@func{with-fields} from the @library{classes} library.
-@end deffn
-
-
 @defun <local-part>-subparts @var{lp}
 Field accessor.
 @end defun
@@ -50187,12 +50117,6 @@ Holds a @class{domain} record.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <addr-spec>-with-record-fields-of
-Used to access fields of @class{addr-spec} records by @func{with-fields}
-from the @library{classes} library.
-@end deffn
-
-
 @defun <addr-spec>-local-part @var{as}
 @defunx <addr-spec>-domain @var{as}
 Field accessors.
@@ -50219,12 +50143,6 @@ A list of @class{domain} records.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <route>-with-record-fields-of
-Used to access fields of @class{route} records by @func{with-fields}
-from the @library{classes} library.
-@end deffn
-
-
 @deffn Method object->string (@var{o} <route>)
 Return the string representation of @var{o}.
 @end deffn
@@ -50248,12 +50166,6 @@ Holds @false{} or a @class{route} record.
 Holds an @class{addr-spec} record.
 @end table
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <mailbox>-with-record-fields-of
-Used to access fields of @class{mailbox} records by @func{with-fields}
-from the @library{classes} library.
-@end deffn
 
 
 @defun <mailbox>-display-name @var{mb}
@@ -50283,12 +50195,6 @@ Holds the phrase string.
 Holds a list of @class{mailbox} records.
 @end table
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <group>-with-record-fields-of
-Used to access fields of @class{group} records by @func{with-fields}
-from the @library{classes} library.
-@end deffn
 
 
 @defun <group>-display-name @var{gr}
@@ -50830,12 +50736,6 @@ Scheme string representing the option's value.
 @end itemize
 @end table
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <option>-with-record-fields-of
-Used to access the fields of @class{option} records by
-@func{with-fields} from @library{classes}.
-@end deffn
 
 
 @defun make-<option> @var{brief} @var{long} @var{with-arg?} @var{description} @var{action}
@@ -51381,12 +51281,6 @@ parallel.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <base16-encode-ctx>-with-record-fields-of
-Used to access fields of @class{base16-encode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
-
-
 @defun make-<base16-encode-ctx> @var{encoding-case}
 Build and return a new record of type @class{base16-encode-ctx}.
 
@@ -51516,12 +51410,6 @@ Nothing in this record depends on the input or output data: records of
 this type can be reused for different streams, both in sequence and in
 parallel.
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <base16-decode-ctx>-with-record-fields-of
-Used to access fields of @class{base16-decode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
 
 
 @defun make-<base16-decode-ctx> @var{encoding-case}
@@ -51808,12 +51696,6 @@ parallel.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <base32-encode-ctx>-with-record-fields-of
-Used to access fields of @class{base32-encode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
-
-
 @defun make-<base32-encode-ctx> @var{encoding} @var{generate-padding?} @var{encoding-case}
 Build and return a new record of type @class{base32-encode-ctx}.
 
@@ -51989,12 +51871,6 @@ Nothing in this record depends on the input or output data: records of
 this type can be reused for different streams, both in sequence and in
 parallel.
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <base32-decode-ctx>-with-record-fields-of
-Used to access fields of @class{base32-decode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
 
 
 @defun make-<base32-decode-ctx> @var{encoding} @var{expect-padding?} @var{encoding-case}
@@ -52282,12 +52158,6 @@ parallel.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <base64-encode-ctx>-with-record-fields-of
-Used to access fields of @class{base64-encode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
-
-
 @defun make-<base64-encode-ctx> @var{encoding} @var{generate-padding?}
 Build and return a new record of type @class{base64-encode-ctx}.
 
@@ -52453,12 +52323,6 @@ Nothing in this record depends on the input or output data: records of
 this type can be reused for different streams, both in sequence and in
 parallel.
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <base64-decode-ctx>-with-record-fields-of
-Used to access fields of @class{base64-decode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
 
 
 @defun make-<base64-decode-ctx> @var{encoding} @var{expect-padding?}
@@ -52695,12 +52559,6 @@ for different streams.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <base91-encode-ctx>-with-record-fields-of
-Used to access fields of @class{base91-encode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
-
-
 @defun make-<base91-encode-ctx>
 @defunx <base91-encode-ctx>? @var{obj}
 Constructor and predicate for records of type @class{base91-encode-ctx}.
@@ -52712,12 +52570,6 @@ Return the minimum number of bytes required in the output bytevector
 when @func{base91-encode-update!}  is applied to @var{number-of-bytes}
 of binary input data.
 @end defun
-
-
-@deffn {Auxiliary Syntax} <base91-encode-ctx>-with-record-fields-of
-Used to access fields of @class{base91-encode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
 
 
 @defun base91-encode-final-length @var{unused}
@@ -52802,12 +52654,6 @@ Context descriptor for base91 decoding.  The fields of this record
 depend on the input data: records of this type @strong{cannot} be reused
 for different streams.
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <base91-decode-ctx>-with-record-fields-of
-Used to access fields of @class{base91-decode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
 
 
 @defun make-<base91-decode-ctx>
@@ -53151,12 +52997,6 @@ Context descriptor for @ascii{}85 encoding.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <ascii85-encode-ctx>-with-record-fields-of
-Used to access fields of @class{ascii85-encode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
-
-
 @defun make-<ascii85-encode-ctx>
 @defunx <ascii85-encode-ctx>? @var{obj}
 Constructor and predicate for records of type
@@ -53264,12 +53104,6 @@ encoding.
 @deftp Class <ascii85-decode-ctx>
 Context descriptor for @ascii{}85 decoding.
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <ascii85-decode-ctx>-with-record-fields-of
-Used to access fields of @class{ascii85-decode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
 
 
 @defun make-<ascii85-decode-ctx>
@@ -53525,12 +53359,6 @@ so they can be reused for multiple streams.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <qprint-encode-ctx>-with-record-fields-of
-Used to access fields of @class{qprint-encode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
-
-
 @defun make-<qprint-encode-ctx> @var{encoding}
 Build and return a new record of type @class{qprint-encode-ctx}.
 @var{encoding} must be a Scheme symbol among: @code{default},
@@ -53613,12 +53441,6 @@ Context descriptor for quoted--printable decoding.  Nothing in records
 of this type depends upon the input or output data, so they can be
 reused for multiple streams.
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <qprint-decode-ctx>-with-record-fields-of
-Used to access fields of @class{qprint-decode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
 
 
 @defun make-<qprint-decode-ctx>
@@ -53736,12 +53558,6 @@ The current colum number.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <newlines-encode-ctx>-with-record-fields-of
-Used to access fields of @class{newlines-encode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
-
-
 @defun make-<newlines-encode-ctx> @var{width} @var{sequence} @var{column}
 @defunx <newlines-encode-ctx>? @var{obj}
 Constructor and predicate for records of type
@@ -53810,12 +53626,6 @@ A bytevector representing the newline sequence of characters.  This
 field is immutable.
 @end table
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <newlines-decode-ctx>-with-record-fields-of
-Used to access fields of @class{newlines-decode-ctx} records by
-@func{with-fields} from @library{classes}.
-@end deffn
 
 
 @defun make-<newlines-decode-ctx> @var{sequence}

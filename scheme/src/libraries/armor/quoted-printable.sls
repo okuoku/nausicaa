@@ -37,9 +37,6 @@
 
 					qprint-decode-block-length
 
-    <qprint-encode-ctx>-with-record-fields-of
-    <qprint-decode-ctx>-with-record-fields-of
-
     armored-byte-of-qprint?		armored-byte-of-qprint?/strong)
   (import (rnrs)
     (language-extensions)

@@ -66,7 +66,7 @@
 (library (libraries)
   (export
 
-    <library>					<library>-with-record-fields-of
+    <library>
     make-<library>				<library>?
     <library>-exports
     <library>-imported-libraries
@@ -126,7 +126,10 @@
     (char-sets)
     (matches)
     (libraries rnrs-bindings)
-    (libraries low))
+    (libraries low)
+    (libraries names)
+    (libraries references)
+    (libraries import-sets))
 
 
 ;;;; condition objects
@@ -244,13 +247,13 @@
    (lambda (make-<top>)
      (lambda/with* ((requested-library-name <list>) (library-sexp <list>))
        (match library-sexp
-	 (('library (:predicate %library-name? ?library-name)
+	 (('library (:predicate library-name? ?library-name)
 	    ('export . ?exports) ;?exports can be null
 	    ('import . ?imports) ;?imports can be null
 	    . ?body) ;?body can be null
 	  ((make-<top>) requested-library-name library-sexp
 	   ?library-name
-	   (%library-version-ref ?library-name)
+	   (library-name->version ?library-name)
 	   ?exports ?imports ?body))
 	 (_
 	  (error-library-invalid-sexp 'make-<raw-library> requested-library-name library-sexp))))))

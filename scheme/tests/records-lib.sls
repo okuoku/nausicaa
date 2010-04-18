@@ -27,9 +27,9 @@
 
 (library (records-lib)
   (export <alpha> <beta> <gamma>
-	  <alpha>-with-record-fields-of
-	  <beta>-with-record-fields-of
-	  <gamma>-with-record-fields-of
+	  ;; <alpha>-with-record-fields-of
+	  ;; <beta>-with-record-fields-of
+	  ;; <gamma>-with-record-fields-of
 	  make-<alpha>
 	  make-<beta>
 	  make-<gamma>)

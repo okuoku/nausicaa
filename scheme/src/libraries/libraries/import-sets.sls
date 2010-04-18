@@ -29,6 +29,7 @@
   (export
     )
   (import (nausicaa)
+    (matches)
     (libraries references))
 
 
@@ -54,12 +55,12 @@
 
 
 (define (import-spec-parse sexp)
-  (match import-set
+  (match sexp
 
     (('for ?import-set)
-     (values (import-set-parse ?import-set9 '(0))))
+     (values (import-set-parse ?import-set '(0))))
 
-    (('for ?import-set (:predicate %import-level? ?import-levels) ...)
+    (('for ?import-set (:predicate import-level? ?import-levels) ...)
      (values (import-set-parse ?import-set)
 	     (import-levels-parse ?import-levels)))
 
@@ -95,28 +96,28 @@
     ;;The  RENAME  clause can  appear  with and  without
     ;;renamings.
     (('rename ?import-set)
-     (%take-import-spec ?import-set))
+     (import-set-parse ?import-set))
     (('rename ?import-set . _)
-     (%take-import-spec ?import-set))
+     (import-set-parse ?import-set))
 
     ;;The  ONLY  clause  can  appear  with  and  without
     ;;symbols.
     (('only ?import-set)
-     (%take-import-spec ?import-set))
+     (import-set-parse ?import-set))
     (('only ?import-set . _)
-     (%take-import-spec ?import-set))
+     (import-set-parse ?import-set))
 
     ;;The  EXCEPT  clause can  appear  with and  without
     ;;symbols.
     (('except ?import-set)
-     (%take-import-spec ?import-set))
+     (import-set-parse ?import-set))
     (('except ?import-set . _)
-     (%take-import-spec ?import-set))
+     (import-set-parse ?import-set))
 
     ;;The  PREFIX  clause must  appear  with a  symbolic
     ;;prefix.
     (('prefix ?import-set (:predicate symbol? ?prefix))
-     (%take-import-spec ?import-set))
+     (import-set-parse ?import-set))
 
     ;;The LIBRARY  clause allows library  names starting
     ;;with FOR, ONLY, etc.
@@ -129,7 +130,21 @@
 
     ;;Everything else is an error.
     (?import-set
-     (assertion-violation 'import-set-parse "invalid import set" sexp))))
+     (assertion-violation 'import-set-parse "invalid import set" spec))))
+
+
+(define (import-level? obj)
+  ;;Return true if OBJ is a valid <import level> as specified by R6RS.
+  ;;
+  (case obj
+    ((run expand)
+     #t)
+    (else
+     (and (pair? obj)
+	  (eq? 'meta (car obj))
+	  (integer?  (cdr obj))
+	  (exact?    (cdr obj))))))
+
 
 
 ;;;; done

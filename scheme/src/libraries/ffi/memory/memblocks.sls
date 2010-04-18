@@ -30,7 +30,7 @@
 
 (library (ffi memory memblocks)
   (export
-    <memblock>			<memblock>-with-record-fields-of
+    <memblock>
     make-<memblock>		<memblock>?
     <memblock>-pointer		<memblock>-pointer-set!
     <memblock>-size		<memblock>-size-set!

@@ -28,7 +28,7 @@
 (library (libraries names)
   (export
     <library-name>		<library-name>?
-    make-<library-name>		<library-name>-with-record-fields-of
+    make-<library-name>
     <library-name>-identifiers
     <library-name>-version
 

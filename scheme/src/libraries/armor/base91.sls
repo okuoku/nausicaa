@@ -67,9 +67,6 @@
     base91-encode-update-length			base91-decode-update-length
     base91-encode-final-length			base91-decode-final-length
 
-    <base91-encode-ctx>-with-record-fields-of
-    <base91-decode-ctx>-with-record-fields-of
-
     armored-byte-of-base91?)
   (import (rnrs)
     (language-extensions)

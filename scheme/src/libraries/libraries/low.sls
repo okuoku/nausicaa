@@ -28,11 +28,8 @@
 (library (libraries low)
   (export
 
-    %import-level?
     %list-of-symbols?
     %list-of-renamings?			%renaming?
-
-    %sub-version-conforms-to-sub-version-reference?
 
     %apply-import-spec/only
     %apply-import-spec/except
@@ -49,21 +46,6 @@
   (syntax-rules ()
     ((_ ?expr)
      (if ?expr #t #f))))
-
-
-
-
-(define (%import-level? obj)
-  ;;Return true if OBJ is a valid <import level> as specified by R6RS.
-  ;;
-  (case obj
-    ((run expand)
-     #t)
-    (else
-     (and (pair? obj)
-	  (eq? 'meta (car obj))
-	  (integer?  (cdr obj))
-	  (exact?    (cdr obj))))))
 
 
 (define (%list-of-symbols? obj)

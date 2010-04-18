@@ -34,9 +34,6 @@
     <newlines-encode-ctx>-column
     <newlines-encode-ctx>-width
 
-    <newlines-encode-ctx>-with-record-fields-of
-    <newlines-decode-ctx>-with-record-fields-of
-
     newlines-encode-update!			newlines-decode-update!
     newlines-encode-final!			newlines-decode-final!)
   (import (rnrs)

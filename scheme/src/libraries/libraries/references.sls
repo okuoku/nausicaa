@@ -29,7 +29,7 @@
   (export
 
     <library-reference>		<library-reference>?
-    make-<library-reference>	<library-reference>-with-record-fields-of
+    make-<library-reference>
     <library-reference>-identifiers
     <library-reference>-version-reference
 

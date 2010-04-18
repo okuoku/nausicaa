@@ -35,7 +35,7 @@
 (library (parser-tools source-location)
   (export
 
-    <source-location>		<source-location>-with-record-fields-of
+    <source-location>
     make-<source-location>	make-<source-location>/start
     <source-location>?		<source-location>?/start
     <source-location>?/or-false	<source-location>?/start/or-false

@@ -45,9 +45,6 @@
 
     base64-encode-block-length			base64-decode-block-length
 
-    <base64-encode-ctx>-with-record-fields-of
-    <base64-decode-ctx>-with-record-fields-of
-
     armored-byte-of-base64?			armored-byte-of-base64/url?)
   (import (rnrs)
     (language-extensions)

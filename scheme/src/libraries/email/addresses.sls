@@ -33,38 +33,38 @@
     make-address-parser
 
     ;; domain data type
-    <domain>			<domain>-with-record-fields-of
+    <domain>
     make-<domain>
     <domain>?			<domain>?/or-false
     assert-<domain>		assert-<domain>/or-false
     <domain>-subdomains		<domain>-literal?
 
     ;; local part data type
-    <local-part>		<local-part>-with-record-fields-of
+    <local-part>
     make-<local-part>
     <local-part>?
     <local-part>-subparts
 
     ;; addr-spec data type
-    <addr-spec>			<addr-spec>-with-record-fields-of
+    <addr-spec>
     make-<addr-spec>
     <addr-spec>?
     <addr-spec>-local-part	<addr-spec>-domain
 
     ;; route data type
-    <route>			<route>-with-record-fields-of
+    <route>
     make-<route>
     <route>?
     <route>-domains
 
     ;; route address data type
-    <mailbox>			<mailbox>-with-record-fields-of
+    <mailbox>
     make-<mailbox>
     <mailbox>?
     <mailbox>-display-name	<mailbox>-route		<mailbox>-addr-spec
 
     ;; group data type
-    <group>			<group>-with-record-fields-of
+    <group>
     make-<group>
     <group>?
     <group>-display-name	<group>-mailboxes)

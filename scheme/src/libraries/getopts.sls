@@ -33,7 +33,7 @@
 
 ;;; --------------------------------------------------------------------
 
-    <option>			<option>-with-record-fields-of
+    <option>
     make-<option>		<option>?
 
     <option>-brief		<option>-long
