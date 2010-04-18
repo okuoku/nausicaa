@@ -1,7 +1,7 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: tests for (records basics)
+;;;Contents: tests for (classes)
 ;;;Date: Thu Apr  1, 2010
 ;;;
 ;;;Abstract
@@ -681,7 +681,7 @@
 ;;; these tests use the record definitions from (records-lib)
 
   (check
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(with-fields ((r <gamma> <beta> <alpha>))
 	  (list r.a r.b r.c
 		r.d r.e r.f
@@ -689,7 +689,7 @@
     => '(1 2 3 4 5 6 7 8 9))
 
   (check
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(with-fields ((r <gamma> <alpha>))
 	  (list r.a r.b r.c
 		r.g r.h r.i)))
@@ -782,7 +782,7 @@
 ;;; the following tests use the records from (records-lib)
 
   (let ()
-    (define r (make-<alpha> 123 #\a 1.0))
+    (define r (make <alpha> 123 #\a 1.0))
 
     (with-fields ((r <alpha>))
 
@@ -1123,15 +1123,15 @@
     #f)
 
   (check	;use the records from (records-lib)
-      (let-fields (((r <gamma> <beta> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+      (let-fields (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(list r.a r.b r.c
 	      r.d r.e r.f
 	      r.g r.h r.i))
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (let-fields (((r <gamma> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9))
-		   ((s <beta>  <alpha>) (make-<beta>  10 20 30 40 50 60)))
+      (let-fields (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
+		   ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
 	(list r.a r.g s.a s.d))
     => '(1 7 10 40))
 
@@ -1166,15 +1166,15 @@
     #f)
 
   (check	;use the records from (records-lib)
-      (let*-fields (((r <gamma> <beta> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+      (let*-fields (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(list r.a r.b r.c
 	      r.d r.e r.f
 	      r.g r.h r.i))
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (let*-fields (((r <gamma> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9))
-		    ((s <beta>  <alpha>) (make-<beta>  10 20 30 40 50 60)))
+      (let*-fields (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
+		    ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
 	(list r.a r.g s.a s.d))
     => '(1 7 10 40))
 
@@ -1241,15 +1241,15 @@
     #f)
 
   (check	;use the records from (records-lib)
-      (letrec-fields (((r <gamma> <beta> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+      (letrec-fields (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(list r.a r.b r.c
 	      r.d r.e r.f
 	      r.g r.h r.i))
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (letrec-fields (((r <gamma> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9))
-		      ((s <beta>  <alpha>) (make-<beta>  10 20 30 40 50 60)))
+      (letrec-fields (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
+		      ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
 	(list r.a r.g s.a s.d))
     => '(1 7 10 40))
 
@@ -1349,15 +1349,15 @@
     #f)
 
   (check	;use the records from (records-lib)
-      (letrec*-fields (((r <gamma> <beta> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+      (letrec*-fields (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(list r.a r.b r.c
 	      r.d r.e r.f
 	      r.g r.h r.i))
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (letrec*-fields (((r <gamma> <alpha>) (make-<gamma> 1 2 3 4 5 6 7 8 9))
-		       ((s <beta>  <alpha>) (make-<beta>  10 20 30 40 50 60)))
+      (letrec*-fields (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
+		       ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
 	(list r.a r.g s.a s.d))
     => '(1 7 10 40))
 
@@ -1498,7 +1498,7 @@
 ;;; use the records from (records-lib)
 
   (check
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (f (lambda/with ((r <gamma> <beta> <alpha>))
 		 (list r.a r.b r.c
 		       r.d r.e r.f
@@ -1507,8 +1507,8 @@
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
-	    (s (make-<beta>  10 20 30 40 50 60))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
+	    (s (make <beta>  10 20 30 40 50 60))
 	    (f (lambda/with ((r <gamma> <alpha>) (s <beta> <alpha>))
 		 (list r.a r.g s.a s.d))))
 	(f r s))
@@ -1648,7 +1648,7 @@
 ;;; use the records from (records-lib)
 
   (check
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (f (lambda/with* ((r <gamma> <beta> <alpha>))
 		 (list r.a r.b r.c
 		       r.d r.e r.f
@@ -1657,8 +1657,8 @@
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
-	    (s (make-<beta>  10 20 30 40 50 60))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
+	    (s (make <beta>  10 20 30 40 50 60))
 	    (f (lambda/with* ((r <gamma> <alpha>) (s <beta> <alpha>))
 		 (list r.a r.g s.a s.d))))
 	(f r s))
@@ -1767,7 +1767,7 @@
 ;;; use the records from (records-lib)
 
   (check
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(define/with (f (r <gamma> <beta> <alpha>))
 	  (list r.a r.b r.c
 		r.d r.e r.f
@@ -1776,8 +1776,8 @@
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
-	    (s (make-<beta>  10 20 30 40 50 60)))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
+	    (s (make <beta>  10 20 30 40 50 60)))
 	(define/with (f (r <gamma> <alpha>) (s <beta> <alpha>))
 	  (list r.a r.g s.a s.d))
 	(f r s))
@@ -1843,7 +1843,7 @@
 ;;; use the records from (records-lib)
 
   (check
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9)))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
 	(define/with* (f (r <gamma> <beta> <alpha>))
 	  (list r.a r.b r.c
 		r.d r.e r.f
@@ -1852,8 +1852,8 @@
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
-	    (s (make-<beta>  10 20 30 40 50 60)))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
+	    (s (make <beta>  10 20 30 40 50 60)))
 	(define/with* (f (r <gamma> <alpha>) (s <beta> <alpha>))
 	  (list r.a r.g s.a s.d))
 	(f r s))
@@ -2039,7 +2039,7 @@
 ;;; use the records from (records-lib)
 
   (check
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (f (case-lambda/with
 		 (((r <gamma> <beta> <alpha>))
 		  (list r.a r.b r.c
@@ -2049,8 +2049,8 @@
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
-	    (s (make-<beta>  10 20 30 40 50 60))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
+	    (s (make <beta>  10 20 30 40 50 60))
 	    (f (case-lambda/with
 		 (((r <gamma> <alpha>) (s <beta> <alpha>))
 		  (list r.a r.g s.a s.d)))))
@@ -2237,7 +2237,7 @@
 ;;; use the records from (records-lib)
 
   (check
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (f (case-lambda/with*
 		 (((r <gamma> <beta> <alpha>))
 		  (list r.a r.b r.c
@@ -2247,8 +2247,8 @@
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (let ((r (make-<gamma> 1 2 3 4 5 6 7 8 9))
-	    (s (make-<beta>  10 20 30 40 50 60))
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
+	    (s (make <beta>  10 20 30 40 50 60))
 	    (f (case-lambda/with*
 		 (((r <gamma> <alpha>) (s <beta> <alpha>))
 		  (list r.a r.g s.a s.d)))))
@@ -2456,10 +2456,12 @@
   			  (is-a? port <output-port>)))
   (check-for-false	(is-a? 123 <output-port>))
 
-  ;;;(check-for-true	(is-a? <binary-port>))
+  ;; (check-for-true	(let-values (((port getter) (open-string-output-port)))
+  ;; 			  (is-a? port <output-port>)))
   (check-for-false	(is-a? 123 <binary-port>))
 
-  ;;(check-for-true	(is-a? (open-string-input-port "ciao") <textual-port>))
+  (check-for-true	(let-values (((port getter) (open-string-output-port)))
+  			  (is-a? port <textual-port>)))
   (check-for-false	(is-a? 123 <textual-port>))
 
   (check-for-true	(is-a? (open-string-input-port "ciao") <port>))
