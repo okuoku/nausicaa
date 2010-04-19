@@ -44,7 +44,7 @@
     let-fields				let*-fields
     letrec-fields			letrec*-fields
     with-fields
-    is-a?				record-is-a?
+    is-a?
     record-type-parent?
     record-type-of
     record-parent-list			record-parent-list*

@@ -38,10 +38,10 @@
     let-fields				let*-fields
     letrec-fields			letrec*-fields
     with-fields
-    is-a?				record-is-a?
+    is-a?
     record-type-parent?
     record-type-of
-    record-parent-list			record-parent-list*
+    record-parent-list			class-parent-list
 
     <top> <builtin>
     <pair> <list>
@@ -113,12 +113,6 @@
   ;;R6RS).  Expands  the method clauses  given with no function  name to
   ;;clauses with function name  automatically built from the record type
   ;;name.
-  ;;
-  ;;(Note by Marco  Maggi, Thu Apr 1, 2010) The  expansion of this macro
-  ;;adds all the auxiliary syntaxes which are missing in the input form;
-  ;;later  the unused ones  are removed  by %DEFINE-CLASS/FILTER-UNUSED;
-  ;;adding and removing  is useless, but for now it gives  me a sense of
-  ;;control and expandability, so I keep it like this.
   ;;
   (lambda (stx)
     (define (%accessor name field)
@@ -1814,12 +1808,17 @@
 		   ?collected-function ...
 
 		   (define-syntax ?class-name
-		     (syntax-rules (class-type-descriptor default-constructor-descriptor
-							  with-class-fields-of custom-predicate)
+		     (syntax-rules (class-type-descriptor
+				    custom-predicate
+				    default-constructor
+				    default-constructor-descriptor
+				    with-class-fields-of)
 		       ((_ class-type-descriptor)
 		   	(begin NAME-RTD))
 		       ((_ default-constructor-descriptor)
 		   	(begin NAME-CD))
+		       ((_ default-constructor ?arg (... ...))
+		   	(?constructor ?arg (... ...)))
 		       ((_ custom-predicate ?arg (... ...))
 		   	(?predicate-function ?arg (... ...)))
 		       ((_ with-class-fields-of ?arg (... ...))
@@ -1943,41 +1942,39 @@
       ((_ ?class-name)
        #'(?class-name default-constructor-descriptor)))))
 
-(define-syntax %with-class-fields-of
-  (lambda (stx)
-    (syntax-case stx (with-class-fields-of)
-      ((_ ?class-name ?variable-name ?arg ...)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(begin ?arg ...))
-      ((_ ?class-name ?variable-name ?arg ...)
-       #'(?class-name with-class-fields-of ?variable-name ?arg ...)))))
-
 
 ;;;; fields access syntaxes
 
 (define-syntax with-fields
-  ;;Hand  everything to  %WITH-FIELDS.   This is  because the  recursive
+  ;;Just hand everything to  %WITH-FIELDS; this is because the recursive
   ;;%WITH-FIELDS needs  to allow  input forms which  we do not  want for
   ;;WITH-FIELDS.
   ;;
   ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
-  ;;expanding macros into WITH-FIELDS forms.
+  ;;expanding other macros into WITH-FIELDS uses.
   ;;
   (syntax-rules ()
     ((_ (?clause ...) ?body0 ?body ...)
      (%with-fields (?clause ...) ?body0 ?body ...))))
 
 (define-syntax %with-fields
-  (syntax-rules ()
-    ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
-     (%with-class-fields-of ?class0 ?var
-			    (%with-fields ((?var ?class ...) ?clause ...) ?body0 ?body ...)))
+  (lambda (stx)
+    (syntax-case stx ()
 
-    ((_ ((?var) ?clause ...) ?body0 ?body ...)
-     (%with-fields (?clause ...) ?body0 ?body ...))
+      ;;If the class is "<top>" skip it, because "<top>" has no fields.
+      ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
+       (free-identifier=? #'?class0 #'<top>)
+       #'(%with-fields ((?var ?class ...) ?clause ...) ?body0 ?body ...))
 
-    ((_ () ?body0 ?body ...)
-     (begin ?body0 ?body ...))))
+      ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
+       #'(?class0 with-class-fields-of ?var
+		  (%with-fields ((?var ?class ...) ?clause ...) ?body0 ?body ...)))
+
+      ((_ ((?var) ?clause ...) ?body0 ?body ...)
+       #'(%with-fields (?clause ...) ?body0 ?body ...))
+
+      ((_ () ?body0 ?body ...)
+       #'(begin ?body0 ?body ...)))))
 
 (define-syntax let-fields
   (syntax-rules ()
@@ -2371,13 +2368,23 @@
 
 (define-class <binary-port>
   (parent <port>)
-  (predicate binary-port?)
+  (predicate %binary-port?)
   (nongenerative nausicaa:builtin:<binary-port>))
+
+;;This predicate is needed because in some implementations (Petite Chez)
+;;BINARY-PORT? throws an exception if OBJ is not a port.
+(define (%binary-port? obj)
+  (and (port? obj) (binary-port? obj)))
 
 (define-class <textual-port>
   (parent <port>)
-  (predicate textual-port?)
+  (predicate %textual-port?)
   (nongenerative nausicaa:builtin:<textual-port>))
+
+;;This predicate is needed because in some implementations (Petite Chez)
+;;TEXTUAL-PORT? throws an exception if OBJ is not a port.
+(define (%textual-port? obj)
+  (and (port? obj) (textual-port? obj)))
 
 ;;; --------------------------------------------------------------------
 
@@ -2390,8 +2397,6 @@
 		  (immutable inexact?	inexact?)
 
 		  (immutable zero?	zero?)
-		  (immutable positive?	positive?)
-		  (immutable negative?	negative?)
 
 		  (immutable odd?	odd?)
 		  (immutable even?	even?)
@@ -2399,11 +2404,6 @@
 		  (immutable finite?	finite?)
 		  (immutable infinite?	infinite?)
 		  (immutable nan?	nan?)
-
-		  (immutable real-part	real-part)
-		  (immutable imag-part	imag-part)
-		  (immutable magnitude	magnitude)
-		  (immutable angle	angle)
 
 		  (immutable numerator	numerator)
 		  (immutable denominator denominator)
@@ -2416,11 +2416,19 @@
 (define-class <complex>
   (parent <number>)
   (predicate complex?)
+  (virtual-fields (immutable real-part	real-part)
+		  (immutable imag-part	imag-part)
+		  (immutable magnitude	magnitude)
+		  (immutable angle	angle))
   (nongenerative nausicaa:builtin:<complex>))
 
 (define-class <real-valued>
   (parent <complex>)
   (predicate real-valued?)
+  (virtual-fields (immutable positive?		positive?)
+		  (immutable negative?		negative?)
+		  (immutable non-positive?	non-positive?)
+		  (immutable non-negative?	non-negative?))
   (nongenerative nausicaa:builtin:<real-valued>))
 
 (define-class <real>
@@ -2465,7 +2473,7 @@
 (define-syntax make
   (syntax-rules ()
     ((_ ?class-name ?arg ...)
-     ((record-constructor (class-constructor-descriptor ?class-name)) ?arg ...))))
+     (?class-name default-constructor ?arg ...))))
 
 
 ;;;; predicates
@@ -2476,9 +2484,6 @@
    	((eq? (record-type-uid rtd2) (record-type-uid (record-type-descriptor <top>)))   #t)
 	(else
 	 (memq (record-type-uid rtd2) (map record-type-uid (record-parent-list rtd1))))))
-
-(define (record-is-a? obj rtd)
-  (eq? (record-type-uid rtd) (record-type-uid (record-type-of obj))))
 
 (define-syntax is-a?
   (lambda (stx)
@@ -2495,7 +2500,7 @@
 
 ;;;; inspection
 
-(define-syntax record-parent-list*
+(define-syntax class-parent-list
   (lambda (stx)
     (syntax-case stx ()
 

@@ -1436,7 +1436,7 @@
       (check (f (make-<fraction> 2/3)) => 2)
       #f)
 
-    (let ((f (lambda/with ((a <fraction>) (b <number>))
+    (let ((f (lambda/with ((a <fraction>) (b <complex>))
 	       (list a.numerator b.magnitude))))
       (check (f (make-<fraction> 2/3) -4) => '(2 4))
       #f)
@@ -1589,7 +1589,7 @@
       (check (f (make-<fraction> 2/3)) => 2)
       #f)
 
-    (let ((f (lambda/with* ((a <fraction>) (b <number>))
+    (let ((f (lambda/with* ((a <fraction>) (b <complex>))
 	       (list a.numerator b.magnitude))))
       (check (f (make-<fraction> 2/3) -4) => '(2 4))
       #f)
@@ -1812,7 +1812,7 @@
     #f)
 
   (let ()
-    (define/with* (f (a <fraction>) (b <number>))
+    (define/with* (f (a <fraction>) (b <complex>))
       (list a.numerator b.magnitude))
     (check (f (make-<fraction> 2/3) -4) => '(2 4))
     #f)
@@ -1946,7 +1946,7 @@
       #f)
 
     (let ((f (case-lambda/with
-	       (((a <fraction>) (b <number>))
+	       (((a <fraction>) (b <complex>))
 		(list a.numerator b.magnitude)))))
       (check (f (make-<fraction> 2/3) -4) => '(2 4))
       #f)
@@ -2144,7 +2144,7 @@
       #f)
 
     (let ((f (case-lambda/with*
-	       (((a <fraction>) (b <number>))
+	       (((a <fraction>) (b <complex>))
 		(list a.numerator b.magnitude)))))
       (check (f (make-<fraction> 2/3) -4) => '(2 4))
       #f)
@@ -2327,20 +2327,20 @@
   (let ((env (environment '(rnrs) '(classes) '(records-lib))))
 
     (check
-	(map record-type-uid (record-parent-list* <alpha>))
+	(map record-type-uid (class-parent-list <alpha>))
       => (eval '(map record-type-uid (list (class-type-descriptor <alpha>)
 					   (class-type-descriptor <top>)))
 	       env))
 
     (check
-	(map record-type-uid (record-parent-list* <beta>))
+	(map record-type-uid (class-parent-list <beta>))
       => (eval '(map record-type-uid (list (class-type-descriptor <beta>)
 					   (class-type-descriptor <alpha>)
 					   (class-type-descriptor <top>)))
 	       env))
 
     (check
-	(map record-type-uid (record-parent-list* <gamma>))
+	(map record-type-uid (class-parent-list <gamma>))
       => (eval '(map record-type-uid (list (class-type-descriptor <gamma>)
 					   (class-type-descriptor <beta>)
 					   (class-type-descriptor <alpha>)

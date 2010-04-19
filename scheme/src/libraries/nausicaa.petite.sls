@@ -180,7 +180,8 @@
     call/cc
     car
     case
-    case-lambda
+;;;replaced by case-lambda/with from (classes)
+;;;    case-lambda
     cdaaar
     cdaadr
     cdaar
@@ -241,7 +242,7 @@
     current-output-port
     datum->syntax
 ;;;replaced by define/with from (classes)
-    (rename (define rnrs:define))
+;;; define
     define-condition-type
     define-enumeration
     define-record-type
@@ -461,7 +462,8 @@
     integer-valued?
     integer?
     irritants-condition?
-    lambda
+;;;replaced by lambda/with from (classes)
+;;;    lambda
     latin-1-codec
     lcm
     least-fixnum
@@ -792,7 +794,9 @@
     ;; other stuff
     pretty-print
 
-    (rename (define/with define))
+    (rename (define/with define)
+	    (lambda/with lambda)
+	    (case-lambda/with case-lambda))
 
 ;;;; bindings from (classes)
 
@@ -804,10 +808,10 @@
     let-fields				let*-fields
     letrec-fields			letrec*-fields
     with-fields
-    is-a?				record-is-a?
+    is-a?
     record-type-parent?
     record-type-of
-    record-parent-list			record-parent-list*
+    record-parent-list			class-parent-list
 
     <top> <builtin>
     <pair> <list>

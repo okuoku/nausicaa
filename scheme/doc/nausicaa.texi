@@ -957,14 +957,14 @@ Binding accessors and mutators
 
 Conventional type descriptors
 
-* classes builtin chart::       A chart for predefined @rtd{}s.
-* classes builtin base::        Basic conventional @rtd{}s.
-* classes builtin list::        Pairs and lists @rtd{}s.
-* classes builtin compound::    Non--list compound @rtd{}s.
-* classes builtin number::      Numeric objects @rtd{}s.
-* classes builtin port::        Input/output port objects @rtd{}s.
-* classes builtin string::      Character and string @rtd{}s.
-* classes builtin misc::        Miscellaneous conventional @rtd{}s.
+* classes builtin chart::       A chart for predefined builtin types.
+* classes builtin base::        Basic conventional types.
+* classes builtin list::        Pairs and lists types.
+* classes builtin compound::    Non--list compound types.
+* classes builtin number::      Numeric objects types.
+* classes builtin port::        Input/output port objects types.
+* classes builtin string::      Character and string types.
+* classes builtin misc::        Miscellaneous conventional types.
 
 Multimethods dispatching
 
@@ -1340,6 +1340,12 @@ The pattern syntax
 * matches syntax macros::       Impossibility of using macros as
                                 patterns.
 
+Logic alternatives and negation
+
+* matches syntax logic and::    Logical conjunction.
+* matches syntax logic or::     Logical disjunction.
+* matches syntax logic not::    Logical negation.
+
 IrRegular expressions
 
 * irregex conventions::         Conventions.
@@ -1617,6 +1623,21 @@ Examples of encoding and decoding
 
 * armor examples encode::       Encoding example.
 * armor examples decode::       Decoding example.
+
+Libraries inspection
+
+* libraries names::             Handling @rnrs{6} library names.
+* libraries references::        Handling @rnrs{6} library references.
+
+Handling @rnrs{6} library names
+
+* libraries names typedefs::    Type definitions.
+* libraries names utilities::   Utility functions.
+
+Handling @rnrs{6} library references
+
+* libraries references typedefs::   Type definitions.
+* libraries references utilities::  Utility functions.
 
 Knuth-Morris-Pratt searching
 
@@ -20076,11 +20097,11 @@ It is an error to read from a closed port.
 @chapter Record utilities
 
 
-The @library{classes} is an alternative to the @rsixlibrary{records
-syntactic} library; it is built upon @rsixlibrary{records procedural}
-but adds some features like dot notation to access fields.  The library
-is designed to work with class type definitions imported for the
-@code{run} phase.
+The @library{classes} library is an alternative to the
+@rsixlibrary{records syntactic} library; it is built upon
+@rsixlibrary{records procedural} but adds some features like dot
+notation to access fields.  The library is designed to work with class
+type definitions imported for the @code{run} phase.
 
 The facilities of the library work only on records of type defined with
 @func{define-class}.
@@ -20100,28 +20121,32 @@ The facilities of the library work only on records of type defined with
 
 
 A @dfn{class type} as defined by the @library{classes} library is a
-regular record type, with the only constraint of being nongenerative;
-the following is a valid class definition:
+regular record type, with the constraints of being nongenerative and to
+have @class{top} as parent; the following is a valid class definition:
 
 @example
 (define-record-type <alpha>
+  (parent <top>)
   (nongenerative)
   ---)
 @end example
 
 @noindent
-but it is better to use @func{define-class} to define classes.
+but it is better to use @func{define-class} to define classes, because
+@func{define-class} generates auxiliary syntaxes which allow for virtual
+fields, methods and dot notation.
 
 
 @deffn Syntax define-class @ameta{name spec} @ameta{class clause}*
 Define a new record type satisfying the constraints of a class
-definition; expand to a regular record type definition and some
-additional syntax definitions used by the @library{classes} library.
+definition; expand to a regular record type definition using
+@rsixlibrary{records procedural} and some additional syntax definitions
+used by the @library{classes} library.
 
-The arguments are compatible with the ones of @func{define-record-type}
-because @func{define-class} is a transparent wrapper of it; every
-regular record type definition can be turned into a class definition
-simply by changing @func{define-record-type} into @func{define-class}.
+The arguments are compatible with the ones of @func{define-record-type}:
+every regular record type definition can be turned into a class
+definition simply by changing @func{define-record-type} into
+@func{define-class}.
 
 If none of the @meta{class clause} arguments is a @func{parent} or
 @func{parent-rtd} syntax, the clause @code{(parent <top>)} is added to
@@ -20139,16 +20164,23 @@ syntaxes described below.
 
 @deffn {Auxiliary Syntax} predicate @ameta{function name}
 Select a custom predicate function to be used to identify instances of
-classes by the @func{is-a?} macro.  When not used, the default record
+classes with the @func{is-a?} macro.  When not given, the default record
 predicate is used.  This clause is useful especially to select custom
-predicates for the builtin class types.
+predicates for the builtin class types; example:
+
+@example
+(define-class <complex>
+  (parent <number>)
+  (predicate complex?)
+  (nongenerative nausicaa:builtin:<complex>))
+@end example
 @end deffn
 
 
 @deffn {Auxiliary Syntax} virtual-fields @ameta{field spec}*
 Add virtual fields to the enclosing class definition; the @meta{field
-spec} arguments are the same as the @func{fields} ones.  This clause can
-be used only once.
+spec} arguments have the same syntax as the @func{fields} ones, but with
+different semantics.  This clause can be used only once.
 
 An immutable virtual field is defined by a field name and a field
 accessor which can be applied to a class instance to compute a value.  A
@@ -20168,6 +20200,8 @@ The following is an example of virtual fields usage:
   (virtual-fields (mutable numerator)
                   (mutable denominator)))
 
+;; virtual fields accessors and mutators
+
 (define (<fraction>-numerator o)
   (numerator (<fraction>-number o)))
 
@@ -20175,12 +20209,15 @@ The following is an example of virtual fields usage:
   (let ((n (<fraction>-number o)))
     (<fraction>-number-set! o (/ v (denominator n)))))
 
+
 (define (<fraction>-denominator o)
   (denominator (<fraction>-number o)))
 
 (define (<fraction>-denominator-set! o v)
   (let ((n (<fraction>-number o)))
     (<fraction>-number-set! o (/ (numerator n) v))))
+
+;; tests
 
 (let ((o (make-<fraction> 2/3)))
   (with-fields ((o <fraction>))
@@ -20210,28 +20247,30 @@ Notice the semantic difference between @func{fields} clauses and
 field to the record type, thereby creating the accessor and possibly the
 mutator; then select the public names of accessors and mutators.  With
 @func{virtual-fields} we select the name of a virtual field whose
-accessor and mutator must be explicitly defined in some other way.
+accessor and mutator functions must be explicitly defined in some other
+way.
 @end deffn
 
 
 @deffn {Auxiliary Syntax} methods @ameta{method spec}*
-Add a method to the enclosing class definition; the @meta{field spec}
+Add methods to the enclosing class definition; the @meta{method spec}
 arguments can be of the form:
 
 @example
-@cmeta{field}
-(@cmeta{field})
-(@cmeta{field} @cmeta{function name})
+@cmeta{method}
+(@cmeta{method})
+(@cmeta{method} @cmeta{function name})
 @end example
 
 @noindent
-in the first two forms the function name is built in the same way the
-field accessor names are built: appending a dash and @meta{field} to the
+where @meta{method} and @meta{function name} must be identifiers; in the
+first two forms the function name is built in the same way the field
+accessor names are built: appending a dash and @meta{method} to the
 record type name.  This clause can be used only once.
 
-The @meta{function name} must be the name of a Scheme function which
-will be invoked as method; it must accept as first argument the record
-instance interested in the application.
+The @meta{function name} must be an identifier bound to a Scheme
+function which will be invoked as method; it must accept as first
+argument the record which is the subject of the application.
 
 For more details on methods, especially methods with the same name in
 different record types of the same hierarchy, @ref{classes fields with,
@@ -20326,12 +20365,16 @@ instance.
   (method (the-list (o <fraction>) . ell)
     (cons o.numerator ell)))
 
+;; virtual field accessor and mutator
+
 (define (<fraction>-numerator o)
   (numerator (<fraction>-number o)))
 
 (define (<fraction>-numerator-set! o v)
   (let ((n (<fraction>-number o)))
     (<fraction>-number-set! o (/ v (denominator n)))))
+
+;; tests
 
 (let ((o (make-<fraction> 2/3)))
   (with-fields ((o <fraction>))
@@ -20361,14 +20404,63 @@ instance.
 @section Record makers
 
 
-@deffn Syntax make @ameta{record name} @ameta{expression} ...
-Extract the record constructor associated to the @meta{record name} and
-apply it to the results of evaluating the @meta{expression} arguments.
+@deffn Syntax make @ameta{class name} @ameta{expression} ...
+Expand to the application of the default constructor of @meta{class
+name} to the results of evaluating the @meta{expression} arguments,
+which can be any expression and are evaluated only once.
 
-The @meta{expression} forms can be any expression and are evaluated only
-once; they provide the values of the fields, so their number must match
-the number of fields.  Also, the order of the expressions matches the
-order of the fields in the record type definition.
+This macro expands to the plain application of the constructor function
+defined with the @code{protocol} clause of @func{define-class}.
+
+For example, given:
+
+@example
+(define-class <alpha>
+  (fields x s c)
+  (protocol (lambda (make-top)
+              (lambda (x)
+                ((make-top) x (sin x) (cos x))))))
+@end example
+
+@noindent
+the statement:
+
+@example
+(define a
+  (make <alpha> 1.2))
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(define a
+  (make-<alpha> 1.2))
+@end example
+
+Notice that, using this macro, there is no need to export the class
+constructor out of a library: it is enough to export the class name.
+Example:
+
+@example
+(library (alpha)
+  (export <alpha>)
+  (import (nausicaa))
+
+  (define-class <alpha>
+    (fields x s c)
+    (protocol (lambda (make-top)
+                (lambda (x)
+                  ((make-top) x (sin x) (cos x)))))))
+
+(library (usage)
+  (export)
+  (import (nausicaa)
+    (alpha))
+
+  (define a
+    (make <alpha> 1.2)))
+@end example
 @end deffn
 
 @c page
@@ -20376,63 +20468,95 @@ order of the fields in the record type definition.
 @section Record type predicates
 
 
-@defun record-is-a? @var{obj} @var{rtd}
-Return true if @var{obj} is a value of type described by the record type
-descriptor @var{rtd}.  @var{obj} can be a record or a builtin Scheme
-type.  This function supports both regular and conventional record type
-descriptors.
+@deffn Syntax is-a? @ameta{expression} @ameta{class name}
+Expand to the application of the class predicate of @meta{class name} to
+the result of evaluating @meta{expression}, which can be any expression
+and is evaluated only once.
+
+This macro uses the predicate selected with the @code{predicate} clause
+of @func{define-class} or the default predicate when no explicit
+selection was made.
+
+For example, given:
 
 @example
-(define-record-type <alpha>
-  (fields (mutable a)
-          (mutable b)))
-
-(define rtd
-  (record-type-descriptor <alpha>))
-
-(define o
-  (make-<alpha> 1 2))
-
-(record-is-a? o   rtd)  @result{} #t
-(record-is-a? 123 rtd)  @result{} #f
+(define-class <alpha>
+  (fields a b c))
 @end example
-@end defun
 
-
-@deffn Syntax is-a? @ameta{expression} @ameta{record name}
-Expand to a form which applies a record type predicate to
-@meta{expression}; at run time it evaluates to true if the value of the
-expression is a record or builtin value whose @rtd{} is associated to
-@meta{record name}.  This macro supports both regular and conventional
-type descriptors.
-
-@meta{expression} can be any expression and it is evaluated only once.
+@noindent
+the following statement:
 
 @example
-(library (types)
+(is-a? x <alpha>)
+@end example
+
+@noindent
+is equivalent to:
+
+@example
+(<alpha>? x)
+@end example
+
+@noindent
+while given:
+
+@example
+(define-class <alpha>
+  (predicate alpha?)
+  (fields a b c))
+
+(define (alpha? obj)
+  (and (<alpha>? obj)
+       (< 0 (<alpha>-a obj))))
+@end example
+
+@noindent
+the following statements are equivalent:
+
+@example
+(is-a? x <alpha>)
+(alpha? x)
+@end example
+
+Notice that, using this macro, there is no need to export the class
+predicate out of a library: it is enough to export the class name.
+Example:
+
+@example
+(library (alpha)
   (export <alpha>)
-  (import (rnrs))
-  (define-record-type <alpha>
-    (fields (mutable a)
-            (mutable b))))
+  (import (nausicaa))
+  (define-class <alpha>
+    (fields a b c)))
 
-(library (example)
+(library (usage)
   (export)
-  (import (rnrs)
-    (records)
-    (for (types) expand))
+  (import (nausicaa)
+    (alpha))
 
-  (define o (make <alpha>
-              1 2))
-
-  (is-a? o   <alpha>)     @result{} #t
-  (is-a? 123 <alpha>))    @result{} #f
+  (let ((x (make <alpha> 1 2 3)))
+    (is-a? x <alpha>)))
 @end example
 @end deffn
 
 @c page
 @node classes inspect
 @section Record type inspection
+
+
+@deffn Syntax class-type-descriptor @ameta{class name}
+Expand to the record type descriptor associated to @meta{class name}.
+It is a replacement of @func{record-type-descriptor} for record types
+defined by @func{define-class}.
+@end deffn
+
+
+@deffn Syntax class-constructor-descriptor @ameta{class name}
+Expand to the default constructor descriptor associated to @meta{class
+name}.  It is a replacement of @func{record-constructor-descriptor} for
+record types defined by @func{define-class}.
+@end deffn
 
 
 @defun record-type-of @var{obj}
@@ -20478,9 +20602,10 @@ supports both regular and conventional record type descriptors.
 @end defun
 
 
-@deffn Syntax record-parent-list* @ameta{record name}
-Do the same as @func{record-parent-list}; @meta{record name} must be a
-record type name.
+@deffn Syntax class-parent-list @ameta{class name}
+Do the same as @func{record-parent-list}; @meta{class name} must be a
+class name.  This macro does @strong{not} work with record types defined
+by @func{define-record-type}.
 @end deffn
 
 @c page
@@ -20498,8 +20623,8 @@ record type name.
 @subsection Basic fields and methods usage
 
 
-The @func{with-fields} syntax is the basic tool to use dot notation in
-fields and methods usage.
+The @func{with-fields} syntax is the basic tool providing dot notation
+in fields and methods usage.
 
 
 @deffn Syntax with-fields (@ameta{clause} ...) @ameta{body}
@@ -20510,31 +20635,32 @@ macros to invoke methods of objects and records.
 Each @meta{clause} must have the form:
 
 @example
-(@cmeta{name} @cmetao{class name} @cmeta{class name} ...)
+(@cmeta{variable name} @cmetao{class name} @cmeta{class name} ...)
 @end example
 
 @noindent
-where @meta{class name} must be a record class name; @meta{name} must be
-an identifier bound to the object or record to be used as ``subject''.
-When multiple class names are included, the clause is equivalent to the
-sequence of clauses:
+where @meta{class name} must be a record class name; @meta{variable
+name} must be an identifier bound to the object or record to be used as
+``subject''.  When multiple class names are included, the clause is
+equivalent to the sequence of clauses:
 
 @example
-(@cmeta{name} @cmetao{class name})
-(@cmeta{name} @cmeta{class name})
-(@cmeta{name} ...)
+(@cmeta{variable name} @cmetao{class name})
+(@cmeta{variable name} @cmeta{class name})
+(@cmeta{variable name} ...)
 @end example
 
 The identifier syntax for a field named @samp{alpha} is built as:
 
 @example
-@cmeta{name}.alpha
+@cmeta{variable name}.alpha
 @end example
 
 @noindent
-that is: name, dot, field name; the same goes for method's macros.
+that is: variable name, dot, field name; the same goes for method's
+macros.
 
-When a @meta{name} as no type: we can use @class{top} as its
+When a @meta{variable name} as no type: we can use @class{top} as its
 conventional record type name; this can be useful when expanding macros
 making use of @func{with-fields}.
 
@@ -20736,7 +20862,7 @@ We have to be careful when selecting names for methods and virtual
 fields.  In any case, it is forbidden to use the same symbol twice for
 fields, virtual fields or methods of the same class definition.
 Duplication of names in concrete fields, of record types in the same
-hierarchy, is allowed:
+hierarchy, is allowed by @rnrs{6}:
 
 @example
 (define-record-type <alpha>
@@ -20844,7 +20970,7 @@ and duplication of names of methods is allowed, too:
 @subsection High--level fields and methods usage
 
 
-@deffn Syntax let-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
+@deffn Syntax let-fields (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{let} but automatically enclose the body in a
 @func{with-fields} syntax using the specified record types.  When a
 variable as no type: we can use @class{top} as its conventional record
@@ -20870,7 +20996,7 @@ type name.
 @end deffn
 
 
-@deffn Syntax let*-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
+@deffn Syntax let*-fields (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{let*} but automatically enclose the body in a
 @func{with-fields} syntax using the specified record types.  Given two
 bindings @metai{var}, @metai{init} and @metaii{var}, @metaii{init}
@@ -20900,7 +21026,7 @@ type name.
 @end deffn
 
 
-@deffn Syntax letrec-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
+@deffn Syntax letrec-fields (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{letrec} but automatically enclose the body in a
 @func{with-fields} syntax using the specified record types.  The
 @meta{init} expressions can contain references to the identifier
@@ -20928,7 +21054,7 @@ we can use @class{top} as its conventional record type name.
 @end deffn
 
 
-@deffn Syntax letrec*-fields (((@ameta{var} @ametao{record name} @ameta{record name} ...) @ameta{init}) ...) @ameta{body}
+@deffn Syntax letrec*-fields (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{letrec*} but automatically enclose the body in a
 @func{with-fields} syntax using the specified record types.  The
 @meta{init} expressions can contain references to the identifier
@@ -20965,12 +21091,12 @@ formals for @func{lambda}, but each @meta{variable} argument can be an
 identifier, as in @func{lambda}, or a list of the form:
 
 @example
-(@cmeta{variable} @cmetao{record name} @ameta{record name} ...)
+(@cmeta{variable} @cmetao{class name} @ameta{class name} ...)
 @end example
 
 @noindent
 in which case the @meta{variable} argument is meant to be of type
-@meta{record name} and the corresponding identifier syntaxes are
+@meta{class name} and the corresponding identifier syntaxes are
 defined.  When an argument as no type: we can use @class{top} as its
 conventional record type name, or let @func{lambda/with} select
 @class{top} automatically.
@@ -21082,6 +21208,19 @@ the use of @func{lambda/with*}.
 @cindex Record types, conventional descriptors
 
 
+Builtin Scheme object types can be treated as instances of class types
+by accepting some limitations; this allows us to use the facilities of
+the @library{classes} library with builtin objects.
+
+Builtin Scheme values have no @rtd{}, so @library{classes} assigns a
+conventional one to them.  Conventional @rtd{}s have two purposes: to
+provide an interface for identifier macros defined by
+@func{with-fields}; to be used in multimethod dispatching by the
+@library{generics} library.  The conventional @rtd{}s can be used
+neither to instantiate builtin objects nor as parents for other class
+types; for example: @func{make-<string>} does @strong{not} return a
+builtin Scheme string object.
+
 A record is described by its record type descriptor (@rtd{});
 unfortunately we cannot rely on @rtd{}s describing the same record type
 to be @func{eq?} to each other, so we have to rely on the @acronym{UID}s
@@ -21089,27 +21228,20 @@ of non--generative record types.  When dispatching multimethods, it is
 convenient to use those @acronym{UID}s to represent the ``class'' of a
 record.
 
-Builtin Scheme values have no @rtd{}, so @library{classes} assigns a
-conventional one to them.  Conventional @rtd{}s have two purposes: to be
-used in multimethod dispatching and to provide an interface for
-identifier macros.  The conventional @rtd{}s @strong{cannot} be used to
-instantiate builtin objects, for example: @func{make-<string>} does
-@strong{not} return a builtin Scheme string object.
-
 @menu
-* classes builtin chart::       A chart for predefined @rtd{}s.
-* classes builtin base::        Basic conventional @rtd{}s.
-* classes builtin list::        Pairs and lists @rtd{}s.
-* classes builtin compound::    Non--list compound @rtd{}s.
-* classes builtin number::      Numeric objects @rtd{}s.
-* classes builtin port::        Input/output port objects @rtd{}s.
-* classes builtin string::      Character and string @rtd{}s.
-* classes builtin misc::        Miscellaneous conventional @rtd{}s.
+* classes builtin chart::       A chart for predefined builtin types.
+* classes builtin base::        Basic conventional types.
+* classes builtin list::        Pairs and lists types.
+* classes builtin compound::    Non--list compound types.
+* classes builtin number::      Numeric objects types.
+* classes builtin port::        Input/output port objects types.
+* classes builtin string::      Character and string types.
+* classes builtin misc::        Miscellaneous conventional types.
 @end menu
 
 @c page
 @node classes builtin chart
-@subsection A chart for predefined builtin @rtd{}s
+@subsection A chart for predefined builtin types
 
 
 @example
@@ -21156,7 +21288,7 @@ instantiate builtin objects, for example: @func{make-<string>} does
 
 @c page
 @node classes builtin base
-@subsection Basic conventional @rtd{}s
+@subsection Basic conventional types
 
 
 @deftp Class @aclass{top}
@@ -21183,239 +21315,303 @@ The parent of all the conventional @rtd{}s, with the exception of
 
 @c page
 @node classes builtin list
-@subsection Pairs and lists @rtd{}s
+@subsection Pairs and lists types
 
 
 @deftp Class @aclass{pair}
-Type for values satisfying @func{pair?}.  It provides the following
-virtual fields:
-
-@table @code
-@item car
-Immutable.  Access the car of the pair.
-
-@item cdr
-Immutable.  Access the cdr of the pair.
-@end table
+Conventional type of objects satisfying @func{pair?}.
 @end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{pair} car
+Access the car of the pair.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{pair} cdr
+Access the cdr of the pair.
+@end defcv
 
 
 @deftp Class @aclass{list}
-Type for values satisfying @func{list?}.  It provides the following
-virtual fields:
-
-@table @code
-@item car
-Immutable.  Access the car of the list.
-
-@item cdr
-Immutable.  Access the cdr of the list.
-
-@item length
-Immutable.  Access the length of the list.
-@end table
+Conventional type of objects satisfying @func{list?}.
 @end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{list} car
+Access the car of the list.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{list} cdr
+Access the cdr of the list.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{list} length
+Access the length of the list.
+@end defcv
 
 @c page
 @node classes builtin compound
-@subsection Non--list compound @rtd{}s
+@subsection Non--list compound types
 
 
 @deftp Class @aclass{vector}
-Type for values satisfying @func{vector?}.  It provides the following
-virtual fields:
-
-@table @code
-@item length
-Immutable.  Access the length of the vector.
-@end table
+Conventional type for objects satisfying @func{vector?}.
 @end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{vector} length
+Access the length of the vector.
+@end defcv
 
 
 @deftp Class @aclass{bytevector}
-Type for values satisfying @func{bytevector?}.  It provides the following
-virtual fields:
-
-@table @code
-@item length
-Immutable.  Access the length of the bytevector.
-@end table
+Conventional type for objects satisfying @func{bytevector?}.
 @end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{bytevector} length
+Access the length of the bytevector.
+@end defcv
 
 
 @deftp Class @aclass{hashtable}
-Type for values satisfying @func{hashtable?}.  It provides the following
-virtual fields:
-
-@table @code
-@item size
-Immutable.  Access the size of the table.
-
-@item keys
-Immutable.  Access the keys.  Retrieving this field is like applying
-@func{hashtable-keys} to the hashtable.
-
-@item entries
-Immutable.  Access the keys and values.  Retrieving this field is like
-applying @func{hashtable-entries} to the hashtable.
-@end table
+Conventional type for objects satisfying @func{hashtable?}.
 @end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{hashtable} size
+Access the size of the table.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{hashtable} keys
+Access the keys.  Retrieving this field is like applying
+@func{hashtable-keys} to the hashtable.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{hashtable} entries
+Access the keys and values.  Retrieving this field is like applying
+@func{hashtable-entries} to the hashtable.
+@end defcv
 
 @c page
 @node classes builtin number
-@subsection Numeric objects @rtd{}s
+@subsection Numeric objects types
 
+
+@subsubheading Number objects
 
 @deftp Class @aclass{number}
-Type for values satisfying @func{number?}.  It provides the following
-virtual fields:
-
-@table @code
-@item exact
-Immutable.  Accessing this field is like applying @func{exact} to the
-number.
-
-@item inexact
-Immutable.  Accessing this field is like applying @func{inexact} to the
-number.
-
-@item exact?
-Immutable.  Accessing this field is like applying @func{exact?} to the
-number.
-
-@item inexact?
-Immutable.  Accessing this field is like applying @func{inexact?} to the
-number.
-
-@item zero?
-Immutable.  Accessing this field is like applying @func{zero?} to the
-number.
-
-@item positive?
-Immutable.  Accessing this field is like applying @func{positive?} to
-the number.
-
-@item negative?
-Immutable.  Accessing this field is like applying @func{negative?} to
-the number.
-
-@item odd?
-Immutable.  Accessing this field is like applying @func{odd?} to the
-number.
-
-@item even?
-Immutable.  Accessing this field is like applying @func{even?} to the
-number.
-
-@item finite?
-Immutable.  Accessing this field is like applying @func{finite?} to the
-number.
-
-@item infinite?
-Immutable.  Accessing this field is like applying @func{infinite?} to
-the number.
-
-@item nan?
-Immutable.  Accessing this field is like applying @func{nan?} to the
-number.
-
-@item real-part
-Immutable.  Accessing this field is like applying @func{real-part} to
-the number.
-
-@item imag-part
-Immutable.  Accessing this field is like applying @func{imag-part} to
-the number.
-
-@item magnitude
-Immutable.  Accessing this field is like applying @func{magnitude} to
-the number.
-
-@item angle
-Immutable.  Accessing this field is like applying @func{angle} to the
-number.
-
-@item numerator
-Immutable.  Accessing this field is like applying @func{numerator} to
-the number.
-
-@item denominator
-Immutable.  Accessing this field is like applying @func{denominator} to
-the number.
-
-@item floor
-Immutable.  Accessing this field is like applying @func{floor} to the
-number.
-
-@item ceiling
-Immutable.  Accessing this field is like applying @func{ceiling} to the
-number.
-
-@item truncate
-Immutable.  Accessing this field is like applying @func{truncate} to the
-number.
-
-@item round
-Immutable.  Accessing this field is like applying @func{round} to the
-number.
-@end table
+Conventional type for objects satisfying @func{number?}.
 @end deftp
 
+
+@defcv {Immutable Virtual Field} @aclass{number} exact
+Accessing this field is like applying @func{exact} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} inexact
+Accessing this field is like applying @func{inexact} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} exact?
+Accessing this field is like applying @func{exact?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} inexact?
+Accessing this field is like applying @func{inexact?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} zero?
+Accessing this field is like applying @func{zero?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} odd?
+Accessing this field is like applying @func{odd?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} even?
+Accessing this field is like applying @func{even?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} finite?
+Accessing this field is like applying @func{finite?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} infinite?
+Accessing this field is like applying @func{infinite?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} nan?
+Accessing this field is like applying @func{nan?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} numerator
+Accessing this field is like applying @func{numerator} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} denominator
+Accessing this field is like applying @func{denominator} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} floor
+Accessing this field is like applying @func{floor} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} ceiling
+Accessing this field is like applying @func{ceiling} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} truncate
+Accessing this field is like applying @func{truncate} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{number} round
+Accessing this field is like applying @func{round} to the number.
+@end defcv
+
+@c ------------------------------------------------------------
+
+@subsubheading Complex numbers
 
 @deftp Class @aclass{complex}
-Type for values satisfying @func{complex?}.
+Convenctional type for objects satisfying @func{complex?}.
 @end deftp
 
+
+@defcv {Immutable Virtual Field} @aclass{number} real-part
+Accessing this field is like applying @func{real-part} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{complex} imag-part
+Accessing this field is like applying @func{imag-part} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{complex} magnitude
+Accessing this field is like applying @func{magnitude} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{complex} angle
+Accessing this field is like applying @func{angle} to the number.
+@end defcv
+
+@c ------------------------------------------------------------
+
+@subsubheading Real valued numbers
 
 @deftp Class @aclass{real-valued}
-Type for values satisfying @func{real-valued?}.
+Conventioanl type for objects satisfying @func{real-valued?}.
 @end deftp
 
+
+@defcv {Immutable Virtual Field} @aclass{real-valued} positive?
+Accessing this field is like applying @func{positive?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{real-valued} negative?
+Accessing this field is like applying @func{negative?} to the number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{real-valued} non-positive?
+Accessing this field is like applying @func{non-positive?} to the
+number.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{real-valued} non-negative?
+Accessing this field is like applying @func{non-negative?} to the
+number.
+@end defcv
+
+@c ------------------------------------------------------------
+
+@subsubheading Real numbers
 
 @deftp Class @aclass{real}
-Type for values satisfying @func{real?}.  It provides the following
-virtual fields:
-
-@table @code
-@item abs
-Immutable.  Accessing this field is like applying @func{abs} to the
-number.
-@end table
+Conventional for objects satisfying @func{real?}.
 @end deftp
 
+
+@defcv {Immutable Virtual Field} @aclass{real} abs
+Accessing this field is like applying @func{abs} to the number.
+@end defcv
+
+@c ------------------------------------------------------------
+
+@subsubheading Rational numbers
 
 @deftp Class @aclass{rational}
-Type for values satisfying @func{integer?}.
+Conventional type for objects satisfying @func{rational?}.
 @end deftp
 
+@c ------------------------------------------------------------
+
+@subsubheading Rational valued numbers
 
 @deftp Class @aclass{rational-valued}
-Type for values satisfying @func{integer?}.
+Conventional type for objects satisfying @func{rational-valued?}.
 @end deftp
 
+@c ------------------------------------------------------------
+
+@subsubheading Integer valued numbers
 
 @deftp Class @aclass{integer-valued}
-Type for values satisfying @func{integer?}.
+Conventional type for objects satisfying @func{integer-valued?}.
 @end deftp
 
+@c ------------------------------------------------------------
+
+@subsubheading Integer numbers
 
 @deftp Class @aclass{integer}
-Type for values satisfying @func{integer?}.
+Conventional type for objects satisfying @func{integer?}.
 @end deftp
+
+@c ------------------------------------------------------------
+
+@subsubheading Fixnum numbers
 
 
 @deftp Class @aclass{fixnum}
-Type for values satisfying @func{fixnum?}.
+Conventional type for objects satisfying @func{fixnum?}.
 @end deftp
 
+@c ------------------------------------------------------------
+
+@subsubheading Flonum numbers
 
 @deftp Class @aclass{flonum}
-Type for values satisfying @func{flonum?}.
+Conventional type for objects satisfying @func{flonum?}.
 @end deftp
 
 @c page
 @node classes builtin port
-@subsection Input/output port objects @rtd{}s
+@subsection Input/output port objects types
 
 
 The binary/textual attributes are not mututally exclusive with the
@@ -21423,153 +21619,180 @@ input/output attributes.
 
 
 @deftp Class @aclass{port}
-Type for values satisfying @func{port?}.  It provides the following
-virtual fields:
-
-@table @code
-@item transcoder
-Immutable.  Accessing this field is like applying @func{port-transcoder}
-to the port.
-
-@item textual?
-Immutable.  Accessing this field is like applying @func{textual-port?}
-to the port.
-
-@item binary?
-Immutable.  Accessing this field is like applying @func{binary-port?} to
-the port.
-
-@item has-port-position?
-Immutable.  Accessing this field is like applying
-@func{port-has-port-position?} to the port.
-
-@item has-set-port-position?
-Immutable.  Accessing this field is like applying
-@func{port-has-set-port-position?}  to the port.
-
-@item port-position
-Immutable.  Accessing this field is like applying @func{port-position}
-to the port; mutating this field is like applying
-@func{set-port-position!} to the port.
-
-@item eof?
-Immutable.  Accessing this field is like applying @func{port-eof?} to
-the port.
-
-@item input?
-Immutable.  Accessing this field is like applying @func{input-port?} to
-the port.
-
-@item output?
-Immutable.  Accessing this field is like applying @func{output-port?} to
-the port.
-@end table
+Conventional type for objects satisfying @func{port?}.
 @end deftp
 
 
+@defcv {Immutable Virtual Field} @aclass{port} transcoder
+Accessing this field is like applying @func{port-transcoder} to the
+port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} textual?
+Accessing this field is like applying @func{textual-port?}  to the port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} binary?
+Accessing this field is like applying @func{binary-port?} to the port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} has-port-position?
+Accessing this field is like applying @func{port-has-port-position?} to
+the port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} has-set-port-position?
+Accessing this field is like applying @func{port-has-set-port-position?}
+to the port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} port-position
+Accessing this field is like applying @func{port-position} to the port;
+mutating this field is like applying @func{set-port-position!} to the
+port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} eof?
+Accessing this field is like applying @func{port-eof?} to the port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} input?
+Accessing this field is like applying @func{input-port?} to the port.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{port} output?
+Accessing this field is like applying @func{output-port?} to the port.
+@end defcv
+
+
 @deftp Class @aclass{input-port}
-@deftpx {Record Type Descriptor} <input-port-rtd>
-Type for values satisfying @func{input-port?}.
+Conventional type for objects satisfying @func{input-port?}.
 @end deftp
 
 
 @deftp Class @aclass{output-port}
-Type for values satisfying @func{output-port?}.
+Conventional type for objects satisfying @func{output-port?}.
 @end deftp
 
 
 @deftp Class @aclass{textual-port}
-Type for values satisfying @func{textual-port?}.
+Conventional type for objects satisfying @func{textual-port?}.
 @end deftp
 
 
 @deftp Class @aclass{binary-port}
-Type for values satisfying @func{binary-port?}.
+Conventional type for objects satisfying @func{binary-port?}.
 @end deftp
 
 @c page
 @node classes builtin string
-@subsection Character and string @rtd{}s
+@subsection Character and string types
+
+
+@subsubheading String type
 
 
 @deftp Class @aclass{string}
-Type for values satisfying @func{string?}.  It provides the following
-virtual fields:
-
-@table @code
-@item length
-Immutable.  Accessing this field is like applying @func{string-length}
-to the string.
-
-@item upcase
-Immutable.  Accessing this field is like applying @func{string-upcase}
-to the string.
-
-@item downcase
-Immutable.  Accessing this field is like applying @func{string-downcase}
-to the string.
-
-@item titlecase
-Immutable.  Accessing this field is like applying
-@func{string-titlecase} to the string.
-
-@item foldcase
-Immutable.  Accessing this field is like applying @func{string-foldcase}
-to the string.
-@end table
+Conventional type for objects satisfying @func{string?}.
 @end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{string} length
+Accessing this field is like applying @func{string-length} to the
+string.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{string} upcase
+Accessing this field is like applying @func{string-upcase} to the
+string.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{string} downcase
+Accessing this field is like applying @func{string-downcase} to the
+string.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{string} titlecase
+Accessing this field is like applying @func{string-titlecase} to the
+string.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{string} foldcase
+Accessing this field is like applying @func{string-foldcase} to the
+string.
+@end defcv
+
+@c ------------------------------------------------------------
+
+@subsubheading Character type
 
 
 @deftp Class @aclass{char}
-Type for values satisfying @func{char?}.  It provides the following
-virtual fields:
-
-@table @code
-@item upcase
-Immutable.  Accessing this field is like applying @func{char-upcase} to
-the char.
-
-@item downcase
-Immutable.  Accessing this field is like applying @func{char-downcase}
-to the char.
-
-@item titlecase
-Immutable.  Accessing this field is like applying @func{char-titlecase}
-to the char.
-
-@item foldcase
-Immutable.  Accessing this field is like applying @func{char-foldcase}
-to the char.
-@end table
+Conventional type for objects satisfying @func{char?}.
 @end deftp
+
+
+@defcv {Immutable Virtual Field} @aclass{char} upcase
+Accessing this field is like applying @func{char-upcase} to the char.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{char} downcase
+Accessing this field is like applying @func{char-downcase} to the char.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{char} titlecase
+Accessing this field is like applying @func{char-titlecase} to the char.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{char} foldcase
+Accessing this field is like applying @func{char-foldcase} to the char.
+@end defcv
 
 @c page
 @node classes builtin misc
-@subsection Miscellaneous conventional @rtd{}s
+@subsection Miscellaneous conventional types
 
 
 @deftp Class @aclass{condition}
-Type for values satisfying @func{condition?}.  It provides the following
-virtual fields:
-
-@table @code
-@item message
-Immutable.  Accessing this field is like applying
-@func{condition-message} to the condition object.
-
-@item who
-Immutable.  Accessing this field is like applying @func{condition-who}
-to the condition object.
-
-@item irritants
-Immutable.  Accessing this field is like applying
-@func{condition-irritants} to the condition object.
-@end table
+Conventional type for objects satisfying @func{condition?}.
 @end deftp
 
 
+@defcv {Immutable Virtual Field} @aclass{condition} message
+Accessing this field is like applying @func{condition-message} to the
+condition object.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{condition} who
+Accessing this field is like applying @func{condition-who} to the
+condition object.
+@end defcv
+
+
+@defcv {Immutable Virtual Field} @aclass{condition} irritants
+Accessing this field is like applying @func{condition-irritants} to the
+condition object.
+@end defcv
+
+
 @deftp Class @aclass{record}
-Type for values satisfying @func{record?}.
+Conventional type for objects satisfying @func{record?}.
 @end deftp
 
 @c page
@@ -38095,30 +38318,39 @@ library.
 
 
 @deftp Class @aclass{queue}
-Class type name of queue objects.  Records of this type hold the
-following concrete and virtual fields:
-
-@table @code
-@item first-pair
-Mutable.  The first pair of the internal list of elements.
-
-@item last-pair
-Mutable.  The last pair of the internal list of elements.
-
-@item front
-Immutable.  The first element in the queue: the next element returned by
-a dequeue operation.
-
-@item rear
-Immutable.  The last element in the queue.
-
-@item empty?
-Immutable.  True if the queue is empty.
-
-@item length
-Immutable.  It holds the number of elements in the queue.
-@end table
+Class type name of queue objects.
 @end deftp
+
+
+@defcv {Mutable Field} @aclass{queue} first-pair
+The first pair of the internal list of elements.
+@end defcv
+
+
+@defcv {Mutable Field} @aclass{queue} last-pair
+The last pair of the internal list of elements.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{queue} front
+The first element in the queue: the next element returned by a dequeue
+operation.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{queue} rear
+The last element in the queue.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{queue} empty?
+True if the queue is empty.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{queue} length
+It holds the number of elements in the queue.
+@end defcv
 
 
 @defun make-<queue> @var{arg} ...
@@ -38137,7 +38369,7 @@ Return @true{} if @var{obj} is an object of type @class{queue}.
 @defunx <queue>-first-pair-set! @var{queue} @var{obj}
 @defunx <queue>-last-pair @var{queue}
 @defunx <queue>-last-pair-set! @var{queue} @var{obj}
-Accessors and mutators for the concrete fields of @class{queue} records.
+Accessors and mutators for the fields of @class{queue} records.
 @end defun
 
 @c page
@@ -38312,24 +38544,29 @@ library.
 
 
 @deftp Class @aclass{stack}
-Class name of stack objects.  Records of this type hold the following
-concrete and virtual fields:
-
-@table @code
-@item first-pair
-Mutable.  The first pair of the internal list of elements.
-
-@item top
-Immutable.  The first element in the stack: the next element returned by
-a pop operation.
-
-@item empty?
-Immutable.  True if the stack is empty.
-
-@item length
-Immutable.  The number of elements on the stack.
-@end table
+Class name of stack objects.
 @end deftp
+
+
+@defcv {Mutable Field} @aclass{stack} first-pair
+The first pair of the internal list of elements.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{stack} top
+The first element in the stack: the next element returned by a pop
+operation.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{stack} empty?
+True if the stack is empty.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{stack} length
+The number of elements on the stack.
+@end defcv
 
 
 @defun make-<stack> @var{arg} ...
@@ -41153,19 +41390,20 @@ the input form can be null.
 
 
 @deftp Class sexp-variable
-Record type used to assign a name to values from sexp forms.  It has the
-following, immutable, fields
+Record type used to assign a name to values from sexp forms.
+@end deftp
 
-@table @samp
-@item name
+
+@defcv {Immutable Field} @aclass{sexp-variable} name
 The public name of the variable, to be used for debugging purposes.
+@end defcv
 
-@item default
+
+@defcv {Immutable Field} @aclass{sexp-variable} default
 A default value for the variable in case the sexp form does no bind it.
 When using a transformer the sentinel value has a special meaning.
 @pxref{sentinel, The sentinel value}
-@end table
-@end deftp
+@end defcv
 
 
 @defun make-sexp-variable @var{name} @var{default}
@@ -44959,18 +45197,20 @@ source location.
 @deftp Class @aclass{source-location}
 References the position of the next character to parse in the input
 stream, which is the position of the first char in the next token
-produced by the lexer.  All the fields in a @class{source-location}
-record are immutable; they are:
+produced by the lexer.
+@end deftp
 
-@table @samp
-@item input
+
+@defcv {Immutable Field} @aclass{source-location} input
 Describes the source of the input.  It can be any Scheme value, for
 example a string representing the pathname of an input file.  Set to
 @false{} if the source is unknown.
+@end defcv
 
-@item line
-@itemx column
-@itemx offset
+
+@defcv {Immutable Field} @aclass{source-location} line
+@defcvx {Immutable Field} @aclass{source-location} column
+@defcvx {Immutable Field} @aclass{source-location} offset
 Counters for the line number, column number and character offset from
 the start of the input.  By convention: Line and column numbers start
 from @math{1}, the offset starts from @math{0}.
@@ -44982,8 +45222,7 @@ Notice that these values match the local bindings @samp{yyline},
 @samp{yycolumn} and @samp{yyoffset} available to the lexer actions of
 the @library{silex} library.  @ref{silex semantics action, Evaluation of
 the actions}
-@end table
-@end deftp
+@end defcv
 
 
 @defun <source-location>-input @var{loc}
@@ -45223,30 +45462,34 @@ top of @library{classes}.
 
 
 @deftp Class @aclass{lexical-token}
-Hold the informations about a token from the input stream.  All the
-fields in a @class{lexical-token} record are immutable.  Fields
-description follows.
+Hold the informations about a token from the input stream.
+@end deftp
 
-@table @samp
-@item category
+
+@defcv {Immutable Field} @aclass{lexical-token} category
 Represents the grammar's terminal symbol to which this token belongs.
 Every parser @api{} must provide an interface to specify the list of
 allowed terminal symbols.
+@end defcv
 
-@item location
+
+@defcv {Immutable Field} @aclass{lexical-token} location
 Represents the location in the input from which the token was built; it
 must be @false{} or an instance of @class{source-location} record.
+@end defcv
 
-@item value
+
+@defcv {Immutable Field} @aclass{lexical-token} value
 Represents the semantic value associated with the token.  It can be any
 Scheme value.
+@end defcv
 
-@item length
+
+@defcv {Immutable Field} @aclass{lexical-token} length
 It is meant to be the length of the string which generated the token.
 When the token represents the end--of--input, this field can be set to
 zero.
-@end table
-@end deftp
+@end defcv
 
 
 @defun <lexical-token>-category @var{tok}
@@ -50106,17 +50349,18 @@ be handled with the facilities of the @library{classes} library.
 
 
 @deftp Class @aclass{domain}
-Represent the domain portion of an address specification.  Fields
-description:
-
-@table @code
-@item literal?
-A boolean, true if the domain is composed of four numeric components.
-
-@item subdomains
-The list of strings representing the domain components.
-@end table
+Represent the domain portion of an address specification.
 @end deftp
+
+
+@defcv {Immutable Field} @aclass{domain} literal?
+A boolean, true if the domain is composed of four numeric components.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{domain} subdomains
+The list of strings representing the domain components.
+@end defcv
 
 
 @defun <domain>-literal? @var{dom}
@@ -50153,14 +50397,13 @@ enclosed in square parentheses.
 
 @deftp Class @aclass{local-part}
 Holds a list of local part strings.  The local part is a single string,
-but for parsing reasons it is accumulated as a list of strings.  Fields
-description:
-
-@table @samp
-@item subparts
-A list of strings.
-@end table
+but for parsing reasons it is accumulated as a list of strings.
 @end deftp
+
+
+@defcv {Immutable Field} @aclass{local-part} subparts
+A list of strings.
+@end defcv
 
 
 @defun <local-part>-subparts @var{lp}
@@ -50168,7 +50411,7 @@ Field accessor.
 @end defun
 
 
-@deffn Method object->string (@var{o} <local-part>)
+@deffn {Generic Function} object->string (@var{o} <local-part>)
 Return the string representation of @var{o}.
 @end deffn
 
@@ -50178,17 +50421,18 @@ Return the string representation of @var{o}.
 
 
 @deftp Class @aclass{addr-spec}
-Holds an address specification: a local part and a domain.  Fields
-description:
-
-@table @code
-@item local-part
-Holds a @class{local-part} record.
-
-@item domain
-Holds a @class{domain} record.
-@end table
+Holds an address specification: a local part and a domain.
 @end deftp
+
+
+@defcv {Immutable Field} @aclass{addr-spec} local-part
+Holds a @class{local-part} record.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{addr-spec} domain
+Holds a @class{domain} record.
+@end defcv
 
 
 @defun <addr-spec>-local-part @var{as}
@@ -50208,13 +50452,13 @@ Return the string representation of @var{o}.
 
 @deftp Class @aclass{route}
 Holds a list of domains to be used to route the message to the final
-destination.  Fields description:
-
-@table @samp
-@item domains
-A list of @class{domain} records.
-@end table
+destination.
 @end deftp
+
+
+@defcv {Immutable Field} @aclass{route} domains
+A list of @class{domain} records.
+@end defcv
 
 
 @deffn Method object->string (@var{o} <route>)
@@ -50227,19 +50471,23 @@ Return the string representation of @var{o}.
 
 
 @deftp Class @aclass{mailbox}
-Hold a mailbox specification.  Fields description:
-
-@table @code
-@item display-name
-Holds the phrase string.
-
-@item route
-Holds @false{} or a @class{route} record.
-
-@item addr-spec
-Holds an @class{addr-spec} record.
-@end table
+Hold a mailbox specification.
 @end deftp
+
+
+@defcv {Immutable Field} @aclass{mailbox} display-name
+Holds the phrase string.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{mailbox} route
+Holds @false{} or a @class{route} record.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{mailbox} addr-spec
+Holds an @class{addr-spec} record.
+@end defcv
 
 
 @defun <mailbox>-display-name @var{mb}
@@ -50249,7 +50497,7 @@ Field accessors.
 @end defun
 
 
-@deffn Method object->string (@var{o} <mailbox>)
+@deffn {Generic Function} object->string (@var{o} <mailbox>)
 Return the string representation of @var{o}.
 @end deffn
 
@@ -50259,16 +50507,18 @@ Return the string representation of @var{o}.
 
 
 @deftp Class @aclass{group}
-Holds a list of mailboxes and a phrase.  Fields description:
-
-@table @samp
-@item display-name
-Holds the phrase string.
-
-@item mailboxes
-Holds a list of @class{mailbox} records.
-@end table
+Holds a list of mailboxes and a phrase.
 @end deftp
+
+
+@defcv {Immutable Field} @aclass{group} display-name
+Holds the phrase string.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{group} mailboxes
+Holds a list of @class{mailbox} records.
+@end defcv
 
 
 @defun <group>-display-name @var{gr}
@@ -50277,7 +50527,7 @@ Field accessors.
 @end defun
 
 
-@deffn Method object->string (@var{o} <group>)
+@deffn {Generic Function} object->string (@var{o} <group>)
 Return the string representation of @var{o}.
 @end deffn
 
@@ -50776,26 +51026,34 @@ Notice that a single dash, @samp{-}, is a valid non--option argument.
 
 
 @deftp Class @aclass{option}
-Type of records representing command line options.  It has the following
-fields, all immutable:
+Type of records representing command line options.
+@end deftp
 
-@table @code
-@item brief
+
+@defcv {Immutable Field} @aclass{option} brief
 A Scheme character representing a brief option selector; to specify an
 option with not brief selector, we can set this field to @false{}.
+@end defcv
 
-@item long
+
+@defcv {Immutable Field} @aclass{option} long
 A Scheme string representing a long option selector, without the
 double--dash prefix; to specify an option with not long selector, we can
 set this field to @false{}.
+@end defcv
 
-@item with-arg?
+
+@defcv {Immutable Field} @aclass{option} with-arg?
 Boolean, true if this option requires an argument.
+@end defcv
 
-@item description
+
+@defcv {Immutable Field} @aclass{option} description
 Scheme string describing this option, to be used in help screens.
+@end defcv
 
-@item action
+
+@defcv {Immutable Field} @aclass{option} action
 Semantic action, a closure to be invoked when this option is found.
 
 @itemize
@@ -50808,8 +51066,7 @@ If the field @code{with-arg?} is set to @true{}, the closure is applied
 to two values: the @class{option} record representing the option and the
 Scheme string representing the option's value.
 @end itemize
-@end table
-@end deftp
+@end defcv
 
 
 @defun make-<option> @var{brief} @var{long} @var{with-arg?} @var{description} @var{action}
@@ -51336,23 +51593,22 @@ produced in @math{2}-bytes blocks.
 
 
 @deftp Class @aclass{base16-encode-ctx}
-Context descriptor for base16 encoding.  It has the following immutable
-fields:
+Context descriptor for base16 encoding.  Nothing in this record depends
+on the input or output data: records of this type can be reused for
+different streams, both in sequence and in parallel.
+@end deftp
 
-@table @code
-@item encoding-case
+
+@defcv {Immutable Field} @aclass{base16-encode-ctx} encoding-case
 A Scheme symbol among: @code{lower}, @code{upper}.  Select the case of
 the alphabetic characters in the encoded output data.
+@end defcv
 
-@item table
+
+@defcv {Immutable Field} @aclass{base16-encode-ctx} table
 A Scheme vector of exact integers representing the selected encoding's
 alphabet.
-@end table
-
-Nothing in this record depends on the input or output data: records of
-this type can be reused for different streams, both in sequence and in
-parallel.
-@end deftp
+@end defcv
 
 
 @defun make-<base16-encode-ctx> @var{encoding-case}
@@ -51467,23 +51723,22 @@ available input data is not consumed.
 
 
 @deftp Class @aclass{base16-decode-ctx}
-Context descriptor for base16 decoding.  It has the following immutable
-fields:
+Context descriptor for base16 decoding.  Nothing in this record depends
+on the input or output data: records of this type can be reused for
+different streams, both in sequence and in parallel.
+@end deftp
 
-@table @code
-@item encoding-case
+
+@defcv {Immutable Field} @aclass{base16-decode-ctx} encoding-case
 A Scheme symbol among: @code{lower}, @code{mixed}, @code{upper}.  Select
 the case of the alphabetic characters in the encoded input data.
+@end defcv
 
-@item table
+
+@defcv {Immutable Field} @aclass{base16-decode-ctx} table
 A Scheme vector of exact integers representing the selected decoding's
 table.
-@end table
-
-Nothing in this record depends on the input or output data: records of
-this type can be reused for different streams, both in sequence and in
-parallel.
-@end deftp
+@end defcv
 
 
 @defun make-<base16-decode-ctx> @var{encoding-case}
@@ -51739,35 +51994,40 @@ when padding is off: the last block can have the lengths: @math{2},
 
 
 @deftp Class @aclass{base32-encode-ctx}
-Context descriptor for base32 encoding.  It has the following immutable
-fields:
+Context descriptor for base32 encoding.  Nothing in this record depends
+on the input or output data: records of this type can be reused for
+different streams, both in sequence and in parallel.
+@end deftp
 
-@table @code
-@item encoding
+
+@defcv {Immutable Field} @aclass{base32-encode-ctx} encoding
 A Scheme symbol among: @code{base32}, @code{base32/hex}.  It is the
 ``name'' of the table used for encoding.
+@end defcv
 
-@item encoding-case
+
+@defcv {Immutable Field} @aclass{base32-encode-ctx} encoding-case
 A Scheme symbol among: @code{lower}, @code{upper}.  Select the case of
 the alphabetic characters in the encoded output data.
+@end defcv
 
-@item generate-padding?
+
+@defcv {Immutable Field} @aclass{base32-encode-ctx} generate-padding?
 A Scheme boolean value; @true{} if the output data is padded so that its
 total length in bytes is a multiple of @math{8}.
+@end defcv
 
-@item pad-char
+
+@defcv {Immutable Field} @aclass{base32-encode-ctx} pad-char
 An exact integer representing (as defined by @func{char->integer}) the
 pad character.  It is set to the integer representation of @samp{#\=}.
+@end defcv
 
-@item table
+
+@defcv {Immutable Field} @aclass{base32-encode-ctx} table
 A Scheme vector of exact integers representing the selected encoding's
 alphabet.
-@end table
-
-Nothing in this record depends on the input or output data: records of
-this type can be reused for different streams, both in sequence and in
-parallel.
-@end deftp
+@end defcv
 
 
 @defun make-<base32-encode-ctx> @var{encoding} @var{generate-padding?} @var{encoding-case}
@@ -51915,36 +52175,41 @@ not consumed.
 
 
 @deftp Class @aclass{base32-decode-ctx}
-Context descriptor for base32 decoding.  It has the following immutable
-fields:
+Context descriptor for base32 decoding.  Nothing in this record depends
+on the input or output data: records of this type can be reused for
+different streams, both in sequence and in parallel.
+@end deftp
 
-@table @code
-@item encoding
+
+@defcv {Immutable Field} @aclass{base32-decode-ctx} encoding
 A Scheme symbol among: @code{base32}, @code{base32/hex}.  It is the
 ``name'' of the table used for decoding.
+@end defcv
 
-@item encoding-case
+
+@defcv {Immutable Field} @aclass{base32-decode-ctx} encoding-case
 A Scheme symbol among: @code{lower}, @code{mixed}, @code{upper}.  Select
 the case of the alphabetic characters in the encoded input data.
+@end defcv
 
-@item expect-padding?
+
+@defcv {Immutable Field} @aclass{base32-decode-ctx} expect-padding?
 A Scheme boolean; @true{} if we expect the encoded input to be padded in
 length to a multiple of @math{8}.
+@end defcv
 
-@item pad-char
+
+@defcv {Immutable Field} @aclass{base32-decode-ctx} pad-char
 An exact integer representing (as defined by @func{char->integer}) the
 expected pad character.  It is set to the integer representation of
 @samp{#\=}.
+@end defcv
 
-@item table
+
+@defcv {Immutable Field} @aclass{base32-decode-ctx} table
 A Scheme vector of exact integers representing the selected decoding's
 table.
-@end table
-
-Nothing in this record depends on the input or output data: records of
-this type can be reused for different streams, both in sequence and in
-parallel.
-@end deftp
+@end defcv
 
 
 @defun make-<base32-decode-ctx> @var{encoding} @var{expect-padding?} @var{encoding-case}
@@ -52205,31 +52470,34 @@ when padding is off: the last block can have the lengths: @math{2},
 
 
 @deftp Class @aclass{base64-encode-ctx}
-Context descriptor for base64 encoding.  It has the following immutable
-fields:
+Context descriptor for base64 encoding.  Nothing in this record depends
+on the input or output data: records of this type can be reused for
+different streams, both in sequence and in parallel.
+@end deftp
 
-@table @code
-@item encoding
+
+@defcv {Immutable Field} @aclass{base64-encode-ctx} encoding
 A Scheme symbol among: @code{base64}, @code{base64/url}.  It is the
 ``name'' of the table used for encoding.
+@end defcv
 
-@item generate-padding?
+
+@defcv {Immutable Field} @aclass{base64-encode-ctx} generate-padding?
 A Scheme boolean value; @true{} if the output data is padded so that its
 total length in bytes is a multiple of @math{4}.
+@end defcv
 
-@item pad-char
+
+@defcv {Immutable Field} @aclass{base64-encode-ctx} pad-char
 An exact integer representing (as defined by @func{char->integer}) the
 pad character.  It is set to the integer representation of @samp{#\=}.
+@end defcv
 
-@item table
+
+@defcv {Immutable Field} @aclass{base64-encode-ctx} table
 A Scheme vector of exact integers representing the selected encoding's
 alphabet.
-@end table
-
-Nothing in this record depends on the input or output data: records of
-this type can be reused for different streams, both in sequence and in
-parallel.
-@end deftp
+@end defcv
 
 
 @defun make-<base64-encode-ctx> @var{encoding} @var{generate-padding?}
@@ -52371,32 +52639,35 @@ not consumed.
 
 
 @deftp Class @aclass{base64-decode-ctx}
-Context descriptor for base64 decoding.  It has the following immutable
-fields:
+Context descriptor for base64 decoding.  Nothing in this record depends
+on the input or output data: records of this type can be reused for
+different streams, both in sequence and in parallel.
+@end deftp
 
-@table @code
-@item encoding
+
+@defcv {Immutable Field} @aclass{base64-decode-ctx} encoding
 A Scheme symbol among: @code{base64}, @code{base64/url}.  It is the
 ``name'' of the table used for decoding.
+@end defcv
 
-@item expect-padding?
+
+@defcv {Immutable Field} @aclass{base64-decode-ctx} expect-padding?
 A Scheme boolean; @true{} if we expect the encoded input to be padded in
 length to a multiple of @math{4}.
+@end defcv
 
-@item pad-char
+
+@defcv {Immutable Field} @aclass{base64-decode-ctx} pad-char
 An exact integer representing (as defined by @func{char->integer}) the
 expected pad character.  It is set to the integer representation of
 @samp{#\=}.
+@end defcv
 
-@item table
+
+@defcv {Immutable Field} @aclass{base64-decode-ctx} table
 A Scheme vector of exact integers representing the selected decoding's
 table.
-@end table
-
-Nothing in this record depends on the input or output data: records of
-this type can be reused for different streams, both in sequence and in
-parallel.
-@end deftp
+@end defcv
 
 
 @defun make-<base64-decode-ctx> @var{encoding} @var{expect-padding?}
@@ -53420,17 +53691,15 @@ strings which can be correctly processed by the same decoder.
 
 
 @deftp Class @aclass{qprint-encode-ctx}
-Context descriptor for quoted--printable encoding.  It has the following
-fields:
-
-@table @code
-@item encoding
-A Scheme symbol among: @code{default}, @code{strong}.
-@end table
-
-Nothing in records of this type depends upon the input or output data,
-so they can be reused for multiple streams.
+Context descriptor for quoted--printable encoding.  Nothing in records
+of this type depends upon the input or output data, so they can be
+reused for multiple streams.
 @end deftp
+
+
+@defcv {Immutable Field} @aclass{qprint-encode-ctx} encoding
+A Scheme symbol among: @code{default}, @code{strong}.
+@end defcv
 
 
 @defun make-<qprint-encode-ctx> @var{encoding}
@@ -53616,20 +53885,24 @@ The bindings documented in this section are exported by the
 
 
 @deftp Class @aclass{newlines-encode-ctx}
-Context record for newline insertion.  It has the following fields:
+Context record for newline insertion.
+@end deftp
 
-@table @code
-@item width
+
+@defcv {Immutable Field} @aclass{newlines-encode-ctx} width
 The line width in bytes.  This field is immutable.
+@end defcv
 
-@item sequence
+
+@defcv {Immutable Field} @aclass{newlines-encode-ctx} sequence
 A bytevector representing the newline sequence of characters.  This
 field is immutable.
+@end defcv
 
-@item column
+
+@defcv {Immutable Field} @aclass{newlines-encode-ctx} column
 The current colum number.
-@end table
-@end deftp
+@end defcv
 
 
 @defun make-<newlines-encode-ctx> @var{width} @var{sequence} @var{column}
@@ -53692,14 +53965,13 @@ from @var{src-bv} are consumed, this value is @var{src-past}.
 
 
 @deftp Class @aclass{newlines-decode-ctx}
-Context record for newline removal.  It has the following fields:
-
-@table @code
-@item sequence
-A bytevector representing the newline sequence of characters.  This
-field is immutable.
-@end table
+Context record for newline removal.
 @end deftp
+
+
+@defcv {Immutable Field} @aclass{newlines-decode-ctx} sequence
+A bytevector representing the newline sequence of characters.
+@end defcv
 
 
 @defun make-<newlines-decode-ctx> @var{sequence}
