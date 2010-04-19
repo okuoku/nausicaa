@@ -37,90 +37,11 @@
     %apply-import-spec/rename)
   (import (nausicaa)
     (matches)
-    (only (lists) take-right drop-right))
+
 
 
 ;;;; helpers
 
-(define-syntax %normalise-to-boolean
-  (syntax-rules ()
-    ((_ ?expr)
-     (if ?expr #t #f))))
-
-
-(define (%list-of-symbols? obj)
-  ;;Return true if OBJ is a list of symbols.
-  ;;
-  (and (list? obj)
-       (for-all symbol? obj)))
-
-(define (%list-of-renamings? obj)
-  ;;Return true if OBJ is a list of lists, each holding two symbols.  It
-  ;;is meant to be the last part of a RENAME import specification.
-  ;;
-  (and (list? obj)
-       (for-all %renaming? obj)))
-
-(define (%renaming? obj)
-  ;;Return true of OBJ is a list holding two symbols.  It is meant to be
-  ;;an elements in the last part of a RENAME import specification.
-  ;;
-  (and (list? obj)
-       (= 2 (length obj))
-       (symbol? (car obj))
-       (symbol? (cadr obj))))
-
-(define (%apply-prefix prefix-symbol id-symbol)
-  ;;Apply  a  prefix to  a  symbol, as  required  in  the PREFIX  import
-  ;;specification.
-  ;;
-  (assert (symbol? prefix-symbol))
-  (assert (symbol? id-symbol))
-  (string->symbol (string-append (symbol->string prefix-symbol)
-				 (symbol->string id-symbol))))
-
-(define (%apply-rename single-renaming replacement)
-  ;;Interpret  RENAMING as  a single  renaming specification  as  in the
-  ;;RENAME import spec; replace the output symbol with REPLACEMENT.
-  ;;
-  (assert (%renaming? single-renaming))
-  (assert (symbol? replacement))
-  (cons (car single-renaming) replacement))
-
-
-(define (%apply-import-spec/only renamings list-of-ids)
-  (assert (%list-of-renamings? renamings))
-  (assert (%list-of-symbols?   list-of-ids))
-  (filter (lambda (renaming)
-	    (memq (cadr renaming) list-of-ids))
-    renamings))
-
-(define (%apply-import-spec/except renamings list-of-ids)
-  (assert (%list-of-renamings? renamings))
-  (assert (%list-of-symbols?   list-of-ids))
-  (filter (lambda (renaming)
-	    (not (memq (cadr renaming) list-of-ids)))
-    renamings))
-
-(define (%apply-import-spec/prefix renamings prefix)
-  (assert (%list-of-renamings? renamings))
-  (assert (symbol? prefix))
-  (map (lambda (renaming)
-	 (let ((in (car  renaming))
-	       (ou (cadr renaming)))
-	   (list in (%apply-prefix prefix ou))))
-    renamings))
-
-(define (%apply-import-spec/rename renamings rename-spec)
-  (reverse (fold-left (lambda (knil single-renaming)
-			(let ((res (exists (lambda (spec)
-					     (if (eq? (cadr single-renaming) (car spec))
-						 (list (car single-renaming) (cadr spec))
-					       #f))
-					   rename-spec)))
-			  (cons (if res res single-renaming) knil)))
-		      '()
-		      renamings)))
 
 
 ;;;; done

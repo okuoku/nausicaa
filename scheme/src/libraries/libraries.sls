@@ -126,10 +126,9 @@
     (char-sets)
     (matches)
     (libraries rnrs-bindings)
-    (libraries low)
     (libraries names)
     (libraries references)
-    (libraries import-sets))
+    (libraries import-specs))
 
 
 ;;;; condition objects

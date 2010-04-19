@@ -54558,6 +54558,11 @@ non--negative, integers.
 @end defcv
 
 
+@defcv {Immutable Field} @aclass{library-reference} reference
+The full library reference specification.
+@end defcv
+
+
 @defun make-<library-reference> @var{sexp}
 Parse @var{sexp} as an symbolic expression representing a library
 reference as specified by @rnrs{6}; build and return a new

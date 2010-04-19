@@ -32,6 +32,7 @@
     make-<library-reference>
     <library-reference>-identifiers
     <library-reference>-version-reference
+    <library-reference>-reference
 
     library-reference-decompose
     library-reference?
@@ -56,6 +57,7 @@
 (define-class <library-reference>
   (fields (immutable identifiers)
 	  (immutable version-reference))
+  (virtual-fields (immutable reference))
 
   (method (conforming? (ref <library-reference>) (name <library-name>))
     (and (for-all eq? name.identifiers ref.identifiers)
@@ -71,6 +73,9 @@
 		      "invalid library reference symbolic expression" sexp))))))
 
   (nongenerative nausicaa:libraries:<library-reference>))
+
+(define (<library-reference>-reference (o <library-reference>))
+  (reverse (cons o.version-reference (reverse o.identifiers))))
 
 
 (define (library-reference-decompose obj)
