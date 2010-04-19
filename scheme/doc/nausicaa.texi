@@ -19151,10 +19151,13 @@ symbol: Raise an assertion violation.
 @section Extended syntaxes
 
 
-The @func{define} function from @library{rnrs} is replaced by the
-@func{define/with} function from @library{classes} renamed to
-@func{define}.  @func{define/with} is still exported by
-@library{nausicaa}.
+The @func{define}, @func{lambda} and @func{case-lambda} bindings from
+@library{rnrs} are replaced by the @func{define/with},
+@func{lambda/with} and @func{case-lambda/with} bindings from
+@library{classes} renamed to @func{define}.
+
+@func{define/with}, @func{lambda/with} and @func{case-lambda/with} are
+still exported by @library{nausicaa}.
 
 @c page
 @node nausicaa environment

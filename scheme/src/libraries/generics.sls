@@ -47,7 +47,7 @@
     is-a?
     record-type-parent?
     record-type-of
-    record-parent-list			record-parent-list*
+    record-parent-list			class-parent-list
 
     <top> <builtin>
     <pair> <list>
