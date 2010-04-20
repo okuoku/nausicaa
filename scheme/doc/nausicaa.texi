@@ -1631,6 +1631,8 @@ Libraries inspection
 * libraries references::        Handling @rnrs{6} library references.
 * libraries imports::           Handling @rnrs{6} library import
                                 specifications.
+* libraries searching::         Finding libraries on the system.
+* libraries libraries::         Handling @rnrs{6} libraries.
 
 Handling @rnrs{6} library names
 
@@ -1646,6 +1648,15 @@ Handling @rnrs{6} library import specifications
 
 * libraries imports typedefs::  Type definitions.
 * libraries imports utilities:: Utility functions.
+
+Finding libraries on the system
+
+* libraries searching system::  Searching libraries on file systems.
+
+Handling @rnrs{6} libraries
+
+* libraries libraries typedefs::    Type definitions.
+* libraries libraries utilities::   Utility functions.
 
 Knuth-Morris-Pratt searching
 
@@ -54393,6 +54404,8 @@ The @library{libraries} library implements routines to inspect
 * libraries references::        Handling @rnrs{6} library references.
 * libraries imports::           Handling @rnrs{6} library import
                                 specifications.
+* libraries searching::         Finding libraries on the system.
+* libraries libraries::         Handling @rnrs{6} libraries.
 @end menu
 
 @c page
@@ -54909,6 +54922,135 @@ specifying the rename operation for @var{renamings}.
 @result{} ((a ea) (b ebb) (c ecc))
 @end example
 @end defun
+
+@c page
+@node libraries searching
+@section Finding libraries on the system
+
+
+The bindings documented in this section are exported by the
+@library{libraries} library.
+
+@menu
+* libraries searching system::  Searching libraries on file systems.
+@end menu
+
+@c page
+@node libraries searching system
+@subsection Searching libraries on file systems
+
+
+@subsubheading Search path
+
+
+@deffn Parameter library-search-path-environment-variable
+Holds a string representing the system environment variable holding the
+search path for libraries; it is initialised to @samp{SCHEME_LIBPATH}.
+The search path is meant to be a colon--separated list of directory
+pathnames.
+@end deffn
+
+
+@defun library-search-path
+Read the value of the @code{library-search-path-environment-variable}
+parameter and return a list of strings representing the directory
+pathnames in the search path.
+@end defun
+
+
+@deffn Parameter library-search-path-function
+Hold a thunk which, when evaluated, returns a list of strings
+representing the directories pathnames in the search path; it is
+initialised to @func{library-search-path}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Finding pathnames
+
+
+@defvr Constant library-file-extensions
+A list of strings representing extensions for library files; its value
+is:
+
+@table @asis
+@item @samp{.ikarus.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+For Ikarus Scheme.
+
+@item @samp{.larceny.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+For Larceny Scheme.
+
+@item @samp{.mosh.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+For Mosh Scheme.
+
+@item @samp{.petite.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+For Petite Chez Scheme.
+
+@item @samp{.ypsilon.sls} @samp{.sls} @samp{.scm} @samp{.ss}
+For Ypsilon Scheme.
+@end table
+@end defvr
+
+
+@defun scan-library-search-path @var{reference}
+Given the @class{library-reference} record @var{reference}, make use of
+the thunk in @func{library-search-path-function} and the extensions in
+@code{library-file-extensions} to scan the file systems in search of
+compliant libraries.  Return a list of strings, possibly null,
+representing the file pathnames.
+
+This function searches for all the files whose pathname is prefixed with
+a directory in the search path and suffixed with a relative pathname
+built by joining the identifiers in the library reference with a
+separator; finally the extensions are tried in turn.  This function
+ignores library version specifications in pathnames.
+@end defun
+
+
+@deffn Parameter scan-library-search-path-function
+Holds a function which, when applied to a @class{library-reference}
+record, scans the file systems and returns a list of file pathnames
+matching the reference.  It is initialised to
+@func{scan-library-search-path}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubheading Loading libraries
+
+
+@defun load-libraries-from-files @var{reference}
+Given the @class{library-reference} record @var{reference}, make use of
+the function in @func{scan-library-search-path-function} to find
+matching libraries and return a list of @class{library} records
+representing them.  If loading a library fails: the error is ignored and
+that pathname skipped.
+@end defun
+
+
+
+@c page
+@node libraries libraries
+@section Handling @rnrs{6} libraries
+
+
+The bindings documented in this section are exported by the
+@library{libraries} library.
+
+@menu
+* libraries libraries typedefs::    Type definitions.
+* libraries libraries utilities::   Utility functions.
+@end menu
+
+@c page
+@node libraries libraries typedefs
+@subsection Type definitions
+
+@c page
+@node libraries libraries utilities
+@subsection Utility functions
+
+
 
 @c page
 

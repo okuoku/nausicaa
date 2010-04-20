@@ -32,56 +32,24 @@
 
     <library>
     make-<library>				<library>?
+    <library>-sexp
+    <library>-name-sexp
+    <library>-exports-sexp
+    <library>-imports-sexp
+    <library>-body
+    <library>-name
     <library>-exports
-    <library>-imported-libraries
-    <library>-requested-library-name
-    <library>-library-name
-    <library>-library-version
-    <library>-imported-bindings
+    <library>-import-specs
+    <library>-references
 
-    ;; conditions
-    &library-name
-    make-library-name-condition
-    library-name-condition?
-    condition-library-name
-
-    &library-invalid-sexp
-    make-library-invalid-sexp-condition
-    library-invalid-sexp-condition?
-    condition-library-invalid-sexp
-    error-library-invalid-sexp
-
-    &library-not-found
-    make-library-not-found-condition
-    library-not-found-condition?
-    error-library-not-found
-
-    &library-invalid-exports
-    make-library-invalid-exports-condition
-    library-invalid-exports-condition?
-    error-library-invalid-exports
-
-    &library-invalid-import-set
-    make-library-invalid-import-set-condition
-    library-invalid-import-set-condition?
-    condition-library-invalid-import-set
-    error-library-invalid-import-set
-
-    &library-invalid-phase-spec
-    make-library-invalid-phase-spec-condition
-    library-invalid-phase-spec-condition?
-    condition-library-invalid-phase-spec
-    error-library-invalid-phase-spec
-
-    ;;search path
+    ;; utilities
     library-search-path-environment-variable
-    get-search-path
-    get-search-path-function
-
-    ;;loading
-    load-library				load-library-function
-    load-library-from-file			ignore-library-version
-    library-reference-resolve
+    library-search-path
+    library-search-path-function
+    library-file-extensions
+    scan-library-search-path
+    scan-library-search-path-function
+    load-libraries-from-files
     )
   (import (nausicaa)
     (compensations)
@@ -92,204 +60,75 @@
     (libraries rnrs-bindings)
     (libraries names)
     (libraries references)
-    (libraries import-specs))
-
-
-;;;; condition objects
-
-(define-condition-type &library-name
-  &condition
-  make-library-name-condition
-  library-name-condition?
-  (spec	condition-library-name))
-
-;;; --------------------------------------------------------------------
-
-(define-condition-type &library-invalid-sexp
-  &error
-  make-library-invalid-sexp-condition
-  library-invalid-sexp-condition?
-  (sexp		condition-library-invalid-sexp))
-
-(define-inline (error-library-invalid-sexp ?who ?library-name ?library-sexp)
-  (raise (condition
-	  (make-who-condition ?who)
-	  (make-message-condition "invalid LIBRARY form S-expression")
-	  (make-library-name-condition ?library-name)
-	  (make-library-invalid-sexp-condition ?library-sexp))))
-
-;;; --------------------------------------------------------------------
-
-(define-condition-type &library-not-found
-  &error
-  make-library-not-found-condition
-  library-not-found-condition?)
-
-(define-inline (error-library-not-found ?who ?library-name)
-  (raise (condition
-	  (make-who-condition ?who)
-	  (make-message-condition "library not found")
-	  (make-library-name-condition ?library-name)
-	  (make-library-not-found-condition))))
-
-;;; --------------------------------------------------------------------
-
-(define-condition-type &library-invalid-exports
-  &error
-  make-library-invalid-exports-condition
-  library-invalid-exports-condition?
-  (export-spec	condition-library-invalid-exports))
-
-(define-inline (error-library-invalid-exports ?who ?library-name ?export-spec)
-  (raise (condition
-	  (make-who-condition ?who)
-	  (make-message-condition "invalid library exports specification")
-	  (make-library-name-condition ?library-name)
-	  (make-library-invalid-exports-condition ?export-spec))))
-
-;;; --------------------------------------------------------------------
-
-(define-condition-type &library-invalid-import-set
-  &error
-  make-library-invalid-import-set-condition
-  library-invalid-import-set-condition?
-  (import-set	condition-library-invalid-import-set))
-
-(define-inline (error-library-invalid-import-set ?who ?library-name ?import-set)
-  (raise (condition
-	  (make-who-condition ?who)
-	  (make-message-condition "invalid library import set specification")
-	  (make-library-name-condition ?library-name)
-	  (make-library-invalid-import-set-condition ?import-set))))
-
-;;; --------------------------------------------------------------------
-
-(define-condition-type &library-invalid-phase-spec
-  &error
-  make-library-invalid-phase-spec-condition
-  library-invalid-phase-spec-condition?
-  (phase-spec	condition-library-invalid-phase-spec))
-
-(define-inline (error-library-invalid-phase-spec ?who ?library-name ?library-phase-spec)
-  (raise (condition
-	  (make-who-condition ?who)
-	  (make-message-condition "invalid library import phase specification")
-	  (make-library-name-condition ?library-name)
-	  (make-library-invalid-phase-spec-condition ?library-phase-spec))))
-
-
-(define-class <raw-library>
-  ;;This class is for raw informations extracted from the library.
-  ;;
-  (fields (immutable requested-library-name)
-		;The  library specification, as  defined by  R6RS, which
-		;was used to find this library; it can be different from
-		;the one in the  library form.
-	  (immutable library-sexp)
-		;The  full  S-expression of  the  library:  this is  the
-		;LIBRARY form.
-	  (immutable library-name)
-		;The  library specification, as  defined by  R6RS, which
-		;was found in the LIBRARY form.
-	  (immutable library-version)
-		;The version specification  in the library specification
-		;from the LIBRARY form; it can be null if no version was
-		;specified.
-	  (mutable exports)
-		;The raw  content of the  EXPORT clause.  It is  null if
-		;the library exports nothing.
-	  (mutable imports)
-		;The  raw  content of  the  IMPORT  clause.  The  IMPORT
-		;clause is not allowed to  be null, so this field cannot
-		;be null either.
-	  (mutable body)
-		;The body of the library;  it is null if the library has
-		;empty body.
-	  )
-  (protocol
-   (lambda (make-<top>)
-     (lambda/with* ((requested-library-name <list>) (library-sexp <list>))
-       (match library-sexp
-	 (('library (:predicate library-name? ?library-name)
-	    ('export . ?exports) ;?exports can be null
-	    ('import . ?imports) ;?imports can be null
-	    . ?body) ;?body can be null
-	  ((make-<top>) requested-library-name library-sexp
-	   ?library-name
-	   (library-name->version ?library-name)
-	   ?exports ?imports ?body))
-	 (_
-	  (error-library-invalid-sexp 'make-<raw-library> requested-library-name library-sexp))))))
-  (nongenerative nausicaa:libraries:<raw-library>))
+    (libraries import-specs)
+    (libraries helpers))
 
 
 (define-class <library>
-  (parent <raw-library>)
-  (fields (mutable exports)
-		;Renamings representing the export list.
-	  (mutable import-specs)
+  (fields (immutable sexp)
+		;The  full  S-expression of  the  library:  this is  the
+		;LIBRARY form.
+	  (immutable name-sexp)
+		;The library name  S-expression object being the library
+		;name from the LIBRARY form.
+	  (immutable exports-sexp)
+		;The raw  content of the  EXPORT clause.  It is  null if
+		;the library exports nothing.
+	  (immutable imports-sexp)
+		;The  raw  content of  the  IMPORT  clause.  The  IMPORT
+		;clause is not allowed to  be null, so this field cannot
+		;be null either.
+	  (immutable body)
+		;The body of the library;  it is null if the library has
+		;empty body.
+
+	  (immutable name)
+		;A  <library-name>  record  representing this  library's
+		;name.
+	  (immutable exports)
+		;List of renamings representing the export list.
+	  (immutable import-specs)
 		;List of <import-spec> records; it represents the import
 		;sets of this library.   Notice that an imported library
 		;can appear in more import sets.
 	  )
-  (virtual-fields (immutable requested-library-name	<raw-library>-requested-library-name)
-		  (immutable library-name		<raw-library>-library-name)
-		  (immutable library-version		<raw-library>-library-version)
-		  (immutable imported-libraries		<library>-imported-libraries))
+  (virtual-fields (immutable references <library>-references))
+		;List of  <library-references> representing the  list of
+		;imported libraries.
   (methods imported-bindings)
 
-  (protocol (lambda (make-<raw-library>)
-	      (lambda/with* ((requested-library-name <list>) (library-sexp <list>))
+  (protocol (lambda (make-top)
+	      (lambda (sexp)
+		(match sexp
+		  (('library (:predicate library-name? ?name-sexp)
+		     ('export . ?exports-sexp) ;?exports can be null
+		     ('import . ?imports-sexp) ;?imports can be null
+		     . ?body)		       ;?body can be null
+		   ((make-top) sexp ?name-sexp ?exports-sexp ?imports-sexp ?body
+		    (make <library-name> ?name-sexp)
+		    (%list-of-renamings-from-exports-sexp 'make-<library> ?exports-sexp)
+		    (map make-<import-spec> ?imports-sexp)))
+		  (_
+		   (error 'make-<raw-library>
+		     "invalid library symbolic expression" sexp))))))
 
-		(define (main)
-		  (begin0-let ((lib ((make-<raw-library> requested-library-name library-sexp)
-				     #f #f))) ;exports import-specs
-		    (%build-exports! lib)
-		    (%build-import-specs! lib)))
-
-		(define (%build-exports! (lib <library>))
-		  (let-fields (((raw <raw-library>) lib))
-		    (set! lib.exports
-			  (reverse
-			   (fold-left
-			    (lambda (knil spec)
-			      (define (%error)
-				(error-library-invalid-exports 'make-<library> lib.library-name spec))
-			      (match spec
-				((:predicate symbol? ?identifier)
-				 `((,?identifier ,?identifier) . ,knil))
-				(('rename . ?renamings)
-				 (if (%list-of-renamings? ?renamings)
-				     (append (reverse ?renamings) knil)
-				   (%error)))
-				(_
-				 (%error))))
-			    '()
-			    raw.exports)))))
-
-		(define (%build-import-specs! (lib <library>))
-		  (let-fields (((raw <raw-library>) lib))
-		    (set! lib.import-specs
-			  (if (null? raw.imports)
-			      '()
-			    (map (lambda (import-set)
-				   (make-<import-spec> import-set lib.library-name))
-			      raw.imports)))))
-		(main))))
   (nongenerative nausicaa:libraries:<library>))
 
-(define (<library>-library-version (o <library>))
-  o.library-version)
-
-(define (<library>-requested-library-name (o <library>))
-  o.requested-library-name)
-
-(define (<library>-library-name (o <library>))
-  o.library-name)
+(define (%list-of-renamings-from-exports-sexp who exports-sexp)
+  (reverse (fold-left (lambda (knil spec)
+			(match spec
+			  ((:predicate symbol? ?identifier)
+			   `((,?identifier ,?identifier) . ,knil))
+			  (('rename . (:predicate %list-of-renamings? ?renamings))
+			   (append (reverse ?renamings) knil))
+			  (_
+			   (error who "invalid exports list in library form" exports-sexp))))
+		      '()
+		      exports-sexp)))
 
 (define (<library>-imported-libraries (lib <library>))
   (delete-duplicates (map (lambda/with ((spec <import-spec>))
-			    spec.library-name)
+			    spec.library-reference)
 		       lib.import-specs)))
 
 
@@ -301,50 +140,20 @@
       (assert (string? name))
       name)))
 
-(define (get-search-path)
+(define (library-search-path)
   (string-tokenize (get-environment-variable (library-search-path-environment-variable))
 		   (char-set-complement (char-set #\:) char-set:full)))
 
-(define get-search-path-function
-  (make-parameter get-search-path
+(define library-search-path-function
+  (make-parameter library-search-path
     (lambda (f)
       (assert (procedure? f))
       f)))
 
-(define (get-library-pathname spec)
-  ;;Given a library specification, find  the pathname of its file on the
-  ;;system.  Return the pathname as a string or #f if not found.
-  ;;
-  ;;SPEC  must  be  a  library  specification as  defined  in  the  R6RS
-  ;;document.   The version  specification,  if present,  is taken  into
-  ;;account  depending  on   the  value  of  the  IGNORE-LIBRARY-VERSION
-  ;;parameter: if #f it is removed before building the pathname.
-  ;;
-
-  (let* ((spec (if (pair? (last spec))
-		   (if (ignore-library-version)
-		       (drop-right spec 1)
-		     (append (drop-right spec 1)
-			     (list (string-join (map number->string (take-right spec 1)) "."))))
-		 spec))
-	 (name (string-join (map symbol->string/maybe spec) "/"))
-	 (dirs ((get-search-path-function))))
-    (exists (lambda (dir)
-	      (exists (lambda (ext)
-			(let ((pathname (string-append dir "/" name ext)))
-			  (if (file-exists? pathname)
-			      pathname
-			    #f)))
-		      $extensions))
-	    dirs)))
-
 
-;;;; library loading from file
+;;;; finding libraries on file systems
 
-(define ignore-library-version
-  (make-parameter #t))
-
-(define-constant $extensions
+(define-constant library-file-extensions
   (list (cond-expand
 	 (ikarus	".ikarus.sls")
 	 (larceny	".larceny.sls")
@@ -353,100 +162,77 @@
 	 (ypsilon	".ypsilon.sls"))
 	".sls" ".scm" ".ss"))
 
-(define get-library-pathname-function
-  (make-parameter get-library-pathname
+(define (scan-library-search-path (ref <library-reference>))
+  ;;Scan the  search path for  library files whose pathname  matches the
+  ;;list of  identifiers from the  library reference.  Return a  list of
+  ;;strings, possibly null, representing the library pathnames.
+  ;;
+  ;;Make use of LIBRARY-SEARCH-PATH-FUNCTION.  Currently ignore version.
+  ;;
+  (let ((filename (string-join (map symbol->string ref.identifiers) "/")))
+    (fold-left (lambda (knil dirname)
+		 (fold-left (lambda (knil fileext)
+			      (let ((pathname (string-append dirname "/" filename fileext)))
+				(if (file-exists? pathname)
+				    (cons pathname knil)
+				  knil)))
+			    '()
+			    library-file-extensions))
+	       '()
+	       ((library-search-path-function)))))
+
+(define scan-library-search-path-function
+  (make-parameter scan-library-search-path
     (lambda (f)
       (assert (procedure? f))
       f)))
 
-(define (load-library-from-file spec)
-  ;;Search a library  on the system and load it.  Return  the sexp or #f
-  ;;if not found.
-  ;;
-  (let ((pathname ((get-library-pathname-function) spec)))
-    (if pathname
-	(with-compensations
-	  (letrec ((port (compensate
-			     (open-input-file pathname)
-			   (with
-			    (close-port port)))))
-	    (read port)))
-      #f)))
-
 
-;;;; resolving library references
+;;;; loading libraries
 
-(define (library-reference-resolve library-reference)
-  library-reference)
+(define (load-libraries-from-files (ref <library-reference>))
+  ;;Search  the  system  for   all  the  libraries  matching  the  given
+  ;;reference.  Return a list of <library> records, possibly null.
+  ;;
+  ;;If loading a  library fails: the error is  ignored and that pathname
+  ;;skipped.
+  ;;
+  (fold-left (lambda (knil pathname)
+	       (with-compensations
+		 (letrec ((port (compensate
+				    (open-input-file pathname)
+				  (with
+				   (close-port port)))))
+		   (guard (E (else knil))
+		     (cons (make-<library> (read port))
+			   knil)))))
+	     '()
+	     ((scan-library-search-path-function) ref)))
+
+(define (sort-libraries libs)
+  (list-sort (lambda ((a <library>) (b <library>))
+	       (library-name<? a.name b.name))
+	     libs))
 
 
 ;;;; library registry
 
 (define-constant $library-registry
-  (make-hashtable equal-hash equal?))
+  (make-eq-hashtable))
 
 (define load-library-function
-  (make-parameter load-library-from-file
+  (make-parameter load-libraries-from-files
     (lambda (f)
       (assert (procedure? f))
       f)))
 
-(define (load-library spec)
-  (or (hashtable-ref $library-registry spec #f)
-      (let ((sexp ((load-library-function) spec)))
-	(if sexp
-	    (begin0-let ((lib (make-<library> spec sexp)))
-	      (hashtable-set! $library-registry spec lib))
-	  (error-library-not-found 'load-library spec)))))
-
-
-;;;; libraries import bindings
-
-(define (<library>-imported-bindings (lib <library>))
-  (define (main)
-    (let-fields (((raw <raw-library>) lib))
-      (concatenate
-       (map (lambda (spec)
-	      (match spec
-		(('for ?import-set)
-		 (%extract-bindings-from-import-spec ?import-set))
-		(('for ?import-set _)
-		 (%extract-bindings-from-import-spec ?import-set))
-		(?import-set
-		 (%extract-bindings-from-import-spec ?import-set))))
-	 raw.imports))))
-
-  (define (%extract-bindings-from-import-spec spec)
-    (match spec
-      (('rename ?import-set)
-       (%extract-bindings-from-import-spec ?import-set))
-      (('rename ?import-set . list-of-renamings)
-       (%extract-bindings-from-import-spec ?import-set))
-
-      (('only ?import-set) ;exclude all the bindings
-       '())
-      (('only ?import-set . ?list-of-ids)
-       (%apply-import-spec/only (%extract-bindings-from-import-spec ?import-set)
-				?list-of-ids))
-
-      (('except ?import-set)
-       (%extract-bindings-from-import-spec ?import-set))
-      (('except ?import-set . ?list-of-ids)
-       (%apply-import-spec/except (%extract-bindings-from-import-spec ?import-set) ?list-of-ids))
-
-      (('prefix ?import-set (:predicate symbol? ?prefix))
-       (%apply-import-spec/prefix (%extract-bindings-from-import-spec ?import-set)))
-
-      (('library (:predicate %library-reference? ?library-reference))
-       (<library>-exports (load-library ?library-reference)))
-
-      ((:predicate %library-reference? ?library-reference)
-       (<library>-exports (load-library ?library-reference)))
-
-      (?import-set
-       (error-library-invalid-import-set '<library>-imported-bindings lib.library-name ?import-set))))
-
-  (main))
+(define (load-library reference)
+  (or (hashtable-ref $library-registry reference #f)
+      (let ((libs ((load-library-function) reference)))
+	(if (null? libs)
+	    (error 'load-library "matching library not found" reference)
+	  (begin0-let ((lib (car libs)))
+	    (hashtable-set! $library-registry reference lib))))))
 
 
 ;;;; rnrs libraries
@@ -458,10 +244,10 @@
 
 (define (%register-rnrs-lib library-name bindings)
   (let*-fields (((spec <top>)		library-name)
-		((lib  <library>)	(make-<library> spec `(library ,library-name
-								(export ,@bindings)
-								(import))))
-		((raw  <raw-library>)	lib))
+		((lib  <library>)	(make <library>
+					  `(library ,library-name
+					     (export ,@bindings)
+					     (import)))))
     (hashtable-set! $library-registry spec lib)
     (hashtable-set! $library-registry (drop-right spec 1) lib)
 		;remove the version spec

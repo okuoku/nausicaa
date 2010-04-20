@@ -78,6 +78,7 @@
     )
   (import (nausicaa)
     (matches)
+    (libraries helpers)
     (libraries references))
 
 
@@ -243,35 +244,6 @@
       o.subset
     (with-fields ((o.subset <import-set>))
       o.subset.library-reference)))
-
-
-(define (%list-of-symbols? obj)
-  ;;Return true if OBJ is a list of symbols.
-  ;;
-  (and (list? obj)
-       (for-all symbol? obj)))
-
-(define (%list-of-renamings? obj)
-  ;;Return true if OBJ is a list of lists, each holding two symbols.  It
-  ;;is meant to be the last part of a RENAME import specification.
-  ;;
-  (and (list? obj)
-       (for-all %renaming? obj)))
-
-(define (%renaming? obj)
-  ;;Return true of OBJ is a list holding two symbols.  It is meant to be
-  ;;an elements in the last part of a RENAME import specification.
-  ;;
-  (and (list? obj)
-       (= 2 (length obj))
-       (symbol? (car obj))
-       (symbol? (cadr obj))))
-
-(define (%apply-rename single-renaming replacement)
-  ;;Interpret  RENAMING as  a single  renaming specification  as  in the
-  ;;RENAME import spec; replace the output symbol with REPLACEMENT.
-  ;;
-  (cons (car single-renaming) replacement))
 
 
 (define (apply-import-spec/only renamings list-of-identifiers)

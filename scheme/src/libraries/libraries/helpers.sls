@@ -1,8 +1,8 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: low level library inspection routines
-;;;Date: Thu Apr  8, 2010
+;;;Contents: helper functions for libraries libraries
+;;;Date: Tue Apr 20, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -25,27 +25,35 @@
 ;;;
 
 
-(library (libraries low)
+(library (libraries helpers)
   (export
-
     %list-of-symbols?
-    %list-of-renamings?			%renaming?
+    %list-of-renamings?
+    %renaming? )
+  (import (rnrs))
 
-    %apply-import-spec/only
-    %apply-import-spec/except
-    %apply-import-spec/prefix
-    %apply-import-spec/rename)
-  (import (nausicaa)
-    (matches)
+  (define (%list-of-symbols? obj)
+    ;;Return true if OBJ is a list of symbols.
+    ;;
+    (and (list? obj)
+	 (for-all symbol? obj)))
 
+  (define (%list-of-renamings? obj)
+    ;;Return true if  OBJ is a list of lists,  each holding two symbols.
+    ;;It is meant to be the last part of a RENAME import specification.
+    ;;
+    (and (list? obj)
+	 (for-all %renaming? obj)))
 
-
-;;;; helpers
+  (define (%renaming? obj)
+    ;;Return true of OBJ is a  list holding two symbols.  It is meant to
+    ;;be an elements in the last part of a RENAME import specification.
+    ;;
+    (and (list? obj)
+	 (= 2 (length obj))
+	 (symbol? (car obj))
+	 (symbol? (cadr obj))))
 
-
-
-;;;; done
-
-)
+  )
 
 ;;; end of file
