@@ -8,6 +8,35 @@
 ;;;
 ;;;
 ;;;
+;;;Jargon
+;;;------
+;;;
+;;;List of renamings
+;;;
+;;;	A "list of  renamings" is a list of lists;  each sublist has two
+;;;	symbols as elements:
+;;;
+;;;		((internal-symbol0	external-symbol0)
+;;;		 (internal-symbol	external-symbol)
+;;;		 ...)
+;;;
+;;;	a  list of renamings  represents the  identifiers exported  by a
+;;;	library or the identifiers imported by a library.
+;;;
+;;;	In the  first case:  the external symbol  is the one  visible by
+;;;	code which imports this library;  the internal symbol is the one
+;;;	bound with DEFINE or DEFINE-SYNTAX in the body of this library.
+;;;
+;;;	In the  second case: the external  symbol is the  one visible in
+;;;	the  body  of this  library;  the  internal  symbol is  the  one
+;;;	exported by the imported library.
+;;;
+;;;	If we know  the library name and the renamings,  we can build an
+;;;	import set with:
+;;;
+;;;		(only (rename <library-name> . <renamings>))
+;;;
+;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -33,6 +62,7 @@
     <import-spec>-import-set
     <import-spec>-import-levels
     <import-spec>-original
+    <import-spec>-library-reference
 
     <import-set>
     make-<import-set>			<import-set>?
@@ -59,15 +89,21 @@
 		;A list of exact integers representing the import levels
 		;for which  this import set was  requested.  It contains
 		;at least one element.
-	  (immutable original)
+	  (immutable original))
 		;The original import specification.
-	  )
-
+  (virtual-fields (immutable library-reference))
   (protocol (lambda (make-parent)
 	      (lambda (sexp)
 		(receive (import-set import-levels)
 		    (%import-spec-parse sexp)
 		  ((make-parent) import-set import-levels sexp)))))
+
+  (method (apply (o <import-spec>) renamings)
+    (assert (%list-of-renamings? renamings))
+    (if (is-a? o.import-set <library-reference>)
+	renamings
+      (with-fields ((o.import-set <import-set>))
+	(o.import-set.apply renamings))))
 
   (nongenerative nausicaa:libraries:<import-spec>))
 
@@ -85,10 +121,10 @@
      (values (make-<import-set> ?import-set)
 	     (map (lambda (level)
 		    (match level
-		      ('run	'(0))
-		      ('expand	'(1))
+		      ('run	'0)
+		      ('expand	'1)
 		      (('meta (:predicate integer? (:predicate exact? ?level)))
-		       (list ?level))
+		       ?level)
 		      (_
 		       (assertion-violation '%import-levels-parse "invalid import level" level))))
 	       ?import-levels)))
@@ -96,17 +132,32 @@
     (?import-set
      (values (make-<import-set> ?import-set) '(0)))))
 
+(define (<import-spec>-library-reference (o <import-spec>))
+  (if (is-a? o.import-set <library-reference>)
+      o.import-set
+    (with-fields ((o.import-set <import-set>))
+      o.import-set.library-reference)))
+
 
 (define-class <import-set>
   (fields (immutable subset)
+		;The  core  of  this  import  set;  it  can  be  another
+		;<import-set> or a <library-reference>.
 	  (immutable bindings-transformer)
+		;A  function  to apply  to  a  renamings  to obtain  the
+		;imported bindings.
 	  (immutable original))
+		;The original symbolic expression of this import set.
   (virtual-fields (immutable library-reference))
   (protocol (lambda (make-parent)
 	      (lambda (sexp)
 		(receive (subset bindings-transformer)
 		    (%import-set-parse sexp)
 		  ((make-parent) subset bindings-transformer sexp)))))
+
+  (method (apply (o <import-set>) renamings)
+    (o.bindings-transformer renamings))
+
   (nongenerative nausicaa:libraries:<import-set>))
 
 (define (%import-set-parse sexp)

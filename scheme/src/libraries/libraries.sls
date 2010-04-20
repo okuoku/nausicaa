@@ -10,42 +10,6 @@
 ;;;	This library implements functions to inspect the S-expression of
 ;;;	LIBRARY forms as defined by R6RS.
 ;;;
-;;;Jargon
-;;;------
-;;;
-;;;RENAMINGS
-;;;
-;;;	A "renamings" is  a list of lists; each  sublist has two symbols
-;;;	as elements:
-;;;
-;;;		((internal-symbol0	external-symbol0)
-;;;		 (internal-symbol	external-symbol)
-;;;		 ...)
-;;;
-;;;	a renamings represents the  identifiers exported by a library or
-;;;	the identifiers imported by a library.
-;;;
-;;;	In the  first case:  the external symbol  is the one  visible by
-;;;	code which imports this library;  the internal symbol is the one
-;;;	bound with DEFINE or DEFINE-SYNTAX in the body of this library.
-;;;
-;;;	In the  second case: the external  symbol is the  one visible in
-;;;	the  body  of this  library;  the  internal  symbol is  the  one
-;;;	exported by the imported library.
-;;;
-;;;	If we know  the library name and the renamings,  we can build an
-;;;	import set with:
-;;;
-;;;		(only (rename <library-name> . <renamings>))
-;;;
-;;;SINGLE-RENAMING
-;;;
-;;;	It is a list of two symbols:
-;;;
-;;;		(internal-symbol	external-symbol)
-;;;
-;;;	every element in a "renamings" is a "single-renaming".
-;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify

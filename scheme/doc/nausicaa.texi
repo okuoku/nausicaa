@@ -1626,8 +1626,11 @@ Examples of encoding and decoding
 
 Libraries inspection
 
+* libraries jargon::            Definition of terms.
 * libraries names::             Handling @rnrs{6} library names.
 * libraries references::        Handling @rnrs{6} library references.
+* libraries imports::           Handling @rnrs{6} library import
+                                specifications.
 
 Handling @rnrs{6} library names
 
@@ -1638,6 +1641,11 @@ Handling @rnrs{6} library references
 
 * libraries references typedefs::   Type definitions.
 * libraries references utilities::  Utility functions.
+
+Handling @rnrs{6} library import specifications
+
+* libraries imports typedefs::  Type definitions.
+* libraries imports utilities:: Utility functions.
 
 Knuth-Morris-Pratt searching
 
@@ -54380,9 +54388,48 @@ The @library{libraries} library implements routines to inspect
 @func{library} forms as defined by @rnrs{6}.
 
 @menu
+* libraries jargon::            Definition of terms.
 * libraries names::             Handling @rnrs{6} library names.
 * libraries references::        Handling @rnrs{6} library references.
+* libraries imports::           Handling @rnrs{6} library import
+                                specifications.
 @end menu
+
+@c page
+@node libraries jargon
+@section Definition of terms
+
+
+@subsubheading List of renamings
+
+
+A ``list of renamings'' is a list of lists; each sublist has two symbols
+as elements:
+
+@example
+((@cmeta{internal symbol0}      @cmeta{external symbol0})
+ (@cmeta{internal symbol}       @cmeta{external symbol})
+ ...)
+@end example
+
+@noindent
+a list of renamings represents the identifiers exported by a library or
+the identifiers imported by a library.
+
+In the first case: the external symbol is the one visible by code which
+imports this library; the internal symbol is the one bound with
+@func{define} or @func{define-syntax} in the body of this library.
+
+In the second case: the external symbol is the one visible in the body
+of this library; the internal symbol is the one exported by the imported
+library.
+
+If we know the library reference and the list of renamings, we can build
+an import set with:
+
+@example
+(only (rename <library reference> . <renamings>))
+@end example
 
 @c page
 @node libraries names
@@ -54652,6 +54699,215 @@ expression as specified by @rnrs{6}.  Return @true{} if the name
 conforms to the reference; else return @false{}.  If the arguments are
 not valid name and reference: the behaviour of this function is
 undefined.
+@end defun
+
+@c page
+@node libraries imports
+@section Handling @rnrs{6} library import specifications
+
+
+The bindings documented in this section are exported by the
+@library{libraries import-specs} library.
+
+@menu
+* libraries imports typedefs::  Type definitions.
+* libraries imports utilities:: Utility functions.
+@end menu
+
+@c page
+@node libraries imports typedefs
+@subsection Type definitions
+
+
+@subsubheading Import sets
+
+
+@deftp Class @aclass{import-set}
+Type representing import sets as specified by @rnrs{6}.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{import-set} subset
+The core of this import set; it can be another @class{import-set} object
+or a @class{library-reference} object.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{import-set} bindings-transformer
+A function to apply to a list renamings to obtain the imported bindings.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{import-set} original
+The original symbolic expression of this import set.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{import-set} library-reference
+The @class{library-reference} object nested in this import set.
+@end defcv
+
+
+@defun make-<import-set> @var{sexp}
+Parse the symbolic expression @var{sexp} as an import sets as specified
+by @rnrs{6}; return a new @class{import-set} object.  Raise an assertion
+violation if @var{sexp} is invalid.
+@end defun
+
+
+@defun <import-set>? @var{obj}
+Return @true{} if @var{obj} is a record of type @class{import-set}.
+@end defun
+
+
+@defun <import-set>-subset @var{iset}
+@defunx <import-set>-bindings-transformer @var{iset}
+@defunx <import-set>-original @var{iset}
+@defunx <import-set>-library-reference @var{iset}
+Accessors for the fields of @class{import-set} records.
+@end defun
+
+
+@defmethod @aclass{import-set} apply @var{renamings}
+Apply the import set specification to the list of @var{renamings},
+returning the processed list of renamings (which can be null).  It
+applies recursively the specifications of the nested import sets.
+@end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Import specifications
+
+
+@deftp Class @aclass{import-spec}
+Type representing import specifications as specified by @rnrs{6}.
+@end deftp
+
+
+@defcv {Immutable Field} @aclass{import-spec} import-set
+The core of this import specification; it can be an @class{import-set}
+object or a @class{library-reference} object.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{import-spec} import-levels
+A list of exact integers representing the import levels for which this
+import set was requested.  It contains at least one element.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{import-spec} original
+The original symbolic expression of this import set.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{import-spec} library-reference
+The @class{library-reference} object nested in this import set.
+@end defcv
+
+
+@defun make-<import-spec> @var{sexp}
+Parse the symbolic expression @var{sexp} as an import specification as
+specified by @rnrs{6}; return a new @class{import-spec} object.  Raise
+an assertion violation if @var{sexp} is invalid.
+@end defun
+
+
+@defun <import-spec>? @var{obj}
+Return @true{} if @var{obj} is a record of type @class{import-spec}.
+@end defun
+
+
+@defun <import-spec>-import-set @var{iset}
+@defunx <import-spec>-import-levels @var{iset}
+@defunx <import-spec>-original @var{iset}
+@defunx <import-spec>-library-reference @var{iset}
+Accessors for the fields of @class{import-spec} records.
+@end defun
+
+
+@defmethod @aclass{import-spec} apply @var{renamings}
+Apply the import set specification to the list of @var{renamings},
+returning the processed list of renamings (which can be null).  It
+applies recursively the specifications of the nested import sets.
+
+@example
+(let-fields (((o <import-spec>)
+              (make <import-spec>
+                '(prefix
+                     (except
+                       (only
+                         (rename (alpha beta (1))
+                                 (ae aee)
+                                 (be bee)
+                                 (ce cee))
+                          bee cee)
+                       bee)
+                    px:))))
+  (o.apply '((a ae)
+             (b be)
+             (c ce)
+             (d de)
+             (f fe)
+             (g ge))))
+@result{} ((c px:cee))
+@end example
+@end defmethod
+
+@c page
+@node libraries imports utilities
+@subsection Utility functions
+
+
+@defun apply-import-spec/only renamings list-of-identifiers
+Apply the @code{only} import specification.  @var{renamings} must be a
+list of renamings.  @var{list-of-identifiers} must be the list of
+symbols to accept in the @var{renamings}, all the others are discarded.
+
+@example
+(apply-import-spec/only '((a ea) (b eb) (c ec))
+                        '(eb ec))
+@result{} ((b eb) (c ec))
+@end example
+@end defun
+
+
+@defun apply-import-spec/except @var{renamings} @var{list-of-identifiers}
+Apply the @code{except} import specification.  @var{renamings} must be a
+list of renamings.  @var{list-of-identifiers} must be the list of
+symbols to discard in the @var{renamings}, all the others are accepted.
+
+@example
+(apply-import-spec/except '((a ea) (b eb) (c ec))
+                          '(eb ec))
+@result{} ((a ea))
+@end example
+@end defun
+
+
+@defun apply-import-spec/prefix @var{renamings} @var{prefix-symbol}
+Apply the @code{prefix} import specification.  @var{renamings} must be a
+list of renamings.  @var{prefix-symbol} must be the symbol to prefix to
+the second symbol in the @var{renamings}.
+
+@example
+(apply-import-spec/prefix '((a ea) (b eb) (c ec))
+                          'ciao:)
+@result{} ((a ciao:ea) (b ciao:eb) (c ciao:ec))
+@end example
+@end defun
+
+
+@defun apply-import-spec/rename @var{renamings} @var{renamings-spec}
+Apply the @code{rename} import specification.  @var{renamings} must be a
+list of renamings.  @var{renamings-spec} must be the list of renamings
+specifying the rename operation for @var{renamings}.
+
+@example
+(apply-import-spec/rename '((a ea) (b eb) (c ec))
+                          '((eb ebb) (ec ecc)))
+@result{} ((a ea) (b ebb) (c ecc))
+@end example
 @end defun
 
 @c page
