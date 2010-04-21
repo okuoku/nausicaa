@@ -446,6 +446,7 @@
   (define (%error-invalid-input-byte byte)
     (raise
      (condition (make-armor-invalid-input-byte-condition)
+		(make-non-continuable-violation)
 		(make-who-condition 'base91-decode-update!)
 		(make-message-condition "invalid input byte while decoding base91 bytevector")
 		(make-irritants-condition byte))))
@@ -528,12 +529,14 @@
   (define (%error-invalid-input-length)
     (raise
      (condition (make-armor-invalid-input-length-condition)
+		(make-non-continuable-violation)
 		(make-who-condition who)
 		(make-message-condition "invalid input length while decoding base91 bytevector"))))
 
   (define (%error-invalid-input-byte byte)
     (raise
      (condition (make-armor-invalid-input-byte-condition)
+		(make-non-continuable-violation)
 		(make-who-condition who)
 		(make-message-condition "invalid input byte while decoding base91 bytevector")
 		(make-irritants-condition byte))))

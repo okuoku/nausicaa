@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -33,7 +33,8 @@
     raise-unimplemented-error)
   (import (rnrs))
 
-  (define-condition-type &unimplemented &error
+  (define-condition-type &unimplemented
+    &error
     make-unimplemented-condition
     unimplemented-condition?)
 
@@ -41,14 +42,12 @@
     (case-lambda
      ((who)
       (raise-unimplemented-error who "feature not implemented or not available" #f))
-     ((who message)
-      (raise-unimplemented-error who message #f))
      ((who message . irritants)
-      (raise (let ((c (condition (make-who-condition who)
-				 (make-message-condition message)
-				 (make-unimplemented-condition))))
-	       (if irritants
-		   (condition c (make-irritants-condition irritants))
-		 c)))))))
+      (raise
+       (condition (make-who-condition who)
+		  (make-message-condition message)
+		  (make-unimplemented-condition)
+		  (make-irritants-condition irritants)
+		  (make-non-continuable-violation)))))))
 
 ;;; end of file

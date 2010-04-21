@@ -36,10 +36,10 @@
 (define-syntax catch-error
   (syntax-rules ()
     ((_ ?form ...)
-     (guard (E ((sexp-mismatch? E)
+     (guard (E ((sexp-mismatch-condition? E)
 		`((message . ,(condition-message     E))
-		  (pattern . ,(sexp-mismatch-pattern E))
-		  (form    . ,(sexp-mismatch-form    E)))))
+		  (pattern . ,(condition-sexp-mismatch/pattern E))
+		  (form    . ,(condition-sexp-mismatch/form    E)))))
        ?form ...))))
 
 
@@ -226,9 +226,9 @@
   (check
       ;;The pattern  is the  closure returned by  SEXP-OR, so  we cannot
       ;;include it in the expected result.
-      (guard (E ((sexp-mismatch? E)
+      (guard (E ((sexp-mismatch-condition? E)
 		 `((message . ,(condition-message  E))
-		   (form    . ,(sexp-mismatch-form E)))
+		   (form    . ,(condition-sexp-mismatch/form E)))
 		 ))
 	(sexp-match `(,(sexp-or)) '()))
     => '((message . "S-expressions mismatch")

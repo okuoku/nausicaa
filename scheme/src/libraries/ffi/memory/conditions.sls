@@ -46,7 +46,8 @@
     (raise
      (condition (make-who-condition who)
 		(make-message-condition "out of memory")
-		(make-out-of-memory-condition number-of-bytes))))
+		(make-out-of-memory-condition number-of-bytes)
+		(make-non-continuable-violation))))
 
   (define-condition-type &memory-request &out-of-memory
     make-memory-request-condition

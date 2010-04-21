@@ -417,7 +417,8 @@
      (condition (make-armor-invalid-input-byte-condition)
 		(make-who-condition who)
 		(make-message-condition "invalid input byte while decoding ascii85 bytevector")
-		(make-irritants-condition byte))))
+		(make-irritants-condition byte)
+		(make-non-continuable-violation))))
 
   (define (%error-invalid-z-char . src-list)
     (raise
@@ -425,7 +426,8 @@
 		(make-who-condition who)
 		(make-message-condition
 		 "invalid z character inside 5-tuple while decoding ascii85 bytevector")
-		(make-irritants-condition (string (map integer->char src-list))))))
+		(make-irritants-condition (string (map integer->char src-list)))
+		(make-non-continuable-violation))))
 
   (define (%validate-byte byte)
     (when (or (< byte bang-char) (< u-char byte))
@@ -514,19 +516,22 @@
     (raise
      (condition (make-armor-invalid-input-length-condition)
 		(make-who-condition who)
-		(make-message-condition "invalid input length while decoding ascii85 bytevector"))))
+		(make-message-condition "invalid input length while decoding ascii85 bytevector")
+		(make-non-continuable-violation))))
 
   (define (%error-invalid-input-byte byte)
     (raise
      (condition (make-armor-invalid-input-byte-condition)
 		(make-who-condition who)
 		(make-message-condition "invalid input byte while decoding ascii85 bytevector")
+		(make-non-continuable-violation)
 		(make-irritants-condition byte))))
 
   (define (%error-invalid-z-char . src-list)
     (raise
      (condition (make-armor-invalid-input-byte-condition)
 		(make-who-condition who)
+		(make-non-continuable-violation)
 		(make-message-condition
 		 "invalid z character inside 5-tuple while decoding ascii85 bytevector")
 		(make-irritants-condition (string (map integer->char src-list))))))

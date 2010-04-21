@@ -299,6 +299,7 @@
   (define (%error-invalid-input-byte byte)
     (raise
      (condition (make-armor-invalid-input-byte-condition)
+		(make-non-continuable-violation)
 		(make-who-condition 'qprint-decode-update!)
 		(make-message-condition "invalid input byte while decoding qprint bytevector")
 		(make-irritants-condition byte))))
@@ -373,12 +374,14 @@
   (define (%error-invalid-input-length)
     (raise
      (condition (make-armor-invalid-input-length-condition)
+		(make-non-continuable-violation)
 		(make-who-condition who)
 		(make-message-condition "invalid input length while decoding qprint bytevector"))))
 
   (define (%error-invalid-input-byte byte)
     (raise
      (condition (make-armor-invalid-input-byte-condition)
+		(make-non-continuable-violation)
 		(make-who-condition who)
 		(make-message-condition "invalid input byte while decoding qprint bytevector")
 		(make-irritants-condition byte))))

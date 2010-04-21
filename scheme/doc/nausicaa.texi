@@ -13645,8 +13645,7 @@ This condition type could be defined by:
 @var{irritants} should be a list of objects.  This condition provides
 additional information about a condition, typically the argument list of
 a procedure that detected an exception.  Conditions of this type are
-created by the @func{error} and @func{assertion-violation} procedures of
-report section @ref{baselib errors}.
+created by the procedures @func{error} and @func{assertion-violation}.
 @end deffn
 
 
@@ -19340,15 +19339,9 @@ defined as:
 @defun raise-unimplemented-error @var{who}
 @defunx raise-unimplemented-error @var{who} @var{message}
 @defunx raise-unimplemented-error @var{who} @var{message} @var{irritants}
-Raise a composite condition embedding a condition of type
-@condition{unimplemented}.
-
-@var{who} is used for the @condition{who} component.
-
-@var{message} is used for the @condition{message} component and defaults to
-@code{feature not implemented or not available}.
-
-@var{irritants} is used for the @condition{irritants} component.
+Raise a composite condition object with types:
+@condition{unimplemented}, @condition{who}, @condition{message},
+@condition{irritants}, @condition{non-continuable}.
 @end defun
 
 @c page
@@ -41312,21 +41305,21 @@ Type of condition used to signal a sexp mismatch.  It is derived from
 @end deftp
 
 
-@defun make-sexp-mismatch @var{pattern-token} @var{form-token}
+@defun make-sexp-mismatch-condition @var{pattern-token} @var{form-token}
 Return a new condition object of type @condition{sexp-mismatch}.
 @var{pattern-token} must be a value representing the portion of sexp
 pattern which failed to match.  @var{form-token} must be a value
 representing the portion of sexp form which failed to match.
 @end defun
 
-@defun sexp-mismatch? @var{obj}
+@defun sexp-mismatch-condition? @var{obj}
 Return @true{} if @var{obj} is a condition object of type
 @condition{sexp-mismatch}.
 @end defun
 
 
-@defun sexp-mismatch-pattern @var{obj}
-@defunx sexp-mismatch-form @var{obj}
+@defun condition-sexp-mismatch/pattern @var{obj}
+@defunx condition-sexp-mismatch/form @var{obj}
 Accessors for the fields of a @condition{sexp-mismatch} condition object.
 @end defun
 

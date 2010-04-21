@@ -41,12 +41,10 @@
 
     ;; conditions
     sexp-mismatch-error
-    &sexp-mismatch make-sexp-mismatch sexp-mismatch?
-    sexp-mismatch-pattern sexp-mismatch-form)
-  (import (rnrs)
-    (classes)
-    (sentinel)
-    (conditions))
+    &sexp-mismatch make-sexp-mismatch-condition sexp-mismatch-condition?
+    condition-sexp-mismatch/pattern condition-sexp-mismatch/form)
+  (import (nausicaa)
+    (sentinel))
 
 (define-syntax form-car
   (syntax-rules ()
@@ -69,21 +67,12 @@
     ((_ ((?var ?default) ...) ?form0 ?form ...)
      (let ((?var (make-sexp-variable (quote ?var) ?default)) ...) ?form0 ?form ...))))
 
-(define-condition-type &sexp-mismatch
-  &mismatch
-  make-sexp-mismatch
-  sexp-mismatch?
-  (pattern sexp-mismatch-pattern)
-  (form    sexp-mismatch-form))
+(define-condition &sexp-mismatch
+  (parent &mismatch)
+  (fields pattern form))
 
-(define-syntax sexp-mismatch-error
-  ;;Being a syntax it yields a better stack trace?
-  ;;
-  (syntax-rules ()
-    ((_ ?who ?pattern ?form)
-     (raise (condition (make-sexp-mismatch ?pattern ?form)
-		       (make-who-condition ?who)
-		       (make-message-condition "S-expressions mismatch"))))))
+(define-inline (sexp-mismatch-error ?who ?pattern ?form)
+  (raise-sexp-mismatch-error ?who "S-expressions mismatch" ?pattern ?form))
 
 
 (define (sexp-match pattern form)
@@ -116,7 +105,7 @@
 	 (sexp-mismatch-error 'sexp-match pattern form))))
 
 (define (sexp-match? pattern form)
-  (guard (E ((sexp-mismatch? E) #f)
+  (guard (E ((sexp-mismatch-condition? E) #f)
 	    (else (raise-continuable E)))
     (sexp-match pattern form)
     #t))	;enforce a boolean as return value
@@ -155,7 +144,7 @@
       (let loop ((alts alternatives))
 	(if (null? alts)
 	    (sexp-mismatch-error 'sexp-or (cons 'sexp-or alternatives) form-token)
-	  (guard (E ((sexp-mismatch? E)
+	  (guard (E ((sexp-mismatch-condition? E)
 		     (loop (cdr alts))))
 	    (values (sexp-match (list (car alts)) (list form-token))
 		    (form-cdr form))))))))
@@ -188,7 +177,7 @@
 		 (form     form))
 	(if (null? form)
 	    (values bindings form)
-	  (guard (E ((sexp-mismatch? E)
+	  (guard (E ((sexp-mismatch-condition? E)
 		     (values bindings form)))
 	    (loop (append bindings (sexp-match pattern (list (form-car form))))
 		  (form-cdr form))))))))
@@ -203,7 +192,7 @@
 		 (form     (form-cdr form)))
 	(if (null? form)
 	    (values bindings form)
-	  (guard (E ((sexp-mismatch? E)
+	  (guard (E ((sexp-mismatch-condition? E)
 		     (values bindings form)))
 	    (loop (append bindings (sexp-match pattern (list (form-car form))))
 		  (form-cdr form))))))))

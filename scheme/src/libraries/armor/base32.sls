@@ -698,6 +698,7 @@
   (define (%error-invalid-input-byte byte)
     (raise
      (condition (make-armor-invalid-input-byte-condition)
+		(make-non-continuable-violation)
 		(make-who-condition 'base32-decode-update!)
 		(make-message-condition "invalid input byte while decoding base32 bytevector")
 		(make-irritants-condition byte))))
@@ -705,6 +706,7 @@
   (define (%error-invalid-pad-area . chars)
     (raise
      (condition (make-armor-invalid-padding-condition)
+		(make-non-continuable-violation)
 		(make-who-condition 'base32-decode-update!)
 		(make-message-condition "invalid padded block while decoding base32 bytevector")
 		(make-irritants-condition (apply string (map integer->char chars))))))
@@ -847,6 +849,7 @@
   (define (%error-invalid-input-length)
     (raise
      (condition (make-armor-invalid-input-length-condition)
+		(make-non-continuable-violation)
 		(make-who-condition who)
 		(make-message-condition "invalid input length while decoding base32 bytevector"))))
 
@@ -872,6 +875,7 @@
       (define (%error-invalid-input-byte byte)
 	(raise
 	 (condition (make-armor-invalid-input-byte-condition)
+		    (make-non-continuable-violation)
 		    (make-who-condition who)
 		    (make-message-condition "invalid input byte while decoding base32 bytevector")
 		    (make-irritants-condition byte))))

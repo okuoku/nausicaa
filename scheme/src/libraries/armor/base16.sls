@@ -363,6 +363,7 @@
      (condition (make-armor-invalid-input-byte-condition)
 		(make-who-condition 'base16-decode-update!)
 		(make-message-condition "invalid input byte while decoding base16 bytevector")
+		(make-non-continuable-violation)
 		(make-irritants-condition byte))))
 
   (define (%decode char)
@@ -432,12 +433,14 @@
   (define (%error-invalid-input-length)
     (raise
      (condition (make-armor-invalid-input-length-condition)
+		(make-non-continuable-violation)
 		(make-who-condition who)
 		(make-message-condition "invalid input length while decoding base16 bytevector"))))
 
   (define (%error-invalid-input-byte byte)
     (raise
      (condition (make-armor-invalid-input-byte-condition)
+		(make-non-continuable-violation)
 		(make-who-condition who)
 		(make-message-condition "invalid input byte while decoding base16 bytevector")
 		(make-irritants-condition byte))))
