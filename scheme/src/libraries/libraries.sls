@@ -50,6 +50,8 @@
     scan-library-search-path
     scan-library-search-path-function
     load-libraries-from-files
+    load-library-function
+    load-library
     )
   (import (nausicaa)
     (compensations)
@@ -61,7 +63,8 @@
     (libraries names)
     (libraries references)
     (libraries import-specs)
-    (libraries helpers))
+    (libraries helpers)
+    (libraries conditions))
 
 
 (define-class <library>
@@ -126,7 +129,7 @@
 		      '()
 		      exports-sexp)))
 
-(define (<library>-imported-libraries (lib <library>))
+(define (<library>-references (lib <library>))
   (delete-duplicates (map (lambda/with ((spec <import-spec>))
 			    spec.library-reference)
 		       lib.import-specs)))
@@ -226,13 +229,18 @@
       (assert (procedure? f))
       f)))
 
-(define (load-library reference)
-  (or (hashtable-ref $library-registry reference #f)
-      (let ((libs ((load-library-function) reference)))
-	(if (null? libs)
-	    (error 'load-library "matching library not found" reference)
-	  (begin0-let ((lib (car libs)))
-	    (hashtable-set! $library-registry reference lib))))))
+(define (load-library ref)
+  (let-fields (((reference <library-reference>) (if (is-a? ref <library-reference>)
+						    ref
+						  (make <library-reference> ref))))
+    (let ((libs ((load-library-function) reference)))
+      (if (null? libs)
+	  (let ((lib (hashtable-ref $library-registry reference.identifiers #f)))
+	    (if lib
+		(list lib)
+	      (raise-library-not-found 'load-library reference)))
+	(begin0-let ((lib (car libs)))
+	  (hashtable-set! $library-registry reference lib))))))
 
 
 ;;;; rnrs libraries
@@ -243,13 +251,12 @@
     list-of-symbols))
 
 (define (%register-rnrs-lib library-name bindings)
-  (let*-fields (((spec <top>)		library-name)
-		((lib  <library>)	(make <library>
-					  `(library ,library-name
-					     (export ,@bindings)
-					     (import)))))
-    (hashtable-set! $library-registry spec lib)
-    (hashtable-set! $library-registry (drop-right spec 1) lib)
+  (let ((lib (make <library>
+	       `(library ,library-name
+		  (export ,@bindings)
+		  (import)))))
+    (hashtable-set! $library-registry library-name lib)
+    (hashtable-set! $library-registry (drop-right library-name 1) lib)
 		;remove the version spec
     ))
 
@@ -275,31 +282,32 @@
 (%register-rnrs-lib '(rnrs syntax-case (6))		rnrs-syntax-case-6)
 (%register-rnrs-lib '(rnrs hashtables (6))		rnrs-hashtables-6)
 
-(parametrise ((load-library-function (lambda (spec)
-				       `(library (rnrs (6))
-					  (export ,@rnrs-6)
-					  (import (rnrs base (6))
-					    (rnrs unicode (6))
-					    (rnrs bytevectors (6))
-					    (rnrs lists (6))
-					    (rnrs sorting (6))
-					    (rnrs control (6))
-					    (rnrs records syntactic (6))
-					    (rnrs records procedural (6))
-					    (rnrs records inspection (6))
-					    (rnrs exceptions (6))
-					    (rnrs conditions (6))
-					    (rnrs io ports (6))
-					    (rnrs io simple (6))
-					    (rnrs files (6))
-					    (rnrs enums (6))
-					    (rnrs programs (6))
-					    (rnrs arithmetic fixnums (6))
-					    (rnrs arithmetic flonums (6))
-					    (rnrs arithmetic bitwise (6))
-					    (rnrs syntax-case (6))
-					    (rnrs hashtables (6)))))))
-  (load-library '(rnrs (6))))
+(let ((lib (lambda (spec)
+	     `(library (rnrs (6))
+		(export ,@rnrs-6)
+		(import (rnrs base (6))
+		  (rnrs unicode (6))
+		  (rnrs bytevectors (6))
+		  (rnrs lists (6))
+		  (rnrs sorting (6))
+		  (rnrs control (6))
+		  (rnrs records syntactic (6))
+		  (rnrs records procedural (6))
+		  (rnrs records inspection (6))
+		  (rnrs exceptions (6))
+		  (rnrs conditions (6))
+		  (rnrs io ports (6))
+		  (rnrs io simple (6))
+		  (rnrs files (6))
+		  (rnrs enums (6))
+		  (rnrs programs (6))
+		  (rnrs arithmetic fixnums (6))
+		  (rnrs arithmetic flonums (6))
+		  (rnrs arithmetic bitwise (6))
+		  (rnrs syntax-case (6))
+		  (rnrs hashtables (6)))))))
+  (hashtable-set! $library-registry '(rnrs (6)) lib)
+  (hashtable-set! $library-registry '(rnrs) lib))
 
 
 ;;;; done

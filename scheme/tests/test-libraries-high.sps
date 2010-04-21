@@ -27,6 +27,10 @@
 
 (import (nausicaa)
   (libraries)
+  (libraries names)
+  (libraries references)
+  (libraries import-specs)
+  (libraries conditions)
   (checks))
 
 (check-set-mode! 'report-failed)
@@ -68,21 +72,24 @@
     => #t)
 
   (check
-      (let-fields (((lib <library>) (load-library '(lists))))
-	lib.library-name)
+      (let*-fields (((lib <library>)		(load-library '(lists)))
+		    ((name <library-name>)	lib.name))
+	name.identifiers)
     => '(lists))
 
   (check
       (guard (E ((library-not-found-condition? E)
 		 #t)
-		(else #f))
+		(else
+		 (write E)(newline)
+		 #f))
 	(load-library '(it is impossible for this library to exist right?)))
     => #t)
 
   #f)
 
 
-(parametrise ((check-test-name		'matching-basic)
+#;(parametrise ((check-test-name		'matching-basic)
 	      (load-library-function	test-cache:load-library)
 	      (test-cache:registry	(test-cache:make-table)))
 
@@ -122,7 +129,7 @@
   #t)
 
 
-(parametrise ((check-test-name		'exported-bindings)
+#;(parametrise ((check-test-name		'exported-bindings)
 	      (load-library-function	test-cache:load-library)
 	      (test-cache:registry	(test-cache:make-table)))
 
@@ -153,7 +160,7 @@
   #t)
 
 
-(parametrise ((check-test-name		'imported-libraries)
+#;(parametrise ((check-test-name		'imported-libraries)
 	      (load-library-function	test-cache:load-library)
 	      (test-cache:registry	(test-cache:make-table)))
 
@@ -209,7 +216,7 @@
   #t)
 
 
-(parametrise ((check-test-name		'imported-bindings)
+#;(parametrise ((check-test-name		'imported-bindings)
 	      (load-library-function	test-cache:load-library)
 	      (test-cache:registry	(test-cache:make-table)))
 
