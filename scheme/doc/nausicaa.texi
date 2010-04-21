@@ -543,6 +543,7 @@ Basic libraries
 
 * cond-expand::                 Feature-based conditional expansion.
 * unimplemented::               Unimplemented error condition.
+* conditions::                  More condition types.
 * lang::                        Simple language extensions.
 * pretty-print::                Pretty printing.
 * parameters::                  Parameter objects.
@@ -553,7 +554,6 @@ Basic libraries
 More libraries
 
 * generics::                    Multimethods dispatching.
-* conditions::                  Predefined condition types.
 * enumerations::                Enumeration sets utilities.
 * lists::                       Lists library.
 * char-sets::                   Character sets library.
@@ -933,6 +933,11 @@ The @library{nausicaa} language
 * nausicaa macros::             Extended syntaxes.
 * nausicaa environment::        Accessing environment variables.
 
+More condition types
+
+* conditions mismatch::         General mismatch error.
+* conditions num-args::         Wrong number of arguments error.
+
 Simple language extensions
 
 * lang lang::                   Language constructs.
@@ -975,11 +980,6 @@ Multimethods dispatching
 * generics next::               Invoking the next method.
 * generics examples::           Examples of method dispatching.
 * generics predefined::         Predefined generic functions.
-
-Predefined condition types
-
-* conditions mismatch::         General mismatch error.
-* conditions num-args::         Wrong number of arguments error.
 
 Enumeration sets utilities
 
@@ -19075,6 +19075,10 @@ syntax.  @ref{cond-expand, Feature--based conditional expansion}.
 Definition of the condition object type @condition{unimplemented}.
 @ref{unimplemented, Unimplemented error condition}.
 
+@item conditions
+Provides basic condition types and utilities for condition types
+definition.  @ref{conditions, More condition types}.
+
 @item language-extension
 Simple language extensions, mostly syntaxes.  @ref{lang, Simple language
 extensions}.
@@ -19346,6 +19350,163 @@ Raise a composite condition embedding a condition of type
 
 @var{irritants} is used for the @condition{irritants} component.
 @end defun
+
+@c page
+@node conditions
+@chapter More condition types
+
+
+The @library{conditions} library defines a set of condition types to be
+used by the Nausicaa libraries.  It re--exports all the bindings from
+the @library{unimplemented} library.
+
+@menu
+* conditions define::           Defining new condition types.
+* conditions mismatch::         General mismatch error.
+* conditions num-args::         Wrong number of arguments error.
+@end menu
+
+@c page
+@node conditions define
+@section Defining new condition types
+
+
+The @func{define-condition} syntax is a wrapper for
+@func{define-condition-type} which adds some automation; for example,
+the definition:
+
+@example
+(define-condition &wrong-num-args
+  (parent &assertion)
+  (fields procname expected given))
+@end example
+
+@noindent
+expands to:
+
+@example
+(define-condition-type &wrong-num-args
+  &assertion
+  make-wrong-num-args-condition
+  wrong-num-args-condition?
+  (procname     condition-wrong-num-args/procname)
+  (expected     condition-wrong-num-args/expected)
+  (given        condition-wrong-num-args/given))
+
+(define-syntax raise-wrong-num-args-error
+  (syntax-rules ()
+    ((_ ?who ?message ?procname ?expected ?given)
+     (raise
+      (condition (make-who-condition ?who)
+                 (make-message-condition ?message)
+                 (make-wrong-num-args-condition
+                    ?procname ?expected ?given)
+                 (make-non-continuable-violation))))))
+@end example
+
+@noindent
+in which we see several automatically generated identifiers.
+
+
+@deffn Syntax define-condition @ameta{name} @ameta{clause} ...
+Define a new condition object type named @ameta{name}; the identifier
+@ameta{name} must have @samp{&} as first character.  The clauses must be
+the auxiliary syntaxes described below.
+
+Additionally, a syntax is defined to raise a condition object with this
+type; the name of the syntax is built by stripping the @samp{&}
+character from the name, then prepending @samp{raise-} and appending
+@samp{-error}.  The raised condition type is composite with types
+@ameta{name}, @condition{who}, @condition{message},
+@condition{non-continuable}.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} parent @ameta{parent type}
+Select the parent condition type for the enclosing definition.  This
+clause can be omitted and can be used at most once.  When not used, the
+parent defaults to @condition{error}.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} fields @ameta{field} ...
+Specify the fields of the enclosing condition type definition.  All the
+@meta{field} arguments must be identifiers.  This clause can be omitted
+and can be used at most once.
+
+For each field a field accessor is defined with name built from the
+condition type name as follows: the @samp{&} character is stripped from
+the type name, a slash is appended to the name, the field name is
+appended to the result, the string @samp{condition-} is prepended to the
+result.
+@end deffn
+
+@c page
+@node conditions mismatch
+@section General mismatch error
+
+
+@deftp {Condition Type} &mismatch
+Signal a mismatch between two values.  It is derived from
+@condition{assertion}.
+@end deftp
+
+
+@defun make-mismatch-condition
+Build and return a new @condition{mismatch} condition object.
+@end defun
+
+
+@defun mismatch-condition? @var{obj}
+Return @true{} if @var{obj} is a condition of object of type
+@condition{mismatch}.
+@end defun
+
+@c page
+@node conditions num-args
+@section Wrong number of arguments error
+
+
+@deftp {Condition Type} &wrong-num-args
+Condition type used to signal a call to function with the wrong number
+of arguments; it is derived from @condition{assertion}.  It has the
+following fields:
+
+@table @code
+@item procname
+A Scheme symbol representing the name of the invoked function; @false{}
+if the name is not available.
+
+@item expected
+An exact integer representing the expected number of arguments.
+
+@item given
+An exact integer representing the number of arguments used in the
+offending call.
+@end table
+@end deftp
+
+
+@defun make-wrong-num-args-condition @var{procname} @var{expected} @var{given}
+@defunx wrong-num-args-condition? @var{obj}
+Constructor and predicate for condition objects of type
+@condition{wrong-num-args}.
+@end defun
+
+
+@defun condition-wrong-num-args/procname @var{condition}
+@defunx condition-wrong-num-args/expected @var{condition}
+@defunx condition-wrong-num-args/given @var{condition}
+Accessors for the fields of a condition object of type
+@condition{wrong-num-args}.
+@end defun
+
+
+@deffn Syntax raise-wrong-num-args-error @var{who} @var{message} @var{procname} @var{expected} @var{given}
+Raise a non--continuable exception with compound condition object of
+type: @condition{wrong-num-args}, @condition{who}, @condition{message},
+@condition{&non-continuable}.
+@end deffn
 
 @c page
 @node lang
@@ -22133,98 +22294,6 @@ is predefined to use the following implementation:
 (call-with-string-output-port
    (lambda (port)
      (display obj port)))
-@end example
-@end deffn
-
-@c page
-@node conditions
-@chapter Predefined condition types
-
-
-The @library{conditions} library defines a set of condition types to be
-used by the Nausicaa libraries.  It re--exports all the bindings from
-the @library{unimplemented} library.
-
-@menu
-* conditions mismatch::         General mismatch error.
-* conditions num-args::         Wrong number of arguments error.
-@end menu
-
-@c page
-@node conditions mismatch
-@section General mismatch error
-
-
-@deftp {Condition Type} &mismatch
-Signal a mismatch between two values.  It is derived from
-@condition{assertion}.
-@end deftp
-
-
-@defun make-mismatch-condition
-Build and return a new @condition{mismatch} condition object.
-@end defun
-
-
-@defun mismatch-condition? @var{obj}
-Return @true{} if @var{obj} is a condition of object of type
-@condition{mismatch}.
-@end defun
-
-@c page
-@node conditions num-args
-@section Wrong number of arguments error
-
-
-@deftp {Condition Type} &wrong-num-args
-Condition type used to signal a call to function with the wrong number
-of arguments; it is derived from @condition{assertion}.  It has the
-following fields:
-
-@table @code
-@item procname
-A Scheme symbol representing the name of the invoked function; @false{}
-if the name is not available.
-
-@item expected
-An exact integer representing the expected number of arguments.
-
-@item given
-An exact integer representing the number of arguments used in the
-offending call.
-@end table
-@end deftp
-
-
-@defun make-wrong-num-args-condition @var{procname} @var{expected} @var{given}
-@defunx wrong-num-args-condition? @var{obj}
-Constructor and predicate for condition objects of type
-@condition{wrong-num-args}.
-@end defun
-
-
-@defun condition-wrong-num-args-procname @var{condition}
-@defunx condition-expected-arguments-number @var{condition}
-@defunx condition-given-arguments-number @var{condition}
-Accessors for the fields of a condition object of type
-@condition{wrong-num-args}.
-@end defun
-
-
-@deffn raise-wrong-num-args @var{who} @var{message} @var{procname} @var{expected} @var{given}
-Raise a non--continuable exception with compound condition object of
-type: @condition{who}, @condition{message}, @condition{wrong-num-args}.
-it is defined as follows:
-
-@example
-(define-syntax raise-wrong-num-args
-  (syntax-rules ()
-    ((_ ?who ?message ?procname ?expected ?given)
-     (raise
-      (condition (make-who-condition ?who)
-                 (make-message-condition ?message)
-                 (make-wrong-num-args-condition
-                    ?procname ?expected ?given))))))
 @end example
 @end deffn
 
@@ -55026,8 +55095,6 @@ matching libraries and return a list of @class{library} records
 representing them.  If loading a library fails: the error is ignored and
 that pathname skipped.
 @end defun
-
-
 
 @c page
 @node libraries libraries

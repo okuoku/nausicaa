@@ -780,10 +780,6 @@
     ;; parameters
     parameterize parameterise parametrise make-parameter
 
-    ;; unimplemented condition
-    &unimplemented unimplemented-condition?
-    make-unimplemented-condition raise-unimplemented-error
-
     ;; simple syntaxes
     dotimes dolist loop-upon-list ensure
     define-values define-constant
@@ -797,6 +793,24 @@
     (rename (define/with define)
 	    (lambda/with lambda)
 	    (case-lambda/with case-lambda))
+
+;;;; bindings from (conditions)
+
+    define-condition
+
+    ;; mismatch
+    &mismatch make-mismatch-condition mismatch-condition?
+
+    ;; wrong num args
+    &wrong-num-args make-wrong-num-args-condition wrong-num-args-condition?
+    condition-wrong-num-args/procname
+    condition-wrong-num-args/expected
+    condition-wrong-num-args/given
+    raise-wrong-num-args-error
+
+    ;; unimplemented
+    &unimplemented make-unimplemented-condition unimplemented-condition?
+    raise-unimplemented-error
 
 ;;;; bindings from (classes)
 
@@ -826,7 +840,7 @@
   (import (except (rnrs) equal-hash finite? infinite? nan? = max)
     (only (ikarus) getenv)
     (cond-expand)
-    (unimplemented)
+    (conditions)
     (language-extensions)
     (parameters)
     (pretty-print)

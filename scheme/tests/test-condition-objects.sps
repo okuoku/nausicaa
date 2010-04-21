@@ -8,7 +8,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,11 +26,83 @@
 
 
 (import (nausicaa)
-  (conditions)
+  (rnrs eval)
   (checks))
 
 (check-set-mode! 'report-failed)
 (display "*** testing conditions\n")
+
+
+(parameterize ((check-test-name	'definition))
+
+  (let ()
+    (define-condition &alpha
+      (parent &assertion)
+      (fields a b))
+
+    (check
+	(let ((E (make-alpha-condition 1 2)))
+	  (list (condition-alpha/a E) (condition-alpha/b E)))
+      => '(1 2))
+
+    (check
+	(let ((E (make-alpha-condition 1 2)))
+	  (alpha-condition? E))
+      => #t)
+
+    (check
+	(let ((E (make-alpha-condition 1 2)))
+	  (list (error? E)
+		(assertion-violation? E)))
+      => '(#f #t))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define-condition &beta)
+
+    (check
+	(let ((E (make-beta-condition)))
+	  (beta-condition? E))
+      => #t)
+
+    (check
+	(let ((E (make-beta-condition)))
+	  (error? E))
+      => #t)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (check
+      (guard (E ((syntax-violation? E) (condition-message E))
+		(else #f))
+	(eval '(define-condition &alpha
+		 (parent a) (parent b))
+	      (environment '(nausicaa))))
+    => "PARENT clause given twice in condition type definition")
+
+  (check
+      (guard (E ((syntax-violation? E) (condition-message E))
+		(else #f))
+	(eval '(define-condition &alpha
+		 (fields a) (fields b))
+	      (environment '(nausicaa))))
+    => "FIELDS clause given twice in condition type definition")
+
+  (check
+      (guard (E ((syntax-violation? E) (condition-message E))
+		(else #f))
+	(eval '(define-condition &alpha
+		 (fields a 123 b))
+	      (environment '(nausicaa))))
+    => "condition type field specification must be an identifier")
+
+  #t)
 
 
 (parameterize ((check-test-name	'unimplemented))
@@ -52,11 +124,11 @@
       (guard (E ((wrong-num-args-condition? E)
 		 (list (condition-who E)
 		       (condition-message E)
-		       (condition-wrong-num-args-procname E)
-		       (condition-expected-arguments-number E)
-		       (condition-given-arguments-number E)))
+		       (condition-wrong-num-args/procname E)
+		       (condition-wrong-num-args/expected E)
+		       (condition-wrong-num-args/given E)))
 		(else #f))
-	(raise-wrong-num-args 'woppa "hey!" 'the-proc 5 10))
+	(raise-wrong-num-args-error 'woppa "hey!" 'the-proc 5 10))
     => '(woppa "hey!" the-proc 5 10))
 
   #t)

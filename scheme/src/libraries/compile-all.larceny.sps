@@ -43,6 +43,9 @@
 (compile-library "unimplemented.sls"
 		 "unimplemented.slfasl")
 
+(compile-library "conditions.sls"
+		 "conditions.slfasl")
+
 (compile-library "language-extensions.sls"
 		 "language-extensions.slfasl")
 
@@ -68,9 +71,6 @@
 		 "nausicaa.larceny.slfasl")
 
 ;;Basic libraries
-
-(compile-library "conditions.sls"
-		 "conditions.slfasl")
 
 (compile-library "enumerations.sls"
 		 "enumerations.slfasl")

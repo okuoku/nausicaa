@@ -48,14 +48,19 @@ Notes for --- tag 0.2a0
 * Removed the (records) library.  Replaced it with (classes)
   and (generics).
 
+* Added DEFINE-CONDITION to (conditions).
+
 * Reorganised  the   (nausicaa)  library:  more  independent
-  component libraries; added (classes) stuff.
+  component   libraries;   added   (classes)  stuff,   added
+  (conditions) stuff.
 
 * Added use of (classes) to several libraries.
 
 * Reorganised FFI libraries, removed "foreign" prefix.
 
 * Removed (sexps syntax) library.
+
+* Further cleanup of (matches) internals.
 
 
 Notes for 2010-03-28 tag 0.1a11

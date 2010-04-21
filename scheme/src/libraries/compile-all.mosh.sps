@@ -28,6 +28,7 @@
   ;; Core libraries
   (only (cond-expand))
   (only (unimplemented))
+  (only (conditions))
   (only (language-extensions))
   (only (parameters))
   (only (pretty-print))
@@ -38,7 +39,6 @@
 
   ;; Basic libraries
   (only (profiling))
-  (only (conditions))
   (only (enumerations))
   (only (lists))
   (only (one-dimension-cc))
