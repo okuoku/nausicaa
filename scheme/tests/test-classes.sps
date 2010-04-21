@@ -26,7 +26,6 @@
 
 
 (import (nausicaa)
-;;;  (classes)	all the bindings are reexported by (nausicaa)
   (checks)
   (debugging)
   (records-lib)
@@ -183,6 +182,70 @@
       => 123)
 
     #f)
+
+;;; --------------------------------------------------------------------
+
+  (check 	;invalid name
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(define-class 123
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => 123)
+
+  (check	;invalid constructor
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(define-class (<alpha> 123 <alpha>?)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(<alpha> 123 <alpha>?))
+
+  (check	;invalid predicate
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (predicate 123)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(predicate 123))
+
+  (check	;invalid parent
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (parent 123)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(parent 123))
+
+  (check	;invalid sealed
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (sealed 123)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(sealed 123))
+
+  (check	;invalid opaque
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (opaque 123)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(opaque 123))
 
   #t)
 
@@ -496,7 +559,7 @@
 
     (check	;duplicated field name, FIELDS/VIRTUAL-FIELDS
 	(guard (E ((syntax-violation? E)
-		   (condition-irritants E))
+		   (syntax-violation-subform E))
 		  (else
 		   (debug-print-condition "should have been duplicated name:" E)
 		   #f))
@@ -504,11 +567,11 @@
 		   (fields a)
 		   (virtual-fields a))
 		(environment '(nausicaa))))
-      => '(a))
+      => 'a)
 
     (check	;duplicated field name, FIELDS/METHODS
 	(guard (E ((syntax-violation? E)
-		   (condition-irritants E))
+		   (syntax-violation-subform E))
 		  (else
 		   (debug-print-condition "should have been duplicated name:" E)
 		   #f))
@@ -516,11 +579,11 @@
 		   (fields a)
 		   (methods a))
 		(environment '(nausicaa))))
-      => '(a))
+      => 'a)
 
     (check	;duplicated field name, FIELDS/METHOD
 	(guard (E ((syntax-violation? E)
-		   (condition-irritants E))
+		   (syntax-violation-subform E))
 		  (else
 		   (debug-print-condition "should have been duplicated name:" E)
 		   #f))
@@ -529,11 +592,11 @@
 		   (method (a o)
 		     #t))
 		(environment '(nausicaa))))
-      => '(a))
+      => 'a)
 
     (check	;duplicated field name, VIRTUAL-FIELDS/METHODS
 	(guard (E ((syntax-violation? E)
-		   (condition-irritants E))
+		   (syntax-violation-subform E))
 		  (else
 		   (debug-print-condition "should have been duplicated name:" E)
 		   #f))
@@ -541,11 +604,11 @@
 		   (virtual-fields a)
 		   (methods a))
 		(environment '(nausicaa))))
-      => '(a))
+      => 'a)
 
     (check	;duplicated field name, VIRTUAL-FIELDS/METHOD
 	(guard (E ((syntax-violation? E)
-		   (condition-irritants E))
+		   (syntax-violation-subform E))
 		  (else
 		   (debug-print-condition "should have been duplicated name:" E)
 		   #f))
@@ -554,11 +617,11 @@
 		   (method (a o)
 		     #t))
 		(environment '(nausicaa))))
-      => '(a))
+      => 'a)
 
     (check	;duplicated field name, METHODS/METHOD
 	(guard (E ((syntax-violation? E)
-		   (condition-irritants E))
+		   (syntax-violation-subform E))
 		  (else
 		   (debug-print-condition "should have been duplicated name:" E)
 		   #f))
@@ -567,7 +630,7 @@
 		   (method (a o)
 		     #t))
 		(environment '(nausicaa))))
-      => '(a))
+      => 'a)
 
     #f)
 

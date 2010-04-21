@@ -79,8 +79,9 @@
 			     virtual-fields methods method predicate)
 
       ((_ (?name ?constructor ?predicate) ?clause ...)
+       (for-all identifier? (list (syntax ?name) (syntax ?constructor) (syntax ?predicate)))
        #'(%define-class/sort-clauses
-	  (quote (define-class (?name ?constructor ?predicate) ?clause ...))
+	  (define-class (?name ?constructor ?predicate) ?clause ...)
 	  (?name ?constructor ?predicate)
 	  ()	;collected concrete fields
 	  ()	;collected virtual fields
@@ -90,11 +91,12 @@
 	  ?clause ...))
 
       ((_ ?name ?clause ...)
+       (identifier? (syntax ?name))
        (let ((name (symbol->string (syntax->datum #'?name))))
 	 (with-syntax ((CONSTRUCTOR  (datum->syntax #'?name (%constructor name)))
 		       (PREDICATE    (datum->syntax #'?name (%predicate   name))))
 	   #'(%define-class/sort-clauses
-	      (quote (define-class ?name ?clause ...))
+	      (define-class ?name ?clause ...)
 	      (?name CONSTRUCTOR PREDICATE)
 	      () ;collected concrete fields
 	      () ;collected virtual fields
@@ -102,6 +104,12 @@
 	      () ;collected functions
 	      (predicate) (parent) (protocol) (sealed) (opaque) (parent-rtd) (nongenerative)
 	      ?clause ...))))
+
+      ((_ ?name-spec . ?clauses)
+       (syntax-violation 'define-class
+	 "invalid name specification in class definition"
+	 (syntax->datum (syntax ?input-form))
+	 (syntax->datum (syntax ?name-spec))))
       )))
 
 
@@ -125,7 +133,7 @@
 
       ;;Gather the PREDICATE clause.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -138,24 +146,29 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(predicate ?function-name) ?clause ...)
-       #'(%define-class/sort-clauses
-	  (quote ?input-form) (?name ?constructor ?predicate)
-	  (?collected-concrete-field ...)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-function ...)
-	  (predicate		?function-name ?pre ...)
-	  (parent		?par ...)
-	  (protocol		?pro ...)
-	  (sealed		?sea ...)
-	  (opaque		?opa ...)
-	  (parent-rtd		?pad ...)
-	  (nongenerative	?non ...)
-	  ?clause ...))
+       (if (identifier? (syntax ?function-name))
+	   #'(%define-class/sort-clauses
+	      ?input-form (?name ?constructor ?predicate)
+	      (?collected-concrete-field ...)
+	      (?collected-virtual-field ...)
+	      (?collected-method ...)
+	      (?collected-function ...)
+	      (predicate	?function-name ?pre ...)
+	      (parent		?par ...)
+	      (protocol		?pro ...)
+	      (sealed		?sea ...)
+	      (opaque		?opa ...)
+	      (parent-rtd	?pad ...)
+	      (nongenerative	?non ...)
+	      ?clause ...)
+	 (syntax-violation 'define-class
+	   "invalid predicate clause in class definition"
+	   (syntax->datum (syntax ?input-form))
+	   (syntax->datum (syntax (predicate ?function-name))))))
 
       ;;Gather the PARENT clause.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -168,24 +181,29 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(parent ?parent-name) ?clause ...)
-       #'(%define-class/sort-clauses
-	  (quote ?input-form) (?name ?constructor ?predicate)
-	  (?collected-concrete-field ...)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-function ...)
-	  (predicate		?pre ...)
-	  (parent		?par ... ?parent-name)
-	  (protocol		?pro ...)
-	  (sealed		?sea ...)
-	  (opaque		?opa ...)
-	  (parent-rtd		?pad ...)
-	  (nongenerative	?non ...)
-	  ?clause ...))
+       (if (identifier? (syntax ?parent-name))
+	   #'(%define-class/sort-clauses
+	      ?input-form (?name ?constructor ?predicate)
+	      (?collected-concrete-field ...)
+	      (?collected-virtual-field ...)
+	      (?collected-method ...)
+	      (?collected-function ...)
+	      (predicate	?pre ...)
+	      (parent		?par ... ?parent-name)
+	      (protocol		?pro ...)
+	      (sealed		?sea ...)
+	      (opaque		?opa ...)
+	      (parent-rtd	?pad ...)
+	      (nongenerative	?non ...)
+	      ?clause ...)
+	 (syntax-violation 'define-class
+	   "invalid parent clause in class definition"
+	   (syntax->datum (syntax ?input-form))
+	   (syntax->datum (syntax (parent ?parent-name))))))
 
       ;;Gather the PROTOCOL clause.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -199,7 +217,7 @@
 	(nongenerative	?non ...)
 	(protocol ?protocol-proc) ?clause ...)
        #'(%define-class/sort-clauses
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -215,7 +233,7 @@
 
       ;;Gather the SEALED clause.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -228,24 +246,29 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(sealed ?sealed) ?clause ...)
-       #'(%define-class/sort-clauses
-	  (quote ?input-form) (?name ?constructor ?predicate)
-	  (?collected-concrete-field ...)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-function ...)
-	  (predicate		?pre ...)
-	  (parent		?par ...)
-	  (protocol		?pro ...)
-	  (sealed		?sea ... ?sealed)
-	  (opaque		?opa ...)
-	  (parent-rtd		?pad ...)
-	  (nongenerative	?non ...)
-	  ?clause ...))
+       (if (boolean? (syntax->datum #'?sealed))
+	   #'(%define-class/sort-clauses
+	      ?input-form (?name ?constructor ?predicate)
+	      (?collected-concrete-field ...)
+	      (?collected-virtual-field ...)
+	      (?collected-method ...)
+	      (?collected-function ...)
+	      (predicate	?pre ...)
+	      (parent		?par ...)
+	      (protocol		?pro ...)
+	      (sealed		?sea ... ?sealed)
+	      (opaque		?opa ...)
+	      (parent-rtd	?pad ...)
+	      (nongenerative	?non ...)
+	      ?clause ...)
+	 (syntax-violation 'define-class
+	   "invalid sealed clause in class definition"
+	   (syntax->datum (syntax ?input-form))
+	   (syntax->datum (syntax (sealed ?sealed))))))
 
       ;;Gather the OPAQUE clause.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -258,24 +281,29 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(opaque ?opaque) ?clause ...)
-       #'(%define-class/sort-clauses
-	  (quote ?input-form) (?name ?constructor ?predicate)
-	  (?collected-concrete-field ...)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-function ...)
-	  (predicate		?pre ...)
-	  (parent		?par ...)
-	  (protocol		?pro ...)
-	  (sealed		?sea ...)
-	  (opaque		?opa ... ?opaque)
-	  (parent-rtd		?pad ...)
-	  (nongenerative	?non ...)
-	  ?clause ...))
+       (if (boolean? (syntax->datum #'?opaque))
+	   #'(%define-class/sort-clauses
+	      ?input-form (?name ?constructor ?predicate)
+	      (?collected-concrete-field ...)
+	      (?collected-virtual-field ...)
+	      (?collected-method ...)
+	      (?collected-function ...)
+	      (predicate	?pre ...)
+	      (parent		?par ...)
+	      (protocol		?pro ...)
+	      (sealed		?sea ...)
+	      (opaque		?opa ... ?opaque)
+	      (parent-rtd	?pad ...)
+	      (nongenerative	?non ...)
+	      ?clause ...)
+	 (syntax-violation 'define-class
+	   "invalid opaque clause in class definition"
+	   (syntax->datum (syntax ?input-form))
+	   (syntax->datum (syntax (opaque ?opaque))))))
 
       ;;Gather the PARENT-RTD clause.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -289,7 +317,7 @@
 	(nongenerative	?non ...)
 	(parent-rtd ?parent-rtd ?parent-cd) ?clause ...)
        #'(%define-class/sort-clauses
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -305,7 +333,7 @@
 
       ;;Gather the NONGENERATIVE empty clause.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -319,7 +347,7 @@
 	(nongenerative	?non ...)
 	(nongenerative) ?clause ...)
        #'(%define-class/sort-clauses
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -335,7 +363,7 @@
 
       ;;Gather the NONGENERATIVE non-empty clause.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -349,7 +377,7 @@
 	(nongenerative	?non ...)
 	(nongenerative ?uid) ?clause ...)
        #'(%define-class/sort-clauses
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -367,7 +395,7 @@
 
       ;;Gather the FIELDS clause.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	() ;must be empty here to detect multiple usages of FIELDS
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -381,7 +409,7 @@
 	(nongenerative	?non ...)
 	(fields ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/fields
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  ()
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -398,7 +426,7 @@
       ;;Raise a syntax  violation if the FIELDS clause  is used multiple
       ;;times.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field0 ?collected-concrete-field ...)  ;at least one
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -411,15 +439,16 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(fields ?field-clause ...) ?clause ...)
-       #'(syntax-violation 'define-class
-	   "\"fields\" clause used multiple times in class definition"
-	   (quote ?input-form) (quote (fields ?field-clause ...))))
+       (syntax-violation 'define-class
+	 "\"fields\" clause used multiple times in class definition"
+	 (syntax->datum #'?input-form)
+	 (syntax->datum #'(fields ?field-clause ...))))
 
 ;;; --------------------------------------------------------------------
 
       ;;Gather the VIRTUAL-FIELDS clause.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	() ;must be empty here to detect multiple usages of VIRTUAL-FIELDS
 	(?collected-method ...)
@@ -433,7 +462,7 @@
 	(nongenerative	?non ...)
 	(virtual-fields ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/virtual-fields
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ... )
 	  ()
 	  (?collected-method ...)
@@ -450,7 +479,7 @@
       ;;Raise a syntax  violation if the FIELDS clause  is used multiple
       ;;times.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field0 ?collected-virtual-field ...) ;at least one
 	(?collected-method ...)
@@ -463,15 +492,16 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(virtual-fields ?field-clause ...) ?clause ...)
-       #'(syntax-violation 'define-class
-	   "\"virtual-fields\" clause used multiple times in class definition"
-	   (quote ?input-form) (quote (virtual-fields ?field-clause ...))))
+       (syntax-violation 'define-class
+	 "\"virtual-fields\" clause used multiple times in class definition"
+	 (syntax->datum #'?input-form)
+	 (syntax->datum #'(virtual-fields ?field-clause ...))))
 
 ;;; --------------------------------------------------------------------
 
       ;;Gather METHODS clause.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	() ;it has to be empty to detect mutiple use of METHODS
@@ -485,7 +515,7 @@
 	(nongenerative	?non ...)
 	(methods ?method-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/methods
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  ()
@@ -502,7 +532,7 @@
       ;;Raise a syntax violation if  the METHODS clause is used multiple
       ;;times.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-mutable-field ...)
 	(?collected-immutable-field ...)
 	(?collected-mutable-virtual-field0 ?collected-mutable-virtual-field ...)
@@ -517,15 +547,16 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(methods ?method-clause ...) ?clause ...)
-       #'(syntax-violation 'define-class
-	   "\"methods\" clause used multiple times in class definition"
-	   (quote ?input-form) (quote (methods ?method-clause ...))))
+       (syntax-violation 'define-class
+	 "\"methods\" clause used multiple times in class definition"
+	 (syntax->datum #'?input-form)
+	 (syntax->datum #'(methods ?method-clause ...))))
 
 ;;; --------------------------------------------------------------------
 
       ;;Gather METHOD clause.
       ((%define-class/sort-clauses
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -539,7 +570,7 @@
 	(nongenerative	?non ...)
 	(method (?method . ?args) . ?body) ?clause ...)
        #'(%define-class/sort-clauses
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ... (?method function-name))
@@ -558,7 +589,7 @@
       ;;No    more   clauses    to   gather.     Hand    everything   to
       ;;%DEFINE-CLASS/FIX-PARENT.
       ;;
-      ((_ (quote ?input-form) (?name ?constructor ?predicate)
+      ((_ ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -571,7 +602,7 @@
 	  (parent-rtd		?pad ...)
 	  (nongenerative	?non ...))
        #'(%define-class/fix-parent
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -598,7 +629,7 @@
       ;;Gather mutable FIELDS clause with explicit selection of accessor
       ;;and mutator names.
       ((%define-class/sort-clauses/fields
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -612,7 +643,7 @@
 	(nongenerative	?non ...)
 	(fields (mutable ?field ?field-accessor ?field-mutator) ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/fields
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ... (mutable ?field ?field-accessor ?field-mutator))
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -629,7 +660,7 @@
       ;;Gather  mutable  FIELDS   clause  with  automatically  generated
       ;;accessor and mutator names.
       ((%define-class/sort-clauses/fields
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -647,7 +678,7 @@
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field)))
 		       (MUTATOR  (datum->syntax #'?name (%mutator  name field))))
 	   #'(%define-class/sort-clauses/fields
-	      (quote ?input-form) (?name ?constructor ?predicate)
+	      ?input-form (?name ?constructor ?predicate)
 	      (?collected-concrete-field ... (mutable ?field ACCESSOR MUTATOR))
 	      (?collected-virtual-field ...)
 	      (?collected-method ...)
@@ -664,7 +695,7 @@
       ;;Gather  immutable  FIELDS  clause  with  explicit  selection  of
       ;;accessor name.
       ((%define-class/sort-clauses/fields
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -678,7 +709,7 @@
 	(nongenerative	?non ...)
 	(fields (immutable ?field ?accessor) ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/fields
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ... (immutable ?field ?accessor))
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -695,7 +726,7 @@
       ;;Gather  immutable  FIELDS  clause with  automatically  generated
       ;;accessor name.
       ((%define-class/sort-clauses/fields
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -712,7 +743,7 @@
 	     (field (symbol->string (syntax->datum #'?field))))
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
 	   #'(%define-class/sort-clauses/fields
-	      (quote ?input-form) (?name ?constructor ?predicate)
+	      ?input-form (?name ?constructor ?predicate)
 	      (?collected-concrete-field ... (immutable ?field ACCESSOR))
 	      (?collected-virtual-field ...)
 	      (?collected-method ...)
@@ -729,7 +760,7 @@
       ;;Gather   immutable  FIELDS   clause  declared   without  IMMUTABLE
       ;;auxiliary syntax.
       ((%define-class/sort-clauses/fields
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -746,7 +777,7 @@
 	     (field (symbol->string (syntax->datum #'?field))))
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
 	   #'(%define-class/sort-clauses/fields
-	      (quote ?input-form) (?name ?constructor ?predicate)
+	      ?input-form (?name ?constructor ?predicate)
 	      (?collected-concrete-field ... (immutable ?field ACCESSOR))
 	      (?collected-virtual-field ...)
 	      (?collected-method ...)
@@ -762,7 +793,7 @@
 
       ;;Remove empty, leftover, FIELDS clause.
       ((%define-class/sort-clauses/fields
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -776,7 +807,7 @@
 	(nongenerative	?non ...)
 	(fields) ?clause ...)
        #'(%define-class/sort-clauses
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -805,7 +836,7 @@
       ;;Gather mutable VIRTUAL-FIELDS  clause with explicit selection of
       ;;accessor and mutator names.
       ((%define-class/sort-clauses/virtual-fields
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -819,7 +850,7 @@
 	(nongenerative	?non ...)
 	(virtual-fields (mutable ?field ?accessor ?mutator) ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/virtual-fields
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...  (mutable ?field ?accessor ?mutator))
 	  (?collected-method ...)
@@ -836,7 +867,7 @@
       ;;Gather   mutable   VIRTUAL-FIELDS   clause  with   automatically
       ;;generated accessor and mutator names.
       ((%define-class/sort-clauses/virtual-fields
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -854,7 +885,7 @@
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field)))
 		       (MUTATOR  (datum->syntax #'?name (%mutator  name field))))
 	   #'(%define-class/sort-clauses/virtual-fields
-	      (quote ?input-form) (?name ?constructor ?predicate)
+	      ?input-form (?name ?constructor ?predicate)
 	      (?collected-concrete-field ...)
 	      (?collected-virtual-field ...  (mutable ?field ACCESSOR MUTATOR))
 	      (?collected-method ...)
@@ -873,7 +904,7 @@
       ;;Gather immutable  VIRTUAL-FIELDS clause with  explicit selection
       ;;of accessor name.
       ((%define-class/sort-clauses/virtual-fields
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -887,7 +918,7 @@
 	(nongenerative	?non ...)
 	(virtual-fields (immutable ?field ?accessor) ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/virtual-fields
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ... (immutable ?field ?accessor))
 	  (?collected-method ...)
@@ -904,7 +935,7 @@
       ;;Gather   immutable  VIRTUAL-FIELDS  clause   with  automatically
       ;;generated accessor name.
       ((%define-class/sort-clauses/virtual-fields
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -921,7 +952,7 @@
 	     (field (symbol->string (syntax->datum #'?field))))
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
 	   #'(%define-class/sort-clauses/virtual-fields
-	      (quote ?input-form) (?name ?constructor ?predicate)
+	      ?input-form (?name ?constructor ?predicate)
 	      (?collected-concrete-field ...)
 	      (?collected-virtual-field ... (immutable ?field ACCESSOR))
 	      (?collected-method ...)
@@ -938,7 +969,7 @@
       ;;Gather immutable VIRTUAL-FIELDS  clause declared without IMMUTABLE
       ;;auxiliary syntax.
       ((%define-class/sort-clauses/virtual-fields
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -955,7 +986,7 @@
 	     (field (symbol->string (syntax->datum #'?field))))
 	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
 	   #'(%define-class/sort-clauses/virtual-fields
-	      (quote ?input-form) (?name ?constructor ?predicate)
+	      ?input-form (?name ?constructor ?predicate)
 	      (?collected-concrete-field ...)
 	      (?collected-virtual-field ... (immutable ?field ACCESSOR))
 	      (?collected-method ...)
@@ -973,7 +1004,7 @@
 
       ;;Remove empty, leftover, VIRTUAL-FIELDS clause.
       ((%define-class/sort-clauses/virtual-fields
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -987,7 +1018,7 @@
 	(nongenerative	?non ...)
 	(virtual-fields) ?clause ...)
        #'(%define-class/sort-clauses
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -1012,7 +1043,7 @@
 
       ;;Gather METHODS clause with explicit selection of function name.
       ((%define-class/sort-clauses/methods
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1026,7 +1057,7 @@
 	(nongenerative	?non ...)
 	(methods (?method ?function) ?method-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/methods
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ... (?method ?function))
@@ -1043,7 +1074,7 @@
       ;;Gather  METHODS  clause  with automatically  generated  function
       ;;name.
       ((%define-class/sort-clauses/methods
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1060,7 +1091,7 @@
 	     (field (symbol->string (syntax->datum #'?method))))
 	 (with-syntax ((FUNCTION (datum->syntax #'?name (%function name field))))
 	   #'(%define-class/sort-clauses/methods
-	      (quote ?input-form) (?name ?constructor ?predicate)
+	      ?input-form (?name ?constructor ?predicate)
 	      (?collected-concrete-field ...)
 	      (?collected-virtual-field ...)
 	      (?collected-method ... (?method FUNCTION))
@@ -1076,7 +1107,7 @@
 
       ;;Gather METHODS clause declared with only the symbol.
       ((%define-class/sort-clauses/methods
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1093,7 +1124,7 @@
 	     (field (symbol->string (syntax->datum #'?method))))
 	 (with-syntax ((FUNCTION (datum->syntax #'?name (%function name field))))
 	   #'(%define-class/sort-clauses/methods
-	      (quote ?input-form) (?name ?constructor ?predicate)
+	      ?input-form (?name ?constructor ?predicate)
 	      (?collected-concrete-field ...)
 	      (?collected-virtual-field ...)
 	      (?collected-method ... (?method FUNCTION))
@@ -1109,7 +1140,7 @@
 
       ;;Remove empty, leftover, METHODS clause.
       ((%define-class/sort-clauses/methods
-	(quote ?input-form) (?name ?constructor ?predicate)
+	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1123,7 +1154,7 @@
 	(nongenerative	?non ...)
 	(methods) ?clause ...)
        #'(%define-class/sort-clauses
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -1148,7 +1179,7 @@
   (syntax-rules (parent protocol sealed opaque parent-rtd nongenerative predicate)
 
     ;;If the class definition used both PARENT and PARENT-RTD, raise an error.
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1160,12 +1191,13 @@
 	(opaque		?opa ...)
 	(parent-rtd	?parent-rtd0 ?parent-rtd ...)
 	(nongenerative	?non ...))
-     (syntax-violation 'define-class "both parent and parent-rtd used in class definition"
-		       (quote ?input-form)))
+     (syntax-violation 'define-class
+       "both parent and parent-rtd used in class definition"
+       (syntax->datum #'?input-form)))
 
     ;;If the  class definition  used neither the  PARENT clause  nor the
     ;;PARENT-RTD clause, make the type derived by "<top>".
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1178,7 +1210,7 @@
 	(parent-rtd) ;no parent-rtd
 	(nongenerative	?non ...))
      (%define-class/make-fields-vector
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1196,7 +1228,7 @@
 
     ;;If the class  definition used PARENT with more  than one argument,
     ;;raise an error.
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1210,11 +1242,11 @@
 	(nongenerative	?non ...))
      (syntax-violation 'define-class
        "only one argument is needed in parent clause for class definition"
-       (quote ?input-form)))
+       (syntax->datum #'?input-form)))
 
     ;;If the  class definition used  the PARENT with a  single argument,
     ;;expand the definition using PARENT-RTD.
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1227,7 +1259,7 @@
 	(parent-rtd) ;no parent-rtd
 	(nongenerative	?non ...))
      (%define-class/make-fields-vector
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1245,7 +1277,7 @@
 
     ;;If  the class definition  used PARENT-RTD  with 2  arguments, pass
     ;;everything to the next step.
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1258,7 +1290,7 @@
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
      (%define-class/make-fields-vector
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1272,7 +1304,7 @@
 
     ;;If the class  definition used PARENT-RTD with more  or less than 2
     ;;arguments, raise an error.
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1286,14 +1318,14 @@
 	(nongenerative	?non ...))
      (syntax-violation 'define-class
        "wrong number of arguments in parent-rtd clause used in class definition"
-       (quote ?input-form)))
+       (syntax->datum #'?input-form)))
 
     ))
 
 
 (define-syntax %define-class/make-fields-vector
   (syntax-rules (fields protocol sealed opaque parent-rtd nongenerative predicate)
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	((?keyword ?field ?accessor ...) ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1305,7 +1337,7 @@
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
      (%define-class/normalise-predicate
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       ((?keyword ?field ?accessor ...) ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1324,7 +1356,7 @@
   (syntax-rules (fields protocol sealed opaque parent-rtd nongenerative)
 
     ;;No predicate was given.
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1337,7 +1369,7 @@
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
      (%define-class/normalise-protocol
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1351,7 +1383,7 @@
       (nongenerative	?non ...)))
 
     ;;A predicate was given.
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1364,7 +1396,7 @@
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
      (%define-class/normalise-protocol
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1378,7 +1410,7 @@
       (nongenerative	?non ...)))
 
     ;;More PREDICATE clauses were present.
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1392,7 +1424,7 @@
 	(nongenerative	?non ...))
      (syntax-violation 'define-class
        "both parent and parent-rtd used in class definition"
-       (quote ?input-form)))
+       (syntax->datum #'?input-form)))
 
     ))
 
@@ -1400,7 +1432,7 @@
 (define-syntax %define-class/normalise-protocol
   (syntax-rules (protocol sealed opaque parent-rtd nongenerative)
 
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1413,7 +1445,7 @@
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
      (%define-class/normalise-sealed
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1426,7 +1458,7 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1439,7 +1471,7 @@
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
      (%define-class/normalise-sealed
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1452,7 +1484,7 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1466,14 +1498,15 @@
 	(nongenerative	?non ...))
      (syntax-violation 'define-class
        "invalid protocol specification in class defintion"
-       (quote ?input-form) (quote (protocol ?protocol ...))))
+       (syntax->datum #'?input-form)
+       (syntax->datum #'(protocol ?protocol ...))))
     ))
 
 
 (define-syntax %define-class/normalise-sealed
   (syntax-rules (sealed opaque parent-rtd nongenerative)
 
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1486,7 +1519,7 @@
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
      (%define-class/normalise-opaque
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1499,7 +1532,7 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1512,7 +1545,7 @@
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
      (%define-class/normalise-opaque
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1525,7 +1558,7 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1539,14 +1572,15 @@
 	(nongenerative	?non ...))
      (syntax-violation 'define-class
        "invalid sealed specification in class defintion"
-       (quote ?input-form) (quote (sealed ?sea ...))))
+       (syntax->datum #'?input-form)
+       (syntax->datum #'(sealed ?sea ...))))
     ))
 
 
 (define-syntax %define-class/normalise-opaque
   (syntax-rules (opaque parent-rtd nongenerative)
 
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1559,7 +1593,7 @@
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
      (%define-class/normalise-parent-rtd
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1572,7 +1606,7 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1585,7 +1619,7 @@
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
      (%define-class/normalise-parent-rtd
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1598,7 +1632,7 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1612,13 +1646,14 @@
 	(nongenerative	?non ...))
      (syntax-violation 'define-class
        "invalid opaque specification in class defintion"
-       (quote ?input-form) (quote (opaque ?opa ...))))
+       (syntax->datum #'?input-form)
+       (syntax->datum #'(opaque ?opa ...))))
     ))
 
 
 (define-syntax %define-class/normalise-parent-rtd
   (syntax-rules (parent-rtd nongenerative)
-    ((_ (quote ?input-form) (?name ?constructor ?predicate)
+    ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
@@ -1631,7 +1666,7 @@
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
      (%define-class/normalise-nongenerative
-      (quote ?input-form) (?name ?constructor ?predicate)
+      ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
@@ -1650,7 +1685,7 @@
   (lambda (stx)
     (syntax-case stx (nongenerative)
 
-      ((_ (quote ?input-form) (?name ?constructor ?predicate)
+      ((_ ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -1664,7 +1699,7 @@
 	  ?parent-cd
 	  (nongenerative	?uid))
        #'(%define-class/output-forms
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -1678,7 +1713,7 @@
 	  ?parent-cd
 	  ?uid))
 
-      ((_ (quote ?input-form) (?name ?constructor ?predicate)
+      ((_ ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -1692,7 +1727,7 @@
 	  ?parent-cd
 	  (nongenerative))
        #`(%define-class/output-forms
-	  (quote ?input-form) (?name ?constructor ?predicate)
+	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -1706,7 +1741,7 @@
 	  ?parent-cd
 	  #,@(generate-temporaries #'(?name)))) ;automatically generated UID
 
-      ((_ (quote ?input-form) (?name ?constructor ?predicate)
+      ((_ ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -1719,9 +1754,10 @@
 	  ?parent-rtd
 	  ?parent-cd
 	  (nongenerative	?non ...))
-       #'(syntax-violation 'define-class
-	   "invalid nongenerative specification in class defintion"
-	   (quote ?input-form) (quote (nongenerative ?non ...))))
+       (syntax-violation 'define-class
+	 "invalid nongenerative specification in class defintion"
+	 (syntax->datum #'?input-form)
+	 (syntax->datum #'(nongenerative ?non ...))))
       )))
 
 
@@ -1770,7 +1806,7 @@
 
     (syntax-case stx ()
 
-      ((_ (quote ?input-form) (?class-name ?constructor ?predicate)
+      ((_ ?input-form (?class-name ?constructor ?predicate)
 	  ((?mutability ?field ?accessor ...) ...)
 	  ((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
 	  ((?method ?method-function) ...)
@@ -1779,11 +1815,10 @@
 	  ?protocol ?sealed ?opaque ?parent-rtd ?parent-cd ?uid)
        (let ((id (duplicated-ids? #'(?field ... ?virtual-field ... ?method ...))))
 	 (if id
-	     #`(raise (condition
-		       (make-who-condition 'define-class)
-		       (make-message-condition "duplicated field names in class definition")
-		       (make-irritants-condition (quote (#,id)))
-		       (make-syntax-violation (quote ?input-form) #f)))
+	     (syntax-violation 'define-class
+	       "duplicated field names in class definition"
+	       (syntax->datum #'?input-form)
+	       (syntax->datum id))
 	   (let ((name (syntax->datum #'?class-name)))
 	     (with-syntax
 		 ((NAME-RTD	(datum->syntax #'?class-name (%make-name/rtd		name)))
