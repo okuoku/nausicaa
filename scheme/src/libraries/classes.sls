@@ -128,43 +128,11 @@
     (define (%mutator name field)
       (string->symbol (string-append name "-" field "-set!")))
     (define %function %accessor)
+    (define (%sinner msg input-form subform)
+      (syntax-violation 'define-class msg (syntax->datum input-form) (syntax->datum subform)))
+
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
 			     virtual-fields methods method predicate)
-
-      ;;Gather the PREDICATE clause.
-      ((%define-class/sort-clauses
-	?input-form (?name ?constructor ?predicate)
-	(?collected-concrete-field ...)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-function ...)
-	(predicate	?pre ...)
-	(parent		?par ...)
-	(protocol	?pro ...)
-	(sealed		?sea ...)
-	(opaque		?opa ...)
-	(parent-rtd	?pad ...)
-	(nongenerative	?non ...)
-	(predicate ?function-name) ?clause ...)
-       (if (identifier? (syntax ?function-name))
-	   #'(%define-class/sort-clauses
-	      ?input-form (?name ?constructor ?predicate)
-	      (?collected-concrete-field ...)
-	      (?collected-virtual-field ...)
-	      (?collected-method ...)
-	      (?collected-function ...)
-	      (predicate	?function-name ?pre ...)
-	      (parent		?par ...)
-	      (protocol		?pro ...)
-	      (sealed		?sea ...)
-	      (opaque		?opa ...)
-	      (parent-rtd	?pad ...)
-	      (nongenerative	?non ...)
-	      ?clause ...)
-	 (syntax-violation 'define-class
-	   "invalid predicate clause in class definition"
-	   (syntax->datum (syntax ?input-form))
-	   (syntax->datum (syntax (predicate ?function-name))))))
 
       ;;Gather the PARENT clause.
       ((%define-class/sort-clauses
@@ -174,32 +142,71 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
-	(parent		?par ...)
+	(parent		. ?parent-rest)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(parent ?parent-name) ?clause ...)
-       (if (identifier? (syntax ?parent-name))
-	   #'(%define-class/sort-clauses
-	      ?input-form (?name ?constructor ?predicate)
-	      (?collected-concrete-field ...)
-	      (?collected-virtual-field ...)
-	      (?collected-method ...)
-	      (?collected-function ...)
-	      (predicate	?pre ...)
-	      (parent		?par ... ?parent-name)
-	      (protocol		?pro ...)
-	      (sealed		?sea ...)
-	      (opaque		?opa ...)
-	      (parent-rtd	?pad ...)
-	      (nongenerative	?non ...)
-	      ?clause ...)
-	 (syntax-violation 'define-class
-	   "invalid parent clause in class definition"
-	   (syntax->datum (syntax ?input-form))
-	   (syntax->datum (syntax (parent ?parent-name))))))
+       (let ((form	(syntax ?input-form))
+	     (subform	(syntax (parent ?parent-name))))
+	 (cond ((not (null? (syntax->datum (syntax ?parent-rest))))
+		(%sinner "parent clause given twice in class definition" form subform))
+	       ((not (identifier? (syntax ?parent-name)))
+		(%sinner "invalid parent clause in class definition" form subform))
+	       (else
+		#'(%define-class/sort-clauses
+		   ?input-form (?name ?constructor ?predicate)
+		   (?collected-concrete-field ...)
+		   (?collected-virtual-field ...)
+		   (?collected-method ...)
+		   (?collected-function ...)
+		   (predicate		?pre ...)
+		   (parent		?parent-name)
+		   (protocol		?pro ...)
+		   (sealed		?sea ...)
+		   (opaque		?opa ...)
+		   (parent-rtd		?pad ...)
+		   (nongenerative	?non ...)
+		   ?clause ...)))))
+
+      ;;Gather the PREDICATE clause.
+      ((%define-class/sort-clauses
+	?input-form (?name ?constructor ?predicate)
+	(?collected-concrete-field ...)
+	(?collected-virtual-field ...)
+	(?collected-method ...)
+	(?collected-function ...)
+	(predicate	. ?predicate-rest)
+	(parent		?par ...)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?pad ...)
+	(nongenerative	?non ...)
+	(predicate ?function-name) ?clause ...)
+       (let ((form	(syntax ?input-form))
+	     (subform	(syntax (predicate ?function-name))))
+	 (cond ((not (null? (syntax->datum (syntax ?predicate-rest))))
+		(%sinner "predicate clause given twice in class definition" form subform))
+	       ((not (identifier? (syntax ?function-name)))
+		(%sinner "invalid predicate clause in class definition" form subform))
+	       (else
+		#'(%define-class/sort-clauses
+		   ?input-form (?name ?constructor ?predicate)
+		   (?collected-concrete-field ...)
+		   (?collected-virtual-field ...)
+		   (?collected-method ...)
+		   (?collected-function ...)
+		   (predicate		?function-name)
+		   (parent		?par ...)
+		   (protocol		?pro ...)
+		   (sealed		?sea ...)
+		   (opaque		?opa ...)
+		   (parent-rtd		?pad ...)
+		   (nongenerative	?non ...)
+		   ?clause ...)))))
 
       ;;Gather the PROTOCOL clause.
       ((%define-class/sort-clauses
@@ -210,26 +217,31 @@
 	(?collected-function ...)
 	(predicate	?pre ...)
 	(parent		?par ...)
-	(protocol	?pro ...)
+	(protocol	. ?protocol-rest)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(protocol ?protocol-proc) ?clause ...)
-       #'(%define-class/sort-clauses
-	  ?input-form (?name ?constructor ?predicate)
-	  (?collected-concrete-field ...)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-function ...)
-	  (predicate		?pre ...)
-	  (parent		?par ...)
-	  (protocol		?pro ... ?protocol-proc)
-	  (sealed		?sea ...)
-	  (opaque		?opa ...)
-	  (parent-rtd		?pad ...)
-	  (nongenerative	?non ...)
-	  ?clause ...))
+       (let ((form	(syntax ?input-form))
+	     (subform	(syntax (protocol ?protocol-proc))))
+	 (cond ((not (null? (syntax->datum (syntax ?protocol-rest))))
+		(%sinner "protocol clause given twice in class definition" form subform))
+	       (else
+		#'(%define-class/sort-clauses
+		   ?input-form (?name ?constructor ?predicate)
+		   (?collected-concrete-field ...)
+		   (?collected-virtual-field ...)
+		   (?collected-method ...)
+		   (?collected-function ...)
+		   (predicate		?pre ...)
+		   (parent		?par ...)
+		   (protocol		?protocol-proc)
+		   (sealed		?sea ...)
+		   (opaque		?opa ...)
+		   (parent-rtd		?pad ...)
+		   (nongenerative	?non ...)
+		   ?clause ...)))))
 
       ;;Gather the SEALED clause.
       ((%define-class/sort-clauses
@@ -240,31 +252,33 @@
 	(?collected-function ...)
 	(predicate	?pre ...)
 	(parent		?par ...)
-	(protocol		?pro ...)
-	(sealed		?sea ...)
+	(protocol	?pro ...)
+	(sealed		. ?sealed-rest)
 	(opaque		?opa ...)
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(sealed ?sealed) ?clause ...)
-       (if (boolean? (syntax->datum #'?sealed))
-	   #'(%define-class/sort-clauses
-	      ?input-form (?name ?constructor ?predicate)
-	      (?collected-concrete-field ...)
-	      (?collected-virtual-field ...)
-	      (?collected-method ...)
-	      (?collected-function ...)
-	      (predicate	?pre ...)
-	      (parent		?par ...)
-	      (protocol		?pro ...)
-	      (sealed		?sea ... ?sealed)
-	      (opaque		?opa ...)
-	      (parent-rtd	?pad ...)
-	      (nongenerative	?non ...)
-	      ?clause ...)
-	 (syntax-violation 'define-class
-	   "invalid sealed clause in class definition"
-	   (syntax->datum (syntax ?input-form))
-	   (syntax->datum (syntax (sealed ?sealed))))))
+       (let ((form	(syntax ?input-form))
+	     (subform	(syntax (sealed ?sealed))))
+	 (cond ((not (null? (syntax->datum (syntax ?sealed-rest))))
+		(%sinner "sealed clause given twice in class definition" form subform))
+	       ((not (boolean? (syntax->datum #'?sealed)))
+		(%sinner "invalid sealed clause in class definition" form subform))
+	       (else
+		#'(%define-class/sort-clauses
+		   ?input-form (?name ?constructor ?predicate)
+		   (?collected-concrete-field ...)
+		   (?collected-virtual-field ...)
+		   (?collected-method ...)
+		   (?collected-function ...)
+		   (predicate		?pre ...)
+		   (parent		?par ...)
+		   (protocol		?pro ...)
+		   (sealed		?sealed)
+		   (opaque		?opa ...)
+		   (parent-rtd		?pad ...)
+		   (nongenerative	?non ...)
+		   ?clause ...)))))
 
       ;;Gather the OPAQUE clause.
       ((%define-class/sort-clauses
@@ -277,29 +291,31 @@
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
-	(opaque		?opa ...)
+	(opaque		. ?opaque-rest)
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(opaque ?opaque) ?clause ...)
-       (if (boolean? (syntax->datum #'?opaque))
-	   #'(%define-class/sort-clauses
-	      ?input-form (?name ?constructor ?predicate)
-	      (?collected-concrete-field ...)
-	      (?collected-virtual-field ...)
-	      (?collected-method ...)
-	      (?collected-function ...)
-	      (predicate	?pre ...)
-	      (parent		?par ...)
-	      (protocol		?pro ...)
-	      (sealed		?sea ...)
-	      (opaque		?opa ... ?opaque)
-	      (parent-rtd	?pad ...)
-	      (nongenerative	?non ...)
-	      ?clause ...)
-	 (syntax-violation 'define-class
-	   "invalid opaque clause in class definition"
-	   (syntax->datum (syntax ?input-form))
-	   (syntax->datum (syntax (opaque ?opaque))))))
+       (let ((form	(syntax ?input-form))
+	     (subform	(syntax (opaque ?opaque))))
+	 (cond ((not (null? (syntax->datum (syntax ?opaque-rest))))
+		(%sinner "opaque clause given twice in class definition" form subform))
+	       ((not (boolean? (syntax->datum #'?opaque)))
+		(%sinner "invalid opaque clause in class definition" form subform))
+	       (else
+		#'(%define-class/sort-clauses
+		   ?input-form (?name ?constructor ?predicate)
+		   (?collected-concrete-field ...)
+		   (?collected-virtual-field ...)
+		   (?collected-method ...)
+		   (?collected-function ...)
+		   (predicate		?pre ...)
+		   (parent		?par ...)
+		   (protocol		?pro ...)
+		   (sealed		?sea ...)
+		   (opaque		?opaque)
+		   (parent-rtd		?pad ...)
+		   (nongenerative	?non ...)
+		   ?clause ...)))))
 
       ;;Gather the PARENT-RTD clause.
       ((%define-class/sort-clauses
@@ -313,23 +329,28 @@
 	(protocol	?pro ...)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
-	(parent-rtd	?pad ...)
+	(parent-rtd	. ?parent-rtd-rest)
 	(nongenerative	?non ...)
 	(parent-rtd ?parent-rtd ?parent-cd) ?clause ...)
-       #'(%define-class/sort-clauses
-	  ?input-form (?name ?constructor ?predicate)
-	  (?collected-concrete-field ...)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-function ...)
-	  (predicate		?pre ...)
-	  (parent		?par ...)
-	  (protocol		?pro ...)
-	  (sealed		?sea ...)
-	  (opaque		?opa ...)
-	  (parent-rtd		?pad ... ?parent-rtd ?parent-cd)
-	  (nongenerative	?non ...)
-	  ?clause ...))
+       (let ((form	(syntax ?input-form))
+	     (subform	(syntax (parent-rtd ?parent-rtd ?parent-cd))))
+	 (cond ((not (null? (syntax->datum (syntax ?parent-rtd-rest))))
+		(%sinner "parent-rtd clause given twice in class definition" form subform))
+	       (else
+		#'(%define-class/sort-clauses
+		   ?input-form (?name ?constructor ?predicate)
+		   (?collected-concrete-field ...)
+		   (?collected-virtual-field ...)
+		   (?collected-method ...)
+		   (?collected-function ...)
+		   (predicate		?pre ...)
+		   (parent		?par ...)
+		   (protocol		?pro ...)
+		   (sealed		?sea ...)
+		   (opaque		?opa ...)
+		   (parent-rtd		?parent-rtd ?parent-cd)
+		   (nongenerative	?non ...)
+		   ?clause ...)))))
 
       ;;Gather the NONGENERATIVE empty clause.
       ((%define-class/sort-clauses
@@ -344,22 +365,30 @@
 	(sealed		?sea ...)
 	(opaque		?opa ...)
 	(parent-rtd	?pad ...)
-	(nongenerative	?non ...)
+	(nongenerative	. ?nongenerative-rest)
 	(nongenerative) ?clause ...)
-       #'(%define-class/sort-clauses
-	  ?input-form (?name ?constructor ?predicate)
-	  (?collected-concrete-field ...)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-function ...)
-	  (predicate		?pre ...)
-	  (parent		?par ...)
-	  (protocol		?pro ...)
-	  (sealed		?sea ...)
-	  (opaque		?opa ...)
-	  (parent-rtd		?pad ...)
-	  (nongenerative	?non ...)
-	  ?clause ...))
+       (let ((form	(syntax ?input-form))
+	     (subform	(syntax (nongenerative))))
+	 (cond ((not (null? (syntax->datum (syntax ?nongenerative-rest))))
+		(%sinner "nongenerative clause given twice in class definition" form subform))
+	       (else
+		#`(%define-class/sort-clauses
+		   ?input-form (?name ?constructor ?predicate)
+		   (?collected-concrete-field ...)
+		   (?collected-virtual-field ...)
+		   (?collected-method ...)
+		   (?collected-function ...)
+		   (predicate		?pre ...)
+		   (parent		?par ...)
+		   (protocol		?pro ...)
+		   (sealed		?sea ...)
+		   (opaque		?opa ...)
+		   (parent-rtd		?pad ...)
+		   ;;We have  to do this  to properly generate  a unique
+		   ;;UID.  We cannot rely on the expander renaming a raw
+		   ;;symbol we may introduce here.
+		   (nongenerative	#,@(generate-temporaries #'(?name)))
+		   ?clause ...)))))
 
       ;;Gather the NONGENERATIVE non-empty clause.
       ((%define-class/sort-clauses
@@ -374,29 +403,37 @@
 	(sealed		?sea ...)
 	(opaque		?opa ...)
 	(parent-rtd	?pad ...)
-	(nongenerative	?non ...)
+	(nongenerative	. ?nongenerative-rest)
 	(nongenerative ?uid) ?clause ...)
-       #'(%define-class/sort-clauses
-	  ?input-form (?name ?constructor ?predicate)
-	  (?collected-concrete-field ...)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-function ...)
-	  (predicate		?pre ...)
-	  (parent		?par ...)
-	  (protocol		?pro ...)
-	  (sealed		?sea ...)
-	  (opaque		?opa ...)
-	  (parent-rtd		?pad ...)
-	  (nongenerative	?non ... ?uid)
-	  ?clause ...))
+       (let ((form	(syntax ?input-form))
+	     (subform	(syntax (nongenerative ?uid))))
+	 (cond ((not (null? (syntax->datum (syntax ?nongenerative-rest))))
+		(%sinner "nongenerative clause given twice in class definition" form subform))
+	       ((not (identifier? (syntax ?uid)))
+		(%sinner "invalid nongenerative clause in class definition" form subform))
+	       (else
+		#'(%define-class/sort-clauses
+		   ?input-form (?name ?constructor ?predicate)
+		   (?collected-concrete-field ...)
+		   (?collected-virtual-field ...)
+		   (?collected-method ...)
+		   (?collected-function ...)
+		   (predicate		?pre ...)
+		   (parent		?par ...)
+		   (protocol		?pro ...)
+		   (sealed		?sea ...)
+		   (opaque		?opa ...)
+		   (parent-rtd		?pad ...)
+		   (nongenerative	?uid)
+		   ?clause ...)))))
 
 ;;; --------------------------------------------------------------------
 
-      ;;Gather the FIELDS clause.
+      ;;Gather  the  FIELDS clause.   Notice  that  FIELDS  can be  used
+      ;;multiple times.
       ((%define-class/sort-clauses
 	?input-form (?name ?constructor ?predicate)
-	() ;must be empty here to detect multiple usages of FIELDS
+	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
 	(?collected-function ...)
@@ -410,7 +447,7 @@
 	(fields ?field-clause ...) ?clause ...)
        #'(%define-class/sort-clauses/fields
 	  ?input-form (?name ?constructor ?predicate)
-	  ()
+	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
 	  (?collected-function ...)
@@ -423,34 +460,14 @@
 	  (nongenerative	?non ...)
 	  (fields ?field-clause ...) ?clause ...))
 
-      ;;Raise a syntax  violation if the FIELDS clause  is used multiple
-      ;;times.
-      ((%define-class/sort-clauses
-	?input-form (?name ?constructor ?predicate)
-	(?collected-concrete-field0 ?collected-concrete-field ...)  ;at least one
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-function ...)
-	(predicate	?pre ...)
-	(parent		?par ...)
-	(protocol	?pro ...)
-	(sealed		?sea ...)
-	(opaque		?opa ...)
-	(parent-rtd	?pad ...)
-	(nongenerative	?non ...)
-	(fields ?field-clause ...) ?clause ...)
-       (syntax-violation 'define-class
-	 "\"fields\" clause used multiple times in class definition"
-	 (syntax->datum #'?input-form)
-	 (syntax->datum #'(fields ?field-clause ...))))
-
 ;;; --------------------------------------------------------------------
 
-      ;;Gather the VIRTUAL-FIELDS clause.
+      ;;Gather   the    VIRTUAL-FIELDS   clause.    Notice    that   the
+      ;;VIRTUAL-FIELDS clause can be used multiple times.
       ((%define-class/sort-clauses
 	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
-	() ;must be empty here to detect multiple usages of VIRTUAL-FIELDS
+	(?collected-virtual-field ...)
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
@@ -464,7 +481,7 @@
        #'(%define-class/sort-clauses/virtual-fields
 	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ... )
-	  ()
+	  (?collected-virtual-field ...)
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
@@ -476,35 +493,15 @@
 	  (nongenerative	?non ...)
 	  (virtual-fields ?field-clause ...) ?clause ...))
 
-      ;;Raise a syntax  violation if the FIELDS clause  is used multiple
-      ;;times.
-      ((%define-class/sort-clauses
-	?input-form (?name ?constructor ?predicate)
-	(?collected-concrete-field ...)
-	(?collected-virtual-field0 ?collected-virtual-field ...) ;at least one
-	(?collected-method ...)
-	(?collected-function ...)
-	(predicate	?pre ...)
-	(parent		?par ...)
-	(protocol	?pro ...)
-	(sealed		?sea ...)
-	(opaque		?opa ...)
-	(parent-rtd	?pad ...)
-	(nongenerative	?non ...)
-	(virtual-fields ?field-clause ...) ?clause ...)
-       (syntax-violation 'define-class
-	 "\"virtual-fields\" clause used multiple times in class definition"
-	 (syntax->datum #'?input-form)
-	 (syntax->datum #'(virtual-fields ?field-clause ...))))
-
 ;;; --------------------------------------------------------------------
 
-      ;;Gather METHODS clause.
+      ;;Gather METHODS  clause.  Notice that  the METHODS clause  can be
+      ;;used multiple times.
       ((%define-class/sort-clauses
 	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
-	() ;it has to be empty to detect mutiple use of METHODS
+	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
 	(parent		?par ...)
@@ -518,7 +515,7 @@
 	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
-	  ()
+	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
 	  (parent		?par ...)
@@ -528,29 +525,6 @@
 	  (parent-rtd		?pad ...)
 	  (nongenerative	?non ...)
 	  (methods ?method-clause ...) ?clause ...))
-
-      ;;Raise a syntax violation if  the METHODS clause is used multiple
-      ;;times.
-      ((%define-class/sort-clauses
-	?input-form (?name ?constructor ?predicate)
-	(?collected-mutable-field ...)
-	(?collected-immutable-field ...)
-	(?collected-mutable-virtual-field0 ?collected-mutable-virtual-field ...)
-	(?collected-immutable-virtual-field ...)
-	(?collected-method0 ?collected-method ...) ;at least one
-	(?collected-function ...)
-	(predicate	?pre ...)
-	(parent		?par ...)
-	(protocol	?pro ...)
-	(sealed		?sea ...)
-	(opaque		?opa ...)
-	(parent-rtd	?pad ...)
-	(nongenerative	?non ...)
-	(methods ?method-clause ...) ?clause ...)
-       (syntax-violation 'define-class
-	 "\"methods\" clause used multiple times in class definition"
-	 (syntax->datum #'?input-form)
-	 (syntax->datum #'(methods ?method-clause ...))))
 
 ;;; --------------------------------------------------------------------
 
@@ -614,6 +588,12 @@
 	  (opaque		?opa ...)
 	  (parent-rtd		?pad ...)
 	  (nongenerative	?non ...)))
+
+      ((_ ?input-form . ?stuff)
+       (syntax-violation 'define-class
+	 "invalid class definition"
+	 (syntax->datum (syntax ?input-form))))
+
       )))
 
 
@@ -1409,29 +1389,13 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
-    ;;More PREDICATE clauses were present.
-    ((_ ?input-form (?name ?constructor ?predicate)
-	(?collected-concrete-field ...)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
-	(predicate	?predicate-function0 ?predicate-function1  ?predicate-function ...)
-	(protocol	?pro ...)
-	(sealed		?sea ...)
-	(opaque		?opa ...)
-	(parent-rtd	?parent-rtd ?parent-cd)
-	(nongenerative	?non ...))
-     (syntax-violation 'define-class
-       "both parent and parent-rtd used in class definition"
-       (syntax->datum #'?input-form)))
-
     ))
 
 
 (define-syntax %define-class/normalise-protocol
   (syntax-rules (protocol sealed opaque parent-rtd nongenerative)
 
+    ;;A PROTOCOL was given.
     ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
@@ -1458,6 +1422,7 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
+    ;;No PROTOCOL was given.
     ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
@@ -1484,28 +1449,13 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
-    ((_ ?input-form (?name ?constructor ?predicate)
-	(?collected-concrete-field ...)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
-	?predicate-function
-	(protocol	?protocol ...)
-	(sealed		?sea ...)
-	(opaque		?opa ...)
-	(parent-rtd	?parent-rtd ?parent-cd)
-	(nongenerative	?non ...))
-     (syntax-violation 'define-class
-       "invalid protocol specification in class defintion"
-       (syntax->datum #'?input-form)
-       (syntax->datum #'(protocol ?protocol ...))))
     ))
 
 
 (define-syntax %define-class/normalise-sealed
   (syntax-rules (sealed opaque parent-rtd nongenerative)
 
+    ;;A SEALED was given.
     ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
@@ -1532,6 +1482,7 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
+    ;;No SEALED was given.
     ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
@@ -1558,28 +1509,13 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
-    ((_ ?input-form (?name ?constructor ?predicate)
-	(?collected-concrete-field ...)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
-	?predicate-function
-	?protocol
-	(sealed		?sea ...)
-	(opaque		?opa ...)
-	(parent-rtd	?parent-rtd ?parent-cd)
-	(nongenerative	?non ...))
-     (syntax-violation 'define-class
-       "invalid sealed specification in class defintion"
-       (syntax->datum #'?input-form)
-       (syntax->datum #'(sealed ?sea ...))))
     ))
 
 
 (define-syntax %define-class/normalise-opaque
   (syntax-rules (opaque parent-rtd nongenerative)
 
+    ;;An OPAQUE was given.
     ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
@@ -1606,6 +1542,7 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
+    ;;No OPAQUE was given.
     ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
@@ -1632,22 +1569,6 @@
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
 
-    ((_ ?input-form (?name ?constructor ?predicate)
-	(?collected-concrete-field ...)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
-	?predicate-function
-	?protocol
-	?sealed
-	(opaque		?opa ...)
-	(parent-rtd	?parent-rtd ?parent-cd)
-	(nongenerative	?non ...))
-     (syntax-violation 'define-class
-       "invalid opaque specification in class defintion"
-       (syntax->datum #'?input-form)
-       (syntax->datum #'(opaque ?opa ...))))
     ))
 
 
@@ -1685,6 +1606,7 @@
   (lambda (stx)
     (syntax-case stx (nongenerative)
 
+      ;;A NONGENERATIVE was given.
       ((_ ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
@@ -1713,6 +1635,7 @@
 	  ?parent-cd
 	  ?uid))
 
+      ;;No NONGENERATIVE was given.
       ((_ ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
@@ -1739,25 +1662,11 @@
 	  ?opaque
 	  ?parent-rtd
 	  ?parent-cd
-	  #,@(generate-temporaries #'(?name)))) ;automatically generated UID
+	  ;;We have to  do this to properly generated  a unique UID.  We
+	  ;;cannot rely  on the  expander renaming a  raw symbol  we may
+	  ;;introduce here.
+	  #,@(generate-temporaries #'(?name))))
 
-      ((_ ?input-form (?name ?constructor ?predicate)
-	  (?collected-concrete-field ...)
-	  (?collected-virtual-field ...)
-	  (?collected-method ...)
-	  (?collected-function ...)
-	  ?fields-vector
-	  ?predicate-function
-	  ?protocol
-	  ?sealed
-	  ?opaque
-	  ?parent-rtd
-	  ?parent-cd
-	  (nongenerative	?non ...))
-       (syntax-violation 'define-class
-	 "invalid nongenerative specification in class defintion"
-	 (syntax->datum #'?input-form)
-	 (syntax->datum #'(nongenerative ?non ...))))
       )))
 
 

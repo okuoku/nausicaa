@@ -247,6 +247,140 @@
 	      (environment '(nausicaa))))
     => '(opaque 123))
 
+  (check	;invalid nongenerative
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (nongenerative 123)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(nongenerative 123))
+
+  (check	;invalid class definition
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-form E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (woppa 123))
+	      (environment '(nausicaa))))
+    => '(define-class <alpha>
+	  (woppa 123)))
+
+;;; --------------------------------------------------------------------
+
+  (check	;multiple PARENT is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (parent ciao)
+		 (parent hello))
+	      (environment '(nausicaa))))
+    => '(parent hello))
+
+  (check	;multiple PREDICATE is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (predicate ciao)
+		 (predicate hello))
+	      (environment '(nausicaa))))
+    => '(predicate hello))
+
+  (check	;multiple PROTOCOL is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (protocol ciao)
+		 (protocol hello))
+	      (environment '(nausicaa))))
+    => '(protocol hello))
+
+  (check	;multiple SEALED is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (sealed #t)
+		 (sealed #f))
+	      (environment '(nausicaa))))
+    => '(sealed #f))
+
+  (check	;multiple OPAQUE is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (opaque #t)
+		 (opaque #f))
+	      (environment '(nausicaa))))
+    => '(opaque #f))
+
+  (check	;multiple PARENT-RTD is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (parent-rtd ciao ciao)
+		 (parent-rtd hello hello))
+	      (environment '(nausicaa))))
+    => '(parent-rtd hello hello))
+
+  (check	;multiple nongenerative is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (nongenerative ciao)
+		 (nongenerative hello))
+	      (environment '(nausicaa))))
+    => '(nongenerative hello))
+
+  (check	;multiple nongenerative is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (nongenerative)
+		 (nongenerative))
+	      (environment '(nausicaa))))
+    => '(nongenerative))
+
+  (check	;multiple FIELDS is fine
+      (let ()
+	(define-class <alpha>
+	  (fields a b)
+	  (fields c d))
+	#t)
+    => #t)
+
+  (check	;multiple VIRTUAL-FIELDS is fine
+      (let ()
+	(define-class <alpha>
+	  (virtual-fields a b)
+	  (virtual-fields c d))
+	#t)
+    => #t)
+
+  (check	;multiple METHODS is fine
+      (let ()
+	(define-class <alpha>
+	  (methods a b)
+	  (methods c d))
+	#t)
+    => #t)
+
   #t)
 
 

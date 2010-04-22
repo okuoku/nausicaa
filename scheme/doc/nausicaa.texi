@@ -20356,7 +20356,7 @@ predicates for the builtin class types; example:
 @deffn {Auxiliary Syntax} virtual-fields @ameta{field spec}*
 Add virtual fields to the enclosing class definition; the @meta{field
 spec} arguments have the same syntax as the @func{fields} ones, but with
-different semantics.  This clause can be used only once.
+different semantics.  This clause can be used multiple times.
 
 An immutable virtual field is defined by a field name and a field
 accessor which can be applied to a class instance to compute a value.  A
@@ -20442,7 +20442,7 @@ arguments can be of the form:
 where @meta{method} and @meta{function name} must be identifiers; in the
 first two forms the function name is built in the same way the field
 accessor names are built: appending a dash and @meta{method} to the
-record type name.  This clause can be used only once.
+record type name.  This clause can be used multiple times.
 
 The @meta{function name} must be an identifier bound to a Scheme
 function which will be invoked as method; it must accept as first
