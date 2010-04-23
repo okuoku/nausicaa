@@ -65,6 +65,7 @@
     define-c-struct-field-pointer-accessor
 
 ;;; bindings from (ffi utilities)
+    <c-struct>
     define-shared-object
     define-c-functions			define-c-functions/with-errno
     define-c-callouts			define-c-callouts/with-errno

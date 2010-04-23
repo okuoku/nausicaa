@@ -24241,180 +24241,68 @@ and then use code like the following:
   (struct-dirent-d_name-ref entry))
 @end example
 
-It is often tedious to accees foreign data structure fields with the
-accessors and mutators defined by the previous macros, so the library
-@library{ffi utilities} exports the following bindings.
+
+It is often needed to access directly the fields of a foreign structure;
+for this purpose @library{ffi} exports a class type name to be used to
+wrap raw pointer objects.
 
 
-@deffn Syntax define-struct-fields @ameta{struct} @ameta{field-spec} ...
-The @meta{struct} argument must be a Scheme symbol representing the name
-of a foreign data structure; this macro defines a new macro named
-@code{define-@meta{struct}} which in turn defines identifier macros to
-access and mutate the fields of a data structure.
+@deftp Class @aclass{c-struct}
+Wrapper for a raw pointer object.  It can be used as base class for more
+specialised C structure wrappers.  Its constructor accepts a single
+argument: the pointer object referencing the C structure memory block.
+@end deftp
 
-@meta{field-spec} must be a list of Scheme symbols representing field
-names.  If the list holds a single symbol, an identifier macro is
-created to access that field.  If the list holds two equal symbols, an
-identifier macro is created to access and mutate that field.
 
-For example, let's take the following structure from Libxml2:
+@defcv {Immutable Field} @aclass{c-struct} pointer
+The pointer object referencing the C structure memory block.
+@end defcv
 
-@example
-struct _xmlChSRange @{
-    unsigned short      low;
-    unsigned short      high;
-@};
-@end example
 
-@noindent
-we prepare accessors and mutators in an appropriate library:
+As a usage example, let's consider the @code{struct timeval} data
+structure:
 
 @example
-(library (xml libxml2 sizeof)
-  (export
-    struct-xmlChSRange-low-set!
-    struct-xmlChSRange-low-ref
-    struct-xmlChSRange-high-set!
-    struct-xmlChSRange-high-ref)
-  (import (rnrs)
-    (ffi))
-  (define-c-struct-accessor-and-mutator
-    struct-xmlChSRange-low-set!
-    struct-xmlChSRange-low-ref
-    0
-    pointer-set-c-unsigned-short!
-    pointer-ref-c-unsigned-short)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlChSRange-high-set!
-    struct-xmlChSRange-high-ref
-    2
-    pointer-set-c-unsigned-short!
-    pointer-ref-c-unsigned-short))
+(import (nausicaa)
+  (ffi))
+
+(define-c-struct-accessor-and-mutator
+  struct-timeval-tv_sec-set! struct-timeval-tv_usec-ref
+  0
+  pointer-set-c-long-int! pointer-ref-c-long)
+
+(define-c-struct-accessor-and-mutator
+  struct-timeval-tv_sec-set! struct-timeval-tv_usec-ref
+  strideof-long
+  pointer-set-c-long-int! pointer-ref-c-long)
+
+(define-class <struct-timeval>
+  (parent <c-struct>)
+  (virtual-fields
+    (mutable tv_sec  <struct-timeval>-tv_sec
+                     <struct-timeval>-tv_sec-set!)
+    (mutable tv_usec <struct-timeval>-tv_usec
+                     <struct-timeval>-tv_usec-set!))
+  (nongenerative nausicaa:posix:<struct-timeval>))
+
+(define (<struct-timeval>-tv_sec (o <c-struct>))
+  (struct-timeval-tv_sec-ref o.pointer))
+
+(define (<struct-timeval>-tv_sec-set! (o <c-struct>) sec)
+  (struct-timeval-tv_sec-set! o.pointer sec))
+
+(define (<struct-timeval>-tv_usec (o <c-struct>))
+  (struct-timeval-tv_usec-ref o.pointer))
+
+(define (<struct-timeval>-tv_usec (o <c-struct>) usec)
+  (struct-timeval-tv_usec-set! o.pointer usec))
+
+(let (((s <struct-timeval>) (make <struct-timeval>
+                              (* 2 strideof-long))))
+  (set! s.tv_sec  12)
+  (set! s.tv_usec 13)
+  ---)
 @end example
-
-@noindent
-then we define identifier macro builders in another library:
-
-@example
-(library (xml libxml2 structs)
-  (export define-xmlChSRange)
-  (import (rnrs)
-    (ffi)
-    (ffi utilities)
-    (xml libxml2 sizeof))
-  (define-struct-fields xmlChSRange
-    (high high)
-    (low low)))
-@end example
-
-@noindent
-finally we can use the libraries:
-
-@example
-(import (rnrs)
-  (xml libxml2 structs))
-
-(define ptr ---)
-(define-xmlChSRange ptr)
-(set! ptr.high 10)
-(display ptr.low)
-@end example
-
-@func{define-struct-fields} expects the appropriate accessor and mutator
-bindings to be visible in the syntactic context of @ameta{struct}; a
-field mutator and accessor names are built as:
-
-@example
-struct-@cmeta{struct}-@cmeta{field}-set!
-struct-@cmeta{struct}-@cmeta{field}-ref
-@end example
-@end deffn
-
-
-@deffn Syntax define-with-struct @ameta{struct} @ameta{field-spec} ...
-The @meta{struct} argument must be a Scheme symbol representing the name
-of a foreign data structure; this macro defines a new macro named
-@code{with-struct-@meta{struct}} which in turn defines identifier macros
-to access and mutate the fields of a data structure.  The generated
-macro works like @func{let-syntax}.
-
-@meta{field-spec} must be a list of Scheme symbols representing field
-names.  If the list holds a single symbol, an identifier macro is
-created to access that field.  If the list holds two equal symbols, an
-identifier macro is created to access and mutate that field.
-
-For example, let's take the following structure from Libxml2:
-
-@example
-struct _xmlChSRange @{
-    unsigned short      low;
-    unsigned short      high;
-@};
-@end example
-
-@noindent
-we prepare accessors and mutators in an appropriate library:
-
-@example
-(library (xml libxml2 sizeof)
-  (export
-    struct-xmlChSRange-low-set!
-    struct-xmlChSRange-low-ref
-    struct-xmlChSRange-high-set!
-    struct-xmlChSRange-high-ref)
-  (import (rnrs)
-    (ffi))
-  (define-c-struct-accessor-and-mutator
-    struct-xmlChSRange-low-set!
-    struct-xmlChSRange-low-ref
-    0
-    pointer-set-c-unsigned-short!
-    pointer-ref-c-unsigned-short)
-  (define-c-struct-accessor-and-mutator
-    struct-xmlChSRange-high-set!
-    struct-xmlChSRange-high-ref
-    2
-    pointer-set-c-unsigned-short!
-    pointer-ref-c-unsigned-short))
-@end example
-
-@noindent
-then we define identifier macro builders in another library:
-
-@example
-(library (xml libxml2 structs)
-  (export with-struct-xmlChSRange)
-  (import (rnrs)
-    (ffi)
-    (ffi utilities)
-    (xml libxml2 sizeof))
-  (define-with-struct xmlChSRange
-    (high high)
-    (low low)))
-@end example
-
-@noindent
-finally we can use the libraries:
-
-@example
-(import (rnrs)
-  (xml libxml2 structs))
-
-(define ptr ---)
-(with-struct-xmlChSRange ptr
-  (set! ptr.high 10)
-  (display ptr.low))
-@end example
-
-@func{define-with-struct} expects the appropriate accessor and mutator
-bindings to be visible in the syntactic context of @ameta{struct}; a
-field mutator and accessor names are built as:
-
-@example
-struct-@cmeta{struct}-@cmeta{field}-set!
-struct-@cmeta{struct}-@cmeta{field}-ref
-@end example
-@end deffn
 
 
 

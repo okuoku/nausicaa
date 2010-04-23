@@ -35,8 +35,9 @@
     (rename (platform:free-c-callback	free-c-callback))
     define-c-struct-accessor		define-c-struct-mutator
     define-c-struct-accessor-and-mutator
-    define-c-struct-field-pointer-accessor)
-  (import (rnrs)
+    define-c-struct-field-pointer-accessor
+    <c-struct>)
+  (import (nausicaa)
     (ffi sizeof)
     (ffi conditions)
     (ffi clang-data-types)
@@ -170,6 +171,13 @@
 	     (syntax-rules ()
 	       ((_ struct-pointer)
 		(raise-unimplemented-error (quote ?accessor-name))))))))))
+
+(define-class <c-struct>
+  (fields (immutable pointer))
+  (protocol (lambda (make-top)
+	      (lambda (pointer)
+		((make-top) pointer))))
+  (nongenerative nausicaa:ffi:<c-struct>))
 
 
 ;;;; done

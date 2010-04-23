@@ -166,9 +166,8 @@
   ;;
   (let ((libout `(library ,structs-libname
 		   (export ,@$structs-lib-exports)
-		   (import (rnrs)
+		   (import (nausicaa)
 		     (ffi)
-		     (ffi utilities)
 		     ,sizeof-libname)
 		   ,@$structs-library)))
     (let ((strout (call-with-string-output-port
@@ -356,7 +355,9 @@
 
 (define (%register-struct-type struct-name struct-string-typedef field-names field-type-categories)
   (autoconf-lib (format "\ndnl Struct inspection: ~a" struct-name))
-  (let ((struct-keyword (string-upcase (symbol->string struct-name))))
+  (let ((struct-keyword (string-upcase (symbol->string struct-name)))
+	(class-type	(string->symbol (format "<struct-~a>" struct-name)))
+	(struct-uid	'nausicaa:zlib:))
 
     ;;Output the data structure inspection stuff.
     ;;
@@ -384,12 +385,12 @@
 			  (pointer-add ?pointer (* ?index ,name-strideof)))))))
       (%sizeof-lib-exports name-sizeof name-alignof name-strideof
 			   array-struct-sizeof array-struct-accessor)
-      (%structs-lib-exports (string->symbol (format "define-~a" struct-name))
-			    (string->symbol (format "with-struct-~s" struct-name))))
+      (%structs-lib-exports class-type))
 
     ;;Output the field inspection stuff.
     ;;
-    (let ((struct-fields '()))
+    (let ((class-fields  '())
+	  (class-methods '()))
       (for-each
 	  (lambda (field-name field-type-category)
 	    (let* ((field-keyword	(dot->underscore (string-upcase (symbol->string field-name))))
@@ -397,6 +398,10 @@
 					 (format "struct-~a-~a-ref"  struct-name field-name)))
 		   (name-field-mutator	(string->symbol
 					 (format "struct-~a-~a-set!" struct-name field-name)))
+		   (class-field-accessor (string->symbol
+					  (format "~a-~a"      class-type field-name)))
+		   (class-field-mutator	 (string->symbol
+					  (format "~a-~a-set!" class-type field-name)))
 		   (ac-symbol-field-offset	(string->symbol
 					 (format "^OFFSETOF_~a_~a^" struct-keyword field-keyword)))
 		   (ac-symbol-field-accessor (string->symbol
@@ -411,7 +416,12 @@
 		    (%sizeof-lib `((define-c-struct-field-pointer-accessor
 				     ,name-field-accessor ,ac-symbol-field-offset)))
 		    (%sizeof-lib-exports name-field-accessor)
-		    (set-cons! struct-fields (list field-name)))
+		    (set-cons! class-fields
+			       `(immutable ,field-name ,name-field-accessor))
+		    (set-cons! class-methods
+			       `((define (,class-field-accessor (o <c-struct>))
+				   (,name-field-accessor o.pointer))))
+		    )
 		(begin
 		  (autoconf-lib (format "NAUSICAA_INSPECT_FIELD_TYPE([~a],[~a],[~a],[~a])"
 				  (format "~a_~a" struct-keyword field-keyword)
@@ -421,12 +431,27 @@
 				   ,ac-symbol-field-offset
 				   ,ac-symbol-field-mutator ,ac-symbol-field-accessor)))
 		  (%sizeof-lib-exports name-field-mutator name-field-accessor)
-		  (set-cons! struct-fields (list field-name field-name))))))
+		  (set-cons! class-fields
+			     `(mutable ,field-name
+				       ,class-field-accessor
+				       ,class-field-mutator))
+		  (set-cons! class-methods
+			     `(define (,class-field-accessor (o <c-struct>))
+				(,name-field-accessor o.pointer)))
+		  (set-cons! class-methods
+			     `(define (,class-field-mutator  (o <c-struct>) new-value)
+				(,name-field-mutator  o.pointer new-value)))
+		  ))))
 	field-names field-type-categories)
-      (%structs-lib `((define-struct-fields ,struct-name
-			,@struct-fields)
-		      (define-with-struct ,struct-name
-			,@struct-fields))))))
+      (%structs-lib `((define-class ,class-type
+			(parent <c-struct>)
+			(virtual-fields ,@class-fields)
+			(protocol (lambda (make-c-struct)
+				    (lambda (pointer)
+				      ((make-c-struct pointer)))))
+			(nongenerative ,struct-uid))
+		      ,@class-methods
+		      )))))
 
 
 ;;;; license notices

@@ -76,13 +76,25 @@
       (string->symbol (string-append "make-" name)))
     (define (%predicate name)
       (string->symbol (string-append name "?")))
+    (define (syntax->list x)
+      (syntax-case x ()
+	((h . t)
+	 (cons (syntax->list #'h) (if (null? (syntax->datum #'t))
+				      '()
+				    (syntax->list #'t))))
+	(term
+	 #'term)))
+
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
 			     virtual-fields methods method predicate)
 
       ((_ (?name ?constructor ?predicate) ?clause ...)
-;;;This is to work around a bug in Ikarus 1870.
-;;;       (for-all identifier? #'(?name ?constructor ?predicate))
-       (for-all symbol? (syntax->datum #'(?name ?constructor ?predicate)))
+;;;*FIXME*  This  is a  workaround  for a  bug  in  Ikarus 1870:  Ikarus
+;;;produces an  IMproper list  of syntax objects,  rather than  a proper
+;;;list.
+;;;
+;;;(for-all identifier? #'(?name ?constructor ?predicate))
+       (for-all identifier? (syntax->list #'(?name ?constructor ?predicate)))
        #'(%define-class/sort-clauses
 	  (define-class (?name ?constructor ?predicate) ?clause ...)
 	  (?name ?constructor ?predicate)
@@ -1933,6 +1945,13 @@
   ;;rest to %DO-LET/ADD-TOP.
   ;;
   (lambda (stx)
+    (define (syntax->list x)
+      (syntax-case x ()
+	((h . t)
+	 (cons (syntax->list #'h) (if (null? (syntax->datum #'t))
+				      '()
+				    (syntax->list #'t))))
+	(term #'term)))
     (syntax-case stx ()
 
       ;;No bindings.  Expand to ?LET  to allow <definition> forms in the
@@ -1944,9 +1963,12 @@
 
       ;;All bindings are without types.
       ((_ ?let ?let-fields ?loop ((?var ?init) ...) ?body0 ?body ...)
-;;;This is to work around a bug in Ikarus 1870.
-;;;       (for-all identifier? #'(?var ...))
-       (for-all symbol? (syntax->datum #'(?var ...)))
+;;;*FIXME*  This  is a  workaround  for a  bug  in  Ikarus 1870:  Ikarus
+;;;produces an  IMproper list  of syntax objects,  rather than  a proper
+;;;list.
+;;;
+;;;(for-all identifier? #'(?var ...))
+       (for-all identifier? (syntax->list #'(?var ...)))
        (if (free-identifier=? #'no-loop #'?loop)
 	   #'(?let ((?var ?init) ...) ?body0 ?body ...)
 	 #'(?let ?loop ((?var ?init) ...) ?body0 ?body ...)))
