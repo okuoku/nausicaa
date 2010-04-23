@@ -27,7 +27,7 @@
 
 
 (import (nausicaa)
-  (foreign ffi inspector-maker))
+  (ffi inspector-maker))
 
 
 (define-c-type uInt	unsigned-int)
@@ -128,10 +128,13 @@
 (define-shared-object zlib libz.so)
 
 (define zlib-library-spec
-  '(foreign compression zlib sizeof))
+  '(compression zlib sizeof))
 
 (autoconf-lib-write "configuration/zlib-inspector.m4" zlib-library-spec
 		    "NAUSICAA_ZLIB")
-(sizeof-lib-write   "src/libraries/foreign/compression/zlib/sizeof.sls.in" zlib-library-spec)
+(sizeof-lib-write   "src/libraries/compression/zlib/sizeof.sls.in" zlib-library-spec)
+(structs-lib-write  "src/libraries/compression/zlib/structs.sls"
+		    '(compression zlib structs)
+		    zlib-library-spec)
 
 ;;; end of file

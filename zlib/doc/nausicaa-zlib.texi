@@ -457,7 +457,7 @@ Documentation License''.
 @ifinfo
 @dircategory Development
 @direntry
-* nausicaa-zlib: (nausicaa-zlib).       Zlib for @rnrs{6} Scheme.
+* nausicaa-zlib: (nausicaa-zlib).       @value{TITLE}
 @end direntry
 @end ifinfo
 
@@ -516,24 +516,24 @@ It supports Ikarus, Mosh and Ypsilon Scheme.
 The installed libraries are:
 
 @table @library
-@item foreign compression zlib shared-object
+@item compression zlib shared-object
 Exports the single binding @code{zlib-shared-object} which references
 the Zlib shared library.
 
-@item foreign compression zlib sizeof
+@item compression zlib sizeof
 Exports bindings to constant values and data structure accessors.
 
-@item foreign compression zlib platform
+@item compression zlib platform
 Exports a binding for each foreign function; this library makes the
 original Zlib documentation relevant for this package.  @ref{zlib, Zlib
 compression library}.
 
-@item foreign compression zlib primitives
-Reexports bindings from @library{foreign compression zlib platform}
+@item compression zlib primitives
+Reexports bindings from @library{compression zlib platform}
 along with some functions implementing marshaling of arguments and
 return values.
 
-@item foreign compression zlib
+@item compression zlib
 Compound library reexporting bindings from the primitives and sizeof
 libraries.
 @end table
@@ -546,8 +546,8 @@ familiarise with the mapping and with methods to handle resources.
 @chapter Constant values
 
 
-The following bindings are exported by @library{foreign compression zlib
-sizeof} and reexported by @library{foreign compression zlib}.  @ref{zlib
+The following bindings are exported by @library{compression zlib
+sizeof} and reexported by @library{compression zlib}.  @ref{zlib
 constants, Constants}.
 
 
@@ -632,8 +632,8 @@ format.  For example @samp{#x1230} means version @code{1.2.3}, while
 @chapter Data structure accessors and mutators
 
 
-The following bindings are exported by @library{foreign compression zlib
-sizeof} and reexported by @library{foreign compression zlib}.  @ref{zlib
+The following bindings are exported by @library{compression zlib
+sizeof} and reexported by @library{compression zlib}.  @ref{zlib
 types, Data types}.
 
 
@@ -701,8 +701,8 @@ Accessors and mutators for structures of type @samp{gz_header}.
 @chapter Error messages
 
 
-The following bindings are exported by @library{foreign compression zlib
-primitives} and reexported by @library{foreign compression zlib}.
+The following bindings are exported by @library{compression zlib
+primitives} and reexported by @library{compression zlib}.
 
 
 @defun zError* @var{error-code}
@@ -730,17 +730,17 @@ Let's start a program with:
 
 @example
 (import (rnrs)
-  (foreign compression zlib)
+  (compression zlib)
   (only (compensations)
         with-compensations)
-  (only (foreign ffi peekers-and-pokers)
+  (only (ffi peekers-and-pokers)
         pointer-ref-c-unsigned-long
         pointer-set-c-unsigned-long!)
-  (only (foreign ffi sizeof)
+  (only (ffi sizeof)
         sizeof-long)
-  (only (foreign memory)
+  (only (ffi memory)
         malloc-block/c)
-  (only (foreign cstrings)
+  (only (ffi cstrings)
         string->cstring/c))
 @end example
 
@@ -848,12 +848,9 @@ at a time.  @ref{zlib basic, Basic functions}.
 Let's start a program with:
 
 @example
-(import (rnrs)
-  (foreign compression zlib)
-  (only (compensations)
-        with-compensations)
-  (only (foreign memory)
-        malloc-block/c))
+(import (nausicaa)
+  (compression zlib)
+  (only (ffi memory) malloc-block/c))
 @end example
 
 @noindent
@@ -947,12 +944,9 @@ advanced, Advanced functions}.
 Let's start a program with:
 
 @example
-(import (rnrs)
-  (foreign compression zlib)
-  (only (compensations)
-        with-compensations)
-  (only (foreign memory)
-        malloc-block/c))
+(import (nausicaa)
+  (compression zlib)
+  (only (foreign memory) malloc-block/c))
 @end example
 
 @noindent
@@ -1050,9 +1044,9 @@ output buffers accordingly.
 
 
 The file functions allow us to read and write files compressed with the
-Gzip format.  The following bindings are exported by @library{foreign
-compression zlib primitives} and reexported by @library{foreign
-compression zlib}.  @ref{zlib file, File functions}.
+Gzip format.  The following bindings are exported by
+@library{compression zlib primitives} and reexported by
+@library{compression zlib}.  @ref{zlib file, File functions}.
 
 For the low level @api{} see the original documentation of Zlib, but
 notice that:

@@ -1,13 +1,14 @@
+;;; -*- coding: utf-8-unix -*-
 ;;;
 ;;;Part of: Nausicaa/Zlib
-;;;Contents: compile script for Mosh Scheme
-;;;Date: Wed Dec 31, 2008
+;;;Contents: shared object loading
+;;;Date: Sun Nov  1, 2009
 ;;;
 ;;;Abstract
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -23,8 +24,13 @@
 ;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;;
 
-(import
-  (only (compression zlib))
-  )
+
+(library (compression zlib shared-object)
+  (export zlib-shared-object)
+  (import (rnrs)
+    (ffi)
+    (compression zlib sizeof))
+  (define-shared-object zlib-shared-object
+    ZLIB_SHARED_OBJECT))
 
 ;;; end of file

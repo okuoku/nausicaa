@@ -1,0 +1,476 @@
+;;; (compression zlib sizeof) --
+;;;
+;;;Part of: Nausicaa
+;;;Contents: foreign library inspection generation
+;;;Date: Fri Apr 23, 2010
+;;;
+;;;Abstract
+;;;
+;;;
+;;;
+;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;
+;;;This program is free software:  you can redistribute it and/or modify
+;;;it under the terms of the  GNU General Public License as published by
+;;;the Free Software Foundation, either version 3 of the License, or (at
+;;;your option) any later version.
+;;;
+;;;This program is  distributed in the hope that it  will be useful, but
+;;;WITHOUT  ANY   WARRANTY;  without   even  the  implied   warranty  of
+;;;MERCHANTABILITY  or FITNESS FOR  A PARTICULAR  PURPOSE.  See  the GNU
+;;;General Public License for more details.
+;;;
+;;;You should  have received  a copy of  the GNU General  Public License
+;;;along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;;
+
+
+(library
+  (compression zlib sizeof)
+  (export
+    uInt
+    sizeof-uInt
+    alignof-uInt
+    strideof-uInt
+    pointer-ref-c-uInt
+    pointer-set-c-uInt!
+    sizeof-uInt-array
+    array-ref-c-uInt
+    array-set-c-uInt!
+    uLong
+    sizeof-uLong
+    alignof-uLong
+    strideof-uLong
+    pointer-ref-c-uLong
+    pointer-set-c-uLong!
+    sizeof-uLong-array
+    array-ref-c-uLong
+    array-set-c-uLong!
+    z_off_t
+    sizeof-z_off_t
+    alignof-z_off_t
+    strideof-z_off_t
+    pointer-ref-c-z_off_t
+    pointer-set-c-z_off_t!
+    sizeof-z_off_t-array
+    array-ref-c-z_off_t
+    array-set-c-z_off_t!
+    sizeof-z_stream
+    alignof-z_stream
+    strideof-z_stream
+    sizeof-z_stream-array
+    array-ref-c-z_stream
+    struct-z_stream-next_in-set!
+    struct-z_stream-next_in-ref
+    struct-z_stream-avail_in-set!
+    struct-z_stream-avail_in-ref
+    struct-z_stream-total_in-set!
+    struct-z_stream-total_in-ref
+    struct-z_stream-next_out-set!
+    struct-z_stream-next_out-ref
+    struct-z_stream-avail_out-set!
+    struct-z_stream-avail_out-ref
+    struct-z_stream-total_out-set!
+    struct-z_stream-total_out-ref
+    struct-z_stream-msg-set!
+    struct-z_stream-msg-ref
+    struct-z_stream-data_type-set!
+    struct-z_stream-data_type-ref
+    struct-z_stream-adler-set!
+    struct-z_stream-adler-ref
+    struct-z_stream-zalloc-set!
+    struct-z_stream-zalloc-ref
+    struct-z_stream-zfree-set!
+    struct-z_stream-zfree-ref
+    struct-z_stream-opaque-set!
+    struct-z_stream-opaque-ref
+    sizeof-gz_header
+    alignof-gz_header
+    strideof-gz_header
+    sizeof-gz_header-array
+    array-ref-c-gz_header
+    struct-gz_header-text-set!
+    struct-gz_header-text-ref
+    struct-gz_header-time-set!
+    struct-gz_header-time-ref
+    struct-gz_header-xflags-set!
+    struct-gz_header-xflags-ref
+    struct-gz_header-os-set!
+    struct-gz_header-os-ref
+    struct-gz_header-extra-set!
+    struct-gz_header-extra-ref
+    struct-gz_header-extra_len-set!
+    struct-gz_header-extra_len-ref
+    struct-gz_header-extra_max-set!
+    struct-gz_header-extra_max-ref
+    struct-gz_header-name-set!
+    struct-gz_header-name-ref
+    struct-gz_header-name_max-set!
+    struct-gz_header-name_max-ref
+    struct-gz_header-comment-set!
+    struct-gz_header-comment-ref
+    struct-gz_header-comm_max-set!
+    struct-gz_header-comm_max-ref
+    struct-gz_header-hcrc-set!
+    struct-gz_header-hcrc-ref
+    struct-gz_header-done-set!
+    struct-gz_header-done-ref
+    ZLIB_VERNUM
+    ZLIB_VERSION
+    Z_NO_FLUSH
+    Z_PARTIAL_FLUSH
+    Z_SYNC_FLUSH
+    Z_FULL_FLUSH
+    Z_FINISH
+    Z_BLOCK
+    Z_TREES
+    Z_OK
+    Z_STREAM_END
+    Z_NEED_DICT
+    Z_ERRNO
+    Z_STREAM_ERROR
+    Z_DATA_ERROR
+    Z_MEM_ERROR
+    Z_BUF_ERROR
+    Z_VERSION_ERROR
+    Z_NO_COMPRESSION
+    Z_BEST_SPEED
+    Z_BEST_COMPRESSION
+    Z_DEFAULT_COMPRESSION
+    Z_FILTERED
+    Z_HUFFMAN_ONLY
+    Z_RLE
+    Z_FIXED
+    Z_DEFAULT_STRATEGY
+    Z_BINARY
+    Z_TEXT
+    Z_ASCII
+    Z_UNKNOWN
+    Z_DEFLATED
+    Z_NULL
+    ZLIB_SHARED_OBJECT)
+  (import (rnrs) (ffi) (ffi sizeof))
+  (define uInt '@TYPEOF_UINT@)
+  (define sizeof-uInt @SIZEOF_UINT@)
+  (define alignof-uInt @ALIGNOF_UINT@)
+  (define strideof-uInt @STRIDEOF_UINT@)
+  (define pointer-ref-c-uInt @GETTEROF_UINT@)
+  (define pointer-set-c-uInt! @SETTEROF_UINT@)
+  (define-syntax
+    sizeof-uInt-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-uInt ?number-of-elements))))
+  (define-syntax
+    array-ref-c-uInt
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-uInt
+         ?pointer
+         (* ?index strideof-uInt)))))
+  (define-syntax
+    array-set-c-uInt!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-uInt!
+         ?pointer
+         (* ?index strideof-uInt)
+         ?value))))
+  (define uLong '@TYPEOF_ULONG@)
+  (define sizeof-uLong @SIZEOF_ULONG@)
+  (define alignof-uLong @ALIGNOF_ULONG@)
+  (define strideof-uLong @STRIDEOF_ULONG@)
+  (define pointer-ref-c-uLong @GETTEROF_ULONG@)
+  (define pointer-set-c-uLong! @SETTEROF_ULONG@)
+  (define-syntax
+    sizeof-uLong-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-uLong ?number-of-elements))))
+  (define-syntax
+    array-ref-c-uLong
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-uLong
+         ?pointer
+         (* ?index strideof-uLong)))))
+  (define-syntax
+    array-set-c-uLong!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-uLong!
+         ?pointer
+         (* ?index strideof-uLong)
+         ?value))))
+  (define z_off_t '@TYPEOF_Z_OFF_T@)
+  (define sizeof-z_off_t @SIZEOF_Z_OFF_T@)
+  (define alignof-z_off_t @ALIGNOF_Z_OFF_T@)
+  (define strideof-z_off_t @STRIDEOF_Z_OFF_T@)
+  (define pointer-ref-c-z_off_t @GETTEROF_Z_OFF_T@)
+  (define
+    pointer-set-c-z_off_t!
+    @SETTEROF_Z_OFF_T@)
+  (define-syntax
+    sizeof-z_off_t-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* sizeof-z_off_t ?number-of-elements))))
+  (define-syntax
+    array-ref-c-z_off_t
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-ref-c-z_off_t
+         ?pointer
+         (* ?index strideof-z_off_t)))))
+  (define-syntax
+    array-set-c-z_off_t!
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index ?value)
+       (pointer-set-c-z_off_t!
+         ?pointer
+         (* ?index strideof-z_off_t)
+         ?value))))
+  (define sizeof-z_stream @SIZEOF_Z_STREAM@)
+  (define alignof-z_stream @ALIGNOF_Z_STREAM@)
+  (define strideof-z_stream @STRIDEOF_Z_STREAM@)
+  (define-syntax
+    sizeof-z_stream-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-z_stream ?number-of-elements))))
+  (define-syntax
+    array-ref-c-z_stream
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-z_stream)))))
+  (define-c-struct-accessor-and-mutator
+    struct-z_stream-next_in-set!
+    struct-z_stream-next_in-ref
+    @OFFSETOF_Z_STREAM_NEXT_IN@
+    @SETTEROF_Z_STREAM_NEXT_IN@
+    @GETTEROF_Z_STREAM_NEXT_IN@)
+  (define-c-struct-accessor-and-mutator
+    struct-z_stream-avail_in-set!
+    struct-z_stream-avail_in-ref
+    @OFFSETOF_Z_STREAM_AVAIL_IN@
+    @SETTEROF_Z_STREAM_AVAIL_IN@
+    @GETTEROF_Z_STREAM_AVAIL_IN@)
+  (define-c-struct-accessor-and-mutator
+    struct-z_stream-total_in-set!
+    struct-z_stream-total_in-ref
+    @OFFSETOF_Z_STREAM_TOTAL_IN@
+    @SETTEROF_Z_STREAM_TOTAL_IN@
+    @GETTEROF_Z_STREAM_TOTAL_IN@)
+  (define-c-struct-accessor-and-mutator
+    struct-z_stream-next_out-set!
+    struct-z_stream-next_out-ref
+    @OFFSETOF_Z_STREAM_NEXT_OUT@
+    @SETTEROF_Z_STREAM_NEXT_OUT@
+    @GETTEROF_Z_STREAM_NEXT_OUT@)
+  (define-c-struct-accessor-and-mutator
+    struct-z_stream-avail_out-set!
+    struct-z_stream-avail_out-ref
+    @OFFSETOF_Z_STREAM_AVAIL_OUT@
+    @SETTEROF_Z_STREAM_AVAIL_OUT@
+    @GETTEROF_Z_STREAM_AVAIL_OUT@)
+  (define-c-struct-accessor-and-mutator
+    struct-z_stream-total_out-set!
+    struct-z_stream-total_out-ref
+    @OFFSETOF_Z_STREAM_TOTAL_OUT@
+    @SETTEROF_Z_STREAM_TOTAL_OUT@
+    @GETTEROF_Z_STREAM_TOTAL_OUT@)
+  (define-c-struct-accessor-and-mutator
+    struct-z_stream-msg-set!
+    struct-z_stream-msg-ref
+    @OFFSETOF_Z_STREAM_MSG@
+    @SETTEROF_Z_STREAM_MSG@
+    @GETTEROF_Z_STREAM_MSG@)
+  (define-c-struct-accessor-and-mutator
+    struct-z_stream-data_type-set!
+    struct-z_stream-data_type-ref
+    @OFFSETOF_Z_STREAM_DATA_TYPE@
+    @SETTEROF_Z_STREAM_DATA_TYPE@
+    @GETTEROF_Z_STREAM_DATA_TYPE@)
+  (define-c-struct-accessor-and-mutator
+    struct-z_stream-adler-set!
+    struct-z_stream-adler-ref
+    @OFFSETOF_Z_STREAM_ADLER@
+    @SETTEROF_Z_STREAM_ADLER@
+    @GETTEROF_Z_STREAM_ADLER@)
+  (define-c-struct-accessor-and-mutator
+    struct-z_stream-zalloc-set!
+    struct-z_stream-zalloc-ref
+    @OFFSETOF_Z_STREAM_ZALLOC@
+    @SETTEROF_Z_STREAM_ZALLOC@
+    @GETTEROF_Z_STREAM_ZALLOC@)
+  (define-c-struct-accessor-and-mutator
+    struct-z_stream-zfree-set!
+    struct-z_stream-zfree-ref
+    @OFFSETOF_Z_STREAM_ZFREE@
+    @SETTEROF_Z_STREAM_ZFREE@
+    @GETTEROF_Z_STREAM_ZFREE@)
+  (define-c-struct-accessor-and-mutator
+    struct-z_stream-opaque-set!
+    struct-z_stream-opaque-ref
+    @OFFSETOF_Z_STREAM_OPAQUE@
+    @SETTEROF_Z_STREAM_OPAQUE@
+    @GETTEROF_Z_STREAM_OPAQUE@)
+  (define sizeof-gz_header @SIZEOF_GZ_HEADER@)
+  (define alignof-gz_header @ALIGNOF_GZ_HEADER@)
+  (define strideof-gz_header @STRIDEOF_GZ_HEADER@)
+  (define-syntax
+    sizeof-gz_header-array
+    (syntax-rules
+      ()
+      ((_ ?number-of-elements)
+       (* strideof-gz_header ?number-of-elements))))
+  (define-syntax
+    array-ref-c-gz_header
+    (syntax-rules
+      ()
+      ((_ ?pointer ?index)
+       (pointer-add
+         ?pointer
+         (* ?index strideof-gz_header)))))
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-text-set!
+    struct-gz_header-text-ref
+    @OFFSETOF_GZ_HEADER_TEXT@
+    @SETTEROF_GZ_HEADER_TEXT@
+    @GETTEROF_GZ_HEADER_TEXT@)
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-time-set!
+    struct-gz_header-time-ref
+    @OFFSETOF_GZ_HEADER_TIME@
+    @SETTEROF_GZ_HEADER_TIME@
+    @GETTEROF_GZ_HEADER_TIME@)
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-xflags-set!
+    struct-gz_header-xflags-ref
+    @OFFSETOF_GZ_HEADER_XFLAGS@
+    @SETTEROF_GZ_HEADER_XFLAGS@
+    @GETTEROF_GZ_HEADER_XFLAGS@)
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-os-set!
+    struct-gz_header-os-ref
+    @OFFSETOF_GZ_HEADER_OS@
+    @SETTEROF_GZ_HEADER_OS@
+    @GETTEROF_GZ_HEADER_OS@)
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-extra-set!
+    struct-gz_header-extra-ref
+    @OFFSETOF_GZ_HEADER_EXTRA@
+    @SETTEROF_GZ_HEADER_EXTRA@
+    @GETTEROF_GZ_HEADER_EXTRA@)
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-extra_len-set!
+    struct-gz_header-extra_len-ref
+    @OFFSETOF_GZ_HEADER_EXTRA_LEN@
+    @SETTEROF_GZ_HEADER_EXTRA_LEN@
+    @GETTEROF_GZ_HEADER_EXTRA_LEN@)
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-extra_max-set!
+    struct-gz_header-extra_max-ref
+    @OFFSETOF_GZ_HEADER_EXTRA_MAX@
+    @SETTEROF_GZ_HEADER_EXTRA_MAX@
+    @GETTEROF_GZ_HEADER_EXTRA_MAX@)
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-name-set!
+    struct-gz_header-name-ref
+    @OFFSETOF_GZ_HEADER_NAME@
+    @SETTEROF_GZ_HEADER_NAME@
+    @GETTEROF_GZ_HEADER_NAME@)
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-name_max-set!
+    struct-gz_header-name_max-ref
+    @OFFSETOF_GZ_HEADER_NAME_MAX@
+    @SETTEROF_GZ_HEADER_NAME_MAX@
+    @GETTEROF_GZ_HEADER_NAME_MAX@)
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-comment-set!
+    struct-gz_header-comment-ref
+    @OFFSETOF_GZ_HEADER_COMMENT@
+    @SETTEROF_GZ_HEADER_COMMENT@
+    @GETTEROF_GZ_HEADER_COMMENT@)
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-comm_max-set!
+    struct-gz_header-comm_max-ref
+    @OFFSETOF_GZ_HEADER_COMM_MAX@
+    @SETTEROF_GZ_HEADER_COMM_MAX@
+    @GETTEROF_GZ_HEADER_COMM_MAX@)
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-hcrc-set!
+    struct-gz_header-hcrc-ref
+    @OFFSETOF_GZ_HEADER_HCRC@
+    @SETTEROF_GZ_HEADER_HCRC@
+    @GETTEROF_GZ_HEADER_HCRC@)
+  (define-c-struct-accessor-and-mutator
+    struct-gz_header-done-set!
+    struct-gz_header-done-ref
+    @OFFSETOF_GZ_HEADER_DONE@
+    @SETTEROF_GZ_HEADER_DONE@
+    @GETTEROF_GZ_HEADER_DONE@)
+  (define ZLIB_VERNUM @VALUEOF_ZLIB_VERNUM@)
+  (define ZLIB_VERSION "@STRINGOF_ZLIB_VERSION@")
+  (define Z_NO_FLUSH @VALUEOF_Z_NO_FLUSH@)
+  (define
+    Z_PARTIAL_FLUSH
+    @VALUEOF_Z_PARTIAL_FLUSH@)
+  (define Z_SYNC_FLUSH @VALUEOF_Z_SYNC_FLUSH@)
+  (define Z_FULL_FLUSH @VALUEOF_Z_FULL_FLUSH@)
+  (define Z_FINISH @VALUEOF_Z_FINISH@)
+  (define Z_BLOCK @VALUEOF_Z_BLOCK@)
+  (define Z_TREES @VALUEOF_Z_TREES@)
+  (define Z_OK @VALUEOF_Z_OK@)
+  (define Z_STREAM_END @VALUEOF_Z_STREAM_END@)
+  (define Z_NEED_DICT @VALUEOF_Z_NEED_DICT@)
+  (define Z_ERRNO @VALUEOF_Z_ERRNO@)
+  (define Z_STREAM_ERROR @VALUEOF_Z_STREAM_ERROR@)
+  (define Z_DATA_ERROR @VALUEOF_Z_DATA_ERROR@)
+  (define Z_MEM_ERROR @VALUEOF_Z_MEM_ERROR@)
+  (define Z_BUF_ERROR @VALUEOF_Z_BUF_ERROR@)
+  (define
+    Z_VERSION_ERROR
+    @VALUEOF_Z_VERSION_ERROR@)
+  (define
+    Z_NO_COMPRESSION
+    @VALUEOF_Z_NO_COMPRESSION@)
+  (define Z_BEST_SPEED @VALUEOF_Z_BEST_SPEED@)
+  (define
+    Z_BEST_COMPRESSION
+    @VALUEOF_Z_BEST_COMPRESSION@)
+  (define
+    Z_DEFAULT_COMPRESSION
+    @VALUEOF_Z_DEFAULT_COMPRESSION@)
+  (define Z_FILTERED @VALUEOF_Z_FILTERED@)
+  (define Z_HUFFMAN_ONLY @VALUEOF_Z_HUFFMAN_ONLY@)
+  (define Z_RLE @VALUEOF_Z_RLE@)
+  (define Z_FIXED @VALUEOF_Z_FIXED@)
+  (define
+    Z_DEFAULT_STRATEGY
+    @VALUEOF_Z_DEFAULT_STRATEGY@)
+  (define Z_BINARY @VALUEOF_Z_BINARY@)
+  (define Z_TEXT @VALUEOF_Z_TEXT@)
+  (define Z_ASCII @VALUEOF_Z_ASCII@)
+  (define Z_UNKNOWN @VALUEOF_Z_UNKNOWN@)
+  (define Z_DEFLATED @VALUEOF_Z_DEFLATED@)
+  (define Z_NULL @VALUEOF_Z_NULL@)
+  (define
+    ZLIB_SHARED_OBJECT
+    "@ZLIB_SHARED_OBJECT@"))
+
+
+;;; end of file

@@ -7,7 +7,7 @@
 ;;;
 ;;;
 ;;;
-;;;Copyright (c) 2008, 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2008-2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -26,11 +26,11 @@
 (import (rnrs)
   (larceny compiler))
 
-(compile-library "foreign/zlib/sizeof.sls"
-		 "foreign/zlib/sizeof.larceny.slfasl")
+(compile-library "compression/zlib/sizeof.sls"
+		 "compression/zlib/sizeof.larceny.slfasl")
 
-(compile-library "foreign/zlib.sls"
-		 "foreign/zlib.larceny.slfasl")
+(compile-library "compression/zlib.sls"
+		 "compression/zlib.larceny.slfasl")
 
 
 ;;; end of file

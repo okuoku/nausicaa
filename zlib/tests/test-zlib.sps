@@ -25,12 +25,11 @@
 
 
 (import (nausicaa)
-  (foreign ffi)
-  (foreign ffi sizeof)
-  (foreign memory)
-  (foreign cstrings)
-  (foreign compression zlib)
-  (compensations)
+  (ffi)
+  (ffi sizeof)
+  (ffi memory)
+  (ffi cstrings)
+  (compression zlib)
   (checks)
   (formations))
 
@@ -215,46 +214,50 @@ total_out:\t~s\n"
 		 (input.ptr	original.ptr)
 		 (output.len	(compressBound input.len))
 		 (output.ptr	(malloc-block/c output.len))
-		 (zstream	(malloc-block/c sizeof-z_stream)))
+		 ((zstream <struct-z_stream> <c-struct>)
+		  (make <struct-z_stream>
+		    (malloc-block/c sizeof-z_stream))))
 
-	    (struct-z_stream-next_in-set!   zstream input.ptr)
-	    (struct-z_stream-avail_in-set!  zstream input.len)
+	    (set! zstream.next_in  input.ptr)
+	    (set! zstream.avail_in input.len)
 
-	    (struct-z_stream-next_out-set!  zstream output.ptr)
-	    (struct-z_stream-avail_out-set! zstream output.len)
+	    (set! zstream.next_out  output.ptr)
+	    (set! zstream.avail_out output.len)
 
-	    (struct-z_stream-zalloc-set! zstream pointer-null)
-	    (struct-z_stream-zfree-set!  zstream pointer-null)
-	    (struct-z_stream-opaque-set! zstream pointer-null)
+	    (set! zstream.zalloc pointer-null)
+	    (set! zstream.zfree  pointer-null)
+	    (set! zstream.opaque pointer-null)
 
-	    (deflateInit zstream Z_BEST_COMPRESSION)
-	    (deflate zstream Z_FINISH)
-	    (deflateEnd zstream)
+	    (deflateInit zstream.pointer Z_BEST_COMPRESSION)
+	    (deflate zstream.pointer Z_FINISH)
+	    (deflateEnd zstream.pointer)
 
-	    (set! compressed.len (struct-z_stream-total_out-ref zstream))
+	    (set! compressed.len zstream.total_out)
 	    (set! compressed.ptr output.ptr))
 
 	  (let* ((input.len	compressed.len)
 		 (input.ptr	compressed.ptr)
 		 (output.len	original.len)
 		 (output.ptr	(malloc-block/c output.len))
-		 (zstream	(malloc-block/c sizeof-z_stream)))
+		 ((zstream <struct-z_stream> <c-struct>)
+		  (make <struct-z_stream>
+		    (malloc-block/c sizeof-z_stream))))
 
-	    (struct-z_stream-next_in-set!   zstream input.ptr)
-	    (struct-z_stream-avail_in-set!  zstream input.len)
+	    (set! zstream.next_in  input.ptr)
+	    (set! zstream.avail_in input.len)
 
-	    (struct-z_stream-next_out-set!  zstream output.ptr)
-	    (struct-z_stream-avail_out-set! zstream output.len)
+	    (set! zstream.next_out  output.ptr)
+	    (set! zstream.avail_out output.len)
 
-	    (struct-z_stream-zalloc-set! zstream pointer-null)
-	    (struct-z_stream-zfree-set!  zstream pointer-null)
-	    (struct-z_stream-opaque-set! zstream pointer-null)
+	    (set! zstream.zalloc pointer-null)
+	    (set! zstream.zfree  pointer-null)
+	    (set! zstream.opaque pointer-null)
 
-	    (inflateInit zstream)
-	    (inflate zstream Z_FINISH)
-	    (inflateEnd zstream)
+	    (inflateInit zstream.pointer)
+	    (inflate zstream.pointer Z_FINISH)
+	    (inflateEnd zstream.pointer)
 
-	    (set! decompressed.len (struct-z_stream-total_out-ref zstream))
+	    (set! decompressed.len zstream.total_out)
 	    (set! decompressed.ptr output.ptr))
 
 	  (and (= original.len decompressed.len)
@@ -279,51 +282,59 @@ total_out:\t~s\n"
 		 (input.ptr	original.ptr)
 		 (output.len	(compressBound input.len))
 		 (output.ptr	(malloc-block/c output.len))
-		 (zstream	(malloc-block/c sizeof-z_stream)))
+		 ((zstream <struct-z_stream> <c-struct>)
+		  (make <struct-z_stream>
+		    (malloc-block/c sizeof-z_stream))))
 
-	    (struct-z_stream-next_in-set!   zstream input.ptr)
-	    (struct-z_stream-avail_in-set!  zstream input.len)
+	    (set! zstream.next_in  input.ptr)
+	    (set! zstream.avail_in input.len)
 
-	    (struct-z_stream-next_out-set!  zstream output.ptr)
-	    (struct-z_stream-avail_out-set! zstream output.len)
+	    (set! zstream.next_out  output.ptr)
+	    (set! zstream.avail_out output.len)
 
-	    (struct-z_stream-zalloc-set! zstream pointer-null)
-	    (struct-z_stream-zfree-set!  zstream pointer-null)
-	    (struct-z_stream-opaque-set! zstream pointer-null)
+	    (set! zstream.zalloc pointer-null)
+	    (set! zstream.zfree  pointer-null)
+	    (set! zstream.opaque pointer-null)
 
-	    (deflateInit2 zstream Z_BEST_COMPRESSION
+	    (deflateInit2 zstream.pointer Z_BEST_COMPRESSION
 	      Z_DEFLATED	  ; method
 	      10		  ; windowBits
 	      3			  ; memLevel
 	      Z_DEFAULT_STRATEGY) ; strategy
 
-	    (deflateSetDictionary zstream dictionary.ptr dictionary.len)
+	    (deflateSetDictionary zstream.pointer dictionary.ptr dictionary.len)
 
-	    (deflate zstream Z_FINISH)
-	    (deflateEnd zstream)
+	    (deflate zstream.pointer Z_FINISH)
+	    (deflateEnd zstream.pointer)
 
-	    (set! compressed.len (struct-z_stream-total_out-ref zstream))
+	    (set! compressed.len zstream.total_out)
 	    (set! compressed.ptr output.ptr))
 
 	  (let* ((input.len	compressed.len)
 		 (input.ptr	compressed.ptr)
 		 (output.len	original.len)
 		 (output.ptr	(malloc-block/c output.len))
-		 (zstream	(malloc-block/c sizeof-z_stream)))
+		 ((zstream <struct-z_stream> <c-struct>)
+		  (make <struct-z_stream>
+		    (malloc-block/c sizeof-z_stream))))
 
-	    (struct-z_stream-next_in-set!   zstream input.ptr)
-	    (struct-z_stream-avail_in-set!  zstream input.len)
+	    (set! zstream.next_in  input.ptr)
+	    (set! zstream.avail_in input.len)
 
-	    (struct-z_stream-next_out-set!  zstream output.ptr)
-	    (struct-z_stream-avail_out-set! zstream output.len)
+	    (set! zstream.next_out  output.ptr)
+	    (set! zstream.avail_out output.len)
 
-	    (inflateInit2 zstream 10)
-	    (assert (= Z_NEED_DICT (inflate zstream Z_FINISH)))
-	    (inflateSetDictionary zstream dictionary.ptr dictionary.len)
-	    (inflate zstream Z_FINISH)
-	    (inflateEnd zstream)
+	    (set! zstream.zalloc pointer-null)
+	    (set! zstream.zfree  pointer-null)
+	    (set! zstream.opaque pointer-null)
 
-	    (set! decompressed.len (struct-z_stream-total_out-ref zstream))
+	    (inflateInit2 zstream.pointer 10)
+	    (assert (= Z_NEED_DICT (inflate zstream.pointer Z_FINISH)))
+	    (inflateSetDictionary zstream.pointer dictionary.ptr dictionary.len)
+	    (inflate zstream.pointer Z_FINISH)
+	    (inflateEnd zstream.pointer)
+
+	    (set! decompressed.len zstream.total_out)
 	    (set! decompressed.ptr output.ptr))
 
 	  (and (= original.len decompressed.len)
@@ -361,26 +372,28 @@ total_out:\t~s\n"
 		 (= 0 (string-length message))))))
     => #t)
 
-  (if (string=? "1.2.4" (cstring->string (zlibVersion)))
+  (let ((v (cstring->string (zlibVersion))))
+    (if (or (string=? "1.2.4" v) (string=? "1.2.5" v))
+	(check
+	    (with-compensations
+	      (let-values (((F errno)	(gzopen* "scrappydappydoo.gz" "rb"))
+			   ((ptr)		(malloc-block/c original.len)))
+		(gzread F ptr original.len)
+		(let-values (((code message) (gzerror* F)))
+		  (gzclose F)
+		  (list code message))))
+	  => `(0 ""))
       (check
-	(with-compensations
-	  (let-values (((F errno)	(gzopen* "scrappydappydoo.gz" "rb"))
-		       ((ptr)		(malloc-block/c original.len)))
-	    (gzread F ptr original.len)
-	    (let-values (((code message) (gzerror* F)))
-	      (gzclose F)
-	      (list code message))))
-	=> `(0 ""))
-    (check
-      (with-compensations
-	(guard (E (else #f)) (delete-file "scrappydappydoo.gz"))
-	(let-values (((F errno)	(gzopen* "scrappydappydoo.gz" "rb"))
-		     ((ptr)	(malloc-block/c original.len)))
-	  (gzread F ptr original.len)
-	  (let-values (((code message) (gzerror* F)))
-	    (gzclose F)
-	    (list code message))))
-      => `(,Z_STREAM_ERROR "stream error")))
+	  (with-compensations
+	    (guard (E (else #f)) (delete-file "scrappydappydoo.gz"))
+	    (let-values (((F errno)	(gzopen* "scrappydappydoo.gz" "rb"))
+			 ((ptr)	(malloc-block/c original.len)))
+	      (gzread F ptr original.len)
+	      (let-values (((code message) (gzerror* F)))
+		(gzclose F)
+		(list code message))))
+	=> `(,Z_STREAM_ERROR "stream error")))
+    #f)
 
   #t)
 

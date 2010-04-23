@@ -31,8 +31,8 @@ dnl --------------------------------------------------------------------
 dnl Setup.
 dnl --------------------------------------------------------------------
 
-AC_INIT([nausicaa-zlib],[0.1b5],[marco.maggi-ipsu@poste.it])
-DS_BEGIN([./src/libraries/foreign/compression/zlib.sls])
+AC_INIT([nausicaa-zlib],[0.2a0],[marco.maggi-ipsu@poste.it])
+DS_BEGIN([./src/libraries/compression/zlib.sls])
 AC_CANONICAL_TARGET
 NAUSICAA_BEGIN
 NAUSICAA_SYSTEM_SETUP
@@ -61,7 +61,7 @@ dnl --------------------------------------------------------------------
 dnl Done.
 dnl --------------------------------------------------------------------
 
-AC_CONFIG_FILES([../src/libraries/foreign/compression/zlib/sizeof.sls:src/libraries/foreign/compression/zlib/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/compression/zlib/sizeof.sls:src/libraries/compression/zlib/sizeof.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END
