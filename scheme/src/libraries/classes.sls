@@ -35,6 +35,7 @@
     define/with				define/with*
     lambda/with				lambda/with*
     case-lambda/with			case-lambda/with*
+    receive/with
     let-fields				let*-fields
     letrec-fields			letrec*-fields
     with-fields
@@ -79,7 +80,9 @@
 			     virtual-fields methods method predicate)
 
       ((_ (?name ?constructor ?predicate) ?clause ...)
-       (for-all identifier? (list (syntax ?name) (syntax ?constructor) (syntax ?predicate)))
+;;;This is to work around a bug in Ikarus 1870.
+;;;       (for-all identifier? #'(?name ?constructor ?predicate))
+       (for-all symbol? (syntax->datum #'(?name ?constructor ?predicate)))
        #'(%define-class/sort-clauses
 	  (define-class (?name ?constructor ?predicate) ?clause ...)
 	  (?name ?constructor ?predicate)
@@ -1920,13 +1923,99 @@
       ((_ () ?body0 ?body ...)
        #'(begin ?body0 ?body ...)))))
 
+
+;;;; LET processing
+
+(define no-loop #f)
+
+(define-syntax %do-let/no-types
+  ;;Process a LET form in which  all the bindings are untyped.  Hand the
+  ;;rest to %DO-LET/ADD-TOP.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ;;No bindings.  Expand to ?LET  to allow <definition> forms in the
+      ;;body.
+      ((_ ?let ?let-fields ?loop () ?body0 ?body ...)
+       (if (free-identifier=? #'no-loop #'?loop)
+	   #'(?let () ?body0 ?body ...)
+	 #'(?let ?loop () ?body0 ?body ...)))
+
+      ;;All bindings are without types.
+      ((_ ?let ?let-fields ?loop ((?var ?init) ...) ?body0 ?body ...)
+;;;This is to work around a bug in Ikarus 1870.
+;;;       (for-all identifier? #'(?var ...))
+       (for-all symbol? (syntax->datum #'(?var ...)))
+       (if (free-identifier=? #'no-loop #'?loop)
+	   #'(?let ((?var ?init) ...) ?body0 ?body ...)
+	 #'(?let ?loop ((?var ?init) ...) ?body0 ?body ...)))
+
+      ;;At list one binding has types.
+      ((_ ?let ?let-fields ?loop ((?var ?init) ...) ?body0 ?body ...)
+       #'(%do-let/add-top ?let ?let-fields ?loop () ((?var ?init) ...) ?body0 ?body ...))
+      )))
+
+(define-syntax %do-let/add-top
+  ;;Add <top>  to the  bindings with no  type.  Then hand  everything to
+  ;;?LET-FIELD.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+
+    ;;No more bindings to collect.
+    ((_ ?let ?let-fields ?loop (?bind ...) () ?body0 ?body ...)
+     (if (free-identifier=? #'let #'?let)
+	 #'(?let-fields ?loop (?bind ...) ?body0 ?body ...)
+       #'(?let-fields (?bind ...) ?body0 ?body ...)))
+
+    ;;Add <top> as type to an untyped binding.
+    ((_ ?let ?let-fields ?loop (?bind ...) ((?var0 ?init0) (?var ?init) ...) ?body0 ?body ...)
+     (identifier? #'?var0)
+     #'(%do-let/add-top ?let ?let-fields ?loop
+		       (?bind ... ((?var0 <top>) ?init0))
+		       ((?var ?init) ...)
+		       ?body0 ?body ...))
+
+    ;;Collect a typed binding.
+    ((_ ?let ?let-fields ?loop (?bind ...) ((?var0 ?init0) (?var ?init) ...) ?body0 ?body ...)
+     #'(%do-let/add-top ?let ?let-fields ?loop
+		       (?bind ... (?var0 ?init0))
+		       ((?var ?init) ...)
+		       ?body0 ?body ...))
+    )))
+
+;;; --------------------------------------------------------------------
+
 (define-syntax let-fields
   (syntax-rules ()
-    ((_ (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
-     (let ((?var ?init) ...)
-       (with-fields ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))))
+    ((_ ?loop ((?var ?init) ...) ?body0 ?body ...)
+     (%do-let/no-types let %let-fields ?loop ((?var ?init) ...) ?body0 ?body ...))
+    ((_ ((?var ?init) ...) ?body0 ?body ...)
+     (%do-let/no-types let %let-fields no-loop ((?var ?init) ...) ?body0 ?body ...))))
+
+(define-syntax %let-fields
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ((_ ?loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
+       (free-identifier=? #'no-loop #'?loop)
+       #'(let ((?var ?init) ...)
+	   (with-fields ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))
+
+      ((_ ?loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
+       #'(let ?loop ((?var ?init) ...)
+	   (with-fields ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))
+      )))
+
+;;; --------------------------------------------------------------------
 
 (define-syntax let*-fields
+  (syntax-rules ()
+    ((_ ((?var ?init) ...) ?body0 ?body ...)
+     (%do-let/no-types let* %let*-fields no-loop ((?var ?init) ...) ?body0 ?body ...))))
+
+(define-syntax %let*-fields
   (lambda (stx)
     (define (duplicated-ids? ell)
       (if (null? ell)
@@ -1960,7 +2049,14 @@
       ((_ () ?body0 ?body ...)
        #'(begin ?body0 ?body ...)))))
 
+;;; --------------------------------------------------------------------
+
 (define-syntax letrec-fields
+  (syntax-rules ()
+    ((_ ((?var ?init) ...) ?body0 ?body ...)
+     (%do-let/no-types letrec %letrec-fields no-loop ((?var ?init) ...) ?body0 ?body ...))))
+
+(define-syntax %letrec-fields
   (syntax-rules ()
     ((_ (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
      (let ((?var #f) ...)
@@ -1968,7 +2064,14 @@
 	 (set! ?var ?init) ...
 	 ?body0 ?body ...)))))
 
+;;; --------------------------------------------------------------------
+
 (define-syntax letrec*-fields
+  (syntax-rules ()
+    ((_ ((?var ?init) ...) ?body0 ?body ...)
+     (%do-let/no-types letrec* %letrec*-fields no-loop ((?var ?init) ...) ?body0 ?body ...))))
+
+(define-syntax %letrec*-fields
   ;;The  difference between  LETREC and  LETREC*  is only  the order  of
   ;;evaluation of ?INIT, which is enforced in LETREC*.
   ;;
@@ -2075,6 +2178,13 @@
     ;;No more arguments.
     ((_ () ())
      (values))))
+
+(define-syntax receive/with
+  (syntax-rules ()
+    ((_ ?formals ?expression ?form0 ?form ...)
+     (call-with-values
+	 (lambda () ?expression)
+       (lambda/with ?formals ?form0 ?form ...)))))
 
 
 (define-syntax case-lambda/with

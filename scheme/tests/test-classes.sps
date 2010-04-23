@@ -1332,6 +1332,18 @@
 	(list r.a r.g s.a s.d))
     => '(1 7 10 40))
 
+
+  (check
+      (let-fields ((a 1) (b 2))
+	(list a b))
+    => '(1 2))
+
+  (check
+      (let-fields ((a 1)
+		   ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
+	(list a r.b))
+    => '(1 2))
+
 ;;; --------------------------------------------------------------------
 ;;; let*-fields
 
@@ -1374,6 +1386,17 @@
 		    ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
 	(list r.a r.g s.a s.d))
     => '(1 7 10 40))
+
+  (check
+      (let*-fields ((a 1) (b 2))
+	(list a b))
+    => '(1 2))
+
+  (check
+      (let*-fields ((a 1)
+		    ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
+	(list a r.b))
+    => '(1 2))
 
 ;;; --------------------------------------------------------------------
 ;;; letrec-fields
@@ -1449,6 +1472,17 @@
 		      ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
 	(list r.a r.g s.a s.d))
     => '(1 7 10 40))
+
+  (check
+      (letrec-fields ((a 1) (b 2))
+	(list a b))
+    => '(1 2))
+
+  (check
+      (letrec-fields ((a 1)
+		      ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
+	(list a r.b))
+    => '(1 2))
 
 ;;; --------------------------------------------------------------------
 ;;; letrec*-fields
@@ -1557,6 +1591,17 @@
 		       ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
 	(list r.a r.g s.a s.d))
     => '(1 7 10 40))
+
+  (check
+      (letrec*-fields ((a 1) (b 2))
+	(list a b))
+    => '(1 2))
+
+  (check
+      (letrec*-fields ((a 1)
+		       ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
+	(list a r.b))
+    => '(1 2))
 
   #t)
 

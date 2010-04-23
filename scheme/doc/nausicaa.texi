@@ -302,6 +302,14 @@ Revised^6 Report on the algorithmic language Scheme
 <\THING\3>
 @end macro
 
+@macro metan{THING}
+<\THING\N>
+@end macro
+
+@macro metani{THING}
+<\THING\N+1>
+@end macro
+
 @c ------------------------------------------------------------
 @c To be used inside @example environment and @samp directives.
 
@@ -325,6 +333,14 @@ Revised^6 Report on the algorithmic language Scheme
 <\THING\3>
 @end macro
 
+@macro cmetan{THING}
+<\THING\N>
+@end macro
+
+@macro cmetani{THING}
+<\THING\N+1>
+@end macro
+
 @c ------------------------------------------------------------
 @c To be used inside argument lists.
 
@@ -346,6 +362,14 @@ Revised^6 Report on the algorithmic language Scheme
 
 @macro ametaiii{THING}
 <\THING\3>
+@end macro
+
+@macro ametan{THING}
+<\THING\N>
+@end macro
+
+@macro ametani{THING}
+<\THING\N+1>
 @end macro
 
 @c ------------------------------------------------------------
@@ -930,11 +954,12 @@ The @library{nausicaa} language
 
 * nausicaa libs::               Component libraries.
 * nausicaa functions::          Normalised functions.
-* nausicaa macros::             Extended syntaxes.
+* nausicaa syntax::             Extended syntaxes.
 * nausicaa environment::        Accessing environment variables.
 
 More condition types
 
+* conditions define::           Defining new condition types.
 * conditions mismatch::         General mismatch error.
 * conditions num-args::         Wrong number of arguments error.
 
@@ -19053,7 +19078,7 @@ import specification:
 @menu
 * nausicaa libs::               Component libraries.
 * nausicaa functions::          Normalised functions.
-* nausicaa macros::             Extended syntaxes.
+* nausicaa syntax::             Extended syntaxes.
 * nausicaa environment::        Accessing environment variables.
 @end menu
 
@@ -19169,17 +19194,33 @@ symbol: Raise an assertion violation.
 @end defun
 
 @c page
-@node nausicaa macros
+@node nausicaa syntax
 @section Extended syntaxes
 
 
-The @func{define}, @func{lambda} and @func{case-lambda} bindings from
-@library{rnrs} are replaced by the @func{define/with},
-@func{lambda/with} and @func{case-lambda/with} bindings from
-@library{classes} renamed to @func{define}.
+The following syntaxes:
 
-@func{define/with}, @func{lambda/with} and @func{case-lambda/with} are
-still exported by @library{nausicaa}.
+@example
+define
+lambda                  case-lambda
+let                     let*
+letrec                  letrec*
+@end example
+
+@noindent
+from @library{rnrs} are replaced by the following syntaxes from
+@library{classes}:
+
+@example
+define/with
+lambda/with             case-lambda/with
+let-fields              let*-fields
+letrec-fields           letrec*-fields
+@end example
+
+@noindent
+the original bindings from @library{classes} are still exported by
+@library{nausicaa}.
 
 @c page
 @node nausicaa environment
@@ -19666,93 +19707,93 @@ Examples:
 @section Binding constructs
 
 
-@deffn Syntax and-let* @var{formals} . @var{body}
+@deffn Syntax and-let* @ameta{formals} . @ameta{body}
 Like an ordinary @func{and}, an @func{and-let*} special form evaluates
-the expressions in @var{formals} in order until the first one that
+the expressions in @meta{formals} in order until the first one that
 yields @false{}.  Unlike @func{and}, however, a non--@false{} result of
 one expression can be bound to a fresh variable and used in the
 subsequent expressions.  @func{and-let*} is a cross--breed between
 @func{let*} and @func{and}.
 
-@var{formals} can be the empty list, or a list of the following
+@meta{formals} can be the empty list, or a list of the following
 elements:
 
 @table @code
-@item (@var{varname} @var{expression})
-evaluate @var{expression}; if the result is @false{}: return @false{}
-immediately, else bind the result to @var{varname}; @var{varname} is
-available to the rest of the @var{expressions}, and the @code{BODY};
+@item (@cmeta{varname} @cmeta{expression})
+evaluate @meta{expression}; if the result is @false{}: return @false{}
+immediately, else bind the result to @meta{varname}; @meta{varname} is
+available to the rest of the @meta{expressions}, and the @code{BODY};
 
-@item @var{expression}
-evaluate @var{expression}; if the result is @false{}: return @false{}
+@item @cmeta{expression}
+evaluate @meta{expression}; if the result is @false{}: return @false{}
 immediately;
 
-@item @var{bound-variable}
-look up @var{bound-variable}; if the value is @false{}; return @false{}
-immediately; @var{bound-varname} is available to the rest of the
-@var{expressions}, and the @var{body}.
+@item @cmeta{bound-variable}
+look up @meta{bound-variable}; if the value is @false{}; return @false{}
+immediately; @meta{bound-varname} is available to the rest of the
+@meta{expressions}, and the @meta{body}.
 @end table
 
-If all the @var{expression}s and @var{bound-variable}s in @var{formals}
-evaluate to true, the forms in @var{body} are evaluated and the result
+If all the @meta{expression}s and @meta{bound-variable}s in @meta{formals}
+evaluate to true, the forms in @meta{body} are evaluated and the result
 of the last one returned.
 @end deffn
 
 @c ------------------------------------------------------------
 
-@deffn Syntax begin0-let ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
-@deffnx Syntax begin0-let (((@varo{var} ...) @varo{expr}) ((@var{var} ...) @var{expr}) ...) @varo{form} @var{form} ...
-Bind the result of @var{expr} to @var{var} as in @func{let} or
+@deffn Syntax begin0-let ((@ametao{var} @ametao{expr}) (@ameta{var} @ameta{expr}) ...) @ametao{form} @ameta{form} ...
+@deffnx Syntax begin0-let (((@ametao{var} ...) @ametao{expr}) ((@ameta{var} ...) @ameta{expr}) ...) @ametao{form} @ameta{form} ...
+Bind the result of @meta{expr} to @meta{var} as in @func{let} or
 @func{let-values}, evaluate the forms in the resulting environment, then
-return @varo{var} possibly as multiple values.
+return @metao{var} possibly as multiple values.
 @end deffn
 
 
-@deffn Syntax begin0-let* ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
-@deffnx Syntax begin0-letrec ((@varo{var} @varo{expr}) (@var{var} @var{expr}) ...) @varo{form} @var{form} ...
+@deffn Syntax begin0-let* ((@ametao{var} @ametao{expr}) (@ameta{var} @ameta{expr}) ...) @ametao{form} @ameta{form} ...
+@deffnx Syntax begin0-letrec ((@ametao{var} @ametao{expr}) (@ameta{var} @ameta{expr}) ...) @ametao{form} @ameta{form} ...
 Like @func{begin0-let}, but bind the identifiers using @func{let*} and
 @func{letrec}.
 @end deffn
 
 @c ------------------------------------------------------------
 
-@deffn Syntax receive @var{formals} @var{expression} . @var{body}
+@deffn Syntax receive @ameta{formals} @ameta{expression} . @ameta{body}
 The mechanism provided for binding identifiers to the values of a
 multiple--valued expression are @func{call-with-values},
 @func{let-values}, @func{let*-values}.  @func{receive} is another
 concise and readable syntax for creating such bindings.
 
-@var{formals} can have any of 3 forms:
+@meta{formals} can have any of 3 forms:
 
 @table @code
-@item (variable1 ... variablen)
+@item (@cmetai{variable} ... @cmetan{variable})
 The environment in which the @func{receive}--expression is evaluated is
-extended by binding @var{variable1}, ..., @var{variablen} to fresh
-locations.  The @var{expression} is evaluated, and its values are stored
-into those locations (it is an error if @var{expression} does not have
-exactly @var{n} values).
+extended by binding @metai{variable}, ..., @metan{variable} to fresh
+locations.  The @meta{expression} is evaluated, and its values are
+stored into those locations (it is an error if @meta{expression} does
+not have exactly @math{N} values).
 
-@item variable
+@item @cmeta{variable}
 The environment in which the @func{receive}--expression is evaluated is
-extended by binding @var{variable} to a fresh location.  The
-@var{expression} is evaluated, its values are converted into a newly
+extended by binding @meta{variable} to a fresh location.  The
+@meta{expression} is evaluated, its values are converted into a newly
 allocated list, and the list is stored in the location bound to
-@var{variable}.
+@meta{variable}.
 
-@item (variable1 ... variablen . variablen+1)
+@item (@cmetai{variable} ... @cmetan{variable} . @cmetani{variable})
 The environment in which the @func{receive}--expression is evaluated is
-extended by binding @var{variable1}, ..., @var{variablen+1} to fresh
-locations.  The @var{expression} is evaluated.  Its first @var{n} values
-are stored into the locations bound to @var{variable1}, ...,
-@var{variablen}.  Any remaining values are converted into a newly
+extended by binding @metai{variable}, ..., @metani{variable} to fresh
+locations.  The @meta{expression} is evaluated.  Its first @math{N}
+values are stored into the locations bound to @metai{variable}, ...,
+@metan{variable}.  Any remaining values are converted into a newly
 allocated list, which is stored into the location bound to
-@var{variablen+1} (it is an error if @var{expression} does not have at
-least @var{n} values.
+@metani{variable} (it is an error if @meta{expression} does not have at
+least @math{N} values.
 @end table
 
-In any case, the expressions in @var{body} are evaluated sequentially in
+In any case, the expressions in @meta{body} are evaluated sequentially in
 the extended environment.  The results of the last expression in the
-body are the values of the @var{receive}--expression.
+body are the values of the @meta{receive}--expression.
 @end deffn
 
 @c ------------------------------------------------------------
@@ -21146,11 +21187,25 @@ and duplication of names of methods is allowed, too:
 @subsection High--level fields and methods usage
 
 
-@deffn Syntax let-fields (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
+@deffn Syntax let-fields ((@ameta{var} @ameta{init}) ...) @ameta{body}
 Like @func{let} but automatically enclose the body in a
-@func{with-fields} syntax using the specified record types.  When a
-variable as no type: we can use @class{top} as its conventional record
-type name.
+@func{with-fields} syntax using the specified class types.  Each
+@meta{var} element can be one among:
+
+@example
+@ameta{id}
+(@ameta{id} @ametao{class name} @ameta{class name} ...)
+@end example
+
+@noindent
+in which: @meta{id} must be an identifier representing the variable
+name, @ameta{class name} must be an identifier representing a class
+name.
+
+If all the @meta{var} arguments are in the first form (untyped
+variable): @func{let-fields} defaults to @func{let} as defined by
+@rnrs{6}.  If at least one @meta{var} has type: the untyped ones default
+to bindings with @class{top} as conventional class type name.
 
 @example
 (define-class <fraction>
@@ -21172,14 +21227,30 @@ type name.
 @end deffn
 
 
-@deffn Syntax let*-fields (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
+@deffn Syntax let*-fields ((@ameta{var} @ameta{init}) ...) @ameta{body}
 Like @func{let*} but automatically enclose the body in a
-@func{with-fields} syntax using the specified record types.  Given two
-bindings @metai{var}, @metai{init} and @metaii{var}, @metaii{init}
-defined in sequence: @metaii{init} is evaluated in the region of the
-identifier syntaxes used to access the fields of @metai{var}.  When a
-variable as no type: we can use @class{top} as its conventional record
-type name.
+@func{with-fields} syntax using the specified class types.  Each
+@meta{var} element can be one among:
+
+@example
+@ameta{id}
+(@ameta{id} @ametao{class name} @ameta{class name} ...)
+@end example
+
+@noindent
+in which: @meta{id} must be an identifier representing the variable
+name, @ameta{class name} must be an identifier representing a class
+name.
+
+If all the @meta{var} arguments are in the first form (untyped
+variable): @func{let*-fields} defaults to @func{let*} as defined by
+@rnrs{6}.  If at least one @meta{var} has type: the untyped ones default
+to bindings with @class{top} as conventional class type name.
+
+Given two bindings @metai{var}, @metai{init} and @metaii{var},
+@metaii{init} defined in sequence: @metaii{init} is evaluated in the
+region of the identifier syntaxes used to access the fields of
+@metai{var}.
 
 @smallexample
 (define-class <fraction>
@@ -21204,10 +21275,26 @@ type name.
 
 @deffn Syntax letrec-fields (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{letrec} but automatically enclose the body in a
-@func{with-fields} syntax using the specified record types.  The
-@meta{init} expressions can contain references to the identifier
-syntaxes, as long as they are not resolved.  When a variable as no type:
-we can use @class{top} as its conventional record type name.
+@func{with-fields} syntax using the specified class types.  Each
+@meta{var} element can be one among:
+
+@example
+@ameta{id}
+(@ameta{id} @ametao{class name} @ameta{class name} ...)
+@end example
+
+@noindent
+in which: @meta{id} must be an identifier representing the variable
+name, @ameta{class name} must be an identifier representing a class
+name.
+
+If all the @meta{var} arguments are in the first form (untyped
+variable): @func{letrec-fields} defaults to @func{letrec} as defined by
+@rnrs{6}.  If at least one @meta{var} has type: the untyped ones default
+to bindings with @class{top} as conventional class type name.
+
+The @meta{init} expressions can contain references to the identifier
+syntaxes, as long as they are not resolved.
 
 @smallexample
 (define-class <alpha>
@@ -21232,10 +21319,26 @@ we can use @class{top} as its conventional record type name.
 
 @deffn Syntax letrec*-fields (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{letrec*} but automatically enclose the body in a
-@func{with-fields} syntax using the specified record types.  The
-@meta{init} expressions can contain references to the identifier
-syntaxes.  When a variable as no type: we can use @class{top} as its
-conventional record type name.
+@func{with-fields} syntax using the specified class types.  Each
+@meta{var} element can be one among:
+
+@example
+@ameta{id}
+(@ameta{id} @ametao{class name} @ameta{class name} ...)
+@end example
+
+@noindent
+in which: @meta{id} must be an identifier representing the variable
+name, @ameta{class name} must be an identifier representing a class
+name.
+
+If all the @meta{var} arguments are in the first form (untyped
+variable): @func{letrec*-fields} defaults to @func{letrec*} as defined
+by @rnrs{6}.  If at least one @meta{var} has type: the untyped ones
+default to bindings with @class{top} as conventional class type name.
+
+The @meta{init} expressions can contain references to the identifier
+syntaxes.
 
 @smallexample
 (define-class <alpha>
@@ -21274,7 +21377,7 @@ identifier, as in @func{lambda}, or a list of the form:
 in which case the @meta{variable} argument is meant to be of type
 @meta{class name} and the corresponding identifier syntaxes are
 defined.  When an argument as no type: we can use @class{top} as its
-conventional record type name, or let @func{lambda/with} select
+conventional class type name, or let @func{lambda/with} select
 @class{top} automatically.
 
 @example
@@ -21372,6 +21475,21 @@ The natural extensions of @func{lambda/with} and @func{lambda/with*} to
 @deffnx Syntax define/with* @ameta{variable}
 Like @func{define/with}, but in the first and second forms expands to
 the use of @func{lambda/with*}.
+@end deffn
+
+
+@deffn Syntax receive/with @ameta{formals} @ameta{expression} . @ameta{body}
+Like @func{receive} but expands to @func{lambda/with} rather than
+@func{lambda}:
+
+@example
+(define-syntax receive/with
+  (syntax-rules ()
+    ((_ ?formals ?expression ?form0 ?form ...)
+     (call-with-values
+         (lambda () ?expression)
+       (lambda/with ?formals ?form0 ?form ...)))))
+@end example
 @end deffn
 
 @c page

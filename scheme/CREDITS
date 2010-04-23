@@ -341,11 +341,10 @@ Scientific Library  (GSL), by James Theiler and  Brian Gough.  Converted
 by Marco Maggi.
 
 
-(records)
+(classes)
 ---------
 
-Written by Marco Maggi.  The generic functions infrastructure is derived
-from ScmObj, by Dorai Sitaram.
+Written by Marco Maggi.
 
 
 (scmobj)

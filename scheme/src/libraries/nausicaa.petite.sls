@@ -468,13 +468,14 @@
     lcm
     least-fixnum
     length
-    let
-    let*
+;;;replaced with the analogous from (classes)
+;;;    let
+;;;    let*
+;;;    letrec
+;;;    letrec*
     let*-values
     let-syntax
     let-values
-    letrec
-    letrec*
     letrec-syntax
     lexical-violation?
     list
@@ -790,10 +791,6 @@
     ;; other stuff
     pretty-print
 
-    (rename (define/with define)
-	    (lambda/with lambda)
-	    (case-lambda/with case-lambda))
-
 ;;;; bindings from (conditions)
 
     define-condition
@@ -814,6 +811,15 @@
 
 ;;;; bindings from (classes)
 
+    (rename
+     (let-fields	let)
+     (let*-fields	let*)
+     (letrec-fields	letrec)
+     (letrec*-fields	letrec*)
+     (define/with	define)
+     (lambda/with	lambda)
+     (case-lambda/with	case-lambda))
+
     define-class			make
     class-type-descriptor		class-constructor-descriptor
     define/with				define/with*
@@ -821,6 +827,7 @@
     case-lambda/with			case-lambda/with*
     let-fields				let*-fields
     letrec-fields			letrec*-fields
+    receive/with
     with-fields
     is-a?
     record-type-parent?
