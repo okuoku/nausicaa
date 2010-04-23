@@ -18391,6 +18391,13 @@ representation for data with shared structure}.
 @item classes
 Provides record type extensions.  @ref{classes, Record utilities}.
 
+@item compensations
+Compensation stacks.  @ref{compensations, Compensation stacks}.
+
+@item deferred-exceptions
+Handling deferred exceptions.  @ref{deferred exceptions, Deferred
+exceptions}.
+
 @c @item generics
 @c Provides generic functions.  @ref{generics, Multimethod dispatching}.
 @end table
@@ -21364,9 +21371,9 @@ Conventional type for objects satisfying @func{record?}.
 @chapter Compensation stacks
 
 
-This section describes a form that implements compensation stacks:
-syntactic sugar that allows us to write code that allocates a resource
-near the code that releases it in case of error.
+The @library{compensations} library implements compensation stacks:
+syntactic sugar that allows us to write code to allocate a resource near
+the code that releases it in case of error.
 
 @quotation
 Compensation stacks are described in: @emph{Finding and Preventing

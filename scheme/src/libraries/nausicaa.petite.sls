@@ -841,6 +841,17 @@
     <port> <binary-port> <input-port> <output-port> <textual-port>
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>
+
+;;;; bindings from (compensations)
+
+    with-compensations with-compensations/on-error
+    compensate run-compensations push-compensation
+
+;;;; bindings from (deferred-exceptions)
+
+    with-deferred-exceptions-handler
+    defer-exceptions run-deferred-exceptions-handler
+
     )
 
 
@@ -854,6 +865,8 @@
     (pretty-print)
     (shared-structures)
     (classes)
+    (compensations)
+    (deferred-exceptions)
     (nausicaa common))
 
 
