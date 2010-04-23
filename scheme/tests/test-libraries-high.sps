@@ -63,17 +63,17 @@
 
   (check
       (let ((lib (load-library '(lists))))
-	(<library>? lib))
+	(is-a? lib <library>))
     => #t)
 
   (check
       (let ((lib (load-library '(nausicaa))))
-	(<library>? lib))
+	(is-a? lib <library>))
     => #t)
 
   (check
-      (let*-fields (((lib <library>)		(load-library '(lists)))
-		    ((name <library-name>)	lib.name))
+      (let* (((lib <library>)		(load-library '(lists)))
+	     ((name <library-name>)	lib.name))
 	name.identifiers)
     => '(lists))
 
