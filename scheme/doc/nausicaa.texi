@@ -1047,6 +1047,12 @@ conflicts may arise.
 @value{PACKAGE} supports the following Scheme implementations:
 
 @table @strong
+@item Ikarus
+It is an almost @rnrs{6} compliant implementation of the Scheme
+programming language.  It is the creation of Abdulaziz Ghuloum.
+
+@center @url{http://launchpad.net/ikarus}
+
 @item Larceny
 It is an also @rnrs{6} compliant implementation of the Scheme
 programming language.  It is the creation of William D.  Clinger, Lars T
@@ -1055,11 +1061,8 @@ people.
 
 @center @url{http://www.ccs.neu.edu/home/will/Larceny/}
 
-@item Ikarus
-It is an almost @rnrs{6} compliant implementation of the Scheme
-programming language.  It is the creation of Abdulaziz Ghuloum.
-
-@center @url{http://launchpad.net/ikarus}
+Larceny's support does @strong{not} include the foreign--functions
+interface.
 
 @item Mosh
 It is an @rnrs{6} compliant implementation of the Scheme programming
@@ -1073,10 +1076,19 @@ language.  It is the creation of Yoshikatsu Fujita at LittleWing
 Company.
 
 @center @url{http://code.google.com/p/ypsilon/}
+
+@item Petite Chez
+It is an @rnrs{6} compliant implementation of the Scheme programming
+language.  It is produced by Cadence Research Systems.
+
+@center @url{http://www.scheme.com/}
+
+Petite's support does @strong{not} include the foreign--functions
+interface.
 @end table
 
 @noindent
-when referring to all of these we can use the @acronym{LIMY}
+when referring to all of these we can use the @acronym{LIMPY}
 abbreviation.
 
 @c page
