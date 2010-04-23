@@ -46,14 +46,14 @@
 (compile-library "conditions.sls"
 		 "conditions.slfasl")
 
+(compile-library "pretty-print.larceny.sls"
+		 "pretty-print.larceny.slfasl")
+
 (compile-library "language-extensions.sls"
 		 "language-extensions.slfasl")
 
 (compile-library "parameters.larceny.sls"
 		 "parameters.larceny.slfasl")
-
-(compile-library "pretty-print.larceny.sls"
-		 "pretty-print.larceny.slfasl")
 
 (compile-library "shared-structures.sls"
 		 "shared-structures.slfasl")
@@ -61,8 +61,11 @@
 (compile-library "classes.sls"
 		 "classes.slfasl")
 
-(compile-library "generics.sls"
-		 "generics.slfasl")
+(compile-library "deferred-exceptions.sls"
+		 "deferred-exceptions.slfasl")
+
+(compile-library "compensations.sls"
+		 "compensations.slfasl")
 
 (compile-library "nausicaa/common.sls"
 		 "nausicaa/common.larceny.slfasl")
@@ -71,6 +74,9 @@
 		 "nausicaa.larceny.slfasl")
 
 ;;Basic libraries
+
+(compile-library "generics.sls"
+		 "generics.slfasl")
 
 (compile-library "enumerations.sls"
 		 "enumerations.slfasl")
@@ -169,12 +175,6 @@
 		 "keywords.slfasl")
 
 ;;; --------------------------------------------------------------------
-
-(compile-library "deferred-exceptions.sls"
-		 "deferred-exceptions.slfasl")
-
-(compile-library "compensations.sls"
-		 "compensations.slfasl")
 
 (compile-library "object-properties.sls"
 		 "object-properties.slfasl")
@@ -308,11 +308,25 @@
 (compile-library "getopts.sls"
 		 "getopts.slfasl")
 
-(compile-library "libraries/low.sls"
-		 "libraries/low.slfasl")
+;;; --------------------------------------------------------------------
 
 (compile-library "libraries/rnrs-bindings.sls"
 		 "libraries/rnrs-bindings.slfasl")
+
+(compile-library "libraries/conditions.sls"
+		 "libraries/conditions.slfasl")
+
+(compile-library "libraries/helpers.sls"
+		 "libraries/helpers.slfasl")
+
+(compile-library "libraries/names.sls"
+		 "libraries/names.slfasl")
+
+(compile-library "libraries/references.sls"
+		 "libraries/references.slfasl")
+
+(compile-library "libraries/import-specs.sls"
+		 "libraries/import-specs.slfasl")
 
 (compile-library "libraries.sls"
 		 "libraries.slfasl")

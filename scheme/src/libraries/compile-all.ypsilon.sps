@@ -34,10 +34,12 @@
   (only (pretty-print))
   (only (shared-structures))
   (only (classes))
-  (only (generics))
+  (only (deferred-exceptions))
+  (only (compensations))
   (only (nausicaa))
 
   ;; Basic libraries
+  (only (generics))
   (only (profiling))
   (only (enumerations))
   (only (lists))
@@ -66,8 +68,6 @@
   (only (variables))
   (only (keywords))
 
-  (only (deferred-exceptions))
-  (only (compensations))
   (only (object-properties))
   (only (cleanup-handlers))
   (only (queues))
