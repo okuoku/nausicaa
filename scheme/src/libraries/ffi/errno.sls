@@ -483,12 +483,14 @@
    ((who errno)
     (raise (condition (make-who-condition who)
 		      (make-message-condition (strerror errno))
-		      (make-errno-condition* errno))))
+		      (make-errno-condition* errno)
+		      (make-non-continuable-violation))))
    ((who errno irritants)
     (raise (condition (make-who-condition who)
 		      (make-message-condition (strerror errno))
 		      (make-errno-condition* errno)
-		      (make-irritants-condition irritants))))))
+		      (make-irritants-condition irritants)
+		      (make-non-continuable-violation))))))
 
 (define raise-errno-error/continuable
   (case-lambda
