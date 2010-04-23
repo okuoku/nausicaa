@@ -35,6 +35,8 @@
     define-shared-object
     structs-lib-write
 
+    class-uid
+
     ;; inspection
     define-c-defines		define-c-string-defines
     define-c-enumeration	define-c-type-alias
@@ -77,6 +79,16 @@
 
 
 ;;;; Autoconf and Scheme libraries
+
+(define class-uid
+  (make-parameter "nausicaa:default:"
+    (lambda (uid)
+      (cond ((string? uid)
+	     uid)
+	    ((symbol? uid)
+	     (symbol->string uid))
+	    (else
+	     (assertion-violation 'class-uid "expected string or symbol as class UID prefix" uid))))))
 
 (define $autoconf-library	"")
 (define $sizeof-library		'())
@@ -355,9 +367,10 @@
 
 (define (%register-struct-type struct-name struct-string-typedef field-names field-type-categories)
   (autoconf-lib (format "\ndnl Struct inspection: ~a" struct-name))
-  (let ((struct-keyword (string-upcase (symbol->string struct-name)))
-	(class-type	(string->symbol (format "<struct-~a>" struct-name)))
-	(struct-uid	'nausicaa:zlib:))
+  (let* ((struct-keyword (string-upcase (symbol->string struct-name)))
+	 (class-name	(format "<struct-~a>" struct-name))
+	 (class-type	(string->symbol class-name))
+	 (struct-uid	(string->symbol (string-append (class-uid) ":" class-name))))
 
     ;;Output the data structure inspection stuff.
     ;;
@@ -403,11 +416,11 @@
 		   (class-field-mutator	 (string->symbol
 					  (format "~a-~a-set!" class-type field-name)))
 		   (ac-symbol-field-offset	(string->symbol
-					 (format "^OFFSETOF_~a_~a^" struct-keyword field-keyword)))
+						 (format "^OFFSETOF_~a_~a^" struct-keyword field-keyword)))
 		   (ac-symbol-field-accessor (string->symbol
-					   (format "^GETTEROF_~a_~a^" struct-keyword field-keyword)))
+					      (format "^GETTEROF_~a_~a^" struct-keyword field-keyword)))
 		   (ac-symbol-field-mutator (string->symbol
-					  (format "^SETTEROF_~a_~a^" struct-keyword field-keyword))))
+					     (format "^SETTEROF_~a_~a^" struct-keyword field-keyword))))
 	      (if (eq? 'embedded field-type-category)
 		  (begin
 		    (autoconf-lib (format "NAUSICAA_INSPECT_FIELD_TYPE_POINTER([~a],[~a],[~a])"

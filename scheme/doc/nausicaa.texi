@@ -25290,9 +25290,8 @@ meant  to be processed by the @command{configure} script to insert
 values for the @code{@@...@@} symbols.
 
 @item src/libraries/xml/libxml2/structs.sls
-A library defining macros which in turn define identifier syntaxes to
-access foreign data structure fields.  @ref{ffi core struct} for details
-on @func{define-struct-fields} and @func{define-with-struct}.
+A library defining class types to make it easier to access C structures
+fields with dot notation.
 @end table
 
 @c ------------------------------------------------------------
@@ -25595,16 +25594,36 @@ exporting the defined symbols, and the following to the @code{structs}
 library:
 
 @example
-(define-struct-fields xmlChSRange
-  (high high)
-  (low low))
-(define-with-struct xmlChSRange
-  (high high)
-  (low low))
+(define-class <struct-xmlChSRange>
+  (parent <c-struct>)
+  (protocol (lambda (make-c-struct)
+              (lambda (pointer)
+                ((make-c-struct pointer)))))
+  (nongenerative @cmeta{class-uid}:<struct-xmlChSRange>)
+  (virtual-fields
+    (mutable high
+      <struct-xmlChSRange>-low
+      <struct-xmlChSRange>-low-set!)
+    (mutable low
+      <struct-xmlChSRange>-high
+      <struct-xmlChSRange>-high-set!))
+
+(define (<struct-xmlChSRange>-low (o <c-struct>))
+  (struct-xmlChSRange-low-ref o.pointer)
+
+(define (<struct-xmlChSRange>-low-set! (o <c-struct>) v)
+  (struct-xmlChSRange-low-set! o.pointer v)
+
+(define (<struct-xmlChSRange>-high (o <c-struct>))
+  (struct-xmlChSRange-high-ref o.pointer)
+
+(define (<struct-xmlChSRange>-high-set! (o <c-struct>) v)
+  (struct-xmlChSRange-high-set! o.pointer v)
 @end example
 
 @noindent
-exporting the defined symbols.  If a field is an array embedded in the
+exporting the class type; notice that @meta{class-uid} is the value of
+the @func{class-uid} parameter.  If a field is an array embedded in the
 structure, we must declare it as of type @code{embedded}; for example,
 the @code{d_name} field:
 

@@ -31,7 +31,6 @@
   (import
     (nausicaa)
     (ffi)
-    (ffi utilities)
     (compression zlib sizeof))
   (define-class
     <struct-z_stream>
@@ -89,7 +88,7 @@
       (lambda
         (make-c-struct)
         (lambda (pointer) ((make-c-struct pointer)))))
-    (nongenerative nausicaa:zlib:))
+    (nongenerative nausicaa:zlib:<struct-z_stream>))
   (define
     (<struct-z_stream>-opaque-set!
       (o <c-struct>)
@@ -260,7 +259,7 @@
       (lambda
         (make-c-struct)
         (lambda (pointer) ((make-c-struct pointer)))))
-    (nongenerative nausicaa:zlib:))
+    (nongenerative nausicaa:zlib:<struct-gz_header>))
   (define
     (<struct-gz_header>-done-set!
       (o <c-struct>)

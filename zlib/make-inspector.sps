@@ -29,6 +29,8 @@
 (import (nausicaa)
   (ffi inspector-maker))
 
+(class-uid "nausicaa:zlib")
+
 
 (define-c-type uInt	unsigned-int)
 (define-c-type uLong	unsigned-int)
