@@ -9,6 +9,9 @@
 ;;;	This file is not licensed under the GPL because I want people to
 ;;;	freely take this code out of Nausicaa and try stuff.
 ;;;
+;;;	Aaron Hsu  contributed the SYNTAX->LIST function  through a post
+;;;	on comp.lang.scheme.
+;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -78,12 +81,9 @@
       (string->symbol (string-append name "?")))
     (define (syntax->list x)
       (syntax-case x ()
-	((h . t)
-	 (cons (syntax->list #'h) (if (null? (syntax->datum #'t))
-				      '()
-				    (syntax->list #'t))))
-	(term
-	 #'term)))
+	(()		'())
+	((h . t)	(cons (syntax->list #'h) (syntax->list #'t)))
+	(term		#'term)))
 
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
 			     virtual-fields methods method predicate)
@@ -1947,11 +1947,9 @@
   (lambda (stx)
     (define (syntax->list x)
       (syntax-case x ()
-	((h . t)
-	 (cons (syntax->list #'h) (if (null? (syntax->datum #'t))
-				      '()
-				    (syntax->list #'t))))
-	(term #'term)))
+	(()		'())
+	((h . t)	(cons (syntax->list #'h) (syntax->list #'t)))
+	(term		#'term)))
     (syntax-case stx ()
 
       ;;No bindings.  Expand to ?LET  to allow <definition> forms in the
