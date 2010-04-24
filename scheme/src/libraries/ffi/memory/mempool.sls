@@ -65,7 +65,7 @@
       obj)))
 
 (define (primitive-malloc/mempool number-of-bytes)
-  (let-fields (((pool <mempool>) (memory-pool)))
+  (let (((pool <mempool>) (memory-pool)))
     (assert pool)
     (and (<= number-of-bytes pool.free-size)
 	 (begin0

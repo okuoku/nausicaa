@@ -296,7 +296,7 @@
 
   (check
       (with-compensations
-	(let ((a (malloc/c (sizeof-char-array 16))))
+	(let ((a (malloc/c (c-sizeof char 16))))
 	  (poke-array-signed-char! a 5 65)
 	  (poke-array-unsigned-char! a 6 66)
 	  (list (peek-array-signed-char a 5)
@@ -305,7 +305,7 @@
 
   (check
       (with-compensations
-	(let ((a (malloc/c (sizeof-int-array 16))))
+	(let ((a (malloc/c (c-sizeof int 16))))
 	  (poke-array-signed-int! a 5 65)
 	  (poke-array-unsigned-int! a 6 66)
 	  (list (peek-array-signed-int a 5)
@@ -314,7 +314,7 @@
 
   (check
       (with-compensations
-	(let ((a (malloc/c (sizeof-short-array 16))))
+	(let ((a (malloc/c (c-sizeof short 16))))
 	  (poke-array-signed-short! a 5 65)
 	  (poke-array-unsigned-short! a 6 66)
 	  (list (peek-array-signed-short a 5)
@@ -323,7 +323,7 @@
 
   (check
       (with-compensations
-	(let ((a (malloc/c (sizeof-long-array 16))))
+	(let ((a (malloc/c (c-sizeof long 16))))
 	  (poke-array-signed-long! a 5 65)
 	  (poke-array-unsigned-long! a 6 66)
 	  (list (peek-array-signed-long a 5)
@@ -332,7 +332,7 @@
 
   (check
       (with-compensations
-	(let ((a (malloc/c (sizeof-long-long-array 16))))
+	(let ((a (malloc/c (c-sizeof long-long 16))))
 	  (poke-array-signed-long-long! a 5 65)
 	  (poke-array-unsigned-long-long! a 6 66)
 	  (list (peek-array-signed-long-long a 5)
@@ -341,7 +341,7 @@
 
   (check
       (with-compensations
-	(let ((a (malloc/c (sizeof-float-array 16))))
+	(let ((a (malloc/c (c-sizeof float 16))))
 	  (poke-array-float! a 5 65.1)
 	  (poke-array-float! a 6 66.2)
 	  (cons (peek-array-float a 5)
@@ -353,7 +353,7 @@
 
   (check
       (with-compensations
-	(let ((a (malloc/c (sizeof-double-array 16))))
+	(let ((a (malloc/c (c-sizeof double 16))))
 	  (poke-array-double! a 5 65.1)
 	  (poke-array-double! a 6 66.2)
 	  (cons (peek-array-double a 5)
@@ -365,7 +365,7 @@
 
   (check
       (with-compensations
-	(let ((a (malloc/c (sizeof-pointer-array 16))))
+	(let ((a (malloc/c (c-sizeof pointer 16))))
 	  (poke-array-pointer! a 5 (integer->pointer 65))
 	  (poke-array-pointer! a 6 (integer->pointer 66))
 	  (map pointer->integer

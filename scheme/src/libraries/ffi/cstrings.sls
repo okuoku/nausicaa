@@ -162,7 +162,7 @@
 			      (string->cstring s malloc-func))
 			  args))
 	   (argc	(length args))
-	   (argv	(malloc-func (sizeof-pointer-array (+ 1 argc)))))
+	   (argv	(malloc-func (c-sizeof pointer (+ 1 argc)))))
       (do ((i 0 (+ 1 i))
 	   (c args (cdr c)))
 	  ((= i argc)

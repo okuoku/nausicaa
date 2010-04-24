@@ -39,10 +39,11 @@
 
     define-class			make
     class-type-descriptor		class-constructor-descriptor
-    define/with				define/with*
-    lambda/with				lambda/with*
-    let-fields				let*-fields
-    letrec-fields			letrec*-fields
+    define/with-class			define/with-class*
+    lambda/with-class			lambda/with-class*
+    let/with-class			let*/with-class
+    letrec/with-class			letrec*/with-class
+    receive/with-class
     with-fields
     is-a?
     record-type-parent?
@@ -56,8 +57,10 @@
     <port> <binary-port> <input-port> <output-port> <textual-port>
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>)
-  (import (rnrs)
+  (import (except (rnrs) define)
     (classes)
+    (rename (only (classes) define/with-class)
+	    (define/with-class	define))
     (language-extensions)
     (parameters)
     (rnrs mutable-pairs (6)))
@@ -295,7 +298,7 @@
      ;;below.
      (add-method ?generic-function (?record-name ...)
 		 #f ;means no rest argument
-		 (lambda/with ((?arg-name ?record-name) ...) . ?body)))
+		 (lambda/with-class ((?arg-name ?record-name) ...) . ?body)))
 
     ((_ ?generic-function ?rest-name (?record-name ...) (?arg-name ...) . ?body)
      ;;Matches the form  when all the arguments have  been processed and
@@ -303,7 +306,7 @@
      ;;above.
      (add-method ?generic-function (?record-name ...)
 		 #t ;means rest argument is present
-		 (lambda/with ((?arg-name ?record-name) ... . ?rest-name) . ?body)))))
+		 (lambda/with-class ((?arg-name ?record-name) ... . ?rest-name) . ?body)))))
 
 (define-syntax add-method
   (syntax-rules ()
@@ -386,7 +389,7 @@
 	   (%applicable-method? call-signature (cdr method-entry)))
        method-alist))))
 
-(define/with (%applicable-method? call-signature (method <method>))
+(define (%applicable-method? call-signature (method <method>))
   ;;Return true  if the METHOD  can be applied  to a tuple  of arguments
   ;;having CALL-SIGNATURE as record types.
   ;;
@@ -408,7 +411,7 @@
      ;;This method is not applicable.
      (else #f))))
 
-(define/with (%more-specific-method? (method1 <method>) (method2 <method>) call-signature)
+(define (%more-specific-method? (method1 <method>) (method2 <method>) call-signature)
   ;;Return true if METHOD1 is more specific than METHOD2 with respect to
   ;;CALL-SIGNATURE.   This  function   must  be  applied  to  applicable
   ;;methods.  The longest signature is more specific, by definition.

@@ -62,7 +62,7 @@
     (make-<buffer> pointer (mb.cache 'size) (mb.cache 'size) pointer pointer)))
 
 (define (%dequeue-<buffer>-from-<membuffer> (mb <membuffer>))
-  (let-fields (((buf <buffer>) (queue-dequeue! mb)))
+  (let (((buf <buffer>) (queue-dequeue! mb)))
     (mb.cache buf.pointer)))
 
 
@@ -187,17 +187,16 @@
    ((buf bv bv.start)
     (%buffer-pop-bytevector! buf bv bv.start (bytevector-length bv)))
 
-   ((buf bv bv.start bv.past)
-    (with-fields ((buf <buffer>))
-      (if (zero? buf.used-size)
-	  bv.start
-	(let ((copy-len (min (- bv.past bv.start) buf.used-size)))
-	  (do ((i 0 (+ 1 i)))
-	      ((= i copy-len)
-	       (pointer-incr! buf.pointer-used copy-len)
-	       (+ bv.start copy-len))
-	    (bytevector-u8-set! bv (+ bv.start i)
-				(pointer-ref-c-uint8 buf.pointer-used i)))))))))
+   (((buf <buffer>) bv bv.start bv.past)
+    (if (zero? buf.used-size)
+	bv.start
+      (let ((copy-len (min (- bv.past bv.start) buf.used-size)))
+	(do ((i 0 (+ 1 i)))
+	    ((= i copy-len)
+	     (pointer-incr! buf.pointer-used copy-len)
+	     (+ bv.start copy-len))
+	  (bytevector-u8-set! bv (+ bv.start i)
+			      (pointer-ref-c-uint8 buf.pointer-used i))))))))
 
 (define %buffer-pop-memblock!
   ;;Fill the  <memblock> BLK, starting  at BLK.START and  sopping before
@@ -213,16 +212,14 @@
    ((buf blk blk.start)
     (%buffer-pop-memblock! buf blk blk.start (<memblock>-size blk)))
 
-   ((buf blk blk.start blk.past)
-    (with-fields ((blk <memblock>)
-		  (buf <buffer>))
-      (if (zero? buf.used-size)
-	  blk.start
-	(let ((copy-len (min (- blk.past blk.start) buf.used-size)))
-	  (memcpy (pointer-add blk.pointer blk.start)
-		  buf.pointer-used copy-len)
-	  (pointer-incr! buf.pointer-used copy-len)
-	  (+ blk.start copy-len)))))))
+   (((buf <buffer>) (blk <memblock>) blk.start blk.past)
+    (if (zero? buf.used-size)
+	blk.start
+      (let ((copy-len (min (- blk.past blk.start) buf.used-size)))
+	(memcpy (pointer-add blk.pointer blk.start)
+		buf.pointer-used copy-len)
+	(pointer-incr! buf.pointer-used copy-len)
+	(+ blk.start copy-len))))))
 
 (define %buffer-push-bytevector!
   ;;Fill the <buffer> BUF with bytes from the bytevector BV, starting at
@@ -238,17 +235,16 @@
    ((buf bv bv.start)
     (%buffer-push-bytevector! buf bv bv.start (bytevector-length bv)))
 
-   ((buf bv bv.start bv.past)
-    (with-fields ((buf <buffer>))
-      (if (zero? buf.free-size)
-	  bv.start
-	(let ((copy-len (min (- bv.past bv.start) buf.free-size)))
-	  (do ((i 0 (+ 1 i)))
-	      ((= i copy-len)
-	       (pointer-incr! buf.pointer-free copy-len)
-	       (+ bv.start copy-len))
-	    (pointer-set-c-uint8! buf.pointer-free i
-				  (bytevector-u8-ref bv (+ bv.start i))))))))))
+   (((buf <buffer>) bv bv.start bv.past)
+    (if (zero? buf.free-size)
+	bv.start
+      (let ((copy-len (min (- bv.past bv.start) buf.free-size)))
+	(do ((i 0 (+ 1 i)))
+	    ((= i copy-len)
+	     (pointer-incr! buf.pointer-free copy-len)
+	     (+ bv.start copy-len))
+	  (pointer-set-c-uint8! buf.pointer-free i
+				(bytevector-u8-ref bv (+ bv.start i)))))))))
 
 (define %buffer-push-memblock!
   ;;Fill the <buffer>  BUF with bytes from the  <memblock> BLK, starting
@@ -264,15 +260,13 @@
    ((buf blk blk.start)
     (%buffer-push-memblock! buf blk blk.start (<memblock>-size blk)))
 
-   ((buf blk blk.start blk.past)
-    (with-fields ((buf <buffer>)
-		  (blk <memblock>))
-      (if (zero? buf.free-size)
-	  blk.start
-	(let ((copy-len (min (- blk.past blk.start) buf.free-size)))
-	  (memcpy buf.pointer-free (pointer-add blk.pointer blk.start) copy-len)
-	  (pointer-incr! buf.pointer-free copy-len)
-	  (+ blk.start copy-len)))))))
+   (((buf <buffer>) (blk <memblock>) blk.start blk.past)
+    (if (zero? buf.free-size)
+	blk.start
+      (let ((copy-len (min (- blk.past blk.start) buf.free-size)))
+	(memcpy buf.pointer-free (pointer-add blk.pointer blk.start) copy-len)
+	(pointer-incr! buf.pointer-free copy-len)
+	(+ blk.start copy-len))))))
 
 
 ;;;; done

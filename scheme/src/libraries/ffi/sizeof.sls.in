@@ -29,57 +29,101 @@
 
     LIBC_SHARED_OBJECT_SPEC
 
-    sizeof-int8			sizeof-int16
-    sizeof-int32		sizeof-int64
-    sizeof-char			sizeof-short
-    sizeof-int			sizeof-long
-    sizeof-long-long		sizeof-float
-    sizeof-double		sizeof-long-double
-    sizeof-pointer
-    sizeof-size_t		sizeof-ssize_t
+    define-sizeof-utils
+    c-sizeof			c-strideof
+    c-alignof			c-valueof
 
     pointer-integer
     size_t-integer		ssize_t-integer
 
-    alignof-int8		alignof-int16
-    alignof-int32		alignof-int64
-    alignof-char		alignof-short
-    alignof-int			alignof-long
-    alignof-long-long		alignof-float
-    alignof-double		alignof-long-double
-    alignof-pointer
-    alignof-size_t		alignof-ssize_t
-
-    strideof-int8		strideof-int16
-    strideof-int32		strideof-int64
-    strideof-char		strideof-short
-    strideof-int		strideof-long
-    strideof-long-long		strideof-float
-    strideof-double		strideof-long-double
-    strideof-pointer
-    strideof-size_t		strideof-ssize_t
-
-    sizeof-int8-array		sizeof-int16-array
-    sizeof-int32-array		sizeof-int64-array
-    sizeof-char-array		sizeof-short-array
-    sizeof-int-array		sizeof-long-array
-    sizeof-long-long-array	sizeof-float-array
-    sizeof-double-array		sizeof-long-double-array
-    sizeof-pointer-array
-    sizeof-size_t-array		sizeof-ssize_t-array
-
-    valueof-char-max		valueof-char-min
-    valueof-schar-max		valueof-schar-min	valueof-uchar-max
-    valueof-shrt-max		valueof-shrt-min	valueof-ushrt-max
-    valueof-int-max		valueof-int-min		valueof-uint-max
-    valueof-long-max		valueof-long-min	valueof-ulong-max
-    valueof-long-long-max	valueof-long-long-min	valueof-ulong-long-max
-    valueof-wchar-max		valueof-ssize-max
     words-bigendian
     on-64-bits-system		on-32-bits-system
     (rename (on-32-bits-system on-32-bits-systems)
 	    (on-64-bits-system on-64-bits-systems)))
   (import (rnrs))
+
+
+(define-syntax define-sizeof-utils
+  (syntax-rules ()
+    ((_)
+     (begin
+       (define-syntax c-sizeof
+	 (lambda (stx)
+
+	   (define (%type->id prefix type)
+	     (string->symbol (string-append prefix (symbol->string (syntax->datum type)))))
+	   (define (%type->sizeof type)
+	     (%type->id "sizeof-" type))
+	   (define (%type->strideof type)
+	     (%type->id "strideof-" type))
+
+	   (syntax-case stx ()
+
+	     ((_ ?type ?number-of-elements)
+	      (identifier? #'?type)
+	      (with-syntax ((STRIDEOF (datum->syntax #'c-sizeof (%type->strideof #'?type))))
+		#'(* STRIDEOF ?number-of-elements)))
+
+	     ((?k ?type)
+	      (identifier? #'?type)
+	      (with-syntax ((SIZEOF (datum->syntax #'c-sizeof (%type->sizeof #'?type))))
+		#'(begin SIZEOF)))
+
+	     (?input-form
+	      (syntax-violation 'c-sizeof
+		"invalid C language sizeof specification"
+		(syntax->datum #'?input-form))))))
+
+       (define-syntax c-strideof
+	 (lambda (stx)
+	   (define (%type->strideof type)
+	     (string->symbol (string-append "strideof-" (symbol->string (syntax->datum type)))))
+	   (syntax-case stx ()
+
+	     ((_ ?type)
+	      (identifier? #'?type)
+	      (with-syntax ((STRIDEOF (datum->syntax #'c-strideof (%type->strideof #'?type))))
+		#`(begin STRIDEOF)))
+
+	     (?input-form
+	      (syntax-violation 'c-strideof
+		"invalid C language strideof specification"
+		(syntax->datum #'?input-form))))))
+
+       (define-syntax c-alignof
+	 (lambda (stx)
+	   (define (%type->alignof type)
+	     (string->symbol (string-append "alignof-" (symbol->string (syntax->datum type)))))
+	   (syntax-case stx ()
+
+	     ((_ ?type)
+	      (identifier? #'?type)
+	      (with-syntax ((ALIGNOF (datum->syntax #'c-alignof (%type->alignof #'?type))))
+		#`(begin ALIGNOF)))
+
+	     (?input-form
+	      (syntax-violation 'c-alignof
+		"invalid C language alignof specification"
+		(syntax->datum #'?input-form))))))
+
+       (define-syntax c-valueof
+	 (lambda (stx)
+	   (define (%type->valueof type)
+	     (string->symbol (string-append "valueof-" (symbol->string (syntax->datum type)))))
+	   (syntax-case stx ()
+
+	     ((_ ?type)
+	      (identifier? #'?type)
+	      (with-syntax ((VALUEOF (datum->syntax #'c-valueof (%type->valueof #'?type))))
+		#`(begin VALUEOF)))
+
+	     (?input-form
+	      (syntax-violation 'c-valueof
+		"invalid C language valueof specification"
+		(syntax->datum #'?input-form))))))
+       ))))
+
+(define-sizeof-utils)
 
 
 (define sizeof-int8			@SIZEOF_INT8@)
@@ -97,10 +141,6 @@
 (define sizeof-pointer			@SIZEOF_POINTER@)
 (define sizeof-size_t			@SIZEOF_SIZE_T@)
 (define sizeof-ssize_t			@SIZEOF_SSIZE_T@)
-
-(define pointer-integer			(quote @TYPEOF_POINTER_INTEGER@))
-(define size_t-integer			(quote @TYPEOF_SIZE_T@))
-(define ssize_t-integer			(quote @TYPEOF_SSIZE_T@))
 
 (define alignof-int8			@ALIGNOF_INT8@)
 (define alignof-int16			@ALIGNOF_INT16@)
@@ -134,83 +174,6 @@
 (define strideof-size_t			@STRIDEOF_SIZE_T@)
 (define strideof-ssize_t		@STRIDEOF_SSIZE_T@)
 
-
-(define-syntax sizeof-int8-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-int8 ?number-of-elements))))
-
-(define-syntax sizeof-int16-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-int16 ?number-of-elements))))
-
-(define-syntax sizeof-int32-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-int32 ?number-of-elements))))
-
-(define-syntax sizeof-int64-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-int64 ?number-of-elements))))
-
-(define-syntax sizeof-char-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-char ?number-of-elements))))
-
-(define-syntax sizeof-short-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-short ?number-of-elements))))
-
-(define-syntax sizeof-int-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-int ?number-of-elements))))
-
-(define-syntax sizeof-long-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-long ?number-of-elements))))
-
-(define-syntax sizeof-long-long-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-long-long ?number-of-elements))))
-
-(define-syntax sizeof-float-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-float ?number-of-elements))))
-
-(define-syntax sizeof-double-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-double ?number-of-elements))))
-
-(define-syntax sizeof-long-double-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-long-double ?number-of-elements))))
-
-(define-syntax sizeof-pointer-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-pointer ?number-of-elements))))
-
-(define-syntax sizeof-size_t-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-size_t ?number-of-elements))))
-
-(define-syntax sizeof-ssize_t-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* strideof-ssize_t ?number-of-elements))))
-
-
 (define valueof-char-max		@VALUEOF_CHAR_MAX@)
 (define valueof-char-min		@VALUEOF_CHAR_MIN@)
 (define valueof-schar-max		@VALUEOF_SCHAR_MAX@)
@@ -230,6 +193,10 @@
 (define valueof-ulong-long-max		@VALUEOF_ULLONG_MAX@)
 (define valueof-wchar-max		@VALUEOF_WCHAR_MAX@)
 (define valueof-ssize-max		@VALUEOF_SSIZE_MAX@)
+
+(define pointer-integer			(quote @TYPEOF_POINTER_INTEGER@))
+(define size_t-integer			(quote @TYPEOF_SIZE_T@))
+(define ssize_t-integer			(quote @TYPEOF_SSIZE_T@))
 
 (define on-32-bits-system		(= sizeof-int 4))
 (define on-64-bits-system		(= sizeof-int 8))

@@ -130,7 +130,7 @@
 		      exports-sexp)))
 
 (define (<library>-references (lib <library>))
-  (delete-duplicates (map (lambda/with ((spec <import-spec>))
+  (delete-duplicates (map (lambda ((spec <import-spec>))
 			    spec.library-reference)
 		       lib.import-specs)))
 
@@ -230,9 +230,9 @@
       f)))
 
 (define (load-library ref)
-  (let-fields (((reference <library-reference>) (if (is-a? ref <library-reference>)
-						    ref
-						  (make <library-reference> ref))))
+  (let (((reference <library-reference>) (if (is-a? ref <library-reference>)
+					     ref
+					   (make <library-reference> ref))))
     (let ((libs ((load-library-function) reference)))
       (if (null? libs)
 	  (let ((lib (hashtable-ref $library-registry reference.identifiers #f)))

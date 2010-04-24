@@ -36,7 +36,7 @@
     (only (ffi peekers-and-pokers)
 	  pointer-set-c-unsigned-long!
 	  pointer-ref-c-unsigned-long)
-    (only (ffi sizeof) strideof-long))
+    (only (ffi sizeof) c-strideof))
 
 
 (define malloc/refcount
@@ -44,25 +44,25 @@
    ((number-of-bytes)
     (malloc/refcount number-of-bytes malloc))
    ((number-of-bytes malloc-funk)
-    (let ((p (malloc-funk (+ strideof-long number-of-bytes))))
+    (let ((p (malloc-funk (+ (c-strideof long) number-of-bytes))))
       (pointer-set-c-unsigned-long! p 0 0)
-      (pointer-add p strideof-long)))))
+      (pointer-add p (c-strideof long))))))
 
 (define-syntax refcount-set!
   (syntax-rules ()
     ((_ ?pointer ?value)
-     (pointer-set-c-unsigned-long! ?pointer (- strideof-long) ?value))))
+     (pointer-set-c-unsigned-long! ?pointer (- (c-strideof long)) ?value))))
 
 (define-syntax refcount-ref
   (syntax-rules ()
     ((_ ?pointer)
-     (pointer-ref-c-unsigned-long ?pointer (- strideof-long)))))
+     (pointer-ref-c-unsigned-long ?pointer (- (c-strideof long))))))
 
 (define (pointer-acquire pointer)
   (refcount-set! pointer (+ 1 (refcount-ref pointer))))
 
 (define (pointer-refcount-begin pointer)
-  (pointer-add pointer (- strideof-long)))
+  (pointer-add pointer (- (c-strideof long))))
 
 (define pointer-release
   (case-lambda
