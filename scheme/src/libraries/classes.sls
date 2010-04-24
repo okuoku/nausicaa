@@ -35,12 +35,12 @@
 
     define-class			make
     class-type-descriptor		class-constructor-descriptor
-    define/with				define/with*
-    lambda/with				lambda/with*
-    case-lambda/with			case-lambda/with*
-    receive/with
-    let-fields				let*-fields
-    letrec-fields			letrec*-fields
+    define/with-class			define/with-class*
+    lambda/with-class			lambda/with-class*
+    case-lambda/with-class		case-lambda/with-class*
+    receive/with-class
+    let/with-class			let*/with-class
+    letrec/with-class			letrec*/with-class
     with-fields
     is-a?
     record-type-parent?
@@ -563,7 +563,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ... (?method function-name))
-	  (?collected-function ... (define/with (function-name . ?args) . ?body))
+	  (?collected-function ... (define/with-class (function-name . ?args) . ?body))
 	  (predicate		?pre ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
@@ -1954,13 +1954,13 @@
 
       ;;No bindings.  Expand to ?LET  to allow <definition> forms in the
       ;;body.
-      ((_ ?let ?let-fields ?loop () ?body0 ?body ...)
+      ((_ ?let ?let/with-class ?loop () ?body0 ?body ...)
        (if (free-identifier=? #'no-loop #'?loop)
 	   #'(?let () ?body0 ?body ...)
 	 #'(?let ?loop () ?body0 ?body ...)))
 
       ;;All bindings are without types.
-      ((_ ?let ?let-fields ?loop ((?var ?init) ...) ?body0 ?body ...)
+      ((_ ?let ?let/with-class ?loop ((?var ?init) ...) ?body0 ?body ...)
 ;;;*FIXME*  This  is a  workaround  for a  bug  in  Ikarus 1870:  Ikarus
 ;;;produces an  IMproper list  of syntax objects,  rather than  a proper
 ;;;list.
@@ -1972,8 +1972,8 @@
 	 #'(?let ?loop ((?var ?init) ...) ?body0 ?body ...)))
 
       ;;At list one binding has types.
-      ((_ ?let ?let-fields ?loop ((?var ?init) ...) ?body0 ?body ...)
-       #'(%do-let/add-top ?let ?let-fields ?loop () ((?var ?init) ...) ?body0 ?body ...))
+      ((_ ?let ?let/with-class ?loop ((?var ?init) ...) ?body0 ?body ...)
+       #'(%do-let/add-top ?let ?let/with-class ?loop () ((?var ?init) ...) ?body0 ?body ...))
       )))
 
 (define-syntax %do-let/add-top
@@ -1984,22 +1984,22 @@
     (syntax-case stx ()
 
     ;;No more bindings to collect.
-    ((_ ?let ?let-fields ?loop (?bind ...) () ?body0 ?body ...)
+    ((_ ?let ?let/with-class ?loop (?bind ...) () ?body0 ?body ...)
      (if (free-identifier=? #'let #'?let)
-	 #'(?let-fields ?loop (?bind ...) ?body0 ?body ...)
-       #'(?let-fields (?bind ...) ?body0 ?body ...)))
+	 #'(?let/with-class ?loop (?bind ...) ?body0 ?body ...)
+       #'(?let/with-class (?bind ...) ?body0 ?body ...)))
 
     ;;Add <top> as type to an untyped binding.
-    ((_ ?let ?let-fields ?loop (?bind ...) ((?var0 ?init0) (?var ?init) ...) ?body0 ?body ...)
+    ((_ ?let ?let/with-class ?loop (?bind ...) ((?var0 ?init0) (?var ?init) ...) ?body0 ?body ...)
      (identifier? #'?var0)
-     #'(%do-let/add-top ?let ?let-fields ?loop
+     #'(%do-let/add-top ?let ?let/with-class ?loop
 		       (?bind ... ((?var0 <top>) ?init0))
 		       ((?var ?init) ...)
 		       ?body0 ?body ...))
 
     ;;Collect a typed binding.
-    ((_ ?let ?let-fields ?loop (?bind ...) ((?var0 ?init0) (?var ?init) ...) ?body0 ?body ...)
-     #'(%do-let/add-top ?let ?let-fields ?loop
+    ((_ ?let ?let/with-class ?loop (?bind ...) ((?var0 ?init0) (?var ?init) ...) ?body0 ?body ...)
+     #'(%do-let/add-top ?let ?let/with-class ?loop
 		       (?bind ... (?var0 ?init0))
 		       ((?var ?init) ...)
 		       ?body0 ?body ...))
@@ -2007,14 +2007,14 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-syntax let-fields
+(define-syntax let/with-class
   (syntax-rules ()
     ((_ ?loop ((?var ?init) ...) ?body0 ?body ...)
-     (%do-let/no-types let %let-fields ?loop ((?var ?init) ...) ?body0 ?body ...))
+     (%do-let/no-types let %let/with-class ?loop ((?var ?init) ...) ?body0 ?body ...))
     ((_ ((?var ?init) ...) ?body0 ?body ...)
-     (%do-let/no-types let %let-fields no-loop ((?var ?init) ...) ?body0 ?body ...))))
+     (%do-let/no-types let %let/with-class no-loop ((?var ?init) ...) ?body0 ?body ...))))
 
-(define-syntax %let-fields
+(define-syntax %let/with-class
   (lambda (stx)
     (syntax-case stx ()
 
@@ -2030,12 +2030,12 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-syntax let*-fields
+(define-syntax let*/with-class
   (syntax-rules ()
     ((_ ((?var ?init) ...) ?body0 ?body ...)
-     (%do-let/no-types let* %let*-fields no-loop ((?var ?init) ...) ?body0 ?body ...))))
+     (%do-let/no-types let* %let*/with-class no-loop ((?var ?init) ...) ?body0 ?body ...))))
 
-(define-syntax %let*-fields
+(define-syntax %let*/with-class
   (lambda (stx)
     (define (duplicated-ids? ell)
       (if (null? ell)
@@ -2049,34 +2049,34 @@
 	      (inner x (cdr ls)))))))
     (syntax-case stx ()
 
-      ((let*-fields (((?var0 ?class0 ?class00 ...) ?init0)
+      ((let*/with-class (((?var0 ?class0 ?class00 ...) ?init0)
 		     ((?var1 ?class1 ?class11 ...) ?init1)
 		     ...)
 	 ?body0 ?body ...)
        (let ((id (duplicated-ids? #'(?var0 ?var1 ...))))
 	 (if id
-	     #`(syntax-violation 'let*-fields
-		 "duplicated field names in let*-fields"
-		 (quote (let*-fields (((?var0 ?class0 ?class00 ...) ?init0)
+	     #`(syntax-violation 'let*/with-class
+		 "duplicated field names in let*/with-class"
+		 (quote (let*/with-class (((?var0 ?class0 ?class00 ...) ?init0)
 				      ((?var1 ?class1 ?class11 ...) ?init1)
 				      ...)
 			  ?body0 ?body ...))
 		 (quote (#,id)))
 	   #'(let ((?var0 ?init0))
 	       (with-fields ((?var0 ?class0 ?class00 ...))
-		 (let*-fields (((?var1 ?class1 ?class11 ...) ?init1) ...) ?body0 ?body ...))))))
+		 (let*/with-class (((?var1 ?class1 ?class11 ...) ?init1) ...) ?body0 ?body ...))))))
 
       ((_ () ?body0 ?body ...)
        #'(begin ?body0 ?body ...)))))
 
 ;;; --------------------------------------------------------------------
 
-(define-syntax letrec-fields
+(define-syntax letrec/with-class
   (syntax-rules ()
     ((_ ((?var ?init) ...) ?body0 ?body ...)
-     (%do-let/no-types letrec %letrec-fields no-loop ((?var ?init) ...) ?body0 ?body ...))))
+     (%do-let/no-types letrec %letrec/with-class no-loop ((?var ?init) ...) ?body0 ?body ...))))
 
-(define-syntax %letrec-fields
+(define-syntax %letrec/with-class
   (syntax-rules ()
     ((_ (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
      (let ((?var #f) ...)
@@ -2086,12 +2086,12 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-syntax letrec*-fields
+(define-syntax letrec*/with-class
   (syntax-rules ()
     ((_ ((?var ?init) ...) ?body0 ?body ...)
-     (%do-let/no-types letrec* %letrec*-fields no-loop ((?var ?init) ...) ?body0 ?body ...))))
+     (%do-let/no-types letrec* %letrec*/with-class no-loop ((?var ?init) ...) ?body0 ?body ...))))
 
-(define-syntax %letrec*-fields
+(define-syntax %letrec*/with-class
   ;;The  difference between  LETREC and  LETREC*  is only  the order  of
   ;;evaluation of ?INIT, which is enforced in LETREC*.
   ;;
@@ -2103,26 +2103,26 @@
 	 ?body0 ?body ...)))))
 
 
-(define-syntax define/with
+(define-syntax define/with-class
   (syntax-rules ()
     ((_ (?variable . ?formals) . ?body)
      (define ?variable
-       (lambda/with ?formals . ?body)))
+       (lambda/with-class ?formals . ?body)))
     ((_ ?variable ?expression)
      (define ?variable ?expression))
     ((_ ?variable)
      (define ?variable))))
 
-(define-syntax define/with*
+(define-syntax define/with-class*
   (syntax-rules ()
     ((_ (?variable . ?formals) . ?body)
-     (define ?variable (lambda/with* ?formals . ?body)))
+     (define ?variable (lambda/with-class* ?formals . ?body)))
     ((_ ?variable ?expression)
      (define ?variable ?expression))
     ((_ ?variable)
      (define ?variable))))
 
-(define-syntax lambda/with
+(define-syntax lambda/with-class
   (syntax-rules ()
     ((_ ?formals . ?body)
      (%lambda/collect-classes-and-arguments #f ?formals
@@ -2130,7 +2130,7 @@
 					    () ;collected args
 					    . ?body))))
 
-(define-syntax lambda/with*
+(define-syntax lambda/with-class*
   (syntax-rules ()
     ((_ ?formals . ?body)
      (%lambda/collect-classes-and-arguments #t ?formals
@@ -2199,15 +2199,15 @@
     ((_ () ())
      (values))))
 
-(define-syntax receive/with
+(define-syntax receive/with-class
   (syntax-rules ()
     ((_ ?formals ?expression ?form0 ?form ...)
      (call-with-values
 	 (lambda () ?expression)
-       (lambda/with ?formals ?form0 ?form ...)))))
+       (lambda/with-class ?formals ?form0 ?form ...)))))
 
 
-(define-syntax case-lambda/with
+(define-syntax case-lambda/with-class
   (syntax-rules ()
     ((_ (?formals . ?body) ...)
      (%case-lambda/collect-classes-and-arguments
@@ -2218,7 +2218,7 @@
       (?formals . ?body)
       ...))))
 
-(define-syntax case-lambda/with*
+(define-syntax case-lambda/with-class*
   (syntax-rules ()
     ((_ (?formals . ?body) ...)
      (%case-lambda/collect-classes-and-arguments

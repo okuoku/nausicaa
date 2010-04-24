@@ -763,7 +763,7 @@
     non-negative? non-positive?
 
     ;; stuff from the SRFIs
-    cond-expand and-let* receive recursion cut cute begin0 begin0-let
+    cond-expand and-let* recursion cut cute begin0 begin0-let
     set-cons! incr! decr! while while* do-while do-while*
 
     ;; macro definition helpers
@@ -811,23 +811,24 @@
 ;;;; bindings from (classes)
 
     (rename
-     (let-fields	let)
-     (let*-fields	let*)
-     (letrec-fields	letrec)
-     (letrec*-fields	letrec*)
-     (define/with	define)
-     (lambda/with	lambda)
-     (case-lambda/with	case-lambda))
+     (let/with-class		let)
+     (let*/with-class		let*)
+     (letrec/with-class		letrec)
+     (letrec*/with-class	letrec*)
+     (define/with-class		define)
+     (lambda/with-class		lambda)
+     (case-lambda/with-class	case-lambda)
+     (receive/with-class	receive))
 
-    define-class			make
-    class-type-descriptor		class-constructor-descriptor
-    define/with				define/with*
-    lambda/with				lambda/with*
-    case-lambda/with			case-lambda/with*
-    let-fields				let*-fields
-    letrec-fields			letrec*-fields
-    receive/with
-    with-fields
+    define-class		make
+    class-type-descriptor	class-constructor-descriptor
+    define/with-class		define/with-class*
+    lambda/with-class		lambda/with-class*
+    case-lambda/with-class	case-lambda/with-class*
+    let/with-class		let*/with-class
+    letrec/with-class		letrec*/with-class
+    receive/with-class
+    with/with-class
     is-a?
     record-type-parent?
     record-type-of

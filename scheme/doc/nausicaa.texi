@@ -18369,8 +18369,8 @@ import specification:
 @section Component libraries
 
 
-The @library{nausicaa} library reexports all the bindings from the
-following libraries:
+Unless otherwise specified, the @library{nausicaa} library reexports all
+the bindings from the following libraries:
 
 @table @library
 @item cond-expand
@@ -18387,7 +18387,7 @@ definition.  @ref{conditions, More condition types}.
 
 @item language-extension
 Simple language extensions, mostly syntaxes.  @ref{lang, Simple language
-extensions}.
+extensions}.  Notice that @func{receive} is @strong{not} reexported.
 
 @item pretty-print
 Provides the @func{pretty-print} function.  @ref{pretty-print, Pretty
@@ -18402,6 +18402,8 @@ representation for data with shared structure}.
 
 @item classes
 Provides record type extensions.  @ref{classes, Record utilities}.
+Notice that @func{receive/with-class} is reexported with its name and
+also as @func{receive}.
 
 @item compensations
 Compensation stacks.  @ref{compensations, Compensation stacks}.
@@ -18501,10 +18503,10 @@ from @library{rnrs} are replaced by the following syntaxes from
 @library{classes}:
 
 @example
-define/with
-lambda/with             case-lambda/with
-let-fields              let*-fields
-letrec-fields           letrec*-fields
+define/with-class
+lambda/with-class        case-lambda/with-class
+let/with-class           let*/with-class
+letrec/with-class        letrec*/with-class
 @end example
 
 @noindent
@@ -19804,10 +19806,10 @@ different record types of the same hierarchy, @ref{classes fields with,
 (define (<fraction>-denominator o)
   (denominator (<fraction>-number o)))
 
-(define/with (<fraction>-product (o <fraction>) lambda)
+(define/with-class (<fraction>-product (o <fraction>) lambda)
   (set! o.numerator (* o.numerator lambda)))
 
-(define/with (the-list-function (o <fraction>) . ell)
+(define/with-class (the-list-function (o <fraction>) . ell)
   (cons o.numerator ell))
 
 ;; tests
@@ -19849,7 +19851,7 @@ clause had been used:
 the function definition is expanded to:
 
 @example
-(define/with (function-name . @cmeta{formals}) . @cmeta{body})
+(define/with-class (function-name . @cmeta{formals}) . @cmeta{body})
 @end example
 
 @noindent
@@ -20267,10 +20269,10 @@ an example with methods, external definitions:
 (define (<fraction>-denominator o)
   (denominator (<fraction>-number o)))
 
-(define/with (<fraction>-product (o <fraction>) lambda)
+(define/with-class (<fraction>-product (o <fraction>) lambda)
   (set! o.numerator (* o.numerator lambda)))
 
-(define/with (the-list-function (o <fraction>) . ell)
+(define/with-class (the-list-function (o <fraction>) . ell)
   (cons o.numerator ell))
 
 ;; tests
@@ -20476,7 +20478,7 @@ and duplication of names of methods is allowed, too:
 @subsection High--level fields and methods usage
 
 
-@deffn Syntax let-fields ((@ameta{var} @ameta{init}) ...) @ameta{body}
+@deffn Syntax let/with-class ((@ameta{var} @ameta{init}) ...) @ameta{body}
 Like @func{let} but automatically enclose the body in a
 @func{with-fields} syntax using the specified class types.  Each
 @meta{var} element can be one among:
@@ -20492,7 +20494,7 @@ name, @ameta{class name} must be an identifier representing a class
 name.
 
 If all the @meta{var} arguments are in the first form (untyped
-variable): @func{let-fields} defaults to @func{let} as defined by
+variable): @func{let/with-class} defaults to @func{let} as defined by
 @rnrs{6}.  If at least one @meta{var} has type: the untyped ones default
 to bindings with @class{top} as conventional class type name.
 
@@ -20508,15 +20510,15 @@ to bindings with @class{top} as conventional class type name.
 (define (<fraction>-denominator o)
   (denominator (<fraction>-number o)))
 
-(let-fields (((a <fraction>) (make-<fraction> 2/3))
-             ((b <fraction>) (make-<fraction> 4/5)))
+(let/with-class (((a <fraction>) (make-<fraction> 2/3))
+                 ((b <fraction>) (make-<fraction> 4/5)))
   (list a.numerator b.denominator))
 @result{} (2 5)
 @end example
 @end deffn
 
 
-@deffn Syntax let*-fields ((@ameta{var} @ameta{init}) ...) @ameta{body}
+@deffn Syntax let*/with-class ((@ameta{var} @ameta{init}) ...) @ameta{body}
 Like @func{let*} but automatically enclose the body in a
 @func{with-fields} syntax using the specified class types.  Each
 @meta{var} element can be one among:
@@ -20532,7 +20534,7 @@ name, @ameta{class name} must be an identifier representing a class
 name.
 
 If all the @meta{var} arguments are in the first form (untyped
-variable): @func{let*-fields} defaults to @func{let*} as defined by
+variable): @func{let*/with-class} defaults to @func{let*} as defined by
 @rnrs{6}.  If at least one @meta{var} has type: the untyped ones default
 to bindings with @class{top} as conventional class type name.
 
@@ -20553,16 +20555,16 @@ region of the identifier syntaxes used to access the fields of
 (define (<fraction>-denominator o)
   (denominator (<fraction>-number o)))
 
-(let*-fields (((a <fraction>) (make-<fraction> 2/3))
-              ((b <fraction>) (make-<fraction>
-                                (/ a.numerator 5))))
+(let*/with-class (((a <fraction>) (make-<fraction> 2/3))
+                  ((b <fraction>) (make-<fraction>
+                                    (/ a.numerator 5))))
   b.number)
 @result{} 2/5
 @end smallexample
 @end deffn
 
 
-@deffn Syntax letrec-fields (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
+@deffn Syntax letrec/with-class (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{letrec} but automatically enclose the body in a
 @func{with-fields} syntax using the specified class types.  Each
 @meta{var} element can be one among:
@@ -20578,9 +20580,9 @@ name, @ameta{class name} must be an identifier representing a class
 name.
 
 If all the @meta{var} arguments are in the first form (untyped
-variable): @func{letrec-fields} defaults to @func{letrec} as defined by
-@rnrs{6}.  If at least one @meta{var} has type: the untyped ones default
-to bindings with @class{top} as conventional class type name.
+variable): @func{letrec/with-class} defaults to @func{letrec} as defined
+by @rnrs{6}.  If at least one @meta{var} has type: the untyped ones
+default to bindings with @class{top} as conventional class type name.
 
 The @meta{init} expressions can contain references to the identifier
 syntaxes, as long as they are not resolved.
@@ -20594,19 +20596,20 @@ syntaxes, as long as they are not resolved.
   (fields (immutable value)
           (immutable proc)))
 
-(letrec-fields (((a <alpha>) (make-<alpha>
-                               1 (lambda ()
-                                   (cons a.value b.value))))
-                ((b <beta>)  (make-<beta>
-                               2 (lambda ()
-                                   (cons a.value b.value)))))
+(letrec/with-class
+     (((a <alpha>) (make-<alpha>
+                     1 (lambda ()
+                         (cons a.value b.value))))
+      ((b <beta>)  (make-<beta>
+                     2 (lambda ()
+                         (cons a.value b.value)))))
   (list (a.proc) (b.proc)))
 @result{} ((1 . 2) (1 . 2))
 @end smallexample
 @end deffn
 
 
-@deffn Syntax letrec*-fields (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
+@deffn Syntax letrec*/with-class (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{letrec*} but automatically enclose the body in a
 @func{with-fields} syntax using the specified class types.  Each
 @meta{var} element can be one among:
@@ -20622,9 +20625,10 @@ name, @ameta{class name} must be an identifier representing a class
 name.
 
 If all the @meta{var} arguments are in the first form (untyped
-variable): @func{letrec*-fields} defaults to @func{letrec*} as defined
-by @rnrs{6}.  If at least one @meta{var} has type: the untyped ones
-default to bindings with @class{top} as conventional class type name.
+variable): @func{letrec*/with-class} defaults to @func{letrec*} as
+defined by @rnrs{6}.  If at least one @meta{var} has type: the untyped
+ones default to bindings with @class{top} as conventional class type
+name.
 
 The @meta{init} expressions can contain references to the identifier
 syntaxes.
@@ -20638,20 +20642,21 @@ syntaxes.
   (fields (immutable value)
           (immutable proc)))
 
-(letrec*-fields (((a <alpha>) (make-<alpha>
-                                1 (lambda ()
-                                    (cons a.value b.value))))
-                 ((b <beta>)  (make-<beta>
-                                2 (lambda ()
-                                    (cons a.value b.value))))
-                 ((c <top>)   (list (a.proc) (b.proc))))
+(letrec*/with-class
+    (((a <alpha>) (make-<alpha>
+                    1 (lambda ()
+                        (cons a.value b.value))))
+     ((b <beta>)  (make-<beta>
+                    2 (lambda ()
+                        (cons a.value b.value))))
+     ((c <top>)   (list (a.proc) (b.proc))))
   c)
 @result{} ((1 . 2) (1 . 2))
 @end smallexample
 @end deffn
 
 
-@deffn Syntax lambda/with @ameta{formals} @ameta{body}
+@deffn Syntax lambda/with-class @ameta{formals} @ameta{body}
 Like @func{lambda} but encloses the body into a @func{with-fields}
 syntax defining identifier syntaxes to access the fields and virtual
 fields of the arguments.  @meta{formals} must have the same form of the
@@ -20664,10 +20669,10 @@ identifier, as in @func{lambda}, or a list of the form:
 
 @noindent
 in which case the @meta{variable} argument is meant to be of type
-@meta{class name} and the corresponding identifier syntaxes are
-defined.  When an argument as no type: we can use @class{top} as its
-conventional class type name, or let @func{lambda/with} select
-@class{top} automatically.
+@meta{class name} and the corresponding identifier syntaxes are defined.
+When an argument as no type: we can use @class{top} as its conventional
+class type name, or let @func{lambda/with-class} select @class{top}
+automatically.
 
 @example
 (define-class <fraction>
@@ -20676,34 +20681,34 @@ conventional class type name, or let @func{lambda/with} select
                   (mutable denominator)))
 
 (define <fraction>-numerator
-  (lambda/with ((o <fraction>))
+  (lambda/with-class ((o <fraction>))
     (numerator o.number)))
 
 (define <fraction>-numerator-set!
-  (lambda/with ((o <fraction>) v)
+  (lambda/with-class ((o <fraction>) v)
     (set! o.number (/ v (denominator o.number)))))
 
 (define <fraction>-denominator
-  (lambda/with ((o <fraction>))
+  (lambda/with-class ((o <fraction>))
     (denominator o.number)))
 
 (define <fraction>-denominator-set!
-  (lambda/with ((o <fraction>) v)
+  (lambda/with-class ((o <fraction>) v)
     (set! o.number (/ (numerator o.number) v))))
 
-(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+(let/with-class (((o <fraction>) (make-<fraction> 2/3)))
   o.numerator)
 @result{} 2
 @end example
 @end deffn
 
 
-@deffn Syntax define/with (@ameta{variable} @ameta{formals}) @ameta{body}
-@deffnx Syntax define/with (@ameta{variable} . @ameta{formal}) @ameta{body}
-@deffnx Syntax define/with @ameta{variable} @ameta{expression}
-@deffnx Syntax define/with @ameta{variable}
+@deffn Syntax define/with-class (@ameta{variable} @ameta{formals}) @ameta{body}
+@deffnx Syntax define/with-class (@ameta{variable} . @ameta{formal}) @ameta{body}
+@deffnx Syntax define/with-class @ameta{variable} @ameta{expression}
+@deffnx Syntax define/with-class @ameta{variable}
 Like @func{define} but when used in the first and second forms expands
-to the use of @func{lambda/with}.
+to the use of @func{lambda/with-class}.
 
 @example
 (define-class <fraction>
@@ -20711,31 +20716,31 @@ to the use of @func{lambda/with}.
   (virtual-fields (mutable numerator)
                   (mutable denominator)))
 
-(define/with (<fraction>-numerator (o <fraction>))
+(define/with-class (<fraction>-numerator (o <fraction>))
   (numerator o.number))
 
-(define/with (<fraction>-numerator-set! (o <fraction>) v)
+(define/with-class (<fraction>-numerator-set! (o <fraction>) v)
   (set! o.number (/ v (denominator o.number))))
 
-(define/with (<fraction>-denominator (o <fraction>))
+(define/with-class (<fraction>-denominator (o <fraction>))
   (denominator o.number))
 
-(define/with (<fraction>-denominator-set! (o <fraction>) v)
+(define/with-class (<fraction>-denominator-set! (o <fraction>) v)
   (set! o.number (/ (numerator o.number) v)))
 
-(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+(let/with-class (((o <fraction>) (make-<fraction> 2/3)))
   o.numerator)
 @result{} 2
 @end example
 @end deffn
 
 
-@deffn Syntax lambda/with* @ameta{formals} @ameta{body}
-Like @func{lambda/with*}, but prepends to the body a list of calls to
-@func{assert} to verify the type of the arguments.  For example:
+@deffn Syntax lambda/with-class* @ameta{formals} @ameta{body}
+Like @func{lambda/with-class*}, but prepends to the body a list of calls
+to @func{assert} to verify the type of the arguments.  For example:
 
 @example
-(lambda/with* ((a <number>) (b <string>))
+(lambda/with-class* ((a <number>) (b <string>))
   ---)
 @end example
 
@@ -20743,7 +20748,7 @@ Like @func{lambda/with*}, but prepends to the body a list of calls to
 is equivalent to:
 
 @example
-(lambda/with ((a <number>) (b <string>))
+(lambda/with-class ((a <number>) (b <string>))
   (assert (is-a? a <number>))
   (assert (is-a? b <string>))
   ---)
@@ -20751,33 +20756,33 @@ is equivalent to:
 @end deffn
 
 
-@deffn Syntax case-lambda/with @ameta{case-lambda-clause} ...
-@deffnx Syntax case-lambda/with* @ameta{case-lambda-clause} ...
-The natural extensions of @func{lambda/with} and @func{lambda/with*} to
-@func{case-lambda}.
+@deffn Syntax case-lambda/with-class @ameta{case-lambda-clause} ...
+@deffnx Syntax case-lambda/with-class* @ameta{case-lambda-clause} ...
+The natural extensions of @func{lambda/with-class} and
+@func{lambda/with-class*} to @func{case-lambda}.
 @end deffn
 
 
-@deffn Syntax define/with* (@ameta{variable} @ameta{formals}) @ameta{body}
-@deffnx Syntax define/with* (@ameta{variable} . @ameta{formal}) @ameta{body}
-@deffnx Syntax define/with* @ameta{variable} @ameta{expression}
-@deffnx Syntax define/with* @ameta{variable}
-Like @func{define/with}, but in the first and second forms expands to
-the use of @func{lambda/with*}.
+@deffn Syntax define/with-class* (@ameta{variable} @ameta{formals}) @ameta{body}
+@deffnx Syntax define/with-class* (@ameta{variable} . @ameta{formal}) @ameta{body}
+@deffnx Syntax define/with-class* @ameta{variable} @ameta{expression}
+@deffnx Syntax define/with-class* @ameta{variable}
+Like @func{define/with-class}, but in the first and second forms expands
+to the use of @func{lambda/with-class*}.
 @end deffn
 
 
-@deffn Syntax receive/with @ameta{formals} @ameta{expression} . @ameta{body}
-Like @func{receive} but expands to @func{lambda/with} rather than
+@deffn Syntax receive/with-class @ameta{formals} @ameta{expression} . @ameta{body}
+Like @func{receive} but expands to @func{lambda/with-class} rather than
 @func{lambda}:
 
 @example
-(define-syntax receive/with
+(define-syntax receive/with-class
   (syntax-rules ()
     ((_ ?formals ?expression ?form0 ?form ...)
      (call-with-values
          (lambda () ?expression)
-       (lambda/with ?formals ?form0 ?form ...)))))
+       (lambda/with-class ?formals ?form0 ?form ...)))))
 @end example
 @end deffn
 
@@ -26100,30 +26105,27 @@ library.  The library is built on top of @library{classes}.
 @subsubsection Record type definition
 
 
-@deftp Class <memblock>
-Type of record used to represent memory blocks.  It has the following
-mutable fields:
+@deftp Class @aclass{memblock}
+Type of record used to represent memory blocks.
+@end deftp
 
-@table @samp
-@item pointer
+
+@defcv {Mutable Field} @aclass{memblock} pointer
 A pointer value referencing a memory block.
+@end defcv
 
-@item size
+
+@defcv {Mutable Field} @aclass{memblock} size
 The ``official'' number of bytes in the referenced memory block.
+@end defcv
 
-@item alloc-size
+
+@defcv {Mutable Field} @aclass{memblock} alloc-size
 The number of bytes really allocated in the referenced memory block;
 this number can be different from the one in the @code{size} field.
 This field is set to @false{} when the record does not own the memory
 block.
-@end table
-@end deftp
-
-
-@deffn {Auxiliary Syntax} <memblock>-with-record-fields-of
-Used to access fields of @class{memblock} records by @func{with-fields}
-from @library{classes}.
-@end deffn
+@end defcv
 
 
 @defun make-<memblock> @var{pointer} @var{number-of-bytes}
@@ -26681,30 +26683,29 @@ The following bindings are exported by @library{ffi memory mempool}.
 The library is built on top of @library{classes}.
 
 
-@deftp Class <mempool>
-Record type descriptor of the memory pool object.  It has the following
-concrete and virtual fields:
-
-@table @code
-@item pointer
-Immutable.  Pointer to the allocated block.
-
-@item size
-Immutable.  Number of allocated bytes.
-
-@item pointer-free
-Mutable.  Pointer to the first free byte in the allocated block.
-
-@item free-size
-Immutable.  Number of free bytes in the memory pool.
-@end table
+@deftp Class @aclass{mempool}
+Record type descriptor of the memory pool object.
 @end deftp
 
 
-@deffn {Auxiliary Syntax} <mempool>-with-record-fields-of
-Used to access the fields of @class{mempool} records by
-@func{with-fields} from @library{classes}.
-@end deffn
+@defcv {Immutable Field} @aclass{mempool} pointer
+Pointer to the allocated block.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{mempool} size
+Number of allocated bytes.
+@end defcv
+
+
+@defcv {Mutable Filed} @aclass{mempool} pointer-free
+Pointer to the first free byte in the allocated block.
+@end defcv
+
+
+@defcv {Immutable Field} @aclass{mempool} free-size
+Number of free bytes in the memory pool.
+@end defcv
 
 
 @defun make-<mempool> @var{pointer} @var{number-of-bytes}
@@ -26857,16 +26858,10 @@ The following bindings are exported by @library{ffi memory membuffers};
 the library is built on top of @class{classes}.
 
 
-@deftp Class <membuffer>
+@deftp Class @aclass{membuffer}
 Record type of byte buffers; it is used as a @acronym{FIFO} for bytes or
 multi--byte data types.
 @end deftp
-
-
-@deffn {Auxiliary Syntax} <membuffer>-with-record-fields-of
-Used to access the fields of @class{membuffer} records by
-@func{with-fields} from @library{classes}.
-@end deffn
 
 
 @defun make-<membuffer>

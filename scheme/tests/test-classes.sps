@@ -1100,10 +1100,10 @@
     (define (<fraction>-denominator o)
       (denominator (<fraction>-number o)))
 
-    (define/with (<fraction>-product (o <fraction>) lambda)
+    (define/with-class (<fraction>-product (o <fraction>) lambda)
       (set! o.numerator (* o.numerator lambda)))
 
-    (define/with (the-list-function (o <fraction>) . ell)
+    (define/with-class (the-list-function (o <fraction>) . ell)
       (cons o.numerator ell))
 
     (check
@@ -1294,9 +1294,9 @@
   #t)
 
 
-(parametrise ((check-test-name	'let-fields))
+(parametrise ((check-test-name	'let/with-class))
 
-;;; let-fields
+;;; let/with-class
 
   (let ()
 
@@ -1312,40 +1312,40 @@
       (denominator (<fraction>-number o)))
 
     (check
-	(let-fields (((a <fraction>) (make-<fraction> 2/3))
-		     ((b <fraction>) (make-<fraction> 4/5)))
-	  (list a.numerator b.denominator))
+	(let/with-class (((a <fraction>) (make-<fraction> 2/3))
+			 ((b <fraction>) (make-<fraction> 4/5)))
+			(list a.numerator b.denominator))
       => '(2 5))
 
     #f)
 
   (check	;use the records from (records-lib)
-      (let-fields (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(list r.a r.b r.c
-	      r.d r.e r.f
-	      r.g r.h r.i))
+      (let/with-class (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
+		      (list r.a r.b r.c
+			    r.d r.e r.f
+			    r.g r.h r.i))
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (let-fields (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
-		   ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
-	(list r.a r.g s.a s.d))
+      (let/with-class (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
+		       ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
+		      (list r.a r.g s.a s.d))
     => '(1 7 10 40))
 
 
   (check
-      (let-fields ((a 1) (b 2))
-	(list a b))
+      (let/with-class ((a 1) (b 2))
+		      (list a b))
     => '(1 2))
 
   (check
-      (let-fields ((a 1)
-		   ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(list a r.b))
+      (let/with-class ((a 1)
+		       ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
+		      (list a r.b))
     => '(1 2))
 
 ;;; --------------------------------------------------------------------
-;;; let*-fields
+;;; let*/with-class
 
   (let ()
 
@@ -1361,45 +1361,45 @@
       (denominator (<fraction>-number o)))
 
     (check
-	(let*-fields (((a <fraction>) (make-<fraction> 2/3))
-		      ((b <fraction>) (make-<fraction> 4/5)))
-	  (list a.numerator b.denominator))
+	(let*/with-class (((a <fraction>) (make-<fraction> 2/3))
+			  ((b <fraction>) (make-<fraction> 4/5)))
+			 (list a.numerator b.denominator))
       => '(2 5))
 
     (check
-	(let*-fields (((a <fraction>) (make-<fraction> 2/3))
-		      ((b <fraction>) (make-<fraction> (/ a.numerator 5))))
-	  b.number)
+	(let*/with-class (((a <fraction>) (make-<fraction> 2/3))
+			  ((b <fraction>) (make-<fraction> (/ a.numerator 5))))
+			 b.number)
       => 2/5)
 
     #f)
 
   (check	;use the records from (records-lib)
-      (let*-fields (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(list r.a r.b r.c
-	      r.d r.e r.f
-	      r.g r.h r.i))
+      (let*/with-class (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
+		       (list r.a r.b r.c
+			     r.d r.e r.f
+			     r.g r.h r.i))
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (let*-fields (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
-		    ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
-	(list r.a r.g s.a s.d))
+      (let*/with-class (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
+			((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
+		       (list r.a r.g s.a s.d))
     => '(1 7 10 40))
 
   (check
-      (let*-fields ((a 1) (b 2))
-	(list a b))
+      (let*/with-class ((a 1) (b 2))
+		       (list a b))
     => '(1 2))
 
   (check
-      (let*-fields ((a 1)
-		    ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(list a r.b))
+      (let*/with-class ((a 1)
+			((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
+		       (list a r.b))
     => '(1 2))
 
 ;;; --------------------------------------------------------------------
-;;; letrec-fields
+;;; letrec/with-class
 
   (let ()
 
@@ -1415,9 +1415,9 @@
       (denominator (<fraction>-number o)))
 
     (check
-	(letrec-fields (((a <fraction>) (make-<fraction> 2/3))
-			((b <fraction>) (make-<fraction> 4/5)))
-	  (list a.numerator b.denominator))
+	(letrec/with-class (((a <fraction>) (make-<fraction> 2/3))
+			    ((b <fraction>) (make-<fraction> 4/5)))
+			   (list a.numerator b.denominator))
       => '(2 5))
 
     #f)
@@ -1431,9 +1431,9 @@
       (fields (immutable proc)))
 
     (check
-	(letrec-fields (((a <alpha>) (make-<alpha> 123))
-			((b <beta>)  (make-<beta> (lambda () a.value))))
-	  (b.proc))
+	(letrec/with-class (((a <alpha>) (make-<alpha> 123))
+			    ((b <beta>)  (make-<beta> (lambda () a.value))))
+			   (b.proc))
       => 123)
 
     #f)
@@ -1449,43 +1449,43 @@
 	      (immutable proc)))
 
     (check
-	(letrec-fields (((a <alpha>) (make-<alpha>
-				      1 (lambda ()
-					  (cons a.value b.value))))
-			((b <beta>)  (make-<beta>
-				      2 (lambda ()
-					  (cons a.value b.value)))))
-	  (list (a.proc) (b.proc)))
+	(letrec/with-class (((a <alpha>) (make-<alpha>
+					  1 (lambda ()
+					      (cons a.value b.value))))
+			    ((b <beta>)  (make-<beta>
+					  2 (lambda ()
+					      (cons a.value b.value)))))
+			   (list (a.proc) (b.proc)))
       => '((1 . 2) (1 . 2)))
 
     #f)
 
   (check	;use the records from (records-lib)
-      (letrec-fields (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(list r.a r.b r.c
-	      r.d r.e r.f
-	      r.g r.h r.i))
+      (letrec/with-class (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
+			 (list r.a r.b r.c
+			       r.d r.e r.f
+			       r.g r.h r.i))
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (letrec-fields (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
-		      ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
-	(list r.a r.g s.a s.d))
+      (letrec/with-class (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
+			  ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
+			 (list r.a r.g s.a s.d))
     => '(1 7 10 40))
 
   (check
-      (letrec-fields ((a 1) (b 2))
-	(list a b))
+      (letrec/with-class ((a 1) (b 2))
+			 (list a b))
     => '(1 2))
 
   (check
-      (letrec-fields ((a 1)
-		      ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(list a r.b))
+      (letrec/with-class ((a 1)
+			  ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
+			 (list a r.b))
     => '(1 2))
 
 ;;; --------------------------------------------------------------------
-;;; letrec*-fields
+;;; letrec*/with-class
 
   (let ()
 
@@ -1501,15 +1501,15 @@
       (denominator (<fraction>-number o)))
 
     (check
-	(letrec*-fields (((a <fraction>) (make-<fraction> 2/3))
-			 ((b <fraction>) (make-<fraction> 4/5)))
-	  (list a.numerator b.denominator))
+	(letrec*/with-class (((a <fraction>) (make-<fraction> 2/3))
+			     ((b <fraction>) (make-<fraction> 4/5)))
+			    (list a.numerator b.denominator))
       => '(2 5))
 
     (check
-	(letrec*-fields (((a <fraction>) (make-<fraction> 2/3))
-			 ((b <fraction>) (make-<fraction> (/ a.numerator 5))))
-	  b.number)
+	(letrec*/with-class (((a <fraction>) (make-<fraction> 2/3))
+			     ((b <fraction>) (make-<fraction> (/ a.numerator 5))))
+			    b.number)
       => 2/5)
 
     #f)
@@ -1525,11 +1525,11 @@
 	      (immutable proc)))
 
     (check
-	(letrec*-fields (((a <alpha>) (make-<alpha>
-				       1 (lambda () b.value)))
-			 ((b <beta>)  (make-<beta>
-				       2 (lambda () a.value))))
-	  (list (a.proc) (b.proc)))
+	(letrec*/with-class (((a <alpha>) (make-<alpha>
+					   1 (lambda () b.value)))
+			     ((b <beta>)  (make-<beta>
+					   2 (lambda () a.value))))
+			    (list (a.proc) (b.proc)))
       => '(2 1))
 
     #f)
@@ -1545,13 +1545,13 @@
 	      (immutable proc)))
 
     (check
-	(letrec*-fields (((a <alpha>) (make-<alpha>
-				       1 (lambda ()
-					   (cons a.value b.value))))
-			 ((b <beta>)  (make-<beta>
-				       2 (lambda ()
-					   (cons a.value b.value)))))
-	  (list (a.proc) (b.proc)))
+	(letrec*/with-class (((a <alpha>) (make-<alpha>
+					   1 (lambda ()
+					       (cons a.value b.value))))
+			     ((b <beta>)  (make-<beta>
+					   2 (lambda ()
+					       (cons a.value b.value)))))
+			    (list (a.proc) (b.proc)))
       => '((1 . 2) (1 . 2)))
 
     #f)
@@ -1567,40 +1567,40 @@
 	      (immutable proc)))
 
     (check
-	(letrec*-fields (((a <alpha>) (make-<alpha>
-				       1 (lambda ()
-					   (cons a.value b.value))))
-			 ((b <beta>)  (make-<beta>
-				       2 (lambda ()
-					   (cons a.value b.value))))
-			 ((c <top>)   (list (a.proc) (b.proc))))
-	  c)
+	(letrec*/with-class (((a <alpha>) (make-<alpha>
+					   1 (lambda ()
+					       (cons a.value b.value))))
+			     ((b <beta>)  (make-<beta>
+					   2 (lambda ()
+					       (cons a.value b.value))))
+			     ((c <top>)   (list (a.proc) (b.proc))))
+			    c)
       => '((1 . 2) (1 . 2)))
 
     #f)
 
   (check	;use the records from (records-lib)
-      (letrec*-fields (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(list r.a r.b r.c
-	      r.d r.e r.f
-	      r.g r.h r.i))
+      (letrec*/with-class (((r <gamma> <beta> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
+			  (list r.a r.b r.c
+				r.d r.e r.f
+				r.g r.h r.i))
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
-      (letrec*-fields (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
-		       ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
-	(list r.a r.g s.a s.d))
+      (letrec*/with-class (((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9))
+			   ((s <beta>  <alpha>) (make <beta>  10 20 30 40 50 60)))
+			  (list r.a r.g s.a s.d))
     => '(1 7 10 40))
 
   (check
-      (letrec*-fields ((a 1) (b 2))
-	(list a b))
+      (letrec*/with-class ((a 1) (b 2))
+			  (list a b))
     => '(1 2))
 
   (check
-      (letrec*-fields ((a 1)
-		       ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(list a r.b))
+      (letrec*/with-class ((a 1)
+			   ((r <gamma> <alpha>) (make <gamma> 1 2 3 4 5 6 7 8 9)))
+			  (list a r.b))
     => '(1 2))
 
   #t)
@@ -1610,22 +1610,22 @@
 
 ;;; untyped
 
-  (let ((f (lambda/with (a)
+  (let ((f (lambda/with-class (a)
 	     a)))
     (check (f 123) => 123)
     #f)
 
-  (let ((f (lambda/with (a b)
+  (let ((f (lambda/with-class (a b)
 	     (list a b))))
     (check (f 1 2) => '(1 2))
     #f)
 
-  (let ((f (lambda/with (a b c)
+  (let ((f (lambda/with-class (a b c)
 	     (list a b c))))
     (check (f 1 2 3) => '(1 2 3))
     #f)
 
-  (let ((f (lambda/with args
+  (let ((f (lambda/with-class args
 	     (list->vector args))))
     (check (f) => '#())
     (check (f 1) => '#(1))
@@ -1633,14 +1633,14 @@
     (check (f 1 2 3) => '#(1 2 3))
     #f)
 
-  (let ((f (lambda/with (a . rest)
+  (let ((f (lambda/with-class (a . rest)
 	     (vector a rest))))
     (check (f 1) => '#(1 ()))
     (check (f 1 2) => '#(1 (2)))
     (check (f 1 2 3 4) => '#(1 (2 3 4)))
     #f)
 
-  (let ((f (lambda/with (a b . rest)
+  (let ((f (lambda/with-class (a b . rest)
 	     (vector a b rest))))
     (check (f 1 2) => '#(1 2 ()))
     (check (f 1 2 3) => '#(1 2 (3)))
@@ -1658,44 +1658,44 @@
 		      (mutable denominator)))
 
     (define <fraction>-numerator
-      (lambda/with ((o <fraction>))
+      (lambda/with-class ((o <fraction>))
 	(numerator o.number)))
 
     (define <fraction>-numerator-set!
-      (lambda/with ((o <fraction>) v)
+      (lambda/with-class ((o <fraction>) v)
 	(set! o.number (/ v (denominator o.number)))))
 
     (define <fraction>-denominator
-      (lambda/with ((o <fraction>))
+      (lambda/with-class ((o <fraction>))
 	(denominator o.number)))
 
     (define <fraction>-denominator-set!
-      (lambda/with ((o <fraction>) (v <top>))
+      (lambda/with-class ((o <fraction>) (v <top>))
 	(set! o.number (/ (numerator o.number) v))))
 
-    (let ((f (lambda/with ((a <fraction>))
+    (let ((f (lambda/with-class ((a <fraction>))
 	       a.numerator)))
       (check (f (make-<fraction> 2/3)) => 2)
       #f)
 
-    (let ((f (lambda/with ((a <fraction>) (b <complex>))
+    (let ((f (lambda/with-class ((a <fraction>) (b <complex>))
 	       (list a.numerator b.magnitude))))
       (check (f (make-<fraction> 2/3) -4) => '(2 4))
       #f)
 
-    (let ((f (lambda/with ((a <fraction>) b (c <fraction>))
+    (let ((f (lambda/with-class ((a <fraction>) b (c <fraction>))
 	       (list a.numerator b c.denominator))))
       (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
       #f)
 
-    (let ((f (lambda/with ((a <fraction>) . rest)
+    (let ((f (lambda/with-class ((a <fraction>) . rest)
 	       (vector a.numerator rest))))
       (check (f (make-<fraction> 11/12)) => '#(11 ()))
       (check (f (make-<fraction> 11/12) 2) => '#(11 (2)))
       (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 (2 3 4)))
       #f)
 
-    (let ((f (lambda/with ((a <fraction>) b . rest)
+    (let ((f (lambda/with-class ((a <fraction>) b . rest)
 	       (vector a.numerator b rest))))
       (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
       (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
@@ -1705,12 +1705,12 @@
 ;;; --------------------------------------------------------------------
 
     (check
-	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+	(let/with-class (((o <fraction>) (make-<fraction> 2/3)))
 	  o.numerator)
       => 2)
 
     (check
-	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+	(let/with-class (((o <fraction>) (make-<fraction> 2/3)))
 	  o.numerator)
       => 2)
 
@@ -1741,7 +1741,7 @@
 
   (check
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
-	    (f (lambda/with ((r <gamma> <beta> <alpha>))
+	    (f (lambda/with-class ((r <gamma> <beta> <alpha>))
 		 (list r.a r.b r.c
 		       r.d r.e r.f
 		       r.g r.h r.i))))
@@ -1751,7 +1751,7 @@
   (check	;use the records from (records-lib)
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (s (make <beta>  10 20 30 40 50 60))
-	    (f (lambda/with ((r <gamma> <alpha>) (s <beta> <alpha>))
+	    (f (lambda/with-class ((r <gamma> <alpha>) (s <beta> <alpha>))
 		 (list r.a r.g s.a s.d))))
 	(f r s))
     => '(1 7 10 40))
@@ -1763,22 +1763,22 @@
 
 ;;; untyped
 
-  (let ((f (lambda/with* (a)
+  (let ((f (lambda/with-class* (a)
 	     a)))
     (check (f 123) => 123)
     #f)
 
-  (let ((f (lambda/with* (a b)
+  (let ((f (lambda/with-class* (a b)
 	     (list a b))))
     (check (f 1 2) => '(1 2))
     #f)
 
-  (let ((f (lambda/with* (a b c)
+  (let ((f (lambda/with-class* (a b c)
 	     (list a b c))))
     (check (f 1 2 3) => '(1 2 3))
     #f)
 
-  (let ((f (lambda/with* args
+  (let ((f (lambda/with-class* args
 	     (list->vector args))))
     (check (f) => '#())
     (check (f 1) => '#(1))
@@ -1786,14 +1786,14 @@
     (check (f 1 2 3) => '#(1 2 3))
     #f)
 
-  (let ((f (lambda/with* (a . rest)
+  (let ((f (lambda/with-class* (a . rest)
 	     (vector a rest))))
     (check (f 1) => '#(1 ()))
     (check (f 1 2) => '#(1 (2)))
     (check (f 1 2 3 4) => '#(1 (2 3 4)))
     #f)
 
-  (let ((f (lambda/with* (a b . rest)
+  (let ((f (lambda/with-class* (a b . rest)
 	     (vector a b rest))))
     (check (f 1 2) => '#(1 2 ()))
     (check (f 1 2 3) => '#(1 2 (3)))
@@ -1811,44 +1811,44 @@
 		      (mutable denominator)))
 
     (define <fraction>-numerator
-      (lambda/with* ((o <fraction>))
+      (lambda/with-class* ((o <fraction>))
 	(numerator o.number)))
 
     (define <fraction>-numerator-set!
-      (lambda/with* ((o <fraction>) v)
+      (lambda/with-class* ((o <fraction>) v)
 	(set! o.number (/ v (denominator o.number)))))
 
     (define <fraction>-denominator
-      (lambda/with* ((o <fraction>))
+      (lambda/with-class* ((o <fraction>))
 	(denominator o.number)))
 
     (define <fraction>-denominator-set!
-      (lambda/with* ((o <fraction>) (v <top>))
+      (lambda/with-class* ((o <fraction>) (v <top>))
 	(set! o.number (/ (numerator o.number) v))))
 
-    (let ((f (lambda/with* ((a <fraction>))
+    (let ((f (lambda/with-class* ((a <fraction>))
 	       a.numerator)))
       (check (f (make-<fraction> 2/3)) => 2)
       #f)
 
-    (let ((f (lambda/with* ((a <fraction>) (b <complex>))
+    (let ((f (lambda/with-class* ((a <fraction>) (b <complex>))
 	       (list a.numerator b.magnitude))))
       (check (f (make-<fraction> 2/3) -4) => '(2 4))
       #f)
 
-    (let ((f (lambda/with* ((a <fraction>) b (c <fraction>))
+    (let ((f (lambda/with-class* ((a <fraction>) b (c <fraction>))
 	       (list a.numerator b c.denominator))))
       (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
       #f)
 
-    (let ((f (lambda/with* ((a <fraction>) . rest)
+    (let ((f (lambda/with-class* ((a <fraction>) . rest)
 	       (vector a.numerator rest))))
       (check (f (make-<fraction> 11/12)) => '#(11 ()))
       (check (f (make-<fraction> 11/12) 2) => '#(11 (2)))
       (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 (2 3 4)))
       #f)
 
-    (let ((f (lambda/with* ((a <fraction>) b . rest)
+    (let ((f (lambda/with-class* ((a <fraction>) b . rest)
 	       (vector a.numerator b rest))))
       (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
       (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
@@ -1867,7 +1867,7 @@
 		(else
 ;;;		 (write E)(newline)
                  #f))
-	(eval '(let ((f (lambda/with* ((a <number>))
+	(eval '(let ((f (lambda/with-class* ((a <number>))
 			  #f)))
 		 (f "ciao"))
 	      (environment '(nausicaa) '(classes))))
@@ -1880,7 +1880,7 @@
 		(else
 ;;;		 (write E)(newline)
                  #f))
-	(eval '(let ((f (lambda/with* ((a <number>) (b <string>))
+	(eval '(let ((f (lambda/with-class* ((a <number>) (b <string>))
 			  #f)))
 		 (f 1 2))
 	      (environment '(nausicaa) '(classes))))
@@ -1891,7 +1891,7 @@
 
   (check
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
-	    (f (lambda/with* ((r <gamma> <beta> <alpha>))
+	    (f (lambda/with-class* ((r <gamma> <beta> <alpha>))
 		 (list r.a r.b r.c
 		       r.d r.e r.f
 		       r.g r.h r.i))))
@@ -1901,7 +1901,7 @@
   (check	;use the records from (records-lib)
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (s (make <beta>  10 20 30 40 50 60))
-	    (f (lambda/with* ((r <gamma> <alpha>) (s <beta> <alpha>))
+	    (f (lambda/with-class* ((r <gamma> <alpha>) (s <beta> <alpha>))
 		 (list r.a r.g s.a s.d))))
 	(f r s))
     => '(1 7 10 40))
@@ -1912,25 +1912,25 @@
 (parametrise ((check-test-name	'define-with))
 
   (let ()
-    (define/with (f a)
+    (define/with-class (f a)
       a)
     (check (f 123) => 123)
     #f)
 
   (let ()
-    (define/with (f a b)
+    (define/with-class (f a b)
       (list a b))
     (check (f 1 2) => '(1 2))
     #f)
 
   (let ()
-    (define/with (f a b c)
+    (define/with-class (f a b c)
       (list a b c))
     (check (f 1 2 3) => '(1 2 3))
     #f)
 
   (let ()
-    (define/with (f . args)
+    (define/with-class (f . args)
       (list->vector args))
     (check (f) => '#())
     (check (f 1) => '#(1))
@@ -1939,7 +1939,7 @@
     #f)
 
   (let ()
-    (define/with (f a . rest)
+    (define/with-class (f a . rest)
       (vector a rest))
     (check (f 1) => '#(1 ()))
     (check (f 1 2) => '#(1 (2)))
@@ -1947,7 +1947,7 @@
     #f)
 
   (let ()
-    (define/with (f a b . rest)
+    (define/with-class (f a b . rest)
       (vector a b rest))
     (check (f 1 2) => '#(1 2 ()))
     (check (f 1 2 3) => '#(1 2 (3)))
@@ -1961,25 +1961,25 @@
       (virtual-fields (mutable numerator)
 		      (mutable denominator)))
 
-    (define/with (<fraction>-numerator (o <fraction>))
+    (define/with-class (<fraction>-numerator (o <fraction>))
       (numerator o.number))
 
-    (define/with (<fraction>-numerator-set! (o <fraction>) (v <top>))
+    (define/with-class (<fraction>-numerator-set! (o <fraction>) (v <top>))
       (set! o.number (/ v (denominator o.number))))
 
-    (define/with (<fraction>-denominator (o <fraction>))
+    (define/with-class (<fraction>-denominator (o <fraction>))
       (denominator o.number))
 
-    (define/with (<fraction>-denominator-set! (o <fraction>) (v <top>))
+    (define/with-class (<fraction>-denominator-set! (o <fraction>) (v <top>))
       (set! o.number (/ (numerator o.number) v)))
 
     (check
-	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+	(let/with-class (((o <fraction>) (make-<fraction> 2/3)))
 	  o.numerator)
       => 2)
 
     (check
-	(let-fields (((o <fraction>) (make-<fraction> 2/3)))
+	(let/with-class (((o <fraction>) (make-<fraction> 2/3)))
 	  o.numerator)
       => 2)
 
@@ -2010,7 +2010,7 @@
 
   (check
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(define/with (f (r <gamma> <beta> <alpha>))
+	(define/with-class (f (r <gamma> <beta> <alpha>))
 	  (list r.a r.b r.c
 		r.d r.e r.f
 		r.g r.h r.i))
@@ -2020,7 +2020,7 @@
   (check	;use the records from (records-lib)
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (s (make <beta>  10 20 30 40 50 60)))
-	(define/with (f (r <gamma> <alpha>) (s <beta> <alpha>))
+	(define/with-class (f (r <gamma> <alpha>) (s <beta> <alpha>))
 	  (list r.a r.g s.a s.d))
 	(f r s))
     => '(1 7 10 40))
@@ -2035,38 +2035,38 @@
     (virtual-fields (mutable numerator)
 		    (mutable denominator)))
 
-  (define/with* (<fraction>-numerator (o <fraction>))
+  (define/with-class* (<fraction>-numerator (o <fraction>))
     (numerator o.number))
 
-  (define/with* (<fraction>-numerator-set! (o <fraction>) (v <top>))
+  (define/with-class* (<fraction>-numerator-set! (o <fraction>) (v <top>))
     (set! o.number (/ v (denominator o.number))))
 
-  (define/with* (<fraction>-denominator (o <fraction>))
+  (define/with-class* (<fraction>-denominator (o <fraction>))
     (denominator o.number))
 
-  (define/with* (<fraction>-denominator-set! (o <fraction>) (v <top>))
+  (define/with-class* (<fraction>-denominator-set! (o <fraction>) (v <top>))
     (set! o.number (/ (numerator o.number) v)))
 
   (let ()
-    (define/with* (f (a <fraction>))
+    (define/with-class* (f (a <fraction>))
       a.numerator)
     (check (f (make-<fraction> 2/3)) => 2)
     #f)
 
   (let ()
-    (define/with* (f (a <fraction>) (b <complex>))
+    (define/with-class* (f (a <fraction>) (b <complex>))
       (list a.numerator b.magnitude))
     (check (f (make-<fraction> 2/3) -4) => '(2 4))
     #f)
 
   (let ()
-    (define/with* (f (a <fraction>) b (c <fraction>))
+    (define/with-class* (f (a <fraction>) b (c <fraction>))
       (list a.numerator b c.denominator))
     (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
     #f)
 
   (let ()
-    (define/with* (f (a <fraction>) . rest)
+    (define/with-class* (f (a <fraction>) . rest)
       (vector a.numerator rest))
     (check (f (make-<fraction> 11/12)) => '#(11 ()))
     (check (f (make-<fraction> 11/12) 2) => '#(11 (2)))
@@ -2074,7 +2074,7 @@
     #f)
 
   (let ()
-    (define/with* (f (a <fraction>) b . rest)
+    (define/with-class* (f (a <fraction>) b . rest)
       (vector a.numerator b rest))
     (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
     (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
@@ -2086,7 +2086,7 @@
 
   (check
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(define/with* (f (r <gamma> <beta> <alpha>))
+	(define/with-class* (f (r <gamma> <beta> <alpha>))
 	  (list r.a r.b r.c
 		r.d r.e r.f
 		r.g r.h r.i))
@@ -2096,7 +2096,7 @@
   (check	;use the records from (records-lib)
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (s (make <beta>  10 20 30 40 50 60)))
-	(define/with* (f (r <gamma> <alpha>) (s <beta> <alpha>))
+	(define/with-class* (f (r <gamma> <alpha>) (s <beta> <alpha>))
 	  (list r.a r.g s.a s.d))
 	(f r s))
     => '(1 7 10 40))
@@ -2108,25 +2108,25 @@
 
 ;;; untyped
 
-  (let ((f (case-lambda/with
+  (let ((f (case-lambda/with-class
 	     ((a)
 	      a))))
     (check (f 123) => 123)
     #f)
 
-  (let ((f (case-lambda/with
+  (let ((f (case-lambda/with-class
 	     ((a b)
 	      (list a b)))))
     (check (f 1 2) => '(1 2))
     #f)
 
-  (let ((f (case-lambda/with
+  (let ((f (case-lambda/with-class
 	     ((a b c)
 	      (list a b c)))))
     (check (f 1 2 3) => '(1 2 3))
     #f)
 
-  (let ((f (case-lambda/with
+  (let ((f (case-lambda/with-class
 	     (args
 	      (list->vector args)))))
     (check (f) => '#())
@@ -2135,7 +2135,7 @@
     (check (f 1 2 3) => '#(1 2 3))
     #f)
 
-  (let ((f (case-lambda/with
+  (let ((f (case-lambda/with-class
 	     ((a . rest)
 	      (vector a rest)))))
     (check (f 1) => '#(1 ()))
@@ -2143,7 +2143,7 @@
     (check (f 1 2 3 4) => '#(1 (2 3 4)))
     #f)
 
-  (let ((f (case-lambda/with
+  (let ((f (case-lambda/with-class
 	     ((a b . rest)
 	      (vector a b rest)))))
     (check (f 1 2) => '#(1 2 ()))
@@ -2162,44 +2162,44 @@
 		      (mutable denominator)))
 
     (define <fraction>-numerator
-      (case-lambda/with
+      (case-lambda/with-class
 	(((o <fraction>))
 	 (numerator o.number))))
 
     (define <fraction>-numerator-set!
-      (case-lambda/with
+      (case-lambda/with-class
 	(((o <fraction>) v)
 	 (set! o.number (/ v (denominator o.number))))))
 
     (define <fraction>-denominator
-      (case-lambda/with
+      (case-lambda/with-class
 	(((o <fraction>))
 	 (denominator o.number))))
 
     (define <fraction>-denominator-set!
-      (case-lambda/with
+      (case-lambda/with-class
 	(((o <fraction>) (v <top>))
 	 (set! o.number (/ (numerator o.number) v)))))
 
-    (let ((f (case-lambda/with
+    (let ((f (case-lambda/with-class
 	       (((a <fraction>))
 		a.numerator))))
       (check (f (make-<fraction> 2/3)) => 2)
       #f)
 
-    (let ((f (case-lambda/with
+    (let ((f (case-lambda/with-class
 	       (((a <fraction>) (b <complex>))
 		(list a.numerator b.magnitude)))))
       (check (f (make-<fraction> 2/3) -4) => '(2 4))
       #f)
 
-    (let ((f (case-lambda/with
+    (let ((f (case-lambda/with-class
 	       (((a <fraction>) b (c <fraction>))
 		(list a.numerator b c.denominator)))))
       (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
       #f)
 
-    (let ((f (case-lambda/with
+    (let ((f (case-lambda/with-class
 	       (((a <fraction>) . rest)
 		(vector a.numerator rest)))))
       (check (f (make-<fraction> 11/12)) => '#(11 ()))
@@ -2207,7 +2207,7 @@
       (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 (2 3 4)))
       #f)
 
-    (let ((f (case-lambda/with
+    (let ((f (case-lambda/with-class
 	       (((a <fraction>) b . rest)
 		(vector a.numerator b rest)))))
       (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
@@ -2220,14 +2220,14 @@
 ;;; --------------------------------------------------------------------
 ;;; multiple clauses
 
-  (let ((f (case-lambda/with
+  (let ((f (case-lambda/with-class
 	     ((a) a)
 	     ((a b) (list a b)))))
     (check (f 1) => 1)
     (check (f 1 2) => '(1 2))
     #f)
 
-  (let ((f (case-lambda/with
+  (let ((f (case-lambda/with-class
 	     ((a)	a)
 	     ((a b)	(list a b))
 	     ((a b c)	(list a b c))
@@ -2245,16 +2245,16 @@
 		      (immutable denominator)))
 
     (define <fraction>-numerator
-      (case-lambda/with
+      (case-lambda/with-class
 	(((o <fraction>))
 	 (numerator o.number))))
 
     (define <fraction>-denominator
-      (case-lambda/with
+      (case-lambda/with-class
 	(((o <fraction>))
 	 (denominator o.number))))
 
-    (let ((f (case-lambda/with
+    (let ((f (case-lambda/with-class
 	       (((a <fraction>))
 		a.numerator)
 	       (((a <fraction>) (b <string>))
@@ -2263,7 +2263,7 @@
       (check (f (make-<fraction> 2/3) "ciao") => '(2 4))
       #f)
 
-    (let ((f (case-lambda/with
+    (let ((f (case-lambda/with-class
 	       (((a <fraction>))
 		a.numerator)
 	       (((a <fraction>) (b <string>))
@@ -2282,7 +2282,7 @@
 
   (check
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
-	    (f (case-lambda/with
+	    (f (case-lambda/with-class
 		 (((r <gamma> <beta> <alpha>))
 		  (list r.a r.b r.c
 			r.d r.e r.f
@@ -2293,7 +2293,7 @@
   (check	;use the records from (records-lib)
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (s (make <beta>  10 20 30 40 50 60))
-	    (f (case-lambda/with
+	    (f (case-lambda/with-class
 		 (((r <gamma> <alpha>) (s <beta> <alpha>))
 		  (list r.a r.g s.a s.d)))))
 	(f r s))
@@ -2306,44 +2306,44 @@
 
 ;;; untyped
 
-  (let ((f (case-lambda/with*
-	     ((a)
-	      a))))
+  (let ((f (case-lambda/with-class*
+	    ((a)
+	     a))))
     (check (f 123) => 123)
     #f)
 
-  (let ((f (case-lambda/with*
-	     ((a b)
-	      (list a b)))))
+  (let ((f (case-lambda/with-class*
+	    ((a b)
+	     (list a b)))))
     (check (f 1 2) => '(1 2))
     #f)
 
-  (let ((f (case-lambda/with*
-	     ((a b c)
-	      (list a b c)))))
+  (let ((f (case-lambda/with-class*
+	    ((a b c)
+	     (list a b c)))))
     (check (f 1 2 3) => '(1 2 3))
     #f)
 
-  (let ((f (case-lambda/with*
-	     (args
-	      (list->vector args)))))
+  (let ((f (case-lambda/with-class*
+	    (args
+	     (list->vector args)))))
     (check (f) => '#())
     (check (f 1) => '#(1))
     (check (f 1 2) => '#(1 2))
     (check (f 1 2 3) => '#(1 2 3))
     #f)
 
-  (let ((f (case-lambda/with*
-	     ((a . rest)
-	      (vector a rest)))))
+  (let ((f (case-lambda/with-class*
+	    ((a . rest)
+	     (vector a rest)))))
     (check (f 1) => '#(1 ()))
     (check (f 1 2) => '#(1 (2)))
     (check (f 1 2 3 4) => '#(1 (2 3 4)))
     #f)
 
-  (let ((f (case-lambda/with*
-	     ((a b . rest)
-	      (vector a b rest)))))
+  (let ((f (case-lambda/with-class*
+	    ((a b . rest)
+	     (vector a b rest)))))
     (check (f 1 2) => '#(1 2 ()))
     (check (f 1 2 3) => '#(1 2 (3)))
     (check (f 1 2 3 4) => '#(1 2 (3 4)))
@@ -2360,54 +2360,54 @@
 		      (mutable denominator)))
 
     (define <fraction>-numerator
-      (case-lambda/with*
-	(((o <fraction>))
-	 (numerator o.number))))
+      (case-lambda/with-class*
+       (((o <fraction>))
+	(numerator o.number))))
 
     (define <fraction>-numerator-set!
-      (case-lambda/with*
-	(((o <fraction>) v)
-	 (set! o.number (/ v (denominator o.number))))))
+      (case-lambda/with-class*
+       (((o <fraction>) v)
+	(set! o.number (/ v (denominator o.number))))))
 
     (define <fraction>-denominator
-      (case-lambda/with*
-	(((o <fraction>))
-	 (denominator o.number))))
+      (case-lambda/with-class*
+       (((o <fraction>))
+	(denominator o.number))))
 
     (define <fraction>-denominator-set!
-      (case-lambda/with*
-	(((o <fraction>) (v <top>))
-	 (set! o.number (/ (numerator o.number) v)))))
+      (case-lambda/with-class*
+       (((o <fraction>) (v <top>))
+	(set! o.number (/ (numerator o.number) v)))))
 
-    (let ((f (case-lambda/with*
-	       (((a <fraction>))
-		a.numerator))))
+    (let ((f (case-lambda/with-class*
+	      (((a <fraction>))
+	       a.numerator))))
       (check (f (make-<fraction> 2/3)) => 2)
       #f)
 
-    (let ((f (case-lambda/with*
-	       (((a <fraction>) (b <complex>))
-		(list a.numerator b.magnitude)))))
+    (let ((f (case-lambda/with-class*
+	      (((a <fraction>) (b <complex>))
+	       (list a.numerator b.magnitude)))))
       (check (f (make-<fraction> 2/3) -4) => '(2 4))
       #f)
 
-    (let ((f (case-lambda/with*
-	       (((a <fraction>) b (c <fraction>))
-		(list a.numerator b c.denominator)))))
+    (let ((f (case-lambda/with-class*
+	      (((a <fraction>) b (c <fraction>))
+	       (list a.numerator b c.denominator)))))
       (check (f (make-<fraction> 2/3) 4 (make-<fraction> 5/6)) => '(2 4 6))
       #f)
 
-    (let ((f (case-lambda/with*
-	       (((a <fraction>) . rest)
-		(vector a.numerator rest)))))
+    (let ((f (case-lambda/with-class*
+	      (((a <fraction>) . rest)
+	       (vector a.numerator rest)))))
       (check (f (make-<fraction> 11/12)) => '#(11 ()))
       (check (f (make-<fraction> 11/12) 2) => '#(11 (2)))
       (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 (2 3 4)))
       #f)
 
-    (let ((f (case-lambda/with*
-	       (((a <fraction>) b . rest)
-		(vector a.numerator b rest)))))
+    (let ((f (case-lambda/with-class*
+	      (((a <fraction>) b . rest)
+	       (vector a.numerator b rest)))))
       (check (f (make-<fraction> 11/12) 2) => '#(11 2 ()))
       (check (f (make-<fraction> 11/12) 2 3) => '#(11 2 (3)))
       (check (f (make-<fraction> 11/12) 2 3 4) => '#(11 2 (3 4)))
@@ -2418,18 +2418,18 @@
 ;;; --------------------------------------------------------------------
 ;;; multiple clauses
 
-  (let ((f (case-lambda/with*
-	     ((a) a)
-	     ((a b) (list a b)))))
+  (let ((f (case-lambda/with-class*
+	    ((a) a)
+	    ((a b) (list a b)))))
     (check (f 1) => 1)
     (check (f 1 2) => '(1 2))
     #f)
 
-  (let ((f (case-lambda/with*
-	     ((a)	a)
-	     ((a b)	(list a b))
-	     ((a b c)	(list a b c))
-	     )))
+  (let ((f (case-lambda/with-class*
+	    ((a)	a)
+	    ((a b)	(list a b))
+	    ((a b c)	(list a b c))
+	    )))
     (check (f 1) => 1)
     (check (f 1 2) => '(1 2))
     (check (f 1 2 3) => '(1 2 3))
@@ -2443,31 +2443,31 @@
 		      (immutable denominator)))
 
     (define <fraction>-numerator
-      (case-lambda/with*
-	(((o <fraction>))
-	 (numerator o.number))))
+      (case-lambda/with-class*
+       (((o <fraction>))
+	(numerator o.number))))
 
     (define <fraction>-denominator
-      (case-lambda/with*
-	(((o <fraction>))
-	 (denominator o.number))))
+      (case-lambda/with-class*
+       (((o <fraction>))
+	(denominator o.number))))
 
-    (let ((f (case-lambda/with*
-	       (((a <fraction>))
-		a.numerator)
-	       (((a <fraction>) (b <string>))
-		(list a.numerator b.length)))))
+    (let ((f (case-lambda/with-class*
+	      (((a <fraction>))
+	       a.numerator)
+	      (((a <fraction>) (b <string>))
+	       (list a.numerator b.length)))))
       (check (f (make-<fraction> 2/3)) => 2)
       (check (f (make-<fraction> 2/3) "ciao") => '(2 4))
       #f)
 
-    (let ((f (case-lambda/with*
-	       (((a <fraction>))
-		a.numerator)
-	       (((a <fraction>) (b <string>))
-		(list a.numerator b.length))
-	       (((a <fraction>) (b <string>) (c <char>))
-		(list a.numerator b.length c.upcase)))))
+    (let ((f (case-lambda/with-class*
+	      (((a <fraction>))
+	       a.numerator)
+	      (((a <fraction>) (b <string>))
+	       (list a.numerator b.length))
+	      (((a <fraction>) (b <string>) (c <char>))
+	       (list a.numerator b.length c.upcase)))))
       (check (f (make-<fraction> 2/3)) => 2)
       (check (f (make-<fraction> 2/3) "ciao") => '(2 4))
       (check (f (make-<fraction> 2/3) "ciao" #\a) => '(2 4 #\A))
@@ -2480,20 +2480,20 @@
 
   (check
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
-	    (f (case-lambda/with*
-		 (((r <gamma> <beta> <alpha>))
-		  (list r.a r.b r.c
-			r.d r.e r.f
-			r.g r.h r.i)))))
+	    (f (case-lambda/with-class*
+		(((r <gamma> <beta> <alpha>))
+		 (list r.a r.b r.c
+		       r.d r.e r.f
+		       r.g r.h r.i)))))
 	(f r))
     => '(1 2 3 4 5 6 7 8 9))
 
   (check	;use the records from (records-lib)
       (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9))
 	    (s (make <beta>  10 20 30 40 50 60))
-	    (f (case-lambda/with*
-		 (((r <gamma> <alpha>) (s <beta> <alpha>))
-		  (list r.a r.g s.a s.d)))))
+	    (f (case-lambda/with-class*
+		(((r <gamma> <alpha>) (s <beta> <alpha>))
+		 (list r.a r.g s.a s.d)))))
 	(f r s))
     => '(1 7 10 40))
 
@@ -2507,9 +2507,9 @@
 		(else
 ;;;		 (write E)(newline)
                  #f))
-	(eval '(let ((f (case-lambda/with*
-			  (((a <number>))
-			   #f))))
+	(eval '(let ((f (case-lambda/with-class*
+			 (((a <number>))
+			  #f))))
 		 (f "ciao"))
 	      (environment '(nausicaa) '(classes))))
     => #t)
@@ -2521,9 +2521,9 @@
 		(else
 ;;;		 (write E)(newline)
                  #f))
-	(eval '(let ((f (case-lambda/with*
-			  (((a <number>) (b <string>))
-			   #f))))
+	(eval '(let ((f (case-lambda/with-class*
+			 (((a <number>) (b <string>))
+			  #f))))
 		 (f 1 2))
 	      (environment '(nausicaa) '(classes))))
     => #t)
