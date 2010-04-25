@@ -100,17 +100,17 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let-fields (((S <stack>) (make-<stack>)))
+      (let (((S <stack>) (make-<stack>)))
 	S.empty?)
     => #t)
 
   (check
-      (let-fields (((S <stack>) (make-<stack> 1)))
+      (let (((S <stack>) (make-<stack> 1)))
 	S.empty?)
     => #f)
 
   (check
-      (let-fields (((S <stack>) (make-<stack> 1 2 3)))
+      (let (((S <stack>) (make-<stack> 1 2 3)))
 	S.empty?)
     => #f)
 
@@ -134,17 +134,17 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let-fields (((S <stack>) (make-<stack>)))
+      (let (((S <stack>) (make-<stack>)))
 	S.length)
     => 0)
 
   (check
-      (let-fields (((S <stack>) (make-<stack> 1)))
+      (let (((S <stack>) (make-<stack> 1)))
 	S.length)
     => 1)
 
   (check
-      (let-fields (((S <stack>) (make-<stack> 1 2 3)))
+      (let (((S <stack>) (make-<stack> 1 2 3)))
 	S.length)
     => 3)
 
@@ -167,17 +167,17 @@
 
   (check
       (guard (E (else (condition-message E)))
-	(let-fields (((S <stack>) (make-<stack>)))
+	(let (((S <stack>) (make-<stack>)))
 	  S.top))
     => "stack is empty")
 
   (check
-      (let-fields (((S <stack>) (make-<stack> 1)))
+      (let (((S <stack>) (make-<stack> 1)))
 	S.top)
     => 1)
 
   (check
-      (let-fields (((S <stack>) (make-<stack> 1 2 3)))
+      (let (((S <stack>) (make-<stack> 1 2 3)))
 	S.top)
     => 1)
 
@@ -195,7 +195,7 @@
     => '(3 2 1))
 
   (check
-      (let-fields (((q <stack>) (make-<stack>)))
+      (let (((q <stack>) (make-<stack>)))
 	(q.push! 1)
 	(q.push! 2)
 	(q.push! 3)
@@ -231,7 +231,7 @@
     => #t)
 
   (check
-      (let-fields (((q <stack>) (make-<stack> 1 2 3)))
+      (let (((q <stack>) (make-<stack> 1 2 3)))
 	(q.pop!)
 	(q.pop!)
 	(q.pop!))
@@ -258,7 +258,7 @@
     => 2)
 
   (check
-      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+      (let (((q <stack>) (make-<stack> 1 2 3 4)))
 	(q.find even?))
     => 2)
 
@@ -280,7 +280,7 @@
     => #t)
 
   (check
-      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+      (let (((q <stack>) (make-<stack> 1 2 3 4)))
 	(q.exists even?))
     => #t)
 
@@ -307,7 +307,7 @@
     => #t)
 
   (check
-      (let-fields (((q <stack>) (make-<stack> 2 4 6 8)))
+      (let (((q <stack>) (make-<stack> 2 4 6 8)))
 	(q.for-all even?))
     => #t)
 
@@ -338,7 +338,7 @@
     => '())
 
   (check
-      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+      (let (((q <stack>) (make-<stack> 1 2 3 4)))
 	(q.remp! even?)
 	(q.list))
     => '(1 3))
@@ -370,7 +370,7 @@
     => '(4 6 8))
 
   (check
-      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+      (let (((q <stack>) (make-<stack> 1 2 3 4)))
 	(q.remove! 2)
 	(q.list))
     => '(1 3 4))
@@ -402,7 +402,7 @@
     => '(4 6 8))
 
   (check
-      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+      (let (((q <stack>) (make-<stack> 1 2 3 4)))
 	(q.remv! 2)
 	(q.list))
     => '(1 3 4))
@@ -434,7 +434,7 @@
     => '(4 6 8))
 
   (check
-      (let-fields (((q <stack>) (make-<stack> 1 'two 3 4)))
+      (let (((q <stack>) (make-<stack> 1 'two 3 4)))
 	(q.remq! 'two)
 	(q.list))
     => '(1 3 4))
@@ -467,7 +467,7 @@
     => #f)
 
   (check
-      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+      (let (((q <stack>) (make-<stack> 1 2 3 4)))
 	(q.memp even?))
     => '(2 3 4))
 
@@ -499,7 +499,7 @@
     => #f)
 
   (check
-      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+      (let (((q <stack>) (make-<stack> 1 2 3 4)))
 	(q.member 2))
     => '(2 3 4))
 
@@ -526,7 +526,7 @@
     => '(2 4 6 8))
 
   (check
-      (let-fields (((q <stack>) (make-<stack> 1 2 3 4)))
+      (let (((q <stack>) (make-<stack> 1 2 3 4)))
 	(q.memv 2))
     => '(2 3 4))
 
@@ -553,7 +553,7 @@
     => '(two 4 6 8))
 
   (check
-      (let-fields (((q <stack>) (make-<stack> 1 'two 3 4)))
+      (let (((q <stack>) (make-<stack> 1 'two 3 4)))
 	(q.memq 'two))
     => '(two 3 4))
 

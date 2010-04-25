@@ -308,13 +308,13 @@
 	(d (make-<library-name> '(x y (2 1)))))
 
     (check
-	(list-sort (lambda/with ((a <library-name>) (b <library-name>))
+	(list-sort (lambda ((a <library-name>) (b <library-name>))
 		     (a.< b))
 		   (list a b))
       => (list a b))
 
     (check
-	(list-sort (lambda/with ((a <library-name>) (b <library-name>))
+	(list-sort (lambda ((a <library-name>) (b <library-name>))
 		     (a.< b))
 		   (list a d c b))
       => (list a b c d))

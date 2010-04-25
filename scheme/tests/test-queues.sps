@@ -105,17 +105,17 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let-fields (((q <queue>) (make-<queue>)))
+      (let (((q <queue>) (make-<queue>)))
   	q.empty?)
     => #t)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1)))
+      (let (((q <queue>) (make-<queue> 1)))
   	q.empty?)
     => #f)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2 3)))
+      (let (((q <queue>) (make-<queue> 1 2 3)))
   	q.empty?)
     => #f)
 
@@ -139,17 +139,17 @@
 ;;; --------------------------------------------------------------------
 
   (check
-      (let-fields (((q <queue>) (make-<queue>)))
+      (let (((q <queue>) (make-<queue>)))
 	q.length)
     => 0)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1)))
+      (let (((q <queue>) (make-<queue> 1)))
 	q.length)
     => 1)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2 3)))
+      (let (((q <queue>) (make-<queue> 1 2 3)))
 	q.length)
     => 3)
 
@@ -172,17 +172,17 @@
 
   (check
       (guard (E (else (condition-message E)))
-	(let-fields (((q <queue>) (make-<queue>)))
+	(let (((q <queue>) (make-<queue>)))
 	  q.front))
     => "queue is empty")
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1)))
+      (let (((q <queue>) (make-<queue> 1)))
 	q.front)
     => 1)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2 3)))
+      (let (((q <queue>) (make-<queue> 1 2 3)))
 	q.front)
     => 1)
 
@@ -205,17 +205,17 @@
 
   (check
       (guard (E (else (condition-message E)))
-	(let-fields (((q <queue>) (make-<queue>)))
+	(let (((q <queue>) (make-<queue>)))
 	  q.rear))
     => "queue is empty")
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1)))
+      (let (((q <queue>) (make-<queue> 1)))
 	q.rear)
     => 1)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2 3)))
+      (let (((q <queue>) (make-<queue> 1 2 3)))
 	q.rear)
     => 3)
 
@@ -231,7 +231,7 @@
     => #t)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2 3)))
+      (let (((q <queue>) (make-<queue> 1 2 3)))
 	(q.purge!)
 	q.empty?)
     => #t)
@@ -247,7 +247,7 @@
     => '(1 2 3))
 
   (check
-      (let-fields (((q <queue>) (make-<queue>)))
+      (let (((q <queue>) (make-<queue>)))
 	(q.enqueue! 1)
 	(q.enqueue! 2)
 	(q.enqueue! 3)
@@ -265,7 +265,7 @@
     => '(3 2 1))
 
   (check
-      (let-fields (((q <queue>) (make-<queue>)))
+      (let (((q <queue>) (make-<queue>)))
 	(q.push! 1)
 	(q.push! 2)
 	(q.push! 3)
@@ -301,7 +301,7 @@
     => #t)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2 3)))
+      (let (((q <queue>) (make-<queue> 1 2 3)))
 	(q.dequeue!)
 	(q.dequeue!)
 	(q.dequeue!))
@@ -327,7 +327,7 @@
     => 2)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2)))
+      (let (((q <queue>) (make-<queue> 1 2)))
 	(q.find even?))
     => 2)
 
@@ -349,7 +349,7 @@
     => #t)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2)))
+      (let (((q <queue>) (make-<queue> 1 2)))
 	(q.exists even?))
     => #t)
 
@@ -376,7 +376,7 @@
     => #t)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2 3 4)))
+      (let (((q <queue>) (make-<queue> 1 2 3 4)))
 	(q.for-all even?))
     => #f)
 
@@ -407,7 +407,7 @@
     => '())
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2 3 4)))
+      (let (((q <queue>) (make-<queue> 1 2 3 4)))
 	(q.remp! even?)
 	(q.list))
     => '(1 3))
@@ -439,7 +439,7 @@
     => '(4 6 8))
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2 3 4)))
+      (let (((q <queue>) (make-<queue> 1 2 3 4)))
 	(q.remove! 2)
 	(q.list))
     => '(1 3 4))
@@ -471,7 +471,7 @@
     => '(4 6 8))
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2 3 4)))
+      (let (((q <queue>) (make-<queue> 1 2 3 4)))
 	(q.remv! 2)
 	(q.list))
     => '(1 3 4))
@@ -503,7 +503,7 @@
     => '(4 6 8))
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 'two 3 4)))
+      (let (((q <queue>) (make-<queue> 1 'two 3 4)))
 	(q.remq! 'two)
 	(q.list))
     => '(1 3 4))
@@ -536,7 +536,7 @@
     => #f)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 2 4 6 8)))
+      (let (((q <queue>) (make-<queue> 2 4 6 8)))
 	(q.memp even?))
     => '(2 4 6 8))
 
@@ -568,7 +568,7 @@
     => #f)
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2 3 4)))
+      (let (((q <queue>) (make-<queue> 1 2 3 4)))
 	(q.member 2))
     => '(2 3 4))
 
@@ -595,7 +595,7 @@
     => '(2 4 6 8))
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 2 3 4)))
+      (let (((q <queue>) (make-<queue> 1 2 3 4)))
 	(q.memv 2))
     => '(2 3 4))
 
@@ -622,7 +622,7 @@
     => '(two 4 6 8))
 
   (check
-      (let-fields (((q <queue>) (make-<queue> 1 'two 3 4)))
+      (let (((q <queue>) (make-<queue> 1 'two 3 4)))
 	(q.memq 'two))
     => '(two 3 4))
 
