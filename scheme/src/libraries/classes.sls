@@ -73,6 +73,50 @@
 	    result))))))
 
 
+(define-syntax define-virtual-class
+  ;;A virtual class  is just a tag  we slap on any value  to use virtual
+  ;;fields and methods with dot notation.
+  ;;
+  (syntax-rules ()
+    ((_ ?name ?clause ...)
+     (%define-virtual-class (define-class ?name ?clause ...) ?name () ?clause ...))))
+
+(define-syntax %define-virtual-class
+  ;;Raise an  error if the PROTOCOL  or PARENT clause is  present in the
+  ;;body of the definition.  Finally define the class with DEFINE-CLASS.
+  ;;
+  (lambda (stx)
+    (syntax-case stx (fields protocol)
+
+      ;;no more clauses to collect
+      ((_ ?input-form ?name (?collected-clause ...))
+       #'(define-class ?name
+	   (protocol (lambda (make-parent)
+		       (lambda args
+			 (syntax-violation #f "attempt to instantiate virtual class" (quote ?name)))))
+	   ?collected-clause ...))
+
+      ;;found PROTOCOL clause
+      ((_ ?input-form ?name (?collected-clause ...) (protocol ?pro ...) ?clause ...)
+       (syntax-violation 'define-class
+	 "protocol clause used in definition of virtual class"
+	 (syntax->datum #'?input-form)
+	 (syntax->datum #'(protocol ?pro ...))))
+
+      ;;found FIELDS clause
+      ((_ ?input-form ?name (?collected-clause ...) (fields ?fie ...) ?clause ...)
+       (syntax-violation 'define-class
+	 "fields clause used in definition of virtual class"
+	 (syntax->datum #'?input-form)
+	 (syntax->datum #'(fields ?fie ...))))
+
+      ;;other clauses
+      ((_ ?input-form ?name (?collected-clause ...) ?clause0 ?clause ...)
+       #'(%define-virtual-class ?input-form ?name (?collected-clause ... ?clause0) ?clause ...))
+
+      )))
+
+
 (define-syntax define-class
   (lambda (stx)
     (define (%constructor name)
@@ -2350,7 +2394,7 @@
 (define-record-type <top>
   (nongenerative nausicaa:builtin:<top>))
 
-(define-class <builtin>
+(define-virtual-class <builtin>
   (nongenerative nausicaa:builtin:<builtin>))
 
 (define-syntax define-builtin-class
@@ -2360,7 +2404,7 @@
     (syntax-case stx ()
       ((_ ?class-name ?clause ...)
        (with-syntax ((UID (datum->syntax #'?class-name (%uid (syntax->datum #'?class-name)))))
-	 #'(define-class ?class-name
+	 #'(define-virtual-class ?class-name
 	     (parent <builtin>)
 	     (nongenerative UID)
 	     ?clause ...))))))

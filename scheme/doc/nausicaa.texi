@@ -19663,10 +19663,33 @@ the record definition.  @ref{classes builtin base, Basic conventional
 
 If none of the @meta{class clause} arguments is a @func{nongenerative}
 syntax, the clause @code{(nongenerative)} is added to the record
-definition.
+definition; however, notice that it is unsafe to use automatically
+generated @acronym{UID}s, it is better and useful to explicitly select a
+unique identifier.
 
-Additionally the @meta{class clause} arguments can be the auxiliary
-syntaxes described below.
+In addition to all the clauses of @func{define-record-type}, the
+@meta{class clause} arguments can be the auxiliary syntaxes described
+below.
+@end deffn
+
+
+@deffn Syntax define-virtual-class @ameta{name spec} @ameta{class clause}*
+Like @func{define-class}, but inserts a @func{protocol} clause whose
+constructor raises an assertion violation if called.  Virtual classes
+are not meant to be instantiated, their purpose is only to provide
+virtual fields and methods to instances of other types; for example: all
+the classes for builtin types are virtual.
+
+It is an error to use a virtual class as parent of a concrete class; it
+is useless to use a virtual class as parent of a virtual class.
+
+It is meaningful, but not mandatory, to define a virtual class only if
+we use the @func{predicate} clause described below; else there is no way
+to establish if an object matches the type of a virtual class.
+
+Virtual classes can have virtual fields and methods; it is a syntax
+violation to declare concrete fields in the body of a virtual class
+definition.
 @end deffn
 
 
@@ -19677,7 +19700,7 @@ predicate is used.  This clause is useful especially to select custom
 predicates for the builtin class types; example:
 
 @example
-(define-class <complex>
+(define-virtual-class <complex>
   (parent <number>)
   (predicate complex?)
   (nongenerative nausicaa:builtin:<complex>))
@@ -20896,7 +20919,7 @@ parent type if we do not select explicitly a parent with the
 @end deftp
 
 
-@deftp Class @aclass{builtin}
+@deftp {Virtual Class} @aclass{builtin}
 The parent of all the conventional @rtd{}s, with the exception of
 @class{top}.
 @end deftp
@@ -20906,7 +20929,7 @@ The parent of all the conventional @rtd{}s, with the exception of
 @subsection Pairs and lists types
 
 
-@deftp Class @aclass{pair}
+@deftp {Virtual Class} @aclass{pair}
 Conventional type of objects satisfying @func{pair?}.
 @end deftp
 
@@ -20921,7 +20944,7 @@ Access the cdr of the pair.
 @end defcv
 
 
-@deftp Class @aclass{list}
+@deftp {Virtual Class} @aclass{list}
 Conventional type of objects satisfying @func{list?}.
 @end deftp
 
@@ -20945,7 +20968,7 @@ Access the length of the list.
 @subsection Non--list compound types
 
 
-@deftp Class @aclass{vector}
+@deftp {Virtual Class} @aclass{vector}
 Conventional type for objects satisfying @func{vector?}.
 @end deftp
 
@@ -20955,7 +20978,7 @@ Access the length of the vector.
 @end defcv
 
 
-@deftp Class @aclass{bytevector}
+@deftp {Virtual Class} @aclass{bytevector}
 Conventional type for objects satisfying @func{bytevector?}.
 @end deftp
 
@@ -20965,7 +20988,7 @@ Access the length of the bytevector.
 @end defcv
 
 
-@deftp Class @aclass{hashtable}
+@deftp {Virtual Class} @aclass{hashtable}
 Conventional type for objects satisfying @func{hashtable?}.
 @end deftp
 
@@ -20993,7 +21016,7 @@ Access the keys and values.  Retrieving this field is like applying
 
 @subsubheading Number objects
 
-@deftp Class @aclass{number}
+@deftp {Virtual Class} @aclass{number}
 Conventional type for objects satisfying @func{number?}.
 @end deftp
 
@@ -21081,7 +21104,7 @@ Accessing this field is like applying @func{round} to the number.
 
 @subsubheading Complex numbers
 
-@deftp Class @aclass{complex}
+@deftp {Virtual Class} @aclass{complex}
 Convenctional type for objects satisfying @func{complex?}.
 @end deftp
 
@@ -21109,7 +21132,7 @@ Accessing this field is like applying @func{angle} to the number.
 
 @subsubheading Real valued numbers
 
-@deftp Class @aclass{real-valued}
+@deftp {Virtual Class} @aclass{real-valued}
 Conventioanl type for objects satisfying @func{real-valued?}.
 @end deftp
 
@@ -21139,7 +21162,7 @@ number.
 
 @subsubheading Real numbers
 
-@deftp Class @aclass{real}
+@deftp {Virtual Class} @aclass{real}
 Conventional for objects satisfying @func{real?}.
 @end deftp
 
@@ -21152,7 +21175,7 @@ Accessing this field is like applying @func{abs} to the number.
 
 @subsubheading Rational numbers
 
-@deftp Class @aclass{rational}
+@deftp {Virtual Class} @aclass{rational}
 Conventional type for objects satisfying @func{rational?}.
 @end deftp
 
@@ -21160,7 +21183,7 @@ Conventional type for objects satisfying @func{rational?}.
 
 @subsubheading Rational valued numbers
 
-@deftp Class @aclass{rational-valued}
+@deftp {Virtual Class} @aclass{rational-valued}
 Conventional type for objects satisfying @func{rational-valued?}.
 @end deftp
 
@@ -21168,7 +21191,7 @@ Conventional type for objects satisfying @func{rational-valued?}.
 
 @subsubheading Integer valued numbers
 
-@deftp Class @aclass{integer-valued}
+@deftp {Virtual Class} @aclass{integer-valued}
 Conventional type for objects satisfying @func{integer-valued?}.
 @end deftp
 
@@ -21176,7 +21199,7 @@ Conventional type for objects satisfying @func{integer-valued?}.
 
 @subsubheading Integer numbers
 
-@deftp Class @aclass{integer}
+@deftp {Virtual Class} @aclass{integer}
 Conventional type for objects satisfying @func{integer?}.
 @end deftp
 
@@ -21185,7 +21208,7 @@ Conventional type for objects satisfying @func{integer?}.
 @subsubheading Fixnum numbers
 
 
-@deftp Class @aclass{fixnum}
+@deftp {Virtual Class} @aclass{fixnum}
 Conventional type for objects satisfying @func{fixnum?}.
 @end deftp
 
@@ -21193,7 +21216,7 @@ Conventional type for objects satisfying @func{fixnum?}.
 
 @subsubheading Flonum numbers
 
-@deftp Class @aclass{flonum}
+@deftp {Virtual Class} @aclass{flonum}
 Conventional type for objects satisfying @func{flonum?}.
 @end deftp
 
@@ -21206,7 +21229,7 @@ The binary/textual attributes are not mututally exclusive with the
 input/output attributes.
 
 
-@deftp Class @aclass{port}
+@deftp {Virtual Class} @aclass{port}
 Conventional type for objects satisfying @func{port?}.
 @end deftp
 
@@ -21261,22 +21284,22 @@ Accessing this field is like applying @func{output-port?} to the port.
 @end defcv
 
 
-@deftp Class @aclass{input-port}
+@deftp {Virtual Class} @aclass{input-port}
 Conventional type for objects satisfying @func{input-port?}.
 @end deftp
 
 
-@deftp Class @aclass{output-port}
+@deftp {Virtual Class} @aclass{output-port}
 Conventional type for objects satisfying @func{output-port?}.
 @end deftp
 
 
-@deftp Class @aclass{textual-port}
+@deftp {Virtual Class} @aclass{textual-port}
 Conventional type for objects satisfying @func{textual-port?}.
 @end deftp
 
 
-@deftp Class @aclass{binary-port}
+@deftp {Virtual Class} @aclass{binary-port}
 Conventional type for objects satisfying @func{binary-port?}.
 @end deftp
 
@@ -21288,7 +21311,7 @@ Conventional type for objects satisfying @func{binary-port?}.
 @subsubheading String type
 
 
-@deftp Class @aclass{string}
+@deftp {Virtual Class} @aclass{string}
 Conventional type for objects satisfying @func{string?}.
 @end deftp
 
@@ -21327,7 +21350,7 @@ string.
 @subsubheading Character type
 
 
-@deftp Class @aclass{char}
+@deftp {Virtual Class} @aclass{char}
 Conventional type for objects satisfying @func{char?}.
 @end deftp
 
@@ -21356,7 +21379,7 @@ Accessing this field is like applying @func{char-foldcase} to the char.
 @subsection Miscellaneous conventional types
 
 
-@deftp Class @aclass{condition}
+@deftp {Virtual Class} @aclass{condition}
 Conventional type for objects satisfying @func{condition?}.
 @end deftp
 
@@ -21379,7 +21402,7 @@ condition object.
 @end defcv
 
 
-@deftp Class @aclass{record}
+@deftp {Virtual Class} @aclass{record}
 Conventional type for objects satisfying @func{record?}.
 @end deftp
 
