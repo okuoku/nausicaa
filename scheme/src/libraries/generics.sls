@@ -38,7 +38,6 @@
 ;;;; the following are all the bindings from (classes)
 
     define-class			make
-    class-record-descriptor		class-constructor-descriptor
     define/with-class			define/with-class*
     lambda/with-class			lambda/with-class*
     let/with-class			let*/with-class
@@ -47,6 +46,15 @@
     with-class
     setf				getf
     is-a?
+
+    class-type-descriptor		class-constructor-descriptor
+    class-record-type-descriptor
+
+    make-class-type-descriptor		class-type-descriptor?
+    class-record-descriptor		class-predicate
+    class-virtual-fields		class-methods
+    class-setter			class-getter
+
     record-type-parent?
     record-type-of
     record-parent-list			class-parent-list
@@ -311,9 +319,9 @@
 
 (define-syntax add-method
   (syntax-rules ()
-    ((_ ?generic-function (?record-name ...) ?has-rest ?closure)
+    ((_ ?generic-function (?class-name ...) ?has-rest ?closure)
      ((?generic-function :method-adder)
-      (list (class-record-descriptor ?record-name) ...) ;this is the signature
+      (list (class-record-type-descriptor ?class-name) ...) ;this is the signature
       ?has-rest ?closure))))
 
 

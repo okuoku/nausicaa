@@ -944,6 +944,12 @@ Record utilities
 * classes fields::              Binding accessors and mutators.
 * classes builtin::             Conventional type descriptors.
 
+Record type inspection
+
+* classes inspect syntax::      Inspecting from class names.
+* classes inspect descr::       Inspecting class type descriptors.
+* classes inspect record::      Inspecting record type descriptors.
+
 Binding accessors and mutators
 
 * classes fields with::         Basic fields and methods usage.
@@ -20245,7 +20251,23 @@ Example:
 @section Record type inspection
 
 
-@deffn Syntax class-record-descriptor @ameta{class name}
+@menu
+* classes inspect syntax::      Inspecting from class names.
+* classes inspect descr::       Inspecting class type descriptors.
+* classes inspect record::      Inspecting record type descriptors.
+@end menu
+
+@c page
+@node classes inspect syntax
+@subsection Inspecting from class names
+
+
+@deffn Syntax class-type-descriptor @ameta{class name}
+Expand to the class descriptor associated to @meta{class name}.
+@end deffn
+
+
+@deffn Syntax class-record-type-descriptor @ameta{class name}
 Expand to the record type descriptor associated to @meta{class name}.
 It is a replacement of @func{record-type-descriptor} for record types
 defined by @func{define-class}.
@@ -20257,6 +20279,95 @@ Expand to the default constructor descriptor associated to @meta{class
 name}.  It is a replacement of @func{record-constructor-descriptor} for
 record types defined by @func{define-class}.
 @end deffn
+
+
+@deffn Syntax class-parent-list @ameta{class name}
+Do the same as @func{record-parent-list}; @meta{class name} must be a
+class name.  This macro does @strong{not} work with record types defined
+by @func{define-record-type}.
+@end deffn
+
+@c page
+@node classes inspect descr
+@subsection Inspecting class type descriptors
+
+
+A class type descriptor can be acquired through
+@func{class-type-descriptor} applied to a class name.  Class descriptors
+are @strong{not} meant to have the same role of record type descriptors:
+their purpose is mainly debugging.
+
+
+@defun make-class-type-descriptor @var{rtd} @var{virtual-fields} @var{predicate} @var{setter} @var{getter} @var{methods}
+Build and return a new class type descriptor object; it is usually not
+useful to build a class descriptor using this function: classes are
+defined by @func{define-class} and @func{define-virtual-class}.  A class
+type descriptor has the following fields:
+
+@table @code
+@item rtd
+The underlying record type descriptor.
+
+@item virtual-fields
+A vector of virtual fields; empty vector if this class has no virtual
+fields.  Each element is a list with one of the formats:
+
+@example
+(mutable   @cmeta{field name}
+           @cmeta{field accessor name} @cmeta{field mutator name})
+(immutable @cmeta{field name}
+           @cmeta{field accessor name})
+@end example
+
+@noindent
+the implementations of accessors and mutators are not included because
+they can be either functions or macros.
+
+@item predicate
+A symbol representing the class' predicate.  Always present because it
+defaults to the record predicate.
+
+@item setter
+A symbol representing the class' setter identifier; false if no setter
+was selected.  It does not include the implementation, because a setter
+can be either a closure or a syntax.
+
+@item getter
+A symbol representing the class' getter identifier; false if no getter
+was selected.  It does not include the implementation, because a getter
+can be either a closure or a syntax.
+
+@item methods
+A vector of symbols listing the defined methods; empty vector if the
+class has no methods.  Each element is a list with the format:
+
+@example
+(@cmeta{method name} @cmeta{method function/syntax name})
+@end example
+
+It does not include the implementation, because a method can be either a
+closure or a syntax.
+@end table
+@end defun
+
+
+@defun class-type-descriptor? @var{obj}
+Return @true{} if @var{obj} is a class type descriptor object.
+@end defun
+
+
+@defun class-record-descriptor @var{ctd}
+@defunx class-predicate @var{ctd}
+@defunx class-virtual-fields @var{ctd}
+@defunx class-methods @var{ctd}
+@defunx class-getter @var{ctd}
+@defunx class-setter @var{ctd}
+Accessors for the fields of a class type descriptor.
+@end defun
+
+@c page
+@node classes inspect record
+@subsection Inspecting record type descriptors
 
 
 @defun record-type-of @var{obj}
@@ -20300,13 +20411,6 @@ supports both regular and conventional record type descriptors.
          (record-type-descriptor <alpha>))
 @end example
 @end defun
-
-
-@deffn Syntax class-parent-list @ameta{class name}
-Do the same as @func{record-parent-list}; @meta{class name} must be a
-class name.  This macro does @strong{not} work with record types defined
-by @func{define-record-type}.
-@end deffn
 
 @c page
 @node classes fields

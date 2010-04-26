@@ -826,7 +826,6 @@
      (receive/with-class	receive))
 
     define-class		make
-    class-record-descriptor	class-constructor-descriptor
     define/with-class		define/with-class*
     lambda/with-class		lambda/with-class*
     case-lambda/with-class	case-lambda/with-class*
@@ -836,6 +835,15 @@
     with-class
     setf			getf
     is-a?
+
+    class-type-descriptor		class-constructor-descriptor
+    class-record-type-descriptor
+
+    make-class-type-descriptor		class-type-descriptor?
+    class-record-descriptor		class-predicate
+    class-virtual-fields		class-methods
+    class-setter			class-getter
+
     record-type-parent?
     record-type-of
     record-parent-list		class-parent-list

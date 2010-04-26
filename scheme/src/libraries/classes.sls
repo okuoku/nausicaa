@@ -45,8 +45,10 @@
     is-a?
 
     class-type-descriptor		class-constructor-descriptor
-    class-record-descriptor
-    class-type-descriptor?		class-predicate
+    class-record-type-descriptor
+
+    make-class-type-descriptor		class-type-descriptor?
+    class-record-descriptor		class-predicate
     class-virtual-fields		class-methods
     class-setter			class-getter
 
@@ -69,13 +71,8 @@
 
 
 (define-record-type (:class-type-descriptor make-class-type-descriptor class-type-descriptor?)
-  (fields (immutable rtd)	;; !!!  NO EXPLICIT ACCESSOR !!!
-		;The underlying record  type descriptor.  This field has
-		;no  explicity  accessor named  CLASS-RECORD-DESCRIPTOR,
-		;because the  RTD is used  in the expansion of  a syntax
-		;below;  for this  purpose the  RTD is  accessed  with a
-		;syntax  through the  class name.   For details  see the
-		;CLASS-RECORD-DESCRIPTOR macro and the class name macro.
+  (fields (immutable rtd class-record-descriptor)
+		;The underlying record type descriptor.
 	  (immutable virtual-fields class-virtual-fields)
 		;A vector of virtual  fields; empty vector if this class
 		;has no virtual fields.  Each element is a list with one
@@ -1550,7 +1547,7 @@
       (protocol		?pro ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
-      (parent-rtd	(class-record-descriptor ?parent-name)
+      (parent-rtd	(class-record-type-descriptor ?parent-name)
 			(class-constructor-descriptor ?parent-name))
       (nongenerative	?non ...)))
 
@@ -2183,7 +2180,7 @@
 						  ?sealed ?opaque
 						  (quote #((?mutability ?field) ...))))
 
-;;;TEST class type descriptor, field holding UID list
+;;;TEST class type descriptor, field holding UID list, lambda and syntax-rules in methods
 
 		   (define NAME-CTD
 		     (make-class-type-descriptor
@@ -2208,7 +2205,7 @@
 		   (define-syntax ?class-name
 		     (lambda (stx)
 		       (syntax-case stx (class-type-descriptor
-					 class-record-descriptor
+					 class-record-type-descriptor
 					 default-constructor-descriptor
 					 make is-a?
 					 with-class-bindings-of)
@@ -2216,7 +2213,7 @@
 			 ((_ class-type-descriptor)
 			  #'(begin NAME-CTD))
 
-			 ((_ class-record-descriptor)
+			 ((_ class-record-type-descriptor)
 			  #'(begin NAME-RTD))
 
 			 ((_ default-constructor-descriptor)
@@ -3205,14 +3202,14 @@
       ((_ ?class-name)
        #'(?class-name class-type-descriptor)))))
 
-(define-syntax class-record-descriptor
+(define-syntax class-record-type-descriptor
   (lambda (stx)
-    (syntax-case stx (class-record-descriptor)
+    (syntax-case stx (class-record-type-descriptor)
       ((_ ?class-name)
        (free-identifier=? #'?class-name #'<top>)
        #'(record-type-descriptor <top>))
       ((_ ?class-name)
-       #'(?class-name class-record-descriptor)))))
+       #'(?class-name class-record-type-descriptor)))))
 
 (define-syntax class-constructor-descriptor
   (lambda (stx)
@@ -3232,7 +3229,7 @@
        #'(list (record-type-descriptor <top>)))
 
       ((_ ?record-name)
-       #'(record-parent-list (class-record-descriptor ?record-name))))))
+       #'(record-parent-list (class-record-type-descriptor ?record-name))))))
 
 (define-syntax make
   (syntax-rules ()
@@ -3281,41 +3278,41 @@
    ;;This  is  here  as  a  special exception  because  in  Larceny  the
    ;;hashtable  is a  record.  We  have  to process  it before  applying
    ;;RECORD?
-   ((hashtable?	obj)		(class-record-descriptor <hashtable>))
+   ((hashtable?	obj)		(class-record-type-descriptor <hashtable>))
 
    ((record? obj)
     (record-rtd obj))
 
    ((number? obj)
     ;;Order does matter here!!!
-    (cond ((fixnum?		obj)	(class-record-descriptor <fixnum>))
-	  ((integer?		obj)	(class-record-descriptor <integer>))
-	  ((rational?		obj)	(class-record-descriptor <rational>))
-	  ((integer-valued?	obj)	(class-record-descriptor <integer-valued>))
-	  ((rational-valued?	obj)	(class-record-descriptor <rational-valued>))
-	  ((flonum?		obj)	(class-record-descriptor <flonum>))
-	  ((real?		obj)	(class-record-descriptor <real>))
-	  ((real-valued?	obj)	(class-record-descriptor <real-valued>))
-	  ((complex?		obj)	(class-record-descriptor <complex>))
-	  (else				(class-record-descriptor <number>))))
-   ((char?		obj)		(class-record-descriptor <char>))
-   ((string?		obj)		(class-record-descriptor <string>))
-   ((vector?		obj)		(class-record-descriptor <vector>))
-   ((bytevector?	obj)		(class-record-descriptor <bytevector>))
+    (cond ((fixnum?		obj)	(class-record-type-descriptor <fixnum>))
+	  ((integer?		obj)	(class-record-type-descriptor <integer>))
+	  ((rational?		obj)	(class-record-type-descriptor <rational>))
+	  ((integer-valued?	obj)	(class-record-type-descriptor <integer-valued>))
+	  ((rational-valued?	obj)	(class-record-type-descriptor <rational-valued>))
+	  ((flonum?		obj)	(class-record-type-descriptor <flonum>))
+	  ((real?		obj)	(class-record-type-descriptor <real>))
+	  ((real-valued?	obj)	(class-record-type-descriptor <real-valued>))
+	  ((complex?		obj)	(class-record-type-descriptor <complex>))
+	  (else				(class-record-type-descriptor <number>))))
+   ((char?		obj)		(class-record-type-descriptor <char>))
+   ((string?		obj)		(class-record-type-descriptor <string>))
+   ((vector?		obj)		(class-record-type-descriptor <vector>))
+   ((bytevector?	obj)		(class-record-type-descriptor <bytevector>))
    ((port?		obj)
     ;;Order here is arbitrary.
-    (cond ((input-port?		obj)	(class-record-descriptor <input-port>))
-	  ((output-port?	obj)	(class-record-descriptor <output-port>))
-	  ((binary-port?	obj)	(class-record-descriptor <binary-port>))
-	  ((textual-port?	obj)	(class-record-descriptor <textual-port>))
-	  (else				(class-record-descriptor <port>))))
-   ((condition?		obj)		(class-record-descriptor <condition>))
-   ((record?		obj)		(class-record-descriptor <record>))
+    (cond ((input-port?		obj)	(class-record-type-descriptor <input-port>))
+	  ((output-port?	obj)	(class-record-type-descriptor <output-port>))
+	  ((binary-port?	obj)	(class-record-type-descriptor <binary-port>))
+	  ((textual-port?	obj)	(class-record-type-descriptor <textual-port>))
+	  (else				(class-record-type-descriptor <port>))))
+   ((condition?		obj)		(class-record-type-descriptor <condition>))
+   ((record?		obj)		(class-record-type-descriptor <record>))
    ((pair?		obj)
     ;;Order does matter  here!!!  Better leave these at  the end because
     ;;qualifying a long list can be time-consuming.
-    (cond ((list?	obj)	(class-record-descriptor <list>))
-	  (else			(class-record-descriptor <pair>))))
+    (cond ((list?	obj)	(class-record-type-descriptor <list>))
+	  (else			(class-record-type-descriptor <pair>))))
    (else (record-type-descriptor <top>))))
 
 
