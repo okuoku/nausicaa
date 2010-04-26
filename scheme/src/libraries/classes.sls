@@ -41,6 +41,7 @@
     receive/with-class
     let/with-class			let*/with-class
     letrec/with-class			letrec*/with-class
+    setf				getf
     with-fields
     is-a?
     record-type-parent?
@@ -58,7 +59,8 @@
   (import (rnrs)
     (only (language-extensions)
 	  begin0
-	  with-accessor-and-mutator))
+	  with-accessor-and-mutator)
+    (rnrs mutable-strings))
 
 
 ;;;; helpers
@@ -130,7 +132,7 @@
 	(term		#'term)))
 
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
-			     virtual-fields methods method predicate)
+			     virtual-fields methods method predicate setter getter)
 
       ((_ (?name ?constructor ?predicate) ?clause ...)
 ;;;*FIXME*  This  is a  workaround  for a  bug  in  Ikarus 1870:  Ikarus
@@ -146,7 +148,8 @@
 	  ()	;collected virtual fields
 	  ()	;collected methods
 	  ()	;collected functions
-	  (predicate) (parent) (protocol) (sealed) (opaque) (parent-rtd) (nongenerative)
+	  (predicate) (setter) (getter)
+	  (parent) (protocol) (sealed) (opaque) (parent-rtd) (nongenerative)
 	  ?clause ...))
 
       ((_ ?name ?clause ...)
@@ -161,7 +164,8 @@
 	      () ;collected virtual fields
 	      () ;collected methods
 	      () ;collected functions
-	      (predicate) (parent) (protocol) (sealed) (opaque) (parent-rtd) (nongenerative)
+	      (predicate) (setter) (getter)
+	      (parent) (protocol) (sealed) (opaque) (parent-rtd) (nongenerative)
 	      ?clause ...))))
 
       ((_ ?name-spec . ?clauses)
@@ -191,7 +195,7 @@
       (syntax-violation 'define-class msg (syntax->datum input-form) (syntax->datum subform)))
 
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
-			     virtual-fields methods method predicate)
+			     virtual-fields methods method predicate setter getter)
 
       ;;Gather the PARENT clause.
       ((%define-class/sort-clauses
@@ -201,6 +205,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		. ?parent-rest)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -222,6 +228,8 @@
 		   (?collected-method ...)
 		   (?collected-function ...)
 		   (predicate		?pre ...)
+		   (setter		?set ...)
+		   (getter		?get ...)
 		   (parent		?parent-name)
 		   (protocol		?pro ...)
 		   (sealed		?sea ...)
@@ -238,6 +246,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	. ?predicate-rest)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -259,6 +269,90 @@
 		   (?collected-method ...)
 		   (?collected-function ...)
 		   (predicate		?function-name)
+		   (setter		?set ...)
+		   (getter		?get ...)
+		   (parent		?par ...)
+		   (protocol		?pro ...)
+		   (sealed		?sea ...)
+		   (opaque		?opa ...)
+		   (parent-rtd		?pad ...)
+		   (nongenerative	?non ...)
+		   ?clause ...)))))
+
+      ;;Gather the SETTER clause.
+      ((%define-class/sort-clauses
+	?input-form (?name ?constructor ?predicate)
+	(?collected-concrete-field ...)
+	(?collected-virtual-field ...)
+	(?collected-method ...)
+	(?collected-function ...)
+	(predicate	?pre ...)
+	(setter		. ?setter-rest)
+	(getter		?get ...)
+	(parent		?par ...)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?pad ...)
+	(nongenerative	?non ...)
+	(setter ?setter) ?clause ...)
+       (let ((form	(syntax ?input-form))
+	     (subform	(syntax (setter ?setter))))
+	 (cond ((not (null? (syntax->datum (syntax ?setter-rest))))
+		(%sinner "setter clause given twice in class definition" form subform))
+	       ((not (identifier? (syntax ?setter)))
+		(%sinner "invalid setter clause in class definition" form subform))
+	       (else
+		#'(%define-class/sort-clauses
+		   ?input-form (?name ?constructor ?predicate)
+		   (?collected-concrete-field ...)
+		   (?collected-virtual-field ...)
+		   (?collected-method ...)
+		   (?collected-function ...)
+		   (predicate		?pre ...)
+		   (setter		?setter)
+		   (getter		?get ...)
+		   (parent		?par ...)
+		   (protocol		?pro ...)
+		   (sealed		?sea ...)
+		   (opaque		?opa ...)
+		   (parent-rtd		?pad ...)
+		   (nongenerative	?non ...)
+		   ?clause ...)))))
+
+      ;;Gather the GETTER clause.
+      ((%define-class/sort-clauses
+	?input-form (?name ?constructor ?predicate)
+	(?collected-concrete-field ...)
+	(?collected-virtual-field ...)
+	(?collected-method ...)
+	(?collected-function ...)
+	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		. ?getter-rest)
+	(parent		?par ...)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?pad ...)
+	(nongenerative	?non ...)
+	(getter ?getter) ?clause ...)
+       (let ((form	(syntax ?input-form))
+	     (subform	(syntax (getter ?getter))))
+	 (cond ((not (null? (syntax->datum (syntax ?getter-rest))))
+		(%sinner "getter clause given twice in class definition" form subform))
+	       ((not (identifier? (syntax ?getter)))
+		(%sinner "invalid getter clause in class definition" form subform))
+	       (else
+		#'(%define-class/sort-clauses
+		   ?input-form (?name ?constructor ?predicate)
+		   (?collected-concrete-field ...)
+		   (?collected-virtual-field ...)
+		   (?collected-method ...)
+		   (?collected-function ...)
+		   (predicate		?pre ...)
+		   (setter		?set ...)
+		   (getter		?getter)
 		   (parent		?par ...)
 		   (protocol		?pro ...)
 		   (sealed		?sea ...)
@@ -275,6 +369,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	. ?protocol-rest)
 	(sealed		?sea ...)
@@ -294,6 +390,8 @@
 		   (?collected-method ...)
 		   (?collected-function ...)
 		   (predicate		?pre ...)
+		   (setter		?set ...)
+		   (getter		?get ...)
 		   (parent		?par ...)
 		   (protocol		?protocol-proc)
 		   (sealed		?sea ...)
@@ -310,6 +408,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		. ?sealed-rest)
@@ -331,6 +431,8 @@
 		   (?collected-method ...)
 		   (?collected-function ...)
 		   (predicate		?pre ...)
+		   (setter		?set ...)
+		   (getter		?get ...)
 		   (parent		?par ...)
 		   (protocol		?pro ...)
 		   (sealed		?sealed)
@@ -347,6 +449,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -368,6 +472,8 @@
 		   (?collected-method ...)
 		   (?collected-function ...)
 		   (predicate		?pre ...)
+		   (setter		?set ...)
+		   (getter		?get ...)
 		   (parent		?par ...)
 		   (protocol		?pro ...)
 		   (sealed		?sea ...)
@@ -384,6 +490,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -403,6 +511,8 @@
 		   (?collected-method ...)
 		   (?collected-function ...)
 		   (predicate		?pre ...)
+		   (setter		?set ...)
+		   (getter		?get ...)
 		   (parent		?par ...)
 		   (protocol		?pro ...)
 		   (sealed		?sea ...)
@@ -419,6 +529,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -438,6 +550,8 @@
 		   (?collected-method ...)
 		   (?collected-function ...)
 		   (predicate		?pre ...)
+		   (setter		?set ...)
+		   (getter		?get ...)
 		   (parent		?par ...)
 		   (protocol		?pro ...)
 		   (sealed		?sea ...)
@@ -457,6 +571,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -478,6 +594,8 @@
 		   (?collected-method ...)
 		   (?collected-function ...)
 		   (predicate		?pre ...)
+		   (setter		?set ...)
+		   (getter		?get ...)
 		   (parent		?par ...)
 		   (protocol		?pro ...)
 		   (sealed		?sea ...)
@@ -497,6 +615,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -511,6 +631,8 @@
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -530,6 +652,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -544,6 +668,8 @@
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -563,6 +689,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -577,6 +705,8 @@
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -595,6 +725,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -609,6 +741,8 @@
 	  (?collected-method ... (?method function-name))
 	  (?collected-function ... (define/with-class (function-name . ?args) . ?body))
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -628,6 +762,8 @@
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -641,6 +777,8 @@
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -663,7 +801,7 @@
     (define (%mutator name field)
       (string->symbol (string-append name "-" field "-set!")))
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
-			     virtual-fields methods method predicate)
+			     virtual-fields methods method predicate setter getter)
 
       ;;Gather mutable FIELDS clause with explicit selection of accessor
       ;;and mutator names.
@@ -674,6 +812,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -688,6 +828,8 @@
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -705,6 +847,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -723,6 +867,8 @@
 	      (?collected-method ...)
 	      (?collected-function ...)
 	      (predicate	?pre ...)
+	      (setter		?set ...)
+	      (getter		?get ...)
 	      (parent		?par ...)
 	      (protocol		?pro ...)
 	      (sealed		?sea ...)
@@ -740,6 +886,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -754,6 +902,8 @@
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -771,6 +921,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -788,11 +940,13 @@
 	      (?collected-method ...)
 	      (?collected-function ...)
 	      (predicate	?pre ...)
+	      (setter		?set ...)
+	      (getter		?get ...)
 	      (parent		?par ...)
 	      (protocol		?pro ...)
 	      (sealed		?sea ...)
 	      (opaque		?opa ...)
-	      (parent-rtd		?pad ...)
+	      (parent-rtd	?pad ...)
 	      (nongenerative	?non ...)
 	      (fields ?field-clause ...) ?clause ...))))
 
@@ -805,6 +959,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -822,6 +978,8 @@
 	      (?collected-method ...)
 	      (?collected-function ...)
 	      (predicate	?pre ...)
+	      (setter		?set ...)
+	      (getter		?get ...)
 	      (parent		?par ...)
 	      (protocol		?pro ...)
 	      (sealed		?sea ...)
@@ -838,6 +996,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -852,6 +1012,8 @@
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -870,7 +1032,7 @@
     (define (%mutator name field)
       (string->symbol (string-append name "-" field "-set!")))
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
-			     virtual-fields methods method predicate)
+			     virtual-fields methods method predicate setter getter)
 
       ;;Gather mutable VIRTUAL-FIELDS  clause with explicit selection of
       ;;accessor and mutator names.
@@ -881,6 +1043,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -895,6 +1059,8 @@
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -912,6 +1078,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -930,6 +1098,8 @@
 	      (?collected-method ...)
 	      (?collected-function ...)
 	      (predicate	?pre ...)
+	      (setter		?set ...)
+	      (getter		?get ...)
 	      (parent		?par ...)
 	      (protocol		?pro ...)
 	      (sealed		?sea ...)
@@ -949,6 +1119,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -963,6 +1135,8 @@
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -980,6 +1154,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -997,6 +1173,8 @@
 	      (?collected-method ...)
 	      (?collected-function ...)
 	      (predicate	?pre ...)
+	      (setter		?set ...)
+	      (getter		?get ...)
 	      (parent		?par ...)
 	      (protocol		?pro ...)
 	      (sealed		?sea ...)
@@ -1014,6 +1192,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -1031,6 +1211,8 @@
 	      (?collected-method ...)
 	      (?collected-function ...)
 	      (predicate	?pre ...)
+	      (setter		?set ...)
+	      (getter		?get ...)
 	      (parent		?par ...)
 	      (protocol		?pro ...)
 	      (sealed		?sea ...)
@@ -1049,6 +1231,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -1063,6 +1247,8 @@
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -1078,7 +1264,7 @@
     (define (%function name field)
       (string->symbol (string-append name "-" field)))
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
-			     virtual-fields methods method predicate)
+			     virtual-fields methods method predicate setter getter)
 
       ;;Gather METHODS clause with explicit selection of function name.
       ((%define-class/sort-clauses/methods
@@ -1088,6 +1274,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -1102,6 +1290,8 @@
 	  (?collected-method ... (?method ?function))
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -1119,6 +1309,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -1136,6 +1328,8 @@
 	      (?collected-method ... (?method FUNCTION))
 	      (?collected-function ...)
 	      (predicate	?pre ...)
+	      (setter		?set ...)
+	      (getter		?get ...)
 	      (parent		?par ...)
 	      (protocol		?pro ...)
 	      (sealed		?sea ...)
@@ -1152,6 +1346,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -1169,6 +1365,8 @@
 	      (?collected-method ... (?method FUNCTION))
 	      (?collected-function ...)
 	      (predicate	?pre ...)
+	      (setter		?set ...)
+	      (getter		?get ...)
 	      (parent		?par ...)
 	      (protocol		?pro ...)
 	      (sealed		?sea ...)
@@ -1185,6 +1383,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?par ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -1199,6 +1399,8 @@
 	  (?collected-method ...)
 	  (?collected-function ...)
 	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
 	  (parent		?par ...)
 	  (protocol		?pro ...)
 	  (sealed		?sea ...)
@@ -1215,7 +1417,7 @@
   ;;and validating  the PARENT-RTD  clause.  Finally hand  everything to
   ;;%DEFINE-CLASS/MAKE-FIELDS-VECTOR.
   ;;
-  (syntax-rules (parent protocol sealed opaque parent-rtd nongenerative predicate)
+  (syntax-rules (parent protocol sealed opaque parent-rtd nongenerative predicate setter getter)
 
     ;;If the class definition used both PARENT and PARENT-RTD, raise an error.
     ((_ ?input-form (?name ?constructor ?predicate)
@@ -1224,6 +1426,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?parent0 ?parent ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -1242,6 +1446,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent) ;no parent
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -1255,6 +1461,8 @@
       (?collected-method ...)
       (?collected-function ...)
       (predicate	?pre ...)
+      (setter		?set ...)
+      (getter		?get ...)
       (protocol		?pro ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
@@ -1273,6 +1481,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?parent0 ?parent1 ?parent ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -1291,6 +1501,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent		?parent-name)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -1304,6 +1516,8 @@
       (?collected-method ...)
       (?collected-function ...)
       (predicate	?pre ...)
+      (setter		?set ...)
+      (getter		?get ...)
       (protocol		?pro ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
@@ -1322,6 +1536,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent) ;no parent
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -1335,6 +1551,8 @@
       (?collected-method ...)
       (?collected-function ...)
       (predicate	?pre ...)
+      (setter		?set ...)
+      (getter		?get ...)
       (protocol		?pro ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
@@ -1349,6 +1567,8 @@
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(parent) ;no parent
 	(protocol	?pro ...)
 	(sealed		?sea ...)
@@ -1363,13 +1583,15 @@
 
 
 (define-syntax %define-class/make-fields-vector
-  (syntax-rules (fields protocol sealed opaque parent-rtd nongenerative predicate)
+  (syntax-rules (fields protocol sealed opaque parent-rtd nongenerative predicate setter getter)
     ((_ ?input-form (?name ?constructor ?predicate)
 	((?keyword ?field ?accessor ...) ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
 	(?collected-function ...)
 	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
@@ -1383,6 +1605,8 @@
       (?collected-function ...)
       #((?keyword ?field) ...)
       (predicate	?pre ...)
+      (setter		?set ...)
+      (getter		?get ...)
       (protocol		?pro ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
@@ -1392,7 +1616,7 @@
 
 
 (define-syntax %define-class/normalise-predicate
-  (syntax-rules (fields protocol sealed opaque parent-rtd nongenerative)
+  (syntax-rules (fields protocol sealed opaque parent-rtd nongenerative setter getter)
 
     ;;No predicate was given.
     ((_ ?input-form (?name ?constructor ?predicate)
@@ -1402,12 +1626,14 @@
 	(?collected-function ...)
 	?fields-vector
 	(predicate)
+	(setter		?set ...)
+	(getter		?get ...)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
-     (%define-class/normalise-protocol
+     (%define-class/normalise-setter
       ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
@@ -1415,6 +1641,8 @@
       (?collected-function ...)
       ?fields-vector
       ?predicate
+      (setter		?set ...)
+      (getter		?get ...)
       (protocol		?pro ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
@@ -1429,6 +1657,113 @@
 	(?collected-function ...)
 	?fields-vector
 	(predicate	?predicate-function)
+	(setter		?set ...)
+	(getter		?get ...)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?parent-rtd ?parent-cd)
+	(nongenerative	?non ...))
+     (%define-class/normalise-setter
+      ?input-form (?name ?constructor ?predicate)
+      (?collected-concrete-field ...)
+      (?collected-virtual-field ...)
+      (?collected-method ...)
+      (?collected-function ...)
+      ?fields-vector
+      ?predicate-function
+      (setter		?set ...)
+      (getter		?get ...)
+      (protocol		?pro ...)
+      (sealed		?sea ...)
+      (opaque		?opa ...)
+      (parent-rtd	?parent-rtd ?parent-cd)
+      (nongenerative	?non ...)))
+
+    ))
+
+
+(define-syntax %define-class/normalise-setter
+  (syntax-rules (fields protocol sealed opaque parent-rtd nongenerative setter getter)
+
+    ;;No setter was given.
+    ((_ ?input-form (?name ?constructor ?predicate)
+	(?collected-concrete-field ...)
+	(?collected-virtual-field ...)
+	(?collected-method ...)
+	(?collected-function ...)
+	?fields-vector
+	?predicate-function
+	(setter)
+	(getter		?get ...)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?parent-rtd ?parent-cd)
+	(nongenerative	?non ...))
+     (%define-class/normalise-getter
+      ?input-form (?name ?constructor ?predicate)
+      (?collected-concrete-field ...)
+      (?collected-virtual-field ...)
+      (?collected-method ...)
+      (?collected-function ...)
+      ?fields-vector
+      ?predicate-function
+      #f
+      (getter		?get ...)
+      (protocol		?pro ...)
+      (sealed		?sea ...)
+      (opaque		?opa ...)
+      (parent-rtd	?parent-rtd ?parent-cd)
+      (nongenerative	?non ...)))
+
+    ;;A setter was given.
+    ((_ ?input-form (?name ?constructor ?predicate)
+	(?collected-concrete-field ...)
+	(?collected-virtual-field ...)
+	(?collected-method ...)
+	(?collected-function ...)
+	?fields-vector
+	?predicate-function
+	(setter		?setter)
+	(getter		?get ...)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?parent-rtd ?parent-cd)
+	(nongenerative	?non ...))
+     (%define-class/normalise-getter
+      ?input-form (?name ?constructor ?predicate)
+      (?collected-concrete-field ...)
+      (?collected-virtual-field ...)
+      (?collected-method ...)
+      (?collected-function ...)
+      ?fields-vector
+      ?predicate-function
+      ?setter
+      (getter		?get ...)
+      (protocol		?pro ...)
+      (sealed		?sea ...)
+      (opaque		?opa ...)
+      (parent-rtd	?parent-rtd ?parent-cd)
+      (nongenerative	?non ...)))
+
+    ))
+
+
+(define-syntax %define-class/normalise-getter
+  (syntax-rules (fields protocol sealed opaque parent-rtd nongenerative getter)
+
+    ;;No getter was given.
+    ((_ ?input-form (?name ?constructor ?predicate)
+	(?collected-concrete-field ...)
+	(?collected-virtual-field ...)
+	(?collected-method ...)
+	(?collected-function ...)
+	?fields-vector
+	?predicate-function
+	?setter
+	(getter)
 	(protocol	?pro ...)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
@@ -1442,6 +1777,39 @@
       (?collected-function ...)
       ?fields-vector
       ?predicate-function
+      ?setter
+      #f
+      (protocol		?pro ...)
+      (sealed		?sea ...)
+      (opaque		?opa ...)
+      (parent-rtd	?parent-rtd ?parent-cd)
+      (nongenerative	?non ...)))
+
+    ;;A getter was given.
+    ((_ ?input-form (?name ?constructor ?predicate)
+	(?collected-concrete-field ...)
+	(?collected-virtual-field ...)
+	(?collected-method ...)
+	(?collected-function ...)
+	?fields-vector
+	?predicate-function
+	?setter
+	(getter		?getter)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?parent-rtd ?parent-cd)
+	(nongenerative	?non ...))
+     (%define-class/normalise-protocol
+      ?input-form (?name ?constructor ?predicate)
+      (?collected-concrete-field ...)
+      (?collected-virtual-field ...)
+      (?collected-method ...)
+      (?collected-function ...)
+      ?fields-vector
+      ?predicate-function
+      ?setter
+      ?getter
       (protocol		?pro ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
@@ -1462,6 +1830,8 @@
 	(?collected-function ...)
 	?fields-vector
 	?predicate-function
+	?setter
+	?getter
 	(protocol	?protocol)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
@@ -1475,6 +1845,8 @@
       (?collected-function ...)
       ?fields-vector
       ?predicate-function
+      ?setter
+      ?getter
       ?protocol
       (sealed		?sea ...)
       (opaque		?opa ...)
@@ -1489,6 +1861,8 @@
 	(?collected-function ...)
 	?fields-vector
 	?predicate-function
+	?setter
+	?getter
 	(protocol)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
@@ -1502,6 +1876,8 @@
       (?collected-function ...)
       ?fields-vector
       ?predicate-function
+      ?setter
+      ?getter
       #f
       (sealed		?sea ...)
       (opaque		?opa ...)
@@ -1522,6 +1898,8 @@
 	(?collected-function ...)
 	?fields-vector
 	?predicate-function
+	?setter
+	?getter
 	?protocol
 	(sealed		?sealed)
 	(opaque		?opa ...)
@@ -1535,6 +1913,8 @@
       (?collected-function ...)
       ?fields-vector
       ?predicate-function
+      ?setter
+      ?getter
       ?protocol
       ?sealed
       (opaque		?opa ...)
@@ -1549,6 +1929,8 @@
 	(?collected-function ...)
 	?fields-vector
 	?predicate-function
+	?setter
+	?getter
 	?protocol
 	(sealed)
 	(opaque		?opa ...)
@@ -1562,6 +1944,8 @@
       (?collected-function ...)
       ?fields-vector
       ?predicate-function
+      ?setter
+      ?getter
       ?protocol
       #f
       (opaque		?opa ...)
@@ -1582,6 +1966,8 @@
 	(?collected-function ...)
 	?fields-vector
 	?predicate-function
+	?setter
+	?getter
 	?protocol
 	?sealed
 	(opaque		?opaque)
@@ -1595,6 +1981,8 @@
       (?collected-function ...)
       ?fields-vector
       ?predicate-function
+      ?setter
+      ?getter
       ?protocol
       ?sealed
       ?opaque
@@ -1609,6 +1997,8 @@
 	(?collected-function ...)
 	?fields-vector
 	?predicate-function
+	?setter
+	?getter
 	?protocol
 	?sealed
 	(opaque)
@@ -1622,6 +2012,8 @@
       (?collected-function ...)
       ?fields-vector
       ?predicate-function
+      ?setter
+      ?getter
       ?protocol
       ?sealed
       #f
@@ -1640,6 +2032,8 @@
 	(?collected-function ...)
 	?fields-vector
 	?predicate-function
+	?setter
+	?getter
 	?protocol
 	?sealed
 	?opaque
@@ -1653,6 +2047,8 @@
       (?collected-function ...)
       ?fields-vector
       ?predicate-function
+      ?setter
+      ?getter
       ?protocol
       ?sealed
       ?opaque
@@ -1673,6 +2069,8 @@
 	  (?collected-function ...)
 	  ?fields-vector
 	  ?predicate-function
+	  ?setter
+	  ?getter
 	  ?protocol
 	  ?sealed
 	  ?opaque
@@ -1687,6 +2085,8 @@
 	  (?collected-function ...)
 	  ?fields-vector
 	  ?predicate-function
+	  ?setter
+	  ?getter
 	  ?protocol
 	  ?sealed
 	  ?opaque
@@ -1702,6 +2102,8 @@
 	  (?collected-function ...)
 	  ?fields-vector
 	  ?predicate-function
+	  ?setter
+	  ?getter
 	  ?protocol
 	  ?sealed
 	  ?opaque
@@ -1716,6 +2118,8 @@
 	  (?collected-function ...)
 	  ?fields-vector
 	  ?predicate-function
+	  ?setter
+	  ?getter
 	  ?protocol
 	  ?sealed
 	  ?opaque
@@ -1779,7 +2183,7 @@
 	  ((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
 	  ((?method ?method-function) ...)
 	  (?collected-function ...)
-	  ?fields-vector ?predicate-function
+	  ?fields-vector ?predicate-function ?setter ?getter
 	  ?protocol ?sealed ?opaque ?parent-rtd ?parent-cd ?uid)
        (let ((id (duplicated-ids? #'(?field ... ?virtual-field ... ?method ...))))
 	 (if id
@@ -1811,22 +2215,48 @@
 		   ?collected-function ...
 
 		   (define-syntax ?class-name
-		     (syntax-rules (class-type-descriptor
-				    custom-predicate
-				    default-constructor
-				    default-constructor-descriptor
-				    with-class-fields-of)
-		       ((_ class-type-descriptor)
-		   	(begin NAME-RTD))
-		       ((_ default-constructor-descriptor)
-		   	(begin NAME-CD))
-		       ((_ default-constructor ?arg (... ...))
-		   	(?constructor ?arg (... ...)))
-		       ((_ custom-predicate ?arg (... ...))
-		   	(?predicate-function ?arg (... ...)))
-		       ((_ with-class-fields-of ?arg (... ...))
-		   	(WITH-FIELDS ?arg (... ...)))
-		       ))
+		     (lambda (stx)
+		       (syntax-case stx (class-type-descriptor
+					 custom-predicate
+					 default-constructor
+					 default-constructor-descriptor
+					 with-class-fields-of
+					 setter)
+			 ((_ class-type-descriptor)
+			  #'(begin NAME-RTD))
+			 ((_ default-constructor-descriptor)
+			  #'(begin NAME-CD))
+			 ((_ default-constructor ?arg (... ...))
+			  #'(?constructor ?arg (... ...)))
+			 ((_ custom-predicate ?arg (... ...))
+			  #'(?predicate-function ?arg (... ...)))
+			 ((_ with-class-fields-of ?arg (... ...))
+			  #'(WITH-FIELDS ?arg (... ...)))
+
+			 ((_ setter ?arg (... ...))
+			  (symbol? (quote ?setter))
+			  #'(?setter ?arg (... ...)))
+			 ((_ setter ?variable-name ?key0 ?key (... ...) ?value)
+			  (syntax-violation 'setf
+			    "class has no setter"
+			    (syntax->datum #'(setf (?variable-name ?key0 ?key (... ...)) ?value))
+			    (syntax->datum #'?class-name)))
+
+			 ((_ getter ?arg (... ...))
+			  (symbol? (quote ?getter))
+			  #'(?getter ?arg (... ...)))
+			 ((_ getter ?variable-name ?key0 ?key (... ...))
+			  (syntax-violation 'getf
+			    "class has no getter"
+			    (syntax->datum #'(getf (?variable-name ?key0 ?key (... ...))))
+			    (syntax->datum #'?class-name)))
+
+			 ((_ ?keyword . ?rest)
+			  (syntax-violation '?class-name
+			    "invalid class internal keyword"
+			    (syntax->datum #'(?class-name ?keyword . ?rest))
+			    (syntax->datum #'?keyword)))
+			 )))
 
 		   (define-syntax WITH-FIELDS
 		     (syntax-rules ()
@@ -1836,7 +2266,9 @@
 			 ((?mutability ?field ?accessor ...) ...
 			  (?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
 		   	 (%with-methods ?variable-name ((?method ?method-function) ...)
-		   			?body0 ?body (... ...))
+					(%with-setter-and-getter
+					 ?class-name ?variable-name
+					 ?body0 ?body (... ...)))
 		   	 ))))
 		   )))
 	   )))
@@ -1924,6 +2356,49 @@
       ((_ ?variable-name () ?body0 ?body ...)
        #'(begin ?body0 ?body ...))
       )))
+
+
+(define-syntax %with-setter-and-getter
+  (lambda (stx)
+    (define (%setf name)
+      (string->symbol (string-append (symbol->string name) ".setf")))
+    (define (%getf name)
+      (string->symbol (string-append (symbol->string name) ".getf")))
+    (syntax-case stx ()
+      ((_ ?class-name ?variable-name . ?body)
+       (let ((name (syntax->datum #'?variable-name)))
+	 (with-syntax ((SETF (datum->syntax #'?variable-name (%setf name)))
+		       (GETF (datum->syntax #'?variable-name (%getf name))))
+	   #'(let-syntax ((SETF (syntax-rules ()
+				  ((_ ?key0 ?key (... ...) ?value)
+				   (?class-name setter ?variable-name ?key0 ?key (... ...) ?value))
+				  ))
+			  (GETF (syntax-rules ()
+				  ((_ ?key0 ?key (... ...))
+				   (?class-name getter ?variable-name ?key0 ?key (... ...))))))
+	       . ?body)
+	   ))))))
+
+(define-syntax setf
+  (lambda (stx)
+    (define (%setf name)
+      (string->symbol (string-append (symbol->string name) ".setf")))
+    (syntax-case stx (setter setter-multi-key set!)
+      ((_ (?variable-name ?key0 ?key ...) ?value)
+       (with-syntax ((SETF (datum->syntax #'?variable-name (%setf (syntax->datum #'?variable-name)))))
+      	 #'(SETF ?key0 ?key ... ?value)))
+       ((_ ?variable-name ?value)
+	#'(set! ?variable-name ?value))
+       )))
+
+(define-syntax getf
+  (lambda (stx)
+    (define (%getf name)
+      (string->symbol (string-append (symbol->string name) ".getf")))
+    (syntax-case stx (setter setter-multi-key set!)
+      ((_ (?variable-name ?key0 ?key ...))
+       (with-syntax ((GETF (datum->syntax #'?variable-name (%getf (syntax->datum #'?variable-name)))))
+      	 #'(GETF ?key0 ?key ...))))))
 
 
 (define-syntax class-type-descriptor
@@ -2433,21 +2908,110 @@
 		  (immutable upcase	string-upcase)
 		  (immutable downcase	string-downcase)
 		  (immutable titlecase	string-titlecase)
-		  (immutable foldcase	string-foldcase)))
+		  (immutable foldcase	string-foldcase))
+  (setter string-set!)
+  (getter string-ref))
 
 (define-builtin-class <vector>
   (predicate vector?)
-  (virtual-fields (immutable length vector-length)))
+  (virtual-fields (immutable length vector-length))
+  (setter vector-set!)
+  (getter vector-ref))
 
 (define-builtin-class <bytevector>
   (predicate bytevector?)
-  (virtual-fields (immutable length bytevector-length)))
+  (virtual-fields (immutable length bytevector-length))
+  (setter <bytevector>-setf)
+  (getter <bytevector>-getf))
+
+(define-syntax <bytevector>-setf
+  (syntax-rules (u8 s8 u16 s16 u16n s16n u32 s32 u32n s32n u64 s64 u64n s64n uint sint
+		    single double singlen doublen big little)
+    ((_ ?var ?idx ?value)
+     (bytevector-u8-set! ?var ?idx ?value))
+
+    ((_ ?var ?idx u8 ?value)
+     (bytevector-u8-set! ?var ?idx ?value))
+    ((_ ?var ?idx s8 ?value)
+     (bytevector-s8-set! ?var ?idx ?value))
+    ((_ ?var ?idx u16 ?endian ?value)
+     (bytevector-u16-set! ?var ?idx ?value (endianness ?endian)))
+    ((_ ?var ?idx s16 ?endian ?value)
+     (bytevector-s16-set! ?var ?idx ?value (endianness ?endian)))
+    ((_ ?var ?idx u32 ?endian ?value)
+     (bytevector-u32-set! ?var ?idx ?value (endianness ?endian)))
+    ((_ ?var ?idx s32 ?endian ?value)
+     (bytevector-s32-set! ?var ?idx ?value (endianness ?endian)))
+    ((_ ?var ?idx u64 ?endian ?value)
+     (bytevector-u64-set! ?var ?idx ?value (endianness ?endian)))
+    ((_ ?var ?idx s64 ?endian ?value)
+     (bytevector-s64-set! ?var ?idx ?value (endianness ?endian)))
+    ((_ ?var ?idx single ?endian ?value)
+     (bytevector-ieee-single-set! ?var ?idx ?value (endianness ?endian)))
+    ((_ ?var ?idx double ?endian ?value)
+     (bytevector-ieee-double-set! ?var ?idx ?value (endianness ?endian)))
+
+    ((_ ?var ?idx u16n ?value)		(bytevector-u16-native-set! ?var ?idx ?value))
+    ((_ ?var ?idx s16n ?value)		(bytevector-s16-native-set! ?var ?idx ?value))
+    ((_ ?var ?idx u32n ?value)		(bytevector-u32-native-set! ?var ?idx ?value))
+    ((_ ?var ?idx s32n ?value)		(bytevector-s32-native-set! ?var ?idx ?value))
+    ((_ ?var ?idx u64n ?value)		(bytevector-u64-native-set! ?var ?idx ?value))
+    ((_ ?var ?idx s64n ?value)		(bytevector-s64-native-set! ?var ?idx ?value))
+    ((_ ?var ?idx singlen ?value)	(bytevector-ieee-single-native-set! ?var ?idx ?value))
+    ((_ ?var ?idx doublen ?value)	(bytevector-ieee-double-native-set! ?var ?idx ?value))
+    ))
+
+(define-syntax <bytevector>-getf
+  (syntax-rules (u8 s8 u16 s16 u16n s16n u32 s32 u32n s32n u64 s64 u64n s64n uint sint
+		    single double singlen doublen big little)
+
+    ((_ ?var ?idx)		(bytevector-u8-ref ?var ?idx))
+
+    ((_ ?var ?idx u8)
+     (bytevector-u8-ref ?var ?idx))
+    ((_ ?var ?idx s8)
+     (bytevector-s8-ref ?var ?idx))
+    ((_ ?var ?idx u16 ?endian)
+     (bytevector-u16-ref ?var ?idx (endianness ?endian)))
+    ((_ ?var ?idx s16 ?endian)
+     (bytevector-s16-ref ?var ?idx (endianness ?endian)))
+    ((_ ?var ?idx u32 ?endian)
+     (bytevector-u32-ref ?var ?idx (endianness ?endian)))
+    ((_ ?var ?idx s32 ?endian)
+     (bytevector-s32-ref ?var ?idx (endianness ?endian)))
+    ((_ ?var ?idx u64 ?endian)
+     (bytevector-u64-ref ?var ?idx (endianness ?endian)))
+    ((_ ?var ?idx s64 ?endian)
+     (bytevector-s64-ref ?var ?idx (endianness ?endian)))
+    ((_ ?var ?idx single ?endian)
+     (bytevector-ieee-single-ref ?var ?idx (endianness ?endian)))
+    ((_ ?var ?idx double ?endian)
+     (bytevector-ieee-double-ref ?var ?idx (endianness ?endian)))
+
+    ((_ ?var ?idx u16n)		(bytevector-u16-native-ref ?var ?idx))
+    ((_ ?var ?idx s16n)		(bytevector-s16-native-ref ?var ?idx))
+    ((_ ?var ?idx u32n)		(bytevector-u32-native-ref ?var ?idx))
+    ((_ ?var ?idx s32n)		(bytevector-s32-native-ref ?var ?idx))
+    ((_ ?var ?idx u64n)		(bytevector-u64-native-ref ?var ?idx))
+    ((_ ?var ?idx s64n)		(bytevector-s64-native-ref ?var ?idx))
+    ((_ ?var ?idx singlen)	(bytevector-ieee-single-native-ref ?var ?idx))
+    ((_ ?var ?idx doublen)	(bytevector-ieee-double-native-ref ?var ?idx))
+    ))
 
 (define-builtin-class <hashtable>
   (predicate hashtable?)
   (virtual-fields (immutable size hashtable-size)
 		  (immutable keys hashtable-keys)
-		  (immutable entries hashtable-entries)))
+		  (immutable entries hashtable-entries))
+  (setter hashtable-set!)
+  (getter <hashtable>-getf))
+
+(define-syntax <hashtable>-getf
+  (syntax-rules ()
+    ((_ ?variable-name ?key)
+     (hashtable-ref ?variable-name ?key #f))
+    ((_ ?variable-name ?key ?default)
+     (hashtable-ref ?variable-name ?key ?default))))
 
 ;;; --------------------------------------------------------------------
 
@@ -2474,17 +3038,17 @@
 		  (immutable input? input-port?)
 		  (immutable output? output-port?)))
 
-(define-class <input-port>
+(define-virtual-class <input-port>
   (parent <port>)
   (predicate input-port?)
   (nongenerative nausicaa:builtin:<input-port>))
 
-(define-class <output-port>
+(define-virtual-class <output-port>
   (parent <port>)
   (predicate output-port?)
   (nongenerative nausicaa:builtin:<output-port>))
 
-(define-class <binary-port>
+(define-virtual-class <binary-port>
   (parent <port>)
   (predicate %binary-port?)
   (nongenerative nausicaa:builtin:<binary-port>))
@@ -2494,7 +3058,7 @@
 (define (%binary-port? obj)
   (and (port? obj) (binary-port? obj)))
 
-(define-class <textual-port>
+(define-virtual-class <textual-port>
   (parent <port>)
   (predicate %textual-port?)
   (nongenerative nausicaa:builtin:<textual-port>))
@@ -2531,7 +3095,7 @@
 		  (immutable truncate	truncate)
 		  (immutable round	round)))
 
-(define-class <complex>
+(define-virtual-class <complex>
   (parent <number>)
   (predicate complex?)
   (virtual-fields (immutable real-part	real-part)
@@ -2540,7 +3104,7 @@
 		  (immutable angle	angle))
   (nongenerative nausicaa:builtin:<complex>))
 
-(define-class <real-valued>
+(define-virtual-class <real-valued>
   (parent <complex>)
   (predicate real-valued?)
   (virtual-fields (immutable positive?		positive?)
@@ -2549,38 +3113,38 @@
 		  (immutable non-negative?	non-negative?))
   (nongenerative nausicaa:builtin:<real-valued>))
 
-(define-class <real>
+(define-virtual-class <real>
   (parent <real-valued>)
   (predicate real?)
   (nongenerative nausicaa:builtin:<real>)
   (virtual-fields (immutable abs)))
 
-(define-class <rational-valued>
+(define-virtual-class <rational-valued>
   (parent <real>)
   (predicate rational-valued?)
   (nongenerative nausicaa:builtin:<rational-valued>))
 
-(define-class <flonum>
+(define-virtual-class <flonum>
   (parent <real>)
   (predicate flonum?)
   (nongenerative nausicaa:builtin:<flonum>))
 
-(define-class <rational>
+(define-virtual-class <rational>
   (parent <rational-valued>)
   (predicate rational?)
   (nongenerative nausicaa:builtin:<rational>))
 
-(define-class <integer-valued>
+(define-virtual-class <integer-valued>
   (parent <rational-valued>)
   (predicate integer-valued?)
   (nongenerative nausicaa:builtin:<integer-valued>))
 
-(define-class <integer>
+(define-virtual-class <integer>
   (parent <integer-valued>)
   (predicate integer?)
   (nongenerative nausicaa:builtin:<integer>))
 
-(define-class <fixnum>
+(define-virtual-class <fixnum>
   (parent <integer>)
   (predicate fixnum?)
   (nongenerative nausicaa:builtin:<fixnum>))

@@ -948,6 +948,7 @@ Binding accessors and mutators
 
 * classes fields with::         Basic fields and methods usage.
 * classes fields lambda::       High-level fields and methods usage.
+* classes fields setter::       Setters and getters.
 
 Conventional type descriptors
 
@@ -970,6 +971,121 @@ Deferred exceptions
 * deferred exceptions intro::   Introduction.
 * deferred exceptions usage::   Usage examples.
 * deferred exceptions api::     Programming interface.
+
+Foreign--functions interface
+
+* ffi core::                    Foreign--functions interface.
+* ffi memory::                  Low level memory handling.
+* ffi cstrings::                C language strings handling.
+* ffi errno::                   C language system errors.
+
+Foreign--functions interface
+
+* ffi core libraries::          Installed libraries.
+* ffi core conditions::         Condition objects.
+* ffi core sizeof::             Sizes and limits.
+* ffi core pointers::           Pointer objects.
+* ffi core access::             Direct access to memory blocks.
+* ffi core call::               Callouts and callbacks.
+* ffi core struct::             Accessing data structures.
+* ffi core headers::            Inspecting foreign header files.
+* ffi core generator::          Generating an interface.
+
+Condition objects
+
+* ffi core conditions library-name::    Foreign library names.
+* ffi core conditions shared-object::   Shared objects.
+* ffi core conditions foreign-symbol::  Foreign symbols.
+* ffi core conditions opening::         Shared objects opening error.
+* ffi core conditions lookup::          Shared objects lookup error.
+
+Direct access to memory blocks
+
+* ffi core access intro::       Introduction.
+* ffi core peekers::            Peeking values.
+* ffi core pokers::             Poking values.
+* ffi core array peekers::      Peeking values into arrays.
+* ffi core array pokers::       Poking values into arrays.
+* ffi core array pointers::     Computing pointers into arrays.
+
+High level interface
+
+* ffi core call shared::        Dynamic loading of libraries.
+* ffi core call types::         Interface to C language types.
+* ffi core call out::           Calling foreign functions.
+* ffi core call back::          Calling Scheme functions.
+* ffi core call utilities::     Utility macros.
+* ffi core call parametrised::  Auxiliary parametrised interface.
+* ffi core call platform::      Low level interface.
+
+Inspecting foreign header files
+
+* ffi core headers setup::      Setting up the C language environment.
+* ffi core headers includes::   Including header files.
+* ffi core headers valueof::    Determining the value of expressions.
+* ffi core headers sizeof::     Determining the size of data types.
+* ffi core headers typeof::     Determining the basic type of data
+                                types.
+* ffi core headers alignof::    Determining the alignment of data
+                                types.
+* ffi core headers strideof::   Determining the array stride of data
+                                types.
+* ffi core headers offsetof::   Determining the offset of fields in
+                                data structures.
+* ffi core headers access::     Determining the accessors of data
+                                types.
+* ffi core headers inspect::    Full inspection of data types.
+* ffi core headers string::     Determining string values.
+* ffi core headers common::     Common groups of tests.
+
+Low level memory handling
+
+* ffi memory conditions::       Out of memory errors.
+* ffi memory alloc::            Allocation functions.
+* ffi memory blocks::           Memory blocks.
+* ffi memory cache::            Caching memory blocks.
+* ffi memory compensate::       Compensations.
+* ffi memory operations::       Operations.
+* ffi memory bytevectors::      Bytevectors conversion.
+
+Independent libraries
+
+* ffi memory mempool::          Allocation from a memory pool.
+* ffi memory refcount::         Reference counting.
+* ffi memory membuffer::        Memory buffers.
+* ffi memory guarded::          Guarded memory allocation.
+
+Allocation functions
+
+* ffi memory alloc system::     System functions.
+* ffi memory alloc platform::   Platform functions.
+* ffi memory alloc primitive::  Primitive functions.
+* ffi memory alloc high::       Exception raising functions.
+* ffi memory alloc examples::   Memory allocation examples.
+
+Memory blocks
+
+* ffi memory blocks type::        Record type definition.
+* ffi memory blocks clone::       Duplicating blocks.
+* ffi memory blocks conversion::  Conversion between blocks and other
+                                  objects.
+* ffi memory blocks portions::    Dealing with block portions.
+* ffi memory blocks misc::        Miscellaneous stuff.
+
+C language strings handling
+
+* ffi cstrings constants::      Constant values.
+* ffi cstrings inspection::     Inspecting cstrings.
+* ffi cstrings operations::     Acting upon cstrings.
+* ffi cstrings conversion::     Converting to and from cstrings.
+* ffi cstrings argv::           Converting arrays of cstrings.
+
+C language system errors
+
+* ffi errno values::            Error codes.
+* ffi errno enumerations::      Enumeration type.
+* ffi errno conversion::        Conversion of error codes.
+* ffi errno condition::         Raising exceptions.
 
 Miscellaneous notes on everything
 
@@ -11984,7 +12100,7 @@ If @var{rtd} is an extension of another record type @var{parent-rtd} and
 @var{protocol} is a procedure, @var{parent-constructor-descriptor} must
 be a constructor descriptor of @var{parent-rtd} or @false{}.  If
 @var{parent-constructor-descriptor} is a constructor descriptor,
-@var{protocol} it is called by @func{record-constructor} with a single
+@var{protocol} is called by @func{record-constructor} with a single
 argument @var{n}, which is a procedure that accepts the same number of
 arguments as the constructor of @var{parent-constructor-descriptor} and
 returns a procedure @var{p} that, when called, constructs the record
@@ -19930,6 +20046,59 @@ instance.
 @end example
 @end deffn
 
+
+@deffn {Auxiliary Syntax} setter @ameta{setter name}
+@deffnx {Auxiliary Syntax} getter @ameta{setter name}
+Define a setter or getter binding to be used by @func{setf} or
+@func{getf}.  @ameta{setter name} and @ameta{getter name} must
+identifiers bound to a function or macro which is invoked by @func{setf}
+and @func{getf} as:
+
+@example
+(@cmeta{setter name} @cmeta{variable} @cmetao{key} @cmeta{key} ... @cmeta{value})
+(@cmeta{getter name} @cmeta{variable} @cmetao{key} @cmeta{key} ...)
+@end example
+
+@noindent
+where: @meta{variable} is the identifier to which the class instance is
+bound, @meta{key} are the setter and getter keys, @meta{value} is the
+new value.  Example:
+
+@example
+(define-class <alpha>
+  (fields (mutable a))
+  (setter <alpha>-setf))
+
+(define/with-class (<alpha>-setf (o <alpha>) key0 key1 value)
+  (set! o.a (list key0 key1 value)))
+
+(let/with-class (((o <alpha>) (make <alpha> 1)))
+  (setf (o 2 3) 4)
+  o.a)
+@result{} (2 3 4)
+@end example
+
+@noindent
+another example:
+
+@example
+(define-builtin-class <vector>
+  (predicate vector?)
+  (virtual-fields (immutable length vector-length))
+  (setter vector-set!)
+  (getter vector-ref))
+
+(let/with-class (((o <vector>) (vector 0 1 2 3 4)))
+  (setf (o 2) #\c)
+  (getf (o 2)))
+@result{} #\c
+@end example
+
+The number of keys to be used by the setter and getter is unspecified:
+it is enforced by the function or macro bound to @meta{setter name} and
+@ameta{getter name}.
+@end deffn
+
 @c page
 @node classes make
 @section Record makers
@@ -20144,9 +20313,21 @@ by @func{define-record-type}.
 @section Binding accessors and mutators
 
 
+The syntaxes described in this section allow the use of dot notation to
+access class fields and to apply class methods.  The core syntaxes are
+@func{with-fields}, @func{setf} and @func{getf}.
+
+We have to be careful when using this notation: many macros are written
+assuming that it is safe to reference identifiers multiple times, under
+the assumption that identifier's reference has no side effects; this is
+no more sure when using identifier syntaxes to access virtual class
+fields.  As a style rule: it is better to always keep virtual fields
+access free of side effects (unless really needed).
+
 @menu
 * classes fields with::         Basic fields and methods usage.
 * classes fields lambda::       High-level fields and methods usage.
+* classes fields setter::       Setters and getters.
 @end menu
 
 @c page
@@ -20810,6 +20991,104 @@ Like @func{receive} but expands to @func{lambda/with-class} rather than
 @end deffn
 
 @c page
+@node classes fields setter
+@subsection Setters and getters
+
+
+Setters and getters have the purpose of providing a shorter syntax to
+access storage locations; they are especially useful with vector objects
+and similar:
+
+@example
+(let/with-class (((o <vector>) (vector 0 1 2 3 4)))
+  (setf (o 2) #\c)
+  (getf (o 2)))
+@result{} #\c
+
+(let/with-class (((o <hashtable>) (make-eq-hashtable)))
+  (setf (o 'ciao) 10)
+  (list (getf (o 'ciao))
+        (getf (o 'hello))
+        (getf (o 'hello 'salut))))
+@result{} (10 #f salut)
+@end example
+
+In this document class specific setters and getters are described as
+@func{setf} and @func{getf} ``methods''.
+
+
+@deffn Syntax setf @ameta{place} @ameta{value}
+Apply a class setter to the specified @meta{place} with the purpose of
+storing there @meta{value}.  The @meta{place} argument must have the
+form:
+
+@example
+(@cmeta{variable name} @cmetao{key} @cmeta{key} ...)
+@end example
+
+@noindent
+where @meta{variable name} must be an identifier bound to the class
+instance, the @meta{key} values should select a storage location.  The
+following meaningless example shows the mechanism:
+
+@example
+(define-class <alpha>
+  (fields (mutable a))
+  (setter <alpha>-setf))
+
+(define/with-class (<alpha>-setf (o <alpha>) key0 key1 value)
+  (set! o.a (list key0 key1 value)))
+
+(let/with-class (((o <alpha>) (make <alpha> 1)))
+  (setf (o 2 3) 4)
+  o.a)
+@result{} (2 3 4)
+@end example
+
+The number of keys to be used by the setter is unspecified: it is
+enforced by the function or macro selected in the @func{setter} clause
+of @func{define-class}.
+@end deffn
+
+
+@deffn Syntax getf @ameta{place}
+Apply a class getter to the specified @meta{place} with the purpose of
+accessing the value stored there.  The @meta{place} argument must have
+the form:
+
+@example
+(@cmeta{variable name} @cmetao{key} @cmeta{key} ...)
+@end example
+
+@noindent
+where @meta{variable name} must be an identifier bound to the class
+instance, the @meta{key} values should select a storage location.  The
+following meaningless example shows the mechanism:
+
+@example
+(define-class <alpha>
+  (fields (mutable a))
+  (setter <alpha>-setf)
+  (getter <alpha>-getf))
+
+(define/with-class (<alpha>-setf (o <alpha>) key0 key1 value)
+  (set! o.a (list key0 key1 value)))
+
+(define/with-class (<alpha>-getf (o <alpha>) key0 key1)
+  (list o.a key0 key1))
+
+(let/with-class (((o <alpha>) (make <alpha> 1)))
+  (setf (o 2 3) 4)
+  (getf (o 5 6)))
+@result{} ((2 3 4) 5 6)
+@end example
+
+The number of keys to be used by the getter is unspecified: it is
+enforced by the function or macro selected in the @func{getter} clause
+of @func{define-class}.
+@end deffn
+
+@c page
 @node classes builtin
 @section Conventional type descriptors
 
@@ -20968,6 +21247,9 @@ Access the length of the list.
 @subsection Non--list compound types
 
 
+@subsubheading Vectors
+
+
 @deftp {Virtual Class} @aclass{vector}
 Conventional type for objects satisfying @func{vector?}.
 @end deftp
@@ -20978,6 +21260,21 @@ Access the length of the vector.
 @end defcv
 
 
+@defmethod @aclass{vector} setf (@var{o} @var{index}) @var{value}
+Store @var{value} at @var{index} of the vector @var{o}.  @var{index} is
+an expression.
+@end defmethod
+
+
+@defmethod @aclass{vector} getf (@var{o} @var{index})
+Return the value at @var{index} of the vector @var{o}.  @var{index} is
+an expression.
+@end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Bytevectors
+
 @deftp {Virtual Class} @aclass{bytevector}
 Conventional type for objects satisfying @func{bytevector?}.
 @end deftp
@@ -20987,6 +21284,87 @@ Conventional type for objects satisfying @func{bytevector?}.
 Access the length of the bytevector.
 @end defcv
 
+
+@defmethod @aclass{bytevector} setf (@ameta{o} @ameta{index}) @ameta{value}
+@defmethodx @aclass{bytevector} setf (@ameta{o} @ameta{index} @ameta{type}) @ameta{value}
+@defmethodx @aclass{bytevector} setf (@ameta{o} @ameta{index} @ameta{type} @ameta{endian}) @ameta{value}
+Implemented as a macro: store @meta{value} at index @meta{index} of the
+bytevector @meta{o}.  The mutator is selected according to the following
+rules:
+
+@itemize
+@item
+When no @meta{type} nor @meta{endian} is used: the mutator is
+@func{bytevector-u8-set!}.
+
+@item
+When both @meta{type} and @meta{endian} are used: the mutator is
+selected accordingly; @meta{type} can be one among:
+
+@example
+u8  s8    u16 s16
+u32 s32   u64 s64
+uint   sint
+single double
+@end example
+
+@noindent
+while @meta{endian} can be one among @samp{big} and @samp{little}.
+
+@item
+When only @meta{type} is used: the mutator is selected accordingly among
+the native ones; @meta{type} can be one among:
+
+@example
+u16n s16n
+u32n s32n   u64n s64n
+singlen doublen
+@end example
+@end itemize
+@end defmethod
+
+
+@defmethod @aclass{bytevector} getf (@ameta{o} @ameta{index})
+@defmethodx @aclass{bytevector} getf (@ameta{o} @ameta{index} @ameta{type})
+@defmethodx @aclass{bytevector} getf (@ameta{o} @ameta{index} @ameta{type} @ameta{endian})
+Implemented as a macro: return the value at index @meta{index} of the
+bytevector @meta{o}.  The accessor is selected according to the
+following rules:
+
+@itemize
+@item
+When no @meta{type} nor @meta{endian} is used: the mutator is
+@func{bytevector-u8-ref}.
+
+@item
+When both @meta{type} and @meta{endian} are used: the accessor is
+selected accordingly; @meta{type} can be one among:
+
+@example
+u8  s8    u16 s16
+u32 s32   u64 s64
+uint   sint
+single double
+@end example
+
+@noindent
+while @meta{endian} can be one among @samp{big} and @samp{little}.
+
+@item
+When only @meta{type} is used: the accessor is selected accordingly
+among the native ones; @meta{type} can be one among:
+
+@example
+u16n s16n
+u32n s32n   u64n s64n
+singlen doublen
+@end example
+@end itemize
+@end defmethod
+
+@c ------------------------------------------------------------
+
+@subsubheading Hashtables
 
 @deftp {Virtual Class} @aclass{hashtable}
 Conventional type for objects satisfying @func{hashtable?}.
@@ -21008,6 +21386,20 @@ Access the keys.  Retrieving this field is like applying
 Access the keys and values.  Retrieving this field is like applying
 @func{hashtable-entries} to the hashtable.
 @end defcv
+
+
+@defmethod @aclass{hashtable} setf (@var{o} @var{key}) @var{value}
+Associate @var{value} to @var{key} in the hashtable @var{o}.  The
+@var{key} is an expression.
+@end defmethod
+
+
+@defmethod @aclass{hashtable} getf (@var{o} @var{key})
+@defmethodx @aclass{hashtable} getf (@var{o} @var{key} @var{default})
+Return the value associated to @var{key} in the hashtable @var{o}.  When
+not found: return @var{default} or @false{} if @var{default} was not
+given.  @var{key} and @var{default} are expressions.
+@end defmethod
 
 @c page
 @node classes builtin number
@@ -21344,6 +21736,18 @@ string.
 Accessing this field is like applying @func{string-foldcase} to the
 string.
 @end defcv
+
+
+@defmethod @aclass{string} setf (@var{o} @var{index}) @var{char}
+Store @var{char} at @var{index} of the string @var{o}.  @var{index} is
+an expression.
+@end defmethod
+
+
+@defmethod @aclass{string} getf (@var{o} @var{index})
+Return the char at @var{index} of the string @var{o}.  @var{index} is an
+expression.
+@end defmethod
 
 @c ------------------------------------------------------------
 

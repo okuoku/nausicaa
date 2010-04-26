@@ -828,11 +828,12 @@
     let/with-class		let*/with-class
     letrec/with-class		letrec*/with-class
     receive/with-class
-    with/with-class
+    with-fields
+    setf			getf
     is-a?
     record-type-parent?
     record-type-of
-    record-parent-list			class-parent-list
+    record-parent-list		class-parent-list
 
     <top> <builtin>
     <pair> <list>

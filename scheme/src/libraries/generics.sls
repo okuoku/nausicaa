@@ -45,6 +45,7 @@
     letrec/with-class			letrec*/with-class
     receive/with-class
     with-fields
+    setf				getf
     is-a?
     record-type-parent?
     record-type-of

@@ -2531,6 +2531,120 @@
   #t)
 
 
+(parametrise ((check-test-name	'setf))
+
+  (check
+      (let ((a 1))
+	(setf a 2)
+	a)
+    => 2)
+
+  (check
+      (let ((a 1) (b #f))
+	(let-syntax ((a.setf (syntax-rules ()
+			       ((_ ?key ?val)
+				(set! b (quote (?key ?val)))))))
+	  (setf (a 2) 3)
+	  (list a b)))
+    => '(1 (2 3)))
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define-class <alpha>
+      (fields (mutable a))
+      (setter <alpha>-setf))
+
+    (define/with-class (<alpha>-setf (o <alpha>) key value)
+      (set! o.a (list key value)))
+
+    (check
+	(let/with-class (((o <alpha>) (make <alpha> 1)))
+	  (setf (o 2) 3)
+	  o.a)
+      => '(2 3))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (let ()
+
+    (define-class <alpha>
+      (fields (mutable a))
+      (setter <alpha>-setf))
+
+    (define/with-class (<alpha>-setf (o <alpha>) key0 key1 value)
+      (set! o.a (list key0 key1 value)))
+
+    (check
+	(let/with-class (((o <alpha>) (make <alpha> 1)))
+	  (setf (o 2 3) 4)
+	  o.a)
+      => '(2 3 4))
+
+    #f)
+
+  (let ()
+
+    (define-class <alpha>
+      (fields (mutable a))
+      (setter <alpha>-setf)
+      (getter <alpha>-getf))
+
+    (define/with-class (<alpha>-setf (o <alpha>) key0 key1 value)
+      (set! o.a (list key0 key1 value)))
+
+    (define/with-class (<alpha>-getf (o <alpha>) key0 key1)
+      (list o.a key0 key1))
+
+    (check
+	(let/with-class (((o <alpha>) (make <alpha> 1)))
+	  (setf (o 2 3) 4)
+	  (getf (o 5 6)))
+      => '((2 3 4) 5 6))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; builtin getter/setter
+
+  (check	;vector
+      (let/with-class (((o <vector>) (vector 0 1 2 3 4)))
+	(setf (o 2) #\c)
+	(getf (o 2)))
+    => #\c)
+
+  (check	;bytevector
+      (let/with-class (((o <bytevector>) (bytevector-copy '#vu8(0 1 2 3))))
+	(setf (o 2) 10)
+	(getf (o 2)))
+    => 10)
+
+  (check	;bytevector
+      (let/with-class (((o <bytevector>) (bytevector-copy '#vu8(0 1 2 3))))
+	(setf (o 2 s16 big) 10)
+	(getf (o 2 s16 big)))
+    => 10)
+
+  (check	;hashtable
+      (let/with-class (((o <hashtable>) (make-eq-hashtable)))
+	(setf (o 'ciao) 10)
+	(list (getf (o 'ciao))
+	      (getf (o 'hello))
+	      (getf (o 'hello 'salut))))
+    => '(10 #f salut))
+
+  (check	;string
+      (let/with-class (((o <string>) (string-copy "ciao")))
+	(setf (o 2) #\c)
+	(getf (o 2)))
+    => #\c)
+
+  #t)
+
+
 (parametrise ((check-test-name 'parent-list))
 
 ;;;We cannot  rely on the  RTDs to be  equal when the definition  of the
@@ -2729,32 +2843,32 @@
   (let ()
     (define-class <alpha>
       (fields (mutable a)
-	      (immutable b)
-	      (mutable c)))
+  	      (immutable b)
+  	      (mutable c)))
 
     (define-class <beta>
       (parent <alpha>)
       (fields (mutable d)
-	      (immutable e)
-	      (mutable f)))
+  	      (immutable e)
+  	      (mutable f)))
 
     (define-class <gamma>
       (parent <beta>)
       (fields (mutable g)
-	      (immutable h)
-	      (mutable i)))
+  	      (immutable h)
+  	      (mutable i)))
 
     (define a (make-<alpha> #f #f #f))
     (define g (make-<gamma> #f #f #f
-			    #f #f #f
-			    #f #f #f))
+  			    #f #f #f
+  			    #f #f #f))
 
     (check
-	(record-type-uid (record-type-of a))
+  	(record-type-uid (record-type-of a))
       => (record-type-uid (class-type-descriptor <alpha>)))
 
     (check
-	(record-type-uid (record-type-of g))
+  	(record-type-uid (record-type-of g))
       => (record-type-uid (class-type-descriptor <gamma>)))
 
     #f)
@@ -2763,21 +2877,20 @@
 ;;; These tests make use of the record types exported by (records-lib).
 
   (let ((a (make <alpha>
-	     1 2 3))
-	(b (make <beta>
-	     1 2 3
-	     4 5 6)))
+  	     1 2 3))
+  	(b (make <beta>
+  	     1 2 3
+  	     4 5 6)))
 
     (check
-	(record-type-uid (record-type-of a))
+  	(record-type-uid (record-type-of a))
       => (record-type-uid (class-type-descriptor <alpha>)))
 
     (check
-	(record-type-uid (record-type-of b))
+  	(record-type-uid (record-type-of b))
       => (record-type-uid (class-type-descriptor <beta>)))
 
     #f)
-
 
 ;;; --------------------------------------------------------------------
 ;;; These tests make use of the record types exported by (records).
