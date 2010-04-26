@@ -34,7 +34,6 @@
   (export
 
     define-class			make
-    class-record-descriptor		class-constructor-descriptor
     define/with-class			define/with-class*
     lambda/with-class			lambda/with-class*
     case-lambda/with-class		case-lambda/with-class*
@@ -44,6 +43,13 @@
     setf				getf
     with-fields
     is-a?
+
+    class-type-descriptor		class-constructor-descriptor
+    class-record-descriptor
+    class-type-descriptor?		class-predicate
+    class-virtual-fields		class-methods
+    class-setter			class-getter
+
     record-type-parent?
     record-type-of
     record-parent-list			class-parent-list
@@ -54,8 +60,7 @@
     <record> <condition>
     <port> <binary-port> <input-port> <output-port> <textual-port>
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
-    <real> <real-valued> <complex> <number>
-    )
+    <real> <real-valued> <complex> <number>)
   (import (rnrs)
     (only (language-extensions)
 	  begin0
@@ -63,42 +68,44 @@
     (rnrs mutable-strings))
 
 
-;;;; helpers
-
-(define-syntax make-list
-  (syntax-rules ()
-    ((_ ?len ?fill)
-     (let ((len ?len))
-       (do ((i 0 (+ 1 i))
-	    (result '() (cons ?fill result)))
-	   ((= i ?len)
-	    result))))))
-
-
-(define-record-type class-type-descriptor
-  (fields (immutable rtd)
-		;The record's RTD.
-	  (immutable virtual-fields)
-		;A vector of  virtual fields, in the same  format of the
-		;one for concrete fields; empty vector if this class has
-		;no virtual fields.
-	  (immutable predicate)
+(define-record-type (:class-type-descriptor make-class-type-descriptor class-type-descriptor?)
+  (fields (immutable rtd)	;; !!!  NO EXPLICIT ACCESSOR !!!
+		;The underlying record  type descriptor.  This field has
+		;no  explicity  accessor named  CLASS-RECORD-DESCRIPTOR,
+		;because the  RTD is used  in the expansion of  a syntax
+		;below;  for this  purpose the  RTD is  accessed  with a
+		;syntax  through the  class name.   For details  see the
+		;CLASS-RECORD-DESCRIPTOR macro and the class name macro.
+	  (immutable virtual-fields class-virtual-fields)
+		;A vector of virtual  fields; empty vector if this class
+		;has no virtual fields.  Each element is a list with one
+		;of the formats:
+		;
+		;(mutable <field name> <field accessor name> <field mutator name>)
+		;(immutable <field name> <field accessor name>)
+		;
+	  (immutable predicate class-predicate)
 		;A  symbol representing  the  class' predicate.   Always
 		;present because it defaults to the record predicate.
-	  (immutable setter)
+	  (immutable setter class-setter)
 		;A  symbol representing  the  class' setter  identifier;
 		;false if  no setter was selected.  It  does not include
 		;the implementation,  because a  method can be  either a
 		;closure or a syntax.
-	  (immutable getter)
+	  (immutable getter class-getter)
 		;A  symbol representing  the  class' getter  identifier;
 		;false if  no getter was selected.  It  does not include
 		;the implementation,  because a  getter can be  either a
 		;closure or a syntax.
-	  (immutable methods)
-		;A  vector  of   symbols  listing  the  defined  methods
-		;identifiers.  It  does not include  the implementation,
-		;because a method can be either a closure or a syntax.
+	  (immutable methods class-methods)
+		;A vector of symbols  listing the defined methods; empty
+		;vector if the class has  no methods.  Each element is a
+		;list with the format:
+		;
+		;(<method name> <method function/syntax name>)
+		;
+		;It  does  not  include  the implementation,  because  a
+		;method can be either a closure or a syntax.
 	  ))
 
 
@@ -111,8 +118,8 @@
      (%define-virtual-class (define-class ?name ?clause ...) ?name () ?clause ...))))
 
 (define-syntax %define-virtual-class
-  ;;Raise an  error if the PROTOCOL  or PARENT clause is  present in the
-  ;;body of the definition.  Finally define the class with DEFINE-CLASS.
+  ;;Raise an error if a PROTOCOL  or FIELD clause is present in the body
+  ;;of the definition; else define the class with DEFINE-CLASS.
   ;;
   (lambda (stx)
     (syntax-case stx (fields protocol)
@@ -213,11 +220,6 @@
   ;;name.
   ;;
   (lambda (stx)
-    (define (%accessor name field)
-      (string->symbol (string-append name "-" field)))
-    (define (%mutator name field)
-      (string->symbol (string-append name "-" field "-set!")))
-    (define %function %accessor)
     (define (%sinner msg input-form subform)
       (syntax-violation 'define-class msg (syntax->datum input-form) (syntax->datum subform)))
 
@@ -2094,6 +2096,8 @@
 
 
 (define-syntax %define-class/output-forms
+  ;;Generate the final output forms for class definition.
+  ;;
   (lambda (stx)
 
     (define (%make-name/rtd name)	;name of record type descriptor
@@ -2106,7 +2110,7 @@
       (string->symbol (string-append (symbol->string name) "-cd")))
 
     (define (%make-name/with-fields name)	;name of class specific with-fields syntax
-      (string->symbol (string-append (symbol->string name) "-with-class-fields-of")))
+      (string->symbol (string-append (symbol->string name) "-with-class-bindings-of")))
 
     (define (duplicated-ids? ell)
       ;;Search the list of  identifier syntax objects ELL for duplicated
@@ -2149,7 +2153,8 @@
 
     (syntax-case stx ()
 
-      ((_ ?input-form (?class-name ?constructor ?predicate)
+      ((_ ?input-form
+	  (?class-name ?constructor ?predicate)
 	  ((?mutability ?field ?accessor ...) ...)
 	  ((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
 	  ((?method ?method-function) ...)
@@ -2164,12 +2169,13 @@
 	       (syntax->datum id))
 	   (let ((name (syntax->datum #'?class-name)))
 	     (with-syntax
-		 ((NAME-RTD	(datum->syntax #'?class-name (%make-name/rtd		name)))
-		  (NAME-CTD	(datum->syntax #'?class-name (%make-name/ctd		name)))
-		  (NAME-CD	(datum->syntax #'?class-name (%make-name/cd		name)))
-		  (WITH-CLASS-BINDINGS	(datum->syntax #'?class-name (%make-name/with-fields	name)))
-		  ((FIELD-INDEXES ...) (generate-numbers #'?class-name
-							 #'((?mutability ?field ?accessor ...) ...))))
+		 ((NAME-RTD	(datum->syntax #'?class-name (%make-name/rtd name)))
+		  (NAME-CTD	(datum->syntax #'?class-name (%make-name/ctd name)))
+		  (NAME-CD	(datum->syntax #'?class-name (%make-name/cd  name)))
+		  (WITH-CLASS-BINDINGS
+		   (datum->syntax #'?class-name (%make-name/with-fields	name)))
+		  ((FIELD-INDEXES ...)
+		   (generate-numbers #'?class-name #'(?field ...))))
 	       #'(begin
 		   (define NAME-RTD
 		     (make-record-type-descriptor (quote ?class-name)
@@ -2180,10 +2186,10 @@
 		   (define NAME-CTD
 		     (make-class-type-descriptor
 		      NAME-RTD
-		      '#((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
+		      (quote #((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...))
 		      (quote ?predicate-function)
 		      (quote ?setter) (quote ?getter)
-		      '#((?method ?method-function) ...)))
+		      (quote #((?method ?method-function) ...))))
 
 		   (define NAME-CD
 		     (make-record-constructor-descriptor NAME-RTD ?parent-cd ?protocol))
@@ -2191,20 +2197,22 @@
 		   (define ?constructor		(record-constructor NAME-CD))
 		   (define ?predicate		(record-predicate NAME-RTD))
 
-		   (%define-class/output-forms/fields NAME-RTD (FIELD-INDEXES ...)
-						      (?mutability ?field ?accessor ...) ...)
+		   (%define-class/output-forms/fields-accessors-and-mutators
+		    NAME-RTD (FIELD-INDEXES ...) (?mutability ?field ?accessor ...) ...)
 
 		   ;;These are the definitions of in-definition methods.
 		   ?collected-definition ...
 
 		   (define-syntax ?class-name
 		     (lambda (stx)
-		       (syntax-case stx (class-record-descriptor
-					 custom-predicate
-					 default-constructor
+		       (syntax-case stx (class-type-descriptor
+					 class-record-descriptor
 					 default-constructor-descriptor
-					 with-class-fields-of
-					 setter)
+					 make is-a?
+					 with-class-bindings-of)
+
+			 ((_ class-type-descriptor)
+			  #'(begin NAME-CTD))
 
 			 ((_ class-record-descriptor)
 			  #'(begin NAME-RTD))
@@ -2212,13 +2220,13 @@
 			 ((_ default-constructor-descriptor)
 			  #'(begin NAME-CD))
 
-			 ((_ default-constructor ?arg (... ...))
+			 ((_ make ?arg (... ...))
 			  #'(?constructor ?arg (... ...)))
 
-			 ((_ custom-predicate ?arg (... ...))
+			 ((_ is-a? ?arg (... ...))
 			  #'(?predicate-function ?arg (... ...)))
 
-			 ((_ with-class-fields-of ?arg (... ...))
+			 ((_ with-class-bindings-of ?arg (... ...))
 			  #'(WITH-CLASS-BINDINGS ?arg (... ...)))
 
 			 ((_ ?keyword . ?rest)
@@ -2235,17 +2243,20 @@
 		   	 ?variable-name
 			 ((?mutability ?field ?accessor ...) ...
 			  (?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
-		   	 (%with-methods ?variable-name ((?method ?method-function) ...)
-					(%with-setter-and-getter ?variable-name
-								 ?setter ?getter
-								 ?body0 ?body (... ...)))
+		   	 (%with-class-methods
+			  ?variable-name ((?method ?method-function) ...)
+			  (%with-class-setter-and-getter ?variable-name ?setter ?getter
+							 ?body0 ?body (... ...)))
 		   	 ))))
 		   )))
 	   )))
       )))
 
 
-(define-syntax %define-class/output-forms/fields
+(define-syntax %define-class/output-forms/fields-accessors-and-mutators
+  ;;Subroutine  of  %DEFINE-CLASS/OUTPUT-FORMS   which  expands  to  the
+  ;;definitions of the class' concrete field accessors and mutators.
+  ;;
   (syntax-rules ()
 
     ;;No fields.
@@ -2253,85 +2264,123 @@
      (define dummy #f))
 
     ;;Process last field as mutable.
-    ((_ ?rtd (?index) (mutable ?field ?accessor ?mutator))
+    ((_ ?rtd (?field-index) (mutable ?field ?accessor ?mutator))
      (begin
-       (define ?accessor  (record-accessor ?rtd ?index))
-       (define ?mutator   (record-mutator  ?rtd ?index))))
+       (define ?accessor  (record-accessor ?rtd ?field-index))
+       (define ?mutator   (record-mutator  ?rtd ?field-index))))
 
     ;;Process last field as immutable.
-    ((_ ?rtd (?index) (immutable ?field ?accessor))
-     (define ?accessor    (record-accessor ?rtd ?index)))
+    ((_ ?rtd (?field-index) (immutable ?field ?accessor))
+     (define ?accessor    (record-accessor ?rtd ?field-index)))
 
     ;;Process next field as mutable.
-    ((_ ?rtd (?next-index ?index ...) (mutable ?field ?accessor ?mutator) ?clause ...)
+    ((_ ?rtd (?next-field-index ?field-index ...) (mutable ?field ?accessor ?mutator) ?clause ...)
      (begin
-       (define ?accessor  (record-accessor ?rtd ?next-index))
-       (define ?mutator   (record-mutator  ?rtd ?next-index))
-       (%define-class/output-forms/fields ?rtd (?index ...) ?clause ...)))
+       (define ?accessor  (record-accessor ?rtd ?next-field-index))
+       (define ?mutator   (record-mutator  ?rtd ?next-field-index))
+       (%define-class/output-forms/fields-accessors-and-mutators ?rtd (?field-index ...) ?clause ...)))
 
     ;;Process next field as immutable.
-    ((_ ?rtd (?next-index ?index ...) (immutable ?field ?accessor) ?clause ...)
+    ((_ ?rtd (?next-field-index ?field-index ...) (immutable ?field ?accessor) ?clause ...)
      (begin
-       (define ?accessor  (record-accessor ?rtd ?next-index))
-       (%define-class/output-forms/fields ?rtd (?index ...) ?clause ...)))
+       (define ?accessor  (record-accessor ?rtd ?next-field-index))
+       (%define-class/output-forms/fields-accessors-and-mutators ?rtd (?field-index ...) ?clause ...)))
 
     ))
 
 
-(define-syntax %with-class-fields
+(define-syntax with-fields
+  ;;This  is the  public entry  point  for fields,  methods, setter  and
+  ;;getter access;  the name WITH-FIELDS is  a bit misleading  but it is
+  ;;cute.  Just  hand everything to  %WITH-CLASS-BINDINGS: the recursive
+  ;;%WITH-CLASS-BINDINGS needs to allow input forms which we do not want
+  ;;for WITH-FIELDS.
+  ;;
+  ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
+  ;;expanding other macros into WITH-FIELDS uses.
+  ;;
+  (syntax-rules ()
+    ((_ (?clause ...) ?body0 ?body ...)
+     (%with-class-bindings (?clause ...) ?body0 ?body ...))))
+
+(define-syntax %with-class-bindings
+  ;;The  core syntax  for  fields, methods,  setter  and getter  access.
+  ;;Expand into nested uses of:
+  ;;
+  ;;  (<class> with-class-bindings-of ...)
+  ;;
+  ;;which is the syntax having knowledge of the context of <class>.
+  ;;
   (lambda (stx)
-    (define (%field name field)
-      (string->symbol (string-append (symbol->string name) "." (symbol->string field))))
     (syntax-case stx ()
 
+      ;;If the  class is "<top>" skip  it, because "<top>"  has no class
+      ;;bindings.
+      ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
+       (and (identifier? #'?var) (free-identifier=? #'?class0 #'<top>))
+       #'(%with-class-bindings ((?var ?class ...) ?clause ...) ?body0 ?body ...))
+
+      ;;Process the next class in the clause.
+      ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
+       (and (identifier? #'?var) (identifier? #'?class0))
+       #'(?class0 with-class-bindings-of ?var
+		  (%with-class-bindings ((?var ?class ...) ?clause ...) ?body0 ?body ...)))
+
+      ;;No more classes, move to the next clause.
+      ((_ ((?var) ?clause ...) ?body0 ?body ...)
+       #'(%with-class-bindings (?clause ...) ?body0 ?body ...))
+
+      ;;No more clauses, expand the body.
+      ((_ () ?body0 ?body ...)
+       #'(begin ?body0 ?body ...)))))
+
+
+(define-syntax %with-class-fields
+  ;;Handle  access to  fields, both  concrete and  virtual;  expand into
+  ;;nested uses of WITH-ACCESSOR-AND-MUTATOR from (language-extensions).
+  ;;
+  (lambda (stx)
+    (define (%field name field)
+      (datum->syntax name
+		     (string->symbol (string-append (symbol->string (syntax->datum name))
+						    "."
+						    (symbol->string (syntax->datum field))))))
+    (syntax-case stx (mutable immutable)
+
       ;;Process a field clause with both accessor and mutator.
-      ((_ ?variable-name ((?mutability ?field ?accessor ?mutator) ?clause ...) ?body0 ?body ...)
-       (with-syntax ((FIELD (datum->syntax #'?variable-name
-					   (%field (syntax->datum #'?variable-name)
-						   (syntax->datum #'?field)))))
+      ((_ ?variable-name ((mutable ?field ?accessor ?mutator) ?clause ...) ?body0 ?body ...)
+       (and (identifier? #'?variable-name)
+	    (identifier? #'?field)
+	    (identifier? #'?accessor)
+	    (identifier? #'?mutator))
+       (with-syntax ((FIELD (%field #'?variable-name #'?field)))
 	 #'(with-accessor-and-mutator ((FIELD ?variable-name ?accessor ?mutator))
 				      (%with-class-fields ?variable-name
 							  (?clause ...) ?body0 ?body ...))))
 
       ;;Process a field clause with accessor only.
-      ((_ ?variable-name ((?mutability ?field ?accessor) ?clause ...) ?body0 ?body ...)
-       (with-syntax ((FIELD (datum->syntax #'?variable-name
-					   (%field (syntax->datum #'?variable-name)
-						   (syntax->datum #'?field)))))
+      ((_ ?variable-name ((immutable ?field ?accessor) ?clause ...) ?body0 ?body ...)
+       (and (identifier? #'?variable-name)
+	    (identifier? #'?field)
+	    (identifier? #'?accessor))
+       (with-syntax ((FIELD (%field #'?variable-name #'?field)))
 	 #'(with-accessor-and-mutator ((FIELD ?variable-name ?accessor))
 				      (%with-class-fields ?variable-name
 							  (?clause ...) ?body0 ?body ...))))
 
       ;;No more field clauses, output the body.
       ((_ ?variable-name () ?body0 ?body ...)
+       (identifier? #'?variable-name)
        #'(begin ?body0 ?body ...))
-      )))
 
-(define-syntax %with-methods
-  (lambda (stx)
-    (define (%field name field)
-      (string->symbol (string-append (symbol->string name) "." (symbol->string field))))
-    (syntax-case stx ()
-
-      ((_ ?variable-name ((?field ?function-name) ?clause ...) ?body0 ?body ...)
-       (with-syntax ((FIELD (datum->syntax #'?variable-name
-					   (%field (syntax->datum #'?variable-name)
-						   (syntax->datum #'?field)))))
-	 #'(let-syntax ((FIELD (syntax-rules ()
-				 ((_ ?arg (... ...))
-				  (?function-name ?variable-name ?arg (... ...))))))
-	     (%with-methods ?variable-name (?clause ...) ?body0 ?body ...))))
-
-      ;;No more field clauses, output the body.
-      ((_ ?variable-name () ?body0 ?body ...)
-       #'(begin ?body0 ?body ...))
       )))
 
 
-(define-syntax %with-setter-and-getter
+(define-syntax %with-class-setter-and-getter
   ;;Wrap the body with the  LET-SYNTAX defining the setter binding; then
-  ;;hand the  body to  %WITH-GETTER.  If there  is no setter:  leave the
-  ;;identifier undefined, so that it does not shadow enclosing bindings.
+  ;;hand the body  to %WITH-CLASS-GETTER.  If there is  no setter: leave
+  ;;the  identifier undefined,  so  that it  does  not shadow  enclosing
+  ;;bindings.
   ;;
   (lambda (stx)
     (define (%setf name)
@@ -2339,35 +2388,38 @@
 				     ".__nausicaa_private_setter_identifier_syntax")))
     (syntax-case stx ()
       ((_ ?variable-name ?setter ?getter . ?body)
-       (identifier? #'?setter)
+       (and (identifier? #'?variable-name) (identifier? #'?setter))
        (with-syntax ((SETF (datum->syntax #'?variable-name (%setf (syntax->datum #'?variable-name)))))
 	 #'(let-syntax ((SETF (syntax-rules ()
 				((_ ?key0 ?key (... ...) ?value)
 				 (?setter ?variable-name ?key0 ?key (... ...) ?value)))))
-	     (%with-getter ?variable-name ?getter . ?body))))
+	     (%with-class-getter ?variable-name ?getter . ?body))))
 
-      ((_ ?variable-name ?setter ?getter . ?body)
-       #'(%with-getter ?variable-name ?getter . ?body))
+      ((_ ?variable-name ?setter #f . ?body)
+       (identifier? #'?variable-name)
+       #'(%with-class-getter ?variable-name #f . ?body))
       )))
 
-(define-syntax %with-getter
-  ;;Wrap the body with the  LET-SYNTAX defining the getter binding; then
-  ;;expand  the body.   If  there  is no  getter:  leave the  identifier
-  ;;undefined, so that it does not shadow enclosing bindings.
+(define-syntax %with-class-getter
+  ;;Subroutine of %WITH-CLASS-SETTER-AND-GETTER:  wrap the body with the
+  ;;LET-SYNTAX defining  the getter binding;  then expand the  body.  If
+  ;;there is no getter: leave  the identifier undefined, so that it does
+  ;;not shadow enclosing bindings.
   ;;
   (lambda (stx)
     (define (%getf name)
       (string->symbol (string-append name ".__nausicaa_private_getter_identifier_syntax")))
     (syntax-case stx ()
       ((_ ?variable-name ?getter . ?body)
-       (identifier? #'?getter)
+       (and (identifier? #'?variable-name) (identifier? #'?getter))
        (let ((name (symbol->string (syntax->datum #'?variable-name))))
 	 (with-syntax ((GETF (datum->syntax #'?variable-name (%getf name))))
 	   #'(let-syntax ((GETF (syntax-rules ()
 				  ((_ ?key0 ?key (... ...))
 				   (?getter ?variable-name ?key0 ?key (... ...))))))
 	       . ?body))))
-      ((_ ?variable-name ?getter . ?body)
+      ((_ ?variable-name #f . ?body)
+       (identifier? #'?variable-name)
        #'(begin . ?body))
       )))
 
@@ -2378,9 +2430,11 @@
 				     ".__nausicaa_private_setter_identifier_syntax")))
     (syntax-case stx (setter setter-multi-key set!)
       ((_ (?variable-name ?key0 ?key ...) ?value)
+       (identifier? #'?variable-name)
        (with-syntax ((SETF (datum->syntax #'?variable-name (%setf (syntax->datum #'?variable-name)))))
       	 #'(SETF ?key0 ?key ... ?value)))
        ((_ ?variable-name ?value)
+       (identifier? #'?variable-name)
 	#'(set! ?variable-name ?value))
        )))
 
@@ -2391,62 +2445,46 @@
 				     ".__nausicaa_private_getter_identifier_syntax")))
     (syntax-case stx (setter setter-multi-key set!)
       ((_ (?variable-name ?key0 ?key ...))
+       (identifier? #'?variable-name)
        (with-syntax ((GETF (datum->syntax #'?variable-name (%getf (syntax->datum #'?variable-name)))))
       	 #'(GETF ?key0 ?key ...))))))
 
 
-(define-syntax class-record-descriptor
-  (lambda (stx)
-    (syntax-case stx (class-record-descriptor)
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(record-type-descriptor ?class-name))
-
-      ((_ ?class-name)
-       #'(?class-name class-record-descriptor)))))
-
-(define-syntax class-constructor-descriptor
-  (lambda (stx)
-    (syntax-case stx (default-constructor-descriptor)
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(record-constructor-descriptor ?class-name))
-      ((_ ?class-name)
-       #'(?class-name default-constructor-descriptor)))))
-
-
-;;;; fields access syntaxes
-
-(define-syntax with-fields
-  ;;Just hand everything to  %WITH-FIELDS; this is because the recursive
-  ;;%WITH-FIELDS needs  to allow  input forms which  we do not  want for
-  ;;WITH-FIELDS.
+(define-syntax %with-class-methods
+  ;;Expand into a LET-SYNTAX form,  wrapping the body, which defines the
+  ;;methods' syntaxes.
   ;;
-  ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
-  ;;expanding other macros into WITH-FIELDS uses.
-  ;;
-  (syntax-rules ()
-    ((_ (?clause ...) ?body0 ?body ...)
-     (%with-fields (?clause ...) ?body0 ?body ...))))
-
-(define-syntax %with-fields
   (lambda (stx)
+    (define (%method name list-of-methods)
+      (map (lambda (method)
+	     (string->symbol (string-append (symbol->string name) "." (symbol->string method))))
+	list-of-methods))
+    (define (syntax->list x)
+      (syntax-case x ()
+	(()		'())
+	((h . t)	(cons (syntax->list #'h) (syntax->list #'t)))
+	(term		#'term)))
     (syntax-case stx ()
 
-      ;;If the class is "<top>" skip it, because "<top>" has no fields.
-      ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
-       (free-identifier=? #'?class0 #'<top>)
-       #'(%with-fields ((?var ?class ...) ?clause ...) ?body0 ?body ...))
+      ;;Generate the methods' syntaxes.
+      ((_ ?variable-name ((?method ?function-name) ...) ?body0 ?body ...)
+       (and (identifier? #'?variable-name)
+	    (for-all identifier? (syntax->list #'(?method ...)))
+	    (for-all identifier? (syntax->list #'(?function-name ...))))
+       (with-syntax (((METHOD ...) (datum->syntax #'?variable-name
+						  (%method (syntax->datum #'?variable-name)
+							   (syntax->datum #'(?method ...))))))
+	 #'(let-syntax ((METHOD (syntax-rules ()
+				  ((_ ?arg (... ...))
+				   (?function-name ?variable-name ?arg (... ...)))))
+			...)
+	     (begin ?body0 ?body ...))))
 
-      ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
-       #'(?class0 with-class-fields-of ?var
-		  (%with-fields ((?var ?class ...) ?clause ...) ?body0 ?body ...)))
-
-      ((_ ((?var) ?clause ...) ?body0 ?body ...)
-       #'(%with-fields (?clause ...) ?body0 ?body ...))
-
-      ((_ () ?body0 ?body ...)
-       #'(begin ?body0 ?body ...)))))
+      ;;No methods, output the body.
+      ((_ ?variable-name () ?body0 ?body ...)
+       (identifier? #'?variable-name)
+       #'(begin ?body0 ?body ...))
+      )))
 
 
 ;;;; LET processing
@@ -2860,8 +2898,18 @@
     ))
 
 
+;;;; builtin classes
+
 (define-record-type <top>
   (nongenerative nausicaa:builtin:<top>))
+
+(define <top>-ctd
+  (make-class-type-descriptor
+   (record-type-descriptor <top>)
+   (quote #())	 ;virtual fields
+   <top>?	 ;predicate
+   #f #f	 ;setter and getter
+   (quote #()))) ;methods
 
 (define-virtual-class <builtin>
   (nongenerative nausicaa:builtin:<builtin>))
@@ -3144,22 +3192,50 @@
   (nongenerative nausicaa:builtin:<fixnum>))
 
 
-;;;; constructors
+;;;; syntactic inspection layer
+
+(define-syntax class-type-descriptor
+  (lambda (stx)
+    (syntax-case stx (class-type-descriptor)
+      ((_ ?class-name)
+       (free-identifier=? #'?class-name #'<top>)
+       #'(begin <top>-ctd))
+      ((_ ?class-name)
+       #'(?class-name class-type-descriptor)))))
+
+(define-syntax class-record-descriptor
+  (lambda (stx)
+    (syntax-case stx (class-record-descriptor)
+      ((_ ?class-name)
+       (free-identifier=? #'?class-name #'<top>)
+       #'(record-type-descriptor <top>))
+      ((_ ?class-name)
+       #'(?class-name class-record-descriptor)))))
+
+(define-syntax class-constructor-descriptor
+  (lambda (stx)
+    (syntax-case stx (default-constructor-descriptor)
+      ((_ ?class-name)
+       (free-identifier=? #'?class-name #'<top>)
+       #'(record-constructor-descriptor ?class-name))
+      ((_ ?class-name)
+       #'(?class-name default-constructor-descriptor)))))
+
+(define-syntax class-parent-list
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ((_ ?record-name)
+       (free-identifier=? #'?record-name #'<top>)
+       #'(list (record-type-descriptor <top>)))
+
+      ((_ ?record-name)
+       #'(record-parent-list (class-record-descriptor ?record-name))))))
 
 (define-syntax make
   (syntax-rules ()
     ((_ ?class-name ?arg ...)
-     (?class-name default-constructor ?arg ...))))
-
-
-;;;; predicates
-
-(define (record-type-parent? rtd1 rtd2)
-  (cond ((eq? (record-type-uid rtd1) (record-type-uid rtd2))	#t)
-	((eq? (record-type-uid rtd1) (record-type-uid (record-type-descriptor <top>)))   #f)
-   	((eq? (record-type-uid rtd2) (record-type-uid (record-type-descriptor <top>)))   #t)
-	(else
-	 (memq (record-type-uid rtd2) (map record-type-uid (record-parent-list rtd1))))))
+     (?class-name make ?arg ...))))
 
 (define-syntax is-a?
   (lambda (stx)
@@ -3170,22 +3246,21 @@
        (syntax (begin #t)))
 
       ((_ ?obj ?class-name)
-       #'(?class-name custom-predicate ?obj))
-      )))
+       (identifier? #'?class-name)
+       #'(?class-name is-a? ?obj))
+
+      (?input-form
+       (syntax-violation 'is-a? "invalid syntax use" (syntax->datum #'?input-form))))))
 
 
-;;;; inspection
+;;;; procedural inspection layer
 
-(define-syntax class-parent-list
-  (lambda (stx)
-    (syntax-case stx ()
-
-      ((_ ?record-name)
-       (free-identifier=? #'?record-name #'<top>)
-       (syntax (quote ())))
-
-      ((_ ?record-name)
-       #'(record-parent-list (class-record-descriptor ?record-name))))))
+(define (record-type-parent? rtd1 rtd2)
+  (cond ((eq? (record-type-uid rtd1) (record-type-uid rtd2))	#t)
+	((eq? (record-type-uid rtd1) (record-type-uid (record-type-descriptor <top>)))   #f)
+   	((eq? (record-type-uid rtd2) (record-type-uid (record-type-descriptor <top>)))   #t)
+	(else
+	 (memq (record-type-uid rtd2) (map record-type-uid (record-parent-list rtd1))))))
 
 (define (record-parent-list rtd)
   (let loop ((cls (list rtd))
