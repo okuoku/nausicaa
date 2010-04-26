@@ -41,7 +41,7 @@
     let/with-class			let*/with-class
     letrec/with-class			letrec*/with-class
     setf				getf
-    with-fields
+    with-class
     is-a?
 
     class-type-descriptor		class-constructor-descriptor
@@ -2109,7 +2109,7 @@
     (define (%make-name/cd name)	;name of constructor descriptor
       (string->symbol (string-append (symbol->string name) "-cd")))
 
-    (define (%make-name/with-fields name)	;name of class specific with-fields syntax
+    (define (%make-name/with-class name)	;name of class specific with-class syntax
       (string->symbol (string-append (symbol->string name) "-with-class-bindings-of")))
 
     (define (duplicated-ids? ell)
@@ -2173,7 +2173,7 @@
 		  (NAME-CTD	(datum->syntax #'?class-name (%make-name/ctd name)))
 		  (NAME-CD	(datum->syntax #'?class-name (%make-name/cd  name)))
 		  (WITH-CLASS-BINDINGS
-		   (datum->syntax #'?class-name (%make-name/with-fields	name)))
+		   (datum->syntax #'?class-name (%make-name/with-class	name)))
 		  ((FIELD-INDEXES ...)
 		   (generate-numbers #'?class-name #'(?field ...))))
 	       #'(begin
@@ -2182,6 +2182,8 @@
 						  ?parent-rtd (quote ?uid)
 						  ?sealed ?opaque
 						  (quote #((?mutability ?field) ...))))
+
+;;;TEST class type descriptor, field holding UID list
 
 		   (define NAME-CTD
 		     (make-class-type-descriptor
@@ -2289,15 +2291,15 @@
     ))
 
 
-(define-syntax with-fields
+(define-syntax with-class
   ;;This  is the  public entry  point  for fields,  methods, setter  and
-  ;;getter access;  the name WITH-FIELDS is  a bit misleading  but it is
+  ;;getter access;  the name WITH-CLASS is  a bit misleading  but it is
   ;;cute.  Just  hand everything to  %WITH-CLASS-BINDINGS: the recursive
   ;;%WITH-CLASS-BINDINGS needs to allow input forms which we do not want
-  ;;for WITH-FIELDS.
+  ;;for WITH-CLASS.
   ;;
   ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
-  ;;expanding other macros into WITH-FIELDS uses.
+  ;;expanding other macros into WITH-CLASS uses.
   ;;
   (syntax-rules ()
     ((_ (?clause ...) ?body0 ?body ...)
@@ -2572,11 +2574,11 @@
       ((_ ?loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
        (free-identifier=? #'no-loop #'?loop)
        #'(let ((?var ?init) ...)
-	   (with-fields ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))
+	   (with-class ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))
 
       ((_ ?loop (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
        #'(let ?loop ((?var ?init) ...)
-	   (with-fields ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))
+	   (with-class ((?var ?class0 ?class ...) ...) ?body0 ?body ...)))
       )))
 
 ;;; --------------------------------------------------------------------
@@ -2614,7 +2616,7 @@
 			  ?body0 ?body ...))
 		 (quote (#,id)))
 	   #'(let ((?var0 ?init0))
-	       (with-fields ((?var0 ?class0 ?class00 ...))
+	       (with-class ((?var0 ?class0 ?class00 ...))
 		 (let*/with-class (((?var1 ?class1 ?class11 ...) ?init1) ...) ?body0 ?body ...))))))
 
       ((_ () ?body0 ?body ...)
@@ -2631,7 +2633,7 @@
   (syntax-rules ()
     ((_ (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
      (let ((?var #f) ...)
-       (with-fields ((?var ?class0 ?class ...) ...)
+       (with-class ((?var ?class0 ?class ...) ...)
 	 (set! ?var ?init) ...
 	 ?body0 ?body ...)))))
 
@@ -2649,7 +2651,7 @@
   (syntax-rules ()
     ((_ (((?var ?class0 ?class ...) ?init) ...) ?body0 ?body ...)
      (let ((?var #f) ...)
-       (with-fields ((?var ?class0 ?class ...) ...)
+       (with-class ((?var ?class0 ?class ...) ...)
 	 (set! ?var ?init) ...
 	 ?body0 ?body ...)))))
 
@@ -2713,24 +2715,24 @@
     ;;argument is present.  This MUST come before the one below.
     ((_ #f () ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ...)
-       (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body)))
+       (with-class ((?collected-arg ?collected-cls ...) ...) . ?body)))
     ((_ #t () ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ...)
        (%add-assertions ((?collected-cls ...) ...) (?collected-arg ...))
        (let ()
-	 (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body))))
+	 (with-class ((?collected-arg ?collected-cls ...) ...) . ?body))))
 
     ;;Matches two cases: (1) when  all the arguments have been processed
     ;;and only  the rest argument is  there; (2) when the  formals is an
     ;;identifier (lambda args ---).
     ((_ #f ?rest ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ... . ?rest)
-       (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body)))
+       (with-class ((?collected-arg ?collected-cls ...) ...) . ?body)))
     ((_ #t ?rest ((?collected-cls ...) ...) (?collected-arg ...) . ?body)
      (lambda (?collected-arg ... . ?rest)
        (%add-assertions ((?collected-cls ...) ...) (?collected-arg ...))
        (let ()
-	 (with-fields ((?collected-arg ?collected-cls ...) ...) . ?body))))
+	 (with-class ((?collected-arg ?collected-cls ...) ...) . ?body))))
     ))
 
 (define-syntax %add-assertions
@@ -2829,7 +2831,7 @@
      (%case-lambda/collect-classes-and-arguments
       #f
       (?collected-case-lambda-clause ... ((?collected-arg ...)
-					  (with-fields ((?collected-arg ?collected-cls ...)
+					  (with-class ((?collected-arg ?collected-cls ...)
 							...)
 					    . ?body)))
       ()
@@ -2847,7 +2849,7 @@
 					  (%add-assertions ((?collected-cls ...) ...)
 							   (?collected-arg ...))
 					  (let ()
-					    (with-fields ((?collected-arg ?collected-cls ...)
+					    (with-class ((?collected-arg ?collected-cls ...)
 							  ...)
 					      . ?body))))
       ()
@@ -2866,7 +2868,7 @@
      (%case-lambda/collect-classes-and-arguments
       #f
       (?collected-case-lambda-clause ... ((?collected-arg ... . ?rest)
-					  (with-fields ((?collected-arg ?collected-cls ...)
+					  (with-class ((?collected-arg ?collected-cls ...)
 							...)
 					    . ?body)))
       ()
@@ -2884,7 +2886,7 @@
 					  (%add-assertions ((?collected-cls ...) ...)
 							   (?collected-arg ...))
 					  (let ()
-					    (with-fields ((?collected-arg ?collected-cls ...)
+					    (with-class ((?collected-arg ?collected-cls ...)
 							  ...)
 					      . ?body))))
       ()

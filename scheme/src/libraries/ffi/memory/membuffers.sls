@@ -146,7 +146,7 @@
   (let loop ((dst.start dst.start))
     (if (= dst.start dst.past)
 	dst.past
-      (with-fields ((membuf.front <buffer>))
+      (with-class ((membuf.front <buffer>))
 	(if membuf.empty?
 	    dst.start
 	  (let ((start (popper membuf.front dst dst.start dst.past)))
@@ -158,7 +158,7 @@
   (let loop ((src.start src.start))
     (if (= src.start src.past)
 	src.past
-      (with-fields ((membuf.rear <buffer>))
+      (with-class ((membuf.rear <buffer>))
 	(when (or membuf.empty? membuf.rear.full?)
 	  (with-exception-handler
 	      (lambda (E)

@@ -62,7 +62,7 @@
   (check
       (with-compensations
 	(let ((mb (malloc-memblock/c 16)))
-	  (with-fields ((mb <memblock>))
+	  (with-class ((mb <memblock>))
 	    (do ((i 0 (+ 1 i)))
 		((= i 16))
 	      (pointer-set-c-uint8! mb.pointer i i)))
@@ -72,7 +72,7 @@
   (check
       (with-compensations
 	(let ((mb (malloc-memblock/c 16)))
-	  (with-fields ((mb <memblock>))
+	  (with-class ((mb <memblock>))
 	    (do ((i 0 (+ 1 i)))
 		((= i 16))
 	      (pointer-set-c-uint8! mb.pointer i (+ 16 i))))

@@ -54,11 +54,11 @@
 		    (mutable theta theta-ref theta-set!)))
 
   (define (beta-def-ref o)
-    (with-fields ((o <beta>))
+    (with-class ((o <beta>))
       (list o.d o.e o.f)))
 
   (define (beta-def-set! o ell)
-    (with-fields ((o <beta>))
+    (with-class ((o <beta>))
       (set! o.d (car ell))
       (set! o.f (cadr ell))))
 

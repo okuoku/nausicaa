@@ -19837,7 +19837,7 @@ which can be applied to a class instance to mutate its fields.
 
 For more details on virtual fields, especially fields with the same name
 in different record types of the same hierarchy, @ref{classes fields
-with, @func{with-fields}}.
+with, @func{with-class}}.
 
 The following is an example of virtual fields usage:
 
@@ -19867,23 +19867,23 @@ The following is an example of virtual fields usage:
 ;; tests
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     o.numerator))
 @result{} 2
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     o.denominator))
 @result{} 3
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (set! o.numerator 5)
     o.number))
 @result{} 5/3
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (set! o.denominator 5)
     o.number))
 @result{} 2/5
@@ -19921,7 +19921,7 @@ argument the record which is the subject of the application.
 
 For more details on methods, especially methods with the same name in
 different record types of the same hierarchy, @ref{classes fields with,
-@func{with-fields}}.
+@func{with-class}}.
 
 @example
 (define-class <fraction>
@@ -19954,18 +19954,18 @@ different record types of the same hierarchy, @ref{classes fields with,
 ;; tests
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (o.denominator)))
 @result{} 3
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (o.product 10)
     o.numerator))
 @result{} 20
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (o.the-list 10 11 12 13)))
 @result{} (2 10 11 12 13)
 @end example
@@ -19975,7 +19975,7 @@ different record types of the same hierarchy, @ref{classes fields with,
 @deffn {Auxiliary Syntax} method (@ameta{name} . @ameta{formals}) . @ameta{body}
 Add a method to the enclosing class definition; the method is applicable
 only through an automatically generated macro, which is bound by
-@func{with-fields} to an identifier in dot notation.  This clause can be
+@func{with-class} to an identifier in dot notation.  This clause can be
 used any number of times in a class definition.
 
 The method definition is added to the methods list as if the following
@@ -20024,23 +20024,23 @@ instance.
 ;; tests
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     o.numerator))
 @result{} 2
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (o.denominator)))
 @result{} 3
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (o.product 10)
     o.numerator))
 @result{} 20
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (o.the-list 10 11 12 13)))
 @result{} (2 10 11 12 13)
 @end example
@@ -20315,7 +20315,7 @@ by @func{define-record-type}.
 
 The syntaxes described in this section allow the use of dot notation to
 access class fields and to apply class methods.  The core syntaxes are
-@func{with-fields}, @func{setf} and @func{getf}.
+@func{with-class}, @func{setf} and @func{getf}.
 
 We have to be careful when using this notation: many macros are written
 assuming that it is safe to reference identifiers multiple times, under
@@ -20335,11 +20335,11 @@ access free of side effects (unless really needed).
 @subsection Basic fields and methods usage
 
 
-The @func{with-fields} syntax is the basic tool providing dot notation
+The @func{with-class} syntax is the basic tool providing dot notation
 in fields and methods usage.
 
 
-@deffn Syntax with-fields (@ameta{clause} ...) @ameta{body}
+@deffn Syntax with-class (@ameta{clause} ...) @ameta{body}
 Expand into a @func{let-syntax} form which defines: identifier syntaxes
 to access and mutate fields and virtual fields of objects and records;
 macros to invoke methods of objects and records.
@@ -20374,7 +20374,7 @@ macros.
 
 When a @meta{variable name} as no type: we can use @class{top} as its
 conventional record type name; this can be useful when expanding macros
-making use of @func{with-fields}.
+making use of @func{with-class}.
 
 One identifier syntax for each field and virtual field of @meta{class
 name} is defined; one macro for each method of @meta{class name} is
@@ -20395,9 +20395,9 @@ Usage example:
 (define s (make-<alpha> #\a))
 (define t (make-<alpha> 1.0))
 
-(with-fields ((r <alpha>)
-              (s <alpha>)
-              (t <alpha>))
+(with-class ((r <alpha>)
+             (s <alpha>)
+             (t <alpha>))
 
   (list r.a s.a t.a) @result{} (123 #\a 1.0)
 
@@ -20425,7 +20425,7 @@ an example with virtual fields:
 
 (define o (make-<fraction> 2/3))
 
-(with-fields ((o <fraction>))
+(with-class ((o <fraction>))
   (list o.numerator o.denominator))
 @result{} (2 3)
 @end example
@@ -20443,7 +20443,7 @@ an example with multiple class names:
 
 (define o (make-<beta> 1 2))
 
-(with-fields ((o <beta> <alpha>))
+(with-class ((o <beta> <alpha>))
   (list o.a o.b))
 @result{} (1 2)
 @end example
@@ -20482,18 +20482,18 @@ an example with methods, external definitions:
 ;; tests
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (o.denominator)))
 @result{} 3
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (o.product 10)
     o.numerator))
 @result{} 20
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (o.the-list 10 11 12 13)))
 @result{} (2 10 11 12 13)
 @end example
@@ -20527,23 +20527,23 @@ another example with methods, internal definitions:
 ;; tests
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     o.numerator))
 @result{} 2
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (o.denominator)))
 @result{} 3
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (o.product 10)
     o.numerator))
 @result{} 20
 
 (let ((o (make-<fraction> 2/3)))
-  (with-fields ((o <fraction>))
+  (with-class ((o <fraction>))
     (o.the-list 10 11 12 13)))
 @result{} (2 10 11 12 13)
 @end example
@@ -20561,7 +20561,7 @@ parent classes:
   (virtual-fields (immutable a <alpha>-a)))
 
 (let ((o (make-<beta> 1 2)))
-  (with-fields ((o <beta>))
+  (with-class ((o <beta>))
     (list o.a o.b)))
 @result{} (1 2)
 @end example
@@ -20612,24 +20612,24 @@ in the same way duplication of names of virtual fields is allowed:
 
 (let ((o (make-<beta>)))
 
-  (with-fields ((o <alpha>))
+  (with-class ((o <alpha>))
     o.a) @result{} 1
 
-  (with-fields ((o <beta>))
+  (with-class ((o <beta>))
     o.a) @result{} 2
 
-  (with-fields ((o <alpha>)
+  (with-class ((o <alpha>)
                 (o <beta>))  ;the last takes precedence
     o.a) @result{} 2
 
-  (with-fields ((o <beta>)
+  (with-class ((o <beta>)
                 (o <alpha>)) ;the last takes precedence
     o.a) @result{} 1
 
-  (with-fields ((o <alpha> <beta>)) ;the last takes precedence
+  (with-class ((o <alpha> <beta>)) ;the last takes precedence
     o.a) @result{} 2
 
-  (with-fields ((o <beta> <alpha>)) ;the last takes precedence
+  (with-class ((o <beta> <alpha>)) ;the last takes precedence
     o.a) @result{} 1
 
   )
@@ -20654,24 +20654,24 @@ and duplication of names of methods is allowed, too:
 
 (let ((o (make-<beta>)))
 
-  (with-fields ((o <alpha>))
+  (with-class ((o <alpha>))
     (o.a)) @result{} 1
 
-  (with-fields ((o <beta>))
+  (with-class ((o <beta>))
     (o.a)) @result{} 2
 
-  (with-fields ((o <alpha>)
+  (with-class ((o <alpha>)
                 (o <beta>))  ;the last takes precedence
     (o.a)) @result{} 2
 
-  (with-fields ((o <beta>)
+  (with-class ((o <beta>)
                 (o <alpha>)) ;the last takes precedence
     (o.a)) @result{} 1
 
-  (with-fields ((o <alpha> <beta>)) ;the last takes precedence
+  (with-class ((o <alpha> <beta>)) ;the last takes precedence
     (o.a)) @result{} 2
 
-  (with-fields ((o <beta> <alpha>)) ;the last takes precedence
+  (with-class ((o <beta> <alpha>)) ;the last takes precedence
     (o.a)) @result{} 1
 
   )
@@ -20684,7 +20684,7 @@ and duplication of names of methods is allowed, too:
 
 @deffn Syntax let/with-class ((@ameta{var} @ameta{init}) ...) @ameta{body}
 Like @func{let} but automatically enclose the body in a
-@func{with-fields} syntax using the specified class types.  Each
+@func{with-class} syntax using the specified class types.  Each
 @meta{var} element can be one among:
 
 @example
@@ -20724,7 +20724,7 @@ to bindings with @class{top} as conventional class type name.
 
 @deffn Syntax let*/with-class ((@ameta{var} @ameta{init}) ...) @ameta{body}
 Like @func{let*} but automatically enclose the body in a
-@func{with-fields} syntax using the specified class types.  Each
+@func{with-class} syntax using the specified class types.  Each
 @meta{var} element can be one among:
 
 @example
@@ -20770,7 +20770,7 @@ region of the identifier syntaxes used to access the fields of
 
 @deffn Syntax letrec/with-class (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{letrec} but automatically enclose the body in a
-@func{with-fields} syntax using the specified class types.  Each
+@func{with-class} syntax using the specified class types.  Each
 @meta{var} element can be one among:
 
 @example
@@ -20815,7 +20815,7 @@ syntaxes, as long as they are not resolved.
 
 @deffn Syntax letrec*/with-class (((@ameta{var} @ametao{class name} @ameta{class name} ...) @ameta{init}) ...) @ameta{body}
 Like @func{letrec*} but automatically enclose the body in a
-@func{with-fields} syntax using the specified class types.  Each
+@func{with-class} syntax using the specified class types.  Each
 @meta{var} element can be one among:
 
 @example
@@ -20861,7 +20861,7 @@ syntaxes.
 
 
 @deffn Syntax lambda/with-class @ameta{formals} @ameta{body}
-Like @func{lambda} but encloses the body into a @func{with-fields}
+Like @func{lambda} but encloses the body into a @func{with-class}
 syntax defining identifier syntaxes to access the fields and virtual
 fields of the arguments.  @meta{formals} must have the same form of the
 formals for @func{lambda}, but each @meta{variable} argument can be an
@@ -21111,7 +21111,7 @@ the @library{classes} library with builtin objects.
 Builtin Scheme values have no @rtd{}, so @library{classes} assigns a
 conventional one to them.  Conventional @rtd{}s have two purposes: to
 provide an interface for identifier macros defined by
-@func{with-fields}; to be used in multimethod dispatching by the
+@func{with-class}; to be used in multimethod dispatching by the
 @library{generics} library.  The conventional @rtd{}s can be used
 neither to instantiate builtin objects nor as parents for other class
 types; for example: @func{make-<string>} does @strong{not} return a
@@ -27186,7 +27186,7 @@ Example:
         (q (malloc/mempool 20)))
     ---))
 
-(with-fields ((pool <mempool>))
+(with-class ((pool <mempool>))
   (primitive-free pool.pointer))
 @end example
 

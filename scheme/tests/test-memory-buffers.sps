@@ -77,8 +77,8 @@
 	     (dst  (make <memblock> (malloc len) len len)))
 	(membuffer-push-memblock! mb src)
 	(membuffer-pop-memblock!  mb dst)
-	(with-fields ((dst <memblock>)
-		      (src <memblock>))
+	(with-class ((dst <memblock>)
+		     (src <memblock>))
 	  (memcmp dst.pointer src.pointer len)))
     => 0)
 

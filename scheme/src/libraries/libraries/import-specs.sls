@@ -103,7 +103,7 @@
     (assert (%list-of-renamings? renamings))
     (if (is-a? o.import-set <library-reference>)
 	renamings
-      (with-fields ((o.import-set <import-set>))
+      (with-class ((o.import-set <import-set>))
 	(o.import-set.apply renamings))))
 
   (nongenerative nausicaa:libraries:<import-spec>))
@@ -136,7 +136,7 @@
 (define (<import-spec>-library-reference (o <import-spec>))
   (if (is-a? o.import-set <library-reference>)
       o.import-set
-    (with-fields ((o.import-set <import-set>))
+    (with-class ((o.import-set <import-set>))
       o.import-set.library-reference)))
 
 
@@ -242,7 +242,7 @@
 (define (<import-set>-library-reference (o <import-set>))
   (if (is-a? o.subset <library-reference>)
       o.subset
-    (with-fields ((o.subset <import-set>))
+    (with-class ((o.subset <import-set>))
       o.subset.library-reference)))
 
 

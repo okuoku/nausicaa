@@ -92,8 +92,8 @@
   (cond ((not a) #f)
 	((not b) #f)
 	(else
-	 (with-fields ((a <source-location>)
-		       (b <source-location>))
+	 (with-class ((a <source-location>)
+		      (b <source-location>))
 	   (and (= a.line b.line)
 		(= a.column b.column)
 		(= a.offset b.offset))))))
@@ -102,8 +102,8 @@
   (cond ((not a) #f)
 	((not b) #f)
 	(else
-	 (with-fields ((a <source-location>)
-		       (b <source-location>))
+	 (with-class ((a <source-location>)
+		      (b <source-location>))
 	   (and (= a.line b.line)
 		(= a.column b.column))))))
 
@@ -111,8 +111,8 @@
   (cond ((not a) #f)
 	((not b) #t)
 	(else
-	 (with-fields ((a <source-location>)
-		       (b <source-location>))
+	 (with-class ((a <source-location>)
+		      (b <source-location>))
 	   (or (> a.line b.line)
 	       (and (= a.line b.line)
 		    (> a.column b.column)))))))
@@ -124,8 +124,8 @@
   (cond ((not a) #f)
 	((not b) #t)
 	(else
-	 (with-fields ((a <source-location>)
-		       (b <source-location>))
+	 (with-class ((a <source-location>)
+		      (b <source-location>))
 	   (or (> a.line b.line)
 	       (and (= a.line b.line)
 		    (>= a.column b.column)))))))
