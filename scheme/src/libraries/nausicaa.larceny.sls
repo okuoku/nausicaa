@@ -823,16 +823,16 @@
      (define/with-class		define)
      (lambda/with-class		lambda)
      (case-lambda/with-class	case-lambda)
-     (receive/with		receive))
+     (receive/with-class	receive))
 
     define-class		make
-    class-type-descriptor	class-constructor-descriptor
+    class-record-descriptor	class-constructor-descriptor
     define/with-class		define/with-class*
     lambda/with-class		lambda/with-class*
     case-lambda/with-class	case-lambda/with-class*
     let/with-class		let*/with-class
     letrec/with-class		letrec*/with-class
-    receive/with
+    receive/with-class
     with-fields
     setf			getf
     is-a?

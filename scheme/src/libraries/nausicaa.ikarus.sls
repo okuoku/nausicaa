@@ -822,7 +822,7 @@
      (receive/with-class	receive))
 
     define-class		make
-    class-type-descriptor	class-constructor-descriptor
+    class-record-descriptor	class-constructor-descriptor
     define/with-class		define/with-class*
     lambda/with-class		lambda/with-class*
     case-lambda/with-class	case-lambda/with-class*

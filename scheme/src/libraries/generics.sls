@@ -38,7 +38,7 @@
 ;;;; the following are all the bindings from (classes)
 
     define-class			make
-    class-type-descriptor		class-constructor-descriptor
+    class-record-descriptor		class-constructor-descriptor
     define/with-class			define/with-class*
     lambda/with-class			lambda/with-class*
     let/with-class			let*/with-class
@@ -313,7 +313,7 @@
   (syntax-rules ()
     ((_ ?generic-function (?record-name ...) ?has-rest ?closure)
      ((?generic-function :method-adder)
-      (list (class-type-descriptor ?record-name) ...) ;this is the signature
+      (list (class-record-descriptor ?record-name) ...) ;this is the signature
       ?has-rest ?closure))))
 
 

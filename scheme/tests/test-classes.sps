@@ -97,7 +97,7 @@
       (fields (mutable a)))
 
     (define-class <beta>
-      (parent-rtd (class-type-descriptor <alpha>)
+      (parent-rtd (class-record-descriptor <alpha>)
     		  (class-constructor-descriptor <alpha>))
       (fields (immutable b)))
 
@@ -2533,20 +2533,11 @@
 
 (parametrise ((check-test-name	'setf))
 
-  (check
+  (check	;alias of set!
       (let ((a 1))
 	(setf a 2)
 	a)
     => 2)
-
-  (check
-      (let ((a 1) (b #f))
-	(let-syntax ((a.setf (syntax-rules ()
-			       ((_ ?key ?val)
-				(set! b (quote (?key ?val)))))))
-	  (setf (a 2) 3)
-	  (list a b)))
-    => '(1 (2 3)))
 
 ;;; --------------------------------------------------------------------
 
@@ -2560,9 +2551,9 @@
       (set! o.a (list key value)))
 
     (check
-	(let/with-class (((o <alpha>) (make <alpha> 1)))
-	  (setf (o 2) 3)
-	  o.a)
+  	(let/with-class (((o <alpha>) (make <alpha> 1)))
+  	  (setf (o 2) 3)
+  	  o.a)
       => '(2 3))
 
     #f)
@@ -2618,28 +2609,28 @@
 
   (check	;bytevector
       (let/with-class (((o <bytevector>) (bytevector-copy '#vu8(0 1 2 3))))
-	(setf (o 2) 10)
-	(getf (o 2)))
+  	(setf (o 2) 10)
+  	(getf (o 2)))
     => 10)
 
   (check	;bytevector
       (let/with-class (((o <bytevector>) (bytevector-copy '#vu8(0 1 2 3))))
-	(setf (o 2 s16 big) 10)
-	(getf (o 2 s16 big)))
+  	(setf (o 2 s16 big) 10)
+  	(getf (o 2 s16 big)))
     => 10)
 
   (check	;hashtable
       (let/with-class (((o <hashtable>) (make-eq-hashtable)))
-	(setf (o 'ciao) 10)
-	(list (getf (o 'ciao))
-	      (getf (o 'hello))
-	      (getf (o 'hello 'salut))))
+  	(setf (o 'ciao) 10)
+  	(list (getf (o 'ciao))
+  	      (getf (o 'hello))
+  	      (getf (o 'hello 'salut))))
     => '(10 #f salut))
 
   (check	;string
       (let/with-class (((o <string>) (string-copy "ciao")))
-	(setf (o 2) #\c)
-	(getf (o 2)))
+  	(setf (o 2) #\c)
+  	(getf (o 2)))
     => #\c)
 
   #t)
@@ -2659,22 +2650,22 @@
       (parent <beta>))
 
     (check
-	(map record-type-uid (record-parent-list (class-type-descriptor <alpha>)))
-      => (map record-type-uid (list (class-type-descriptor <alpha>)
-				    (class-type-descriptor <top>))))
+	(map record-type-uid (record-parent-list (class-record-descriptor <alpha>)))
+      => (map record-type-uid (list (class-record-descriptor <alpha>)
+				    (class-record-descriptor <top>))))
 
     (check
-	(map record-type-uid (record-parent-list (class-type-descriptor <beta>)))
-      => (map record-type-uid (list (class-type-descriptor <beta>)
-				    (class-type-descriptor <alpha>)
-				    (class-type-descriptor <top>))))
+	(map record-type-uid (record-parent-list (class-record-descriptor <beta>)))
+      => (map record-type-uid (list (class-record-descriptor <beta>)
+				    (class-record-descriptor <alpha>)
+				    (class-record-descriptor <top>))))
 
     (check
-	(map record-type-uid (record-parent-list (class-type-descriptor <gamma>)))
-      => (map record-type-uid (list (class-type-descriptor <gamma>)
-				    (class-type-descriptor <beta>)
-				    (class-type-descriptor <alpha>)
-				    (class-type-descriptor <top>))))
+	(map record-type-uid (record-parent-list (class-record-descriptor <gamma>)))
+      => (map record-type-uid (list (class-record-descriptor <gamma>)
+				    (class-record-descriptor <beta>)
+				    (class-record-descriptor <alpha>)
+				    (class-record-descriptor <top>))))
     #t)
 
 ;;; --------------------------------------------------------------------
@@ -2684,23 +2675,23 @@
 
     (check
 	(map record-type-uid (class-parent-list <alpha>))
-      => (eval '(map record-type-uid (list (class-type-descriptor <alpha>)
-					   (class-type-descriptor <top>)))
+      => (eval '(map record-type-uid (list (class-record-descriptor <alpha>)
+					   (class-record-descriptor <top>)))
 	       env))
 
     (check
 	(map record-type-uid (class-parent-list <beta>))
-      => (eval '(map record-type-uid (list (class-type-descriptor <beta>)
-					   (class-type-descriptor <alpha>)
-					   (class-type-descriptor <top>)))
+      => (eval '(map record-type-uid (list (class-record-descriptor <beta>)
+					   (class-record-descriptor <alpha>)
+					   (class-record-descriptor <top>)))
 	       env))
 
     (check
 	(map record-type-uid (class-parent-list <gamma>))
-      => (eval '(map record-type-uid (list (class-type-descriptor <gamma>)
-					   (class-type-descriptor <beta>)
-					   (class-type-descriptor <alpha>)
-					   (class-type-descriptor <top>)))
+      => (eval '(map record-type-uid (list (class-record-descriptor <gamma>)
+					   (class-record-descriptor <beta>)
+					   (class-record-descriptor <alpha>)
+					   (class-record-descriptor <top>)))
 	       env))
     #f)
 
@@ -2718,18 +2709,18 @@
 	     4 5 6)))
 
     (check
-    	(list ((record-accessor (class-type-descriptor <alpha>) 0) a)
-	      ((record-accessor (class-type-descriptor <alpha>) 1) a)
-	      ((record-accessor (class-type-descriptor <alpha>) 2) a))
+    	(list ((record-accessor (class-record-descriptor <alpha>) 0) a)
+	      ((record-accessor (class-record-descriptor <alpha>) 1) a)
+	      ((record-accessor (class-record-descriptor <alpha>) 2) a))
       => '(1 2 3))
 
     (check
-    	(list ((record-accessor (class-type-descriptor <alpha>) 0) b)
-	      ((record-accessor (class-type-descriptor <alpha>) 1) b)
-	      ((record-accessor (class-type-descriptor <alpha>) 2) b)
-	      ((record-accessor (class-type-descriptor <beta>) 0) b)
-	      ((record-accessor (class-type-descriptor <beta>) 1) b)
-	      ((record-accessor (class-type-descriptor <beta>) 2) b))
+    	(list ((record-accessor (class-record-descriptor <alpha>) 0) b)
+	      ((record-accessor (class-record-descriptor <alpha>) 1) b)
+	      ((record-accessor (class-record-descriptor <alpha>) 2) b)
+	      ((record-accessor (class-record-descriptor <beta>) 0) b)
+	      ((record-accessor (class-record-descriptor <beta>) 1) b)
+	      ((record-accessor (class-record-descriptor <beta>) 2) b))
       => '(1 2 3 4 5 6))
 
     #f)
@@ -2865,11 +2856,11 @@
 
     (check
   	(record-type-uid (record-type-of a))
-      => (record-type-uid (class-type-descriptor <alpha>)))
+      => (record-type-uid (class-record-descriptor <alpha>)))
 
     (check
   	(record-type-uid (record-type-of g))
-      => (record-type-uid (class-type-descriptor <gamma>)))
+      => (record-type-uid (class-record-descriptor <gamma>)))
 
     #f)
 
@@ -2884,11 +2875,11 @@
 
     (check
   	(record-type-uid (record-type-of a))
-      => (record-type-uid (class-type-descriptor <alpha>)))
+      => (record-type-uid (class-record-descriptor <alpha>)))
 
     (check
   	(record-type-uid (record-type-of b))
-      => (record-type-uid (class-type-descriptor <beta>)))
+      => (record-type-uid (class-record-descriptor <beta>)))
 
     #f)
 
@@ -2897,71 +2888,71 @@
 
   (check
       (record-type-uid (record-type-of 123))
-    => (record-type-uid (class-type-descriptor <fixnum>)))
+    => (record-type-uid (class-record-descriptor <fixnum>)))
 
   (check
       (record-type-uid (record-type-of (expt 10 30)))
-    => (record-type-uid (class-type-descriptor <integer>)))
+    => (record-type-uid (class-record-descriptor <integer>)))
 
   (check
       (record-type-uid (record-type-of 1/2))
-    => (record-type-uid (class-type-descriptor <rational>)))
+    => (record-type-uid (class-record-descriptor <rational>)))
 
   (check
       (record-type-uid (record-type-of #i3+0i))
-    => (record-type-uid (class-type-descriptor <integer-valued>)))
+    => (record-type-uid (class-record-descriptor <integer-valued>)))
 
   (check
       (record-type-uid (record-type-of #i3.0+0i))
-    => (record-type-uid (class-type-descriptor <integer-valued>)))
+    => (record-type-uid (class-record-descriptor <integer-valued>)))
 
   (check
       (record-type-uid (record-type-of #i3/2+0i))
-    => (record-type-uid (class-type-descriptor <rational-valued>)))
+    => (record-type-uid (class-record-descriptor <rational-valued>)))
 
   (check
       (record-type-uid (record-type-of #i3/2+0.0i))
-    => (record-type-uid (class-type-descriptor <rational-valued>)))
+    => (record-type-uid (class-record-descriptor <rational-valued>)))
 
   (check
       (record-type-uid (record-type-of #\a))
-    => (record-type-uid (class-type-descriptor <char>)))
+    => (record-type-uid (class-record-descriptor <char>)))
 
   (check
       (record-type-uid (record-type-of "ciao"))
-    => (record-type-uid (class-type-descriptor <string>)))
+    => (record-type-uid (class-record-descriptor <string>)))
 
   (check
       (record-type-uid (record-type-of '#(1 2 3)))
-    => (record-type-uid (class-type-descriptor <vector>)))
+    => (record-type-uid (class-record-descriptor <vector>)))
 
   (check
       (record-type-uid (record-type-of '#vu8(1 2 3)))
-    => (record-type-uid (class-type-descriptor <bytevector>)))
+    => (record-type-uid (class-record-descriptor <bytevector>)))
 
   (check
       (record-type-uid (record-type-of (make-eq-hashtable)))
-    => (record-type-uid (class-type-descriptor <hashtable>)))
+    => (record-type-uid (class-record-descriptor <hashtable>)))
 
   (check
       (record-type-uid (record-type-of (open-string-input-port "ciao")))
-    => (record-type-uid (class-type-descriptor <input-port>)))
+    => (record-type-uid (class-record-descriptor <input-port>)))
 
   ;;It never returns <textual-port>  because input and output attributes
   ;;are checked first.
   ;; (check
   ;;     (record-type-uid (record-type-of (open-string-input-port "ciao")))
-  ;;   => (record-type-uid (class-type-descriptor <textual-port>)))
+  ;;   => (record-type-uid (class-record-descriptor <textual-port>)))
 
   ;;It  never returns  <port> because  input and  output  attributes are
   ;;checked first so it returns <input-port> or <output-port>.
   ;; (check
   ;;     (record-type-uid (record-type-of (open-string-input-port "ciao")))
-  ;;   => (record-type-uid (class-type-descriptor <port>)))
+  ;;   => (record-type-uid (class-record-descriptor <port>)))
 
   (check
       (record-type-uid (record-type-of (current-output-port)))
-    => (record-type-uid (class-type-descriptor <output-port>)))
+    => (record-type-uid (class-record-descriptor <output-port>)))
 
   (check
       (record-type-uid (record-type-of (make-message-condition "ciao")))
@@ -2969,7 +2960,7 @@
 
   (check
       (record-type-uid (record-type-of '(1 . 2)))
-    => (record-type-uid (class-type-descriptor <pair>)))
+    => (record-type-uid (class-record-descriptor <pair>)))
 
   #t)
 

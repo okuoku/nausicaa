@@ -34,7 +34,7 @@
   (export
 
     define-class			make
-    class-type-descriptor		class-constructor-descriptor
+    class-record-descriptor		class-constructor-descriptor
     define/with-class			define/with-class*
     lambda/with-class			lambda/with-class*
     case-lambda/with-class		case-lambda/with-class*
@@ -73,6 +73,33 @@
 	    (result '() (cons ?fill result)))
 	   ((= i ?len)
 	    result))))))
+
+
+(define-record-type class-type-descriptor
+  (fields (immutable rtd)
+		;The record's RTD.
+	  (immutable virtual-fields)
+		;A vector of  virtual fields, in the same  format of the
+		;one for concrete fields; empty vector if this class has
+		;no virtual fields.
+	  (immutable predicate)
+		;A  symbol representing  the  class' predicate.   Always
+		;present because it defaults to the record predicate.
+	  (immutable setter)
+		;A  symbol representing  the  class' setter  identifier;
+		;false if  no setter was selected.  It  does not include
+		;the implementation,  because a  method can be  either a
+		;closure or a syntax.
+	  (immutable getter)
+		;A  symbol representing  the  class' getter  identifier;
+		;false if  no getter was selected.  It  does not include
+		;the implementation,  because a  getter can be  either a
+		;closure or a syntax.
+	  (immutable methods)
+		;A  vector  of   symbols  listing  the  defined  methods
+		;identifiers.  It  does not include  the implementation,
+		;because a method can be either a closure or a syntax.
+	  ))
 
 
 (define-syntax define-virtual-class
@@ -203,7 +230,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -226,7 +253,7 @@
 		   (?collected-concrete-field ...)
 		   (?collected-virtual-field ...)
 		   (?collected-method ...)
-		   (?collected-function ...)
+		   (?collected-definition ...)
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
@@ -244,7 +271,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	. ?predicate-rest)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -267,7 +294,7 @@
 		   (?collected-concrete-field ...)
 		   (?collected-virtual-field ...)
 		   (?collected-method ...)
-		   (?collected-function ...)
+		   (?collected-definition ...)
 		   (predicate		?function-name)
 		   (setter		?set ...)
 		   (getter		?get ...)
@@ -285,7 +312,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		. ?setter-rest)
 	(getter		?get ...)
@@ -308,7 +335,7 @@
 		   (?collected-concrete-field ...)
 		   (?collected-virtual-field ...)
 		   (?collected-method ...)
-		   (?collected-function ...)
+		   (?collected-definition ...)
 		   (predicate		?pre ...)
 		   (setter		?setter)
 		   (getter		?get ...)
@@ -326,7 +353,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		. ?getter-rest)
@@ -349,7 +376,7 @@
 		   (?collected-concrete-field ...)
 		   (?collected-virtual-field ...)
 		   (?collected-method ...)
-		   (?collected-function ...)
+		   (?collected-definition ...)
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?getter)
@@ -367,7 +394,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -388,7 +415,7 @@
 		   (?collected-concrete-field ...)
 		   (?collected-virtual-field ...)
 		   (?collected-method ...)
-		   (?collected-function ...)
+		   (?collected-definition ...)
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
@@ -406,7 +433,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -429,7 +456,7 @@
 		   (?collected-concrete-field ...)
 		   (?collected-virtual-field ...)
 		   (?collected-method ...)
-		   (?collected-function ...)
+		   (?collected-definition ...)
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
@@ -447,7 +474,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -470,7 +497,7 @@
 		   (?collected-concrete-field ...)
 		   (?collected-virtual-field ...)
 		   (?collected-method ...)
-		   (?collected-function ...)
+		   (?collected-definition ...)
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
@@ -488,7 +515,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -509,7 +536,7 @@
 		   (?collected-concrete-field ...)
 		   (?collected-virtual-field ...)
 		   (?collected-method ...)
-		   (?collected-function ...)
+		   (?collected-definition ...)
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
@@ -527,7 +554,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -548,7 +575,7 @@
 		   (?collected-concrete-field ...)
 		   (?collected-virtual-field ...)
 		   (?collected-method ...)
-		   (?collected-function ...)
+		   (?collected-definition ...)
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
@@ -569,7 +596,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -592,7 +619,7 @@
 		   (?collected-concrete-field ...)
 		   (?collected-virtual-field ...)
 		   (?collected-method ...)
-		   (?collected-function ...)
+		   (?collected-definition ...)
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
@@ -613,7 +640,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -629,7 +656,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -650,7 +677,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -666,7 +693,7 @@
 	  (?collected-concrete-field ... )
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -687,7 +714,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -703,7 +730,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -723,7 +750,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -739,7 +766,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ... (?method function-name))
-	  (?collected-function ... (define/with-class (function-name . ?args) . ?body))
+	  (?collected-definition ... (define/with-class (function-name . ?args) . ?body))
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -760,7 +787,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -775,7 +802,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -810,7 +837,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -826,7 +853,7 @@
 	  (?collected-concrete-field ... (mutable ?field ?field-accessor ?field-mutator))
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -845,7 +872,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -865,7 +892,7 @@
 	      (?collected-concrete-field ... (mutable ?field ACCESSOR MUTATOR))
 	      (?collected-virtual-field ...)
 	      (?collected-method ...)
-	      (?collected-function ...)
+	      (?collected-definition ...)
 	      (predicate	?pre ...)
 	      (setter		?set ...)
 	      (getter		?get ...)
@@ -884,7 +911,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -900,7 +927,7 @@
 	  (?collected-concrete-field ... (immutable ?field ?accessor))
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -919,7 +946,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -938,7 +965,7 @@
 	      (?collected-concrete-field ... (immutable ?field ACCESSOR))
 	      (?collected-virtual-field ...)
 	      (?collected-method ...)
-	      (?collected-function ...)
+	      (?collected-definition ...)
 	      (predicate	?pre ...)
 	      (setter		?set ...)
 	      (getter		?get ...)
@@ -957,7 +984,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -976,7 +1003,7 @@
 	      (?collected-concrete-field ... (immutable ?field ACCESSOR))
 	      (?collected-virtual-field ...)
 	      (?collected-method ...)
-	      (?collected-function ...)
+	      (?collected-definition ...)
 	      (predicate	?pre ...)
 	      (setter		?set ...)
 	      (getter		?get ...)
@@ -994,7 +1021,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1010,7 +1037,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -1041,7 +1068,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1057,7 +1084,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...  (mutable ?field ?accessor ?mutator))
 	  (?collected-method ...)
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -1076,7 +1103,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1096,7 +1123,7 @@
 	      (?collected-concrete-field ...)
 	      (?collected-virtual-field ...  (mutable ?field ACCESSOR MUTATOR))
 	      (?collected-method ...)
-	      (?collected-function ...)
+	      (?collected-definition ...)
 	      (predicate	?pre ...)
 	      (setter		?set ...)
 	      (getter		?get ...)
@@ -1117,7 +1144,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1133,7 +1160,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ... (immutable ?field ?accessor))
 	  (?collected-method ...)
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -1152,7 +1179,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1171,7 +1198,7 @@
 	      (?collected-concrete-field ...)
 	      (?collected-virtual-field ... (immutable ?field ACCESSOR))
 	      (?collected-method ...)
-	      (?collected-function ...)
+	      (?collected-definition ...)
 	      (predicate	?pre ...)
 	      (setter		?set ...)
 	      (getter		?get ...)
@@ -1190,7 +1217,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1209,7 +1236,7 @@
 	      (?collected-concrete-field ...)
 	      (?collected-virtual-field ... (immutable ?field ACCESSOR))
 	      (?collected-method ...)
-	      (?collected-function ...)
+	      (?collected-definition ...)
 	      (predicate	?pre ...)
 	      (setter		?set ...)
 	      (getter		?get ...)
@@ -1229,7 +1256,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1245,7 +1272,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -1272,7 +1299,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1288,7 +1315,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ... (?method ?function))
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -1307,7 +1334,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1326,7 +1353,7 @@
 	      (?collected-concrete-field ...)
 	      (?collected-virtual-field ...)
 	      (?collected-method ... (?method FUNCTION))
-	      (?collected-function ...)
+	      (?collected-definition ...)
 	      (predicate	?pre ...)
 	      (setter		?set ...)
 	      (getter		?get ...)
@@ -1344,7 +1371,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1363,7 +1390,7 @@
 	      (?collected-concrete-field ...)
 	      (?collected-virtual-field ...)
 	      (?collected-method ... (?method FUNCTION))
-	      (?collected-function ...)
+	      (?collected-definition ...)
 	      (predicate	?pre ...)
 	      (setter		?set ...)
 	      (getter		?get ...)
@@ -1381,7 +1408,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1397,7 +1424,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
+	  (?collected-definition ...)
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -1415,7 +1442,7 @@
 (define-syntax %define-class/fix-parent
   ;;Normalise the definition by processing or removing the PARENT clause
   ;;and validating  the PARENT-RTD  clause.  Finally hand  everything to
-  ;;%DEFINE-CLASS/MAKE-FIELDS-VECTOR.
+  ;;%DEFINE-CLASS/NORMALISE-PREDICATE.
   ;;
   (syntax-rules (parent protocol sealed opaque parent-rtd nongenerative predicate setter getter)
 
@@ -1424,7 +1451,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1444,7 +1471,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1454,12 +1481,12 @@
 	(opaque		?opa ...)
 	(parent-rtd) ;no parent-rtd
 	(nongenerative	?non ...))
-     (%define-class/make-fields-vector
+     (%define-class/normalise-predicate
       ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
+      (?collected-definition ...)
       (predicate	?pre ...)
       (setter		?set ...)
       (getter		?get ...)
@@ -1479,7 +1506,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1499,7 +1526,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1509,19 +1536,19 @@
 	(opaque		?opa ...)
 	(parent-rtd) ;no parent-rtd
 	(nongenerative	?non ...))
-     (%define-class/make-fields-vector
+     (%define-class/normalise-predicate
       ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
+      (?collected-definition ...)
       (predicate	?pre ...)
       (setter		?set ...)
       (getter		?get ...)
       (protocol		?pro ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
-      (parent-rtd	(class-type-descriptor ?parent-name)
+      (parent-rtd	(class-record-descriptor ?parent-name)
 			(class-constructor-descriptor ?parent-name))
       (nongenerative	?non ...)))
 
@@ -1534,7 +1561,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1544,12 +1571,12 @@
 	(opaque		?opa ...)
 	(parent-rtd	?parent-rtd ?parent-cd)
 	(nongenerative	?non ...))
-     (%define-class/make-fields-vector
+     (%define-class/normalise-predicate
       ?input-form (?name ?constructor ?predicate)
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
+      (?collected-definition ...)
       (predicate	?pre ...)
       (setter		?set ...)
       (getter		?get ...)
@@ -1565,7 +1592,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
+	(?collected-definition ...)
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1582,49 +1609,15 @@
     ))
 
 
-(define-syntax %define-class/make-fields-vector
-  (syntax-rules (fields protocol sealed opaque parent-rtd nongenerative predicate setter getter)
-    ((_ ?input-form (?name ?constructor ?predicate)
-	((?keyword ?field ?accessor ...) ...)
-	(?collected-virtual-field ...)
-	(?collected-method ...)
-	(?collected-function ...)
-	(predicate	?pre ...)
-	(setter		?set ...)
-	(getter		?get ...)
-	(protocol	?pro ...)
-	(sealed		?sea ...)
-	(opaque		?opa ...)
-	(parent-rtd	?parent-rtd ?parent-cd)
-	(nongenerative	?non ...))
-     (%define-class/normalise-predicate
-      ?input-form (?name ?constructor ?predicate)
-      ((?keyword ?field ?accessor ...) ...)
-      (?collected-virtual-field ...)
-      (?collected-method ...)
-      (?collected-function ...)
-      #((?keyword ?field) ...)
-      (predicate	?pre ...)
-      (setter		?set ...)
-      (getter		?get ...)
-      (protocol		?pro ...)
-      (sealed		?sea ...)
-      (opaque		?opa ...)
-      (parent-rtd	?parent-rtd ?parent-cd)
-      (nongenerative	?non ...)))
-    ))
-
-
 (define-syntax %define-class/normalise-predicate
-  (syntax-rules (fields protocol sealed opaque parent-rtd nongenerative setter getter)
+  (syntax-rules (fields protocol sealed opaque parent-rtd nongenerative predicate setter getter)
 
     ;;No predicate was given.
     ((_ ?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	(predicate)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1638,8 +1631,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate
       (setter		?set ...)
       (getter		?get ...)
@@ -1654,8 +1646,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	(predicate	?predicate-function)
 	(setter		?set ...)
 	(getter		?get ...)
@@ -1669,8 +1660,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate-function
       (setter		?set ...)
       (getter		?get ...)
@@ -1679,7 +1669,6 @@
       (opaque		?opa ...)
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
-
     ))
 
 
@@ -1691,8 +1680,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	?predicate-function
 	(setter)
 	(getter		?get ...)
@@ -1706,8 +1694,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate-function
       #f
       (getter		?get ...)
@@ -1722,8 +1709,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	?predicate-function
 	(setter		?setter)
 	(getter		?get ...)
@@ -1737,8 +1723,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate-function
       ?setter
       (getter		?get ...)
@@ -1747,7 +1732,6 @@
       (opaque		?opa ...)
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
-
     ))
 
 
@@ -1759,8 +1743,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	?predicate-function
 	?setter
 	(getter)
@@ -1774,8 +1757,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate-function
       ?setter
       #f
@@ -1790,8 +1772,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	?predicate-function
 	?setter
 	(getter		?getter)
@@ -1805,8 +1786,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate-function
       ?setter
       ?getter
@@ -1827,8 +1807,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	?predicate-function
 	?setter
 	?getter
@@ -1842,8 +1821,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate-function
       ?setter
       ?getter
@@ -1858,8 +1836,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	?predicate-function
 	?setter
 	?getter
@@ -1873,8 +1850,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate-function
       ?setter
       ?getter
@@ -1883,7 +1859,6 @@
       (opaque		?opa ...)
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
-
     ))
 
 
@@ -1895,8 +1870,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	?predicate-function
 	?setter
 	?getter
@@ -1910,8 +1884,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate-function
       ?setter
       ?getter
@@ -1926,8 +1899,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	?predicate-function
 	?setter
 	?getter
@@ -1941,8 +1913,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate-function
       ?setter
       ?getter
@@ -1951,7 +1922,6 @@
       (opaque		?opa ...)
       (parent-rtd	?parent-rtd ?parent-cd)
       (nongenerative	?non ...)))
-
     ))
 
 
@@ -1963,8 +1933,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	?predicate-function
 	?setter
 	?getter
@@ -1978,8 +1947,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate-function
       ?setter
       ?getter
@@ -1994,8 +1962,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	?predicate-function
 	?setter
 	?getter
@@ -2009,8 +1976,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate-function
       ?setter
       ?getter
@@ -2029,8 +1995,7 @@
 	(?collected-concrete-field ...)
 	(?collected-virtual-field ...)
 	(?collected-method ...)
-	(?collected-function ...)
-	?fields-vector
+	(?collected-definition ...)
 	?predicate-function
 	?setter
 	?getter
@@ -2044,8 +2009,7 @@
       (?collected-concrete-field ...)
       (?collected-virtual-field ...)
       (?collected-method ...)
-      (?collected-function ...)
-      ?fields-vector
+      (?collected-definition ...)
       ?predicate-function
       ?setter
       ?getter
@@ -2066,8 +2030,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
-	  ?fields-vector
+	  (?collected-definition ...)
 	  ?predicate-function
 	  ?setter
 	  ?getter
@@ -2082,8 +2045,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
-	  ?fields-vector
+	  (?collected-definition ...)
 	  ?predicate-function
 	  ?setter
 	  ?getter
@@ -2099,8 +2061,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
-	  ?fields-vector
+	  (?collected-definition ...)
 	  ?predicate-function
 	  ?setter
 	  ?getter
@@ -2115,8 +2076,7 @@
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
-	  (?collected-function ...)
-	  ?fields-vector
+	  (?collected-definition ...)
 	  ?predicate-function
 	  ?setter
 	  ?getter
@@ -2136,16 +2096,23 @@
 (define-syntax %define-class/output-forms
   (lambda (stx)
 
-    (define (%make-name/rtd name)
+    (define (%make-name/rtd name)	;name of record type descriptor
       (string->symbol (string-append (symbol->string name) "-rtd")))
 
-    (define (%make-name/cd name)
+    (define (%make-name/ctd name)	;name of class type descriptor
+      (string->symbol (string-append (symbol->string name) "-ctd")))
+
+    (define (%make-name/cd name)	;name of constructor descriptor
       (string->symbol (string-append (symbol->string name) "-cd")))
 
-    (define (%make-name/with-fields name)
+    (define (%make-name/with-fields name)	;name of class specific with-fields syntax
       (string->symbol (string-append (symbol->string name) "-with-class-fields-of")))
 
     (define (duplicated-ids? ell)
+      ;;Search the list of  identifier syntax objects ELL for duplicated
+      ;;identifiers;  return   false  of  a  syntax   object  holding  a
+      ;;duplicated identifier.
+      ;;
       (if (null? ell)
 	  #f
 	(let inner ((x  (car ell))
@@ -2157,6 +2124,10 @@
 	      (inner x (cdr ls)))))))
 
     (define generate-numbers
+      ;;Derived  from   IOTA  from  (lists);  generate   a  sequence  of
+      ;;non-negative exact integers to be  used as indexes in the vector
+      ;;of concrete fields.
+      ;;
       (case-lambda
 
        ((context-stx list-of-syntaxes)
@@ -2182,8 +2153,8 @@
 	  ((?mutability ?field ?accessor ...) ...)
 	  ((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
 	  ((?method ?method-function) ...)
-	  (?collected-function ...)
-	  ?fields-vector ?predicate-function ?setter ?getter
+	  (?collected-definition ...)
+	  ?predicate-function ?setter ?getter
 	  ?protocol ?sealed ?opaque ?parent-rtd ?parent-cd ?uid)
        (let ((id (duplicated-ids? #'(?field ... ?virtual-field ... ?method ...))))
 	 (if id
@@ -2194,15 +2165,26 @@
 	   (let ((name (syntax->datum #'?class-name)))
 	     (with-syntax
 		 ((NAME-RTD	(datum->syntax #'?class-name (%make-name/rtd		name)))
+		  (NAME-CTD	(datum->syntax #'?class-name (%make-name/ctd		name)))
 		  (NAME-CD	(datum->syntax #'?class-name (%make-name/cd		name)))
-		  (WITH-FIELDS	(datum->syntax #'?class-name (%make-name/with-fields	name)))
+		  (WITH-CLASS-BINDINGS	(datum->syntax #'?class-name (%make-name/with-fields	name)))
 		  ((FIELD-INDEXES ...) (generate-numbers #'?class-name
 							 #'((?mutability ?field ?accessor ...) ...))))
 	       #'(begin
 		   (define NAME-RTD
 		     (make-record-type-descriptor (quote ?class-name)
 						  ?parent-rtd (quote ?uid)
-						  ?sealed ?opaque (quote ?fields-vector)))
+						  ?sealed ?opaque
+						  (quote #((?mutability ?field) ...))))
+
+		   (define NAME-CTD
+		     (make-class-type-descriptor
+		      NAME-RTD
+		      '#((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
+		      (quote ?predicate-function)
+		      (quote ?setter) (quote ?getter)
+		      '#((?method ?method-function) ...)))
+
 		   (define NAME-CD
 		     (make-record-constructor-descriptor NAME-RTD ?parent-cd ?protocol))
 
@@ -2212,44 +2194,32 @@
 		   (%define-class/output-forms/fields NAME-RTD (FIELD-INDEXES ...)
 						      (?mutability ?field ?accessor ...) ...)
 
-		   ?collected-function ...
+		   ;;These are the definitions of in-definition methods.
+		   ?collected-definition ...
 
 		   (define-syntax ?class-name
 		     (lambda (stx)
-		       (syntax-case stx (class-type-descriptor
+		       (syntax-case stx (class-record-descriptor
 					 custom-predicate
 					 default-constructor
 					 default-constructor-descriptor
 					 with-class-fields-of
 					 setter)
-			 ((_ class-type-descriptor)
+
+			 ((_ class-record-descriptor)
 			  #'(begin NAME-RTD))
+
 			 ((_ default-constructor-descriptor)
 			  #'(begin NAME-CD))
+
 			 ((_ default-constructor ?arg (... ...))
 			  #'(?constructor ?arg (... ...)))
+
 			 ((_ custom-predicate ?arg (... ...))
 			  #'(?predicate-function ?arg (... ...)))
+
 			 ((_ with-class-fields-of ?arg (... ...))
-			  #'(WITH-FIELDS ?arg (... ...)))
-
-			 ((_ setter ?arg (... ...))
-			  (symbol? (quote ?setter))
-			  #'(?setter ?arg (... ...)))
-			 ((_ setter ?variable-name ?key0 ?key (... ...) ?value)
-			  (syntax-violation 'setf
-			    "class has no setter"
-			    (syntax->datum #'(setf (?variable-name ?key0 ?key (... ...)) ?value))
-			    (syntax->datum #'?class-name)))
-
-			 ((_ getter ?arg (... ...))
-			  (symbol? (quote ?getter))
-			  #'(?getter ?arg (... ...)))
-			 ((_ getter ?variable-name ?key0 ?key (... ...))
-			  (syntax-violation 'getf
-			    "class has no getter"
-			    (syntax->datum #'(getf (?variable-name ?key0 ?key (... ...))))
-			    (syntax->datum #'?class-name)))
+			  #'(WITH-CLASS-BINDINGS ?arg (... ...)))
 
 			 ((_ ?keyword . ?rest)
 			  (syntax-violation '?class-name
@@ -2258,7 +2228,7 @@
 			    (syntax->datum #'?keyword)))
 			 )))
 
-		   (define-syntax WITH-FIELDS
+		   (define-syntax WITH-CLASS-BINDINGS
 		     (syntax-rules ()
 		       ((_ ?variable-name ?body0 ?body (... ...))
 		   	(%with-class-fields
@@ -2266,9 +2236,9 @@
 			 ((?mutability ?field ?accessor ...) ...
 			  (?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
 		   	 (%with-methods ?variable-name ((?method ?method-function) ...)
-					(%with-setter-and-getter
-					 ?class-name ?variable-name
-					 ?body0 ?body (... ...)))
+					(%with-setter-and-getter ?variable-name
+								 ?setter ?getter
+								 ?body0 ?body (... ...)))
 		   	 ))))
 		   )))
 	   )))
@@ -2359,30 +2329,53 @@
 
 
 (define-syntax %with-setter-and-getter
+  ;;Wrap the body with the  LET-SYNTAX defining the setter binding; then
+  ;;hand the  body to  %WITH-GETTER.  If there  is no setter:  leave the
+  ;;identifier undefined, so that it does not shadow enclosing bindings.
+  ;;
   (lambda (stx)
     (define (%setf name)
-      (string->symbol (string-append (symbol->string name) ".setf")))
-    (define (%getf name)
-      (string->symbol (string-append (symbol->string name) ".getf")))
+      (string->symbol (string-append (symbol->string name)
+				     ".__nausicaa_private_setter_identifier_syntax")))
     (syntax-case stx ()
-      ((_ ?class-name ?variable-name . ?body)
-       (let ((name (syntax->datum #'?variable-name)))
-	 (with-syntax ((SETF (datum->syntax #'?variable-name (%setf name)))
-		       (GETF (datum->syntax #'?variable-name (%getf name))))
-	   #'(let-syntax ((SETF (syntax-rules ()
-				  ((_ ?key0 ?key (... ...) ?value)
-				   (?class-name setter ?variable-name ?key0 ?key (... ...) ?value))
-				  ))
-			  (GETF (syntax-rules ()
+      ((_ ?variable-name ?setter ?getter . ?body)
+       (identifier? #'?setter)
+       (with-syntax ((SETF (datum->syntax #'?variable-name (%setf (syntax->datum #'?variable-name)))))
+	 #'(let-syntax ((SETF (syntax-rules ()
+				((_ ?key0 ?key (... ...) ?value)
+				 (?setter ?variable-name ?key0 ?key (... ...) ?value)))))
+	     (%with-getter ?variable-name ?getter . ?body))))
+
+      ((_ ?variable-name ?setter ?getter . ?body)
+       #'(%with-getter ?variable-name ?getter . ?body))
+      )))
+
+(define-syntax %with-getter
+  ;;Wrap the body with the  LET-SYNTAX defining the getter binding; then
+  ;;expand  the body.   If  there  is no  getter:  leave the  identifier
+  ;;undefined, so that it does not shadow enclosing bindings.
+  ;;
+  (lambda (stx)
+    (define (%getf name)
+      (string->symbol (string-append name ".__nausicaa_private_getter_identifier_syntax")))
+    (syntax-case stx ()
+      ((_ ?variable-name ?getter . ?body)
+       (identifier? #'?getter)
+       (let ((name (symbol->string (syntax->datum #'?variable-name))))
+	 (with-syntax ((GETF (datum->syntax #'?variable-name (%getf name))))
+	   #'(let-syntax ((GETF (syntax-rules ()
 				  ((_ ?key0 ?key (... ...))
-				   (?class-name getter ?variable-name ?key0 ?key (... ...))))))
-	       . ?body)
-	   ))))))
+				   (?getter ?variable-name ?key0 ?key (... ...))))))
+	       . ?body))))
+      ((_ ?variable-name ?getter . ?body)
+       #'(begin . ?body))
+      )))
 
 (define-syntax setf
   (lambda (stx)
     (define (%setf name)
-      (string->symbol (string-append (symbol->string name) ".setf")))
+      (string->symbol (string-append (symbol->string name)
+				     ".__nausicaa_private_setter_identifier_syntax")))
     (syntax-case stx (setter setter-multi-key set!)
       ((_ (?variable-name ?key0 ?key ...) ?value)
        (with-syntax ((SETF (datum->syntax #'?variable-name (%setf (syntax->datum #'?variable-name)))))
@@ -2394,22 +2387,23 @@
 (define-syntax getf
   (lambda (stx)
     (define (%getf name)
-      (string->symbol (string-append (symbol->string name) ".getf")))
+      (string->symbol (string-append (symbol->string name)
+				     ".__nausicaa_private_getter_identifier_syntax")))
     (syntax-case stx (setter setter-multi-key set!)
       ((_ (?variable-name ?key0 ?key ...))
        (with-syntax ((GETF (datum->syntax #'?variable-name (%getf (syntax->datum #'?variable-name)))))
       	 #'(GETF ?key0 ?key ...))))))
 
 
-(define-syntax class-type-descriptor
+(define-syntax class-record-descriptor
   (lambda (stx)
-    (syntax-case stx (class-type-descriptor)
+    (syntax-case stx (class-record-descriptor)
       ((_ ?class-name)
        (free-identifier=? #'?class-name #'<top>)
        #'(record-type-descriptor ?class-name))
 
       ((_ ?class-name)
-       #'(?class-name class-type-descriptor)))))
+       #'(?class-name class-record-descriptor)))))
 
 (define-syntax class-constructor-descriptor
   (lambda (stx)
@@ -3191,7 +3185,7 @@
        (syntax (quote ())))
 
       ((_ ?record-name)
-       #'(record-parent-list (class-type-descriptor ?record-name))))))
+       #'(record-parent-list (class-record-descriptor ?record-name))))))
 
 (define (record-parent-list rtd)
   (let loop ((cls (list rtd))
@@ -3210,41 +3204,41 @@
    ;;This  is  here  as  a  special exception  because  in  Larceny  the
    ;;hashtable  is a  record.  We  have  to process  it before  applying
    ;;RECORD?
-   ((hashtable?	obj)		(class-type-descriptor <hashtable>))
+   ((hashtable?	obj)		(class-record-descriptor <hashtable>))
 
    ((record? obj)
     (record-rtd obj))
 
    ((number? obj)
     ;;Order does matter here!!!
-    (cond ((fixnum?		obj)	(class-type-descriptor <fixnum>))
-	  ((integer?		obj)	(class-type-descriptor <integer>))
-	  ((rational?		obj)	(class-type-descriptor <rational>))
-	  ((integer-valued?	obj)	(class-type-descriptor <integer-valued>))
-	  ((rational-valued?	obj)	(class-type-descriptor <rational-valued>))
-	  ((flonum?		obj)	(class-type-descriptor <flonum>))
-	  ((real?		obj)	(class-type-descriptor <real>))
-	  ((real-valued?	obj)	(class-type-descriptor <real-valued>))
-	  ((complex?		obj)	(class-type-descriptor <complex>))
-	  (else				(class-type-descriptor <number>))))
-   ((char?		obj)		(class-type-descriptor <char>))
-   ((string?		obj)		(class-type-descriptor <string>))
-   ((vector?		obj)		(class-type-descriptor <vector>))
-   ((bytevector?	obj)		(class-type-descriptor <bytevector>))
+    (cond ((fixnum?		obj)	(class-record-descriptor <fixnum>))
+	  ((integer?		obj)	(class-record-descriptor <integer>))
+	  ((rational?		obj)	(class-record-descriptor <rational>))
+	  ((integer-valued?	obj)	(class-record-descriptor <integer-valued>))
+	  ((rational-valued?	obj)	(class-record-descriptor <rational-valued>))
+	  ((flonum?		obj)	(class-record-descriptor <flonum>))
+	  ((real?		obj)	(class-record-descriptor <real>))
+	  ((real-valued?	obj)	(class-record-descriptor <real-valued>))
+	  ((complex?		obj)	(class-record-descriptor <complex>))
+	  (else				(class-record-descriptor <number>))))
+   ((char?		obj)		(class-record-descriptor <char>))
+   ((string?		obj)		(class-record-descriptor <string>))
+   ((vector?		obj)		(class-record-descriptor <vector>))
+   ((bytevector?	obj)		(class-record-descriptor <bytevector>))
    ((port?		obj)
     ;;Order here is arbitrary.
-    (cond ((input-port?		obj)	(class-type-descriptor <input-port>))
-	  ((output-port?	obj)	(class-type-descriptor <output-port>))
-	  ((binary-port?	obj)	(class-type-descriptor <binary-port>))
-	  ((textual-port?	obj)	(class-type-descriptor <textual-port>))
-	  (else				(class-type-descriptor <port>))))
-   ((condition?		obj)		(class-type-descriptor <condition>))
-   ((record?		obj)		(class-type-descriptor <record>))
+    (cond ((input-port?		obj)	(class-record-descriptor <input-port>))
+	  ((output-port?	obj)	(class-record-descriptor <output-port>))
+	  ((binary-port?	obj)	(class-record-descriptor <binary-port>))
+	  ((textual-port?	obj)	(class-record-descriptor <textual-port>))
+	  (else				(class-record-descriptor <port>))))
+   ((condition?		obj)		(class-record-descriptor <condition>))
+   ((record?		obj)		(class-record-descriptor <record>))
    ((pair?		obj)
     ;;Order does matter  here!!!  Better leave these at  the end because
     ;;qualifying a long list can be time-consuming.
-    (cond ((list?	obj)	(class-type-descriptor <list>))
-	  (else			(class-type-descriptor <pair>))))
+    (cond ((list?	obj)	(class-record-descriptor <list>))
+	  (else			(class-record-descriptor <pair>))))
    (else (record-type-descriptor <top>))))
 
 

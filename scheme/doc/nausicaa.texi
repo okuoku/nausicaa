@@ -20245,7 +20245,7 @@ Example:
 @section Record type inspection
 
 
-@deffn Syntax class-type-descriptor @ameta{class name}
+@deffn Syntax class-record-descriptor @ameta{class name}
 Expand to the record type descriptor associated to @meta{class name}.
 It is a replacement of @func{record-type-descriptor} for record types
 defined by @func{define-class}.
@@ -21018,6 +21018,7 @@ In this document class specific setters and getters are described as
 
 
 @deffn Syntax setf @ameta{place} @ameta{value}
+@deffnx Syntax setf @ameta{identifeir} @ameta{value}
 Apply a class setter to the specified @meta{place} with the purpose of
 storing there @meta{value}.  The @meta{place} argument must have the
 form:
@@ -21048,6 +21049,11 @@ following meaningless example shows the mechanism:
 The number of keys to be used by the setter is unspecified: it is
 enforced by the function or macro selected in the @func{setter} clause
 of @func{define-class}.
+
+When used with the @meta{identifier} argument: @func{setf} behaves as an
+alias of @func{set!} (notice, though, that renaming @func{setf} to
+@func{set!} when importing the library, causes problems when using the
+@func{identifier-syntax} macro).
 @end deffn
 
 
