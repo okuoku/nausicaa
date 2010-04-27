@@ -44,84 +44,87 @@
 
 
 (define-syntax define-sizeof-utils
-  (syntax-rules ()
-    ((_)
-     (begin
-       (define-syntax c-sizeof
-	 (lambda (stx)
+  (lambda (stx)
+    (syntax-case stx ()
+      ((?context)
+       (datum->syntax
+	#'?context
+	'(begin
+	   (define-syntax c-sizeof
+	     (lambda (stx)
 
-	   (define (%type->id prefix type)
-	     (string->symbol (string-append prefix (symbol->string (syntax->datum type)))))
-	   (define (%type->sizeof type)
-	     (%type->id "sizeof-" type))
-	   (define (%type->strideof type)
-	     (%type->id "strideof-" type))
+	       (define (%type->id prefix type)
+		 (string->symbol (string-append prefix (symbol->string (syntax->datum type)))))
+	       (define (%type->sizeof type)
+		 (%type->id "sizeof-" type))
+	       (define (%type->strideof type)
+		 (%type->id "strideof-" type))
 
-	   (syntax-case stx ()
+	       (syntax-case stx ()
 
-	     ((_ ?type ?number-of-elements)
-	      (identifier? #'?type)
-	      (with-syntax ((STRIDEOF (datum->syntax #'c-sizeof (%type->strideof #'?type))))
-		#'(* STRIDEOF ?number-of-elements)))
+		 ((_ ?type ?number-of-elements)
+		  (identifier? #'?type)
+		  (with-syntax ((STRIDEOF (datum->syntax #'c-sizeof (%type->strideof #'?type))))
+		    #'(* STRIDEOF ?number-of-elements)))
 
-	     ((?k ?type)
-	      (identifier? #'?type)
-	      (with-syntax ((SIZEOF (datum->syntax #'c-sizeof (%type->sizeof #'?type))))
-		#'(begin SIZEOF)))
+		 ((?k ?type)
+		  (identifier? #'?type)
+		  (with-syntax ((SIZEOF (datum->syntax #'c-sizeof (%type->sizeof #'?type))))
+		    #'(begin SIZEOF)))
 
-	     (?input-form
-	      (syntax-violation 'c-sizeof
-		"invalid C language sizeof specification"
-		(syntax->datum #'?input-form))))))
+		 (?input-form
+		  (syntax-violation 'c-sizeof
+		    "invalid C language sizeof specification"
+		    (syntax->datum #'?input-form))))))
 
-       (define-syntax c-strideof
-	 (lambda (stx)
-	   (define (%type->strideof type)
-	     (string->symbol (string-append "strideof-" (symbol->string (syntax->datum type)))))
-	   (syntax-case stx ()
+	   (define-syntax c-strideof
+	     (lambda (stx)
+	       (define (%type->strideof type)
+		 (string->symbol (string-append "strideof-" (symbol->string (syntax->datum type)))))
+	       (syntax-case stx ()
 
-	     ((_ ?type)
-	      (identifier? #'?type)
-	      (with-syntax ((STRIDEOF (datum->syntax #'c-strideof (%type->strideof #'?type))))
-		#`(begin STRIDEOF)))
+		 ((_ ?type)
+		  (identifier? #'?type)
+		  (with-syntax ((STRIDEOF (datum->syntax #'c-strideof (%type->strideof #'?type))))
+		    #`(begin STRIDEOF)))
 
-	     (?input-form
-	      (syntax-violation 'c-strideof
-		"invalid C language strideof specification"
-		(syntax->datum #'?input-form))))))
+		 (?input-form
+		  (syntax-violation 'c-strideof
+		    "invalid C language strideof specification"
+		    (syntax->datum #'?input-form))))))
 
-       (define-syntax c-alignof
-	 (lambda (stx)
-	   (define (%type->alignof type)
-	     (string->symbol (string-append "alignof-" (symbol->string (syntax->datum type)))))
-	   (syntax-case stx ()
+	   (define-syntax c-alignof
+	     (lambda (stx)
+	       (define (%type->alignof type)
+		 (string->symbol (string-append "alignof-" (symbol->string (syntax->datum type)))))
+	       (syntax-case stx ()
 
-	     ((_ ?type)
-	      (identifier? #'?type)
-	      (with-syntax ((ALIGNOF (datum->syntax #'c-alignof (%type->alignof #'?type))))
-		#`(begin ALIGNOF)))
+		 ((_ ?type)
+		  (identifier? #'?type)
+		  (with-syntax ((ALIGNOF (datum->syntax #'c-alignof (%type->alignof #'?type))))
+		    #`(begin ALIGNOF)))
 
-	     (?input-form
-	      (syntax-violation 'c-alignof
-		"invalid C language alignof specification"
-		(syntax->datum #'?input-form))))))
+		 (?input-form
+		  (syntax-violation 'c-alignof
+		    "invalid C language alignof specification"
+		    (syntax->datum #'?input-form))))))
 
-       (define-syntax c-valueof
-	 (lambda (stx)
-	   (define (%type->valueof type)
-	     (string->symbol (string-append "valueof-" (symbol->string (syntax->datum type)))))
-	   (syntax-case stx ()
+	   (define-syntax c-valueof
+	     (lambda (stx)
+	       (define (%type->valueof type)
+		 (string->symbol (string-append "valueof-" (symbol->string (syntax->datum type)))))
+	       (syntax-case stx ()
 
-	     ((_ ?type)
-	      (identifier? #'?type)
-	      (with-syntax ((VALUEOF (datum->syntax #'c-valueof (%type->valueof #'?type))))
-		#`(begin VALUEOF)))
+		 ((_ ?type)
+		  (identifier? #'?type)
+		  (with-syntax ((VALUEOF (datum->syntax #'c-valueof (%type->valueof #'?type))))
+		    #`(begin VALUEOF)))
 
-	     (?input-form
-	      (syntax-violation 'c-valueof
-		"invalid C language valueof specification"
-		(syntax->datum #'?input-form))))))
-       ))))
+		 (?input-form
+		  (syntax-violation 'c-valueof
+		    "invalid C language valueof specification"
+		    (syntax->datum #'?input-form))))))
+	   ))))))
 
 (define-sizeof-utils)
 
