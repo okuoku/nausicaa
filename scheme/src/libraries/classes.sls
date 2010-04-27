@@ -66,6 +66,7 @@
     <real> <real-valued> <complex> <number>)
   (import (rnrs)
     (rnrs mutable-strings)
+    (gensym)
     (for (classes helpers) expand))
 
 
@@ -808,7 +809,7 @@
 		   ;;We have  to do this  to properly generate  a unique
 		   ;;UID.  We cannot rely on the expander renaming a raw
 		   ;;symbol we may introduce here.
-		   (nongenerative	#,@(generate-temporaries #'(?name)))
+		   (nongenerative	#,(datum->syntax #'?name (gensym)))
 		   ?clause ...)))))
 
       ;;Gather the NONGENERATIVE non-empty clause.
@@ -2333,7 +2334,7 @@
 	  ;;We have to  do this to properly generated  a unique UID.  We
 	  ;;cannot rely  on the  expander renaming a  raw symbol  we may
 	  ;;introduce here.
-	  #,@(generate-temporaries #'(?name))))
+	  #,(datum->syntax #'?name (gensym))))
 
       )))
 
