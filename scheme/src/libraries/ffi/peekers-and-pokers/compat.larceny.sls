@@ -64,15 +64,7 @@
 		void*-double-set! void*-double-ref void*-float-set! void*-float-ref
 		void*? void*-rt record-constructor void*->address)
     (only (ffi pointers) pointer->integer integer->pointer)
-    (only (ffi sizeof)
-	  sizeof-float
-	  sizeof-double
-	  sizeof-pointer
-	  sizeof-char
-	  sizeof-short
-	  sizeof-int
-	  sizeof-long
-	  sizeof-long-long))
+    (only (ffi sizeof) c-sizeof))
 
 
 ;;;; low level peekers and pokers
@@ -134,30 +126,30 @@
   (define-peeker pointer-ref-c-uint64	%peek64u))
 
 (let-syntax ((define-signed-peeker (syntax-rules ()
-				     ((_ ?name ?sizeof-data)
-				      (define ?name (case ?sizeof-data
+				     ((_ ?name ?type)
+				      (define ?name (case (c-sizeof ?type)
 						      ((1) pointer-ref-c-int8)
 						      ((2) pointer-ref-c-int16)
 						      ((4) pointer-ref-c-int32)
 						      ((8) pointer-ref-c-int64)))))))
-  (define-signed-peeker pointer-ref-c-signed-char	sizeof-char)
-  (define-signed-peeker pointer-ref-c-signed-short	sizeof-short)
-  (define-signed-peeker pointer-ref-c-signed-int	sizeof-int)
-  (define-signed-peeker pointer-ref-c-signed-long	sizeof-long)
-  (define-signed-peeker pointer-ref-c-signed-long-long	sizeof-long-long))
+  (define-signed-peeker pointer-ref-c-signed-char	char)
+  (define-signed-peeker pointer-ref-c-signed-short	short)
+  (define-signed-peeker pointer-ref-c-signed-int	int)
+  (define-signed-peeker pointer-ref-c-signed-long	long)
+  (define-signed-peeker pointer-ref-c-signed-long-long	long-long))
 
 (let-syntax ((define-unsigned-peeker (syntax-rules ()
-				       ((_ ?name ?sizeof-data)
-					(define ?name (case ?sizeof-data
+				       ((_ ?name ?type)
+					(define ?name (case (c-sizeof ?type)
 							((1) pointer-ref-c-uint8)
 							((2) pointer-ref-c-uint16)
 							((4) pointer-ref-c-uint32)
 							((8) pointer-ref-c-uint64)))))))
-  (define-unsigned-peeker pointer-ref-c-unsigned-char		sizeof-char)
-  (define-unsigned-peeker pointer-ref-c-unsigned-short		sizeof-short)
-  (define-unsigned-peeker pointer-ref-c-unsigned-int		sizeof-int)
-  (define-unsigned-peeker pointer-ref-c-unsigned-long		sizeof-long)
-  (define-unsigned-peeker pointer-ref-c-unsigned-long-long	sizeof-long-long))
+  (define-unsigned-peeker pointer-ref-c-unsigned-char		char)
+  (define-unsigned-peeker pointer-ref-c-unsigned-short		short)
+  (define-unsigned-peeker pointer-ref-c-unsigned-int		int)
+  (define-unsigned-peeker pointer-ref-c-unsigned-long		long)
+  (define-unsigned-peeker pointer-ref-c-unsigned-long-long	long-long))
 
 (define (pointer-ref-c-void* pointer position)
   (integer->pointer (%peek-pointer (+ position (pointer->integer pointer)))))
@@ -190,30 +182,30 @@
   (define-poker pointer-set-c-uint64!	0 (- const:2^64 1) %poke64u))
 
 (let-syntax ((define-signed-poker (syntax-rules ()
-				    ((_ ?name ?sizeof-data)
-				     (define ?name (case ?sizeof-data
+				    ((_ ?name ?type)
+				     (define ?name (case (c-sizeof ?type)
 						     ((1) pointer-set-c-int8!)
 						     ((2) pointer-set-c-int16!)
 						     ((4) pointer-set-c-int32!)
 						     ((8) pointer-set-c-int64!)))))))
-  (define-signed-poker pointer-set-c-signed-char!	sizeof-char)
-  (define-signed-poker pointer-set-c-signed-short!	sizeof-short)
-  (define-signed-poker pointer-set-c-signed-int!	sizeof-int)
-  (define-signed-poker pointer-set-c-signed-long!	sizeof-long)
-  (define-signed-poker pointer-set-c-signed-long-long!	sizeof-long-long))
+  (define-signed-poker pointer-set-c-signed-char!	char)
+  (define-signed-poker pointer-set-c-signed-short!	short)
+  (define-signed-poker pointer-set-c-signed-int!	int)
+  (define-signed-poker pointer-set-c-signed-long!	long)
+  (define-signed-poker pointer-set-c-signed-long-long!	long-long))
 
 (let-syntax ((define-unsigned-poker (syntax-rules ()
-				      ((_ ?name ?sizeof-data)
-				       (define ?name (case ?sizeof-data
+				      ((_ ?name ?type)
+				       (define ?name (case (c-sizeof ?type)
 						       ((1) pointer-set-c-uint8!)
 						       ((2) pointer-set-c-uint16!)
 						       ((4) pointer-set-c-uint32!)
 						       ((8) pointer-set-c-uint64!)))))))
-  (define-unsigned-poker pointer-set-c-unsigned-char!		sizeof-char)
-  (define-unsigned-poker pointer-set-c-unsigned-short!		sizeof-short)
-  (define-unsigned-poker pointer-set-c-unsigned-int!		sizeof-int)
-  (define-unsigned-poker pointer-set-c-unsigned-long!		sizeof-long)
-  (define-unsigned-poker pointer-set-c-unsigned-long-long!	sizeof-long-long))
+  (define-unsigned-poker pointer-set-c-unsigned-char!		char)
+  (define-unsigned-poker pointer-set-c-unsigned-short!		short)
+  (define-unsigned-poker pointer-set-c-unsigned-int!		int)
+  (define-unsigned-poker pointer-set-c-unsigned-long!		long)
+  (define-unsigned-poker pointer-set-c-unsigned-long-long!	long-long))
 
 (define (pointer-set-c-void*! pointer position value)
   (%poke-pointer (+ (void*->address pointer) position)

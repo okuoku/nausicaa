@@ -78,45 +78,37 @@
 	  pointer-ref-c-signed-long		pointer-ref-c-unsigned-long
 	  pointer-ref-c-signed-long-long	pointer-ref-c-unsigned-long-long
 	  pointer-ref-c-pointer)
-    (only (ffi sizeof)
-	  sizeof-float
-	  sizeof-double
-	  sizeof-pointer
-	  sizeof-char
-	  sizeof-short
-	  sizeof-int
-	  sizeof-long
-	  sizeof-long-long))
+    (only (ffi sizeof) c-sizeof))
 
 
 ;;;; pokers
 
 (let-syntax ((define-signed-poker (syntax-rules ()
-				    ((_ ?name ?sizeof-data)
-				     (define ?name (case ?sizeof-data
+				    ((_ ?name ?type)
+				     (define ?name (case (c-sizeof ?type)
 						     ((1) pointer-set-c-int8!)
 						     ((2) pointer-set-c-int16!)
 						     ((4) pointer-set-c-int32!)
 						     ((8) pointer-set-c-int64!)))))))
-  (define-signed-poker pointer-set-c-signed-char!	sizeof-char)
-  (define-signed-poker pointer-set-c-signed-short!	sizeof-short)
-  (define-signed-poker pointer-set-c-signed-int!	sizeof-int)
-  (define-signed-poker pointer-set-c-signed-long!	sizeof-long)
-  (define-signed-poker pointer-set-c-signed-long-long!	sizeof-long-long))
+  (define-signed-poker pointer-set-c-signed-char!	char)
+  (define-signed-poker pointer-set-c-signed-short!	short)
+  (define-signed-poker pointer-set-c-signed-int!	int)
+  (define-signed-poker pointer-set-c-signed-long!	long)
+  (define-signed-poker pointer-set-c-signed-long-long!	long-long))
 
 (let-syntax ((define-unsigned-poker (syntax-rules ()
-				      ((_ ?name ?sizeof-data)
-				       (define ?name (case ?sizeof-data
+				      ((_ ?name ?type)
+				       (define ?name (case (c-sizeof ?type)
 						       ((1) pointer-set-c-uint8!)
 						       ((2) pointer-set-c-uint16!)
 						       ((4) pointer-set-c-uint32!)
 						       ((8) pointer-set-c-uint64!)))))))
 
-  (define-unsigned-poker pointer-set-c-unsigned-char!		sizeof-char)
-  (define-unsigned-poker pointer-set-c-unsigned-short!		sizeof-short)
-  (define-unsigned-poker pointer-set-c-unsigned-int!		sizeof-int)
-  (define-unsigned-poker pointer-set-c-unsigned-long!		sizeof-long)
-  (define-unsigned-poker pointer-set-c-unsigned-long-long!	sizeof-long-long))
+  (define-unsigned-poker pointer-set-c-unsigned-char!		char)
+  (define-unsigned-poker pointer-set-c-unsigned-short!		short)
+  (define-unsigned-poker pointer-set-c-unsigned-int!		int)
+  (define-unsigned-poker pointer-set-c-unsigned-long!		long)
+  (define-unsigned-poker pointer-set-c-unsigned-long-long!	long-long))
 
 
 ;;;; done
