@@ -9,9 +9,6 @@
 ;;;	This file is not licensed under the GPL because I want people to
 ;;;	freely take this code out of Nausicaa and try stuff.
 ;;;
-;;;	Aaron Hsu  contributed the SYNTAX->LIST function  through a post
-;;;	on comp.lang.scheme.
-;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
@@ -65,12 +62,22 @@
     <real> <real-valued> <complex> <number>)
   (import (rnrs)
     (only (language-extensions)
-	  begin0
 	  with-accessor-and-mutator)
-    (rnrs mutable-strings))
+    (rnrs mutable-strings)
+    (for (classes helpers) expand))
 
 
+;;;; class type descriptor
+
 (define-record-type (:class-type-descriptor make-class-type-descriptor class-type-descriptor?)
+  ;;Every  class type  is associated  to a  class type  descriptor (CTD)
+  ;;record; given a class name (the identifier) a CTD can be acquired by
+  ;;applying the syntax  CLASS-TYPE-DESCRIPTOR to it.
+  ;;
+  ;;Class descriptors are NOT meant to have the same role of record type
+  ;;descriptors:  their purpose  is debugging  and help  in implementing
+  ;;inheritance.
+  ;;
   (fields (immutable rtd class-record-descriptor)
 		;The underlying record type descriptor.
 	  (immutable virtual-fields class-virtual-fields)
@@ -82,8 +89,9 @@
 		;(immutable <field name> <field accessor name>)
 		;
 	  (immutable predicate class-predicate)
-		;A  symbol representing  the  class' predicate.   Always
-		;present because it defaults to the record predicate.
+		;The  procedure that was  selected as  class' predicate.
+		;Always  present  because  it  defaults  to  the  record
+		;predicate.
 	  (immutable setter class-setter)
 		;A  symbol representing  the  class' setter  identifier;
 		;false if  no setter was selected.  It  does not include
@@ -104,6 +112,143 @@
 		;It  does  not  include  the implementation,  because  a
 		;method can be either a closure or a syntax.
 	  ))
+
+
+;;;; procedural layer
+
+(define (record-type-parent? rtd1 rtd2)
+  (cond ((eq? (record-type-uid rtd1) (record-type-uid rtd2))	#t)
+	((eq? (record-type-uid rtd1) (record-type-uid (record-type-descriptor <top>)))   #f)
+   	((eq? (record-type-uid rtd2) (record-type-uid (record-type-descriptor <top>)))   #t)
+	(else
+	 (memq (record-type-uid rtd2) (map record-type-uid (record-parent-list rtd1))))))
+
+(define (record-parent-list rtd)
+  (let loop ((cls (list rtd))
+	     (rtd (record-type-parent rtd)))
+    (if rtd
+	(loop (cons rtd cls) (record-type-parent rtd))
+      (reverse cls))))
+
+(define (record-type-of obj)
+  ;;Return the  record type  descriptor associated to  OBJ, if obj  is a
+  ;;RECORD; else  return the RTD  of <top>.  The  order of the  tests is
+  ;;important.  More specialised types must come first.
+  ;;
+  (cond
+
+   ;;This  is  here  as  a  special exception  because  in  Larceny  the
+   ;;hashtable  is a  record.  We  have  to process  it before  applying
+   ;;RECORD?
+   ((hashtable?	obj)		(class-record-type-descriptor <hashtable>))
+
+   ((record? obj)
+    (record-rtd obj))
+
+   ((number? obj)
+    ;;Order does matter here!!!
+    (cond ((fixnum?		obj)	(class-record-type-descriptor <fixnum>))
+	  ((integer?		obj)	(class-record-type-descriptor <integer>))
+	  ((rational?		obj)	(class-record-type-descriptor <rational>))
+	  ((integer-valued?	obj)	(class-record-type-descriptor <integer-valued>))
+	  ((rational-valued?	obj)	(class-record-type-descriptor <rational-valued>))
+	  ((flonum?		obj)	(class-record-type-descriptor <flonum>))
+	  ((real?		obj)	(class-record-type-descriptor <real>))
+	  ((real-valued?	obj)	(class-record-type-descriptor <real-valued>))
+	  ((complex?		obj)	(class-record-type-descriptor <complex>))
+	  (else				(class-record-type-descriptor <number>))))
+   ((char?		obj)		(class-record-type-descriptor <char>))
+   ((string?		obj)		(class-record-type-descriptor <string>))
+   ((vector?		obj)		(class-record-type-descriptor <vector>))
+   ((bytevector?	obj)		(class-record-type-descriptor <bytevector>))
+   ((port?		obj)
+    ;;Order here is arbitrary.
+    (cond ((input-port?		obj)	(class-record-type-descriptor <input-port>))
+	  ((output-port?	obj)	(class-record-type-descriptor <output-port>))
+	  ((binary-port?	obj)	(class-record-type-descriptor <binary-port>))
+	  ((textual-port?	obj)	(class-record-type-descriptor <textual-port>))
+	  (else				(class-record-type-descriptor <port>))))
+   ((condition?		obj)		(class-record-type-descriptor <condition>))
+   ((record?		obj)		(class-record-type-descriptor <record>))
+   ((pair?		obj)
+    ;;Order does matter  here!!!  Better leave these at  the end because
+    ;;qualifying a long list can be time-consuming.
+    (cond ((list?	obj)	(class-record-type-descriptor <list>))
+	  (else			(class-record-type-descriptor <pair>))))
+   (else (record-type-descriptor <top>))))
+
+
+;;;; syntactic layer
+
+(define-syntax class-type-descriptor
+  ;;Expand into the  class type descriptor (CTD) record  associated to a
+  ;;class name.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?class-name)
+       (free-identifier=? #'?class-name #'<top>)
+       #'(begin <top>-ctd))
+      ((_ ?class-name)
+       #'(?class-name class-type-descriptor)))))
+
+(define-syntax class-record-type-descriptor
+  ;;Expand into the record type  descriptor (RTD) record associated to a
+  ;;class name.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?class-name)
+       (free-identifier=? #'?class-name #'<top>)
+       #'(record-type-descriptor <top>))
+      ((_ ?class-name)
+       #'(?class-name class-record-type-descriptor)))))
+
+(define-syntax class-constructor-descriptor
+  ;;Expand  into   the  class  default   constructor  descriptor  record
+  ;;associated to a class name.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?class-name)
+       (free-identifier=? #'?class-name #'<top>)
+       #'(record-constructor-descriptor ?class-name))
+      ((_ ?class-name)
+       #'(?class-name default-constructor-descriptor)))))
+
+(define-syntax class-parent-list
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?class-name)
+       (free-identifier=? #'?class-name #'<top>)
+       #'(list (record-type-descriptor <top>)))
+      ((_ ?class-name)
+       #'(record-parent-list (class-record-type-descriptor ?class-name))))))
+
+(define-syntax make
+  ;;Build a new class instance using the default constructor.
+  ;;
+  (syntax-rules ()
+    ((_ ?class-name ?arg ...)
+     (?class-name make ?arg ...))))
+
+(define-syntax is-a?
+  ;;Test  if  a  given object  matches  a  class  type using  the  class
+  ;;predicate selected in the DEFINE-CLASS form.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ((_ ?obj ?class-name)
+       (free-identifier=? #'?class-name #'<top>)
+       (syntax #t))
+
+      ((_ ?obj ?class-name)
+       (identifier? #'?class-name)
+       #'(?class-name is-a? ?obj))
+
+      (?input-form
+       (syntax-violation 'is-a? "invalid syntax use" (syntax->datum #'?input-form))))))
 
 
 (define-syntax define-virtual-class
@@ -152,16 +297,6 @@
 
 (define-syntax define-class
   (lambda (stx)
-    (define (%constructor name)
-      (string->symbol (string-append "make-" name)))
-    (define (%predicate name)
-      (string->symbol (string-append name "?")))
-    (define (syntax->list x)
-      (syntax-case x ()
-	(()		'())
-	((h . t)	(cons (syntax->list #'h) (syntax->list #'t)))
-	(term		#'term)))
-
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
 			     virtual-fields methods method predicate setter getter)
 
@@ -186,18 +321,16 @@
       ((_ ?name ?clause ...)
        (identifier? (syntax ?name))
        (let ((name (symbol->string (syntax->datum #'?name))))
-	 (with-syntax ((CONSTRUCTOR  (datum->syntax #'?name (%constructor name)))
-		       (PREDICATE    (datum->syntax #'?name (%predicate   name))))
-	   #'(%define-class/sort-clauses
-	      (define-class ?name ?clause ...)
-	      (?name CONSTRUCTOR PREDICATE)
-	      () ;collected concrete fields
-	      () ;collected virtual fields
-	      () ;collected methods
-	      () ;collected functions
-	      (predicate) (setter) (getter)
-	      (parent) (protocol) (sealed) (opaque) (parent-rtd) (nongenerative)
-	      ?clause ...))))
+	 #`(%define-class/sort-clauses
+	    (define-class ?name ?clause ...)
+	    (?name #,(syntax-prefix "make-" #'?name) #,(syntax-suffix #'?name "?"))
+	    ()	 ;collected concrete fields
+	    ()	 ;collected virtual fields
+	    ()	 ;collected methods
+	    ()	 ;collected functions
+	    (predicate) (setter) (getter)
+	    (parent) (protocol) (sealed) (opaque) (parent-rtd) (nongenerative)
+	    ?clause ...)))
 
       ((_ ?name-spec . ?clauses)
        (syntax-violation 'define-class
@@ -2095,58 +2228,25 @@
 (define-syntax %define-class/output-forms
   ;;Generate the final output forms for class definition.
   ;;
+  ;;Notice  that  for  the  class-specific  definitions  we  select  the
+  ;;identifiers THE-RTD,  THE-CTD, THE-CD, WITH-CLASS-BINDINGS  and rely
+  ;;on  automatic renaming  of introduced  bindings; it  is  tempting to
+  ;;generate names having the class  name as substring (which would show
+  ;;in debugging stack traces), but  it would pollute the environment of
+  ;;the output form generating identifier collisions.
+  ;;
   (lambda (stx)
-
-    (define (%make-name/rtd name)	;name of record type descriptor
-      (string->symbol (string-append (symbol->string name) "-rtd")))
-
-    (define (%make-name/ctd name)	;name of class type descriptor
-      (string->symbol (string-append (symbol->string name) "-ctd")))
-
-    (define (%make-name/cd name)	;name of constructor descriptor
-      (string->symbol (string-append (symbol->string name) "-cd")))
-
-    (define (%make-name/with-class name)	;name of class specific with-class syntax
-      (string->symbol (string-append (symbol->string name) "-with-class-bindings-of")))
-
-    (define (duplicated-ids? ell)
-      ;;Search the list of  identifier syntax objects ELL for duplicated
-      ;;identifiers;  return   false  of  a  syntax   object  holding  a
-      ;;duplicated identifier.
-      ;;
-      (if (null? ell)
-	  #f
-	(let inner ((x  (car ell))
-		    (ls (cdr ell)))
-	  (if (null? ls)
-	      (duplicated-ids? (cdr ell))
-	    (if (bound-identifier=? x (car ls))
-		x
-	      (inner x (cdr ls)))))))
-
-    (define generate-numbers
+    (define (generate-field-indexes list-of-fields/stx)
       ;;Derived  from   IOTA  from  (lists);  generate   a  sequence  of
       ;;non-negative exact integers to be  used as indexes in the vector
       ;;of concrete fields.
       ;;
-      (case-lambda
-
-       ((context-stx list-of-syntaxes)
-	(generate-numbers context-stx list-of-syntaxes 0 1))
-
-       ((context-stx list-of-syntaxes start)
-	(generate-numbers context-stx list-of-syntaxes start 1))
-
-       ((context-stx list-of-syntaxes start step)
-	(let ((count (length (syntax->datum list-of-syntaxes))))
-	  (if (< count 0)
-	      (assertion-violation 'generate-numbers
-		"expected non-negative count argument" count)
-	    (do ((count count (- count 1))
-		 (val (+ start (* (- count 1) step)) (- val step))
-		 (ret '() (cons val ret)))
-		((<= count 0)
-		 (datum->syntax context-stx ret))))))))
+      (let ((count (length (syntax->datum list-of-fields/stx))))
+	(do ((count count (- count 1))
+	     (val (- count 1) (- val 1))
+	     (ret '() (cons val ret)))
+	    ((<= count 0)
+	     ret))))
 
     (syntax-case stx ()
 
@@ -2158,23 +2258,17 @@
 	  (?collected-definition ...)
 	  ?predicate-function ?setter ?getter
 	  ?protocol ?sealed ?opaque ?parent-rtd ?parent-cd ?uid)
-       (let ((id (duplicated-ids? #'(?field ... ?virtual-field ... ?method ...))))
+       (let ((id (duplicated-identifiers? #'(?field ... ?virtual-field ... ?method ...))))
 	 (if id
 	     (syntax-violation 'define-class
 	       "duplicated field names in class definition"
 	       (syntax->datum #'?input-form)
 	       (syntax->datum id))
 	   (let ((name (syntax->datum #'?class-name)))
-	     (with-syntax
-		 ((NAME-RTD	(datum->syntax #'?class-name (%make-name/rtd name)))
-		  (NAME-CTD	(datum->syntax #'?class-name (%make-name/ctd name)))
-		  (NAME-CD	(datum->syntax #'?class-name (%make-name/cd  name)))
-		  (WITH-CLASS-BINDINGS
-		   (datum->syntax #'?class-name (%make-name/with-class	name)))
-		  ((FIELD-INDEXES ...)
-		   (generate-numbers #'?class-name #'(?field ...))))
+	     (with-syntax (((FIELD-INDEXES ...)
+			    (datum->syntax #'?class-name (generate-field-indexes #'(?field ...)))))
 	       #'(begin
-		   (define NAME-RTD
+		   (define the-rtd
 		     (make-record-type-descriptor (quote ?class-name)
 						  ?parent-rtd (quote ?uid)
 						  ?sealed ?opaque
@@ -2182,22 +2276,23 @@
 
 ;;;TEST class type descriptor, field holding UID list, lambda and syntax-rules in methods
 
-		   (define NAME-CTD
+		   (define the-cd
+		     (make-record-constructor-descriptor the-rtd ?parent-cd ?protocol))
+
+		   (define ?constructor	(record-constructor the-cd))
+		   (define ?predicate	(record-predicate the-rtd))
+
+		   (define the-ctd
 		     (make-class-type-descriptor
-		      NAME-RTD
+		      the-rtd
 		      (quote #((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...))
-		      (quote ?predicate-function)
+		      ?predicate-function
 		      (quote ?setter) (quote ?getter)
 		      (quote #((?method ?method-function) ...))))
 
-		   (define NAME-CD
-		     (make-record-constructor-descriptor NAME-RTD ?parent-cd ?protocol))
-
-		   (define ?constructor		(record-constructor NAME-CD))
-		   (define ?predicate		(record-predicate NAME-RTD))
 
 		   (%define-class/output-forms/fields-accessors-and-mutators
-		    NAME-RTD (FIELD-INDEXES ...) (?mutability ?field ?accessor ...) ...)
+		    the-rtd (FIELD-INDEXES ...) (?mutability ?field ?accessor ...) ...)
 
 		   ;;These are the definitions of in-definition methods.
 		   ?collected-definition ...
@@ -2211,13 +2306,13 @@
 					 with-class-bindings-of)
 
 			 ((_ class-type-descriptor)
-			  #'(begin NAME-CTD))
+			  #'(begin the-ctd))
 
 			 ((_ class-record-type-descriptor)
-			  #'(begin NAME-RTD))
+			  #'(begin the-rtd))
 
 			 ((_ default-constructor-descriptor)
-			  #'(begin NAME-CD))
+			  #'(begin the-cd))
 
 			 ((_ make ?arg (... ...))
 			  #'(?constructor ?arg (... ...)))
@@ -2226,7 +2321,7 @@
 			  #'(?predicate-function ?arg (... ...)))
 
 			 ((_ with-class-bindings-of ?arg (... ...))
-			  #'(WITH-CLASS-BINDINGS ?arg (... ...)))
+			  #'(with-class-bindings ?arg (... ...)))
 
 			 ((_ ?keyword . ?rest)
 			  (syntax-violation '?class-name
@@ -2235,7 +2330,7 @@
 			    (syntax->datum #'?keyword)))
 			 )))
 
-		   (define-syntax WITH-CLASS-BINDINGS
+		   (define-syntax with-class-bindings
 		     (syntax-rules ()
 		       ((_ ?variable-name ?body0 ?body (... ...))
 		   	(%with-class-fields
@@ -2288,52 +2383,6 @@
     ))
 
 
-(define-syntax with-class
-  ;;This  is the  public entry  point  for fields,  methods, setter  and
-  ;;getter access;  the name WITH-CLASS is  a bit misleading  but it is
-  ;;cute.  Just  hand everything to  %WITH-CLASS-BINDINGS: the recursive
-  ;;%WITH-CLASS-BINDINGS needs to allow input forms which we do not want
-  ;;for WITH-CLASS.
-  ;;
-  ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
-  ;;expanding other macros into WITH-CLASS uses.
-  ;;
-  (syntax-rules ()
-    ((_ (?clause ...) ?body0 ?body ...)
-     (%with-class-bindings (?clause ...) ?body0 ?body ...))))
-
-(define-syntax %with-class-bindings
-  ;;The  core syntax  for  fields, methods,  setter  and getter  access.
-  ;;Expand into nested uses of:
-  ;;
-  ;;  (<class> with-class-bindings-of ...)
-  ;;
-  ;;which is the syntax having knowledge of the context of <class>.
-  ;;
-  (lambda (stx)
-    (syntax-case stx ()
-
-      ;;If the  class is "<top>" skip  it, because "<top>"  has no class
-      ;;bindings.
-      ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
-       (and (identifier? #'?var) (free-identifier=? #'?class0 #'<top>))
-       #'(%with-class-bindings ((?var ?class ...) ?clause ...) ?body0 ?body ...))
-
-      ;;Process the next class in the clause.
-      ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
-       (and (identifier? #'?var) (identifier? #'?class0))
-       #'(?class0 with-class-bindings-of ?var
-		  (%with-class-bindings ((?var ?class ...) ?clause ...) ?body0 ?body ...)))
-
-      ;;No more classes, move to the next clause.
-      ((_ ((?var) ?clause ...) ?body0 ?body ...)
-       #'(%with-class-bindings (?clause ...) ?body0 ?body ...))
-
-      ;;No more clauses, expand the body.
-      ((_ () ?body0 ?body ...)
-       #'(begin ?body0 ?body ...)))))
-
-
 (define-syntax %with-class-fields
   ;;Handle  access to  fields, both  concrete and  virtual;  expand into
   ;;nested uses of WITH-ACCESSOR-AND-MUTATOR from (language-extensions).
@@ -2382,17 +2431,15 @@
   ;;bindings.
   ;;
   (lambda (stx)
-    (define (%setf name)
-      (string->symbol (string-append (symbol->string name)
-				     ".__nausicaa_private_setter_identifier_syntax")))
     (syntax-case stx ()
       ((_ ?variable-name ?setter ?getter . ?body)
        (and (identifier? #'?variable-name) (identifier? #'?setter))
-       (with-syntax ((SETF (datum->syntax #'?variable-name (%setf (syntax->datum #'?variable-name)))))
-	 #'(let-syntax ((SETF (syntax-rules ()
-				((_ ?key0 ?key (... ...) ?value)
-				 (?setter ?variable-name ?key0 ?key (... ...) ?value)))))
-	     (%with-class-getter ?variable-name ?getter . ?body))))
+       #`(let-syntax
+	     ((#,(%variable-name->Setter-name #'?variable-name)
+	       (syntax-rules ()
+		 ((_ ?key0 ?key (... ...) ?value)
+		  (?setter ?variable-name ?key0 ?key (... ...) ?value)))))
+	   (%with-class-getter ?variable-name ?getter . ?body)))
 
       ((_ ?variable-name ?setter #f . ?body)
        (identifier? #'?variable-name)
@@ -2406,47 +2453,18 @@
   ;;not shadow enclosing bindings.
   ;;
   (lambda (stx)
-    (define (%getf name)
-      (string->symbol (string-append name ".__nausicaa_private_getter_identifier_syntax")))
     (syntax-case stx ()
       ((_ ?variable-name ?getter . ?body)
        (and (identifier? #'?variable-name) (identifier? #'?getter))
-       (let ((name (symbol->string (syntax->datum #'?variable-name))))
-	 (with-syntax ((GETF (datum->syntax #'?variable-name (%getf name))))
-	   #'(let-syntax ((GETF (syntax-rules ()
-				  ((_ ?key0 ?key (... ...))
-				   (?getter ?variable-name ?key0 ?key (... ...))))))
-	       . ?body))))
+       #`(let-syntax ((#,(%variable-name->Getter-name #'?variable-name)
+		       (syntax-rules ()
+			 ((_ ?key0 ?key (... ...))
+			  (?getter ?variable-name ?key0 ?key (... ...))))))
+	   . ?body))
       ((_ ?variable-name #f . ?body)
        (identifier? #'?variable-name)
        #'(begin . ?body))
       )))
-
-(define-syntax setf
-  (lambda (stx)
-    (define (%setf name)
-      (string->symbol (string-append (symbol->string name)
-				     ".__nausicaa_private_setter_identifier_syntax")))
-    (syntax-case stx (setter setter-multi-key set!)
-      ((_ (?variable-name ?key0 ?key ...) ?value)
-       (identifier? #'?variable-name)
-       (with-syntax ((SETF (datum->syntax #'?variable-name (%setf (syntax->datum #'?variable-name)))))
-      	 #'(SETF ?key0 ?key ... ?value)))
-       ((_ ?variable-name ?value)
-       (identifier? #'?variable-name)
-	#'(set! ?variable-name ?value))
-       )))
-
-(define-syntax getf
-  (lambda (stx)
-    (define (%getf name)
-      (string->symbol (string-append (symbol->string name)
-				     ".__nausicaa_private_getter_identifier_syntax")))
-    (syntax-case stx (setter setter-multi-key set!)
-      ((_ (?variable-name ?key0 ?key ...))
-       (identifier? #'?variable-name)
-       (with-syntax ((GETF (datum->syntax #'?variable-name (%getf (syntax->datum #'?variable-name)))))
-      	 #'(GETF ?key0 ?key ...))))))
 
 
 (define-syntax %with-class-methods
@@ -2458,11 +2476,6 @@
       (map (lambda (method)
 	     (string->symbol (string-append (symbol->string name) "." (symbol->string method))))
 	list-of-methods))
-    (define (syntax->list x)
-      (syntax-case x ()
-	(()		'())
-	((h . t)	(cons (syntax->list #'h) (syntax->list #'t)))
-	(term		#'term)))
     (syntax-case stx ()
 
       ;;Generate the methods' syntaxes.
@@ -2486,7 +2499,77 @@
       )))
 
 
-;;;; LET processing
+;;;; core public syntaxes to access fields, methods, setters and getters
+
+(define-syntax with-class
+  ;;This  is the  public entry  point  for fields,  methods, setter  and
+  ;;getter access;  the name WITH-CLASS is  a bit misleading  but it is
+  ;;cute.  Just  hand everything to  %WITH-CLASS-BINDINGS: the recursive
+  ;;%WITH-CLASS-BINDINGS needs to allow input forms which we do not want
+  ;;for WITH-CLASS.
+  ;;
+  ;;We  allow  an  empty list  of  clauses  because  it is  useful  when
+  ;;expanding other macros into WITH-CLASS uses.
+  ;;
+  (syntax-rules ()
+    ((_ (?clause ...) ?body0 ?body ...)
+     (%with-class-bindings (?clause ...) ?body0 ?body ...))))
+
+(define-syntax %with-class-bindings
+  ;;The  core syntax  for  fields, methods,  setter  and getter  access.
+  ;;Expand into nested uses of:
+  ;;
+  ;;  (<class> with-class-bindings-of ...)
+  ;;
+  ;;which is the syntax having knowledge of the context of <class>.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+
+      ;;If the  class is "<top>" skip  it, because "<top>"  has no class
+      ;;bindings.
+      ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
+       (and (identifier? #'?var) (free-identifier=? #'?class0 #'<top>))
+       #'(%with-class-bindings ((?var ?class ...) ?clause ...) ?body0 ?body ...))
+
+      ;;Process the next class in the clause.
+      ((_ ((?var ?class0 ?class ...) ?clause ...) ?body0 ?body ...)
+       (and (identifier? #'?var) (identifier? #'?class0))
+       #'(?class0 with-class-bindings-of ?var
+		  (%with-class-bindings ((?var ?class ...) ?clause ...) ?body0 ?body ...)))
+
+      ;;No more classes, move to the next clause.
+      ((_ ((?var) ?clause ...) ?body0 ?body ...)
+       #'(%with-class-bindings (?clause ...) ?body0 ?body ...))
+
+      ;;No more clauses, expand the body.
+      ((_ () ?body0 ?body ...)
+       #'(begin ?body0 ?body ...)))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax setf
+  (lambda (stx)
+    (syntax-case stx (setter setter-multi-key set!)
+      ((_ (?variable-name ?key0 ?key ...) ?value)
+       (identifier? #'?variable-name)
+       #`(#,(%variable-name->Setter-name #'?variable-name)
+	  ?key0 ?key ... ?value))
+       ((_ ?variable-name ?value)
+       (identifier? #'?variable-name)
+	#'(set! ?variable-name ?value))
+       )))
+
+(define-syntax getf
+  (lambda (stx)
+    (syntax-case stx (setter setter-multi-key set!)
+      ((_ (?variable-name ?key0 ?key ...))
+       (identifier? #'?variable-name)
+       #`(#,(%variable-name->Getter-name #'?variable-name)
+	  ?key0 ?key ...)))))
+
+
+;;;; LET wrappers
 
 (define no-loop #f)
 
@@ -2495,11 +2578,6 @@
   ;;rest to %DO-LET/ADD-TOP.
   ;;
   (lambda (stx)
-    (define (syntax->list x)
-      (syntax-case x ()
-	(()		'())
-	((h . t)	(cons (syntax->list #'h) (syntax->list #'t)))
-	(term		#'term)))
     (syntax-case stx ()
 
       ;;No bindings.  Expand to ?LET  to allow <definition> forms in the
@@ -2533,27 +2611,27 @@
   (lambda (stx)
     (syntax-case stx ()
 
-    ;;No more bindings to collect.
-    ((_ ?let ?let/with-class ?loop (?bind ...) () ?body0 ?body ...)
-     (if (free-identifier=? #'let #'?let)
-	 #'(?let/with-class ?loop (?bind ...) ?body0 ?body ...)
-       #'(?let/with-class (?bind ...) ?body0 ?body ...)))
+      ;;No more bindings to collect.
+      ((_ ?let ?let/with-class ?loop (?bind ...) () ?body0 ?body ...)
+       (if (free-identifier=? #'let #'?let)
+	   #'(?let/with-class ?loop (?bind ...) ?body0 ?body ...)
+	 #'(?let/with-class (?bind ...) ?body0 ?body ...)))
 
-    ;;Add <top> as type to an untyped binding.
-    ((_ ?let ?let/with-class ?loop (?bind ...) ((?var0 ?init0) (?var ?init) ...) ?body0 ?body ...)
-     (identifier? #'?var0)
-     #'(%do-let/add-top ?let ?let/with-class ?loop
-		       (?bind ... ((?var0 <top>) ?init0))
-		       ((?var ?init) ...)
-		       ?body0 ?body ...))
+      ;;Add <top> as type to an untyped binding.
+      ((_ ?let ?let/with-class ?loop (?bind ...) ((?var0 ?init0) (?var ?init) ...) ?body0 ?body ...)
+       (identifier? #'?var0)
+       #'(%do-let/add-top ?let ?let/with-class ?loop
+			  (?bind ... ((?var0 <top>) ?init0))
+			  ((?var ?init) ...)
+			  ?body0 ?body ...))
 
-    ;;Collect a typed binding.
-    ((_ ?let ?let/with-class ?loop (?bind ...) ((?var0 ?init0) (?var ?init) ...) ?body0 ?body ...)
-     #'(%do-let/add-top ?let ?let/with-class ?loop
-		       (?bind ... (?var0 ?init0))
-		       ((?var ?init) ...)
-		       ?body0 ?body ...))
-    )))
+      ;;Collect a typed binding.
+      ((_ ?let ?let/with-class ?loop (?bind ...) ((?var0 ?init0) (?var ?init) ...) ?body0 ?body ...)
+       #'(%do-let/add-top ?let ?let/with-class ?loop
+			  (?bind ... (?var0 ?init0))
+			  ((?var ?init) ...)
+			  ?body0 ?body ...))
+      )))
 
 ;;; --------------------------------------------------------------------
 
@@ -2587,29 +2665,19 @@
 
 (define-syntax %let*/with-class
   (lambda (stx)
-    (define (duplicated-ids? ell)
-      (if (null? ell)
-	  #f
-	(let inner ((x  (car ell))
-		    (ls (cdr ell)))
-	  (if (null? ls)
-	      (duplicated-ids? (cdr ell))
-	    (if (bound-identifier=? x (car ls))
-		x
-	      (inner x (cdr ls)))))))
     (syntax-case stx ()
 
       ((let*/with-class (((?var0 ?class0 ?class00 ...) ?init0)
-		     ((?var1 ?class1 ?class11 ...) ?init1)
-		     ...)
+			 ((?var1 ?class1 ?class11 ...) ?init1)
+			 ...)
 	 ?body0 ?body ...)
-       (let ((id (duplicated-ids? #'(?var0 ?var1 ...))))
+       (let ((id (duplicated-identifiers? #'(?var0 ?var1 ...))))
 	 (if id
 	     #`(syntax-violation 'let*/with-class
 		 "duplicated field names in let*/with-class"
 		 (quote (let*/with-class (((?var0 ?class0 ?class00 ...) ?init0)
-				      ((?var1 ?class1 ?class11 ...) ?init1)
-				      ...)
+					  ((?var1 ?class1 ?class11 ...) ?init1)
+					  ...)
 			  ?body0 ?body ...))
 		 (quote (#,id)))
 	   #'(let ((?var0 ?init0))
@@ -2653,6 +2721,8 @@
 	 ?body0 ?body ...)))))
 
 
+;;;; DEFINE and LAMBDA wrappers
+
 (define-syntax define/with-class
   (syntax-rules ()
     ((_ (?variable . ?formals) . ?body)
@@ -2756,7 +2826,6 @@
 	 (lambda () ?expression)
        (lambda/with-class ?formals ?form0 ?form ...)))))
 
-
 (define-syntax case-lambda/with-class
   (syntax-rules ()
     ((_ (?formals . ?body) ...)
@@ -2829,7 +2898,7 @@
       #f
       (?collected-case-lambda-clause ... ((?collected-arg ...)
 					  (with-class ((?collected-arg ?collected-cls ...)
-							...)
+						       ...)
 					    . ?body)))
       ()
       ()
@@ -2847,7 +2916,7 @@
 							   (?collected-arg ...))
 					  (let ()
 					    (with-class ((?collected-arg ?collected-cls ...)
-							  ...)
+							 ...)
 					      . ?body))))
       ()
       ()
@@ -2866,7 +2935,7 @@
       #f
       (?collected-case-lambda-clause ... ((?collected-arg ... . ?rest)
 					  (with-class ((?collected-arg ?collected-cls ...)
-							...)
+						       ...)
 					    . ?body)))
       ()
       ()
@@ -2884,7 +2953,7 @@
 							   (?collected-arg ...))
 					  (let ()
 					    (with-class ((?collected-arg ?collected-cls ...)
-							  ...)
+							 ...)
 					      . ?body))))
       ()
       ()
@@ -2915,15 +2984,12 @@
 
 (define-syntax define-builtin-class
   (lambda (stx)
-    (define (%uid name)
-      (string->symbol (string-append "nausicaa:builtin:" (symbol->string name))))
     (syntax-case stx ()
       ((_ ?class-name ?clause ...)
-       (with-syntax ((UID (datum->syntax #'?class-name (%uid (syntax->datum #'?class-name)))))
-	 #'(define-virtual-class ?class-name
-	     (parent <builtin>)
-	     (nongenerative UID)
-	     ?clause ...))))))
+       #`(define-virtual-class ?class-name
+	   (parent <builtin>)
+	   (nongenerative #,(syntax-prefix "nausicaa:builtin:" #'?class-name))
+	   ?clause ...)))))
 
 (define-builtin-class <pair>
   (predicate pair?)
@@ -3089,25 +3155,31 @@
   (predicate output-port?)
   (nongenerative nausicaa:builtin:<output-port>))
 
+;;This predicate is needed because in some implementations (Petite Chez)
+;;BINARY-PORT? throws an exception if  OBJ is not a port.
+;;
+;;*NOTE* The  predicate definition goes  before the class  definition to
+;;make some Scheme implementations happy.
+(define (%binary-port? obj)
+  (and (port? obj) (binary-port? obj)))
+
 (define-virtual-class <binary-port>
   (parent <port>)
   (predicate %binary-port?)
   (nongenerative nausicaa:builtin:<binary-port>))
 
 ;;This predicate is needed because in some implementations (Petite Chez)
-;;BINARY-PORT? throws an exception if OBJ is not a port.
-(define (%binary-port? obj)
-  (and (port? obj) (binary-port? obj)))
+;;TEXTUAL-PORT? throws an exception if OBJ is not a port.
+;;
+;;*NOTE* The  predicate definition goes  before the class  definition to
+;;make some Scheme implementations happy.
+(define (%textual-port? obj)
+  (and (port? obj) (textual-port? obj)))
 
 (define-virtual-class <textual-port>
   (parent <port>)
   (predicate %textual-port?)
   (nongenerative nausicaa:builtin:<textual-port>))
-
-;;This predicate is needed because in some implementations (Petite Chez)
-;;TEXTUAL-PORT? throws an exception if OBJ is not a port.
-(define (%textual-port? obj)
-  (and (port? obj) (textual-port? obj)))
 
 ;;; --------------------------------------------------------------------
 
@@ -3189,131 +3261,6 @@
   (parent <integer>)
   (predicate fixnum?)
   (nongenerative nausicaa:builtin:<fixnum>))
-
-
-;;;; syntactic inspection layer
-
-(define-syntax class-type-descriptor
-  (lambda (stx)
-    (syntax-case stx (class-type-descriptor)
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(begin <top>-ctd))
-      ((_ ?class-name)
-       #'(?class-name class-type-descriptor)))))
-
-(define-syntax class-record-type-descriptor
-  (lambda (stx)
-    (syntax-case stx (class-record-type-descriptor)
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(record-type-descriptor <top>))
-      ((_ ?class-name)
-       #'(?class-name class-record-type-descriptor)))))
-
-(define-syntax class-constructor-descriptor
-  (lambda (stx)
-    (syntax-case stx (default-constructor-descriptor)
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(record-constructor-descriptor ?class-name))
-      ((_ ?class-name)
-       #'(?class-name default-constructor-descriptor)))))
-
-(define-syntax class-parent-list
-  (lambda (stx)
-    (syntax-case stx ()
-
-      ((_ ?record-name)
-       (free-identifier=? #'?record-name #'<top>)
-       #'(list (record-type-descriptor <top>)))
-
-      ((_ ?record-name)
-       #'(record-parent-list (class-record-type-descriptor ?record-name))))))
-
-(define-syntax make
-  (syntax-rules ()
-    ((_ ?class-name ?arg ...)
-     (?class-name make ?arg ...))))
-
-(define-syntax is-a?
-  (lambda (stx)
-    (syntax-case stx ()
-
-      ((_ ?obj ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       (syntax (begin #t)))
-
-      ((_ ?obj ?class-name)
-       (identifier? #'?class-name)
-       #'(?class-name is-a? ?obj))
-
-      (?input-form
-       (syntax-violation 'is-a? "invalid syntax use" (syntax->datum #'?input-form))))))
-
-
-;;;; procedural inspection layer
-
-(define (record-type-parent? rtd1 rtd2)
-  (cond ((eq? (record-type-uid rtd1) (record-type-uid rtd2))	#t)
-	((eq? (record-type-uid rtd1) (record-type-uid (record-type-descriptor <top>)))   #f)
-   	((eq? (record-type-uid rtd2) (record-type-uid (record-type-descriptor <top>)))   #t)
-	(else
-	 (memq (record-type-uid rtd2) (map record-type-uid (record-parent-list rtd1))))))
-
-(define (record-parent-list rtd)
-  (let loop ((cls (list rtd))
-	     (rtd (record-type-parent rtd)))
-    (if rtd
-	(loop (cons rtd cls) (record-type-parent rtd))
-      (reverse cls))))
-
-(define (record-type-of obj)
-  ;;Return the  record type  descriptor associated to  OBJ, if obj  is a
-  ;;RECORD; else  return the RTD  of <top>.  The  order of the  tests is
-  ;;important.  More specialised types must come first.
-  ;;
-  (cond
-
-   ;;This  is  here  as  a  special exception  because  in  Larceny  the
-   ;;hashtable  is a  record.  We  have  to process  it before  applying
-   ;;RECORD?
-   ((hashtable?	obj)		(class-record-type-descriptor <hashtable>))
-
-   ((record? obj)
-    (record-rtd obj))
-
-   ((number? obj)
-    ;;Order does matter here!!!
-    (cond ((fixnum?		obj)	(class-record-type-descriptor <fixnum>))
-	  ((integer?		obj)	(class-record-type-descriptor <integer>))
-	  ((rational?		obj)	(class-record-type-descriptor <rational>))
-	  ((integer-valued?	obj)	(class-record-type-descriptor <integer-valued>))
-	  ((rational-valued?	obj)	(class-record-type-descriptor <rational-valued>))
-	  ((flonum?		obj)	(class-record-type-descriptor <flonum>))
-	  ((real?		obj)	(class-record-type-descriptor <real>))
-	  ((real-valued?	obj)	(class-record-type-descriptor <real-valued>))
-	  ((complex?		obj)	(class-record-type-descriptor <complex>))
-	  (else				(class-record-type-descriptor <number>))))
-   ((char?		obj)		(class-record-type-descriptor <char>))
-   ((string?		obj)		(class-record-type-descriptor <string>))
-   ((vector?		obj)		(class-record-type-descriptor <vector>))
-   ((bytevector?	obj)		(class-record-type-descriptor <bytevector>))
-   ((port?		obj)
-    ;;Order here is arbitrary.
-    (cond ((input-port?		obj)	(class-record-type-descriptor <input-port>))
-	  ((output-port?	obj)	(class-record-type-descriptor <output-port>))
-	  ((binary-port?	obj)	(class-record-type-descriptor <binary-port>))
-	  ((textual-port?	obj)	(class-record-type-descriptor <textual-port>))
-	  (else				(class-record-type-descriptor <port>))))
-   ((condition?		obj)		(class-record-type-descriptor <condition>))
-   ((record?		obj)		(class-record-type-descriptor <record>))
-   ((pair?		obj)
-    ;;Order does matter  here!!!  Better leave these at  the end because
-    ;;qualifying a long list can be time-consuming.
-    (cond ((list?	obj)	(class-record-type-descriptor <list>))
-	  (else			(class-record-type-descriptor <pair>))))
-   (else (record-type-descriptor <top>))))
 
 
 ;;;; done

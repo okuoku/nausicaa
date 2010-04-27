@@ -2829,6 +2829,99 @@
   #t)
 
 
+(parametrise ((check-test-name 'class-type-descriptor))
+
+  (let ()
+    (define-class <alpha>
+      (fields (mutable a)
+  	      (immutable b)
+  	      (mutable c)))
+
+    (define <alpha>-ctd
+      (class-type-descriptor <alpha>))
+
+    (check
+	(record-type-descriptor? (class-record-descriptor <alpha>-ctd))
+      => #t)
+
+    (check
+	(record-type-name (class-record-descriptor <alpha>-ctd))
+      => '<alpha>)
+
+    (check
+	(class-virtual-fields <alpha>-ctd)
+      => '#())
+
+    (check
+	(procedure? (class-predicate <alpha>-ctd))
+      => #t)
+
+    (check
+	(class-setter <alpha>-ctd)
+      => #f)
+
+    (check
+	(class-getter <alpha>-ctd)
+      => #f)
+
+    (check
+	(class-methods <alpha>-ctd)
+      => '#())
+
+    #f)
+
+  (let ()
+    (define-class <beta>
+      (fields (mutable a)
+  	      (immutable b)
+  	      (mutable c))
+      (virtual-fields (mutable   aa <beta>-a <beta>-a-set!)
+		      (immutable bb <beta>-b))
+      (methods (cc <beta>-c))
+      (method (dd o)
+	#t))
+
+    (define <beta>-ctd
+      (class-type-descriptor <beta>))
+
+    (check
+	(record-type-descriptor? (class-record-descriptor <beta>-ctd))
+      => #t)
+
+    (check
+	(record-type-name (class-record-descriptor <beta>-ctd))
+      => '<beta>)
+
+    (check
+	(class-virtual-fields <beta>-ctd)
+      => '#((mutable   aa <beta>-a <beta>-a-set!)
+	    (immutable bb <beta>-b)))
+
+    (check
+	(procedure? (class-predicate <beta>-ctd))
+      => #t)
+
+    (check
+	(class-setter <beta>-ctd)
+      => #f)
+
+    (check
+	(class-getter <beta>-ctd)
+      => #f)
+
+    (check
+    	(vector-ref (class-methods <beta>-ctd) 0)
+      => '(cc <beta>-c))
+
+    (check
+    	(car (vector-ref (class-methods <beta>-ctd) 1))
+      => 'dd)
+
+    #f)
+
+  #t)
+
+
 (parametrise ((check-test-name 'inspection))
 
   (let ()

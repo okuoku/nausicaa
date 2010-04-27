@@ -58,6 +58,9 @@
 (compile-library "shared-structures.sls"
 		 "shared-structures.slfasl")
 
+(compile-library "classes/helpers.sls"
+		 "classes/helpers.slfasl")
+
 (compile-library "classes.sls"
 		 "classes.slfasl")
 

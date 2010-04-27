@@ -20292,10 +20292,12 @@ by @func{define-record-type}.
 @subsection Inspecting class type descriptors
 
 
-A class type descriptor can be acquired through
-@func{class-type-descriptor} applied to a class name.  Class descriptors
-are @strong{not} meant to have the same role of record type descriptors:
-their purpose is mainly debugging.
+Every class type is associated to a class type descriptor
+(@acronym{CTD}) record; given a class name (the identifier) a
+@acronym{CTD} can be acquired by applying the syntax
+@func{class-type-descriptor} to it.  Class descriptors are @strong{not}
+meant to have the same role of record type descriptors: their purpose is
+mainly debugging.
 
 
 @defun make-class-type-descriptor @var{rtd} @var{virtual-fields} @var{predicate} @var{setter} @var{getter} @var{methods}
@@ -20324,7 +20326,7 @@ the implementations of accessors and mutators are not included because
 they can be either functions or macros.
 
 @item predicate
-A symbol representing the class' predicate.  Always present because it
+The procedure selected as class' predicate.  Always present because it
 defaults to the record predicate.
 
 @item setter
