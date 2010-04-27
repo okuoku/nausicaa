@@ -457,11 +457,10 @@
 		  ))))
 	field-names field-type-categories)
       (%structs-lib `((define-class ,class-type
-			(parent <c-struct>)
 			(virtual-fields ,@class-fields)
-			(protocol (lambda (make-c-struct)
+			(protocol (lambda (make-record)
 				    (lambda (pointer)
-				      ((make-c-struct pointer)))))
+				      ((make-record pointer)))))
 			(nongenerative ,struct-uid))
 		      ,@class-methods
 		      )))))

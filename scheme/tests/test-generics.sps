@@ -43,12 +43,12 @@
 	      (mutable b)
 	      (mutable c)))
     (define-class <two>
-      (parent <one>)
+      (inherit <one>)
       (fields (mutable d)
 	      (mutable e)
 	      (mutable f)))
     (define-class <three>
-      (parent <two>)
+      (inherit <two>)
       (fields (mutable g)
 	      (mutable h)
 	      (mutable i)))
@@ -83,7 +83,7 @@
 	      (mutable b)
 	      (mutable c)))
     (define-class <two>
-      (parent <one>)
+      (inherit <one>)
       (fields (mutable d)
 	      (mutable e)
 	      (mutable f)))
@@ -134,12 +134,12 @@
 	    (mutable b)
 	    (mutable c)))
   (define-class <two>
-    (parent <one>)
+    (inherit <one>)
     (fields (mutable d)
 	    (mutable e)
 	    (mutable f)))
   (define-class <three>
-    (parent <two>)
+    (inherit <two>)
     (fields (mutable g)
 	    (mutable h)
 	    (mutable i)))
@@ -182,13 +182,13 @@
     (fields (mutable d)))
 
   (define-class <1>
-    (parent <a>))
+    (inherit <a>))
   (define-class <2>
-    (parent <b>))
+    (inherit <b>))
   (define-class <3>
-    (parent <c>))
+    (inherit <c>))
   (define-class <4>
-    (parent <d>))
+    (inherit <d>))
 
   (define a (make-<a> 1))
   (define b (make-<b> 2))
@@ -319,12 +319,12 @@
 	      (mutable b)
 	      (mutable c)))
     (define-class <two>
-      (parent <one>)
+      (inherit <one>)
       (fields (mutable d)
 	      (mutable e)
 	      (mutable f)))
     (define-class <three>
-      (parent <two>)
+      (inherit <two>)
       (fields (mutable g)
 	      (mutable h)
 	      (mutable i)))

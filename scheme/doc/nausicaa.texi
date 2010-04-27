@@ -19751,20 +19751,10 @@ The facilities of the library work only on records of type defined with
 
 
 A @dfn{class type} as defined by the @library{classes} library is a
-regular record type, with the constraints of being nongenerative and to
-have @class{top} as parent; the following is a valid class definition:
-
-@example
-(define-record-type <alpha>
-  (parent <top>)
-  (nongenerative)
-  ---)
-@end example
-
-@noindent
-but it is better to use @func{define-class} to define classes, because
-@func{define-class} generates auxiliary syntaxes which allow for virtual
-fields, methods and dot notation.
+regular record type, with the constraint of being nongenerative; new
+class types are defined by @func{define-class}, which generates
+auxiliary syntaxes to allow for virtual fields, methods and dot
+notation.
 
 
 @deffn Syntax define-class @ameta{name spec} @ameta{class clause}*
@@ -19778,10 +19768,10 @@ every regular record type definition can be turned into a class
 definition simply by changing @func{define-record-type} into
 @func{define-class}.
 
-If none of the @meta{class clause} arguments is a @func{parent} or
-@func{parent-rtd} syntax, the clause @code{(parent <top>)} is added to
-the record definition.  @ref{classes builtin base, Basic conventional
-@rtd{}s}.
+If none of the @meta{class clause} arguments is a @func{inherit} or
+@func{parent} or @func{parent-rtd} syntax, the clause @code{(inherit
+<top>)} is added to the record definition.  @ref{classes builtin base,
+Basic conventional @rtd{}s}.
 
 If none of the @meta{class clause} arguments is a @func{nongenerative}
 syntax, the clause @code{(nongenerative)} is added to the record
@@ -19792,6 +19782,23 @@ unique identifier.
 In addition to all the clauses of @func{define-record-type}, the
 @meta{class clause} arguments can be the auxiliary syntaxes described
 below.
+
+Inheritance is driven by the following rules:
+
+@itemize
+@item
+The @func{inherit} clause makes a class a subtype of another class.
+
+@item
+The @func{parent} clause makes a class a subtype of a record type.
+
+@item
+The @func{parent-rtd} clause makes a class a subtype of a record type.
+@end itemize
+
+@noindent
+only one among the @func{inherit}, @func{parent} and @func{parent-rtd}
+can be used at once.
 @end deffn
 
 
@@ -19812,6 +19819,13 @@ to establish if an object matches the type of a virtual class.
 Virtual classes can have virtual fields and methods; it is a syntax
 violation to declare concrete fields in the body of a virtual class
 definition.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} inherit @ameta{class name}
+Make the class type of the enclosing definition a subtype of @meta{class
+name}; it is @strong{not} possible to mimic what @func{inherit} does
+using @func{parent} or @func{parent-rtd}.
 @end deffn
 
 
@@ -20267,6 +20281,11 @@ Expand to the class descriptor associated to @meta{class name}.
 @end deffn
 
 
+@deffn Syntax class-type-uid @ameta{class name}
+Expand to the quoted symbol representing the class' @acronym{UID}.
+@end deffn
+
+
 @deffn Syntax class-record-type-descriptor @ameta{class name}
 Expand to the record type descriptor associated to @meta{class name}.
 It is a replacement of @func{record-type-descriptor} for record types
@@ -20544,7 +20563,7 @@ an example with multiple class names:
   (fields (immutable a)))
 
 (define-class <beta>
-  (parent <alpha>)
+  (inherit <alpha>)
   (fields (immutable b)))
 
 (define o (make-<beta> 1 2))
@@ -20662,7 +20681,7 @@ parent classes:
   (fields a))
 
 (define-class <beta>
-  (parent <alpha>)
+  (inherit <alpha>)
   (fields b)
   (virtual-fields (immutable a <alpha>-a)))
 
@@ -20687,7 +20706,7 @@ hierarchy, is allowed by @rnrs{6}:
   (fields a))
 
 (define-record-type <beta>
-  (parent <alpha>)
+  (inherit <alpha>)
   (fields a))
 
 (let ((o (make-<beta> 1 2)))
@@ -20707,7 +20726,7 @@ in the same way duplication of names of virtual fields is allowed:
   (virtual-fields a))
 
 (define-class <beta>
-  (parent <alpha>)
+  (inherit <alpha>)
   (virtual-fields a))
 
 (define (<alpha>-a o)
@@ -20749,7 +20768,7 @@ and duplication of names of methods is allowed, too:
   (methods a))
 
 (define-class <beta>
-  (parent <alpha>)
+  (inherit <alpha>)
   (methods a))
 
 (define (<alpha>-a o)
@@ -21294,19 +21313,9 @@ record.
 
 
 @deftp Class @aclass{top}
-Conventional parent of all the record types.  When defining a new record
-type with no parent, we may want to derive it from @class{top}:
-
-@example
-(define-record-type <alpha>
-  (parent <top>)
-  ---)
-@end example
-
-@noindent
-record types defined with @func{define-class}, have @class{top} as
-parent type if we do not select explicitly a parent with the
-@func{parent} or @func{parent-rtd} clauses.
+Conventional parent of all the record types; class types defined with
+@func{define-class}, have @class{top} as parent type if we do not select
+explicitly a parent with the @func{inherit} clause.
 @end deftp
 
 
@@ -24821,7 +24830,7 @@ structure:
   pointer-set-c-long-int! pointer-ref-c-long)
 
 (define-class <struct-timeval>
-  (parent <c-struct>)
+  (inherit <c-struct>)
   (virtual-fields
     (mutable tv_sec  <struct-timeval>-tv_sec
                      <struct-timeval>-tv_sec-set!)
@@ -26139,7 +26148,7 @@ library:
 
 @example
 (define-class <struct-xmlChSRange>
-  (parent <c-struct>)
+  (inherit <c-struct>)
   (protocol (lambda (make-c-struct)
               (lambda (pointer)
                 ((make-c-struct pointer)))))

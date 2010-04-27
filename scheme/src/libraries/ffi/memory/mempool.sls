@@ -41,7 +41,7 @@
 
 
 (define-class <mempool>
-  (parent <memblock>)
+  (inherit <memblock>)
   (nongenerative nausicaa:ffi:memory:mempool:<mempool>)
   (protocol (lambda (make-<memblock>)
 	      (lambda (pointer size)

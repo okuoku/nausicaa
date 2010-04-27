@@ -47,7 +47,7 @@
 
 
 (define-class <membuffer>
-  (parent <queue>)
+  (inherit <queue>)
   (nongenerative nausicaa:ffi:memory:membuffer:<membuffer>)
   (protocol (lambda (make-<queue>)
 	      (case-lambda
@@ -67,7 +67,7 @@
 
 
 (define-class <buffer>
-  (parent <memblock>)
+  (inherit <memblock>)
   ;;If the parent has a protocol, the class must have a protocol, too?!?
   (protocol (lambda (make-<memblock>)
 	      (lambda (pointer size alloc-size pointer-used pointer-free)

@@ -38,7 +38,7 @@
 
   (define-class <beta>
     (nongenerative records-lib:<beta>)
-    (parent <alpha>)
+    (inherit <alpha>)
     (fields (mutable d)
 	    (immutable e)
 	    (mutable f))
@@ -46,7 +46,7 @@
 
   (define-class <gamma>
     (nongenerative records-lib:<gamma>)
-    (parent <beta>)
+    (inherit <beta>)
     (fields (mutable g)
 	    (immutable h)
 	    (mutable i))

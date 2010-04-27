@@ -64,15 +64,15 @@
 ;;; --------------------------------------------------------------------
 ;;; all the auxiliary syntaxes
 
-  (let ()
+  (let ()	;inherit with INHERIT
 
-    (define-record-type <alpha>
-      (parent <top>)
+    (define-class <alpha>
+      (inherit <top>)
       (nongenerative alpha)
       (fields (mutable a)))
 
-    (define-record-type <beta>
-      (parent <alpha>)
+    (define-class <beta>
+      (inherit <alpha>)
       (protocol (lambda (alpha-maker)
       		  (lambda (a b)
       		    (let ((beta-maker (alpha-maker a)))
@@ -91,14 +91,32 @@
 
     #f)
 
-  (let ()
+  (let ()	;inherit with PARENT
 
-    (define-class <alpha>
+    (define-record-type <alpha>
       (fields (mutable a)))
 
     (define-class <beta>
-      (parent-rtd (class-record-type-descriptor <alpha>)
-    		  (class-constructor-descriptor <alpha>))
+      (parent <alpha>)
+      (fields (immutable b)))
+
+    (check
+    	(let ((o (make-<beta> 1 2)))
+    	  (list (<alpha>-a o)
+    		(<beta>-b o)
+    		))
+      => '(1 2))
+
+    #f)
+
+  (let ()	;inherit with PARENT-RTD
+
+    (define-record-type <alpha>
+      (fields (mutable a)))
+
+    (define-class <beta>
+      (parent-rtd (record-type-descriptor <alpha>)
+    		  (record-constructor-descriptor <alpha>))
       (fields (immutable b)))
 
     (check
@@ -217,6 +235,16 @@
 	      (environment '(nausicaa))))
     => '(predicate 123))
 
+  (check	;invalid inherit
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (inherit 123)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(inherit 123))
+
   (check	;invalid parent
       (guard (E ((syntax-violation? E)
 		 (syntax-violation-subform E))
@@ -268,6 +296,17 @@
 	  (woppa 123)))
 
 ;;; --------------------------------------------------------------------
+
+  (check	;multiple INHERIT is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (inherit ciao)
+		 (inherit hello))
+	      (environment '(nausicaa))))
+    => '(inherit hello))
 
   (check	;multiple PARENT is bad
       (guard (E ((syntax-violation? E)
@@ -1029,7 +1068,7 @@
       (virtual-fields a))
 
     (define-class <beta>
-      (parent <alpha>)
+      (inherit <alpha>)
       (virtual-fields a))
 
     (define (<alpha>-a o)
@@ -1142,7 +1181,7 @@
       (methods a))
 
     (define-class <beta>
-      (parent <alpha>)
+      (inherit <alpha>)
       (methods a))
 
     (define (<alpha>-a o)
@@ -1248,7 +1287,7 @@
 	1))
 
     (define-class <beta>
-      (parent <alpha>)
+      (inherit <alpha>)
       (method (a o)
 	2))
 
@@ -2645,9 +2684,9 @@
   (let ()
     (define-class <alpha>)
     (define-class <beta>
-      (parent <alpha>))
+      (inherit <alpha>))
     (define-class <gamma>
-      (parent <beta>))
+      (inherit <beta>))
 
     (check
 	(map record-type-uid (record-parent-list (class-record-type-descriptor <alpha>)))
@@ -2924,6 +2963,12 @@
 
 (parametrise ((check-test-name 'inspection))
 
+  (check
+      (class-type-uid <vector>)
+    => 'nausicaa:builtin:<vector>)
+
+;;; --------------------------------------------------------------------
+
   (let ()
     (define-class <alpha>
       (fields (mutable a)
@@ -2931,13 +2976,13 @@
   	      (mutable c)))
 
     (define-class <beta>
-      (parent <alpha>)
+      (inherit <alpha>)
       (fields (mutable d)
   	      (immutable e)
   	      (mutable f)))
 
     (define-class <gamma>
-      (parent <beta>)
+      (inherit <beta>)
       (fields (mutable g)
   	      (immutable h)
   	      (mutable i)))
