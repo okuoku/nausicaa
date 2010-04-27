@@ -31,7 +31,10 @@
     %variable-name->Setter-name		%variable-name->Getter-name
     syntax->list
     syntax-prefix			syntax-suffix
-    duplicated-identifiers?)
+    syntax-accessor-name		syntax-mutator-name
+    (rename (syntax-accessor-name syntax-method-name))
+    syntax-dot-notation-name
+    duplicated-identifiers?		all-identifiers?)
   (import (rnrs))
 
 
@@ -46,6 +49,28 @@
 		 (string->symbol
 		  (string-append (symbol->string (syntax->datum variable-name/stx))
 				 ".__nausicaa_private_Getter_identifier_syntax"))))
+
+(define (syntax-accessor-name class-name/stx field-name/stx)
+  (datum->syntax class-name/stx
+		 (string->symbol
+		  (string-append (symbol->string (syntax->datum class-name/stx))
+				 "-"
+				 (symbol->string (syntax->datum field-name/stx))))))
+
+(define (syntax-mutator-name class-name/stx field-name/stx)
+  (datum->syntax class-name/stx
+		 (string->symbol
+		  (string-append (symbol->string (syntax->datum class-name/stx))
+				 "-"
+				 (symbol->string (syntax->datum field-name/stx))
+				 "-set!"))))
+
+(define (syntax-dot-notation-name variable-name/stx field-name/stx)
+  (datum->syntax variable-name/stx
+		 (string->symbol
+		  (string-append (symbol->string (syntax->datum variable-name/stx))
+				 "."
+				 (symbol->string (syntax->datum field-name/stx))))))
 
 
 (define (syntax->list stx)
@@ -72,6 +97,9 @@
 						suffix-string))))
 
 
+(define (all-identifiers? ell/stx)
+  (for-all identifier? (syntax->list ell/stx)))
+
 (define (duplicated-identifiers? ell/stx)
   ;;Search the list of  identifier syntax objects ELL/STX for duplicated
   ;;identifiers; return  false of a  syntax object holding  a duplicated

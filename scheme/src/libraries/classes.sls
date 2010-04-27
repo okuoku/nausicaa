@@ -301,12 +301,7 @@
 			     virtual-fields methods method predicate setter getter)
 
       ((_ (?name ?constructor ?predicate) ?clause ...)
-;;;*FIXME*  This  is a  workaround  for a  bug  in  Ikarus 1870:  Ikarus
-;;;produces an  IMproper list  of syntax objects,  rather than  a proper
-;;;list.
-;;;
-;;;(for-all identifier? #'(?name ?constructor ?predicate))
-       (for-all identifier? (syntax->list #'(?name ?constructor ?predicate)))
+       (all-identifiers? #'(?name ?constructor ?predicate))
        #'(%define-class/sort-clauses
 	  (define-class (?name ?constructor ?predicate) ?clause ...)
 	  (?name ?constructor ?predicate)
@@ -955,10 +950,6 @@
 
 (define-syntax %define-class/sort-clauses/fields
   (lambda (stx)
-    (define (%accessor name field)
-      (string->symbol (string-append name "-" field)))
-    (define (%mutator name field)
-      (string->symbol (string-append name "-" field "-set!")))
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
 			     virtual-fields methods method predicate setter getter)
 
@@ -1015,26 +1006,24 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(fields (mutable ?field) ?field-clause ...) ?clause ...)
-       (let ((name  (symbol->string (syntax->datum #'?name)))
-	     (field (symbol->string (syntax->datum #'?field))))
-	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field)))
-		       (MUTATOR  (datum->syntax #'?name (%mutator  name field))))
-	   #'(%define-class/sort-clauses/fields
-	      ?input-form (?name ?constructor ?predicate)
-	      (?collected-concrete-field ... (mutable ?field ACCESSOR MUTATOR))
-	      (?collected-virtual-field ...)
-	      (?collected-method ...)
-	      (?collected-definition ...)
-	      (predicate	?pre ...)
-	      (setter		?set ...)
-	      (getter		?get ...)
-	      (parent		?par ...)
-	      (protocol		?pro ...)
-	      (sealed		?sea ...)
-	      (opaque		?opa ...)
-	      (parent-rtd		?pad ...)
-	      (nongenerative	?non ...)
-	      (fields ?field-clause ...) ?clause ...))))
+       #`(%define-class/sort-clauses/fields
+	  ?input-form (?name ?constructor ?predicate)
+	  (?collected-concrete-field ... (mutable ?field
+						  #,(syntax-accessor-name #'?name #'?field)
+						  #,(syntax-mutator-name  #'?name #'?field)))
+	  (?collected-virtual-field ...)
+	  (?collected-method ...)
+	  (?collected-definition ...)
+	  (predicate	?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
+	  (parent		?par ...)
+	  (protocol		?pro ...)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (parent-rtd		?pad ...)
+	  (nongenerative	?non ...)
+	  (fields ?field-clause ...) ?clause ...))
 
       ;;Gather  immutable  FIELDS  clause  with  explicit  selection  of
       ;;accessor name.
@@ -1089,25 +1078,22 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(fields (immutable ?field) ?field-clause ...) ?clause ...)
-       (let ((name  (symbol->string (syntax->datum #'?name)))
-	     (field (symbol->string (syntax->datum #'?field))))
-	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
-	   #'(%define-class/sort-clauses/fields
-	      ?input-form (?name ?constructor ?predicate)
-	      (?collected-concrete-field ... (immutable ?field ACCESSOR))
-	      (?collected-virtual-field ...)
-	      (?collected-method ...)
-	      (?collected-definition ...)
-	      (predicate	?pre ...)
-	      (setter		?set ...)
-	      (getter		?get ...)
-	      (parent		?par ...)
-	      (protocol		?pro ...)
-	      (sealed		?sea ...)
-	      (opaque		?opa ...)
-	      (parent-rtd	?pad ...)
-	      (nongenerative	?non ...)
-	      (fields ?field-clause ...) ?clause ...))))
+       #`(%define-class/sort-clauses/fields
+	  ?input-form (?name ?constructor ?predicate)
+	  (?collected-concrete-field ... (immutable ?field #,(syntax-accessor-name #'?name #'?field)))
+	  (?collected-virtual-field ...)
+	  (?collected-method ...)
+	  (?collected-definition ...)
+	  (predicate	?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
+	  (parent		?par ...)
+	  (protocol		?pro ...)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (parent-rtd	?pad ...)
+	  (nongenerative	?non ...)
+	  (fields ?field-clause ...) ?clause ...))
 
       ;;Gather   immutable  FIELDS   clause  declared   without  IMMUTABLE
       ;;auxiliary syntax.
@@ -1127,25 +1113,22 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(fields ?field ?field-clause ...) ?clause ...)
-       (let ((name  (symbol->string (syntax->datum #'?name)))
-	     (field (symbol->string (syntax->datum #'?field))))
-	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
-	   #'(%define-class/sort-clauses/fields
-	      ?input-form (?name ?constructor ?predicate)
-	      (?collected-concrete-field ... (immutable ?field ACCESSOR))
-	      (?collected-virtual-field ...)
-	      (?collected-method ...)
-	      (?collected-definition ...)
-	      (predicate	?pre ...)
-	      (setter		?set ...)
-	      (getter		?get ...)
-	      (parent		?par ...)
-	      (protocol		?pro ...)
-	      (sealed		?sea ...)
-	      (opaque		?opa ...)
-	      (parent-rtd	?pad ...)
-	      (nongenerative	?non ...)
-	      (fields ?field-clause ...) ?clause ...))))
+       #`(%define-class/sort-clauses/fields
+	  ?input-form (?name ?constructor ?predicate)
+	  (?collected-concrete-field ... (immutable ?field #,(syntax-accessor-name #'?name #'?field)))
+	  (?collected-virtual-field ...)
+	  (?collected-method ...)
+	  (?collected-definition ...)
+	  (predicate	?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
+	  (parent		?par ...)
+	  (protocol		?pro ...)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (parent-rtd	?pad ...)
+	  (nongenerative	?non ...)
+	  (fields ?field-clause ...) ?clause ...))
 
       ;;Remove empty, leftover, FIELDS clause.
       ((%define-class/sort-clauses/fields
@@ -1186,10 +1169,6 @@
 
 (define-syntax %define-class/sort-clauses/virtual-fields
   (lambda (stx)
-    (define (%accessor name field)
-      (string->symbol (string-append name "-" field)))
-    (define (%mutator name field)
-      (string->symbol (string-append name "-" field "-set!")))
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
 			     virtual-fields methods method predicate setter getter)
 
@@ -1246,26 +1225,24 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(virtual-fields (mutable ?field) ?field-clause ...) ?clause ...)
-       (let ((name  (symbol->string (syntax->datum #'?name)))
-	     (field (symbol->string (syntax->datum #'?field))))
-	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field)))
-		       (MUTATOR  (datum->syntax #'?name (%mutator  name field))))
-	   #'(%define-class/sort-clauses/virtual-fields
-	      ?input-form (?name ?constructor ?predicate)
-	      (?collected-concrete-field ...)
-	      (?collected-virtual-field ...  (mutable ?field ACCESSOR MUTATOR))
-	      (?collected-method ...)
-	      (?collected-definition ...)
-	      (predicate	?pre ...)
-	      (setter		?set ...)
-	      (getter		?get ...)
-	      (parent		?par ...)
-	      (protocol		?pro ...)
-	      (sealed		?sea ...)
-	      (opaque		?opa ...)
-	      (parent-rtd	?pad ...)
-	      (nongenerative	?non ...)
-	      (virtual-fields ?field-clause ...) ?clause ...))))
+       #`(%define-class/sort-clauses/virtual-fields
+	  ?input-form (?name ?constructor ?predicate)
+	  (?collected-concrete-field ...)
+	  (?collected-virtual-field ...  (mutable ?field
+						  #,(syntax-accessor-name #'?name #'?field)
+						  #,(syntax-mutator-name  #'?name #'?field)))
+	  (?collected-method ...)
+	  (?collected-definition ...)
+	  (predicate	?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
+	  (parent		?par ...)
+	  (protocol		?pro ...)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (parent-rtd	?pad ...)
+	  (nongenerative	?non ...)
+	  (virtual-fields ?field-clause ...) ?clause ...))
 
 ;;; --------------------------------------------------------------------
 
@@ -1322,25 +1299,22 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(virtual-fields (immutable ?field) ?field-clause ...) ?clause ...)
-       (let ((name  (symbol->string (syntax->datum #'?name)))
-	     (field (symbol->string (syntax->datum #'?field))))
-	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
-	   #'(%define-class/sort-clauses/virtual-fields
-	      ?input-form (?name ?constructor ?predicate)
-	      (?collected-concrete-field ...)
-	      (?collected-virtual-field ... (immutable ?field ACCESSOR))
-	      (?collected-method ...)
-	      (?collected-definition ...)
-	      (predicate	?pre ...)
-	      (setter		?set ...)
-	      (getter		?get ...)
-	      (parent		?par ...)
-	      (protocol		?pro ...)
-	      (sealed		?sea ...)
-	      (opaque		?opa ...)
-	      (parent-rtd	?pad ...)
-	      (nongenerative	?non ...)
-	      (virtual-fields ?field-clause ...) ?clause ...))))
+       #`(%define-class/sort-clauses/virtual-fields
+	  ?input-form (?name ?constructor ?predicate)
+	  (?collected-concrete-field ...)
+	  (?collected-virtual-field ... (immutable ?field #,(syntax-accessor-name #'?name #'?field)))
+	  (?collected-method ...)
+	  (?collected-definition ...)
+	  (predicate	?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
+	  (parent		?par ...)
+	  (protocol		?pro ...)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (parent-rtd	?pad ...)
+	  (nongenerative	?non ...)
+	  (virtual-fields ?field-clause ...) ?clause ...))
 
       ;;Gather immutable VIRTUAL-FIELDS  clause declared without IMMUTABLE
       ;;auxiliary syntax.
@@ -1360,25 +1334,22 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(virtual-fields ?field ?field-clause ...) ?clause ...)
-       (let ((name  (symbol->string (syntax->datum #'?name)))
-	     (field (symbol->string (syntax->datum #'?field))))
-	 (with-syntax ((ACCESSOR (datum->syntax #'?name (%accessor name field))))
-	   #'(%define-class/sort-clauses/virtual-fields
-	      ?input-form (?name ?constructor ?predicate)
-	      (?collected-concrete-field ...)
-	      (?collected-virtual-field ... (immutable ?field ACCESSOR))
-	      (?collected-method ...)
-	      (?collected-definition ...)
-	      (predicate	?pre ...)
-	      (setter		?set ...)
-	      (getter		?get ...)
-	      (parent		?par ...)
-	      (protocol		?pro ...)
-	      (sealed		?sea ...)
-	      (opaque		?opa ...)
-	      (parent-rtd	?pad ...)
-	      (nongenerative	?non ...)
-	      (virtual-fields ?field-clause ...) ?clause ...))))
+       #`(%define-class/sort-clauses/virtual-fields
+	  ?input-form (?name ?constructor ?predicate)
+	  (?collected-concrete-field ...)
+	  (?collected-virtual-field ... (immutable ?field #,(syntax-accessor-name #'?name #'?field)))
+	  (?collected-method ...)
+	  (?collected-definition ...)
+	  (predicate	?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
+	  (parent		?par ...)
+	  (protocol		?pro ...)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (parent-rtd	?pad ...)
+	  (nongenerative	?non ...)
+	  (virtual-fields ?field-clause ...) ?clause ...))
 
 ;;; --------------------------------------------------------------------
 
@@ -1420,8 +1391,6 @@
 
 (define-syntax %define-class/sort-clauses/methods
   (lambda (stx)
-    (define (%function name field)
-      (string->symbol (string-append name "-" field)))
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
 			     virtual-fields methods method predicate setter getter)
 
@@ -1477,25 +1446,22 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(methods (?method) ?method-clause ...) ?clause ...)
-       (let ((name  (symbol->string (syntax->datum #'?name)))
-	     (field (symbol->string (syntax->datum #'?method))))
-	 (with-syntax ((FUNCTION (datum->syntax #'?name (%function name field))))
-	   #'(%define-class/sort-clauses/methods
-	      ?input-form (?name ?constructor ?predicate)
-	      (?collected-concrete-field ...)
-	      (?collected-virtual-field ...)
-	      (?collected-method ... (?method FUNCTION))
-	      (?collected-definition ...)
-	      (predicate	?pre ...)
-	      (setter		?set ...)
-	      (getter		?get ...)
-	      (parent		?par ...)
-	      (protocol		?pro ...)
-	      (sealed		?sea ...)
-	      (opaque		?opa ...)
-	      (parent-rtd	?pad ...)
-	      (nongenerative	?non ...)
-	      (methods ?method-clause ...) ?clause ...))))
+       #`(%define-class/sort-clauses/methods
+	  ?input-form (?name ?constructor ?predicate)
+	  (?collected-concrete-field ...)
+	  (?collected-virtual-field ...)
+	  (?collected-method ... (?method #,(syntax-method-name #'?name #'?method)))
+	  (?collected-definition ...)
+	  (predicate	?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
+	  (parent		?par ...)
+	  (protocol		?pro ...)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (parent-rtd	?pad ...)
+	  (nongenerative	?non ...)
+	  (methods ?method-clause ...) ?clause ...))
 
       ;;Gather METHODS clause declared with only the symbol.
       ((%define-class/sort-clauses/methods
@@ -1514,25 +1480,22 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(methods ?method ?method-clause ...) ?clause ...)
-       (let ((name  (symbol->string (syntax->datum #'?name)))
-	     (field (symbol->string (syntax->datum #'?method))))
-	 (with-syntax ((FUNCTION (datum->syntax #'?name (%function name field))))
-	   #'(%define-class/sort-clauses/methods
-	      ?input-form (?name ?constructor ?predicate)
-	      (?collected-concrete-field ...)
-	      (?collected-virtual-field ...)
-	      (?collected-method ... (?method FUNCTION))
-	      (?collected-definition ...)
-	      (predicate	?pre ...)
-	      (setter		?set ...)
-	      (getter		?get ...)
-	      (parent		?par ...)
-	      (protocol		?pro ...)
-	      (sealed		?sea ...)
-	      (opaque		?opa ...)
-	      (parent-rtd	?pad ...)
-	      (nongenerative	?non ...)
-	      (methods ?method-clause ...) ?clause ...))))
+       #`(%define-class/sort-clauses/methods
+	  ?input-form (?name ?constructor ?predicate)
+	  (?collected-concrete-field ...)
+	  (?collected-virtual-field ...)
+	  (?collected-method ... (?method #,(syntax-method-name #'?name #'?method)))
+	  (?collected-definition ...)
+	  (predicate	?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
+	  (parent		?par ...)
+	  (protocol		?pro ...)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (parent-rtd	?pad ...)
+	  (nongenerative	?non ...)
+	  (methods ?method-clause ...) ?clause ...))
 
       ;;Remove empty, leftover, METHODS clause.
       ((%define-class/sort-clauses/methods
@@ -2388,38 +2351,31 @@
   ;;nested uses of WITH-ACCESSOR-AND-MUTATOR from (language-extensions).
   ;;
   (lambda (stx)
-    (define (%field name field)
-      (datum->syntax name
-		     (string->symbol (string-append (symbol->string (syntax->datum name))
-						    "."
-						    (symbol->string (syntax->datum field))))))
     (syntax-case stx (mutable immutable)
 
       ;;Process a field clause with both accessor and mutator.
-      ((_ ?variable-name ((mutable ?field ?accessor ?mutator) ?clause ...) ?body0 ?body ...)
+      ((_ ?variable-name ((mutable ?field ?accessor ?mutator) ?clause ...) . ?body)
        (and (identifier? #'?variable-name)
 	    (identifier? #'?field)
 	    (identifier? #'?accessor)
 	    (identifier? #'?mutator))
-       (with-syntax ((FIELD (%field #'?variable-name #'?field)))
-	 #'(with-accessor-and-mutator ((FIELD ?variable-name ?accessor ?mutator))
-				      (%with-class-fields ?variable-name
-							  (?clause ...) ?body0 ?body ...))))
+       #`(with-accessor-and-mutator ((#,(syntax-dot-notation-name #'?variable-name #'?field)
+				      ?variable-name ?accessor ?mutator))
+				    (%with-class-fields ?variable-name (?clause ...) . ?body)))
 
       ;;Process a field clause with accessor only.
-      ((_ ?variable-name ((immutable ?field ?accessor) ?clause ...) ?body0 ?body ...)
+      ((_ ?variable-name ((immutable ?field ?accessor) ?clause ...) . ?body)
        (and (identifier? #'?variable-name)
 	    (identifier? #'?field)
 	    (identifier? #'?accessor))
-       (with-syntax ((FIELD (%field #'?variable-name #'?field)))
-	 #'(with-accessor-and-mutator ((FIELD ?variable-name ?accessor))
-				      (%with-class-fields ?variable-name
-							  (?clause ...) ?body0 ?body ...))))
+       #`(with-accessor-and-mutator ((#,(syntax-dot-notation-name #'?variable-name #'?field)
+				      ?variable-name ?accessor))
+				    (%with-class-fields ?variable-name (?clause ...) . ?body)))
 
       ;;No more field clauses, output the body.
-      ((_ ?variable-name () ?body0 ?body ...)
+      ((_ ?variable-name () . ?body)
        (identifier? #'?variable-name)
-       #'(begin ?body0 ?body ...))
+       #'(begin . ?body))
 
       )))
 
@@ -2432,6 +2388,7 @@
   ;;
   (lambda (stx)
     (syntax-case stx ()
+
       ((_ ?variable-name ?setter ?getter . ?body)
        (and (identifier? #'?variable-name) (identifier? #'?setter))
        #`(let-syntax
@@ -2444,6 +2401,7 @@
       ((_ ?variable-name ?setter #f . ?body)
        (identifier? #'?variable-name)
        #'(%with-class-getter ?variable-name #f . ?body))
+
       )))
 
 (define-syntax %with-class-getter
@@ -2454,6 +2412,7 @@
   ;;
   (lambda (stx)
     (syntax-case stx ()
+
       ((_ ?variable-name ?getter . ?body)
        (and (identifier? #'?variable-name) (identifier? #'?getter))
        #`(let-syntax ((#,(%variable-name->Getter-name #'?variable-name)
@@ -2461,9 +2420,11 @@
 			 ((_ ?key0 ?key (... ...))
 			  (?getter ?variable-name ?key0 ?key (... ...))))))
 	   . ?body))
+
       ((_ ?variable-name #f . ?body)
        (identifier? #'?variable-name)
        #'(begin . ?body))
+
       )))
 
 
@@ -2472,30 +2433,25 @@
   ;;methods' syntaxes.
   ;;
   (lambda (stx)
-    (define (%method name list-of-methods)
-      (map (lambda (method)
-	     (string->symbol (string-append (symbol->string name) "." (symbol->string method))))
-	list-of-methods))
     (syntax-case stx ()
 
       ;;Generate the methods' syntaxes.
-      ((_ ?variable-name ((?method ?function-name) ...) ?body0 ?body ...)
-       (and (identifier? #'?variable-name)
-	    (for-all identifier? (syntax->list #'(?method ...)))
-	    (for-all identifier? (syntax->list #'(?function-name ...))))
-       (with-syntax (((METHOD ...) (datum->syntax #'?variable-name
-						  (%method (syntax->datum #'?variable-name)
-							   (syntax->datum #'(?method ...))))))
+      ((_ ?variable-name ((?method ?function-name) ...) . ?body)
+       (all-identifiers? #'(?variable-name ?method ... ?function-name ...))
+       (with-syntax (((METHOD ...) (map (lambda (method/stx)
+					  (syntax-dot-notation-name #'?variable-name method/stx))
+				     #'(?method ...))))
 	 #'(let-syntax ((METHOD (syntax-rules ()
 				  ((_ ?arg (... ...))
 				   (?function-name ?variable-name ?arg (... ...)))))
 			...)
-	     (begin ?body0 ?body ...))))
+	     . ?body)))
 
       ;;No methods, output the body.
-      ((_ ?variable-name () ?body0 ?body ...)
+      ((_ ?variable-name () . ?body)
        (identifier? #'?variable-name)
-       #'(begin ?body0 ?body ...))
+       #'(begin . ?body))
+
       )))
 
 
@@ -2589,12 +2545,7 @@
 
       ;;All bindings are without types.
       ((_ ?let ?let/with-class ?loop ((?var ?init) ...) ?body0 ?body ...)
-;;;*FIXME*  This  is a  workaround  for a  bug  in  Ikarus 1870:  Ikarus
-;;;produces an  IMproper list  of syntax objects,  rather than  a proper
-;;;list.
-;;;
-;;;(for-all identifier? #'(?var ...))
-       (for-all identifier? (syntax->list #'(?var ...)))
+       (all-identifiers? #'(?var ...))
        (if (free-identifier=? #'no-loop #'?loop)
 	   #'(?let ((?var ?init) ...) ?body0 ?body ...)
 	 #'(?let ?loop ((?var ?init) ...) ?body0 ?body ...)))
