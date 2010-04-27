@@ -158,13 +158,15 @@
   (let loop ((src.start src.start))
     (if (= src.start src.past)
 	src.past
-      (with-class ((membuf.rear <buffer>))
-	(when (or membuf.empty? membuf.rear.full?)
+      (begin
+	(when (or membuf.empty? (with-class ((membuf.rear <buffer>))
+				  membuf.rear.full?))
 	  (with-exception-handler
 	      (lambda (E)
 		(raise-continuable
 		 (if (out-of-memory-condition? E)
-		     (condition E (make-membuffer-incomplete-push-condition membuf src src.start src.past))
+		     (condition E (make-membuffer-incomplete-push-condition membuf src
+									    src.start src.past))
 		   E)))
 	    (lambda ()
 	      (queue-enqueue! membuf (%enqueue-<buffer>-in-<membuffer> membuf)))))
