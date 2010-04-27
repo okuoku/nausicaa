@@ -65,10 +65,24 @@
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>)
   (import (rnrs)
-    (only (language-extensions)
-	  with-accessor-and-mutator)
     (rnrs mutable-strings)
     (for (classes helpers) expand))
+
+
+;;;; helpers
+
+(define-syntax with-accessor-and-mutator
+  (syntax-rules ()
+    ((_ ((?name ?thing ?accessor ?mutator) ?spec ...) ?body0 ?body ...)
+     (let-syntax ((?name (identifier-syntax
+			  (_              (?accessor ?thing))
+			  ((set! _ ?expr) (?mutator ?thing ?expr)))))
+       (with-accessor-and-mutator (?spec ...) ?body0 ?body ...)))
+    ((_ ((?name ?thing ?accessor) ?spec ...) ?body0 ?body ...)
+     (let-syntax ((?name (identifier-syntax (?accessor ?thing))))
+       (with-accessor-and-mutator (?spec ...) ?body0 ?body ...)))
+    ((_ () ?body0 ?body ...)
+     (begin ?body0 ?body ...))))
 
 
 ;;;; class type descriptor
