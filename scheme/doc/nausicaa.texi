@@ -20449,6 +20449,10 @@ no more sure when using identifier syntaxes to access virtual class
 fields.  As a style rule: it is better to always keep virtual fields
 access free of side effects (unless really needed).
 
+Another good rule is that: functions and syntaxes invoked by identifier
+references should never intentionally raise exceptions; usual identifier
+references never fail at runtime.
+
 @menu
 * classes fields with::         Basic fields and methods usage.
 * classes fields lambda::       High-level fields and methods usage.
