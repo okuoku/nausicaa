@@ -931,6 +931,116 @@
 		r.g r.h r.i)))
     => '(1 2 3 7 8 9))
 
+;;; --------------------------------------------------------------------
+;;; common inheritance
+
+  (let ()	;fields
+
+    (define-class <alpha>
+      (fields a b z))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields c d z))
+
+    (check	;accessing fields of both class and superclass
+    	(let ((p (make <beta> 1 2 3 4 5 6)))
+    	  (with-class ((p <beta>))
+    	    (list p.a p.b p.c p.d)))
+      => '(1 2 4 5))
+
+    (check	;precedence of subclass fields
+    	(let ((p (make <beta> 1 2 3 4 5 6)))
+    	  (with-class ((p <beta>))
+    	    p.z))
+      => 6)
+
+    (check	;custom precedence of superclass fields
+    	(let ((p (make <beta> 1 2 3 4 5 6)))
+    	  (with-class ((p <beta> <alpha>))
+    	    p.z))
+      => 3)
+
+    #f)
+
+  (let ()	;virtual-fields
+
+    (define-class <alpha>
+      (fields a b z)
+      (virtual-fields (immutable x <alpha>-a)
+		      (immutable y <alpha>-b)))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields c d z)
+      (virtual-fields (immutable m <beta>-c)
+		      (immutable y <beta>-d)))
+
+    (check	;accessing fields of both class and superclass
+    	(let ((p (make <beta>
+		   1 2 3
+		   4 5 6)))
+    	  (with-class ((p <beta>))
+    	    (list p.x p.m)))
+      => '(1 4))
+
+    (check	;precedence of subclass fields
+    	(let ((p (make <beta>
+		   1 2 3
+		   4 5 6)))
+    	  (with-class ((p <beta>))
+    	    p.y))
+      => 5)
+
+    (check	;custom precedence of superclass fields
+    	(let ((p (make <beta>
+		   1 2 3
+		   4 5 6)))
+    	  (with-class ((p <beta> <alpha>))
+    	    p.y))
+      => 2)
+
+    #f)
+
+  (let ()	;methods
+
+    (define-class <alpha>
+      (fields a b z)
+      (methods (x <alpha>-a)
+	       (y <alpha>-b)))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields c d z)
+      (methods (m <beta>-c)
+	       (y <beta>-d)))
+
+    (check	;accessing methods of both class and superclass
+    	(let ((p (make <beta>
+		   1 2 3
+		   4 5 6)))
+    	  (with-class ((p <beta>))
+    	    (list (p.x) (p.m))))
+      => '(1 4))
+
+    (check	;precedence of subclass methods
+    	(let ((p (make <beta>
+		   1 2 3
+		   4 5 6)))
+    	  (with-class ((p <beta>))
+    	    (p.y)))
+      => 5)
+
+    (check	;custom precedence of superclass methods
+    	(let ((p (make <beta>
+		   1 2 3
+		   4 5 6)))
+    	  (with-class ((p <beta> <alpha>))
+    	    (p.y)))
+      => 2)
+
+    #f)
+
   #t)
 
 

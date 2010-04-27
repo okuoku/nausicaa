@@ -2433,17 +2433,19 @@
 			 )))
 
 		   (define-syntax with-class-bindings
-		     (syntax-rules ()
+		     (syntax-rules (with-class-bindings-of)
 		       ((_ ?variable-name ?body0 ?body (... ...))
-		   	(%with-class-fields
-		   	 ?variable-name
-			 ((?mutability ?field ?accessor ...) ...
-			  (?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
-		   	 (%with-class-methods
-			  ?variable-name ((?method ?method-function) ...)
-			  (%with-class-setter-and-getter ?variable-name ?setter ?getter
-							 ?body0 ?body (... ...)))
-		   	 ))))
+			(?superclass-name
+			 with-class-bindings-of ?variable-name
+			 (%with-class-fields
+			  ?variable-name
+			  ((?mutability ?field ?accessor ...) ...
+			   (?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
+			  (%with-class-methods
+			   ?variable-name ((?method ?method-function) ...)
+			   (%with-class-setter-and-getter ?variable-name ?setter ?getter
+							  ?body0 ?body (... ...)))
+			  )))))
 		   )))
 	   )))
       )))
@@ -3071,9 +3073,11 @@
    (quote #()))) ;methods
 
 (define-syntax <top>-superclass
-  (syntax-rules (class-type-descriptor)
+  (syntax-rules (class-type-descriptor with-class-bindings-of)
     ((_ class-type-descriptor)
      <top>-ctd)
+    ((_ with-class-bindings-of . ?body)
+     (begin . ?body))
     ((_ . ?body)
      (begin . ?body))))
 

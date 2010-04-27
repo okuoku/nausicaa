@@ -809,6 +809,7 @@
     &unimplemented make-unimplemented-condition unimplemented-condition?
     raise-unimplemented-error
 
+
 ;;;; bindings from (classes)
 
     (rename
@@ -821,33 +822,37 @@
      (case-lambda/with-class	case-lambda)
      (receive/with-class	receive))
 
-    define-class		make
-    define/with-class		define/with-class*
-    lambda/with-class		lambda/with-class*
-    case-lambda/with-class	case-lambda/with-class*
-    let/with-class		let*/with-class
-    letrec/with-class		letrec*/with-class
-    receive/with-class
-    with-class
-    setf			getf
-    is-a?
-
-    class-type-descriptor		class-constructor-descriptor
-    class-record-type-descriptor
-
+    ;; class type descriptor
     make-class-type-descriptor		class-type-descriptor?
     class-record-descriptor		class-predicate
     class-virtual-fields		class-methods
     class-setter			class-getter
+    class-parent-ctd
 
+    ;; syntactic layer
+    define-class			class-type-descriptor
+    class-constructor-descriptor	class-record-type-descriptor
+    class-type-uid
+    make				is-a?
+
+    ;; procedural layer
     record-type-parent?
     record-type-of
-    record-parent-list		class-parent-list
+    record-parent-list			class-parent-list
 
-    <top> <builtin>
-    <pair> <list>
-    <char> <string> <vector> <bytevector> <hashtable>
-    <record> <condition>
+    ;; dot notation syntaxes
+    with-class
+    setf				getf
+    define/with-class			define/with-class*
+    lambda/with-class			lambda/with-class*
+    case-lambda/with-class		case-lambda/with-class*
+    receive/with-class
+    let/with-class			let*/with-class
+    letrec/with-class			letrec*/with-class
+
+    ;; builtin classes
+    <top> <builtin> <pair> <list>
+    <char> <string> <vector> <bytevector> <hashtable> <record> <condition>
     <port> <binary-port> <input-port> <output-port> <textual-port>
     <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
     <real> <real-valued> <complex> <number>
