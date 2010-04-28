@@ -941,7 +941,7 @@ Record utilities
 * classes make::                Record makers.
 * classes pred::                Record type predicates.
 * classes inspect::             Record type inspection.
-* classes fields::              Binding accessors and mutators.
+* classes dot::                 Using dot notation.
 * classes builtin::             Conventional type descriptors.
 
 Record type inspection
@@ -952,9 +952,10 @@ Record type inspection
 
 Binding accessors and mutators
 
-* classes fields with::         Basic fields and methods usage.
-* classes fields lambda::       High-level fields and methods usage.
-* classes fields setter::       Setters and getters.
+* classes dot with::            Basic dot notation usage.
+* classes dot let::             Local bindings.
+* classes dot lambda::          Function bindings.
+* classes dot setter::          Setters and getters.
 
 Conventional type descriptors
 
@@ -19741,7 +19742,7 @@ The facilities of the library work only on records of type defined with
 * classes make::                Record makers.
 * classes pred::                Record type predicates.
 * classes inspect::             Record type inspection.
-* classes fields::              Binding accessors and mutators.
+* classes dot::                 Using dot notation.
 * classes builtin::             Conventional type descriptors.
 @end menu
 
@@ -19837,7 +19838,7 @@ predicates for the builtin class types; example:
 
 @example
 (define-virtual-class <complex>
-  (parent <number>)
+  (inherit <number>)
   (predicate complex?)
   (nongenerative nausicaa:builtin:<complex>))
 @end example
@@ -19856,8 +19857,8 @@ can be applied to a class instance to compute a value, a field mutator
 which can be applied to a class instance to mutate its fields.
 
 For more details on virtual fields, especially fields with the same name
-in different record types of the same hierarchy, @ref{classes fields
-with, @func{with-class}}.
+in different record types of the same hierarchy, @ref{classes dot with,
+@func{with-class}}.
 
 The following is an example of virtual fields usage:
 
@@ -19940,7 +19941,7 @@ function which will be invoked as method; it must accept as first
 argument the record which is the subject of the application.
 
 For more details on methods, especially methods with the same name in
-different record types of the same hierarchy, @ref{classes fields with,
+different record types of the same hierarchy, @ref{classes dot with,
 @func{with-class}}.
 
 @example
@@ -20434,34 +20435,61 @@ supports both regular and conventional record type descriptors.
 @end defun
 
 @c page
-@node classes fields
+@node classes dot
 @section Binding accessors and mutators
 
 
 The syntaxes described in this section allow the use of dot notation to
-access class fields and to apply class methods.  The core syntaxes are
+access class fields and to apply class methods; the core syntaxes are
 @func{with-class}, @func{setf} and @func{getf}.
 
-We have to be careful when using this notation: many macros are written
-assuming that it is safe to reference identifiers multiple times, under
-the assumption that identifier's reference has no side effects; this is
-no more sure when using identifier syntaxes to access virtual class
-fields.  As a style rule: it is better to always keep virtual fields
-access free of side effects (unless really needed).
+Dot notation is available only for the members of types defined by
+@func{define-class}, it cannot be used with types defined by
+@func{define-record-type} and it is not available for fields of parent
+records:
 
-Another good rule is that: functions and syntaxes invoked by identifier
-references should never intentionally raise exceptions; usual identifier
-references never fail at runtime.
+@example
+(define-record-type <alpha>
+  (fields a b))
+
+(define-class <beta>
+  (parent <alpha>)
+  (fields c d))
+
+(let/with-class (((o <beta>) (make <beta> 1 2 3 4)))
+
+  o.c o.d ; good
+
+  o.a o.b ; error !!!
+  )
+@end example
+
+We have to be careful when using this notation and stick to the
+following design style rules:
+
+@enumerate
+@item
+Virtual fields access must be free of side effects; many macros are
+written assuming that it is safe to reference identifiers multiple
+times, under the assumption that identifier's reference has no side
+effects.
+
+@item
+Functions and syntaxes invoked by identifier references should never
+intentionally raise exceptions; usual identifier references never fail
+at runtime.
+@end enumerate
 
 @menu
-* classes fields with::         Basic fields and methods usage.
-* classes fields lambda::       High-level fields and methods usage.
-* classes fields setter::       Setters and getters.
+* classes dot with::            Basic dot notation usage.
+* classes dot let::             Local bindings.
+* classes dot lambda::          Function bindings.
+* classes dot setter::          Setters and getters.
 @end menu
 
 @c page
-@node classes fields with
-@subsection Basic fields and methods usage
+@node classes dot with
+@subsection Basic dot notation usage
 
 
 The @func{with-class} syntax is the basic tool providing dot notation
@@ -20807,8 +20835,8 @@ and duplication of names of methods is allowed, too:
 @end example
 
 @c page
-@node classes fields lambda
-@subsection High--level fields and methods usage
+@node classes dot let
+@subsection Local bindings
 
 
 @deffn Syntax let/with-class ((@ameta{var} @ameta{init}) ...) @ameta{body}
@@ -20988,6 +21016,10 @@ syntaxes.
 @end smallexample
 @end deffn
 
+@c page
+@node classes dot lambda
+@subsection Function bindings
+
 
 @deffn Syntax lambda/with-class @ameta{formals} @ameta{body}
 Like @func{lambda} but encloses the body into a @func{with-class}
@@ -21120,7 +21152,7 @@ Like @func{receive} but expands to @func{lambda/with-class} rather than
 @end deffn
 
 @c page
-@node classes fields setter
+@node classes dot setter
 @subsection Setters and getters
 
 

@@ -1041,6 +1041,27 @@
 
     #f)
 
+;;; --------------------------------------------------------------------
+;;; selective inheritance
+
+  (let ()	;only concrete fields
+
+    (define-class <alpha>
+      (fields a b))
+
+    (define-class <beta>
+      (inherit <alpha>
+	(concrete-fields))
+      (fields c d))
+
+    (check
+	(let ((p (make <beta> 1 2 3 4)))
+	  (with-class ((p <beta>))
+	    (list p.a p.b p.c p.d)))
+      => '(1 2 3 4))
+
+    #f)
+
   #t)
 
 
