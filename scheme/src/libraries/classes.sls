@@ -32,7 +32,7 @@
 
     ;; class type descriptor
     make-class-type-descriptor		class-type-descriptor?
-    class-record-descriptor		class-predicate
+    class-record-descriptor
     class-virtual-fields		class-methods
     class-setter			class-getter
     class-parent-ctd
@@ -111,10 +111,6 @@
 		;(mutable <field name> <field accessor name> <field mutator name>)
 		;(immutable <field name> <field accessor name>)
 		;
-	  (immutable predicate class-predicate)
-		;The  procedure that was  selected as  class' predicate.
-		;Always  present  because  it  defaults  to  the  record
-		;predicate.
 	  (immutable setter class-setter)
 		;A  symbol representing  the  class' setter  identifier;
 		;false if  no setter was selected.  It  does not include
@@ -383,7 +379,8 @@
       (syntax-violation 'define-class msg (syntax->datum input-form) (syntax->datum subform)))
 
     (syntax-case stx (fields mutable immutable parent protocol sealed opaque parent-rtd nongenerative
-			     virtual-fields methods method predicate setter getter inherit)
+			     virtual-fields methods method method-syntax
+			     predicate setter getter inherit)
 
       ;;Gather the INHERIT clause.
       ((%define-class/sort-clauses
@@ -974,7 +971,7 @@
 
 ;;; --------------------------------------------------------------------
 
-      ;;Gather METHOD clause.
+      ;;Gather a METHOD clause with define-like function definition.
       ((%define-class/sort-clauses
 	?input-form (?name ?constructor ?predicate)
 	(?collected-concrete-field ...)
@@ -992,12 +989,89 @@
 	(parent-rtd	?pad ...)
 	(nongenerative	?non ...)
 	(method (?method . ?args) . ?body) ?clause ...)
+       (identifier? #'?method)
        #'(%define-class/sort-clauses
 	  ?input-form (?name ?constructor ?predicate)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ... (?method function-name))
 	  (?collected-definition ... (define/with-class (function-name . ?args) . ?body))
+	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
+	  (parent		?par ...)
+	  (inherit		?inh ...)
+	  (protocol		?pro ...)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (parent-rtd		?pad ...)
+	  (nongenerative	?non ...)
+	  ?clause ...))
+
+      ;;Gather a METHOD clause with expression function definition.
+      ((%define-class/sort-clauses
+	?input-form (?name ?constructor ?predicate)
+	(?collected-concrete-field ...)
+	(?collected-virtual-field ...)
+	(?collected-method ...)
+	(?collected-definition ...)
+	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
+	(parent		?par ...)
+	(inherit	?inh ...)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?pad ...)
+	(nongenerative	?non ...)
+	(method ?method ?expression) ?clause ...)
+       (identifier? #'?method)
+       #'(%define-class/sort-clauses
+	  ?input-form (?name ?constructor ?predicate)
+	  (?collected-concrete-field ...)
+	  (?collected-virtual-field ...)
+	  (?collected-method ... (?method function-name))
+	  (?collected-definition ... (define function-name ?expression))
+	  (predicate		?pre ...)
+	  (setter		?set ...)
+	  (getter		?get ...)
+	  (parent		?par ...)
+	  (inherit		?inh ...)
+	  (protocol		?pro ...)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (parent-rtd		?pad ...)
+	  (nongenerative	?non ...)
+	  ?clause ...))
+
+;;; --------------------------------------------------------------------
+
+      ;;Gather a METHOD-SYNTAX clause.
+      ((%define-class/sort-clauses
+	?input-form (?name ?constructor ?predicate)
+	(?collected-concrete-field ...)
+	(?collected-virtual-field ...)
+	(?collected-method ...)
+	(?collected-definition ...)
+	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
+	(parent		?par ...)
+	(inherit	?inh ...)
+	(protocol	?pro ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?pad ...)
+	(nongenerative	?non ...)
+	(method-syntax ?method ?transformer) ?clause ...)
+       (identifier? #'?method)
+       #'(%define-class/sort-clauses
+	  ?input-form (?name ?constructor ?predicate)
+	  (?collected-concrete-field ...)
+	  (?collected-virtual-field ...)
+	  (?collected-method ... (?method macro-name))
+	  (?collected-definition ... (define-syntax macro-name ?transformer))
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -1974,7 +2048,7 @@
 	(?collected-method ...)
 	(?collected-definition ...)
 	(?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	(predicate	?predicate-function)
+	(predicate	?predicate-identifier)
 	(setter		?set ...)
 	(getter		?get ...)
 	(protocol	?pro ...)
@@ -1988,7 +2062,7 @@
       (?collected-method ...)
       (?collected-definition ...)
       (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-      ?predicate-function
+      ?predicate-identifier
       (setter		?set ...)
       (getter		?get ...)
       (protocol		?pro ...)
@@ -2008,7 +2082,7 @@
 	(?collected-method ...)
 	(?collected-definition ...)
 	(?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	?predicate-function
+	?predicate-identifier
 	(setter)
 	(getter		?get ...)
 	(protocol	?pro ...)
@@ -2022,7 +2096,7 @@
       (?collected-method ...)
       (?collected-definition ...)
       (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-      ?predicate-function
+      ?predicate-identifier
       #f
       (getter		?get ...)
       (protocol		?pro ...)
@@ -2037,7 +2111,7 @@
 	(?collected-method ...)
 	(?collected-definition ...)
 	(?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	?predicate-function
+	?predicate-identifier
 	(setter		?setter)
 	(getter		?get ...)
 	(protocol	?pro ...)
@@ -2051,7 +2125,7 @@
       (?collected-method ...)
       (?collected-definition ...)
       (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-      ?predicate-function
+      ?predicate-identifier
       ?setter
       (getter		?get ...)
       (protocol		?pro ...)
@@ -2071,7 +2145,7 @@
 	(?collected-method ...)
 	(?collected-definition ...)
 	(?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	?predicate-function
+	?predicate-identifier
 	?setter
 	(getter)
 	(protocol	?pro ...)
@@ -2085,7 +2159,7 @@
       (?collected-method ...)
       (?collected-definition ...)
       (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-      ?predicate-function
+      ?predicate-identifier
       ?setter
       #f
       (protocol		?pro ...)
@@ -2100,7 +2174,7 @@
 	(?collected-method ...)
 	(?collected-definition ...)
 	(?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	?predicate-function
+	?predicate-identifier
 	?setter
 	(getter		?getter)
 	(protocol	?pro ...)
@@ -2114,7 +2188,7 @@
       (?collected-method ...)
       (?collected-definition ...)
       (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-      ?predicate-function
+      ?predicate-identifier
       ?setter
       ?getter
       (protocol		?pro ...)
@@ -2135,7 +2209,7 @@
 	(?collected-method ...)
 	(?collected-definition ...)
 	(?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	?predicate-function
+	?predicate-identifier
 	?setter
 	?getter
 	(protocol	?protocol)
@@ -2149,7 +2223,7 @@
       (?collected-method ...)
       (?collected-definition ...)
       (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-      ?predicate-function
+      ?predicate-identifier
       ?setter
       ?getter
       ?protocol
@@ -2164,7 +2238,7 @@
 	(?collected-method ...)
 	(?collected-definition ...)
 	(?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	?predicate-function
+	?predicate-identifier
 	?setter
 	?getter
 	(protocol)
@@ -2178,7 +2252,7 @@
       (?collected-method ...)
       (?collected-definition ...)
       (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-      ?predicate-function
+      ?predicate-identifier
       ?setter
       ?getter
       #f
@@ -2198,7 +2272,7 @@
 	(?collected-method ...)
 	(?collected-definition ...)
 	(?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	?predicate-function
+	?predicate-identifier
 	?setter
 	?getter
 	?protocol
@@ -2212,7 +2286,7 @@
       (?collected-method ...)
       (?collected-definition ...)
       (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-      ?predicate-function
+      ?predicate-identifier
       ?setter
       ?getter
       ?protocol
@@ -2227,7 +2301,7 @@
 	(?collected-method ...)
 	(?collected-definition ...)
 	(?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	?predicate-function
+	?predicate-identifier
 	?setter
 	?getter
 	?protocol
@@ -2241,7 +2315,7 @@
       (?collected-method ...)
       (?collected-definition ...)
       (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-      ?predicate-function
+      ?predicate-identifier
       ?setter
       ?getter
       ?protocol
@@ -2261,7 +2335,7 @@
 	(?collected-method ...)
 	(?collected-definition ...)
 	(?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	?predicate-function
+	?predicate-identifier
 	?setter
 	?getter
 	?protocol
@@ -2275,7 +2349,7 @@
       (?collected-method ...)
       (?collected-definition ...)
       (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-      ?predicate-function
+      ?predicate-identifier
       ?setter
       ?getter
       ?protocol
@@ -2290,7 +2364,7 @@
 	(?collected-method ...)
 	(?collected-definition ...)
 	(?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	?predicate-function
+	?predicate-identifier
 	?setter
 	?getter
 	?protocol
@@ -2304,7 +2378,7 @@
       (?collected-method ...)
       (?collected-definition ...)
       (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-      ?predicate-function
+      ?predicate-identifier
       ?setter
       ?getter
       ?protocol
@@ -2326,7 +2400,7 @@
 	  (?collected-method ...)
 	  (?collected-definition ...)
 	  (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	  ?predicate-function
+	  ?predicate-identifier
 	  ?setter
 	  ?getter
 	  ?protocol
@@ -2340,7 +2414,7 @@
 	  (?collected-method ...)
 	  (?collected-definition ...)
 	  (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	  ?predicate-function
+	  ?predicate-identifier
 	  ?setter
 	  ?getter
 	  ?protocol
@@ -2355,7 +2429,7 @@
 	  (?collected-method ...)
 	  (?collected-definition ...)
 	  (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	  ?predicate-function
+	  ?predicate-identifier
 	  ?setter
 	  ?getter
 	  ?protocol
@@ -2369,7 +2443,7 @@
 	  (?collected-method ...)
 	  (?collected-definition ...)
 	  (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	  ?predicate-function
+	  ?predicate-identifier
 	  ?setter
 	  ?getter
 	  ?protocol
@@ -2406,33 +2480,6 @@
 	    ((<= count 0)
 	     ret))))
 
-    (define (%parse-inherit-options inherit-options/stx input-form/stx)
-      ;;Here  we  already  know   that  INHERIT-OPTIONS  is  a  list  of
-      ;;identifiers.
-      (let loop ((concrete-fields	#t)
-		 (virtual-fields	#t)
-		 (methods		#t)
-		 (setter-and-getter	#t)
-		 (options		(syntax->datum inherit-options/stx)))
-	(if (null? options)
-	    (list concrete-fields virtual-fields methods setter-and-getter)
-	  (case (car options)
-	    ((dry)
-	     (loop #f #f #f #f (cdr options)))
-	    ((concrete-fields)
-	     (loop #t virtual-fields methods setter-and-getter (cdr options)))
-	    ((virtual-fields)
-	     (loop concrete-fields #t methods setter-and-getter (cdr options)))
-	    ((methods)
-	     (loop concrete-fields virtual-fields #t setter-and-getter (cdr options)))
-	    ((setter-and-getter)
-	     (loop concrete-fields virtual-fields methods #t (cdr options)))
-	    (else
-	     (syntax-violation 'define-class
-	       "invalid inheritance option"
-	       (syntax->datum input-form/stx)
-	       (car options)))))))
-
     (syntax-case stx ()
 
       ((_ ?input-form
@@ -2442,7 +2489,7 @@
 	  ((?method ?method-function) ...)
 	  (?collected-definition ...)
 	  (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	  ?predicate-function ?setter ?getter
+	  ?predicate-identifier ?setter ?getter
 	  ?protocol ?sealed ?opaque ?uid)
        (let ((id (duplicated-identifiers? #'(?field ... ?virtual-field ... ?method ...))))
 	 (if id
@@ -2474,7 +2521,6 @@
 		     (make-class-type-descriptor
 		      the-rtd (?superclass-name class-type-descriptor)
 		      (quote #((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...))
-		      ?predicate-function
 		      (quote ?setter) (quote ?getter)
 		      (quote #((?method ?method-function) ...))))
 
@@ -2510,7 +2556,7 @@
 			  #'(?constructor ?arg (... ...)))
 
 			 ((_ is-a? ?arg (... ...))
-			  #'(?predicate-function ?arg (... ...)))
+			  #'(?predicate-identifier ?arg (... ...)))
 
 			 ((_ with-class-bindings-of
 			     (?inherit-concrete-fields
@@ -3230,7 +3276,6 @@
    (record-type-descriptor <top>)
    #f
    (quote #())	 ;virtual fields
-   <top>?	 ;predicate
    #f #f	 ;setter and getter
    (quote #()))) ;methods
 

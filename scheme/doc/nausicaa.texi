@@ -19798,8 +19798,8 @@ The @func{parent-rtd} clause makes a class a subtype of a record type.
 @end itemize
 
 @noindent
-only one among the @func{inherit}, @func{parent} and @func{parent-rtd}
-can be used at once.
+only one among @func{inherit}, @func{parent} and @func{parent-rtd} can
+be used at once.
 @end deffn
 
 
@@ -19808,10 +19808,9 @@ Like @func{define-class}, but inserts a @func{protocol} clause whose
 constructor raises an assertion violation if called.  Virtual classes
 are not meant to be instantiated, their purpose is only to provide
 virtual fields and methods to instances of other types; for example: all
-the classes for builtin types are virtual.
-
-It is an error to use a virtual class as parent of a concrete class; it
-is useless to use a virtual class as parent of a virtual class.
+the classes for builtin types are virtual.  It is an error to use a
+virtual class as parent of a concrete class: the constructor will raise
+an error when trying to instantiate it.
 
 It is meaningful, but not mandatory, to define a virtual class only if
 we use the @func{predicate} clause described below; else there is no way
@@ -19824,17 +19823,71 @@ definition.
 
 
 @deffn {Auxiliary Syntax} inherit @ameta{class name}
+@deffnx {Auxiliary Syntax} inherit @ameta{class name} (@ameta{option} ...)
 Make the class type of the enclosing definition a subtype of @meta{class
 name}; it is @strong{not} possible to mimic what @func{inherit} does
 using @func{parent} or @func{parent-rtd}.
+
+The concrete fields of the superclass are always included in the class
+type, making the underlying superclass record type a parent of the new
+class record type.  The optional list of options allows us to select
+which members of the superclass are accessible through the dot notation
+implemented by the @func{with-class} syntax.
+
+A missing or empty list of options means expose everything: concrete
+fields, virtual fields, methods, setter and getter; each @meta{option}
+argument can be one among:
+
+@table @code
+@item all
+@itemx everything
+Expose everything: concrete fields, virtual fields, methods, setter and
+getter.
+
+@item dry
+@itemx nothing
+Expose nothing: only the members of the new class type are accessible
+through dot notation.
+
+@item concrete-fields
+@itemx no-concrete-fields
+Include or exclude the concrete fields.
+
+@item virtual-fields
+@itemx no-virtual-fields
+Include or exclude the virtual fields.
+
+@item fields
+@itemx no-fields
+Include or exclude both the concrete and virtual fields.
+
+@item methods
+@itemx no-methods
+Include or exclude the methods.
+
+@item setter-and-getter
+@itemx no-setter-and-getter
+Include or exclude the setter and getter.
+@end table
+
+Options state is accumulated from the options list in left to right
+order, starting from the ``all exposed'' state; so the following lists
+of options are equivalent:
+
+@example
+(nothing virtual-fields methods)
+(nothing fields methods no-concrete-fields)
+(all no-concrete-fields no-setter-and-getter)
+@end example
 @end deffn
 
 
-@deffn {Auxiliary Syntax} predicate @ameta{function name}
-Select a custom predicate function to be used to identify instances of
-classes with the @func{is-a?} macro.  When not given, the default record
-predicate is used.  This clause is useful especially to select custom
-predicates for the builtin class types; example:
+@deffn {Auxiliary Syntax} predicate @ameta{predicate name}
+Select a custom predicate function or syntax to be used to identify
+instances of classes with the @func{is-a?} macro.  When not given, the
+predicate of the underlying record type is used.  This clause is useful
+especially to select custom predicates for the builtin class types;
+example:
 
 @example
 (define-virtual-class <complex>
@@ -19915,8 +19968,8 @@ Notice the semantic difference between @func{fields} clauses and
 field to the record type, thereby creating the accessor and possibly the
 mutator; then select the public names of accessors and mutators.  With
 @func{virtual-fields} we select the name of a virtual field whose
-accessor and mutator functions must be explicitly defined in some other
-way.
+accessor and mutator functions or syntaxes must be explicitly defined in
+some other way.
 @end deffn
 
 
@@ -19927,17 +19980,17 @@ arguments can be of the form:
 @example
 @cmeta{method}
 (@cmeta{method})
-(@cmeta{method} @cmeta{function name})
+(@cmeta{method} @cmeta{method name})
 @end example
 
 @noindent
-where @meta{method} and @meta{function name} must be identifiers; in the
+where @meta{method} and @meta{method name} must be identifiers; in the
 first two forms the function name is built in the same way the field
 accessor names are built: appending a dash and @meta{method} to the
 record type name.  This clause can be used multiple times.
 
-The @meta{function name} must be an identifier bound to a Scheme
-function which will be invoked as method; it must accept as first
+The @meta{method name} must be an identifier bound to a Scheme function
+or syntax which will be invoked as method; it must accept as first
 argument the record which is the subject of the application.
 
 For more details on methods, especially methods with the same name in
@@ -19994,13 +20047,14 @@ different record types of the same hierarchy, @ref{classes dot with,
 
 
 @deffn {Auxiliary Syntax} method (@ameta{name} . @ameta{formals}) . @ameta{body}
+@deffnx {Auxiliary Syntax} method @ameta{name} @ameta{expression}
 Add a method to the enclosing class definition; the method is applicable
 only through an automatically generated macro, which is bound by
 @func{with-class} to an identifier in dot notation.  This clause can be
 used any number of times in a class definition.
 
-The method definition is added to the methods list as if the following
-clause had been used:
+When the first form is used, the method definition is added to the
+methods list as if the following clause had been used:
 
 @example
 (methods @cmeta{other methods} ...
@@ -20019,6 +20073,26 @@ where @code{function-name} is a unique, automatically generated,
 identifier.  The first argument in @meta{formals} will be the class
 instance.
 
+When the second form is used, the method definition is added to the
+methods list as if the following clause had been used:
+
+@example
+(methods @cmeta{other methods} ...
+         (@cmeta{name} function-name))
+@end example
+
+@noindent
+the function definition is expanded to:
+
+@example
+(define function-name @cmeta{expression})
+@end example
+
+@noindent
+where @code{function-name} is a unique, automatically generated,
+identifier; the @meta{expression} must evaluate to a function accepting
+at least one argument: the class instance.
+
 @example
 (define-class <fraction>
   (fields (mutable number))
@@ -20030,8 +20104,9 @@ instance.
   (method (product (o <fraction>) lambda)
     (set! o.numerator (* o.numerator lambda)))
 
-  (method (the-list (o <fraction>) . ell)
-    (cons o.numerator ell)))
+  (method the-list
+    (lambda/with-class ((o <fraction>) . ell)
+      (cons o.numerator ell))))
 
 ;; virtual field accessor and mutator
 
@@ -20068,10 +20143,38 @@ instance.
 @end deffn
 
 
+@deffn {Auxiliary Syntax} method-syntax @ameta{name} @ameta{transformer}
+Add a method to the enclosing class definition; the method is applicable
+only through an automatically generated macro, which is bound by
+@func{with-class} to an identifier in dot notation.  This clause can be
+used any number of times in a class definition.
+
+The method definition is added to the methods list as if the following
+clause had been used:
+
+@example
+(methods @cmeta{other methods} ...
+         (@cmeta{name} transformer-name))
+@end example
+
+@noindent
+the macro definition is expanded to:
+
+@example
+(define-syntax transformer-name @cmeta{transformer})
+@end example
+
+@noindent
+where @code{transformer-name} is a unique, automatically generated,
+identifier.  @meta{transformer} must expand to a macro transformer.  The
+first argument to the macro will be the class instance.
+@end deffn
+
+
 @deffn {Auxiliary Syntax} setter @ameta{setter name}
-@deffnx {Auxiliary Syntax} getter @ameta{setter name}
+@deffnx {Auxiliary Syntax} getter @ameta{getter name}
 Define a setter or getter binding to be used by @func{setf} or
-@func{getf}.  @ameta{setter name} and @ameta{getter name} must
+@func{getf}.  @ameta{setter name} and @ameta{getter name} must be
 identifiers bound to a function or macro which is invoked by @func{setf}
 and @func{getf} as:
 
@@ -20103,11 +20206,13 @@ new value.  Example:
 another example:
 
 @example
-(define-builtin-class <vector>
+(define-virtual-class <vector>
+  (inherit <builtin>)
   (predicate vector?)
   (virtual-fields (immutable length vector-length))
   (setter vector-set!)
-  (getter vector-ref))
+  (getter vector-ref)
+  (nongenerative nausicaa:builtin:<vector>))
 
 (let/with-class (((o <vector>) (vector 0 1 2 3 4)))
   (setf (o 2) #\c)

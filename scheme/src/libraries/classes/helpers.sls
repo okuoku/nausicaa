@@ -34,7 +34,8 @@
     syntax-accessor-name		syntax-mutator-name
     (rename (syntax-accessor-name syntax-method-name))
     syntax-dot-notation-name
-    duplicated-identifiers?		all-identifiers?)
+    duplicated-identifiers?		all-identifiers?
+    %parse-inherit-options)
   (import (rnrs))
 
 
@@ -114,6 +115,55 @@
 	(if (bound-identifier=? x (car ls))
 	    x
 	  (loop x (cdr ls)))))))
+
+
+(define (%parse-inherit-options inherit-options/stx input-form/stx)
+  ;;Here we already know that INHERIT-OPTIONS is a list of identifiers.
+  ;;
+  (let loop ((concrete-fields	#t)
+	     (virtual-fields	#t)
+	     (methods		#t)
+	     (setter-and-getter	#t)
+	     (options		(syntax->datum inherit-options/stx)))
+    (if (null? options)
+	(list concrete-fields virtual-fields methods setter-and-getter)
+      (case (car options)
+
+	((all everything)
+	 (loop #t #t #t #t (cdr options)))
+
+	((dry nothing)
+	 (loop #f #f #f #f (cdr options)))
+
+	((concrete-fields)
+	 (loop #t virtual-fields methods setter-and-getter (cdr options)))
+	((no-concrete-fields)
+	 (loop #f virtual-fields methods setter-and-getter (cdr options)))
+
+	((virtual-fields)
+	 (loop concrete-fields #t methods setter-and-getter (cdr options)))
+	((no-virtual-fields)
+	 (loop concrete-fields #f methods setter-and-getter (cdr options)))
+
+	((fields)
+	 (loop #t #t methods setter-and-getter (cdr options)))
+	((no-fields)
+	 (loop #f #f methods setter-and-getter (cdr options)))
+
+	((methods)
+	 (loop concrete-fields virtual-fields #t setter-and-getter (cdr options)))
+	((no-methods)
+	 (loop concrete-fields virtual-fields #f setter-and-getter (cdr options)))
+
+	((setter-and-getter)
+	 (loop concrete-fields virtual-fields methods #t (cdr options)))
+	((no-setter-and-getter)
+	 (loop concrete-fields virtual-fields methods #f (cdr options)))
+
+	(else
+	 (syntax-violation 'define-class
+	   "invalid inheritance option"
+	   (syntax->datum input-form/stx) (car options)))))))
 
 
 ;;;; done

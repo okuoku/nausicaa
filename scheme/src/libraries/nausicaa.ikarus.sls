@@ -824,7 +824,7 @@
 
     ;; class type descriptor
     make-class-type-descriptor		class-type-descriptor?
-    class-record-descriptor		class-predicate
+    class-record-descriptor
     class-virtual-fields		class-methods
     class-setter			class-getter
     class-parent-ctd

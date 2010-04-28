@@ -1051,7 +1051,7 @@
 
     (define-class <beta>
       (inherit <alpha>
-	(concrete-fields))
+	(nothing concrete-fields))
       (fields c d))
 
     (check
@@ -1059,6 +1059,65 @@
 	  (with-class ((p <beta>))
 	    (list p.a p.b p.c p.d)))
       => '(1 2 3 4))
+
+    (check
+	(guard (E ((undefined-violation? E)
+		   #t)
+		  (else #f))
+	  (eval '(let ()
+		   (define-class <alpha>
+		     (fields a b)
+		     (virtual-fields (immutable c <alpha>-b)))
+
+		   (define-class <beta>
+		     (inherit <alpha>
+		       (nothing concrete-fields))
+		     (fields d e))
+
+		   (let ((p (make <beta> 1 2 3 4)))
+		     (with-class ((p <beta>))
+		       p.c)))
+		(environment '(nausicaa))))
+      => #t)
+
+    #f)
+
+  (let ()	;only virtual fields
+
+    (define-class <alpha>
+      (fields a b)
+      (virtual-fields (immutable c <alpha>-b)))
+
+    (define-class <beta>
+      (inherit <alpha>
+	(nothing virtual-fields))
+      (fields d e))
+
+    (check
+	(let ((p (make <beta> 1 2 3 4)))
+	  (with-class ((p <beta>))
+	    (list p.c p.d p.e)))
+      => '(2 3 4))
+
+    (check
+	(guard (E ((undefined-violation? E)
+		   #t)
+		  (else #f))
+	  (eval '(let ()
+		   (define-class <alpha>
+		     (fields a b)
+		     (virtual-fields (immutable c <alpha>-b)))
+
+		   (define-class <beta>
+		     (inherit <alpha>
+		       (nothing virtual-fields))
+		     (fields d e))
+
+		   (let ((p (make <beta> 1 2 3 4)))
+		     (with-class ((p <beta>))
+		       p.a)))
+		(environment '(nausicaa))))
+      => #t)
 
     #f)
 
@@ -1362,7 +1421,7 @@
 
 (parametrise ((check-test-name	'in-definition-methods))
 
-  (let ()
+  (let ()	; methods
 
     (define-class <fraction>
       (fields (mutable number))
@@ -1371,8 +1430,59 @@
 	(denominator (<fraction>-number o)))
       (method (product (o <fraction>) lambda)
 	(set! o.numerator (* o.numerator lambda)))
-      (method (the-list (o <fraction>) . ell)
-	(cons o.numerator ell)))
+      (method the-list
+	(lambda/with-class ((o <fraction>) . ell)
+	  (cons o.numerator ell))))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-numerator-set! o v)
+      (let ((n (<fraction>-number o)))
+	(<fraction>-number-set! o (/ v (denominator n)))))
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-class ((o <fraction>))
+	    o.numerator))
+      => 2)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-class ((o <fraction>))
+	    (o.denominator)))
+      => 3)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-class ((o <fraction>))
+	    (o.product 10)
+	    o.numerator))
+      => 20)
+
+    (check
+	(let ((o (make-<fraction> 2/3)))
+	  (with-class ((o <fraction>))
+	    (o.the-list 10 11 12 13)))
+      => '(2 10 11 12 13))
+
+    #f)
+
+  (let ()	; methods syntaxes
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (virtual-fields (mutable numerator))
+      (method-syntax denominator
+	(syntax-rules ()
+	  ((_ ?obj)
+	   (let ((o ?obj))
+	     (denominator (<fraction>-number o))))))
+      (method (product (o <fraction>) lambda)
+	(set! o.numerator (* o.numerator lambda)))
+      (method the-list
+	(lambda/with-class ((o <fraction>) . ell)
+	  (cons o.numerator ell))))
 
     (define (<fraction>-numerator o)
       (numerator (<fraction>-number o)))
@@ -3023,10 +3133,6 @@
       => '#())
 
     (check
-	(procedure? (class-predicate <alpha>-ctd))
-      => #t)
-
-    (check
 	(class-setter <alpha>-ctd)
       => #f)
 
@@ -3066,10 +3172,6 @@
 	(class-virtual-fields <beta>-ctd)
       => '#((mutable   aa <beta>-a <beta>-a-set!)
 	    (immutable bb <beta>-b)))
-
-    (check
-	(procedure? (class-predicate <beta>-ctd))
-      => #t)
 
     (check
 	(class-setter <beta>-ctd)
