@@ -19800,17 +19800,60 @@ The @func{parent-rtd} clause makes a class a subtype of a record type.
 @noindent
 only one among @func{inherit}, @func{parent} and @func{parent-rtd} can
 be used at once.
+
+Three constructor descriptors are built by this syntax: the @dfn{public
+constructor} is used when instantiating a class through the @func{make}
+macro; the @dfn{superclass constructor} is used when instantiating a
+subclass, it is the function handed as argument to the protocol
+function; the @dfn{from--fields constructor} is automatically generated
+to be used by the @func{make-from-fields} macro and it builds instances
+from raw field values.
+
+The superclass and public constructors are built using the parent's
+superclass constructor descriptor:
+
+@itemize
+@item
+When inheritance is specified through the @func{inherit} clause: the
+superclass constructor is acquired with
+@func{superclass-constructor-descriptor} applied to the superclass name.
+
+@item
+When inheritance is specified through the @func{parent} clause: the
+superclass constructor is acquired with
+@func{record-constructor-descriptor} applied to the record type name.
+
+@item
+When inheritance is specified through the @func{parent-rtd} clause: the
+superclass constructor is the one directly specified in the clause.
+@end itemize
+
+Three protocol--related clauses are accepted:
+
+@table @code
+@item protocol
+Select the default constructor protocol function for all the other
+constructors; when not used: the default protocol is the one
+automatically provided by @func{make-record-constructor-descriptor} when
+invoked with the @var{protocol} argument set to @false{}.
+
+@item public-protocol
+Select the public constructor's protocol function, overriding the
+default one.
+
+@item superclass-protocol
+Select the superclass constructor's protocol function, overriding the
+default one.
+@end table
 @end deffn
 
 
 @deffn Syntax define-virtual-class @ameta{name spec} @ameta{class clause}*
-Like @func{define-class}, but inserts a @func{protocol} clause whose
-constructor raises an assertion violation if called.  Virtual classes
-are not meant to be instantiated, their purpose is only to provide
-virtual fields and methods to instances of other types; for example: all
-the classes for builtin types are virtual.  It is an error to use a
-virtual class as parent of a concrete class: the constructor will raise
-an error when trying to instantiate it.
+Like @func{define-class}, but inserts a @func{public-protocol} clause
+whose constructor raises an assertion violation if called.  Virtual
+classes are not meant to be instantiated, their purpose is only to
+provide virtual fields and methods to instances of other types; for
+example: all the classes for builtin types are virtual.
 
 It is meaningful, but not mandatory, to define a virtual class only if
 we use the @func{predicate} clause described below; else there is no way
@@ -19879,6 +19922,18 @@ of options are equivalent:
 (nothing fields methods no-concrete-fields)
 (all no-concrete-fields no-setter-and-getter)
 @end example
+@end deffn
+
+
+@deffn {Auxiliary Syntax} public-protocol @ameta{expression}
+Select the public constructor's protocol function, overriding the
+default one.
+@end deffn
+
+
+@deffn {Auxiliary Syntax} superclass-protocol @ameta{expression}
+Select the superclass constructor's protocol function, overriding the
+default one.
 @end deffn
 
 
@@ -20289,6 +20344,13 @@ Example:
 @end example
 @end deffn
 
+
+@deffn Syntax make-from-fields @ameta{class name} @ameta{expression} ...
+Like @func{make} but accept as expression arguments must evaluate to the
+raw field values; it uses the default constructor functions.  This macro
+is useful especially for debugging purposes.
+@end deffn
+
 @c page
 @node classes pred
 @section Record type predicates
@@ -20400,9 +20462,14 @@ defined by @func{define-class}.
 
 
 @deffn Syntax class-constructor-descriptor @ameta{class name}
-Expand to the default constructor descriptor associated to @meta{class
-name}.  It is a replacement of @func{record-constructor-descriptor} for
-record types defined by @func{define-class}.
+Expand to the public constructor descriptor associated to @meta{class
+name}.
+@end deffn
+
+
+@deffn Syntax superclass-constructor-descriptor @ameta{class name}
+Expand to the superclass constructor descriptor associated to
+@meta{class name}.
 @end deffn
 
 

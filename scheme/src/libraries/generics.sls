@@ -37,27 +37,34 @@
 
 ;;;; the following are all the bindings from (classes)
 
-    define-class			make
-    define/with-class			define/with-class*
-    lambda/with-class			lambda/with-class*
-    let/with-class			let*/with-class
-    letrec/with-class			letrec*/with-class
-    receive/with-class
-    with-class
-    setf				getf
-    is-a?
-
-    class-type-descriptor		class-constructor-descriptor
-    class-record-type-descriptor
-
+    ;; class type descriptor
     make-class-type-descriptor		class-type-descriptor?
     class-record-descriptor
     class-virtual-fields		class-methods
     class-setter			class-getter
+    class-parent-ctd
 
+    ;; syntactic layer
+    define-class			define-virtual-class
+    class-type-descriptor		class-record-type-descriptor
+    class-constructor-descriptor	superclass-constructor-descriptor
+    class-type-uid			is-a?
+    make				make-from-fields
+
+    ;; procedural layer
     record-type-parent?
     record-type-of
     record-parent-list			class-parent-list
+
+    ;; dot notation syntaxes
+    with-class
+    setf				getf
+    define/with-class			define/with-class*
+    lambda/with-class			lambda/with-class*
+    case-lambda/with-class		case-lambda/with-class*
+    receive/with-class
+    let/with-class			let*/with-class
+    letrec/with-class			letrec*/with-class
 
     <top> <builtin>
     <pair> <list>

@@ -830,10 +830,11 @@
     class-parent-ctd
 
     ;; syntactic layer
-    define-class			class-type-descriptor
-    class-constructor-descriptor	class-record-type-descriptor
-    class-type-uid
-    make				is-a?
+    define-class			define-virtual-class
+    class-type-descriptor		class-record-type-descriptor
+    class-constructor-descriptor	superclass-constructor-descriptor
+    class-type-uid			is-a?
+    make				make-from-fields
 
     ;; procedural layer
     record-type-parent?

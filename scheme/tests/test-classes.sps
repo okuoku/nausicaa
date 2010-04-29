@@ -129,6 +129,126 @@
     #f)
 
 ;;; --------------------------------------------------------------------
+;;; various protocols
+
+  (let ()	;public protocol
+
+    (define-class <alpha>
+      (fields a b)
+      (public-protocol (lambda (make-top)
+			 (lambda (a b)
+			   ((make-top) a b))))
+      (superclass-protocol (lambda (make-top)
+			     (lambda (a b)
+			       #f))))
+
+    (check
+	(is-a? (make <alpha> 1 2) <alpha>)
+      => #t)
+
+    #f)
+
+  (let ()	;superclass protocol
+
+    (define-class <alpha>
+      (fields a b)
+      (public-protocol (lambda (make-top)
+			 (lambda (a b)
+			   #f)))
+      (superclass-protocol (lambda (make-top)
+			     (lambda (a b)
+			       ((make-top) a b)))))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields c d)
+      (public-protocol (lambda (make-alpha)
+			 (lambda (a b c d)
+			   ((make-alpha a b) c d))))
+      (superclass-protocol (lambda (make-alpha)
+			     (lambda (a b c d)
+			       #f))))
+
+    (check
+	(is-a? (make <beta> 1 2 3 4) <beta>)
+      => #t)
+
+    #f)
+
+  (let ()	;from-fields constructor
+
+    (define-class <alpha>
+      (fields a b)
+      (protocol (lambda (make-top)
+		  (lambda ()
+		    ((make-top) 1 2)))))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields c d)
+      (protocol (lambda (make-alpha)
+		  (lambda ()
+		    ((make-alpha) 3 4)))))
+
+    (check
+	(let/with-class (((o <beta>) (make <beta>)))
+	  (list o.a o.b o.c o.d))
+      => '(1 2 3 4))
+
+    (check
+	(let/with-class (((o <beta>) (make-from-fields <beta>
+						       #\a #\b #\c #\d)))
+	  (list o.a o.b o.c o.d))
+      => '(#\a #\b #\c #\d))
+
+    #f)
+
+  (let ()	;virtual classes
+
+    (check	;attempt to instantiate virtual class
+	(guard (E ((syntax-violation? E)
+;;;		   (write (condition-message E))(newline)
+;;;		   (write E)(newline)
+		   #t)
+		  (else
+;;;		   (write E)(newline)
+		   #f))
+	  (eval '(let ()
+		   (define-virtual-class <alpha>
+		     (predicate integer?))
+		   (make <alpha>))
+		(environment '(nausicaa))))
+      => #t)
+
+    (check	;attempt to instantiate virtual class
+	(guard (E ((syntax-violation? E)
+;;;		   (write (condition-message E))(newline)
+;;;		   (write E)(newline)
+		   #t)
+		  (else
+;;;		   (write E)(newline)
+		   #f))
+	  (eval '(make <vector>) (environment '(nausicaa))))
+      => #t)
+
+    (check	;PUBLIC-PROTOCOL in virtual class definition is bad
+	(guard (E ((syntax-violation? E)
+;;;		   (write (condition-message E))(newline)
+;;;		   (write E)(newline)
+		   #t)
+		  (else
+;;;		   (write E)(newline)
+		   #f))
+	  (eval '(let ()
+		   (define-virtual-class <alpha>
+		     (public-protocol (lambda (n) (lambda () (n)))))
+		   #f)
+		(environment '(nausicaa))))
+      => #t)
+
+    #f)
+
+;;; --------------------------------------------------------------------
 ;;; various field definitions
 
   (let ()
@@ -340,6 +460,28 @@
 		 (protocol hello))
 	      (environment '(nausicaa))))
     => '(protocol hello))
+
+  (check	;multiple PUBLIC-ROTOCOL is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (public-protocol ciao)
+		 (public-protocol hello))
+	      (environment '(nausicaa))))
+    => '(public-protocol hello))
+
+  (check	;multiple SUPERCLASS-ROTOCOL is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (superclass-protocol ciao)
+		 (superclass-protocol hello))
+	      (environment '(nausicaa))))
+    => '(superclass-protocol hello))
 
   (check	;multiple SEALED is bad
       (guard (E ((syntax-violation? E)
