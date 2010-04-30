@@ -69,10 +69,10 @@
 	       (args
 		((make-<top>) args)))))
   (fields (mutable first-pair))
-  (virtual-fields (immutable top	stack-top)
-		  (immutable empty?	stack-empty?)
+  (virtual-fields (immutable empty?	stack-empty?)
 		  (immutable length	stack-length))
-  (methods (pop!	stack-pop!)
+  (methods (top		stack-top)
+	   (pop!	stack-pop!)
 	   (purge!	stack-purge!)
 	   (list	stack->list)
 	   (vector	stack->vector))

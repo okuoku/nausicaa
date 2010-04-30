@@ -146,11 +146,11 @@
   (let loop ((dst.start dst.start))
     (if (= dst.start dst.past)
 	dst.past
-      (with-class ((membuf.front <buffer>))
+      (let (((m <buffer>) (membuf.front)))
 	(if membuf.empty?
 	    dst.start
-	  (let ((start (popper membuf.front dst dst.start dst.past)))
-	    (when membuf.front.empty?
+	  (let ((start (popper m dst dst.start dst.past)))
+	    (when m.empty?
 	      (%dequeue-<buffer>-from-<membuffer> membuf))
 	    (loop start)))))))
 
@@ -159,8 +159,8 @@
     (if (= src.start src.past)
 	src.past
       (begin
-	(when (or membuf.empty? (with-class ((membuf.rear <buffer>))
-				  membuf.rear.full?))
+	(when (or membuf.empty? (let (((m <buffer>) (membuf.rear)))
+				  m.full?))
 	  (with-exception-handler
 	      (lambda (E)
 		(raise-continuable
@@ -170,7 +170,7 @@
 		   E)))
 	    (lambda ()
 	      (queue-enqueue! membuf (%enqueue-<buffer>-in-<membuffer> membuf)))))
-	(loop (pusher membuf.rear src src.start src.past))))))
+	(loop (pusher (membuf.rear) src src.start src.past))))))
 
 
 ;;;; <buffer> records operations

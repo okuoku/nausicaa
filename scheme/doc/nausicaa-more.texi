@@ -17762,17 +17762,6 @@ The last pair of the internal list of elements.
 @end defcv
 
 
-@defcv {Immutable Field} @aclass{queue} front
-The first element in the queue: the next element returned by a dequeue
-operation.
-@end defcv
-
-
-@defcv {Immutable Field} @aclass{queue} rear
-The last element in the queue.
-@end defcv
-
-
 @defcv {Immutable Field} @aclass{queue} empty?
 True if the queue is empty.
 @end defcv
@@ -17824,10 +17813,23 @@ the queue is empty.
 @end defun
 
 
+@defmethod @aclass{queue} front
+Return first element in the queue: the next element returned by a
+dequeue operation.  The queue is left unchanged.  Raise an exception if
+the queue is empty.
+@end defmethod
+
+
 @defun queue-rear @var{que}
 Return the last element in the queue, that is the last enqueued valued.
 The queue is left unchanged.  Raise an exception if the queue is empty.
 @end defun
+
+
+@defmethod @aclass{queue} rear
+The last element in the queue.  The queue is left unchanged.  Raise an
+exception if the queue is empty.
+@end defmethod
 
 @c page
 @node queues ops
@@ -17983,12 +17985,6 @@ The first pair of the internal list of elements.
 @end defcv
 
 
-@defcv {Immutable Field} @aclass{stack} top
-The first element in the stack: the next element returned by a pop
-operation.
-@end defcv
-
-
 @defcv {Immutable Field} @aclass{stack} empty?
 True if the stack is empty.
 @end defcv
@@ -18036,6 +18032,13 @@ Return the first element in the stack: the value returned by a pop
 operation.  The stack is left unchanged.  Raise an exception if the
 stack is empty.
 @end defun
+
+
+@defmethod @aclass{stack} top
+The first element in the stack: the next element returned by a pop
+operation.  The stack is left unchanged.  Raise an exception if the
+stack is empty.
+@end defmethod
 
 @c page
 @node stacks ops

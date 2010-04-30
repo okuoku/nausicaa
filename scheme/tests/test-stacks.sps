@@ -168,17 +168,17 @@
   (check
       (guard (E (else (condition-message E)))
 	(let (((S <stack>) (make-<stack>)))
-	  S.top))
+	  (S.top)))
     => "stack is empty")
 
   (check
       (let (((S <stack>) (make-<stack> 1)))
-	S.top)
+	(S.top))
     => 1)
 
   (check
       (let (((S <stack>) (make-<stack> 1 2 3)))
-	S.top)
+	(S.top))
     => 1)
 
   #t)

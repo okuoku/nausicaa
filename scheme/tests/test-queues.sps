@@ -173,17 +173,17 @@
   (check
       (guard (E (else (condition-message E)))
 	(let (((q <queue>) (make-<queue>)))
-	  q.front))
+	  (q.front)))
     => "queue is empty")
 
   (check
       (let (((q <queue>) (make-<queue> 1)))
-	q.front)
+	(q.front))
     => 1)
 
   (check
       (let (((q <queue>) (make-<queue> 1 2 3)))
-	q.front)
+	(q.front))
     => 1)
 
 ;;; --------------------------------------------------------------------
@@ -206,17 +206,17 @@
   (check
       (guard (E (else (condition-message E)))
 	(let (((q <queue>) (make-<queue>)))
-	  q.rear))
+	  (q.rear)))
     => "queue is empty")
 
   (check
       (let (((q <queue>) (make-<queue> 1)))
-	q.rear)
+	(q.rear))
     => 1)
 
   (check
       (let (((q <queue>) (make-<queue> 1 2 3)))
-	q.rear)
+	(q.rear))
     => 3)
 
   #t)
