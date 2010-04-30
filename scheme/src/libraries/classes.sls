@@ -204,7 +204,7 @@
     ;;qualifying a long list can be time-consuming.
     (cond ((list?	obj)	(class-uid-list <list>))
 	  (else			(class-uid-list <pair>))))
-   (else (record-type-descriptor <top>))))
+   (else '(nausicaa:builtin:<top>))))
 
 (define (%make-from-fields-cd rtd)
   ;;Given  a  record  type  descriptor  build  and  return  its  default
@@ -2111,16 +2111,20 @@
 	  (opaque		?opa ...)
 	  (parent-rtd) ;no parent-rtd
 	  (nongenerative	?non ...))
-       #'(%define-class/normalise-predicate
+       #`(%define-class/normalise-predicate
 	  ?input-form (?name ?constructor ?predicate)
 	  (?common-protocol ?public-protocol ?superclass-protocol)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
 	  (?collected-definition ...)
-	  (?superclass-name (?superclass-name class-record-type-descriptor)
-			    (?superclass-name superclass-constructor-descriptor)
-			    ())
+	  #,(if (free-identifier=? #'<top> #'?superclass-name)
+		#'(<top>-superclass (record-type-descriptor <top>)
+				    (record-constructor-descriptor <top>)
+				    ())
+	      #'(?superclass-name (?superclass-name class-record-type-descriptor)
+				  (?superclass-name superclass-constructor-descriptor)
+				  ()))
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -2192,7 +2196,8 @@
 	  (?collected-method ...)
 	  (?collected-definition ...)
 	  (<top>-superclass (record-type-descriptor ?parent-name)
-			    (record-constructor-descriptor ?parent-name) ())
+			    (record-constructor-descriptor ?parent-name)
+			    ())
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
