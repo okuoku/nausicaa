@@ -825,7 +825,7 @@
     ;; syntactic layer
     define-class			define-virtual-class
     class-record-type-descriptor
-    class-constructor-descriptor	class-superclass-constructor-descriptor
+    class-public-constructor-descriptor	class-superclass-constructor-descriptor
     class-from-fields-constructor-descriptor
     class-type-uid			class-uid-list
     is-a?

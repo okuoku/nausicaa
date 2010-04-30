@@ -30,17 +30,19 @@
 (library (classes)
   (export
 
-    ;; syntactic layer
+    ;; usage macros
     define-class			define-virtual-class
-    class-record-type-descriptor
-    class-constructor-descriptor	class-superclass-constructor-descriptor
-    class-from-fields-constructor-descriptor
-    class-type-uid			class-uid-list
     is-a?
     make				make-from-fields
+
+    ;; inspection macros
+    class-record-type-descriptor
+    class-public-constructor-descriptor	class-superclass-constructor-descriptor
+    class-from-fields-constructor-descriptor
+    class-type-uid			class-uid-list
     class-parent-rtd-list
 
-    ;; procedural layer
+    ;; inspection functions
     record-type-parent?
     class-uid-equal-or-parent?
     record-type-of
@@ -233,7 +235,7 @@
 
 ;;; --------------------------------------------------------------------
 
-(define-syntax class-constructor-descriptor
+(define-syntax class-public-constructor-descriptor
   ;;Expand into the class' public constructor descriptor associated to a
   ;;class name.
   ;;
@@ -2109,20 +2111,16 @@
 	  (opaque		?opa ...)
 	  (parent-rtd) ;no parent-rtd
 	  (nongenerative	?non ...))
-       #`(%define-class/normalise-predicate
+       #'(%define-class/normalise-predicate
 	  ?input-form (?name ?constructor ?predicate)
 	  (?common-protocol ?public-protocol ?superclass-protocol)
 	  (?collected-concrete-field ...)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
 	  (?collected-definition ...)
-	  #,(if (free-identifier=? #'<top> #'?superclass-name)
-		#'(<top>-superclass (record-type-descriptor <top>)
-				    (record-constructor-descriptor <top>)
-				    ()) ;empty options list
-	      #'(?superclass-name (class-record-type-descriptor ?superclass-name)
-				  (?superclass-name superclass-constructor-descriptor)
-				  ())) ;empty options list
+	  (?superclass-name (?superclass-name class-record-type-descriptor)
+			    (?superclass-name superclass-constructor-descriptor)
+			    ())
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -2147,21 +2145,17 @@
 	  (parent-rtd) ;no parent-rtd
 	  (nongenerative	?non ...))
        (if (all-identifiers? #'(?inherit-option ...))
-	   #`(%define-class/normalise-predicate
+	   #'(%define-class/normalise-predicate
 	      ?input-form (?name ?constructor ?predicate)
 	      (?common-protocol ?public-protocol ?superclass-protocol)
 	      (?collected-concrete-field ...)
 	      (?collected-virtual-field ...)
 	      (?collected-method ...)
 	      (?collected-definition ...)
-	      #,(if (free-identifier=? #'<top> #'?superclass-name)
-		    #'(<top>-superclass (record-type-descriptor <top>)
-					(record-constructor-descriptor <top>)
-					())
-		  #`(?superclass-name (class-record-type-descriptor ?superclass-name)
-				      (?superclass-name superclass-constructor-descriptor)
-				      (?inherit-option ...)))
-	      (predicate		?pre ...)
+	      (?superclass-name (?superclass-name class-record-type-descriptor)
+				(?superclass-name superclass-constructor-descriptor)
+				(?inherit-option ...))
+	      (predicate	?pre ...)
 	      (setter		?set ...)
 	      (getter		?get ...)
 	      (sealed		?sea ...)
@@ -2762,8 +2756,8 @@
 			 ((_ make-from-fields ?arg (... ...))
 			  #'(from-fields-constructor ?arg (... ...)))
 
-			 ((_ is-a? ?arg (... ...))
-			  #'(?predicate-identifier ?arg (... ...)))
+			 ((_ is-a? ?arg)
+			  #'(?predicate-identifier ?arg))
 
 			 ((_ with-class-bindings-of
 			     (?inherit-concrete-fields
@@ -3479,11 +3473,48 @@
   (nongenerative nausicaa:builtin:<top>))
 
 (define-syntax <top>-superclass
-  (syntax-rules (class-type-descriptor with-class-bindings-of)
+  (syntax-rules (class-record-type-descriptor
+		 class-type-uid
+		 class-uid-list
+		 public-constructor-descriptor
+		 superclass-constructor-descriptor
+		 from-fields-constructor-descriptor
+		 parent-rtd-list
+		 make make-from-fields is-a?
+		 with-class-bindings-of)
+
+    ((_ class-record-type-descriptor)
+     (record-type-descriptor <top>))
+
+    ((_ class-type-uid)
+     (quote nausicaa:builtin:<top>))
+
+    ((_ class-uid-list)
+     '(nausicaa:builtin:<top>))
+
+    ((_ public-constructor-descriptor)
+     (record-constructor-descriptor <top>))
+
+    ((_ superclass-constructor-descriptor)
+     (record-constructor-descriptor <top>))
+
+    ((_ from-fields-constructor-descriptor)
+     (record-constructor-descriptor <top>))
+
+    ((_ parent-rtd-list)
+     (list (record-type-descriptor <top>)))
+
+    ((_ is-a? ?arg)
+     (<top>? ?arg))
+
     ((_ with-class-bindings-of ?inherit-options . ?body)
      (begin . ?body))
-    ((_ . ?body)
-     (begin . ?body))))
+
+    ((_ ?keyword . ?rest)
+     (syntax-violation '?class-name
+       "invalid class internal keyword"
+       (syntax->datum #'(<top> ?keyword . ?rest))
+       (syntax->datum #'?keyword)))))
 
 (define-virtual-class <builtin>
   (nongenerative nausicaa:builtin:<builtin>))
