@@ -826,24 +826,21 @@
      (case-lambda/with-class	case-lambda)
      (receive/with-class	receive))
 
-    ;; class type descriptor
-    make-class-type-descriptor		class-type-descriptor?
-    class-record-descriptor
-    class-virtual-fields		class-methods
-    class-setter			class-getter
-    class-parent-ctd
-
     ;; syntactic layer
     define-class			define-virtual-class
-    class-type-descriptor		class-record-type-descriptor
-    class-constructor-descriptor	superclass-constructor-descriptor
-    class-type-uid			is-a?
+    class-record-type-descriptor
+    class-constructor-descriptor	class-superclass-constructor-descriptor
+    class-from-fields-constructor-descriptor
+    class-type-uid			class-uid-list
+    is-a?
     make				make-from-fields
+    class-parent-rtd-list
 
     ;; procedural layer
     record-type-parent?
+    class-uid-equal-or-parent?
     record-type-of
-    record-parent-list			class-parent-list
+    record-parent-list
 
     ;; dot notation syntaxes
     with-class

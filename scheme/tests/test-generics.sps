@@ -108,15 +108,13 @@
 
     (define-generic alpha)
 
-    (define-method alpha ((o <fixnum>))	'<fixnum>)
-    (define-method alpha ((o <flonum>))	'<flonum>)
+    (define-method alpha ((o <fixnum>))		'<fixnum>)
+    (define-method alpha ((o <flonum>))		'<flonum>)
     (define-method alpha ((o <integer>))	'<integer>)
     (define-method alpha ((o <real>))		'<real>)
     (define-method alpha ((o <complex>))	'<complex>)
-    (define-method alpha ((o <number>))	'<number>)
+    (define-method alpha ((o <number>))		'<number>)
 
-    ;;Here remember  that we are using  the methods above,  we are *not*
-    ;;applying RECORD-TYPE-OF.
     (check (alpha 12)		=> '<fixnum>)
     (check (alpha (expt 12 12)) => '<integer>)
     (check (alpha 2/3)		=> '<real>)

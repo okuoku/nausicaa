@@ -1331,8 +1331,7 @@ function to a set of arguments, the most specific method with respect to
 the arguments' types is chosen.
 
 The @library{generics} library is built on top of the @library{classes}
-library; importing the @library{generics} library automatically imports
-all the bindings exported by the @library{classes} library, too.
+library.
 
 @menu
 * generics application::        How generic functions and methods

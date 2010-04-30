@@ -30,24 +30,22 @@
 (library (classes)
   (export
 
-    ;; class type descriptor
-    make-class-type-descriptor		class-type-descriptor?
-    class-record-descriptor
-    class-virtual-fields		class-methods
-    class-setter			class-getter
-    class-parent-ctd
-
     ;; syntactic layer
     define-class			define-virtual-class
-    class-type-descriptor		class-record-type-descriptor
-    class-constructor-descriptor	superclass-constructor-descriptor
-    class-type-uid			is-a?
+    class-record-type-descriptor
+    class-constructor-descriptor	class-superclass-constructor-descriptor
+    class-from-fields-constructor-descriptor
+    class-type-uid			class-uid-list
+    is-a?
     make				make-from-fields
+    class-parent-rtd-list
 
     ;; procedural layer
     record-type-parent?
+    class-uid-equal-or-parent?
     record-type-of
-    record-parent-list			class-parent-list
+    record-parent-list
+    class-uid-list-of
 
     ;; dot notation syntaxes
     with-class
@@ -87,61 +85,25 @@
      (begin ?body0 ?body ...))))
 
 
-;;;; class type descriptor
+;;;; inspection procedures
 
-(define-record-type (:class-type-descriptor make-class-type-descriptor class-type-descriptor?)
-  ;;Every  class type  is associated  to a  class type  descriptor (CTD)
-  ;;record; given a class name (the identifier) a CTD can be acquired by
-  ;;applying the syntax  CLASS-TYPE-DESCRIPTOR to it.
+(define (record-type-parent? maybe-parent-rtd maybe-child-rtd)
+  (memq (record-type-uid maybe-parent-rtd)
+	(map record-type-uid (record-parent-list maybe-child-rtd))))
+
+(define (class-uid-equal-or-parent? maybe-parent-uid-list maybe-child-uid-list)
+  ;;Given  two lists of  record type  UIDs representing  the inheritance
+  ;;hierarchy  of two  classes, return  true if  the first  represents a
+  ;;parent of the second.
   ;;
-  ;;Class descriptors are NOT meant to have the same role of record type
-  ;;descriptors:  their purpose  is debugging  and help  in implementing
-  ;;inheritance.
-  ;;
-  (fields (immutable rtd class-record-descriptor)
-		;The underlying record type descriptor.
-	  (immutable parent-ctd class-parent-ctd)
-		;The parent  class type descriptor.   Set to the  CTD of
-		;<top> if  no parent class was  explicitly selected; set
-		;to false if this descriptor is the one of <top>.
-	  (immutable virtual-fields class-virtual-fields)
-		;A vector of virtual  fields; empty vector if this class
-		;has no virtual fields.  Each element is a list with one
-		;of the formats:
-		;
-		;(mutable <field name> <field accessor name> <field mutator name>)
-		;(immutable <field name> <field accessor name>)
-		;
-	  (immutable setter class-setter)
-		;A  symbol representing  the  class' setter  identifier;
-		;false if  no setter was selected.  It  does not include
-		;the implementation,  because a  method can be  either a
-		;closure or a syntax.
-	  (immutable getter class-getter)
-		;A  symbol representing  the  class' getter  identifier;
-		;false if  no getter was selected.  It  does not include
-		;the implementation,  because a  getter can be  either a
-		;closure or a syntax.
-	  (immutable methods class-methods)
-		;A vector of symbols  listing the defined methods; empty
-		;vector if the class has  no methods.  Each element is a
-		;list with the format:
-		;
-		;(<method name> <method function/syntax name>)
-		;
-		;It  does  not  include  the implementation,  because  a
-		;method can be either a closure or a syntax.
-	  ))
-
-
-;;;; procedural layer
-
-(define (record-type-parent? rtd1 rtd2)
-  (cond ((eq? (record-type-uid rtd1) (record-type-uid rtd2))	#t)
-	((eq? (record-type-uid rtd1) (record-type-uid (record-type-descriptor <top>)))   #f)
-   	((eq? (record-type-uid rtd2) (record-type-uid (record-type-descriptor <top>)))   #t)
-	(else
-	 (memq (record-type-uid rtd2) (map record-type-uid (record-parent-list rtd1))))))
+  (let ((maybe-parent-uid (car maybe-parent-uid-list))
+	(maybe-child-uid  (car maybe-child-uid-list)))
+    (cond
+     ((eq? maybe-parent-uid maybe-child-uid)		#t) ;includes <top> and <top>
+     ((eq? maybe-parent-uid 'nausicaa:builtin:<top>)	#t) ;<top> is parent of everything
+     ((eq? maybe-child-uid  'nausicaa:builtin:<top>)	#f) ;<top> is child of nothing
+     (else
+      (memq maybe-parent-uid maybe-child-uid-list)))))
 
 (define (record-parent-list rtd)
   (let loop ((cls (list rtd))
@@ -197,6 +159,51 @@
 	  (else			(class-record-type-descriptor <pair>))))
    (else (record-type-descriptor <top>))))
 
+(define (class-uid-list-of obj)
+  ;;Return the list of UIDs in the class hierarchy of OBJ.  The order of
+  ;;the tests is important.  More specialised types must come first.
+  ;;
+  (cond
+
+   ;;This  is  here  as  a  special exception  because  in  Larceny  the
+   ;;hashtable  is a  record.  We  have  to process  it before  applying
+   ;;RECORD?
+   ((hashtable?	obj)			(class-uid-list <hashtable>))
+
+   ((record? obj)			(map record-type-uid (record-parent-list (record-rtd obj))))
+
+   ((number? obj)
+    ;;Order does matter here!!!
+    (cond ((fixnum?		obj)	(class-uid-list <fixnum>))
+	  ((integer?		obj)	(class-uid-list <integer>))
+	  ((rational?		obj)	(class-uid-list <rational>))
+	  ((integer-valued?	obj)	(class-uid-list <integer-valued>))
+	  ((rational-valued?	obj)	(class-uid-list <rational-valued>))
+	  ((flonum?		obj)	(class-uid-list <flonum>))
+	  ((real?		obj)	(class-uid-list <real>))
+	  ((real-valued?	obj)	(class-uid-list <real-valued>))
+	  ((complex?		obj)	(class-uid-list <complex>))
+	  (else				(class-uid-list <number>))))
+   ((char?		obj)		(class-uid-list <char>))
+   ((string?		obj)		(class-uid-list <string>))
+   ((vector?		obj)		(class-uid-list <vector>))
+   ((bytevector?	obj)		(class-uid-list <bytevector>))
+   ((port?		obj)
+    ;;Order here is arbitrary.
+    (cond ((input-port?		obj)	(class-uid-list <input-port>))
+	  ((output-port?	obj)	(class-uid-list <output-port>))
+	  ((binary-port?	obj)	(class-uid-list <binary-port>))
+	  ((textual-port?	obj)	(class-uid-list <textual-port>))
+	  (else				(class-uid-list <port>))))
+   ((condition?		obj)		(class-uid-list <condition>))
+   ((record?		obj)		(class-uid-list <record>))
+   ((pair?		obj)
+    ;;Order does matter  here!!!  Better leave these at  the end because
+    ;;qualifying a long list can be time-consuming.
+    (cond ((list?	obj)	(class-uid-list <list>))
+	  (else			(class-uid-list <pair>))))
+   (else (record-type-descriptor <top>))))
+
 (define (%make-from-fields-cd rtd)
   ;;Given  a  record  type  descriptor  build  and  return  its  default
   ;;constructor descriptor: the one accepting the raw field values.  The
@@ -209,32 +216,8 @@
 					  #f))
 				      #f))
 
-
 
-;;;; syntactic layer
-
-(define-syntax class-type-descriptor
-  ;;Expand into the  class type descriptor (CTD) record  associated to a
-  ;;class name.
-  ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(begin <top>-ctd))
-      ((_ ?class-name)
-       #'(?class-name class-type-descriptor)))))
-
-(define-syntax class-type-uid
-  ;;Expand into the class type UID associated to a class name.
-  ;;
-  (lambda (stx)
-    (syntax-case stx ()
-      ((_ ?class-name)
-       (free-identifier=? #'?class-name #'<top>)
-       #'(record-type-uid (record-type-descriptor <top>-ctd)))
-      ((_ ?class-name)
-       #'(?class-name class-type-uid)))))
+;;;; inspection macros
 
 (define-syntax class-record-type-descriptor
   ;;Expand into the record type  descriptor (RTD) record associated to a
@@ -248,6 +231,8 @@
       ((_ ?class-name)
        #'(?class-name class-record-type-descriptor)))))
 
+;;; --------------------------------------------------------------------
+
 (define-syntax class-constructor-descriptor
   ;;Expand into the class' public constructor descriptor associated to a
   ;;class name.
@@ -260,7 +245,7 @@
       ((_ ?class-name)
        #'(?class-name public-constructor-descriptor)))))
 
-(define-syntax superclass-constructor-descriptor
+(define-syntax class-superclass-constructor-descriptor
   ;;Expand into the  class' superclass constructor descriptor associated
   ;;to a class name.
   ;;
@@ -272,14 +257,53 @@
       ((_ ?class-name)
        #'(?class-name superclass-constructor-descriptor)))))
 
-(define-syntax class-parent-list
+(define-syntax class-from-fields-constructor-descriptor
+  ;;Expand into the class' from-fields constructor descriptor associated
+  ;;to a class name.
+  ;;
   (lambda (stx)
     (syntax-case stx ()
       ((_ ?class-name)
        (free-identifier=? #'?class-name #'<top>)
-       #'(list (record-type-descriptor <top>)))
+       #'(record-constructor-descriptor ?class-name))
       ((_ ?class-name)
-       #'(record-parent-list (class-record-type-descriptor ?class-name))))))
+       #'(?class-name from-fields-constructor-descriptor)))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax class-type-uid
+  ;;Expand into the class type UID associated to a class name.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?class-name)
+       (free-identifier=? #'?class-name #'<top>)
+       #'(record-type-uid (record-type-descriptor <top>)))
+      ((_ ?class-name)
+       #'(?class-name class-type-uid)))))
+
+(define-syntax class-uid-list
+  ;;Expand into  the list of type UIDs  of the parents of  a class name.
+  ;;The first element is the UID of the class itself, then comes the UID
+  ;;of the parent, then the UID of the parent's parent, etc.
+  ;;
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?class-name)
+       (free-identifier=? #'?class-name #'<top>)
+       #'(list (record-type-uid (record-type-descriptor <top>))))
+      ((_ ?class-name)
+       #'(?class-name class-uid-list)))))
+
+;;; --------------------------------------------------------------------
+
+(define-syntax class-parent-rtd-list
+  (syntax-rules ()
+    ((_ ?class-name)
+     (?class-name parent-rtd-list))))
+
+
+;;;; usage macros
 
 (define-syntax make
   ;;Build a new class instance using the public constructor.
@@ -2607,8 +2631,8 @@
   ;;Generate the final output forms for class definition.
   ;;
   ;;Notice  that  for  the  class-specific  definitions  we  select  the
-  ;;identifiers THE-RTD,  THE-CTD, THE-CD, WITH-CLASS-BINDINGS  and rely
-  ;;on  automatic renaming  of introduced  bindings; it  is  tempting to
+  ;;identifiers  THE-RTD,   THE-CD,  WITH-CLASS-BINDINGS  and   rely  on
+  ;;automatic  renaming  of  introduced  bindings;  it  is  tempting  to
   ;;generate names having the class  name as substring (which would show
   ;;in debugging stack traces), but  it would pollute the environment of
   ;;the output form generating identifier collisions.
@@ -2683,13 +2707,15 @@
 
 		   (define ?predicate (record-predicate the-rtd))
 
-		   (define the-ctd
-		     (make-class-type-descriptor
-		      the-rtd (?superclass-name class-type-descriptor)
-		      (quote #((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...))
-		      (quote ?setter) (quote ?getter)
-		      (quote #((?method ?method-function) ...))))
+		   (define the-parent-uid-list
+		     (cons (quote ?uid) (if the-parent-rtd
+					    (map record-type-uid (record-parent-list the-parent-rtd))
+					  '())))
 
+		   (define (the-parent-rtd-list)
+		     (cons the-rtd (if the-parent-rtd
+				       (record-parent-list the-parent-rtd)
+				     '())))
 
 		   (%define-class/output-forms/fields-accessors-and-mutators
 		    the-rtd (FIELD-INDEXES ...) (?mutability ?field ?accessor ...) ...)
@@ -2699,16 +2725,15 @@
 
 		   (define-syntax ?class-name
 		     (lambda (stx)
-		       (syntax-case stx (class-type-descriptor
-					 class-record-type-descriptor
+		       (syntax-case stx (class-record-type-descriptor
 					 class-type-uid
+					 class-uid-list
 					 public-constructor-descriptor
 					 superclass-constructor-descriptor
+					 from-fields-constructor-descriptor
+					 parent-rtd-list
 					 make make-from-fields is-a?
 					 with-class-bindings-of)
-
-			 ((_ class-type-descriptor)
-			  #'(begin the-ctd))
 
 			 ((_ class-record-type-descriptor)
 			  #'(begin the-rtd))
@@ -2716,11 +2741,20 @@
 			 ((_ class-type-uid)
 			  #'(quote ?uid))
 
+			 ((_ class-uid-list)
+			  #'the-parent-uid-list)
+
 			 ((_ public-constructor-descriptor)
 			  #'(begin the-public-cd))
 
 			 ((_ superclass-constructor-descriptor)
 			  #'(begin the-superclass-cd))
+
+			 ((_ from-fields-constructor-descriptor)
+			  #'(begin the-from-fields-cd))
+
+			 ((_ parent-rtd-list)
+			  #'(the-parent-rtd-list))
 
 			 ((_ make ?arg (... ...))
 			  #'(?constructor ?arg (... ...)))
@@ -3444,18 +3478,8 @@
 (define-record-type <top>
   (nongenerative nausicaa:builtin:<top>))
 
-(define <top>-ctd
-  (make-class-type-descriptor
-   (record-type-descriptor <top>)
-   #f
-   (quote #())	 ;virtual fields
-   #f #f	 ;setter and getter
-   (quote #()))) ;methods
-
 (define-syntax <top>-superclass
   (syntax-rules (class-type-descriptor with-class-bindings-of)
-    ((_ class-type-descriptor)
-     <top>-ctd)
     ((_ with-class-bindings-of ?inherit-options . ?body)
      (begin . ?body))
     ((_ . ?body)

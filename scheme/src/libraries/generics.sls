@@ -33,51 +33,15 @@
     call-next-method next-method?
 
     ;; predefined generic functions
-    object->string
-
-;;;; the following are all the bindings from (classes)
-
-    ;; class type descriptor
-    make-class-type-descriptor		class-type-descriptor?
-    class-record-descriptor
-    class-virtual-fields		class-methods
-    class-setter			class-getter
-    class-parent-ctd
-
-    ;; syntactic layer
-    define-class			define-virtual-class
-    class-type-descriptor		class-record-type-descriptor
-    class-constructor-descriptor	superclass-constructor-descriptor
-    class-type-uid			is-a?
-    make				make-from-fields
-
-    ;; procedural layer
-    record-type-parent?
-    record-type-of
-    record-parent-list			class-parent-list
-
-    ;; dot notation syntaxes
-    with-class
-    setf				getf
-    define/with-class			define/with-class*
-    lambda/with-class			lambda/with-class*
-    case-lambda/with-class		case-lambda/with-class*
-    receive/with-class
-    let/with-class			let*/with-class
-    letrec/with-class			letrec*/with-class
-
-    <top> <builtin>
-    <pair> <list>
-    <char> <string> <vector> <bytevector> <hashtable>
-    <record> <condition>
-    <port> <binary-port> <input-port> <output-port> <textual-port>
-    <fixnum> <flonum> <integer> <integer-valued> <rational> <rational-valued>
-    <real> <real-valued> <complex> <number>)
-  (import (except (rnrs) define)
-    (classes)
-    (rename (only (classes) define/with-class)
-	    (define/with-class	define))
-    (language-extensions)
+    object->string)
+  (import (rnrs)
+    (only (classes)
+	  lambda/with-class	      ;for method's functions
+	  class-uid-list	      ;to build signatures
+	  class-uid-list-of	      ;to find the class of values
+	  <top>)		      ;the default class of values
+    (only (language-extensions)
+	  begin0 begin0-let define-inline)
     (parameters)
     (rnrs mutable-pairs (6)))
 
@@ -140,6 +104,26 @@
 
 
 ;;;; generic functions
+;;
+;;The "signature" of  a method is a list of lists,  each sublist being a
+;;list of record type UIDs.  The  first sublist is the hierarchy of UIDs
+;;of the first method's argument, the second sublist is the hierarchy of
+;;the second arguments, etc.  For example, a method defined as:
+;;
+;;   (define-method (doit (a <complex>) (b <string>) (c <char>))
+;;     ---)
+;;
+;;has the following signature:
+;;
+;;   ((nausicaa:builtin:<complex> nausicaa:builtin:<number>
+;;     nausicaa:builtin:<builtin> nausicaa:builtin:<top>)
+;;
+;;    (nausicaa:builtin:<string>  nausicaa:builtin:<builtin>
+;;     nausicaa:builtin:<top>)
+;;
+;;    (nausicaa:builtin:<char>    nausicaa:builtin:<builtin>
+;;     nausicaa:builtin:<top>))
+;;
 
 (define-record-type special-argument
   (opaque #t)
@@ -223,7 +207,7 @@
 				   (set! ?closure-list (cdr ?closure-list)))))))
 	  (letrec*
 	      ((signature
-		(map record-type-of args))
+		(map class-uid-list-of args))
 
 	       (applicable-methods
 		(cond ((and cache (hashtable-ref cache signature #f))
@@ -328,7 +312,7 @@
   (syntax-rules ()
     ((_ ?generic-function (?class-name ...) ?has-rest ?closure)
      ((?generic-function :method-adder)
-      (list (class-record-type-descriptor ?class-name) ...) ;this is the signature
+      (list (class-uid-list ?class-name) ...) ;this is the signature
       ?has-rest ?closure))))
 
 
@@ -340,18 +324,21 @@
 ;;	((has-rest . uids) . <method record>)
 ;;
 ;;the key is a pair whose CAR  is the HAS-REST boolean, and whose CDR is
-;;the list  of UIDs  of the RTDs  in the  signature of the  method; this
-;;allows  two  methods with  equal  signatures  to  be distinct  if  one
-;;supports rest arguments and the other does not.
+;;the list  of UIDs of the  RTDs of the method's  arguments; this allows
+;;two methods with equal signatures  to be distinct if one supports rest
+;;arguments and the other does not.
 ;;
 
-(define-class <method>
+(define-record-type <method>
   (fields (mutable closure)
+		;The function implementing the method.
 	  (immutable signature)
+		;The method's signature
 	  (immutable accept-rest?)))
+		;A boolean, true if the function accepts rest arguments.
 
 (define-inline (%make-method-entry-key ?has-rest ?signature)
-  (cons ?has-rest (map record-type-uid ?signature)))
+  (cons ?has-rest (map car ?signature)))
 
 (define (method-entry-closure method-entry)
   (<method>-closure (cdr method-entry)))
@@ -405,58 +392,60 @@
 	   (%applicable-method? call-signature (cdr method-entry)))
        method-alist))))
 
-(define (%applicable-method? call-signature (method <method>))
+(define (%applicable-method? call-signature method)
   ;;Return true  if the METHOD  can be applied  to a tuple  of arguments
   ;;having CALL-SIGNATURE as record types.
   ;;
-  (let* ((signature	method.signature)
-	 (has-rest	method.accept-rest?)
+  (let* ((signature	(<method>-signature    method))
+	 (has-rest	(<method>-accept-rest? method))
 	 (len		(length signature))
-	 (call-len	(length call-signature)))
+	 (call-len	(length call-signature))
+	 (%parent?	(lambda (maybe-parent maybe-child)
+			  (memq (car maybe-parent) maybe-child))))
     (cond
      ;;If SIGNATURE has  the same length of the  call signature, test it
      ;;for applicability.
      ((= call-len len)
-      (for-all* record-type-parent? call-signature signature))
+      (for-all* %parent? signature call-signature))
 
      ;;If  the closure  supports rest  arguments, compare  only  as much
      ;;record types as there are in SIGNATURE.
      ((and has-rest (> call-len len))
-      (for-all* record-type-parent? (take-left call-signature len) signature))
+      (for-all* %parent? signature (take-left call-signature len)))
 
      ;;This method is not applicable.
      (else #f))))
 
-(define (%more-specific-method? (method1 <method>) (method2 <method>) call-signature)
+(define (%more-specific-method? method1 method2 call-signature)
   ;;Return true if METHOD1 is more specific than METHOD2 with respect to
   ;;CALL-SIGNATURE.   This  function   must  be  applied  to  applicable
   ;;methods.  The longest signature is more specific, by definition.
   ;;
-  (let* ((signature1	method1.signature)
-	 (signature2	method2.signature)
+  (let* ((signature1	(<method>-signature method1))
+	 (signature2	(<method>-signature method2))
 	 (len1		(length signature1))
 	 (len2		(length signature2)))
     (cond ((> len1 len2) #t)
 	  ((< len1 len2) #f)
 	  (else ;(= len1 len2)
-	   (let loop ((signature1     signature1)
-		      (signature2     signature2)
-		      (call-signature call-signature))
+	   (let next-argument-type ((signature1     signature1)
+				    (signature2     signature2)
+				    (call-signature call-signature))
 	     (if (null? signature1)
 
-		 ;;If we  are here: The two signatures  have EQ?  values
-		 ;;(and  equal  length).    We  want  this:  If  METHOD2
+		 ;;If  we are  here:  The two  signatures  have EQ?  car
+		 ;;values (and equal length).   We want this: If METHOD2
 		 ;;supports  rest arguments and  METHOD1 does  not, then
 		 ;;METHOD1  is  more  specific.   This test  reduces  to
 		 ;;testing if METHOD2 supports rest arguments.
-		 method2.accept-rest?
+		 (<method>-accept-rest? method2)
 
-	       (let ((rtd1 (car signature1))
-		     (rtd2 (car signature2)))
+	       (let ((uid-hierarchy-1 (car signature1))
+		     (uid-hierarchy-2 (car signature2)))
 		 (cond
-		  ((eq? rtd1 rtd2)
-		   (loop (cdr signature1) (cdr signature2) (cdr call-signature)))
-		  ((record-type-parent? rtd1 rtd2) #t)
+		  ((eq? (car uid-hierarchy-1) (car uid-hierarchy-2))
+		   (next-argument-type (cdr signature1) (cdr signature2) (cdr call-signature)))
+		  ((memq (car uid-hierarchy-2) uid-hierarchy-1) #t)
 		  (else #f)))))))))
 
 
@@ -511,8 +500,8 @@
 
 
 (define (signature-hash signature)
-  (fold-left (lambda (nil rtd)
-	       (+ nil (symbol-hash (record-type-uid rtd))))
+  (fold-left (lambda (nil uid-list)
+	       (+ nil (symbol-hash (car uid-list))))
 	     0
 	     signature))
 
@@ -525,8 +514,6 @@
   (call-with-string-output-port
    (lambda (port)
      (display o port))))
-
-
 
 
 ;;;; done

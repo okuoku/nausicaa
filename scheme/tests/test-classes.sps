@@ -3096,26 +3096,82 @@
   (let ((env (environment '(rnrs) '(classes) '(records-lib))))
 
     (check
-	(map record-type-uid (class-parent-list <alpha>))
+	(map record-type-uid (class-parent-rtd-list <alpha>))
       => (eval '(map record-type-uid (list (class-record-type-descriptor <alpha>)
 					   (class-record-type-descriptor <top>)))
 	       env))
 
     (check
-	(map record-type-uid (class-parent-list <beta>))
+	(map record-type-uid (class-parent-rtd-list <beta>))
       => (eval '(map record-type-uid (list (class-record-type-descriptor <beta>)
 					   (class-record-type-descriptor <alpha>)
 					   (class-record-type-descriptor <top>)))
 	       env))
 
     (check
-	(map record-type-uid (class-parent-list <gamma>))
+	(map record-type-uid (class-parent-rtd-list <gamma>))
       => (eval '(map record-type-uid (list (class-record-type-descriptor <gamma>)
 					   (class-record-type-descriptor <beta>)
 					   (class-record-type-descriptor <alpha>)
 					   (class-record-type-descriptor <top>)))
 	       env))
     #f)
+
+  #t)
+
+
+(parametrise ((check-test-name 'uid-list))
+
+  (let ()
+    (define-class <alpha>
+      (nongenerative root:<alpha>))
+    (define-class <beta>
+      (inherit <alpha>)
+      (nongenerative root:<beta>))
+    (define-class <gamma>
+      (inherit <beta>)
+      (nongenerative root:<gamma>))
+
+    (check
+	(class-uid-list <top>)
+      => '( nausicaa:builtin:<top>))
+
+    (check
+	(class-uid-list <alpha>)
+      => '(root:<alpha> nausicaa:builtin:<top>))
+
+    (check
+	(class-uid-list <beta>)
+      => '(root:<beta> root:<alpha> nausicaa:builtin:<top>))
+
+    (check
+	(class-uid-list <gamma>)
+      => '(root:<gamma> root:<beta> root:<alpha> nausicaa:builtin:<top>))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+
+  (check-for-true
+   (class-uid-equal-or-parent? (class-uid-list <top>) (class-uid-list <top>)))
+
+  (check-for-true
+   (class-uid-equal-or-parent? (class-uid-list <top>) (class-uid-list <builtin>)))
+
+  (check-for-false
+   (class-uid-equal-or-parent? (class-uid-list <builtin>) (class-uid-list <top>)))
+
+  (check-for-true
+   (class-uid-equal-or-parent? (class-uid-list <number>) (class-uid-list <integer>)))
+
+  (check-for-false
+   (class-uid-equal-or-parent? (class-uid-list <integer>) (class-uid-list <number>)))
+
+  (check-for-false
+   (class-uid-equal-or-parent? (class-uid-list <fixnum>) (class-uid-list <flonum>)))
+
+  (check-for-false
+   (class-uid-equal-or-parent? (class-uid-list <flonum>) (class-uid-list <fixnum>)))
 
   #t)
 
@@ -3247,91 +3303,6 @@
 
   (check-for-true	(is-a? '(1 2) <list>))
   (check-for-false	(is-a? '(1 . 2) <list>))
-
-  #t)
-
-
-(parametrise ((check-test-name 'class-type-descriptor))
-
-  (let ()
-    (define-class <alpha>
-      (fields (mutable a)
-  	      (immutable b)
-  	      (mutable c)))
-
-    (define <alpha>-ctd
-      (class-type-descriptor <alpha>))
-
-    (check
-	(record-type-descriptor? (class-record-descriptor <alpha>-ctd))
-      => #t)
-
-    (check
-	(record-type-name (class-record-descriptor <alpha>-ctd))
-      => '<alpha>)
-
-    (check
-	(class-virtual-fields <alpha>-ctd)
-      => '#())
-
-    (check
-	(class-setter <alpha>-ctd)
-      => #f)
-
-    (check
-	(class-getter <alpha>-ctd)
-      => #f)
-
-    (check
-	(class-methods <alpha>-ctd)
-      => '#())
-
-    #f)
-
-  (let ()
-    (define-class <beta>
-      (fields (mutable a)
-  	      (immutable b)
-  	      (mutable c))
-      (virtual-fields (mutable   aa <beta>-a <beta>-a-set!)
-		      (immutable bb <beta>-b))
-      (methods (cc <beta>-c))
-      (method (dd o)
-	#t))
-
-    (define <beta>-ctd
-      (class-type-descriptor <beta>))
-
-    (check
-	(record-type-descriptor? (class-record-descriptor <beta>-ctd))
-      => #t)
-
-    (check
-	(record-type-name (class-record-descriptor <beta>-ctd))
-      => '<beta>)
-
-    (check
-	(class-virtual-fields <beta>-ctd)
-      => '#((mutable   aa <beta>-a <beta>-a-set!)
-	    (immutable bb <beta>-b)))
-
-    (check
-	(class-setter <beta>-ctd)
-      => #f)
-
-    (check
-	(class-getter <beta>-ctd)
-      => #f)
-
-    (check
-    	(vector-ref (class-methods <beta>-ctd) 0)
-      => '(cc <beta>-c))
-
-    (check
-    	(car (vector-ref (class-methods <beta>-ctd) 1))
-      => 'dd)
-
-    #f)
 
   #t)
 

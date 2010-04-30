@@ -947,7 +947,6 @@ Record utilities
 Record type inspection
 
 * classes inspect syntax::      Inspecting from class names.
-* classes inspect descr::       Inspecting class type descriptors.
 * classes inspect record::      Inspecting record type descriptors.
 
 Binding accessors and mutators
@@ -20286,14 +20285,9 @@ it is enforced by the function or macro bound to @meta{setter name} and
 
 
 @deffn Syntax make @ameta{class name} @ameta{expression} ...
-Expand to the application of the default constructor of @meta{class
-name} to the results of evaluating the @meta{expression} arguments,
-which can be any expression and are evaluated only once.
-
-This macro expands to the plain application of the constructor function
-defined with the @code{protocol} clause of @func{define-class}.
-
-For example, given:
+Expand to the application of the public constructor of @meta{class name}
+to the results of evaluating the @meta{expression} arguments, which can
+be any expression and are evaluated only once.  For example, given:
 
 @example
 (define-class <alpha>
@@ -20346,9 +20340,9 @@ Example:
 
 
 @deffn Syntax make-from-fields @ameta{class name} @ameta{expression} ...
-Like @func{make} but accept as expression arguments must evaluate to the
-raw field values; it uses the default constructor functions.  This macro
-is useful especially for debugging purposes.
+Like @func{make} but the expression arguments must evaluate to the raw
+field values; it uses the default constructor functions.  This macro is
+useful especially for debugging purposes.
 @end deffn
 
 @c page
@@ -20412,18 +20406,17 @@ predicate out of a library: it is enough to export the class name.
 Example:
 
 @example
-(library (alpha)
+(library (defs)
   (export <alpha>)
-  (import (nausicaa))
+  (import (rnrs) (classes))
   (define-class <alpha>
     (fields a b c)))
 
-(library (usage)
+(library (tests)
   (export)
-  (import (nausicaa)
-    (alpha))
-
-  (let ((x (make <alpha> 1 2 3)))
+  (import (rnrs) (classes) (alpha))
+  (let ((x (make <alpha>
+             1 2 3)))
     (is-a? x <alpha>)))
 @end example
 @end deffn
@@ -20435,8 +20428,7 @@ Example:
 
 @menu
 * classes inspect syntax::      Inspecting from class names.
-* classes inspect descr::       Inspecting class type descriptors.
-* classes inspect record::      Inspecting record type descriptors.
+* classes inspect functions::   Inspecting record type descriptors.
 @end menu
 
 @c page
@@ -20444,13 +20436,11 @@ Example:
 @subsection Inspecting from class names
 
 
+@subsubsection Type descriptors
+
+
 @deffn Syntax class-type-descriptor @ameta{class name}
 Expand to the class descriptor associated to @meta{class name}.
-@end deffn
-
-
-@deffn Syntax class-type-uid @ameta{class name}
-Expand to the quoted symbol representing the class' @acronym{UID}.
 @end deffn
 
 
@@ -20460,6 +20450,9 @@ It is a replacement of @func{record-type-descriptor} for record types
 defined by @func{define-class}.
 @end deffn
 
+@c ------------------------------------------------------------
+
+@subsubsection Constructor descriptors
 
 @deffn Syntax class-constructor-descriptor @ameta{class name}
 Expand to the public constructor descriptor associated to @meta{class
@@ -20467,100 +20460,51 @@ name}.
 @end deffn
 
 
-@deffn Syntax superclass-constructor-descriptor @ameta{class name}
+@deffn Syntax class-superclass-constructor-descriptor @ameta{class name}
 Expand to the superclass constructor descriptor associated to
 @meta{class name}.
 @end deffn
 
 
-@deffn Syntax class-parent-list @ameta{class name}
-Do the same as @func{record-parent-list}; @meta{class name} must be a
-class name.  This macro does @strong{not} work with record types defined
-by @func{define-record-type}.
+@deffn Syntax class-from-fields-constructor-descriptor @ameta{class name}
+Expand to the from--fields constructor descriptor associated to
+@meta{class name}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubsection Unique class identifiers
+
+@deffn Syntax class-type-uid @ameta{class name}
+Expand to the quoted symbol representing the class' @acronym{UID}.
+@end deffn
+
+
+@deffn Syntax class-parent-uid-list @ameta{class name}
+Expand into the list of type @acronym{UID}s of the parents of
+@meta{class name}.  The first element is the @acronym{UID} of the class
+itself, then comes the @acronym{UID} of the parent, then the
+@acronym{UID} of the parent's parent, etc.  When inspecting a type whose
+parents are all classes (rather than records), the last element is
+always the @acronym{UID} of @class{top}.
+@end deffn
+
+@c ------------------------------------------------------------
+
+@subsubsection Class hierarchy
+
+
+@deffn Syntax class-parent-rtd-list @ameta{class name}
+Expand into the list of record type descriptors which are parents of
+@meta{class name}.  The first element of the list is the @acronym{RTD}
+of @meta{class name} itself, then comes the @acronym{RTD} of the parent,
+then the @acronym{RTD} of the parent's parent, etc.  When inspecting a
+type whose parents are all classes (rather than records), the last
+element is always the @acronym{RTD} of @class{top}.
 @end deffn
 
 @c page
-@node classes inspect descr
-@subsection Inspecting class type descriptors
-
-
-Every class type is associated to a class type descriptor
-(@acronym{CTD}) record; given a class name (the identifier) a
-@acronym{CTD} can be acquired by applying the syntax
-@func{class-type-descriptor} to it.  Class descriptors are @strong{not}
-meant to have the same role of record type descriptors: their purpose is
-mainly debugging.
-
-
-@defun make-class-type-descriptor @var{rtd} @var{virtual-fields} @var{predicate} @var{setter} @var{getter} @var{methods}
-Build and return a new class type descriptor object; it is usually not
-useful to build a class descriptor using this function: classes are
-defined by @func{define-class} and @func{define-virtual-class}.  A class
-type descriptor has the following fields:
-
-@table @code
-@item rtd
-The underlying record type descriptor.
-
-@item virtual-fields
-A vector of virtual fields; empty vector if this class has no virtual
-fields.  Each element is a list with one of the formats:
-
-@example
-(mutable   @cmeta{field name}
-           @cmeta{field accessor name} @cmeta{field mutator name})
-(immutable @cmeta{field name}
-           @cmeta{field accessor name})
-@end example
-
-@noindent
-the implementations of accessors and mutators are not included because
-they can be either functions or macros.
-
-@item predicate
-The procedure selected as class' predicate.  Always present because it
-defaults to the record predicate.
-
-@item setter
-A symbol representing the class' setter identifier; false if no setter
-was selected.  It does not include the implementation, because a setter
-can be either a closure or a syntax.
-
-@item getter
-A symbol representing the class' getter identifier; false if no getter
-was selected.  It does not include the implementation, because a getter
-can be either a closure or a syntax.
-
-@item methods
-A vector of symbols listing the defined methods; empty vector if the
-class has no methods.  Each element is a list with the format:
-
-@example
-(@cmeta{method name} @cmeta{method function/syntax name})
-@end example
-
-It does not include the implementation, because a method can be either a
-closure or a syntax.
-@end table
-@end defun
-
-
-@defun class-type-descriptor? @var{obj}
-Return @true{} if @var{obj} is a class type descriptor object.
-@end defun
-
-
-@defun class-record-descriptor @var{ctd}
-@defunx class-predicate @var{ctd}
-@defunx class-virtual-fields @var{ctd}
-@defunx class-methods @var{ctd}
-@defunx class-getter @var{ctd}
-@defunx class-setter @var{ctd}
-Accessors for the fields of a class type descriptor.
-@end defun
-
-@c page
-@node classes inspect record
+@node classes inspect functions
 @subsection Inspecting record type descriptors
 
 
