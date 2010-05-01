@@ -20274,6 +20274,48 @@ it is enforced by the function or macro bound to @meta{setter name} and
 @ameta{getter name}.
 @end deffn
 
+
+@deffn Syntax bindings @ameta{macro name}
+Select the name of a macro to be used by @func{with-class} to define
+class--specific bindings.  Meaningless example:
+
+@example
+(define-class <alpha>
+  (fields a b c)
+  (bindings <alpha>-bindings))
+
+(define-syntax <alpha>-bindings
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?class-name ?identifier . ?body)
+       (with-syntax ((A (datum->syntax #'?identifier 'a)))
+         #`(let ((A 123)) . ?body))))))
+
+(define o
+  (make <alpha>
+    1 2 3))
+
+(with-class ((o <alpha>))
+  a)
+@result{} 123
+@end example
+
+@noindent
+the syntax @func{with-class} makes use of @code{<alpha>-bindings} as if
+the code is:
+
+@example
+(with-class ((o <alpha>))
+  (<alpha>-bindings <alpha> o
+    a))
+@end example
+
+The selected macro is expanded with the class name as first argument,
+the identifier bound to the instance as second argument, the body as
+rest.  Bindings introduced by the selected macro may shadow the bindings
+introduced by @func{with-class}.
+@end deffn
+
 @c page
 @node classes make
 @section Record makers

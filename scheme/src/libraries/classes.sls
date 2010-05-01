@@ -389,7 +389,8 @@
 (define-syntax define-class
   (lambda (stx)
     (syntax-case stx (fields mutable immutable parent sealed opaque parent-rtd nongenerative
-			     virtual-fields methods method predicate setter getter inherit)
+			     virtual-fields methods method predicate setter getter inherit
+			     bindings)
 
       ((_ (?name ?constructor ?predicate) ?clause ...)
        (all-identifiers? #'(?name ?constructor ?predicate))
@@ -401,7 +402,7 @@
 	  ()	     ;collected virtual fields
 	  ()	     ;collected methods
 	  ()	     ;collected functions
-	  (predicate) (setter) (getter)
+	  (predicate) (setter) (getter) (bindings)
 	  (parent) (inherit) (sealed) (opaque) (parent-rtd) (nongenerative)
 	  ?clause ...))
 
@@ -416,7 +417,7 @@
 	    ()	       ;collected virtual fields
 	    ()	       ;collected methods
 	    ()	       ;collected functions
-	    (predicate) (setter) (getter)
+	    (predicate) (setter) (getter) (bindings)
 	    (parent) (inherit) (sealed) (opaque) (parent-rtd) (nongenerative)
 	    ?clause ...)))
 
@@ -445,7 +446,7 @@
 			     protocol public-protocol superclass-protocol
 			     sealed opaque parent-rtd nongenerative
 			     virtual-fields methods method method-syntax
-			     predicate setter getter inherit)
+			     predicate setter getter inherit bindings)
 
       ;;Gather the INHERIT clause.
       ((%define-class/sort-clauses
@@ -458,6 +459,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	. ?inherit-rest)
 	(sealed		?sea ...)
@@ -482,6 +484,7 @@
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
+		   (bindings		?bin ...)
 		   (parent		?par ...)
 		   (inherit		?superclass-name . ?inherit-clauses)
 		   (sealed		?sea ...)
@@ -501,6 +504,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		. ?parent-rest)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -525,6 +529,7 @@
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
+		   (bindings		?bin ...)
 		   (parent		?parent-name)
 		   (inherit		?inh ...)
 		   (sealed		?sea ...)
@@ -544,6 +549,7 @@
 	(predicate	. ?predicate-rest)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -568,6 +574,7 @@
 		   (predicate		?function-name)
 		   (setter		?set ...)
 		   (getter		?get ...)
+		   (bindings		?bin ...)
 		   (parent		?par ...)
 		   (inherit		?inh ...)
 		   (sealed		?sea ...)
@@ -587,6 +594,7 @@
 	(predicate	?pre ...)
 	(setter		. ?setter-rest)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -611,6 +619,7 @@
 		   (predicate		?pre ...)
 		   (setter		?setter)
 		   (getter		?get ...)
+		   (bindings		?bin ...)
 		   (parent		?par ...)
 		   (inherit		?inh ...)
 		   (sealed		?sea ...)
@@ -630,6 +639,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		. ?getter-rest)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -654,6 +664,54 @@
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?getter)
+		   (bindings		?bin ...)
+		   (parent		?par ...)
+		   (inherit		?inh ...)
+		   (sealed		?sea ...)
+		   (opaque		?opa ...)
+		   (parent-rtd		?pad ...)
+		   (nongenerative	?non ...)
+		   ?clause ...)))))
+
+;;; --------------------------------------------------------------------
+
+      ;;Gather the BINDINGS clause.
+      ((%define-class/sort-clauses
+	?input-form (?name ?constructor ?predicate)
+	(?common-protocol ?public-protocol ?superclass-protocol)
+	(?collected-concrete-field ...)
+	(?collected-virtual-field ...)
+	(?collected-method ...)
+	(?collected-definition ...)
+	(predicate	?pre ...)
+	(setter		?set ...)
+	(getter		?get ...)
+	(bindings	. ?bindings-rest)
+	(parent		?par ...)
+	(inherit	?inh ...)
+	(sealed		?sea ...)
+	(opaque		?opa ...)
+	(parent-rtd	?pad ...)
+	(nongenerative	?non ...)
+	(bindings ?macro-name) ?clause ...)
+       (let ((form	(syntax ?input-form))
+	     (subform	(syntax (bindings ?macro-name))))
+	 (cond ((not (null? (syntax->datum (syntax ?bindings-rest))))
+		(%sinner "bindings clause given twice in class definition" form subform))
+	       ((not (identifier? (syntax ?macro-name)))
+		(%sinner "invalid bindings clause in class definition" form subform))
+	       (else
+		#'(%define-class/sort-clauses
+		   ?input-form (?name ?constructor ?predicate)
+		   (?common-protocol ?public-protocol ?superclass-protocol)
+		   (?collected-concrete-field ...)
+		   (?collected-virtual-field ...)
+		   (?collected-method ...)
+		   (?collected-definition ...)
+		   (predicate		?pre ...)
+		   (setter		?set ...)
+		   (getter		?get ...)
+		   (bindings		?macro-name)
 		   (parent		?par ...)
 		   (inherit		?inh ...)
 		   (sealed		?sea ...)
@@ -675,6 +733,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -696,6 +755,7 @@
 	    (predicate		?pre ...)
 	    (setter		?set ...)
 	    (getter		?get ...)
+	    (bindings		?bin ...)
 	    (parent		?par ...)
 	    (inherit		?inh ...)
 	    (sealed		?sea ...)
@@ -715,6 +775,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -736,6 +797,7 @@
 	    (predicate		?pre ...)
 	    (setter		?set ...)
 	    (getter		?get ...)
+	    (bindings		?bin ...)
 	    (parent		?par ...)
 	    (inherit		?inh ...)
 	    (sealed		?sea ...)
@@ -755,6 +817,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -776,6 +839,7 @@
 	    (predicate		?pre ...)
 	    (setter		?set ...)
 	    (getter		?get ...)
+	    (bindings		?bin ...)
 	    (parent		?par ...)
 	    (inherit		?inh ...)
 	    (sealed		?sea ...)
@@ -797,6 +861,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		. ?sealed-rest)
@@ -821,6 +886,7 @@
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
+		   (bindings		?bin ...)
 		   (parent		?par ...)
 		   (inherit		?inh ...)
 		   (sealed		?sealed)
@@ -840,6 +906,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -864,6 +931,7 @@
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
+		   (bindings		?bin ...)
 		   (parent		?par ...)
 		   (inherit		?inh ...)
 		   (sealed		?sea ...)
@@ -883,6 +951,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -905,6 +974,7 @@
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
+		   (bindings		?bin ...)
 		   (parent		?par ...)
 		   (inherit		?inh ...)
 		   (sealed		?sea ...)
@@ -924,6 +994,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -946,6 +1017,7 @@
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
+		   (bindings		?bin ...)
 		   (parent		?par ...)
 		   (inherit		?inh ...)
 		   (sealed		?sea ...)
@@ -968,6 +1040,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -992,6 +1065,7 @@
 		   (predicate		?pre ...)
 		   (setter		?set ...)
 		   (getter		?get ...)
+		   (bindings		?bin ...)
 		   (parent		?par ...)
 		   (inherit		?inh ...)
 		   (sealed		?sea ...)
@@ -1014,6 +1088,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1031,6 +1106,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1053,6 +1129,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1070,6 +1147,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1092,6 +1170,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1109,6 +1188,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1130,6 +1210,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1148,6 +1229,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1167,6 +1249,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1185,6 +1268,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1206,6 +1290,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1224,6 +1309,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1246,6 +1332,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings	?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1262,6 +1349,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1280,7 +1368,7 @@
 (define-syntax %define-class/sort-clauses/fields
   (lambda (stx)
     (syntax-case stx (fields mutable immutable parent sealed opaque parent-rtd nongenerative
-			     predicate setter getter inherit)
+			     predicate setter getter inherit bindings)
 
       ;;Gather mutable FIELDS clause with explicit selection of accessor
       ;;and mutator names.
@@ -1294,6 +1382,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1312,6 +1401,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1332,6 +1422,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1352,6 +1443,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1372,6 +1464,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1390,6 +1483,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1410,6 +1504,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1428,6 +1523,7 @@
 	  (predicate	?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1448,6 +1544,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1466,11 +1563,12 @@
 	  (predicate	?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
 	  (opaque		?opa ...)
-	  (parent-rtd	?pad ...)
+	  (parent-rtd		?pad ...)
 	  (nongenerative	?non ...)
 	  (fields ?field-clause ...) ?clause ...))
 
@@ -1487,6 +1585,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1504,6 +1603,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1524,6 +1624,7 @@
 	(setter		?set ...)
 	(getter		?get ...)
 	(parent		?par ...)
+	(bindings	?bin ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
@@ -1541,7 +1642,7 @@
 (define-syntax %define-class/sort-clauses/virtual-fields
   (lambda (stx)
     (syntax-case stx (mutable immutable parent sealed opaque parent-rtd nongenerative
-			      virtual-fields predicate setter getter inherit)
+			      virtual-fields predicate setter getter inherit bindings)
 
       ;;Gather mutable VIRTUAL-FIELDS  clause with explicit selection of
       ;;accessor and mutator names.
@@ -1555,6 +1656,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1573,6 +1675,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1593,6 +1696,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1613,11 +1717,12 @@
 	  (predicate	?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
 	  (opaque		?opa ...)
-	  (parent-rtd	?pad ...)
+	  (parent-rtd		?pad ...)
 	  (nongenerative	?non ...)
 	  (virtual-fields ?field-clause ...) ?clause ...))
 
@@ -1635,6 +1740,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1653,6 +1759,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1673,6 +1780,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1688,14 +1796,15 @@
 	  (?collected-virtual-field ... (immutable ?field #,(syntax-accessor-name #'?name #'?field)))
 	  (?collected-method ...)
 	  (?collected-definition ...)
-	  (predicate	?pre ...)
+	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
 	  (opaque		?opa ...)
-	  (parent-rtd	?pad ...)
+	  (parent-rtd		?pad ...)
 	  (nongenerative	?non ...)
 	  (virtual-fields ?field-clause ...) ?clause ...))
 
@@ -1711,6 +1820,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1726,14 +1836,15 @@
 	  (?collected-virtual-field ... (immutable ?field #,(syntax-accessor-name #'?name #'?field)))
 	  (?collected-method ...)
 	  (?collected-definition ...)
-	  (predicate	?pre ...)
+	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
 	  (opaque		?opa ...)
-	  (parent-rtd	?pad ...)
+	  (parent-rtd		?pad ...)
 	  (nongenerative	?non ...)
 	  (virtual-fields ?field-clause ...) ?clause ...))
 
@@ -1750,6 +1861,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1767,6 +1879,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1786,6 +1899,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1804,7 +1918,7 @@
 (define-syntax %define-class/sort-clauses/methods
   (lambda (stx)
     (syntax-case stx (parent sealed opaque parent-rtd nongenerative
-			     methods predicate setter getter inherit)
+			     methods predicate setter getter inherit bindings)
 
       ;;Gather  METHODS   clause  with  explicit   selection  of  method
       ;;function/macro name.
@@ -1818,6 +1932,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1836,6 +1951,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1856,6 +1972,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1871,14 +1988,15 @@
 	  (?collected-virtual-field ...)
 	  (?collected-method ... (?method #,(syntax-method-name #'?name #'?method)))
 	  (?collected-definition ...)
-	  (predicate	?pre ...)
+	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
 	  (opaque		?opa ...)
-	  (parent-rtd	?pad ...)
+	  (parent-rtd		?pad ...)
 	  (nongenerative	?non ...)
 	  (methods ?method-clause ...) ?clause ...))
 
@@ -1893,6 +2011,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1908,14 +2027,15 @@
 	  (?collected-virtual-field ...)
 	  (?collected-method ... (?method #,(syntax-method-name #'?name #'?method)))
 	  (?collected-definition ...)
-	  (predicate	?pre ...)
+	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
 	  (opaque		?opa ...)
-	  (parent-rtd	?pad ...)
+	  (parent-rtd		?pad ...)
 	  (nongenerative	?non ...)
 	  (methods ?method-clause ...) ?clause ...))
 
@@ -1930,6 +2050,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1947,6 +2068,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -1966,6 +2088,7 @@
 	(predicate	?pre ...)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(parent		?par ...)
 	(inherit	?inh ...)
 	(sealed		?sea ...)
@@ -1989,7 +2112,7 @@
   ;;
   (lambda (stx)
     (syntax-case stx (parent sealed opaque parent-rtd nongenerative
-			     predicate setter getter inherit)
+			     predicate setter getter inherit bindings)
 
 ;;; --------------------------------------------------------------------
 ;;; process errors first
@@ -2005,6 +2128,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?parent0 ?parent ...)
 	  (inherit		?inherit0 ?inherit ...)
 	  (sealed		?sea ...)
@@ -2026,6 +2150,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?parent0 ?parent ...)
 	  (inherit		?inh ...)
 	  (sealed		?sea ...)
@@ -2047,6 +2172,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?par ...)
 	  (inherit		?inherit0 ?inherit ...)
 	  (sealed		?sea ...)
@@ -2071,6 +2197,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent)  ;no parent
 	  (inherit) ;no inherit
 	  (sealed		?sea ...)
@@ -2089,6 +2216,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (sealed		?sea ...)
 	  (opaque		?opa ...)
 	  (nongenerative	?non ...)))
@@ -2105,6 +2233,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent) ;no parent
 	  (inherit		?superclass-name)
 	  (sealed		?sea ...)
@@ -2128,6 +2257,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (sealed		?sea ...)
 	  (opaque		?opa ...)
 	  (nongenerative	?non ...)))
@@ -2142,6 +2272,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent) ;no parent
 	  (inherit		?superclass-name (?inherit-option ...))
 	  (sealed		?sea ...)
@@ -2162,6 +2293,7 @@
 	      (predicate	?pre ...)
 	      (setter		?set ...)
 	      (getter		?get ...)
+	      (bindings		?bin ...)
 	      (sealed		?sea ...)
 	      (opaque		?opa ...)
 	      (nongenerative	?non ...))
@@ -2182,6 +2314,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent		?parent-name)
 	  (inherit) ;no inherit
 	  (sealed		?sea ...)
@@ -2201,6 +2334,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (sealed		?sea ...)
 	  (opaque		?opa ...)
 	  (nongenerative	?non ...)))
@@ -2217,6 +2351,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (parent)  ;no parent
 	  (inherit) ;no inherit
 	  (sealed		?sea ...)
@@ -2234,6 +2369,7 @@
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
+	  (bindings		?bin ...)
 	  (sealed		?sea ...)
 	  (opaque		?opa ...)
 	  (nongenerative	?non ...)))
@@ -2242,7 +2378,7 @@
 
 
 (define-syntax %define-class/normalise-predicate
-  (syntax-rules (sealed opaque nongenerative predicate setter getter)
+  (syntax-rules (sealed opaque nongenerative predicate setter getter bindings)
 
     ;;No predicate was given.
     ((_ ?input-form (?name ?constructor ?predicate)
@@ -2255,6 +2391,7 @@
 	(predicate)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
 	(nongenerative	?non ...))
@@ -2269,6 +2406,7 @@
       ?predicate
       (setter		?set ...)
       (getter		?get ...)
+      (bindings		?bin ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
       (nongenerative	?non ...)))
@@ -2284,6 +2422,7 @@
 	(predicate	?predicate-identifier)
 	(setter		?set ...)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
 	(nongenerative	?non ...))
@@ -2298,6 +2437,7 @@
       ?predicate-identifier
       (setter		?set ...)
       (getter		?get ...)
+      (bindings		?bin ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
       (nongenerative	?non ...)))
@@ -2305,7 +2445,7 @@
 
 
 (define-syntax %define-class/normalise-setter
-  (syntax-rules (sealed opaque nongenerative setter getter)
+  (syntax-rules (sealed opaque nongenerative setter getter bindings)
 
     ;;No setter was given.
     ((_ ?input-form (?name ?constructor ?predicate)
@@ -2318,6 +2458,7 @@
 	?predicate-identifier
 	(setter)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
 	(nongenerative	?non ...))
@@ -2332,6 +2473,7 @@
       ?predicate-identifier
       #f
       (getter		?get ...)
+      (bindings		?bin ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
       (nongenerative	?non ...)))
@@ -2347,6 +2489,7 @@
 	?predicate-identifier
 	(setter		?setter)
 	(getter		?get ...)
+	(bindings	?bin ...)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
 	(nongenerative	?non ...))
@@ -2361,6 +2504,7 @@
       ?predicate-identifier
       ?setter
       (getter		?get ...)
+      (bindings		?bin ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
       (nongenerative	?non ...)))
@@ -2368,7 +2512,7 @@
 
 
 (define-syntax %define-class/normalise-getter
-  (syntax-rules (sealed opaque nongenerative getter)
+  (syntax-rules (sealed opaque nongenerative getter bindings)
 
     ;;No getter was given.
     ((_ ?input-form (?name ?constructor ?predicate)
@@ -2381,10 +2525,11 @@
 	?predicate-identifier
 	?setter
 	(getter)
+	(bindings	?bin ...)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
 	(nongenerative	?non ...))
-     (%define-class/normalise-sealed
+     (%define-class/normalise-bindings
       ?input-form (?name ?constructor ?predicate)
       (?common-protocol ?public-protocol ?superclass-protocol)
       (?collected-concrete-field ...)
@@ -2395,6 +2540,7 @@
       ?predicate-identifier
       ?setter
       #f
+      (bindings		?bin ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
       (nongenerative	?non ...)))
@@ -2410,10 +2556,11 @@
 	?predicate-identifier
 	?setter
 	(getter		?getter)
+	(bindings	?bin ...)
 	(sealed		?sea ...)
 	(opaque		?opa ...)
 	(nongenerative	?non ...))
-     (%define-class/normalise-sealed
+     (%define-class/normalise-bindings
       ?input-form (?name ?constructor ?predicate)
       (?common-protocol ?public-protocol ?superclass-protocol)
       (?collected-concrete-field ...)
@@ -2424,11 +2571,101 @@
       ?predicate-identifier
       ?setter
       ?getter
+      (bindings		?bin ...)
       (sealed		?sea ...)
       (opaque		?opa ...)
       (nongenerative	?non ...)))
 
     ))
+
+
+(define-syntax %define-class/normalise-bindings
+  (lambda (stx)
+    (syntax-case stx (sealed opaque nongenerative bindings)
+
+      ;;No BINDINGS was given.
+      ((_ ?input-form (?name ?constructor ?predicate)
+	  (?common-protocol ?public-protocol ?superclass-protocol)
+	  (?collected-concrete-field ...)
+	  (?collected-virtual-field ...)
+	  (?collected-method ...)
+	  (?collected-definition ...)
+	  (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
+	  ?predicate-identifier
+	  ?setter
+	  ?getter
+	  (bindings)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (nongenerative	?non ...))
+       #'(%define-class/normalise-sealed
+	  ?input-form (?name ?constructor ?predicate)
+	  (?common-protocol ?public-protocol ?superclass-protocol)
+	  (?collected-concrete-field ...)
+	  (?collected-virtual-field ...)
+	  (?collected-method ...)
+	  (?collected-definition ...)
+	  (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
+	  ?predicate-identifier
+	  ?setter
+	  ?getter
+	  <top>-bindings
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (nongenerative	?non ...)))
+
+      ;;A BINDINGS was given.
+      ((_ ?input-form (?name ?constructor ?predicate)
+	  (?common-protocol ?public-protocol ?superclass-protocol)
+	  (?collected-concrete-field ...)
+	  (?collected-virtual-field ...)
+	  (?collected-method ...)
+	  (?collected-definition ...)
+	  (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
+	  ?predicate-identifier
+	  ?setter
+	  ?getter
+	  (bindings		?bindings-name)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (nongenerative	?non ...))
+       #'(%define-class/normalise-sealed
+	  ?input-form (?name ?constructor ?predicate)
+	  (?common-protocol ?public-protocol ?superclass-protocol)
+	  (?collected-concrete-field ...)
+	  (?collected-virtual-field ...)
+	  (?collected-method ...)
+	  (?collected-definition ...)
+	  (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
+	  ?predicate-identifier
+	  ?setter
+	  ?getter
+	  ?bindings-name
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (nongenerative	?non ...)))
+
+      ;;Error.
+      ((_ ?input-form (?name ?constructor ?predicate)
+	  (?common-protocol ?public-protocol ?superclass-protocol)
+	  (?collected-concrete-field ...)
+	  (?collected-virtual-field ...)
+	  (?collected-method ...)
+	  (?collected-definition ...)
+	  (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
+	  ?predicate-identifier
+	  ?setter
+	  ?getter
+	  (bindings		?bin ...)
+	  (sealed		?sea ...)
+	  (opaque		?opa ...)
+	  (nongenerative	?non ...))
+       (syntax-violation 'define-class
+	 "invalid bindings clause in class definition"
+	 (syntax->datum #'?input-form)
+	 (syntax->datum #'(bindings ?bin ...))))
+
+      )))
 
 
 (define-syntax %define-class/normalise-sealed
@@ -2445,6 +2682,7 @@
 	?predicate-identifier
 	?setter
 	?getter
+	?bindings-name
 	(sealed		?sealed)
 	(opaque		?opa ...)
 	(nongenerative	?non ...))
@@ -2459,6 +2697,7 @@
       ?predicate-identifier
       ?setter
       ?getter
+      ?bindings-name
       ?sealed
       (opaque		?opa ...)
       (nongenerative	?non ...)))
@@ -2474,6 +2713,7 @@
 	?predicate-identifier
 	?setter
 	?getter
+	?bindings-name
 	(sealed)
 	(opaque		?opa ...)
 	(nongenerative	?non ...))
@@ -2488,6 +2728,7 @@
       ?predicate-identifier
       ?setter
       ?getter
+      ?bindings-name
       #f
       (opaque		?opa ...)
       (nongenerative	?non ...)))
@@ -2508,6 +2749,7 @@
 	?predicate-identifier
 	?setter
 	?getter
+	?bindings-name
 	?sealed
 	(opaque		?opaque)
 	(nongenerative	?non ...))
@@ -2522,6 +2764,7 @@
       ?predicate-identifier
       ?setter
       ?getter
+      ?bindings-name
       ?sealed
       ?opaque
       (nongenerative	?non ...)))
@@ -2537,6 +2780,7 @@
 	?predicate-identifier
 	?setter
 	?getter
+	?bindings-name
 	?sealed
 	(opaque)
 	(nongenerative	?non ...))
@@ -2551,6 +2795,7 @@
       ?predicate-identifier
       ?setter
       ?getter
+      ?bindings-name
       ?sealed
       #f
       (nongenerative	?non ...)))
@@ -2573,6 +2818,7 @@
 	  ?predicate-identifier
 	  ?setter
 	  ?getter
+	  ?bindings-name
 	  ?sealed
 	  ?opaque
 	  (nongenerative	?uid))
@@ -2587,6 +2833,7 @@
 	  ?predicate-identifier
 	  ?setter
 	  ?getter
+	  ?bindings-name
 	  ?sealed
 	  ?opaque
 	  ?uid))
@@ -2602,6 +2849,7 @@
 	  ?predicate-identifier
 	  ?setter
 	  ?getter
+	  ?bindings-name
 	  ?sealed
 	  ?opaque
 	  (nongenerative))
@@ -2616,6 +2864,7 @@
 	  ?predicate-identifier
 	  ?setter
 	  ?getter
+	  ?bindings-name
 	  ?sealed
 	  ?opaque
 	  ;;We have to  do this to properly generated  a unique UID.  We
@@ -2659,7 +2908,7 @@
 	  ((?method ?method-function) ...)
 	  (?collected-definition ...)
 	  (?superclass-name ?parent-rtd ?parent-cd ?inherit-options)
-	  ?predicate-identifier ?setter ?getter
+	  ?predicate-identifier ?setter ?getter ?bindings-name
 	  ?sealed ?opaque ?uid)
        (let ((id (duplicated-identifiers? #'(?field ... ?virtual-field ... ?method ...))))
 	 (if id
@@ -2809,7 +3058,8 @@
 			    ?inherit-methods ?variable-name
 			    (with-class-bindings/setter-and-getter
 			     ?inherit-setter-and-getter ?variable-name
-			     ?body0 ?body (... ...)))))))
+			     (?bindings-name ?class-name ?variable-name
+					     ?body0 ?body (... ...))))))))
 		       ))
 
 		   (define-syntax with-class-bindings/concrete-fields
@@ -3520,6 +3770,11 @@
        "invalid class internal keyword"
        (syntax->datum #'(<top> ?keyword . ?rest))
        (syntax->datum #'?keyword)))))
+
+(define-syntax <top>-bindings
+  (syntax-rules ()
+    ((_ ?class-name ?identifier . ?body)
+     (begin . ?body))))
 
 (define-virtual-class <builtin>
   (nongenerative nausicaa:builtin:<builtin>))

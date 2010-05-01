@@ -516,7 +516,7 @@
 	      (environment '(nausicaa))))
     => '(parent-rtd hello hello))
 
-  (check	;multiple nongenerative is bad
+  (check	;multiple NONGENERATIVE is bad
       (guard (E ((syntax-violation? E)
 ;;;(write (condition-message E))(newline)
 		 (syntax-violation-subform E))
@@ -527,7 +527,7 @@
 	      (environment '(nausicaa))))
     => '(nongenerative hello))
 
-  (check	;multiple nongenerative is bad
+  (check	;multiple NONGENERATIVE is bad
       (guard (E ((syntax-violation? E)
 ;;;(write (condition-message E))(newline)
 		 (syntax-violation-subform E))
@@ -537,6 +537,17 @@
 		 (nongenerative))
 	      (environment '(nausicaa))))
     => '(nongenerative))
+
+  (check	;multiple BINDINGS is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (bindings ciao)
+		 (bindings hello))
+	      (environment '(nausicaa))))
+    => '(bindings hello))
 
   (check	;multiple FIELDS is fine
       (let ()
@@ -1711,6 +1722,31 @@
 	  (with-class ((o <beta> <alpha>))
 	    (o.a)))
       => 1)
+
+    #f)
+  #t)
+
+
+(parametrise ((check-test-name	'bindings))
+
+  (let ()
+
+    (define-class <alpha>
+      (fields a b c)
+      (bindings <alpha>-bindings))
+
+    (define-syntax <alpha>-bindings
+      (lambda (stx)
+	(syntax-case stx ()
+	  ((_ ?class-name ?identifier . ?body)
+	   (with-syntax ((A (datum->syntax #'?identifier 'a)))
+	     #`(let ((A 123)) . ?body))))))
+
+    (check
+	(let ((o (make <alpha> 1 2 3)))
+	  (with-class ((o <alpha>))
+	    a))
+      => 123)
 
     #f)
   #t)
