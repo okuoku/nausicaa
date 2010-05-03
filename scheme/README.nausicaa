@@ -23,8 +23,9 @@ Topics
 
 This is a distribution of Scheme language libraries for R6RS
 Scheme  implementations.  Currently  it attempts  to support
-Larceny,  Ikarus,  Mosh,   Petite  Chez  and  Ypsilon;  when
-referring to all of these we can use the LIMPY abbreviation.
+Larceny, Ikarus, Mosh, Petite Chez, Vicare and Ypsilon; when
+referring to all of these  we can use the LIMPY abbreviation
+(Vicare is a fork of Ikarus).
 
 
 1.1 About 'Nausicaa'
@@ -120,24 +121,12 @@ resources).
   the Scheme implementation you are using.
 
 * Currently,  among  the  supported Scheme  implementations,
-  Ikarus,  Larceny,  Mosh  and  Ypsilon can  optionally  use
-  precompiled Scheme  libraries.  See the  README.rules file
-  for details about precompilation.
+  Ikarus, Larceny,  Mosh, Vicare and  Ypsilon can optionally
+  use  precompiled Scheme  libraries.  See  the README.rules
+  file for details about precompilation.
 
 * The Larceny compiler is slow (really); when using Larceny,
   precompilation is strongly recommended.
-
-* When  precompiling a  library for  Ikarus Scheme  with the
-  command:
-
-    $ ikarus --compile-dependencies
-
-  Ikarus  traverses  the graph  of  libraries attempting  to
-  precompile all  the uncompiled ones; this  means that also
-  libraries that are installed  along with Ikarus have to be
-  precompiled;  at present  (Sat  Mar 13,  2010) the  Ikarus
-  distribution does not  precompile libraries, you will have
-  to do it by hand.
 
 * By default only documentation  in Info format is built and
   installed,  documentation  in HTML  format  is pruned;  to
@@ -182,6 +171,8 @@ programming  language.  It  is the  creation of  Taro Minowa
   Petite   Chez   Scheme   is   an   also   R6RS   compliant
 implementation  of the Scheme  programming language.   It is
 produced by Cadence Research Systems.
+
+  Vicare is an experimental fork of Ikarus.
 
   Ypsilon is an R6RS  compliant implementation of the Scheme
 programming  language.   It is  the  creation of  Yoshikatsu
@@ -238,6 +229,11 @@ Mosh Scheme can be downloaded from:
 Petite Chez Scheme can be downloaded from:
 
 		  <http://www.scheme.com/>
+
+Vicare Scheme can be downloaded from:
+
+      <http://github.com/marcomaggi/vicare/downloads>
+	   <http://github.com/marcomaggi/vicare/>
 
 the GNU Software tools can be downloaded from:
 
