@@ -34,6 +34,7 @@
   (only (pretty-print))
   (only (shared-structures))
   (only (classes))
+  (only (labels))
   (only (deferred-exceptions))
   (only (compensations))
   (only (nausicaa))

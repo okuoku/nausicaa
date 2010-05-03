@@ -35,7 +35,7 @@
 (display "*** testing classes basics\n")
 
 
-(parametrise ((check-test-name	'definition))
+(parametrise ((check-test-name	'definition-simple))
 
   (let ()
 
@@ -62,7 +62,80 @@
     #f)
 
 ;;; --------------------------------------------------------------------
-;;; all the auxiliary syntaxes
+;;; errors
+
+  (check 	;invalid name
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(define-class 123
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => 123)
+
+  (check	;invalid constructor
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else
+		 (write E)(newline)
+		 #f))
+	(eval '(define-class (<alpha> 123 <alpha>?)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(<alpha> 123 <alpha>?))
+
+  (check	;unknown clause
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-form E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (woppa 123))
+	      (environment '(nausicaa))))
+    => '(define-class <alpha>
+	  (woppa 123)))
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-virtual-class))
+
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;attempt to instantiate virtual class
+      (guard (E ((syntax-violation? E)
+;;;		   (write (condition-message E))(newline)
+;;;		   (write E)(newline)
+		 #t)
+		(else
+;;;		   (write E)(newline)
+		 #f))
+	(eval '(let ()
+		 (define-virtual-class <alpha>
+		   (predicate integer?))
+		 (make <alpha>))
+	      (environment '(nausicaa))))
+    => #t)
+
+  (check	;attempt to instantiate virtual class
+      (guard (E ((syntax-violation? E)
+;;;		   (write (condition-message E))(newline)
+;;;		   (write E)(newline)
+		 #t)
+		(else
+;;;		   (write E)(newline)
+		 #f))
+	(eval '(make <vector>) (environment '(nausicaa))))
+    => #t)
+
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-inherit-clause))
 
   (let ()	;inherit with INHERIT
 
@@ -91,6 +164,116 @@
 
     #f)
 
+;;; --------------------------------------------------------------------
+;;; selective inheritance
+
+  (let ()	;only concrete fields
+
+    (define-class <alpha>
+      (fields a b))
+
+    (define-class <beta>
+      (inherit <alpha>
+	(nothing concrete-fields))
+      (fields c d))
+
+    (check
+	(let ((p (make <beta> 1 2 3 4)))
+	  (with-class ((p <beta>))
+	    (list p.a p.b p.c p.d)))
+      => '(1 2 3 4))
+
+    (check
+	(guard (E ((undefined-violation? E)
+		   #t)
+		  (else #f))
+	  (eval '(let ()
+		   (define-class <alpha>
+		     (fields a b)
+		     (virtual-fields (immutable c <alpha>-b)))
+
+		   (define-class <beta>
+		     (inherit <alpha>
+		       (nothing concrete-fields))
+		     (fields d e))
+
+		   (let ((p (make <beta> 1 2 3 4)))
+		     (with-class ((p <beta>))
+		       p.c)))
+		(environment '(nausicaa))))
+      => #t)
+
+    #f)
+
+  (let ()	;only virtual fields
+
+    (define-class <alpha>
+      (fields a b)
+      (virtual-fields (immutable c <alpha>-b)))
+
+    (define-class <beta>
+      (inherit <alpha>
+	(nothing virtual-fields))
+      (fields d e))
+
+    (check
+	(let ((p (make <beta> 1 2 3 4)))
+	  (with-class ((p <beta>))
+	    (list p.c p.d p.e)))
+      => '(2 3 4))
+
+    (check
+	(guard (E ((undefined-violation? E)
+		   #t)
+		  (else #f))
+	  (eval '(let ()
+		   (define-class <alpha>
+		     (fields a b)
+		     (virtual-fields (immutable c <alpha>-b)))
+
+		   (define-class <beta>
+		     (inherit <alpha>
+		       (nothing virtual-fields))
+		     (fields d e))
+
+		   (let ((p (make <beta> 1 2 3 4)))
+		     (with-class ((p <beta>))
+		       p.a)))
+		(environment '(nausicaa))))
+      => #t)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;invalid value
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (inherit 123)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(inherit 123))
+
+  (check	;multiple INHERIT is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (inherit ciao)
+		 (inherit hello))
+	      (environment '(nausicaa))))
+    => '(inherit hello))
+
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-parent-clause))
+
   (let ()	;inherit with PARENT
 
     (define-record-type <alpha>
@@ -108,6 +291,37 @@
       => '(1 2))
 
     #f)
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;invalid value
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (parent 123)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(parent 123))
+
+  (check	;multiple PARENT is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (parent ciao)
+		 (parent hello))
+	      (environment '(nausicaa))))
+    => '(parent hello))
+
+
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-parent-rtd-clause))
 
   (let ()	;inherit with PARENT-RTD
 
@@ -129,7 +343,43 @@
     #f)
 
 ;;; --------------------------------------------------------------------
-;;; various protocols
+;;; errors
+
+  (check	;multiple PARENT-RTD is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (parent-rtd ciao ciao)
+		 (parent-rtd hello hello))
+	      (environment '(nausicaa))))
+    => '(parent-rtd hello hello))
+
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-protocol-clause))
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;multiple PROTOCOL is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (protocol ciao)
+		 (protocol hello))
+	      (environment '(nausicaa))))
+    => '(protocol hello))
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-public-protocol-clause))
 
   (let ()	;public protocol
 
@@ -147,6 +397,35 @@
       => #t)
 
     #f)
+
+;;; --------------------------------------------------------------------
+
+  (check	;PUBLIC-PROTOCOL in virtual class definition is bad
+      (guard (E ((syntax-violation? E) #t)
+		(else #f))
+	(eval '(let ()
+		 (define-virtual-class <alpha>
+		   (public-protocol (lambda (n) (lambda () (n)))))
+		 #f)
+	      (environment '(nausicaa))))
+    => #t)
+
+  (check	;multiple PUBLIC-ROTOCOL is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (public-protocol ciao)
+		 (public-protocol hello))
+	      (environment '(nausicaa))))
+    => '(public-protocol hello))
+
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-superclass-protocol-clause))
 
   (let ()	;superclass protocol
 
@@ -175,6 +454,25 @@
 
     #f)
 
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;multiple SUPERCLASS-ROTOCOL is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (superclass-protocol ciao)
+		 (superclass-protocol hello))
+	      (environment '(nausicaa))))
+    => '(superclass-protocol hello))
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-from-fields-constructor))
+
   (let ()	;from-fields constructor
 
     (define-class <alpha>
@@ -197,59 +495,186 @@
 
     (check
 	(let/with-class (((o <beta>) (make-from-fields <beta>
-						       #\a #\b #\c #\d)))
+				       #\a #\b #\c #\d)))
 	  (list o.a o.b o.c o.d))
       => '(#\a #\b #\c #\d))
 
     #f)
 
-  (let ()	;virtual classes
 
-    (check	;attempt to instantiate virtual class
-	(guard (E ((syntax-violation? E)
-;;;		   (write (condition-message E))(newline)
-;;;		   (write E)(newline)
-		   #t)
-		  (else
-;;;		   (write E)(newline)
-		   #f))
-	  (eval '(let ()
-		   (define-virtual-class <alpha>
-		     (predicate integer?))
-		   (make <alpha>))
-		(environment '(nausicaa))))
-      => #t)
+  #t)
 
-    (check	;attempt to instantiate virtual class
-	(guard (E ((syntax-violation? E)
-;;;		   (write (condition-message E))(newline)
-;;;		   (write E)(newline)
-		   #t)
-		  (else
-;;;		   (write E)(newline)
-		   #f))
-	  (eval '(make <vector>) (environment '(nausicaa))))
-      => #t)
+
+(parametrise ((check-test-name	'definition-sealed-clause))
 
-    (check	;PUBLIC-PROTOCOL in virtual class definition is bad
-	(guard (E ((syntax-violation? E)
-;;;		   (write (condition-message E))(newline)
-;;;		   (write E)(newline)
-		   #t)
-		  (else
-;;;		   (write E)(newline)
-		   #f))
-	  (eval '(let ()
-		   (define-virtual-class <alpha>
-		     (public-protocol (lambda (n) (lambda () (n)))))
-		   #f)
-		(environment '(nausicaa))))
-      => #t)
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;invalid sealed
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (sealed 123)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(sealed 123))
+
+  (check	;multiple SEALED is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (sealed #t)
+		 (sealed #f))
+	      (environment '(nausicaa))))
+    => '(sealed #f))
+
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-opaque-clause))
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;invalid opaque
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (opaque 123)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(opaque 123))
+
+  (check	;multiple OPAQUE is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (opaque #t)
+		 (opaque #f))
+	      (environment '(nausicaa))))
+    => '(opaque #f))
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-predicate-clause))
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;invalid value
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (predicate 123)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(predicate 123))
+
+  (check	;multiple PREDICATE is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (predicate ciao)
+		 (predicate hello))
+	      (environment '(nausicaa))))
+    => '(predicate hello))
+
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-nongenerative-clause))
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;invalid value
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+		 (nongenerative 123)
+		 (fields a b c))
+	      (environment '(nausicaa))))
+    => '(nongenerative 123))
+
+  (check	;multiple non-empty NONGENERATIVE is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (nongenerative ciao)
+		 (nongenerative hello))
+	      (environment '(nausicaa))))
+    => '(nongenerative hello))
+
+  (check	;multiple empty NONGENERATIVE is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (nongenerative)
+		 (nongenerative))
+	      (environment '(nausicaa))))
+    => '(nongenerative))
+
+  #t)
+
+
+(parametrise ((check-test-name	'definition-bindings-clause))
+
+  (let ()
+
+    (define-class <alpha>
+      (fields a b c)
+      (bindings <alpha>-bindings))
+
+    (define-syntax <alpha>-bindings
+      (lambda (stx)
+	(syntax-case stx ()
+	  ((_ ?class-name ?identifier . ?body)
+	   (with-syntax ((A (datum->syntax #'?identifier 'a)))
+	     #`(let ((A 123)) . ?body))))))
+
+    (check
+	(let ((o (make <alpha> 1 2 3)))
+	  (with-class ((o <alpha>))
+	    a))
+      => 123)
 
     #f)
 
 ;;; --------------------------------------------------------------------
-;;; various field definitions
+;;; errors
+
+  (check	;multiple BINDINGS is bad
+      (guard (E ((syntax-violation? E)
+;;;(write (condition-message E))(newline)
+		 (syntax-violation-subform E))
+		(else #f))
+	(eval '(define-class <alpha>
+                 (bindings ciao)
+		 (bindings hello))
+	      (environment '(nausicaa))))
+    => '(bindings hello))
+
+  #t)
+
+
+(parametrise ((check-test-name	'definitions-fields-clause))
 
   (let ()
 
@@ -322,232 +747,121 @@
     #f)
 
 ;;; --------------------------------------------------------------------
+;;; WITH-CLASS macro
 
-  (check 	;invalid name
-      (guard (E ((syntax-violation? E)
-		 (syntax-violation-subform E))
-		(else
-		 (write E)(newline)
-		 #f))
-	(eval '(define-class 123
-		 (fields a b c))
-	      (environment '(nausicaa))))
-    => 123)
+  (let ()	;one field
 
-  (check	;invalid constructor
-      (guard (E ((syntax-violation? E)
-		 (syntax-violation-subform E))
-		(else
-		 (write E)(newline)
-		 #f))
-	(eval '(define-class (<alpha> 123 <alpha>?)
-		 (fields a b c))
-	      (environment '(nausicaa))))
-    => '(<alpha> 123 <alpha>?))
+    (define-class <alpha>
+      (fields (mutable a)))
 
-  (check	;invalid predicate
-      (guard (E ((syntax-violation? E)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-		 (predicate 123)
-		 (fields a b c))
-	      (environment '(nausicaa))))
-    => '(predicate 123))
+    (define r (make-<alpha> 123))
+    (define s (make-<alpha> #\a))
+    (define t (make-<alpha> 1.0))
 
-  (check	;invalid inherit
-      (guard (E ((syntax-violation? E)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-		 (inherit 123)
-		 (fields a b c))
-	      (environment '(nausicaa))))
-    => '(inherit 123))
+    (with-class ((r <alpha>)
+		 (s <alpha>)
+		 (t <alpha>))
+      (check
+	  (list r.a s.a t.a)
+	=> '(123 #\a 1.0))
 
-  (check	;invalid parent
-      (guard (E ((syntax-violation? E)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-		 (parent 123)
-		 (fields a b c))
-	      (environment '(nausicaa))))
-    => '(parent 123))
+      (set! r.a 456)
+      (set! s.a #\b)
+      (set! t.a 2.0)
 
-  (check	;invalid sealed
-      (guard (E ((syntax-violation? E)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-		 (sealed 123)
-		 (fields a b c))
-	      (environment '(nausicaa))))
-    => '(sealed 123))
+      (check
+	  (list r.a s.a t.a)
+	=> '(456 #\b 2.0))
 
-  (check	;invalid opaque
-      (guard (E ((syntax-violation? E)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-		 (opaque 123)
-		 (fields a b c))
-	      (environment '(nausicaa))))
-    => '(opaque 123))
+      #f))
 
-  (check	;invalid nongenerative
-      (guard (E ((syntax-violation? E)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-		 (nongenerative 123)
-		 (fields a b c))
-	      (environment '(nausicaa))))
-    => '(nongenerative 123))
+  (let ()	;more fields
+    (define-class <alpha>
+      (fields (mutable a)
+	      (mutable b)))
 
-  (check	;invalid class definition
-      (guard (E ((syntax-violation? E)
-		 (syntax-violation-form E))
-		(else #f))
-	(eval '(define-class <alpha>
-		 (woppa 123))
-	      (environment '(nausicaa))))
-    => '(define-class <alpha>
-	  (woppa 123)))
+    (define r (make-<alpha> 1 2))
+    (define s (make-<alpha> #\a #\b))
+    (define t (make-<alpha> 1.0 2.0))
+    (with-class ((r <alpha>)
+		 (s <alpha>)
+		 (t <alpha>))
+      (check
+	  (list r.a s.a t.a
+		r.b s.b t.b)
+	=> '(1 #\a 1.0  2 #\b 2.0))
+
+      (set! r.a 3)
+      (set! s.a #\c)
+      (set! t.a 3.0)
+
+      (check
+	  (list r.a s.a t.a
+		r.b s.b t.b)
+	=> '(3 #\c 3.0  2 #\b 2.0))
+
+      (set! r.b 4)
+      (set! s.b #\d)
+      (set! t.b 4.0)
+
+      (check
+	  (list r.a s.a t.a
+		r.b s.b t.b)
+	=> '(3 #\c 3.0  4 #\d 4.0))
+
+      #f)
+    #f)
+
+;;; these tests use the record definitions from (records-lib)
+
+  (check
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
+	(with-class ((r <gamma> <beta> <alpha>))
+	  (list r.a r.b r.c
+		r.d r.e r.f
+		r.g r.h r.i)))
+    => '(1 2 3 4 5 6 7 8 9))
+
+  (check
+      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
+	(with-class ((r <gamma> <alpha>))
+	  (list r.a r.b r.c
+		r.g r.h r.i)))
+    => '(1 2 3 7 8 9))
+
+;;; common inheritance
+
+  (let ()	;fields
+
+    (define-class <alpha>
+      (fields a b z))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields c d z))
+
+    (check	;accessing fields of both class and superclass
+    	(let ((p (make <beta> 1 2 3 4 5 6)))
+    	  (with-class ((p <beta>))
+    	    (list p.a p.b p.c p.d)))
+      => '(1 2 4 5))
+
+    (check	;precedence of subclass fields
+    	(let ((p (make <beta> 1 2 3 4 5 6)))
+    	  (with-class ((p <beta>))
+    	    p.z))
+      => 6)
+
+    (check	;custom precedence of superclass fields
+    	(let ((p (make <beta> 1 2 3 4 5 6)))
+    	  (with-class ((p <beta> <alpha>))
+    	    p.z))
+      => 3)
+
+    #f)
 
 ;;; --------------------------------------------------------------------
-
-  (check	;multiple INHERIT is bad
-      (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-		 (inherit ciao)
-		 (inherit hello))
-	      (environment '(nausicaa))))
-    => '(inherit hello))
-
-  (check	;multiple PARENT is bad
-      (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-		 (parent ciao)
-		 (parent hello))
-	      (environment '(nausicaa))))
-    => '(parent hello))
-
-  (check	;multiple PREDICATE is bad
-      (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-		 (predicate ciao)
-		 (predicate hello))
-	      (environment '(nausicaa))))
-    => '(predicate hello))
-
-  (check	;multiple PROTOCOL is bad
-      (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-                 (protocol ciao)
-		 (protocol hello))
-	      (environment '(nausicaa))))
-    => '(protocol hello))
-
-  (check	;multiple PUBLIC-ROTOCOL is bad
-      (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-                 (public-protocol ciao)
-		 (public-protocol hello))
-	      (environment '(nausicaa))))
-    => '(public-protocol hello))
-
-  (check	;multiple SUPERCLASS-ROTOCOL is bad
-      (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-                 (superclass-protocol ciao)
-		 (superclass-protocol hello))
-	      (environment '(nausicaa))))
-    => '(superclass-protocol hello))
-
-  (check	;multiple SEALED is bad
-      (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-                 (sealed #t)
-		 (sealed #f))
-	      (environment '(nausicaa))))
-    => '(sealed #f))
-
-  (check	;multiple OPAQUE is bad
-      (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-                 (opaque #t)
-		 (opaque #f))
-	      (environment '(nausicaa))))
-    => '(opaque #f))
-
-  (check	;multiple PARENT-RTD is bad
-      (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-                 (parent-rtd ciao ciao)
-		 (parent-rtd hello hello))
-	      (environment '(nausicaa))))
-    => '(parent-rtd hello hello))
-
-  (check	;multiple NONGENERATIVE is bad
-      (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-                 (nongenerative ciao)
-		 (nongenerative hello))
-	      (environment '(nausicaa))))
-    => '(nongenerative hello))
-
-  (check	;multiple NONGENERATIVE is bad
-      (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-                 (nongenerative)
-		 (nongenerative))
-	      (environment '(nausicaa))))
-    => '(nongenerative))
-
-  (check	;multiple BINDINGS is bad
-      (guard (E ((syntax-violation? E)
-;;;(write (condition-message E))(newline)
-		 (syntax-violation-subform E))
-		(else #f))
-	(eval '(define-class <alpha>
-                 (bindings ciao)
-		 (bindings hello))
-	      (environment '(nausicaa))))
-    => '(bindings hello))
+;;; errors
 
   (check	;multiple FIELDS is fine
       (let ()
@@ -557,26 +871,39 @@
 	#t)
     => #t)
 
-  (check	;multiple VIRTUAL-FIELDS is fine
-      (let ()
-	(define-class <alpha>
-	  (virtual-fields a b)
-	  (virtual-fields c d))
-	#t)
+  (check	;attempt to mutate immutable field
+      (guard (E ((syntax-violation? E) #t)
+  		(else #f))
+  	(eval '(letrec ()
+  		 (define-class <alpha>
+  		   (fields (mutable a)
+  			   (immutable b)
+  			   c))
+  		 (define o (make-<alpha> 1 2 3))
+  		 (with-class ((o <alpha>))
+		   (set! o.b #f)))
+  	      (environment '(nausicaa))))
     => #t)
 
-  (check	;multiple METHODS is fine
-      (let ()
-	(define-class <alpha>
-	  (methods a b)
-	  (methods c d))
-	#t)
+  (check	;attempt to mutate immutable field
+      (guard (E ((syntax-violation? E) #t)
+  		(else #f))
+  	(eval '(letrec ()
+  		 (define-class <alpha>
+  		   (fields (mutable a)
+  			   (immutable b)
+  			   c))
+  		 (define o (make-<alpha> 1 2 3))
+  		 (with-class ((o <alpha>))
+		   (set! o.c #f)))
+  	      (environment '(nausicaa) '(classes))))
     => #t)
+
 
   #t)
 
 
-(parametrise ((check-test-name	'definitions-virtual-fields))
+(parametrise ((check-test-name	'definitions-virtual-fields-clause))
 
   (let ()	;immutable virtual fields
 
@@ -762,361 +1089,10 @@
 
     #f)
 
-  #t)
-
-
-(parametrise ((check-test-name	'definitions-methods))
+;;; --------------------------------------------------------------------
+;;; WITH-CLASS usage
 
   (let ()
-
-    (define-class <fraction>
-      (fields (mutable number))
-      (methods numerator denominator))
-
-    (define (<fraction>-numerator o)
-      (numerator (<fraction>-number o)))
-
-    (define (<fraction>-denominator o)
-      (denominator (<fraction>-number o)))
-
-    #f)
-
-  (let ()
-
-    (define-class <fraction>
-      (fields (mutable number))
-      (methods (numerator)
-	       (denominator)))
-
-    (define (<fraction>-numerator o)
-      (numerator (<fraction>-number o)))
-
-    (define (<fraction>-denominator o)
-      (denominator (<fraction>-number o)))
-
-    #f)
-
-  (let ()
-
-    (define-class <fraction>
-      (fields (mutable number))
-      (methods (numerator   fraction-numerator)
-	       (denominator fraction-denominator)))
-
-    (define (fraction-numerator o)
-      (numerator (<fraction>-number o)))
-
-    (define (fraction-denominator o)
-      (denominator (<fraction>-number o)))
-
-    #f)
-
-  #t)
-
-
-(parametrise ((check-test-name	'definition-errors)
-	      (debugging	#t))
-
-  (check	;attempt to mutate immutable field
-      (guard (E ((syntax-violation? E) #t)
-  		(else #f))
-  	(eval '(letrec ()
-  		 (define-class <alpha>
-  		   (fields (mutable a)
-  			   (immutable b)
-  			   c))
-  		 (define o (make-<alpha> 1 2 3))
-  		 (with-class ((o <alpha>))
-		   (set! o.b #f)))
-  	      (environment '(nausicaa))))
-    => #t)
-
-  (check	;attempt to mutate immutable field
-      (guard (E ((syntax-violation? E) #t)
-  		(else #f))
-  	(eval '(letrec ()
-  		 (define-class <alpha>
-  		   (fields (mutable a)
-  			   (immutable b)
-  			   c))
-  		 (define o (make-<alpha> 1 2 3))
-  		 (with-class ((o <alpha>))
-		   (set! o.c #f)))
-  	      (environment '(nausicaa) '(classes))))
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (check	;attempt to mutate immutable virtual-field
-      (guard (E ((syntax-violation? E) #t)
-  		(else #f))
-  	(eval '(letrec ()
-  		 (define-class <alpha>
-  		   (fields (mutable a)
-  			   c)
-		   (virtual-fields (immutable b)))
-		 (define (<alpha>-b o)
-		   #t)
-  		 (define o (make-<alpha> 1 2 3))
-  		 (with-class ((o <alpha>))
-		   (set! o.b #f)))
-  	      (environment '(nausicaa))))
-    => #t)
-
-  (check	;attempt to mutate immutable virtual field
-      (guard (E ((syntax-violation? E) #t)
-  		(else #f))
-  	(eval '(letrec ()
-  		 (define-class <alpha>
-  		   (fields (mutable a)
-  			   (immutable b))
-		   (virtual-fields c))
-		 (define (<alpha>-c o)
-		   #t)
-  		 (define o (make-<alpha> 1 2 3))
-  		 (with-class ((o <alpha>))
-		   (set! o.c #f)))
-  	      (environment '(nausicaa) '(classes))))
-    => #t)
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (check	;duplicated field name, FIELDS/VIRTUAL-FIELDS
-	(guard (E ((syntax-violation? E)
-		   (syntax-violation-subform E))
-		  (else
-		   (debug-print-condition "should have been duplicated name:" E)
-		   #f))
-	  (eval '(define-class <alpha>
-		   (fields a)
-		   (virtual-fields a))
-		(environment '(nausicaa))))
-      => 'a)
-
-    (check	;duplicated field name, FIELDS/METHODS
-	(guard (E ((syntax-violation? E)
-		   (syntax-violation-subform E))
-		  (else
-		   (debug-print-condition "should have been duplicated name:" E)
-		   #f))
-	  (eval '(define-class <alpha>
-		   (fields a)
-		   (methods a))
-		(environment '(nausicaa))))
-      => 'a)
-
-    (check	;duplicated field name, FIELDS/METHOD
-	(guard (E ((syntax-violation? E)
-		   (syntax-violation-subform E))
-		  (else
-		   (debug-print-condition "should have been duplicated name:" E)
-		   #f))
-	  (eval '(define-class <alpha>
-		   (fields a)
-		   (method (a o)
-		     #t))
-		(environment '(nausicaa))))
-      => 'a)
-
-    (check	;duplicated field name, VIRTUAL-FIELDS/METHODS
-	(guard (E ((syntax-violation? E)
-		   (syntax-violation-subform E))
-		  (else
-		   (debug-print-condition "should have been duplicated name:" E)
-		   #f))
-	  (eval '(define-class <alpha>
-		   (virtual-fields a)
-		   (methods a))
-		(environment '(nausicaa))))
-      => 'a)
-
-    (check	;duplicated field name, VIRTUAL-FIELDS/METHOD
-	(guard (E ((syntax-violation? E)
-		   (syntax-violation-subform E))
-		  (else
-		   (debug-print-condition "should have been duplicated name:" E)
-		   #f))
-	  (eval '(define-class <alpha>
-		   (virtual-fields a)
-		   (method (a o)
-		     #t))
-		(environment '(nausicaa))))
-      => 'a)
-
-    (check	;duplicated field name, METHODS/METHOD
-	(guard (E ((syntax-violation? E)
-		   (syntax-violation-subform E))
-		  (else
-		   (debug-print-condition "should have been duplicated name:" E)
-		   #f))
-	  (eval '(define-class <alpha>
-		   (methods a)
-		   (method (a o)
-		     #t))
-		(environment '(nausicaa))))
-      => 'a)
-
-    #f)
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (check	;VIRTUAL-FIELDS used twice
-	(guard (E ((syntax-violation? E)
-		   #t)
-		  (else
-		   (write E)(newline)
-		   #f))
-	  (eval '(define-class <alpha>
-		   (virtual-fields a)
-		   (virtual-fields b))
-		(environment '(nausicaa))))
-      => #t)
-
-    #f)
-
-;;; --------------------------------------------------------------------
-
-  (let ()
-
-    (check	;METHODS used twice
-	(guard (E ((syntax-violation? E)
-		   #t)
-		  (else
-		   (write E)(newline)
-		   #f))
-	  (eval '(define-class <alpha>
-		   (methods a)
-		   (methods b))
-		(environment '(nausicaa))))
-      => #t)
-
-    #f)
-
-  #t)
-
-
-(parametrise ((check-test-name	'with-class))
-
-  (let ()	;one field
-
-    (define-class <alpha>
-      (fields (mutable a)))
-
-    (define r (make-<alpha> 123))
-    (define s (make-<alpha> #\a))
-    (define t (make-<alpha> 1.0))
-
-    (with-class ((r <alpha>)
-		 (s <alpha>)
-		 (t <alpha>))
-      (check
-	  (list r.a s.a t.a)
-	=> '(123 #\a 1.0))
-
-      (set! r.a 456)
-      (set! s.a #\b)
-      (set! t.a 2.0)
-
-      (check
-	  (list r.a s.a t.a)
-	=> '(456 #\b 2.0))
-
-      #f))
-
-;;; --------------------------------------------------------------------
-
-  (let ()	;more fields
-
-    (define-class <alpha>
-      (fields (mutable a)
-	      (mutable b)))
-
-    (define r (make-<alpha> 1 2))
-    (define s (make-<alpha> #\a #\b))
-    (define t (make-<alpha> 1.0 2.0))
-    (with-class ((r <alpha>)
-		 (s <alpha>)
-		 (t <alpha>))
-      (check
-	  (list r.a s.a t.a
-		r.b s.b t.b)
-	=> '(1 #\a 1.0  2 #\b 2.0))
-
-      (set! r.a 3)
-      (set! s.a #\c)
-      (set! t.a 3.0)
-
-      (check
-	  (list r.a s.a t.a
-		r.b s.b t.b)
-	=> '(3 #\c 3.0  2 #\b 2.0))
-
-      (set! r.b 4)
-      (set! s.b #\d)
-      (set! t.b 4.0)
-
-      (check
-	  (list r.a s.a t.a
-		r.b s.b t.b)
-	=> '(3 #\c 3.0  4 #\d 4.0))
-
-      #f))
-
-;;; --------------------------------------------------------------------
-;;; these tests use the record definitions from (records-lib)
-
-  (check
-      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(with-class ((r <gamma> <beta> <alpha>))
-	  (list r.a r.b r.c
-		r.d r.e r.f
-		r.g r.h r.i)))
-    => '(1 2 3 4 5 6 7 8 9))
-
-  (check
-      (let ((r (make <gamma> 1 2 3 4 5 6 7 8 9)))
-	(with-class ((r <gamma> <alpha>))
-	  (list r.a r.b r.c
-		r.g r.h r.i)))
-    => '(1 2 3 7 8 9))
-
-;;; --------------------------------------------------------------------
-;;; common inheritance
-
-  (let ()	;fields
-
-    (define-class <alpha>
-      (fields a b z))
-
-    (define-class <beta>
-      (inherit <alpha>)
-      (fields c d z))
-
-    (check	;accessing fields of both class and superclass
-    	(let ((p (make <beta> 1 2 3 4 5 6)))
-    	  (with-class ((p <beta>))
-    	    (list p.a p.b p.c p.d)))
-      => '(1 2 4 5))
-
-    (check	;precedence of subclass fields
-    	(let ((p (make <beta> 1 2 3 4 5 6)))
-    	  (with-class ((p <beta>))
-    	    p.z))
-      => 6)
-
-    (check	;custom precedence of superclass fields
-    	(let ((p (make <beta> 1 2 3 4 5 6)))
-    	  (with-class ((p <beta> <alpha>))
-    	    p.z))
-      => 3)
-
-    #f)
-
-  (let ()	;virtual-fields
 
     (define-class <alpha>
       (fields a b z)
@@ -1155,130 +1131,6 @@
 
     #f)
 
-  (let ()	;methods
-
-    (define-class <alpha>
-      (fields a b z)
-      (methods (x <alpha>-a)
-	       (y <alpha>-b)))
-
-    (define-class <beta>
-      (inherit <alpha>)
-      (fields c d z)
-      (methods (m <beta>-c)
-	       (y <beta>-d)))
-
-    (check	;accessing methods of both class and superclass
-    	(let ((p (make <beta>
-		   1 2 3
-		   4 5 6)))
-    	  (with-class ((p <beta>))
-    	    (list (p.x) (p.m))))
-      => '(1 4))
-
-    (check	;precedence of subclass methods
-    	(let ((p (make <beta>
-		   1 2 3
-		   4 5 6)))
-    	  (with-class ((p <beta>))
-    	    (p.y)))
-      => 5)
-
-    (check	;custom precedence of superclass methods
-    	(let ((p (make <beta>
-		   1 2 3
-		   4 5 6)))
-    	  (with-class ((p <beta> <alpha>))
-    	    (p.y)))
-      => 2)
-
-    #f)
-
-;;; --------------------------------------------------------------------
-;;; selective inheritance
-
-  (let ()	;only concrete fields
-
-    (define-class <alpha>
-      (fields a b))
-
-    (define-class <beta>
-      (inherit <alpha>
-	(nothing concrete-fields))
-      (fields c d))
-
-    (check
-	(let ((p (make <beta> 1 2 3 4)))
-	  (with-class ((p <beta>))
-	    (list p.a p.b p.c p.d)))
-      => '(1 2 3 4))
-
-    (check
-	(guard (E ((undefined-violation? E)
-		   #t)
-		  (else #f))
-	  (eval '(let ()
-		   (define-class <alpha>
-		     (fields a b)
-		     (virtual-fields (immutable c <alpha>-b)))
-
-		   (define-class <beta>
-		     (inherit <alpha>
-		       (nothing concrete-fields))
-		     (fields d e))
-
-		   (let ((p (make <beta> 1 2 3 4)))
-		     (with-class ((p <beta>))
-		       p.c)))
-		(environment '(nausicaa))))
-      => #t)
-
-    #f)
-
-  (let ()	;only virtual fields
-
-    (define-class <alpha>
-      (fields a b)
-      (virtual-fields (immutable c <alpha>-b)))
-
-    (define-class <beta>
-      (inherit <alpha>
-	(nothing virtual-fields))
-      (fields d e))
-
-    (check
-	(let ((p (make <beta> 1 2 3 4)))
-	  (with-class ((p <beta>))
-	    (list p.c p.d p.e)))
-      => '(2 3 4))
-
-    (check
-	(guard (E ((undefined-violation? E)
-		   #t)
-		  (else #f))
-	  (eval '(let ()
-		   (define-class <alpha>
-		     (fields a b)
-		     (virtual-fields (immutable c <alpha>-b)))
-
-		   (define-class <beta>
-		     (inherit <alpha>
-		       (nothing virtual-fields))
-		     (fields d e))
-
-		   (let ((p (make <beta> 1 2 3 4)))
-		     (with-class ((p <beta>))
-		       p.a)))
-		(environment '(nausicaa))))
-      => #t)
-
-    #f)
-
-  #t)
-
-
-(parametrise ((check-test-name	'with-virtual-fields))
-
   (let ()	;immutable virtual fields
 
     (define-class <fraction>
@@ -1305,8 +1157,6 @@
       => 3)
 
     #f)
-
-;;; --------------------------------------------------------------------
 
   (let ()	;mutable virtual fields
 
@@ -1357,7 +1207,6 @@
 
     #f)
 
-;;; --------------------------------------------------------------------
 ;;; the following tests use the records from (records-lib)
 
   (let ()
@@ -1458,10 +1307,139 @@
 
     #f)
 
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;multiple VIRTUAL-FIELDS is fine
+      (let ()
+	(define-class <alpha>
+	  (virtual-fields a b)
+	  (virtual-fields c d))
+	#t)
+    => #t)
+
+  (check	;attempt to mutate immutable virtual-field
+      (guard (E ((syntax-violation? E) #t)
+  		(else #f))
+  	(eval '(letrec ()
+  		 (define-class <alpha>
+  		   (fields (mutable a)
+  			   c)
+		   (virtual-fields (immutable b)))
+		 (define (<alpha>-b o)
+		   #t)
+  		 (define o (make-<alpha> 1 2 3))
+  		 (with-class ((o <alpha>))
+		   (set! o.b #f)))
+  	      (environment '(nausicaa))))
+    => #t)
+
+  (check	;attempt to mutate immutable virtual field
+      (guard (E ((syntax-violation? E) #t)
+  		(else #f))
+  	(eval '(letrec ()
+  		 (define-class <alpha>
+  		   (fields (mutable a)
+  			   (immutable b))
+		   (virtual-fields c))
+		 (define (<alpha>-c o)
+		   #t)
+  		 (define o (make-<alpha> 1 2 3))
+  		 (with-class ((o <alpha>))
+		   (set! o.c #f)))
+  	      (environment '(nausicaa) '(classes))))
+    => #t)
+
   #t)
 
 
-(parametrise ((check-test-name	'with-methods))
+(parametrise ((check-test-name	'definitions-methods-clause))
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (methods numerator denominator))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    #f)
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (methods (numerator)
+	       (denominator)))
+
+    (define (<fraction>-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (<fraction>-denominator o)
+      (denominator (<fraction>-number o)))
+
+    #f)
+
+  (let ()
+
+    (define-class <fraction>
+      (fields (mutable number))
+      (methods (numerator   fraction-numerator)
+	       (denominator fraction-denominator)))
+
+    (define (fraction-numerator o)
+      (numerator (<fraction>-number o)))
+
+    (define (fraction-denominator o)
+      (denominator (<fraction>-number o)))
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; WITH-CLASS usage
+
+  (let ()	;methods
+
+    (define-class <alpha>
+      (fields a b z)
+      (methods (x <alpha>-a)
+	       (y <alpha>-b)))
+
+    (define-class <beta>
+      (inherit <alpha>)
+      (fields c d z)
+      (methods (m <beta>-c)
+	       (y <beta>-d)))
+
+    (check	;accessing methods of both class and superclass
+    	(let ((p (make <beta>
+		   1 2 3
+		   4 5 6)))
+    	  (with-class ((p <beta>))
+    	    (list (p.x) (p.m))))
+      => '(1 4))
+
+    (check	;precedence of subclass methods
+    	(let ((p (make <beta>
+		   1 2 3
+		   4 5 6)))
+    	  (with-class ((p <beta>))
+    	    (p.y)))
+      => 5)
+
+    (check	;custom precedence of superclass methods
+    	(let ((p (make <beta>
+		   1 2 3
+		   4 5 6)))
+    	  (with-class ((p <beta> <alpha>))
+    	    (p.y)))
+      => 2)
+
+    #f)
 
   (let ()
 
@@ -1569,10 +1547,22 @@
 
       #f)
     #f)
+
+;;; --------------------------------------------------------------------
+;;; errors
+
+  (check	;multiple METHODS is fine
+      (let ()
+	(define-class <alpha>
+	  (methods a b)
+	  (methods c d))
+	#t)
+    => #t)
+
   #t)
 
 
-(parametrise ((check-test-name	'in-definition-methods))
+(parametrise ((check-test-name	'definition-method-clause))
 
   (let ()	; methods
 
@@ -1727,28 +1717,84 @@
   #t)
 
 
-(parametrise ((check-test-name	'bindings))
+(parametrise ((check-test-name	'definition-duplicated-id-errors)
+	      (debugging	#t))
 
-  (let ()
+  (check	;duplicated field name, FIELDS/VIRTUAL-FIELDS
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else
+		 (debug-print-condition "should have been duplicated name:" E)
+		 #f))
+	(eval '(define-class <alpha>
+		 (fields a)
+		 (virtual-fields a))
+	      (environment '(nausicaa))))
+    => 'a)
 
-    (define-class <alpha>
-      (fields a b c)
-      (bindings <alpha>-bindings))
+  (check	;duplicated field name, FIELDS/METHODS
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else
+		 (debug-print-condition "should have been duplicated name:" E)
+		 #f))
+	(eval '(define-class <alpha>
+		 (fields a)
+		 (methods a))
+	      (environment '(nausicaa))))
+    => 'a)
 
-    (define-syntax <alpha>-bindings
-      (lambda (stx)
-	(syntax-case stx ()
-	  ((_ ?class-name ?identifier . ?body)
-	   (with-syntax ((A (datum->syntax #'?identifier 'a)))
-	     #`(let ((A 123)) . ?body))))))
+  (check	;duplicated field name, FIELDS/METHOD
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else
+		 (debug-print-condition "should have been duplicated name:" E)
+		 #f))
+	(eval '(define-class <alpha>
+		 (fields a)
+		 (method (a o)
+		   #t))
+	      (environment '(nausicaa))))
+    => 'a)
 
-    (check
-	(let ((o (make <alpha> 1 2 3)))
-	  (with-class ((o <alpha>))
-	    a))
-      => 123)
+  (check	;duplicated field name, VIRTUAL-FIELDS/METHODS
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else
+		 (debug-print-condition "should have been duplicated name:" E)
+		 #f))
+	(eval '(define-class <alpha>
+		 (virtual-fields a)
+		 (methods a))
+	      (environment '(nausicaa))))
+    => 'a)
 
-    #f)
+  (check	;duplicated field name, VIRTUAL-FIELDS/METHOD
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else
+		 (debug-print-condition "should have been duplicated name:" E)
+		 #f))
+	(eval '(define-class <alpha>
+		 (virtual-fields a)
+		 (method (a o)
+		   #t))
+	      (environment '(nausicaa))))
+    => 'a)
+
+  (check	;duplicated field name, METHODS/METHOD
+      (guard (E ((syntax-violation? E)
+		 (syntax-violation-subform E))
+		(else
+		 (debug-print-condition "should have been duplicated name:" E)
+		 #f))
+	(eval '(define-class <alpha>
+		 (methods a)
+		 (method (a o)
+		   #t))
+	      (environment '(nausicaa))))
+    => 'a)
+
   #t)
 
 

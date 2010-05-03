@@ -944,7 +944,22 @@ Record utilities
 * classes dot::                 Using dot notation.
 * classes builtin::             Conventional type descriptors.
 
-Binding accessors and mutators
+Defining new class types
+
+* classes define class::        Defining class types.
+* classes define inherit::      Defining hierarchies of classes.
+* classes define protocol::     Defining constructor protocols.
+* classes define predicate::    Defining class predicates.
+* classes define virtual::      Defining classes having virtual
+                                fields.
+* classes define method::       Defining classes having methods.
+* classes define setter::       Defining classes having custom
+                                setters and getters.
+* classes define bindings::     Defining classes having custom
+                                bindings.
+* classes define label::        Defining labels.
+
+Using dot notation
 
 * classes dot with::            Basic dot notation usage.
 * classes dot let::             Local bindings.
@@ -19745,11 +19760,44 @@ The facilities of the library work only on records of type defined with
 @section Defining new class types
 
 
-A @dfn{class type} as defined by the @library{classes} library is a
-regular record type, with the constraint of being nongenerative; new
-class types are defined by @func{define-class}, which generates
+@cindex Class type
+@cindex Label type
+@cindex Type, class
+@cindex Type, label
+
+
+A @dfn{class type}, as defined by the @library{classes} library, is a
+regular record type as defined by @rsixlibrary{records procedural}, with
+the constraint of being nongenerative; new class types are defined by
+@func{define-class} and @func{define-virtual-class}, which generate
 auxiliary syntaxes to allow for virtual fields, methods and dot
 notation.
+
+A @dfn{label type}, as defined by the @library{classes} library, is a
+special interface to the syntaxes which define dot notation for virtual
+fields and methods: it is applicable to any value, not just records and
+it is @strong{not} associated to a record type as defined by
+@rsixlibrary{records procedural}.  Labels are defined by
+@func{define-label}.
+
+@menu
+* classes define class::        Defining class types.
+* classes define inherit::      Defining hierarchies of classes.
+* classes define protocol::     Defining constructor protocols.
+* classes define predicate::    Defining class predicates.
+* classes define virtual::      Defining classes having virtual
+                                fields.
+* classes define method::       Defining classes having methods.
+* classes define setter::       Defining classes having custom
+                                setters and getters.
+* classes define bindings::     Defining classes having custom
+                                bindings.
+* classes define label::        Defining labels.
+@end menu
+
+@c page
+@node classes define class
+@subsection Defining class types
 
 
 @deffn Syntax define-class @ameta{name spec} @ameta{class clause}*
@@ -19761,7 +19809,9 @@ used by the @library{classes} library.
 The arguments are compatible with the ones of @func{define-record-type}:
 every regular record type definition can be turned into a class
 definition simply by changing @func{define-record-type} into
-@func{define-class}.
+@func{define-class}.  In addition to all the clauses of
+@func{define-record-type}, the @meta{class clause} arguments can be the
+auxiliary syntaxes described in this section.
 
 If none of the @meta{class clause} arguments is a @func{inherit} or
 @func{parent} or @func{parent-rtd} syntax, the clause @code{(inherit
@@ -19773,72 +19823,6 @@ syntax, the clause @code{(nongenerative)} is added to the record
 definition; however, notice that it is unsafe to use automatically
 generated @acronym{UID}s, it is better and useful to explicitly select a
 unique identifier.
-
-In addition to all the clauses of @func{define-record-type}, the
-@meta{class clause} arguments can be the auxiliary syntaxes described
-below.
-
-Inheritance is driven by the following rules:
-
-@itemize
-@item
-The @func{inherit} clause makes a class a subtype of another class.
-
-@item
-The @func{parent} clause makes a class a subtype of a record type.
-
-@item
-The @func{parent-rtd} clause makes a class a subtype of a record type.
-@end itemize
-
-@noindent
-only one among @func{inherit}, @func{parent} and @func{parent-rtd} can
-be used at once.
-
-Three constructor descriptors are built by this syntax: the @dfn{public
-constructor} is used when instantiating a class through the @func{make}
-macro; the @dfn{superclass constructor} is used when instantiating a
-subclass, it is the function handed as argument to the protocol
-function; the @dfn{from--fields constructor} is automatically generated
-to be used by the @func{make-from-fields} macro and it builds instances
-from raw field values.
-
-The superclass and public constructors are built using the parent's
-superclass constructor descriptor:
-
-@itemize
-@item
-When inheritance is specified through the @func{inherit} clause: the
-superclass constructor is acquired with
-@func{superclass-constructor-descriptor} applied to the superclass name.
-
-@item
-When inheritance is specified through the @func{parent} clause: the
-superclass constructor is acquired with
-@func{record-constructor-descriptor} applied to the record type name.
-
-@item
-When inheritance is specified through the @func{parent-rtd} clause: the
-superclass constructor is the one directly specified in the clause.
-@end itemize
-
-Three protocol--related clauses are accepted:
-
-@table @code
-@item protocol
-Select the default constructor protocol function for all the other
-constructors; when not used: the default protocol is the one
-automatically provided by @func{make-record-constructor-descriptor} when
-invoked with the @var{protocol} argument set to @false{}.
-
-@item public-protocol
-Select the public constructor's protocol function, overriding the
-default one.
-
-@item superclass-protocol
-Select the superclass constructor's protocol function, overriding the
-default one.
-@end table
 @end deffn
 
 
@@ -19849,6 +19833,9 @@ classes are not meant to be instantiated, their purpose is only to
 provide virtual fields and methods to instances of other types; for
 example: all the classes for builtin types are virtual.
 
+Virtual classes can be used in the hierarchy of concrete classes:
+virtual classes can have a proper superclass constructor protocol.
+
 It is meaningful, but not mandatory, to define a virtual class only if
 we use the @func{predicate} clause described below; else there is no way
 to establish if an object matches the type of a virtual class.
@@ -19857,6 +19844,28 @@ Virtual classes can have virtual fields and methods; it is a syntax
 violation to declare concrete fields in the body of a virtual class
 definition.
 @end deffn
+
+@c page
+@node classes define inherit
+@subsection Defining hierarchies of classes
+
+
+Inheritance is driven by the following clauses:
+
+@table @func
+@item inherit
+Makes a class a subtype of another class.
+
+@item parent
+Makes a class a subtype of a record type.
+
+@item parent-rtd
+Makes a class a subtype of a record type.
+@end table
+
+@noindent
+only one among @func{inherit}, @func{parent} and @func{parent-rtd} can
+be used at once.
 
 
 @deffn {Auxiliary Syntax} inherit @ameta{class name}
@@ -19918,6 +19927,50 @@ of options are equivalent:
 @end example
 @end deffn
 
+@c page
+@node classes define protocol
+@subsection Defining constructor protocols
+
+
+Three constructor descriptors are built by @func{define-class}: the
+@dfn{public constructor} is used when instantiating a class through the
+@func{make} macro; the @dfn{superclass constructor} is used when
+instantiating a subclass, it is the function handed as argument to the
+protocol function; the @dfn{from--fields constructor} is automatically
+generated to be used by the @func{make-from-fields} macro and it builds
+instances from raw field values.
+
+The @func{define-virtual-class} macro defines only the superclass and
+the from--fields constructors.
+
+The superclass and public constructors are built using the parent's
+superclass constructor descriptor:
+
+@itemize
+@item
+When inheritance is specified through the @func{inherit} clause: the
+superclass constructor is acquired with
+@func{class-superclass-constructor-descriptor} applied to the superclass
+name.
+
+@item
+When inheritance is specified through the @func{parent} clause: the
+superclass constructor is acquired with
+@func{record-constructor-descriptor} applied to the record type name.
+
+@item
+When inheritance is specified through the @func{parent-rtd} clause: the
+superclass constructor is the one directly specified in the clause.
+@end itemize
+
+
+@deffn {Auxiliary Syntax} protocol @ameta{expression}
+Select the default constructor protocol function for all the other
+constructors; when not used: the default protocol is the one
+automatically provided by @func{make-record-constructor-descriptor} when
+invoked with the @var{protocol} argument set to @false{}.
+@end deffn
+
 
 @deffn {Auxiliary Syntax} public-protocol @ameta{expression}
 Select the public constructor's protocol function, overriding the
@@ -19929,6 +19982,10 @@ default one.
 Select the superclass constructor's protocol function, overriding the
 default one.
 @end deffn
+
+@c page
+@node classes define predicate
+@subsection Defining class predicates
 
 
 @deffn {Auxiliary Syntax} predicate @ameta{predicate name}
@@ -19945,6 +20002,10 @@ example:
   (nongenerative nausicaa:builtin:<complex>))
 @end example
 @end deffn
+
+@c page
+@node classes define virtual
+@subsection Defining class having virtual fields
 
 
 @deffn {Auxiliary Syntax} virtual-fields @ameta{field spec}*
@@ -20020,6 +20081,10 @@ mutator; then select the public names of accessors and mutators.  With
 accessor and mutator functions or syntaxes must be explicitly defined in
 some other way.
 @end deffn
+
+@c page
+@node classes define method
+@subsection Defining classes having methods
 
 
 @deffn {Auxiliary Syntax} methods @ameta{method spec}*
@@ -20219,6 +20284,10 @@ identifier.  @meta{transformer} must expand to a macro transformer.  The
 first argument to the macro will be the class instance.
 @end deffn
 
+@c page
+@node classes define setter
+@subsection Defining classes having custom setters and getters
+
 
 @deffn {Auxiliary Syntax} setter @ameta{setter name}
 @deffnx {Auxiliary Syntax} getter @ameta{getter name}
@@ -20274,6 +20343,10 @@ it is enforced by the function or macro bound to @meta{setter name} and
 @ameta{getter name}.
 @end deffn
 
+@c page
+@node classes define bindings
+@subsection Defining classes having custom bindings
+
 
 @deffn Syntax bindings @ameta{macro name}
 Select the name of a macro to be used by @func{with-class} to define
@@ -20314,6 +20387,16 @@ The selected macro is expanded with the class name as first argument,
 the identifier bound to the instance as second argument, the body as
 rest.  Bindings introduced by the selected macro may shadow the bindings
 introduced by @func{with-class}.
+@end deffn
+
+@c page
+@node classes define label
+@subsection Defining labels
+
+
+@deffn Syntax define-label @ameta{name} @ameta{clause}*
+@deffnx Syntax define-label (@ameta{name} @ameta{predicate}) @ameta{clause}*
+Define a new label type.
 @end deffn
 
 @c page

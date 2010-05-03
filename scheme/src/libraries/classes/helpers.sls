@@ -35,7 +35,7 @@
     (rename (syntax-accessor-name syntax-method-name))
     syntax-dot-notation-name
     duplicated-identifiers?		all-identifiers?
-    %parse-inherit-options)
+    %parse-inherit-options		%parse-label-inherit-options)
   (import (rnrs))
 
 
@@ -162,6 +162,49 @@
 
 	(else
 	 (syntax-violation 'define-class
+	   "invalid inheritance option"
+	   (syntax->datum input-form/stx) (car options)))))))
+
+
+(define (%parse-label-inherit-options inherit-options/stx input-form/stx)
+  ;;Here we already know that INHERIT-OPTIONS is a list of identifiers.
+  ;;
+  (let loop ((virtual-fields	#t)
+	     (methods		#t)
+	     (setter-and-getter	#t)
+	     (options		(syntax->datum inherit-options/stx)))
+    (if (null? options)
+	(list virtual-fields methods setter-and-getter)
+      (case (car options)
+
+	((all everything)
+	 (loop #t #t #t (cdr options)))
+
+	((dry nothing)
+	 (loop #f #f #f (cdr options)))
+
+	((virtual-fields)
+	 (loop #t methods setter-and-getter (cdr options)))
+	((no-virtual-fields)
+	 (loop #f methods setter-and-getter (cdr options)))
+
+	((fields)
+	 (loop #t methods setter-and-getter (cdr options)))
+	((no-fields)
+	 (loop #f methods setter-and-getter (cdr options)))
+
+	((methods)
+	 (loop virtual-fields #t setter-and-getter (cdr options)))
+	((no-methods)
+	 (loop virtual-fields #f setter-and-getter (cdr options)))
+
+	((setter-and-getter)
+	 (loop virtual-fields methods #t (cdr options)))
+	((no-setter-and-getter)
+	 (loop virtual-fields methods #f (cdr options)))
+
+	(else
+	 (syntax-violation 'define-label
 	   "invalid inheritance option"
 	   (syntax->datum input-form/stx) (car options)))))))
 
