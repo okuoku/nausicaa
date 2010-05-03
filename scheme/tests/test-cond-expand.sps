@@ -47,6 +47,7 @@
      (ikarus	#t)
      (larceny	#t)
      (mosh	#t)
+     (vicare	#t)
      (ypsilon	#t)
      (else	#f))
   => #t)

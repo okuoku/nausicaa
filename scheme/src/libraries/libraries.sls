@@ -162,6 +162,7 @@
 	 (larceny	".larceny.sls")
 	 (mosh		".mosh.sls")
 	 (petite	".petite.sls")
+	 (vicare	".vicare.sls")
 	 (ypsilon	".ypsilon.sls"))
 	".sls" ".scm" ".ss"))
 

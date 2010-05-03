@@ -21,6 +21,7 @@ set -x
     --disable-larceny                           \
     --enable-mosh                               \
     --enable-petite                             \
+    --enable-vicare                             \
     --enable-ypsilon                            \
     --enable-binfmt                             \
     --enable-doc-ps                             \

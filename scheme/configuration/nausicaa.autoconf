@@ -140,9 +140,6 @@ AC_DEFUN([NAUSICAA_SCHEME_PROGRAMS],
   [if test "$nausicaa_ENABLE_IKARUS" = yes ; then
     NAU_DS_PROGRAM([IKARUS],[ikarus],[the Ikarus Scheme executable])
   fi
-  if test "$nausicaa_ENABLE_YPSILON" = yes ; then
-    NAU_DS_PROGRAM([YPSILON],[ypsilon],[the Ypsilon Scheme executable])
-  fi
   if test "$nausicaa_ENABLE_LARCENY" = yes ; then
     NAU_DS_PROGRAM([LARCENY],[larceny],[the Larceny Scheme executable])
   fi
@@ -151,6 +148,12 @@ AC_DEFUN([NAUSICAA_SCHEME_PROGRAMS],
   fi
   if test "$nausicaa_ENABLE_PETITE" = yes ; then
     NAU_DS_PROGRAM([PETITE],[petite],[the Petite Chez Scheme executable])
+  fi
+  if test "$nausicaa_ENABLE_VICARE" = yes ; then
+    NAU_DS_PROGRAM([VICARE],[vicare],[the Vicare Scheme executable])
+  fi
+  if test "$nausicaa_ENABLE_YPSILON" = yes ; then
+    NAU_DS_PROGRAM([YPSILON],[ypsilon],[the Ypsilon Scheme executable])
   fi
   AC_CACHE_SAVE])
 
@@ -167,6 +170,9 @@ AC_DEFUN([NAUSICAA_OPTIONS],
    NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_PETITE],[petite],[no],
      [whether usage of Petite Chez Scheme is enabled],
      [disable usage of Petite Chez Scheme])
+   NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_VICARE],[vicare],[no],
+     [whether usage of Vicare Scheme is enabled],
+     [disable usage of Vicare Scheme])
    NAU_DS_ENABLE_OPTION([nausicaa_ENABLE_YPSILON],[ypsilon],[yes],
      [whether usage of Ypsilon Scheme is enabled],
      [disable usage of Ypsilon Scheme])
@@ -229,47 +235,6 @@ AC_DEFUN([NAUSICAA_IKARUS_CHECK_LIBRARY],
           AC_MSG_WARN([Ikarus Scheme could not find library])
           $4
         fi])])
-
-dnl page
-dnl --------------------------------------------------------------------
-dnl Macros for Ypsilon Scheme.
-dnl --------------------------------------------------------------------
-
-dnl 1 SCHEME_CODE
-dnl 2 ADDITIONAL_YPSILON_OPTIONS
-dnl 3 AFTER_SHELL_CODE
-AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT],
-  [NAU_DS_WITH_TMPFILE([
-    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
-    "${YPSILON}" --r6rs "${ds_TMPFILE}" $2`],[$3])])
-
-dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
-dnl 2 LIBRARY_IMPORT_SPEC
-dnl 3 OPTIONAL_ACTION_IF_FOUND
-dnl 4 OPTIONAL_ACTION_IF_FOUND
-AC_DEFUN([NAUSICAA_YPSILON_CHECK_LIBRARY],
-  [AC_MSG_CHECKING([availability of Ypsilon library $2])
-   NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT([(import (rnrs) (rnrs eval (6)))
-     (with-exception-handler
-       (lambda (ex)
-         (display "no\n")
-         (exit))
-       (lambda ()
-         (environment (quote $2))
-         (display "yes\n")))
-     ],[--compatible],
-     [AC_MSG_RESULT([$nausicaa_ANSWER])
-      AC_SUBST([HAS_YPSILON_LIB_$1],[$nausicaa_ANSWER])
-      if test "$nausicaa_ANSWER" = yes ; then
-        dnl action if found.
-        :
-        $3
-      else
-        dnl action if not found.
-        :
-        AC_MSG_WARN([Ypsilon Scheme could not find library '$2'])
-        $4
-      fi])])
 
 dnl page
 dnl --------------------------------------------------------------------
@@ -393,15 +358,92 @@ AC_DEFUN([NAUSICAA_PETITE_CHECK_LIBRARY],
 
 dnl page
 dnl --------------------------------------------------------------------
+dnl Macros for Vicare Scheme.
+dnl --------------------------------------------------------------------
+
+dnl 1 SCHEME_CODE
+dnl 2 ADDITIONAL_VICARE_OPTIONS
+dnl 3 AFTER_SHELL_CODE
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_VICARE_SCRIPT],
+  [NAU_DS_WITH_TMPFILE([
+    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+    "${VICARE}" --r6rs-script "${ds_TMPFILE}" $2`],[$3])])
+
+dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
+dnl 2 LIBRARY_IMPORT_SPEC
+dnl 3 OPTIONAL_ACTION_IF_FOUND
+dnl 4 OPTIONAL_ACTION_IF_FOUND
+AC_DEFUN([NAUSICAA_VICARE_CHECK_LIBRARY],
+  [AC_MSG_CHECKING([availability of Vicare library $2])
+   NAUSICAA_WITH_OUTPUT_FROM_VICARE_SCRIPT([(import (rnrs) (rnrs eval (6)))
+     (with-exception-handler
+        (lambda (ex)
+          (display "no\n")
+          (exit))
+        (lambda ()
+          (environment (quote $2))
+          (display "yes\n")))],,
+       [AC_MSG_RESULT([$nausicaa_ANSWER])
+        AC_SUBST([HAS_VICARE_LIB_$1],[$nausicaa_ANSWER])
+        if test "$nausicaa_ANSWER" = yes ; then
+          dnl action if found
+          :
+          $3
+        else
+          dnl action if not found
+          AC_MSG_WARN([Vicare Scheme could not find library])
+          $4
+        fi])])
+
+dnl page
+dnl --------------------------------------------------------------------
+dnl Macros for Ypsilon Scheme.
+dnl --------------------------------------------------------------------
+
+dnl 1 SCHEME_CODE
+dnl 2 ADDITIONAL_YPSILON_OPTIONS
+dnl 3 AFTER_SHELL_CODE
+AC_DEFUN([NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT],
+  [NAU_DS_WITH_TMPFILE([
+    nausicaa_ANSWER=`echo '$1' >"${ds_TMPFILE}"
+    "${YPSILON}" --r6rs "${ds_TMPFILE}" $2`],[$3])])
+
+dnl 1 OUTPUT_VARIABLE_COMPONENT_NAME
+dnl 2 LIBRARY_IMPORT_SPEC
+dnl 3 OPTIONAL_ACTION_IF_FOUND
+dnl 4 OPTIONAL_ACTION_IF_FOUND
+AC_DEFUN([NAUSICAA_YPSILON_CHECK_LIBRARY],
+  [AC_MSG_CHECKING([availability of Ypsilon library $2])
+   NAUSICAA_WITH_OUTPUT_FROM_YPSILON_SCRIPT([(import (rnrs) (rnrs eval (6)))
+     (with-exception-handler
+       (lambda (ex)
+         (display "no\n")
+         (exit))
+       (lambda ()
+         (environment (quote $2))
+         (display "yes\n")))
+     ],[--compatible],
+     [AC_MSG_RESULT([$nausicaa_ANSWER])
+      AC_SUBST([HAS_YPSILON_LIB_$1],[$nausicaa_ANSWER])
+      if test "$nausicaa_ANSWER" = yes ; then
+        dnl action if found.
+        :
+        $3
+      else
+        dnl action if not found.
+        :
+        AC_MSG_WARN([Ypsilon Scheme could not find library '$2'])
+        $4
+      fi])])
+
+dnl page
+dnl --------------------------------------------------------------------
 dnl Macros for Scheme.
 dnl --------------------------------------------------------------------
 
 AC_DEFUN([NAUSICAA_SCHEME_CHECK_LIBRARY],
   [if test "$nausicaa_ENABLE_IKARUS" = yes ; then
      NAUSICAA_IKARUS_CHECK_LIBRARY([$1],[$2],[$3],[$4])
-   fi
-   if test "$nausicaa_ENABLE_YPSILON" = yes ; then
-     NAUSICAA_YPSILON_CHECK_LIBRARY([$1],[$2],[$3],[$4])
    fi
    if test "$nausicaa_ENABLE_LARCENY" = yes ; then
      NAUSICAA_LARCENY_CHECK_LIBRARY([$1],[$2],[$3],[$4])
@@ -412,7 +454,12 @@ AC_DEFUN([NAUSICAA_SCHEME_CHECK_LIBRARY],
    if test "$nausicaa_ENABLE_PETITE" = yes ; then
      NAUSICAA_PETITE_CHECK_LIBRARY([$1],[$2],[$3],[$4])
    fi
-])
+   if test "$nausicaa_ENABLE_VICARE" = yes ; then
+     NAUSICAA_VICARE_CHECK_LIBRARY([$1],[$2],[$3],[$4])
+   fi
+   if test "$nausicaa_ENABLE_YPSILON" = yes ; then
+     NAUSICAA_YPSILON_CHECK_LIBRARY([$1],[$2],[$3],[$4])
+   fi])
 
 dnl page
 dnl --------------------------------------------------------------------

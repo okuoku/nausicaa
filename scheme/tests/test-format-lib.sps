@@ -5,7 +5,7 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;Copyright (c) 2009 Marco Maggi <marcomaggi@gna.org>
+;;;Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -158,6 +158,7 @@
 	(ypsilon	"ciao \"#<subr display>\"")
 	(larceny	"ciao \"#<PROCEDURE display>\"")
 	(ikarus		"ciao \"#<procedure display>\"")
+	(vicare		"ciao \"#<procedure display>\"")
 	(mosh		(string-append "ciao \""
 				       (call-with-string-output-port
 					   (lambda (port)
@@ -174,6 +175,7 @@
 	(ypsilon	"ciao \"#<subr display>\"")
 	(larceny	"ciao \"#<PROCEDURE display>\"")
 	(ikarus		"ciao \"#<procedure display>\"")
+	(vicare		"ciao \"#<procedure display>\"")
 	(mosh		(string-append "ciao \""
 				       (call-with-string-output-port
 					   (lambda (port)

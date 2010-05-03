@@ -33,6 +33,7 @@ nausicaa_ENABLE_IKARUS		= @nausicaa_ENABLE_IKARUS@
 nausicaa_ENABLE_LARCENY		= @nausicaa_ENABLE_LARCENY@
 nausicaa_ENABLE_MOSH		= @nausicaa_ENABLE_MOSH@
 nausicaa_ENABLE_PETITE		= @nausicaa_ENABLE_PETITE@
+nausicaa_ENABLE_VICARE		= @nausicaa_ENABLE_VICARE@
 nausicaa_ENABLE_YPSILON		= @nausicaa_ENABLE_YPSILON@
 
 FIND		= @FIND@
@@ -40,6 +41,7 @@ IKARUS		= @IKARUS@
 LARCENY		= @LARCENY@
 MOSH		= @MOSH@
 PETITE		= @PETITE@
+VICARE		= @VICARE@
 YPSILON		= @YPSILON@
 
 nau_sls_SRCDIR		= $(srcdir)/src/libraries
@@ -51,6 +53,7 @@ nau_IMPLEMENTATIONS	= \
 	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	l) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	m) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_PETITE),	p) \
+	$(call ds-if-yes,$(nausicaa_ENABLE_VICARE),	v) \
 	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	y)
 
 #page
@@ -131,6 +134,7 @@ libdist:
 .PHONY: fasl \
 	ifasl ifasl-installed \
 	mfasl mfasl-installed \
+	vfasl vfasl-installed \
 	yfasl yfasl-installed
 
 fasl: $(foreach i,$(nau_IMPLEMENTATIONS), $(i)fasl)
@@ -242,6 +246,34 @@ pfasl-installed:
 	@echo; echo "--- Petite Chez Scheme does not precompile libraries"
 #	@echo; echo "--- Compiling installed files for Petite Scheme"
 #	test -f $(fasl_petite_COMPILE_SCRIPT) && $(fasl_petite_COMPILE_INST_RUN)
+
+## --------------------------------------------------------------------
+## Vicare compilation.
+
+# Compiled files  will go in the  user owned cache  under "~/.vicare" or
+# whichever   directory   is   set  with   the   "VICARE_FASL_DIRECTORY"
+# environment variable.
+
+fasl_vicare_COMPILE_SCRIPT	= $(nau_sls_SRCDIR)/compile-all.vicare.sps
+ifeq (,$(strip $(VICARE_LIBRARY_PATH)))
+fasl_vicare_COMPILE_ENV		= VICARE_LIBRARY_PATH=$(nau_sls_BUILDDIR)
+else
+fasl_vicare_COMPILE_ENV		= VICARE_LIBRARY_PATH=$(nau_sls_BUILDDIR):$(VICARE_LIBRARY_PATH)
+endif
+fasl_vicare_COMPILE_COMMAND	= $(VICARE) --compile-dependencies
+fasl_vicare_COMPILE_RUN		= $(fasl_vicare_COMPILE_ENV) \
+					$(fasl_vicare_COMPILE_COMMAND) \
+					$(fasl_vicare_COMPILE_SCRIPT)
+fasl_vicare_COMPILE_INST_RUN	= $(fasl_vicare_COMPILE_COMMAND) \
+					$(fasl_vicare_COMPILE_SCRIPT)
+
+vfasl: sls
+	@echo; echo "--- Compiling for Vicare Scheme"
+	test -f $(fasl_vicare_COMPILE_SCRIPT) && $(fasl_vicare_COMPILE_RUN)
+
+vfasl-installed:
+	@echo; echo "--- Compiling installed files for Vicare Scheme"
+	test -f $(fasl_vicare_COMPILE_SCRIPT) && $(fasl_vicare_COMPILE_INST_RUN)
 
 ## --------------------------------------------------------------------
 ## Ypsilon compilation.
@@ -435,6 +467,33 @@ test tests check: ptest
 endif
 
 ## ---------------------------------------------------------------------
+## Vicare
+
+nau_vtest_ENV		= VICARE_LIBRARY_PATH=$(nau_test_PATH):$(VICARE_LIBRARY_PATH)
+nau_vtest_ENV		+= $(nau_test_ENV)
+#nau_vtest_PROGRAM	= $(VICARE) --r6rs-script
+nau_vtest_PROGRAM	= $(VICARE) --debug --r6rs-script
+nau_vtest_RUN		= $(nau_vtest_ENV) $(nau_TIME_TESTS) $(nau_vtest_PROGRAM)
+
+nau_vtest_installed_ENV	= VICARE_LIBRARY_PATH=$(nau_test_SRCDIR):$(VICARE_LIBRARY_PATH)
+nau_vtest_installed_RUN	= $(nau_vtest_installed_ENV) $(nau_TIME_TESTS) $(nau_vtest_PROGRAM)
+
+.PHONY: vtest vtests vcheck vtest-installed
+
+vtest vtests vcheck:
+	@$(foreach f,$(nau_test_FILES),$(call nau_test_SEPARATOR,Vicare,$(f)) $(nau_vtest_RUN) $(f);)
+
+vtest-installed:
+	@echo Running tests with installed Vicare libraries
+	@echo $(nau_vtest_installed_ENV)
+	@$(foreach f,$(nau_test_FILES),\
+		$(call nau_test_SEPARATOR,Vicare,$(f)) $(nau_vtest_installed_RUN) $(f);)
+
+ifeq ($(strip $(nausicaa_ENABLE_VICARE)),yes)
+test tests check: vtest
+endif
+
+## ---------------------------------------------------------------------
 ## Ypsilon
 
 nau_ytest_ENV		= YPSILON_SITELIB=$(nau_test_PATH):$(YPSILON_SITELIB)
@@ -592,6 +651,26 @@ pproof pproofs:
 
 ifeq ($(strip $(nausicaa_ENABLE_PETITE)),yes)
 proof proofs: pproof
+endif
+
+## ---------------------------------------------------------------------
+## Vicare
+
+nau_vproof_ENV		= VICARE_LIBRARY_PATH=$(nau_proof_PATH):$(VICARE_LIBRARY_PATH)
+nau_vproof_ENV		+= $(nau_proof_ENV)
+nau_vproof_PROGRAM	= $(VICARE) --debug --r6rs-script
+nau_vproof_RUN		= $(nau_vproof_ENV) $(nau_vproof_PROGRAM)
+
+.PHONY: vproof vproofs
+
+vproof vproofs:
+#ifeq ($(strip $(nausicaa_ENABLE_VICARE)),yes)
+	@$(foreach f,$(nau_proof_FILES),\
+		$(call nau_proof_SEPARATOR,Vicare,$(f)) $(nau_vproof_RUN) $(f);)
+#endif
+
+ifeq ($(strip $(nausicaa_ENABLE_VICARE)),yes)
+proof proofs: vproof
 endif
 
 ## ---------------------------------------------------------------------
