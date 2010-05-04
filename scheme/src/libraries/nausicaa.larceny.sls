@@ -826,21 +826,24 @@
      (case-lambda/with-class	case-lambda)
      (receive/with-class	receive))
 
-    ;; syntactic layer
+    ;; usage macros
     define-class			define-virtual-class
+    define-label			is-a?
+    make				make-from-fields
+
+    ;; inspection macros
     class-record-type-descriptor
     class-public-constructor-descriptor	class-superclass-constructor-descriptor
     class-from-fields-constructor-descriptor
     class-type-uid			class-uid-list
-    is-a?
-    make				make-from-fields
     class-parent-rtd-list
 
-    ;; procedural layer
+    ;; inspection functions
     record-type-parent?
     class-uid-equal-or-parent?
     record-type-of
     record-parent-list
+    class-uid-list-of
 
     ;; dot notation syntaxes
     with-class

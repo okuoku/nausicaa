@@ -3160,7 +3160,7 @@
       ((_ (?name ?predicate) ?clause ...)
        (all-identifiers? #'(?name ?predicate))
        #'(%define-label/sort-clauses
-	  (define-label (?name ?constructor ?predicate) ?clause ...)
+	  (define-label (?name ?predicate) ?clause ...)
 	  (?name ?predicate)
 	  ()		;collected virtual fields
 	  ()		;collected methods
@@ -3170,9 +3170,9 @@
 
       ((_ ?name ?clause ...)
        (identifier? (syntax ?name))
-       #`(%define-class/sort-clauses
+       #`(%define-label/sort-clauses
 	  (define-label ?name ?clause ...)
-	  (?name #,(syntax-prefix "make-" #'?name) #,(syntax-suffix #'?name "?"))
+	  (?name #,(syntax-suffix #'?name "?"))
 	  ()		;collected virtual fields
 	  ()		;collected methods
 	  ()		;collected definitions
@@ -3433,7 +3433,7 @@
 	  ?input-form (?name ?predicate)
 	  (?collected-virtual-field ...)
 	  (?collected-method ... (?method function-name))
-	  (?collected-definition ... (define/with-label (function-name . ?args) . ?body))
+	  (?collected-definition ... (define/with-class (function-name . ?args) . ?body))
 	  (predicate	?pre ...)
 	  (setter	?set ...)
 	  (getter	?get ...)
@@ -3843,7 +3843,7 @@
     (syntax-case stx (predicate setter getter inherit bindings)
 
       ;;If the  label definition used  no INHERIT clause, make  the type
-      ;;derived by "<top-label>".
+      ;;derived by "<top>-label".
       ((_ ?input-form (?name ?predicate)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -3858,7 +3858,7 @@
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
 	  (?collected-definition ...)
-	  (<top-label> ())
+	  (<top>-label ())
 	  (predicate		?pre ...)
 	  (setter		?set ...)
 	  (getter		?get ...)
@@ -3882,7 +3882,7 @@
 	  (?collected-method ...)
 	  (?collected-definition ...)
 	  #,(if (free-identifier=? #'<top> #'?superlabel-name)
-		#'(<top-label> ())
+		#'(<top>-label ())
 	      #'(?superlabel-name ()))
 	  (predicate	?pre ...)
 	  (setter	?set ...)
@@ -3905,7 +3905,9 @@
 	      (?collected-virtual-field ...)
 	      (?collected-method ...)
 	      (?collected-definition ...)
-	      (?superlabel-name (?inherit-option ...))
+	      #,(if (free-identifier=? #'<top> #'?superlabel-name)
+		    #'(<top>-label (?inherit-option ...))
+		  #'(?superlabel-name (?inherit-option ...)))
 	      (predicate	?pre ...)
 	      (setter		?set ...)
 	      (getter		?get ...)
@@ -4076,7 +4078,7 @@
 	  ?setter
 	  ?getter
 	  (bindings))
-       #'(%define-label/normalise-sealed
+       #'(%define-label/output-forms
 	  ?input-form (?name ?predicate)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -4097,7 +4099,7 @@
 	  ?setter
 	  ?getter
 	  (bindings	?bindings-name))
-       #'(%define-label/normalise-sealed
+       #'(%define-label/output-forms
 	  ?input-form (?name ?predicate)
 	  (?collected-virtual-field ...)
 	  (?collected-method ...)
@@ -4150,19 +4152,24 @@
 					   (%parse-label-inherit-options #'?inherit-options
 									 #'?input-form))))
 	       #'(begin
-		   (define ?predicate (record-predicate the-rtd))
+		   (define ?predicate
+		     (let ((p ?predicate-identifier))
+		       (or p (lambda (x)
+			       (assertion-violation (quote ?predicate)
+				 "no predicate definition for label"
+				 (quote ?input-form))))))
 
 		   ;;These are the definitions of in-definition methods.
 		   ?collected-definition ...
 
 		   (define-syntax ?label-name
 		     (lambda (stx)
-		       (syntax-case stx (is-a? with-label-bindings-of)
+		       (syntax-case stx (is-a? with-class-bindings-of)
 
 			 ((_ is-a? ?arg)
 			  #'(?predicate-identifier ?arg))
 
-			 ((_ with-label-bindings-of
+			 ((_ with-class-bindings-of
 			     (?inherit-concrete-fields	;this comes from WITH-CLASS
 			      ?inherit-virtual-fields
 			      ?inherit-methods
@@ -4190,7 +4197,7 @@
 		       ((_ (?inherit-virtual-fields ?inherit-methods ?inherit-setter-and-getter)
 			   ?variable-name ?body0 ?body (... ...))
 			(?superlabel-name
-			 with-label-bindings-of (#f
+			 with-class-bindings-of (#f
 						 INHERIT-VIRTUAL-FIELDS?
 						 INHERIT-METHODS?
 						 INHERIT-SETTER-AND-GETTER?)
@@ -4210,7 +4217,7 @@
 		       (syntax-case stx ()
 			 ((_ ?inherit-virtual-fields ?variable-name . ?body)
 			  (syntax->datum #'?inherit-virtual-fields)
-			  #'(%with-label-fields
+			  #'(%with-class-fields
 			     ?variable-name
 			     ((?virtual-mutability ?virtual-field ?virtual-accessor ...) ...)
 			     . ?body))
@@ -4223,7 +4230,7 @@
 		       (syntax-case stx ()
 			 ((_ ?inherit-methods ?variable-name . ?body)
 			  (syntax->datum #'?inherit-methods)
-			  #'(%with-label-methods ?variable-name ((?method ?method-function) ...)
+			  #'(%with-class-methods ?variable-name ((?method ?method-function) ...)
 						 . ?body))
 			 ((_ ?inherit-methods ?variable-name . ?body)
 			  #'(begin . ?body))
@@ -4234,7 +4241,7 @@
 		       (syntax-case stx ()
 			 ((_ ?inherit-setter-and-getter ?variable-name . ?body)
 			  (syntax->datum #'?inherit-setter-and-getter)
-			  #'(%with-label-setter-and-getter ?variable-name ?setter ?getter . ?body))
+			  #'(%with-class-setter-and-getter ?variable-name ?setter ?getter . ?body))
 			 ((_ ?inherit-setter-and-getter ?variable-name . ?body)
 			  #'(begin . ?body))
 			 )))
@@ -4296,9 +4303,9 @@
 		  (?setter ?variable-name ?key0 ?key (... ...) ?value)))))
 	   (%with-class-getter ?variable-name ?getter . ?body)))
 
-      ((_ ?variable-name ?setter #f . ?body)
+      ((_ ?variable-name #f ?getter . ?body)
        (identifier? #'?variable-name)
-       #'(%with-class-getter ?variable-name #f . ?body))
+       #'(%with-class-getter ?variable-name ?getter . ?body))
 
       )))
 
@@ -4860,12 +4867,12 @@
      (begin . ?body))
 
     ((_ ?keyword . ?rest)
-     (syntax-violation '?class-name
+     (syntax-violation '<top>
        "invalid class internal keyword"
        (syntax->datum #'(<top> ?keyword . ?rest))
        (syntax->datum #'?keyword)))))
 
-(define-syntax <top-label>
+(define-syntax <top>-label
   (syntax-rules (is-a? with-class-bindings-of)
 
     ((_ is-a? ?arg)
@@ -4875,9 +4882,9 @@
      (begin . ?body))
 
     ((_ ?keyword . ?rest)
-     (syntax-violation '?class-name
+     (syntax-violation '<top>
        "invalid class internal keyword"
-       (syntax->datum #'(<top-label> ?keyword . ?rest))
+       (syntax->datum #'(<top> ?keyword . ?rest))
        (syntax->datum #'?keyword)))))
 
 (define-syntax <top>-bindings

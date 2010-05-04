@@ -957,7 +957,7 @@ Defining new class types
                                 setters and getters.
 * classes define bindings::     Defining classes having custom
                                 bindings.
-* classes define label::        Defining labels.
+* classes define labels::       Defining labels.
 
 Using dot notation
 
@@ -19792,7 +19792,7 @@ it is @strong{not} associated to a record type as defined by
                                 setters and getters.
 * classes define bindings::     Defining classes having custom
                                 bindings.
-* classes define label::        Defining labels.
+* classes define labels::       Defining labels.
 @end menu
 
 @c page
@@ -19835,6 +19835,8 @@ example: all the classes for builtin types are virtual.
 
 Virtual classes can be used in the hierarchy of concrete classes:
 virtual classes can have a proper superclass constructor protocol.
+Virtual classes can be used to dispatch generic functions defined by the
+@library{generics} library.
 
 It is meaningful, but not mandatory, to define a virtual class only if
 we use the @func{predicate} clause described below; else there is no way
@@ -20390,13 +20392,47 @@ introduced by @func{with-class}.
 @end deffn
 
 @c page
-@node classes define label
+@node classes define labels
 @subsection Defining labels
+
+
+A label allows us to take an identifier (bound to whatever value) and
+define new identifiers representing virtual fields, methods, a setter
+and a getter, a parent label.  Labels cannot be used in the inheritance
+hierarchy of classes, and vice versa.  Labels can be used by
+@func{with-class} and all its derived syntaxes; labels @strong{cannot}
+be used to dispatch generic functions defined by the @library{generics}
+library (virtual classes can).
 
 
 @deffn Syntax define-label @ameta{name} @ameta{clause}*
 @deffnx Syntax define-label (@ameta{name} @ameta{predicate}) @ameta{clause}*
-Define a new label type.
+Define a new label type.  Labels are somewhat like classes, but with no
+concrete fields, no underlying record type and no constructor protocols;
+labels cannot be instantiated.
+
+The following clauses are available in the body of a label definition:
+
+@table @func
+@item inherit
+Select a parent label; it has the same syntax and semantics of the
+corresponding clause for classes.
+
+@item predicate
+Select a predicate function to be used to identify values with the
+@func{is-a?} macro; it has the same syntax and semantics of the
+corresponding clause for classes.
+
+@item virtual-fields
+@itemx method
+@itemx method-syntax
+@itemx methods
+@itemx setter
+@itemx getter
+@itemx bindings
+They have the same syntax and semantics of the corresponding clauses for
+classes.
+@end table
 @end deffn
 
 @c page

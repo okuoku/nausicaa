@@ -3140,6 +3140,219 @@
   #t)
 
 
+(parametrise ((check-test-name	'labels))
+
+  (let ()	;virtual fields
+
+    (define-label <alpha>
+      (virtual-fields a b c))
+
+    (define (<alpha>-a o) 1)
+    (define (<alpha>-b o) 2)
+    (define (<alpha>-c o) 3)
+
+    (check
+	(let/with-class (((o <alpha>) #t))
+	  (list o o.a o.b o.c))
+      => '(#t 1 2 3))
+
+    #f)
+
+  (let ()	;methods
+
+    (define-label <alpha>
+      (methods a b c))
+
+    (define (<alpha>-a o) 1)
+    (define (<alpha>-b o) 2)
+    (define (<alpha>-c o) 3)
+
+    (check
+	(let/with-class (((o <alpha>) #t))
+	  (list o (o.a) (o.b) (o.c)))
+      => '(#t 1 2 3))
+
+    #f)
+
+  (let ()	;in-definition methods
+
+    (define-label <alpha>
+      (method (a o) 1)
+      (method (b o) 2)
+      (method (c o) 3))
+
+    (check
+	(let/with-class (((o <alpha>) #t))
+	  (list o (o.a) (o.b) (o.c)))
+      => '(#t 1 2 3))
+
+    #f)
+
+  (let ()	;syntax methods
+
+    (define-label <alpha>
+      (method-syntax a
+	(syntax-rules ()
+	  ((_ ?obj) 1)))
+      (method-syntax b
+	(syntax-rules ()
+	  ((_ ?obj) 2)))
+      (method-syntax c
+	(syntax-rules ()
+	  ((_ ?obj) 3))))
+
+    (check
+	(let/with-class (((o <alpha>) #t))
+	  (list o (o.a) (o.b) (o.c)))
+      => '(#t 1 2 3))
+
+    #f)
+
+  (let ()	;predicate
+
+    (define-label <alpha>
+      (predicate integer?))
+
+    (check
+	(is-a? 123 <alpha>)
+      => #t)
+
+    (check
+	(is-a? "ciao" <alpha>)
+      => #f)
+
+    #f)
+
+  (let ()	;setter
+
+    (define-label <alpha>
+      (setter <alpha>-setf))
+
+    (define (<alpha>-setf o key val)
+      (list o key val))
+
+    (check
+	(let/with-class (((o <alpha>) #t))
+	  (setf (o 1) 2))
+      => '(#t 1 2))
+
+    #f)
+
+  (let ()	;getter
+
+    (define-label <alpha>
+      (getter <alpha>-getf))
+
+    (define (<alpha>-getf o key)
+      (list o key))
+
+    (check
+	(let/with-class (((o <alpha>) #t))
+	  (getf (o 1)))
+      => '(#t 1))
+
+    #f)
+
+  (let ()	;bindings
+
+    (define-label <alpha>
+      (bindings <alpha>-bindings))
+
+    (define-syntax <alpha>-bindings
+      (lambda (stx)
+	(syntax-case stx ()
+	  ((_ ?class-name ?identifier . ?body)
+	   (with-syntax ((A (datum->syntax #'?identifier 'a)))
+	     #`(let ((A 123)) . ?body))))))
+
+    (check
+	(let/with-class (((o <alpha>) #t))
+	  a)
+      => 123)
+
+    #f)
+
+;;; --------------------------------------------------------------------
+;;; inheritance
+
+  (let ()		;virtual fields
+
+    (define-label <alpha>
+      (virtual-fields a b z))
+
+    (define (<alpha>-a o) 1)
+    (define (<alpha>-b o) 2)
+    (define (<alpha>-z o) 88)
+
+    (define-label <beta>
+      (inherit <alpha>)
+      (virtual-fields c d z))
+
+    (define (<beta>-c o) 3)
+    (define (<beta>-d o) 4)
+    (define (<beta>-z o) 99)
+
+    (check
+	(let/with-class (((o <alpha>) #t))
+	  (list o o.a o.b o.z))
+      => '(#t 1 2 88))
+
+    (check
+	(let/with-class (((o <beta>) #t))
+	  (list o o.a o.b o.c o.d o.z))
+      => '(#t 1 2 3 4 99))
+
+    #f)
+
+  (let ()		;methods
+
+    (define-label <alpha>
+      (methods a b z))
+
+    (define (<alpha>-a o) 1)
+    (define (<alpha>-b o) 2)
+    (define (<alpha>-z o) 88)
+
+    (define-label <beta>
+      (inherit <alpha>)
+      (methods c d z))
+
+    (define (<beta>-c o) 3)
+    (define (<beta>-d o) 4)
+    (define (<beta>-z o) 99)
+
+    (check
+	(let/with-class (((o <alpha>) #t))
+	  (list o (o.a) (o.b) (o.z)))
+      => '(#t 1 2 88))
+
+    (check
+	(let/with-class (((o <beta>) #t))
+	  (list o (o.a) (o.b) (o.c) (o.d) (o.z)))
+      => '(#t 1 2 3 4 99))
+
+    #f)
+
+  (let ()	;inherit <top>
+
+    (define-label <alpha>
+      (inherit <top>)
+      (virtual-fields a b c))
+
+    (define (<alpha>-a o) 1)
+    (define (<alpha>-b o) 2)
+    (define (<alpha>-c o) 3)
+
+    (check
+	(let/with-class (((o <alpha>) #t))
+	  (list o o.a o.b o.c))
+      => '(#t 1 2 3))
+
+    #f)
+
+  #t)
+
+
 (parametrise ((check-test-name 'parent-list))
 
 ;;;We cannot  rely on the  RTDs to be  equal when the definition  of the
@@ -3450,7 +3663,7 @@
     #f)
 
 ;;; --------------------------------------------------------------------
-;;; These tests make use of the record types exported by (records).
+;;; These tests make use of the record types exported by (classes).
 
   (check
       (record-type-uid (record-type-of 123))
