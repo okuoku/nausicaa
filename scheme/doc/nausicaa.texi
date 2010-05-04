@@ -28985,7 +28985,6 @@ documentation text file by Richard Guenther.
 * binfmt scheme::               Running Scheme programs.
 @end menu
 
-
 @c page
 @node binfmt overview
 @appendixsec Overview of the mechanism
@@ -29120,7 +29119,6 @@ offset+size(magic) has to be less than 128;
 the interpreter string may not exceed 127 characters.
 @end itemize
 
-
 @c page
 @node binfmt using
 @appendixsec Using the mechanism
@@ -29195,7 +29193,6 @@ Emacs; we will see that the first bytes are @code{#!fasl}.
 
 We have to care about the order of added entries: entries added later
 are matched first.
-
 
 @c page
 @node binfmt control
@@ -29280,7 +29277,6 @@ $ echo -1 >/proc/sys/fs/binfmt_misc/LARCENY
 removing the entry and disabling the mechanism for a format are two
 distinct operations.
 
-
 @c page
 @node binfmt hints
 @appendixsec Hints
@@ -29294,7 +29290,6 @@ The runtime must @strong{not} look in the @env{PATH} environment
 variable for the filename; the kernel passes it the full filename to
 use.  Using the @env{PATH} can cause unexpected behaviour and be a
 security hazard.
-
 
 @c page
 @node binfmt scheme
@@ -29317,19 +29312,24 @@ the string @code{;;;!larceny}, the @code{binfmt_misc} configuration will
 look for the string @code{!larceny} at zero--based offset 3 in the file.
 
 @item
+Larceny Scheme compiled programs are recognised if the file starts with
+the string @code{#!fasl}, the @code{binfmt_misc} configuration will look
+for the string @code{fasl} at zero--based offset 2 in the file.
+
+@item
 Mosh Scheme source programs are recognised if the file starts with the
 string @code{;;;!mosh}, the @code{binfmt_misc} configuration will look
 for the string @code{!mosh} at zero--based offset 3 in the file.
 
 @item
+Vicare Scheme source programs are recognised if the file starts with the
+string @code{;;;!vicare}, the @code{binfmt_misc} configuration will look
+for the string @code{!vicare} at zero--based offset 3 in the file.
+
+@item
 Ypsilon Scheme source programs are recognised if the file starts with
 the string @code{;;;!ypsilon}, the @code{binfmt_misc} configuration will
 look for the string @code{!ypsilon} at zero--based offset 3 in the file.
-
-@item
-Larceny Scheme compiled programs are recognised if the file starts with
-the string @code{#!fasl}, the @code{binfmt_misc} configuration will look
-for the string @code{fasl} at zero--based offset 2 in the file.
 
 @item
 The @code{binfmt_misc} configuration is stored in a Bourne shell script
@@ -29379,6 +29379,19 @@ exec "$MOSH" "$@@"
 
 @noindent
 where @code{$MOSH} is the Mosh executable discovered by the
+@command{configure} script of @value{PACKAGE}.
+
+@item
+Vicare Scheme source programs are run through a Bourne shell script
+(@file{/bin/sh} interpreter) named @file{vicare-scheme-script} installed
+in the @code{$(bindir)} directory.  The script calls Vicare with:
+
+@example
+exec "$VICARE" --r6rs-script "$@@"
+@end example
+
+@noindent
+where @code{$VICARE} is the Vicare executable discovered by the
 @command{configure} script of @value{PACKAGE}.
 
 @item

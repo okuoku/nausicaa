@@ -81,7 +81,8 @@ binfmt_scripts_SOURCES	= $(addprefix $(binfmt_scripts_SRCDIR)/,		\
 	$(call ds-if-yes,$(nausicaa_ENABLE_YPSILON),	ypsilon-scheme-script)	\
 	$(call ds-if-yes,$(nausicaa_ENABLE_LARCENY),	larceny-scheme-script)	\
 	$(call ds-if-yes,$(nausicaa_ENABLE_MOSH),	mosh-scheme-script)	\
-	$(call ds-if-yes,$(nausicaa_ENABLE_PETITE),	petite-scheme-script))
+	$(call ds-if-yes,$(nausicaa_ENABLE_PETITE),	petite-scheme-script)	\
+	$(call ds-if-yes,$(nausicaa_ENABLE_VICARE),	vicare-scheme-script))
 binfmt_scripts_TARGETS	= $(call ds-replace-dir,$(binfmt_scripts_BUILDDIR),$(binfmt_scripts_SOURCES))
 binfmt_scripts_INSTLST	= $(binfmt_scripts_TARGETS)
 binfmt_scripts_INSTDIR	= $(pkglibexecdir)
@@ -96,6 +97,7 @@ $(binfmt_scripts_TARGETS): $(binfmt_scripts_BUILDDIR)/% : $(binfmt_scripts_SRCDI
 		-e 's%__MOSH__%$(MOSH)%g'		\
 		-e 's%__PETITE__%$(PETITE)%g'		\
 		-e 's%__YPSILON__%$(YPSILON)%g'		\
+		-e 's%__VICARE__%$(VICARE)%g'		\
 		<$(<) >$(@)
 
 endif
@@ -126,6 +128,7 @@ $(binfmt_config_TARGETS): $(binfmt_config_SOURCES)
 	-e 's%OPT_ENABLE_MOSH%$(nausicaa_ENABLE_MOSH)%g'	\
 	-e 's%OPT_ENABLE_PETITE%$(nausicaa_ENABLE_PETITE)%g'	\
 	-e 's%OPT_ENABLE_YPSILON%$(nausicaa_ENABLE_YPSILON)%g'	\
+	-e 's%OPT_ENABLE_VICARE%$(nausicaa_ENABLE_VICARE)%g'	\
 	<$(binfmt_config_SRCDIR)/rc.scheme			\
 	>$(binfmt_config_BUILDDIR)/rc.scheme
 
@@ -190,6 +193,18 @@ endif
 
 ## ------------------------------------------------------------
 
+ifeq ($(strip $(nausicaa_ENABLE_VICARE)),yes)
+.PHONY: test-vicare-compat
+
+test-vicare-compat:
+	VICARE_LIBRARY_PATH=$(srcdir):$(VICARE_LIBRARY_PATH) \
+	$(VICARE) --r6rs-script $(test_compat_SCRIPT)
+
+test-compat: test-vicare-compat
+endif
+
+## ------------------------------------------------------------
+
 ifeq ($(strip $(nausicaa_ENABLE_YPSILON)),yes)
 .PHONY: test-ypsilon-compat
 
@@ -211,6 +226,9 @@ SILEX_LIBPATH		= $(abspath $(srcdir)/tests):$(abspath $(nau_sls_BUILDDIR))
 ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 SILEX_ENV	= YPSILON_SITELIB=$(SILEX_LIBPATH):$(YPSILON_SITELIB)
 SILEX_RUNNER	= $(SILEX_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_VICARE))
+SILEX_ENV	= VICARE_LIBRARY_PATH=$(SILEX_LIBPATH):$(VICARE_LIBRARY_PATH)
+SILEX_RUNNER	= $(SILEX_ENV) $(VICARE) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
 SILEX_ENV	= IKARUS_LIBRARY_PATH=$(SILEX_LIBPATH):$(IKARUS_LIBRARY_PATH)
 SILEX_RUNNER	= $(SILEX_ENV) $(IKARUS) --r6rs-script
@@ -244,6 +262,9 @@ LALR_LIBPATH	= $(abspath $(srcdir)/tests):$(abspath $(nau_sls_BUILDDIR))
 ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 LALR_ENV	= YPSILON_SITELIB=$(LALR_LIBPATH):$(YPSILON_SITELIB)
 LALR_RUNNER	= $(LALR_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_VICARE))
+LALR_ENV	= VICARE_LIBRARY_PATH=$(LALR_LIBPATH):$(VICARE_LIBRARY_PATH)
+LALR_RUNNER	= $(LALR_ENV) $(VICARE) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
 LALR_ENV	= IKARUS_LIBRARY_PATH=$(LALR_LIBPATH):$(IKARUS_LIBRARY_PATH)
 LALR_RUNNER	= $(LALR_ENV) $(IKARUS) --r6rs-script
@@ -274,6 +295,9 @@ CSV_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
 ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 CSV_ENV		= YPSILON_SITELIB=$(CSV_LIBPATH):$(YPSILON_SITELIB)
 CSV_RUNNER	= $(CSV_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_VICARE))
+CSV_ENV		= VICARE_LIBRARY_PATH=$(CSV_LIBPATH):$(VICARE_LIBRARY_PATH)
+CSV_RUNNER	= $(CSV_ENV) $(VICARE) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
 CSV_ENV		= IKARUS_LIBRARY_PATH=$(CSV_LIBPATH):$(IKARUS_LIBRARY_PATH)
 CSV_RUNNER	= $(CSV_ENV) $(IKARUS) --r6rs-script
@@ -303,6 +327,9 @@ INFIX_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
 ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 INFIX_ENV	= YPSILON_SITELIB=$(INFIX_LIBPATH):$(YPSILON_SITELIB)
 INFIX_RUNNER	= $(INFIX_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_VICARE))
+INFIX_ENV	= VICARE_LIBRARY_PATH=$(INFIX_LIBPATH):$(VICARE_LIBRARY_PATH)
+INFIX_RUNNER	= $(INFIX_ENV) $(VICARE) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
 INFIX_ENV	= IKARUS_LIBRARY_PATH=$(INFIX_LIBPATH):$(IKARUS_LIBRARY_PATH)
 INFIX_RUNNER	= $(INFIX_ENV) $(IKARUS) --r6rs-script
@@ -333,6 +360,9 @@ EMAIL_LIBPATH	= $(abspath $(nau_sls_BUILDDIR))
 ifeq (yes,$(nausicaa_ENABLE_YPSILON))
 EMAIL_ENV		= YPSILON_SITELIB=$(EMAIL_LIBPATH):$(YPSILON_SITELIB)
 EMAIL_RUNNER	= $(EMAIL_ENV) $(YPSILON)
+else ifeq (yes,$(nausicaa_ENABLE_VICARE))
+EMAIL_ENV		= VICARE_LIBRARY_PATH=$(EMAIL_LIBPATH):$(VICARE_LIBRARY_PATH)
+EMAIL_RUNNER	= $(EMAIL_ENV) $(VICARE) --r6rs-script
 else ifeq (yes,$(nausicaa_ENABLE_IKARUS))
 EMAIL_ENV		= IKARUS_LIBRARY_PATH=$(EMAIL_LIBPATH):$(IKARUS_LIBRARY_PATH)
 EMAIL_RUNNER	= $(EMAIL_ENV) $(IKARUS) --r6rs-script

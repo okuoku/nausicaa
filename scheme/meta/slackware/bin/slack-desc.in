@@ -2,8 +2,8 @@
 @PACKAGE_NAME@: @PACKAGE_NAME@ @PACKAGE_VERSION@
 @PACKAGE_NAME@:
 @PACKAGE_NAME@: Collection of libraries for R6RS Scheme implementations.
-@PACKAGE_NAME@: Supports Ikarus, Larceny, Mosh, Petite Chez and Ypsilon.
-@PACKAGE_NAME@:
+@PACKAGE_NAME@: Supports Ikarus, Larceny, Mosh, Petite Chez, Vicare and
+@PACKAGE_NAME@: Ypsilon.
 @PACKAGE_NAME@:
 @PACKAGE_NAME@:
 @PACKAGE_NAME@:

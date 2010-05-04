@@ -28,7 +28,7 @@
 #
 
 if test -z "${PETITE_LIBPATH}" ; then
-    export PETITE_LIBPATH=/usr/local/lib/scheme
+    export PETITE_LIBPATH=/usr/local/lib/nausicaa
 fi
 
 PETITE='__PETITE__'

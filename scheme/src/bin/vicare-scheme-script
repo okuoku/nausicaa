@@ -1,14 +1,14 @@
 #!/bin/sh
 #
 # Part of: Nausicaa/Scheme
-# Contents: Trampoline for Ypsilon Scheme.
-# Date: Mon Jan 19, 2009
+# Contents: Trampoline for Vicare Scheme.
+# Date: Tue May  4, 2010
 #
 # Abstract
 #
 #
 #
-# Copyright (c) 2009, 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+# Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 #
 # This  program  is free  software:  you  can redistribute  it
 # and/or modify it  under the terms of the  GNU General Public
@@ -27,13 +27,13 @@
 # <http://www.gnu.org/licenses/>.
 #
 
-if test -z "${YPSILON_SITELIB}" ; then
-    export YPSILON_SITELIB=/usr/local/lib/nausicaa
+if test -z "${VICARE_LIBRARY_PATH}" ; then
+    export VICARE_LIBRARY_PATH=/usr/local/lib/nausicaa
 fi
 
-YPSILON='__YPSILON__'
+VICARE='__VICARE__'
 
-exec "${YPSILON}" --r6rs --compatible "$@"
+exec "${VICARE}" --r6rs-script "$@"
 
 ### end of file
 # Local Variables:

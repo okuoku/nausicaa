@@ -34,18 +34,21 @@ BINFMT_LARCENY=${BINFMT_DIR}/LARCENY
 BINFMT_LARCENY_SRC=${BINFMT_DIR}/LARCENY_SRC
 BINFMT_MOSH=${BINFMT_DIR}/MOSH
 BINFMT_PETITE=${BINFMT_DIR}/PETITE
+BINFMT_VICARE=${BINFMT_DIR}/VICARE
 BINFMT_YPSILON=${BINFMT_DIR}/YPSILON
 
 BINFMT_PROG_IKARUS='BINDIR/ikarus-scheme-script'
 BINFMT_PROG_LARCENY='BINDIR/larceny-scheme-script'
 BINFMT_PROG_MOSH='BINDIR/mosh-scheme-script'
 BINFMT_PROG_PETITE='BINDIR/petite-scheme-script'
+BINFMT_PROG_VICARE='BINDIR/vicare-scheme-script'
 BINFMT_PROG_YPSILON='BINDIR/ypsilon-scheme-script'
 
 BINFMT_ENABLE_IKARUS=OPT_ENABLE_IKARUS
 BINFMT_ENABLE_LARCENY=OPT_ENABLE_LARCENY
 BINFMT_ENABLE_MOSH=OPT_ENABLE_MOSH
 BINFMT_ENABLE_PETITE=OPT_ENABLE_PETITE
+BINFMT_ENABLE_VICARE=OPT_ENABLE_VICARE
 BINFMT_ENABLE_YPSILON=OPT_ENABLE_YPSILON
 
 if test -f ${BINFMT_REGISTER} ; then
@@ -94,6 +97,16 @@ if test -f ${BINFMT_REGISTER} ; then
         echo done
     else
         echo skipping binfmt Petite Chez Scheme programs execution
+    fi
+
+    if test "${BINFMT_ENABLE_VICARE}" = yes ; then
+        echo -n enabling binfmt Vicare Scheme scripts execution...
+        test -f ${BINFMT_VICARE} && echo -1 >${BINFMT_VICARE}
+        echo ":VICARE:M:3:!vicare::${BINFMT_PROG_VICARE}:" \
+            >${BINFMT_REGISTER}
+        echo done
+    else
+        echo skipping binfmt Vicare Scheme programs execution
     fi
 
     if test "${BINFMT_ENABLE_YPSILON}" = yes ; then
