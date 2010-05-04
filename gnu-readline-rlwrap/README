@@ -31,6 +31,8 @@ Ypsilon.  The package is composed by:
 lae - a Bourne shell script for Larceny
 ike - a Bourne shell script for Ikarus
 moe - a Bourne shell script for Mosh
+pee - a Bourne shell script for Petite Chez
+vie - a Bourne shell script for Vicare
 ype - a Bourne shell script for Ypsilon
 
 and  a set  of  completion files.   The  scripts will  spawn
@@ -44,6 +46,7 @@ as:
    .ikarus_completions
    .larceny_completions
    .mosh_completions
+   .vicare_completions
    .ypsilon_completions
 
 in the user's home directory.
@@ -51,11 +54,11 @@ in the user's home directory.
   The installation  directories can be  changed by modifying
 the variables in the "Makefile".
 
-  The   "ike",   "lae",   "moe"   and  "ype"   scripts   are
-automatically   generated  from   the   templates  "ike.in",
-"lae.in", "moe.in" and "ype.in" that are preprocessed by the
-"Makefile".   The  template   themselves  are  meant  to  be
-customised at will.
+  The "ike",  "lae", "moe",  "pee", "vie" and  "ype" scripts
+are  automatically generated  from  the templates  "ike.in",
+"lae.in", "moe.in", "pee.in", "vie.in" and "ype.in" that are
+preprocessed by the "Makefile".  The template themselves are
+meant to be customised at will.
 
 
 2. License
