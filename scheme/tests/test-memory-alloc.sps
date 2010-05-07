@@ -48,7 +48,7 @@
 	     (j (system-realloc i (* 2 4096))))
 	(begin0
 	    (integer? j)
-	  (system-free i)))
+	  (system-free j)))
     => #t)
 
   (check
@@ -75,7 +75,7 @@
 	     (j (platform-realloc i (* 2 4096))))
 	(begin0
 	    (pointer? j)
-	  (platform-free i)))
+	  (platform-free j)))
     => #t)
 
   (check
@@ -99,7 +99,7 @@
 	     (j (platform-realloc* i (* 2 4096))))
 	(begin0
 	    (pointer? j)
-	  (platform-free i)))
+	  (platform-free j)))
     => #t)
 
   (check
