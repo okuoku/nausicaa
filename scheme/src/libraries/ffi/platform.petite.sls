@@ -34,9 +34,7 @@
     (unimplemented)
     (only (ffi sizeof) LIBC_SHARED_OBJECT_SPEC)
     (ffi conditions)
-    (only (ffi peekers-and-pokers)
-	  pointer-set-c-signed-int!
-	  pointer-ref-c-signed-int)
+    (ffi peekers-and-pokers)
     (prefix (only (chezscheme)
 ;;;	  foreign-procedure
 		  load-shared-object)
@@ -104,9 +102,9 @@
 (define-syntax errno
   (syntax-rules ()
     ((_ ?value)
-     (pointer-set-c-signed-int! (errno-location) 0 ?value))
+     (pointer-c-set! signed-int (errno-location) 0 ?value))
     ((_)
-     (pointer-ref-c-signed-int (errno-location)))))
+     (pointer-c-ref  signed-int (errno-location)))))
 
 
 ;;;; callout functions

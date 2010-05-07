@@ -65,7 +65,7 @@
 	  (with-class ((mb <memblock>))
 	    (do ((i 0 (+ 1 i)))
 		((= i 16))
-	      (pointer-set-c-uint8! mb.pointer i i)))
+	      (pointer-c-set! uint8_t mb.pointer i i)))
 	  (memblock->string-hex mb)))
     => "000102030405060708090A0B0C0D0E0F")
 
@@ -75,7 +75,7 @@
 	  (with-class ((mb <memblock>))
 	    (do ((i 0 (+ 1 i)))
 		((= i 16))
-	      (pointer-set-c-uint8! mb.pointer i (+ 16 i))))
+	      (pointer-c-set! uint8_t mb.pointer i (+ 16 i))))
 	  (memblock->string-hex mb)))
     => "101112131415161718191A1B1C1D1E1F")
 

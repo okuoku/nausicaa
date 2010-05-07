@@ -33,9 +33,7 @@
   (import (rnrs)
     (ffi pointers)
     (only (ffi memory alloc) malloc primitive-free)
-    (only (ffi peekers-and-pokers)
-	  pointer-set-c-unsigned-long!
-	  pointer-ref-c-unsigned-long)
+    (ffi peekers-and-pokers)
     (only (ffi sizeof) c-strideof))
 
 
@@ -45,18 +43,18 @@
     (malloc/refcount number-of-bytes malloc))
    ((number-of-bytes malloc-funk)
     (let ((p (malloc-funk (+ (c-strideof long) number-of-bytes))))
-      (pointer-set-c-unsigned-long! p 0 0)
+      (pointer-c-set! unsigned-long p 0 0)
       (pointer-add p (c-strideof long))))))
 
 (define-syntax refcount-set!
   (syntax-rules ()
     ((_ ?pointer ?value)
-     (pointer-set-c-unsigned-long! ?pointer (- (c-strideof long)) ?value))))
+     (pointer-c-set! unsigned-long ?pointer (- (c-strideof long)) ?value))))
 
 (define-syntax refcount-ref
   (syntax-rules ()
     ((_ ?pointer)
-     (pointer-ref-c-unsigned-long ?pointer (- (c-strideof long))))))
+     (pointer-c-ref unsigned-long ?pointer (- (c-strideof long))))))
 
 (define (pointer-acquire pointer)
   (refcount-set! pointer (+ 1 (refcount-ref pointer))))

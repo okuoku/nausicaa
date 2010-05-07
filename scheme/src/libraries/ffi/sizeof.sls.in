@@ -144,6 +144,7 @@
 (define sizeof-double			@SIZEOF_DOUBLE@)
 (define sizeof-long-double		@SIZEOF_LONG_DOUBLE@)
 (define sizeof-pointer			@SIZEOF_POINTER@)
+(define sizeof-void*			sizeof-pointer)
 (define sizeof-size_t			@SIZEOF_SIZE_T@)
 (define sizeof-ssize_t			@SIZEOF_SSIZE_T@)
 
@@ -178,6 +179,7 @@
 (define alignof-double			@ALIGNOF_DOUBLE@)
 (define alignof-long-double		@ALIGNOF_LONG_DOUBLE@)
 (define alignof-pointer			@ALIGNOF_POINTER@)
+(define alignof-void*			alignof-pointer)
 (define alignof-size_t			@ALIGNOF_SIZE_T@)
 (define alignof-ssize_t			@ALIGNOF_SSIZE_T@)
 
@@ -212,8 +214,22 @@
 (define strideof-double			@STRIDEOF_DOUBLE@)
 (define strideof-long-double		@STRIDEOF_LONG_DOUBLE@)
 (define strideof-pointer		@STRIDEOF_POINTER@)
+(define strideof-void*			strideof-pointer)
 (define strideof-size_t			@STRIDEOF_SIZE_T@)
 (define strideof-ssize_t		@STRIDEOF_SSIZE_T@)
+
+
+(define inspect-pointer-integer		(quote @TYPEOF_POINTER_INTEGER@))
+(define inspect-size_t-integer		(quote @TYPEOF_SIZE_T@))
+(define inspect-ssize_t-integer		(quote @TYPEOF_SSIZE_T@))
+(define inspect-on-32-bits-system	(= (c-sizeof int) 4))
+(define inspect-on-64-bits-system	(= (c-sizeof int) 8))
+(define inspect-on-32-bits-systems	inspect-on-32-bits-system)
+(define inspect-on-64-bits-systems	inspect-on-64-bits-system)
+
+(define inspect-words-bigendian			@WORDS_BIGENDIAN@)
+
+(define LIBC_SHARED_OBJECT_SPEC		"@LIBC_SHARED_OBJECT_SPEC@")
 
 
 (define valueof-char-max		@VALUEOF_CHAR_MAX@)
@@ -234,20 +250,23 @@
 (define valueof-long-long-min		@VALUEOF_LLONG_MIN@)
 (define valueof-ulong-long-max		@VALUEOF_ULLONG_MAX@)
 (define valueof-wchar-max		@VALUEOF_WCHAR_MAX@)
-(define valueof-ssize-max		@VALUEOF_SSIZE_MAX@)
 
-
-(define inspect-pointer-integer		(quote @TYPEOF_POINTER_INTEGER@))
-(define inspect-size_t-integer		(quote @TYPEOF_SIZE_T@))
-(define inspect-ssize_t-integer		(quote @TYPEOF_SSIZE_T@))
-(define inspect-on-32-bits-system	(= (c-sizeof int) 4))
-(define inspect-on-64-bits-system	(= (c-sizeof int) 8))
-(define inspect-on-32-bits-systems	inspect-on-32-bits-system)
-(define inspect-on-64-bits-systems	inspect-on-64-bits-system)
-
-(define inspect-words-bigendian			@WORDS_BIGENDIAN@)
-
-(define LIBC_SHARED_OBJECT_SPEC		"@LIBC_SHARED_OBJECT_SPEC@")
+(define valueof-ssize_t-max		(case inspect-ssize_t-integer
+					  ((signed-int)		valueof-int-max)
+					  ((signed-long)	valueof-long-max)
+					  ((signed-long-long)	valueof-long-long-max)
+					  (else			#f)))
+(define valueof-ssize_t-min		(case inspect-ssize_t-integer
+					  ((signed-int)		valueof-int-min)
+					  ((signed-long)	valueof-long-min)
+					  ((signed-long-long)	valueof-long-long-min)
+					  (else			#f)))
+(define valueof-size_t-max		(case inspect-size_t-integer
+					  ((unsigned-int)	valueof-uint-max)
+					  ((unsigned-long)	valueof-ulong-max)
+					  ((unsigned-long-long)	valueof-ulong-long-max)
+					  (else			#f)))
+(define valueof-size_t-min		0)
 
 
 ;;;; done

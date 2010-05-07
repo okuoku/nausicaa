@@ -26,7 +26,7 @@
 
 
 (library (ffi syntax-helpers)
-  (export %prepend)
+  (export %prepend %enclose)
   (import (rnrs))
 
 
@@ -34,6 +34,13 @@
   (datum->syntax context
 		 (string->symbol
 		  (string-append prefix (symbol->string (syntax->datum identifier))))))
+
+(define (%enclose context prefix identifier suffix)
+  (datum->syntax context
+		 (string->symbol
+		  (string-append prefix
+				 (symbol->string (syntax->datum identifier))
+				 suffix))))
 
 
 ;;;; done

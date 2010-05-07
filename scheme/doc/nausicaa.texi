@@ -1015,15 +1015,6 @@ Condition objects
 * ffi core conditions opening::         Shared objects opening error.
 * ffi core conditions lookup::          Shared objects lookup error.
 
-Direct access to memory blocks
-
-* ffi core access intro::       Introduction.
-* ffi core peekers::            Peeking values.
-* ffi core pokers::             Poking values.
-* ffi core array peekers::      Peeking values into arrays.
-* ffi core array pokers::       Poking values into arrays.
-* ffi core array pointers::     Computing pointers into arrays.
-
 High level interface
 
 * ffi core call shared::        Dynamic loading of libraries.
@@ -22927,7 +22918,8 @@ short-max       short-min       ushort-max
 int-max         int-min         uint-max
 long-max        long-min
 wchar-max
-ssize-max
+ssize_t-max     ssize_t-min
+size_t-max      size_t-min
 @end example
 @end deffn
 
@@ -23074,1017 +23066,261 @@ With the single exception of @func{pointer<>?}: All the functions return
 
 
 A rich set of procedures is implemented to access directly memory blocks
-referenced by pointer values.  The bindings described in this section
-are exported by @library{ffi peekers-and-pokers} and re--exported by
-@library{ffi} and @library{ffi memory}.
-
-@menu
-* ffi core access intro::       Introduction.
-* ffi core peekers::            Peeking values.
-* ffi core pokers::             Poking values.
-* ffi core array peekers::      Peeking values into arrays.
-* ffi core array pokers::       Poking values into arrays.
-* ffi core array pointers::     Computing pointers into arrays.
-@end menu
-
-@c page
-@node ffi core access intro
-@subsubsection Introduction
-
-
-With all the memory access functions the following notices have to be
-considered.
-
-@itemize
-@item
-The names of the formal arguments follow these conventions:
-
-@table @var
-@item pointer
-It must be a value used to reference a memory block.  @ref{ffi core
-pointers, Pointer objects}.
-
-@item offset
-It must be an exact integer, a fixnum, representing the offset of a byte
-into an allocated block of memory; it can be a negative offset.
-@end table
-
-@item
-When specifying ranges of exact integers: @math{[1, 3]} means a range
-that is left--inclusive and right--inclusive; @math{[1, 3)} means a
-range that is left--inclusive and right--exclusive, that is @math{[1,
-2]}.
-@end itemize
-
-@c page
-@node ffi core peekers
-@subsubsection Peeking values
-
-
-When adding an offset to a pointer: All the following functions
-@strong{do not} scale the offset to the size of the peeked value.
-Pointer arithmetics is performed with byte offsets.  @ref{ffi core array
-peekers} for functions that do scale the index.
-
-
-@subsubheading Peeking fixed--size exact integers
-
-
-@defun pointer-ref-c-int8 @var{pointer} @var{offset}
-@defunx peek-int8 @var{pointer} @var{offset}
-Peek the single byte located at @var{offset} from @var{pointer} and
-return an exact integer representing the sign--extended integer value of
-that byte.  The returned value is in the range @math{[-2^7, 2^7)}, that
-is @math{[-128, 127]}.
-@end defun
-
-
-@defun pointer-ref-c-uint8 @var{pointer} @var{offset}
-@defunx peek-uint8 @var{pointer} @var{offset}
-Peek the single byte located at @var{offset} from @var{pointer} and
-return an exact integer representing the unsigned integer value of that
-byte.  The returned value is in the range @math{[0, 2^8)}, that is
-@math{[0, 255]}.
-@end defun
-
-
-@defun pointer-ref-c-int16 @var{pointer} @var{offset}
-@defunx peek-int16 @var{pointer} @var{offset}
-Peek two bytes at @var{offset} from @var{pointer} and return an exact
-integer representing the sign--extended integer value of the sequence.
-The returned value is in the range @math{[-2^15, 2^15)}, that is
-@math{[-32768, 32767]}.
-@end defun
-
-
-@defun pointer-ref-c-uint16 @var{pointer} @var{offset}
-@defunx peek-uint16 @var{pointer} @var{offset}
-Peek two bytes at @var{offset} from @var{pointer} and return an exact
-integer representing the unsigned integer value of the sequence.  The
-returned value is in the range @math{[0, 2^16)}, that is @math{[0,
-65535]}.
-@end defun
-
-
-@defun pointer-ref-c-int32 @var{pointer} @var{offset}
-@defunx peek-int32 @var{pointer} @var{offset}
-Peek four bytes at @var{offset} from @var{pointer} and return an exact
-integer in the range @math{[-2^31, 2^31)}, that is @math{[-2147483648,
-2147483647]}.
-@end defun
-
-
-@defun pointer-ref-c-uint32 @var{pointer} @var{offset}
-@defunx peek-uint32 @var{pointer} @var{offset}
-Peek four bytes at @var{offset} from @var{pointer} and return an exact
-integer in the range @math{[0, 2^32)}, that is @math{[0, 4294967295]}.
-@end defun
-
-
-@defun pointer-ref-c-int64 @var{pointer} @var{offset}
-@defunx peek-int64 @var{pointer} @var{offset}
-Peek eight bytes at @var{offset} from @var{pointer} and return an exact
-integer in the range @math{[-2^63, 2^63)}, that is
-@math{[9223372036854775808, 9223372036854775807]}.
-@end defun
-
-
-@defun pointer-ref-c-uint64 @var{pointer} @var{offset}
-@defunx peek-uint64 @var{pointer} @var{offset}
-Peek eight bytes at @var{offset} from @var{pointer} and return an exact
-integer in the range @math{[0, 2^64)}, that is @math{[0,
-18446744073709551615]}.
-@end defun
-
-
-@subsubheading Peeking C language exact integers
-
-
-@deffn Procedure pointer-ref-c-signed-char @var{pointer} @var{offset}
-@deffnx Procedure peek-signed-char @var{pointer} @var{offset}
-Aliases for the fixed--size @samp{int8} peeker.
-@end deffn
-
-
-@deffn Procedure pointer-ref-c-unsigned-char @var{pointer} @var{offset}
-@deffnx Procedure peek-unsigned-char @var{pointer} @var{offset}
-Aliases for the fixed--size @samp{uint8} peeker.
-@end deffn
-
-
-@deffn Procedure pointer-ref-c-signed-short @var{pointer} @var{offset}
-@deffnx Procedure peek-signed-short @var{pointer} @var{offset}
-Aliases for the fixed--size peeker whose target matches the size and
-range of the @samp{short int} C language type of the underlying
-platform.
-@end deffn
-
-
-@deffn Procedure pointer-ref-c-unsigned-short @var{pointer} @var{offset}
-@deffnx Procedure peek-unsigned-short @var{pointer} @var{offset}
-Aliases for the fixed--size peeker whose target matches the size and
-range of the @samp{unsigned short int} C language type of the underlying
-platform.
-@end deffn
-
-
-@deffn Procedure pointer-ref-c-signed-int @var{pointer} @var{offset}
-@deffnx Procedure peek-signed-int @var{pointer} @var{offset}
-Aliases for the fixed--size peeker whose target matches the size and
-range of the @samp{int} C language type of the underlying platform.
-@end deffn
-
-
-@deffn Procedure pointer-ref-c-unsigned-int @var{pointer} @var{offset}
-@deffnx Procedure peek-unsigned-int @var{pointer} @var{offset}
-Aliases for the fixed--size peeker whose target matches the size and
-range of the @samp{unsigned int} C language type of the underlying
-platform.
-@end deffn
-
-
-@deffn Procedure pointer-ref-c-signed-long @var{pointer} @var{offset}
-@deffnx Procedure peek-signed-long @var{pointer} @var{offset}
-Aliases for the fixed--size peeker whose target matches the size and
-range of the @samp{long} C language type of the underlying platform.
-@end deffn
-
-
-@deffn Procedure pointer-ref-c-unsigned-long @var{pointer} @var{offset}
-@deffnx Procedure peek-unsigned-long @var{pointer} @var{offset}
-Aliases for the fixed--size peeker whose target matches the size and
-range of the @samp{unsigned long} C language type of the underlying
-platform.
-@end deffn
-
-
-@deffn Procedure pointer-ref-c-signed-long-long @var{pointer} @var{offset}
-@deffnx Procedure peek-signed-long-long @var{pointer} @var{offset}
-Aliases for the fixed--size peeker whose target matches the size and
-range of the @samp{long long} C language type of the underlying
-platform.
-@end deffn
-
-
-@deffn Procedure pointer-ref-c-unsigned-long-long @var{pointer} @var{offset}
-@deffnx Procedure peek-unsigned-long-long @var{pointer} @var{offset}
-Aliases for the fixed--size peeker whose target matches the size and
-range of the @samp{unsigned long long} C language type of the underlying
-platform.
-@end deffn
-
-
-@deffn Procedure pointer-ref-c-size_t @var{pointer} @var{offset}
-@deffnx Procedure peek-size_t @var{pointer} @var{offset}
-Aliases for the fixed--size peeker whose target matches the size and
-range of the @samp{size_t} C language type of the underlying platform.
-@end deffn
-
-
-@deffn Procedure pointer-ref-c-ssize_t @var{pointer} @var{offset}
-@deffnx Procedure peek-ssize_t @var{pointer} @var{offset}
-Aliases for the fixed--size peeker whose target matches the size and
-range of the @samp{ssize_t} C language type of the underlying platform.
-@end deffn
-
-
-@subsubheading Peeking C language floating point numbers
-
-
-@deffn Procedure pointer-ref-c-float @var{pointer} @var{offset}
-@deffnx Procedure peek-float @var{pointer} @var{offset}
-Return a flonum Scheme object representing the four--byte @samp{float}
-(represented as @ieee{} 754 single precision floating point number)
-stored at @var{offset} from @var{pointer}.
-@end deffn
-
-
-@deffn Procedure pointer-ref-c-double @var{pointer} @var{offset}
-@deffnx Procedure peek-double @var{pointer} @var{offset}
-Return a flonum Scheme object representing the eight--byte @samp{double}
-(represented as @ieee{} 754 double precision floating point number)
-stored at @var{offset} from @var{pointer}.
-@end deffn
-
-
-@subsubheading Peeking pointers
-
-
-@deffn Procedure pointer-ref-c-pointer @var{pointer} @var{offset}
-@deffnx Procedure pointer-ref-c-void* @var{pointer} @var{offset}
-@deffnx Procedure peek-pointer @var{pointer} @var{offset}
-@deffnx Procedure peek-void* @var{pointer} @var{offset}
-Return a @samp{pointer} value representing the pointer stored at
-@var{offset} from @var{pointer}.  The size of the pointer (also the
-number of bytes loaded) depends on the architecture: it is @math{4}
-bytes on @math{32}-bit systems and @math{8} bytes on @math{64}-bit
-systems.
-@end deffn
-
-@c page
-@node ffi core pokers
-@subsubsection Poking values
-
-
-When adding an offset to a pointer: All the following functions
-@strong{do not} scale the offset to the size of the poked value.
-Pointer arithmetics is performed with byte offsets.  @ref{ffi core array
-pokers}, for functions that do scale the index.
-
-
-@subsubheading Poking fixed--size exact integers
-
-
-@defun pointer-set-c-int8! @var{pointer} @var{offset} @var{value}
-@defunx poke-int8! @var{pointer} @var{offset} @var{value}
-Set to @var{value} the single byte located at @var{offset} from
-@var{pointer}.  @var{value} must be an exact integer in the range
-@math{[-2^7, 2^7)}, that is @math{[-128, 127]}.
-@end defun
-
-
-@defun pointer-set-c-uint8! @var{pointer} @var{offset} @var{value}
-@defunx poke-uint8! @var{pointer} @var{offset} @var{value}
-Set to @var{value} the single byte located at @var{offset} from
-@var{pointer}.  @var{value} must be an exact integer in the range
-@math{[0, 2^8)}, that is @math{[0, 255]}.
-@end defun
-
-
-@defun pointer-set-c-int16! @var{pointer} @var{offset} @var{value}
-@defunx poke-int16! @var{pointer} @var{offset} @var{value}
-Setto @var{value} the two bytes at @var{offset} from @var{pointer}.
-@var{value} must be an exact integer in the range @math{[-2^15, 2^15)},
-that is @math{[-32768, 32767]}.
-@end defun
-
-
-@defun pointer-set-c-uint16! @var{pointer} @var{offset} @var{value}
-@defunx poke-uint16! @var{pointer} @var{offset} @var{value}
-Set to @var{value} the two bytes at @var{offset} from @var{pointer}.
-@var{value} must be an exact integer in the range @math{[0, 2^16)}, that
-is @math{[0, 65535]}.
-@end defun
-
-
-@defun pointer-set-c-int32! @var{pointer} @var{offset} @var{value}
-@defunx poke-int32! @var{pointer} @var{offset} @var{value}
-Set to @var{value} the four bytes at @var{offset} from @var{pointer}.
-@var{value} must be an exact integer in the range @math{[-2^31, 2^31)},
-that is @math{[-2147483648, 2147483647]}.
-@end defun
-
-
-@defun pointer-set-c-uint32! @var{pointer} @var{offset} @var{value}
-@defunx poke-uint32! @var{pointer} @var{offset} @var{value}
-Set to @var{value} the four bytes at @var{offset} from @var{pointer}.
-@var{value} must be an exact integer in the range @math{[0, 2^32)}, that
-is @math{[0, 4294967295]}.
-@end defun
-
-
-@defun pointer-set-c-int64! @var{pointer} @var{offset} @var{value}
-@defunx poke-int64! @var{pointer} @var{offset} @var{value}
-Set to @var{value} the eight bytes at @var{offset} from @var{pointer}.
-@var{value} must be an exact integer in the range @math{[-2^63, 2^63)},
-that is @math{[9223372036854775808, 9223372036854775807]}.
-@end defun
-
-
-@defun pointer-set-c-uint64! @var{pointer} @var{offset} @var{value}
-@defunx poke-uint64! @var{pointer} @var{offset} @var{value}
-Set to @var{value} the eight bytes at @var{offset} from @var{pointer}.
-@var{value} must be an exact integer in the range @math{[0, 2^64)}, that
-is @math{[0, 18446744073709551615]}.
-@end defun
-
-
-@subsubheading Poking C language exact integers
-
-
-@deffn Procedure pointer-set-c-signed-char! @var{pointer} @var{offset} @var{value}
-@deffnx Procedure poke-signed-char! @var{pointer} @var{offset} @var{value}
-Aliases for the fixed--size @samp{int8} pokers.
-@end deffn
-
-
-@deffn Procedure pointer-set-c-unsigned-char! @var{pointer} @var{offset} @var{value}
-@deffnx Procedure poke-unsigned-char! @var{pointer} @var{offset} @var{value}
-Aliases for the fixed--size @samp{uint8} pokers.
-@end deffn
-
-
-@deffn Procedure pointer-set-c-signed-short! @var{pointer} @var{offset} @var{value}
-@deffnx Procedure poke-signed-short! @var{pointer} @var{offset} @var{value}
-Aliases for the fixed--size pokers whose target matches the size and
-range of the @samp{short int} C language type of the underlying
-platform.
-@end deffn
-
-
-@deffn Procedure pointer-set-c-unsigned-short! @var{pointer} @var{offset} @var{value}
-@deffnx Procedure poke-unsigned-short! @var{pointer} @var{offset} @var{value}
-Aliases for the fixed--size pokers whose target matches the size and
-range of the @samp{unsigned short int} C language type of the underlying
-platform.
-@end deffn
-
-
-@deffn Procedure pointer-set-c-signed-int! @var{pointer} @var{offset} @var{value}
-@deffnx Procedure poke-signed-int! @var{pointer} @var{offset} @var{value}
-Aliases for the fixed--size pokers whose target matches the size and
-range of the @samp{int} C language type of the underlying platform.
-@end deffn
-
-
-@deffn Procedure pointer-set-c-unsigned-int! @var{pointer} @var{offset} @var{value}
-@deffnx Procedure poke-unsigned-int! @var{pointer} @var{offset} @var{value}
-Aliases for the fixed--size pokers whose target matches the size and
-range of the @samp{unsigned int} C language type of the underlying
-platform.
-@end deffn
-
-
-@deffn Procedure pointer-set-c-signed-long! @var{pointer} @var{offset} @var{value}
-@deffnx Procedure poke-signed-long! @var{pointer} @var{offset} @var{value}
-Aliases for the fixed--size pokers whose target matches the size and
-range of the @samp{long} C language type of the underlying platform.
-@end deffn
-
-
-@deffn Procedure pointer-set-c-unsigned-long! @var{pointer} @var{offset} @var{value}
-@deffnx Procedure poke-unsigned-long! @var{pointer} @var{offset} @var{value}
-Aliases for the fixed--size pokers whose target matches the size and
-range of the @samp{unsigned long} C language type of the underlying
-platform.
-@end deffn
-
-
-@deffn Procedure pointer-set-c-signed-long-long! @var{pointer} @var{offset} @var{value}
-@deffnx Procedure poke-signed-long-long! @var{pointer} @var{offset} @var{value}
-Aliases for the fixed--size pokers whose target matches the size and
-range of the @samp{long long} C language type of the underlying
-platform.
-@end deffn
-
-
-@deffn Procedure pointer-set-c-unsigned-long-long! @var{pointer} @var{offset} @var{value}
-@deffnx Procedure poke-unsigned-long-long! @var{pointer} @var{offset} @var{value}
-Aliases for the fixed--size pokers whose target matches the size and
-range of the @samp{unsigned long long} C language type of the underlying
-platform.
-@end deffn
-
-
-@deffn Procedure pointer-set-c-size_t! @var{pointer} @var{offset} @var{value}
-@deffnx Procedure poke-size_t! @var{pointer} @var{offset} @var{value}
-Aliases for the fixed--size pokers whose target matches the size and
-range of the @samp{size_t} C language type of the underlying platform.
-@end deffn
-
-
-@deffn Procedure pointer-set-c-ssize_t! @var{pointer} @var{offset} @var{value}
-@deffnx Procedure poke-ssize_t! @var{pointer} @var{offset} @var{value}
-Aliases for the fixed--size pokers whose target matches the size and
-range of the @samp{ssize_t} C language type of the underlying platform.
-@end deffn
-
-
-@subsubheading Poking C language floating point numbers
-
-
-@deffn Procedure pointer-set-c-float! @var{pointer} @var{offset} @var{flonum}
-@deffnx Procedure poke-float! @var{pointer} @var{offset} @var{flonum}
-Convert the Scheme floating point number @var{flonum} to a C language
-@samp{float} (an @ieee{} 754 single precision floating point number) and
-store the result in the four bytes at @var{offset} from @var{pointer}.
-@end deffn
-
-
-@deffn Procedure pointer-set-c-double! @var{pointer} @var{offset} @var{flonum}
-@deffnx Procedure poke-double! @var{pointer} @var{offset} @var{flonum}
-Convert the Scheme floating point number @var{flonum} to a C language
-@samp{double} (an @ieee{} 754 double precision floating point number)
-and store the result in the eight bytes at @var{offset} from
-@var{pointer}.
-@end deffn
-
-
-@subsubheading Poking pointers
-
-
-@deffn Procedure pointer-set-c-pointer! @var{pointer} @var{offset} @var{pointer-value}
-@deffnx Procedure pointer-set-c-void*! @var{pointer} @var{offset} @var{pointer-value}
-@deffnx Procedure poke-pointer! @var{pointer} @var{offset} @var{pointer-value}
-@deffnx Procedure poke-void*! @var{pointer} @var{offset} @var{pointer-value}
-Set to @var{pointer-value}, which must be a @samp{pointer}, the location
-at @var{offset} from @var{pointer}.  The size of the pointer (also the
-number of bytes stored) depends on the architecture: it is @math{4}
-bytes on @math{32}-bit systems and @math{8} bytes on @math{64}-bit
-systems.
-@end deffn
-
-@c page
-@node ffi core array peekers
-@subsubsection Peeking values into arrays
-
-
-The following functions make use of the peekers to access an array of
-basic C language data types.  The index is used to compute the position
-of the first byte taking into account the element stride of the data
-type.
-
-To allocate an array of a given type, we can compute the correct size
-using the @samp{sizeof-*-array} bindings.  @ref{ffi core sizeof,
-sizeof-char-array}
-
-
-@subsubheading Peeking fixed--size exact integers
-
-
-@defun array-ref-c-int8 @var{pointer} @var{index}
-@defunx peek-array-int8 @var{pointer} @var{index}
-Return the value at @var{index} in the signed bytes array referenced by
-@var{pointer}.  The returned value is in the range @math{[-2^7, 2^7)},
-that is @math{[-128, 127]}.
-@end defun
-
-
-@defun array-ref-c-uint8 @var{pointer} @var{index}
-@defunx peek-array-uint8 @var{pointer} @var{index}
-Return the value at @var{index} in the unsigned bytes array referenced
-by @var{pointer}.  The returned value is in the range @math{[0, 2^8)},
-that is @math{[0, 255]}.
-@end defun
-
-
-@defun array-ref-c-int16 @var{pointer} @var{index}
-@defunx peek-array-int16 @var{pointer} @var{index}
-Return the signed exact integer represented by the two bytes at
-@var{index} in the array referenced by @var{pointer}.  The returned
-value is in the range @math{[-2^15, 2^15)}, that is @math{[-32768,
-32767]}.
-@end defun
-
-
-@defun array-ref-c-uint16 @var{pointer} @var{index}
-@defunx peek-array-uint16 @var{pointer} @var{index}
-Return the unsigned exact integer represented by the two bytes at
-@var{index} in the array referenced by @var{pointer}.  The returned
-value is in the range @math{[0, 2^16)}, that is @math{[0, 65535]}.
-@end defun
-
-
-@defun array-ref-c-int32 @var{pointer} @var{index}
-@defunx peek-array-int32 @var{pointer} @var{index}
-Return the signed exact integer represented by the four bytes at
-@var{index} in the array referenced by @var{pointer}.  The returned
-value is in the range @math{[-2^31, 2^31)}, that is @math{[-2147483648,
-2147483647]}.
-@end defun
-
-
-@defun array-ref-c-uint32 @var{pointer} @var{index}
-@defunx peek-array-uint32 @var{pointer} @var{index}
-Return the unsigned exact integer represented by the four bytes at
-@var{index} in the array referenced by @var{pointer}.  The returned
-value is in the range @math{[0, 2^32)}, that is @math{[0, 4294967295]}.
-@end defun
-
-
-@defun array-ref-c-int64 @var{pointer} @var{index}
-@defunx peek-array-int64 @var{pointer} @var{index}
-Return the signed exact integer represented by the eight bytes at
-@var{index} in the array referenced by @var{pointer}.  The returned
-value is in the range @math{[-2^63, 2^63)}, that is
-@math{[9223372036854775808, 9223372036854775807]}.
-@end defun
-
-
-@defun array-ref-c-uint64 @var{pointer} @var{index}
-@defunx peek-array-uint64 @var{pointer} @var{index}
-Return the unsigned exact integer represented by the eight bytes at
-@var{index} in the array referenced by @var{pointer}.  The returned
-value is in the range @math{[0, 2^64)}, that is @math{[0,
-18446744073709551615]}.
-@end defun
-
-
-@subsubheading Peeking C language exact integers
-
-
-@defun array-ref-c-signed-char @var{pointer} @var{index}
-@defunx peek-array-signed-char @var{pointer} @var{index}
-Aliases for the @samp{int8} fixed--size array peeker.
-@end defun
-
-
-@defun array-ref-c-unsigned-char @var{pointer} @var{index}
-@defunx peek-array-unsigned-char @var{pointer} @var{index}
-Aliases for the @samp{uint8} fixed--size array peeker.
-@end defun
-
-
-@defun array-ref-c-signed-short @var{pointer} @var{index}
-@defunx peek-array-signed-short @var{pointer} @var{index}
-Aliases for the fixed--size array peeker whose target matches the size
-and range of the @samp{short int} C language type of the underlying
-platform.
-@end defun
-
-
-@defun array-ref-c-unsigned-short @var{pointer} @var{index}
-@defunx peek-array-unsigned-short @var{pointer} @var{index}
-Aliases for the fixed--size array peeker whose target matches the size
-and range of the @samp{unsigned short int} C language type of the
-underlying platform.
-@end defun
-
-
-@defun array-ref-c-signed-int @var{pointer} @var{index}
-@defunx peek-array-signed-int @var{pointer} @var{index}
-Aliases for the fixed--size array peeker whose target matches the size
-and range of the @samp{int} C language type of the underlying platform.
-@end defun
-
-
-@defun array-ref-c-unsigned-int @var{pointer} @var{index}
-@defunx peek-array-unsigned-int @var{pointer} @var{index}
-Aliases for the fixed--size array peeker whose target matches the size
-and range of the @samp{unsigned int} C language type of the underlying
-platform.
-@end defun
-
-
-@defun array-ref-c-signed-long @var{pointer} @var{index}
-@defunx peek-array-signed-long @var{pointer} @var{index}
-Aliases for the fixed--size array peeker whose target matches the size
-and range of the @samp{long} C language type of the underlying platform.
-@end defun
-
-
-@defun array-ref-c-unsigned-long @var{pointer} @var{index}
-@defunx peek-array-unsigned-long @var{pointer} @var{index}
-Aliases for the fixed--size array peeker whose target matches the size
-and range of the @samp{unsigned long} C language type of the underlying
-platform.
-@end defun
-
-
-@defun array-ref-c-signed-long-long @var{pointer} @var{index}
-@defunx peek-array-signed-long-long @var{pointer} @var{index}
-Aliases for the fixed--size array peeker whose target matches the size
-and range of the @samp{long long} C language type of the underlying
-platform.
-@end defun
-
-
-@defun array-ref-c-unsigned-long-long @var{pointer} @var{index}
-@defunx peek-array-unsigned-long-long @var{pointer} @var{index}
-Aliases for the fixed--size array peeker whose target matches the size
-and range of the @samp{unsigned long long} C language type of the
-underlying platform.
-@end defun
-
-
-@subsubheading Peeking C language floating pointer numbers
-
-
-@defun array-ref-c-float @var{pointer} @var{index}
-@defunx peek-array-float @var{pointer} @var{index}
-Return a flonum Scheme object representing the four--byte @samp{float}
-(represented as @ieee{} 754 single precision floating point number)
-stored at @var{index} in the array referenced by @var{pointer}.
-@end defun
-
-
-@defun array-ref-c-double @var{pointer} @var{index}
-@defunx peek-array-double @var{pointer} @var{index}
-Return a flonum Scheme object representing the eight--byte @samp{double}
-(represented as @ieee{} 754 double precision floating point number)
-stored at @var{index} in the array referenced by @var{pointer}.
-@end defun
-
-
-@subsubheading Peeking pointers
-
-
-@defun array-ref-c-pointer @var{pointer} @var{index}
-@defunx array-ref-c-void* @var{pointer} @var{index}
-@defunx peek-array-pointer @var{pointer} @var{index}
-@defunx peek-array-void* @var{pointer} @var{index}
-Return a @samp{pointer} value representing the pointer stored at
-@var{index} in the array referenced by @var{pointer}.  The size of the
-pointer (also the number of bytes loaded) depends on the architecture:
-it is @math{4} bytes on @math{32}-bit systems and @math{8} bytes on
-@math{64}-bit systems.
-@end defun
-
-@c page
-@node ffi core array pokers
-@subsubsection Poking values into arrays
-
-
-The following functions make use of the pokers to access an array of
-basic C language data types.  The index is used to compute the position
-of the first byte taking into account the element stride of the data
-type.
-
-To allocate an array of a given type, we can compute the correct size
-using the @samp{sizeof-*-array} bindings.  @ref{ffi core sizeof,
-sizeof-char-array}
-
-
-@subsubheading Poking fixed--size exact integers
-
-
-@defun array-set-c-int8! @var{pointer} @var{index} @var{value}
-@defunx poke-array-int8! @var{pointer} @var{index} @var{value}
-Set to @var{value} the single byte at @var{index} in the array
-referenced by @var{pointer}.  @var{value} must be in the range
-@math{[-2^7, 2^7)}, that is @math{[-128, 127]}.
-@end defun
-
-
-@defun array-set-c-uint8! @var{pointer} @var{index} @var{value}
-@defunx poke-array-uint8! @var{pointer} @var{index} @var{value}
-Set to @var{value} the single byte at @var{index} in the array
-referenced by @var{pointer}.  @var{value} must be in the range @math{[0,
+referenced by pointer values; the procedures are accessible through a
+small set of macros.  The bindings described in this section are
+exported by the @library{ffi peekers-and-pokers} library and
+re--exported by @library{ffi} and @library{ffi memory} libraries.
+
+@quotation
+@strong{NOTE} When specifying ranges of exact integers: @math{[1, 3]}
+means a range that is left--inclusive and right--inclusive; @math{[1,
+3)} means a range that is left--inclusive and right--exclusive, that is
+@math{[1, 2]}.
+@end quotation
+
+
+@deffn Syntax pointer-c-ref @ameta{type} @ameta{pointer} @ameta{offset}
+Peek the value located at @meta{offset} from @meta{pointer} and return
+it.  @meta{pointer} must be a pointer object; @meta{offset} must be an
+exact integer which is @strong{not} scaled by the type dimension.
+
+@meta{type} must be a symbol selecting a C language type; it can be one
+of the following:
+
+@table @code
+@item int8_t
+@itemx signed-char
+Peek a single byte and return an exact integer representing the
+sign--extended integer value of that byte; the returned value is in the
+range @math{[-2^7, 2^7)}, that is @math{[-128, 127]}.
+
+@item uint8_t
+@itemx unsigned-char
+Peek a single byte and return an exact integer representing the unsigned
+integer value of that byte; the returned value is in the range @math{[0,
 2^8)}, that is @math{[0, 255]}.
-@end defun
 
+@item int16_t
+Peek two bytes and return an exact integer representing the
+sign--extended integer value of the sequence; the returned value is in
+the range @math{[-2^15, 2^15)}, that is @math{[-32768, 32767]}.
 
-@defun array-set-c-int16! @var{pointer} @var{index} @var{value}
-@defunx poke-array-int16! @var{pointer} @var{index} @var{value}
-Set to @var{value} the two bytes at @var{index} in the array referenced
-by @var{pointer}.  @var{value} must be in the range @math{[-2^15,
-2^15)}, that is @math{[-32768, 32767]}.
-@end defun
+@item uint16_t
+Peek two bytes and return an exact integer representing the unsigned
+integer value of the sequence; the returned value is in the range
+@math{[0, 2^16)}, that is @math{[0, 65535]}.
 
-
-@defun array-set-c-uint16! @var{pointer} @var{index} @var{value}
-@defunx poke-array-uint16! @var{pointer} @var{index} @var{value}
-Set to @var{value} the two bytes at @var{index} in the array referenced
-by @var{pointer}.  @var{value} must be in the range @math{[0, 2^16)},
-that is @math{[0, 65535]}.
-@end defun
-
-
-@defun array-set-c-int32! @var{pointer} @var{index} @var{value}
-@defunx poke-array-int32! @var{pointer} @var{index} @var{value}
-Set to @var{value} the four bytes at @var{index} in the array referenced
-by @var{pointer}.  @var{value} must be is in the range @math{[-2^31,
+@item int32_t
+Peek four bytes and return an exact integer in the range @math{[-2^31,
 2^31)}, that is @math{[-2147483648, 2147483647]}.
-@end defun
 
+@item uint32_t
+Peek four bytes and return an exact integer in the range @math{[0,
+2^32)}, that is @math{[0, 4294967295]}.
 
-@defun array-set-c-uint32! @var{pointer} @var{index} @var{value}
-@defunx poke-array-uint32! @var{pointer} @var{index} @var{value}
-Set to @var{value} the four bytes at @var{index} in the array referenced
-by @var{pointer}.  @var{value} must be in the range @math{[0, 2^32)},
-that is @math{[0, 4294967295]}.
-@end defun
+@item int64_t
+Peek eight bytes and return an exact integer in the range @math{[-2^63,
+2^63)}, that is @math{[9223372036854775808, 9223372036854775807]}.
 
-
-@defun array-set-c-int64! @var{pointer} @var{index} @var{value}
-@defunx poke-array-int64! @var{pointer} @var{index} @var{value}
-Set to @var{value} the eight bytes at @var{index} in the array
-referenced by @var{pointer}.  @var{value} must be in the range
-@math{[-2^63, 2^63)}, that is @math{[9223372036854775808,
-9223372036854775807]}.
-@end defun
-
-
-@defun array-set-c-uint64! @var{pointer} @var{index} @var{value}
-@defunx poke-array-uint64! @var{pointer} @var{index} @var{value}
-Set to @var{value} the eight bytes at @var{index} in the array
-referenced by @var{pointer}.  @var{value} must be in the range @math{[0,
+@item uint64_t @var{pointer} @var{offset}
+Peek eight bytes and return an exact integer in the range @math{[0,
 2^64)}, that is @math{[0, 18446744073709551615]}.
-@end defun
 
+@item signed-short
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{short int} C language type of the underlying platform.
 
-@subsubheading Poking C language exact integers
-
-
-@defun array-set-c-signed-char! @var{pointer} @var{index} @var{value}
-@defunx poke-array-signed-char! @var{pointer} @var{index} @var{value}
-Aliases for the @samp{int8} fixed--size array poker.
-@end defun
-
-
-@defun array-set-c-unsigned-char! @var{pointer} @var{index} @var{value}
-@defunx poke-array-unsigned-char! @var{pointer} @var{index} @var{value}
-Aliases for the @samp{uint8} fixed--size array poker.
-@end defun
-
-
-@defun array-set-c-signed-short! @var{pointer} @var{index} @var{value}
-@defunx poke-array-signed-short! @var{pointer} @var{index} @var{value}
-Aliases for the fixed--size array poker whose target matches the size
-and range of the @samp{short int} C language type of the underlying
+@item unsigned-short
+Aliases for the fixed--size peeker whose target matches the size and
+range of the @samp{unsigned short int} C language type of the underlying
 platform.
-@end defun
 
+@item signed-int
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{int} C language type of the underlying platform.
 
-@defun array-set-c-unsigned-short! @var{pointer} @var{index} @var{value}
-@defunx poke-array-unsigned-short! @var{pointer} @var{index} @var{value}
-Aliases for the fixed--size array poker whose target matches the size
-and range of the @samp{unsigned short int} C language type of the
-underlying platform.
-@end defun
+@item unsigned-int
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{unsigned int} C language type of the underlying platform.
 
+@item signed-long
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{long} C language type of the underlying platform.
 
-@defun array-set-c-signed-int! @var{pointer} @var{index} @var{value}
-@defunx poke-array-signed-int! @var{pointer} @var{index} @var{value}
-Aliases for the fixed--size array poker whose target matches the size
-and range of the @samp{int} C language type of the underlying platform.
-@end defun
+@item unsigned-long
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{unsigned long} C language type of the underlying platform.
 
-
-@defun array-set-c-unsigned-int! @var{pointer} @var{index} @var{value}
-@defunx poke-array-unsigned-int! @var{pointer} @var{index} @var{value}
-Aliases for the fixed--size array poker whose target matches the size
-and range of the @samp{unsigned int} C language type of the underlying
+@item signed-long-long
+Aliases for the fixed--size peeker whose target matches the size and
+range of the @samp{long long} C language type of the underlying
 platform.
-@end defun
 
-
-@defun array-set-c-signed-long! @var{pointer} @var{index} @var{value}
-@defunx poke-array-signed-long! @var{pointer} @var{index} @var{value}
-Aliases for the fixed--size array poker whose target matches the size
-and range of the @samp{long} C language type of the underlying platform.
-@end defun
-
-
-@defun array-set-c-unsigned-long! @var{pointer} @var{index} @var{value}
-@defunx poke-array-unsigned-long! @var{pointer} @var{index} @var{value}
-Aliases for the fixed--size array poker whose target matches the size
-and range of the @samp{unsigned long} C language type of the underlying
+@item unsigned-long-long
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{unsigned long long} C language type of the underlying
 platform.
-@end defun
+
+@item size_t
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{size_t} C language type of the underlying platform.
+
+@item ssize_t
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{ssize_t} C language type of the underlying platform.
+
+@item float
+Peek a flonum Scheme object representing the four--byte @samp{float}
+(represented as @ieee{} 754 single precision floating point number).
+
+@item double
+Peek a flonum Scheme object representing the eight--byte @samp{double}
+(represented as @ieee{} 754 double precision floating point number).
+
+@item pointer
+@itemx void*
+Peek a @samp{pointer} value; the size of the pointer (also the number of
+bytes loaded) depends on the architecture: it is @math{4} bytes on
+@math{32}-bit systems and @math{8} bytes on @math{64}-bit systems.
+@end table
+@end deffn
 
 
-@defun array-set-c-signed-long-long! @var{pointer} @var{index} @var{value}
-@defunx poke-array-signed-long-long! @var{pointer} @var{index} @var{value}
-Aliases for the fixed--size array poker whose target matches the size
-and range of the @samp{long long} C language type of the underlying
+@deffn Syntax pointer-c-set! @ameta{type} @ameta{pointer} @ameta{offset} @ameta{value}
+Poke @ameta{value} in the location @meta{offset} from @meta{pointer}.
+@meta{pointer} must be a pointer object; @meta{offset} must be an exact
+integer which is @strong{not} scaled by the type dimension.
+@meta{value} can be an expression, which is evaluated only once.
+
+@meta{type} must be a symbol selecting a C language type; it can be one
+of the following:
+
+@table @code
+@item int8_t
+@itemx signed-char
+Poke a single byte; @meta{value} must evaluate to an exact integer in
+the range @math{[-2^7, 2^7)}, that is @math{[-128, 127]}.
+
+@item uint8_t
+@itemx unsigned-char
+Poke a single byte; @meta{value} must evaluate to an exact integer in
+the range @math{[0, 2^8)}, that is @math{[0, 255]}.
+
+@item int16_t
+Poke two bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[-2^15, 2^15)}, that is @math{[-32768, 32767]}.
+
+@item uint16_t
+Poke two bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[0, 2^16)}, that is @math{[0, 65535]}.
+
+@item int32_t
+Poke four bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[-2^31, 2^31)}, that is @math{[-2147483648, 2147483647]}.
+
+@item uint32_t
+Poke four bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[0, 2^32)}, that is @math{[0, 4294967295]}.
+
+@item int64_t
+Poke eight bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[-2^63, 2^63)}, that is @math{[9223372036854775808,
+9223372036854775807]}.
+
+@item uint64_t
+Poke eight bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[0, 2^64)}, that is @math{[0, 18446744073709551615]}.
+
+@item signed-short
+Alias for the fixed--size poker whose target matches the size and range
+of the @samp{short int} C language type of the underlying platform.
+
+@item unsigned-short
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{unsigned short int} C language type of the underlying
 platform.
-@end defun
 
+@item signed-int
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{int} C language type of the underlying platform.
 
-@defun array-set-c-unsigned-long-long! @var{pointer} @var{index} @var{value}
-@defunx poke-array-unsigned-long-long! @var{pointer} @var{index} @var{value}
-Aliases for the fixed--size array poker whose target matches the size
-and range of the @samp{unsigned long long} C language type of the
-underlying platform.
-@end defun
+@item unsigned-int
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{unsigned int} C language type of the underlying platform.
 
+@item signed-long
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{long} C language type of the underlying platform.
 
-@subsubheading Poking C language floating pointer numbers
+@item unsigned-long
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{unsigned long} C language type of the underlying platform.
 
+@item signed-long-long
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{long long} C language type of the underlying platform.
 
-@defun array-set-c-float! @var{pointer} @var{index} @var{value}
-@defunx poke-array-float! @var{pointer} @var{index} @var{value}
-Set to @var{value} the four--byte @samp{float} (represented as @ieee{}
-754 single precision floating point number) stored at @var{index} in the
-array referenced by @var{pointer}.  @var{value} must be a Scheme flonum
-object.
-@end defun
-
-
-@defun array-set-c-double! @var{pointer} @var{index} @var{value}
-@defunx poke-array-double! @var{pointer} @var{index} @var{value}
-Set to @var{value} the eight--byte @samp{double} (represented as @ieee{}
-754 double precision floating point number) stored at @var{index} in the
-array referenced by @var{pointer}.  @var{value} must be a Scheme flonum
-object.
-@end defun
-
-
-@subsubheading Poking pointers
-
-
-@defun array-set-c-pointer! @var{pointer} @var{index} @var{pointer-value}
-@defunx array-set-c-void*! @var{pointer} @var{index} @var{pointer-value}
-@defunx poke-array-pointer! @var{pointer} @var{index} @var{pointer-value}
-@defunx poke-array-void*! @var{pointer} @var{index} @var{pointer-value}
-Set to @var{pointer-value} the bytes stored at @var{index} in the array
-referenced by @var{pointer}.  The size of the target depends on the
-architecture: it is @math{4} bytes on @math{32}-bit systems and @math{8}
-bytes on @math{64}-bit systems.  @var{pointer-value} must be a
-@samp{pointer}.
-@end defun
-
-@c page
-@node ffi core array pointers
-@subsubsection Computing pointers into arrays
-
-
-The following functions compute a pointer value referencing an element
-of an array of basic C language data types.  The index is used to
-compute the position of the first byte taking into account the element
-stride of the data type.
-
-
-@subsubheading Getting fixed--size exact integers pointers
-
-
-@defun array-ptr-c-int8 @var{pointer} @var{index}
-Return a pointer to the value at @var{index} in the signed bytes array
-referenced by @var{pointer}.
-@end defun
-
-
-@defun array-ptr-c-uint8 @var{pointer} @var{index}
-Return a pointer to the value at @var{index} in the unsigned bytes array
-referenced by @var{pointer}.
-@end defun
-
-
-@defun array-ptr-c-int16 @var{pointer} @var{index}
-Return a pointer to the the signed exact integer represented by the two
-bytes at @var{index} in the array referenced by @var{pointer}.
-@end defun
-
-
-@defun array-ptr-c-uint16 @var{pointer} @var{index}
-Return a pointer to the unsigned exact integer represented by the two
-bytes at @var{index} in the array referenced by @var{pointer}.
-@end defun
-
-
-@defun array-ptr-c-int32 @var{pointer} @var{index}
-Return a pointer to the signed exact integer represented by the four
-bytes at @var{index} in the array referenced by @var{pointer}.
-@end defun
-
-
-@defun array-ptr-c-uint32 @var{pointer} @var{index}
-Return a pointer to the unsigned exact integer represented by the four
-bytes at @var{index} in the array referenced by @var{pointer}.
-@end defun
-
-
-@defun array-ptr-c-int64 @var{pointer} @var{index}
-Return a pointer to the signed exact integer represented by the eight
-bytes at @var{index} in the array referenced by @var{pointer}.
-@end defun
-
-
-@defun array-ptr-c-uint64 @var{pointer} @var{index}
-Return a pointer to the unsigned exact integer represented by the eight
-bytes at @var{index} in the array referenced by @var{pointer}.
-@end defun
-
-
-@subsubheading Peeking C language exact integers
-
-
-@defun array-ptr-c-signed-char @var{pointer} @var{index}
-Aliases for the @samp{int8} fixed--size array pointer getter.
-@end defun
-
-
-@defun array-ptr-c-unsigned-char @var{pointer} @var{index}
-Aliases for the @samp{uint8} fixed--size array pointer getter.
-@end defun
-
-
-@defun array-ptr-c-signed-short @var{pointer} @var{index}
-Aliases for the fixed--size array pointer getter whose target matches
-the size and range of the @samp{short int} C language type of the
-underlying platform.
-@end defun
-
-
-@defun array-ptr-c-unsigned-short @var{pointer} @var{index}
-Aliases for the fixed--size array pointer getter whose target matches
-the size and range of the @samp{unsigned short int} C language type of
-the underlying platform.
-@end defun
-
-
-@defun array-ptr-c-signed-int @var{pointer} @var{index}
-Aliases for the fixed--size array pointer getter whose target matches
-the size and range of the @samp{int} C language type of the underlying
+@item unsigned-long-long
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{unsigned long long} C language type of the underlying
 platform.
-@end defun
+
+@item size_t
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{size_t} C language type of the underlying platform.
+
+@item ssize_t
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{ssize_t} C language type of the underlying platform.
+
+@item float
+Poke a floating point value; @meta{value} must evaluate to a flonum
+which is convertible C language @samp{float} (an @ieee{} 754 single
+precision floating point number).
+
+@item float
+Poke a floating point value; @meta{value} must evaluate to a flonum
+which is convertible C language @samp{double} (an @ieee{} 754 double
+precision floating point number).
+
+@item pointer
+@itemx void*
+Poke a pointer; @meta{value} must evaluate to a pointer object; the size
+of the pointer (also the number of bytes stored) depends on the
+architecture: it is @math{4} bytes on @math{32}-bits systems and
+@math{8} bytes on @math{64}-bits systems.
+@end table
+@end deffn
 
 
-@defun array-ptr-c-unsigned-int @var{pointer} @var{index}
-Aliases for the fixed--size array pointer getter whose target matches
-the size and range of the @samp{unsigned int} C language type of the
-underlying platform.
-@end defun
+@deffn Syntax array-c-ref @ameta{type} @ameta{pointer} @ameta{index}
+Peek the value located at @meta{index} in the array of @meta{type}
+referenced by @meta{pointer} and return it.  @meta{pointer} must be a
+pointer object; @meta{index} must be an exact integer in the referenced
+array; @meta{type} must be a symbol selecting a C language type.
+
+This is a wrapper for @func{pointer-c-ref}, so all the types supported
+by @func{pointer-c-ref} are supported by @func{array-c-ref}.
+@end deffn
 
 
-@defun array-ptr-c-signed-long @var{pointer} @var{index}
-Aliases for the fixed--size array pointer getter whose target matches
-the size and range of the @samp{long} C language type of the underlying
-platform.
-@end defun
+@deffn Syntax array-c-set! @ameta{type} @ameta{pointer} @ameta{index} @ameta{value}
+Poke @meta{value} to the location @meta{index} in the array of
+@meta{type} referenced by @meta{pointer} and return it.  @meta{pointer}
+must be a pointer object; @meta{index} must be an exact integer in the
+referenced array; @meta{type} must be a symbol selecting a C language
+type.
+
+This is a wrapper for @func{pointer-c-set!}, so all the types supported
+by @func{pointer-c-set!} are supported by @func{array-c-set!}.
+@end deffn
 
 
-@defun array-ptr-c-unsigned-long @var{pointer} @var{index}
-Aliases for the fixed--size array pointer getter whose target matches
-the size and range of the @samp{unsigned long} C language type of the
-underlying platform.
-@end defun
-
-
-@defun array-ptr-c-signed-long-long @var{pointer} @var{index}
-Aliases for the fixed--size array pointer getter whose target matches
-the size and range of the @samp{long long} C language type of the
-underlying platform.
-@end defun
-
-
-@defun array-ptr-c-unsigned-long-long @var{pointer} @var{index}
-Aliases for the fixed--size array pointer getter whose target matches
-the size and range of the @samp{unsigned long long} C language type of
-the underlying platform.
-@end defun
-
-
-@defun array-ptr-c-size_t @var{pointer} @var{index}
-Aliases for the fixed--size array pointer getter whose target matches
-the size and range of the @samp{size_t} C language type of the
-underlying platform.
-@end defun
-
-
-@defun array-ptr-c-ssize_t @var{pointer} @var{index}
-Aliases for the fixed--size array pointer getter whose target matches
-the size and range of the @samp{ssize_t} C language type of the
-underlying platform.
-@end defun
-
-
-@subsubheading Peeking C language floating pointer numbers
-
-
-@defun array-ptr-c-float @var{pointer} @var{index}
-Return a pointer to the four--byte @samp{float} (represented as @ieee{}
-754 single precision floating point number) stored at @var{index} in the
-array referenced by @var{pointer}.
-@end defun
-
-
-@defun array-ptr-c-double @var{pointer} @var{index}
-Return a pointer to the eight--byte @samp{double} (represented as
-@ieee{} 754 double precision floating point number) stored at
-@var{index} in the array referenced by @var{pointer}.
-@end defun
-
-
-@subsubheading Peeking pointers
-
-
-@defun array-ptr-c-pointer @var{pointer} @var{index}
-@defunx array-ptr-c-void* @var{pointer} @var{index}
-Return a pointer to the pointer stored at @var{index} in the array
-referenced by @var{pointer}.
-@end defun
+@deffn Syntax array-c-pointer-to @ameta{type} @ameta{pointer} @ameta{index}
+Return a new pointer object referencing the location at @meta{index} in
+the array of @meta{type} referenced by @meta{pointer}.  All the types
+supported by @func{c-strideof} are supported.
+@end deffn
 
 @c page
 @node ffi core call
@@ -24890,9 +24126,9 @@ in the structure.  Example:
 
 @meta{accessor-name} must be a Scheme symbol.
 @meta{foreign-type-accessor} must be a peeker among the ones defined in
-@ref{ffi core peekers, Peeking values}.  @meta{field-offset} must be an
-exact non--negative integer, representing the offset of the field's
-first byte in the data structure.
+@ref{ffi core access, Direct memory access}.  @meta{field-offset} must
+be an exact non--negative integer, representing the offset of the
+field's first byte in the data structure.
 
 As a special case, if @meta{field-offset} is @false{}: The defined macro
 expands into an invocation of @func{raise-unimplemented-error}, which
@@ -24919,9 +24155,9 @@ wraps the poker @meta{foreign-type-mutator} to mutate the field at
 
 @meta{mutator-name} must be a Scheme symbol.
 @meta{foreign-type-mutator} must be a poker among the ones defined in
-@ref{ffi core pokers, Poking values}.  @meta{field-offset} must be an
-exact non--negative integer, representing the offset of the field's
-first byte in the data structure.
+@ref{ffi core access, Direct memory access}.  @meta{field-offset} must
+be an exact non--negative integer, representing the offset of the
+field's first byte in the data structure.
 
 As a special case, if @meta{field-offset} is @false{}: The defined macro
 expands into an invocation of @func{raise-unimplemented-error}, which

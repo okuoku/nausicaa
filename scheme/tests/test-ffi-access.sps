@@ -35,47 +35,48 @@
 (check-set-mode! 'report-failed)
 (display "*** testing memory\n")
 
-(cond-expand (petite (exit)) (else #f))
+(cond-expand ((or larceny petite) (exit)) (else #f))
 
 
 (parameterize ((check-test-name 'pokers))
 
   (define-syntax doit
     (syntax-rules ()
-      ((_ value setter getter)
+      ((_ ?value ?type)
        (let* ((p #f))
 	 (dynamic-wind
 	     (lambda () (set! p (malloc (expt 10 5))))
 	     (lambda ()
-;;;	       (write (list 'poking value))(newline)
-	       (setter p 100 value)
-	       (let ((v (getter p 100)))
+;;;	       (write (list 'poking ?value))(newline)
+	       (pointer-c-set! ?type p 100 ?value)
+	       (let ((v (pointer-c-ref ?type p 100)))
 ;;;		 (write (list 'peeked v))(newline)
 		 v))
 	     (lambda () (primitive-free p)))))))
   (define-syntax generic-test-it
     (syntax-rules ()
-      ((_ value setter getter)
-       (check (doit value setter getter) => value))))
+      ((_ ?value ?type)
+       (check (doit ?value ?type) => ?value))))
   (define-syntax generic-test-it/error
     (syntax-rules ()
-      ((_ value setter getter)
+      ((_ ?value ?type)
        (check (guard (exc ((condition? exc) #t)
 			  (else #f))
-		(doit value setter getter))
+		(doit ?value ?type))
 	 => #t))))
 
 ;;; --------------------------------------------------------------------
+;;; char
 
   (let ()
     (define-syntax test-it
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it value pointer-set-c-signed-char! pointer-ref-c-signed-char))))
+	 (generic-test-it value signed-char))))
     (define-syntax test-it/error
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it/error value pointer-set-c-signed-char! pointer-ref-c-signed-char))))
+	 (generic-test-it/error value signed-char))))
     (test-it 65)
     (test-it 0)
     (test-it 127)
@@ -87,11 +88,11 @@
     (define-syntax test-it
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it value pointer-set-c-unsigned-char! pointer-ref-c-unsigned-char))))
+	 (generic-test-it value unsigned-char))))
     (define-syntax test-it/error
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it/error value pointer-set-c-unsigned-char! pointer-ref-c-unsigned-char))))
+	 (generic-test-it/error value unsigned-char))))
     (test-it 65)
     (test-it 0)
     (test-it 255)
@@ -99,6 +100,7 @@
     (test-it/error -200))
 
 ;;; --------------------------------------------------------------------
+;;; short
 
   (let* ((bits	16)
 	 (max	(- (expt 2 (- bits 1)) 1))
@@ -106,11 +108,11 @@
     (define-syntax test-it
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it value pointer-set-c-signed-short! pointer-ref-c-signed-short))))
+	 (generic-test-it value signed-short))))
     (define-syntax test-it/error
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it/error value pointer-set-c-signed-short! pointer-ref-c-signed-short))))
+	 (generic-test-it/error value signed-short))))
     (test-it 0)
     (test-it 65)
     (test-it max)
@@ -124,11 +126,11 @@
     (define-syntax test-it
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it value pointer-set-c-unsigned-short! pointer-ref-c-unsigned-short))))
+	 (generic-test-it value unsigned-short))))
     (define-syntax test-it/error
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it/error value pointer-set-c-unsigned-short! pointer-ref-c-unsigned-short))))
+	 (generic-test-it/error value unsigned-short))))
     (test-it 0)
     (test-it 65)
     (test-it max)
@@ -137,20 +139,19 @@
     (test-it/error (- min 100)))
 
 ;;; --------------------------------------------------------------------
+;;; int
 
   (let* ((bits	32)
 	 (max	(- (expt 2 (- bits 1)) 1))
-	 (min	(- (expt 2 (- bits 1))))
-	 (poke pointer-set-c-signed-int!)
-	 (peek pointer-ref-c-signed-int))
+	 (min	(- (expt 2 (- bits 1)))))
     (define-syntax test-it
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it value poke peek))))
+	 (generic-test-it value signed-int))))
     (define-syntax test-it/error
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it/error value pointer-set-c-signed-int! pointer-ref-c-signed-int))))
+	 (generic-test-it/error value signed-int))))
     (test-it 0)
     (test-it 65)
     (test-it max)
@@ -164,11 +165,11 @@
     (define-syntax test-it
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it value pointer-set-c-unsigned-int! pointer-ref-c-unsigned-int))))
+	 (generic-test-it value unsigned-int))))
     (define-syntax test-it/error
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it/error value pointer-set-c-unsigned-int! pointer-ref-c-unsigned-int))))
+	 (generic-test-it/error value unsigned-int))))
     (test-it 0)
     (test-it 65)
     (test-it max)
@@ -177,6 +178,7 @@
     (test-it/error (- min 100)))
 
 ;;; --------------------------------------------------------------------
+;;; long
 
   (let* ((bits	(if (c-inspect on-32-bits-system) 32 64))
 	 (max	(- (expt 2 (- bits 1)) 1))
@@ -184,11 +186,11 @@
     (define-syntax test-it
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it value pointer-set-c-signed-long! pointer-ref-c-signed-long))))
+	 (generic-test-it value signed-long))))
     (define-syntax test-it/error
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it/error value pointer-set-c-signed-long! pointer-ref-c-signed-long))))
+	 (generic-test-it/error value signed-long))))
     (test-it 0)
     (test-it 65)
     (test-it max)
@@ -202,11 +204,11 @@
     (define-syntax test-it
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it value pointer-set-c-unsigned-long! pointer-ref-c-unsigned-long))))
+	 (generic-test-it value unsigned-long))))
     (define-syntax test-it/error
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it/error value pointer-set-c-unsigned-long! pointer-ref-c-unsigned-long))))
+	 (generic-test-it/error value unsigned-long))))
     (test-it 0)
     (test-it 65)
     (test-it max)
@@ -216,6 +218,7 @@
     )
 
 ;;; --------------------------------------------------------------------
+;;; long-long
 
   (let* ((bits	64)
 	 (max	(- (expt 2 (- bits 1)) 1))
@@ -223,12 +226,11 @@
     (define-syntax test-it
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it value pointer-set-c-signed-long-long! pointer-ref-c-signed-long-long))))
+	 (generic-test-it value signed-long-long))))
     (define-syntax test-it/error
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it/error value pointer-set-c-signed-long-long!
-				pointer-ref-c-signed-long-long))))
+	 (generic-test-it/error value signed-long-long))))
     (test-it 0)
     (test-it 65)
     (test-it max)
@@ -243,12 +245,11 @@
     (define-syntax test-it
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it value pointer-set-c-unsigned-long-long! pointer-ref-c-unsigned-long-long))))
+	 (generic-test-it value unsigned-long-long))))
     (define-syntax test-it/error
       (syntax-rules ()
 	((_ value)
-	 (generic-test-it/error value pointer-set-c-unsigned-long-long!
-				pointer-ref-c-unsigned-long-long))))
+	 (generic-test-it/error value unsigned-long-long))))
     (test-it 0)
     (test-it 65)
     (test-it 66)
@@ -259,12 +260,167 @@
     )
 
 ;;; --------------------------------------------------------------------
+;;; int8_t
+
+  (let ()
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value int8_t))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value int8_t))))
+    (test-it 65)
+    (test-it 0)
+    (test-it 127)
+    (test-it -128)
+    (test-it/error 200)
+    (test-it/error -200))
+
+  (let ()
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value uint8_t))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value uint8_t))))
+    (test-it 65)
+    (test-it 0)
+    (test-it 255)
+    (test-it/error 300)
+    (test-it/error -200))
+
+;;; --------------------------------------------------------------------
+;;; int16
+
+  (let* ((bits	16)
+	 (max	(- (expt 2 (- bits 1)) 1))
+	 (min	(- (expt 2 (- bits 1)))))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value int16_t))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value int16_t))))
+    (test-it 0)
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 100))
+    (test-it/error (- min 100)))
+
+  (let* ((bits	16)
+	 (max	(- (expt 2 bits) 1))
+	 (min	0))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value uint16_t))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value uint16_t))))
+    (test-it 0)
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 100))
+    (test-it/error (- min 100)))
+
+;;; --------------------------------------------------------------------
+;;; int32
+
+  (let* ((bits	32)
+	 (max	(- (expt 2 (- bits 1)) 1))
+	 (min	(- (expt 2 (- bits 1)))))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value int32_t))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value int32_t))))
+    (test-it 0)
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 101))
+    (test-it/error (- min 100)))
+
+  (let* ((bits	32)
+	 (max	(- (expt 2 bits) 1))
+	 (min	0))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value uint32_t))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value uint32_t))))
+    (test-it 0)
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 100))
+    (test-it/error (- min 100)))
+
+;;; --------------------------------------------------------------------
+;;; int64
+
+  (let* ((bits	64)
+	 (max	(- (expt 2 (- bits 1)) 1))
+	 (min	(- (expt 2 (- bits 1)))))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value int64_t))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value int64_t))))
+    (test-it 0)
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 100))
+    (test-it/error (- min 100))
+    )
+
+  (let* ((bits	64)
+	 (max	(- (expt 2 bits) 1))
+	 (min	0))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value uint64_t))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value uint64_t))))
+    (test-it 0)
+    (test-it 65)
+    (test-it 66)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 100))
+    (test-it/error (- min 100))
+    )
+
+;;; --------------------------------------------------------------------
+;;; float, double
 
   (check
       (let* ((p (malloc (expt 10 5)))
 	     (d (begin
-		  (pointer-set-c-float! p 64 4.5)
-		  (pointer-ref-c-float p 64))))
+		  (pointer-c-set! float p 64 4.5)
+		  (pointer-c-ref  float p 64))))
 	(primitive-free p)
 	d)
     => 4.5)
@@ -272,20 +428,58 @@
   (check
       (let* ((p (malloc (expt 10 5)))
 	     (d (begin
-		  (pointer-set-c-double! p 64 4.5)
-		  (pointer-ref-c-double p 64))))
+		  (pointer-c-set! double p 64 4.5)
+		  (pointer-c-ref  double p 64))))
 	(primitive-free p)
 	d)
     => 4.5)
 
 ;;; --------------------------------------------------------------------
+;;; size_t, ssize_t
+
+  (let* ((max	(c-valueof ssize_t-max))
+	 (min	(c-valueof ssize_t-min)))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value ssize_t))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value ssize_t))))
+    (test-it 0)
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 101))
+    (test-it/error (- min 100)))
+
+  (let* ((max	(c-valueof size_t-max))
+	 (min	(c-valueof size_t-min)))
+    (define-syntax test-it
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it value size_t))))
+    (define-syntax test-it/error
+      (syntax-rules ()
+	((_ value)
+	 (generic-test-it/error value size_t))))
+    (test-it 0)
+    (test-it 65)
+    (test-it max)
+    (test-it min)
+    (test-it/error (+ max 100))
+    (test-it/error (- min 100)))
+
+;;; --------------------------------------------------------------------
+;;; pointer
 
   (check
       (let* ((p (malloc (expt 10 5))))
 	(begin0
 	    (begin
-	      (pointer-set-c-pointer! p 100 (integer->pointer 90))
-	      (pointer->integer (pointer-ref-c-pointer p 100)))
+	      (pointer-c-set! pointer p 100 (integer->pointer 90))
+	      (pointer->integer (pointer-c-ref pointer p 100)))
 	  (primitive-free p)))
     => 90)
 
@@ -297,55 +491,55 @@
   (check
       (with-compensations
 	(let ((a (malloc/c (c-sizeof char 16))))
-	  (poke-array-signed-char! a 5 65)
-	  (poke-array-unsigned-char! a 6 66)
-	  (list (peek-array-signed-char a 5)
-		(peek-array-unsigned-char a 6))))
+	  (array-c-set! signed-char a 5 65)
+	  (array-c-set! unsigned-char a 6 66)
+	  (list (array-c-ref signed-char a 5)
+		(array-c-ref unsigned-char a 6))))
     => '(65 66))
 
   (check
       (with-compensations
 	(let ((a (malloc/c (c-sizeof int 16))))
-	  (poke-array-signed-int! a 5 65)
-	  (poke-array-unsigned-int! a 6 66)
-	  (list (peek-array-signed-int a 5)
-		(peek-array-unsigned-int a 6))))
+	  (array-c-set! signed-int a 5 65)
+	  (array-c-set! unsigned-int a 6 66)
+	  (list (array-c-ref signed-int a 5)
+		(array-c-ref unsigned-int a 6))))
     => '(65 66))
 
   (check
       (with-compensations
 	(let ((a (malloc/c (c-sizeof short 16))))
-	  (poke-array-signed-short! a 5 65)
-	  (poke-array-unsigned-short! a 6 66)
-	  (list (peek-array-signed-short a 5)
-		(peek-array-unsigned-short a 6))))
+	  (array-c-set! signed-short a 5 65)
+	  (array-c-set! unsigned-short a 6 66)
+	  (list (array-c-ref signed-short a 5)
+		(array-c-ref unsigned-short a 6))))
     => '(65 66))
 
   (check
       (with-compensations
 	(let ((a (malloc/c (c-sizeof long 16))))
-	  (poke-array-signed-long! a 5 65)
-	  (poke-array-unsigned-long! a 6 66)
-	  (list (peek-array-signed-long a 5)
-		(peek-array-unsigned-long a 6))))
+	  (array-c-set! signed-long a 5 65)
+	  (array-c-set! unsigned-long a 6 66)
+	  (list (array-c-ref signed-long a 5)
+		(array-c-ref unsigned-long a 6))))
     => '(65 66))
 
   (check
       (with-compensations
 	(let ((a (malloc/c (c-sizeof long-long 16))))
-	  (poke-array-signed-long-long! a 5 65)
-	  (poke-array-unsigned-long-long! a 6 66)
-	  (list (peek-array-signed-long-long a 5)
-		(peek-array-unsigned-long-long a 6))))
+	  (array-c-set! signed-long-long a 5 65)
+	  (array-c-set! unsigned-long-long a 6 66)
+	  (list (array-c-ref signed-long-long a 5)
+		(array-c-ref unsigned-long-long a 6))))
     => '(65 66))
 
   (check
       (with-compensations
 	(let ((a (malloc/c (c-sizeof float 16))))
-	  (poke-array-float! a 5 65.1)
-	  (poke-array-float! a 6 66.2)
-	  (cons (peek-array-float a 5)
-		(peek-array-float a 6))))
+	  (array-c-set! float a 5 65.1)
+	  (array-c-set! float a 6 66.2)
+	  (cons (array-c-ref float a 5)
+		(array-c-ref float a 6))))
     (=> (lambda (a b)
 	  (and (< (- (car a) (car b)) 0.1)
 	       (< (- (cdr a) (cdr b)) 0.1))))
@@ -354,10 +548,10 @@
   (check
       (with-compensations
 	(let ((a (malloc/c (c-sizeof double 16))))
-	  (poke-array-double! a 5 65.1)
-	  (poke-array-double! a 6 66.2)
-	  (cons (peek-array-double a 5)
-		(peek-array-double a 6))))
+	  (array-c-set! double a 5 65.1)
+	  (array-c-set! double a 6 66.2)
+	  (cons (array-c-ref double a 5)
+		(array-c-ref double a 6))))
     (=> (lambda (a b)
 	  (and (< (- (car a) (car b)) 0.1)
 	       (< (- (cdr a) (cdr b)) 0.1))))
@@ -366,11 +560,11 @@
   (check
       (with-compensations
 	(let ((a (malloc/c (c-sizeof pointer 16))))
-	  (poke-array-pointer! a 5 (integer->pointer 65))
-	  (poke-array-pointer! a 6 (integer->pointer 66))
+	  (array-c-set! pointer a 5 (integer->pointer 65))
+	  (array-c-set! pointer a 6 (integer->pointer 66))
 	  (map pointer->integer
-	    (list (peek-array-pointer a 5)
-		  (peek-array-pointer a 6)))))
+	    (list (array-c-ref pointer a 5)
+		  (array-c-ref pointer a 6)))))
     => '(65 66))
 
   #t)

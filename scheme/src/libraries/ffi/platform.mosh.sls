@@ -37,8 +37,7 @@
 		  open-shared-library	lookup-shared-library
 		  make-c-function	pointer->c-function
 		  make-c-callback	free-c-callback
-		  shared-errno
-		  pointer-ref-c-uint8)
+		  shared-errno)
 	    mosh:))
 
 

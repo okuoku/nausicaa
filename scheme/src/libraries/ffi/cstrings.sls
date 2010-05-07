@@ -77,7 +77,7 @@
    ((cstring size malloc)
     (let* ((p	(malloc (+ 1 size))))
       (memcpy p cstring size)
-      (pointer-set-c-signed-char! p size 0)
+      (pointer-c-set! signed-char p size 0)
       p))))
 
 
@@ -93,9 +93,9 @@
 	   (pointer	(malloc (+ 1 len))))
       (do ((i 0 (+ 1 i)))
 	  ((= i len)
-	   (pointer-set-c-signed-char! pointer i 0)
+	   (pointer-c-set! signed-char pointer i 0)
 	   pointer)
-	(pointer-set-c-signed-char! pointer i (bytevector-s8-ref bv i)))))
+	(pointer-c-set! signed-char pointer i (bytevector-s8-ref bv i)))))
    ((s)
     (string->cstring s malloc))))
 
@@ -111,7 +111,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i len)
 	   (utf8->string bv))
-	(bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))))
+	(bytevector-s8-set! bv i (pointer-c-ref signed-char pointer i)))))))
 
 (define empty-string
   (string->cstring ""))
@@ -130,7 +130,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i len)
 	   (make-<memblock> pointer len len))
-	(pointer-set-c-signed-char! pointer i (bytevector-s8-ref bv i)))))
+	(pointer-c-set! signed-char pointer i (bytevector-s8-ref bv i)))))
    ((s)
     (string->cstring s malloc))))
 
@@ -147,7 +147,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i len)
 	   (utf8->string bv))
-	(bytevector-s8-set! bv i (pointer-ref-c-signed-char pointer i)))))))
+	(bytevector-s8-set! bv i (pointer-c-ref signed-char pointer i)))))))
 
 
 ;;;; null-terminated arrays of strings
@@ -166,13 +166,13 @@
       (do ((i 0 (+ 1 i))
 	   (c args (cdr c)))
 	  ((= i argc)
-	   (array-set-c-pointer! argv argc pointer-null)
+	   (array-c-set! pointer argv argc pointer-null)
 	   argv)
-	(array-set-c-pointer! argv i (car c)))))))
+	(array-c-set! pointer argv i (car c)))))))
 
 (define (argv-length argv)
   (do ((i 0 (+ 1 i)))
-      ((pointer-null? (array-ref-c-pointer argv i))
+      ((pointer-null? (array-c-ref pointer argv i))
        i)
     #f))
 
@@ -183,13 +183,13 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i argc)
 	   (reverse args))
-	(set! args (cons (cstring->string (array-ref-c-pointer argv i)) args)))))
+	(set! args (cons (cstring->string (array-c-ref pointer argv i)) args)))))
    ((argv)
     (let ((args	'()))
       (do ((i 0 (+ 1 i)))
-	  ((pointer-null? (array-ref-c-pointer argv i))
+	  ((pointer-null? (array-c-ref pointer argv i))
 	   (reverse args))
-	(set! args (cons (cstring->string (array-ref-c-pointer argv i)) args)))))))
+	(set! args (cons (cstring->string (array-c-ref pointer argv i)) args)))))))
 
 
 ;;;; done

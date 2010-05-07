@@ -198,7 +198,7 @@
 	     (pointer-incr! buf.pointer-used copy-len)
 	     (+ bv.start copy-len))
 	  (bytevector-u8-set! bv (+ bv.start i)
-			      (pointer-ref-c-uint8 buf.pointer-used i))))))))
+			      (pointer-c-ref uint8_t buf.pointer-used i))))))))
 
 (define %buffer-pop-memblock!
   ;;Fill the  <memblock> BLK, starting  at BLK.START and  sopping before
@@ -245,8 +245,8 @@
 	    ((= i copy-len)
 	     (pointer-incr! buf.pointer-free copy-len)
 	     (+ bv.start copy-len))
-	  (pointer-set-c-uint8! buf.pointer-free i
-				(bytevector-u8-ref bv (+ bv.start i)))))))))
+	  (pointer-c-set! uint8_t buf.pointer-free i
+			  (bytevector-u8-ref bv (+ bv.start i)))))))))
 
 (define %buffer-push-memblock!
   ;;Fill the <buffer>  BUF with bytes from the  <memblock> BLK, starting

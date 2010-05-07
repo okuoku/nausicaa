@@ -46,9 +46,7 @@
   (import (nausicaa)
     (rnrs mutable-strings)
     (ffi pointers)
-    (only (ffi peekers-and-pokers)
-	  pointer-ref-c-uint8
-	  pointer-set-c-uint8!)
+    (ffi peekers-and-pokers)
     (only (ffi memory operations) memcpy))
 
 
@@ -86,7 +84,7 @@
 	 (j 0 (+ 1 j)))
 	((= i len)
 	 (string-upcase str))
-      (let ((hex (number->string (pointer-ref-c-uint8 ptr i) 16)))
+      (let ((hex (number->string (pointer-c-ref uint8_t ptr i) 16)))
 	(if (= 1 (string-length hex))
 	    (begin
 	      (string-set! str j #\0)
@@ -110,7 +108,7 @@
 	   (j  0 (+ 1 j)))
 	  ((= i len)
 	   (make-<memblock> ptr size size))
-	(pointer-set-c-uint8! ptr j (string->number (substring str i i2) 16))))))
+	(pointer-c-set! uint8_t ptr j (string->number (substring str i i2) 16))))))
 
 
 (define (memblock-tail (block <memblock>) tail.size)

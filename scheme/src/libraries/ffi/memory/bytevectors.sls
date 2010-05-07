@@ -47,7 +47,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i number-of-bytes)
 	   p)
-	(pointer-set-c-uint8! p i (bytevector-u8-ref bv (+ i offset))))))))
+	(pointer-c-set! uint8_t p i (bytevector-u8-ref bv (+ i offset))))))))
 
 (define bytevector->memblock
   (case-lambda
@@ -71,7 +71,7 @@
       (do ((i 0 (+ 1 i)))
 	  ((= i number-of-bytes)
 	   bv)
-	(bytevector-u8-set! bv i (pointer-ref-c-uint8 pointer (+ i offset))))))))
+	(bytevector-u8-set! bv i (pointer-c-ref uint8_t pointer (+ i offset))))))))
 
 (define memblock->bytevector
   (case-lambda
