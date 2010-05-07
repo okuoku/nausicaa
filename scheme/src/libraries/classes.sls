@@ -66,7 +66,7 @@
     <real> <real-valued> <complex> <number>)
   (import (rnrs)
     (rnrs mutable-strings)
-    (gensym)
+    (for (gensym) expand)
     (for (classes helpers) expand))
 
 
