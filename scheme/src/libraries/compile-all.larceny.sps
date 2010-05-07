@@ -34,6 +34,9 @@
 (compile-library "cond-expand.larceny.sls"
 		 "cond-expand.larceny.slfasl")
 
+(compile-library "gensym.sls"
+		 "gensym.slfasl")
+
 (compile-library "profiling/compat.larceny.sls"
 		 "profiling/compat.larceny.slfasl")
 
