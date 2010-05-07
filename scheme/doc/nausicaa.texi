@@ -22867,129 +22867,101 @@ returned value must be the pointer object referencing the entity.
 
 The @library{ffi sizeof} library exports a set of bindings to allow
 interface libraries to be aware of C language type sizes and limits.
+when using this library, it is suggeste to import it with prefix
+@samp{ffi:}, because other libraries in the Nausicaa distribution export
+bindings with the same name.
+
+In all the following syntax descriptions: @meta{type name} must a symbol
+representing a C language type; it can be one among:
+
+@example
+int8_t          uint8_t
+int16_t         uint16_t
+int32_t         uint32_t
+int64_t         uint64_t
+
+char            signed-char             unsigned-char
+short           signed-short            unsigned-short
+int             signed-int              unsigned-int
+long            signed-long             unsigned-long
+long-long       signed-long-long        unsigned-long-long
+
+float           double                  long-double
+ssize_t         size_t
+pointer
+@end example
 
 
-@defvr Constant pointer-integer
-Set to a symbol representing one of the unsigned integer types for
-callout arguments and return values.  It is meant to be the integer type
-that is equal in size to a pointer, so it can be used in place of the
-@samp{pointer} type for Scheme implementations that do not have it (for
-example: Larceny checkout 5877).
-@end defvr
+@deffn Syntax c-sizeof @ameta{type name}
+@deffnx Syntax c-sizeof @ameta{type name} @ameta{number of values}
+In the first form: expand to the number of bytes required to hold a
+single value of @meta{type name}.
+
+In the second form: expand to the number of bytes required to hold an
+array of @meta{number of values} of @meta{type name}; this form makes
+use of the correct type stride.  @meta{number of values} must be an
+expression which evaluates to an exact non--negative integer.
+@end deffn
 
 
-@defvr Constant sizeof-int8
-@defvrx Constant sizeof-int16
-@defvrx Constant sizeof-int32
-@defvrx Constant sizeof-int64
-@defvrx Constant sizeof-char
-@defvrx Constant sizeof-short
-@defvrx Constant sizeof-int
-@defvrx Constant sizeof-long
-@defvrx Constant sizeof-long-long
-@defvrx Constant sizeof-float
-@defvrx Constant sizeof-double
-@defvrx Constant sizeof-long-double
-@defvrx Constant sizeof-pointer
-@defvrx Constant sizeof-size_t
-@defvrx Constant sizeof-ssize_t
-The number of bytes in the specified type.
-@end defvr
-
-
-@defvr Constant alignof-int8
-@defvrx Constant alignof-int16
-@defvrx Constant alignof-int32
-@defvrx Constant alignof-int64
-@defvrx Constant alignof-char
-@defvrx Constant alignof-short
-@defvrx Constant alignof-int
-@defvrx Constant alignof-long
-@defvrx Constant alignof-long-long
-@defvrx Constant alignof-float
-@defvrx Constant alignof-double
-@defvrx Constant alignof-long-double
-@defvrx Constant alignof-pointer
-@defvrx Constant alignof-size_t
-@defvrx Constant alignof-ssize_t
-The number of bytes of the alignment in data structures for the
-specified type.
-@end defvr
-
-
-@defvr Constant strideof-int8
-@defvrx Constant strideof-int16
-@defvrx Constant strideof-int32
-@defvrx Constant strideof-int64
-@defvrx Constant strideof-char
-@defvrx Constant strideof-short
-@defvrx Constant strideof-int
-@defvrx Constant strideof-long
-@defvrx Constant strideof-long-long
-@defvrx Constant strideof-float
-@defvrx Constant strideof-double
-@defvrx Constant strideof-long-double
-@defvrx Constant strideof-pointer
-@defvrx Constant strideof-size_t
-@defvrx Constant strideof-ssize_t
-The number of bytes of the array stride for the specified type.
-@end defvr
-
-
-@deffn Syntax sizeof-int8-array @var{number-of-elements}
-@deffnx Syntax sizeof-int16-array @var{number-of-elements}
-@deffnx Syntax sizeof-int32-array @var{number-of-elements}
-@deffnx Syntax sizeof-int64-array @var{number-of-elements}
-@deffnx Syntax sizeof-char-array @var{number-of-elements}
-@deffnx Syntax sizeof-short-array @var{number-of-elements}
-@deffnx Syntax sizeof-int-array @var{number-of-elements}
-@deffnx Syntax sizeof-long-array @var{number-of-elements}
-@deffnx Syntax sizeof-long-long-array @var{number-of-elements}
-@deffnx Syntax sizeof-float-array @var{number-of-elements}
-@deffnx Syntax sizeof-double-array @var{number-of-elements}
-@deffnx Syntax sizeof-long-double-array @var{number-of-elements}
-@deffnx Syntax sizeof-pointer-array @var{number-of-elements}
-@deffnx Syntax sizeof-size_t-array @var{number-of-elements}
-@deffnx Syntax sizeof-ssize_t-array @var{number-of-elements}
-Compute the number of bytes to allocate to hold an array of the
+@deffn Syntax c-alignof @ameta{type name}
+Expand to the number of bytes of alignment in data structures for the
 specified type.
 @end deffn
 
 
-@defvr Constant valueof-char-max
-@defvrx Constant valueof-char-min
-@defvrx Constant valueof-schar-max
-@defvrx Constant valueof-schar-min
-@defvrx Constant valueof-uchar-max
-@defvrx Constant valueof-shrt-max
-@defvrx Constant valueof-shrt-min
-@defvrx Constant valueof-ushrt-max
-@defvrx Constant valueof-int-max
-@defvrx Constant valueof-int-min
-@defvrx Constant valueof-uint-max
-@defvrx Constant valueof-long-max
-@defvrx Constant valueof-long-min
-@defvrx Constant valueof-wchar-max
-@defvrx Constant valueof-ssize-max
-The value of the specified constant.  For example: the value of
-@code{valueof-int-max} is the C language constant @code{INT_MAX}.
-@end defvr
+@deffn Syntax c-strideof @ameta{type name}
+Expand to the number of bytes of array stride for the specified type.
+@end deffn
 
 
-@defvr Constant words-bigendian
-Bound to @true{} if the platform is big endian, @false{} otherwise.
-Notice that this information is also available with the @rnrs{6}
-function @func{native-endianness}.
-@end defvr
+@deffn Syntax c-valueof @ameta{thing}
+Expand to an exact integer representing the value of @meta{thing}, which
+is usually a constant name; for example: the value of @samp{int-max} is
+the C language constant @code{INT_MAX}.  @meta{thing} can be one among:
+
+@example
+char-max        char-min
+schar-max       schar-min       uchar-max
+short-max       short-min       ushort-max
+int-max         int-min         uint-max
+long-max        long-min
+wchar-max
+ssize-max
+@end example
+@end deffn
 
 
-@defvr Constant on-32-bits-system
-@defvrx Constant on-32-bits-systems
-@defvrx Constant on-64-bits-system
-@defvrx Constant on-64-bits-systems
-Bound to true if the platform has words of @math{32} or @math{64} bits
-respectively.
-@end defvr
+@deffn Syntax c-inspect @ameta{thing}
+Expand to a value representing the @meta{thing} property or constant.
+@meta{thing} can be one of the following:
+
+@table @code
+@item pointer-integer
+A symbol representing one of the unsigned integer types for callout
+arguments and return values; it is meant to be the integer type that is
+equal in size to a pointer, so it can be used in place of the
+@samp{pointer} type for Scheme implementations that do not have it.
+
+@item size_t-integer
+@itemx ssize_t-integer
+Symbols representing one of the signed and unsigned integer types for
+callout arguments and return values; it is meant to be the integer type
+that is equal in size to @code{size_t} and @code{ssize_t}.
+
+@item words-bigendian
+It is @true{} if the platform is big endian, @false{} otherwise; notice
+that this information is also available with the @rnrs{6} function
+@func{native-endianness}.
+
+@item on-32-bits-system
+@itemx on-64-bits-system
+@itemx on-32-bits-systems
+@itemx on-64-bits-systems
+It is @true{} if the size of the platform's @code{int} type is @math{32}
+or @math{64} bits respectively.
+@end table
+@end deffn
 
 @c page
 @node ffi core pointers

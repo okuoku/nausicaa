@@ -26,21 +26,12 @@
 
 (library (ffi sizeof)
   (export
-
-    LIBC_SHARED_OBJECT_SPEC
-
-    define-sizeof-utils
+    LIBC_SHARED_OBJECT_SPEC	define-sizeof-utils
     c-sizeof			c-strideof
     c-alignof			c-valueof
-
-    pointer-integer
-    size_t-integer		ssize_t-integer
-
-    words-bigendian
-    on-64-bits-system		on-32-bits-system
-    (rename (on-32-bits-system on-32-bits-systems)
-	    (on-64-bits-system on-64-bits-systems)))
-  (import (rnrs))
+    c-inspect)
+  (import (rnrs)
+    (for (ffi syntax-helpers) expand))
 
 
 (define-syntax define-sizeof-utils
@@ -52,25 +43,15 @@
 	'(begin
 	   (define-syntax c-sizeof
 	     (lambda (stx)
-
-	       (define (%type->id prefix type)
-		 (string->symbol (string-append prefix (symbol->string (syntax->datum type)))))
-	       (define (%type->sizeof type)
-		 (%type->id "sizeof-" type))
-	       (define (%type->strideof type)
-		 (%type->id "strideof-" type))
-
 	       (syntax-case stx ()
 
 		 ((_ ?type ?number-of-elements)
 		  (identifier? #'?type)
-		  (with-syntax ((STRIDEOF (datum->syntax #'c-sizeof (%type->strideof #'?type))))
-		    #'(* STRIDEOF ?number-of-elements)))
+		  #`(* #,(%prepend #'c-sizeof "strideof-" #'?type) ?number-of-elements))
 
-		 ((?k ?type)
+		 ((_ ?type)
 		  (identifier? #'?type)
-		  (with-syntax ((SIZEOF (datum->syntax #'c-sizeof (%type->sizeof #'?type))))
-		    #'(begin SIZEOF)))
+		  #`(begin #,(%prepend #'c-sizeof "sizeof-" #'?type)))
 
 		 (?input-form
 		  (syntax-violation 'c-sizeof
@@ -79,14 +60,11 @@
 
 	   (define-syntax c-strideof
 	     (lambda (stx)
-	       (define (%type->strideof type)
-		 (string->symbol (string-append "strideof-" (symbol->string (syntax->datum type)))))
 	       (syntax-case stx ()
 
 		 ((_ ?type)
 		  (identifier? #'?type)
-		  (with-syntax ((STRIDEOF (datum->syntax #'c-strideof (%type->strideof #'?type))))
-		    #`(begin STRIDEOF)))
+		  #`(begin #,(%prepend #'c-strideof "strideof-" #'?type)))
 
 		 (?input-form
 		  (syntax-violation 'c-strideof
@@ -95,14 +73,11 @@
 
 	   (define-syntax c-alignof
 	     (lambda (stx)
-	       (define (%type->alignof type)
-		 (string->symbol (string-append "alignof-" (symbol->string (syntax->datum type)))))
 	       (syntax-case stx ()
 
 		 ((_ ?type)
 		  (identifier? #'?type)
-		  (with-syntax ((ALIGNOF (datum->syntax #'c-alignof (%type->alignof #'?type))))
-		    #`(begin ALIGNOF)))
+		  #`(begin #,(%prepend #'c-strideof "alignof-" #'?type)))
 
 		 (?input-form
 		  (syntax-violation 'c-alignof
@@ -111,17 +86,27 @@
 
 	   (define-syntax c-valueof
 	     (lambda (stx)
-	       (define (%type->valueof type)
-		 (string->symbol (string-append "valueof-" (symbol->string (syntax->datum type)))))
 	       (syntax-case stx ()
 
-		 ((_ ?type)
-		  (identifier? #'?type)
-		  (with-syntax ((VALUEOF (datum->syntax #'c-valueof (%type->valueof #'?type))))
-		    #`(begin VALUEOF)))
+		 ((_ ?thing)
+		  (identifier? #'?thing)
+		  #`(begin #,(%prepend #'c-strideof "valueof-" #'?thing)))
 
 		 (?input-form
 		  (syntax-violation 'c-valueof
+		    "invalid C language valueof specification"
+		    (syntax->datum #'?input-form))))))
+
+	   (define-syntax c-inspect
+	     (lambda (stx)
+	       (syntax-case stx ()
+
+		 ((_ ?thing)
+		  (identifier? #'?thing)
+		  #`(begin #,(%prepend #'c-inspect "inspect-" #'?thing)))
+
+		 (?input-form
+		  (syntax-violation 'c-inspect
 		    "invalid C language valueof specification"
 		    (syntax->datum #'?input-form))))))
 	   ))))))
@@ -129,15 +114,32 @@
 (define-sizeof-utils)
 
 
-(define sizeof-int8			@SIZEOF_INT8@)
-(define sizeof-int16			@SIZEOF_INT16@)
-(define sizeof-int32			@SIZEOF_INT32@)
-(define sizeof-int64			@SIZEOF_INT64@)
+(define sizeof-int8_t			@SIZEOF_INT8@)
+(define sizeof-int16_t			@SIZEOF_INT16@)
+(define sizeof-int32_t			@SIZEOF_INT32@)
+(define sizeof-int64_t			@SIZEOF_INT64@)
+(define sizeof-uint8_t			sizeof-int8_t)
+(define sizeof-uint16_t			sizeof-int16_t)
+(define sizeof-uint32_t			sizeof-int32_t)
+(define sizeof-uint64_t			sizeof-int64_t)
+
 (define sizeof-char			@SIZEOF_CHAR@)
+(define sizeof-signed-char		sizeof-char)
+(define sizeof-unsigned-char		sizeof-char)
+
 (define sizeof-short			@SIZEOF_SHORT_INT@)
 (define sizeof-int			@SIZEOF_INT@)
 (define sizeof-long			@SIZEOF_LONG@)
 (define sizeof-long-long		@SIZEOF_LLONG@)
+(define sizeof-signed-short		sizeof-short)
+(define sizeof-signed-int		sizeof-int)
+(define sizeof-signed-long		sizeof-long)
+(define sizeof-signed-long-long		sizeof-long-long)
+(define sizeof-unsigned-short		sizeof-short)
+(define sizeof-unsigned-int		sizeof-int)
+(define sizeof-unsigned-long		sizeof-long)
+(define sizeof-unsigned-long-long	sizeof-long-long)
+
 (define sizeof-float			@SIZEOF_FLOAT@)
 (define sizeof-double			@SIZEOF_DOUBLE@)
 (define sizeof-long-double		@SIZEOF_LONG_DOUBLE@)
@@ -145,15 +147,33 @@
 (define sizeof-size_t			@SIZEOF_SIZE_T@)
 (define sizeof-ssize_t			@SIZEOF_SSIZE_T@)
 
-(define alignof-int8			@ALIGNOF_INT8@)
-(define alignof-int16			@ALIGNOF_INT16@)
-(define alignof-int32			@ALIGNOF_INT32@)
-(define alignof-int64			@ALIGNOF_INT64@)
+
+(define alignof-int8_t			@ALIGNOF_INT8@)
+(define alignof-int16_t			@ALIGNOF_INT16@)
+(define alignof-int32_t			@ALIGNOF_INT32@)
+(define alignof-int64_t			@ALIGNOF_INT64@)
+(define alignof-uint8_t			alignof-int8_t)
+(define alignof-uint16_t		alignof-int16_t)
+(define alignof-uint32_t		alignof-int32_t)
+(define alignof-uint64_t		alignof-int64_t)
+
 (define alignof-char			@ALIGNOF_CHAR@)
+(define alignof-signed-char		alignof-char)
+(define alignof-unsigned-char		alignof-char)
+
 (define alignof-short			@ALIGNOF_SHORT_INT@)
 (define alignof-int			@ALIGNOF_INT@)
 (define alignof-long			@ALIGNOF_LONG@)
 (define alignof-long-long		@ALIGNOF_LLONG@)
+(define alignof-signed-short		alignof-short)
+(define alignof-signed-int		alignof-int)
+(define alignof-signed-long		alignof-long)
+(define alignof-signed-long-long	alignof-long-long)
+(define alignof-unsigned-short		alignof-short)
+(define alignof-unsigned-int		alignof-int)
+(define alignof-unsigned-long		alignof-long)
+(define alignof-unsigned-long-long	alignof-long-long)
+
 (define alignof-float			@ALIGNOF_FLOAT@)
 (define alignof-double			@ALIGNOF_DOUBLE@)
 (define alignof-long-double		@ALIGNOF_LONG_DOUBLE@)
@@ -161,15 +181,33 @@
 (define alignof-size_t			@ALIGNOF_SIZE_T@)
 (define alignof-ssize_t			@ALIGNOF_SSIZE_T@)
 
-(define strideof-int8			@STRIDEOF_INT8@)
-(define strideof-int16			@STRIDEOF_INT16@)
-(define strideof-int32			@STRIDEOF_INT32@)
-(define strideof-int64			@STRIDEOF_INT64@)
+
+(define strideof-int8_t			@STRIDEOF_INT8@)
+(define strideof-int16_t		@STRIDEOF_INT16@)
+(define strideof-int32_t		@STRIDEOF_INT32@)
+(define strideof-int64_t		@STRIDEOF_INT64@)
+(define strideof-uint8_t		strideof-int8_t)
+(define strideof-uint16_t		strideof-int16_t)
+(define strideof-uint32_t		strideof-int32_t)
+(define strideof-uint64_t		strideof-int64_t)
+
 (define strideof-char			@STRIDEOF_CHAR@)
+(define strideof-signed-char		strideof-char)
+(define strideof-unsigned-char		strideof-char)
+
 (define strideof-short			@STRIDEOF_SHORT_INT@)
 (define strideof-int			@STRIDEOF_INT@)
 (define strideof-long			@STRIDEOF_LONG@)
 (define strideof-long-long		@STRIDEOF_LLONG@)
+(define strideof-signed-short		strideof-short)
+(define strideof-signed-int		strideof-int)
+(define strideof-signed-long		strideof-long)
+(define strideof-signed-long-long	strideof-long-long)
+(define strideof-unsigned-short		strideof-short)
+(define strideof-unsigned-int		strideof-int)
+(define strideof-unsigned-long		strideof-long)
+(define strideof-unsigned-long-long	strideof-long-long)
+
 (define strideof-float			@STRIDEOF_FLOAT@)
 (define strideof-double			@STRIDEOF_DOUBLE@)
 (define strideof-long-double		@STRIDEOF_LONG_DOUBLE@)
@@ -177,6 +215,7 @@
 (define strideof-size_t			@STRIDEOF_SIZE_T@)
 (define strideof-ssize_t		@STRIDEOF_SSIZE_T@)
 
+
 (define valueof-char-max		@VALUEOF_CHAR_MAX@)
 (define valueof-char-min		@VALUEOF_CHAR_MIN@)
 (define valueof-schar-max		@VALUEOF_SCHAR_MAX@)
@@ -197,14 +236,16 @@
 (define valueof-wchar-max		@VALUEOF_WCHAR_MAX@)
 (define valueof-ssize-max		@VALUEOF_SSIZE_MAX@)
 
-(define pointer-integer			(quote @TYPEOF_POINTER_INTEGER@))
-(define size_t-integer			(quote @TYPEOF_SIZE_T@))
-(define ssize_t-integer			(quote @TYPEOF_SSIZE_T@))
+
+(define inspect-pointer-integer		(quote @TYPEOF_POINTER_INTEGER@))
+(define inspect-size_t-integer		(quote @TYPEOF_SIZE_T@))
+(define inspect-ssize_t-integer		(quote @TYPEOF_SSIZE_T@))
+(define inspect-on-32-bits-system	(= (c-sizeof int) 4))
+(define inspect-on-64-bits-system	(= (c-sizeof int) 8))
+(define inspect-on-32-bits-systems	inspect-on-32-bits-system)
+(define inspect-on-64-bits-systems	inspect-on-64-bits-system)
 
-(define on-32-bits-system		(= sizeof-int 4))
-(define on-64-bits-system		(= sizeof-int 8))
-
-(define words-bigendian			@WORDS_BIGENDIAN@)
+(define inspect-words-bigendian			@WORDS_BIGENDIAN@)
 
 (define LIBC_SHARED_OBJECT_SPEC		"@LIBC_SHARED_OBJECT_SPEC@")
 

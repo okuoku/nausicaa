@@ -178,7 +178,7 @@
 
 ;;; --------------------------------------------------------------------
 
-  (let* ((bits	(if on-32-bits-system 32 64))
+  (let* ((bits	(if (c-inspect on-32-bits-system) 32 64))
 	 (max	(- (expt 2 (- bits 1)) 1))
 	 (min	(- (expt 2 (- bits 1)))))
     (define-syntax test-it
@@ -196,7 +196,7 @@
     (test-it/error (+ max 100))
     (test-it/error (- min 100)))
 
-  (let* ((bits	(if on-32-bits-system 32 64))
+  (let* ((bits	(if (c-inspect on-32-bits-system) 32 64))
 	 (max	(- (expt 2 bits) 1))
 	 (min	0))
     (define-syntax test-it

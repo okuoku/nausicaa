@@ -77,7 +77,7 @@
 	  pointer-set-c-float!
 	  pointer-set-c-double!
 	  pointer-set-c-pointer!)
-    (only (ffi sizeof) on-32-bits-system))
+    (only (ffi sizeof) c-inspect))
 
 
 ;;;; peekers
@@ -159,7 +159,7 @@
   (- const:2^63) (- const:2^63 1) pointer-set-c-long-long!)
 
 (define pointer-set-c-signed-long!
-  (if on-32-bits-system pointer-set-c-signed-int! pointer-set-c-signed-long-long!))
+  (if (c-inspect on-32-bits-system) pointer-set-c-signed-int! pointer-set-c-signed-long-long!))
 
 (define-setter pointer-set-c-unsigned-char!
   0 255 pointer-set-c-char!)
@@ -171,7 +171,7 @@
   0 (- const:2^64 1) pointer-set-c-long-long!)
 
 (define pointer-set-c-unsigned-long!
-  (if on-32-bits-system pointer-set-c-unsigned-int! pointer-set-c-unsigned-long-long!))
+  (if (c-inspect on-32-bits-system) pointer-set-c-unsigned-int! pointer-set-c-unsigned-long-long!))
 
 (define-signed-poker pointer-set-c-int8!	1)
 (define-signed-poker pointer-set-c-int16!	2)
