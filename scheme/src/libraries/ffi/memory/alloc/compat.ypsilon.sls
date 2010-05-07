@@ -32,7 +32,7 @@
     platform-calloc			platform-realloc)
   (import (core)
     (ypsilon ffi)
-    (ffi sizeof)
+    (prefix (ffi sizeof) ffi:)
     (ffi pointers))
 
 
@@ -46,7 +46,7 @@
 ;;integers.
 ;;
 
-(define self (load-shared-object LIBC_SHARED_OBJECT_SPEC))
+(define self (load-shared-object ffi:LIBC_SHARED_OBJECT_SPEC))
 
 (define system-free
   (make-cdecl-callout 'void '(void*) (lookup-shared-object self 'free)))
