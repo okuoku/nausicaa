@@ -871,7 +871,7 @@
   )
 
 
-  (import (except (rnrs) equal-hash finite? infinite? nan? = max)
+  (import (except (rnrs) finite? infinite? nan? = max)
     (only (ikarus) getenv)
     (cond-expand)
     (conditions)
@@ -889,11 +889,6 @@
 
 (define (get-environment-variables)
   (raise-unimplemented-error 'get-environment-variables))
-
-(define (equal-hash obj)
-  (string-hash
-   (call-with-string-output-port
-       (lambda (port) (write obj port)))))
 
 (define max
   (case-lambda
