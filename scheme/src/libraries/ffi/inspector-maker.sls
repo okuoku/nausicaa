@@ -33,7 +33,7 @@
     sizeof-lib-exports
     autoconf-lib		autoconf-lib-write
     define-shared-object
-    structs-lib-write
+    clang-lib-write
 
     class-uid
 
@@ -77,8 +77,8 @@
 		  ch))
 	      str))
 
-
-;;;; Autoconf and Scheme libraries
+(define (format-symbol . args)
+  (string->symbol (apply format args)))
 
 (define class-uid
   (make-parameter "nausicaa:default:"
@@ -90,47 +90,16 @@
 	    (else
 	     (assertion-violation 'class-uid "expected string or symbol as class UID prefix" uid))))))
 
+
+;;;; Autoconf library
+
 (define $autoconf-library	"")
-(define $sizeof-library		'())
-(define $sizeof-lib-exports	'())
-(define $structs-library	'())
-(define $structs-lib-exports	'())
 
 (define (autoconf-lib str)
   ;;Append STR  to the current Autoconf  library; add a new  line at the
   ;;end.
   ;;
   (set! $autoconf-library (string-append $autoconf-library str "\n")))
-
-(define-syntax sizeof-lib
-  (syntax-rules ()
-    ((_ ?sexp0 ?sexp ...)
-     (%sizeof-lib (quote (?sexp0 ?sexp ...))))))
-
-(define (%sizeof-lib sexp)
-  ;;Append an S-expression to the end of the current sizeof library.
-  ;;
-  (set! $sizeof-library (append $sizeof-library sexp)))
-
-(define (%structs-lib sexp)
-  ;;Append an S-expression to the end of the current structs library.
-  ;;
-  (set! $structs-library (append $structs-library sexp)))
-
-(define-syntax sizeof-lib-exports
-  (syntax-rules ()
-    ((_ ?symbol0 ?symbol ...)
-     (%sizeof-lib-exports (quote ?symbol0) (quote ?symbol) ...))))
-
-(define (%sizeof-lib-exports . ell)
-  ;;Add a list of symbols to the list of exports in the sizeof library.
-  ;;
-  (set! $sizeof-lib-exports (append $sizeof-lib-exports ell)))
-
-(define (%structs-lib-exports . ell)
-  ;;Add a list of symbols to the list of exports in the structs library.
-  ;;
-  (set! $structs-lib-exports (append $structs-lib-exports ell)))
 
 (define (autoconf-lib-write filename libname macro-name)
   ;;Write  to  the  specified  FILENAME  the contents  of  the  Autoconf
@@ -146,23 +115,61 @@
     (display "\n\n])\n\n\ndnl end of file\n" port)
     (close-port port)))
 
-(define (sizeof-lib-write filename libname)
+
+
+;;;; Sizeof library
+
+(define $sizeof-library		'())
+(define $sizeof-lib-exports	'())
+
+(define-syntax sizeof-lib
+  (syntax-rules ()
+    ((_ ?sexp0 ?sexp ...)
+     (%sizeof-lib (quote (?sexp0 ?sexp ...))))))
+
+(define (%sizeof-lib sexp)
+  ;;Append an S-expression to the end of the current sizeof library.
+  ;;
+  (set! $sizeof-library (append $sizeof-library sexp)))
+
+(define-syntax sizeof-lib-exports
+  (syntax-rules ()
+    ((_ ?symbol0 ?symbol ...)
+     (%sizeof-lib-exports (quote ?symbol0) (quote ?symbol) ...))))
+
+(define (%sizeof-lib-exports . ell)
+  ;;Add a list of symbols to the list of exports in the sizeof library.
+  ;;
+  (set! $sizeof-lib-exports (append $sizeof-lib-exports ell)))
+
+(define (sizeof-lib-write filename libname libname-clang-types)
   ;;Write to  the specified FILENAME  the contents of the  sizeof Scheme
   ;;library.  LIBNAME must be the library specification.
   ;;
   (let ((libout `(library ,libname
-		   (export ,@$sizeof-lib-exports)
+		   (export
+		     c-sizeof c-strideof c-alignof c-valueof c-inspect
+		     pointer-c-ref pointer-c-set! pointer-c-accessor pointer-c-mutator
+		     array-c-ref array-c-set! array-c-pointer-to
+		     ,@$sizeof-lib-exports
+		     ,@$structs-lib-exports)
 		   (import (rnrs)
-		     (ffi)
-		     (ffi sizeof))
-		   ,@$sizeof-library)))
+		     (only (classes) define-label)
+		     (for ,libname-clang-types expand)
+		     (ffi syntax-helpers)
+		     (prefix (ffi pointers)		ffi:)
+		     (prefix (ffi sizeof)		ffi:)
+		     (prefix (ffi peekers-and-pokers)	ffi:)
+		     (ffi extension-utilities))
+		   (define-sizeof-macros)
+		   ,@$sizeof-library
+		   ,@$structs-library)))
     (let ((strout (call-with-string-output-port
 		      (lambda (port)
-			(pretty-print libout port)))))
+			(display libout port)))))
       (set! strout (hat->at strout))
       (let ((port (transcoded-port (open-file-output-port filename (file-options no-fail))
-				   (make-transcoder (utf-8-codec)))))
-
+       				   (make-transcoder (utf-8-codec)))))
 	(format port ";;; ~s --\n" libname)
 	(display $sizeof-license port)
 	(display "\n\n" port)
@@ -170,27 +177,67 @@
 	(display "\n\n;;; end of file\n" port)
 	(close-port port)))))
 
-(define (structs-lib-write filename structs-libname sizeof-libname)
-  ;;Write to the  specified FILENAME the contents of  the structs Scheme
-  ;;library.   STRUCTS-LIBNAME   must  be  the   library  specification.
-  ;;SIZEOF-LIBNAME  must be  the  specification of  the sizeof  library,
-  ;;which is imported.
+
+;;;; Structs library
+
+(define $structs-library	'())
+(define $structs-lib-exports	'())
+
+(define (%structs-lib sexp)
+  ;;Append an S-expression to the end of the current structs library.
   ;;
-  (let ((libout `(library ,structs-libname
-		   (export ,@$structs-lib-exports)
-		   (import (nausicaa)
-		     (ffi)
-		     ,sizeof-libname)
-		   ,@$structs-library)))
+  (set! $structs-library (append $structs-library sexp)))
+
+(define (%structs-lib-exports . ell)
+  ;;Add a list of symbols to the list of exports in the structs library.
+  ;;
+  (set! $structs-lib-exports (append $structs-lib-exports ell)))
+
+
+;;;; Data types library
+
+(define $clang-library	'())
+(define $clang-type-map	'())
+(define $clang-type-enum '())
+
+(define (%clang-lib sexp)
+  ;;Append an S-expression to the end of the current clang library.
+  ;;
+  (set! $clang-library (append $clang-library sexp)))
+
+(define (%clang-register-type-alias external-type internal-type)
+  (set-cons! $clang-type-map `((,external-type) (quote ,internal-type)))
+  (set-cons! $clang-type-enum external-type))
+
+(define (clang-lib-write filename clang-libname package)
+  ;;Write to  the specified  FILENAME the contents  of the  clang Scheme
+  ;;library.  CLANG-LIBNAME must  be the library specification.  PACKAGE
+  ;;must be the name of the package as a string.
+  ;;
+  (let ((libout `(library ,clang-libname
+		   (export clang-foreign-type->clang-external-type
+			   clang-maybe-foreign-type->clang-external-type
+			   enum-clang-foreign-types clang-external-types)
+		   (import (rnrs))
+		   (define-enumeration enum-clang-foreign-types
+		     ,(reverse $clang-type-enum)
+		     clang-external-types)
+		   (define (clang-foreign-type->clang-external-type type)
+		     (case type
+		       ,@(reverse $clang-type-map)
+		       (else #f)))
+		   (define (clang-maybe-foreign-type->clang-external-type type)
+		     (or (clang-foreign-type->clang-external-type type)
+			 type))
+		   )))
     (let ((strout (call-with-string-output-port
 		      (lambda (port)
 			(pretty-print libout port)))))
       (set! strout (hat->at strout))
       (let ((port (transcoded-port (open-file-output-port filename (file-options no-fail))
 				   (make-transcoder (utf-8-codec)))))
-
-	(format port ";;; ~s --\n" structs-libname)
-	(display $structs-license port)
+	(format port ";;; ~s --\n" clang-libname)
+	(display $clang-license port)
 	(display "\n\n" port)
 	(display strout port)
 	(display "\n\n;;; end of file\n" port)
@@ -215,7 +262,7 @@
   [~a shared library file],[select ~a shared library file])"
 		    varname dnname default-library-name tiname tiname))
     ;;FIXME This will fail with Ikarus up to revision 1870.  Use Mosh!.
-    (let ((at-symbol (string->symbol (format "\"^~a^\"" varname))))
+    (let ((at-symbol (format-symbol "\"^~a^\"" varname)))
       (%sizeof-lib `((define ,varname-sym ,at-symbol)))
       (%sizeof-lib-exports varname-sym))))
 
@@ -238,11 +285,12 @@
   (%register-type enum-name 'signed-int string-typedef)
   (autoconf-lib (format "\ndnl enum ~a" enum-name))
   (for-each (lambda (symbol)
-	      (autoconf-lib (format "NAUSICAA_ENUM_VALUE([~a])" symbol))
-	      (let ((at-symbol (string->symbol (format "^VALUEOF_~a^"
-						 (symbol->string symbol)))))
-		(%sizeof-lib `((define ,symbol ,at-symbol)))
-		(%sizeof-lib-exports symbol)))
+	      (let ((valueof-symbol (string->symbol (string-append "valueof-" (symbol->string symbol)))))
+		(autoconf-lib (format "NAUSICAA_ENUM_VALUE([~a])" symbol))
+		(let ((at-symbol (format-symbol "^VALUEOF_~a^" symbol)))
+		  (%sizeof-lib `((define ,valueof-symbol ,at-symbol)))
+		  ;;(%sizeof-lib-exports symbol)
+		  )))
     symbol-names))
 
 
@@ -262,10 +310,12 @@
 (define (%register-preprocessor-symbols description symbol-names)
   (autoconf-lib (format "\ndnl Preprocessor symbols: ~a" description))
   (for-each (lambda (symbol)
-	      (autoconf-lib (format "NAUSICAA_DEFINE_VALUE([~a])" symbol))
-	      (let ((at-symbol (string->symbol (format "^VALUEOF_~a^" (symbol->string symbol)))))
-		(%sizeof-lib `((define ,symbol ,at-symbol)))
-		(%sizeof-lib-exports symbol)))
+	      (let ((valueof-symbol (string->symbol (string-append "valueof-" (symbol->string symbol)))))
+		(autoconf-lib (format "NAUSICAA_DEFINE_VALUE([~a])" symbol))
+		(let ((at-symbol (format-symbol "^VALUEOF_~a^" symbol)))
+		  (%sizeof-lib `((define ,valueof-symbol ,at-symbol)))
+		  ;;(%sizeof-lib-exports symbol)
+		  )))
     symbol-names))
 
 ;;; --------------------------------------------------------------------
@@ -281,11 +331,12 @@
 (define (%register-string-preprocessor-symbols description symbol-names)
   (autoconf-lib (format "\ndnl String preprocessor symbols: ~a" description))
   (for-each (lambda (symbol)
-	      (autoconf-lib (format "NAUSICAA_STRING_TEST([~a],[~a])" symbol symbol))
-	      (let ((at-symbol (string->symbol (format "\"^STRINGOF_~a^\""
-						 (symbol->string symbol)))))
-		(%sizeof-lib `((define ,symbol ,at-symbol)))
-		(%sizeof-lib-exports symbol)))
+	      (let ((valueof-symbol (string->symbol (string-append "valueof-" (symbol->string symbol)))))
+		(autoconf-lib (format "NAUSICAA_STRING_TEST([~a],[~a])" symbol symbol))
+		(let ((at-symbol (format "\"^STRINGOF_~a^\"" symbol)))
+		  (%sizeof-lib `((define ,valueof-symbol ,at-symbol)))
+		  ;;(%sizeof-lib-exports symbol)
+		  )))
     symbol-names))
 
 
@@ -297,8 +348,10 @@
      (%register-type-alias (quote ?alias) (quote ?type)))))
 
 (define (%register-type-alias alias type)
-  (%sizeof-lib `((define ,alias (quote ,type))))
-  (%sizeof-lib-exports alias))
+  (%clang-register-type-alias alias type)
+;;;  (%sizeof-lib `((define ,alias (quote ,type))))
+;;;  (%sizeof-lib-exports alias)
+  )
 
 
 ;;;; C type inspection
@@ -312,46 +365,27 @@
 
 (define (%register-type name type-category string-typedef)
   (let* ((keyword		(string-upcase (symbol->string name)))
-	 (ac-symbol-typeof		(string->symbol (format "^TYPEOF_~a^"		keyword)))
-	 (ac-symbol-sizeof		(string->symbol (format "^SIZEOF_~a^"		keyword)))
-	 (ac-symbol-alignof	(string->symbol (format "^ALIGNOF_~a^"		keyword)))
-	 (ac-symbol-strideof	(string->symbol (format "^STRIDEOF_~a^"		keyword)))
-	 (ac-symbol-accessor	(string->symbol (format "^GETTEROF_~a^"		keyword)))
-	 (ac-symbol-mutator	(string->symbol (format "^SETTEROF_~a^"		keyword)))
-	 (name-typeof		name)
-	 (name-sizeof		(string->symbol (format "sizeof-~s"		name)))
-	 (name-alignof		(string->symbol (format "alignof-~s"		name)))
-	 (name-strideof		(string->symbol (format "strideof-~s"		name)))
-	 (pointer-accessor	(string->symbol (format "pointer-ref-c-~s"	name)))
-	 (pointer-mutator	(string->symbol (format "pointer-set-c-~s!"	name)))
-	 (array-sizeof		(string->symbol (format "sizeof-~a-array"	name)))
-	 (array-accessor	(string->symbol (format "array-ref-c-~s"	name)))
-	 (array-mutator		(string->symbol (format "array-set-c-~s!"	name))))
-    (autoconf-lib (format "NAUSICAA_INSPECT_TYPE([~a],[~a],[~a],[#f])"
+	 (ac-symbol-typeof	(format-symbol "^TYPEOF_~a^"	keyword))
+;;;	 (ac-symbol-sizeof	(format-symbol "^SIZEOF_~a^"	keyword))
+;;;	 (ac-symbol-alignof	(format-symbol "^ALIGNOF_~a^"	keyword))
+;;;	 (ac-symbol-strideof	(format-symbol "^STRIDEOF_~a^"	keyword))
+;;;	 (name-typeof		name)
+;;;	 (name-sizeof		(format-symbol "sizeof-~s"	name))
+;;;	 (name-alignof		(format-symbol "alignof-~s"	name))
+;;;	 (name-strideof		(format-symbol "strideof-~s"	name))
+	 )
+    (autoconf-lib (format "NAUSICAA_SIZEOF_TEST([~a],[~a])"
+		    keyword string-typedef))
+    (autoconf-lib (format "NAUSICAA_BASE_TYPE_TEST([~a],[~a],[~a])"
 		    keyword string-typedef type-category))
-    (%sizeof-lib `((define ,name-typeof		(quote ,ac-symbol-typeof))
-		   (define ,name-sizeof		,ac-symbol-sizeof)
-		   (define ,name-alignof	,ac-symbol-alignof)
-		   (define ,name-strideof	,ac-symbol-strideof)
-		   (define ,pointer-accessor	,ac-symbol-accessor)
-		   (define ,pointer-mutator	,ac-symbol-mutator)
-		   (define-syntax ,array-sizeof
-		     (syntax-rules ()
-		       ((_ ?number-of-elements)
-			(* ,name-sizeof ?number-of-elements))))
-		   (define-syntax ,array-accessor
-		     (syntax-rules ()
-		       ((_ ?pointer ?index)
-			(,pointer-accessor ?pointer (* ?index ,name-strideof)))))
-		   (define-syntax ,array-mutator
-		     (syntax-rules ()
-		       ((_ ?pointer ?index ?value)
-			(,pointer-mutator  ?pointer (* ?index ,name-strideof) ?value))))))
-    (%sizeof-lib-exports name-typeof
-			 name-sizeof name-alignof name-strideof
-			 pointer-accessor pointer-mutator
-			 array-sizeof
-			 array-accessor array-mutator)))
+;;; (autoconf-lib (format "NAUSICAA_INSPECT_TYPE([~a],[~a],[~a],[#f])"
+;;;                       keyword string-typedef type-category))
+;;; (%sizeof-lib `((define ,name-typeof		(quote ,ac-symbol-typeof))
+;;; 		   (define ,name-sizeof		,ac-symbol-sizeof)
+;;; 		   (define ,name-alignof	,ac-symbol-alignof)
+;;; 		   (define ,name-strideof	,ac-symbol-strideof)))
+;;; (%sizeof-lib-exports name-typeof name-sizeof name-alignof name-strideof)
+    (%clang-register-type-alias name ac-symbol-typeof)))
 
 
 ;;;; C struct type inspection
@@ -368,102 +402,80 @@
 (define (%register-struct-type struct-name struct-string-typedef field-names field-type-categories)
   (autoconf-lib (format "\ndnl Struct inspection: ~a" struct-name))
   (let* ((struct-keyword (string-upcase (symbol->string struct-name)))
-	 (class-name	(format "<struct-~a>" struct-name))
-	 (class-type	(string->symbol class-name))
-	 (struct-uid	(string->symbol (string-append (class-uid) ":" class-name))))
+	 (label-name	(format "<struct-~a>" struct-name))
+	 (label-type	(string->symbol label-name)))
+
+    (%register-type-alias struct-name struct-name)
 
     ;;Output the data structure inspection stuff.
     ;;
-    (let ((ac-symbol-sizeof	(string->symbol (format "^SIZEOF_~a^"	struct-keyword)))
-	  (ac-symbol-alignof	(string->symbol (format "^ALIGNOF_~a^"	struct-keyword)))
-	  (ac-symbol-strideof	(string->symbol (format "^STRIDEOF_~a^"	struct-keyword)))
+    (let ((ac-symbol-sizeof	(format-symbol "^SIZEOF_~a^"	struct-keyword))
+	  (ac-symbol-alignof	(format-symbol "^ALIGNOF_~a^"	struct-keyword))
+	  (ac-symbol-strideof	(format-symbol "^STRIDEOF_~a^"	struct-keyword))
 	  (name-typeof		struct-name)
-	  (name-sizeof		(string->symbol (format "sizeof-~s"	struct-name)))
-	  (name-alignof		(string->symbol (format "alignof-~s"	struct-name)))
-	  (name-strideof	(string->symbol (format "strideof-~s"	struct-name)))
-	  (array-struct-sizeof	 (string->symbol (format "sizeof-~a-array" struct-name)))
-	  (array-struct-accessor (string->symbol (format "array-ref-c-~a" struct-name))))
+	  (name-sizeof		(format-symbol "sizeof-~s"	struct-name))
+	  (name-alignof		(format-symbol "alignof-~s"	struct-name))
+	  (name-strideof	(format-symbol "strideof-~s"	struct-name)))
       (autoconf-lib (format "NAUSICAA_INSPECT_STRUCT_TYPE([~a],[~a],[#f])"
 		      struct-keyword struct-string-typedef))
       (%sizeof-lib `((define ,name-sizeof	,ac-symbol-sizeof)
 		     (define ,name-alignof	,ac-symbol-alignof)
-		     (define ,name-strideof	,ac-symbol-strideof)
-		     (define-syntax ,array-struct-sizeof
-		       (syntax-rules ()
-			 ((_ ?number-of-elements)
-			  (* ,name-strideof ?number-of-elements))))
-		     (define-syntax ,array-struct-accessor
-		       (syntax-rules ()
-			 ((_ ?pointer ?index)
-			  (pointer-add ?pointer (* ?index ,name-strideof)))))))
-      (%sizeof-lib-exports name-sizeof name-alignof name-strideof
-			   array-struct-sizeof array-struct-accessor)
-      (%structs-lib-exports class-type))
+		     (define ,name-strideof	,ac-symbol-strideof)))
+;;;   (%sizeof-lib-exports name-sizeof name-alignof name-strideof)
+      (%structs-lib-exports label-type))
 
     ;;Output the field inspection stuff.
     ;;
-    (let ((class-fields  '())
-	  (class-methods '()))
+    (let ((label-fields  '())
+	  (label-methods '()))
       (for-each
 	  (lambda (field-name field-type-category)
 	    (let* ((field-keyword	(dot->underscore (string-upcase (symbol->string field-name))))
-		   (name-field-accessor	(string->symbol
-					 (format "struct-~a-~a-ref"  struct-name field-name)))
-		   (name-field-mutator	(string->symbol
-					 (format "struct-~a-~a-set!" struct-name field-name)))
-		   (class-field-accessor (string->symbol
-					  (format "~a-~a"      class-type field-name)))
-		   (class-field-mutator	 (string->symbol
-					  (format "~a-~a-set!" class-type field-name)))
-		   (ac-symbol-field-offset	(string->symbol
-						 (format "^OFFSETOF_~a_~a^" struct-keyword field-keyword)))
-		   (ac-symbol-field-accessor (string->symbol
-					      (format "^GETTEROF_~a_~a^" struct-keyword field-keyword)))
-		   (ac-symbol-field-mutator (string->symbol
-					     (format "^SETTEROF_~a_~a^" struct-keyword field-keyword))))
+		   (name-field-accessor
+		    (format-symbol "struct-~a-~a-ref"  struct-name field-name))
+		   (name-field-mutator
+		    (format-symbol "struct-~a-~a-set!" struct-name field-name))
+		   (label-field-accessor
+		    (format-symbol "~a-~a"      label-type field-name))
+		   (label-field-mutator
+		    (format-symbol "~a-~a-set!" label-type field-name))
+		   (ac-symbol-field-typeof
+		    (format-symbol "^TYPEOF_~a_~a^"   struct-keyword field-keyword))
+		   (ac-symbol-field-offset
+		    (format-symbol "^OFFSETOF_~a_~a^" struct-keyword field-keyword)))
 	      (if (eq? 'embedded field-type-category)
 		  (begin
 		    (autoconf-lib (format "NAUSICAA_INSPECT_FIELD_TYPE_POINTER([~a],[~a],[~a])"
 				    (format "~a_~a" struct-keyword field-keyword)
 				    struct-string-typedef field-name))
-		    (%sizeof-lib `((define-c-struct-field-pointer-accessor
-				     ,name-field-accessor ,ac-symbol-field-offset)))
-		    (%sizeof-lib-exports name-field-accessor)
-		    (set-cons! class-fields
-			       `(immutable ,field-name ,name-field-accessor))
-		    (set-cons! class-methods
-			       `((define (,class-field-accessor (o <c-struct>))
-				   (,name-field-accessor o.pointer))))
+		    (set-cons! label-fields `(immutable ,field-name))
+		    (set-cons! label-methods `(define-syntax ,label-field-accessor
+						(syntax-rules ()
+						  ((_ ?pointer)
+						   (pointer-c-ref ,ac-symbol-field-typeof
+								  ?pointer ,ac-symbol-field-offset)))))
 		    )
 		(begin
 		  (autoconf-lib (format "NAUSICAA_INSPECT_FIELD_TYPE([~a],[~a],[~a],[~a])"
 				  (format "~a_~a" struct-keyword field-keyword)
 				  struct-string-typedef field-name field-type-category))
-		  (%sizeof-lib `((define-c-struct-accessor-and-mutator
-				   ,name-field-mutator ,name-field-accessor
-				   ,ac-symbol-field-offset
-				   ,ac-symbol-field-mutator ,ac-symbol-field-accessor)))
-		  (%sizeof-lib-exports name-field-mutator name-field-accessor)
-		  (set-cons! class-fields
-			     `(mutable ,field-name
-				       ,class-field-accessor
-				       ,class-field-mutator))
-		  (set-cons! class-methods
-			     `(define (,class-field-accessor (o <c-struct>))
-				(,name-field-accessor o.pointer)))
-		  (set-cons! class-methods
-			     `(define (,class-field-mutator  (o <c-struct>) new-value)
-				(,name-field-mutator  o.pointer new-value)))
+		  (set-cons! label-fields `(mutable ,field-name))
+		  (set-cons! label-methods `(define-syntax ,label-field-accessor
+					      (syntax-rules ()
+						((_ ?pointer)
+						 (pointer-c-ref ,ac-symbol-field-typeof
+								?pointer ,ac-symbol-field-offset)))))
+		  (set-cons! label-methods `(define-syntax ,label-field-mutator
+					      (syntax-rules ()
+						((_ ?pointer ?value)
+						 (pointer-c-set! ,ac-symbol-field-typeof
+								 ?pointer ,ac-symbol-field-offset
+								 ?value)))))
 		  ))))
 	field-names field-type-categories)
-      (%structs-lib `((define-class ,class-type
-			(virtual-fields ,@class-fields)
-			(protocol (lambda (make-record)
-				    (lambda (pointer)
-				      ((make-record pointer)))))
-			(nongenerative ,struct-uid))
-		      ,@class-methods
-		      )))))
+      (%structs-lib `((define-label ,label-type
+			(virtual-fields ,@label-fields))
+		      ,@label-methods)))))
 
 
 ;;;; license notices
@@ -498,10 +510,10 @@
 ;;;
 "))
 
-(define $structs-license
+(define $clang-license
   (string-append ";;;
 ;;;Part of: Nausicaa
-;;;Contents: foreign library structs fields identifier accessors
+;;;Contents: foreign library C language type mapping
 ;;;Date: " (date->string $date "~a ~b ~e, ~Y") "
 ;;;
 ;;;Abstract

@@ -40,29 +40,39 @@
 
 (parameterize ((check-test-name 'pokers))
 
-  (define-syntax doit
+  (define-syntax doit/set-ref
     (syntax-rules ()
       ((_ ?value ?type)
        (let* ((p #f))
 	 (dynamic-wind
 	     (lambda () (set! p (malloc (expt 10 5))))
 	     (lambda ()
-;;;	       (write (list 'poking ?value))(newline)
 	       (pointer-c-set! ?type p 100 ?value)
-	       (let ((v (pointer-c-ref ?type p 100)))
-;;;		 (write (list 'peeked v))(newline)
-		 v))
+	       (pointer-c-ref ?type p 100))
+	     (lambda () (primitive-free p)))))))
+  (define-syntax doit/accessor-mutator
+    (syntax-rules ()
+      ((_ ?value ?type)
+       (let* ((p #f))
+	 (dynamic-wind
+	     (lambda () (set! p (malloc (expt 10 5))))
+	     (lambda ()
+	       ((pointer-c-mutator  ?type) p 100 ?value)
+	       ((pointer-c-accessor ?type) p 100))
 	     (lambda () (primitive-free p)))))))
   (define-syntax generic-test-it
     (syntax-rules ()
       ((_ ?value ?type)
-       (check (doit ?value ?type) => ?value))))
+       (begin
+	 (check (doit/set-ref ?value ?type) => ?value)
+	 (check (doit/accessor-mutator ?value ?type) => ?value)
+	 ))))
   (define-syntax generic-test-it/error
     (syntax-rules ()
       ((_ ?value ?type)
        (check (guard (exc ((condition? exc) #t)
 			  (else #f))
-		(doit ?value ?type))
+		(doit/set-ref ?value ?type))
 	 => #t))))
 
 ;;; --------------------------------------------------------------------

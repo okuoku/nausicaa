@@ -94,8 +94,9 @@
 ;;; --------------------------------------------------------------------
 ;;; bindings from (ffi peekers-and-pokers)
 
-    pointer-c-ref	pointer-c-set!
-    array-c-ref		array-c-set!
+    pointer-c-ref		pointer-c-set!
+    pointer-c-accessor		pointer-c-mutator
+    array-c-ref			array-c-set!
     array-c-pointer-to)
   (import (nausicaa)
     (ffi memory alloc)

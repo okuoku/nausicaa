@@ -999,6 +999,7 @@ Foreign--functions interface
 
 * ffi core libraries::          Installed libraries.
 * ffi core conditions::         Condition objects.
+* ffi core types::              Interface to C language types.
 * ffi core sizeof::             Sizes and limits.
 * ffi core pointers::           Pointer objects.
 * ffi core access::             Direct access to memory blocks.
@@ -1018,11 +1019,9 @@ Condition objects
 High level interface
 
 * ffi core call shared::        Dynamic loading of libraries.
-* ffi core call types::         Interface to C language types.
 * ffi core call out::           Calling foreign functions.
 * ffi core call back::          Calling Scheme functions.
 * ffi core call utilities::     Utility macros.
-* ffi core call parametrised::  Auxiliary parametrised interface.
 * ffi core call platform::      Low level interface.
 
 Inspecting foreign header files
@@ -22636,6 +22635,7 @@ implementations.
 @menu
 * ffi core libraries::          Installed libraries.
 * ffi core conditions::         Condition objects.
+* ffi core types::              Interface to C language types.
 * ffi core sizeof::             Sizes and limits.
 * ffi core pointers::           Pointer objects.
 * ffi core access::             Direct access to memory blocks.
@@ -22852,554 +22852,8 @@ returned value must be the pointer object referencing the entity.
 @end deffn
 
 @c page
-@node ffi core sizeof
-@subsection Sizes and limits
-
-
-The @library{ffi sizeof} library exports a set of bindings to allow
-interface libraries to be aware of C language type sizes and limits.
-when using this library, it is suggeste to import it with prefix
-@samp{ffi:}, because other libraries in the Nausicaa distribution export
-bindings with the same name.
-
-In all the following syntax descriptions: @meta{type name} must a symbol
-representing a C language type; it can be one among:
-
-@example
-int8_t          uint8_t
-int16_t         uint16_t
-int32_t         uint32_t
-int64_t         uint64_t
-
-char            signed-char             unsigned-char
-short           signed-short            unsigned-short
-int             signed-int              unsigned-int
-long            signed-long             unsigned-long
-long-long       signed-long-long        unsigned-long-long
-
-float           double                  long-double
-ssize_t         size_t
-pointer
-@end example
-
-
-@deffn Syntax c-sizeof @ameta{type name}
-@deffnx Syntax c-sizeof @ameta{type name} @ameta{number of values}
-In the first form: expand to the number of bytes required to hold a
-single value of @meta{type name}.
-
-In the second form: expand to the number of bytes required to hold an
-array of @meta{number of values} of @meta{type name}; this form makes
-use of the correct type stride.  @meta{number of values} must be an
-expression which evaluates to an exact non--negative integer.
-@end deffn
-
-
-@deffn Syntax c-alignof @ameta{type name}
-Expand to the number of bytes of alignment in data structures for the
-specified type.
-@end deffn
-
-
-@deffn Syntax c-strideof @ameta{type name}
-Expand to the number of bytes of array stride for the specified type.
-@end deffn
-
-
-@deffn Syntax c-valueof @ameta{thing}
-Expand to an exact integer representing the value of @meta{thing}, which
-is usually a constant name; for example: the value of @samp{int-max} is
-the C language constant @code{INT_MAX}.  @meta{thing} can be one among:
-
-@example
-char-max        char-min
-schar-max       schar-min       uchar-max
-short-max       short-min       ushort-max
-int-max         int-min         uint-max
-long-max        long-min
-wchar-max
-ssize_t-max     ssize_t-min
-size_t-max      size_t-min
-@end example
-@end deffn
-
-
-@deffn Syntax c-inspect @ameta{thing}
-Expand to a value representing the @meta{thing} property or constant.
-@meta{thing} can be one of the following:
-
-@table @code
-@item pointer-integer
-A symbol representing one of the unsigned integer types for callout
-arguments and return values; it is meant to be the integer type that is
-equal in size to a pointer, so it can be used in place of the
-@samp{pointer} type for Scheme implementations that do not have it.
-
-@item size_t-integer
-@itemx ssize_t-integer
-Symbols representing one of the signed and unsigned integer types for
-callout arguments and return values; it is meant to be the integer type
-that is equal in size to @code{size_t} and @code{ssize_t}.
-
-@item words-bigendian
-It is @true{} if the platform is big endian, @false{} otherwise; notice
-that this information is also available with the @rnrs{6} function
-@func{native-endianness}.
-
-@item on-32-bits-system
-@itemx on-64-bits-system
-@itemx on-32-bits-systems
-@itemx on-64-bits-systems
-It is @true{} if the size of the platform's @code{int} type is @math{32}
-or @math{64} bits respectively.
-@end table
-@end deffn
-
-@c page
-@node ffi core pointers
-@subsection Pointer objects
-
-
-Pointer values are values that the Scheme implementation uses to
-represent memory blocks; they are defined by the predicate
-@func{pointer?}.  Pointers are disjoint from other Scheme object, but
-the specific type used to represent them depends upon the underlying
-Scheme implementation.  The only pointer constructor is
-@func{integer->pointer}.
-
-The following bindings are exported by @library{ffi pointers} and
-re--exported by @library{ffi} and @library{ffi memory}.
-
-
-@defun pointer? @var{x}
-Return @true{} if the value of @var{x} is a value that the Scheme
-implementation uses to represent memory blocks, return @false{}
-otherwise.
-@end defun
-
-
-@defun pointer-null? @var{pointer}
-Return @true{} if @var{pointer} represents a null pointer according to
-the underlying Scheme implementation, @false{} otherwise.
-@end defun
-
-
-@deffn Constant pointer-null
-Holds a null pointer: If @func{pointer->integer} is applied to it the
-result is 0.  This binding exists to hold a prebuilt null pointer to be
-used as return value or function argument, whenever it can make
-algorithms simpler.
-@end deffn
-
-
-@defun pointer->integer @var{pointer}
-Convert a pointer value to an exact integer.
-@end defun
-
-
-@defun integer->pointer @var{exact-integer}
-Convert an exact integer to a pointer value.
-@end defun
-
-
-@defun pointer-diff @var{pointer-1} @var{pointer-2}
-Return the difference between the pointers.  It is implemented as:
-
-@example
-(define (pointer-diff pointer-1 pointer-2)
-  (- (pointer->integer pointer-1)
-     (pointer->integer pointer-2)))
-@end example
-@end defun
-
-
-@defun pointer-add @var{pointer} @var{offset}
-Add an offset to a pointer and return the resulting pointer.  It is
-implemented as:
-
-@example
-(define (pointer-add pointer offset)
-  (integer->pointer (+ (pointer->integer pointer)
-                       offset)))
-@end example
-@end defun
-
-
-@deffn Syntax pointer-incr! @ameta{pointer-var} @ameta{expr}
-Expands to:
-
-@example
-(set! @cmeta{pointer-var} (pointer-add @cmeta{pointer-var} @cmeta{expr}))
-@end example
-@end deffn
-
-
-@deffn Syntax pointer-decr! @ameta{pointer-var} @ameta{expr}
-Expands to:
-
-@example
-(set! @cmeta{pointer-var}
-  (pointer-add @cmeta{pointer-var} (- @cmeta{expr})))
-@end example
-@end deffn
-
-
-@defun pointer=? @varo{pointer} @var{pointer} ...
-@defunx pointer<? @varo{pointer} @var{pointer} ...
-@defunx pointer>? @varo{pointer} @var{pointer} ...
-@defunx pointer<=? @varo{pointer} @var{pointer} ...
-@defunx pointer>=? @varo{pointer} @var{pointer} ...
-@defunx pointer<>? @varo{pointer} @var{pointer} ...
-All the arguments must be pointer values and are internally converted to
-integers.  Return @true{} if the integers satisfy the selected predicate
-(@code{=}, @code{<}, @code{>}, @code{<=}, @code{>=}), otherwise return
-@false{}.  @func{pointer<>?} returns @true{} if all the pointers are
-different.
-
-With the single exception of @func{pointer<>?}: All the functions return
-@true{} when applied to a single argument.
-@end defun
-
-@c page
-@node ffi core access
-@subsection Direct access to memory blocks
-
-
-A rich set of procedures is implemented to access directly memory blocks
-referenced by pointer values; the procedures are accessible through a
-small set of macros.  The bindings described in this section are
-exported by the @library{ffi peekers-and-pokers} library and
-re--exported by @library{ffi} and @library{ffi memory} libraries.
-
-@quotation
-@strong{NOTE} When specifying ranges of exact integers: @math{[1, 3]}
-means a range that is left--inclusive and right--inclusive; @math{[1,
-3)} means a range that is left--inclusive and right--exclusive, that is
-@math{[1, 2]}.
-@end quotation
-
-
-@deffn Syntax pointer-c-ref @ameta{type} @ameta{pointer} @ameta{offset}
-Peek the value located at @meta{offset} from @meta{pointer} and return
-it.  @meta{pointer} must be a pointer object; @meta{offset} must be an
-exact integer which is @strong{not} scaled by the type dimension.
-
-@meta{type} must be a symbol selecting a C language type; it can be one
-of the following:
-
-@table @code
-@item int8_t
-@itemx signed-char
-Peek a single byte and return an exact integer representing the
-sign--extended integer value of that byte; the returned value is in the
-range @math{[-2^7, 2^7)}, that is @math{[-128, 127]}.
-
-@item uint8_t
-@itemx unsigned-char
-Peek a single byte and return an exact integer representing the unsigned
-integer value of that byte; the returned value is in the range @math{[0,
-2^8)}, that is @math{[0, 255]}.
-
-@item int16_t
-Peek two bytes and return an exact integer representing the
-sign--extended integer value of the sequence; the returned value is in
-the range @math{[-2^15, 2^15)}, that is @math{[-32768, 32767]}.
-
-@item uint16_t
-Peek two bytes and return an exact integer representing the unsigned
-integer value of the sequence; the returned value is in the range
-@math{[0, 2^16)}, that is @math{[0, 65535]}.
-
-@item int32_t
-Peek four bytes and return an exact integer in the range @math{[-2^31,
-2^31)}, that is @math{[-2147483648, 2147483647]}.
-
-@item uint32_t
-Peek four bytes and return an exact integer in the range @math{[0,
-2^32)}, that is @math{[0, 4294967295]}.
-
-@item int64_t
-Peek eight bytes and return an exact integer in the range @math{[-2^63,
-2^63)}, that is @math{[9223372036854775808, 9223372036854775807]}.
-
-@item uint64_t @var{pointer} @var{offset}
-Peek eight bytes and return an exact integer in the range @math{[0,
-2^64)}, that is @math{[0, 18446744073709551615]}.
-
-@item signed-short
-Alias for the fixed--size peeker whose target matches the size and range
-of the @samp{short int} C language type of the underlying platform.
-
-@item unsigned-short
-Aliases for the fixed--size peeker whose target matches the size and
-range of the @samp{unsigned short int} C language type of the underlying
-platform.
-
-@item signed-int
-Alias for the fixed--size peeker whose target matches the size and range
-of the @samp{int} C language type of the underlying platform.
-
-@item unsigned-int
-Alias for the fixed--size peeker whose target matches the size and range
-of the @samp{unsigned int} C language type of the underlying platform.
-
-@item signed-long
-Alias for the fixed--size peeker whose target matches the size and range
-of the @samp{long} C language type of the underlying platform.
-
-@item unsigned-long
-Alias for the fixed--size peeker whose target matches the size and range
-of the @samp{unsigned long} C language type of the underlying platform.
-
-@item signed-long-long
-Aliases for the fixed--size peeker whose target matches the size and
-range of the @samp{long long} C language type of the underlying
-platform.
-
-@item unsigned-long-long
-Alias for the fixed--size peeker whose target matches the size and range
-of the @samp{unsigned long long} C language type of the underlying
-platform.
-
-@item size_t
-Alias for the fixed--size peeker whose target matches the size and range
-of the @samp{size_t} C language type of the underlying platform.
-
-@item ssize_t
-Alias for the fixed--size peeker whose target matches the size and range
-of the @samp{ssize_t} C language type of the underlying platform.
-
-@item float
-Peek a flonum Scheme object representing the four--byte @samp{float}
-(represented as @ieee{} 754 single precision floating point number).
-
-@item double
-Peek a flonum Scheme object representing the eight--byte @samp{double}
-(represented as @ieee{} 754 double precision floating point number).
-
-@item pointer
-@itemx void*
-Peek a @samp{pointer} value; the size of the pointer (also the number of
-bytes loaded) depends on the architecture: it is @math{4} bytes on
-@math{32}-bit systems and @math{8} bytes on @math{64}-bit systems.
-@end table
-@end deffn
-
-
-@deffn Syntax pointer-c-set! @ameta{type} @ameta{pointer} @ameta{offset} @ameta{value}
-Poke @ameta{value} in the location @meta{offset} from @meta{pointer}.
-@meta{pointer} must be a pointer object; @meta{offset} must be an exact
-integer which is @strong{not} scaled by the type dimension.
-@meta{value} can be an expression, which is evaluated only once.
-
-@meta{type} must be a symbol selecting a C language type; it can be one
-of the following:
-
-@table @code
-@item int8_t
-@itemx signed-char
-Poke a single byte; @meta{value} must evaluate to an exact integer in
-the range @math{[-2^7, 2^7)}, that is @math{[-128, 127]}.
-
-@item uint8_t
-@itemx unsigned-char
-Poke a single byte; @meta{value} must evaluate to an exact integer in
-the range @math{[0, 2^8)}, that is @math{[0, 255]}.
-
-@item int16_t
-Poke two bytes; @meta{value} must evaluate to an exact integer in the
-range @math{[-2^15, 2^15)}, that is @math{[-32768, 32767]}.
-
-@item uint16_t
-Poke two bytes; @meta{value} must evaluate to an exact integer in the
-range @math{[0, 2^16)}, that is @math{[0, 65535]}.
-
-@item int32_t
-Poke four bytes; @meta{value} must evaluate to an exact integer in the
-range @math{[-2^31, 2^31)}, that is @math{[-2147483648, 2147483647]}.
-
-@item uint32_t
-Poke four bytes; @meta{value} must evaluate to an exact integer in the
-range @math{[0, 2^32)}, that is @math{[0, 4294967295]}.
-
-@item int64_t
-Poke eight bytes; @meta{value} must evaluate to an exact integer in the
-range @math{[-2^63, 2^63)}, that is @math{[9223372036854775808,
-9223372036854775807]}.
-
-@item uint64_t
-Poke eight bytes; @meta{value} must evaluate to an exact integer in the
-range @math{[0, 2^64)}, that is @math{[0, 18446744073709551615]}.
-
-@item signed-short
-Alias for the fixed--size poker whose target matches the size and range
-of the @samp{short int} C language type of the underlying platform.
-
-@item unsigned-short
-Alias for the fixed--size pokers whose target matches the size and range
-of the @samp{unsigned short int} C language type of the underlying
-platform.
-
-@item signed-int
-Alias for the fixed--size pokers whose target matches the size and range
-of the @samp{int} C language type of the underlying platform.
-
-@item unsigned-int
-Alias for the fixed--size pokers whose target matches the size and range
-of the @samp{unsigned int} C language type of the underlying platform.
-
-@item signed-long
-Alias for the fixed--size pokers whose target matches the size and range
-of the @samp{long} C language type of the underlying platform.
-
-@item unsigned-long
-Alias for the fixed--size pokers whose target matches the size and range
-of the @samp{unsigned long} C language type of the underlying platform.
-
-@item signed-long-long
-Alias for the fixed--size pokers whose target matches the size and range
-of the @samp{long long} C language type of the underlying platform.
-
-@item unsigned-long-long
-Alias for the fixed--size pokers whose target matches the size and range
-of the @samp{unsigned long long} C language type of the underlying
-platform.
-
-@item size_t
-Alias for the fixed--size pokers whose target matches the size and range
-of the @samp{size_t} C language type of the underlying platform.
-
-@item ssize_t
-Alias for the fixed--size pokers whose target matches the size and range
-of the @samp{ssize_t} C language type of the underlying platform.
-
-@item float
-Poke a floating point value; @meta{value} must evaluate to a flonum
-which is convertible C language @samp{float} (an @ieee{} 754 single
-precision floating point number).
-
-@item float
-Poke a floating point value; @meta{value} must evaluate to a flonum
-which is convertible C language @samp{double} (an @ieee{} 754 double
-precision floating point number).
-
-@item pointer
-@itemx void*
-Poke a pointer; @meta{value} must evaluate to a pointer object; the size
-of the pointer (also the number of bytes stored) depends on the
-architecture: it is @math{4} bytes on @math{32}-bits systems and
-@math{8} bytes on @math{64}-bits systems.
-@end table
-@end deffn
-
-
-@deffn Syntax array-c-ref @ameta{type} @ameta{pointer} @ameta{index}
-Peek the value located at @meta{index} in the array of @meta{type}
-referenced by @meta{pointer} and return it.  @meta{pointer} must be a
-pointer object; @meta{index} must be an exact integer in the referenced
-array; @meta{type} must be a symbol selecting a C language type.
-
-This is a wrapper for @func{pointer-c-ref}, so all the types supported
-by @func{pointer-c-ref} are supported by @func{array-c-ref}.
-@end deffn
-
-
-@deffn Syntax array-c-set! @ameta{type} @ameta{pointer} @ameta{index} @ameta{value}
-Poke @meta{value} to the location @meta{index} in the array of
-@meta{type} referenced by @meta{pointer} and return it.  @meta{pointer}
-must be a pointer object; @meta{index} must be an exact integer in the
-referenced array; @meta{type} must be a symbol selecting a C language
-type.
-
-This is a wrapper for @func{pointer-c-set!}, so all the types supported
-by @func{pointer-c-set!} are supported by @func{array-c-set!}.
-@end deffn
-
-
-@deffn Syntax array-c-pointer-to @ameta{type} @ameta{pointer} @ameta{index}
-Return a new pointer object referencing the location at @meta{index} in
-the array of @meta{type} referenced by @meta{pointer}.  All the types
-supported by @func{c-strideof} are supported.
-@end deffn
-
-@c page
-@node ffi core call
-@subsection High level interface
-
-
-@menu
-* ffi core call shared::        Dynamic loading of libraries.
-* ffi core call types::         Interface to C language types.
-* ffi core call out::           Calling foreign functions.
-* ffi core call back::          Calling Scheme functions.
-* ffi core call utilities::     Utility macros.
-* ffi core call parametrised::  Auxiliary parametrised interface.
-* ffi core call platform::      Low level interface.
-@end menu
-
-@c page
-@node ffi core call shared
-@subsubsection Dynamic loading of libraries
-
-
-A foreign shared library loadable with the @cfunc{dlopen} @posix{}
-interface is called @dfn{shared object}.  Under @value{PACKAGE}, a
-shared object can be opened, but not closed.  The @api{} makes use of a
-Scheme object to represent a shared object; it allows access to all the
-functions and variables exported by the library.
-
-The following bindings are exported by the @library{ffi primitives}
-library and reexported by the @library{ffi} compound library.
-
-
-@defun open-shared-object @var{library-name}
-Open a foreign shared library on the host system and return a shared
-object; shared objects are disjoint from the other Scheme object types.
-
-If opening the shared library fails: throw a continuable exception with
-@func{raise-shared-object-opening-error}.  @ref{ffi core conditions
-opening, Shared objects opening error}.
-
-@var{library-name} must be a Scheme string or symbol representing the
-file name or pathname to be opened; examples: @samp{zlib.so},
-@samp{zlib.dylib}, @samp{zlib.dll}.  In the case of a name (without
-directory part) the search path for shared objects is implemenation
-dependent.
-
-@quotation
-@strong{For Unix} We can find documentation about the search path of
-shared objects in the manual page of @cfunc{dlopen}.
-@end quotation
-@end defun
-
-
-@defun shared-object? @var{obj}
-Return true if @var{obj} is a shared object.
-@end defun
-
-
-@defun lookup-shared-object @var{shared} @var{foreign-symbol}
-Search the shared object referenced by @var{shared} for an exported
-symbol matching @var{foreign-symbol}, which must be a Scheme symbol or
-string, and return its address as a pointer object.  @ref{ffi core
-pointers, Pointer objects}.
-
-If the foreign symbol is not found: raise a continuable exception with
-@func{raise-shared-object-lookup-error}.  @ref{ffi core conditions
-lookup, Shared objects lookup error}.
-@end defun
-
-
-@defvr Constant libc-shared-object
-Bound to the shared object value identifying the C language runtime
-library.  Notice that we can configure this value at installation time,
-with the @option{--with-libc-shared-object} option to the
-@command{configure} script.
-@end defvr
-
-@c page
-@node ffi core call types
-@subsubsection Interface to C language types
+@node ffi core types
+@subsection Interface to C language types
 
 
 Nausicaa's foreign--functions interface accepts a number of C language
@@ -23447,10 +22901,12 @@ cstrings}.
 @item @code{int}                @tab @code{signed-int}          @tab signed integer
 @item @code{signed-int}         @tab @code{signed-int}          @tab signed integer
 @item @code{ssize_t}            @tab @meta{ssize_t-integer}     @tab signed integer
+@item @code{intptr_t}           @tab @meta{intptr_t-integer}    @tab signed integer
 @item @code{uint} @tab          @code{unsigned-int}             @tab unsigned integer
 @item @code{unsigned}           @tab @code{unsigned-int}        @tab unsigned integer
 @item @code{unsigned-int}       @tab @code{unsigned-int}        @tab unsigned integer
 @item @code{size_t}             @tab @meta{size_t-integer}      @tab unsigned integer
+@item @code{uintptr_t}          @tab @meta{uintptr_t-integer}   @tab unsigned integer
 @item @code{long}               @tab @code{signed-long}         @tab signed integer
 @item @code{signed-long}        @tab @code{signed-long}         @tab signed integer
 @item @code{ulong}              @tab @code{unsigned-long}       @tab unsigned integer
@@ -23672,6 +23128,560 @@ value is @var{stx} itself.
 used by client code.
 @end quotation
 @end defun
+
+@c page
+@node ffi core sizeof
+@subsection Sizes and limits
+
+
+The @library{ffi sizeof} library exports a set of bindings to allow
+interface libraries to be aware of C language type sizes and limits.
+when using this library, it is suggeste to import it with prefix
+@samp{ffi:}, because other libraries in the Nausicaa distribution export
+bindings with the same name.
+
+In all the following syntax descriptions: @meta{type name} must a symbol
+representing an external C language type recognised by the @library{ffi
+clang-data-types} library.
+
+
+@deffn Syntax c-sizeof @ameta{type name}
+@deffnx Syntax c-sizeof @ameta{type name} @ameta{number of values}
+In the first form: expand to the number of bytes required to hold a
+single value of @meta{type name}.
+
+In the second form: expand to the number of bytes required to hold an
+array of @meta{number of values} of @meta{type name}; this form makes
+use of the correct type stride.  @meta{number of values} must be an
+expression which evaluates to an exact non--negative integer.
+@end deffn
+
+
+@deffn Syntax c-alignof @ameta{type name}
+Expand to the number of bytes of alignment in data structures for the
+specified type.
+@end deffn
+
+
+@deffn Syntax c-strideof @ameta{type name}
+Expand to the number of bytes of array stride for the specified type.
+@end deffn
+
+
+@deffn Syntax c-valueof @ameta{thing}
+Expand to an exact integer representing the value of @meta{thing}, which
+is usually a constant name; for example: the value of @samp{int-max} is
+the C language constant @code{INT_MAX}.  @meta{thing} can be one among:
+
+@example
+char-max        char-min
+schar-max       schar-min       uchar-max
+short-max       short-min       ushort-max
+int-max         int-min         uint-max
+long-max        long-min
+wchar-max
+ssize_t-max     ssize_t-min
+size_t-max      size_t-min
+intptr_t-max    intptr_t-min
+uintptr_t-max   uintptr_t-min
+@end example
+@end deffn
+
+
+@deffn Syntax c-inspect @ameta{thing}
+Expand to a value representing the @meta{thing} property or constant.
+@meta{thing} can be one of the following:
+
+@table @code
+@item pointer-integer
+A symbol representing one of the unsigned integer types for callout
+arguments and return values; it is meant to be the integer type that is
+equal in size to a pointer, so it can be used in place of the
+@samp{pointer} type for Scheme implementations that do not have it.
+
+@item words-bigendian
+It is @true{} if the platform is big endian, @false{} otherwise; notice
+that this information is also available with the @rnrs{6} function
+@func{native-endianness}.
+
+@item on-32-bits-system
+@itemx on-64-bits-system
+@itemx on-32-bits-systems
+@itemx on-64-bits-systems
+It is @true{} if the size of the platform's @code{int} type is @math{32}
+or @math{64} bits respectively.
+@end table
+@end deffn
+
+@c page
+@node ffi core pointers
+@subsection Pointer objects
+
+
+Pointer values are values that the Scheme implementation uses to
+represent memory blocks; they are defined by the predicate
+@func{pointer?}.  Pointers are disjoint from other Scheme object, but
+the specific type used to represent them depends upon the underlying
+Scheme implementation.  The only pointer constructor is
+@func{integer->pointer}.
+
+The following bindings are exported by @library{ffi pointers} and
+re--exported by @library{ffi} and @library{ffi memory}.
+
+
+@defun pointer? @var{x}
+Return @true{} if the value of @var{x} is a value that the Scheme
+implementation uses to represent memory blocks, return @false{}
+otherwise.
+@end defun
+
+
+@defun pointer-null? @var{pointer}
+Return @true{} if @var{pointer} represents a null pointer according to
+the underlying Scheme implementation, @false{} otherwise.
+@end defun
+
+
+@deffn Constant pointer-null
+Holds a null pointer: If @func{pointer->integer} is applied to it the
+result is 0.  This binding exists to hold a prebuilt null pointer to be
+used as return value or function argument, whenever it can make
+algorithms simpler.
+@end deffn
+
+
+@defun pointer->integer @var{pointer}
+Convert a pointer value to an exact integer.
+@end defun
+
+
+@defun integer->pointer @var{exact-integer}
+Convert an exact integer to a pointer value.
+@end defun
+
+
+@defun pointer-diff @var{pointer-1} @var{pointer-2}
+Return the difference between the pointers.  It is implemented as:
+
+@example
+(define (pointer-diff pointer-1 pointer-2)
+  (- (pointer->integer pointer-1)
+     (pointer->integer pointer-2)))
+@end example
+@end defun
+
+
+@defun pointer-add @var{pointer} @var{offset}
+Add an offset to a pointer and return the resulting pointer.  It is
+implemented as:
+
+@example
+(define (pointer-add pointer offset)
+  (integer->pointer (+ (pointer->integer pointer)
+                       offset)))
+@end example
+@end defun
+
+
+@deffn Syntax pointer-incr! @ameta{pointer-var} @ameta{expr}
+Expands to:
+
+@example
+(set! @cmeta{pointer-var} (pointer-add @cmeta{pointer-var} @cmeta{expr}))
+@end example
+@end deffn
+
+
+@deffn Syntax pointer-decr! @ameta{pointer-var} @ameta{expr}
+Expands to:
+
+@example
+(set! @cmeta{pointer-var}
+  (pointer-add @cmeta{pointer-var} (- @cmeta{expr})))
+@end example
+@end deffn
+
+
+@defun pointer=? @varo{pointer} @var{pointer} ...
+@defunx pointer<? @varo{pointer} @var{pointer} ...
+@defunx pointer>? @varo{pointer} @var{pointer} ...
+@defunx pointer<=? @varo{pointer} @var{pointer} ...
+@defunx pointer>=? @varo{pointer} @var{pointer} ...
+@defunx pointer<>? @varo{pointer} @var{pointer} ...
+All the arguments must be pointer values and are internally converted to
+integers.  Return @true{} if the integers satisfy the selected predicate
+(@code{=}, @code{<}, @code{>}, @code{<=}, @code{>=}), otherwise return
+@false{}.  @func{pointer<>?} returns @true{} if all the pointers are
+different.
+
+With the single exception of @func{pointer<>?}: All the functions return
+@true{} when applied to a single argument.
+@end defun
+
+@c page
+@node ffi core access
+@subsection Direct access to memory blocks
+
+
+A rich set of procedures is implemented to access directly memory blocks
+referenced by pointer values; the procedures are accessible through a
+small set of macros.  The bindings described in this section are
+exported by the @library{ffi peekers-and-pokers} library and
+re--exported by @library{ffi} and @library{ffi memory} libraries.
+
+@quotation
+@strong{NOTE} When specifying ranges of exact integers: @math{[1, 3]}
+means a range that is left--inclusive and right--inclusive; @math{[1,
+3)} means a range that is left--inclusive and right--exclusive, that is
+@math{[1, 2]}.
+@end quotation
+
+
+@deffn Syntax pointer-c-ref @ameta{type} @ameta{pointer} @ameta{offset}
+Peek the value located at @meta{offset} from @meta{pointer} and return
+it.  @meta{pointer} must be a pointer object; @meta{offset} must be an
+exact integer which is @strong{not} scaled by the type dimension.
+
+@meta{type} can be any of the external--type symbols recognised by the
+@library{ffi clang-data-types} library; in particular the meaning of the
+basic types is as follows:
+
+@table @code
+@item int8_t
+@itemx signed-char
+Peek a single byte and return an exact integer representing the
+sign--extended integer value of that byte; the returned value is in the
+range @math{[-2^7, 2^7)}, that is @math{[-128, 127]}.
+
+@item uint8_t
+@itemx unsigned-char
+Peek a single byte and return an exact integer representing the unsigned
+integer value of that byte; the returned value is in the range @math{[0,
+2^8)}, that is @math{[0, 255]}.
+
+@item int16_t
+Peek two bytes and return an exact integer representing the
+sign--extended integer value of the sequence; the returned value is in
+the range @math{[-2^15, 2^15)}, that is @math{[-32768, 32767]}.
+
+@item uint16_t
+Peek two bytes and return an exact integer representing the unsigned
+integer value of the sequence; the returned value is in the range
+@math{[0, 2^16)}, that is @math{[0, 65535]}.
+
+@item int32_t
+Peek four bytes and return an exact integer in the range @math{[-2^31,
+2^31)}, that is @math{[-2147483648, 2147483647]}.
+
+@item uint32_t
+Peek four bytes and return an exact integer in the range @math{[0,
+2^32)}, that is @math{[0, 4294967295]}.
+
+@item int64_t
+Peek eight bytes and return an exact integer in the range @math{[-2^63,
+2^63)}, that is @math{[9223372036854775808, 9223372036854775807]}.
+
+@item uint64_t @var{pointer} @var{offset}
+Peek eight bytes and return an exact integer in the range @math{[0,
+2^64)}, that is @math{[0, 18446744073709551615]}.
+
+@item signed-short
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{short int} C language type of the underlying platform.
+
+@item unsigned-short
+Aliases for the fixed--size peeker whose target matches the size and
+range of the @samp{unsigned short int} C language type of the underlying
+platform.
+
+@item signed-int
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{int} C language type of the underlying platform.
+
+@item unsigned-int
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{unsigned int} C language type of the underlying platform.
+
+@item signed-long
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{long} C language type of the underlying platform.
+
+@item unsigned-long
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{unsigned long} C language type of the underlying platform.
+
+@item signed-long-long
+Aliases for the fixed--size peeker whose target matches the size and
+range of the @samp{long long} C language type of the underlying
+platform.
+
+@item unsigned-long-long
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{unsigned long long} C language type of the underlying
+platform.
+
+@item size_t
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{size_t} C language type of the underlying platform.
+
+@item ssize_t
+Alias for the fixed--size peeker whose target matches the size and range
+of the @samp{ssize_t} C language type of the underlying platform.
+
+@item float
+Peek a flonum Scheme object representing the four--byte @samp{float}
+(represented as @ieee{} 754 single precision floating point number).
+
+@item double
+Peek a flonum Scheme object representing the eight--byte @samp{double}
+(represented as @ieee{} 754 double precision floating point number).
+
+@item pointer
+@itemx void*
+Peek a @samp{pointer} value; the size of the pointer (also the number of
+bytes loaded) depends on the architecture: it is @math{4} bytes on
+@math{32}-bit systems and @math{8} bytes on @math{64}-bit systems.
+@end table
+@end deffn
+
+
+@deffn Syntax pointer-c-set! @ameta{type} @ameta{pointer} @ameta{offset} @ameta{value}
+Poke @ameta{value} in the location @meta{offset} from @meta{pointer}.
+@meta{pointer} must be a pointer object; @meta{offset} must be an exact
+integer which is @strong{not} scaled by the type dimension.
+@meta{value} can be an expression, which is evaluated only once.
+
+@meta{type} can be any of the external--type symbols recognised by the
+@library{ffi clang-data-types} library; in particular the meaning of the
+basic types is as follows:
+
+@table @code
+@item int8_t
+@itemx signed-char
+Poke a single byte; @meta{value} must evaluate to an exact integer in
+the range @math{[-2^7, 2^7)}, that is @math{[-128, 127]}.
+
+@item uint8_t
+@itemx unsigned-char
+Poke a single byte; @meta{value} must evaluate to an exact integer in
+the range @math{[0, 2^8)}, that is @math{[0, 255]}.
+
+@item int16_t
+Poke two bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[-2^15, 2^15)}, that is @math{[-32768, 32767]}.
+
+@item uint16_t
+Poke two bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[0, 2^16)}, that is @math{[0, 65535]}.
+
+@item int32_t
+Poke four bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[-2^31, 2^31)}, that is @math{[-2147483648, 2147483647]}.
+
+@item uint32_t
+Poke four bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[0, 2^32)}, that is @math{[0, 4294967295]}.
+
+@item int64_t
+Poke eight bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[-2^63, 2^63)}, that is @math{[9223372036854775808,
+9223372036854775807]}.
+
+@item uint64_t
+Poke eight bytes; @meta{value} must evaluate to an exact integer in the
+range @math{[0, 2^64)}, that is @math{[0, 18446744073709551615]}.
+
+@item signed-short
+Alias for the fixed--size poker whose target matches the size and range
+of the @samp{short int} C language type of the underlying platform.
+
+@item unsigned-short
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{unsigned short int} C language type of the underlying
+platform.
+
+@item signed-int
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{int} C language type of the underlying platform.
+
+@item unsigned-int
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{unsigned int} C language type of the underlying platform.
+
+@item signed-long
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{long} C language type of the underlying platform.
+
+@item unsigned-long
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{unsigned long} C language type of the underlying platform.
+
+@item signed-long-long
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{long long} C language type of the underlying platform.
+
+@item unsigned-long-long
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{unsigned long long} C language type of the underlying
+platform.
+
+@item size_t
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{size_t} C language type of the underlying platform.
+
+@item ssize_t
+Alias for the fixed--size pokers whose target matches the size and range
+of the @samp{ssize_t} C language type of the underlying platform.
+
+@item float
+Poke a floating point value; @meta{value} must evaluate to a flonum
+which is convertible C language @samp{float} (an @ieee{} 754 single
+precision floating point number).
+
+@item float
+Poke a floating point value; @meta{value} must evaluate to a flonum
+which is convertible C language @samp{double} (an @ieee{} 754 double
+precision floating point number).
+
+@item pointer
+@itemx void*
+Poke a pointer; @meta{value} must evaluate to a pointer object; the size
+of the pointer (also the number of bytes stored) depends on the
+architecture: it is @math{4} bytes on @math{32}-bits systems and
+@math{8} bytes on @math{64}-bits systems.
+@end table
+@end deffn
+
+
+@deffn Syntax array-c-ref @ameta{type} @ameta{pointer} @ameta{index}
+Peek the value located at @meta{index} in the array of @meta{type}
+referenced by @meta{pointer} and return it.  @meta{pointer} must be a
+pointer object; @meta{index} must be an exact integer in the referenced
+array; @meta{type} must be a symbol selecting a C language type.
+
+This is a wrapper for @func{pointer-c-ref}, so all the types supported
+by @func{pointer-c-ref} are supported by @func{array-c-ref}.
+@end deffn
+
+
+@deffn Syntax pointer-c-accessor @ameta{type}
+Expand to an expression returning the pointer accessor function for
+@meta{type}; the returned function accepts two arguments: a pointer
+object, an offset from the pointer object.  @meta{type} can be any of
+the external--type symbols recognised by the @library{ffi
+clang-data-types} library.
+@end deffn
+
+
+@deffn Syntax pointer-c-mutator @ameta{type}
+Expand to an expression returning the pointer mutator function for
+@meta{type}; the returned function accepts three arguments: a pointer
+object, an offset from the pointer object, the value to store at the
+selected location.  @meta{type} can be any of the external--type symbols
+recognised by the @library{ffi clang-data-types} library.
+@end deffn
+
+
+@deffn Syntax array-c-ref @ameta{type} @ameta{pointer} @ameta{index}
+Peek the value at @meta{index} in the array of @meta{type} referenced by
+@meta{pointer} and return it.  @meta{pointer} must be a pointer object;
+@meta{index} must be an exact integer representing an index in the
+referenced array; @meta{type} can be any of the external--type symbols
+recognised by the @library{ffi clang-data-types} library.
+@end deffn
+
+
+@deffn Syntax array-c-set! @ameta{type} @ameta{pointer} @ameta{index} @ameta{value}
+Poke @meta{value} to the location @meta{index} in the array of
+@meta{type} referenced by @meta{pointer} and return it.  @meta{pointer}
+must be a pointer object; @meta{index} must be an exact integer
+representing an index in the referenced array; @meta{type} can be any of
+the external--type symbols recognised by the @library{ffi
+clang-data-types} library.
+@end deffn
+
+
+@deffn Syntax array-c-pointer-to @ameta{type} @ameta{pointer} @ameta{index}
+Return a new pointer object referencing the location at @meta{index} in
+the array of @meta{type} referenced by @meta{pointer}.  @meta{pointer}
+must be a pointer object; @meta{index} must be an exact integer
+representing an index in the referenced array; @meta{type} can be any of
+the external--type symbols recognised by the @library{ffi
+clang-data-types} library.
+@end deffn
+
+@c page
+@node ffi core call
+@subsection High level interface
+
+
+@menu
+* ffi core call shared::        Dynamic loading of libraries.
+* ffi core call out::           Calling foreign functions.
+* ffi core call back::          Calling Scheme functions.
+* ffi core call utilities::     Utility macros.
+* ffi core call platform::      Low level interface.
+@end menu
+
+@c page
+@node ffi core call shared
+@subsubsection Dynamic loading of libraries
+
+
+A foreign shared library loadable with the @cfunc{dlopen} @posix{}
+interface is called @dfn{shared object}.  Under @value{PACKAGE}, a
+shared object can be opened, but not closed.  The @api{} makes use of a
+Scheme object to represent a shared object; it allows access to all the
+functions and variables exported by the library.
+
+The following bindings are exported by the @library{ffi primitives}
+library and reexported by the @library{ffi} compound library.
+
+
+@defun open-shared-object @var{library-name}
+Open a foreign shared library on the host system and return a shared
+object; shared objects are disjoint from the other Scheme object types.
+
+If opening the shared library fails: throw a continuable exception with
+@func{raise-shared-object-opening-error}.  @ref{ffi core conditions
+opening, Shared objects opening error}.
+
+@var{library-name} must be a Scheme string or symbol representing the
+file name or pathname to be opened; examples: @samp{zlib.so},
+@samp{zlib.dylib}, @samp{zlib.dll}.  In the case of a name (without
+directory part) the search path for shared objects is implemenation
+dependent.
+
+@quotation
+@strong{For Unix} We can find documentation about the search path of
+shared objects in the manual page of @cfunc{dlopen}.
+@end quotation
+@end defun
+
+
+@defun shared-object? @var{obj}
+Return true if @var{obj} is a shared object.
+@end defun
+
+
+@defun lookup-shared-object @var{shared} @var{foreign-symbol}
+Search the shared object referenced by @var{shared} for an exported
+symbol matching @var{foreign-symbol}, which must be a Scheme symbol or
+string, and return its address as a pointer object.  @ref{ffi core
+pointers, Pointer objects}.
+
+If the foreign symbol is not found: raise a continuable exception with
+@func{raise-shared-object-lookup-error}.  @ref{ffi core conditions
+lookup, Shared objects lookup error}.
+@end defun
+
+
+@defvr Constant libc-shared-object
+Bound to the shared object value identifying the C language runtime
+library.  Notice that we can configure this value at installation time,
+with the @option{--with-libc-shared-object} option to the
+@command{configure} script.
+@end defvr
 
 @c page
 @node ffi core call out
@@ -23946,76 +23956,6 @@ An interface to the above macros.  Example:
   (deflateEnd   (int deflateEnd   (z_streamp))))
 @end example
 @end deffn
-
-@c page
-@node ffi core call parametrised
-@subsubsection Auxiliary parametrised interface
-
-
-The following bindings are exported by the @library{ffi parametrised}
-library.  This interface is deprecated.
-
-
-@deffn Parameter current-shared-object
-Holds a value referencing the ``current'' shared object; the initial
-value is @samp{libc-shared-object}.
-@end deffn
-
-
-@deffn Syntax define-c-function @ameta{pub-name} (@ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...))
-@deffnx Syntax define-c-function/with-errno @ameta{pub-name} (@ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...))
-Wrappers for @func{make-c-function*} and
-@func{make-c-function/with-errno*} that define a binding for the callout
-closure.  The function symbols are searched in the shared object
-selected by the @func{current-shared-object} parameter.
-
-As an example, the main deflate functions from Zlib can be defined with:
-
-@example
-(define dummy
-  (current-shared-object
-     (open-shared-object* 'libz.so)))
-
-(define z_streamp 'z_streamp)
-
-(define-c-function deflateInit
-  (int deflateInit_ (z_streamp int)))
-
-(define-c-function deflate
-  (int deflate (z_streamp int)))
-
-(define-c-function deflateEnd
-  (int deflateEnd (z_streamp)))
-@end example
-
-@noindent
-other, miscellaneous, examples from the C standard library and the
-@posix{} interface:
-
-@example
-(define dummy
-  (current-shared-object self-shared-object))
-
-(define-c-function/with-errno fopen
-  (void* fopen (void* void*)))
-
-(define-c-function/with-errno fwrite
-  (size_t fwrite (void* size_t size_t void*)))
-
-(define-c-function/with-errno fread
-  (size_t fread (void* size_t size_t void*)))
-
-(define-c-function/with-errno open
-  (int open (void* int)))
-
-(define-c-function/with-errno write
-  (ssize_t write (int void* size_t)))
-
-(define-c-function/with-errno read
-  (ssize_t read (int void* size_t)))
-@end example
-@end deffn
-
 
 @c page
 @node ffi core call platform

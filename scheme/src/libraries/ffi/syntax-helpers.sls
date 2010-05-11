@@ -26,21 +26,43 @@
 
 
 (library (ffi syntax-helpers)
-  (export %prepend %enclose)
+  (export %prepend %enclose map-identifier-syntax-object
+	  syntax->list)
   (import (rnrs))
 
 
-(define (%prepend context prefix identifier)
-  (datum->syntax context
-		 (string->symbol
-		  (string-append prefix (symbol->string (syntax->datum identifier))))))
+(define (%prepend context/stx prefix identifier/stx)
+  (datum->syntax context/stx
+		 (string->symbol (string-append prefix
+						(symbol->string
+						 (if (symbol? identifier/stx)
+						     identifier/stx
+						   (syntax->datum identifier/stx)))))))
 
-(define (%enclose context prefix identifier suffix)
-  (datum->syntax context
-		 (string->symbol
-		  (string-append prefix
-				 (symbol->string (syntax->datum identifier))
-				 suffix))))
+(define (%enclose context/stx prefix identifier/stx suffix)
+  (datum->syntax context/stx
+		 (string->symbol (string-append prefix
+						(symbol->string
+						 (if (symbol? identifier/stx)
+						     identifier/stx
+						   (syntax->datum identifier/stx)))
+						suffix))))
+
+(define (map-identifier-syntax-object proc stx)
+  (datum->syntax stx (proc (syntax->datum stx))))
+
+(define (syntax->list stx)
+  ;;Given a syntax object STX holding  a list, decompose it and return a
+  ;;list of syntax  objects.  Take care of returning  a proper list when
+  ;;the input is a syntax object holding a proper list.
+  ;;
+  ;;This functions  provides a workaround  for bugs in Ikarus  and Mosh,
+  ;;which expand syntax objects holding a list into IMproper lists.
+  ;;
+  (syntax-case stx ()
+    (()			'())
+    ((?car . ?cdr)	(cons (syntax->list #'?car) (syntax->list #'?cdr)))
+    (?atom		#'?atom)))
 
 
 ;;;; done

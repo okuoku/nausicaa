@@ -63,9 +63,9 @@
     define-c-struct-accessor		define-c-struct-mutator
     define-c-struct-accessor-and-mutator
     define-c-struct-field-pointer-accessor
+    define-c-struct-accessor-and-mutator/from-type
 
 ;;; bindings from (ffi utilities)
-    <c-struct>
     define-shared-object
     define-c-functions			define-c-functions/with-errno
     define-c-callouts			define-c-callouts/with-errno
@@ -84,8 +84,8 @@
     pointer<=?				pointer>=?
 
 ;;; bindings from (ffi peekers-and-pokers)
-
     pointer-c-ref			pointer-c-set!
+    pointer-c-accessor			pointer-c-mutator
     array-c-ref				array-c-set!
     array-c-pointer-to)
   (import (rnrs)

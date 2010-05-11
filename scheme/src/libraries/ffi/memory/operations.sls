@@ -27,11 +27,15 @@
 (library (ffi memory operations)
   (export memset memmove memcpy memcmp)
   (import (rnrs)
-    (ffi))
+    (only (ffi)
+	  libc-shared-object
+	  define-c-functions)
+    (only (ffi clang-data-types)
+	  clang-maybe-foreign-type->clang-external-type))
   (define-c-functions libc-shared-object
-    (memset		(void* memset  (void* int   size_t)))
-    (memmove		(void* memmove (void* void* size_t)))
-    (memcpy		(void* memcpy  (void* void* size_t)))
-    (memcmp		(int   memcmp  (void* void* size_t)))))
+    (memset	(void* memset  (void* int   size_t)))
+    (memmove	(void* memmove (void* void* size_t)))
+    (memcpy	(void* memcpy  (void* void* size_t)))
+    (memcmp	(int   memcmp  (void* void* size_t)))))
 
 ;;; end of file

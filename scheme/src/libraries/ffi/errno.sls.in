@@ -93,8 +93,13 @@
     EUNATCH		EUSERS		EWOULDBLOCK
     EXDEV		EXFULL)
   (import (rnrs)
-    (ffi cstrings)
-    (ffi))
+    (only (ffi)
+	  define-c-functions
+	  libc-shared-object)
+    (only (ffi clang-data-types)
+	  clang-maybe-foreign-type->clang-external-type)
+    (only (ffi cstrings)
+	  cstring->string))
 
 
 ;;;; constants

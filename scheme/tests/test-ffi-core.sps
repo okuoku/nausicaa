@@ -29,6 +29,7 @@
   (ffi memory)
   (ffi cstrings)
   (ffi errno)
+  (ffi clang-data-types)
   (checks)
   (compensations))
 

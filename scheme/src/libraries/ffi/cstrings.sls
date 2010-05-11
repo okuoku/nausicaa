@@ -48,9 +48,13 @@
     strings->argv		argv->strings
     argv-length)
   (import (nausicaa)
-    (ffi)
+    (only (ffi)
+	  libc-shared-object
+	  define-c-functions)
     (ffi sizeof)
     (ffi memory)
+    (only (ffi clang-data-types)
+	  clang-maybe-foreign-type->clang-external-type)
     (compensations))
 
 

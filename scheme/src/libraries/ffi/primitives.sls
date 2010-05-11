@@ -36,7 +36,7 @@
     define-c-struct-accessor		define-c-struct-mutator
     define-c-struct-accessor-and-mutator
     define-c-struct-field-pointer-accessor
-    <c-struct>)
+    define-c-struct-accessor-and-mutator/from-type)
   (import (nausicaa)
     (ffi sizeof)
     (ffi conditions)
@@ -96,14 +96,14 @@
 
 
 (define (make-c-function shared-object ret-type funcname arg-types)
-  (make-c-callout ret-type
+  (make-c-callout (clang-external-type->clang-type ret-type)
 		  (lookup-shared-object shared-object (%normalise-foreign-symbol funcname))
-		  arg-types))
+		  (map clang-external-type->clang-type arg-types)))
 
 (define (make-c-function/with-errno shared-object ret-type funcname arg-types)
-  (make-c-callout/with-errno ret-type
+  (make-c-callout/with-errno (clang-external-type->clang-type ret-type)
 			     (lookup-shared-object shared-object (%normalise-foreign-symbol funcname))
-			     arg-types))
+			     (map clang-external-type->clang-type arg-types)))
 
 (define (make-c-callout ret-type address arg-types)
   (platform:make-c-callout (clang-external-type->clang-type ret-type)
@@ -172,12 +172,35 @@
 	       ((_ struct-pointer)
 		(raise-unimplemented-error (quote ?accessor-name))))))))))
 
-(define-class <c-struct>
-  (fields (immutable pointer))
-  (protocol (lambda (make-top)
-	      (lambda (pointer)
-		((make-top) pointer))))
-  (nongenerative nausicaa:ffi:<c-struct>))
+
+(define-syntax define-c-struct-accessor-and-mutator/from-type
+  (syntax-rules ()
+    ((_ ?mutator-name ?accessor-name ?field-offset ?type)
+     (begin
+       (define-c-struct-accessor/from-type ?accessor-name ?field-offset ?type)
+       (define-c-struct-mutator/from-type  ?mutator-name  ?field-offset ?type)))))
+
+(define-syntax define-c-struct-accessor/from-type
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?accessor-name ?field-offset ?type)
+       #`(define-syntax ?accessor-name
+	   (syntax-rules ()
+	     ((_ struct-pointer)
+	      #,(if (syntax->datum (syntax ?field-offset))
+		    #'(pointer-c-ref ?type struct-pointer ?field-offset)
+		  #'(raise-unimplemented-error (quote ?accessor-name))))))))))
+
+(define-syntax define-c-struct-mutator/from-type
+  (lambda (use-stx)
+    (syntax-case use-stx ()
+      ((_ ?mutator-name ?field-offset ?foreign-type-mutator)
+       #`(define-syntax ?mutator-name
+	   (syntax-rules ()
+	     ((_ struct-pointer value)
+	      #,(if (syntax->datum (syntax ?field-offset))
+		    #'(pointer-c-set! ?type struct-pointer ?field-offset value)
+		  #'(raise-unimplemented-error (quote ?mutator-name))))))))))
 
 
 ;;;; done

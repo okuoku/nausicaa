@@ -26,8 +26,9 @@
 
 (library (ffi peekers-and-pokers)
   (export
-    pointer-c-ref	pointer-c-set!
-    array-c-ref		array-c-set!
+    pointer-c-ref		pointer-c-set!
+    pointer-c-accessor		pointer-c-mutator
+    array-c-ref			array-c-set!
     array-c-pointer-to)
   (import (rnrs)
     (ffi pointers)
@@ -49,20 +50,17 @@
 	    (pointer-set-c-uint32!	pointer-set-c-uint32_t!)
 	    (pointer-set-c-int64!	pointer-set-c-int64_t!)
 	    (pointer-set-c-uint64!	pointer-set-c-uint64_t!))
-    (for (ffi syntax-helpers) expand))
+    (for (ffi syntax-helpers) expand)
+    (for (ffi clang-data-types) expand))
 
 
-(define pointer-set-c-size_t!		@SETTEROF_SIZE_T@)
-(define pointer-set-c-ssize_t!		@SETTEROF_SSIZE_T@)
-(define pointer-ref-c-size_t		@GETTEROF_SIZE_T@)
-(define pointer-ref-c-ssize_t		@GETTEROF_SSIZE_T@)
-
 (define-syntax pointer-c-ref
   (lambda (stx)
     (syntax-case stx ()
       ((_ ?type ?pointer ?offset)
-       #`(#,(%prepend #'pointer-c-ref "pointer-ref-c-" #'?type) ?pointer ?offset))
-
+       #`(#,(%prepend #'pointer-c-ref "pointer-ref-c-"
+		      (map-identifier-syntax-object clang-external-type->clang-type #'?type))
+	  ?pointer ?offset))
       (?input-form
        (syntax-violation 'pointer-c-ref
 	 "invalid C language specification for raw memory getter"
@@ -73,10 +71,40 @@
   (lambda (stx)
     (syntax-case stx ()
       ((_ ?type ?pointer ?offset ?value)
-       #`(#,(%enclose #'pointer-c-set! "pointer-set-c-" #'?type "!") ?pointer ?offset ?value))
-
+       #`(#,(%enclose #'pointer-c-set!
+		      "pointer-set-c-"
+		      (map-identifier-syntax-object clang-external-type->clang-type #'?type)
+		      "!")
+	  ?pointer ?offset ?value))
       (?input-form
        (syntax-violation 'pointer-c-set!
+	 "invalid C language specification for raw memory setter"
+	 (syntax->datum #'?input-form)))
+      )))
+
+(define-syntax pointer-c-accessor
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?type)
+       #`(begin #,(%prepend #'pointer-c-ref "pointer-ref-c-"
+			    (map-identifier-syntax-object
+			     clang-external-type->clang-type #'?type))))
+      (?input-form
+       (syntax-violation 'pointer-c-accessor
+	 "invalid C language specification for raw memory getter"
+	 (syntax->datum #'?input-form)))
+      )))
+
+(define-syntax pointer-c-mutator
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?type)
+       #`(begin #,(%enclose #'pointer-c-set! "pointer-set-c-"
+			    (map-identifier-syntax-object
+			     clang-external-type->clang-type #'?type)
+			    "!")))
+      (?input-form
+       (syntax-violation 'pointer-c-mutator
 	 "invalid C language specification for raw memory setter"
 	 (syntax->datum #'?input-form)))
       )))

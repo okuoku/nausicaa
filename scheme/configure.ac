@@ -15,14 +15,15 @@ DS_ENABLE_OPTION([nau_scheme_ENABLE_BINFMT],[binfmt],[no],
    [enable usage of the binfmt_misc linux kernel module])
 NAUSICAA_C_LANGUAGE
 NAUSICAA_SIZEOF
+NAUSICAA_SIZEOF_AUX
 NAUSICAA_C_TYPES_LIMITS
-NAUSICAA_INSPECT_SIZE_T
 NAUSICAA_C_ERRNO
 
 NAU_DS_WITH_OPTION([LIBC_SHARED_OBJECT_SPEC],[libc-shared-object],[],
   [C library shared object string],[select C library shared object string])
 
 AC_CONFIG_FILES([../src/libraries/ffi/sizeof.sls:../src/libraries/ffi/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/ffi/clang-data-types.sls:../src/libraries/ffi/clang-data-types.sls.in])
 AC_CONFIG_FILES([../src/libraries/ffi/peekers-and-pokers.sls:../src/libraries/ffi/peekers-and-pokers.sls.in])
 AC_CONFIG_FILES([../src/libraries/ffi/errno.sls:../src/libraries/ffi/errno.sls.in])
 AC_CONFIG_FILES([../src/libraries/cond-expand/registry.sls:../src/libraries/cond-expand/registry.sls.in])
