@@ -96,6 +96,10 @@ Revised^6 Report on the algorithmic language Scheme
 @code{&\NAME\}
 @end macro
 
+@macro enum{NAME}
+@code{enum-\NAME\}
+@end macro
+
 @macro rtd{}
 @acronym{RTD}
 @end macro
@@ -1038,8 +1042,6 @@ Inspecting foreign header files
                                 types.
 * ffi core headers offsetof::   Determining the offset of fields in
                                 data structures.
-* ffi core headers access::     Determining the accessors of data
-                                types.
 * ffi core headers inspect::    Full inspection of data types.
 * ffi core headers string::     Determining string values.
 * ffi core headers common::     Common groups of tests.
@@ -22592,9 +22594,10 @@ silently ignored.
 @chapter Foreign--functions interface
 
 
-Nausicaa implements a foreign--functions interface towards C language
-libraries built upon the interfaces provided by the underlying Scheme
-implementations.  The @api{} is exported by the following libraries:
+Nausicaa implements a foreign--functions interface (@ffi{}) towards C
+language libraries built upon the interfaces provided by the underlying
+Scheme implementations.  The @api{} is exported by the following
+libraries:
 
 @example
 (ffi)
@@ -22608,12 +22611,12 @@ implementations.  The @api{} is exported by the following libraries:
 plus a plethora of other sublibraries.
 
 Not all the Scheme implementations provide an @ffi{} usable by Nausicaa;
-only Ikarus, Mosh and Ypsilon are supported.  At present, Nausicaa's
-@ffi{} is tested only @gnu{}+Linux systems, which means that it expects
-to access some function in the @gnu{} C Library; on other platforms, we
-can try, at installation time, to select a C library pathname with the
-@option{--with-libc-shared-object} command line option of the
-@command{configure} script.
+only Ikarus, Mosh, Vicare and Ypsilon are supported.  At present,
+Nausicaa's @ffi{} is tested only @gnu{}+Linux systems, which means that
+it expects to access some function in the @gnu{} C Library; on other
+platforms, we can try, at installation time, to select a C library
+pathname with the @option{--with-libc-shared-object} command line option
+of the @command{configure} script.
 
 @menu
 * ffi core::                    Foreign--functions interface.
@@ -22626,11 +22629,6 @@ can try, at installation time, to select a C library pathname with the
 @node ffi core
 @section Foreign--functions interface
 
-
-@value{PACKAGE} implements an @api{} that allows access to foreign
-shared libraries coded in the C language; it is a common interface to
-the foreign--functions interfaces of the underlying Scheme
-implementations.
 
 @menu
 * ffi core libraries::          Installed libraries.
@@ -22650,40 +22648,48 @@ implementations.
 @subsection Installed libraries
 
 
-The following libraries are installed:
+Here is a list of the most important libraries:
 
 @table @library
+@item ffi clang-data-types
+@itemx ffi clang-data-types compat
+Export functions to convert Scheme symbols representing external C
+language data types to Scheme symbols representing C language data types
+recognised by the underlying Scheme implementation; it also provides
+enumerations to inspect the sets of supported types.
+
+The generic library is processed by @gnu{} Autoconf to gather values
+from the package configuration step; the @code{compat} library is
+specific to the underlying implementation.
+
 @item ffi sizeof
-Exports bindings to constant values like the size of C language data
-types.
+Exports macros used to inspect constant values like the size of basic C
+language data types.  The library is processed by @gnu{} Autoconf to
+gather values from the package configuration step.
+
+@item ffi peekers-and-pokers
+@itemx ffi peekers-and-pokers compat
+Export an @api{} for raw memory access through peeker and poker
+functions and user--friendly macros; the @code{compat} library is
+specific to the underlying implementation.
 
 @item ffi conditions
 Definition of condition object related to the foreign--functions
 interface.
 
 @item ffi pointers
-Exports an interface to memory pointer values.
-
-@item ffi peekers-and-pokers
-Exports an interface for raw memory access.
+Exports an interface to memory pointer values as disjoint Scheme object
+type.
 
 @item ffi platform
 Exports an adapter interface to the foreign--functions interfaces of the
 underlying Scheme implementation.  This library is not meant to be used
 directly by client code.
 
-@item ffi primitives
-Exports a function--based interface to the constructors of callout and
-callback functions.  This library is rarely used by client code.
-
-@item ffi utilities
-User friendly macros to the @api{} of @library{ffi primitives}.
-
 @item ffi
-Compound library exporting the high--level @api{}.
-
-@item ffi parametrised
-Deprecated interface using parameters.
+Exports both a low level function--based @api{} and a high level
+user--friendly macro--based @api{}.  It provides loading and inspection
+of shared libraries and constructors of callout and callback functions.
 @end table
 
 @c page
@@ -22856,27 +22862,30 @@ returned value must be the pointer object referencing the entity.
 @subsection Interface to C language types
 
 
-Nausicaa's foreign--functions interface accepts a number of C language
-type identifiers represented by Scheme symbols; these @dfn{external
-types} have redundant names to improve user friendlyness; when
-processing the definition of an interface, they are first normalised to
-@dfn{internal types} as described in the table below.
+Nausicaa's @ffi{} accepts a number of C language type identifiers
+represented by Scheme symbols; these @dfn{external types} have redundant
+names to improve user friendlyness; when processing the definition of a
+binding to foreign functions, they are first normalised to @dfn{internal
+types} as described in the table below.
 
-The @meta{size_t-integer} and @meta{ssize_t-integer} type specifiers
+The @meta{size_t-integer}, @meta{ssize_t-integer},
+@meta{intptr_t-integer} and @meta{uintptr_t-integer} type specifiers
 used in the tables, are the unsigned and signed identifiers used on the
-hosting platform to represent the @code{size_t} and @code{ssize_t} C
-language data types; they are symbols among:
+underlying platform to represent the @code{size_t}, @code{ssize_t},
+@code{intptr_t} and @code{uintptr_t} C language data types; they are
+symbols among:
 
 @example
 signed-int    signed-long    signed-long-long
 unsigned-int  unsigned-long  unsigned-long-long
 @end example
 
-Remember that C strings (zero terminated arrays of @samp{char}) must be
-converted from/to Scheme strings with @func{string->cstring} and
-@func{cstring->string}, and exchanged with foreign functions as
-pointers.  @ref{ffi cstrings conversion, Converting to and from
-cstrings}.
+We have to remember that C strings (zero terminated arrays of
+@samp{char}) must be converted from/to Scheme strings with
+@func{string->cstring} and @func{cstring->string} from the @library{ffi
+cstrings} library (or equivalent), and exchanged with foreign functions
+as pointer objects.  @ref{ffi cstrings conversion, Converting to and
+from cstrings}.
 
 @float Table
 @multitable {012345678901234567} {0123456789012345678} {01234567890123456789012}
@@ -22934,8 +22943,8 @@ by the underlying Scheme implementation, according to the following
 tables.
 
 @float Table
-@multitable {0123456789012345678} {0123456789012345678}
-@headitem Internal type @tab Ikarus type
+@multitable {0123456789012345678} {Ikarus and Vicare type}
+@headitem Internal type @tab Ikarus and Vicare type
 @item @code{int8_t}             @tab @code{signed-char}
 @item @code{int16_t}            @tab @code{signed-short}
 @item @code{int32_t}            @tab @code{signed-int}
@@ -22960,8 +22969,8 @@ tables.
 @item @code{callback}           @tab @code{pointer}
 @item @code{void}               @tab @code{void}
 @end multitable
-@caption{Mapping from Nausicaa's internal types to Ikarus' types,
-revision 1865 (last updated Fri Oct 30, 2009).}
+@caption{Mapping from Nausicaa's internal types to Ikarus' and Vicare's
+types (Ikarus revision 1870; last updated Tue May 11, 2010).}
 @end float
 
 
@@ -23027,6 +23036,7 @@ revision 503 (last updated Fri Oct 30, 2009).}
 revision 2185 (last updated Tue Nov 17, 2009).}
 @end float
 
+@ignore
 @float Table
 @multitable {012345678901234567} {0123456789012345678}
 @headitem Internal type @tab Larceny type
@@ -23055,8 +23065,10 @@ revision 2185 (last updated Tue Nov 17, 2009).}
 @item @code{void}               @tab @code{void}
 @end multitable
 @caption{Mapping from Nausicaa's internal types to Larceny's types,
-revision 6404 (last updated Tue Nov 17, 2009).}
+revision 6404 (last updated Tue Nov 17, 2009).  Notice that Larceny's
+@ffi{} is no more supported.}
 @end float
+@end ignore
 
 
 @float Table
@@ -23086,7 +23098,8 @@ revision 6404 (last updated Tue Nov 17, 2009).}
 @item @code{callback}           @tab @code{void*}
 @item @code{void}               @tab @code{void}
 @end multitable
-@caption{Mapping from Nausicaa's internal types to Petite Chez's types.}
+@caption{Mapping from Nausicaa's internal types to Petite Chez's types.
+Notice that Petite's @ffi{} is only partially supported.}
 @end float
 
 
@@ -23113,20 +23126,21 @@ type symbols.
 @defun clang-external-type->clang-internal-type @var{type-symbol}
 @defunx clang-internal-type->clang-type @var{type-symbol}
 @defunx clang-external-type->clang-type @var{type-symbol}
-Convert between type symbols.
+Convert between type symbols of different sets; if the symbol is not
+recognised, an assertion violation is raised.
 @end defun
 
 
-@defun clang-quote-type-stx-if-external @var{stx}
-@var{stx} must be a syntax object holding a single symbol; if the symbol
-is in the @code{enum-clang-external-types} enumeration set, the return
-value is a syntax object holding the same symbol quoted; else the return
-value is @var{stx} itself.
+@defun clang-foreign-type->clang-external-type @var{type-symbol}
+Return @var{type-symbol} itself if it is a Scheme symbol in the
+enumeration @enum{clang-external-types}, otherwise return @false{}.
+@end defun
 
-@quotation
-@strong{NOTE} This function is used internally and it is not meant to be
-used by client code.
-@end quotation
+
+@defun clang-maybe-foreign-type->clang-external-type @var{type-symbol}
+Return @var{type-symbol} itself; this is a special function which can be
+used by the macros @func{make-c-function*} and similar, see their
+documentation for details.
 @end defun
 
 @c page
@@ -24359,8 +24373,6 @@ which should be used to process a Scheme library for substitution of
                                 types.
 * ffi core headers offsetof::   Determining the offset of fields in
                                 data structures.
-* ffi core headers access::     Determining the accessors of data
-                                types.
 * ffi core headers inspect::    Full inspection of data types.
 * ffi core headers string::     Determining string values.
 * ffi core headers common::     Common groups of tests.
@@ -24865,102 +24877,6 @@ If the test fails the value of the output variable will be @false{}.
 The optional @var{headers} must be a chunk of code including header
 files.  By default the expansion of @samp{NAUSICAA_INCLUDES_DEFAULT} is
 included in the test program.
-@end deffn
-
-@c page
-@node ffi core headers access
-@subsubsection Determining the accessors of data types
-
-
-@deffn {Autoconf Macro} NAUSICAA_ACCESSORS_TEST (@var{suffix}, @var{typedef})
-Expands to:
-
-@example
-NAUSICAA_GETTER_TEST(@var{suffix},@var{typedef})
-NAUSICAA_SETTER_TEST(@var{suffix},@var{typedef})
-@end example
-@end deffn
-
-
-@deffn {Autoconf Macro} NAUSICAA_GETTER_TEST (@var{suffix}, @var{typedef})
-Determines the getter to be used for the C language type @var{typedef}.
-
-The output variable @samp{GETTEROF_<@var{suffix}>} is set to the name of
-the getter, which will be one among:
-
-@example
-pointer-ref-c-signed-char
-pointer-ref-c-unsigned-char
-pointer-ref-c-signed-int
-pointer-ref-c-unsigned-int
-pointer-ref-c-signed-short
-pointer-ref-c-unsigned-short
-pointer-ref-c-signed-long
-pointer-ref-c-unsigned-long
-pointer-ref-c-signed-long-long
-pointer-ref-c-unsigned-long-long
-pointer-ref-c-float
-pointer-ref-c-double
-pointer-ref-c-long-double
-pointer-ref-c-pointer
-@end example
-
-@noindent
-if the test fails: The output variable will be set to @false{}.
-
-The search is performed by comparing the value of the variable
-@samp{TYPEOF_<@var{suffix}>} with the values:
-
-@example
-signed-char             unsigned-char
-signed-short            unsigned-short
-signed-int              unsigned-int
-signed-long             unsigned-long
-signed-long-long        unsigned-long-long
-float                   double
-long-double             pointer
-@end example
-@end deffn
-
-
-@deffn {Autoconf Macro} NAUSICAA_SETTER_TEST (@var{suffix}, @var{typedef})
-Determines the setter to be used for the C language type @var{typedef}.
-
-The output variable @samp{SETTEROF_<@var{suffix}>} is set to the name of
-the setter, which will be one among:
-
-@example
-pointer-set-c-signed-char!
-pointer-set-c-unigned-char!
-pointer-set-c-signed-int!
-pointer-set-c-unsigned-int!
-pointer-set-c-signed-short!
-pointer-set-c-unsigned-short!
-pointer-set-c-signed-long!
-pointer-set-c-unsigned-long!
-pointer-set-c-signed-long-long!
-pointer-set-c-unsigned-long-long!
-pointer-set-c-float!
-pointer-set-c-double!
-pointer-set-c-long-double!
-pointer-set-c-pointer!
-@end example
-
-@noindent
-if the test fails: The output variable will be set to @false{}.
-
-The search is performed by comparing the value of the variable
-@samp{TYPEOF_<@var{suffix}>} with the values:
-
-@example
-signed-char             unsigned-char
-signed-short            unsigned-short
-signed-int              unsigned-int
-signed-long             unsigned-long
-signed-long-long        unsigned-long-long
-float                   double
-long-double             pointer
-@end example
 @end deffn
 
 @c page

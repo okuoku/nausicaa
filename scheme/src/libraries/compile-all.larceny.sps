@@ -389,9 +389,6 @@
 ;; (compile-library "ffi/platform.larceny.sls"
 ;;  		 "ffi/platform.larceny.slfasl")
 
-;; (compile-library "ffi/primitives.sls"
-;;  		 "ffi/primitives.slfasl")
-
 ;; (compile-library "ffi.sls"
 ;;  		 "ffi.slfasl")
 

@@ -31,14 +31,11 @@
     enum-clang-internal-types		clang-internal-types
     enum-clang-types			clang-types
 
-    clang-external-type->clang-internal-type
     clang-internal-type->clang-type
     clang-external-type->clang-type
-
-    (rename (clang-external-type->clang-internal-type
-	     clang-foreign-type->clang-external-type)
-	    (clang-external-type->clang-internal-type
-	     clang-maybe-foreign-type->clang-external-type))
+    clang-external-type->clang-internal-type
+    clang-foreign-type->clang-external-type
+    clang-maybe-foreign-type->clang-external-type
 
     clang-quote-type-stx-if-external)
   (import (rnrs)
@@ -116,6 +113,18 @@
 
 (define (clang-external-type->clang-type type)
   (clang-internal-type->clang-type (clang-external-type->clang-internal-type type)))
+
+(define external-universe
+  (enum-set-universe (clang-external-types)))
+
+(define (clang-foreign-type->clang-external-type type)
+  (if (enum-set-member? type external-universe)
+      type
+    #f))
+
+(define (clang-maybe-foreign-type->clang-external-type type)
+  (or (clang-foreign-type->clang-external-type type)
+      type))
 
 
 (define clang-external-types-universe

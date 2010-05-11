@@ -128,8 +128,6 @@
   (only (armor quoted-printable))
 
   (only (ffi))
-  (only (ffi utilities))
-  (only (ffi parametrised))
 
   (only (ffi memory))
   (only (ffi memory mempool))

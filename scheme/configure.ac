@@ -24,7 +24,6 @@ NAU_DS_WITH_OPTION([LIBC_SHARED_OBJECT_SPEC],[libc-shared-object],[],
 
 AC_CONFIG_FILES([../src/libraries/ffi/sizeof.sls:../src/libraries/ffi/sizeof.sls.in])
 AC_CONFIG_FILES([../src/libraries/ffi/clang-data-types.sls:../src/libraries/ffi/clang-data-types.sls.in])
-AC_CONFIG_FILES([../src/libraries/ffi/peekers-and-pokers.sls:../src/libraries/ffi/peekers-and-pokers.sls.in])
 AC_CONFIG_FILES([../src/libraries/ffi/errno.sls:../src/libraries/ffi/errno.sls.in])
 AC_CONFIG_FILES([../src/libraries/cond-expand/registry.sls:../src/libraries/cond-expand/registry.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
