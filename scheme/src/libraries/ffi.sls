@@ -95,7 +95,7 @@
     (ffi pointers)
     (ffi sizeof)
     (for (ffi syntax-helpers) expand)
-    (prefix (ffi platform) platform:)
+    (prefix (ffi compat) platform:)
     (only (unimplemented) raise-unimplemented-error))
 
 

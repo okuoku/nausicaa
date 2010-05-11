@@ -386,8 +386,8 @@
 ;; (compile-library "ffi/clang-data-types.sls"
 ;;  		 "ffi/clang-data-types.slfasl")
 
-;; (compile-library "ffi/platform.larceny.sls"
-;;  		 "ffi/platform.larceny.slfasl")
+;; (compile-library "ffi/compat.larceny.sls"
+;;  		 "ffi/compat.larceny.slfasl")
 
 ;; (compile-library "ffi.sls"
 ;;  		 "ffi.slfasl")

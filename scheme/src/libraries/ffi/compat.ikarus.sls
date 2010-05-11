@@ -1,6 +1,6 @@
 ;;;
 ;;;Part of: Nausicaa/Scheme
-;;;Contents: foreign functions interface compatibility layer for Vicare
+;;;Contents: foreign functions interface compatibility layer for Ikarus
 ;;;Date: Mon Nov 24, 2008
 ;;;
 ;;;Abstract
@@ -24,7 +24,7 @@
 ;;;
 
 
-(library (ffi platform)
+(library (ffi compat)
   (export
     open-shared-object		lookup-shared-object
     make-c-callout		make-c-callout/with-errno
@@ -32,11 +32,11 @@
   (import (rnrs)
     (only (ffi sizeof) LIBC_SHARED_OBJECT_SPEC)
     (ffi conditions)
-    (prefix (only (vicare foreign)
+    (prefix (only (ikarus foreign)
 		  dlopen dlsym dlerror
 		  make-c-callout make-c-callback
 		  errno pointer-set-c-int!)
-	    vicare:))
+	    ikarus:))
 
 
 ;;;; helpers
@@ -63,20 +63,20 @@
 (define (open-shared-object library-name)
   ;;DLOPEN returns a  pointer to the external library  descriptor, or #f
   ;;if an error occurred.
-  (or (vicare:dlopen (%normalise-foreign-symbol library-name) #f #t)
+  (or (ikarus:dlopen (%normalise-foreign-symbol library-name) #f #t)
       (raise-shared-object-opening-error 'open-shared-object
-					 (vicare:dlerror)
+					 (ikarus:dlerror)
 					 library-name)))
 
 (define (lookup-shared-object library-pointer foreign-symbol)
   ;;DLSYM return a pointer to the external entity, or #f when the symbol
   ;;is not found.
   ;;
-  (or (vicare:dlsym library-pointer (%normalise-foreign-symbol foreign-symbol))
+  (or (ikarus:dlsym library-pointer (%normalise-foreign-symbol foreign-symbol))
       (raise
        (condition (make-shared-object-lookup-error-condition)
 		  (make-who-condition 'lookup-shared-object)
-		  (make-message-condition (vicare:dlerror))
+		  (make-message-condition (ikarus:dlerror))
 		  (make-irritants-condition (list library-pointer))
 		  (make-foreign-symbol-condition foreign-symbol)))))
 
@@ -84,24 +84,24 @@
 ;;;; errno interface
 
 (define libc-shared-object
-  (vicare:dlopen LIBC_SHARED_OBJECT_SPEC))
+  (ikarus:dlopen LIBC_SHARED_OBJECT_SPEC))
 
 (define errno-location
-  ((vicare:make-c-callout 'pointer '())
-   (vicare:dlsym libc-shared-object "__errno_location")))
+  ((ikarus:make-c-callout 'pointer '())
+   (ikarus:dlsym libc-shared-object "__errno_location")))
 
 (define-syntax errno
   (syntax-rules ()
     ((_ ?value)
-     (vicare:pointer-set-c-int! (errno-location) 0 ?value))
+     (ikarus:pointer-set-c-int! (errno-location) 0 ?value))
     ((_)
-     (vicare:errno))))
+     (ikarus:errno))))
 
 
 ;;;; callout functions
 
 ;; (define (make-c-callout ret-type address arg-types)
-;;   ((vicare:make-c-callout ret-type (%normalise-arg-types arg-types)) address))
+;;   ((ikarus:make-c-callout ret-type (%normalise-arg-types arg-types)) address))
 (define (make-c-callout ret-type address arg-types)
   ;;Given a  signature of types,  create a callout  closure constructor;
   ;;cache the closure constructors to avoid duplication.
@@ -114,7 +114,7 @@
 	 (callout-maker (hashtable-ref callout-maker-table signature #f)))
     (if callout-maker
 	(callout-maker address)
-      (let* ((callout-maker (vicare:make-c-callout ret-type (%normalise-arg-types arg-types))))
+      (let* ((callout-maker (ikarus:make-c-callout ret-type (%normalise-arg-types arg-types))))
 	(hashtable-set! callout-maker-table signature callout-maker)
 	(callout-maker address)))))
 
@@ -147,7 +147,7 @@
 	     (callback-maker	(hashtable-ref callback-maker-table signature #f)))
 	(if callback-maker
 	    (callback-maker scheme-function)
-	  (let ((callback-maker (vicare:make-c-callback ret-type (%normalise-arg-types arg-types))))
+	  (let ((callback-maker (ikarus:make-c-callback ret-type (%normalise-arg-types arg-types))))
 	    (hashtable-set! callback-maker-table signature callback-maker)
 	    (callback-maker scheme-function)))))))
 

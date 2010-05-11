@@ -25,7 +25,7 @@
 ;;;
 
 
-(library (ffi platform)
+(library (ffi compat)
   (export
     open-shared-object		lookup-shared-object
     make-c-callout		make-c-callout/with-errno

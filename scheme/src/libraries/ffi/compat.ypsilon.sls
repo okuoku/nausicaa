@@ -37,7 +37,7 @@
 ;;;OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-(library (ffi platform)
+(library (ffi compat)
   (export
     open-shared-object		lookup-shared-object
     make-c-callout		make-c-callout/with-errno

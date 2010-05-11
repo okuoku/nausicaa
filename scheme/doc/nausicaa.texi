@@ -22681,7 +22681,7 @@ interface.
 Exports an interface to memory pointer values as disjoint Scheme object
 type.
 
-@item ffi platform
+@item ffi compat
 Exports an adapter interface to the foreign--functions interfaces of the
 underlying Scheme implementation.  This library is not meant to be used
 directly by client code.
@@ -23980,7 +23980,7 @@ Interfaces to the @func{make-c-callout*} and
 @subsubsection Low level interface
 
 
-The following bindings are exported by the @library{ffi platform}
+The following bindings are exported by the @library{ffi compat}
 library.  This interface adapts the Scheme implementation @ffi{} to the
 requirements of the Nausicaa distribution.
 
