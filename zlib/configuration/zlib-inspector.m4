@@ -2,7 +2,7 @@ dnl (compression zlib sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Fri Apr 23, 2010
+dnl Date: Tue May 11, 2010
 dnl
 dnl Abstract
 dnl
@@ -26,9 +26,12 @@ dnl
 
 AC_DEFUN([NAUSICAA_ZLIB],[
 
-NAUSICAA_INSPECT_TYPE([UINT],[uInt],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([ULONG],[uLong],[unsigned-int],[#f])
-NAUSICAA_INSPECT_TYPE([Z_OFF_T],[z_off_t],[unsigned-int],[#f])
+NAUSICAA_SIZEOF_TEST([UINT],[uInt])
+NAUSICAA_BASE_TYPE_TEST([UINT],[uInt],[unsigned-int])
+NAUSICAA_SIZEOF_TEST([ULONG],[uLong])
+NAUSICAA_BASE_TYPE_TEST([ULONG],[uLong],[unsigned-int])
+NAUSICAA_SIZEOF_TEST([Z_OFF_T],[z_off_t])
+NAUSICAA_BASE_TYPE_TEST([Z_OFF_T],[z_off_t],[unsigned-int])
 
 dnl Struct inspection: z_stream
 NAUSICAA_INSPECT_STRUCT_TYPE([Z_STREAM],[z_stream],[#f])

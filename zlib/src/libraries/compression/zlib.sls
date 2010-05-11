@@ -78,64 +78,37 @@
     zlibVersion		zlibCompileFlags
     zError		zError*
 
-    ;;stream structure accessors
-    struct-z_stream-next_in-set!	struct-z_stream-next_in-ref
-    struct-z_stream-avail_in-set!	struct-z_stream-avail_in-ref
-    struct-z_stream-total_in-set!	struct-z_stream-total_in-ref
-
-    struct-z_stream-next_out-set!	struct-z_stream-next_out-ref
-    struct-z_stream-avail_out-set!	struct-z_stream-avail_out-ref
-    struct-z_stream-total_out-set!	struct-z_stream-total_out-ref
-
-    struct-z_stream-msg-set!		struct-z_stream-msg-ref
-    struct-z_stream-data_type-set!	struct-z_stream-data_type-ref
-    struct-z_stream-adler-set!		struct-z_stream-adler-ref
-
-    struct-z_stream-zalloc-set!		struct-z_stream-zalloc-ref
-    struct-z_stream-zfree-set!		struct-z_stream-zfree-ref
-    struct-z_stream-opaque-set!		struct-z_stream-opaque-ref
-
-    struct-gz_header-text-set!		struct-gz_header-text-ref
-    struct-gz_header-time-set!		struct-gz_header-time-ref
-    struct-gz_header-xflags-set!	struct-gz_header-xflags-ref
-    struct-gz_header-os-set!		struct-gz_header-os-ref
-    struct-gz_header-extra-set!		struct-gz_header-extra-ref
-    struct-gz_header-extra_len-set!	struct-gz_header-extra_len-ref
-    struct-gz_header-extra_max-set!	struct-gz_header-extra_max-ref
-    struct-gz_header-name-set!		struct-gz_header-name-ref
-    struct-gz_header-name_max-set!	struct-gz_header-name_max-ref
-    struct-gz_header-comment-set!	struct-gz_header-comment-ref
-    struct-gz_header-comm_max-set!	struct-gz_header-comm_max-ref
-    struct-gz_header-hcrc-set!		struct-gz_header-hcrc-ref
-    struct-gz_header-done-set!		struct-gz_header-done-ref
-
     ;; constants
-    sizeof-z_stream		sizeof-gz_header
+    c-sizeof c-strideof c-alignof c-valueof c-inspect
+    pointer-c-ref pointer-c-set! pointer-c-accessor pointer-c-mutator
+    array-c-ref array-c-set! array-c-pointer-to
 
-    ZLIB_VERNUM		ZLIB_VERSION
+    ;; sizeof-z_stream		sizeof-gz_header
 
-    Z_NO_FLUSH		Z_PARTIAL_FLUSH		Z_SYNC_FLUSH
-    Z_FULL_FLUSH	Z_FINISH		Z_BLOCK
+    ;; ZLIB_VERNUM		ZLIB_VERSION
 
-    Z_OK		Z_STREAM_END		Z_NEED_DICT
-    Z_ERRNO		Z_STREAM_ERROR		Z_DATA_ERROR
-    Z_MEM_ERROR		Z_BUF_ERROR		Z_VERSION_ERROR
+    ;; Z_NO_FLUSH		Z_PARTIAL_FLUSH		Z_SYNC_FLUSH
+    ;; Z_FULL_FLUSH	Z_FINISH		Z_BLOCK
 
-    Z_NO_COMPRESSION	Z_BEST_SPEED		Z_BEST_COMPRESSION
-    Z_DEFAULT_COMPRESSION
+    ;; Z_OK		Z_STREAM_END		Z_NEED_DICT
+    ;; Z_ERRNO		Z_STREAM_ERROR		Z_DATA_ERROR
+    ;; Z_MEM_ERROR		Z_BUF_ERROR		Z_VERSION_ERROR
 
-    Z_FILTERED		Z_HUFFMAN_ONLY		Z_RLE
-    Z_FIXED		Z_DEFAULT_STRATEGY
+    ;; Z_NO_COMPRESSION	Z_BEST_SPEED		Z_BEST_COMPRESSION
+    ;; Z_DEFAULT_COMPRESSION
 
-    Z_BINARY		Z_TEXT			Z_ASCII
-    Z_UNKNOWN
+    ;; Z_FILTERED		Z_HUFFMAN_ONLY		Z_RLE
+    ;; Z_FIXED		Z_DEFAULT_STRATEGY
 
-    Z_DEFLATED
+    ;; Z_BINARY		Z_TEXT			Z_ASCII
+    ;; Z_UNKNOWN
 
-    Z_NULL)
+    ;; Z_DEFLATED
+
+    ;; Z_NULL
+    )
   (import (rnrs)
     (compression zlib primitives)
-    (compression zlib structs)
     (compression zlib sizeof)))
 
 ;;; end of file

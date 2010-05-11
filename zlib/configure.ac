@@ -62,6 +62,7 @@ dnl Done.
 dnl --------------------------------------------------------------------
 
 AC_CONFIG_FILES([../src/libraries/compression/zlib/sizeof.sls:src/libraries/compression/zlib/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/compression/zlib/clang-data-types.sls:src/libraries/compression/zlib/clang-data-types.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END

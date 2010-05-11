@@ -75,16 +75,16 @@
     zlibVersion		zlibCompileFlags
     zError		zError*)
   (import (nausicaa)
-    (ffi)
-    (ffi memory)
+    (only (ffi memory)
+	  malloc-small/c)
+    (only (ffi pointers) pointer-null?)
     (ffi cstrings)
     (ffi errno)
     (compression zlib platform)
-    (compression zlib structs)
     (compression zlib sizeof))
 
 
-(define zlib_version* (string->cstring ZLIB_VERSION))
+(define zlib_version* (string->cstring (c-valueof ZLIB_VERSION)))
 
 (define (zError* errcode)
   (cstring->string (zError errcode)))
@@ -92,22 +92,22 @@
 ;;; --------------------------------------------------------------------
 
 (define (deflateInit zstream compression-level)
-  (deflateInit_ zstream compression-level zlib_version* sizeof-z_stream))
+  (deflateInit_ zstream compression-level zlib_version* (c-sizeof z_stream)))
 
 (define (inflateInit zstream)
-  (inflateInit_ zstream zlib_version* sizeof-z_stream))
+  (inflateInit_ zstream zlib_version* (c-sizeof z_stream)))
 
 ;;; --------------------------------------------------------------------
 
 (define (deflateInit2 stream level method window-bits mem-level strategy)
   (deflateInit2_ stream level method window-bits mem-level strategy
-    zlib_version* sizeof-z_stream))
+    zlib_version* (c-sizeof z_stream)))
 
 (define (inflateInit2 stream window-bits)
-  (inflateInit2_ stream window-bits zlib_version* sizeof-z_stream))
+  (inflateInit2_ stream window-bits zlib_version* (c-sizeof z_stream)))
 
 (define (inflateBackInit stream window-bits window)
-  (inflateBackInit_ stream window-bits window zlib_version* sizeof-z_stream))
+  (inflateBackInit_ stream window-bits window zlib_version* (c-sizeof z_stream)))
 
 ;;; --------------------------------------------------------------------
 
@@ -128,7 +128,7 @@
   (with-compensations
     (let* ((*errcode	(malloc-small/c))
 	   (cstr	(gzerror file *errcode)))
-      (values (pointer-ref-c-signed-int *errcode 0)
+      (values (pointer-c-ref signed-int *errcode 0)
 	      (if (pointer-null? cstr)
 		  ""
 		(cstring->string cstr))))))

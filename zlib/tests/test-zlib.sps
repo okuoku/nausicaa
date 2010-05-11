@@ -25,9 +25,7 @@
 
 
 (import (nausicaa)
-  (ffi)
-  (ffi sizeof)
-  (ffi memory)
+  (prefix (ffi memory) ffi:)
   (ffi cstrings)
   (compression zlib)
   (checks)
@@ -97,7 +95,7 @@ Any way the wind blows.
 (define dictionary
   "Bismillahreallymattersgalileoyoumeto")
 
-(define (dump-zstream zstream)
+(define (dump-zstream (zstream <struct-z_stream>))
   (format #t "dumping ~s:
 next_in:\t~s
 avail_in:\t~s
@@ -105,20 +103,20 @@ total_in:\t~s
 next_out:\t~s
 avail_out:\t~s
 total_out:\t~s\n"
-	  (pointer->integer zstream)
-	  (struct-z_stream-next_in-ref zstream)
-	  (struct-z_stream-avail_in-ref zstream)
-	  (struct-z_stream-total_in-ref zstream)
-	  (struct-z_stream-next_out-ref zstream)
-	  (struct-z_stream-avail_out-ref zstream)
-	  (struct-z_stream-total_out-ref zstream)))
+	  (ffi:pointer->integer zstream)
+	  zstream.next_in
+	  zstream.avail_in
+	  zstream.total_in
+	  zstream.next_out
+	  zstream.avail_out
+	  zstream.total_out))
 
 
 (parametrise ((check-test-name 'auxiliary-functions))
 
   (check
       (cstring->string (zlibVersion))
-    => ZLIB_VERSION)
+    => (c-valueof ZLIB_VERSION))
 
   #t)
 
@@ -128,33 +126,35 @@ total_out:\t~s\n"
   (define-syntax with-pointer-to-length/c
     (syntax-rules ()
       ((_ (?ptr ?var) ?form0 ?form ...)
-       (let ((?ptr (malloc-block/c sizeof-long)))
-	 (pointer-set-c-unsigned-long! ?ptr 0 ?var)
+       (let ((?ptr (ffi:malloc-block/c (c-sizeof long))))
+	 (pointer-c-set! unsigned-long ?ptr 0 ?var)
 	 (begin ?form0 ?form ...)
-	 (set! ?var (pointer-ref-c-unsigned-long ?ptr 0))))))
+	 (set! ?var (pointer-c-ref unsigned-long ?ptr 0))))))
 
   (check	;use COMPRESS
       (with-compensations
 	(let* ((input.len	original.len)
 	       (input.ptr	original.ptr)
 	       (output.len	(compressBound input.len))
-	       (output.ptr	(malloc-block/c output.len)))
+	       (output.ptr	(ffi:malloc-block/c output.len)))
 
 	  (let* ((compressed.len	(* 2 input.len))
-		 (compressed.ptr	(malloc-block/c compressed.len)))
+		 (compressed.ptr	(ffi:malloc-block/c compressed.len)))
 
-	    (let ((compressed.len*	(malloc-block/c sizeof-long)))
-	      (pointer-set-c-unsigned-long! compressed.len* 0 compressed.len)
-	      (assert (= Z_OK (compress compressed.ptr compressed.len* input.ptr input.len)))
-	      (set! compressed.len (pointer-ref-c-unsigned-long compressed.len* 0)))
+	    (let ((compressed.len*	(ffi:malloc-block/c (c-sizeof long))))
+	      (pointer-c-set! unsigned-long compressed.len* 0 compressed.len)
+	      (assert (= (c-valueof Z_OK)
+			 (compress compressed.ptr compressed.len* input.ptr input.len)))
+	      (set! compressed.len (pointer-c-ref unsigned-long compressed.len* 0)))
 
-	    (let ((output.len*	(malloc-block/c sizeof-long)))
-	      (pointer-set-c-unsigned-long! output.len* 0 output.len)
-	      (assert (= Z_OK (uncompress output.ptr output.len* compressed.ptr compressed.len)))
-	      (set! output.len (pointer-ref-c-unsigned-long output.len* 0)))
+	    (let ((output.len*	(ffi:malloc-block/c (c-sizeof long))))
+	      (pointer-c-set! unsigned-long output.len* 0 output.len)
+	      (assert (= (c-valueof Z_OK)
+			 (uncompress output.ptr output.len* compressed.ptr compressed.len)))
+	      (set! output.len (pointer-c-ref unsigned-long output.len* 0)))
 
 	    (and (= input.len output.len)
-		 (zero? (memcmp input.ptr output.ptr input.len))))))
+		 (zero? (ffi:memcmp input.ptr output.ptr input.len))))))
     => #t)
 
   (check	;use COMPRESS
@@ -162,19 +162,21 @@ total_out:\t~s\n"
 	(let* ((input.len	original.len)
 	       (input.ptr	original.ptr)
 	       (output.len	(compressBound input.len))
-	       (output.ptr	(malloc-block/c output.len)))
+	       (output.ptr	(ffi:malloc-block/c output.len)))
 
 	  (let* ((compressed.len	(* 2 input.len))
-		 (compressed.ptr	(malloc-block/c compressed.len)))
+		 (compressed.ptr	(ffi:malloc-block/c compressed.len)))
 
 	    (with-pointer-to-length/c (compressed.len* compressed.len)
-	      (assert (= Z_OK (compress compressed.ptr compressed.len* input.ptr input.len))))
+	      (assert (= (c-valueof Z_OK)
+			 (compress compressed.ptr compressed.len* input.ptr input.len))))
 
 	    (with-pointer-to-length/c (output.len* output.len)
-	      (assert (= Z_OK (uncompress output.ptr output.len* compressed.ptr compressed.len))))
+	      (assert (= (c-valueof Z_OK)
+			 (uncompress output.ptr output.len* compressed.ptr compressed.len))))
 
 	    (and (= input.len output.len)
-		 (zero? (memcmp input.ptr output.ptr input.len))))))
+		 (zero? (ffi:memcmp input.ptr output.ptr input.len))))))
     => #t)
 
   (check	;use COMPRESS2
@@ -182,20 +184,22 @@ total_out:\t~s\n"
 	(let* ((input.len	original.len)
 	       (input.ptr	original.ptr)
 	       (output.len	(compressBound input.len))
-	       (output.ptr	(malloc-block/c output.len)))
+	       (output.ptr	(ffi:malloc-block/c output.len)))
 
 	  (let* ((compressed.len	(* 2 input.len))
-		 (compressed.ptr	(malloc-block/c compressed.len)))
+		 (compressed.ptr	(ffi:malloc-block/c compressed.len)))
 
 	    (with-pointer-to-length/c (compressed.len* compressed.len)
-	      (assert (= Z_OK (compress2 compressed.ptr compressed.len* input.ptr input.len
-					 Z_BEST_COMPRESSION))))
+	      (assert (= (c-valueof Z_OK)
+			 (compress2 compressed.ptr compressed.len* input.ptr input.len
+				    (c-valueof Z_BEST_COMPRESSION)))))
 
 	    (with-pointer-to-length/c (output.len* output.len)
-	      (assert (= Z_OK (uncompress output.ptr output.len* compressed.ptr compressed.len))))
+	      (assert (= (c-valueof Z_OK)
+			 (uncompress output.ptr output.len* compressed.ptr compressed.len))))
 
 	    (and (= input.len output.len)
-		 (zero? (memcmp input.ptr output.ptr input.len))))))
+		 (zero? (ffi:memcmp input.ptr output.ptr input.len))))))
     => #t)
 
   #t)
@@ -213,10 +217,8 @@ total_out:\t~s\n"
 	  (let* ((input.len	original.len)
 		 (input.ptr	original.ptr)
 		 (output.len	(compressBound input.len))
-		 (output.ptr	(malloc-block/c output.len))
-		 ((zstream <struct-z_stream> <c-struct>)
-		  (make <struct-z_stream>
-		    (malloc-block/c sizeof-z_stream))))
+		 (output.ptr	(ffi:malloc-block/c output.len))
+		 ((zstream <struct-z_stream>) (ffi:malloc-block/c (c-sizeof z_stream))))
 
 	    (set! zstream.next_in  input.ptr)
 	    (set! zstream.avail_in input.len)
@@ -224,13 +226,13 @@ total_out:\t~s\n"
 	    (set! zstream.next_out  output.ptr)
 	    (set! zstream.avail_out output.len)
 
-	    (set! zstream.zalloc pointer-null)
-	    (set! zstream.zfree  pointer-null)
-	    (set! zstream.opaque pointer-null)
+	    (set! zstream.zalloc ffi:pointer-null)
+	    (set! zstream.zfree  ffi:pointer-null)
+	    (set! zstream.opaque ffi:pointer-null)
 
-	    (deflateInit zstream.pointer Z_BEST_COMPRESSION)
-	    (deflate zstream.pointer Z_FINISH)
-	    (deflateEnd zstream.pointer)
+	    (deflateInit zstream (c-valueof Z_BEST_COMPRESSION))
+	    (deflate zstream (c-valueof Z_FINISH))
+	    (deflateEnd zstream)
 
 	    (set! compressed.len zstream.total_out)
 	    (set! compressed.ptr output.ptr))
@@ -238,10 +240,8 @@ total_out:\t~s\n"
 	  (let* ((input.len	compressed.len)
 		 (input.ptr	compressed.ptr)
 		 (output.len	original.len)
-		 (output.ptr	(malloc-block/c output.len))
-		 ((zstream <struct-z_stream> <c-struct>)
-		  (make <struct-z_stream>
-		    (malloc-block/c sizeof-z_stream))))
+		 (output.ptr	(ffi:malloc-block/c output.len))
+		 ((zstream <struct-z_stream>) (ffi:malloc-block/c (c-sizeof z_stream))))
 
 	    (set! zstream.next_in  input.ptr)
 	    (set! zstream.avail_in input.len)
@@ -249,19 +249,19 @@ total_out:\t~s\n"
 	    (set! zstream.next_out  output.ptr)
 	    (set! zstream.avail_out output.len)
 
-	    (set! zstream.zalloc pointer-null)
-	    (set! zstream.zfree  pointer-null)
-	    (set! zstream.opaque pointer-null)
+	    (set! zstream.zalloc ffi:pointer-null)
+	    (set! zstream.zfree  ffi:pointer-null)
+	    (set! zstream.opaque ffi:pointer-null)
 
-	    (inflateInit zstream.pointer)
-	    (inflate zstream.pointer Z_FINISH)
-	    (inflateEnd zstream.pointer)
+	    (inflateInit zstream)
+	    (inflate zstream (c-valueof Z_FINISH))
+	    (inflateEnd zstream)
 
 	    (set! decompressed.len zstream.total_out)
 	    (set! decompressed.ptr output.ptr))
 
 	  (and (= original.len decompressed.len)
-	       (zero? (memcmp original.ptr decompressed.ptr decompressed.len)))))
+	       (zero? (ffi:memcmp original.ptr decompressed.ptr decompressed.len)))))
     => #t)
 
   #t)
@@ -281,10 +281,8 @@ total_out:\t~s\n"
 	  (let* ((input.len	original.len)
 		 (input.ptr	original.ptr)
 		 (output.len	(compressBound input.len))
-		 (output.ptr	(malloc-block/c output.len))
-		 ((zstream <struct-z_stream> <c-struct>)
-		  (make <struct-z_stream>
-		    (malloc-block/c sizeof-z_stream))))
+		 (output.ptr	(ffi:malloc-block/c output.len))
+		 ((zstream <struct-z_stream>) (ffi:malloc-block/c (c-sizeof z_stream))))
 
 	    (set! zstream.next_in  input.ptr)
 	    (set! zstream.avail_in input.len)
@@ -292,20 +290,20 @@ total_out:\t~s\n"
 	    (set! zstream.next_out  output.ptr)
 	    (set! zstream.avail_out output.len)
 
-	    (set! zstream.zalloc pointer-null)
-	    (set! zstream.zfree  pointer-null)
-	    (set! zstream.opaque pointer-null)
+	    (set! zstream.zalloc ffi:pointer-null)
+	    (set! zstream.zfree  ffi:pointer-null)
+	    (set! zstream.opaque ffi:pointer-null)
 
-	    (deflateInit2 zstream.pointer Z_BEST_COMPRESSION
-	      Z_DEFLATED	  ; method
-	      10		  ; windowBits
-	      3			  ; memLevel
-	      Z_DEFAULT_STRATEGY) ; strategy
+	    (deflateInit2 zstream (c-valueof Z_BEST_COMPRESSION)
+	      (c-valueof Z_DEFLATED)	      ; method
+	      10			      ; windowBits
+	      3				      ; memLevel
+	      (c-valueof Z_DEFAULT_STRATEGY)) ; strategy
 
-	    (deflateSetDictionary zstream.pointer dictionary.ptr dictionary.len)
+	    (deflateSetDictionary zstream dictionary.ptr dictionary.len)
 
-	    (deflate zstream.pointer Z_FINISH)
-	    (deflateEnd zstream.pointer)
+	    (deflate zstream (c-valueof Z_FINISH))
+	    (deflateEnd zstream)
 
 	    (set! compressed.len zstream.total_out)
 	    (set! compressed.ptr output.ptr))
@@ -313,10 +311,8 @@ total_out:\t~s\n"
 	  (let* ((input.len	compressed.len)
 		 (input.ptr	compressed.ptr)
 		 (output.len	original.len)
-		 (output.ptr	(malloc-block/c output.len))
-		 ((zstream <struct-z_stream> <c-struct>)
-		  (make <struct-z_stream>
-		    (malloc-block/c sizeof-z_stream))))
+		 (output.ptr	(ffi:malloc-block/c output.len))
+		 ((zstream <struct-z_stream>) (ffi:malloc-block/c (c-sizeof z_stream))))
 
 	    (set! zstream.next_in  input.ptr)
 	    (set! zstream.avail_in input.len)
@@ -324,21 +320,22 @@ total_out:\t~s\n"
 	    (set! zstream.next_out  output.ptr)
 	    (set! zstream.avail_out output.len)
 
-	    (set! zstream.zalloc pointer-null)
-	    (set! zstream.zfree  pointer-null)
-	    (set! zstream.opaque pointer-null)
+	    (set! zstream.zalloc ffi:pointer-null)
+	    (set! zstream.zfree  ffi:pointer-null)
+	    (set! zstream.opaque ffi:pointer-null)
 
-	    (inflateInit2 zstream.pointer 10)
-	    (assert (= Z_NEED_DICT (inflate zstream.pointer Z_FINISH)))
-	    (inflateSetDictionary zstream.pointer dictionary.ptr dictionary.len)
-	    (inflate zstream.pointer Z_FINISH)
-	    (inflateEnd zstream.pointer)
+	    (inflateInit2 zstream 10)
+	    (assert (= (c-valueof Z_NEED_DICT)
+		       (inflate zstream (c-valueof Z_FINISH))))
+	    (inflateSetDictionary zstream dictionary.ptr dictionary.len)
+	    (inflate zstream (c-valueof Z_FINISH))
+	    (inflateEnd zstream)
 
 	    (set! decompressed.len zstream.total_out)
 	    (set! decompressed.ptr output.ptr))
 
 	  (and (= original.len decompressed.len)
-	       (zero? (memcmp original.ptr decompressed.ptr decompressed.len)))))
+	       (zero? (ffi:memcmp original.ptr decompressed.ptr decompressed.len)))))
     => #t)
 
   #t)
@@ -351,12 +348,12 @@ total_out:\t~s\n"
 	(guard (E (else #f)) (delete-file "proof.gz"))
 	(let-values (((F errno) (gzopen* "proof.gz" "wb9")))
 	  (gzwrite F original.ptr original.len)
-	  (gzflush F Z_FINISH)
+	  (gzflush F (c-valueof Z_FINISH))
 	  (gzclose F))
 	(with-compensations
-	  (let-values (((ptr)		(malloc-block/c original.len))
+	  (let-values (((ptr)		(ffi:malloc-block/c original.len))
 		       ((F errno)	(gzopen* "proof.gz" "rb")))
-	    (memset ptr 0 original.len)
+	    (ffi:memset ptr 0 original.len)
 	    (gzread F ptr original.len)
 	    (gzclose F)
 	    (cstring->string ptr original.len))))
@@ -368,7 +365,7 @@ total_out:\t~s\n"
 	(let-values (((F errno) (gzopen* "proof1.gz" "wb")))
 	  (let-values (((code message) (gzerror* F)))
 	    (gzclose F)
-	    (and (= code Z_OK)
+	    (and (= code (c-valueof Z_OK))
 		 (= 0 (string-length message))))))
     => #t)
 
@@ -377,7 +374,7 @@ total_out:\t~s\n"
 	(check
 	    (with-compensations
 	      (let-values (((F errno)	(gzopen* "scrappydappydoo.gz" "rb"))
-			   ((ptr)		(malloc-block/c original.len)))
+			   ((ptr)		(ffi:malloc-block/c original.len)))
 		(gzread F ptr original.len)
 		(let-values (((code message) (gzerror* F)))
 		  (gzclose F)
@@ -387,12 +384,12 @@ total_out:\t~s\n"
 	  (with-compensations
 	    (guard (E (else #f)) (delete-file "scrappydappydoo.gz"))
 	    (let-values (((F errno)	(gzopen* "scrappydappydoo.gz" "rb"))
-			 ((ptr)	(malloc-block/c original.len)))
+			 ((ptr)	(ffi:malloc-block/c original.len)))
 	      (gzread F ptr original.len)
 	      (let-values (((code message) (gzerror* F)))
 		(gzclose F)
 		(list code message))))
-	=> `(,Z_STREAM_ERROR "stream error")))
+	=> `(,(c-valueof Z_STREAM_ERROR) "stream error")))
     #f)
 
   #t)

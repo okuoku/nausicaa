@@ -32,9 +32,12 @@
 (class-uid "nausicaa:zlib")
 
 
-(define-c-type uInt	unsigned-int)
-(define-c-type uLong	unsigned-int)
-(define-c-type z_off_t	unsigned-int)
+(define-c-type uInt		unsigned-int)
+(define-c-type uLong		unsigned-int)
+(define-c-type z_off_t		unsigned-int)
+(define-c-type-alias z_streamp	pointer)
+(define-c-type-alias gz_headerp	pointer)
+(define-c-type-alias gzFile	pointer)
 
 (define-c-struct z_stream
   "z_stream"
@@ -129,14 +132,24 @@
 
 (define-shared-object zlib libz.so)
 
-(define zlib-library-spec
+(define zlib-sizeof-library-spec
   '(compression zlib sizeof))
 
-(autoconf-lib-write "configuration/zlib-inspector.m4" zlib-library-spec
+(define zlib-structs-library-spec
+  '(compression zlib structs))
+
+(define zlib-clang-types-library-spec
+  '(compression zlib clang-data-types))
+
+(autoconf-lib-write "configuration/zlib-inspector.m4"
+		    zlib-sizeof-library-spec
 		    "NAUSICAA_ZLIB")
-(sizeof-lib-write   "src/libraries/compression/zlib/sizeof.sls.in" zlib-library-spec)
-(structs-lib-write  "src/libraries/compression/zlib/structs.sls"
-		    '(compression zlib structs)
-		    zlib-library-spec)
+(sizeof-lib-write   "src/libraries/compression/zlib/sizeof.sls.in"
+		    zlib-sizeof-library-spec
+		    zlib-clang-types-library-spec)
+
+(clang-lib-write    "src/libraries/compression/zlib/clang-data-types.sls.in"
+		    zlib-clang-types-library-spec
+		    "Nausicaa/Zlib")
 
 ;;; end of file

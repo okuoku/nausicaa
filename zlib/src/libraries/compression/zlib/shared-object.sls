@@ -28,9 +28,9 @@
 (library (compression zlib shared-object)
   (export zlib-shared-object)
   (import (rnrs)
-    (ffi)
+    (prefix (ffi) ffi:)
     (compression zlib sizeof))
-  (define-shared-object zlib-shared-object
+  (ffi:define-shared-object zlib-shared-object
     ZLIB_SHARED_OBJECT))
 
 ;;; end of file

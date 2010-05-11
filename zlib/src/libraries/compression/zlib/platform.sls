@@ -77,18 +77,18 @@
     )
   (import (rnrs)
     (unimplemented)
-    (ffi)
-    (ffi sizeof)
+    (only (ffi)
+	  define-c-functions
+	  define-c-functions/with-errno
+	  make-c-function*)
     (only (ffi cstrings) string->cstring)
     (compression zlib sizeof)
+    (only (compression zlib clang-data-types)
+	  clang-maybe-foreign-type->clang-external-type)
     (compression zlib shared-object))
 
 
 ;;;; type definitions and miscellaneous functions
-
-(define z_streamp	'pointer)
-(define gz_headerp	'pointer)
-(define gzFile		'pointer)
 
 (define-c-functions zlib-shared-object
   (zlibVersion
@@ -181,14 +181,14 @@
    (int inflatePrime (z_streamp int int))))
 
 (define inflateMark
-  (if (<= #x1240 ZLIB_VERNUM)
+  (if (<= #x1240 (c-valueof ZLIB_VERNUM))
       (make-c-function* zlib-shared-object
 			long inflateMark (z_streamp))
     (lambda args
       (raise-unimplemented-error 'inflateMark "function not implemented in this version of Zlib"))))
 
 (define inflateUndermine
-  (if (<= #x1240 ZLIB_VERNUM)
+  (if (<= #x1240 (c-valueof ZLIB_VERNUM))
       (make-c-function* zlib-shared-object
 			int inflateUndermine (z_streamp int))
     (lambda args
@@ -273,13 +273,13 @@
    (void gzclearerr (gzFile))))
 
 (define gzclose_r
-  (if (<= #x1240 ZLIB_VERNUM)
+  (if (<= #x1240 (c-valueof ZLIB_VERNUM))
       (make-c-function* zlib-shared-object int gzclose_r (gzFile))
     (lambda args
       (raise-unimplemented-error 'gzclose_r "function not implemented in this version of Zlib"))))
 
 (define gzclose_w
-  (if (<= #x1240 ZLIB_VERNUM)
+  (if (<= #x1240 (c-valueof ZLIB_VERNUM))
       (make-c-function* zlib-shared-object int gzclose_w (gzFile))
     (lambda args
       (raise-unimplemented-error 'gzclose_w "function not implemented in this version of Zlib"))))
