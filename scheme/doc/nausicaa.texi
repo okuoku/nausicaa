@@ -1020,12 +1020,12 @@ Condition objects
 * ffi core conditions opening::         Shared objects opening error.
 * ffi core conditions lookup::          Shared objects lookup error.
 
-High level interface
+Callouts and callbacks
 
 * ffi core call shared::        Dynamic loading of libraries.
 * ffi core call out::           Calling foreign functions.
 * ffi core call back::          Calling Scheme functions.
-* ffi core call utilities::     Utility macros.
+* ffi core call macros::        Utility macros.
 * ffi core call platform::      Low level interface.
 
 Inspecting foreign header files
@@ -23150,13 +23150,14 @@ documentation for details.
 
 The @library{ffi sizeof} library exports a set of bindings to allow
 interface libraries to be aware of C language type sizes and limits.
-when using this library, it is suggeste to import it with prefix
+When using this library, it is suggested to import it with prefix
 @samp{ffi:}, because other libraries in the Nausicaa distribution export
 bindings with the same name.
 
-In all the following syntax descriptions: @meta{type name} must a symbol
-representing an external C language type recognised by the @library{ffi
-clang-data-types} library.
+In all the following syntax descriptions: @meta{type name} must be a
+symbol representing a C language type in the enumeration
+@enum{clang-external-types} from the @library{ffi clang-data-types}
+library.
 
 
 @deffn Syntax c-sizeof @ameta{type name}
@@ -23203,7 +23204,7 @@ uintptr_t-max   uintptr_t-min
 
 
 @deffn Syntax c-inspect @ameta{thing}
-Expand to a value representing the @meta{thing} property or constant.
+Expand to a value representing the @meta{thing} property or constant;
 @meta{thing} can be one of the following:
 
 @table @code
@@ -23232,15 +23233,13 @@ or @math{64} bits respectively.
 @subsection Pointer objects
 
 
-Pointer values are values that the Scheme implementation uses to
-represent memory blocks; they are defined by the predicate
-@func{pointer?}.  Pointers are disjoint from other Scheme object, but
-the specific type used to represent them depends upon the underlying
-Scheme implementation.  The only pointer constructor is
+Pointer objects are values that the Scheme implementation uses to
+reference memory blocks; they are a disjoint type defined by the
+predicate @func{pointer?}.  The only pointer constructor is
 @func{integer->pointer}.
 
-The following bindings are exported by @library{ffi pointers} and
-re--exported by @library{ffi} and @library{ffi memory}.
+The following bindings are exported by the @library{ffi pointers}
+library and reexported by @library{ffi} and @library{ffi memory}.
 
 
 @defun pointer? @var{x}
@@ -23257,7 +23256,7 @@ the underlying Scheme implementation, @false{} otherwise.
 
 
 @deffn Constant pointer-null
-Holds a null pointer: If @func{pointer->integer} is applied to it the
+Holds a null pointer: if @func{pointer->integer} is applied to it the
 result is 0.  This binding exists to hold a prebuilt null pointer to be
 used as return value or function argument, whenever it can make
 algorithms simpler.
@@ -23338,10 +23337,10 @@ With the single exception of @func{pointer<>?}: All the functions return
 
 
 A rich set of procedures is implemented to access directly memory blocks
-referenced by pointer values; the procedures are accessible through a
+referenced by pointer objects; the procedures are accessible through a
 small set of macros.  The bindings described in this section are
-exported by the @library{ffi peekers-and-pokers} library and
-re--exported by @library{ffi} and @library{ffi memory} libraries.
+exported by the @library{ffi peekers-and-pokers} library and reexported
+by @library{ffi} and @library{ffi memory} libraries.
 
 @quotation
 @strong{NOTE} When specifying ranges of exact integers: @math{[1, 3]}
@@ -23356,9 +23355,10 @@ Peek the value located at @meta{offset} from @meta{pointer} and return
 it.  @meta{pointer} must be a pointer object; @meta{offset} must be an
 exact integer which is @strong{not} scaled by the type dimension.
 
-@meta{type} can be any of the external--type symbols recognised by the
-@library{ffi clang-data-types} library; in particular the meaning of the
-basic types is as follows:
+@meta{type} must be a symbol representing a C language type in the
+enumeration @enum{clang-external-types} from the @library{ffi
+clang-data-types} library; in particular the meaning of the basic types
+is as follows:
 
 @table @code
 @item int8_t
@@ -23434,14 +23434,6 @@ Alias for the fixed--size peeker whose target matches the size and range
 of the @samp{unsigned long long} C language type of the underlying
 platform.
 
-@item size_t
-Alias for the fixed--size peeker whose target matches the size and range
-of the @samp{size_t} C language type of the underlying platform.
-
-@item ssize_t
-Alias for the fixed--size peeker whose target matches the size and range
-of the @samp{ssize_t} C language type of the underlying platform.
-
 @item float
 Peek a flonum Scheme object representing the four--byte @samp{float}
 (represented as @ieee{} 754 single precision floating point number).
@@ -23451,7 +23443,6 @@ Peek a flonum Scheme object representing the eight--byte @samp{double}
 (represented as @ieee{} 754 double precision floating point number).
 
 @item pointer
-@itemx void*
 Peek a @samp{pointer} value; the size of the pointer (also the number of
 bytes loaded) depends on the architecture: it is @math{4} bytes on
 @math{32}-bit systems and @math{8} bytes on @math{64}-bit systems.
@@ -23460,14 +23451,15 @@ bytes loaded) depends on the architecture: it is @math{4} bytes on
 
 
 @deffn Syntax pointer-c-set! @ameta{type} @ameta{pointer} @ameta{offset} @ameta{value}
-Poke @ameta{value} in the location @meta{offset} from @meta{pointer}.
+Poke @ameta{value} in the location at @meta{offset} from @meta{pointer}.
 @meta{pointer} must be a pointer object; @meta{offset} must be an exact
 integer which is @strong{not} scaled by the type dimension.
 @meta{value} can be an expression, which is evaluated only once.
 
-@meta{type} can be any of the external--type symbols recognised by the
-@library{ffi clang-data-types} library; in particular the meaning of the
-basic types is as follows:
+@meta{type} must be a symbol representing a C language type in the
+enumeration @enum{clang-external-types} from the @library{ffi
+clang-data-types} library; in particular the meaning of the basic types
+is as follows:
 
 @table @code
 @item int8_t
@@ -23539,14 +23531,6 @@ Alias for the fixed--size pokers whose target matches the size and range
 of the @samp{unsigned long long} C language type of the underlying
 platform.
 
-@item size_t
-Alias for the fixed--size pokers whose target matches the size and range
-of the @samp{size_t} C language type of the underlying platform.
-
-@item ssize_t
-Alias for the fixed--size pokers whose target matches the size and range
-of the @samp{ssize_t} C language type of the underlying platform.
-
 @item float
 Poke a floating point value; @meta{value} must evaluate to a flonum
 which is convertible C language @samp{float} (an @ieee{} 754 single
@@ -23558,12 +23542,31 @@ which is convertible C language @samp{double} (an @ieee{} 754 double
 precision floating point number).
 
 @item pointer
-@itemx void*
 Poke a pointer; @meta{value} must evaluate to a pointer object; the size
 of the pointer (also the number of bytes stored) depends on the
 architecture: it is @math{4} bytes on @math{32}-bits systems and
 @math{8} bytes on @math{64}-bits systems.
 @end table
+@end deffn
+
+
+@deffn Syntax pointer-c-accessor @ameta{type}
+Expand to an expression evaluating to the pointer accessor function for
+@meta{type}; the returned function accepts two arguments: a pointer
+object, an offset from the pointer object.  @meta{type} must be a symbol
+representing a C language type in the enumeration
+@enum{clang-external-types} from the @library{ffi clang-data-types}
+library.
+@end deffn
+
+
+@deffn Syntax pointer-c-mutator @ameta{type}
+Expand to an expression evaluating to the pointer mutator function for
+@meta{type}; the returned function accepts three arguments: a pointer
+object, an offset from the pointer object, the value to store at the
+selected location.  @meta{type} must be a symbol representing a C
+language type in the enumeration @enum{clang-external-types} from the
+@library{ffi clang-data-types} library.
 @end deffn
 
 
@@ -23578,40 +23581,15 @@ by @func{pointer-c-ref} are supported by @func{array-c-ref}.
 @end deffn
 
 
-@deffn Syntax pointer-c-accessor @ameta{type}
-Expand to an expression returning the pointer accessor function for
-@meta{type}; the returned function accepts two arguments: a pointer
-object, an offset from the pointer object.  @meta{type} can be any of
-the external--type symbols recognised by the @library{ffi
-clang-data-types} library.
-@end deffn
-
-
-@deffn Syntax pointer-c-mutator @ameta{type}
-Expand to an expression returning the pointer mutator function for
-@meta{type}; the returned function accepts three arguments: a pointer
-object, an offset from the pointer object, the value to store at the
-selected location.  @meta{type} can be any of the external--type symbols
-recognised by the @library{ffi clang-data-types} library.
-@end deffn
-
-
-@deffn Syntax array-c-ref @ameta{type} @ameta{pointer} @ameta{index}
-Peek the value at @meta{index} in the array of @meta{type} referenced by
-@meta{pointer} and return it.  @meta{pointer} must be a pointer object;
-@meta{index} must be an exact integer representing an index in the
-referenced array; @meta{type} can be any of the external--type symbols
-recognised by the @library{ffi clang-data-types} library.
-@end deffn
-
-
 @deffn Syntax array-c-set! @ameta{type} @ameta{pointer} @ameta{index} @ameta{value}
-Poke @meta{value} to the location @meta{index} in the array of
+Poke @meta{value} to the location at @meta{index} in the array of
 @meta{type} referenced by @meta{pointer} and return it.  @meta{pointer}
 must be a pointer object; @meta{index} must be an exact integer
-representing an index in the referenced array; @meta{type} can be any of
-the external--type symbols recognised by the @library{ffi
-clang-data-types} library.
+representing an index in the referenced array; @meta{type} must be a
+symbol selecting a C language type.
+
+This is a wrapper for @func{pointer-c-set!}, so all the types supported
+by @func{pointer-c-set!} are supported by @func{array-c-set!}.
 @end deffn
 
 
@@ -23619,21 +23597,22 @@ clang-data-types} library.
 Return a new pointer object referencing the location at @meta{index} in
 the array of @meta{type} referenced by @meta{pointer}.  @meta{pointer}
 must be a pointer object; @meta{index} must be an exact integer
-representing an index in the referenced array; @meta{type} can be any of
-the external--type symbols recognised by the @library{ffi
-clang-data-types} library.
+representing an index in the referenced array; @meta{type} must be a
+symbol representing a C language type in the enumeration
+@enum{clang-external-types} from the @library{ffi clang-data-types}
+library.
 @end deffn
 
 @c page
 @node ffi core call
-@subsection High level interface
+@subsection Callouts and callbacks
 
 
 @menu
 * ffi core call shared::        Dynamic loading of libraries.
 * ffi core call out::           Calling foreign functions.
 * ffi core call back::          Calling Scheme functions.
-* ffi core call utilities::     Utility macros.
+* ffi core call macros::        Utility macros.
 * ffi core call platform::      Low level interface.
 @end menu
 
@@ -23646,10 +23625,8 @@ A foreign shared library loadable with the @cfunc{dlopen} @posix{}
 interface is called @dfn{shared object}.  Under @value{PACKAGE}, a
 shared object can be opened, but not closed.  The @api{} makes use of a
 Scheme object to represent a shared object; it allows access to all the
-functions and variables exported by the library.
-
-The following bindings are exported by the @library{ffi primitives}
-library and reexported by the @library{ffi} compound library.
+functions and variables exported by the library.  The following bindings
+are exported by the @library{ffi} library.
 
 
 @defun open-shared-object @var{library-name}
@@ -23697,13 +23674,22 @@ with the @option{--with-libc-shared-object} option to the
 @command{configure} script.
 @end defvr
 
+
+@deffn Syntax define-shared-object @ameta{name} @ameta{library-name}
+Expand to:
+
+@example
+(define @meta{name}
+  (open-shared-object @meta{library-name}))
+@end example
+@end deffn
+
 @c page
 @node ffi core call out
 @subsubsection Calling foreign functions
 
 
-The following bindings are exported by the @library{ffi primitives}
-library and reexported by the @library{ffi} compound library.
+The following bindings are exported by the @library{ffi} library.
 
 
 @defun make-c-callout @var{ret-type} @var{address} @var{arg-types}
@@ -23712,11 +23698,11 @@ Build and return a new Scheme callout closure for a C language foreign
 function whose address is specified by the @var{address} pointer
 object.
 
-@var{ret-type} must be a symbol in the @code{clang-external-types}
-enumeration; it represents the type of the foreign function return
+@var{ret-type} must be a symbol in the @enum{clang-external-types}
+enumeration; it represents the type of the foreign function's return
 value.  @var{arg-types} must be a list of symbols in the
-@code{clang-external-types} enumeration; they represent the types of the
-foreign function arguments.
+@enum{clang-external-types} enumeration; they represent the types of the
+foreign function's arguments.
 
 The @samp{/with-errno} variant returns a callout closure which, when
 evaluated, returns two values: the return value from the foreign
@@ -23785,8 +23771,7 @@ deflateEnd
 @subsubsection Calling Scheme functions
 
 
-The following bindings are exported by the @library{ffi primitives}
-library and reexported by the @library{ffi} compound library.  As
+The following bindings are exported by the @library{ffi} library.  As
 example, the following form defines a callback accepting three
 @samp{int} as arguments and returning an @samp{int}:
 
@@ -23803,10 +23788,10 @@ example, the following form defines a callback accepting three
 Build and return a callback object to be used as argument to a callout
 procedure.  The callback invokes the Scheme function @var{scheme-proc}.
 
-@var{ret-type} must be a symbol in the @code{clang-external-types}
+@var{ret-type} must be a symbol in the @enum{clang-external-types}
 enumeration; it represents the type of the callback return value.
 @var{arg-types} must be a list of symbols in the
-@code{clang-external-types} enumeration; they represent the types of the
+@enum{clang-external-types} enumeration; they represent the types of the
 callback arguments.
 
 When a foreign function invokes the C language callback, the callback:
@@ -23842,32 +23827,26 @@ releasing such a resource.
 @end defun
 
 @c page
-@node ffi core call utilities
+@node ffi core call macros
 @subsubsection Utility macros
 
 
-The following bindings are exported by the @library{ffi utilities}
-library and reexported by the compound library @library{ffi}.
+The following bindings are exported by the @library{ffi} library.
 
-
-@deffn Syntax define-shared-object @ameta{name} @ameta{library-name}
-Expands to:
-
-@example
-(define @meta{name}
-  (open-shared-object* @meta{library-name}))
-@end example
-@end deffn
+In the following macro descriptions: the type symbols in
+@ameta{ret-type} and @ameta{arg-type} are normalised by applying to each
+a function named @func{clang-maybe-foreign-type->clang-external-type},
+which must be present in the lexical context of the symbol; such
+function must exist and convert any external type to a type in the
+@enum{clang-external-types} enumeration; when @ameta{ret-type} or
+@ameta{arg-type} is already a symbol in @enum{clang-external-types}, the
+function should just return its argument.
 
 
 @deffn Syntax make-c-callout* @ameta{ret-type} @ameta{address} (@ameta{arg-type0} @ameta{arg-type} ...)
 @deffnx Syntax make-c-callout/with-errno* @ameta{ret-type} @ameta{address} (@ameta{arg-type0} @ameta{arg-type} ...)
 Wrappers for the @func{make-c-callout} functions which allow us not to
-quote the arguments.
-
-The type symbols in @ameta{ret-type} and @ameta{arg-type} can be
-elements of the enumeration @code{clang-external-types} or custom type
-symbols bound to a symbol in the enumeration.
+quote the arguments and to perform types normalisation.
 @end deffn
 
 
@@ -23877,15 +23856,10 @@ Wrappers for the @func{make-c-function} functions which determine the
 address of the function by looking for the @ameta{funcname} symbol in
 the @ameta{shared-object}.
 
-The type symbols in @ameta{ret-type} and @ameta{arg-type} can be
-elements of the enumeration @code{clang-external-types} or custom type
-symbols bound to a symbol in the enumeration.
-
 As an example, the main deflate functions from Zlib can be defined with:
 
 @example
-(define zlib-shared-object
-  (open-shared-object* 'libz.so))
+(define-shared-object zlib-shared-object 'libz.so)
 
 (define deflateInit
   (make-c-function* zlib-shared-object
@@ -23905,10 +23879,12 @@ but we can also take advantage of these macro features to define them
 like this:
 
 @example
-(define zlib-shared-object
-  (open-shared-object* 'libz.so))
+(define-shared-object zlib-shared-object 'libz.so)
 
-(define z_streamp 'pointer)
+(define (clang-maybe-foreign-type->clang-external-type type)
+  (case type
+    ((z_streamp) 'pointer)
+    (else type)))
 
 (define deflateInit
   (make-c-function* zlib-shared-object
@@ -23923,16 +23899,11 @@ like this:
                     int deflateEnd (z_streamp)))
 @end example
 
-@noindent
-where the binding for @samp{z_streamp} is recognised as a custom type
-and expanded to @samp{pointer}.
-
 Variadic functions, like @cfunc{fprintf}, are @strong{not} supported,
-but we can interface with them by fixing the arguments; for example:
+but we can interface with them by nailing the arguments; for example:
 
 @example
-(define uuid-shared-object
-  (open-shared-object* 'libuuid.so))
+(define-shared-object uuid-shared-object 'libuuid.so)
 
 (define uuid_make
   (let ((arg-2  (make-c-function* uuid-shared-object
@@ -23951,23 +23922,56 @@ but we can interface with them by fixing the arguments; for example:
 
 @deffn Syntax make-c-callback* @ameta{ret-type} @ameta{scheme-proc} (@ameta{arg-type0} @ameta{arg-type} ...)
 Wrapper for the @func{make-c-callback} function which allows us not to
-quote the arguments.
+quote the arguments and to normalise the types.
 @end deffn
 
 
 @deffn Syntax define-c-functions @ameta{lib-spec} (@ameta{pub-name} (@ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
 @deffnx Syntax define-c-functions/with-errno @ameta{lib-spec} (@ameta{pub-name} (@ameta{ret-type} @ameta{funcname} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
-An interface to the above macros.  Example:
+Interfaces to the @func{make-c-function*} and
+@func{make-c-function/with-errno*} macros.  Example:
 
 @example
 (define-shared-object zlib-shared-object 'libz.so)
 
-(define z_streamp 'void*)
+(define (clang-maybe-foreign-type->clang-external-type type)
+  (case type
+    ((z_streamp) 'pointer)
+    (else type)))
 
 (define-c-functions zlib-shared-object
   (deflateInit  (int deflateInit_ (z_streamp int)))
   (deflate      (int deflate      (z_streamp int)))
   (deflateEnd   (int deflateEnd   (z_streamp))))
+@end example
+@end deffn
+
+
+@deffn Syntax define-c-callouts (@ameta{pub-name} (@ameta{ret-type} @ameta{address} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
+@deffnx Syntax define-c-callouts/with-errno (@ameta{pub-name} (@ameta{ret-type} @ameta{address} (@ameta{arg-type0} @ameta{arg-type} ...))) ...
+Interfaces to the @func{make-c-callout*} and
+@func{make-c-callout/with-errno*} macros.  Example:
+
+@example
+(define-shared-object zlib-shared-object 'libz.so)
+
+(define (clang-maybe-foreign-type->clang-external-type type)
+  (case type
+    ((z_streamp) 'pointer)
+    (else type)))
+
+(define-c-callouts
+  (deflateInit
+   (int (lookup-shared-object zlib-shared-object 'deflateInit_)
+        (z_streamp int)))
+
+  (deflate
+   (int (lookup-shared-object zlib-shared-object 'deflate)
+        (z_streamp int)))
+
+  (deflateEnd
+   (int (lookup-shared-object zlib-shared-object 'deflateEnd)
+        (z_streamp))))
 @end example
 @end deffn
 
