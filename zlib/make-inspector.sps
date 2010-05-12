@@ -149,7 +149,6 @@
 		    zlib-clang-types-library-spec)
 
 (clang-lib-write    "src/libraries/compression/zlib/clang-data-types.sls.in"
-		    zlib-clang-types-library-spec
-		    "Nausicaa/Zlib")
+		    zlib-clang-types-library-spec)
 
 ;;; end of file

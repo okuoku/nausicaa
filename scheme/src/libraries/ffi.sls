@@ -64,12 +64,6 @@
     pointer<?				pointer>?
     pointer<=?				pointer>=?
 
-;;; bindings from (ffi peekers-and-pokers)
-    pointer-c-ref			pointer-c-set!
-    pointer-c-accessor			pointer-c-mutator
-    array-c-ref				array-c-set!
-    array-c-pointer-to
-
 ;;; --------------------------------------------------------------------
 
     shared-object?			libc-shared-object
@@ -77,10 +71,6 @@
     make-c-function			make-c-function/with-errno
     make-c-callout			make-c-callout/with-errno
     make-c-callback			(rename (platform:free-c-callback free-c-callback))
-    ;; define-c-struct-accessor		define-c-struct-mutator
-    ;; define-c-struct-accessor-and-mutator
-    ;; define-c-struct-field-pointer-accessor
-    ;; define-c-struct-accessor-and-mutator/from-type
 
     define-shared-object
     define-c-functions			define-c-functions/with-errno
@@ -91,7 +81,7 @@
   (import (nausicaa)
     (for (ffi clang-data-types) expand run)
     (ffi conditions)
-    (ffi peekers-and-pokers)
+;;;    (ffi peekers-and-pokers)
     (ffi pointers)
     (ffi sizeof)
     (for (ffi syntax-helpers) expand)

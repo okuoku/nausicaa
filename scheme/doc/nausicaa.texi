@@ -23337,10 +23337,16 @@ With the single exception of @func{pointer<>?}: All the functions return
 
 
 A rich set of procedures is implemented to access directly memory blocks
-referenced by pointer objects; the procedures are accessible through a
-small set of macros.  The bindings described in this section are
-exported by the @library{ffi peekers-and-pokers} library and reexported
-by @library{ffi} and @library{ffi memory} libraries.
+referenced by pointer objects; they are exported by the @library{ffi
+peekers-and-pokers compat} library.  These procedures are accessible
+through a small set of macros, which expand to a direct call to the
+procedure.
+
+The bindings described in this section are exported by the @library{ffi
+peekers-and-pokers} library and reexported by @library{ffi memory}.
+When using this library, it is suggested to import it with prefix
+@samp{ffi:}, because other libraries in the Nausicaa distribution export
+bindings with the same name.
 
 @quotation
 @strong{NOTE} When specifying ranges of exact integers: @math{[1, 3]}
@@ -24049,9 +24055,10 @@ other ones; in the latter case, calling this function does nothing.
 @subsection Accessing data structures
 
 
-The following macros allow us to define accessors and mutators for
-fields in a C language data structure for which we know a pointer to.
-To use them: for each field we want to access, we need to know:
+We examine a couple of real--world cases of C language data structure
+access, with the strategy proposed by the Nausicaa distribution.  for
+each field we want to access in a foreign data structure, we need to
+know:
 
 @itemize
 @item
@@ -24064,161 +24071,121 @@ equivalent to knowing the required peeker and poker.  @ref{ffi core
 access, Direct access to memory blocks}
 @end itemize
 
-Unless otherwise specified, the following bindings are exported by the
-@library{ffi primitives} library and reexported by the compound library
-@library{ffi}.
-
-
-@deffn Syntax define-c-struct-accessor @ameta{accessor-name} @ameta{field-offset} @ameta{foreign-type-accessor}
-Define a macro named @meta{accessor-name} accepting as single argument a
-pointer to a foreign data structure; it wraps the peeker
-@meta{foreign-type-accessor} to access the field at @meta{field-offset}
-in the structure.  Example:
+Using the Nausicaa foreign library inspection infrastructure, we can put
+the following in @gnu{} Autoconf's @file{configure.ac} template of a
+Zlib binding:
 
 @example
-(define-c-struct-accessor
-  struct-z_stream-next_in-set!
-  0
-  pointer-ref-c-pointer)
-@end example
+m4_define([NAUSICAA_CUSTOM_INCLUDES],[
+#include <zlib.h>
+])
 
-@meta{accessor-name} must be a Scheme symbol.
-@meta{foreign-type-accessor} must be a peeker among the ones defined in
-@ref{ffi core access, Direct memory access}.  @meta{field-offset} must
-be an exact non--negative integer, representing the offset of the
-field's first byte in the data structure.
-
-As a special case, if @meta{field-offset} is @false{}: The defined macro
-expands into an invocation of @func{raise-unimplemented-error}, which
-signals that the accessor for the field is not implemented; in this case
-@meta{foreign-type-accessor} is ignored.  This is useful in cases where
-it is not possible to determine the offset of a field (for example
-because two versions of the same foreign library have different fields).
-@ref{unimplemented, Unimplemented error condition}
-@end deffn
-
-
-@deffn Syntax define-c-struct-mutator @ameta{mutator-name} @ameta{field-offset} @ameta{foreign-type-mutator}
-Define a macro named @meta{mutator-name} accepting two arguments: a
-pointer to a foreign data structure and the new value of a field; it
-wraps the poker @meta{foreign-type-mutator} to mutate the field at
-@meta{field-offset} in the structure.
-
-@example
-(define-c-struct-mutator
-  struct-z_stream-next_in-set!
-  0
-  pointer-set-c-pointer!)
-@end example
-
-@meta{mutator-name} must be a Scheme symbol.
-@meta{foreign-type-mutator} must be a poker among the ones defined in
-@ref{ffi core access, Direct memory access}.  @meta{field-offset} must
-be an exact non--negative integer, representing the offset of the
-field's first byte in the data structure.
-
-As a special case, if @meta{field-offset} is @false{}: The defined macro
-expands into an invocation of @func{raise-unimplemented-error}, which
-signals that the mutator for the field is not implemented; in this case
-@meta{foreign-type-mutator} is ignored.  This is useful in cases where
-it is not possible to determine the offset of a field (for example
-because two versions of the same foreign library have different fields).
-@ref{unimplemented, Unimplemented error condition}
-@end deffn
-
-
-@deffn Syntax define-c-struct-accessor-and-mutator @ameta{accessor-name} @ameta{mutator-name} @ameta{field-offset} @ameta{foreign-type-accessor} @ameta{foreign-type-mutator}
-Expand to the use of both the above macros; the following use:
-
-@example
-(define-c-struct-accessor-and-mutator
-  @cmeta{accessor-name} @cmeta{mutator-name}
-  @cmeta{field-offset}
-  @cmeta{foreign-type-accessor} @cmeta{foreign-type-mutator})
+NAUSICAA_INSPECT_STRUCT_TYPE([Z_STREAM],[z_stream],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE([Z_STREAM_NEXT_IN],
+  [z_stream],[next_in],[pointer])
+NAUSICAA_INSPECT_FIELD_TYPE([Z_STREAM_AVAIL_IN],
+  [z_stream],[avail_in],[unsigned-int])
+NAUSICAA_INSPECT_FIELD_TYPE([Z_STREAM_TOTAL_IN],
+  [z_stream],[total_in],[unsigned-int])
 @end example
 
 @noindent
-is equivalent to:
+and the following in a library to be processed by the @file{configure} script:
 
 @example
-(define-c-struct-accessor @cmeta{accessor-name}
-                          @cmeta{field-offset}
-                          @cmeta{foreign-type-accessor})
+(define typeof-z_stream.next_in   '@@TYPEOF_Z_STREAM_NEXT_IN@@)
+(define offsetof-z_stream.next_in  @@OFFSETOF_Z_STREAM_NEXT_IN@@)
 
-(define-c-struct-mutator  @cmeta{mutator-name}
-                          @cmeta{field-offset}
-                          @cmeta{foreign-type-mutator})
-@end example
+(define typeof-z_stream.avail_in   '@@TYPEOF_Z_STREAM_AVAIL_IN@@)
+(define offsetof-z_stream.avail_in @@OFFSETOF_Z_STREAM_AVAIL_IN@@)
 
-Example:
-
-@example
-(define-c-struct-accessor-and-mutator
-  struct-z_stream-next_in-set!
-  struct-z_stream-next_in-ref
-  0
-  pointer-set-c-pointer!
-  pointer-ref-c-pointer)
-@end example
-@end deffn
-
-As an example, let's consider the @samp{z_stream} structure from ZLib;
-to use it we need to access at least the following fields (and more):
-
-@example
-next_in         avail_in        total_in
-next_out        avail_out       total_out
+(define typeof-z_stream.total_in   '@@TYPEOF_Z_STREAM_TOTAL_IN@@)
+(define offsetof-z_stream.total_in @@OFFSETOF_Z_STREAM_TOTAL_IN@@)
 @end example
 
 @noindent
-@samp{next_in} and @samp{next_out} are pointers, while the others are
-unsigned integers; using appropriate inspection tools (@pxref{ffi core
-headers, Inspecting foreign header files}) we can determine the
-associations in the following table.
-
-@multitable {next_int} {Offset} {pointer-ref-c-unsigned-int} {pointer-set-c-unsigned-int!}
-@headitem Field @tab Offset @tab Accessor @tab Mutator
-@item next_in   @tab  0 @tab pointer-ref-c-pointer @tab pointer-set-c-pointer!
-@item next_out  @tab 12 @tab pointer-ref-c-pointer @tab pointer-set-c-pointer!
-@item avail_in  @tab  4 @tab pointer-ref-c-unsigned-int @tab pointer-set-c-unsigned-int!
-@item avail_out @tab 16 @tab pointer-ref-c-unsigned-int @tab pointer-set-c-unsigned-int!
-@item total_in  @tab  8 @tab pointer-ref-c-unsigned-int @tab pointer-set-c-unsigned-int!
-@item total_out @tab 20 @tab pointer-ref-c-unsigned-int @tab pointer-set-c-unsigned-int!
-@end multitable
-
-So an interface to ZLib should define:
+which, after processing, becomes:
 
 @example
-(define-c-struct-accessor-and-mutator
-  zstream-next_in-set!          zstream-next_in-ref
-  0
-  pointer-set-c-pointer!        pointer-ref-c-pointer)
+(define typeof-z_stream.next_in    'pointer)
+(define offsetof-z_stream.next_in  0)
 
-(define-c-struct-accessor-and-mutator
-  zstream-avail_in-set!         zstream-avail_in-ref
-  4
-  pointer-set-c-unsigned-int!   pointer-ref-c-unsigned-int)
+(define typeof-z_stream.avail_in   'unsigned-int)
+(define offsetof-z_stream.avail_in 4)
 
-(define-c-struct-accessor-and-mutator
-  zstream-total_in-set!         zstream-total_in-ref
-  8
-  pointer-set-c-unsigned-int!   pointer-ref-c-unsigned-int)
-
-(define-c-struct-accessor-and-mutator
-  zstream-next_out-set!         zstream-next_out-ref
-  12
-  pointer-set-c-pointer!        pointer-ref-c-pointer)
-
-(define-c-struct-accessor-and-mutator
-  zstream-avail_out-set!        zstream-avail_out-ref
-  16
-  pointer-set-c-unsigned-int!   pointer-ref-c-unsigned-int)
-
-(define-c-struct-accessor-and-mutator
-  zstream-total_out-set!        zstream-total_out-ref
-  20
-  pointer-set-c-unsigned-int!   pointer-ref-c-unsigned-int)
+(define typeof-z_stream.total_in   'unsigned-int)
+(define offsetof-z_stream.total_in 8)
 @end example
+
+@noindent
+now it is easy to define field accessors and mutators as functions:
+
+@example
+(define (struct-z_stream.next_in-set! pointer value)
+  (pointer-c-set! typeof-z_stream.next_in pointer
+                  offsetof-z_stream.next_in value))
+
+(define (struct-z_stream.next_in-ref pointer)
+  (pointer-c-ref  typeof-z_stream.next_in pointer
+                  offsetof-z_stream.next_in))
+
+...
+@end example
+
+@noindent
+or as macros:
+
+@example
+(define-syntax struct-z_stream.next_in-set!
+  (syntax-rules ()
+    ((_ ?pointer ?value)
+     (pointer-c-set! typeof-z_stream.next_in ?pointer
+                     offsetof-z_stream.next_in ?value))))
+
+(define-syntax struct-z_stream.next_in-ref
+  (syntax-rules ()
+    ((_ ?pointer)
+     (pointer-c-ref  typeof-z_stream.next_in ?pointer
+                     offsetof-z_stream.next_in))))
+
+...
+@end example
+
+@noindent
+a user--friendly way to use these accessors and mutators is to define a
+label with the features of the @library{classes} library:
+
+@example
+(define-label <struct-z_stream>
+  (virtual-fields
+    (mutable next_in
+             struct-z_stream.next_in-set!
+             struct-z_stream.next_in-ref)
+    (mutable avail_in
+             struct-z_stream.avail_in-set!
+             struct-z_stream.avail_in-ref)
+    (mutable total_in
+             struct-z_stream.total_in-set!
+             struct-z_stream.total_in-ref)))
+@end example
+
+@noindent
+now we can do:
+
+@example
+(let/with-class
+    (((zstream <struct-z_stream>) (malloc (c-sizeof z_stream))))
+
+  (set! zstream.next_in  ---)
+  (set! zstream.avail_in ---)
+
+  ---)
+@end example
+
+@noindent
+if we use the macro versions of the structure accessors and mutators:
+the @func{set!} forms will be expanded to the direct use of the low
+level accessor and mutator peeker and poker functions.
 
 Occasionally, a C language data structure embeds an array of values;
 this is the case of @samp{struct dirent} defined by @posix{}, which may
@@ -24238,115 +24205,81 @@ struct dirent
 @noindent
 the field @samp{d_name} cannot be accessed like the other fields; what
 we need to do is to take the offset of the first byte of @samp{d_name}
-and add it to the structure's pointer: The result is a pointer to the
-first byte in the embedded array.  This is what the following macro
-does.
+and add it to the structure's pointer: the result is a pointer to the
+first byte in the embedded array.
 
-
-@deffn Syntax define-c-struct-field-pointer-accessor @ameta{accessor-name} @ameta{field-offset}
-Define a macro named @meta{accessor-name} which accepts as single
-argument a pointer to a data structure, its expansion is the sum between
-the structure's pointer and @meta{field-offset}: A pointer which can be
-used to access the field's contents.
-
-@meta{accessor-name} must be a Scheme symbol.  @meta{field-offset} must
-be an exact non--negative integer, representing the offset of the
-field's first byte in the data structure.
-
-As a special case, if @meta{field-offset} is @false{}: The defined macro
-expands into an invocation of @func{raise-unimplemented-error}, which
-signals that the mutator for the field is not implemented.  This is
-useful in cases where it is not possible to determine the offset of a
-field.  @ref{unimplemented, Unimplemented error condition}
-@end deffn
-
-
-In the case of the @samp{d_name} field of the @samp{struct dirent} we
-could define:
+Using the Nausicaa foreign library inspection infrastructure, we can put
+the following in @gnu{} Autoconf's @file{configure.ac} template of a
+@posix{} binding:
 
 @example
-(define-c-struct-field-pointer-accessor
-  struct-dirent-d_name-ref 11)
+m4_define([NAUSICAA_CUSTOM_INCLUDES],[
+#include <dirent.h>
+])
+
+NAUSICAA_INSPECT_STRUCT_TYPE([DIRENT],[struct dirent],[#f])
+NAUSICAA_INSPECT_FIELD_TYPE_POINTER([DIRENT_D_NAME],
+  [struct dirent],[d_name])
 @end example
 
 @noindent
-and then use code like the following:
+and the following in a library to be processed by the @file{configure}
+script:
 
 @example
-(define dir             ;pointer to a directory stream
-  (opendir "/home/marco"))
-
-(define entry           ;pointer to a 'struct dirent'
-  (readdir dir))
-
-(define directory-name  ;pointer to a C string
-  (struct-dirent-d_name-ref entry))
+(define typeof-dirent.d_name   '@@TYPEOF_DIRENT_D_NAME@@)
+(define offsetof-dirent.d_name  @@OFFSETOF_DIRENT_D_NAME@@)
 @end example
 
-
-It is often needed to access directly the fields of a foreign structure;
-for this purpose @library{ffi} exports a class type name to be used to
-wrap raw pointer objects.
-
-
-@deftp Class @aclass{c-struct}
-Wrapper for a raw pointer object.  It can be used as base class for more
-specialised C structure wrappers.  Its constructor accepts a single
-argument: the pointer object referencing the C structure memory block.
-@end deftp
-
-
-@defcv {Immutable Field} @aclass{c-struct} pointer
-The pointer object referencing the C structure memory block.
-@end defcv
-
-
-As a usage example, let's consider the @code{struct timeval} data
-structure:
+@noindent
+which, after processing, becomes:
 
 @example
-(import (nausicaa)
-  (ffi))
+(define typeof-dirent.d_name   'pointer)
+(define offsetof-dirent.d_name 11)
+@end example
 
-(define-c-struct-accessor-and-mutator
-  struct-timeval-tv_sec-set! struct-timeval-tv_usec-ref
-  0
-  pointer-set-c-long-int! pointer-ref-c-long)
+@noindent
+now it is easy to define the field accessor returning a pointer to the
+first byte of the field, as function:
 
-(define-c-struct-accessor-and-mutator
-  struct-timeval-tv_sec-set! struct-timeval-tv_usec-ref
-  strideof-long
-  pointer-set-c-long-int! pointer-ref-c-long)
+@example
+(define (struct-dirent.d_name-ref pointer)
+  (pointer-add pointer offsetof-dirent.d_name))
+@end example
 
-(define-class <struct-timeval>
-  (inherit <c-struct>)
+@noindent
+or as macro:
+
+@example
+(define-syntax struct-dirent.d_name-ref
+  (syntax-rules ()
+    ((_ ?pointer)
+     (pointer-add ?pointer offsetof-dirent.d_name))))
+@end example
+
+@noindent
+a user--friendly way to use this accessor is to define a label with the
+features of the @library{classes} library:
+
+@example
+(define-label <struct-dirent>
   (virtual-fields
-    (mutable tv_sec  <struct-timeval>-tv_sec
-                     <struct-timeval>-tv_sec-set!)
-    (mutable tv_usec <struct-timeval>-tv_usec
-                     <struct-timeval>-tv_usec-set!))
-  (nongenerative nausicaa:posix:<struct-timeval>))
+    (immutable d_name struct-dirent.d_name-ref)))
+@end example
 
-(define (<struct-timeval>-tv_sec (o <c-struct>))
-  (struct-timeval-tv_sec-ref o.pointer))
+@noindent
+to be used with a @posix{} binding library as:
 
-(define (<struct-timeval>-tv_sec-set! (o <c-struct>) sec)
-  (struct-timeval-tv_sec-set! o.pointer sec))
+@example
+(let*/with-class
+    ((dir (opendir "/home/marco"))
+     ((entry <struct-dirent>) (readdir dir)))
 
-(define (<struct-timeval>-tv_usec (o <c-struct>))
-  (struct-timeval-tv_usec-ref o.pointer))
+  entry.d_name  ;pointer to a C string
 
-(define (<struct-timeval>-tv_usec (o <c-struct>) usec)
-  (struct-timeval-tv_usec-set! o.pointer usec))
-
-(let (((s <struct-timeval>) (make <struct-timeval>
-                              (* 2 strideof-long))))
-  (set! s.tv_sec  12)
-  (set! s.tv_usec 13)
   ---)
 @end example
-
-
 
 @c page
 @node ffi core headers
@@ -24529,7 +24462,7 @@ included in the test program.
 @end deffn
 
 
-@deffn {Autoconf Macro} NAUSICAA_ENUM_VALUE @var{symbol} @var{headers}
+@deffn {Autoconf Macro} NAUSICAA_ENUM_VALUE (@var{symbol}, @var{headers})
 Wrapper for @code{NAUSICAA_VALUEOF_TEST} which expands to:
 
 @example
@@ -24538,7 +24471,7 @@ NAUSICAA_VALUEOF_TEST([@var{symbol}],[@var{symbol}],,[@var{headers}])
 @end deffn
 
 
-@deffn {Autoconf Macro} NAUSICAA_DEFINE_VALUE @var{symbol} @var{headers}
+@deffn {Autoconf Macro} NAUSICAA_DEFINE_VALUE (@var{symbol}, @var{headers})
 Wrapper for @code{NAUSICAA_VALUEOF_TEST} which expands to:
 
 @example
@@ -24608,7 +24541,7 @@ included in the test program.
 
 It is often needed to know the basic type of a derived or custom C
 language data type.  The following determines the type of @samp{ssize_t}
-(knowing that it is an signed integer) and assigns it to the output
+(knowing that it is a signed integer) and assigns it to the output
 variable @samp{TYPEOF_SSIZE_T}:
 
 @example
@@ -24682,7 +24615,7 @@ signed-long
 signed-long-long
 @end example
 
-If the test fails: The output variable is set to @false{}.
+If the test fails: the output variable is set to @false{}.
 
 The search is performed by comparing the value of the variable
 @samp{SIZEOF_<@var{suffix}>} with the values of the variables:
@@ -24725,7 +24658,7 @@ unsigned-long
 unsigned-long-long
 @end example
 
-If the test fails: The output variable is set to @false{}.
+If the test fails: the output variable is set to @false{}.
 
 The search is performed by comparing the value of the variable
 @samp{SIZEOF_<@var{suffix}>} with the values of the variables:
@@ -24764,7 +24697,7 @@ double
 long-double
 @end example
 
-If the test fails: The output variable is set to @false{}.
+If the test fails: the output variable is set to @false{}.
 
 The search is performed by comparing the value of the variable
 @samp{SIZEOF_<@var{suffix}>} with the values of the variables:
@@ -24814,7 +24747,7 @@ included in the test program.
 
 
 When accessing a block of memory as an array of values of a given data
-type, we must know the stride of the elements: The number of bytes
+type, we must know the stride of the elements: the number of bytes
 between the first byte of an element and the first byte of its forward
 adjacent.  The following determines the stride in bytes of
 @samp{unsigned int} and assigns it to the output variable
@@ -24897,7 +24830,6 @@ NAUSICAA_SIZEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
 NAUSICAA_ALIGNOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
 NAUSICAA_STRIDEOF_TEST(@var{suffix},@var{typedef},@var{default},@var{headers})
 NAUSICAA_BASE_TYPE_TEST(@var{suffix},@var{typedef},@var{type-guess})
-NAUSICAA_ACCESSORS_TEST(@var{suffix},@var{typedef})
 @end example
 @end deffn
 
@@ -24927,8 +24859,6 @@ NAUSICAA_SIZEOF_FIELD_TEST(@var{suffix},@var{struct-typedef},
 NAUSICAA_BASE_TYPE_TEST(@var{suffix},
                         @var{struct-typedef}.@var{field-name},
                         @var{type-guess})
-NAUSICAA_ACCESSORS_TEST(@var{suffix},
-                        @var{struct-typedef}.@var{field-name})
 @end example
 @end deffn
 
@@ -24950,7 +24880,7 @@ Only the offset of the field (output variable
 @subsubsection Determining string values
 
 
-It is often needed to know the string vlaue of a language expression.
+It is often needed to know the string value of a language expression.
 The following determines the string value of the @code{SQLITE_VERSION}
 preprocessor symbol (defined in @file{sqlite3.h}) and stores it in the
 output variable @samp{STRINGOF_SQLITE_version}:
@@ -25233,9 +25163,13 @@ data types inspection definitions and constants definitions.  It is
 meant  to be processed by the @command{configure} script to insert
 values for the @code{@@...@@} symbols.
 
-@item src/libraries/xml/libxml2/structs.sls
-A library defining class types to make it easier to access C structures
-fields with dot notation.
+@item src/libraries/xml/libxml2/clang-data-types.sls.in
+A template for the @library{xml libxml2 clang-data-types} library
+holding functions to convert between Scheme symbols representing Libxml2
+data types and Scheme symbols in the @enum{clang-external-types}
+enumeration from @library{ffi clang-data-types}.  It is meant to be
+processed by the @command{configure} script to insert values for the
+@code{@@...@@} symbols.
 @end table
 
 @c ------------------------------------------------------------
@@ -25248,7 +25182,7 @@ Define global identifier for the identifiers associated to the foreign
 library and select the name of the shared object file.  Add to the
 Autoconf macro what is needed to define the
 @option{--with-@var{name}-shared-object} option for the
-@command{configure} script: this option allows the selectio of an
+@command{configure} script: this option allows the selection of an
 alternative shared object file name.  Example:
 
 @example
@@ -25268,46 +25202,50 @@ only as a comment; @var{macro-name} must be the name of the generated
 @command{m4} macro as a Scheme string.  Example:
 
 @example
-(define libxml2-library-spec
+(define libxml2-sizeof-library
   '(xml libxml2 sizeof))
 
 (autoconf-lib-write
    "configuration/libxml2-inspector.m4"
-   libxml2-library-spec
+   libxml2-sizeof-library
    "NAUSICAA_LIBXML")
 @end example
 @end defun
 
 
-@defun sizeof-lib-write @var{filename} @var{libname}
+@defun sizeof-lib-write @var{filename} @var{libname} @var{libname-clang-types}
 Write to the specified @var{filename} the contents of the sizeof Scheme
-library; @var{libname} must be the library specification.  Example:
+library; @var{libname} must be the library specification;
+@var{libname-clang-types} must be the specification of the library
+defining the foreign C language types.  Example:
 
 @example
-(define libxml2-library-spec
+(define libxml2-sizeof-library
   '(xml libxml2 sizeof))
+
+(define libxml2-clang-library
+  '(xml libxml2 clang-data-types))
 
 (sizeof-lib-write
    "src/libraries/xml/libxml2/sizeof.sls.in"
-   libxml2-library-spec)
+   libxml2-sizeof-library
+   libxml2-clang-library)
 @end example
 @end defun
 
 
-@defun structs-lib-write @var{filename} @var{structs-libname} @var{sizeof-libname}
-Write to the specified @var{filename} the contents of the @code{structs}
-library; @var{structs-libname} must be the @code{structs} library
-specification; @var{sizeof-libname} must be the specification of the
-sizeof library, which is imported.  Example:
+@defun clang-lib-write @var{filename} @var{libname}
+Write to the specified @var{filename} the contents of the
+@code{clang-data-types} library; @var{libname} must be the library
+specification.  Example:
 
 @example
-(define libxml2-library-spec
-  '(xml libxml2 sizeof))
+(define libxml2-clang-library
+  '(xml libxml2 clang-data-types))
 
-(structs-lib-write
-   "src/libraries/xml/libxml2/structs.sls"
-   '(xml libxml2 structs)
-   libxml2-library-spec)
+(clang-lib-write
+   "src/libraries/xml/libxml2/clang-data-types.sls.in"
+   libxml2-clang-library)
 @end example
 @end defun
 
@@ -25343,9 +25281,6 @@ and the following to the @code{sizeof} library:
 (define SEEK_CUR @@VALUEOF_SEEK_CUR@@)
 (define SEEK_END @@VALUEOF_SEEK_END@@)
 @end example
-
-@noindent
-adding the defined symbols to the exports list.
 @end deffn
 
 
@@ -25374,13 +25309,10 @@ NAUSICAA_STRING_TEST([FSTAB_RW],[FSTAB_RO])
 and the following to the @code{sizeof} library:
 
 @example
-(define FSTAB_RW @@STRINGOF_FSTAB_RW@@)
-(define FSTAB_RQ @@STRINGOF_FSTAB_RQ@@)
-(define FSTAB_RO @@STRINGOF_FSTAB_RO@@)
+(define FSTAB_RW "@@STRINGOF_FSTAB_RW@@")
+(define FSTAB_RQ "@@STRINGOF_FSTAB_RQ@@")
+(define FSTAB_RO "@@STRINGOF_FSTAB_RO@@")
 @end example
-
-@noindent
-adding the defined symbols to the exports list.
 @end deffn
 
 
@@ -25416,7 +25348,7 @@ and the following to the @code{sizeof} library:
 @end example
 
 @noindent
-adding the defined symbols to the exports list; finally it also calls:
+it also calls:
 
 @example
 (define-c-type xmlC14NMode signed-int "xmlC14NMode")
@@ -25438,9 +25370,6 @@ adds the following to the @code{sizeof} library:
 @example
 (define xmlChar* (quote pointer))
 @end example
-
-@noindent
-and adds @code{xmlChar*} to the exports list.
 @end deffn
 
 
@@ -25459,36 +25388,6 @@ adds the following to the Autoconf macro:
 @example
 NAUSICAA_INSPECT_TYPE([PID_T],["pid_t"],[signed-int],[#f])
 @end example
-
-@noindent
-and the following to the @code{sizeof} library:
-
-@smallexample
-(define pid_t                   (quote @@TYPEOF_PID_T@@))
-(define sizeof-pid_t            @@SIZEOF_PID_T@@)
-(define alignof-pid_t           @@ALIGNOF_PID_T@@)
-(define strideof-pid_t          @@STRIDEOF_PID_T@@)
-(define pointer-ref-c-pid_t     @@GETTEROF_PID_T@@)
-(define pointer-set-c-pid_t!    @@SETTEROF_PID_T@@)
-(define-syntax sizeof-pid_t-array
-  (syntax-rules ()
-    ((_ ?number-of-elements)
-     (* sizeof-pid_t ?number-of-elements))))
-(define-syntax array-ref-c-pid_t
-  (syntax-rules ()
-    ((_ ?pointer ?index)
-     (pointer-ref-c-pid_t
-       (pointer-add ?pointer (* ?index strideof-pid_t))))))
-(define-syntax array-set-c-pid_t!
-  (syntax-rules ()
-    ((_ ?pointer ?index ?value)
-     (pointer-set-c-pid_t!
-       (pointer-add ?pointer (* ?index strideof-pid_t))
-                    ?value))))
-@end smallexample
-
-@noindent
-adding the defined symbols to the exports list.
 @end deffn
 
 
@@ -25513,90 +25412,8 @@ NAUSICAA_INSPECT_FIELD_TYPE([XMLCHSRANGE_HIGH],[xmlChSRange],[high],[unsigned-in
 @end example
 
 @noindent
-and the following to the @code{sizeof} library:
-
-@smallexample
-(define sizeof-xmlChSRange      @@SIZEOF_XMLCHSRANGE@@)
-(define alignof-xmlChSRange     @@ALIGNOF_XMLCHSRANGE@@)
-(define strideof-xmlChSRange    @@STRIDEOF_XMLCHSRANGE@@)
-(define-c-struct-accessor-and-mutator
-  struct-xmlChSRange-low-set!
-  struct-xmlChSRange-low-ref
-  @@OFFSETOF_XMLCHSRANGE_LOW@@
-  @@SETTEROF_XMLCHSRANGE_LOW@@
-  @@GETTEROF_XMLCHSRANGE_LOW@@)
-(define-c-struct-accessor-and-mutator
-  struct-xmlChSRange-high-set!
-  struct-xmlChSRange-high-ref
-  @@OFFSETOF_XMLCHSRANGE_HIGH@@
-  @@SETTEROF_XMLCHSRANGE_HIGH@@
-  @@GETTEROF_XMLCHSRANGE_HIGH@@)
-@end smallexample
-
-@noindent
-exporting the defined symbols, and the following to the @code{structs}
-library:
-
-@example
-(define-class <struct-xmlChSRange>
-  (inherit <c-struct>)
-  (protocol (lambda (make-c-struct)
-              (lambda (pointer)
-                ((make-c-struct pointer)))))
-  (nongenerative @cmeta{class-uid}:<struct-xmlChSRange>)
-  (virtual-fields
-    (mutable high
-      <struct-xmlChSRange>-low
-      <struct-xmlChSRange>-low-set!)
-    (mutable low
-      <struct-xmlChSRange>-high
-      <struct-xmlChSRange>-high-set!))
-
-(define (<struct-xmlChSRange>-low (o <c-struct>))
-  (struct-xmlChSRange-low-ref o.pointer)
-
-(define (<struct-xmlChSRange>-low-set! (o <c-struct>) v)
-  (struct-xmlChSRange-low-set! o.pointer v)
-
-(define (<struct-xmlChSRange>-high (o <c-struct>))
-  (struct-xmlChSRange-high-ref o.pointer)
-
-(define (<struct-xmlChSRange>-high-set! (o <c-struct>) v)
-  (struct-xmlChSRange-high-set! o.pointer v)
-@end example
-
-@noindent
-exporting the class type; notice that @meta{class-uid} is the value of
-the @func{class-uid} parameter.  If a field is an array embedded in the
-structure, we must declare it as of type @code{embedded}; for example,
-the @code{d_name} field:
-
-@example
-(define-c-struct dirent
-  "struct dirent"
-  (signed-int           d_ino)
-  (signed-int           d_off)
-  (unsigned-int         d_reclen)
-  (unsigned-int         d_type)
-  (embedded             d_name))
-@end example
-
-@noindent
-generates the following in the Autoconf macro:
-
-@example
-NAUSICAA_INSPECT_FIELD_TYPE_POINTER([DIRENT_D_NAME],
-  [struct dirent],[d_name])
-@end example
-
-@noindent
-and the following in the @code{sizeof} library:
-
-@example
-(define-c-struct-field-pointer-accessor
-  struct-dirent-d_name-ref
-  @@OFFSETOF_DIRENT_D_NAME@@)
-@end example
+and to the @code{sizeof} library a label definition to access the fields
+of the structure.
 @end deffn
 
 @c ------------------------------------------------------------
@@ -25648,8 +25465,8 @@ introduced with @func{sizeof-lib}.  Example:
 @section Low level memory handling
 
 
-The @library{foreign memory} library exports a low level @api{} for
-memory allocation and access; memory allocated with this @api{} is not
+The @library{ffi memory} library exports a low level @api{} for memory
+allocation and access; memory allocated with this @api{} is not
 subjected to garbage collection.  It is a compound library re--exporting
 @api{}s from the following component libraries:
 
@@ -25660,8 +25477,6 @@ subjected to garbage collection.  It is a compound library re--exporting
 (ffi memory conditions)
 (ffi memory memblocks)
 (ffi memory operations)
-(ffi peekers-and-pokers)
-(ffi pointers)
 @end example
 
 More libraries export other memory related @api{}s.

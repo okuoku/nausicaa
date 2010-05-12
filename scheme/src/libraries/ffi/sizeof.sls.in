@@ -238,40 +238,40 @@
 (define valueof-long-min	@VALUEOF_LONG_MIN@)
 (define valueof-ulong-max	@VALUEOF_ULONG_MAX@)
 (define valueof-long-long-max
-  (- (expt 2 (- (* 8 sizeof-signed-long-long) 1)) 1)) ;;@VALUEOF_LONG_LONG_MAX@
+  (- (expt 2 (- (* 8 sizeof-signed-long-long) 1)) 1))	;;@VALUEOF_LONG_LONG_MAX@
 (define valueof-long-long-min
-  (- (expt 2 (- (* 8 sizeof-signed-long-long) 1)))) ;;@VALUEOF_LONG_LONG_MIN@
+  (- (expt 2 (- (* 8 sizeof-signed-long-long) 1))))	;;@VALUEOF_LONG_LONG_MIN@
 (define valueof-ulong-long-max
-  (- (expt 2 (- (* 8 sizeof-unsigned-long-long) 1)) 1)) ;;@VALUEOF_ULONG_LONG_MAX@
+  (- (expt 2    (* 8 sizeof-unsigned-long-long)) 1))	;;@VALUEOF_ULONG_LONG_MAX@
 (define valueof-wchar-max	@VALUEOF_WCHAR_MAX@)
 
-(define valueof-ssize_t-max	(case (clang-external-type->clang-type 'ssize_t)
+(define valueof-ssize_t-max	(case (clang-external-type->clang-internal-type 'ssize_t)
 				  ((signed-int)		valueof-int-max)
 				  ((signed-long)	valueof-long-max)
 				  ((signed-long-long)	valueof-long-long-max)
 				  (else			#f)))
-(define valueof-ssize_t-min	(case (clang-external-type->clang-type 'ssize_t)
+(define valueof-ssize_t-min	(case (clang-external-type->clang-internal-type 'ssize_t)
 				  ((signed-int)		valueof-int-min)
 				  ((signed-long)	valueof-long-min)
 				  ((signed-long-long)	valueof-long-long-min)
 				  (else			#f)))
-(define valueof-intptr_t-max	(case (clang-external-type->clang-type 'intptr_t)
+(define valueof-intptr_t-max	(case (clang-external-type->clang-internal-type 'intptr_t)
 				  ((signed-int)		valueof-int-max)
 				  ((signed-long)	valueof-long-max)
 				  ((signed-long-long)	valueof-long-long-max)
 				  (else			#f)))
-(define valueof-intptr_t-min	(case (clang-external-type->clang-type 'intptr_t)
+(define valueof-intptr_t-min	(case (clang-external-type->clang-internal-type 'intptr_t)
 				  ((signed-int)		valueof-int-min)
 				  ((signed-long)	valueof-long-min)
 				  ((signed-long-long)	valueof-long-long-min)
 				  (else			#f)))
-(define valueof-size_t-max	(case (clang-external-type->clang-type 'size_t)
+(define valueof-size_t-max	(case (clang-external-type->clang-internal-type 'size_t)
 				  ((unsigned-int)	valueof-uint-max)
 				  ((unsigned-long)	valueof-ulong-max)
 				  ((unsigned-long-long)	valueof-ulong-long-max)
 				  (else			#f)))
 (define valueof-size_t-min	0)
-(define valueof-uintptr_t-max	(case (clang-external-type->clang-type 'uintptr_t)
+(define valueof-uintptr_t-max	(case (clang-external-type->clang-internal-type 'uintptr_t)
 				  ((unsigned-int)	valueof-uint-max)
 				  ((unsigned-long)	valueof-ulong-max)
 				  ((unsigned-long-long)	valueof-ulong-long-max)

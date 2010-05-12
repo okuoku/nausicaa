@@ -63,8 +63,9 @@ Notes for --- tag 0.2a0
 
 * Further cleanup of (matches) internals.
 
-* Started  use   of  classes   as  wrappers  of   foreign  C
-  structures, allowing access of fields with dot notation.
+* Started  use  of  labels  from (classes)  as  wrappers  of
+  foreign C  structures, allowing access of  fields with dot
+  notation.
 
 
 Notes for 2010-03-28 tag 0.1a11

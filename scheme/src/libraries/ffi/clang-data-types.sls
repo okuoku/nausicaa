@@ -123,8 +123,7 @@
     #f))
 
 (define (clang-maybe-foreign-type->clang-external-type type)
-  (or (clang-foreign-type->clang-external-type type)
-      type))
+  type)
 
 
 (define clang-external-types-universe

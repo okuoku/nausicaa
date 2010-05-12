@@ -144,7 +144,8 @@
 
 (define (sizeof-lib-write filename libname libname-clang-types)
   ;;Write to  the specified FILENAME  the contents of the  sizeof Scheme
-  ;;library.  LIBNAME must be the library specification.
+  ;;library.     LIBNAME   must    be    the   library    specification.
+  ;;LIBNAME-CLANG-TYPES must be the clang library specification.
   ;;
   (let ((libout `(library ,libname
 		   (export
@@ -178,7 +179,7 @@
 	(close-port port)))))
 
 
-;;;; Structs library
+;;;; Structs stuff, stuff that goes into the sizeof library
 
 (define $structs-library	'())
 (define $structs-lib-exports	'())
@@ -209,19 +210,18 @@
   (set-cons! $clang-type-map `((,external-type) (quote ,internal-type)))
   (set-cons! $clang-type-enum external-type))
 
-(define (clang-lib-write filename clang-libname package)
+(define (clang-lib-write filename clang-libname)
   ;;Write to  the specified  FILENAME the contents  of the  clang Scheme
-  ;;library.  CLANG-LIBNAME must  be the library specification.  PACKAGE
-  ;;must be the name of the package as a string.
+  ;;library.  CLANG-LIBNAME must  be the library specification.
   ;;
   (let ((libout `(library ,clang-libname
 		   (export clang-foreign-type->clang-external-type
 			   clang-maybe-foreign-type->clang-external-type
-			   enum-clang-foreign-types clang-external-types)
+			   enum-clang-foreign-types clang-foreign-types)
 		   (import (rnrs))
 		   (define-enumeration enum-clang-foreign-types
 		     ,(reverse $clang-type-enum)
-		     clang-external-types)
+		     clang-foreign-types)
 		   (define (clang-foreign-type->clang-external-type type)
 		     (case type
 		       ,@(reverse $clang-type-map)

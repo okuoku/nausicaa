@@ -38,7 +38,7 @@
 (cond-expand ((or larceny petite) (exit)) (else #f))
 
 
-(parameterize ((check-test-name 'pokers))
+(parameterize ((check-test-name 'pointer))
 
   (define-syntax doit/set-ref
     (syntax-rules ()
@@ -224,8 +224,7 @@
     (test-it max)
     (test-it min)
     (test-it/error (+ max 100))
-    (test-it/error (- min 100))
-    )
+    (test-it/error (- min 100)))
 
 ;;; --------------------------------------------------------------------
 ;;; long-long
@@ -266,8 +265,7 @@
     (test-it max)
     (test-it min)
     (test-it/error (+ max 100))
-    (test-it/error (- min 100))
-    )
+    (test-it/error (- min 100)))
 
 ;;; --------------------------------------------------------------------
 ;;; int8_t
@@ -400,8 +398,7 @@
     (test-it max)
     (test-it min)
     (test-it/error (+ max 100))
-    (test-it/error (- min 100))
-    )
+    (test-it/error (- min 100)))
 
   (let* ((bits	64)
 	 (max	(- (expt 2 bits) 1))
@@ -420,8 +417,7 @@
     (test-it max)
     (test-it min)
     (test-it/error (+ max 100))
-    (test-it/error (- min 100))
-    )
+    (test-it/error (- min 100)))
 
 ;;; --------------------------------------------------------------------
 ;;; float, double

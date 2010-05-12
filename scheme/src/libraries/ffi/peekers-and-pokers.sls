@@ -33,6 +33,8 @@
   (import (rnrs)
     (ffi pointers)
     (ffi sizeof)
+    ;;There  must  be  a  peeker  and  a poker  for  each  type  in  the
+    ;;ENUM-CLANG-INTERNAL-TYPES enumeration.
     (rename (ffi peekers-and-pokers compat)
 	    (pointer-ref-c-int8		pointer-ref-c-int8_t)
 	    (pointer-ref-c-uint8	pointer-ref-c-uint8_t)
@@ -59,7 +61,7 @@
     (syntax-case stx ()
       ((_ ?type ?pointer ?offset)
        #`(#,(%prepend #'pointer-c-ref "pointer-ref-c-"
-		      (map-identifier-syntax-object clang-external-type->clang-type #'?type))
+		      (map-identifier-syntax-object clang-external-type->clang-internal-type #'?type))
 	  ?pointer ?offset))
       (?input-form
        (syntax-violation 'pointer-c-ref
@@ -73,7 +75,7 @@
       ((_ ?type ?pointer ?offset ?value)
        #`(#,(%enclose #'pointer-c-set!
 		      "pointer-set-c-"
-		      (map-identifier-syntax-object clang-external-type->clang-type #'?type)
+		      (map-identifier-syntax-object clang-external-type->clang-internal-type #'?type)
 		      "!")
 	  ?pointer ?offset ?value))
       (?input-form
@@ -88,7 +90,7 @@
       ((_ ?type)
        #`(begin #,(%prepend #'pointer-c-ref "pointer-ref-c-"
 			    (map-identifier-syntax-object
-			     clang-external-type->clang-type #'?type))))
+			     clang-external-type->clang-internal-type #'?type))))
       (?input-form
        (syntax-violation 'pointer-c-accessor
 	 "invalid C language specification for raw memory getter"
@@ -101,7 +103,7 @@
       ((_ ?type)
        #`(begin #,(%enclose #'pointer-c-set! "pointer-set-c-"
 			    (map-identifier-syntax-object
-			     clang-external-type->clang-type #'?type)
+			     clang-external-type->clang-internal-type #'?type)
 			    "!")))
       (?input-form
        (syntax-violation 'pointer-c-mutator
