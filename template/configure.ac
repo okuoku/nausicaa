@@ -39,7 +39,7 @@ NAUSICAA_SYSTEM_SETUP
 DS_EXCLUDE_SECTION([CONFIG_INSPECTION_SCRIPT])
 DS_EXCLUDE_SECTION([AUTOCONF])
 DS_EXCLUDE_SECTION([PKGCONFIG])
-NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(foreign ffi)])
+NAUSICAA_SCHEME_CHECK_LIBRARY([NAU_FOREIGN],[(ffi)])
 NAUSICAA_C_LANGUAGE
 AC_CHECK_HEADERS([template.h],,[AC_MSG_FAILURE([cannot find Template header],[2])])
 AC_CHECK_LIB([template],[template_init],,[AC_MSG_FAILURE([cannot find Template library],[2])])
@@ -62,6 +62,7 @@ dnl Done.
 dnl --------------------------------------------------------------------
 
 AC_CONFIG_FILES([../src/libraries/foreign/category/template/sizeof.sls:src/libraries/foreign/category/template/sizeof.sls.in])
+AC_CONFIG_FILES([../src/libraries/foreign/category/template/clang-data-types.sls:src/libraries/foreign/category/template/clang-data-types.sls.in])
 DS_CONFIG_FILE_SLACKWARE_BIN_DESC
 DS_CONFIG_FILE_SLACKWARE_DOC_DESC
 NAUSICAA_END
