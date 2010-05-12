@@ -134,8 +134,6 @@
   (only (ffi memory mempool))
   (only (ffi memory refcount))
   (only (ffi memory membuffers))
-
-  (only (ffi parametrised))
   (only (ffi cstrings))
   (only (ffi errno))
 
