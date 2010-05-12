@@ -167,7 +167,7 @@
 		   ,@$structs-library)))
     (let ((strout (call-with-string-output-port
 		      (lambda (port)
-			(display libout port)))))
+			(pretty-print libout port)))))
       (set! strout (hat->at strout))
       (let ((port (transcoded-port (open-file-output-port filename (file-options no-fail))
        				   (make-transcoder (utf-8-codec)))))
@@ -262,7 +262,7 @@
   [~a shared library file],[select ~a shared library file])"
 		    varname dnname default-library-name tiname tiname))
     ;;FIXME This will fail with Ikarus up to revision 1870.  Use Mosh!.
-    (let ((at-symbol (format-symbol "\"^~a^\"" varname)))
+    (let ((at-symbol (format "^~a^" varname)))
       (%sizeof-lib `((define ,varname-sym ,at-symbol)))
       (%sizeof-lib-exports varname-sym))))
 
@@ -333,7 +333,7 @@
   (for-each (lambda (symbol)
 	      (let ((valueof-symbol (string->symbol (string-append "valueof-" (symbol->string symbol)))))
 		(autoconf-lib (format "NAUSICAA_STRING_TEST([~a],[~a])" symbol symbol))
-		(let ((at-symbol (format "\"^STRINGOF_~a^\"" symbol)))
+		(let ((at-symbol (format "^STRINGOF_~a^" symbol)))
 		  (%sizeof-lib `((define ,valueof-symbol ,at-symbol)))
 		  ;;(%sizeof-lib-exports symbol)
 		  )))
