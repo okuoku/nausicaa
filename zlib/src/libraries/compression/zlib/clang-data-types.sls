@@ -2,7 +2,7 @@
 ;;;
 ;;;Part of: Nausicaa
 ;;;Contents: foreign library C language type mapping
-;;;Date: Tue May 11, 2010
+;;;Date: Wed May 12, 2010
 ;;;
 ;;;Abstract
 ;;;
@@ -30,12 +30,12 @@
     clang-foreign-type->clang-external-type
     clang-maybe-foreign-type->clang-external-type
     enum-clang-foreign-types
-    clang-external-types)
+    clang-foreign-types)
   (import (rnrs))
   (define-enumeration enum-clang-foreign-types
     (uInt uLong z_off_t z_streamp gz_headerp gzFile z_stream
       gz_header)
-    clang-external-types)
+    clang-foreign-types)
   (define (clang-foreign-type->clang-external-type type)
     (case type
       [(uInt) 'unsigned-int]

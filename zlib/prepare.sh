@@ -21,6 +21,7 @@ set -x
     --enable-ikarus                             \
     --disable-larceny                           \
     --enable-mosh                               \
+    --enable-vicare                             \
     --enable-ypsilon                            \
     --enable-doc-ps                             \
     --enable-time-tests                         \

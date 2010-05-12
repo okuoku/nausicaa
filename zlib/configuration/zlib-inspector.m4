@@ -2,7 +2,7 @@ dnl (compression zlib sizeof) --
 dnl
 dnl Part of: Nausicaa
 dnl Contents: foreign library inspection generation
-dnl Date: Tue May 11, 2010
+dnl Date: Wed May 12, 2010
 dnl
 dnl Abstract
 dnl
