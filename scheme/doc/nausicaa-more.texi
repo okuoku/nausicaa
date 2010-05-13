@@ -29970,7 +29970,7 @@ As a special case @code{(infix)}, with no arguments given, is equivalent
 to @code{(values)}.
 
 The infix operators recognised by @func{infix} are both the bindings
-from @library{nausicaa} and the bindings from @func{rnrs}.
+from @library{nausicaa} and the bindings from @library{rnrs}.
 @end deffn
 
 @c page
