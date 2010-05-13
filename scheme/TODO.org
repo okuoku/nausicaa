@@ -10,7 +10,7 @@
 
   Why I cannot install only the FASL files under ikarus?
 
-* records
+* generics
 
   Profile and improve method dispatching.
 
@@ -36,9 +36,9 @@
 
    Scan RFC 2822 and implement (email date) accordingly.
 
-* foreign
+* ffi
 
-  Solve the callbacks problem for Larceny?
+  Port all the extension packages to FFI 0.2.
 
 * format
 
@@ -155,4 +155,8 @@
 * armor
 
   Add quoted-printable. http://tools.ietf.org/html/rfc2045
+
+* libraries
+
+  Finish the libraries inspector.
 
