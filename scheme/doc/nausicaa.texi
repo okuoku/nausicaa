@@ -17090,53 +17090,106 @@ The @func{datum->syntax} procedure returns a syntax-object
 representation of @var{datum} that contains the same contextual
 information as @var{template-id}, with the effect that the syntax object
 behaves as if it were introduced into the code when @var{template-id}
-was introduced.  Example:
-
-@example
-(library (lib)
-  (export doit-lib a-lib)
-  (import (rnrs))
-  (define a-lib 2)
-  (define b 22)
-  (define-syntax doit-lib
-    (lambda (stx)
-      (syntax-case stx ()
-        ((_ ?context)
-         #`(write #,(datum->syntax #'?context 'b)))))))
-
-(library (test)
-  (export)
-  (import (rnrs) (lib))
-  (define a 1)
-  (define b 11)
-  (define-syntax doit
-    (lambda (stx)
-      (syntax-case stx ()
-        ((_ ?context)
-         #`(write #,(datum->syntax #'?context 'b))))))
-
-  (doit     a)          @print{} 11
-  (doit     a-lib)      @print{} 11
-  (doit-lib a)          @print{} 11
-  (doit-lib a-lib)      @print{} 11
-  )
-@end example
-
-@noindent
-notice how we can reach the value of @code{b} from @library{lib} even
-though it was not exported.
+was introduced.
 
 The @func{datum->syntax} procedure allows a transformer to ``bend''
 lexical scoping rules by creating @emph{implicit identifiers} that
 behave as if they were present in the input form, thus permitting the
 definition of macros that introduce visible bindings for, or references
-to, identifiers that do not appear explicitly in the input form.  For
-example, the following defines a @func{loop} expression that uses this
+to, identifiers that do not appear explicitly in the input form.
+@end deffn
+
+
+In the following example, @code{green} and @code{red} have the role of
+@var{template-id} in the @func{alpha} and @func{beta} macro uses at the
+end of the @library{test} library:
+
+@example
+(library (lib)
+  (export beta red)
+  (import (rnrs))
+
+  (define red  #t)
+  (define data 'in-lib)
+
+  (define-syntax beta
+    (lambda (stx)
+      (syntax-case stx ()
+        ((_ ?context)
+         #`(begin #,(datum->syntax #'?context 'data)))))))
+
+(library (test)
+  (export)
+  (import (rnrs) (lib))
+
+  (define green #t)
+  (define data  'in-test)
+
+  (define-syntax alpha
+    (lambda (stx)
+      (syntax-case stx ()
+        ((_ ?context)
+         #`(begin #,(datum->syntax #'?context 'data))))))
+
+  (display (alpha green))       @print{} in-test
+  (display (alpha red))         @print{} in-test
+  (display (beta  green))       @print{} in-test
+  (display (beta  red)))        @print{} in-test
+@end example
+
+@noindent
+in both the macro uses: the identifier syntax objects representing
+@samp{green} and @samp{red} are created in the @library{test} library,
+so both the macros reach for @code{data} in the context of the
+@library{test} library.
+
+The following example demonstrates why, when macro uses are nested, we
+cannot rely on the macro keyword syntax object to carry the context of
+the ``outer'' macro use:
+
+@example
+(library (sublib)
+  (export beta)
+  (import (rnrs))
+  (define data 33)
+  (define-syntax beta
+    (lambda (stx)
+      (syntax-case stx ()
+        ((?context)
+         #`(begin #,(datum->syntax #'?context 'data)))))))
+
+(library (lib)
+  (export alpha)
+  (import (rnrs) (sublib))
+  (define data 22)
+  (define-syntax alpha
+    (lambda (stx)
+      (syntax-case stx ()
+        ((_)
+         #'(beta))))))
+
+(library (test)
+  (export)
+  (import (rnrs) (lib))
+  (define data 11)
+  (display (alpha))) @print{} 22
+@end example
+
+@noindent
+in the body of the @func{beta} macro: @code{?context} is bound to a
+syntax object carrying reference to the lexical context of the body of
+@func{alpha}; from the body of @func{beta} it is impossible to reach the
+lexical context of the @library{test} library, where @func{alpha} is
+used.
+
+The following example defines a @func{loop} expression that uses this
 controlled form of identifier capture to bind the variable @samp{break}
 to an escape procedure within the loop body.  (The derived
 @func{with-syntax} form is like @func{let} but binds pattern variables.)
 
 @example
+(import (rnrs))
+
 (define-syntax loop
   (lambda (x)
     (syntax-case x ()
@@ -17226,7 +17279,7 @@ The definition of @func{include} uses @func{datum->syntax} to convert
 the objects read from the file into syntax objects in the proper lexical
 context, so that identifier references and definitions within those
 expressions are scoped where the @func{include} form appears.
-@end deffn
+
 
 @c page
 @node stdlib syntax-case temporaries
