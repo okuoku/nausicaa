@@ -871,18 +871,18 @@
   )
 
 
-  (import (except (rnrs) equal-hash finite? infinite? nan? = max)
-    (only (ikarus) getenv)
-    (cond-expand)
-    (conditions)
-    (language-extensions)
-    (parameters)
-    (pretty-print)
-    (shared-structures)
-    (classes)
-    (compensations)
-    (deferred-exceptions)
-    (nausicaa common))
+  (import (for (except (rnrs) equal-hash finite? infinite? nan? = max) expand run)
+    (for (only (ikarus) getenv) expand run)
+    (for (cond-expand) expand run)
+    (for (conditions) expand run)
+    (for (language-extensions) expand run)
+    (for (parameters) expand run)
+    (for (pretty-print) expand run)
+    (for (shared-structures) expand run)
+    (for (classes) expand run)
+    (for (compensations) expand run)
+    (for (deferred-exceptions) expand run)
+    (for (nausicaa common) expand run))
 
 
 ;;;; Ikarus specific stuff

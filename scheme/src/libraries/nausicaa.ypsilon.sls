@@ -870,19 +870,19 @@
     )
 
 
-  (import (except (rnrs) finite? infinite? nan? = max *)
-    (prefix (only (rnrs) *) ypsilon:)
-    (only (core) lookup-process-environment process-environment->alist)
-    (cond-expand)
-    (conditions)
-    (language-extensions)
-    (parameters)
-    (pretty-print)
-    (shared-structures)
-    (classes)
-    (compensations)
-    (deferred-exceptions)
-    (nausicaa common))
+  (import (for (except (rnrs) finite? infinite? nan? = max *) expand run)
+    (for (prefix (only (rnrs) *) ypsilon:) expand run)
+    (for (only (core) lookup-process-environment process-environment->alist) expand run)
+    (for (cond-expand) expand run)
+    (for (conditions) expand run)
+    (for (language-extensions) expand run)
+    (for (parameters) expand run)
+    (for (pretty-print) expand run)
+    (for (shared-structures) expand run)
+    (for (classes) expand run)
+    (for (compensations) expand run)
+    (for (deferred-exceptions) expand run)
+    (for (nausicaa common) expand run))
 
 
 ;;;; Ypsilon specific stuff

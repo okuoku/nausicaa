@@ -871,19 +871,19 @@
     )
 
 
-  (import (except (rnrs) finite? infinite? nan? = * rational-valued?)
-    (prefix (only (rnrs) * rational-valued?) petite:)
-    (only (chezscheme) getenv)
-    (cond-expand)
-    (conditions)
-    (language-extensions)
-    (parameters)
-    (pretty-print)
-    (shared-structures)
-    (classes)
-    (compensations)
-    (deferred-exceptions)
-    (nausicaa common))
+  (import (for (except (rnrs) finite? infinite? nan? = * rational-valued?) expand run)
+    (for (prefix (only (rnrs) * rational-valued?) petite:) expand run)
+    (for (only (chezscheme) getenv) expand run)
+    (for (cond-expand) expand run)
+    (for (conditions) expand run)
+    (for (language-extensions) expand run)
+    (for (parameters) expand run)
+    (for (pretty-print) expand run)
+    (for (shared-structures) expand run)
+    (for (classes) expand run)
+    (for (compensations) expand run)
+    (for (deferred-exceptions) expand run)
+    (for (nausicaa common) expand run))
 
 
 ;;;; Petite specific stuff

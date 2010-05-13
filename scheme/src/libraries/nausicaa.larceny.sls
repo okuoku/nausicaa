@@ -875,22 +875,18 @@
     )
 
 
-  (import (except (rnrs)
-		  =
-		  ;;Implemented  in compat  to let  them  accept complex
-		  ;;arguments.
-		  finite? infinite? nan?)
-    (primitives getenv)
-    (cond-expand)
-    (conditions)
-    (language-extensions)
-    (parameters)
-    (pretty-print)
-    (shared-structures)
-    (classes)
-    (compensations)
-    (deferred-exceptions)
-    (nausicaa common))
+  (import (for (except (rnrs) finite? infinite? nan? =) expand run)
+    (for (primitives getenv) expand run)
+    (for (cond-expand) expand run)
+    (for (conditions) expand run)
+    (for (language-extensions) expand run)
+    (for (parameters) expand run)
+    (for (pretty-print) expand run)
+    (for (shared-structures) expand run)
+    (for (classes) expand run)
+    (for (compensations) expand run)
+    (for (deferred-exceptions) expand run)
+    (for (nausicaa common) expand run))
 
 
 ;;;; Larceny specific stuff
