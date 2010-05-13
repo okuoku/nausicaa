@@ -16724,7 +16724,7 @@ transformers}) may be defined in terms of @func{syntax-case},
 @subsection Identifier predicates
 
 
-Identifiers are a basic concept of hygienic macro expansion: It is
+Identifiers are a basic concept of hygienic macro expansion: it is
 possible to write macros with confidence only with a through
 understanding of identifiers.  Let's analyse a simple form, which we can
 imagine (for now) to appear at the top level of a program body:
@@ -16747,8 +16747,11 @@ in ``binding position''; the second instance does not appear in a
 binding position, so it is said to be in ``reference position''.
 @ref{baselib expressions binding, Binding constructs}
 
-@strong{Note} In the following descriptions, the procedure arguments
-with name @var{id} are meant to be identifiers.
+@quotation
+@strong{NOTE} In the following descriptions, the procedure arguments
+with name @var{id} are meant to be syntax objects, each holding only an
+identifier.
+@end quotation
 
 
 @deffn Procedure {identifier?} @var{obj}
@@ -16773,7 +16776,8 @@ objects, below.
          (if (= n 0)
              1
              (* n (fact (- n 1))))))
-     '(1 2 3 4 5))    @result{} (1 2 6 24 120)
+     '(1 2 3 4 5))
+@result{} (1 2 6 24 120)
 
 (rec 5 (lambda (x) x))
 @error{} exception &syntax
@@ -16791,14 +16795,14 @@ references or bound identifiers in a given context.
 @deffn Procedure {bound-identifier=?} @vari{id} @varii{id}
 Return @true{} if a binding for one would capture a reference to the
 other in the output of the transformer, assuming that the reference
-appears within the scope of the binding, and @false{} otherwise.
+appears within the scope of the binding; return @false{} otherwise.
 
 In general, two identifiers are @func{bound-identifier=?} only if both
 are present in the original program or both are introduced by the same
 transformer application (perhaps implicitly, see @func{datum->syntax}).
 
 Operationally, two identifiers are considered equivalent by
-@func{bound-identifier=?} if and only if they have the same name and
+@func{bound-identifier=?} if and only if they have the same name and the
 same marks.
 
 The @func{bound-identifier=?} procedure can be used for detecting
@@ -16847,65 +16851,102 @@ because binding one does not capture the reference of the other.
 
 @deffn Procedure {free-identifier=?} @vari{id} @varii{id}
 Return @true{} if and only if the two identifiers would resolve to the
-same binding if both were to appear in the output of a transformer
-outside of any bindings inserted by the transformer.  (If neither of two
-like--named identifiers resolves to a binding, i.e., both are unbound,
-they are considered to resolve to the same binding.)
-
-Operationally, two identifiers are considered equivalent by
-@func{free-identifier=?} if and only if the topmost matching
-substitution for each maps to the same binding or the identifiers have
-the same name and no matching substitution.
-
-For example, let's consider this macro:
+same binding if both were to appear in the output of a transformer,
+outside of any bindings inserted by the transformer.  Here is an example
+showing that it is the origin of the bindings that matters, not the
+actual symbol in the identifier:
 
 @example
+(import (rnrs)
+  (prefix (only (rnrs) vector) that:))
+
 (define-syntax doit
   (lambda (stx)
     (syntax-case stx ()
       ((_ id1 id2)
        (begin
          (display (free-identifier=? #'id1 #'id2))
-         #'(list id1 id2))))))
-@end example
+         #f)))))
 
-@noindent
-in the following macro use the identifiers are @func{free-identifier=?}:
-
-@example
-(let ((alpha 123))
-  (doit alpha alpha))
-@result{} (123 123)
+(doit vector that:vector)
 @print{} #t
 @end example
 
-@noindent
-because if they are left free in the output form of the macro use, both
-are captured by the same binding; in the following macro use the
-identifiers are @strong{not} @func{free-identifier=?}:
+If neither of two like--named identifiers resolves to a binding, i.e.,
+both are unbound, they are considered to resolve to the same binding;
+example:
 
 @example
-(let ((alpha 123)
-      (beta  456))
-  (doit alpha beta))
-@result{} (123 456)
+(import (rnrs))
+
+(define-syntax doit
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ id1 id2)
+       (begin
+         (display (free-identifier=? #'id1 #'id2))
+         #f)))))
+
+;; ALPHA and BETA are unbound here
+
+(doit alpha alpha)
+@print{} #t
+
+(doit alpha beta)
 @print{} #f
 @end example
 
-@noindent
-because if they are left free in the output form of the macro use, they
-are captured by different bindings; in the following macro uses, the
-identifiers are still @strong{not} @func{free-identifier=?}:
+Operationally, two identifiers are considered equivalent by
+@func{free-identifier=?} if and only if: the topmost matching
+substitution for each maps to the same binding or the identifiers have
+the same name and no matching substitution.  Let's consider this
+program:
 
 @example
+(import (rnrs))
+(let ((alpha 123))
+  (list alpha alpha))
+@end example
+
+@noindent
+if we substitute @samp{alpha} with @samp{beta} in the @func{let} form:
+
+@example
+(import (rnrs))
+(let ((beta 123))
+  (list beta beta))
+@end example
+
+@noindent
+we obtain an equivalent program; this is because the two @samp{alpha}
+identifiers in the @func{list} form of the original program are
+@func{free-identifier=?}.
+
+As last examples, notice that in the following program:
+
+@example
+(import (rnrs))
+
 (let ((alpha 123))
   (define beta alpha)
-  (doit alpha beta))
+  (list alpha beta))
+@end example
+
+@noindent
+@samp{alpha} and @samp{beta} in the @func{list} form are @strong{not}
+@func{free-identifiers=?}; in the following program:
+
+@example
+(import (rnrs))
 
 (let ((alpha 123))
   (let-syntax ((beta (identifier-syntax alpha)))
-    (doit alpha beta)))
+    (list alpha beta)))
 @end example
+
+@noindent
+@samp{alpha} and @samp{beta} in the @func{list} form are still
+@strong{not} @func{free-identifiers=?}.
 @end deffn
 
 
@@ -17049,13 +17090,47 @@ The @func{datum->syntax} procedure returns a syntax-object
 representation of @var{datum} that contains the same contextual
 information as @var{template-id}, with the effect that the syntax object
 behaves as if it were introduced into the code when @var{template-id}
-was introduced.
+was introduced.  Example:
+
+@example
+(library (lib)
+  (export doit-lib a-lib)
+  (import (rnrs))
+  (define a-lib 2)
+  (define b 22)
+  (define-syntax doit-lib
+    (lambda (stx)
+      (syntax-case stx ()
+        ((_ ?context)
+         #`(write #,(datum->syntax #'?context 'b)))))))
+
+(library (test)
+  (export)
+  (import (rnrs) (lib))
+  (define a 1)
+  (define b 11)
+  (define-syntax doit
+    (lambda (stx)
+      (syntax-case stx ()
+        ((_ ?context)
+         #`(write #,(datum->syntax #'?context 'b))))))
+
+  (doit     a)          @print{} 11
+  (doit     a-lib)      @print{} 11
+  (doit-lib a)          @print{} 11
+  (doit-lib a-lib)      @print{} 11
+  )
+@end example
+
+@noindent
+notice how we can reach the value of @code{b} from @library{lib} even
+though it was not exported.
 
 The @func{datum->syntax} procedure allows a transformer to ``bend''
 lexical scoping rules by creating @emph{implicit identifiers} that
 behave as if they were present in the input form, thus permitting the
-definition of macros that introduce visible bindings for or references
-to identifiers that do not appear explicitly in the input form.  For
+definition of macros that introduce visible bindings for, or references
+to, identifiers that do not appear explicitly in the input form.  For
 example, the following defines a @func{loop} expression that uses this
 controlled form of identifier capture to bind the variable @samp{break}
 to an escape procedure within the loop body.  (The derived
