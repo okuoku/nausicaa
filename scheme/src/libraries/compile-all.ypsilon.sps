@@ -103,7 +103,6 @@
   (only (infix sexp-parser))
   (only (infix string-parser))
   (only (infix))
-  (only (infix syntax))
 
   (only (packrat))
 

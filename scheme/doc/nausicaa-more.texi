@@ -1169,7 +1169,8 @@ Record types
 Infix notation utilities
 
 * infix strings::               Converting strings.
-* infix sexp::                  Converting S--expressions.
+* infix sexps::                 Converting S--expressions.
+* infix syntax::                Infix notation expressions.
 
 Parsing command line arguments
 
@@ -29785,14 +29786,14 @@ Marco Maggi <mrc.mgg@@here.it>;"))
 @chapter Infix notation utilities
 
 
-The @library{infix} and @library{infix syntax} libraries provide
-utilities to convert infix notation expressions to prefix notation
-expressions.  The libraries are built upon @library{silex lexer} and
-@library{lalr lr-driver}.
+The @library{infix} library provides utilities to convert infix notation
+expressions to prefix notation expressions; the library is built upon
+@library{nausicaa}, @library{silex lexer} and @library{lalr lr-driver}.
 
 @menu
 * infix strings::               Converting strings.
-* infix sexp::                  Converting S--expressions.
+* infix sexps::                 Converting S--expressions.
+* infix syntax::                Infix notation expressions.
 @end menu
 
 @c page
@@ -29809,7 +29810,7 @@ Examples:
 
 @example
 (infix-string->sexpr "1*2-3")   @result{} (- (* 1 2) 3)
-(infix-string->sexpr "1\\3")    @result{} (div 1 3)
+(infix-string->sexpr "1//3")    @result{} (div 1 3)
 (infix-string->sexpr "1%3")     @result{} (mod 1 3)
 (infix-string->sexpr "1^3")     @result{} (expt 1 3)
 
@@ -29844,8 +29845,8 @@ symbol          @{initial@}@{subsequent@}*
 @ref{silex syntax, Syntax of the specification}.
 
 @item
-The following binary, infix operators are supported, in order of
-increasing precedence from left to right:
+The following infix operators are supported, in order of increasing
+precedence from left to right:
 
 @example
 + - * / // % ^ < > <= >= =
@@ -29864,31 +29865,8 @@ the symbol is an open parenthesis, it is interpreted as function call.
 @end itemize
 
 @c page
-@node infix sexp
+@node infix sexps
 @section Converting S--expressions
-
-
-The function @func{infix->prefix} is exported by @library{infix}, but
-the macro @func{infix->prefix*} is exported by @library{infix syntax}.
-When there is no conflict, it is friendly to import these bindings with:
-
-@example
-(import (rnrs)
-  (rename (infix)        (infix->prefix  infix))
-  (rename (infix syntax) (infix->prefix* infix*)))
-@end example
-
-@noindent
-or shorter:
-
-@example
-(import (rnrs)
-  (rename (infix)        (infix->prefix  ifx))
-  (rename (infix syntax) (infix->prefix* ifx*)))
-@end example
-
-@noindent
-consider that often only @library{infix syntax} is needed.
 
 
 @defun infix->prefix @var{sexp-atom} ...
@@ -29925,52 +29903,13 @@ while applying it to multiple arguments looks like:
 @example
 (infix->prefix 1 '+ 2 '+ 3)     @result{} '(+ (+ 1 2) 3)
 @end example
-@end defun
-
-
-@deffn Syntax infix->prefix* @var{sexp-atom} ...
-Like @func{infix->prefix} but evaluates the result on the spot, in the
-lexical context of the macro use.  The syntax allows us to evaluate
-forms like:
-
-@example
-(/ (* (cos a) (tan b)) c)
-@result{} -0.39352735884466783
-
-(let ((a 1) (b 2) (c 3))
-  (infix->prefix* cos (a) * tan (b) / c))
-@result{} -0.39352735884466783
-@end example
-
-This macro is exported by @library{infix syntax}.
-@end deffn
-
-
-@deffn Syntax infix->prefix*/context @var{context-identifier} @var{sexp-atom} ...
-This is the core of @func{infix->prefix*}; it does the same things, but
-allows the expansion of the expression to take place in the lexical
-context of the identifier @var{context-identifier}, rather than in the
-lexical context of the use of @func{infix->prefix*}.
-
-This syntax is useful to define syntaxes making use of the infix
-transformation; @func{infix->prefix*} itself is implemented as:
-
-@example
-(define-syntax infix->prefix*
-  (lambda (stx)
-    (syntax-case stx ()
-       ((k . ?infix)
-       (syntax (infix->prefix*/context k ?infix))))))
-@end example
-@end deffn
-
 
 Some interpretation rules:
 
 @itemize
 @item
-The following binary, infix operators are supported, in order of
-increasing precedence from left to right:
+The following infix operators are supported, in order of increasing
+precedence from left to right:
 
 @example
 + - * / // % ^ < > <= >= =
@@ -30002,6 +29941,37 @@ Procedures are treated like non--operator symbols.
 @item
 Numbers and all ``the other'' values are just put there.
 @end itemize
+@end defun
+
+@c page
+@node infix syntax
+@section Infix notation expressions
+
+
+@deffn Syntax infix @var{sexp-atom} ...
+Like @func{infix->prefix} but evaluates the result on the spot, in the
+lexical context of the macro use.  The syntax allows us to evaluate
+forms like:
+
+@example
+(/ (* (cos a) (tan b)) c)
+@result{} -0.39352735884466783
+
+(let ((a 1) (b 2) (c 3))
+  (infix cos (a) * tan (b) / c))
+@result{} -0.39352735884466783
+
+(let ((a 1) (b 2) (c 3))
+  (infix (cos (a) * tan (b) / c)))
+@result{} -0.39352735884466783
+@end example
+
+As a special case @code{(infix)}, with no arguments given, is equivalent
+to @code{(values)}.
+
+The infix operators recognised by @func{infix} are both the bindings
+from @library{nausicaa} and the bindings from @func{rnrs}.
+@end deffn
 
 @c page
 @node getopts

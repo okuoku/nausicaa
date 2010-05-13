@@ -26,45 +26,19 @@
 
 
 (library (infix)
-  (export
-    infix-string->sexp
-    infix->prefix)
-  (import (rnrs)
+  (export infix-string->sexp infix->prefix infix)
+  (import (nausicaa)
+    (prefix (only (rnrs) + - * / < > <= >= =) rnrs:)
     (only (keywords) define-keywords)
     (silex lexer)
     (infix string-lexer)
-    (infix sexp-parser)
     (infix string-parser)
-    (parser-tools lexical-token)
-    (parser-tools source-location))
+    (parser-tools source-location)
+    (for (infix sexp-parser)		expand run)
+    (for (parser-tools lexical-token)	expand run)
+    (for (infix helpers)		expand run))
 
 (define-keywords :string :counters)
-
-
-;;;; helpers
-
-(define eoi-token
-  (make-<lexical-token> '*eoi* #f (eof-object) 0))
-
-(define ell-lparen-token
-  (list (make-<lexical-token> 'LPAREN #f #\( 0)))
-
-(define ell-rparen-token
-  (list (make-<lexical-token> 'RPAREN #f #\) 0)))
-
-(define (error-handler message token)
-  (error #f
-    (if (or (not (<lexical-token>? token))
-	    (not (<lexical-token>-location token)))
-	message
-      (let* ((position	(<lexical-token>-location token))
-	     (line	(<source-location>-line position))
-	     (column	(<source-location>-column position)))
-	(string-append
-	 message
-	 " line " (if line (number->string line) "unknown")
-	 " column " (if column (number->string column) "unknown"))))
-    token))
 
 
 (define (infix-string->sexp string)
@@ -75,7 +49,7 @@
 
 
 (define (infix->prefix . sexp)
-  (let* ((tokens	(infix-sexp->tokens sexp))
+  (let* ((tokens	(reverse (%infix-sexp->tokens sexp)))
 	 (lexer		(lambda ()
 			  (if (null? tokens)
 			      eoi-token
@@ -84,9 +58,6 @@
 			      t))))
 	 (parser	(make-infix-sexp-parser)))
     (parser lexer error-handler #f)))
-
-(define (infix-sexp->tokens expr)
-  (reverse (%infix-sexp->tokens expr)))
 
 (define (%infix-sexp->tokens expr)
   (do ((result '())
@@ -129,6 +100,86 @@
 			   result)))
 	    (else
 	     (make-<lexical-token> 'NUM #f atom 0))))))
+
+
+(define-syntax infix
+  (lambda (stx)
+    (define (%stx-list->tokens expr)
+      (define-syntax set-cons!
+	(syntax-rules ()
+	  ((_ ?name ?form)
+	   (set! ?name (cons ?form ?name)))))
+      (define-syntax set-append!
+	(syntax-rules ()
+	  ((_ ?name ?form ...)
+	   (set! ?name (append ?form ... ?name)))))
+      (do ((result '())
+	   (expr	(if (pair? expr) expr (list expr)) (cdr expr)))
+	  ((null? expr)
+	   result)
+	(let ((atom (car expr)))
+	  (cond ((number? atom)
+		 (set-cons! result (make-<lexical-token> 'NUM #f atom 0)))
+		((identifier? atom)
+		 (set-cons! result
+			    (cond
+			     ((or (free-identifier=? atom #'+)
+				  (free-identifier=? atom #'rnrs:+))
+			      (make-<lexical-token> 'ADD	#f atom 0))
+			     ((or (free-identifier=? atom #'-)
+				  (free-identifier=? atom #'rnrs:-))
+			      (make-<lexical-token> 'SUB	#f atom 0))
+			     ((or (free-identifier=? atom #'*)
+				  (free-identifier=? atom #'rnrs:*))
+			      (make-<lexical-token> 'MUL	#f atom 0))
+			     ((or (free-identifier=? atom #'/)
+				  (free-identifier=? atom #'rnrs:/))
+			      (make-<lexical-token> 'DIV	#f atom 0))
+			     ((free-identifier=? atom #'%)
+			      (make-<lexical-token> 'MOD	#f #'mod 0))
+			     ((free-identifier=? atom #'^)
+			      (make-<lexical-token> 'EXPT	#f #'expt 0))
+			     ((free-identifier=? atom #'//)
+			      (make-<lexical-token> 'DIV0	#f #'div 0))
+			     ((or (free-identifier=? atom #'<)
+				  (free-identifier=? atom #'rnrs:<))
+			      (make-<lexical-token> 'LT		#f #'< 0))
+			     ((or (free-identifier=? atom #'>)
+				  (free-identifier=? atom #'rnrs:>))
+			      (make-<lexical-token> 'GT		#f #'> 0))
+			     ((or (free-identifier=? atom #'<=)
+				  (free-identifier=? atom #'rnrs:<=))
+			      (make-<lexical-token> 'LE		#f #'<= 0))
+			     ((or (free-identifier=? atom #'>=)
+				  (free-identifier=? atom #'rnrs:>=))
+			      (make-<lexical-token> 'GE		#f #'>= 0))
+			     ((or (free-identifier=? atom #'=)
+				  (free-identifier=? atom #'rnrs:=))
+			      (make-<lexical-token> 'EQ		#f #'= 0))
+			     (else
+			      (make-<lexical-token> 'ID		#f atom 0)))))
+		((pair? atom)
+		 ;;Parentheses in reverse  order because the RESULT will
+		 ;;be reversed!!!
+		 (set-append! result ell-rparen-token (%stx-list->tokens atom) ell-lparen-token))
+		(else
+		 ;;Everything else  is just put there as  "NUM", that is
+		 ;;as operand.
+		 (make-<lexical-token> 'NUM #f atom 0))))))
+
+    (syntax-case stx ()
+      ((_ ?operand ...)
+       (let ((tokens	(reverse (%stx-list->tokens (syntax->list #'(?operand ...))))))
+	 (if (null? tokens)
+	     #'(values)
+	   ((make-infix-sexp-parser)		;parser function
+	    (lambda ()				;lexer function
+	      (if (null? tokens)
+		  eoi-token
+		(let ((t (car tokens)))
+		  (set! tokens (cdr tokens))
+		  t)))
+	    error-handler #f)))))))
 
 
 ;;;; done

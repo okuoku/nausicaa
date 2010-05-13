@@ -34,8 +34,8 @@
 (compile-library "cond-expand.larceny.sls"
 		 "cond-expand.larceny.slfasl")
 
-(compile-library "gensym.sls"
-		 "gensym.slfasl")
+(compile-library "gensym.larceny.sls"
+		 "gensym.larceny.slfasl")
 
 (compile-library "profiling/compat.larceny.sls"
 		 "profiling/compat.larceny.slfasl")
@@ -266,6 +266,9 @@
 
 ;;; --------------------------------------------------------------------
 
+(compile-library "infix/helpers.sls"
+ 		 "infix/helpers.slfasl")
+
 (compile-library "infix/string-lexer.sls"
  		 "infix/string-lexer.slfasl")
 
@@ -277,9 +280,6 @@
 
 (compile-library "infix.sls"
  		 "infix.slfasl")
-
-(compile-library "infix/syntax.sls"
- 		 "infix/syntax.slfasl")
 
 ;;; --------------------------------------------------------------------
 

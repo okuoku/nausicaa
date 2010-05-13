@@ -67,6 +67,10 @@ Notes for --- tag 0.2a0
   foreign C  structures, allowing access of  fields with dot
   notation.
 
+* Rewritten the infix-to-prefix notation syntax from (infix)
+  for  better  and  cleaner  hygiene support.   Removed  the
+  (infix syntax) library.
+
 
 Notes for 2010-03-28 tag 0.1a11
 -------------------------------
